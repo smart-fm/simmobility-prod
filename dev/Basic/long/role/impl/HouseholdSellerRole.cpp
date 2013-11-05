@@ -10,29 +10,52 @@
  */
 #include <cmath>
 #include "HouseholdSellerRole.hpp"
-#include "message/LT_Message.hpp"
-#include "agent/impl/HouseholdAgent.hpp"
 #include "util/Statistics.hpp"
 #include "util/Math.hpp"
+#include "agent/impl/HouseholdAgent.hpp"
+#include "model/HM_Model.hpp"
 #include "message/MessageBus.hpp"
-#include "boost/tuple/tuple.hpp"
 #include "model/lua/LuaProvider.hpp"
+#include "message/LT_Message.hpp"
+
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::messaging;
-using std::list;
+using std::vector;
 using std::endl;
 using sim_mob::Math;
 
 namespace {
     const int TIME_ON_MARKET = 10;
     const int TIME_INTERVAL = 7;
+
+    const std::string LOG_BID_RECEIVED = "Agent: [%1%] received a bid: [%2%] at [%3%].";
+
+    inline void printBid(const HouseholdAgent& agent, const Bid& bid,
+            const timeslice& now) {
+        boost::format fmtr = boost::format(LOG_BID_RECEIVED) % agent.getId() % bid % now.ms();
+        PrintOut(fmtr.str() << endl);
+    }
+
+    /**
+     * Decides over a given bid for a given expectation.
+     * @param bid given by the bidder.
+     * @return true if accepts the bid or false otherwise.
+     */
+    inline bool decide(const Bid& bid, const ExpectationEntry& entry) {
+        return bid.getValue() > entry.expectation;
+    }
+
+    inline void replyBid(const Bid& bid, const BidResponse& response) {
+        MessageBus::PostMessage(bid.getBidder(), LTMID_BID_RSP,
+                MessageBus::MessagePtr(new BidMessage(bid, response)));
+    }
 }
 
-HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent, Household* hh, 
-        HousingMarket* market)
-: LT_AgentRole(parent), market(market), hh(hh), currentTime(0, 0),
-hasUnitsToSale(true), currentExpectationIndex(0) {
+HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent)
+: LT_AgentRole(parent), currentTime(0, 0), hasUnitsToSale(true),
+currentExpectationIndex(0) {
+
 }
 
 HouseholdSellerRole::~HouseholdSellerRole() {
@@ -41,20 +64,21 @@ HouseholdSellerRole::~HouseholdSellerRole() {
 
 void HouseholdSellerRole::update(timeslice now) {
     if (hasUnitsToSale) {
-        list<Unit*> units;
-        getParent()->getUnits(units);
-        const HM_LuaModel& model = LuaProvider::getHM_Model();
-        for (list<Unit*>::iterator itr = units.begin(); itr != units.end();
-                itr++) {
+        const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
+        HM_Model* model = getParent()->getModel();
+        HousingMarket* market = getParent()->getMarket();
+        const vector<BigSerial>& unitIds = getParent()->getUnitIds();
+        //get values from parent.
+        const Unit* unit = nullptr;
+        for (vector<BigSerial>::const_iterator itr = unitIds.begin();
+                itr != unitIds.end(); itr++) {
             // Decides to put the house on market.
-            if ((*itr)->isAvailable()) {
-                double hedonicPrice = model.calculateHedonicPrice(*(*itr));
-                (*itr)->setHedonicPrice(hedonicPrice);
-                (*itr)->setAskingPrice(hedonicPrice);
-                calculateUnitExpectations(*(*itr));
-                // Put the asking price for given time.
-                market->addUnit((*itr));
-            }
+            BigSerial unitId = *itr;
+            unit = model->getUnitById(unitId);
+            double hedonicPrice = luaModel.calculateHedonicPrice(*unit);
+            calculateUnitExpectations(*unit);
+            market->addEntry(HousingMarket::Entry(getParent(), *unit,
+                    hedonicPrice, hedonicPrice));
         }
         hasUnitsToSale = false;
     }
@@ -76,116 +100,104 @@ void HouseholdSellerRole::update(timeslice now) {
 }
 
 void HouseholdSellerRole::HandleMessage(Message::MessageType type,
-                const Message& message) {
+        const Message& message) {
     switch (type) {
         case LTMID_BID:// Bid received 
         {
             const BidMessage& msg = MSG_CAST(BidMessage, message);
-            Unit* unit = getParent()->getUnitById(msg.getBid().getUnitId());
-            PrintOut("Seller: [" << getParent()->getId() <<
-                    "] received a bid: " << msg.getBid() <<
-                    " at day: " << currentTime.ms() << endl);
+            BigSerial unitId = msg.getBid().getUnitId();
             bool decision = false;
             ExpectationEntry entry;
-            if (unit && unit->isAvailable() && getCurrentExpectation(*unit, entry)) {
+            if (getCurrentExpectation(unitId, entry)) {
                 //verify if is the bid satisfies the asking price.
                 decision = decide(msg.getBid(), entry);
                 if (decision) {
                     //get the maximum bid of the day
-                    Bids::iterator bidItr = maxBidsOfDay.find(unit->getId());
+                    Bids::iterator bidItr = maxBidsOfDay.find(unitId);
                     Bid* maxBidOfDay = nullptr;
                     if (bidItr != maxBidsOfDay.end()) {
                         maxBidOfDay = &(bidItr->second);
                     }
 
                     if (!maxBidOfDay) {
-                        maxBidsOfDay.insert(BidEntry(unit->getId(),
-                                msg.getBid()));
+                        maxBidsOfDay.insert(BidEntry(unitId, msg.getBid()));
                     } else if (maxBidOfDay->getValue() < msg.getBid().getValue()) {
                         // bid is higher than the current one of the day.
                         // it is necessary to notify the old max bidder
                         // that his bid was not accepted.
                         //reply to sender.
-                        MessageBus::PostMessage(maxBidOfDay->getBidder(), LTMID_BID_RSP, 
-                                MessageBus::MessagePtr(new BidMessage(Bid(*maxBidOfDay), BETTER_OFFER)));
-                        maxBidsOfDay.erase(unit->getId());
+                        replyBid(*maxBidOfDay, BETTER_OFFER);
+                        maxBidsOfDay.erase(unitId);
                         //update the new bid and bidder.
-                        maxBidsOfDay.insert(BidEntry(unit->getId(), msg.getBid()));
+                        maxBidsOfDay.insert(BidEntry(unitId, msg.getBid()));
                     } else {
-                        MessageBus::PostMessage(msg.getBid().getBidder(), 
-                                LTMID_BID_RSP, MessageBus::MessagePtr(new BidMessage(Bid(msg.getBid()), 
-                                BETTER_OFFER)));
+                        replyBid(msg.getBid(), BETTER_OFFER);
                     }
                 } else {
-                    MessageBus::PostMessage(msg.getBid().getBidder(),LTMID_BID_RSP,
-                            MessageBus::MessagePtr(new BidMessage(Bid(msg.getBid()), NOT_ACCEPTED)));
+                    replyBid(msg.getBid(), NOT_ACCEPTED);
                 }
             } else {
                 // Sellers is not the owner of the unit or unit is not available.
-                MessageBus::PostMessage(msg.getBid().getBidder(), LTMID_BID_RSP,
-                        MessageBus::MessagePtr(new BidMessage(Bid(msg.getBid()), NOT_AVAILABLE)));
+                replyBid(msg.getBid(), NOT_AVAILABLE);
             }
             Statistics::increment(Statistics::N_BIDS);
+            //print bid.
+            printBid(*getParent(), msg.getBid(), currentTime);
             break;
         }
         default:break;
     }
 }
 
-bool HouseholdSellerRole::decide(const Bid& bid, const ExpectationEntry& entry) {
-    return bid.getValue() > entry.expectation;
-}
-
 void HouseholdSellerRole::adjustNotSelledUnits() {
-    list<Unit*> units;
-    getParent()->getUnits(units);
-    for (list<Unit*>::iterator itr = units.begin(); itr != units.end(); itr++) {
-        if ((*itr)->isAvailable()) {
-            adjustUnitParams((**itr));
-        }
-    }
-}
-
-void HouseholdSellerRole::adjustUnitParams(Unit& unit) {
+    HousingMarket* market = getParent()->getMarket();
+    HM_Model* model = getParent()->getModel();
+    const vector<BigSerial> unitIds = getParent()->getUnitIds();
+    const Unit* unit = nullptr;
+    const HousingMarket::Entry* unitEntry;
     ExpectationEntry entry;
-    if (getCurrentExpectation(unit, entry)) {
-        unit.setAskingPrice(entry.price);
+    for (vector<BigSerial>::const_iterator itr = unitIds.begin();
+            itr != unitIds.end(); itr++) {
+        BigSerial unitId = *itr;
+        unitEntry = market->getEntryById(unitId);
+        unit = model->getUnitById(unitId);
+        if (getCurrentExpectation(unitId, entry)) {
+            //IMPROVE THIS PLEASE.....
+            HousingMarket::Entry updatedEntry(*unitEntry);
+            updatedEntry.setAskingPrice(entry.price);
+            market->updateEntry(updatedEntry);
+        }
     }
 }
 
 void HouseholdSellerRole::notifyWinnerBidders() {
+    HousingMarket* market = getParent()->getMarket();
     for (Bids::iterator itr = maxBidsOfDay.begin(); itr != maxBidsOfDay.end();
             itr++) {
-        Bid* maxBidOfDay = &(itr->second);
-        MessageBus::PostMessage(maxBidOfDay->getBidder(), LTMID_BID_RSP, 
-                MessageBus::MessagePtr(new BidMessage(Bid(*maxBidOfDay), ACCEPTED)));
-        
-        Unit* unit = getParent()->getUnitById(maxBidOfDay->getUnitId());
-        if (unit && unit->isAvailable()) {
-            unit->setAvailable(false);
-            unit = getParent()->removeUnit(unit->getId());
-            // clean all expectations for the unit.
-            unitExpectations.erase(unit->getId());
-        }
+        Bid& maxBidOfDay = itr->second;
+        replyBid(maxBidOfDay, ACCEPTED);
+        market->removeEntry(maxBidOfDay.getUnitId());
+        getParent()->removeUnitId(maxBidOfDay.getUnitId());
+        unitExpectations.erase(maxBidOfDay.getUnitId());
     }
     // notify winners.
     maxBidsOfDay.clear();
 }
 
 void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit) {
+    const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
     ExpectationList expectationList;
-    LuaProvider::getHM_Model().calulateUnitExpectations(unit, TIME_ON_MARKET, expectationList);
-    
+    luaModel.calulateUnitExpectations(unit, TIME_ON_MARKET, expectationList);
     unitExpectations.erase(unit.getId());
     unitExpectations.insert(ExpectationMapEntry(unit.getId(), expectationList));
 
     for (int i = 0; i < TIME_ON_MARKET; i++) {
-       PrintOut("Seller:["<< hh->getId() << "] Price:[" << expectationList[i].price << "] Expectation:[" << expectationList[i].expectation << "]." << endl);
+        PrintOut("Seller:[" << getParent()->getId() << "] Price:[" << expectationList[i].price << "] Expectation:[" << expectationList[i].expectation << "]." << endl);
     }
 }
 
-bool HouseholdSellerRole::getCurrentExpectation(const Unit& unit, ExpectationEntry& outEntry) {
-    ExpectationMap::iterator expectations = unitExpectations.find(unit.getId());
+bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId, ExpectationEntry& outEntry) {
+    ExpectationMap::iterator expectations = unitExpectations.find(unitId);
     if (expectations != unitExpectations.end()) {
         if (currentExpectationIndex < expectations->second.size()) {
             ExpectationEntry expectation = expectations->second.at(currentExpectationIndex);

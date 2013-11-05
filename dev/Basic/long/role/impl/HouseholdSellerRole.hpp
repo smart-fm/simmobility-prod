@@ -11,16 +11,18 @@
 #pragma once
 
 #include <boost/unordered_map.hpp>
-#include "database/entity/Bid.hpp"
 #include "role/LT_Role.hpp"
+#include "database/entity/Bid.hpp"
 #include "database/entity/Household.hpp"
-#include "core/HousingMarket.hpp"
+#include "database/entity/Unit.hpp"
 
 namespace sim_mob {
 
     namespace long_term {
 
         class HouseholdAgent;
+        class HM_Model;
+        class HousingMarket;
 
         /**
          * Household Seller role.
@@ -31,8 +33,7 @@ namespace sim_mob {
          */
         class HouseholdSellerRole : public LT_AgentRole<HouseholdAgent> {
         public:
-            HouseholdSellerRole(HouseholdAgent* parent, Household* hh, 
-                    HousingMarket* market);
+            HouseholdSellerRole(HouseholdAgent* parent);
             virtual ~HouseholdSellerRole();
 
             /**
@@ -49,20 +50,7 @@ namespace sim_mob {
                 const messaging::Message& message);
 
         private:
-            
-            /**
-             * Decides over a given bid for a given unit.
-             * @param bid given by the bidder.
-             * @return true if accepts the bid or false otherwise.
-             */
-            bool decide(const Bid& bid, const ExpectationEntry& entry);
-            
-            /**
-             * Adjust the unit parameters for the next bids. 
-             * @param unit
-             */
-            void adjustUnitParams(Unit& unit);
-            
+            friend class HouseholdAgent;
             /**
              * Notify the bidders that have their bid were accepted.
              */
@@ -82,23 +70,20 @@ namespace sim_mob {
         
             /**
              * Gets current expectation entry for given unit.
-             * @param unit to get the expectation.
+             * @param unitId to get the expectation.
              * @param outEntry (outParameter) to fill with the expectation. 
              *        If it not exists the values should be 0.
              * @return true if exists valid expectation, false otherwise.
              */
-            bool getCurrentExpectation(const Unit& unit, ExpectationEntry& outEntry);
+            bool getCurrentExpectation(const BigSerial& unitId, ExpectationEntry& outEntry);
         private:
 
             typedef std::vector<ExpectationEntry> ExpectationList;
-            typedef std::pair<UnitId, ExpectationList> ExpectationMapEntry; 
-            typedef boost::unordered_map<UnitId, ExpectationList> ExpectationMap; 
-            typedef boost::unordered_map<UnitId, Bid> Bids;
-            typedef std::pair<UnitId, Bid> BidEntry;
+            typedef std::pair<BigSerial, ExpectationList> ExpectationMapEntry; 
+            typedef boost::unordered_map<BigSerial, ExpectationList> ExpectationMap; 
+            typedef boost::unordered_map<BigSerial, Bid> Bids;
+            typedef std::pair<BigSerial, Bid> BidEntry;
             
-            friend class HouseholdAgent;
-            HousingMarket* market;
-            Household* hh;
             timeslice currentTime;
             volatile bool hasUnitsToSale;
             //Current max bid information.

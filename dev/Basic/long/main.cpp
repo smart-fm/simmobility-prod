@@ -13,37 +13,16 @@
 #include <vector>
 #include <ctime>
 #include <unistd.h>
-#include "boost/tuple/tuple.hpp"
 
 #include "GenConfig.h"
 //#include "tinyxml.h"
 
-#include "entities/roles/RoleFactory.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
-#include "entities/AuraManager.hpp"
-#include "unit-tests/dao/DaoTests.hpp"
-#include "agent/impl/HouseholdAgent.hpp"
-#include "util/Utils.hpp"
-#include "util/Math.hpp"
-#include "util/Statistics.hpp"
 
-
-//DAOs
-#include "database/dao/GlobalParamsDao.hpp"
-#include "database/dao/UnitTypeDao.hpp"
-#include "database/dao/HouseholdDao.hpp"
-#include "database/dao/BuildingDao.hpp"
-#include "database/dao/UnitDao.hpp"
-#include "database/dao/BuildingTypeDao.hpp"
-#include "message/MessageBus.hpp"
-#include "event/SystemEvents.hpp"
-
-
-#include "agent/TestAgent.hpp"
 #include "model/HM_Model.hpp"
 #include "Common.hpp"
 
@@ -73,13 +52,6 @@ const int DAYS = 365;
 const int WORKERS = 1;
 const int DATA_SIZE = 30;
 
-/**
- * Runs all unit-tests.
- */
-void RunTests() {
-    unit_tests::DaoTests tests;
-    tests.testAll();
-}
 
 int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulationTime) {
     PrintOut("#################### LONG-TERM SIMULATION ####################" << endl);

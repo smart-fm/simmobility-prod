@@ -120,7 +120,7 @@ namespace sim_mob {
             }
         };
 
-        typedef SingletonHolder<LT_Config, ConfigLifeCycle> ConfigSingleton;
+        typedef SingletonHolder<LT_Config, ConfigLifeCycle> LT_ConfigSingleton;
     }
 }
 

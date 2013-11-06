@@ -14,6 +14,7 @@
 #include <list>
 #include <string>
 #include <utility>
+#include <sstream>
 //#include <sys/time.h>
 
 //NOTE: This is a Linux-only class. We need to ifdef it out if not available 

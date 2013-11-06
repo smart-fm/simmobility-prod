@@ -1214,11 +1214,16 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		}
 
 		//TODO: Start in lane 0?
-		int startlaneID = 0;
+		int startLaneId = 0;
 
 		if(parentP->laneID != -1)
 		{
-			startlaneID = parentP->laneID;//need to check if lane valid
+			// path[1] is currently the starting segment from the shortest driving path algorithm
+			if(path[1].type_ == WayPoint::ROAD_SEGMENT) {
+				if(parent->laneID >= 0 && parent->laneID < path[1].roadSegment_->getLanes().size()) {
+					startLaneId = parentP->laneID;//need to check if lane valid
+				}
+			}
 			parentP->laneID = -1;
 		}
 
@@ -1228,7 +1233,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 
 		//A non-null vehicle means we are moving.
 		if (allocateVehicle) {
-			res = new Vehicle(path, startlaneID, length, width);
+			res = new Vehicle(path, startLaneId, length, width);
 		}
 
 		if(subTrip->schedule && res){

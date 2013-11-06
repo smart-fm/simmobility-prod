@@ -8,6 +8,7 @@
  */
 
 #include "LT_Config.hpp"
+#include "util/Utils.hpp"
 #include <boost/property_tree/ptree.hpp>
 
 
@@ -16,6 +17,9 @@ using namespace sim_mob::long_term;
 using std::string;
 
 namespace {
+
+    const unsigned int MIN_DAYS = 0;
+    const unsigned int MAX_DAYS = 365;
 
     //sections
     const string SECTION_GLOBAL = "global";
@@ -75,7 +79,8 @@ void HM_Config::setTimeOnMarket(unsigned int timeOnMarket) {
 }
 
 void HM_Config::loadImpl(const boost::property_tree::ptree& tree) {
-    this->timeOnMarket = tree.get<unsigned int>(toProp(getSection(), PROP_TIME_ON_MARKET));
+    timeOnMarket = tree.get<unsigned int>(toProp(getSection(), PROP_TIME_ON_MARKET));
+    timeOnMarket = Utils::clamp<unsigned int>(timeOnMarket, MIN_DAYS, MAX_DAYS);
 }
 
 /**

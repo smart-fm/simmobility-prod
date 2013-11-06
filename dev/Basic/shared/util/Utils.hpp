@@ -54,6 +54,19 @@ namespace sim_mob {
         //Helper for XML parsing. Source value looks like this: "3000 : 6000", spaces optional.
         //\todo This is mostly in the wrong place; our whole "util" directory needs some reorganization.
         static std::pair<double, double> parse_scale_minmax(const std::string& src);
+        
+        /**
+         * Restricts a value to be within a specified range.
+         * @param value to clamp
+         * @param min The minimum value. 
+         * @param max The maximum value. 
+         * @return If value is less than min, min will be returned,
+         * If value is greater than max, max will be returned, otherwise returns
+         * value.
+         */
+        template<typename T> static T clamp(const T& value, const T& min, const T& max) {
+            return (value < min) ? min : (value > max) ? max : value;
+        }
     };
 
     /**

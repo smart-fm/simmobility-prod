@@ -11,23 +11,16 @@
 
 //#include "CLIENTDONE_Handler.hpp"
 #include "CLIENTDONE_Message.hpp"
-namespace sim_mob {
-class Handler;
 
-namespace roadrunner
-{
-class HDL_CLIENTDONE;
+using namespace sim_mob;
 
-MSG_CLIENTDONE::MSG_CLIENTDONE(Json::Value& data_): /*Roadrunner*/Message(data_)
-{
+sim_mob::roadrunner::MSG_CLIENTDONE::MSG_CLIENTDONE(sim_mob::comm::MsgData& data_): Message(data_)
+{}
 
-}
-Handler * MSG_CLIENTDONE::newHandler()
+Handler * sim_mob::roadrunner::MSG_CLIENTDONE::newHandler()
 {
 	return 0;
 }
-}/* namespace roadrunner */
-} /* namespace sim_mob */
 
 
 

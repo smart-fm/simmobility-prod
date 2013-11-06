@@ -11,20 +11,16 @@
 
 #pragma once
 
+#include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/message/base/Message.hpp"
-
-//#include "CLIENTDONE_Handler.hpp"
-//#include "entities/commsim/message/derived/roadrunner-androidRoadrunnerMessage.hpp"
 
 namespace sim_mob {
 namespace rr_android_ns3 {
 
 class MSG_CLIENTDONE : public sim_mob::comm::Message {
-	//...
 public:
+	MSG_CLIENTDONE(sim_mob::comm::MsgData& data_);
 	Handler * newHandler();
-	MSG_CLIENTDONE(Json::Value& data_);
 };
 
-}/* namespace rr_android_ns3 */
-} /* namespace sim_mob */
+}}

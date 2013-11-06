@@ -9,24 +9,21 @@
  *      Author: vahid
  */
 
-//#include "CLIENTDONE_Handler.hpp"
 #include "client_done_message.hpp"
-namespace sim_mob {
-class Handler;
 
-namespace rr_android_ns3
-{
+#include "util/LangHelpers.hpp"
+
+using namespace sim_mob;
+
 class HDL_CLIENTDONE;
-MSG_CLIENTDONE::MSG_CLIENTDONE(Json::Value& data_): Message(data_)
-{
 
-}
-Handler * MSG_CLIENTDONE::newHandler()
+sim_mob::rr_android_ns3::MSG_CLIENTDONE::MSG_CLIENTDONE(sim_mob::comm::MsgData& data_): Message(data_)
+{}
+
+Handler* sim_mob::rr_android_ns3::MSG_CLIENTDONE::newHandler()
 {
-	return 0;
+	return nullptr;;
 }
-}/* namespace rr_android_ns3 */
-} /* namespace sim_mob */
 
 
 

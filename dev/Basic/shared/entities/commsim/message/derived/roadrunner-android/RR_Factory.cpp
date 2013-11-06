@@ -10,15 +10,17 @@
  */
 
 #include "RR_Factory.hpp"
+
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
 #include <json/json.h>
 #include <stdexcept>
+
 #include "logging/Log.hpp"
 
-namespace sim_mob {
-namespace roadrunner {
+using namespace sim_mob;
 
-RR_Factory::RR_Factory() {
+sim_mob::roadrunner::RR_Factory::RR_Factory()
+{
 	//Doing it manually; C++1 doesn't like the boost assignment.
 	MessageMap.clear();
 	MessageMap["MULTICAST"] = MULTICAST;
@@ -27,9 +29,13 @@ RR_Factory::RR_Factory() {
 
 	//MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE)/*("ANNOUNCE",ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND)*/;
 }
-RR_Factory::~RR_Factory() {}
+
+sim_mob::roadrunner::RR_Factory::~RR_Factory()
+{}
+
 //gets a handler either from a chche or by creating a new one
-boost::shared_ptr<sim_mob::Handler>  RR_Factory::getHandler(MessageType type){
+boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RR_Factory::getHandler(MessageType type)
+{
 	boost::shared_ptr<sim_mob::Handler> handler;
 	//if handler is already registered && the registered handler is not null
 	std::map<MessageType, boost::shared_ptr<sim_mob::Handler> >::iterator it = HandlerMap.find(type);
@@ -65,7 +71,7 @@ boost::shared_ptr<sim_mob::Handler>  RR_Factory::getHandler(MessageType type){
 
 //creates a message with correct format + assigns correct handler
 //todo improve the function to handle array of messages stored in the input string
- bool RR_Factory::createMessage(std::string &input, std::vector<msg_ptr>& output)
+bool sim_mob::roadrunner::RR_Factory::createMessage(std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
 {
 //	std::vector<msg_t> result;
 	std::string type, data;
@@ -89,7 +95,7 @@ boost::shared_ptr<sim_mob::Handler>  RR_Factory::getHandler(MessageType type){
 		switch (MessageMap[messageHeader.msg_type]) {
 		case MULTICAST:{
 			//create a message
-			msg_ptr msg(new sim_mob::roadrunner::MSG_MULTICAST(curr_json));
+			sim_mob::comm::MsgPtr msg(new sim_mob::roadrunner::MSG_MULTICAST(curr_json));
 			//... and then assign the handler pointer to message's member
 			msg->setHandler(getHandler(MULTICAST));
 			output.push_back(msg);
@@ -97,7 +103,7 @@ boost::shared_ptr<sim_mob::Handler>  RR_Factory::getHandler(MessageType type){
 		}
 		case UNICAST:{
 			//create a message
-			msg_ptr msg(new sim_mob::roadrunner::MSG_UNICAST(curr_json));
+			sim_mob::comm::MsgPtr msg(new sim_mob::roadrunner::MSG_UNICAST(curr_json));
 			//... and then assign the handler pointer to message's member
 			msg->setHandler(getHandler(UNICAST));
 			output.push_back(msg);
@@ -105,7 +111,7 @@ boost::shared_ptr<sim_mob::Handler>  RR_Factory::getHandler(MessageType type){
 		}
 		case CLIENT_MESSAGES_DONE:{
 			//create a message
-			msg_ptr msg(new sim_mob::roadrunner::MSG_CLIENTDONE(curr_json));
+			sim_mob::comm::MsgPtr msg(new sim_mob::roadrunner::MSG_CLIENTDONE(curr_json));
 			//... and then assign the handler pointer to message's member
 //			msg->setHandler(getHandler()); no handler!
 			output.push_back(msg);
@@ -120,6 +126,3 @@ boost::shared_ptr<sim_mob::Handler>  RR_Factory::getHandler(MessageType type){
 
 	return true;
 }
-
-} /* namespace roadrunner */
-} /* namespace sim_mob */

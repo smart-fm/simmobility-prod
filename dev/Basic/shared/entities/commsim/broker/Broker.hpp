@@ -4,26 +4,29 @@
 
 #pragma once
 
-#include "entities/Agent.hpp"
-#include "entities/commsim/client/base/ClientRegistration.hpp"
-#include "entities/commsim/service/services.hpp"
-#include "entities/commsim/message/base/Message.hpp"
-#include "entities/commsim/message/base/Handler.hpp"
-#include "entities/commsim/buffer/BufferContainer.hpp"
-#include "workers/Worker.hpp"
-//external libraries
 #include <boost/thread/condition_variable.hpp>
 #include <boost/unordered_map.hpp>
 
-#include "Broker-util.hpp"
+#include "entities/Agent.hpp"
+#include "entities/commsim/client/base/ClientRegistration.hpp"
+#include "entities/commsim/service/services.hpp"
+#include "entities/commsim/message/Types.hpp"
+#include "entities/commsim/message/base/Message.hpp"
+#include "entities/commsim/message/base/MessageQueue.hpp"
+#include "entities/commsim/message/base/Handler.hpp"
+#include "entities/commsim/buffer/BufferContainer.hpp"
+#include "workers/Worker.hpp"
+#include "entities/commsim/broker/Broker-util.hpp"
 
-namespace sim_mob
-{
+namespace sim_mob {
+
 //Forward Declarations
 template <class RET,class MSG>
 class MessageFactory;
+
 template<class T>
 class Message;
+
 class AgentCommUtilityBase;
 class Publisher;
 class ConnectionHandler;
@@ -32,22 +35,15 @@ class ClientHandler;
 class BrokerBlocker;
 
 
-//struct AgentsMap
-//{
-//	typedef boost::unordered_map<const sim_mob::Agent *, AgentCommUtilityBase* > type;
-//	typedef typename boost::unordered_map<const sim_mob::Agent *, AgentCommUtilityBase* >::iterator iterator;
-//	typedef std::pair<const sim_mob::Agent *, AgentCommUtilityBase* > pair;
-//};
-
  //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
 struct MessageElement{
-typedef boost::tuple<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::msg_ptr > type;
+typedef boost::tuple<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::comm::MsgPtr > type;
 };
 
 struct MessageFactories{
-typedef std::map<unsigned int ,boost::shared_ptr<MessageFactory<std::vector<msg_ptr>&, std::string&> > > type;//<client type, roadrunner message factory>
-typedef std::map<unsigned int ,boost::shared_ptr<MessageFactory<std::vector<msg_ptr>&, std::string&> > >::iterator iterator;
-typedef std::pair<unsigned int ,boost::shared_ptr<MessageFactory<std::vector<msg_ptr>&, std::string&> > > pair;
+typedef std::map<unsigned int ,boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > > type;//<client type, roadrunner message factory>
+typedef std::map<unsigned int ,boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > >::iterator iterator;
+typedef std::pair<unsigned int ,boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > > pair;
 };
 
 struct PublisherList{

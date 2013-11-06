@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * UNICAST_Message.cpp
  *
@@ -6,28 +10,24 @@
  */
 
 #include "unicast_message.hpp"
+
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 
-namespace sim_mob {
-class Handler;
+using namespace sim_mob;
 
-namespace rr_android_ns3
-{
-/***************************************************************************************************************************************************
- *****************************   ANDROID   ************************************************************************************************************
- **************************************************************************************************************************************************/
-ANDROID_MSG_UNICAST::ANDROID_MSG_UNICAST(Json::Value& data_): Message(data_)
-{
 
-}
-Handler * ANDROID_MSG_UNICAST::newHandler()
+sim_mob::rr_android_ns3::ANDROID_MSG_UNICAST::ANDROID_MSG_UNICAST(sim_mob::comm::MsgData& data_): Message(data_)
+{}
+
+Handler* sim_mob::rr_android_ns3::ANDROID_MSG_UNICAST::newHandler()
 {
 	return new ANDROID_HDL_UNICAST();
 }
 
-//handler implementation
 
-void ANDROID_HDL_UNICAST::handle(msg_ptr message_,Broker* broker){
+//handler implementation
+void sim_mob::rr_android_ns3::ANDROID_HDL_UNICAST::handle(sim_mob::comm::MsgPtr message_,Broker* broker)
+{
 	//steps:
 		/*
 		 * 1- Find the sending and destination node ids in ns3
@@ -35,7 +35,7 @@ void ANDROID_HDL_UNICAST::handle(msg_ptr message_,Broker* broker){
 		 * 3- insert the message into send buffer
 		 */
 	//	step-1: Find the target agent and the corresponding client handler
-		Json::Value &data = message_->getData();
+	sim_mob::comm::MsgData &data = message_->getData();
 		sim_mob::msg_header msg_header_;
 		if(!sim_mob::JsonParser::parseMessageHeader(data,msg_header_))
 		{
@@ -96,25 +96,19 @@ void ANDROID_HDL_UNICAST::handle(msg_ptr message_,Broker* broker){
 		broker->insertSendBuffer(ns3_clnHandler->cnnHandler,data);
 }
 
-/***************************************************************************************************************************************************
- *****************************   NS3   ************************************************************************************************************
- **************************************************************************************************************************************************/
-NS3_MSG_UNICAST::NS3_MSG_UNICAST(Json::Value& data_): Message(data_)
-{
 
-}
-Handler * NS3_MSG_UNICAST::newHandler()
+sim_mob::rr_android_ns3::NS3_MSG_UNICAST::NS3_MSG_UNICAST(sim_mob::comm::MsgData& data_): Message(data_)
+{}
+
+Handler* sim_mob::rr_android_ns3::NS3_MSG_UNICAST::newHandler()
 {
 	return new NS3_HDL_UNICAST();
 }
 
 //handler implementation
-
-void NS3_HDL_UNICAST::handle(msg_ptr message_,Broker* broker){
-
+void sim_mob::rr_android_ns3::NS3_HDL_UNICAST::handle(sim_mob::comm::MsgPtr message_,Broker* broker)
+{
 }
-}/* namespace rr_android_ns3 */
-} /* namespace sim_mob */
 
 
 

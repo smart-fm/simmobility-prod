@@ -11,29 +11,26 @@
 
 #pragma once
 
-//#include "entities/commsim/message/derived/roadrunner-androidRoadrunnerMessage.hpp"
-
+#include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/message/base/Message.hpp"
 #include "entities/commsim/message/base/Handler.hpp"
 
 namespace sim_mob {
+class Broker;
+
 namespace roadrunner {
 
-//class MSG_MULTICAST : public sim_mob::roadrunner::RoadrunnerMessage {
 class MSG_MULTICAST : public sim_mob::comm::Message {
-	//...
 public:
-	Handler * newHandler();
-	MSG_MULTICAST(Json::Value data_);
+	MSG_MULTICAST(sim_mob::comm::MsgData data_);
+	sim_mob::Handler * newHandler();
 };
 
 
 //Handler for the above message
-class HDL_MULTICAST : public Handler {
-
+class HDL_MULTICAST : public sim_mob::Handler {
 public:
-	void handle(msg_ptr message_,Broker*);
+	void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker);
 };
 
-}/* namespace roadrunner */
-} /* namespace sim_mob */
+}}

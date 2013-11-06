@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * RRMSGFactory.cpp
  *
@@ -6,24 +10,28 @@
  */
 
 #include "roadrunner_android_factory.hpp"
-#include <boost/assign/list_of.hpp> // for 'map_list_of()'
+
+#include <boost/assign/list_of.hpp>
 #include <json/json.h>
 #include <stdexcept>
+
 #include "logging/Log.hpp"
 
-namespace sim_mob {
-namespace rr_android_ns3 {
-/***************************************************************************************************************************************************
- *****************************   ANDROID   ************************************************************************************************************
- **************************************************************************************************************************************************/
-RR_Android_Factory::RR_Android_Factory() {
-	// TODO Auto-generated constructor stub
-	MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE);
+using namespace sim_mob;
 
+
+sim_mob::rr_android_ns3::RR_Android_Factory::RR_Android_Factory()
+{
+	MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE);
 }
-RR_Android_Factory::~RR_Android_Factory() {}
+
+
+sim_mob::rr_android_ns3::RR_Android_Factory::~RR_Android_Factory()
+{}
+
 //gets a handler either from a chche or by creating a new one
-boost::shared_ptr<sim_mob::Handler>  RR_Android_Factory::getHandler(MessageType type){
+boost::shared_ptr<sim_mob::Handler>  sim_mob::rr_android_ns3::RR_Android_Factory::getHandler(MessageType type)
+{
 	boost::shared_ptr<sim_mob::Handler> handler;
 	//if handler is already registered && the registered handler is not null
 	std::map<MessageType, boost::shared_ptr<sim_mob::Handler> >::iterator it = HandlerMap.find(type);
@@ -59,7 +67,7 @@ boost::shared_ptr<sim_mob::Handler>  RR_Android_Factory::getHandler(MessageType 
 
 //creates a message with correct format + assigns correct handler
 //todo improve the function to handle array of messages stored in the input string
- bool RR_Android_Factory::createMessage(std::string &input, std::vector<msg_ptr>& output)
+bool sim_mob::rr_android_ns3::RR_Android_Factory::createMessage(std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
 {
 //	std::vector<msg_t> result;
 //	 Print() << "inside RR_Android_Factory::createMessage" << std::endl;
@@ -86,7 +94,7 @@ boost::shared_ptr<sim_mob::Handler>  RR_Android_Factory::getHandler(MessageType 
 		switch (MessageMap[messageHeader.msg_type]) {
 		case MULTICAST:{
 			//create a message
-			msg_ptr msg(new sim_mob::rr_android_ns3::ANDROID_MSG_MULTICAST(curr_json));
+			sim_mob::comm::MsgPtr msg(new sim_mob::rr_android_ns3::ANDROID_MSG_MULTICAST(curr_json));
 			//... and then assign the handler pointer to message's member
 			msg->setHandler(getHandler(MULTICAST));
 			output.push_back(msg);
@@ -94,7 +102,7 @@ boost::shared_ptr<sim_mob::Handler>  RR_Android_Factory::getHandler(MessageType 
 		}
 		case UNICAST:{
 			//create a message
-			msg_ptr msg(new sim_mob::rr_android_ns3::ANDROID_MSG_UNICAST(curr_json));
+			sim_mob::comm::MsgPtr msg(new sim_mob::rr_android_ns3::ANDROID_MSG_UNICAST(curr_json));
 			//... and then assign the handler pointer to message's member
 			msg->setHandler(getHandler(UNICAST));
 			output.push_back(msg);
@@ -102,7 +110,7 @@ boost::shared_ptr<sim_mob::Handler>  RR_Android_Factory::getHandler(MessageType 
 		}
 		case CLIENT_MESSAGES_DONE:{
 			//create a message
-			msg_ptr msg(new sim_mob::rr_android_ns3::MSG_CLIENTDONE(curr_json));
+			sim_mob::comm::MsgPtr msg(new sim_mob::rr_android_ns3::MSG_CLIENTDONE(curr_json));
 			//... and then assign the handler pointer to message's member
 //			msg->setHandler(getHandler()); no handler!
 			output.push_back(msg);
@@ -117,19 +125,19 @@ boost::shared_ptr<sim_mob::Handler>  RR_Android_Factory::getHandler(MessageType 
 
 	return true;
 }
- /***************************************************************************************************************************************************
-  *****************************   NS3   ************************************************************************************************************
-  **************************************************************************************************************************************************/
 
- RR_NS3_Factory::RR_NS3_Factory() {
- 	// TODO Auto-generated constructor stub
- 	MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE);
 
- }
- RR_NS3_Factory::~RR_NS3_Factory() {}
- //gets a handler either from a chche or by creating a new one
- boost::shared_ptr<sim_mob::Handler>  RR_NS3_Factory::getHandler(MessageType type){
-	 boost::shared_ptr<sim_mob::Handler> handler;
+sim_mob::rr_android_ns3::RR_NS3_Factory::RR_NS3_Factory() {
+	MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE);
+}
+
+sim_mob::rr_android_ns3::RR_NS3_Factory::~RR_NS3_Factory()
+{}
+
+//gets a handler either from a chche or by creating a new one
+boost::shared_ptr<sim_mob::Handler>  sim_mob::rr_android_ns3::RR_NS3_Factory::getHandler(MessageType type)
+{
+	boost::shared_ptr<sim_mob::Handler> handler;
  	//if handler is already registered && the registered handler is not null
  	std::map<MessageType, boost::shared_ptr<sim_mob::Handler> >::iterator it = HandlerMap.find(type);
  	if((it != HandlerMap.end())&&((*it).second!= 0))
@@ -162,12 +170,13 @@ boost::shared_ptr<sim_mob::Handler>  RR_Android_Factory::getHandler(MessageType 
  	return handler;
  }
 
- //creates a message with correct format + assigns correct handler
- //todo improve the function to handle array of messages stored in the input string
-  bool RR_NS3_Factory::createMessage(std::string &input, std::vector<msg_ptr>& output)
- {
- //	std::vector<msg_t> result;
- //	 Print() << "inside RR_NS3_Factory::createMessage" << std::endl;
+
+//creates a message with correct format + assigns correct handler
+//todo improve the function to handle array of messages stored in the input string
+bool sim_mob::rr_android_ns3::RR_NS3_Factory::createMessage(std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
+{
+	//	std::vector<msg_t> result;
+	//	 Print() << "inside RR_NS3_Factory::createMessage" << std::endl;
  	std::string type, data;
  	Json::Value root;
  	sim_mob::pckt_header packetHeader;
@@ -191,7 +200,7 @@ boost::shared_ptr<sim_mob::Handler>  RR_Android_Factory::getHandler(MessageType 
  		switch (MessageMap[messageHeader.msg_type]) {
  		case MULTICAST:{
  			//create a message
- 			msg_ptr msg(new sim_mob::rr_android_ns3::NS3_MSG_MULTICAST(curr_json));
+ 			sim_mob::comm::MsgPtr msg(new sim_mob::rr_android_ns3::NS3_MSG_MULTICAST(curr_json));
  			//... and then assign the handler pointer to message's member
  			msg->setHandler(getHandler(MULTICAST));
  			output.push_back(msg);
@@ -199,7 +208,7 @@ boost::shared_ptr<sim_mob::Handler>  RR_Android_Factory::getHandler(MessageType 
  		}
  		case UNICAST:{
  			//create a message
- 			msg_ptr msg(new sim_mob::rr_android_ns3::NS3_MSG_UNICAST(curr_json));
+ 			sim_mob::comm::MsgPtr msg(new sim_mob::rr_android_ns3::NS3_MSG_UNICAST(curr_json));
  			//... and then assign the handler pointer to message's member
  			msg->setHandler(getHandler(UNICAST));
  			output.push_back(msg);
@@ -207,7 +216,7 @@ boost::shared_ptr<sim_mob::Handler>  RR_Android_Factory::getHandler(MessageType 
  		}
  		case CLIENT_MESSAGES_DONE:{
  			//create a message
- 			msg_ptr msg(new sim_mob::rr_android_ns3::MSG_CLIENTDONE(curr_json));
+ 			sim_mob::comm::MsgPtr msg(new sim_mob::rr_android_ns3::MSG_CLIENTDONE(curr_json));
  			//... and then assign the handler pointer to message's member
  //			msg->setHandler(getHandler()); no handler!
  			output.push_back(msg);
@@ -221,6 +230,5 @@ boost::shared_ptr<sim_mob::Handler>  RR_Android_Factory::getHandler(MessageType 
  	}		//for loop
 
  	return true;
- }
-} /* namespace rr_android_ns3 */
-} /* namespace sim_mob */
+}
+

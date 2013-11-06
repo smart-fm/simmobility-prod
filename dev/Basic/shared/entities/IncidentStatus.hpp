@@ -53,11 +53,6 @@ public:
       */
 	void resetStatus();
 
-    /**
-      * generate a random number.
-      * @return a random number .
-      */
-	double urandom();
 
 public:
 	//record next lane index for lane changing model

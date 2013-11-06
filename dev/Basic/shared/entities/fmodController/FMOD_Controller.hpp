@@ -11,7 +11,7 @@
 
 #ifndef FMODCONTROLLER_HPP_
 #define FMODCONTROLLER_HPP_
-#include "TCPClient.hpp"
+#include "FMOD_Client.hpp"
 #include "ParkingCoordinator.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/Agent.hpp"
@@ -22,10 +22,14 @@ namespace FMOD
 {
 
 struct Request;
-class FMODController : public sim_mob::Agent {
+
+/**
+  * provide collaboration with FMOD simulator
+  */
+class FMOD_Controller : public sim_mob::Agent {
 public:
 
-	virtual ~FMODController();
+	virtual ~FMOD_Controller();
 
     /**
       * insert a new trip chain with FMOD mode into collection
@@ -33,7 +37,7 @@ public:
       * @param item is a trip chain
       * @return true if inserting successfully .
       */
-	bool InsertFMODItems(const std::string& personID, TripChainItem* item);
+	bool insertFmodItems(const std::string& personID, TripChainItem* item);
 
     /**
       * assign settings to controller
@@ -44,7 +48,7 @@ public:
       * @param blockingTime is waiting time in blocking mode
       * @return void .
       */
-	void Settings(std::string ipadress, int port, int updateTiming, std::string mapFile, int blockingTime) { this->ipAddress=ipadress; this->port=port; this->updateTiming=updateTiming; this->mapFile=mapFile; this->waitingseconds=blockingTime;}
+	void settings(std::string ipadress, int port, int updateTiming, std::string mapFile, int blockingTime) { this->ipAddress=ipadress; this->port=port; this->updateTiming=updateTiming; this->mapFile=mapFile; this->waitingseconds=blockingTime;}
 
     /**
       * register a singleton object to system
@@ -52,53 +56,53 @@ public:
       * @param mtxStrat is for thread safety protection
       * @return void .
       */
-	static void RegisterController(int id, const MutexStrategy& mtxStrat);
+	static void registerController(int id, const MutexStrategy& mtxStrat);
 
     /**
       * retrieve a singleton object
-      * @return a pointer to FMODController .
+      * @return a pointer to FMOD_Controller .
       */
-	static FMODController* Instance();
+	static FMOD_Controller* instance();
 
     /**
       * check whether or not the instance already existed
       * @return true if existed .
       */
-	static bool InstanceExists();
+	static bool instanceExists();
 
     /**
       * connect to FMOD simulator
       * @return true if successfully .
       */
-	bool ConnectFMODService();
+	bool connectFmodService();
 
     /**
       * break down communication to FMOD simulator
       * @return void .
       */
-	void StopClientService();
+	void stopClientService();
 
     /**
       * initialize states of FMOD controller
       * @return void .
       */
-	void Initialize();
+	void initialize();
 
 private:
 	//record links travel times
 	std::map<sim_mob::Link*, double> linkTravelTimes;
 	//record all trip chain items with FMOD mode
-	std::map<std::string, TripChainItem*> all_items;
+	std::map<std::string, TripChainItem*> allItems;
 	//record all FMOD requests
-	std::map<Request*, TripChainItem*> all_requests;
+	std::map<Request*, TripChainItem*> allRequests;
 	//record all passengers information
-	std::vector<Agent*> all_persons;
+	std::vector<Agent*> allPersons;
 	//record dispatching drivers
-	std::vector<Agent*> all_drivers;
+	std::vector<Agent*> allDrivers;
 	// keep all children agents to communicate with it
-	std::vector<Agent*> all_children;
+	std::vector<Agent*> allChildren;
 	//identify whether or not communication is created
-	bool isConnectFMODServer;
+	bool isConnectFmodServer;
 
 protected:
 	//override from the class agent, provide initilization chance to sub class
@@ -115,7 +119,7 @@ protected:
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList){}
 	//override from the class agent, provide a chance to clear up a child pointer when it will be deleted from system
 	virtual void unregisteredChild(Entity* child);
-	explicit FMODController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id), connectPoint(new TCPClient(io_service)), frameTicks(0), waitingseconds(10){}
+	explicit FMOD_Controller(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id), connectPoint(new FMOD_Client(ioService)), frameTicks(0), waitingseconds(10){}
 
 private:
     /**
@@ -123,104 +127,104 @@ private:
       * @param now is current frame tick
       * @return void .
       */
-	void ProcessMessages(timeslice now);
+	void processMessages(timeslice now);
 
     /**
       * process messages received from FMOD simulator in blocking mode
       * @param now is current frame tick
       * @return void .
       */
-	void ProcessMessagesInBlocking(timeslice now);
+	void processMessagesInBlocking(timeslice now);
 
     /**
       * generate request messages on current frame tick
       * @param now is current frame tick
       * @return message list including messages which will be sent to FMOD simulator .
       */
-	MessageList GenerateRequest(timeslice now);
+	MessageList generateRequest(timeslice now);
 
     /**
       * handle offer message when a offer is received from FMOD simulator
       * @param msg is message content in json format
       * @return message list including confirmation messages which will be sent to FMOD simulator .
       */
-	MessageList HandleOfferMessage(std::string& msg);
+	MessageList handleOfferMessage(std::string& msg);
 
     /**
       * handle confirmation message when a confirmation message is received from FMOD simulator
       * @param msg is message content in json format
       * @return message list including confirmation messages which will be sent to FMOD simulator .
       */
-	MessageList HandleConfirmMessage(std::string& msg);
+	MessageList handleConfirmMessage(std::string& msg);
 
     /**
       * handle schedule message when a schedule message is received from FMOD simulator
       * @param msg is concrete message content in json format
       * @return void.
       */
-	void HandleScheduleMessage(std::string& msg);
+	void handleScheduleMessage(std::string& msg);
 
     /**
       * handle vehicle initialization message when a initialization message is received from FMOD simulator
       * @param msg is concrete message content in JSON format
       * @return void.
       */
-	void HandleVehicleInit(std::string& msg);
+	void handleVehicleInit(std::string& msg);
 
     /**
       * update simulation status including link travel time and vehicles position to FMOD simulator in non blocking mode.
       * @param now is current frame tick
       * @return void.
       */
-	void UpdateMessages(timeslice now);
+	void updateMessages(timeslice now);
 
     /**
       * update simulation status including link travel time and vehicles position to FMOD simulator in blocking mode.
       * @param now is current frame tick
       * @return void.
       */
-	void UpdateMessagesInBlocking(timeslice now);
+	void updateMessagesInBlocking(timeslice now);
 
     /**
       * collect vehicles stops information and generate messages to FMOD simulator.
       * @return void.
       */
-	MessageList CollectVehStops();
+	MessageList collectVehStops();
 
     /**
       * collect current vehicle position information and generate message to FMOD simulator.
       * @return void.
       */
-	MessageList CollectVehPos();
+	MessageList collectVehPos();
 
     /**
       * collect link travel information and generate message to FMOD simulator.
       * @return void.
       */
-	MessageList CollectLinkTravelTime();
+	MessageList collectLinkTravelTime();
 
     /**
       * dispatch a pending agent to system by its start time.
       * @param now is current frame tick
       * @return void.
       */
-	void DispatchPendingAgents(timeslice now);
+	void dispatchPendingAgents(timeslice now);
 
 private:
     /**
       * collect person information from trip chain.
        * @return void.
       */
-	void CollectPerson();
+	void collectPerson();
 
     /**
       * collect request information which will send to FMOD simulator.
       * @return void.
       */
-	void CollectRequest();
+	void collectRequest();
 
 private:
-	TCPSessionPtr connectPoint;
+	FmodClientPtr connectPoint;
 	std::string ipAddress;
 	std::string mapFile;
 	int port;
@@ -245,12 +249,12 @@ private:
 	ParkingCoordinator parkingCoord;
 
 private:
-	static FMODController* pInstance;
-	static boost::asio::io_service io_service;
+	static FMOD_Controller* pInstance;
+	static boost::asio::io_service ioService;
 
 };
 
 }
 
 } /* namespace sim_mob */
-#endif /* FMODCONTROLLER_HPP_ */
+#endif /* FMOD_Controller_HPP_ */

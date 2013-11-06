@@ -14,7 +14,7 @@
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/BusController.hpp"
-#include "entities/fmodController/FMODController.hpp"
+#include "entities/fmodController/FMOD_Controller.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -345,9 +345,9 @@ void sim_mob::ExpandAndValidateConfigFile::WarnMidroadSidewalks()
 void sim_mob::ExpandAndValidateConfigFile::LoadFMOD_Controller()
 {
 	if (cfg.fmod.enabled) {
-		sim_mob::FMOD::FMODController::RegisterController(-1, cfg.mutexStategy());
-		sim_mob::FMOD::FMODController::Instance()->Settings(cfg.fmod.ipAddress, cfg.fmod.port, cfg.fmod.updateTimeMS, cfg.fmod.mapfile, cfg.fmod.blockingTimeSec);
-		sim_mob::FMOD::FMODController::Instance()->ConnectFMODService();
+		sim_mob::FMOD::FMOD_Controller::registerController(-1, cfg.mutexStategy());
+		sim_mob::FMOD::FMOD_Controller::instance()->settings(cfg.fmod.ipAddress, cfg.fmod.port, cfg.fmod.updateTimeMS, cfg.fmod.mapfile, cfg.fmod.blockingTimeSec);
+		sim_mob::FMOD::FMOD_Controller::instance()->connectFmodService();
 	}
 }
 
@@ -365,8 +365,8 @@ void sim_mob::ExpandAndValidateConfigFile::LoadAgentsInOrder(ConfigParams::Agent
 				GenerateAgentsFromTripChain(constraints);
 
 				//Initialize the FMOD controller now that all entities have been loaded.
-				if( sim_mob::FMOD::FMODController::InstanceExists() ) {
-					sim_mob::FMOD::FMODController::Instance()->Initialize();
+				if( sim_mob::FMOD::FMOD_Controller::instanceExists() ) {
+					sim_mob::FMOD::FMOD_Controller::instance()->initialize();
 				}
 				std::cout <<"Loaded Database Agents (from Trip Chains).\n";
 				break;
@@ -406,8 +406,8 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateAgentsFromTripChain(ConfigPar
 			addOrStashEntity(person, active_agents, pending_agents);
 		} else {
 			//insert to FMOD controller so that collection of requests
-			if (sim_mob::FMOD::FMODController::InstanceExists()) {
-				sim_mob::FMOD::FMODController::Instance()->InsertFMODItems(it_map->first, tc);
+			if (sim_mob::FMOD::FMOD_Controller::instanceExists()) {
+				sim_mob::FMOD::FMOD_Controller::instance()->insertFmodItems(it_map->first, tc);
 			} else {
 				Warn() <<"Skipping FMOD agent; FMOD controller is not active.\n";
 			}

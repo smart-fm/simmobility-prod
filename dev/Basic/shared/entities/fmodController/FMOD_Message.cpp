@@ -9,7 +9,7 @@
  *      Author: zhang
  */
 
-#include "JMessage.hpp"
+#include "FMOD_Message.hpp"
 #include "sstream"
 
 namespace sim_mob {
@@ -17,16 +17,16 @@ namespace sim_mob {
 namespace FMOD
 {
 
-JMessage::JMessage() : messageID_(-1) {
+FMOD_Message::FMOD_Message() : messageID_(-1) {
 	// TODO Auto-generated constructor stub
 
 }
 
-JMessage::~JMessage() {
+FMOD_Message::~FMOD_Message() {
 	// TODO Auto-generated destructor stub
 }
 
-std::string JMessage::BuildToString()
+std::string FMOD_Message::buildToString()
 {
 	std::string msg;
 
@@ -37,7 +37,7 @@ std::string JMessage::BuildToString()
 	return msg;
 }
 
-int JMessage::GetMessageID(std::string msg)
+int FMOD_Message::AnalyzeMessageID(std::string msg)
 {
 	int ID = -1;
 	int index1 = msg.find("message ");
@@ -50,15 +50,15 @@ int JMessage::GetMessageID(std::string msg)
 	return ID;
 }
 
-void JMessage::CreateMessage(std::string msg)
+void FMOD_Message::createMessage(std::string msg)
 {
-	messageID_ = GetMessageID( msg );
+	messageID_ = AnalyzeMessageID( msg );
 	msg_ = msg;
 }
 
-void MsgVehicleInit::CreateMessage(std::string msg)
+void MsgVehicleInit::createMessage(std::string msg)
 {
-	JMessage::CreateMessage(msg);
+	FMOD_Message::createMessage(msg);
 
 	int index = msg.find("{");
 	if(index < 0)
@@ -88,9 +88,9 @@ void MsgVehicleInit::CreateMessage(std::string msg)
 	}
 }
 
-void MsgOffer::CreateMessage(std::string msg)
+void MsgOffer::createMessage(std::string msg)
 {
-	JMessage::CreateMessage(msg);
+	FMOD_Message::createMessage(msg);
 
 	int index = msg.find("{");
 	if(index < 0)
@@ -127,9 +127,9 @@ void MsgOffer::CreateMessage(std::string msg)
 	}
 }
 
-void MsgConfirmation::CreateMessage(std::string msg)
+void MsgConfirmation::createMessage(std::string msg)
 {
-	JMessage::CreateMessage(msg);
+	FMOD_Message::createMessage(msg);
 
 	int index = msg.find("{");
 	if(index < 0)
@@ -150,7 +150,7 @@ void MsgConfirmation::CreateMessage(std::string msg)
 	scheduleId = root["schedule_id"].asString();
 }
 
-std::string MsgInitialize::BuildToString()
+std::string MsgInitialize::buildToString()
 {
 	std::string msg;
 	Json::Value Request;
@@ -167,7 +167,7 @@ std::string MsgInitialize::BuildToString()
 	return msg;
 }
 
-std::string MsgRequest::BuildToString()
+std::string MsgRequest::buildToString()
 {
 	std::string msg;
 	Json::Value Request;
@@ -188,7 +188,7 @@ std::string MsgRequest::BuildToString()
 	return msg;
 }
 
-std::string MsgAccept::BuildToString()
+std::string MsgAccept::buildToString()
 {
 	std::string msg;
 	Json::Value Request;
@@ -205,7 +205,7 @@ std::string MsgAccept::BuildToString()
 	return msg;
 }
 
-std::string MsgLinkTravel::BuildToString()
+std::string MsgLinkTravel::buildToString()
 {
 	std::string msg;
 	Json::Value Request;
@@ -227,23 +227,23 @@ std::string MsgLinkTravel::BuildToString()
 	return msg;
 }
 
-std::string MsgVehicleStop::BuildToString()
+std::string MsgVehicleStop::buildToString()
 {
 	std::string msg;
 	Json::Value Request;
-	Request["current_time"] = this->current_time;
-	Request["event_type"] = this->event_type;
-	Request["shedule_id"] = this->schedule_id;
-	Request["stop"] = this->stop_id;
-	for(int i=0; i<boarding_passengers.size(); i++)
+	Request["current_time"] = this->currentTime;
+	Request["event_type"] = this->eventType;
+	Request["shedule_id"] = this->scheduleId;
+	Request["stop"] = this->stopId;
+	for(int i=0; i<boardingPassengers.size(); i++)
 	{
-		Json::Value item = Json::Value(boarding_passengers[i]);
+		Json::Value item = Json::Value(boardingPassengers[i]);
 		Request["boarding_passengers"].append(item);
 	}
 
-	for(int i=0; i<aligting_passengers.size(); i++)
+	for(int i=0; i<aligtingPassengers.size(); i++)
 	{
-		Json::Value item = Json::Value(aligting_passengers[i]);
+		Json::Value item = Json::Value(aligtingPassengers[i]);
 		Request["aligting_passengers"].append(item);
 	}
 
@@ -254,12 +254,12 @@ std::string MsgVehicleStop::BuildToString()
 	return msg;
 }
 
-std::string MsgVehiclePos::BuildToString()
+std::string MsgVehiclePos::buildToString()
 {
 	std::string msg;
 	Json::Value Request;
-	Request["current_time"] = this->current_time;
-	Request["vehicle_id"] = this->vehicle_id;
+	Request["current_time"] = this->currentTime;
+	Request["vehicle_id"] = this->vehicleId;
 	Request["latitude"] = this->latitude;
 	Request["longtitude"] = this->longtitude;
 
@@ -270,9 +270,9 @@ std::string MsgVehiclePos::BuildToString()
 	return msg;
 }
 
-void MsgSchedule::CreateMessage(std::string msg)
+void MsgSchedule::createMessage(std::string msg)
 {
-	JMessage::CreateMessage(msg);
+	FMOD_Message::createMessage(msg);
 
 	int index = msg.find("{");
 	if(index < 0)
@@ -289,29 +289,29 @@ void MsgSchedule::CreateMessage(std::string msg)
 		return;
 	}
 
-	vehicle_id = root["vehicle_id"].asInt();
-	schedule_id = root["schedule_id"].asString();
-	service_type = root["service_type"].asInt();
+	vehicleId = root["vehicle_id"].asInt();
+	scheduleId = root["schedule_id"].asString();
+	serviceType = root["service_type"].asInt();
 
 	Json::Value arrStops = root["stop_schdules"];
 	for(int i=0; i<arrStops.size(); i++)
 	{
 		Json::Value item = arrStops[i];
 		STOP stop;
-		stop.stop_id = item["stop"].asString();
-		stop.arrival_time = item["arrival_time"].asString();
-		stop.depature_time = item["depature_time"].asString();
+		stop.stopId = item["stop"].asString();
+		stop.arrivalTime = item["arrival_time"].asString();
+		stop.depatureTime = item["depature_time"].asString();
 		Json::Value arrPassengers = item["board_passengers"];
 		for(int k=0; k<arrPassengers.size(); k++){
 			Json::Value val = arrPassengers[k];
-			stop.boardingpassengers.push_back(val.asString());
+			stop.boardingPassengers.push_back(val.asString());
 		}
 		arrPassengers = item["alight_passengers"];
 		for(int k=0; k<arrPassengers.size(); k++){
 			Json::Value val = arrPassengers[k];
-			stop.alightingpassengers.push_back(val.asString());
+			stop.alightingPassengers.push_back(val.asString());
 		}
-		stop_schdules.push_back(stop);
+		stopSchdules.push_back(stop);
 	}
 
 	Json::Value arrPassengers = root["passengers"];
@@ -319,7 +319,7 @@ void MsgSchedule::CreateMessage(std::string msg)
 	{
 		Json::Value item = arrPassengers[i];
 		PASSENGER pass;
-		pass.client_id = item["client_id"].asString();
+		pass.clientId = item["client_id"].asString();
 		pass.price = item["price"].asInt();
 		passengers.push_back(pass);
 	}

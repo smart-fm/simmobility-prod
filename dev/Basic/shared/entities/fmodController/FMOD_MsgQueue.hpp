@@ -25,10 +25,13 @@ typedef std::queue<std::string> MessageList;
 
 MessageList operator+(MessageList lst1, MessageList lst2);
 
-class MessageQueue {
+/**
+  * buffer FMOD message
+  */
+class FMOD_MsgQueue {
 public:
-	MessageQueue();
-	virtual ~MessageQueue();
+	FMOD_MsgQueue();
+	virtual ~FMOD_MsgQueue();
 
 private:
 	boost::mutex mutex;
@@ -36,9 +39,33 @@ private:
 	MessageList messages;
 
 public:
+
+    /**
+      * push a message to this storage temperally.
+      * @param msg is to store message content
+      * @return void.
+      */
 	void PushMessage(std::string msg);
+
+    /**
+      * pop up the first message from this storage.
+      * @param msg is to store message content
+      * @return void.
+      */
 	bool PopMessage(std::string& msg);
-	bool WaitPopMessage(std::string& msg, int seconds);
+
+    /**
+      * waiting a message in blocking mode until a message is received.
+      * @param msg is to store message content
+      * @timeoutSeconds is to assign timeout for blocking
+      * @return true if retrieve a message successfully. otherwise false.
+      */
+	bool WaitPopMessage(std::string& msg, int timeoutSeconds);
+
+    /**
+      * read all messages at one time.
+      * @return a list of FMOD message.
+      */
 	MessageList ReadMessage();
 
 };

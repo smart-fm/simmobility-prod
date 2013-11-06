@@ -24,12 +24,6 @@ IncidentStatus::IncidentStatus() : currentStatus(INCIDENT_CLEARANCE), speedLimit
 	}
 
 	 randomNum = rand()/(RAND_MAX*1.0);
-	 float randomvec[100];
-	 for(int i=0; i<100; i++){
-		 randomvec[i] = rand()/(RAND_MAX*1.0);
-		 //std::cout << "random vector number is " << randomvec[i] << std::endl;
-	 }
-	 //std::cout << "random number is " << randomNum << std::endl;
 }
 
 IncidentStatus::~IncidentStatus() {
@@ -76,21 +70,6 @@ void IncidentStatus::checkIsCleared(){
 	if(currentIncidents.size() ==0 ){
 		resetStatus();
 	}
-}
-
-double IncidentStatus::urandom(){
-
-	const long int M = 2147483647;  // M = modulus (2^31)
-	const long int A = 48271;       // A = multiplier (was 16807)
-	const long int Q = M / A;
-	const long int R = M % A;
-
-	seed = A * (seed % Q) - R * (seed / Q);
-	seed = (seed > 0) ? (seed) : (seed + M);
-
-	double ret = (double)seed / (double)M;
-
-	return ret;
 }
 
 

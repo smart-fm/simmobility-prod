@@ -233,7 +233,6 @@ void sim_mob::DriverMovement::frame_init(UpdateParams& p) {
 int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslice now) {
 
 	const RoadSegment* curSegment = parentDriver->vehicle->getCurrSegment();
-	const RoadSegment* nexSegment = parentDriver->vehicle->getNextSegment(true);
 	const Lane* curLane = parentDriver->vehicle->getCurrLane();
 	int curLaneIndex = curLane->getLaneID() - curSegment->getLanes().at(0)->getLaneID();
 	int nextLaneIndex = curLaneIndex;
@@ -246,16 +245,13 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 	double realDist = 0;
 	bool replan = false;
 	const RoadItem* roadItem = getRoadItemByDistance(sim_mob::INCIDENT, realDist);
-	//retrieve front incident obstacle
-	if(roadItem) {
+	if(roadItem) {//retrieve front incident obstacle
 		const Incident* inc = dynamic_cast<const Incident*>( roadItem );
 		if(inc){
 			float visibility = inc->visibilityDistance;
 			incidentStatus.visibilityDist = visibility;
 			if( (now.ms() >= inc->startTime) && (now.ms() < inc->startTime+inc->duration) && realDist<visibility){
-
-				//decide lane side if vehicle is in the incident lane and it is necessary to do changing lane
-				if(curLaneIndex==inc->laneId ){
+				if(curLaneIndex==inc->laneId ){//decide lane side if vehicle is in the incident lane and it is necessary to do changing lane
 					status = IncidentStatus::INCIDENT_OCCURANCE_LANE;
 					if( curLaneIndex < curSegment->getLanes().size()-1){
 						nextLaneIndex = curLaneIndex+1;
@@ -269,7 +265,6 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 				else {
 					status = IncidentStatus::INCIDENT_ADJACENT_LANE;
 				}
-
 				//make velocity slowing down decision when incident happen
 				RoadSegment* segment = const_cast<RoadSegment*>(curSegment);
 				unsigned int originId = (segment)->originalDB_ID.getLastVal();
@@ -277,15 +272,12 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 					incidentStatus.slowdownVelocity = true;
 
 				incidentStatus.distanceTo = realDist;
-				bool ret = incidentStatus.insertIncident(inc);
-				if( ret==true && replan==false){
-					replan = true;
-				}
+				replan = incidentStatus.insertIncident(inc);
 
 				//make mandatory lane changing decision by linear probability
 				float incidentGap = parentDriver->vehicle->length*2;
 				if(!incidentStatus.changedlane && status==IncidentStatus::INCIDENT_OCCURANCE_LANE){
-					double prob = incidentStatus.distanceTo/incidentStatus.visibilityDist;
+					double prob = incidentStatus.visibilityDist>0 ? incidentStatus.distanceTo/incidentStatus.visibilityDist : 0.0;
 					if(incidentStatus.distanceTo < 2*incidentGap){
 						incidentStatus.changedlane=true;
 					}
@@ -296,30 +288,21 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 					}
 				}
 			}
-			// if incident duration is over, the incident obstacle will be removed
-			else if( now.ms() > inc->startTime+inc->duration ){
-				bool ret = incidentStatus.removeIncident(inc);
-				if( ret==true && replan==false){
-					replan = true;
-				}
+			else if( now.ms() > inc->startTime+inc->duration ){// if incident duration is over, the incident obstacle will be removed
+				replan = incidentStatus.removeIncident(inc);
 			}
 		}
 	}
-	//if vehicle is going beyond this incident obstacle, this one will be removed
-	else {
+	else {//if vehicle is going beyond this incident obstacle, this one will be removed
 		for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
 			const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
 			if(inc){
-				bool ret = incidentStatus.removeIncident(inc);
-				if( ret==true && replan==false){
-					replan = true;
-				}
+				replan = incidentStatus.removeIncident(inc);
 			}
 		}
 	}
 
-	//update decision status for incident.
-	if(replan){
+	if(replan){//update decision status for incident.
 		incidentStatus.nextLaneIndex = nextLaneIndex;
 		incidentStatus.laneSide = laneSide;
 		incidentStatus.currentStatus = status;
@@ -910,7 +893,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 		const Node* stop = currSegment->getEnd();
 		bool isFound = false;
 		static int count = 0;
-		double dwell_time = 0;
+		double dwellTime = 0;
 		double distance = parentDriver->vehicle->getDistanceToSegmentEnd();
 
 		if( stop->getID() == 75956 ){
@@ -920,24 +903,24 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 		//judge whether near to stopping node
 		if( distance<500 ){
 
-			for(int i = 0; i<schedule->stop_schdules.size(); i++){
+			for(int i = 0; i<schedule->stopSchdules.size(); i++){
 
-				FMODSchedule::STOP& stopSchedule = schedule->stop_schdules[i];
+				FMODSchedule::STOP& stopSchedule = schedule->stopSchdules[i];
 
-				if( stopSchedule.stop_id==stop->getID()){
+				if( stopSchedule.stopId==stop->getID()){
 
 					isFound = true;
-					dwell_time = stopSchedule.dwell_time;
+					dwellTime = stopSchedule.dwellTime;
 
 					//arrive at scheduling node
-					if(dwell_time==0){
+					if(dwellTime==0){
 
 						parentDriver->stop_event_type.set(1);
-						parentDriver->stop_event_scheduleid.set(stopSchedule.schedule_id);
+						parentDriver->stop_event_scheduleid.set(stopSchedule.scheduleId);
 						parentDriver->stop_event_nodeid.set(stop->getID());
 
-						int passengersnum = stopSchedule.alightingpassengers.size()+stopSchedule.boardingpassengers.size();
-						dwell_time = stopSchedule.dwell_time = dwellTimeCalculation(3, 3, 0, 0,0, passengersnum);
+						int passengersnum = stopSchedule.alightingPassengers.size()+stopSchedule.boardingPassengers.size();
+						dwellTime = stopSchedule.dwellTime = dwellTimeCalculation(3, 3, 0, 0,0, passengersnum);
 
 						//boarding and alighting
 						const RoadSegment* seg = parentDriver->vehicle->getCurrSegment();
@@ -947,7 +930,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 					 	for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
 					 	{
 					 		//passenger boarding
-							vector<int>& boardingpeople = stopSchedule.boardingpassengers;
+							vector<int>& boardingpeople = stopSchedule.boardingPassengers;
 							if( std::find(boardingpeople.begin(), boardingpeople.end(), (*it)->getId() ) != boardingpeople.end() )
 							{
 								const Person* p = dynamic_cast<const Person*>( (*it) );
@@ -957,7 +940,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 								  continue;
 								}
 
-								schedule->insidepassengers.push_back( p );
+								schedule->insidePassengers.push_back( p );
 								PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
 								if(passenger_movement) {
 									passenger_movement->PassengerBoardBus_Choice( this->getParentDriver() );
@@ -967,11 +950,11 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 					 	}
 
 						//alighting
-						vector<int>& alightingpeople = stopSchedule.alightingpassengers;
+						vector<int>& alightingpeople = stopSchedule.alightingPassengers;
 						for( vector<int>::iterator it=alightingpeople.begin(); it!=alightingpeople.end(); it++ )
 						{
-							vector<const Person*>::iterator itPerson=schedule->insidepassengers.begin();
-							while(itPerson!=schedule->insidepassengers.end()){
+							vector<const Person*>::iterator itPerson=schedule->insidePassengers.begin();
+							while(itPerson!=schedule->insidePassengers.end()){
 								if((*it) == (int)(*itPerson)->getId() ){
 									Passenger* passenger = dynamic_cast<Passenger*>((*itPerson)->getRole());
 									if (!passenger)
@@ -983,7 +966,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 										passenger_movement->alighting_MS = 1;
 									}
 
-									itPerson = schedule->insidepassengers.erase(itPerson);
+									itPerson = schedule->insidePassengers.erase(itPerson);
 								}
 								else{
 									itPerson++;
@@ -992,23 +975,23 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 						}
 
 						//update shared parameters to record boarding and alighting person
-						parentDriver->stop_event_lastAlightingPassengers.set( stopSchedule.alightingpassengers );
-						parentDriver->stop_event_lastBoardingPassengers.set( stopSchedule.boardingpassengers );
+						parentDriver->stop_event_lastAlightingPassengers.set( stopSchedule.alightingPassengers );
+						parentDriver->stop_event_lastBoardingPassengers.set( stopSchedule.boardingPassengers );
 					}
 
 					// stopping at scheduling node
-					dwell_time -= p.elapsedSeconds;
-					schedule->stop_schdules[i].dwell_time = dwell_time;
+					dwellTime -= p.elapsedSeconds;
+					schedule->stopSchdules[i].dwellTime = dwellTime;
 
 					//depature from this node
-					if(dwell_time < 0 ){
+					if(dwellTime < 0 ){
 						parentDriver->stop_event_type.set(0);
 					}
 				}
 			}
 		}
 
-		if(isFound && dwell_time>0.0){
+		if(isFound && dwellTime>0.0){
 			ret = true;
 		}
 	}
@@ -1519,7 +1502,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		}
 
 		if(subTrip->schedule && res){
-			int stopid = subTrip->schedule->stop_schdules[0].stop_id;
+			int stopid = subTrip->schedule->stopSchdules[0].stopId;
 			res->schedule = subTrip->schedule ;
 		}
 

@@ -71,14 +71,20 @@ namespace sim_mob {
         }
 
         /**
-         * Convert any kind of number format into a string.
-         * @param number input
-         * @return to a string
+         * Converts the given data to string.
+         * 
+         * If the type is not primitive type then
+         * it must implement the operator:
+         * 
+         * friend ostream& operator<<(std::ostream& strm, const MyType& data);
+         * 
+         * @param data to convert to string.
+         * @return string with data.
          */
         template<typename T>
-        static std::string numberToString(const T& number) {
+        static std::string toStr(const T& data) {
             std::ostringstream stream;
-            stream << number;
+            stream << data;
             return stream.str();
         }
     };

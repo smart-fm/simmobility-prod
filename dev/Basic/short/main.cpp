@@ -680,7 +680,7 @@ int main(int ARGC, char* ARGV[])
 	//Concatenate output files?
 	if (!resLogFiles.empty()) {
 		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
-		Utils::PrintAndDeleteLogFiles(resLogFiles);
+		Utils::printAndDeleteLogFiles(resLogFiles);
 	}
 
 	cout << "Done" << endl;

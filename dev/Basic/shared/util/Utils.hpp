@@ -44,9 +44,9 @@ namespace sim_mob {
         static std::vector<std::string> parseArgs(int argc, char* argv[]);
 
         /**
-         *
+         * Merges log files. 
          */
-        static void PrintAndDeleteLogFiles(const std::list<std::string>& logFileNames);
+        static void printAndDeleteLogFiles(const std::list<std::string>& logFileNames);
 
         //Helper for XML parsing. Source value looks like this: "3000 : 6000", spaces optional.
         //\todo This is mostly in the wrong place; our whole "util" directory needs some reorganization.

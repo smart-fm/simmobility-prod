@@ -63,7 +63,7 @@ std::vector<std::string> Utils::parseArgs(int argc, char* argv[])
 }
 
 
-void Utils::PrintAndDeleteLogFiles(const std::list<std::string>& logFileNames)
+void Utils::printAndDeleteLogFiles(const std::list<std::string>& logFileNames)
 {
 	//This can take some time.
 	StopWatch sw;

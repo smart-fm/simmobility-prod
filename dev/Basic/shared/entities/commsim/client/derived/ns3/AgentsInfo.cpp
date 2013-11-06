@@ -8,7 +8,7 @@
 #include "AgentsInfo.hpp"
 #include <json/json.h>
 #include "entities/Agent.hpp"
-#include "entities/commsim/service/services.hpp"
+#include "entities/commsim/service/Services.hpp"
 #include "entities/commsim/serialization/Serialization.hpp"
 #include <boost/foreach.hpp>
 

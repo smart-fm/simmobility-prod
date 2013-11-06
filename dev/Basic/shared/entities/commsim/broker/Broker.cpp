@@ -10,14 +10,9 @@
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "entities/AuraManager.hpp"
-#include "entities/profile/ProfileBuilder.hpp"
-#include "workers/WorkGroup.hpp"
 #include "workers/Worker.hpp"
 
 #include "entities/commsim/broker/Common.hpp"
-#include "entities/commsim/message/derived/roadrunner-android/RR_Factory.hpp"//todo :temprorary
-#include "entities/commsim/message/derived/roadrunner-android-ns3/roadrunner_android_factory.hpp"//todo :temprorary
 #include "entities/commsim/comm_support/AgentCommUtility.hpp"
 #include "entities/commsim/connection/ConnectionServer.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
@@ -29,6 +24,10 @@
 #include "event/SystemEvents.hpp"
 #include "message/MessageBus.hpp"
 #include "event/EventPublisher.hpp"
+
+//todo :temprorary
+#include "entities/commsim/message/derived/roadrunner-android/RR_Factory.hpp"
+#include "entities/commsim/message/derived/roadrunner-android-ns3/roadrunner_android_factory.hpp"
 
 using namespace sim_mob;
 
@@ -100,19 +99,19 @@ void sim_mob::Broker::configure()
 		onlyLocationsPublisher->RegisterEvent(COMMEID_LOCATION);
 		//publishers
 		publishers.insert(
-				std::make_pair(SIMMOB_SRV_LOCATION,
+				std::make_pair(sim_mob::Services::SIMMOB_SRV_LOCATION,
 						PublisherList::dataType(onlyLocationsPublisher)));
 
 		BrokerPublisher* allLocationsPublisher = new BrokerPublisher();
 		allLocationsPublisher->RegisterEvent(COMMEID_LOCATION);
 		publishers.insert(
-				std::make_pair(SIMMOB_SRV_ALL_LOCATIONS,
+				std::make_pair(sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS,
 						PublisherList::dataType(allLocationsPublisher)));
 
 		BrokerPublisher* timePublisher = new BrokerPublisher();
 		timePublisher->RegisterEvent(COMMEID_TIME);
 		publishers.insert(
-				std::make_pair(SIMMOB_SRV_TIME,
+				std::make_pair(sim_mob::Services::SIMMOB_SRV_TIME,
 						PublisherList::dataType(timePublisher)));
 		//listen to publishers who announce registration of new clients...
 		ClientRegistrationHandler::getPublisher().Subscribe(ConfigParams::ANDROID_EMULATOR, this, CALLBACK_HANDLER(ClientRegistrationEventArgs, Broker::onClientRegister));
@@ -155,13 +154,13 @@ void sim_mob::Broker::configure()
 				onlyLocationsPublisher->RegisterEvent(COMMEID_LOCATION);
 				//publishers
 				publishers.insert(
-						std::make_pair(SIMMOB_SRV_LOCATION,
+						std::make_pair(sim_mob::Services::SIMMOB_SRV_LOCATION,
 								PublisherList::dataType(onlyLocationsPublisher)));
 
 				BrokerPublisher* timePublisher = new BrokerPublisher();
 				timePublisher->RegisterEvent(COMMEID_TIME);
 				publishers.insert(
-						std::make_pair(SIMMOB_SRV_TIME,
+						std::make_pair(sim_mob::Services::SIMMOB_SRV_TIME,
 								PublisherList::dataType(timePublisher)));
 				//listen to publishers who announce registration of new clients...
 				ClientRegistrationHandler::getPublisher().Subscribe(ConfigParams::ANDROID_EMULATOR, this, CALLBACK_HANDLER(ClientRegistrationEventArgs, Broker::onClientRegister));
@@ -276,7 +275,7 @@ bool sim_mob::Broker::getClientHandler(std::string clientId,std::string clientTy
 {
 	//use try catch to use map's .at() and search only once
 	try {
-		ConfigParams::ClientType clientType_ = ClientTypeMap.at(clientType);
+		ConfigParams::ClientType clientType_ = sim_mob::Services::ClientTypeMap.at(clientType);
 		boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > & inner = clientList[clientType_];
 		try
 		{
@@ -322,12 +321,12 @@ void sim_mob::Broker::processClientRegistrationRequests()
 	ClientWaitList::iterator it_erase;//helps avoid multimap iterator invalidation
 	for(ClientWaitList::iterator it = clientRegistrationWaitingList.begin(), it_end(clientRegistrationWaitingList.end()); it != it_end;/*no ++ here */  )
 	{
-		handler = clientRegistrationFactory.getHandler((ClientTypeMap[it->first]));
+		handler = clientRegistrationFactory.getHandler((sim_mob::Services::ClientTypeMap[it->first]));
 		if(handler->handle(*this,it->second))
 		{
 			//success: handle() just added to the client to the main client list and started its connectionHandler
 			//	next, see if the waiting state of waiting-for-client-connection changes after this process
-			bool wait = clientBlockers[ClientTypeMap[it->first]]->calculateWaitStatus();
+			bool wait = clientBlockers[sim_mob::Services::ClientTypeMap[it->first]]->calculateWaitStatus();
 //			Print() << "calculateWaitStatus for  " << it->first << "  " << (wait? "WAIT " : "DONT_WAIT") << std::endl;
 			if(!wait)
 			{
@@ -397,19 +396,19 @@ void  sim_mob::Broker::unRegisterEntity(sim_mob::Agent * agent)
 				it_erase = it_clientID++;
 				//unsubscribe from all publishers he is subscribed to
 				sim_mob::ClientHandler * clientHandler = it_erase->second.get();
-				sim_mob::SIM_MOB_SERVICE srv;
+				sim_mob::Services::SIM_MOB_SERVICE srv;
 				BOOST_FOREACH(srv, clientHandler->requiredServices)
 				{
 					switch(srv)
 					{
-					case SIMMOB_SRV_TIME:
-						publishers[SIMMOB_SRV_TIME]->UnSubscribe(COMMEID_TIME,clientHandler);
+					case sim_mob::Services::SIMMOB_SRV_TIME:
+						publishers[sim_mob::Services::SIMMOB_SRV_TIME]->UnSubscribe(COMMEID_TIME,clientHandler);
 						break;
-					case SIMMOB_SRV_LOCATION:
-						publishers[SIMMOB_SRV_LOCATION]->UnSubscribe(COMMEID_LOCATION,(void*)clientHandler->agent,clientHandler);
+					case sim_mob::Services::SIMMOB_SRV_LOCATION:
+						publishers[sim_mob::Services::SIMMOB_SRV_LOCATION]->UnSubscribe(COMMEID_LOCATION,(void*)clientHandler->agent,clientHandler);
 						break;
-					case SIMMOB_SRV_ALL_LOCATIONS:
-						publishers[SIMMOB_SRV_ALL_LOCATIONS]->UnSubscribe(COMMEID_LOCATION,(void*)COMMCID_ALL_LOCATIONS,clientHandler);
+					case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS:
+						publishers[sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS]->UnSubscribe(COMMEID_LOCATION,(void*)COMMCID_ALL_LOCATIONS,clientHandler);
 						break;
 					}
 				}
@@ -594,15 +593,15 @@ void sim_mob::Broker::processPublishers(timeslice now)
 	BOOST_FOREACH(publisher_pair, publishers)
 	{
 		//easy reading
-		SIM_MOB_SERVICE service = publisher_pair.first;
+		sim_mob::Services::SIM_MOB_SERVICE service = publisher_pair.first;
 		sim_mob::event::EventPublisher & publisher = *publisher_pair.second;
 
 		switch (service) {
-		case sim_mob::SIMMOB_SRV_TIME: {
+		case sim_mob::Services::SIMMOB_SRV_TIME: {
 			publisher.Publish(COMMEID_TIME, TimeEventArgs(now));
 			break;
 		}
-		case sim_mob::SIMMOB_SRV_LOCATION: {
+		case sim_mob::Services::SIMMOB_SRV_LOCATION: {
 
 			//get to each client handler, look at his requred service and then publish for him
 			ClientList::pair clientsByType;
@@ -617,7 +616,7 @@ void sim_mob::Broker::processPublishers(timeslice now)
 			}
 			break;
 		}
-		case sim_mob::SIMMOB_SRV_ALL_LOCATIONS: {
+		case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS: {
 			publisher.Publish(COMMEID_LOCATION,(void*) COMMCID_ALL_LOCATIONS,AllLocationsEventArgs(REGISTERED_AGENTS));
 			break;
 		}

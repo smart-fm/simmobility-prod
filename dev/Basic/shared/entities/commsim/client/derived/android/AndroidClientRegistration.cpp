@@ -74,19 +74,19 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker,
 		clientEntry->clientID = request.clientID;
 		clientEntry->client_type = ConfigParams::ANDROID_EMULATOR;
 		clientEntry->requiredServices = request.requiredServices; //will come handy
-		SIM_MOB_SERVICE srv;
+		sim_mob::Services::SIM_MOB_SERVICE srv;
 		BOOST_FOREACH(srv, request.requiredServices) {
 			switch (srv) {
-			case SIMMOB_SRV_TIME: {
+			case sim_mob::Services::SIMMOB_SRV_TIME: {
 				PublisherList::dataType p =
-						broker.getPublishers()[SIMMOB_SRV_TIME];
+						broker.getPublishers()[sim_mob::Services::SIMMOB_SRV_TIME];
 				p->Subscribe(COMMEID_TIME, clientEntry.get(),
 						CALLBACK_HANDLER(sim_mob::TimeEventArgs, ClientHandler::OnTime));
 				break;
 			}
-			case SIMMOB_SRV_LOCATION: {
+			case sim_mob::Services::SIMMOB_SRV_LOCATION: {
 				PublisherList::dataType p =
-						broker.getPublishers()[SIMMOB_SRV_LOCATION];
+						broker.getPublishers()[sim_mob::Services::SIMMOB_SRV_LOCATION];
 				p->Subscribe(COMMEID_LOCATION, (void*) clientEntry->agent,
 						clientEntry.get(),
 						CONTEXT_CALLBACK_HANDLER(LocationEventArgs, ClientHandler::OnLocation));

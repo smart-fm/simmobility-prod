@@ -9,7 +9,7 @@
 
 #include "entities/Agent.hpp"
 #include "entities/commsim/client/base/ClientRegistration.hpp"
-#include "entities/commsim/service/services.hpp"
+#include "entities/commsim/service/Services.hpp"
 #include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/message/base/Message.hpp"
 #include "entities/commsim/message/base/MessageQueue.hpp"
@@ -48,9 +48,9 @@ typedef std::pair<unsigned int ,boost::shared_ptr<MessageFactory<std::vector<sim
 
 struct PublisherList{
 typedef boost::shared_ptr<sim_mob::event::EventPublisher> dataType;
-typedef std::map<sim_mob::SIM_MOB_SERVICE, dataType> type;
-typedef std::map<sim_mob::SIM_MOB_SERVICE, dataType>::iterator iterator;
-typedef std::pair<sim_mob::SIM_MOB_SERVICE, dataType> pair;
+typedef std::map<sim_mob::Services::SIM_MOB_SERVICE, dataType> type;
+typedef std::map<sim_mob::Services::SIM_MOB_SERVICE, dataType>::iterator iterator;
+typedef std::pair<sim_mob::Services::SIM_MOB_SERVICE, dataType> pair;
 };
 
 struct ClientList{
@@ -73,8 +73,7 @@ typedef typename boost::unordered_map<boost::shared_ptr<sim_mob::ConnectionHandl
 typedef std::pair<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::BufferContainer<TYPE> > pair;
 };
 
-class Broker  : public sim_mob::Agent
-{
+class Broker  : public sim_mob::Agent {
 private:
 	//Is this Broker currently enabled?
 	bool enabled;

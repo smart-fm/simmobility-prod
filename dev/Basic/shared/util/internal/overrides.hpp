@@ -8,6 +8,7 @@
 
 
 namespace sim_mob {
+struct linkToLink; //forward declaration
 namespace xml {
 
 //////////////////////////////////////////////////////////////////////
@@ -33,6 +34,12 @@ std::string get_id(const std::set<T>& temp)
 {
 	throw std::runtime_error("Cannot call get_id() on STL containers.");
 }
+
+template <class T, class U>
+std::string get_id(const std::set<T,U>& temp)
+{
+	throw std::runtime_error("Cannot call get_id() on STL containers.");
+}
 template <class T>
 std::string get_id(const std::vector<T>& temp)
 {
@@ -43,8 +50,15 @@ std::string get_id(const std::pair<T, U>& temp)
 {
 	throw std::runtime_error("Cannot call get_id() on STL containers.");
 }
+
 template <class T, class U>
 std::string get_id(const std::map<T, U>& temp)
+{
+	throw std::runtime_error("Cannot call get_id() on STL containers.");
+}
+
+template <class T, class U>
+std::string get_id(const std::multimap<T, U>& temp)
 {
 	throw std::runtime_error("Cannot call get_id() on STL containers.");
 }
@@ -96,7 +110,11 @@ std::string get_id(const bool& temp)
 	throw std::runtime_error("Cannot call get_id() on primitive types.");
 }
 
-
+template <> inline
+std::string get_id(const sim_mob::linkToLink& temp)
+{
+	throw std::runtime_error("linkToLink Not needed");
+}
 
 //////////////////////////////////////////////////////////////////////
 // Xml writers for const pointer types
@@ -202,6 +220,33 @@ void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec)
 	write_xml(write, vec, namer("<item>"), expander());
 }
 
+//////////////////////////////////////////////////////////////////////
+// Xml writers for set<T,U>
+//////////////////////////////////////////////////////////////////////
+template <class T, class U>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T,U>& vec, namer name, expander expand)
+{
+	//Print each item as a separate property.
+	for (typename std::set<T,U>::const_iterator it=vec.begin(); it!=vec.end(); it++) {
+		dispatch_write_xml_request(write, name.leftStr(), *it, name.rightChild(), expand.rightChild(), expand.leftIsValue());
+	}
+}
+template <class T, class U>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T,U>& vec, namer name)
+{
+	write_xml(write, vec, name, expander());
+}
+template <class T, class U>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T,U>& vec, expander expand)
+{
+	write_xml(write, vec, namer("<item>"), expand);
+}
+template <class T, class U>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T,U>& vec)
+{
+	write_xml(write, vec, namer("<item>"), expander());
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // Xml writers for vector<T,U>
@@ -254,6 +299,33 @@ void write_xml(sim_mob::xml::XmlWriter& write, const std::map<T, U>& items, expa
 }
 template <class T, class U>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::map<T, U>& items)
+{
+	write_xml(write, items, namer("<item,<key,value>>"), expander());
+}
+
+//////////////////////////////////////////////////////////////////////
+// Xml writers for multimap<T,U>
+//////////////////////////////////////////////////////////////////////
+template <class T, class U>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::multimap<T, U>& items, namer name, expander expand)
+{
+	//Print each item as a separate property.
+	for (typename std::multimap<T,U>::const_iterator it=items.begin(); it!=items.end(); it++) {
+		dispatch_write_xml_request(write, name.leftStr(), *it, name.rightChild(), expand.rightChild(), expand.leftIsValue());
+	}
+}
+template <class T, class U>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::multimap<T, U>& items, namer name)
+{
+	write_xml(write, items, name, expander());
+}
+template <class T, class U>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::multimap<T, U>& items, expander expand)
+{
+	write_xml(write, items, namer("<item,<key,value>>"), expand);
+}
+template <class T, class U>
+void write_xml(sim_mob::xml::XmlWriter& write, const std::multimap<T, U>& items)
 {
 	write_xml(write, items, namer("<item,<key,value>>"), expander());
 }

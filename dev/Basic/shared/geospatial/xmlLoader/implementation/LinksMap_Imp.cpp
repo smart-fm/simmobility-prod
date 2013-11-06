@@ -43,7 +43,7 @@ void sim_mob::xml::links_map_t_pimpl::SegmentTo (unsigned int value)
 	ll.RS_To = book.getSegment(value);
 }
 
-void sim_mob::xml::links_map_t_pimpl::ColorSequence (std::pair<sim_mob::TrafficLightType,std::vector<std::pair<TrafficColor,short> > > value)
+void sim_mob::xml::links_map_t_pimpl::ColorSequence (std::pair<sim_mob::TrafficLightType,std::vector<std::pair<TrafficColor,int> > > value)
 {
     ll.colorSequence.setTrafficLightType(value.first);
     ll.colorSequence.setColorDuration(value.second);

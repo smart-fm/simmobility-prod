@@ -33,6 +33,7 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <boost/foreach.hpp>
 
 #include "util/XmlWriter.hpp"
 #include "metrics/Length.hpp"
@@ -48,6 +49,7 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "entities/signal/Signal.hpp"
 
 
 namespace sim_mob {
@@ -59,6 +61,7 @@ namespace xml {
 
 //Disallow get_id for Point2D
 ERASE_GET_ID(sim_mob::Point2D);
+ERASE_GET_ID(sim_mob::TrafficColor);
 
 //Simple versions of get_id for most classes.
 SPECIALIZE_GET_ID(sim_mob::RoadSegment, getSegmentID);
@@ -68,6 +71,12 @@ SPECIALIZE_GET_ID(sim_mob::MultiNode,   getID);
 SPECIALIZE_GET_ID(sim_mob::UniNode,     getID);
 SPECIALIZE_GET_ID(sim_mob::Node,        getID);
 SPECIALIZE_GET_ID(sim_mob::RoadItem,    getRoadItemID);
+SPECIALIZE_GET_ID(sim_mob::Signal,    getSignalId);
+SPECIALIZE_GET_ID(sim_mob::LinkAndCrossing,    getId);
+SPECIALIZE_GET_ID(sim_mob::Crossing,    getRoadItemID);
+SPECIALIZE_GET_ID(sim_mob::Phase,    getPhaseName);
+
+//UNDEFINED_GET_ID(sim_mob::TrafficColor);
 
 //get_id for Lane Connectors is more complicated than our macro can handle.
 template <>
@@ -355,6 +364,135 @@ void write_xml(XmlWriter& write, const sim_mob::RoadNetwork& rn)
 
     write.prop("Links", rn.getLinks(), namer("<Link>"));
 	write.prop_end(); //RoadNetwork
+}
+
+template <>
+void write_xml(XmlWriter& write, const sim_mob::LinkAndCrossing& value)
+{
+	write.prop("ID", value.id);
+	if(value.link){
+		write.prop("linkID", value.link, namer(), expander("<id>"), false);
+	}
+	if(value.crossing){
+		write.prop("crossingID", value.crossing->getRoadItemID());
+	}
+	write.prop("angle", value.angle);
+}
+
+template <>
+void write_xml(XmlWriter& write, const sim_mob::TrafficColor &value) {
+	write.prop("TrafficColor", value);
+}
+
+//template <>
+//void write_xml(XmlWriter& write, const std::pair<TrafficColor,int> &value) {
+//	write.prop("ColorDuration", value, namer("<TrafficColor, Duration>"));
+//}
+
+template <>
+void write_xml(XmlWriter& write, const sim_mob::ColorSequence &value) {
+	std::string type = (
+			value.getTrafficLightType() == Driver_Light ? "Driver_Light" :
+			(value.getTrafficLightType() == Pedestrian_Light ?
+					"Pedestrian_Light" : "InvalidTrafficLightType"));
+	write.prop("TrafficLightType", type);
+	const std::vector< std::pair<TrafficColor,int> > & cd = value.getColorDuration();
+	std::vector< std::pair<TrafficColor,int> >::const_iterator it(cd.begin()), it_end(cd.end());
+	for(; it != it_end; it++){
+		write.prop_begin("ColorDuration");
+		std::cout << ColorSequence::getTrafficLightColorString(it->first)<< std::endl;;
+		write.prop("TrafficColor", ColorSequence::getTrafficLightColorString(it->first));
+		write.prop("Duration", it->second);
+		write.prop_end();
+	}
+}
+
+template<>
+void write_xml(XmlWriter& write, const sim_mob::Phase& phase) {
+	//name
+	write.prop("name", phase.getPhaseName());
+
+
+	//links_maps
+	const links_map &data = phase.getLinkMaps();
+	links_map::const_iterator it(data.begin()), it_end(data.end());
+	write.prop_begin("links_maps");
+	for (; it != it_end; it++) {
+
+		write.prop_begin("links_map");
+		if (it->first && it->second.LinkTo) {
+			write.prop("LinkFrom", it->first, namer(), expander("<id>"), false);
+			write.prop("LinkTo", it->second.LinkTo, namer(), expander("<id>"),
+					false);
+		}
+		if (it->second.RS_From && it->second.RS_To) {
+			write.prop("SegmentFrom", it->second.RS_From, expander("<id>"),
+					false);
+			write.prop("SegmentTo", it->second.RS_To, namer(), expander("<id>"),
+					false);
+		}
+		write.prop("ColorSequence", it->second.colorSequence);
+		write.prop_end();
+	}
+	write.prop_end();
+
+	{
+		//crossings_maps
+		const crossings_map &data = phase.getCrossingMaps();
+		crossings_map::const_iterator it(data.begin()), it_end(data.end());
+		write.prop_begin("crossings_maps");
+		for (; it != it_end; it++) {
+
+			write.prop_begin("crossings_map");
+			if (it->first && it->second.link) {
+				write.prop("LinkID", it->second.link, namer(), expander("<id>"),
+						false);
+				write.prop("crossingID", it->first->getRoadItemID());
+			}
+			write.prop("ColorSequence", it->second.colorSequence);
+			write.prop_end();
+		}
+		write.prop_end();
+	}
+}
+
+template <>
+void write_xml(XmlWriter& write, const sim_mob::SplitPlan & plan)
+{
+	write.prop("splitplanID", plan.TMP_PlanID);
+	write.prop("cycleLength", plan.getCycleLength());
+	write.prop("offset", plan.getOffset());
+	//split plan expanded here only
+	write.prop_begin("ChoiceSet");
+	std::vector< double > outer;
+	int i = 0;
+	BOOST_FOREACH(outer, plan.getChoiceSet()){
+		write.prop_begin("plan");
+		write.prop("planID", i++);
+		double inner;
+		BOOST_FOREACH(inner, outer){
+			write.prop("PhasePercentage", inner);
+		}
+		write.prop_end();
+	}
+	write.prop_end();
+
+
+}
+
+template <>
+void write_xml(XmlWriter& write, const sim_mob::Signal& signal)
+{
+    write.prop("signalID", signal.getSignalId());
+    write.prop("nodeID", signal.getNode().getID());
+    write.prop("linkAndCrossings", signal.getLinkAndCrossing(), namer("<linkAndCrossing>"));
+    write.prop("phases", signal.getPhases(), namer("<phase>"));
+    //hard coding
+    const sim_mob::Signal_SCATS & SCATS = dynamic_cast<const sim_mob::Signal_SCATS &>(signal);
+    write.prop_begin("SCATS");
+    write.prop("signalTimingMode", std::string("STM_ADAPTIVE"));//hardcode until using a decent enum in signal.hpp
+    write.prop("SplitPlan", SCATS.getPlan());
+    write.prop_end();
 }
 
 

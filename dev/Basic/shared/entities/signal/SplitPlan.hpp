@@ -95,7 +95,7 @@ public:
 	void setcurrSplitPlanID(std::size_t index);
 	void setnextSplitPlan(std::vector<double> DS);
 	void setCoiceSet(std::vector< std::vector<double> >);
-	std::vector< std::vector<double> > &getChoiceSet();
+	const std::vector< std::vector<double> > &getChoiceSet()const ;
 	void setDefaultSplitPlan(int);
 	void initialize();
 
@@ -106,7 +106,7 @@ public:
 
 
 	/*offset related methods*/
-	std::size_t getOffset();
+	std::size_t getOffset() const;
 	void setOffset(std::size_t);
 
 	/*main update mehod*/

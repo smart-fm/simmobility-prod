@@ -55,7 +55,7 @@ crossingID (unsigned int crossingID)
 }
 
 void sim_mob::xml::crossings_map_t_pimpl::
-ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > > ColorSequence)//todo:make reference
+ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,int> > > ColorSequence)//todo:make reference
 {
   model.colorSequence.setColorDuration(ColorSequence.second);
   model.colorSequence.setTrafficLightType(ColorSequence.first);

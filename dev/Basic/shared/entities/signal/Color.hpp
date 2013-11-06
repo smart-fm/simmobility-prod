@@ -6,6 +6,8 @@
 
 #include<vector>
 #include"defaults.hpp"
+#include <boost/assign/list_of.hpp>
+#include <map>
 
 namespace sim_mob
 {
@@ -22,6 +24,16 @@ enum TrafficColor
     FlashingAmber = 5,	///future use
     FlashingGreen = 6	///future use
 };
+
+static  std::map<TrafficColor,std::string> TrafficColorMap =
+				boost::assign::map_list_of
+				(InvalidTrafficColor,"InvalidTrafficColor")
+				(Red,"Red")
+				(Amber,"Amber")
+				(Green,"Green")
+				(FlashingRed,"FlashingRed")
+				(FlashingAmber,"FlashingAmber")
+				(FlashingGreen,"FlashingGreen");
 
 //depricated
 struct VehicleTrafficColors
@@ -56,35 +68,28 @@ public:
 		type = TrafficColorType;
 	}
 
-	ColorSequence(std::vector< std::pair<TrafficColor,short> > ColorDurationInput, TrafficLightType TrafficColorType = Driver_Light) :
+	ColorSequence(std::vector< std::pair<TrafficColor,int> > ColorDurationInput, TrafficLightType TrafficColorType = Driver_Light) :
 		ColorDuration(ColorDurationInput),
 		type(TrafficColorType){}
 
-	std::vector< std::pair<TrafficColor,short> > & getColorDuration();
+	const std::vector< std::pair<TrafficColor,int> > & getColorDuration()const;
 	const TrafficLightType getTrafficLightType() const;
 
-	void addColorPair(std::pair<TrafficColor,short> p);
-	void addColorDuration(TrafficColor,short);
+	void addColorPair(std::pair<TrafficColor,int> p);
+	void addColorDuration(TrafficColor,int);
 	void removeColorPair(int position);
 	void clear();
 
-	void changeColorDuration(std::size_t color,short duration);
+	void changeColorDuration(std::size_t color,int duration);
+	static std::string getTrafficLightColorString(const TrafficColor&);
 	//computes the supposed color of the sequence after a give time lapse
 	TrafficColor computeColor(double Duration);
-	void setColorDuration(std::vector< std::pair<TrafficColor,short> >);
+	void setColorDuration(std::vector< std::pair<TrafficColor,int> >);
 	void setTrafficLightType(TrafficLightType);
+
 private:
-	std::vector< std::pair<TrafficColor,short> > ColorDuration;
+	std::vector< std::pair<TrafficColor,int> > ColorDuration;
 	TrafficLightType type;
-//public:
-//	void operator= (const  ColorSequence & c)
-//	{
-//		type = c.type;
-//		ColorDuration = c.ColorDuration;
-////		return this;
-//	}
-
-
 	friend class sim_mob::Phase;
 };
 }//namespcae

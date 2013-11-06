@@ -416,10 +416,10 @@ public:
 };
 
 class ColorDuration_t_pimpl: public virtual ColorDuration_t_pskel {
-	std::pair<sim_mob::TrafficColor,short> model;
+	std::pair<sim_mob::TrafficColor,int> model;
 public:
 	virtual void pre ();
-	virtual std::pair<sim_mob::TrafficColor,short> post_ColorDuration_t ();
+	virtual std::pair<sim_mob::TrafficColor,int> post_ColorDuration_t ();
 
 	virtual void TrafficColor (sim_mob::TrafficColor);
 	virtual void Duration (short);
@@ -427,13 +427,13 @@ public:
 
 
 class ColorSequence_t_pimpl: public virtual ColorSequence_t_pskel {
-	std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,short> > > model;
+	std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,int> > > model;
 public:
 	virtual void pre ();
-	std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,short> > > post_ColorSequence_t ();
+	std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,int> > > post_ColorSequence_t ();
 
 	virtual void TrafficLightType (sim_mob::TrafficLightType);
-	virtual void ColorDuration (std::pair<sim_mob::TrafficColor,short>);
+	virtual void ColorDuration (std::pair<sim_mob::TrafficColor,int>);
 };
 
 class crossings_maps_t_pimpl: public virtual crossings_maps_t_pskel
@@ -469,7 +469,7 @@ class crossings_map_t_pimpl: public virtual crossings_map_t_pskel
   crossingID (unsigned int);
 
   virtual void
-  ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > >);
+  ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,int> > >);
 
   virtual std::pair<sim_mob::Crossing *, sim_mob::Crossings>
   post_crossings_map_t ();

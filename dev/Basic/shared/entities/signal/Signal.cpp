@@ -638,6 +638,11 @@ void Signal_SCATS::initialize() {
 
 /* Get Split plan  for the signal*/
 //might not be very necessary(not in use)
+const sim_mob::SplitPlan & Signal_SCATS::getPlan() const
+{
+	return plan_;
+}
+
 sim_mob::SplitPlan & Signal_SCATS::getPlan()
 {
 	return plan_;

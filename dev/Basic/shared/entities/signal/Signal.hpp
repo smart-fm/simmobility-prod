@@ -93,7 +93,7 @@ public:
 
    virtual void outputTrafficLights(timeslice now,std::string newLine)const{};
 
-   virtual unsigned int getSignalId(){ return -1;}
+   virtual unsigned int getSignalId() const{ return -1;}
    
 	//Signals are non-spatial in nature.
 	virtual bool isNonspatial() { return true; }
@@ -173,7 +173,8 @@ public:
 //	void setnextSplitPlan(double DS[]);
 	int getcurrSplitPlanID();
 	int getnextSplitPlanID();
-	sim_mob::SplitPlan & getPlan();
+	const sim_mob::SplitPlan & getPlan() const;
+	sim_mob::SplitPlan & getPlan() ;
 
 	/*--------Degree of Saturation----------*/
 	double computeDS();

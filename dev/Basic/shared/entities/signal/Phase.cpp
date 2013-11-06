@@ -112,7 +112,7 @@ std::string getColor(size_t id)
 		links_map_const_iterator link_it = links_map_.begin();
 		for(max_green = 0; link_it != links_map_.end() ; link_it++)
 		{
-			std::vector< std::pair<TrafficColor,short> >::const_iterator  color_it = (*link_it).second.colorSequence.ColorDuration.begin();
+			std::vector< std::pair<TrafficColor,int> >::const_iterator  color_it = (*link_it).second.colorSequence.ColorDuration.begin();
 		for (green = 0;	color_it != (*link_it).second.colorSequence.ColorDuration.end(); color_it++) {
 			if ((*color_it).first != Red) {
 				green += (*color_it).second;
@@ -174,12 +174,12 @@ void Phase::addDefaultCrossings(LinkAndCrossingC const & LAC,sim_mob::MultiNode 
 	}
 }
 
+///obsolete
 sim_mob::RoadSegment * Phase::findRoadSegment(sim_mob::Link * link,sim_mob::MultiNode * node) const {
 	sim_mob::RoadSegment *rs = 0;
 	std::set<sim_mob::RoadSegment*>::iterator itrs = (*link).getUniqueSegments().begin();
 	for (; itrs != (*link).getUniqueSegments().end(); itrs++) {
 		if((dynamic_cast<sim_mob::MultiNode *>(const_cast<sim_mob::Node*>((*itrs)->getEnd())) == node)||(dynamic_cast<sim_mob::MultiNode *>(const_cast<sim_mob::Node*>((*itrs)->getStart())) == node)){
-//		if (node->canFindRoadSegment(*itrs)) {
 			rs = *itrs;
 			break;
 		}
@@ -189,13 +189,6 @@ sim_mob::RoadSegment * Phase::findRoadSegment(sim_mob::Link * link,sim_mob::Mult
 }
 
 void Phase::addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink & ll,sim_mob::MultiNode *node) const {
-	//findRoadSegment is buggy, no need now, coz I have set the values already in loader.cpp throuh ll constructor
-//	ll.RS_From = findRoadSegment(lf, node);
-//	ll.RS_To = findRoadSegment(ll.LinkTo, node);
-//	if(name == "C")
-//	{
-//		std::cout << "addLinkMapping ::" <<  ll.RS_From << ":" << ll.RS_To << "\n";
-//	}
 	links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf, ll));
 }
 
@@ -210,8 +203,6 @@ std::string Phase::createStringRepresentation(std::string newLine) const {
 //		segment_based
 		output << "\"segments\":" << newLine << "[" << newLine;
 		//link_based
-//		std::cout << " creating string representation for phase " << name  << std::endl;
-//		std::cout << " links_map_.size() = " << links_map_.size() << std::endl;
 		links_map_iterator it = links_map_.begin();
 		while(it != links_map_.end() )
 		{
@@ -258,8 +249,8 @@ void Phase::printColorDuration()
 	for(links_map_iterator it = links_map_.begin()  ; it != links_map_.end(); it++)
 	{
 		ColorSequence cs = it->second.colorSequence;
-		std::vector< std::pair<TrafficColor,short> > & cd = cs.getColorDuration();
-		std::vector< std::pair<TrafficColor,short> >::iterator it_color = cd.begin();
+		const std::vector< std::pair<TrafficColor,int> > & cd = cs.getColorDuration();
+		std::vector< std::pair<TrafficColor,int> >::const_iterator it_color = cd.begin();
 		int greenIndex=-1, tempgreenIndex = -1;
 		for(; it_color != cd.end(); it_color++)
 		{
@@ -291,8 +282,8 @@ void Phase::calculateGreen_Links(){
 //		phaseLength is a member
 		//2.find out how long the colors other than green will take
 		ColorSequence & cs = it->second.colorSequence;
-		std::vector< std::pair<TrafficColor,short> > & cd = cs.getColorDuration();
-		std::vector< std::pair<TrafficColor,short> >::iterator it_color = cd.begin();
+		const std::vector< std::pair<TrafficColor,int> > & cd = cs.getColorDuration();
+		std::vector< std::pair<TrafficColor,int> >::const_iterator it_color = cd.begin();
 		size_t other_than_green = 0;
 		int greenIndex=-1, tempgreenIndex = -1;
 		for(int tempgreenIndex = 0; it_color != cd.end(); it_color++)
@@ -309,7 +300,8 @@ void Phase::calculateGreen_Links(){
 		//3.subtract(the genius part)
 		if(greenIndex > -1)
 		{
-			cs.getColorDuration().at(greenIndex).second = phaseLength - other_than_green;
+			cs.changeColorDuration(cs.getColorDuration().at(greenIndex).first, phaseLength - other_than_green);
+//			cs.getColorDuration().at(greenIndex).second = phaseLength - other_than_green;
 //			std::cout << "phase :" << name << " phaselength:"<< phaseLength << "percentage: " << percentage << "  Green time : " << cs.getColorDuration().at(greenIndex).second << " (phaseLength - other_than_green):(" << phaseLength << " - " << other_than_green << ")" << std::endl;
 		}
 	}
@@ -331,8 +323,8 @@ void Phase::calculateGreen_Crossings(){
 //		phaseLength is a member
 		//2.find out how long the colors other than green will take
 		ColorSequence & cs = it->second.colorSequence;
-		std::vector< std::pair<TrafficColor,short> > & cd = cs.getColorDuration();
-		std::vector< std::pair<TrafficColor,short> >::iterator it_color = cd.begin();
+		const std::vector< std::pair<TrafficColor,int> > & cd = cs.getColorDuration();
+		std::vector< std::pair<TrafficColor,int> >::const_iterator it_color = cd.begin();
 		size_t other_than_green = 0;
 		int greenIndex=-1, FgreenIndex = -1;
 		int tempGreenIndex = 0, tempFGreenIndex = 0;
@@ -355,8 +347,10 @@ void Phase::calculateGreen_Crossings(){
 		//3.subtract(the genius part)
 		if((greenIndex > -1)&&(FgreenIndex > -1))
 		{
-			cs.getColorDuration().at(greenIndex).second = (phaseLength - other_than_green) / 3; //green time is one third of flashing green
-			cs.getColorDuration().at(FgreenIndex).second = ((phaseLength - other_than_green) / 3) * 2 ;//f green time is two third of available time
+			cs.changeColorDuration(cs.getColorDuration().at(greenIndex).first, (phaseLength - other_than_green) / 3);
+			cs.changeColorDuration(cs.getColorDuration().at(FgreenIndex).first, ((phaseLength - other_than_green) / 3) * 2);
+//			cs.getColorDuration().at(greenIndex).second = (phaseLength - other_than_green) / 3; //green time is one third of flashing green
+//			cs.getColorDuration().at(FgreenIndex).second = ((phaseLength - other_than_green) / 3) * 2 ;//f green time is two third of available time
 		}
 	}
 }

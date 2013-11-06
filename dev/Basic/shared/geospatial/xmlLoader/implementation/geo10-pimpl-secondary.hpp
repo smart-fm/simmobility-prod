@@ -477,7 +477,7 @@ public:
 	virtual void linkTo (unsigned int);
 	virtual void SegmentFrom (unsigned int);
 	virtual void SegmentTo (unsigned int);
-	virtual void ColorSequence (std::pair<sim_mob::TrafficLightType,std::vector<std::pair<TrafficColor,short> > >);
+	virtual void ColorSequence (std::pair<sim_mob::TrafficLightType,std::vector<std::pair<TrafficColor,int> > >);
 };
 
 

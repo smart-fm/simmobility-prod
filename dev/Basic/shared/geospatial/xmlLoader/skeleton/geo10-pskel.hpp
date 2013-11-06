@@ -3878,7 +3878,7 @@ namespace sim_mob
       virtual void
       Duration (unsigned char);
 
-      virtual std::pair<sim_mob::TrafficColor,short>
+      virtual std::pair<sim_mob::TrafficColor,int>
       post_ColorDuration_t () = 0;
 
       // Parser construction API.
@@ -3926,9 +3926,9 @@ namespace sim_mob
       TrafficLightType (const ::std::string&);
 
       virtual void
-      ColorDuration (std::pair<sim_mob::TrafficColor,short>);
+      ColorDuration (std::pair<sim_mob::TrafficColor,int>);
 
-      virtual std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,short> > >
+      virtual std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,int> > >
       post_ColorSequence_t () = 0;
 
       // Parser construction API.
@@ -4027,7 +4027,7 @@ namespace sim_mob
       SegmentTo (unsigned int);
 
       virtual void
-      ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > >);
+      ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,int> > >);
 
       virtual std::pair<sim_mob::Link*,sim_mob::linkToLink>
       post_links_map_t () = 0;
@@ -4137,7 +4137,7 @@ namespace sim_mob
       crossingID (unsigned int);
 
       virtual void
-      ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > >);
+      ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,int> > >);
 
       virtual std::pair<sim_mob::Crossing *, sim_mob::Crossings>
       post_crossings_map_t () = 0;

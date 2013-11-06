@@ -24,7 +24,7 @@ void sim_mob::xml::ColorDuration_t_pimpl::Duration (short value)
 	//std::cout << "Duration: " << static_cast<unsigned short> (value) << std::endl;
 }
 
-std::pair<sim_mob::TrafficColor,short> sim_mob::xml::ColorDuration_t_pimpl::post_ColorDuration_t ()
+std::pair<sim_mob::TrafficColor,int> sim_mob::xml::ColorDuration_t_pimpl::post_ColorDuration_t ()
 {
 	return model;
 }

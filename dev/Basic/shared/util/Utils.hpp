@@ -55,7 +55,7 @@ namespace sim_mob {
         //Helper for XML parsing. Source value looks like this: "3000 : 6000", spaces optional.
         //\todo This is mostly in the wrong place; our whole "util" directory needs some reorganization.
         static std::pair<double, double> parse_scale_minmax(const std::string& src);
-        
+
         /**
          * Restricts a value to be within a specified range.
          * @param value to clamp
@@ -65,8 +65,21 @@ namespace sim_mob {
          * If value is greater than max, max will be returned, otherwise returns
          * value.
          */
-        template<typename T> static T clamp(const T& value, const T& min, const T& max) {
+        template<typename T>
+        static T clamp(const T& value, const T& min, const T& max) {
             return (value < min) ? min : (value > max) ? max : value;
+        }
+
+        /**
+         * Convert any kind of number format into a string.
+         * @param number input
+         * @return to a string
+         */
+        template<typename T>
+        static std::string numberToString(const T& number) {
+            std::ostringstream stream;
+            stream << number;
+            return stream.str();
         }
     };
 
@@ -86,13 +99,13 @@ namespace sim_mob {
          * Stops the watch.
          */
         void stop();
-        
+
         /**
          * Gets the time taken between the last Start-Stop call.
          * @return time in seconds or -1 if the watch is running.
          */
         double getTime() const;
-        
+
     private:
         time_t now;
         time_t end;

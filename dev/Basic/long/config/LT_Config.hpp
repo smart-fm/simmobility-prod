@@ -1,10 +1,10 @@
 /* 
  * Copyright Singapore-MIT Alliance for Research and Technology
  * 
- * File:   DatabaseConfig.hpp
+ * File:   LT_Config.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
- * Created on October 11, 2013, 11:26 AM
+ * Created on November 6, 2013, 11:26 AM
  */
 #pragma once
 #include <string>
@@ -23,7 +23,6 @@ namespace sim_mob {
          * [events injector]
          * events_file=<file absolute path>
          * 
-         * @param file to read the properties.
          */
         class InjectorConfig : public PropertyLoader {
         public:
@@ -52,7 +51,6 @@ namespace sim_mob {
          *
          * [housing market]
          * time_on_market=<int 0-365>
-         * @param file to read the properties.
          */
         class HM_Config : public PropertyLoader {
         public:
@@ -83,7 +81,6 @@ namespace sim_mob {
          * Containing all configurations.
          *
          * It is possible to avoid the configuration. 
-         * @param file to read the properties.
          */
         class LT_Config : public PropertyLoader {
         public:

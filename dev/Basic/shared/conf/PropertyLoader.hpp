@@ -1,10 +1,10 @@
 /* 
  * Copyright Singapore-MIT Alliance for Research and Technology
  * 
- * File:   DatabaseConfig.hpp
+ * File:   PropertyLoader.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
- * Created on October 11, 2013, 11:26 AM
+ * Created on November 6, 2013, 11:26 AM
  */
 #pragma once
 #include <string>

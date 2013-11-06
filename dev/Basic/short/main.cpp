@@ -603,7 +603,7 @@ int run_simmob_interactive_loop(){
 
 int main(int ARGC, char* ARGV[])
 {
-	std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
+	std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
 
 	//Currently needs the #ifdef because of the way threads initialize.
 #ifdef SIMMOB_INTERACTIVE_MODE

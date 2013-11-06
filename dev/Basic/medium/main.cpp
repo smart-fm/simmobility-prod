@@ -422,7 +422,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 
 int main(int ARGC, char* ARGV[])
 {
-	std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
+	std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
 
 	//Save start time
 	gettimeofday(&start_time_med, nullptr);

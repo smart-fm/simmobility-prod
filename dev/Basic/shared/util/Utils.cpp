@@ -29,29 +29,31 @@ using namespace sim_mob;
 boost::thread_specific_ptr<boost::mt19937> floatProvider;
 boost::thread_specific_ptr<boost::mt19937> intProvider;
 
-inline void InitRandomProvider(boost::thread_specific_ptr<boost::mt19937>& provider) {
+inline void initRandomProvider(boost::thread_specific_ptr<boost::mt19937>& provider) {
     // The first time called by the current thread then just create one.
     if (!provider.get()) {
         provider.reset(new boost::mt19937(static_cast<unsigned> (std::time(0))));
     }
 }
 
-float Utils::GenerateFloat(float min, float max) {
-    InitRandomProvider(floatProvider);
+float Utils::generateFloat(float min, float max) {
+    initRandomProvider(floatProvider);
     boost::uniform_real<float> distribution(min, max);
-    boost::variate_generator<boost::mt19937&, boost::uniform_real<float> > gen(*(floatProvider.get()), distribution);
+    boost::variate_generator<boost::mt19937&, boost::uniform_real<float> > 
+        gen(*(floatProvider.get()), distribution);
     return gen();
 }
 
-int Utils::GenerateInt(int min, int max) {
-    InitRandomProvider(intProvider);
+int Utils::generateInt(int min, int max) {
+    initRandomProvider(intProvider);
     boost::uniform_int<int> distribution(min, max);
-    boost::variate_generator<boost::mt19937&, boost::uniform_int<int> > gen(*(intProvider.get()), distribution);
+    boost::variate_generator<boost::mt19937&, boost::uniform_int<int> > 
+        gen(*(intProvider.get()), distribution);
     return gen();
 }
 
 
-std::vector<std::string> Utils::ParseArgs(int argc, char* argv[])
+std::vector<std::string> Utils::parseArgs(int argc, char* argv[])
 {
 	std::vector<std::string> res;
 	for (size_t i=0; i<argc; i++) {

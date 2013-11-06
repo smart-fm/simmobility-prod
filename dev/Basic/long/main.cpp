@@ -134,7 +134,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
 }
 
 int main(int ARGC, char* ARGV[]) {
-    std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
+    std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
     Print::Init("<stdout>");
     //get start time of the simulation.
     std::list<std::string> resLogFiles;

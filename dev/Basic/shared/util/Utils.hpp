@@ -10,16 +10,12 @@
  */
 #pragma once
 
+#include <ctime>
 #include <vector>
 #include <list>
 #include <string>
 #include <utility>
 #include <sstream>
-//#include <sys/time.h>
-
-//NOTE: This is a Linux-only class. We need to ifdef it out if not available 
-//      (or move it to entities/profile/ProfileBuilder as a static method.)
-#include <sys/time.h>
 
 namespace sim_mob {
 
@@ -32,7 +28,7 @@ namespace sim_mob {
          * @param max maximum limit.
          * @return the generated value. 
          */
-        static float GenerateFloat(float min, float max);
+        static float generateFloat(float min, float max);
 
         /**
          * Generates a new integer value.
@@ -40,12 +36,12 @@ namespace sim_mob {
          * @param max limit.
          * @return the generated value. 
          */
-        static int GenerateInt(int min, int max);
+        static int generateInt(int min, int max);
 
         /**
          * Convert argc/argv into a vector of strings representing each argument.
          */
-        static std::vector<std::string> ParseArgs(int argc, char* argv[]);
+        static std::vector<std::string> parseArgs(int argc, char* argv[]);
 
         /**
          *

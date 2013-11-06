@@ -89,7 +89,7 @@ void Utils::printAndDeleteLogFiles(const std::list<std::string>& logFileNames)
 }
 
 
-std::pair<double, double> Utils::parse_scale_minmax(const std::string& src)
+std::pair<double, double> Utils::parseScaleMinmax(const std::string& src)
 {
 	//Find and split on colons, spaces.
 	std::vector<std::string> words;

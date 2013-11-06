@@ -50,7 +50,7 @@ namespace sim_mob {
 
         //Helper for XML parsing. Source value looks like this: "3000 : 6000", spaces optional.
         //\todo This is mostly in the wrong place; our whole "util" directory needs some reorganization.
-        static std::pair<double, double> parse_scale_minmax(const std::string& src);
+        static std::pair<double, double> parseScaleMinmax(const std::string& src);
 
         /**
          * Restricts a value to be within a specified range.

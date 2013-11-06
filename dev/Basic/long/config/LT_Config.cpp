@@ -9,36 +9,28 @@
 
 #include "LT_Config.hpp"
 #include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/ini_parser.hpp>
+
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 using std::string;
 
-PropertyLoader::PropertyLoader(const string& file, const string& section)
-: file(file), section(section) {
-}
+namespace {
 
-PropertyLoader::PropertyLoader(const PropertyLoader& source)
-: file(source.file), section(source.section) {
-}
-
-PropertyLoader::~PropertyLoader() {
-}
-
-void PropertyLoader::load() {
-    if (!file.empty() && !section.empty()) {
-        boost::property_tree::ptree pt;
-        boost::property_tree::read_ini(file, pt);
-        loadImpl(pt);
-    }
+    //sections
+    const string SECTION_GLOBAL = "global";
+    const string SECTION_EVENTS_INJECTOR = "events injector";
+    const string SECTION_HOUSING_MARKET = "housing market";
+    //properties
+    const string PROP_EVENTS_FILE = "events_file";
+    const string PROP_TIME_ON_MARKET = "time_on_market";
 }
 
 /**
  * InjectorConfig
  */
 InjectorConfig::InjectorConfig(const string& file)
-: PropertyLoader(file, "events-injector"), eventsFile("") {
+: PropertyLoader(file, SECTION_EVENTS_INJECTOR), eventsFile("") {
 }
 
 InjectorConfig::InjectorConfig(const InjectorConfig& orig)
@@ -57,14 +49,14 @@ void InjectorConfig::setEventsFile(const std::string& eventsFile) {
 }
 
 void InjectorConfig::loadImpl(const boost::property_tree::ptree& tree) {
-    this->eventsFile = tree.get<string>(section + ".eventsFile");
+    this->eventsFile = tree.get<string>(toProp(getSection(), PROP_EVENTS_FILE));
 }
 
 /**
  * HM_Config
  */
 HM_Config::HM_Config(const string& file)
-: PropertyLoader(file, "housing-market"), timeOnMarket(0) {
+: PropertyLoader(file, SECTION_HOUSING_MARKET), timeOnMarket(0) {
 }
 
 HM_Config::HM_Config(const HM_Config& orig)
@@ -83,14 +75,14 @@ void HM_Config::setTimeOnMarket(unsigned int timeOnMarket) {
 }
 
 void HM_Config::loadImpl(const boost::property_tree::ptree& tree) {
-    this->timeOnMarket = tree.get<unsigned int>(section + ".timeOnMarket");
+    this->timeOnMarket = tree.get<unsigned int>(toProp(getSection(), PROP_TIME_ON_MARKET));
 }
 
 /**
  * LT_Config
  */
 LT_Config::LT_Config(const std::string& file)
-: PropertyLoader(file, "global"), hmConfig(file), injectorConfig(file) {
+: PropertyLoader(file, SECTION_GLOBAL), hmConfig(file), injectorConfig(file) {
 }
 
 LT_Config::LT_Config(const LT_Config& orig)

@@ -8,47 +8,20 @@
  */
 #pragma once
 #include <string>
-#include <boost/property_tree/ptree.hpp>
+#include "Common.hpp"
+#include "conf/PropertyLoader.hpp"
+#include "util/SingletonHolder.hpp"
 
 namespace sim_mob {
 
     namespace long_term {
 
         /**
-         * Represents an abstract implementation properties file loader.
-         */
-        class PropertyLoader {
-        public:
-            /**
-             * @param file to read the properties.
-             * @param section prefix of the property.
-             */
-            PropertyLoader(const std::string& file, const std::string& section);
-            PropertyLoader(const PropertyLoader& source);
-            virtual ~PropertyLoader();
-
-            /**
-             * Loads properties.
-             */
-            void load();
-        protected:
-            /**
-             * Method to be implemented by specific loader.
-             * @param tree to load.
-             */
-            virtual void loadImpl(const boost::property_tree::ptree& tree) = 0;
-        protected:
-            std::string section;
-        private:
-            std::string file;
-        };
-
-        /**
          * Reads long-term properties from ini file. 
          *
          * Supported fields:
-         * [events-injector]
-         * eventsFile=<file absolute path>
+         * [events injector]
+         * events_file=<file absolute path>
          * 
          * @param file to read the properties.
          */
@@ -77,8 +50,8 @@ namespace sim_mob {
         /**
          * Reads long-term properties from ini file. 
          *
-         * [housing-market]
-         * time-on-market=<int 0-365>
+         * [housing market]
+         * time_on_market=<int 0-365>
          * @param file to read the properties.
          */
         class HM_Config : public PropertyLoader {
@@ -129,6 +102,25 @@ namespace sim_mob {
             HM_Config hmConfig;
             InjectorConfig injectorConfig;
         };
+
+        /**
+         * Configuration Singleton.
+         */
+        template<typename T = LT_Config>
+        struct ConfigLifeCycle {
+
+            static T * create() {
+                T* config = new T(LT_CONFIG_FILE);
+                config->load();
+                return config;
+            }
+
+            static void destroy(T* config) {
+                delete config;
+            }
+        };
+
+        typedef SingletonHolder<LT_Config, ConfigLifeCycle> ConfigSingleton;
     }
 }
 

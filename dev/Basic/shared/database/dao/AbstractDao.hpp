@@ -191,7 +191,8 @@ namespace sim_mob {
              * @return true if some values were returned, false otherwise.
              */
             virtual bool getAll(std::vector<T>& outList) {
-                return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outList);
+                return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, 
+                        outList);
             }
 
         protected: // Protected types
@@ -218,10 +219,11 @@ namespace sim_mob {
              */
             enum DefaultQuery {
                 INSERT = 0,
-                UPDATE = 1,
-                DELETE = 2,
-                GET_ALL = 3,
-                GET_BY_ID = 4
+                UPDATE,
+                DELETE,
+                GET_ALL,
+                GET_BY_ID,
+                NUM_QUERIES
             };
 
             typedef soci::details::prepare_temp_type Statement;
@@ -305,7 +307,7 @@ namespace sim_mob {
         protected:
             DBConnection* connection;
             std::string tableName;
-            std::string defaultQueries[5];
+            std::string defaultQueries[NUM_QUERIES+1];
         };
     }
 }

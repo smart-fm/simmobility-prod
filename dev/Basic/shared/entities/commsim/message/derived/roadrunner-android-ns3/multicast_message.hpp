@@ -16,6 +16,7 @@
 #include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/message/base/Message.hpp"
 #include "entities/commsim/message/base/Handler.hpp"
+#include "entities/commsim/message/base/MulticastHandler.hpp"
 
 namespace sim_mob {
 class Agent;
@@ -34,10 +35,7 @@ public:
 
 
 //Handler for the above message
-class ANDROID_HDL_MULTICAST : public sim_mob::Handler {
-public:
-	void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker);
-
+class ANDROID_HDL_MULTICAST : public sim_mob::roadrunner::MulticastHandler {
 protected:
 	//Called whenever a client is found that we must dispatch a message to.
 	//Behavior differs for ns3 versus android-only.

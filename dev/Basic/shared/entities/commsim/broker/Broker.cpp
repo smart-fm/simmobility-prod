@@ -222,7 +222,7 @@ void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler
 		}
 		else
 		{
-			receiveQueue.post(boost::make_tuple(cnnHandler,*it));
+			receiveQueue.post(MessageElement(cnnHandler,*it));
 		}
 	}
 }
@@ -437,10 +437,10 @@ void  sim_mob::Broker::unRegisterEntity(sim_mob::Agent * agent)
 void sim_mob::Broker::processIncomingData(timeslice now)
 {
 	//just pop off the message queue and click handl ;)
-	MessageElement::type msgTuple;
+	MessageElement msgTuple;
 	while(receiveQueue.pop(msgTuple))
 	{
-		sim_mob::comm::MsgPtr &msg = msgTuple.get<1>();
+		sim_mob::comm::MsgPtr &msg = msgTuple.msg;
 		sim_mob::comm::MsgData data = msg->getData();
 		Json::FastWriter w;
 		msg->supplyHandler()->handle(msg,this);
@@ -527,22 +527,22 @@ void sim_mob::Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::
 	}
 }
 
-void sim_mob::Broker::AgentUpdated(Agent * target)
-{
-	Print() << "Inside AgentUpdated" << std::endl;
-	Print() << "AgentUpdated:: setting[" << target->getId() << "] to.done" << std::endl;
-	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
-	if(REGISTERED_AGENTS.setDone(target,true))
-	{
-		Print() << "Agent[" << target->getId() << "] done" << std::endl;
-//		duplicateEntityDoneChecker.insert(target);
-		COND_VAR_AGENT_DONE.notify_all();
-	}
-	else
-	{
-		Print() << "Thread[" << boost::this_thread::get_id() << "] Discarded Agent[" << target->getId() << "]" << std::endl;
-	}
-}
+//void sim_mob::Broker::AgentUpdated(Agent * target)
+//{
+//	Print() << "Inside AgentUpdated" << std::endl;
+//	Print() << "AgentUpdated:: setting[" << target->getId() << "] to.done" << std::endl;
+//	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
+//	if(REGISTERED_AGENTS.setDone(target,true))
+//	{
+//		Print() << "Agent[" << target->getId() << "] done" << std::endl;
+////		duplicateEntityDoneChecker.insert(target);
+//		COND_VAR_AGENT_DONE.notify_all();
+//	}
+//	else
+//	{
+//		Print() << "Thread[" << boost::this_thread::get_id() << "] Discarded Agent[" << target->getId() << "]" << std::endl;
+//	}
+//}
 
 void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums)
 {

@@ -113,10 +113,6 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker,
 		//start listening to the handler
 		clientEntry->cnnHandler->start();
 		Print() << "AndroidClient  Registered:" << std::endl;
-//		Print() << "Clinet Handler[" <<  clientEntry->cnnHandler << "]\n"
-//		<< "Clinet ID[" <<  clientEntry->cnnHandler->clientID << "]\n"
-//		<<  "Agent[" << clientEntry->agent->getId() << "][" << clientEntry->agent << "]\n"
-//		<<  "Session[" <<  clientEntry->cnnHandler->session() << "]" << std::endl;
 		return true;
 }
 

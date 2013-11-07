@@ -101,6 +101,7 @@ void sim_mob::roadrunner::HDL_MULTICAST::handle(sim_mob::comm::MsgPtr message_, 
 	//Now, Let's see which one of these agents are associated with clients
 	ClientList::pair clientTypes;
 	const ClientList::type& all_clients = broker->getClientList();
+	sim_mob::comm::MsgData recipients; //Unused.
 	BOOST_FOREACH(clientTypes , all_clients)
 	{
 		// only the android emulators
@@ -126,9 +127,21 @@ void sim_mob::roadrunner::HDL_MULTICAST::handle(sim_mob::comm::MsgPtr message_, 
 			//so we go streight to next step
 			//step-5: insert messages into send buffer
 			//NOTE: This part is different for ns-3 versus android-only.
-			broker->insertSendBuffer(destClientHandlr->cnnHandler,data);
+			handleClient(*destClientHandlr, recipients, *broker, data);
 		}//inner loop : BOOST_FOREACH(clientIds , inner)
 	}//outer loop : BOOST_FOREACH(clientTypes , clients)
+
+	//NOTE: This part only matters if NS3 is used.
+	postPendingMessages(*broker, *original_agent, recipients, data);
 }//handle()
+
+void sim_mob::roadrunner::HDL_MULTICAST::handleClient(const sim_mob::ClientHandler& clientHdlr, sim_mob::comm::MsgData& recipientsList, Broker& broker, sim_mob::comm::MsgData& data)
+{
+	broker.insertSendBuffer(clientHdlr.cnnHandler,data);
+}
+
+void sim_mob::roadrunner::HDL_MULTICAST::postPendingMessages(sim_mob::Broker& broker, const sim_mob::Agent& agent, const sim_mob::comm::MsgData& recipientsList, sim_mob::comm::MsgData& data)
+{
+}
 
 

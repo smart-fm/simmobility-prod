@@ -135,21 +135,33 @@ void sim_mob::rr_android_ns3::ANDROID_HDL_MULTICAST::handle(sim_mob::comm::MsgPt
 				//the original jsoncpp's Json::Value message.
 				//just add the recipients
 			//NOTE: This part is different for ns-3 versus android-only.
-			recipients.append(destClientHandlr->agent->getId());
+			handleClient(*destClientHandlr, recipients, *broker, data);
 		}//inner loop : BOOST_FOREACH(clientIds , inner)
 	}//outer loop : BOOST_FOREACH(clientTypes , clients)
 
+	//NOTE: This part only matters if NS3 is used.
+	postPendingMessages(*broker, *original_agent, recipients, data);
+}//handle()
+
+
+void sim_mob::rr_android_ns3::ANDROID_HDL_MULTICAST::handleClient(const sim_mob::ClientHandler& clientHdlr, sim_mob::comm::MsgData& recipientsList, Broker& broker, sim_mob::comm::MsgData& data)
+{
+	recipientsList.append(clientHdlr.agent->getId());
+}
+
+void sim_mob::rr_android_ns3::ANDROID_HDL_MULTICAST::postPendingMessages(sim_mob::Broker& broker, const sim_mob::Agent& agent, const sim_mob::comm::MsgData& recipientsList, sim_mob::comm::MsgData& data)
+{
 	//step-5: insert messages into send buffer
 	//NOTE: This part only exists for ns-3+android.
 	boost::shared_ptr<sim_mob::ClientHandler> ns3_clnHandler;
-	broker->getClientHandler("0", "NS3_SIMULATOR", ns3_clnHandler);
-	if(recipients.size()>0) {
+	broker.getClientHandler("0", "NS3_SIMULATOR", ns3_clnHandler);
+	if(recipientsList.size()>0) {
 		//add two extra field to mark the agent ids(used in simmobility to identify agents)
-		data["SENDING_AGENT"] = original_agent->getId();
-		data["RECIPIENTS"] = recipients;
-		broker->insertSendBuffer(ns3_clnHandler->cnnHandler,data);
+		data["SENDING_AGENT"] = agent.getId();
+		data["RECIPIENTS"] = recipientsList;
+		broker.insertSendBuffer(ns3_clnHandler->cnnHandler,data);
 	}
-}//handle()
+}
 
 
 

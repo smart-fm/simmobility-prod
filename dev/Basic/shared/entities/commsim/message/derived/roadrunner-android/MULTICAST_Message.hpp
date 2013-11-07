@@ -16,7 +16,9 @@
 #include "entities/commsim/message/base/Handler.hpp"
 
 namespace sim_mob {
+class Agent;
 class Broker;
+class ClientHandler;
 
 namespace roadrunner {
 
@@ -31,6 +33,16 @@ public:
 class HDL_MULTICAST : public sim_mob::Handler {
 public:
 	void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker);
+
+protected:
+
+	//Called whenever a client is found that we must dispatch a message to.
+	//Behavior differs for ns3 versus android-only.
+	virtual void handleClient(const sim_mob::ClientHandler& clientHdlr, sim_mob::comm::MsgData& recipientsList, sim_mob::Broker& broker, sim_mob::comm::MsgData& data);
+
+	//Called when all client have been processed and messages may now be sent.
+	//Behavior only exists for ns-3 (where messages are delayed).
+	virtual void postPendingMessages(sim_mob::Broker& broker, const sim_mob::Agent& agent, const sim_mob::comm::MsgData& recipientsList, sim_mob::comm::MsgData& data);
 };
 
 }}

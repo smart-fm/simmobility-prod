@@ -18,7 +18,7 @@
 
 #include "entities/commsim/message/derived/roadrunner-android/MULTICAST_Message.hpp"
 #include "entities/commsim/message/derived/roadrunner-android/UNICAST_Message.hpp"
-#include "entities/commsim/message/derived/roadrunner-android/CLIENTDONE_Message.hpp"
+#include "entities/commsim/message/base/ClientDoneMessage.hpp"
 
 namespace sim_mob {
 namespace roadrunner{
@@ -61,7 +61,7 @@ public:
 
 
 ///Subclass for roadrunner-only.
-class RR_Factory : public RR_FactoryBase<sim_mob::roadrunner::HDL_MULTICAST, sim_mob::roadrunner::HDL_UNICAST, sim_mob::roadrunner::MSG_MULTICAST, sim_mob::roadrunner::MSG_UNICAST, sim_mob::roadrunner::MSG_CLIENTDONE> {};
+class RR_Factory : public RR_FactoryBase<sim_mob::roadrunner::HDL_MULTICAST, sim_mob::roadrunner::HDL_UNICAST, sim_mob::roadrunner::MSG_MULTICAST, sim_mob::roadrunner::MSG_UNICAST, sim_mob::roadrunner::ClientDoneMessage> {};
 
 } //End roadrunner namespace
 } //End sim_mob namespace

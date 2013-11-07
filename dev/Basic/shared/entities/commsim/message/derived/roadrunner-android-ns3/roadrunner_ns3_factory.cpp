@@ -217,7 +217,7 @@ bool sim_mob::rr_android_ns3::RR_NS3_Factory::createMessage(std::string &input, 
  		}
  		case CLIENT_MESSAGES_DONE:{
  			//create a message
- 			sim_mob::comm::MsgPtr msg(new sim_mob::rr_android_ns3::MSG_CLIENTDONE(curr_json));
+ 			sim_mob::comm::MsgPtr msg(new sim_mob::roadrunner::ClientDoneMessage(curr_json));
  			//... and then assign the handler pointer to message's member
  //			msg->setHandler(getHandler()); no handler!
  			output.push_back(msg);

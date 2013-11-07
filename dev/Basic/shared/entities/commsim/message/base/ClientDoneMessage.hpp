@@ -2,25 +2,21 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * CLIENTDONE_Message.h
- *
- *  Created on: May 9, 2013
- *      Author: vahid
- */
-
 #pragma once
 
 #include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/message/base/Message.hpp"
+#include "util/LangHelpers.hpp"
 
 namespace sim_mob {
 namespace roadrunner {
 
-class MSG_CLIENTDONE : public sim_mob::comm::Message {
+///TODO: This class doesn't seem to do much; do we need it? ~Seth
+class ClientDoneMessage : public sim_mob::comm::Message {
 public:
-	MSG_CLIENTDONE(sim_mob::comm::MsgData& data_);
-	Handler * newHandler();
+	ClientDoneMessage(sim_mob::comm::MsgData& data_) : Message(data_) {}
+
+	Handler* newHandler() { return nullptr; }
 };
 
 }}

@@ -22,13 +22,14 @@
 namespace sim_mob {
 namespace roadrunner{
 
+///RR factory (no documentation provided).
 class RR_Factory : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> {
 	enum MessageType {
 		MULTICAST = 1,
 		UNICAST = 2,
-		ANNOUNCE = 3,
-		KEY_REQUEST = 4,
-		KEY_SEND = 5,
+		//ANNOUNCE = 3,
+		//KEY_REQUEST = 4,
+		//KEY_SEND = 5,
 		CLIENT_MESSAGES_DONE = 6
 	};
 

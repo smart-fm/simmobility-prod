@@ -22,7 +22,6 @@
 namespace sim_mob {
 namespace rr_android_ns3 {
 
-
 ///Android RR factory (no documentation provided).
 class RR_Android_Factory : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> {
 	enum MessageType {

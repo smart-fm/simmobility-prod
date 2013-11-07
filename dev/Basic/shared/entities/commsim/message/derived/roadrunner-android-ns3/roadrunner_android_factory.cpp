@@ -19,10 +19,15 @@
 
 using namespace sim_mob;
 
-
 sim_mob::rr_android_ns3::RR_Android_Factory::RR_Android_Factory()
 {
-	MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE);
+	//Doing it manually; C++1 doesn't like the boost assignment.
+	MessageMap.clear();
+	MessageMap["MULTICAST"] = MULTICAST;
+	MessageMap["UNICAST"] = UNICAST;
+	MessageMap["CLIENT_MESSAGES_DONE"] = CLIENT_MESSAGES_DONE;
+
+	//MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE);
 }
 
 

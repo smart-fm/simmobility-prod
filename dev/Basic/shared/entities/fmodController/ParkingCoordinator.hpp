@@ -31,12 +31,13 @@ class ParkingCoordinator {
 public:
 	ParkingCoordinator();
 	virtual ~ParkingCoordinator();
+	static const int DEFAULT_MAX_CAPACITY = 10;
 
 	/**
 	  * data structure to store parking vehicles at a given node
 	  */
 	struct ParkingLot{
-		ParkingLot() : node(0), maxCapacity(10), currentOccupancy(0) {;}
+		ParkingLot() : node(0), maxCapacity(DEFAULT_MAX_CAPACITY), currentOccupancy(0) {;}
 		const Node* node;
 		int maxCapacity;
 		int currentOccupancy;

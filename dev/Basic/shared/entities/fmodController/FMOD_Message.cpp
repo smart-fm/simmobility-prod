@@ -17,7 +17,7 @@ namespace sim_mob {
 namespace FMOD
 {
 
-FMOD_Message::FMOD_Message() : messageID_(-1) {
+FMOD_Message::FMOD_Message() : messageID_(MSG_DEFALUTVALUE) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -37,26 +37,26 @@ std::string FMOD_Message::buildToString()
 	return msg;
 }
 
-int FMOD_Message::AnalyzeMessageID(std::string& msg)
+FMOD_Message::FMOD_MessageID FMOD_Message::analyzeMessageID(const std::string& msg)
 {
-	int ID = -1;
+	FMOD_MessageID ID = MSG_DEFALUTVALUE;
 	int index1 = msg.find("message ");
 	if( index1 > 0 )
 	{
 		int index2 = msg.find(",", index1);
 		std::string message_id = msg.substr(index1, index2-index2);
-		ID = atoi(message_id.c_str());
+		ID = (FMOD_MessageID)atoi(message_id.c_str());
 	}
 	return ID;
 }
 
-void FMOD_Message::createMessage(std::string& msg)
+void FMOD_Message::createMessage(const std::string& msg)
 {
-	messageID_ = AnalyzeMessageID( msg );
+	messageID_ = analyzeMessageID( msg );
 	msg_ = msg;
 }
 
-void MsgVehicleInit::createMessage(std::string& msg)
+void MsgVehicleInit::createMessage(const std::string& msg)
 {
 	FMOD_Message::createMessage(msg);
 
@@ -81,14 +81,14 @@ void MsgVehicleInit::createMessage(std::string& msg)
 	for(int i=0; i<arrVeh.size(); i++)
 	{
 		Json::Value item = arrVeh[i];
-		SUPPLY suplier;
+		Supply suplier;
 		suplier.vehicleId = item["vehicle_id"].asInt();
 		suplier.nodeId = item["node_id"].asInt();
 		vehicles.push_back(suplier);
 	}
 }
 
-void MsgOffer::createMessage(std::string& msg)
+void MsgOffer::createMessage(const std::string& msg)
 {
 	FMOD_Message::createMessage(msg);
 
@@ -113,7 +113,7 @@ void MsgOffer::createMessage(std::string& msg)
 	for(int i=0; i<arrVeh.size(); i++)
 	{
 		Json::Value item = arrVeh[i];
-		OFFER offer;
+		Offer offer;
 		offer.schduleId = item["schdule_id"].asString();
 		offer.serviceType = item["service_type"].asInt();
 		offer.fare = item["fare"].asInt();
@@ -127,7 +127,7 @@ void MsgOffer::createMessage(std::string& msg)
 	}
 }
 
-void MsgConfirmation::createMessage(std::string& msg)
+void MsgConfirmation::createMessage(const std::string& msg)
 {
 	FMOD_Message::createMessage(msg);
 
@@ -270,7 +270,7 @@ std::string MsgVehiclePos::buildToString()
 	return msg;
 }
 
-void MsgSchedule::createMessage(std::string& msg)
+void MsgSchedule::createMessage(const std::string& msg)
 {
 	FMOD_Message::createMessage(msg);
 
@@ -297,7 +297,7 @@ void MsgSchedule::createMessage(std::string& msg)
 	for(int i=0; i<arrStops.size(); i++)
 	{
 		Json::Value item = arrStops[i];
-		STOP stop;
+		Stop stop;
 		stop.stopId = item["stop"].asString();
 		stop.arrivalTime = item["arrival_time"].asString();
 		stop.depatureTime = item["depature_time"].asString();
@@ -318,7 +318,7 @@ void MsgSchedule::createMessage(std::string& msg)
 	for(int i=0; i<arrStops.size(); i++)
 	{
 		Json::Value item = arrPassengers[i];
-		PASSENGER pass;
+		Passenger pass;
 		pass.clientId = item["client_id"].asString();
 		pass.price = item["price"].asInt();
 		passengers.push_back(pass);
@@ -328,7 +328,7 @@ void MsgSchedule::createMessage(std::string& msg)
 	for(int i=0; i<arrStops.size(); i++)
 	{
 		Json::Value item = arrRoutes[i];
-		ROUTE route;
+		Route route;
 		route.id = item["id"].asString();
 		route.type = item["type"].asInt();
 		routes.push_back(route);

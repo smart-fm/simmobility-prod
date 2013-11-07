@@ -28,7 +28,7 @@ namespace FMOD
 class FMOD_Message {
 public:
 
-	enum MESSAGEID{MSG_INITIALIZE=1, MSG_SIMULATION_SETTINGS=2, MSG_LINKTRAVELUPADTE=3, MSG_REQUEST=4, MSG_OFFER=5, MSG_ACCEPT=6, MSG_CONFIRMATION=7,
+	enum FMOD_MessageID{MSG_DEFALUTVALUE=0, MSG_INITIALIZE=1, MSG_SIMULATION_SETTINGS=2, MSG_LINKTRAVELUPADTE=3, MSG_REQUEST=4, MSG_OFFER=5, MSG_ACCEPT=6, MSG_CONFIRMATION=7,
 		MSG_VEHICLESTOP=81, MSG_VEHICLEPOS=82, MSG_SCHEDULE_FETCH=91, MSG_SCHEDULE=92, MSG_ACK=100};
 
 	FMOD_Message();
@@ -44,23 +44,23 @@ public:
       * create message value from a json string
       * @return void.
       */
-	virtual void createMessage(std::string& msg);
+	virtual void createMessage(const std::string& msg);
 
     /**
       * get message id from current FMOD message
       * @return message id.
       */
-	int getMessageID() { return messageID_; }
+	FMOD_MessageID getMessageID() { return messageID_; }
 
     /**
       * analyze a message id from a json string
       * @return message id.
       */
-	static int AnalyzeMessageID(std::string& msg);
+	static FMOD_MessageID analyzeMessageID(const std::string& msg);
 
 public:
 	std::string msg_;
-	int messageID_;
+	FMOD_MessageID messageID_;
 };
 
 /**
@@ -114,19 +114,19 @@ public:
   */
 class MsgVehicleInit : public FMOD_Message {
 public:
-	struct SUPPLY
+	struct Supply
 	{
 		int vehicleId;
 		int nodeId;
 	};
-	std::vector<SUPPLY> vehicles;
+	std::vector<Supply> vehicles;
 public:
 
     /**
       * create message value from a json string
       * @return void.
       */
-	virtual void createMessage(std::string& msg);
+	virtual void createMessage(const std::string& msg);
 };
 
 /**
@@ -135,7 +135,7 @@ public:
 class MsgOffer : public FMOD_Message {
 public:
 	std::string clientId;
-	struct OFFER
+	struct Offer
 	{
 		std::string schduleId;
 		int serviceType;
@@ -147,14 +147,14 @@ public:
 		int travelTime;
 		int travelDistance;
 	};
-	std::vector<OFFER> offers;
+	std::vector<Offer> offers;
 public:
 
     /**
       * create message value from a json string
       * @return void.
       */
-	virtual void createMessage(std::string& msg);
+	virtual void createMessage(const std::string& msg);
 };
 
 /**
@@ -190,7 +190,7 @@ public:
       * create message value from a json string
       * @return void.
       */
-	virtual void createMessage(std::string& msg);
+	virtual void createMessage(const std::string& msg);
 };
 
 /**
@@ -199,14 +199,14 @@ public:
 class MsgLinkTravel : public FMOD_Message {
 public:
 	std::string currentTime;
-	struct LINK
+	struct Link
 	{
 		int node1Id;
 		int node2Id;
 		int wayId;
 		double travelTime;
 	};
-	std::vector<LINK> links;
+	std::vector<Link> links;
 public:
     /**
       * build a json string from message value.
@@ -262,7 +262,7 @@ public:
 	std::string scheduleId;
 	std::vector<std::string> replaceSchedules;
 	int serviceType;
-	struct STOP
+	struct Stop
 	{
 		std::string stopId;
 		std::string arrivalTime;
@@ -270,26 +270,26 @@ public:
 		std::vector< std::string > boardingPassengers;
 		std::vector< std::string > alightingPassengers;
 	};
-	std::vector<STOP> stopSchdules;
-	struct PASSENGER
+	std::vector<Stop> stopSchdules;
+	struct Passenger
 	{
 		std::string clientId;
 		int price;
 	};
-	std::vector<PASSENGER> passengers;
-	struct ROUTE
+	std::vector<Passenger> passengers;
+	struct Route
 	{
 		std::string id;
 		int type;
 	};
-	std::vector<ROUTE> routes;
+	std::vector<Route> routes;
 public:
 
     /**
       * create message value from a json string
       * @return void.
       */
-	virtual void createMessage(std::string& msg);
+	virtual void createMessage(const std::string& msg);
 };
 }
 

@@ -93,8 +93,8 @@ bool FMOD_Controller::insertFmodItems(const std::string& personID, TripChainItem
 
 void FMOD_Controller::collectPerson()
 {
-	typedef std::map<Request*, TripChainItem*>::iterator RequestMap;
-	for (RequestMap it=allRequests.begin(); it!=allRequests.end(); it++) {
+	std::map<Request*, TripChainItem*>::iterator it;
+	for (it=allRequests.begin(); it!=allRequests.end(); it++) {
 
 		sim_mob::TripChainItem* tc = it->second;
 		tc->setPersonID( boost::lexical_cast<std::string>( it->first->clientId ) );
@@ -111,8 +111,8 @@ void FMOD_Controller::collectPerson()
 
 void FMOD_Controller::collectRequest()
 {
-	typedef std::map<std::string, TripChainItem*>::iterator TCMapIt;
-	for (TCMapIt it=allItems.begin(); it!=allItems.end(); it++) {
+	std::map<std::string, TripChainItem*>::iterator it;
+	for (it=allItems.begin(); it!=allItems.end(); it++) {
 
 		Print() << "Size of tripchain item for person " << it->first << std::endl;
 		Trip* trip = dynamic_cast<Trip*>(it->second);
@@ -144,8 +144,9 @@ void FMOD_Controller::collectRequest()
 					request->destination = trip->toLocation.node_->getID();
 
 				cur += tm;
-				request->departureTimeEarly = DailyTime(cur.getValue()-trip->requestTime*60*1000/2).toString();;
-				request->departureTimeLate = DailyTime(cur.getValue()+trip->requestTime*60*1000/2).toString();;
+				const int MIN_MS = 60*1000;
+				request->departureTimeEarly = DailyTime(cur.getValue()-trip->requestTime*MIN_MS/2).toString();;
+				request->departureTimeLate = DailyTime(cur.getValue()+trip->requestTime*MIN_MS/2).toString();;
 
 				allRequests.insert( std::make_pair(request, trip) );
 			}
@@ -225,7 +226,7 @@ void FMOD_Controller::processMessagesInBlocking(timeslice now)
 				break;
 			}
 
-			int msgId = FMOD_Message::AnalyzeMessageID(message);
+			int msgId = FMOD_Message::analyzeMessageID(message);
 			if(msgId == FMOD_Message::MSG_OFFER ){
 				MessageList ret = handleOfferMessage(message);
 				connectPoint->sendMessage(ret);
@@ -260,7 +261,7 @@ void FMOD_Controller::processMessages(timeslice now)
 		std::string str = messages.front();
 		messages.pop();
 
-		int msgId = FMOD_Message::AnalyzeMessageID(str);
+		int msgId = FMOD_Message::analyzeMessageID(str);
 		if(msgId == FMOD_Message::MSG_SIMULATION_SETTINGS ){
 			handleVehicleInit(str);
 		}
@@ -296,7 +297,7 @@ void FMOD_Controller::updateMessagesInBlocking(timeslice now)
 	MessageList ret = collectVehStops();
 	connectPoint->sendMessage(ret);
 	connectPoint->waitMessageInBlocking(message, waitingseconds);
-	if(FMOD_Message::AnalyzeMessageID(message)!= FMOD_Message::MSG_ACK ){
+	if(FMOD_Message::analyzeMessageID(message)!= FMOD_Message::MSG_ACK ){
 		std::cout << "Fmod Controller not receive correct acknowledge message" << std::endl;
 		return;
 	}
@@ -306,7 +307,7 @@ void FMOD_Controller::updateMessagesInBlocking(timeslice now)
 		connectPoint->sendMessage(ret);
 		connectPoint->flush();
 		connectPoint->waitMessageInBlocking(message, waitingseconds);
-		if(FMOD_Message::AnalyzeMessageID(message)!= FMOD_Message::MSG_ACK ){
+		if(FMOD_Message::analyzeMessageID(message)!= FMOD_Message::MSG_ACK ){
 			std::cout << "Fmod Controller not receive correct acknowledge message" << std::endl;
 			return;
 		}
@@ -316,7 +317,7 @@ void FMOD_Controller::updateMessagesInBlocking(timeslice now)
 		ret = collectLinkTravelTime();
 		connectPoint->sendMessage(ret);
 		connectPoint->waitMessageInBlocking(message, waitingseconds);
-		if(FMOD_Message::AnalyzeMessageID(message)!= FMOD_Message::MSG_ACK ){
+		if(FMOD_Message::analyzeMessageID(message)!= FMOD_Message::MSG_ACK ){
 			std::cout << "Fmod Controller not receive correct acknowledge message" << std::endl;
 			return;
 		}
@@ -461,20 +462,20 @@ MessageList FMOD_Controller::collectLinkTravelTime()
 	DailyTime base(ConfigManager::GetInstance().FullConfig().simStartTime());
 	DailyTime start(curr.getValue()+base.getValue());
 
-	MsgLinkTravel msg_travel;
-	msg_travel.currentTime = start.toString();
-	msg_travel.messageID_ = FMOD_Message::MSG_LINKTRAVELUPADTE;
+	MsgLinkTravel msgTravel;
+	msgTravel.currentTime = start.toString();
+	msgTravel.messageID_ = FMOD_Message::MSG_LINKTRAVELUPADTE;
 	for(std::map<const sim_mob::Link*, travelTimes>::iterator itTT=LinkTravelTimesMap.begin(); itTT!=LinkTravelTimesMap.end(); itTT++){
-		MsgLinkTravel::LINK travel;
+		MsgLinkTravel::Link travel;
 		(itTT->first)->getStart()->getID();
 		travel.node1Id = (itTT->first)->getStart()->getID();
 		travel.node2Id = (itTT->first)->getEnd()->getID();
 		travel.wayId = (itTT->first)->getLinkId();
 		travel.travelTime = (itTT->second).linkTravelTime;
-		msg_travel.links.push_back(travel);
+		msgTravel.links.push_back(travel);
 	}
 
-	std::string msg = msg_travel.buildToString();
+	std::string msg = msgTravel.buildToString();
 	msgs.push(msg);
 
 	return msgs;
@@ -504,55 +505,55 @@ MessageList FMOD_Controller::generateRequest(timeslice now)
 
 	return msgs;
 }
-MessageList FMOD_Controller::handleOfferMessage(std::string& msg)
+MessageList FMOD_Controller::handleOfferMessage(const std::string& msg)
 {
 	MessageList msgs;
 
-	MsgOffer msg_offer;
-	msg_offer.createMessage(msg);
+	MsgOffer msgOffer;
+	msgOffer.createMessage(msg);
 
 	unsigned int curTickMS = (frameTicks)*ConfigManager::GetInstance().FullConfig().baseGranMS();
 	DailyTime curr(curTickMS);
 	DailyTime base(ConfigManager::GetInstance().FullConfig().simStartTime());
 
-	MsgAccept msg_accept;
-	msg_accept.messageID_ = FMOD_Message::MSG_ACCEPT;
-	msg_accept.clientId = msg_offer.clientId;
-	msg_accept.scheduleId = msg_offer.offers[0].schduleId;
-	msg_accept.arrivalTime = msg_offer.offers[0].arivalTimeEarly;
-	msg_accept.departureTime = msg_offer.offers[0].departureTimeEarly;
-	msg_accept.currentTime = (curr+base).toString();
-	std::string str = msg_accept.buildToString();
+	MsgAccept msgAccept;
+	msgAccept.messageID_ = FMOD_Message::MSG_ACCEPT;
+	msgAccept.clientId = msgOffer.clientId;
+	msgAccept.scheduleId = msgOffer.offers[0].schduleId;
+	msgAccept.arrivalTime = msgOffer.offers[0].arivalTimeEarly;
+	msgAccept.departureTime = msgOffer.offers[0].departureTimeEarly;
+	msgAccept.currentTime = (curr+base).toString();
+	std::string str = msgAccept.buildToString();
 
-	msgs.push( msg_accept.buildToString() );
+	msgs.push( msgAccept.buildToString() );
 
 	return msgs;
 }
-MessageList FMOD_Controller::handleConfirmMessage(std::string& msg)
+MessageList FMOD_Controller::handleConfirmMessage(const std::string& msg)
 {
 	MessageList msgs;
 
-	MsgConfirmation msg_confirm;
-	msg_confirm.createMessage(msg);
+	MsgConfirmation msgConfirm;
+	msgConfirm.createMessage(msg);
 
-	FMOD_Message msg_fetch;
-	msg_fetch.messageID_ = FMOD_Message::MSG_SCHEDULE_FETCH;
-	std::string str = msg_fetch.buildToString();
+	FMOD_Message msgFetch;
+	msgFetch.messageID_ = FMOD_Message::MSG_SCHEDULE_FETCH;
+	std::string str = msgFetch.buildToString();
 
 	msgs.push(str);
 
 	return msgs;
 }
 
-void FMOD_Controller::handleScheduleMessage(std::string& msg)
+void FMOD_Controller::handleScheduleMessage(const std::string& msg)
 {
-	MsgSchedule msg_request;
-	msg_request.createMessage( msg );
+	MsgSchedule msgRequest;
+	msgRequest.createMessage( msg );
 
 	FMODSchedule* schedule = new FMODSchedule();
 	sim_mob::Node* startNode=nullptr;
 	sim_mob::Node* endNode=nullptr;
-	for(std::vector<MsgSchedule::ROUTE>::iterator it=msg_request.routes.begin(); it!=msg_request.routes.end(); it++){
+	for(std::vector<MsgSchedule::Route>::iterator it=msgRequest.routes.begin(); it!=msgRequest.routes.end(); it++){
 		const StreetDirectory& stdir = StreetDirectory::instance();
 		int id = boost::lexical_cast<int>( (*it).id );
 		sim_mob::Node* node = const_cast<sim_mob::Node*>(stdir.getNode(id));
@@ -566,10 +567,10 @@ void FMOD_Controller::handleScheduleMessage(std::string& msg)
 	}
 
 	DailyTime start(0);
-	for(std::vector<MsgSchedule::STOP>::iterator it=msg_request.stopSchdules.begin(); it!=msg_request.stopSchdules.end(); it++){
+	for(std::vector<MsgSchedule::Stop>::iterator it=msgRequest.stopSchdules.begin(); it!=msgRequest.stopSchdules.end(); it++){
 		FMODSchedule::STOP stop;
 		stop.stopId = boost::lexical_cast<int>( (*it).stopId );
-		stop.scheduleId = boost::lexical_cast<int>( msg_request.scheduleId );
+		stop.scheduleId = boost::lexical_cast<int>( msgRequest.scheduleId );
 		stop.dwellTime = 0;
 		for(std::vector<std::string>::iterator itP=(*it).alightingPassengers.begin(); itP!=(*it).alightingPassengers.end(); itP++){
 			stop.alightingPassengers.push_back( boost::lexical_cast<int>( (*itP) ) );
@@ -591,9 +592,9 @@ void FMOD_Controller::handleScheduleMessage(std::string& msg)
 	std::vector<sim_mob::TripChainItem*>  tcs;
 	tcs.push_back(tc);
 
-	if( parkingCoord.remove(msg_request.vehicleId) ){
+	if( parkingCoord.remove(msgRequest.vehicleId) ){
 		sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
-		person->client_id = msg_request.vehicleId ;
+		person->client_id = msgRequest.vehicleId ;
 		person->parentEntity = this;
 		allDrivers.push_back(person);
 		parkingCoord.enterTo(person->originNode.node_, person);
@@ -616,12 +617,12 @@ void FMOD_Controller::unregisteredChild(Entity* child)
 	}
 }
 
-void FMOD_Controller::handleVehicleInit(std::string& msg)
+void FMOD_Controller::handleVehicleInit(const std::string& msg)
 {
-	MsgVehicleInit msg_init;
-	msg_init.createMessage(msg);
+	MsgVehicleInit msgInit;
+	msgInit.createMessage(msg);
 
-	for(std::vector<MsgVehicleInit::SUPPLY>::iterator it=msg_init.vehicles.begin(); it!=msg_init.vehicles.end(); it++){
+	for(std::vector<MsgVehicleInit::Supply>::iterator it=msgInit.vehicles.begin(); it!=msgInit.vehicles.end(); it++){
 
 		const StreetDirectory& stdir = StreetDirectory::instance();
 		Node* node = const_cast<Node*>( stdir.getNode( (*it).nodeId ) );

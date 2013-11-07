@@ -17,7 +17,7 @@ namespace sim_mob {
 class RoadSegment;
 class IncidentStatus {
 public:
-	enum INCIDENTSTATUS{INCIDENT_CLEARANCE, INCIDENT_OCCURANCE_LANE, INCIDENT_ADJACENT_LANE };
+	enum IncidentStatusType{INCIDENT_CLEARANCE, INCIDENT_OCCURANCE_LANE, INCIDENT_ADJACENT_LANE };
 	IncidentStatus();
 	virtual ~IncidentStatus();
 
@@ -42,11 +42,15 @@ public:
 	void checkIsCleared();
 
     /**
-      * retrieve current status
+      * the setter and getter for the property 'currentStatus'
       * @return current incident status .
       */
-	INCIDENTSTATUS getCurrentStatus() { return currentStatus; }
-	void setCurrentStatus(INCIDENTSTATUS value) { currentStatus = value; }
+	IncidentStatusType getCurrentStatus() {
+		return currentStatus;
+	}
+	void setCurrentStatus(IncidentStatusType value) {
+		currentStatus = value;
+	}
 
     /**
       * reset member parameters to default value.
@@ -160,7 +164,7 @@ private:
 	//record lane changing direction(left or right) for lane changing model
 	LANE_CHANGE_SIDE laneSide;
 	//record current detection result when incident happen
-	INCIDENTSTATUS currentStatus;
+	IncidentStatusType currentStatus;
 	//record the lane changing decision
 	bool changedLane;
 	//record the decision of slowing down velocity

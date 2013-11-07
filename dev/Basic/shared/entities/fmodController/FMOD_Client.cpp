@@ -46,7 +46,7 @@ void FMOD_Client::flush()
 
 void FMOD_Client::sendMessage(std::string& data)
 {
-	msgSendQueue.PushMessage(data);
+	msgSendQueue.pushMessage(data);
 }
 
 void FMOD_Client::sendMessage(MessageList& data)
@@ -55,7 +55,7 @@ void FMOD_Client::sendMessage(MessageList& data)
 	{
 		std::string str = data.front();
 		data.pop();
-		msgSendQueue.PushMessage(str);
+		msgSendQueue.pushMessage(str);
 	}
 }
 
@@ -63,7 +63,7 @@ MessageList FMOD_Client::getMessage()
 {
 	MessageList res;
 	std::string msg;
-	if( bool ret = msgReceiveQueue.PopMessage(msg) ){
+	if( bool ret = msgReceiveQueue.popMessage(msg) ){
 		res.push(msg);
 	}
 
@@ -72,7 +72,7 @@ MessageList FMOD_Client::getMessage()
 
 bool FMOD_Client::waitMessageInBlocking(std::string& msg, int seconds)
 {
-	return msgReceiveQueue.WaitPopMessage(msg, seconds);
+	return msgReceiveQueue.waitPopMessage(msg, seconds);
 }
 
 void FMOD_Client::handleWrite(const boost::system::error_code& error, size_t bytesTransferred)
@@ -87,7 +87,7 @@ void FMOD_Client::handleWrite(const boost::system::error_code& error, size_t byt
 void FMOD_Client::handleRead(const boost::system::error_code& error, size_t bytesTransferred)
 {
 	if( error == 0 ){
-		msgReceiveQueue.PushMessage(ReceivedBuf.data());
+		msgReceiveQueue.pushMessage(ReceivedBuf.data());
 		receiveData();
 	}
 	else{
@@ -119,7 +119,7 @@ void FMOD_Client::stop()
 
 bool FMOD_Client::sendData()
 {
-	bool ret = msgSendQueue.PopMessage(messageSnd);
+	bool ret = msgSendQueue.popMessage(messageSnd);
 
 	if(!ret){
 		return ret;

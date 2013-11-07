@@ -148,28 +148,28 @@ private:
       * @param msg is message content in json format
       * @return message list including confirmation messages which will be sent to FMOD simulator .
       */
-	MessageList handleOfferMessage(std::string& msg);
+	MessageList handleOfferMessage(const std::string& msg);
 
     /**
       * handle confirmation message when a confirmation message is received from FMOD simulator
       * @param msg is message content in json format
       * @return message list including confirmation messages which will be sent to FMOD simulator .
       */
-	MessageList handleConfirmMessage(std::string& msg);
+	MessageList handleConfirmMessage(const std::string& msg);
 
     /**
       * handle schedule message when a schedule message is received from FMOD simulator
       * @param msg is concrete message content in json format
       * @return void.
       */
-	void handleScheduleMessage(std::string& msg);
+	void handleScheduleMessage(const std::string& msg);
 
     /**
       * handle vehicle initialization message when a initialization message is received from FMOD simulator
       * @param msg is concrete message content in JSON format
       * @return void.
       */
-	void handleVehicleInit(std::string& msg);
+	void handleVehicleInit(const std::string& msg);
 
     /**
       * update simulation status including link travel time and vehicles position to FMOD simulator in non blocking mode.

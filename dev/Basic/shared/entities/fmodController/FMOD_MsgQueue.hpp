@@ -45,14 +45,14 @@ public:
       * @param msg is to store message content
       * @return void.
       */
-	void PushMessage(std::string msg);
+	void pushMessage(std::string msg);
 
     /**
       * pop up the first message from this storage.
       * @param msg is to store message content
       * @return void.
       */
-	bool PopMessage(std::string& msg);
+	bool popMessage(std::string& msg);
 
     /**
       * waiting a message in blocking mode until a message is received.
@@ -60,13 +60,13 @@ public:
       * @timeoutSeconds is to assign timeout for blocking
       * @return true if retrieve a message successfully. otherwise false.
       */
-	bool WaitPopMessage(std::string& msg, int timeoutSeconds);
+	bool waitPopMessage(std::string& msg, int timeoutSeconds);
 
     /**
       * read all messages at one time.
       * @return a list of FMOD message.
       */
-	MessageList ReadMessage();
+	MessageList readMessage();
 
 };
 

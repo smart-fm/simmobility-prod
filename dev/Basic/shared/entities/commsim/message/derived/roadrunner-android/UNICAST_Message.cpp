@@ -19,14 +19,14 @@ sim_mob::roadrunner::MSG_UNICAST::MSG_UNICAST(sim_mob::comm::MsgData& data_): Me
 
 Handler* sim_mob::roadrunner::MSG_UNICAST::newHandler()
 {
-	return new HDL_UNICAST();
+	return new sim_mob::roadrunner::UnicastHandler(false);
 }
 
 
-void sim_mob::roadrunner::HDL_UNICAST::postProcess(sim_mob::Broker& broker, const sim_mob::Agent& destAgent, sim_mob::ClientHandler& destCliHandler, const std::string andrSensorId, const std::string& andrSensorType, sim_mob::comm::MsgData &data)
+/*void sim_mob::roadrunner::HDL_UNICAST::postProcess(sim_mob::Broker& broker, const sim_mob::Agent& destAgent, sim_mob::ClientHandler& destCliHandler, const std::string andrSensorId, const std::string& andrSensorType, sim_mob::comm::MsgData &data)
 {
 	broker.insertSendBuffer(destCliHandler.cnnHandler,data);
-}
+}*/
 
 
 

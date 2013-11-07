@@ -31,7 +31,7 @@ public:
 
 
 //Handler for the above message
-class HDL_MULTICAST : public sim_mob::roadrunner::MulticastHandler {
+/*class HDL_MULTICAST : public sim_mob::roadrunner::MulticastHandler {
 protected:
 	//Called whenever a client is found that we must dispatch a message to.
 	//Behavior differs for ns3 versus android-only.
@@ -40,6 +40,6 @@ protected:
 	//Called when all client have been processed and messages may now be sent.
 	//Behavior only exists for ns-3 (where messages are delayed).
 	virtual void postPendingMessages(sim_mob::Broker& broker, const sim_mob::Agent& agent, const sim_mob::comm::MsgData& recipientsList, sim_mob::comm::MsgData& data);
-};
+};*/
 
 }}

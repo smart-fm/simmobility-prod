@@ -10,6 +10,11 @@
 using namespace sim_mob;
 
 
+sim_mob::roadrunner::MulticastHandler::MulticastHandler(bool useNs3) : useNs3(useNs3)
+{
+}
+
+
 //handler implementation
 //this handler handles the multicast requests sent by android
 //the hadler does this by finding the sender's nearby agents
@@ -122,4 +127,31 @@ void sim_mob::roadrunner::MulticastHandler::handle(sim_mob::comm::MsgPtr message
 	//NOTE: This part only matters if NS3 is used.
 	postPendingMessages(*broker, *original_agent, recipients, data);
 }//handle()
+
+
+void sim_mob::roadrunner::MulticastHandler::handleClient(const sim_mob::ClientHandler& clientHdlr, sim_mob::comm::MsgData& recipientsList, Broker& broker, sim_mob::comm::MsgData& data)
+{
+	if (useNs3) {
+		recipientsList.append(clientHdlr.agent->getId());
+	} else {
+		broker.insertSendBuffer(clientHdlr.cnnHandler,data);
+	}
+}
+
+void sim_mob::roadrunner::MulticastHandler::postPendingMessages(sim_mob::Broker& broker, const sim_mob::Agent& agent, const sim_mob::comm::MsgData& recipientsList, sim_mob::comm::MsgData& data)
+{
+	if (useNs3) {
+		//step-5: insert messages into send buffer
+		//NOTE: This part only exists for ns-3+android.
+		boost::shared_ptr<sim_mob::ClientHandler> ns3_clnHandler;
+		broker.getClientHandler("0", "NS3_SIMULATOR", ns3_clnHandler);
+		if(recipientsList.size()>0) {
+			//add two extra field to mark the agent ids(used in simmobility to identify agents)
+			data["SENDING_AGENT"] = agent.getId();
+			data["RECIPIENTS"] = recipientsList;
+			broker.insertSendBuffer(ns3_clnHandler->cnnHandler,data);
+		}
+	}
+}
+
 

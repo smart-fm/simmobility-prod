@@ -27,7 +27,7 @@ namespace rr_android_ns3 {
 
 
 ///Subclass for roadrunner+ns3
-class RR_Android_Factory : public sim_mob::roadrunner::RR_FactoryBase<sim_mob::rr_android_ns3::ANDROID_HDL_MULTICAST, sim_mob::rr_android_ns3::ANDROID_HDL_UNICAST, sim_mob::rr_android_ns3::ANDROID_MSG_MULTICAST, sim_mob::rr_android_ns3::ANDROID_MSG_UNICAST, sim_mob::roadrunner::ClientDoneMessage> {};
+class RR_Android_Factory : public sim_mob::roadrunner::RR_FactoryBase<true, sim_mob::rr_android_ns3::ANDROID_MSG_MULTICAST, sim_mob::rr_android_ns3::ANDROID_MSG_UNICAST, sim_mob::roadrunner::ClientDoneMessage> {};
 
 
 ///NS3 RR factory (no documentation provided).

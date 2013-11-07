@@ -27,15 +27,21 @@ namespace roadrunner {
 ///Shared functionality for both the AndroidMulticastHandler and the AndroidNs3MulticastHandler
 class MulticastHandler : public sim_mob::Handler {
 public:
+	MulticastHandler(bool useNs3);
+
 	void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker);
 
-protected:
+private:
 	//Called whenever a client is found that we must dispatch a message to.
 	//Behavior differs for ns3 versus android-only.
-	virtual void handleClient(const sim_mob::ClientHandler& clientHdlr, sim_mob::comm::MsgData& recipientsList, sim_mob::Broker& broker, sim_mob::comm::MsgData& data) = 0;
+	virtual void handleClient(const sim_mob::ClientHandler& clientHdlr, sim_mob::comm::MsgData& recipientsList, sim_mob::Broker& broker, sim_mob::comm::MsgData& data);
+
 	//Called when all client have been processed and messages may now be sent.
 	//Behavior only exists for ns-3 (where messages are delayed).
-	virtual void postPendingMessages(sim_mob::Broker& broker, const sim_mob::Agent& agent, const sim_mob::comm::MsgData& recipientsList, sim_mob::comm::MsgData& data) = 0;
+	virtual void postPendingMessages(sim_mob::Broker& broker, const sim_mob::Agent& agent, const sim_mob::comm::MsgData& recipientsList, sim_mob::comm::MsgData& data);
+
+private:
+	bool useNs3;
 };
 
 }}

@@ -33,10 +33,10 @@ public:
 };
 
 //Handler to the above message
-class ANDROID_HDL_UNICAST : public sim_mob::roadrunner::UnicastHandler{
+/*class ANDROID_HDL_UNICAST : public sim_mob::roadrunner::UnicastHandler{
 protected:
 	virtual void postProcess(sim_mob::Broker& broker, const sim_mob::Agent& destAgent, sim_mob::ClientHandler& destCliHandler, const std::string andrSensorId, const std::string& andrSensorType, sim_mob::comm::MsgData &data);
-};
+};*/
 
 ///NS3 unicast message (no documentation provided).
 class NS3_MSG_UNICAST : public sim_mob::comm::Message {

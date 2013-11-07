@@ -21,10 +21,10 @@ sim_mob::roadrunner::MSG_MULTICAST::MSG_MULTICAST(sim_mob::comm::MsgData data_):
 
 Handler* sim_mob::roadrunner::MSG_MULTICAST::newHandler()
 {
-	return new HDL_MULTICAST();
+	return new sim_mob::roadrunner::MulticastHandler(false);
 }
 
-void sim_mob::roadrunner::HDL_MULTICAST::handleClient(const sim_mob::ClientHandler& clientHdlr, sim_mob::comm::MsgData& recipientsList, Broker& broker, sim_mob::comm::MsgData& data)
+/*void sim_mob::roadrunner::HDL_MULTICAST::handleClient(const sim_mob::ClientHandler& clientHdlr, sim_mob::comm::MsgData& recipientsList, Broker& broker, sim_mob::comm::MsgData& data)
 {
 	broker.insertSendBuffer(clientHdlr.cnnHandler,data);
 }
@@ -32,5 +32,5 @@ void sim_mob::roadrunner::HDL_MULTICAST::handleClient(const sim_mob::ClientHandl
 void sim_mob::roadrunner::HDL_MULTICAST::postPendingMessages(sim_mob::Broker& broker, const sim_mob::Agent& agent, const sim_mob::comm::MsgData& recipientsList, sim_mob::comm::MsgData& data)
 {
 }
-
+*/
 

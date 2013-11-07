@@ -26,11 +26,11 @@ sim_mob::rr_android_ns3::ANDROID_MSG_MULTICAST::ANDROID_MSG_MULTICAST(sim_mob::c
 
 Handler* sim_mob::rr_android_ns3::ANDROID_MSG_MULTICAST::newHandler()
 {
-	return new ANDROID_HDL_MULTICAST();
+	return new sim_mob::roadrunner::MulticastHandler(true);
 }
 
 
-void sim_mob::rr_android_ns3::ANDROID_HDL_MULTICAST::handleClient(const sim_mob::ClientHandler& clientHdlr, sim_mob::comm::MsgData& recipientsList, Broker& broker, sim_mob::comm::MsgData& data)
+/*void sim_mob::rr_android_ns3::ANDROID_HDL_MULTICAST::handleClient(const sim_mob::ClientHandler& clientHdlr, sim_mob::comm::MsgData& recipientsList, Broker& broker, sim_mob::comm::MsgData& data)
 {
 	recipientsList.append(clientHdlr.agent->getId());
 }
@@ -47,7 +47,7 @@ void sim_mob::rr_android_ns3::ANDROID_HDL_MULTICAST::postPendingMessages(sim_mob
 		data["RECIPIENTS"] = recipientsList;
 		broker.insertSendBuffer(ns3_clnHandler->cnnHandler,data);
 	}
-}
+}*/
 
 
 

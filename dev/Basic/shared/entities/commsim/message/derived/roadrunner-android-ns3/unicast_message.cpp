@@ -21,11 +21,11 @@ sim_mob::rr_android_ns3::ANDROID_MSG_UNICAST::ANDROID_MSG_UNICAST(sim_mob::comm:
 
 Handler* sim_mob::rr_android_ns3::ANDROID_MSG_UNICAST::newHandler()
 {
-	return new ANDROID_HDL_UNICAST();
+	return new sim_mob::roadrunner::UnicastHandler(true);
 }
 
 
-void sim_mob::rr_android_ns3::ANDROID_HDL_UNICAST::postProcess(sim_mob::Broker& broker, const sim_mob::Agent& destAgent, sim_mob::ClientHandler& destCliHandler, const std::string andrSensorId, const std::string& andrSensorType, sim_mob::comm::MsgData &data)
+/*void sim_mob::rr_android_ns3::ANDROID_HDL_UNICAST::postProcess(sim_mob::Broker& broker, const sim_mob::Agent& destAgent, sim_mob::ClientHandler& destCliHandler, const std::string andrSensorId, const std::string& andrSensorType, sim_mob::comm::MsgData &data)
 {
 	boost::shared_ptr<sim_mob::ClientHandler> senderClnHandler;
 	if(!broker.getClientHandler(andrSensorId, andrSensorType, senderClnHandler)) {
@@ -43,7 +43,7 @@ void sim_mob::rr_android_ns3::ANDROID_HDL_UNICAST::postProcess(sim_mob::Broker& 
 		return;
 	}
 	broker.insertSendBuffer(ns3_clnHandler->cnnHandler,data);
-}
+}*/
 
 
 sim_mob::rr_android_ns3::NS3_MSG_UNICAST::NS3_MSG_UNICAST(sim_mob::comm::MsgData& data_): Message(data_)

@@ -25,7 +25,7 @@ namespace roadrunner{
  * This is NOT necessarily a clean solution; in fact, I will examine the messages and handlers to see if we
  * can share more functionality there and remove the templates entirely. ~Seth
  */
-template <class MulticastHandler, class UnicastHandler, class MulticastMessage, class UnicastMessage, class ClientDoneMessage>
+template <bool useNs3, class MulticastMessage, class UnicastMessage, class ClientDoneMessage>
 class RR_FactoryBase : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> {
 	enum MessageType {
 		MULTICAST = 1,
@@ -62,8 +62,8 @@ public:
 ///////////////////////////////////////////////////////////////////////
 
 
-template <class MulticastHandler, class UnicastHandler, class MulticastMessage, class UnicastMessage, class ClientDoneMessage>
-sim_mob::roadrunner::RR_FactoryBase<MulticastHandler, UnicastHandler, MulticastMessage, UnicastMessage, ClientDoneMessage>::RR_FactoryBase()
+template <bool useNs3, class MulticastMessage, class UnicastMessage, class ClientDoneMessage>
+sim_mob::roadrunner::RR_FactoryBase<useNs3, MulticastMessage, UnicastMessage, ClientDoneMessage>::RR_FactoryBase()
 {
 	//Doing it manually; C++1 doesn't like the boost assignment.
 	MessageMap.clear();
@@ -74,14 +74,14 @@ sim_mob::roadrunner::RR_FactoryBase<MulticastHandler, UnicastHandler, MulticastM
 	//MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE)/*("ANNOUNCE",ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND)*/;
 }
 
-template <class MulticastHandler, class UnicastHandler, class MulticastMessage, class UnicastMessage, class ClientDoneMessage>
-sim_mob::roadrunner::RR_FactoryBase<MulticastHandler, UnicastHandler, MulticastMessage, UnicastMessage, ClientDoneMessage>::~RR_FactoryBase()
+template <bool useNs3, class MulticastMessage, class UnicastMessage, class ClientDoneMessage>
+sim_mob::roadrunner::RR_FactoryBase<useNs3, MulticastMessage, UnicastMessage, ClientDoneMessage>::~RR_FactoryBase()
 {}
 
 
 
-template <class MulticastHandler, class UnicastHandler, class MulticastMessage, class UnicastMessage, class ClientDoneMessage>
-boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RR_FactoryBase<MulticastHandler, UnicastHandler, MulticastMessage, UnicastMessage, ClientDoneMessage>::getHandler(MessageType type)
+template <bool useNs3, class MulticastMessage, class UnicastMessage, class ClientDoneMessage>
+boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RR_FactoryBase<useNs3, MulticastMessage, UnicastMessage, ClientDoneMessage>::getHandler(MessageType type)
 {
 	boost::shared_ptr<sim_mob::Handler> handler;
 	//if handler is already registered && the registered handler is not null
@@ -98,10 +98,10 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RR_FactoryBase<Multica
 		switch(type)
 		{
 		case MULTICAST:
-			handler.reset(new MulticastHandler());
+			handler.reset(new sim_mob::roadrunner::MulticastHandler(useNs3));
 			break;
 		case UNICAST:
-			handler.reset(new UnicastHandler());
+			handler.reset(new sim_mob::roadrunner::UnicastHandler(useNs3));
 			break;
 		default:
 			typeFound = false;
@@ -117,8 +117,8 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RR_FactoryBase<Multica
 }
 
 
-template <class MulticastHandler, class UnicastHandler, class MulticastMessage, class UnicastMessage, class ClientDoneMessage>
-bool sim_mob::roadrunner::RR_FactoryBase<MulticastHandler, UnicastHandler, MulticastMessage, UnicastMessage, ClientDoneMessage>::createMessage(std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
+template <bool useNs3, class MulticastMessage, class UnicastMessage, class ClientDoneMessage>
+bool sim_mob::roadrunner::RR_FactoryBase<useNs3, MulticastMessage, UnicastMessage, ClientDoneMessage>::createMessage(std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
 {
 	Json::Value root;
 	sim_mob::pckt_header packetHeader;

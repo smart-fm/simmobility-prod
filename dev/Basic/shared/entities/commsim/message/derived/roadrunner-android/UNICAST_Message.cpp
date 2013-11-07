@@ -31,8 +31,6 @@ void sim_mob::roadrunner::HDL_UNICAST::handle(sim_mob::comm::MsgPtr message_,Bro
 		 * 2- fabricate a message for the destination(core data is taken from the original message)
 		 * 3- insert messages into send buffer
 		 */
-
-
 	//	step-1: Find the target agent and the corresponding client handler
 	sim_mob::comm::MsgData &data = message_->getData();
 		sim_mob::msg_header msg_header_;
@@ -46,14 +44,16 @@ void sim_mob::roadrunner::HDL_UNICAST::handle(sim_mob::comm::MsgPtr message_,Bro
 		//	find the agent from the client
 		//but,to get to the agent, find the client hander first
 
+		//These variables are only used by ns-3
+		std::string android_sender_id(msg_header_.sender_id) ; //easy read
+		std::string android_sender_type(msg_header_.sender_type); //easy read
+
 		//todo: you wanna check if the sender is valid, be my guest
 		std::string receiver_id(data["RECEIVER"].asString()) ; //easy read
 		std::string receiver_type(msg_header_.sender_type); //easy read
 
-		ConfigParams::ClientType clientType;
-		boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
-		const ClientList::type & clients = broker->getClientList();
-		if(!broker->getClientHandler(receiver_id,receiver_type,clnHandler))
+		boost::shared_ptr<sim_mob::ClientHandler> destClnHandler;
+		if(!broker->getClientHandler(receiver_id,receiver_type,destClnHandler))
 		{
 			WarnOut("HDL_UNICAST::handle failed" << std::endl);
 			return;
@@ -61,22 +61,22 @@ void sim_mob::roadrunner::HDL_UNICAST::handle(sim_mob::comm::MsgPtr message_,Bro
 
 		//check the validity of the agent
 
-		const sim_mob::Agent * destination_agent;
-		if(!(destination_agent = clnHandler->agent))
-		{
+		const sim_mob::Agent * destination_agent = destClnHandler->agent;
+		if(!destination_agent) {
 			WarnOut( "Invalid agent record. The Agent May Have completed its Operation and is Now out of simulation" << std::endl);
 			return;
 		}
 
-		//you have a valid client handler now
 
+		//NOTE: The following is different for ns-3 versus android-only
+		//you have a valid client handler now
 		//step-2: fabricate a message for each(core data is taken from the original message)
 			//actually, you dont need to modify any of
 			//the original jsoncpp's Json::Value message.
 			//just send it
 		//so we go streight to next step
 		//step-3: insert messages into send buffer
-		broker->insertSendBuffer(clnHandler->cnnHandler,data);
+		broker->insertSendBuffer(destClnHandler->cnnHandler,data);
 }
 
 

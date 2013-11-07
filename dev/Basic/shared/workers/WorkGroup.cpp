@@ -246,7 +246,7 @@ void sim_mob::WorkGroup::stageEntities()
 		loader->entity_dest.insert(ag);
 
 		//Find a worker/conflux to assign this to and send it the Entity to manage.
-		if (ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
+		if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
 			putAgentOnConflux(ag);
 		} else {
 			assignAWorker(ag);
@@ -447,7 +447,7 @@ void sim_mob::WorkGroup::waitAuraManager(const std::set<sim_mob::Agent*>& remove
 		}
 
 		//Update the aura manager, if we have one.
-		if (auraMgr && ( !ConfigManager::GetInstance().FullConfig().UsingConfluxes())) {
+		if (auraMgr && ( !ConfigManager::GetInstance().FullConfig().RunningMidSupply() && !ConfigManager::GetInstance().FullConfig().RunningMidDemand())) {
 			PROFILE_LOG_AURAMANAGER_UPDATE_BEGIN(profile, auraMgr, currTimeTick);
 
 			auraMgr->update(removedAgents);

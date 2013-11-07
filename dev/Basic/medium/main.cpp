@@ -144,11 +144,17 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		Print::Ignore();
 	}
 
-	if (ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
-		Print() << "Confluxes ON!" << std::endl;
+	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply() && ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
+		throw std::runtime_error("Mid-term run mode \"demand+supply\" is not supported yet. Please run demand and supply separately.");
+	}
+	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
+		Print() << "Mid-term run mode: supply" << std::endl;
+	}
+	else if (ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
+		Print() << "Mid-term run mode: demand" << std::endl;
 	}
 	else {
-		throw std::runtime_error("Confluxes are disabled. Please turn SIMMOB_USE_CONFLUXES on in CMakeCache.txt and run again.");
+		throw std::runtime_error("Invalid Mid-term run mode. Admissible values are \"demand\" and \"supply\"");
 	}
 
 	ProfileBuilder* prof = nullptr;

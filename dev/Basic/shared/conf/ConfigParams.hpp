@@ -273,6 +273,10 @@ public:
 	SystemParams::NetworkSource& networkSource();
 	const SystemParams::NetworkSource& networkSource() const;
 
+	///Whether configuration has been set to run mid-term supply or demand. Used for runtime checks
+	bool RunningMidSupply() const;
+	bool RunningMidDemand() const;
+
 	///If loading the network from an XML file, which file? Empty=private/SimMobilityInput.xml
 	std::string& networkXmlFile();
 	const std::string& networkXmlFile() const;

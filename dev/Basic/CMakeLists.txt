@@ -235,9 +235,6 @@ option(SIMMOB_INTERACTIVE_MODE "Force Sim Mobility to synchronize interactively 
 #Option: use path set mode flag
 option(SIMMOB_PATHSET_MODE "Use path set when generate path for driver" OFF)
 
-#Option: enable confluxes
-option (SIMMOB_USE_CONFLUXES  "Turn Confluxes on/off" OFF) 
-
 #Force gcc to output single line errors. 
 # This makes it easier for Eclipse to parse and understand each error.
 IF(CMAKE_COMPILER_IS_GNUCC)

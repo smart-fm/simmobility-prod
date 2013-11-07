@@ -341,7 +341,7 @@
             <property key="passenger_percent_alighting" value="40"/>
 
 	    <!--Used only by mid-term simulator. Admissible values are "demand", "supply" and "demand+supply". Determines whether to run SimMobility_Medium's demand simulator or the supply simulator-->
-	    <property key="mid_term_run_mode" value="demand"/> 
+	    <property key="mid_term_run_mode" value="demand+supply"/> 
         </generic_props>
     </system>
 

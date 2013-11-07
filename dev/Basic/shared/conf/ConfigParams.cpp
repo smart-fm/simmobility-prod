@@ -390,6 +390,16 @@ unsigned int sim_mob::ConfigParams::signalTimeStepInMilliSeconds() const
 	return system.workers.signal.granularityMs;
 }
 
+bool sim_mob::ConfigParams::RunningMidSupply() const {
+	const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
+	return (run_mode == "supply" || run_mode == "demand+supply");
+}
+
+bool sim_mob::ConfigParams::RunningMidDemand() const {
+	const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
+	return (run_mode == "demand" || run_mode == "demand+supply");
+}
+
 unsigned int sim_mob::ConfigParams::communicationTimeStepInMilliSeconds() const
 {
 	return system.workers.communication.granularityMs;

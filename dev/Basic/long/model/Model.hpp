@@ -23,7 +23,7 @@ namespace sim_mob {
         class Model {
         public:
             
-            Model(const std::string& name, db::DatabaseConfig& dbConfig, 
+            Model(const std::string& name, db::DB_Config& dbConfig, 
                   WorkGroup& workGroup);
             virtual ~Model();
             
@@ -82,7 +82,7 @@ namespace sim_mob {
             virtual void stopImpl() = 0;
         
         protected:
-            db::DatabaseConfig& dbConfig;
+            db::DB_Config& dbConfig;
             WorkGroup& workGroup;
             std::vector<Agent*> agents;
         

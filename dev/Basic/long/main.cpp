@@ -97,7 +97,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
         wgMgr.initAllGroups();
         agentWorkers->initWorkers(nullptr);
-        DatabaseConfig dbConfig(LT_DB_CONFIG_FILE);
+        DB_Config dbConfig(LT_DB_CONFIG_FILE);
 
         //models 
         model = new HM_Model(dbConfig, *agentWorkers);

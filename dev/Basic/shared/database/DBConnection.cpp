@@ -23,7 +23,7 @@ namespace {
     const std::string PGSQL_CONNSTR_FORMAT = "host=%1% port=%2% user=%3% password=%4% dbname=%5%";
 }
 
-DBConnection::DBConnection(BackendType type, const DatabaseConfig& config) 
+DBConnection::DBConnection(BackendType type, const DB_Config& config) 
 : currentSession(), type(type), connected(false) {
     switch (type) {
         case POSTGRES:

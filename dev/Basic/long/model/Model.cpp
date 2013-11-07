@@ -31,7 +31,7 @@ namespace {
     }
 }
 
-Model::Model(const std::string& name, DatabaseConfig& dbConfig, WorkGroup& workGroup)
+Model::Model(const std::string& name, DB_Config& dbConfig, WorkGroup& workGroup)
 : name(name), workGroup(workGroup), dbConfig(dbConfig), running(false) {
 }
 

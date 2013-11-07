@@ -28,7 +28,7 @@ namespace {
     const string MODEL_NAME = "Housing Market Model";
 }
 
-HM_Model::HM_Model(DatabaseConfig& dbConfig, WorkGroup& workGroup)
+HM_Model::HM_Model(DB_Config& dbConfig, WorkGroup& workGroup)
 : Model(MODEL_NAME, dbConfig, workGroup) {
 }
 
@@ -44,7 +44,7 @@ const Unit* HM_Model::getUnitById(const BigSerial& unitId) const{
 }
 
 void HM_Model::startImpl() {
-    DatabaseConfig dbConfig(LT_DB_CONFIG_FILE);
+    DB_Config dbConfig(LT_DB_CONFIG_FILE);
     dbConfig.load();
     // Connect to database and load data.
     DBConnection conn(sim_mob::db::POSTGRES, dbConfig);

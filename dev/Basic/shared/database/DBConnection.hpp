@@ -27,7 +27,7 @@ namespace sim_mob {
          */
         class DBConnection {
         public:
-            DBConnection(BackendType type, const DatabaseConfig& config);
+            DBConnection(BackendType type, const DB_Config& config);
             virtual ~DBConnection();
 
             /**

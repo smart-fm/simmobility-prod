@@ -22,7 +22,7 @@ namespace sim_mob {
          */
         class HM_Model : public Model{
         public:
-            HM_Model(db::DatabaseConfig& dbConfig, WorkGroup& workGroup);
+            HM_Model(db::DB_Config& dbConfig, WorkGroup& workGroup);
             virtual ~HM_Model();
             const Unit* getUnitById(const BigSerial& unitId) const;
         protected:

@@ -33,7 +33,8 @@ namespace{
 template <typename T, typename K>
 void TestDao() {
     PrintOut("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
-    DatabaseConfig config(LT_DB_CONFIG_FILE);
+    DB_Config config(LT_DB_CONFIG_FILE);
+    config.load();
     DBConnection conn(sim_mob::db::POSTGRES, config);
     conn.Connect();
     if (conn.IsConnected()) {

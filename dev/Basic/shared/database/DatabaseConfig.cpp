@@ -22,12 +22,12 @@ namespace {
     const string PROP_PORT = "port";
 }
 
-DatabaseConfig::DatabaseConfig(const string& file)
+DB_Config::DB_Config(const string& file)
 : PropertyLoader(file, SECTION),
 port(0), host(""), password(""), username(""), databaseName("") {
 }
 
-DatabaseConfig::DatabaseConfig(const DatabaseConfig& orig) 
+DB_Config::DB_Config(const DB_Config& orig) 
 : PropertyLoader(orig) {
     host = orig.host;
     port = orig.port;
@@ -36,50 +36,50 @@ DatabaseConfig::DatabaseConfig(const DatabaseConfig& orig)
     databaseName = orig.databaseName;
 }
 
-DatabaseConfig::~DatabaseConfig() {
+DB_Config::~DB_Config() {
 }
 
-const string& DatabaseConfig::getDatabaseName() const {
+const string& DB_Config::getDatabaseName() const {
     return databaseName;
 }
 
-const string& DatabaseConfig::getPassword() const {
+const string& DB_Config::getPassword() const {
     return password;
 }
 
-const string& DatabaseConfig::getUsername() const {
+const string& DB_Config::getUsername() const {
     return username;
 }
 
-const string& DatabaseConfig::getHost() const {
+const string& DB_Config::getHost() const {
     return host;
 }
 
-unsigned int DatabaseConfig::getPort() const {
+unsigned int DB_Config::getPort() const {
     return port;
 }
 
-void DatabaseConfig::setDatabaseName(const string& databaseName) {
+void DB_Config::setDatabaseName(const string& databaseName) {
     this->databaseName = databaseName;
 }
 
-void DatabaseConfig::setPassword(const string& password) {
+void DB_Config::setPassword(const string& password) {
     this->password = password;
 }
 
-void DatabaseConfig::setUsername(const string& username) {
+void DB_Config::setUsername(const string& username) {
     this->username = username;
 }
 
-void DatabaseConfig::setPort(unsigned int port) {
+void DB_Config::setPort(unsigned int port) {
     this->port = port;
 }
 
-void DatabaseConfig::setHost(const string& host) {
+void DB_Config::setHost(const string& host) {
     this->host = host;
 }
 
-void DatabaseConfig::loadImpl(const boost::property_tree::ptree& tree) {
+void DB_Config::loadImpl(const boost::property_tree::ptree& tree) {
     host = tree.get<string>(toProp(getSection(), PROP_HOST));
     this->port = tree.get<unsigned int>(toProp(getSection(), PROP_PORT));
     this->username = tree.get<string>(toProp(getSection(), PROP_USER));

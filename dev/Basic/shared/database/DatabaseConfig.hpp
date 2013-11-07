@@ -26,11 +26,11 @@ namespace sim_mob {
          * 
          * @param file to read the properties.
          */
-        class DatabaseConfig : public PropertyLoader{
+        class DB_Config : public PropertyLoader{
         public:
-            DatabaseConfig(const std::string& file);
-            DatabaseConfig(const DatabaseConfig& orig);
-            virtual ~DatabaseConfig();
+            DB_Config(const std::string& file);
+            DB_Config(const DB_Config& orig);
+            virtual ~DB_Config();
             const std::string& getDatabaseName() const;
             const std::string& getPassword() const;
             const std::string& getUsername() const;

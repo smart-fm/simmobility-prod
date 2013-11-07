@@ -14,7 +14,6 @@
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
-using namespace sim_mob::db;
 using namespace sim_mob::messaging;
 using namespace sim_mob::event;
 using std::vector;
@@ -31,8 +30,8 @@ namespace {
     }
 }
 
-Model::Model(const std::string& name, DB_Config& dbConfig, WorkGroup& workGroup)
-: name(name), workGroup(workGroup), dbConfig(dbConfig), running(false) {
+Model::Model(const std::string& name, WorkGroup& workGroup)
+: name(name), workGroup(workGroup), running(false) {
 }
 
 Model::~Model() {

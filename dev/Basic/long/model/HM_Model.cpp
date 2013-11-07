@@ -28,8 +28,8 @@ namespace {
     const string MODEL_NAME = "Housing Market Model";
 }
 
-HM_Model::HM_Model(DB_Config& dbConfig, WorkGroup& workGroup)
-: Model(MODEL_NAME, dbConfig, workGroup) {
+HM_Model::HM_Model(WorkGroup& workGroup)
+: Model(MODEL_NAME, workGroup) {
 }
 
 HM_Model::~HM_Model() {

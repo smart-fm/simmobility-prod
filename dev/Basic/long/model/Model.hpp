@@ -11,7 +11,6 @@
 #include <string>
 #include "workers/WorkGroup.hpp"
 #include "entities/Agent.hpp"
-#include "database/DatabaseConfig.hpp"
 #include "util/Utils.hpp"
 
 namespace sim_mob {
@@ -23,8 +22,7 @@ namespace sim_mob {
         class Model {
         public:
             
-            Model(const std::string& name, db::DB_Config& dbConfig, 
-                  WorkGroup& workGroup);
+            Model(const std::string& name, WorkGroup& workGroup);
             virtual ~Model();
             
             /**
@@ -82,7 +80,6 @@ namespace sim_mob {
             virtual void stopImpl() = 0;
         
         protected:
-            db::DB_Config& dbConfig;
             WorkGroup& workGroup;
             std::vector<Agent*> agents;
         

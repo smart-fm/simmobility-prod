@@ -35,6 +35,10 @@ struct FMOD_ControllerParams {
 
 ///represent the incident data section of the config file
 struct IncidentParams {
+	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
+			capFactor(0), startTime(0), duration(0), speedLimit(0), speedLimitOthers(0), laneId(0),
+			compliance(0), accessibility(0), xLaneStartPos(0),yLaneStartPos(0),xLaneEndPos(0),yLaneEndPos(0){}
+
 	unsigned int incidentId;
 	float visibilityDistance;
 	unsigned int segmentId;
@@ -43,8 +47,8 @@ struct IncidentParams {
 	float capFactor;
 	unsigned int startTime;
 	unsigned int duration;
-	float speedlimit;
-	float speedlimitOthers;
+	float speedLimit;
+	float speedLimitOthers;
 	unsigned int laneId;
 	float compliance;
 	float accessibility;

@@ -59,7 +59,7 @@ void sim_mob::PrintNetwork::LogIncidents() const
 		out << "\"cap_factor\":\"" << (*incIt).capFactor << "\",";
 		out << "\"start_time\":\"" << ((*incIt).startTime-baseGranMS)/baseFrameTick  << "\",";
 		out << "\"duration\":\"" << (*incIt).duration/baseFrameTick << "\",";
-		out << "\"speed_limit\":\"" << (*incIt).speedlimit << "\",";
+		out << "\"speed_limit\":\"" << (*incIt).speedLimit << "\",";
 		out << "\"lane\":\"" << (*incIt).laneId << "\",";
 		out << "\"compliance\":\"" << (*incIt).compliance << "\",";
 		out << "\"xLaneStartPos\":\"" << static_cast<int>((*incIt).xLaneStartPos) << "\",";

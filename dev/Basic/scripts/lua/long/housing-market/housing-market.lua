@@ -86,14 +86,14 @@ end
          n_bids: Represents the number of attempts(bids) that the bidder already did to the specific unit. 
          alpha: Represents the urgency of the household to get the unit. (Household parameter)
          zeta: Represents the relation between quality and price of the unit. (Unit parameter)
-    @param unit to calculate the surplus.
+    @param entry market entry.
     @param unitBids number of bids (attempts) to this unit.
     @return the surplus for the given unit.
 ]]
-function calculateSurplus (unit, unitBids)
+function calculateSurplus (entry, unitBids)
     local urgencyToBuy = 1.0 -- urgency that the bidder has to buy the home.
     local priceQuality = 1.0 -- Importance of the price for the bidder.
-    return math.pow(unit.askingPrice, (urgencyToBuy + 1)) / 
+    return math.pow(entry.askingPrice, (urgencyToBuy + 1)) / 
            (unitBids * priceQuality)
 end
 

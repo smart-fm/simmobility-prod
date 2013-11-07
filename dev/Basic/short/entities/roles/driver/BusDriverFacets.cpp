@@ -59,11 +59,6 @@ sim_mob::BusDriverMovement::~BusDriverMovement()
 
 }
 
-void sim_mob::BusDriverMovement::flowIntoNextLinkIfPossible(UpdateParams& p)
-{
-
-}
-
 Vehicle* sim_mob::BusDriverMovement::initializePath_bus(bool allocateVehicle) {
 	Vehicle* res = nullptr;
 

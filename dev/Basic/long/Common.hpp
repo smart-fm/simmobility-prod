@@ -40,6 +40,10 @@ namespace sim_mob {
         enum LT_MessageId {
             LTMID_START = 2000000,
 
+            // HM internal messages.
+            LTMID_HMI_ADD_ENTRY,
+            LTMID_HMI_RM_ENTRY,
+            
             // Messages for biding process
             LTMID_BID,
             LTMID_BID_RSP,
@@ -68,6 +72,7 @@ namespace sim_mob {
         /**
          * Configs
          */
+        const std::string LT_CONFIG_FILE = "../data/long/lt-config.ini";
         const std::string LT_DB_CONFIG_FILE = "../private/lt-db.ini";
         const std::string HM_LUA_DIR = "../scripts/lua/long/housing-market";
     }

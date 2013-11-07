@@ -5,6 +5,7 @@
 #pragma once
 
 #include "util/ProtectedCopyable.hpp"
+#include <string>
 
 
 namespace sim_mob {
@@ -27,7 +28,7 @@ public:
 	bool MPI_Enabled() const;
 	bool MPI_Disabled() const;
 	//@}
-
+	bool PathSetMode() const;
 	//@{
 	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
 	bool OutputEnabled() const;

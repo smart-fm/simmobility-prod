@@ -13,39 +13,19 @@
 #include <vector>
 #include <ctime>
 #include <unistd.h>
-#include "boost/tuple/tuple.hpp"
 
 #include "GenConfig.h"
 //#include "tinyxml.h"
 
-#include "entities/roles/RoleFactory.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
-#include "entities/AuraManager.hpp"
-#include "unit-tests/dao/DaoTests.hpp"
-#include "agent/impl/HouseholdAgent.hpp"
-#include "util/Utils.hpp"
-#include "util/Math.hpp"
-#include "util/Statistics.hpp"
 
-
-//DAOs
-#include "database/dao/GlobalParamsDao.hpp"
-#include "database/dao/UnitTypeDao.hpp"
-#include "database/dao/HouseholdDao.hpp"
-#include "database/dao/BuildingDao.hpp"
-#include "database/dao/UnitDao.hpp"
-#include "database/dao/BuildingTypeDao.hpp"
-#include "message/MessageBus.hpp"
-#include "event/SystemEvents.hpp"
-
-
-#include "agent/TestAgent.hpp"
 #include "model/HM_Model.hpp"
 #include "Common.hpp"
+#include "config/LT_Config.hpp"
 
 using namespace sim_mob::db;
 
@@ -73,13 +53,6 @@ const int DAYS = 365;
 const int WORKERS = 1;
 const int DATA_SIZE = 30;
 
-/**
- * Runs all unit-tests.
- */
-void RunTests() {
-    unit_tests::DaoTests tests;
-    tests.testAll();
-}
 
 int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulationTime) {
     PrintOut("#################### LONG-TERM SIMULATION ####################" << endl);
@@ -101,6 +74,8 @@ int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulat
 }
 
 void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
+    //Initiate configuration instance
+    LT_ConfigSingleton::getInstance();
     PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
     //configure time.
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -159,7 +134,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
 }
 
 int main(int ARGC, char* ARGV[]) {
-    std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
+    std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
     Print::Init("<stdout>");
     //get start time of the simulation.
     std::list<std::string> resLogFiles;
@@ -171,7 +146,7 @@ int main(int ARGC, char* ARGV[]) {
     //Concatenate output files?
     if (!resLogFiles.empty()) {
         resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
-        Utils::PrintAndDeleteLogFiles(resLogFiles);
+        Utils::printAndDeleteLogFiles(resLogFiles);
     }
     ConfigManager::GetInstanceRW().reset();
     return 0;

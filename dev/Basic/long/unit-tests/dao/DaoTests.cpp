@@ -42,12 +42,12 @@ void TestDao() {
         //Get by id
         sim_mob::db::Parameters keys;
         keys.push_back(ID_TO_GET);
-        if (dao.GetById(keys, valueById)) {
+        if (dao.getById(keys, valueById)) {
         	PrintOut("Get by id: " << valueById << endl);
         }
 
         std::vector<K> values;
-        dao.GetAll(values);
+        dao.getAll(values);
         PrintOut("GetAll Size: " << values.size() << endl);
         for (typename std::vector<K>::iterator it = values.begin(); it != values.end(); it++) {
         	PrintOut("Value: " << (*it) << endl);

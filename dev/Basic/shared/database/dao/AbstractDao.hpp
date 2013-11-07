@@ -72,10 +72,12 @@ namespace sim_mob {
          *      defaultQueries[DELETE] = "DELETE.....";
          *      defaultQueries[GET_ALL] = "SELECT * FROM.....";
          *      defaultQueries[GET_BY_ID] = SELECT * FROM..WHERE..";
-         * NOTE: all parameters values for prepared statements are used like "field = :myfield"
+         * NOTE: all parameters values for prepared statements are used like 
+         *       "field = :myfield"
          * 
          * 
-         * Attention: The given connection is not managed by the DAO implementation.
+         * Attention: The given connection is not managed by DAO implementation.
+         * This implementation is not thread-safe.
          * 
          */
         template <typename T> class AbstractDao {
@@ -99,12 +101,13 @@ namespace sim_mob {
             }
 
             /**
-             * Inserts the given entity into the datasource.
+             * Inserts the given entity into the data source.
              * @param entity to insert.
-             * @return true if the transaction was commited with success, false otherwise.
+             * @return true if the transaction was committed with success,
+             *         false otherwise.
              */
-            virtual T& Insert(T& entity) {
-                if (toRowCallback && IsConnected()) {
+            virtual T& insert(T& entity) {
+                if (toRowCallback && isConnected()) {
                     Transaction tr(connection->GetSession());
                     Statement query(connection->GetSession());
                     //append returning clause. 
@@ -118,8 +121,9 @@ namespace sim_mob {
                     Parameters params;
                     (this->*(toRowCallback))(entity, params, false);
                     // prepare statement.
-                    PrepareStatement(upperQuery, params, query);
-                    //execute and return data if (RETURNING clause is well defined)
+                    prepareStatement(upperQuery, params, query);
+                    //TODO: POSTGRES ONLY for now
+                    //execute and return data if (RETURNING clause is defined)
                     ResultSet rs(query);
                     ResultSet::const_iterator it = rs.begin();
                     if (it != rs.end()) {
@@ -131,19 +135,20 @@ namespace sim_mob {
             }
 
             /**
-             * Updates the given entity into the datasource.
+             * Updates the given entity into the data source.
              * @param entity to update.
-             * @return true if the transaction was commited with success, false otherwise.
+             * @return true if the transaction was committed with success, 
+             *         false otherwise.
              */
-            virtual bool Update(T& entity) {
-                if (toRowCallback && IsConnected()) {
+            virtual bool update(T& entity) {
+                if (toRowCallback && isConnected()) {
                     Transaction tr(connection->GetSession());
                     Statement query(connection->GetSession());
                     // Get data to insert.
                     Parameters params;
                     (this->*(toRowCallback))(entity, params, true);
                     // prepare statement.
-                    PrepareStatement(defaultQueries[UPDATE], params, query);
+                    prepareStatement(defaultQueries[UPDATE], params, query);
                     ResultSet rs(query);
                     tr.commit();
                     return true;
@@ -152,16 +157,17 @@ namespace sim_mob {
             }
 
             /**
-             * Deletes all objects filtered by given ids.
-             * @param ids to filter.
-             * @return true if the transaction was commited with success, false otherwise.
+             * Deletes all objects filtered by given params.
+             * @param params to filter.
+             * @return true if the transaction was committed with success, 
+             *         false otherwise.
              */
-            virtual bool Delete(const Parameters& ids) {
-                if (IsConnected()) {
+            virtual bool erase(const Parameters& params) {
+                if (isConnected()) {
                     Transaction tr(connection->GetSession());
                     Statement query(connection->GetSession());
                     // prepare statement.
-                    PrepareStatement(defaultQueries[DELETE], ids, query);
+                    prepareStatement(defaultQueries[DELETE], params, query);
                     //execute query.
                     ResultSet rs(query);
                     tr.commit();
@@ -176,8 +182,8 @@ namespace sim_mob {
              * @param outParam to put the value
              * @return true if a value was returned, false otherwise.
              */
-            virtual bool GetById(const Parameters& ids, T& outParam) {
-                return GetByValues(defaultQueries[GET_BY_ID], ids, outParam);
+            virtual bool getById(const Parameters& ids, T& outParam) {
+                return getByValues(defaultQueries[GET_BY_ID], ids, outParam);
             }
 
             /**
@@ -185,8 +191,8 @@ namespace sim_mob {
              * @param outList to put the retrieved values. 
              * @return true if some values were returned, false otherwise.
              */
-            virtual bool GetAll(std::vector<T>& outList) {
-                return GetByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outList);
+            virtual bool getAll(std::vector<T>& outList) {
+                return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outList);
             }
 
         protected: // Protected types
@@ -214,23 +220,25 @@ namespace sim_mob {
              * Tells we DAO has connection to the database.
              * @return 
              */
-            bool IsConnected() {
+            bool isConnected() {
                 return (connection && connection->IsConnected());
             }
 
             /**
-             * Helper function that allows get a list of Entity objects (vector<T>) by given params. 
+             * Helper function that allows get a list of 
+             * Entity objects (vector<T>) by given params. 
              * The output will be assigned on outParam using the *fromRowCallback*.
              * @param queryStr query string.
              * @param params to filter the query (to put on Where clause).
              * @param outParam to fill with retrieved objects.
              * @return true if some value was returned, false otherwise.
              */
-            bool GetByValues(const std::string& queryStr, const Parameters& params, std::vector<T>& outParam) {
+            bool getByValues(const std::string& queryStr, 
+                    const Parameters& params, std::vector<T>& outParam) {
                 bool hasValues = false;
-                if (fromRowCallback && IsConnected()) {
+                if (fromRowCallback && isConnected()) {
                     Statement query(connection->GetSession());
-                    PrepareStatement(queryStr, params, query);
+                    prepareStatement(queryStr, params, query);
                     ResultSet rs(query);
                     for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it) {
                         T model;
@@ -250,10 +258,11 @@ namespace sim_mob {
              * @param outParam to fill with retrieved object.
              * @return true if a value was returned, false otherwise.
              */
-            bool GetByValues(const std::string& queryStr, const Parameters& params, T& outParam) {
-                if (fromRowCallback && IsConnected()) {
+            bool getByValues(const std::string& queryStr, 
+                    const Parameters& params, T& outParam) {
+                if (fromRowCallback && isConnected()) {
                     Statement query(connection->GetSession());
-                    PrepareStatement(queryStr, params, query);
+                    prepareStatement(queryStr, params, query);
                     ResultSet rs(query);
                     ResultSet::const_iterator it = rs.begin();
                     if (it != rs.end()) {
@@ -270,9 +279,11 @@ namespace sim_mob {
              * @param params to put on the statement.
              * @param outParam out statement.
              */
-            void PrepareStatement(const std::string& queryStr, const Parameters& params, Statement& outParam) {
+            void prepareStatement(const std::string& queryStr, 
+                    const Parameters& params, Statement& outParam) {
                 outParam << queryStr;
-                for (Parameters::const_iterator it = params.begin(); it != params.end(); ++it) {
+                Parameters::const_iterator it = params.begin();
+                for (it; it != params.end(); ++it) {
                     outParam, boost::apply_visitor(UsePtrConverter(), *it);
                 }
             }

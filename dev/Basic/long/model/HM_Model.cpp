@@ -52,10 +52,10 @@ void HM_Model::startImpl() {
     if (conn.IsConnected()) {
         // Households
         HouseholdDao hhDao(&conn);
-        hhDao.GetAll(households);
+        hhDao.getAll(households);
         //units
         UnitDao unitDao(&conn);
-        unitDao.GetAll(units);
+        unitDao.getAll(units);
         for (vector<Unit>::iterator it = units.begin(); it != units.end(); it++) {
             Unit* unit = &(*it);
             unitsById.insert(std::make_pair(unit->getId(), unit));

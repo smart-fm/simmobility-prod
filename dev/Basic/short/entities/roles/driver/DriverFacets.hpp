@@ -137,7 +137,7 @@ protected:
 	void resetPath(DriverUpdateParams& p);
 	void setOrigin(DriverUpdateParams& p);
 
-	int checkIncidentStatus(DriverUpdateParams& p, timeslice now);
+	void checkIncidentStatus(DriverUpdateParams& p, timeslice now);
 
 	//Helper: for special strings
 	void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);

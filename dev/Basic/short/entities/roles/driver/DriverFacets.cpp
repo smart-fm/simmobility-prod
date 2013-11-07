@@ -230,11 +230,14 @@ void sim_mob::DriverMovement::frame_init(UpdateParams& p) {
 	}
 }
 
-int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslice now) {
+void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslice now) {
 
 	const RoadSegment* curSegment = parentDriver->vehicle->getCurrSegment();
 	const Lane* curLane = parentDriver->vehicle->getCurrLane();
 	int curLaneIndex = curLane->getLaneID() - curSegment->getLanes().at(0)->getLaneID();
+	if(curLaneIndex<0){
+		return;
+	}
 	int nextLaneIndex = curLaneIndex;
 	LANE_CHANGE_SIDE laneSide = LCS_SAME;
 	IncidentStatus::INCIDENTSTATUS status = IncidentStatus::INCIDENT_CLEARANCE;
@@ -257,7 +260,7 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 						nextLaneIndex = curLaneIndex+1;
 						laneSide = LCS_LEFT;
 					}
-					else if(curLaneIndex > 0 ){
+					else {
 						nextLaneIndex = curLaneIndex-1;
 						laneSide = LCS_RIGHT;
 					}

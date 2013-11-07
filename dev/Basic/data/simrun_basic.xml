@@ -304,15 +304,15 @@
     <!--West node is: 37227139,14327875-->
     <drivers>
 <!-- These test the short term -->
-	   	<driver originPos="37227139,14327875" destPos="37270984,14378959" time="50"/>
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="200"/>
+<!--	   	<driver originPos="37227139,14327875" destPos="37270984,14378959" time="50"/>
+	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="200"/> -->
 	<!--    <driver originPos="37270984,14378959" destPos="37227139,14327875" time="50"/>
 	    <driver originPos="37270984,14378959" destPos="37227139,14327875" time="100"/>-->
 
 <!-- These test the medium term -->
 	    <!--<driver originPos="37270984,14378959" destPos="37227139,14327875" time="800"/>
 	    <driver originPos="37270984,14378959" destPos="37227139,14327875" time="1000"/>
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="1000"/>-->
+	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="1000"/>
 	    <driver originPos="37270984,14378959" destPos="37283599,14393370" time="0"/>
 	    <driver originPos="37293562,14385720" destPos="37279699,14369995" time="0"/>
 	    <driver originPos="37283599,14393370" destPos="37212150,14310654" time="0"/>
@@ -326,12 +326,12 @@
 	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>
 	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>
 	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>-->
-	    <!--<driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/> -->
+	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>
+	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/> -->
 
 <!-- These test both -->
    	   <!-- <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>
-    	<driver originPos="37270984,14378959" destPos="37227139,14327875" time="0"/>-->
+    	<driver originPos="37270984,14378959" destPos="37227139,14327875" time="0"/>
 	    
 	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>
 	    
@@ -347,7 +347,7 @@
 
 
 	    
-	    <driver originPos="37241080,14362955" destPos="37261496,14346008" time="150"/>
+	    <driver originPos="37241080,14362955" destPos="37261496,14346008" time="150"/>-->
 	    
 	    <!-- Test: start on a Uni Node, single Link -->
 	    <!--driver originPos="37242841,14345362" destPos="37227139,14327875" time="0"/-->
@@ -364,102 +364,6 @@
 	    <!--driver originPos="37255424,14360690" destPos="37246069,14349392" time="0"/-->
     
     </drivers> 
-    <pedestrians> 
-   		<!--Pedestrian start locations-->
-	    <!--group of 3-->
-	   <!--	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="0"/>
-	   	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="0"/>
-	   	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="0"/>-->
-        
-        <!--group of 5-->
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
-        <!--lone pedestrian-->
-    	<!--<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="0"/>-->
-        <!--group of 4-->
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="0"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="0"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="0"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="0"/>
-        <!--lone pedestrian-->
-    	<!--<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="15"/>-->
-        <!--group of 5-->
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="15"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="15"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="15"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="15"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="15"/>
-        <!--lone pedestrian-->
-    	<!--<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="15"/>-->
-        <!--group of 3-->
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="15"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="15"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="15"/>
-
-    	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="30"/>
-    	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="30"/>
-    	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="30"/>
-    	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="30"/>
-
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="30"/>
-
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="30"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="30"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="30"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="30"/>
-
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="30"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="30"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="30"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="30"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="30"/>
-
-    	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="45"/>
-
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="45"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="45"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="45"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="45"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="45"/>
-
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="45"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="45"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="45"/>
-
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="45"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="45"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="45"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="45"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="45"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="45"/>
-
-    	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="60"/>
-    	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="60"/>
-    	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="60"/>
-
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="60"/>
-
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="60"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="60"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="60"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="60"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="60"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="60"/>
-
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="60"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="60"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="60"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="60"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="60"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="60"/>
-    	
-    	<!-- Testing a Pedestrian on a slightly more complicated path -->
-    	<!--pedestrian originPos="37236345,14337301" destPos="37250760,14355120" time="0"/-->
-    	
-    </pedestrians>
     
     <!-- Bus Drivers. This is just for testing; currently a lot of Bus information is simply generated. -->
     <!-- Note that Buses are loaded with "drivers", since I don't want to add a new tag for testing data -->

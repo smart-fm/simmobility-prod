@@ -20,10 +20,7 @@ using std::string;
 GlobalParamsDao::GlobalParamsDao(DBConnection* connection)
 : AbstractDao<GlobalParams>(connection, DB_TABLE_GLOBAL_PARAMS,
 DB_INSERT_GLOBAL_PARAMS, DB_UPDATE_GLOBAL_PARAMS, DB_DELETE_GLOBAL_PARAMS,
-DB_GETALL_GLOBAL_PARAMS, DB_GETBYID_GLOBAL_PARAMS) {
-    fromRowCallback = DAO_FROM_ROW_CALLBACK_HANDLER(GlobalParams, GlobalParamsDao::fromRow);
-    toRowCallback = DAO_TO_ROW_CALLBACK_HANDLER(GlobalParams, GlobalParamsDao::toRow);
-}
+DB_GETALL_GLOBAL_PARAMS, DB_GETBYID_GLOBAL_PARAMS) {}
 
 GlobalParamsDao::~GlobalParamsDao() {
 }

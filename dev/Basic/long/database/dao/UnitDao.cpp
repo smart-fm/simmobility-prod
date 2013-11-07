@@ -18,10 +18,7 @@ using namespace sim_mob::long_term;
 UnitDao::UnitDao(DBConnection* connection)
 : AbstractDao<Unit>(connection, DB_TABLE_UNIT,
 DB_INSERT_UNIT, DB_UPDATE_UNIT, DB_DELETE_UNIT,
-DB_GETALL_UNIT, DB_GETBYID_UNIT) {
-    fromRowCallback = DAO_FROM_ROW_CALLBACK_HANDLER(Unit, UnitDao::fromRow);
-    toRowCallback = DAO_TO_ROW_CALLBACK_HANDLER(Unit, UnitDao::toRow);
-}
+DB_GETALL_UNIT, DB_GETBYID_UNIT) {}
 
 UnitDao::~UnitDao() {
 }

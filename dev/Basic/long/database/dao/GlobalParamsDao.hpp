@@ -17,8 +17,6 @@
 namespace sim_mob {
     namespace long_term {
 
-        DAO_DECLARE_CALLBACKS(GlobalParams);
-
         /**
          * Data Access Object to GlobalParams table on datasource.
          */

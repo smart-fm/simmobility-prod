@@ -17,9 +17,8 @@ using namespace sim_mob::long_term;
 
 HouseholdDao::HouseholdDao(DBConnection* connection)
 : AbstractDao<Household>(connection, DB_TABLE_HOUSEHOLD,
-DB_INSERT_HOUSEHOLD, DB_UPDATE_HOUSEHOLD, DB_DELETE_HOUSEHOLD, DB_GETALL_HOUSEHOLD, DB_GETBYID_HOUSEHOLD) {
-    fromRowCallback = DAO_FROM_ROW_CALLBACK_HANDLER(Household, HouseholdDao::fromRow);
-    toRowCallback = DAO_TO_ROW_CALLBACK_HANDLER(Household, HouseholdDao::toRow);
+DB_INSERT_HOUSEHOLD, DB_UPDATE_HOUSEHOLD, DB_DELETE_HOUSEHOLD,
+DB_GETALL_HOUSEHOLD, DB_GETBYID_HOUSEHOLD) {
 }
 
 HouseholdDao::~HouseholdDao() {

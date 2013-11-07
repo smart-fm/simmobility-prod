@@ -17,8 +17,6 @@
 namespace sim_mob {
     namespace long_term {
 
-        DAO_DECLARE_CALLBACKS(BuildingType);
-
         /**
          * Data Access Object to BuildingType table on datasource.
          */

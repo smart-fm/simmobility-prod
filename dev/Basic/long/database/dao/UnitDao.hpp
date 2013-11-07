@@ -16,8 +16,7 @@
 
 namespace sim_mob {
     namespace long_term {
-
-        DAO_DECLARE_CALLBACKS(Unit);
+        
         /**
          * Data Access Object to Unit table on datasource.
          */

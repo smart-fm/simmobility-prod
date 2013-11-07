@@ -16,7 +16,7 @@
 #include "util/LangHelpers.hpp"
 
 namespace {
-    
+
     typedef soci::details::use_type_ptr UseTypePtr;
 
     /**
@@ -33,17 +33,17 @@ namespace {
     // POSTGRES dependent. Needs to be fixed.
     const std::string DB_RETURNING_CLAUSE = "RETURNING";
     const std::string DB_RETURNING_ALL_CLAUSE = " " + DB_RETURNING_CLAUSE + " * ";
-    
 }
 
 namespace sim_mob {
 
     namespace db {
-        
+
         typedef boost::variant<int, std::string, double, long long, unsigned long> Parameter;
         typedef std::vector<Parameter> Parameters;
         typedef soci::row Row;
         typedef soci::rowset<Row> ResultSet;
+        static const Parameters EMPTY_PARAMS;
 
         /**
          * Represents an Abstract implementation of Data Access Object for 
@@ -64,8 +64,8 @@ namespace sim_mob {
          * 
          * Each DAO implementation *must* provide the following things:
          * Mandatory:
-         *  - fromRowCallback function implemented
-         *  - toRowCallback function implemented
+         *  - override fromRow() to convert SELECT statements to Entities.
+         *  - override toRow() to convert data for CRUD statements.
          *  - Default queries:
          *      defaultQueries[INSERT] = "INSERT.....";
          *      defaultQueries[UPDATE] = "UPDATE.....";
@@ -87,8 +87,7 @@ namespace sim_mob {
                     const std::string& insertQuery, const std::string& updateQuery,
                     const std::string& deleteQuery, const std::string& getAllQuery,
                     const std::string& getByIdQuery)
-            : connection(connection), tableName(tableName),
-            fromRowCallback(nullptr), toRowCallback(nullptr) {
+            : connection(connection), tableName(tableName) {
                 defaultQueries[INSERT] = insertQuery;
                 defaultQueries[UPDATE] = updateQuery;
                 defaultQueries[DELETE] = deleteQuery;
@@ -107,7 +106,7 @@ namespace sim_mob {
              *         false otherwise.
              */
             virtual T& insert(T& entity) {
-                if (toRowCallback && isConnected()) {
+                if (isConnected()) {
                     Transaction tr(connection->GetSession());
                     Statement query(connection->GetSession());
                     //append returning clause. 
@@ -119,7 +118,7 @@ namespace sim_mob {
                     }
                     // Get data to insert.
                     Parameters params;
-                    (this->*(toRowCallback))(entity, params, false);
+                    toRow(entity, params, false);
                     // prepare statement.
                     prepareStatement(upperQuery, params, query);
                     //TODO: POSTGRES ONLY for now
@@ -127,7 +126,7 @@ namespace sim_mob {
                     ResultSet rs(query);
                     ResultSet::const_iterator it = rs.begin();
                     if (it != rs.end()) {
-                        (this->*(fromRowCallback))((*it), entity);
+                        fromRow((*it), entity);
                     }
                     tr.commit();
                 }
@@ -141,12 +140,12 @@ namespace sim_mob {
              *         false otherwise.
              */
             virtual bool update(T& entity) {
-                if (toRowCallback && isConnected()) {
+                if (isConnected()) {
                     Transaction tr(connection->GetSession());
                     Statement query(connection->GetSession());
                     // Get data to insert.
                     Parameters params;
-                    (this->*(toRowCallback))(entity, params, true);
+                    toRow(entity, params, true);
                     // prepare statement.
                     prepareStatement(defaultQueries[UPDATE], params, query);
                     ResultSet rs(query);
@@ -197,8 +196,22 @@ namespace sim_mob {
 
         protected: // Protected types
 
-            typedef void (AbstractDao::*FromRowCallback)(Row& result, T& outParam);
-            typedef void (AbstractDao::*ToRowCallback)(T& data, Parameters& outParams, bool update);
+            /**
+             * Converts a given row into a T type.
+             * @param result result row.
+             * @param outParam (Out parameter) to receive data from row.
+             */
+            virtual void fromRow(Row& result, T& outParam) {
+            }
+
+            /**
+             * Converts the given T data into a Parameter list to create a row.
+             * @param data to create a new row.
+             * @param outParams Parameter list that will receive the data.
+             * @param update tells you if it is an update or an insert.
+             */
+            virtual void toRow(T& data, Parameters& outParams, bool update) {
+            }
 
             /**
              * Enum for default queries.
@@ -233,16 +246,16 @@ namespace sim_mob {
              * @param outParam to fill with retrieved objects.
              * @return true if some value was returned, false otherwise.
              */
-            bool getByValues(const std::string& queryStr, 
+            bool getByValues(const std::string& queryStr,
                     const Parameters& params, std::vector<T>& outParam) {
                 bool hasValues = false;
-                if (fromRowCallback && isConnected()) {
+                if (isConnected()) {
                     Statement query(connection->GetSession());
                     prepareStatement(queryStr, params, query);
                     ResultSet rs(query);
                     for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it) {
                         T model;
-                        (this->*(fromRowCallback))((*it), model);
+                        fromRow((*it), model);
                         outParam.push_back(model);
                         hasValues = true;
                     }
@@ -258,15 +271,15 @@ namespace sim_mob {
              * @param outParam to fill with retrieved object.
              * @return true if a value was returned, false otherwise.
              */
-            bool getByValues(const std::string& queryStr, 
+            bool getByValues(const std::string& queryStr,
                     const Parameters& params, T& outParam) {
-                if (fromRowCallback && isConnected()) {
+                if (isConnected()) {
                     Statement query(connection->GetSession());
                     prepareStatement(queryStr, params, query);
                     ResultSet rs(query);
                     ResultSet::const_iterator it = rs.begin();
                     if (it != rs.end()) {
-                        (this->*(fromRowCallback))((*it), outParam);
+                        fromRow((*it), outParam);
                         return true;
                     }
                 }
@@ -279,7 +292,7 @@ namespace sim_mob {
              * @param params to put on the statement.
              * @param outParam out statement.
              */
-            void prepareStatement(const std::string& queryStr, 
+            void prepareStatement(const std::string& queryStr,
                     const Parameters& params, Statement& outParam) {
                 outParam << queryStr;
                 Parameters::const_iterator it = params.begin();
@@ -292,16 +305,6 @@ namespace sim_mob {
             DBConnection* connection;
             std::string tableName;
             std::string defaultQueries[5];
-            FromRowCallback fromRowCallback;
-            ToRowCallback toRowCallback;
-            const Parameters EMPTY_PARAMS;
         };
     }
 }
-
-#define DAO_DECLARE_CALLBACKS(modelType)\
-        typedef void (sim_mob::db::AbstractDao<modelType>::*modelType##FromCallback)(sim_mob::db::Row& result, modelType& outParam);\
-        typedef void (sim_mob::db::AbstractDao<modelType>::*modelType##ToCallback)(modelType& data, sim_mob::db::Parameters& outParam, bool update);
-
-#define DAO_FROM_ROW_CALLBACK_HANDLER(modelType, func) (sim_mob::db::AbstractDao<modelType>::FromRowCallback)(modelType##FromCallback) &func
-#define DAO_TO_ROW_CALLBACK_HANDLER(modelType, func) (sim_mob::db::AbstractDao<modelType>::ToRowCallback)(modelType##ToCallback) &func

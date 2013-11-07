@@ -20,8 +20,6 @@ BuildingTypeDao::BuildingTypeDao(DBConnection* connection)
 : AbstractDao<BuildingType>(connection, DB_TABLE_BUILDING_TYPE,
 DB_INSERT_BUILDING_TYPE, DB_UPDATE_BUILDING_TYPE, DB_DELETE_BUILDING_TYPE,
 DB_GETALL_BUILDING_TYPE, DB_GETBYID_BUILDING_TYPE) {
-    fromRowCallback = DAO_FROM_ROW_CALLBACK_HANDLER(BuildingType, BuildingTypeDao::fromRow);
-    toRowCallback = DAO_TO_ROW_CALLBACK_HANDLER(BuildingType, BuildingTypeDao::toRow);
 }
 
 BuildingTypeDao::~BuildingTypeDao() {

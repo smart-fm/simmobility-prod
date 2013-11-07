@@ -22,7 +22,7 @@ std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range> sim_mob::xml
 
 void sim_mob::xml::scale_destination_t_pimpl::latitude_range (const ::std::string& value)
 {
-	std::pair<double, double> parsed = sim_mob::Utils::parse_scale_minmax(value);
+	std::pair<double, double> parsed = sim_mob::Utils::parseScaleMinmax(value);
 
 	model.first.min = parsed.first;
 	model.first.max = parsed.second;
@@ -30,7 +30,7 @@ void sim_mob::xml::scale_destination_t_pimpl::latitude_range (const ::std::strin
 
 void sim_mob::xml::scale_destination_t_pimpl::longitude_range (const ::std::string& value)
 {
-	std::pair<double, double> parsed = sim_mob::Utils::parse_scale_minmax(value);
+	std::pair<double, double> parsed = sim_mob::Utils::parseScaleMinmax(value);
 
 	model.second.min = parsed.first;
 	model.second.max = parsed.second;

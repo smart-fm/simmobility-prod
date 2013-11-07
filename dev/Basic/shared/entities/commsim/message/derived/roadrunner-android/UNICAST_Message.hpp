@@ -14,9 +14,12 @@
 #include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/message/base/Message.hpp"
 #include "entities/commsim/message/base/Handler.hpp"
+#include "entities/commsim/message/base/UnicastHandler.hpp"
 
 namespace sim_mob {
+class Agent;
 class Broker;
+class ClientHandler;
 
 namespace roadrunner {
 
@@ -27,9 +30,9 @@ public:
 };
 
 //Handler to the above message
-class HDL_UNICAST : public sim_mob::Handler {
-public:
-	void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker);
+class HDL_UNICAST : public sim_mob::roadrunner::UnicastHandler {
+protected:
+	virtual void postProcess(sim_mob::Broker& broker, const sim_mob::Agent& destAgent, sim_mob::ClientHandler& destCliHandler, const std::string andrSensorId, const std::string& andrSensorType, sim_mob::comm::MsgData &data);
 };
 
 }}

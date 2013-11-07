@@ -253,7 +253,8 @@ namespace sim_mob {
                     Statement query(connection->GetSession());
                     prepareStatement(queryStr, params, query);
                     ResultSet rs(query);
-                    for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it) {
+                    ResultSet::const_iterator it = rs.begin();
+                    for (it; it != rs.end(); ++it) {
                         T model;
                         fromRow((*it), model);
                         outParam.push_back(model);

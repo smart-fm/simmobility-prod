@@ -16,7 +16,7 @@
 
 using namespace sim_mob;
 
-sim_mob::roadrunner::MSG_MULTICAST::MSG_MULTICAST(sim_mob::comm::MsgData data_): /*RoadrunnerMessage*/Message(data_)
+sim_mob::roadrunner::MSG_MULTICAST::MSG_MULTICAST(sim_mob::comm::MsgData data_): Message(data_)
 {}
 
 Handler* sim_mob::roadrunner::MSG_MULTICAST::newHandler()
@@ -46,6 +46,12 @@ void sim_mob::roadrunner::HDL_MULTICAST::handle(sim_mob::comm::MsgPtr message_, 
 		return;
 	}
 
+	//This check should always return true, but I'm adding it to hopefully merge the two classes.
+	if(msg_header_.sender_type != "ANDROID_EMULATOR")
+	{
+		return;
+	}
+
 	//	find the agent from the client
 	//but,to get to the agent, find the client hander first
 
@@ -53,77 +59,74 @@ void sim_mob::roadrunner::HDL_MULTICAST::handle(sim_mob::comm::MsgPtr message_, 
 	std::string sender_type(msg_header_.sender_type); //easy read
 	ConfigParams::ClientType clientType;
 	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
-	const ClientList::type & clients = broker->getClientList();
 	if(!broker->getClientHandler(sender_id,sender_type,clnHandler))
 	{
 		WarnOut( "HDL_MULTICAST::handle failed" << std::endl);
 		return;
 	}
 
-	//now find the agent
+	//Check the handler's validity.
+	//TODO: I ported this check from the other multicast_message class; need to make sure it's valid. ~Seth
+	if(!clnHandler->isValid()) {
+		Print() << "Invalid client handler record" << std::endl;
+		return;
+	}
 
-	const sim_mob::Agent * original_agent;
-	if(!(original_agent = clnHandler->agent))
+	//now find the agent
+	const sim_mob::Agent* original_agent = clnHandler->agent;
+	if(!original_agent)
 	{
 		Print() << "Invalid agent record" << std::endl;
 		return;
 	}
 
 	//step-2: get the agents around you
-	std::vector<const Agent*> nearby_agents_1 = AuraManager::instance().agentsInRect(
+	std::vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(
+		Point2D((original_agent->xPos - 3500), (original_agent->yPos - 3500)),
+		Point2D((original_agent->xPos + 3500), (original_agent->yPos + 3500)),
+		original_agent
+	);
 
-				Point2D(
+	//get the original agent out
+	std::vector<const Agent*>::iterator it_find = std::find(nearby_agents.begin(), nearby_agents.end(), original_agent);
+	if(it_find != nearby_agents.end()) {
+		nearby_agents.erase(it_find);
+	}
 
-						(original_agent->xPos - 3500),
-						(original_agent->yPos - 3500)
-						)
-
-						,
-
-				Point2D(
-						(original_agent->xPos + 3500),
-						(original_agent->yPos + 3500)
-						)
-						,
-						original_agent
-						);
-	//if no agent found or only one found and that is the original_agent
-	if((nearby_agents_1.size() == 0) || ( (nearby_agents_1.size() == 1)&&(nearby_agents_1[0] == original_agent)) )
-	{
+	//If there's no agents left, return.
+	if(nearby_agents.size() == 0) {
 		return;
 	}
 
-	//get the original agent out
-	std::vector<const Agent*>::iterator it_find = std::find(nearby_agents_1.begin(), nearby_agents_1.end(), original_agent);
-	if(it_find != nearby_agents_1.end())
-	{
-		nearby_agents_1.erase(it_find);
-	}
-	//Now, Let's c which one of these agents are associated with clients
-	std::vector<const Agent*> nearby_agents_2;
-//	std::pair<unsigned int, std::map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > clientTypes;
+	//Now, Let's see which one of these agents are associated with clients
 	ClientList::pair clientTypes;
-	BOOST_FOREACH(clientTypes , clients)
+	const ClientList::type& all_clients = broker->getClientList();
+	BOOST_FOREACH(clientTypes , all_clients)
 	{
-//		std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > clientIds;
+		// only the android emulators
+		//TODO: This should always return true; was copied over to hopefully merge the two classes together.
+		if(clientTypes.first != ConfigParams::ANDROID_EMULATOR) {
+			continue;
+		}
+
 		ClientList::IdPair clientIds;
-		boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > &inner = clientTypes.second;
-		//step-3: for each agent find the client handler
+		boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> >& inner = clientTypes.second;
 		BOOST_FOREACH(clientIds , inner)
 		{
-			boost::shared_ptr<sim_mob::ClientHandler> clnHander  = clientIds.second;
-			const sim_mob::Agent * agent = clnHander->agent;
-			if(std::find(nearby_agents_1.begin(), nearby_agents_1.end(), agent) == nearby_agents_1.end())
-			{
+			boost::shared_ptr<sim_mob::ClientHandler> destClientHandlr  = clientIds.second;
+			const sim_mob::Agent* agent = destClientHandlr->agent;
+			if(std::find(nearby_agents.begin(), nearby_agents.end(), agent) == nearby_agents.end()) {
 				continue;
 			}
+
 			//step-4: fabricate a message for each(core data is taken from the original message)
 				//actually, you dont need to modify any of
 				//the original jsoncpp's Json::Value message.
 				//just send it
 			//so we go streight to next step
 			//step-5: insert messages into send buffer
-			broker->insertSendBuffer(clnHander->cnnHandler,data);
+			//NOTE: This part is different for ns-3 versus android-only.
+			broker->insertSendBuffer(destClientHandlr->cnnHandler,data);
 		}//inner loop : BOOST_FOREACH(clientIds , inner)
 	}//outer loop : BOOST_FOREACH(clientTypes , clients)
 }//handle()

@@ -10,8 +10,8 @@
 #include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/serialization/Serialization.hpp"
 
-#include "entities/commsim/message/derived/roadrunner-android/MULTICAST_Message.hpp"
-#include "entities/commsim/message/derived/roadrunner-android/UNICAST_Message.hpp"
+#include "entities/commsim/message/base/UnicastMessage.hpp"
+#include "entities/commsim/message/base/MulticastMessage.hpp"
 #include "entities/commsim/message/base/ClientDoneMessage.hpp"
 
 namespace sim_mob {
@@ -25,7 +25,6 @@ namespace roadrunner{
  * This is NOT necessarily a clean solution; in fact, I will examine the messages and handlers to see if we
  * can share more functionality there and remove the templates entirely. ~Seth
  */
-template <bool useNs3, class MulticastMessage, class UnicastMessage, class ClientDoneMessage>
 class RR_FactoryBase : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> {
 	enum MessageType {
 		MULTICAST = 1,
@@ -42,7 +41,7 @@ class RR_FactoryBase : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>&
 	std::map<MessageType, boost::shared_ptr<sim_mob::Handler> > HandlerMap;
 
 public:
-	RR_FactoryBase();
+	RR_FactoryBase(bool useNs3);
 	virtual ~RR_FactoryBase();
 
 	//creates a message with correct format + assigns correct handler
@@ -51,124 +50,10 @@ public:
 
 	//gets a handler either from a cache or by creating a new one
 	boost::shared_ptr<sim_mob::Handler>  getHandler(MessageType);
+
+private:
+	bool useNs3;
 };
 
 
-}} //End sim_mob::roadrunner namespace
-
-
-///////////////////////////////////////////////////////////////////////
-// Template implementation
-///////////////////////////////////////////////////////////////////////
-
-
-template <bool useNs3, class MulticastMessage, class UnicastMessage, class ClientDoneMessage>
-sim_mob::roadrunner::RR_FactoryBase<useNs3, MulticastMessage, UnicastMessage, ClientDoneMessage>::RR_FactoryBase()
-{
-	//Doing it manually; C++1 doesn't like the boost assignment.
-	MessageMap.clear();
-	MessageMap["MULTICAST"] = MULTICAST;
-	MessageMap["UNICAST"] = UNICAST;
-	MessageMap["CLIENT_MESSAGES_DONE"] = CLIENT_MESSAGES_DONE;
-
-	//MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE)/*("ANNOUNCE",ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND)*/;
-}
-
-template <bool useNs3, class MulticastMessage, class UnicastMessage, class ClientDoneMessage>
-sim_mob::roadrunner::RR_FactoryBase<useNs3, MulticastMessage, UnicastMessage, ClientDoneMessage>::~RR_FactoryBase()
-{}
-
-
-
-template <bool useNs3, class MulticastMessage, class UnicastMessage, class ClientDoneMessage>
-boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RR_FactoryBase<useNs3, MulticastMessage, UnicastMessage, ClientDoneMessage>::getHandler(MessageType type)
-{
-	boost::shared_ptr<sim_mob::Handler> handler;
-	//if handler is already registered && the registered handler is not null
-	typename std::map<MessageType, boost::shared_ptr<sim_mob::Handler> >::iterator it = HandlerMap.find(type);
-	if((it != HandlerMap.end())&&((*it).second!= 0))
-	{
-		//get the handler ...
-		handler = (*it).second;
-	}
-	else
-	{
-		//else, create a cache entry ...
-		bool typeFound = true;
-		switch(type)
-		{
-		case MULTICAST:
-			handler.reset(new sim_mob::roadrunner::MulticastHandler(useNs3));
-			break;
-		case UNICAST:
-			handler.reset(new sim_mob::roadrunner::UnicastHandler(useNs3));
-			break;
-		default:
-			typeFound = false;
-		}
-		//register this baby
-		if(typeFound)
-		{
-			HandlerMap[type] = handler;
-		}
-	}
-
-	return handler;
-}
-
-
-template <bool useNs3, class MulticastMessage, class UnicastMessage, class ClientDoneMessage>
-bool sim_mob::roadrunner::RR_FactoryBase<useNs3, MulticastMessage, UnicastMessage, ClientDoneMessage>::createMessage(std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
-{
-	Json::Value root;
-	sim_mob::pckt_header packetHeader;
-	if(!sim_mob::JsonParser::parsePacketHeader(input, packetHeader, root))
-	{
-		return false;
-	}
-	if(!sim_mob::JsonParser::getPacketMessages(input,root))
-	{
-		return false;
-	}
-	for (int index = 0; index < root.size(); index++) {
-		msg_header messageHeader;
-		if (!sim_mob::JsonParser::parseMessageHeader(root[index], messageHeader)) {
-			continue;
-		}
-		Json::Value& curr_json = root[index];
-		switch (MessageMap[messageHeader.msg_type]) {
-		case MULTICAST:{
-			//create a message
-			sim_mob::comm::MsgPtr msg(new MulticastMessage(curr_json));
-			//... and then assign the handler pointer to message's member
-			msg->setHandler(getHandler(MULTICAST));
-			output.push_back(msg);
-			break;
-		}
-		case UNICAST:{
-			//create a message
-			sim_mob::comm::MsgPtr msg(new UnicastMessage(curr_json));
-			//... and then assign the handler pointer to message's member
-			msg->setHandler(getHandler(UNICAST));
-			output.push_back(msg);
-			break;
-		}
-		case CLIENT_MESSAGES_DONE:{
-			//create a message
-			sim_mob::comm::MsgPtr msg(new ClientDoneMessage(curr_json));
-			//... and then assign the handler pointer to message's member
-//			msg->setHandler(getHandler()); no handler!
-			output.push_back(msg);
-			break;
-		}
-
-
-		default:
-			WarnOut("RR_Factory::createMessage() - Unhandled message type.");
-		}
-	}		//for loop
-
-	return true;
-}
-
-
+}}

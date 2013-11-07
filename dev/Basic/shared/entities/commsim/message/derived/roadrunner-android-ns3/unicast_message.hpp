@@ -25,19 +25,6 @@ class ClientHandler;
 
 namespace rr_android_ns3 {
 
-///Android unicast message (no documentation provided).
-class ANDROID_MSG_UNICAST : public sim_mob::comm::Message {
-public:
-	ANDROID_MSG_UNICAST(sim_mob::comm::MsgData& data_);
-	sim_mob::Handler* newHandler();
-};
-
-//Handler to the above message
-/*class ANDROID_HDL_UNICAST : public sim_mob::roadrunner::UnicastHandler{
-protected:
-	virtual void postProcess(sim_mob::Broker& broker, const sim_mob::Agent& destAgent, sim_mob::ClientHandler& destCliHandler, const std::string andrSensorId, const std::string& andrSensorType, sim_mob::comm::MsgData &data);
-};*/
-
 ///NS3 unicast message (no documentation provided).
 class NS3_MSG_UNICAST : public sim_mob::comm::Message {
 public:

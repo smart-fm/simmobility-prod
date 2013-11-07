@@ -17,7 +17,10 @@ namespace sim_mob {
 namespace roadrunner{
 
 ///Subclass for roadrunner-only.
-class RR_Factory : public sim_mob::roadrunner::RR_FactoryBase<false, sim_mob::roadrunner::MSG_MULTICAST, sim_mob::roadrunner::MSG_UNICAST, sim_mob::roadrunner::ClientDoneMessage> {};
+class RR_Factory : public sim_mob::roadrunner::RR_FactoryBase {
+public:
+	RR_Factory() : RR_FactoryBase(false) {}
+};
 
 }} //End namespace sim_mob::roadrunner
 

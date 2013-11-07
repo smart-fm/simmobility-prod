@@ -8,77 +8,81 @@
  */
 
 #include "DatabaseConfig.hpp"
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/ini_parser.hpp>
+#include "entities/profile/ProfileBuilder.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::db;
 using std::string;
-
-DatabaseConfig::DatabaseConfig() 
-: port(0), host(""), password(""), username(""), databaseName(""), file(""){
-}
-DatabaseConfig::DatabaseConfig(const string& file) 
-: file(file), port(0), host(""), password(""), username(""), databaseName("") {
-    if (!file.empty()) {
-        boost::property_tree::ptree pt;
-        boost::property_tree::read_ini(file, pt);
-        this->host = pt.get<string>("database.host");
-        this->port = pt.get<int>("database.port");
-        this->username = pt.get<string>("database.username");
-        this->password = pt.get<string>("database.password");
-        this->databaseName = pt.get<string>("database.dbname");
-    }
+namespace {
+    const string SECTION = "database";
+    const string PROP_HOST = "host";
+    const string PROP_PASS = "password";
+    const string PROP_USER = "username";
+    const string PROP_DB = "dbname";
+    const string PROP_PORT = "port";
 }
 
-DatabaseConfig::DatabaseConfig(const DatabaseConfig& orig) {
-    this->host = orig.host;
-    this->port = orig.port;
-    this->username = orig.username;
-    this->password = orig.password;
-    this->databaseName = orig.databaseName;
-    this->file = file;
+DatabaseConfig::DatabaseConfig(const string& file)
+: PropertyLoader(file, SECTION),
+port(0), host(""), password(""), username(""), databaseName("") {
+}
+
+DatabaseConfig::DatabaseConfig(const DatabaseConfig& orig) 
+: PropertyLoader(orig) {
+    host = orig.host;
+    port = orig.port;
+    username = orig.username;
+    password = orig.password;
+    databaseName = orig.databaseName;
 }
 
 DatabaseConfig::~DatabaseConfig() {
 }
 
-std::string DatabaseConfig::GetDatabaseName() const {
+const string& DatabaseConfig::getDatabaseName() const {
     return databaseName;
 }
 
-std::string DatabaseConfig::GetPassword() const {
+const string& DatabaseConfig::getPassword() const {
     return password;
 }
 
-std::string DatabaseConfig::GetUsername() const {
+const string& DatabaseConfig::getUsername() const {
     return username;
 }
 
-int DatabaseConfig::GetPort() const {
-    return port;
-}
-
-std::string DatabaseConfig::GetHost() const {
+const string& DatabaseConfig::getHost() const {
     return host;
 }
 
-void DatabaseConfig::SetDatabaseName(std::string databaseName) {
+unsigned int DatabaseConfig::getPort() const {
+    return port;
+}
+
+void DatabaseConfig::setDatabaseName(const string& databaseName) {
     this->databaseName = databaseName;
 }
 
-void DatabaseConfig::SetPassword(std::string password) {
+void DatabaseConfig::setPassword(const string& password) {
     this->password = password;
 }
 
-void DatabaseConfig::SetUsername(std::string username) {
+void DatabaseConfig::setUsername(const string& username) {
     this->username = username;
 }
 
-void DatabaseConfig::SetPort(int port) {
+void DatabaseConfig::setPort(unsigned int port) {
     this->port = port;
 }
 
-void DatabaseConfig::SetHost(std::string host) {
+void DatabaseConfig::setHost(const string& host) {
     this->host = host;
+}
+
+void DatabaseConfig::loadImpl(const boost::property_tree::ptree& tree) {
+    host = tree.get<string>(toProp(getSection(), PROP_HOST));
+    this->port = tree.get<unsigned int>(toProp(getSection(), PROP_PORT));
+    this->username = tree.get<string>(toProp(getSection(), PROP_USER));
+    this->password = tree.get<string>(toProp(getSection(), PROP_PASS));
+    this->databaseName = tree.get<string>(toProp(getSection(), PROP_DB));
 }

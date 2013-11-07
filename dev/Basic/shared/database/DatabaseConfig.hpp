@@ -8,6 +8,7 @@
  */
 #pragma once
 #include <string>
+#include "conf/PropertyLoader.hpp"
 
 namespace sim_mob {
 
@@ -25,26 +26,30 @@ namespace sim_mob {
          * 
          * @param file to read the properties.
          */
-        class DatabaseConfig {
+        class DatabaseConfig : public PropertyLoader{
         public:
-            DatabaseConfig();
             DatabaseConfig(const std::string& file);
             DatabaseConfig(const DatabaseConfig& orig);
             virtual ~DatabaseConfig();
-            std::string GetDatabaseName() const;
-            std::string GetPassword() const;
-            std::string GetUsername() const;
-            int GetPort() const;
-            std::string GetHost() const;
-            void SetDatabaseName(std::string databaseName);
-            void SetPassword(std::string password);
-            void SetUsername(std::string username);
-            void SetPort(int port);
-            void SetHost(std::string host);
+            const std::string& getDatabaseName() const;
+            const std::string& getPassword() const;
+            const std::string& getUsername() const;
+            const std::string& getHost() const;
+            unsigned int getPort() const;
+            void setDatabaseName(const std::string& databaseName);
+            void setPassword(const std::string& password);
+            void setUsername(const std::string& username);
+            void setPort(unsigned int port);
+            void setHost(const std::string& host);
+        protected:
+            friend class PropertyLoader;
+            /**
+             * Inherited from PropertyLoader
+             */
+            virtual void loadImpl(const boost::property_tree::ptree& tree);
         private:
-            std::string file;
             std::string host;
-            int port;
+            unsigned int port;
             std::string username;
             std::string password;
             std::string databaseName;

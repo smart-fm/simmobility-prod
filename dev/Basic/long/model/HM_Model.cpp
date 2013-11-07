@@ -45,6 +45,7 @@ const Unit* HM_Model::getUnitById(const BigSerial& unitId) const{
 
 void HM_Model::startImpl() {
     DatabaseConfig dbConfig(LT_DB_CONFIG_FILE);
+    dbConfig.load();
     // Connect to database and load data.
     DBConnection conn(sim_mob::db::POSTGRES, dbConfig);
     conn.Connect();

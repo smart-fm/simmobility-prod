@@ -29,7 +29,7 @@ DBConnection::DBConnection(BackendType type, const DatabaseConfig& config)
         case POSTGRES:
         {
             boost::format fmtr = boost::format(PGSQL_CONNSTR_FORMAT);
-            fmtr % config.GetHost() % config.GetPort() % config.GetUsername() % config.GetPassword() % config.GetDatabaseName();
+            fmtr % config.getHost() % config.getPort() % config.getUsername() % config.getPassword() % config.getDatabaseName();
             connectionStr = fmtr.str();
             break;
         }

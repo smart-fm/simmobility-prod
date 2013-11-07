@@ -9,7 +9,7 @@
  *      Author: vahid
  */
 
-#include "roadrunner_android_factory.hpp"
+#include "roadrunner_ns3_factory.hpp"
 
 #include <boost/assign/list_of.hpp>
 #include <json/json.h>
@@ -19,6 +19,7 @@
 
 using namespace sim_mob;
 
+/*
 sim_mob::rr_android_ns3::RR_Android_Factory::RR_Android_Factory()
 {
 	//Doing it manually; C++1 doesn't like the boost assignment.
@@ -74,9 +75,6 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::rr_android_ns3::RR_Android_Factory
 //todo improve the function to handle array of messages stored in the input string
 bool sim_mob::rr_android_ns3::RR_Android_Factory::createMessage(std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
 {
-//	std::vector<msg_t> result;
-//	 Print() << "inside RR_Android_Factory::createMessage" << std::endl;
-	std::string type, data;
 	Json::Value root;
 	sim_mob::pckt_header packetHeader;
 	if(!sim_mob::JsonParser::parsePacketHeader(input, packetHeader, root))
@@ -88,10 +86,7 @@ bool sim_mob::rr_android_ns3::RR_Android_Factory::createMessage(std::string &inp
 		return false;
 	}
 	for (int index = 0; index < root.size(); index++) {
-
-		Json::FastWriter w;
 		msg_header messageHeader;
-//		std::string  msgStr;// =  /*const_cast<std::string&>*/(root[index].asString());
 		if (!sim_mob::JsonParser::parseMessageHeader(root[index], messageHeader)) {
 			continue;
 		}
@@ -130,6 +125,7 @@ bool sim_mob::rr_android_ns3::RR_Android_Factory::createMessage(std::string &inp
 
 	return true;
 }
+*/
 
 
 sim_mob::rr_android_ns3::RR_NS3_Factory::RR_NS3_Factory() {

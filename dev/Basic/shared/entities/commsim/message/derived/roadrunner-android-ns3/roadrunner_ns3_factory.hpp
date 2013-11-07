@@ -15,6 +15,9 @@
 
 #include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/serialization/Serialization.hpp"
+
+#include "entities/commsim/message/derived/roadrunner-android/RR_Factory.hpp"
+
 #include "entities/commsim/message/derived/roadrunner-android-ns3/multicast_message.hpp"
 #include "entities/commsim/message/derived/roadrunner-android-ns3/unicast_message.hpp"
 #include "entities/commsim/message/derived/roadrunner-android-ns3/client_done_message.hpp"
@@ -22,8 +25,13 @@
 namespace sim_mob {
 namespace rr_android_ns3 {
 
+
+///Subclass for roadrunner+ns3
+class RR_Android_Factory : public sim_mob::roadrunner::RR_FactoryBase<sim_mob::rr_android_ns3::ANDROID_HDL_MULTICAST, sim_mob::rr_android_ns3::ANDROID_HDL_UNICAST, sim_mob::rr_android_ns3::ANDROID_MSG_MULTICAST, sim_mob::rr_android_ns3::ANDROID_MSG_UNICAST, sim_mob::rr_android_ns3::MSG_CLIENTDONE> {};
+
+
 ///Android RR factory (no documentation provided).
-class RR_Android_Factory : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> {
+/*class RR_Android_Factory : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> {
 	enum MessageType {
 		MULTICAST = 1,
 		UNICAST = 2,
@@ -40,7 +48,7 @@ public:
 	virtual ~RR_Android_Factory();
 	bool createMessage(std::string &str, std::vector<sim_mob::comm::MsgPtr>&output);
 	boost::shared_ptr<sim_mob::Handler>  getHandler(MessageType);
-};
+};*/
 
 
 ///NS3 RR factory (no documentation provided).

@@ -27,7 +27,7 @@
 
 //todo :temprorary
 #include "entities/commsim/message/derived/roadrunner-android/RR_Factory.hpp"
-#include "entities/commsim/message/derived/roadrunner-android-ns3/roadrunner_android_factory.hpp"
+#include "entities/commsim/message/derived/roadrunner-android-ns3/roadrunner_ns3_factory.hpp"
 
 using namespace sim_mob;
 

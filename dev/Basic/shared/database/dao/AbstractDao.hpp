@@ -39,7 +39,8 @@ namespace sim_mob {
 
     namespace db {
 
-        typedef boost::variant<int, std::string, double, long long, unsigned long> Parameter;
+        typedef boost::variant<int, std::string, double, long long, 
+                unsigned long> Parameter;
         typedef std::vector<Parameter> Parameters;
         typedef soci::row Row;
         typedef soci::rowset<Row> ResultSet;
@@ -83,9 +84,12 @@ namespace sim_mob {
         template <typename T> class AbstractDao {
         public:
 
-            AbstractDao(DBConnection* connection, const std::string& tableName,
-                    const std::string& insertQuery, const std::string& updateQuery,
-                    const std::string& deleteQuery, const std::string& getAllQuery,
+            AbstractDao(DBConnection* connection, 
+                    const std::string& tableName,
+                    const std::string& insertQuery, 
+                    const std::string& updateQuery,
+                    const std::string& deleteQuery, 
+                    const std::string& getAllQuery,
                     const std::string& getByIdQuery)
             : connection(connection), tableName(tableName) {
                 defaultQueries[INSERT] = insertQuery;
@@ -111,7 +115,8 @@ namespace sim_mob {
                     Statement query(connection->GetSession());
                     //append returning clause. 
                     //Attention: this is only prepared for POSTGRES.
-                    std::string upperQuery = boost::to_upper_copy(defaultQueries[INSERT]);
+                    std::string upperQuery = 
+                            boost::to_upper_copy(defaultQueries[INSERT]);
                     size_t found = upperQuery.rfind(DB_RETURNING_CLAUSE);
                     if (found == std::string::npos) {
                         upperQuery += DB_RETURNING_ALL_CLAUSE;
@@ -242,7 +247,7 @@ namespace sim_mob {
             /**
              * Helper function that allows get a list of 
              * Entity objects (vector<T>) by given params. 
-             * The output will be assigned on outParam using the *fromRowCallback*.
+             * The output will be assigned on outParam using the *fromRow*.
              * @param queryStr query string.
              * @param params to filter the query (to put on Where clause).
              * @param outParam to fill with retrieved objects.
@@ -268,7 +273,7 @@ namespace sim_mob {
 
             /**
              * Helper function that allows get a Entity <T> by given params. 
-             * The output will be assigned on outParam using the *fromRowCallback*.
+             * The output will be assigned on outParam using the *fromRow*.
              * @param queryStr query string.
              * @param params to filter the query (to put on Where clause).
              * @param outParam to fill with retrieved object.

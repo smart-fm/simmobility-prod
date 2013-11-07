@@ -9,8 +9,9 @@
  *      Author: vahid
  */
 
-//#include "CLIENTDONE_Handler.hpp"
 #include "CLIENTDONE_Message.hpp"
+
+#include "util/LangHelpers.hpp"
 
 using namespace sim_mob;
 
@@ -19,7 +20,7 @@ sim_mob::roadrunner::MSG_CLIENTDONE::MSG_CLIENTDONE(sim_mob::comm::MsgData& data
 
 Handler * sim_mob::roadrunner::MSG_CLIENTDONE::newHandler()
 {
-	return 0;
+	return nullptr;
 }
 
 

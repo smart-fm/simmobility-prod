@@ -90,104 +90,80 @@ bool sim_mob::Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHand
 
 void sim_mob::Broker::configure()
 {
-	sim_mob::Worker::GetUpdatePublisher().Subscribe(sim_mob::event::EVT_CORE_AGENT_UPDATED, (void*)sim_mob::event::CXT_CORE_AGENT_UPDATE, this, CONTEXT_CALLBACK_HANDLER(UpdateEventArgs, Broker::onAgentUpdate));
-//	Print() << "Broker sunscribed to agent done" << std::endl;
-	 //todo, for the following maps , think of something non intrusive to broker. This is merely hardcoding-vahid
-	 if(ConfigManager::GetInstance().FullConfig().getAndroidClientType() == "android-ns3")
-	 {
-		BrokerPublisher* onlyLocationsPublisher = new BrokerPublisher();
-		onlyLocationsPublisher->RegisterEvent(COMMEID_LOCATION);
-		//publishers
-		publishers.insert(
-				std::make_pair(sim_mob::Services::SIMMOB_SRV_LOCATION,
-						PublisherList::dataType(onlyLocationsPublisher)));
+	//Dispatch differently depending on whether we are using "android-ns3" or "android-only"
+	//TODO: Find a more dynamic way of adding new clients.
+	const std::string client_type = ConfigManager::GetInstance().FullConfig().getAndroidClientType();
 
+	sim_mob::Worker::GetUpdatePublisher().Subscribe(sim_mob::event::EVT_CORE_AGENT_UPDATED, (void*)sim_mob::event::CXT_CORE_AGENT_UPDATE, this, CONTEXT_CALLBACK_HANDLER(UpdateEventArgs, Broker::onAgentUpdate));
+
+	BrokerPublisher* onlyLocationsPublisher = new BrokerPublisher();
+	onlyLocationsPublisher->RegisterEvent(COMMEID_LOCATION);
+
+	publishers.insert(std::make_pair(
+		sim_mob::Services::SIMMOB_SRV_LOCATION,
+		PublisherList::dataType(onlyLocationsPublisher))
+	);
+
+	//NS-3 has its own publishers
+	if(client_type == "android-ns3") {
 		BrokerPublisher* allLocationsPublisher = new BrokerPublisher();
 		allLocationsPublisher->RegisterEvent(COMMEID_LOCATION);
-		publishers.insert(
-				std::make_pair(sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS,
-						PublisherList::dataType(allLocationsPublisher)));
+		publishers.insert(std::make_pair(
+			sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS,
+			PublisherList::dataType(allLocationsPublisher))
+		);
+	}
 
-		BrokerPublisher* timePublisher = new BrokerPublisher();
-		timePublisher->RegisterEvent(COMMEID_TIME);
-		publishers.insert(
-				std::make_pair(sim_mob::Services::SIMMOB_SRV_TIME,
-						PublisherList::dataType(timePublisher)));
+	BrokerPublisher* timePublisher = new BrokerPublisher();
+	timePublisher->RegisterEvent(COMMEID_TIME);
+	publishers.insert(std::make_pair(
+		sim_mob::Services::SIMMOB_SRV_TIME,
+		PublisherList::dataType(timePublisher))
+	);
+
+	ClientRegistrationHandler::getPublisher().Subscribe(ConfigParams::ANDROID_EMULATOR, this, CALLBACK_HANDLER(ClientRegistrationEventArgs, Broker::onClientRegister));
+
+	if(client_type == "android-ns3") {
 		//listen to publishers who announce registration of new clients...
-		ClientRegistrationHandler::getPublisher().Subscribe(ConfigParams::ANDROID_EMULATOR, this, CALLBACK_HANDLER(ClientRegistrationEventArgs, Broker::onClientRegister));
 		ClientRegistrationHandler::getPublisher().Subscribe(ConfigParams::NS3_SIMULATOR, this, CALLBACK_HANDLER(ClientRegistrationEventArgs, Broker::onClientRegister));
+	}
 
-		//current message factory
-		//todo: choose a factory based on configurations not hardcoding
-		boost::shared_ptr<
-				sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > android_factory(
-				new sim_mob::rr_android_ns3::RR_Android_Factory());
-		boost::shared_ptr<
-				sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > ns3_factory(
-				new sim_mob::rr_android_ns3::RR_NS3_Factory());
+	//current message factory
+	//todo: choose a factory based on configurations not hardcoding
+	if(client_type == "android-ns3") {
+		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> >
+			android_factory(new sim_mob::rr_android_ns3::RR_Android_Factory());
+		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> >
+			ns3_factory(new sim_mob::rr_android_ns3::RR_NS3_Factory());
 
-		messageFactories.insert(
-				std::make_pair(ConfigParams::ANDROID_EMULATOR,
-						android_factory));
-		messageFactories.insert(
-				std::make_pair(ConfigParams::NS3_SIMULATOR, ns3_factory));
+		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
+		messageFactories.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR, android_factory));
+		messageFactories.insert(std::make_pair(ConfigParams::NS3_SIMULATOR, ns3_factory));
+	} else if (client_type == "android-only") {
+		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> >
+			android_factory(new sim_mob::roadrunner::RR_Factory());
 
-		// wait for connection criteria for this broker
-		clientBlockers.insert(
-				std::make_pair(ConfigParams::ANDROID_EMULATOR,
-						boost::shared_ptr<WaitForAndroidConnection>(
-								new WaitForAndroidConnection(*this,MIN_CLIENTS))));
-		clientBlockers.insert(
-				std::make_pair(ConfigParams::NS3_SIMULATOR,
-						boost::shared_ptr<WaitForNS3Connection>(
-								new WaitForNS3Connection(*this))));
-		agentBlockers.insert(
-				std::make_pair(0,
-						boost::shared_ptr<WaitForAgentRegistration>(
-								new WaitForAgentRegistration(*this,MIN_AGENTS))));
-	 }
-	 else
-		 if(ConfigManager::GetInstance().FullConfig().getAndroidClientType() == "android-only") {
-				//publishers
+		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
+		messageFactories.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR, android_factory));
+	}
 
-				BrokerPublisher* onlyLocationsPublisher = new BrokerPublisher();
-				onlyLocationsPublisher->RegisterEvent(COMMEID_LOCATION);
-				//publishers
-				publishers.insert(
-						std::make_pair(sim_mob::Services::SIMMOB_SRV_LOCATION,
-								PublisherList::dataType(onlyLocationsPublisher)));
+	// wait for connection criteria for this broker
+	clientBlockers.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR,
+			boost::shared_ptr<WaitForAndroidConnection>(new WaitForAndroidConnection(*this,MIN_CLIENTS))));
 
-				BrokerPublisher* timePublisher = new BrokerPublisher();
-				timePublisher->RegisterEvent(COMMEID_TIME);
-				publishers.insert(
-						std::make_pair(sim_mob::Services::SIMMOB_SRV_TIME,
-								PublisherList::dataType(timePublisher)));
-				//listen to publishers who announce registration of new clients...
-				ClientRegistrationHandler::getPublisher().Subscribe(ConfigParams::ANDROID_EMULATOR, this, CALLBACK_HANDLER(ClientRegistrationEventArgs, Broker::onClientRegister));
-				//current message factory
-				//todo: choose a factory based on configurations not hardcoding
-				boost::shared_ptr<
-						sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > android_factory(
-						new sim_mob::roadrunner::RR_Factory());
-				//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
-				messageFactories.insert(
-						std::make_pair(ConfigParams::ANDROID_EMULATOR,
-								android_factory));
 
-				// wait for connection criteria for this broker
-				clientBlockers.insert(
-						std::make_pair(ConfigParams::ANDROID_EMULATOR,
-								boost::shared_ptr<WaitForAndroidConnection>(
-										new WaitForAndroidConnection(*this, MIN_CLIENTS))));
-				agentBlockers.insert(
-						std::make_pair(0,
-								boost::shared_ptr<WaitForAgentRegistration>(
-										new WaitForAgentRegistration(*this, MIN_AGENTS))));
+	if(client_type == "android-ns3") {
+		clientBlockers.insert(std::make_pair(ConfigParams::NS3_SIMULATOR,
+				boost::shared_ptr<WaitForNS3Connection>(new WaitForNS3Connection(*this))));
 
-		 }
-//	 Print() << "Broker constructor()=>androidClientType[" << ConfigManager::GetInstance().FullConfig().getAndroidClientType() << "]"
-//			 <<" clientBlockers.size()=" << clientBlockers.size() << std::endl;
-	 configured = true;
+	}
+
+	// wait for connection criteria for this broker
+	agentBlockers.insert(std::make_pair(0,
+			boost::shared_ptr<WaitForAgentRegistration>(new WaitForAgentRegistration(*this,MIN_AGENTS))));
+
+	//Done.
+	configured = true;
 }
 
 

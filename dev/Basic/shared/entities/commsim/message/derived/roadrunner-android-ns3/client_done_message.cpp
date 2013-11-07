@@ -15,8 +15,6 @@
 
 using namespace sim_mob;
 
-class HDL_CLIENTDONE;
-
 sim_mob::rr_android_ns3::MSG_CLIENTDONE::MSG_CLIENTDONE(sim_mob::comm::MsgData& data_): Message(data_)
 {}
 

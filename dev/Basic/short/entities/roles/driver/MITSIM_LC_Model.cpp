@@ -675,10 +675,6 @@ TARGET_GAP* sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
  * */
 double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode)
 {
-	if(p.now.frame() > 1300.0)
-	{
-		int aa=0;
-	}
 	//Behavior changes depending on whether or not we're actually changing lanes.
 	//if(currLaneChangeDir==LCS_SAME)
 	//{

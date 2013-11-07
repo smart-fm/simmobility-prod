@@ -10,9 +10,9 @@
 #include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/serialization/Serialization.hpp"
 
-#include "entities/commsim/message/base/UnicastMessage.hpp"
-#include "entities/commsim/message/base/MulticastMessage.hpp"
-#include "entities/commsim/message/base/ClientDoneMessage.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/UnicastMessage.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/MulticastMessage.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/ClientDoneMessage.hpp"
 
 namespace sim_mob {
 namespace roadrunner{
@@ -25,7 +25,7 @@ namespace roadrunner{
  * This is NOT necessarily a clean solution; in fact, I will examine the messages and handlers to see if we
  * can share more functionality there and remove the templates entirely. ~Seth
  */
-class RR_FactoryBase : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> {
+class RoadRunnerFactory : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> {
 	enum MessageType {
 		MULTICAST = 1,
 		UNICAST = 2,
@@ -35,14 +35,14 @@ class RR_FactoryBase : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>&
 		CLIENT_MESSAGES_DONE = 6
 	};
 
-	std::map<std::string, RR_FactoryBase::MessageType> MessageMap;
+	std::map<std::string, RoadRunnerFactory::MessageType> MessageMap;
 
 	//This map is used as a cache to avoid repetitive handler creation in heap
 	std::map<MessageType, boost::shared_ptr<sim_mob::Handler> > HandlerMap;
 
 public:
-	RR_FactoryBase(bool useNs3);
-	virtual ~RR_FactoryBase();
+	RoadRunnerFactory(bool useNs3);
+	virtual ~RoadRunnerFactory();
 
 	//creates a message with correct format + assigns correct handler
 	//todo improve the function to handle array of messages stored in the input string

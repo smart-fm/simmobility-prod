@@ -9,26 +9,34 @@
  *      Author: vahid
  */
 
-#include "roadrunner_ns3_factory.hpp"
+#include "Ns3Factory.hpp"
 
 #include <boost/assign/list_of.hpp>
 #include <json/json.h>
 #include <stdexcept>
+
+#include "entities/commsim/message/derived/roadrunner-ns3/MulticastMessage.hpp"
+#include "entities/commsim/message/derived/roadrunner-ns3/UnicastMessage.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/ClientDoneMessage.hpp"
 
 #include "logging/Log.hpp"
 
 using namespace sim_mob;
 
 
-sim_mob::rr_android_ns3::RR_NS3_Factory::RR_NS3_Factory() {
-	MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE);
+sim_mob::rr_android_ns3::NS3_Factory::NS3_Factory() {
+	//Doing it manually; C++1 doesn't like the boost assignment.
+	MessageMap.clear();
+	MessageMap["MULTICAST"] = MULTICAST;
+	MessageMap["UNICAST"] = UNICAST;
+	MessageMap["CLIENT_MESSAGES_DONE"] = CLIENT_MESSAGES_DONE;
 }
 
-sim_mob::rr_android_ns3::RR_NS3_Factory::~RR_NS3_Factory()
+sim_mob::rr_android_ns3::NS3_Factory::~NS3_Factory()
 {}
 
 //gets a handler either from a chche or by creating a new one
-boost::shared_ptr<sim_mob::Handler>  sim_mob::rr_android_ns3::RR_NS3_Factory::getHandler(MessageType type)
+boost::shared_ptr<sim_mob::Handler>  sim_mob::rr_android_ns3::NS3_Factory::getHandler(MessageType type)
 {
 	boost::shared_ptr<sim_mob::Handler> handler;
  	//if handler is already registered && the registered handler is not null
@@ -66,7 +74,7 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::rr_android_ns3::RR_NS3_Factory::ge
 
 //creates a message with correct format + assigns correct handler
 //todo improve the function to handle array of messages stored in the input string
-bool sim_mob::rr_android_ns3::RR_NS3_Factory::createMessage(std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
+bool sim_mob::rr_android_ns3::NS3_Factory::createMessage(std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
 {
 	//	std::vector<msg_t> result;
 	//	 Print() << "inside RR_NS3_Factory::createMessage" << std::endl;

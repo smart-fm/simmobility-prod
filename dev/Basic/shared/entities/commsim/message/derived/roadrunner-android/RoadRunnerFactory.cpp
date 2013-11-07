@@ -2,12 +2,12 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-#include "RR_FactoryBase.hpp"
+#include "RoadRunnerFactory.hpp"
 
 using namespace sim_mob;
 
 
-sim_mob::roadrunner::RR_FactoryBase::RR_FactoryBase(bool useNs3) : useNs3(useNs3)
+sim_mob::roadrunner::RoadRunnerFactory::RoadRunnerFactory(bool useNs3) : useNs3(useNs3)
 {
 	//Doing it manually; C++1 doesn't like the boost assignment.
 	MessageMap.clear();
@@ -18,12 +18,12 @@ sim_mob::roadrunner::RR_FactoryBase::RR_FactoryBase(bool useNs3) : useNs3(useNs3
 	//MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE)/*("ANNOUNCE",ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND)*/;
 }
 
-sim_mob::roadrunner::RR_FactoryBase::~RR_FactoryBase()
+sim_mob::roadrunner::RoadRunnerFactory::~RoadRunnerFactory()
 {}
 
 
 
-boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RR_FactoryBase::getHandler(MessageType type)
+boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RoadRunnerFactory::getHandler(MessageType type)
 {
 	boost::shared_ptr<sim_mob::Handler> handler;
 	//if handler is already registered && the registered handler is not null
@@ -59,7 +59,7 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RR_FactoryBase::getHan
 }
 
 
-bool sim_mob::roadrunner::RR_FactoryBase::createMessage(std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
+bool sim_mob::roadrunner::RoadRunnerFactory::createMessage(std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
 {
 	Json::Value root;
 	sim_mob::pckt_header packetHeader;

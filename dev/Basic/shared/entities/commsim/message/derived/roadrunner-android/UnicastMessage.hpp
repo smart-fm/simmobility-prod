@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 /*
- * MULTICAST_Message.h
+ * UNICAST_Message.h
  *
  *  Created on: May 9, 2013
  *      Author: vahid
@@ -13,23 +13,23 @@
 
 #include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/message/base/Message.hpp"
-#include "entities/commsim/message/base/MulticastHandler.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/UnicastHandler.hpp"
 
 namespace sim_mob {
 namespace roadrunner {
 
-class MulticastMessage : public sim_mob::comm::Message {
+class UnicastMessage : public sim_mob::comm::Message {
 public:
-	MulticastMessage(sim_mob::comm::MsgData data_, bool useNs3) : Message(data_), useNs3(useNs3)
+	UnicastMessage(sim_mob::comm::MsgData& data_, bool useNs3) : Message(data_), useNs3(useNs3)
 	{}
 
 	sim_mob::Handler* newHandler() {
-		return new sim_mob::roadrunner::MulticastHandler(useNs3);
+		return new sim_mob::roadrunner::UnicastHandler(useNs3);
 	}
 
 private:
 	bool useNs3;
 };
 
-
 }}
+

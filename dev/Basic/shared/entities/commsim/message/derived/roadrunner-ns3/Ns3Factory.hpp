@@ -15,40 +15,28 @@
 
 #include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/serialization/Serialization.hpp"
-
-#include "entities/commsim/message/base/RR_FactoryBase.hpp"
-
-#include "entities/commsim/message/derived/roadrunner-android-ns3/multicast_message.hpp"
-#include "entities/commsim/message/derived/roadrunner-android-ns3/unicast_message.hpp"
-#include "entities/commsim/message/base/ClientDoneMessage.hpp"
+#include "entities/commsim/message/base/Message.hpp"
 
 namespace sim_mob {
 namespace rr_android_ns3 {
 
 
-///Subclass for roadrunner+ns3
-class RR_Android_Factory : public sim_mob::roadrunner::RR_FactoryBase {
-public:
-	RR_Android_Factory() : RR_FactoryBase(true) {}
-};
-
-
 ///NS3 RR factory (no documentation provided).
-class RR_NS3_Factory : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> {
+class NS3_Factory : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> {
 	enum MessageType {
 		MULTICAST = 1,
 		UNICAST = 2,
 		CLIENT_MESSAGES_DONE = 6
 	};
 
-	std::map<std::string, RR_NS3_Factory::MessageType> MessageMap;
+	std::map<std::string, NS3_Factory::MessageType> MessageMap;
 
 	//This map is used as a cache to avoid repetitive handler creation in heap
 	std::map<MessageType, boost::shared_ptr<sim_mob::Handler> > HandlerMap;
 
 public:
-	RR_NS3_Factory();
-	virtual ~RR_NS3_Factory();
+	NS3_Factory();
+	virtual ~NS3_Factory();
 	bool createMessage(std::string &str, std::vector<sim_mob::comm::MsgPtr>&output);
 	boost::shared_ptr<sim_mob::Handler>  getHandler(MessageType);
 };

@@ -9,7 +9,7 @@
  *      Author: vahid
  */
 
-#include "multicast_message.hpp"
+#include "MulticastMessage.hpp"
 
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/AuraManager.hpp"

@@ -26,8 +26,8 @@
 #include "event/EventPublisher.hpp"
 
 //todo :temprorary
-#include "entities/commsim/message/derived/roadrunner-android/RR_Factory.hpp"
-#include "entities/commsim/message/derived/roadrunner-android-ns3/roadrunner_ns3_factory.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/RoadRunnerFactory.hpp"
+#include "entities/commsim/message/derived/roadrunner-ns3/Ns3Factory.hpp"
 
 using namespace sim_mob;
 
@@ -134,16 +134,16 @@ void sim_mob::Broker::configure()
 	//todo: choose a factory based on configurations not hardcoding
 	if(client_type == "android-ns3") {
 		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> >
-			android_factory(new sim_mob::rr_android_ns3::RR_Android_Factory());
+			android_factory(new sim_mob::roadrunner::RoadRunnerFactory(true));
 		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> >
-			ns3_factory(new sim_mob::rr_android_ns3::RR_NS3_Factory());
+			ns3_factory(new sim_mob::rr_android_ns3::NS3_Factory());
 
 		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
 		messageFactories.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR, android_factory));
 		messageFactories.insert(std::make_pair(ConfigParams::NS3_SIMULATOR, ns3_factory));
 	} else if (client_type == "android-only") {
 		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> >
-			android_factory(new sim_mob::roadrunner::RR_Factory());
+			android_factory(new sim_mob::roadrunner::RoadRunnerFactory(false));
 
 		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
 		messageFactories.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR, android_factory));

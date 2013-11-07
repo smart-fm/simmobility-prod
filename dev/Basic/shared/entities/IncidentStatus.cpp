@@ -11,7 +11,7 @@
 namespace sim_mob {
 
 unsigned int IncidentStatus::flags = 0;
-IncidentStatus::IncidentStatus() : currentStatus(INCIDENT_CLEARANCE), speedLimit(0), speedLimitOthers(0), distanceTo(0), laneSide(LCS_SAME), changedlane(false), slowdownVelocity(false){
+IncidentStatus::IncidentStatus() : currentStatus(INCIDENT_CLEARANCE), speedLimit(0), speedLimitOthers(0), distanceTo(0), laneSide(LCS_SAME), changedLane(false), slowdownVelocity(false){
 	// TODO Auto-generated constructor stub
 	if(flags == 0) {
 		flags = 1;
@@ -78,7 +78,7 @@ void IncidentStatus::resetStatus(){
 	nextLaneIndex = -1;
 	speedLimit = -1;
 	speedLimitOthers = -1;
-	changedlane = false;
+	changedLane = false;
 	slowdownVelocity = false;
 }
 

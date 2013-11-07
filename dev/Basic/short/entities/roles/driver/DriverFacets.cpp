@@ -238,7 +238,7 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 	int nextLaneIndex = curLaneIndex;
 	LANE_CHANGE_SIDE laneSide = LCS_SAME;
 	IncidentStatus::INCIDENTSTATUS status = IncidentStatus::INCIDENT_CLEARANCE;
-	incidentStatus.distanceTo = 0;
+	incidentStatus.setDistanceToIncident(0);
 
 	const std::map<centimeter_t, const RoadItem*> obstacles = curSegment->getObstacles();
 	std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
@@ -249,7 +249,7 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 		const Incident* inc = dynamic_cast<const Incident*>( roadItem );
 		if(inc){
 			float visibility = inc->visibilityDistance;
-			incidentStatus.visibilityDist = visibility;
+			incidentStatus.setVisibilityDistance(visibility);
 			if( (now.ms() >= inc->startTime) && (now.ms() < inc->startTime+inc->duration) && realDist<visibility){
 				if(curLaneIndex==inc->laneId ){//decide lane side if vehicle is in the incident lane and it is necessary to do changing lane
 					status = IncidentStatus::INCIDENT_OCCURANCE_LANE;
@@ -268,22 +268,21 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 				//make velocity slowing down decision when incident happen
 				RoadSegment* segment = const_cast<RoadSegment*>(curSegment);
 				unsigned int originId = (segment)->originalDB_ID.getLastVal();
-				if(originId == inc->segmentId)
-					incidentStatus.slowdownVelocity = true;
+				if(originId == inc->segmentId){
+					incidentStatus.setSlowdownVelocity(true);
+				}
 
-				incidentStatus.distanceTo = realDist;
+				incidentStatus.setDistanceToIncident(realDist);
 				replan = incidentStatus.insertIncident(inc);
-
-				//make mandatory lane changing decision by linear probability
 				float incidentGap = parentDriver->vehicle->length*2;
-				if(!incidentStatus.changedlane && status==IncidentStatus::INCIDENT_OCCURANCE_LANE){
-					double prob = incidentStatus.visibilityDist>0 ? incidentStatus.distanceTo/incidentStatus.visibilityDist : 0.0;
-					if(incidentStatus.distanceTo < 2*incidentGap){
-						incidentStatus.changedlane=true;
+				if(!incidentStatus.getChangedLane() && status==IncidentStatus::INCIDENT_OCCURANCE_LANE){
+					double prob = incidentStatus.getVisibilityDistance()>0 ? incidentStatus.getDistanceToIncident()/incidentStatus.getVisibilityDistance() : 0.0;
+					if(incidentStatus.getDistanceToIncident() < 2*incidentGap){
+						incidentStatus.setChangedLane(true);
 					}
 					else {
-						if(prob < incidentStatus.randomNum) {
-							incidentStatus.changedlane=true;
+						if(prob < incidentStatus.getRandomValue()) {
+							incidentStatus.setChangedLane(true);
 						}
 					}
 				}
@@ -303,9 +302,9 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 	}
 
 	if(replan){//update decision status for incident.
-		incidentStatus.nextLaneIndex = nextLaneIndex;
-		incidentStatus.laneSide = laneSide;
-		incidentStatus.currentStatus = status;
+		incidentStatus.setNextLaneIndex(nextLaneIndex);
+		incidentStatus.setLaneSide(laneSide);
+		incidentStatus.setCurrentStatus(status);
 		incidentStatus.checkIsCleared();
 	}
 }
@@ -426,9 +425,7 @@ void sim_mob::DriverMovement::frame_tick_output(const UpdateParams& p) {
 			<<"\",\"curr-segment\":\""<<(inLane?parentDriver->vehicle->getCurrLane()->getRoadSegment():0x0)
 			<<"\",\"fwd-speed\":\""<<parentDriver->vehicle->getVelocity()
 			<<"\",\"fwd-accel\":\""<<parentDriver->vehicle->getAcceleration()
-			<<"\",\"mandatory\":\""<<incidentStatus.changedlane
-			<<"\",\"distance to\":\""<<incidentStatus.distanceTo
-			<<"\",\"random\":\""<<incidentStatus.randomNum
+			<<"\",\"mandatory\":\""<<incidentStatus.getChangedLane()
 			<<addLine.str()
 			<<"\"})"<<std::endl);
 }
@@ -643,23 +640,6 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 			p.dis2stop = 1000;//defalut 1000m
 	}
 
-	//code segment to print out uninode lane connectors information
-	/*const RoadSegment* nextSegment = parentDriver->vehicle->getNextSegment(false);
-	const UniNode* currEndNode = dynamic_cast<const UniNode*> (parentDriver->vehicle->getNodeMovingTowards());
-	if(currEndNode){
-		UniNode* node = const_cast<UniNode*>(currEndNode);
-		unsigned int id = node->originalDB_ID.getLastVal();
-		if(id == 58950){
-			const std::map<const sim_mob::Lane*, sim_mob::Lane* >& connectors = node->getConnectors();
-			std::map<const sim_mob::Lane*, sim_mob::Lane* >::const_iterator itCon;
-			for(itCon=connectors.begin(); itCon!=connectors.end(); itCon++){
-				unsigned int ad1 = (unsigned int)itCon->first;
-				unsigned int ad2 = (unsigned int)itCon->second;
-				std::cout << "uninode id is "<<id<<" lane connect from : "<<itCon->first->getLaneID()<<"("<<ad1<<")"<<" to : "<<itCon->second->getLaneID()<<"("<<ad2<<")"<< std::endl;
-			}
-		}
-	}*/
-
 	// check current lane has connector to next link
 	p.isMLC = false;
 	if(p.dis2stop<150) // <150m need check above, ready to change lane
@@ -737,9 +717,9 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 	//check incident status and decide whether or not do lane changing
 	LANE_CHANGE_MODE mode = DLC;
 	checkIncidentStatus(p, parentDriver->params.now);
-	if(incidentStatus.changedlane == true ){
-		p.nextLaneIndex = incidentStatus.nextLaneIndex;
-		parentDriver->vehicle->setTurningDirection(incidentStatus.laneSide);
+	if(incidentStatus.getChangedLane()){
+		p.nextLaneIndex = incidentStatus.getNextLaneIndex();
+		parentDriver->vehicle->setTurningDirection(incidentStatus.getLaneSide());
 		mode = MLC;
 	}
 
@@ -756,9 +736,9 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 		parentDriver->vehicle->setTurningDirection(LCS_RIGHT);
 	else{
 		parentDriver->vehicle->setTurningDirection(LCS_SAME);
-		if(p.currLaneIndex == incidentStatus.nextLaneIndex && incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_OCCURANCE_LANE){
-			incidentStatus.currentStatus = IncidentStatus::INCIDENT_ADJACENT_LANE;
-			incidentStatus.changedlane = false;
+		if(p.currLaneIndex == incidentStatus.getNextLaneIndex() && incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_OCCURANCE_LANE){
+			incidentStatus.setCurrentStatus(IncidentStatus::INCIDENT_ADJACENT_LANE);
+			incidentStatus.setChangedLane(false);
 		}
 	}
 
@@ -802,7 +782,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 
 	//slow down velocity when driver views the incident within the visibility distance
 	float incidentGap = parentDriver->vehicle->length;
-	if(incidentStatus.slowdownVelocity == true ){
+	if(incidentStatus.getSlowdownVelocity()){
 		//calculate the distance to the nearest front vehicle, if no front vehicle exists, the distance is given to a enough large gap as 5 kilometers
 		float fwdCarDist = 5000;
 		if( p.nvFwd.exists() ){
@@ -823,17 +803,17 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 		float approachingSpeed = 200;
 		float oldDistToStop = p.perceivedDistToFwdCar;
 		LANE_CHANGE_SIDE oldDirect = p.turningDirection;
-		p.perceivedDistToFwdCar = std::min(incidentStatus.distanceTo, fwdCarDist);
+		p.perceivedDistToFwdCar = std::min(incidentStatus.getDistanceToIncident(), fwdCarDist);
 		p.turningDirection = LCS_LEFT;
 
 		//retrieve speed limit decided by whether or not incident lane or adjacent lane
 		if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_OCCURANCE_LANE ){
-			speedLimit = incidentStatus.speedLimit;
-			if(speedLimit==0 && incidentStatus.distanceTo>incidentGap)
+			speedLimit = incidentStatus.getSpeedLimit();
+			if(speedLimit==0 && incidentStatus.getDistanceToIncident()>incidentGap)
 				speedLimit = approachingSpeed;
 		}
 		else if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_ADJACENT_LANE){
-			speedLimit = incidentStatus.speedLimitOthers;
+			speedLimit = incidentStatus.getSpeedLimitOthers();
 		}
 
 		// recalculate acceleration and velocity when incident happen
@@ -859,7 +839,7 @@ if ( (parentDriver->params.now.ms()/1000.0 - parentDriver->startTime > 10) &&  (
 
 	//stop cars when it already is near the incident location
 	if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_OCCURANCE_LANE ){
-		if(incidentStatus.speedLimit==0 && incidentStatus.distanceTo < incidentGap) {
+		if(incidentStatus.getSpeedLimit()==0 && incidentStatus.getDistanceToIncident()<incidentGap) {
 			parentDriver->vehicle->setVelocity(0);
 			parentDriver->vehicle->setAcceleration(0);
 		}

@@ -44,7 +44,7 @@ public:
       * create message value from a json string
       * @return void.
       */
-	virtual void createMessage(std::string msg);
+	virtual void createMessage(std::string& msg);
 
     /**
       * get message id from current FMOD message
@@ -56,7 +56,7 @@ public:
       * analyze a message id from a json string
       * @return message id.
       */
-	static int AnalyzeMessageID(std::string msg);
+	static int AnalyzeMessageID(std::string& msg);
 
 public:
 	std::string msg_;
@@ -126,7 +126,7 @@ public:
       * create message value from a json string
       * @return void.
       */
-	virtual void createMessage(std::string msg);
+	virtual void createMessage(std::string& msg);
 };
 
 /**
@@ -154,7 +154,7 @@ public:
       * create message value from a json string
       * @return void.
       */
-	virtual void createMessage(std::string msg);
+	virtual void createMessage(std::string& msg);
 };
 
 /**
@@ -190,7 +190,7 @@ public:
       * create message value from a json string
       * @return void.
       */
-	virtual void createMessage(std::string msg);
+	virtual void createMessage(std::string& msg);
 };
 
 /**
@@ -289,7 +289,7 @@ public:
       * create message value from a json string
       * @return void.
       */
-	virtual void createMessage(std::string msg);
+	virtual void createMessage(std::string& msg);
 };
 }
 

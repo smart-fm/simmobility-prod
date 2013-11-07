@@ -43,14 +43,14 @@ public:
       * @param data is to store message content
       * @return void
       */
-	void sendMessage(std::string data);
+	void sendMessage(std::string& data);
 
     /**
       * send a list of messages to FMOD simulator
       * @param dataList is a list of messages
       * @return void
       */
-	void sendMessage(MessageList dataList);
+	void sendMessage(MessageList& dataList);
 
     /**
       * force buffered data to be sent out
@@ -82,7 +82,7 @@ public:
       * @param port is FMOD simulator port
       * @return true if connection successfully, otherwise false
       */
-	bool connectToServer(std::string ip, int port);
+	bool connectToServer(std::string& ip, int port);
 
     /**
       * stop a connection to FMOD simulator

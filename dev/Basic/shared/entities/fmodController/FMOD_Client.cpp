@@ -44,12 +44,12 @@ void FMOD_Client::flush()
 }
 
 
-void FMOD_Client::sendMessage(std::string data)
+void FMOD_Client::sendMessage(std::string& data)
 {
 	msgSendQueue.PushMessage(data);
 }
 
-void FMOD_Client::sendMessage(MessageList data)
+void FMOD_Client::sendMessage(MessageList& data)
 {
 	while(data.size()>0)
 	{
@@ -95,7 +95,7 @@ void FMOD_Client::handleRead(const boost::system::error_code& error, size_t byte
 	}
 }
 
-bool FMOD_Client::connectToServer(std::string ip, int port)
+bool FMOD_Client::connectToServer(std::string& ip, int port)
 {
 	bool ret = true;
 	boost::asio::ip::tcp::endpoint endpoint( boost::asio::ip::address::from_string(ip.c_str()), port);

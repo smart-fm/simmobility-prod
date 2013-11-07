@@ -37,7 +37,7 @@ std::string FMOD_Message::buildToString()
 	return msg;
 }
 
-int FMOD_Message::AnalyzeMessageID(std::string msg)
+int FMOD_Message::AnalyzeMessageID(std::string& msg)
 {
 	int ID = -1;
 	int index1 = msg.find("message ");
@@ -50,13 +50,13 @@ int FMOD_Message::AnalyzeMessageID(std::string msg)
 	return ID;
 }
 
-void FMOD_Message::createMessage(std::string msg)
+void FMOD_Message::createMessage(std::string& msg)
 {
 	messageID_ = AnalyzeMessageID( msg );
 	msg_ = msg;
 }
 
-void MsgVehicleInit::createMessage(std::string msg)
+void MsgVehicleInit::createMessage(std::string& msg)
 {
 	FMOD_Message::createMessage(msg);
 
@@ -88,7 +88,7 @@ void MsgVehicleInit::createMessage(std::string msg)
 	}
 }
 
-void MsgOffer::createMessage(std::string msg)
+void MsgOffer::createMessage(std::string& msg)
 {
 	FMOD_Message::createMessage(msg);
 
@@ -127,7 +127,7 @@ void MsgOffer::createMessage(std::string msg)
 	}
 }
 
-void MsgConfirmation::createMessage(std::string msg)
+void MsgConfirmation::createMessage(std::string& msg)
 {
 	FMOD_Message::createMessage(msg);
 
@@ -270,7 +270,7 @@ std::string MsgVehiclePos::buildToString()
 	return msg;
 }
 
-void MsgSchedule::createMessage(std::string msg)
+void MsgSchedule::createMessage(std::string& msg)
 {
 	FMOD_Message::createMessage(msg);
 

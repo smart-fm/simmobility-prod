@@ -257,7 +257,7 @@ int sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslic
 						nextLaneIndex = curLaneIndex+1;
 						laneSide = LCS_LEFT;
 					}
-					else {
+					else if(curLaneIndex > 0 ){
 						nextLaneIndex = curLaneIndex-1;
 						laneSide = LCS_RIGHT;
 					}

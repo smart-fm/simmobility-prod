@@ -145,10 +145,10 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	}
 
 	if (ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
-		std::cout << "Confluxes ON!" << std::endl;
+		Print() << "Confluxes ON!" << std::endl;
 	}
 	else {
-		throw std::runtime_error("Confluxes OFF! Please turn SIMMOB_USE_CONFLUXES on in CMakeCache.txt and run the program again.");
+		throw std::runtime_error("Confluxes are disabled. Please turn SIMMOB_USE_CONFLUXES on in CMakeCache.txt and run again.");
 	}
 
 	ProfileBuilder* prof = nullptr;
@@ -467,7 +467,7 @@ int main(int ARGC, char* ARGV[])
 	if (args.size() > 1) {
 		configFileName = args[1];
 	} else {
-		cout << "No config file specified; using default." << endl;
+		Print() << "No config file specified; using default." << endl;
 	}
 	Print() << "Using config file: " << configFileName << endl;
 

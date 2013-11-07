@@ -12,7 +12,7 @@ Authors - Siyu Li, Harish Loganathan
 --Tour constants
 beta_tour_work = -6.34
 beta_tour_edu = 0
-4beta_tour_shop = -3.54
+beta_tour_shop = -3.54
 beta_tour_others = -4.00
 
 --Intermediate Stops constants
@@ -51,7 +51,7 @@ beta_nationalservice_edu = 0
 beta_nationalservice_shop = 0
 beta_nationalservice_others = -0.270
 beta_voluntary_work = -1.18
-5beta_voluntary_edu = 0
+beta_voluntary_edu = 0
 beta_voluntary_shop = 0.177
 beta_voluntary_others = 0
 beta_domestic_work= 0

@@ -45,6 +45,14 @@
                 <port value="5432"/>
                 <dbname value="SimMobility_DB"/>
             </database>
+
+	    <!-- Variables stores for preday demand simulator-->
+            <database id="fm_mongo" dbtype="mongodb">
+                <host value="localhost"/>
+                <port value="27017"/>
+                <dbname value="preday"/>
+            </database>
+
         </databases>
 	
 	<!-- Groupings of stored procedures, used for loading network data from certain tables. -->
@@ -119,6 +127,12 @@
                 <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
                 <mapping name="busstop" procedure="get_bus_stop()"/>
             </proc_map>
+
+            <!-- Preday demand -->   	
+            <proc_map id="preday" format="long-term">
+                <mapping name="population" procedure="get_population()"/>
+		<mapping name="landuse" procedure="get_landuse()"/>
+            </proc_map>
         </db_proc_groups>
 	
 	<!-- Login credentials to be used for database connections. These can be plaintext, -->
@@ -156,7 +170,34 @@
 	    <username value="seth"/>
 	    <password value="some_password"/>
 	  </plaintext-credential>
+
+	  <plaintext-credential id="harish_cred">
+            <username value="postgres"/>
+            <password value="secret"/>
+          </plaintext-credential>
 	</credentials>
+	
+	<!--File names for any non-C++ scripts to be executed during simulation -->
+	<external_scripts id="preday" path="scripts/lua/mid/behavior-models/" format="lua">
+	  <script name="dp" file="dp.lua"/> <!-- Day Pattern -->
+	  <script name="ntw" file="ntw.lua"/> <!-- Number Of Tours Work -->
+	  <script name="nte" file="nte.lua"/> <!-- Number Of Tours Education -->
+	  <script name="nts" file="nts.lua"/> <!--Number Of Tours Shopping -->
+	  <script name="nto" file="nto.lua"/> <!--Number Of Tours Others -->
+	  <script name="uw" file="uw.lua"/> <!--Attend Usual Work -->
+	  <script name="tmw" file="tmw.lua"/> <!--Tour Mode Work -->
+	  <script name="tme" file="tme.lua"/> <!--Tour Mode Education -->
+	  <script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->
+	  <script name="tmds" file="tmds.lua"/> <!--Tour Mode/Destination Shopping -->
+	  <script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->
+	  <script name="tws" file="tws.lua"/> <!--Work Based Sub-Tours -->
+	  <script name="ttdw" file="ttdw.lua"/> <!--Tour Time Of Day Work -->
+	  <script name="ttdo" file="ttdo.lua"/> <!--Tour Time Of Day Others -->
+	  <script name="ttde" file="ttde.lua"/> <!--Tour Time Of Day Education -->
+	  <script name="isg" file="isg.lua"/> <!--Intermediate Stop Generation -->
+	  <script name="imd" file="imd.lua"/> <!--Intermediate Stop Mode/Destination -->
+	  <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->
+	</external_scripts> 
 	
     </constructs>
 
@@ -184,10 +225,10 @@
             <workgroup_assignment value="roundrobin"/>
                         
             <!-- Properties for SimMobility-MPI -->
-         	<partitioning_solution_id   value="1"	units="unit" />
+            <partitioning_solution_id   value="1"	units="unit" />
             
             <!--  <load_agents order="database drivers pedestrians"/> -->
-             <load_agents order="drivers pedestrians"/>
+            <load_agents order="drivers pedestrians"/>
             
             <!-- Optional. At what value do we start counting for automatically -->
             <!-- generated Agent IDs? Set to a high value if you want to avoid  -->
@@ -201,11 +242,11 @@
         		<android_testbed type="android-ns3" enabled="yes"/> <!--currently: type="android-only" and "android-ns3" -->
         	</communication>
 
-<!--  These don't seem to do anything. ~Seth -->
-<!--   		    <communication_simulator value="yes"/> -->
-<!--            <reacTime_LeadingVehicle      value="1500"      units="ms" /> -->
-<!--            <reacTime_SubjectVehicle      value="1500"      units="ms" /> -->
-<!--            <reacTime_Gap      value="1500"      units="ms" /> -->
+		<!--  These don't seem to do anything. ~Seth -->
+		<!--   		    <communication_simulator value="yes"/> -->
+		<!--            <reacTime_LeadingVehicle      value="1500"      units="ms" /> -->
+		<!--            <reacTime_SubjectVehicle      value="1500"      units="ms" /> -->
+		<!--            <reacTime_Gap      value="1500"      units="ms" /> -->
 
             <reacTime_distributionType1      value="1" /> <!-- 0 is normal distribution, 1 is log normal-->
             <reacTime_distributionType2      value="1" />
@@ -249,7 +290,7 @@
         <!-- Setting to "database" will load the road network from the database. By default we load from "xml". -->
         <!-- NOTE: This is fairly confusing; later we'll make it easier for different users to -->
         <!--       maintain their own configurations. -->
-        <network_source value="xml"/>
+        <network_source value="database"/>
         
         <!-- If loading from XML, which file? Default (or blank string) will force private/SimMobilityInput.xml -->
         <!-- This only has an effect if network_source is set to "xml" -->
@@ -298,6 +339,9 @@
             <!-- The percentage of passengers boarding and alighting at each bus stop (default 100, each.). -->
             <property key="passenger_percent_boarding" value="100"/>
             <property key="passenger_percent_alighting" value="40"/>
+
+	    <!--Used only by mid-term simulator. Admissible values are "demand", "supply" and "demand+supply". Determines whether to run SimMobility_Medium's demand simulator or the supply simulator-->
+	    <property key="mid_term_run_mode" value="demand"/> 
         </generic_props>
     </system>
 

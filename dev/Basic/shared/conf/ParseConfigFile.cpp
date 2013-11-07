@@ -627,6 +627,7 @@ void sim_mob::ParseConfigFile::ProcessConstructsNode(xercesc::DOMElement* node)
 	ProcessConstructDatabasesNode(GetSingleElementByName(node, "databases"));
 	ProcessConstructDbProcGroupsNode(GetSingleElementByName(node, "db_proc_groups"));
 	ProcessConstructCredentialsNode(GetSingleElementByName(node, "credentials"));
+	ProcessConstructExternalScriptsNode(GetSingleElementByName(node, "external_scripts"));
 }
 
 
@@ -641,7 +642,7 @@ void sim_mob::ParseConfigFile::ProcessConstructDatabasesNode(xercesc::DOMElement
 		//Retrieve some attributes from the Node itself.
 		Database db(ParseString(GetNamedAttributeValue(item, "id")));
 		std::string dbType = ParseString(GetNamedAttributeValue(item, "dbtype"), "");
-		if (dbType != "postgres") {
+		if (dbType != "postgres" && dbType != "mongodb") {
 			throw std::runtime_error("Database type not supported.");
 		}
 
@@ -665,7 +666,7 @@ void sim_mob::ParseConfigFile::ProcessConstructDbProcGroupsNode(xercesc::DOMElem
 		//Retrieve some attributes from the Node itself.
 		StoredProcedureMap pm(ParseString(GetNamedAttributeValue(item, "id")));
 		pm.dbFormat = ParseString(GetNamedAttributeValue(item, "format"), "");
-		if (pm.dbFormat != "aimsun") {
+		if (pm.dbFormat != "aimsun" && pm.dbFormat != "long-term") {
 			throw std::runtime_error("Stored procedure map format not supported.");
 		}
 
@@ -731,6 +732,33 @@ void sim_mob::ParseConfigFile::ProcessConstructCredentialsNode(xercesc::DOMEleme
 		//Save it.
 		cfg.constructs.credentials[cred.getId()] = cred;
 	}
+}
+
+void sim_mob::ParseConfigFile::ProcessConstructExternalScriptsNode(xercesc::DOMElement* node)
+{
+	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
+	if(format.empty() || format != "lua") {
+		throw std::runtime_error("Unsupported script format");
+	}
+
+	ExternalScriptsMap sm(ParseString(GetNamedAttributeValue(node, "id"), ""), ParseString(GetNamedAttributeValue(node, "path"), ""), format);
+	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
+		std::string name = TranscodeString(item->getNodeName());
+		if (name!="script") {
+			Warn() <<"Invalid db_proc_groups child node.\n";
+			continue;
+		}
+
+		std::string key = ParseString(GetNamedAttributeValue(item, "name"), "");
+		std::string val = ParseString(GetNamedAttributeValue(item, "file"), "");
+		if (key.empty() || val.empty()) {
+			Warn() <<"Invalid script; missing \"name\" or \"file\".\n";
+			continue;
+		}
+
+		sm.scriptFileName[key] = val;
+	}
+	cfg.constructs.externalScriptsMap[sm.getId()] = sm;
 }
 
 

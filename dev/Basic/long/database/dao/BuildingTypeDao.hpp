@@ -22,7 +22,7 @@ namespace sim_mob {
          */
         class BuildingTypeDao : public db::AbstractDao<BuildingType> {
         public:
-            BuildingTypeDao(db::DB_Connection* connection);
+            BuildingTypeDao(db::DB_Connection& connection);
             virtual ~BuildingTypeDao();
 
         private:

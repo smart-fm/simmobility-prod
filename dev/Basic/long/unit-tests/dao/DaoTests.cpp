@@ -38,7 +38,7 @@ void TestDao() {
     DB_Connection conn(sim_mob::db::POSTGRES, config);
     conn.connect();
     if (conn.isConnected()) {
-        T dao(&conn);
+        T dao(conn);
         K valueById;
         //Get by id
         sim_mob::db::Parameters keys;

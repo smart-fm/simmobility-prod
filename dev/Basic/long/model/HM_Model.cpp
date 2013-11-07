@@ -52,10 +52,10 @@ void HM_Model::startImpl() {
     workGroup.assignAWorker(&market);
     if (conn.isConnected()) {
         // Households
-        HouseholdDao hhDao(&conn);
+        HouseholdDao hhDao(conn);
         hhDao.getAll(households);
         //units
-        UnitDao unitDao(&conn);
+        UnitDao unitDao(conn);
         unitDao.getAll(units);
         for (vector<Unit>::iterator it = units.begin(); it != units.end(); it++) {
             Unit* unit = &(*it);

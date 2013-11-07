@@ -21,7 +21,7 @@ namespace sim_mob {
          */
         class BuildingDao : public db::AbstractDao<Building> {
         public:
-            BuildingDao(db::DB_Connection* connection);
+            BuildingDao(db::DB_Connection& connection);
             virtual ~BuildingDao();
 
         private:

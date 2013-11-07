@@ -16,7 +16,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 using std::string;
 
-UnitTypeDao::UnitTypeDao(DB_Connection* connection)
+UnitTypeDao::UnitTypeDao(DB_Connection& connection)
 : AbstractDao<UnitType>(connection, DB_TABLE_UNIT_TYPE,
 DB_INSERT_UNIT_TYPE, DB_UPDATE_UNIT_TYPE, DB_DELETE_UNIT_TYPE,
 DB_GETALL_UNIT_TYPE, DB_GETBYID_UNIT_TYPE) {}

@@ -17,7 +17,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 using std::string;
 
-GlobalParamsDao::GlobalParamsDao(DB_Connection* connection)
+GlobalParamsDao::GlobalParamsDao(DB_Connection& connection)
 : AbstractDao<GlobalParams>(connection, DB_TABLE_GLOBAL_PARAMS,
 DB_INSERT_GLOBAL_PARAMS, DB_UPDATE_GLOBAL_PARAMS, DB_DELETE_GLOBAL_PARAMS,
 DB_GETALL_GLOBAL_PARAMS, DB_GETBYID_GLOBAL_PARAMS) {}

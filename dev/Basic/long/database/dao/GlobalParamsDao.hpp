@@ -22,7 +22,7 @@ namespace sim_mob {
          */
         class GlobalParamsDao : public db::AbstractDao<GlobalParams> {
         public:
-            GlobalParamsDao(db::DB_Connection* connection);
+            GlobalParamsDao(db::DB_Connection& connection);
             virtual ~GlobalParamsDao();
 
         private:

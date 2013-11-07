@@ -7,7 +7,7 @@
  * Created on October 11, 2013, 11:26 AM
  */
 
-#include "DatabaseConfig.hpp"
+#include "DB_Config.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 
 using namespace sim_mob;

@@ -10,7 +10,7 @@
  */
 
 #include <boost/format.hpp>
-#include "DBConnection.hpp"
+#include "DB_Connection.hpp"
 #include "util/LangHelpers.hpp"
 #include "soci-postgresql.h"
 

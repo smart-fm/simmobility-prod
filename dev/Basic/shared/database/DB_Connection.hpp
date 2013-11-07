@@ -10,7 +10,7 @@
  */
 #pragma once
 #include "soci.h"
-#include "DatabaseConfig.hpp"
+#include "DB_Config.hpp"
 namespace sim_mob {
     
     namespace db {

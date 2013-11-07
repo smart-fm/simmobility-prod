@@ -10,7 +10,7 @@
 #include "HM_Model.hpp"
 #include <boost/unordered_map.hpp>
 #include "util/LangHelpers.hpp"
-#include "database/DBConnection.hpp"
+#include "database/DB_Connection.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "database/dao/UnitDao.hpp"
 #include "database/dao/HouseholdDao.hpp"

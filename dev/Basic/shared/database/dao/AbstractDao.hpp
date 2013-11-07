@@ -12,7 +12,7 @@
 #include <vector>
 #include <boost/variant.hpp>
 #include <boost/algorithm/string.hpp>
-#include "database/DBConnection.hpp"
+#include "database/DB_Connection.hpp"
 #include "util/LangHelpers.hpp"
 
 namespace {

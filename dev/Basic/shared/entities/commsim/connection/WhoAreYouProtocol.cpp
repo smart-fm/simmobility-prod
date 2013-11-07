@@ -12,7 +12,7 @@
 #include "WhoAreYouProtocol.hpp"
 #include "ConnectionServer.hpp"
 #include "Session.hpp"
-#include "entities/commsim/serialization/Serialization.hpp"
+#include "entities/commsim/serialization/JsonParser.hpp"
 #include "logging/Log.hpp"
 
 namespace sim_mob {

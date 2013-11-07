@@ -14,7 +14,7 @@
 #include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
 #include<iostream>
-#include "entities/commsim/serialization/Serialization.hpp"
+#include "entities/commsim/serialization/JsonParser.hpp"
 
 namespace sim_mob {
 class Agent;

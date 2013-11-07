@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "entities/commsim/serialization/Serialization.hpp"
+#include "entities/commsim/serialization/JsonParser.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
 #include "metrics/Frame.hpp"

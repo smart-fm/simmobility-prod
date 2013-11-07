@@ -22,7 +22,7 @@ namespace sim_mob {
          */
         class UnitDao : public db::AbstractDao<Unit> {
         public:
-            UnitDao(db::DBConnection* connection);
+            UnitDao(db::DB_Connection* connection);
             virtual ~UnitDao();
 
         private:

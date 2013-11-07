@@ -35,9 +35,9 @@ void TestDao() {
     PrintOut("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
     DB_Config config(LT_DB_CONFIG_FILE);
     config.load();
-    DBConnection conn(sim_mob::db::POSTGRES, config);
-    conn.Connect();
-    if (conn.IsConnected()) {
+    DB_Connection conn(sim_mob::db::POSTGRES, config);
+    conn.connect();
+    if (conn.isConnected()) {
         T dao(&conn);
         K valueById;
         //Get by id

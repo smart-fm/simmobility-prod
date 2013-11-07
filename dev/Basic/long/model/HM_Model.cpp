@@ -47,10 +47,10 @@ void HM_Model::startImpl() {
     DB_Config dbConfig(LT_DB_CONFIG_FILE);
     dbConfig.load();
     // Connect to database and load data.
-    DBConnection conn(sim_mob::db::POSTGRES, dbConfig);
-    conn.Connect();
+    DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+    conn.connect();
     workGroup.assignAWorker(&market);
-    if (conn.IsConnected()) {
+    if (conn.isConnected()) {
         // Households
         HouseholdDao hhDao(&conn);
         hhDao.getAll(households);

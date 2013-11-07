@@ -84,7 +84,7 @@ namespace sim_mob {
         template <typename T> class AbstractDao {
         public:
 
-            AbstractDao(DBConnection* connection, 
+            AbstractDao(DB_Connection* connection, 
                     const std::string& tableName,
                     const std::string& insertQuery, 
                     const std::string& updateQuery,
@@ -111,8 +111,8 @@ namespace sim_mob {
              */
             virtual T& insert(T& entity) {
                 if (isConnected()) {
-                    Transaction tr(connection->GetSession());
-                    Statement query(connection->GetSession());
+                    Transaction tr(connection->getSession());
+                    Statement query(connection->getSession());
                     //append returning clause. 
                     //Attention: this is only prepared for POSTGRES.
                     std::string upperQuery = 
@@ -146,8 +146,8 @@ namespace sim_mob {
              */
             virtual bool update(T& entity) {
                 if (isConnected()) {
-                    Transaction tr(connection->GetSession());
-                    Statement query(connection->GetSession());
+                    Transaction tr(connection->getSession());
+                    Statement query(connection->getSession());
                     // Get data to insert.
                     Parameters params;
                     toRow(entity, params, true);
@@ -168,8 +168,8 @@ namespace sim_mob {
              */
             virtual bool erase(const Parameters& params) {
                 if (isConnected()) {
-                    Transaction tr(connection->GetSession());
-                    Statement query(connection->GetSession());
+                    Transaction tr(connection->getSession());
+                    Statement query(connection->getSession());
                     // prepare statement.
                     prepareStatement(defaultQueries[DELETE], params, query);
                     //execute query.
@@ -241,7 +241,7 @@ namespace sim_mob {
              * @return 
              */
             bool isConnected() {
-                return (connection && connection->IsConnected());
+                return (connection && connection->isConnected());
             }
 
             /**
@@ -257,7 +257,7 @@ namespace sim_mob {
                     const Parameters& params, std::vector<T>& outParam) {
                 bool hasValues = false;
                 if (isConnected()) {
-                    Statement query(connection->GetSession());
+                    Statement query(connection->getSession());
                     prepareStatement(queryStr, params, query);
                     ResultSet rs(query);
                     ResultSet::const_iterator it = rs.begin();
@@ -282,7 +282,7 @@ namespace sim_mob {
             bool getByValues(const std::string& queryStr,
                     const Parameters& params, T& outParam) {
                 if (isConnected()) {
-                    Statement query(connection->GetSession());
+                    Statement query(connection->getSession());
                     prepareStatement(queryStr, params, query);
                     ResultSet rs(query);
                     ResultSet::const_iterator it = rs.begin();
@@ -310,7 +310,7 @@ namespace sim_mob {
             }
 
         protected:
-            DBConnection* connection;
+            DB_Connection* connection;
             std::string tableName;
             std::string defaultQueries[NUM_QUERIES+1];
         };

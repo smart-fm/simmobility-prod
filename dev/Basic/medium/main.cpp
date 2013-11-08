@@ -106,57 +106,10 @@ private:
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
 
-
 /**
- * Main simulation loop.
- * \note
- * For doxygen, we are setting the variable JAVADOC AUTOBRIEF to "true"
- * This isn't necessary for class-level documentation, but if we want
- * documentation for a short method (like "get" or "set") then it makes sense to
- * have a few lines containing brief/full comments. (See the manual's description
- * of JAVADOC AUTOBRIEF). Of course, we can discuss this first.
- *
- * \par
- * See Buffered.hpp for an example of this in action.
- *
- * \par
- * ~Seth
- *
- * This function is separate from main() to allow for easy scoping of WorkGroup objects.
+ * Main simulation loop for the supply simulator
  */
-bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles) {
-	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
-	
-	//Parse the config file (this *does not* create anything, it just reads it.).
-	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
-
-	//Enable or disable logging (all together, for now).
-	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
-	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
-	//      has been loaded or not. The new Config class makes this much clearer.
-	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
-		//Log::Init("out.txt");
-		Warn::Init("warn.log");
-		Print::Init("<stdout>");
-	} else {
-		//Log::Ignore();
-		Warn::Ignore();
-		Print::Ignore();
-	}
-
-	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply() && ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
-		throw std::runtime_error("Mid-term run mode \"demand+supply\" is not supported yet. Please run demand and supply separately.");
-	}
-	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
-		Print() << "Mid-term run mode: supply" << std::endl;
-	}
-	else if (ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
-		Print() << "Mid-term run mode: demand" << std::endl;
-	}
-	else {
-		throw std::runtime_error("Invalid Mid-term run mode. Admissible values are \"demand\" and \"supply\"");
-	}
-
+bool performMainSupply(const std::string& configFileName, std::list<std::string>& resLogFiles) {
 	ProfileBuilder* prof = nullptr;
 	if (ConfigManager::GetInstance().CMakeConfig().ProfileOn()) {
 		ProfileBuilder::InitLogFile("profile_trace.txt");
@@ -182,10 +135,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 
 	//Load our user config file
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
-	//Load our user config file
-//	ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn);
-	std::cout<<"performMainMed: trip chain pool size "<<
-			ConfigManager::GetInstance().FullConfig().getTripChains().size()<<std::endl;
+	std::cout<<"performMainMed: trip chain pool size "<< ConfigManager::GetInstance().FullConfig().getTripChains().size()<<std::endl;
 
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		// init path set manager
@@ -424,6 +374,63 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	//Delete our profile pointer (if it exists)
 	safe_delete_item(prof);
 	return true;
+}
+
+bool performMainDemand(){
+
+}
+
+/**
+ * Main simulation loop.
+ * \note
+ * For doxygen, we are setting the variable JAVADOC AUTOBRIEF to "true"
+ * This isn't necessary for class-level documentation, but if we want
+ * documentation for a short method (like "get" or "set") then it makes sense to
+ * have a few lines containing brief/full comments. (See the manual's description
+ * of JAVADOC AUTOBRIEF). Of course, we can discuss this first.
+ *
+ * \par
+ * See Buffered.hpp for an example of this in action.
+ *
+ * \par
+ * ~Seth
+ *
+ * This function is separate from main() to allow for easy scoping of WorkGroup objects.
+ */
+bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles) {
+	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
+
+	//Parse the config file (this *does not* create anything, it just reads it.).
+	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
+
+	//Enable or disable logging (all together, for now).
+	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
+	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
+	//      has been loaded or not. The new Config class makes this much clearer.
+	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
+		//Log::Init("out.txt");
+		Warn::Init("warn.log");
+		Print::Init("<stdout>");
+	} else {
+		//Log::Ignore();
+		Warn::Ignore();
+		Print::Ignore();
+	}
+
+	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply() && ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
+		throw std::runtime_error("Mid-term run mode \"demand+supply\" is not supported yet. Please run demand and supply separately.");
+	}
+	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
+		Print() << "Mid-term run mode: supply" << std::endl;
+		return performMainSupply(configFileName, resLogFiles);
+	}
+	else if (ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
+		Print() << "Mid-term run mode: demand" << std::endl;
+		return performMainDemand();
+	}
+	else {
+		throw std::runtime_error("Invalid Mid-term run mode. Admissible values are \"demand\" and \"supply\"");
+	}
 }
 
 int main(int ARGC, char* ARGV[])

@@ -10,154 +10,154 @@ Authors - Siyu Li, Harish Loganathan
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 --Tour constants
-beta_tour_work = -6.34
-beta_tour_edu = 0
-beta_tour_shop = -3.54
-beta_tour_others = -4.00
+local beta_tour_work = -6.34
+local beta_tour_edu = 0
+local beta_tour_shop = -3.54
+local beta_tour_others = -4.00
 
 --Intermediate Stops constants
-beta_stop_work = 0
-beta_stop_edu = 0
-beta_stop_shop = 0
-beta_stop_others = 0
+local beta_stop_work = 0
+local beta_stop_edu = 0
+local beta_stop_shop = 0
+local beta_stop_others = 0
 
 --Person type
-beta_parttime_work = -0.300
-beta_parttime_edu = 0
-beta_parttime_shop = 0.0938
-beta_parttime_others = 0.630
-beta_selfemployed_work = -1.55
-beta_selfemployed_edu = 0
-beta_selfemployed_shop = -0.121
-beta_selfemployed_others = 0.803
-beta_universitystudent_work = -2.31
-beta_universitystudent_edu = 0
-beta_universitystudent_shop = 0
-beta_universitystudent_others = 0
-beta_homemaker_work = 0
-beta_homemaker_edu = 0
-beta_homemaker_shop = 0.753
-beta_homemaker_others = 1.11
-beta_retired_work = 0
-beta_retired_edu = 0
-beta_retired_shop = 0.548
-beta_retired_others = 1.23
-beta_unemployed_work = 0
-beta_unemployed_edu = 0
-beta_unemployed_shop = 0.475
-beta_unemployed_others = 1.64
-beta_nationalservice_work = 0.494
-beta_nationalservice_edu = 0
-beta_nationalservice_shop = 0
-beta_nationalservice_others = -0.270
-beta_voluntary_work = -1.18
-beta_voluntary_edu = 0
-beta_voluntary_shop = 0.177
-beta_voluntary_others = 0
-beta_domestic_work= 0
-beta_domestic_edu = 0
-beta_domestic_shop = -1.39
-beta_domestic_others = -0.391
-beta_otherworker_work = -1.49
-beta_otherworker_edu = 0
-beta_otherworker_shop = -3.98
-beta_otherworker_others = -3.12
-beta_student16_work = -2.24
-beta_student16_edu = 0
-beta_student16_shop = -0.736
-beta_student16_others = -0.199
-beta_student515_work = 0
-beta_student515_edu = 0
-beta_student515_shop = -1.33
-beta_student515_others = -0.191
-beta_child4_work = 0
-beta_child4_edu = 0
-beta_child4_shop = 0
-beta_child4_others = 0
+local beta_parttime_work = -0.300
+local beta_parttime_edu = 0
+local beta_parttime_shop = 0.0938
+local beta_parttime_others = 0.630
+local beta_selfemployed_work = -1.55
+local beta_selfemployed_edu = 0
+local beta_selfemployed_shop = -0.121
+local beta_selfemployed_others = 0.803
+local beta_universitystudent_work = -2.31
+local beta_universitystudent_edu = 0
+local beta_universitystudent_shop = 0
+local beta_universitystudent_others = 0
+local beta_homemaker_work = 0
+local beta_homemaker_edu = 0
+local beta_homemaker_shop = 0.753
+local beta_homemaker_others = 1.11
+local beta_retired_work = 0
+local beta_retired_edu = 0
+local beta_retired_shop = 0.548
+local beta_retired_others = 1.23
+local beta_unemployed_work = 0
+local beta_unemployed_edu = 0
+local beta_unemployed_shop = 0.475
+local beta_unemployed_others = 1.64
+local beta_nationalservice_work = 0.494
+local beta_nationalservice_edu = 0
+local beta_nationalservice_shop = 0
+local beta_nationalservice_others = -0.270
+local beta_voluntary_work = -1.18
+local beta_voluntary_edu = 0
+local beta_voluntary_shop = 0.177
+local beta_voluntary_others = 0
+local beta_domestic_work= 0
+local beta_domestic_edu = 0
+local beta_domestic_shop = -1.39
+local beta_domestic_others = -0.391
+local beta_otherworker_work = -1.49
+local beta_otherworker_edu = 0
+local beta_otherworker_shop = -3.98
+local beta_otherworker_others = -3.12
+local beta_student16_work = -2.24
+local beta_student16_edu = 0
+local beta_student16_shop = -0.736
+local beta_student16_others = -0.199
+local beta_student515_work = 0
+local beta_student515_edu = 0
+local beta_student515_shop = -1.33
+local beta_student515_others = -0.191
+local beta_child4_work = 0
+local beta_child4_edu = 0
+local beta_child4_shop = 0
+local beta_child4_others = 0
 
 --Adult age group
-beta_age2025_work = 0
-beta_age2025_edu = 0
-beta_age2025_shop = 0
-beta_age2025_others = 0
-beta_age2635_work = 0
-beta_age2635_edu = 0
-beta_age2635_shop = 0
-beta_age2635_others = 0
-beta_age5165_work = 0
-beta_age5165_edu = 0
-beta_age5165_shop = 0
-beta_age5165_others = 0
+local beta_age2025_work = 0
+local beta_age2025_edu = 0
+local beta_age2025_shop = 0
+local beta_age2025_others = 0
+local beta_age2635_work = 0
+local beta_age2635_edu = 0
+local beta_age2635_shop = 0
+local beta_age2635_others = 0
+local beta_age5165_work = 0
+local beta_age5165_edu = 0
+local beta_age5165_shop = 0
+local beta_age5165_others = 0
 
 --Adult gender/children
-beta_maleage4_work = 0
-beta_maleage4_edu = 0
-beta_maleage4_shop = -0.718
-beta_maleage4_others = 0.454
-beta_maleage515_work = 0
-beta_maleage515_edu = 0
-beta_maleage515_shop = -0.674
-beta_maleage515_others = 0.575
-beta_femalenone_work = -0.236
-beta_femalenone_edu = 0
-beta_femalenone_shop = 0
-beta_femalenone_others = -0.366
-beta_femaleage4_work = -1.02
-beta_femaleage4_edu = 0
-beta_femaleage4_shop = -0.379
-beta_femaleage4_others = 0.219
-beta_femaleage515_work = 0
-beta_femaleage515_edu = 0
-beta_femaleage515_shop = -0.161
-beta_femaleage515_others = 0.289
+local beta_maleage4_work = 0
+local beta_maleage4_edu = 0
+local beta_maleage4_shop = -0.718
+local beta_maleage4_others = 0.454
+local beta_maleage515_work = 0
+local beta_maleage515_edu = 0
+local beta_maleage515_shop = -0.674
+local beta_maleage515_others = 0.575
+local beta_femalenone_work = -0.236
+local beta_femalenone_edu = 0
+local beta_femalenone_shop = 0
+local beta_femalenone_others = -0.366
+local beta_femaleage4_work = -1.02
+local beta_femaleage4_edu = 0
+local beta_femaleage4_shop = -0.379
+local beta_femaleage4_others = 0.219
+local beta_femaleage515_work = 0
+local beta_femaleage515_edu = 0
+local beta_femaleage515_shop = -0.161
+local beta_femaleage515_others = 0.289
 
 --Household composition
-beta_onlyadults_work = 0
-beta_onlyadults_edu = 0
-beta_onlyadults_shop = -0.498
-beta_onlyadults_others = 0.325
-beta_onlyworkers_work = 0
-beta_onlyworkers_edu = 0
-beta_onlyworkers_shop = 0.172
-beta_onlyworkers_others = 0.321
+local beta_onlyadults_work = 0
+local beta_onlyadults_edu = 0
+local beta_onlyadults_shop = -0.498
+local beta_onlyadults_others = 0.325
+local beta_onlyworkers_work = 0
+local beta_onlyworkers_edu = 0
+local beta_onlyworkers_shop = 0.172
+local beta_onlyworkers_others = 0.321
 
 --Personal income
-beta_income_work = 0.000268
-beta_income_edu = 0
-beta_income_shop = -0.000208
-beta_income_others = 0.000104
+local beta_income_work = 0.000268
+local beta_income_edu = 0
+local beta_income_shop = -0.000208
+local beta_income_others = 0.000104
 
 --Others
-beta_workathome_work = 0
-beta_workathome_edu = 0
-beta_workathome_shop = 0
-beta_workathome_others = 0
-beta_caravail_work = -0.902
-beta_caravail_edu = 0
-beta_caravail_shop = -0.0947
-beta_caravail_others = 0.623
-beta_motoravail_work = 0.465
-beta_motoravail_edu = 0
-beta_motoravail_shop = -0.231
-beta_motoravail_others = 0.0117
+local beta_workathome_work = 0
+local beta_workathome_edu = 0
+local beta_workathome_shop = 0
+local beta_workathome_others = 0
+local beta_caravail_work = -0.902
+local beta_caravail_edu = 0
+local beta_caravail_shop = -0.0947
+local beta_caravail_others = 0.623
+local beta_motoravail_work = 0.465
+local beta_motoravail_edu = 0
+local beta_motoravail_shop = -0.231
+local beta_motoravail_others = 0.0117
 
 --Additional constants
-beta_onetour_onestop = -2.66
-beta_onetour_twostop = -4.45
-beta_onetour_threestop = 0
-beta_twotour_onestop = -2.91
-beta_twotour_twostop = 0
-beta_twotour_threestop = 0
-beta_threetour_onestop = 0
-beta_threetour_twostop = 0
+local beta_onetour_onestop = -2.66
+local beta_onetour_twostop = -4.45
+local beta_onetour_threestop = 0
+local beta_twotour_onestop = -2.91
+local beta_twotour_twostop = 0
+local beta_twotour_threestop = 0
+local beta_threetour_onestop = 0
+local beta_threetour_twostop = 0
 
-beta_work_logsum=0.596
-beta_edu_logsum=0
-beta_shopping_logsum=0.0675
-beta_other_logsum=0.146
+local beta_work_logsum=0.596
+local beta_edu_logsum=0
+local beta_shopping_logsum=0.0675
+local beta_other_logsum=0.146
 
 --choiceset
-choice = {
+local choice = {
         {0,0,0,0,0,0,0,0}, 
         {0,0,0,1,0,0,0,0}, 
         {0,0,0,1,0,0,0,1}, 
@@ -212,35 +212,35 @@ choice = {
 }
 
 --fixed variables (it is sufficient to compute these variables just once for the whole simulation)
-fixedVariablesComputed = false -- initialized to false
+local fixedVariablesComputed = false -- initialized to false
 
   -- WorkTi,EduTi,ShopTi,OthersTi, WorkIi,EduIi,ShopIi,OthersIi
-WorkT = {}
-EduT = {}
-ShopT = {}
-OthersT = {}
-WorkI = {}
-EduI = {}
-ShopI = {}
-OthersI = {}
+local WorkT = {}
+local EduT = {}
+local ShopT = {}
+local OthersT = {}
+local WorkI = {}
+local EduI = {}
+local ShopI = {}
+local OthersI = {}
 	
   -- XXXtour_XXXstop. . . series
-onetour_onestop = {}
-onetour_twostop = {}
-onetour_threestop = {}
-twotour_onestop = {}
-twotour_twostop = {}
-twotour_threestop = {}
-threetour_onestop = {}
-threetour_twostop = {}
+local onetour_onestop = {}
+local onetour_twostop = {}
+local onetour_threestop = {}
+local twotour_onestop = {}
+local twotour_twostop = {}
+local twotour_threestop = {}
+local threetour_onestop = {}
+local threetour_twostop = {}
 
   -- worki,edui,shopi,otheri series 
-work = {}
-edu = {}
-shop = {}
-other = {}
+local work = {}
+local edu = {}
+local shop = {}
+local other = {}
 
-function loadFixedVariables()
+local function loadFixedVariables()
 	for i = 0,50 do 
 		-- WorkTi,EduTi,ShopTi,OthersTi, WorkIi,EduIi,ShopIi,OthersIi
 		WorkT[i] = choice[i][0]
@@ -303,8 +303,8 @@ function loadFixedVariables()
 end
 
 --utility
-utility = {}
-function computeUtilities(params) 
+local utility = {}
+local function computeUtilities(params) 
 	-- storing data from params table passed into this function locally for use in this function (this is purely for better execution time)
 	local person_type_id = params.person_type_id
 	local age_id = params.age_id
@@ -532,8 +532,8 @@ function computeUtilities(params)
 end
 
 --availability
-availability = {}
-function computeAvailabilities(params)
+local availability = {}
+local function computeAvailabilities(params)
 	-- storing data from params table passed into this function locally for use in this function (this is purely for better execution time)
 	local person_type_id = params.person_type_id
 
@@ -552,7 +552,7 @@ function computeAvailabilities(params)
 end
 
 -- scales
-scale = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1} -- 1 for all choices (51 1s)
+local scale = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1} -- 1 for all choices (51 1s)
 
 function choose(params)
 	if not fixedVariablesComputed then loadFixedVariables() end

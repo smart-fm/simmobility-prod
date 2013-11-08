@@ -14,7 +14,7 @@
 using namespace sim_mob::long_term;
 using std::string;
 
-BuildingType::BuildingType(BigSerial id, string name) :
+BuildingType::BuildingType(BigSerial id, const string& name) :
 id(id), name(name){
 }
 
@@ -31,6 +31,6 @@ BigSerial BuildingType::getId() const {
     return id;
 }
 
-string BuildingType::getName() const {
+const string& BuildingType::getName() const {
     return name;
 }

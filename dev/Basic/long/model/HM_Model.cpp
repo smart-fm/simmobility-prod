@@ -10,7 +10,7 @@
 #include "HM_Model.hpp"
 #include <boost/unordered_map.hpp>
 #include "util/LangHelpers.hpp"
-#include "database/DBConnection.hpp"
+#include "database/DB_Connection.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "database/dao/UnitDao.hpp"
 #include "database/dao/HouseholdDao.hpp"
@@ -28,8 +28,8 @@ namespace {
     const string MODEL_NAME = "Housing Market Model";
 }
 
-HM_Model::HM_Model(DatabaseConfig& dbConfig, WorkGroup& workGroup)
-: Model(MODEL_NAME, dbConfig, workGroup) {
+HM_Model::HM_Model(WorkGroup& workGroup)
+: Model(MODEL_NAME, workGroup) {
 }
 
 HM_Model::~HM_Model() {
@@ -44,18 +44,19 @@ const Unit* HM_Model::getUnitById(const BigSerial& unitId) const{
 }
 
 void HM_Model::startImpl() {
-    DatabaseConfig dbConfig(LT_DB_CONFIG_FILE);
+    DB_Config dbConfig(LT_DB_CONFIG_FILE);
+    dbConfig.load();
     // Connect to database and load data.
-    DBConnection conn(sim_mob::db::POSTGRES, dbConfig);
-    conn.Connect();
+    DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+    conn.connect();
     workGroup.assignAWorker(&market);
-    if (conn.IsConnected()) {
+    if (conn.isConnected()) {
         // Households
-        HouseholdDao hhDao(&conn);
-        hhDao.GetAll(households);
+        HouseholdDao hhDao(conn);
+        hhDao.getAll(households);
         //units
-        UnitDao unitDao(&conn);
-        unitDao.GetAll(units);
+        UnitDao unitDao(conn);
+        unitDao.getAll(units);
         for (vector<Unit>::iterator it = units.begin(); it != units.end(); it++) {
             Unit* unit = &(*it);
             unitsById.insert(std::make_pair(unit->getId(), unit));

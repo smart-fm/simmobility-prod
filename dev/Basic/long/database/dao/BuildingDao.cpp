@@ -15,13 +15,10 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-BuildingDao::BuildingDao(DBConnection* connection)
+BuildingDao::BuildingDao(DB_Connection& connection)
 : AbstractDao<Building>(connection, DB_TABLE_BUILDING,
 DB_INSERT_BUILDING, DB_UPDATE_BUILDING, DB_DELETE_BUILDING,
-DB_GETALL_BUILDING, DB_GETBYID_BUILDING) {
-    fromRowCallback = DAO_FROM_ROW_CALLBACK_HANDLER(Building, BuildingDao::fromRow);
-    toRowCallback = DAO_TO_ROW_CALLBACK_HANDLER(Building, BuildingDao::toRow);
-}
+DB_GETALL_BUILDING, DB_GETBYID_BUILDING) {}
 
 BuildingDao::~BuildingDao() {
 }

@@ -16,15 +16,12 @@
 
 namespace sim_mob {
     namespace long_term {
-
-        DAO_DECLARE_CALLBACKS(Building);
-
         /**
          * Data Access Object to Building table on datasource.
          */
         class BuildingDao : public db::AbstractDao<Building> {
         public:
-            BuildingDao(db::DBConnection* connection);
+            BuildingDao(db::DB_Connection& connection);
             virtual ~BuildingDao();
 
         private:

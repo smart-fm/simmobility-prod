@@ -10,16 +10,12 @@
  */
 #pragma once
 
+#include <ctime>
 #include <vector>
 #include <list>
 #include <string>
 #include <utility>
 #include <sstream>
-//#include <sys/time.h>
-
-//NOTE: This is a Linux-only class. We need to ifdef it out if not available 
-//      (or move it to entities/profile/ProfileBuilder as a static method.)
-#include <sys/time.h>
 
 namespace sim_mob {
 
@@ -32,7 +28,7 @@ namespace sim_mob {
          * @param max maximum limit.
          * @return the generated value. 
          */
-        static float GenerateFloat(float min, float max);
+        static float generateFloat(float min, float max);
 
         /**
          * Generates a new integer value.
@@ -40,33 +36,53 @@ namespace sim_mob {
          * @param max limit.
          * @return the generated value. 
          */
-        static int GenerateInt(int min, int max);
+        static int generateInt(int min, int max);
 
         /**
          * Convert argc/argv into a vector of strings representing each argument.
          */
-        static std::vector<std::string> ParseArgs(int argc, char* argv[]);
+        static std::vector<std::string> parseArgs(int argc, char* argv[]);
 
         /**
-         *
+         * Merges log files. 
          */
-        static void PrintAndDeleteLogFiles(const std::list<std::string>& logFileNames);
+        static void printAndDeleteLogFiles(const std::list<std::string>& logFileNames);
 
         //Helper for XML parsing. Source value looks like this: "3000 : 6000", spaces optional.
         //\todo This is mostly in the wrong place; our whole "util" directory needs some reorganization.
-        static std::pair<double, double> parse_scale_minmax(const std::string& src);
+        static std::pair<double, double> parseScaleMinmax(const std::string& src);
 
         /**
-         * Convert any kind of number format into a string.
-         * @param number input
-         * @return to a string
+         * Restricts a value to be within a specified range.
+         * @param value to clamp
+         * @param min The minimum value. 
+         * @param max The maximum value. 
+         * @return If value is less than min, min will be returned,
+         * If value is greater than max, max will be returned, otherwise returns
+         * value.
          */
-		template<typename T>
-		static std::string numberToString(const T& number) {
-			std::ostringstream stream;
-			stream << number;
-			return stream.str();
-		}
+        template<typename T>
+        static T clamp(const T& value, const T& min, const T& max) {
+            return (value < min) ? min : (value > max) ? max : value;
+        }
+
+        /**
+         * Converts the given data to string.
+         * 
+         * If the type is not primitive type then
+         * it must implement the operator:
+         * 
+         * friend ostream& operator<<(std::ostream& strm, const MyType& data);
+         * 
+         * @param data to convert to string.
+         * @return string with data.
+         */
+        template<typename T>
+        static std::string toStr(const T& data) {
+            std::ostringstream stream;
+            stream << data;
+            return stream.str();
+        }
     };
 
     /**
@@ -85,13 +101,13 @@ namespace sim_mob {
          * Stops the watch.
          */
         void stop();
-        
+
         /**
          * Gets the time taken between the last Start-Stop call.
          * @return time in seconds or -1 if the watch is running.
          */
         double getTime() const;
-        
+
     private:
         time_t now;
         time_t end;

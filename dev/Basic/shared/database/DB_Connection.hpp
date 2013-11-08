@@ -3,14 +3,14 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 /* 
- * File:   DBConnection.hpp
+ * File:   DB_Connection.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
  * Created on April 23, 2013, 3:34 PM
  */
 #pragma once
 #include "soci.h"
-#include "DatabaseConfig.hpp"
+#include "DB_Config.hpp"
 namespace sim_mob {
     
     namespace db {
@@ -25,34 +25,34 @@ namespace sim_mob {
         /** 
          * Class that represents an Database connection.
          */
-        class DBConnection {
+        class DB_Connection {
         public:
-            DBConnection(BackendType type, const DatabaseConfig& config);
-            virtual ~DBConnection();
+            DB_Connection(BackendType type, const DB_Config& config);
+            virtual ~DB_Connection();
 
             /**
              * Connects to the database.
              * @return true if the connection was established.
              */
-            bool Connect();
+            bool connect();
 
             /**
              * Disconnects from the database.
              * @return true if the connection was closed.
              */
-            bool Disconnect();
+            bool disconnect();
 
             /**
              * Tells if this instance is connected with database.
              * @return true if connection is open, false otherwise.
              */
-            bool IsConnected() const;
+            bool isConnected() const;
 
             /**
              * Gets the current SOCI session.
              * @return session instance reference.
              */
-            soci::session& GetSession();
+            soci::session& getSession();
 
         private:
             soci::session currentSession;

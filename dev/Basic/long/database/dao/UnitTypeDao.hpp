@@ -16,15 +16,13 @@
 
 namespace sim_mob {
     namespace long_term {
-
-        DAO_DECLARE_CALLBACKS(UnitType);
-
+        
         /**
          * Data Access Object to UnitType table on datasource.
          */
         class UnitTypeDao : public db::AbstractDao<UnitType> {
         public:
-            UnitTypeDao(db::DBConnection* connection);
+            UnitTypeDao(db::DB_Connection& connection);
             virtual ~UnitTypeDao();
 
         private:

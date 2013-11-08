@@ -27,8 +27,6 @@
 #include "Common.hpp"
 #include "config/LT_Config.hpp"
 
-using namespace sim_mob::db;
-
 using std::cout;
 using std::endl;
 using std::vector;
@@ -97,10 +95,9 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         WorkGroup* agentWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
         wgMgr.initAllGroups();
         agentWorkers->initWorkers(nullptr);
-        DatabaseConfig dbConfig(LT_DB_CONFIG_FILE);
-
+        
         //models 
-        model = new HM_Model(dbConfig, *agentWorkers);
+        model = new HM_Model(*agentWorkers);
         models.push_back(model);
         model->start();
        

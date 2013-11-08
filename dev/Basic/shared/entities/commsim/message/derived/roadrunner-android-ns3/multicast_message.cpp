@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * MULTICAST_Message.cpp
  *
@@ -10,19 +14,17 @@
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/AuraManager.hpp"
 
-namespace sim_mob {
-class Handler;
+using namespace sim_mob;
 
-namespace rr_android_ns3
-{
+
 /***************************************************************************************************************************************************
  *****************************   ANDROID   ************************************************************************************************************
  **************************************************************************************************************************************************/
-ANDROID_MSG_MULTICAST::ANDROID_MSG_MULTICAST(msg_data_t data_): Message(data_)
-{
 
-}
-Handler * ANDROID_MSG_MULTICAST::newHandler()
+sim_mob::rr_android_ns3::ANDROID_MSG_MULTICAST::ANDROID_MSG_MULTICAST(sim_mob::comm::MsgData data_): Message(data_)
+{}
+
+Handler* sim_mob::rr_android_ns3::ANDROID_MSG_MULTICAST::newHandler()
 {
 	return new ANDROID_HDL_MULTICAST();
 }
@@ -35,7 +37,7 @@ Handler * ANDROID_MSG_MULTICAST::newHandler()
 //1-multicast is treated same as broadcast
 //2-although it is like a broadcast, simmobility will add the specific receiver
 //information while redirecting to NS3(as opposed to letting NS3 find the recipients)
-void ANDROID_HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
+void sim_mob::rr_android_ns3::ANDROID_HDL_MULTICAST::handle(sim_mob::comm::MsgPtr message_,Broker* broker){
 //	Print() << "Inside a ANDROID_HDL_MULTICAST::handle" << std::endl;
 //steps:
 	/*
@@ -49,7 +51,7 @@ void ANDROID_HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 //	step-1: Find the sending agent
 
 	//1.1: parse
-	Json::Value &jdata = message_->getData();
+	sim_mob::comm::MsgData &jdata = message_->getData();
 	msg_header msg_header_;
 	if(!sim_mob::JsonParser::parseMessageHeader(jdata,msg_header_))
 	{
@@ -130,7 +132,7 @@ void ANDROID_HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 	broker->getClientHandler("0", "NS3_SIMULATOR", ns3_clnHandler);
 	ClientList::pair clientTypes;
 	ClientList::type & all_clients = broker->getClientList();
-	Json::Value recipients;
+	sim_mob::comm::MsgData recipients;
 	BOOST_FOREACH(clientTypes , all_clients)
 	{
 		// only the android emulators
@@ -190,11 +192,10 @@ void ANDROID_HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
  * ****************************   NS3   ************************************************************************************************************
  * ************************************************************************************************************************************************
  */
-NS3_MSG_MULTICAST::NS3_MSG_MULTICAST(msg_data_t data_): Message(data_)
-{
+sim_mob::rr_android_ns3::NS3_MSG_MULTICAST::NS3_MSG_MULTICAST(sim_mob::comm::MsgData data_): Message(data_)
+{}
 
-}
-Handler * NS3_MSG_MULTICAST::newHandler()
+Handler* sim_mob::rr_android_ns3::NS3_MSG_MULTICAST::newHandler()
 {
 	return new NS3_HDL_MULTICAST();
 }
@@ -202,10 +203,10 @@ Handler * NS3_MSG_MULTICAST::newHandler()
 
 //you are going to handle something like this:
 //{"MESSAGE_CAT":"APP","MESSAGE_TYPE":"MULTICAST","MULTICAST_DATA":"TVVMVElDQVNUIFN0cmluZyBmcm9tIGNsaWVudCAxMTQ=","RECEIVING_AGENT_ID":75,"SENDER":"0","SENDER_TYPE":"NS3_SIMULATOR"}
-void NS3_HDL_MULTICAST::handle(msg_ptr message_, Broker* broker) {
+void sim_mob::rr_android_ns3::NS3_HDL_MULTICAST::handle(sim_mob::comm::MsgPtr message_, Broker* broker) {
 	//find the client destination client_handler
 	boost::shared_ptr<sim_mob::ClientHandler> destination_clnHandler;
-	msg_data_t & jData = message_->getData();
+	sim_mob::comm::MsgData& jData = message_->getData();
 	int destination_agent_id = jData["RECEIVING_AGENT_ID"].asInt();
 	ClientList::type & all_clients = broker->getClientList();
 	ClientList::pair clientTypes;
@@ -247,8 +248,6 @@ void NS3_HDL_MULTICAST::handle(msg_ptr message_, Broker* broker) {
 
 }	//handle()
 
-}/* namespace rr_android_ns3 */
-} /* namespace sim_mob */
 
 
 

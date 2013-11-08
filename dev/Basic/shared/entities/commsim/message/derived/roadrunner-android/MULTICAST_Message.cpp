@@ -9,32 +9,24 @@
  *      Author: vahid
  */
 
-//#include "MULTICAST_Handler.hpp"
 #include "MULTICAST_Message.hpp"
 
-//#include "entities/commsim/service/services.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
-//#include "entities/commsim/broker/Broker.hpp"
 #include "entities/AuraManager.hpp"
 
-namespace sim_mob {
-class Handler;
+using namespace sim_mob;
 
-namespace roadrunner
-{
-class HDL_MULTICAST;
-MSG_MULTICAST::MSG_MULTICAST(msg_data_t data_): /*RoadrunnerMessage*/Message(data_)
-{
+sim_mob::roadrunner::MSG_MULTICAST::MSG_MULTICAST(sim_mob::comm::MsgData data_): /*RoadrunnerMessage*/Message(data_)
+{}
 
-}
-Handler * MSG_MULTICAST::newHandler()
+Handler* sim_mob::roadrunner::MSG_MULTICAST::newHandler()
 {
 	return new HDL_MULTICAST();
 }
 
 
 //handler implementation
-void HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
+void sim_mob::roadrunner::HDL_MULTICAST::handle(sim_mob::comm::MsgPtr message_, Broker* broker){
 
 //steps:
 	/*
@@ -46,7 +38,7 @@ void HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 	 */
 
 //	step-1: Find the target agent
-	Json::Value &data = message_->getData();
+	sim_mob::comm::MsgData &data = message_->getData();
 	msg_header msg_header_;
 	if(!sim_mob::JsonParser::parseMessageHeader(data,msg_header_))
 	{
@@ -135,9 +127,5 @@ void HDL_MULTICAST::handle(msg_ptr message_,Broker* broker){
 		}//inner loop : BOOST_FOREACH(clientIds , inner)
 	}//outer loop : BOOST_FOREACH(clientTypes , clients)
 }//handle()
-
-}/* namespace roadrunner */
-} /* namespace sim_mob */
-
 
 

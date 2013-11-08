@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /* 
  * File:   Common.hpp
  * Author: Pedro Gandola
@@ -7,27 +11,22 @@
 
 #pragma once
 
-#include <iostream>
-#include "stddef.h"
-#include "util/LangHelpers.hpp"
-#include "util/OutputUtil.hpp"
-
-using std::cout;
-using std::endl;
-
 /**
  * Events IDs
- * Kindly observe the uniqueness of all ids before adding a new one
+ * Uses an enum to guarantee uniqueness.
  */
-#define COMMEID_START 9000000
+enum {
+	COMMEID_START = 9000000,
 
-// Events for HousingMarket
-#define COMMEID_TIME     (COMMEID_START + 1)
-#define COMMEID_LOCATION   (COMMEID_START + 2)
+	// Events for HousingMarket
+	COMMEID_TIME,
+	COMMEID_LOCATION,
 
-/*special context ids
- * good for situations like NS3 location subscription where it
- * requires a special context for publishing the location of
- * all agents
- */
-#define COMMCID_ALL_LOCATIONS (COMMEID_START + 3)
+	//special context ids
+	//good for situations like NS3 location subscription where it
+	//requires a special context for publishing the location of
+	//all agents
+	COMMCID_ALL_LOCATIONS,
+};
+
+

@@ -11,22 +11,16 @@
 
 //#include "CLIENTDONE_Handler.hpp"
 #include "CLIENTDONE_Message.hpp"
-namespace sim_mob {
-class Handler;
 
-namespace roadrunner
-{
-class HDL_CLIENTDONE;
-MSG_CLIENTDONE::MSG_CLIENTDONE(msg_data_t& data_): /*Roadrunner*/Message(data_)
-{
+using namespace sim_mob;
 
-}
-Handler * MSG_CLIENTDONE::newHandler()
+sim_mob::roadrunner::MSG_CLIENTDONE::MSG_CLIENTDONE(sim_mob::comm::MsgData& data_): Message(data_)
+{}
+
+Handler * sim_mob::roadrunner::MSG_CLIENTDONE::newHandler()
 {
 	return 0;
 }
-}/* namespace roadrunner */
-} /* namespace sim_mob */
 
 
 

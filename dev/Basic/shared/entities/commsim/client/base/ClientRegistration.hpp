@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * ClientRegistration.hpp
  *
@@ -6,25 +10,29 @@
  */
 
 #pragma once
+
 #include <set>
-#include<map>
-#include "entities/commsim/service/services.hpp"
-#include "entities/commsim/connection/Session.hpp"
+#include <map>
+#include <string>
+
 #include <boost/shared_ptr.hpp>
+
+#include "entities/commsim/service/Services.hpp"
+#include "entities/commsim/connection/Session.hpp"
 #include "event/EventPublisher.hpp"
-namespace sim_mob
-{
+
+namespace sim_mob {
+
 /******************************************************************************************************
  ***********************************ClientRegistrationRequest****************************************
  ******************************************************************************************************
  */
-class ClientRegistrationRequest
-{
+class ClientRegistrationRequest {
 public:
 	std::string clientID;
 	std::string client_type; //ns3, android emulator, FMOD etc
-	std::set<sim_mob::SIM_MOB_SERVICE> requiredServices;
-	/*boost::shared_ptr<Session>*/session_ptr session_;
+	std::set<sim_mob::Services::SIM_MOB_SERVICE> requiredServices;
+	session_ptr session_;
 	ClientRegistrationRequest(const ClientRegistrationRequest& other);
 	ClientRegistrationRequest();
 	ClientRegistrationRequest & operator=(const ClientRegistrationRequest & rhs);

@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * AndroidClientRegistration.hpp
  *
@@ -5,8 +9,7 @@
  *      Author: vahid
  */
 
-#ifndef AndroidClientRegistration_HPP_
-#define AndroidClientRegistration_HPP_
+#pragma once
 
 //#include "entities/commsim/client/base/ClinetRegistrationHandler.hpp"
 #include "entities/commsim/broker/Broker.hpp"
@@ -25,4 +28,3 @@ public:
 
 
 } /* namespace sim_mob */
-#endif /* AndroidClientRegistration_HPP_ */

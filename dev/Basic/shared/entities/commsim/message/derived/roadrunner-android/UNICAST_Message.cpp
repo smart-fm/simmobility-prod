@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * UNICAST_Message.cpp
  *
@@ -6,30 +10,21 @@
  */
 
 #include "UNICAST_Message.hpp"
-//#include "UNICAST_Handler.hpp"
-//#include "entities/commsim/service/services.hpp"
-//#include "entities/commsim/serialization/Serialization.hpp"
-//#include "entities/commsim/service/services.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
-//#include "entities/commsim/broker/Broker.hpp"
-namespace sim_mob {
-class Handler;
 
-namespace roadrunner
-{
-class HDL_UNICAST;
-MSG_UNICAST::MSG_UNICAST(msg_data_t& data_): /*Roadrunner*/Message(data_)
-{
+using namespace sim_mob;
 
-}
-Handler * MSG_UNICAST::newHandler()
+sim_mob::roadrunner::MSG_UNICAST::MSG_UNICAST(sim_mob::comm::MsgData& data_): Message(data_)
+{}
+
+Handler* sim_mob::roadrunner::MSG_UNICAST::newHandler()
 {
 	return new HDL_UNICAST();
 }
 
 //handler implementation
-
-void HDL_UNICAST::handle(msg_ptr message_,Broker* broker){
+void sim_mob::roadrunner::HDL_UNICAST::handle(sim_mob::comm::MsgPtr message_,Broker* broker)
+{
 	//steps:
 		/*
 		 * 1- Find the destination agent and the corresponding client handler
@@ -39,7 +34,7 @@ void HDL_UNICAST::handle(msg_ptr message_,Broker* broker){
 
 
 	//	step-1: Find the target agent and the corresponding client handler
-		Json::Value &data = message_->getData();
+	sim_mob::comm::MsgData &data = message_->getData();
 		sim_mob::msg_header msg_header_;
 		if(!sim_mob::JsonParser::parseMessageHeader(data,msg_header_))
 		{
@@ -84,8 +79,6 @@ void HDL_UNICAST::handle(msg_ptr message_,Broker* broker){
 		broker->insertSendBuffer(clnHandler->cnnHandler,data);
 }
 
-}/* namespace roadrunner */
-} /* namespace sim_mob */
 
 
 

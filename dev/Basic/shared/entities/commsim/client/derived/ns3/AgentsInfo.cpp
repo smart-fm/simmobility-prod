@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * AgentsInfo.cpp
  *
@@ -8,7 +12,7 @@
 #include "AgentsInfo.hpp"
 #include <json/json.h>
 #include "entities/Agent.hpp"
-#include "entities/commsim/service/services.hpp"
+#include "entities/commsim/service/Services.hpp"
 #include "entities/commsim/serialization/Serialization.hpp"
 #include <boost/foreach.hpp>
 

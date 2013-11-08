@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * ClientHandler.hpp
  *
@@ -5,16 +9,18 @@
  *      Author: vahid
  */
 
-#ifndef CLIENTHANDLER_HPP_
-#define CLIENTHANDLER_HPP_
-#include <boost/shared_ptr.hpp>
+#pragma once
+
 #include <map>
-#include<set>
+#include <set>
+
+#include <boost/shared_ptr.hpp>
+
 #include "event/EventListener.hpp"
 #include "entities/commsim/event/TimeEventArgs.hpp"
 #include "entities/commsim/event/LocationEventArgs.hpp"
 #include "entities/commsim/event/AllLocationsEventArgs.hpp"
-#include "entities/commsim/service/services.hpp"
+#include "entities/commsim/service/Services.hpp"
 
 
 namespace sim_mob {
@@ -37,7 +43,7 @@ public:
 	const sim_mob::Agent* agent;//same: dont use a boost::share_ptr whose object is created somewhere else. it is dangerous
 	std::string clientID;
 	unsigned int client_type; //ns3, android emulator, FMOD etc
-	std::set<sim_mob::SIM_MOB_SERVICE> requiredServices;
+	std::set<sim_mob::Services::SIM_MOB_SERVICE> requiredServices;
 	sim_mob::Broker &getBroker();
 	virtual ~ClientHandler();
 	//event functions:
@@ -49,4 +55,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* CLIENTHANDLER_HPP_ */

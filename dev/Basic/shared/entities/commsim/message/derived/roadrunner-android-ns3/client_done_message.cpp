@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * CLIENTDONE_Message.cpp
  *
@@ -5,24 +9,21 @@
  *      Author: vahid
  */
 
-//#include "CLIENTDONE_Handler.hpp"
 #include "client_done_message.hpp"
-namespace sim_mob {
-class Handler;
 
-namespace rr_android_ns3
-{
+#include "util/LangHelpers.hpp"
+
+using namespace sim_mob;
+
 class HDL_CLIENTDONE;
-MSG_CLIENTDONE::MSG_CLIENTDONE(msg_data_t& data_): Message(data_)
-{
 
-}
-Handler * MSG_CLIENTDONE::newHandler()
+sim_mob::rr_android_ns3::MSG_CLIENTDONE::MSG_CLIENTDONE(sim_mob::comm::MsgData& data_): Message(data_)
+{}
+
+Handler* sim_mob::rr_android_ns3::MSG_CLIENTDONE::newHandler()
 {
-	return 0;
+	return nullptr;;
 }
-}/* namespace rr_android_ns3 */
-} /* namespace sim_mob */
 
 
 

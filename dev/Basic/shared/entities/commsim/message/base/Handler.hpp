@@ -2,25 +2,23 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * CLIENTDONE_Message.h
- *
- *  Created on: May 9, 2013
- *      Author: vahid
- */
-
 #pragma once
 
 #include "entities/commsim/message/Types.hpp"
-#include "entities/commsim/message/base/Message.hpp"
 
 namespace sim_mob {
-namespace roadrunner {
 
-class MSG_CLIENTDONE : public sim_mob::comm::Message {
+//Forward Declaration
+class Broker;
+
+///A message handler (no documentation provided).
+class Handler {
 public:
-	MSG_CLIENTDONE(sim_mob::comm::MsgData& data_);
-	Handler * newHandler();
+	virtual ~Handler() {}
+
+	///Handle a given message.
+	virtual void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker*) = 0;
 };
 
-}}
+
+}

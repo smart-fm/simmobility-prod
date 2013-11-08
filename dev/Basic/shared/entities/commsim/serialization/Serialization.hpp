@@ -9,21 +9,24 @@
  *      Author: vahid
  */
 #pragma once
+
 #include <sstream>
-#include "entities/commsim/service/services.hpp"
-#include "logging/Log.hpp"
 #include <set>
 #include <json/json.h>
+
+#include "entities/commsim/service/Services.hpp"
+#include "logging/Log.hpp"
+
 namespace sim_mob {
 
 class JsonParser {
 public:
 	//todo find a way for this hardcoding
-	static sim_mob::SIM_MOB_SERVICE getServiceType(std::string type) {
-		if (ServiceMap.find(type) == sim_mob::ServiceMap.end()) {
-			return SIMMOB_SRV_UNKNOWN;
+	static sim_mob::Services::SIM_MOB_SERVICE getServiceType(std::string type) {
+		if (sim_mob::Services::ServiceMap.find(type) == sim_mob::Services::ServiceMap.end()) {
+			return sim_mob::Services::SIMMOB_SRV_UNKNOWN;
 		}
-		return sim_mob::ServiceMap[type];
+		return sim_mob::Services::ServiceMap[type];
 	}
 
 	static bool parsePacketHeader(std::string& input, pckt_header &output,
@@ -103,7 +106,7 @@ public:
 	//used for whoami id, type and required services(optional)
 	static bool get_WHOAMI(std::string& input, std::string & type,
 			std::string & ID,
-			std::set<sim_mob::SIM_MOB_SERVICE> &requiredServices) {
+			std::set<sim_mob::Services::SIM_MOB_SERVICE> &requiredServices) {
 		Json::Value root;
 		Json::Reader reader;
 		bool parsedSuccess = reader.parse(input, root, false);
@@ -133,7 +136,7 @@ public:
 	}
 
 	static bool get_WHOAMI_Services(std::string& input,
-			std::set<sim_mob::SIM_MOB_SERVICE> & services) {
+			std::set<sim_mob::Services::SIM_MOB_SERVICE> & services) {
 
 		Json::Value root;
 		Json::Reader reader;
@@ -151,6 +154,7 @@ public:
 //			getServiceType(array[index].asString());
 			services.insert(getServiceType(array[index].asString()));
 		}
+		return true;
 	}
 
 	static Json::Value createPacketHeader(pckt_header pHeader_) {

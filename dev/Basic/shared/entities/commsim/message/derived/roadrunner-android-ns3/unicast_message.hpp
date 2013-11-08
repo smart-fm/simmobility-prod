@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * UNICAST_Message.h
  *
@@ -7,49 +11,41 @@
  *      are supposed to be routed to ns3
  */
 
-#ifndef RR_ANDROID_NS3_UNICAST_MESSAGE_HPP_
-#define RR_ANDROID_NS3_UNICAST_MESSAGE_HPP_
+#pragma once
+
+#include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/message/base/Message.hpp"
+#include "entities/commsim/message/base/Handler.hpp"
 
 namespace sim_mob {
+class Broker;
+
 namespace rr_android_ns3 {
 
-/***************************************************************************************************************************************************
- *****************************   ANDROID   ************************************************************************************************************
- **************************************************************************************************************************************************/
-class ANDROID_MSG_UNICAST : public sim_mob::comm::Message<msg_data_t> {
-	//...
+///Android unicast message (no documentation provided).
+class ANDROID_MSG_UNICAST : public sim_mob::comm::Message {
 public:
-	Handler * newHandler();
-	ANDROID_MSG_UNICAST(msg_data_t& data_);
+	ANDROID_MSG_UNICAST(sim_mob::comm::MsgData& data_);
+	sim_mob::Handler* newHandler();
 };
 
 //Handler to the above message
-class ANDROID_HDL_UNICAST : public Handler {
-
+class ANDROID_HDL_UNICAST : public sim_mob::Handler {
 public:
-//	ANDROID_HDL_UNICAST();
-	void handle(msg_ptr message_,Broker*);
+	void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker);
 };
 
-/***************************************************************************************************************************************************
- *****************************   NS3   ************************************************************************************************************
- **************************************************************************************************************************************************/
-
-class NS3_MSG_UNICAST : public sim_mob::comm::Message<msg_data_t> {
-	//...
+///NS3 unicast message (no documentation provided).
+class NS3_MSG_UNICAST : public sim_mob::comm::Message {
 public:
-	Handler * newHandler();
-	NS3_MSG_UNICAST(msg_data_t& data_);
+	NS3_MSG_UNICAST(sim_mob::comm::MsgData& data_);
+	sim_mob::Handler* newHandler();
 };
 
 //Handler to the above message
-class NS3_HDL_UNICAST : public Handler {
-
+class NS3_HDL_UNICAST : public sim_mob::Handler {
 public:
-//	NS3_HDL_UNICAST();
-	void handle(msg_ptr message_,Broker*);
+	void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker);
 };
-}/* namespace roadrunner */
-} /* namespace sim_mob */
-#endif /* ANDROID_UNICAST_MESSAGE_H_ */
+
+}}

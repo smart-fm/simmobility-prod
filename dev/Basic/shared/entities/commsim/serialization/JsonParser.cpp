@@ -9,10 +9,12 @@ using namespace sim_mob;
 
 sim_mob::Services::SIM_MOB_SERVICE sim_mob::JsonParser::getServiceType(std::string type)
 {
-	if (sim_mob::Services::ServiceMap.find(type) == sim_mob::Services::ServiceMap.end()) {
-		return sim_mob::Services::SIMMOB_SRV_UNKNOWN;
+	std::map<std::string, Services::SIM_MOB_SERVICE>::iterator it = Services::ServiceMap.find(type);
+	if (it != Services::ServiceMap.end()) {
+		return it->second;
 	}
-	return sim_mob::Services::ServiceMap[type];
+
+	return Services::SIMMOB_SRV_UNKNOWN;
 }
 
 bool sim_mob::JsonParser::parsePacketHeader(std::string& input, pckt_header &output, Json::Value &root)

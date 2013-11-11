@@ -294,7 +294,7 @@ void sim_mob::Broker::processClientRegistrationRequests()
 {
 	boost::shared_ptr<ClientRegistrationHandler > handler;
 	ClientWaitList::iterator it_erase;//helps avoid multimap iterator invalidation
-	for(ClientWaitList::iterator it = clientRegistrationWaitingList.begin(), it_end(clientRegistrationWaitingList.end()); it != it_end;/*no ++ here */  )
+	for(ClientWaitList::iterator it = clientRegistrationWaitingList.begin(), it_end(clientRegistrationWaitingList.end()); it != it_end;it++  )
 	{
 		handler = clientRegistrationFactory.getHandler((sim_mob::Services::ClientTypeMap[it->first]));
 		if(handler->handle(*this,it->second))
@@ -306,21 +306,21 @@ void sim_mob::Broker::processClientRegistrationRequests()
 			if(!wait)
 			{
 				//	then, get this request out of registration list.
-				it_erase =  it++;//keep the erase candidate. dont loose it :)
+				it_erase =  it/*++*/;//keep the erase candidate. dont loose it :)
 				clientRegistrationWaitingList.erase(it_erase) ;
 				//note: if needed,remember to do the necessary work in the
 				//corresponding agent w.r.t the result of handle()
 				//do this through a callback to agent's reuest
 			}
-			else
-			{
-				it++; //putting it here coz multimap is not like a vector. erase doesn't return an iterator.
-			}
-		}
-		else
-		{
-			Print() << "clientRegistration handler for " << it->first << " failed" << std::endl;
-			it++; //putting it here coz multimap is not like a vector. erase doesn't return an iterator.
+//			else
+//			{
+//				it++; //putting it here coz multimap is not like a vector. erase doesn't return an iterator.
+//			}
+//		}
+//		else
+//		{
+//			Print() << "clientRegistration handler for " << it->first << " failed" << std::endl;
+//			it++; //putting it here coz multimap is not like a vector. erase doesn't return an iterator.
 		}
 	}
 }
@@ -449,18 +449,18 @@ bool sim_mob::Broker::allAgentUpdatesDone()
 
 void sim_mob::Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums)
 {
-	Print() << "Inside onAgentUpdate" << std::endl;
+//	Print() << "Inside onAgentUpdate" << std::endl;
 	Agent * target = const_cast<Agent*>(dynamic_cast<const Agent*>(argums.GetEntity()));
-	Print() << "onAgentUpdate:: setting[" << target->getId() << "] to.done" << std::endl;
+//	Print() << "onAgentUpdate:: setting[" << target->getId() << "] to.done" << std::endl;
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
 	if(REGISTERED_AGENTS.setDone(target,true))
 	{
-		Print() << "Agent[" << target->getId() << "] done" << std::endl;
+//		Print() << "Agent[" << target->getId() << "] done" << std::endl;
 		COND_VAR_AGENT_DONE.notify_all();
 	}
 	else
 	{
-		Print() << "Thread[" << boost::this_thread::get_id() << "] Discarded Agent[" << target->getId() << "]" << std::endl;
+//		Print() << "Thread[" << boost::this_thread::get_id() << "] Discarded Agent[" << target->getId() << "]" << std::endl;
 	}
 }
 

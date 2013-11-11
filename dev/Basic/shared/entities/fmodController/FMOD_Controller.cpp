@@ -29,6 +29,7 @@ namespace FMOD
 
 FMOD_Controller* FMOD_Controller::pInstance = nullptr;
 boost::asio::io_service FMOD_Controller::ioService;
+const std::string FMOD_Controller::FMOD_Trip = "FMOD_TripChain";
 
 void FMOD_Controller::registerController(int id, const MutexStrategy& mtxStrat)
 {
@@ -103,7 +104,7 @@ void FMOD_Controller::collectPerson()
 		std::vector<sim_mob::TripChainItem*>  tcs;
 		tcs.push_back(tc);
 
-		sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
+		sim_mob::Person* person = new sim_mob::Person(FMOD_Controller::FMOD_Trip, ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
 		person->client_id = it->first->clientId;
 		allPersons.push_back(person);
 	}
@@ -144,9 +145,9 @@ void FMOD_Controller::collectRequest()
 					request->destination = trip->toLocation.node_->getID();
 
 				cur += tm;
-				const int MIN_MS = 60*1000;
-				request->departureTimeEarly = DailyTime(cur.getValue()-trip->requestTime*MIN_MS/2).toString();;
-				request->departureTimeLate = DailyTime(cur.getValue()+trip->requestTime*MIN_MS/2).toString();;
+				unsigned int requestWindow = trip->requestTime*MIN_MS/2;
+				request->departureTimeEarly = DailyTime(cur.getValue()-requestWindow).toString();
+				request->departureTimeLate = DailyTime(cur.getValue()+requestWindow).toString();
 
 				allRequests.insert( std::make_pair(request, trip) );
 			}

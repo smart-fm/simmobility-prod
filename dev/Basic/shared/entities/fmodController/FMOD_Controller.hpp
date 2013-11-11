@@ -103,6 +103,10 @@ private:
 	std::vector<Agent*> allChildren;
 	//identify whether or not communication is created
 	bool isConnectFmodServer;
+	//define a constant number for one minute in milliseconds
+	static const unsigned int MIN_MS = 60000;
+	//define a constant name for FMOD trip chain
+	static const std::string FMOD_Trip;
 
 protected:
 	//override from the class agent, provide initilization chance to sub class

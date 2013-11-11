@@ -2,13 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * UNICAST_Message.h
- *
- *  Created on: May 9, 2013
- *      Author: vahid
- */
-
 #pragma once
 
 #include "entities/commsim/message/Types.hpp"
@@ -16,20 +9,24 @@
 #include "entities/commsim/message/base/Handler.hpp"
 
 namespace sim_mob {
+class Agent;
 class Broker;
+class ClientHandler;
 
 namespace roadrunner {
 
-class MSG_UNICAST : public sim_mob::comm::Message {
+//Generic handler for ns3+android and android-only activities.
+class UnicastHandler : public sim_mob::Handler {
 public:
-	MSG_UNICAST(sim_mob::comm::MsgData& data_);
-	sim_mob::Handler* newHandler();
-};
+	UnicastHandler(bool useNs3);
 
-//Handler to the above message
-class HDL_UNICAST : public sim_mob::Handler {
-public:
 	void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker);
+
+private:
+	virtual void postProcess(sim_mob::Broker& broker, const sim_mob::Agent& destAgent, sim_mob::ClientHandler& destCliHandler, const std::string andrSensorId, const std::string& andrSensorType, sim_mob::comm::MsgData &data);
+
+private:
+	bool useNs3;
 };
 
 }}

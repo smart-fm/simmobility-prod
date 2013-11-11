@@ -3,10 +3,12 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 /*
- * MULTICAST_Message.h
+ * UNICAST_Message.h
  *
  *  Created on: May 9, 2013
  *      Author: vahid
+ *      unicast messages come from android clients(only) and
+ *      are supposed to be routed to ns3
  */
 
 #pragma once
@@ -14,21 +16,24 @@
 #include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/message/base/Message.hpp"
 #include "entities/commsim/message/base/Handler.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/UnicastHandler.hpp"
 
 namespace sim_mob {
+class Agent;
 class Broker;
+class ClientHandler;
 
-namespace roadrunner {
+namespace rr_android_ns3 {
 
-class MSG_MULTICAST : public sim_mob::comm::Message {
+///NS3 unicast message (no documentation provided).
+class NS3_MSG_UNICAST : public sim_mob::comm::Message {
 public:
-	MSG_MULTICAST(sim_mob::comm::MsgData data_);
-	sim_mob::Handler * newHandler();
+	NS3_MSG_UNICAST(sim_mob::comm::MsgData& data_);
+	sim_mob::Handler* newHandler();
 };
 
-
-//Handler for the above message
-class HDL_MULTICAST : public sim_mob::Handler {
+//Handler to the above message
+class NS3_HDL_UNICAST : public sim_mob::Handler {
 public:
 	void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker);
 };

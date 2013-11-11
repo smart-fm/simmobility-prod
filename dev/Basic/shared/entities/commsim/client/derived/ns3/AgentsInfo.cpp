@@ -13,7 +13,7 @@
 #include <json/json.h>
 #include "entities/Agent.hpp"
 #include "entities/commsim/service/Services.hpp"
-#include "entities/commsim/serialization/Serialization.hpp"
+#include "entities/commsim/serialization/JsonParser.hpp"
 #include <boost/foreach.hpp>
 
 namespace sim_mob {

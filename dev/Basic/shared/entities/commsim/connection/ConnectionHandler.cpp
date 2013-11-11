@@ -12,7 +12,7 @@
 #include "ConnectionHandler.hpp"
 #include "entities/commsim/broker/Broker.hpp"
 //#include "Session.hpp"
-#include "entities/commsim/serialization/Serialization.hpp"
+#include "entities/commsim/serialization/JsonParser.hpp"
 
 namespace sim_mob {
 ConnectionHandler::ConnectionHandler(

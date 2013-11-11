@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 /*
- * CLIENTDONE_Message.h
+ * UNICAST_Message.h
  *
  *  Created on: May 9, 2013
  *      Author: vahid
@@ -13,14 +13,23 @@
 
 #include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/message/base/Message.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/UnicastHandler.hpp"
 
 namespace sim_mob {
 namespace roadrunner {
 
-class MSG_CLIENTDONE : public sim_mob::comm::Message {
+class UnicastMessage : public sim_mob::comm::Message {
 public:
-	MSG_CLIENTDONE(sim_mob::comm::MsgData& data_);
-	Handler * newHandler();
+	UnicastMessage(sim_mob::comm::MsgData& data_, bool useNs3) : Message(data_), useNs3(useNs3)
+	{}
+
+	sim_mob::Handler* newHandler() {
+		return new sim_mob::roadrunner::UnicastHandler(useNs3);
+	}
+
+private:
+	bool useNs3;
 };
 
 }}
+

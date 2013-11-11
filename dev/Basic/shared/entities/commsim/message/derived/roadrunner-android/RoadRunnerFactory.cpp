@@ -2,24 +2,12 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * RRMSGFactory.cpp
- *
- *  Created on: May 13, 2013
- *      Author: vahid
- */
-
-#include "RR_Factory.hpp"
-
-#include <boost/assign/list_of.hpp> // for 'map_list_of()'
-#include <json/json.h>
-#include <stdexcept>
-
-#include "logging/Log.hpp"
+#include "RoadRunnerFactory.hpp"
 
 using namespace sim_mob;
 
-sim_mob::roadrunner::RR_Factory::RR_Factory()
+
+sim_mob::roadrunner::RoadRunnerFactory::RoadRunnerFactory(bool useNs3) : useNs3(useNs3)
 {
 	//Doing it manually; C++1 doesn't like the boost assignment.
 	MessageMap.clear();
@@ -30,15 +18,16 @@ sim_mob::roadrunner::RR_Factory::RR_Factory()
 	//MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE)/*("ANNOUNCE",ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND)*/;
 }
 
-sim_mob::roadrunner::RR_Factory::~RR_Factory()
+sim_mob::roadrunner::RoadRunnerFactory::~RoadRunnerFactory()
 {}
 
-//gets a handler either from a chche or by creating a new one
-boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RR_Factory::getHandler(MessageType type)
+
+
+boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RoadRunnerFactory::getHandler(MessageType type)
 {
 	boost::shared_ptr<sim_mob::Handler> handler;
 	//if handler is already registered && the registered handler is not null
-	std::map<MessageType, boost::shared_ptr<sim_mob::Handler> >::iterator it = HandlerMap.find(type);
+	typename std::map<MessageType, boost::shared_ptr<sim_mob::Handler> >::iterator it = HandlerMap.find(type);
 	if((it != HandlerMap.end())&&((*it).second!= 0))
 	{
 		//get the handler ...
@@ -51,10 +40,10 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RR_Factory::getHandler
 		switch(type)
 		{
 		case MULTICAST:
-			handler.reset(new sim_mob::roadrunner::HDL_MULTICAST());
+			handler.reset(new sim_mob::roadrunner::MulticastHandler(useNs3));
 			break;
 		case UNICAST:
-			handler.reset(new sim_mob::roadrunner::HDL_UNICAST());
+			handler.reset(new sim_mob::roadrunner::UnicastHandler(useNs3));
 			break;
 		default:
 			typeFound = false;
@@ -69,12 +58,9 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RR_Factory::getHandler
 	return handler;
 }
 
-//creates a message with correct format + assigns correct handler
-//todo improve the function to handle array of messages stored in the input string
-bool sim_mob::roadrunner::RR_Factory::createMessage(std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
+
+bool sim_mob::roadrunner::RoadRunnerFactory::createMessage(std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
 {
-//	std::vector<msg_t> result;
-	std::string type, data;
 	Json::Value root;
 	sim_mob::pckt_header packetHeader;
 	if(!sim_mob::JsonParser::parsePacketHeader(input, packetHeader, root))
@@ -87,7 +73,6 @@ bool sim_mob::roadrunner::RR_Factory::createMessage(std::string &input, std::vec
 	}
 	for (int index = 0; index < root.size(); index++) {
 		msg_header messageHeader;
-//		std::string  msgStr;// =  /*const_cast<std::string&>*/(root[index].asString());
 		if (!sim_mob::JsonParser::parseMessageHeader(root[index], messageHeader)) {
 			continue;
 		}
@@ -95,7 +80,7 @@ bool sim_mob::roadrunner::RR_Factory::createMessage(std::string &input, std::vec
 		switch (MessageMap[messageHeader.msg_type]) {
 		case MULTICAST:{
 			//create a message
-			sim_mob::comm::MsgPtr msg(new sim_mob::roadrunner::MSG_MULTICAST(curr_json));
+			sim_mob::comm::MsgPtr msg(new MulticastMessage(curr_json, useNs3));
 			//... and then assign the handler pointer to message's member
 			msg->setHandler(getHandler(MULTICAST));
 			output.push_back(msg);
@@ -103,7 +88,7 @@ bool sim_mob::roadrunner::RR_Factory::createMessage(std::string &input, std::vec
 		}
 		case UNICAST:{
 			//create a message
-			sim_mob::comm::MsgPtr msg(new sim_mob::roadrunner::MSG_UNICAST(curr_json));
+			sim_mob::comm::MsgPtr msg(new UnicastMessage(curr_json, useNs3));
 			//... and then assign the handler pointer to message's member
 			msg->setHandler(getHandler(UNICAST));
 			output.push_back(msg);
@@ -111,7 +96,7 @@ bool sim_mob::roadrunner::RR_Factory::createMessage(std::string &input, std::vec
 		}
 		case CLIENT_MESSAGES_DONE:{
 			//create a message
-			sim_mob::comm::MsgPtr msg(new sim_mob::roadrunner::MSG_CLIENTDONE(curr_json));
+			sim_mob::comm::MsgPtr msg(new ClientDoneMessage(curr_json));
 			//... and then assign the handler pointer to message's member
 //			msg->setHandler(getHandler()); no handler!
 			output.push_back(msg);
@@ -126,3 +111,5 @@ bool sim_mob::roadrunner::RR_Factory::createMessage(std::string &input, std::vec
 
 	return true;
 }
+
+

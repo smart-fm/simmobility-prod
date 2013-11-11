@@ -16,26 +16,14 @@
 #include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/message/base/Message.hpp"
 #include "entities/commsim/message/base/Handler.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/MulticastHandler.hpp"
 
 namespace sim_mob {
+class Agent;
 class Broker;
+class ClientHandler;
 
 namespace rr_android_ns3 {
-
-
-///Android multicast message class (no documentation provided).
-class ANDROID_MSG_MULTICAST : public sim_mob::comm::Message {
-public:
-	ANDROID_MSG_MULTICAST(sim_mob::comm::MsgData data_);
-	sim_mob::Handler* newHandler();
-};
-
-
-//Handler for the above message
-class ANDROID_HDL_MULTICAST : public sim_mob::Handler {
-public:
-	void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker);
-};
 
 
 ///NS3 multicast message class (no documentation provided).

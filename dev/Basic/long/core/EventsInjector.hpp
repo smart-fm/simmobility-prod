@@ -14,6 +14,14 @@ namespace sim_mob {
 
     namespace long_term {
 
+        /**
+         * Entity responsible to inject some external events
+         * to affect the models simulation.
+         * 
+         * For now, this implementation calls a bunch of lua functions 
+         * that will provide the events for the given day.
+         * 
+         */
         class EventsInjector : public Entity {
         public:
             EventsInjector();

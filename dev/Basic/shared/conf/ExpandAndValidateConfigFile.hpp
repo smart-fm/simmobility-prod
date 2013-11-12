@@ -54,6 +54,7 @@ private:
 	void GenerateXMLAgents(const std::vector<EntityTemplate>& xmlItems, const std::string& roleName, ConfigParams::AgentConstraints& constraints);
 	void GenerateXMLSignals();
 	void PrintSettings();
+	void VerifyIncidents();
 
 private:
 	//The config file we are currently loading

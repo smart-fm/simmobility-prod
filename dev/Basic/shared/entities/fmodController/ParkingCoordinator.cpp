@@ -31,14 +31,15 @@ ParkingCoordinator::~ParkingCoordinator() {
 bool ParkingCoordinator::enterTo(const Node* node, const Agent* agent)
 {
 	bool ret = isExisted(node, agent);
-	if(ret == true)
-		return false;
+	if(ret == true){
+		return ret;
+	}
 
-	std::map<const Node*, ParkingLot>::iterator it = vehicle_parking.find(node);
-	if( it == vehicle_parking.end() ){
+	std::map<const Node*, ParkingLot>::iterator it = vehicleParking.find(node);
+	if( it == vehicleParking.end() ){
 		ParkingLot lot;
-		vehicle_parking.insert( std::make_pair(node, lot));
-		it = vehicle_parking.find(node);
+		vehicleParking.insert( std::make_pair(node, lot));
+		it = vehicleParking.find(node);
 	}
 
 	ParkingLot& lot = (*it).second;
@@ -64,8 +65,8 @@ const Agent* ParkingCoordinator::leaveFrom(const Node* node, const Agent* agent)
 		return ret;
 	}
 	else{
-		std::map<const Node*, ParkingLot>::iterator it = vehicle_parking.find(node);
-		if( it == vehicle_parking.end() )
+		std::map<const Node*, ParkingLot>::iterator it = vehicleParking.find(node);
+		if( it == vehicleParking.end() )
 			return ret;
 
 		ParkingLot& lot = (*it).second;
@@ -82,7 +83,7 @@ const Agent* ParkingCoordinator::remove(const int clientid)
 {
 	const Agent* ret = nullptr;
 
-	for( std::map<const Node*, ParkingLot>::iterator it = vehicle_parking.begin(); it!=vehicle_parking.end(); it++ ){
+	for( std::map<const Node*, ParkingLot>::iterator it = vehicleParking.begin(); it!=vehicleParking.end(); it++ ){
 
 		ParkingLot& lot = (*it).second;
 		for( std::vector<const Agent*>::iterator itAg = lot.vehicles.begin(); itAg!=lot.vehicles.end(); itAg++ ){
@@ -102,9 +103,10 @@ const Agent* ParkingCoordinator::remove(const int clientid)
 
 int  ParkingCoordinator::getCapacity(const Node* node)
 {
-	std::map<const Node*, ParkingLot>::iterator it = vehicle_parking.find(node);
-	if( it == vehicle_parking.end() )
+	std::map<const Node*, ParkingLot>::iterator it = vehicleParking.find(node);
+	if( it == vehicleParking.end() ){
 		return 0;
+	}
 
 	ParkingLot& lot = (*it).second;
 
@@ -113,9 +115,10 @@ int  ParkingCoordinator::getCapacity(const Node* node)
 
 int  ParkingCoordinator::getOccupancy(const Node* node)
 {
-	std::map<const Node*, ParkingLot>::iterator it = vehicle_parking.find(node);
-	if( it == vehicle_parking.end() )
+	std::map<const Node*, ParkingLot>::iterator it = vehicleParking.find(node);
+	if( it == vehicleParking.end() ){
 		return 0;
+	}
 
 	ParkingLot& lot = (*it).second;
 
@@ -125,8 +128,8 @@ int  ParkingCoordinator::getOccupancy(const Node* node)
 bool ParkingCoordinator::isExisted(const Node* node, const Agent* agent)
 {
 	bool ret = true;
-	std::map<const Node*, ParkingLot>::iterator it = vehicle_parking.find(node);
-	if( it == vehicle_parking.end() ){
+	std::map<const Node*, ParkingLot>::iterator it = vehicleParking.find(node);
+	if( it == vehicleParking.end() ){
 		ret = false;
 	}
 

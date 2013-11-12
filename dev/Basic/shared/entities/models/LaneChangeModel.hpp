@@ -11,6 +11,12 @@ namespace sim_mob {
 //Forward declaration
 class DriverUpdateParams;
 
+enum LANE_CHANGE_MODE {	//as a mask
+	DLC = 0,
+	MLC = 2,
+	MLC_C = 4,
+	MLC_F = 6
+};
 
 /*
  * \file LaneChangeModel.hpp
@@ -26,7 +32,7 @@ public:
 
 	///to execute the lane changing, meanwhile, check if crash will happen and avoid it
 	///Return new lateral velocity, or <0 to keep the velocity at its previous value.
-	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir) = 0;
+	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode) = 0;
 };
 
 
@@ -41,12 +47,12 @@ public:
  */
 class SimpleLaneChangeModel : public LaneChangeModel {
 public:
-	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir);
+	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode);
 };
 
 class MITSIM_LC_Model : public LaneChangeModel {
 public:
-	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir);
+	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode);
 
 	///Use Kazi LC Gap Model to calculate the critical gap
 	///\param type 0=leading 1=lag + 2=mandatory (mask) //TODO: ARGHHHHHHH magic numbers....
@@ -60,6 +66,14 @@ public:
 	virtual sim_mob::LANE_CHANGE_SIDE makeDiscretionaryLaneChangingDecision(sim_mob::DriverUpdateParams& p);  ///<DLC model, vehicles freely decide which lane to move. Returns 1 for Right, -1 for Left, and 0 for neither.
 	virtual double checkIfMandatory(DriverUpdateParams& p);  ///<check if MLC is needed, return probability to MLC
 	virtual sim_mob::LANE_CHANGE_SIDE makeMandatoryLaneChangingDecision(sim_mob::DriverUpdateParams& p); ///<MLC model, vehicles must change lane, Returns 1 for Right, -1 for Left.
+
+	virtual sim_mob::LANE_CHANGE_SIDE executeNGSIMModel(sim_mob::DriverUpdateParams& p);
+	virtual bool ifCourtesyMerging(DriverUpdateParams& p);
+	virtual bool ifForcedMerging(DriverUpdateParams& p);
+	virtual sim_mob::LANE_CHANGE_SIDE makeCourtesyMerging(sim_mob::DriverUpdateParams& p);
+	virtual sim_mob::LANE_CHANGE_SIDE makeForcedMerging(sim_mob::DriverUpdateParams& p);
+	virtual sim_mob::TARGET_GAP* chooseTargetGap(sim_mob::DriverUpdateParams& p);
+
 };
 
 

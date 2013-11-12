@@ -3,101 +3,99 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 /*
- * TCPSession.cpp
+ * FmodClient.cpp
  *
  *  Created on: May 22, 2013
  *      Author: zhang
  */
 
-#include "TCPClient.hpp"
+#include "FMOD_Client.hpp"
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
 #include <boost/thread.hpp>
-#include "TCPServer.hpp"
 
 namespace sim_mob {
 
 namespace FMOD
 {
 
-TCPClient::TCPClient(boost::asio::io_service& io_service, TCPServer* parentIn):socket_(io_service), parent(parentIn) {
+FMOD_Client::FMOD_Client(boost::asio::io_service& ioService):socket_(ioService) {
 	// TODO Auto-generated constructor stub
 
 }
 
-TCPClient::~TCPClient() {
+FMOD_Client::~FMOD_Client() {
 	// TODO Auto-generated destructor stub
 }
 
-boost::shared_ptr<TCPClient> TCPClient::create(boost::asio::io_service& io_service, TCPServer* parent)
+boost::shared_ptr<FMOD_Client> FMOD_Client::create(boost::asio::io_service& ioService)
 {
-	return boost::shared_ptr<TCPClient>(new TCPClient(io_service, parent));
+	return boost::shared_ptr<FMOD_Client>(new FMOD_Client(ioService));
 }
 
-boost::asio::ip::tcp::socket& TCPClient::socket()
+boost::asio::ip::tcp::socket& FMOD_Client::socket()
 {
 	return socket_;
 }
 
-void TCPClient::Flush()
+void FMOD_Client::flush()
 {
 	sendData();
 }
 
 
-void TCPClient::SendMessage(std::string data)
+void FMOD_Client::sendMessage(std::string& data)
 {
-	msgSendQueue.PushMessage(data);
+	msgSendQueue.pushMessage(data);
 }
 
-void TCPClient::SendMessage(MessageList data)
+void FMOD_Client::sendMessage(MessageList& data)
 {
 	while(data.size()>0)
 	{
 		std::string str = data.front();
 		data.pop();
-		msgSendQueue.PushMessage(str);
+		msgSendQueue.pushMessage(str);
 	}
 }
 
-MessageList TCPClient::GetMessage()
+MessageList FMOD_Client::getMessage()
 {
 	MessageList res;
 	std::string msg;
-	if( bool ret = msgReceiveQueue.PopMessage(msg) )
+	if( bool ret = msgReceiveQueue.popMessage(msg) ){
 		res.push(msg);
+	}
 
 	return res;
 }
 
-bool TCPClient::WaitMessageInBlocking(std::string& msg, int seconds)
+bool FMOD_Client::waitMessageInBlocking(std::string& msg, int seconds)
 {
-	return msgReceiveQueue.WaitPopMessage(msg, seconds);
+	return msgReceiveQueue.waitPopMessage(msg, seconds);
 }
 
-void TCPClient::handle_write(const boost::system::error_code& error, size_t bytesTransferred)
+void FMOD_Client::handleWrite(const boost::system::error_code& error, size_t bytesTransferred)
 {
 	if( error == 0 ){
 		sendData();
 	}
 	else{
 		 std::cerr<<"end: send error "<<error.message()<<std::endl;
-		 if(parent) parent->RemoveAClient(this);
 	}
 }
-void TCPClient::handle_read(const boost::system::error_code& error, size_t bytesTransferred)
+void FMOD_Client::handleRead(const boost::system::error_code& error, size_t bytesTransferred)
 {
 	if( error == 0 ){
-		msgReceiveQueue.PushMessage(ReceivedBuf.data());
+		msgReceiveQueue.pushMessage(ReceivedBuf.data());
 		receiveData();
 	}
 	else{
 		 std::cerr<<"end: receive error "<<error.message()<<std::endl;
-		 if(parent) parent->RemoveAClient(this);
 	}
 }
 
-bool TCPClient::ConnectToServer(std::string ip, int port)
+bool FMOD_Client::connectToServer(std::string& ip, int port)
 {
 	bool ret = true;
 	boost::asio::ip::tcp::endpoint endpoint( boost::asio::ip::address::from_string(ip.c_str()), port);
@@ -114,27 +112,28 @@ bool TCPClient::ConnectToServer(std::string ip, int port)
 	return ret;
 }
 
-void TCPClient::Stop()
+void FMOD_Client::stop()
 {
 	socket_.close();
 }
 
-bool TCPClient::sendData()
+bool FMOD_Client::sendData()
 {
-	bool ret = msgSendQueue.PopMessage(messageSnd);
+	bool ret = msgSendQueue.popMessage(messageSnd);
 
-	if(!ret) return ret;
+	if(!ret){
+		return ret;
+	}
 
 	boost::system::error_code err;
 	try
 	{
 		boost::asio::async_write(socket_, boost::asio::buffer(messageSnd),
-							  boost::bind(&TCPClient::handle_write,shared_from_this(),
+							  boost::bind(&FMOD_Client::handleWrite,shared_from_this(),
 							  boost::asio::placeholders::error,
 							  boost::asio::placeholders::bytes_transferred));
 		 if(err) {
 			 std::cerr<<"start: send error "<<err.message()<<std::endl;
-			 if(parent) parent->RemoveAClient(this);
 			 return false;
 		 }
 	}
@@ -146,18 +145,17 @@ bool TCPClient::sendData()
 
 	return true;
 }
-bool TCPClient::receiveData()
+bool FMOD_Client::receiveData()
 {
 	boost::system::error_code err;
 	try
 	{
 		boost::asio::async_read(socket_, boost::asio::buffer(ReceivedBuf),
-							  boost::bind(&TCPClient::handle_read,shared_from_this(),
+							  boost::bind(&FMOD_Client::handleRead,shared_from_this(),
 							  boost::asio::placeholders::error,
 							  boost::asio::placeholders::bytes_transferred));
 		 if(err) {
 			 std::cerr<<"start: receive error "<<err.message()<<std::endl;
-			 if(parent) parent->RemoveAClient(this);
 			 return false;
 		 }
 	}

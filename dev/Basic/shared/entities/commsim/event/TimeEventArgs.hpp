@@ -9,10 +9,9 @@
  *      Author: vahid
  */
 
-#ifndef TIMEEVENTARGS_HPP_
-#define TIMEEVENTARGS_HPP_
+#pragma once
 
-#include "entities/commsim/serialization/Serialization.hpp"
+#include "entities/commsim/serialization/JsonParser.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
 #include "metrics/Frame.hpp"
@@ -31,4 +30,3 @@ public:
 
 
 } /* namespace sim_mob */
-#endif /* TIMEEVENTARGS_HPP_ */

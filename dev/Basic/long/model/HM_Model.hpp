@@ -8,6 +8,8 @@
  */
 #pragma once
 #include "Model.hpp"
+#include <boost/unordered_map.hpp>
+#include <boost/optional.hpp>
 #include "database/entity/Household.hpp"
 #include "database/entity/Unit.hpp"
 #include "core/HousingMarket.hpp"
@@ -20,9 +22,9 @@ namespace sim_mob {
          */
         class HM_Model : public Model{
         public:
-            HM_Model(db::DatabaseConfig& dbConfig, WorkGroup& workGroup);
+            HM_Model(WorkGroup& workGroup);
             virtual ~HM_Model();
-            
+            const Unit* getUnitById(const BigSerial& unitId) const;
         protected:
             /**
              * Inherited from Model.
@@ -31,10 +33,12 @@ namespace sim_mob {
             void stopImpl();
         
         private:
+            typedef boost::unordered_map<BigSerial, Unit*> UnitMap;      
             // Data
             HousingMarket market;
             std::vector<Household> households;
             std::vector<Unit> units;
+            UnitMap unitsById;
         };
     }
 }

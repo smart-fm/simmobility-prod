@@ -3,6 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
+
 #include "entities/commsim/buffer/BufferContainer.hpp"
 #include "entities/commsim/broker/Broker.hpp"
 
@@ -24,14 +25,11 @@
 
 
 //using namespace sim_mob;
-namespace sim_mob
-{
-//class Broker;
+namespace sim_mob {
 class Agent;
 
 class AgentCommUtilityBase {
 private:
-
 	//the following flags allow access to the incoming and outgoing buffers by bothe owner(communicating agent) and communicator agent without imposing any lock on the buffers
 	bool incomingIsDirty;     //there is something in the incoming buffer (buffer is written by 'communicator' agent; to be read by the 'communicating' agent)
 	bool outgoingIsDirty;		//there is something in the outgoing buffer (buffer is written by 'communicating' agent; to be read by the 'communicator' agent)
@@ -46,7 +44,7 @@ private:
 	unsigned int type;//do you want to register as a pedestrian, driver,....
 
 protected:
-	sim_mob::Broker * communicator;
+	sim_mob::Broker* communicator;
 
 public:
 	bool registered;
@@ -55,129 +53,43 @@ public:
 	boost::shared_mutex mutex;
 	boost::shared_mutex mutex_outgoing;
 	boost::shared_mutex mutex_incoming;
-	AgentCommUtilityBase(/*sim_mob::Broker* managingBroker, */sim_mob::Agent* entity_):
- 	entity(entity_),
-	communicator(0),
-	incomingIsDirty(false),
-	outgoingIsDirty(false),
-	writeIncomingDone(false),
-	readOutgoingDone(false),
-	agentUpdateDone(false),
-	type(0)
-	{
-		registered = false;
-		registrationCallback = &AgentCommUtilityBase::registrationCallBack;
-	}
 
-	void setBroker(sim_mob::Broker *broker){
-//		Print() << "Setting the communicator to [" << broker << "]" << std::endl;
-		communicator = broker;
-	}
+	AgentCommUtilityBase(sim_mob::Agent* entity_);
 
-	sim_mob::Broker *getBroker()
-	{
-		return communicator;
-	}
+	void setBroker(sim_mob::Broker *broker);
 
-	void setwriteIncomingDone(bool value) {
-		boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
-		writeIncomingDone = value;
-	}
+	sim_mob::Broker *getBroker();
 
-	void setWriteOutgoingDone(bool value) {
-		boost::unique_lock< boost::shared_mutex > lock(mutex_outgoing);
-		readOutgoingDone = value;
-	}
+	void setwriteIncomingDone(bool value);
 
-	void setAgentUpdateDone(bool value) {
-		boost::unique_lock< boost::shared_mutex > lock(mutex);
-//		communicator->setAgentUpdateDone(entity);
-		agentUpdateDone = value;
-	}
+	void setWriteOutgoingDone(bool value);
 
-	bool &iswriteIncomingDone() {
-		boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
-		return writeIncomingDone;
-	}
+	void setAgentUpdateDone(bool value);
 
-	bool &isreadOutgoingDone() {
-		boost::unique_lock< boost::shared_mutex > lock(mutex_outgoing);
-		return readOutgoingDone;
-	}
-
-	bool &isAgentUpdateDone() {
-		boost::unique_lock< boost::shared_mutex > lock(mutex);
-			return agentUpdateDone;
-	}
-
-
-	bool &isOutgoingDirty() {
-		boost::unique_lock< boost::shared_mutex > lock(mutex_outgoing);
-		return outgoingIsDirty;
-	}
-
-	bool &isIncomingDirty() {
-		boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
-		return incomingIsDirty;
-	}
+	//NOTE: I am making these return bool instead of bool&  --returning a reference
+	//      like this is fine, but since you are locking the value I assume it is an error
+	//      (since *using* the returned value will not be thread-safe). ~Seth
+	bool iswriteIncomingDone();
+	bool isreadOutgoingDone();
+	bool isAgentUpdateDone();
+	bool isOutgoingDirty();
+	bool isIncomingDirty();
 
 //todo
+	void reset();
 
-	void reset(){
-		{
-			boost::unique_lock< boost::shared_mutex > lock(mutex);
-			agentUpdateDone = false ;
-		}
-		{
-			boost::unique_lock< boost::shared_mutex > lock(mutex_outgoing);
-			outgoingIsDirty = false ;
-			readOutgoingDone = false ;
-		}
-		{
-			boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
-			incomingIsDirty = false ;
-			writeIncomingDone = false ;
-		}
-
-	}
-
-	void init(){
-
-	}
+	void init();
 
 	//this is used to register the drived class
 	//(which is also an agent) to the communicator agent
+	bool RegisterWithBroker();
 
-	bool RegisterWithBroker(/*sim_mob::Agent* registerr, sim_mob::Broker *communicator_*/)
-	{
-
-//		//todo here you are copying twice while once is possibl, I guess.
-//		subscriptionInfo info = getSubscriptionInfo();
-//		info.setEntity(registerr);
-//		communicator = communicator_;
-//		Print() << "AgentCommUtility::Registering With Broker[" << communicator << "]" << std::endl;
-		if(!communicator)
-		{
-			throw std::runtime_error("Broker Not specified");
-		}
-		return communicator->registerEntity(this);
-//		std::cout << "agent[" << &getEntity() << "] was registered with outgoing[" << &(getOutgoing()) << "]" << std::endl;
-	}
 	//	subscriptionInfo getSubscriptionInfo();
-		void setregistered(bool value)
-		{
-			registered = value;
-		};
+	void setregistered(bool value);
 
-	void registrationCallBack(bool registered)
-	{
-		setregistered(registered);
-	}
+	void registrationCallBack(bool registered);
 
-	sim_mob::Agent* getEntity()
-	{
-		return entity;
-	}
+	sim_mob::Agent* getEntity();
 
 };
 
@@ -201,12 +113,9 @@ public:
 template<class MSG_TYPE>
 class AgentCommUtility :public AgentCommUtilityBase{
 public:
-	AgentCommUtility(sim_mob::Agent* entity_):
-		AgentCommUtilityBase(entity_)
-{
-}
-;
-	virtual ~AgentCommUtility(){};
+	AgentCommUtility(sim_mob::Agent* entity_);
+
+	virtual ~AgentCommUtility();
 
 private:
 	BufferContainer<MSG_TYPE> incoming;
@@ -214,38 +123,79 @@ private:
 
 public:
 	//we use original dataMessage(or DATA_MSG) type to avoid wrong read/write
-	BufferContainer<MSG_TYPE>& getIncoming() {
-		return incoming;
-	};
-	void getAndClearIncoming(BufferContainer<MSG_TYPE> &values) {
-		values = incoming;
-		incoming.clear();
-	};
-	BufferContainer<MSG_TYPE>& getOutgoing(){
-		boost::unique_lock< boost::shared_mutex > lock(mutex_outgoing);
-		return outgoing;
-	};
-	void setIncoming(BufferContainer<MSG_TYPE> values) {
-		boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
-		incoming = values;
-	};
-	bool popIncoming(MSG_TYPE &var)
-	{
-		boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
-		return incoming.pop(var);
-	};
+	BufferContainer<MSG_TYPE>& getIncoming();
+	void getAndClearIncoming(BufferContainer<MSG_TYPE> &values);
+	BufferContainer<MSG_TYPE>& getOutgoing();
+	void setIncoming(BufferContainer<MSG_TYPE> values);
+	bool popIncoming(MSG_TYPE &var);
 
-void addIncoming(MSG_TYPE value) {
-		boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
-		incoming.add(value);
-		incomingIsDirty = true;
-	}
+	void addIncoming(MSG_TYPE value);
 
-	void addOutgoing(MSG_TYPE value) {
-		boost::unique_lock< boost::shared_mutex > lock(mutex_outgoing);
-		outgoing.add(value);
-		outgoingIsDirty = true;
-	}
+	void addOutgoing(MSG_TYPE value);
 
 };//end of class  AgentCommUtility
-};//namespace
+
+} //End sim_mob namespace
+
+
+//////////////////////////////////////////////////////////////
+// Template implementation
+//////////////////////////////////////////////////////////////
+
+template <class MSG_TYPE>
+sim_mob::AgentCommUtility<MSG_TYPE>::AgentCommUtility(sim_mob::Agent* entity_) : AgentCommUtilityBase(entity_)
+{}
+
+template <class MSG_TYPE>
+sim_mob::AgentCommUtility<MSG_TYPE>::~AgentCommUtility()
+{}
+
+template <class MSG_TYPE>
+sim_mob::BufferContainer<MSG_TYPE>& sim_mob::AgentCommUtility<MSG_TYPE>::getIncoming()
+{
+	return incoming;
+}
+
+template <class MSG_TYPE>
+void sim_mob::AgentCommUtility<MSG_TYPE>::getAndClearIncoming(BufferContainer<MSG_TYPE> &values)
+{
+	values = incoming;
+	incoming.clear();
+}
+
+template <class MSG_TYPE>
+sim_mob::BufferContainer<MSG_TYPE>& sim_mob::AgentCommUtility<MSG_TYPE>::getOutgoing()
+{
+	boost::unique_lock< boost::shared_mutex > lock(mutex_outgoing);
+	return outgoing;
+}
+
+template <class MSG_TYPE>
+void sim_mob::AgentCommUtility<MSG_TYPE>::setIncoming(BufferContainer<MSG_TYPE> values)
+{
+	boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
+	incoming = values;
+}
+
+template <class MSG_TYPE>
+bool sim_mob::AgentCommUtility<MSG_TYPE>::popIncoming(MSG_TYPE &var)
+{
+	boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
+	return incoming.pop(var);
+}
+
+template <class MSG_TYPE>
+void sim_mob::AgentCommUtility<MSG_TYPE>::addIncoming(MSG_TYPE value)
+{
+	boost::unique_lock< boost::shared_mutex > lock(mutex_incoming);
+	incoming.add(value);
+	incomingIsDirty = true;
+}
+
+template <class MSG_TYPE>
+void sim_mob::AgentCommUtility<MSG_TYPE>::addOutgoing(MSG_TYPE value)
+{
+	boost::unique_lock< boost::shared_mutex > lock(mutex_outgoing);
+	outgoing.add(value);
+	outgoingIsDirty = true;
+}

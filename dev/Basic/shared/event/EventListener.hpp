@@ -9,66 +9,66 @@
  * Created on March 7, 2013, 11:37 AM
  */
 
-#include "args/EventArgs.hpp"
-
-
 #pragma once
 
+#include "args/EventArgs.hpp"
+
 namespace sim_mob {
+namespace event {
 
-    namespace event {
-        
-        typedef void* Context;
-        class EventPublisher;
+class EventPublisher;
 
-        /**
-         * Interface for all event listener implementation.
-         */
-        class EventListener {
-        public:
+typedef void* Context;
+
+///Interface for all event listener implementation.
+class EventListener {
+public:
+	virtual ~EventListener()=0;
             
-            virtual ~EventListener()=0;
-            
-            /**
-             * Handles the received global event.
-             * @param sender pointer for the event producer.
-             * @param id event identifier.
-             * @param args event arguments.
-             */
-            virtual void OnEvent(sim_mob::event::EventId id, 
-                                 sim_mob::event::EventPublisher* sender, 
-                                 const EventArgs& args) {
-            };
+	/**
+	 * Handles the received global event.
+	 * @param sender pointer for the event producer.
+	 * @param id event identifier.
+	 * @param args event arguments.
+	 */
+	virtual void OnEvent(sim_mob::event::EventId id,
+				sim_mob::event::EventPublisher* sender,
+				const EventArgs& args)
+	{}
 
-            /**
-             * Handles the received context event.
-             * @param sender pointer for the event producer.
-             * @param id event identifier.
-             * @param args event arguments.
-             */
-            virtual void OnEvent(sim_mob::event::EventId id, 
-                                 sim_mob::event::Context ctxId, 
-                                 sim_mob::event::EventPublisher* sender, 
-                                 const EventArgs& args) {
-            };
 
-            /**
-             * Functions for calls.
-             */
-            typedef void (EventListener::*EventCallback)(
-                sim_mob::event::EventId id, 
-                sim_mob::event::EventPublisher* sender, 
-                const EventArgs& args);
-            typedef void (EventListener::*EventContextCallback)(
-                sim_mob::event::EventId id, 
-                sim_mob::event::Context ctxId, 
-                sim_mob::event::EventPublisher* sender, 
-                const sim_mob::event::EventArgs& args);
-        };
+	/**
+	 * Handles the received context event.
+	 * @param sender pointer for the event producer.
+	 * @param id event identifier.
+	 * @param args event arguments.
+	 */
+	virtual void OnEvent(sim_mob::event::EventId id,
+				sim_mob::event::Context ctxId,
+				sim_mob::event::EventPublisher* sender,
+				const EventArgs& args)
+	{}
+
+	/**
+	 * Functions for calls.
+	 */
+	typedef void (EventListener::*EventCallback)(
+			sim_mob::event::EventId id,
+			sim_mob::event::EventPublisher* sender,
+			const EventArgs& args);
+
+	typedef void (EventListener::*EventContextCallback)(
+			sim_mob::event::EventId id,
+			sim_mob::event::Context ctxId,
+			sim_mob::event::EventPublisher* sender,
+			const sim_mob::event::EventArgs& args);
+};
         
-        inline EventListener::~EventListener(){};
-    }
-}
+inline EventListener::~EventListener(){};
+
+}}  //End namespace sim_mob::event
+
+
 /**
  * Call this before you EventArgs implementation.
  */

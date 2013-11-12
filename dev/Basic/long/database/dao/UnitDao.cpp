@@ -15,13 +15,10 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-UnitDao::UnitDao(DBConnection* connection)
+UnitDao::UnitDao(DB_Connection& connection)
 : AbstractDao<Unit>(connection, DB_TABLE_UNIT,
 DB_INSERT_UNIT, DB_UPDATE_UNIT, DB_DELETE_UNIT,
-DB_GETALL_UNIT, DB_GETBYID_UNIT) {
-    fromRowCallback = DAO_FROM_ROW_CALLBACK_HANDLER(Unit, UnitDao::fromRow);
-    toRowCallback = DAO_TO_ROW_CALLBACK_HANDLER(Unit, UnitDao::toRow);
-}
+DB_GETALL_UNIT, DB_GETBYID_UNIT) {}
 
 UnitDao::~UnitDao() {
 }
@@ -34,7 +31,6 @@ void UnitDao::fromRow(Row& result, Unit& outObj) {
     outObj.storey = result.get<int>(DB_FIELD_STOREY, 0);
     outObj.floorArea = result.get<double>(DB_FIELD_FLOOR_AREA, 0);
     outObj.rent = result.get<double>(DB_FIELD_RENT, 0);
-    outObj.available = false;
 }
 
 void UnitDao::toRow(Unit& data, Parameters& outParams, bool update) {

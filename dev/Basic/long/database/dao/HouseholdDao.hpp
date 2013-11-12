@@ -16,14 +16,12 @@ using namespace boost;
 namespace sim_mob {
 
     namespace long_term {
-
-        DAO_DECLARE_CALLBACKS(Household);
         /**
          * Data Access Object to Household table on datasource.
          */
         class HouseholdDao : public db::AbstractDao<Household> {
         public:
-            HouseholdDao(db::DBConnection* connection);
+            HouseholdDao(db::DB_Connection& connection);
             virtual ~HouseholdDao();
 
         private:

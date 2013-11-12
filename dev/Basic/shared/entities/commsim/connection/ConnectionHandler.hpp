@@ -9,8 +9,8 @@
  *      Author: vahid
  */
 
-#ifndef CONNECTIONHANDLER_HPP_
-#define CONNECTIONHANDLER_HPP_
+#pragma once
+
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -56,4 +56,3 @@ public:
 };//ConnectionHandler
 
 } /* namespace sim_mob */
-#endif /* CONNECTIONHANDLER_HPP_ */

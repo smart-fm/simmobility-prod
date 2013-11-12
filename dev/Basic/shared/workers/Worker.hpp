@@ -27,14 +27,14 @@ class Conflux;
 class Entity;
 
 //subclassed Eventpublisher coz its destructor is pure virtual
-	class UpdatePublisher: public sim_mob::event::EventPublisher  {
-	public:
-		UpdatePublisher(){
-			RegisterEvent(sim_mob::event::EVT_CORE_AGENT_UPDATED);
-//			std::cout << "UpdatePublisher::RegisterEvent Done" << std::endl;
-		}
-		virtual ~UpdatePublisher(){}
-	};
+class UpdatePublisher: public sim_mob::event::EventPublisher  {
+public:
+	UpdatePublisher() {
+		RegisterEvent(sim_mob::event::EVT_CORE_AGENT_UPDATED);
+	}
+
+	virtual ~UpdatePublisher(){}
+};
 
 
 

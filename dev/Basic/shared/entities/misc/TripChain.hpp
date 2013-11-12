@@ -160,17 +160,17 @@ class FMODSchedule{
 public:
 	struct STOP
 	{
-		int stop_id;
-		int schedule_id;
-		double dwell_time;
-		std::string arrival_time;
-		std::string depature_time;
-		std::vector< int > boardingpassengers;
-		std::vector< int > alightingpassengers;
+		int stopId;
+		int scheduleId;
+		double dwellTime;
+		std::string arrivalTime;
+		std::string depatureTime;
+		std::vector< int > boardingPassengers;
+		std::vector< int > alightingPassengers;
 	};
-	std::vector<STOP> stop_schdules;
+	std::vector<STOP> stopSchdules;
 	std::vector<Node*> routes;
-	std::vector<const Person*> insidepassengers;
+	std::vector<const Person*> insidePassengers;
 };
 /**
  * \author Harish

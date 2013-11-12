@@ -33,6 +33,30 @@ struct FMOD_ControllerParams {
 	unsigned int blockingTimeSec;
 };
 
+///represent the incident data section of the config file
+struct IncidentParams {
+	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
+			capFactor(0), startTime(0), duration(0), speedLimit(0), speedLimitOthers(0), laneId(0),
+			compliance(0), accessibility(0), xLaneStartPos(0),yLaneStartPos(0),xLaneEndPos(0),yLaneEndPos(0){}
+
+	unsigned int incidentId;
+	float visibilityDistance;
+	unsigned int segmentId;
+	float position;
+	unsigned int severity;
+	float capFactor;
+	unsigned int startTime;
+	unsigned int duration;
+	float speedLimit;
+	float speedLimitOthers;
+	unsigned int laneId;
+	float compliance;
+	float accessibility;
+	float xLaneStartPos;
+	float yLaneStartPos;
+	float xLaneEndPos;
+	float yLaneEndPos;
+};
 
 ///Represents a Bust Stop in the config file. (NOTE: Further documentation needed.)
 struct BusStopScheduledTime {
@@ -89,7 +113,7 @@ public:
 	unsigned int totalWarmupMS;    ///<Total time (in milliseconds) considered "warmup".
 
 	DailyTime simStartTime; ///<When the simulation begins(based on configuration)
-
+	std::string travelTimeTmpTableName;
 	AuraManager::AuraManagerImplementation auraManagerImplementation; ///<What type of Aura Manager we're using.
 
 	WorkGroup::ASSIGNMENT_STRATEGY workGroupAssigmentStrategy;  ///<Defautl assignment strategy for Workgroups.
@@ -168,7 +192,8 @@ struct EntityTemplate {
 	EntityTemplate();
 	Point2D originPos;
 	Point2D destPos;
-	unsigned int startTimeMs;
+	unsigned int startTimeMs;// default is zero
+	unsigned int laneIndex;// default is zero
 };
 
 
@@ -194,6 +219,9 @@ public:
 
 	///Settings for the FMOD controller.
 	FMOD_ControllerParams fmod;
+
+	///setting for the incidents
+	std::vector<IncidentParams> incidents;
 
 	///Some settings for bus stop arrivals/departures.
 	std::map<int, BusStopScheduledTime> busScheduledTimes; //The int is a "bus stop ID", starting from 0.

@@ -37,7 +37,14 @@ void sim_mob::RoadSegment::setLanes(std::vector<sim_mob::Lane*> lanes)
 {
 	this->lanes = lanes;
 }
-
+unsigned int sim_mob::RoadSegment::getAdjustedLaneId(unsigned int laneId){
+					 unsigned int adjustedId  = lanes.size()-1 - laneId;
+	                 if (adjustedId > lanes.size() -1 || adjustedId < 0)
+	                 {
+	                	 adjustedId = 0;
+	                 }
+	                 return adjustedId;
+}
 
 void sim_mob::RoadSegment::setParentLink(Link* parent)
 {
@@ -82,6 +89,23 @@ void sim_mob::RoadSegment::specifyEdgePolylines(const vector< vector<Point2D> >&
 	//TODO: Optionally reset this Segment's own polyline to laneEdge[0].
 }
 
+double sim_mob::RoadSegment::getLengthOfSegment()
+{
+	std::vector<sim_mob::Point2D> polypointsList = (this)->getLanes().at(0)->getPolyline();
+	double dis=0;
+	std::vector<sim_mob::Point2D>::iterator ite;
+	for ( std::vector<sim_mob::Point2D>::iterator it =  polypointsList.begin(); it != polypointsList.end(); ++it )
+	{
+		ite = it+1;
+		if ( ite != polypointsList.end() )
+		{
+			DynamicVector temp(it->getX(), it->getY(),ite->getX(), ite->getY());
+			dis += temp.getMagnitude();
+		}
+	}
+
+	return dis;
+}
 
 ///This function forces a rebuild of all Lane and LaneEdge polylines.
 ///There are two ways to calculate the polyline. First, if the parent RoadSegment's "laneEdgePolylines_cached"

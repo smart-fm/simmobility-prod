@@ -168,6 +168,8 @@ public:
 	 */
 	sim_mob::RoadNetwork& getNetworkRW();
 
+	std::vector<IncidentParams>& getIncidents();
+
 	/**
 	 * Seal the network. After this, no more editing of the network can take place.
 	 */
@@ -306,6 +308,7 @@ public:
 
 	DailyTime& simStartTime();
 	const DailyTime& simStartTime() const;
+	const std::string& getTravelTimeTmpTableName() const;
 
 	//This one's slightly tricky, as it's in generic_props
 	std::string busline_control_type() const;

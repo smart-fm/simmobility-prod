@@ -18,6 +18,8 @@
 #include "conf/RawConfigParams.hpp"
 #include "geospatial/Point2D.hpp"
 #include "util/GeomHelpers.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 using namespace sim_mob;
 using namespace xercesc;
@@ -285,6 +287,19 @@ int ParseInteger(const XMLCh* srcX, int* defValue) {
 	return *defValue;
 }
 
+float ParseFloat(const XMLCh* srcX, float* defValue) {
+	if (srcX) {
+			std::string src = TranscodeString(srcX);
+			return boost::lexical_cast<float>(src);
+		}
+
+		//Wasn't found.
+		if (!defValue) {
+			throw std::runtime_error("Mandatory float variable; no default available.");
+		}
+		return *defValue;
+}
+
 unsigned int ParseUnsignedInt(const XMLCh* srcX, unsigned int* defValue) {
 	if (srcX) {
 		std::string src = TranscodeString(srcX);
@@ -388,6 +403,9 @@ unsigned int ParseUnsignedInt(const XMLCh* src, unsigned int defValue) {
 }
 unsigned int ParseUnsignedInt(const XMLCh* src) { //No default
 	return ParseUnsignedInt(src, nullptr);
+}
+float ParseFloat(const XMLCh* src) {
+	return ParseFloat(src, nullptr);
 }
 unsigned int ParseGranularitySingle(const XMLCh* src, unsigned int defValue) {
 	return ParseGranularitySingle(src, &defValue);
@@ -538,6 +556,7 @@ void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
 	ProcessSystemNode(GetSingleElementByName(rootNode,"system", true));
 	//ProcessGeometryNode(GetSingleElementByName(rootNode, "geometry", true));
 	ProcessFMOD_Node(GetSingleElementByName(rootNode, "fmodcontroller"));
+	ProcessIncidentsNode(GetSingleElementByName(rootNode, "incidentsData"));
 	ProcessConstructsNode(GetSingleElementByName(rootNode,"constructs"));
 	ProcessBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes"));
 
@@ -750,7 +769,6 @@ void sim_mob::ParseConfigFile::ProcessFMOD_Node(xercesc::DOMElement* node)
 }
 
 
-
 void sim_mob::ParseConfigFile::ProcessDriversNode(xercesc::DOMElement* node)
 {
 	if (!node) {
@@ -808,7 +826,7 @@ void sim_mob::ParseConfigFile::ProcessSignalsNode(xercesc::DOMElement* node)
 	DOMNodeList* nodes = node->getElementsByTagName(keyX);
 	XMLString::release(&keyX);*/
 
-	ProcessFutureAgentList(node, "signal", cfg.signalTemplates, true, true, false);
+	ProcessFutureAgentList(node, "signal", cfg.signalTemplates, true, true, false, false);
 }
 
 void sim_mob::ParseConfigFile::ProcessBusControllersNode(xercesc::DOMElement* node)
@@ -820,7 +838,7 @@ void sim_mob::ParseConfigFile::ProcessBusControllersNode(xercesc::DOMElement* no
 	DOMNodeList* nodes = node->getElementsByTagName(keyX);
 	XMLString::release(&keyX);*/
 
-	ProcessFutureAgentList(node, "buscontroller", cfg.busControllerTemplates, false, false, true);
+	ProcessFutureAgentList(node, "buscontroller", cfg.busControllerTemplates, false, false, true, false);
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)
@@ -839,7 +857,29 @@ void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* 
 	cfg.system.simulation.reactTimeDistribution2.stdev = ProcessValueInteger(GetSingleElementByName(node, "reacTime_standardDev2"));
 
 	cfg.system.simulation.simStartTime = ProcessValueDailyTime(GetSingleElementByName(node, "start_time", true));
-
+	//save travel time table name
+	if( ConfigManager::GetInstance().FullConfig().PathSetMode() )
+	{
+		DOMElement* rn = GetSingleElementByName(node, "pathset_traveltime_save_table",true);
+		if (rn) {
+		cfg.system.simulation.travelTimeTmpTableName  =
+				ParseString(GetNamedAttributeValue(rn, "value"),"aa");
+		}
+		else
+		{
+			cfg.system.simulation.travelTimeTmpTableName = "no_name";
+		}
+//				ParseString(GetNamedAttributeValue(node, "database"), "");
+//		TiXmlElement* node_table_name = handle.FirstChild("pathset_travletime_save_table").ToElement();
+//		const char* node_table_name_char = node_table_name ? node_table_name->Attribute("value") : nullptr;
+//		if(node_table_name_char==nullptr)
+//		{
+//			throw std::runtime_error("pls add pathset_travletime_save_table to config file");
+//		}
+//		std::string node_table_name_str = std::string(node_table_name_char);
+//		ConfigParams::GetInstance().travelTimeTmpTableName = node_table_name_str;
+//		PathSetManager::getInstance()->setTravleTimeTmpTableName(node_table_name_str);
+	}
 	//Now we're getting back to real properties.
 	ProcessSystemAuraManagerImplNode(GetSingleElementByName(node, "aura_manager_impl"));
 	ProcessSystemWorkgroupAssignmentNode(GetSingleElementByName(node, "workgroup_assignment"));
@@ -1079,7 +1119,7 @@ void sim_mob::ParseConfigFile::ProcessWorkerCommunicationNode(xercesc::DOMElemen
 }*/
 
 
-void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<EntityTemplate>& res, bool originReq, bool destReq, bool timeReq)
+void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<EntityTemplate>& res, bool originReq, bool destReq, bool timeReq, bool laneReq)
 {
 	//We use the existing "element child" functions, it's significantly slower to use "getElementsByTagName()"
 	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
@@ -1088,9 +1128,39 @@ void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMElement* node,
 			ent.originPos = ParsePoint2D(GetNamedAttributeValue(item, "originPos", originReq),Point2D());
 			ent.destPos = ParsePoint2D(GetNamedAttributeValue(item, "destPos", destReq), Point2D());
 			ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(item, "time", timeReq), static_cast<unsigned int>(0));
+			ent.laneIndex = ParseUnsignedInt(GetNamedAttributeValue(item, "lane", laneReq), static_cast<unsigned int>(0));
 			res.push_back(ent);
 		}
 	}
 }
 
+void sim_mob::ParseConfigFile::ProcessIncidentsNode(xercesc::DOMElement* node)
+{
+	if(!node) {
+		return;
+	}
+
+	bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+	if(!enabled){
+		return;
+	}
+
+	for(DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
+		IncidentParams incident;
+		incident.incidentId = ParseUnsignedInt(GetNamedAttributeValue(item, "id"));
+		incident.visibilityDistance = ParseFloat(GetNamedAttributeValue(item, "visibility"));
+		incident.segmentId = ParseUnsignedInt(GetNamedAttributeValue(item, "segment") );
+		incident.position = ParseFloat(GetNamedAttributeValue(item, "position"));
+		incident.severity = ParseUnsignedInt(GetNamedAttributeValue(item, "severity") );
+		incident.capFactor = ParseFloat(GetNamedAttributeValue(item, "cap_factor") );
+		incident.startTime = ParseDailyTime(GetNamedAttributeValue(item, "start_time") ).getValue();
+		incident.duration = ParseDailyTime(GetNamedAttributeValue(item, "duration") ).getValue();
+		incident.speedLimit = ParseFloat(GetNamedAttributeValue(item, "speed_limit") );
+		incident.speedLimitOthers = ParseFloat(GetNamedAttributeValue(item, "speed_limit_adjacentlanes") );
+		incident.laneId = ParseUnsignedInt(GetNamedAttributeValue(item, "lane") );
+		incident.compliance = ParseFloat(GetNamedAttributeValue(item, "compliance") );
+		incident.accessibility = ParseFloat(GetNamedAttributeValue(item, "accessibility") );
+		cfg.incidents.push_back(incident);
+	}
+}
 

@@ -17,6 +17,7 @@
 #include "entities/Person.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/roles/activityRole/WaitBusActivityRole.hpp"
+#include "entities/models/LaneChangeModel.hpp"
 #include "entities/UpdateParams.hpp"
 #include "logging/Log.hpp"
 
@@ -55,11 +56,6 @@ sim_mob::BusDriverMovement::BusDriverMovement(sim_mob::Person* parentAgent):
 }
 
 sim_mob::BusDriverMovement::~BusDriverMovement()
-{
-
-}
-
-void sim_mob::BusDriverMovement::flowIntoNextLinkIfPossible(UpdateParams& p)
 {
 
 }
@@ -262,7 +258,7 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 
 	parentBusDriver->vehicle->setTurningDirection(lcs);
 	double newLatVel;
-	newLatVel = lcModel->executeLaneChanging(p,parentBusDriver->vehicle->getAllRestRoadSegmentsLength(), parentBusDriver->vehicle->length,parentBusDriver->vehicle->getTurningDirection());
+	newLatVel = lcModel->executeLaneChanging(p,parentBusDriver->vehicle->getAllRestRoadSegmentsLength(), parentBusDriver->vehicle->length,parentBusDriver->vehicle->getTurningDirection(), MLC);
 	parentBusDriver->vehicle->setLatVelocity(newLatVel * 10);
 	if (parentBusDriver->vehicle->getLatVelocity() > 0)
 		parentBusDriver->vehicle->setTurningDirection(LCS_LEFT);
@@ -281,7 +277,7 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 		LANE_CHANGE_SIDE lcs =mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
 		parentBusDriver->vehicle->setTurningDirection(lcs);
 		double newLatVel;
-		newLatVel = mitsim_lc_model->executeLaneChanging(p,parentBusDriver->vehicle->getAllRestRoadSegmentsLength(), parentBusDriver->vehicle->length,parentBusDriver->vehicle->getTurningDirection());
+		newLatVel = mitsim_lc_model->executeLaneChanging(p,parentBusDriver->vehicle->getAllRestRoadSegmentsLength(), parentBusDriver->vehicle->length,parentBusDriver->vehicle->getTurningDirection(), MLC);
 		parentBusDriver->vehicle->setLatVelocity(newLatVel * 5);
 
 		// reduce speed

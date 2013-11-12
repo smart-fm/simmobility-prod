@@ -8,10 +8,11 @@
  */
 #pragma once
 #include <vector>
+#include "Types.hpp"
 #include "lua/LuaModel.hpp"
 #include "database/entity/Unit.hpp"
 #include "database/entity/Household.hpp"
-#include "Types.hpp"
+#include "core/HousingMarket.hpp"
 
 namespace sim_mob {
     namespace long_term {
@@ -47,14 +48,14 @@ namespace sim_mob {
             double calculateHedonicPrice(const Unit& unit) const;
 
             /**
-             * Calculates the surplus for the given unit.
+             * Calculates the surplus for the given market entry.
              * 
-             * @param unit target.
-             * @param unitBids number of bids (attempts) to this unit.
+             * @param entry target.
+             * @param unitBids number of bids (attempts) to the given entry.
              * @return value of the Surplus or 
              *         sim_mob::long_term::INVALID_DOUBLE
              */
-            double calculateSurplus(const Unit& unit, int unitBids) const;
+            double calculateSurplus(const HousingMarket::Entry& entry, int unitBids) const;
 
             /**
              * Calculates the willingness to pay based on Household attributes 

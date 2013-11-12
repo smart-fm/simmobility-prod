@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * NS3ClientRegistration.cpp
  *
@@ -55,19 +59,19 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 		clientEntry->clientID = request.clientID;
 		clientEntry->client_type = ConfigParams::NS3_SIMULATOR;
 		clientEntry->requiredServices = request.requiredServices; //will come handy
-		SIM_MOB_SERVICE srv;
+		sim_mob::Services::SIM_MOB_SERVICE srv;
 		int size_i = request.requiredServices.size();
 		BOOST_FOREACH(srv, request.requiredServices)
 		{
 			switch(srv)
 			{
-			case SIMMOB_SRV_TIME:{
-				 PublisherList::dataType p = broker.getPublishers()[SIMMOB_SRV_TIME];
+			case sim_mob::Services::SIMMOB_SRV_TIME:{
+				 PublisherList::dataType p = broker.getPublishers()[sim_mob::Services::SIMMOB_SRV_TIME];
 				p->Subscribe(COMMEID_TIME, clientEntry.get(), CALLBACK_HANDLER(sim_mob::TimeEventArgs, ClientHandler::OnTime) );
 				break;
 			}
-			case SIMMOB_SRV_ALL_LOCATIONS:{
-				PublisherList::dataType p = broker.getPublishers()[SIMMOB_SRV_ALL_LOCATIONS];
+			case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS:{
+				PublisherList::dataType p = broker.getPublishers()[sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS];
 				p->Subscribe(COMMEID_LOCATION,(void *) COMMCID_ALL_LOCATIONS, clientEntry.get()  ,CONTEXT_CALLBACK_HANDLER(AllLocationsEventArgs, ClientHandler::OnAllLocations) );
 				break;
 			}

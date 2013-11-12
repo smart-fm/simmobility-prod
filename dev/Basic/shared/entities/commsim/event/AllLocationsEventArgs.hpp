@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * AllLocationsEventArgs.hpp
  *
@@ -5,13 +9,12 @@
  *      Author: vahid
  */
 
-#ifndef ALLLOCATIONSEVENTARGS_HPP_
-#define ALLLOCATIONSEVENTARGS_HPP_
+#pragma once
 
 #include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
 #include<iostream>
-#include "entities/commsim/serialization/Serialization.hpp"
+#include "entities/commsim/serialization/JsonParser.hpp"
 #include "entities/commsim/broker/Broker.hpp"
 
 namespace sim_mob {
@@ -28,4 +31,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* ALLLOCATIONSEVENTARGS_HPP_ */

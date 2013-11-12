@@ -17,6 +17,9 @@
 #include "entities/vehicle/Vehicle.hpp"
 #include "Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
+#include "geospatial/RoadItem.hpp"
+#include "entities/IncidentStatus.hpp"
+#include "geospatial/Incident.hpp"
 
 namespace sim_mob {
 
@@ -57,7 +60,6 @@ public:
 	virtual void frame_init();
 	virtual void frame_tick();
 	virtual void frame_tick_output();
-	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
 
 	Driver* getParentDriver() const {
 		return parentDriver;
@@ -87,6 +89,15 @@ public:
 	double maxLaneSpeed;
 	//for coordinate transform
 	void setParentBufferedData();			///<set next data to parent buffer data
+
+    /**
+      * get nearest obstacle in perceptionDis
+      * @param type is obstacle type, currently only two types are BusStop and Incident.
+      * @param dis is used to retrieved real distance from driver to incident obstacle.
+      * @param perceptionDis is search range . default value is 200 meters
+      * @return true if inserting successfully .
+      */
+	const sim_mob::RoadItem* getRoadItemByDistance(sim_mob::RoadItemType type,double &dis, double perceptionDis=20000,bool isInSameLink=true);
 
 private:
 	void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
@@ -126,6 +137,8 @@ protected:
 
 	void resetPath(DriverUpdateParams& p);
 	void setOrigin(DriverUpdateParams& p);
+
+	void checkIncidentStatus(DriverUpdateParams& p, timeslice now);
 
 	//Helper: for special strings
 	void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
@@ -183,5 +196,8 @@ private:
 
 	//For generating a debugging trace
 	mutable std::stringstream DebugStream;
+
+	//incident response plan
+	sim_mob::IncidentStatus incidentStatus;
 };
 }

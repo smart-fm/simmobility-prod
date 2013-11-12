@@ -68,6 +68,18 @@ class Signal;
  *   \sa LaneAndIndexPair
  *   \sa RoadSegmentAndIndexPair
  */
+enum TimeRange{
+	MorningPeak=0,
+	EveningPeak=1,
+	OffPeak=2,
+	Default=3,
+	HighwayBias_Distance=4,
+	HighwayBias_MorningPeak=5,
+	HighwayBias_EveningPeak=6,
+	HighwayBias_OffPeak=7,
+	HighwayBias_Default=8,
+	Random
+};
 class StreetDirectory : private boost::noncopyable
 {
 public:
@@ -272,6 +284,7 @@ public:
 
 
 	VertexDesc DrivingVertex(const sim_mob::Node& n) const;
+	VertexDesc DrivingTimeVertex(const sim_mob::Node& n,sim_mob::TimeRange tr = sim_mob::MorningPeak,int random_graph_idx=0) const;
 	VertexDesc WalkingVertex(const sim_mob::Node& n) const;
 	VertexDesc DrivingVertex(const sim_mob::BusStop& b) const;
 	VertexDesc WalkingVertex(const sim_mob::BusStop& b) const;
@@ -294,6 +307,11 @@ public:
      */
     std::vector<WayPoint> SearchShortestDrivingPath(VertexDesc from, VertexDesc to, std::vector<const sim_mob::RoadSegment*> blacklist=std::vector<const sim_mob::RoadSegment*>()) const;
 
+    std::vector<WayPoint> SearchShortestDrivingTimePath(VertexDesc from,
+    		VertexDesc to,
+    		std::vector<const sim_mob::RoadSegment*> blacklist=std::vector<const sim_mob::RoadSegment*>(),
+    		sim_mob::TimeRange tr=sim_mob::MorningPeak,
+    		int random_graph_idx=0) const;
 
     /**
      * Return the distance-based shortest path to walk from one point to another.
@@ -372,7 +390,7 @@ private:
 
 
 private:
-    StreetDirectory() : pimpl_(nullptr), spImpl_(nullptr)/*, stats_(nullptr)*/
+    StreetDirectory() : pimpl_(nullptr), spImpl_(nullptr), sttpImpl_(nullptr)/*, stats_(nullptr)*/
     {}
 
     static StreetDirectory instance_;
@@ -384,6 +402,9 @@ private:
 
     ///Our current implementation of the shortest path searcher.
     ShortestPathImpl* spImpl_;
+
+    // shortest travel time path
+    ShortestPathImpl* sttpImpl_;
 
     ///The current set of StreetDirectoryStats
     //Stats* stats_;

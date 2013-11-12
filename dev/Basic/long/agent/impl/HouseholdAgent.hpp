@@ -9,30 +9,40 @@
  * Created on May 16, 2013, 6:36 PM
  */
 #pragma once
-#include "agent/LT_Agent.hpp"
+#include <vector>
 #include "core/HousingMarket.hpp"
+#include "agent/LT_Agent.hpp"
 #include "database/entity/Household.hpp"
-#include "event/EventListener.hpp"
-#include "role/LT_Role.hpp"
 
 
 namespace sim_mob {
 
     namespace long_term {
         
+        class HM_Model;
+        class HouseholdBidderRole;
+        class HouseholdSellerRole;
         /**
          * Represents an Long-Term household agent.
          * An household agent has the following capabilities:
          * - Sell units.
          * - Bid units. 
          */
-        class HouseholdAgent : 
-        public LT_Agent, public UnitHolder{
+        class HouseholdAgent :  public LT_Agent {
         public:
-            HouseholdAgent(int id, Household* hh, HousingMarket* market);
+            HouseholdAgent(HM_Model* model, Household* hh, 
+                    HousingMarket* market);
             virtual ~HouseholdAgent();
-        protected:
             
+            //not-thread safe
+            void addUnitId (const BigSerial& unitId);
+            void removeUnitId (const BigSerial& unitId);
+            const std::vector<BigSerial>& getUnitIds() const;
+            HM_Model* getModel() const;
+            HousingMarket* getMarket() const;
+            const Household* getHousehold() const;
+            
+        protected:
             /**
              * Inherited from LT_Agent.
              */
@@ -49,6 +59,13 @@ namespace sim_mob {
                     const messaging::Message& message);
         private:
             /**
+             * Method called to find some unit and bid it.
+             * @param now current time.
+             * @return true if some bid was sent, false otherwise.
+             */
+            bool bidUnit(timeslice now);
+            
+            /**
              * Events callbacks.
              */
             virtual void OnEvent(event::EventId eventId, 
@@ -56,10 +73,15 @@ namespace sim_mob {
             virtual void OnEvent(event::EventId eventId, event::Context ctxId, 
                     event::EventPublisher* sender, const event::EventArgs& args);
         private:
+            typedef std::vector<BigSerial> UnitIdList;
+      
+        private:
+            HM_Model* model;
             HousingMarket* market;
-            Household* hh;
-            LT_Role* bidderRole;
-            LT_Role* sellerRole;
+            Household* household;
+            UnitIdList unitIds;
+            HouseholdBidderRole* bidder;
+            HouseholdSellerRole* seller;
         };
     }
 }

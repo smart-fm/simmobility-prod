@@ -2316,12 +2316,12 @@ namespace sim_mob
 
     void linkAndCrossing_t_pskel::
     parsers (::xml_schema::unsigned_byte_pskel& ID,
-             ::xml_schema::unsigned_int_pskel& linkID,
+             ::xml_schema::unsigned_int_pskel& LinkID,
              ::xml_schema::unsigned_int_pskel& crossingID,
              ::xml_schema::unsigned_byte_pskel& angle)
     {
       this->ID_parser_ = &ID;
-      this->linkID_parser_ = &linkID;
+      this->linkID_parser_ = &LinkID;
       this->crossingID_parser_ = &crossingID;
       this->angle_parser_ = &angle;
     }
@@ -2356,22 +2356,22 @@ namespace sim_mob
     {
     }
 
-    // Plan_t_pskel
+    // plan_t_pskel
     //
 
-    void Plan_t_pskel::
+    void plan_t_pskel::
     planID_parser (::xml_schema::unsigned_byte_pskel& p)
     {
       this->planID_parser_ = &p;
     }
 
-    void Plan_t_pskel::
+    void plan_t_pskel::
     PhasePercentage_parser (::xml_schema::double_pskel& p)
     {
       this->PhasePercentage_parser_ = &p;
     }
 
-    void Plan_t_pskel::
+    void plan_t_pskel::
     parsers (::xml_schema::unsigned_byte_pskel& planID,
              ::xml_schema::double_pskel& PhasePercentage)
     {
@@ -2379,8 +2379,8 @@ namespace sim_mob
       this->PhasePercentage_parser_ = &PhasePercentage;
     }
 
-    Plan_t_pskel::
-    Plan_t_pskel ()
+    plan_t_pskel::
+    plan_t_pskel ()
     : planID_parser_ (0),
       PhasePercentage_parser_ (0)
     {
@@ -2390,13 +2390,13 @@ namespace sim_mob
     //
 
     void Plans_t_pskel::
-    plan_parser (::sim_mob::xml::Plan_t_pskel& p)
+    plan_parser (::sim_mob::xml::plan_t_pskel& p)
     {
       this->plan_parser_ = &p;
     }
 
     void Plans_t_pskel::
-    parsers (::sim_mob::xml::Plan_t_pskel& plan)
+    parsers (::sim_mob::xml::plan_t_pskel& plan)
     {
       this->plan_parser_ = &plan;
     }
@@ -2570,9 +2570,9 @@ namespace sim_mob
     //
 
     void crossings_map_t_pskel::
-    linkID_parser (::xml_schema::unsigned_int_pskel& p)
+    LinkID_parser (::xml_schema::unsigned_int_pskel& p)
     {
-      this->linkID_parser_ = &p;
+      this->LinkID_parser_ = &p;
     }
 
     void crossings_map_t_pskel::
@@ -2588,18 +2588,18 @@ namespace sim_mob
     }
 
     void crossings_map_t_pskel::
-    parsers (::xml_schema::unsigned_int_pskel& linkID,
+    parsers (::xml_schema::unsigned_int_pskel& LinkID,
              ::xml_schema::unsigned_int_pskel& crossingID,
              ::sim_mob::xml::ColorSequence_t_pskel& ColorSequence)
     {
-      this->linkID_parser_ = &linkID;
+      this->LinkID_parser_ = &LinkID;
       this->crossingID_parser_ = &crossingID;
       this->ColorSequence_parser_ = &ColorSequence;
     }
 
     crossings_map_t_pskel::
     crossings_map_t_pskel ()
-    : linkID_parser_ (0),
+    : LinkID_parser_ (0),
       crossingID_parser_ (0),
       ColorSequence_parser_ (0)
     {
@@ -8528,7 +8528,7 @@ namespace sim_mob
     //
 
     void linkAndCrossings_t_pskel::
-    linkAndCrossing (sim_mob::LinkAndCrossing)
+    linkAndCrossing (sim_mob::LinkAndCrossing&)
     {
     }
 
@@ -8573,20 +8573,20 @@ namespace sim_mob
       return false;
     }
 
-    // Plan_t_pskel
+    // plan_t_pskel
     //
 
-    void Plan_t_pskel::
+    void plan_t_pskel::
     planID (unsigned char)
     {
     }
 
-    void Plan_t_pskel::
+    void plan_t_pskel::
     PhasePercentage (double)
     {
     }
 
-    bool Plan_t_pskel::
+    bool plan_t_pskel::
     _start_element_impl (const ::xml_schema::ro_string& ns,
                          const ::xml_schema::ro_string& n,
                          const ::xml_schema::ro_string* t)
@@ -8619,7 +8619,7 @@ namespace sim_mob
       return false;
     }
 
-    bool Plan_t_pskel::
+    bool plan_t_pskel::
     _end_element_impl (const ::xml_schema::ro_string& ns,
                        const ::xml_schema::ro_string& n)
     {
@@ -8649,7 +8649,7 @@ namespace sim_mob
     //
 
     void Plans_t_pskel::
-    plan (std::pair<short,std::vector<double> >)
+    plan (std::pair<short,std::vector<double> >&)
     {
     }
 
@@ -8686,7 +8686,7 @@ namespace sim_mob
       if (n == "plan" && ns.empty ())
       {
         if (this->plan_parser_)
-          this->plan (this->plan_parser_->post_Plan_t ());
+          this->plan (this->plan_parser_->post_plan_t ());
 
         return true;
       }
@@ -8703,7 +8703,7 @@ namespace sim_mob
     }
 
     void ColorDuration_t_pskel::
-    Duration (unsigned char)
+    Duration (int)
     {
     }
 
@@ -8775,7 +8775,7 @@ namespace sim_mob
     }
 
     void ColorSequence_t_pskel::
-    ColorDuration (std::pair<sim_mob::TrafficColor,int>)
+    ColorDuration (std::pair<sim_mob::TrafficColor,int>&)
     {
     }
 
@@ -8842,7 +8842,7 @@ namespace sim_mob
     //
 
     void links_maps_t_pskel::
-    links_map (std::pair<sim_mob::Link*,sim_mob::linkToLink>)
+    links_map (std::pair<sim_mob::Link*,sim_mob::linkToLink>&)
     {
     }
 
@@ -8911,7 +8911,7 @@ namespace sim_mob
     }
 
     void links_map_t_pskel::
-    ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,int> > >)
+    ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,int> > >&)
     {
     }
 
@@ -9081,7 +9081,7 @@ namespace sim_mob
     //
 
     void crossings_map_t_pskel::
-    linkID (unsigned int)
+    LinkID (unsigned int)
     {
     }
 
@@ -9091,7 +9091,7 @@ namespace sim_mob
     }
 
     void crossings_map_t_pskel::
-    ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,int> > >)
+    ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,int> > >&)
     {
     }
 
@@ -9105,12 +9105,12 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
         return true;
 
-      if (n == "linkID" && ns.empty ())
+      if (n == "LinkID" && ns.empty ())
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->linkID_parser_;
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->LinkID_parser_;
 
-        if (this->linkID_parser_)
-          this->linkID_parser_->pre ();
+        if (this->LinkID_parser_)
+          this->LinkID_parser_->pre ();
 
         return true;
       }
@@ -9145,10 +9145,10 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
         return true;
 
-      if (n == "linkID" && ns.empty ())
+      if (n == "LinkID" && ns.empty ())
       {
-        if (this->linkID_parser_)
-          this->linkID (this->linkID_parser_->post_unsigned_int ());
+        if (this->LinkID_parser_)
+          this->LinkID (this->LinkID_parser_->post_unsigned_int ());
 
         return true;
       }
@@ -9186,12 +9186,12 @@ namespace sim_mob
     }
 
     void Phase_t_pskel::
-    links_maps (std::multimap<sim_mob::Link*,sim_mob::linkToLink>)
+    links_maps (std::multimap<sim_mob::Link*,sim_mob::linkToLink>&)
     {
     }
 
     void Phase_t_pskel::
-    crossings_maps (std::map<sim_mob::Crossing *, sim_mob::Crossings>)
+    crossings_maps (std::map<sim_mob::Crossing *, sim_mob::Crossings>&)
     {
     }
 
@@ -9294,7 +9294,7 @@ namespace sim_mob
     //
 
     void Phases_t_pskel::
-    phase (sim_mob::Phase)
+    phase (sim_mob::Phase&)
     {
     }
 
@@ -9358,7 +9358,7 @@ namespace sim_mob
     }
 
     void SplitPlan_t_pskel::
-    ChoiceSet (std::vector<std::vector<double> >)
+    ChoiceSet (std::vector<std::vector<double> >&)
     {
     }
 
@@ -9466,7 +9466,7 @@ namespace sim_mob
     }
 
     void SCATS_t_pskel::
-    SplitPlan (sim_mob::SplitPlan)
+    SplitPlan (sim_mob::SplitPlan&)
     {
     }
 
@@ -9543,17 +9543,17 @@ namespace sim_mob
     }
 
     void Signal_t_pskel::
-    linkAndCrossings (sim_mob::LinkAndCrossingC)
+    linkAndCrossings (sim_mob::LinkAndCrossingC&)
     {
     }
 
     void Signal_t_pskel::
-    phases (sim_mob::Signal::phases)
+    phases (sim_mob::Signal::phases&)
     {
     }
 
     void Signal_t_pskel::
-    SCATS (sim_mob::xml::helper::SignalHelper::SCATS_Info)
+    SCATS (sim_mob::xml::helper::SignalHelper::SCATS_Info&)
     {
     }
 
@@ -9654,7 +9654,7 @@ namespace sim_mob
       if (n == "phases" && ns.empty ())
       {
         if (this->phases_parser_)
-          this->phases (this->phases_parser_->post_Phases_t ());
+          this->phases (this->phases_parser_->post_phases_t ());
 
         return true;
       }
@@ -9787,7 +9787,7 @@ namespace sim_mob
     }
 
     void SimMobility_t_pskel::
-    Signals (std::vector<sim_mob::Signal*>)
+    Signals (std::vector<sim_mob::Signal*>&)
     {
     }
 

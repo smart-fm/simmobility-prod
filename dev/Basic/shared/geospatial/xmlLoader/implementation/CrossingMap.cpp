@@ -24,7 +24,7 @@ crossings_map (std::pair<sim_mob::Crossing *, sim_mob::Crossings> crossings_map)
 //
 }
 
-std::map<sim_mob::Crossing *, sim_mob::Crossings> sim_mob::xml::crossings_maps_t_pimpl::
+std::map<sim_mob::Crossing *, sim_mob::Crossings>& sim_mob::xml::crossings_maps_t_pimpl::
 post_crossings_maps_t ()
 {
 //	  std::cout << "Sending Crossing map of size " << model.size() << std::endl;
@@ -41,7 +41,7 @@ pre ()
 }
 
 void sim_mob::xml::crossings_map_t_pimpl::
-linkID (unsigned int linkID)
+LinkID (unsigned int linkID)
 {
 //  std::cout << "linkID: " << linkID << std::endl;
   model.link = book.getLink(linkID);
@@ -55,7 +55,7 @@ crossingID (unsigned int crossingID)
 }
 
 void sim_mob::xml::crossings_map_t_pimpl::
-ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,int> > > ColorSequence)//todo:make reference
+ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,int> > > &ColorSequence)//todo:make reference
 {
   model.colorSequence.setColorDuration(ColorSequence.second);
   model.colorSequence.setTrafficLightType(ColorSequence.first);

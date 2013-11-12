@@ -94,7 +94,7 @@ public:
 	std::size_t nofPlans();
 	void setcurrSplitPlanID(std::size_t index);
 	void setnextSplitPlan(std::vector<double> DS);
-	void setCoiceSet(std::vector< std::vector<double> >);
+	void setChoiceSet(std::vector< std::vector<double> >);
 	const std::vector< std::vector<double> > &getChoiceSet()const ;
 	void setDefaultSplitPlan(int);
 	void initialize();

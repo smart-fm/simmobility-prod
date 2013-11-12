@@ -20,7 +20,7 @@ namespace sim_mob {
     namespace long_term {
         
         typedef long long BigSerial;
-
+        
         enum Sex {
             UNKNOWN_SEX = 0,
             MASCULINE = 1,
@@ -92,12 +92,5 @@ namespace sim_mob {
             double price;
             double expectation;
         } ExpectationEntry;
-        
-        typedef struct ExternalEvent_ {
-            ExternalEvent_() : day(0), type(0), householdId(INVALID_ID){}
-            int day;
-            int type;
-            BigSerial householdId;
-        } ExternalEvent;
     }
 }

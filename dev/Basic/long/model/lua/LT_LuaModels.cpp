@@ -7,7 +7,7 @@
  * Created on October 10, 2013, 2:39 PM
  */
 
-#include "HM_LuaModel.hpp"
+#include "LT_LuaModels.hpp"
 #include "lua/LuaLibrary.hpp"
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"

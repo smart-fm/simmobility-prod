@@ -7,7 +7,7 @@
  * Created on October 9, 2013, 4:39 PM
  */
 #pragma once
-#include "HM_LuaModel.hpp"
+#include "LT_LuaModels.hpp"
 
 namespace sim_mob {
 

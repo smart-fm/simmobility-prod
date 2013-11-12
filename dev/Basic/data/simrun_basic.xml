@@ -328,6 +328,12 @@
         <mapfile value="cityhall/cityhall.osm"/>
         <blockingTimeSec value="5"/>
     </fmodcontroller>
+        
+    <!-- incident definition{ incident id, visibilty distance(centrimetre), segment id, percentage position in segment, severity code, capacity factor, start time, duration(mintue), speed limit(kmph) lane id,  compliance weightage, information accessibilty-->
+    <incidentsData enabled="no">
+    	<incident id="1" visibility="5000" segment="40200" position="50" severity="1" cap_factor="1.0" start_time="08:30:40" duration="00:40:00" speed_limit="0" speed_limit_adjacentlanes="350" lane="0" compliance="50" accessibility="50" />
+    </incidentsData>
+    
     
     
     <!-- For buses (?) -->

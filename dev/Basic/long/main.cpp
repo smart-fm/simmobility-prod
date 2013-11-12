@@ -85,13 +85,14 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
    
     //simulation time.
     StopWatch simulationWatch;
-    vector<Model*> models; 
+    vector<Model*> models;
+    EventsInjector injector;
     HM_Model* model = nullptr;
     {
         simulationWatch.start();   
         WorkGroupManager wgMgr;
         wgMgr.setSingleThreadMode(config.singleThreaded());
-        EventsInjector injector;
+        
         // -- Events injector work group.
         WorkGroup* eventsWorker = wgMgr.newWorkGroup(1, DAYS, TICK_STEP);
         WorkGroup* hmWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);

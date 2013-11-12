@@ -35,7 +35,6 @@ namespace sim_mob {
              */
             int getDay() const;
             unsigned int getType() const; //int because lua
-            int getIntType() const;
             BigSerial getHouseholdId() const;
             
             /**

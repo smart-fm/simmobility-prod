@@ -25,6 +25,17 @@ namespace sim_mob {
              * @return Lua housing market model reference.
              */
             static const HM_LuaModel& getHM_Model();
+            
+            /**
+             * Gets the External Events lua model.
+             * 
+             * Attention: you should not hold this instance.
+             * This provider will give you and instance based on 
+             *  current thread context.
+             * 
+             * @return Lua external events model reference.
+             */
+            static const ExternalEventsModel& getExternalEventsModel();
         };
     }
 }

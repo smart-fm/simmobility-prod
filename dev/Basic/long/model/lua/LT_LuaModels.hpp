@@ -12,6 +12,7 @@
 #include "lua/LuaModel.hpp"
 #include "database/entity/Unit.hpp"
 #include "database/entity/Household.hpp"
+#include "database/entity/ExternalEvent.hpp"
 #include "core/HousingMarket.hpp"
 
 namespace sim_mob {

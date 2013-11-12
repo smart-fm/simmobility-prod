@@ -47,9 +47,12 @@ void ExternalEventsModel::mapClasses() {
     getGlobalNamespace(state.get())
             .beginClass <ExternalEvent> ("ExternalEvent")
             .addConstructor <void (*) (void) > ()
-            .addData("day", &ExternalEvent::day)
-            .addData("type", &ExternalEvent::type)
-            .addData("householdId", &ExternalEvent::householdId)
+            .addProperty("day", &ExternalEvent::getDay, 
+                                &ExternalEvent::setDay)
+            .addProperty("type", &ExternalEvent::getType, 
+                                 &ExternalEvent::setType)
+            .addProperty("householdId", &ExternalEvent::getHouseholdId, 
+                                        &ExternalEvent::setHouseholdId)
             .endClass();
 }
 
@@ -72,13 +75,6 @@ void HM_LuaModel::mapClasses() {
             .addConstructor <void (*) (void) > ()
             .addData("price", &ExpectationEntry::price)
             .addData("expectation", &ExpectationEntry::expectation)
-            .endClass();
-    getGlobalNamespace(state.get())
-            .beginClass <ExternalEvent> ("ExternalEvent")
-            .addConstructor <void (*) (void) > ()
-            .addData("day", &ExternalEvent::day)
-            .addData("type", &ExternalEvent::type)
-            .addData("householdId", &ExternalEvent::householdId)
             .endClass();
     getGlobalNamespace(state.get())
             .beginClass <Unit> ("Unit")

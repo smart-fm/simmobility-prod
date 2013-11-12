@@ -246,6 +246,8 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 	LANE_CHANGE_SIDE laneSide = LCS_SAME;
 	IncidentStatus::IncidentStatusType status = IncidentStatus::INCIDENT_CLEARANCE;
 	incidentStatus.setDistanceToIncident(0);
+	const float convertFactor = 1000.0/3600.0;
+	incidentStatus.setDefaultSpeedLimit(curSegment->maxSpeed*convertFactor);
 
 	const std::map<centimeter_t, const RoadItem*> obstacles = curSegment->getObstacles();
 	std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
@@ -271,6 +273,9 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 				}
 				else {
 					status = IncidentStatus::INCIDENT_ADJACENT_LANE;
+					if(incidentStatus.getChangedLane()){
+						incidentStatus.setChangedLane(false);
+					}
 				}
 				//make velocity slowing down decision when incident happen
 				RoadSegment* segment = const_cast<RoadSegment*>(curSegment);

@@ -449,18 +449,10 @@ bool sim_mob::Broker::allAgentUpdatesDone()
 
 void sim_mob::Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums)
 {
-//	Print() << "Inside onAgentUpdate" << std::endl;
-	Agent * target = const_cast<Agent*>(dynamic_cast<const Agent*>(argums.GetEntity()));
-//	Print() << "onAgentUpdate:: setting[" << target->getId() << "] to.done" << std::endl;
+	const Agent* target = dynamic_cast<const Agent*>(argums.GetEntity());
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
-	if(REGISTERED_AGENTS.setDone(target,true))
-	{
-//		Print() << "Agent[" << target->getId() << "] done" << std::endl;
+	if(REGISTERED_AGENTS.setDone(target,true)) {
 		COND_VAR_AGENT_DONE.notify_all();
-	}
-	else
-	{
-//		Print() << "Thread[" << boost::this_thread::get_id() << "] Discarded Agent[" << target->getId() << "]" << std::endl;
 	}
 }
 

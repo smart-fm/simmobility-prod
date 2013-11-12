@@ -97,9 +97,11 @@ public:
 
 	//returns the container . not safe if used/iterated without mutex
 	AgentsList::type &getAgents();
+
 	//returns the mutex used to operate on the container of this class. use it along with getAgents(()
 	//as it is dangerous to work without locking in a multithreaded environment
 	AgentsList::Mutex *getMutex();
+
 	//iterates safely through the valid agents executing the requested Function
 	void for_each_agent(boost::function<void(sim_mob::Agent*)> Fn);
 
@@ -170,7 +172,7 @@ public:
 	bool setDone(AgentCommUtilityBase * comm , bool value) ;
 
 	//	sets Done value of an element in the container, give an agent
-	bool setDone(Agent * agent , bool value);
+	bool setDone(const Agent* agent , bool value);
 };
 
 }//namespace sim_mob

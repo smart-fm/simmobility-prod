@@ -32,6 +32,9 @@ namespace sim_mob {
             // housing market action (unit was ADDED, REMOVED or UPDATED )
             LTEID_HM_UNIT_ADDED,
             LTEID_HM_UNIT_REMOVED,
+            
+            // External Events
+            LTEID_EXT_START = 2000000,
         };
 
         /**

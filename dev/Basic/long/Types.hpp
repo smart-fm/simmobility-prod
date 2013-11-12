@@ -14,6 +14,7 @@
 #include <string>
 #include "stddef.h"
 #include "util/LangHelpers.hpp"
+#include "Common.hpp"
 
 namespace sim_mob {
     namespace long_term {
@@ -87,8 +88,16 @@ namespace sim_mob {
          * Structs
          */
         typedef struct ExpectationEntry_ {
+            ExpectationEntry_() : price(0), expectation(0){}
             double price;
             double expectation;
         } ExpectationEntry;
+        
+        typedef struct ExternalEvent_ {
+            ExternalEvent_() : day(0), type(0), householdId(INVALID_ID){}
+            int day;
+            int type;
+            BigSerial householdId;
+        } ExternalEvent;
     }
 }

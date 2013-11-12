@@ -15,7 +15,7 @@
 #include <boost/multi_index/member.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/function.hpp>
-//#include "entities/Agent.hpp"
+#include "util/LangHelpers.hpp"
 
 //structure of each data element in the storage
 
@@ -31,8 +31,7 @@ public:
 	AgentCommUtilityBase * comm;
 	bool valid;
 	bool done;
-	AgentInfo(Agent * a_, AgentCommUtilityBase * b_, bool valid = true);
-	AgentInfo();
+	explicit AgentInfo(Agent* a_=nullptr, AgentCommUtilityBase* b_=nullptr, bool valid=true);
 };
 
 

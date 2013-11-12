@@ -4,15 +4,13 @@
 
 #include "Broker-util.hpp"
 #include "entities/commsim/comm_support/AgentCommUtility.hpp"
-#include "util/LangHelpers.hpp"
 
 using namespace sim_mob;
 
-sim_mob::AgentInfo::AgentInfo(Agent * a_, AgentCommUtilityBase * b_, bool v): agent(a_), comm(b_), valid(v), done(false)
-{}
-
-sim_mob::AgentInfo::AgentInfo() : agent(nullptr), comm(nullptr), valid(false), done(false)
-{}
+sim_mob::AgentInfo::AgentInfo(Agent * a_, AgentCommUtilityBase * b_, bool v)
+	: agent(a_), comm(b_), valid(v), done(false)
+{
+}
 
 
 /*******************************************************************

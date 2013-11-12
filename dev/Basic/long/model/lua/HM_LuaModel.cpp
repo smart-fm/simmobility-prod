@@ -18,6 +18,45 @@ using namespace sim_mob::long_term;
 using namespace luabridge;
 using std::vector;
 
+/******************************************************************************
+ *                         EXTERNAL EVENTS LUA
+ ******************************************************************************/
+
+ExternalEventsModel::ExternalEventsModel() : lua::LuaModel() {
+}
+
+ExternalEventsModel::ExternalEventsModel(const ExternalEventsModel& orig) 
+: lua::LuaModel(orig) {
+}
+
+ExternalEventsModel::~ExternalEventsModel() {
+}
+
+void ExternalEventsModel::getExternalEvents(int day,
+        vector<ExternalEvent>& outValues) const {
+    LuaRef funcRef = getGlobal(state.get(), "getExternalEvents");
+    LuaRef retVal = funcRef(day);
+    if (retVal.isTable()) {
+        for (int i = 1; i <= retVal.length(); i++) {
+            outValues.push_back(retVal[i].cast<ExternalEvent>());
+        }
+    }
+}
+
+void ExternalEventsModel::mapClasses() {
+    getGlobalNamespace(state.get())
+            .beginClass <ExternalEvent> ("ExternalEvent")
+            .addConstructor <void (*) (void) > ()
+            .addData("day", &ExternalEvent::day)
+            .addData("type", &ExternalEvent::type)
+            .addData("householdId", &ExternalEvent::householdId)
+            .endClass();
+}
+
+/******************************************************************************
+ *                         HOUSING MARKET LUA
+ ******************************************************************************/
+
 HM_LuaModel::HM_LuaModel() : lua::LuaModel() {
 }
 
@@ -33,6 +72,13 @@ void HM_LuaModel::mapClasses() {
             .addConstructor <void (*) (void) > ()
             .addData("price", &ExpectationEntry::price)
             .addData("expectation", &ExpectationEntry::expectation)
+            .endClass();
+    getGlobalNamespace(state.get())
+            .beginClass <ExternalEvent> ("ExternalEvent")
+            .addConstructor <void (*) (void) > ()
+            .addData("day", &ExternalEvent::day)
+            .addData("type", &ExternalEvent::type)
+            .addData("householdId", &ExternalEvent::householdId)
             .endClass();
     getGlobalNamespace(state.get())
             .beginClass <Unit> ("Unit")

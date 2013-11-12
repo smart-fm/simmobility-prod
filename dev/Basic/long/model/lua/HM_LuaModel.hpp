@@ -18,6 +18,31 @@ namespace sim_mob {
     namespace long_term {
 
         /**
+         * Represents the Lua model to for external events injection.
+         */
+        class ExternalEventsModel : public lua::LuaModel {
+        public:
+            ExternalEventsModel();
+            ExternalEventsModel(const ExternalEventsModel& orig);
+            virtual ~ExternalEventsModel();
+
+            /**
+             * Gets all external events.
+             *
+             * @param day.
+             * @param outValues receive all external events.
+             */
+            void getExternalEvents(int day,
+                    std::vector<ExternalEvent>& outValues) const;
+        private:
+
+            /**
+             * Inherited from LuaModel
+             */
+            void mapClasses();
+        };
+
+        /**
          * Represents the Lua model to the Housing market model.
          */
         class HM_LuaModel : public lua::LuaModel {
@@ -67,6 +92,7 @@ namespace sim_mob {
              *         or sim_mob::long_term::INVALID_DOUBLE
              */
             double calulateWP(const Household& hh, const Unit& unit) const;
+
         private:
 
             /**

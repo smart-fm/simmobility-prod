@@ -1,4 +1,26 @@
+events = {}
+EventType = { 
+    NEW_JOB = 0, 
+    LOST_JOB = 1, 
+    NEW_JOB_LOCATION = 2, 
+    NEW_CHILD = 3,
+    NEW_SCHOOL_LOCATION = 4}
+    
+function addEvent (day, type, householdId)
+    event = ExternalEvent()
+    event.day = day;
+    event.householdId = householdId;
+    event.type = type;
+    if events[day] == nil then
+        events[day] = {}
+    end
+    table.insert(events[day], event);
+end
 
+addEvent(67, EventType.NEW_JOB, 1)
+addEvent(67, EventType.NEW_JOB_LOCATION, 2)
+addEvent(300, EventType.NEW_CHILD, 3)
+addEvent(300, EventType.NEW_SCHOOL_LOCATION, 4)
 
 --[[
     Gets all external events for given day.
@@ -7,13 +29,7 @@
     @return ExternalEvent list.
 ]]
 function getExternalEvents (day)
-    local events = {}
-    for i=1,100 do
-        entry = ExternalEvent()
-        entry.day = day;
-        entry.householdId = i;
-        entry.type = 1;
-        events[i] = entry;
-    end
-    return events;
+    if events[day] ~= nil then
+        return events[day];
+    end 
 end

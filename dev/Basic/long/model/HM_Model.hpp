@@ -13,6 +13,7 @@
 #include "database/entity/Household.hpp"
 #include "database/entity/Unit.hpp"
 #include "core/HousingMarket.hpp"
+#include "core/EventsInjector.hpp"
 
 namespace sim_mob {
     namespace long_term {
@@ -35,6 +36,7 @@ namespace sim_mob {
         private:
             typedef boost::unordered_map<BigSerial, Unit*> UnitMap;      
             // Data
+            EventsInjector injector;
             HousingMarket market;
             std::vector<Household> households;
             std::vector<Unit> units;

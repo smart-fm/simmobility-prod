@@ -50,6 +50,7 @@ void HM_Model::startImpl() {
     DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
     conn.connect();
     workGroup.assignAWorker(&market);
+    workGroup.assignAWorker(&injector);
     if (conn.isConnected()) {
         // Households
         HouseholdDao hhDao(conn);

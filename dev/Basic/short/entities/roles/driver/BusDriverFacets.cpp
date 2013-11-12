@@ -27,15 +27,15 @@ BusDriverBehavior::BusDriverBehavior(sim_mob::Person* parentAgent):
 
 BusDriverBehavior::~BusDriverBehavior() {}
 
-void BusDriverBehavior::frame_init(UpdateParams& p) {
+void BusDriverBehavior::frame_init() {
 	throw std::runtime_error("BusDriverBehavior::frame_init is not implemented yet");
 }
 
-void BusDriverBehavior::frame_tick(UpdateParams& p) {
+void BusDriverBehavior::frame_tick() {
 	throw std::runtime_error("BusDriverBehavior::frame_tick is not implemented yet");
 }
 
-void BusDriverBehavior::frame_tick_output(const UpdateParams& p) {
+void BusDriverBehavior::frame_tick_output() {
 	throw std::runtime_error("BusDriverBehavior::frame_tick_output is not implemented yet");
 }
 
@@ -60,11 +60,6 @@ sim_mob::BusDriverMovement::~BusDriverMovement()
 
 }
 
-void sim_mob::BusDriverMovement::flowIntoNextLinkIfPossible(UpdateParams& p)
-{
-
-}
-
 Vehicle* sim_mob::BusDriverMovement::initializePath_bus(bool allocateVehicle) {
 	Vehicle* res = nullptr;
 
@@ -77,8 +72,9 @@ Vehicle* sim_mob::BusDriverMovement::initializePath_bus(bool allocateVehicle) {
 			int laneID = -1;
 //			if (parentAgent) {
 				const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem));
-				if (!bustrip)
-					std::cout << "bustrip is null\n";
+				if (!bustrip){
+					WarnOut("bustrip is null");
+				}
 				if (bustrip&& (*(getParent()->currTripChainItem))->itemType== TripChainItem::IT_BUSTRIP) {
 					path = bustrip->getBusRouteInfo().getRoadSegments();
 					std::cout << "BusTrip path size = " << path.size() << std::endl;
@@ -124,7 +120,7 @@ Vehicle* sim_mob::BusDriverMovement::initializePath_bus(bool allocateVehicle) {
 	return res;
 }
 
-void sim_mob::BusDriverMovement::frame_init(UpdateParams& p) {
+void sim_mob::BusDriverMovement::frame_init() {
 	//TODO: "initializePath()" in Driver mixes initialization of the path and
 	//      creation of the Vehicle (e.g., its width/height). These are both
 	//      very different for Cars and Buses, but until we un-tangle the code
@@ -160,7 +156,7 @@ void sim_mob::BusDriverMovement::frame_init(UpdateParams& p) {
 		}
 
 		//Set the bus's origin and set of stops.
-		setOrigin(parentBusDriver->params);
+		setOrigin(parentBusDriver->getParams());
 		if (getParent()) {
 			if (getParent()->getAgentSrc() == "BusController") {
 				const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem));
@@ -207,7 +203,7 @@ vector<const BusStop*> sim_mob::BusDriverMovement::findBusStopInPath(const vecto
 
 double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 {
-	if ((parentBusDriver->params.now.ms() / 1000.0 - parentBusDriver->startTime > 10)&& (parentBusDriver->vehicle->getDistanceMovedInSegment() > 2000) && parentBusDriver->isAleadyStarted == false) {
+	if ((parentBusDriver->getParams().now.ms() / 1000.0 - parentBusDriver->startTime > 10)&& (parentBusDriver->vehicle->getDistanceMovedInSegment() > 2000) && parentBusDriver->isAleadyStarted == false) {
 		parentBusDriver->isAleadyStarted = true;
 	}
 	p.isAlreadyStart = parentBusDriver->isAleadyStarted;
@@ -365,7 +361,7 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 					BUS_STOP_HOLDING_TIME_SEC = parentBusDriver->DwellTime_ijk.get();
 				}
 				parentBusDriver->existed_Request_Mode.set( Role::REQUEST_NONE );
-				parentBusDriver->busStopRealTimes_vec_bus[parentBusDriver->busstop_sequence_no.get()]->set(parentBusDriver->last_busStopRealTimes->get());
+				parentBusDriver->setBusStopRealTimes(parentBusDriver->busstop_sequence_no.get(), parentBusDriver->last_busStopRealTimes->get());
 			}
 
 			IndividualBoardingAlighting_New(bus);// after holding time determination, start boarding and alighting
@@ -577,14 +573,14 @@ double sim_mob::BusDriverMovement::getDistanceToBusStopOfSegment(const RoadSegme
 }
 
 //Main update functionality
-void sim_mob::BusDriverMovement::frame_tick(UpdateParams& p) {
+void sim_mob::BusDriverMovement::frame_tick() {
 	//NOTE: If this is all that is doen, we can simply delete this function and
 	//      let its parent handle it automatically. ~Seth
-	DriverMovement::frame_tick(p);
+	DriverMovement::frame_tick();
 }
 
-void sim_mob::BusDriverMovement::frame_tick_output(const UpdateParams& p) {
-	//Skip?
+void sim_mob::BusDriverMovement::frame_tick_output() {
+	DriverUpdateParams &p = parentBusDriver->getParams();
 	if (parentBusDriver->vehicle->isDone()) {
 		return;
 	}
@@ -689,7 +685,7 @@ void sim_mob::BusDriverMovement::BoardingPassengers_Choice(Bus* bus)
 
 void sim_mob::BusDriverMovement::IndividualBoardingAlighting_New(Bus* bus)
 {
-	uint32_t curr_ms = parentBusDriver->params.now.ms();
+	uint32_t curr_ms = parentBusDriver->getParams().now.ms();
 
 	// determine the alighting and boarding frames, if allow_boarding_alighting_flag is true, no need to dertermined
 	if((!allow_boarding_alighting_flag) && (curr_ms % 5000 != 0)) {// skip the case when (curr_ms % 5000 == 0), one time determine the boarding and alighting MSs
@@ -702,7 +698,7 @@ void sim_mob::BusDriverMovement::IndividualBoardingAlighting_New(Bus* bus)
 
 void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 {
-	uint32_t curr_ms = parentBusDriver->params.now.ms();
+	uint32_t curr_ms = parentBusDriver->getParams().now.ms();
 	int i = 0;
 	int j = 0;
 	int boardingNum = 0;
@@ -876,7 +872,7 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 void sim_mob::BusDriverMovement::StartBoardingAlighting(Bus* bus)
 {
 	// begin alighting and boarding
-	uint32_t curr_ms = parentBusDriver->params.now.ms();
+	uint32_t curr_ms = parentBusDriver->getParams().now.ms();
 	int i = 0;
 	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 	const Busline* busline = nullptr;

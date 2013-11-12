@@ -10,33 +10,73 @@
  */
 
 #include <cmath>
+#include <boost/format.hpp>
 #include "HouseholdBidderRole.hpp"
-#include "util/UnitHolder.hpp"
 #include "message/LT_Message.hpp"
 #include "event/EventPublisher.hpp"
 #include "event/EventManager.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "util/Statistics.hpp"
 #include "message/MessageBus.hpp"
+#include "model/lua/LuaProvider.hpp"
+#include "model/HM_Model.hpp"
+#include "entities/commsim/message/base/Message.hpp"
 
 using std::list;
 using std::endl;
-using std::cout;
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
 using namespace sim_mob::messaging;
+using boost::format;
 
-HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent, Household* hh,
-        const BidderParams& params, HousingMarket* market)
-: LT_AgentRole(parent), market(market), hh(hh), waitingForResponse(false),
-lastTime(0, 0), bidOnCurrentDay(false), params(params) {
-    FollowMarket();
+namespace {
+
+    const std::string LOG_BID_ACCEPTED = "Agent: [%1%] bid: [%2%] was accepted.";
+    const std::string LOG_BID_REJECTED = "Agent: [%1%] bid: [%2%] was rejected.";
+
+    inline void printBid(const HouseholdAgent& agent, const Bid& bid,
+            const BidResponse& resp) {
+        std::string msg = "";
+        switch (resp) {
+            case ACCEPTED:// Bid accepted 
+            {
+                msg = LOG_BID_ACCEPTED;
+                break;
+            }
+            case NOT_ACCEPTED:
+            {
+                msg = LOG_BID_REJECTED;
+                break;
+            }
+            default:break;
+        }
+
+        if (!msg.empty()) {
+            format fmtr = boost::format(LOG_BID_ACCEPTED) % agent.getId() % bid;
+            PrintOut(fmtr.str() << endl);
+        }
+    }
+
+    /**
+     * Send given bid to given owner.
+     * @param owner of the unit
+     * @param bid to send.
+     */
+    inline void bid(MessageHandler* owner, const Bid& bid) {
+        MessageBus::PostMessage(owner, LTMID_BID,
+                MessageBus::MessagePtr(new BidMessage(bid)));
+    }
+}
+
+HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent)
+: LT_AgentRole(parent), waitingForResponse(false),
+lastTime(0, 0), bidOnCurrentDay(false) {
 }
 
 HouseholdBidderRole::~HouseholdBidderRole() {
 }
 
-void HouseholdBidderRole::Update(timeslice now) {
+void HouseholdBidderRole::update(timeslice now) {
     //can bid another house if it is not waiting for any 
     //response and if it not the same day
     if (!waitingForResponse && lastTime.ms() < now.ms()) {
@@ -44,26 +84,12 @@ void HouseholdBidderRole::Update(timeslice now) {
     }
 
     if (isActive()) {
-        if (!waitingForResponse && !bidOnCurrentDay && BidUnit(now)) {
+        if (!waitingForResponse && !bidOnCurrentDay && bidUnit(now)) {
             waitingForResponse = true;
             bidOnCurrentDay = true;
         }
     }
     lastTime = now;
-}
-
-void HouseholdBidderRole::OnWakeUp(EventId id, Context ctx, EventPublisher* sender,
-        const EM_EventArgs& args) {
-    switch (id) {
-        case sim_mob::event::EM_WND_EXPIRED:
-        {
-            LogOut("Bidder: [" << GetParent()->getId() << "] AWOKE." << endl);
-            FollowMarket();
-            SetActive(true);
-            break;
-        }
-        default:break;
-    }
 }
 
 void HouseholdBidderRole::HandleMessage(Message::MessageType type,
@@ -72,135 +98,77 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type,
         case LTMID_BID_RSP:// Bid response received 
         {
             const BidMessage& msg = MSG_CAST(BidMessage, message);
-            switch (msg.GetResponse()) {
+            switch (msg.getResponse()) {
                 case ACCEPTED:// Bid accepted 
                 {
-                    //remove unit from the market.
-                    Unit* unit = market->RemoveUnit(msg.GetBid().GetUnitId());
-                    if (unit) { // assign unit.
-                        GetParent()->AddUnit(unit);
-                        SetActive(false);
-                        cout << "Bidder: [" << GetParent()->getId() <<
-                                "] bid: " << msg.GetBid() <<
-                                " was accepted " << endl;
-                        //sleep for N ticks.
-                        timeslice wakeUpTime(lastTime.ms() + 10,
-                                lastTime.frame() + 10);
-                        /*GetParent()->GetEventManager().Schedule(wakeUpTime, this,
-                                CONTEXT_CALLBACK_HANDLER(EM_EventArgs,
-                                HouseholdBidderRole::OnWakeUp));*/
-                        UnFollowMarket();
-                        DeleteBidsCounter(unit->GetId());
-                        Statistics::Increment(Statistics::N_ACCEPTED_BIDS);
-                    }
+                    getParent()->addUnitId(msg.getBid().getUnitId());
+                    setActive(false);
+                    deleteBidsCounter(msg.getBid().getUnitId());
+                    Statistics::increment(Statistics::N_ACCEPTED_BIDS);
                     break;
                 }
                 case NOT_ACCEPTED:
                 {
-                    cout<< "Bidder: [" << GetParent()->getId() <<
-                            "] bid: " << msg.GetBid() <<
-                            " was not accepted " << endl;
-                    IncrementBidsCounter(msg.GetBid().GetUnitId());
+                    incrementBidsCounter(msg.getBid().getUnitId());
                     break;
                 }
                 case BETTER_OFFER:
                 {
-                    DeleteBidsCounter(msg.GetBid().GetUnitId());
+                    deleteBidsCounter(msg.getBid().getUnitId());
                     break;
                 }
                 case NOT_AVAILABLE:
                 {
-                    DeleteBidsCounter(msg.GetBid().GetUnitId());
+                    deleteBidsCounter(msg.getBid().getUnitId());
                     break;
                 }
                 default:break;
             }
             waitingForResponse = false;
-            Statistics::Increment(Statistics::N_BID_RESPONSES);
+            Statistics::increment(Statistics::N_BID_RESPONSES);
+            //print out bid.
+            printBid(*getParent(), msg.getBid(), msg.getResponse());
             break;
         }
         default:break;
     }
 }
 
-void HouseholdBidderRole::OnMarketAction(EventId id, EventPublisher* sender,
-        const HM_ActionEventArgs& args) {
-    switch (id) {
-        case LTEID_HM_UNIT_ADDED:// Bid response received 
-        {
-            //LogOut("Agent: " << GetParent()->getId() <<
-            //      " notified about the unit added." << endl);
-            break;
+bool HouseholdBidderRole::bidUnit(timeslice now) {
+    HousingMarket* market = getParent()->getMarket();
+    const Household* household = getParent()->getHousehold();
+    const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
+    const HousingMarket::EntryMap& entries = market->getAvailableEntries();
+    // choose the unit to bid with max surplus.
+    const HousingMarket::Entry* maxEntry = nullptr;
+    float maxSurplus = -1;
+    for (HousingMarket::EntryMap::const_iterator itr = entries.begin();
+            itr != entries.end(); itr++) {
+        const HousingMarket::Entry* entry = &(itr->second);
+        if ((entry->getOwner() != getParent())) {
+            float surplus = luaModel.calculateSurplus(*entry,
+                    getBidsCounter(entry->getUnitId()));
+            if (surplus > maxSurplus) {
+                maxSurplus = surplus;
+                maxEntry = entry;
+            }
         }
-        case LTEID_HM_UNIT_REMOVED:
-        {
-            //LogOut("Agent: " << GetParent()->getId() <<
-            //      " notified about the unit removed." << endl);
-            break;
-        }
-        default:break;
     }
-}
+    // Exists some unit to bid.
+    if (maxEntry) {
+        float bidValue = maxSurplus +
+                luaModel.calulateWP(*household, maxEntry->getUnit());
 
-bool HouseholdBidderRole::BidUnit(timeslice now) {
-    list<Unit*> units;
-    market->GetUnits(units);
-    if (!units.empty()) {
-        // choose the unit to bid with max surplus.
-        Unit* unit = nullptr;
-        float maxSurplus = -1;
-        for (list<Unit*>::iterator itr = units.begin(); itr != units.end();
-                itr++) {
-            if ((*itr)->IsAvailable()) {
-                float surplus = CalculateSurplus(*(*itr));
-                if (surplus > maxSurplus) {
-                    maxSurplus = surplus;
-                    unit = (*itr);
-                }
-            }
-        }
-        // Exists some unit to bid.
-        if (unit) {
-            MessageHandler* owner = dynamic_cast<MessageHandler*> (unit->GetOwner());
-            float bidValue = maxSurplus + CalculateWP(*unit);
-            if (owner && bidValue > 0.0f && unit->IsAvailable()) {
-                //Statistics::Increment(Statistics::N_BIDS);
-                MessageBus::PostMessage(owner, LTMID_BID, 
-                        MessageBus::MessagePtr(new BidMessage(Bid(unit->GetId(), GetParent()->getId(),
-                        GetParent(), bidValue, now))));
-                return true;
-            }
+        if (maxEntry->getOwner() && bidValue > 0.0f) {
+            bid(maxEntry->getOwner(), Bid(maxEntry->getUnitId(),
+                    household->getId(), getParent(), bidValue, now));
+            return true;
         }
     }
     return false;
 }
 
-float HouseholdBidderRole::CalculateSurplus(const Unit& unit) {
-    return pow(unit.GetAskingPrice(), params.GetUrgencyToBuy() + 1) /
-            ((float) GetBidsCounter(unit.GetId()) * params.GetPriceQuality());
-}
-
-float HouseholdBidderRole::CalculateWP(const Unit& unit) {
-    return (float) ((params.GetHH_IncomeWeight() * hh->GetIncome()) +
-            (params.GetUnitAreaWeight() * unit.GetArea()) +
-            (params.GetUnitTypeWeight() * unit.GetTypeId()) +
-            (params.GetUnitRentWeight() * unit.GetRent()) +
-            (params.GetUnitStoreyWeight() * unit.GetStorey()));
-}
-
-void HouseholdBidderRole::FollowMarket() {
-    market->Subscribe(LTEID_HM_UNIT_ADDED, this,
-            CALLBACK_HANDLER(HM_ActionEventArgs, HouseholdBidderRole::OnMarketAction));
-    market->Subscribe(LTEID_HM_UNIT_REMOVED, this,
-            CALLBACK_HANDLER(HM_ActionEventArgs, HouseholdBidderRole::OnMarketAction));
-}
-
-void HouseholdBidderRole::UnFollowMarket() {
-    market->UnSubscribe(LTEID_HM_UNIT_ADDED, this);
-    market->UnSubscribe(LTEID_HM_UNIT_REMOVED, this);
-}
-
-int HouseholdBidderRole::GetBidsCounter(UnitId unitId) {
+int HouseholdBidderRole::getBidsCounter(const BigSerial& unitId) {
     BidsCounterMap::iterator mapItr = bidsPerUnit.find(unitId);
     if (mapItr != bidsPerUnit.end()) {
         return mapItr->second;
@@ -210,7 +178,7 @@ int HouseholdBidderRole::GetBidsCounter(UnitId unitId) {
     }
 }
 
-void HouseholdBidderRole::IncrementBidsCounter(UnitId unitId) {
+void HouseholdBidderRole::incrementBidsCounter(const BigSerial& unitId) {
     BidsCounterMap::iterator mapItr = bidsPerUnit.find(unitId);
     if (mapItr != bidsPerUnit.end()) {
         (mapItr->second)++;
@@ -219,6 +187,6 @@ void HouseholdBidderRole::IncrementBidsCounter(UnitId unitId) {
     }
 }
 
-void HouseholdBidderRole::DeleteBidsCounter(UnitId unitId) {
+void HouseholdBidderRole::deleteBidsCounter(const BigSerial& unitId) {
     bidsPerUnit.erase(unitId);
 }

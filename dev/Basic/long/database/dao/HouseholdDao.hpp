@@ -16,14 +16,12 @@ using namespace boost;
 namespace sim_mob {
 
     namespace long_term {
-
-        DAO_DECLARE_CALLBACKS(Household);
         /**
          * Data Access Object to Household table on datasource.
          */
         class HouseholdDao : public db::AbstractDao<Household> {
         public:
-            HouseholdDao(db::DBConnection* connection);
+            HouseholdDao(db::DB_Connection& connection);
             virtual ~HouseholdDao();
 
         private:
@@ -33,7 +31,7 @@ namespace sim_mob {
              * @param result row with data to fill the out object.
              * @param outObj to fill.
              */
-            void FromRow(db::Row& result, Household& outObj);
+            void fromRow(db::Row& result, Household& outObj);
             
             /**
              * Fills the outParam with all values to insert or update on datasource.
@@ -41,7 +39,7 @@ namespace sim_mob {
              * @param outParams to put the data parameters.
              * @param update tells if operation is an Update or Insert.
              */
-            void ToRow(Household& data, db::Parameters& outParams, bool update);
+            void toRow(Household& data, db::Parameters& outParams, bool update);
         };
     }
 }

@@ -440,8 +440,8 @@ MessageList FMOD_Controller::collectLinkTravelTime()
 
 	for(std::vector<Agent*>::iterator it=allChildren.begin(); it!=allChildren.end(); it++){
 
-		const std::map<double, travelStats>& travelStatsMap = (*it)->travelStatsMap.get();
-		for(std::map<double, travelStats>::const_iterator itTravel=travelStatsMap.begin(); itTravel!=travelStatsMap.end(); itTravel++ ){
+		const std::map<double, linkTravelStats>& travelStatsMap = (*it)->linkTravelStatsMap.get();
+		for(std::map<double, linkTravelStats>::const_iterator itTravel=travelStatsMap.begin(); itTravel!=travelStatsMap.end(); itTravel++ ){
 
 			double travelTime = (itTravel->first) - (itTravel->second).linkEntryTime_;
 			std::map<const Link*, travelTimes>::iterator itTT = LinkTravelTimesMap.find((itTravel->second).link_);

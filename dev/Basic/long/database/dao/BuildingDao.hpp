@@ -16,15 +16,12 @@
 
 namespace sim_mob {
     namespace long_term {
-
-        DAO_DECLARE_CALLBACKS(Building);
-
         /**
          * Data Access Object to Building table on datasource.
          */
         class BuildingDao : public db::AbstractDao<Building> {
         public:
-            BuildingDao(db::DBConnection* connection);
+            BuildingDao(db::DB_Connection& connection);
             virtual ~BuildingDao();
 
         private:
@@ -33,7 +30,7 @@ namespace sim_mob {
              * @param result row with data to fill the out object.
              * @param outObj to fill.
              */
-            void FromRow(db::Row& result, Building& outObj);
+            void fromRow(db::Row& result, Building& outObj);
 
             /**
              * Fills the outParam with all values to insert or update on datasource.
@@ -41,7 +38,7 @@ namespace sim_mob {
              * @param outParams to put the data parameters.
              * @param update tells if operation is an Update or Insert.
              */
-            void ToRow(Building& data, db::Parameters& outParams, bool update);
+            void toRow(Building& data, db::Parameters& outParams, bool update);
         };
     }
 }

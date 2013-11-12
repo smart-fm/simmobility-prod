@@ -45,9 +45,9 @@ public:
 	virtual ~WaitBusActivityRoleBehaviorImpl();
 
 	//Virtual overrides
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
+	virtual void frame_init();
+	virtual void frame_tick();
+	virtual void frame_tick_output();
 };
 
 class WaitBusActivityRoleMovementImpl : public sim_mob::WaitBusActivityRoleMovement {
@@ -56,9 +56,8 @@ public:
 	virtual ~WaitBusActivityRoleMovementImpl();
 
 	//Virtual overrides
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
+	virtual void frame_init();
+	virtual void frame_tick();
+	virtual void frame_tick_output();
 };
 }

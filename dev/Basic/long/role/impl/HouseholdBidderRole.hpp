@@ -14,13 +14,13 @@
 #include "event/LT_EventArgs.hpp"
 #include "database/entity/Household.hpp"
 #include "core/HousingMarket.hpp"
-#include "database/entity/housing-market/BidderParams.hpp"
 
 namespace sim_mob {
 
     namespace long_term {
 
         class HouseholdAgent;
+        class HM_Model;
 
         /**
          * Bidder role for household.
@@ -33,57 +33,27 @@ namespace sim_mob {
          * If he is waiting for a response he will 
          * only able to do the next bid on the next day.
          */
-        class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent>{
+        class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent> {
         public:
-            HouseholdBidderRole(HouseholdAgent* parent, Household* hh, 
-                    const BidderParams& params, HousingMarket* market);
+            HouseholdBidderRole(HouseholdAgent* parent);
             virtual ~HouseholdBidderRole();
 
             /**
              * Inherited from LT_Role
              * @param currTime
              */
-            virtual void Update(timeslice currTime);
+            virtual void update(timeslice currTime);
         protected:
 
             /**
              * Inherited from LT_Role
              */
             virtual void HandleMessage(messaging::Message::MessageType type,
-                const messaging::Message& message);
-        private:
-            /**
-             * Handler for wakeup event.
-             * @param id of the event.
-             * @param ctx context of the event.
-             * @param sender EVentManager responsible for the fired event.
-             * @param args {@link EM_EventArgs} instance.
-             */
-            void OnWakeUp(event::EventId id, event::Context ctx,
-                    event::EventPublisher* sender, const event::EM_EventArgs& args);
-
-            /**
-             * Handler for Market action event.
-             * @param id of the event.
-             * @param sender of the event.
-             * @param args of the event.
-             */
-            void OnMarketAction(event::EventId id, event::EventPublisher* sender,
-                    const HM_ActionEventArgs& args);
-
-            /**
-             * Subscribes the role to all market generic events.
-             */
-            void FollowMarket();
-
-            /**
-             * UnSubscribes the role to all market generic events.
-             */
-            void UnFollowMarket();
+                    const messaging::Message& message);
 
         private:
             friend class HouseholdAgent;
-            
+
             /**
              * Helper method that goes to the market, gets the available units
              * and calculates the unit with maximum surplus. 
@@ -91,67 +61,34 @@ namespace sim_mob {
              * @param now
              * @return 
              */
-            bool BidUnit(timeslice now);
-            
-            /**
-             * Calculates the surplus for the given unit.
-             * 
-             * surplus = pow(askingPrice, alpha + 1)/ (n_bids * zeta)
-             * 
-             * Where:
-             *    n_bids: Represents the number of attempts(bids) that the bidder already did to the specific unit. 
-             *    alpha: Represents the urgency of the household to get the unit. (Household parameter)
-             *    zeta: Represents the relation between quality and price of the unit. (Unit parameter)
-             * 
-             * @param unit to calculate the surplus.
-             * @return the surplus for the given unit.
-             */
-            float CalculateSurplus(const Unit& unit);
-
-            /**
-             * Calculates the willingness to pay based on Household 
-             * attributes (and importance) and unit attributes.
-             * 
-             * This method calculates the willingness to pay following this formula:
-             * 
-             * wp = (HHIncomeWeight * HHIncome) + 
-             *      (HHUnitAttributeWeight1 * UnitAttribute1) + ...
-             *      (HHUnitAttributeWeightN * UnitAttributeN)
-             *
-             * @return value of the willingness to pay
-             */
-            float CalculateWP(const Unit& unit);
+            bool bidUnit(timeslice now);
 
             /**
              * Gets the bids counter for the given unit.
              * @param unitId unit unique identifier.
              * @return number of bids.
              */
-            int GetBidsCounter(UnitId unitId);
+            int getBidsCounter(const BigSerial& unitId);
 
             /**
              * Increments the bids counter for the given unit.
              * @param unitId unit unique identifier.
              */
-            void IncrementBidsCounter(UnitId unitId);
-            
+            void incrementBidsCounter(const BigSerial& unitId);
+
             /**
              * Deletes the counter for the given unit.
              * @param unitId unit unique identifier.
              */
-            void DeleteBidsCounter(UnitId unitId);
+            void deleteBidsCounter(const BigSerial& unitId);
 
         private:
-            Household* hh;
-            HousingMarket* market;
-            BidderParams params;
             volatile bool waitingForResponse;
             timeslice lastTime;
             bool bidOnCurrentDay;
-            typedef boost::unordered_map<UnitId, int> BidsCounterMap; // bids made per unit.  
-            typedef std::pair<UnitId, int> BidCounterEntry;
+            typedef boost::unordered_map<BigSerial, int> BidsCounterMap; // bids made per unit.  
+            typedef std::pair<BigSerial, int> BidCounterEntry;
             BidsCounterMap bidsPerUnit;
         };
     }
 }
-

@@ -89,6 +89,15 @@ public:
 	const unsigned long  getSegmentID()const ;
 	const unsigned int getLanesLeftOfDivider() const { return lanesLeftOfDivider; }
 
+	/**
+	 * aim-sun turning lane idx start from left to right
+	 * simmobility lane idx start from right to left
+	 * used to convert lane idx
+	 * @param laneId aimsun lane idx id
+	 * @return simmobility lane idx id
+	 */
+	unsigned int getAdjustedLaneId(unsigned int laneId);
+
 	bool operator== (const RoadSegment* rhs) const
 	{
 		   return (rhs->getStart()==this->getStart())&&(rhs->getEnd()==this->getEnd());

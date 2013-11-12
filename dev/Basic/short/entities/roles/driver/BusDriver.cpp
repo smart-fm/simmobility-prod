@@ -97,11 +97,20 @@ vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {
 	return res;
 }
 
-
+void sim_mob::BusDriver::setBusStopRealTimes(const int& busStopSeqNum, const BusStop_RealTimes& busStopRealTimes) {
+	// busStopRealTimes_vec_bus empty validation
+	if(!busStopRealTimes_vec_bus.empty()) {
+		// busstop_sequence_no range validation
+		if(busStopSeqNum >= 0 && busStopSeqNum < busStopRealTimes_vec_bus.size()) {
+			// if the range is reasonable, set the BusStopRealTime for this bus stop
+			busStopRealTimes_vec_bus[busStopSeqNum]->set(busStopRealTimes);
+		}
+	}
+}
 
 sim_mob::DriverRequestParams sim_mob::BusDriver::getDriverRequestParams()
 {
-	Person* person = dynamic_cast<Person*>(parent);
+//	Person* person = dynamic_cast<Person*>(parent);
 	sim_mob::DriverRequestParams res;
 
 	res.existedRequest_Mode = &existed_Request_Mode;

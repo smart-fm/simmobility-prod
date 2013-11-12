@@ -87,9 +87,9 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 }  //End unnamed namespace
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
-	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), curr_params(nullptr), remainingTimeThisTick(0.0),
+	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), remainingTimeThisTick(0.0),
 	requestedNextSegment(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
-	age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0), client_id(-1)
+	age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0), client_id(-1), resetParamsRequired(false)
 {
 }
 
@@ -212,6 +212,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 
 bool sim_mob::Person::frame_init(timeslice now)
 {
+	currTick = now;
 	//Agents may be created with a null Role and a valid trip chain
 	if (!currRole) {
 		//TODO: This UpdateStatus has a "prevParams" and "currParams" that should
@@ -237,11 +238,11 @@ bool sim_mob::Person::frame_init(timeslice now)
 	//Get an UpdateParams instance.
 	//TODO: This is quite unsafe, but it's a relic of how Person::update() used to work.
 	//      We should replace this eventually (but this will require a larger code cleanup).
-	curr_params = &currRole->make_frame_tick_params(now);
+	currRole->make_frame_tick_params(now);
 
 	//Now that the Role has been fully constructed, initialize it.
 	if((*currTripChainItem)) {
-		currRole->Movement()->frame_init(*curr_params);
+		currRole->Movement()->frame_init();
 	}
 
 	return true;
@@ -250,15 +251,17 @@ bool sim_mob::Person::frame_init(timeslice now)
 
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {
+	currTick = now;
 	//TODO: Here is where it gets risky.
-	if (!curr_params) {
-		curr_params = &currRole->make_frame_tick_params(now);
+	if (resetParamsRequired) {
+		currRole->make_frame_tick_params(now);
+		resetParamsRequired = false;
 	}
 
 	Entity::UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 
 	if (!isToBeRemoved()) {
-		currRole->Movement()->frame_tick(*curr_params);
+		currRole->Movement()->frame_tick();
 	}
 
 	//If we're "done", try checking to see if we have any more items in our Trip Chain.
@@ -279,6 +282,12 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 		//since start time of the activity is usually later than what is configured initially,
 		//we have to make adjustments so that it waits for exact amount of time
 		if(currTripChainItem != tripChain.end()) {
+			if((*currTripChainItem)) {// if currTripChain not end and has value, call frame_init and switching roles
+				if(isCallFrameInit()) {
+					currRole->Movement()->frame_init();
+					setCallFrameInit(false);// set to be false so later no need to frame_init later
+				}
+			}
 			if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
 				sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(currRole);
 				ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
@@ -297,11 +306,11 @@ void sim_mob::Person::frame_output(timeslice now)
 {
 	//Save the output
 	if (!isToBeRemoved()) {
-		currRole->Movement()->frame_tick_output(*curr_params);
+		currRole->Movement()->frame_tick_output();
 	}
 
-	//TODO: Still risky.
-	curr_params = nullptr; //WARNING: Do *not* delete curr_params; it is only used to point to the result of get_params.
+	//avoiding logical errors while improving the code
+	resetParamsRequired = true;
 }
 
 
@@ -789,7 +798,6 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 	}
 	prevRole = currRole;
 	currRole = newRole;
-	//Print() << (currRole? currRole->getRoleName() : "")  << " role changed to "<< newRole->getRoleName() << std::endl;
 
 	if (currRole) {
 		currRole->setParent(this);

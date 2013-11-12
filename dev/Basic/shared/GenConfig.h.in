@@ -23,6 +23,7 @@
 //Include our single-file flags.
 //Each of these #include file should contain a single flag, added via #cmakedefine
 #include "conf/settings/DisableMPI.h"
+#include "conf/settings/PathSet.h"
 #include "conf/settings/DisableOutput.h"
 #include "conf/settings/LatestStandard.h"
 #include "conf/settings/ProfileOptions.h"

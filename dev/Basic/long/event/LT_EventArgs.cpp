@@ -14,7 +14,7 @@
 using namespace sim_mob::long_term;
 using sim_mob::event::EventArgs;
 
-HM_ActionEventArgs::HM_ActionEventArgs(UnitId unitId)
+HM_ActionEventArgs::HM_ActionEventArgs(BigSerial unitId)
 : unitId(unitId) {
 }
 
@@ -25,6 +25,6 @@ HM_ActionEventArgs::HM_ActionEventArgs(const HM_ActionEventArgs& source)
 HM_ActionEventArgs::~HM_ActionEventArgs() {
 }
 
-const UnitId HM_ActionEventArgs::GetUnitId() const {
+BigSerial HM_ActionEventArgs::getUnitId() const {
     return unitId;
 }

@@ -19,8 +19,11 @@ namespace sim_mob
 /// in Agent::make_frame_tick_params().
 ///Note that the mt19937 generator cannot be changed once this object is constructed.
 struct UpdateParams {
+	UpdateParams() : now(0,0), gen(local_gen){}
 	explicit UpdateParams(boost::mt19937& gen) : now(0,0), gen(gen) {}
-	virtual ~UpdateParams() {}
+	virtual ~UpdateParams(){
+
+	}
 
 	///Reset this struct for use with the next frame.
 	virtual void reset(timeslice now) {
@@ -29,7 +32,8 @@ struct UpdateParams {
 
 	///The current timeslice.
 	timeslice now;
-
+	///The local random number generator if no generator specified
+	boost::mt19937 local_gen;
 	///The random number generator being used by this Agent.
 	boost::mt19937& gen;
 };

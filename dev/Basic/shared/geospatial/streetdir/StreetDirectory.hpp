@@ -23,6 +23,7 @@ class Lane;
 class Link;
 class Point2D;
 class RoadNetwork;
+class RoadRunnerRegion;
 class RoadSegment;
 class Node;
 class MultiNode;
@@ -67,6 +68,18 @@ class Signal;
  *   \sa LaneAndIndexPair
  *   \sa RoadSegmentAndIndexPair
  */
+enum TimeRange{
+	MorningPeak=0,
+	EveningPeak=1,
+	OffPeak=2,
+	Default=3,
+	HighwayBias_Distance=4,
+	HighwayBias_MorningPeak=5,
+	HighwayBias_EveningPeak=6,
+	HighwayBias_OffPeak=7,
+	HighwayBias_Default=8,
+	Random
+};
 class StreetDirectory : private boost::noncopyable
 {
 public:
@@ -181,6 +194,8 @@ public:
     protected:
         //Impl();  //Abstract?
 
+		virtual std::pair<sim_mob::RoadRunnerRegion, bool> getRoadRunnerRegion(const sim_mob::RoadSegment* seg) = 0;
+
 		virtual const BusStop* getBusStop(const Point2D& position) const = 0;
 
 		virtual const Node* getNode(const int id) const = 0;
@@ -224,14 +239,15 @@ public:
     };
 
 
+
     /**
-     * Shared statistics class. Doesn't seem to do much, so I'm moving it into the header file. ~Seth
+     * Retrieve the RoadRunnerRegion that a given RoadSegment passes through.
+     * boolean value indicates success.
+     * NOTE: We assume that a Segment is "inside" a Region if its midpoint is inside that Region, or
+     *       if its from/to line intersects one of that Region's line segments.
+     * If multiple Regions overlap on a RoadSegment, an arbitrary one will be chosen.
      */
-    /*struct Stats : private boost::noncopyable {
-        void printStatistics() const {
-        	throw std::runtime_error("StreetDirectory::Stats not implemented yet");
-        }
-    };*/
+    std::pair<sim_mob::RoadRunnerRegion, bool> getRoadRunnerRegion(const sim_mob::RoadSegment* seg);
 
 
     const BusStop* getBusStop(const Point2D& position) const;
@@ -268,6 +284,7 @@ public:
 
 
 	VertexDesc DrivingVertex(const sim_mob::Node& n) const;
+	VertexDesc DrivingTimeVertex(const sim_mob::Node& n,sim_mob::TimeRange tr = sim_mob::MorningPeak,int random_graph_idx=0) const;
 	VertexDesc WalkingVertex(const sim_mob::Node& n) const;
 	VertexDesc DrivingVertex(const sim_mob::BusStop& b) const;
 	VertexDesc WalkingVertex(const sim_mob::BusStop& b) const;
@@ -290,6 +307,11 @@ public:
      */
     std::vector<WayPoint> SearchShortestDrivingPath(VertexDesc from, VertexDesc to, std::vector<const sim_mob::RoadSegment*> blacklist=std::vector<const sim_mob::RoadSegment*>()) const;
 
+    std::vector<WayPoint> SearchShortestDrivingTimePath(VertexDesc from,
+    		VertexDesc to,
+    		std::vector<const sim_mob::RoadSegment*> blacklist=std::vector<const sim_mob::RoadSegment*>(),
+    		sim_mob::TimeRange tr=sim_mob::MorningPeak,
+    		int random_graph_idx=0) const;
 
     /**
      * Return the distance-based shortest path to walk from one point to another.
@@ -368,7 +390,7 @@ private:
 
 
 private:
-    StreetDirectory() : pimpl_(nullptr), spImpl_(nullptr)/*, stats_(nullptr)*/
+    StreetDirectory() : pimpl_(nullptr), spImpl_(nullptr), sttpImpl_(nullptr)/*, stats_(nullptr)*/
     {}
 
     static StreetDirectory instance_;
@@ -380,6 +402,9 @@ private:
 
     ///Our current implementation of the shortest path searcher.
     ShortestPathImpl* spImpl_;
+
+    // shortest travel time path
+    ShortestPathImpl* sttpImpl_;
 
     ///The current set of StreetDirectoryStats
     //Stats* stats_;

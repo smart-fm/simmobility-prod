@@ -176,7 +176,33 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 
 	//Load our user config file
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
+	//Load our user config file
+//	ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn);
+	std::cout<<"performMainMed: trip chain pool size "<<
+			ConfigManager::GetInstance().FullConfig().getTripChains().size()<<std::endl;
 
+	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+		// init path set manager
+		time_t t = time(0);   // get time now
+		struct tm * now = localtime( & t );
+		std::cout<<"begin time:"<<std::endl;
+		std::cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
+		PathSetManager* psMgr = PathSetManager::getInstance();
+		std::string name=configFileName;
+		psMgr->setScenarioName(name);
+//		psMgr->setTravleTimeTmpTableName(ConfigParams::GetInstance().travelTimeTmpTableName);
+//		psMgr->createTravelTimeTmpTable(psMgr->getTravleTimeTmpTableName());
+//		psMgr->getDataFromDB();
+		if(psMgr->isUseCatchMode())
+		{
+			psMgr->generateAllPathSetWithTripChain2();
+		}
+//		psMgr->saveDataToDB();
+		t = time(0);   // get time now
+		now = localtime( & t );
+		std::cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
+		std::cout<<psMgr->size()<<std::endl;
+	}
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 
@@ -312,6 +338,10 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	}
 #endif
 
+	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+		PathSetManager::getInstance()->copyTravelTimeDataFromTmp2RealtimeTable();
+		PathSetManager::getInstance()->dropTravelTimeTmpTable();
+	}
 	std::cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
 
 	cout << "Max Agents at any given time: " <<maxAgents <<std::endl;
@@ -334,10 +364,11 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 			Person* p = dynamic_cast<Person*> (*it);
 			if (p) {
 				numPerson++;
-				if (p->getRole() && dynamic_cast<Driver*>(p->getRole())) {
+				if(p->getRole())
+				if ( dynamic_cast<sim_mob::medium::Driver*>(p->getRole())) {
 					numDriver++;
 				}
-				if (p->getRole() && dynamic_cast<Pedestrian*> (p->getRole())) {
+				if (p->getRole() && dynamic_cast<sim_mob::medium::Pedestrian*> (p->getRole())) {
 					numPedestrian++;
 				}
 			}
@@ -391,7 +422,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 
 int main(int ARGC, char* ARGV[])
 {
-	std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
+	std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
 
 	//Save start time
 	gettimeofday(&start_time_med, nullptr);
@@ -465,7 +496,7 @@ int main(int ARGC, char* ARGV[])
 	//Concatenate output files?
 	if (!resLogFiles.empty()) {
 		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
-		Utils::PrintAndDeleteLogFiles(resLogFiles);
+		Utils::printAndDeleteLogFiles(resLogFiles);
 	}
 
 	timeval simEndTime;

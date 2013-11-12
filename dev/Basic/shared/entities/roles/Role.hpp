@@ -32,6 +32,7 @@ class UnPackageUtils;
  *
  * \author Seth N. Hetu
  * \author Xu Yan
+ * \author Vahid
  *
  *
  * Allows Person agents to swap out roles easily,
@@ -40,6 +41,24 @@ class UnPackageUtils;
  * \note
  * For now, this class is very simplistic.
  */
+template<class PARAM>
+class UpdateWrapper {
+protected:
+	PARAM dataParam;
+
+public:
+	UpdateWrapper() {}
+
+	PARAM &getParams() {
+		return dataParam;
+	}
+
+	void setParams(PARAM &value)
+	{
+		dataParam = value;
+	}
+};
+
 class Role
 {
 public:
@@ -69,7 +88,7 @@ public:
 public:
 	//NOTE: Don't forget to call this from sub-classes!
 	explicit Role(sim_mob::Agent* parent = nullptr, std::string roleName = std::string(), Role::type roleType_ = RL_UNKNOWN) :
-		parent(parent), currResource(nullptr), name(roleName), roleType(roleType_), dynamic_seed(0), behaviorFacet(nullptr), movementFacet(nullptr)
+		parent(parent), currResource(nullptr), name(roleName), roleType(roleType_), dynamic_seed(0)
 	{
 		//todo consider putting a runtime error for empty or zero length rolename
 	}
@@ -89,6 +108,13 @@ public:
 	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
 	virtual Role* clone(Person* parent) const = 0;
 	std::string getRoleName()const {return name;}
+	//provide information to MovementFacet object passed as argument.
+		//such information can be provided by passing 'this'
+		//as an argument to one of the MovementFacet object's methods.
+		//Note:This twisting was originally invented to avoid dynamic_cast(s)
+		//another -better- approach is to re-write updateDriverAgent methods and change the subject and object.
+		//(in the other words change the place of the caller and the argument)
+	virtual void handleUpdateRequest(MovementFacet* mFacet){};
 
 	///Return a list of parameters that expect their subscriptions to be managed.
 	/// Agents can append/remove this list to their own subscription list each time
@@ -98,7 +124,7 @@ public:
 
 	///Create the UpdateParams (or, more likely, sub-class) which will hold all
 	///  the temporary information for this time tick.
-	virtual UpdateParams& make_frame_tick_params(timeslice now) = 0;
+	virtual void make_frame_tick_params(timeslice now) = 0;
 
 	///Return a request list for asychronous communication.
 	///  Subclasses of Role should override this method if they want to enable

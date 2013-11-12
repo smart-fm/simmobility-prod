@@ -23,10 +23,9 @@ sim_mob::Passenger::Passenger(Agent* parent, MutexStrategy mtxStrat, sim_mob::Pa
 {
 }
 
-UpdateParams& sim_mob::Passenger::make_frame_tick_params(timeslice now)
+void sim_mob::Passenger::make_frame_tick_params(timeslice now)
 {
-	params.reset(now);
-	return params;
+	getParams().reset(now);
 }
 
 Role* sim_mob::Passenger::clone(sim_mob::Person* parent) const {

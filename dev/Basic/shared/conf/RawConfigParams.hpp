@@ -113,7 +113,7 @@ public:
 	unsigned int totalWarmupMS;    ///<Total time (in milliseconds) considered "warmup".
 
 	DailyTime simStartTime; ///<When the simulation begins(based on configuration)
-
+	std::string travelTimeTmpTableName;
 	AuraManager::AuraManagerImplementation auraManagerImplementation; ///<What type of Aura Manager we're using.
 
 	WorkGroup::ASSIGNMENT_STRATEGY workGroupAssigmentStrategy;  ///<Defautl assignment strategy for Workgroups.
@@ -128,6 +128,7 @@ public:
 
 	bool commSimEnabled;  ///<Is our communication simulator enabled?
 	bool androidClientEnabled; ///<Is the Android client for our communication simulator enabled?
+	std::string androidClientType; // what version of android communication is specified?
 
 	//Reaction time parameters.
 	//TODO: This should be one of the first areas we clean up.
@@ -191,7 +192,8 @@ struct EntityTemplate {
 	EntityTemplate();
 	Point2D originPos;
 	Point2D destPos;
-	unsigned int startTimeMs;
+	unsigned int startTimeMs;// default is zero
+	unsigned int laneIndex;// default is zero
 };
 
 

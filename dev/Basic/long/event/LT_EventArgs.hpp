@@ -20,7 +20,7 @@ namespace sim_mob {
         DECLARE_CUSTOM_CALLBACK_TYPE(HM_ActionEventArgs)
         class HM_ActionEventArgs : public sim_mob::event::EventArgs {
         public:
-            HM_ActionEventArgs(UnitId unitId);
+            HM_ActionEventArgs(BigSerial unitId);
             HM_ActionEventArgs(const HM_ActionEventArgs& orig);
             virtual ~HM_ActionEventArgs();
 
@@ -28,9 +28,9 @@ namespace sim_mob {
              * Gets the unit affected by the action.
              * @return 
              */
-            const UnitId GetUnitId()const;
+            BigSerial getUnitId()const;
         private:
-            UnitId unitId;
+            BigSerial unitId;
         };
     }
 }

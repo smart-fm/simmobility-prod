@@ -31,6 +31,7 @@ class PassengerDist;
 class PT_trip;
 class ProfileBuilder;
 class TripChainItem;
+class Broker;
 
 
 
@@ -80,6 +81,7 @@ public:
 	};
 
 	enum ClientType {
+		UNKNOWN = 0,
 		ANDROID_EMULATOR = 1,
 		NS3_SIMULATOR = 2,
 		//add your client type here
@@ -296,15 +298,17 @@ public:
 
 	sim_mob::MutexStrategy& mutexStategy();
 	const sim_mob::MutexStrategy& mutexStategy() const;
-
+	//Communication Simulator accessors and configurators
 	bool& commSimEnabled();
 	const bool& commSimEnabled() const;
-
 	bool& androidClientEnabled();
 	const bool& androidClientEnabled() const;
+	const std::string& getAndroidClientType() const;
+	 std::string& getAndroidClientType() ;
 
 	DailyTime& simStartTime();
 	const DailyTime& simStartTime() const;
+	const std::string& getTravelTimeTmpTableName() const;
 
 	//This one's slightly tricky, as it's in generic_props
 	std::string busline_control_type() const;

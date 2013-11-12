@@ -225,7 +225,6 @@ public:
 	double getSegmentFlow(const RoadSegment* rdSeg);
 	void incrementSegmentFlow(const RoadSegment* rdSeg);
 	void resetSegmentFlows();
-	void resetLinkTravelTimes(timeslice frameNumber);
 
 	/** updates lane params for all lanes within the conflux */
 	void updateAndReportSupplyStats(timeslice frameNumber);
@@ -236,35 +235,57 @@ public:
 	//TODO: To be removed after debugging.
 	std::stringstream debugMsgs;
 
-	//for mid-term link travel time computation for current frame tick
-	struct travelTimes
+	//=======link travel time computation for current frame tick =================
+	struct linkTravelTimes
 	{
 	public:
-		unsigned int linkTravelTime_;
+		double linkTravelTime_;
 		unsigned int agentCount_;
 
-		travelTimes(unsigned int linkTravelTime, unsigned int agentCount)
+		linkTravelTimes(double linkTravelTime, unsigned int agentCount)
 		: linkTravelTime_(linkTravelTime), agentCount_(agentCount) {}
 	};
 
-	std::map<const Link*, travelTimes> LinkTravelTimesMap;
-	void setTravelTimes(Person* ag, double linkExitTime);
-	void clearTravelTimesMap()
+	std::map<const Link*, linkTravelTimes> LinkTravelTimesMap;
+	void setLinkTravelTimes(Person* ag, double linkExitTime);
+	void resetLinkTravelTimes(timeslice frameNumber);
+/*	void clearTravelTimesMap()
 	{
 		this->LinkTravelTimesMap.clear();
-	}
+	}*/
 	void reportLinkTravelTimes(timeslice frameNumber);
+
+	//=======road segment travel time computation for current frame tick =================
+	struct rdSegTravelTimes
+	{
+	public:
+		double rdSegTravelTime_;
+		unsigned int agentCount_;
+
+		rdSegTravelTimes(double rdSegTravelTime, unsigned int agentCount)
+		: rdSegTravelTime_(rdSegTravelTime), agentCount_(agentCount) {}
+	};
+
+	std::map<const RoadSegment*, rdSegTravelTimes> RdSegTravelTimesMap;
+	void setRdSegTravelTimes(Person* ag, double rdSegExitTime);
+	void resetRdSegTravelTimes(timeslice frameNumber);
+	void reportRdSegTravelTimes(timeslice frameNumber);
+	bool insertTravelTime2TmpTable(timeslice frameNumber,
+			std::map<const RoadSegment*, sim_mob::Conflux::rdSegTravelTimes>& rdSegTravelTimesMap);
+	//================ end of road segment travel time computation ========================
 
 	double getPositionOfLastUpdatedAgentInLane(const Lane* lane);
 	const Lane* getLaneInfinity(const RoadSegment* rdSeg);
 
 	double computeTimeToReachEndOfLink(const sim_mob::RoadSegment* seg, double distanceToEndOfSeg);
 
-	void resetOutputBounds();
+	unsigned int resetOutputBounds();
 
 	std::deque<sim_mob::Person*> getAllPersons();
 
 	void findBoundaryConfluxes();
+
+	unsigned int getNumRemainingInLaneInfinity();
 
 	bool isBoundary; //A conflux that receives person from at least one conflux that belongs to another worker
 	bool isMultipleReceiver; //A conflux that receives persons from confluxes that belong to multiple other workers

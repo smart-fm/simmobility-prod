@@ -111,6 +111,12 @@ std::string sim_mob::ConfigParams::getDatabaseConnectionString(bool maskPassword
 	std::string credKey = system.networkDatabase.credentials;
 	std::map<std::string, Credential>::const_iterator credIt = constructs.credentials.find(credKey);
 	if (credIt==constructs.credentials.end()) {
+		Print() << "trying to find " << credKey << " among:" << std::endl;
+		std::map<std::string, Credential>::const_iterator it;
+		for( it = constructs.credentials.begin(); it != constructs.credentials.end() ; it++)
+		{
+			Print() << it->first << std::endl;
+		}
 		throw std::runtime_error("Couldn't find default credentials..");
 	}
 
@@ -336,6 +342,14 @@ const bool& sim_mob::ConfigParams::androidClientEnabled() const
 	return system.simulation.androidClientEnabled;
 }
 
+const std::string& sim_mob::ConfigParams::getAndroidClientType() const {
+	return system.simulation.androidClientType;
+}
+
+std::string& sim_mob::ConfigParams::getAndroidClientType() {
+	return system.simulation.androidClientType;
+}
+
 DailyTime& sim_mob::ConfigParams::simStartTime()
 {
 	return system.simulation.simStartTime;
@@ -343,6 +357,10 @@ DailyTime& sim_mob::ConfigParams::simStartTime()
 const DailyTime& sim_mob::ConfigParams::simStartTime() const
 {
 	return system.simulation.simStartTime;
+}
+const std::string& sim_mob::ConfigParams::getTravelTimeTmpTableName() const
+{
+	return system.simulation.travelTimeTmpTableName;
 }
 
 std::string sim_mob::ConfigParams::busline_control_type() const

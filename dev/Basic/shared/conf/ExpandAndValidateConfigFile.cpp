@@ -29,6 +29,7 @@
 //#include "geospatial/xmlWriter/xmlWriter.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "util/ReactionTimeDistributions.hpp"
+#include "util/Utils.hpp"
 #include "workers/WorkGroup.hpp"
 
 using namespace sim_mob;
@@ -453,6 +454,8 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		props["destPos"] = msg.str();
 		}
 
+		props["lane"] = Utils::toStr<unsigned int>(it->laneIndex);
+//		props["lane"] = boost::lexical_cast<std::string>(it->laneIndex);
 		{
 			//Loop through attributes, ensuring that all required attributes are found.
 			//std::map<std::string, bool> propLookup = rf.getRequiredAttributes(roleName);

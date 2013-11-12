@@ -33,15 +33,15 @@ PassengerBehavior::PassengerBehavior(sim_mob::Person* parentAgent):
 
 PassengerBehavior::~PassengerBehavior() {}
 
-void PassengerBehavior::frame_init(UpdateParams& p) {
+void PassengerBehavior::frame_init() {
 	throw std::runtime_error("PassengerBehavior::frame_init is not implemented yet");
 }
 
-void PassengerBehavior::frame_tick(UpdateParams& p) {
+void PassengerBehavior::frame_tick() {
 	throw std::runtime_error("PassengerBehavior::frame_tick is not implemented yet");
 }
 
-void PassengerBehavior::frame_tick_output(const UpdateParams& p) {
+void PassengerBehavior::frame_tick_output() {
 	throw std::runtime_error("PassengerBehavior::frame_tick_output is not implemented yet");
 }
 
@@ -71,7 +71,7 @@ void sim_mob::PassengerMovement::setParentBufferedData()
 	}
 }
 
-void sim_mob::PassengerMovement::frame_init(UpdateParams& p) {
+void sim_mob::PassengerMovement::frame_init() {
 	//initialization
 	WaitingTime = -1;
 	OriginBusStop=nullptr;
@@ -95,7 +95,8 @@ void sim_mob::PassengerMovement::frame_init(UpdateParams& p) {
 	{
 		DestBusStop = setBusStopXY(getParent()->destNode.node_);
 	}
-	TimeOfReachingBusStop=p.now.ms();
+
+	TimeOfReachingBusStop=parentPassenger->getParams().now.ms();
 	//Person* person = dynamic_cast<Person*> (parent);
 	if(getParent()) {
 		getParent()->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
@@ -103,7 +104,8 @@ void sim_mob::PassengerMovement::frame_init(UpdateParams& p) {
 	FindBusLines();//to find which bus lines the passenger wants to board based on busline info at busstop
 }
 
-void sim_mob::PassengerMovement::frame_tick(UpdateParams& p) {
+void sim_mob::PassengerMovement::frame_tick() {
+	PassengerUpdateParams &p = parentPassenger->getParams();
 	if(0 != alighting_MS) {
 		if(alighting_MS == p.now.ms()) {
 			alighting_MS = 0;
@@ -114,11 +116,11 @@ void sim_mob::PassengerMovement::frame_tick(UpdateParams& p) {
 					std::cout << "End of trip chain...." << std::endl;
 				}
 				Passenger* passenger = dynamic_cast<Passenger*> (getParent()->getNextRole());
-				if(passenger) {// nextRole is passenger
+				if(passenger) {// nextRole is passenger, create temporary role to avoid tripchain
 					const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", getParent());
 					getParent()->changeRole(newRole);
-					newRole->Movement()->frame_init(p);
+					newRole->Movement()->frame_init();
 				} else {
 					getParent()->setToBeRemoved();//removes passenger if destination is reached
 					parentPassenger->busdriver.set(nullptr);// assign this busdriver to Passenger
@@ -132,7 +134,8 @@ void sim_mob::PassengerMovement::frame_tick(UpdateParams& p) {
 	}
 }
 
-void sim_mob::PassengerMovement::frame_tick_output(const UpdateParams& p) {
+void sim_mob::PassengerMovement::frame_tick_output() {
+	PassengerUpdateParams &p = parentPassenger->getParams();
 	//Reset our offset if it's set to zero
 	if (DisplayOffset.getX()==0 && DisplayOffset.getY()==0) {
 	   boost::mt19937 gen(static_cast<unsigned int>(getParent()->getId()*getParent()->getId()));
@@ -175,10 +178,6 @@ void sim_mob::PassengerMovement::frame_tick_output(const UpdateParams& p) {
 		<<"\"," <<"\"yPos\":\""<<yPos
 		<<addLine.str()
 		<<"\",})"<<std::endl);
-}
-
-void sim_mob::PassengerMovement::flowIntoNextLinkIfPossible(UpdateParams& p) {
-
 }
 
 bool sim_mob::PassengerMovement::isAtBusStop()

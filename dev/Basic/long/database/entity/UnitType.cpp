@@ -14,8 +14,8 @@
 using namespace sim_mob::long_term;
 using std::string;
 
-UnitType::UnitType(BigSerial id, string name) :
-id(id), name(name) {
+UnitType::UnitType(BigSerial id, string name, int type) :
+id(id), name(name), type(type) {
 }
 
 UnitType::~UnitType() {
@@ -24,13 +24,18 @@ UnitType::~UnitType() {
 UnitType& UnitType::operator=(const UnitType& source) {
     this->id = source.id;
     this->name = source.name;
+    this->type = source.type;
     return *this;
 }
 
-BigSerial UnitType::GetId() const {
+BigSerial UnitType::getId() const {
     return id;
 }
 
-string UnitType::GetName() const {
+string UnitType::getName() const {
     return name;
+}
+
+int UnitType::getType() const {
+    return type;
 }

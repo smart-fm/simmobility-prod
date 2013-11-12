@@ -94,7 +94,7 @@ private:
 	//void ProcessGeomDbMappings(xercesc::DOMElement* node);
 
 	//All entities are added to a "pending" list in the same manner.
-	void ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<sim_mob::EntityTemplate>& res, bool originReq=true, bool destReq=true, bool timeReq=true);
+	void ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<sim_mob::EntityTemplate>& res, bool originReq=true, bool destReq=true, bool timeReq=true, bool laneReq=false);
 
 
 private:

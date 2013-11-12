@@ -232,6 +232,9 @@ option(SIMMOB_PROFILE_AURAMGR "Log the time taken to update the Aura Manager's s
 #Option: interactive mode flag (for the GUI)
 option(SIMMOB_INTERACTIVE_MODE "Force Sim Mobility to synchronize interactively with the GUI or console." OFF)
 
+#Option: use path set mode flag
+option(SIMMOB_PATHSET_MODE "Use path set when generate path for driver" OFF)
+
 #Option: enable confluxes
 option (SIMMOB_USE_CONFLUXES  "Turn Confluxes on/off" OFF) 
 
@@ -373,10 +376,19 @@ LIST(APPEND LibraryList ${SOCIPOSTGRESQL_LIBRARIES})
 find_package(Boost COMPONENTS regex REQUIRED)
 LIST(APPEND LibraryList ${Boost_LIBRARIES})
 
+#Find boost-random
+find_package(Boost COMPONENTS random REQUIRED)
+LIST(APPEND LibraryList ${Boost_LIBRARIES})
+
 #Find JsonCpp
 find_package(JsonCpp REQUIRED)
 include_directories(${JSONCPP_INCLUDE_DIR})
 LIST(APPEND LibraryList ${JSONCPP_LIBRARY})
+
+#Find Lua
+find_package(Lua REQUIRED)
+include_directories(${LUA_INCLUDE_DIRS})
+LIST(APPEND LibraryList ${LUA_LIBRARIES} -ldl)
 
 #Optionally find: MPI
 IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")

@@ -26,9 +26,9 @@ public:
 	virtual ~Pedestrian2Behavior();
 
 	//Virtual overrides
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
+	virtual void frame_init();
+	virtual void frame_tick();
+	virtual void frame_tick_output();
 
 	Pedestrian2* getParentPedestrian2() const {
 		return parentPedestrian2;
@@ -49,10 +49,9 @@ public:
 	virtual ~Pedestrian2Movement();
 
 	//Virtual overrides
-	virtual void frame_init(UpdateParams& p);
-	virtual void frame_tick(UpdateParams& p);
-	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
+	virtual void frame_init();
+	virtual void frame_tick();
+	virtual void frame_tick_output();
 
 	bool isOnCrossing() const;
 	Pedestrian2* getParentPedestrian2() const {

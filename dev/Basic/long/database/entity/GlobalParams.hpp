@@ -28,27 +28,27 @@ namespace sim_mob {
              * Gets unique identifier of the Building Type.
              * @return id.
              */
-            BigSerial GetId() const;
+            BigSerial getId() const;
 
             /**
              * @return unit type weight.
              */
-            double GetUnitTypeWeight() const;
+            double getUnitTypeWeight() const;
 
             /**
              * @return unit rent weight.
              */
-            double GetUnitRentWeight() const;
+            double getUnitRentWeight() const;
 
             /**
              * @return unit area weight.
              */
-            double GetUnitAreaWeight() const;
+            double getUnitAreaWeight() const;
 
             /**
              * @return unit storey weight.
              */
-            double GetUnitStoreyWeight() const;
+            double getUnitStoreyWeight() const;
 
             /**
              * Assign operator.

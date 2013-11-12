@@ -28,9 +28,9 @@ namespace sim_mob {
          */
         class Unit {
         public:
-            Unit(UnitId id = INVALID_ID, BigSerial buildingId = INVALID_ID, 
-                 BigSerial typeId = INVALID_ID, double area = .0f, 
-                 int storey = 0, double rent = .0f, bool available = false);
+            Unit(BigSerial id = INVALID_ID, BigSerial buildingId = INVALID_ID, 
+                 BigSerial typeId = INVALID_ID, BigSerial postcodeId = INVALID_ID, 
+                 double area = .0f, int storey = 0, double rent = .0f);
             Unit(const Unit& source);
             virtual ~Unit();
 
@@ -42,120 +42,74 @@ namespace sim_mob {
             Unit& operator=(const Unit& source);
 
             /**
-             * Gets the Unit unique identifier.
+             * gets the Unit unique identifier.
              * @return value with Unit identifier.
              */
-            UnitId GetId() const;
+            BigSerial getId() const;
 
             /**
-             * Gets the Unit unique identifier.
+             * gets the Unit unique identifier.
              * @return value with Unit identifier.
              */
-            BigSerial GetBuildingId() const;
+            BigSerial getBuildingId() const;
 
             /**
-             * Gets type identifier of the unit.
+             * gets type identifier of the type of unit.
              * @return type identifier {@see UnitType}.
              */
-            BigSerial GetTypeId() const;
+            BigSerial getTypeId() const;
+            
+            /**
+             * gets type identifier of the postcode.
+             * @return type identifier {@see Postcode}.
+             */
+            BigSerial getPostcodeId() const;
 
             /**
-             * Gets the storey of the unit.
+             * gets the storey of the unit.
              * @return unit type {@see UnitType}.
              */
-            int GetStorey() const;
+            int getStorey() const;
 
             /**
-             * Gets the unit Area.
+             * gets the unit Area.
              * @return unit area value.
              */
-            double GetArea() const;
+            double getFloorArea() const;
 
             /**
-             * Gets the rent value.
+             * gets the rent value.
              * @return rent value.
              */
-            double GetRent() const;
+            double getRent() const;
 
-            /**
-             * Verifies if home is available.
-             * @return true if unit is available, false otherwise.
-             */
-            bool IsAvailable() const;
-
-            /**
-             * Sets if unit is avaliable or not.
-             * @param avaliable value. 
-             */
-            void SetAvailable(bool avaliable);
-            
-            /**
-             * @return the hedonic price.
-             */
-            double GetHedonicPrice() const;
-            
-            /**
-             * @return the AskingPrice price.
-             */
-            double GetAskingPrice() const;
-
-            /**
-             * Gets the owner endpoint for communication.
-             * @return owner endpoint.
-             */
-            UnitHolder* GetOwner();
-            
             /**
              * Operator to print the Unit data.  
              */
             friend std::ostream& operator<<(std::ostream& strm, const Unit& data) {
-            	boost::upgrade_lock<boost::shared_mutex> up_lock(data.mutex);
-            	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
                 return strm << "{"
                         << "\"id\":\"" << data.id << "\","
                         << "\"buildingId\":\"" << data.buildingId << "\","
                         << "\"typeId\":\"" << data.typeId << "\","
-                        << "\"area\":\"" << data.area << "\","
+                        << "\"postcodeId\":\"" << data.postcodeId << "\","
+                        << "\"floorArea\":\"" << data.floorArea << "\","
                         << "\"storey\":\"" << data.storey << "\","
-                        << "\"rent\":\"" << data.rent << "\","
-                        << "\"hedonicPrice\":\"" << data.hedonicPrice << "\","
-                        << "\"askingPrice\":\"" << data.askingPrice << "\","
-                        << "\"available\":\"" << data.available << "\""
+                        << "\"rent\":\"" << data.rent << "\""
                         << "}";
             }
         private:
             friend class UnitDao;
-            friend class HouseholdSellerRole;
             
-            /**
-             * Sets the hedonic price
-             */
-            void SetHedonicPrice(double hedonicPrice);
-
-            /**
-             * Sets the asking price.
-             */
-            void SetAskingPrice(double askingPrice);
-
-            /**
-             * Sets the owner of the unit.
-             */
-            void SetOwner(UnitHolder* receiver);
-
         private:
             friend class UnitHolder;
             //from database.
-            UnitId id;
+            BigSerial id;
             BigSerial buildingId;
             BigSerial typeId;
-            double area;
+            BigSerial postcodeId;
+            double floorArea;
             int storey; 
             double rent;
-            bool available;
-            double hedonicPrice;
-            double askingPrice;
-            UnitHolder* owner;
-            mutable boost::shared_mutex mutex;
         };
     }
 }

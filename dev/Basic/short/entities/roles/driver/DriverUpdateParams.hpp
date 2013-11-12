@@ -55,6 +55,7 @@ struct NearestPedestrian {
 /// \author Seth N. Hetu
 ///NOTE: Constructor is currently implemented in Driver.cpp. Feel free to shuffle this around if you like.
 struct DriverUpdateParams : public UpdateParams {
+	DriverUpdateParams() : UpdateParams() {}
 	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen) ,nextLaneIndex(0){}
 
 	virtual void reset(timeslice now, const Driver& owner);

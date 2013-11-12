@@ -16,15 +16,13 @@
 
 namespace sim_mob {
     namespace long_term {
-
-        DAO_DECLARE_CALLBACKS(UnitType);
-
+        
         /**
          * Data Access Object to UnitType table on datasource.
          */
         class UnitTypeDao : public db::AbstractDao<UnitType> {
         public:
-            UnitTypeDao(db::DBConnection* connection);
+            UnitTypeDao(db::DB_Connection& connection);
             virtual ~UnitTypeDao();
 
         private:
@@ -33,7 +31,7 @@ namespace sim_mob {
              * @param result row with data to fill the out object.
              * @param outObj to fill.
              */
-            void FromRow(db::Row& result, UnitType& outObj);
+            void fromRow(db::Row& result, UnitType& outObj);
 
             /**
              * Fills the outParam with all values to insert or update on datasource.
@@ -41,7 +39,7 @@ namespace sim_mob {
              * @param outParams to put the data parameters.
              * @param update tells if operation is an Update or Insert.
              */
-            void ToRow(UnitType& data, db::Parameters& outParams, bool update);
+            void toRow(UnitType& data, db::Parameters& outParams, bool update);
         };
     }
 }

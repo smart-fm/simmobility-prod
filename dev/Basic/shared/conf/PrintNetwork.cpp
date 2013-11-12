@@ -228,7 +228,7 @@ void sim_mob::PrintNetwork::LogLegacyLinks() const
 		out <<"\"start-node\":\"" <<(*it)->getStart() <<"\",";
 		out <<"\"end-node\":\"" <<(*it)->getEnd() <<"\",";
 		out <<"\"fwd-path\":\"[";
-		vector<RoadSegment*>& path = (*it)->getPath();
+		vector<RoadSegment*>& path = (*it)->getSegments();
 		for (vector<RoadSegment*>::const_iterator segIt=path.begin(); segIt!=path.end(); segIt++) {
 			out <<*segIt <<",";
 		}

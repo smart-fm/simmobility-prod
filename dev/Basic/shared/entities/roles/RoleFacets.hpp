@@ -18,6 +18,9 @@ class Person;
 class PartitionManager;
 class PackageUtils;
 class UnPackageUtils;
+class Driver;
+class Pedestrian;
+class Agent;
 
 
 /**
@@ -45,13 +48,13 @@ public:
 
 	///Called the first time an Agent's update() method is successfully called.
 	/// This will be the tick of its startTime, rounded down(?).
-	virtual void frame_init(UpdateParams& p) = 0;
+	virtual void frame_init() = 0;
 
 	///Perform each frame's update tick for this Agent.
-	virtual void frame_tick(UpdateParams& p) = 0;
+	virtual void frame_tick() = 0;
 
 	///Generate output for this frame's tick for this Agent.
-	virtual void frame_tick_output(const UpdateParams& p) = 0;
+	virtual void frame_tick_output() = 0;
 
 protected:
 	///Access the Logger.
@@ -104,9 +107,8 @@ public:
 	explicit MovementFacet(sim_mob::Person* parentAgent=nullptr) : Facet(parentAgent) { }
 	virtual ~MovementFacet() {}
 
-	///For use by confluxes to permit the person to move to next link
-	virtual void flowIntoNextLinkIfPossible(UpdateParams& p) = 0;
-
+	virtual bool updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Driver* other_driver) {};
+	virtual void updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Pedestrian* pedestrian) {};
 
 public:
 	friend class sim_mob::PartitionManager;

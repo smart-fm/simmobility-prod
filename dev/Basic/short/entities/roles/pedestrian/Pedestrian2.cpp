@@ -111,8 +111,7 @@ Role* sim_mob::Pedestrian2::clone(Person* parent) const
 	return pedestrian2;
 }
 
-UpdateParams& sim_mob::Pedestrian2::make_frame_tick_params(timeslice now)
+void sim_mob::Pedestrian2::make_frame_tick_params(timeslice now)
 {
-	params.reset(now);
-	return params;
+	getParams().reset(now);
 }

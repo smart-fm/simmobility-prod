@@ -42,15 +42,15 @@ sim_mob::WaitBusActivityRoleBehaviorImpl::~WaitBusActivityRoleBehaviorImpl() {
 
 }
 
-void sim_mob::WaitBusActivityRoleBehaviorImpl::frame_init(UpdateParams& p) {
+void sim_mob::WaitBusActivityRoleBehaviorImpl::frame_init() {
 	throw std::runtime_error("WaitBusActivityRoleBehavior::frame_init is not implemented yet");
 }
 
-void sim_mob::WaitBusActivityRoleBehaviorImpl::frame_tick(UpdateParams& p) {
+void sim_mob::WaitBusActivityRoleBehaviorImpl::frame_tick() {
 	throw std::runtime_error("WaitBusActivityRoleBehavior::frame_tick is not implemented yet");
 }
 
-void sim_mob::WaitBusActivityRoleBehaviorImpl::frame_tick_output(const UpdateParams& p) {
+void sim_mob::WaitBusActivityRoleBehaviorImpl::frame_tick_output() {
 	throw std::runtime_error("WaitBusActivityRoleBehavior::frame_tick_output is not implemented yet");
 }
 
@@ -65,7 +65,7 @@ sim_mob::WaitBusActivityRoleMovementImpl::~WaitBusActivityRoleMovementImpl() {
 
 }
 
-void sim_mob::WaitBusActivityRoleMovementImpl::frame_init(UpdateParams& p) {
+void sim_mob::WaitBusActivityRoleMovementImpl::frame_init() {
 	if(getParent()->destNode.type_== WayPoint::BUS_STOP) { // to here waiting(busstop)
 		busStopAgent = getParent()->destNode.busStop_->generatedBusStopAgent;
 	} else {
@@ -74,11 +74,12 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_init(UpdateParams& p) {
 		getParent()->xPos.set(busStop_dest->xPos);// set xPos to WaitBusActivityRole
 		getParent()->yPos.set(busStop_dest->yPos);// set yPos to WaitBusActivityRole
 	}
-	parentWaitBusActivityRole->TimeOfReachingBusStop = p.now.ms();
+	parentWaitBusActivityRole->TimeOfReachingBusStop = parentWaitBusActivityRole->getParams().now.ms();
 	buslineid = "7_2";// set Busline information(hardcoded now, later from Public Transit Route Choice to choose the busline)
 }
 
-void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick(UpdateParams& p) {
+void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick() {
+	WaitBusActivityRoleUpdateParams &p = parentWaitBusActivityRole->getParams();
 	if(0!=boarding_MS) {// if boarding_Frame is already set
 		if(boarding_MS == p.now.ms()) {// if currFrame is equal to the boarding_Frame
 			getParent()->setToBeRemoved();
@@ -99,7 +100,8 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick(UpdateParams& p) {
 	}
 }
 
-void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick_output(const UpdateParams& p) {
+void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick_output() {
+	WaitBusActivityRoleUpdateParams &p = parentWaitBusActivityRole->getParams();
 	if (ConfigManager::GetInstance().FullConfig().is_run_on_many_computers) {
 		return;
 	}
@@ -118,9 +120,4 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick_output(const UpdatePar
 	}
 	//LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY())<<"\",})"<<std::endl);
 	LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(getParent()->xPos.get()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(getParent()->yPos.get()+DisplayOffset.getY())<<"\",})"<<std::endl);
-}
-
-
-void sim_mob::WaitBusActivityRoleMovementImpl::flowIntoNextLinkIfPossible(UpdateParams& p) {
-
 }

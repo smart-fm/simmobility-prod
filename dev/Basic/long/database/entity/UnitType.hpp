@@ -19,21 +19,27 @@ namespace sim_mob {
 
         class UnitType {
         public:
-            UnitType(BigSerial id = INVALID_ID, std::string name = "");
+            UnitType(BigSerial id = INVALID_ID, std::string name = "", int type = 0);
             virtual ~UnitType();
 
             /**
-             * Gets unique identifier of the Building Type.
+             * gets unique identifier of the Building Type.
              * @return id.
              */
-            BigSerial GetId() const;
+            BigSerial getId() const;
 
             /**
-             * Gets name of the type of the building.
+             * gets name of the type of the building.
              * @return id.
              */
-            std::string GetName() const;
+            std::string getName() const;
 
+            /**
+             * gets the type that differentiates unit types.
+             * @return type;
+             */
+            int getType() const;
+            
             /**
              * Assign operator.
              * @param source to assign.
@@ -48,6 +54,7 @@ namespace sim_mob {
                 return strm << "{"
                         << "\"id\":\"" << data.id << "\","
                         << "\"name\":\"" << data.name << "\""
+                        << "\"type\":\"" << data.name << "\","
                         << "}";
             }
 
@@ -56,6 +63,7 @@ namespace sim_mob {
         private:
             BigSerial id;
             std::string name;
+            int type;
         };
     }
 }

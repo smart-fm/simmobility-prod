@@ -29,29 +29,31 @@ using namespace sim_mob;
 boost::thread_specific_ptr<boost::mt19937> floatProvider;
 boost::thread_specific_ptr<boost::mt19937> intProvider;
 
-inline void InitRandomProvider(boost::thread_specific_ptr<boost::mt19937>& provider) {
+inline void initRandomProvider(boost::thread_specific_ptr<boost::mt19937>& provider) {
     // The first time called by the current thread then just create one.
     if (!provider.get()) {
         provider.reset(new boost::mt19937(static_cast<unsigned> (std::time(0))));
     }
 }
 
-float Utils::GenerateFloat(float min, float max) {
-    InitRandomProvider(floatProvider);
+float Utils::generateFloat(float min, float max) {
+    initRandomProvider(floatProvider);
     boost::uniform_real<float> distribution(min, max);
-    boost::variate_generator<boost::mt19937&, boost::uniform_real<float> > gen(*(floatProvider.get()), distribution);
+    boost::variate_generator<boost::mt19937&, boost::uniform_real<float> > 
+        gen(*(floatProvider.get()), distribution);
     return gen();
 }
 
-int Utils::GenerateInt(int min, int max) {
-    InitRandomProvider(intProvider);
+int Utils::generateInt(int min, int max) {
+    initRandomProvider(intProvider);
     boost::uniform_int<int> distribution(min, max);
-    boost::variate_generator<boost::mt19937&, boost::uniform_int<int> > gen(*(intProvider.get()), distribution);
+    boost::variate_generator<boost::mt19937&, boost::uniform_int<int> > 
+        gen(*(intProvider.get()), distribution);
     return gen();
 }
 
 
-std::vector<std::string> Utils::ParseArgs(int argc, char* argv[])
+std::vector<std::string> Utils::parseArgs(int argc, char* argv[])
 {
 	std::vector<std::string> res;
 	for (size_t i=0; i<argc; i++) {
@@ -61,11 +63,11 @@ std::vector<std::string> Utils::ParseArgs(int argc, char* argv[])
 }
 
 
-void Utils::PrintAndDeleteLogFiles(const std::list<std::string>& logFileNames)
+void Utils::printAndDeleteLogFiles(const std::list<std::string>& logFileNames)
 {
 	//This can take some time.
 	StopWatch sw;
-	sw.Start();
+	sw.start();
 	std::cout <<"Merging output files, this can take several minutes...\n";
 
 	//One-by-one.
@@ -82,12 +84,12 @@ void Utils::PrintAndDeleteLogFiles(const std::list<std::string>& logFileNames)
 	}
 	out.close();
 
-	sw.Stop();
-	std::cout <<"Files merged; took " <<sw.GetTime() <<"s\n";
+	sw.stop();
+	std::cout <<"Files merged; took " <<sw.getTime() <<"s\n";
 }
 
 
-std::pair<double, double> Utils::parse_scale_minmax(const std::string& src)
+std::pair<double, double> Utils::parseScaleMinmax(const std::string& src)
 {
 	//Find and split on colons, spaces.
 	std::vector<std::string> words;
@@ -109,7 +111,7 @@ std::pair<double, double> Utils::parse_scale_minmax(const std::string& src)
 StopWatch::StopWatch() : now(0), end(0), running(false) {
 }
 
-void StopWatch::Start() {
+void StopWatch::start() {
     if (!running) {
         //get start time of the simulation.
         time(&now);
@@ -117,14 +119,14 @@ void StopWatch::Start() {
     }
 }
 
-void StopWatch::Stop() {
+void StopWatch::stop() {
     if (running) {
         time(&end);
         running = false;
     }
 }
 
-double StopWatch::GetTime() {
+double StopWatch::getTime() const {
     if (!running) {
         return difftime(end, now);
     }

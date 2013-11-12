@@ -43,13 +43,13 @@ namespace sim_mob {
              * Gets the response if is available.
              * @return {@link BidResponse} value.
              */
-            const BidResponse GetResponse() const;
+            const BidResponse& getResponse() const;
 
             /**
              * Gets the bid.
              * @return {@link Bid} instance.
              */
-            const Bid& GetBid()const;
+            const Bid& getBid()const;
             
         private:
             Bid bid;

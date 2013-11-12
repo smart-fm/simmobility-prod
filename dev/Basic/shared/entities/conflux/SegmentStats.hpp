@@ -153,7 +153,7 @@ private:
 	double segDensity;
 	double lastAcceptTime;
 	int numVehicleLanes;
-	double segFlow;
+	unsigned int segFlow;
 
 public:
 	SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream = false);
@@ -202,7 +202,7 @@ public:
 
 	double getSegSpeed(bool hasVehicle);
 	double getDensity(bool hasVehicle);
-	double getSegFlow();
+	unsigned int getSegFlow();
 	void incrementSegFlow();
 	void resetSegFlow();
 	unsigned int getInitialQueueCount(const Lane* l);
@@ -210,7 +210,6 @@ public:
 
 	// This function prints all agents in this segment
 	void printAgents();
-
 	/**
 	 * laneInfinity is an augmented lane in the roadSegment. laneInfinity will be used only by confluxes and related objects for now.
 	 * The LaneStats object created for laneInfinity stores the new persons who will start at this roadSegment. A Person will be

@@ -48,15 +48,6 @@ public:
 		return repr_;
 	}
 
-	unsigned int getLastVal() {
-		int start = repr_.find(":\"",0 );
-		start += 2;
-		int end = repr_.find("\"", start); // \\"aimsun-id\\":\\"48732\\",
-		std::string str = repr_.substr(start, end-start);
-		lastVal = boost::lexical_cast<unsigned int>(str);
-		return lastVal;
-	}
-
 	//Allow assigning from a string
 	sim_mob::OpaqueProperty<T>& operator=(const std::string& srcStr) {
 		this->repr_ = srcStr;

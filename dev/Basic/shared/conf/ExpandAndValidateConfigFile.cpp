@@ -219,8 +219,15 @@ void sim_mob::ExpandAndValidateConfigFile::VerifyIncidents()
     	std::vector<RoadSegment*> segs = (*linkIt)->getSegments();
     	for (std::vector<RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); segIt++) {
 
-    		unsigned int originId = (*segIt)->originalDB_ID.getLastVal();
-    		unsigned int id = 0;
+    		unsigned int originId = 0;
+			std::string aimsunId = (*segIt)->originalDB_ID.getLogItem();
+			std::string segId = sim_mob::getNumberFromAimsunId(aimsunId);
+			try {
+				originId = boost::lexical_cast<int>(segId);
+			} catch( boost::bad_lexical_cast const& ) {
+				Print() << "Error: aimsun id string was not valid" << std::endl;
+				continue;
+			}
 
 			for(std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt!=incidents.end(); incIt++){
 				if((*incIt).segmentId == originId ) {

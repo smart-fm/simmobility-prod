@@ -741,16 +741,12 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 		parentDriver->vehicle->setTurningDirection(incidentStatus.getLaneSide());
 		mode = MLC;
 	}
-
-	/*if(incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastDecision==MLC) {
+	else if(incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode==MLC) {
 		p.nextLaneIndex = p.currLaneIndex;
 		parentDriver->vehicle->setTurningDirection(LCS_SAME);
 		mode = MLC;
-	}*/
-
-	if(parentDriver->getParams().now.frame()>=1000 && parentDriver->vehicle->getVelocity()==0 && parentDriver->parent->GetId()==61){
-		int i = 0;
 	}
+
 	//Check if we should change lanes.
 	double newLatVel;
 	newLatVel = lcModel->executeLaneChanging(p, parentDriver->vehicle->getAllRestRoadSegmentsLength(), parentDriver->vehicle->length,

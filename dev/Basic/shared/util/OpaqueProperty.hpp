@@ -28,7 +28,6 @@ template <typename T>
 class OpaqueProperty {
 private:
 	std::string repr_;
-	unsigned int lastVal;
 
 public:
 	void setProps(const std::string& key, const T& value) {
@@ -36,8 +35,6 @@ public:
 		builder <<"\"" <<key <<"\"" <<":"
 				<<"\"" <<value <<"\"" <<",";
 		builder >>repr_;
-		if(key.compare("aimsun-id")==0)
-			lastVal = value;
 	}
 
 	bool isSet() const {

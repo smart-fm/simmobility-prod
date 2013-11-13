@@ -213,6 +213,11 @@ void sim_mob::ExpandAndValidateConfigFile::VerifyIncidents()
 	std::vector<const RoadSegment*> cachedSegments;
 	const unsigned int baseGranMS = cfg.system.simulation.simStartTime.getValue();
 
+	//without incident definition, directly return
+	if(incidents.size()==0){
+		return;
+	}
+
 	//Add all RoadSegments to our list of cached segments.
     for (std::vector<Link*>::const_iterator linkIt = network.getLinks().begin(); linkIt != network.getLinks().end(); ++linkIt) {
 

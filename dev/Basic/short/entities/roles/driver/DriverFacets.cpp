@@ -272,7 +272,7 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 					}
 				}
 				else {
-					status = IncidentStatus::INCIDENT_ADJACENT_LANE;
+					incidentStatus.setCurrentStatus(IncidentStatus::INCIDENT_ADJACENT_LANE);
 					incidentStatus.setChangedLane(false);
 				}
 				//make velocity slowing down decision when incident happen

@@ -67,8 +67,8 @@ std::string getColor(size_t id)
 				return;
 			}
 		//update each link-link signal's color
-		links_map_iterator link_it = links_map_.begin();
-		for(;link_it != links_map_.end() ; link_it++)
+		links_map_iterator linkIterator = linksMap.begin();
+		for(;linkIterator != linksMap.end() ; linkIterator++)
 		{
 			/*
 			 * if no time lapse, don't change the color
@@ -77,13 +77,13 @@ std::string getColor(size_t id)
 			 */
 			//
 //			std::cout << "Phase " << name << " update: " << "lapse( " << lapse << ")=currentCycleTimer(" << currentCycleTimer << ") - phaseOffset(" << phaseOffset << ")" << std::endl;
-			(*link_it).second.currColor = (*link_it).second.colorSequence.computeColor(lapse);
-			if(((*link_it).second.currColor > sim_mob::FlashingGreen) || ((*link_it).second.currColor < sim_mob::Red))
+			(*linkIterator).second.currColor = (*linkIterator).second.colorSequence.computeColor(lapse);
+			if(((*linkIterator).second.currColor > sim_mob::FlashingGreen) || ((*linkIterator).second.currColor < sim_mob::Red))
 			{
 				o << "currentCycleTimer :" << currentCycleTimer << "  phaseOffset :" << phaseOffset  << "--->lapse :" << lapse << "\n creates out of range color";
 				throw std::runtime_error(o.str());
 			}
-//			std::cout << " phase " << name << " --phaseOffset "<<phaseOffset <<  " --  timer: " << currentCycleTimer  << " -- current color = " << (*link_it).second.currColor << std::endl;
+//			std::cout << " phase " << name << " --phaseOffset "<<phaseOffset <<  " --  timer: " << currentCycleTimer  << " -- current color = " << (*linkIterator).second.currColor << std::endl;
 		}
 
 //		std::cout << "calling compute for crossings" << std::endl;
@@ -108,19 +108,19 @@ std::string getColor(size_t id)
 	if any plan is selected for the second time.*/
 	double Phase::computeTotalG ()const
 	{
-		double green, max_green;
-		links_map_const_iterator link_it = links_map_.begin();
-		for(max_green = 0; link_it != links_map_.end() ; link_it++)
+		double green, maxGreen;
+		links_map_const_iterator linkIterator = linksMap.begin();
+		for(maxGreen = 0; linkIterator != linksMap.end() ; linkIterator++)
 		{
-			std::vector< std::pair<TrafficColor,int> >::const_iterator  color_it = (*link_it).second.colorSequence.ColorDuration.begin();
-		for (green = 0;	color_it != (*link_it).second.colorSequence.ColorDuration.end(); color_it++) {
+			std::vector< std::pair<TrafficColor,int> >::const_iterator  color_it = (*linkIterator).second.colorSequence.ColorDuration.begin();
+		for (green = 0;	color_it != (*linkIterator).second.colorSequence.ColorDuration.end(); color_it++) {
 			if ((*color_it).first != Red) {
 				green += (*color_it).second;
 			}
 		}
-			if(max_green < green) max_green = green;//formula :)
+			if(maxGreen < green) maxGreen = green;//formula :)
 		}
-		return max_green * 1000;
+		return maxGreen * 1000;
 	}
 	void Phase::addCrossingMapping(sim_mob::Link * link,sim_mob::Crossing * crossing, ColorSequence cs)
 	{
@@ -145,7 +145,7 @@ std::string getColor(size_t id)
 void Phase::addDefaultCrossings(LinkAndCrossingC const & LAC,sim_mob::MultiNode *node) const {
 //	std::cout << "Phase::addDefaultCrossings \n";
 	bool flag = false;
-	if (links_map_.size() == 0)
+	if (linksMap.size() == 0)
 		throw std::runtime_error("Link maps empty, crossing mapping can not continue\n");
 
 	LinkAndCrossingC::iterator it = LAC.begin();
@@ -160,8 +160,8 @@ void Phase::addDefaultCrossings(LinkAndCrossingC const & LAC,sim_mob::MultiNode 
 		flag = false;
 		sim_mob::Link* link = const_cast<sim_mob::Link*>((*it).link);
 		//link from
-		links_map_const_iterator l_it = links_map_.find(link); //const_cast used coz multi index container elements are constant
-		if (l_it != links_map_.end()){
+		links_map_const_iterator l_it = linksMap.find(link); //const_cast used coz multi index container elements are constant
+		if (l_it != linksMap.end()){
 			continue; //this linkFrom is involved, so we don't need to green light its crossing
 		}
 		//un-involved crossing- successful candidate to get a green light in this phase
@@ -189,24 +189,24 @@ sim_mob::RoadSegment * Phase::findRoadSegment(sim_mob::Link * link,sim_mob::Mult
 }
 
 void Phase::addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink & ll,sim_mob::MultiNode *node) const {
-	links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf, ll));
+	linksMap.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf, ll));
 }
 
 std::string Phase::createStringRepresentation(std::string newLine) const {
 	std::ostringstream output;
-	if (links_map_.size() == 0 && crossings_map_.size() == 0)
+	if (linksMap.size() == 0 && crossings_map_.size() == 0)
 		return 0;
 	output << newLine << "{" << newLine;
 	output << "\"name\": \"" << name << "\"," << newLine;
 	int i = 0;
-	if (links_map_.size()) {
+	if (linksMap.size()) {
 //		segment_based
 		output << "\"segments\":" << newLine << "[" << newLine;
 		//link_based
-		links_map_iterator it = links_map_.begin();
-		while(it != links_map_.end() )
+		links_map_iterator it = linksMap.begin();
+		while(it != linksMap.end() )
 		{
-//			std::cout << " links_map_.size() = "  << std::endl;
+//			std::cout << " linksMap.size() = "  << std::endl;
 			output << "{";
 			//link_based
 //			output << "\"link_from\":\"" << (*it).first << "\" ,"; //linkFrom
@@ -215,7 +215,7 @@ std::string Phase::createStringRepresentation(std::string newLine) const {
 			output << "\"segment_from\":\"" << (*it).second.RS_From << "\" ,"; //segmentFrom
 			output << "\"segment_to\":\"" << (*it).second.RS_To << "\"}";
 			it++;
-			if(it != links_map_.end()) output << "," << newLine;
+			if(it != linksMap.end()) output << "," << newLine;
 		}
 		output << newLine << "]," << newLine;
 	}
@@ -246,7 +246,7 @@ void Phase::initialize(sim_mob::SplitPlan& plan){
 }
 void Phase::printColorDuration()
 {
-	for(links_map_iterator it = links_map_.begin()  ; it != links_map_.end(); it++)
+	for(links_map_iterator it = linksMap.begin()  ; it != linksMap.end(); it++)
 	{
 		ColorSequence cs = it->second.colorSequence;
 		const std::vector< std::pair<TrafficColor,int> > & cd = cs.getColorDuration();
@@ -276,7 +276,7 @@ void Phase::calculateGreen_Links(){
 	 * this time is allocated to which color? yes, it is the green time.... yes yes, i know! you are a Genuis!
 	 */
 
-	for(links_map_iterator it = links_map_.begin()  ; it != links_map_.end(); it++)
+	for(links_map_iterator it = linksMap.begin()  ; it != linksMap.end(); it++)
 	{
 		//1.what is the amount of time that is assigned to this phase
 //		phaseLength is a member
@@ -363,7 +363,7 @@ void Phase::calculateGreen(){
 
 void Phase::printPhaseColors(double currCycleTimer) const
 {
-	for(links_map_iterator it = links_map_.begin()  ; it != links_map_.end(); it++)
+	for(links_map_iterator it = linksMap.begin()  ; it != linksMap.end(); it++)
 	{
 //		std::cout << name << " (" << (*it).first << " : " << (*it).second.LinkTo << ") ::" << sim_mob::getColor((*it).second.currColor) << "  currCycleTimer: " << currCycleTimer < std::endl;
 		std::cout << name << "(currCycleTimer: " << currCycleTimer<< " , phaseLength: " <<  phaseLength << ") ::"<< sim_mob::getColor((*it).second.currColor)  << std::endl;
@@ -380,18 +380,18 @@ std::string Phase::outputPhaseTrafficLight(std::string newLine) const
 {
 	std::ostringstream output;
 	output.str("");
-	if (links_map_.size() == 0 && crossings_map_.size() == 0)
+	if (linksMap.size() == 0 && crossings_map_.size() == 0)
 		return output.str();
 	output << newLine << "{" << newLine;
 	output << "\"name\": \"" << name << "\"," << newLine;
 	int i = 0;
-	if (links_map_.size()) {
+	if (linksMap.size()) {
 		//link based
 //		output << "\"links\":" << newLine << "[" << newLine;
 		//segment based
 		output << "\"segments\":" << newLine << "[" << newLine;
-		links_map_iterator it = links_map_.begin();
-		while (it != links_map_.end()) {
+		links_map_iterator it = linksMap.begin();
+		while (it != linksMap.end()) {
 			output << "{";
 			//link based
 //			output << "\"link_from\":\"" << (*it).first << "\" ,"; //linkFrom
@@ -401,7 +401,7 @@ std::string Phase::outputPhaseTrafficLight(std::string newLine) const
 			output << "\"segment_to\":\"" << (*it).second.RS_To << "\",";//linkTo
 			output <<"\"current_color\":" << (*it).second.currColor << "}";//currColor
 			it++;
-			if (it != links_map_.end())
+			if (it != linksMap.end())
 				output << "," << newLine;
 
 		}
@@ -428,21 +428,21 @@ std::string Phase::outputPhaseTrafficLight(std::string newLine) const
 
 
 //	std::ostringstream output;
-//	if(links_map_.size() == 0 && crossings_map_.size() == 0) return 0;
+//	if(linksMap.size() == 0 && crossings_map_.size() == 0) return 0;
 //
 //	output << "\"Phase_" << name << "\"{";
 //	int i = 0;
-//	if(links_map_.size())
+//	if(linksMap.size())
 //	{
 //		output << "\"Link\"{";
-//		links_map_iterator it = links_map_.begin();
-//		while(it != links_map_.end())
+//		links_map_iterator it = linksMap.begin();
+//		while(it != linksMap.end())
 //		{
 //			output << (*it).first << ":";             //linkFrom
 //			output << (*it).second.LinkTo << ":";     //linkTo
 //			output << (*it).second.currColor;         //currentColor
 //			it++;
-//			if(it != links_map_.end())
+//			if(it != linksMap.end())
 //				output << ",";
 //
 //		}

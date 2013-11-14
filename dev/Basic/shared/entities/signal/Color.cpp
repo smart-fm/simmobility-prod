@@ -77,10 +77,10 @@ void ColorSequence::changeColorDuration(std::size_t color,int duration)
 }
 
 std::string ColorSequence::getTrafficLightColorString(const TrafficColor& value) {
-	if(TrafficColorMap.find(value) == TrafficColorMap.end()){
-		return TrafficColorMap[InvalidTrafficColor];
+	if(trafficColorMap.find(value) == trafficColorMap.end()){
+		return trafficColorMap[InvalidTrafficColor];
 	}
-	return TrafficColorMap[value];
+	return trafficColorMap[value];
 }
 
 }//namespace

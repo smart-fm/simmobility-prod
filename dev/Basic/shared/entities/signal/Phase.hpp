@@ -129,26 +129,26 @@ public:
 	}
 	links_map_equal_range LinkFrom_Range(sim_mob::Link *LinkFrom)
 	{
-		return links_map_.equal_range(LinkFrom);
+		return linksMap.equal_range(LinkFrom);
 	}
 	links_map_iterator LinkFrom_begin() const
 	{
-		return links_map_.begin();
+		return linksMap.begin();
 	}
 	links_map_iterator LinkFrom_end() const
 	{
-		return links_map_.end();
+		return linksMap.end();
 	}
 	links_map_equal_range getLinkTos(sim_mob::Link  *const LinkFrom)const//dont worry about constantization!! :) links_map_equal_range is using a constant iterator
 	{
-		return links_map_.equal_range(LinkFrom);
+		return linksMap.equal_range(LinkFrom);
 	}
 	void addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink &ll, sim_mob::MultiNode *node)const ;
 	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *, ColorSequence);
 	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *);
 	//add crossing to any link of this node which is not involved in this phase
 	void addDefaultCrossings(sim_mob::LinkAndCrossingC const & ,sim_mob::MultiNode *node)const;
-	const links_map & getLinkMaps() const { return links_map_;}//apparently not needed, getLinkTos is good enough for getdriverlight()...except for the xmlwrite :)
+	const links_map & getLinkMaps() const { return linksMap;}//apparently not needed, getLinkTos is good enough for getdriverlight()...except for the xmlwrite :)
 	const crossings_map & getCrossingMaps() const;
 //	links_map_equal_range  getLinkTos(sim_mob::Link *LinkFrom) ;
 	void updatePhaseParams(double phaseOffset_, double percentage_);
@@ -180,7 +180,7 @@ private:
 	double total_g;
 
 	//The links that will get a green light at this phase
-	mutable sim_mob::links_map links_map_;
+	mutable sim_mob::links_map linksMap;
 	//The crossings that will get a green light at this phase
 	mutable sim_mob::crossings_map crossings_map_;
 

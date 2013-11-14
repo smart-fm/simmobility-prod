@@ -29,7 +29,7 @@ void sim_mob::xml::Phase_t_pimpl::name (const ::std::string& value)
 
 void sim_mob::xml::Phase_t_pimpl::links_maps (std::multimap<sim_mob::Link*,sim_mob::linkToLink>& value)
 {
-	model.links_map_ = value;
+	model.linksMap = value;
 }
 
 void sim_mob::xml::Phase_t_pimpl::crossings_maps (std::map<sim_mob::Crossing *, sim_mob::Crossings>& value)

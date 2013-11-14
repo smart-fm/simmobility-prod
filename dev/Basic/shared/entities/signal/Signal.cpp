@@ -687,7 +687,7 @@ std::vector<std::pair<sim_mob::Phase, double> > Signal_SCATS::predictSignal(doub
 
 	sim_mob::Phase::links_map_iterator link_it = (p_it).LinkFrom_begin();
 	for (; link_it != (p_it).LinkFrom_end();
-			link_it = (p_it).links_map_.upper_bound((*link_it).first)) { //Loop2===>link
+			link_it = (p_it).linksMap.upper_bound((*link_it).first)) { //Loop2===>link
 
 		const std::vector<sim_mob::RoadSegment*> segments = (*link_it).first->getFwdSegments();
 

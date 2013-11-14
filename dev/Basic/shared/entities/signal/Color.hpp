@@ -25,7 +25,7 @@ enum TrafficColor
     FlashingGreen = 6	///future use
 };
 
-static  std::map<TrafficColor,std::string> TrafficColorMap =
+static  std::map<TrafficColor,std::string> trafficColorMap =
 				boost::assign::map_list_of
 				(InvalidTrafficColor,"InvalidTrafficColor")
 				(Red,"Red")

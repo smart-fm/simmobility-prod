@@ -206,6 +206,8 @@ public:
 
         virtual std::vector<RoadSegmentAndIndexPair> closestRoadSegments(const Point2D& point, centimeter_t halfWidth, centimeter_t halfHeight) const = 0;
 
+        virtual const sim_mob::RoadSegment* getRoadSegment(const unsigned int id) = 0;
+
         //TODO: Does this work the way I want it to?
         friend class StreetDirectory;
     };
@@ -384,6 +386,13 @@ public:
     ///Return the Link associated with a given start and end Node.
     const sim_mob::Link* searchLink(const sim_mob::Node* start, const sim_mob::Node* end);
 
+    /**
+     * return a road segment from a aimsun-id
+     * @param id is a given aimsun id
+     * return a pointer to associated road segment
+     */
+    const sim_mob::RoadSegment* getRoadSegment(const unsigned int id);
+
 private:
     //Helper: Find the point closest to the origin.
     static double GetShortestDistance(const Point2D& origin, const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4);
@@ -419,8 +428,6 @@ private:
 	///A lookup of all Links by their start/end Nodes
 	///key is <start, end>
     std::map< std::pair<const sim_mob::Node*, const sim_mob::Node*>, sim_mob::Link*> links_by_node;
-
-
 
 };
 

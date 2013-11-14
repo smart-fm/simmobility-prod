@@ -138,9 +138,6 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//Detect sidewalks in the middle of the road.
 	WarnMidroadSidewalks();
 
-	//combine incident information to road network
-	VerifyIncidents();
-
  	//Generate lanes, before StreetDirectory::init()
  	RoadNetwork::ForceGenerateAllLaneEdgePolylines(cfg.getNetworkRW());
 
@@ -176,6 +173,9 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     //Start all "FMOD" entities.
     LoadFMOD_Controller();
 
+	//combine incident information to road network
+	VerifyIncidents();
+
     //Initialize all BusControllers.
 	if(BusController::HasBusControllers()) {
 		BusController::InitializeAllControllers(active_agents, cfg.getPT_bus_dispatch_freq());
@@ -208,65 +208,49 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 
 void sim_mob::ExpandAndValidateConfigFile::VerifyIncidents()
 {
-	sim_mob::RoadNetwork& network = cfg.getNetworkRW();
 	std::vector<IncidentParams>& incidents = cfg.getIncidents();
-	std::vector<const RoadSegment*> cachedSegments;
 	const unsigned int baseGranMS = cfg.system.simulation.simStartTime.getValue();
 
-	//without incident definition, directly return
-	if(incidents.size()==0){
-		return;
-	}
+	for(std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt!=incidents.end(); incIt++){
 
-	//Add all RoadSegments to our list of cached segments.
-    for (std::vector<Link*>::const_iterator linkIt = network.getLinks().begin(); linkIt != network.getLinks().end(); ++linkIt) {
+		const RoadSegment* roadSeg = StreetDirectory::instance().getRoadSegment((*incIt).segmentId);
 
-    	std::vector<RoadSegment*> segs = (*linkIt)->getSegments();
-    	for (std::vector<RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); segIt++) {
+		if(roadSeg) {
 
-    		unsigned int originId = 0;
-			std::string aimsunId = (*segIt)->originalDB_ID.getLogItem();
-			std::string segId = sim_mob::getNumberFromAimsunId(aimsunId);
-			try {
-				originId = boost::lexical_cast<int>(segId);
-			} catch( boost::bad_lexical_cast const& ) {
-				Print() << "Error: aimsun id string was not valid" << std::endl;
-				continue;
-			}
+			Incident* item = new sim_mob::Incident();
+			item->accessibility = (*incIt).accessibility;
+			item->capFactor = (*incIt).capFactor;
+			item->compliance = (*incIt).compliance;
+			item->duration = (*incIt).duration;
+			item->incidentId = (*incIt).incidentId;
+			unsigned int laneId = item->laneId = (*incIt).laneId;
+			item->position = (*incIt).position;
+			item->segmentId = (*incIt).segmentId;
+			item->severity = (*incIt).severity;
+			item->speedlimit = (*incIt).speedLimit;
+			item->speedlimitOthers = (*incIt).speedLimitOthers;
+			item->startTime = (*incIt).startTime-baseGranMS;
+			item->visibilityDistance = (*incIt).visibilityDistance;
 
-			for(std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt!=incidents.end(); incIt++){
-				if((*incIt).segmentId == originId ) {
-
-					Incident* item = new sim_mob::Incident();
-					item->accessibility = (*incIt).accessibility;
-					item->capFactor = (*incIt).capFactor;
-					item->compliance = (*incIt).compliance;
-					item->duration = (*incIt).duration;
-					item->incidentId = (*incIt).incidentId;
-					unsigned int laneId = item->laneId = (*incIt).laneId;
-					item->position = (*incIt).position;
-					item->segmentId = (*incIt).segmentId;
-					item->severity = (*incIt).severity;
-					item->speedlimit = (*incIt).speedLimit;
-					item->speedlimitOthers = (*incIt).speedLimitOthers;
-					item->startTime = (*incIt).startTime-baseGranMS;
-					item->visibilityDistance = (*incIt).visibilityDistance;
-
-					const std::vector<sim_mob::Lane*>& lanes = (*segIt)->getLanes();
-					(*incIt).xLaneStartPos = lanes[laneId]->polyline_[0].getX();
-					(*incIt).yLaneStartPos = lanes[laneId]->polyline_[0].getY();
+			const std::vector<sim_mob::Lane*>& lanes = roadSeg->getLanes();
+			if(laneId<lanes.size()-1){
+				(*incIt).xLaneStartPos = lanes[laneId]->polyline_[0].getX();
+				(*incIt).yLaneStartPos = lanes[laneId]->polyline_[0].getY();
+				if(lanes[laneId]->polyline_.size()>0){
 					unsigned int sizePoly = lanes[laneId]->polyline_.size();
 					(*incIt).xLaneEndPos = lanes[laneId]->polyline_[sizePoly-1].getX();
 					(*incIt).yLaneEndPos = lanes[laneId]->polyline_[sizePoly-1].getY();
-
-					RoadSegment* rs = const_cast<RoadSegment*>(*segIt);
-					float length = rs->getLengthOfSegment();
-					centimeter_t pos = length*item->position/100.0;
-					rs->addObstacle(pos, item);
 				}
 			}
-    	}
-    }
+
+			RoadSegment* rs = const_cast<RoadSegment*>(roadSeg);
+			float length = rs->getLengthOfSegment();
+			centimeter_t pos = length*item->position/100.0;
+			rs->addObstacle(pos, item);
+		}
+	}
+
+
 }
 
 void sim_mob::ExpandAndValidateConfigFile::CheckGranularities()

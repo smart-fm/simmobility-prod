@@ -40,6 +40,13 @@ protected:
 
     virtual std::vector<StreetDirectory::RoadSegmentAndIndexPair> closestRoadSegments(const Point2D& point, centimeter_t halfWidth, centimeter_t halfHeight) const;
 
+    /**
+     * return a road segment from a aimsun-id
+     * @param id is a given aimsun id
+     * return a pointer to associated road segment
+     */
+    virtual const sim_mob::RoadSegment* getRoadSegment(const unsigned int id);
+
 private:
     // Partition the road network into a rectangular grid.
     void partition(const RoadNetwork& network);
@@ -95,6 +102,7 @@ private:
     std::set<const BusStop*> busStops_;
     std::set<const Node*> nodes;
     std::map<const RoadSegment*, RoadRunnerRegion> rrRegionLookup;
+    std::map<const unsigned int, const sim_mob::RoadSegment*> segmentByAimsunID;
 
 };
 

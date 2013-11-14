@@ -98,6 +98,11 @@ public:
 	 */
 	unsigned int getAdjustedLaneId(unsigned int laneId);
 
+	/**
+	 * get aimsun id fro current road segment
+	 */
+	unsigned int getSegmentAimsunID() const;
+
 	bool operator== (const RoadSegment* rhs) const
 	{
 		   return (rhs->getStart()==this->getStart())&&(rhs->getEnd()==this->getEnd());

@@ -276,17 +276,7 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 					incidentStatus.setChangedLane(false);
 				}
 				//make velocity slowing down decision when incident happen
-				RoadSegment* segment = const_cast<RoadSegment*>(curSegment);
-				unsigned int originId = 0;
-				std::string aimsunId = curSegment->originalDB_ID.getLogItem();
-				std::string segId = sim_mob::getNumberFromAimsunId(aimsunId);
-				try {
-					originId = boost::lexical_cast<int>(segId);
-				} catch( boost::bad_lexical_cast const& ) {
-					Print() << "Error: aimsun id string was not valid" << std::endl;
-					return;
-				}
-
+				unsigned int originId = curSegment->getSegmentAimsunID();
 				if(originId == inc->segmentId){
 					incidentStatus.setSlowdownVelocity(true);
 				}
@@ -752,6 +742,16 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 	newLatVel = lcModel->executeLaneChanging(p, parentDriver->vehicle->getAllRestRoadSegmentsLength(), parentDriver->vehicle->length,
 			parentDriver->vehicle->getTurningDirection(), mode);
 
+	if(newLatVel>0 && p.nextLaneIndex>0){
+		const RoadSegment* curSegment = parentDriver->vehicle->getCurrSegment();
+		const Lane* lane = curSegment->getLane(p.nextLaneIndex);
+		int laneNum = curSegment->getLanes().size()-1;
+		if( !lane->is_vehicle_lane() || p.nextLaneIndex>laneNum ) {
+			parentDriver->vehicle->setTurningDirection(LCS_SAME);
+			parentDriver->vehicle->setLatVelocity(0);
+			p.nextLaneIndex = p.currLaneIndex;
+		}
+	}
 
 	parentDriver->vehicle->setLatVelocity(newLatVel);
 	if(parentDriver->vehicle->getLatVelocity()>0)

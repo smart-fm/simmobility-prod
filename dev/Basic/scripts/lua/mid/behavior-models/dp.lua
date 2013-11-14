@@ -241,16 +241,16 @@ local shop = {}
 local other = {}
 
 local function loadFixedVariables()
-	for i = 0,50 do 
+	for i = 1,51 do 
 		-- WorkTi,EduTi,ShopTi,OthersTi, WorkIi,EduIi,ShopIi,OthersIi
-		WorkT[i] = choice[i][0]
-		EduT[i] = choice[i][1]
-		ShopT[i] = choice[i][2]
-		OthersT[i] = choice[i][3]
-		WorkI[i] = choice[i][4]
-		EduI[i] = choice[i][5]
-		ShopI[i] = choice[i][6]
-		OthersI[i] = choice[i][7]
+		WorkT[i] = choice[i][1]
+		EduT[i] = choice[i][2]
+		ShopT[i] = choice[i][3]
+		OthersT[i] = choice[i][4]
+		WorkI[i] = choice[i][5]
+		EduI[i] = choice[i][6]
+		ShopI[i] = choice[i][7]
+		OthersI[i] = choice[i][8]
 	
 		-- XXXtour_XXXstop. . . series
 		onetour_onestop[i] = 0
@@ -401,8 +401,8 @@ local function computeUtilities(params)
 	if car_own_normal == 1 or car_own_offpeak == 1 then caravail = 1 end
 	if motor_own == 1 then motoravail = 1 end
 	
-	utility[0] = 0
-	for i = 1,50 do
+	utility[1] = 0
+	for i = 2,51 do
 		utility[i] = 
 			beta_tour_work * WorkT[i] + beta_stop_work * WorkI[i] +
 			beta_tour_edu * EduT[i] + beta_stop_edu * EduI[i] +
@@ -537,14 +537,14 @@ local function computeAvailabilities(params)
 	-- storing data from params table passed into this function locally for use in this function (this is purely for better execution time)
 	local person_type_id = params.person_type_id
 
-	for i = 0,50 do
+	for i = 1,51 do
 		-- For Full time student (person_type_id=4): All alternatives are available.
 		-- For other person type: only alternatives with EduT=0 (i.e. choice[i][1] = 0) are available to them
 		if person_type_id == 4 then
 			availability[i] = 1
 		else
 			availability[i] = 0
-			if choice[i][1] == 0 then 
+			if choice[i][2] == 0 then 
 				availability[i] = 1
 			end
 		end
@@ -554,7 +554,7 @@ end
 -- scales
 local scale = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1} -- 1 for all choices (51 1s)
 
-function choose(params)
+function chooseDP(params)
 	if not fixedVariablesComputed then loadFixedVariables() end
 	computeUtilities(params) 
 	computeAvailabilities(params)

@@ -13,6 +13,7 @@
 #include "DBConnection.hpp"
 #include "util/LangHelpers.hpp"
 #include "soci-postgresql.h"
+#include "mongo/client/dbclient.h"
 
 using namespace sim_mob::db;
 using std::string;
@@ -33,6 +34,11 @@ DBConnection::DBConnection(BackendType type, const DatabaseConfig& config)
             connectionStr = fmtr.str();
             break;
         }
+        case MONGO_DB:
+        {
+        	connectionStr = config.GetHost();
+        	break;
+        }
         default:break;
     }
 }
@@ -50,6 +56,12 @@ bool DBConnection::Connect() {
                 connected = true;
                 break;
             }
+            case MONGO_DB:
+            {
+            	mongoConn.connect(connectionStr);
+            	connected = true;
+            	break;
+            }
             default:break;
         }
     }
@@ -58,7 +70,16 @@ bool DBConnection::Connect() {
 
 bool DBConnection::Disconnect() {
     if (connected) {
-        currentSession.close();
+		switch (type) {
+		case POSTGRES:
+		{
+			currentSession.close();
+			break;
+		}
+		default:
+			break;
+		}
+
         connected = false;
     }
     return !connected;
@@ -70,4 +91,8 @@ bool DBConnection::IsConnected() const {
 
 session& DBConnection::GetSession() {
     return currentSession;
+}
+
+mongo::DBClientConnection& DBConnection::getMongoConnection() {
+	return mongoConn;
 }

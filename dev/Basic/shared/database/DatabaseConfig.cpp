@@ -31,6 +31,10 @@ DatabaseConfig::DatabaseConfig(const string& file)
     }
 }
 
+sim_mob::db::DatabaseConfig::DatabaseConfig(std::string& host, std::string& port, std::string& dbname)
+: port(std::atoi(port.c_str())), host(host), databaseName(dbname), username(""), password(""), file("") {
+}
+
 DatabaseConfig::DatabaseConfig(const DatabaseConfig& orig) {
     this->host = orig.host;
     this->port = orig.port;

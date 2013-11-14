@@ -29,6 +29,7 @@ namespace sim_mob {
         public:
             DatabaseConfig();
             DatabaseConfig(const std::string& file);
+            DatabaseConfig(std::string& host, std::string& port, std::string& dbname);
             DatabaseConfig(const DatabaseConfig& orig);
             virtual ~DatabaseConfig();
             std::string GetDatabaseName() const;

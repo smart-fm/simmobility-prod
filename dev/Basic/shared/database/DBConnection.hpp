@@ -19,7 +19,8 @@ namespace sim_mob {
             POSTGRES,
             MYSQL, //not implemented
             ORACLE, //not implemented
-            SQL_SERVER//not implemented
+            SQL_SERVER,//not implemented
+            MONGO_DB
         };
 
         /** 
@@ -54,8 +55,15 @@ namespace sim_mob {
              */
             soci::session& GetSession();
 
+            /**
+             * Gets the current mongodb connection object.
+             * @return DBClientConnection reference
+             */
+			mongo::DBClientConnection& getMongoConnection();
+
         private:
             soci::session currentSession;
+            mongo::DBClientConnection mongoConn;
             std::string connectionStr;
             BackendType type;
             volatile bool connected;

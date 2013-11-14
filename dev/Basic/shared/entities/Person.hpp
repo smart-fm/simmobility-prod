@@ -11,6 +11,7 @@
 #include "conf/settings/DisableMPI.h"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/Agent.hpp"
+#include "entities/PersonParams.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/LangHelpers.hpp"
 
@@ -24,6 +25,8 @@ class PartitionManager;
 class PackageUtils;
 class UnPackageUtils;
 class UpdateParams;
+
+
 
 /**
  * Basic Person class.
@@ -234,6 +237,8 @@ private:
     // person's alighting time secs
     double ALIGTHING_TIME_SEC;
     std::vector<WayPoint> currPath;
+
+    PersonParams personParams;
 
 public:
 	virtual void pack(PackageUtils& packageUtil) CHECK_MPI_THROW;

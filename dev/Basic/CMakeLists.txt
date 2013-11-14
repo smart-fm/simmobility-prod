@@ -387,6 +387,11 @@ find_package(Lua REQUIRED)
 include_directories(${LUA_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${LUA_LIBRARIES} -ldl)
 
+#Find MongoDB
+find_package(MongoClient REQUIRED)
+include_directories(${MONGOCLIENT_INCLUDE_DIRS})
+LIST(APPEND LibraryList ${MONGOCLIENT_LIBRARY})
+
 #Optionally find: MPI
 IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   #Find boost-mpi

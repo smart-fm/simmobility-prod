@@ -33,7 +33,7 @@ double SplitPlan::getCycleLength() const {return cycleLength;}
 
 std::size_t SplitPlan::getOffset() const {return offset;}
 
-void SplitPlan::setOffset(std::size_t o) {offset = o;}
+void SplitPlan::setOffset(std::size_t value) {offset = value;}
 
 /*
  * This function has 2 duties

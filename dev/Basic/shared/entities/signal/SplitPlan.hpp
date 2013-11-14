@@ -86,16 +86,22 @@ private:
 public:
 	/*plan methods*/
 	SplitPlan(double cycleLength_ = 90,double offset_ = 0/*, int signalTimingMode_= ConfigParams::GetInstance().signalTimingMode*/, unsigned int TMP_PlanID_ = 1);
+	//the current plan id being used
 	std::size_t CurrSplitPlanID();
+	//the current plan being used
 	std::vector< double >  CurrSplitPlan();
 	void setCurrPlanIndex(std::size_t);
+	//find/calculate the appropriate split plan for the next cycle based on the loop detector counts
 	std::size_t findNextPlanIndex(std::vector<double> DS);
+	//update currSplitPlanID by nextSplitPlanID
 	void updatecurrSplitPlan();
+	//number of SplitPlans available to choose from
 	std::size_t nofPlans();
 	void setcurrSplitPlanID(std::size_t index);
-	void setnextSplitPlan(std::vector<double> DS);
+	//setting the container of split plans(known as choice set)
 	void setChoiceSet(std::vector< std::vector<double> >);
 	const std::vector< std::vector<double> > &getChoiceSet()const ;
+	//resort to default split plans when there is no input
 	void setDefaultSplitPlan(int);
 	void initialize();
 

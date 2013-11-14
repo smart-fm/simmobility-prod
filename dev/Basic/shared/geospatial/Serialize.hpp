@@ -480,18 +480,27 @@ void write_xml(XmlWriter& write, const sim_mob::SplitPlan & plan)
 
 }
 
+const std::string  TAG_SINGNAL_ID = "signalID";
+const std::string  TAG_NODE_ID = "nodeID";
+const std::string  TAG_LINK_AND_CROSSING = "linkAndCrossings";
+const std::string  TAG_PHASES = "phases";
+const std::string  TAG_SCATS = "SCATS";
+const std::string  TAG_SIGNAL_TIMING_MODE = "signalTimingMode";
+const std::string  TAG_SPLIT_PLAN = "SplitPlan";
+const std::string  _STM_ADAPTIVE = "STM_ADAPTIVE";
+
 template <>
 void write_xml(XmlWriter& write, const sim_mob::Signal& signal)
 {
-    write.prop("signalID", signal.getSignalId());
-    write.prop("nodeID", signal.getNode().getID());
-    write.prop("linkAndCrossings", signal.getLinkAndCrossing(), namer("<linkAndCrossing>"));
-    write.prop("phases", signal.getPhases(), namer("<phase>"));
+    write.prop(TAG_SINGNAL_ID, signal.getSignalId());
+    write.prop(TAG_NODE_ID, signal.getNode().getID());
+    write.prop(TAG_LINK_AND_CROSSING, signal.getLinkAndCrossing(), namer("<linkAndCrossing>"));
+    write.prop(TAG_PHASES, signal.getPhases(), namer("<phase>"));
     //hard coding
     const sim_mob::Signal_SCATS & SCATS = dynamic_cast<const sim_mob::Signal_SCATS &>(signal);
-    write.prop_begin("SCATS");
-    write.prop("signalTimingMode", std::string("STM_ADAPTIVE"));//hardcode until using a decent enum in signal.hpp
-    write.prop("SplitPlan", SCATS.getPlan());
+    write.prop_begin(TAG_SCATS);
+    write.prop(TAG_SIGNAL_TIMING_MODE, _STM_ADAPTIVE);//hardcode until using a decent enum in signal.hpp
+    write.prop(TAG_SPLIT_PLAN, SCATS.getPlan());
     write.prop_end();
 }
 

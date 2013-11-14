@@ -46,8 +46,8 @@ void sim_mob::xml::Signal_t_pimpl::SCATS (sim_mob::xml::helper::SignalHelper::SC
 	signalHelper.getTargetSignal()->LinkAndCrossings_ = signalHelper.getBasicSignal()->LinkAndCrossings_;
 	sim_mob::Signal_SCATS *temp = dynamic_cast<sim_mob::Signal_SCATS *>(signalHelper.getTargetSignal());
 	// temp->setSignalTimingMode(SCATS_Info_.signalTimingMode);
-	temp->plan_ = SCATS_Info_.SplitPlan;
-	temp->plan_.setParentSignal(temp);
+	temp->splitPlan = SCATS_Info_.SplitPlan;
+	temp->splitPlan.setParentSignal(temp);
 	temp->initialize();
 	model = signalHelper.getTargetSignal();//this is what will be finally returned
 	delete signalHelper.getBasicSignal();

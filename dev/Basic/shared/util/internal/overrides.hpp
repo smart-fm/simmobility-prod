@@ -10,7 +10,8 @@
 namespace sim_mob {
 struct linkToLink; //forward declaration
 namespace xml {
-
+///constant strings
+const std::string &itemElement = "<item>";//"<item>"
 //////////////////////////////////////////////////////////////////////
 // get_id for const and non-const pointer types
 //////////////////////////////////////////////////////////////////////
@@ -212,12 +213,12 @@ void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec, namer nam
 template <class T>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec, expander expand)
 {
-	write_xml(write, vec, namer("<item>"), expand);
+	write_xml(write, vec, namer(itemElement), expand);
 }
 template <class T>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T>& vec)
 {
-	write_xml(write, vec, namer("<item>"), expander());
+	write_xml(write, vec, namer(itemElement), expander());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -239,12 +240,12 @@ void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T,U>& vec, namer n
 template <class T, class U>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T,U>& vec, expander expand)
 {
-	write_xml(write, vec, namer("<item>"), expand);
+	write_xml(write, vec, namer(itemElement), expand);
 }
 template <class T, class U>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::set<T,U>& vec)
 {
-	write_xml(write, vec, namer("<item>"), expander());
+	write_xml(write, vec, namer(itemElement), expander());
 }
 
 
@@ -267,12 +268,12 @@ void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, namer 
 template <class T>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec, expander expand)
 {
-	write_xml(write, vec, namer("<item>"), expand);
+	write_xml(write, vec, namer(itemElement), expand);
 }
 template <class T>
 void write_xml(sim_mob::xml::XmlWriter& write, const std::vector<T>& vec)
 {
-	write_xml(write, vec, namer("<item>"), expander());
+	write_xml(write, vec, namer(itemElement), expander());
 }
 
 

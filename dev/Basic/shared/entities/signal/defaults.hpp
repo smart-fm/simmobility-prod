@@ -44,13 +44,11 @@ struct LinkAndCrossing
 	double angle;         //index for backward compatibility (setupindexMaps()
 	sim_mob::Link const * link;
 	sim_mob::Crossing const * crossing;
-	size_t getId() const{return id;}
+	size_t getId() const;
 };
 
 struct LinkAndCrossingComparison {
-	bool operator() (const LinkAndCrossing&a, const LinkAndCrossing&b){
-		return a.link > b.link;
-	}
+	bool operator() (const LinkAndCrossing&a, const LinkAndCrossing&b);
 };
 
 /*

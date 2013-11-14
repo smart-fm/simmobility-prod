@@ -25,6 +25,14 @@ sim_mob::LinkAndCrossing::LinkAndCrossing(){
 	crossing = 0;
 	angle = -1;
 }
-
+size_t sim_mob::LinkAndCrossing::getId() const{
+	return id;
 }
+
+bool sim_mob::LinkAndCrossingComparison::operator() (const LinkAndCrossing&a, const LinkAndCrossing&b){
+		return a.link > b.link;
+	}
+}
+
+
 

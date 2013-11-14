@@ -79,36 +79,33 @@ class Signal  : public sim_mob::Agent
 public:
 	typedef std::vector<sim_mob::Phase> phases;
 	friend class sim_mob::xml::Signal_t_pimpl;
-	Signal(Node const & node, const MutexStrategy& mtxStrat, int id=-1, signalType = SIG_BASIC)
-	  : Agent(mtxStrat, id), node_(node){};
-   signalType getSignalType() const { return signalType_;}
-   void setSignalType(signalType sigType) { signalType_ = sigType;}
-   void setLinkAndCrossing(LinkAndCrossingC & LinkAndCrossings) { LinkAndCrossings_ = LinkAndCrossings; }
-   LinkAndCrossingC const& getLinkAndCrossing()const { return LinkAndCrossings_;}
-   LinkAndCrossingC & getLinkAndCrossing() { return LinkAndCrossings_;}
-   virtual TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const { throw std::runtime_error("getDriverLight Not implemented"); } ;
-   virtual TrafficColor getPedestrianLight (Crossing const & crossing)const { throw std::runtime_error("getPedestrianLight Not implemented"); };
-   virtual std::string toString() const{ throw std::runtime_error("toString Not implemented"); };
-   Node  const & getNode() const { return node_; }
-
-   virtual void outputTrafficLights(timeslice now,std::string newLine)const{};
-
-   virtual unsigned int getSignalId() const{ return -1;}
+	Signal(Node const & node, const MutexStrategy& mtxStrat, int id=-1, signalType = SIG_BASIC);
+   signalType getSignalType() const ;
+   void setSignalType(signalType sigType);
+   void setLinkAndCrossing(LinkAndCrossingC & LinkAndCrossings);
+   LinkAndCrossingC const& getLinkAndCrossing()const;
+   LinkAndCrossingC & getLinkAndCrossing();
+   virtual TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const;
+   virtual TrafficColor getPedestrianLight (Crossing const & crossing)const ;
+   virtual std::string toString() const;
+   Node  const & getNode() const;
+   virtual void outputTrafficLights(timeslice now,std::string newLine)const;
+   virtual unsigned int getSignalId() const;
    
 	//Signals are non-spatial in nature.
-	virtual bool isNonspatial() { return true; }
+	virtual bool isNonspatial();
 
-   virtual void createStringRepresentation(std::string){};
-   virtual ~Signal(){}
-   virtual void load(const std::map<std::string, std::string>&) {}
+   virtual void createStringRepresentation(std::string);
+   virtual ~Signal();
+   virtual void load(const std::map<std::string, std::string>&);
    //virtual Entity::UpdateStatus update(timeslice now){ return Entity::UpdateStatus::Continue; }
-   virtual sim_mob::Signal::phases &getPhases(){ return phases_;}
-   virtual const sim_mob::Signal::phases &getPhases() const{ return phases_;}
-   void addPhase(sim_mob::Phase phase) { phases_.push_back(phase); }
+   virtual sim_mob::Signal::phases &getPhases();
+   virtual const sim_mob::Signal::phases &getPhases() const;
+   void addPhase(sim_mob::Phase &phase);
    //xuyan: no return here
-   bool frame_init(timeslice){return false;}
-   sim_mob::Entity::UpdateStatus frame_tick(timeslice){ return UpdateStatus::Continue; }
-   void frame_output(timeslice){}
+   bool frame_init(timeslice);
+   sim_mob::Entity::UpdateStatus frame_tick(timeslice);
+   void frame_output(timeslice);
 
    typedef std::vector<Signal *> All_Signals;
    static All_Signals all_signals_;
@@ -266,7 +263,7 @@ private:
      * 1-hold plans' phase information and different combinations of phase time shares(choiceSet)
      * 2-decides/outputs/selects the next split plan(choiceSet combination) based on the the inputted DS
      */
-    sim_mob::SplitPlan plan_;
+    sim_mob::SplitPlan splitPlan;
     /*--------------Amendments: going to separatre phase from split plan-------*/
 
     std::size_t NOF_Phases; //getNOF_Phases() = number of phases = phases_.size()

@@ -103,7 +103,7 @@ std::string getColor(size_t id)
 }
 //	assumption : total green time = the whole duration in the color sequence except red!
 //	formula : for a given phase, total_g is maximum (G+FG+...+A - All_red, red...) of the linkFrom(s)
-	/*todo a container should be created(probabely at splitPlan level and mapped to "choiceSet" container)
+	/*todo a container should be created(probabely at split Plan level and mapped to "choiceSet" container)
 	to store total_g for all phases once the phase is met, so that this function is not called for the second time
 	if any plan is selected for the second time.*/
 	double Phase::computeTotalG ()const
@@ -112,10 +112,10 @@ std::string getColor(size_t id)
 		links_map_const_iterator linkIterator = linksMap.begin();
 		for(maxGreen = 0; linkIterator != linksMap.end() ; linkIterator++)
 		{
-			std::vector< std::pair<TrafficColor,int> >::const_iterator  color_it = (*linkIterator).second.colorSequence.ColorDuration.begin();
-		for (green = 0;	color_it != (*linkIterator).second.colorSequence.ColorDuration.end(); color_it++) {
-			if ((*color_it).first != Red) {
-				green += (*color_it).second;
+			std::vector< std::pair<TrafficColor,int> >::const_iterator  colorIterator = (*linkIterator).second.colorSequence.ColorDuration.begin();
+		for (green = 0;	colorIterator != (*linkIterator).second.colorSequence.ColorDuration.end(); colorIterator++) {
+			if ((*colorIterator).first != Red) {
+				green += (*colorIterator).second;
 			}
 		}
 			if(maxGreen < green) maxGreen = green;//formula :)
@@ -251,7 +251,7 @@ void Phase::printColorDuration()
 		ColorSequence cs = it->second.colorSequence;
 		const std::vector< std::pair<TrafficColor,int> > & cd = cs.getColorDuration();
 		std::vector< std::pair<TrafficColor,int> >::const_iterator it_color = cd.begin();
-		int greenIndex=-1, tempgreenIndex = -1;
+		int greenIndex=-1, tempGreenIndex = -1;
 		for(; it_color != cd.end(); it_color++)
 		{
 			std::cout << "	color id(" <<  sim_mob::getColor(it_color->first) << ") : " << it_color->second <<  std::endl;
@@ -284,25 +284,25 @@ void Phase::calculateGreen_Links(){
 		ColorSequence & cs = it->second.colorSequence;
 		const std::vector< std::pair<TrafficColor,int> > & cd = cs.getColorDuration();
 		std::vector< std::pair<TrafficColor,int> >::const_iterator it_color = cd.begin();
-		size_t other_than_green = 0;
-		int greenIndex=-1, tempgreenIndex = -1;
-		for(int tempgreenIndex = 0; it_color != cd.end(); it_color++)
+		size_t otherThanGreen = 0;
+		int greenIndex=-1, tempGreenIndex = -1;
+		for(int tempGreenIndex = 0; it_color != cd.end(); it_color++)
 		{
 			if(it_color->first != sim_mob::Green)
 			{
-				other_than_green += it_color->second;
+				otherThanGreen += it_color->second;
 			}
 			else
-				greenIndex = tempgreenIndex;//we need to know the location(index) of the green, right after this loop ends
+				greenIndex = tempGreenIndex;//we need to know the location(index) of the green, right after this loop ends
 
-			tempgreenIndex ++;
+			tempGreenIndex ++;
 		}
 		//3.subtract(the genius part)
 		if(greenIndex > -1)
 		{
-			cs.changeColorDuration(cs.getColorDuration().at(greenIndex).first, phaseLength - other_than_green);
-//			cs.getColorDuration().at(greenIndex).second = phaseLength - other_than_green;
-//			std::cout << "phase :" << name << " phaselength:"<< phaseLength << "percentage: " << percentage << "  Green time : " << cs.getColorDuration().at(greenIndex).second << " (phaseLength - other_than_green):(" << phaseLength << " - " << other_than_green << ")" << std::endl;
+			cs.changeColorDuration(cs.getColorDuration().at(greenIndex).first, phaseLength - otherThanGreen);
+//			cs.getColorDuration().at(greenIndex).second = phaseLength - otherThanGreen;
+//			std::cout << "phase :" << name << " phaselength:"<< phaseLength << "percentage: " << percentage << "  Green time : " << cs.getColorDuration().at(greenIndex).second << " (phaseLength - otherThanGreen):(" << phaseLength << " - " << otherThanGreen << ")" << std::endl;
 		}
 	}
 }
@@ -325,32 +325,32 @@ void Phase::calculateGreen_Crossings(){
 		ColorSequence & cs = it->second.colorSequence;
 		const std::vector< std::pair<TrafficColor,int> > & cd = cs.getColorDuration();
 		std::vector< std::pair<TrafficColor,int> >::const_iterator it_color = cd.begin();
-		size_t other_than_green = 0;
-		int greenIndex=-1, FgreenIndex = -1;
+		size_t otherThanGreen = 0;
+		int greenIndex=-1, flishingGreenIndex = -1;
 		int tempGreenIndex = 0, tempFGreenIndex = 0;
 		for(; it_color != cd.end(); it_color++)
 		{
 			if((it_color->first != sim_mob::Green) && (it_color->first != sim_mob::Amber))
 			{
-				other_than_green += it_color->second;
+				otherThanGreen += it_color->second;
 			}
 			else
 			{
 				if(it_color->first == sim_mob::Green)
 					greenIndex = tempGreenIndex;//we need to know the location of green, right after this loop ends
 				else
-					FgreenIndex = tempGreenIndex;//we also need to know the location of flashing green, right after this loop ends
+					flishingGreenIndex = tempGreenIndex;//we also need to know the location of flashing green, right after this loop ends
 			}
 
 			tempGreenIndex ++;
 		}
 		//3.subtract(the genius part)
-		if((greenIndex > -1)&&(FgreenIndex > -1))
+		if((greenIndex > -1)&&(flishingGreenIndex > -1))
 		{
-			cs.changeColorDuration(cs.getColorDuration().at(greenIndex).first, (phaseLength - other_than_green) / 3);
-			cs.changeColorDuration(cs.getColorDuration().at(FgreenIndex).first, ((phaseLength - other_than_green) / 3) * 2);
-//			cs.getColorDuration().at(greenIndex).second = (phaseLength - other_than_green) / 3; //green time is one third of flashing green
-//			cs.getColorDuration().at(FgreenIndex).second = ((phaseLength - other_than_green) / 3) * 2 ;//f green time is two third of available time
+			cs.changeColorDuration(cs.getColorDuration().at(greenIndex).first, (phaseLength - otherThanGreen) / 3);
+			cs.changeColorDuration(cs.getColorDuration().at(flishingGreenIndex).first, ((phaseLength - otherThanGreen) / 3) * 2);
+//			cs.getColorDuration().at(greenIndex).second = (phaseLength - otherThanGreen) / 3; //green time is one third of flashing green
+//			cs.getColorDuration().at(flishingGreenIndex).second = ((phaseLength - otherThanGreen) / 3) * 2 ;//f green time is two third of available time
 		}
 	}
 }

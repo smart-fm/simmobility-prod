@@ -24,7 +24,6 @@ const double Offset::fixedCL = 60;
 
 //use next cycle length to calculate next Offset
 void Offset::setnextOffset(double nextCL) {
-//	std::cout<<"nextCL "<<nextCL<<std::endl;
 	if (nextCL <= CL_low) {
 		nextOffset = Off_low;
 	} else if (nextCL > CL_low && nextCL <= CL_up) {
@@ -35,7 +34,6 @@ void Offset::setnextOffset(double nextCL) {
 }
 
 void Offset::updateCurrOffset() {
-//	std::cout<<"currOffset "<<currOffset<<std::endl;
 	currOffset = nextOffset;
 }
 

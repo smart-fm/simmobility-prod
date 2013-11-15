@@ -12,11 +12,7 @@
 #include <string>
 #include <map>
 #include "util/LangHelpers.hpp"
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/random_access_index.hpp>
-#include <boost/multi_index/identity.hpp>
-#include <boost/multi_index/member.hpp>
+#include "logging/Log.hpp"
 
 namespace sim_mob {
 namespace xml {
@@ -87,10 +83,7 @@ struct crossings
 } ;
 
 typedef struct crossings Crossings;
-
-
 typedef std::map<sim_mob::Crossing *, sim_mob::Crossings> crossings_map;
-
 typedef crossings_map::const_iterator crossings_map_const_iterator;
 typedef crossings_map::iterator crossings_map_iterator;
 typedef std::pair<crossings_map_const_iterator, crossings_map_const_iterator> crossings_map_equal_range;

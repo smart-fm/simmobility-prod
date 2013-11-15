@@ -384,11 +384,6 @@ void write_xml(XmlWriter& write, const sim_mob::TrafficColor &value) {
 	write.prop("TrafficColor", value);
 }
 
-//template <>
-//void write_xml(XmlWriter& write, const std::pair<TrafficColor,int> &value) {
-//	write.prop("ColorDuration", value, namer("<TrafficColor, Duration>"));
-//}
-
 template <>
 void write_xml(XmlWriter& write, const sim_mob::ColorSequence &value) {
 	std::string type = (
@@ -407,6 +402,28 @@ void write_xml(XmlWriter& write, const sim_mob::ColorSequence &value) {
 	}
 }
 
+namespace {
+/**
+ * Constant strings for the following method
+ */
+const std::string  TAG_SPLIT_PLAN_ID = "splitplanID";
+const std::string  TAG_CYCLE_LENGTH = "cycleLength";
+const std::string  TAG_OFFSET = "offset";
+const std::string  TAG_CHOICE_SET = "ChoiceSet";
+const std::string  TAG_PLAN = "plan";
+const std::string  TAG_PLAN_ID = "planID";
+const std::string  TAG_PHASE_PERCENTAGE = "PhasePercentage";
+
+const std::string  TAG_SINGNAL_ID = "signalID";
+const std::string  TAG_NODE_ID = "nodeID";
+const std::string  TAG_LINK_AND_CROSSING = "linkAndCrossings";
+const std::string  TAG_PHASES = "phases";
+const std::string  TAG_SCATS = "SCATS";
+const std::string  TAG_SIGNAL_TIMING_MODE = "signalTimingMode";
+const std::string  TAG_SPLIT_PLAN = "SplitPlan";
+const std::string  _STM_ADAPTIVE = "STM_ADAPTIVE";
+
+}
 template<>
 void write_xml(XmlWriter& write, const sim_mob::Phase& phase) {
 	//name
@@ -459,19 +476,19 @@ void write_xml(XmlWriter& write, const sim_mob::Phase& phase) {
 template <>
 void write_xml(XmlWriter& write, const sim_mob::SplitPlan & plan)
 {
-	write.prop("splitplanID", plan.TMP_PlanID);
-	write.prop("cycleLength", plan.getCycleLength());
-	write.prop("offset", plan.getOffset());
+	write.prop(TAG_SPLIT_PLAN_ID, plan.TMP_PlanID);
+	write.prop(TAG_CYCLE_LENGTH, plan.getCycleLength());
+	write.prop(TAG_OFFSET, plan.getOffset());
 	//split plan expanded here only
-	write.prop_begin("ChoiceSet");
+	write.prop_begin(TAG_CHOICE_SET);
 	std::vector< double > outer;
 	int i = 0;
 	BOOST_FOREACH(outer, plan.getChoiceSet()){
-		write.prop_begin("plan");
-		write.prop("planID", i++);
+		write.prop_begin(TAG_PLAN);
+		write.prop(TAG_PLAN_ID, i++);
 		double inner;
 		BOOST_FOREACH(inner, outer){
-			write.prop("PhasePercentage", inner);
+			write.prop(TAG_PHASE_PERCENTAGE, inner);
 		}
 		write.prop_end();
 	}
@@ -479,15 +496,6 @@ void write_xml(XmlWriter& write, const sim_mob::SplitPlan & plan)
 
 
 }
-
-const std::string  TAG_SINGNAL_ID = "signalID";
-const std::string  TAG_NODE_ID = "nodeID";
-const std::string  TAG_LINK_AND_CROSSING = "linkAndCrossings";
-const std::string  TAG_PHASES = "phases";
-const std::string  TAG_SCATS = "SCATS";
-const std::string  TAG_SIGNAL_TIMING_MODE = "signalTimingMode";
-const std::string  TAG_SPLIT_PLAN = "SplitPlan";
-const std::string  _STM_ADAPTIVE = "STM_ADAPTIVE";
 
 template <>
 void write_xml(XmlWriter& write, const sim_mob::Signal& signal)
@@ -497,10 +505,15 @@ void write_xml(XmlWriter& write, const sim_mob::Signal& signal)
     write.prop(TAG_LINK_AND_CROSSING, signal.getLinkAndCrossing(), namer("<linkAndCrossing>"));
     write.prop(TAG_PHASES, signal.getPhases(), namer("<phase>"));
     //hard coding
-    const sim_mob::Signal_SCATS & SCATS = dynamic_cast<const sim_mob::Signal_SCATS &>(signal);
-    write.prop_begin(TAG_SCATS);
-    write.prop(TAG_SIGNAL_TIMING_MODE, _STM_ADAPTIVE);//hardcode until using a decent enum in signal.hpp
-    write.prop(TAG_SPLIT_PLAN, SCATS.getPlan());
+	try {
+		const sim_mob::Signal_SCATS & scats =
+				dynamic_cast<const sim_mob::Signal_SCATS &>(signal);
+		write.prop_begin(TAG_SCATS);
+		write.prop(TAG_SIGNAL_TIMING_MODE, _STM_ADAPTIVE); //hardcode until using a decent enum in signal.hpp
+		write.prop(TAG_SPLIT_PLAN, scats.getPlan());
+	} catch (std::exception e) {
+		throw std::runtime_error("Error serializing SCATS signal");
+	}
     write.prop_end();
 }
 

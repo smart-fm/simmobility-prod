@@ -63,7 +63,7 @@ std::string getColor(size_t id)
 		//2-you are at the beginning of this phase so the rest(computeColor) will be ok
 		if(lapse < 0)
 			{
-			std::cout << "Phase " << name << " update: " << "RETURNING lapse( " << lapse << ")=currentCycleTimer(" << currentCycleTimer << ") - phaseOffset(" << phaseOffset << ")" << std::endl;
+			Print() << "Phase " << name << " update: " << "RETURNING lapse( " << lapse << ")=currentCycleTimer(" << currentCycleTimer << ") - phaseOffset(" << phaseOffset << ")" << std::endl;
 				return;
 			}
 		//update each link-link signal's color
@@ -76,17 +76,17 @@ std::string getColor(size_t id)
 			 * then instead of moving to the first phase , again the last phase may reset to green
 			 */
 			//
-//			std::cout << "Phase " << name << " update: " << "lapse( " << lapse << ")=currentCycleTimer(" << currentCycleTimer << ") - phaseOffset(" << phaseOffset << ")" << std::endl;
+//			Print() << "Phase " << name << " update: " << "lapse( " << lapse << ")=currentCycleTimer(" << currentCycleTimer << ") - phaseOffset(" << phaseOffset << ")" << std::endl;
 			(*linkIterator).second.currColor = (*linkIterator).second.colorSequence.computeColor(lapse);
 			if(((*linkIterator).second.currColor > sim_mob::FlashingGreen) || ((*linkIterator).second.currColor < sim_mob::Red))
 			{
 				o << "currentCycleTimer :" << currentCycleTimer << "  phaseOffset :" << phaseOffset  << "--->lapse :" << lapse << "\n creates out of range color";
 				throw std::runtime_error(o.str());
 			}
-//			std::cout << " phase " << name << " --phaseOffset "<<phaseOffset <<  " --  timer: " << currentCycleTimer  << " -- current color = " << (*linkIterator).second.currColor << std::endl;
+//			Print() << " phase " << name << " --phaseOffset "<<phaseOffset <<  " --  timer: " << currentCycleTimer  << " -- current color = " << (*linkIterator).second.currColor << std::endl;
 		}
 
-//		std::cout << "calling compute for crossings" << std::endl;
+//		Print() << "calling compute for crossings" << std::endl;
 		//update each crossing signal's color
 		//common sense says there is only one crossing per link, but I kept a container for it just in case
 		crossings_map_iterator crossing_it = crossings_map_.begin();
@@ -143,7 +143,6 @@ std::string getColor(size_t id)
  * todo: update this part
  */
 void Phase::addDefaultCrossings(LinkAndCrossingC const & LAC,sim_mob::MultiNode *node) const {
-//	std::cout << "Phase::addDefaultCrossings \n";
 	bool flag = false;
 	if (linksMap.size() == 0)
 		throw std::runtime_error("Link maps empty, crossing mapping can not continue\n");
@@ -151,7 +150,7 @@ void Phase::addDefaultCrossings(LinkAndCrossingC const & LAC,sim_mob::MultiNode 
 	LinkAndCrossingC::iterator it = LAC.begin();
 	if(it == LAC.end())
 	{
-		std::cout << "Link and crossing container for this node is empty, crossing mapping can not continue\n";
+		Print() << "Link and crossing container for this node is empty, crossing mapping can not continue\n";
 		return;
 	}
 	//filter the crossings which are in the links_maps_ container(both link from s and link To s)
@@ -206,7 +205,7 @@ std::string Phase::createStringRepresentation(std::string newLine) const {
 		links_map_iterator it = linksMap.begin();
 		while(it != linksMap.end() )
 		{
-//			std::cout << " linksMap.size() = "  << std::endl;
+//			Print() << " linksMap.size() = "  << std::endl;
 			output << "{";
 			//link_based
 //			output << "\"link_from\":\"" << (*it).first << "\" ,"; //linkFrom
@@ -242,7 +241,7 @@ void Phase::initialize(sim_mob::SplitPlan& plan){
 	calculatePhaseLength();
 	calculateGreen();
 //	printColorDuration();
-//	std::cout << "phase: " << name << "   PhaseLength: " << phaseLength << "   offset: " << phaseOffset << std::endl;
+//	Print() << "phase: " << name << "   PhaseLength: " << phaseLength << "   offset: " << phaseOffset << std::endl;
 }
 void Phase::printColorDuration()
 {
@@ -254,15 +253,15 @@ void Phase::printColorDuration()
 		int greenIndex=-1, tempGreenIndex = -1;
 		for(; it_color != cd.end(); it_color++)
 		{
-			std::cout << "	color id(" <<  sim_mob::getColor(it_color->first) << ") : " << it_color->second <<  std::endl;
+			Print() << "	color id(" <<  sim_mob::getColor(it_color->first) << ") : " << it_color->second <<  std::endl;
 		}
-		std::cout << "----------------------------------------------------------------" << std::endl;
+		Print() << "----------------------------------------------------------------" << std::endl;
 	}
 }
 
 void Phase::calculatePhaseLength(){
 	phaseLength = parentPlan->getCycleLength() * percentage /100;
-//	std::cout << "phase " << name << " phaselength = " <<  phaseLength << "  (parentPlan->getCycleLength() * percentage /100):(" <<  parentPlan->getCycleLength() << "*" <<  percentage << ")\n";
+//	Print() << "phase " << name << " phaselength = " <<  phaseLength << "  (parentPlan->getCycleLength() * percentage /100):(" <<  parentPlan->getCycleLength() << "*" <<  percentage << ")\n";
 
 }
 
@@ -302,7 +301,7 @@ void Phase::calculateGreen_Links(){
 		{
 			cs.changeColorDuration(cs.getColorDuration().at(greenIndex).first, phaseLength - otherThanGreen);
 //			cs.getColorDuration().at(greenIndex).second = phaseLength - otherThanGreen;
-//			std::cout << "phase :" << name << " phaselength:"<< phaseLength << "percentage: " << percentage << "  Green time : " << cs.getColorDuration().at(greenIndex).second << " (phaseLength - otherThanGreen):(" << phaseLength << " - " << otherThanGreen << ")" << std::endl;
+//			Print() << "phase :" << name << " phaselength:"<< phaseLength << "percentage: " << percentage << "  Green time : " << cs.getColorDuration().at(greenIndex).second << " (phaseLength - otherThanGreen):(" << phaseLength << " - " << otherThanGreen << ")" << std::endl;
 		}
 	}
 }
@@ -365,8 +364,7 @@ void Phase::printPhaseColors(double currCycleTimer) const
 {
 	for(links_map_iterator it = linksMap.begin()  ; it != linksMap.end(); it++)
 	{
-//		std::cout << name << " (" << (*it).first << " : " << (*it).second.LinkTo << ") ::" << sim_mob::getColor((*it).second.currColor) << "  currCycleTimer: " << currCycleTimer < std::endl;
-		std::cout << name << "(currCycleTimer: " << currCycleTimer<< " , phaseLength: " <<  phaseLength << ") ::"<< sim_mob::getColor((*it).second.currColor)  << std::endl;
+		Print() << name << "(currCycleTimer: " << currCycleTimer<< " , phaseLength: " <<  phaseLength << ") ::"<< sim_mob::getColor((*it).second.currColor)  << std::endl;
 	}
 
 

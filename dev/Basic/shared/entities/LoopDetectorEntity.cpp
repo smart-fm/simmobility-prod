@@ -378,10 +378,6 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
 	LinkAndCrossingC const &LAC = signal.getLinkAndCrossing();
 
 	LinkAndCrossingC::iterator iter = LAC.begin();
-	if(iter == LAC.end()) {
-//		std::cout << "Couldn't find the links associated with this signal" << signal.getSignalId();
-	}
-
 	//TODO: This code will need some re-writing, once merged with Vahid's branch.
     for (; iter != LAC.end(); ++iter) {
     	const Link* link  = iter->link;

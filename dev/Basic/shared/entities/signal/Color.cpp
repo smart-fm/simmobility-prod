@@ -17,19 +17,11 @@ TrafficColor ColorSequence::computeColor(double Duration)
 		sum += (*it).second;
 		if(Duration < sum )
 			{
-
-//				if((*it).first == sim_mob::Green)
-//				{
-//					std::cout << "Returning color Green" <<  std::endl;
-//				}
-//				else
-//					std::cout << "Returning color " << (*it).first << std::endl;
 				return (*it).first;
 			}
 	}
 	//the return inside the loop must execute befor the loop exits otherwise something is wrong!
 //	return ColorDuration[ColorDuration.size() -1].first; //will return the last color in the sequence if there is an error!
-//	std::cout << "Didn't find anything for duration " << Duration << " (finally compared to " << sum << " )" << std::endl;
 	return sim_mob::Red;
 }
 

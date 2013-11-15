@@ -7,21 +7,22 @@
 using namespace sim_mob::xml;
 
 
-void sim_mob::xml::Plan_t_pimpl::pre ()
+void sim_mob::xml::plan_t_pimpl::pre ()
 {
+	model = std::pair<short, std::vector<double> >();
 }
 
-std::pair<short int, std::vector<double> > sim_mob::xml::Plan_t_pimpl::post_Plan_t ()
+std::pair<short,std::vector<double> >& sim_mob::xml::plan_t_pimpl::post_plan_t ()
 {
-	return std::pair<short int, std::vector<double> >();
+	return model;
 }
 
-void sim_mob::xml::Plan_t_pimpl::planID (unsigned char value)
+void sim_mob::xml::plan_t_pimpl::planID (unsigned char value)
 {
-	//std::cout << "planID: " << static_cast<unsigned short> (value) << std::endl;
+	model.first = static_cast<short> (value);
 }
 
-void sim_mob::xml::Plan_t_pimpl::PhasePercentage (double value)
+void sim_mob::xml::plan_t_pimpl::PhasePercentage (double value)
 {
-	//std::cout << "PhasePercentage: " <<value << std::endl;
+	model.second.push_back(value);
 }

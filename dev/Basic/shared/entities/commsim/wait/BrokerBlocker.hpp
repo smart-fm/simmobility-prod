@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * BrokerBlocker.hpp
  *
@@ -9,8 +13,8 @@
  *      have to work together.
  */
 
-#ifndef BROKERBLOCKER_HPP_
-#define BROKERBLOCKER_HPP_
+#pragma once
+
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/mutex.hpp>
 
@@ -31,4 +35,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* BROKERBLOCKER_HPP_ */

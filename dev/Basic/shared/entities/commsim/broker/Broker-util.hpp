@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 #pragma once
 
 #include <boost/thread/locks.hpp>
@@ -12,8 +16,6 @@
 #include <boost/tuple/tuple.hpp>
 #include <boost/function.hpp>
 //#include "entities/Agent.hpp"
-
-using namespace boost::multi_index;
 
 //structure of each data element in the storage
 
@@ -43,31 +45,29 @@ struct agent_done{};
 class AgentsList {
 public:
 private:
-
 	//main definition of the container
 	typedef boost::multi_index_container<
-			AgentInfo, indexed_by<
-			random_access<>//0
-	,hashed_unique<tag<agent_tag>,member<AgentInfo, Agent *, &AgentInfo::agent> >//1
-	,hashed_unique<tag<agent_util>,member<AgentInfo, AgentCommUtilityBase *, &AgentInfo::comm> >//2
-	,hashed_non_unique<tag<agent_valid>,member<AgentInfo, bool, &AgentInfo::valid> >//3
-	,hashed_non_unique<tag<agent_done>,member<AgentInfo, bool, &AgentInfo::done> >//4
-
-			>
-			> ContainerType;
+			AgentInfo, boost::multi_index::indexed_by<
+			boost::multi_index::random_access<>//0
+		,boost::multi_index::hashed_unique<boost::multi_index::tag<agent_tag>,boost::multi_index::member<AgentInfo, Agent *, &AgentInfo::agent> >//1
+		,boost::multi_index::hashed_unique<boost::multi_index::tag<agent_util>,boost::multi_index::member<AgentInfo, AgentCommUtilityBase *, &AgentInfo::comm> >//2
+		,boost::multi_index::hashed_non_unique<boost::multi_index::tag<agent_valid>,boost::multi_index::member<AgentInfo, bool, &AgentInfo::valid> >//3
+		,boost::multi_index::hashed_non_unique<boost::multi_index::tag<agent_done>,boost::multi_index::member<AgentInfo, bool, &AgentInfo::done> >//4
+		>
+	> ContainerType;
 
 	//the main storage
 	ContainerType data;
 
 	//easy reading only
-	typedef typename nth_index<ContainerType, 1>::type Agents;
-	typedef typename nth_index<ContainerType, 2>::type AgentCommUtilities;
-	typedef typename nth_index<ContainerType, 3>::type Valids;
-	typedef typename nth_index<ContainerType, 4>::type Dones;
+	typedef typename boost::multi_index::nth_index<ContainerType, 1>::type Agents;
+	typedef typename boost::multi_index::nth_index<ContainerType, 2>::type AgentCommUtilities;
+	typedef typename boost::multi_index::nth_index<ContainerType, 3>::type Valids;
+	typedef typename boost::multi_index::nth_index<ContainerType, 4>::type Dones;
 
 public:
 	//easy reading only
-	typedef typename nth_index<ContainerType, 0>::type type;//this one is for public use
+	typedef typename boost::multi_index::nth_index<ContainerType, 0>::type type;//this one is for public use
 	typedef typename type::iterator iterator;
 	typedef std::pair<Valids::iterator, Valids::iterator> valid_range;
 	typedef std::pair<Dones::iterator, Dones::iterator> done_range;

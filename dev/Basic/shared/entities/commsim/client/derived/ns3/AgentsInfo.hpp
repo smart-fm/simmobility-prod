@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * AgentsInfo.hpp
  *
@@ -5,8 +9,8 @@
  *      Author: vahid
  */
 
-#ifndef AGENTSINFO_HPP_
-#define AGENTSINFO_HPP_
+#pragma once
+
 #include <map>
 #include <set>
 #include <iostream>
@@ -31,4 +35,3 @@ private:
 };
 
 } /* namespace sim_mob */
-#endif /* AGENTSINFO_HPP_ */

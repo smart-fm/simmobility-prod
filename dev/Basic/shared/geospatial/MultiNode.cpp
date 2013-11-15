@@ -20,7 +20,7 @@ using std::map;
 
 
 namespace {
-
+static const set<LaneConnector*> EMPTY_LANE_CONNECTOR;
 //Compute the clockwise angle between two vectors with a common center point.
 // Returns the angle from "first" to "second", in the range 0 <= res < 2PI (NOTE: That might not be right)
 double AngleBetween(const Node* const center, const Node* const first, const Node* const second, bool readClockwise)
@@ -116,8 +116,8 @@ const set<LaneConnector*>& sim_mob::MultiNode::getOutgoingLanes(const RoadSegmen
 		}
 		//throw std::runtime_error(msg.str().c_str());
 		std::cout<<"getOutgoingLanes: "<<msg.str()<<std::endl;
-		const set<LaneConnector*> lnull;
-		return lnull;
+//		const set<LaneConnector*> lnull;
+		return EMPTY_LANE_CONNECTOR;
 	}
 
 	return connectors.find(from)->second;

@@ -16,13 +16,10 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 using std::string;
 
-UnitTypeDao::UnitTypeDao(DBConnection* connection)
+UnitTypeDao::UnitTypeDao(DB_Connection& connection)
 : AbstractDao<UnitType>(connection, DB_TABLE_UNIT_TYPE,
 DB_INSERT_UNIT_TYPE, DB_UPDATE_UNIT_TYPE, DB_DELETE_UNIT_TYPE,
-DB_GETALL_UNIT_TYPE, DB_GETBYID_UNIT_TYPE) {
-    fromRowCallback = DAO_FROM_ROW_CALLBACK_HANDLER(UnitType, UnitTypeDao::fromRow);
-    toRowCallback = DAO_TO_ROW_CALLBACK_HANDLER(UnitType, UnitTypeDao::toRow);
-}
+DB_GETALL_UNIT_TYPE, DB_GETBYID_UNIT_TYPE) {}
 
 UnitTypeDao::~UnitTypeDao() {
 }

@@ -49,6 +49,7 @@ private:
 	//void ProcessGeometryNode(xercesc::DOMElement* node);
 	void ProcessConstructsNode(xercesc::DOMElement* node);
 	void ProcessFMOD_Node(xercesc::DOMElement* node);
+	void ProcessIncidentsNode(xercesc::DOMElement* node);
 	void ProcessBusStopScheduledTimesNode(xercesc::DOMElement* node);
 	void ProcessDriversNode(xercesc::DOMElement* node);
 	void ProcessPedestriansNode(xercesc::DOMElement* node);
@@ -94,7 +95,7 @@ private:
 	//void ProcessGeomDbMappings(xercesc::DOMElement* node);
 
 	//All entities are added to a "pending" list in the same manner.
-	void ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<sim_mob::EntityTemplate>& res, bool originReq=true, bool destReq=true, bool timeReq=true);
+	void ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<sim_mob::EntityTemplate>& res, bool originReq=true, bool destReq=true, bool timeReq=true, bool laneReq=false);
 
 
 private:

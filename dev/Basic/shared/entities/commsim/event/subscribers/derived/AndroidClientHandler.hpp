@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * AndroidClientHandler.hpp
  *
@@ -5,8 +9,7 @@
  *      Author: vahid
  */
 
-#ifndef ANDROIDCLIENTHANDLER_HPP_
-#define ANDROIDCLIENTHANDLER_HPP_
+#pragma once
 
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 
@@ -21,4 +24,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* ANDROIDCLIENTHANDLER_HPP_ */

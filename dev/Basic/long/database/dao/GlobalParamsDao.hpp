@@ -17,14 +17,12 @@
 namespace sim_mob {
     namespace long_term {
 
-        DAO_DECLARE_CALLBACKS(GlobalParams);
-
         /**
          * Data Access Object to GlobalParams table on datasource.
          */
         class GlobalParamsDao : public db::AbstractDao<GlobalParams> {
         public:
-            GlobalParamsDao(db::DBConnection* connection);
+            GlobalParamsDao(db::DB_Connection& connection);
             virtual ~GlobalParamsDao();
 
         private:

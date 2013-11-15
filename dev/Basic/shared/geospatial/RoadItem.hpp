@@ -17,6 +17,11 @@ namespace sim_mob
 //Forward Declaration
 class RoadSegment;
 
+enum RoadItemType
+{
+	BUSSTOP=1,
+	INCIDENT=2
+};
 /**
  * Base class for geospatial items which take up physical space but are not traversable.
  *
@@ -33,6 +38,7 @@ class RoadSegment;
  * and a RoadItem will become clearer.
  */
 class RoadItem {
+
 	friend class ::geo::crossing_t_pimpl;
 	friend class ::geo::RoadItem_t_pimpl;
 public:

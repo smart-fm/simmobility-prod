@@ -113,7 +113,7 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	    ::sim_mob::xml::linkAndCrossings_t_pimpl linkAndCrossings_t_p;
 	    ::sim_mob::xml::SplitPlan_t_pimpl SplitPlan_t_p;
 	    ::sim_mob::xml::Plans_t_pimpl Plans_t_p;
-	    ::sim_mob::xml::Plan_t_pimpl Plan_t_p;
+	    ::sim_mob::xml::plan_t_pimpl plan_t_p;
 	    ::sim_mob::xml::Phases_t_pimpl Phases_t_p;
 	    ::sim_mob::xml::Phase_t_pimpl Phase_t_p;
 	    ::sim_mob::xml::links_maps_t_pimpl links_maps_t_p;
@@ -443,9 +443,9 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	                           unsigned_byte_p,
 	                           Plans_t_p);
 
-	    Plans_t_p.parsers (Plan_t_p);
+	    Plans_t_p.parsers (plan_t_p);
 
-	    Plan_t_p.parsers (unsigned_byte_p,
+	    plan_t_p.parsers (unsigned_byte_p,
 	                      double_p);
 
 	    bool customSchema = false;

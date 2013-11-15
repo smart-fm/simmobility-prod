@@ -10,43 +10,52 @@
  */
 
 #pragma once
+
 #include "args/EventArgs.hpp"
-#include "EventListener.hpp"
+#include "event/EventListener.hpp"
 
 namespace sim_mob {
 class Agent;
-    namespace event {
-        const unsigned int EVT_CORE_START    = 100000;
-        const unsigned int EVT_SHORT_START   = 200000;
-        const unsigned int EVT_MEDIUM_START  = 300000;
-        const unsigned int EVT_LONG_START    = 400000;
+
+namespace event {
+
+enum {
+	EVT_CORE_START    = 100000,
+	EVT_SHORT_START   = 200000,
+	EVT_MEDIUM_START  = 300000,
+	EVT_LONG_START    = 400000,
+};
         
-        enum CoreEvent {
-            EVT_CORE_SYTEM_START = EVT_CORE_START,
-            EVT_CORE_ROLE_INIT,
-            //agent life cycle.
-            EVT_CORE_AGENT_DIED,
-            EVT_CORE_AGENT_UPDATED
-        };
+enum CoreEvent {
+	EVT_CORE_SYTEM_START = EVT_CORE_START,
+	EVT_CORE_ROLE_INIT,
 
-        enum CoreContext {
-            CXT_CORE_AGENT_UPDATE
-        };
+	//agent life cycle.
+	EVT_CORE_AGENT_DIED,
+	EVT_CORE_AGENT_UPDATED,
+};
 
-        /**
-         * Arguments for agent life-cycle events.
-         */
-        DECLARE_CUSTOM_CALLBACK_TYPE (AgentLifeCycleEventArgs)
-        class AgentLifeCycleEventArgs : public EventArgs {
-        public:
-            AgentLifeCycleEventArgs(unsigned int agentId, Agent* agent);
-            virtual ~AgentLifeCycleEventArgs();
-            virtual AgentLifeCycleEventArgs& operator=(const AgentLifeCycleEventArgs& source);
-            unsigned int GetAgentId() const;
-            Agent* GetAgent() const;
-        private:
-            unsigned int agentId;
-            Agent * agent;
-        };
-    }
-}
+enum CoreContext {
+	CXT_CORE_AGENT_UPDATE
+};
+
+
+///Arguments for agent life-cycle events.
+DECLARE_CUSTOM_CALLBACK_TYPE (AgentLifeCycleEventArgs)
+
+///Agent Life Cycle event args (no documentation provided).
+class AgentLifeCycleEventArgs : public EventArgs {
+public:
+	AgentLifeCycleEventArgs(unsigned int agentId, Agent* agent);
+	virtual ~AgentLifeCycleEventArgs();
+
+	virtual AgentLifeCycleEventArgs& operator=(const AgentLifeCycleEventArgs& source);
+	unsigned int GetAgentId() const;
+	Agent* GetAgent() const;
+
+private:
+	unsigned int agentId;
+	Agent * agent;
+};
+
+}}

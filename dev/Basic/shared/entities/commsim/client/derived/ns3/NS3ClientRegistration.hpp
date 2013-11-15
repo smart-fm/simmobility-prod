@@ -9,8 +9,8 @@
  *      Author: vahid
  */
 
-#ifndef NS3ClientRegistration_HPP_
-#define NS3ClientRegistration_HPP_
+#pragma once
+
 #include "entities/commsim/client/base/ClientRegistration.hpp"
 #include "entities/commsim/broker/Broker.hpp"
 
@@ -24,4 +24,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* NS3ClientRegistration_HPP_ */

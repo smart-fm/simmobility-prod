@@ -33,21 +33,22 @@ namespace{
 template <typename T, typename K>
 void TestDao() {
     PrintOut("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
-    DatabaseConfig config(LT_DB_CONFIG_FILE);
-    DBConnection conn(sim_mob::db::POSTGRES, config);
-    conn.Connect();
-    if (conn.IsConnected()) {
-        T dao(&conn);
+    DB_Config config(LT_DB_CONFIG_FILE);
+    config.load();
+    DB_Connection conn(sim_mob::db::POSTGRES, config);
+    conn.connect();
+    if (conn.isConnected()) {
+        T dao(conn);
         K valueById;
         //Get by id
         sim_mob::db::Parameters keys;
         keys.push_back(ID_TO_GET);
-        if (dao.GetById(keys, valueById)) {
+        if (dao.getById(keys, valueById)) {
         	PrintOut("Get by id: " << valueById << endl);
         }
 
         std::vector<K> values;
-        dao.GetAll(values);
+        dao.getAll(values);
         PrintOut("GetAll Size: " << values.size() << endl);
         for (typename std::vector<K>::iterator it = values.begin(); it != values.end(); it++) {
         	PrintOut("Value: " << (*it) << endl);

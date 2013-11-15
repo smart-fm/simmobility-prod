@@ -6,7 +6,7 @@
 
 #include <string>
 #include <sstream>
-
+#include <boost/lexical_cast.hpp>
 
 /*namespace geo {
 class Node_t_pimpl;

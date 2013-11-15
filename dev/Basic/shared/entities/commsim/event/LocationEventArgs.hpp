@@ -9,13 +9,12 @@
  *      Author: vahid
  */
 
-#ifndef LOCATIONEVENTARGS_HPP_
-#define LOCATIONEVENTARGS_HPP_
+#pragma once
 
 #include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
 #include<iostream>
-#include "entities/commsim/serialization/Serialization.hpp"
+#include "entities/commsim/serialization/JsonParser.hpp"
 
 namespace sim_mob {
 class Agent;
@@ -30,4 +29,3 @@ public:
 };
 
 } /* namespace sim_mob */
-#endif /* LOCATIONEVENTARGS_HPP_ */

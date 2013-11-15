@@ -649,7 +649,7 @@ void DatabaseLoader::LoadTurnings(const std::string& storedProc)
 	}
 
 	//Print skipped turnings all at once.
-	sim_mob::PrintArray(skippedTurningIDs, std::cout, "Turnings skipped: ", "[", "]", ", ", 4);
+//	sim_mob::PrintArray(skippedTurningIDs, std::cout, "Turnings skipped: ", "[", "]", ", ", 4);
 }
 
 void DatabaseLoader::LoadPolylines(const std::string& storedProc)
@@ -950,7 +950,6 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadNodes(getStoredProcedure(storedProcs, "node"));
 	LoadSections(getStoredProcedure(storedProcs, "section"));
 	LoadCrossings(getStoredProcedure(storedProcs, "crossing"));
-//	LoadBusStop(getStoredProcedure(storedProcs, "busstop",true)); //todo remove after debugging
 	LoadLanes(getStoredProcedure(storedProcs, "lane"));
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
@@ -1805,7 +1804,7 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 				continue;
 			}
 			phase.addLinkMapping(linkFrom,ll,mNode);
-			phase.addDefaultCrossings(signal.getLinkAndCrossingsByLink(),mNode);
+			phase.addDefaultCrossings(signal.getLinkAndCrossing(),mNode);
 			signal.addPhase(phase);//congrates
 		}
 	}

@@ -58,7 +58,7 @@
 #include "entities/roles/pedestrian/Pedestrian2.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
-#include "entities/FMODController/FMODController.hpp"
+#include "entities/fmodController/FMOD_Controller.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Roundabout.hpp"
 #include "geospatial/Intersection.hpp"
@@ -327,8 +327,8 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 
 
-	if(sim_mob::FMOD::FMODController::InstanceExists()){
-		personWorkers->assignAWorker( sim_mob::FMOD::FMODController::Instance() );
+	if(sim_mob::FMOD::FMOD_Controller::instanceExists()){
+		personWorkers->assignAWorker( sim_mob::FMOD::FMOD_Controller::instance() );
 	}
 
 	//..and Assign communication agent(currently a singleton
@@ -603,7 +603,7 @@ int run_simmob_interactive_loop(){
 
 int main(int ARGC, char* ARGV[])
 {
-	std::vector<std::string> args = Utils::ParseArgs(ARGC, ARGV);
+	std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
 
 	//Currently needs the #ifdef because of the way threads initialize.
 #ifdef SIMMOB_INTERACTIVE_MODE
@@ -680,7 +680,7 @@ int main(int ARGC, char* ARGV[])
 	//Concatenate output files?
 	if (!resLogFiles.empty()) {
 		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
-		Utils::PrintAndDeleteLogFiles(resLogFiles);
+		Utils::printAndDeleteLogFiles(resLogFiles);
 	}
 
 	cout << "Done" << endl;

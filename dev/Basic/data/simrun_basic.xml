@@ -43,7 +43,7 @@
             <database id="fm_local" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
-                <dbname value="SimMobility_DB"/>
+                <dbname value="SimMobility_DB_New"/>
             </database>
 
 	    <!-- Variables stores for preday demand simulator-->
@@ -69,6 +69,34 @@
                 <mapping name="busstop" procedure="get_bus_stop()"/>
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
+            </proc_map>
+            
+            <!-- The small Bugis-area network -->
+            <proc_map id="bugis_small_custom" format="aimsun">
+                <mapping name="node" procedure="get_node()"/>
+                <mapping name="section" procedure="get_section()"/>
+                <mapping name="crossing" procedure="get_pedestrian_crossing()"/>
+                <mapping name="lane" procedure="get_lanes()"/>
+                <mapping name="turning" procedure="get_lane_connector()"/>
+                <mapping name="polyline" procedure="get_section_polyline()"/>
+                <mapping name="tripchain" procedure=""/>
+                <mapping name="busstop" procedure="get_bus_stop()"/>
+                <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
+                <mapping name="phase" procedure="get_lane_connector_phases()"/>
+            </proc_map>
+            
+            <!-- The small Marina Bay network -->
+            <proc_map id="marina_bay" format="aimsun">
+                <mapping name="node" procedure="get_node_marina_bay()"/>
+                <mapping name="section" procedure="get_section_marina_bay()"/>
+                <mapping name="crossing" procedure="get_pedestrian_crossing_sg()"/>
+                <mapping name="lane" procedure=""/>
+                <mapping name="turning" procedure="get_lane_connector_marina_bay()"/>
+                <mapping name="polyline" procedure="get_section_polyline_marina_bay()"/>
+                <mapping name="tripchain" procedure="Not needed"/>
+                <mapping name="busstop" procedure=""/>
+                <mapping name="signal" procedure="get_traffic_signals_marina_bay()"/>
+                <mapping name="phase" procedure="get_lane_connector_phases_marina_bay()"/>
             </proc_map>
 
             <!-- For testing purposes, if you want to control which signals are created, then use this proc_map to
@@ -96,7 +124,7 @@
                 <mapping name="lane" procedure="get_lanes_bugis()"/>
                 <mapping name="turning" procedure="get_lane_connector_bugis()"/>
                 <mapping name="polyline" procedure="get_section_polyline_bugis()"/>
-                <mapping name="tripchain" procedure="get_trip_chains()"/>
+                <mapping name="tripchain" procedure="get_tripchains()"/>
                 <mapping name="signal" procedure="get_traffic_signals()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
 		
@@ -157,6 +185,10 @@
 	    <file path="/usr/share/simmobility/credentials/fm_remote.cred.txt"/> <!-- For example -->
 	  </file-based-credential>
 	  
+	  <file-based-credential id="fm_local">
+	    <file path="private/fm_local.cred.txt"/>
+	  </file-based-credential>
+	  
 	  <file-based-credential id="fm_remote_path_choice">
 	    <file path="private/fm_remote.cred.txt"/>
 	    <file path="/usr/share/simmobility/credentials/fm_remote.cred.txt"/> <!-- For example -->
@@ -166,9 +198,9 @@
 	  <!-- BE CAREFUL with these; remember that EVERYONE can see them: -->
 	  <!--    1) Don't put any passwords here that you care about (e.g., email accounts) -->
 	  <!--    2) Don't put any passwords to databases on the FM server. -->
-	  <plaintext-credential id="fm_local_seth">
-	    <username value="seth"/>
-	    <password value="some_password"/>
+	  <plaintext-credential id="fm_local_yaojin">
+	    <username value="postgres"/>
+	    <password value="5M_S1mM0bility"/>
 	  </plaintext-credential>
 
 	  <plaintext-credential id="harish_cred">
@@ -209,7 +241,7 @@
         <!-- (but will be rounded down.) -->
         <simulation>
             <base_granularity   value="100"   units="ms" />
-            <total_runtime      value="2"      units="minutes" />
+            <total_runtime      value="5"      units="minutes" />
             <total_warmup       value="10"     units="seconds" />
             
             <start_time         value="08:00:00"/>
@@ -238,7 +270,7 @@
             
             <!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
             <mutex_enforcement    strategy="buffered" />
-        	<communication enabled="yes">
+        	<communication enabled="no">
         		<android_testbed type="android-ns3" enabled="yes"/> <!--currently: type="android-only" and "android-ns3" -->
         	</communication>
 
@@ -274,9 +306,9 @@
         
         <!-- List of all Worker types and their properties. -->
         <workers>
-            <person count="2" granularity="100ms"/> <!-- Person agents (with Roles) -->
+            <person count="1" granularity="100ms"/> <!-- Person agents (with Roles) -->
             <signal count="1" granularity="1 second"/> <!-- Traffic signals -->
-        	<communication count="1" granularity="100ms"/>  <!-- Communication simulator -->
+        	<communication count="0" granularity="100ms"/>  <!-- Communication simulator -->
         </workers>
         
         <!-- Setting to true should push everything onto one thread. -->
@@ -299,8 +331,8 @@
 	<!-- If loading from the database, which database, proc_map, and credentials are used? -->
 	<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
 	<!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
-	<network_database database="fm_local" credentials="fm_local" proc_map="bugis_small"/>
-
+<!--	<network_database database="fm_local" credentials="fm_local" proc_map="bugis_small_custom"/-->
+	<network_database database="fm_remote" credentials="fm_local_yaojin" proc_map="bugis_large"/>
         <!-- Where to find our various schema files. -->
         <!-- Overrides xsi:schemaLocation in the files themselves. -->
         <!-- Note that absolute paths are allowed, and that relative paths are relative to the current working directory. -->
@@ -347,13 +379,19 @@
 
     
     <!-- FMOD controller settings -->
-    <fmodcontroller switch="true">
+    <fmodcontroller switch="false">
         <ipaddress value="127.0.0.1"/>
         <port value="9000"/>
         <updateTimeMS value="500"/>
         <mapfile value="cityhall/cityhall.osm"/>
         <blockingTimeSec value="5"/>
     </fmodcontroller>
+        
+    <!-- incident definition{ incident id, visibilty distance(centrimetre), segment id, percentage position in segment, severity code, capacity factor, start time, duration(mintue), speed limit(kmph) lane id,  compliance weightage, information accessibilty-->
+    <incidentsData enabled="no">
+    	<incident id="1" visibility="5000" segment="40200" position="50" severity="1" cap_factor="1.0" start_time="08:30:40" duration="00:40:00" speed_limit="0" speed_limit_adjacentlanes="20" lane="0" compliance="50" accessibility="50" />
+    </incidentsData>
+    
     
     
     <!-- For buses (?) -->
@@ -381,161 +419,18 @@
     <!--West node is: 37227139,14327875-->
     <drivers>
 <!-- These test the short term -->
-	   	<driver originPos="37227139,14327875" destPos="37270984,14378959" time="50"/>
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="200"/>
-	<!--    <driver originPos="37270984,14378959" destPos="37227139,14327875" time="50"/>
-	    <driver originPos="37270984,14378959" destPos="37227139,14327875" time="100"/>-->
-
-<!-- These test the medium term -->
-	    <!--<driver originPos="37270984,14378959" destPos="37227139,14327875" time="800"/>
-	    <driver originPos="37270984,14378959" destPos="37227139,14327875" time="1000"/>
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="1000"/>-->
-	    <driver originPos="37270984,14378959" destPos="37283599,14393370" time="0"/>
-	    <driver originPos="37293562,14385720" destPos="37279699,14369995" time="0"/>
-	    <driver originPos="37283599,14393370" destPos="37212150,14310654" time="0"/>
-	    
-	    
-	    <driver originPos="37270984,14378959" destPos="37227139,14327875" time="0"/>
-	    <driver originPos="37270984,14378959" destPos="37227139,14327875" time="0"/>
-	    <driver originPos="37270984,14378959" destPos="37227139,14327875" time="0"/>
-	    <driver originPos="37270984,14378959" destPos="37227139,14327875" time="0"/>
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>-->
-	    <!--<driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/> -->
-
-<!-- These test both -->
-   	   <!-- <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>
-    	<driver originPos="37270984,14378959" destPos="37227139,14327875" time="0"/>-->
-	    
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>
-	    
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>
-	  	<driver originPos="37227139,14327875" destPos="37270984,14378959" time="0"/>
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="4600"/>
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="5000"/>
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="5500"/>
-
-	    <driver originPos="37227139,14327875" destPos="37270984,14378959" time="6000"/>
-
-
-	    
-	    <driver originPos="37241080,14362955" destPos="37261496,14346008" time="150"/>
-	    
-	    <!-- Test: start on a Uni Node, single Link -->
-	    <!--driver originPos="37242841,14345362" destPos="37227139,14327875" time="0"/-->
-	    
-	    <!-- Test: start on a Uni Node, single Segment -->
-	    <!--driver originPos="37236345,14337301" destPos="37227139,14327875" time="0"/-->
-	    
-	    <!-- Test: Single Segment path -->
-	    <!--driver destPos="37212150,14310654" originPos="37228105,14300695" time="0"/-->
-	    
-	    <!-- Test: Driver that becomes a pedestrian later -->
-	    <!-- First leg: Drive southwards from upper Victoria St.; cross the intersection -->
-	    <!-- Second leg: Walk back along Victoria St., stopping partway up the road after the intersection. -->
-	    <!--driver originPos="37255424,14360690" destPos="37246069,14349392" time="0"/-->
-    
+	   	<driver originPos="37227139,14327875" destPos="37270984,14378959" time="0" lane="2"/>
+	   	<driver originPos="37245506,14359431" destPos="37254988,14351820" time="0" lane="1"/>
+	   	<driver originPos="37232503,14369823" destPos="37240057,14318241" time="0"/>
+	   	<driver originPos="37240057,14318241" destPos="37232503,14369823" time="0" lane="3"/>
     </drivers> 
     <pedestrians> 
    		<!--Pedestrian start locations-->
-	    <!--group of 3-->
-	   <!--	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="0"/>
-	   	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="0"/>
-	   	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="0"/>-->
-        
+	    <!--group of 3-->     
         <!--group of 5-->
     	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
     	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
-        <!--lone pedestrian-->
-    	<!--<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="0"/>-->
-        <!--group of 4-->
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="0"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="0"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="0"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="0"/>
-        <!--lone pedestrian-->
-    	<!--<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="15"/>-->
-        <!--group of 5-->
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="15"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="15"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="15"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="15"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="15"/>
-        <!--lone pedestrian-->
-    	<!--<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="15"/>-->
-        <!--group of 3-->
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="15"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="15"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="15"/>
-
-    	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="30"/>
-    	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="30"/>
-    	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="30"/>
-    	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="30"/>
-
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="30"/>
-
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="30"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="30"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="30"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="30"/>
-
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="30"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="30"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="30"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="30"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="30"/>
-
-    	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="45"/>
-
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="45"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="45"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="45"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="45"/>
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="45"/>
-
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="45"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="45"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="45"/>
-
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="45"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="45"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="45"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="45"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="45"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="45"/>
-
-    	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="60"/>
-    	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="60"/>
-    	<pedestrian originPos="37254988,14351820" destPos="37245506,14359431" time="60"/>
-
-    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="60"/>
-
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="60"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="60"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="60"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="60"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="60"/>
-    	<pedestrian originPos="37255424,14360690" destPos="37246069,14349392" time="60"/>
-
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="60"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="60"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="60"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="60"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="60"/>
-    	<pedestrian originPos="37246069,14349392" destPos="37255424,14360690" time="60"/>
-    	
-    	<!-- Testing a Pedestrian on a slightly more complicated path -->
-    	<!--pedestrian originPos="37236345,14337301" destPos="37250760,14355120" time="0"/-->
-    	
+    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="1000"/>  	
     </pedestrians>
     
     <!-- Bus Drivers. This is just for testing; currently a lot of Bus information is simply generated. -->
@@ -543,6 +438,10 @@
 	<busdrivers>
 	</busdrivers>
     
+    <buscontrollers>
+		<buscontroller time="0" />	
+	</buscontrollers>
+	
    <!-- <signals> -->
         <!-- Any of the following signals will not be created if it has already been created by
              the 'signal' stored procedure above.  Note that this <signals> section will be

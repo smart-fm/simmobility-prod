@@ -98,6 +98,11 @@ public:
 	 */
 	unsigned int getAdjustedLaneId(unsigned int laneId);
 
+	/**
+	 * get aimsun id fro current road segment
+	 */
+	unsigned int getSegmentAimsunId() const;
+
 	bool operator== (const RoadSegment* rhs) const
 	{
 		   return (rhs->getStart()==this->getStart())&&(rhs->getEnd()==this->getEnd());
@@ -158,6 +163,8 @@ public:
 	sim_mob::Conflux* getParentConflux() const {
 		return parentConflux;
 	}
+
+	double getLengthOfSegment();
 
 	void setParentConflux(sim_mob::Conflux* parentConflux) {
 		this->parentConflux = parentConflux;

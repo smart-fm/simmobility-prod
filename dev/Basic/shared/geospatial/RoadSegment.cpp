@@ -79,7 +79,7 @@ pair<int, const Lane*> sim_mob::RoadSegment::translateRawLaneID(unsigned int raw
 	throw std::runtime_error("Not yet defined.");
 }
 
-unsigned int sim_mob::RoadSegment::getSegmentAimsunID() const{
+unsigned int sim_mob::RoadSegment::getSegmentAimsunId() const{
 
 	unsigned int originId = 0;
 

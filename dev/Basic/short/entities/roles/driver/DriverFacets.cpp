@@ -276,7 +276,7 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 					incidentStatus.setChangedLane(false);
 				}
 				//make velocity slowing down decision when incident happen
-				unsigned int originId = curSegment->getSegmentAimsunID();
+				unsigned int originId = curSegment->getSegmentAimsunId();
 				if(originId == inc->segmentId){
 					incidentStatus.setSlowdownVelocity(true);
 				}

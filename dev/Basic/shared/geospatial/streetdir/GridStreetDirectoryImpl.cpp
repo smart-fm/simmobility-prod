@@ -487,7 +487,7 @@ void sim_mob::GridStreetDirectoryImpl::buildLookups(const vector<RoadSegment*>& 
 			}
     	}
 
-    	unsigned int id = (*segIt)->getSegmentAimsunID();
+    	unsigned int id = (*segIt)->getSegmentAimsunId();
     	segmentByAimsunID.insert(std::make_pair(id, (*segIt)));
 
 		//Save its obstacles

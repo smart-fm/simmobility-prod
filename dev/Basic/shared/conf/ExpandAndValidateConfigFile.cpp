@@ -174,7 +174,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     LoadFMOD_Controller();
 
 	//combine incident information to road network
-	VerifyIncidents();
+	verifyIncidents();
 
     //Initialize all BusControllers.
 	if(BusController::HasBusControllers()) {
@@ -206,7 +206,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     }
 }
 
-void sim_mob::ExpandAndValidateConfigFile::VerifyIncidents()
+void sim_mob::ExpandAndValidateConfigFile::verifyIncidents()
 {
 	std::vector<IncidentParams>& incidents = cfg.getIncidents();
 	const unsigned int baseGranMS = cfg.system.simulation.simStartTime.getValue();

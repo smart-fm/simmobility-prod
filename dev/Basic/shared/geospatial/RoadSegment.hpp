@@ -101,7 +101,7 @@ public:
 	/**
 	 * get aimsun id fro current road segment
 	 */
-	unsigned int getSegmentAimsunID() const;
+	unsigned int getSegmentAimsunId() const;
 
 	bool operator== (const RoadSegment* rhs) const
 	{

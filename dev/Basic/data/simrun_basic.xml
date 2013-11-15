@@ -131,7 +131,7 @@
             <!-- Preday demand -->   	
             <proc_map id="preday" format="long-term">
                 <mapping name="population" procedure="get_population()"/>
-		<mapping name="landuse" procedure="get_landuse()"/>
+				<mapping name="landuse" procedure="get_landuse()"/>
             </proc_map>
         </db_proc_groups>
 	
@@ -143,8 +143,8 @@
 	  <!-- If the first existing file has an error, parsing will NOT continue to the next file. -->
 	  <!-- The actual credentials file looks something like this: -->
 	  <!-- 
-                  {
-                    "username" : "postgres",
+          {
+            "username" : "postgres",
 		    "password" : "AbCdEfG=",
 		    "algorithm" : ["clear","xor23","base64","cipher"]
 		  }

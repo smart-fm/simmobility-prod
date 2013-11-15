@@ -12,7 +12,7 @@
 #include <boost/unordered_map.hpp>
 
 #include "lua/LuaModel.hpp"
-#include "entities/PersonParams.hpp"
+#include "PersonParams.hpp"
 #include "PredayClasses.hpp"
 
 namespace sim_mob {
@@ -82,23 +82,23 @@ private:
 	/**
 	 * Predicts the time period that will be allotted for the primary activity of a tour.
 	 */
-	void predictTourTimeOfDay(Tour& tour);
+	std::string predictTourTimeOfDay(Tour& tour);
 
 	/**
 	 * Generates intermediate stops of types predicted by the day pattern model before and after the primary activity of a tour.
 	 */
-	void generateIntermediateStops();
+	void generateIntermediateStops(Tour& tour);
 
 	/**
 	 * Predicts the mode and destination together for stops.
 	 */
-	void predictStopModeDestination();
+	void predictStopModeDestination(Stop& stop);
 
 	/**
 	 * Predicts the arrival time for stops before the primary activity.
 	 * Predicts the departure time for stops after the primary activity.
 	 */
-	void predictStopTimeOfDay();
+	void predictStopTimeOfDay(Stop& stop);
 
 	/**
 	 * Calculates the arrival time for stops in the second half tour.
@@ -113,17 +113,32 @@ private:
 	/**
 	 * Calculates the time to leave home for starting a tour.
 	 */
-	void calculateTourStartTime();
+	void calculateTourStartTime(Tour& tour);
 
 	/**
 	 * Calculates the time when the person reaches home at the end of the tour.
 	 */
-	void calculateTourEndTime();
+	void calculateTourEndTime(Tour& tour);
+
+	/**
+	 * constructs tour objects based on predicted number of tours. Puts the tour objects in tours deque.
+	 */
+	void constructTours();
 
 	/**
 	 * The parameters for a person is obtained from the population and set in personParams.
 	 */
     PersonParams personParams;
+
+    /**
+     * Parameters for usual work location model
+     */
+    ModelParamsUsualWork usualWorkParams;
+
+    /**
+     * list of tours for this person
+     */
+    std::deque<Tour*> tours;
 
     /**
      * The predicted day pattern for the person indicating whether the person wants to make tours and stops of each type (Work, Education, Shopping, Others).

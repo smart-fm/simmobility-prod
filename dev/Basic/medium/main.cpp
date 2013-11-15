@@ -16,6 +16,7 @@
 //main.cpp (top-level) files can generally get away with including GenConfig.h
 #include "GenConfig.h"
 
+#include "behavioral/PredaySystem.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -23,6 +24,7 @@
 #include "conf/ExpandAndValidateConfigFile.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/Agent.hpp"
+#include "entities/BusController.hpp"
 #include "entities/Person.hpp"
 #include "entities/models/CarFollowModel.hpp"
 #include "entities/models/LaneChangeModel.hpp"
@@ -37,14 +39,14 @@
 #include "geospatial/UniNode.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
+#include "logging/Log.hpp"
 #include "util/DailyTime.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Utils.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
-#include "logging/Log.hpp"
-#include "entities/BusController.hpp"
+
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -375,7 +377,9 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	safe_delete_item(prof);
 	return true;
 }
-
+/**
+ * Simulation loop for the demand simulator
+ */
 bool performMainDemand(){
 
 }

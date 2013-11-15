@@ -3,8 +3,12 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
+#include <vector>
 #include <boost/unordered_map.hpp>
+
 namespace sim_mob {
+namespace medium {
+
 /**
  * Simple class to store information about a person from population database.
  * \note This class is used by the mid-term behavior models.
@@ -14,15 +18,9 @@ namespace sim_mob {
  */
 class PersonParams {
 public:
-	void initTimeWindows() {
-		std::stringstream tw;
-		for(double i=3.25; i<27.0; i=i+0.5) {
-			for(double j=i; j<27.0; j=j+0.5) {
-				tw << i << "," << j;
-				timeWindowAvailability[tw.str()] = 1; //initialize availability of all time windows to 1
-			}
-		}
-	}
+	virtual ~PersonParams();
+
+	void initTimeWindows();
 
 	int getAgeId() const {
 		return ageId;
@@ -136,12 +134,38 @@ public:
 		this->stopType = stopType;
 	}
 
+	bool isStudent() {
+		return personTypeId == 4;
+	}
+
+	int hasDrivingLicence() const {
+		return drivingLicence;
+	}
+
+	void setHasDrivingLicence(bool hasDrivingLicence) {
+		this->drivingLicence = (int)hasDrivingLicence;
+	}
+
 	/**
 	 * get the availability for a time window
 	 */
-	int getTimeWindowAvailability(const std::string& timeWnd) {
-		return timeWindowAvailability.at(timeWnd);
-	}
+	int getTimeWindowAvailability(std::string& timeWnd);
+
+	/**
+	 * set availability of times in timeWnd to 0
+	 *
+	 * @param timeWnd "<startTime>,<endTime>" to block
+	 */
+	void blockTime(std::string& timeWnd);
+
+	/**
+	 * overload function to set availability of times in timeWnd to 0
+	 *
+	 * @param startTime start time
+	 * @param endTime end time
+	 */
+	void blockTime(double startTime, double endTime);
+
 
 private:
 	int personTypeId;
@@ -158,10 +182,13 @@ private:
 	long fixedWorkLocation;
 	long fixedSchoolLocation;
 	int stopType;
+	int drivingLicence;
 
-    /**
-     * Time windows available for the person as he plans his day.
-     */
-    boost::unordered_map<std::string, int> timeWindowAvailability;
+	/**
+	 * Time windows currently available for the person.
+	 */
+    boost::unordered_map<std::string, sim_mob::medium::TimeWindowAvailability*> timeWindowAvailability;
+
 };
+} //end namespace medium
 }// end namespace sim_mob

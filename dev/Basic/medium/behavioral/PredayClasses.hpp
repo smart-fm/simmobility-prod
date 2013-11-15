@@ -11,24 +11,105 @@
 
 #include <deque>
 #include <string>
+#include <vector>
 
 #include <boost/unordered_map.hpp>
+#include <boost/algorithm/string.hpp>
 
 namespace sim_mob {
 namespace medium {
 
-enum TourType {
-	WORK_TOUR, EDUCATION_TOUR, SHOP_TOUR, OTHER_TOUR
+/**
+ * Class for storing person parameters related to usual work location model
+ *
+ * \author Harish Loganathan
+ */
+class ModelParamsUsualWork {
+public:
+	int getFirstOfMultiple() const {
+		return firstOfMultiple;
+	}
+
+	void setFirstOfMultiple(int firstOfMultiple) {
+		this->firstOfMultiple = firstOfMultiple;
+	}
+
+	int getSubsequentOfMultiple() const {
+		return subsequentOfMultiple;
+	}
+
+	void setSubsequentOfMultiple(int subsequentOfMultiple) {
+		this->subsequentOfMultiple = subsequentOfMultiple;
+	}
+
+private:
+	int firstOfMultiple;
+	int subsequentOfMultiple;
+};
+
+/**
+ * An encapsulation of a time window and its availability.
+ *
+ * startTime and endTime are of the format <3-26>.25 or <3-26>.75
+ * The startTime must be lesser than or equal to endTime.
+ * x.25 represents a time value between x:00 - x:29
+ * x.75 represents a time value between x:30 and x:59
+ *
+ * 3.25 (0300 to 0329 hrs) is considered that start of the day.
+ * 23.75 is 1130 to 1159 hrs
+ * 24.25 is 1200 to 1229 hrs
+ * ... so on
+ * 26.75 is 0230 to 0259 hrs
+ * 26.75 is considered the end of the day
+ *
+ * windowString is of the format "startTime,endTime"
+ *
+ * \author Harish Loganathan
+ */
+
+class TimeWindowAvailability {
+public:
+	TimeWindowAvailability(double startTime, double endTime);
+
+	int getAvailability() const {
+		return availability;
+	}
+
+	void setAvailability(int availability) {
+		this->availability = availability;
+	}
+
+	double getEndTime() const {
+		return endTime;
+	}
+
+	double getStartTime() const {
+		return startTime;
+	}
+
+private:
+	double startTime;
+	double endTime;
+	std::string windowString;
+	int availability;
 };
 
 enum StopType {
-	WORK_STOP, EDUCATION_STOP, SHOP_STOP, OTHER_STOP
+	WORK, EDUCATION, SHOP, OTHER
 };
 
 class Tour;
 
+/**
+ * Representation of an Activity for the demand simulator.
+ *
+ * \author Harish Loganathan
+ */
 class Stop {
 public:
+	Stop(StopType stopType, Tour& parentTour, bool primaryActivity = false)
+	: stopType(stopType), parentTour(parentTour), primaryActivity(primaryActivity), arrivalTime(0), departureTime(0), stopMode(""), stopLocation(0)
+	{}
 	double getArrivalTime() const {
 		return arrivalTime;
 	}
@@ -81,6 +162,23 @@ public:
 		this->stopType = stopType;
 	}
 
+	/**
+	 * Sets the start and end time for the tour.
+	 *
+	 * @param timeWindow the time window to be allotted for this activity. Expected format is "<start_time>,<end_time>" where start_time and end_time is either <3-26>.25 or <3-26>.75.
+	 */
+	void allotTime(std::string& timeWindow) {
+		try {
+			std::vector<std::string> times;
+			boost::split(times, timeWindow, boost::is_any_of(","));
+			arrivalTime = std::atof(times.front().c_str());
+			departureTime = std::atof(times.back().c_str());
+		}
+		catch(std::exception& e) {
+			throw std::runtime_error("invalid time format supplied");
+		}
+	}
+
 private:
 	const Tour& parentTour;
 	StopType stopType;
@@ -91,8 +189,17 @@ private:
 	long stopLocation;
 };
 
+/**
+ * A tour is a sequence of trips and activities of a person for a day.
+ * A tour is assumed to start and end at the home location of the person.
+ *
+ */
 class Tour {
 public:
+	Tour(StopType tourType)
+	: tourType(tourType), usualLocation(false), subTour(false), parentTour(), tourMode(""), primaryActivityLocation(0), startTime(0), endTime(0)
+	{}
+
 	double getEndTime() const {
 		return endTime;
 	}
@@ -145,11 +252,11 @@ public:
 		this->tourMode = tourMode;
 	}
 
-	TourType getTourType() const {
+	StopType getTourType() const {
 		return tourType;
 	}
 
-	void setTourType(TourType tourType) {
+	void setTourType(StopType tourType) {
 		this->tourType = tourType;
 	}
 
@@ -161,8 +268,12 @@ public:
 		this->usualLocation = usualLocation;
 	}
 
+	void addStop(Stop* stop) {
+		stops.push_back(stop);
+	}
+
 private:
-	TourType tourType;
+	StopType tourType;
 	bool usualLocation;
 	bool subTour;
 	Tour& parentTour;
@@ -172,6 +283,8 @@ private:
 	double endTime;
 	std::deque<Stop*> stops;
 };
+
+
 } // end namespace medium
 } // end namespace sim_mob
 

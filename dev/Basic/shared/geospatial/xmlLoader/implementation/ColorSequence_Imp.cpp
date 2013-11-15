@@ -13,19 +13,28 @@ void sim_mob::xml::ColorSequence_t_pimpl::pre ()
 	model.first = sim_mob::InvalidTrafficLightType;
 }
 
-std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,short> > > sim_mob::xml::ColorSequence_t_pimpl::post_ColorSequence_t ()
+std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,int> > > &sim_mob::xml::ColorSequence_t_pimpl::post_ColorSequence_t ()
 {
 
 	return model;
 }
 
-void sim_mob::xml::ColorSequence_t_pimpl::TrafficLightType (sim_mob::TrafficLightType value)
+void sim_mob::xml::ColorSequence_t_pimpl::TrafficLightType (const std::string& value)
 {
-	model.first = value;
+	sim_mob::TrafficLightType enum_value;
+	if(value == "Driver_Light"){
+		enum_value = sim_mob::Driver_Light;
+	}
+	else
+		if(value == "Pedestrian_Light"){
+		enum_value = sim_mob::Pedestrian_Light;
+	}
+//		InvalidTrafficLightType is default
+	model.first = enum_value;
 //	std::cout << "TrafficLightType: " <<value << std::endl;
 }
 
-void sim_mob::xml::ColorSequence_t_pimpl::ColorDuration (std::pair<sim_mob::TrafficColor,short> value)
+void sim_mob::xml::ColorSequence_t_pimpl::ColorDuration (std::pair<sim_mob::TrafficColor,int>& value)
 {
 	model.second.push_back(value);
 }

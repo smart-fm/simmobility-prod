@@ -1130,15 +1130,27 @@ bool sim_mob::DriverMovement::isPedestrianOnTargetCrossing() const {
 //			break;
 //		}
 //	}
-
+	sim_mob::Link * targetLink = parentDriver->vehicle->getNextSegment()->getLink();
 	const Crossing* crossing = nullptr;
-	const LinkAndCrossingByLink& LAC = trafficSignal->getLinkAndCrossingsByLink();
-	LinkAndCrossingByLink::iterator it = LAC.find(parentDriver->vehicle->getNextSegment()->getLink());
+	const LinkAndCrossingC& LAC = trafficSignal->getLinkAndCrossing();
+	LinkAndCrossingC::iterator it = LAC.begin();
+	for(; it != LAC.end(); it++){
+		if(it->link == targetLink)
+		{
+			break;
+		}
+	}
+
 	if(it != LAC.end()) {
 		crossing = (*it).crossing;
 	}
+	else{
+
+		return false;
+	}
 	//Have we found a relevant crossing?
 	if (!crossing) {
+		return false;
 	}
 
 	//Search through the list of agents in that crossing.

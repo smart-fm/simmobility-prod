@@ -76,6 +76,20 @@
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
             </proc_map>
+            
+            <!-- The small Marina Bay network -->
+            <proc_map id="marina_bay" format="aimsun">
+                <mapping name="node" procedure="get_node_marina_bay()"/>
+                <mapping name="section" procedure="get_section_marina_bay()"/>
+                <mapping name="crossing" procedure="get_pedestrian_crossing_sg()"/>
+                <mapping name="lane" procedure=""/>
+                <mapping name="turning" procedure="get_lane_connector_marina_bay()"/>
+                <mapping name="polyline" procedure="get_section_polyline_marina_bay()"/>
+                <mapping name="tripchain" procedure="Not needed"/>
+                <mapping name="busstop" procedure=""/>
+                <mapping name="signal" procedure="get_traffic_signals_marina_bay()"/>
+                <mapping name="phase" procedure="get_lane_connector_phases_marina_bay()"/>
+            </proc_map>
 
             <!-- For testing purposes, if you want to control which signals are created, then use this proc_map to
                  disable the automatic signal creation via database lookup, and add entries in the top-level 

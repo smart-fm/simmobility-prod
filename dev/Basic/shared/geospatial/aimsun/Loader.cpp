@@ -1804,7 +1804,7 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 				continue;
 			}
 			phase.addLinkMapping(linkFrom,ll,mNode);
-			phase.addDefaultCrossings(signal.getLinkAndCrossingsByLink(),mNode);
+			phase.addDefaultCrossings(signal.getLinkAndCrossing(),mNode);
 			signal.addPhase(phase);//congrates
 		}
 	}

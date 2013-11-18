@@ -12,7 +12,6 @@
 
 #include "Common.hpp"
 #include "Types.hpp"
-#include "message/MessageReceiver.hpp"
 
 namespace sim_mob {
 

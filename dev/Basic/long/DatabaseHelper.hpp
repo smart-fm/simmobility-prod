@@ -36,6 +36,10 @@ namespace sim_mob {
         const std::string DB_TABLE_BUILDING_TYPE = APPLY_SCHEMA(CURRENT_SCHEMA, "building_type");
         const std::string DB_TABLE_BUILDING = APPLY_SCHEMA(CURRENT_SCHEMA, "building");
         const std::string DB_TABLE_UNIT = APPLY_SCHEMA(CURRENT_SCHEMA, "unit");
+        /**
+         * Views
+         */ 
+        const std::string DB_VIEW_UNIT = APPLY_SCHEMA(CURRENT_SCHEMA, "view_unit");
 
         // housing market
         const std::string DB_TABLE_SELLER_PARAMS = APPLY_SCHEMA(CURRENT_SCHEMA, "hm_seller_params");
@@ -146,7 +150,7 @@ namespace sim_mob {
         const std::string DB_GETALL_HOUSEHOLD = "SELECT * FROM " + DB_TABLE_HOUSEHOLD + " ORDER BY " + DB_FIELD_ID + LIMIT;
         const std::string DB_GETALL_BUILDING_TYPE = "SELECT * FROM " + DB_TABLE_BUILDING_TYPE + " ORDER BY " + DB_FIELD_ID + LIMIT;
         const std::string DB_GETALL_BUILDING = "SELECT * FROM " + DB_TABLE_BUILDING + " ORDER BY " + DB_FIELD_ID + LIMIT;
-        const std::string DB_GETALL_UNIT = "SELECT * FROM " + DB_TABLE_UNIT + " ORDER BY " + DB_FIELD_ID + LIMIT;
+        const std::string DB_GETALL_UNIT = "SELECT * FROM " + DB_VIEW_UNIT + " ORDER BY " + DB_FIELD_ID + LIMIT;
 
         /**
          * GET BY ID
@@ -156,7 +160,7 @@ namespace sim_mob {
         const std::string DB_GETBYID_HOUSEHOLD = "SELECT * FROM " + DB_TABLE_HOUSEHOLD + " WHERE " + DB_FIELD_ID + "=:id";
         const std::string DB_GETBYID_BUILDING_TYPE = "SELECT * FROM " + DB_TABLE_BUILDING_TYPE + " WHERE " + DB_FIELD_ID + "=:id";
         const std::string DB_GETBYID_BUILDING = "SELECT * FROM " + DB_TABLE_BUILDING + " WHERE " + DB_FIELD_ID + "=:id";
-        const std::string DB_GETBYID_UNIT = "SELECT * FROM " + DB_TABLE_UNIT + " WHERE " + DB_FIELD_ID + "=:id";
+        const std::string DB_GETBYID_UNIT = "SELECT * FROM " + DB_VIEW_UNIT + " WHERE " + DB_FIELD_ID + "=:id";
 
 
 

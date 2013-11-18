@@ -55,6 +55,7 @@ namespace sim_mob {
         const std::string DB_FIELD_ESTABLISMENT_ID = "establishment_id";
         const std::string DB_FIELD_TYPE_ID = "type_id";
         const std::string DB_FIELD_POSTCODE_ID = "postcode_id";
+        const std::string DB_FIELD_TAZ_ID = "taz_id";
         const std::string DB_FIELD_LIFESTYLE_ID = "lifestyle_id";
         const std::string DB_FIELD_VEHICLE_CATEGORY_ID = "vehicle_category_id";
         const std::string DB_FIELD_ETHNICITY_ID = "ethnicity_id";
@@ -77,6 +78,8 @@ namespace sim_mob {
         const std::string DB_FIELD_TAX_EXEMPT = "tax_exempt";
         const std::string DB_FIELD_NON_RESIDENTIAL_SQFT = "non_residential_sqft";
         const std::string DB_FIELD_SQFT_PER_UNIT = "sqft_per_unit";
+        const std::string DB_FIELD_LATITUDE = "latitude";
+        const std::string DB_FIELD_LONGITUDE = "longitude";
 
         const std::string DB_FIELD_NAME = "name";
         const std::string DB_FIELD_TYPE = "type";

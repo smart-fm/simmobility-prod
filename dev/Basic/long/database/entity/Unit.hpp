@@ -12,6 +12,7 @@
 
 #include "Common.hpp"
 #include "Types.hpp"
+#include "geospatial/coord/CoordinateTransform.hpp"
 
 namespace sim_mob {
 
@@ -52,8 +53,7 @@ namespace sim_mob {
             int getStorey() const;
             double getFloorArea() const;
             double getRent() const;
-            double getLatitude() const;
-            double getLongitude() const;
+            const LatLngLocation& getLocation() const;
 
             /**
              * Operator to print the Unit data.  
@@ -68,8 +68,8 @@ namespace sim_mob {
                         << "\"floorArea\":\"" << data.floorArea << "\","
                         << "\"storey\":\"" << data.storey << "\","
                         << "\"rent\":\"" << data.rent << "\","
-                        << "\"latitude\":\"" << data.latitude << "\","
-                        << "\"longitude\":\"" << data.longitude << "\""
+                        << "\"latitude\":\"" << data.location.latitude << "\","
+                        << "\"longitude\":\"" << data.location.longitude << "\""
                         << "}";
             }
         private:
@@ -86,8 +86,7 @@ namespace sim_mob {
             double floorArea;
             int storey; 
             double rent;
-            double latitude;
-            double longitude;
+            LatLngLocation location;
         };
     }
 }

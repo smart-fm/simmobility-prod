@@ -11,14 +11,16 @@
 
 #include "Unit.hpp"
 
+using namespace sim_mob;
 using namespace sim_mob::long_term;
+
 
 Unit::Unit(BigSerial id, BigSerial buildingId, BigSerial typeId, BigSerial postcodeId,
         BigSerial tazId, double floorArea, int storey, double rent, 
         double latitude, double longitude) :
 id(id), buildingId(buildingId), typeId(typeId), postcodeId(postcodeId), 
 tazId(tazId), storey(storey), floorArea(floorArea), rent(rent), 
-latitude(latitude), longitude(longitude) {}
+location(latitude, longitude){}
 
 Unit::Unit(const Unit& source) {
     this->id = source.id;
@@ -29,8 +31,8 @@ Unit::Unit(const Unit& source) {
     this->storey = source.storey;
     this->floorArea = source.floorArea;
     this->rent = source.rent;
-    this->latitude = source.latitude;
-    this->longitude = source.longitude;
+    this->location.latitude = source.location.latitude;
+    this->location.longitude = source.location.longitude;
 }
 
 Unit::~Unit() {
@@ -45,8 +47,8 @@ Unit& Unit::operator=(const Unit& source) {
     this->storey = source.storey;
     this->floorArea = source.floorArea;
     this->rent = source.rent;
-    this->latitude = source.latitude;
-    this->longitude = source.longitude;
+    this->location.latitude = source.location.latitude;
+    this->location.longitude = source.location.longitude;
     return *this;
 }
 
@@ -82,10 +84,6 @@ double Unit::getRent() const {
     return rent;
 }
 
-double Unit::getLatitude() const {
-    return latitude;
-}
-
-double Unit::getLongitude() const {
-    return longitude;
+const LatLngLocation& Unit::getLocation() const {
+    return location;
 }

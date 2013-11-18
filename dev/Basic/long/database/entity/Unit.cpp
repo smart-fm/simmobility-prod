@@ -14,18 +14,23 @@
 using namespace sim_mob::long_term;
 
 Unit::Unit(BigSerial id, BigSerial buildingId, BigSerial typeId, BigSerial postcodeId,
-        double floorArea, int storey, double rent) :
-id(id), buildingId(buildingId), typeId(typeId), postcodeId(postcodeId),
-storey(storey), floorArea(floorArea), rent(rent) {}
+        BigSerial tazId, double floorArea, int storey, double rent, 
+        double latitude, double longitude) :
+id(id), buildingId(buildingId), typeId(typeId), postcodeId(postcodeId), 
+tazId(tazId), storey(storey), floorArea(floorArea), rent(rent), 
+latitude(latitude), longitude(longitude) {}
 
 Unit::Unit(const Unit& source) {
     this->id = source.id;
     this->buildingId = source.buildingId;
     this->typeId = source.typeId;
     this->postcodeId = source.postcodeId;
+    this->tazId = source.tazId;
     this->storey = source.storey;
     this->floorArea = source.floorArea;
     this->rent = source.rent;
+    this->latitude = source.latitude;
+    this->longitude = source.longitude;
 }
 
 Unit::~Unit() {
@@ -36,9 +41,12 @@ Unit& Unit::operator=(const Unit& source) {
     this->buildingId = source.buildingId;
     this->typeId = source.typeId;
     this->postcodeId = source.postcodeId;
+    this->tazId = source.tazId;
     this->storey = source.storey;
     this->floorArea = source.floorArea;
     this->rent = source.rent;
+    this->latitude = source.latitude;
+    this->longitude = source.longitude;
     return *this;
 }
 
@@ -58,6 +66,10 @@ BigSerial Unit::getPostcodeId() const{
     return postcodeId;
 }
 
+BigSerial Unit::getTazId() const{
+    return tazId;
+}
+
 int Unit::getStorey() const {
     return storey;
 }
@@ -68,4 +80,12 @@ double Unit::getFloorArea() const {
 
 double Unit::getRent() const {
     return rent;
+}
+
+double Unit::getLatitude() const {
+    return latitude;
+}
+
+double Unit::getLongitude() const {
+    return longitude;
 }

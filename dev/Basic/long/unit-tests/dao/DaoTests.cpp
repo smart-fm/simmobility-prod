@@ -12,7 +12,6 @@
 #include "DaoTests.hpp"
 #include <typeinfo>
 #include <string>
-#include "database/dao/GlobalParamsDao.hpp"
 #include "database/dao/HouseholdDao.hpp"
 #include "database/dao/BuildingDao.hpp"
 #include "database/dao/UnitDao.hpp"
@@ -55,7 +54,6 @@ void TestDao() {
 }
 
 void DaoTests::testAll() {
-    TestDao<GlobalParamsDao, GlobalParams>();
     TestDao<HouseholdDao, Household>();
     TestDao<BuildingDao, Building>();
     TestDao<UnitDao, Unit>();

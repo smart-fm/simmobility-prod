@@ -29,7 +29,7 @@
         - postcodeId (long integer)        : Postcode identifier.
         - tazId (long integer)             : TAZ identifier.
         - floorArea (real)                 : Floor area.
-        - storey (integer)                 : Number of stories.
+        - storey (integer)                 : Number of storeys.
         - rent (real)                      : Montly rent.
         - location (Location)              : Location object with location
             - latitude (real)              : Latitude value.

@@ -90,6 +90,8 @@ namespace sim_mob {
             Bids maxBidsOfDay;
             ExpectationMap unitExpectations;
             int currentExpectationIndex;
+            int startSellingTime;
+            volatile bool selling;
         };
     }
 }

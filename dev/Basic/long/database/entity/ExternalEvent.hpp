@@ -13,6 +13,19 @@ namespace sim_mob {
 
     namespace long_term {
 
+        /**
+         * Entity that represents an External event.
+         * 
+         * An external event can be:
+         * - New job,
+         * - New job location 
+         * - New school location
+         *  etc..
+         * 
+         * Normally these events are injected to perform some variance 
+         * in the simulation. 
+         * 
+         */
         class ExternalEvent {
         public:
 
@@ -34,7 +47,7 @@ namespace sim_mob {
              * Getters 
              */
             int getDay() const;
-            unsigned int getType() const; //int because lua
+            unsigned int getType() const; //int because lua does not support enums
             BigSerial getHouseholdId() const;
             
             /**

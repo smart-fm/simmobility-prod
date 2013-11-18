@@ -9,7 +9,6 @@
 #include <set>
 #include <boost/thread.hpp>
 #include "buffering/BufferedDataManager.hpp"
-#include "event/EventCollectionMgr.hpp"
 #include "metrics/Frame.hpp"
 #include "event/EventPublisher.hpp"
 #include "event/SystemEvents.hpp"
@@ -125,7 +124,6 @@ public:
 
 	void processVirtualQueues();
 	void outputSupplyStats(uint32_t currTick);
-	event::EventCollectionMgr& getEventManager();
 
 	virtual std::ostream* getLogFile() const;
 

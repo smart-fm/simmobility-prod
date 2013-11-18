@@ -15,6 +15,7 @@
 #include "role/LT_Role.hpp"
 #include "role/impl/HouseholdBidderRole.hpp"
 #include "role/impl/HouseholdSellerRole.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -84,35 +85,89 @@ void HouseholdAgent::onFrameOutput(timeslice now) {
 }
 
 void HouseholdAgent::OnEvent(EventId eventId,
-        EventPublisher* sender, const EventArgs& args) {
+        EventPublisher*, const EventArgs& args) {
+    processEvent(eventId, nullptr, args);
 }
 
 void HouseholdAgent::OnEvent(EventId eventId, Context ctxId,
-        EventPublisher* sender, const EventArgs& args) {
+        EventPublisher*, const EventArgs& args) {
+        processEvent(eventId, ctxId, args);
+}
 
-    const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
-
+void HouseholdAgent::processEvent(EventId eventId, Context ctxId,
+        const EventArgs& args) {
     switch (eventId) {
         case LTEID_HM_UNIT_ADDED:
         {
+            const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
             PrintOut("Unit added " << hmArgs.getUnitId() << endl);
             break;
         }
         case LTEID_HM_UNIT_REMOVED:
         {
+            const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
             PrintOut("Unit removed " << hmArgs.getUnitId() << endl);
+            break;
+        }
+        case LTEID_EXT_LOST_JOB:
+        case LTEID_EXT_NEW_CHILD:
+        case LTEID_EXT_NEW_JOB:
+        case LTEID_EXT_NEW_JOB_LOCATION:
+        case LTEID_EXT_NEW_SCHOOL_LOCATION:  
+        {
+            const ExternalEventArgs& exArgs = MSG_CAST(ExternalEventArgs, args);
+            if (exArgs.getEvent().getHouseholdId() == getId()) {
+                processExternalEvent(exArgs);
+            }
             break;
         }
         default:break;
     };
 }
 
+void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args) {
+    switch(args.getEvent().getType()){
+        case ExternalEvent::LOST_JOB:{
+            PrintOut("LOST_JOB :" << args.getEvent().getDay() << endl);
+            break;
+        }
+        case ExternalEvent::NEW_CHILD:{
+            PrintOut("NEW_CHILD :" << args.getEvent().getDay() << endl);
+            break;
+        }
+        case ExternalEvent::NEW_JOB:{
+            PrintOut("NEW_JOB :" << args.getEvent().getDay() << endl);
+            break;
+        }
+        case ExternalEvent::NEW_JOB_LOCATION:{
+            PrintOut("NEW_JOB_LOCATION :" << args.getEvent().getDay() << endl);
+            break;
+        }
+        case ExternalEvent::NEW_SCHOOL_LOCATION:{
+            PrintOut("NEW_SCHOOL_LOCATION :" << args.getEvent().getDay() << endl);
+            break;
+        }
+        default:break;
+    }
+}
+
+
 void HouseholdAgent::onWorkerEnter() {
+    MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB, this);
+    MessageBus::SubscribeEvent(LTEID_EXT_NEW_CHILD, this);
+    MessageBus::SubscribeEvent(LTEID_EXT_LOST_JOB, this);
+    MessageBus::SubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this);
+    MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this);
     MessageBus::SubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
     MessageBus::SubscribeEvent(LTEID_HM_UNIT_REMOVED, market, this);
 }
 
 void HouseholdAgent::onWorkerExit() {
+    MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_JOB, this);
+    MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_CHILD, this);
+    MessageBus::UnSubscribeEvent(LTEID_EXT_LOST_JOB, this);
+    MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this);
+    MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this);
     MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
     MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_REMOVED, market, this);
 }

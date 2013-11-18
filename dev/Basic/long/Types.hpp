@@ -14,12 +14,13 @@
 #include <string>
 #include "stddef.h"
 #include "util/LangHelpers.hpp"
+#include "Common.hpp"
 
 namespace sim_mob {
     namespace long_term {
         
         typedef long long BigSerial;
-
+        
         enum Sex {
             UNKNOWN_SEX = 0,
             MASCULINE = 1,
@@ -87,6 +88,7 @@ namespace sim_mob {
          * Structs
          */
         typedef struct ExpectationEntry_ {
+            ExpectationEntry_() : price(0), expectation(0){}
             double price;
             double expectation;
         } ExpectationEntry;

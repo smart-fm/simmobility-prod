@@ -20,10 +20,10 @@ namespace sim_mob {
         /**
          * Schemas
          */
+        const std::string DB_EMPTY_QUERY = "";
         const std::string DB_SCHEMA_EMPTY = "";
-        const std::string DB_SCHEMA_BASELINE_2001 = "baseline_2001.";
-        const std::string DB_SCHEMA_MAIN = "main.";
-        const std::string CURRENT_SCHEMA = DB_SCHEMA_MAIN;
+        const std::string MAIN_SCHEMA = "main.";
+        const std::string CALIBRATION_SCHEMA = "calibration.";
         const std::string LIMIT_10 = " limit 10";
         const std::string LIMIT = LIMIT_10;
 
@@ -87,17 +87,6 @@ namespace sim_mob {
 
         const std::string DB_FIELD_NAME = "name";
         const std::string DB_FIELD_TYPE = "type";
-        const std::string DB_FIELD_WEIGHT_UNIT_STOREY = "unit_storey_weight";
-        const std::string DB_FIELD_WEIGHT_UNIT_RENT = "unit_rent_weight";
-        const std::string DB_FIELD_WEIGHT_UNIT_AREA = "unit_area_weight";
-        const std::string DB_FIELD_WEIGHT_UNIT_TYPE = "unit_type_weight";
-        const std::string DB_FIELD_WEIGHT_HH_INCOME = "hh_income_weight";
-
-        // Housing market
-        const std::string DB_FIELD_WEIGHT_PRICE_QUALITY = "price_quality";
-        const std::string DB_FIELD_WEIGHT_URGENCY_TO_BUY = "urgency_to_buy";
-        const std::string DB_FIELD_WEIGHT_EXPECTED_EVENTS = "expected_events";
-        const std::string DB_FIELD_WEIGHT_PRICE_IMPORTANCE = "price_importance";
 
         /**
          * INSERT
@@ -111,10 +100,10 @@ namespace sim_mob {
                 + DB_FIELD_INCOME + ", "
                 + DB_FIELD_HOUSING_DURATION + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)";
 
-        const std::string DB_INSERT_UNIT_TYPE = ""; // not defined yet...
-        const std::string DB_INSERT_BUILDING_TYPE = ""; // not defined yet...
-        const std::string DB_INSERT_BUILDING = ""; // not defined yet...
-        const std::string DB_INSERT_UNIT = ""; // not defined yet...
+        const std::string DB_INSERT_UNIT_TYPE = DB_EMPTY_QUERY;
+        const std::string DB_INSERT_BUILDING_TYPE = DB_EMPTY_QUERY;
+        const std::string DB_INSERT_BUILDING = DB_EMPTY_QUERY; 
+        const std::string DB_INSERT_UNIT = DB_EMPTY_QUERY;
 
         /**
          * UPDATE
@@ -127,10 +116,10 @@ namespace sim_mob {
                 + DB_FIELD_INCOME + "= :v4, "
                 + DB_FIELD_HOUSING_DURATION + "= :v5 WHERE " + DB_FIELD_ID + "=:v6";
 
-        const std::string DB_UPDATE_UNIT_TYPE = ""; // not defined yet...
-        const std::string DB_UPDATE_BUILDING_TYPE = ""; // not defined yet...
-        const std::string DB_UPDATE_BUILDING = ""; // not defined yet...
-        const std::string DB_UPDATE_UNIT = ""; // not defined yet...
+        const std::string DB_UPDATE_UNIT_TYPE = DB_EMPTY_QUERY;
+        const std::string DB_UPDATE_BUILDING_TYPE = DB_EMPTY_QUERY;
+        const std::string DB_UPDATE_BUILDING = DB_EMPTY_QUERY;
+        const std::string DB_UPDATE_UNIT = DB_EMPTY_QUERY;
 
         /**
          * DELETE

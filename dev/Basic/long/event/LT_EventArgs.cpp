@@ -28,3 +28,22 @@ HM_ActionEventArgs::~HM_ActionEventArgs() {
 BigSerial HM_ActionEventArgs::getUnitId() const {
     return unitId;
 }
+
+/******************************************************************************
+ *                              ExternalEventArgs   
+ ******************************************************************************/
+ExternalEventArgs::ExternalEventArgs(const ExternalEvent& event)
+: event(event) {
+
+}
+
+ExternalEventArgs::ExternalEventArgs(const ExternalEventArgs& orig)
+: event(orig.event) {
+}
+
+ExternalEventArgs::~ExternalEventArgs() {
+}
+
+const ExternalEvent& ExternalEventArgs::getEvent() const {
+    return event;
+}

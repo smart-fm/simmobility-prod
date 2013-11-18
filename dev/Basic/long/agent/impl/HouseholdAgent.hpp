@@ -13,6 +13,7 @@
 #include "core/HousingMarket.hpp"
 #include "agent/LT_Agent.hpp"
 #include "database/entity/Household.hpp"
+#include "event/LT_EventArgs.hpp"
 
 
 namespace sim_mob {
@@ -72,6 +73,21 @@ namespace sim_mob {
                     event::EventPublisher* sender, const event::EventArgs& args);
             virtual void OnEvent(event::EventId eventId, event::Context ctxId, 
                     event::EventPublisher* sender, const event::EventArgs& args);
+            
+            /**
+             * Processes the given event.
+             * @param eventId
+             * @param ctxId
+             * @param args
+             */
+            void processEvent(event::EventId eventId, event::Context ctxId,
+                              const event::EventArgs& args);
+            
+            /**
+             * Processes external event.
+             * @param args
+             */
+            void processExternalEvent(const ExternalEventArgs& args);
         private:
             typedef std::vector<BigSerial> UnitIdList;
       

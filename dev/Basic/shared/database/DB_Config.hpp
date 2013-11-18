@@ -42,7 +42,6 @@ namespace sim_mob {
             void setPort(unsigned int port);
             void setHost(const std::string& host);
         protected:
-            friend class PropertyLoader;
             /**
              * Inherited from PropertyLoader
              */

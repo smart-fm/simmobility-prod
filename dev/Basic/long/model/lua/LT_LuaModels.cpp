@@ -7,7 +7,7 @@
  * Created on October 10, 2013, 2:39 PM
  */
 
-#include "HM_LuaModel.hpp"
+#include "LT_LuaModels.hpp"
 #include "lua/LuaLibrary.hpp"
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"
@@ -17,6 +17,48 @@ using namespace sim_mob;
 using namespace sim_mob::long_term;
 using namespace luabridge;
 using std::vector;
+
+/******************************************************************************
+ *                         EXTERNAL EVENTS LUA
+ ******************************************************************************/
+
+ExternalEventsModel::ExternalEventsModel() : lua::LuaModel() {
+}
+
+ExternalEventsModel::ExternalEventsModel(const ExternalEventsModel& orig) 
+: lua::LuaModel(orig) {
+}
+
+ExternalEventsModel::~ExternalEventsModel() {
+}
+
+void ExternalEventsModel::getExternalEvents(int day,
+        vector<ExternalEvent>& outValues) const {
+    LuaRef funcRef = getGlobal(state.get(), "getExternalEvents");
+    LuaRef retVal = funcRef(day);
+    if (retVal.isTable()) {
+        for (int i = 1; i <= retVal.length(); i++) {
+            outValues.push_back(retVal[i].cast<ExternalEvent>());
+        }
+    }
+}
+
+void ExternalEventsModel::mapClasses() {
+    getGlobalNamespace(state.get())
+            .beginClass <ExternalEvent> ("ExternalEvent")
+            .addConstructor <void (*) (void) > ()
+            .addProperty("day", &ExternalEvent::getDay, 
+                                &ExternalEvent::setDay)
+            .addProperty("type", &ExternalEvent::getType, 
+                                 &ExternalEvent::setType)
+            .addProperty("householdId", &ExternalEvent::getHouseholdId, 
+                                        &ExternalEvent::setHouseholdId)
+            .endClass();
+}
+
+/******************************************************************************
+ *                         HOUSING MARKET LUA
+ ******************************************************************************/
 
 HM_LuaModel::HM_LuaModel() : lua::LuaModel() {
 }

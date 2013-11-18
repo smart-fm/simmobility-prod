@@ -115,7 +115,7 @@ namespace sim_mob
     class linkAndCrossing_t_pskel;
     class linkAndCrossings_t_pskel;
     class signalTimingMode_t_pskel;
-    class Plan_t_pskel;
+    class plan_t_pskel;
     class Plans_t_pskel;
     class TrafficColor_t_pskel;
     class ColorDuration_t_pskel;
@@ -3660,7 +3660,7 @@ namespace sim_mob
       virtual void
       angle (unsigned char);
 
-      virtual sim_mob::LinkAndCrossing
+      virtual sim_mob::LinkAndCrossing&
       post_linkAndCrossing_t () = 0;
 
       // Parser construction API.
@@ -3679,7 +3679,7 @@ namespace sim_mob
 
       void
       parsers (::xml_schema::unsigned_byte_pskel& /* ID */,
-               ::xml_schema::unsigned_int_pskel& /* linkID */,
+               ::xml_schema::unsigned_int_pskel& /* LinkID */,
                ::xml_schema::unsigned_int_pskel& /* crossingID */,
                ::xml_schema::unsigned_byte_pskel& /* angle */);
 
@@ -3715,9 +3715,9 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      linkAndCrossing (sim_mob::LinkAndCrossing);
+      linkAndCrossing (sim_mob::LinkAndCrossing&);
 
-      virtual sim_mob::LinkAndCrossingC
+      virtual sim_mob::LinkAndCrossingC&
       post_linkAndCrossings_t () = 0;
 
       // Parser construction API.
@@ -3760,7 +3760,7 @@ namespace sim_mob
       post_signalTimingMode_t () = 0;
     };
 
-    class Plan_t_pskel: public ::xml_schema::complex_content
+    class plan_t_pskel: public ::xml_schema::complex_content
     {
       public:
       // Parser callbacks. Override them in your implementation.
@@ -3774,8 +3774,8 @@ namespace sim_mob
       virtual void
       PhasePercentage (double);
 
-      virtual std::pair<short,std::vector<double> >
-      post_Plan_t () = 0;
+      virtual std::pair<short,std::vector<double> >&
+      post_plan_t () = 0;
 
       // Parser construction API.
       //
@@ -3791,7 +3791,7 @@ namespace sim_mob
 
       // Constructor.
       //
-      Plan_t_pskel ();
+      plan_t_pskel ();
 
       // Implementation.
       //
@@ -3819,18 +3819,18 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      plan (std::pair<short,std::vector<double> >);
+      plan (std::pair<short,std::vector<double> >&);
 
-      virtual std::vector<std::vector<double> >
+      virtual std::vector<std::vector<double> >&
       post_Plans_t () = 0;
 
       // Parser construction API.
       //
       void
-      plan_parser (::sim_mob::xml::Plan_t_pskel&);
+      plan_parser (::sim_mob::xml::plan_t_pskel&);
 
       void
-      parsers (::sim_mob::xml::Plan_t_pskel& /* plan */);
+      parsers (::sim_mob::xml::plan_t_pskel& /* plan */);
 
       // Constructor.
       //
@@ -3849,7 +3849,7 @@ namespace sim_mob
                          const ::xml_schema::ro_string&);
 
       protected:
-      ::sim_mob::xml::Plan_t_pskel* plan_parser_;
+      ::sim_mob::xml::plan_t_pskel* plan_parser_;
     };
 
     class TrafficColor_t_pskel: public virtual ::xml_schema::string_pskel
@@ -3876,9 +3876,9 @@ namespace sim_mob
       TrafficColor (sim_mob::TrafficColor);
 
       virtual void
-      Duration (unsigned char);
+      Duration (int);
 
-      virtual std::pair<sim_mob::TrafficColor,short>
+      virtual std::pair<sim_mob::TrafficColor,int>&
       post_ColorDuration_t () = 0;
 
       // Parser construction API.
@@ -3926,9 +3926,9 @@ namespace sim_mob
       TrafficLightType (const ::std::string&);
 
       virtual void
-      ColorDuration (std::pair<sim_mob::TrafficColor,short>);
+      ColorDuration (std::pair<sim_mob::TrafficColor,int>&);
 
-      virtual std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,short> > >
+      virtual std::pair<sim_mob::TrafficLightType, std::vector<std::pair<sim_mob::TrafficColor,int> > >&
       post_ColorSequence_t () = 0;
 
       // Parser construction API.
@@ -3973,9 +3973,9 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      links_map (std::pair<sim_mob::Link*,sim_mob::linkToLink>);
+      links_map (std::pair<sim_mob::Link*,sim_mob::linkToLink>&);
 
-      virtual std::multimap<sim_mob::Link*,sim_mob::linkToLink>
+      virtual std::multimap<sim_mob::Link*,sim_mob::linkToLink>&
       post_links_maps_t () = 0;
 
       // Parser construction API.
@@ -4027,9 +4027,9 @@ namespace sim_mob
       SegmentTo (unsigned int);
 
       virtual void
-      ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > >);
+      ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,int> > >&);
 
-      virtual std::pair<sim_mob::Link*,sim_mob::linkToLink>
+      virtual std::pair<sim_mob::Link*,sim_mob::linkToLink>&
       post_links_map_t () = 0;
 
       // Parser construction API.
@@ -4091,7 +4091,7 @@ namespace sim_mob
       virtual void
       crossings_map (std::pair<sim_mob::Crossing *, sim_mob::Crossings>);
 
-      virtual std::map<sim_mob::Crossing *, sim_mob::Crossings>
+      virtual std::map<sim_mob::Crossing *, sim_mob::Crossings>&
       post_crossings_maps_t () = 0;
 
       // Parser construction API.
@@ -4131,13 +4131,13 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      linkID (unsigned int);
+      LinkID (unsigned int);
 
       virtual void
       crossingID (unsigned int);
 
       virtual void
-      ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > >);
+      ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,int> > >&);
 
       virtual std::pair<sim_mob::Crossing *, sim_mob::Crossings>
       post_crossings_map_t () = 0;
@@ -4145,7 +4145,7 @@ namespace sim_mob
       // Parser construction API.
       //
       void
-      linkID_parser (::xml_schema::unsigned_int_pskel&);
+      LinkID_parser (::xml_schema::unsigned_int_pskel&);
 
       void
       crossingID_parser (::xml_schema::unsigned_int_pskel&);
@@ -4154,7 +4154,7 @@ namespace sim_mob
       ColorSequence_parser (::sim_mob::xml::ColorSequence_t_pskel&);
 
       void
-      parsers (::xml_schema::unsigned_int_pskel& /* linkID */,
+      parsers (::xml_schema::unsigned_int_pskel& /* LinkID */,
                ::xml_schema::unsigned_int_pskel& /* crossingID */,
                ::sim_mob::xml::ColorSequence_t_pskel& /* ColorSequence */);
 
@@ -4175,7 +4175,7 @@ namespace sim_mob
                          const ::xml_schema::ro_string&);
 
       protected:
-      ::xml_schema::unsigned_int_pskel* linkID_parser_;
+      ::xml_schema::unsigned_int_pskel* LinkID_parser_;
       ::xml_schema::unsigned_int_pskel* crossingID_parser_;
       ::sim_mob::xml::ColorSequence_t_pskel* ColorSequence_parser_;
     };
@@ -4195,12 +4195,12 @@ namespace sim_mob
       name (const ::std::string&);
 
       virtual void
-      links_maps (std::multimap<sim_mob::Link*,sim_mob::linkToLink>);
+      links_maps (std::multimap<sim_mob::Link*,sim_mob::linkToLink>&);
 
       virtual void
-      crossings_maps (std::map<sim_mob::Crossing *, sim_mob::Crossings>);
+      crossings_maps (std::map<sim_mob::Crossing *, sim_mob::Crossings>&);
 
-      virtual sim_mob::Phase
+      virtual sim_mob::Phase&
       post_Phase_t () = 0;
 
       // Parser construction API.
@@ -4255,10 +4255,10 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      phase (sim_mob::Phase);
+      phase (sim_mob::Phase&);
 
-      virtual sim_mob::Signal::phases
-      post_Phases_t () = 0;
+      virtual sim_mob::Signal::phases&
+      post_phases_t () = 0;
 
       // Parser construction API.
       //
@@ -4306,9 +4306,9 @@ namespace sim_mob
       offset (unsigned char);
 
       virtual void
-      ChoiceSet (std::vector<std::vector<double> >);
+      ChoiceSet (std::vector<std::vector<double> >&);
 
-      virtual sim_mob::SplitPlan
+      virtual sim_mob::SplitPlan&
       post_SplitPlan_t () = 0;
 
       // Parser construction API.
@@ -4366,9 +4366,9 @@ namespace sim_mob
       signalTimingMode (int);
 
       virtual void
-      SplitPlan (sim_mob::SplitPlan);
+      SplitPlan (sim_mob::SplitPlan&);
 
-      virtual sim_mob::xml::helper::SignalHelper::SCATS_Info
+      virtual sim_mob::xml::helper::SignalHelper::SCATS_Info&
       post_SCATS_t () = 0;
 
       // Parser construction API.
@@ -4419,13 +4419,13 @@ namespace sim_mob
       nodeID (unsigned int);
 
       virtual void
-      linkAndCrossings (sim_mob::LinkAndCrossingC);
+      linkAndCrossings (sim_mob::LinkAndCrossingC&);
 
       virtual void
-      phases (sim_mob::Signal::phases);
+      phases (sim_mob::Signal::phases&);
 
       virtual void
-      SCATS (sim_mob::xml::helper::SignalHelper::SCATS_Info);
+      SCATS (sim_mob::xml::helper::SignalHelper::SCATS_Info&);
 
       virtual sim_mob::Signal*
       post_Signal_t () = 0;
@@ -4489,7 +4489,7 @@ namespace sim_mob
       virtual void
       Signal (sim_mob::Signal*);
 
-      virtual std::vector<sim_mob::Signal*>
+      virtual std::vector<sim_mob::Signal*>&
       post_Signals_t () = 0;
 
       // Parser construction API.
@@ -4577,7 +4577,7 @@ namespace sim_mob
       TripChains ();
 
       virtual void
-      Signals (std::vector<sim_mob::Signal*>);
+      Signals (std::vector<sim_mob::Signal*>&);
 
       virtual void
       post_SimMobility_t ();

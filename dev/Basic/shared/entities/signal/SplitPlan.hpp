@@ -38,14 +38,6 @@ class SplitPlan
 	friend class sim_mob::xml::SplitPlan_t_pimpl;
 //	friend class geo::Signal_t_pimpl;
 public:
-	typedef boost::multi_index_container<
-			sim_mob::Phase,
-			boost::multi_index::indexed_by<
-			boost::multi_index::random_access<>
-			,boost::multi_index::ordered_non_unique<boost::multi_index::member<sim_mob::Phase,std::string, &Phase::name> >
-	  >
-	> phases;
-//private:
 	unsigned int TMP_PlanID;//to identify "this" object(totally different from choice set related terms like currSplitPlanID,nextSplitPlanID....)
 private:
 
@@ -86,16 +78,22 @@ private:
 public:
 	/*plan methods*/
 	SplitPlan(double cycleLength_ = 90,double offset_ = 0/*, int signalTimingMode_= ConfigParams::GetInstance().signalTimingMode*/, unsigned int TMP_PlanID_ = 1);
+	//the current plan id being used
 	std::size_t CurrSplitPlanID();
+	//the current plan being used
 	std::vector< double >  CurrSplitPlan();
 	void setCurrPlanIndex(std::size_t);
+	//find/calculate the appropriate split plan for the next cycle based on the loop detector counts
 	std::size_t findNextPlanIndex(std::vector<double> DS);
+	//update currSplitPlanID by nextSplitPlanID
 	void updatecurrSplitPlan();
+	//number of SplitPlans available to choose from
 	std::size_t nofPlans();
 	void setcurrSplitPlanID(std::size_t index);
-	void setnextSplitPlan(std::vector<double> DS);
-	void setCoiceSet(std::vector< std::vector<double> >);
-	std::vector< std::vector<double> > &getChoiceSet();
+	//setting the container of split plans(known as choice set)
+	void setChoiceSet(std::vector< std::vector<double> >);
+	const std::vector< std::vector<double> > &getChoiceSet()const ;
+	//resort to default split plans when there is no input
 	void setDefaultSplitPlan(int);
 	void initialize();
 
@@ -106,7 +104,7 @@ public:
 
 
 	/*offset related methods*/
-	std::size_t getOffset();
+	std::size_t getOffset() const;
 	void setOffset(std::size_t);
 
 	/*main update mehod*/

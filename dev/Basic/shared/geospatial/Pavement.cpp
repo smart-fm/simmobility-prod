@@ -12,6 +12,11 @@ using namespace sim_mob;
 
 void sim_mob::Pavement::addObstacle(centimeter_t offset, const RoadItem* item, bool fixErrors)
 {
+	//do samll swith so that more items can be added in the same location
+	while (obstacles.count(offset)>0){
+		offset++;
+	}
+
 	//Too small?
 	if (offset<0) {
 		if (!fixErrors) { throw std::runtime_error("Can't add obstacle; offset is less than zero."); }
@@ -25,6 +30,7 @@ void sim_mob::Pavement::addObstacle(centimeter_t offset, const RoadItem* item, b
 		PrintOut("Fixing RoadItem offset: " <<offset <<" to: " <<length <<std::endl);
 		offset = length;
 	}
+
 	//Already something there?
 	if (obstacles.count(offset)>0) {
 		//For now we can't fix it.

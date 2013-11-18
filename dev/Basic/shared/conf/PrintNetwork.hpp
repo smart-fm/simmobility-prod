@@ -36,7 +36,7 @@ class LaneConnector;
 class PrintNetwork : private boost::noncopyable {
 public:
 	///Print the network output for a given Config file.
-	PrintNetwork(const ConfigParams& cfg, const std::string& outFileName);
+	PrintNetwork(ConfigParams& cfg, const std::string& outFileName);
 
 protected:
 	///Print the network to "LogOut", using the old network format.
@@ -55,6 +55,7 @@ private:
 	void LogLegacyCrossing(const sim_mob::Crossing* const cr) const;
 	void LogLegacyBusStop(const sim_mob::BusStop* const bs) const;
 	void LogLegacyLaneConnectors(const sim_mob::LaneConnector* const lc) const;
+	void LogIncidents() const;
 
 	///Helper function: Print to the output file AND to the GUI, if Interactive mode is on.
 	///Appends a newline to file output; no newline is appended to GUI output.
@@ -63,7 +64,7 @@ private:
 
 private:
 	//The config file we are currently printing.
-	const ConfigParams& cfg;
+	ConfigParams& cfg;
 
 	//Where we are printing it.
 	mutable std::ofstream out; //The const exists for the config file; the ostream is obviously mutable.

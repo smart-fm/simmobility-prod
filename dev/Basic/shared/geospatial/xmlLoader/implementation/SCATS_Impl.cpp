@@ -20,7 +20,7 @@ void sim_mob::xml::SCATS_t_pimpl::SplitPlan (sim_mob::SplitPlan& value)
 	model.SplitPlan = value;
 }
 
-sim_mob::xml::helper::SignalHelper::SCATS_Info sim_mob::xml::SCATS_t_pimpl::post_SCATS_t ()
+sim_mob::xml::helper::SignalHelper::SCATS_Info& sim_mob::xml::SCATS_t_pimpl::post_SCATS_t ()
 {
 	return model;
 }

@@ -27,7 +27,7 @@ namespace sim_mob {
  */
 ClientRegistrationFactory::ClientRegistrationFactory() {
 	//TODO: This might be superfluous; the static initializer already handles it.
-	sim_mob::Services::ClientTypeMap = boost::assign::map_list_of("ANDROID_EMULATOR", ConfigParams::ANDROID_EMULATOR)("ConfigParams::NS3_SIMULATOR", ConfigParams::NS3_SIMULATOR);
+//	sim_mob::Services::ClientTypeMap = boost::assign::map_list_of("ANDROID_EMULATOR", ConfigParams::ANDROID_EMULATOR)("ConfigParams::NS3_SIMULATOR", ConfigParams::NS3_SIMULATOR);
 
 }
 

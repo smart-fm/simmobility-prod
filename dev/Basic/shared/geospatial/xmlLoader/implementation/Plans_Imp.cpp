@@ -9,13 +9,15 @@ using namespace sim_mob::xml;
 
 void sim_mob::xml::Plans_t_pimpl::pre ()
 {
+	model = (std::vector<std::vector<double> >());
 }
 
-std::vector<std::vector<double> > sim_mob::xml::Plans_t_pimpl::post_Plans_t ()
+std::vector<std::vector<double> >& sim_mob::xml::Plans_t_pimpl::post_Plans_t ()
 {
-	return std::vector<std::vector<double> >();
+	return model;
 }
 
-void sim_mob::xml::Plans_t_pimpl::Plan ()
+void sim_mob::xml::Plans_t_pimpl::plan (std::pair<short,std::vector<double> > &value)
 {
+	model.push_back(value.second);
 }

@@ -487,6 +487,9 @@ void sim_mob::GridStreetDirectoryImpl::buildLookups(const vector<RoadSegment*>& 
 			}
     	}
 
+    	unsigned int id = (*segIt)->getSegmentAimsunId();
+    	segmentByAimsunID.insert(std::make_pair(id, (*segIt)));
+
 		//Save its obstacles
 		for (map<centimeter_t, const RoadItem*>::const_iterator riIt=(*segIt)->obstacles.begin(); riIt!=(*segIt)->obstacles.end(); riIt++) {
 			//Check if it's a crossing; check if we've already processed it; tag it.
@@ -511,7 +514,14 @@ void sim_mob::GridStreetDirectoryImpl::buildLookups(const vector<RoadSegment*>& 
 	}
 }
 
+const sim_mob::RoadSegment* sim_mob::GridStreetDirectoryImpl::getRoadSegment(const unsigned int id){
 
+	std::map<const unsigned int, const sim_mob::RoadSegment*>::iterator it = segmentByAimsunID.find(id);
+	if (it!=segmentByAimsunID.end()) {
+		return it->second;
+	}
+	return nullptr;
+}
 
 void sim_mob::GridStreetDirectoryImpl::partition(const RoadSegment& segment, bool isForward) {
     centimeter_t halfWidth = getWidth(segment) / 2;

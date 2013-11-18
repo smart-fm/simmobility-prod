@@ -7,6 +7,7 @@
 #include "conf/settings/DisableMPI.h"
 
 #include "entities/UpdateParams.hpp"
+#include "entities/models/LaneChangeModel.hpp"
 #include "geospatial/Lane.hpp"
 #include "util/DynamicVector.hpp"
 #include <boost/random.hpp>
@@ -25,11 +26,6 @@ class PackageUtils;
 class UnPackageUtils;
 #endif
 
-
-enum LANE_CHANGE_MODE {	//as a mask
-	DLC = 0,
-	MLC = 2
-};
 
 
 //Struct for holding data about the "nearest" vehicle.
@@ -102,6 +98,11 @@ struct DriverUpdateParams : public UpdateParams {
 	sim_mob::TrafficColor perceivedTrafficColor;
 	LANE_CHANGE_SIDE turningDirection;
 
+	TARGET_GAP targetGap;
+	bool isMLC;
+	LANE_CHANGE_MODE lastChangeMode;
+	LANE_CHANGE_SIDE lastDecision;
+
 	//Nearest vehicles in the current lane, and left/right (including fwd/back for each).
 	//Nearest vehicles' distances are initialized to threshold values.
 	bool isAlreadyStart;
@@ -117,8 +118,6 @@ struct DriverUpdateParams : public UpdateParams {
 	NearestVehicle nvLeftBack2;
 	NearestVehicle nvRightFwd2;
 	NearestVehicle nvRightBack2;
-
-
 
 	NearestPedestrian npedFwd;
 

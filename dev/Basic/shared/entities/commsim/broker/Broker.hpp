@@ -15,8 +15,9 @@
 #include "entities/commsim/message/base/MessageQueue.hpp"
 #include "entities/commsim/message/base/Handler.hpp"
 #include "entities/commsim/buffer/BufferContainer.hpp"
-#include "workers/Worker.hpp"
 #include "entities/commsim/broker/Broker-util.hpp"
+#include "util/OneTimeFlag.hpp"
+#include "workers/Worker.hpp"
 
 namespace sim_mob {
 
@@ -82,8 +83,8 @@ class Broker  : public sim_mob::Agent {
 private:
 	///	Is this Broker currently enabled?
 	bool enabled;
-	bool configured;
-	///	list of the registered agents and their corresponding communication equipment
+	OneTimeFlag configured_;
+	//	list of the registered agents and their corresponding communication equipment
 //	AgentsMap::type registeredAgents;
 	AgentsList REGISTERED_AGENTS;
 	///	waiting list for external clients willing to communication with simmobility

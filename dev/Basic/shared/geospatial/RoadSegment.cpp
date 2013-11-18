@@ -79,7 +79,20 @@ pair<int, const Lane*> sim_mob::RoadSegment::translateRawLaneID(unsigned int raw
 	throw std::runtime_error("Not yet defined.");
 }
 
+unsigned int sim_mob::RoadSegment::getSegmentAimsunId() const{
 
+	unsigned int originId = 0;
+
+	std::string aimsunId = originalDB_ID.getLogItem();
+	std::string segId = sim_mob::getNumberFromAimsunId(aimsunId);
+	try {
+		originId = boost::lexical_cast<int>(segId);
+	} catch( boost::bad_lexical_cast const& ) {
+		Print() << "Error: aimsun id string was not valid" << std::endl;
+	}
+
+	return originId;
+}
 
 void sim_mob::RoadSegment::specifyEdgePolylines(const vector< vector<Point2D> >& calcdPolylines)
 {
@@ -89,6 +102,23 @@ void sim_mob::RoadSegment::specifyEdgePolylines(const vector< vector<Point2D> >&
 	//TODO: Optionally reset this Segment's own polyline to laneEdge[0].
 }
 
+double sim_mob::RoadSegment::getLengthOfSegment()
+{
+	std::vector<sim_mob::Point2D> polypointsList = (this)->getLanes().at(0)->getPolyline();
+	double dis=0;
+	std::vector<sim_mob::Point2D>::iterator ite;
+	for ( std::vector<sim_mob::Point2D>::iterator it =  polypointsList.begin(); it != polypointsList.end(); ++it )
+	{
+		ite = it+1;
+		if ( ite != polypointsList.end() )
+		{
+			DynamicVector temp(it->getX(), it->getY(),ite->getX(), ite->getY());
+			dis += temp.getMagnitude();
+		}
+	}
+
+	return dis;
+}
 
 ///This function forces a rebuild of all Lane and LaneEdge polylines.
 ///There are two ways to calculate the polyline. First, if the parent RoadSegment's "laneEdgePolylines_cached"

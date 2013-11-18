@@ -15,6 +15,7 @@
 
 #include <stdexcept>
 #include <sstream>
+#include <vector>
 
 #include "conf/settings/DisableMPI.h"
 
@@ -111,6 +112,9 @@ public:
 	const sim_mob::RoadSegment* getSecondSegmentAhead();
 	const sim_mob::RoadSegment* getPrevSegment(bool inSameLink=true) const;
 	const sim_mob::RoadSegment* hasNextSegment(bool inSameLink) const;
+	std::vector<const sim_mob::RoadSegment*>::iterator getPathIterator();
+	std::vector<const sim_mob::RoadSegment*>::iterator getPathIteratorEnd();
+	std::vector<const sim_mob::RoadSegment*> getPath();
 	sim_mob::DynamicVector getCurrPolylineVector() const;
 	const sim_mob::Link* getCurrLink() const;
 	const sim_mob::Lane* getCurrLane() const;

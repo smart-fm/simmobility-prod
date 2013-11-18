@@ -14,12 +14,15 @@
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/BusController.hpp"
-#include "entities/FMODController/FMODController.hpp"
+#include "entities/fmodController/FMOD_Controller.hpp"
 #include "geospatial/Node.hpp"
+#include "geospatial/UniNode.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "geospatial/RoadItem.hpp"
+#include "geospatial/Incident.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/xmlLoader/geo10.hpp"
 #include "geospatial/xmlWriter/boostXmlWriter.hpp"
@@ -170,6 +173,9 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     //Start all "FMOD" entities.
     LoadFMOD_Controller();
 
+	//combine incident information to road network
+	verifyIncidents();
+
     //Initialize all BusControllers.
 	if(BusController::HasBusControllers()) {
 		BusController::InitializeAllControllers(active_agents, cfg.getPT_bus_dispatch_freq());
@@ -200,6 +206,52 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     }
 }
 
+void sim_mob::ExpandAndValidateConfigFile::verifyIncidents()
+{
+	std::vector<IncidentParams>& incidents = cfg.getIncidents();
+	const unsigned int baseGranMS = cfg.system.simulation.simStartTime.getValue();
+
+	for(std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt!=incidents.end(); incIt++){
+
+		const RoadSegment* roadSeg = StreetDirectory::instance().getRoadSegment((*incIt).segmentId);
+
+		if(roadSeg) {
+
+			Incident* item = new sim_mob::Incident();
+			item->accessibility = (*incIt).accessibility;
+			item->capFactor = (*incIt).capFactor;
+			item->compliance = (*incIt).compliance;
+			item->duration = (*incIt).duration;
+			item->incidentId = (*incIt).incidentId;
+			unsigned int laneId = item->laneId = (*incIt).laneId;
+			item->position = (*incIt).position;
+			item->segmentId = (*incIt).segmentId;
+			item->severity = (*incIt).severity;
+			item->speedlimit = (*incIt).speedLimit;
+			item->speedlimitOthers = (*incIt).speedLimitOthers;
+			item->startTime = (*incIt).startTime-baseGranMS;
+			item->visibilityDistance = (*incIt).visibilityDistance;
+
+			const std::vector<sim_mob::Lane*>& lanes = roadSeg->getLanes();
+			if(laneId<lanes.size()-1){
+				(*incIt).xLaneStartPos = lanes[laneId]->polyline_[0].getX();
+				(*incIt).yLaneStartPos = lanes[laneId]->polyline_[0].getY();
+				if(lanes[laneId]->polyline_.size()>0){
+					unsigned int sizePoly = lanes[laneId]->polyline_.size();
+					(*incIt).xLaneEndPos = lanes[laneId]->polyline_[sizePoly-1].getX();
+					(*incIt).yLaneEndPos = lanes[laneId]->polyline_[sizePoly-1].getY();
+				}
+			}
+
+			RoadSegment* rs = const_cast<RoadSegment*>(roadSeg);
+			float length = rs->getLengthOfSegment();
+			centimeter_t pos = length*item->position/100.0;
+			rs->addObstacle(pos, item);
+		}
+	}
+
+
+}
 
 void sim_mob::ExpandAndValidateConfigFile::CheckGranularities()
 {
@@ -290,9 +342,9 @@ void sim_mob::ExpandAndValidateConfigFile::WarnMidroadSidewalks()
 void sim_mob::ExpandAndValidateConfigFile::LoadFMOD_Controller()
 {
 	if (cfg.fmod.enabled) {
-		sim_mob::FMOD::FMODController::RegisterController(-1, cfg.mutexStategy());
-		sim_mob::FMOD::FMODController::Instance()->Settings(cfg.fmod.ipAddress, cfg.fmod.port, cfg.fmod.updateTimeMS, cfg.fmod.mapfile, cfg.fmod.blockingTimeSec);
-		sim_mob::FMOD::FMODController::Instance()->ConnectFMODService();
+		sim_mob::FMOD::FMOD_Controller::registerController(-1, cfg.mutexStategy());
+		sim_mob::FMOD::FMOD_Controller::instance()->settings(cfg.fmod.ipAddress, cfg.fmod.port, cfg.fmod.updateTimeMS, cfg.fmod.mapfile, cfg.fmod.blockingTimeSec);
+		sim_mob::FMOD::FMOD_Controller::instance()->connectFmodService();
 	}
 }
 
@@ -310,8 +362,8 @@ void sim_mob::ExpandAndValidateConfigFile::LoadAgentsInOrder(ConfigParams::Agent
 				GenerateAgentsFromTripChain(constraints);
 
 				//Initialize the FMOD controller now that all entities have been loaded.
-				if( sim_mob::FMOD::FMODController::InstanceExists() ) {
-					sim_mob::FMOD::FMODController::Instance()->Initialize();
+				if( sim_mob::FMOD::FMOD_Controller::instanceExists() ) {
+					sim_mob::FMOD::FMOD_Controller::instance()->initialize();
 				}
 				std::cout <<"Loaded Database Agents (from Trip Chains).\n";
 				break;
@@ -351,8 +403,8 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateAgentsFromTripChain(ConfigPar
 			addOrStashEntity(person, active_agents, pending_agents);
 		} else {
 			//insert to FMOD controller so that collection of requests
-			if (sim_mob::FMOD::FMODController::InstanceExists()) {
-				sim_mob::FMOD::FMODController::Instance()->InsertFMODItems(it_map->first, tc);
+			if (sim_mob::FMOD::FMOD_Controller::instanceExists()) {
+				sim_mob::FMOD::FMOD_Controller::instance()->insertFmodItems(it_map->first, tc);
 			} else {
 				Warn() <<"Skipping FMOD agent; FMOD controller is not active.\n";
 			}

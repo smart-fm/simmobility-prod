@@ -76,6 +76,20 @@
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
             </proc_map>
+            
+            <!-- The small Marina Bay network -->
+            <proc_map id="marina_bay" format="aimsun">
+                <mapping name="node" procedure="get_node_marina_bay()"/>
+                <mapping name="section" procedure="get_section_marina_bay()"/>
+                <mapping name="crossing" procedure="get_pedestrian_crossing_sg()"/>
+                <mapping name="lane" procedure=""/>
+                <mapping name="turning" procedure="get_lane_connector_marina_bay()"/>
+                <mapping name="polyline" procedure="get_section_polyline_marina_bay()"/>
+                <mapping name="tripchain" procedure="Not needed"/>
+                <mapping name="busstop" procedure=""/>
+                <mapping name="signal" procedure="get_traffic_signals_marina_bay()"/>
+                <mapping name="phase" procedure="get_lane_connector_phases_marina_bay()"/>
+            </proc_map>
 
             <!-- For testing purposes, if you want to control which signals are created, then use this proc_map to
                  disable the automatic signal creation via database lookup, and add entries in the top-level 
@@ -328,6 +342,12 @@
         <mapfile value="cityhall/cityhall.osm"/>
         <blockingTimeSec value="5"/>
     </fmodcontroller>
+        
+    <!-- incident definition{ incident id, visibilty distance(centrimetre), segment id, percentage position in segment, severity code, capacity factor, start time, duration(mintue), speed limit(kmph) lane id,  compliance weightage, information accessibilty-->
+    <incidentsData enabled="no">
+    	<incident id="1" visibility="5000" segment="40200" position="50" severity="1" cap_factor="1.0" start_time="08:30:40" duration="00:40:00" speed_limit="0" speed_limit_adjacentlanes="20" lane="0" compliance="50" accessibility="50" />
+    </incidentsData>
+    
     
     
     <!-- For buses (?) -->

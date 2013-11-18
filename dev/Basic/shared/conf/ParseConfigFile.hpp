@@ -49,6 +49,7 @@ private:
 	//void ProcessGeometryNode(xercesc::DOMElement* node);
 	void ProcessConstructsNode(xercesc::DOMElement* node);
 	void ProcessFMOD_Node(xercesc::DOMElement* node);
+	void ProcessIncidentsNode(xercesc::DOMElement* node);
 	void ProcessBusStopScheduledTimesNode(xercesc::DOMElement* node);
 	void ProcessDriversNode(xercesc::DOMElement* node);
 	void ProcessPedestriansNode(xercesc::DOMElement* node);

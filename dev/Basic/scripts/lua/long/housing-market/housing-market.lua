@@ -5,6 +5,45 @@
 --require "tests.classes"
 
 --[[****************************************************************************
+    OBJECTS INFORMATION
+******************************************************************************]]
+
+--[[
+    Household fields:
+        - id (long integer)                : Household identifier.
+        - lifestyleId (long integer)       : Lifestyle identifier.
+        - unitId (long integer)            : Unit identifier.
+        - ethnicityId (long integer)       : Ethnicity identifier.
+        - vehicleCategoryId (long integer) : Vehicle Category identifier.
+        - size (integer)                   : Number of individuals.
+        - children (integer)               : Number of children.
+        - income (real)                    : Montly income value.
+        - housingDuration (integer)        : Number of days living in the unit.
+        - workers (integer)                : Number of workers.
+        - ageOfHead (integer)              : Age of the hh head individual.
+
+    Unit fields:
+        - id (long integer)                : Household identifier.
+        - buildingId (long integer)        : Building identifier.
+        - typeId (long integer)            : Unit type identifier.
+        - postcodeId (long integer)        : Postcode identifier.
+        - tazId (long integer)             : TAZ identifier.
+        - floorArea (real)                 : Floor area.
+        - storey (integer)                 : Number of stories.
+        - rent (real)                      : Montly rent.
+        - location (Location)              : Location object with location
+            - latitude (real)              : Latitude value.
+            - longitude (real)             : Longitude value.
+
+     Entry fields:
+        - unit (Unit)                      : Unit object.
+        - hedonicPrice (real)              : Unit hedonic price.
+        - askingPrice (real)               : Unit asking price.
+        - unitId (long integer)            : Unit identifier.
+]]
+
+
+--[[****************************************************************************
     SELLER FUNCTIONS
 ******************************************************************************]]
 

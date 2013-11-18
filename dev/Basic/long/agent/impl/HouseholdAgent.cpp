@@ -32,8 +32,8 @@ HouseholdAgent::HouseholdAgent(HM_Model* model, Household* household,
         household(household) {
     seller = new HouseholdSellerRole(this);
     bidder = new HouseholdBidderRole(this);
-    seller->setActive(true);
-    bidder->setActive(true);
+    seller->setActive(false);
+    bidder->setActive(false);
 }
 
 HouseholdAgent::~HouseholdAgent() {
@@ -126,25 +126,17 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId,
 }
 
 void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args) {
+    PrintOut("Agent :" << getId() << " received an external event: " << 
+             args.getEvent().getType() << endl);
     switch(args.getEvent().getType()){
-        case ExternalEvent::LOST_JOB:{
-            PrintOut("LOST_JOB :" << args.getEvent().getDay() << endl);
-            break;
-        }
-        case ExternalEvent::NEW_CHILD:{
-            PrintOut("NEW_CHILD :" << args.getEvent().getDay() << endl);
-            break;
-        }
-        case ExternalEvent::NEW_JOB:{
-            PrintOut("NEW_JOB :" << args.getEvent().getDay() << endl);
-            break;
-        }
-        case ExternalEvent::NEW_JOB_LOCATION:{
-            PrintOut("NEW_JOB_LOCATION :" << args.getEvent().getDay() << endl);
-            break;
-        }
-        case ExternalEvent::NEW_SCHOOL_LOCATION:{
-            PrintOut("NEW_SCHOOL_LOCATION :" << args.getEvent().getDay() << endl);
+        case ExternalEvent::LOST_JOB:
+        case ExternalEvent::NEW_CHILD:
+        case ExternalEvent::NEW_JOB:
+        case ExternalEvent::NEW_JOB_LOCATION:
+        case ExternalEvent::NEW_SCHOOL_LOCATION:
+        {
+            seller->setActive(true);
+            bidder->setActive(true);
             break;
         }
         default:break;
@@ -158,8 +150,8 @@ void HouseholdAgent::onWorkerEnter() {
     MessageBus::SubscribeEvent(LTEID_EXT_LOST_JOB, this);
     MessageBus::SubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this);
     MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this);
-    MessageBus::SubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
-    MessageBus::SubscribeEvent(LTEID_HM_UNIT_REMOVED, market, this);
+    //MessageBus::SubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
+    //MessageBus::SubscribeEvent(LTEID_HM_UNIT_REMOVED, market, this);
 }
 
 void HouseholdAgent::onWorkerExit() {
@@ -168,8 +160,8 @@ void HouseholdAgent::onWorkerExit() {
     MessageBus::UnSubscribeEvent(LTEID_EXT_LOST_JOB, this);
     MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this);
     MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this);
-    MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
-    MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_REMOVED, market, this);
+    //MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
+    //MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_REMOVED, market, this);
 }
 
 void HouseholdAgent::HandleMessage(Message::MessageType type,

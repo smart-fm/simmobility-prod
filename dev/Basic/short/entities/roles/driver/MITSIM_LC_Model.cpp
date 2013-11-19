@@ -227,7 +227,6 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
     }
     double s = p.nvFwd.distance;
     const double satisfiedDistance = 2000;
-    const double minDistance = 10;
     if (s > satisfiedDistance) {
         return LCS_SAME; // space ahead is satisfying, stay in current lane
     }
@@ -279,12 +278,6 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 }
 
 int sim_mob::MITSIM_LC_Model::loadMLCKaziNosingModel(DriverUpdateParams &g) {
-    //  int n = gv.nElements() ;
-    //  if (n != 6) return error(gv.name());
-    //  kaziNosingParams_ = new float[n] ; // changed from "(n)" to "[n]" by Angus
-    //  for (int i = 0; i < n; i ++) {
-    //	kaziNosingParams_[i] = gv.element(i) ;
-    //  }
     return 0;
 }
 

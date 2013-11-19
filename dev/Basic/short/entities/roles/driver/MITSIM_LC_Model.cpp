@@ -75,8 +75,19 @@ namespace {
         1.0     //minimum time in lane
     };
 
-    //Helper struct
+    const double LC_GAP_MODELS[][9] = {
+        //	    scale  alpha   lambda   beta0   beta1   beta2   beta3   beta4   stddev
+        {1.00, 0.0, 0.000, 0.508, 0.000, 0.000, -0.420, 0.000, 0.488},
+        {1.00, 0.0, 0.000, 2.020, 0.000, 0.000, 0.153, 0.188, 0.526},
+        {1.00, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859},
+        {1.00, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073},
+        {0.60, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859}, //for test, courtesy merging
+        {0.60, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073}, //for test, courtesy merging
+        {0.20, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859}, //for test,forced merging
+        {0.20, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073}
+    }; //for test, forced merging
 
+    //Helper struct
     template <class T>
     struct LeadLag {
         T lead;
@@ -103,20 +114,9 @@ double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p, int type,	
 //
 //	double k=( type < 2 ) ? 1 : 5;
 //	return k*-dv_ * p.elapsedSeconds;
-
-	double lcGapModels_[][9] = {
-  //	    scale  alpha   lambda   beta0   beta1   beta2   beta3   beta4   stddev
-			{1.00 , 0.0 ,  0.000 ,  0.508 , 0.000 , 0.000 , -0.420 , 0.000 , 0.488},
-			{1.00 , 0.0 ,  0.000 ,  2.020 , 0.000 , 0.000 , 0.153 ,  0.188 , 0.526},
-			{1.00 , 0.0 ,  0.000 ,  0.384 , 0.000 , 0.000 , 0.000 ,  0.000 , 0.859},
-			{1.00 , 0.0 ,  0.000 ,  0.587 , 0.000 , 0.000 , 0.048 ,  0.356 , 1.073},
-			{0.60 , 0.0 ,  0.000 ,  0.384 , 0.000 , 0.000 , 0.000 ,  0.000 , 0.859}, //for test, courtesy merging
-			{0.60 , 0.0 ,  0.000 ,  0.587 , 0.000 , 0.000 , 0.048 ,  0.356 , 1.073},//for test, courtesy merging
-			{0.20 , 0.0 ,  0.000 ,  0.384 , 0.000 , 0.000 , 0.000 ,  0.000 , 0.859}, //for test,forced merging
-			{0.20 , 0.0 ,  0.000 ,  0.587 , 0.000 , 0.000 , 0.048 ,  0.356 , 1.073}};//for test, forced merging
-
-	  double *a = lcGapModels_[type] ;
-	  double *b = lcGapModels_[type] + 3 ; //beta0
+    
+	  const double *a = LC_GAP_MODELS[type] ;
+	  const double *b = LC_GAP_MODELS[type] + 3 ; //beta0
 	  double rem_dist_impact = (type < 3) ?
 		0.0 : (1.0 - 1.0 / (1 + exp(a[2] * dis)));
 	  double dvNegative = (dv < 0) ? dv : 0.0;

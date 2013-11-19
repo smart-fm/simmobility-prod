@@ -72,7 +72,7 @@ public:
 	virtual bool ifForcedMerging(DriverUpdateParams& p);
 	virtual sim_mob::LANE_CHANGE_SIDE makeCourtesyMerging(sim_mob::DriverUpdateParams& p);
 	virtual sim_mob::LANE_CHANGE_SIDE makeForcedMerging(sim_mob::DriverUpdateParams& p);
-	virtual sim_mob::TARGET_GAP* chooseTargetGap(sim_mob::DriverUpdateParams& p);
+	virtual void chooseTargetGap(sim_mob::DriverUpdateParams& p,std::vector<TARGET_GAP>& tg);
 
 };
 

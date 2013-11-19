@@ -252,7 +252,8 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 	}
 
 	//choose target gap, for both left and right
-	TARGET_GAP* tg = chooseTargetGap(p);
+	std::vector<TARGET_GAP> tg; tg.push_back(TG_Same);tg.push_back(TG_Same);
+	chooseTargetGap(p,tg);
 
 	//calculate the utility of both sides
 	double leftUtility = calcSideLaneUtility(p, true);
@@ -538,7 +539,7 @@ size_t getLaneIndex(const Lane* l) {
 }
 
 
-TARGET_GAP* sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
+void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p,std::vector<TARGET_GAP>& tg)
 {
 	double GapParam[][6] = {
 		  //const	   dis2gap  gap-size  gap-vel   dummy  vn
@@ -638,7 +639,7 @@ TARGET_GAP* sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	}
 	std::cout<<std::endl;*/
 
-	TARGET_GAP tg[] = {TG_Same,TG_Same};
+//	TARGET_GAP tg[] = {TG_Same,TG_Same};
 	double rnd = (double)(zero_to_max(p.gen)%1000)/1000;
 
 	if(rnd >= 0 && rnd < cdf[0][0]){
@@ -659,7 +660,7 @@ TARGET_GAP* sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 
 	//std::cout<<"target_gap="<<tg[0]<<" , "<<tg[1]<<std::endl;
 
-	return tg;
+//	return tg;
 }
 
 

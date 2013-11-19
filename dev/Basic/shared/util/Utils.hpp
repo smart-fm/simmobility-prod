@@ -83,6 +83,20 @@ namespace sim_mob {
             stream << data;
             return stream.str();
         }
+
+        /**
+         * Converts meter to feet.
+         * @param meter value to convert.
+         * @return value in feet.
+         */
+        static double toFeet(const double meter);
+
+        /**
+         * Converts feet to meter.
+         * @param feet value to convert.
+         * @return value in meter.
+         */
+        static double toMeter(const double feet);
     };
 
     /**

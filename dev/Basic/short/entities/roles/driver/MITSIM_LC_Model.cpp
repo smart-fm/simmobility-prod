@@ -24,64 +24,65 @@ using namespace sim_mob;
 
 
 namespace {
-//Random number generator
-//TODO: We need a policy on who can get a generator and why.
-//boost::mt19937 gen;
 
-//Declare MAX_NUM as a private variable here to limit its scope.
-const double MAX_NUM = numeric_limits<double>::max();
+    //Declare MAX_NUM as a private variable here to limit its scope.
+    const double MAX_NUM = numeric_limits<double>::max();
 
-///Simple struct to hold Gap Acceptance model parameters
-struct GapAcceptParam {
-	double scale;
-	double alpha;
-	double lambda;
-	double beta0;
-	double beta1;
-	double beta2;
-	double beta3;
-	double beta4;
-	double stddev;
-};
+    /**
+     * Simple struct to hold Gap Acceptance model parameters
+     */
+    struct GapAcceptParam {
+        double scale;
+        double alpha;
+        double lambda;
+        double beta0;
+        double beta1;
+        double beta2;
+        double beta3;
+        double beta4;
+        double stddev;
+    };
 
-///Simple struct to hold mandatory lane changing parameters
-struct MandLaneChgParam {
-	double feet_lowbound;
-	double feet_delta;
-	double lane_coeff;
-	double congest_coeff;
-	double lane_mintime;
-};
+    /**
+     * Simple struct to hold mandatory lane changing parameters
+     */
+    struct MandLaneChgParam {
+        double feet_lowbound;
+        double feet_delta;
+        double lane_coeff;
+        double congest_coeff;
+        double lane_mintime;
+    };
 
-struct AntiGap{
-	double gap;
-	double critial_gap;
-};
+    struct AntiGap {
+        double gap;
+        double critial_gap;
+    };
 
-const GapAcceptParam GA_PARAMETERS[4] = {
-//	      scale alpha lambda beta0  beta1  beta2  beta3  beta4  stddev
-		{ 1.00, 0.0, 0.000, 0.508, 0.000, 0.000,-0.420, 0.000, 0.488},	//Discretionary,lead
-		{ 1.00, 0.0, 0.000, 2.020, 0.000, 0.000, 0.153, 0.188, 0.526},	//Discretionary,lag
-		{ 1.00, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859},	//Mandatory,lead
-		{ 1.00, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073}	//Mandatory,lag
-};
+    const GapAcceptParam GA_PARAMETERS[4] = {
+        // scale alpha lambda beta0  beta1  beta2  beta3  beta4  stddev
+        { 1.00, 0.0, 0.000, 0.508, 0.000, 0.000, -0.420, 0.000, 0.488}, //Discretionary,lead
+        { 1.00, 0.0, 0.000, 2.020, 0.000, 0.000, 0.153, 0.188, 0.526}, //Discretionary,lag
+        { 1.00, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859}, //Mandatory,lead
+        { 1.00, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073} //Mandatory,lag
+    };
 
-const MandLaneChgParam MLC_PARAMETERS = {
-		1320.0,		//feet, lower bound
-	    5280.0,		//feet, delta
-		   0.5,		//coef for number of lanes
-		   1.0,		//coef for congestion level
-		   1.0		//minimum time in lane
-};
+    const MandLaneChgParam MLC_PARAMETERS = {
+        1320.0, //feet, lower bound
+        5280.0, //feet, delta
+        0.5,    //coef for number of lanes
+        1.0,    //coef for congestion level
+        1.0     //minimum time in lane
+    };
 
-//Helper struct
-template <class T>
-struct LeadLag {
-	T lead;
-	T lag;
-};
+    //Helper struct
 
-} //End anon namespace
+    template <class T>
+    struct LeadLag {
+        T lead;
+        T lag;
+    };
+}
 
 
 // Kazi's LC gap model (see Kazi's MS thesis)

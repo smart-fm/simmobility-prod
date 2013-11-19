@@ -331,37 +331,24 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(Dri
 }
 
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::executeNGSIMModel(DriverUpdateParams& p) {
-    bool isCourtesy; //if courtesy merging
-    bool isForced; // if forced merging
-    double anti_gap; //anticipated gap
-    double critical_anti_gap; //critical anticipated gap
-
-    isCourtesy = false;
-    isForced = false;
-    anti_gap = 0;
-    critical_anti_gap = 0;
-
+    bool isCourtesy = false; //if courtesy merging
+    bool isForced = false; // if forced merging
     int direction = p.nextLaneIndex - p.currLaneIndex;
-
     LANE_CHANGE_SIDE lcs = direction > 0 ? LCS_LEFT : LCS_RIGHT;
 
     //check if courtesy merging
     isCourtesy = ifCourtesyMerging(p);
-
     if (isCourtesy) {
         lcs = makeCourtesyMerging(p);
-        //std::cout<<"courtesy change:"<<lcs<<std::endl;
         return lcs;
     } else {
         //check if forced merging
         isForced = ifForcedMerging(p);
         if (isForced) {
             lcs = makeForcedMerging(p);
-            //std::cout<<"forced change:"<<lcs<<std::endl;
             return lcs;
         }
     }
-
     return LCS_SAME;
 }
 

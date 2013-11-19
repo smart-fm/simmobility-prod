@@ -297,27 +297,26 @@ double sim_mob::MITSIM_LC_Model::checkIfMandatory(DriverUpdateParams& p) {
 
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(DriverUpdateParams& p) {
     LaneSide freeLanes = gapAcceptance(p, MLC);
-
     //find which lane it should get to and choose which side to change
     //now manually set to 1, it should be replaced by target lane index
     //i am going to fix it.
     int direction = p.nextLaneIndex - p.currLaneIndex;
-    //direction = 0; //Otherwise drivers always merge.
-    //direction = 1;
     //current lane is target lane
-    //std::cout<<"Already MLC,"<<"Direction:"<<direction<<std::endl;
     if (direction == 0) {
         return LCS_SAME;
     }
 
     //current lane isn't target lane
-    if (freeLanes.right && direction < 0) { //target lane on the right and is accessable
+    if (freeLanes.right && direction < 0) { 
+        //target lane on the right and is accessible
         p.isWaiting = false;
         return LCS_RIGHT;
-    } else if (freeLanes.left && direction > 0) { //target lane on the left and is accessable
+    } else if (freeLanes.left && direction > 0) { 
+        //target lane on the left and is accessible
         p.isWaiting = false;
         return LCS_LEFT;
-    } else { //when target side isn't available,vehicle will decelerate to wait a proper gap.
+    } else { 
+        //when target side isn't available,vehicle will decelerate to wait a proper gap.
         p.isWaiting = true;
         return LCS_SAME;
     }
@@ -349,7 +348,7 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
     //[0:left,1:right]
     LeadLag<double> otherSpeed[2]; //the speed of the closest vehicle in adjacent lane
     LeadLag<double> otherDistance[2]; //the distance to the closest vehicle in adjacent lane
-    LeadLag<double> otherAcc[2]; //the acceleration of the closet vehicles in the adjant lane
+    LeadLag<double> otherAcc[2]; //the acceleration of the closet vehicles in the adjacent lane
 
     const Lane * adjacentLanes[2] = {p.leftLane, p.rightLane};
     const NearestVehicle * fwd;
@@ -459,10 +458,12 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeForcedMerging(DriverUpdateParams&
     }
 
     //current lane isn't target lane
-    if (freeLanes.right && direction < 0) { //target lane on the right and is accessable
+    if (freeLanes.right && direction < 0) { 
+        //target lane on the right and is accessible
         p.isWaiting = false;
         return LCS_RIGHT;
-    } else if (freeLanes.left && direction > 0) { //target lane on the left and is accessable
+    } else if (freeLanes.left && direction > 0) { 
+        //target lane on the left and is accessible
         p.isWaiting = false;
         return LCS_LEFT;
     } else {
@@ -486,7 +487,8 @@ size_t getLaneIndex(const Lane* l) {
     return -1; //NOTE: This might not do what you expect! ~Seth
 }
 
-void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p, std::vector<TARGET_GAP>& tg) {
+void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p, 
+        std::vector<TARGET_GAP>& tg) {
     const Lane * lane[2] = {p.leftLane, p.rightLane};
 
     //nearest vehicles

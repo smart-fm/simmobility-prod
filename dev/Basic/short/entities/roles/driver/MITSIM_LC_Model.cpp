@@ -299,7 +299,7 @@ double sim_mob::MITSIM_LC_Model::checkIfMandatory(DriverUpdateParams& p) {
     double dis = dis2stop_feet - MLC_PARAMETERS.feet_lowbound;
     double delta = 1.0 + MLC_PARAMETERS.lane_coeff * num + MLC_PARAMETERS.congest_coeff * y;
     delta *= MLC_PARAMETERS.feet_delta;
-    return exp(-dis * dis / (delta * delta));
+    return (delta == 0) ? 1 : exp(-dis * dis / (delta * delta));
 }
 
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(DriverUpdateParams& p) {

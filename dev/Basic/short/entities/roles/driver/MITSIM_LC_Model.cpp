@@ -57,7 +57,7 @@ struct AntiGap{
 	double critial_gap;
 };
 
-const GapAcceptParam GA_parameters[4] = {
+const GapAcceptParam GA_PARAMETERS[4] = {
 //	      scale alpha lambda beta0  beta1  beta2  beta3  beta4  stddev
 		{ 1.00, 0.0, 0.000, 0.508, 0.000, 0.000,-0.420, 0.000, 0.488},	//Discretionary,lead
 		{ 1.00, 0.0, 0.000, 2.020, 0.000, 0.000, 0.153, 0.188, 0.526},	//Discretionary,lag
@@ -65,7 +65,7 @@ const GapAcceptParam GA_parameters[4] = {
 		{ 1.00, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073}	//Mandatory,lag
 };
 
-const MandLaneChgParam MLC_parameters = {
+const MandLaneChgParam MLC_PARAMETERS = {
 		1320.0,		//feet, lower bound
 	    5280.0,		//feet, delta
 		   0.5,		//coef for number of lanes
@@ -313,9 +313,9 @@ double sim_mob::MITSIM_LC_Model::checkIfMandatory(DriverUpdateParams& p)
 	double y		=	0.5;	//segment density/jam density, now assume that it is 0.5
 	//double delta0	=	feet2Unit(MLC_parameters.feet_lowbound);
 	double dis2stop_feet = meter2Feet(p.dis2stop);
-	double dis		=	dis2stop_feet - MLC_parameters.feet_lowbound;
-	double delta	=	1.0 + MLC_parameters.lane_coeff * num + MLC_parameters.congest_coeff * y;
-	delta *= MLC_parameters.feet_delta;
+	double dis		=	dis2stop_feet - MLC_PARAMETERS.feet_lowbound;
+	double delta	=	1.0 + MLC_PARAMETERS.lane_coeff * num + MLC_PARAMETERS.congest_coeff * y;
+	delta *= MLC_PARAMETERS.feet_delta;
 	return exp(-dis * dis / (delta * delta));
 }
 

@@ -87,7 +87,7 @@ namespace {
         {0.20, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073}
     }; //for test, forced merging
 
-    double GAP_PARAM[][6] = {
+    const double GAP_PARAM[][6] = {
         //const	   dis2gap  gap-size  gap-vel   dummy  vn
         {-1.23, -0.482, 0.224, -0.0179, 2.10, 0.239}, //back
         {0.00, 0.00, 0.224, -0.0179, 2.10, 0.000}, //adj
@@ -413,12 +413,8 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
 
     //calculate critical gap for courtesy merging
     double critical_gap = exp(para[0] + para[1] * dv + para[3] * p.dis2stop / 100);
-
     bool courtesy = gap - critical_gap > 0 ? true : false;
-
-
     return courtesy;
-
 }
 
 bool sim_mob::MITSIM_LC_Model::ifForcedMerging(DriverUpdateParams& p) {

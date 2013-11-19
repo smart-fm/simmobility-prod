@@ -5,6 +5,7 @@
 #pragma once
 #include <vector>
 #include <boost/unordered_map.hpp>
+#include "PredayClasses.hpp"
 
 namespace sim_mob {
 namespace medium {
@@ -146,6 +147,46 @@ public:
 		this->drivingLicence = (int)hasDrivingLicence;
 	}
 
+	int getPersonId() const {
+		return personId;
+	}
+
+	void setPersonId(long personId) {
+		this->personId = personId;
+	}
+
+	int getHH_NumUnder15() const {
+		return hhNumUnder15;
+	}
+
+	void setHH_NumUnder15(int hhNumUnder15) {
+		this->hhNumUnder15 = hhNumUnder15;
+	}
+
+	int getHH_NumUnder4() const {
+		return hhNumUnder4;
+	}
+
+	void setHH_NumUnder4(int hhNumUnder4) {
+		this->hhNumUnder4 = hhNumUnder4;
+	}
+
+	int getHH_OnlyAdults() const {
+		return hhOnlyAdults;
+	}
+
+	void setHH_OnlyAdults(int hhOnlyAdults) {
+		this->hhOnlyAdults = hhOnlyAdults;
+	}
+
+	int getHH_OnlyWorkers() const {
+		return hhOnlyWorkers;
+	}
+
+	void setHH_OnlyWorkers(int hhOnlyWorkers) {
+		this->hhOnlyWorkers = hhOnlyWorkers;
+	}
+
 	/**
 	 * get the availability for a time window
 	 */
@@ -166,8 +207,8 @@ public:
 	 */
 	void blockTime(double startTime, double endTime);
 
-
 private:
+	long personId;
 	int personTypeId;
 	int ageId;
 	int isUniversityStudent;
@@ -183,6 +224,11 @@ private:
 	long fixedSchoolLocation;
 	int stopType;
 	int drivingLicence;
+
+	int hhOnlyAdults;
+	int hhOnlyWorkers;
+	int hhNumUnder4;
+	int hhNumUnder15;
 
 	/**
 	 * Time windows currently available for the person.

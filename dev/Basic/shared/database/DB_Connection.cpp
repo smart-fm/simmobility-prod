@@ -13,7 +13,7 @@
 #include "DB_Connection.hpp"
 #include "util/LangHelpers.hpp"
 #include "soci-postgresql.h"
-#include "mongo/client/dbclient.h"
+
 
 using namespace sim_mob::db;
 using std::string;
@@ -41,7 +41,7 @@ DB_Connection::DB_Connection(BackendType type, const DB_Config& config)
         }
         case MONGO_DB:
         {
-        	connectionStr = config.GetHost();
+        	connectionStr = config.getHost();
         	break;
         }
         default:break;

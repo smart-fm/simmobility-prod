@@ -9,12 +9,15 @@
  *      Author: Harish Loganathan
  */
 
+#pragma once
 #include <deque>
 #include <string>
 #include <vector>
 
 #include <boost/unordered_map.hpp>
 #include <boost/algorithm/string.hpp>
+
+#include "util/LangHelpers.hpp"
 
 namespace sim_mob {
 namespace medium {
@@ -197,7 +200,7 @@ private:
 class Tour {
 public:
 	Tour(StopType tourType)
-	: tourType(tourType), usualLocation(false), subTour(false), parentTour(), tourMode(""), primaryActivityLocation(0), startTime(0), endTime(0)
+	: tourType(tourType), usualLocation(false), subTour(false), parentTour(nullptr), tourMode(""), primaryActivityLocation(0), startTime(0), endTime(0)
 	{}
 
 	double getEndTime() const {
@@ -209,7 +212,7 @@ public:
 	}
 
 	const Tour& getParentTour() const {
-		return parentTour;
+		return *parentTour;
 	}
 
 	long getPrimaryActivityLocation() const {
@@ -276,7 +279,7 @@ private:
 	StopType tourType;
 	bool usualLocation;
 	bool subTour;
-	Tour& parentTour;
+	Tour* parentTour;
 	std::string tourMode;
 	long primaryActivityLocation;
 	double startTime;

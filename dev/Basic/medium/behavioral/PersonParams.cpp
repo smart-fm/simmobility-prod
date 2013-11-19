@@ -2,9 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-#pragma once
 #include "PersonParams.hpp"
-#include "PredayClasses.hpp"
 
 #include <boost/algorithm/string.hpp>
 

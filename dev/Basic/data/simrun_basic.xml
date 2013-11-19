@@ -158,7 +158,7 @@
 
             <!-- Preday demand -->   	
             <proc_map id="preday" format="long-term">
-                <mapping name="population" procedure="get_population()"/>
+                <mapping name="population" procedure="main.get_preday_person()"/>
 				<mapping name="landuse" procedure="get_landuse()"/>
             </proc_map>
         </db_proc_groups>

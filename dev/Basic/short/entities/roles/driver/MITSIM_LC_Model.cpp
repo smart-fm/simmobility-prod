@@ -98,49 +98,30 @@ namespace {
 
 // Kazi's LC gap model (see Kazi's MS thesis)
 // from mitsim TS_Parameter.cc line 617
-double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p, int type,	double dis, double spd, double dv)
-{
-	/*
-	[Kazi LC Gap Models] = {
-	% scale alpha lambda  beta0  beta1  beta2  beta3  beta4  sigma
-	% Discretionary (Lead and Lag)
-	  1.00  0.0   0.000   0.508  0.000  0.000 -0.420  0.000  0.488
-	  1.00  0.0   0.000   2.020  0.000  0.000  0.153  0.188  0.526
-	% Mandatory (Lead and Lag)
-	  1.00  0.0   0.000   0.384  0.000  0.000  0.000  0.000  0.859
-	  1.00  0.0   0.000   0.587  0.000  0.000  0.048  0.356  1.073
-	}
-	*/
-//
-//	double k=( type < 2 ) ? 1 : 5;
-//	return k*-dv_ * p.elapsedSeconds;
-    
-	  const double *a = LC_GAP_MODELS[type] ;
-	  const double *b = LC_GAP_MODELS[type] + 3 ; //beta0
-	  double rem_dist_impact = (type < 3) ?
-		0.0 : (1.0 - 1.0 / (1 + exp(a[2] * dis)));
-	  double dvNegative = (dv < 0) ? dv : 0.0;
-	  double dvPositive = (dv > 0) ? dv : 0.0;
-	  double gap = b[0] + b[1] * rem_dist_impact +
-	              b[2] * dv + b[3] * dvNegative + b[4] *  dvPositive;
 
-	  //boost::mt19937 gen;
-	  boost::normal_distribution<> nrand(0,b[5]);
+double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p, int type, double dis, double spd, double dv) {
+    const double *a = LC_GAP_MODELS[type];
+    const double *b = LC_GAP_MODELS[type] + 3; //beta0
+    double rem_dist_impact = (type < 3) ?
+            0.0 : (1.0 - 1.0 / (1 + exp(a[2] * dis)));
+    double dvNegative = (dv < 0) ? dv : 0.0;
+    double dvPositive = (dv > 0) ? dv : 0.0;
+    double gap = b[0] + b[1] * rem_dist_impact +
+            b[2] * dv + b[3] * dvNegative + b[4] * dvPositive;
 
-	  boost::variate_generator< boost::mt19937, boost::normal_distribution<> > normal(p.gen, nrand);
-
-	  //std::cout<<"normal rand="<<normal()<<std::endl;
-
-	  double u = gap + normal();
-
-	  double cri_gap ;
-
-	  if (u < -4.0) cri_gap = 0.0183 * a[0] ;      // exp(-4)=0.0183
-	  else if (u > 6.0) cri_gap = 403.4 * a[0] ;   // exp(6)=403.4
-	  else cri_gap = a[0] * exp(u) ;
-
-	  if (cri_gap < a[1]) return a[1] ;
-	  else return cri_gap ;
+    boost::normal_distribution<> nrand(0, b[5]);
+    boost::variate_generator< boost::mt19937, boost::normal_distribution<> > 
+        normal(p.gen, nrand);
+    double u = gap + normal();
+    double criGap = 0;
+    if (u < -4.0) {
+        criGap = 0.0183 * a[0]; // exp(-4)=0.0183
+    } else if (u > 6.0) {
+        criGap = 403.4 * a[0]; // exp(6)=403.4  
+    } else {
+        criGap = a[0] * exp(u);
+    }
+    return (criGap < a[1]) ? a[1] : criGap;
 }
 
 

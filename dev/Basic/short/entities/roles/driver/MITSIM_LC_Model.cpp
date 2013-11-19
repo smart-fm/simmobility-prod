@@ -17,6 +17,7 @@
 #include "entities/models/LaneChangeModel.hpp"
 #include "Driver.hpp"
 #include "geospatial/LaneConnector.hpp"
+#include "util/Utils.hpp"
 
 using std::numeric_limits;
 using namespace sim_mob;
@@ -79,16 +80,6 @@ struct LeadLag {
 	T lead;
 	T lag;
 };
-
-//Unit conversion
-double meter2Feet(double meter) {
-	return meter*3.2808399;
-}
-double feet2Meter(double feet) { //Note: This function is now in two locations.
-	return feet*0.3048;
-}
-
-
 
 } //End anon namespace
 
@@ -312,7 +303,7 @@ double sim_mob::MITSIM_LC_Model::checkIfMandatory(DriverUpdateParams& p)
 	double num		=	1;		//now we just assume that MLC only need to change to the adjacent lane
 	double y		=	0.5;	//segment density/jam density, now assume that it is 0.5
 	//double delta0	=	feet2Unit(MLC_parameters.feet_lowbound);
-	double dis2stop_feet = meter2Feet(p.dis2stop);
+	double dis2stop_feet = Utils::toFeet(p.dis2stop);
 	double dis		=	dis2stop_feet - MLC_PARAMETERS.feet_lowbound;
 	double delta	=	1.0 + MLC_PARAMETERS.lane_coeff * num + MLC_PARAMETERS.congest_coeff * y;
 	delta *= MLC_PARAMETERS.feet_delta;

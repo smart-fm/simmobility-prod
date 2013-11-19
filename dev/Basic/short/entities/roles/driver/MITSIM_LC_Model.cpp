@@ -99,7 +99,18 @@ namespace {
 // Kazi's LC gap model (see Kazi's MS thesis)
 // from mitsim TS_Parameter.cc line 617
 
-double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p, int type, double dis, double spd, double dv) {
+/**
+ * Kazi's LC gap model (see Kazi's MS thesis)
+ * 
+ * @param p
+ * @param type
+ * @param dis
+ * @param spd
+ * @param dv
+ * @return 
+ */
+double sim_mob::MITSIM_LC_Model::lcCriticalGap(const DriverUpdateParams& param, 
+        int type, double dis, double spd, double dv) {
     const double *a = LC_GAP_MODELS[type];
     const double *b = LC_GAP_MODELS[type] + 3; //beta0
     double rem_dist_impact = (type < 3) ?
@@ -110,8 +121,8 @@ double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p, int type, 
             b[2] * dv + b[3] * dvNegative + b[4] * dvPositive;
 
     boost::normal_distribution<> nrand(0, b[5]);
-    boost::variate_generator< boost::mt19937, boost::normal_distribution<> > 
-        normal(p.gen, nrand);
+    boost::variate_generator< boost::mt19937, boost::normal_distribution<> >
+            normal(param.gen, nrand);
     double u = gap + normal();
     double criGap = 0;
     if (u < -4.0) {
@@ -125,11 +136,14 @@ double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p, int type, 
 }
 
 
-LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p, int type)
+LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p, 
+        int type)
 {
 	//[0:left,1:right]
-	LeadLag<double> otherSpeed[2];		//the speed of the closest vehicle in adjacent lane
-	LeadLag<double> otherDistance[2];	//the distance to the closest vehicle in adjacent lane
+        //the speed of the closest vehicle in adjacent lane
+	LeadLag<double> otherSpeed[2];	
+        //the distance to the closest vehicle in adjacent lane	
+	LeadLag<double> otherDistance[2];
 
 	const Lane* adjacentLanes[2] = {p.leftLane, p.rightLane};
 	const NearestVehicle * fwd;

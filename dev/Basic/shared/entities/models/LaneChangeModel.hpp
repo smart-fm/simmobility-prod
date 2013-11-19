@@ -59,7 +59,7 @@ public:
 	///\param dis from critical pos
 	///\param spd spd of the follower
 	///\param dv spd difference from the leader));
-	virtual double lcCriticalGap(sim_mob::DriverUpdateParams& p, int type,	double dis, double spd, double dv);
+	virtual double lcCriticalGap(const sim_mob::DriverUpdateParams& p, int type,	double dis, double spd, double dv);
 	int loadMLCKaziNosingModel(DriverUpdateParams &g);
 	virtual sim_mob::LaneSide gapAcceptance(sim_mob::DriverUpdateParams& p, int type);
 	virtual double calcSideLaneUtility(sim_mob::DriverUpdateParams& p, bool isLeft);  ///<return utility of adjacent gap

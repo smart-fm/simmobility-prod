@@ -23,6 +23,22 @@ void ProcessUniNodeConnectors(const helper::Bookkeeping& book,std::set<sim_mob::
 	}
 }
 
+//Helper: Create LaneConnector entries for a single UniNode
+void ProcessUniNodeNewConnectors(const helper::Bookkeeping& book, sim_mob::UniNode* node, helper::Bookkeeping::UNNConnect new_connectors) {
+	for(helper::Bookkeeping::UNNConnect::iterator it = new_connectors.begin(); it!= new_connectors.end(); it ++) {
+		boost::tuple<unsigned long,unsigned long,unsigned long> laneIds = it->second;
+		boost::tuple<sim_mob::Lane*,sim_mob::Lane*,sim_mob::Lane*> lanePtrs;
+		/*lanePtrs.get<0> =*/ book.getLane(boost::get<0>(it->second));
+//		node->setNewConnectorAt(book.getLane(it->first), book.getLane(it->second));
+	}
+}
+//Helper: Create new LaneConnector entries for all UniNodes
+void ProcessUniNodeNewConnectors(const helper::Bookkeeping& book,std::set<sim_mob::UniNode*>& nodes) {
+	for(std::set<sim_mob::UniNode*>::iterator it = nodes.begin(); it!=nodes.end(); it ++) {
+		ProcessUniNodeNewConnectors(book, *it, book.getUniNodeNewLaneConnectorCache(*it));
+	}
+}
+
 //Helper: Create segment pairs entries for a single UniNode
 void ProcessUniNodeSegPairs(const helper::Bookkeeping& book, sim_mob::UniNode* node, helper::Bookkeeping::SegPair segPair) {
 	node->firstPair = std::make_pair(book.getSegment(segPair.first.first), book.getSegment(segPair.first.second));

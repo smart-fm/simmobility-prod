@@ -235,6 +235,7 @@ private:
 
 	//Due to a load cycle, we have to save these as integers.
 	std::set<std::pair<unsigned long,unsigned long> > connectors;
+	std::set <std::pair<unsigned long, boost::tuple<unsigned long,unsigned long,unsigned long> > > new_connectors;
 	std::pair<SegmentPair, SegmentPair> segmentPairs;
 
 	helper::Bookkeeping& book;

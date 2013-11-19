@@ -133,7 +133,8 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	LoadNetworkFromDatabase();
 
 	//TEMP: Test network output via boost.
-	BoostSaveXML("NetworkCopy.xml", cfg.getNetworkRW());
+	//todo: enable/disble through cinfig
+//	BoostSaveXML("NetworkCopy.xml", cfg.getNetworkRW());
 
 	//Detect sidewalks in the middle of the road.
 	WarnMidroadSidewalks();

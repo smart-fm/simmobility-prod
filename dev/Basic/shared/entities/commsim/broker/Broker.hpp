@@ -111,9 +111,9 @@ private:
 	///	internal controlling container
 	std::set<boost::shared_ptr<sim_mob::ConnectionHandler> > clientDoneChecker;
 	///	some control members(//todo: no need to be static as there can be multiple brokers with different requirements)
-	static const unsigned int MIN_CLIENTS = 1; //minimum number of registered clients(not waiting list)
-	static const unsigned int MIN_AGENTS = 1; //minimum number of registered agents
-	///	list of all brokers
+	static const unsigned int MIN_CLIENTS = 90; //minimum number of registered clients(not waiting list)
+	static const unsigned int MIN_AGENTS = 90; //minimum number of registered agents
+	//	list of all brokers
 	static std::map<std::string, sim_mob::Broker*> externalCommunicators;
 	///	used to help deciding whether Broker tick forward or block the simulation
 	bool brokerCanTickForward;
@@ -289,6 +289,7 @@ public:
 	 * 	request to insert into broker's send buffer
 	 */
 	bool insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler>, Json::Value&);
+	void preProcessMessage(boost::shared_ptr<ConnectionHandler> &cnnHandler,std::vector<sim_mob::comm::MsgPtr>  & messages, int firstMessageIndex, int lastMessageIndex, bool &clientMessageDone);
 	/**
 	 * 	callback function executed upon message arrival
 	 */

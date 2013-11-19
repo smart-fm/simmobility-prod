@@ -15,12 +15,14 @@
 #include <boost/multi_index/member.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/function.hpp>
+#include <boost/thread.hpp>
 //#include "entities/Agent.hpp"
 
 //structure of each data element in the storage
 
 namespace sim_mob
 {
+	const unsigned int MAX_THREAD_GROUP_SIZE = 20; //minimum number of registered agents
 //Forward Declaration
 class AgentCommUtilityBase;
 class Agent;
@@ -173,6 +175,27 @@ public:
 	bool setDone(Agent * agent , bool value);
 };
 
+//int NumberOfThreads_sum = 0;
+//int NumberOfThreads_cnt = 0;
+///////////////////////////////////////////////////////////////////////////
+template<class C,class Fn>
+void doByThread(C &container, Fn function_){
+	boost::thread_group threads;
+	int numberOfThreads = ( container.size() > /*MAX_THREAD_GROUP_SIZE ? MAX_THREAD_GROUP_SIZE*/ 20 ? 20 : container.size() );
+	int nofMsgsPerThread = container.size() / numberOfThreads;
+	for(int i = 0; i < numberOfThreads; i++)
+	{
+		int firstMessageIndex = nofMsgsPerThread * i;
+		int lastMessageIndex = nofMsgsPerThread * (i + 1);
+		//one small check for remaining messages that not going to be assigned if we use the above simple assignment formula
+		if(nofMsgsPerThread * (i + 2) > container.size()){
+			lastMessageIndex = container.size();
+		}
+
+		threads.create_thread(boost::bind(boost::ref(function_), firstMessageIndex,lastMessageIndex));
+	}
+	threads.join_all();
+}
 }//namespace sim_mob
 
 //

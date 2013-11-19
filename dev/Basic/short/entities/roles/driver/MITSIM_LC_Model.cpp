@@ -547,13 +547,6 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p,std::vector
 			{0.00   ,  0.00  ,  0.224 ,  -0.0179 , 2.10 , 0.000 },  //adj
 			{-0.772 , -0.482 ,  0.224 ,  -0.0179 , 2.10 , 0.675 }};	//fwd
 
-	double U_Left_Fwd;
-	double U_Left_Back;
-	double U_Left_Adj;
-	double U_Right_Fwd;
-	double U_Right_Back;
-	double U_Right_Adj;
-
 	const Lane* lane[2] = {p.leftLane, p.rightLane};
 
 	const Lane* rightLane	= p.rightLane;

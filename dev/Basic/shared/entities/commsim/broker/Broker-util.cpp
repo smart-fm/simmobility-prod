@@ -105,30 +105,6 @@ AgentsList::Mutex* sim_mob::AgentsList::getMutex()
 	return &mutex;
 }
 
-const AgentInfo& sim_mob::AgentsList::getAgentInfo(Agent * agent, bool &success)
-{
-	Lock lock(mutex);
-	success = false;
-	AgentsList::Agents &agents = data.get<agent_tag>();
-	AgentsList::Agents::iterator it;
-	if((it = agents.find(agent)) != agents.end()) {
-		success = true;
-	}
-	return 	*it;
-}
-
-
-const AgentInfo& sim_mob::AgentsList::getAgentInfo(AgentCommUtilityBase * comm, bool &success)
-{
-	Lock lock(mutex);
-	success = false;
-	AgentsList::AgentCommUtilities &comms = data.get<agent_util>();
-	AgentCommUtilities::iterator it;
-	if((it = comms.find(comm)) != comms.end()) {
-		success = true;
-	}
-	return 	*it;
-}
 
 /*******************************************************************
  * ********* VALID ************************************************

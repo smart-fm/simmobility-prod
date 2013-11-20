@@ -104,13 +104,6 @@ public:
 	//iterates safely through the valid agents executing the requested Function
 	void for_each_agent(boost::function<void(sim_mob::Agent*)> Fn);
 
-	//	given an agent's reference, returns a const version of a single element from the container.
-	const AgentInfo  &getAgentInfo(Agent * agent, bool &success);
-//	const AgentInfo  &getAgentInfo(const Agent * agent, bool &success)const;
-
-	//	given a reference to an agent's comm equipment, returns a const version of a single element from the container.
-	const AgentInfo  &getAgentInfo(AgentCommUtilityBase * comm, bool &success);
-
 	/*******************************************************************
 	 * ********* VALID ************************************************
 	 * ******************************************************************
@@ -175,33 +168,3 @@ public:
 };
 
 }//namespace sim_mob
-
-//
-//
-//int main()
-//{
-//	AgentsList<char> aa;
-//	Agent *a = new Agent(1);
-//	Agent *a1;
-//	AgentCommUtility<char> *b = new AgentCommUtility<char>('C');
-//	aa.insert(a , b, true);
-////	aa.erase(b);
-//	AgentsList<char>::type &aaa = aa.getAgents();
-////	if(aaa.begin() != aaa.end())
-////		std::cout << (*(aaa.begin()->b)).i << std::endl;
-////	bool success;
-////	const AgentsList<char>::AgentInfo ag = aa.getAgentInfo(a1, success);
-////	if(success)
-////	std::cout << ag.a->i << std::endl;
-////
-////	const AgentsList<char>::AgentInfo ag1 = aa.getAgentInfo(b, success);
-////	if(success)
-////	std::cout << ag1.a->i << std::endl;
-////
-////	std::cout << aa.Validate(a1) << std::endl;
-//	aa.setValid(b,false);
-//	std::cout << aa.Validate(b) << std::endl;
-//	aa.eraseInvalids();
-//	std::cout << aa.Validate(b) << std::endl;
-//
-//}

@@ -4015,10 +4015,10 @@ namespace sim_mob
       // pre ();
 
       virtual void
-      linkFrom (unsigned int);
+      LinkFrom (unsigned int);
 
       virtual void
-      linkTo (unsigned int);
+      LinkTo (unsigned int);
 
       virtual void
       SegmentFrom (unsigned int);
@@ -4035,7 +4035,7 @@ namespace sim_mob
       // Parser construction API.
       //
       void
-      linkFrom_parser (::xml_schema::unsigned_int_pskel&);
+      LinkFrom_parser (::xml_schema::unsigned_int_pskel&);
 
       void
       linkTo_parser (::xml_schema::unsigned_int_pskel&);
@@ -4050,8 +4050,8 @@ namespace sim_mob
       ColorSequence_parser (::sim_mob::xml::ColorSequence_t_pskel&);
 
       void
-      parsers (::xml_schema::unsigned_int_pskel& /* linkFrom */,
-               ::xml_schema::unsigned_int_pskel& /* linkTo */,
+      parsers (::xml_schema::unsigned_int_pskel& /* LinkFrom */,
+               ::xml_schema::unsigned_int_pskel& /* LinkTo */,
                ::xml_schema::unsigned_int_pskel& /* SegmentFrom */,
                ::xml_schema::unsigned_int_pskel& /* SegmentTo */,
                ::sim_mob::xml::ColorSequence_t_pskel& /* ColorSequence */);
@@ -4073,7 +4073,7 @@ namespace sim_mob
                          const ::xml_schema::ro_string&);
 
       protected:
-      ::xml_schema::unsigned_int_pskel* linkFrom_parser_;
+      ::xml_schema::unsigned_int_pskel* LinkFrom_parser_;
       ::xml_schema::unsigned_int_pskel* linkTo_parser_;
       ::xml_schema::unsigned_int_pskel* SegmentFrom_parser_;
       ::xml_schema::unsigned_int_pskel* SegmentTo_parser_;

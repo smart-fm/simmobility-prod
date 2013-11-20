@@ -2492,9 +2492,9 @@ namespace sim_mob
     //
 
     void links_map_t_pskel::
-    linkFrom_parser (::xml_schema::unsigned_int_pskel& p)
+    LinkFrom_parser (::xml_schema::unsigned_int_pskel& p)
     {
-      this->linkFrom_parser_ = &p;
+      this->LinkFrom_parser_ = &p;
     }
 
     void links_map_t_pskel::
@@ -2522,14 +2522,14 @@ namespace sim_mob
     }
 
     void links_map_t_pskel::
-    parsers (::xml_schema::unsigned_int_pskel& linkFrom,
-             ::xml_schema::unsigned_int_pskel& linkTo,
+    parsers (::xml_schema::unsigned_int_pskel& LinkFrom,
+             ::xml_schema::unsigned_int_pskel& LinkTo,
              ::xml_schema::unsigned_int_pskel& SegmentFrom,
              ::xml_schema::unsigned_int_pskel& SegmentTo,
              ::sim_mob::xml::ColorSequence_t_pskel& ColorSequence)
     {
-      this->linkFrom_parser_ = &linkFrom;
-      this->linkTo_parser_ = &linkTo;
+      this->LinkFrom_parser_ = &LinkFrom;
+      this->linkTo_parser_ = &LinkTo;
       this->SegmentFrom_parser_ = &SegmentFrom;
       this->SegmentTo_parser_ = &SegmentTo;
       this->ColorSequence_parser_ = &ColorSequence;
@@ -2537,7 +2537,7 @@ namespace sim_mob
 
     links_map_t_pskel::
     links_map_t_pskel ()
-    : linkFrom_parser_ (0),
+    : LinkFrom_parser_ (0),
       linkTo_parser_ (0),
       SegmentFrom_parser_ (0),
       SegmentTo_parser_ (0),
@@ -8891,12 +8891,12 @@ namespace sim_mob
     //
 
     void links_map_t_pskel::
-    linkFrom (unsigned int)
+    LinkFrom (unsigned int)
     {
     }
 
     void links_map_t_pskel::
-    linkTo (unsigned int)
+    LinkTo (unsigned int)
     {
     }
 
@@ -8925,17 +8925,17 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
         return true;
 
-      if (n == "linkFrom" && ns.empty ())
+      if (n == "LinkFrom" && ns.empty ())
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->linkFrom_parser_;
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->LinkFrom_parser_;
 
-        if (this->linkFrom_parser_)
-          this->linkFrom_parser_->pre ();
+        if (this->LinkFrom_parser_)
+          this->LinkFrom_parser_->pre ();
 
         return true;
       }
 
-      if (n == "linkTo" && ns.empty ())
+      if (n == "LinkTo" && ns.empty ())
       {
         this->::xml_schema::complex_content::context_.top ().parser_ = this->linkTo_parser_;
 
@@ -8985,18 +8985,18 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
         return true;
 
-      if (n == "linkFrom" && ns.empty ())
+      if (n == "LinkFrom" && ns.empty ())
       {
-        if (this->linkFrom_parser_)
-          this->linkFrom (this->linkFrom_parser_->post_unsigned_int ());
+        if (this->LinkFrom_parser_)
+          this->LinkFrom (this->LinkFrom_parser_->post_unsigned_int ());
 
         return true;
       }
 
-      if (n == "linkTo" && ns.empty ())
+      if (n == "LinkTo" && ns.empty ())
       {
         if (this->linkTo_parser_)
-          this->linkTo (this->linkTo_parser_->post_unsigned_int ());
+          this->LinkTo (this->linkTo_parser_->post_unsigned_int ());
 
         return true;
       }

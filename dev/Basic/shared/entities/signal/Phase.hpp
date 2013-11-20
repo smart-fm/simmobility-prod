@@ -120,6 +120,9 @@ public:
 	{
 		return phaseOffset ;
 	}
+	links_map & getlinksMap()const{
+		return linksMap;
+	}
 	links_map_equal_range LinkFrom_Range(sim_mob::Link *LinkFrom)
 	{
 		return linksMap.equal_range(LinkFrom);

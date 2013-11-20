@@ -20,26 +20,23 @@ namespace sim_mob {
         /**
          * Schemas
          */
+        const std::string DB_EMPTY_QUERY = "";
         const std::string DB_SCHEMA_EMPTY = "";
-        const std::string DB_SCHEMA_BASELINE_2001 = "baseline_2001.";
-        const std::string DB_SCHEMA_MAIN = "main.";
-        const std::string CURRENT_SCHEMA = DB_SCHEMA_MAIN;
+        const std::string MAIN_SCHEMA = "main.";
+        const std::string CALIBRATION_SCHEMA = "calibration.";
         const std::string LIMIT_10 = " limit 10";
         const std::string LIMIT = LIMIT_10;
 
         /**
          * Tables
          */
-        const std::string DB_TABLE_GLOBAL_PARAMS = APPLY_SCHEMA(CURRENT_SCHEMA, "global_params");
-        const std::string DB_TABLE_UNIT_TYPE = APPLY_SCHEMA(CURRENT_SCHEMA, "unit_type");
-        const std::string DB_TABLE_HOUSEHOLD = APPLY_SCHEMA(CURRENT_SCHEMA, "household");
-        const std::string DB_TABLE_BUILDING_TYPE = APPLY_SCHEMA(CURRENT_SCHEMA, "building_type");
-        const std::string DB_TABLE_BUILDING = APPLY_SCHEMA(CURRENT_SCHEMA, "building");
-        const std::string DB_TABLE_UNIT = APPLY_SCHEMA(CURRENT_SCHEMA, "unit");
-
-        // housing market
-        const std::string DB_TABLE_SELLER_PARAMS = APPLY_SCHEMA(CURRENT_SCHEMA, "hm_seller_params");
-        const std::string DB_TABLE_BIDDER_PARAMS = APPLY_SCHEMA(CURRENT_SCHEMA, "hm_bidder_params");
+        const std::string DB_TABLE_GLOBAL_PARAMS = APPLY_SCHEMA(MAIN_SCHEMA, "global_params");
+        const std::string DB_TABLE_UNIT_TYPE = APPLY_SCHEMA(MAIN_SCHEMA, "unit_type");
+        const std::string DB_TABLE_HOUSEHOLD = APPLY_SCHEMA(MAIN_SCHEMA, "household");
+        const std::string DB_TABLE_BUILDING_TYPE = APPLY_SCHEMA(MAIN_SCHEMA, "building_type");
+        const std::string DB_TABLE_BUILDING = APPLY_SCHEMA(MAIN_SCHEMA, "building");
+        const std::string DB_TABLE_UNIT = APPLY_SCHEMA(MAIN_SCHEMA, "unit");
+        const std::string DB_TABLE_HM_EVENT = APPLY_SCHEMA(CALIBRATION_SCHEMA, "hm_event");
 
         /**
          * Fields
@@ -77,20 +74,8 @@ namespace sim_mob {
         const std::string DB_FIELD_TAX_EXEMPT = "tax_exempt";
         const std::string DB_FIELD_NON_RESIDENTIAL_SQFT = "non_residential_sqft";
         const std::string DB_FIELD_SQFT_PER_UNIT = "sqft_per_unit";
-
         const std::string DB_FIELD_NAME = "name";
         const std::string DB_FIELD_TYPE = "type";
-        const std::string DB_FIELD_WEIGHT_UNIT_STOREY = "unit_storey_weight";
-        const std::string DB_FIELD_WEIGHT_UNIT_RENT = "unit_rent_weight";
-        const std::string DB_FIELD_WEIGHT_UNIT_AREA = "unit_area_weight";
-        const std::string DB_FIELD_WEIGHT_UNIT_TYPE = "unit_type_weight";
-        const std::string DB_FIELD_WEIGHT_HH_INCOME = "hh_income_weight";
-
-        // Housing market
-        const std::string DB_FIELD_WEIGHT_PRICE_QUALITY = "price_quality";
-        const std::string DB_FIELD_WEIGHT_URGENCY_TO_BUY = "urgency_to_buy";
-        const std::string DB_FIELD_WEIGHT_EXPECTED_EVENTS = "expected_events";
-        const std::string DB_FIELD_WEIGHT_PRICE_IMPORTANCE = "price_importance";
 
         /**
          * INSERT
@@ -104,10 +89,10 @@ namespace sim_mob {
                 + DB_FIELD_INCOME + ", "
                 + DB_FIELD_HOUSING_DURATION + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)";
 
-        const std::string DB_INSERT_UNIT_TYPE = ""; // not defined yet...
-        const std::string DB_INSERT_BUILDING_TYPE = ""; // not defined yet...
-        const std::string DB_INSERT_BUILDING = ""; // not defined yet...
-        const std::string DB_INSERT_UNIT = ""; // not defined yet...
+        const std::string DB_INSERT_UNIT_TYPE = DB_EMPTY_QUERY;
+        const std::string DB_INSERT_BUILDING_TYPE = DB_EMPTY_QUERY;
+        const std::string DB_INSERT_BUILDING = DB_EMPTY_QUERY; 
+        const std::string DB_INSERT_UNIT = DB_EMPTY_QUERY;
 
         /**
          * UPDATE
@@ -120,10 +105,10 @@ namespace sim_mob {
                 + DB_FIELD_INCOME + "= :v4, "
                 + DB_FIELD_HOUSING_DURATION + "= :v5 WHERE " + DB_FIELD_ID + "=:v6";
 
-        const std::string DB_UPDATE_UNIT_TYPE = ""; // not defined yet...
-        const std::string DB_UPDATE_BUILDING_TYPE = ""; // not defined yet...
-        const std::string DB_UPDATE_BUILDING = ""; // not defined yet...
-        const std::string DB_UPDATE_UNIT = ""; // not defined yet...
+        const std::string DB_UPDATE_UNIT_TYPE = DB_EMPTY_QUERY;
+        const std::string DB_UPDATE_BUILDING_TYPE = DB_EMPTY_QUERY;
+        const std::string DB_UPDATE_BUILDING = DB_EMPTY_QUERY;
+        const std::string DB_UPDATE_UNIT = DB_EMPTY_QUERY;
 
         /**
          * DELETE
@@ -144,7 +129,7 @@ namespace sim_mob {
         const std::string DB_GETALL_BUILDING_TYPE = "SELECT * FROM " + DB_TABLE_BUILDING_TYPE + " ORDER BY " + DB_FIELD_ID + LIMIT;
         const std::string DB_GETALL_BUILDING = "SELECT * FROM " + DB_TABLE_BUILDING + " ORDER BY " + DB_FIELD_ID + LIMIT;
         const std::string DB_GETALL_UNIT = "SELECT * FROM " + DB_TABLE_UNIT + " ORDER BY " + DB_FIELD_ID + LIMIT;
-
+      
         /**
          * GET BY ID
          */
@@ -154,20 +139,5 @@ namespace sim_mob {
         const std::string DB_GETBYID_BUILDING_TYPE = "SELECT * FROM " + DB_TABLE_BUILDING_TYPE + " WHERE " + DB_FIELD_ID + "=:id";
         const std::string DB_GETBYID_BUILDING = "SELECT * FROM " + DB_TABLE_BUILDING + " WHERE " + DB_FIELD_ID + "=:id";
         const std::string DB_GETBYID_UNIT = "SELECT * FROM " + DB_TABLE_UNIT + " WHERE " + DB_FIELD_ID + "=:id";
-
-
-
-        // HOUSING MARKET
-
-        const std::string DB_INSERT_SELLER_PARAMS = "";
-        const std::string DB_INSERT_BIDDER_PARAMS = "";
-        const std::string DB_UPDATE_SELLER_PARAMS = "";
-        const std::string DB_UPDATE_BIDDER_PARAMS = "";
-        const std::string DB_DELETE_SELLER_PARAMS = "DELETE FROM " + DB_TABLE_SELLER_PARAMS + " WHERE " + DB_FIELD_HOUSEHOLD_ID + "=:id";
-        const std::string DB_DELETE_BIDDER_PARAMS = "DELETE FROM " + DB_TABLE_BIDDER_PARAMS + " WHERE " + DB_FIELD_HOUSEHOLD_ID + "=:id";
-        const std::string DB_GETALL_SELLER_PARAMS = "SELECT * FROM " + DB_TABLE_SELLER_PARAMS;
-        const std::string DB_GETALL_BIDDER_PARAMS = "SELECT * FROM " + DB_TABLE_BIDDER_PARAMS;
-        const std::string DB_GETBYID_SELLER_PARAMS = "SELECT * FROM " + DB_TABLE_SELLER_PARAMS + " WHERE " + DB_FIELD_HOUSEHOLD_ID + "=:id";
-        const std::string DB_GETBYID_BIDDER_PARAMS = "SELECT * FROM " + DB_TABLE_BIDDER_PARAMS + " WHERE " + DB_FIELD_HOUSEHOLD_ID + "=:id";
     }
 }

@@ -12,13 +12,18 @@ void sim_mob::xml::linkAndCrossings_t_pimpl::pre ()
 	model.clear();
 }
 
-sim_mob::LinkAndCrossingC sim_mob::xml::linkAndCrossings_t_pimpl::post_linkAndCrossings_t ()
+sim_mob::LinkAndCrossingC& sim_mob::xml::linkAndCrossings_t_pimpl::post_linkAndCrossings_t ()
 {
 	return model;
 }
 
-void sim_mob::xml::linkAndCrossings_t_pimpl::linkAndCrossing (sim_mob::LinkAndCrossing value)
+void sim_mob::xml::linkAndCrossings_t_pimpl::linkAndCrossing (sim_mob::LinkAndCrossing& value)
 {
-	model.push_back(value);
+	if(!value.link){
+		std::ostringstream out ("");
+		out << "linkAndCrossings_t_pimpl::linkAndCrossing error" ;
+//		throw std::runtime_error(out.str());
+	}
+	model.insert(value);
 }
 

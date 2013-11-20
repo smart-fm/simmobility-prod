@@ -69,23 +69,38 @@ public:
 	}
 
     /**
-      * the setter and getter for the property 'speedLimit'
+      * the setter for the property 'speedLimitFactor'
       */
-	void setSpeedLimit(float value) {
-		speedLimit = value;
-	}
-	float getSpeedLimit() {
-		return speedLimit;
+	void setSpeedLimitFactor(float value) {
+		speedLimitFactor = value;
 	}
 
     /**
-      * the setter and getter for the property 'speedLimitOthers'
+      * the setter for the property 'speedLimitFactorOthers'
       */
-	void setSpeedLimitOthers(float value) {
-		speedLimitOthers = value;
+	void setSpeedLimitFactorOthers(float value) {
+		speedLimitFactorOthers = value;
 	}
+
+	/**
+	 * the setter for the property 'defaultSpeedLimit'
+	 */
+	void setDefaultSpeedLimit(float value) {
+		defaultSpeedLimit = value;
+	}
+
+	/**
+	 * the getter for speed limit in incident lane
+	 */
+	float getSpeedLimit() {
+		return speedLimitFactor*defaultSpeedLimit;
+	}
+
+	/**
+	 * the getter for speed limit in adjacent lane
+	 */
 	float getSpeedLimitOthers() {
-		return speedLimitOthers;
+		return speedLimitFactorOthers*defaultSpeedLimit;
 	}
 
     /**
@@ -151,10 +166,12 @@ public:
 private:
 	//record next lane index for lane changing model
 	int nextLaneIndex;
+	//default speed limit in current road segment
+	float defaultSpeedLimit;
 	//record speed limit defined in incident lane
-	float speedLimit;
+	float speedLimitFactor;
 	//record speed limit defined in adjacent lane to incident
-	float speedLimitOthers;
+	float speedLimitFactorOthers;
 	//record visibility distance within which driver can see the incident
 	float visibilityDist;
 	//record real distance to the incident at current time

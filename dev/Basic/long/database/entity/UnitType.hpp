@@ -19,7 +19,8 @@ namespace sim_mob {
 
         class UnitType {
         public:
-            UnitType(BigSerial id = INVALID_ID, std::string name = "", int type = 0);
+            UnitType(BigSerial id = INVALID_ID, const std::string& name = "", 
+                     int type = 0);
             virtual ~UnitType();
 
             /**
@@ -32,7 +33,7 @@ namespace sim_mob {
              * gets name of the type of the building.
              * @return id.
              */
-            std::string getName() const;
+            const std::string& getName() const;
 
             /**
              * gets the type that differentiates unit types.

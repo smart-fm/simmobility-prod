@@ -79,7 +79,20 @@ pair<int, const Lane*> sim_mob::RoadSegment::translateRawLaneID(unsigned int raw
 	throw std::runtime_error("Not yet defined.");
 }
 
+unsigned int sim_mob::RoadSegment::getSegmentAimsunId() const{
 
+	unsigned int originId = 0;
+
+	std::string aimsunId = originalDB_ID.getLogItem();
+	std::string segId = sim_mob::getNumberFromAimsunId(aimsunId);
+	try {
+		originId = boost::lexical_cast<int>(segId);
+	} catch( boost::bad_lexical_cast const& ) {
+		Print() << "Error: aimsun id string was not valid" << std::endl;
+	}
+
+	return originId;
+}
 
 void sim_mob::RoadSegment::specifyEdgePolylines(const vector< vector<Point2D> >& calcdPolylines)
 {

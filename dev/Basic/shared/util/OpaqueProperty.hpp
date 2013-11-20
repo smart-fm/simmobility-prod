@@ -36,8 +36,7 @@ public:
 		builder <<"\"" <<key <<"\"" <<":"
 				<<"\"" <<value <<"\"" <<",";
 		builder >>repr_;
-		//if(key.compare("aimsun-id")==0)
-			lastVal = value;
+		lastVal = value;
 	}
 
 	bool isSet() const {
@@ -49,11 +48,6 @@ public:
 	}
 
 	unsigned int getLastVal() {
-	/*	int start = repr_.find(":\"",0 );
-		start += 2;
-		int end = repr_.find("\"", start); // \\"aimsun-id\\":\\"48732\\",
-		std::string str = repr_.substr(start, end-start);
-		lastVal = boost::lexical_cast<unsigned int>(str);*/
 		return lastVal;
 	}
 

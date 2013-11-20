@@ -102,7 +102,7 @@ public:
 	}
 	sim_mob::Link* getLink(unsigned long id) const {
 		std::map<unsigned long, sim_mob::Link*>::const_iterator it = linkLookup.find(id);
-		if (it!=linkLookup.end()) {
+		if (it!=linkLookup.end() && it->second) {
 			return it->second;
 		}
 		throw std::runtime_error("No Link exists in bookkeeper with the requested id.");
@@ -114,7 +114,6 @@ public:
 //			std::cout << id << " ";
 //			throw std::runtime_error("Crossing already registered with bookkeeper.");
 //		}
-//		std::cout << " Crossing " << id << " added \n";
 		crossingLookup[id] = crossing;
 	}
 	sim_mob::Crossing* getCrossing(unsigned long id) const {

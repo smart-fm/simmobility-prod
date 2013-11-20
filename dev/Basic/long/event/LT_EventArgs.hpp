@@ -12,6 +12,8 @@
 #include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
 #include "database/entity/Bid.hpp"
+#include "database/entity/ExternalEvent.hpp"
+#include "Types.hpp"
 
 namespace sim_mob {
 
@@ -31,6 +33,21 @@ namespace sim_mob {
             BigSerial getUnitId()const;
         private:
             BigSerial unitId;
+        };
+        
+        DECLARE_CUSTOM_CALLBACK_TYPE(ExternalEventArgs)
+        class ExternalEventArgs : public sim_mob::event::EventArgs {
+        public:
+            ExternalEventArgs(const ExternalEvent& event);
+            ExternalEventArgs(const ExternalEventArgs& orig);
+            virtual ~ExternalEventArgs();
+
+            /**
+             * Getters 
+             */
+            const ExternalEvent& getEvent() const;
+        private:
+            ExternalEvent event;
         };
     }
 }

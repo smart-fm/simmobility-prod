@@ -28,6 +28,7 @@ void sim_mob::BoostSaveXML(const std::string& outFileName, const sim_mob::RoadNe
 	write.attr("xsi:schemaLocation", "http://www.smart.mit.edu/geo  ../shared/geospatial/xmlLoader/geo10.xsd");
 	write.endl();
 	write.prop("GeoSpatial", network);
+	write.prop("Signals", sim_mob::Signal::all_signals_, sim_mob::xml::namer("<Signal>"));
 	write.prop_end();
 
 }

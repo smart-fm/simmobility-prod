@@ -285,6 +285,15 @@ const sim_mob::Link* sim_mob::StreetDirectory::searchLink(const sim_mob::Node* s
 	return nullptr;
 }
 
+const sim_mob::RoadSegment* sim_mob::StreetDirectory::getRoadSegment(const unsigned int id){
+
+	if (!pimpl_) {
+	//	throw std::runtime_error("Can't call searchLink; StreetDirectory has not been initialized yet.");
+		return nullptr;
+	}
+
+	return pimpl_->getRoadSegment(id);
+}
 
 double sim_mob::StreetDirectory::GetShortestDistance(const Point2D& origin, const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4)
 {

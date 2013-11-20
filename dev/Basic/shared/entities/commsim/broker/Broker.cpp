@@ -435,7 +435,7 @@ Entity::UpdateStatus sim_mob::Broker::frame_tick(timeslice now)
 //todo consider scrabbing DriverComm
 bool sim_mob::Broker::allAgentUpdatesDone()
 {
-	return REGISTERED_AGENTS.hasNotDone();
+	return !REGISTERED_AGENTS.hasNotDone();
 
 	//TOOD: May want to re-enable later.
 
@@ -460,22 +460,6 @@ void sim_mob::Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::
 	}
 }
 
-//void sim_mob::Broker::AgentUpdated(Agent * target)
-//{
-//	Print() << "Inside AgentUpdated" << std::endl;
-//	Print() << "AgentUpdated:: setting[" << target->getId() << "] to.done" << std::endl;
-//	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
-//	if(REGISTERED_AGENTS.setDone(target,true))
-//	{
-//		Print() << "Agent[" << target->getId() << "] done" << std::endl;
-////		duplicateEntityDoneChecker.insert(target);
-//		COND_VAR_AGENT_DONE.notify_all();
-//	}
-//	else
-//	{
-//		Print() << "Thread[" << boost::this_thread::get_id() << "] Discarded Agent[" << target->getId() << "]" << std::endl;
-//	}
-//}
 
 void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums)
 {
@@ -787,16 +771,12 @@ bool sim_mob::Broker::wait()
 void sim_mob::Broker::waitForAgentsUpdates()
 {
 	int i = 0;
-//	boost::system_time const timeout=boost::get_system_time()+ boost::posix_time::seconds(1);
 
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
-//	refineSubscriptionList();
 	while(!allAgentUpdatesDone()) {
 		Print() << "waitForAgentsUpdates _WAIT" << std::endl;
-//		COND_VAR_AGENT_DONE.timed_wait(lock, timeout);
 		COND_VAR_AGENT_DONE.wait(lock);
 		Print() << "waitForAgentsUpdates _WAIT_released" << std::endl;
-//		refineSubscriptionList();
 	}
 }
 

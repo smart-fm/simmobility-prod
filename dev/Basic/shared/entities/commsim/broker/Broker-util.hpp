@@ -79,17 +79,17 @@ public:
 	//	function to insert into the container (only checkes the unqueness of agent)
 	void insert(Agent * a, AgentCommUtilityBase * b, bool valid = true);
 
-	//	erases an elment from the container given the agent's reference
-	void erase(Agent * agent);
-
 	//returns the size of the container
 	int size( ) ;
 
 	//returns if the container is empty
 	bool empty();
 
+	//	erases an elment from the container given the agent's reference
+	void erase(Agent * agent);
+
 	//	erases an elment from the container given its communication equipment
-	void erase(AgentCommUtilityBase * comm);
+	//void erase(AgentCommUtilityBase * comm);
 
 	//erase all elements whose value of 'valid' is set to false
 	void eraseInvalids();
@@ -119,7 +119,7 @@ public:
 	//if found and if valid, return 1
 	//if found and not valid, return 0
 	//if not found return -1
-	int Validate(AgentCommUtilityBase * comm);
+	//int Validate(AgentCommUtilityBase * comm);
 
 	//internal use only(for setting an element to valid/invalid) yep, it is hectic
 	struct change_valid
@@ -133,7 +133,7 @@ public:
 	};
 
 	//	sets valid value of an element in the container, give an agent's comm equipment
-	bool setValid(AgentCommUtilityBase * comm , bool value);
+	//bool setValid(AgentCommUtilityBase * comm , bool value);
 
 	//	sets valid value of an element in the container, give an agent
 	bool setValid(Agent * agent , bool value);
@@ -145,7 +145,7 @@ public:
 	bool isDone(Agent * agent);
 
 		//checks if an agent is done
-	bool isDone(AgentCommUtilityBase * comm);
+	//bool isDone(AgentCommUtilityBase * comm);
 
 	done_range getNotDone();
 
@@ -161,7 +161,7 @@ public:
 	};
 
 	//	sets Done value of an element in the container, give an agent's comm equipment
-	bool setDone(AgentCommUtilityBase * comm , bool value) ;
+	//bool setDone(AgentCommUtilityBase * comm , bool value) ;
 
 	//	sets Done value of an element in the container, give an agent
 	bool setDone(const Agent* agent , bool value);

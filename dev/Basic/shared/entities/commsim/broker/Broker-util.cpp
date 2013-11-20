@@ -38,12 +38,12 @@ void sim_mob::AgentsList::AgentsList::erase(Agent * agent)
 	agents.erase(agent);
 }
 
-void sim_mob::AgentsList::erase(AgentCommUtilityBase * comm)
+/*void sim_mob::AgentsList::erase(AgentCommUtilityBase * comm)
 {
 	Lock lock(mutex);
 	AgentCommUtilities &comms = data.get<agent_util>();
 	comms.erase(comm);
-}
+}*/
 
 void sim_mob::AgentsList::eraseInvalids()
 {
@@ -126,7 +126,7 @@ int sim_mob::AgentsList::Validate(Agent * agent)
 	return -1;
 }
 
-int sim_mob::AgentsList::Validate(AgentCommUtilityBase * comm)
+/*int sim_mob::AgentsList::Validate(AgentCommUtilityBase * comm)
 {
 	Lock lock(mutex);
 	AgentCommUtilities &comms = data.get<agent_util>();
@@ -139,7 +139,7 @@ int sim_mob::AgentsList::Validate(AgentCommUtilityBase * comm)
 		}
 	}
 	return -1;
-}
+}*/
 
 
 sim_mob::AgentsList::change_valid::change_valid(bool new_value):new_value(new_value)
@@ -151,7 +151,7 @@ void sim_mob::AgentsList::change_valid::operator()(AgentInfo& e)
 	 e.valid=new_value;
 }
 
-bool sim_mob::AgentsList::setValid(AgentCommUtilityBase * comm , bool value)
+/*bool sim_mob::AgentsList::setValid(AgentCommUtilityBase * comm , bool value)
 {
 	Lock lock(mutex);
 	bool success = false;
@@ -161,7 +161,7 @@ bool sim_mob::AgentsList::setValid(AgentCommUtilityBase * comm , bool value)
 		comms.modify(it,change_valid(value));
 	}
 	return -1;
-}
+}*/
 
 bool sim_mob::AgentsList::setValid(Agent * agent , bool value)
 {
@@ -192,7 +192,7 @@ bool sim_mob::AgentsList::isDone(Agent * agent)
 	return false;
 }
 
-bool sim_mob::AgentsList::isDone(AgentCommUtilityBase * comm)
+/*bool sim_mob::AgentsList::isDone(AgentCommUtilityBase * comm)
 {
 	Lock lock(mutex);
 	AgentCommUtilities &comms = data.get<agent_util>();
@@ -203,7 +203,7 @@ bool sim_mob::AgentsList::isDone(AgentCommUtilityBase * comm)
 		}
 	}
 	return false;
-}
+}*/
 
 AgentsList::done_range sim_mob::AgentsList::getNotDone()
 {
@@ -223,7 +223,7 @@ void sim_mob::AgentsList::change_done::operator()(AgentInfo& e)
 	e.done=new_value;
 }
 
-bool sim_mob::AgentsList::setDone(AgentCommUtilityBase * comm , bool value)
+/*bool sim_mob::AgentsList::setDone(AgentCommUtilityBase * comm , bool value)
 {
 	Lock lock(mutex);
 	bool success = false;
@@ -234,7 +234,7 @@ bool sim_mob::AgentsList::setDone(AgentCommUtilityBase * comm , bool value)
 		return true;
 	}
 	return false;
-}
+}*/
 
 bool sim_mob::AgentsList::setDone(const Agent* agent , bool value)
 {

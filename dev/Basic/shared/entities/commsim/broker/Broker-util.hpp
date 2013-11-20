@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <map>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
@@ -36,16 +37,20 @@ public:
 
 
 //helper tags used in multi_index_container
-struct agent_tag{};
+/*struct agent_tag{};
 struct agent_util{};
 struct agent_valid{};
-struct agent_done{};
+struct agent_done{};*/
 
 class AgentsList {
 public:
+	//easy reading only
+	typedef typename std::map<const sim_mob::Agent*, AgentInfo> type;//this one is for public use
+	//typedef typename type::iterator iterator;
+
 private:
 	//main definition of the container
-	typedef boost::multi_index_container<
+	/*typedef boost::multi_index_container<
 			AgentInfo, boost::multi_index::indexed_by<
 			boost::multi_index::random_access<>//0
 		,boost::multi_index::hashed_unique<boost::multi_index::tag<agent_tag>,boost::multi_index::member<AgentInfo, Agent *, &AgentInfo::agent> >//1
@@ -53,23 +58,20 @@ private:
 		,boost::multi_index::hashed_non_unique<boost::multi_index::tag<agent_valid>,boost::multi_index::member<AgentInfo, bool, &AgentInfo::valid> >//3
 		,boost::multi_index::hashed_non_unique<boost::multi_index::tag<agent_done>,boost::multi_index::member<AgentInfo, bool, &AgentInfo::done> >//4
 		>
-	> ContainerType;
+	> ContainerType;*/
 
 	//the main storage
-	ContainerType data;
+	type data;
 
 	//easy reading only
-	typedef typename boost::multi_index::nth_index<ContainerType, 1>::type Agents;
+	/*typedef typename boost::multi_index::nth_index<ContainerType, 1>::type Agents;
 	typedef typename boost::multi_index::nth_index<ContainerType, 2>::type AgentCommUtilities;
 	typedef typename boost::multi_index::nth_index<ContainerType, 3>::type Valids;
-	typedef typename boost::multi_index::nth_index<ContainerType, 4>::type Dones;
+	typedef typename boost::multi_index::nth_index<ContainerType, 4>::type Dones;*/
 
 public:
-	//easy reading only
-	typedef typename boost::multi_index::nth_index<ContainerType, 0>::type type;//this one is for public use
-	typedef typename type::iterator iterator;
-	typedef std::pair<Valids::iterator, Valids::iterator> valid_range;
-	typedef std::pair<Dones::iterator, Dones::iterator> done_range;
+	//typedef std::pair<Valids::iterator, Valids::iterator> valid_range;
+	//typedef std::pair<Dones::iterator, Dones::iterator> done_range;
 	//the mutex used for this class
 	typedef typename  boost::recursive_mutex Mutex;
 	typedef typename boost::unique_lock<Mutex> Lock;
@@ -136,7 +138,7 @@ public:
 	//bool setValid(AgentCommUtilityBase * comm , bool value);
 
 	//	sets valid value of an element in the container, give an agent
-	bool setValid(Agent * agent , bool value);
+	void setValid(Agent * agent , bool value);
 	/*******************************************************************
 	 * ********* Done ************************************************
 	 * ******************************************************************
@@ -147,7 +149,9 @@ public:
 		//checks if an agent is done
 	//bool isDone(AgentCommUtilityBase * comm);
 
-	done_range getNotDone();
+	//done_range getNotDone();
+
+	bool hasNotDone() const;
 
 	//internal use only(for setting an element to valid/invalid) yep, it is hectic
 	struct change_done

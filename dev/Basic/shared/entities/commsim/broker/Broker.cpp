@@ -435,7 +435,11 @@ Entity::UpdateStatus sim_mob::Broker::frame_tick(timeslice now)
 //todo consider scrabbing DriverComm
 bool sim_mob::Broker::allAgentUpdatesDone()
 {
-	AgentsList::done_range its = REGISTERED_AGENTS.getNotDone();
+	return REGISTERED_AGENTS.hasNotDone();
+
+	//TOOD: May want to re-enable later.
+
+	/*AgentsList::done_range its = REGISTERED_AGENTS.getNotDone();
 	bool res = its.first == its.second;
 	if(!res) {
 		Print() << "allAgentUpdatesDone not done : " <<  std::endl;
@@ -444,7 +448,7 @@ bool sim_mob::Broker::allAgentUpdatesDone()
 			Print() << "Not Done: [" << its.first->agent->getId() << "]" << std::endl;
 		}
 	}
-	return res;
+	return res;*/
 }
 
 void sim_mob::Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums)

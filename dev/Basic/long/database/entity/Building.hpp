@@ -88,23 +88,8 @@ namespace sim_mob {
             /**
              * Operator to print the Building data.  
              */
-            friend std::ostream& operator<<(std::ostream& strm, const Building& data) {
-                return strm << "{"
-                        << "\"id\":\"" << data.id << "\","
-                        << "\"typeId\":\"" << data.typeId << "\","
-                        << "\"parcelId\":\"" << data.parcelId << "\","
-                        << "\"builtYear\":\"" << data.builtYear << "\","
-                        << "\"floorArea\":\"" << data.floorArea << "\","
-                        << "\"storeys\":\"" << data.storeys << "\","
-                        << "\"parkingSpaces\":\"" << data.parkingSpaces << "\","
-                        << "\"residentialUnits\":\"" << data.residentialUnits << "\","
-                        << "\"landArea\":\"" << data.landArea << "\","
-                        << "\"improvementValue\":\"" << data.improvementValue << "\","
-                        << "\"taxExempt\":\"" << data.taxExempt << "\","
-                        << "\"nonResidentialSqft\":\"" << data.nonResidentialSqft << "\","
-                        << "\"sqftPerUnit\":\"" << data.sqftPerUnit << "\""
-                        << "}";
-            }
+            friend std::ostream& operator<<(std::ostream& strm, 
+                const Building& data);
 
         private:
             friend class BuildingDao;

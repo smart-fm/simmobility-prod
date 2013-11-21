@@ -12,11 +12,9 @@
 #include "DaoTests.hpp"
 #include <typeinfo>
 #include <string>
-#include "database/dao/UnitTypeDao.hpp"
 #include "database/dao/HouseholdDao.hpp"
 #include "database/dao/BuildingDao.hpp"
 #include "database/dao/UnitDao.hpp"
-#include "database/dao/BuildingTypeDao.hpp"
 
 
 using namespace sim_mob::db;
@@ -56,9 +54,7 @@ void TestDao() {
 }
 
 void DaoTests::testAll() {
-    TestDao<UnitTypeDao, UnitType>();
     TestDao<HouseholdDao, Household>();
     TestDao<BuildingDao, Building>();
     TestDao<UnitDao, Unit>();
-    TestDao<BuildingTypeDao, BuildingType>();
 }

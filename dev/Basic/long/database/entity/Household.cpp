@@ -123,3 +123,24 @@ void Household::setId(BigSerial id) {
 BigSerial Household::getId() const {
     return id;
 }
+
+namespace sim_mob {
+    namespace long_term {
+
+        std::ostream& operator<<(std::ostream& strm, const Household& data) {
+            return strm << "{"
+                    << "\"id\":\"" << data.id << "\","
+                    << "\"lifestyleId\":\"" << data.lifestyleId << "\","
+                    << "\"unitId\":\"" << data.unitId << "\","
+                    << "\"ethnicityId\":\"" << data.ethnicityId << "\","
+                    << "\"vehicleCategoryId\":\"" << data.vehicleCategoryId << "\","
+                    << "\"size\":\"" << data.size << "\","
+                    << "\"children\":\"" << data.children << "\","
+                    << "\"income\":\"" << data.income << "\","
+                    << "\"housingDuration\":\"" << data.housingDuration << "\","
+                    << "\"workers\":\"" << data.workers << "\","
+                    << "\"ageOfHead\":\"" << data.ageOfHead << "\""
+                    << "}";
+        }
+    }
+}

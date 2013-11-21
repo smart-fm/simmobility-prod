@@ -49,21 +49,8 @@ namespace sim_mob {
             /**
              * Operator to print the Household data.  
              */
-            friend std::ostream& operator<<(std::ostream& strm, const Household& data) {
-                return strm << "{"
-                        << "\"id\":\"" << data.id << "\","
-                        << "\"lifestyleId\":\"" << data.lifestyleId << "\","
-                        << "\"unitId\":\"" << data.unitId << "\","
-                        << "\"ethnicityId\":\"" << data.ethnicityId << "\","
-                        << "\"vehicleCategoryId\":\"" << data.vehicleCategoryId << "\","
-                        << "\"size\":\"" << data.size << "\","
-                        << "\"children\":\"" << data.children << "\","
-                        << "\"income\":\"" << data.income << "\","
-                        << "\"housingDuration\":\"" << data.housingDuration << "\","
-                        << "\"workers\":\"" << data.workers << "\","
-                        << "\"ageOfHead\":\"" << data.ageOfHead << "\""
-                        << "}";
-            }
+            friend std::ostream& operator<<(std::ostream& strm, 
+                const Household& data);
 
         private:
             friend class HouseholdDao;

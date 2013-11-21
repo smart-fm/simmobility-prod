@@ -13,7 +13,7 @@ void sim_mob::xml::links_map_t_pimpl::pre ()
 	  ll.LinkTo = 0;
 	  ll.RS_From = 0;
 	  ll.RS_To = 0;
-	  linkFrom_ = 0;
+	  LinkFrom_ = 0;
 }
 
 std::pair<sim_mob::Link*,sim_mob::linkToLink>& sim_mob::xml::links_map_t_pimpl::post_links_map_t ()
@@ -23,12 +23,12 @@ std::pair<sim_mob::Link*,sim_mob::linkToLink>& sim_mob::xml::links_map_t_pimpl::
     return model;
 }
 
-void sim_mob::xml::links_map_t_pimpl::linkFrom (unsigned int value)
+void sim_mob::xml::links_map_t_pimpl::LinkFrom (unsigned int value)
 {
 	model.first = book.getLink(value);
 }
 
-void sim_mob::xml::links_map_t_pimpl::linkTo (unsigned int value)
+void sim_mob::xml::links_map_t_pimpl::LinkTo (unsigned int value)
 {
 	ll.LinkTo = book.getLink(value);
 }

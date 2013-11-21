@@ -2437,7 +2437,7 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 				p.trafficColor = sim_mob::Red;
 				break;
 		default:
-			Warn() <<"Unknown signal color.\n";
+			Warn() <<"Unknown signal color[" << color << "]\n";
 			break;
 		}
 

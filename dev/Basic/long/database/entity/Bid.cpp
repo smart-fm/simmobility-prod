@@ -61,3 +61,17 @@ const timeslice& Bid::getTime() const {
 LT_Agent* Bid::getBidder() const{
     return bidder;
 }
+
+namespace sim_mob {
+    namespace long_term {
+
+        std::ostream& operator<<(std::ostream& strm, const Bid& data) {
+            return strm << "{"
+                    << "\"unitId\":\"" << data.unitId << "\","
+                    << "\"bidderId\":\"" << data.bidderId << "\","
+                    << "\"value\":\"" << data.value << "\","
+                    << "\"day\":\"" << data.time.ms() << "\""
+                    << "}";
+        }
+    }
+}

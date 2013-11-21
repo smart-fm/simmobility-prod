@@ -87,3 +87,23 @@ double Unit::getRent() const {
 const LatLngLocation& Unit::getLocation() const {
     return location;
 }
+
+namespace sim_mob {
+    namespace long_term {
+
+        std::ostream& operator<<(std::ostream& strm, const Unit& data) {
+            return strm << "{"
+                    << "\"id\":\"" << data.id << "\","
+                    << "\"buildingId\":\"" << data.buildingId << "\","
+                    << "\"typeId\":\"" << data.typeId << "\","
+                    << "\"postcodeId\":\"" << data.postcodeId << "\","
+                    << "\"tazId\":\"" << data.tazId << "\","
+                    << "\"floorArea\":\"" << data.floorArea << "\","
+                    << "\"storey\":\"" << data.storey << "\","
+                    << "\"rent\":\"" << data.rent << "\","
+                    << "\"latitude\":\"" << data.location.latitude << "\","
+                    << "\"longitude\":\"" << data.location.longitude << "\""
+                    << "}";
+        }
+    }
+}

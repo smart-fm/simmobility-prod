@@ -58,20 +58,8 @@ namespace sim_mob {
             /**
              * Operator to print the Unit data.  
              */
-            friend std::ostream& operator<<(std::ostream& strm, const Unit& data) {
-                return strm << "{"
-                        << "\"id\":\"" << data.id << "\","
-                        << "\"buildingId\":\"" << data.buildingId << "\","
-                        << "\"typeId\":\"" << data.typeId << "\","
-                        << "\"postcodeId\":\"" << data.postcodeId << "\","
-                        << "\"tazId\":\"" << data.tazId << "\","
-                        << "\"floorArea\":\"" << data.floorArea << "\","
-                        << "\"storey\":\"" << data.storey << "\","
-                        << "\"rent\":\"" << data.rent << "\","
-                        << "\"latitude\":\"" << data.location.latitude << "\","
-                        << "\"longitude\":\"" << data.location.longitude << "\""
-                        << "}";
-            }
+            friend std::ostream& operator<<(std::ostream& strm, 
+                const Unit& data);
         private:
             friend class UnitDao;
             

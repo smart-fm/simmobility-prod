@@ -11,7 +11,6 @@
 
 #include "Math.hpp"
 #include <cmath>
-#include <stdio.h>
 
 using namespace sim_mob;
 typedef double (*InternalFunction)(Math::Function func, double x,

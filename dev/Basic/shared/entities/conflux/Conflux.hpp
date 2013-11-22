@@ -8,6 +8,7 @@
 
 #include "entities/Agent.hpp"
 #include "entities/signal/Signal.hpp"
+#include "boost/thread/shared_mutex.hpp"
 
 namespace sim_mob {
 
@@ -94,6 +95,11 @@ private:
 	 * this map stores (length-of-B+length-of-C) against A
 	 */
 	std::map<const sim_mob::RoadSegment*, double> lengthsOfSegmentsAhead;
+
+	/**
+	 * provide virtual queue protection
+	 */
+	boost::recursive_mutex mutexOfVirtualQueue;
 
 	/**
 	 * For each downstream link, this map stores the number of persons that can be

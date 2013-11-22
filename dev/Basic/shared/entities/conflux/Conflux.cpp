@@ -293,6 +293,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 
 void sim_mob::Conflux::processVirtualQueues() {
 	int counter = 0;
+	boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
 	//sort the virtual queues before starting to move agents for this tick
 	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i!=virtualQueuesMap.end(); i++) {
 		counter = i->second.size();
@@ -382,6 +383,7 @@ void sim_mob::Conflux::resetPersonRemTimesInVQ() {
 		}
 	}
 
+	boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
 	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator vqIt=virtualQueuesMap.begin(); vqIt!=virtualQueuesMap.end();vqIt++) {
 		for(std::deque<sim_mob::Person*>::iterator pIt= vqIt->second.begin(); pIt!=vqIt->second.end(); pIt++) {
 			if ((*pIt)->getLastUpdatedFrame() < currFrameNumber.frame()) {
@@ -404,6 +406,7 @@ unsigned int sim_mob::Conflux::resetOutputBounds() {
 	int outputEstimate = 0;
 	unsigned int vqCount = 0;
 	const double vehicle_length = 400.0;
+	boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
 	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++) {
 		lnk = i->first;
 		segStats = findSegStats(lnk->getSegments().front());
@@ -433,6 +436,7 @@ unsigned int sim_mob::Conflux::resetOutputBounds() {
 
 bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
 	bool res = false;
+	boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
 	try {
 		res = (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
 	}
@@ -452,10 +456,7 @@ bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
 }
 
 void sim_mob::Conflux::pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p) {
-/*	if(isMultipleReceiver){
-		boost::upgrade_lock<boost::shared_mutex> upLock(vq_mutex);
-		boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upLock);
-	}*/
+	boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
 	virtualQueuesMap.at(lnk).push_back(p);
 }
 
@@ -920,6 +921,7 @@ std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersons() {
 			allPersonsInCfx.insert(allPersonsInCfx.end(), tmpAgents.begin(), tmpAgents.end());
 		}
 	}
+
 	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator vqMapIt = virtualQueuesMap.begin(); vqMapIt != virtualQueuesMap.end(); vqMapIt++) {
 		tmpAgents = vqMapIt->second;
 		allPersonsInCfx.insert(allPersonsInCfx.end(), tmpAgents.begin(), tmpAgents.end());

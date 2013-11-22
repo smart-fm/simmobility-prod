@@ -137,9 +137,9 @@
   <xs:complexType name="new_connectors_t">
     <xs:sequence>
       <xs:element name="laneFrom" type="xs:unsignedLong"/>
-      <xs:element name="laneTo_left" type="xs:unsignedLong"/>      
-      <xs:element name="laneTo_center" type="xs:unsignedLong"/>
-      <xs:element name="laneTo_center" type="xs:unsignedLong"/>
+      <xs:element name="laneTo_Left" type="xs:unsignedLong"/>      
+      <xs:element name="laneTo_Center" type="xs:unsignedLong"/>
+      <xs:element name="laneTo_Right" type="xs:unsignedLong"/>
     </xs:sequence>
   </xs:complexType>
 
@@ -326,7 +326,7 @@
           <xs:element name="firstPair" type="geo:temp_Segmetair_t" minOccurs="0" />
           <xs:element name="secondPair" type="geo:temp_Segmetair_t" minOccurs="0" />
           <xs:element name="Connectors" type="geo:connectors_t"/>
-          <xs:element name="new_connectors" type="geo:new_connectors_t"/>
+          <xs:element name="new_Connectors" type="geo:new_connectors_t"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

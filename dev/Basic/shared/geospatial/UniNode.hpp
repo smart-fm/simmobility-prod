@@ -84,7 +84,7 @@ public:
 	const sim_mob::Lane* getOutgoingLane(const sim_mob::Lane& from) const;
 	std::vector<sim_mob::Lane*> getOutgoingLanes(Lane& from);
 	const std::map<const sim_mob::Lane*, sim_mob::Lane* > & getConnectors() const {return connectors;}
-
+	const std::map<const sim_mob::Lane*, UniLaneConnector > & getNewConnectors() const {return new_connectors;}
 	///Helper method: Build the connectors vector dynamically by aligning a lane in the "from" Road Segment with one
 	/// in the "to" Road Segment.
 	///NOTE: The "from/to" laneID pairs will definitely be cleaned up later; for now I'm just trying

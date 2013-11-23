@@ -24,7 +24,7 @@ sim_mob::TimeEventArgs::~TimeEventArgs()
 {
 }
 
-Json::Value sim_mob::TimeEventArgs::ToJSON() const
+Json::Value sim_mob::TimeEventArgs::toJSON() const
 {
 	return sim_mob::JsonParser::makeTimeData(time.frame(), ConfigManager::GetInstance().FullConfig().baseGranMS());
 }

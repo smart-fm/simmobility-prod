@@ -22,7 +22,7 @@ sim_mob::LocationEventArgs::~LocationEventArgs()
 {
 }
 
-Json::Value sim_mob::LocationEventArgs::ToJSON() const
+Json::Value sim_mob::LocationEventArgs::toJSON() const
 {
 	return JsonParser::makeLocationMessage(agent->xPos.get(), agent->yPos.get());
 }

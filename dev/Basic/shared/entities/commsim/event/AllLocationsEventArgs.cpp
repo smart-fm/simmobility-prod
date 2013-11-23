@@ -27,7 +27,7 @@ void sim_mob::AllLocationsEventArgs::TOJSON(sim_mob::Agent* agent,Json::Value &l
 	loc["LOCATIONS"].append(t);
 }
 
-Json::Value sim_mob::AllLocationsEventArgs::ToJSON()const
+Json::Value sim_mob::AllLocationsEventArgs::toJSON()const
 {
 	Json::Value loc;
 	loc = JsonParser::createMessageHeader(msg_header("0", "SIMMOBILITY", "ALL_LOCATIONS_DATA", "SYS"));

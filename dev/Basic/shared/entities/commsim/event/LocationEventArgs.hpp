@@ -21,11 +21,15 @@ class Agent;
 DECLARE_CUSTOM_CALLBACK_TYPE(LocationEventArgs)
 class LocationEventArgs: public sim_mob::event::EventArgs {
 public:
-	const sim_mob::Agent *agent;
 	LocationEventArgs(const sim_mob::Agent *);
-	//todo should be a virtual from a base class
-	/*std::string*/ Json::Value ToJSON()const;
 	virtual ~LocationEventArgs();
+
+	//todo should be a virtual from a base class
+	Json::Value ToJSON()const;
+
+private:
+	const sim_mob::Agent *agent;
+
 };
 
 } /* namespace sim_mob */

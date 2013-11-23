@@ -10,19 +10,25 @@
  */
 
 #include "AllLocationsEventArgs.hpp"
-//#include "entities/commsim/broker/Broker.hpp"
-namespace sim_mob {
 
-	void AllLocationsEventArgs::TOJSON(sim_mob::Agent* agent,Json::Value &loc)const{
-		const Json::Value & t = JsonParser::makeLocationArrayElement(agent->getId(),agent->xPos.get(), agent->yPos.get());
-		loc["LOCATIONS"].append(t);
-	}
+using namespace sim_mob;
 
-AllLocationsEventArgs::AllLocationsEventArgs(AgentsList  &registered_Agents_):registered_Agents(registered_Agents_) {
-	// TODO Auto-generated constructor stub
+sim_mob::AllLocationsEventArgs::AllLocationsEventArgs(AgentsList  &registered_Agents_):registered_Agents(registered_Agents_)
+{
 }
 
-Json::Value AllLocationsEventArgs::ToJSON()const{
+sim_mob::AllLocationsEventArgs::~AllLocationsEventArgs()
+{
+}
+
+void sim_mob::AllLocationsEventArgs::TOJSON(sim_mob::Agent* agent,Json::Value &loc)const
+{
+	const Json::Value & t = JsonParser::makeLocationArrayElement(agent->getId(),agent->xPos.get(), agent->yPos.get());
+	loc["LOCATIONS"].append(t);
+}
+
+Json::Value sim_mob::AllLocationsEventArgs::ToJSON()const
+{
 	Json::Value loc;
 	loc = JsonParser::createMessageHeader(msg_header("0", "SIMMOBILITY", "ALL_LOCATIONS_DATA", "SYS"));
 	//for_each_agent comes from a self contained class (AgentsList) which is thread safe
@@ -32,8 +38,4 @@ Json::Value AllLocationsEventArgs::ToJSON()const{
 	return loc;
 }
 
-AllLocationsEventArgs::~AllLocationsEventArgs() {
-	// TODO Auto-generated destructor stub
-}
-}
 

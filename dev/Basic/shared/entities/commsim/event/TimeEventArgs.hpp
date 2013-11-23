@@ -25,6 +25,8 @@ public:
 	virtual ~TimeEventArgs();
 	//todo should be a virtual from a base class
 	Json::Value ToJSON()const;
+
+private:
 	timeslice time;
 };
 

@@ -73,7 +73,7 @@ bool sim_mob::Broker::isEnabled() const
 	return enabled;
 }
 
-bool sim_mob::Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler, sim_mob::comm::MsgData &value )
+bool sim_mob::Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler, const sim_mob::comm::MsgData &value )
 {
 	if(!cnnHandler) {
 		return false;

@@ -288,7 +288,7 @@ public:
 	/**
 	 * 	request to insert into broker's send buffer
 	 */
-	bool insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler>, Json::Value&);
+	bool insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler>, const Json::Value&);
 	/**
 	 * 	callback function executed upon message arrival
 	 */

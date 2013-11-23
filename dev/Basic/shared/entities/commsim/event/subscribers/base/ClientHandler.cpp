@@ -11,49 +11,48 @@
 
 #include "ClientHandler.hpp"
 #include "entities/commsim/broker/Broker.hpp"
-namespace sim_mob {
 
-ClientHandler::ClientHandler(sim_mob::Broker & broker_):broker(broker_) {
-	valid = true;
+using namespace sim_mob;
+
+sim_mob::ClientHandler::ClientHandler(sim_mob::Broker & broker_) :
+	broker(broker_), valid(true), AgentCommUtility_(nullptr), agent(nullptr),
+	client_type(0)
+{
 }
-sim_mob::Broker &ClientHandler::getBroker()
+
+sim_mob::ClientHandler::~ClientHandler()
+{
+}
+
+sim_mob::Broker& sim_mob::ClientHandler::getBroker()
 {
 	return broker;
 }
 
-void ClientHandler::OnLocation(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const LocationEventArgs& argums){
-//	 std::string locJson = argums.ToJSON();
-	 Json::Value locJson = argums.ToJSON();
-   //now send to broker's buffer
-   getBroker().insertSendBuffer(cnnHandler, locJson);
+void sim_mob::ClientHandler::OnLocation(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const LocationEventArgs& argums)
+{
+	//now send to broker's buffer
+	getBroker().insertSendBuffer(cnnHandler, argums.ToJSON());
 }
 
-void ClientHandler::OnAllLocations(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const AllLocationsEventArgs& argums){
-//	 std::string locJson = argums.ToJSON();
-	 Json::Value locJson = argums.ToJSON();
-   //now send to broker's buffer
-   getBroker().insertSendBuffer(cnnHandler, locJson);
+void sim_mob::ClientHandler::OnAllLocations(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const AllLocationsEventArgs& argums)
+{
+	//now send to broker's buffer
+	getBroker().insertSendBuffer(cnnHandler, argums.ToJSON());
 }
 
-void ClientHandler::OnTime(sim_mob::event::EventId id, sim_mob::event::EventPublisher* sender, const TimeEventArgs& args){
-//   std::string timeJson = args.ToJSON();
-   Json::Value timeJson = args.ToJSON();
+void sim_mob::ClientHandler::OnTime(sim_mob::event::EventId id, sim_mob::event::EventPublisher* sender, const TimeEventArgs& args)
+{
    //now send to broker's buffer
-   getBroker().insertSendBuffer(cnnHandler, timeJson);
+   getBroker().insertSendBuffer(cnnHandler, args.ToJSON());
 }
 
-bool ClientHandler::isValid() {
+bool sim_mob::ClientHandler::isValid()
+{
 	return valid;
 }
 
-void ClientHandler::setValidation(bool value) {
+void sim_mob::ClientHandler::setValidation(bool value)
+{
 	valid = value;
 }
-
-ClientHandler::~ClientHandler() {
-
-//	cnnHandler.reset();
-	// TODO Auto-generated destructor stub
-}
-
-} /* namespace sim_mob */

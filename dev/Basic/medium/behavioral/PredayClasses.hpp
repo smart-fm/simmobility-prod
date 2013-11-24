@@ -110,8 +110,8 @@ class Tour;
  */
 class Stop {
 public:
-	Stop(StopType stopType, Tour& parentTour, bool primaryActivity = false)
-	: stopType(stopType), parentTour(parentTour), primaryActivity(primaryActivity), arrivalTime(0), departureTime(0), stopMode(""), stopLocation(0)
+	Stop(StopType stopType, Tour& parentTour, bool primaryActivity, bool firstHalfTour)
+	: stopType(stopType), parentTour(parentTour), primaryActivity(primaryActivity), arrivalTime(0), departureTime(0), stopMode(0), stopLocation(0), inFirstHalfTour(firstHalfTour)
 	{}
 	double getArrivalTime() const {
 		return arrivalTime;
@@ -149,11 +149,11 @@ public:
 		this->stopLocation = stopLocation;
 	}
 
-	const std::string& getStopMode() const {
+	int getStopMode() const {
 		return stopMode;
 	}
 
-	void setStopMode(const std::string& stopMode) {
+	void setStopMode(int stopMode) {
 		this->stopMode = stopMode;
 	}
 
@@ -182,14 +182,24 @@ public:
 		}
 	}
 
+	void allotTime(double arrivalTime, double departureTime) {
+		this->arrivalTime = arrivalTime;
+		this->departureTime = departureTime;
+	}
+
+	bool isInFirstHalfTour() const {
+		return inFirstHalfTour;
+	}
+
 private:
 	const Tour& parentTour;
 	StopType stopType;
 	bool primaryActivity;
 	double arrivalTime;
 	double departureTime;
-	std::string stopMode;
+	int stopMode;
 	long stopLocation;
+	bool inFirstHalfTour;
 };
 
 /**
@@ -200,7 +210,7 @@ private:
 class Tour {
 public:
 	Tour(StopType tourType)
-	: tourType(tourType), usualLocation(false), subTour(false), parentTour(nullptr), tourMode(""), primaryActivityLocation(0), startTime(0), endTime(0)
+	: tourType(tourType), usualLocation(false), subTour(false), parentTour(nullptr), tourMode(0), primaryActivityLocation(0), startTime(0), endTime(0)
 	{}
 
 	double getEndTime() const {
@@ -247,11 +257,11 @@ public:
 		this->subTour = subTour;
 	}
 
-	const std::string& getTourMode() const {
+	int getTourMode() const {
 		return tourMode;
 	}
 
-	void setTourMode(const std::string& tourMode) {
+	void setTourMode(int tourMode) {
 		this->tourMode = tourMode;
 	}
 
@@ -272,7 +282,21 @@ public:
 	}
 
 	void addStop(Stop* stop) {
-		stops.push_back(stop);
+		if(stop->isInFirstHalfTour()) {
+			stops.push_front(stop);
+		}
+		else {
+			stops.push_back(stop);
+		}
+	}
+
+	void removeStop(Stop* stop) {
+		if(stop->isInFirstHalfTour()) {
+			stops.pop_front();
+		}
+		else {
+			stops.pop_back();
+		}
 	}
 
 private:
@@ -280,7 +304,7 @@ private:
 	bool usualLocation;
 	bool subTour;
 	Tour* parentTour;
-	std::string tourMode;
+	int tourMode;
 	long primaryActivityLocation;
 	double startTime;
 	double endTime;

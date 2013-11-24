@@ -46,6 +46,12 @@
                 <dbname value="SimMobility_DB_New"/>
             </database>
 
+            <database id="fm_local_lt" dbtype="postgres">
+                <host value="localhost"/>
+                <port value="27017"/>
+                <dbname value="sim_mob_lt"/>
+            </database>
+            
 	    <!-- Variables stores for preday demand simulator-->
             <database id="fm_mongo" dbtype="mongodb">
                 <host value="localhost"/>
@@ -229,7 +235,18 @@
 	  <script name="isg" file="isg.lua"/> <!--Intermediate Stop Generation -->
 	  <script name="imd" file="imd.lua"/> <!--Intermediate Stop Mode/Destination -->
 	  <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->
-	</external_scripts> 
+	</external_scripts>
+	
+	<!-- MongoDB collections to use -->
+	<mongo_collections id="preday_mongo" db_name="mydb">
+		<mongo_collection name="tcost_bus" collection="tcost_bus"/>
+		<mongo_collection name="tcost_car" collection="tcost_car"/>
+		<mongo_collection name="AMCosts" collection="AMCosts"/>
+		<mongo_collection name="OPCosts" collection="OPCosts"/>
+		<mongo_collection name="PMCosts" collection="PMCosts"/>
+		<mongo_collection name="Zone" collection="Zone"/>
+	</mongo_collections>
+	 
 	
     </constructs>
 

@@ -12,8 +12,10 @@
 #include <boost/unordered_map.hpp>
 
 #include "lua/LuaModel.hpp"
-#include "PersonParams.hpp"
+#include "params/PersonParams.hpp"
 #include "PredayClasses.hpp"
+#include "database/PopulationDao.hpp"
+#include "database/dao/MongoDao.hpp"
 
 namespace sim_mob {
 namespace medium {
@@ -29,6 +31,9 @@ namespace medium {
  */
 class PredaySystem : public lua::LuaModel {
 public:
+	PredaySystem(PersonParams& personParams);
+	virtual ~PredaySystem();
+
 	const PersonParams& getPersonParams() const {
 		return personParams;
 	}
@@ -82,7 +87,7 @@ private:
 	/**
 	 * Predicts the time period that will be allotted for the primary activity of a tour.
 	 */
-	std::string predictTourTimeOfDay(Tour& tour);
+	std::string& predictTourTimeOfDay(Tour& tour);
 
 	/**
 	 * Generates intermediate stops of types predicted by the day pattern model before and after the primary activity of a tour.
@@ -103,12 +108,12 @@ private:
 	/**
 	 * Calculates the arrival time for stops in the second half tour.
 	 */
-	void calculateArrivalTime();
+	void calculateArrivalTime(Stop& currentStop, Stop& prevStop);
 
 	/**
 	 * Calculates the departure time for stops in the first half tour.
 	 */
-	void calculateDepartureTime();
+	void calculateDepartureTime(Stop& currentStop, Stop& nextStop);
 
 	/**
 	 * Calculates the time to leave home for starting a tour.
@@ -154,6 +159,11 @@ private:
      * A reference container for modes. Key: mode_id, Value: mode.
      */
     boost::unordered_map<int, std::string> modeReferenceIndex;
+
+    /**
+     * Data access objects for mongo
+     */
+    boost::unordered_map<std::string, db::MongoDao> mongoDao;
 
 };
 

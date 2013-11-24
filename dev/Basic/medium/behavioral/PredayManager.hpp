@@ -10,7 +10,9 @@
  */
 
 #pragma once
-#include "PersonParams.hpp"
+#include "params/PersonParams.hpp"
+
+#include <cstdint>
 
 namespace sim_mob {
 namespace medium {
@@ -26,7 +28,7 @@ public:
 	/**
 	 * Distributes persons to different threads and starts the threads which process the persons
 	 */
-	void distributeAndProcessPersons();
+	void distributeAndProcessPersons(uint16_t numWorkers = 1);
 
 private:
 	/**

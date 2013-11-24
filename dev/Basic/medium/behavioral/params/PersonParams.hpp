@@ -55,12 +55,12 @@ public:
 		this->fixedWorkLocation = fixedWorkLocation;
 	}
 
-	int getHasFlexibleWorkTiming() const {
-		return hasFlexibleWorkTiming;
+	int getHasFixedWorkTiming() const {
+		return hasFixedWorkTiming;
 	}
 
-	void setHasFlexibleWorkTiming(int hasFlexibleWorkTiming) {
-		this->hasFlexibleWorkTiming = hasFlexibleWorkTiming;
+	void setHasFixedWorkTiming(int hasFixedWorkTiming) {
+		this->hasFixedWorkTiming = hasFixedWorkTiming;
 	}
 
 	long getHomeLocation() const {
@@ -207,6 +207,38 @@ public:
 	 */
 	void blockTime(double startTime, double endTime);
 
+	double getEduLogSum() const {
+		return eduLogSum;
+	}
+
+	void setEduLogSum(double eduLogSum) {
+		this->eduLogSum = eduLogSum;
+	}
+
+	double getOtherLogSum() const {
+		return otherLogSum;
+	}
+
+	void setOtherLogSum(double otherLogSum) {
+		this->otherLogSum = otherLogSum;
+	}
+
+	double getShopLogSum() const {
+		return shopLogSum;
+	}
+
+	void setShopLogSum(double shopLogSum) {
+		this->shopLogSum = shopLogSum;
+	}
+
+	double getWorkLogSum() const {
+		return workLogSum;
+	}
+
+	void setWorkLogSum(double workLogSum) {
+		this->workLogSum = workLogSum;
+	}
+
 private:
 	long personId;
 	int personTypeId;
@@ -218,7 +250,7 @@ private:
 	int carOwnNormal;
 	int carOwnOffpeak;
 	int motorOwn;
-	int hasFlexibleWorkTiming;
+	int hasFixedWorkTiming;
 	long homeLocation;
 	long fixedWorkLocation;
 	long fixedSchoolLocation;
@@ -229,6 +261,11 @@ private:
 	int hhOnlyWorkers;
 	int hhNumUnder4;
 	int hhNumUnder15;
+
+	double workLogSum;
+	double eduLogSum;
+	double shopLogSum;
+	double otherLogSum;
 
 	/**
 	 * Time windows currently available for the person.

@@ -63,6 +63,7 @@ private:
 	void ProcessConstructDbProcGroupsNode(xercesc::DOMElement* node);
 	void ProcessConstructCredentialsNode(xercesc::DOMElement* node);
 	void ProcessConstructExternalScriptsNode(xercesc::DOMElement* node);
+	void ProcessConstructMongoCollectionsNode(xercesc::DOMElement* node);
 
 	//Descend through System
 	void ProcessSystemSimulationNode(xercesc::DOMElement* node);

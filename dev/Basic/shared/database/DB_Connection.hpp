@@ -11,8 +11,8 @@
 #pragma once
 #include "soci.h"
 #include "DB_Config.hpp"
-
 #include "mongo/client/dbclient.h"
+
 namespace sim_mob {
     
     namespace db {

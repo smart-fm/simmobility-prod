@@ -645,6 +645,7 @@ void sim_mob::ParseConfigFile::ProcessConstructsNode(xercesc::DOMElement* node)
 	ProcessConstructDbProcGroupsNode(GetSingleElementByName(node, "db_proc_groups"));
 	ProcessConstructCredentialsNode(GetSingleElementByName(node, "credentials"));
 	ProcessConstructExternalScriptsNode(GetSingleElementByName(node, "external_scripts"));
+	ProcessConstructMongoCollectionsNode(GetSingleElementByName(node, "mongo_collections"));
 }
 
 
@@ -776,6 +777,25 @@ void sim_mob::ParseConfigFile::ProcessConstructExternalScriptsNode(xercesc::DOME
 		sm.scriptFileName[key] = val;
 	}
 	cfg.constructs.externalScriptsMap[sm.getId()] = sm;
+}
+
+void sim_mob::ParseConfigFile::ProcessConstructMongoCollectionsNode(xercesc::DOMElement* node) {
+	MongoCollectionsMap mongoColls(ParseString(GetNamedAttributeValue(node, "id"), ""), ParseString(GetNamedAttributeValue(node, "db_name"), ""));
+	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
+		std::string name = TranscodeString(item->getNodeName());
+		if (name!="mongo_collection") {
+				Warn() <<"Invalid db_proc_groups child node.\n";
+				continue;
+		}
+		std::string key = ParseString(GetNamedAttributeValue(item, "name"), "");
+		std::string val = ParseString(GetNamedAttributeValue(item, "collection"), "");
+		if (key.empty() || val.empty()) {
+			Warn() <<"Invalid mongo_collection; missing \"name\" or \"collection\".\n";
+			continue;
+		}
+		mongoColls.collectionName[key] = val;
+	}
+	cfg.constructs.mongoCollectionsMap[mongoColls.getId()] = mongoColls;
 }
 
 

@@ -314,9 +314,6 @@ local function computeUtilities(params)
 	local num_underfour = params.num_underfour
 	local presence_of_under15 = params.presence_of_under15
 	local female_dummy = params.female_dummy
-	local HH_with_under_4 = params.HH_with_under_4
-	local HH_with_under_15 = params.HH_with_under_15
-	local HH_all_adults = params.HH_all_adults
 	local income_id = params.income_id
 	local income_mid = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
 	local work_at_home_dummy = params. work_at_home_dummy
@@ -385,10 +382,10 @@ local function computeUtilities(params)
 	local maleage4,maleage515,malenone,femalenone,femaleage4,femaleage515 = 0,0,0,0,0,0
 	if female_dummy == 0 and HH_with_under_4 == 1 then maleage4 = 1 end
 	if female_dummy == 0 and HH_with_under_4 == 0 and HH_with_under_15 == 1 then maleage515 = 1 end
-	if female_dummy == 0 and HH_all_adults == 1 then malenone = 1 end
+	if female_dummy == 0 and onlyadults == 1 then malenone = 1 end
 	if female_dummy == 1 and HH_with_under_4 == 1 then femaleage4 = 1 end
 	if female_dummy == 1 and HH_with_under_4 == 0 and HH_with_under_15 == 1 then femaleage515 = 1 end
-	if female_dummy == 1 and HH_all_adults == 1 then femalenone = 1 end
+	if female_dummy == 1 and onlyadults == 1 then femalenone = 1 end
 	
 	-- income related variables
 	local income,missingincome = 0,0
@@ -554,7 +551,7 @@ end
 -- scales
 local scale = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1} -- 1 for all choices (51 1s)
 
-function chooseDP(params)
+function choose_dp(params)
 	if not fixedVariablesComputed then loadFixedVariables() end
 	computeUtilities(params) 
 	computeAvailabilities(params)

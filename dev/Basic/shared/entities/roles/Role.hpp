@@ -135,7 +135,6 @@ public:
 		return sim_mob::DriverRequestParams();
 	}
 
-	//NOTE: Should not be virtual; this is a little hackish for now. ~Seth
 	Vehicle* getResource() { return currResource; }
 	void setResource(Vehicle* currResource) { this->currResource = currResource; }
 

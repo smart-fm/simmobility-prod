@@ -100,7 +100,6 @@ void sim_mob::Broker::configure()
 
 	BrokerPublisher* onlyLocationsPublisher = new BrokerPublisher();
 	onlyLocationsPublisher->RegisterEvent(COMMEID_LOCATION);
-
 	publishers.insert(std::make_pair(
 		sim_mob::Services::SIMMOB_SRV_LOCATION,
 		PublisherList::dataType(onlyLocationsPublisher))
@@ -235,7 +234,7 @@ AgentsList::type& sim_mob::Broker::getRegisteredAgents(AgentsList::Mutex* mutex)
 	return REGISTERED_AGENTS.getAgents();
 }
 
-ClientWaitList& sim_mob::Broker::getClientWaitingList()
+Broker::ClientWaitList& sim_mob::Broker::getClientWaitingList()
 {
 	return clientRegistrationWaitingList;
 }
@@ -327,15 +326,16 @@ void sim_mob::Broker::processClientRegistrationRequests()
 
 bool sim_mob::Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
 {
-	Print() << std::dec;
-//	registeredAgents.insert(std::make_pair(value->getEntity(), value));
 	REGISTERED_AGENTS.insert(value->getEntity(), value);
-	Print()<< REGISTERED_AGENTS.size() << ":  Broker[" << this <<  "] :  Broker::registerEntity [" << value->getEntity()->getId() << "]" << std::endl;
+	Print() <<std::dec <<REGISTERED_AGENTS.size() <<":  Broker[" <<this <<"] :  Broker::registerEntity [" <<value->getEntity()->getId() <<"]" <<std::endl;
+
 	//feedback
 	value->registrationCallBack(true);
+
 	//tell me if you are dying
 	sim_mob::messaging::MessageBus::SubscribeEvent(sim_mob::event::EVT_CORE_AGENT_DIED,
 			static_cast<event::Context>(value->getEntity()), this);
+
 	return true;
 }
 
@@ -348,14 +348,13 @@ void  sim_mob::Broker::unRegisterEntity(sim_mob::Agent * agent)
 {
 	Print() << "inside Broker::unRegisterEntity for agent[" << agent << "]" << std::endl;
 	//search agent's list looking for this agent
-//	registeredAgents.erase(agent); //hopefully the agent is there
 	REGISTERED_AGENTS.erase(agent);
 
 	//search the internal container also
 	duplicateEntityDoneChecker.erase(agent);
 
 	{
-		boost::unique_lock<boost::mutex> lock(mutex_clientList);
+	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 	//search registered clients list looking for this agent. whoever has it, dump him
 	for(ClientList::iterator it_clientType = clientList.begin(); it_clientType != clientList.end(); it_clientType++)
 	{
@@ -387,17 +386,15 @@ void  sim_mob::Broker::unRegisterEntity(sim_mob::Agent * agent)
 						break;
 					}
 				}
-				//erase him from the list
-				//clientList.erase(it_erase);
-				//don't erase it here. it may already have something to send
+
 				//invalidate it and clean it up when necessary
+				//don't erase it here. it may already have something to send
 				//invalidation 1:
-				it_erase->second->agent = 0;
+				it_erase->second->agent = nullptr;
 				it_erase->second->cnnHandler->agentPtr = 0; //this is even more important
 				//or a better version //todo: use one version only
 				it_erase->second->setValidation(false);
 				it_erase->second->cnnHandler->setValidation(false); //this is even more important
-
 			}
 			else
 			{

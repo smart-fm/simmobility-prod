@@ -11,11 +11,11 @@
 
 #pragma once
 
-//#include "entities/commsim/client/base/ClinetRegistrationHandler.hpp"
-#include "entities/commsim/broker/Broker.hpp"
+#include "entities/commsim/client/base/ClientRegistration.hpp"
 
 namespace sim_mob {
 
+class Broker;
 
 
 class AndroidClientRegistration: public sim_mob::ClientRegistrationHandler {

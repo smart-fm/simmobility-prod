@@ -81,6 +81,8 @@ typedef std::pair<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::Buffer
 
 class Broker  : public sim_mob::Agent {
 private:
+	typedef std::multimap<std::string,ClientRegistrationRequest > ClientWaitList;
+
 	///	Is this Broker currently enabled?
 	bool enabled;
 	OneTimeFlag configured_;

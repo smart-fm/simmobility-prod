@@ -94,8 +94,7 @@ bool sim_mob::JsonParser::get_WHOAMI(std::string& input, std::string & type, std
 	}
 
 	if (!((root.isMember("ID")) && (root.isMember("TYPE")))) {
-		WarnOut( "WHOAMI format incomplete.Parsing '" << input
-				<< "' Failed" << std::endl);
+		WarnOut( "WHOAMI format incomplete.Parsing '" << input << "' Failed" << std::endl);
 		return false;
 	}
 	ID = root["ID"].asString();
@@ -123,8 +122,7 @@ bool sim_mob::JsonParser::get_WHOAMI_Services(std::string& input, std::set<sim_m
 		return false;
 	}
 	if (!root.isMember("services")) {
-		WarnOut( "Parsing services in [" << input << "] Failed"
-				<< std::endl);
+		WarnOut( "Parsing services in [" << input << "] Failed" << std::endl);
 		return false;
 	}
 	const Json::Value array = root["services"];

@@ -15,7 +15,9 @@ std::map<string, sim_mob::Services::SIM_MOB_SERVICE> sim_mob::Services::ServiceM
 		boost::assign::map_list_of
 			("SIMMOB_SRV_TIME", SIMMOB_SRV_TIME)
 			("SIMMOB_SRV_LOCATION", SIMMOB_SRV_LOCATION)
-			("SIMMOB_SRV_ALL_LOCATIONS", SIMMOB_SRV_ALL_LOCATIONS);
+			("SIMMOB_SRV_ALL_LOCATIONS", SIMMOB_SRV_ALL_LOCATIONS)
+			("SIMMOB_SRV_REGIONS_AND_PATH", SIMMOB_SRV_REGIONS_AND_PATH)
+			;
 
 std::map<string, ConfigParams::ClientType> sim_mob::Services::ClientTypeMap =
 		boost::assign::map_list_of

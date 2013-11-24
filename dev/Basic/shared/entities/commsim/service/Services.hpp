@@ -28,6 +28,16 @@ public:
 		SIMMOB_SRV_TIME,
 		SIMMOB_SRV_LOCATION,
 		SIMMOB_SRV_ALL_LOCATIONS,
+
+		//Sim Mobility will provide the set of all regions and the Agent's current path with this service.
+		//Triggers: Every time the Region set changes, it will be re-sent. Every time the Agent's path
+		//          (listed as a series of Regions it will travel through) changes, it is re-sent.
+		//Practically, this means that the Region set AND Path are sent during time tick 0 (or 1), the Region
+		//          set is never re-sent, and the Path set is re-sent only in the case of re-routing.
+		//NOTE: There is probably a more efficient way to do this, with the Agent requesting the Region/Path set only
+		//      when it needs it. For now, I am trying to do this within the "Services" framework we provide. ~Seth
+		SIMMOB_SRV_REGIONS_AND_PATH,
+
 		SIMMOB_SRV_UNKNOWN,
 	};
 

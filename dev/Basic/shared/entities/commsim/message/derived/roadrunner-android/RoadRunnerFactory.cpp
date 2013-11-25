@@ -59,7 +59,7 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RoadRunnerFactory::get
 }
 
 
-bool sim_mob::roadrunner::RoadRunnerFactory::createMessage(std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
+bool sim_mob::roadrunner::RoadRunnerFactory::createMessage(const std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
 {
 	Json::Value root;
 	sim_mob::pckt_header packetHeader;

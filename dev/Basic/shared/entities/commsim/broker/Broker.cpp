@@ -132,16 +132,16 @@ void sim_mob::Broker::configure()
 	//current message factory
 	//todo: choose a factory based on configurations not hardcoding
 	if(client_type == "android-ns3") {
-		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> >
+		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> >
 			android_factory(new sim_mob::roadrunner::RoadRunnerFactory(true));
-		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> >
+		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> >
 			ns3_factory(new sim_mob::rr_android_ns3::NS3_Factory());
 
 		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
 		messageFactories.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR, android_factory));
 		messageFactories.insert(std::make_pair(ConfigParams::NS3_SIMULATOR, ns3_factory));
 	} else if (client_type == "android-only") {
-		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> >
+		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> >
 			android_factory(new sim_mob::roadrunner::RoadRunnerFactory(false));
 
 		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
@@ -174,7 +174,7 @@ void sim_mob::Broker::configure()
  */
 void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHandler, std::string input)
 {
-	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > m_f = messageFactories[cnnHandler->clientType];
+	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > m_f = messageFactories[cnnHandler->clientType];
 	std::vector<sim_mob::comm::MsgPtr> messages;
 	m_f->createMessage(input, messages);
 //	post the messages into the message queue one by one(add their cnnHandler also)

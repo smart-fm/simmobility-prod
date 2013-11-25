@@ -52,7 +52,7 @@ struct MessageElement{
  */
 struct MessageFactories {
 	typedef unsigned int Key;
-	typedef boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > Value;
+	typedef boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > Value;
 
 	typedef std::map<Key, Value> Type;
 	typedef std::pair<Key, Value> Pair;

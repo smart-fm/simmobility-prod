@@ -25,7 +25,7 @@ namespace roadrunner{
  * This is NOT necessarily a clean solution; in fact, I will examine the messages and handlers to see if we
  * can share more functionality there and remove the templates entirely. ~Seth
  */
-class RoadRunnerFactory : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> {
+class RoadRunnerFactory : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> {
 	enum MessageType {
 		MULTICAST = 1,
 		UNICAST = 2,
@@ -46,7 +46,7 @@ public:
 
 	//creates a message with correct format + assigns correct handler
 	//todo improve the function to handle array of messages stored in the input string
-	bool createMessage(std::string &str, std::vector<sim_mob::comm::MsgPtr>&output);
+	bool createMessage(const std::string& input, std::vector<sim_mob::comm::MsgPtr>& output);
 
 	//gets a handler either from a cache or by creating a new one
 	boost::shared_ptr<sim_mob::Handler>  getHandler(MessageType);

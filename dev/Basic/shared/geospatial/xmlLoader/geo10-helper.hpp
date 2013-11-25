@@ -130,7 +130,7 @@ public:
 	//TODO: These are temporary!
 	typedef std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > > MNConnect;
 	typedef std::set<std::pair<unsigned long,unsigned long> > UNConnect;
-	typedef std::set<std::pair<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > > UNNConnect;
+	typedef std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > UNNConnect;
 	typedef std::pair<unsigned long,unsigned long> SegmentPair; //TODO: This mirrors UniNode_t's definition.
 	typedef std::pair<SegmentPair, SegmentPair> SegPair;
 	void addMultiNodeLaneConnectorCache(sim_mob::MultiNode* id, const MNConnect& item) {

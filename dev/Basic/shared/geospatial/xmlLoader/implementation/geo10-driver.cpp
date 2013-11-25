@@ -67,6 +67,8 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	    ::xml_schema::unsigned_long_pimpl unsigned_long_p;
 	    ::sim_mob::xml::connectors_t_pimpl connectors_t_p;
 	    ::sim_mob::xml::connector_t_pimpl connector_t_p;
+	    ::sim_mob::xml::new_connectors_t_pimpl new_connectors_t_p;
+	    ::sim_mob::xml::new_connector_t_pimpl new_connector_t_p;
 	    ::sim_mob::xml::Intersections_pimpl Intersections_p;
 	    ::sim_mob::xml::RoadSegmentsAt_t_pimpl RoadSegmentsAt_t_p;
 	    ::sim_mob::xml::Multi_Connectors_t_pimpl Multi_Connectors_t_p;
@@ -170,7 +172,8 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 	                         string_p,
 	                         temp_Segmetair_t_p,
 	                         temp_Segmetair_t_p,
-	                         connectors_t_p);
+	                         connectors_t_p,
+	                         new_connectors_t_p);
 
 	    Point2D_t_p.parsers (unsigned_int_p,
 	                         unsigned_int_p);
@@ -182,6 +185,13 @@ bool init_and_load_internal(const std::string& fileName, const std::string& root
 
 	    connector_t_p.parsers (unsigned_long_p,
 	                           unsigned_long_p);
+
+	    new_connectors_t_p.parsers (new_connector_t_p);
+
+	    new_connector_t_p.parsers (unsigned_long_p,
+	                               unsigned_long_p,
+	                               unsigned_long_p,
+	                               unsigned_long_p);
 
 	    Intersections_p.parsers (intersection_t_p);
 

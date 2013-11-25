@@ -49,5 +49,8 @@ void sim_mob::xml::UniNode_t_pimpl::Connectors (std::set<std::pair<unsigned long
 	//Save for later.
 	connectors = value;
 }
+void sim_mob::xml::UniNode_t_pimpl::new_Connectors (std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > & value){
+	new_connectors = value;
+}
 
 

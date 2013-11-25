@@ -134,12 +134,18 @@
     </xs:sequence>
   </xs:complexType>
   
-  <xs:complexType name="new_connectors_t">
+  <xs:complexType name="new_connector_t">
     <xs:sequence>
       <xs:element name="laneFrom" type="xs:unsignedLong"/>
       <xs:element name="laneTo_Left" type="xs:unsignedLong"/>      
       <xs:element name="laneTo_Center" type="xs:unsignedLong"/>
       <xs:element name="laneTo_Right" type="xs:unsignedLong"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+    <xs:complexType name="new_connectors_t">
+    <xs:sequence>
+      <xs:element name="new_connector" type="geo:new_connector_t" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
 

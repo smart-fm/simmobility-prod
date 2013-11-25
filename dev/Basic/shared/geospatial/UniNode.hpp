@@ -95,7 +95,9 @@ public:
 
 	//TODO: Temp:
 	void setConnectorAt(const sim_mob::Lane* key, sim_mob::Lane* value) { this->connectors[key] = value; }
-	void setNewConnectorAt(const sim_mob::Lane* key, boost::tuple<sim_mob::Lane*,sim_mob::Lane*,sim_mob::Lane*> values) { /*this->new_connectors[key] = value;*/ }
+	void setNewConnectorAt(const sim_mob::Lane* key, boost::tuple<sim_mob::Lane*,sim_mob::Lane*,sim_mob::Lane*> values) {
+		this->new_connectors[key] = UniLaneConnector(values.get<0>(),values.get<1>(),values.get<2>());
+		}
 
 
 protected:

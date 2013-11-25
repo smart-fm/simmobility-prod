@@ -29,7 +29,10 @@ void ProcessUniNodeNewConnectors(const helper::Bookkeeping& book, sim_mob::UniNo
 		boost::tuple<unsigned long,unsigned long,unsigned long> laneIds = it->second;
 		boost::tuple<sim_mob::Lane*,sim_mob::Lane*,sim_mob::Lane*> lanePtrs;
 		/*lanePtrs.get<0> =*/ book.getLane(boost::get<0>(it->second));
-//		node->setNewConnectorAt(book.getLane(it->first), book.getLane(it->second));
+		lanePtrs.get<0>() = book.getLane(boost::get<0>(it->second));
+//		lanePtrs = boost::tuple<book.getLane(boost::get<0>(it->second)),book.getLane(boost::get<1>(it->second)),book.getLane(boost::get<2>(it->second))>;
+		node->setNewConnectorAt(book.getLane(it->first), lanePtrs);
+
 	}
 }
 //Helper: Create new LaneConnector entries for all UniNodes

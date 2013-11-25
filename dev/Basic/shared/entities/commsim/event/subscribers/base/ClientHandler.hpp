@@ -27,7 +27,7 @@ namespace sim_mob {
 class ClientHandler;
 class Broker;
 class ConnectionHandler;
-class JsonSerializable;
+class JsonSerializableEventArgs;
 
 template<class T>
 class AgentCommUtility;
@@ -49,7 +49,7 @@ public:
 	sim_mob::Broker &getBroker();
 
 	//event functions:
-	void OnEvent(sim_mob::event::EventId id, sim_mob::event::EventPublisher* sender, const sim_mob::comm::JsonSerializable& args);
+	void OnEvent(sim_mob::event::EventId id, sim_mob::event::EventPublisher* sender, const sim_mob::comm::JsonSerializableEventArgs& args);
 	bool isValid();
 	void setValidation(bool);
 };

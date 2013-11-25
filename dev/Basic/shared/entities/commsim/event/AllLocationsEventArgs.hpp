@@ -13,16 +13,15 @@
 
 #include<iostream>
 
-#include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
 #include "entities/commsim/serialization/JsonParser.hpp"
 #include "entities/commsim/broker/Broker.hpp"
-#include "entities/commsim/event/JsonSerializable.hpp"
+#include "entities/commsim/event/JsonSerializableEventArgs.hpp"
 
 namespace sim_mob {
 
 DECLARE_CUSTOM_CALLBACK_TYPE(AllLocationsEventArgs)
-class AllLocationsEventArgs: public sim_mob::event::EventArgs, public sim_mob::comm::JsonSerializable {
+class AllLocationsEventArgs: public sim_mob::comm::JsonSerializableEventArgs {
 	sim_mob::AgentsList  &registered_Agents;
 
 	void TOJSON(sim_mob::Agent* agent,Json::Value &loc)const;

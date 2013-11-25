@@ -14,14 +14,13 @@
 #include <iostream>
 
 #include "entities/commsim/serialization/JsonParser.hpp"
-#include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
 #include "metrics/Frame.hpp"
-#include "entities/commsim/event/JsonSerializable.hpp"
+#include "entities/commsim/event/JsonSerializableEventArgs.hpp"
 
 namespace sim_mob {
 DECLARE_CUSTOM_CALLBACK_TYPE(TimeEventArgs)
-class TimeEventArgs: public sim_mob::event::EventArgs, public sim_mob::comm::JsonSerializable {
+class TimeEventArgs: public sim_mob::comm::JsonSerializableEventArgs {
 public:
 	TimeEventArgs(timeslice time);
 	virtual ~TimeEventArgs();

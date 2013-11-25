@@ -11,15 +11,14 @@
 
 #pragma once
 
-#include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
 #include "entities/commsim/serialization/JsonParser.hpp"
-#include "entities/commsim/event/JsonSerializable.hpp"
+#include "entities/commsim/event/JsonSerializableEventArgs.hpp"
 
 namespace sim_mob {
 class Agent;
 DECLARE_CUSTOM_CALLBACK_TYPE(LocationEventArgs)
-class LocationEventArgs: public sim_mob::event::EventArgs, public sim_mob::comm::JsonSerializable {
+class LocationEventArgs: public sim_mob::comm::JsonSerializableEventArgs {
 public:
 	LocationEventArgs(const sim_mob::Agent *);
 	virtual ~LocationEventArgs();

@@ -11,7 +11,7 @@
 
 #include "ClientHandler.hpp"
 #include "entities/commsim/broker/Broker.hpp"
-#include "entities/commsim/event/JsonSerializable.hpp"
+#include "entities/commsim/event/JsonSerializableEventArgs.hpp"
 
 using namespace sim_mob;
 
@@ -30,7 +30,7 @@ sim_mob::Broker& sim_mob::ClientHandler::getBroker()
 	return broker;
 }
 
-void sim_mob::ClientHandler::OnEvent(sim_mob::event::EventId id, sim_mob::event::EventPublisher* sender, const sim_mob::comm::JsonSerializable& argums)
+void sim_mob::ClientHandler::OnEvent(sim_mob::event::EventId id, sim_mob::event::EventPublisher* sender, const sim_mob::comm::JsonSerializableEventArgs& argums)
 {
 	//now send to broker's buffer
 	//std::cout <<"XXX\n" <<argums.toJSON().toStyledString() <<"\nXXXY\n";

@@ -99,12 +99,12 @@ struct BrokerBlockers {
 
 /**
  * A typedef-container for our SendBuffer container type.
+ * NOTE: This was only used here, so I am removing the template parameter.
  */
-template<class TYPE>
 struct SendBuffer {
 	//The base types stored in our container.
 	typedef boost::shared_ptr<sim_mob::ConnectionHandler> Key;
-	typedef sim_mob::BufferContainer<TYPE> Value;
+	typedef sim_mob::BufferContainer<Json::Value> Value;
 
 	//The container itself and a "pair" type.
 	typedef boost::unordered_map<Key, Value> Type;
@@ -131,8 +131,10 @@ private:
 	boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> m_messageReceiveCallback;
 	///	list of this broker's publishers
 	PublisherList::Type publishers;
+
 	///	place to gather outgoing data for each tick
-	SendBuffer<Json::Value>::Type sendBuffer;
+	SendBuffer::Type sendBuffer;
+
 	///	incoming data(from clients to broker) is saved here in the form of messages
 	sim_mob::comm::MessageQueue<sim_mob::MessageElement> receiveQueue;
 	///	list of classes that process incoming data(w.r.t client type)

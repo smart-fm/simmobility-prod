@@ -568,7 +568,7 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 	int debug_buffer_size;
 	Json::FastWriter debug_writer;
 	std::ostringstream debug_out;
-	for(SendBuffer<sim_mob::comm::MsgData>::Type::iterator it = sendBuffer.begin(); it!= sendBuffer.end(); it++, debug_cnt++)
+	for(SendBuffer::Type::iterator it = sendBuffer.begin(); it!= sendBuffer.end(); it++, debug_cnt++)
 	{
 		sim_mob::BufferContainer<sim_mob::comm::MsgData> & buffer = it->second;
 		boost::shared_ptr<sim_mob::ConnectionHandler> cnn = it->first;

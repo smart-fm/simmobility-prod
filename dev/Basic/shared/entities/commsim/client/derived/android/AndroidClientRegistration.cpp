@@ -17,11 +17,11 @@
 #include "entities/commsim/broker/Common.hpp"
 #include "entities/commsim/comm_support/AgentCommUtility.hpp"
 #include "event/EventPublisher.hpp"
+#include "entities/commsim/event/RegionsAndPathEventArgs.hpp"
 
 using namespace sim_mob;
 
-sim_mob::AndroidClientRegistration::AndroidClientRegistration() :
-		ClientRegistrationHandler(ConfigParams::ANDROID_EMULATOR)
+sim_mob::AndroidClientRegistration::AndroidClientRegistration() : ClientRegistrationHandler(ConfigParams::ANDROID_EMULATOR)
 {
 }
 
@@ -35,20 +35,21 @@ bool sim_mob::AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob
 	AgentsList::Mutex registered_agents_mutex;
 	AgentsList::type &registeredAgents = broker.getRegisteredAgents(&registered_agents_mutex);
 	AgentsList::Lock lock(registered_agents_mutex);
+
 	//some checks to avoid calling this method unnecessarily
 	if (broker.getClientWaitingList().empty()
 			|| registeredAgents.empty()
-			|| usedAgents.size() == registeredAgents.size()) {
-		Print()
-				<< "AndroidClientRegistration::handle initial failure, returning false"
+			|| usedAgents.size() == registeredAgents.size())
+	{
+		Print() << "AndroidClientRegistration::handle initial failure, returning false"
 				<< broker.getClientWaitingList().size() << "-"
 				<< registeredAgents.size() << "-"
 				<< usedAgents.size() << std::endl;
 		return false;
 	}
 
-	bool found_a_free_agent = false;
 	//find the first free agent(someone who is not yet been associated to an andriod client)
+	bool found_a_free_agent = false;
 	AgentsList::type::iterator freeAgent = registeredAgents.begin(), it_end = registeredAgents.end();
 	for (; freeAgent != it_end; freeAgent++) {
 		if (usedAgents.find(freeAgent->second.agent) == usedAgents.end()) {
@@ -58,11 +59,10 @@ bool sim_mob::AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob
 			break;
 		}
 	}
-	//end of iteration
+
 	if (!found_a_free_agent) {
 		//you couldn't find a free function
-		Print()
-				<< "AndroidClientRegistration::handle couldn't find a free agent among [" << registeredAgents.size() << "], returning false"
+		Print() << "AndroidClientRegistration::handle couldn't find a free agent among [" << registeredAgents.size() << "], returning false"
 				<< std::endl;
 		return false;
 	}
@@ -70,11 +70,12 @@ bool sim_mob::AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob
 	//use it to create a client entry
 	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker));
 	boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler(
-			new ConnectionHandler(request.session_,
-					broker.getMessageReceiveCallBack(), request.clientID,
-					ConfigParams::ANDROID_EMULATOR,
-					(unsigned long int) (freeAgent->second.agent)//just remembered that we can/should filter agents based on the agent type ...-vahid
-					));
+		new ConnectionHandler(request.session_,
+			broker.getMessageReceiveCallBack(), request.clientID,
+			ConfigParams::ANDROID_EMULATOR,
+			(unsigned long int) (freeAgent->second.agent)//just remembered that we can/should filter agents based on the agent type ...-vahid
+		)
+	);
 	clientEntry->cnnHandler = cnnHandler;
 
 	clientEntry->AgentCommUtility_ = freeAgent->second.comm;
@@ -87,20 +88,32 @@ bool sim_mob::AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob
 	BOOST_FOREACH(srv, request.requiredServices) {
 		switch (srv) {
 		case sim_mob::Services::SIMMOB_SRV_TIME: {
-			PublisherList::dataType p =
-					broker.getPublishers()[sim_mob::Services::SIMMOB_SRV_TIME];
+			PublisherList::dataType p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_TIME);
 			p->Subscribe(COMMEID_TIME, clientEntry.get(),
 					CALLBACK_HANDLER(sim_mob::TimeEventArgs, ClientHandler::OnEvent));
 			break;
 		}
 		case sim_mob::Services::SIMMOB_SRV_LOCATION: {
-			PublisherList::dataType p =
-					broker.getPublishers()[sim_mob::Services::SIMMOB_SRV_LOCATION];
-			p->Subscribe(COMMEID_LOCATION, (void*) clientEntry->agent,
+			PublisherList::dataType p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_LOCATION);
+
+			//NOTE: It does not seem like we even use the "Context" pointer, so I am switching
+			//      this to a regular CALLBACK_HANDLER. Please review. ~Seth
+			/*p->Subscribe(COMMEID_LOCATION, (void*) clientEntry->agent,
 					clientEntry.get(),
-					CONTEXT_CALLBACK_HANDLER(LocationEventArgs, ClientHandler::OnEvent));
+					CONTEXT_CALLBACK_HANDLER(LocationEventArgs, ClientHandler::OnEvent));*/
+			p->Subscribe(COMMEID_LOCATION, clientEntry.get(),
+					CALLBACK_HANDLER(sim_mob::LocationEventArgs, ClientHandler::OnEvent));
+
 			break;
 		}
+		case sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH: {
+			PublisherList::dataType p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH);
+			p->Subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(),
+					CALLBACK_HANDLER(sim_mob::RegionsAndPathEventArgs, ClientHandler::OnEvent));
+			break;
+		}
+		default:
+			Warn() <<"Android client requested service which could not be provided.\n";
 		}
 	}
 

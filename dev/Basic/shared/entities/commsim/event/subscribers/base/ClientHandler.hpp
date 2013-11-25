@@ -49,7 +49,7 @@ public:
 	sim_mob::Broker &getBroker();
 
 	//event functions:
-	void OnEvent(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const sim_mob::comm::JsonSerializable& args);
+	void OnEvent(sim_mob::event::EventId id, sim_mob::event::EventPublisher* sender, const sim_mob::comm::JsonSerializable& args);
 	bool isValid();
 	void setValidation(bool);
 };

@@ -30,7 +30,7 @@ sim_mob::Broker& sim_mob::ClientHandler::getBroker()
 	return broker;
 }
 
-void sim_mob::ClientHandler::OnEvent(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const sim_mob::comm::JsonSerializable& argums)
+void sim_mob::ClientHandler::OnEvent(sim_mob::event::EventId id, sim_mob::event::EventPublisher* sender, const sim_mob::comm::JsonSerializable& argums)
 {
 	//now send to broker's buffer
 	getBroker().insertSendBuffer(cnnHandler, argums.toJSON());

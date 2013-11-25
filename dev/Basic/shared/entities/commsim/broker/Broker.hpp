@@ -283,10 +283,10 @@ public:
 	 * 	adds a client to the registration waiting list
 	 */
 	void insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest >);
-	/**
-	 * 	returns the list of publishers
-	 */
-	PublisherList::type &getPublishers();
+
+	///Return an EventPublisher for a given type. Throws an exception if no such type is registered.
+	PublisherList::dataType getPublisher(sim_mob::Services::SIM_MOB_SERVICE serviceType);
+
 	/**
 	 * 	request to insert into broker's send buffer
 	 */

@@ -279,15 +279,21 @@ void sim_mob::Broker::insertClientList(std::string clientID, unsigned int client
 void  sim_mob::Broker::insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest > p)//pair<client type, request>
 {
 	boost::unique_lock<boost::mutex> lock(mutex_client_request);
-//	Print() << "Inserting into clientRegistrationWaitingList" << std::endl;
 	clientRegistrationWaitingList.insert(p);
 	COND_VAR_CLIENT_REQUEST.notify_one();
 }
 
-PublisherList::type& sim_mob::Broker::getPublishers()
+
+PublisherList::dataType sim_mob::Broker::getPublisher(sim_mob::Services::SIM_MOB_SERVICE serviceType)
 {
-	return publishers;
+	PublisherList::type::const_iterator it = publishers.find(serviceType);
+	if (it != publishers.end()) {
+		return it->second;
+	}
+
+	throw std::runtime_error("Publishers does not contain the specified service type.");
 }
+
 
 void sim_mob::Broker::processClientRegistrationRequests()
 {
@@ -301,9 +307,7 @@ void sim_mob::Broker::processClientRegistrationRequests()
 			//success: handle() just added to the client to the main client list and started its connectionHandler
 			//	next, see if the waiting state of waiting-for-client-connection changes after this process
 			bool wait = clientBlockers[sim_mob::Services::ClientTypeMap[it->first]]->calculateWaitStatus();
-//			Print() << "calculateWaitStatus for  " << it->first << "  " << (wait? "WAIT " : "DONT_WAIT") << std::endl;
-			if(!wait)
-			{
+			if(!wait) {
 				//	then, get this request out of registration list.
 				it_erase =  it/*++*/;//keep the erase candidate. dont loose it :)
 				clientRegistrationWaitingList.erase(it_erase) ;
@@ -311,15 +315,6 @@ void sim_mob::Broker::processClientRegistrationRequests()
 				//corresponding agent w.r.t the result of handle()
 				//do this through a callback to agent's reuest
 			}
-//			else
-//			{
-//				it++; //putting it here coz multimap is not like a vector. erase doesn't return an iterator.
-//			}
-//		}
-//		else
-//		{
-//			Print() << "clientRegistration handler for " << it->first << " failed" << std::endl;
-//			it++; //putting it here coz multimap is not like a vector. erase doesn't return an iterator.
 		}
 	}
 }

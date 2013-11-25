@@ -29,15 +29,15 @@ namespace sim_mob {
  */
 class ClientRegistrationRequest {
 public:
+	ClientRegistrationRequest(const ClientRegistrationRequest& other);
+	ClientRegistrationRequest();
+
 	std::string clientID;
 	std::string client_type; //ns3, android emulator, FMOD etc
 	std::set<sim_mob::Services::SIM_MOB_SERVICE> requiredServices;
 	session_ptr session_;
-	ClientRegistrationRequest(const ClientRegistrationRequest& other);
-	ClientRegistrationRequest();
 
 	//ClientRegistrationRequest & operator=(const ClientRegistrationRequest & rhs);
-
 };
 
 

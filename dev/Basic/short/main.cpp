@@ -300,10 +300,8 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		const std::string & name = ConfigManager::GetInstance().FullConfig().getAndroidClientType();
 		Broker *androidBroker = new sim_mob::Broker(MtxStrat_Locked, 0);
 		Broker::addExternalCommunicator(name, androidBroker);
-//		sim_mob::Broker *androidBroker = ConfigParams::GetInstance().getExternalCommunicator(name);
 		Print() << "main.cpp:: android broker[" << androidBroker << "] of type[" << name << "] retrieved" << std::endl;
 		communicationWorkers->assignAWorker(androidBroker);
-//		Worker::SetMyTemporaryHack(androidBroker);
 		androidBroker->enable();
 	}
 

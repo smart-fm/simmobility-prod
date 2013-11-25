@@ -88,13 +88,13 @@ bool sim_mob::AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob
 	BOOST_FOREACH(srv, request.requiredServices) {
 		switch (srv) {
 		case sim_mob::Services::SIMMOB_SRV_TIME: {
-			PublisherList::dataType p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_TIME);
+			PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_TIME);
 			p->Subscribe(COMMEID_TIME, clientEntry.get(),
 					CALLBACK_HANDLER(sim_mob::TimeEventArgs, ClientHandler::OnEvent));
 			break;
 		}
 		case sim_mob::Services::SIMMOB_SRV_LOCATION: {
-			PublisherList::dataType p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_LOCATION);
+			PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_LOCATION);
 
 			//NOTE: It does not seem like we even use the "Context" pointer, so I am switching
 			//      this to a regular CALLBACK_HANDLER. Please review. ~Seth
@@ -107,7 +107,7 @@ bool sim_mob::AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob
 			break;
 		}
 		case sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH: {
-			PublisherList::dataType p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH);
+			PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH);
 			p->Subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(),
 					CALLBACK_HANDLER(sim_mob::RegionsAndPathEventArgs, ClientHandler::OnEvent));
 			break;

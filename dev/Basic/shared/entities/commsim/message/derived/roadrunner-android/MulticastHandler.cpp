@@ -93,8 +93,8 @@ void sim_mob::roadrunner::MulticastHandler::handle(sim_mob::comm::MsgPtr message
 		return;
 	}
 
-	ClientList::pair clientTypes;
-	ClientList::type & all_clients = broker->getClientList();
+	ClientList::Pair clientTypes;
+	ClientList::Type & all_clients = broker->getClientList();
 	sim_mob::comm::MsgData recipients;
 	BOOST_FOREACH(clientTypes , all_clients)
 	{
@@ -103,7 +103,7 @@ void sim_mob::roadrunner::MulticastHandler::handle(sim_mob::comm::MsgPtr message
 			continue;
 		}
 
-		ClientList::IdPair clientIds;
+		ClientList::ValuePair clientIds;
 		boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> >& inner = clientTypes.second;
 		BOOST_FOREACH(clientIds , inner)
 		{

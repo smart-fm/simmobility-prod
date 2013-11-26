@@ -653,6 +653,7 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 	p.isMLC = false;
 	if(p.dis2stop<150) // <150m need check above, ready to change lane
 	{
+		p.isMLC = true;
 ////		const RoadSegment* currentSegment = vehicle->getCurrSegment();
 		const RoadSegment* nextSegment = parentDriver->vehicle->getNextSegment(false);
 		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (parentDriver->vehicle->getNodeMovingTowards());

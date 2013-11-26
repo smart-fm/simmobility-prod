@@ -91,6 +91,8 @@ const Point2D SpecialPathB[] = { Point2D(37218351, 14335255), //AIMSUN 75780
 		Point2D(37241080, 14362955), //AIMSUN 61688
 		};
 
+const int distanceCheckToChangeLane = 150;
+
 //Path is in multi-node positions
 vector<WayPoint> ConvertToWaypoints(const Node* origin, const vector<Point2D>& path) {
 	vector<WayPoint> res;
@@ -651,8 +653,9 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 
 	// check current lane has connector to next link
 	p.isMLC = false;
-	if(p.dis2stop<150) // <150m need check above, ready to change lane
+	if(p.dis2stop<distanceCheckToChangeLane) // <150m need check above, ready to change lane
 	{
+		p.isMLC = true;
 ////		const RoadSegment* currentSegment = vehicle->getCurrSegment();
 		const RoadSegment* nextSegment = parentDriver->vehicle->getNextSegment(false);
 		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (parentDriver->vehicle->getNodeMovingTowards());

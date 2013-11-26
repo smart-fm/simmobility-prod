@@ -1834,6 +1834,10 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 				nextLane = uNode->getForwardDrivingLane(*params.currLane);
 			}
 
+			if(nextLane==nullptr){
+				std::cout<<"error getForwardDrivingLane no out lane"<<std::endl;
+			}
+
 //			//
 //			const sim_mob::Lane * currlan = params.currLane;
 //			std::vector<Point2D> currployline = currlan->polyline_;

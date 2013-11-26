@@ -140,6 +140,7 @@ private:
 
 class new_connector_t_pimpl: public virtual new_connector_t_pskel
 {
+	std::pair<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > model;
   public:
   virtual void
   pre ();
@@ -162,6 +163,7 @@ class new_connector_t_pimpl: public virtual new_connector_t_pskel
 
 class new_connectors_t_pimpl: public virtual new_connectors_t_pskel
 {
+	std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > model;
   public:
   virtual void
   pre ();

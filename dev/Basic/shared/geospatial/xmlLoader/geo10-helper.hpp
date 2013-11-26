@@ -75,7 +75,10 @@ public:
 		if (it!=laneLookup.end()) {
 			return it->second;
 		}
-		throw std::runtime_error("No Lane exists in bookkeeper with the requested id.");
+		std::ostringstream out("");
+		out << "warning:No Lane exists in bookkeeper with the requested id[" << id << "]" << std::endl;
+		throw std::runtime_error(out.str());
+		return 0;
 	}
 
 	void addSegment(sim_mob::RoadSegment* segment) {

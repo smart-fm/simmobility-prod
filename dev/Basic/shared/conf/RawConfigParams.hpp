@@ -36,8 +36,17 @@ struct FMOD_ControllerParams {
 ///represent the incident data section of the config file
 struct IncidentParams {
 	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
-			capFactor(0), startTime(0), duration(0), speedLimit(0), speedLimitOthers(0), laneId(0),
-			compliance(0), accessibility(0), xLaneStartPos(0),yLaneStartPos(0),xLaneEndPos(0),yLaneEndPos(0){}
+			capFactor(0), startTime(0), duration(0), length(0),	compliance(0), accessibility(0){}
+
+	struct LaneParams {
+		LaneParams() : laneId(0), speedLimit(0), xLaneStartPos(0), yLaneStartPos(0), xLaneEndPos(0),yLaneEndPos(0){}
+		unsigned int laneId;
+		float speedLimit;
+		float xLaneStartPos;
+		float yLaneStartPos;
+		float xLaneEndPos;
+		float yLaneEndPos;
+	};
 
 	unsigned int incidentId;
 	float visibilityDistance;
@@ -47,15 +56,10 @@ struct IncidentParams {
 	float capFactor;
 	unsigned int startTime;
 	unsigned int duration;
-	float speedLimit;
-	float speedLimitOthers;
-	unsigned int laneId;
+	float length;
 	float compliance;
 	float accessibility;
-	float xLaneStartPos;
-	float yLaneStartPos;
-	float xLaneEndPos;
-	float yLaneEndPos;
+	std::vector<LaneParams> laneParams;
 };
 
 ///Represents a Bust Stop in the config file. (NOTE: Further documentation needed.)

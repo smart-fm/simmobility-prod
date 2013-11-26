@@ -1155,11 +1155,17 @@ void sim_mob::ParseConfigFile::ProcessIncidentsNode(xercesc::DOMElement* node)
 		incident.capFactor = ParseFloat(GetNamedAttributeValue(item, "cap_factor") );
 		incident.startTime = ParseDailyTime(GetNamedAttributeValue(item, "start_time") ).getValue();
 		incident.duration = ParseDailyTime(GetNamedAttributeValue(item, "duration") ).getValue();
-		incident.speedLimit = ParseFloat(GetNamedAttributeValue(item, "speed_limit") );
-		incident.speedLimitOthers = ParseFloat(GetNamedAttributeValue(item, "speed_limit_adjacentlanes") );
-		incident.laneId = ParseUnsignedInt(GetNamedAttributeValue(item, "lane") );
+		incident.length = ParseFloat(GetNamedAttributeValue(item, "length") );
 		incident.compliance = ParseFloat(GetNamedAttributeValue(item, "compliance") );
 		incident.accessibility = ParseFloat(GetNamedAttributeValue(item, "accessibility") );
+
+		for(DOMElement* child=item->getFirstElementChild(); child; child=child->getNextElementSibling()){
+			IncidentParams::LaneParams lane;
+			lane.laneId = ParseUnsignedInt(GetNamedAttributeValue(child, "id"));
+			lane.speedLimit = ParseFloat(GetNamedAttributeValue(child, "speedLimitFactor") );
+			incident.laneParams.push_back(lane);
+		}
+
 		cfg.incidents.push_back(incident);
 	}
 }

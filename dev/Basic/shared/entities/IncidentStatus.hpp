@@ -17,7 +17,7 @@ namespace sim_mob {
 class RoadSegment;
 class IncidentStatus {
 public:
-	enum IncidentStatusType{INCIDENT_CLEARANCE, INCIDENT_OCCURANCE_LANE, INCIDENT_ADJACENT_LANE };
+	enum IncidentStatusType{INCIDENT_CLEARANCE, INCIDENT_FULLYBLOCKING, INCIDENT_OCCURANCE_LANE, INCIDENT_ADJACENT_LANE };
 	IncidentStatus();
 	virtual ~IncidentStatus();
 
@@ -40,6 +40,8 @@ public:
       * @return true if removing successfully .
       */
 	void checkIsCleared();
+
+	int checkBlockingStatus(const Incident*inc);
 
     /**
       * the setter and getter for the property 'currentStatus'
@@ -69,20 +71,16 @@ public:
 	}
 
     /**
-      * the setter for the property 'speedLimitFactor'
+      * the setter and getter for the property 'nextLaneIndex'
       */
-	void setSpeedLimitFactor(float value) {
-		speedLimitFactor = value;
+	void setCurrentLaneIndex(int value) {
+		currentLaneIndex = value;
+	}
+	int getCurrentLaneIndex() {
+		return currentLaneIndex;
 	}
 
-    /**
-      * the setter for the property 'speedLimitFactorOthers'
-      */
-	void setSpeedLimitFactorOthers(float value) {
-		speedLimitFactorOthers = value;
-	}
-
-	/**
+ 	/**
 	 * the setter for the property 'defaultSpeedLimit'
 	 */
 	void setDefaultSpeedLimit(float value) {
@@ -92,16 +90,7 @@ public:
 	/**
 	 * the getter for speed limit in incident lane
 	 */
-	float getSpeedLimit() {
-		return speedLimitFactor*defaultSpeedLimit;
-	}
-
-	/**
-	 * the getter for speed limit in adjacent lane
-	 */
-	float getSpeedLimitOthers() {
-		return speedLimitFactorOthers*defaultSpeedLimit;
-	}
+	float getSpeedLimit(unsigned int laneId);
 
     /**
       * the setter and getter for the property 'visibilityDist'
@@ -164,14 +153,11 @@ public:
 	}
 
 private:
+	int currentLaneIndex;
 	//record next lane index for lane changing model
 	int nextLaneIndex;
 	//default speed limit in current road segment
 	float defaultSpeedLimit;
-	//record speed limit defined in incident lane
-	float speedLimitFactor;
-	//record speed limit defined in adjacent lane to incident
-	float speedLimitFactorOthers;
 	//record visibility distance within which driver can see the incident
 	float visibilityDist;
 	//record real distance to the incident at current time
@@ -188,10 +174,6 @@ private:
 	bool slowdownVelocity;
 	//record incident objects to help make decision
 	std::map<unsigned int, const Incident*> currentIncidents;
-	//initialization flag;
-	static unsigned int flags;
-	//initial random seed
-	long seed;
 };
 
 } /* namespace sim_mob */

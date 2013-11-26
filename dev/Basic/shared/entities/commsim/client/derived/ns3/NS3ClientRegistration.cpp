@@ -88,9 +88,10 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 		AgentsList::type & agents = broker.getRegisteredAgents(&mutex);
 		AgentsList::Lock lock(mutex);
 		//please mind the AgentInfo vs AgentsInfo
-		AgentInfo agent;
-		BOOST_FOREACH(agent, agents) {
-			keys.insert(agent.agent);
+		//AgentInfo agent;
+		for (AgentsList::type::iterator it=agents.begin(); it!=agents.end(); it++) {
+		//BOOST_FOREACH(agent, agents) {
+			keys.insert(it->second.agent);
 		}
 	}
 	//no lock and const_cast at the cost of a lot of copying

@@ -5,7 +5,7 @@
 #pragma once
 #include <vector>
 #include <boost/unordered_map.hpp>
-#include "PredayClasses.hpp"
+#include "behavioral/PredayClasses.hpp"
 
 namespace sim_mob {
 namespace medium {
@@ -188,7 +188,7 @@ public:
 	}
 
 	/**
-	 * get the availability for a time window
+	 * get the availability for a time window for tour
 	 */
 	int getTimeWindowAvailability(std::string& timeWnd);
 
@@ -271,7 +271,35 @@ private:
 	 * Time windows currently available for the person.
 	 */
     boost::unordered_map<std::string, sim_mob::medium::TimeWindowAvailability*> timeWindowAvailability;
-
 };
+
+/**
+ * Class for storing person parameters related to usual work location model
+ *
+ * \author Harish Loganathan
+ */
+class ModelParamsUsualWork {
+public:
+	int getFirstOfMultiple() const {
+		return firstOfMultiple;
+	}
+
+	void setFirstOfMultiple(int firstOfMultiple) {
+		this->firstOfMultiple = firstOfMultiple;
+	}
+
+	int getSubsequentOfMultiple() const {
+		return subsequentOfMultiple;
+	}
+
+	void setSubsequentOfMultiple(int subsequentOfMultiple) {
+		this->subsequentOfMultiple = subsequentOfMultiple;
+	}
+
+private:
+	int firstOfMultiple;
+	int subsequentOfMultiple;
+};
+
 } //end namespace medium
 }// end namespace sim_mob

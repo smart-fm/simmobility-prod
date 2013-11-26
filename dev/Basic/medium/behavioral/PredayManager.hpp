@@ -12,11 +12,9 @@
 #pragma once
 #include "params/PersonParams.hpp"
 
-#include <cstdint>
-
 namespace sim_mob {
 namespace medium {
-typedef std::vector<PersonParams*> PersonList;
+typedef std::vector<PersonParams> PersonList;
 
 class PredayManager {
 public:

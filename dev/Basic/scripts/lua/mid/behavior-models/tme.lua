@@ -1,5 +1,5 @@
 --[[
-Model - Mode choice for work tour to usual location
+Model - Mode choice for education tour
 Type - NL
 Authors - Siyu Li, Harish Loganathan
 ]]
@@ -12,94 +12,109 @@ Authors - Siyu Li, Harish Loganathan
 
 --!! see the documentation on the definition of AM,PM and OP table!!
 
-local beta_cons_bus = -2.2
-local beta_cons_mrt = -2.31
-local beta_cons_privatebus = -2.93
-local beta_cons_drive1 = 0
-local beta_cons_share2 = -4.7
-local beta_cons_share3 = -5.92
-local beta_cons_motor = -8.99
-local beta_cons_walk = -2.48
-local beta_cons_taxi = -5.6
+local beta_cons_bus = -1.94
+local beta_cons_mrt = -2.93
+local beta_cons_privatebus= -2.21
+local beta_cons_drive1= 0
+local beta_cons_share2= -5.66
+local beta_cons_share3= -5.44
+local beta_cons_motor= -6.5
+local beta_cons_walk= -0.386
+local beta_cons_taxi= -6.12
 
-local beta1_1_tt = -0.379
-local beta1_2_tt = -0.564
-local beta1_3_tt = -1.39
+local beta1_1_tt = -0.623
+local beta1_2_tt = -0.703
+local beta1_3_tt = -1.09
 
-local beta_private_1_tt = -0.403
+local beta_private_1_tt= -0.692
 
-local beta2_tt_drive1 = -0.474
-local beta2_tt_share2 = -0.921
-local beta2_tt_share3 = -0.832
-local beta2_tt_motor = -0.649
+local beta2_tt_drive1 = -0.9
+local beta2_tt_share2 = -1.31
+local beta2_tt_share3 = -1.13
+local beta2_tt_motor = 0
 
-local beta_tt_walk = -2.05
-local beta_tt_taxi = -0.513
+local beta_tt_walk = -3.52
+local beta_tt_taxi = -2.54
 
-local beta4_1_cost = -7.37
-local beta4_2_cost = -0.15
-local beta5_1_cost = -8.36
-local beta5_2_cost = -0.163
-local beta6_1_cost = -6.26
-local beta6_2_cost = -0.0635
-local beta7_1_cost = -7.9
-local beta7_2_cost = -0.0829
-local beta8_1_cost = -6.56
-local beta8_2_cost = -0.117
-local beta9_1_cost = -5.61
-local beta9_2_cost = -0.052
-local beta10_1_cost = -5.09
-local beta10_2_cost = -0.0442
 
-local beta_cost_erp = 0 
+local beta_cost = -0.0184
+
+local beta_cost_erp = 0
 local beta_cost_parking = 0
 
-local beta_central_bus = 0.518
-local beta_central_mrt = 0.867
-local beta_central_privatebus = 0.313
-local beta_central_share2 = 0.477
-local beta_central_share3 = -0.0389
-local beta_central_motor = 0.526
-local beta_central_taxi = 1.16
-local beta_central_walk = 0.856
+local beta_central_bus = 0.214
+local beta_central_mrt = 0.397 
+local beta_central_privatebus = 0.753
+local beta_central_share2 = 0.395
+local beta_central_share3 = 0.486
+local beta_central_motor = 0.00692
+local beta_central_taxi = 0.959
+local beta_central_walk = 0.0671
 
-local beta_female_bus = 1.6
-local beta_female_mrt = 1.56
-local beta_female_privatebus = 1.52
+
+local beta_female_bus = 0.826
+local beta_female_mrt = 0.948
+local beta_female_privatebus = 0.886
+
 local beta_female_drive1 = 0
-local beta_female_share2 = 1.43
-local beta_female_share3 = 0.948
-local beta_female_motor = -2.72
-local beta_female_taxi = 1.5
-local beta_female_walk = 1.78
+local beta_female_share2 = 0.864
+local beta_female_share3 = 0.753
+
+local beta_female_motor = 0
+local beta_female_taxi = 0.724
+local beta_female_walk = 0.953
 
 local beta_zero_drive1 = 0
 local beta_oneplus_drive1 = 0
-local beta_twoplus_drive1 = 1.29 
-local beta_threeplus_drive1 = 1.01
+local beta_twoplus_drive1 = 0
+local beta_threeplus_drive1 = 0
 
 local beta_zero_share2 = 0
-local beta_oneplus_share2 = 2.7
-local beta_twoplus_share2 = 0.495
-local beta_threeplus_share2 = 1.13
+local beta_oneplus_share2 = 2.73
+local beta_twoplus_share2 = 1.28
+local beta_threeplus_share2 = 0.121
 
 local beta_zero_share3 = 0
-local beta_oneplus_share3 = 1.83
-local beta_twoplus_share3 = 0.356
+local beta_oneplus_share3 = 2.61
+local beta_twoplus_share3 = 0.963
 local beta_threeplus_share3 = 0
 
+
 local beta_zero_motor = 0
-local beta_oneplus_motor = 8.82
-local beta_twoplus_motor = 0.229
-local beta_threeplus_motor = 0.57
+local beta_oneplus_motor = 0
+local beta_twoplus_motor = 0
+local beta_threeplus_motor = 0
 
-local beta_transfer = -0.0502
 
-local beta_distance = 0
-local beta_residence = 0.0279 
+local beta_transfer = 0
+
+local beta_distance = -0.00836
+local beta_residence = -0.466
 local beta_residence_2 = 0
-local beta_attraction = -0.0188 
-local beta_attraction_2 = 0 
+local beta_attraction = -0.0393
+local beta_attraction_2 = 0
+
+local beta_age_over_15_bus = 2.0
+local beta_age_over_15_mrt = 2.54
+local beta_age_over_15_private_bus = 0
+local beta_age_over_15_drive1 = 0
+local beta_age_over_15_share2 = 0.414
+local beta_age_over_15_share3 = 0
+local beta_age_over_15_motor = 0
+local beta_age_over_15_walk = 1.36
+local beta_age_over_15_taxi = 1.14
+
+local beta_university_student_bus = -0.184
+local beta_university_student_mrt = 0.341
+local beta_university_student_private_bus = 0.22
+local beta_university_student_drive1 = 0
+local beta_university_student_share2 = 0.191
+local beta_university_student_share3 = 0
+local beta_university_student_motor = 0
+local beta_university_student_walk = 0
+local beta_university_student_taxi = 1.88
+
+local beta_distance_motor = 0
 
 
 --choice set
@@ -107,9 +122,9 @@ local beta_attraction_2 = 0
 -- 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
 local choice = {
 	"PT": {1,2,3},
-	"non-PT" : {4,5,6,7,8,9}
+	"car" : {4,5,6,7}
+	"other":{8,9}
 }
-
 
 --utility
 -- 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
@@ -122,7 +137,7 @@ local function computeUtilities(params,dbparams)
 	--0 if origin == destination
 	local cost_public_first = dbparams.cost_public_first
 
-	--dbparams.cost_public_second = PM[(destination,origin)]['pub_cost']
+	--dbcost_public_second = PM[(destination,origin)]['pub_cost']
 	--origin is home, destination is tour destination
 	--0 if origin == destination
 	local cost_public_second = dbparams.cost_public_second
@@ -167,6 +182,12 @@ local function computeUtilities(params,dbparams)
 	local income_mid = income_cat[income_id]
 	--params.missing_income = 1 * (params.income_id >= 12)
 	local missing_income = params.missing_income
+	
+	local age_id = params.age_id
+	local age_over_15 = age_id >= 3 and 1 or 0
+	local student_type_id = params.student_type_id
+	local university_student = student_type_id == 6 and 1 or 0
+
 
 	local cost_taxi_1=3.4+((d1*(d1>10 and 1 or 0)-10*(d1>10 and 1 or 0))/0.35+(d1*(d1<=10 and 1 or 0)+10*(d1>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_first + central_dummy*3
 	local cost_taxi_2=3.4+((d2*(d2>10 and 1 or 0)-10*(d2>10 and 1 or 0))/0.35+(d2*(d2<=10 and 1 or 0)+10*(d2>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_second + central_dummy*3
@@ -251,27 +272,27 @@ local function computeUtilities(params,dbparams)
 	local three_plus_motor = params.motor_own >= 3 and 1 or 0
 
 	--dbparams.resident_size = ZONE[origin]['resident workers']
-	--dbparams.work_op = ZONE[destination]['employment'] --total employment 
+	--dbparams.education_op = ZONE[destination]['education_op'] --total student 
 	--dbparams.origin_area= ZONE[origin]['area'] -- in square km 
 	--dbparams.destination_area = ZONE[destination]['area'] -- in square km
 	--origin is home, destination is tour destination
 	local resident_size = dbparams.resident_size
-	local work_op = dbparams.work_op
+	local education_op = dbparams.education_op
 	local origin_area = dbparams.origin_area
 	local destination_area = dbparams.destination_area
 
 	local residential_size=resident_size/origin_area/10000.0
-	local work_attraction=work_op/destination_area/10000.0
+	local school_attraction=education_op/destination_area/10000.0
 
-	utility[1] = beta_cons_bus + beta1_1_tt * tt_bus_ivt + beta1_2_tt * tt_bus_walk + beta1_3_tt * tt_bus_wait + beta4_1_cost * cost_over_income_bus * (1-missing_income) + beta4_2_cost * cost_bus * missing_income + beta_central_bus * central_dummy + beta_transfer * average_transfer_number + beta_female_bus * female_dummy
-	utility[2] = beta_cons_mrt + beta1_1_tt * tt_mrt_ivt + beta1_2_tt * tt_mrt_walk + beta1_3_tt * tt_mrt_wait + beta4_1_cost * cost_over_income_mrt * (1-missing_income) + beta4_2_cost * cost_mrt * missing_income + beta_central_mrt * central_dummy + beta_transfer * average_transfer_number + beta_female_mrt * female_dummy
-	utility[3] = beta_cons_privatebus + beta_private_1_tt * tt_privatebus_ivt + beta5_1_cost * cost_over_income_privatebus * (1-missing_income) + beta5_2_cost * cost_privatebus * missing_income + beta_central_privatebus * central_dummy + beta_distance*(d1+d2) + beta_residence * residential_size + beta_attraction * work_attraction + beta_residence_2*math.pow(residential_size,2)+beta_attraction_2*math.pow(work_attraction,2)+beta_female_privatebus* female_dummy
-	utility[4] = beta_cons_drive1 + beta2_tt_drive1 * tt_cardriver_all + beta6_1_cost * cost_over_income_cardriver * (1-missing_income) + beta6_2_cost * cost_cardriver * missing_income + beta_female_drive1 * female_dummy + beta_zero_drive1 * zero_car + beta_oneplus_drive1 * one_plus_car + beta_twoplus_drive1 * two_plus_car + beta_threeplus_drive1 * three_plus_car
-	utility[5] = beta_cons_share2 + beta2_tt_share2 * tt_carpassenger_all + beta7_1_cost * cost_over_income_carpassenger/2 * (1-missing_income) + beta7_2_cost * cost_carpassenger/2 * missing_income  + beta_central_share2 * central_dummy + beta_female_share2 * female_dummy + beta_zero_share2 * zero_car + beta_oneplus_share2 * one_plus_car + beta_twoplus_share2 * two_plus_car + beta_threeplus_share2 * three_plus_car
-	utility[6] = beta_cons_share3 + beta2_tt_share3 * tt_carpassenger_all + beta8_1_cost * cost_over_income_carpassenger/3 * (1-missing_income) + beta8_2_cost * cost_carpassenger/3 * missing_income  + beta_central_share3 * central_dummy + beta_female_share3 * female_dummy + beta_zero_share3 * zero_car + beta_oneplus_share3 * one_plus_car + beta_twoplus_share3 * two_plus_car + beta_threeplus_share3 * three_plus_car
-	utility[7] = beta_cons_motor + beta2_tt_motor * tt_motor_all + beta9_1_cost * cost_over_income_motor * (1-missing_income) + beta9_2_cost * cost_motor * missing_income  + beta_central_motor * central_dummy + beta_zero_motor * zero_motor + beta_oneplus_motor * one_plus_motor + beta_twoplus_motor * two_plus_motor + beta_threeplus_motor * three_plus_motor + beta_female_motor * female_dummy
-	utility[8] = beta_cons_walk  + beta_tt_walk * tt_walk + beta_central_walk * central_dummy+ beta_female_walk * female_dummy
-	utility[9] = beta_cons_taxi + beta_tt_taxi * tt_taxi_all + beta10_1_cost * cost_over_income_taxi * (1-missing_income) + beta10_2_cost * cost_taxi * missing_income + beta_central_taxi * central_dummy + beta_female_taxi * female_dummy
+	utility[1] = beta_cons_bus + beta1_1_tt * tt_bus_ivt + beta1_2_tt * tt_bus_walk + beta1_3_tt * tt_bus_wait + beta_cost * cost_bus + beta_central_bus * central_dummy + beta_transfer * average_transfer_number + beta_female_bus * female_dummy + age_over_15 * beta_age_over_15_bus + university_student * beta_university_student_bus
+	utility[2] = beta_cons_mrt + beta1_1_tt * tt_mrt_ivt + beta1_2_tt * tt_mrt_walk + beta1_3_tt * tt_mrt_wait + beta_cost * cost_mrt + beta_central_mrt * central_dummy + beta_transfer * average_transfer_number + beta_female_mrt * female_dummy + age_over_15 * beta_age_over_15_mrt + university_student * beta_university_student_mrt
+	utility[3] = beta_cons_privatebus + beta_private_1_tt * tt_privatebus_ivt + beta_cost * cost_privatebus + beta_central_privatebus * central_dummy + beta_distance*(d1+d2) + beta_residence * residential_size + beta_attraction * school_attraction + beta_residence_2*math.pow(residential_size,2)+beta_attraction_2*math.pow(school_attraction,2)+beta_female_privatebus* female_dummy + age_over_15 * beta_age_over_15_private_bus + university_student * beta_university_student_private_bus
+	utility[4] = beta_cons_drive1 + beta2_tt_drive1 * tt_cardriver_all + beta_cost * cost_cardriver + beta_female_drive1 * female_dummy + beta_zero_drive1 * zero_car + beta_oneplus_drive1 * one_plus_car + beta_twoplus_drive1 * two_plus_car + beta_threeplus_drive1 * three_plus_car + age_over_15 * beta_age_over_15_drive1 + university_student * beta_university_student_drive1
+	utility[5] = beta_cons_share2 + beta2_tt_share2 * tt_carpassenger_all + beta_cost * cost_carpassenger/2.0  + beta_central_share2 * central_dummy + beta_female_share2 * female_dummy + beta_zero_share2 * zero_car + beta_oneplus_share2 * one_plus_car + beta_twoplus_share2 * two_plus_car + beta_threeplus_share2 * three_plus_car + age_over_15*beta_age_over_15_share2 + university_student * beta_university_student_share2
+	utility[6] = beta_cons_share3 + beta2_tt_share3 * tt_carpassenger_all + beta_cost * cost_carpassenger/3.0  + beta_central_share3 * central_dummy + beta_female_share3 * female_dummy + beta_zero_share3 * zero_car + beta_oneplus_share3 * one_plus_car + beta_twoplus_share3 * two_plus_car + beta_threeplus_share3 * three_plus_car + age_over_15*beta_age_over_15_share3 + university_student * beta_university_student_share3
+	utility[7] = beta_cons_motor + beta2_tt_motor * tt_motor_all + beta_cost * cost_motor + beta_central_motor * central_dummy + beta_zero_motor * zero_motor + beta_oneplus_motor * one_plus_motor + beta_twoplus_motor * two_plus_motor + beta_threeplus_motor * three_plus_motor + beta_female_motor * female_dummy + age_over_15*beta_age_over_15_motor + university_student * beta_university_student_motor + beta_distance_motor * (d1+d2)
+	utility[8] = beta_cons_walk  + beta_tt_walk * tt_walk + beta_central_walk * central_dummy+ beta_female_walk * female_dummy + age_over_15*beta_age_over_15_walk + university_student * beta_university_student_walk
+	utility[9] = beta_cons_taxi + beta_tt_taxi * tt_taxi_all + beta_cost * cost_taxi + beta_central_taxi * central_dummy + beta_female_taxi * female_dummy + age_over_15*beta_age_over_15_taxi + university_student * beta_university_student_taxi
 
 end
 
@@ -282,28 +303,32 @@ end
 local availability = {}
 local function computeAvailabilities(params,dbparams)
 	availability[1] = {
-		dbparams.tmw_publicbus_AV,
-		dbparams.tmw_mrt_AV,
-		dbparams.tmw_privatebus_AV
+		dbparams.tme_publicbus_AV,
+		dbparams.tme_mrt_AV,
+		dbparams.tme_privatebus_AV
 		},
 	availability[2] = {
-	dbparams.tmw_drive1_AV,
-	dbparams.tmw_share2_AV,
-	dbparams.tmw_share3_AV,
-	dbparams.tmw_motor_AV,
-	dbparams.tmw_walk_AV,
-	dbparams.tmw_taxi_AV
+	dbparams.tme_drive1_AV,
+	dbparams.tme_share2_AV,
+	dbparams.tme_share3_AV,
+	dbparams.tme_motor_AV
+		},
+	availability[3] = {
+	dbparams.tme_walk_AV,
+	dbparams.tme_taxi_AV
+		}
 }
 end
 
 --scale
 local scale={
-	{2.82,2.82,2.82},
-	{1,1,1,1,1,1}
+	{1.51,1.51,1.51},
+	{1.45,1.45,1.45,1.45},
+	{1,1}
 }
 
 
-function choose_tmw(params,dbparams)
+function choose_tme(params,dbparams)
 	computeUtilities(params,dbparams) 
 	computeAvailabilities(params,dbparams)
 	local probability = calculate_probability("nl", choice, utility, availability, scale)

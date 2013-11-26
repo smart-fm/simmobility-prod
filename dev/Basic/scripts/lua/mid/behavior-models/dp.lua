@@ -316,7 +316,7 @@ local function computeUtilities(params)
 	local female_dummy = params.female_dummy
 	local income_id = params.income_id
 	local income_mid = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
-	local work_at_home_dummy = params. work_at_home_dummy
+	local work_at_home_dummy = params.work_at_home_dummy
 	local car_own_normal = params.car_own_normal
 	local car_own_offpeak = params.car_own_offpeak
 	local motor_own = params.motor_own

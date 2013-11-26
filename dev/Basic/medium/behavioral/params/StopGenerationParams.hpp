@@ -75,3 +75,5 @@ private:
 	int shopStopAvailability;
 	int otherStopAvailability;
 };
+} //end namespace medium
+} // end namespace sim_mob

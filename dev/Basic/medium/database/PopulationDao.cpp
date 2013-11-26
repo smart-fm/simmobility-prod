@@ -9,8 +9,7 @@
  *      Author: Harish Loganathan
  */
 
-#pragma once
-#include "PredayDao.hpp"
+#include "PopulationDao.hpp"
 
 #include "DatabaseHelper.hpp"
 
@@ -18,7 +17,7 @@ using namespace sim_mob;
 using namespace sim_mob::db;
 using namespace sim_mob::medium;
 
-PopulationDao::PopulationDao(DB_Connection* connection)
+PopulationDao::PopulationDao(DB_Connection& connection)
 : AbstractDao<PersonParams>(connection, DB_VIEW_PREDAY_PERSON, "", "", "", DB_GETALL_PREDAY_PERSON, "")
 {}
 

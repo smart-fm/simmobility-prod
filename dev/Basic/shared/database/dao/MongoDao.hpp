@@ -10,53 +10,37 @@
  */
 
 #pragma once
-
-#include <cstdlib>
-#include "mongo/client/dbclient.h"
-
 #include "database/dao/AbstractDao.hpp"
 #include "database/DB_Connection.hpp"
+#include "mongo/client/dbclient.h"
 
 namespace sim_mob {
 namespace db {
-typedef boost::variant<int, std::string, long, double> ValueType;
-typedef std::map<std::string, ValueType> KeyValuePairs;
 
 /**
  * Data access object for MongoDB
  */
 class MongoDao {
 public:
-	MongoDao(db::DB_Connection* connection, std::string& database, std::string& collection);
+	MongoDao(DB_Config& dbConfig, const std::string& database, const std::string& collection);
 	virtual ~MongoDao();
 
 	/**
 	 * inserts a document into collection
 	 *
-	 * @param doc a map of key value pairs to construct the document to be inserted
+	 * @param bsonObj a mongo::BSONObj containing object to insert
 	 */
-	void insertDocument(const KeyValuePairs& doc);
-
-	/**
-	 * fetches a cursor to the result of the query
-	 *
-	 * @param doc a map of key value pairs to construct the document to be inserted
-	 */
-	std::auto_ptr<mongo::DBClientCursor> queryDocument(const KeyValuePairs& doc);
+	void insertDocument(const mongo::BSONObj& bsonObj);
 
 	/**
 	 * Overload. Fetches a cursor to the result of the query
 	 *
-	 * @param doc a map of key value pairs to construct the document to be inserted
+	 * @param bsonObj a mongo::BSONObj object containing the constructed query
 	 */
 	std::auto_ptr<mongo::DBClientCursor> queryDocument(const mongo::BSONObj& bsonObj);
 
-	DB_Connection& connection;
+	DB_Connection connection;
 	std::string collectionName;
-
-private:
-	void constructBSON_Obj(const KeyValuePairs& doc, mongo::BSONObj& bsonObj);
-
 };
 
 }//end namespace db

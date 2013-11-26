@@ -57,8 +57,3 @@ void PersonParams::blockTime(double startTime, double endTime) {
 int PersonParams::getTimeWindowAvailability(std::string& timeWnd) {
 	return timeWindowAvailability.at(timeWnd)->getAvailability();
 }
-
-
-
-
-

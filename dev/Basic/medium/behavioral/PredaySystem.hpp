@@ -48,8 +48,6 @@ public:
 	void planDay();
 
 protected:
-	PredaySystem(PersonParams& personParams);
-
     /**
      * Inherited from LuaModel
      */
@@ -71,7 +69,7 @@ private:
 	 *
 	 * @return true if the tour is to a usual work location. false otherwise.
 	 */
-	bool predictUsualWorkLocation();
+	bool predictUsualWorkLocation(bool firstOfMultiple);
 
 	/**
 	 * Predicts the mode of travel for a tour.
@@ -103,7 +101,7 @@ private:
 	 * Predicts the arrival time for stops before the primary activity.
 	 * Predicts the departure time for stops after the primary activity.
 	 */
-	void predictStopTimeOfDay(Stop& stop);
+	void predictStopTimeOfDay(Stop& stop, bool isBeforePrimary);
 
 	/**
 	 * Calculates the arrival time for stops in the second half tour.
@@ -136,11 +134,6 @@ private:
     PersonParams personParams;
 
     /**
-     * Parameters for usual work location model
-     */
-    ModelParamsUsualWork usualWorkParams;
-
-    /**
      * list of tours for this person
      */
     std::deque<Tour*> tours;
@@ -163,7 +156,7 @@ private:
     /**
      * Data access objects for mongo
      */
-    boost::unordered_map<std::string, db::MongoDao> mongoDao;
+    boost::unordered_map<std::string, db::MongoDao*> mongoDao;
 
 };
 

@@ -23,34 +23,6 @@ namespace sim_mob {
 namespace medium {
 
 /**
- * Class for storing person parameters related to usual work location model
- *
- * \author Harish Loganathan
- */
-class ModelParamsUsualWork {
-public:
-	int getFirstOfMultiple() const {
-		return firstOfMultiple;
-	}
-
-	void setFirstOfMultiple(int firstOfMultiple) {
-		this->firstOfMultiple = firstOfMultiple;
-	}
-
-	int getSubsequentOfMultiple() const {
-		return subsequentOfMultiple;
-	}
-
-	void setSubsequentOfMultiple(int subsequentOfMultiple) {
-		this->subsequentOfMultiple = subsequentOfMultiple;
-	}
-
-private:
-	int firstOfMultiple;
-	int subsequentOfMultiple;
-};
-
-/**
  * An encapsulation of a time window and its availability.
  *
  * startTime and endTime are of the format <3-26>.25 or <3-26>.75
@@ -159,6 +131,15 @@ public:
 
 	StopType getStopType() const {
 		return stopType;
+	}
+
+	int getStopTypeID() const {
+		switch(stopType) {
+		case WORK: return 1;
+		case EDUCATION: return 2;
+		case SHOP: return 3;
+		case OTHER: return 4;
+		}
 	}
 
 	void setStopType(StopType stopType) {

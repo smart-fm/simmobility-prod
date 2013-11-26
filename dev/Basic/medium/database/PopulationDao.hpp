@@ -13,16 +13,16 @@
 
 #include "database/dao/AbstractDao.hpp"
 #include "database/DB_Connection.hpp"
-#include "medium/behavioral/PersonParams.hpp"
+#include "behavioral/params/PersonParams.hpp"
 
 namespace sim_mob {
 namespace medium {
 /**
  * Data access object for Population tables
  */
-class PopulationDao : public db::AbstractDao {
+class PopulationDao : public db::AbstractDao<PersonParams> {
 public:
-	PopulationDao(db::DB_Connection* connection);
+	PopulationDao(db::DB_Connection& connection);
 	virtual ~PopulationDao();
 
 private:

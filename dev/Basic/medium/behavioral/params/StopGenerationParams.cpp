@@ -186,3 +186,4 @@ void sim_mob::medium::StopGenerationParams::setShopStopAvailability(int shopStop
 void sim_mob::medium::StopGenerationParams::setWorkStopAvailability(int workStopAvailability) {
 	this->workStopAvailability = workStopAvailability;
 }
+

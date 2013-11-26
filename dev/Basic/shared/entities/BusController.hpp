@@ -66,7 +66,7 @@ public:
 
 	double decisionCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_BusStop);// return Departure MS from Aijk, DWijk etc
 	void storeRealTimes_eachBusStop(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, const BusStop* lastVisited_BusStop, BusStop_RealTimes& realTime);
-	void addOrStashBuses(Agent* p, std::vector<Entity*>& active_agents);
+	void addOrStashBuses(Agent* p, std::set<Entity*>& active_agents);
 
 	void dynamicalGenerateAgent(unsigned int preTicks, unsigned int curTicks, std::vector<Entity*>& active_agents);
 
@@ -82,7 +82,7 @@ public:
 	// Manage Buses
 	void addBus(Bus* bus);
 	void remBus(Bus* bus);
-	void assignBusTripChainWithPerson(std::vector<Entity*>& active_agents);
+	void assignBusTripChainWithPerson(std::set<sim_mob::Entity*>& active_agents);
 
 	///Load all bus items from the database.
 	void setPTScheduleFromConfig(const std::vector<sim_mob::PT_bus_dispatch_freq>& busdispatch_freq);

@@ -40,10 +40,10 @@
             </database>
 
             <!-- Local copy of the FM server (see wiki for how to set up) -->
-            <database id="fm_local" dbtype="postgres">
+          	<database id="fm_local" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
-                <dbname value="SimMobility_DB_New"/>
+                <dbname value="SimMobility_DB_WholeSGNew"/>
             </database>
         </databases>
 	
@@ -93,6 +93,26 @@
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
 		
 		<!-- These public-transit mappings have currently only been tested with the large-bugis network. -->
+                <mapping name="bus_schedule" procedure="get_bus_schedule()"/>
+                <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('saturday')"/>
+                <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
+                <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+                <mapping name="busstop" procedure="get_bus_stop_bugis()"/>
+            </proc_map>
+            
+            <!-- The whole Singapore network -->
+            <proc_map id="wholeSG" format="aimsun">
+                <mapping name="node" procedure="get_node_sg()"/>
+                <mapping name="section" procedure="get_section_sg()"/>
+                <mapping name="crossing" procedure="get_pedestrian_crossing()"/>
+                <mapping name="lane" procedure="get_lanes_bugis()"/>
+                <mapping name="turning" procedure="get_lane_connector_bugis()"/>
+                <mapping name="polyline" procedure="get_section_polyline_sg()"/>
+                <mapping name="tripchain" procedure="get_tripchains()"/>
+                <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
+                <mapping name="phase" procedure="get_lane_connector_phases()"/>
+		
+		<!-- These public-transit mappings have been tested with the whole Singapore network. -->
                 <mapping name="bus_schedule" procedure="get_bus_schedule()"/>
                 <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('saturday')"/>
                 <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
@@ -169,9 +189,9 @@
         <simulation>
             <base_granularity   value="100"   units="ms" />
             <total_runtime      value="5"      units="minutes" />
-            <total_warmup       value="10"     units="seconds" />
+            <total_warmup       value="0"     units="seconds" />
             
-            <start_time         value="08:00:00"/>
+            <start_time         value="05:38:00"/>
             
             <!-- Implementation to use for the Aura Manager. -->
             <!-- Values include: simtree, rdu, rstar (default) -->
@@ -198,7 +218,7 @@
             <!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
             <mutex_enforcement    strategy="buffered" />
         	<communication enabled="no">
-        		<android_testbed type="android-ns3" enabled="yes"/> <!--currently: type="android-only" and "android-ns3" -->
+        		<android_testbed type="android-ns3" enabled="no"/> <!--currently: type="android-only" and "android-ns3" -->
         	</communication>
 
 <!--  These don't seem to do anything. ~Seth -->
@@ -258,7 +278,7 @@
 	<!-- If loading from the database, which database, proc_map, and credentials are used? -->
 	<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
 	<!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
-	<network_database database="fm_remote" credentials="fm_local_yaojin" proc_map="bugis_large"/>
+	<network_database database="fm_local" credentials="fm_local_yaojin" proc_map="wholeSG"/>
 
         <!-- Where to find our various schema files. -->
         <!-- Overrides xsi:schemaLocation in the files themselves. -->

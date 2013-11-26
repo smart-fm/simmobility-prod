@@ -53,7 +53,18 @@ void sim_mob::BusController::InitializeAllControllers(std::set<Entity*>& agents_
 
 	for (vector<BusController*>::iterator it=all_busctrllers_.begin(); it!=all_busctrllers_.end(); it++) {
 		(*it)->setPTScheduleFromConfig(busdispatch_freq);
-		//(*it)->assignBusTripChainWithPerson(agents_list);
+		(*it)->assignBusTripChainWithPerson(agents_list);
+
+//		unsigned int preTickMS = ((*it)->nextTimeTickToStage)*ConfigManager::GetInstance().FullConfig().baseGranMS();
+//		unsigned int curTickMS = ((*it)->nextTimeTickToStage+1)*ConfigManager::GetInstance().FullConfig().baseGranMS();
+//
+//		std::vector<Entity*> active_agents;
+//		(*it)->dynamicalGenerateAgent(preTickMS, curTickMS, active_agents);
+//
+//		for(vector<Entity*>::iterator it=active_agents.begin(); it!=active_agents.end(); it++)	{
+//			(*it)->currWorkerProvider->scheduleForBred((*it));
+//			//this->currWorker->scheduleForBred((*it));
+//		}
 	}
 
 
@@ -99,7 +110,7 @@ void sim_mob::BusController::remBus(Bus* bus)
 	}
 }
 
-void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& active_agents)
+void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Entity*>& active_agents)
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	const map<string, Busline*>& buslines = pt_schedule.get_busLines();
@@ -129,7 +140,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(vector<Entity*>& activ
 		}
 	}
 
-	for (vector<Entity*>::iterator it=active_agents.begin(); it!=active_agents.end(); it++) {
+	for (std::set<Entity*>::iterator it=active_agents.begin(); it!=active_agents.end(); it++) {
 		(*it)->parentEntity = this;
 		all_children.push_back( (*it) );
 	}
@@ -152,7 +163,7 @@ void sim_mob::BusController::dynamicalGenerateAgent(unsigned int preTicks, unsig
 
 				unsigned int tripStartTime = tripIt->startTime.offsetMS_From(config.simStartTime());
 
-				if( tripStartTime>preTicks && tripStartTime<=curTicks)
+				if( tripStartTime>=preTicks && tripStartTime<curTicks)
 				{
 					Person* currAg = new Person("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
 					currAg->setStartTime(tripStartTime);
@@ -483,13 +494,13 @@ double sim_mob::BusController::hybridDecision(const string& busline_i, int trip_
 
 
 
-void sim_mob::BusController::addOrStashBuses(Agent* p, vector<Entity*>& active_agents)
+void sim_mob::BusController::addOrStashBuses(Agent* p, std::set<Entity*>& active_agents)
 {
 	if (p->getStartTime()==0) {
 		//Only agents with a start time of zero should start immediately in the all_agents list.
 		p->load(p->getConfigProperties());
 		p->clearConfigProperties();
-		active_agents.push_back(p);
+		active_agents.insert(p);
 	} else {
 		//Start later.
 		pending_buses.push(p);
@@ -559,27 +570,30 @@ void sim_mob::BusController::unregisteredChild(Entity* child)
 
 Entity::UpdateStatus sim_mob::BusController::frame_tick(timeslice now)
 {
-	//Note: The WorkGroup (see below) will delay an entity until its time tick has arrived, so there's nothing wrong
-	//      with dispatching early. To reflect this, I've added +3 to the next time tick. Ideally, the BusController
-	//      would stage the Bus as soon as it was 100% sure that this bus would run. (We can add functionality later for
-	//      updating a pending request). In other words, let the WorkGroup do what it does best. ~Seth
-	unsigned int preTickMS = nextTimeTickToStage*ConfigManager::GetInstance().FullConfig().baseGranMS();
-	unsigned int curTickMS = (++nextTimeTickToStage)*ConfigManager::GetInstance().FullConfig().baseGranMS();
+//	//Note: The WorkGroup (see below) will delay an entity until its time tick has arrived, so there's nothing wrong
+//	//      with dispatching early. To reflect this, I've added +3 to the next time tick. Ideally, the BusController
+//	//      would stage the Bus as soon as it was 100% sure that this bus would run. (We can add functionality later for
+//	//      updating a pending request). In other words, let the WorkGroup do what it does best. ~Seth
+//	unsigned int preTickMS = (nextTimeTickToStage+1)*ConfigManager::GetInstance().FullConfig().baseGranMS();
+//	unsigned int curTickMS = (nextTimeTickToStage+2)*ConfigManager::GetInstance().FullConfig().baseGranMS();
+//
+//	std::vector<Entity*> active_agents;
+//	dynamicalGenerateAgent(preTickMS, curTickMS, active_agents);
+//
+//	for(vector<Entity*>::iterator it=active_agents.begin(); it!=active_agents.end(); it++)	{
+//		this->currWorkerProvider->scheduleForBred((*it));
+//		//this->currWorker->scheduleForBred((*it));
+//	}
+//
+//	handleDriverRequest();
+//
+//	nextTimeTickToStage++;
+//
+//	return Entity::UpdateStatus::Continue;
 
-	std::vector<Entity*> active_agents;
-	dynamicalGenerateAgent(preTickMS, curTickMS, active_agents);
 
-	for(vector<Entity*>::iterator it=active_agents.begin(); it!=active_agents.end(); it++)	{
-		this->currWorkerProvider->scheduleForBred((*it));
-		//this->currWorker->scheduleForBred((*it));
-	}
-
-	handleDriverRequest();
-
-	return Entity::UpdateStatus::Continue;
-
-	/*nextTimeTickToStage += tickStep;
-	unsigned int nextTickMS = (nextTimeTickToStage+3)*ConfigParams::GetInstance().baseGranMS;
+	nextTimeTickToStage += tickStep;
+	unsigned int nextTickMS = (nextTimeTickToStage+3)*ConfigManager::GetInstance().FullConfig().baseGranMS();
 
 	//Stage any pending entities that will start during this time tick.
 	while (!pending_buses.empty() && pending_buses.top()->getStartTime() <= nextTickMS) {
@@ -607,7 +621,7 @@ Entity::UpdateStatus sim_mob::BusController::frame_tick(timeslice now)
 
 	handleDriverRequest();
 
-	return Entity::UpdateStatus::Continue;*/
+	return Entity::UpdateStatus::Continue;
 }
 
 

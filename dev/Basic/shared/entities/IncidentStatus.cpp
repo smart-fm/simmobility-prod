@@ -50,13 +50,23 @@ bool IncidentStatus::insertIncident(const Incident* inc){
 		return false;
 	}
 
+	currentIncidents.insert(std::make_pair(inc->incidentId, inc));
+
 	int destinationLaneId = checkBlockingStatus(inc);
 
 	currentStatus = INCIDENT_FULLYBLOCKING;
 
-	if(destinationLaneId>=0){
+	if(destinationLaneId<0){
 		slowdownVelocity = true;
-		if(destinationLaneId != currentLaneIndex){
+		currentStatus = INCIDENT_OCCURANCE_LANE;
+	}
+	else if(destinationLaneId>=0){
+
+		if(getSpeedLimit(currentLaneIndex)<defaultSpeedLimit){
+			slowdownVelocity = true;
+		}
+
+		if(destinationLaneId!=currentLaneIndex && getSpeedLimit(currentLaneIndex)==0){
 			currentStatus = INCIDENT_OCCURANCE_LANE;
 			nextLaneIndex = destinationLaneId;
 			if( currentLaneIndex < nextLaneIndex){
@@ -70,8 +80,6 @@ bool IncidentStatus::insertIncident(const Incident* inc){
 			currentStatus = INCIDENT_ADJACENT_LANE;
 		}
 	}
-
-	currentIncidents.insert(std::make_pair(inc->incidentId, inc));
 
 	return true;
 }

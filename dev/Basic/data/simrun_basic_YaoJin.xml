@@ -43,7 +43,7 @@
           	<database id="fm_local" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
-                <dbname value="SimMobility_DB_local_workshop"/>
+                <dbname value="SimMobility_DB_New"/>
             </database>
         </databases>
 	

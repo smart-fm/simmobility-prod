@@ -2423,6 +2423,7 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 			 * todo:think of something for this else clause! you are going continue with No color!S
 			 */
 //			color = trafficSignal->getDriverLight(*p.currLane).forward;
+			color = sim_mob::Green;
 		}
 		switch (color) {
 		case sim_mob::Red:

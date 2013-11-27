@@ -27,6 +27,9 @@ namespace {
                                              "password=%4% " 
                                              "dbname=%5%";
 
+    /**
+     * Class that holds the session object.
+     */
     template<typename T>
     class DB_Session{
     public:
@@ -42,6 +45,10 @@ namespace {
         }
         T session;
     };
+    
+    /**
+     * Soci session holder. 
+     */
     typedef DB_Session<soci::session> SociSessionImpl;
 }
 

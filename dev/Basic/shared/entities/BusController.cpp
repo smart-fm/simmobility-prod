@@ -273,10 +273,10 @@ void sim_mob::BusController::storeRealTimes_eachBusStop(const std::string& busli
 		const vector<BusTrip>& BusTrips = busline->queryBusTrips();
 		const vector<Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
 
-//		std::cout << "busStopRealTime_tripK_1  size(): " << busStopRealTime_tripK_1.size() << std::endl;
-//		int iSize = busStopRealTime_tripK_1.size();
-//		for(int i = 0; i < iSize; i++)
-//			std::cout << "real_ArrivalTime0: " << busStopRealTime_tripK_1[i]->get().real_ArrivalTime.getRepr_() << std::endl;
+		std::cout << "trip_k - 1 = " << trip_k - 1 << " busStopRealTime_tripK_1  size(): " << busStopRealTime_tripK_1.size() << std::endl;
+		int iSize = busStopRealTime_tripK_1.size();
+		for(int i = 0; i < iSize; i++)
+			std::cout << "real_ArrivalTime: " << i << " " << busStopRealTime_tripK_1[i]->get().real_ArrivalTime.getRepr_() << std::endl;
 	}
 }
 
@@ -369,7 +369,7 @@ double sim_mob::BusController::headwayDecision(const string& busline_i, int trip
 		const vector<Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
 
 		std::cout << "busStopRealTime_tripK_1  size(): " << busStopRealTime_tripK_1.size() << std::endl;
-		std::cout << "real_ArrivalTime0: " << busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.getRepr_() << std::endl;
+		std::cout << "real_ArrivalTime in headway Decision: " << " trip_k - 1 " << trip_k - 1 << " busstopSequence_j " << busstopSequence_j << "	" << busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.getRepr_() << std::endl;
 		if(busStopRealTime_tripK_1[busstopSequence_j]->get().Real_busStop) { // data has already updated
 			ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());// there are some cases that buses are bunched together so that k-1 has no values updated yet
 			Hi = 143000;// 444300(test holding), 143000(best), 142000, 140000(headway*100), 138000, 181000(bad effect) ;60000(headway*50)
@@ -529,15 +529,15 @@ void sim_mob::BusController::handleRequestParams(sim_mob::DriverRequestParams rP
 		if(existed_Request_Mode && lastVisited_Busline && lastVisited_BusTrip_SequenceNo && busstop_sequence_no
 		   && real_ArrivalTime && DwellTime_ijk && lastVisited_BusStop && last_busStopRealTimes && waiting_Time)
 		{
-			BusStop_RealTimes realTime;
+			BusStop_RealTimes* realTime = new BusStop_RealTimes();
 			if(existed_Request_Mode->get() == Role::REQUEST_DECISION_TIME ){
-				double waitingtime = decisionCalculation(lastVisited_Busline->get(),lastVisited_BusTrip_SequenceNo->get(),busstop_sequence_no->get(),real_ArrivalTime->get(),DwellTime_ijk->get(),realTime,lastVisited_BusStop->get());
+				double waitingtime = decisionCalculation(lastVisited_Busline->get(),lastVisited_BusTrip_SequenceNo->get(),busstop_sequence_no->get(),real_ArrivalTime->get(),DwellTime_ijk->get(),*realTime,lastVisited_BusStop->get());
 				waiting_Time->set(waitingtime);
 			}
 			else if(existed_Request_Mode->get() == Role::REQUEST_STORE_ARRIVING_TIME ){
-				storeRealTimes_eachBusStop(lastVisited_Busline->get(),lastVisited_BusTrip_SequenceNo->get(),busstop_sequence_no->get(),real_ArrivalTime->get(),DwellTime_ijk->get(),lastVisited_BusStop->get(), realTime);
+				storeRealTimes_eachBusStop(lastVisited_Busline->get(),lastVisited_BusTrip_SequenceNo->get(),busstop_sequence_no->get(),real_ArrivalTime->get(),DwellTime_ijk->get(),lastVisited_BusStop->get(), *realTime);
 			}
-			last_busStopRealTimes->set(realTime);
+			last_busStopRealTimes->set(*realTime);
 		}
 	}
 }

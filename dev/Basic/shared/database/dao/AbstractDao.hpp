@@ -14,7 +14,7 @@
 #include <boost/algorithm/string.hpp>
 #include "database/DB_Connection.hpp"
 #include "util/LangHelpers.hpp"
-
+#include "soci.h"
 namespace {
 
     typedef soci::details::use_type_ptr UseTypePtr;
@@ -110,8 +110,8 @@ namespace sim_mob {
              */
             virtual T& insert(T& entity) {
                 if (isConnected()) {
-                    Transaction tr(connection.getSession());
-                    Statement query(connection.getSession());
+                    Transaction tr(connection.getSession<soci::session>());
+                    Statement query(connection.getSession<soci::session>());
                     //append returning clause. 
                     //Attention: this is only prepared for POSTGRES.
                     std::string upperQuery = 
@@ -145,8 +145,8 @@ namespace sim_mob {
              */
             virtual bool update(T& entity) {
                 if (isConnected()) {
-                    Transaction tr(connection.getSession());
-                    Statement query(connection.getSession());
+                    Transaction tr(connection.getSession<soci::session>());
+                    Statement query(connection.getSession<soci::session>());
                     // Get data to insert.
                     Parameters params;
                     toRow(entity, params, true);
@@ -167,8 +167,8 @@ namespace sim_mob {
              */
             virtual bool erase(const Parameters& params) {
                 if (isConnected()) {
-                    Transaction tr(connection.getSession());
-                    Statement query(connection.getSession());
+                    Transaction tr(connection.getSession<soci::session>());
+                    Statement query(connection.getSession<soci::session>());
                     // prepare statement.
                     prepareStatement(defaultQueries[DELETE], params, query);
                     //execute query.
@@ -256,7 +256,7 @@ namespace sim_mob {
                     const Parameters& params, std::vector<T>& outParam) {
                 bool hasValues = false;
                 if (isConnected()) {
-                    Statement query(connection.getSession());
+                    Statement query(connection.getSession<soci::session>());
                     prepareStatement(queryStr, params, query);
                     ResultSet rs(query);
                     ResultSet::const_iterator it = rs.begin();
@@ -281,7 +281,7 @@ namespace sim_mob {
             bool getByValues(const std::string& queryStr,
                     const Parameters& params, T& outParam) {
                 if (isConnected()) {
-                    Statement query(connection.getSession());
+                    Statement query(connection.getSession<soci::session>());
                     prepareStatement(queryStr, params, query);
                     ResultSet rs(query);
                     ResultSet::const_iterator it = rs.begin();

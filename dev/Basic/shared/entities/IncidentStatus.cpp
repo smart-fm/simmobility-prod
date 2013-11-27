@@ -6,13 +6,14 @@
  */
 
 #include "IncidentStatus.hpp"
+#include "util/Utils.hpp"
 #include <cmath>
 
 namespace sim_mob {
 
 
-IncidentStatus::IncidentStatus() : currentStatus(INCIDENT_CLEARANCE), defaultSpeedLimit(0), distanceTo(0), laneSide(LCS_SAME), changedLane(false), slowdownVelocity(false){
-	 randomNum = rand()/(RAND_MAX*1.0);
+IncidentStatus::IncidentStatus() : currentStatus(INCIDENT_CLEARANCE), defaultSpeedLimit(0), distanceTo(0), laneSide(LCS_SAME), currentLaneIndex(0), nextLaneIndex(-1), changedLane(false), slowdownVelocity(false){
+	 randomNum = Utils::generateFloat(0, 1.0);
 }
 
 IncidentStatus::~IncidentStatus() {
@@ -46,11 +47,15 @@ float IncidentStatus::getSpeedLimit(unsigned int laneId) {
 }
 
 bool IncidentStatus::insertIncident(const Incident* inc){
-	if( currentIncidents.count(inc->incidentId) > 0 ) {
-		return false;
-	}
 
-	currentIncidents.insert(std::make_pair(inc->incidentId, inc));
+	bool ret = true;
+	if( currentIncidents.count(inc->incidentId) > 0 ) {
+		ret = false;
+		return ret;
+	}
+	else {
+		currentIncidents.insert(std::make_pair(inc->incidentId, inc));
+	}
 
 	int destinationLaneId = checkBlockingStatus(inc);
 
@@ -62,7 +67,8 @@ bool IncidentStatus::insertIncident(const Incident* inc){
 	}
 	else if(destinationLaneId>=0){
 
-		if(getSpeedLimit(currentLaneIndex)<defaultSpeedLimit){
+		const float convertFactor = 100.0;
+		if(getSpeedLimit(currentLaneIndex)/convertFactor<defaultSpeedLimit){
 			slowdownVelocity = true;
 		}
 
@@ -81,7 +87,7 @@ bool IncidentStatus::insertIncident(const Incident* inc){
 		}
 	}
 
-	return true;
+	return ret;
 }
 
 bool IncidentStatus::removeIncident(const Incident* inc){
@@ -106,7 +112,7 @@ void IncidentStatus::checkIsCleared(){
 
 void IncidentStatus::resetStatus(){
 	currentStatus = INCIDENT_CLEARANCE;
-	nextLaneIndex = -1;
+	nextLaneIndex = -2;
 	changedLane = false;
 	slowdownVelocity = false;
 }

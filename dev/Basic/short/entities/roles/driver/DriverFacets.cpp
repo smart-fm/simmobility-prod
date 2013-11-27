@@ -282,7 +282,6 @@ void sim_mob::DriverMovement::responseIncidentStatus(DriverUpdateParams& p, time
 
 		//update current velocity so as to response the speed limit defined in incident lane.
 		parentDriver->vehicle->setVelocity(newSpeed);
-		//parentDriver->vehicle->setAcceleration(0);
 		p.perceivedDistToFwdCar = oldDistToStop;
 		p.turningDirection = oldDirect;
 	}

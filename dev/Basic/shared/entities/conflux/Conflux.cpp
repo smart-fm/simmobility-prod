@@ -293,16 +293,18 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 
 void sim_mob::Conflux::processVirtualQueues() {
 	int counter = 0;
-	boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
-	//sort the virtual queues before starting to move agents for this tick
-	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i!=virtualQueuesMap.end(); i++) {
-		counter = i->second.size();
-		sortPersons_DecreasingRemTime(i->second);
-		while(counter > 0){
-			sim_mob::Person* p = i->second.front();
-			i->second.pop_front();
-			updateAgent(p);
-			counter--;
+	{
+		boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
+		//sort the virtual queues before starting to move agents for this tick
+		for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i!=virtualQueuesMap.end(); i++) {
+			counter = i->second.size();
+			sortPersons_DecreasingRemTime(i->second);
+			while(counter > 0){
+				sim_mob::Person* p = i->second.front();
+				i->second.pop_front();
+				updateAgent(p);
+				counter--;
+			}
 		}
 	}
 }
@@ -383,12 +385,14 @@ void sim_mob::Conflux::resetPersonRemTimesInVQ() {
 		}
 	}
 
-	boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
-	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator vqIt=virtualQueuesMap.begin(); vqIt!=virtualQueuesMap.end();vqIt++) {
-		for(std::deque<sim_mob::Person*>::iterator pIt= vqIt->second.begin(); pIt!=vqIt->second.end(); pIt++) {
-			if ((*pIt)->getLastUpdatedFrame() < currFrameNumber.frame()) {
-				//if the person is going to be moved for the first time in this tick
-				(*pIt)->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
+	{
+		boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
+		for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator vqIt=virtualQueuesMap.begin(); vqIt!=virtualQueuesMap.end();vqIt++) {
+			for(std::deque<sim_mob::Person*>::iterator pIt= vqIt->second.begin(); pIt!=vqIt->second.end(); pIt++) {
+				if ((*pIt)->getLastUpdatedFrame() < currFrameNumber.frame()) {
+					//if the person is going to be moved for the first time in this tick
+					(*pIt)->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
+				}
 			}
 		}
 	}
@@ -406,58 +410,64 @@ unsigned int sim_mob::Conflux::resetOutputBounds() {
 	int outputEstimate = 0;
 	unsigned int vqCount = 0;
 	const double vehicle_length = 400.0;
-	boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
-	for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++) {
-		lnk = i->first;
-		segStats = findSegStats(lnk->getSegments().front());
-		/** In DynaMIT, the upper bound to the space in virtual queue was set based on the number of empty spaces
-		    the first segment of the downstream link (the one the vq is attached with) is going to create in this tick according to the outputFlowRate*tick_size.
-		    This would ideally underestimate the space avaiable in the next segment, as it doesn't account for the empty spaces the segment already has.
-		    Therefore the virtual queues are most likely to be cleared by the end of that tick.
-		    [1] But with short segments, we noticed that this over estimated the space and left a considerably large amount of vehicles remaining in vq.
-		    Therefore, as per Yang Lu's suggestion, we are replacing computeExpectedOutputPerTick() calculation with existing number of empty spaces on the segment.
-		    [2] Another reason for vehicles to remain in vq is that in mid-term, we currently process the new vehicles (i.e.trying to get added to the network from lane infiinity),
-		    before we process the virtual queues. Therefore the space that we computed to be for vehicles in virtual queues, would have been already occupied by the new vehicles
-		    by the time the vehicles in virtual queues try to get added.
-		     **/
-		//outputEstimate = segStats->computeExpectedOutputPerTick();
-		/** using ceil here, just to avoid short segments returning 0 as the total number of vehicles the road segment can hold i.e. when segment is shorter than a car**/
-		int num_emptySpaces = std::ceil(segStats->getRoadSegment()->getLaneZeroLength()*segStats->getRoadSegment()->getLanes().size()/vehicle_length)
-				- segStats->numMovingInSegment(true) - segStats->numQueueingInSegment(true);
-		outputEstimate = (num_emptySpaces>=0)? num_emptySpaces:0;
-		/** we are decrementing the number of agents in lane infinity (of the first segment) to overcome problem [2] above**/
-		outputEstimate = outputEstimate - virtualQueuesMap.at(lnk).size() - segStats->numAgentsInLane(segStats->laneInfinity); // decrement num. of agents already in virtual queue
-		outputEstimate = (outputEstimate>0? outputEstimate : 0);
-		vqBounds.insert(std::make_pair(lnk, (unsigned int)outputEstimate));
-		vqCount += virtualQueuesMap.at(lnk).size();
+	{
+		boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
+		for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++) {
+			lnk = i->first;
+			segStats = findSegStats(lnk->getSegments().front());
+			/** In DynaMIT, the upper bound to the space in virtual queue was set based on the number of empty spaces
+				the first segment of the downstream link (the one the vq is attached with) is going to create in this tick according to the outputFlowRate*tick_size.
+				This would ideally underestimate the space avaiable in the next segment, as it doesn't account for the empty spaces the segment already has.
+				Therefore the virtual queues are most likely to be cleared by the end of that tick.
+				[1] But with short segments, we noticed that this over estimated the space and left a considerably large amount of vehicles remaining in vq.
+				Therefore, as per Yang Lu's suggestion, we are replacing computeExpectedOutputPerTick() calculation with existing number of empty spaces on the segment.
+				[2] Another reason for vehicles to remain in vq is that in mid-term, we currently process the new vehicles (i.e.trying to get added to the network from lane infiinity),
+				before we process the virtual queues. Therefore the space that we computed to be for vehicles in virtual queues, would have been already occupied by the new vehicles
+				by the time the vehicles in virtual queues try to get added.
+				 **/
+			//outputEstimate = segStats->computeExpectedOutputPerTick();
+			/** using ceil here, just to avoid short segments returning 0 as the total number of vehicles the road segment can hold i.e. when segment is shorter than a car**/
+			int num_emptySpaces = std::ceil(segStats->getRoadSegment()->getLaneZeroLength()*segStats->getRoadSegment()->getLanes().size()/vehicle_length)
+					- segStats->numMovingInSegment(true) - segStats->numQueueingInSegment(true);
+			outputEstimate = (num_emptySpaces>=0)? num_emptySpaces:0;
+			/** we are decrementing the number of agents in lane infinity (of the first segment) to overcome problem [2] above**/
+			outputEstimate = outputEstimate - virtualQueuesMap.at(lnk).size() - segStats->numAgentsInLane(segStats->laneInfinity); // decrement num. of agents already in virtual queue
+			outputEstimate = (outputEstimate>0? outputEstimate : 0);
+			vqBounds.insert(std::make_pair(lnk, (unsigned int)outputEstimate));
+			vqCount += virtualQueuesMap.at(lnk).size();
+		}
 	}
 	return vqCount;
 }
 
 bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
 	bool res = false;
-	boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
-	try {
-		res = (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
-	}
-	catch(std::out_of_range& ex){
-		debugMsgs << "out_of_range exception occured in hasSpaceInVirtualQueue()"
-				<< "|Conflux: " << this->multiNode->getID()
-				<< "|lnk:[" << lnk->getStart()->getID() << "," << lnk->getEnd()->getID() << "]"
-				<< "|lnk:" << lnk
-				<< "|virtualQueuesMap.size():" << virtualQueuesMap.size()
-				<< "|elements:";
-		for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i!= virtualQueuesMap.end(); i++) {
-			debugMsgs << " ([" << i->first->getStart()->getID() << "," << i->first->getEnd()->getID() << "]:" << i->first << "," << i->second.size() << "),";
+	{
+		boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
+		try {
+			res = (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
 		}
-		throw std::runtime_error(debugMsgs.str());
+		catch(std::out_of_range& ex){
+			debugMsgs << "out_of_range exception occured in hasSpaceInVirtualQueue()"
+					<< "|Conflux: " << this->multiNode->getID()
+					<< "|lnk:[" << lnk->getStart()->getID() << "," << lnk->getEnd()->getID() << "]"
+					<< "|lnk:" << lnk
+					<< "|virtualQueuesMap.size():" << virtualQueuesMap.size()
+					<< "|elements:";
+			for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i!= virtualQueuesMap.end(); i++) {
+				debugMsgs << " ([" << i->first->getStart()->getID() << "," << i->first->getEnd()->getID() << "]:" << i->first << "," << i->second.size() << "),";
+			}
+			throw std::runtime_error(debugMsgs.str());
+		}
 	}
 	return res;
 }
 
 void sim_mob::Conflux::pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p) {
-	boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
-	virtualQueuesMap.at(lnk).push_back(p);
+	{
+		boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
+		virtualQueuesMap.at(lnk).push_back(p);
+	}
 }
 
 double sim_mob::Conflux::computeTimeToReachEndOfLink(const sim_mob::RoadSegment* seg, double distanceToEndOfSeg) {

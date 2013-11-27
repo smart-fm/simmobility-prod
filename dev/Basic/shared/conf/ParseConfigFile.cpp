@@ -1161,7 +1161,7 @@ void sim_mob::ParseConfigFile::ProcessIncidentsNode(xercesc::DOMElement* node)
 
 		for(DOMElement* child=item->getFirstElementChild(); child; child=child->getNextElementSibling()){
 			IncidentParams::LaneParams lane;
-			lane.laneId = ParseUnsignedInt(GetNamedAttributeValue(child, "id"));
+			lane.laneId = ParseUnsignedInt(GetNamedAttributeValue(child, "laneId"));
 			lane.speedLimit = ParseFloat(GetNamedAttributeValue(child, "speedLimitFactor") );
 			incident.laneParams.push_back(lane);
 		}

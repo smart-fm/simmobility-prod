@@ -340,7 +340,7 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 				incidentStatus.setDistanceToIncident(realDist);
 				replan = incidentStatus.insertIncident(inc);
 				float incidentGap = parentDriver->vehicle->length*2;
-				if(!incidentStatus.getChangedLane() && status==IncidentStatus::INCIDENT_OCCURANCE_LANE){
+				if(!incidentStatus.getChangedLane() && incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_OCCURANCE_LANE){
 					double prob = incidentStatus.getVisibilityDistance()>0 ? incidentStatus.getDistanceToIncident()/incidentStatus.getVisibilityDistance() : 0.0;
 					if(incidentStatus.getDistanceToIncident() < 2*incidentGap){
 						incidentStatus.setChangedLane(true);
@@ -367,9 +367,6 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 	}
 
 	if(replan){//update decision status for incident.
-		incidentStatus.setNextLaneIndex(nextLaneIndex);
-		incidentStatus.setLaneSide(laneSide);
-		incidentStatus.setCurrentStatus(status);
 		incidentStatus.checkIsCleared();
 	}
 }

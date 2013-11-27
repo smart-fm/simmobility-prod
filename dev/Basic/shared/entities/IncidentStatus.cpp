@@ -71,6 +71,8 @@ bool IncidentStatus::insertIncident(const Incident* inc){
 		}
 	}
 
+	currentIncidents.insert(std::make_pair(inc->incidentId, inc));
+
 	return true;
 }
 

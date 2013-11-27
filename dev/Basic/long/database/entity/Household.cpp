@@ -11,7 +11,7 @@
 
 #include "Household.hpp"
 #include "util/Utils.hpp"
-#include "database/dao/AbstractDao.hpp"
+#include "database/dao/SqlAbstractDao.hpp"
 
 using namespace sim_mob::long_term;
 

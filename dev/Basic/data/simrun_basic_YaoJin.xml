@@ -109,7 +109,7 @@
                 <mapping name="turning" procedure="get_lane_connector_bugis()"/>
                 <mapping name="polyline" procedure="get_section_polyline_sg()"/>
                 <mapping name="tripchain" procedure="get_tripchains()"/>
-                <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
+                <mapping name="signal" procedure=""/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
 		
 		<!-- These public-transit mappings have been tested with the whole Singapore network. -->

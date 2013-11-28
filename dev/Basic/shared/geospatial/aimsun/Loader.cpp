@@ -954,7 +954,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain", false));
-	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
+	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal", false));
 	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
 

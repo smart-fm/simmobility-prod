@@ -22,7 +22,7 @@ typedef long long BigInt;
 }
 
 PopulationDao::PopulationDao(DB_Connection& connection)
-: AbstractDao<PersonParams>(connection, DB_VIEW_PREDAY_PERSON, "", "", "", DB_GETALL_PREDAY_PERSON, "")
+: SqlAbstractDao<PersonParams>(connection, DB_VIEW_PREDAY_PERSON, "", "", "", DB_GETALL_PREDAY_PERSON, "")
 {}
 
 PopulationDao::~PopulationDao()

@@ -11,11 +11,14 @@
 
 #include <boost/format.hpp>
 #include "DB_Connection.hpp"
-#include "util/LangHelpers.hpp"
+#include "mongo/client/dbclient.h"
+#include "soci.h"
 #include "soci-postgresql.h"
+#include "util/LangHelpers.hpp"
 
 
 using namespace sim_mob::db;
+using namespace mongo;
 using std::string;
 using soci::postgresql;
 using soci::session;
@@ -26,10 +29,40 @@ namespace {
                                              "user=%3% "
                                              "password=%4% " 
                                              "dbname=%5%";
+
+    /**
+     * Class that holds the session object.
+     */
+    template<typename T>
+    class DB_Session{
+    public:
+
+        DB_Session() {
+        }
+
+        virtual ~DB_Session() {
+        }
+
+        T& getSession() {
+            return session;
+        }
+        T session;
+    };
+    
+    /**
+     * Soci session holder. 
+     */
+    typedef DB_Session<soci::session> SociSessionImpl;
+
+    /**
+     * Mongo session holder
+     */
+    typedef DB_Session<mongo::DBClientConnection> MongoSessionImpl;
 }
 
+
 DB_Connection::DB_Connection(BackendType type, const DB_Config& config)
-: currentSession(), type(type), connected(false) {
+: currentSession(nullptr), type(type), connected(false) {
     switch (type) {
         case POSTGRES:
         {
@@ -57,13 +90,15 @@ bool DB_Connection::connect() {
         switch (type) {
             case POSTGRES:
             {
-                currentSession.open(postgresql, connectionStr);
+                currentSession = new SociSessionImpl();
+                getSession<soci::session>().open(postgresql, connectionStr);
                 connected = true;
                 break;
             }
             case MONGO_DB:
             {
-            	mongoConn.connect(connectionStr);
+            	currentSession = new MongoSessionImpl();
+            	getSession<mongo::DBClientConnection>().connect(connectionStr);
             	connected = true;
             	break;
             }
@@ -75,16 +110,21 @@ bool DB_Connection::connect() {
 
 bool DB_Connection::disconnect() {
     if (connected) {
-		switch (type) {
-		case POSTGRES:
-		{
-			currentSession.close();
-			break;
-		}
-		default:
-			break;
-		}
-
+        switch (type) {
+            case POSTGRES:
+            {
+                getSession<soci::session>().close();
+                delete (SociSessionImpl*)currentSession;
+                break;
+            }
+            case MONGO_DB:
+            {
+            	// No need to explicitly close the connection. Just delete.
+            	delete (MongoSessionImpl*)currentSession;
+            	break;
+            }
+            default:break;
+        }
         connected = false;
     }
     return !connected;
@@ -94,10 +134,10 @@ bool DB_Connection::isConnected() const {
     return connected;
 }
 
-session& DB_Connection::getSession() {
-    return currentSession;
+template<typename T> T& DB_Connection::getSession()
+{
+    return ((DB_Session<T>*)(currentSession))->getSession();
 }
 
-mongo::DBClientConnection& DB_Connection::getMongoConnection() {
-	return mongoConn;
-}
+template soci::session& DB_Connection::getSession<soci::session>();
+template mongo::DBClientConnection& DB_Connection::getSession<mongo::DBClientConnection>();

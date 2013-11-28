@@ -10,10 +10,11 @@
  */
 #pragma once
 #include <vector>
-#include <boost/variant.hpp>
 #include <boost/algorithm/string.hpp>
 #include "database/DB_Connection.hpp"
 #include "util/LangHelpers.hpp"
+#include "soci.h"
+#include "I_Dao.h"
 
 namespace {
 
@@ -38,13 +39,8 @@ namespace {
 namespace sim_mob {
 
     namespace db {
-
-        typedef boost::variant<int, std::string, double, long long, 
-                unsigned long> Parameter;
-        typedef std::vector<Parameter> Parameters;
         typedef soci::row Row;
         typedef soci::rowset<Row> ResultSet;
-        static const Parameters EMPTY_PARAMS;
 
         /**
          * Represents an Abstract implementation of Data Access Object for 
@@ -81,10 +77,10 @@ namespace sim_mob {
          * This implementation is not thread-safe.
          * 
          */
-        template <typename T> class AbstractDao {
+        template <typename T> class SqlAbstractDao : public I_Dao<T>{
         public:
 
-            AbstractDao(DB_Connection& connection, 
+            SqlAbstractDao(DB_Connection& connection, 
                     const std::string& tableName,
                     const std::string& insertQuery, 
                     const std::string& updateQuery,
@@ -99,19 +95,13 @@ namespace sim_mob {
                 defaultQueries[GET_BY_ID] = getByIdQuery;
             }
 
-            virtual ~AbstractDao() {
+            virtual ~SqlAbstractDao() {
             }
 
-            /**
-             * Inserts the given entity into the data source.
-             * @param entity to insert.
-             * @return true if the transaction was committed with success,
-             *         false otherwise.
-             */
             virtual T& insert(T& entity) {
                 if (isConnected()) {
-                    Transaction tr(connection.getSession());
-                    Statement query(connection.getSession());
+                    Transaction tr(connection.getSession<soci::session>());
+                    Statement query(connection.getSession<soci::session>());
                     //append returning clause. 
                     //Attention: this is only prepared for POSTGRES.
                     std::string upperQuery = 
@@ -137,16 +127,10 @@ namespace sim_mob {
                 return entity;
             }
 
-            /**
-             * Updates the given entity into the data source.
-             * @param entity to update.
-             * @return true if the transaction was committed with success, 
-             *         false otherwise.
-             */
             virtual bool update(T& entity) {
                 if (isConnected()) {
-                    Transaction tr(connection.getSession());
-                    Statement query(connection.getSession());
+                    Transaction tr(connection.getSession<soci::session>());
+                    Statement query(connection.getSession<soci::session>());
                     // Get data to insert.
                     Parameters params;
                     toRow(entity, params, true);
@@ -159,16 +143,10 @@ namespace sim_mob {
                 return false;
             }
 
-            /**
-             * Deletes all objects filtered by given params.
-             * @param params to filter.
-             * @return true if the transaction was committed with success, 
-             *         false otherwise.
-             */
             virtual bool erase(const Parameters& params) {
                 if (isConnected()) {
-                    Transaction tr(connection.getSession());
-                    Statement query(connection.getSession());
+                    Transaction tr(connection.getSession<soci::session>());
+                    Statement query(connection.getSession<soci::session>());
                     // prepare statement.
                     prepareStatement(defaultQueries[DELETE], params, query);
                     //execute query.
@@ -179,21 +157,10 @@ namespace sim_mob {
                 return false;
             }
 
-            /**
-             * Gets a single value filtered by given ids. 
-             * @param ids to filter.
-             * @param outParam to put the value
-             * @return true if a value was returned, false otherwise.
-             */
             virtual bool getById(const Parameters& ids, T& outParam) {
                 return getByValues(defaultQueries[GET_BY_ID], ids, outParam);
             }
 
-            /**
-             * Gets all values from the source and put them on the given list.
-             * @param outList to put the retrieved values. 
-             * @return true if some values were returned, false otherwise.
-             */
             virtual bool getAll(std::vector<T>& outList) {
                 return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, 
                         outList);
@@ -256,7 +223,7 @@ namespace sim_mob {
                     const Parameters& params, std::vector<T>& outParam) {
                 bool hasValues = false;
                 if (isConnected()) {
-                    Statement query(connection.getSession());
+                    Statement query(connection.getSession<soci::session>());
                     prepareStatement(queryStr, params, query);
                     ResultSet rs(query);
                     ResultSet::const_iterator it = rs.begin();
@@ -281,7 +248,7 @@ namespace sim_mob {
             bool getByValues(const std::string& queryStr,
                     const Parameters& params, T& outParam) {
                 if (isConnected()) {
-                    Statement query(connection.getSession());
+                    Statement query(connection.getSession<soci::session>());
                     prepareStatement(queryStr, params, query);
                     ResultSet rs(query);
                     ResultSet::const_iterator it = rs.begin();

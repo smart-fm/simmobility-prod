@@ -29,7 +29,6 @@
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "workers/Worker.hpp"
-#include "event/EventBusSystem.hpp"
 
 using std::vector;
 

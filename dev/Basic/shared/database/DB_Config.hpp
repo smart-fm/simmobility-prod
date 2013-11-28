@@ -32,11 +32,19 @@ namespace sim_mob {
             DB_Config(const DB_Config& orig);
             DB_Config(std::string& host, std::string& port, std::string& dbname, std::string& username, std::string& password);
             virtual ~DB_Config();
+            
+            /**
+             * Getters 
+             */
             const std::string& getDatabaseName() const;
             const std::string& getPassword() const;
             const std::string& getUsername() const;
             const std::string& getHost() const;
             unsigned int getPort() const;
+            
+            /**
+             * Setters
+             */
             void setDatabaseName(const std::string& databaseName);
             void setPassword(const std::string& password);
             void setUsername(const std::string& username);

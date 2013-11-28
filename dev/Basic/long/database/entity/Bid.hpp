@@ -69,14 +69,9 @@ namespace sim_mob {
             /**
              * Operator to print the Bid data.  
              */
-            friend std::ostream& operator<<(std::ostream& strm, const Bid& data) {
-                return strm << "{"
-                        << "\"unitId\":\"" << data.unitId << "\","
-                        << "\"bidderId\":\"" << data.bidderId << "\","
-                        << "\"value\":\"" << data.value << "\","
-                        << "\"day\":\"" << data.time.ms() << "\""
-                        << "}";
-            }
+            friend std::ostream& operator<<(std::ostream& strm, 
+                const Bid& data);
+            
         private:
             //TODO: FUTURE friend class BidDao;
             /**

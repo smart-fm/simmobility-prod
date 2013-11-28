@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "database/dao/AbstractDao.hpp"
+#include "database/dao/SqlAbstractDao.hpp"
 #include "database/DB_Connection.hpp"
 #include "behavioral/params/PersonParams.hpp"
 
@@ -20,7 +20,7 @@ namespace medium {
 /**
  * Data access object for Population tables
  */
-class PopulationDao : public db::AbstractDao<PersonParams> {
+class PopulationDao : public db::SqlAbstractDao<PersonParams> {
 public:
 	PopulationDao(db::DB_Connection& connection);
 	virtual ~PopulationDao();

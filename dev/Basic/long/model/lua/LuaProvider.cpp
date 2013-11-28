@@ -19,6 +19,7 @@ namespace {
 
     struct ModelContext {
         HM_LuaModel hmModel;
+        ExternalEventsModel exEventsModel;
     };
 
     boost::thread_specific_ptr<ModelContext> threadContext;
@@ -28,6 +29,8 @@ namespace {
             ModelContext* modelCtx = new ModelContext();
             modelCtx->hmModel.loadDirectory(HM_LUA_DIR);
             modelCtx->hmModel.initialize();
+            modelCtx->exEventsModel.loadDirectory(EX_EV_LUA_DIR);
+            modelCtx->exEventsModel.initialize();
             threadContext.reset(modelCtx);
         }
     }
@@ -36,4 +39,9 @@ namespace {
 const HM_LuaModel& LuaProvider::getHM_Model() {
     ensureContext();
     return threadContext.get()->hmModel;
+}
+
+const ExternalEventsModel& LuaProvider::getExternalEventsModel(){
+    ensureContext();
+    return threadContext.get()->exEventsModel;
 }

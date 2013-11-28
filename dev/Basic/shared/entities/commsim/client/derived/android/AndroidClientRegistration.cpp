@@ -44,10 +44,10 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker,
 
 		bool found_a_free_agent = false;
 		//find the first free agent(someone who is not yet been associated to an andriod client)
-		AgentsList::iterator freeAgent = registeredAgents.begin(), it_end = registeredAgents.end();
+		AgentsList::type::iterator freeAgent = registeredAgents.begin(), it_end = registeredAgents.end();
 		for (; freeAgent != it_end; freeAgent++) {
-			if (usedAgents.find(freeAgent->agent) == usedAgents.end()) {
-				Print() << "Agent[" << freeAgent->agent->getId() << "]["<< freeAgent->agent << "] already used" << std::endl;
+			if (usedAgents.find(freeAgent->second.agent) == usedAgents.end()) {
+				Print() << "Agent[" << freeAgent->second.agent->getId() << "]["<< freeAgent->second.agent << "] already used" << std::endl;
 						found_a_free_agent = true;
 				//found the first free agent, no need to continue the loop
 				break;
@@ -68,13 +68,13 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker,
 				new ConnectionHandler(request.session_,
 						broker.getMessageReceiveCallBack(), request.clientID,
 						ConfigParams::ANDROID_EMULATOR,
-						(unsigned long int) (freeAgent->agent)//just remembered that we can/should filter agents based on the agent type ...-vahid
+						(unsigned long int) (freeAgent->second.agent)//just remembered that we can/should filter agents based on the agent type ...-vahid
 						));
 		clientEntry->cnnHandler = cnnHandler;
 
-		clientEntry->AgentCommUtility_ = freeAgent->comm;
+		clientEntry->AgentCommUtility_ = freeAgent->second.comm;
 		//todo: some of there information are already available in the connectionHandler! omit redundancies  -vahid
-		clientEntry->agent = freeAgent->agent;
+		clientEntry->agent = freeAgent->second.agent;
 		clientEntry->clientID = request.clientID;
 		clientEntry->client_type = ConfigParams::ANDROID_EMULATOR;
 		clientEntry->requiredServices = request.requiredServices; //will come handy
@@ -103,9 +103,9 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker,
 		broker.insertClientList(clientEntry->clientID,
 				ConfigParams::ANDROID_EMULATOR, clientEntry);
 		//add this agent to the list of the agents who are associated with a android emulator client
-		usedAgents.insert(freeAgent->agent);
+		usedAgents.insert(freeAgent->second.agent);
 		//tell the agent you are registered
-		freeAgent->comm->setregistered(true);
+		freeAgent->second.comm->setregistered(true);
 		//publish an event to inform- interested parties- of the registration of a new android client
 		getPublisher().Publish(ConfigParams::ANDROID_EMULATOR,
 				ClientRegistrationEventArgs(ConfigParams::ANDROID_EMULATOR,

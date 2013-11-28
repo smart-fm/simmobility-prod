@@ -41,7 +41,25 @@ public:
       */
 	void checkIsCleared();
 
+    /**
+      * check whether or not fully blocking happen
+      * @param inc is incident object which hold detail description
+      * @return blocking lane id .
+      */
 	int checkBlockingStatus(const Incident*inc);
+
+   /**
+	  * calculate whether the incident is bypassed
+	  * @param forward means car take currently movement on the road segment
+	  * @return current incident length .
+	  */
+	double reduceIncidentLength(float forward);
+
+   /**
+	  * the getter of current incident length
+	  * @return current incident length .
+	  */
+	double getCurrentIncidentLength();
 
     /**
       * the setter and getter for the property 'currentStatus'
@@ -164,6 +182,8 @@ private:
 	float distanceTo;
 	//record a random number for the reference to mandatory lane changing
 	float randomNum;
+	//record current incident length
+	float lengthOfIncident;
 	//record lane changing direction(left or right) for lane changing model
 	LANE_CHANGE_SIDE laneSide;
 	//record current detection result when incident happen

@@ -61,19 +61,20 @@ void sim_mob::PrintNetwork::LogIncidents() const
 		out << "\"duration\":\"" << (*incIt).duration/baseFrameTick << "\",";
 		out << "\"length\":\"" << (*incIt).length << "\",";
 		out << "\"compliance\":\"" << (*incIt).compliance << "\",";
-		out << "\"accessibility\":\"" << (*incIt).accessibility << "";
 
 		for(std::vector<IncidentParams::LaneParams>::iterator laneIt=(*incIt).laneParams.begin(); laneIt!=(*incIt).laneParams.end(); laneIt++){
-			out << "{";
-			out << "\"id\":\"" << (*laneIt).laneId << "\",";
-			out << "\"speedLimit\":\"" << (*laneIt).speedLimit << "\",";
-			out << "\"xLaneStartPos\":\"" << static_cast<int>((*laneIt).xLaneStartPos) << "\",";
-			out << "\"yLaneStartPos\":\"" << static_cast<int>((*laneIt).yLaneStartPos) << "\",";
-			out << "\"xLaneEndPos\":\"" << static_cast<int>((*laneIt).xLaneEndPos) << "\",";
-			out << "\"yLaneEndPos\":\"" << static_cast<int>((*laneIt).yLaneEndPos) << "\"";
-			out << "\"}";
+			if((*laneIt).speedLimit==0){
+				out << "\"lane\":\"" << (*laneIt).laneId << "\",";
+				out << "\"speed_limit\":\"" << (*laneIt).speedLimit << "\",";
+				out << "\"xLaneStartPos\":\"" << static_cast<int>((*laneIt).xLaneStartPos) << "\",";
+				out << "\"yLaneStartPos\":\"" << static_cast<int>((*laneIt).yLaneStartPos) << "\",";
+				out << "\"xLaneEndPos\":\"" << static_cast<int>((*laneIt).xLaneEndPos) << "\",";
+				out << "\"yLaneEndPos\":\"" << static_cast<int>((*laneIt).yLaneEndPos) << "\"";
+				break;
+			}
 		}
-		out << "\"}";
+
+		out << "\"accessibility\":\"" << (*incIt).accessibility << "\"}";
 	}
 	out <<"}" <<std::endl;
 }

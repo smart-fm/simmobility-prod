@@ -12,7 +12,7 @@
 namespace sim_mob {
 
 
-IncidentStatus::IncidentStatus() : currentStatus(INCIDENT_CLEARANCE), defaultSpeedLimit(0), distanceTo(0), laneSide(LCS_SAME), currentLaneIndex(0), nextLaneIndex(-1), changedLane(false), slowdownVelocity(false){
+IncidentStatus::IncidentStatus() : currentStatus(INCIDENT_CLEARANCE), defaultSpeedLimit(0), distanceTo(0), laneSide(LCS_SAME), currentLaneIndex(0), nextLaneIndex(-1), lengthOfIncident(0), changedLane(false), slowdownVelocity(false){
 	 randomNum = Utils::generateFloat(0, 1.0);
 }
 
@@ -46,6 +46,17 @@ float IncidentStatus::getSpeedLimit(unsigned int laneId) {
 	return speedLimitFactor*defaultSpeedLimit;
 }
 
+double IncidentStatus::reduceIncidentLength(float forward){
+	if(lengthOfIncident>0){
+		lengthOfIncident -= forward;
+	}
+	return lengthOfIncident;
+}
+double IncidentStatus::getCurrentIncidentLength(){
+	return lengthOfIncident;
+}
+
+
 bool IncidentStatus::insertIncident(const Incident* inc){
 
 	bool ret = true;
@@ -60,6 +71,7 @@ bool IncidentStatus::insertIncident(const Incident* inc){
 	int destinationLaneId = checkBlockingStatus(inc);
 
 	currentStatus = INCIDENT_FULLYBLOCKING;
+	lengthOfIncident = inc->length;
 
 	if(destinationLaneId<0){
 		slowdownVelocity = true;

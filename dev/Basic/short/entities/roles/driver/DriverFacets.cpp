@@ -294,8 +294,7 @@ void sim_mob::DriverMovement::responseIncidentStatus(DriverUpdateParams& p, time
 		}
 	}
 
-	//avoid cars stacking together
-	if(p.nvFwd.exists() ){
+	if(p.nvFwd.exists() ){//avoid cars stacking together
 		DPoint dFwd = p.nvFwd.driver->getVehicle()->getPosition();
 		DPoint dCur = parentDriver->vehicle->getPosition();
 		DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
@@ -331,10 +330,12 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 	const RoadItem* roadItem = getRoadItemByDistance(sim_mob::INCIDENT, realDist);
 	if(roadItem) {//retrieve front incident obstacle
 		const Incident* inc = dynamic_cast<const Incident*>( roadItem );
+
 		if(inc){
 			float visibility = inc->visibilityDistance;
 			incidentStatus.setVisibilityDistance(visibility);
 			incidentStatus.setCurrentLaneIndex(curLaneIndex);
+
 			if( (now.ms() >= inc->startTime) && (now.ms() < inc->startTime+inc->duration) && realDist<visibility){
 				incidentStatus.setDistanceToIncident(realDist);
 				replan = incidentStatus.insertIncident(inc);
@@ -778,12 +779,13 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 	//check incident status and decide whether or not do lane changing
 	LANE_CHANGE_MODE mode = DLC;
 	checkIncidentStatus(p, parentDriver->getParams().now);
-	if(incidentStatus.getChangedLane()){
+	if(incidentStatus.getChangedLane()&&incidentStatus.getNextLaneIndex()>=0){
 		p.nextLaneIndex = incidentStatus.getNextLaneIndex();
 		parentDriver->vehicle->setTurningDirection(incidentStatus.getLaneSide());
 		mode = MLC;
 	}
-	else if(incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode==MLC) {
+	else if( (incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode==MLC )
+			|| (incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && incidentStatus.getCurrentIncidentLength()>0)) {
 		p.nextLaneIndex = p.currLaneIndex;
 		parentDriver->vehicle->setTurningDirection(LCS_SAME);
 		mode = MLC;
@@ -1590,6 +1592,10 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 			* p.elapsedSeconds * p.elapsedSeconds;
 	if (fwdDistance < 0) {
 		fwdDistance = 0;
+	}
+
+	if(incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && incidentStatus.getCurrentIncidentLength()>0){
+		incidentStatus.reduceIncidentLength(fwdDistance*100.0);
 	}
 
 

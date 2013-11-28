@@ -225,6 +225,7 @@ void sim_mob::ExpandAndValidateConfigFile::verifyIncidents()
 			item->incidentId = (*incIt).incidentId;
 			item->position = (*incIt).position;
 			item->segmentId = (*incIt).segmentId;
+			item->length = (*incIt).length;
 			item->severity = (*incIt).severity;
 			item->startTime = (*incIt).startTime-baseGranMS;
 			item->visibilityDistance = (*incIt).visibilityDistance;

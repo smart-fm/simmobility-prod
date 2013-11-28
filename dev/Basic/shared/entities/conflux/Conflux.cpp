@@ -122,7 +122,8 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 
 	if (person->getLastUpdatedFrame() < currFrameNumber.frame()) {
 		//if the person is being moved for the first time in this tick
-		person->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
+		const float MIN_MS = 1000.0;
+		person->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranMS() / MIN_MS;
 	}
 
 	person->currWorkerProvider = parentWorker; // Let the person know which worker is managing him... for logs to work.
@@ -372,6 +373,7 @@ void sim_mob::Conflux::resetCurrSegsOnUpLinks() {
  */
 void sim_mob::Conflux::resetPersonRemTimesInVQ() {
 	SegmentStats* segStats = nullptr;
+	const float MIN_MS = 1000.0;
 	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator upStrmSegMapIt = upstreamSegmentsMap.begin(); upStrmSegMapIt!=upstreamSegmentsMap.end(); upStrmSegMapIt++) {
 		for(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt=upStrmSegMapIt->second.begin(); rdSegIt!=upStrmSegMapIt->second.end(); rdSegIt++) {
 			segStats = findSegStats(*rdSegIt);
@@ -379,7 +381,7 @@ void sim_mob::Conflux::resetPersonRemTimesInVQ() {
 			for(std::deque<sim_mob::Person*>::iterator personIt=personsInLaneInfinity.begin(); personIt!=personsInLaneInfinity.end(); personIt++) {
 				if ((*personIt)->getLastUpdatedFrame() < currFrameNumber.frame()) {
 					//if the person is going to be moved for the first time in this tick
-					(*personIt)->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
+					(*personIt)->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranMS() / MIN_MS;
 				}
 			}
 		}
@@ -391,7 +393,7 @@ void sim_mob::Conflux::resetPersonRemTimesInVQ() {
 			for(std::deque<sim_mob::Person*>::iterator pIt= vqIt->second.begin(); pIt!=vqIt->second.end(); pIt++) {
 				if ((*pIt)->getLastUpdatedFrame() < currFrameNumber.frame()) {
 					//if the person is going to be moved for the first time in this tick
-					(*pIt)->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
+					(*pIt)->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranMS() / MIN_MS;
 				}
 			}
 		}

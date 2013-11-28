@@ -3,13 +3,12 @@ Description: Probability computation functions for multinomial and nested logit 
 Author: Harish Loganathan
 ]]
 
-
-function calculate_multinomial_logit_probability(choices, utility, availables)
+local function calculate_multinomial_logit_probability(choices, utility, availables)
 	local probability = {}
 	local evsum = 0
 	for k,c in ipairs(choices) do
-		probability[c] = availables[c] * math.exp(utility[c])
-		evsum = evsum + probability[c]	
+		probability[k] = availables[k] * math.exp(utility[k])
+		evsum = evsum + probability[k]	
 	end
 	for c in pairs(probability) do
 		probability[c] = probability[c]/evsum
@@ -17,7 +16,7 @@ function calculate_multinomial_logit_probability(choices, utility, availables)
 	return probability
 end
 
-function calculate_nested_logit_probability(choiceset, utility, availables, scales)
+local function calculate_nested_logit_probability(choiceset, utility, availables, scales)
 	local evmu = {}
 	local evsum = {}
 	local probability = {}
@@ -41,14 +40,29 @@ function calculate_nested_logit_probability(choiceset, utility, availables, scal
 	for nest,choices in ipairs(choiceset) do
 		local mu = scales[k]
 		for i,c in ipairs(choices) do
-			if evsum[nest] != 0 then
-				probability[c] = evmu[c] * math.pow(evsum[nest], (1/mu - 1))/sum_evsum_pow_muinv)
+			if evsum[nest] ~= 0 then
+				probability[c] = evmu[c] * math.pow(evsum[nest], (1/mu - 1))/sum_evsum_pow_muinv
 			else
 				probability[c] = 0
 			end
 		end
 		return probability
 	end
+end
+
+local function binary_search(a, x)
+	local lo = 1
+	local hi = #a
+	while lo ~= hi do
+		local mid = math.floor((lo+hi)/2)
+		local midval = a[mid]
+		if midval > x then 
+			hi = mid
+		elseif midval < x then
+			lo = mid+1
+		end
+	end
+	return hi --or lo since hi == lo is true
 end
 
 function calculate_probability(mtype, choiceset, utility, availables, scales)
@@ -61,21 +75,6 @@ function calculate_probability(mtype, choiceset, utility, availables, scales)
 		error("unknown model type:" .. mtype .. ". Only 'mnl' and 'nl' are currently supported")
 	end
 	return probability
-end
-
-function binary_search(a, x)
-	local lo = 0
-	local hi = #a
-	while lo != hi do
-		local mid = math.floor((lo+hi)/2)
-		local midval = a[mid]
-		if midval > x then 
-			hi = mid
-		elseif midval < x then
-			lo = mid+1
-		end
-	end
-	return hi --or lo since hi == lo is true
 end
 
 function make_final_choice(probability)	

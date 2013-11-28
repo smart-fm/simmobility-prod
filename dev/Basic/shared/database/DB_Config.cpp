@@ -36,8 +36,8 @@ DB_Config::DB_Config(const DB_Config& orig)
     databaseName = orig.databaseName;
 }
 
-DB_Config::DB_Config(std::string& host, std::string& port, std::string& dbname)
-: PropertyLoader(), port(std::atoi(port.c_str())), host(host), databaseName(dbname), username(""), password("")
+DB_Config::DB_Config(std::string& host, std::string& port, std::string& dbname, std::string& username, std::string& password)
+: PropertyLoader(), port(std::atoi(port.c_str())), host(host), databaseName(dbname), username(username), password(password)
 {}
 
 

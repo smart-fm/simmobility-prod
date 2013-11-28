@@ -754,12 +754,25 @@ void sim_mob::ParseConfigFile::ProcessConstructCredentialsNode(xercesc::DOMEleme
 
 void sim_mob::ParseConfigFile::ProcessConstructExternalScriptsNode(xercesc::DOMElement* node)
 {
+	std::string id = ParseString(GetNamedAttributeValue(node, "id"), "");
+	if(id.empty()) {
+		throw std::runtime_error("id cannot be empty. Check external_scripts node.");
+	}
+
 	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
 	if(format.empty() || format != "lua") {
 		throw std::runtime_error("Unsupported script format");
 	}
 
-	ExternalScriptsMap sm(ParseString(GetNamedAttributeValue(node, "id"), ""), ParseString(GetNamedAttributeValue(node, "path"), ""), format);
+	std::string scriptsDirectoryPath = ParseString(GetNamedAttributeValue(node, "path"), "");
+	if (scriptsDirectoryPath.empty()) {
+		throw std::runtime_error("path to scripts is not provided");
+	}
+	if((*scriptsDirectoryPath.rbegin()) != '/') {
+		//add a / to the end of the path string if it is not already there
+		scriptsDirectoryPath.push_back('/');
+	}
+	ExternalScriptsMap sm(id, scriptsDirectoryPath , format);
 	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
 		std::string name = TranscodeString(item->getNodeName());
 		if (name!="script") {

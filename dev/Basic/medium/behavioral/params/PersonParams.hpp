@@ -71,12 +71,51 @@ public:
 		this->homeLocation = homeLocation;
 	}
 
-	double getIncomeId() const {
+	int getIncomeId() const {
 		return incomeId;
 	}
 
-	void setIncomeId(double incomeId) {
-		this->incomeId = incomeId;
+	void setIncomeId(double income) {
+		if(income == 0.0) {
+			incomeId = 12;
+		}
+		if(income < 1000.0) {
+			incomeId = 1;
+		}
+		else if(income < 1500.0) {
+			incomeId = 2;
+		}
+		else if(income < 2000.0) {
+			incomeId = 3;
+		}
+		else if(income < 2500.0) {
+			incomeId = 4;
+		}
+		else if(income < 3000.0) {
+			incomeId = 5;
+		}
+		else if(income < 4000.0) {
+			incomeId = 6;
+		}
+		else if(income < 5000.0) {
+			incomeId = 7;
+		}
+		else if(income < 6000.0) {
+			incomeId = 8;
+		}
+		else if(income < 7000.0) {
+			incomeId = 9;
+		}
+		else if(income < 8000.0) {
+			incomeId = 10;
+		}
+		else if(income >= 8000) {
+			incomeId = 11;
+		}
+		else {
+			// not sure what value of income should be mapped to ids 13 and 14.
+			incomeId = 13;
+		}
 	}
 
 	int getIsFemale() const {
@@ -245,7 +284,7 @@ private:
 	int ageId;
 	int isUniversityStudent;
 	int isFemale;
-	double incomeId;
+	int incomeId;
 	int worksAtHome;
 	int carOwnNormal;
 	int carOwnOffpeak;

@@ -13,8 +13,10 @@
 
 #include <algorithm>
 
+#include "behavioral/PredaySystem.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "conf/Constructs.hpp"
 #include "conf/RawConfigParams.hpp"
 #include "database/DB_Config.hpp"
 #include "database/DB_Connection.hpp"
@@ -27,7 +29,11 @@ using namespace sim_mob::medium;
 
 void sim_mob::medium::PredayManager::loadPersons() {
 	Database database = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_local_lt");
-	DB_Config dbConfig(database.host, database.port, database.dbName);
+	std::string cred_id = ConfigManager::GetInstance().FullConfig().system.networkDatabase.credentials;
+	Credential credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
+	std::string username = credentials.getUsername();
+	std::string password = credentials.getPassword(false);
+	DB_Config dbConfig(database.host, database.port, database.dbName, username, password);
 
     // Connect to database and load data.
     DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
@@ -49,4 +55,8 @@ void sim_mob::medium::PredayManager::distributeAndProcessPersons(uint16_t numWor
 }
 
 void sim_mob::medium::PredayManager::processPersons(PersonList& persons) {
+	for(PersonList::iterator i = persons.begin(); i!=persons.end(); i++) {
+		PredaySystem predaySystem(*i);
+		predaySystem.planDay();
+	}
 }

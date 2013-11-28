@@ -48,7 +48,7 @@
 
             <database id="fm_local_lt" dbtype="postgres">
                 <host value="localhost"/>
-                <port value="27017"/>
+                <port value="5432"/>
                 <dbname value="sim_mob_lt"/>
             </database>
             
@@ -85,7 +85,7 @@
                 <mapping name="lane" procedure="get_lanes()"/>
                 <mapping name="turning" procedure="get_lane_connector()"/>
                 <mapping name="polyline" procedure="get_section_polyline()"/>
-                <mapping name="tripchain" procedure=""/>
+                <mapping name="tripchain" procedure="get_tripchains()"/>
                 <mapping name="busstop" procedure="get_bus_stop()"/>
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
@@ -164,7 +164,7 @@
 
             <!-- Preday demand -->   	
             <proc_map id="preday" format="long-term">
-                <mapping name="population" procedure="main.get_preday_person()"/>
+                <mapping name="population" procedure="get_preday_person()"/>
 				<mapping name="landuse" procedure="get_landuse()"/>
             </proc_map>
         </db_proc_groups>
@@ -210,13 +210,14 @@
 	  </plaintext-credential>
 
 	  <plaintext-credential id="harish_cred">
-            <username value="postgres"/>
-            <password value="secret"/>
-          </plaintext-credential>
+        <username value="postgres"/>
+        <password value="secret"/>
+      </plaintext-credential>
 	</credentials>
 	
 	<!--File names for any non-C++ scripts to be executed during simulation -->
-	<external_scripts id="preday" path="scripts/lua/mid/behavior-models/" format="lua">
+	<external_scripts id="preday_scripts" path="scripts/lua/mid/behavior-models/" format="lua">
+	  <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 	  <script name="dp" file="dp.lua"/> <!-- Day Pattern -->
 	  <script name="ntw" file="ntw.lua"/> <!-- Number Of Tours Work -->
 	  <script name="nte" file="nte.lua"/> <!-- Number Of Tours Education -->
@@ -348,8 +349,8 @@
 	<!-- If loading from the database, which database, proc_map, and credentials are used? -->
 	<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
 	<!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
-<!--	<network_database database="fm_local" credentials="fm_local" proc_map="bugis_small_custom"/-->
-	<network_database database="fm_remote" credentials="fm_local_yaojin" proc_map="bugis_large"/>
+	<!--<network_database database="fm_local" credentials="fm_local" proc_map="bugis_small_custom"/-->
+		<network_database database="fm_local_lt" credentials="harish_cred" proc_map="preday"/>
         <!-- Where to find our various schema files. -->
         <!-- Overrides xsi:schemaLocation in the files themselves. -->
         <!-- Note that absolute paths are allowed, and that relative paths are relative to the current working directory. -->
@@ -389,8 +390,11 @@
             <property key="passenger_percent_boarding" value="100"/>
             <property key="passenger_percent_alighting" value="40"/>
 
-	    <!--Used only by mid-term simulator. Admissible values are "demand", "supply" and "demand+supply". Determines whether to run SimMobility_Medium's demand simulator or the supply simulator-->
-	    <property key="mid_term_run_mode" value="demand+supply"/> 
+	    	<!--Used only by mid-term simulator. Admissible values are "demand", "supply" and "demand+supply". Determines whether to run SimMobility_Medium's demand simulator or the supply simulator-->
+	    	<property key="mid_term_run_mode" value="demand"/> 
+	    	
+	    	<!-- Adding external scripts as a generic proerty for now. Will create a special element when we have more uses for this property than just the mid-term demand simulator-->
+	    	<property key="external_scripts" value="preday_scripts"/>
         </generic_props>
     </system>
 

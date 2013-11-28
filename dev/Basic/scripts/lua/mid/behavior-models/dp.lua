@@ -5,7 +5,7 @@ Authors - Siyu Li, Harish Loganathan
 ]]
 
 -- all require statements do not work with C++. They need to be commented. The order in which lua files are loaded must be explicitly controlled in C++. 
---require "Logit"
+-- require "Logit"
 
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
@@ -323,7 +323,7 @@ local function computeUtilities(params)
 	local worklogsum = params.worklogsum
 	local edulogsum = params.edulogsum
 	local shoplogsum = params.shoplogsum
-	local otherlogsums = params.otherlogsum
+	local otherlogsum = params.otherlogsum
 
 	-- person type related variables
 	local fulltime,parttime,selfemployed,universitystudent,homemaker,retired,unemployed,nationalservice,voluntary,domestic,otherworker,student16,student515,child4 = 0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -556,7 +556,8 @@ function choose_dp(params)
 	computeUtilities(params) 
 	computeAvailabilities(params)
 	local probability = calculate_probability("mnl", choice, utility, availability, scale)
-	return make_final_choice(probability)
+	idx = make_final_choice(probability)
+	return choice[idx]
 end
 
 

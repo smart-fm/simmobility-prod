@@ -30,7 +30,7 @@ namespace sim_mob {
         public:
             DB_Config(const std::string& file);
             DB_Config(const DB_Config& orig);
-            DB_Config(std::string& host, std::string& port, std::string& dbname);
+            DB_Config(std::string& host, std::string& port, std::string& dbname, std::string& username, std::string& password);
             virtual ~DB_Config();
             const std::string& getDatabaseName() const;
             const std::string& getPassword() const;

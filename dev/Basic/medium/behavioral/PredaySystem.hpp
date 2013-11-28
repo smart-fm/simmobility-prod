@@ -11,7 +11,7 @@
 #pragma once
 #include <boost/unordered_map.hpp>
 
-#include "lua/LuaModel.hpp"
+#include "behavioral/lua/PredayLuaModel.hpp"
 #include "params/PersonParams.hpp"
 #include "PredayClasses.hpp"
 #include "database/PopulationDao.hpp"
@@ -29,48 +29,17 @@ namespace medium {
  *
  * \author Harish Loganathan
  */
-class PredaySystem : public lua::LuaModel {
+class PredaySystem {
 public:
 	PredaySystem(PersonParams& personParams);
 	virtual ~PredaySystem();
-
-	const PersonParams& getPersonParams() const {
-		return personParams;
-	}
-
-	void setPersonParams(const PersonParams& personParams) {
-		this->personParams = personParams;
-	}
 
 	/**
 	 * The sequence of models to be invoked for a person is coded in this function.
 	 */
 	void planDay();
 
-protected:
-    /**
-     * Inherited from LuaModel
-     */
-    void mapClasses();
-
 private:
-	/**
-	 * Predicts the types of tours and intermediate stops the person is going to make.
-	 */
-	void predictDayPattern();
-
-	/**
-	 * Predicts the number of tours for each type of tour predicted by the day pattern model.
-	 */
-	void predictNumTours();
-
-	/**
-	 * For each work tour, if the person has a usual work location, this function predicts whether the person goes to his usual location or some other location.
-	 *
-	 * @return true if the tour is to a usual work location. false otherwise.
-	 */
-	bool predictUsualWorkLocation(bool firstOfMultiple);
-
 	/**
 	 * Predicts the mode of travel for a tour.
 	 * Executed for tours with usual location (usual work or education).
@@ -126,7 +95,7 @@ private:
 	/**
 	 * constructs tour objects based on predicted number of tours. Puts the tour objects in tours deque.
 	 */
-	void constructTours();
+	void constructTours(PredayLuaModel& predayLuaModel);
 
 	/**
 	 * The parameters for a person is obtained from the population and set in personParams.
@@ -146,12 +115,7 @@ private:
     /**
      * The predicted number of tours for each type of tour - Work, Education, Shopping, Others.
      */
-    boost::unordered_map<std::string, bool> numTours;
-
-    /**
-     * A reference container for modes. Key: mode_id, Value: mode.
-     */
-    boost::unordered_map<int, std::string> modeReferenceIndex;
+    boost::unordered_map<std::string, int> numTours;
 
     /**
      * Data access objects for mongo

@@ -13,38 +13,29 @@
 
 #include <boost/algorithm/string.hpp>
 #include <string>
+#include "behavioral/lua/PredayLuaProvider.hpp"
+#include "behavioral/params/StopGenerationParams.hpp"
+#include "behavioral/params/TimeOfDayParams.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/RawConfigParams.hpp"
 #include "database/DB_Connection.hpp"
-#include "lua/LuaLibrary.hpp"
-#include "lua/third-party/luabridge/LuaBridge.h"
-#include "lua/third-party/luabridge/RefCountedObject.h"
 #include "mongo/client/dbclient.h"
-#include "behavioral/params/StopGenerationParams.hpp"
-#include "behavioral/params/TimeOfDayParams.hpp"
+
 
 using namespace std;
 using namespace sim_mob;
 using namespace sim_mob::medium;
-using namespace luabridge;
 using namespace mongo;
 
 PredaySystem::PredaySystem(PersonParams& personParams) : personParams(personParams) {
 	MongoCollectionsMap mongoColl = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo");
 	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+	string emptyString;
 	for(std::map<std::string, std::string>::const_iterator i=mongoColl.collectionName.begin(); i!=mongoColl.collectionName.end(); i++) {
-		db::DB_Config dbConfig(db.host, db.port, db.dbName);
+		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
 		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
-	modeReferenceIndex[1] = "Public bus";
-	modeReferenceIndex[2] = "MRT";
-	modeReferenceIndex[3] = "Private Bus";
-	modeReferenceIndex[4] = "Auto";
-	modeReferenceIndex[5] = "Share 2+";
-	modeReferenceIndex[6] = "Share 3+";
-	modeReferenceIndex[7] = "Motor";
-	modeReferenceIndex[8] = "Walk";
 }
 
 PredaySystem::~PredaySystem()
@@ -53,100 +44,6 @@ PredaySystem::~PredaySystem()
 		safe_delete_item(i->second);
 	}
 	mongoDao.clear();
-}
-
-void PredaySystem::mapClasses() {
-	getGlobalNamespace(state.get())
-			.beginClass <PersonParams> ("PersonParams")
-			.addProperty("person_type_id", &PersonParams::getPersonTypeId)
-			.addProperty("age_id", &PersonParams::getAgeId)
-			.addProperty("universitystudent", &PersonParams::getIsUniversityStudent)
-			.addProperty("female_dummy", &PersonParams::getIsFemale)
-			.addProperty("income_id", &PersonParams::getIncomeId)
-			.addProperty("work_at_home_dummy", &PersonParams::getWorksAtHome)
-			.addProperty("car_own_normal", &PersonParams::getCarOwnNormal)
-			.addProperty("car_own_offpeak", &PersonParams::getCarOwnOffpeak)
-			.addProperty("motor_own", &PersonParams::getMotorOwn)
-			.addProperty("fixed_work_hour", &PersonParams::getHasFixedWorkTiming)
-			.addProperty("homeLocation", &PersonParams::getHomeLocation)
-			.addProperty("fixed_place", &PersonParams::getFixedWorkLocation)
-			.addProperty("fixedSchoolLocation", &PersonParams::getFixedSchoolLocation)
-			.addProperty("only_adults", &PersonParams::getHH_OnlyAdults)
-			.addProperty("only_workers", &PersonParams::getHH_OnlyWorkers)
-			.addProperty("num_underfour", &PersonParams::getHH_NumUnder4)
-			.addProperty("presence_of_under15", &PersonParams::getHH_NumUnder15)
-			.addProperty("worklogsum", &PersonParams::getWorkLogSum)
-			.addProperty("edulogsum", &PersonParams::getEduLogSum)
-			.addProperty("shoplogsum", &PersonParams::getShopLogSum)
-			.addProperty("otherlogsum", &PersonParams::getOtherLogSum)
-			.addFunction("getTimeWindowAvailabilityTour", &PersonParams::getTimeWindowAvailability)
-			.endClass();
-}
-
-void PredaySystem::predictDayPattern() {
-	LuaRef chooseDP = getGlobal(state.get(), "choose_dp");
-	LuaRef retVal = chooseDP(personParams);
-	if (retVal.isTable()) {
-		dayPattern["WorkT"] = retVal[1].cast<bool>();
-		dayPattern["EduT"] = retVal[2].cast<bool>();
-		dayPattern["ShopT"] = retVal[3].cast<bool>();
-		dayPattern["OthersT"] = retVal[4].cast<bool>();
-		dayPattern["WorkI"] = retVal[5].cast<bool>();
-		dayPattern["EduI"] = retVal[6].cast<bool>();
-		dayPattern["ShopI"] = retVal[7].cast<bool>();
-		dayPattern["OthersI"] = retVal[8].cast<bool>();
-	}
-	else {
-		throw std::runtime_error("Error in day pattern prediction. Unexpected return value");
-	}
-}
-
-void PredaySystem::predictNumTours() {
-	if(dayPattern.size() <= 0) {
-		throw std::runtime_error("Cannot invoke number of tours model without a day pattern");
-	}
-	numTours["WorkT"] = numTours["EduT"] = numTours["ShopT"] = numTours["OthersT"] = 0;
-
-	if(dayPattern["WorkT"]) {
-		LuaRef chooseNTW = getGlobal(state.get(), "choose_ntw"); // choose Num. of Work Tours
-		LuaRef retVal = chooseNTW(personParams);
-	    if (retVal.isNumber()) {
-	    	numTours["WorkT"] = retVal.cast<int>();
-	    }
-	}
-	if(dayPattern["EduT"]) {
-		LuaRef chooseNTE = getGlobal(state.get(), "choose_nte");// choose Num. of Education Tours
-		LuaRef retVal = chooseNTE(personParams);
-	    if (retVal.isNumber()) {
-	    	numTours["EduT"] = retVal.cast<int>();
-	    }
-	}
-	if(dayPattern["ShopT"]) {
-		LuaRef chooseNTS = getGlobal(state.get(), "choose_nts");// choose Num. of Shopping Tours
-		LuaRef retVal = chooseNTS(personParams);
-	    if (retVal.isNumber()) {
-	    	numTours["ShopT"] = retVal.cast<int>();
-	    }
-	}
-	if(dayPattern["OthersT"]) {
-		LuaRef chooseNTO = getGlobal(state.get(), "choose_nto");// choose Num. of Other Tours
-		LuaRef retVal = chooseNTO(personParams);
-	    if (retVal.isNumber()) {
-	    	numTours["OthersT"] = retVal.cast<int>();
-	    }
-	}
-}
-
-bool PredaySystem::predictUsualWorkLocation(bool firstOfMultiple) {
-	LuaRef chooseUW = getGlobal(state.get(), "choose_uw"); // choose usual work location
-    ModelParamsUsualWork usualWorkParams;
-	usualWorkParams.setFirstOfMultiple((int) firstOfMultiple);
-	usualWorkParams.setSubsequentOfMultiple((int) !firstOfMultiple);
-	LuaRef retVal = chooseUW(personParams, usualWorkParams);
-	if (!retVal.isNumber()) {
-		throw std::runtime_error("Error in usual work location model. Unexpected return value");
-	}
-	return retVal.cast<bool>();
 }
 
 void PredaySystem::predictTourMode(Tour& tour) {
@@ -887,7 +784,7 @@ void PredaySystem::calculateTourEndTime(Tour& tour) {
 	tour.setEndTime(tourEndTime);*/
 }
 
-void PredaySystem::constructTours() {
+void PredaySystem::constructTours(PredayLuaModel& predayLuaModel) {
 	if(numTours.size() != 4) {
 		// Probably predictNumTours() was not called prior to this function
 		throw std::runtime_error("Tours cannot be constructed before predicting number of tours for each tour type");
@@ -899,7 +796,7 @@ void PredaySystem::constructTours() {
 		bool attendsUsualWorkLocation = false;
 		if(!personParams.isStudent() && personParams.getFixedWorkLocation() != 0) {
 			//if person not a student and has a fixed work location
-			attendsUsualWorkLocation = predictUsualWorkLocation(firstOfMultiple); // Predict if this tour is to a usual work location
+			attendsUsualWorkLocation = predayLuaModel.predictUsualWorkLocation(personParams, firstOfMultiple); // Predict if this tour is to a usual work location
 			firstOfMultiple = false;
 		}
 		Tour* workTour = new Tour(WORK);
@@ -932,11 +829,21 @@ void PredaySystem::constructTours() {
 }
 
 void PredaySystem::planDay() {
+	// get the thread-local lua model object
+	const PredayLuaModel& predayLuaModel = PredayLuaProvider::getPredayModel();
+
 	//Predict day pattern
-	predictDayPattern();
+	personParams.setWorkLogSum(0.0);
+	personParams.setEduLogSum(0.0);
+	personParams.setShopLogSum(0.0);
+	personParams.setOtherLogSum(0.0);
+	predayLuaModel.predictDayPattern(personParams, dayPattern);
 
 	//Predict number of Tours
-	predictNumTours();
+	if(dayPattern.size() <= 0) {
+		throw std::runtime_error("Cannot invoke number of tours model without a day pattern");
+	}
+	predayLuaModel.predictNumTours(personParams, dayPattern, numTours);
 
 	//Construct tours
 	/*constructTours();

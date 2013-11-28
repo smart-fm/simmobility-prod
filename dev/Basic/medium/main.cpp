@@ -16,7 +16,7 @@
 //main.cpp (top-level) files can generally get away with including GenConfig.h
 #include "GenConfig.h"
 
-#include "behavioral/PredaySystem.hpp"
+#include "behavioral/PredayManager.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -381,7 +381,10 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
  * Simulation loop for the demand simulator
  */
 bool performMainDemand(){
-
+	PredayManager predayManager;
+	predayManager.loadPersons();
+	predayManager.distributeAndProcessPersons(1);
+	return true;
 }
 
 /**

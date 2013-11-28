@@ -278,7 +278,7 @@
 	<!-- If loading from the database, which database, proc_map, and credentials are used? -->
 	<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
 	<!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
-	<network_database database="fm_local" credentials="fm_local_yaojin" proc_map="wholeSG"/>
+		<network_database database="fm_local" credentials="fm_local_yaojin" proc_map="wholeSG"/>
 
         <!-- Where to find our various schema files. -->
         <!-- Overrides xsi:schemaLocation in the files themselves. -->
@@ -357,10 +357,7 @@
     <!--West node is: 37227139,14327875-->
     <drivers>
 <!-- These test the short term -->
-	   	<driver originPos="37227139,14327875" destPos="37270984,14378959" time="0" lane="2"/>
-	   	<driver originPos="37245506,14359431" destPos="37254988,14351820" time="0" lane="1"/>
-	   	<driver originPos="37232503,14369823" destPos="37240057,14318241" time="0"/>
-	   	<driver originPos="37240057,14318241" destPos="37232503,14369823" time="0" lane="3"/>
+	   	<driver originPos="37503094,15253623" destPos="37504569,15228407" time="0" lane="2"/>
     </drivers> 
     <pedestrians> 
    		<!--Pedestrian start locations-->
@@ -370,22 +367,9 @@
     	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
     	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="1000"/>  	
     </pedestrians>
-    
-    <!-- Bus Drivers. This is just for testing; currently a lot of Bus information is simply generated. -->
-    <!-- Note that Buses are loaded with "drivers", since I don't want to add a new tag for testing data -->
-	<busdrivers>
-	</busdrivers>
-    
+        
     <buscontrollers>
-		<buscontroller time="0" />	
+		<buscontroller time="0" />
 	</buscontrollers>
-	
-   <!-- <signals> -->
-        <!-- Any of the following signals will not be created if it has already been created by
-             the 'signal' stored procedure above.  Note that this <signals> section will be
-             removed soon and without notice.  After that, only signals found in the database
-             will be created.  -->
-    <!--    <signal xpos="37250760" ypos="14355120"/>
-    </signals>-->
 </config>
 

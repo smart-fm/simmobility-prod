@@ -153,6 +153,10 @@ sim_mob::DynamicVector sim_mob::Vehicle::getCurrPolylineVector() const {
 	return DynamicVector(fwdMovement.getCurrPolypoint().getX(), fwdMovement.getCurrPolypoint().getY(),
 			fwdMovement.getNextPolypoint().getX(), fwdMovement.getNextPolypoint().getY());
 }
+sim_mob::DynamicVector sim_mob::Vehicle::getCurrPolylineVector2() const {
+	return DynamicVector(fwdMovement.getCurrPolypoint().getX(), fwdMovement.getCurrPolypoint().getY(),
+			fwdMovement.getNextPolypoint2().getX(), fwdMovement.getNextPolypoint2().getY());
+}
 
 bool sim_mob::Vehicle::hasPath() const {
 	return fwdMovement.isPathSet();

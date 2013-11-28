@@ -617,7 +617,12 @@ double sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 				DebugStream << "Now in Intersection. Distance from Node center: " << Fmt_M(dist((*currSegmentIt)->getEnd()->location, myPos)) << endl;
 			}
 
-			//Return early; we can't actually move the car now.
+//			int current_polylineLength = (*currSegmentIt)->polyline.size();
+//			std::cout << "current Segment ID: " << (*currSegmentIt)->originalDB_ID.getLogItem() << std::endl;
+//			std::cout << "next Segment ID: " << (*(currSegmentIt+1))->originalDB_ID.getLogItem() << std::endl;
+//			double dis = dist((*currSegmentIt)->getStart()->location, (*currSegmentIt)->getEnd()->location);
+//			std::cout << "current Segment length: " << (*currSegmentIt)->length << std::endl;
+//			//Return early; we can't actually move the car now.
 			inIntersection = true;
 			return distAlongPolyline;
 		}
@@ -773,6 +778,17 @@ const Point2D& sim_mob::GeneralPathMover::getNextPolypoint() const
 {
 	throwIf(!isPathSet(), GeneralPathMover::ErrorPathNotSet);
 	throwIf(isDoneWithEntireRoute(), GeneralPathMover::ErrorGeneralPathDone);
+	return *nextPolypoint;
+}
+
+const Point2D& sim_mob::GeneralPathMover::getNextPolypoint2() const
+{
+	throwIf(!isPathSet(), GeneralPathMover::ErrorPathNotSet);
+	throwIf(isDoneWithEntireRoute(), GeneralPathMover::ErrorGeneralPathDone);
+	if(nextPolypoint == polypointsList.end())
+	{
+		return *currPolypoint;
+	}
 	return *nextPolypoint;
 }
 

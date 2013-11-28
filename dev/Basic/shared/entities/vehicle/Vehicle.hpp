@@ -116,6 +116,7 @@ public:
 	std::vector<const sim_mob::RoadSegment*>::iterator getPathIteratorEnd();
 	std::vector<const sim_mob::RoadSegment*> getPath();
 	sim_mob::DynamicVector getCurrPolylineVector() const;
+	sim_mob::DynamicVector getCurrPolylineVector2() const;
 	const sim_mob::Link* getCurrLink() const;
 	const sim_mob::Lane* getCurrLane() const;
 	const sim_mob::Node* getNodeMovingTowards() const;
@@ -127,7 +128,9 @@ public:
 	void shiftToNewLanePolyline(bool moveLeft);
 	void moveToNewLanePolyline(int laneID);
 	void setPositionInIntersection(double x, double y);
-
+	DPoint getPositionInIntersection() {
+		return posInIntersection;
+	}
 	void setTurningDirection(LANE_CHANGE_SIDE direction);
 	//Modifiers
 	void setVelocity(double value);      ///<Set the forward velocity.

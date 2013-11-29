@@ -43,7 +43,7 @@
           	<database id="fm_local" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
-                <dbname value="SimMobility_DB_WholeSGNew"/>
+                <dbname value="SimMobility_DB_WholeSG"/>
             </database>
         </databases>
 	
@@ -88,7 +88,7 @@
                 <mapping name="lane" procedure="get_lanes_bugis()"/>
                 <mapping name="turning" procedure="get_lane_connector_bugis()"/>
                 <mapping name="polyline" procedure="get_section_polyline_bugis()"/>
-                <mapping name="tripchain" procedure=""/>
+                <mapping name="tripchain" procedure="get_tripchains()"/>
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
 		
@@ -207,7 +207,7 @@
          	<partitioning_solution_id   value="1"	units="unit" />
             
             <!--  <load_agents order="database drivers pedestrians"/> -->
-             <load_agents order="drivers"/>
+             <load_agents order="database drivers"/>
             
             <!-- Optional. At what value do we start counting for automatically -->
             <!-- generated Agent IDs? Set to a high value if you want to avoid  -->
@@ -278,7 +278,7 @@
 	<!-- If loading from the database, which database, proc_map, and credentials are used? -->
 	<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
 	<!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
-		<network_database database="fm_local" credentials="fm_local_yaojin" proc_map="wholeSG"/>
+		<network_database database="fm_local" credentials="fm_local_yaojin" proc_map="bugis_large"/>
 
         <!-- Where to find our various schema files. -->
         <!-- Overrides xsi:schemaLocation in the files themselves. -->
@@ -357,7 +357,7 @@
     <!--West node is: 37227139,14327875-->
     <drivers>
 <!-- These test the short term -->
-	   	<driver originPos="37503094,15253623" destPos="37504569,15228407" time="0" lane="2"/>
+	   	<driver originPos="37227139,14327875" destPos="37250760,14355120" time="0" lane="2"/>
     </drivers> 
     <pedestrians> 
    		<!--Pedestrian start locations-->

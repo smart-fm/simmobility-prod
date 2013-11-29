@@ -40,10 +40,10 @@ namespace sim_mob {
         } Entry;
 
         // map for global listeners.
-        typedef std::list<Entry*> ListenersList;
+        typedef std::list<Entry> ListenersList;
         // maps for listeners with context.
-        typedef boost::unordered_map<Context, ListenersList*> ContextMap;
-        typedef boost::unordered_map<EventId, ContextMap*> ContextListenersMap;
+        typedef boost::unordered_map<Context, ListenersList> ContextMap;
+        typedef boost::unordered_map<EventId, ContextMap> ContextListenersMap;
 
         /**
          * Generic implementation of event publisher.

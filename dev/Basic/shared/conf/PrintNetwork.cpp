@@ -382,6 +382,7 @@ void sim_mob::PrintNetwork::LogLegacyBusStop(const BusStop* const bs) const
 	//Save it.
 	std::stringstream out; //Shadow PrintNetwork::out to prevent accidental stream modification.
 	out <<"(\"busstop\", 0, " <<bs <<", {";
+	out <<"\"busstop id\":\"" << bs->busstopno_ << "\",";
 	out <<"\"near-1\":\"" <<static_cast<int>(near.getX())    <<"," <<static_cast<int>(near.getY())    <<"\",";
 	out <<"\"near-2\":\"" <<static_cast<int>(near.getEndX()) <<"," <<static_cast<int>(near.getEndY()) <<"\",";
 	out <<"\"far-1\":\""  <<static_cast<int>(far.getX())     <<"," <<static_cast<int>(far.getY())     <<"\",";

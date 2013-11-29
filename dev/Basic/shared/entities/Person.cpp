@@ -111,6 +111,12 @@ void sim_mob::Person::initTripChain(){
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM)
 	{
 		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW()).begin();
+		// if the first tripchain item is passenger, create waitBusActivityRole
+		if(currSubTrip->mode == "BusTravel") {
+			const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
+			currRole = rf.createRole("waitBusActivityRole", this);
+			nextRole = rf.createRole("passenger", this);
+		}
 		//consider putting this in IT_TRIP clause
 		if(!updateOD(*currTripChainItem)){ //Offer some protection
 				throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");

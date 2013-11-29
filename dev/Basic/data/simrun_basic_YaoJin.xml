@@ -43,7 +43,7 @@
           	<database id="fm_local" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
-                <dbname value="SimMobility_DB_WholeSG"/>
+                <dbname value="SimMobility_DB_New"/>
             </database>
         </databases>
 	
@@ -207,7 +207,7 @@
          	<partitioning_solution_id   value="1"	units="unit" />
             
             <!--  <load_agents order="database drivers pedestrians"/> -->
-             <load_agents order="database drivers"/>
+             <load_agents order="database"/>
             
             <!-- Optional. At what value do we start counting for automatically -->
             <!-- generated Agent IDs? Set to a high value if you want to avoid  -->

@@ -52,6 +52,12 @@ public:
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 	void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
+	const uint32_t getWaitingTimeAtStop() const {
+		return waitingTimeAtStop;
+	}
+	void setWaitingTimeAtStop(uint32_t waitingTime) {
+		waitingTimeAtStop = waitingTime;
+	}
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI
@@ -67,6 +73,7 @@ public:
 	sim_mob::Shared<Driver*> busdriver;///passenger should have info about the driver
 	sim_mob::Shared<bool> BoardedBus;
 	sim_mob::Shared<bool> AlightedBus;
+	uint32_t waitingTimeAtStop;
 private:
 	PassengerUpdateParams params;
 };

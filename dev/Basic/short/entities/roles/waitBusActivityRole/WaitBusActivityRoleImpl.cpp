@@ -90,6 +90,8 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick() {
 					Passenger* passenger = dynamic_cast<Passenger*> (getParent()->getNextRole());// check whether nextRole is passenger Role or not
 					if(passenger) {
 						//BusDriver* driver = dynamic_cast<BusDriver*>(busDriver);
+						parentWaitBusActivityRole->waitingTimeAtBusStop = p.now.ms() - parentWaitBusActivityRole->TimeOfReachingBusStop;
+						passenger->setWaitingTimeAtStop(parentWaitBusActivityRole->waitingTimeAtBusStop);
 						passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
 						passenger->BoardedBus.set(true);
 						passenger->AlightedBus.set(false);

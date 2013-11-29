@@ -25,7 +25,7 @@ using namespace sim_mob;
 //}
 
 sim_mob::WaitBusActivityRole::WaitBusActivityRole(Agent* parent, sim_mob::WaitBusActivityRoleBehavior* behavior, sim_mob::WaitBusActivityRoleMovement* movement, Role::type roleType_, std::string roleName) :
-		Role(behavior, movement, parent, roleName, roleType_), params(parent->getGenerator()), TimeOfReachingBusStop(0)
+		Role(behavior, movement, parent, roleName, roleType_), params(parent->getGenerator()), TimeOfReachingBusStop(0), waitingTimeAtBusStop(0)
 {
 }
 

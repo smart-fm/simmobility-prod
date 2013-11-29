@@ -257,7 +257,6 @@ private:
 	boost::mutex::scoped_lock local_lock;
 };
 
-
 } //End sim_mob namespace
 
 

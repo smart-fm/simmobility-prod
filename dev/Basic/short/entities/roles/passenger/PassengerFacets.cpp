@@ -47,7 +47,8 @@ void PassengerBehavior::frame_tick_output() {
 
 sim_mob::PassengerMovement::PassengerMovement(sim_mob::Person* parentAgent):
 		MovementFacet(parentAgent), parentPassenger(nullptr), alighting_MS(0),
-		WaitingTime(-1), TimeOfReachingBusStop(0), displayX(0), displayY(0),skip(0)
+		WaitingTime(-1), TimeOfReachingBusStop(0), displayX(0), displayY(0),skip(0),
+		timeOfStartBoarding(0), travelTime(0)
 {
 }
 
@@ -73,7 +74,7 @@ void sim_mob::PassengerMovement::setParentBufferedData()
 
 void sim_mob::PassengerMovement::frame_init() {
 	//initialization
-	WaitingTime = -1;
+//	WaitingTime = -1;
 	OriginBusStop=nullptr;
 	if(getParent()->originNode.type_==WayPoint::NODE) {
 		OriginBusStop = setBusStopXY(getParent()->originNode.node_);
@@ -96,8 +97,8 @@ void sim_mob::PassengerMovement::frame_init() {
 		DestBusStop = setBusStopXY(getParent()->destNode.node_);
 	}
 
-	TimeOfReachingBusStop=parentPassenger->getParams().now.ms();
-	//Person* person = dynamic_cast<Person*> (parent);
+//	TimeOfReachingBusStop=parentPassenger->getParams().now.ms();
+	timeOfStartBoarding = parentPassenger->getParams().now.ms();
 	if(getParent()) {
 		getParent()->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
 	}
@@ -123,6 +124,8 @@ void sim_mob::PassengerMovement::frame_tick() {
 					newRole->Movement()->frame_init();
 				} else {
 					getParent()->setToBeRemoved();//removes passenger if destination is reached
+					travelTime = p.now.ms() - timeOfStartBoarding + getParent()->getAlightingCharacteristics() * 1000;
+					const uint32_t waitingTimeAtStop = parentPassenger->getWaitingTimeAtStop();
 					parentPassenger->busdriver.set(nullptr);// assign this busdriver to Passenger
 					parentPassenger->BoardedBus.set(false);
 					parentPassenger->AlightedBus.set(true);

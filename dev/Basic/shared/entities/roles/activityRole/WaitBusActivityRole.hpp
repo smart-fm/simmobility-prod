@@ -62,6 +62,9 @@ public:
 //	sim_mob::BusStopAgent* getBusStopAgent() { return busStopAgent; }
 //	BusStop* setBusStopXY(const Node* node);//to find the nearest busstop to a node
 	uint32_t getTimeOfReachingBusStop() const { return TimeOfReachingBusStop; }
+	uint32_t getWaitingTimeAtBusStop() const {
+		return waitingTimeAtBusStop;
+	}
 //	//void setTimeofReachingBusStop(uint32_t time) { TimeOfReachingBusStop = time; }
 //	std::string getBuslineID() { return buslineid; }
 
@@ -81,6 +84,7 @@ public:
 //	std::string buslineid;
 public:
 	uint32_t TimeOfReachingBusStop;
+	uint32_t waitingTimeAtBusStop;
 
 private:
 	WaitBusActivityRoleUpdateParams params;

@@ -9,6 +9,7 @@
 #include "entities/Person.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "logging/Log.hpp"
 
 using namespace sim_mob;
 
@@ -48,7 +49,7 @@ void PassengerBehavior::frame_tick_output() {
 sim_mob::PassengerMovement::PassengerMovement(sim_mob::Person* parentAgent):
 		MovementFacet(parentAgent), parentPassenger(nullptr), alighting_MS(0),
 		WaitingTime(-1), TimeOfReachingBusStop(0), displayX(0), displayY(0),skip(0),
-		timeOfStartBoarding(0), travelTime(0)
+		timeOfStartBoarding(0), travelTime(0), busTripRunNum(0), buslineId("")
 {
 }
 
@@ -126,6 +127,9 @@ void sim_mob::PassengerMovement::frame_tick() {
 					getParent()->setToBeRemoved();//removes passenger if destination is reached
 					travelTime = p.now.ms() - timeOfStartBoarding + getParent()->getAlightingCharacteristics() * 1000;
 					const uint32_t waitingTimeAtStop = parentPassenger->getWaitingTimeAtStop();
+					PassengerInfoPrint() << "iamwaiting id "<<getParent()->getId()<<" from "<<getParent()->originNode.busStop_->busstopno_<<" to "<<getParent()->destNode.busStop_->busstopno_<<" "
+							<<(ConfigManager::GetInstance().FullConfig().simStartTime() + DailyTime(getParent()->getStartTime()) + DailyTime(waitingTimeAtStop)).getRepr_()<<" "
+							<<waitingTimeAtStop<<" bustripRunNum " << getBusTripRunNum() << " "<<" buslineid " << getBuslineId() << "TravelTime " << travelTime << std::endl;
 					parentPassenger->busdriver.set(nullptr);// assign this busdriver to Passenger
 					parentPassenger->BoardedBus.set(false);
 					parentPassenger->AlightedBus.set(true);

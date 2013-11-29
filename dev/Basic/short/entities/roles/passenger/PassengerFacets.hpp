@@ -95,9 +95,17 @@ public:
 	void setParentPassenger(Passenger* parentPassenger) {
 		this->parentPassenger = parentPassenger;
 	}
+	const int getBusTripRunNum() const {
+		return busTripRunNum;
+	}
+	const std::string& getBuslineId() const {
+		return buslineId;
+	}
 
 public:
 	uint32_t alighting_MS;// to record the alighting_MS for each individual person
+	int busTripRunNum;// busTripRunNum to record the bus trip run num
+	std::string buslineId;// busline_id to record the bus line id
 
 private:
 	Passenger* parentPassenger;

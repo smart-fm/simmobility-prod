@@ -719,6 +719,9 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 	const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem));
 	if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
 		busline = bustrip->getBusline();
+		if(!busline) {
+			return;
+		}
 	}
 
 	first_boarding_alighting_ms = curr_ms;
@@ -772,6 +775,8 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 					}
 					if(passenger_movement) {
 						passenger_movement->alighting_MS = alighting_ms;// set Alighting_MS for this Passenger
+						passenger_movement->busTripRunNum = bustrip->getBusTripRun_SequenceNum();
+						passenger_movement->buslineId = busline->getBusLineID();
 					}
 					alighting_MSs.push_back(alighting_ms);
 				}
@@ -813,6 +818,8 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 					}
 					if(passenger_movement) {
 						passenger_movement->alighting_MS = alighting_ms;// set Alighting_MS for this Passenger
+						passenger_movement->busTripRunNum = bustrip->getBusTripRun_SequenceNum();
+						passenger_movement->buslineId = busline->getBusLineID();
 					}
 					alighting_MSs.push_back(alighting_ms);
 				}

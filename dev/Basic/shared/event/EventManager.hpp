@@ -77,7 +77,7 @@ namespace sim_mob {
              * @param callback to be called when the event is fired.
              */
             void Schedule(const timeslice& target, EventListenerPtr listener,
-                    ListenerContextCallback callback);
+                    Callback callback);
 
         private:
 

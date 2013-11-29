@@ -96,7 +96,10 @@ void sim_mob::Broker::configure()
 	//TODO: Find a more dynamic way of adding new clients.
 	const std::string client_type = ConfigManager::GetInstance().FullConfig().getAndroidClientType();
 
-	sim_mob::Worker::GetUpdatePublisher().Subscribe(sim_mob::event::EVT_CORE_AGENT_UPDATED, (void*)sim_mob::event::CXT_CORE_AGENT_UPDATE, this, CONTEXT_CALLBACK_HANDLER(UpdateEventArgs, Broker::onAgentUpdate));
+	sim_mob::Worker::GetUpdatePublisher().Subscribe(sim_mob::event::EVT_CORE_AGENT_UPDATED, 
+                this, 
+                &Broker::onAgentUpdate,
+                (event::Context)sim_mob::event::CXT_CORE_AGENT_UPDATE);
 
 	BrokerPublisher* onlyLocationsPublisher = new BrokerPublisher();
 	onlyLocationsPublisher->RegisterEvent(COMMEID_LOCATION);
@@ -123,11 +126,17 @@ void sim_mob::Broker::configure()
 		PublisherList::dataType(timePublisher))
 	);
 
-	ClientRegistrationHandler::getPublisher().Subscribe(ConfigParams::ANDROID_EMULATOR, this, CALLBACK_HANDLER(ClientRegistrationEventArgs, Broker::onClientRegister));
+	ClientRegistrationHandler::getPublisher().Subscribe(
+                (event::EventId)ConfigParams::ANDROID_EMULATOR, 
+                this, 
+                &Broker::onClientRegister);
 
 	if(client_type == "android-ns3") {
 		//listen to publishers who announce registration of new clients...
-		ClientRegistrationHandler::getPublisher().Subscribe(ConfigParams::NS3_SIMULATOR, this, CALLBACK_HANDLER(ClientRegistrationEventArgs, Broker::onClientRegister));
+		ClientRegistrationHandler::getPublisher().Subscribe(
+                         (event::EventId)ConfigParams::NS3_SIMULATOR, 
+                        this, 
+                        &Broker::onClientRegister);
 	}
 
 	//current message factory
@@ -461,7 +470,7 @@ void sim_mob::Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::
 }
 
 
-void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums)
+void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums)
 {
 	ConfigParams::ClientType type = argums.getClientType();
 	boost::shared_ptr<ClientHandler>clientHandler = argums.getClient();

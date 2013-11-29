@@ -12,19 +12,29 @@
 #pragma once
 
 namespace sim_mob {
-namespace event {
+    namespace event {
 
-typedef unsigned int EventId;
+        typedef unsigned int EventId;
 
-///Represents an event data.
-class EventArgs {
-public:
-	EventArgs();
-	EventArgs(const EventArgs& source);
-	virtual ~EventArgs();
+        ///Represents an event data.
 
-	virtual EventArgs& operator=(const EventArgs& source);
-};
+        class EventArgs {
+        public:
+            EventArgs();
+            EventArgs(const EventArgs& source);
+            virtual ~EventArgs();
 
-}}
+            virtual EventArgs& operator=(const EventArgs& source);
+        };
+
+    }
+}
+/**
+ * Call this before you EventArgs implementation.
+ */
+#define DECLARE_CUSTOM_CALLBACK_TYPE(type) class type; \
+        typedef void (sim_mob::event::EventListener::*type##ContextCallback)\
+        (sim_mob::event::EventId id, sim_mob::event::Context ctxId, \
+                sim_mob::event::EventPublisher* sender, const type& args);
+
 

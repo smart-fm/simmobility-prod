@@ -497,7 +497,7 @@ void MessageBus::SubscribeEvent(EventId id, Context ctx, EventListener* listener
         ThreadContext* context = GetThreadContext();
         if (context) {
             context->eventPublisher->RegisterEvent(id);
-            context->eventPublisher->Subscribe(id, ctx, listener);
+            context->eventPublisher->Subscribe(id, listener, ctx);
         }
     }
 }

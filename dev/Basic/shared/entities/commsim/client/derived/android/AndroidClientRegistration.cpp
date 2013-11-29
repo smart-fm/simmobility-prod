@@ -84,16 +84,18 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker,
 			case sim_mob::Services::SIMMOB_SRV_TIME: {
 				PublisherList::dataType p =
 						broker.getPublishers()[sim_mob::Services::SIMMOB_SRV_TIME];
-				p->Subscribe(COMMEID_TIME, clientEntry.get(),
-						CALLBACK_HANDLER(sim_mob::TimeEventArgs, ClientHandler::OnTime));
+				p->Subscribe(COMMEID_TIME, 
+                                             clientEntry.get(),
+                                             &ClientHandler::OnTime);
 				break;
 			}
 			case sim_mob::Services::SIMMOB_SRV_LOCATION: {
 				PublisherList::dataType p =
 						broker.getPublishers()[sim_mob::Services::SIMMOB_SRV_LOCATION];
-				p->Subscribe(COMMEID_LOCATION, (void*) clientEntry->agent,
+				p->Subscribe(COMMEID_LOCATION, 
 						clientEntry.get(),
-						CONTEXT_CALLBACK_HANDLER(LocationEventArgs, ClientHandler::OnLocation));
+						&ClientHandler::OnLocation,
+                                                (event::Context) clientEntry->agent);
 				break;
 			}
 			}

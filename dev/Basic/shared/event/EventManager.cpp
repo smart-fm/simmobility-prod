@@ -82,7 +82,7 @@ void EventManager::Schedule(const timeslice& target, EventListenerPtr listener) 
 }
 
 void EventManager::Schedule(const timeslice& target, EventListenerPtr listener,
-        ListenerContextCallback callback) {
+        Callback callback) {
 
     {// synchronized scope
     	upgrade_lock<shared_mutex> upgradeLock(windowsMutex);
@@ -99,9 +99,9 @@ void EventManager::Schedule(const timeslice& target, EventListenerPtr listener,
         TemporalWindow* tw = new TemporalWindow(currTime, target);
         TemporalWindowList::iterator litr = listPtr->insert(listPtr->end(), tw);
         if (callback) {
-            Subscribe(EM_WND_EXPIRED, *litr, listener, callback);
+            Subscribe(EM_WND_EXPIRED, listener, callback, *litr);
         } else {
-            Subscribe(EM_WND_EXPIRED, *litr, listener);
+            Subscribe(EM_WND_EXPIRED, listener, *litr);
         }
     }
 }

@@ -67,12 +67,17 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 			{
 			case sim_mob::Services::SIMMOB_SRV_TIME:{
 				 PublisherList::dataType p = broker.getPublishers()[sim_mob::Services::SIMMOB_SRV_TIME];
-				p->Subscribe(COMMEID_TIME, clientEntry.get(), CALLBACK_HANDLER(sim_mob::TimeEventArgs, ClientHandler::OnTime) );
+				p->Subscribe(COMMEID_TIME, 
+                                        clientEntry.get(), 
+                                        &ClientHandler::OnTime);
 				break;
 			}
 			case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS:{
 				PublisherList::dataType p = broker.getPublishers()[sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS];
-				p->Subscribe(COMMEID_LOCATION,(void *) COMMCID_ALL_LOCATIONS, clientEntry.get()  ,CONTEXT_CALLBACK_HANDLER(AllLocationsEventArgs, ClientHandler::OnAllLocations) );
+				p->Subscribe(COMMEID_LOCATION, 
+                                        clientEntry.get(), 
+                                        &ClientHandler::OnAllLocations, 
+                                        (event::Context) COMMCID_ALL_LOCATIONS);
 				break;
 			}
 			}

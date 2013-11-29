@@ -84,30 +84,16 @@ void EventPublisher::Publish(EventId id, Context ctx, const EventArgs& args) {
     PublishEvent(listeners, false, this, id, ctx, args);
 }
 
-void EventPublisher::Subscribe(EventId id, EventListenerPtr listener) {
-    Subscribe(id, listener, &EventListener::OnEvent);
-}
-
 void EventPublisher::Subscribe(EventId id, EventListenerPtr listener,
-        ListenerCallback callback) {
-    if (ExitsEvent(listeners, id) && listener && callback) {
-        Callback cb;
-        cb.callback = callback;
-        SubscribeListener(listeners, id, this, listener, cb);
-    }
+                Context context){
+        Subscribe(id, listener, &EventListener::OnEvent, context);
 }
 
-void EventPublisher::Subscribe(EventId id, Context ctx,
-        EventListenerPtr listener) {
-    Subscribe(id, ctx, listener, &EventListener::OnEvent);
-}
-
-void EventPublisher::Subscribe(EventId id, Context ctx,
-        EventListenerPtr listener, ListenerContextCallback callback) {
+void EventPublisher::Subscribe(EventId id, EventListenerPtr listener, 
+        Callback callback, Context ctx) {
     if (ExitsEvent(listeners, id) && listener && callback) {
-        Callback cb;
-        cb.contextCallback = callback;
-        SubscribeListener(listeners, id, ctx, listener, cb);
+        SubscribeListener(listeners, id, (ctx) ? ctx : this, 
+                listener, callback);
     }
 }
 
@@ -215,9 +201,9 @@ namespace {
                 while (lstItr != lst->end()) {
                     // notify listener
                     if (globalCtx) {
-                        (((*lstItr)->listener)->*((*lstItr)->callback.callback))(id, sender, args);
+                        (((*lstItr)->listener)->*((*lstItr)->callback))(id, sender, nullptr, args);
                     } else {
-                        (((*lstItr)->listener)->*((*lstItr)->callback.contextCallback))(id, ctx, sender, args);
+                        (((*lstItr)->listener)->*((*lstItr)->callback))(id, ctx, sender, args);
                     }
                     lstItr++;
                 }

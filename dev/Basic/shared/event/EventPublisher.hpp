@@ -15,18 +15,20 @@
 #include <boost/unordered_map.hpp>
 #include "EventListener.hpp"
 
+namespace {
+    typedef void (sim_mob::event::EventListener::*EventContextCallback)(
+            sim_mob::event::EventId id,
+            sim_mob::event::Context ctxId,
+            sim_mob::event::EventPublisher* sender,
+            const sim_mob::event::EventArgs& args);
+}
+
 namespace sim_mob {
 
     namespace event {
-        
-        typedef EventListener* EventListenerPtr;
-        typedef EventListener::EventCallback ListenerCallback;
-        typedef EventListener::EventContextCallback ListenerContextCallback;
 
-        typedef union _Callback {
-            ListenerCallback callback;
-            ListenerContextCallback contextCallback;
-        } Callback;
+        typedef EventListener* EventListenerPtr;
+        typedef EventContextCallback Callback;
 
         /**
          * Struct to store a Listener entry.
@@ -84,53 +86,46 @@ namespace sim_mob {
              * @param ctxId Id of the context.
              * @param args of the event.
              */
-            virtual void Publish(EventId id, Context ctxId, const EventArgs& args);
+            virtual void Publish(EventId id, Context ctxId, 
+                const EventArgs& args);
 
             /**
-             * 
-             * Subscribes the given global listener to the given EventId.
-             * This listener will receive all events of the given EventId.
+             * Subscribes the given listener to the given EventId.
+             * Using the given callback and context.
              * 
              * @param id
              * @param listener to subscribe.
+             * @param callback custom event handler.
+             * @param context to filter the events.
              */
-            virtual void Subscribe(EventId id, EventListenerPtr listener);
+            template<typename T, typename L>
+            void Subscribe(EventId id,
+                    EventListenerPtr listener,
+                    void (L::*callback)(
+                    sim_mob::event::EventId id,
+                    sim_mob::event::Context ctxId,
+                    sim_mob::event::EventPublisher* sender,
+                    const T& args),
+                    Context context = 0) {
+                if (callback) {
+                    Subscribe(id, listener,
+                            (EventContextCallback)callback,
+                            context);
+                } else {
+                    Subscribe(id, listener, context);
+                }
+            }
 
             /**
+             * 
              * Subscribes the given global listener to the given EventId.
              * This listener will receive all events of the given EventId.
-             * 
-             * The given callback that called will be called instead of normal OnEvent
              * 
              * @param id
              * @param listener to subscribe.
              */
             virtual void Subscribe(EventId id, EventListenerPtr listener,
-                    ListenerCallback eventFunction);
-
-            /**
-             * Subscribes the given listener to the given EventId and ContextId.
-             * This listener will receive only the events with given EventId and
-             * fired for the given contextId.
-             * @param id of the event.
-             * @param ctxId Id of the context.
-             * @param listener to subscribe.
-             */
-            virtual void Subscribe(EventId id, Context ctxId, EventListenerPtr listener);
-
-            /**
-             * Subscribes the given listener to the given EventId and ContextId.
-             * This listener will receive only the events with given EventId and
-             * fired for the given contextId.
-             * 
-             * The given callback that called will be called instead of normal OnEvent
-             * 
-             * @param id of the event.
-             * @param ctxId Id of the context.
-             * @param listener to subscribe.
-             */
-            virtual void Subscribe(EventId id, Context ctxId,
-                    EventListenerPtr listener, ListenerContextCallback eventFunction);
+                Context context = 0);
 
             /**
              * UnSubscribes the given listener to the given EventId
@@ -181,6 +176,19 @@ namespace sim_mob {
              * @param listener to unsubscribe.
              */
             void UnSubscribeAll(EventListenerPtr listener);
+            
+        protected:
+            /**
+             * Subscribes the given listener to the given EventId.
+             * Using the given callback and context.
+             * 
+             * @param id
+             * @param listener to subscribe.
+             * @param callback custom event handler.
+             * @param context to filter the events.
+             */
+            virtual void Subscribe(EventId id, EventListenerPtr listener, 
+                    Callback callback, Context context = 0);
 
         private:
             ContextListenersMap listeners;

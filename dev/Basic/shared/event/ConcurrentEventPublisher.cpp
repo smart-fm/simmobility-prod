@@ -65,41 +65,12 @@ void ConcurrentEventPublisher::Publish(EventId id, Context ctx, const EventArgs&
     }
 }
 
-void ConcurrentEventPublisher::Subscribe(EventId id, EventListenerPtr listener) {
-    {// thread-safe scope
-
-        upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
-        upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
-        EventPublisher::Subscribe(id, listener);
-    }
-}
-
-void ConcurrentEventPublisher::Subscribe(EventId id, EventListenerPtr listener,
-        ListenerCallback callback) {
-    {// thread-safe scope
-
-        upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
-        upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
-        EventPublisher::Subscribe(id, listener, callback);
-    }
-}
-
-void ConcurrentEventPublisher::Subscribe(EventId id, Context ctx,
-        EventListenerPtr listener) {
-    {// thread-safe scope
-
-        upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
-        upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
-        EventPublisher::Subscribe(id, ctx, listener);
-    }
-}
-
-void ConcurrentEventPublisher::Subscribe(EventId id, Context ctx,
-        EventListenerPtr listener, ListenerContextCallback callback) {
+void ConcurrentEventPublisher::Subscribe(EventId id, EventListenerPtr listener, 
+                    Callback callback, Context context){
     {// thread-safe scope
         upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
         upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
-        EventPublisher::Subscribe(id, ctx, listener, callback);
+        //EventPublisher::Subscribe(id, listener, callback, context);
     }
 }
 

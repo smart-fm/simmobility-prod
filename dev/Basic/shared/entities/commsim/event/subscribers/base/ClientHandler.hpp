@@ -49,7 +49,7 @@ public:
 	//event functions:
 	void OnLocation(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const LocationEventArgs& args);
 	void OnAllLocations(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const AllLocationsEventArgs& argums);
-	 void OnTime(sim_mob::event::EventId id, sim_mob::event::EventPublisher* sender, const TimeEventArgs& args);
+	void OnTime(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const TimeEventArgs& args);
 	 bool isValid();
 	 void setValidation(bool);
 };

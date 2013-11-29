@@ -35,7 +35,7 @@ void ClientHandler::OnAllLocations(sim_mob::event::EventId id, sim_mob::event::C
    getBroker().insertSendBuffer(cnnHandler, locJson);
 }
 
-void ClientHandler::OnTime(sim_mob::event::EventId id, sim_mob::event::EventPublisher* sender, const TimeEventArgs& args){
+void ClientHandler::OnTime(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const TimeEventArgs& args){
 //   std::string timeJson = args.ToJSON();
    Json::Value timeJson = args.ToJSON();
    //now send to broker's buffer

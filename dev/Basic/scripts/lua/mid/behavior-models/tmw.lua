@@ -165,8 +165,7 @@ local function computeUtilities(params,dbparams)
 	local income_id = params.income_id
 	local income_cat = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
 	local income_mid = income_cat[income_id]
-	--params.missing_income = 1 * (params.income_id >= 12)
-	local missing_income = params.missing_income
+	local missing_income = (params.income_id >= 12) and 1 or 0
 
 	local cost_taxi_1=3.4+((d1*(d1>10 and 1 or 0)-10*(d1>10 and 1 or 0))/0.35+(d1*(d1<=10 and 1 or 0)+10*(d1>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_first + central_dummy*3
 	local cost_taxi_2=3.4+((d2*(d2>10 and 1 or 0)-10*(d2>10 and 1 or 0))/0.35+(d2*(d2<=10 and 1 or 0)+10*(d2>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_second + central_dummy*3
@@ -285,15 +284,15 @@ local function computeAvailabilities(params,dbparams)
 		dbparams.tmw_publicbus_AV,
 		dbparams.tmw_mrt_AV,
 		dbparams.tmw_privatebus_AV
-		},
+	},
 	availability[2] = {
-	dbparams.tmw_drive1_AV,
-	dbparams.tmw_share2_AV,
-	dbparams.tmw_share3_AV,
-	dbparams.tmw_motor_AV,
-	dbparams.tmw_walk_AV,
-	dbparams.tmw_taxi_AV
-}
+		dbparams.tmw_drive1_AV,
+		dbparams.tmw_share2_AV,
+		dbparams.tmw_share3_AV,
+		dbparams.tmw_motor_AV,
+		dbparams.tmw_walk_AV,
+		dbparams.tmw_taxi_AV
+	}
 end
 
 --scale

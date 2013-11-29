@@ -39,6 +39,8 @@ namespace {
             modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("nts"));
             modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("nto"));
             modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("uw"));
+            modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("tme"));
+            modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("tmw"));
             modelCtx->predayModel.initialize();
             threadContext.reset(modelCtx);
         }

@@ -16,20 +16,24 @@ namespace medium {
 	#define APPLY_SCHEMA(schema, field) std::string(schema)+std::string(field)
 
 	/**
-	 * Schemas
+	 * Useful string constants
 	 */
 	const std::string EMPTY_STRING = "";
-	const std::string MAIN_SCHEMA = "main.";
     const std::string LIMIT_10 = " limit 10";
     const std::string LIMIT = LIMIT_10;
 
+    /**
+     * Schemas for long-term population database
+     */
+    const std::string MAIN_SCHEMA = "main.";
+
 	/**
-	 * Views
+	 * Views for long-term population database
 	 */
 	const std::string DB_VIEW_PREDAY_PERSON = APPLY_SCHEMA(MAIN_SCHEMA, "preday_person");
 
 	/**
-	 * Fields
+	 * Fields for long-term population database
 	 */
 	const std::string DB_FIELD_ID = "id";
 	const std::string DB_FIELD_HOUSEHOLD_ID = "household_id";
@@ -53,9 +57,32 @@ namespace medium {
 	const std::string DB_FIELD_MOTOR_OWN = "motor_own";
 
     /**
-     * GET ALL
+     * GET ALL for long-term population database
      */
 	const std::string DB_GETALL_PREDAY_PERSON = "SELECT * FROM " + DB_VIEW_PREDAY_PERSON + LIMIT;
+
+	/**
+	 * Fields for mongoDB population database
+	 */
+	const std::string MONGO_FIELD_ID = "_id";
+	const std::string MONGO_FIELD_HOUSEHOLD_ID = "hhid";
+	const std::string MONGO_FIELD_INCOME_ID = "income_id";
+	const std::string MONGO_FIELD_PERSON_TYPE_ID = "person_type_id";
+	const std::string MONGO_FIELD_AGE_CATEGORY_ID = "age_id";
+	const std::string MONGO_FIELD_WORK_AT_HOME = "work_from_home_dummy";
+	const std::string MONGO_FIELD_DRIVER_LICENCE = "has_driving_license";
+	const std::string MONGO_FIELD_STUDENT_TYPE_ID = "student_type_id";
+	const std::string MONGO_FIELD_FEMALE = "female_dummy";
+	const std::string MONGO_FIELD_HOME_MTZ = "home_mtz";
+	const std::string MONGO_FIELD_WORK_MTZ = "fix_work_location_mtz";
+	const std::string MONGO_FIELD_HH_ONLY_ADULTS = "only_adults";
+	const std::string MONGO_FIELD_HH_ONLY_WORKERS = "only_workers";
+	const std::string MONGO_FIELD_HH_NUM_UNDER_4 = "num_underfour";
+	const std::string MONGO_FIELD_HH_UNDER_15 = "num_not_eligible";
+	const std::string MONGO_FIELD_CAR_OWN_NORMAL = "car_own_normal";
+	const std::string MONGO_FIELD_CAR_OWN_OFFPEAK = "car_own_offpeak";
+	const std::string MONGO_FIELD_MOTOR_OWN = "motor_own";
+
 
 } // end namespace medium
 } // end namespace sim_mob

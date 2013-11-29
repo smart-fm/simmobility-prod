@@ -9,8 +9,9 @@
  *      Author: Harish Loganathan
  */
 
-#include "PopulationDao.hpp"
+#include "PopulationSqlDao.hpp"
 
+#include <boost/lexical_cast.hpp>
 #include "DatabaseHelper.hpp"
 
 using namespace sim_mob;
@@ -21,15 +22,15 @@ namespace {
 typedef long long BigInt;
 }
 
-PopulationDao::PopulationDao(DB_Connection& connection)
+PopulationSqlDao::PopulationSqlDao(DB_Connection& connection)
 : SqlAbstractDao<PersonParams>(connection, DB_VIEW_PREDAY_PERSON, "", "", "", DB_GETALL_PREDAY_PERSON, "")
 {}
 
-PopulationDao::~PopulationDao()
+PopulationSqlDao::~PopulationSqlDao()
 {}
 
-void PopulationDao::fromRow(Row& result, PersonParams& outObj) {
-	outObj.setPersonId(result.get<BigInt>(DB_FIELD_ID));
+void PopulationSqlDao::fromRow(Row& result, PersonParams& outObj) {
+	outObj.setPersonId(boost::lexical_cast<std::string>(result.get<BigInt>(DB_FIELD_ID)));
 	outObj.setIncomeId(result.get<double>(DB_FIELD_INCOME));
 	outObj.setPersonTypeId(result.get<BigInt>(DB_FIELD_EMP_STATUS_ID));
 	outObj.setAgeId(result.get<BigInt>(DB_FIELD_AGE_CATEGORY_ID));
@@ -42,11 +43,11 @@ void PopulationDao::fromRow(Row& result, PersonParams& outObj) {
 	outObj.setHH_OnlyAdults(result.get<int>(DB_FIELD_HH_ONLY_ADULTS));
 	outObj.setHH_OnlyWorkers(result.get<int>(DB_FIELD_HH_ONLY_WORKERS));
 	outObj.setHH_NumUnder4(result.get<BigInt>(DB_FIELD_HH_NUM_UNDER_4));
-	outObj.setHH_NumUnder15(result.get<BigInt>(DB_FIELD_HH_NUM_UNDER_15));
+	outObj.setHH_HasUnder15(result.get<BigInt>(DB_FIELD_HH_NUM_UNDER_15));
 	outObj.setCarOwnNormal(result.get<int>(DB_FIELD_CAR_OWN_NORMAL));
 	outObj.setCarOwnOffpeak(result.get<int>(DB_FIELD_CAR_OWN_OFFPEAK));
 	outObj.setMotorOwn(result.get<int>(DB_FIELD_MOTOR_OWN));
 }
 
-void PopulationDao::toRow(PersonParams& data, Parameters& outParams, bool update) {
+void PopulationSqlDao::toRow(PersonParams& data, Parameters& outParams, bool update) {
 }

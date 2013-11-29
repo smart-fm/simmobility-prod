@@ -20,6 +20,7 @@
 #include "conf/ConfigParams.hpp"
 #include "conf/RawConfigParams.hpp"
 #include "database/DB_Connection.hpp"
+#include "logging/Log.hpp"
 #include "mongo/client/dbclient.h"
 
 
@@ -28,7 +29,9 @@ using namespace sim_mob;
 using namespace sim_mob::medium;
 using namespace mongo;
 
-PredaySystem::PredaySystem(PersonParams& personParams) : personParams(personParams) {
+PredaySystem::PredaySystem(PersonParams& personParams)
+: personParams(personParams), predayLuaModel(PredayLuaProvider::getPredayModel()) // get the thread-local lua model object
+{
 	MongoCollectionsMap mongoColl = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo");
 	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 	string emptyString;
@@ -46,25 +49,107 @@ PredaySystem::~PredaySystem()
 	mongoDao.clear();
 }
 
+bool sim_mob::medium::PredaySystem::predictUsualWorkLocation(PersonParams& personParams, bool firstOfMultiple) {
+    UsualWorkParams usualWorkParams;
+	usualWorkParams.setFirstOfMultiple((int) firstOfMultiple);
+	usualWorkParams.setSubsequentOfMultiple((int) !firstOfMultiple);
+	BSONObj queryObj = BSON("origin" << personParams.getHomeLocation() << "destin" << personParams.getFixedWorkLocation());
+	BSONObj resultObjAM, resultObjPM, resultObjZone;
+	mongoDao["AMCosts"]->getOne(queryObj, resultObjAM);
+	mongoDao["PMCosts"]->getOne(queryObj, resultObjPM);
+	usualWorkParams.setWalkDistanceAm(resultObjAM.getField("distance").Double());
+	usualWorkParams.setWalkDistanceAm(resultObjPM.getField("distance").Double());
+	queryObj = BSON("zone_code" << personParams.getFixedWorkLocation());
+	mongoDao["Zone"]->getOne(queryObj, resultObjZone);
+	usualWorkParams.setZoneEmployment(resultObjZone.getField("employment").Double());
+	return predayLuaModel.predictUsualWorkLocation(personParams, usualWorkParams);
+}
+
 void PredaySystem::predictTourMode(Tour& tour) {
-/*	LuaRef chooseMode;
-	switch(tour.getTourType()) {
-	case WORK:
-		chooseMode = getGlobal(state.get(), "choose_tmw"); // choose usual work location
-		break;
-	case EDUCATION:
-		chooseMode = getGlobal(state.get(), "choose_tme"); // choose education location
-		break;
-	case SHOP:
-	case OTHER:
-		throw std::runtime_error("predictTourMode() was invoked for SHOP or OTHER tour.");
-		break;
+	TourModeParams tmParams;
+	tmParams.setStopType(tour.getTourType());
+	BSONObj znOrgObj, znDesObj;
+	BSONObj znOrgQuery = BSON("zone_code" << personParams.getHomeLocation());
+	BSONObj znDesQuery = BSON("zone_code" << tour.getPrimaryActivityLocation());
+	mongoDao["Zone"]->getOne(znOrgQuery, znOrgObj);
+	mongoDao["Zone"]->getOne(znDesQuery, znDesObj);
+	tmParams.setCostCarParking(znDesObj.getField("parking_rate").Double());
+	tmParams.setCentralZone(znDesObj.getField("central_dummy").Double());
+	tmParams.setResidentSize(znOrgObj.getField("resident_workers").Double());
+	tmParams.setWorkOp(znDesObj.getField("employment").Double());
+	tmParams.setOriginArea(znOrgObj.getField("area").Double());
+	tmParams.setDestinationArea(znDesObj.getField("area").Double());
+	if(personParams.getHomeLocation() != tour.getPrimaryActivityLocation()) {
+		BSONObj amObj, pmObj;
+		BSONObj amQuery = BSON("origin" << personParams.getHomeLocation() << "destin" << tour.getPrimaryActivityLocation());
+		BSONObj pmQuery = BSON("origin" << tour.getPrimaryActivityLocation()  << "destin" << personParams.getHomeLocation());
+		mongoDao["AMCosts"]->getOne(amQuery, amObj);
+		mongoDao["PMCosts"]->getOne(pmQuery, pmObj);
+		tmParams.setCostPublicFirst(amObj.getField("pub_cost").Double());
+		tmParams.setCostPublicSecond(pmObj.getField("pub_cost").Double());
+		tmParams.setCostCarErpFirst(amObj.getField("car_cost_erp").Double());
+		tmParams.setCostCarErpSecond(pmObj.getField("car_cost_erp").Double());
+		tmParams.setCostCarOpFirst(amObj.getField("distance").Double() * 0.147);
+		tmParams.setCostCarOpSecond(pmObj.getField("distance").Double() * 0.147);
+		tmParams.setWalkDistance1(amObj.getField("distance").Double());
+		tmParams.setWalkDistance2(pmObj.getField("distance").Double());
+		tmParams.setTtPublicIvtFirst(amObj.getField("pub_ivt").Double());
+		tmParams.setTtPublicIvtSecond(pmObj.getField("pub_ivt").Double());
+		tmParams.setTtPublicWaitingFirst(amObj.getField("pub_wtt").Double());
+		tmParams.setTtPublicWaitingSecond(pmObj.getField("pub_wtt").Double());
+		tmParams.setTtPublicWalkFirst(amObj.getField("pub_walkt").Double());
+		tmParams.setTtPublicWalkSecond(pmObj.getField("pub_walkt").Double());
+		tmParams.setTtCarIvtFirst(amObj.getField("car_ivt").Double());
+		tmParams.setTtCarIvtSecond(pmObj.getField("car_ivt").Double());
+		tmParams.setAvgTransfer((amObj.getField("avg_transfer").Double() + pmObj.getField("avg_transfer").Double())/2);
+		switch(tmParams.getStopType()){
+		case WORK:
+			tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
+			tmParams.setShare2Available(1);
+			tmParams.setShare3Available(1);
+			tmParams.setPublicBusAvailable(amObj.getField("pub_ivt").Double() > 0 && pmObj.getField("pub_ivt").Double() > 0);
+			tmParams.setMrtAvailable(amObj.getField("pub_ivt").Double() > 0 && pmObj.getField("pub_ivt").Double() > 0);
+			tmParams.setPrivateBusAvailable(amObj.getField("pub_ivt").Double() > 0 && pmObj.getField("pub_ivt").Double() > 0);
+			tmParams.setWalkAvailable(amObj.getField("pub_ivt").Double() <= 3 && pmObj.getField("pub_ivt").Double() <= 3);
+			tmParams.setTaxiAvailable(1);
+			tmParams.setMotorAvailable(1);
+			break;
+		case EDUCATION:
+			tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
+			tmParams.setShare2Available(1);
+			tmParams.setShare3Available(1);
+			tmParams.setPublicBusAvailable(1);
+			tmParams.setMrtAvailable(1);
+			tmParams.setPrivateBusAvailable(1);
+			tmParams.setWalkAvailable(1);
+			tmParams.setTaxiAvailable(1);
+			tmParams.setMotorAvailable(1);
+			break;
+		}
 	}
-	LuaRef retVal = chooseMode(personParams);
-	if (!retVal.isNumber()) {
-		throw std::runtime_error("Error in usual work location model. Unexpected return value");
+	else {
+		tmParams.setCostPublicFirst(0);
+		tmParams.setCostPublicSecond(0);
+		tmParams.setCostCarErpFirst(0);
+		tmParams.setCostCarErpSecond(0);
+		tmParams.setCostCarOpFirst(0);
+		tmParams.setCostCarOpSecond(0);
+		tmParams.setCostCarParking(0);
+		tmParams.setWalkDistance1(0);
+		tmParams.setWalkDistance2(0);
+		tmParams.setTtPublicIvtFirst(0);
+		tmParams.setTtPublicIvtSecond(0);
+		tmParams.setTtPublicWaitingFirst(0);
+		tmParams.setTtPublicWaitingSecond(0);
+		tmParams.setTtPublicWalkFirst(0);
+		tmParams.setTtPublicWalkSecond(0);
+		tmParams.setTtCarIvtFirst(0);
+		tmParams.setTtCarIvtSecond(0);
+		tmParams.setAvgTransfer(0);
 	}
-	tour.setTourMode(retVal.cast<int>());*/
+
+
+	tour.setTourMode(predayLuaModel.predictTourMode(personParams, tmParams));
 }
 
 void PredaySystem::predictTourModeDestination(Tour& tour) {
@@ -784,7 +869,7 @@ void PredaySystem::calculateTourEndTime(Tour& tour) {
 	tour.setEndTime(tourEndTime);*/
 }
 
-void PredaySystem::constructTours(PredayLuaModel& predayLuaModel) {
+void PredaySystem::constructTours() {
 	if(numTours.size() != 4) {
 		// Probably predictNumTours() was not called prior to this function
 		throw std::runtime_error("Tours cannot be constructed before predicting number of tours for each tour type");
@@ -796,7 +881,7 @@ void PredaySystem::constructTours(PredayLuaModel& predayLuaModel) {
 		bool attendsUsualWorkLocation = false;
 		if(!personParams.isStudent() && personParams.getFixedWorkLocation() != 0) {
 			//if person not a student and has a fixed work location
-			attendsUsualWorkLocation = predayLuaModel.predictUsualWorkLocation(personParams, firstOfMultiple); // Predict if this tour is to a usual work location
+			attendsUsualWorkLocation = predictUsualWorkLocation(personParams, firstOfMultiple); // Predict if this tour is to a usual work location
 			firstOfMultiple = false;
 		}
 		Tour* workTour = new Tour(WORK);
@@ -829,20 +914,20 @@ void PredaySystem::constructTours(PredayLuaModel& predayLuaModel) {
 }
 
 void PredaySystem::planDay() {
-	// get the thread-local lua model object
-	const PredayLuaModel& predayLuaModel = PredayLuaProvider::getPredayModel();
-
 	//Predict day pattern
 	personParams.setWorkLogSum(0.0);
 	personParams.setEduLogSum(0.0);
 	personParams.setShopLogSum(0.0);
 	personParams.setOtherLogSum(0.0);
+
+	Print() << "predictDayPattern(" << personParams.getPersonId() << "): " ;
 	predayLuaModel.predictDayPattern(personParams, dayPattern);
 
 	//Predict number of Tours
 	if(dayPattern.size() <= 0) {
 		throw std::runtime_error("Cannot invoke number of tours model without a day pattern");
 	}
+	Print() << "predictNumTours(" << personParams.getPersonId() << "): ";
 	predayLuaModel.predictNumTours(personParams, dayPattern, numTours);
 
 	//Construct tours

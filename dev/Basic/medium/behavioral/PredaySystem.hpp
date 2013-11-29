@@ -14,7 +14,7 @@
 #include "behavioral/lua/PredayLuaModel.hpp"
 #include "params/PersonParams.hpp"
 #include "PredayClasses.hpp"
-#include "database/PopulationDao.hpp"
+#include "database/PopulationSqlDao.hpp"
 #include "database/dao/MongoDao.hpp"
 
 namespace sim_mob {
@@ -40,6 +40,15 @@ public:
 	void planDay();
 
 private:
+	/**
+	 * For each work tour, if the person has a usual work location, this function predicts whether the person goes to his usual location or some other location.
+	 *
+	 * @param personParam object containing person and household related variables
+	 * @param firstOfMultiple indicator whether this tour is the first of multiple work tours
+	 * @return true if the tour is to a usual work location. false otherwise.
+	 */
+	bool predictUsualWorkLocation(PersonParams& personParams, bool firstOfMultiple);
+
 	/**
 	 * Predicts the mode of travel for a tour.
 	 * Executed for tours with usual location (usual work or education).
@@ -95,7 +104,7 @@ private:
 	/**
 	 * constructs tour objects based on predicted number of tours. Puts the tour objects in tours deque.
 	 */
-	void constructTours(PredayLuaModel& predayLuaModel);
+	void constructTours();
 
 	/**
 	 * The parameters for a person is obtained from the population and set in personParams.
@@ -121,6 +130,11 @@ private:
      * Data access objects for mongo
      */
     boost::unordered_map<std::string, db::MongoDao*> mongoDao;
+
+    /**
+     * Lua scripts are accessed via this reference
+     */
+    const PredayLuaModel& predayLuaModel;
 
 };
 

@@ -180,8 +180,7 @@ local function computeUtilities(params,dbparams)
 	local income_id = params.income_id
 	local income_cat = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
 	local income_mid = income_cat[income_id]
-	--params.missing_income = 1 * (params.income_id >= 12)
-	local missing_income = params.missing_income
+	local missing_income = (params.income_id >= 12) and 1 or 0
 	
 	local age_id = params.age_id
 	local age_over_15 = age_id >= 3 and 1 or 0
@@ -306,17 +305,17 @@ local function computeAvailabilities(params,dbparams)
 		dbparams.tme_publicbus_AV,
 		dbparams.tme_mrt_AV,
 		dbparams.tme_privatebus_AV
-		},
+	},
 	availability[2] = {
-	dbparams.tme_drive1_AV,
-	dbparams.tme_share2_AV,
-	dbparams.tme_share3_AV,
-	dbparams.tme_motor_AV
-		},
+		dbparams.tme_drive1_AV,
+		dbparams.tme_share2_AV,
+		dbparams.tme_share3_AV,
+		dbparams.tme_motor_AV
+	},
 	availability[3] = {
-	dbparams.tme_walk_AV,
-	dbparams.tme_taxi_AV
-		}
+		dbparams.tme_walk_AV,
+		dbparams.tme_taxi_AV
+	}
 }
 end
 

@@ -22,8 +22,16 @@ namespace db {
  */
 class MongoDao : public I_Dao<mongo::BSONObj> {
 public:
-	MongoDao(DB_Config& dbConfig, const std::string& database, const std::string& collection);
-	virtual ~MongoDao();
+	MongoDao(DB_Config& dbConfig, const std::string& database, const std::string& collection)
+	: connection(db::MONGO_DB, dbConfig)
+	{
+		connection.connect();
+		std::stringstream ss;
+		ss << database << "." << collection;
+		collectionName = ss.str();
+	}
+
+	virtual ~MongoDao() {}
 
 	/**
 	 * inserts a document into collection
@@ -31,7 +39,10 @@ public:
 	 * @param bsonObj a mongo::BSONObj containing object to insert
 	 * @return true if the transaction was committed with success; false otherwise.
 	 */
-	mongo::BSONObj& insert(mongo::BSONObj& bsonObj);
+	mongo::BSONObj& insert(mongo::BSONObj& bsonObj) {
+		connection.getSession<mongo::DBClientConnection>().insert(collectionName, bsonObj);
+		return bsonObj; // Unnecessary return just to comply with the base interface
+	}
 
     /**
      * Updates the given entity into the data source.
@@ -39,7 +50,9 @@ public:
      * @return true if the transaction was committed with success,
      *         false otherwise.
      */
-    bool update(mongo::BSONObj& bsonObj);
+    bool update(mongo::BSONObj& bsonObj) {
+    	throw std::runtime_error("MongoDao::update() - Not implemented yet");
+    }
 
     /**
      * Deletes all objects filtered by given params.
@@ -47,7 +60,9 @@ public:
      * @return true if the transaction was committed with success,
      *         false otherwise.
      */
-    bool erase(const Parameters& params);
+    bool erase(const Parameters& params) {
+    	throw std::runtime_error("MongoDao::erase() - Not implemented yet");
+    }
 
     /**
      * Gets a single value filtered by given ids.
@@ -55,22 +70,26 @@ public:
      * @param outParam to put the value
      * @return true if a value was returned, false otherwise.
      */
-    bool getById(const Parameters& ids, mongo::BSONObj& outParam);
+    bool getById(const Parameters& ids, mongo::BSONObj& outParam) {
+    	throw std::runtime_error("MongoDao::getById() - Not implemented. Use getAll() or getOne() instead");
+    }
 
-    /**
-     * Gets all values from the source and put them on the given list.
-     * @param outList to put the retrieved values.
-     * @return true if some values were returned, false otherwise.
-     */
-    bool getAll(std::vector<mongo::BSONObj>& outList);
+    bool getAll(std::vector<mongo::BSONObj>& outList) {
+    	throw std::runtime_error("MongoDao::getAll() - Not implemented");
+    }
 
 	/**
 	 * Overload. Fetches a cursor to the result of the query
 	 *
 	 * @param bsonObj a mongo::BSONObj object containing the constructed query
 	 */
-	bool getOne(mongo::BSONObj& bsonObj, mongo::BSONObj& outBsonObj);
+	bool getOne(mongo::BSONObj& bsonObj, mongo::BSONObj& outBsonObj) {
+		mongo::Query query(bsonObj);
+		outBsonObj = connection.getSession<mongo::DBClientConnection>().findOne(collectionName, query);
+		return true;
+	}
 
+protected:
 	DB_Connection connection;
 	std::string collectionName;
 };

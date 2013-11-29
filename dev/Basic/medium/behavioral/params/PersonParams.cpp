@@ -10,6 +10,13 @@ using namespace std;
 using namespace sim_mob;
 using namespace medium;
 
+sim_mob::medium::PersonParams::PersonParams()
+: personId(""), personTypeId(-1), ageId(-1), isUniversityStudent(-1), studentTypeId(-1), isFemale(-1),
+incomeId(-1), worksAtHome(-1), carOwnNormal(-1), carOwnOffpeak(-1), motorOwn(-1), hasFixedWorkTiming(-1), homeLocation(-1),
+fixedWorkLocation(-1), fixedSchoolLocation(-1), stopType(-1), drivingLicence(-1),
+hhOnlyAdults(-1), hhOnlyWorkers(-1), hhNumUnder4(-1), hasUnder15(-1), workLogSum(-1), eduLogSum(-1), shopLogSum(-1), otherLogSum(-1)
+{}
+
 sim_mob::medium::PersonParams::~PersonParams() {
 	for(boost::unordered_map<std::string, TimeWindowAvailability*>::iterator i=timeWindowAvailability.begin(); i!=timeWindowAvailability.end(); i++){
 		safe_delete_item(i->second);

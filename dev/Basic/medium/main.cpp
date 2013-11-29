@@ -22,6 +22,7 @@
 #include "conf/ConfigParams.hpp"
 #include "conf/ParseConfigFile.hpp"
 #include "conf/ExpandAndValidateConfigFile.hpp"
+#include "database/DB_Connection.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/Agent.hpp"
 #include "entities/BusController.hpp"
@@ -382,7 +383,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
  */
 bool performMainDemand(){
 	PredayManager predayManager;
-	predayManager.loadPersons();
+	predayManager.loadPersons(db::MONGO_DB);
 	predayManager.distributeAndProcessPersons(1);
 	return true;
 }

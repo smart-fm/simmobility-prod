@@ -113,11 +113,11 @@ public:
 		this->primaryActivity = primaryActivity;
 	}
 
-	long getStopLocation() const {
+	int getStopLocation() const {
 		return stopLocation;
 	}
 
-	void setStopLocation(long stopLocation) {
+	void setStopLocation(int stopLocation) {
 		this->stopLocation = stopLocation;
 	}
 
@@ -179,7 +179,7 @@ private:
 	double arrivalTime;
 	double departureTime;
 	int stopMode;
-	long stopLocation;
+	int stopLocation;
 	bool inFirstHalfTour;
 };
 
@@ -206,11 +206,11 @@ public:
 		return *parentTour;
 	}
 
-	long getPrimaryActivityLocation() const {
+	int getPrimaryActivityLocation() const {
 		return primaryActivityLocation;
 	}
 
-	void setPrimaryActivityLocation(long primaryActivityLocation) {
+	void setPrimaryActivityLocation(int primaryActivityLocation) {
 		this->primaryActivityLocation = primaryActivityLocation;
 	}
 
@@ -286,7 +286,7 @@ private:
 	bool subTour;
 	Tour* parentTour;
 	int tourMode;
-	long primaryActivityLocation;
+	int primaryActivityLocation;
 	double startTime;
 	double endTime;
 	std::deque<Stop*> stops;

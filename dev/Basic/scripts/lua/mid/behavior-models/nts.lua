@@ -82,7 +82,7 @@ local function computeUtilities(params)
 	local worklogsum = params.worklogsum
 	local edulogsum = params.edulogsum
 	local shoplogsum = params.shoplogsum
-	local otherlogsums = params.otherlogsum
+	local otherlogsum = params.otherlogsum
 
 	-- person type related variables
 	local fulltime,parttime,selfemployed,universitystudent,homemaker,retired,unemployed,nationalservice,voluntary,domestic,otherworker,student16,student515,child4 = 0,0,0,0,0,0,0,0,0,0,0,0,0,0

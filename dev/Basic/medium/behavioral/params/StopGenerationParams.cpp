@@ -16,7 +16,7 @@ using namespace sim_mob::medium;
 sim_mob::medium::StopGenerationParams::StopGenerationParams(PersonParams& personParams, Tour& tour, Stop& primaryActivity)
 : personParams(personParams), tour(tour), primaryActivity(primaryActivity), firstTour(true), firstHalfTour(true), stopCounter(0),
   workStopAvailability(0), eduStopAvailability(0), shopStopAvailability(0), otherStopAvailability(0),
-  numRemainingTours(-1), distance(-1.0)	/*initialized with invalid values*/
+  numRemainingTours(-1), distance(-1.0)	/*distance, initialized with invalid values*/
 {}
 
 sim_mob::medium::StopGenerationParams::~StopGenerationParams()

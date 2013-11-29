@@ -11,6 +11,7 @@
 
 #pragma once
 #include "params/PersonParams.hpp"
+#include "database/DB_Connection.hpp"
 
 namespace sim_mob {
 namespace medium {
@@ -21,7 +22,7 @@ public:
 	/**
 	 * Gets person data from the database and stores corresponding PersonParam pointers in personList.
 	 */
-	void loadPersons();
+	void loadPersons(db::BackendType dbType);
 
 	/**
 	 * Distributes persons to different threads and starts the threads which process the persons

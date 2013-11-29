@@ -56,7 +56,7 @@
             <database id="fm_mongo" dbtype="mongodb">
                 <host value="localhost"/>
                 <port value="27017"/>
-                <dbname value="preday"/>
+                <dbname value="mydb"/>
             </database>
 
         </databases>
@@ -240,6 +240,7 @@
 	
 	<!-- MongoDB collections to use -->
 	<mongo_collections id="preday_mongo" db_name="mydb">
+		<mongo_collection name="population" collection="hits_population"/>
 		<mongo_collection name="tcost_bus" collection="tcost_bus"/>
 		<mongo_collection name="tcost_car" collection="tcost_car"/>
 		<mongo_collection name="AMCosts" collection="AMCosts"/>

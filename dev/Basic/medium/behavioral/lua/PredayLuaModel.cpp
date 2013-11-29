@@ -45,18 +45,64 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 			.addProperty("motor_own", &PersonParams::getMotorOwn)
 			.addProperty("fixed_work_hour", &PersonParams::getHasFixedWorkTiming)
 			.addProperty("homeLocation", &PersonParams::getHomeLocation)
-			.addProperty("fixed_place", &PersonParams::getFixedWorkLocation)
+			.addProperty("fixed_place", &PersonParams::getFixedWorkPlace)
 			.addProperty("fixedSchoolLocation", &PersonParams::getFixedSchoolLocation)
 			.addProperty("only_adults", &PersonParams::getHH_OnlyAdults)
 			.addProperty("only_workers", &PersonParams::getHH_OnlyWorkers)
 			.addProperty("num_underfour", &PersonParams::getHH_NumUnder4)
-			.addProperty("presence_of_under15", &PersonParams::getHH_NumUnder15)
+			.addProperty("presence_of_under15", &PersonParams::getHH_HasUnder15)
 			.addProperty("worklogsum", &PersonParams::getWorkLogSum)
 			.addProperty("edulogsum", &PersonParams::getEduLogSum)
 			.addProperty("shoplogsum", &PersonParams::getShopLogSum)
 			.addProperty("otherlogsum", &PersonParams::getOtherLogSum)
 			.addFunction("getTimeWindowAvailabilityTour", &PersonParams::getTimeWindowAvailability)
 			.endClass();
+
+	getGlobalNamespace(state.get())
+			.beginClass <UsualWorkParams> ("UsualWorkParams")
+			.addProperty("first_of_multiple", &UsualWorkParams::getFirstOfMultiple)
+			.addProperty("subsequent_of_multiple", &UsualWorkParams::getSubsequentOfMultiple)
+			.addProperty("distance1", &UsualWorkParams::getWalkDistanceAm)
+			.addProperty("distance2", &UsualWorkParams::getWalkDistancePm)
+			.addProperty("work_op", &UsualWorkParams::getZoneEmployment)
+			.endClass();
+
+	getGlobalNamespace(state.get())
+			.beginClass<TourModeParams>("TourModeParams")
+			.addProperty("average_transfer_number",&TourModeParams::getAvgTransfer)
+			.addProperty("central_dummy",&TourModeParams::isCentralZone)
+			.addProperty("cost_car_ERP_first",&TourModeParams::getCostCarErpFirst)
+			.addProperty("cost_car_ERP_second",&TourModeParams::getCostCarErpSecond)
+			.addProperty("cost_car_OP_first",&TourModeParams::getCostCarOpFirst)
+			.addProperty("cost_car_OP_second",&TourModeParams::getCostCarOpSecond)
+			.addProperty("cost_car_parking",&TourModeParams::getCostCarParking)
+			.addProperty("cost_public_first",&TourModeParams::getCostPublicFirst)
+			.addProperty("cost_public_second",&TourModeParams::getCostPublicSecond)
+			.addProperty("tmw_drive1_AV",&TourModeParams::isDrive1Available)
+			.addProperty("tmw_motor_AV",&TourModeParams::isMotorAvailable)
+			.addProperty("tmw_mrt_AV",&TourModeParams::isMrtAvailable)
+			.addProperty("tmw_privatebus_AV",&TourModeParams::isPrivateBusAvailable)
+			.addProperty("tmw_publicbus_AV",&TourModeParams::isPublicBusAvailable)
+			.addProperty("tmw_share2_AV",&TourModeParams::isShare2Available)
+			.addProperty("tmw_share3_AV",&TourModeParams::isShare3Available)
+			.addProperty("tmw_taxi_AV",&TourModeParams::isTaxiAvailable)
+			.addProperty("tt_ivt_car_first",&TourModeParams::getTtCarIvtFirst)
+			.addProperty("tt_ivt_car_second",&TourModeParams::getTtCarIvtSecond)
+			.addProperty("tt_public_ivt_first",&TourModeParams::getTtPublicIvtFirst)
+			.addProperty("tt_public_ivt_second",&TourModeParams::getTtPublicIvtSecond)
+			.addProperty("tt_public_waiting_first",&TourModeParams::getTtPublicWaitingFirst)
+			.addProperty("tt_public_waiting_second",&TourModeParams::getTtPublicWaitingSecond)
+			.addProperty("tt_public_walk_first",&TourModeParams::getTtPublicWalkFirst)
+			.addProperty("tt_public_walk_second",&TourModeParams::getTtPublicWalkSecond)
+			.addProperty("tmw_walk_AV",&TourModeParams::isWalkAvailable)
+			.addProperty("walk_distance1",&TourModeParams::getWalkDistance1)
+			.addProperty("walk_distance2",&TourModeParams::getWalkDistance2)
+			.addProperty("destination_area",&TourModeParams::getDestinationArea)
+			.addProperty("origin_area",&TourModeParams::getOriginArea)
+			.addProperty("resident_size",&TourModeParams::getResidentSize)
+			.addProperty("work_op",&TourModeParams::getWorkOp)
+			.endClass();
+
 }
 
 void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern) const {
@@ -71,6 +117,7 @@ void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personPara
 		dayPattern["EduI"] = retVal[6].cast<int>();
 		dayPattern["ShopI"] = retVal[7].cast<int>();
 		dayPattern["OthersI"] = retVal[8].cast<int>();
+		Print() << dayPattern["WorkT"] << dayPattern["EduT"] << dayPattern["ShopT"] << dayPattern["OthersT"] << std::endl;
 	}
 	else {
 		throw std::runtime_error("Error in day pattern prediction. Unexpected return value");
@@ -108,19 +155,41 @@ void sim_mob::medium::PredayLuaModel::predictNumTours(PersonParams& personParams
 	    	numTours["OthersT"] = retVal.cast<int>();
 	    }
 	}
+	Print() << numTours["WorkT"] << numTours["EduT"] << numTours["ShopT"] << numTours["OthersT"] << std::endl;
 }
 
-bool sim_mob::medium::PredayLuaModel::predictUsualWorkLocation(PersonParams& personParams, bool firstOfMultiple) const {
+bool sim_mob::medium::PredayLuaModel::predictUsualWorkLocation(PersonParams& personParams, UsualWorkParams& usualWorkParams) const {
 	LuaRef chooseUW = getGlobal(state.get(), "choose_uw"); // choose usual work location
-    ModelParamsUsualWork usualWorkParams;
-	usualWorkParams.setFirstOfMultiple((int) firstOfMultiple);
-	usualWorkParams.setSubsequentOfMultiple((int) !firstOfMultiple);
 	LuaRef retVal = chooseUW(personParams, usualWorkParams);
 	if (!retVal.isNumber()) {
 		throw std::runtime_error("Error in usual work location model. Unexpected return value");
 	}
 	return retVal.cast<bool>();
 }
+
+int sim_mob::medium::PredayLuaModel::predictTourMode(PersonParams& personParams, TourModeParams& tourModeParams) const {
+	switch (tourModeParams.getStopType()) {
+	case WORK:
+	{
+		LuaRef chooseTM = getGlobal(state.get(), "choose_tmw");
+		LuaRef retVal = chooseTM(personParams, tourModeParams);
+		return retVal.cast<int>();
+		break;
+	}
+	case EDUCATION:
+	{
+		LuaRef chooseTM = getGlobal(state.get(), "choose_tme");
+		LuaRef retVal = chooseTM(personParams, tourModeParams);
+		return retVal.cast<int>();
+		break;
+	}
+	default:
+	{
+		throw std::runtime_error("Tour mode model cannot be invoked for Shopping and Other tour types");
+	}
+	}
+}
+
 
 
 

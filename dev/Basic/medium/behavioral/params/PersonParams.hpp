@@ -19,6 +19,7 @@ namespace medium {
  */
 class PersonParams {
 public:
+	PersonParams();
 	virtual ~PersonParams();
 
 	void initTimeWindows();
@@ -47,12 +48,16 @@ public:
 		this->carOwnOffpeak = carOwnOffpeak;
 	}
 
-	long getFixedWorkLocation() const {
+	int getFixedWorkLocation() const {
 		return fixedWorkLocation;
 	}
 
-	void setFixedWorkLocation(long fixedWorkLocation) {
+	void setFixedWorkLocation(int fixedWorkLocation) {
 		this->fixedWorkLocation = fixedWorkLocation;
+	}
+
+	int getFixedWorkPlace() const {
+		return (fixedWorkLocation == 0);
 	}
 
 	int getHasFixedWorkTiming() const {
@@ -63,16 +68,20 @@ public:
 		this->hasFixedWorkTiming = hasFixedWorkTiming;
 	}
 
-	long getHomeLocation() const {
+	int getHomeLocation() const {
 		return homeLocation;
 	}
 
-	void setHomeLocation(long homeLocation) {
+	void setHomeLocation(int homeLocation) {
 		this->homeLocation = homeLocation;
 	}
 
 	int getIncomeId() const {
 		return incomeId;
+	}
+
+	void setIncomeId(int income_id) {
+		this->incomeId = income_id;
 	}
 
 	void setIncomeId(double income) {
@@ -158,11 +167,11 @@ public:
 		this->worksAtHome = worksAtHome;
 	}
 
-	long getFixedSchoolLocation() const {
+	int getFixedSchoolLocation() const {
 		return fixedSchoolLocation;
 	}
 
-	void setFixedSchoolLocation(long fixedSchoolLocation) {
+	void setFixedSchoolLocation(int fixedSchoolLocation) {
 		this->fixedSchoolLocation = fixedSchoolLocation;
 	}
 
@@ -186,20 +195,20 @@ public:
 		this->drivingLicence = (int)hasDrivingLicence;
 	}
 
-	int getPersonId() const {
+	std::string getPersonId() const {
 		return personId;
 	}
 
-	void setPersonId(long personId) {
+	void setPersonId(std::string personId) {
 		this->personId = personId;
 	}
 
-	int getHH_NumUnder15() const {
-		return hhNumUnder15;
+	int getHH_HasUnder15() const {
+		return hasUnder15;
 	}
 
-	void setHH_NumUnder15(int hhNumUnder15) {
-		this->hhNumUnder15 = hhNumUnder15;
+	void setHH_HasUnder15(int hhUnder15) {
+		this->hasUnder15 = (hhUnder15 > 0);
 	}
 
 	int getHH_NumUnder4() const {
@@ -278,11 +287,20 @@ public:
 		this->workLogSum = workLogSum;
 	}
 
+	int getStudentTypeId() const {
+		return studentTypeId;
+	}
+
+	void setStudentTypeId(int studentTypeId) {
+		this->studentTypeId = studentTypeId;
+	}
+
 private:
-	long personId;
+	std::string personId;
 	int personTypeId;
 	int ageId;
 	int isUniversityStudent;
+	int studentTypeId;
 	int isFemale;
 	int incomeId;
 	int worksAtHome;
@@ -290,16 +308,16 @@ private:
 	int carOwnOffpeak;
 	int motorOwn;
 	int hasFixedWorkTiming;
-	long homeLocation;
-	long fixedWorkLocation;
-	long fixedSchoolLocation;
+	int homeLocation;
+	int fixedWorkLocation;
+	int fixedSchoolLocation;
 	int stopType;
 	int drivingLicence;
 
 	int hhOnlyAdults;
 	int hhOnlyWorkers;
 	int hhNumUnder4;
-	int hhNumUnder15;
+	int hasUnder15;
 
 	double workLogSum;
 	double eduLogSum;
@@ -317,7 +335,7 @@ private:
  *
  * \author Harish Loganathan
  */
-class ModelParamsUsualWork {
+class UsualWorkParams {
 public:
 	int getFirstOfMultiple() const {
 		return firstOfMultiple;
@@ -335,9 +353,36 @@ public:
 		this->subsequentOfMultiple = subsequentOfMultiple;
 	}
 
+	double getWalkDistanceAm() const {
+		return walkDistanceAM;
+	}
+
+	void setWalkDistanceAm(double walkDistanceAm) {
+		walkDistanceAM = walkDistanceAm;
+	}
+
+	double getWalkDistancePm() const {
+		return walkDistancePM;
+	}
+
+	void setWalkDistancePm(double walkDistancePm) {
+		walkDistancePM = walkDistancePm;
+	}
+
+	double getZoneEmployment() const {
+		return zoneEmployment;
+	}
+
+	void setZoneEmployment(double zoneEmployment) {
+		this->zoneEmployment = zoneEmployment;
+	}
+
 private:
 	int firstOfMultiple;
 	int subsequentOfMultiple;
+	double walkDistanceAM;
+	double walkDistancePM;
+	double zoneEmployment;
 };
 
 } //end namespace medium

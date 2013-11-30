@@ -125,8 +125,8 @@ namespace sim_mob {
                 timeslice to;
             };
 
-            typedef std::list<TemporalWindow*> TemporalWindowList;
-            typedef std::map<timeslice, TemporalWindowList*, TimesliceComparator> TemporalWindowMap;
+            typedef std::list<TemporalWindow> TemporalWindowList;
+            typedef std::map<timeslice, TemporalWindowList, TimesliceComparator> TemporalWindowMap;
 
         private:
             timeslice currTime;

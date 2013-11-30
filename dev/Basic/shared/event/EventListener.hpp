@@ -32,7 +32,7 @@ namespace sim_mob {
              * @param id event identifier.
              * @param args event arguments.
              */
-            virtual void OnEvent(sim_mob::event::EventId id,
+            virtual void onEvent(sim_mob::event::EventId id,
                     sim_mob::event::Context ctxId,
                     sim_mob::event::EventPublisher* sender,
                     const EventArgs& args) {

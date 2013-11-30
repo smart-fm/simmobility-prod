@@ -59,26 +59,26 @@ namespace sim_mob {
              * Registers a new event id on publisher.
              * @param id EventId to register.
              */
-            virtual void RegisterEvent(EventId id);
+            virtual void registerEvent(EventId id);
             /**
              * UnRegisters the given event from the publisher. 
              * @param id EventId to un-register.
              */
-            virtual void UnRegisterEvent(EventId id);
+            virtual void unRegisterEvent(EventId id);
 
             /**
              * Verifies if register exists.
              * @param id
              * @return 
              */
-            virtual bool IsEventRegistered(EventId id) const;
+            virtual bool isEventRegistered(EventId id) const;
 
             /**
              * Publishes an event with given EventId.
              * @param id to publish.
              * @param args of the event.
              */
-            virtual void Publish(EventId id, const EventArgs& args);
+            virtual void publish(EventId id, const EventArgs& args);
 
             /**
              * Publishes an event with given EventId and ContextId.
@@ -86,7 +86,7 @@ namespace sim_mob {
              * @param ctxId Id of the context.
              * @param args of the event.
              */
-            virtual void Publish(EventId id, Context ctxId, 
+            virtual void publish(EventId id, Context ctxId, 
                 const EventArgs& args);
 
             /**
@@ -99,7 +99,7 @@ namespace sim_mob {
              * @param context to filter the events.
              */
             template<typename T, typename L>
-            void Subscribe(EventId id,
+            void subscribe(EventId id,
                     EventListenerPtr listener,
                     void (L::*callback)(
                     sim_mob::event::EventId id,
@@ -108,11 +108,11 @@ namespace sim_mob {
                     const T& args),
                     Context context = 0) {
                 if (callback) {
-                    Subscribe(id, listener,
+                    subscribe(id, listener,
                             (EventContextCallback)callback,
                             context);
                 } else {
-                    Subscribe(id, listener, context);
+                    subscribe(id, listener, context);
                 }
             }
 
@@ -124,7 +124,7 @@ namespace sim_mob {
              * @param id
              * @param listener to subscribe.
              */
-            virtual void Subscribe(EventId id, EventListenerPtr listener,
+            virtual void subscribe(EventId id, EventListenerPtr listener,
                 Context context = 0);
 
             /**
@@ -135,7 +135,7 @@ namespace sim_mob {
              * @param id of the event.
              * @param listener to UnSubscribe.
              */
-            virtual void UnSubscribe(EventId id, EventListenerPtr listener);
+            virtual void unSubscribe(EventId id, EventListenerPtr listener);
 
             /**
              * UnSubscribes the given listener to the given EventId and ContextId.
@@ -146,7 +146,7 @@ namespace sim_mob {
              * @param ctxId Id of the context.
              * @param listener to UnSubscribe.
              */
-            virtual void UnSubscribe(EventId id, Context ctxId,
+            virtual void unSubscribe(EventId id, Context ctxId,
                     EventListenerPtr listener);
 
             /**
@@ -157,7 +157,7 @@ namespace sim_mob {
              * @param id of the global event.
              * 
              */
-            void UnSubscribeAll(EventId id);
+            void unSubscribeAll(EventId id);
             
             /**
              * UnSubscribes all context subscribers for the given event id and context.
@@ -167,7 +167,7 @@ namespace sim_mob {
              * @param id of the event.
              * @param ctx context.
              */
-            void UnSubscribeAll(EventId id, Context ctx);
+            void unSubscribeAll(EventId id, Context ctx);
             
             /**
              * UnSubscribes the given listener from all events.
@@ -175,7 +175,7 @@ namespace sim_mob {
              * is not fast you should avoid to call this method. 
              * @param listener to unsubscribe.
              */
-            void UnSubscribeAll(EventListenerPtr listener);
+            void unSubscribeAll(EventListenerPtr listener);
             
         protected:
             /**
@@ -187,7 +187,7 @@ namespace sim_mob {
              * @param callback custom event handler.
              * @param context to filter the events.
              */
-            virtual void Subscribe(EventId id, EventListenerPtr listener, 
+            virtual void subscribe(EventId id, EventListenerPtr listener, 
                     Callback callback, Context context = 0);
 
         private:

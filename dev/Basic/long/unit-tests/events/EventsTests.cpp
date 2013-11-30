@@ -41,7 +41,7 @@ namespace {
         receivedCallbackNonEvents(0) {
         }
 
-        virtual void OnEvent(sim_mob::event::EventId id,
+        virtual void onEvent(sim_mob::event::EventId id,
                 sim_mob::event::Context ctxId,
                 sim_mob::event::EventPublisher* sender,
                 const EventArgs& args) {
@@ -49,7 +49,7 @@ namespace {
             receivedCallbackNonEvents++;
         }
 
-        void OnTest(sim_mob::event::EventId id,
+        void onTest(sim_mob::event::EventId id,
                 sim_mob::event::Context ctxId,
                 sim_mob::event::EventPublisher* sender,
                 const TestEventArgs& args) {
@@ -71,14 +71,14 @@ void testUnregister() {
     TestListener listener;
     TestListener listener1;
     TestPublisher publisher;
-    publisher.RegisterEvent(1);
-    publisher.Subscribe(1, &listener);
-    publisher.Subscribe(1, &listener1);
-    publisher.Publish(1, TestEventArgs());
-    publisher.Publish(1, TestEventArgs());
-    publisher.UnRegisterEvent(1);
-    publisher.Publish(1, TestEventArgs());
-    publisher.Publish(1, TestEventArgs());
+    publisher.registerEvent(1);
+    publisher.subscribe(1, &listener);
+    publisher.subscribe(1, &listener1);
+    publisher.publish(1, TestEventArgs());
+    publisher.publish(1, TestEventArgs());
+    publisher.unRegisterEvent(1);
+    publisher.publish(1, TestEventArgs());
+    publisher.publish(1, TestEventArgs());
 
     assert(listener.receivedCallbackEvents == 0);
     assert(listener.receivedCallbackNonEvents == 2);
@@ -94,13 +94,13 @@ void testUnregister() {
 void testEvent() {
     TestListener listener;
     TestPublisher publisher;
-    publisher.RegisterEvent(1);
-    publisher.RegisterEvent(2);
-    publisher.Subscribe(1, &listener);
-    publisher.Subscribe(2, &listener);
+    publisher.registerEvent(1);
+    publisher.registerEvent(2);
+    publisher.subscribe(1, &listener);
+    publisher.subscribe(2, &listener);
     for (int i = 0; i < TEST_SIZE; i++) {
-        publisher.Publish(1, TestEventArgs());
-        publisher.Publish(2, TestEventArgs());
+        publisher.publish(1, TestEventArgs());
+        publisher.publish(2, TestEventArgs());
     }
     assert(listener.receivedCallbackEvents == 0);
     assert(listener.receivedCallbackNonEvents == TEST_SIZE * 2);
@@ -114,10 +114,10 @@ void testEvent() {
 void testCallback() {
     TestListener listener;
     TestPublisher publisher;
-    publisher.RegisterEvent(1);
-    publisher.Subscribe(1, &listener, &TestListener::OnTest);
+    publisher.registerEvent(1);
+    publisher.subscribe(1, &listener, &TestListener::onTest);
     for (int i = 0; i < TEST_SIZE; i++) {
-        publisher.Publish(1, TestEventArgs());
+        publisher.publish(1, TestEventArgs());
     }
     assert(listener.receivedCallbackEvents == TEST_SIZE);
     assert(listener.receivedCallbackNonEvents == 0);
@@ -130,12 +130,12 @@ void testCallback() {
 void testContextCallback() {
     TestListener listener;
     TestPublisher publisher;
-    publisher.RegisterEvent(1);
-    publisher.Subscribe(1, &listener, &TestListener::OnTest, &listener);
-    publisher.Subscribe(2, &listener, &TestListener::OnTest);
+    publisher.registerEvent(1);
+    publisher.subscribe(1, &listener, &TestListener::onTest, &listener);
+    publisher.subscribe(2, &listener, &TestListener::onTest);
     for (int i = 0; i < TEST_SIZE; i++) {
-        publisher.Publish(1, TestEventArgs());
-        publisher.Publish(1, &listener, TestEventArgs());
+        publisher.publish(1, TestEventArgs());
+        publisher.publish(1, &listener, TestEventArgs());
     }
     assert(listener.receivedCallbackEvents == TEST_SIZE);
     assert(listener.receivedCallbackNonEvents == 0);
@@ -148,13 +148,13 @@ void testContextCallback() {
 void testUnsubscribeEvent() {
     TestListener listener;
     TestPublisher publisher;
-    publisher.RegisterEvent(1);
-    publisher.Subscribe(1, &listener);
-    publisher.Publish(1, TestEventArgs());
-    publisher.Publish(1, TestEventArgs());
-    publisher.UnSubscribe(1, &listener);
-    publisher.Publish(1, TestEventArgs());
-    publisher.Publish(1, TestEventArgs());
+    publisher.registerEvent(1);
+    publisher.subscribe(1, &listener);
+    publisher.publish(1, TestEventArgs());
+    publisher.publish(1, TestEventArgs());
+    publisher.unSubscribe(1, &listener);
+    publisher.publish(1, TestEventArgs());
+    publisher.publish(1, TestEventArgs());
 
     assert(listener.receivedCallbackEvents == 0);
     assert(listener.receivedCallbackNonEvents == 2);
@@ -167,22 +167,22 @@ void testUnsubscribeEvent() {
 void testUnsubscribeContextEvent() {
     TestListener listener;
     TestPublisher publisher;
-    publisher.RegisterEvent(1);
-    publisher.Subscribe(1, &listener, &listener);
-    publisher.Publish(1, TestEventArgs());
-    publisher.Publish(1, TestEventArgs());
-    publisher.Publish(1, &listener, TestEventArgs());
-    publisher.Publish(1, &listener, TestEventArgs());
-    publisher.UnSubscribe(1, &listener);
-    publisher.Publish(1, TestEventArgs());
-    publisher.Publish(1, TestEventArgs());
-    publisher.Publish(1, &listener, TestEventArgs());
-    publisher.Publish(1, &listener, TestEventArgs());
-    publisher.UnSubscribe(1, &listener, &listener);
-    publisher.Publish(1, TestEventArgs());
-    publisher.Publish(1, TestEventArgs());
-    publisher.Publish(1, &listener, TestEventArgs());
-    publisher.Publish(1, &listener, TestEventArgs());
+    publisher.registerEvent(1);
+    publisher.subscribe(1, &listener, &listener);
+    publisher.publish(1, TestEventArgs());
+    publisher.publish(1, TestEventArgs());
+    publisher.publish(1, &listener, TestEventArgs());
+    publisher.publish(1, &listener, TestEventArgs());
+    publisher.unSubscribe(1, &listener);
+    publisher.publish(1, TestEventArgs());
+    publisher.publish(1, TestEventArgs());
+    publisher.publish(1, &listener, TestEventArgs());
+    publisher.publish(1, &listener, TestEventArgs());
+    publisher.unSubscribe(1, &listener, &listener);
+    publisher.publish(1, TestEventArgs());
+    publisher.publish(1, TestEventArgs());
+    publisher.publish(1, &listener, TestEventArgs());
+    publisher.publish(1, &listener, TestEventArgs());
 
     assert(listener.receivedCallbackEvents == 0);
     assert(listener.receivedCallbackNonEvents == 4);
@@ -196,14 +196,14 @@ void testUnsubscribeAll() {
     TestListener listener;
     TestListener listener1;
     TestPublisher publisher;
-    publisher.RegisterEvent(1);
-    publisher.Subscribe(1, &listener);
-    publisher.Subscribe(1, &listener1);
-    publisher.Publish(1, TestEventArgs());
-    publisher.Publish(1, TestEventArgs());
-    publisher.UnSubscribeAll(1);
-    publisher.Publish(1, TestEventArgs());
-    publisher.Publish(1, TestEventArgs());
+    publisher.registerEvent(1);
+    publisher.subscribe(1, &listener);
+    publisher.subscribe(1, &listener1);
+    publisher.publish(1, TestEventArgs());
+    publisher.publish(1, TestEventArgs());
+    publisher.unSubscribeAll(1);
+    publisher.publish(1, TestEventArgs());
+    publisher.publish(1, TestEventArgs());
 
     assert(listener.receivedCallbackEvents == 0);
     assert(listener.receivedCallbackNonEvents == 2);
@@ -220,20 +220,20 @@ void testUnsubscribeAllWithContext() {
     TestListener listener;
     TestListener listener1;
     TestPublisher publisher;
-    publisher.RegisterEvent(1);
-    publisher.Subscribe(1, &listener, &listener);
-    publisher.Subscribe(1, &listener1, &listener1);
-    publisher.Publish(1, &listener, TestEventArgs());
-    publisher.Publish(1, &listener1, TestEventArgs());
-    publisher.UnSubscribeAll(1);
-    publisher.Publish(1, &listener, TestEventArgs());
-    publisher.Publish(1, &listener1, TestEventArgs());
-    publisher.UnSubscribeAll(1, &listener);
-    publisher.Publish(1, &listener, TestEventArgs());
-    publisher.Publish(1, &listener1, TestEventArgs());
-    publisher.UnSubscribeAll(1, &listener1);
-    publisher.Publish(1, &listener, TestEventArgs());
-    publisher.Publish(1, &listener1, TestEventArgs());
+    publisher.registerEvent(1);
+    publisher.subscribe(1, &listener, &listener);
+    publisher.subscribe(1, &listener1, &listener1);
+    publisher.publish(1, &listener, TestEventArgs());
+    publisher.publish(1, &listener1, TestEventArgs());
+    publisher.unSubscribeAll(1);
+    publisher.publish(1, &listener, TestEventArgs());
+    publisher.publish(1, &listener1, TestEventArgs());
+    publisher.unSubscribeAll(1, &listener);
+    publisher.publish(1, &listener, TestEventArgs());
+    publisher.publish(1, &listener1, TestEventArgs());
+    publisher.unSubscribeAll(1, &listener1);
+    publisher.publish(1, &listener, TestEventArgs());
+    publisher.publish(1, &listener1, TestEventArgs());
 
     assert(listener.receivedCallbackEvents == 0);
     assert(listener.receivedCallbackNonEvents == 2);

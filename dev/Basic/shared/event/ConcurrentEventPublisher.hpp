@@ -29,18 +29,18 @@ namespace sim_mob {
             /**
              * Inherited from event publisher.
              */
-            virtual void RegisterEvent(EventId id);
-            virtual void UnRegisterEvent(EventId id);
-            virtual bool IsEventRegistered(EventId id) const;
-            virtual void Publish(EventId id, const EventArgs& args);
-            virtual void Publish(EventId id, Context ctxId, const EventArgs& args);
-            virtual void UnSubscribe(EventId id, EventListenerPtr listener);
-            virtual void UnSubscribe(EventId id, Context ctxId, EventListenerPtr listener);
-            virtual void UnSubscribeAll(EventId id);
-            virtual void UnSubscribeAll(EventId id, Context ctx);
+            virtual void registerEvent(EventId id);
+            virtual void unRegisterEvent(EventId id);
+            virtual bool isEventRegistered(EventId id) const;
+            virtual void publish(EventId id, const EventArgs& args);
+            virtual void publish(EventId id, Context ctxId, const EventArgs& args);
+            virtual void unSubscribe(EventId id, EventListenerPtr listener);
+            virtual void unSubscribe(EventId id, Context ctxId, EventListenerPtr listener);
+            virtual void unSubscribeAll(EventId id);
+            virtual void unSubscribeAll(EventId id, Context ctx);
             
         protected:
-            virtual void Subscribe(EventId id, EventListenerPtr listener, 
+            virtual void subscribe(EventId id, EventListenerPtr listener, 
                     Callback callback, Context context = 0);
         private:
             mutable boost::shared_mutex listenersMutex;

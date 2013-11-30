@@ -251,10 +251,10 @@ namespace {
                 case MSGI_PUBLISH_EVENT:
                 {
                     if (isGlobalEvent) {
-                        Publish(evt.GetEventId(),
+                        publish(evt.GetEventId(),
                                 *(evt.GetData().get()));
                     } else {
-                        Publish(evt.GetEventId(),
+                        publish(evt.GetEventId(),
                                 evt.GetContext(), *(evt.GetData().get()));
                     }
                     break;
@@ -262,9 +262,9 @@ namespace {
                 case MSGI_UNSUBSCRIBE_ALL:
                 {
                     if (isGlobalEvent) {
-                        UnSubscribeAll(evt.GetEventId());
+                        unSubscribeAll(evt.GetEventId());
                     } else {
-                        UnSubscribeAll(evt.GetEventId(),evt.GetContext());
+                        unSubscribeAll(evt.GetEventId(),evt.GetContext());
                     }
                     break;
                 }
@@ -485,8 +485,8 @@ void MessageBus::SubscribeEvent(EventId id, EventListener* listener) {
     if (listener) {
         ThreadContext* context = GetThreadContext();
         if (context) {
-            context->eventPublisher->RegisterEvent(id);
-            context->eventPublisher->Subscribe(id, listener);
+            context->eventPublisher->registerEvent(id);
+            context->eventPublisher->subscribe(id, listener);
         }
     }
 }
@@ -496,8 +496,8 @@ void MessageBus::SubscribeEvent(EventId id, Context ctx, EventListener* listener
     if (listener && ctx) {
         ThreadContext* context = GetThreadContext();
         if (context) {
-            context->eventPublisher->RegisterEvent(id);
-            context->eventPublisher->Subscribe(id, listener, ctx);
+            context->eventPublisher->registerEvent(id);
+            context->eventPublisher->subscribe(id, listener, ctx);
         }
     }
 }
@@ -507,7 +507,7 @@ void MessageBus::UnSubscribeEvent(EventId id, EventListener* listener) {
     if (listener) {
         ThreadContext* context = GetThreadContext();
         if (context) {
-            context->eventPublisher->UnSubscribe(id, listener);
+            context->eventPublisher->unSubscribe(id, listener);
         }
     }
 }
@@ -517,7 +517,7 @@ void MessageBus::UnSubscribeEvent(EventId id, Context ctx, EventListener* listen
     if (listener && ctx) {
         ThreadContext* context = GetThreadContext();
         if (context) {
-            context->eventPublisher->UnSubscribe(id, ctx, listener);
+            context->eventPublisher->unSubscribe(id, ctx, listener);
         }
     }
 }

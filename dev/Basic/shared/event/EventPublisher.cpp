@@ -20,11 +20,11 @@ using std::pair;
 
 namespace {
     //Helper functions declaration.
-    bool ExitsEvent(const ContextListenersMap& map, EventId id);
-    void Remove(ListenersList& listenersList, EventListenerPtr listener);
-    void PublishEvent(ContextListenersMap& map, bool globalCtx, EventPublisher* sender,
+    bool exitsEvent(const ContextListenersMap& map, EventId id);
+    void remove(ListenersList& listenersList, EventListenerPtr listener);
+    void publishEvent(ContextListenersMap& map, bool globalCtx, EventPublisher* sender,
             EventId id, Context ctx, const EventArgs& args);
-    void SubscribeListener(ContextListenersMap& map, EventId id, Context ctx,
+    void subscribeListener(ContextListenersMap& map, EventId id, Context ctx,
             EventListenerPtr listener, Callback callback);
 }
 
@@ -45,14 +45,14 @@ EventPublisher::EventPublisher() {
 EventPublisher::~EventPublisher() {
 }
 
-void EventPublisher::RegisterEvent(EventId id) {
-    if (!ExitsEvent(listeners, id)) {
+void EventPublisher::registerEvent(EventId id) {
+    if (!exitsEvent(listeners, id)) {
         listeners.insert(pair<EventId, ContextMap>(id, ContextMap()));
     }
 }
 
-void EventPublisher::UnRegisterEvent(EventId id) {
-    if (ExitsEvent(listeners, id)) {
+void EventPublisher::unRegisterEvent(EventId id) {
+    if (exitsEvent(listeners, id)) {
         // remove all context listeners.
         ContextListenersMap::iterator ctxMapItr = listeners.find(id);
         if (ctxMapItr != listeners.end()) {
@@ -64,47 +64,47 @@ void EventPublisher::UnRegisterEvent(EventId id) {
     }
 }
 
-bool EventPublisher::IsEventRegistered(EventId id) const {
-    return ExitsEvent(listeners, id);
+bool EventPublisher::isEventRegistered(EventId id) const {
+    return exitsEvent(listeners, id);
 }
 
-void EventPublisher::Publish(EventId id, const EventArgs& args) {
+void EventPublisher::publish(EventId id, const EventArgs& args) {
     // publish using the global context.    
-    PublishEvent(listeners, true, this, id, this, args);
+    publishEvent(listeners, true, this, id, this, args);
 }
 
-void EventPublisher::Publish(EventId id, Context ctx, const EventArgs& args) {
-    PublishEvent(listeners, true, this, id, this, args);
+void EventPublisher::publish(EventId id, Context ctx, const EventArgs& args) {
+    publishEvent(listeners, true, this, id, this, args);
     //notify context listeners.
-    PublishEvent(listeners, false, this, id, ctx, args);
+    publishEvent(listeners, false, this, id, ctx, args);
 }
 
-void EventPublisher::Subscribe(EventId id, EventListenerPtr listener,
+void EventPublisher::subscribe(EventId id, EventListenerPtr listener,
         Context context) {
-    Subscribe(id, listener, &EventListener::OnEvent, context);
+    subscribe(id, listener, &EventListener::onEvent, context);
 }
 
-void EventPublisher::Subscribe(EventId id, EventListenerPtr listener,
+void EventPublisher::subscribe(EventId id, EventListenerPtr listener,
         Callback callback, Context ctx) {
-    if (ExitsEvent(listeners, id) && listener && callback) {
-        SubscribeListener(listeners, id, (ctx) ? ctx : this,
+    if (exitsEvent(listeners, id) && listener && callback) {
+        subscribeListener(listeners, id, (ctx) ? ctx : this,
                 listener, callback);
     }
 }
 
-void EventPublisher::UnSubscribe(EventId id, EventListenerPtr listener) {
-    UnSubscribe(id, this, listener);
+void EventPublisher::unSubscribe(EventId id, EventListenerPtr listener) {
+    unSubscribe(id, this, listener);
 }
 
-void EventPublisher::UnSubscribe(EventId id, Context ctx,
+void EventPublisher::unSubscribe(EventId id, Context ctx,
         EventListenerPtr listener) {
-    if (ExitsEvent(listeners, id) && listener) {
+    if (exitsEvent(listeners, id) && listener) {
         ContextListenersMap::iterator ctxMapItr = listeners.find(id);
         if (ctxMapItr != listeners.end()) {
             ContextMap::iterator mapItr = ctxMapItr->second.find(ctx);
             if (mapItr != ctxMapItr->second.end()) { //Context exists
                 ListenersList& ll = mapItr->second;
-                Remove(ll, listener);
+                remove(ll, listener);
                 //if list is empty then remove the context.
                 if (ll.empty()) {
                     //remove the list
@@ -115,7 +115,7 @@ void EventPublisher::UnSubscribe(EventId id, Context ctx,
     }
 }
 
-void EventPublisher::UnSubscribeAll(EventListenerPtr listener) {
+void EventPublisher::unSubscribeAll(EventListenerPtr listener) {
     if (listener) {
         //TODO: this method is very inefficient we need something better. But for now...
         for (ContextListenersMap::iterator itr = listeners.begin(); itr != listeners.end(); itr++) {
@@ -134,12 +134,12 @@ void EventPublisher::UnSubscribeAll(EventListenerPtr listener) {
     }
 }
 
-void EventPublisher::UnSubscribeAll(EventId id) {
-    UnSubscribeAll(id, this);
+void EventPublisher::unSubscribeAll(EventId id) {
+    unSubscribeAll(id, this);
 }
 
-void EventPublisher::UnSubscribeAll(EventId id, Context ctx) {
-    if (ExitsEvent(listeners, id)) {
+void EventPublisher::unSubscribeAll(EventId id, Context ctx) {
+    if (exitsEvent(listeners, id)) {
         ContextListenersMap::iterator ctxMapItr = listeners.find(id);
         if (ctxMapItr != listeners.end()) {
             ContextMap::iterator mapItr = ctxMapItr->second.find(ctx);
@@ -159,11 +159,11 @@ void EventPublisher::UnSubscribeAll(EventId id, Context ctx) {
  **********************/
 namespace {
 
-    bool ExitsEvent(const ContextListenersMap& map, EventId id) {
+    bool exitsEvent(const ContextListenersMap& map, EventId id) {
         return (map.find(id) != map.end());
     }
 
-    void SubscribeListener(ContextListenersMap& map, EventId id, Context ctx,
+    void subscribeListener(ContextListenersMap& map, EventId id, Context ctx,
             EventListenerPtr listener, Callback callback) {
         ContextListenersMap::iterator ctxMapItr = map.find(id);
         if (ctxMapItr != map.end()) {
@@ -181,7 +181,7 @@ namespace {
         }
     }
 
-    void PublishEvent(ContextListenersMap& map, bool globalCtx, EventPublisher* sender,
+    void publishEvent(ContextListenersMap& map, bool globalCtx, EventPublisher* sender,
             EventId id, Context ctx, const EventArgs& args) {
         //notify context listeners.
         ContextListenersMap::iterator ctxMapItr = map.find(id);
@@ -202,8 +202,8 @@ namespace {
             }
         }
     }
-    
-    void Remove(ListenersList& listenersList, EventListenerPtr listener) {
+
+    void remove(ListenersList& listenersList, EventListenerPtr listener) {
         if (listener) {
             ListenersList::iterator lstItr = listenersList.begin();
             while (lstItr != listenersList.end()) {

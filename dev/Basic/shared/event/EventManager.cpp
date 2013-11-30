@@ -27,8 +27,8 @@ EM_EventArgs::~EM_EventArgs(){}
 
 EventManager::EventManager() : temporalWindows(TimesliceComparator()),
 currTime(timeslice(0, 0)) {
-    RegisterEvent(EM_WND_EXPIRED);
-    RegisterEvent(EM_WND_UPDATED); // future...
+    registerEvent(EM_WND_EXPIRED);
+    registerEvent(EM_WND_UPDATED); // future...
 }
 
 EventManager::~EventManager() {
@@ -62,9 +62,9 @@ void EventManager::Update(const timeslice& currTime) {
                         litr != wList->end(); litr++) {
                     TemporalWindow* window = *litr;
                     if (window && window->IsExpired(currTime)) {//only to confirm
-                        Publish(EM_WND_EXPIRED, window, EventArgs());
+                        publish(EM_WND_EXPIRED, window, EventArgs());
                         // remove all subscribers for this window and event.
-                        UnSubscribeAll(EM_WND_EXPIRED, window);
+                        unSubscribeAll(EM_WND_EXPIRED, window);
                         safe_delete_item(window);
                     }
                 }
@@ -99,9 +99,9 @@ void EventManager::Schedule(const timeslice& target, EventListenerPtr listener,
         TemporalWindow* tw = new TemporalWindow(currTime, target);
         TemporalWindowList::iterator litr = listPtr->insert(listPtr->end(), tw);
         if (callback) {
-            Subscribe(EM_WND_EXPIRED, listener, callback, *litr);
+            subscribe(EM_WND_EXPIRED, listener, callback, *litr);
         } else {
-            Subscribe(EM_WND_EXPIRED, listener, *litr);
+            subscribe(EM_WND_EXPIRED, listener, *litr);
         }
     }
 }

@@ -29,7 +29,7 @@ class Entity;
 class UpdatePublisher: public sim_mob::event::EventPublisher  {
 public:
 	UpdatePublisher() {
-		RegisterEvent(sim_mob::event::EVT_CORE_AGENT_UPDATED);
+		registerEvent(sim_mob::event::EVT_CORE_AGENT_UPDATED);
 	}
 
 	virtual ~UpdatePublisher(){}

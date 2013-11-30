@@ -26,84 +26,84 @@ ConcurrentEventPublisher::ConcurrentEventPublisher() {
 ConcurrentEventPublisher::~ConcurrentEventPublisher() {
 }
 
-void ConcurrentEventPublisher::RegisterEvent(EventId id) {
+void ConcurrentEventPublisher::registerEvent(EventId id) {
     {// thread-safe scope
         upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
         upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
-        EventPublisher::RegisterEvent(id);
+        EventPublisher::registerEvent(id);
     }
 }
 
-void ConcurrentEventPublisher::UnRegisterEvent(EventId id) {
+void ConcurrentEventPublisher::unRegisterEvent(EventId id) {
     {// thread-safe scope
         upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
         upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
-        EventPublisher::UnRegisterEvent(id);
+        EventPublisher::unRegisterEvent(id);
     }
 }
 
-bool ConcurrentEventPublisher::IsEventRegistered(EventId id) const {
+bool ConcurrentEventPublisher::isEventRegistered(EventId id) const {
     {
         shared_lock<shared_mutex> lock(listenersMutex);
-        return EventPublisher::IsEventRegistered(id);
+        return EventPublisher::isEventRegistered(id);
     }
 }
 
-void ConcurrentEventPublisher::Publish(EventId id, const EventArgs& args) {
+void ConcurrentEventPublisher::publish(EventId id, const EventArgs& args) {
     {// thread-safe scope
         upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
         upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
-        EventPublisher::Publish(id, args);
+        EventPublisher::publish(id, args);
     }
 }
 
-void ConcurrentEventPublisher::Publish(EventId id, Context ctx, const EventArgs& args) {
+void ConcurrentEventPublisher::publish(EventId id, Context ctx, const EventArgs& args) {
     {// thread-safe scope
         upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
         upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
-        EventPublisher::Publish(id, ctx, args);
+        EventPublisher::publish(id, ctx, args);
     }
 }
 
-void ConcurrentEventPublisher::Subscribe(EventId id, EventListenerPtr listener, 
+void ConcurrentEventPublisher::subscribe(EventId id, EventListenerPtr listener, 
                     Callback callback, Context context){
     {// thread-safe scope
         upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
         upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
-        //EventPublisher::Subscribe(id, listener, callback, context);
+        EventPublisher::subscribe(id, listener, callback, context);
     }
 }
 
-void ConcurrentEventPublisher::UnSubscribe(EventId id, EventListenerPtr listener) {
+void ConcurrentEventPublisher::unSubscribe(EventId id, EventListenerPtr listener) {
     {// thread-safe scope
         upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
         upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
-        EventPublisher::UnSubscribe(id, listener);
+        EventPublisher::unSubscribe(id, listener);
     }
 
 }
 
-void ConcurrentEventPublisher::UnSubscribe(EventId id, Context ctx,
+void ConcurrentEventPublisher::unSubscribe(EventId id, Context ctx,
         EventListenerPtr listener) {
     {// thread-safe scope
         upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
         upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
-        EventPublisher::UnSubscribe(id, ctx, listener);
+        EventPublisher::unSubscribe(id, ctx, listener);
     }
 }
 
-void ConcurrentEventPublisher::UnSubscribeAll(EventId id) {
+void ConcurrentEventPublisher::unSubscribeAll(EventId id) {
     {// thread-safe scope
         upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
         upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
-        EventPublisher::UnSubscribeAll(id);
+        EventPublisher::unSubscribeAll(id);
     }
 }
 
-void ConcurrentEventPublisher::UnSubscribeAll(EventId id, Context ctx) {
+void ConcurrentEventPublisher::unSubscribeAll(EventId id, Context ctx) {
     {// thread-safe scope
         upgrade_lock<shared_mutex> upgradeLock(listenersMutex);
         upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
-        EventPublisher::UnSubscribeAll(id, ctx);
+        EventPublisher::unSubscribeAll(id, ctx);
     }
 }

@@ -49,7 +49,7 @@ namespace sim_mob {
              * Method to be called on which simulation update.
              * @param currTime current simulation time.
              */
-            void Update(const timeslice& currTime);
+            void update(const timeslice& currTime);
 
             /**
              * Will create a temporal window from current ticket 
@@ -62,7 +62,7 @@ namespace sim_mob {
              * @param target time to schedule.
              * @param listener to be notified.
              */
-            void Schedule(const timeslice& target, EventListenerPtr listener);
+            void schedule(const timeslice& target, EventListenerPtr listener);
 
             /**
              * Will create a temporal window from current ticket 
@@ -76,7 +76,7 @@ namespace sim_mob {
              * @param listener to be notified.
              * @param callback to be called when the event is fired.
              */
-            void Schedule(const timeslice& target, EventListenerPtr listener,
+            void schedule(const timeslice& target, EventListenerPtr listener,
                     Callback callback);
 
         private:
@@ -107,19 +107,19 @@ namespace sim_mob {
                  * @param current timeslice.
                  * @return True if window is expired or false if not.
                  */
-                bool IsExpired(const timeslice& current) const;
+                bool isExpired(const timeslice& current) const;
 
                 /**
                  * Gets the initial timeslice.
                  * @return initial timeslice. 
                  */
-                const timeslice& GetTo() const;
+                const timeslice& getTo() const;
 
                 /**
                  * Gets the final timeslice.
                  * @return final timeslice. 
                  */
-                const timeslice& GetFrom() const;
+                const timeslice& getFrom() const;
             private:
                 timeslice from;
                 timeslice to;

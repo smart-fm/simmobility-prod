@@ -47,7 +47,7 @@ EventManager::~EventManager() {
     temporalWindows.clear();
 }
 
-void EventManager::Update(const timeslice& currTime) {
+void EventManager::update(const timeslice& currTime) {
     
     this->currTime = currTime;
     
@@ -61,7 +61,7 @@ void EventManager::Update(const timeslice& currTime) {
                 for (TemporalWindowList::iterator litr = wList->begin();
                         litr != wList->end(); litr++) {
                     TemporalWindow* window = *litr;
-                    if (window && window->IsExpired(currTime)) {//only to confirm
+                    if (window && window->isExpired(currTime)) {//only to confirm
                         publish(EM_WND_EXPIRED, window, EventArgs());
                         // remove all subscribers for this window and event.
                         unSubscribeAll(EM_WND_EXPIRED, window);
@@ -77,11 +77,11 @@ void EventManager::Update(const timeslice& currTime) {
     }
 }
 
-void EventManager::Schedule(const timeslice& target, EventListenerPtr listener) {
-    Schedule(target, listener, nullptr);
+void EventManager::schedule(const timeslice& target, EventListenerPtr listener) {
+    schedule(target, listener, nullptr);
 }
 
-void EventManager::Schedule(const timeslice& target, EventListenerPtr listener,
+void EventManager::schedule(const timeslice& target, EventListenerPtr listener,
         Callback callback) {
 
     {// synchronized scope
@@ -119,15 +119,15 @@ EventManager::TemporalWindow::TemporalWindow(const timeslice& from, const timesl
 EventManager::TemporalWindow::~TemporalWindow() {
 }
 
-bool EventManager::TemporalWindow::IsExpired(const timeslice& current) const {
+bool EventManager::TemporalWindow::isExpired(const timeslice& current) const {
     return (current.ms() > to.ms() ||
             (current.ms() == to.ms() && current.frame() >= to.frame()));
 }
 
-const timeslice& EventManager::TemporalWindow::GetTo() const {
+const timeslice& EventManager::TemporalWindow::getTo() const {
     return to;
 }
 
-const timeslice& EventManager::TemporalWindow::GetFrom() const {
+const timeslice& EventManager::TemporalWindow::getFrom() const {
     return from;
 }

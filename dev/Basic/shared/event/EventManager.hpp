@@ -84,11 +84,13 @@ namespace sim_mob {
             /**
              * Timeslice comparator.
              */
-            struct TimesliceComparator {
+            struct TimeComparator {
 
-                bool operator()(const timeslice& val1, const timeslice& val2) const {
+                bool operator()(const timeslice& val1, 
+                                const timeslice& val2) const {
                     return (val1.ms() < val2.ms() ||
-                            (val1.ms() == val2.ms() && val1.frame() < val2.frame()));
+                            (val1.ms() == val2.ms() && 
+                            val1.frame() < val2.frame()));
                 }
             };
 
@@ -125,12 +127,14 @@ namespace sim_mob {
                 timeslice to;
             };
 
-            typedef std::list<TemporalWindow> TemporalWindowList;
-            typedef std::map<timeslice, TemporalWindowList, TimesliceComparator> TemporalWindowMap;
+            typedef std::list<TemporalWindow> WindowList;
+            typedef std::map<timeslice, WindowList, TimeComparator> WindowMap;
+            typedef std::pair<WindowMap::iterator, bool> MapRetVal;
+            typedef std::pair<timeslice, WindowList> MapEntry;
 
         private:
             timeslice currTime;
-            TemporalWindowMap temporalWindows;
+            WindowMap windows;
             mutable boost::shared_mutex windowsMutex;
         };
     }

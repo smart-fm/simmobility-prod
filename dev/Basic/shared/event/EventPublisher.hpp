@@ -16,6 +16,9 @@
 #include "EventListener.hpp"
 
 namespace {
+    /**
+     * Event Callback definition.
+     */
     typedef void (sim_mob::event::EventListener::*EventContextCallback)(
             sim_mob::event::EventId id,
             sim_mob::event::Context ctxId,
@@ -123,6 +126,7 @@ namespace sim_mob {
              * 
              * @param id
              * @param listener to subscribe.
+             * @param context to filter events.
              */
             virtual void subscribe(EventId id, EventListenerPtr listener,
                 Context context = 0);

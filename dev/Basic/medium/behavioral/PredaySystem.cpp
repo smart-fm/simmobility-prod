@@ -16,9 +16,11 @@
 #include "behavioral/lua/PredayLuaProvider.hpp"
 #include "behavioral/params/StopGenerationParams.hpp"
 #include "behavioral/params/TimeOfDayParams.hpp"
+#include "behavioral/params/TourModeParams.hpp"
+#include "behavioral/params/TourModeDestinationParams.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "conf/RawConfigParams.hpp"
+#include "conf/Constructs.hpp"
 #include "database/DB_Connection.hpp"
 #include "logging/Log.hpp"
 #include "mongo/client/dbclient.h"
@@ -29,8 +31,8 @@ using namespace sim_mob;
 using namespace sim_mob::medium;
 using namespace mongo;
 
-PredaySystem::PredaySystem(PersonParams& personParams)
-: personParams(personParams), predayLuaModel(PredayLuaProvider::getPredayModel()) // get the thread-local lua model object
+PredaySystem::PredaySystem(PersonParams& personParams, boost::unordered_map<int, ZoneParams>& zoneMap)
+: personParams(personParams), zoneMap(zoneMap), predayLuaModel(PredayLuaProvider::getPredayModel()) // get the thread-local lua model object
 {
 	MongoCollectionsMap mongoColl = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo");
 	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
@@ -153,34 +155,10 @@ void PredaySystem::predictTourMode(Tour& tour) {
 }
 
 void PredaySystem::predictTourModeDestination(Tour& tour) {
-/*	LuaRef chooseTMD;
-	switch (tour.getTourType()) {
-	case WORK:
-		personParams.setStopType(1);
-		chooseTMD = getGlobal(state.get(), "chooseTMDW"); // tour mode destination for work tour
-		break;
-	case EDUCATION:
-		personParams.setStopType(2);
-		chooseTMD = getGlobal(state.get(), "chooseTMDE"); // tour mode destination for work tour
-		break;
-	case SHOP:
-		personParams.setStopType(3);
-		chooseTMD = getGlobal(state.get(), "chooseTMDS"); // tour mode destination for work tour
-		break;
-	case OTHER:
-		personParams.setStopType(4);
-		chooseTMD = getGlobal(state.get(), "chooseTMDO"); // tour mode destination for work tour
-		break;
-	}
-	LuaRef retVal = chooseTMD(personParams);
-	if (!retVal.isString()) {
-		throw std::runtime_error("Error in usual work location model. Unexpected return value");
-	}
-	std::string& modeDest = retVal.cast<std::string>();
-	std::vector<std::string> strs;
-	boost::split(strs, modeDest, boost::is_any_of(","));
-	tour.setTourMode(std::atoi(strs.front().c_str()));
-	tour.setPrimaryActivityLocation(atol(strs.back().c_str()));*/
+	TourModeDestinationParams tmdParams(zoneMap, personParams, tour.getTourType());
+	int modeDest = predayLuaModel.predictTourModeDestination(personParams, tmdParams);
+	tour.setTourMode(tmdParams.getMode(modeDest));
+	tour.setPrimaryActivityLocation(tmdParams.getDestination(modeDest));
 }
 
 std::string& PredaySystem::predictTourTimeOfDay(Tour& tour) {
@@ -931,7 +909,7 @@ void PredaySystem::planDay() {
 	predayLuaModel.predictNumTours(personParams, dayPattern, numTours);
 
 	//Construct tours
-	/*constructTours();
+	constructTours();
 
 	//Process each tour
 	for(std::deque<Tour*>::iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++) {
@@ -947,7 +925,7 @@ void PredaySystem::planDay() {
 
 		// Predict the time of day for this tour
 		std::string timeWindow = predictTourTimeOfDay(tour);
-		Stop* primaryActivity = new Stop(tour.getTourType(), tour, true);
+		Stop* primaryActivity = new Stop(tour.getTourType(), tour, true, true);
 		primaryActivity->setStopMode(tour.getTourMode());
 		primaryActivity->setStopLocation(tour.getPrimaryActivityLocation());
 		primaryActivity->allotTime(timeWindow);
@@ -960,6 +938,5 @@ void PredaySystem::planDay() {
 		calculateTourStartTime(tour);
 		calculateTourEndTime(tour);
 		personParams.blockTime(tour.getStartTime(), tour.getEndTime());
-	}*/
-
+	}
 }

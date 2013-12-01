@@ -78,14 +78,14 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 			.addProperty("cost_car_parking",&TourModeParams::getCostCarParking)
 			.addProperty("cost_public_first",&TourModeParams::getCostPublicFirst)
 			.addProperty("cost_public_second",&TourModeParams::getCostPublicSecond)
-			.addProperty("tmw_drive1_AV",&TourModeParams::isDrive1Available)
-			.addProperty("tmw_motor_AV",&TourModeParams::isMotorAvailable)
-			.addProperty("tmw_mrt_AV",&TourModeParams::isMrtAvailable)
-			.addProperty("tmw_privatebus_AV",&TourModeParams::isPrivateBusAvailable)
-			.addProperty("tmw_publicbus_AV",&TourModeParams::isPublicBusAvailable)
-			.addProperty("tmw_share2_AV",&TourModeParams::isShare2Available)
-			.addProperty("tmw_share3_AV",&TourModeParams::isShare3Available)
-			.addProperty("tmw_taxi_AV",&TourModeParams::isTaxiAvailable)
+			.addProperty("drive1_AV",&TourModeParams::isDrive1Available)
+			.addProperty("motor_AV",&TourModeParams::isMotorAvailable)
+			.addProperty("mrt_AV",&TourModeParams::isMrtAvailable)
+			.addProperty("privatebus_AV",&TourModeParams::isPrivateBusAvailable)
+			.addProperty("publicbus_AV",&TourModeParams::isPublicBusAvailable)
+			.addProperty("share2_AV",&TourModeParams::isShare2Available)
+			.addProperty("share3_AV",&TourModeParams::isShare3Available)
+			.addProperty("taxi_AV",&TourModeParams::isTaxiAvailable)
 			.addProperty("tt_ivt_car_first",&TourModeParams::getTtCarIvtFirst)
 			.addProperty("tt_ivt_car_second",&TourModeParams::getTtCarIvtSecond)
 			.addProperty("tt_public_ivt_first",&TourModeParams::getTtPublicIvtFirst)
@@ -103,6 +103,31 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 			.addProperty("work_op",&TourModeParams::getWorkOp)
 			.endClass();
 
+	getGlobalNamespace(state.get())
+			.beginClass<TourModeDestinationParams>("TourModeDestinationParams")
+			.addFunction("cost_public_first", &TourModeDestinationParams::getCostPublicFirst)
+			.addFunction("cost_public_second", &TourModeDestinationParams::getCostPublicSecond)
+			.addFunction("cost_car_ERP_first", &TourModeDestinationParams::getCostCarERPFirst)
+			.addFunction("cost_car_ERP_second", &TourModeDestinationParams::getCostCarERPSecond)
+			.addFunction("cost_car_OP_first", &TourModeDestinationParams::getCostCarOPFirst)
+			.addFunction("cost_car_OP_second", &TourModeDestinationParams::getCostCarOPSecond)
+			.addFunction("cost_car_parking", &TourModeDestinationParams::getCostCarParking)
+			.addFunction("walk_distance1", &TourModeDestinationParams::getWalkDistance1)
+			.addFunction("walk_distance2", &TourModeDestinationParams::getWalkDistance2)
+			.addFunction("central_dummy", &TourModeDestinationParams::getCentralDummy)
+			.addFunction("tt_public_ivt_first", &TourModeDestinationParams::getTT_PublicIvtFirst)
+			.addFunction("tt_public_ivt_second", &TourModeDestinationParams::getTT_PublicIvtSecond)
+			.addFunction("tt_public_out_first", &TourModeDestinationParams::getTT_PublicOutFirst)
+			.addFunction("tt_public_out_second", &TourModeDestinationParams::getTT_PublicOutSecond)
+			.addFunction("tt_car_ivt_first", &TourModeDestinationParams::getTT_CarIvtFirst)
+			.addFunction("tt_car_ivt_second", &TourModeDestinationParams::getTT_CarIvtSecond)
+			.addFunction("average_transfer_number", &TourModeDestinationParams::getAvgTransferNumber)
+			.addFunction("employment", &TourModeDestinationParams::getEmployment)
+			.addFunction("population", &TourModeDestinationParams::getArea)
+			.addFunction("area", &TourModeDestinationParams::getPopulation)
+			.addFunction("shop", &TourModeDestinationParams::getShop)
+			.addFunction("availability",&TourModeDestinationParams::isAvailable)
+			.endClass();
 }
 
 void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern) const {
@@ -171,15 +196,15 @@ int sim_mob::medium::PredayLuaModel::predictTourMode(PersonParams& personParams,
 	switch (tourModeParams.getStopType()) {
 	case WORK:
 	{
-		LuaRef chooseTM = getGlobal(state.get(), "choose_tmw");
-		LuaRef retVal = chooseTM(personParams, tourModeParams);
+		LuaRef chooseTMD = getGlobal(state.get(), "choose_tmw");
+		LuaRef retVal = chooseTMD(personParams, tourModeParams);
 		return retVal.cast<int>();
 		break;
 	}
 	case EDUCATION:
 	{
-		LuaRef chooseTM = getGlobal(state.get(), "choose_tme");
-		LuaRef retVal = chooseTM(personParams, tourModeParams);
+		LuaRef chooseTMD = getGlobal(state.get(), "choose_tme");
+		LuaRef retVal = chooseTMD(personParams, tourModeParams);
 		return retVal.cast<int>();
 		break;
 	}
@@ -190,6 +215,42 @@ int sim_mob::medium::PredayLuaModel::predictTourMode(PersonParams& personParams,
 	}
 }
 
+int sim_mob::medium::PredayLuaModel::predictTourModeDestination(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const {
+	switch (tourModeDestinationParams.getTourType()) {
+	case WORK:
+	{
+		LuaRef chooseTMD = getGlobal(state.get(), "choose_tmdw");
+		LuaRef retVal = chooseTMD(personParams, tourModeDestinationParams);
+		return retVal.cast<int>();
+		break;
+	}
+	case EDUCATION:
+	{
+		LuaRef chooseTM = getGlobal(state.get(), "choose_tmde");
+		LuaRef retVal = chooseTM(personParams, tourModeDestinationParams);
+		return retVal.cast<int>();
+		break;
+	}
+	case SHOP:
+	{
+		LuaRef chooseTMD = getGlobal(state.get(), "choose_tmds");
+		LuaRef retVal = chooseTMD(personParams, tourModeDestinationParams);
+		return retVal.cast<int>();
+		break;
+	}
+	case OTHER:
+	{
+		LuaRef chooseTM = getGlobal(state.get(), "choose_tmdo");
+		LuaRef retVal = chooseTM(personParams, tourModeDestinationParams);
+		return retVal.cast<int>();
+		break;
+	}
+	default:
+	{
+		throw std::runtime_error("Tour mode model cannot be invoked for Shopping and Other tour types");
+	}
+	}
+}
 
 
 

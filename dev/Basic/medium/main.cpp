@@ -383,6 +383,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
  */
 bool performMainDemand(){
 	PredayManager predayManager;
+	predayManager.loadZones(db::MONGO_DB);
 	predayManager.loadPersons(db::MONGO_DB);
 	predayManager.distributeAndProcessPersons(1);
 	return true;

@@ -62,7 +62,7 @@ namespace medium {
 	const std::string DB_GETALL_PREDAY_PERSON = "SELECT * FROM " + DB_VIEW_PREDAY_PERSON + LIMIT;
 
 	/**
-	 * Fields for mongoDB population database
+	 * Fields for mongoDB population data
 	 */
 	const std::string MONGO_FIELD_ID = "_id";
 	const std::string MONGO_FIELD_HOUSEHOLD_ID = "hhid";
@@ -83,6 +83,35 @@ namespace medium {
 	const std::string MONGO_FIELD_CAR_OWN_OFFPEAK = "car_own_offpeak";
 	const std::string MONGO_FIELD_MOTOR_OWN = "motor_own";
 
+	/**
+	 * Fields for mongoDB Zone data
+	 */
+	const std::string MONGO_FIELD_ZONE_ID = "zone_id";
+	const std::string MONGO_FIELD_ZONE_CODE = "zone_code";
+	const std::string MONGO_FIELD_ZONE_SHOPS = "shop";
+	const std::string MONGO_FIELD_ZONE_PARKING_RATE = "parking_rate";
+	const std::string MONGO_FIELD_ZONE_RESIDENT_WORKERS = "resident_workers";
+	const std::string MONGO_FIELD_ZONE_CENTRAL_ZONE = "central_dummy";
+	const std::string MONGO_FIELD_ZONE_EMPLOYMENT = "employment";
+	const std::string MONGO_FIELD_ZONE_POPULATION = "population";
+	const std::string MONGO_FIELD_ZONE_AREA = "area";
+	const std::string MONGO_FIELD_ZONE_TOTAL_ENROLLMENT = "total_enrollment";
+	const std::string MONGO_FIELD_ZONE_RESIDENT_STUDENTS = "resident_students";
+
+	/**
+	 * Fields for MongoDB cost data
+	 */
+	const std::string MONGO_FIELD_COST_ORIGIN = "origin";
+	const std::string MONGO_FIELD_COST_DESTINATION = "destin";
+	const std::string MONGO_FIELD_COST_PUB_WTT = "pub_wtt";
+	const std::string MONGO_FIELD_COST_CAR_IVT = "car_ivt";
+	const std::string MONGO_FIELD_COST_PUB_OUT = "pub_out";
+	const std::string MONGO_FIELD_COST_PUB_WALKT = "pub_walkt";
+	const std::string MONGO_FIELD_COST_DISTANCE = "distance";
+	const std::string MONGO_FIELD_COST_CAR_ERP = "car_cost_erp";
+	const std::string MONGO_FIELD_COST_PUB_IVT = "pub_ivt";
+	const std::string MONGO_FIELD_COST_AVG_TRANSFER = "avg_transfer";
+	const std::string MONGO_FIELD_COST_PUB_COST = "pub_cost";
 
 } // end namespace medium
 } // end namespace sim_mob

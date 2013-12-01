@@ -31,7 +31,7 @@ namespace medium {
  */
 class PredaySystem {
 public:
-	PredaySystem(PersonParams& personParams);
+	PredaySystem(PersonParams& personParams, boost::unordered_map<int, ZoneParams>& zoneMap);
 	virtual ~PredaySystem();
 
 	/**
@@ -110,6 +110,11 @@ private:
 	 * The parameters for a person is obtained from the population and set in personParams.
 	 */
     PersonParams personParams;
+
+    /**
+     * Reference to map of zone_id -> ZoneParams
+     */
+    boost::unordered_map<int, ZoneParams>& zoneMap;
 
     /**
      * list of tours for this person

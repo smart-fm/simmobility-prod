@@ -14,6 +14,7 @@
 
 #include "behavioral/params/PersonParams.hpp"
 #include "behavioral/params/TourModeParams.hpp"
+#include "behavioral/params/TourModeDestinationParams.hpp"
 #include "lua/LuaModel.hpp"
 
 namespace sim_mob {
@@ -65,6 +66,14 @@ public:
 			    5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi)
 	 */
 	int predictTourMode(PersonParams& personParams, TourModeParams& tourModeParams) const;
+
+	/**
+	 * Predicts the mode and destination for the tour together for tours to unusual locations
+	 *
+	 * @param personParam object containing person and household related variables
+	 * @param tourModeDestinationParams parameters specific to tour mode-destination models
+	 */
+	int predictTourModeDestination(PersonParams& personParams, TourModeDestinationParams& tourModeParams) const;
 
 
 private:

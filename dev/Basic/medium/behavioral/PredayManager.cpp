@@ -21,6 +21,7 @@
 #include "database/DB_Config.hpp"
 #include "database/PopulationSqlDao.hpp"
 #include "database/PopulationMongoDao.hpp"
+#include "database/ZoneCostMongoDao.hpp"
 #include "util/LangHelpers.hpp"
 
 using namespace sim_mob;
@@ -64,13 +65,39 @@ void sim_mob::medium::PredayManager::loadPersons(BackendType dbType) {
 	}
 }
 
+void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType) {
+	switch(dbType) {
+	case POSTGRES:
+	{
+		throw std::runtime_error("Zone information is not available in PostgreSQL yet");
+		break;
+	}
+	case MONGO_DB:
+	{
+		std::string zoneCollectionName = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo").collectionName.at("Zone");
+		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+		std::string emptyString;
+		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+		ZoneMongoDao zoneDao(dbConfig, db.dbName, zoneCollectionName);
+		zoneDao.getAllZones(zoneMap);
+		break;
+	}
+	default:
+	{
+		throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
+	}
+	}
+}
+
 void sim_mob::medium::PredayManager::distributeAndProcessPersons(uint16_t numWorkers) {
 	processPersons(personList);
 }
 
+
+
 void sim_mob::medium::PredayManager::processPersons(PersonList& persons) {
 	for(PersonList::iterator i = persons.begin(); i!=persons.end(); i++) {
-		PredaySystem predaySystem(*i);
+		PredaySystem predaySystem(*i, zoneMap);
 		predaySystem.planDay();
 	}
 }

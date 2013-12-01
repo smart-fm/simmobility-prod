@@ -10,12 +10,15 @@
  */
 
 #pragma once
+#include <boost/unordered_map.hpp>
 #include "params/PersonParams.hpp"
+#include "params/ZoneCostParams.hpp"
 #include "database/DB_Connection.hpp"
 
 namespace sim_mob {
 namespace medium {
 typedef std::vector<PersonParams> PersonList;
+typedef boost::unordered_map<int, ZoneParams> ZoneMap;
 
 class PredayManager {
 public:
@@ -23,6 +26,11 @@ public:
 	 * Gets person data from the database and stores corresponding PersonParam pointers in personList.
 	 */
 	void loadPersons(db::BackendType dbType);
+
+	/**
+	 * Gets details of all mtz zones
+	 */
+	void loadZones(db::BackendType dbType);
 
 	/**
 	 * Distributes persons to different threads and starts the threads which process the persons
@@ -38,6 +46,8 @@ private:
 	void processPersons(PersonList& persons);
 
 	PersonList personList;
+
+	ZoneMap zoneMap;
 
 };
 } //end namespace medium

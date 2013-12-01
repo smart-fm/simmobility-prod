@@ -6,7 +6,7 @@
  * PopulationMongoDao.hpp
  *
  *  Created on: Nov 28, 2013
- *      Author: harish
+ *      Author: Harish Loganathan
  */
 
 #pragma once

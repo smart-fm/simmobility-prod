@@ -118,7 +118,7 @@ local function computeUtilities(params,dbparams)
 	local income_id = params.income_id
 	local income_cat = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
 	local income_mode = income_cat[income_id]
-	local missing_income = params.missing_income
+	local missing_income = (params.income_id >= 12) and 1 or 0
 
 	--params.car_own_normal is from household table
 	local zero_car = params.car_own_normal == 0 and 1 or 0
@@ -191,39 +191,39 @@ local function computeUtilities(params,dbparams)
 	local shop = {}
 
 	for i =1,1092 do
-		--dbparams.cost_public_first[i] = AM[(origin,destination[i])]['pub_cost']
-		--dbparams.cost_public_second[i] = PM[(destination[i],origin)]['pub_cost']
-		--origin is home, destination[i] is zone from 1 to 1092
+		--dbparams.cost_public_first(i) = AM[(origin,destination[i])]['pub_cost']
+		--dbparams.cost_public_second(i) = PM[(destination[i],origin)]['pub_cost']
+		--origin is home, destination(i) is zone from 1 to 1092
 		--0 if origin == destination
-		cost_public_first[i] = dbparams.cost_public_first[i]
-		cost_public_second[i] = dbparams.cost_public_second[i]
+		cost_public_first[i] = dbparams.cost_public_first(i)
+		cost_public_second[i] = dbparams.cost_public_second(i)
 		cost_bus[i] = cost_public_first[i] + cost_public_second[i]
 		cost_mrt[i] = cost_public_first[i] + cost_public_second[i]
 		cost_private_bus[i] = cost_public_first[i] + cost_public_second[i]
 
-		--dbparams.cost_car_ERP_first[i] = AM[(origin,destination[i])]['car_cost_erp']
-		--dbparams.cost_car_ERP_second[i] = PM[(destination[i],origin)]['car_cost_erp']
-		--dbparams.cost_car_OP_first[i] = AM[(origin,destination[i])]['distance']*0.147
-		--dbparams.cost_car_OP_second[i] = PM[(destination[i],origin)]['distance']*0.147
-		--dbparams.cost_car_parking[i] = 8 * ZONE[destination[i]]['parking_rate']
+		--dbparams.cost_car_ERP_first(i) = AM[(origin,destination[i])]['car_cost_erp']
+		--dbparams.cost_car_ERP_second(i) = PM[(destination[i],origin)]['car_cost_erp']
+		--dbparams.cost_car_OP_first(i) = AM[(origin,destination[i])]['distance']*0.147
+		--dbparams.cost_car_OP_second(i) = PM[(destination[i],origin)]['distance']*0.147
+		--dbparams.cost_car_parking(i) = 8 * ZONE[destination[i]]['parking_rate']
 		--for the above 5 variables, origin is home, destination[i] is tour destination from 1 to 1092
 		--0 if origin == destination
-		cost_drive1[i] = cost_car_ERP_first[i]+cost_car_ERP_second[i]+cost_car_OP_first[i]+cost_car_OP_second[i]+cost_car_parking[i]
-		cost_share2[i] = cost_car_ERP_first[i]+cost_car_ERP_second[i]+cost_car_OP_first[i]+cost_car_OP_second[i]+cost_car_parking[i]/2
-		cost_share3[i] = cost_car_ERP_first[i]+cost_car_ERP_second[i]+cost_car_OP_first[i]+cost_car_OP_second[i]+cost_car_parking[i]/3
-		cost_motor[i] = 0.5*(cost_car_ERP_first[i]+cost_car_ERP_second[i]+cost_car_OP_first[i]+cost_car_OP_second[i])+0.65*cost_car_parking[i]
+		cost_drive1[i] = dbparams.cost_car_ERP_first(i)+dbparams.cost_car_ERP_second(i)+dbparams.cost_car_OP_first(i)+dbparams.cost_car_OP_second(i)+dbparams.cost_car_parking(i)
+		cost_share2[i] = dbparams.cost_car_ERP_first(i)+dbparams.cost_car_ERP_second(i)+dbparams.cost_car_OP_first(i)+dbparams.cost_car_OP_second(i)+dbparams.cost_car_parking(i)/2
+		cost_share3[i] = dbparams.cost_car_ERP_first(i)+dbparams.cost_car_ERP_second(i)+dbparams.cost_car_OP_first(i)+dbparams.cost_car_OP_second(i)+dbparams.cost_car_parking(i)/3
+		cost_motor[i] = 0.5*(dbparams.cost_car_ERP_first(i)+dbparams.cost_car_ERP_second(i)+dbparams.cost_car_OP_first(i)+dbparams.cost_car_OP_second(i))+0.65*dbparams.cost_car_parking(i)
 
-		--dbparams.walk_distance1[i]= AM[(origin,destination[i])]['AM2dis']
-		--dbparams.walk_distance2= PM[(destination[i],origin)]['PM2dis']
-		--dbparams.central_dummy[i]=ZONE[destination[i]]['central_dummy']
+		--dbparams.walk_distance1(i)= AM[(origin,destination[i])]['AM2dis']
+		--dbparams.walk_distance2(i)= PM[(destination[i],origin)]['PM2dis']
+		--dbparams.central_dummy(i)=ZONE[destination[i]]['central_dummy']
 		--origin is home mtz, destination[i] is zone from 1 to 1092
 		--0 if origin == destination
-		d1[i] = dbparams.walk_distance1[i]
-		d2[i] = dbparams.walk_distance2[i]
-		central_dummy[i] = dbparams.central_dummy[i]
+		d1[i] = dbparams.walk_distance1(i)
+		d2[i] = dbparams.walk_distance2(i)
+		central_dummy[i] = dbparams.central_dummy(i)
 
-		cost_taxi_1[i] = 3.4+((d1[i]*(d1[i]>10 and 1 or 0)-10*(d1[i]>10 and 1 or 0))/0.35+(d1[i]*(d1[i]<=10 and 1 or 0)+10*(d1[i]>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_first[i] + central_dummy[i]*3
-		cost_taxi_2[i] = 3.4+((d2[i]*(d2[i]>10 and 1 or 0)-10*(d2[i]>10 and 1 or 0))/0.35+(d2[i]*(d2[i]<=10 and 1 or 0)+10*(d2[i]>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_second[i] + central_dummy[i]*3
+		cost_taxi_1[i] = 3.4+((d1[i]*(d1[i]>10 and 1 or 0)-10*(d1[i]>10 and 1 or 0))/0.35+(d1[i]*(d1[i]<=10 and 1 or 0)+10*(d1[i]>10 and 1 or 0))/0.4)*0.22+ dbparams.cost_car_ERP_first(i)+central_dummy[i]*3
+		cost_taxi_2[i] = 3.4+((d2[i]*(d2[i]>10 and 1 or 0)-10*(d2[i]>10 and 1 or 0))/0.35+(d2[i]*(d2[i]<=10 and 1 or 0)+10*(d2[i]>10 and 1 or 0))/0.4)*0.22+ dbparams.cost_car_ERP_second(i)+central_dummy[i]*3
 		cost_taxi[i] = cost_taxi_1[i] + cost_taxi_2[i]
 
 		cost_over_income_bus[i]=30*cost_bus[i]/(0.5+income_mid)
@@ -235,21 +235,21 @@ local function computeUtilities(params,dbparams)
 		cost_over_income_motor[i]=30*cost_motor[i]/(0.5+income_mid)
 		cost_over_income_taxi[i]=30*cost_taxi[i]/(0.5+income_mid)
 
-		--dbparams.tt_public_ivt_first[i] = AM[(origin,destination[i])]['pub_ivt']
-		--dbparams.tt_public_ivt_second[i] = PM[(destination[i],origin)]['pub_ivt']
-		--dbparams.tt_public_out_first[i] = AM[(origin,destination[i])]['pub_out']
-		--dbparams.tt_public_out_second[i] = PM[(destination[i],origin)]['pub_out']
+		--dbparams.tt_public_ivt_first(i) = AM[(origin,destination[i])]['pub_ivt']
+		--dbparams.tt_public_ivt_second(i) = PM[(destination[i],origin)]['pub_ivt']
+		--dbparams.tt_public_out_first(i) = AM[(origin,destination[i])]['pub_out']
+		--dbparams.tt_public_out_second(i) = PM[(destination[i],origin)]['pub_out']
 		--for the above 4 variables, origin is home, destination[i] is zone from 1 to 1092
 		--0 if origin == destination
-		tt_public_ivt_first[i] = dbparams.tt_public_ivt_first[i]
-		tt_public_ivt_second[i] = dbparams.tt_public_ivt_second[i]
-		tt_public_out_first[i] = dbparams.tt_public_out_first[i]
-		tt_public_out_second[i] = dbparams.tt_public_out_second[i]
+		tt_public_ivt_first[i] = dbparams.tt_public_ivt_first(i)
+		tt_public_ivt_second[i] = dbparams.tt_public_ivt_second(i)
+		tt_public_out_first[i] = dbparams.tt_public_out_first(i)
+		tt_public_out_second[i] = dbparams.tt_public_out_second(i)
 
-		--dbparams.tt_car_ivt_first[i] = AM[(origin,destination[i])]['car_ivt']
-		--dbparams.tt_car_ivt_second[i] = PM[(destination[i],origin)]['car_ivt']
-		tt_car_ivt_first[i] = dbparams.tt_car_ivt_first[i]
-		tt_car_ivt_second[i] = dpparams.tt_car_ivt_second[i]
+		--dbparams.tt_car_ivt_first(i) = AM[(origin,destination[i])]['car_ivt']
+		--dbparams.tt_car_ivt_second(i) = PM[(destination[i],origin)]['car_ivt']
+		tt_car_ivt_first[i] = dbparams.tt_car_ivt_first(i)
+		tt_car_ivt_second[i] = dbparams.tt_car_ivt_second(i)
 
 		tt_bus[i] = tt_public_ivt_first[i]+ tt_public_ivt_second[i]+tt_public_out_first[i]+tt_public_out_second[i]
 		tt_mrt[i] = tt_public_ivt_first[i]+ tt_public_ivt_second[i]+tt_public_out_first[i]+tt_public_out_second[i]
@@ -261,19 +261,19 @@ local function computeUtilities(params,dbparams)
 		tt_walk[i] = (d1[i]+d2[i])/5
 		tt_taxi[i] = tt_car_ivt_first[i] + tt_car_ivt_second[i] + 1.0/6
 
-		--dbparams.average_transfer_number[i] = (AM[(origin,destination[i])]['avg_transfer'] + PM[(destination[i],origin)]['avg_transfer'])/2
+		--dbparams.average_transfer_number(i) = (AM[(origin,destination[i])]['avg_transfer'] + PM[(destination[i],origin)]['avg_transfer'])/2
 		--origin is home, destination[i] is zone from 1 to 1092
 		-- 0 if origin == destination
-		average_transfer_number[i] = dpparams.average_transfer_number[i]
+		average_transfer_number[i] = dbparams.average_transfer_number(i)
 
-		--dbparams.employment[i] = ZONE[i]['employment']
-		--dbparams.population[i] = ZONE[i]['population']
-		--dbparams.area[i] = ZONE[i]['area']
-		--dbparams.shop[i] = ZONE[i]['shop']
-		employment[i] = dbparams.employment[i]
-		population[i] = dbparams.population[i]
-		area[i] = dbparams.area[i]
-		shop[i] = dbparams.shop[i]
+		--dbparams.employment(i) = ZONE[i]['employment']
+		--dbparams.population(i) = ZONE[i]['population']
+		--dbparams.area(i) = ZONE[i]['area']
+		--dbparams.shop(i) = ZONE[i]['shop']
+		employment[i] = dbparams.employment(i)
+		population[i] = dbparams.population(i)
+		area[i] = dbparams.area(i)
+		shop[i] = dbparams.shop(i)
 	end
 
 	local V_counter = 0
@@ -340,7 +340,7 @@ end
 local availability = {}
 local function computeAvailabilities(params,dbparams)
 	for i = 1, 1092*9 do 
-	availability[i] = dbparams.availability[i]
+	availability[i] = dbparams.availability(i)
 end
 }
 end

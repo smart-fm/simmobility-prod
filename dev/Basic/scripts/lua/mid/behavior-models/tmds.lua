@@ -117,7 +117,7 @@ local function computeUtilities(params,dbparams)
 	local income_id = params.income_id
 	local income_cat = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
 	local income_mode = income_cat[income_id]
-	local missing_income = params.missing_income
+	local missing_income = (params.income_id >= 12) and 1 or 0
 
 	--params.car_own_normal is from household table
 	local zero_car = params.car_own_normal == 0 and 1 or 0
@@ -190,21 +190,21 @@ local function computeUtilities(params,dbparams)
 	local shop = {}
 
 	for i =1,1092 do
-		--dbparams.cost_public_first[i] = AM[(origin,destination[i])]['pub_cost']
-		--dbparams.cost_public_second[i] = PM[(destination[i],origin)]['pub_cost']
+		--dbparams.cost_public_first(i) = AM[(origin,destination[i])]['pub_cost']
+		--dbparams.cost_public_second(i) = PM[(destination[i],origin)]['pub_cost']
 		--origin is home, destination[i] is zone from 1 to 1092
 		--0 if origin == destination
-		cost_public_first[i] = dbparams.cost_public_first[i]
-		cost_public_second[i] = dbparams.cost_public_second[i]
+		cost_public_first[i] = dbparams.cost_public_first(i)
+		cost_public_second[i] = dbparams.cost_public_second(i)
 		cost_bus[i] = cost_public_first[i] + cost_public_second[i]
 		cost_mrt[i] = cost_public_first[i] + cost_public_second[i]
 		cost_private_bus[i] = cost_public_first[i] + cost_public_second[i]
 
-		--dbparams.cost_car_ERP_first[i] = AM[(origin,destination[i])]['car_cost_erp']
-		--dbparams.cost_car_ERP_second[i] = PM[(destination[i],origin)]['car_cost_erp']
-		--dbparams.cost_car_OP_first[i] = AM[(origin,destination[i])]['distance']*0.147
-		--dbparams.cost_car_OP_second[i] = PM[(destination[i],origin)]['distance']*0.147
-		--dbparams.cost_car_parking[i] = 8 * ZONE[destination[i]]['parking_rate']
+		--dbparams.cost_car_ERP_first(i) = AM[(origin,destination[i])]['car_cost_erp']
+		--dbparams.cost_car_ERP_second(i) = PM[(destination[i],origin)]['car_cost_erp']
+		--dbparams.cost_car_OP_first(i) = AM[(origin,destination[i])]['distance']*0.147
+		--dbparams.cost_car_OP_second(i) = PM[(destination[i],origin)]['distance']*0.147
+		--dbparams.cost_car_parking(i) = 8 * ZONE[destination[i]]['parking_rate']
 		--for the above 5 variables, origin is home, destination[i] is tour destination from 1 to 1092
 		--0 if origin == destination
 		cost_drive1[i] = cost_car_ERP_first[i]+cost_car_ERP_second[i]+cost_car_OP_first[i]+cost_car_OP_second[i]+cost_car_parking[i]

@@ -43,7 +43,7 @@
           	<database id="fm_local" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
-                <dbname value="SimMobility_DB_New"/>
+                <dbname value="SimMobility_DB_WholeSGNew"/>
             </database>
         </databases>
 	
@@ -117,7 +117,7 @@
                 <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('saturday')"/>
                 <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
                 <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
-                <mapping name="busstop" procedure="get_bus_stop_bugis()"/>
+                <mapping name="busstop" procedure="get_bus_stop_sg()"/>
             </proc_map>
                 
             <!-- The large Bugis-area network -->
@@ -278,7 +278,7 @@
 	<!-- If loading from the database, which database, proc_map, and credentials are used? -->
 	<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
 	<!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
-		<network_database database="fm_local" credentials="fm_local_yaojin" proc_map="bugis_large"/>
+		<network_database database="fm_local" credentials="fm_local_yaojin" proc_map="wholeSG"/>
 
         <!-- Where to find our various schema files. -->
         <!-- Overrides xsi:schemaLocation in the files themselves. -->
@@ -369,7 +369,7 @@
     </pedestrians>
         
     <buscontrollers>
-		<buscontroller time="0" />
+		<!-- <buscontroller time="0" /> -->
 	</buscontrollers>
 </config>
 

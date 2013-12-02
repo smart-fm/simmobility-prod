@@ -718,6 +718,11 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 
 		//The following are only set for Trips or Activities respectively
 		if(it->itemType == sim_mob::TripChainItem::IT_TRIP) {
+			// check stops
+			if(it->tripfromLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP && it->triptoLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP) {
+				tripchains_.push_back(*it);
+				std::cout << it->tmp_fromLocationNodeID << it->tmp_toLocationNodeID << std::endl;
+			}
 			//check nodes
 			if(nodes_.count(it->tmp_fromLocationNodeID)==0) {
 				std::cout<< "Invalid trip chain fromNode reference."<<std::endl;
@@ -1198,12 +1203,23 @@ sim_mob::Activity* MakeActivity(const TripChainItem& tcItem) {
 
 
 sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
+	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 	sim_mob::Trip* tripToSave = new sim_mob::Trip();
 	tripToSave->tripID = tcItem.tripID;
 	tripToSave->setPersonID(tcItem.personID);
 	tripToSave->itemType = tcItem.itemType;
 	tripToSave->sequenceNumber = tcItem.sequenceNumber;
-	tripToSave->fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
+	if(tcItem.fromLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP) {
+		std::string fromStop_no = boost::lexical_cast<std::string>(tcItem.tmp_fromLocationNodeID);
+		sim_mob::BusStop* fromBusStop = config.getBusStopNo_BusStops()[fromStop_no];
+		if(fromBusStop) {
+			tripToSave->fromLocation = sim_mob::WayPoint(fromBusStop);
+		} else {
+			return nullptr;
+		}
+	} else {
+		tripToSave->fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
+	}
 	tripToSave->fromLocationType = tcItem.fromLocationType;
 	tripToSave->startTime = tcItem.startTime;
 	return tripToSave;
@@ -1345,13 +1361,28 @@ sim_mob::BusTrip* MakeBusTrip(const TripChainItem& tcItem, const std::map<std::s
 }
 
 sim_mob::SubTrip MakeSubTrip(const TripChainItem& tcItem) {
+	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 	sim_mob::SubTrip aSubTripInTrip;
 	aSubTripInTrip.setPersonID(tcItem.personID);
 	aSubTripInTrip.itemType = tcItem.itemType;
 	aSubTripInTrip.tripID = tcItem.tmp_subTripID;
-	aSubTripInTrip.fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
+	if(tcItem.fromLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP) {
+		std::string fromStop_no = boost::lexical_cast<std::string>(tcItem.tmp_fromLocationNodeID);
+		sim_mob::BusStop* fromBusStop = config.getBusStopNo_BusStops()[fromStop_no];
+		if(fromBusStop) {
+			aSubTripInTrip.fromLocation = sim_mob::WayPoint(fromBusStop);
+		}
+	} else {
+		aSubTripInTrip.fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
+	}
 	aSubTripInTrip.fromLocationType = tcItem.fromLocationType;
-	aSubTripInTrip.toLocation = sim_mob::WayPoint( tcItem.toLocation->generatedNode );
+	if(tcItem.toLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP) {
+		std::string toStop_no = boost::lexical_cast<std::string>(tcItem.tmp_toLocationNodeID);
+		sim_mob::BusStop* toBusStop = config.getBusStopNo_BusStops()[toStop_no];
+		aSubTripInTrip.toLocation = sim_mob::WayPoint(toBusStop);
+	} else {
+		aSubTripInTrip.toLocation = sim_mob::WayPoint( tcItem.toLocation->generatedNode );
+	}
 	aSubTripInTrip.toLocationType = tcItem.toLocationType;
 	aSubTripInTrip.mode = tcItem.mode;
 	aSubTripInTrip.isPrimaryMode = tcItem.isPrimaryMode;
@@ -1362,11 +1393,16 @@ sim_mob::SubTrip MakeSubTrip(const TripChainItem& tcItem) {
 
 void AddSubTrip(sim_mob::Trip* parent, const sim_mob::SubTrip& subTrip) {
 	// Update the trip destination so that toLocation eventually points to the destination of the trip.
+	if(!parent) {
+		return;
+	}
 	parent->toLocation = subTrip.toLocation;
 	parent->toLocationType = subTrip.toLocationType;
 
-	//Add it to the list.
-	parent->addSubTrip(subTrip);
+	if(subTrip.fromLocation.busStop_ && subTrip.toLocation.busStop_) {
+		//Add it to the list.
+		parent->addSubTrip(subTrip);
+	}
 }
 
 void DatabaseLoader::DecorateAndTranslateObjects()
@@ -1597,8 +1633,8 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 
 	sim_mob::aimsun::Loader::FixupLanesAndCrossings(res);
 
-	//Save all trip chains
-	saveTripChains(tcs);
+//	//Save all trip chains
+//	saveTripChains(tcs);
 
 	//Save all bus stops
 	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++) {
@@ -1631,6 +1667,8 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 //			std::cout << " segment 100001500 added a busStop " << busstop->getRoadItemID() << "  at obstacle " << distOrigin << std::endl;
 //		}
 	}
+	//Save all trip chains
+	saveTripChains(tcs);
 
 	/*vahid:
 	 * and Now we extend the signal functionality by adding extra information for signal's split plans, offset, cycle length, phases

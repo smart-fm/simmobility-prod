@@ -117,7 +117,7 @@
                 <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('saturday')"/>
                 <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
                 <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
-                <mapping name="busstop" procedure="get_bus_stop_sg()"/>
+                <mapping name="busstop" procedure="get_bus_stop_bugis()"/>
             </proc_map>
                 
             <!-- The large Bugis-area network -->

@@ -16,7 +16,9 @@
 #include <boost/shared_ptr.hpp>
 #include "EventListener.hpp"
 
-//Do not use these MACRO outside of this file... Only for readability
+///Do not use these MACRO outside of this file... Only for readability
+///Note that this macro is also used inside EventManager.hpp
+///(If you ever manage to use it ONLY in one file, you can #undef it at the end of that file. ~Seth)
 #define DECLARATION_CALLBACK_PTR(PtrName, ListenerType, ArgsType)\
 void (ListenerType::*PtrName)(\
 sim_mob::event::EventId id,\

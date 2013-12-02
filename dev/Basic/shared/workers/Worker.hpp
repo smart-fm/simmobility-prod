@@ -37,7 +37,6 @@ public:
 
 
 
-DECLARE_CUSTOM_CALLBACK_TYPE(UpdateEventArgs)
 class UpdateEventArgs: public sim_mob::event::EventArgs {
 	const sim_mob::Entity *entity;
 public:

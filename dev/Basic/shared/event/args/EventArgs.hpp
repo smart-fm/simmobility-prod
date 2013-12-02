@@ -29,12 +29,5 @@ namespace sim_mob {
 
     }
 }
-/**
- * Call this before you EventArgs implementation.
- */
-#define DECLARE_CUSTOM_CALLBACK_TYPE(type) class type; \
-        typedef void (sim_mob::event::EventListener::*type##ContextCallback)\
-        (sim_mob::event::EventId id, sim_mob::event::Context ctxId, \
-                sim_mob::event::EventPublisher* sender, const type& args);
 
 

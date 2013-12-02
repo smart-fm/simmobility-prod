@@ -52,6 +52,11 @@ private:
 	const sim_mob::Signal* signal;
 
 	/**
+	 *  convert factor from second to millisecond
+	 */
+	const float SECOND_MS;
+
+	/**
 	 * segments in this conflux (on upstream links)
 	 * stores std::map<link which flows into the multinode, segments on the link>
 	 */

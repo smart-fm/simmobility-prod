@@ -13,25 +13,70 @@
 
 #include <list>
 #include <boost/unordered_map.hpp>
+#include <boost/shared_ptr.hpp>
 #include "EventListener.hpp"
 
-namespace {
-    /**
-     * Event Callback definition.
-     */
-    typedef void (sim_mob::event::EventListener::*EventContextCallback)(
-            sim_mob::event::EventId id,
-            sim_mob::event::Context ctxId,
-            sim_mob::event::EventPublisher* sender,
-            const sim_mob::event::EventArgs& args);
-}
+//Do not use these MACRO outside of this file... Only for readability
+#define DECLARATION_CALLBACK_PTR(PtrName, ListenerType, ArgsType)\
+void (ListenerType::*PtrName)(\
+sim_mob::event::EventId id,\
+sim_mob::event::Context ctxId,\
+sim_mob::event::EventPublisher* sender,\
+const ArgsType& args)
 
 namespace sim_mob {
 
     namespace event {
 
+        /**
+         * Interface for Callbacks.
+         */
+        struct I_Callback {
+        public:
+
+            virtual ~I_Callback() {
+            }
+
+            virtual void operator()(
+                    sim_mob::event::EventListener* listener,
+                    sim_mob::event::EventId id,
+                    sim_mob::event::Context ctxId,
+                    sim_mob::event::EventPublisher* sender,
+                    const sim_mob::event::EventArgs& args) = 0;
+        };
+
+        /**
+         * Callback function template implementation.
+         */
+        template <typename L, typename T>
+        struct CallbackImpl : public I_Callback {
+            typedef DECLARATION_CALLBACK_PTR(CallbackRef, L, T);
+            
+        public:
+            CallbackImpl(CallbackRef callback) 
+                : callback(callback) {
+            }
+
+            virtual ~CallbackImpl() {
+            }
+
+            void operator()(
+                    sim_mob::event::EventListener* listener,
+                    sim_mob::event::EventId id,
+                    sim_mob::event::Context ctxId,
+                    sim_mob::event::EventPublisher* sender,
+                    const sim_mob::event::EventArgs& args) {
+                if (listener) {
+                    (dynamic_cast<L*> (listener)->*callback)(id, ctxId, sender,
+                            dynamic_cast<const T&> (args));
+                }
+            }
+        private:
+            CallbackRef callback;
+        };
+
         typedef EventListener* EventListenerPtr;
-        typedef EventContextCallback Callback;
+        typedef boost::shared_ptr<I_Callback> Callback;
 
         /**
          * Struct to store a Listener entry.
@@ -89,8 +134,8 @@ namespace sim_mob {
              * @param ctxId Id of the context.
              * @param args of the event.
              */
-            virtual void publish(EventId id, Context ctxId, 
-                const EventArgs& args);
+            virtual void publish(EventId id, Context ctxId,
+                    const EventArgs& args);
 
             /**
              * Subscribes the given listener to the given EventId.
@@ -101,19 +146,14 @@ namespace sim_mob {
              * @param callback custom event handler.
              * @param context to filter the events.
              */
-            template<typename T, typename L>
+            template<typename L, typename T>
             void subscribe(EventId id,
-                    EventListenerPtr listener,
-                    void (L::*callback)(
-                    sim_mob::event::EventId id,
-                    sim_mob::event::Context ctxId,
-                    sim_mob::event::EventPublisher* sender,
-                    const T& args),
+                    L* listener,
+                    DECLARATION_CALLBACK_PTR(callback, L, T),
                     Context context = 0) {
                 if (callback) {
-                    subscribe(id, listener,
-                            (EventContextCallback)callback,
-                            context);
+                    Callback cb(new CallbackImpl<L, T>(callback));
+                    subscribe(id, listener, cb, context);
                 } else {
                     subscribe(id, listener, context);
                 }
@@ -129,7 +169,7 @@ namespace sim_mob {
              * @param context to filter events.
              */
             virtual void subscribe(EventId id, EventListenerPtr listener,
-                Context context = 0);
+                    Context context = 0);
 
             /**
              * UnSubscribes the given listener to the given EventId
@@ -162,7 +202,7 @@ namespace sim_mob {
              * 
              */
             void unSubscribeAll(EventId id);
-            
+
             /**
              * UnSubscribes all context subscribers for the given event id and context.
              *
@@ -172,7 +212,7 @@ namespace sim_mob {
              * @param ctx context.
              */
             void unSubscribeAll(EventId id, Context ctx);
-            
+
             /**
              * UnSubscribes the given listener from all events.
              * Attention: This method is not efficient 
@@ -180,7 +220,7 @@ namespace sim_mob {
              * @param listener to unsubscribe.
              */
             void unSubscribeAll(EventListenerPtr listener);
-            
+
         protected:
             /**
              * Subscribes the given listener to the given EventId.
@@ -191,7 +231,7 @@ namespace sim_mob {
              * @param callback custom event handler.
              * @param context to filter the events.
              */
-            virtual void subscribe(EventId id, EventListenerPtr listener, 
+            virtual void subscribe(EventId id, EventListenerPtr listener,
                     Callback callback, Context context = 0);
 
         private:

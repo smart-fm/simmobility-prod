@@ -29,8 +29,6 @@ namespace sim_mob {
     		EM_WND_UPDATED = 1,
     	};
 
-
-        DECLARE_CUSTOM_CALLBACK_TYPE(EM_EventArgs)
         class EM_EventArgs : public EventArgs {
         public:
             EM_EventArgs();
@@ -76,10 +74,20 @@ namespace sim_mob {
              * @param listener to be notified.
              * @param callback to be called when the event is fired.
              */
-            void schedule(const timeslice& target, EventListenerPtr listener,
-                    Callback callback);
+            template<typename L, typename T>
+            void schedule(const timeslice& target, L* listener,
+                   DECLARATION_CALLBACK_PTR(callback, L, T)) {
+                if (callback) {
+                    Callback cb(new CallbackImpl<L, T>(callback));
+                    schedule(target, listener, cb);
+                } else {
+                    schedule(target, listener, Callback());
+                }
+            }
 
         private:
+            void schedule(const timeslice& target, EventListenerPtr listener, 
+                    Callback callback);
 
             /**
              * Timeslice comparator.

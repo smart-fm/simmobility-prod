@@ -75,7 +75,7 @@ void EventManager::update(const timeslice& currTime) {
 
 void EventManager::schedule(const timeslice& target,
         EventListenerPtr listener) {
-    schedule(target, listener, nullptr);
+    schedule(target, listener, Callback());
 }
 
 void EventManager::schedule(const timeslice& target, EventListenerPtr listener,

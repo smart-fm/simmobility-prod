@@ -81,7 +81,9 @@ void EventPublisher::publish(EventId id, Context ctx, const EventArgs& args) {
 
 void EventPublisher::subscribe(EventId id, EventListenerPtr listener,
         Context context) {
-    subscribe(id, listener, &EventListener::onEvent, context);
+    Callback cb(new CallbackImpl<EventListener, EventArgs>
+        (&EventListener::onEvent));
+    subscribe(id, listener, cb, context);
 }
 
 void EventPublisher::subscribe(EventId id, EventListenerPtr listener,
@@ -193,9 +195,9 @@ namespace {
                 while (lstItr != lst.end()) {
                     // notify listener
                     if (globalCtx) {
-                        (((*lstItr).listener)->*((*lstItr).callback))(id, sender, sender, args);
+                        ((*(*lstItr).callback))((*lstItr).listener, id, sender, sender, args);
                     } else {
-                        (((*lstItr).listener)->*((*lstItr).callback))(id, ctx, sender, args);
+                        ((*(*lstItr).callback))((*lstItr).listener, id, ctx, sender, args);
                     }
                     lstItr++;
                 }

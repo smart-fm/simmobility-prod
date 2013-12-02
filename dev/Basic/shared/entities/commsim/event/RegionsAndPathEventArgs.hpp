@@ -2,32 +2,24 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * AllLocationsEventArgs.hpp
- *
- *  Created on: Jul 5, 2013
- *      Author: vahid
- */
-
 #pragma once
-
-#include<iostream>
 
 #include "event/EventListener.hpp"
 #include "entities/commsim/serialization/JsonParser.hpp"
-#include "entities/commsim/broker/Broker.hpp"
 #include "entities/commsim/event/JsonSerializableEventArgs.hpp"
 
 namespace sim_mob {
-
-class AllLocationsEventArgs: public sim_mob::comm::JsonSerializableEventArgs {
-	sim_mob::AgentsList  &registered_Agents;
-
-	void TOJSON(sim_mob::Agent* agent,Json::Value &loc)const;
+class Agent;
+class RegionsAndPathEventArgs : public sim_mob::comm::JsonSerializableEventArgs {
 public:
-	AllLocationsEventArgs(sim_mob::AgentsList &registered_Agents_);
+	RegionsAndPathEventArgs(const sim_mob::Agent *);
+	virtual ~RegionsAndPathEventArgs();
+
 	virtual Json::Value toJSON()const;
-	virtual ~AllLocationsEventArgs();
+
+private:
+	const sim_mob::Agent *agent;
+
 };
 
 } /* namespace sim_mob */

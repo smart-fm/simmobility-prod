@@ -17,7 +17,7 @@ sim_mob::Services::SIM_MOB_SERVICE sim_mob::JsonParser::getServiceType(std::stri
 	return Services::SIMMOB_SRV_UNKNOWN;
 }
 
-bool sim_mob::JsonParser::parsePacketHeader(std::string& input, pckt_header &output, Json::Value &root)
+bool sim_mob::JsonParser::parsePacketHeader(const std::string& input, pckt_header &output, Json::Value &root)
 {
 	Json::Value packet_header;
 	Json::Reader reader;
@@ -56,7 +56,7 @@ bool sim_mob::JsonParser::parseMessageHeader(Json::Value & root, msg_header &out
 }
 
 
-bool sim_mob::JsonParser::parseMessageHeader(std::string& input, msg_header &output)
+bool sim_mob::JsonParser::parseMessageHeader(const std::string& input, msg_header &output)
 {
 	Json::Value root;
 	Json::Reader reader;
@@ -67,7 +67,7 @@ bool sim_mob::JsonParser::parseMessageHeader(std::string& input, msg_header &out
 	return parseMessageHeader(root,output);
 }
 
-bool sim_mob::JsonParser::getPacketMessages(std::string& input, Json::Value &output)
+bool sim_mob::JsonParser::getPacketMessages(const std::string& input, Json::Value &output)
 {
 	Json::Value root;
 	Json::Reader reader;
@@ -94,8 +94,7 @@ bool sim_mob::JsonParser::get_WHOAMI(std::string& input, std::string & type, std
 	}
 
 	if (!((root.isMember("ID")) && (root.isMember("TYPE")))) {
-		WarnOut( "WHOAMI format incomplete.Parsing '" << input
-				<< "' Failed" << std::endl);
+		WarnOut( "WHOAMI format incomplete.Parsing '" << input << "' Failed" << std::endl);
 		return false;
 	}
 	ID = root["ID"].asString();
@@ -123,8 +122,7 @@ bool sim_mob::JsonParser::get_WHOAMI_Services(std::string& input, std::set<sim_m
 		return false;
 	}
 	if (!root.isMember("services")) {
-		WarnOut( "Parsing services in [" << input << "] Failed"
-				<< std::endl);
+		WarnOut( "Parsing services in [" << input << "] Failed" << std::endl);
 		return false;
 	}
 	const Json::Value array = root["services"];

@@ -24,13 +24,13 @@ public:
 	//todo find a way for this hardcoding
 	static sim_mob::Services::SIM_MOB_SERVICE getServiceType(std::string type);
 
-	static bool parsePacketHeader(std::string& input, pckt_header &output, Json::Value &root);
+	static bool parsePacketHeader(const std::string& input, pckt_header &output, Json::Value &root);
 
 	static bool parseMessageHeader(Json::Value & root, msg_header &output);
 
-	static bool parseMessageHeader(std::string& input, msg_header &output);
+	static bool parseMessageHeader(const std::string& input, msg_header &output);
 
-	static bool getPacketMessages(std::string& input, Json::Value &output);
+	static bool getPacketMessages(const std::string& input, Json::Value &output);
 
 	//used for whoami id, type and required services(optional)
 	static bool get_WHOAMI(std::string& input, std::string & type, std::string & ID, std::set<sim_mob::Services::SIM_MOB_SERVICE> &requiredServices);

@@ -11,28 +11,28 @@
 
 
 #include "ClientRegistration.hpp"
-//#include "entities/commsim/client/base/ClinetRegistrationHandler.hpp"
+
+#include <boost/assign/list_of.hpp>
 
 #include "entities/commsim/client/derived/android/AndroidClientRegistration.hpp"
 #include "entities/commsim/client/derived/ns3/NS3ClientRegistration.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 
-#include <boost/assign/list_of.hpp>
-
-namespace sim_mob {
+using namespace sim_mob;
 
 /******************************************************************************************************
  ***********************************ClientRegistrationFactory****************************************
  ******************************************************************************************************
  */
-ClientRegistrationFactory::ClientRegistrationFactory() {
-	//TODO: This might be superfluous; the static initializer already handles it.
-//	sim_mob::Services::ClientTypeMap = boost::assign::map_list_of("ANDROID_EMULATOR", ConfigParams::ANDROID_EMULATOR)("ConfigParams::NS3_SIMULATOR", ConfigParams::NS3_SIMULATOR);
-
+sim_mob::ClientRegistrationFactory::ClientRegistrationFactory()
+{
 }
 
-//gets a handler either from a cache or by creating a new one
-boost::shared_ptr<sim_mob::ClientRegistrationHandler> ClientRegistrationFactory::getHandler(ConfigParams::ClientType type)
+sim_mob::ClientRegistrationFactory::~ClientRegistrationFactory()
+{
+}
+
+boost::shared_ptr<sim_mob::ClientRegistrationHandler> sim_mob::ClientRegistrationFactory::getHandler(ConfigParams::ClientType type)
 {
 	boost::shared_ptr<sim_mob::ClientRegistrationHandler> handler;
 	//if handler is already registered && the registered handler is not null
@@ -67,97 +67,91 @@ boost::shared_ptr<sim_mob::ClientRegistrationHandler> ClientRegistrationFactory:
 	return handler;
 }
 
-ClientRegistrationFactory::~ClientRegistrationFactory() {
-	// TODO Auto-generated destructor stub
-}
 
 /******************************************************************************************************
  ***********************************ClientRegistrationRequest****************************************
  ******************************************************************************************************
  */
 
-ClientRegistrationRequest::ClientRegistrationRequest(const ClientRegistrationRequest& other)
-	:
-		clientID(other.clientID)
-		,client_type(other.client_type)
+sim_mob::ClientRegistrationRequest::ClientRegistrationRequest(const ClientRegistrationRequest& other) :
+	clientID(other.clientID) ,client_type(other.client_type)
+{
+	//if(other.requiredServices.size() > 0)
+	//{
+		requiredServices = other.requiredServices;
+	//}
+
+	//NOTE: Copy semantics on shared_ptrs shouldn't require this check.
+	//if(other.session_)
+	//{
+		session_ = other.session_;
+	//}
+}
+
+sim_mob::ClientRegistrationRequest::ClientRegistrationRequest()
+{
+}
+
+//The default operator= should already accomplish this. Please review. ~Seth
+/*ClientRegistrationRequest& sim_mob::ClientRegistrationRequest::operator=(const ClientRegistrationRequest & rhs)
+{
+	clientID = rhs.clientID;
+	client_type = rhs.client_type;
+	if(rhs.requiredServices.size() > 0)
 	{
-		if(other.requiredServices.size())
-		{
-			requiredServices = other.requiredServices;
-		}
-		if(other.session_)
-		{
-			session_ = other.session_;
-		}
+		requiredServices = rhs.requiredServices;
 	}
-ClientRegistrationRequest::ClientRegistrationRequest()
+	if(session_)
 	{
-		requiredServices.clear();
+		session_ = rhs.session_;
 	}
-	ClientRegistrationRequest & ClientRegistrationRequest::operator=(const ClientRegistrationRequest & rhs)
-	{
+	return *this;
+}*
 
-		clientID = rhs.clientID;
-		client_type = rhs.client_type;
-		if(rhs.requiredServices.size())
-		{
-			requiredServices = rhs.requiredServices;
-		}
-		if(session_)
-		{
-			session_ = rhs.session_;
-		}
-		return *this;
-	}
 
-	/******************************************************************************************************
-	 ***********************************ClientRegistrationPublisher****************************************
-	 ******************************************************************************************************
-	 */
+/******************************************************************************************************
+ ***********************************ClientRegistrationHandler****************************************
+ ******************************************************************************************************
+ */
 
-	ClientRegistrationPublisher::ClientRegistrationPublisher(/*ConfigParams::ClientType type, ClientRegistrationHandler* client*/)
-//			:type(type), client(client)
-	{
+ClientRegistrationPublisher sim_mob::ClientRegistrationHandler::registrationPublisher;
 
-	}
+sim_mob::ClientRegistrationHandler::ClientRegistrationHandler(ConfigParams::ClientType type):type(type)
+{
+	registrationPublisher.registerEvent(type);
+}
 
-	ClientRegistrationPublisher::~ClientRegistrationPublisher()
-	{
+sim_mob::ClientRegistrationHandler::~ClientRegistrationHandler()
+{
+}
 
-	}
-	/******************************************************************************************************
-	 ***********************************ClientRegistrationHandler****************************************
-	 ******************************************************************************************************
-	 */
+sim_mob::event::EventPublisher & sim_mob::ClientRegistrationHandler::getPublisher()
+{
+	return registrationPublisher;
+}
 
-		ClientRegistrationPublisher ClientRegistrationHandler::registrationPublisher;
+/******************************************************************************************************
+ ***********************************ClientRegistrationEventArgs****************************************
+ ******************************************************************************************************
+ */
 
-		ClientRegistrationHandler::ClientRegistrationHandler(ConfigParams::ClientType type):type(type) {
-			registrationPublisher.registerEvent(type);
-		}
-		sim_mob::event::EventPublisher & ClientRegistrationHandler::getPublisher() {
-			return registrationPublisher;
-		}
-		ClientRegistrationHandler::~ClientRegistrationHandler() {
-			// TODO Auto-generated destructor stub
-		}
+sim_mob::ClientRegistrationEventArgs::ClientRegistrationEventArgs(ConfigParams::ClientType type, boost::shared_ptr<ClientHandler> &client) :
+	type(type), client(client)
+{
+}
 
-	/******************************************************************************************************
-	 ***********************************ClientRegistrationEventArgs****************************************
-	 ******************************************************************************************************
-	 */
+sim_mob::ClientRegistrationEventArgs::~ClientRegistrationEventArgs()
+{
+}
 
-		ClientRegistrationEventArgs::ClientRegistrationEventArgs(ConfigParams::ClientType type, boost::shared_ptr<ClientHandler> &client):type(type), client(client) {}
-		boost::shared_ptr<ClientHandler> ClientRegistrationEventArgs::getClient() const
-		{
-			return client;
-		}
-		ConfigParams::ClientType ClientRegistrationEventArgs::getClientType() const
-		{
-			return type;
-		}
-		ClientRegistrationEventArgs::~ClientRegistrationEventArgs(){}
+boost::shared_ptr<ClientHandler> ClientRegistrationEventArgs::getClient() const
+{
+	return client;
+}
 
-} /* namespace sim_mob */
+ConfigParams::ClientType sim_mob::ClientRegistrationEventArgs::getClientType() const
+{
+	return type;
+}
 
 

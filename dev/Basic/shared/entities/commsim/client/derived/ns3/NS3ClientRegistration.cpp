@@ -66,18 +66,24 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 			switch(srv)
 			{
 			case sim_mob::Services::SIMMOB_SRV_TIME:{
-				 PublisherList::dataType p = broker.getPublishers()[sim_mob::Services::SIMMOB_SRV_TIME];
+				 PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_TIME);
 				p->subscribe(COMMEID_TIME, 
                                         clientEntry.get(), 
-                                        &ClientHandler::OnTime);
+                                        &ClientHandler::OnEvent);
 				break;
 			}
 			case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS:{
-				PublisherList::dataType p = broker.getPublishers()[sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS];
+				PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS);
+
+				//NOTE: It does not seem like we even use the "Context" pointer, so I am switching
+				//      this to a regular CALLBACK_HANDLER. Please review. ~Seth
+				//p->subscribe(COMMEID_LOCATION,
+				//	clientEntry.get(),
+				//	&ClientHandler::OnEvent,
+				//	COMMCID_ALL_LOCATIONS);
 				p->subscribe(COMMEID_LOCATION, 
-                                        clientEntry.get(), 
-                                        &ClientHandler::OnAllLocations, 
-                                        (event::Context) COMMCID_ALL_LOCATIONS);
+					clientEntry.get(),
+					&ClientHandler::OnEvent);
 				break;
 			}
 			}

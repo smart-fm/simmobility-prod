@@ -23,56 +23,56 @@
 
 namespace sim_mob {
 
-/******************************************************************************************************
- ***********************************ClientRegistrationRequest****************************************
- ******************************************************************************************************
+
+/**
+ * ClientRegistrationRequest class. No documentation provided.
  */
 class ClientRegistrationRequest {
 public:
+	ClientRegistrationRequest(const ClientRegistrationRequest& other);
+	ClientRegistrationRequest();
+
 	std::string clientID;
 	std::string client_type; //ns3, android emulator, FMOD etc
 	std::set<sim_mob::Services::SIM_MOB_SERVICE> requiredServices;
 	session_ptr session_;
-	ClientRegistrationRequest(const ClientRegistrationRequest& other);
-	ClientRegistrationRequest();
-	ClientRegistrationRequest & operator=(const ClientRegistrationRequest & rhs);
 
+	//ClientRegistrationRequest & operator=(const ClientRegistrationRequest & rhs);
 };
 
-typedef std::multimap<std::string,ClientRegistrationRequest > ClientWaitList; //<client type,registrationrequestform >
-
-/******************************************************************************************************
- ***********************************ClientRegistrationFactory****************************************
- ******************************************************************************************************
- */
 
 class ClientRegistrationHandler;
 
+
+/**
+ * ClientRegistrationFactory class. No documentation provided.
+ */
 class ClientRegistrationFactory {
 	std::map<ConfigParams::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> > ClientRegistrationHandlerMap;
 public:
 	ClientRegistrationFactory();
-	boost::shared_ptr<sim_mob::ClientRegistrationHandler> getHandler(ConfigParams::ClientType type);
 	virtual ~ClientRegistrationFactory();
+
+	///gets a handler either from a cache or by creating a new one
+	boost::shared_ptr<sim_mob::ClientRegistrationHandler> getHandler(ConfigParams::ClientType type);
 };
 
-/******************************************************************************************************
- ***********************************ClientRegistrationPublisher****************************************
- ******************************************************************************************************
+
+/**
+ * ClientRegistrationPublisher class. No documentation provided.
  */
 class ClientRegistrationPublisher : public sim_mob::event::EventPublisher
 {
 public:
-	ClientRegistrationPublisher();
-	virtual ~ClientRegistrationPublisher();
+	virtual ~ClientRegistrationPublisher() {}
 };
 
-/******************************************************************************************************
- ***********************************ClientRegistrationHandler****************************************
- ******************************************************************************************************
- */
+
 class Broker;
 
+/**
+ * ClientRegistrationHandler class. No documentation provided.
+ */
 class ClientRegistrationHandler {
 	ConfigParams::ClientType type;
 	static ClientRegistrationPublisher registrationPublisher;
@@ -83,11 +83,13 @@ public:
 	virtual ~ClientRegistrationHandler();
 };
 
-/******************************************************************************************************
- ***********************************ClientRegistrationEventArgs****************************************
- ******************************************************************************************************
- */
+
+
 class ClientHandler;
+
+/**
+ * ClientRegistrationEventArgs class. No documentation provided.
+ */
 class ClientRegistrationEventArgs: public sim_mob::event::EventArgs {
 	boost::shared_ptr<ClientHandler> client;
 	ConfigParams::ClientType type;

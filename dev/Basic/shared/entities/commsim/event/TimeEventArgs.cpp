@@ -10,21 +10,21 @@
  */
 
 #include "TimeEventArgs.hpp"
-//#include "entities/commsim/serialization/Serialization.hpp"
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
-namespace sim_mob {
+using namespace sim_mob;
 
-TimeEventArgs::TimeEventArgs(timeslice time_): time(time_){
+sim_mob::TimeEventArgs::TimeEventArgs(timeslice time_): time(time_)
+{
 }
 
-TimeEventArgs::~TimeEventArgs() {
+sim_mob::TimeEventArgs::~TimeEventArgs()
+{
 }
 
-Json::Value TimeEventArgs::ToJSON() const{
-	Json::Value mytime = sim_mob::JsonParser::makeTimeData(time.frame(), ConfigManager::GetInstance().FullConfig().baseGranMS());
-	return mytime;
-}
+Json::Value sim_mob::TimeEventArgs::toJSON() const
+{
+	return sim_mob::JsonParser::makeTimeData(time.frame(), ConfigManager::GetInstance().FullConfig().baseGranMS());
 }

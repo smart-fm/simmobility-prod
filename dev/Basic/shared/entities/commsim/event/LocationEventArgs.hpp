@@ -11,20 +11,23 @@
 
 #pragma once
 
-#include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
-#include<iostream>
 #include "entities/commsim/serialization/JsonParser.hpp"
+#include "entities/commsim/event/JsonSerializableEventArgs.hpp"
 
 namespace sim_mob {
 class Agent;
-class LocationEventArgs: public sim_mob::event::EventArgs {
+class LocationEventArgs: public sim_mob::comm::JsonSerializableEventArgs {
 public:
-	const sim_mob::Agent *agent;
 	LocationEventArgs(const sim_mob::Agent *);
-	//todo should be a virtual from a base class
-	/*std::string*/ Json::Value ToJSON()const;
 	virtual ~LocationEventArgs();
+
+	//todo should be a virtual from a base class
+	virtual Json::Value toJSON()const;
+
+private:
+	const sim_mob::Agent *agent;
+
 };
 
 } /* namespace sim_mob */

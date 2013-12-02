@@ -2,28 +2,22 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * LocationEventArgs.cpp
- *
- *  Created on: May 28, 2013
- *      Author: vahid
- */
-
-#include "LocationEventArgs.hpp"
+#include "RegionsAndPathEventArgs.hpp"
 #include "entities/Agent.hpp"
 
 using namespace sim_mob;
 
-sim_mob::LocationEventArgs::LocationEventArgs(const sim_mob::Agent * agent_) :agent(agent_)
+sim_mob::RegionsAndPathEventArgs::RegionsAndPathEventArgs(const sim_mob::Agent * agent_) :agent(agent_)
 {
 }
 
-sim_mob::LocationEventArgs::~LocationEventArgs()
+sim_mob::RegionsAndPathEventArgs::~RegionsAndPathEventArgs()
 {
 }
 
-Json::Value sim_mob::LocationEventArgs::toJSON() const
+Json::Value sim_mob::RegionsAndPathEventArgs::toJSON() const
 {
+	//TODO: Replace with Regions and Paths, actual serialized format.
 	return JsonParser::makeLocationMessage(agent->xPos.get(), agent->yPos.get());
 }
 

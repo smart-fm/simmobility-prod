@@ -106,11 +106,11 @@ void write_xml(XmlWriter& write, const std::pair<sim_mob::Lane*, sim_mob::Lane* 
 
 template<>
 void write_xml(XmlWriter& write,
-		const std::map<const sim_mob::Lane*, sim_mob::UniNode::UniLaneConnector>& new_connectors) {
-//	write_xml(write, new_connector, namer("<laneFrom,laneTo>"), expander("<id,id>"));
+		const std::map<const sim_mob::Lane*, sim_mob::UniNode::UniLaneConnector>& newConnectors) {
+//	write_xml(write, newConnector, namer("<laneFrom,laneTo>"), expander("<id,id>"));
 	std::map<const sim_mob::Lane*, sim_mob::UniNode::UniLaneConnector>::const_iterator it;
-	for (it = new_connectors.begin(); it != new_connectors.end(); it++) {
-		write.prop_begin("new_connector");
+	for (it = newConnectors.begin(); it != newConnectors.end(); it++) {
+		write.prop_begin("newConnector");
 		if (!it->first) {
 			throw std::runtime_error("Linkfrom null");
 		} else {

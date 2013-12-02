@@ -23,10 +23,7 @@ sim_mob::UniNode* sim_mob::xml::UniNode_t_pimpl::post_UniNode_t ()
 	//Save the lane connectors for later.
 	book.addUniNodeLaneConnectorCache(res, connectors);
 
-	if(!new_connectors.size()){
-//		std::cout << "new_connectors is empty" << std::endl;
-	}
-	else{
+	if(new_connectors.size() > 0){
 		book.addUniNodeNewLaneConnectorCache(res, new_connectors);
 	}
 	book.addUniNodeSegmentPairCache(res, segmentPairs);

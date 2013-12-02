@@ -191,15 +191,18 @@ void write_xml(XmlWriter& write, const sim_mob::RoadSegment& rs)
 
 	//NOTE: We don't pass a namer in here, since vectors<> of Point2Ds are a special case.
 	write.prop("polyline", rs.polyline);
-
+	std::cout<<"ok1"<<std::endl;
 	std::vector< std::vector<Point2D> > laneLines;
 	for (size_t i=0; i<=rs.getLanes().size(); i++) {
 		laneLines.push_back(const_cast<sim_mob::RoadSegment&>(rs).getLaneEdgePolyline(i));
 	}
+	std::cout<<"ok2"<<std::endl;
     write.prop("laneEdgePolylines_cached", wrap_lanes(laneLines), namer("<laneEdgePolyline_cached,<laneNumber,polyline>>"));
-
+    std::cout<<"ok3"<<std::endl;
 	write.prop("Lanes", rs.getLanes(), namer("<Lane>"));
+	std::cout<<"ok4"<<std::endl;
 	write.prop("Obstacles", rs.getObstacles());
+	std::cout<<"ok5"<<std::endl;
 
 }
 

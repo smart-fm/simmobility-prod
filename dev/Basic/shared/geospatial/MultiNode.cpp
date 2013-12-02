@@ -123,7 +123,21 @@ const set<LaneConnector*>& sim_mob::MultiNode::getOutgoingLanes(const RoadSegmen
 	return connectors.find(from)->second;
 }
 
-
+void sim_mob::MultiNode::setConnectorAt2(const sim_mob::RoadSegment* key, std::set<sim_mob::LaneConnector*>& val)
+{
+	std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::iterator it_find = connectors.find(key);
+	if(it_find != connectors.end())
+	{
+		// has this seg
+		std::set<sim_mob::LaneConnector*> lcs = it_find->second;
+		lcs.insert(val.begin(),val.end());
+		connectors[key] = lcs;
+	}
+	else
+	{
+		this->connectors[key] = val;
+	}
+}
 
 
 pair< vector< pair<RoadSegment*, bool> >, vector< pair<RoadSegment*, bool> > >

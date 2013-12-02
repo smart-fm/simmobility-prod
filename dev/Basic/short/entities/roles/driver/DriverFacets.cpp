@@ -1595,7 +1595,7 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 	}
 
 	if(incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && incidentStatus.getCurrentIncidentLength()>0){
-		incidentStatus.reduceIncidentLength(fwdDistance*100.0);
+		incidentStatus.reduceIncidentLength(fwdDistance);
 	}
 
 

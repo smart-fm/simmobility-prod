@@ -1151,7 +1151,6 @@ void sim_mob::ParseConfigFile::ProcessIncidentsNode(xercesc::DOMElement* node)
 		incident.visibilityDistance = ParseFloat(GetNamedAttributeValue(item, "visibility"));
 		incident.segmentId = ParseUnsignedInt(GetNamedAttributeValue(item, "segment") );
 		incident.position = ParseFloat(GetNamedAttributeValue(item, "position"));
-		incident.severity = ParseUnsignedInt(GetNamedAttributeValue(item, "severity") );
 		incident.capFactor = ParseFloat(GetNamedAttributeValue(item, "cap_factor") );
 		incident.startTime = ParseDailyTime(GetNamedAttributeValue(item, "start_time") ).getValue();
 		incident.duration = ParseDailyTime(GetNamedAttributeValue(item, "duration") ).getValue();

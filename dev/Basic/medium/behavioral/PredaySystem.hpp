@@ -73,23 +73,23 @@ private:
 	/**
 	 * Predicts the mode and destination together for stops.
 	 */
-	void predictStopModeDestination(Stop& stop);
+	void predictStopModeDestination(Stop* stop);
 
 	/**
 	 * Predicts the arrival time for stops before the primary activity.
 	 * Predicts the departure time for stops after the primary activity.
 	 */
-	void predictStopTimeOfDay(Stop& stop, bool isBeforePrimary);
+	void predictStopTimeOfDay(Stop* stop, bool isBeforePrimary);
 
 	/**
 	 * Calculates the arrival time for stops in the second half tour.
 	 */
-	void calculateArrivalTime(Stop& currentStop, Stop& prevStop);
+	void calculateArrivalTime(Stop* currentStop, Stop* prevStop);
 
 	/**
 	 * Calculates the departure time for stops in the first half tour.
 	 */
-	void calculateDepartureTime(Stop& currentStop, Stop& nextStop);
+	void calculateDepartureTime(Stop* currentStop, Stop* nextStop);
 
 	/**
 	 * Calculates the time to leave home for starting a tour.

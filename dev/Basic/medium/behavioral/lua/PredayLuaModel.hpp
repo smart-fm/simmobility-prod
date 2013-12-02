@@ -15,6 +15,7 @@
 #include "behavioral/params/PersonParams.hpp"
 #include "behavioral/params/TourModeParams.hpp"
 #include "behavioral/params/TourModeDestinationParams.hpp"
+#include "behavioral/params/StopGenerationParams.hpp"
 #include "lua/LuaModel.hpp"
 
 namespace sim_mob {
@@ -34,7 +35,7 @@ public:
 	/**
 	 * Predicts the types of tours and intermediate stops the person is going to make.
 	 *
-	 * @param personParam object containing person and household related variables
+	 * @param personParams object containing person and household related variables
 	 * @param dayPattern map to fill up with the prediction result
 	 */
 	void predictDayPattern(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern) const;
@@ -42,7 +43,7 @@ public:
 	/**
 	 * Predicts the number of tours for each type of tour predicted by the day pattern model.
 	 *
-	 * @param personParam object containing person and household related variables
+	 * @param personParams object containing person and household related variables
 	 * @param dayPattern map containing the day pattern of this person
 	 */
 	void predictNumTours(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern, boost::unordered_map<std::string, int>& numTours) const;
@@ -50,7 +51,7 @@ public:
 	/**
 	 * For each work tour, if the person has a usual work location, this function predicts whether the person goes to his usual location or some other location.
 	 *
-	 * @param personParam object containing person and household related variables
+	 * @param personParams object containing person and household related variables
 	 * @param usualWorkParams parameters specific to attends usual work model
 	 * @return true if the tour is to a usual work location. false otherwise.
 	 */
@@ -59,7 +60,7 @@ public:
 	/**
 	 * Predicts the mode of transportation for tours to usual locations (education or work tours)
 	 *
-	 * @param personParam object containing person and household related variables
+	 * @param personParams object containing person and household related variables
 	 * @param tourModeParams parameters specific to tour mode models
 	 * @return mode id
 	 *         (1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
@@ -70,10 +71,18 @@ public:
 	/**
 	 * Predicts the mode and destination for the tour together for tours to unusual locations
 	 *
-	 * @param personParam object containing person and household related variables
+	 * @param personParams object containing person and household related variables
 	 * @param tourModeDestinationParams parameters specific to tour mode-destination models
 	 */
 	int predictTourModeDestination(PersonParams& personParams, TourModeDestinationParams& tourModeParams) const;
+
+	/**
+	 * Predicts the next stop for a tour
+	 *
+	 * @param personParam object containing person and household related variables
+	 * @param isgParams object containing parameters specific to intermediate stop generation model
+	 */
+	int generateIntermediateStop(PersonParams& personParams, StopGenerationParams& isgParams) const;
 
 
 private:

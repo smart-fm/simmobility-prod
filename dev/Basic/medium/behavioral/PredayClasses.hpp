@@ -194,6 +194,13 @@ public:
 	: tourType(tourType), usualLocation(false), subTour(false), parentTour(nullptr), tourMode(0), primaryActivityLocation(0), startTime(0), endTime(0)
 	{}
 
+	virtual ~Tour() {
+		for(std::deque<Stop*>::iterator i = stops.begin(); i!=stops.end(); i++) {
+			safe_delete_item(*i);
+		}
+		stops.clear();
+	}
+
 	double getEndTime() const {
 		return endTime;
 	}
@@ -220,14 +227,6 @@ public:
 
 	void setStartTime(double startTime) {
 		this->startTime = startTime;
-	}
-
-	const std::deque<Stop*>& getStops() const {
-		return stops;
-	}
-
-	void setStops(const std::deque<Stop*>& stops) {
-		this->stops = stops;
 	}
 
 	bool isSubTour() const {
@@ -280,6 +279,8 @@ public:
 		}
 	}
 
+	std::deque<Stop*> stops;
+
 private:
 	StopType tourType;
 	bool usualLocation;
@@ -289,7 +290,6 @@ private:
 	int primaryActivityLocation;
 	double startTime;
 	double endTime;
-	std::deque<Stop*> stops;
 };
 
 

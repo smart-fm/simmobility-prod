@@ -25,7 +25,7 @@ void sim_mob::medium::ZoneMongoDao::fromRow(mongo::BSONObj document, ZoneParams&
 	outParam.setShop(document.getField(MONGO_FIELD_ZONE_SHOPS).Double());
 	outParam.setParkingRate(document.getField(MONGO_FIELD_ZONE_PARKING_RATE).Double());
 	outParam.setResidentWorkers(document.getField(MONGO_FIELD_ZONE_RESIDENT_WORKERS).Double());
-	outParam.setCentralDummy(document.getField(MONGO_FIELD_ZONE_CENTRAL_ZONE).Int());
+	outParam.setCentralDummy(document.getField(MONGO_FIELD_ZONE_CENTRAL_ZONE).Double() > 0);
 	outParam.setEmployment(document.getField(MONGO_FIELD_ZONE_EMPLOYMENT).Double());
 	outParam.setPopulation(document.getField(MONGO_FIELD_ZONE_POPULATION).Double());
 	outParam.setArea(document.getField(MONGO_FIELD_ZONE_AREA).Double());

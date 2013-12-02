@@ -151,7 +151,7 @@ local function computeUtilities(params,dbparams)
 	--this variable indicate the tour type. 
 	--it can take values from 1 to 4. 
 	--1 for work tour, 2 for education tour, 3 for shopping tour and 4 for other tour.
-	local tour_type = params.tour_type
+	local tour_type = dbparams.tour_type
 
 	local female_dummy = params.female_dummy
 	
@@ -162,13 +162,13 @@ local function computeUtilities(params,dbparams)
 	local worker_dummy = params.worker_dummy
 
 	--1 if the tour mode is drive alone (mode id =4), 0 otherwise
-	local driver_dummy = params.driver_dummy
+	local driver_dummy = dbparams.driver_dummy
 
 	--1 if the tour mode is shared ride 2 or shared ride 3+ (mode id=5,6), 0 otherwise
-	local passenger_dummy = params.passenger_dummy
+	local passenger_dummy = dbparams.passenger_dummy
 
 	--1 if the tour mode id is in [1,2,3], 0 otherwise
-	local public_dummy = params.public_dummy
+	local public_dummy = dbparams.public_dummy
 
 	--if we are modeling stops on the first half tour, 
 	--the distance is AM[(destination,origin)][’AM2dis’]. 
@@ -185,33 +185,33 @@ local function computeUtilities(params,dbparams)
 	local otherlogsum = 0
 
 	--if we are modeling stops on the first half tour, the dummy variable is 1 if the arrival time of tour primary activity is between 7 am to 9:30 am. If we are modeling stops on the second half tour, the dummy variable is 1 if the departure time of tour primary activity is between 7 am to 9:30 am.
-	p_700a_930a = params.p_700a_930a
-	p_930a_1200a = params.p_930a_1200a 
-	p_300p_530p = params.p_300p_530p
-	p_530p_730p = params.p_530p_730p
-	p_730p_1000p = params.p_730p_1000p
-	p_1000p_700a = params.p_1000p_700a
+	p_700a_930a = dbparams.p_700a_930a
+	p_930a_1200a = dbparams.p_930a_1200a 
+	p_300p_530p = dbparams.p_300p_530p
+	p_530p_730p = dbparams.p_530p_730p
+	p_730p_1000p = dbparams.p_730p_1000p
+	p_1000p_700a = dbparams.p_1000p_700a
 
 	--1 if the current modeled stop is the first stop on the half tour, 0 otherwise
-	first_stop = params.first_stop
+	first_stop = dbparams.first_stop
 	--1 if the current modeled stop is the second stop on the half tour, 0 otherwise
-	second_stop = params.second_stop
+	second_stop = dbparams.second_stop
 	--1 if the current modeled stop is the 3 or 3+ stop on the half tour, 0 otherwise
-	three_plus_stop = params.three_plus_stop
+	three_plus_stop = dbparams.three_plus_stop
 
 	--1 if the current modeled stop is on first half tour, 0 otherwise
-	first_bound = params.first_bound
+	first_bound = dbparams.first_bound
 	--1 if the current modeled stop is on second half tour, 0 otherwise
-	second_bound = params.second_bound
+	second_bound = dbparams.second_bound
 
 	--1 if the current modeled stop is on the fist tour, 0 otherwise
-	first_tour_dummy = params.first_tour_dummy
+	first_tour_dummy = dbparams.first_tour_dummy
 	
 	--1 if the current tour has subtour, 0 otherwise
-	has_subtour = params.has_subtour
+	has_subtour = dbparams.has_subtour
 	
 	--number of tours remained to run intermediate stop generation
-	tour_remain = params.tour_remain
+	tour_remain = dbparams.tour_remain
 
 	utility[1]= beta_cons_work+
 	beta_work_tour_dummy_W * 1 * (tour_type==1 and 1 or 0) +

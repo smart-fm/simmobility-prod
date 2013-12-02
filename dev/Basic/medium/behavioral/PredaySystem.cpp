@@ -157,8 +157,8 @@ void PredaySystem::predictTourMode(Tour& tour) {
 void PredaySystem::predictTourModeDestination(Tour& tour) {
 	TourModeDestinationParams tmdParams(zoneMap, personParams, tour.getTourType());
 	int modeDest = predayLuaModel.predictTourModeDestination(personParams, tmdParams);
-	tour.setTourMode(tmdParams.getMode(modeDest));
-	tour.setPrimaryActivityLocation(tmdParams.getDestination(modeDest));
+	tour.setTourMode(tmdParams.getMode_TMD(modeDest));
+	tour.setPrimaryActivityLocation(tmdParams.getDestination_TMD(modeDest));
 }
 
 std::string& PredaySystem::predictTourTimeOfDay(Tour& tour) {
@@ -250,30 +250,29 @@ std::string& PredaySystem::predictTourTimeOfDay(Tour& tour) {
 }
 
 void PredaySystem::generateIntermediateStops(Tour& tour) {
-/*	deque<Stop*>& stops = tour.getStops();
-	if(stops.size() != 1) {
-		throw runtime_error("generateIntermediateStops()|tour object contains " + stops.size() + " stops. 1 stop (primary activity) was expected.");
+	if(tour.stops.size() != 1) {
+		stringstream ss;
+		ss << "generateIntermediateStops()|tour object contains " << tour.stops.size() << " stops. 1 stop (primary activity) was expected.";
+		throw runtime_error(ss.str());
 	}
-	Stop* primaryStop = tour.getStops().front(); // The only stop at this point is the primary activity stop
+	Stop* primaryStop = tour.stops.front(); // The only stop at this point is the primary activity stop
 	Stop* generatedStop = nullptr;
 
 	if ((dayPattern.at("WorkI") + dayPattern.at("EduI") + dayPattern.at("ShopI") + dayPattern.at("OtherI")) > 0 ) {
 		//if any stop type was predicted in the day pattern
-		StopGenerationParams isgParams(personParams, tour, primaryStop);
-		long origin = personParams.getHomeLocation();
-		long destination = primaryStop->getStopLocation();
-		isgParams.setFirstTour(*(tours.front()) == tour);
+		StopGenerationParams isgParams(tour, primaryStop);
+		int origin = personParams.getHomeLocation();
+		int destination = primaryStop->getStopLocation();
+		isgParams.setFirstTour(tours.front() == &tour);
 		std::deque<Tour*>::iterator tourIt = std::find(tours.begin(), tours.end(), &tour);
 		size_t index = std::distance(tours.begin(), tourIt);
 		isgParams.setNumRemainingTours(tours.size() - index + 1);
 
 		//First half tour
-		BSONObjBuilder bsonObjBldr_AMCosts;
-		bsonObjBldr_AMCosts << "origin" << origin << "destin" << destination; // origin is home and destination is primary activity location
-		BSONObj bsonObj_AMCosts = bsonObjBldr_AMCosts.obj();
-		auto_ptr<mongo::DBClientCursor> amDistance = mongoDao["AMCosts"]->queryDocument(bsonObj_AMCosts);
-		BSONObj amDistanceObj = amDistance->next();
 		if(origin != destination) {
+			mongo::BSONObj bsonObj_AMCosts = BSON("origin" << origin << "destin" << destination); // origin is home and destination is primary activity location
+			mongo::BSONObj amDistanceObj;
+			mongoDao["AMCosts"]->getOne(bsonObj_AMCosts, amDistanceObj);
 			isgParams.setDistance(amDistanceObj.getField("distance").Double());
 		}
 		else {
@@ -283,51 +282,46 @@ void PredaySystem::generateIntermediateStops(Tour& tour) {
 
 		double prevDepartureTime = 3.25; // first window; start of day
 		double nextArrivalTime = primaryStop->getArrivalTime();
-		if (*(tours.front()) != tour) { // if this tour is not the first tour of the day
+		if (tours.front() != &tour) { // if this tour is not the first tour of the day
 			Tour* previousTour = *(std::find(tours.begin(), tours.end(), &tour)-1);
 			prevDepartureTime = previousTour->getEndTime(); // departure time id taken as the end time of the previous tour
 		}
 
 		int stopCounter = 0;
 		isgParams.setStopCounter(stopCounter);
-		std::string& choice;
-		int insertIdx = 0;
-		Stop& nextStop = primaryStop;
-		while(choice != "Quit" && stopCounter<3){
-			LuaRef chooseISG = getGlobal(state.get(), "choose_isg");
-			LuaRef retVal = chooseISG(personParams, isgParams);
-			choice = retVal.cast<std::string>();
-			if(choice != "Quit") {
+		int choice;
+		Stop* nextStop = primaryStop;
+		while(choice != 5 && stopCounter<3){
+			choice = predayLuaModel.generateIntermediateStop(personParams, isgParams);
+			if(choice != 5) {
 				StopType stopType;
-				if(choice == "Work") { stopType = WORK; }
-				else if (choice == "Education") { stopType = EDUCATION; }
-				else if (choice == "Shopping") {StopType = SHOP; }
-				else if (choice == "Others") {stopType = OTHER; }
-				Stop generatedStop = Stop(stopType, tour, false not primary, true in first half tour);
-				tour.addStop(&generatedStop);
+				if(choice == 1) { stopType = WORK; }
+				else if (choice == 2) { stopType = EDUCATION; }
+				else if (choice == 3) { stopType = SHOP; }
+				else if (choice == 4) { stopType = OTHER; }
+				Stop* generatedStop = new Stop(stopType, tour, false /*not primary*/, true /*in first half tour*/);
+				tour.addStop(generatedStop);
 				predictStopModeDestination(generatedStop);
 				calculateDepartureTime(generatedStop, nextStop);
-				if(generatedStop.getDepartureTime() <= 3.25)
+				if(generatedStop->getDepartureTime() <= 3.25)
 				{
-					tour.removeStop(&generatedStop);
+					tour.removeStop(generatedStop);
 					stopCounter = stopCounter + 1;
 					continue;
 				}
 				predictStopTimeOfDay(generatedStop, true);
 				nextStop = generatedStop;
-				personParams.blockTime(generatedStop.getArrivalTime(), generatedStop.getDepartureTime());
-				nextArrivalTime = generatedStop.getArrivalTime();
+				personParams.blockTime(generatedStop->getArrivalTime(), generatedStop->getDepartureTime());
+				nextArrivalTime = generatedStop->getArrivalTime();
 				stopCounter = stopCounter + 1;
 			}
 		}
 
 		// Second half tour
-		BSONObjBuilder bsonObjBldr_PMCosts;
-		bsonObjBldr_PMCosts << "origin" << destination << "destin" << origin; // origin is home and destination is primary activity location
-		BSONObj bsonObj_PMCosts = bsonObjBldr_PMCosts.obj();
-		auto_ptr<mongo::DBClientCursor> pmDistance = mongoDao["PMCosts"]->queryDocument(bsonObj_PMCosts);
-		BSONObj pmDistanceObj = pmDistance->next();
 		if(origin != destination) {
+			mongo::BSONObj bsonObj_PMCosts = BSON("origin" << destination << "destin" << origin); // origin is home and destination is primary activity location)
+			mongo::BSONObj pmDistanceObj;
+			mongoDao["PMCosts"]->getOne(bsonObj_PMCosts, pmDistanceObj);
 			isgParams.setDistance(pmDistanceObj.getField("distance").Double());
 		}
 		else {
@@ -335,48 +329,45 @@ void PredaySystem::generateIntermediateStops(Tour& tour) {
 		}
 		isgParams.setFirstHalfTour(false);
 
-		double prevDepartureTime = primaryStop->getDepartureTime();
-		double nextArrivalTime = 26.75; // end of day
+		prevDepartureTime = primaryStop->getDepartureTime();
+		nextArrivalTime = 26.75; // end of day
 
-		int stopCounter = 0;
+		stopCounter = 0;
 		isgParams.setStopCounter(stopCounter);
-		std::string& choice;
-		int insertIdx = 0;
-		Stop& prevStop = primaryStop;
-		while(choice != "Quit" && stopCounter<3){
-			LuaRef chooseISG = getGlobal(state.get(), "choose_isg");
-			LuaRef retVal = chooseISG(personParams, isgParams);
-			choice = retVal.cast<std::string>();
-			if(choice != "Quit") {
+		choice = 0;
+		Stop* prevStop = primaryStop;
+		while(choice != 5 && stopCounter<3){
+			choice = predayLuaModel.generateIntermediateStop(personParams, isgParams);
+			if(choice != 5) {
 				StopType stopType;
-				if(choice == "Work") { stopType = WORK; }
-				else if (choice == "Education") { stopType = EDUCATION; }
-				else if (choice == "Shopping") {StopType = SHOP; }
-				else if (choice == "Others") {stopType = OTHER; }
-				Stop generatedStop = Stop(stopType, tour, false not primary, false  not in first half tour);
-				tour.addStop(&generatedStop);
+				if(choice == 1) { stopType = WORK; }
+				else if (choice == 2) { stopType = EDUCATION; }
+				else if (choice == 3) { stopType = SHOP; }
+				else if (choice == 4) { stopType = OTHER; }
+				Stop* generatedStop = new Stop(stopType, tour, false /*not primary*/, false  /*not in first half tour*/);
+				tour.addStop(generatedStop);
 				predictStopModeDestination(generatedStop);
 				calculateArrivalTime(generatedStop, prevStop);
-				if(generatedStop.getDepartureTime() >=  26.75)
+				if(generatedStop->getDepartureTime() >=  26.75)
 				{
-					tour.removeStop(&generatedStop);
+					tour.removeStop(generatedStop);
 					stopCounter = stopCounter + 1;
 					continue;
 				}
 				predictStopTimeOfDay(generatedStop, false);
 				prevStop = generatedStop;
-				personParams.blockTime(generatedStop.getArrivalTime(), generatedStop.getDepartureTime());
-				prevDepartureTime = generatedStop.getDepartureTime();
+				personParams.blockTime(generatedStop->getArrivalTime(), generatedStop->getDepartureTime());
+				prevDepartureTime = generatedStop->getDepartureTime();
 				stopCounter = stopCounter + 1;
 			}
 		}
-	}*/
+	}
 }
 
-void PredaySystem::predictStopModeDestination(Stop& stop)
+void PredaySystem::predictStopModeDestination(Stop* stop)
 {}
 
-void PredaySystem::predictStopTimeOfDay(Stop& stop, bool isBeforePrimary) {
+void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 	/*StopTimeOfDayParams stodParams(stop.getStopTypeID(), isBeforePrimary);
 	double origin = stop.getStopLocation();
 	double destination = personParams.getHomeLocation();
@@ -577,7 +568,7 @@ void PredaySystem::predictStopTimeOfDay(Stop& stop, bool isBeforePrimary) {
 	}*/
 }
 
-void PredaySystem::calculateArrivalTime(Stop& currStop,  Stop& prevStop) { // this must set the arrival time for currStop
+void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* prevStop) { // this must set the arrival time for currStop
 	/*
 	 * There are 48 half-hour time windows in a day from 3.25 to 26.75.
 	 * Given a time window x, its choice index can be determined by ((x - 3.25) / 0.5) + 1
@@ -644,7 +635,7 @@ void PredaySystem::calculateArrivalTime(Stop& currStop,  Stop& prevStop) { // th
 	currStop.setArrivalTime(currStopArrTime);*/
 }
 
-void PredaySystem::calculateDepartureTime(Stop& currStop,  Stop& nextStop) { // this must set the departure time for the currStop
+void PredaySystem::calculateDepartureTime(Stop* currStop,  Stop* nextStop) { // this must set the departure time for the currStop
 	/*
 	 * There are 48 half-hour time windows in a day from 3.25 to 26.75.
 	 * Given a time window x, its choice index can be determined by ((x - 3.25) / 0.5) + 1
@@ -857,7 +848,7 @@ void PredaySystem::constructTours() {
 	bool firstOfMultiple = true;
 	for(int i=0; i<numTours["WorkT"]; i++) {
 		bool attendsUsualWorkLocation = false;
-		if(!personParams.isStudent() && personParams.getFixedWorkLocation() != 0) {
+		if(!(personParams.isStudent() == 1) && (personParams.getFixedWorkLocation() != 0)) {
 			//if person not a student and has a fixed work location
 			attendsUsualWorkLocation = predictUsualWorkLocation(personParams, firstOfMultiple); // Predict if this tour is to a usual work location
 			firstOfMultiple = false;

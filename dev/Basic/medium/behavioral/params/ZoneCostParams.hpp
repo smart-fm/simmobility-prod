@@ -30,7 +30,7 @@ public:
 		return centralZone;
 	}
 
-	void setCentralDummy(int centralDummy) {
+	void setCentralDummy(bool centralDummy) {
 		this->centralZone = centralDummy;
 	}
 

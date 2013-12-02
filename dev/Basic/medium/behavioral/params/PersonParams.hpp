@@ -183,8 +183,12 @@ public:
 		this->stopType = stopType;
 	}
 
-	bool isStudent() {
-		return personTypeId == 4;
+	int isStudent() const {
+		return (personTypeId == 4);
+	}
+
+	int isWorker() const {
+		return (personTypeId == 1 || personTypeId == 2 || personTypeId == 3 || personTypeId == 8 || personTypeId == 9 || personTypeId == 10);
 	}
 
 	int hasDrivingLicence() const {
@@ -238,7 +242,7 @@ public:
 	/**
 	 * get the availability for a time window for tour
 	 */
-	int getTimeWindowAvailability(std::string& timeWnd);
+	int getTimeWindowAvailability(std::string& timeWnd) const;
 
 	/**
 	 * set availability of times in timeWnd to 0

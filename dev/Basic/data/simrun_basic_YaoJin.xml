@@ -191,7 +191,7 @@
             <total_runtime      value="20"      units="minutes" />
             <total_warmup       value="0"     units="seconds" />
             
-            <start_time         value="08:30:00"/>
+            <start_time         value="05:20:00"/>
             
             <!-- Implementation to use for the Aura Manager. -->
             <!-- Values include: simtree, rdu, rstar (default) -->
@@ -369,7 +369,7 @@
     </pedestrians>
         
     <buscontrollers>
-		<!-- <buscontroller time="0" /> -->
+		<buscontroller time="0" />
 	</buscontrollers>
 </config>
 

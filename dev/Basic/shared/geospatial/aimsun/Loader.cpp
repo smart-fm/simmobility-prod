@@ -156,6 +156,7 @@ private:
 	//vector<sim_mob::BusSchedule> busschedule_;
 
 	map<std::string,BusStop> busstop_;
+	map<std::string,BusStopSG> bustopSG_;
 	multimap<int,Phase> phases_;//one node_id is mapped to many phases
 
 	vector<sim_mob::BoundarySegment*> boundary_segments;
@@ -185,6 +186,7 @@ public:
 
 private:
 	void LoadBusStop(const std::string& storedProc);
+	void LoadBusStopSG(const std::string& storedProc);
 	void LoadPhase(const std::string& storedProc);
 
 
@@ -791,6 +793,36 @@ void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 	}
 }
 
+void DatabaseLoader::LoadBusStopSG(const std::string& storedProc)
+{
+	//Bus stops are optional
+	if (storedProc.empty()) {
+		return;
+	}
+
+	soci::rowset<BusStopSG> rows = (sql_.prepare <<"select * from " + storedProc);
+	for (soci::rowset<BusStopSG>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
+	{
+		BusStopSG busstop = *iter;
+//		         Convert from meters to centimeters.
+		busstop.bus_stop_no.erase(remove_if(busstop.bus_stop_no.begin(), busstop.bus_stop_no.end(), isspace),
+				busstop.bus_stop_no.end());
+		busstop.stop_lat.erase(remove_if(busstop.stop_lat.begin(), busstop.stop_lat.end(), isspace),
+				busstop.stop_lat.end());
+		busstop.stop_lon.erase(remove_if(busstop.stop_lon.begin(), busstop.stop_lon.end(), isspace),
+				busstop.stop_lon.end());
+
+		        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat) * 100;
+		        busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon) * 100;
+		        bustopSG_.insert(std::make_pair(busstop.bus_stop_no, busstop));
+		        //std :: cout.precision(15);
+		        //std :: cout << "Bus Stop ID is: "<< busstop.bus_stop_no <<"    "<< busstop.xPos << "     "<< busstop.yPos  <<std::endl;
+
+		        //it->atSection = &sections_[it->TMP_AtSectionID];
+		        	//	busstop_.push_back(*it);
+	}
+}
+
 void DatabaseLoader::LoadPTBusDispatchFreq(const std::string& storedProc, std::vector<sim_mob::PT_bus_dispatch_freq>& pt_bus_dispatch_freq)
 {
 	if (storedProc.empty())
@@ -960,7 +992,8 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain", false));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal", false));
-	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
+//	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
+	LoadBusStopSG(getStoredProcedure(storedProcs, "busstop", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
 
 	//add by xuyan
@@ -1637,36 +1670,38 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 //	saveTripChains(tcs);
 
 	//Save all bus stops
-	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++) {
-		std::map<int,Section>::iterator findPtr = sections_.find(it->second.TMP_AtSectionID);
-		if(findPtr == sections_.end())
-		{
-			continue;
-		}
-		//Create the bus stop
-		sim_mob::BusStop *busstop = new sim_mob::BusStop();
-		sim_mob::RoadSegment* parentSeg = sections_[it->second.TMP_AtSectionID].generatedSegment;busstop->busstopno_ = it->second.bus_stop_no;
-		busstop->setParentSegment(parentSeg);
-
-		busstop->xPos = it->second.xPos;
-		busstop->yPos = it->second.yPos;
-
-		//Add the bus stop to its parent segment's obstacle list at an estimated offset.
-		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.TMP_AtSectionID].generatedSegment);
-		if(!busstop->getParentSegment()->addObstacle(distOrigin, busstop)) {
-			sim_mob::Warn() << "Can't add obstacle; something is already at that offset. " << busstop->busstopno_ << std::endl;
-		}
-
-		sim_mob::ConfigManager::GetInstanceRW().FullConfig().getBusStopNo_BusStops()[busstop->busstopno_] = busstop;
-
-		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
-		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy());
-//		if(100001500 == busstop->parentSegment_->getSegmentID())
+//	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++) {
+//		std::map<int,Section>::iterator findPtr = sections_.find(it->second.TMP_AtSectionID);
+//		if(findPtr == sections_.end())
 //		{
-//			std::cout << " segment 100001500 added a busStop " << busstop->getRoadItemID() << "  at obstacle " << distOrigin << std::endl;
+//			continue;
 //		}
-	}
+//		//Create the bus stop
+//		sim_mob::BusStop *busstop = new sim_mob::BusStop();
+//		sim_mob::RoadSegment* parentSeg = sections_[it->second.TMP_AtSectionID].generatedSegment;
+//		busstop->busstopno_ = it->second.bus_stop_no;
+//		busstop->setParentSegment(parentSeg);
+//
+//		busstop->xPos = it->second.xPos;
+//		busstop->yPos = it->second.yPos;
+//
+//		//Add the bus stop to its parent segment's obstacle list at an estimated offset.
+//		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.TMP_AtSectionID].generatedSegment);
+//		if(!busstop->getParentSegment()->addObstacle(distOrigin, busstop)) {
+//			sim_mob::Warn() << "Can't add obstacle; something is already at that offset. " << busstop->busstopno_ << std::endl;
+//		}
+//
+//		sim_mob::ConfigManager::GetInstanceRW().FullConfig().getBusStopNo_BusStops()[busstop->busstopno_] = busstop;
+//
+//		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
+//		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
+//		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy());
+////		if(100001500 == busstop->parentSegment_->getSegmentID())
+////		{
+////			std::cout << " segment 100001500 added a busStop " << busstop->getRoadItemID() << "  at obstacle " << distOrigin << std::endl;
+////		}
+//	}
+	createBusStopAgents();
 	//Save all trip chains
 	saveTripChains(tcs);
 
@@ -1854,10 +1889,37 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 void DatabaseLoader::createBusStopAgents()
 {
 	//int j = 0；
-	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++)
-    {
+	for(map<std::string,BusStopSG>::iterator it = bustopSG_.begin(); it != bustopSG_.end(); it++) {
+		std::map<int,Section>::iterator findPtr = sections_.find(it->second.aimsun_section);
+		if(findPtr == sections_.end())
+		{
+			continue;
+		}
+		//Create the bus stop
+		sim_mob::BusStop *busstop = new sim_mob::BusStop();
+		sim_mob::RoadSegment* parentSeg = sections_[it->second.aimsun_section].generatedSegment;
+		busstop->busstopno_ = it->second.bus_stop_no;
+		busstop->setParentSegment(parentSeg);
 
-    }
+		busstop->xPos = it->second.xPos;
+		busstop->yPos = it->second.yPos;
+
+		//Add the bus stop to its parent segment's obstacle list at an estimated offset.
+		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.aimsun_section].generatedSegment);
+		if(!busstop->getParentSegment()->addObstacle(distOrigin, busstop)) {
+			sim_mob::Warn() << "Can't add obstacle; something is already at that offset. " << busstop->busstopno_ << std::endl;
+		}
+
+		sim_mob::ConfigManager::GetInstanceRW().FullConfig().getBusStopNo_BusStops()[busstop->busstopno_] = busstop;
+
+		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
+		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
+		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy());
+//		if(100001500 == busstop->parentSegment_->getSegmentID())
+//		{
+//			std::cout << " segment 100001500 added a busStop " << busstop->getRoadItemID() << "  at obstacle " << distOrigin << std::endl;
+//		}
+	}
 }
 
 //Another temporary function

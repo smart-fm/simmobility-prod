@@ -427,6 +427,9 @@ public:
 	///See RegionAndPathTracker for more information.
 	void enableRegionSupport() { regionAndPathTracker.enable(); }
 
+	///Is Region support enabled?
+	bool isRegionSupportEnabled() const { return regionAndPathTracker.isEnabled(); }
+
 	///Returns the current set of "all Regions", but only if region-tracking is enabled, and only if
 	/// the region set has changed since the last time tick.
 	///See RegionAndPathTracker for more information.

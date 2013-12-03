@@ -560,10 +560,12 @@ void sim_mob::Broker::processPublishers(timeslice now)
 			for (ClientList::Type::iterator listIt=clientList.begin(); listIt!=clientList.end(); listIt++) {
 				for (ClientList::Value::iterator clientIt=listIt->second.begin(); clientIt!=listIt->second.end(); clientIt++) {
 					const sim_mob::Agent* agent = clientIt->second->agent;
-					std::set<sim_mob::RoadRunnerRegion> all_regions = agent->getNewAllRegionsSet();
-					std::vector<sim_mob::RoadRunnerRegion> reg_path = agent->getNewRegionPath();
-					if (!(all_regions.empty() && reg_path.empty())) {
-						publisher.publish(COMMEID_REGIONS_AND_PATH, (void*)agent, RegionsAndPathEventArgs(agent, all_regions, reg_path));
+					if (agent->isRegionSupportEnabled()) {
+						std::set<sim_mob::RoadRunnerRegion> all_regions = agent->getNewAllRegionsSet();
+						std::vector<sim_mob::RoadRunnerRegion> reg_path = agent->getNewRegionPath();
+						if (!(all_regions.empty() && reg_path.empty())) {
+							publisher.publish(COMMEID_REGIONS_AND_PATH, (void*)agent, RegionsAndPathEventArgs(agent, all_regions, reg_path));
+						}
 					}
 				}
 			}

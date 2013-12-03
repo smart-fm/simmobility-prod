@@ -84,16 +84,18 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker,
 			case sim_mob::Services::SIMMOB_SRV_TIME: {
 				PublisherList::dataType p =
 						broker.getPublishers()[sim_mob::Services::SIMMOB_SRV_TIME];
-				p->Subscribe(COMMEID_TIME, clientEntry.get(),
-						CALLBACK_HANDLER(sim_mob::TimeEventArgs, ClientHandler::OnTime));
+				p->subscribe(COMMEID_TIME, 
+                                             clientEntry.get(),
+                                             &ClientHandler::OnTime);
 				break;
 			}
 			case sim_mob::Services::SIMMOB_SRV_LOCATION: {
 				PublisherList::dataType p =
 						broker.getPublishers()[sim_mob::Services::SIMMOB_SRV_LOCATION];
-				p->Subscribe(COMMEID_LOCATION, (void*) clientEntry->agent,
+				p->subscribe(COMMEID_LOCATION, 
 						clientEntry.get(),
-						CONTEXT_CALLBACK_HANDLER(LocationEventArgs, ClientHandler::OnLocation));
+						&ClientHandler::OnLocation,
+                                                (event::Context) clientEntry->agent);
 				break;
 			}
 			}
@@ -107,7 +109,7 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker,
 		//tell the agent you are registered
 		freeAgent->second.comm->setregistered(true);
 		//publish an event to inform- interested parties- of the registration of a new android client
-		getPublisher().Publish(ConfigParams::ANDROID_EMULATOR,
+		getPublisher().publish(ConfigParams::ANDROID_EMULATOR,
 				ClientRegistrationEventArgs(ConfigParams::ANDROID_EMULATOR,
 						clientEntry));
 		//start listening to the handler

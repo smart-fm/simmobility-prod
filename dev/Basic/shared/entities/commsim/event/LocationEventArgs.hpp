@@ -18,7 +18,6 @@
 
 namespace sim_mob {
 class Agent;
-DECLARE_CUSTOM_CALLBACK_TYPE(LocationEventArgs)
 class LocationEventArgs: public sim_mob::event::EventArgs {
 public:
 	const sim_mob::Agent *agent;

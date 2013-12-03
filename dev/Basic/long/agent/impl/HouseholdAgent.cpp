@@ -84,12 +84,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now) {
 void HouseholdAgent::onFrameOutput(timeslice now) {
 }
 
-void HouseholdAgent::OnEvent(EventId eventId,
-        EventPublisher*, const EventArgs& args) {
-    processEvent(eventId, nullptr, args);
-}
-
-void HouseholdAgent::OnEvent(EventId eventId, Context ctxId,
+void HouseholdAgent::onEvent(EventId eventId, Context ctxId,
         EventPublisher*, const EventArgs& args) {
         processEvent(eventId, ctxId, args);
 }

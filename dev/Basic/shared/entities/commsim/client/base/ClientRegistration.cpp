@@ -133,7 +133,7 @@ ClientRegistrationRequest::ClientRegistrationRequest()
 		ClientRegistrationPublisher ClientRegistrationHandler::registrationPublisher;
 
 		ClientRegistrationHandler::ClientRegistrationHandler(ConfigParams::ClientType type):type(type) {
-			registrationPublisher.RegisterEvent(type);
+			registrationPublisher.registerEvent(type);
 		}
 		sim_mob::event::EventPublisher & ClientRegistrationHandler::getPublisher() {
 			return registrationPublisher;

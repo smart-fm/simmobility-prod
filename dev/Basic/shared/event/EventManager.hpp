@@ -29,8 +29,6 @@ namespace sim_mob {
     		EM_WND_UPDATED = 1,
     	};
 
-
-        DECLARE_CUSTOM_CALLBACK_TYPE(EM_EventArgs)
         class EM_EventArgs : public EventArgs {
         public:
             EM_EventArgs();
@@ -49,7 +47,7 @@ namespace sim_mob {
              * Method to be called on which simulation update.
              * @param currTime current simulation time.
              */
-            void Update(const timeslice& currTime);
+            void update(const timeslice& currTime);
 
             /**
              * Will create a temporal window from current ticket 
@@ -62,7 +60,7 @@ namespace sim_mob {
              * @param target time to schedule.
              * @param listener to be notified.
              */
-            void Schedule(const timeslice& target, EventListenerPtr listener);
+            void schedule(const timeslice& target, EventListenerPtr listener);
 
             /**
              * Will create a temporal window from current ticket 
@@ -76,19 +74,31 @@ namespace sim_mob {
              * @param listener to be notified.
              * @param callback to be called when the event is fired.
              */
-            void Schedule(const timeslice& target, EventListenerPtr listener,
-                    ListenerContextCallback callback);
+            template<typename L, typename T>
+            void schedule(const timeslice& target, L* listener,
+                   DECLARATION_CALLBACK_PTR(callback, L, T)) {
+                if (callback) {
+                    Callback cb(new CallbackImpl<L, T>(callback));
+                    schedule(target, listener, cb);
+                } else {
+                    schedule(target, listener, Callback());
+                }
+            }
 
         private:
+            void schedule(const timeslice& target, EventListenerPtr listener, 
+                    Callback callback);
 
             /**
              * Timeslice comparator.
              */
-            struct TimesliceComparator {
+            struct TimeComparator {
 
-                bool operator()(const timeslice& val1, const timeslice& val2) const {
+                bool operator()(const timeslice& val1, 
+                                const timeslice& val2) const {
                     return (val1.ms() < val2.ms() ||
-                            (val1.ms() == val2.ms() && val1.frame() < val2.frame()));
+                            (val1.ms() == val2.ms() && 
+                            val1.frame() < val2.frame()));
                 }
             };
 
@@ -107,30 +117,32 @@ namespace sim_mob {
                  * @param current timeslice.
                  * @return True if window is expired or false if not.
                  */
-                bool IsExpired(const timeslice& current) const;
+                bool isExpired(const timeslice& current) const;
 
                 /**
                  * Gets the initial timeslice.
                  * @return initial timeslice. 
                  */
-                const timeslice& GetTo() const;
+                const timeslice& getTo() const;
 
                 /**
                  * Gets the final timeslice.
                  * @return final timeslice. 
                  */
-                const timeslice& GetFrom() const;
+                const timeslice& getFrom() const;
             private:
                 timeslice from;
                 timeslice to;
             };
 
-            typedef std::list<TemporalWindow*> TemporalWindowList;
-            typedef std::map<timeslice, TemporalWindowList*, TimesliceComparator> TemporalWindowMap;
+            typedef std::list<TemporalWindow> WindowList;
+            typedef std::map<timeslice, WindowList, TimeComparator> WindowMap;
+            typedef std::pair<WindowMap::iterator, bool> MapRetVal;
+            typedef std::pair<timeslice, WindowList> MapEntry;
 
         private:
             timeslice currTime;
-            TemporalWindowMap temporalWindows;
+            WindowMap windows;
             mutable boost::shared_mutex windowsMutex;
         };
     }

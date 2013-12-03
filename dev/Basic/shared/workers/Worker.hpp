@@ -29,7 +29,7 @@ class Entity;
 class UpdatePublisher: public sim_mob::event::EventPublisher  {
 public:
 	UpdatePublisher() {
-		RegisterEvent(sim_mob::event::EVT_CORE_AGENT_UPDATED);
+		registerEvent(sim_mob::event::EVT_CORE_AGENT_UPDATED);
 	}
 
 	virtual ~UpdatePublisher(){}
@@ -37,7 +37,6 @@ public:
 
 
 
-DECLARE_CUSTOM_CALLBACK_TYPE(UpdateEventArgs)
 class UpdateEventArgs: public sim_mob::event::EventArgs {
 	const sim_mob::Entity *entity;
 public:

@@ -40,9 +40,6 @@ enum CoreContext {
 };
 
 
-///Arguments for agent life-cycle events.
-DECLARE_CUSTOM_CALLBACK_TYPE (AgentLifeCycleEventArgs)
-
 ///Agent Life Cycle event args (no documentation provided).
 class AgentLifeCycleEventArgs : public EventArgs {
 public:

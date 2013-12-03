@@ -112,8 +112,10 @@ bool sim_mob::AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob
 			}
 			case sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH: {
 				PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH);
-				p->subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(),
-						&ClientHandler::OnEvent);
+				p->subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(), &ClientHandler::OnEvent);
+
+				//We also "enable" Region tracking for this Agent.
+				freeAgent->second.agent->enableRegionSupport();
 				break;
 			}
 			default: {

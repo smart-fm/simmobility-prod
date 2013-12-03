@@ -69,9 +69,7 @@ namespace sim_mob {
             /**
              * Events callbacks.
              */
-            virtual void OnEvent(event::EventId eventId, 
-                    event::EventPublisher* sender, const event::EventArgs& args);
-            virtual void OnEvent(event::EventId eventId, event::Context ctxId, 
+            virtual void onEvent(event::EventId eventId, event::Context ctxId, 
                     event::EventPublisher* sender, const event::EventArgs& args);
             
             /**

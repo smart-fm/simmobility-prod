@@ -197,7 +197,7 @@ private:
 	/**
 	 * 	is called when a new client is registered with the broker
 	 */
-	void onClientRegister(sim_mob::event::EventId id/*, sim_mob::event::Context context*/, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums);
+	void onClientRegister(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums);
 	/**
 	 * 	publish various data the broker has subscibed to
 	 */

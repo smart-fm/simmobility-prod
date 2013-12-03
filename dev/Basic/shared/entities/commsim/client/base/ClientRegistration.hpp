@@ -88,7 +88,6 @@ public:
  ******************************************************************************************************
  */
 class ClientHandler;
-DECLARE_CUSTOM_CALLBACK_TYPE(ClientRegistrationEventArgs)
 class ClientRegistrationEventArgs: public sim_mob::event::EventArgs {
 	boost::shared_ptr<ClientHandler> client;
 	ConfigParams::ClientType type;

@@ -330,10 +330,9 @@ NullableOutputStream sim_mob::Agent::Log()
 	return NullableOutputStream(currWorkerProvider->getLogFile());
 }
 
-void sim_mob::Agent::OnEvent(EventId eventId, EventPublisher* sender, const EventArgs& args){
-};
-
-void sim_mob::Agent::OnEvent(EventId eventId, Context ctxId, EventPublisher* sender, const EventArgs& args){
+void sim_mob::Agent::onEvent(EventId eventId, 
+        Context ctxId, EventPublisher* sender, 
+        const EventArgs& args){
 }
 
 void sim_mob::Agent::initRdSegTravelStats(const RoadSegment* rdSeg, double entryTime) {

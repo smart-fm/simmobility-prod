@@ -29,7 +29,7 @@ namespace rr_android_ns3 {
 ///NS3 multicast message class (no documentation provided).
 class NS3_MSG_MULTICAST : public sim_mob::comm::Message {
 public:
-	NS3_MSG_MULTICAST(sim_mob::comm::MsgData data_);
+	NS3_MSG_MULTICAST(const sim_mob::comm::MsgData& data_);
 	sim_mob::Handler* newHandler();
 };
 

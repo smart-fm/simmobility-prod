@@ -101,12 +101,21 @@ void sim_mob::Broker::configure()
                 &Broker::onAgentUpdate,
                 (event::Context)sim_mob::event::CXT_CORE_AGENT_UPDATE);
 
+	{
 	BrokerPublisher* onlyLocationsPublisher = new BrokerPublisher();
 	onlyLocationsPublisher->registerEvent(COMMEID_LOCATION);
 	publishers.insert(std::make_pair(
 		sim_mob::Services::SIMMOB_SRV_LOCATION,
 		PublisherList::Value(onlyLocationsPublisher))
 	);
+	}
+
+	//The Region publisher should be generally useful.
+	{
+	BrokerPublisher* regionPublisher = new BrokerPublisher();
+	regionPublisher->registerEvent(COMMEID_REGIONS_AND_PATH);
+	publishers.insert(std::make_pair(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH, PublisherList::Value(regionPublisher)));
+	}
 
 	//NS-3 has its own publishers
 	if(client_type == "android-ns3") {
@@ -118,12 +127,14 @@ void sim_mob::Broker::configure()
 		);
 	}
 
+	{
 	BrokerPublisher* timePublisher = new BrokerPublisher();
 	timePublisher->registerEvent(COMMEID_TIME);
 	publishers.insert(std::make_pair(
 		sim_mob::Services::SIMMOB_SRV_TIME,
 		PublisherList::Value(timePublisher))
 	);
+	}
 
 	ClientRegistrationHandler::getPublisher().subscribe(
                 (event::EventId)ConfigParams::ANDROID_EMULATOR, 

@@ -24,7 +24,7 @@ using namespace sim_mob;
  * ****************************   NS3   ************************************************************************************************************
  * ************************************************************************************************************************************************
  */
-sim_mob::rr_android_ns3::NS3_MSG_MULTICAST::NS3_MSG_MULTICAST(sim_mob::comm::MsgData data_): Message(data_)
+sim_mob::rr_android_ns3::NS3_MSG_MULTICAST::NS3_MSG_MULTICAST(const sim_mob::comm::MsgData& data_): Message(data_)
 {}
 
 Handler* sim_mob::rr_android_ns3::NS3_MSG_MULTICAST::newHandler()

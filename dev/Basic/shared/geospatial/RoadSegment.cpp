@@ -160,20 +160,28 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 		}
 	}
 
-	//TEMP FIX
-	//Now, add one more edge and one more lane representing the sidewalk.
-	//TODO: This requires our function (and several others) to be declared non-const.
-	//      Re-enable const correctness when we remove this code.
-	//TEMP: For now, we just add the outer lane as a sidewalk. This won't quite work for bi-directional
-	//      segments or for one-way Links. But it should be sufficient for the demo.
-	Lane* swLane = new Lane(this, lanes.size());
-	swLane->is_pedestrian_lane(true);
-	swLane->width_ = lanes.back()->width_/2;
-	swLane->polyline_ = sim_mob::ShiftPolyline(lanes.back()->polyline_, lanes.back()->getWidth()/2+swLane->getWidth()/2);
+	bool needGeneratePedLane = true;
+	if(lanes.back()->is_pedestrian_lane()) // last lane is ped lane, it means already generate before
+	{
+		needGeneratePedLane = false;
+	}
+	if(needGeneratePedLane)
+	{
+		//TEMP FIX
+		//Now, add one more edge and one more lane representing the sidewalk.
+		//TODO: This requires our function (and several others) to be declared non-const.
+		//      Re-enable const correctness when we remove this code.
+		//TEMP: For now, we just add the outer lane as a sidewalk. This won't quite work for bi-directional
+		//      segments or for one-way Links. But it should be sufficient for the demo.
+		Lane* swLane = new Lane(this, lanes.size());
+		swLane->is_pedestrian_lane(true);
+		swLane->width_ = lanes.back()->width_/2;
+		swLane->polyline_ = sim_mob::ShiftPolyline(lanes.back()->polyline_, lanes.back()->getWidth()/2+swLane->getWidth()/2);
 
-	//Add it, update
-	lanes.push_back(swLane);
-	width += swLane->width_;
+		//Add it, update
+		lanes.push_back(swLane);
+		width += swLane->width_;
+	}
 
 	vector<Point2D> res = makeLaneEdgeFromPolyline(lanes.back(), false);
 	laneEdgePolylines_cached.push_back(res);//crash -vahid

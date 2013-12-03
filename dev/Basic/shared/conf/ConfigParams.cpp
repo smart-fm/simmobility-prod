@@ -274,6 +274,10 @@ std::string& sim_mob::ConfigParams::roadNetworkXsdSchemaFile()
 {
 	return system.roadNetworkXsdSchemaFile;
 }
+void sim_mob::ConfigParams::setRoadNetworkXsdSchemaFile(std::string& name)
+{
+	system.roadNetworkXsdSchemaFile = name;
+}
 const std::string& sim_mob::ConfigParams::roadNetworkXsdSchemaFile() const
 {
 	return system.roadNetworkXsdSchemaFile;

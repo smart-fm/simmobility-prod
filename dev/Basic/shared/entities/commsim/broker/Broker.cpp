@@ -234,44 +234,44 @@ void sim_mob::Broker::preProcessMessage(
  */
 void sim_mob::Broker::messageReceiveCallback(
 		boost::shared_ptr<ConnectionHandler> cnnHandler, std::string input) {
-//	boost::shared_ptr<
-//			MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > m_f =
-//			messageFactories[cnnHandler->clientType];
-//	std::vector<sim_mob::comm::MsgPtr> messages;
-//	m_f->createMessage(input, messages);
-////	post the messages into the message queue one by one(add their cnnHandler also)
-//	for (std::vector<sim_mob::comm::MsgPtr>::iterator it = messages.begin();
-//			it != messages.end(); it++) {
-//
-//		sim_mob::comm::MsgData& data = it->get()->getData();
-//		std::string type = data["MESSAGE_TYPE"].asString();
-////		Print() << "Received " << (cnnHandler->clientType == ConfigParams::NS3_SIMULATOR ? "NS3" : ( cnnHandler->clientType == ConfigParams::ANDROID_EMULATOR ? "ANDROID" : "UNKNOWN_TYPE") ) << " : " << type << std::endl;
-//		if (type == "CLIENT_MESSAGES_DONE") {
-//			boost::unique_lock<boost::mutex> lock(mutex_clientDone);
-//			//update() will wait until all clients send this message for each tick
-////			Print()
-////								<< "received CLIENT_MESSAGES_DONE for client["
-////								<< cnnHandler->clientType << ":" << cnnHandler->clientID << "]" << std::endl;
-//			clientDoneChecker.insert(cnnHandler);
-//			COND_VAR_CLIENT_DONE.notify_one();
-//		} else {
-//			receiveQueue.post(MessageElement(cnnHandler, *it));
-//		}
-//	}
-
-	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > m_f = messageFactories[cnnHandler->clientType];
+	boost::shared_ptr<
+			MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > m_f =
+			messageFactories[cnnHandler->clientType];
 	std::vector<sim_mob::comm::MsgPtr> messages;
 	m_f->createMessage(input, messages);
-	bool clientMessageDone = false;
-	sim_mob::doByThread(messages, boost::bind(&Broker::preProcessMessage, this,boost::ref(cnnHandler), boost::ref(messages),  _1, _2, boost::ref(clientMessageDone)));
+//	post the messages into the message queue one by one(add their cnnHandler also)
+	for (std::vector<sim_mob::comm::MsgPtr>::iterator it = messages.begin();
+			it != messages.end(); it++) {
 
-	{
-		boost::unique_lock<boost::mutex> lock(mutex_clientDone);
-		if (clientDoneChecker.find(cnnHandler) != clientDoneChecker.end()) {
+		sim_mob::comm::MsgData& data = it->get()->getData();
+		std::string type = data["MESSAGE_TYPE"].asString();
+//		Print() << "Received " << (cnnHandler->clientType == ConfigParams::NS3_SIMULATOR ? "NS3" : ( cnnHandler->clientType == ConfigParams::ANDROID_EMULATOR ? "ANDROID" : "UNKNOWN_TYPE") ) << " : " << type << std::endl;
+		if (type == "CLIENT_MESSAGES_DONE") {
+			boost::unique_lock<boost::mutex> lock(mutex_clientDone);
+			//update() will wait until all clients send this message for each tick
+//			Print()
+//								<< "received CLIENT_MESSAGES_DONE for client["
+//								<< cnnHandler->clientType << ":" << cnnHandler->clientID << "]" << std::endl;
+			clientDoneChecker.insert(cnnHandler);
 			COND_VAR_CLIENT_DONE.notify_one();
-
+		} else {
+			receiveQueue.post(MessageElement(cnnHandler, *it));
 		}
 	}
+
+//	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > m_f = messageFactories[cnnHandler->clientType];
+//	std::vector<sim_mob::comm::MsgPtr> messages;
+//	m_f->createMessage(input, messages);
+//	bool clientMessageDone = false;
+//	sim_mob::doByThread(messages, boost::bind(&Broker::preProcessMessage, this,boost::ref(cnnHandler), boost::ref(messages),  _1, _2, boost::ref(clientMessageDone)));
+//
+//	{
+//		boost::unique_lock<boost::mutex> lock(mutex_clientDone);
+//		if (clientDoneChecker.find(cnnHandler) != clientDoneChecker.end()) {
+//			COND_VAR_CLIENT_DONE.notify_one();
+//
+//		}
+//	}
 }
 
 boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> sim_mob::Broker::getMessageReceiveCallBack() {
@@ -497,8 +497,13 @@ Entity::UpdateStatus sim_mob::Broker::frame_tick(timeslice now) {
 }
 
 //todo consider scrabbing DriverComm
-bool sim_mob::Broker::allAgentUpdatesDone() {
-	AgentsList::done_range its = REGISTERED_AGENTS.getNotDone();
+bool sim_mob::Broker::allAgentUpdatesDone()
+{
+	return !REGISTERED_AGENTS.hasNotDone();
+
+	//TOOD: May want to re-enable later.
+
+	/*AgentsList::done_range its = REGISTERED_AGENTS.getNotDone();
 	bool res = its.first == its.second;
 	if (!res) {
 		Print() << "allAgentUpdatesDone not done : " << std::endl;
@@ -508,41 +513,18 @@ bool sim_mob::Broker::allAgentUpdatesDone() {
 					<< std::endl;
 		}
 	}
-	return res;
+	return res;*/
 }
 
-void sim_mob::Broker::onAgentUpdate(sim_mob::event::EventId id,
-		sim_mob::event::Context context, sim_mob::event::EventPublisher* sender,
-		const UpdateEventArgs& argums) {
-//	Print() << "Inside onAgentUpdate" << std::endl;
-	Agent * target =
-			const_cast<Agent*>(dynamic_cast<const Agent*>(argums.GetEntity()));
-//	Print() << "onAgentUpdate:: setting[" << target->getId() << "] to.done" << std::endl;
+void sim_mob::Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums)
+{
+	const Agent* target = dynamic_cast<const Agent*>(argums.GetEntity());
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
-	if (REGISTERED_AGENTS.setDone(target, true)) {
-//		Print() << "Agent[" << target->getId() << "] done" << std::endl;
+	if(REGISTERED_AGENTS.setDone(target,true)) {
 		COND_VAR_AGENT_DONE.notify_all();
-	} else {
-//		Print() << "Thread[" << boost::this_thread::get_id() << "] Discarded Agent[" << target->getId() << "]" << std::endl;
 	}
 }
 
-//void sim_mob::Broker::AgentUpdated(Agent * target)
-//{
-//	Print() << "Inside AgentUpdated" << std::endl;
-//	Print() << "AgentUpdated:: setting[" << target->getId() << "] to.done" << std::endl;
-//	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
-//	if(REGISTERED_AGENTS.setDone(target,true))
-//	{
-//		Print() << "Agent[" << target->getId() << "] done" << std::endl;
-////		duplicateEntityDoneChecker.insert(target);
-//		COND_VAR_AGENT_DONE.notify_all();
-//	}
-//	else
-//	{
-//		Print() << "Thread[" << boost::this_thread::get_id() << "] Discarded Agent[" << target->getId() << "]" << std::endl;
-//	}
-//}
 
 void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id,
 		sim_mob::event::EventPublisher* sender,
@@ -843,16 +825,12 @@ bool sim_mob::Broker::wait() {
 
 void sim_mob::Broker::waitForAgentsUpdates() {
 	int i = 0;
-//	boost::system_time const timeout=boost::get_system_time()+ boost::posix_time::seconds(1);
 
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
-//	refineSubscriptionList();
-	while (!allAgentUpdatesDone()) {
+	while(!allAgentUpdatesDone()) {
 		Print() << "waitForAgentsUpdates _WAIT" << std::endl;
-//		COND_VAR_AGENT_DONE.timed_wait(lock, timeout);
 		COND_VAR_AGENT_DONE.wait(lock);
 		Print() << "waitForAgentsUpdates _WAIT_released" << std::endl;
-//		refineSubscriptionList();
 	}
 }
 

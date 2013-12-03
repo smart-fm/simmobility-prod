@@ -170,7 +170,7 @@ public:
  *
  * See the documentation for "namer"  ---"expander" is just like it, except it focuses on item
  * expansion. You can either expand by "value" or by "id", where the latter provides a full expansion and
- * the latter provides just the id of the item (assumed to be defined elsewhere in the XML).
+ * the former provides just the id of the item (assumed to be defined elsewhere in the XML).
  *
  * \note
  * WARNING: The default expansion of all types is "value", which makes it extremely easy to get into an

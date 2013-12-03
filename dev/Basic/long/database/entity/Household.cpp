@@ -11,7 +11,7 @@
 
 #include "Household.hpp"
 #include "util/Utils.hpp"
-#include "database/dao/AbstractDao.hpp"
+#include "database/dao/SqlAbstractDao.hpp"
 
 using namespace sim_mob::long_term;
 
@@ -122,4 +122,25 @@ void Household::setId(BigSerial id) {
 
 BigSerial Household::getId() const {
     return id;
+}
+
+namespace sim_mob {
+    namespace long_term {
+
+        std::ostream& operator<<(std::ostream& strm, const Household& data) {
+            return strm << "{"
+                    << "\"id\":\"" << data.id << "\","
+                    << "\"lifestyleId\":\"" << data.lifestyleId << "\","
+                    << "\"unitId\":\"" << data.unitId << "\","
+                    << "\"ethnicityId\":\"" << data.ethnicityId << "\","
+                    << "\"vehicleCategoryId\":\"" << data.vehicleCategoryId << "\","
+                    << "\"size\":\"" << data.size << "\","
+                    << "\"children\":\"" << data.children << "\","
+                    << "\"income\":\"" << data.income << "\","
+                    << "\"housingDuration\":\"" << data.housingDuration << "\","
+                    << "\"workers\":\"" << data.workers << "\","
+                    << "\"ageOfHead\":\"" << data.ageOfHead << "\""
+                    << "}";
+        }
+    }
 }

@@ -11,7 +11,6 @@
 #include "logging/Log.hpp"
 #include "workers/WorkGroup.hpp"
 #include "message/MessageBus.hpp"
-#include "event/EventBusSystem.hpp"
 #include "entities/Agent.hpp"
 
 using std::vector;

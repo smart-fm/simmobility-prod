@@ -10,7 +10,7 @@
  */
 #pragma once
 
-#include "database/dao/AbstractDao.hpp"
+#include "database/dao/SqlAbstractDao.hpp"
 #include "database/entity/Building.hpp"
 
 
@@ -19,7 +19,7 @@ namespace sim_mob {
         /**
          * Data Access Object to Building table on datasource.
          */
-        class BuildingDao : public db::AbstractDao<Building> {
+        class BuildingDao : public db::SqlAbstractDao<Building> {
         public:
             BuildingDao(db::DB_Connection& connection);
             virtual ~BuildingDao();

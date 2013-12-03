@@ -15,6 +15,7 @@
 #include "stddef.h"
 #include "util/LangHelpers.hpp"
 #include "logging/Log.hpp"
+#include "event/SystemEvents.hpp"
 
 namespace sim_mob {
     namespace long_term {
@@ -23,15 +24,26 @@ namespace sim_mob {
          * Events IDs. Using an enum to guarantee size.
          */
         enum LT_EventId {
-            LTEID_START = 1000000,
+            LTEID_START = event::EVT_LONG_START,
+            
             // Model life cycle events.
+            LTEID_MODEL_START = LTEID_START + 100,
             LTEID_MODEL_STARTED,
             LTEID_MODEL_STOPPED,
 
             // Events for HousingMarket
             // housing market action (unit was ADDED, REMOVED or UPDATED )
+            LTEID_MH_START = LTEID_START + 200,
             LTEID_HM_UNIT_ADDED,
             LTEID_HM_UNIT_REMOVED,
+            
+            // External Events
+            LTEID_EXTERNAL_START = LTEID_START + 300,
+            LTEID_EXT_NEW_JOB,
+            LTEID_EXT_LOST_JOB,
+            LTEID_EXT_NEW_JOB_LOCATION,
+            LTEID_EXT_NEW_CHILD,
+            LTEID_EXT_NEW_SCHOOL_LOCATION,
         };
 
         /**
@@ -75,6 +87,7 @@ namespace sim_mob {
         const std::string LT_CONFIG_FILE = "../data/long/lt-config.ini";
         const std::string LT_DB_CONFIG_FILE = "../private/lt-db.ini";
         const std::string HM_LUA_DIR = "../scripts/lua/long/housing-market";
+        const std::string EX_EV_LUA_DIR = "../scripts/lua/long/external-events";
     }
 }
 

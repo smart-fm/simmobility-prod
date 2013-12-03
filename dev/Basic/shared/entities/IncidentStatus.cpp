@@ -11,7 +11,7 @@
 namespace sim_mob {
 
 unsigned int IncidentStatus::flags = 0;
-IncidentStatus::IncidentStatus() : currentStatus(INCIDENT_CLEARANCE), speedLimit(0), speedLimitOthers(0), distanceTo(0), laneSide(LCS_SAME), changedLane(false), slowdownVelocity(false){
+IncidentStatus::IncidentStatus() : currentStatus(INCIDENT_CLEARANCE), defaultSpeedLimit(0), speedLimitFactor(0), speedLimitFactorOthers(0), distanceTo(0), laneSide(LCS_SAME), changedLane(false), slowdownVelocity(false){
 	// TODO Auto-generated constructor stub
 	if(flags == 0) {
 		flags = 1;
@@ -36,18 +36,18 @@ bool IncidentStatus::insertIncident(const Incident* inc){
 	}
 
 	currentIncidents[inc->incidentId] = inc;
-	if( speedLimit<=0 ){
-		speedLimit = inc->speedlimit;
+	if( speedLimitFactor<=0 ){
+		speedLimitFactor = inc->speedlimit;
 	}
 	else{
-		speedLimit = std::min(speedLimit, inc->speedlimit);
+		speedLimitFactor = std::min(speedLimitFactor, inc->speedlimit);
 	}
 
-	if( speedLimitOthers<=0 ){
-		speedLimitOthers = inc->speedlimitOthers;
+	if( speedLimitFactorOthers<=0 ){
+		speedLimitFactorOthers = inc->speedlimitOthers;
 	}
 	else{
-		speedLimitOthers = std::min(speedLimitOthers, inc->speedlimitOthers);
+		speedLimitFactorOthers = std::min(speedLimitFactorOthers, inc->speedlimitOthers);
 	}
 
 	return true;
@@ -76,8 +76,8 @@ void IncidentStatus::checkIsCleared(){
 void IncidentStatus::resetStatus(){
 	currentStatus = INCIDENT_CLEARANCE;
 	nextLaneIndex = -1;
-	speedLimit = -1;
-	speedLimitOthers = -1;
+	speedLimitFactor = -1;
+	speedLimitFactorOthers = -1;
 	changedLane = false;
 	slowdownVelocity = false;
 }

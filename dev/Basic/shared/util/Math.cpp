@@ -11,58 +11,83 @@
 
 #include "Math.hpp"
 #include <cmath>
-#include <stdio.h>
 
 using namespace sim_mob;
+typedef double (*InternalFunction)(Math::Function func, double x,
+        const boost::tuple<double, double, double>& params, double crit);
 
-typedef double (*InternalFunction)(Math::Function func, double x, const boost::tuple<double,double,double>& params, double crit);
+const double Math::E(2.71828182845904523536);
+const double Math::PI(3.1415926535897932385);
 
-const double Math::E (2.71828182845904523536);
-const double Math::PI (3.1415926535897932385);
+namespace {
 
-/**
- * Original function 
- */
-double OriginalFunction(Math::Function func, double x0, const boost::tuple<double,double,double>& params, double crit) {
-    return func(x0, params);
+    /**
+     * Newtows method based on given N(numerator function) and 
+     * D (denominator function)
+     * @param func to run.
+     * @param x0 starting point.
+     * @param params to pass to the function.
+     * @param crit sensitivity of the function. (ex:0.001)
+     * @param maxIterations Maximum number of iterations to find the zero.
+     * @return 
+     */
+    template<InternalFunction N, InternalFunction D>
+    inline double newtonMethod(Math::Function func, double x0,
+            const boost::tuple<double, double, double>& params,
+            double crit, int maxIterations) {
+        double x1 = 0;
+        double delta = 0;
+        int iters = 0;
+        do {
+            x1 = x0 - N(func, x0, params, crit) / D(func, x0, params, crit);
+            delta = fabs(x1 - x0);
+            x0 = x1;
+            iters++;
+        } while (delta > crit && iters <= maxIterations);
+        return x0;
+    }
+
+    /**
+     * Original function 
+     */
+    inline double originalFunc(Math::Function func, double x0,
+            const boost::tuple<double, double, double>& params, double crit) {
+        return func(x0, params);
+    }
+
+    /**
+     * First numerical derivative.
+     * F'(x) = (f(x + crit) - f(x - crit)) / 2*crit 
+     * 
+     */
+    inline double numericalDerivative(Math::Function func, double x0,
+            const boost::tuple<double, double, double>& params, double crit) {
+        return ((func((x0 + crit), params) - func((x0 - crit), params)) / (2 * crit));
+    }
+
+    /**
+     * Second numerical derivative.
+     * F''(x) = (f(x + crit) - (2 * f(x)) + f(x - crit)) / crit^2
+     *  
+     */
+    inline double numerical2Derivative(Math::Function func, double x0,
+            const boost::tuple<double, double, double>& params, double crit) {
+        return ((func((x0 + crit), params) -
+                (2 * func((x0), params)) +
+                (func((x0 - crit), params))) / (crit * crit));
+    }
 }
 
-/**
- * 
- * F'(x) = (f(x + crit) - f(x - crit)) / 2*crit 
- * 
- */
-double Numerical1Derivative(Math::Function func, double x0, const boost::tuple<double,double,double>& params, double crit) {
-    return ((func((x0 + crit), params) - func((x0 - crit), params)) / (2 * crit));
+double Math::newton(Function func, double x0,
+        const boost::tuple<double, double, double>& params,
+        double crit, int maxIterations) {
+    return newtonMethod<originalFunc, numericalDerivative>
+            (func, x0, params, crit, maxIterations);
 }
 
-/**
- * 
- * F''(x) = (f(x + crit) - (2 * f(x)) + f(x - crit)) / crit^2
- *  
- */
-double Numerical2Derivative(Math::Function func, double x0, const boost::tuple<double,double,double>& params, double crit) {
-    return ((func((x0 + crit), params) - (2 * func((x0), params)) + (func((x0 - crit), params))) / (crit * crit));
-}
-
-template<InternalFunction numerator, InternalFunction denominator>
-double NewtonMethod(Math::Function func, double x0, const boost::tuple<double,double,double>& params, double crit, int maxIterations) {
-    double x1 = 0;
-    double delta = 0;
-    int iters = 0;
-    do {
-        x1 = x0 - numerator(func, x0, params, crit) / denominator(func, x0, params, crit);
-        delta = fabs(x1 - x0);
-        x0 = x1;
-        iters++;
-    } while (delta > crit && iters <= maxIterations);
-    return x0;
-}
-
-double Math::Newton(Function func, double x0, const boost::tuple<double,double,double>& params, double crit, int maxIterations) {
-    return NewtonMethod<OriginalFunction, Numerical1Derivative>(func, x0, params, crit, maxIterations);
-}
-
-double Math::FindMaxArg(Function func, double x0, const boost::tuple<double,double,double>& params, double crit, int maxIterations) {
-    return NewtonMethod<Numerical1Derivative, Numerical2Derivative>(func, x0, params, crit, maxIterations);
+double Math::findMaxArg(Function func, double x0,
+        const boost::tuple<double, double, double>& params,
+        double crit, int maxIterations) {
+    return newtonMethod<numericalDerivative, numerical2Derivative>
+            (func, x0, params, crit, maxIterations);
 }

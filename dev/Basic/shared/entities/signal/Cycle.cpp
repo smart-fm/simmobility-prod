@@ -36,7 +36,6 @@ void Cycle::Update(double DS/*,sim_mob::Node node*/) {
 	setnextCL(DS/*,node*/);
 	updateprevCL();
 	updatecurrCL();
-//	std::cout << "The new Cycle Length is : " << currCL << std::endl;
 }
 
 //use SCATS to determine next cyecle length
@@ -107,11 +106,6 @@ double Cycle::setnextCL(double DS/*,sim_mob::Node node*/) {
 		nextCL = CLmax;
 	else if(nextCL < CLmin)
 		nextCL = CLmin;
-//	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
-//	{
-//		std::cout<<"CL "<<currCL<<std::endl;
-//		std::cout<<"NL "<<nextCL<<std::endl;
-//	}
 	return nextCL;
 }
 

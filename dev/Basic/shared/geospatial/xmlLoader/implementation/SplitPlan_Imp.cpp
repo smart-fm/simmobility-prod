@@ -12,7 +12,7 @@ void sim_mob::xml::SplitPlan_t_pimpl::pre ()
 	model = sim_mob::SplitPlan();
 }
 
-sim_mob::SplitPlan sim_mob::xml::SplitPlan_t_pimpl::post_SplitPlan_t ()
+sim_mob::SplitPlan& sim_mob::xml::SplitPlan_t_pimpl::post_SplitPlan_t ()
 {
 	return model;
 }
@@ -20,7 +20,6 @@ sim_mob::SplitPlan sim_mob::xml::SplitPlan_t_pimpl::post_SplitPlan_t ()
 void sim_mob::xml::SplitPlan_t_pimpl::splitplanID (unsigned int value)
 {
 	 model.TMP_PlanID = value;
-	//std::cout << "splitplanID: " <<value << std::endl;
 }
 
 void sim_mob::xml::SplitPlan_t_pimpl::cycleLength (unsigned char value)
@@ -33,9 +32,9 @@ void sim_mob::xml::SplitPlan_t_pimpl::offset (unsigned char value)
 	model.offset =  static_cast<unsigned short> (value);
 }
 
-void sim_mob::xml::SplitPlan_t_pimpl::ChoiceSet (std::vector<std::vector<double> > &value)
+void sim_mob::xml::SplitPlan_t_pimpl::ChoiceSet (std::vector<std::vector<double> >& value)
 {
-	model.setCoiceSet(value );
+	model.setChoiceSet(value);
 }
 
 

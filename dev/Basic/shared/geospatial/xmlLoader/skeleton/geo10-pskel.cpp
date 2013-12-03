@@ -33,6 +33,8 @@
 
 // Begin prologue.
 //
+// NOTE: Do *not* edit the -pskel.* files; they are generated automatically from the xsd file.
+//       Instead, modify the -pimpl.* files. ~Seth
 //
 // End prologue.
 
@@ -40,18 +42,19 @@
 
 namespace sim_mob
 {
-namespace xml {
+  namespace xml
+  {
   // roadrunner_regions_t_pskel
   //
 
   void roadrunner_regions_t_pskel::
-  region_parser (sim_mob::xml::roadrunner_region_t_pskel& p)
+    region_parser (::sim_mob::xml::roadrunner_region_t_pskel& p)
   {
     this->region_parser_ = &p;
   }
 
   void roadrunner_regions_t_pskel::
-  parsers (sim_mob::xml::roadrunner_region_t_pskel& region)
+    parsers (::sim_mob::xml::roadrunner_region_t_pskel& region)
   {
     this->region_parser_ = &region;
   }
@@ -72,14 +75,14 @@ namespace xml {
   }
 
   void roadrunner_region_t_pskel::
-  shape_parser (sim_mob::xml::roadrunner_shape_t_pskel& p)
+  shape_parser (::sim_mob::xml::roadrunner_shape_t_pskel& p)
   {
     this->shape_parser_ = &p;
   }
 
   void roadrunner_region_t_pskel::
   parsers (::xml_schema::int_pskel& id,
-           sim_mob::xml::roadrunner_shape_t_pskel& shape)
+           ::sim_mob::xml::roadrunner_shape_t_pskel& shape)
   {
     this->id_parser_ = &id;
     this->shape_parser_ = &shape;
@@ -126,13 +129,13 @@ namespace xml {
   //
 
   void roadrunner_shape_t_pskel::
-  vertex_parser (sim_mob::xml::roadrunner_vertex_t_pskel& p)
+    vertex_parser (::sim_mob::xml::roadrunner_vertex_t_pskel& p)
   {
     this->vertex_parser_ = &p;
   }
 
   void roadrunner_shape_t_pskel::
-  parsers (sim_mob::xml::roadrunner_vertex_t_pskel& vertex)
+  parsers (::sim_mob::xml::roadrunner_vertex_t_pskel& vertex)
   {
     this->vertex_parser_ = &vertex;
   }
@@ -147,20 +150,20 @@ namespace xml {
   //
 
   void coordinate_map_t_pskel::
-  utm_projection_parser (sim_mob::xml::utm_projection_t_pskel& p)
+  utm_projection_parser (::sim_mob::xml::utm_projection_t_pskel& p)
   {
     this->utm_projection_parser_ = &p;
   }
 
   void coordinate_map_t_pskel::
-  linear_scale_parser (sim_mob::xml::linear_scale_t_pskel& p)
+  linear_scale_parser (::sim_mob::xml::linear_scale_t_pskel& p)
   {
     this->linear_scale_parser_ = &p;
   }
 
   void coordinate_map_t_pskel::
-  parsers (sim_mob::xml::utm_projection_t_pskel& utm_projection,
-           sim_mob::xml::linear_scale_t_pskel& linear_scale)
+  parsers (::sim_mob::xml::utm_projection_t_pskel& utm_projection,
+           ::sim_mob::xml::linear_scale_t_pskel& linear_scale)
   {
     this->utm_projection_parser_ = &utm_projection;
     this->linear_scale_parser_ = &linear_scale;
@@ -207,20 +210,20 @@ namespace xml {
   //
 
   void linear_scale_t_pskel::
-  source_parser (sim_mob::xml::scale_source_t_pskel& p)
+  source_parser (::sim_mob::xml::scale_source_t_pskel& p)
   {
     this->source_parser_ = &p;
   }
 
   void linear_scale_t_pskel::
-  destination_parser (sim_mob::xml::scale_destination_t_pskel& p)
+  destination_parser (::sim_mob::xml::scale_destination_t_pskel& p)
   {
     this->destination_parser_ = &p;
   }
 
   void linear_scale_t_pskel::
-  parsers (sim_mob::xml::scale_source_t_pskel& source,
-           sim_mob::xml::scale_destination_t_pskel& destination)
+  parsers (::sim_mob::xml::scale_source_t_pskel& source,
+           ::sim_mob::xml::scale_destination_t_pskel& destination)
   {
     this->source_parser_ = &source;
     this->destination_parser_ = &destination;
@@ -333,14 +336,14 @@ namespace xml {
   }
 
   void PolyPoint_t_pskel::
-  location_parser (sim_mob::xml::Point2D_t_pskel& p)
+  location_parser (::sim_mob::xml::Point2D_t_pskel& p)
   {
     this->location_parser_ = &p;
   }
 
   void PolyPoint_t_pskel::
   parsers (::xml_schema::string_pskel& pointID,
-           sim_mob::xml::Point2D_t_pskel& location)
+           ::sim_mob::xml::Point2D_t_pskel& location)
   {
     this->pointID_parser_ = &pointID;
     this->location_parser_ = &location;
@@ -357,13 +360,13 @@ namespace xml {
   //
 
   void PolyLine_t_pskel::
-  PolyPoint_parser (sim_mob::xml::PolyPoint_t_pskel& p)
+  PolyPoint_parser (::sim_mob::xml::PolyPoint_t_pskel& p)
   {
     this->PolyPoint_parser_ = &p;
   }
 
   void PolyLine_t_pskel::
-  parsers (sim_mob::xml::PolyPoint_t_pskel& PolyPoint)
+  parsers (::sim_mob::xml::PolyPoint_t_pskel& PolyPoint)
   {
     this->PolyPoint_parser_ = &PolyPoint;
   }
@@ -486,7 +489,7 @@ namespace xml {
   }
 
   void lane_t_pskel::
-  PolyLine_parser (sim_mob::xml::PolyLine_t_pskel& p)
+  PolyLine_parser (::sim_mob::xml::PolyLine_t_pskel& p)
   {
     this->PolyLine_parser_ = &p;
   }
@@ -510,7 +513,7 @@ namespace xml {
            ::xml_schema::boolean_pskel& can_freely_park_here,
            ::xml_schema::boolean_pskel& can_stop_here,
            ::xml_schema::boolean_pskel& is_u_turn_allowed,
-           sim_mob::xml::PolyLine_t_pskel& PolyLine)
+           ::sim_mob::xml::PolyLine_t_pskel& PolyLine)
   {
     this->laneID_parser_ = &laneID;
     this->width_parser_ = &width;
@@ -591,13 +594,13 @@ namespace xml {
   //
 
   void connectors_t_pskel::
-  Connector_parser (sim_mob::xml::connector_t_pskel& p)
+  Connector_parser (::sim_mob::xml::connector_t_pskel& p)
   {
     this->Connector_parser_ = &p;
   }
 
   void connectors_t_pskel::
-  parsers (sim_mob::xml::connector_t_pskel& Connector)
+  parsers (::sim_mob::xml::connector_t_pskel& Connector)
   {
     this->Connector_parser_ = &Connector;
   }
@@ -660,13 +663,13 @@ namespace xml {
   //
 
   void new_connectors_t_pskel::
-  new_connector_parser (sim_mob::xml::new_connector_t_pskel& p)
+  new_connector_parser (::sim_mob::xml::new_connector_t_pskel& p)
   {
     this->new_connector_parser_ = &p;
   }
 
   void new_connectors_t_pskel::
-  parsers (sim_mob::xml::new_connector_t_pskel& new_connector)
+  parsers (::sim_mob::xml::new_connector_t_pskel& new_connector)
   {
     this->new_connector_parser_ = &new_connector;
   }
@@ -687,14 +690,14 @@ namespace xml {
   }
 
   void Multi_Connector_t_pskel::
-  Connectors_parser (sim_mob::xml::connectors_t_pskel& p)
+  Connectors_parser (::sim_mob::xml::connectors_t_pskel& p)
   {
     this->Connectors_parser_ = &p;
   }
 
   void Multi_Connector_t_pskel::
   parsers (::xml_schema::unsigned_long_pskel& RoadSegment,
-           sim_mob::xml::connectors_t_pskel& Connectors)
+           ::sim_mob::xml::connectors_t_pskel& Connectors)
   {
     this->RoadSegment_parser_ = &RoadSegment;
     this->Connectors_parser_ = &Connectors;
@@ -711,13 +714,13 @@ namespace xml {
   //
 
   void Multi_Connectors_t_pskel::
-  MultiConnectors_parser (sim_mob::xml::Multi_Connector_t_pskel& p)
+  MultiConnectors_parser (::sim_mob::xml::Multi_Connector_t_pskel& p)
   {
     this->MultiConnectors_parser_ = &p;
   }
 
   void Multi_Connectors_t_pskel::
-  parsers (sim_mob::xml::Multi_Connector_t_pskel& MultiConnectors)
+  parsers (::sim_mob::xml::Multi_Connector_t_pskel& MultiConnectors)
   {
     this->MultiConnectors_parser_ = &MultiConnectors;
   }
@@ -732,13 +735,13 @@ namespace xml {
   //
 
   void fwdBckSegments_t_pskel::
-  Segment_parser (sim_mob::xml::segment_t_pskel& p)
+  Segment_parser (::sim_mob::xml::segment_t_pskel& p)
   {
     this->Segment_parser_ = &p;
   }
 
   void fwdBckSegments_t_pskel::
-  parsers (sim_mob::xml::segment_t_pskel& Segment)
+  parsers (::sim_mob::xml::segment_t_pskel& Segment)
   {
     this->Segment_parser_ = &Segment;
   }
@@ -780,14 +783,14 @@ namespace xml {
   }
 
   void laneEdgePolyline_cached_t_pskel::
-  polyline_parser (sim_mob::xml::PolyLine_t_pskel& p)
+  polyline_parser (::sim_mob::xml::PolyLine_t_pskel& p)
   {
     this->polyline_parser_ = &p;
   }
 
   void laneEdgePolyline_cached_t_pskel::
   parsers (::xml_schema::short_pskel& laneNumber,
-           sim_mob::xml::PolyLine_t_pskel& polyline)
+           ::sim_mob::xml::PolyLine_t_pskel& polyline)
   {
     this->laneNumber_parser_ = &laneNumber;
     this->polyline_parser_ = &polyline;
@@ -804,13 +807,13 @@ namespace xml {
   //
 
   void laneEdgePolylines_cached_t_pskel::
-  laneEdgePolyline_cached_parser (sim_mob::xml::laneEdgePolyline_cached_t_pskel& p)
+  laneEdgePolyline_cached_parser (::sim_mob::xml::laneEdgePolyline_cached_t_pskel& p)
   {
     this->laneEdgePolyline_cached_parser_ = &p;
   }
 
   void laneEdgePolylines_cached_t_pskel::
-  parsers (sim_mob::xml::laneEdgePolyline_cached_t_pskel& laneEdgePolyline_cached)
+  parsers (::sim_mob::xml::laneEdgePolyline_cached_t_pskel& laneEdgePolyline_cached)
   {
     this->laneEdgePolyline_cached_parser_ = &laneEdgePolyline_cached;
   }
@@ -867,31 +870,31 @@ namespace xml {
   }
 
   void segment_t_pskel::
-  polyline_parser (sim_mob::xml::PolyLine_t_pskel& p)
+  polyline_parser (::sim_mob::xml::PolyLine_t_pskel& p)
   {
     this->polyline_parser_ = &p;
   }
 
   void segment_t_pskel::
-  laneEdgePolylines_cached_parser (sim_mob::xml::laneEdgePolylines_cached_t_pskel& p)
+  laneEdgePolylines_cached_parser (::sim_mob::xml::laneEdgePolylines_cached_t_pskel& p)
   {
     this->laneEdgePolylines_cached_parser_ = &p;
   }
 
   void segment_t_pskel::
-  Lanes_parser (sim_mob::xml::Lanes_pskel& p)
+  Lanes_parser (::sim_mob::xml::Lanes_pskel& p)
   {
     this->Lanes_parser_ = &p;
   }
 
   void segment_t_pskel::
-  Obstacles_parser (sim_mob::xml::RoadItems_t_pskel& p)
+  Obstacles_parser (::sim_mob::xml::RoadItems_t_pskel& p)
   {
     this->Obstacles_parser_ = &p;
   }
 
   void segment_t_pskel::
-  KurbLine_parser (sim_mob::xml::PolyLine_t_pskel& p)
+  KurbLine_parser (::sim_mob::xml::PolyLine_t_pskel& p)
   {
     this->KurbLine_parser_ = &p;
   }
@@ -904,11 +907,11 @@ namespace xml {
            ::xml_schema::unsigned_int_pskel& Length,
            ::xml_schema::unsigned_int_pskel& Width,
            ::xml_schema::string_pskel& originalDB_ID,
-           sim_mob::xml::PolyLine_t_pskel& polyline,
-           sim_mob::xml::laneEdgePolylines_cached_t_pskel& laneEdgePolylines_cached,
-           sim_mob::xml::Lanes_pskel& Lanes,
-           sim_mob::xml::RoadItems_t_pskel& Obstacles,
-           sim_mob::xml::PolyLine_t_pskel& KurbLine)
+           ::sim_mob::xml::PolyLine_t_pskel& polyline,
+           ::sim_mob::xml::laneEdgePolylines_cached_t_pskel& laneEdgePolylines_cached,
+           ::sim_mob::xml::Lanes_pskel& Lanes,
+           ::sim_mob::xml::RoadItems_t_pskel& Obstacles,
+           ::sim_mob::xml::PolyLine_t_pskel& KurbLine)
   {
     this->segmentID_parser_ = &segmentID;
     this->startingNode_parser_ = &startingNode;
@@ -969,7 +972,7 @@ namespace xml {
   }
 
   void link_t_pskel::
-  Segments_parser (sim_mob::xml::fwdBckSegments_t_pskel& p)
+  Segments_parser (::sim_mob::xml::fwdBckSegments_t_pskel& p)
   {
     this->Segments_parser_ = &p;
   }
@@ -979,7 +982,7 @@ namespace xml {
            ::xml_schema::string_pskel& roadName,
            ::xml_schema::unsigned_int_pskel& StartingNode,
            ::xml_schema::unsigned_int_pskel& EndingNode,
-           sim_mob::xml::fwdBckSegments_t_pskel& Segments)
+           ::sim_mob::xml::fwdBckSegments_t_pskel& Segments)
   {
     this->linkID_parser_ = &linkID;
     this->roadName_parser_ = &roadName;
@@ -1032,13 +1035,13 @@ namespace xml {
   //
 
   void separators_t_pskel::
-  Separator_parser (sim_mob::xml::separator_t_pskel& p)
+  Separator_parser (::sim_mob::xml::separator_t_pskel& p)
   {
     this->Separator_parser_ = &p;
   }
 
   void separators_t_pskel::
-  parsers (sim_mob::xml::separator_t_pskel& Separator)
+  parsers (::sim_mob::xml::separator_t_pskel& Separator)
   {
     this->Separator_parser_ = &Separator;
   }
@@ -1083,13 +1086,13 @@ namespace xml {
   //
 
   void DomainIslands_t_pskel::
-  domainIslands_parser (sim_mob::xml::DomainIsland_t_pskel& p)
+  domainIslands_parser (::sim_mob::xml::DomainIsland_t_pskel& p)
   {
     this->domainIslands_parser_ = &p;
   }
 
   void DomainIslands_t_pskel::
-  parsers (sim_mob::xml::DomainIsland_t_pskel& domainIslands)
+  parsers (::sim_mob::xml::DomainIsland_t_pskel& domainIslands)
   {
     this->domainIslands_parser_ = &domainIslands;
   }
@@ -1134,13 +1137,13 @@ namespace xml {
   //
 
   void offsets_t_pskel::
-  offset_parser (sim_mob::xml::offset_t_pskel& p)
+  offset_parser (::sim_mob::xml::offset_t_pskel& p)
   {
     this->offset_parser_ = &p;
   }
 
   void offsets_t_pskel::
-  parsers (sim_mob::xml::offset_t_pskel& offset)
+  parsers (::sim_mob::xml::offset_t_pskel& offset)
   {
     this->offset_parser_ = &offset;
   }
@@ -1185,13 +1188,13 @@ namespace xml {
   //
 
   void ChunkLengths_t_pskel::
-  chunklength_parser (sim_mob::xml::ChunkLength_t_pskel& p)
+  chunklength_parser (::sim_mob::xml::ChunkLength_t_pskel& p)
   {
     this->chunklength_parser_ = &p;
   }
 
   void ChunkLengths_t_pskel::
-  parsers (sim_mob::xml::ChunkLength_t_pskel& chunklength)
+  parsers (::sim_mob::xml::ChunkLength_t_pskel& chunklength)
   {
     this->chunklength_parser_ = &chunklength;
   }
@@ -1257,13 +1260,13 @@ namespace xml {
   //
 
   void EntranceAngles_t_pskel::
-  entranceAngle_parser (sim_mob::xml::EntranceAngle_t_pskel& p)
+  entranceAngle_parser (::sim_mob::xml::EntranceAngle_t_pskel& p)
   {
     this->entranceAngle_parser_ = &p;
   }
 
   void EntranceAngles_t_pskel::
-  parsers (sim_mob::xml::EntranceAngle_t_pskel& entranceAngle)
+  parsers (::sim_mob::xml::EntranceAngle_t_pskel& entranceAngle)
   {
     this->entranceAngle_parser_ = &entranceAngle;
   }
@@ -1284,7 +1287,7 @@ namespace xml {
   }
 
   void Node_t_pskel::
-  location_parser (sim_mob::xml::Point2D_t_pskel& p)
+  location_parser (::sim_mob::xml::Point2D_t_pskel& p)
   {
     this->location_parser_ = &p;
   }
@@ -1297,7 +1300,7 @@ namespace xml {
 
   void Node_t_pskel::
   parsers (::xml_schema::unsigned_int_pskel& nodeID,
-           sim_mob::xml::Point2D_t_pskel& location,
+           ::sim_mob::xml::Point2D_t_pskel& location,
            ::xml_schema::string_pskel& originalDB_ID)
   {
     this->nodeID_parser_ = &nodeID;
@@ -1347,37 +1350,37 @@ namespace xml {
   //
 
   void UniNode_t_pskel::
-  firstPair_parser (sim_mob::xml::temp_Segmetair_t_pskel& p)
+  firstPair_parser (::sim_mob::xml::temp_Segmetair_t_pskel& p)
   {
     this->firstPair_parser_ = &p;
   }
 
   void UniNode_t_pskel::
-  secondPair_parser (sim_mob::xml::temp_Segmetair_t_pskel& p)
+  secondPair_parser (::sim_mob::xml::temp_Segmetair_t_pskel& p)
   {
     this->secondPair_parser_ = &p;
   }
 
   void UniNode_t_pskel::
-  Connectors_parser (sim_mob::xml::connectors_t_pskel& p)
+  Connectors_parser (::sim_mob::xml::connectors_t_pskel& p)
   {
     this->Connectors_parser_ = &p;
   }
 
   void UniNode_t_pskel::
-  new_Connectors_parser (sim_mob::xml::new_connectors_t_pskel& p)
+  new_Connectors_parser (::sim_mob::xml::new_connectors_t_pskel& p)
   {
     this->new_Connectors_parser_ = &p;
   }
 
   void UniNode_t_pskel::
   parsers (::xml_schema::unsigned_int_pskel& nodeID,
-           sim_mob::xml::Point2D_t_pskel& location,
+           ::sim_mob::xml::Point2D_t_pskel& location,
            ::xml_schema::string_pskel& originalDB_ID,
-           sim_mob::xml::temp_Segmetair_t_pskel& firstPair,
-           sim_mob::xml::temp_Segmetair_t_pskel& secondPair,
-           sim_mob::xml::connectors_t_pskel& Connectors,
-           sim_mob::xml::new_connectors_t_pskel& new_Connectors)
+           ::sim_mob::xml::temp_Segmetair_t_pskel& firstPair,
+           ::sim_mob::xml::temp_Segmetair_t_pskel& secondPair,
+           ::sim_mob::xml::connectors_t_pskel& Connectors,
+           ::sim_mob::xml::new_connectors_t_pskel& new_Connectors)
   {
     this->nodeID_parser_ = &nodeID;
     this->location_parser_ = &location;
@@ -1401,37 +1404,37 @@ namespace xml {
   //
 
   void roundabout_t_pskel::
-  roadSegmentsAt_parser (sim_mob::xml::RoadSegmentsAt_t_pskel& p)
+  roadSegmentsAt_parser (::sim_mob::xml::RoadSegmentsAt_t_pskel& p)
   {
     this->roadSegmentsAt_parser_ = &p;
   }
 
   void roundabout_t_pskel::
-  Connectors_parser (sim_mob::xml::Multi_Connectors_t_pskel& p)
+  Connectors_parser (::sim_mob::xml::Multi_Connectors_t_pskel& p)
   {
     this->Connectors_parser_ = &p;
   }
 
   void roundabout_t_pskel::
-  ChunkLengths_parser (sim_mob::xml::ChunkLengths_t_pskel& p)
+  ChunkLengths_parser (::sim_mob::xml::ChunkLengths_t_pskel& p)
   {
     this->ChunkLengths_parser_ = &p;
   }
 
   void roundabout_t_pskel::
-  Offsets_parser (sim_mob::xml::offsets_t_pskel& p)
+  Offsets_parser (::sim_mob::xml::offsets_t_pskel& p)
   {
     this->Offsets_parser_ = &p;
   }
 
   void roundabout_t_pskel::
-  Separators_parser (sim_mob::xml::separators_t_pskel& p)
+  Separators_parser (::sim_mob::xml::separators_t_pskel& p)
   {
     this->Separators_parser_ = &p;
   }
 
   void roundabout_t_pskel::
-  addDominantLane_parser (sim_mob::xml::LanesVector_t_pskel& p)
+  addDominantLane_parser (::sim_mob::xml::LanesVector_t_pskel& p)
   {
     this->addDominantLane_parser_ = &p;
   }
@@ -1449,24 +1452,24 @@ namespace xml {
   }
 
   void roundabout_t_pskel::
-  entranceAngles_parser (sim_mob::xml::EntranceAngles_t_pskel& p)
+  entranceAngles_parser (::sim_mob::xml::EntranceAngles_t_pskel& p)
   {
     this->entranceAngles_parser_ = &p;
   }
 
   void roundabout_t_pskel::
   parsers (::xml_schema::unsigned_int_pskel& nodeID,
-           sim_mob::xml::Point2D_t_pskel& location,
+           ::sim_mob::xml::Point2D_t_pskel& location,
            ::xml_schema::string_pskel& originalDB_ID,
-           sim_mob::xml::RoadSegmentsAt_t_pskel& roadSegmentsAt,
-           sim_mob::xml::Multi_Connectors_t_pskel& Connectors,
-           sim_mob::xml::ChunkLengths_t_pskel& ChunkLengths,
-           sim_mob::xml::offsets_t_pskel& Offsets,
-           sim_mob::xml::separators_t_pskel& Separators,
-           sim_mob::xml::LanesVector_t_pskel& addDominantLane,
+           ::sim_mob::xml::RoadSegmentsAt_t_pskel& roadSegmentsAt,
+           ::sim_mob::xml::Multi_Connectors_t_pskel& Connectors,
+           ::sim_mob::xml::ChunkLengths_t_pskel& ChunkLengths,
+           ::sim_mob::xml::offsets_t_pskel& Offsets,
+           ::sim_mob::xml::separators_t_pskel& Separators,
+           ::sim_mob::xml::LanesVector_t_pskel& addDominantLane,
            ::xml_schema::float_pskel& roundaboutDominantIslands,
            ::xml_schema::int_pskel& roundaboutNumberOfLanes,
-           sim_mob::xml::EntranceAngles_t_pskel& entranceAngles)
+           ::sim_mob::xml::EntranceAngles_t_pskel& entranceAngles)
   {
     this->nodeID_parser_ = &nodeID;
     this->location_parser_ = &location;
@@ -1500,65 +1503,65 @@ namespace xml {
   //
 
   void intersection_t_pskel::
-  roadSegmentsAt_parser (sim_mob::xml::RoadSegmentsAt_t_pskel& p)
+  roadSegmentsAt_parser (::sim_mob::xml::RoadSegmentsAt_t_pskel& p)
   {
     this->roadSegmentsAt_parser_ = &p;
   }
 
   void intersection_t_pskel::
-  Connectors_parser (sim_mob::xml::Multi_Connectors_t_pskel& p)
+  Connectors_parser (::sim_mob::xml::Multi_Connectors_t_pskel& p)
   {
     this->Connectors_parser_ = &p;
   }
 
   void intersection_t_pskel::
-  ChunkLengths_parser (sim_mob::xml::ChunkLengths_t_pskel& p)
+  ChunkLengths_parser (::sim_mob::xml::ChunkLengths_t_pskel& p)
   {
     this->ChunkLengths_parser_ = &p;
   }
 
   void intersection_t_pskel::
-  Offsets_parser (sim_mob::xml::offsets_t_pskel& p)
+  Offsets_parser (::sim_mob::xml::offsets_t_pskel& p)
   {
     this->Offsets_parser_ = &p;
   }
 
   void intersection_t_pskel::
-  Separators_parser (sim_mob::xml::separators_t_pskel& p)
+  Separators_parser (::sim_mob::xml::separators_t_pskel& p)
   {
     this->Separators_parser_ = &p;
   }
 
   void intersection_t_pskel::
-  additionalDominantLanes_parser (sim_mob::xml::LanesVector_t_pskel& p)
+  additionalDominantLanes_parser (::sim_mob::xml::LanesVector_t_pskel& p)
   {
     this->additionalDominantLanes_parser_ = &p;
   }
 
   void intersection_t_pskel::
-  additionalSubdominantLanes_parser (sim_mob::xml::LanesVector_t_pskel& p)
+  additionalSubdominantLanes_parser (::sim_mob::xml::LanesVector_t_pskel& p)
   {
     this->additionalSubdominantLanes_parser_ = &p;
   }
 
   void intersection_t_pskel::
-  domainIslands_parser (sim_mob::xml::DomainIslands_t_pskel& p)
+  domainIslands_parser (::sim_mob::xml::DomainIslands_t_pskel& p)
   {
     this->domainIslands_parser_ = &p;
   }
 
   void intersection_t_pskel::
   parsers (::xml_schema::unsigned_int_pskel& nodeID,
-           sim_mob::xml::Point2D_t_pskel& location,
+           ::sim_mob::xml::Point2D_t_pskel& location,
            ::xml_schema::string_pskel& originalDB_ID,
-           sim_mob::xml::RoadSegmentsAt_t_pskel& roadSegmentsAt,
-           sim_mob::xml::Multi_Connectors_t_pskel& Connectors,
-           sim_mob::xml::ChunkLengths_t_pskel& ChunkLengths,
-           sim_mob::xml::offsets_t_pskel& Offsets,
-           sim_mob::xml::separators_t_pskel& Separators,
-           sim_mob::xml::LanesVector_t_pskel& additionalDominantLanes,
-           sim_mob::xml::LanesVector_t_pskel& additionalSubdominantLanes,
-           sim_mob::xml::DomainIslands_t_pskel& domainIslands)
+           ::sim_mob::xml::RoadSegmentsAt_t_pskel& roadSegmentsAt,
+           ::sim_mob::xml::Multi_Connectors_t_pskel& Connectors,
+           ::sim_mob::xml::ChunkLengths_t_pskel& ChunkLengths,
+           ::sim_mob::xml::offsets_t_pskel& Offsets,
+           ::sim_mob::xml::separators_t_pskel& Separators,
+           ::sim_mob::xml::LanesVector_t_pskel& additionalDominantLanes,
+           ::sim_mob::xml::LanesVector_t_pskel& additionalSubdominantLanes,
+           ::sim_mob::xml::DomainIslands_t_pskel& domainIslands)
   {
     this->nodeID_parser_ = &nodeID;
     this->location_parser_ = &location;
@@ -1602,13 +1605,13 @@ namespace xml {
   }
 
   void RoadItem_t_pskel::
-  start_parser (sim_mob::xml::Point2D_t_pskel& p)
+  start_parser (::sim_mob::xml::Point2D_t_pskel& p)
   {
     this->start_parser_ = &p;
   }
 
   void RoadItem_t_pskel::
-  end_parser (sim_mob::xml::Point2D_t_pskel& p)
+  end_parser (::sim_mob::xml::Point2D_t_pskel& p)
   {
     this->end_parser_ = &p;
   }
@@ -1616,8 +1619,8 @@ namespace xml {
   void RoadItem_t_pskel::
   parsers (::xml_schema::unsigned_long_pskel& id,
            ::xml_schema::unsigned_short_pskel& Offset,
-           sim_mob::xml::Point2D_t_pskel& start,
-           sim_mob::xml::Point2D_t_pskel& end)
+           ::sim_mob::xml::Point2D_t_pskel& start,
+           ::sim_mob::xml::Point2D_t_pskel& end)
   {
     this->id_parser_ = &id;
     this->Offset_parser_ = &Offset;
@@ -1688,8 +1691,8 @@ namespace xml {
   void BusStop_t_pskel::
   parsers (::xml_schema::unsigned_long_pskel& id,
            ::xml_schema::unsigned_short_pskel& Offset,
-           sim_mob::xml::Point2D_t_pskel& start,
-           sim_mob::xml::Point2D_t_pskel& end,
+           ::sim_mob::xml::Point2D_t_pskel& start,
+           ::sim_mob::xml::Point2D_t_pskel& end,
            ::xml_schema::double_pskel& xPos,
            ::xml_schema::double_pskel& yPos,
            ::xml_schema::unsigned_long_pskel& lane_location,
@@ -1738,8 +1741,8 @@ namespace xml {
   void ERP_Gantry_t_pskel::
   parsers (::xml_schema::unsigned_long_pskel& id,
            ::xml_schema::unsigned_short_pskel& Offset,
-           sim_mob::xml::Point2D_t_pskel& start,
-           sim_mob::xml::Point2D_t_pskel& end,
+           ::sim_mob::xml::Point2D_t_pskel& start,
+           ::sim_mob::xml::Point2D_t_pskel& end,
            ::xml_schema::string_pskel& ERP_GantryID)
   {
     this->id_parser_ = &id;
@@ -1798,20 +1801,20 @@ namespace xml {
   //
 
   void PointPair_t_pskel::
-  first_parser (sim_mob::xml::Point2D_t_pskel& p)
+  first_parser (::sim_mob::xml::Point2D_t_pskel& p)
   {
     this->first_parser_ = &p;
   }
 
   void PointPair_t_pskel::
-  second_parser (sim_mob::xml::Point2D_t_pskel& p)
+  second_parser (::sim_mob::xml::Point2D_t_pskel& p)
   {
     this->second_parser_ = &p;
   }
 
   void PointPair_t_pskel::
-  parsers (sim_mob::xml::Point2D_t_pskel& first,
-           sim_mob::xml::Point2D_t_pskel& second)
+  parsers (::sim_mob::xml::Point2D_t_pskel& first,
+           ::sim_mob::xml::Point2D_t_pskel& second)
   {
     this->first_parser_ = &first;
     this->second_parser_ = &second;
@@ -1828,13 +1831,13 @@ namespace xml {
   //
 
   void crossing_t_pskel::
-  nearLine_parser (sim_mob::xml::PointPair_t_pskel& p)
+  nearLine_parser (::sim_mob::xml::PointPair_t_pskel& p)
   {
     this->nearLine_parser_ = &p;
   }
 
   void crossing_t_pskel::
-  farLine_parser (sim_mob::xml::PointPair_t_pskel& p)
+  farLine_parser (::sim_mob::xml::PointPair_t_pskel& p)
   {
     this->farLine_parser_ = &p;
   }
@@ -1842,10 +1845,10 @@ namespace xml {
   void crossing_t_pskel::
   parsers (::xml_schema::unsigned_long_pskel& id,
            ::xml_schema::unsigned_short_pskel& Offset,
-           sim_mob::xml::Point2D_t_pskel& start,
-           sim_mob::xml::Point2D_t_pskel& end,
-           sim_mob::xml::PointPair_t_pskel& nearLine,
-           sim_mob::xml::PointPair_t_pskel& farLine)
+           ::sim_mob::xml::Point2D_t_pskel& start,
+           ::sim_mob::xml::Point2D_t_pskel& end,
+           ::sim_mob::xml::PointPair_t_pskel& nearLine,
+           ::sim_mob::xml::PointPair_t_pskel& farLine)
   {
     this->id_parser_ = &id;
     this->Offset_parser_ = &Offset;
@@ -1880,8 +1883,8 @@ namespace xml {
   void RoadBump_t_pskel::
   parsers (::xml_schema::unsigned_long_pskel& id,
            ::xml_schema::unsigned_short_pskel& Offset,
-           sim_mob::xml::Point2D_t_pskel& start,
-           sim_mob::xml::Point2D_t_pskel& end,
+           ::sim_mob::xml::Point2D_t_pskel& start,
+           ::sim_mob::xml::Point2D_t_pskel& end,
            ::xml_schema::string_pskel& roadBumpID,
            ::xml_schema::unsigned_long_pskel& segmentID)
   {
@@ -1904,34 +1907,34 @@ namespace xml {
   //
 
   void RoadNetwork_t_pskel::
-  coordinate_map_parser (sim_mob::xml::coordinate_map_t_pskel& p)
+  coordinate_map_parser (::sim_mob::xml::coordinate_map_t_pskel& p)
   {
     this->coordinate_map_parser_ = &p;
   }
 
   void RoadNetwork_t_pskel::
-  roadrunner_regions_parser (sim_mob::xml::roadrunner_regions_t_pskel& p)
+  roadrunner_regions_parser (::sim_mob::xml::roadrunner_regions_t_pskel& p)
   {
     this->roadrunner_regions_parser_ = &p;
   }
 
   void RoadNetwork_t_pskel::
-  Nodes_parser (sim_mob::xml::Nodes_pskel& p)
+  Nodes_parser (::sim_mob::xml::Nodes_pskel& p)
   {
     this->Nodes_parser_ = &p;
   }
 
   void RoadNetwork_t_pskel::
-  Links_parser (sim_mob::xml::Links_pskel& p)
+  Links_parser (::sim_mob::xml::Links_pskel& p)
   {
     this->Links_parser_ = &p;
   }
 
   void RoadNetwork_t_pskel::
-  parsers (sim_mob::xml::coordinate_map_t_pskel& coordinate_map,
-           sim_mob::xml::roadrunner_regions_t_pskel& roadrunner_regions,
-           sim_mob::xml::Nodes_pskel& Nodes,
-           sim_mob::xml::Links_pskel& Links)
+  parsers (::sim_mob::xml::coordinate_map_t_pskel& coordinate_map,
+           ::sim_mob::xml::roadrunner_regions_t_pskel& roadrunner_regions,
+           ::sim_mob::xml::Nodes_pskel& Nodes,
+           ::sim_mob::xml::Links_pskel& Links)
   {
     this->coordinate_map_parser_ = &coordinate_map;
     this->roadrunner_regions_parser_ = &roadrunner_regions;
@@ -1952,34 +1955,34 @@ namespace xml {
   //
 
   void RoadItems_t_pskel::
-  BusStop_parser (sim_mob::xml::BusStop_t_pskel& p)
+  BusStop_parser (::sim_mob::xml::BusStop_t_pskel& p)
   {
     this->BusStop_parser_ = &p;
   }
 
   void RoadItems_t_pskel::
-  ERP_Gantry_parser (sim_mob::xml::ERP_Gantry_t_pskel& p)
+  ERP_Gantry_parser (::sim_mob::xml::ERP_Gantry_t_pskel& p)
   {
     this->ERP_Gantry_parser_ = &p;
   }
 
   void RoadItems_t_pskel::
-  Crossing_parser (sim_mob::xml::crossing_t_pskel& p)
+  Crossing_parser (::sim_mob::xml::crossing_t_pskel& p)
   {
     this->Crossing_parser_ = &p;
   }
 
   void RoadItems_t_pskel::
-  RoadBump_parser (sim_mob::xml::RoadBump_t_pskel& p)
+  RoadBump_parser (::sim_mob::xml::RoadBump_t_pskel& p)
   {
     this->RoadBump_parser_ = &p;
   }
 
   void RoadItems_t_pskel::
-  parsers (sim_mob::xml::BusStop_t_pskel& BusStop,
-           sim_mob::xml::ERP_Gantry_t_pskel& ERP_Gantry,
-           sim_mob::xml::crossing_t_pskel& Crossing,
-           sim_mob::xml::RoadBump_t_pskel& RoadBump)
+  parsers (::sim_mob::xml::BusStop_t_pskel& BusStop,
+           ::sim_mob::xml::ERP_Gantry_t_pskel& ERP_Gantry,
+           ::sim_mob::xml::crossing_t_pskel& Crossing,
+           ::sim_mob::xml::RoadBump_t_pskel& RoadBump)
   {
     this->BusStop_parser_ = &BusStop;
     this->ERP_Gantry_parser_ = &ERP_Gantry;
@@ -2006,7 +2009,7 @@ namespace xml {
   }
 
   void TripChainItem_t_pskel::
-  itemType_parser (sim_mob::xml::TripchainItemType_pskel& p)
+  itemType_parser (::sim_mob::xml::TripchainItemType_pskel& p)
   {
     this->itemType_parser_ = &p;
   }
@@ -2037,7 +2040,7 @@ namespace xml {
 
   void TripChainItem_t_pskel::
   parsers (::xml_schema::string_pskel& personID,
-           sim_mob::xml::TripchainItemType_pskel& itemType,
+           ::sim_mob::xml::TripchainItemType_pskel& itemType,
            ::xml_schema::unsigned_int_pskel& sequenceNumber,
            ::xml_schema::integer_pskel& requestTime,
            ::xml_schema::string_pskel& startTime,
@@ -2078,7 +2081,7 @@ namespace xml {
   }
 
   void Trip_t_pskel::
-  fromLocationType_parser (sim_mob::xml::TripchainItemLocationType_pskel& p)
+  fromLocationType_parser (::sim_mob::xml::TripchainItemLocationType_pskel& p)
   {
     this->fromLocationType_parser_ = &p;
   }
@@ -2090,30 +2093,30 @@ namespace xml {
   }
 
   void Trip_t_pskel::
-  toLocationType_parser (sim_mob::xml::TripchainItemLocationType_pskel& p)
+  toLocationType_parser (::sim_mob::xml::TripchainItemLocationType_pskel& p)
   {
     this->toLocationType_parser_ = &p;
   }
 
   void Trip_t_pskel::
-  subTrips_parser (sim_mob::xml::SubTrips_t_pskel& p)
+  subTrips_parser (::sim_mob::xml::SubTrips_t_pskel& p)
   {
     this->subTrips_parser_ = &p;
   }
 
   void Trip_t_pskel::
   parsers (::xml_schema::string_pskel& personID,
-           sim_mob::xml::TripchainItemType_pskel& itemType,
+           ::sim_mob::xml::TripchainItemType_pskel& itemType,
            ::xml_schema::unsigned_int_pskel& sequenceNumber,
            ::xml_schema::integer_pskel& requestTime,
            ::xml_schema::string_pskel& startTime,
            ::xml_schema::string_pskel& endTime,
            ::xml_schema::integer_pskel& tripID,
            ::xml_schema::unsigned_int_pskel& fromLocation,
-           sim_mob::xml::TripchainItemLocationType_pskel& fromLocationType,
+           ::sim_mob::xml::TripchainItemLocationType_pskel& fromLocationType,
            ::xml_schema::unsigned_int_pskel& toLocation,
-           sim_mob::xml::TripchainItemLocationType_pskel& toLocationType,
-           sim_mob::xml::SubTrips_t_pskel& subTrips)
+           ::sim_mob::xml::TripchainItemLocationType_pskel& toLocationType,
+           ::sim_mob::xml::SubTrips_t_pskel& subTrips)
   {
     this->personID_parser_ = &personID;
     this->itemType_parser_ = &itemType;
@@ -2163,17 +2166,17 @@ namespace xml {
 
   void SubTrip_t_pskel::
   parsers (::xml_schema::string_pskel& personID,
-           sim_mob::xml::TripchainItemType_pskel& itemType,
+           ::sim_mob::xml::TripchainItemType_pskel& itemType,
            ::xml_schema::unsigned_int_pskel& sequenceNumber,
            ::xml_schema::integer_pskel& requestTime,
            ::xml_schema::string_pskel& startTime,
            ::xml_schema::string_pskel& endTime,
            ::xml_schema::integer_pskel& tripID,
            ::xml_schema::unsigned_int_pskel& fromLocation,
-           sim_mob::xml::TripchainItemLocationType_pskel& fromLocationType,
+           ::sim_mob::xml::TripchainItemLocationType_pskel& fromLocationType,
            ::xml_schema::unsigned_int_pskel& toLocation,
-           sim_mob::xml::TripchainItemLocationType_pskel& toLocationType,
-           sim_mob::xml::SubTrips_t_pskel& subTrips,
+           ::sim_mob::xml::TripchainItemLocationType_pskel& toLocationType,
+           ::sim_mob::xml::SubTrips_t_pskel& subTrips,
            ::xml_schema::string_pskel& mode,
            ::xml_schema::boolean_pskel& isPrimaryMode,
            ::xml_schema::string_pskel& ptLineId)
@@ -2207,13 +2210,13 @@ namespace xml {
   //
 
   void SubTrips_t_pskel::
-  subTrip_parser (sim_mob::xml::SubTrip_t_pskel& p)
+  subTrip_parser (::sim_mob::xml::SubTrip_t_pskel& p)
   {
     this->subTrip_parser_ = &p;
   }
 
   void SubTrips_t_pskel::
-  parsers (sim_mob::xml::SubTrip_t_pskel& subTrip)
+  parsers (::sim_mob::xml::SubTrip_t_pskel& subTrip)
   {
     this->subTrip_parser_ = &subTrip;
   }
@@ -2240,7 +2243,7 @@ namespace xml {
   }
 
   void Activity_t_pskel::
-  locationType_parser (sim_mob::xml::TripchainItemLocationType_pskel& p)
+  locationType_parser (::sim_mob::xml::TripchainItemLocationType_pskel& p)
   {
     this->locationType_parser_ = &p;
   }
@@ -2265,14 +2268,14 @@ namespace xml {
 
   void Activity_t_pskel::
   parsers (::xml_schema::string_pskel& personID,
-           sim_mob::xml::TripchainItemType_pskel& itemType,
+           ::sim_mob::xml::TripchainItemType_pskel& itemType,
            ::xml_schema::unsigned_int_pskel& sequenceNumber,
            ::xml_schema::integer_pskel& requestTime,
            ::xml_schema::string_pskel& startTime,
            ::xml_schema::string_pskel& endTime,
            ::xml_schema::string_pskel& description,
            ::xml_schema::unsigned_int_pskel& location,
-           sim_mob::xml::TripchainItemLocationType_pskel& locationType,
+           ::sim_mob::xml::TripchainItemLocationType_pskel& locationType,
            ::xml_schema::boolean_pskel& isPrimary,
            ::xml_schema::boolean_pskel& isFlexible,
            ::xml_schema::boolean_pskel& isMandatory)
@@ -2312,21 +2315,21 @@ namespace xml {
   }
 
   void TripChain_t_pskel::
-  Trip_parser (sim_mob::xml::Trip_t_pskel& p)
+  Trip_parser (::sim_mob::xml::Trip_t_pskel& p)
   {
     this->Trip_parser_ = &p;
   }
 
   void TripChain_t_pskel::
-  Activity_parser (sim_mob::xml::Activity_t_pskel& p)
+  Activity_parser (::sim_mob::xml::Activity_t_pskel& p)
   {
     this->Activity_parser_ = &p;
   }
 
   void TripChain_t_pskel::
   parsers (::xml_schema::string_pskel& personID,
-           sim_mob::xml::Trip_t_pskel& Trip,
-           sim_mob::xml::Activity_t_pskel& Activity)
+           ::sim_mob::xml::Trip_t_pskel& Trip,
+           ::sim_mob::xml::Activity_t_pskel& Activity)
   {
     this->personID_parser_ = &personID;
     this->Trip_parser_ = &Trip;
@@ -2345,13 +2348,13 @@ namespace xml {
   //
 
   void TripChains_t_pskel::
-  TripChain_parser (sim_mob::xml::TripChain_t_pskel& p)
+  TripChain_parser (::sim_mob::xml::TripChain_t_pskel& p)
   {
     this->TripChain_parser_ = &p;
   }
 
   void TripChains_t_pskel::
-  parsers (sim_mob::xml::TripChain_t_pskel& TripChain)
+  parsers (::sim_mob::xml::TripChain_t_pskel& TripChain)
   {
     this->TripChain_parser_ = &TripChain;
   }
@@ -2414,13 +2417,13 @@ namespace xml {
   //
 
   void linkAndCrossings_t_pskel::
-  linkAndCrossing_parser (sim_mob::xml::linkAndCrossing_t_pskel& p)
+  linkAndCrossing_parser (::sim_mob::xml::linkAndCrossing_t_pskel& p)
   {
     this->linkAndCrossing_parser_ = &p;
   }
 
   void linkAndCrossings_t_pskel::
-  parsers (sim_mob::xml::linkAndCrossing_t_pskel& linkAndCrossing)
+  parsers (::sim_mob::xml::linkAndCrossing_t_pskel& linkAndCrossing)
   {
     this->linkAndCrossing_parser_ = &linkAndCrossing;
   }
@@ -2431,22 +2434,22 @@ namespace xml {
   {
   }
 
-  // Plan_t_pskel
+  // plan_t_pskel
   //
 
-  void Plan_t_pskel::
+  void plan_t_pskel::
   planID_parser (::xml_schema::unsigned_byte_pskel& p)
   {
     this->planID_parser_ = &p;
   }
 
-  void Plan_t_pskel::
+  void plan_t_pskel::
   PhasePercentage_parser (::xml_schema::double_pskel& p)
   {
     this->PhasePercentage_parser_ = &p;
   }
 
-  void Plan_t_pskel::
+  void plan_t_pskel::
   parsers (::xml_schema::unsigned_byte_pskel& planID,
            ::xml_schema::double_pskel& PhasePercentage)
   {
@@ -2454,8 +2457,8 @@ namespace xml {
     this->PhasePercentage_parser_ = &PhasePercentage;
   }
 
-  Plan_t_pskel::
-  Plan_t_pskel ()
+  plan_t_pskel::
+  plan_t_pskel ()
   : planID_parser_ (0),
     PhasePercentage_parser_ (0)
   {
@@ -2465,13 +2468,13 @@ namespace xml {
   //
 
   void Plans_t_pskel::
-  plan_parser (sim_mob::xml::Plan_t_pskel& p)
+  plan_parser (::sim_mob::xml::plan_t_pskel& p)
   {
     this->plan_parser_ = &p;
   }
 
   void Plans_t_pskel::
-  parsers (sim_mob::xml::Plan_t_pskel& plan)
+  parsers (::sim_mob::xml::plan_t_pskel& plan)
   {
     this->plan_parser_ = &plan;
   }
@@ -2486,7 +2489,7 @@ namespace xml {
   //
 
   void ColorDuration_t_pskel::
-  TrafficColor_parser (sim_mob::xml::TrafficColor_t_pskel& p)
+  TrafficColor_parser (::sim_mob::xml::TrafficColor_t_pskel& p)
   {
     this->TrafficColor_parser_ = &p;
   }
@@ -2498,7 +2501,7 @@ namespace xml {
   }
 
   void ColorDuration_t_pskel::
-  parsers (sim_mob::xml::TrafficColor_t_pskel& TrafficColor,
+  parsers (::sim_mob::xml::TrafficColor_t_pskel& TrafficColor,
            ::xml_schema::unsigned_byte_pskel& Duration)
   {
     this->TrafficColor_parser_ = &TrafficColor;
@@ -2522,14 +2525,14 @@ namespace xml {
   }
 
   void ColorSequence_t_pskel::
-  ColorDuration_parser (sim_mob::xml::ColorDuration_t_pskel& p)
+  ColorDuration_parser (::sim_mob::xml::ColorDuration_t_pskel& p)
   {
     this->ColorDuration_parser_ = &p;
   }
 
   void ColorSequence_t_pskel::
   parsers (::xml_schema::string_pskel& TrafficLightType,
-           sim_mob::xml::ColorDuration_t_pskel& ColorDuration)
+           ::sim_mob::xml::ColorDuration_t_pskel& ColorDuration)
   {
     this->TrafficLightType_parser_ = &TrafficLightType;
     this->ColorDuration_parser_ = &ColorDuration;
@@ -2546,13 +2549,13 @@ namespace xml {
   //
 
   void links_maps_t_pskel::
-  links_map_parser (sim_mob::xml::links_map_t_pskel& p)
+  links_map_parser (::sim_mob::xml::links_map_t_pskel& p)
   {
     this->links_map_parser_ = &p;
   }
 
   void links_maps_t_pskel::
-  parsers (sim_mob::xml::links_map_t_pskel& links_map)
+  parsers (::sim_mob::xml::links_map_t_pskel& links_map)
   {
     this->links_map_parser_ = &links_map;
   }
@@ -2567,15 +2570,15 @@ namespace xml {
   //
 
   void links_map_t_pskel::
-  linkFrom_parser (::xml_schema::unsigned_int_pskel& p)
+  LinkFrom_parser (::xml_schema::unsigned_int_pskel& p)
   {
-    this->linkFrom_parser_ = &p;
+    this->LinkFrom_parser_ = &p;
   }
 
   void links_map_t_pskel::
-  linkTo_parser (::xml_schema::unsigned_int_pskel& p)
+  LinkTo_parser (::xml_schema::unsigned_int_pskel& p)
   {
-    this->linkTo_parser_ = &p;
+    this->LinkTo_parser_ = &p;
   }
 
   void links_map_t_pskel::
@@ -2591,20 +2594,20 @@ namespace xml {
   }
 
   void links_map_t_pskel::
-  ColorSequence_parser (sim_mob::xml::ColorSequence_t_pskel& p)
+  ColorSequence_parser (::sim_mob::xml::ColorSequence_t_pskel& p)
   {
     this->ColorSequence_parser_ = &p;
   }
 
   void links_map_t_pskel::
-  parsers (::xml_schema::unsigned_int_pskel& linkFrom,
-           ::xml_schema::unsigned_int_pskel& linkTo,
+  parsers (::xml_schema::unsigned_int_pskel& LinkFrom,
+           ::xml_schema::unsigned_int_pskel& LinkTo,
            ::xml_schema::unsigned_int_pskel& SegmentFrom,
            ::xml_schema::unsigned_int_pskel& SegmentTo,
-           sim_mob::xml::ColorSequence_t_pskel& ColorSequence)
+           ::sim_mob::xml::ColorSequence_t_pskel& ColorSequence)
   {
-    this->linkFrom_parser_ = &linkFrom;
-    this->linkTo_parser_ = &linkTo;
+    this->LinkFrom_parser_ = &LinkFrom;
+    this->LinkTo_parser_ = &LinkTo;
     this->SegmentFrom_parser_ = &SegmentFrom;
     this->SegmentTo_parser_ = &SegmentTo;
     this->ColorSequence_parser_ = &ColorSequence;
@@ -2612,8 +2615,8 @@ namespace xml {
 
   links_map_t_pskel::
   links_map_t_pskel ()
-  : linkFrom_parser_ (0),
-    linkTo_parser_ (0),
+  : LinkFrom_parser_ (0),
+    LinkTo_parser_ (0),
     SegmentFrom_parser_ (0),
     SegmentTo_parser_ (0),
     ColorSequence_parser_ (0)
@@ -2624,13 +2627,13 @@ namespace xml {
   //
 
   void crossings_maps_t_pskel::
-  crossings_map_parser (sim_mob::xml::crossings_map_t_pskel& p)
+  crossings_map_parser (::sim_mob::xml::crossings_map_t_pskel& p)
   {
     this->crossings_map_parser_ = &p;
   }
 
   void crossings_maps_t_pskel::
-  parsers (sim_mob::xml::crossings_map_t_pskel& crossings_map)
+  parsers (::sim_mob::xml::crossings_map_t_pskel& crossings_map)
   {
     this->crossings_map_parser_ = &crossings_map;
   }
@@ -2657,7 +2660,7 @@ namespace xml {
   }
 
   void crossings_map_t_pskel::
-  ColorSequence_parser (sim_mob::xml::ColorSequence_t_pskel& p)
+  ColorSequence_parser (::sim_mob::xml::ColorSequence_t_pskel& p)
   {
     this->ColorSequence_parser_ = &p;
   }
@@ -2665,7 +2668,7 @@ namespace xml {
   void crossings_map_t_pskel::
   parsers (::xml_schema::unsigned_int_pskel& linkID,
            ::xml_schema::unsigned_int_pskel& crossingID,
-           sim_mob::xml::ColorSequence_t_pskel& ColorSequence)
+           ::sim_mob::xml::ColorSequence_t_pskel& ColorSequence)
   {
     this->linkID_parser_ = &linkID;
     this->crossingID_parser_ = &crossingID;
@@ -2696,13 +2699,13 @@ namespace xml {
   }
 
   void Phase_t_pskel::
-  links_maps_parser (sim_mob::xml::links_maps_t_pskel& p)
+  links_maps_parser (::sim_mob::xml::links_maps_t_pskel& p)
   {
     this->links_maps_parser_ = &p;
   }
 
   void Phase_t_pskel::
-  crossings_maps_parser (sim_mob::xml::crossings_maps_t_pskel& p)
+  crossings_maps_parser (::sim_mob::xml::crossings_maps_t_pskel& p)
   {
     this->crossings_maps_parser_ = &p;
   }
@@ -2710,8 +2713,8 @@ namespace xml {
   void Phase_t_pskel::
   parsers (::xml_schema::unsigned_byte_pskel& phaseID,
            ::xml_schema::string_pskel& name,
-           sim_mob::xml::links_maps_t_pskel& links_maps,
-           sim_mob::xml::crossings_maps_t_pskel& crossings_maps)
+           ::sim_mob::xml::links_maps_t_pskel& links_maps,
+           ::sim_mob::xml::crossings_maps_t_pskel& crossings_maps)
   {
     this->phaseID_parser_ = &phaseID;
     this->name_parser_ = &name;
@@ -2732,13 +2735,13 @@ namespace xml {
   //
 
   void Phases_t_pskel::
-  phase_parser (sim_mob::xml::Phase_t_pskel& p)
+  phase_parser (::sim_mob::xml::Phase_t_pskel& p)
   {
     this->phase_parser_ = &p;
   }
 
   void Phases_t_pskel::
-  parsers (sim_mob::xml::Phase_t_pskel& phase)
+  parsers (::sim_mob::xml::Phase_t_pskel& phase)
   {
     this->phase_parser_ = &phase;
   }
@@ -2771,7 +2774,7 @@ namespace xml {
   }
 
   void SplitPlan_t_pskel::
-  ChoiceSet_parser (sim_mob::xml::Plans_t_pskel& p)
+  ChoiceSet_parser (::sim_mob::xml::Plans_t_pskel& p)
   {
     this->ChoiceSet_parser_ = &p;
   }
@@ -2780,7 +2783,7 @@ namespace xml {
   parsers (::xml_schema::unsigned_int_pskel& splitplanID,
            ::xml_schema::unsigned_byte_pskel& cycleLength,
            ::xml_schema::unsigned_byte_pskel& offset,
-           sim_mob::xml::Plans_t_pskel& ChoiceSet)
+           ::sim_mob::xml::Plans_t_pskel& ChoiceSet)
   {
     this->splitplanID_parser_ = &splitplanID;
     this->cycleLength_parser_ = &cycleLength;
@@ -2801,20 +2804,20 @@ namespace xml {
   //
 
   void SCATS_t_pskel::
-  signalTimingMode_parser (sim_mob::xml::signalTimingMode_t_pskel& p)
+  signalTimingMode_parser (::sim_mob::xml::signalTimingMode_t_pskel& p)
   {
     this->signalTimingMode_parser_ = &p;
   }
 
   void SCATS_t_pskel::
-  SplitPlan_parser (sim_mob::xml::SplitPlan_t_pskel& p)
+  SplitPlan_parser (::sim_mob::xml::SplitPlan_t_pskel& p)
   {
     this->SplitPlan_parser_ = &p;
   }
 
   void SCATS_t_pskel::
-  parsers (sim_mob::xml::signalTimingMode_t_pskel& signalTimingMode,
-           sim_mob::xml::SplitPlan_t_pskel& SplitPlan)
+  parsers (::sim_mob::xml::signalTimingMode_t_pskel& signalTimingMode,
+           ::sim_mob::xml::SplitPlan_t_pskel& SplitPlan)
   {
     this->signalTimingMode_parser_ = &signalTimingMode;
     this->SplitPlan_parser_ = &SplitPlan;
@@ -2843,19 +2846,19 @@ namespace xml {
   }
 
   void Signal_t_pskel::
-  linkAndCrossings_parser (sim_mob::xml::linkAndCrossings_t_pskel& p)
+  linkAndCrossings_parser (::sim_mob::xml::linkAndCrossings_t_pskel& p)
   {
     this->linkAndCrossings_parser_ = &p;
   }
 
   void Signal_t_pskel::
-  phases_parser (sim_mob::xml::Phases_t_pskel& p)
+  phases_parser (::sim_mob::xml::Phases_t_pskel& p)
   {
     this->phases_parser_ = &p;
   }
 
   void Signal_t_pskel::
-  SCATS_parser (sim_mob::xml::SCATS_t_pskel& p)
+  SCATS_parser (::sim_mob::xml::SCATS_t_pskel& p)
   {
     this->SCATS_parser_ = &p;
   }
@@ -2863,9 +2866,9 @@ namespace xml {
   void Signal_t_pskel::
   parsers (::xml_schema::unsigned_int_pskel& signalID,
            ::xml_schema::unsigned_int_pskel& nodeID,
-           sim_mob::xml::linkAndCrossings_t_pskel& linkAndCrossings,
-           sim_mob::xml::Phases_t_pskel& phases,
-           sim_mob::xml::SCATS_t_pskel& SCATS)
+           ::sim_mob::xml::linkAndCrossings_t_pskel& linkAndCrossings,
+           ::sim_mob::xml::Phases_t_pskel& phases,
+           ::sim_mob::xml::SCATS_t_pskel& SCATS)
   {
     this->signalID_parser_ = &signalID;
     this->nodeID_parser_ = &nodeID;
@@ -2888,13 +2891,13 @@ namespace xml {
   //
 
   void Signals_t_pskel::
-  Signal_parser (sim_mob::xml::Signal_t_pskel& p)
+  Signal_parser (::sim_mob::xml::Signal_t_pskel& p)
   {
     this->Signal_parser_ = &p;
   }
 
   void Signals_t_pskel::
-  parsers (sim_mob::xml::Signal_t_pskel& Signal)
+  parsers (::sim_mob::xml::Signal_t_pskel& Signal)
   {
     this->Signal_parser_ = &Signal;
   }
@@ -2909,13 +2912,13 @@ namespace xml {
   //
 
   void GeoSpatial_t_pskel::
-  RoadNetwork_parser (sim_mob::xml::RoadNetwork_t_pskel& p)
+  RoadNetwork_parser (::sim_mob::xml::RoadNetwork_t_pskel& p)
   {
     this->RoadNetwork_parser_ = &p;
   }
 
   void GeoSpatial_t_pskel::
-  parsers (sim_mob::xml::RoadNetwork_t_pskel& RoadNetwork)
+  parsers (::sim_mob::xml::RoadNetwork_t_pskel& RoadNetwork)
   {
     this->RoadNetwork_parser_ = &RoadNetwork;
   }
@@ -2930,27 +2933,27 @@ namespace xml {
   //
 
   void SimMobility_t_pskel::
-  GeoSpatial_parser (sim_mob::xml::GeoSpatial_t_pskel& p)
+  GeoSpatial_parser (::sim_mob::xml::GeoSpatial_t_pskel& p)
   {
     this->GeoSpatial_parser_ = &p;
   }
 
   void SimMobility_t_pskel::
-  TripChains_parser (sim_mob::xml::TripChains_t_pskel& p)
+  TripChains_parser (::sim_mob::xml::TripChains_t_pskel& p)
   {
     this->TripChains_parser_ = &p;
   }
 
   void SimMobility_t_pskel::
-  Signals_parser (sim_mob::xml::Signals_t_pskel& p)
+  Signals_parser (::sim_mob::xml::Signals_t_pskel& p)
   {
     this->Signals_parser_ = &p;
   }
 
   void SimMobility_t_pskel::
-  parsers (sim_mob::xml::GeoSpatial_t_pskel& GeoSpatial,
-           sim_mob::xml::TripChains_t_pskel& TripChains,
-           sim_mob::xml::Signals_t_pskel& Signals)
+  parsers (::sim_mob::xml::GeoSpatial_t_pskel& GeoSpatial,
+           ::sim_mob::xml::TripChains_t_pskel& TripChains,
+           ::sim_mob::xml::Signals_t_pskel& Signals)
   {
     this->GeoSpatial_parser_ = &GeoSpatial;
     this->TripChains_parser_ = &TripChains;
@@ -2969,13 +2972,13 @@ namespace xml {
   //
 
   void Lanes_pskel::
-  Lane_parser (sim_mob::xml::lane_t_pskel& p)
+  Lane_parser (::sim_mob::xml::lane_t_pskel& p)
   {
     this->Lane_parser_ = &p;
   }
 
   void Lanes_pskel::
-  parsers (sim_mob::xml::lane_t_pskel& Lane)
+  parsers (::sim_mob::xml::lane_t_pskel& Lane)
   {
     this->Lane_parser_ = &Lane;
   }
@@ -2990,27 +2993,27 @@ namespace xml {
   //
 
   void Nodes_pskel::
-  UniNodes_parser (sim_mob::xml::UniNodes_pskel& p)
+  UniNodes_parser (::sim_mob::xml::UniNodes_pskel& p)
   {
     this->UniNodes_parser_ = &p;
   }
 
   void Nodes_pskel::
-  Intersections_parser (sim_mob::xml::Intersections_pskel& p)
+  Intersections_parser (::sim_mob::xml::Intersections_pskel& p)
   {
     this->Intersections_parser_ = &p;
   }
 
   void Nodes_pskel::
-  roundabouts_parser (sim_mob::xml::roundabouts_pskel& p)
+  roundabouts_parser (::sim_mob::xml::roundabouts_pskel& p)
   {
     this->roundabouts_parser_ = &p;
   }
 
   void Nodes_pskel::
-  parsers (sim_mob::xml::UniNodes_pskel& UniNodes,
-           sim_mob::xml::Intersections_pskel& Intersections,
-           sim_mob::xml::roundabouts_pskel& roundabouts)
+  parsers (::sim_mob::xml::UniNodes_pskel& UniNodes,
+           ::sim_mob::xml::Intersections_pskel& Intersections,
+           ::sim_mob::xml::roundabouts_pskel& roundabouts)
   {
     this->UniNodes_parser_ = &UniNodes;
     this->Intersections_parser_ = &Intersections;
@@ -3029,13 +3032,13 @@ namespace xml {
   //
 
   void Links_pskel::
-  Link_parser (sim_mob::xml::link_t_pskel& p)
+  Link_parser (::sim_mob::xml::link_t_pskel& p)
   {
     this->Link_parser_ = &p;
   }
 
   void Links_pskel::
-  parsers (sim_mob::xml::link_t_pskel& Link)
+  parsers (::sim_mob::xml::link_t_pskel& Link)
   {
     this->Link_parser_ = &Link;
   }
@@ -3050,13 +3053,13 @@ namespace xml {
   //
 
   void UniNodes_pskel::
-  UniNode_parser (sim_mob::xml::UniNode_t_pskel& p)
+  UniNode_parser (::sim_mob::xml::UniNode_t_pskel& p)
   {
     this->UniNode_parser_ = &p;
   }
 
   void UniNodes_pskel::
-  parsers (sim_mob::xml::UniNode_t_pskel& UniNode)
+  parsers (::sim_mob::xml::UniNode_t_pskel& UniNode)
   {
     this->UniNode_parser_ = &UniNode;
   }
@@ -3071,13 +3074,13 @@ namespace xml {
   //
 
   void Intersections_pskel::
-  Intersection_parser (sim_mob::xml::intersection_t_pskel& p)
+  Intersection_parser (::sim_mob::xml::intersection_t_pskel& p)
   {
     this->Intersection_parser_ = &p;
   }
 
   void Intersections_pskel::
-  parsers (sim_mob::xml::intersection_t_pskel& Intersection)
+  parsers (::sim_mob::xml::intersection_t_pskel& Intersection)
   {
     this->Intersection_parser_ = &Intersection;
   }
@@ -3092,13 +3095,13 @@ namespace xml {
   //
 
   void roundabouts_pskel::
-  roundabout_parser (sim_mob::xml::roundabout_t_pskel& p)
+  roundabout_parser (::sim_mob::xml::roundabout_t_pskel& p)
   {
     this->roundabout_parser_ = &p;
   }
 
   void roundabouts_pskel::
-  parsers (sim_mob::xml::roundabout_t_pskel& roundabout)
+  parsers (::sim_mob::xml::roundabout_t_pskel& roundabout)
   {
     this->roundabout_parser_ = &roundabout;
   }
@@ -3113,7 +3116,8 @@ namespace xml {
 
 namespace sim_mob
 {
-namespace xml {
+  namespace xml
+  {
   // roadrunner_regions_t_pskel
   //
 
@@ -6364,7 +6368,7 @@ namespace xml {
   {
     XSD_UNUSED (t);
 
-    if (this->sim_mob::xml::Node_t_pskel::_start_element_impl (ns, n, t))
+    if (this->::sim_mob::xml::Node_t_pskel::_start_element_impl (ns, n, t))
       return true;
 
     if (n == "firstPair" && ns.empty ())
@@ -6414,7 +6418,7 @@ namespace xml {
   _end_element_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n)
   {
-    if (this->sim_mob::xml::Node_t_pskel::_end_element_impl (ns, n))
+    if (this->::sim_mob::xml::Node_t_pskel::_end_element_impl (ns, n))
       return true;
 
     if (n == "firstPair" && ns.empty ())
@@ -6507,7 +6511,7 @@ namespace xml {
   {
     XSD_UNUSED (t);
 
-    if (this->sim_mob::xml::Node_t_pskel::_start_element_impl (ns, n, t))
+    if (this->::sim_mob::xml::Node_t_pskel::_start_element_impl (ns, n, t))
       return true;
 
     if (n == "roadSegmentsAt" && ns.empty ())
@@ -6607,7 +6611,7 @@ namespace xml {
   _end_element_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n)
   {
-    if (this->sim_mob::xml::Node_t_pskel::_end_element_impl (ns, n))
+    if (this->::sim_mob::xml::Node_t_pskel::_end_element_impl (ns, n))
       return true;
 
     if (n == "roadSegmentsAt" && ns.empty ())
@@ -6750,7 +6754,7 @@ namespace xml {
   {
     XSD_UNUSED (t);
 
-    if (this->sim_mob::xml::Node_t_pskel::_start_element_impl (ns, n, t))
+    if (this->::sim_mob::xml::Node_t_pskel::_start_element_impl (ns, n, t))
       return true;
 
     if (n == "roadSegmentsAt" && ns.empty ())
@@ -6840,7 +6844,7 @@ namespace xml {
   _end_element_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n)
   {
-    if (this->sim_mob::xml::Node_t_pskel::_end_element_impl (ns, n))
+    if (this->::sim_mob::xml::Node_t_pskel::_end_element_impl (ns, n))
       return true;
 
     if (n == "roadSegmentsAt" && ns.empty ())
@@ -7096,7 +7100,7 @@ namespace xml {
   {
     XSD_UNUSED (t);
 
-    if (this->sim_mob::xml::RoadItem_t_pskel::_start_element_impl (ns, n, t))
+    if (this->::sim_mob::xml::RoadItem_t_pskel::_start_element_impl (ns, n, t))
       return true;
 
     if (n == "xPos" && ns.empty ())
@@ -7186,7 +7190,7 @@ namespace xml {
   _end_element_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n)
   {
-    if (this->sim_mob::xml::RoadItem_t_pskel::_end_element_impl (ns, n))
+    if (this->::sim_mob::xml::RoadItem_t_pskel::_end_element_impl (ns, n))
       return true;
 
     if (n == "xPos" && ns.empty ())
@@ -7276,7 +7280,7 @@ namespace xml {
   {
     XSD_UNUSED (t);
 
-    if (this->sim_mob::xml::RoadItem_t_pskel::_start_element_impl (ns, n, t))
+    if (this->::sim_mob::xml::RoadItem_t_pskel::_start_element_impl (ns, n, t))
       return true;
 
     if (n == "ERP_GantryID" && ns.empty ())
@@ -7296,7 +7300,7 @@ namespace xml {
   _end_element_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n)
   {
-    if (this->sim_mob::xml::RoadItem_t_pskel::_end_element_impl (ns, n))
+    if (this->::sim_mob::xml::RoadItem_t_pskel::_end_element_impl (ns, n))
       return true;
 
     if (n == "ERP_GantryID" && ns.empty ())
@@ -7502,7 +7506,7 @@ namespace xml {
   {
     XSD_UNUSED (t);
 
-    if (this->sim_mob::xml::RoadItem_t_pskel::_start_element_impl (ns, n, t))
+    if (this->::sim_mob::xml::RoadItem_t_pskel::_start_element_impl (ns, n, t))
       return true;
 
     if (n == "nearLine" && ns.empty ())
@@ -7532,7 +7536,7 @@ namespace xml {
   _end_element_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n)
   {
-    if (this->sim_mob::xml::RoadItem_t_pskel::_end_element_impl (ns, n))
+    if (this->::sim_mob::xml::RoadItem_t_pskel::_end_element_impl (ns, n))
       return true;
 
     if (n == "nearLine" && ns.empty ())
@@ -7579,7 +7583,7 @@ namespace xml {
   {
     XSD_UNUSED (t);
 
-    if (this->sim_mob::xml::RoadItem_t_pskel::_start_element_impl (ns, n, t))
+    if (this->::sim_mob::xml::RoadItem_t_pskel::_start_element_impl (ns, n, t))
       return true;
 
     if (n == "roadBumpID" && ns.empty ())
@@ -7609,7 +7613,7 @@ namespace xml {
   _end_element_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n)
   {
-    if (this->sim_mob::xml::RoadItem_t_pskel::_end_element_impl (ns, n))
+    if (this->::sim_mob::xml::RoadItem_t_pskel::_end_element_impl (ns, n))
       return true;
 
     if (n == "roadBumpID" && ns.empty ())
@@ -8083,7 +8087,7 @@ namespace xml {
   {
     XSD_UNUSED (t);
 
-    if (this->sim_mob::xml::TripChainItem_t_pskel::_start_element_impl (ns, n, t))
+    if (this->::sim_mob::xml::TripChainItem_t_pskel::_start_element_impl (ns, n, t))
       return true;
 
     if (n == "tripID" && ns.empty ())
@@ -8153,7 +8157,7 @@ namespace xml {
   _end_element_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n)
   {
-    if (this->sim_mob::xml::TripChainItem_t_pskel::_end_element_impl (ns, n))
+    if (this->::sim_mob::xml::TripChainItem_t_pskel::_end_element_impl (ns, n))
       return true;
 
     if (n == "tripID" && ns.empty ())
@@ -8232,7 +8236,7 @@ namespace xml {
   {
     XSD_UNUSED (t);
 
-    if (this->sim_mob::xml::Trip_t_pskel::_start_element_impl (ns, n, t))
+    if (this->::sim_mob::xml::Trip_t_pskel::_start_element_impl (ns, n, t))
       return true;
 
     if (n == "mode" && ns.empty ())
@@ -8272,7 +8276,7 @@ namespace xml {
   _end_element_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n)
   {
-    if (this->sim_mob::xml::Trip_t_pskel::_end_element_impl (ns, n))
+    if (this->::sim_mob::xml::Trip_t_pskel::_end_element_impl (ns, n))
       return true;
 
     if (n == "mode" && ns.empty ())
@@ -8397,7 +8401,7 @@ namespace xml {
   {
     XSD_UNUSED (t);
 
-    if (this->sim_mob::xml::TripChainItem_t_pskel::_start_element_impl (ns, n, t))
+    if (this->::sim_mob::xml::TripChainItem_t_pskel::_start_element_impl (ns, n, t))
       return true;
 
     if (n == "description" && ns.empty ())
@@ -8467,7 +8471,7 @@ namespace xml {
   _end_element_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n)
   {
-    if (this->sim_mob::xml::TripChainItem_t_pskel::_end_element_impl (ns, n))
+    if (this->::sim_mob::xml::TripChainItem_t_pskel::_end_element_impl (ns, n))
       return true;
 
     if (n == "description" && ns.empty ())
@@ -8792,7 +8796,7 @@ namespace xml {
   //
 
   void linkAndCrossings_t_pskel::
-  linkAndCrossing (sim_mob::LinkAndCrossing)
+    linkAndCrossing (sim_mob::LinkAndCrossing&)
   {
   }
 
@@ -8837,20 +8841,20 @@ namespace xml {
     return false;
   }
 
-  // Plan_t_pskel
+  // plan_t_pskel
   //
 
-  void Plan_t_pskel::
+  void plan_t_pskel::
   planID (unsigned char)
   {
   }
 
-  void Plan_t_pskel::
+  void plan_t_pskel::
   PhasePercentage (double)
   {
   }
 
-  bool Plan_t_pskel::
+  bool plan_t_pskel::
   _start_element_impl (const ::xml_schema::ro_string& ns,
                        const ::xml_schema::ro_string& n,
                        const ::xml_schema::ro_string* t)
@@ -8883,7 +8887,7 @@ namespace xml {
     return false;
   }
 
-  bool Plan_t_pskel::
+  bool plan_t_pskel::
   _end_element_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n)
   {
@@ -8913,7 +8917,7 @@ namespace xml {
   //
 
   void Plans_t_pskel::
-  plan (std::pair<short,std::vector<double> >)
+    plan (std::pair<short,std::vector<double> >&)
   {
   }
 
@@ -8950,7 +8954,7 @@ namespace xml {
     if (n == "plan" && ns.empty ())
     {
       if (this->plan_parser_)
-        this->plan (this->plan_parser_->post_Plan_t ());
+          this->plan (this->plan_parser_->post_plan_t ());
 
       return true;
     }
@@ -8967,7 +8971,7 @@ namespace xml {
   }
 
   void ColorDuration_t_pskel::
-  Duration (unsigned char)
+    Duration (int)
   {
   }
 
@@ -9039,7 +9043,7 @@ namespace xml {
   }
 
   void ColorSequence_t_pskel::
-  ColorDuration (std::pair<sim_mob::TrafficColor,short>)
+    ColorDuration (std::pair<sim_mob::TrafficColor,int>&)
   {
   }
 
@@ -9106,7 +9110,7 @@ namespace xml {
   //
 
   void links_maps_t_pskel::
-  links_map (std::pair<sim_mob::Link*,sim_mob::linkToLink>)
+    links_map (std::pair<sim_mob::Link*,sim_mob::linkToLink>&)
   {
   }
 
@@ -9155,12 +9159,12 @@ namespace xml {
   //
 
   void links_map_t_pskel::
-  linkFrom (unsigned int)
+  LinkFrom (unsigned int)
   {
   }
 
   void links_map_t_pskel::
-  linkTo (unsigned int)
+  LinkTo (unsigned int)
   {
   }
 
@@ -9175,7 +9179,7 @@ namespace xml {
   }
 
   void links_map_t_pskel::
-  ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > >)
+  ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,int> > >&)
   {
   }
 
@@ -9189,22 +9193,22 @@ namespace xml {
     if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
       return true;
 
-    if (n == "linkFrom" && ns.empty ())
+    if (n == "LinkFrom" && ns.empty ())
     {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->linkFrom_parser_;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->LinkFrom_parser_;
 
-      if (this->linkFrom_parser_)
-        this->linkFrom_parser_->pre ();
+      if (this->LinkFrom_parser_)
+        this->LinkFrom_parser_->pre ();
 
       return true;
     }
 
-    if (n == "linkTo" && ns.empty ())
+    if (n == "LinkTo" && ns.empty ())
     {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->linkTo_parser_;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->LinkTo_parser_;
 
-      if (this->linkTo_parser_)
-        this->linkTo_parser_->pre ();
+      if (this->LinkTo_parser_)
+        this->LinkTo_parser_->pre ();
 
       return true;
     }
@@ -9249,18 +9253,18 @@ namespace xml {
     if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
       return true;
 
-    if (n == "linkFrom" && ns.empty ())
+    if (n == "LinkFrom" && ns.empty ())
     {
-      if (this->linkFrom_parser_)
-        this->linkFrom (this->linkFrom_parser_->post_unsigned_int ());
+      if (this->LinkFrom_parser_)
+        this->LinkFrom (this->LinkFrom_parser_->post_unsigned_int ());
 
       return true;
     }
 
-    if (n == "linkTo" && ns.empty ())
+    if (n == "LinkTo" && ns.empty ())
     {
-      if (this->linkTo_parser_)
-        this->linkTo (this->linkTo_parser_->post_unsigned_int ());
+      if (this->LinkTo_parser_)
+        this->LinkTo (this->LinkTo_parser_->post_unsigned_int ());
 
       return true;
     }
@@ -9355,7 +9359,7 @@ namespace xml {
   }
 
   void crossings_map_t_pskel::
-  ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,short> > >)
+    ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,int> > >&)
   {
   }
 
@@ -9450,12 +9454,12 @@ namespace xml {
   }
 
   void Phase_t_pskel::
-  links_maps (std::multimap<sim_mob::Link*,sim_mob::linkToLink>)
+    links_maps (std::multimap<sim_mob::Link*,sim_mob::linkToLink>&)
   {
   }
 
   void Phase_t_pskel::
-  crossings_maps (std::map<sim_mob::Crossing *, sim_mob::Crossings>)
+    crossings_maps (std::map<sim_mob::Crossing *, sim_mob::Crossings>&)
   {
   }
 
@@ -9558,7 +9562,7 @@ namespace xml {
   //
 
   void Phases_t_pskel::
-  phase (sim_mob::Phase)
+    phase (sim_mob::Phase&)
   {
   }
 
@@ -9622,7 +9626,7 @@ namespace xml {
   }
 
   void SplitPlan_t_pskel::
-  ChoiceSet (std::vector<std::vector<double> >)
+    ChoiceSet (std::vector<std::vector<double> >&)
   {
   }
 
@@ -9730,7 +9734,7 @@ namespace xml {
   }
 
   void SCATS_t_pskel::
-  SplitPlan (sim_mob::SplitPlan)
+    SplitPlan (sim_mob::SplitPlan&)
   {
   }
 
@@ -9807,17 +9811,17 @@ namespace xml {
   }
 
   void Signal_t_pskel::
-  linkAndCrossings (sim_mob::LinkAndCrossingC)
+    linkAndCrossings (sim_mob::LinkAndCrossingC&)
   {
   }
 
   void Signal_t_pskel::
-  phases (sim_mob::Signal::phases)
+    phases (sim_mob::Signal::phases&)
   {
   }
 
   void Signal_t_pskel::
-  SCATS (sim_mob::xml::helper::SignalHelper::SCATS_Info)
+    SCATS (sim_mob::xml::helper::SignalHelper::SCATS_Info&)
   {
   }
 
@@ -9918,7 +9922,7 @@ namespace xml {
     if (n == "phases" && ns.empty ())
     {
       if (this->phases_parser_)
-        this->phases (this->phases_parser_->post_Phases_t ());
+          this->phases (this->phases_parser_->post_phases_t ());
 
       return true;
     }
@@ -10051,7 +10055,7 @@ namespace xml {
   }
 
   void SimMobility_t_pskel::
-  Signals (std::vector<sim_mob::Signal*>)
+    Signals (std::vector<sim_mob::Signal*>&)
   {
   }
 
@@ -10489,4 +10493,5 @@ namespace xml {
 //
 //
 // End epilogue.
+
 

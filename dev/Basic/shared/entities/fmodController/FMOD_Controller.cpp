@@ -18,7 +18,6 @@
 #include "conf/ConfigParams.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/Link.hpp"
-#include "event/EventCollectionMgr.hpp"
 #include <utility>
 #include <stdexcept>
 

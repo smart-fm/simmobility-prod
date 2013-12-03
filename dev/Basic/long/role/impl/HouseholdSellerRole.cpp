@@ -54,7 +54,7 @@ namespace {
 
 HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent)
 : LT_AgentRole(parent), currentTime(0, 0), hasUnitsToSale(true),
-currentExpectationIndex(0) {
+currentExpectationIndex(0), startSellingTime(0), selling(false) {
 
 }
 
@@ -63,6 +63,21 @@ HouseholdSellerRole::~HouseholdSellerRole() {
 }
 
 void HouseholdSellerRole::update(timeslice now) {
+    if (selling){
+        if (now.ms() > currentTime.ms()) {
+            // Day has changed we need to notify the last day winners.
+            notifyWinnerBidders();
+
+        }
+        // Verify if is time to adjust prices for units.
+        if (TIME_INTERVAL > 0) {
+            int index = floor(abs(now.ms() - startSellingTime) / TIME_INTERVAL);
+            if (index > currentExpectationIndex) {
+                currentExpectationIndex = index;
+                adjustNotSelledUnits();
+            }
+        }
+    }
     if (hasUnitsToSale) {
         const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
         HM_Model* model = getParent()->getModel();
@@ -79,21 +94,10 @@ void HouseholdSellerRole::update(timeslice now) {
             calculateUnitExpectations(*unit);
             market->addEntry(HousingMarket::Entry(getParent(), *unit,
                     hedonicPrice, hedonicPrice));
+            selling = true;
+            startSellingTime = now.ms();
         }
         hasUnitsToSale = false;
-    }
-    if (now.ms() > currentTime.ms()) {
-        // Day has changed we need to notify the last day winners.
-        notifyWinnerBidders();
-
-    }
-    // Verify if is time to adjust prices for units.
-    if (TIME_INTERVAL > 0) {
-        int index = floor(now.ms() / TIME_INTERVAL);
-        if (index > currentExpectationIndex) {
-            currentExpectationIndex = index;
-            adjustNotSelledUnits();
-        }
     }
     //update current time.
     currentTime = now;
@@ -190,7 +194,6 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit) {
     luaModel.calulateUnitExpectations(unit, TIME_ON_MARKET, expectationList);
     unitExpectations.erase(unit.getId());
     unitExpectations.insert(ExpectationMapEntry(unit.getId(), expectationList));
-
     for (int i = 0; i < TIME_ON_MARKET; i++) {
         PrintOut("Seller:[" << getParent()->getId() << "] Price:[" << expectationList[i].price << "] Expectation:[" << expectationList[i].expectation << "]." << endl);
     }

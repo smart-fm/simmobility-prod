@@ -411,7 +411,7 @@ public:
 	linkAndCrossing_t_pimpl(const helper::Bookkeeping& book) : book(book) {}
 
 	virtual void pre ();
-	virtual sim_mob::LinkAndCrossing post_linkAndCrossing_t ();
+	virtual sim_mob::LinkAndCrossing& post_linkAndCrossing_t ();
 
 	virtual void ID (unsigned char);
 	virtual void linkID (unsigned int);
@@ -430,8 +430,8 @@ class linkAndCrossings_t_pimpl: public virtual linkAndCrossings_t_pskel {
 public:
 	virtual void pre ();
 
-	virtual void linkAndCrossing (sim_mob::LinkAndCrossing);
-	virtual sim_mob::LinkAndCrossingC post_linkAndCrossings_t ();
+	virtual void linkAndCrossing (sim_mob::LinkAndCrossing&);
+	virtual sim_mob::LinkAndCrossingC& post_linkAndCrossings_t ();
 };
 
 
@@ -444,11 +444,12 @@ public:
 
 
 class Plans_t_pimpl: public virtual Plans_t_pskel {
+	std::vector<std::vector<double> > model;
 public:
 	virtual void pre ();
-	virtual std::vector<std::vector<double> > post_Plans_t ();
+	virtual std::vector<std::vector<double> >& post_Plans_t ();
 
-	virtual void Plan ();
+	virtual void plan (std::pair<short,std::vector<double> >&);
 };
 
 
@@ -457,27 +458,27 @@ class links_maps_t_pimpl: public virtual links_maps_t_pskel {
 	std::multimap<sim_mob::Link*,sim_mob::linkToLink> model;
 public:
 	virtual void pre ();
-	virtual std::multimap<sim_mob::Link*,sim_mob::linkToLink> post_links_maps_t ();
+	virtual std::multimap<sim_mob::Link*,sim_mob::linkToLink>& post_links_maps_t ();
 
-	virtual void links_map (std::pair<sim_mob::Link*,sim_mob::linkToLink>);
+	virtual void links_map (std::pair<sim_mob::Link*,sim_mob::linkToLink>&);
 };
 
 class links_map_t_pimpl: public virtual links_map_t_pskel {
 	std::pair<sim_mob::Link*,sim_mob::linkToLink> model;
 	sim_mob::linkToLink ll;
-	unsigned int linkFrom_;
+	unsigned int LinkFrom_;
 	helper::Bookkeeping& book;
 public:
 	links_map_t_pimpl(helper::Bookkeeping& book) : book(book) {}
 
 	virtual void pre ();
-	virtual std::pair<sim_mob::Link*,sim_mob::linkToLink> post_links_map_t ();
+	virtual std::pair<sim_mob::Link*,sim_mob::linkToLink>& post_links_map_t ();
 
-	virtual void linkFrom (unsigned int);
-	virtual void linkTo (unsigned int);
+	virtual void LinkFrom (unsigned int);
+	virtual void LinkTo (unsigned int);
 	virtual void SegmentFrom (unsigned int);
 	virtual void SegmentTo (unsigned int);
-	virtual void ColorSequence (std::pair<sim_mob::TrafficLightType,std::vector<std::pair<TrafficColor,short> > >);
+	virtual void ColorSequence (std::pair<sim_mob::TrafficLightType,std::vector<std::pair<TrafficColor,int> > >&);
 };
 
 
@@ -485,17 +486,17 @@ class Phases_t_pimpl: public virtual Phases_t_pskel {
 	sim_mob::Signal::phases model;
 public:
 	virtual void pre ();
-	virtual sim_mob::Signal::phases post_Phases_t ();
+	virtual sim_mob::Signal::phases& post_phases_t ();
 
-	virtual void Phase (sim_mob::Phase phase);
+	virtual void phase (sim_mob::Phase& phase);
 };
 
 class Signals_t_pimpl: public virtual Signals_t_pskel {
 public:
 	virtual void pre ();
-	virtual std::vector<sim_mob::Signal*> post_Signals_t ();
+	virtual std::vector<sim_mob::Signal*>& post_Signals_t ();
 
-	virtual void signal (sim_mob::Signal*);
+	virtual void Signal (sim_mob::Signal*);
 };
 
 class UniNodes_pimpl: public virtual UniNodes_pskel {

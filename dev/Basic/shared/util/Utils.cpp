@@ -106,7 +106,13 @@ std::pair<double, double> Utils::parseScaleMinmax(const std::string& src)
 	return std::make_pair(min, max);
 }
 
+double Utils::toFeet(const double meter) {
+    return (meter * 3.2808399);
+}
 
+double Utils::toMeter(const double feet) {
+    return (feet * 0.3048);
+}
 
 StopWatch::StopWatch() : now(0), end(0), running(false) {
 }

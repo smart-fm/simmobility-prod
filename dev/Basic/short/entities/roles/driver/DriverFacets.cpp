@@ -91,6 +91,8 @@ const Point2D SpecialPathB[] = { Point2D(37218351, 14335255), //AIMSUN 75780
 		Point2D(37241080, 14362955), //AIMSUN 61688
 		};
 
+const int distanceCheckToChangeLane = 150;
+
 //Path is in multi-node positions
 vector<WayPoint> ConvertToWaypoints(const Node* origin, const vector<Point2D>& path) {
 	vector<WayPoint> res;
@@ -246,6 +248,8 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 	LANE_CHANGE_SIDE laneSide = LCS_SAME;
 	IncidentStatus::IncidentStatusType status = IncidentStatus::INCIDENT_CLEARANCE;
 	incidentStatus.setDistanceToIncident(0);
+	const float convertFactor = 1000.0/3600.0;
+	incidentStatus.setDefaultSpeedLimit(curSegment->maxSpeed*convertFactor);
 
 	const std::map<centimeter_t, const RoadItem*> obstacles = curSegment->getObstacles();
 	std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
@@ -270,11 +274,11 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 					}
 				}
 				else {
-					status = IncidentStatus::INCIDENT_ADJACENT_LANE;
+					incidentStatus.setCurrentStatus(IncidentStatus::INCIDENT_ADJACENT_LANE);
+					incidentStatus.setChangedLane(false);
 				}
 				//make velocity slowing down decision when incident happen
-				RoadSegment* segment = const_cast<RoadSegment*>(curSegment);
-				unsigned int originId = (segment)->originalDB_ID.getLastVal();
+				unsigned int originId = curSegment->getSegmentAimsunId();
 				if(originId == inc->segmentId){
 					incidentStatus.setSlowdownVelocity(true);
 				}
@@ -649,8 +653,9 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 
 	// check current lane has connector to next link
 	p.isMLC = false;
-	if(p.dis2stop<150) // <150m need check above, ready to change lane
+	if(p.dis2stop<distanceCheckToChangeLane) // <150m need check above, ready to change lane
 	{
+		p.isMLC = true;
 ////		const RoadSegment* currentSegment = vehicle->getCurrSegment();
 		const RoadSegment* nextSegment = parentDriver->vehicle->getNextSegment(false);
 		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (parentDriver->vehicle->getNodeMovingTowards());
@@ -729,12 +734,27 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 		parentDriver->vehicle->setTurningDirection(incidentStatus.getLaneSide());
 		mode = MLC;
 	}
+	else if(incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode==MLC) {
+		p.nextLaneIndex = p.currLaneIndex;
+		parentDriver->vehicle->setTurningDirection(LCS_SAME);
+		mode = MLC;
+	}
 
 	//Check if we should change lanes.
 	double newLatVel;
 	newLatVel = lcModel->executeLaneChanging(p, parentDriver->vehicle->getAllRestRoadSegmentsLength(), parentDriver->vehicle->length,
 			parentDriver->vehicle->getTurningDirection(), mode);
 
+	if(newLatVel>0 && p.nextLaneIndex>0){
+		const RoadSegment* curSegment = parentDriver->vehicle->getCurrSegment();
+		const Lane* lane = curSegment->getLane(p.nextLaneIndex);
+		int laneNum = curSegment->getLanes().size()-1;
+		if( !lane->is_vehicle_lane() || p.nextLaneIndex>laneNum ) {
+			parentDriver->vehicle->setTurningDirection(LCS_SAME);
+			parentDriver->vehicle->setLatVelocity(0);
+			p.nextLaneIndex = p.currLaneIndex;
+		}
+	}
 
 	parentDriver->vehicle->setLatVelocity(newLatVel);
 	if(parentDriver->vehicle->getLatVelocity()>0)
@@ -1113,15 +1133,27 @@ bool sim_mob::DriverMovement::isPedestrianOnTargetCrossing() const {
 //			break;
 //		}
 //	}
-
+	sim_mob::Link * targetLink = parentDriver->vehicle->getNextSegment()->getLink();
 	const Crossing* crossing = nullptr;
-	const LinkAndCrossingByLink& LAC = trafficSignal->getLinkAndCrossingsByLink();
-	LinkAndCrossingByLink::iterator it = LAC.find(parentDriver->vehicle->getNextSegment()->getLink());
+	const LinkAndCrossingC& LAC = trafficSignal->getLinkAndCrossing();
+	LinkAndCrossingC::iterator it = LAC.begin();
+	for(; it != LAC.end(); it++){
+		if(it->link == targetLink)
+		{
+			break;
+		}
+	}
+
 	if(it != LAC.end()) {
 		crossing = (*it).crossing;
 	}
+	else{
+
+		return false;
+	}
 	//Have we found a relevant crossing?
 	if (!crossing) {
+		return false;
 	}
 
 	//Search through the list of agents in that crossing.
@@ -2412,7 +2444,7 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 				p.trafficColor = sim_mob::Red;
 				break;
 		default:
-			Warn() <<"Unknown signal color.\n";
+			Warn() <<"Unknown signal color[" << color << "]\n";
 			break;
 		}
 

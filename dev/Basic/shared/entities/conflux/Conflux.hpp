@@ -51,10 +51,6 @@ private:
 
 	const sim_mob::Signal* signal;
 
-	/**
-	 *  convert factor from second to millisecond
-	 */
-	const float SECOND_MS;
 
 	/**
 	 * segments in this conflux (on upstream links)

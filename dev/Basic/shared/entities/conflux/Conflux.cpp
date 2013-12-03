@@ -33,11 +33,18 @@
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
+/**
+ *  convert factor from second to millisecond
+ */
+namespace{
+    const float SECOND_MS = 1000.0;
+}
+
 sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id)
 	: Agent(mtxStrat, id),
 	  multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
 	  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out),
-	  isBoundary(false), isMultipleReceiver(false), SECOND_MS(1000.0)
+	  isBoundary(false), isMultipleReceiver(false)
 
 {
 }

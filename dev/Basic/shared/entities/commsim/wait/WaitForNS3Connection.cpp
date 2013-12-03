@@ -32,7 +32,7 @@ void WaitForNS3Connection::set_MIN_NOF_Clients(int value) {
 
 bool WaitForNS3Connection::calculateWaitStatus() {
 	ClientList::Type & clients = getBroker().getClientList();
-	int cnt = clients[ConfigParams::NS3_SIMULATOR].size();
+	int cnt = clients[comm::NS3_SIMULATOR].size();
 	if(cnt >= min_nof_clients)
 	{
 		setWaitStatus(false);

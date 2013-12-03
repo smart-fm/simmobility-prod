@@ -10,11 +10,13 @@
  */
 #pragma once
 
+#include <vector>
 #include <sstream>
 #include <set>
 #include <json/json.h>
 
 #include "entities/commsim/service/Services.hpp"
+#include "geospatial/RoadRunnerRegion.hpp"
 #include "logging/Log.hpp"
 
 namespace sim_mob {
@@ -53,6 +55,8 @@ public:
 	static Json::Value makeLocationMessage(int x, int y);
 
 	static Json::Value makeLocationArrayElement(unsigned int id, int x, int y);
+
+	static Json::Value makeRegionAndPathMessage(const std::set<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path);
 
 
 	//@originalMessage input

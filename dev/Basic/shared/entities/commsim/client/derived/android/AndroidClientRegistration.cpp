@@ -21,7 +21,7 @@
 
 using namespace sim_mob;
 
-sim_mob::AndroidClientRegistration::AndroidClientRegistration() : ClientRegistrationHandler(ConfigParams::ANDROID_EMULATOR)
+sim_mob::AndroidClientRegistration::AndroidClientRegistration() : ClientRegistrationHandler(comm::ANDROID_EMULATOR)
 {
 }
 
@@ -72,7 +72,7 @@ bool sim_mob::AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob
 	boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler(
 			new ConnectionHandler(request.session_,
 					broker.getMessageReceiveCallBack(), request.clientID,
-					ConfigParams::ANDROID_EMULATOR,
+					comm::ANDROID_EMULATOR,
 					(unsigned long int) (freeAgent->second.agent)//just remembered that we can/should filter agents based on the agent type ...-vahid
 					));
 	clientEntry->cnnHandler = cnnHandler;
@@ -81,7 +81,7 @@ bool sim_mob::AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob
 	//todo: some of there information are already available in the connectionHandler! omit redundancies  -vahid
 	clientEntry->agent = freeAgent->second.agent;
 	clientEntry->clientID = request.clientID;
-	clientEntry->client_type = ConfigParams::ANDROID_EMULATOR;
+	clientEntry->client_type = comm::ANDROID_EMULATOR;
 	clientEntry->requiredServices = request.requiredServices; //will come handy
 	sim_mob::Services::SIM_MOB_SERVICE srv;
 
@@ -125,14 +125,14 @@ bool sim_mob::AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob
 
 	//also, add the client entry to broker(for message handler purposes)
 	broker.insertClientList(clientEntry->clientID,
-			ConfigParams::ANDROID_EMULATOR, clientEntry);
+			comm::ANDROID_EMULATOR, clientEntry);
 	//add this agent to the list of the agents who are associated with a android emulator client
 	usedAgents.insert(freeAgent->second.agent);
 	//tell the agent you are registered
 	freeAgent->second.comm->setregistered(true);
 	//publish an event to inform- interested parties- of the registration of a new android client
-	getPublisher().publish(ConfigParams::ANDROID_EMULATOR,
-			ClientRegistrationEventArgs(ConfigParams::ANDROID_EMULATOR,
+	getPublisher().publish(comm::ANDROID_EMULATOR,
+			ClientRegistrationEventArgs(comm::ANDROID_EMULATOR,
 					clientEntry));
 	//start listening to the handler
 	clientEntry->cnnHandler->start();

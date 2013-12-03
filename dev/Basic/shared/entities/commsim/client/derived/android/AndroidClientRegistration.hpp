@@ -16,7 +16,7 @@
 namespace sim_mob {
 
 class Broker;
-
+class Agent;
 
 class AndroidClientRegistration: public sim_mob::ClientRegistrationHandler {
 	std::set<Agent*> usedAgents;

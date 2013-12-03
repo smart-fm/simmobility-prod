@@ -9,6 +9,11 @@
 #include <vector>
 #include <functional>
 
+//TODO: Move to cpp file.
+#include <stdexcept>
+#include "geospatial/RoadRunnerRegion.hpp"
+//END TODO
+
 //These are minimal header file, so please keep includes to a minimum.
 #include "conf/settings/DisableOutput.h"
 #include "conf/settings/DisableMPI.h"
@@ -33,7 +38,7 @@ class BufferedBase;
 class ShortTermBoundaryProcessor;
 class PackageUtils;
 class UnPackageUtils;
-//class ProfileBuilder;
+class RoadRunnerRegion;
 
 //It is not a good design, now. Need to verify.
 //The class is used in Sim-Tree for Bottom-Up Query
@@ -66,9 +71,8 @@ class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vec
  *
  * Agents maintain an x and a y position. They may have different behavioral models.
  */
-class Agent : public sim_mob::Entity, public event::EventListener/*, public sim_mob::CommunicationSupport*/ {
+class Agent : public sim_mob::Entity, public event::EventListener {
 public:
-
 	static int createdAgents;
 	static int diedAgents;
 
@@ -147,13 +151,10 @@ public:
 	virtual const sim_mob::Lane* getCurrLane() const;
 	virtual	void setCurrLane(const sim_mob::Lane* lane);
 
-        /**
-         * Inherited from EventListener. 
-         */
-        virtual void onEvent(event::EventId eventId, 
-                sim_mob::event::Context ctxId, 
-                event::EventPublisher* sender, 
-                const event::EventArgs& args);
+	/**
+	 * Inherited from EventListener.
+	 */
+	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 
 protected:
 	///TODO: Temporary; this allows a child class to reset "call_frame_init", but there is
@@ -202,10 +203,6 @@ public:
 	WayPoint originNode;
 	WayPoint destNode;
 
-	//tmp for Sim_Tree to Work
-//	int xPos_Sim;
-//	int yPos_Sim;
-
 	sim_mob::Shared<int> xPos;  ///<The agent's position, X
 	sim_mob::Shared<int> yPos;  ///<The agent's position, Y
 
@@ -220,10 +217,6 @@ public:
 	///Agents can access all other agents (although they usually do not access by ID)
 	static std::set<Entity*> all_agents;
 	static StartTimePriorityQueue pending_agents; //Agents waiting to be added to the simulation, prioritized by start time.
-
-	//static std::vector<Entity*> agents_on_event; //Agents are conducting event
-	//static EventTimePriorityQueue agents_with_pending_event; //Agents with upcoming event, prioritized by start time.
-
 
 	///Retrieve a monotonically-increasing unique ID value.
 	///\param preferredID Will be returned if it is greater than the current maximum-assigned ID.
@@ -322,7 +315,6 @@ private:
 
 	bool onActivity; //Determines if the person is conducting any activity
 	long lastUpdatedFrame; //Frame number in which the previous update of this agent took place
-//	boost::mutex lastUpdatedFrame_mutex;
 
 protected:
 	int dynamic_seed;
@@ -334,8 +326,6 @@ protected:
 	const sim_mob::Link* currLink;
 	const sim_mob::Lane* currLane;
 	const sim_mob::RoadSegment* currSegment;
-
-	//sim_mob::ProfileBuilder* profile;
 
 public:
 	int getOwnRandomNumber();
@@ -354,12 +344,7 @@ public:
 	void setLastUpdatedFrame(long lastUpdatedFrame);
 
 	friend class BoundaryProcessor;
-
-
 	friend class ShortTermBoundaryProcessor;
-
-	//TreeItem* connector_to_Sim_Tree;
-
 
 	/**
 	 * xuyan: All Agents should have the serialization functions implemented for Distributed Version
@@ -378,6 +363,80 @@ public:
 	virtual void packProxy(PackageUtils& packageUtil);
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
 #endif
+
+
+private:
+	/**
+	 * This struct is used to track the Regions and Paths available to this Agent. This functionality is
+	 *   ONLY used in RoadRunner, so putting it in Agent is not idea. At the moment, I am not sure of the best
+	 *   way to resolve this (as the commsim code uses a generic "Agent" in most cases), so I'm putting it in
+	 *   the most obvious place. Ideally, we would have a framework for "optional" elements such as this.
+	 * Note that, if the RegionAndPathTracker is disabled, attempting to call getNewRegion/PathSet() will throw
+	 *   an exception.
+	 */
+	struct RegionAndPathTracker {
+		RegionAndPathTracker() : enabled(false) {}
+
+		///Enable Region tracking. Without this, the "get()" functions will throw.
+		void enable() {
+			enabled = true;
+		}
+
+		///Is Region tracking enabled?
+		bool isEnabled() const {
+			return enabled;
+		}
+
+		///Call this function in the Agent's "update()" method to reset the list of Regions/Paths.
+		void reset() {
+			newAllRegions.clear();
+			newRegionPath.clear();
+		}
+
+		///See: Agent::getNewAllRegionsSet()
+		std::set<sim_mob::RoadRunnerRegion> getNewAllRegionsSet() const {
+			if (!enabled) { throw std::runtime_error("Agent Region Tracking is disabled."); }
+			return newAllRegions;
+		}
+
+		///Set Agent::getNewRegionPath()
+		std::vector<sim_mob::RoadRunnerRegion> getNewRegionPath() const {
+			if (!enabled) { throw std::runtime_error("Agent Region Tracking is disabled."); }
+			return newRegionPath;
+		}
+
+		///Set the "all regions" return value.
+		void setNewAllRegionsSet(const std::set<sim_mob::RoadRunnerRegion>& value) {
+			newAllRegions = value;
+		}
+
+		///Set the "region path" return value.
+		void setNewRegionPath(const std::vector<sim_mob::RoadRunnerRegion>& value) {
+			newRegionPath = value;
+		}
+
+	private:
+		///Actual storage + enabled.
+		std::set<sim_mob::RoadRunnerRegion> newAllRegions;
+		std::vector<sim_mob::RoadRunnerRegion> newRegionPath;
+		bool enabled;
+	} regionAndPathTracker;
+
+public:
+	///Enable Region support.
+	///See RegionAndPathTracker for more information.
+	void enableRegionSupport() { regionAndPathTracker.enable(); }
+
+	///Returns the current set of "all Regions", but only if region-tracking is enabled, and only if
+	/// the region set has changed since the last time tick.
+	///See RegionAndPathTracker for more information.
+	std::set<sim_mob::RoadRunnerRegion> getNewAllRegionsSet() const{ return regionAndPathTracker.getNewAllRegionsSet(); }
+
+	///Returns the current set of Regions this Agent expects to travel through on its way to its goal,
+	///but only if region-tracking is enabled, and only if the path set has changed since the last time tick.
+	///See RegionAndPathTracker for more information.
+	std::vector<sim_mob::RoadRunnerRegion> getNewRegionPath() const { return regionAndPathTracker.getNewRegionPath(); }
+
 };
 
 } //End namespace sim_mob

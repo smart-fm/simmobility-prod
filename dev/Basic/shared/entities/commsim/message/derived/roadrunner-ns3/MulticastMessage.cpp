@@ -44,7 +44,7 @@ void sim_mob::rr_android_ns3::NS3_HDL_MULTICAST::handle(sim_mob::comm::MsgPtr me
 	ClientList::Pair clientTypes;
 	BOOST_FOREACH(clientTypes , all_clients) {
 		// only the android emulators
-		if (clientTypes.first != ConfigParams::ANDROID_EMULATOR) {
+		if (clientTypes.first != comm::ANDROID_EMULATOR) {
 			continue;
 		}
 

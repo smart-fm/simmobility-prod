@@ -197,6 +197,31 @@ Json::Value sim_mob::JsonParser::makeLocationMessage(int x, int y)
 	return loc;
 }
 
+Json::Value sim_mob::JsonParser::makeRegionAndPathMessage(const std::set<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path)
+{
+	Json::Value res = createMessageHeader(msg_header("0", "SIMMOBILITY", "REGIONS_AND_PATH_DATA", "SYS"));
+
+	//Add the set of "all regions" by ID
+	{
+	Json::Value allRegionsObj;
+	for (std::set<sim_mob::RoadRunnerRegion>::const_iterator it=all_regions.begin(); it!=all_regions.end(); it++) {
+		allRegionsObj.append(it->id);
+	}
+	res["all_regions"] = allRegionsObj;
+	}
+
+	//Add the set of "path regions" by ID.
+	{
+	Json::Value pathRegionsObj;
+	for (std::vector<sim_mob::RoadRunnerRegion>::const_iterator it=region_path.begin(); it!=region_path.end(); it++) {
+		pathRegionsObj.append(it->id);
+	}
+	res["region_path"] = pathRegionsObj;
+	}
+
+	return res;
+}
+
 Json::Value sim_mob::JsonParser::makeLocationArrayElement(unsigned int id, int x, int y)
 {
 	Json::Value loc;

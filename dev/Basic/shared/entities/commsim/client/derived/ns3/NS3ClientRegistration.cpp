@@ -20,7 +20,7 @@
 
 namespace sim_mob {
 
-NS3ClientRegistration::NS3ClientRegistration(/*ConfigParams::ClientType type_*/) : ClientRegistrationHandler(ConfigParams::NS3_SIMULATOR) {
+NS3ClientRegistration::NS3ClientRegistration(/*ClientRegistrationFactory::ClientType type_*/) : ClientRegistrationHandler(comm::NS3_SIMULATOR) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -48,7 +48,7 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 //				,&Broker::messageReceiveCallback
 				,broker.getMessageReceiveCallBack()
 				,request.clientID
-				,ConfigParams::NS3_SIMULATOR
+				,comm::NS3_SIMULATOR
 				,(unsigned long int)(0)//not needed
 				)
 				);
@@ -57,7 +57,7 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 		//todo: some of there information are already available in the connectionHandler! omit redundancies  -vahid
 		clientEntry->agent = 0;//not needed
 		clientEntry->clientID = request.clientID;
-		clientEntry->client_type = ConfigParams::NS3_SIMULATOR;
+		clientEntry->client_type = comm::NS3_SIMULATOR;
 		clientEntry->requiredServices = request.requiredServices; //will come handy
 		sim_mob::Services::SIM_MOB_SERVICE srv;
 		int size_i = request.requiredServices.size();
@@ -90,7 +90,7 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 		}
 
 		//also, add the client entry to broker(for message handler purposes)
-		broker.insertClientList(clientEntry->clientID, ConfigParams::NS3_SIMULATOR,clientEntry);
+		broker.insertClientList(clientEntry->clientID, comm::NS3_SIMULATOR,clientEntry);
 
 		//send some initial configuration information to NS3
 		std::set<sim_mob::Entity *> keys;

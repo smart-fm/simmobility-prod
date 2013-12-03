@@ -17,6 +17,7 @@
 #include "entities/commsim/connection/ConnectionServer.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
+#include "entities/commsim/event/RegionsAndPathEventArgs.hpp"
 
 #include "entities/commsim/wait/WaitForAndroidConnection.hpp"
 #include "entities/commsim/wait/WaitForNS3Connection.hpp"
@@ -24,6 +25,8 @@
 #include "event/SystemEvents.hpp"
 #include "message/MessageBus.hpp"
 #include "event/EventPublisher.hpp"
+
+#include "geospatial/RoadRunnerRegion.hpp"
 
 //todo :temprorary
 #include "entities/commsim/message/derived/roadrunner-android/RoadRunnerFactory.hpp"
@@ -137,14 +140,14 @@ void sim_mob::Broker::configure()
 	}
 
 	ClientRegistrationHandler::getPublisher().subscribe(
-                (event::EventId)ConfigParams::ANDROID_EMULATOR, 
+                (event::EventId)comm::ANDROID_EMULATOR,
                 this, 
                 &Broker::onClientRegister);
 
 	if(client_type == "android-ns3") {
 		//listen to publishers who announce registration of new clients...
 		ClientRegistrationHandler::getPublisher().subscribe(
-                         (event::EventId)ConfigParams::NS3_SIMULATOR, 
+                         (event::EventId)comm::NS3_SIMULATOR,
                         this, 
                         &Broker::onClientRegister);
 	}
@@ -158,23 +161,23 @@ void sim_mob::Broker::configure()
 			ns3_factory(new sim_mob::rr_android_ns3::NS3_Factory());
 
 		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
-		messageFactories.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR, android_factory));
-		messageFactories.insert(std::make_pair(ConfigParams::NS3_SIMULATOR, ns3_factory));
+		messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, android_factory));
+		messageFactories.insert(std::make_pair(comm::NS3_SIMULATOR, ns3_factory));
 	} else if (client_type == "android-only") {
 		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> >
 			android_factory(new sim_mob::roadrunner::RoadRunnerFactory(false));
 
 		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
-		messageFactories.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR, android_factory));
+		messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, android_factory));
 	}
 
 	// wait for connection criteria for this broker
-	clientBlockers.insert(std::make_pair(ConfigParams::ANDROID_EMULATOR,
+	clientBlockers.insert(std::make_pair(comm::ANDROID_EMULATOR,
 			boost::shared_ptr<WaitForAndroidConnection>(new WaitForAndroidConnection(*this,MIN_CLIENTS))));
 
 
 	if(client_type == "android-ns3") {
-		clientBlockers.insert(std::make_pair(ConfigParams::NS3_SIMULATOR,
+		clientBlockers.insert(std::make_pair(comm::NS3_SIMULATOR,
 				boost::shared_ptr<WaitForNS3Connection>(new WaitForNS3Connection(*this))));
 
 	}
@@ -203,7 +206,7 @@ void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler
 
 		sim_mob::comm::MsgData& data = it->get()->getData();
 		std::string type = data["MESSAGE_TYPE"].asString();
-//		Print() << "Received " << (cnnHandler->clientType == ConfigParams::NS3_SIMULATOR ? "NS3" : ( cnnHandler->clientType == ConfigParams::ANDROID_EMULATOR ? "ANDROID" : "UNKNOWN_TYPE") ) << " : " << type << std::endl;
+//		Print() << "Received " << (cnnHandler->clientType == comm::NS3_SIMULATOR ? "NS3" : ( cnnHandler->clientType == ClientRegistrationFactory::ANDROID_EMULATOR ? "ANDROID" : "UNKNOWN_TYPE") ) << " : " << type << std::endl;
 		if(type == "CLIENT_MESSAGES_DONE")
 		{
 			boost::unique_lock<boost::mutex> lock(mutex_clientDone);
@@ -269,7 +272,7 @@ bool sim_mob::Broker::getClientHandler(std::string clientId,std::string clientTy
 {
 	//use try catch to use map's .at() and search only once
 	try {
-		ConfigParams::ClientType clientType_ = sim_mob::Services::ClientTypeMap.at(clientType);
+		comm::ClientType clientType_ = sim_mob::Services::ClientTypeMap.at(clientType);
 		boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > & inner = clientList[clientType_];
 		try
 		{
@@ -290,7 +293,7 @@ bool sim_mob::Broker::getClientHandler(std::string clientId,std::string clientTy
 	return false;
 }
 
-void sim_mob::Broker::insertClientList(std::string clientID, unsigned int clientType, boost::shared_ptr<sim_mob::ClientHandler> &clientHandler)
+void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType clientType, boost::shared_ptr<sim_mob::ClientHandler> &clientHandler)
 {
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 	clientList[clientType][clientID] = clientHandler;
@@ -475,11 +478,11 @@ void sim_mob::Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::
 
 void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums)
 {
-	ConfigParams::ClientType type = argums.getClientType();
+	comm::ClientType type = argums.getClientType();
 	boost::shared_ptr<ClientHandler>clientHandler = argums.getClient();
 
 	switch (type) {
-	case ConfigParams::ANDROID_EMULATOR: {
+	case comm::ANDROID_EMULATOR: {
 		//if we are operating on android-ns3 set up,
 		//each android client registration should be brought to
 		//ns3's attention
@@ -492,7 +495,7 @@ void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::even
 		//registration and configuration process. So the following implementation
 		//should be executed for those android clients who will join AFTER
 		//ns3's registration. So we check if the ns3 is already registered or not:
-		if (clientList.find(ConfigParams::NS3_SIMULATOR) == clientList.end()) {
+		if (clientList.find(comm::NS3_SIMULATOR) == clientList.end()) {
 			break;
 		}
 		msg_header mHeader_("0", "SIMMOBILITY", "AGENTS_INFO", "SYS");
@@ -549,7 +552,25 @@ void sim_mob::Broker::processPublishers(timeslice now)
 			publisher.publish(COMMEID_LOCATION,(void*) COMMCID_ALL_LOCATIONS,AllLocationsEventArgs(REGISTERED_AGENTS));
 			break;
 		}
+		case sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH: {
+			//Scan every communicating Agent and see if they need a Region or Path update sent to the client.
+			//If so, publish it.
+			//NOTE: This is somewhat inefficient; we can probably offload some of this responsibility to the Workers or
+			//      to the EventManager itself. For now, though, its performance hit is not noticeable. ~Seth
+			for (ClientList::Type::iterator listIt=clientList.begin(); listIt!=clientList.end(); listIt++) {
+				for (ClientList::Value::iterator clientIt=listIt->second.begin(); clientIt!=listIt->second.end(); clientIt++) {
+					const sim_mob::Agent* agent = clientIt->second->agent;
+					std::set<sim_mob::RoadRunnerRegion> all_regions = agent->getNewAllRegionsSet();
+					std::vector<sim_mob::RoadRunnerRegion> reg_path = agent->getNewRegionPath();
+					if (!(all_regions.empty() && reg_path.empty())) {
+						publisher.publish(COMMEID_REGIONS_AND_PATH, (void*)agent, RegionsAndPathEventArgs(agent, all_regions, reg_path));
+					}
+				}
+			}
+			break;
+		}
 		default:
+			Warn() <<"Broker::processPubliBshers() - Unhandled service type: " <<service <<"\n";
 			break;
 		}
 	}

@@ -19,6 +19,7 @@
 
 #include "entities/commsim/service/Services.hpp"
 #include "entities/commsim/connection/Session.hpp"
+#include "entities/commsim/client/ClientType.hpp"
 #include "event/EventPublisher.hpp"
 
 namespace sim_mob {
@@ -48,13 +49,13 @@ class ClientRegistrationHandler;
  * ClientRegistrationFactory class. No documentation provided.
  */
 class ClientRegistrationFactory {
-	std::map<ConfigParams::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> > ClientRegistrationHandlerMap;
+	std::map<comm::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> > ClientRegistrationHandlerMap;
 public:
 	ClientRegistrationFactory();
 	virtual ~ClientRegistrationFactory();
 
 	///gets a handler either from a cache or by creating a new one
-	boost::shared_ptr<sim_mob::ClientRegistrationHandler> getHandler(ConfigParams::ClientType type);
+	boost::shared_ptr<sim_mob::ClientRegistrationHandler> getHandler(comm::ClientType type);
 };
 
 
@@ -74,10 +75,10 @@ class Broker;
  * ClientRegistrationHandler class. No documentation provided.
  */
 class ClientRegistrationHandler {
-	ConfigParams::ClientType type;
+	comm::ClientType type;
 	static ClientRegistrationPublisher registrationPublisher;
 public:
-	ClientRegistrationHandler(ConfigParams::ClientType);
+	ClientRegistrationHandler(comm::ClientType);
 	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest) = 0;
 	static sim_mob::event::EventPublisher & getPublisher();
 	virtual ~ClientRegistrationHandler();
@@ -92,11 +93,11 @@ class ClientHandler;
  */
 class ClientRegistrationEventArgs: public sim_mob::event::EventArgs {
 	boost::shared_ptr<ClientHandler> client;
-	ConfigParams::ClientType type;
+	comm::ClientType type;
 public:
-	ClientRegistrationEventArgs(ConfigParams::ClientType, boost::shared_ptr<ClientHandler>&);
+	ClientRegistrationEventArgs(comm::ClientType, boost::shared_ptr<ClientHandler>&);
 	boost::shared_ptr<ClientHandler> getClient() const;
-	ConfigParams::ClientType getClientType() const;
+	comm::ClientType getClientType() const;
 	virtual ~ClientRegistrationEventArgs();
 };
 

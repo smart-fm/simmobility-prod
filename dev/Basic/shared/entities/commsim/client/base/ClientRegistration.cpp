@@ -32,11 +32,11 @@ sim_mob::ClientRegistrationFactory::~ClientRegistrationFactory()
 {
 }
 
-boost::shared_ptr<sim_mob::ClientRegistrationHandler> sim_mob::ClientRegistrationFactory::getHandler(ConfigParams::ClientType type)
+boost::shared_ptr<sim_mob::ClientRegistrationHandler> sim_mob::ClientRegistrationFactory::getHandler(comm::ClientType type)
 {
 	boost::shared_ptr<sim_mob::ClientRegistrationHandler> handler;
 	//if handler is already registered && the registered handler is not null
-	std::map<ConfigParams::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> >::iterator it = ClientRegistrationHandlerMap.find(type);
+	std::map<comm::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> >::iterator it = ClientRegistrationHandlerMap.find(type);
 	if(it != ClientRegistrationHandlerMap.end())
 	{
 		//get the handler ...
@@ -48,10 +48,10 @@ boost::shared_ptr<sim_mob::ClientRegistrationHandler> sim_mob::ClientRegistratio
 		bool typeFound = true;
 		switch(type)
 		{
-		case ConfigParams::ANDROID_EMULATOR:
+		case comm::ANDROID_EMULATOR:
 			handler.reset(new sim_mob::AndroidClientRegistration());
 			break;
-		case ConfigParams::NS3_SIMULATOR:
+		case comm::NS3_SIMULATOR:
 			handler.reset(new sim_mob::NS3ClientRegistration);
 			break;
 		default:
@@ -116,7 +116,7 @@ sim_mob::ClientRegistrationRequest::ClientRegistrationRequest()
 
 ClientRegistrationPublisher sim_mob::ClientRegistrationHandler::registrationPublisher;
 
-sim_mob::ClientRegistrationHandler::ClientRegistrationHandler(ConfigParams::ClientType type):type(type)
+sim_mob::ClientRegistrationHandler::ClientRegistrationHandler(comm::ClientType type):type(type)
 {
 	registrationPublisher.registerEvent(type);
 }
@@ -135,7 +135,7 @@ sim_mob::event::EventPublisher & sim_mob::ClientRegistrationHandler::getPublishe
  ******************************************************************************************************
  */
 
-sim_mob::ClientRegistrationEventArgs::ClientRegistrationEventArgs(ConfigParams::ClientType type, boost::shared_ptr<ClientHandler> &client) :
+sim_mob::ClientRegistrationEventArgs::ClientRegistrationEventArgs(comm::ClientType type, boost::shared_ptr<ClientHandler> &client) :
 	type(type), client(client)
 {
 }
@@ -149,7 +149,7 @@ boost::shared_ptr<ClientHandler> ClientRegistrationEventArgs::getClient() const
 	return client;
 }
 
-ConfigParams::ClientType sim_mob::ClientRegistrationEventArgs::getClientType() const
+comm::ClientType sim_mob::ClientRegistrationEventArgs::getClientType() const
 {
 	return type;
 }

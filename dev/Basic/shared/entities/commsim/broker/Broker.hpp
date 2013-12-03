@@ -7,7 +7,10 @@
 #include <boost/thread/condition_variable.hpp>
 #include <boost/unordered_map.hpp>
 
+#include "conf/ConfigParams.hpp"
+
 #include "entities/Agent.hpp"
+#include "entities/commsim/client/ClientType.hpp"
 #include "entities/commsim/client/base/ClientRegistration.hpp"
 #include "entities/commsim/service/Services.hpp"
 #include "entities/commsim/message/Types.hpp"
@@ -75,7 +78,7 @@ struct PublisherList {
  * A typedef-container for our ClientList container type.
  */
 struct ClientList {
-	typedef unsigned int Key;
+	typedef sim_mob::comm::ClientType Key;
 	typedef boost::unordered_map< std::string , boost::shared_ptr<sim_mob::ClientHandler> > Value;
 
 	typedef std::map<Key, Value> Type;
@@ -317,7 +320,7 @@ public:
 	/**
 	 * 	adds to the list of registered clients
 	 */
-	void insertClientList(std::string ,unsigned int , boost::shared_ptr<sim_mob::ClientHandler>&);
+	void insertClientList(std::string, comm::ClientType , boost::shared_ptr<sim_mob::ClientHandler>&);
 	/**
 	 * 	adds a client to the registration waiting list
 	 */

@@ -7,7 +7,8 @@
 
 using namespace sim_mob;
 
-sim_mob::RegionsAndPathEventArgs::RegionsAndPathEventArgs(const sim_mob::Agent * agent_) :agent(agent_)
+sim_mob::RegionsAndPathEventArgs::RegionsAndPathEventArgs(const sim_mob::Agent * agent_, const std::set<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path) :
+	agent(agent_), all_regions(all_regions), region_path(region_path)
 {
 }
 
@@ -18,7 +19,7 @@ sim_mob::RegionsAndPathEventArgs::~RegionsAndPathEventArgs()
 Json::Value sim_mob::RegionsAndPathEventArgs::toJSON() const
 {
 	//TODO: Replace with Regions and Paths, actual serialized format.
-	return JsonParser::makeLocationMessage(agent->xPos.get(), agent->yPos.get());
+	return JsonParser::makeRegionAndPathMessage(all_regions, region_path);
 }
 
 

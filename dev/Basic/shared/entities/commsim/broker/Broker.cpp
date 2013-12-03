@@ -397,7 +397,7 @@ void  sim_mob::Broker::unRegisterEntity(sim_mob::Agent * agent)
 						publishers[sim_mob::Services::SIMMOB_SRV_TIME]->unSubscribe(COMMEID_TIME,clientHandler);
 						break;
 					case sim_mob::Services::SIMMOB_SRV_LOCATION:
-						publishers[sim_mob::Services::SIMMOB_SRV_LOCATION]->unSubscribe(COMMEID_LOCATION,(void*)clientHandler->agent,clientHandler);
+						publishers[sim_mob::Services::SIMMOB_SRV_LOCATION]->unSubscribe(COMMEID_LOCATION, const_cast<Agent*>(clientHandler->agent),clientHandler);
 						break;
 					case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS:
 						publishers[sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS]->unSubscribe(COMMEID_LOCATION,(void*)COMMCID_ALL_LOCATIONS,clientHandler);
@@ -543,7 +543,7 @@ void sim_mob::Broker::processPublishers(timeslice now)
 				BOOST_FOREACH(clientsByID, clientsByType.second)
 				{
 					boost::shared_ptr<sim_mob::ClientHandler> & cHandler = clientsByID.second;//easy read
-					publisher.publish(COMMEID_LOCATION,(void*) cHandler->agent,LocationEventArgs(cHandler->agent));
+					publisher.publish(COMMEID_LOCATION, const_cast<Agent*>(cHandler->agent),LocationEventArgs(cHandler->agent));
 				}
 			}
 			break;
@@ -564,7 +564,7 @@ void sim_mob::Broker::processPublishers(timeslice now)
 						std::set<sim_mob::RoadRunnerRegion> all_regions = agent->getNewAllRegionsSet();
 						std::vector<sim_mob::RoadRunnerRegion> reg_path = agent->getNewRegionPath();
 						if (!(all_regions.empty() && reg_path.empty())) {
-							publisher.publish(COMMEID_REGIONS_AND_PATH, (void*)agent, RegionsAndPathEventArgs(agent, all_regions, reg_path));
+							publisher.publish(COMMEID_REGIONS_AND_PATH, const_cast<Agent*>(agent), RegionsAndPathEventArgs(agent, all_regions, reg_path));
 						}
 					}
 				}

@@ -237,10 +237,10 @@ void sim_mob::DriverMovement::frame_init() {
 
 	//If Region support is enabled, set the list of all Regions
 	if (parent->getRegionSupportStruct().isEnabled()) {
-		std::set<RoadRunnerRegion> allRegions;
+		std::vector<RoadRunnerRegion> allRegions;
 		const RoadNetwork& net = ConfigManager::GetInstance().FullConfig().getNetwork();
 		for (std::map<int, RoadRunnerRegion>::const_iterator it=net.roadRunnerRegions.begin(); it!=net.roadRunnerRegions.end(); it++) {
-			allRegions.insert(it->second);
+			allRegions.push_back(it->second);
 		}
 
 		parent->getRegionSupportStruct().setNewAllRegionsSet(allRegions);

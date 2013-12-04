@@ -394,7 +394,7 @@ public:
 		}
 
 		///See: Agent::getNewAllRegionsSet()
-		std::set<sim_mob::RoadRunnerRegion> getNewAllRegionsSet() const {
+		std::vector<sim_mob::RoadRunnerRegion> getNewAllRegionsSet() const {
 			if (!enabled) { throw std::runtime_error("Agent Region Tracking is disabled."); }
 			return newAllRegions;
 		}
@@ -406,7 +406,7 @@ public:
 		}
 
 		///Set the "all regions" return value.
-		void setNewAllRegionsSet(const std::set<sim_mob::RoadRunnerRegion>& value) {
+		void setNewAllRegionsSet(const std::vector<sim_mob::RoadRunnerRegion>& value) {
 			newAllRegions = value;
 		}
 
@@ -417,7 +417,7 @@ public:
 
 	private:
 		///Actual storage + enabled.
-		std::set<sim_mob::RoadRunnerRegion> newAllRegions;
+		std::vector<sim_mob::RoadRunnerRegion> newAllRegions;
 		std::vector<sim_mob::RoadRunnerRegion> newRegionPath;
 		bool enabled;
 	} regionAndPathTracker;
@@ -430,7 +430,7 @@ public:
 	///Returns the current set of "all Regions", but only if region-tracking is enabled, and only if
 	/// the region set has changed since the last time tick.
 	///See RegionAndPathTracker for more information.
-	std::set<sim_mob::RoadRunnerRegion> getNewAllRegionsSet() const{ return regionAndPathTracker.getNewAllRegionsSet(); }
+	std::vector<sim_mob::RoadRunnerRegion> getNewAllRegionsSet() const{ return regionAndPathTracker.getNewAllRegionsSet(); }
 
 	///Returns the current set of Regions this Agent expects to travel through on its way to its goal,
 	///but only if region-tracking is enabled, and only if the path set has changed since the last time tick.

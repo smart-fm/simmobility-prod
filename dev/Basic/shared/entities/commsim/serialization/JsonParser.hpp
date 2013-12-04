@@ -56,7 +56,7 @@ public:
 
 	static Json::Value makeLocationArrayElement(unsigned int id, int x, int y);
 
-	static Json::Value makeRegionAndPathMessage(const std::set<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path);
+	static Json::Value makeRegionAndPathMessage(const std::vector<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path);
 
 
 	//@originalMessage input

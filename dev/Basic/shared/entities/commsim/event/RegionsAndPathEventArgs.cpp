@@ -7,7 +7,7 @@
 
 using namespace sim_mob;
 
-sim_mob::RegionsAndPathEventArgs::RegionsAndPathEventArgs(const sim_mob::Agent * agent_, const std::set<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path) :
+sim_mob::RegionsAndPathEventArgs::RegionsAndPathEventArgs(const sim_mob::Agent * agent_, const std::vector<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path) :
 	agent(agent_), all_regions(all_regions), region_path(region_path)
 {
 }

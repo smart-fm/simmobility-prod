@@ -22,7 +22,7 @@ public:
 	 *    Note that RoadRunner will update the "region_path" itself, so you only need to send a new path if a re-routing
 	 *    decision has occurred (e.g., you do NOT need to send a new path if the Agent moves through a region as expected).
 	 */
-	RegionsAndPathEventArgs(const sim_mob::Agent* ag, const std::set<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path);
+	RegionsAndPathEventArgs(const sim_mob::Agent* ag, const std::vector<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path);
 
 	virtual ~RegionsAndPathEventArgs();
 
@@ -30,7 +30,7 @@ public:
 
 private:
 	const sim_mob::Agent *agent;
-	std::set<sim_mob::RoadRunnerRegion> all_regions;
+	std::vector<sim_mob::RoadRunnerRegion> all_regions;
 	std::vector<sim_mob::RoadRunnerRegion> region_path;
 
 };

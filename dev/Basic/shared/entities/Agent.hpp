@@ -365,7 +365,7 @@ public:
 #endif
 
 
-private:
+public:
 	/**
 	 * This struct is used to track the Regions and Paths available to this Agent. This functionality is
 	 *   ONLY used in RoadRunner, so putting it in Agent is not idea. At the moment, I am not sure of the best
@@ -427,9 +427,6 @@ public:
 	///See RegionAndPathTracker for more information.
 	void enableRegionSupport() { regionAndPathTracker.enable(); }
 
-	///Is Region support enabled?
-	bool isRegionSupportEnabled() const { return regionAndPathTracker.isEnabled(); }
-
 	///Returns the current set of "all Regions", but only if region-tracking is enabled, and only if
 	/// the region set has changed since the last time tick.
 	///See RegionAndPathTracker for more information.
@@ -439,6 +436,10 @@ public:
 	///but only if region-tracking is enabled, and only if the path set has changed since the last time tick.
 	///See RegionAndPathTracker for more information.
 	std::vector<sim_mob::RoadRunnerRegion> getNewRegionPath() const { return regionAndPathTracker.getNewRegionPath(); }
+
+	///Get the Region-support object. This is used for all other Region-related queries.
+	RegionAndPathTracker& getRegionSupportStruct() { return regionAndPathTracker; }
+	const RegionAndPathTracker& getRegionSupportStruct() const { return regionAndPathTracker; }
 
 };
 

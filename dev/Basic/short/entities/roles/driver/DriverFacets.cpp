@@ -23,6 +23,7 @@
 #include "geospatial/Point2D.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/PathSetManager.hpp"
+#include "geospatial/RoadRunnerRegion.hpp"
 #include "network/CommunicationDataManager.hpp"
 
 #include "boost/bind.hpp"
@@ -232,6 +233,17 @@ void sim_mob::DriverMovement::frame_init() {
 		setOrigin(parentDriver->getParams());
 	} else {
 		Warn() << "ERROR: Vehicle[short] could not be created for driver; no route!" <<std::endl ;
+	}
+
+	//If Region support is enabled, set the list of all Regions
+	if (parent->getRegionSupportStruct().isEnabled()) {
+		std::set<RoadRunnerRegion> allRegions;
+		const RoadNetwork& net = ConfigManager::GetInstance().FullConfig().getNetwork();
+		for (std::map<int, RoadRunnerRegion>::const_iterator it=net.roadRunnerRegions.begin(); it!=net.roadRunnerRegions.end(); it++) {
+			allRegions.insert(it->second);
+		}
+
+		parent->getRegionSupportStruct().setNewAllRegionsSet(allRegions);
 	}
 }
 

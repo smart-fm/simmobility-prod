@@ -473,6 +473,9 @@ bool sim_mob::BusDriverMovement::isBusLeavingBusStop() {
 double sim_mob::BusDriverMovement::distanceToNextBusStop() {
 	double distanceToCurrentSegmentBusStop = getDistanceToBusStopOfSegment(
 			parentBusDriver->vehicle->getCurrSegment());
+	if(distanceToCurrentSegmentBusStop >= 0) {
+		return distanceToCurrentSegmentBusStop;
+	}
 	double distanceToNextSegmentBusStop = -1;
 	if (parentBusDriver->vehicle->hasNextSegment(true))
 		distanceToNextSegmentBusStop = getDistanceToBusStopOfSegment(
@@ -526,7 +529,7 @@ double sim_mob::BusDriverMovement::getDistanceToBusStopOfSegment(const RoadSegme
 				parentBusDriver->xpos_approachingbusstop = bs->xPos;
 				parentBusDriver->ypos_approachingbusstop = bs->yPos;
 				if (parentBusDriver->busstop_sequence_no.get() == (busStops.size() - 1)) // check whether it is the last bus stop in the busstop list
-						{
+				{
 					last_busstop = true;
 				}
 				if (rs == parentBusDriver->vehicle->getCurrSegment()) {
@@ -699,6 +702,9 @@ void sim_mob::BusDriverMovement::IndividualBoardingAlighting_New(Bus* bus)
 void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 {
 	uint32_t curr_ms = parentBusDriver->getParams().now.ms();
+//	if(parentBusDriver->getParams().now.frame() >= 1201) {
+//		std::cout << "Test stop pos " << std::endl;
+//	}
 	int i = 0;
 	int j = 0;
 	int boardingNum = 0;
@@ -788,6 +794,9 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 
 	} else { // normal busstop, both boarding and alighting
 		// determine the alighting frame for each possible persons
+//		if(busstopAgent->getBusStop().busstopno_ == "59069") {
+//			std::cout << "test here!!! " << std::endl;
+//		}
 		for(i = 0; i < (bus->passengers_inside_bus).size(); i++) {
 			Person* p = dynamic_cast<Person*>((bus->passengers_inside_bus)[i]);
 			if(p) {

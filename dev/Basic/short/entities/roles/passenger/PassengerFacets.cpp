@@ -7,6 +7,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/Person.hpp"
+#include "entities/BusStopAgent.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "logging/Log.hpp"
@@ -76,6 +77,18 @@ void sim_mob::PassengerMovement::setParentBufferedData()
 void sim_mob::PassengerMovement::frame_init() {
 	//initialization
 //	WaitingTime = -1;
+	if(getParent()->originNode.type_== WayPoint::BUS_STOP && getParent()->destNode.type_== WayPoint::BUS_STOP) {
+		BusStopAgent* OriginBusstopAg = getParent()->originNode.busStop_->generatedBusStopAgent;
+		getParent()->xPos.force(OriginBusstopAg->getBusStop().xPos);// set xPos to WaitBusActivityRole
+		getParent()->yPos.force(OriginBusstopAg->getBusStop().yPos);// set yPos to WaitBusActivityRole
+		OriginBusStop = const_cast<BusStop*>(getParent()->originNode.busStop_);
+		DestBusStop = const_cast<BusStop*>(getParent()->destNode.busStop_);
+		timeOfStartBoarding = getParent()->currTick.ms();
+		if(getParent()) {
+			getParent()->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
+		}
+		return;
+	}
 	OriginBusStop=nullptr;
 	if(getParent()->originNode.type_==WayPoint::NODE) {
 		OriginBusStop = setBusStopXY(getParent()->originNode.node_);
@@ -99,7 +112,7 @@ void sim_mob::PassengerMovement::frame_init() {
 	}
 
 //	TimeOfReachingBusStop=parentPassenger->getParams().now.ms();
-	timeOfStartBoarding = parentPassenger->getParams().now.ms();
+	timeOfStartBoarding = getParent()->currTick.ms();;
 	if(getParent()) {
 		getParent()->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
 	}
@@ -129,7 +142,7 @@ void sim_mob::PassengerMovement::frame_tick() {
 					const uint32_t waitingTimeAtStop = parentPassenger->getWaitingTimeAtStop();
 					PassengerInfoPrint() << "iamwaiting id "<<getParent()->getId()<<" from "<<getParent()->originNode.busStop_->busstopno_<<" to "<<getParent()->destNode.busStop_->busstopno_<<" "
 							<<(ConfigManager::GetInstance().FullConfig().simStartTime() + DailyTime(getParent()->getStartTime()) + DailyTime(waitingTimeAtStop)).getRepr_()<<" "
-							<<waitingTimeAtStop<<" bustripRunNum " << getBusTripRunNum() << " "<<" buslineid " << getBuslineId() << "TravelTime " << travelTime << std::endl;
+							<<waitingTimeAtStop<<" bustripRunNum " << getBusTripRunNum() << " "<<" buslineid " << getBuslineId() << " TravelTime " << travelTime << std::endl;
 					parentPassenger->busdriver.set(nullptr);// assign this busdriver to Passenger
 					parentPassenger->BoardedBus.set(false);
 					parentPassenger->AlightedBus.set(true);
@@ -179,7 +192,7 @@ void sim_mob::PassengerMovement::frame_tick_output() {
 	}
 
 	LogOut("(\"passenger"
-		<<"\","<<p.now.frame()
+		<<"\","<<getParent()->currTick.frame()
 		<<","<<getParent()->getId()
 		<<","<<"{\"xPos\":\""<<xPos
 		<<"\"," <<"\"yPos\":\""<<yPos

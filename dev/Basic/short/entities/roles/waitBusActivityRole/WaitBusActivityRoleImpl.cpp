@@ -72,7 +72,7 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_init() {
 		getParent()->xPos.force(busStopAgent->getBusStop().xPos);// set xPos to WaitBusActivityRole
 		getParent()->yPos.force(busStopAgent->getBusStop().yPos);// set yPos to WaitBusActivityRole
 		parentWaitBusActivityRole->TimeOfReachingBusStop = parentWaitBusActivityRole->getParams().now.ms();
-		buslineid = "7_2";// set Busline information(hardcoded now, later from Public Transit Route Choice to choose the busline)
+		buslineid = "857_1";// set Busline information(hardcoded now, later from Public Transit Route Choice to choose the busline)
 		return;
 	}
 	if(getParent()->destNode.type_== WayPoint::BUS_STOP) { // to here waiting(busstop)
@@ -132,5 +132,5 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick_output() {
 	   DisplayOffset.setY(value+1);
 	}
 	//LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY())<<"\",})"<<std::endl);
-	LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(getParent()->xPos.get()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(getParent()->yPos.get()+DisplayOffset.getY())<<"\",})"<<std::endl);
+	LogOut("("<<"\"passenger\","<<getParent()->currTick.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(getParent()->xPos.get()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(getParent()->yPos.get()+DisplayOffset.getY())<<"\",})"<<std::endl);
 }

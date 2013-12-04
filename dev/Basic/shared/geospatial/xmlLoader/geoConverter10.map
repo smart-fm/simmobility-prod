@@ -18,6 +18,7 @@ namespace http://www.smart.mit.edu/geo  {
 	include "entities/misc/TripChain.hpp";
 	include "entities/signal/Signal.hpp";
 	include "geospatial/xmlLoader/geo10-helper.hpp";
+	include <boost/tuple/tuple.hpp>;
 
 ## TODO:
 #   1) Remove Intersection::segmentsAt
@@ -79,6 +80,8 @@ Lanes std::vector<sim_mob::Lane*> std::vector<sim_mob::Lane*>;
 
 connector_t   "std::pair<unsigned long,unsigned long>"  "std::pair<unsigned long,unsigned long>";
 connectors_t  "std::set<std::pair<unsigned long,unsigned long> >"  "std::set<std::pair<unsigned long,unsigned long> >";
+new_connector_t   "std::pair<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &"  "std::pair<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &";
+new_connectors_t  "std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &"  "std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &";
 
 #connectors_t  "std::set<std::pair<std::string,std::string> >"  "std::set<std::pair<std::string,std::string> >";
 #Multi_Connector_t   "std::pair<std::string,std::set<sim_mob::LaneConnector*> >";

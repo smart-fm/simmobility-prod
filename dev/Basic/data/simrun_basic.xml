@@ -283,9 +283,11 @@
         <!--       maintain their own configurations. -->
         <network_source value="database"/>
         
-        <!-- If loading from XML, which file? Default (or blank string) will force private/SimMobilityInput.xml -->
+        <!-- If loading from XML, which input file? Default (or blank string) will force private/SimMobilityInput.xml -->
+        <!-- If Writing XML, which output file? Default (or blank string) don't write at all -->
         <!-- This only has an effect if network_source is set to "xml" -->
-        <network_xml_file value=""/>
+        <network_xml_file_input value=""/>
+        <network_xml_file_output value=""/>
 	
 	<!-- If loading from the database, which database, proc_map, and credentials are used? -->
 	<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->

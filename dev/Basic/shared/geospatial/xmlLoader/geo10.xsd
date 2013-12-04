@@ -133,6 +133,21 @@
       <xs:element name="Connector" type="geo:connector_t" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
+  
+  <xs:complexType name="new_connector_t">
+    <xs:sequence>
+      <xs:element name="laneFrom" type="xs:unsignedLong" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="laneTo_Left" type="xs:unsignedLong" minOccurs="0" maxOccurs="1"/>      
+      <xs:element name="laneTo_Center" type="xs:unsignedLong" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="laneTo_Right" type="xs:unsignedLong" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+    <xs:complexType name="new_connectors_t">
+    <xs:sequence>
+      <xs:element name="new_connector" type="geo:new_connector_t" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
 
   <xs:complexType name="Multi_Connector_t">
     <xs:sequence>
@@ -317,6 +332,7 @@
           <xs:element name="firstPair" type="geo:temp_Segmetair_t" minOccurs="0" />
           <xs:element name="secondPair" type="geo:temp_Segmetair_t" minOccurs="0" />
           <xs:element name="Connectors" type="geo:connectors_t"/>
+          <xs:element name="new_Connectors" type="geo:new_connectors_t"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -685,7 +701,7 @@
 
   <xs:complexType name="crossings_map_t">
     <xs:sequence>
-      <xs:element name="LinkID" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="linkID" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
       <xs:element name="crossingID" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
       <xs:element name="ColorSequence" type="geo:ColorSequence_t" minOccurs="1" maxOccurs="1"/>
     </xs:sequence>

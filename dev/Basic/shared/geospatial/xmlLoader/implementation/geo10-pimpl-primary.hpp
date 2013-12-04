@@ -138,6 +138,43 @@ private:
 };
 
 
+class new_connector_t_pimpl: public virtual new_connector_t_pskel
+{
+	std::pair<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > model;
+  public:
+  virtual void
+  pre ();
+
+  virtual void
+  laneFrom (unsigned long long);
+
+  virtual void
+  laneTo_Left (unsigned long long);
+
+  virtual void
+  laneTo_Center (unsigned long long);
+
+  virtual void
+  laneTo_Right (unsigned long long);
+
+  virtual std::pair<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &
+  post_new_connector_t ();
+};
+
+class new_connectors_t_pimpl: public virtual new_connectors_t_pskel
+{
+	std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > model;
+  public:
+  virtual void
+  pre ();
+
+  virtual void
+  new_connector (std::pair<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &);
+
+  virtual std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &
+  post_new_connectors_t ();
+};
+
 class Multi_Connector_t_pimpl: public virtual Multi_Connector_t_pskel {
 public:
 	virtual void pre ();
@@ -226,6 +263,8 @@ public:
 	virtual void firstPair (std::pair<unsigned long,unsigned long>);
 	virtual void secondPair (std::pair<unsigned long,unsigned long>);
 	virtual void Connectors (std::set<std::pair<unsigned long,unsigned long> >);
+	virtual void new_Connectors (std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &);
+
 
 private:
 	//NOTE: This parameter name shadows Node::model, but this might be the right way to do things anyway.
@@ -235,6 +274,7 @@ private:
 
 	//Due to a load cycle, we have to save these as integers.
 	std::set<std::pair<unsigned long,unsigned long> > connectors;
+	std::map <unsigned long, boost::tuple<unsigned long,unsigned long,unsigned long> >  new_connectors;
 	std::pair<SegmentPair, SegmentPair> segmentPairs;
 
 	helper::Bookkeeping& book;
@@ -466,7 +506,7 @@ class crossings_map_t_pimpl: public virtual crossings_map_t_pskel
   pre ();
 
   virtual void
-  LinkID (unsigned int);
+  linkID (unsigned int);
 
   virtual void
   crossingID (unsigned int);

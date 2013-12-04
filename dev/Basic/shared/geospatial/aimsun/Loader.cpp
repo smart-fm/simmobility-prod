@@ -723,7 +723,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 			// check stops
 			if(it->tripfromLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP && it->triptoLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP) {
 				tripchains_.push_back(*it);
-				std::cout << it->tmp_fromLocationNodeID << it->tmp_toLocationNodeID << std::endl;
+				std::cout << "from stop: " << it->tmp_fromLocationNodeID << " to stop: " << it->tmp_toLocationNodeID << std::endl;
 			}
 			//check nodes
 			if(nodes_.count(it->tmp_fromLocationNodeID)==0) {

@@ -66,11 +66,11 @@ sim_mob::WaitBusActivityRoleMovementImpl::~WaitBusActivityRoleMovementImpl() {
 }
 
 void sim_mob::WaitBusActivityRoleMovementImpl::frame_init() {
-	// special case: fnode, tnode are all stop ids
+	// special case: fnode, tnode are all stop ids, for scenarios
 	if(getParent()->originNode.type_== WayPoint::BUS_STOP && getParent()->destNode.type_== WayPoint::BUS_STOP) {
 		busStopAgent = getParent()->originNode.busStop_->generatedBusStopAgent;
-		getParent()->xPos.set(busStopAgent->getBusStop().xPos);// set xPos to WaitBusActivityRole
-		getParent()->yPos.set(busStopAgent->getBusStop().yPos);// set yPos to WaitBusActivityRole
+		getParent()->xPos.force(busStopAgent->getBusStop().xPos);// set xPos to WaitBusActivityRole
+		getParent()->yPos.force(busStopAgent->getBusStop().yPos);// set yPos to WaitBusActivityRole
 		parentWaitBusActivityRole->TimeOfReachingBusStop = parentWaitBusActivityRole->getParams().now.ms();
 		buslineid = "7_2";// set Busline information(hardcoded now, later from Public Transit Route Choice to choose the busline)
 		return;

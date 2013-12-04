@@ -313,7 +313,7 @@
             <property key="mutex_enforcement_strategy" value="buffered"/> 
 
             <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
-            <property key="busline_control_type" value="no_control"/>
+            <property key="busline_control_type" value="headway_based"/>
 
             <!-- The percentage of passengers boarding and alighting at each bus stop (default 100, each.). -->
             <property key="passenger_percent_boarding" value="100"/>

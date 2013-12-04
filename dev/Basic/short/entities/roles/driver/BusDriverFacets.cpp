@@ -294,7 +294,6 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 
 
 	if (isBusArriveBusStop() && (waitAtStopMS >= 0)&& (waitAtStopMS < BUS_STOP_WAIT_TIME)) {
-
 //		if ((vehicle->getVelocity()/100) > 0)
 		parentBusDriver->vehicle->setAcceleration(-5000);
 		if (parentBusDriver->vehicle->getVelocity()/100 < 1)
@@ -383,6 +382,8 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 //				<< std::endl;
 		waitAtStopMS = -1;
 		resetBoardingAlightingVariables();// reset boarding alighting variables when leaving bus stop
+		BUS_STOP_WAIT_TIME = 2;// reset waiting time
+		BUS_STOP_HOLDING_TIME_SEC = 2;// reset holdingtime
 		parentBusDriver->vehicle->setAcceleration(busAccelerating(p) * 100);
 	}
 
@@ -929,8 +930,8 @@ void sim_mob::BusDriverMovement::resetBoardingAlightingVariables()
 	last_boarding_alighting_ms = 0;
 	boardingMS_offset = 0;
 	alightingMS_offset = 0;
-	BUS_STOP_WAIT_TIME = 2;// reset waiting time
-	BUS_STOP_HOLDING_TIME_SEC = 2;// reset holdingtime
+//	BUS_STOP_WAIT_TIME = 2;// reset waiting time
+//	BUS_STOP_HOLDING_TIME_SEC = 2;// reset holdingtime
 	BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC = 2;// reset dwelltime
 	virtualBoarding_Persons.clear();
 	BoardingNum_Pos.clear();

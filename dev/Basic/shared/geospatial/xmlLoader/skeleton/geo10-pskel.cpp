@@ -8925,7 +8925,7 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
         return true;
 
-      if (n == "linkFrom" && ns.empty ())
+      if (n == "LinkFrom" && ns.empty ())
       {
         this->::xml_schema::complex_content::context_.top ().parser_ = this->linkFrom_parser_;
 
@@ -8935,7 +8935,7 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "linkTo" && ns.empty ())
+      if (n == "LinkTo" && ns.empty ())
       {
         this->::xml_schema::complex_content::context_.top ().parser_ = this->linkTo_parser_;
 
@@ -8985,7 +8985,7 @@ namespace sim_mob
       if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
         return true;
 
-      if (n == "linkFrom" && ns.empty ())
+      if (n == "LinkFrom" && ns.empty ())
       {
         if (this->linkFrom_parser_)
           this->linkFrom (this->linkFrom_parser_->post_unsigned_int ());
@@ -8993,7 +8993,7 @@ namespace sim_mob
         return true;
       }
 
-      if (n == "linkTo" && ns.empty ())
+      if (n == "LinkTo" && ns.empty ())
       {
         if (this->linkTo_parser_)
           this->linkTo (this->linkTo_parser_->post_unsigned_int ());

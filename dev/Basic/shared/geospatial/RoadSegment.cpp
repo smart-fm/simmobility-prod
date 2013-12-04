@@ -181,10 +181,11 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 		//Add it, update
 		lanes.push_back(swLane);
 		width += swLane->width_;
+		vector<Point2D> res = makeLaneEdgeFromPolyline(lanes.back(), false);
+		laneEdgePolylines_cached.push_back(res);//crash -vahid
 	}
 
-	vector<Point2D> res = makeLaneEdgeFromPolyline(lanes.back(), false);
-	laneEdgePolylines_cached.push_back(res);//crash -vahid
+
 
 	//Add an extra sidewalk on the other side if it's a road segment on a one-way link.
 	sim_mob::Link* parentLink = getLink();
@@ -339,6 +340,10 @@ void sim_mob::RoadSegment::makeLanePolylineFromEdges(Lane* lane, const vector<Po
 //TODO: Restore const-correctness after cleaning up sidewalks.
 const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int laneID) /*const*/
 {
+	if(this->getSegmentID() == 100004201)
+	{
+		std::cout<<"find it"<<std::endl;
+	}
 	//TEMP: Due to the way we manually insert sidewalks, this is needed for now.
 	bool syncNeeded = false;
 	for (size_t i=0; i<lanes.size(); i++) {

@@ -234,17 +234,6 @@ void sim_mob::DriverMovement::frame_init() {
 	} else {
 		Warn() << "ERROR: Vehicle[short] could not be created for driver; no route!" <<std::endl ;
 	}
-
-	//If Region support is enabled, set the list of all Regions
-	if (parent->getRegionSupportStruct().isEnabled()) {
-		std::vector<RoadRunnerRegion> allRegions;
-		const RoadNetwork& net = ConfigManager::GetInstance().FullConfig().getNetwork();
-		for (std::map<int, RoadRunnerRegion>::const_iterator it=net.roadRunnerRegions.begin(); it!=net.roadRunnerRegions.end(); it++) {
-			allRegions.push_back(it->second);
-		}
-
-		parent->getRegionSupportStruct().setNewAllRegionsSet(allRegions);
-	}
 }
 
 
@@ -334,16 +323,30 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 
 void sim_mob::DriverMovement::frame_tick() {
 
-	//std::cout << "Driver Ticking " << p.now.frame() << std::endl;
 	// lost some params
 	DriverUpdateParams& p2 = parentDriver->getParams();
 
-	if(!(parentDriver->vehicle))
+	if(!(parentDriver->vehicle)) {
 		throw std::runtime_error("Something wrong, Vehicle is NULL");
+	}
+
 	//Are we done already?
 	if (parentDriver->vehicle->isDone()) {
 		getParent()->setToBeRemoved();
 		return;
+	}
+
+	//Specific for Region support.
+	if (parent->getRegionSupportStruct().isEnabled()) {
+		//Currently all_regions only needs to be sent once.
+		if (sentAllRegions.check()) {
+			std::vector<RoadRunnerRegion> allRegions;
+			const RoadNetwork& net = ConfigManager::GetInstance().FullConfig().getNetwork();
+			for (std::map<int, RoadRunnerRegion>::const_iterator it=net.roadRunnerRegions.begin(); it!=net.roadRunnerRegions.end(); it++) {
+				allRegions.push_back(it->second);
+			}
+			parent->getRegionSupportStruct().setNewAllRegionsSet(allRegions);
+		}
 	}
 
 	//Just a bit glitchy...

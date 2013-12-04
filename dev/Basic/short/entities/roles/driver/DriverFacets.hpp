@@ -20,6 +20,7 @@
 #include "geospatial/RoadItem.hpp"
 #include "entities/IncidentStatus.hpp"
 #include "geospatial/Incident.hpp"
+#include "util/OneTimeFlag.hpp"
 
 namespace sim_mob {
 
@@ -199,5 +200,8 @@ private:
 
 	//incident response plan
 	sim_mob::IncidentStatus incidentStatus;
+
+	//Have we sent the list of all regions at least once?
+	OneTimeFlag sentAllRegions;
 };
 }

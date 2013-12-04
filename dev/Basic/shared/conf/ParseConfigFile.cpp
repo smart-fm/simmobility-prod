@@ -577,7 +577,8 @@ void sim_mob::ParseConfigFile::ProcessSystemNode(DOMElement* node)
 	ProcessSystemSingleThreadedNode(GetSingleElementByName(node, "single_threaded"));
 	ProcessSystemMergeLogFilesNode(GetSingleElementByName(node, "merge_log_files"));
 	ProcessSystemNetworkSourceNode(GetSingleElementByName(node, "network_source"));
-	ProcessSystemNetworkXmlFileNode(GetSingleElementByName(node, "network_xml_file"));
+	ProcessSystemNetworkXmlInputFileNode(GetSingleElementByName(node, "network_xml_file_input"));
+	ProcessSystemNetworkXmlOutputFileNode(GetSingleElementByName(node, "network_xml_file_output"));
 	ProcessSystemDatabaseNode(GetSingleElementByName(node, "network_database"));
 	ProcessSystemXmlSchemaFilesNode(GetSingleElementByName(node, "xsd_schema_files", true));
 	ProcessSystemGenericPropsNode(GetSingleElementByName(node, "generic_props"));
@@ -917,9 +918,14 @@ void sim_mob::ParseConfigFile::ProcessSystemNetworkSourceNode(xercesc::DOMElemen
 }
 
 
-void sim_mob::ParseConfigFile::ProcessSystemNetworkXmlFileNode(xercesc::DOMElement* node)
+void sim_mob::ParseConfigFile::ProcessSystemNetworkXmlInputFileNode(xercesc::DOMElement* node)
 {
-	cfg.system.networkXmlFile = ParseNonemptyString(GetNamedAttributeValue(node, "value"), "private/SimMobilityInput.xml");
+	cfg.system.networkXmlInputFile = ParseNonemptyString(GetNamedAttributeValue(node, "value"), "private/SimMobilityInput.xml");
+}
+
+void sim_mob::ParseConfigFile::ProcessSystemNetworkXmlOutputFileNode(xercesc::DOMElement* node)
+{
+	cfg.system.networkXmlOutputFile = ParseNonemptyString(GetNamedAttributeValue(node, "value"), "");//or NetworkCopy.xml
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemDatabaseNode(xercesc::DOMElement* node)

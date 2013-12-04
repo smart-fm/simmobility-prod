@@ -111,8 +111,8 @@ private:
 	///	internal controlling container
 	std::set<boost::shared_ptr<sim_mob::ConnectionHandler> > clientDoneChecker;
 	///	some control members(//todo: no need to be static as there can be multiple brokers with different requirements)
-	static const unsigned int MIN_CLIENTS = 90; //minimum number of registered clients(not waiting list)
-	static const unsigned int MIN_AGENTS = 90; //minimum number of registered agents
+	static const unsigned int MIN_CLIENTS = 2; //minimum number of registered clients(not waiting list)
+	static const unsigned int MIN_AGENTS = 2; //minimum number of registered agents
 	//	list of all brokers
 	static std::map<std::string, sim_mob::Broker*> externalCommunicators;
 	///	used to help deciding whether Broker tick forward or block the simulation
@@ -189,7 +189,7 @@ private:
 	/**
 	 * 	handlers executed when an agent is going out of simulation(die)
 	 */
-	virtual void OnEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 	/**
 	 * to be called and identify the agent who has just updated
 	 */

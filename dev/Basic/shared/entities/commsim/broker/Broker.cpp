@@ -282,15 +282,15 @@ boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> sim_mob
 	return m_messageReceiveCallback;
 }
 
-void sim_mob::Broker::OnEvent(event::EventId eventId,
+void sim_mob::Broker::onEvent(event::EventId eventId,
 		sim_mob::event::Context ctxId, event::EventPublisher* sender,
 		const event::EventArgs& args) {
 	switch (eventId) {
 	case sim_mob::event::EVT_CORE_AGENT_DIED: {
 		const event::AgentLifeCycleEventArgs& args_ =
 				MSG_CAST(event::AgentLifeCycleEventArgs, args);
-				Print() << "Broker::UNregisterINGEntity[" << args_.GetAgent() << "][" << args_.GetAgentId() << "]" << std::endl;
 				unRegisterEntity(args_.GetAgent());
+				Print() << "unregistering entity[" << args_.GetAgentId() << "]" << std::endl;
 				break;
 			}
 			default:break;
@@ -789,11 +789,10 @@ bool sim_mob::Broker::wait() {
 	 *  wait for enough number of clients and agents to join
 	 */
 
-	int i = -1;
 	{
 		boost::unique_lock<boost::mutex> lock(mutex_client_request);
 		while (!brokerCanTickForward) {
-			Print() << ++i << " brokerCanTickForward->WAITING" << std::endl;
+			Print() << " brokerCanTickForward->WAITING" << std::endl;
 			COND_VAR_CLIENT_REQUEST.wait(lock);
 			Print() << "COND_VAR_CLIENT_REQUEST released" << std::endl;
 			processClientRegistrationRequests();

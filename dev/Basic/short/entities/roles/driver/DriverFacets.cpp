@@ -1405,7 +1405,7 @@ void sim_mob::DriverMovement::calculateIntersectionTrajectory(DPoint movingFrom,
 	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
 }
 
-void sim_mob::DriverMovement::initLoopSpecialString(vector<WayPoint>& path, const string& value)
+/*void sim_mob::DriverMovement::initLoopSpecialString(vector<WayPoint>& path, const string& value)
 {
 	//In special cases, we may be manually specifying a loop, e.g., "loop:A:5" in the special string.
 	// In this case, "value" will contain ":A:5"; the "loop" having been parsed.
@@ -1431,9 +1431,9 @@ void sim_mob::DriverMovement::initLoopSpecialString(vector<WayPoint>& path, cons
 	if (path.empty()) {
 		path.insert(path.end(), part.begin(), part.end());
 	}
-}
+}*/
 
-void sim_mob::DriverMovement::initTripChainSpecialString(const string& value)
+/*void sim_mob::DriverMovement::initTripChainSpecialString(const string& value)
 {
 	//Sanity check
 	if (value.length()<=1) {
@@ -1443,7 +1443,7 @@ void sim_mob::DriverMovement::initTripChainSpecialString(const string& value)
 	if (!getParent()) {
 		throw std::runtime_error("Parent is not of type Person");
 	}
-}
+}*/
 
 //link path should be retrieved from other class
 //for now, it serves as this purpose
@@ -1468,12 +1468,13 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		Person* parentP = dynamic_cast<Person*> (parent);
 		sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
 
-		if (!parentP || parentP->specialStr.empty()) {
+		//NOTE: I am fairly sure that this if-statement is wrong; we have ALREADY dereferenced parentP, so it's never null.
+		//      However, specialStr IS always empty, so this will always pass. Please review. ~Seth
+		//if (!parentP || parentP->specialStr.empty()) {
 			const StreetDirectory& stdir = StreetDirectory::instance();
 			//path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
 
 			if(subTrip->schedule==nullptr){
-//				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
 				// if use path set
 				if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 					path = PathSetManager::getInstance()->getPathByPerson(getParent());
@@ -1495,18 +1496,11 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 					vector<WayPoint> subPath = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(**first), stdir.DrivingVertex(**second));
 					path.insert( path.end(), subPath.begin(), subPath.end());
 				}
-
-				/*vector<WayPoint>::iterator it;
-				for(it=path.begin(); it!=path.end(); it++){
-					if( (*it).type_ == WayPoint::ROAD_SEGMENT ) {
-						std::cout << "road segment start id :" << (*it).roadSegment_->getStart()->getID() << ". end id : " << (*it).roadSegment_->getEnd()->getID() << std::endl;
-					}
-				}*/
 			}
 
-		} else {
+		//} else {
 			//Retrieve the special string.
-			size_t cInd = parentP->specialStr.find(':');
+			/*size_t cInd = parentP->specialStr.find(':');
 			string specialType = parentP->specialStr.substr(0, cInd);
 			string specialValue = parentP->specialStr.substr(cInd, std::string::npos);
 			if (specialType=="loop") {
@@ -1517,9 +1511,9 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 				initTripChainSpecialString(specialValue);
 			} else {
 				throw std::runtime_error("Unknown special string type.");
-			}
+			}*/
 
-		}
+		//}
 
 		//For now, empty paths aren't supported.
 		if (path.empty()) {

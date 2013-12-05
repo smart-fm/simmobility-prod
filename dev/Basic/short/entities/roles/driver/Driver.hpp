@@ -153,16 +153,16 @@ public:
 
 public:
 	//TODO: This may be risky, as it exposes non-buffered properties to other vehicles.
-	const Vehicle* getVehicle() const {return vehicle;}
+	const Vehicle* getVehicle() const { return vehicle; }
 
 	//This is probably ok.
 	const double getVehicleLength() const { return vehicle->length; }
 
 private:
-	//Serialization
 	friend class DriverBehavior;
 	friend class DriverMovement;
 
+	//Serialization
 #ifndef SIMMOB_DISABLE_MPI
 public:
 	virtual void pack(PackageUtils& packageUtil);

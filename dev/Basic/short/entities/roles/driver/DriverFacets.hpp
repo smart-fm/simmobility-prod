@@ -142,8 +142,10 @@ protected:
 	void checkIncidentStatus(DriverUpdateParams& p, timeslice now);
 
 	//Helper: for special strings
-	void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
-	void initTripChainSpecialString(const std::string& value);
+	//NOTE: I am disabling special strings. ~Seth
+	//void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
+	//void initTripChainSpecialString(const std::string& value);
+
 	NearestVehicle & nearestVehicle(DriverUpdateParams& p);
 	void perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params);
 

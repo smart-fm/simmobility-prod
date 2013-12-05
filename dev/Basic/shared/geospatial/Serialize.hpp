@@ -227,6 +227,7 @@ void write_xml(XmlWriter& write, const sim_mob::Lane& ln)
 	write.prop("can_freely_park_here", ln.can_freely_park_here());
 	write.prop("can_stop_here", ln.can_stop_here());
 	write.prop("is_u_turn_allowed", ln.is_u_turn_allowed());
+	write.prop("PolyLine", ln.polyline_);
 }
 
 

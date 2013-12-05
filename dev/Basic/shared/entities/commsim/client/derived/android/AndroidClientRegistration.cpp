@@ -85,6 +85,7 @@ bool sim_mob::AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob
 	clientEntry->requiredServices = request.requiredServices; //will come handy
 	sim_mob::Services::SIM_MOB_SERVICE srv;
 
+	bool regionSupportRequired = false;
 	BOOST_FOREACH(srv, request.requiredServices) {
 		switch (srv) {
 			case sim_mob::Services::SIMMOB_SRV_TIME: {
@@ -115,7 +116,7 @@ bool sim_mob::AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob
 				p->subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(), &ClientHandler::OnEvent);
 
 				//We also "enable" Region tracking for this Agent.
-				freeAgent->second.agent->enableRegionSupport();
+				regionSupportRequired = true;
 				break;
 			}
 			default: {
@@ -123,6 +124,11 @@ bool sim_mob::AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob
 				break;
 			}
 		}
+	}
+
+	//Enable Region support if this client requested it.
+	if (regionSupportRequired) {
+		broker.pendClientToEnableRegions(clientEntry);
 	}
 
 	//also, add the client entry to broker(for message handler purposes)

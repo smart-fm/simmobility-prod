@@ -299,6 +299,12 @@ void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType cl
 	clientList[clientType][clientID] = clientHandler;
 }
 
+void sim_mob::Broker::pendClientToEnableRegions(boost::shared_ptr<sim_mob::ClientHandler> &clientHandler)
+{
+	boost::unique_lock<boost::mutex> lock(mutex_clientList);
+	newClientsWaitingOnRegionEnabling.insert(clientHandler);
+}
+
 void  sim_mob::Broker::insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest > p)//pair<client type, request>
 {
 	boost::unique_lock<boost::mutex> lock(mutex_client_request);
@@ -831,45 +837,45 @@ bool sim_mob::Broker::isClientDone(boost::shared_ptr<sim_mob::ClientHandler> &cl
 
 bool sim_mob::Broker::allClientsAreDone()
 {
-		ClientList::Pair clientByType;
-		ClientList::ValuePair clientByID;
+	ClientList::Pair clientByType;
+	ClientList::ValuePair clientByID;
 
-		boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
-		msg_header msg_header_;
-		boost::unique_lock<boost::mutex> lock(mutex_clientList);
-		BOOST_FOREACH(clientByType, clientList)
+	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
+	msg_header msg_header_;
+	boost::unique_lock<boost::mutex> lock(mutex_clientList);
+	BOOST_FOREACH(clientByType, clientList)
+	{
+		BOOST_FOREACH(clientByID, clientByType.second)
 		{
-			BOOST_FOREACH(clientByID, clientByType.second)
+			clnHandler = clientByID.second;
+			if(!clnHandler)
 			{
-				clnHandler = clientByID.second;
-				if(!clnHandler)
-				{
-					continue;
-				}
-				if(!(clnHandler->cnnHandler))
-				{
-					continue;
-				}
-				if(!(clnHandler->cnnHandler->is_open()))
-				{
-					continue;
-				}
-				if(!(clnHandler->isValid()))
-				{
-					continue;
-				}
-				if(!(clnHandler->cnnHandler->isValid()))
-				{
-					continue;
-				}
-				//but
-				if(!isClientDone(clnHandler))
-				{
-					return false;
-				}
+				continue;
+			}
+			if(!(clnHandler->cnnHandler))
+			{
+				continue;
+			}
+			if(!(clnHandler->cnnHandler->is_open()))
+			{
+				continue;
+			}
+			if(!(clnHandler->isValid()))
+			{
+				continue;
+			}
+			if(!(clnHandler->cnnHandler->isValid()))
+			{
+				continue;
+			}
+			//but
+			if(!isClientDone(clnHandler))
+			{
+				return false;
 			}
 		}
-		return true;
+	}
+	return true;
 }
 
 Entity::UpdateStatus sim_mob::Broker::update(timeslice now)
@@ -912,29 +918,16 @@ Entity::UpdateStatus sim_mob::Broker::update(timeslice now)
 	//the clients will now send whatever they want to send(into the incoming messagequeue)
 	//followed by a Done! message.That is when Broker can go forwardClientList::pair clientByType;
 	waitForClientsDone();
-
-//	//Step 7.5: output
-//	if (ConfigManager::GetInstance().FullConfig().ProfileWorkerUpdates()) {
-//		//TODO: This is a bit of a hack; won't work with both ns3/Android enabled. ~Seth.
-//		size_t sz = 0;
-//		for (ClientList::type::iterator it=clientList.begin(); it!=clientList.end(); it++) {
-//			sz += it->second.size();
-//		}
-//		std::stringstream msg;
-//		msg <<sz;
-//		profile->logAgentCustomMessage(*this, now, "custom-num-connected-clients", msg.str());
-//		//TODO: End hack.
-//
-//		//TODO: And another hack!
-//		const uint32_t TickAmt = 100; //"Every X ticks"
-//		const uint32_t TickStep = 1; //HACK: For what the Worker sees (for all Agents).
-//		if ((now.frame()/TickStep)%TickAmt==0) {
-//			profile->flushLogFile();
-//		}
-//	}
 	Print() << "===================== waitForClientsDone Done =======================================" << std::endl;
 
-	//step-8: final steps that should be taken before leaving the tick
+	//step-8:
+	//Now that all clients are done, set any properties on new clients.
+	if (!newClientsWaitingOnRegionEnabling.empty()) {
+		setNewClientProps();
+		Print() << "===================== setNewClientProps Done =======================================" << std::endl;
+	}
+
+	//step-9: final steps that should be taken before leaving the tick
 	//prepare for next tick.
 	cleanup();
 	return UpdateStatus(UpdateStatus::RS_CONTINUE);
@@ -966,6 +959,27 @@ void sim_mob::Broker::waitForClientsDone()
 	while(!allClientsAreDone()) {
 		COND_VAR_CLIENT_DONE.wait(lock);
 	}
+}
+
+void sim_mob::Broker::setNewClientProps()
+{
+	//NOTE: This *shoudl not* require locking, sicne all clients are already done. Please review. ~Seth
+
+	//Now, loop through each client and call its Agent's enableRegionSupport() function if applicable.
+	for (std::set< boost::weak_ptr<sim_mob::ClientHandler> >::iterator it=newClientsWaitingOnRegionEnabling.begin(); it!=newClientsWaitingOnRegionEnabling.end(); it++) {
+		//Attempt to resolve the weak pointer.
+		boost::shared_ptr<sim_mob::ClientHandler> cHand = it->lock();
+		if (cHand) {
+			//NOTE: The Agent is not doing anything, so it is safe to modify it. I don't really like the const_cast,
+			//      but I can't think of a better way of doing it. Please review. ~Seth
+			const_cast<Agent*>(cHand->agent)->enableRegionSupport();
+		} else {
+			Warn() <<"Broker::setNewClientProps() -- Client was destroyed before its weak_ptr() could be resolved.\n";
+		}
+	}
+
+	//These clients have been processed.
+	newClientsWaitingOnRegionEnabling.clear();
 }
 
 void sim_mob::Broker::cleanup()

@@ -205,5 +205,8 @@ private:
 
 	//Have we sent the list of all regions at least once?
 	OneTimeFlag sentAllRegions;
+
+	//The most recently-set path, which will be sent to RoadRunner.
+	std::vector<const sim_mob::RoadSegment*> rrPathToSend;
 };
 }

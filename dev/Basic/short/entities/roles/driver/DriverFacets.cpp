@@ -340,12 +340,56 @@ void sim_mob::DriverMovement::frame_tick() {
 	if (parent->getRegionSupportStruct().isEnabled()) {
 		//Currently all_regions only needs to be sent once.
 		if (sentAllRegions.check()) {
+			//Send the Regions.
 			std::vector<RoadRunnerRegion> allRegions;
 			const RoadNetwork& net = ConfigManager::GetInstance().FullConfig().getNetwork();
 			for (std::map<int, RoadRunnerRegion>::const_iterator it=net.roadRunnerRegions.begin(); it!=net.roadRunnerRegions.end(); it++) {
 				allRegions.push_back(it->second);
 			}
 			parent->getRegionSupportStruct().setNewAllRegionsSet(allRegions);
+
+			//If a path has already been set, we will need to transmit it.
+			if (parentDriver->vehicle) {
+				std::vector<const sim_mob::RoadSegment*> path = parentDriver->vehicle->getPath();
+				if (!path.empty()) {
+					//We may be partly along this route, but it is unlikely. Still, just to be safe...
+					const sim_mob::RoadSegment* currseg = parentDriver->vehicle->getCurrSegment();
+
+					//Now save it, taking into account the "current segment"
+					rrPathToSend.clear();
+					for (std::vector<const sim_mob::RoadSegment*>::const_iterator it=path.begin(); it!=path.end(); it++) {
+						//Have we reached our starting segment yet?
+						if (currseg) {
+							if (currseg == *it) {
+								//Signal this by setting currseg to null.
+								currseg = nullptr;
+							} else {
+								continue;
+							}
+						}
+
+						//Add it; we've cleared our current segment check one way or another.
+						rrPathToSend.push_back(*it);
+					}
+				}
+			}
+		}
+
+		//We always need to send a path if one is available.
+		if (!rrPathToSend.empty()) {
+			std::vector<RoadRunnerRegion> regPath;
+			for (std::vector<const RoadSegment*>::const_iterator it=rrPathToSend.begin(); it!=rrPathToSend.end(); it++) {
+				//Determine if this road segment is within a Region.
+				std::pair<RoadRunnerRegion, bool> rReg = StreetDirectory::instance().getRoadRunnerRegion(*it);
+				if (rReg.second) {
+					//Don't add if it's the last item in the list.
+					if (regPath.empty() || (regPath.back().id != rReg.first.id)) {
+						regPath.push_back(rReg.first);
+					}
+				}
+			}
+
+			parent->getRegionSupportStruct().setNewRegionPath(regPath);
 		}
 	}
 
@@ -1518,6 +1562,16 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		//For now, empty paths aren't supported.
 		if (path.empty()) {
 			throw std::runtime_error("Can't initializePath(); path is empty.");
+		}
+
+		//RoadRunner may need to know of our path, but it can't be send inevitably.
+		if (getParent()->getRegionSupportStruct().isEnabled()) {
+			rrPathToSend.clear();
+			for (std::vector<WayPoint>::const_iterator it=path.begin(); it!=path.end(); it++) {
+				if (it->type_ == WayPoint::ROAD_SEGMENT) {
+					rrPathToSend.push_back(it->roadSegment_);
+				}
+			}
 		}
 
 		//TODO: Start in lane 0?

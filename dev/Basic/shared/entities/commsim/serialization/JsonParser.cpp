@@ -186,16 +186,18 @@ std::string sim_mob::JsonParser::makeTimeDataString(unsigned int tick, unsigned 
 
 std::string sim_mob::JsonParser::makeLocationMessageString(int x, int y)
 {
-	Json::Value loc = makeLocationMessage(x,y);
+	Json::Value loc = makeLocationMessage(x,y, LatLngLocation());
 	Json::FastWriter writer;
 	return writer.write(loc);
 }
 
-Json::Value sim_mob::JsonParser::makeLocationMessage(int x, int y)
+Json::Value sim_mob::JsonParser::makeLocationMessage(int x, int y, LatLngLocation projected)
 {
 	Json::Value loc = createMessageHeader(msg_header("0", "SIMMOBILITY", "LOCATION_DATA", "SYS"));
 	loc["x"] = x;
 	loc["y"] = y;
+	loc["lat"] = projected.latitude;
+	loc["lng"] = projected.longitude;
 
 	return loc;
 }

@@ -10,9 +10,11 @@
  */
 #pragma once
 
+#include <string>
 #include <vector>
 #include <sstream>
 #include <set>
+
 #include <json/json.h>
 
 #include "entities/commsim/service/Services.hpp"

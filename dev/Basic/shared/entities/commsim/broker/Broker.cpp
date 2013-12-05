@@ -605,6 +605,7 @@ void sim_mob::Broker::sendReadyToReceive()
 
 void sim_mob::Broker::processOutgoingData(timeslice now)
 {
+	Print() <<"SENDING: " <<sendBuffer.size() <<" messages\n";
 //	now send what you have to send:
 	int debug_sendBuffer_cnt = sendBuffer.size();
 	int debug_cnt = 0;
@@ -616,6 +617,8 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 		sim_mob::BufferContainer<sim_mob::comm::MsgData> & buffer = it->second;
 		boost::shared_ptr<sim_mob::ConnectionHandler> cnn = it->first;
 
+		Print() <<"BUFFER CONTAINS: " <<buffer.size() <<" messages\n";
+
 		//build a jsoncpp structure comprising of a header and data array(containing messages)
 		Json::Value jpacket;
 		Json::Value jheader;
@@ -625,6 +628,8 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 		jpacketData.clear();
 		while(buffer.pop(jmsg))
 		{
+			Print() <<"  MESSAGE: " <<jmsg.toStyledString() <<"\n";
+
 			jpacketData.append(jmsg);
 		}
 		int nof_messages;

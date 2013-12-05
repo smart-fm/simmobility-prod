@@ -4,7 +4,10 @@
 
 #include "JsonParser.hpp"
 
+#include <boost/lexical_cast.hpp>
+
 using namespace sim_mob;
+using std::string;
 
 
 sim_mob::Services::SIM_MOB_SERVICE sim_mob::JsonParser::getServiceType(std::string type)
@@ -205,7 +208,18 @@ Json::Value sim_mob::JsonParser::makeRegionAndPathMessage(const std::vector<sim_
 	{
 	Json::Value allRegionsObj;
 	for (std::vector<sim_mob::RoadRunnerRegion>::const_iterator it=all_regions.begin(); it!=all_regions.end(); it++) {
-		allRegionsObj.append(it->id);
+		//When we send all regions, we actually have to send the entire object, since RoadRunner needs the Lat/Lng coords in order
+		// to do its own Region tracking.
+		Json::Value regionObj;
+		regionObj["id"] = boost::lexical_cast<string>(it->id);
+		regionObj["vertices"] = Json::Value();
+		for (std::vector<sim_mob::LatLngLocation>::const_iterator latlngIt=it->points.begin(); latlngIt!=it->points.end(); latlngIt++) {
+			Json::Value latLngObj;
+			latLngObj["latitude"] = latlngIt->latitude;
+			latLngObj["longitude"] = latlngIt->longitude;
+			regionObj["vertices"].append(latLngObj);
+		}
+		allRegionsObj.append(regionObj);
 	}
 	res["all_regions"] = allRegionsObj;
 	}
@@ -214,7 +228,7 @@ Json::Value sim_mob::JsonParser::makeRegionAndPathMessage(const std::vector<sim_
 	{
 	Json::Value pathRegionsObj;
 	for (std::vector<sim_mob::RoadRunnerRegion>::const_iterator it=region_path.begin(); it!=region_path.end(); it++) {
-		pathRegionsObj.append(it->id);
+		pathRegionsObj.append(boost::lexical_cast<string>(it->id));
 	}
 	res["region_path"] = pathRegionsObj;
 	}

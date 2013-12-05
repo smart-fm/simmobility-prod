@@ -146,7 +146,11 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 	bool edgesExist = !laneEdgePolylines_cached.empty();
 	for (size_t i=0; i<lanes.size(); i++) {
 		if (edgesExist) {
-			makeLanePolylineFromEdges(lanes[i], laneEdgePolylines_cached[i], laneEdgePolylines_cached[i+1]);
+			//check lane polyline already exist
+			if(lanes[i]->polyline_.size() == 0)
+			{
+				makeLanePolylineFromEdges(lanes[i], laneEdgePolylines_cached[i], laneEdgePolylines_cached[i+1]);
+			}
 		} else {
 			lanes[i]->makePolylineFromParentSegment();
 		}

@@ -188,10 +188,10 @@
         <!-- (but will be rounded down.) -->
         <simulation>
             <base_granularity   value="100"   units="ms" />
-            <total_runtime      value="20"      units="minutes" />
+            <total_runtime      value="40"      units="minutes" />
             <total_warmup       value="0"     units="seconds" />
             
-            <start_time         value="05:36:00"/>
+            <start_time         value="08:00:00"/>
             
             <!-- Implementation to use for the Aura Manager. -->
             <!-- Values include: simtree, rdu, rstar (default) -->
@@ -313,7 +313,7 @@
             <property key="mutex_enforcement_strategy" value="buffered"/> 
 
             <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
-            <property key="busline_control_type" value="headway_based"/>
+            <property key="busline_control_type" value="no_control"/>
 
             <!-- The percentage of passengers boarding and alighting at each bus stop (default 100, each.). -->
             <property key="passenger_percent_boarding" value="100"/>

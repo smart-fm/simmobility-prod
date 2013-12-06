@@ -370,6 +370,14 @@ void sim_mob::DriverMovement::frame_tick() {
 
 						//Add it; we've cleared our current segment check one way or another.
 						rrPathToSend.push_back(*it);
+
+
+						//TEMP:
+						/*const RoadNetwork& rn = ConfigManager::GetInstance().FullConfig().getNetwork();
+						LatLngLocation start = rn.getCoordTransform(true)->transform(DPoint((*it)->getStart()->location.getX(), (*it)->getStart()->location.getY()));
+						LatLngLocation end = rn.getCoordTransform(true)->transform(DPoint((*it)->getEnd()->location.getX(), (*it)->getEnd()->location.getY()));
+						Print() <<"Adding: " <<start.latitude <<"," <<start.longitude <<"\n";
+						Print() <<"    to: " <<end.latitude <<"," <<end.longitude <<"\n";*/
 					}
 				}
 			}
@@ -390,6 +398,7 @@ void sim_mob::DriverMovement::frame_tick() {
 			}
 
 			parent->getRegionSupportStruct().setNewRegionPath(regPath);
+			rrPathToSend.clear();
 		}
 	}
 

@@ -58,6 +58,10 @@ public:
 	const std::string& getBusStopAgentNo() const { return busstopAgentno_; }// get BusStopAgentNum
 	std::vector<sim_mob::WaitBusActivityRole*>& getBoarding_WaitBusActivities() { return boarding_WaitBusActivities; }// get the boarding queue of persons for all Buslines at this BusStopAgent
 	std::vector<sim_mob::Person*>& getAlighted_Persons() { return alighted_Persons; }
+	void setBuslineIdCurrReachedMS(const std::string& buslineId, uint32_t currReachedMS) {
+		buslineId_CurrReachedMS[buslineId] = currReachedMS;
+	}
+	void setBuslineIdHeadwayGap(const std::string& buslineId, uint32_t currReachedMS);
 	void unregisterAlightedPerons();
 
 	virtual ~BusStopAgent(){}
@@ -77,6 +81,9 @@ private:
 	std::string busstopAgentno_; //currently is equal to busstopno_
 	std::vector<sim_mob::WaitBusActivityRole*> boarding_WaitBusActivities;// one boarding queue of persons for all Buslines(temporary, each BusDriver will construct a new queue based on this)
 	std::vector<sim_mob::Person*> alighted_Persons;// one alighted queue of persons.(possibly depart the persons continuing waiting and pedestrians moving to other places
+	std::map<std::string, std::vector<uint32_t> > buslineId_HeadwayGapMSs;// for each busline, list all the time headway gaps visited by each bus for this bus stop agent
+	std::map<std::string, uint32_t> buslineId_CurrReachedMS;// for each busline bus, stored the curr visited ms for this bus stop agent
+	std::map<std::string, uint32_t> buslineId_PrevReachedMS;// for each busline bus, stored the prev visited ms for this bus stop agent
 
 
 #ifndef SIMMOB_DISABLE_MPI

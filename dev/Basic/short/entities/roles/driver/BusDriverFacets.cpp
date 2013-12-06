@@ -326,6 +326,13 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 						const Busline* busline = bustrip->getBusline();
 						parentBusDriver->lastVisited_Busline.set(busline->getBusLineID());
 						parentBusDriver->lastVisited_BusTrip_SequenceNo.set(bustrip->getBusTripRun_SequenceNum());
+//						// any bus visited this bus stop agent, stored the curr_ms with its busline id
+//						BusStopAgent* busstopAg = parentBusDriver->lastVisited_BusStop.get()->generatedBusStopAgent;
+//						busstopAg->setBuslineIdCurrReachedMS(busline->getBusLineID(), parentBusDriver->getParams().now.ms());
+//						// if any bus trip run num greater than 1, start to record the headway gaps for each busline buses
+//						if(bustrip->getBusTripRun_SequenceNum() > 89) {
+//							busstopAg->setBuslineIdHeadwayGap(busline->getBusLineID(), parentBusDriver->getParams().now.ms());
+//						}
 						if (busline) {
 							if(busline->getControl_TimePointNum0() == parentBusDriver->busstop_sequence_no.get() || busline->getControl_TimePointNum1() == parentBusDriver->busstop_sequence_no.get()) { // only use holding control at selected time points
 								parentBusDriver->existed_Request_Mode.set( Role::REQUEST_DECISION_TIME );

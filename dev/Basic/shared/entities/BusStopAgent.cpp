@@ -10,6 +10,8 @@
 #include "workers/WorkGroup.hpp"
 #include "entities/roles/activityRole/WaitBusActivityRole.hpp"
 #include "entities/roles/activityRole/WaitBusActivityRoleFacets.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 using std::vector;
 using namespace sim_mob;
@@ -98,6 +100,26 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 			<<",{" <<"\"BusStopAgent no\":\""<<busstopAgentno_
 			<<"\"})"<<std::endl);
 	}
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	uint32_t currMS = (config.simStartTime() + DailyTime(now.ms())).offsetMS_From(DailyTime("00:00:00"));// transfered to ms based on midnight
+	if(currMS % (5000) == 0) {
+			std::map<std::string, std::vector<uint32_t> >::const_iterator iter;
+			std::stringstream headwayGapMSOut;
+			for (iter = buslineId_HeadwayGapMSs.begin(); iter != buslineId_HeadwayGapMSs.end(); ++iter) {
+				headwayGapMSOut << "(\"BusStopAgent\""
+						<< ": " << getId();
+						for(int i = 0; i < iter->second.size(); i++) {
+							headwayGapMSOut << " (\"buslineID\""
+											<< ": " << (iter->first)
+											<< " (\"headwayGap\""
+											<< ": " << (iter->second)[i];
+							headwayGapMSOut << "\"})" << std::endl;
+						}
+			}
+			headwayGapMSOut << std::endl;
+			HeadwayAtBusStopInfoPrint() << headwayGapMSOut.str();
+	}
+
 }
 
 Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
@@ -142,4 +164,10 @@ void sim_mob::BusStopAgent::unregisterAlightedPerons()
 			}
 		}
 	}
+}
+
+void sim_mob::BusStopAgent::setBuslineIdHeadwayGap(const std::string& buslineId, uint32_t currReachedMS) {
+	const uint32_t BuslineIdCurrReachedMS = buslineId_CurrReachedMS[buslineId];
+	const uint32_t BuslineIdGapMS = currReachedMS - BuslineIdCurrReachedMS;
+	buslineId_HeadwayGapMSs[buslineId].push_back(BuslineIdGapMS);
 }

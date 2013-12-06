@@ -155,6 +155,7 @@ private:
 	std::set<const sim_mob::Agent*> duplicateEntityDoneChecker ;
 	///	internal controlling container
 	std::set<boost::shared_ptr<sim_mob::ConnectionHandler> > clientDoneChecker;
+
 	///	some control members(//todo: no need to be static as there can be multiple brokers with different requirements)
 	static const unsigned int MIN_CLIENTS = 1; //minimum number of registered clients(not waiting list)
 	static const unsigned int MIN_AGENTS = 1; //minimum number of registered agents
@@ -245,7 +246,7 @@ private:
 	/**
 	 * 	handlers executed when an agent is going out of simulation(die)
 	 */
-	virtual void OnEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 	/**
 	 * to be called and identify the agent who has just updated
 	 */
@@ -352,6 +353,7 @@ public:
 	 * 	request to insert into broker's send buffer
 	 */
 	bool insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler>, const Json::Value&);
+//	void preProcessMessage(boost::shared_ptr<ConnectionHandler> &cnnHandler,std::vector<sim_mob::comm::MsgPtr>  & messages, int firstMessageIndex, int lastMessageIndex, bool &clientMessageDone);
 
 	/**
 	 * 	callback function executed upon message arrival

@@ -75,7 +75,10 @@ public:
 		if (it!=laneLookup.end()) {
 			return it->second;
 		}
-		throw std::runtime_error("No Lane exists in bookkeeper with the requested id.");
+		std::ostringstream out("");
+		out << "warning:No Lane exists in bookkeeper with the requested id[" << id << "]" << std::endl;
+		throw std::runtime_error(out.str());
+		return 0;
 	}
 
 	void addSegment(sim_mob::RoadSegment* segment) {
@@ -129,6 +132,7 @@ public:
 	//TODO: These are temporary!
 	typedef std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > > MNConnect;
 	typedef std::set<std::pair<unsigned long,unsigned long> > UNConnect;
+	typedef std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > UNNConnect;
 	typedef std::pair<unsigned long,unsigned long> SegmentPair; //TODO: This mirrors UniNode_t's definition.
 	typedef std::pair<SegmentPair, SegmentPair> SegPair;
 	void addMultiNodeLaneConnectorCache(sim_mob::MultiNode* id, const MNConnect& item) {
@@ -150,12 +154,26 @@ public:
 		}
 		uniNodeLaneConnectorsCache[id] = item;
 	}
+	void addUniNodeNewLaneConnectorCache(sim_mob::UniNode* id, const UNNConnect& item) {
+		if (uniNodeNewLaneConnectorsCache.count(id)>0) {
+			throw std::runtime_error("UniNodeLaneConnector already registered with bookkeeper.");
+		}
+		uniNodeNewLaneConnectorsCache[id] = item;
+	}
 	UNConnect getUniNodeLaneConnectorCache(sim_mob::UniNode* id) const {
 		std::map<sim_mob::UniNode*, UNConnect>::const_iterator it = uniNodeLaneConnectorsCache.find(id);
 		if (it!=uniNodeLaneConnectorsCache.end()) {
 			return it->second;
 		}
 		throw std::runtime_error("No UniNodeLaneConnector exists in bookkeeper with the requested id.");
+	}
+
+	UNNConnect getUniNodeNewLaneConnectorCache(sim_mob::UniNode* id) const {
+		std::map<sim_mob::UniNode*, UNNConnect>::const_iterator it = uniNodeNewLaneConnectorsCache.find(id);
+		if (it!=uniNodeNewLaneConnectorsCache.end()) {
+			return it->second;
+		}
+		throw std::runtime_error("No UniNodeNewLaneConnector exists in bookkeeper with the requested id.");
 	}
 	void addUniNodeSegmentPairCache(sim_mob::UniNode* id, SegPair item) {
 		if (uniNodeSegmentPairCache.count(id)>0) {
@@ -185,6 +203,7 @@ private:
 	//Can remove if Connectors are specified after Segments and Lanes.
 	std::map<sim_mob::MultiNode*, MNConnect> multiNodeLaneConnectorsCache;
 	std::map<sim_mob::UniNode*, UNConnect> uniNodeLaneConnectorsCache;
+	std::map<sim_mob::UniNode*, UNNConnect> uniNodeNewLaneConnectorsCache;
 	std::map<sim_mob::UniNode*, SegPair> uniNodeSegmentPairCache;
 };
 

@@ -817,7 +817,7 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 		const RoadSegment* curSegment = parentDriver->vehicle->getCurrSegment();
 		const Lane* lane = curSegment->getLane(p.nextLaneIndex);
 		int laneNum = curSegment->getLanes().size()-1;
-		if( !lane->is_vehicle_lane() || p.nextLaneIndex>laneNum ) {
+		if(lane &&(!lane->is_vehicle_lane() || p.nextLaneIndex>laneNum )) {
 			parentDriver->vehicle->setTurningDirection(LCS_SAME);
 			parentDriver->vehicle->setLatVelocity(0);
 			p.nextLaneIndex = p.currLaneIndex;
@@ -1936,6 +1936,10 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 
 			if (uNode ) {
 				nextLane = uNode->getForwardDrivingLane(*params.currLane);
+			}
+
+			if(nextLane==nullptr){
+				std::cout<<"error getForwardDrivingLane no out lane"<<std::endl;
 			}
 
 //			//

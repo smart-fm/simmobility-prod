@@ -53,8 +53,8 @@ bool sim_mob::AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob
 	AgentsList::type::iterator freeAgent = registeredAgents.begin(), it_end = registeredAgents.end();
 	for (; freeAgent != it_end; freeAgent++) {
 		if (usedAgents.find(freeAgent->second.agent) == usedAgents.end()) {
-			Print() << "Agent[" << freeAgent->second.agent->getId() << "]["<< freeAgent->second.agent << "] already used" << std::endl;
-					found_a_free_agent = true;
+			Print() << "Agent[" << freeAgent->second.agent->getId() << "]["<< freeAgent->second.agent << "] is free to associate with" << std::endl;
+			found_a_free_agent = true;
 			//found the first free agent, no need to continue the loop
 			break;
 		}

@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <map>
+#include <boost/tuple/tuple.hpp>
 
 #include "geospatial/Node.hpp"
 #include "util/LangHelpers.hpp"
@@ -83,7 +84,7 @@ public:
 	const sim_mob::Lane* getOutgoingLane(const sim_mob::Lane& from) const;
 	std::vector<sim_mob::Lane*> getOutgoingLanes(Lane& from);
 	const std::map<const sim_mob::Lane*, sim_mob::Lane* > & getConnectors() const {return connectors;}
-
+	const std::map<const sim_mob::Lane*, UniLaneConnector > & getNewConnectors() const {return newConnectors;}
 	///Helper method: Build the connectors vector dynamically by aligning a lane in the "from" Road Segment with one
 	/// in the "to" Road Segment.
 	///NOTE: The "from/to" laneID pairs will definitely be cleaned up later; for now I'm just trying
@@ -94,6 +95,9 @@ public:
 
 	//TODO: Temp:
 	void setConnectorAt(const sim_mob::Lane* key, sim_mob::Lane* value) { this->connectors[key] = value; }
+	void setNewConnectorAt(const sim_mob::Lane* key, boost::tuple<sim_mob::Lane*,sim_mob::Lane*,sim_mob::Lane*> values) {
+		this->newConnectors[key] = UniLaneConnector(values.get<0>(),values.get<1>(),values.get<2>());
+		}
 
 
 protected:
@@ -105,7 +109,7 @@ protected:
 	std::map<const sim_mob::Lane*, sim_mob::Lane* > connectors;
 
 	//New set of lane connectors.
-	std::map<const Lane*, UniLaneConnector> new_connectors;
+	std::map<const Lane*, UniLaneConnector> newConnectors;
 
 	///Bookkeeping: which RoadSegments meet at this Node?
 	//  NOTE: If the RoadSegments in secondPair are null; then this is a one-way UniNode.

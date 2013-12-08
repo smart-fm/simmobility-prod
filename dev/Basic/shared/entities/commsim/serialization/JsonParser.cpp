@@ -191,7 +191,7 @@ std::string sim_mob::JsonParser::makeLocationMessageString(int x, int y)
 	return writer.write(loc);
 }
 
-Json::Value sim_mob::JsonParser::makeLocationMessage(int x, int y, LatLngLocation projected)
+Json::Value sim_mob::JsonParser::makeLocationMessage(int x, int y, const LatLngLocation& projected)
 {
 	Json::Value loc = createMessageHeader(msg_header("0", "SIMMOBILITY", "LOCATION_DATA", "SYS"));
 	loc["x"] = x;

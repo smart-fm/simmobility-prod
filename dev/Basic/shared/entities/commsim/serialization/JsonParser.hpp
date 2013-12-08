@@ -57,7 +57,7 @@ public:
 	///Either of the input points (x,y, projected.lat, projected.lng) can be 0, but this does not
 	/// necessarily mean that they are void. (Most road networks will not have (0,0) or (0.0,0.0) as
 	/// valid points though).
-	static Json::Value makeLocationMessage(int x, int y, LatLngLocation projected);
+	static Json::Value makeLocationMessage(int x, int y, const LatLngLocation& projected);
 
 	static Json::Value makeLocationArrayElement(unsigned int id, int x, int y);
 

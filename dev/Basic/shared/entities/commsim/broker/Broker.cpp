@@ -603,7 +603,9 @@ void sim_mob::Broker::processPublishers(timeslice now)
 				BOOST_FOREACH(clientsByID, clientsByType.second)
 				{
 					boost::shared_ptr<sim_mob::ClientHandler> & cHandler = clientsByID.second;//easy read
-					publisher.publish(COMMEID_LOCATION, const_cast<Agent*>(cHandler->agent),LocationEventArgs(cHandler->agent));
+					if(cHandler && cHandler->agent && cHandler->isValid()){//todo refine subscription list to get rid of hustle and risks
+						publisher.publish(COMMEID_LOCATION, const_cast<Agent*>(cHandler->agent),LocationEventArgs(cHandler->agent));
+					}
 				}
 			}
 			break;
@@ -619,6 +621,9 @@ void sim_mob::Broker::processPublishers(timeslice now)
 			//      to the EventManager itself. For now, though, its performance hit is not noticeable. ~Seth
 			for (ClientList::Type::iterator listIt=clientList.begin(); listIt!=clientList.end(); listIt++) {
 				for (ClientList::Value::iterator clientIt=listIt->second.begin(); clientIt!=listIt->second.end(); clientIt++) {
+					if(!(clientIt->second->isValid()&&clientIt->second->agent)){
+						continue;
+					}
 					const sim_mob::Agent* agent = clientIt->second->agent;
 					if (agent->getRegionSupportStruct().isEnabled()) {
 						std::vector<sim_mob::RoadRunnerRegion> all_regions = agent->getNewAllRegionsSet();

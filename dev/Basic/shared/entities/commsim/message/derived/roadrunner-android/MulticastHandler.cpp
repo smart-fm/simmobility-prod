@@ -63,7 +63,7 @@ void sim_mob::roadrunner::MulticastHandler::handle(sim_mob::comm::MsgPtr message
 
 	//Check the handler's validity.
 	if(!clnHandler->isValid()) {
-		Print() << "Invalid ns3 client handler record" << std::endl;
+		Print() << "Invalid client handler record" << std::endl;
 		return;
 	}
 

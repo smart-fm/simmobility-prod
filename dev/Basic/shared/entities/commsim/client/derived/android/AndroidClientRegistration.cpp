@@ -73,13 +73,13 @@ bool sim_mob::AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob
 			new ConnectionHandler(request.session_,
 					broker.getMessageReceiveCallBack(), request.clientID,
 					comm::ANDROID_EMULATOR,
-					(unsigned long int) (freeAgent->second.agent)//just remembered that we can/should filter agents based on the agent type ...-vahid
+					(unsigned long int) (freeAgent->first)//just remembered that we can/should filter agents based on the agent type ...-vahid
 					));
 	clientEntry->cnnHandler = cnnHandler;
 
 	clientEntry->AgentCommUtility_ = freeAgent->second.comm;
 	//todo: some of there information are already available in the connectionHandler! omit redundancies  -vahid
-	clientEntry->agent = freeAgent->second.agent;
+	clientEntry->agent = freeAgent->first;
 	clientEntry->clientID = request.clientID;
 	clientEntry->client_type = comm::ANDROID_EMULATOR;
 	clientEntry->requiredServices = request.requiredServices; //will come handy

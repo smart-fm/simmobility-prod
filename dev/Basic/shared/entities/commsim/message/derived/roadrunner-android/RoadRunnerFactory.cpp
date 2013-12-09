@@ -3,6 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "RoadRunnerFactory.hpp"
+#include "logging/Log.hpp"
 
 using namespace sim_mob;
 
@@ -47,6 +48,7 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RoadRunnerFactory::get
 			break;
 		default:
 			typeFound = false;
+			break;
 		}
 		//register this baby
 		if(typeFound)
@@ -59,7 +61,7 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RoadRunnerFactory::get
 }
 
 
-bool sim_mob::roadrunner::RoadRunnerFactory::createMessage(std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
+bool sim_mob::roadrunner::RoadRunnerFactory::createMessage(const std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
 {
 	Json::Value root;
 	sim_mob::pckt_header packetHeader;
@@ -76,8 +78,16 @@ bool sim_mob::roadrunner::RoadRunnerFactory::createMessage(std::string &input, s
 		if (!sim_mob::JsonParser::parseMessageHeader(root[index], messageHeader)) {
 			continue;
 		}
-		Json::Value& curr_json = root[index];
-		switch (MessageMap[messageHeader.msg_type]) {
+
+		//Convert the message type:
+		std::map<std::string, RoadRunnerFactory::MessageType>::const_iterator it = MessageMap.find(messageHeader.msg_type);
+		if (it==MessageMap.end()) {
+			Warn() <<"RoadRunnerFactory::createMessage() - Unknown message type: " <<messageHeader.msg_type <<"\n";
+			return false;
+		}
+
+		const Json::Value& curr_json = root[index];
+		switch (it->second) {
 		case MULTICAST:{
 			//create a message
 			sim_mob::comm::MsgPtr msg(new MulticastMessage(curr_json, useNs3));
@@ -105,7 +115,8 @@ bool sim_mob::roadrunner::RoadRunnerFactory::createMessage(std::string &input, s
 
 
 		default:
-			WarnOut("RR_Factory::createMessage() - Unhandled message type.");
+			Warn() <<"RoadRunnerFactory::createMessage() - Unhandled message type: " <<messageHeader.msg_type <<"\n";
+			break;
 		}
 	}		//for loop
 

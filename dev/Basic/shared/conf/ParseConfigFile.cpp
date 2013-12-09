@@ -582,6 +582,11 @@ void sim_mob::ParseConfigFile::ProcessSystemNode(DOMElement* node)
 	ProcessSystemDatabaseNode(GetSingleElementByName(node, "network_database"));
 	ProcessSystemXmlSchemaFilesNode(GetSingleElementByName(node, "xsd_schema_files", true));
 	ProcessSystemGenericPropsNode(GetSingleElementByName(node, "generic_props"));
+
+	//Warn against using the old field name for xml_file.
+	if (GetSingleElementByName(node, "network_xml_file", false)) {
+		throw std::runtime_error("Using old parameter: \"network_xml_file\"; please change it to \"network_xml_file_input.\"");
+	}
 }
 
 

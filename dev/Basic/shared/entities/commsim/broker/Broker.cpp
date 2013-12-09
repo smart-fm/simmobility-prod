@@ -17,6 +17,7 @@
 #include "entities/commsim/connection/ConnectionServer.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
+#include "entities/commsim/event/RegionsAndPathEventArgs.hpp"
 
 #include "entities/commsim/wait/WaitForAndroidConnection.hpp"
 #include "entities/commsim/wait/WaitForNS3Connection.hpp"
@@ -24,6 +25,8 @@
 #include "event/SystemEvents.hpp"
 #include "message/MessageBus.hpp"
 #include "event/EventPublisher.hpp"
+
+#include "geospatial/RoadRunnerRegion.hpp"
 
 //todo :temprorary
 #include "entities/commsim/message/derived/roadrunner-android/RoadRunnerFactory.hpp"
@@ -72,10 +75,9 @@ bool sim_mob::Broker::isEnabled() const {
 	return enabled;
 }
 
-bool sim_mob::Broker::insertSendBuffer(
-		boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler,
-		sim_mob::comm::MsgData &value) {
-	if (!cnnHandler) {
+bool sim_mob::Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler, const sim_mob::comm::MsgData &value )
+{
+	if(!cnnHandler) {
 		return false;
 	}
 	if (cnnHandler->isValid() == false) {
@@ -101,12 +103,21 @@ void sim_mob::Broker::configure() {
                 &Broker::onAgentUpdate,
                 (event::Context)sim_mob::event::CXT_CORE_AGENT_UPDATE);
 
+	{
 	BrokerPublisher* onlyLocationsPublisher = new BrokerPublisher();
 	onlyLocationsPublisher->registerEvent(COMMEID_LOCATION);
+	publishers.insert(std::make_pair(
+		sim_mob::Services::SIMMOB_SRV_LOCATION,
+		PublisherList::Value(onlyLocationsPublisher))
+	);
+	}
 
-	publishers.insert(
-			std::make_pair(sim_mob::Services::SIMMOB_SRV_LOCATION,
-					PublisherList::dataType(onlyLocationsPublisher)));
+	//The Region publisher should be generally useful.
+	{
+	BrokerPublisher* regionPublisher = new BrokerPublisher();
+	regionPublisher->registerEvent(COMMEID_REGIONS_AND_PATH);
+	publishers.insert(std::make_pair(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH, PublisherList::Value(regionPublisher)));
+	}
 
 	//NS-3 has its own publishers
 	if (client_type == "android-ns3") {
@@ -114,72 +125,59 @@ void sim_mob::Broker::configure() {
 		allLocationsPublisher->registerEvent(COMMEID_LOCATION);
 		publishers.insert(std::make_pair(
 			sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS,
-			PublisherList::dataType(allLocationsPublisher))
+			PublisherList::Value(allLocationsPublisher))
 		);
 	}
 
+	{
 	BrokerPublisher* timePublisher = new BrokerPublisher();
 	timePublisher->registerEvent(COMMEID_TIME);
 	publishers.insert(std::make_pair(
 		sim_mob::Services::SIMMOB_SRV_TIME,
-		PublisherList::dataType(timePublisher))
+		PublisherList::Value(timePublisher))
 	);
+	}
 
 	ClientRegistrationHandler::getPublisher().subscribe(
-                (event::EventId)ConfigParams::ANDROID_EMULATOR, 
+                (event::EventId)comm::ANDROID_EMULATOR,
                 this, 
                 &Broker::onClientRegister);
 
 	if (client_type == "android-ns3") {
 		//listen to publishers who announce registration of new clients...
 		ClientRegistrationHandler::getPublisher().subscribe(
-                         (event::EventId)ConfigParams::NS3_SIMULATOR, 
+                         (event::EventId)comm::NS3_SIMULATOR,
                         this, 
                         &Broker::onClientRegister);
 	}
 
-		//current message factory
-		//todo: choose a factory based on configurations not hardcoding
-	if (client_type == "android-ns3") {
-		boost::shared_ptr<
-				sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>&,
-						std::string&> > android_factory(
-				new sim_mob::roadrunner::RoadRunnerFactory(true));
-		boost::shared_ptr<
-				sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>&,
-						std::string&> > ns3_factory(
-				new sim_mob::rr_android_ns3::NS3_Factory());
+	//current message factory
+	//todo: choose a factory based on configurations not hardcoding
+	if(client_type == "android-ns3") {
+		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> >
+			android_factory(new sim_mob::roadrunner::RoadRunnerFactory(true));
+		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> >
+			ns3_factory(new sim_mob::rr_android_ns3::NS3_Factory());
 
 		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
-		messageFactories.insert(
-				std::make_pair(ConfigParams::ANDROID_EMULATOR,
-						android_factory));
-		messageFactories.insert(
-				std::make_pair(ConfigParams::NS3_SIMULATOR, ns3_factory));
+		messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, android_factory));
+		messageFactories.insert(std::make_pair(comm::NS3_SIMULATOR, ns3_factory));
 	} else if (client_type == "android-only") {
-		boost::shared_ptr<
-				sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>&,
-						std::string&> > android_factory(
-				new sim_mob::roadrunner::RoadRunnerFactory(false));
+		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> >
+			android_factory(new sim_mob::roadrunner::RoadRunnerFactory(false));
 
 		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
-		messageFactories.insert(
-				std::make_pair(ConfigParams::ANDROID_EMULATOR,
-						android_factory));
+		messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, android_factory));
 	}
 
 	// wait for connection criteria for this broker
-	clientBlockers.insert(
-			std::make_pair(ConfigParams::ANDROID_EMULATOR,
-					boost::shared_ptr<WaitForAndroidConnection>(
-							new WaitForAndroidConnection(*this, MIN_CLIENTS))));
+	clientBlockers.insert(std::make_pair(comm::ANDROID_EMULATOR,
+			boost::shared_ptr<WaitForAndroidConnection>(new WaitForAndroidConnection(*this,MIN_CLIENTS))));
 
-	if (client_type == "android-ns3") {
-		clientBlockers.insert(
-				std::make_pair(ConfigParams::NS3_SIMULATOR,
-						boost::shared_ptr<WaitForNS3Connection>(
-								new WaitForNS3Connection(*this))));
 
+	if(client_type == "android-ns3") {
+		clientBlockers.insert(std::make_pair(comm::NS3_SIMULATOR,
+				boost::shared_ptr<WaitForNS3Connection>(new WaitForNS3Connection(*this))));
 	}
 
 	// wait for connection criteria for this broker
@@ -199,7 +197,7 @@ void sim_mob::Broker::configure() {
  * and incase of messages ,threads access only discrete chuncks of elements (and read-only fashion)
  */
 
-void sim_mob::Broker::preProcessMessage(
+/*void sim_mob::Broker::preProcessMessage(
 		boost::shared_ptr<ConnectionHandler> &cnnHandler,
 		std::vector<sim_mob::comm::MsgPtr> & messages, int firstMessageIndex,
 		int lastMessageIndex, bool &clientMessageDone) {
@@ -226,8 +224,8 @@ void sim_mob::Broker::preProcessMessage(
 			receiveQueue.post(MessageElement(cnnHandler, *it));
 		}
 	}
+}*/
 
-}
 
 /**
  * the callback function called by connection handlers to ask
@@ -236,11 +234,9 @@ void sim_mob::Broker::preProcessMessage(
  * anyway, what is does is :extract messages from the input string
  * (remember that a message object carries a reference to its handler also(except for "CLIENT_MESSAGES_DONE" messages)
  */
-void sim_mob::Broker::messageReceiveCallback(
-		boost::shared_ptr<ConnectionHandler> cnnHandler, std::string input) {
-	boost::shared_ptr<
-			MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > m_f =
-			messageFactories[cnnHandler->clientType];
+void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHandler, std::string input)
+{
+	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > m_f = messageFactories[cnnHandler->clientType];
 	std::vector<sim_mob::comm::MsgPtr> messages;
 	m_f->createMessage(input, messages);
 //	post the messages into the message queue one by one(add their cnnHandler also)
@@ -310,11 +306,13 @@ AgentsList::type& sim_mob::Broker::getRegisteredAgents(
 	return REGISTERED_AGENTS.getAgents();
 }
 
-ClientWaitList& sim_mob::Broker::getClientWaitingList() {
+Broker::ClientWaitList& sim_mob::Broker::getClientWaitingList()
+{
 	return clientRegistrationWaitingList;
 }
 
-ClientList::type& sim_mob::Broker::getClientList() {
+ClientList::Type& sim_mob::Broker::getClientList()
+{
 	return clientList;
 }
 
@@ -323,11 +321,8 @@ bool sim_mob::Broker::getClientHandler(std::string clientId,
 		boost::shared_ptr<sim_mob::ClientHandler> &output) {
 	//use try catch to use map's .at() and search only once
 	try {
-		ConfigParams::ClientType clientType_ =
-				sim_mob::Services::ClientTypeMap.at(clientType);
-		boost::unordered_map<std::string,
-				boost::shared_ptr<sim_mob::ClientHandler> > & inner =
-				clientList[clientType_];
+		comm::ClientType clientType_ = sim_mob::Services::ClientTypeMap.at(clientType);
+		boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > & inner = clientList[clientType_];
 		try {
 			output = inner.at(clientId); //this is what we are looking for
 			return true;
@@ -345,49 +340,62 @@ bool sim_mob::Broker::getClientHandler(std::string clientId,
 	return false;
 }
 
-void sim_mob::Broker::insertClientList(std::string clientID,
-		unsigned int clientType,
-		boost::shared_ptr<sim_mob::ClientHandler> &clientHandler) {
+void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType clientType, boost::shared_ptr<sim_mob::ClientHandler> &clientHandler)
+{
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 	clientList[clientType][clientID] = clientHandler;
 }
 
-void sim_mob::Broker::insertClientWaitingList(
-		std::pair<std::string, ClientRegistrationRequest> p) //pair<client type, request>
-		{
+void sim_mob::Broker::pendClientToEnableRegions(boost::shared_ptr<sim_mob::ClientHandler> &clientHandler)
+{
+	boost::unique_lock<boost::mutex> lock(mutex_clientList);
+	newClientsWaitingOnRegionEnabling.insert(clientHandler);
+}
+
+void  sim_mob::Broker::insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest > p)//pair<client type, request>
+{
 	boost::unique_lock<boost::mutex> lock(mutex_client_request);
-//	Print() << "Inserting into clientRegistrationWaitingList" << std::endl;
 	clientRegistrationWaitingList.insert(p);
 	COND_VAR_CLIENT_REQUEST.notify_one();
 }
 
-PublisherList::type& sim_mob::Broker::getPublishers() {
-	return publishers;
+PublisherList::Value sim_mob::Broker::getPublisher(sim_mob::Services::SIM_MOB_SERVICE serviceType)
+{
+	PublisherList::Type::const_iterator it = publishers.find(serviceType);
+	if (it != publishers.end()) {
+		return it->second;
+	}
+
+	throw std::runtime_error("Publishers does not contain the specified service type.");
 }
 
-void sim_mob::Broker::processClientRegistrationRequests() {
-	boost::shared_ptr<ClientRegistrationHandler> handler;
-	ClientWaitList::iterator it_erase; //helps avoid multimap iterator invalidation
-	for (ClientWaitList::iterator it = clientRegistrationWaitingList.begin();
-			it != clientRegistrationWaitingList.end();) {
-		handler = clientRegistrationFactory.getHandler(
-				(sim_mob::Services::ClientTypeMap[it->first]));
+
+void sim_mob::Broker::processClientRegistrationRequests()
+{
+	boost::shared_ptr<ClientRegistrationHandler > handler;
+	ClientWaitList::iterator it_erase;//helps avoid multimap iterator invalidation
+	for (ClientWaitList::iterator it = clientRegistrationWaitingList.begin(); it != clientRegistrationWaitingList.end();) {
+		handler = clientRegistrationFactory.getHandler((sim_mob::Services::ClientTypeMap[it->first]));
 		if (!handler) {
 			std::ostringstream out("");
-			out << "No Handler for [" << it->first << "] type of client"
-					<< std::endl;
+			out << "No Handler for [" << it->first << "] type of client" << std::endl;
 			throw std::runtime_error(out.str());
 		}
-		if (handler->handle(*this, it->second)) {
+		if(handler->handle(*this,it->second))
+		{
 			//success: handle() just added to the client to the main client list and started its connectionHandler
 			//	next, see if the waiting state of waiting-for-client-connection changes after this process
-			bool wait =
-					clientBlockers[sim_mob::Services::ClientTypeMap[it->first]]->calculateWaitStatus();
-//			Print() << "calculateWaitStatus for  " << it->first << "  " << (wait? "WAIT " : "DONT_WAIT") << std::endl;
-			//	then, get this request out of registration list.
+			bool wait = clientBlockers[sim_mob::Services::ClientTypeMap[it->first]]->calculateWaitStatus();
+			//if(!wait) {
+				//	then, get this request out of registration list.
+			//	it_erase =  it/*++*/;//keep the erase candidate. dont loose it :)
+			//	clientRegistrationWaitingList.erase(it_erase) ;
+				//note: if needed,remember to do the necessary work in the
+				//corresponding agent w.r.t the result of handle()
+				//do this through a callback to agent's reuest
+			//}
 			it_erase = it/*++*/;	//keep the erase candidate. dont loose it :)
-			Print() << "delete from clientRegistrationWaitingList[" << it->first
-					<< "]" << std::endl;
+			Print() << "delete from clientRegistrationWaitingList[" << it->first << "]" << std::endl;
 			clientRegistrationWaitingList.erase(it++);
 		} else {
 			it++;
@@ -395,10 +403,13 @@ void sim_mob::Broker::processClientRegistrationRequests() {
 	}
 }
 
-bool sim_mob::Broker::registerEntity(sim_mob::AgentCommUtilityBase* value) {
+bool sim_mob::Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
+{
 	Print() << std::dec;
 //	registeredAgents.insert(std::make_pair(value->getEntity(), value));
 	REGISTERED_AGENTS.insert(value->getEntity(), value);
+ 	Print() <<std::dec <<REGISTERED_AGENTS.size() <<":  Broker[" <<this <<"] :  Broker::registerEntity [" <<value->getEntity()->getId() <<"]" <<std::endl;
+
 	Print() << REGISTERED_AGENTS.size() << ":  Broker[" << this
 			<< "] :  Broker::registerEntity [" << value->getEntity()->getId()
 			<< "]" << std::endl;
@@ -419,16 +430,15 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent * agent) {
 	Print() << "inside Broker::unRegisterEntity for agent[" << agent << "]"
 			<< std::endl;
 	//search agent's list looking for this agent
-//	registeredAgents.erase(agent); //hopefully the agent is there
 	REGISTERED_AGENTS.erase(agent);
 
 	//search the internal container also
 	duplicateEntityDoneChecker.erase(agent);
 
 	{
-		boost::unique_lock<boost::mutex> lock(mutex_clientList);
+	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 	//search registered clients list looking for this agent. whoever has it, dump him
-	for(ClientList::iterator it_clientType = clientList.begin(); it_clientType != clientList.end(); it_clientType++)
+	for(ClientList::Type::iterator it_clientType = clientList.begin(); it_clientType != clientList.end(); it_clientType++)
 	{
 		boost::unordered_map<std::string, boost::shared_ptr<sim_mob::ClientHandler> >::iterator
 			it_clientID(it_clientType->second.begin()),
@@ -451,30 +461,29 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent * agent) {
 						publishers[sim_mob::Services::SIMMOB_SRV_TIME]->unSubscribe(COMMEID_TIME,clientHandler);
 						break;
 					case sim_mob::Services::SIMMOB_SRV_LOCATION:
-						publishers[sim_mob::Services::SIMMOB_SRV_LOCATION]->unSubscribe(COMMEID_LOCATION,(void*)clientHandler->agent,clientHandler);
+						publishers[sim_mob::Services::SIMMOB_SRV_LOCATION]->unSubscribe(COMMEID_LOCATION, const_cast<Agent*>(clientHandler->agent),clientHandler);
 						break;
 					case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS:
 						publishers[sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS]->unSubscribe(COMMEID_LOCATION,(void*)COMMCID_ALL_LOCATIONS,clientHandler);
 						break;
 					}
 				}
-					//erase him from the list
-					//clientList.erase(it_erase);
-					//don't erase it here. it may already have something to send
-					//invalidate it and clean it up when necessary
-					//invalidation 1:
-					it_erase->second->agent = 0;
-					it_erase->second->cnnHandler->agentPtr = 0; //this is even more important
-					//or a better version //todo: use one version only
-					it_erase->second->setValidation(false);
-					it_erase->second->cnnHandler->setValidation(false); //this is even more important
+				//invalidate it and clean it up when necessary
+				//don't erase it here. it may already have something to send
+				//invalidation 1:
+				it_erase->second->agent = nullptr;
+				it_erase->second->cnnHandler->agentPtr = 0; //this is even more important
+				//or a better version //todo: use one version only
+				it_erase->second->setValidation(false);
+				it_erase->second->cnnHandler->setValidation(false); //this is even more important
+			}
+			else
+			{
+				it_clientID++;
+			}
+		}//inner loop
 
-				} else {
-					it_clientID++;
-				}
-			} //inner loop
-
-		} //outer loop
+	} //outer loop
 	}
 }
 
@@ -528,11 +537,11 @@ void sim_mob::Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::
 
 void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums)
 {
-	ConfigParams::ClientType type = argums.getClientType();
-	boost::shared_ptr<ClientHandler> clientHandler = argums.getClient();
+	comm::ClientType type = argums.getClientType();
+	boost::shared_ptr<ClientHandler>clientHandler = argums.getClient();
 
 	switch (type) {
-	case ConfigParams::ANDROID_EMULATOR: {
+	case comm::ANDROID_EMULATOR: {
 		//if we are operating on android-ns3 set up,
 		//each android client registration should be brought to
 		//ns3's attention
@@ -546,7 +555,7 @@ void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::even
 		//registration and configuration process. So the following implementation
 		//should be executed for those android clients who will join AFTER
 		//ns3's registration. So we check if the ns3 is already registered or not:
-		if (clientList.find(ConfigParams::NS3_SIMULATOR) == clientList.end()) {
+		if (clientList.find(comm::NS3_SIMULATOR) == clientList.end()) {
 			break;
 		}
 		msg_header mHeader_("0", "SIMMOBILITY", "AGENTS_INFO", "SYS");
@@ -570,9 +579,11 @@ void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::even
 
 //todo: again this function is also intrusive to Broker. find a way to move the following switch cases outside the broker-vahid
 //todo suggestion: for publishment, don't iterate through the list of clients, rather, iterate the publishers list, access their subscriber list and say publish and publish for their subscribers(keep the clientlist for MHing only)
-void sim_mob::Broker::processPublishers(timeslice now) {
-	PublisherList::pair publisher_pair;
-	BOOST_FOREACH(publisher_pair, publishers) {
+void sim_mob::Broker::processPublishers(timeslice now)
+{
+	PublisherList::Pair publisher_pair;
+	BOOST_FOREACH(publisher_pair, publishers)
+	{
 		//easy reading
 		sim_mob::Services::SIM_MOB_SERVICE service = publisher_pair.first;
 		sim_mob::event::EventPublisher & publisher = *publisher_pair.second;
@@ -585,14 +596,16 @@ void sim_mob::Broker::processPublishers(timeslice now) {
 		case sim_mob::Services::SIMMOB_SRV_LOCATION: {
 
 			//get to each client handler, look at his requred service and then publish for him
-			ClientList::pair clientsByType;
-			ClientList::IdPair clientsByID;
+			ClientList::Pair clientsByType;
+			ClientList::ValuePair clientsByID;
 			BOOST_FOREACH(clientsByType, clientList)
 			{
 				BOOST_FOREACH(clientsByID, clientsByType.second)
 				{
 					boost::shared_ptr<sim_mob::ClientHandler> & cHandler = clientsByID.second;//easy read
-					publisher.publish(COMMEID_LOCATION,(void*) cHandler->agent,LocationEventArgs(cHandler->agent));
+					if(cHandler && cHandler->agent && cHandler->isValid()){//todo refine subscription list to get rid of hustle and risks
+						publisher.publish(COMMEID_LOCATION, const_cast<Agent*>(cHandler->agent),LocationEventArgs(cHandler->agent));
+					}
 				}
 			}
 			break;
@@ -601,15 +614,39 @@ void sim_mob::Broker::processPublishers(timeslice now) {
 			publisher.publish(COMMEID_LOCATION,(void*) COMMCID_ALL_LOCATIONS,AllLocationsEventArgs(REGISTERED_AGENTS));
 			break;
 		}
+		case sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH: {
+			//Scan every communicating Agent and see if they need a Region or Path update sent to the client.
+			//If so, publish it.
+			//NOTE: This is somewhat inefficient; we can probably offload some of this responsibility to the Workers or
+			//      to the EventManager itself. For now, though, its performance hit is not noticeable. ~Seth
+			for (ClientList::Type::iterator listIt=clientList.begin(); listIt!=clientList.end(); listIt++) {
+				for (ClientList::Value::iterator clientIt=listIt->second.begin(); clientIt!=listIt->second.end(); clientIt++) {
+					if(!(clientIt->second->isValid()&&clientIt->second->agent)){
+						continue;
+					}
+					const sim_mob::Agent* agent = clientIt->second->agent;
+					if (agent->getRegionSupportStruct().isEnabled()) {
+						std::vector<sim_mob::RoadRunnerRegion> all_regions = agent->getNewAllRegionsSet();
+						std::vector<sim_mob::RoadRunnerRegion> reg_path = agent->getNewRegionPath();
+						if (!(all_regions.empty() && reg_path.empty())) {
+							publisher.publish(COMMEID_REGIONS_AND_PATH, const_cast<Agent*>(agent), RegionsAndPathEventArgs(agent, all_regions, reg_path));
+						}
+					}
+				}
+			}
+			break;
+		}
 		default:
+			Warn() <<"Broker::processPubliBshers() - Unhandled service type: " <<service <<"\n";
 			break;
 		}
 	}
 }
 
-void sim_mob::Broker::sendReadyToReceive() {
-	ClientList::pair clientByType;
-	ClientList::IdPair clientByID;
+void sim_mob::Broker::sendReadyToReceive()
+{
+	ClientList::Pair clientByType;
+	ClientList::ValuePair clientByID;
 
 	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
 	msg_header msg_header_;
@@ -630,15 +667,15 @@ void sim_mob::Broker::sendReadyToReceive() {
 	}
 }
 
-void sim_mob::Broker::processOutgoingData(timeslice now) {
+void sim_mob::Broker::processOutgoingData(timeslice now)
+{
 //	now send what you have to send:
 	int debug_sendBuffer_cnt = sendBuffer.size();
 	int debug_cnt = 0;
 	int debug_buffer_size;
 	Json::FastWriter debug_writer;
 	std::ostringstream debug_out;
-	for (SEND_BUFFER<sim_mob::comm::MsgData>::iterator it = sendBuffer.begin();
-			it != sendBuffer.end(); it++, debug_cnt++) {
+	for(SendBuffer::Type::iterator it = sendBuffer.begin(); it!= sendBuffer.end(); it++, debug_cnt++) {
 		sim_mob::BufferContainer<sim_mob::comm::MsgData> & buffer = it->second;
 		boost::shared_ptr<sim_mob::ConnectionHandler> cnn = it->first;
 
@@ -755,7 +792,7 @@ bool sim_mob::Broker::clientsQualify() const {
 //returns true if you need to wait
 bool sim_mob::Broker::isWaitingForAnyClientConnection() {
 //	Print() << "inside isWaitingForAnyClientConnection " << clientBlockers.size() << std::endl;
-	BrokerBlockers::IdPair pp;
+	BrokerBlockers::Pair pp;
 	int i = -1;
 	BOOST_FOREACH(pp, clientBlockers) {
 		i++;
@@ -840,9 +877,10 @@ bool sim_mob::Broker::isClientDone(
 	return true;
 }
 
-bool sim_mob::Broker::allClientsAreDone() {
-	ClientList::pair clientByType;
-	ClientList::IdPair clientByID;
+bool sim_mob::Broker::allClientsAreDone()
+{
+	ClientList::Pair clientByType;
+	ClientList::ValuePair clientByID;
 
 	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
 	msg_header msg_header_;
@@ -925,37 +963,23 @@ Entity::UpdateStatus sim_mob::Broker::update(timeslice now) {
 	//the clients will now send whatever they want to send(into the incoming messagequeue)
 	//followed by a Done! message.That is when Broker can go forwardClientList::pair clientByType;
 	waitForClientsDone();
+	Print() << "===================== waitForClientsDone Done =======================================" << std::endl;
 
-//	//Step 7.5: output
-//	if (ConfigManager::GetInstance().FullConfig().ProfileWorkerUpdates()) {
-//		//TODO: This is a bit of a hack; won't work with both ns3/Android enabled. ~Seth.
-//		size_t sz = 0;
-//		for (ClientList::type::iterator it=clientList.begin(); it!=clientList.end(); it++) {
-//			sz += it->second.size();
-//		}
-//		std::stringstream msg;
-//		msg <<sz;
-//		profile->logAgentCustomMessage(*this, now, "custom-num-connected-clients", msg.str());
-//		//TODO: End hack.
-//
-//		//TODO: And another hack!
-//		const uint32_t TickAmt = 100; //"Every X ticks"
-//		const uint32_t TickStep = 1; //HACK: For what the Worker sees (for all Agents).
-//		if ((now.frame()/TickStep)%TickAmt==0) {
-//			profile->flushLogFile();
-//		}
-//	}
-	Print()
-			<< "===================== waitForClientsDone Done ======================================="
-			<< std::endl;
+	//step-8:
+	//Now that all clients are done, set any properties on new clients.
+	if (!newClientsWaitingOnRegionEnabling.empty()) {
+		setNewClientProps();
+		Print() << "===================== setNewClientProps Done =======================================" << std::endl;
+	}
 
-	//step-8: final steps that should be taken before leaving the tick
+	//step-9: final steps that should be taken before leaving the tick
 	//prepare for next tick.
 	cleanup();
 	return UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
 
-void sim_mob::Broker::removeClient(ClientList::iterator it_erase) {
+void sim_mob::Broker::removeClient(ClientList::Type::iterator it_erase)
+{
 //	Print() << "Broker::removeClient locking mutex_clientList" << std::endl;
 //	if(!it_erase->second)
 //	{
@@ -980,7 +1004,29 @@ void sim_mob::Broker::waitForClientsDone() {
 	}
 }
 
-void sim_mob::Broker::cleanup() {
+void sim_mob::Broker::setNewClientProps()
+{
+	//NOTE: This *should not* require locking, sicne all clients are already done. Please review. ~Seth
+
+	//Now, loop through each client and call its Agent's enableRegionSupport() function if applicable.
+	for (std::set< boost::weak_ptr<sim_mob::ClientHandler> >::iterator it=newClientsWaitingOnRegionEnabling.begin(); it!=newClientsWaitingOnRegionEnabling.end(); it++) {
+		//Attempt to resolve the weak pointer.
+		boost::shared_ptr<sim_mob::ClientHandler> cHand = it->lock();
+		if (cHand) {
+			//NOTE: The Agent is not doing anything, so it is safe to modify it. I don't really like the const_cast,
+			//      but I can't think of a better way of doing it. Please review. ~Seth
+			const_cast<Agent*>(cHand->agent)->enableRegionSupport();
+		} else {
+			Warn() <<"Broker::setNewClientProps() -- Client was destroyed before its weak_ptr() could be resolved.\n";
+		}
+	}
+
+	//These clients have been processed.
+	newClientsWaitingOnRegionEnabling.clear();
+}
+
+void sim_mob::Broker::cleanup()
+{
 	//for internal use
 	duplicateEntityDoneChecker.clear();
 	clientDoneChecker.clear();

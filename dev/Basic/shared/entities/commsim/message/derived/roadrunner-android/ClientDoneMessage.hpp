@@ -14,7 +14,7 @@ namespace roadrunner {
 ///TODO: This class doesn't seem to do much; do we need it? ~Seth
 class ClientDoneMessage : public sim_mob::comm::Message {
 public:
-	ClientDoneMessage(sim_mob::comm::MsgData& data_) : Message(data_) {}
+	ClientDoneMessage(const sim_mob::comm::MsgData& data_) : Message(data_) {}
 
 	Handler* newHandler() { return nullptr; }
 };

@@ -28,28 +28,26 @@ namespace sim_mob {
 class Broker;
 
 class ConnectionServer {
+public:
+	ConnectionServer(sim_mob::Broker &broker_,unsigned short port = DEFAULT_SERVER_PORT);
+	~ConnectionServer();
+
+	void handleNewClient(boost::shared_ptr<sim_mob::Session> &sess);
+	void CreatSocketAndAccept();
+	void start();
+	void io_service_run();
+	void handle_accept(const boost::system::error_code& e, boost::shared_ptr<sim_mob::Session> &sess);
+	void RequestClientRegistration(const sim_mob::ClientRegistrationRequest& request);
+	void read_handler(const boost::system::error_code& e, std::string &data, boost::shared_ptr<sim_mob::Session>& sess);
+	void general_send_handler(const boost::system::error_code& e, boost::shared_ptr<sim_mob::Session>& sess);
+
+	boost::thread io_service_thread; //thread to run the io_service
+	boost::asio::io_service io_service_;
+private:
 	sim_mob::session_ptr new_sess;
-	public:
-		void handleNewClient(boost::shared_ptr<sim_mob::Session> &sess);
-		void CreatSocketAndAccept();
-//		sim_mob::ClientRegistrationRequest t;
-//		std::queue<boost::tuple<unsigned int,sim_mob::ClientRegistrationRequest > > tt;
-		ConnectionServer(sim_mob::Broker &broker_,unsigned short port = DEFAULT_SERVER_PORT);
-		void start();
-		void io_service_run();
-		void handle_accept(const boost::system::error_code& e, boost::shared_ptr<sim_mob::Session> &sess);
-		void RequestClientRegistration(sim_mob::ClientRegistrationRequest &request);
-
-		void read_handler(const boost::system::error_code& e, std::string &data, boost::shared_ptr<sim_mob::Session>& sess);
-		void general_send_handler(const boost::system::error_code& e, boost::shared_ptr<sim_mob::Session>& sess);
-		~ConnectionServer();
-
-		boost::thread io_service_thread; //thread to run the io_service
-		boost::asio::io_service io_service_;
-	private:
-		const static unsigned int DEFAULT_SERVER_PORT = 6745;
-		boost::asio::ip::tcp::acceptor acceptor_;
-		sim_mob::Broker &broker;
+	const static unsigned int DEFAULT_SERVER_PORT = 6745;
+	boost::asio::ip::tcp::acceptor acceptor_;
+	sim_mob::Broker &broker;
 };
 
 } /* namespace sim_mob */

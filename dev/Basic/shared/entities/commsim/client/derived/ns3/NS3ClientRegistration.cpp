@@ -20,7 +20,7 @@
 
 namespace sim_mob {
 
-NS3ClientRegistration::NS3ClientRegistration(/*ConfigParams::ClientType type_*/) : ClientRegistrationHandler(ConfigParams::NS3_SIMULATOR) {
+NS3ClientRegistration::NS3ClientRegistration(/*ClientRegistrationFactory::ClientType type_*/) : ClientRegistrationHandler(comm::NS3_SIMULATOR) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -48,7 +48,7 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 //				,&Broker::messageReceiveCallback
 				,broker.getMessageReceiveCallBack()
 				,request.clientID
-				,ConfigParams::NS3_SIMULATOR
+				,comm::NS3_SIMULATOR
 				,(unsigned long int)(0)//not needed
 				)
 				);
@@ -57,7 +57,7 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 		//todo: some of there information are already available in the connectionHandler! omit redundancies  -vahid
 		clientEntry->agent = 0;//not needed
 		clientEntry->clientID = request.clientID;
-		clientEntry->client_type = ConfigParams::NS3_SIMULATOR;
+		clientEntry->client_type = comm::NS3_SIMULATOR;
 		clientEntry->requiredServices = request.requiredServices; //will come handy
 		sim_mob::Services::SIM_MOB_SERVICE srv;
 		int size_i = request.requiredServices.size();
@@ -66,25 +66,31 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 			switch(srv)
 			{
 			case sim_mob::Services::SIMMOB_SRV_TIME:{
-				 PublisherList::dataType p = broker.getPublishers()[sim_mob::Services::SIMMOB_SRV_TIME];
+				 PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_TIME);
 				p->subscribe(COMMEID_TIME, 
                                         clientEntry.get(), 
-                                        &ClientHandler::OnTime);
+                                        &ClientHandler::OnEvent);
 				break;
 			}
 			case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS:{
-				PublisherList::dataType p = broker.getPublishers()[sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS];
+				PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS);
+
+				//NOTE: It does not seem like we even use the "Context" pointer, so I am switching
+				//      this to a regular CALLBACK_HANDLER. Please review. ~Seth
+				//p->subscribe(COMMEID_LOCATION,
+				//	clientEntry.get(),
+				//	&ClientHandler::OnEvent,
+				//	COMMCID_ALL_LOCATIONS);
 				p->subscribe(COMMEID_LOCATION, 
-                                        clientEntry.get(), 
-                                        &ClientHandler::OnAllLocations, 
-                                        (event::Context) COMMCID_ALL_LOCATIONS);
+					clientEntry.get(),
+					&ClientHandler::OnEvent);
 				break;
 			}
 			}
 		}
 
 		//also, add the client entry to broker(for message handler purposes)
-		broker.insertClientList(clientEntry->clientID, ConfigParams::NS3_SIMULATOR,clientEntry);
+		broker.insertClientList(clientEntry->clientID, comm::NS3_SIMULATOR,clientEntry);
 
 		//send some initial configuration information to NS3
 		std::set<sim_mob::Entity *> keys;

@@ -7,7 +7,10 @@
 #include <boost/thread/condition_variable.hpp>
 #include <boost/unordered_map.hpp>
 
+#include "conf/ConfigParams.hpp"
+
 #include "entities/Agent.hpp"
+#include "entities/commsim/client/ClientType.hpp"
 #include "entities/commsim/client/base/ClientRegistration.hpp"
 #include "entities/commsim/service/Services.hpp"
 #include "entities/commsim/message/Types.hpp"
@@ -39,48 +42,82 @@ class BrokerBlocker;
  //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
 struct MessageElement{
 	MessageElement(){}
-	MessageElement(boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler,
-			sim_mob::comm::MsgPtr msg):cnnHandler(cnnHandler), msg(msg){}
+	MessageElement(boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler, sim_mob::comm::MsgPtr msg) :
+		cnnHandler(cnnHandler), msg(msg){}
+
 	boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler;
 	sim_mob::comm::MsgPtr msg;
-//typedef boost::tuple<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::msg_ptr > type;
 };
 
-struct MessageFactories{
-typedef std::map<unsigned int ,boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > > type;//<client type, roadrunner message factory>
-typedef std::map<unsigned int ,boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > >::iterator iterator;
-typedef std::pair<unsigned int ,boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > > pair;
+
+/**
+ * A typedef-container for our MessageFactories container type.
+ */
+struct MessageFactories {
+	typedef unsigned int Key;
+	typedef boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > Value;
+
+	typedef std::map<Key, Value> Type;
+	typedef std::pair<Key, Value> Pair;
 };
 
-struct PublisherList{
-typedef boost::shared_ptr<sim_mob::event::EventPublisher> dataType;
-typedef std::map<sim_mob::Services::SIM_MOB_SERVICE, dataType> type;
-typedef std::map<sim_mob::Services::SIM_MOB_SERVICE, dataType>::iterator iterator;
-typedef std::pair<sim_mob::Services::SIM_MOB_SERVICE, dataType> pair;
+
+/**
+ * A typedef-container for our PublisherList container type.
+ */
+struct PublisherList {
+	typedef sim_mob::Services::SIM_MOB_SERVICE Key;
+	typedef boost::shared_ptr<sim_mob::event::EventPublisher> Value;
+
+	typedef std::map<Key, Value> Type;
+	typedef std::pair<Key, Value> Pair;
 };
 
-struct ClientList{
-typedef std::map<unsigned int , boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > type; //multimap<client type, map<clientID,clienthandler > >
-typedef std::map<unsigned int , boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > >::iterator iterator;
-typedef std::pair<unsigned int , boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > > pair;
-typedef std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > IdPair;
+
+/**
+ * A typedef-container for our ClientList container type.
+ */
+struct ClientList {
+	typedef sim_mob::comm::ClientType Key;
+	typedef boost::unordered_map< std::string , boost::shared_ptr<sim_mob::ClientHandler> > Value;
+
+	typedef std::map<Key, Value> Type;
+	typedef std::pair<Key, Value> Pair;
+	typedef std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > ValuePair;
+
 };
 
-struct BrokerBlockers{
-typedef std::map<unsigned int , boost::shared_ptr<sim_mob::BrokerBlocker> > type; //multimap<Blocker type, BrokerBlocker >   [Blocker type: simmobility agents, android emulator, ns3 simulator  etc]
-typedef std::map<unsigned int , boost::shared_ptr<sim_mob::BrokerBlocker> >::iterator iterator;
-typedef std::pair<unsigned int , boost::shared_ptr<sim_mob::BrokerBlocker> > IdPair;
+
+/**
+ * A typedef-container for our BrokerBlockers container type.
+ * [Blocker type: simmobility agents, android emulator, ns3 simulator  etc]
+ */
+struct BrokerBlockers {
+	typedef unsigned int Key;
+	typedef boost::shared_ptr<sim_mob::BrokerBlocker> Value;
+
+	typedef std::map<Key, Value> Type;
+	typedef std::pair<Key, Value> Pair;
 };
 
-template<class TYPE>
-struct SEND_BUFFER {
-typedef boost::unordered_map<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::BufferContainer<TYPE> > type;
-typedef typename boost::unordered_map<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::BufferContainer<TYPE> >::iterator iterator;
-typedef std::pair<boost::shared_ptr<sim_mob::ConnectionHandler>, sim_mob::BufferContainer<TYPE> > pair;
+/**
+ * A typedef-container for our SendBuffer container type.
+ * NOTE: This was only used here, so I am removing the template parameter.
+ */
+struct SendBuffer {
+	//The base types stored in our container.
+	typedef boost::shared_ptr<sim_mob::ConnectionHandler> Key;
+	typedef sim_mob::BufferContainer<Json::Value> Value;
+
+	//The container itself and a "pair" type.
+	typedef boost::unordered_map<Key, Value> Type;
+	typedef std::pair<Key, Value> Pair;
 };
 
 class Broker  : public sim_mob::Agent {
 private:
+	typedef std::multimap<std::string,ClientRegistrationRequest > ClientWaitList;
+
 	///	Is this Broker currently enabled?
 	bool enabled;
 	OneTimeFlag configured_;
@@ -90,37 +127,51 @@ private:
 	///	waiting list for external clients willing to communication with simmobility
 	ClientWaitList clientRegistrationWaitingList; //<client type, requestform>
 	///	list of authorized clients who have passed the registration process
-	ClientList::type clientList; //key note: there can be one agent associated with multiple clients in this list. why? : coz clients of any type are i this list. and any one has associated itself to this agent for its specific type's reason
+	ClientList::Type clientList; //key note: there can be one agent associated with multiple clients in this list. why? : coz clients of any type are i this list. and any one has associated itself to this agent for its specific type's reason
+
+	///Set of clients that need their enableRegionSupport() function called. This can only be done once their time tick is over,
+	///  so we pend them on this list. The extra weak_ptr shouldn't be a problem; if the object is destroyed before its
+	///  call to enableRegionSupport(), it will just be silently dropped.
+	std::set< boost::weak_ptr<sim_mob::ClientHandler> > newClientsWaitingOnRegionEnabling;
+
 	///	connection point to outside simmobility
 	boost::shared_ptr<sim_mob::ConnectionServer> connection;					//accepts, authenticate and registers client connections
 	///	message receive call back function pointer
 	boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> m_messageReceiveCallback;
 	///	list of this broker's publishers
-	PublisherList::type publishers;
+	PublisherList::Type publishers;
+
 	///	place to gather outgoing data for each tick
-	SEND_BUFFER<Json::Value>::type sendBuffer;
+	SendBuffer::Type sendBuffer;
+
 	///	incoming data(from clients to broker) is saved here in the form of messages
 	sim_mob::comm::MessageQueue<sim_mob::MessageElement> receiveQueue;
 	///	list of classes that process incoming data(w.r.t client type)
 	///	to transform the data into messages and assign their message handlers
-	MessageFactories::type messageFactories; //<client type, message factory>
+	MessageFactories::Type messageFactories; //<client type, message factory>
 	///	list of classes who process client registration requests based on client type
 	sim_mob::ClientRegistrationFactory clientRegistrationFactory;
 	///	internal controlling container
 	std::set<const sim_mob::Agent*> duplicateEntityDoneChecker ;
 	///	internal controlling container
 	std::set<boost::shared_ptr<sim_mob::ConnectionHandler> > clientDoneChecker;
+
 	///	some control members(//todo: no need to be static as there can be multiple brokers with different requirements)
-	static const unsigned int MIN_CLIENTS = 2; //minimum number of registered clients(not waiting list)
-	static const unsigned int MIN_AGENTS = 2; //minimum number of registered agents
-	//	list of all brokers
+	static const unsigned int MIN_CLIENTS = 1; //minimum number of registered clients(not waiting list)
+	static const unsigned int MIN_AGENTS = 1; //minimum number of registered agents
+
+	///	list of all brokers
 	static std::map<std::string, sim_mob::Broker*> externalCommunicators;
+
 	///	used to help deciding whether Broker tick forward or block the simulation
 	bool brokerCanTickForward;
+
 	///	container for classes who evaluate wait-for-connection criteria for every type of client
-	BrokerBlockers::type clientBlockers; // <client type, BrokerBlocker class>
+	BrokerBlockers::Type clientBlockers; // <client type, BrokerBlocker class>
+
 	///	container for classes who evaluate wait-for-connection criteria for simmobility agents
-	BrokerBlockers::type agentBlockers; // <N/A, BrokerBlocker class>
+	BrokerBlockers::Type agentBlockers; // <N/A, BrokerBlocker class>
+
 	//various controlling mutexes and condition variables
 	boost::mutex mutex_client_request;
 	boost::mutex mutex_clientList;
@@ -170,13 +221,19 @@ private:
 	 * removes a client from the list of registered agents
 	 * Note: this function is not used any more.
 	 */
-	void removeClient(ClientList::iterator it_erase);
+	void removeClient(ClientList::Type::iterator it_erase);
 	/**
 	 * checks to see if a client has sent all what it had to send during the current tick
 	 * Note: The client will send an explicit message stating it is 'done' with whatever
 	 * it had to send for the current tick.
 	 */
 	void waitForClientsDone();
+
+	/**
+	 * Set any properties on "new" clients for this time tick. (Currently we do this with a specialized data-structure per client).
+	 */
+	void setNewClientProps();
+
 	/**
 	 * checks to see if every registered agent has completed its operations for the
 	 * current tick or not.
@@ -267,37 +324,47 @@ public:
 	/**
 	 * 	returns list of registered clients
 	 */
-	ClientList::type & getClientList();
+	ClientList::Type & getClientList();
 	/**
 	 *
 	 * 	searches for a client of specific ID and Type
 	 */
 	bool getClientHandler(std::string clientId,std::string clientType, boost::shared_ptr<sim_mob::ClientHandler> &output);
+
 	/**
 	 * 	adds to the list of registered clients
 	 */
-	void insertClientList(std::string ,unsigned int , boost::shared_ptr<sim_mob::ClientHandler>&);
+	void insertClientList(std::string, comm::ClientType , boost::shared_ptr<sim_mob::ClientHandler>&);
+
+	/**
+	 * Call a client's "enableRegionSupport()" method later, after that client is definitely done with its frame_tick() method.
+	 */
+	void pendClientToEnableRegions(boost::shared_ptr<sim_mob::ClientHandler> &clientHandler);
+
 	/**
 	 * 	adds a client to the registration waiting list
 	 */
 	void insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest >);
-	/**
-	 * 	returns the list of publishers
-	 */
-	PublisherList::type &getPublishers();
+
+	///Return an EventPublisher for a given type. Throws an exception if no such type is registered.
+	PublisherList::Value getPublisher(sim_mob::Services::SIM_MOB_SERVICE serviceType);
+
 	/**
 	 * 	request to insert into broker's send buffer
 	 */
-	bool insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler>, Json::Value&);
-	void preProcessMessage(boost::shared_ptr<ConnectionHandler> &cnnHandler,std::vector<sim_mob::comm::MsgPtr>  & messages, int firstMessageIndex, int lastMessageIndex, bool &clientMessageDone);
+	bool insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler>, const Json::Value&);
+//	void preProcessMessage(boost::shared_ptr<ConnectionHandler> &cnnHandler,std::vector<sim_mob::comm::MsgPtr>  & messages, int firstMessageIndex, int lastMessageIndex, bool &clientMessageDone);
+
 	/**
 	 * 	callback function executed upon message arrival
 	 */
 	void messageReceiveCallback(boost::shared_ptr<ConnectionHandler>cnnHadler , std::string message);
+
 	/**
 	 * 	The Accessor used by other entities to note the broker's message receive call back function
 	 */
 	boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> getMessageReceiveCallBack();
+
 	/**
 	 * 	broker, as an agent, has an update function
 	 */

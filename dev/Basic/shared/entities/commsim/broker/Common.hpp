@@ -18,9 +18,10 @@
 enum {
 	COMMEID_START = 9000000,
 
-	// Events for HousingMarket
+	// Events for HousingMarket (???)
 	COMMEID_TIME,
 	COMMEID_LOCATION,
+	COMMEID_REGIONS_AND_PATH,
 
 	//special context ids
 	//good for situations like NS3 location subscription where it

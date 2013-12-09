@@ -20,7 +20,7 @@ namespace roadrunner {
 
 class UnicastMessage : public sim_mob::comm::Message {
 public:
-	UnicastMessage(sim_mob::comm::MsgData& data_, bool useNs3) : Message(data_), useNs3(useNs3)
+	UnicastMessage(const sim_mob::comm::MsgData& data_, bool useNs3) : Message(data_), useNs3(useNs3)
 	{}
 
 	sim_mob::Handler* newHandler() {

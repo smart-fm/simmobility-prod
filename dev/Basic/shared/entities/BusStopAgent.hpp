@@ -28,7 +28,7 @@ class BusStopAgent  : public sim_mob::Agent
 {
 public:
 	BusStopAgent(BusStop const & busstop, const MutexStrategy& mtxStrat, int id=-1)
-		  : Agent(mtxStrat, id), busstop_(busstop){};
+		  : Agent(mtxStrat, id), busstop_(busstop), frequency_OutputHeadwayGaps(900000){};
 
 	//Return the number of known BusStopAgents
 	static size_t AllBusStopAgentsCount();
@@ -58,10 +58,9 @@ public:
 	const std::string& getBusStopAgentNo() const { return busstopAgentno_; }// get BusStopAgentNum
 	std::vector<sim_mob::WaitBusActivityRole*>& getBoarding_WaitBusActivities() { return boarding_WaitBusActivities; }// get the boarding queue of persons for all Buslines at this BusStopAgent
 	std::vector<sim_mob::Person*>& getAlighted_Persons() { return alighted_Persons; }
-	void setBuslineIdCurrReachedMS(const std::string& buslineId, uint32_t currReachedMS) {
-		buslineId_CurrReachedMS[buslineId] = currReachedMS;
+	void setBuslineIdCurrReachedMSs(const std::string& buslineId, uint32_t currReachedMS) {
+		buslineId_CurrReachedMSs[buslineId].push_back(currReachedMS);
 	}
-	void setBuslineIdHeadwayGap(const std::string& buslineId, uint32_t currReachedMS);
 	void unregisterAlightedPerons();
 
 	virtual ~BusStopAgent(){}
@@ -82,8 +81,8 @@ private:
 	std::vector<sim_mob::WaitBusActivityRole*> boarding_WaitBusActivities;// one boarding queue of persons for all Buslines(temporary, each BusDriver will construct a new queue based on this)
 	std::vector<sim_mob::Person*> alighted_Persons;// one alighted queue of persons.(possibly depart the persons continuing waiting and pedestrians moving to other places
 	std::map<std::string, std::vector<uint32_t> > buslineId_HeadwayGapMSs;// for each busline, list all the time headway gaps visited by each bus for this bus stop agent
-	std::map<std::string, uint32_t> buslineId_CurrReachedMS;// for each busline bus, stored the curr visited ms for this bus stop agent
-	std::map<std::string, uint32_t> buslineId_PrevReachedMS;// for each busline bus, stored the prev visited ms for this bus stop agent
+	std::map<std::string, std::vector<uint32_t> > buslineId_CurrReachedMSs;// for each busline, store all the curr visited ms of bustrips for this bus stop agent
+	uint32_t frequency_OutputHeadwayGaps;// default every 15min(900000ms) generate output
 
 
 #ifndef SIMMOB_DISABLE_MPI

@@ -1012,6 +1012,16 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 		const std::map<centimeter_t, const RoadItem*> obstacles = rs->getObstacles();
 		std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
 
+		if(obstacles.size()==0){
+			if(rs == parentDriver->vehicle->getCurrSegment()){
+				itemDis = parentDriver->vehicle->getCurrentSegmentLength() - parentDriver->vehicle->getDistanceMovedInSegment();
+			}
+			else{
+				RoadSegment* seg = const_cast<RoadSegment*>(rs);
+				itemDis += seg->getLengthOfSegment();
+			}
+		}
+
 		for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
 			const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
 

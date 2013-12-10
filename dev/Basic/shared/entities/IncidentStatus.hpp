@@ -183,7 +183,7 @@ private:
 	//record a random number for the reference to mandatory lane changing
 	float randomNum;
 	//record current incident length
-	float lengthOfIncident;
+	float incidentLength;
 	//record lane changing direction(left or right) for lane changing model
 	LANE_CHANGE_SIDE laneSide;
 	//record current detection result when incident happen

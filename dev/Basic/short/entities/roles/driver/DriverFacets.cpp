@@ -329,16 +329,16 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 	bool replan = false;
 	const RoadItem* roadItem = getRoadItemByDistance(sim_mob::INCIDENT, realDist);
 	if(roadItem) {//retrieve front incident obstacle
-		const Incident* inc = dynamic_cast<const Incident*>( roadItem );
+		const Incident* incidentObj = dynamic_cast<const Incident*>( roadItem );
 
-		if(inc){
-			float visibility = inc->visibilityDistance;
+		if(incidentObj){
+			float visibility = incidentObj->visibilityDistance;
 			incidentStatus.setVisibilityDistance(visibility);
 			incidentStatus.setCurrentLaneIndex(curLaneIndex);
 
-			if( (now.ms() >= inc->startTime) && (now.ms() < inc->startTime+inc->duration) && realDist<visibility){
+			if( (now.ms() >= incidentObj->startTime) && (now.ms() < incidentObj->startTime+incidentObj->duration) && realDist<visibility){
 				incidentStatus.setDistanceToIncident(realDist);
-				replan = incidentStatus.insertIncident(inc);
+				replan = incidentStatus.insertIncident(incidentObj);
 				float incidentGap = parentDriver->vehicle->length*2;
 				if(!incidentStatus.getChangedLane() && incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_OCCURANCE_LANE){
 					double prob = incidentStatus.getVisibilityDistance()>0 ? incidentStatus.getDistanceToIncident()/incidentStatus.getVisibilityDistance() : 0.0;
@@ -352,8 +352,8 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 					}
 				}
 			}
-			else if( now.ms() > inc->startTime+inc->duration ){// if incident duration is over, the incident obstacle will be removed
-				replan = incidentStatus.removeIncident(inc);
+			else if( now.ms()>incidentObj->startTime+incidentObj->duration ){// if incident duration is over, the incident obstacle will be removed
+				replan = incidentStatus.removeIncident(incidentObj);
 			}
 		}
 	}
@@ -779,7 +779,7 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 	//check incident status and decide whether or not do lane changing
 	LANE_CHANGE_MODE mode = DLC;
 	checkIncidentStatus(p, parentDriver->getParams().now);
-	if(incidentStatus.getChangedLane()&&incidentStatus.getNextLaneIndex()>=0){
+	if(incidentStatus.getChangedLane() && incidentStatus.getNextLaneIndex()>=0){
 		p.nextLaneIndex = incidentStatus.getNextLaneIndex();
 		parentDriver->vehicle->setTurningDirection(incidentStatus.getLaneSide());
 		mode = MLC;

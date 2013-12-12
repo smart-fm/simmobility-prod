@@ -365,6 +365,11 @@ public:
 #endif
 
 
+private:
+	///Have we registered to receive commsim-related messages?
+	bool commEventRegistered;
+
+
 public:
 	/**
 	 * This struct is used to track the Regions and Paths available to this Agent. This functionality is
@@ -422,11 +427,12 @@ public:
 		bool enabled;
 	} regionAndPathTracker;
 
-public:
+private:
 	///Enable Region support.
 	///See RegionAndPathTracker for more information.
 	void enableRegionSupport() { regionAndPathTracker.enable(); }
 
+public:
 	///Returns the current set of "all Regions", but only if region-tracking is enabled, and only if
 	/// the region set has changed since the last time tick.
 	///See RegionAndPathTracker for more information.

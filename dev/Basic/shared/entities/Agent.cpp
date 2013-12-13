@@ -135,7 +135,7 @@ sim_mob::Agent::~Agent() {
 	if (commEventRegistered) {
 		messaging::MessageBus::UnSubscribeEvent(
 			sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
-			static_cast<event::Context>(this),
+			this,
 			this
 		);
 	}
@@ -203,7 +203,7 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 		commEventRegistered = true;
 		messaging::MessageBus::SubscribeEvent(
 			sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
-			static_cast<event::Context>(this), //Only when we are the Agent having commsim enabled.
+			this, //Only when we are the Agent having commsim enabled.
 			this //Return this event to us (the agent).
 		);
 	}
@@ -283,14 +283,14 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
 	if (isToBeRemoved() || retVal.status == UpdateStatus::RS_DONE) {
 		retVal.status = UpdateStatus::RS_DONE;
 		setToBeRemoved();
+
 		//notify subscribers that this agent is done
-                MessageBus::PublishEvent(event::EVT_CORE_AGENT_DIED, this,
-                        MessageBus::EventArgsPtr(new AgentLifeCycleEventArgs(getId(), this)));
+		MessageBus::PublishEvent(event::EVT_CORE_AGENT_DIED, this,
+        MessageBus::EventArgsPtr(new AgentLifeCycleEventArgs(getId(), this)));
                 
-                //unsubscribes all listeners of this agent to this event. 
-                //(it is safe to do this here because the priority between events)
-                MessageBus::UnSubscribeAll(event::EVT_CORE_AGENT_DIED, this);
-               
+        //unsubscribes all listeners of this agent to this event.
+        //(it is safe to do this here because the priority between events)
+        MessageBus::UnSubscribeAll(event::EVT_CORE_AGENT_DIED, this);
 	}
 
 	PROFILE_LOG_AGENT_UPDATE_END(currWorkerProvider, this, now);

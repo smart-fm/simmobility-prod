@@ -420,7 +420,7 @@ bool sim_mob::Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
 	//tell me if you are dying
 	sim_mob::messaging::MessageBus::SubscribeEvent(
 			sim_mob::event::EVT_CORE_AGENT_DIED,
-			static_cast<event::Context>(value->getEntity()), this);
+			value->getEntity(), this);
 	return true;
 }
 
@@ -1019,7 +1019,7 @@ void sim_mob::Broker::setNewClientProps()
 			//NOTE: Be CAREFUL here using the Agent pointer as a Context (void*). If you have a class with multiple inheritance,
 			//      the void* for different realizations of the same object may have DIFFERENT pointer values. ~Seth
 			messaging::MessageBus::PublishEvent(sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
-				static_cast<event::Context>(const_cast<Agent*>(cHand->agent)),
+				cHand->agent,
 				messaging::MessageBus::EventArgsPtr(new event::EventArgs())
 			);
 		} else {

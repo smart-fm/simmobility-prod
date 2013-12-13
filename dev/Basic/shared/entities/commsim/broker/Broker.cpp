@@ -890,24 +890,15 @@ bool sim_mob::Broker::allClientsAreDone()
 	BOOST_FOREACH(clientByType, clientList) {
 		BOOST_FOREACH(clientByID, clientByType.second) {
 			clnHandler = clientByID.second;
-			if (!clnHandler) {
-				continue;
-			}
-			if (!(clnHandler->cnnHandler)) {
-				continue;
-			}
-			if (!(clnHandler->cnnHandler->is_open())) {
-				continue;
-			}
-			if (!(clnHandler->isValid())) {
-				continue;
-			}
-			if (!(clnHandler->cnnHandler->isValid())) {
-				continue;
-			}
-			//but
-			if (!isClientDone(clnHandler)) {
-				return false;
+			//If we have a valid client handler.
+			if (clnHandler && clnHandler->isValid()) {
+				//...and a valid connection handler.
+				if (clnHandler->cnnHandler && clnHandler->cnnHandler->isValid() && clnHandler->cnnHandler->is_open()) {
+					//...then check if we're not done.
+					if (!isClientDone(clnHandler)) {
+						return false;
+					}
+				}
 			}
 		}
 	}

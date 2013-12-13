@@ -360,6 +360,7 @@ void sim_mob::Agent::onEvent(EventId eventId,
 {
 	//Was commsim enabled for us? If so, start tracking Regions.
 	if (eventId==event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT && ctxId == this) {
+		Print() <<"Enabling Region support for agent: " <<this <<"\n";
 		enableRegionSupport();
 	}
 }

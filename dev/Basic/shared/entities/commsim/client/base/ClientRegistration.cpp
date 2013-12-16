@@ -12,60 +12,61 @@
 
 #include "ClientRegistration.hpp"
 
-#include <boost/assign/list_of.hpp>
-
 #include "entities/commsim/client/derived/android/AndroidClientRegistration.hpp"
 #include "entities/commsim/client/derived/ns3/NS3ClientRegistration.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 
 using namespace sim_mob;
 
-/******************************************************************************************************
- ***********************************ClientRegistrationFactory****************************************
- ******************************************************************************************************
- */
-sim_mob::ClientRegistrationFactory::ClientRegistrationFactory()
-{
-}
-
-sim_mob::ClientRegistrationFactory::~ClientRegistrationFactory()
-{
-}
-
-boost::shared_ptr<sim_mob::ClientRegistrationHandler> sim_mob::ClientRegistrationFactory::getHandler(comm::ClientType type)
-{
-	boost::shared_ptr<sim_mob::ClientRegistrationHandler> handler;
-	//if handler is already registered && the registered handler is not null
-	std::map<comm::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> >::iterator it = ClientRegistrationHandlerMap.find(type);
-	if(it != ClientRegistrationHandlerMap.end())
-	{
-		//get the handler ...
-		handler = (*it).second;
-	}
-	else
-	{
-		//else, create a cache entry ...
-		bool typeFound = true;
-		switch(type)
-		{
-		case comm::ANDROID_EMULATOR:
-			handler.reset(new sim_mob::AndroidClientRegistration());
-			break;
-		case comm::NS3_SIMULATOR:
-			handler.reset(new sim_mob::NS3ClientRegistration);
-			break;
-		default:
-			typeFound = false;
-		}
-		//register this baby
-		if(typeFound)
-		{
-			ClientRegistrationHandlerMap[type] = handler;
-		}
-	}
-
-	return handler;
-}
+///******************************************************************************************************
+// ***********************************ClientRegistrationFactory****************************************
+// ******************************************************************************************************
+// */
+//ClientRegistrationFactory::ClientRegistrationFactory() {
+//	//TODO: This might be superfluous; the static initializer already handles it.
+////	sim_mob::Services::ClientTypeMap = boost::assign::map_list_of("ANDROID_EMULATOR", ConfigParams::ANDROID_EMULATOR)("ConfigParams::NS3_SIMULATOR", ConfigParams::NS3_SIMULATOR);
+//
+//}
+//
+////gets a handler either from a cache or by creating a new one
+//boost::shared_ptr<sim_mob::ClientRegistrationHandler> ClientRegistrationFactory::getHandler(ConfigParams::ClientType type)
+//{
+//	boost::shared_ptr<sim_mob::ClientRegistrationHandler> handler;
+//	//if handler is already registered && the registered handler is not null
+//	std::map<ConfigParams::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> >::iterator it = ClientRegistrationHandlerMap.find(type);
+//	if(it != ClientRegistrationHandlerMap.end())
+//	{
+//		//get the handler ...
+//		handler = (*it).second;
+//	}
+//	else
+//	{
+//		//else, create a cache entry ...
+//		bool typeFound = true;
+//		switch(type)
+//		{
+//		case ConfigParams::ANDROID_EMULATOR:
+//			handler.reset(new sim_mob::AndroidClientRegistration());
+//			break;
+//		case ConfigParams::NS3_SIMULATOR:
+//			handler.reset(new sim_mob::NS3ClientRegistration);
+//			break;
+//		default:
+//			typeFound = false;
+//		}
+//		//register this baby
+//		if(typeFound)
+//		{
+//			ClientRegistrationHandlerMap[type] = handler;
+//		}
+//	}
+//
+//	return handler;
+//}
+//
+//ClientRegistrationFactory::~ClientRegistrationFactory() {
+//	// TODO Auto-generated destructor stub
+//}
 
 
 /******************************************************************************************************
@@ -116,19 +117,15 @@ sim_mob::ClientRegistrationRequest::ClientRegistrationRequest()
 
 ClientRegistrationPublisher sim_mob::ClientRegistrationHandler::registrationPublisher;
 
-sim_mob::ClientRegistrationHandler::ClientRegistrationHandler(comm::ClientType type):type(type)
+sim_mob::ClientRegistrationHandler::ClientRegistrationHandler(/*comm::ClientType type):type(type*/)
 {
-	registrationPublisher.registerEvent(type);
+	//registrationPublisher.registerEvent(type);
 }
 
 sim_mob::ClientRegistrationHandler::~ClientRegistrationHandler()
 {
 }
 
-sim_mob::event::EventPublisher & sim_mob::ClientRegistrationHandler::getPublisher()
-{
-	return registrationPublisher;
-}
 
 /******************************************************************************************************
  ***********************************ClientRegistrationEventArgs****************************************

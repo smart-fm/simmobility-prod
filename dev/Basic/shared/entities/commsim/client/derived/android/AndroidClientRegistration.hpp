@@ -15,14 +15,17 @@
 
 namespace sim_mob {
 
-class Broker;
-class Agent;
+
 
 class AndroidClientRegistration: public sim_mob::ClientRegistrationHandler {
 	std::set<Agent*> usedAgents;
 public:
 	AndroidClientRegistration();
-	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest);
+	bool initialEvaluation(sim_mob::Broker& broker,AgentsList::type &registeredAgents);
+	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest&);
+	virtual bool findAFreeAgent(AgentsList::type &registeredAgents,AgentsList::type::iterator &freeAgent);
+	virtual boost::shared_ptr<ClientHandler> makeClientHandler(sim_mob::Broker&,sim_mob::ClientRegistrationRequest &,sim_mob::AgentInfo freeAgent);
+
 	virtual ~AndroidClientRegistration();
 };
 

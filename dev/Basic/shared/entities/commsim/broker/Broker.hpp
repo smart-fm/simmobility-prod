@@ -150,7 +150,12 @@ private:
 	///	to transform the data into messages and assign their message handlers
 	MessageFactories::Type messageFactories; //<client type, message factory>
 	///	list of classes who process client registration requests based on client type
-	sim_mob::ClientRegistrationFactory clientRegistrationFactory;
+//	sim_mob::ClientRegistrationFactory clientRegistrationFactory;
+	//todo this will be configured in the configure() method and
+	//replace the above "clientRegistrationFactory" member for simplicity
+	std::map<comm::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> > ClientRegistrationHandlerMap;
+	//	publishes an event when a client is registered with the broker
+	sim_mob::ClientRegistrationPublisher registrationPublisher;
 	///	internal controlling container
 	std::set<const sim_mob::Agent*> duplicateEntityDoneChecker ;
 	///	internal controlling container
@@ -398,6 +403,30 @@ protected:
 	 * 	wait for a message from all of the registered the client stating that they are done sending messages for this tick
 	 */
 	bool allClientsAreDone();
+
+};
+
+class Roadrunner_Broker :public Broker{
+public:
+
+	/**
+	 * constructor and destructor
+	 */
+	explicit Roadrunner_Broker(const MutexStrategy& mtxStrat, int id=-1);
+	virtual void configure();
+
+};
+
+
+
+class STK_Broker :public Broker{
+public:
+
+	/**
+	 * constructor and destructor
+	 */
+	explicit STK_Broker(const MutexStrategy& mtxStrat, int id=-1);
+	virtual void configure();
 
 };
 

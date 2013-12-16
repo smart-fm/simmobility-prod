@@ -5,13 +5,13 @@
 #pragma once
 
 #include <map>
-#include <boost/bind.hpp>
 #include <boost/thread/locks.hpp>
 //#include <boost/thread/detail/thread_group.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/function.hpp>
 #include "util/LangHelpers.hpp"
+
 
 namespace sim_mob
 {

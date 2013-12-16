@@ -18,8 +18,11 @@ namespace sim_mob {
 
 class NS3ClientRegistration: public sim_mob::ClientRegistrationHandler  {
 public:
-	NS3ClientRegistration(/*ClientRegistrationFactory::ClientType type_ = ClientRegistrationFactory::NS3_SIMULATOR*/);
-	virtual bool handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest request);
+	NS3ClientRegistration(/*ConfigParams::ClientType type_ = ConfigParams::NS3_SIMULATOR*/);
+	virtual bool initialEvaluation(sim_mob::Broker& broker,AgentsList::type &registeredAgents);
+	virtual boost::shared_ptr<ClientHandler> makeClientHandler(sim_mob::Broker&,sim_mob::ClientRegistrationRequest &,sim_mob::AgentInfo agent = sim_mob::AgentInfo());
+	void sendAgentsInfo(sim_mob::Broker& broker, boost::shared_ptr<ClientHandler> clientEntry);
+	virtual bool handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request);
 	virtual ~NS3ClientRegistration();
 };
 

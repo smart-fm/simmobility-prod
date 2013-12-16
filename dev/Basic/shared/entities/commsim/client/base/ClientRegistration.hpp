@@ -19,7 +19,6 @@
 
 #include "entities/commsim/service/Services.hpp"
 #include "entities/commsim/connection/Session.hpp"
-#include "entities/commsim/client/ClientType.hpp"
 #include "event/EventPublisher.hpp"
 
 namespace sim_mob {
@@ -48,7 +47,7 @@ class ClientRegistrationHandler;
 /**
  * ClientRegistrationFactory class. No documentation provided.
  */
-class ClientRegistrationFactory {
+/*class ClientRegistrationFactory {
 	std::map<comm::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> > ClientRegistrationHandlerMap;
 public:
 	ClientRegistrationFactory();
@@ -56,7 +55,7 @@ public:
 
 	///gets a handler either from a cache or by creating a new one
 	boost::shared_ptr<sim_mob::ClientRegistrationHandler> getHandler(comm::ClientType type);
-};
+};*/
 
 
 /**

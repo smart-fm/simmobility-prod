@@ -133,7 +133,8 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	LoadNetworkFromDatabase();
 
 	//TEMP: Test network output via boost.
-	BoostSaveXML("NetworkCopy.xml", cfg.getNetworkRW());
+	//todo: enable/disble through cinfig
+	BoostSaveXML(cfg.networkXmlOutputFile(), cfg.getNetworkRW());
 
 	//Detect sidewalks in the middle of the road.
 	WarnMidroadSidewalks();
@@ -314,7 +315,7 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetworkFromDatabase()
 		sim_mob::aimsun::Loader::LoadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings, cfg.getNetworkRW(), cfg.getTripChains(), nullptr);
 	} else {
 		std::cout <<"Loading Road Network from XML.\n";
-		if (!sim_mob::xml::InitAndLoadXML(cfg.networkXmlFile(), cfg.getNetworkRW(), cfg.getTripChains())) {
+		if (!sim_mob::xml::InitAndLoadXML(cfg.networkXmlInputFile(), cfg.getNetworkRW(), cfg.getTripChains())) {
 			throw std::runtime_error("Error loading/parsing XML file (see stderr).");
 		}
 	}
@@ -597,7 +598,7 @@ void sim_mob::ExpandAndValidateConfigFile::PrintSettings()
 
 	//Output Database details
     if (cfg.system.networkSource==SystemParams::NETSRC_XML) {
-    	std::cout <<"Network details loaded from xml file: " <<cfg.system.networkXmlFile <<"\n";
+    	std::cout <<"Network details loaded from xml file: " <<cfg.system.networkXmlInputFile <<"\n";
     }
     if (cfg.system.networkSource==SystemParams::NETSRC_DATABASE) {
     	std::cout <<"Network details loaded from database connection: " <<cfg.getDatabaseConnectionString() <<"\n";

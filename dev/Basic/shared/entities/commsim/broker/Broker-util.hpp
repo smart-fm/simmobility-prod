@@ -5,15 +5,17 @@
 #pragma once
 
 #include <map>
+#include <boost/bind.hpp>
 #include <boost/thread/locks.hpp>
+//#include <boost/thread/detail/thread_group.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/function.hpp>
 #include "util/LangHelpers.hpp"
 
-
 namespace sim_mob
 {
+	const unsigned int MAX_THREAD_GROUP_SIZE = 20; //minimum number of registered agents
 //Forward Declaration
 class AgentCommUtilityBase;
 class Agent;
@@ -79,5 +81,26 @@ public:
 	//	sets Done value of an element in the container, give an agent
 	bool setDone(const Agent* agent , bool value);
 };
-
+//boost::thread_group threads;
+//int NumberOfThreads_sum = 0;
+//int NumberOfThreads_cnt = 0;
+///////////////////////////////////////////////////////////////////////////
+//template<class C,class Fn>
+//void doByThread(C &container, Fn function_){
+//	boost::thread_group threads;
+//	int numberOfThreads = ( container.size() > /*MAX_THREAD_GROUP_SIZE ? MAX_THREAD_GROUP_SIZE*/ 20 ? 20 : container.size() );
+//	int nofMsgsPerThread = container.size() / numberOfThreads;
+//	for(int i = 0; i < numberOfThreads; i++)
+//	{
+//		int firstMessageIndex = nofMsgsPerThread * i;
+//		int lastMessageIndex = nofMsgsPerThread * (i + 1);
+//		//one small check for remaining messages that not going to be assigned if we use the above simple assignment formula
+//		if(nofMsgsPerThread * (i + 2) > container.size()){
+//			lastMessageIndex = container.size();
+//		}
+//
+//		threads.create_thread(boost::bind(boost::ref(function_), firstMessageIndex,lastMessageIndex));
+//	}
+//	threads.join_all();
+//}
 }//namespace sim_mob

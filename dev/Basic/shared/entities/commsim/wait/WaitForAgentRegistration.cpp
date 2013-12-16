@@ -37,7 +37,7 @@ bool WaitForAgentRegistration::calculateWaitStatus() {
 		}
 		else
 		{
-			Print() << "min_start=>registeredAgents.size()= " << size << std::endl;
+			Print() << "min_start(" <<  min_start << ") is greaterEq than registeredAgents.size(" << size << ")" << std::endl;
 			setWaitStatus(true);
 		}
 	}

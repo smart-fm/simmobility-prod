@@ -184,6 +184,9 @@ void sim_mob::Agent::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigne
 
 
 UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
+	//Reset the Region tracking data structures, if applicable.
+	regionAndPathTracker.reset();
+
 	//We give the Agent the benefit of the doubt here and simply call frame_init().
 	//This allows them to override the start_time if it seems appropriate (e.g., if they
 	// are swapping trip chains). If frame_init() returns false, immediately exit.
@@ -330,10 +333,9 @@ NullableOutputStream sim_mob::Agent::Log()
 	return NullableOutputStream(currWorkerProvider->getLogFile());
 }
 
-void sim_mob::Agent::OnEvent(EventId eventId, EventPublisher* sender, const EventArgs& args){
-};
-
-void sim_mob::Agent::OnEvent(EventId eventId, Context ctxId, EventPublisher* sender, const EventArgs& args){
+void sim_mob::Agent::onEvent(EventId eventId, 
+        Context ctxId, EventPublisher* sender, 
+        const EventArgs& args){
 }
 
 void sim_mob::Agent::initRdSegTravelStats(const RoadSegment* rdSeg, double entryTime) {

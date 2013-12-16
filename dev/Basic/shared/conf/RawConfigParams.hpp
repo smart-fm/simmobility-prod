@@ -181,7 +181,8 @@ public:
 	bool mergeLogFiles;  ///<If true, we take time to merge the output of the individual log files after the simulation is complete.
 
 	NetworkSource networkSource; ///<Whethere to load the network from the database or from an XML file.
-	std::string networkXmlFile;  ///<If loading the network from an XML file, which file? Empty=private/SimMobilityInput.xml
+	std::string networkXmlInputFile;  ///<If loading the network from an XML file, which file? Empty=private/SimMobilityInput.xml
+	std::string networkXmlOutputFile;  ///<If loading the network from an XML file, which file? Empty=private/SimMobilityInput.xml
 	DatabaseDetails networkDatabase; //<If loading from the database, how do we connect?
 
 	std::string roadNetworkXsdSchemaFile; ///<Valid path to a schema file for loading XML road network files.

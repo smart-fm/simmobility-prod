@@ -203,10 +203,10 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 	}
 
 	//One more check: If they have a special string, save it now
-	it = configProps.find("special");
+	/*it = configProps.find("special");
 	if (it != configProps.end()) {
 		this->specialStr = it->second;
-	}
+	}*/
 }
 
 

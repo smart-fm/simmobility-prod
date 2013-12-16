@@ -21,7 +21,7 @@ template <class RET,class MSG>
 class MessageFactory {
 public:
 	virtual ~MessageFactory() {}
-	virtual bool createMessage(MSG,RET ) = 0;
+	virtual bool createMessage(const MSG& input,RET& output) = 0;
 };
 
 

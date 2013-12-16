@@ -25,7 +25,8 @@ namespace sim_mob {
         const std::string MAIN_SCHEMA = "main.";
         const std::string CALIBRATION_SCHEMA = "calibration.";
         const std::string LIMIT_10 = " limit 10";
-        const std::string LIMIT = LIMIT_10;
+        const std::string LIMIT_ALL = "";
+        const std::string LIMIT = LIMIT_ALL;
 
         /**
          * Tables

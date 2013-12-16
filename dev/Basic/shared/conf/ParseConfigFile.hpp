@@ -71,7 +71,8 @@ private:
 	void ProcessSystemSingleThreadedNode(xercesc::DOMElement* node);
 	void ProcessSystemMergeLogFilesNode(xercesc::DOMElement* node);
 	void ProcessSystemNetworkSourceNode(xercesc::DOMElement* node);
-	void ProcessSystemNetworkXmlFileNode(xercesc::DOMElement* node);
+	void ProcessSystemNetworkXmlInputFileNode(xercesc::DOMElement* node);
+	void ProcessSystemNetworkXmlOutputFileNode(xercesc::DOMElement* node);
 	void ProcessSystemDatabaseNode(xercesc::DOMElement* node);
 	void ProcessSystemXmlSchemaFilesNode(xercesc::DOMElement* node);
 	void ProcessSystemGenericPropsNode(xercesc::DOMElement* node);

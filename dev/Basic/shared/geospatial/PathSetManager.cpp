@@ -1668,7 +1668,7 @@ std::string sim_mob::getNumberFromAimsunId(std::string &aimsunid)
 	}
 	else
 	{
-		Print()<<"aimsun id not correct "+aimsunid<<std::endl;
+		Warn()<<"aimsun id not correct "+aimsunid<<std::endl;
 	}
 
 	return number;

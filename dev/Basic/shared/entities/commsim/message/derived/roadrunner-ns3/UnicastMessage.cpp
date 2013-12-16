@@ -16,7 +16,7 @@
 using namespace sim_mob;
 
 
-sim_mob::rr_android_ns3::NS3_MSG_UNICAST::NS3_MSG_UNICAST(sim_mob::comm::MsgData& data_): Message(data_)
+sim_mob::rr_android_ns3::NS3_MSG_UNICAST::NS3_MSG_UNICAST(const sim_mob::comm::MsgData& data_): Message(data_)
 {}
 
 Handler* sim_mob::rr_android_ns3::NS3_MSG_UNICAST::newHandler()

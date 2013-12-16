@@ -11,20 +11,23 @@
 
 #pragma once
 
-#include "entities/commsim/serialization/JsonParser.hpp"
-#include "event/args/EventArgs.hpp"
-#include "event/EventListener.hpp"
-#include "metrics/Frame.hpp"
 #include <iostream>
 
+#include "entities/commsim/serialization/JsonParser.hpp"
+#include "event/EventListener.hpp"
+#include "metrics/Frame.hpp"
+#include "entities/commsim/event/JsonSerializableEventArgs.hpp"
+
 namespace sim_mob {
-DECLARE_CUSTOM_CALLBACK_TYPE(TimeEventArgs)
-class TimeEventArgs: public sim_mob::event::EventArgs {
+
+class TimeEventArgs: public sim_mob::comm::JsonSerializableEventArgs {
 public:
 	TimeEventArgs(timeslice time);
 	virtual ~TimeEventArgs();
 	//todo should be a virtual from a base class
-	Json::Value ToJSON()const;
+	virtual Json::Value toJSON()const;
+
+private:
 	timeslice time;
 };
 

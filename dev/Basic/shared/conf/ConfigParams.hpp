@@ -80,12 +80,12 @@ public:
 		std::set<unsigned int> manualAgentIDs;
 	};
 
-	enum ClientType {
+	/*enum ClientType {
 		UNKNOWN = 0,
 		ANDROID_EMULATOR = 1,
 		NS3_SIMULATOR = 2,
 		//add your client type here
-	};
+	};*/
 
 	/*enum NetworkSource {
 		NETSRC_XML,
@@ -280,8 +280,12 @@ public:
 	bool RunningMidDemand() const;
 
 	///If loading the network from an XML file, which file? Empty=private/SimMobilityInput.xml
-	std::string& networkXmlFile();
-	const std::string& networkXmlFile() const;
+	std::string& networkXmlInputFile();
+	const std::string& networkXmlInputFile() const;
+
+	///If writing the network to an XML file, which file? Empty= dont write at all
+	std::string& networkXmlOutputFile();
+	const std::string& networkXmlOutputFile() const;
 
 	///If empty, use the default provided in "xsi:schemaLocation".
 	std::string& roadNetworkXsdSchemaFile();

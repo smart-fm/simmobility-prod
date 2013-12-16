@@ -34,6 +34,7 @@ void PopulationMongoDao::fromRow(mongo::BSONObj document, PersonParams& outParam
    	outParam.setIsFemale(document.getField(MONGO_FIELD_FEMALE).Int());
    	outParam.setHomeLocation(document.getField(MONGO_FIELD_HOME_MTZ).Int());
    	outParam.setFixedWorkLocation(document.getField(MONGO_FIELD_WORK_MTZ).Int());
+   	outParam.setFixedSchoolLocation(document.getField(MONGO_FIELD_SCHOOL_MTZ).Int());
    	outParam.setHH_OnlyAdults(document.getField(MONGO_FIELD_HH_ONLY_ADULTS).Int());
   	outParam.setHH_OnlyWorkers(document.getField(MONGO_FIELD_HH_ONLY_WORKERS).Int());
    	outParam.setHH_NumUnder4(document.getField(MONGO_FIELD_HH_NUM_UNDER_4).Int());

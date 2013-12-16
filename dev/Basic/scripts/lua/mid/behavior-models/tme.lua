@@ -121,9 +121,9 @@ local beta_distance_motor = 0
 -- 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
 -- 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
 local choice = {
-	"PT": {1,2,3},
-	"car" : {4,5,6,7}
-	"other":{8,9}
+	"PT" = {1,2,3},
+	"car" = {4,5,6,7},
+	"other" = {8,9}
 }
 
 --utility
@@ -333,3 +333,5 @@ function choose_tme(params,dbparams)
 	local probability = calculate_probability("nl", choice, utility, availability, scale)
 	return make_final_choice(probability)
 end
+
+print ("Corrected machi!")

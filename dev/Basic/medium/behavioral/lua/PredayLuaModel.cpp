@@ -158,7 +158,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 
 void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern) const {
 	LuaRef chooseDP = getGlobal(state.get(), "choose_dp");
-	LuaRef retVal = chooseDP(personParams);
+	LuaRef retVal = chooseDP(&personParams);
 	if (retVal.isTable()) {
 		dayPattern["WorkT"] = retVal[1].cast<int>();
 		dayPattern["EduT"] = retVal[2].cast<int>();
@@ -180,28 +180,28 @@ void sim_mob::medium::PredayLuaModel::predictNumTours(PersonParams& personParams
 
 	if(dayPattern["WorkT"]) {
 		LuaRef chooseNTW = getGlobal(state.get(), "choose_ntw"); // choose Num. of Work Tours
-		LuaRef retVal = chooseNTW(personParams);
+		LuaRef retVal = chooseNTW(&personParams);
 	    if (retVal.isNumber()) {
 	    	numTours["WorkT"] = retVal.cast<int>();
 	    }
 	}
 	if(dayPattern["EduT"]) {
 		LuaRef chooseNTE = getGlobal(state.get(), "choose_nte");// choose Num. of Education Tours
-		LuaRef retVal = chooseNTE(personParams);
+		LuaRef retVal = chooseNTE(&personParams);
 	    if (retVal.isNumber()) {
 	    	numTours["EduT"] = retVal.cast<int>();
 	    }
 	}
 	if(dayPattern["ShopT"]) {
 		LuaRef chooseNTS = getGlobal(state.get(), "choose_nts");// choose Num. of Shopping Tours
-		LuaRef retVal = chooseNTS(personParams);
+		LuaRef retVal = chooseNTS(&personParams);
 	    if (retVal.isNumber()) {
 	    	numTours["ShopT"] = retVal.cast<int>();
 	    }
 	}
 	if(dayPattern["OthersT"]) {
 		LuaRef chooseNTO = getGlobal(state.get(), "choose_nto");// choose Num. of Other Tours
-		LuaRef retVal = chooseNTO(personParams);
+		LuaRef retVal = chooseNTO(&personParams);
 	    if (retVal.isNumber()) {
 	    	numTours["OthersT"] = retVal.cast<int>();
 	    }
@@ -211,7 +211,7 @@ void sim_mob::medium::PredayLuaModel::predictNumTours(PersonParams& personParams
 
 bool sim_mob::medium::PredayLuaModel::predictUsualWorkLocation(PersonParams& personParams, UsualWorkParams& usualWorkParams) const {
 	LuaRef chooseUW = getGlobal(state.get(), "choose_uw"); // choose usual work location
-	LuaRef retVal = chooseUW(personParams, usualWorkParams);
+	LuaRef retVal = chooseUW(&personParams, &usualWorkParams);
 	if (!retVal.isNumber()) {
 		throw std::runtime_error("Error in usual work location model. Unexpected return value");
 	}
@@ -223,14 +223,14 @@ int sim_mob::medium::PredayLuaModel::predictTourMode(PersonParams& personParams,
 	case WORK:
 	{
 		LuaRef chooseTMD = getGlobal(state.get(), "choose_tmw");
-		LuaRef retVal = chooseTMD(personParams, tourModeParams);
+		LuaRef retVal = chooseTMD(&personParams, &tourModeParams);
 		return retVal.cast<int>();
 		break;
 	}
 	case EDUCATION:
 	{
 		LuaRef chooseTMD = getGlobal(state.get(), "choose_tme");
-		LuaRef retVal = chooseTMD(personParams, tourModeParams);
+		LuaRef retVal = chooseTMD(&personParams, &tourModeParams);
 		return retVal.cast<int>();
 		break;
 	}
@@ -246,21 +246,21 @@ int sim_mob::medium::PredayLuaModel::predictTourModeDestination(PersonParams& pe
 	case WORK:
 	{
 		LuaRef chooseTMD = getGlobal(state.get(), "choose_tmdw");
-		LuaRef retVal = chooseTMD(personParams, tourModeDestinationParams);
+		LuaRef retVal = chooseTMD(&personParams, &tourModeDestinationParams);
 		return retVal.cast<int>();
 		break;
 	}
 	case SHOP:
 	{
 		LuaRef chooseTMD = getGlobal(state.get(), "choose_tmds");
-		LuaRef retVal = chooseTMD(personParams, tourModeDestinationParams);
+		LuaRef retVal = chooseTMD(&personParams, &tourModeDestinationParams);
 		return retVal.cast<int>();
 		break;
 	}
 	case OTHER:
 	{
-		LuaRef chooseTM = getGlobal(state.get(), "choose_tmdo");
-		LuaRef retVal = chooseTM(personParams, tourModeDestinationParams);
+		LuaRef chooseTMD = getGlobal(state.get(), "choose_tmdo");
+		LuaRef retVal = chooseTMD(&personParams, &tourModeDestinationParams);
 		return retVal.cast<int>();
 		break;
 	}
@@ -273,7 +273,7 @@ int sim_mob::medium::PredayLuaModel::predictTourModeDestination(PersonParams& pe
 
 int sim_mob::medium::PredayLuaModel::generateIntermediateStop(PersonParams& personParams, StopGenerationParams& isgParams) const {
 	LuaRef chooseISG = getGlobal(state.get(), "choose_isg");
-	LuaRef retVal = chooseISG(personParams, isgParams);
+	LuaRef retVal = chooseISG(&personParams, &isgParams);
 	return retVal.cast<int>();
 }
 

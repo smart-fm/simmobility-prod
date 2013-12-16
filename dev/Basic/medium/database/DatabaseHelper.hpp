@@ -75,6 +75,7 @@ namespace medium {
 	const std::string MONGO_FIELD_FEMALE = "female_dummy";
 	const std::string MONGO_FIELD_HOME_MTZ = "home_mtz";
 	const std::string MONGO_FIELD_WORK_MTZ = "fix_work_location_mtz";
+	const std::string MONGO_FIELD_SCHOOL_MTZ = "school_location_mtz";
 	const std::string MONGO_FIELD_HH_ONLY_ADULTS = "only_adults";
 	const std::string MONGO_FIELD_HH_ONLY_WORKERS = "only_workers";
 	const std::string MONGO_FIELD_HH_NUM_UNDER_4 = "num_underfour";

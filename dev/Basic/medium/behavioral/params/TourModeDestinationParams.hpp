@@ -45,14 +45,16 @@ public:
 	}
 
 	virtual ~TourModeDestinationParams() {
-		for(boost::unordered_map<const std::string, CostParams*>::iterator i = amCostsMap.begin(); i!=amCostsMap.end(); ) {
-			delete i->second;
-			i = amCostsMap.erase(i);
+		for(boost::unordered_map<const std::string, CostParams*>::iterator i = amCostsMap.begin(); i!=amCostsMap.end(); i++) {
+			if(i->second) {
+				delete i->second;
+			}
 		}
 		amCostsMap.clear();
-		for(boost::unordered_map<const std::string, CostParams*>::iterator i = pmCostsMap.begin(); i!=pmCostsMap.end();) {
-			delete i->second;
-			i = amCostsMap.erase(i);
+		for(boost::unordered_map<const std::string, CostParams*>::iterator i = pmCostsMap.begin(); i!=pmCostsMap.end(); i++) {
+			if(i->second) {
+				delete i->second;
+			}
 		}
 		pmCostsMap.clear();
 	}

@@ -73,6 +73,7 @@ void PredaySystem::predictTourMode(Tour& tour) {
 	BSONObj znOrgObj, znDesObj;
 	BSONObj znOrgQuery = BSON("zone_code" << personParams.getHomeLocation());
 	BSONObj znDesQuery = BSON("zone_code" << tour.getPrimaryActivityLocation());
+	Print() << "zone_code" << tour.getPrimaryActivityLocation() << std::endl;
 	mongoDao["Zone"]->getOne(znOrgQuery, znOrgObj);
 	mongoDao["Zone"]->getOne(znDesQuery, znDesObj);
 	tmParams.setCostCarParking(znDesObj.getField("parking_rate").Double());
@@ -149,7 +150,6 @@ void PredaySystem::predictTourMode(Tour& tour) {
 		tmParams.setTtCarIvtSecond(0);
 		tmParams.setAvgTransfer(0);
 	}
-
 
 	tour.setTourMode(predayLuaModel.predictTourMode(personParams, tmParams));
 }
@@ -258,7 +258,7 @@ void PredaySystem::generateIntermediateStops(Tour& tour) {
 	Stop* primaryStop = tour.stops.front(); // The only stop at this point is the primary activity stop
 	Stop* generatedStop = nullptr;
 
-	if ((dayPattern.at("WorkI") + dayPattern.at("EduI") + dayPattern.at("ShopI") + dayPattern.at("OtherI")) > 0 ) {
+	if ((dayPattern.at("WorkI") + dayPattern.at("EduI") + dayPattern.at("ShopI") + dayPattern.at("OthersI")) > 0 ) {
 		//if any stop type was predicted in the day pattern
 		StopGenerationParams isgParams(tour, primaryStop);
 		int origin = personParams.getHomeLocation();
@@ -855,6 +855,9 @@ void PredaySystem::constructTours() {
 		}
 		Tour* workTour = new Tour(WORK);
 		workTour->setUsualLocation(attendsUsualWorkLocation);
+		if(attendsUsualWorkLocation) {
+			workTour->setPrimaryActivityLocation(personParams.getFixedWorkLocation());
+		}
 		tours.push_back(workTour);
 	}
 
@@ -862,6 +865,7 @@ void PredaySystem::constructTours() {
 	for(int i=0; i<numTours["EduT"]; i++) {
 		Tour* eduTour = new Tour(EDUCATION);
 		eduTour->setUsualLocation(true); // Education tours are always to usual locations
+		eduTour->setPrimaryActivityLocation(personParams.getFixedSchoolLocation());
 		if(personParams.isStudent()) {
 			// if the person is a student, his education tours should be processed before other tour types.
 			tours.push_front(eduTour); // if the person is a student, his education tours should be processed before other tour types.

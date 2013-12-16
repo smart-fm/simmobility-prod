@@ -28,7 +28,8 @@ local function calculate_nested_logit_probability(choiceset, utility, availables
 	local probability = {}
 	local exp = math.exp
 	local pow = math.pow
-	for nest,choices in ipairs(choiceset) do
+	for nest,choices in pairs(choiceset) do
+		print (scales[nest])
 		local mu = scales[nest]
 		local nest_evsum = 0
 		for i,c in ipairs(choices) do

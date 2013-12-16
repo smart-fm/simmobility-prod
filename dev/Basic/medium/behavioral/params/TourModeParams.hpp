@@ -289,6 +289,14 @@ public:
 		workOP = workOp;
 	}
 
+	double getEducationOp() const {
+		return educationOP;
+	}
+
+	void setEducationOp(double educationOp) {
+		educationOP = educationOp;
+	}
+
 private:
 	StopType stopType;
 	double costPublicFirst;
@@ -312,6 +320,7 @@ private:
 	double avgTransfer;
 	double residentSize;
 	double workOP;
+	double educationOP;
 	double originArea;
 	double destinationArea;
 	

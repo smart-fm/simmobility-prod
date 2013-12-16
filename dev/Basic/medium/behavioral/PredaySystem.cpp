@@ -80,6 +80,7 @@ void PredaySystem::predictTourMode(Tour& tour) {
 	tmParams.setCentralZone(znDesObj.getField("central_dummy").Double());
 	tmParams.setResidentSize(znOrgObj.getField("resident_workers").Double());
 	tmParams.setWorkOp(znDesObj.getField("employment").Double());
+	tmParams.setEducationOp(znDesObj.getField("total_enrollment").Double());
 	tmParams.setOriginArea(znOrgObj.getField("area").Double());
 	tmParams.setDestinationArea(znDesObj.getField("area").Double());
 	if(personParams.getHomeLocation() != tour.getPrimaryActivityLocation()) {

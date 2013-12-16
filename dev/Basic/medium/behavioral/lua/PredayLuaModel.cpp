@@ -103,6 +103,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("origin_area",&TourModeParams::getOriginArea)
 				.addProperty("resident_size",&TourModeParams::getResidentSize)
 				.addProperty("work_op",&TourModeParams::getWorkOp)
+				.addProperty("education_op",&TourModeParams::getEducationOp)
 			.endClass();
 
 	getGlobalNamespace(state.get())
@@ -222,15 +223,15 @@ int sim_mob::medium::PredayLuaModel::predictTourMode(PersonParams& personParams,
 	switch (tourModeParams.getStopType()) {
 	case WORK:
 	{
-		LuaRef chooseTMD = getGlobal(state.get(), "choose_tmw");
-		LuaRef retVal = chooseTMD(&personParams, &tourModeParams);
+		LuaRef chooseTMW = getGlobal(state.get(), "choose_tmw");
+		LuaRef retVal = chooseTMW(&personParams, &tourModeParams);
 		return retVal.cast<int>();
 		break;
 	}
 	case EDUCATION:
 	{
-		LuaRef chooseTMD = getGlobal(state.get(), "choose_tme");
-		LuaRef retVal = chooseTMD(&personParams, &tourModeParams);
+		LuaRef chooseTME = getGlobal(state.get(), "choose_tme");
+		LuaRef retVal = chooseTME(&personParams, &tourModeParams);
 		return retVal.cast<int>();
 		break;
 	}

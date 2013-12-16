@@ -120,11 +120,11 @@ local beta_distance_motor = 0
 --choice set
 -- 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
 -- 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
-local choice = {
-	"PT" = {1,2,3},
-	"car" = {4,5,6,7},
-	"other" = {8,9}
-}
+local choice = {}
+choice["PT"] = {1,2,3}
+choice["car"] = {4,5,6,7}
+choice["other"] = {8,9}
+
 
 --utility
 -- 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
@@ -305,18 +305,17 @@ local function computeAvailabilities(params,dbparams)
 		dbparams.tme_publicbus_AV,
 		dbparams.tme_mrt_AV,
 		dbparams.tme_privatebus_AV
-	},
+	}
 	availability[2] = {
 		dbparams.tme_drive1_AV,
 		dbparams.tme_share2_AV,
 		dbparams.tme_share3_AV,
 		dbparams.tme_motor_AV
-	},
+	}
 	availability[3] = {
 		dbparams.tme_walk_AV,
 		dbparams.tme_taxi_AV
 	}
-}
 end
 
 --scale
@@ -333,5 +332,3 @@ function choose_tme(params,dbparams)
 	local probability = calculate_probability("nl", choice, utility, availability, scale)
 	return make_final_choice(probability)
 end
-
-print ("Corrected machi!")

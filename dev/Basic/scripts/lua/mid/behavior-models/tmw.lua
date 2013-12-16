@@ -105,10 +105,9 @@ local beta_attraction_2 = 0
 --choice set
 -- 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
 -- 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
-local choice = {
-	"PT": {1,2,3},
-	"non-PT" : {4,5,6,7,8,9}
-}
+local choice = {}
+choice["PT"] = {1,2,3}
+choice["non-PT"] = {4,5,6,7,8,9}
 
 
 --utility
@@ -284,7 +283,7 @@ local function computeAvailabilities(params,dbparams)
 		dbparams.tmw_publicbus_AV,
 		dbparams.tmw_mrt_AV,
 		dbparams.tmw_privatebus_AV
-	},
+	}
 	availability[2] = {
 		dbparams.tmw_drive1_AV,
 		dbparams.tmw_share2_AV,
@@ -308,3 +307,5 @@ function choose_tmw(params,dbparams)
 	local probability = calculate_probability("nl", choice, utility, availability, scale)
 	return make_final_choice(probability)
 end
+
+print ("Corrected machi!")

@@ -1017,8 +1017,7 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 				itemDis = parentDriver->vehicle->getCurrentSegmentLength() - parentDriver->vehicle->getDistanceMovedInSegment();
 			}
 			else{
-				RoadSegment* seg = const_cast<RoadSegment*>(rs);
-				itemDis += seg->getLengthOfSegment();
+				itemDis += rs->getLengthOfSegment();
 			}
 		}
 

@@ -148,11 +148,6 @@ protected:
 	///	list of authorized clients who have passed the registration process
 	ClientList::Type clientList; //key note: there can be one agent associated with multiple clients in this list. why? : coz clients of any type are i this list. and any one has associated itself to this agent for its specific type's reason
 
-	///Set of clients that need their enableRegionSupport() function called. This can only be done once their time tick is over,
-	///  so we pend them on this list. The extra weak_ptr shouldn't be a problem; if the object is destroyed before its
-	///  call to enableRegionSupport(), it will just be silently dropped.
-	std::set< boost::weak_ptr<sim_mob::ClientHandler> > newClientsWaitingOnRegionEnabling;
-
 	///	connection point to outside simmobility
 	boost::shared_ptr<sim_mob::ConnectionServer> connection;					//accepts, authenticate and registers client connections
 	///	message receive call back function pointer
@@ -259,11 +254,6 @@ protected:
 	void waitForClientsDone();
 
 	/**
-	 * Set any properties on "new" clients for this time tick. (Currently we do this with a specialized data-structure per client).
-	 */
-	void setNewClientProps();
-
-	/**
 	 * checks to see if every registered agent has completed its operations for the
 	 * current tick or not.
 	 */
@@ -368,11 +358,6 @@ public:
 	 * 	adds to the list of registered clients
 	 */
 	void insertClientList(std::string, comm::ClientType , boost::shared_ptr<sim_mob::ClientHandler>&);
-
-	/**
-	 * Call a client's "enableRegionSupport()" method later, after that client is definitely done with its frame_tick() method.
-	 */
-	void pendClientToEnableRegions(boost::shared_ptr<sim_mob::ClientHandler> &clientHandler);
 
 	/**
 	 * 	adds a client to the registration waiting list

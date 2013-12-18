@@ -130,7 +130,8 @@ void sim_mob::Roadrunner_Broker::configure()
 
 	// wait for connection criteria for this broker
 	clientBlockers.insert(std::make_pair(comm::ANDROID_EMULATOR,
-			boost::shared_ptr<WaitForAndroidConnection>(new WaitForAndroidConnection(*this,MIN_CLIENTS))));
+			boost::shared_ptr<WaitForAndroidConnection>(new
+					WaitForAndroidConnection(*this,MIN_CLIENTS))));
 
 
 	if(client_mode == "android-ns3") {
@@ -143,6 +144,73 @@ void sim_mob::Roadrunner_Broker::configure()
 	agentBlockers.insert(std::make_pair(0,
 			boost::shared_ptr<WaitForAgentRegistration>(new WaitForAgentRegistration(*this,MIN_AGENTS))));
 
+}
+
+
+sim_mob::Entity::UpdateStatus sim_mob::Roadrunner_Broker::update(timeslice now) {
+	Print() << "Broker tick:" << now.frame() << std::endl;
+
+	//step-1 : Create/start the thread if this is the first frame.
+	//TODO: transfer this to frame_init
+	if (now.frame() == 0) {
+		connection->start();
+	}
+	Print()
+			<< "=====================ConnectionStarted ======================================="
+			<< std::endl;
+
+	//Step-2: Ensure that we have enough clients to process
+	//(in terms of client type (like ns3, android emulator, etc) and quantity(like enough number of android clients) ).
+	//Block the simulation here(if you have to)
+	wait();
+	Print()
+			<< "===================== wait Done ======================================="
+			<< std::endl;
+
+	//step-3: Process what has been received in your receive container(message queue perhaps)
+	processIncomingData(now);
+	Print()
+			<< "===================== processIncomingData Done ======================================="
+			<< std::endl;
+
+	//step-4: if need be, wait for all agents(or others)
+	//to complete their tick so that you are the last one ticking)
+	waitForAgentsUpdates();
+	Print()
+			<< "===================== waitForAgentsUpdates Done ======================================="
+			<< std::endl;
+
+	//step-5: signal the publishers to publish their data
+	processPublishers(now);
+	Print()
+			<< "===================== processPublishers Done ======================================="
+			<< std::endl;
+//	step-5.5:for each client, append a message at the end of all messages saying Broker is ready to receive your messages
+	sendReadyToReceive();
+
+	//step-6: Now send all what has been prepared, by different sources, to their corresponding destications(clients)
+	processOutgoingData(now);
+	Print()
+			<< "===================== processOutgoingData Done ======================================="
+			<< std::endl;
+
+	//step-7:
+	//the clients will now send whatever they want to send(into the incoming messagequeue)
+	//followed by a Done! message.That is when Broker can go forwardClientList::pair clientByType;
+	waitForClientsDone();
+	Print() << "===================== waitForClientsDone Done =======================================" << std::endl;
+
+	//step-8:
+	//Now that all clients are done, set any properties on new clients.
+	if (!newClientsWaitingOnRegionEnabling.empty()) {
+		setNewClientProps();
+		Print() << "===================== setNewClientProps Done =======================================" << std::endl;
+	}
+
+	//step-9: final steps that should be taken before leaving the tick
+	//prepare for next tick.
+	cleanup();
+	return UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
 
 void sim_mob::Roadrunner_Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums)
@@ -163,4 +231,32 @@ void sim_mob::Roadrunner_Broker::onClientRegister(sim_mob::event::EventId id, si
 	}
 //	}
 
+}
+
+
+void sim_mob::Roadrunner_Broker::setNewClientProps()
+{
+	//NOTE: This *should not* require locking, sicne all clients are already done. Please review. ~Seth
+
+	//Now, loop through each client and call its Agent's enableRegionSupport() function if applicable.
+	for (std::set< boost::weak_ptr<sim_mob::ClientHandler> >::iterator it=newClientsWaitingOnRegionEnabling.begin(); it!=newClientsWaitingOnRegionEnabling.end(); it++) {
+		//Attempt to resolve the weak pointer.
+		boost::shared_ptr<sim_mob::ClientHandler> cHand = it->lock();
+		if (cHand) {
+			//NOTE: The Agent is not doing anything, so it is safe to modify it. I don't really like the const_cast,
+			//      but I can't think of a better way of doing it. Please review. ~Seth
+			const_cast<Agent*>(cHand->agent)->enableRegionSupport();
+		} else {
+			Warn() <<"Broker::setNewClientProps() -- Client was destroyed before its weak_ptr() could be resolved.\n";
+		}
+	}
+
+	//These clients have been processed.
+	newClientsWaitingOnRegionEnabling.clear();
+}
+
+void sim_mob::Roadrunner_Broker::pendClientToEnableRegions(boost::shared_ptr<sim_mob::ClientHandler> &clientHandler)
+{
+	boost::unique_lock<boost::mutex> lock(mutex_clientList);
+	newClientsWaitingOnRegionEnabling.insert(clientHandler);
 }

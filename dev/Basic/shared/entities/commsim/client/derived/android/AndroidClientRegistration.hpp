@@ -12,13 +12,13 @@
 #pragma once
 
 #include "entities/commsim/client/base/ClientRegistration.hpp"
-
+#include "entities/commsim/Broker.hpp"
 namespace sim_mob {
 
 
 
 class AndroidClientRegistration: public sim_mob::ClientRegistrationHandler {
-	std::set<Agent*> usedAgents;
+	std::set<sim_mob::Agent*> usedAgents;
 public:
 	AndroidClientRegistration();
 	bool initialEvaluation(sim_mob::Broker& broker,AgentsList::type &registeredAgents);

@@ -15,7 +15,7 @@
 
 #include "event/EventListener.hpp"
 #include "entities/commsim/serialization/JsonParser.hpp"
-#include "entities/commsim/broker/Broker.hpp"
+#include "entities/commsim/Broker.hpp"
 #include "entities/commsim/event/JsonSerializableEventArgs.hpp"
 
 namespace sim_mob {

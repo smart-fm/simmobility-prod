@@ -49,7 +49,9 @@ sim_mob::DriverCommMovement::~DriverCommMovement()
 void sim_mob::DriverCommMovement::frame_init() {
 	DriverMovement::frame_init();
 	sim_mob::Agent * agent = 0;
-	this->parentDriverCommRole->RegisterWithBroker(/*this->parentDriverCommRole->getParent(), this->parentDriverCommRole->getBroker()*/);
+	//todo: solve this hardcoding
+	this->parentDriverCommRole->RegisterWithBroker("roadrunner");
+	this->parentDriverCommRole->RegisterWithBroker("stk");
 }
 
 void sim_mob::DriverCommMovement::frame_tick() {

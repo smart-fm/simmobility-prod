@@ -18,9 +18,15 @@
 #include "entities/commsim/message/base/MessageQueue.hpp"
 #include "entities/commsim/message/base/Handler.hpp"
 #include "entities/commsim/buffer/BufferContainer.hpp"
-#include "entities/commsim/broker/Broker-util.hpp"
+#include "entities/commsim/broker/base/Broker-util.hpp"
+#include "entities/commsim/broker/base/Common.hpp"
+
 #include "util/OneTimeFlag.hpp"
 #include "workers/Worker.hpp"
+
+#include "event/SystemEvents.hpp"
+#include "message/MessageBus.hpp"
+#include "event/EventPublisher.hpp"
 
 namespace sim_mob {
 
@@ -38,6 +44,15 @@ class ConnectionServer;
 class ClientHandler;
 class BrokerBlocker;
 
+
+//subclassed Eventpublisher coz its destructor is pure virtual
+class BrokerPublisher: public sim_mob::event::EventPublisher {
+public:
+	BrokerPublisher() {
+	}
+	virtual ~BrokerPublisher() {
+	}
+};
 
  //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
 struct MessageElement{
@@ -115,8 +130,12 @@ struct SendBuffer {
 };
 
 class Broker  : public sim_mob::Agent {
-private:
+protected:
 	typedef std::multimap<std::string,ClientRegistrationRequest > ClientWaitList;
+
+	///the external communication entity that is using this broker as interface to from simmobility
+	std::string commElement;//"roadrunner", "stk",...etc
+	std::string commMode; //android-only, android-ns3,...etc
 
 	///	Is this Broker currently enabled?
 	bool enabled;
@@ -255,11 +274,15 @@ private:
 	/**
 	 * to be called and identify the agent who has just updated
 	 */
-	void onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums);
+	virtual void onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums);
+	/**
+	 * 	actuall implementation of onAgentUpdate
+	 */
+	void agentUpdated(const Agent* target );
 	/**
 	 * 	is called when a new client is registered with the broker
 	 */
-	void onClientRegister(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums);
+	virtual void onClientRegister(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums);
 	/**
 	 * 	publish various data the broker has subscibed to
 	 */
@@ -281,7 +304,7 @@ public:
 	/**
 	 * constructor and destructor
 	 */
-	explicit Broker(const MutexStrategy& mtxStrat, int id=-1);
+	explicit Broker(const MutexStrategy& mtxStrat, int id=-1, std::string commElement_ = "", std::string commMode_ = "");
 	/**
 	 * 	configure publisher, message handlers and waiting criteria...
 	 */
@@ -353,6 +376,10 @@ public:
 
 	///Return an EventPublisher for a given type. Throws an exception if no such type is registered.
 	PublisherList::Value getPublisher(sim_mob::Services::SIM_MOB_SERVICE serviceType);
+	/**
+	 * Accessor to client registration publisher
+	 */
+	sim_mob::ClientRegistrationPublisher &getRegistrationPublisher();
 
 	/**
 	 * 	request to insert into broker's send buffer
@@ -405,30 +432,5 @@ protected:
 	bool allClientsAreDone();
 
 };
-
-class Roadrunner_Broker :public Broker{
-public:
-
-	/**
-	 * constructor and destructor
-	 */
-	explicit Roadrunner_Broker(const MutexStrategy& mtxStrat, int id=-1);
-	virtual void configure();
-
-};
-
-
-
-class STK_Broker :public Broker{
-public:
-
-	/**
-	 * constructor and destructor
-	 */
-	explicit STK_Broker(const MutexStrategy& mtxStrat, int id=-1);
-	virtual void configure();
-
-};
-
 
 }

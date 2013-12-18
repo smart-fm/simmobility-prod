@@ -9,21 +9,23 @@
 using namespace sim_mob;
 
 sim_mob::AgentCommUtilityBase::AgentCommUtilityBase(sim_mob::Agent* entity_)
-	: entity(entity_), communicator(nullptr), incomingIsDirty(false), outgoingIsDirty(false),
+	: entity(entity_), incomingIsDirty(false), outgoingIsDirty(false),
 	  writeIncomingDone(false), readOutgoingDone(false), agentUpdateDone(false), type(0)
 {
-	registered = false;
 	registrationCallback = &AgentCommUtilityBase::registrationCallBack;
 }
 
-void sim_mob::AgentCommUtilityBase::setBroker(sim_mob::Broker *broker)
+void sim_mob::AgentCommUtilityBase::setBroker(const std::string& commElement,sim_mob::Broker *broker)
 {
-	communicator = broker;
+	brokers[commElement] = broker;
 }
 
-sim_mob::Broker* sim_mob::AgentCommUtilityBase::getBroker()
+sim_mob::Broker* sim_mob::AgentCommUtilityBase::getBroker(const std::string & commElement)
 {
-	return communicator;
+	if(brokers.find(commElement) != brokers.end()){
+		return brokers[commElement];
+	}
+	return nullptr;
 }
 
 void sim_mob::AgentCommUtilityBase::setwriteIncomingDone(bool value)
@@ -97,7 +99,7 @@ void sim_mob::AgentCommUtilityBase::init()
 }
 
 
-bool sim_mob::AgentCommUtilityBase::RegisterWithBroker()
+bool sim_mob::AgentCommUtilityBase::RegisterWithBroker(const std::string& commElement)
 {
 
 //		//todo here you are copying twice while once is possibl, I guess.
@@ -105,22 +107,56 @@ bool sim_mob::AgentCommUtilityBase::RegisterWithBroker()
 //		info.setEntity(registerr);
 //		communicator = communicator_;
 //		Print() << "AgentCommUtility::Registering With Broker[" << communicator << "]" << std::endl;
-	if(!communicator) {
+	if(brokers.find(commElement) == brokers.end()) {
 		throw std::runtime_error("Broker Not specified");
 	}
-	return communicator->registerEntity(this);
+	return brokers[commElement]->registerEntity(this);
 //		std::cout << "agent[" << &getEntity() << "] was registered with outgoing[" << &(getOutgoing()) << "]" << std::endl;
 }
 
 
-void sim_mob::AgentCommUtilityBase::setregistered(bool value)
+void sim_mob::AgentCommUtilityBase::setregistered(std::string commElement, bool value)
 {
-	registered = value;
+
+	if(brokers.find(commElement) == brokers.end()) {
+		throw std::runtime_error("Broker Not specified");
+	}
+	if(registered.find(commElement) == registered.end()) {
+		throw std::runtime_error("Broker Not specified");
+	}
+	registered[commElement] = value;
 }
 
-void sim_mob::AgentCommUtilityBase::registrationCallBack(bool registered)
+
+void sim_mob::AgentCommUtilityBase::setregistered(sim_mob::Broker *broker, bool value)
 {
-	setregistered(registered);
+	//find the broker in the list
+	sim_mob::Broker *tempBroker = nullptr;
+	std::string commElement;
+	std::map<const std::string,sim_mob::Broker*>::const_iterator it(brokers.begin()), it_end(brokers.end());
+	for(; it != it_end; it++){
+		if(it->second == broker)
+		{
+			tempBroker = broker;
+			commElement = it->first;
+			break;
+		}
+	}
+
+	if(!tempBroker) {
+		throw std::runtime_error("Broker Not specified");
+	}
+
+	if(registered.find(commElement) == registered.end()) {
+		throw std::runtime_error("Broker Not specified");
+	}
+
+	registered[commElement] = value;
+}
+
+void sim_mob::AgentCommUtilityBase::registrationCallBack(std::string commElement, bool registered)
+{
+	setregistered(commElement,registered);
 }
 
 sim_mob::Agent* sim_mob::AgentCommUtilityBase::getEntity()

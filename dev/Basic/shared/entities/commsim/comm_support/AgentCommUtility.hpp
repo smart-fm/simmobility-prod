@@ -5,7 +5,7 @@
 #pragma once
 
 #include "entities/commsim/buffer/BufferContainer.hpp"
-#include "entities/commsim/broker/Broker.hpp"
+#include "entities/commsim/Broker.hpp"
 
 
 //this file provides some of the communication
@@ -44,11 +44,11 @@ private:
 	unsigned int type;//do you want to register as a pedestrian, driver,....
 
 protected:
-	sim_mob::Broker* communicator;
+	std::map<const std::string,sim_mob::Broker*> brokers;
 
 public:
-	bool registered;
-	void (AgentCommUtilityBase::*registrationCallback)(bool);
+	std::map<const std::string,bool> registered;
+	void (AgentCommUtilityBase::*registrationCallback)(std::string ,bool);
 
 	boost::shared_mutex mutex;
 	boost::shared_mutex mutex_outgoing;
@@ -56,9 +56,9 @@ public:
 
 	AgentCommUtilityBase(sim_mob::Agent* entity_);
 
-	void setBroker(sim_mob::Broker *broker);
+	void setBroker(const std::string& commElement,sim_mob::Broker *broker);
 
-	sim_mob::Broker *getBroker();
+	sim_mob::Broker *getBroker(const std::string& commElement);
 
 	void setwriteIncomingDone(bool value);
 
@@ -82,12 +82,13 @@ public:
 
 	//this is used to register the drived class
 	//(which is also an agent) to the communicator agent
-	bool RegisterWithBroker();
+	bool RegisterWithBroker(const std::string& commElement);
 
 	//	subscriptionInfo getSubscriptionInfo();
-	void setregistered(bool value);
+	void setregistered(std::string commElement,bool value);
+	void setregistered(sim_mob::Broker *broker, bool value);
 
-	void registrationCallBack(bool registered);
+	void registrationCallBack(std::string commElement, bool registered);
 
 	sim_mob::Agent* getEntity();
 

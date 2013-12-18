@@ -10,7 +10,7 @@
  */
 
 #include "ConnectionHandler.hpp"
-#include "entities/commsim/broker/Broker.hpp"
+#include "entities/commsim/Broker.hpp"
 //#include "Session.hpp"
 #include "entities/commsim/serialization/JsonParser.hpp"
 

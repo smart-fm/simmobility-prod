@@ -13,15 +13,16 @@
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "event/EventPublisher.hpp"
-#include "entities/commsim/broker/Common.hpp"
+#include "entities/commsim/broker/base/Common.hpp"
 #include "entities/commsim/event/AllLocationsEventArgs.hpp"
 #include "AgentsInfo.hpp"
 #include <boost/foreach.hpp>
 
-sim_mob::NS3ClientRegistration::NS3ClientRegistration(/*ConfigParams::ClientType type_*/) : ClientRegistrationHandler(comm::NS3_SIMULATOR) {
+sim_mob::NS3ClientRegistration::NS3ClientRegistration(/*ConfigParams::ClientType type_*/) : ClientRegistrationHandler(/*comm::NS3_SIMULATOR*/) {
 	// TODO Auto-generated constructor stub
 
 }
+sim_mob::NS3ClientRegistration::~NS3ClientRegistration(){}
 
 bool sim_mob::NS3ClientRegistration::initialEvaluation(sim_mob::Broker& broker,AgentsList::type &registeredAgents){
 
@@ -36,7 +37,7 @@ bool sim_mob::NS3ClientRegistration::initialEvaluation(sim_mob::Broker& broker,A
 	return true;
 }
 
-boost::shared_ptr<ClientHandler> sim_mob::NS3ClientRegistration::makeClientHandler(
+boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeClientHandler(
 		sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request,
 		sim_mob::AgentInfo agent) {
 

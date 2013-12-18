@@ -12,7 +12,7 @@
 #include "AndroidClientRegistration.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
-#include "entities/commsim/broker/Common.hpp"
+#include "entities/commsim/broker/base/Common.hpp"
 #include "entities/commsim/comm_support/AgentCommUtility.hpp"
 #include "event/EventPublisher.hpp"
 #include "entities/commsim/event/RegionsAndPathEventArgs.hpp"
@@ -23,7 +23,7 @@ using namespace sim_mob;
 
 
 
-AndroidClientRegistration::AndroidClientRegistration(/*ConfigParams::ClientType type_*/) : ClientRegistrationHandler(ConfigParams::ANDROID_EMULATOR){
+AndroidClientRegistration::AndroidClientRegistration(/*ConfigParams::ClientType type_*/) : ClientRegistrationHandler(/*ConfigParams::ANDROID_EMULATOR*/){
 	// TODO Auto-generated constructor stub
 }
 
@@ -137,7 +137,7 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(
 	//add this agent to the list of the agents who are associated with a android emulator client
 	usedAgents.insert(freeAgent.agent);
 	//tell the agent you are registered
-	freeAgent.comm->setregistered(true);
+	freeAgent.comm->setregistered(&broker,true);
 	//publish an event to inform- interested parties- of the registration of a new android client
 	broker.getRegistrationPublisher().publish(comm::ANDROID_EMULATOR,
 			ClientRegistrationEventArgs(comm::ANDROID_EMULATOR,

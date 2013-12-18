@@ -10,7 +10,7 @@
  */
 
 #include "WaitForAgentRegistration.hpp"
-#include "entities/commsim/broker/Broker.hpp"
+#include "entities/commsim/Broker.hpp"
 namespace sim_mob {
 
 WaitForAgentRegistration::WaitForAgentRegistration(sim_mob::Broker & broker_,unsigned int min_start, unsigned int stop_threshold):

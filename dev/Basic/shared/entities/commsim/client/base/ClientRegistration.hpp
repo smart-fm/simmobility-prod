@@ -16,7 +16,7 @@
 #include <string>
 
 #include <boost/shared_ptr.hpp>
-
+#include "entities/Agent.hpp"
 #include "entities/commsim/service/Services.hpp"
 #include "entities/commsim/connection/Session.hpp"
 #include "event/EventPublisher.hpp"
@@ -77,8 +77,8 @@ class ClientRegistrationHandler {
 	comm::ClientType type;
 	static ClientRegistrationPublisher registrationPublisher;
 public:
-	ClientRegistrationHandler(comm::ClientType);
-	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest) = 0;
+	ClientRegistrationHandler(/*comm::ClientType*/);
+	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest&) = 0;
 	static sim_mob::event::EventPublisher & getPublisher();
 	virtual ~ClientRegistrationHandler();
 };

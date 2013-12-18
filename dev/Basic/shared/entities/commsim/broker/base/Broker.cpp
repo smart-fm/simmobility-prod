@@ -129,7 +129,7 @@ void sim_mob::Broker::configure() {
 	if (client_type == "android-ns3") {
 		//listen to publishers who announce registration of new clients...
 
-		registrationPublisher.subscribe((event::EventId)comm::ANDROID_EMULATOR, this, &Broker::onClientRegister);
+		registrationPublisher.subscribe((event::EventId)comm::NS3_SIMULATOR, this, &Broker::onClientRegister);
 	}
 
 	//current message factory
@@ -340,14 +340,18 @@ void  sim_mob::Broker::insertClientWaitingList(std::pair<std::string,ClientRegis
 	COND_VAR_CLIENT_REQUEST.notify_one();
 }
 
-PublisherList::Value sim_mob::Broker::getPublisher(sim_mob::Services::SIM_MOB_SERVICE serviceType)
-{
-	PublisherList::Type::const_iterator it = publishers.find(serviceType);
-	if (it != publishers.end()) {
-		return it->second;
-	}
+//PublisherList::Value sim_mob::Broker::getPublisher(sim_mob::Services::SIM_MOB_SERVICE serviceType)
+//{
+//	PublisherList::Type::const_iterator it = publishers.find(serviceType);
+//	if (it != publishers.end()) {
+//		return it->second;
+//	}
+//
+//	throw std::runtime_error("Publishers does not contain the specified service type.");
+//}
 
-	throw std::runtime_error("Publishers does not contain the specified service type.");
+sim_mob::event::EventPublisher & sim_mob::Broker::getPublisher(){
+	return publisher;
 }
 
 
@@ -568,13 +572,14 @@ void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::even
 //todo suggestion: for publishment, don't iterate through the list of clients, rather, iterate the publishers list, access their subscriber list and say publish and publish for their subscribers(keep the clientlist for MHing only)
 void sim_mob::Broker::processPublishers(timeslice now)
 {
-	PublisherList::Pair publisher_pair;
-	BOOST_FOREACH(publisher_pair, publishers)
-	{
-		//easy reading
-		sim_mob::Services::SIM_MOB_SERVICE service = publisher_pair.first;
-		sim_mob::event::EventPublisher & publisher = *publisher_pair.second;
-
+//	PublisherList::Pair publisher_pair;
+//	BOOST_FOREACH(publisher_pair, publishers)
+//	{
+//		//easy reading
+//		sim_mob::Services::SIM_MOB_SERVICE service = publisher_pair.first;
+//		sim_mob::event::EventPublisher & publisher = *publisher_pair.second;
+	sim_mob::Services::SIM_MOB_SERVICE service;
+	BOOST_FOREACH(service, serviceList){
 		switch (service) {
 		case sim_mob::Services::SIMMOB_SRV_TIME: {
 			publisher.publish(COMMEID_TIME, TimeEventArgs(now));
@@ -598,7 +603,7 @@ void sim_mob::Broker::processPublishers(timeslice now)
 			break;
 		}
 		case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS: {
-			publisher.publish(COMMEID_LOCATION,(void*) COMMCID_ALL_LOCATIONS,AllLocationsEventArgs(REGISTERED_AGENTS));
+			publisher.publish(COMMEID_ALL_LOCATIONS,(void*) COMMCID_ALL_LOCATIONS,AllLocationsEventArgs(REGISTERED_AGENTS));
 			break;
 		}
 		case sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH: {

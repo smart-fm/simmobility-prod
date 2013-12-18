@@ -84,21 +84,23 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(
 	clientEntry->requiredServices = request.requiredServices; //will come handy
 	sim_mob::Services::SIM_MOB_SERVICE srv;
 
+	sim_mob::event::EventPublisher & p = broker.getPublisher();
 	bool regionSupportRequired = false;
 	BOOST_FOREACH(srv, request.requiredServices) {
 
 		switch (srv) {
 		case sim_mob::Services::SIMMOB_SRV_TIME: {
-				PublisherList::Value p =
-						broker.getPublisher(sim_mob::Services::SIMMOB_SRV_TIME);
-				p->subscribe(COMMEID_TIME,
+//				PublisherList::Value p =
+//						broker.getPublisher(sim_mob::Services::SIMMOB_SRV_TIME);
+//		sim_mob::event::EventPublisher & p = broker.getPublisher();
+				p.subscribe(COMMEID_TIME,
 											 clientEntry.get(),
 											 &ClientHandler::OnEvent);
 			break;
 		}
 		case sim_mob::Services::SIMMOB_SRV_LOCATION: {
-				PublisherList::Value p =
-						broker.getPublisher(sim_mob::Services::SIMMOB_SRV_LOCATION);
+//				PublisherList::Value p =
+//						broker.getPublisher(sim_mob::Services::SIMMOB_SRV_LOCATION);
 
 				//NOTE: It does not seem like we even use the "Context" pointer, so I am switching
 				//      this to a regular CALLBACK_HANDLER. Please review. ~Seth
@@ -106,14 +108,14 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(
 				//		clientEntry.get(),
 				//		&ClientHandler::OnEvent,
 				//		clientEntry->agent);
-				p->subscribe(COMMEID_LOCATION,
+				p.subscribe(COMMEID_LOCATION,
 					clientEntry.get(),
 						&ClientHandler::OnEvent);
 			break;
 		}
 			case sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH: {
-				PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH);
-				p->subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(), &ClientHandler::OnEvent);
+//				PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH);
+				p.subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(), &ClientHandler::OnEvent);
 
 				//We also "enable" Region tracking for this Agent.
 				regionSupportRequired = true;
@@ -125,11 +127,6 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(
 			}
 		}
 		}
-
-	//Enable Region support if this client requested it.
-	if (regionSupportRequired) {
-		broker.pendClientToEnableRegions(clientEntry);
-	}
 
 	//also, add the client entry to broker(for message handler purposes)
 	broker.insertClientList(clientEntry->clientID,

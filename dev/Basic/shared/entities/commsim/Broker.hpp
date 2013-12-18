@@ -160,6 +160,11 @@ protected:
 	///	list of this broker's publishers
 	PublisherList::Type publishers;
 
+	///Broker's Publisher
+	BrokerPublisher publisher;
+	///services to be published by the broker's publisher
+	std::vector<sim_mob::Services::SIM_MOB_SERVICE> serviceList;
+
 	///	place to gather outgoing data for each tick
 	SendBuffer::Type sendBuffer;
 
@@ -375,7 +380,8 @@ public:
 	void insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest >);
 
 	///Return an EventPublisher for a given type. Throws an exception if no such type is registered.
-	PublisherList::Value getPublisher(sim_mob::Services::SIM_MOB_SERVICE serviceType);
+//	PublisherList::Value getPublisher(sim_mob::Services::SIM_MOB_SERVICE serviceType);
+	sim_mob::event::EventPublisher & getPublisher();
 	/**
 	 * Accessor to client registration publisher
 	 */

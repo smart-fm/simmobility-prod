@@ -59,6 +59,8 @@ boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeCl
 	clientEntry->clientID = request.clientID;
 	clientEntry->client_type = comm::NS3_SIMULATOR;
 	clientEntry->requiredServices = request.requiredServices; //will come handy
+
+	sim_mob::event::EventPublisher & p = broker.getPublisher();
 	sim_mob::Services::SIM_MOB_SERVICE srv;
 	int size_i = request.requiredServices.size();
 	BOOST_FOREACH(srv, request.requiredServices)
@@ -66,14 +68,14 @@ boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeCl
 		switch(srv)
 		{
 		case sim_mob::Services::SIMMOB_SRV_TIME:{
-			 PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_TIME);
-			p->subscribe(COMMEID_TIME,
+//			 PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_TIME);
+			p.subscribe(COMMEID_TIME,
                                     clientEntry.get(),
                                     &ClientHandler::OnEvent);
 			break;
 		}
 		case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS:{
-			PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS);
+//			PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS);
 
 			//NOTE: It does not seem like we even use the "Context" pointer, so I am switching
 			//      this to a regular CALLBACK_HANDLER. Please review. ~Seth
@@ -81,9 +83,9 @@ boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeCl
 			//	clientEntry.get(),
 			//	&ClientHandler::OnEvent,
 			//	COMMCID_ALL_LOCATIONS);
-			p->subscribe(COMMEID_LOCATION,
+			p.subscribe(COMMEID_ALL_LOCATIONS,
 				clientEntry.get(),
-				&ClientHandler::OnEvent);
+				&ClientHandler::OnEvent,(void*)COMMCID_ALL_LOCATIONS);
 			break;
 		}
 		}

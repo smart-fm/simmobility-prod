@@ -34,7 +34,7 @@ using namespace sim_mob;
 std::map<std::string, sim_mob::Broker*> sim_mob::Broker::externalCommunicators;
 
 sim_mob::Broker::Broker(const MutexStrategy& mtxStrat, int id, std::string commElement, std::string commMode) :
-		Agent(mtxStrat, id), enabled(true) {
+		Agent(mtxStrat, id), enabled(true) , commElement(commElement), commMode(commMode){
 	//Various Initializations
 	connection.reset(new ConnectionServer(*this));
 	brokerCanTickForward = false;

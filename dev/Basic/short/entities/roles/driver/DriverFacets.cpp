@@ -995,7 +995,9 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 	const sim_mob::RoadItem* res = nullptr;
 	itemDis = 0.0;
 
-	if(type != sim_mob::INCIDENT) return res;
+	if(type != sim_mob::INCIDENT) {
+		return res;
+	}
 
 	std::vector<const sim_mob::RoadSegment*>::iterator currentSegIt = parentDriver->vehicle->getPathIterator();
 	std::vector<const sim_mob::RoadSegment*>::iterator currentSegItEnd = parentDriver->vehicle->getPathIteratorEnd();
@@ -1003,11 +1005,14 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 
 	for(;currentSegIt != currentSegItEnd;++currentSegIt)
 	{
-		if(currentSegIt == currentSegItEnd)
+		if(currentSegIt == currentSegItEnd){
 			break;
+		}
 
 		const RoadSegment* rs = *currentSegIt;
-		if (!rs) break;
+		if (!rs) {
+			break;
+		}
 
 		const std::map<centimeter_t, const RoadItem*> obstacles = rs->getObstacles();
 		std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
@@ -1079,8 +1084,7 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 							return nullptr;
 						}
 					}//end inc
-					RoadSegment* seg = const_cast<RoadSegment*>(rs);
-					itemDis += seg->getLengthOfSegment();
+					itemDis += rs->getLengthOfSegment();
 				}
 
 

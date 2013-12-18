@@ -13,19 +13,20 @@
 #include "conf/settings/DisableMPI.h"
 #include "conf/settings/StrictAgentErrors.h"
 #include "entities/profile/ProfileBuilder.hpp"
+#include "event/SystemEvents.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "logging/Log.hpp"
+#include "message/MessageBus.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #include "workers/Worker.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/DebugFlags.hpp"
-#include "event/SystemEvents.hpp"
-#include "message/MessageBus.hpp"
+
 
 using namespace sim_mob;
 using namespace sim_mob::event;
@@ -111,7 +112,7 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), lastUpdatedFrame(-1), currLink(nullptr), currLane(nullptr),
 	isQueuing(false), distanceToEndOfSegment(0.0), currLinkTravelStats(nullptr, 0.0), linkTravelStatsMap(mtxStrat),
 	rdSegTravelStatsMap(mtxStrat), currRdSegTravelStats(nullptr, 0.0),
-	toRemoved(false), nextPathPlanned(false), dynamic_seed(id), currTick(0,0)/*, connector_to_Sim_Tree(nullptr)*/
+	toRemoved(false), nextPathPlanned(false), dynamic_seed(id), currTick(0,0), commEventRegistered(false)
 {
 	//Register global life cycle events.
 	//NOTE: We can't profile the agent's construction, since it's not necessarily on a thread at this point.
@@ -129,6 +130,16 @@ sim_mob::Agent::~Agent() {
 		profile->logAgentDeleted(*this);
 	}*/
 	//safe_delete_item(profile);
+
+	//Un-register event listeners.
+	if (commEventRegistered) {
+		messaging::MessageBus::UnSubscribeEvent(
+			sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
+			this,
+			this
+		);
+	}
+
 }
 
 void sim_mob::Agent::resetFrameInit() {
@@ -186,6 +197,16 @@ void sim_mob::Agent::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigne
 UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 	//Reset the Region tracking data structures, if applicable.
 	regionAndPathTracker.reset();
+
+	//Register for commsim messages, if applicable.
+	if (!commEventRegistered && ConfigManager::GetInstance().XmlConfig().system.simulation.androidClientEnabled) {
+		commEventRegistered = true;
+		messaging::MessageBus::SubscribeEvent(
+			sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
+			this, //Only when we are the Agent having commsim enabled.
+			this //Return this event to us (the agent).
+		);
+	}
 
 	//We give the Agent the benefit of the doubt here and simply call frame_init().
 	//This allows them to override the start_time if it seems appropriate (e.g., if they
@@ -262,14 +283,14 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
 	if (isToBeRemoved() || retVal.status == UpdateStatus::RS_DONE) {
 		retVal.status = UpdateStatus::RS_DONE;
 		setToBeRemoved();
+
 		//notify subscribers that this agent is done
-                MessageBus::PublishEvent(event::EVT_CORE_AGENT_DIED, this,
-                        MessageBus::EventArgsPtr(new AgentLifeCycleEventArgs(getId(), this)));
+		MessageBus::PublishEvent(event::EVT_CORE_AGENT_DIED, this,
+        MessageBus::EventArgsPtr(new AgentLifeCycleEventArgs(getId(), this)));
                 
-                //unsubscribes all listeners of this agent to this event. 
-                //(it is safe to do this here because the priority between events)
-                MessageBus::UnSubscribeAll(event::EVT_CORE_AGENT_DIED, this);
-               
+        //unsubscribes all listeners of this agent to this event.
+        //(it is safe to do this here because the priority between events)
+        MessageBus::UnSubscribeAll(event::EVT_CORE_AGENT_DIED, this);
 	}
 
 	PROFILE_LOG_AGENT_UPDATE_END(currWorkerProvider, this, now);
@@ -335,7 +356,13 @@ NullableOutputStream sim_mob::Agent::Log()
 
 void sim_mob::Agent::onEvent(EventId eventId, 
         Context ctxId, EventPublisher* sender, 
-        const EventArgs& args){
+        const EventArgs& args)
+{
+	//Was commsim enabled for us? If so, start tracking Regions.
+	if (eventId==event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT && ctxId == this) {
+		Print() <<"Enabling Region support for agent: " <<this <<"\n";
+		enableRegionSupport();
+	}
 }
 
 void sim_mob::Agent::initRdSegTravelStats(const RoadSegment* rdSeg, double entryTime) {

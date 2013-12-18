@@ -69,7 +69,7 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 				 PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_TIME);
 				p->subscribe(COMMEID_TIME, 
                                         clientEntry.get(), 
-                                        &ClientHandler::OnEvent);
+                                        &ClientHandler::sendJsonToBroker);
 				break;
 			}
 			case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS:{
@@ -83,7 +83,7 @@ bool NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegis
 				//	COMMCID_ALL_LOCATIONS);
 				p->subscribe(COMMEID_LOCATION, 
 					clientEntry.get(),
-					&ClientHandler::OnEvent);
+					&ClientHandler::sendJsonToBroker);
 				break;
 			}
 			}

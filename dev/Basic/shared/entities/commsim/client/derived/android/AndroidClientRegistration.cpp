@@ -93,7 +93,7 @@ bool sim_mob::AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob
 						broker.getPublisher(sim_mob::Services::SIMMOB_SRV_TIME);
 				p->subscribe(COMMEID_TIME, 
 											 clientEntry.get(),
-											 &ClientHandler::OnEvent);
+											 &ClientHandler::sendJsonToBroker);
 				break;
 			}
 			case sim_mob::Services::SIMMOB_SRV_LOCATION: {
@@ -102,18 +102,14 @@ bool sim_mob::AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob
 
 				//NOTE: It does not seem like we even use the "Context" pointer, so I am switching
 				//      this to a regular CALLBACK_HANDLER. Please review. ~Seth
-				//p->subscribe(COMMEID_LOCATION,
-				//		clientEntry.get(),
-				//		&ClientHandler::OnEvent,
-				//		clientEntry->agent);
 				p->subscribe(COMMEID_LOCATION, 
 						clientEntry.get(),
-						&ClientHandler::OnEvent);
+						&ClientHandler::sendJsonToBroker);
 				break;
 			}
 			case sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH: {
 				PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH);
-				p->subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(), &ClientHandler::OnEvent);
+				p->subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(), &ClientHandler::sendJsonToBroker);
 
 				//We also "enable" Region tracking for this Agent.
 				regionSupportRequired = true;

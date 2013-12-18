@@ -23,6 +23,7 @@
 #include "entities/commsim/wait/WaitForNS3Connection.hpp"
 #include "entities/commsim/wait/WaitForAgentRegistration.hpp"
 #include "event/SystemEvents.hpp"
+#include "event/args/EventArgs.hpp"
 #include "message/MessageBus.hpp"
 #include "event/EventPublisher.hpp"
 
@@ -348,8 +349,9 @@ void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType cl
 
 void sim_mob::Broker::pendClientToEnableRegions(boost::shared_ptr<sim_mob::ClientHandler> &clientHandler)
 {
-	boost::unique_lock<boost::mutex> lock(mutex_clientList);
+	boost::unique_lock<boost::mutex> lock(mutex_clientList); //NOTE: This may not be needed.
 	newClientsWaitingOnRegionEnabling.insert(clientHandler);
+
 }
 
 void  sim_mob::Broker::insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest > p)//pair<client type, request>
@@ -418,7 +420,7 @@ bool sim_mob::Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
 	//tell me if you are dying
 	sim_mob::messaging::MessageBus::SubscribeEvent(
 			sim_mob::event::EVT_CORE_AGENT_DIED,
-			static_cast<event::Context>(value->getEntity()), this);
+			value->getEntity(), this);
 	return true;
 }
 
@@ -888,24 +890,15 @@ bool sim_mob::Broker::allClientsAreDone()
 	BOOST_FOREACH(clientByType, clientList) {
 		BOOST_FOREACH(clientByID, clientByType.second) {
 			clnHandler = clientByID.second;
-			if (!clnHandler) {
-				continue;
-			}
-			if (!(clnHandler->cnnHandler)) {
-				continue;
-			}
-			if (!(clnHandler->cnnHandler->is_open())) {
-				continue;
-			}
-			if (!(clnHandler->isValid())) {
-				continue;
-			}
-			if (!(clnHandler->cnnHandler->isValid())) {
-				continue;
-			}
-			//but
-			if (!isClientDone(clnHandler)) {
-				return false;
+			//If we have a valid client handler.
+			if (clnHandler && clnHandler->isValid()) {
+				//...and a valid connection handler.
+				if (clnHandler->cnnHandler && clnHandler->cnnHandler->isValid() && clnHandler->cnnHandler->is_open()) {
+					//...then check if we're not done.
+					if (!isClientDone(clnHandler)) {
+						return false;
+					}
+				}
 			}
 		}
 	}
@@ -1006,16 +999,20 @@ void sim_mob::Broker::waitForClientsDone() {
 
 void sim_mob::Broker::setNewClientProps()
 {
-	//NOTE: This *should not* require locking, sicne all clients are already done. Please review. ~Seth
+	//NOTE: I am locking this anyway, just to be safe. (In case a new Broker request arrives in the meantime). ~Seth
+	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 
-	//Now, loop through each client and call its Agent's enableRegionSupport() function if applicable.
+	//Now, loop through each client and send it a message to inform that the Broker has registered it.
 	for (std::set< boost::weak_ptr<sim_mob::ClientHandler> >::iterator it=newClientsWaitingOnRegionEnabling.begin(); it!=newClientsWaitingOnRegionEnabling.end(); it++) {
 		//Attempt to resolve the weak pointer.
 		boost::shared_ptr<sim_mob::ClientHandler> cHand = it->lock();
 		if (cHand) {
-			//NOTE: The Agent is not doing anything, so it is safe to modify it. I don't really like the const_cast,
-			//      but I can't think of a better way of doing it. Please review. ~Seth
-			const_cast<Agent*>(cHand->agent)->enableRegionSupport();
+			//NOTE: Be CAREFUL here using the Agent pointer as a Context (void*). If you have a class with multiple inheritance,
+			//      the void* for different realizations of the same object may have DIFFERENT pointer values. ~Seth
+			messaging::MessageBus::PublishEvent(sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
+				cHand->agent,
+				messaging::MessageBus::EventArgsPtr(new event::EventArgs())
+			);
 		} else {
 			Warn() <<"Broker::setNewClientProps() -- Client was destroyed before its weak_ptr() could be resolved.\n";
 		}

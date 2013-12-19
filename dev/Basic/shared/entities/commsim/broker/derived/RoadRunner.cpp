@@ -236,16 +236,20 @@ void sim_mob::Roadrunner_Broker::onClientRegister(sim_mob::event::EventId id, si
 
 void sim_mob::Roadrunner_Broker::setNewClientProps()
 {
-	//NOTE: This *should not* require locking, sicne all clients are already done. Please review. ~Seth
+	//NOTE: I am locking this anyway, just to be safe. (In case a new Broker request arrives in the meantime). ~Seth
+	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 
-	//Now, loop through each client and call its Agent's enableRegionSupport() function if applicable.
+	//Now, loop through each client and send it a message to inform that the Broker has registered it.
 	for (std::set< boost::weak_ptr<sim_mob::ClientHandler> >::iterator it=newClientsWaitingOnRegionEnabling.begin(); it!=newClientsWaitingOnRegionEnabling.end(); it++) {
 		//Attempt to resolve the weak pointer.
 		boost::shared_ptr<sim_mob::ClientHandler> cHand = it->lock();
 		if (cHand) {
-			//NOTE: The Agent is not doing anything, so it is safe to modify it. I don't really like the const_cast,
-			//      but I can't think of a better way of doing it. Please review. ~Seth
-			const_cast<Agent*>(cHand->agent)->enableRegionSupport();
+			//NOTE: Be CAREFUL here using the Agent pointer as a Context (void*). If you have a class with multiple inheritance,
+			//      the void* for different realizations of the same object may have DIFFERENT pointer values. ~Seth
+			messaging::MessageBus::PublishEvent(sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
+				cHand->agent,
+				messaging::MessageBus::EventArgsPtr(new event::EventArgs())
+			);
 		} else {
 			Warn() <<"Broker::setNewClientProps() -- Client was destroyed before its weak_ptr() could be resolved.\n";
 		}

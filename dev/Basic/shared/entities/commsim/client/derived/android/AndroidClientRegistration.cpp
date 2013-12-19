@@ -95,7 +95,7 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(
 //		sim_mob::event::EventPublisher & p = broker.getPublisher();
 				p.subscribe(COMMEID_TIME,
 											 clientEntry.get(),
-											 &ClientHandler::OnEvent);
+											 &ClientHandler::sendJsonToBroker);
 			break;
 		}
 		case sim_mob::Services::SIMMOB_SRV_LOCATION: {
@@ -110,15 +110,14 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(
 				//		clientEntry->agent);
 				p.subscribe(COMMEID_LOCATION,
 					clientEntry.get(),
-						&ClientHandler::OnEvent);
+						&ClientHandler::sendJsonToBroker);
 			break;
 		}
 			case sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH: {
 //				PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH);
-				p.subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(), &ClientHandler::OnEvent);
-
-				//We also "enable" Region tracking for this Agent.
-				regionSupportRequired = true;
+				p.subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(), &ClientHandler::sendJsonToBroker);
+//				//We also "enable" Region tracking for this Agent.(not needed any more coz the corresponding if clause at the end of this method wwas shifted to onClientRegister() in the RoadRunner broker-vahid)
+//				regionSupportRequired = true;
 				break;
 			}
 			default: {

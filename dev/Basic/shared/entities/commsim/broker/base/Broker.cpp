@@ -23,6 +23,11 @@
 #include "entities/commsim/wait/WaitForNS3Connection.hpp"
 #include "entities/commsim/wait/WaitForAgentRegistration.hpp"
 
+#include "event/SystemEvents.hpp"
+#include "event/args/EventArgs.hpp"
+#include "message/MessageBus.hpp"
+#include "event/EventPublisher.hpp"
+
 #include "geospatial/RoadRunnerRegion.hpp"
 
 //todo :temprorary
@@ -399,7 +404,7 @@ bool sim_mob::Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
 	//tell me if you are dying
 	sim_mob::messaging::MessageBus::SubscribeEvent(
 			sim_mob::event::EVT_CORE_AGENT_DIED,
-			static_cast<event::Context>(value->getEntity()), this);
+			value->getEntity(), this);
 	return true;
 }
 
@@ -878,24 +883,15 @@ bool sim_mob::Broker::allClientsAreDone()
 	BOOST_FOREACH(clientByType, clientList) {
 		BOOST_FOREACH(clientByID, clientByType.second) {
 			clnHandler = clientByID.second;
-			if (!clnHandler) {
-				continue;
-			}
-			if (!(clnHandler->cnnHandler)) {
-				continue;
-			}
-			if (!(clnHandler->cnnHandler->is_open())) {
-				continue;
-			}
-			if (!(clnHandler->isValid())) {
-				continue;
-			}
-			if (!(clnHandler->cnnHandler->isValid())) {
-				continue;
-			}
-			//but
-			if (!isClientDone(clnHandler)) {
-				return false;
+			//If we have a valid client handler.
+			if (clnHandler && clnHandler->isValid()) {
+				//...and a valid connection handler.
+				if (clnHandler->cnnHandler && clnHandler->cnnHandler->isValid() && clnHandler->cnnHandler->is_open()) {
+					//...then check if we're not done.
+					if (!isClientDone(clnHandler)) {
+						return false;
+					}
+				}
 			}
 		}
 	}

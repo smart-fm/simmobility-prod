@@ -71,7 +71,7 @@ boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeCl
 //			 PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_TIME);
 			p.subscribe(COMMEID_TIME,
                                     clientEntry.get(),
-                                    &ClientHandler::OnEvent);
+                                    &ClientHandler::sendJsonToBroker);
 			break;
 		}
 		case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS:{
@@ -85,7 +85,7 @@ boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeCl
 			//	COMMCID_ALL_LOCATIONS);
 			p.subscribe(COMMEID_ALL_LOCATIONS,
 				clientEntry.get(),
-				&ClientHandler::OnEvent,(void*)COMMCID_ALL_LOCATIONS);
+				&ClientHandler::sendJsonToBroker,(void*)COMMCID_ALL_LOCATIONS);
 			break;
 		}
 		}

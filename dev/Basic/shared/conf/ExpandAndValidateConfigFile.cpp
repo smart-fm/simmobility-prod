@@ -231,7 +231,7 @@ void sim_mob::ExpandAndValidateConfigFile::verifyIncidents()
 			item->visibilityDistance = (*incIt).visibilityDistance;
 
 			const std::vector<sim_mob::Lane*>& lanes = roadSeg->getLanes();
-			for(std::vector<IncidentParams::LaneParams>::iterator laneIt=(*incIt).laneParams.begin(); laneIt!=(*incIt).laneParams.end(); laneIt++){
+			for(std::vector<IncidentParams::LaneParams>::iterator laneIt=incIt->laneParams.begin(); laneIt!=incIt->laneParams.end(); laneIt++){
 				Incident::LaneItem lane;
 				lane.laneId = laneIt->laneId;
 				lane.speedLimit = laneIt->speedLimit;

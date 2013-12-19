@@ -95,8 +95,9 @@ int IncidentStatus::checkBlockingStatus(const Incident*inc){
 }
 
 float IncidentStatus::getSpeedLimit(unsigned int laneId) {
-	if(currentIncidents.size()==0)
+	if(currentIncidents.size()==0){
 		return -1.0;
+	}
 
 	float speedLimitFactor = -1.0;
 	if(laneId < currentIncidents[0]->laneItems.size()){

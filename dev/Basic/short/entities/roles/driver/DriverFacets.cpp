@@ -47,6 +47,9 @@ string PrintLCS(LANE_CHANGE_SIDE s) {
 	return "LCS_SAME";
 }
 
+//the minimum speed when approaching to incident
+const float APPROACHING_SPEED = 200;
+
 //used in lane changing, find the start index and end index of polyline in the target lane
 size_t updateStartEndIndex(const std::vector<sim_mob::Point2D>* const currLanePolyLine, double currLaneOffset,
 		size_t defaultValue) {
@@ -254,7 +257,7 @@ void sim_mob::DriverMovement::responseIncidentStatus(DriverUpdateParams& p, time
 		//record current speed
 		float newSpeed = 0;
 		//record approaching speed when it is near to incident position
-		float approachingSpeed = 200;
+		float approachingSpeed = APPROACHING_SPEED;
 		float oldDistToStop = p.perceivedDistToFwdCar;
 		LANE_CHANGE_SIDE oldDirect = p.turningDirection;
 		p.perceivedDistToFwdCar = std::min(incidentStatus.getDistanceToIncident(), fwdCarDist);

@@ -20,6 +20,66 @@ IncidentStatus::~IncidentStatus() {
 	// TODO Auto-generated destructor stub
 }
 
+void IncidentStatus::setNextLaneIndex(int value) {
+	nextLaneIndex = value;
+}
+int IncidentStatus::getNextLaneIndex() {
+	return nextLaneIndex;
+}
+
+void IncidentStatus::setCurrentLaneIndex(int value) {
+	currentLaneIndex = value;
+}
+int IncidentStatus::getCurrentLaneIndex() {
+	return currentLaneIndex;
+}
+
+void IncidentStatus::setDefaultSpeedLimit(float value) {
+	defaultSpeedLimit = value;
+}
+
+void IncidentStatus::setVisibilityDistance(float value) {
+	visibilityDist = value;
+}
+float IncidentStatus::getVisibilityDistance() {
+	return visibilityDist;
+}
+
+void IncidentStatus::setDistanceToIncident(float value) {
+	distanceTo = value;
+}
+float IncidentStatus::getDistanceToIncident() {
+	return distanceTo;
+}
+
+void IncidentStatus::setRandomValue(float value) {
+	randomNum = value;
+}
+float IncidentStatus::getRandomValue() {
+	return randomNum;
+}
+
+void IncidentStatus::setLaneSide(LANE_CHANGE_SIDE value) {
+	laneSide = value;
+}
+LANE_CHANGE_SIDE IncidentStatus::getLaneSide() {
+	return laneSide;
+}
+
+void IncidentStatus::setChangedLane(bool value) {
+	changedLane = value;
+}
+bool IncidentStatus::getChangedLane() {
+	return changedLane;
+}
+
+void IncidentStatus::setSlowdownVelocity(bool value) {
+	slowdownVelocity = value;
+}
+bool IncidentStatus::getSlowdownVelocity() {
+	return slowdownVelocity;
+}
+
 int IncidentStatus::checkBlockingStatus(const Incident*inc){
 	int ret = -1;
 	bool isFullyBlocking = true;
@@ -58,6 +118,10 @@ double IncidentStatus::getCurrentIncidentLength(){
 
 
 bool IncidentStatus::insertIncident(const Incident* inc){
+
+	if(!inc){
+		return false;
+	}
 
 	bool ret = true;
 	if( currentIncidents.count(inc->incidentId) > 0 ) {

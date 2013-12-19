@@ -233,16 +233,16 @@ void sim_mob::ExpandAndValidateConfigFile::verifyIncidents()
 			const std::vector<sim_mob::Lane*>& lanes = roadSeg->getLanes();
 			for(std::vector<IncidentParams::LaneParams>::iterator laneIt=(*incIt).laneParams.begin(); laneIt!=(*incIt).laneParams.end(); laneIt++){
 				Incident::LaneItem lane;
-				lane.laneId = (*laneIt).laneId;
-				lane.speedLimit = (*laneIt).speedLimit;
+				lane.laneId = laneIt->laneId;
+				lane.speedLimit = laneIt->speedLimit;
 				item->laneItems.push_back(lane);
-				if(lane.laneId<lanes.size() && lane.laneId<(*incIt).laneParams.size()){
-					(*incIt).laneParams[lane.laneId].xLaneStartPos = lanes[lane.laneId]->polyline_[0].getX();
-					(*incIt).laneParams[lane.laneId].yLaneStartPos = lanes[lane.laneId]->polyline_[0].getY();
+				if(lane.laneId<lanes.size() && lane.laneId<incIt->laneParams.size()){
+					incIt->laneParams[lane.laneId].xLaneStartPos = lanes[lane.laneId]->polyline_[0].getX();
+					incIt->laneParams[lane.laneId].yLaneStartPos = lanes[lane.laneId]->polyline_[0].getY();
 					if(lanes[lane.laneId]->polyline_.size()>0){
 						unsigned int sizePoly = lanes[lane.laneId]->polyline_.size();
-						(*incIt).laneParams[lane.laneId].xLaneEndPos = lanes[lane.laneId]->polyline_[sizePoly-1].getX();
-						(*incIt).laneParams[lane.laneId].yLaneEndPos = lanes[lane.laneId]->polyline_[sizePoly-1].getY();
+						incIt->laneParams[lane.laneId].xLaneEndPos = lanes[lane.laneId]->polyline_[sizePoly-1].getX();
+						incIt->laneParams[lane.laneId].yLaneEndPos = lanes[lane.laneId]->polyline_[sizePoly-1].getY();
 					}
 				}
 			}

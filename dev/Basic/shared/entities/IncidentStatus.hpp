@@ -81,29 +81,19 @@ public:
     /**
       * the setter and getter for the property 'nextLaneIndex'
       */
-	void setNextLaneIndex(int value) {
-		nextLaneIndex = value;
-	}
-	int getNextLaneIndex() {
-		return nextLaneIndex;
-	}
+	void setNextLaneIndex(int value);
+	int getNextLaneIndex();
 
     /**
       * the setter and getter for the property 'nextLaneIndex'
       */
-	void setCurrentLaneIndex(int value) {
-		currentLaneIndex = value;
-	}
-	int getCurrentLaneIndex() {
-		return currentLaneIndex;
-	}
+	void setCurrentLaneIndex(int value);
+	int getCurrentLaneIndex();
 
  	/**
 	 * the setter for the property 'defaultSpeedLimit'
 	 */
-	void setDefaultSpeedLimit(float value) {
-		defaultSpeedLimit = value;
-	}
+	void setDefaultSpeedLimit(float value);
 
 	/**
 	 * the getter for speed limit in incident lane
@@ -113,62 +103,38 @@ public:
     /**
       * the setter and getter for the property 'visibilityDist'
       */
-	void setVisibilityDistance(float value) {
-		visibilityDist = value;
-	}
-	float getVisibilityDistance() {
-		return visibilityDist;
-	}
+	void setVisibilityDistance(float value);
+	float getVisibilityDistance();
 
     /**
       * the setter and getter for the property 'distanceTo'
       */
-	void setDistanceToIncident(float value) {
-		distanceTo = value;
-	}
-	float getDistanceToIncident() {
-		return distanceTo;
-	}
+	void setDistanceToIncident(float value);
+	float getDistanceToIncident();
 
     /**
       * the setter and getter for the property 'randomNum'
       */
-	void setRandomValue(float value) {
-		randomNum = value;
-	}
-	float getRandomValue() {
-		return randomNum;
-	}
+	void setRandomValue(float value);
+	float getRandomValue();
 
     /**
       * the setter and getter for the property 'laneSide'
       */
-	void setLaneSide(LANE_CHANGE_SIDE value) {
-		laneSide = value;
-	}
-	LANE_CHANGE_SIDE getLaneSide() {
-		return laneSide;
-	}
+	void setLaneSide(LANE_CHANGE_SIDE value);
+	LANE_CHANGE_SIDE getLaneSide();
 
     /**
       * the setter and getter for the property 'changedLane'
       */
-	void setChangedLane(bool value) {
-		changedLane = value;
-	}
-	bool getChangedLane() {
-		return changedLane;
-	}
+	void setChangedLane(bool value);
+	bool getChangedLane();
 
     /**
       * the setter and getter for the property 'slowdownVelocity'
       */
-	void setSlowdownVelocity(bool value) {
-		slowdownVelocity = value;
-	}
-	bool getSlowdownVelocity() {
-		return slowdownVelocity;
-	}
+	void setSlowdownVelocity(bool value);
+	bool getSlowdownVelocity();
 
 private:
 	int currentLaneIndex;

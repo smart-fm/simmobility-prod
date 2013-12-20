@@ -62,10 +62,17 @@ public:
 		return startTime;
 	}
 
+	/**
+	 * This vector is used as lookup for obtaining the start and end time of the time window chosen from the time of day model
+	 * There are 48 half-hour windows in a day. Each half hour window can be a start time of a time-window and any half-hour window
+	 * after the start time in the same can be an end time of a time-window. Therefore there are (48 * (48+1) / 2) = 1176 time windows in a day.
+	 * This vector has 1176 elements.
+	 */
+	static const std::vector<TimeWindowAvailability> timeWindowsLookup;
+
 private:
 	double startTime;
 	double endTime;
-	std::string windowString;
 	int availability;
 };
 
@@ -144,23 +151,6 @@ public:
 
 	void setStopType(StopType stopType) {
 		this->stopType = stopType;
-	}
-
-	/**
-	 * Sets the start and end time for the tour.
-	 *
-	 * @param timeWindow the time window to be allotted for this activity. Expected format is "<start_time>,<end_time>" where start_time and end_time is either <3-26>.25 or <3-26>.75.
-	 */
-	void allotTime(std::string& timeWindow) {
-		try {
-			std::vector<std::string> times;
-			boost::split(times, timeWindow, boost::is_any_of(","));
-			arrivalTime = std::atof(times.front().c_str());
-			departureTime = std::atof(times.back().c_str());
-		}
-		catch(std::exception& e) {
-			throw std::runtime_error("invalid time format supplied");
-		}
 	}
 
 	void allotTime(double arrivalTime, double departureTime) {

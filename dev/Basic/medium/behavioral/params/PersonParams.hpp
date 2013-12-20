@@ -22,8 +22,6 @@ public:
 	PersonParams();
 	virtual ~PersonParams();
 
-	void initTimeWindows();
-
 	int getAgeId() const {
 		return ageId;
 	}
@@ -242,7 +240,7 @@ public:
 	/**
 	 * get the availability for a time window for tour
 	 */
-	int getTimeWindowAvailability(std::string& timeWnd) const;
+	int getTimeWindowAvailability(int timeWnd) const;
 
 	/**
 	 * set availability of times in timeWnd to 0
@@ -300,6 +298,8 @@ public:
 	}
 
 private:
+	void initTimeWindows();
+
 	std::string personId;
 	int personTypeId;
 	int ageId;
@@ -331,7 +331,7 @@ private:
 	/**
 	 * Time windows currently available for the person.
 	 */
-    boost::unordered_map<std::string, sim_mob::medium::TimeWindowAvailability*> timeWindowAvailability;
+    boost::unordered_map<int, sim_mob::medium::TimeWindowAvailability*> timeWindowAvailability;
 };
 
 /**

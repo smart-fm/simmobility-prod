@@ -13,10 +13,12 @@
 #include <boost/unordered_map.hpp>
 
 #include "behavioral/params/PersonParams.hpp"
+#include "behavioral/params/StopGenerationParams.hpp"
+#include "behavioral/params/TimeOfDayParams.hpp"
 #include "behavioral/params/TourModeParams.hpp"
 #include "behavioral/params/TourModeDestinationParams.hpp"
-#include "behavioral/params/StopGenerationParams.hpp"
 #include "lua/LuaModel.hpp"
+#include "behavioral/PredayClasses.hpp"
 
 namespace sim_mob {
 namespace medium {
@@ -73,8 +75,22 @@ public:
 	 *
 	 * @param personParams object containing person and household related variables
 	 * @param tourModeDestinationParams parameters specific to tour mode-destination models
+	 *
+	 * @return an integer in the range of 1 to 9828 (9 modes * 1092 zones) which represents a combination of a zone (one of 1092) and a mode (one of 9)
 	 */
 	int predictTourModeDestination(PersonParams& personParams, TourModeDestinationParams& tourModeParams) const;
+
+	/**
+	 * Predicts the time window for a tour
+	 *
+	 * @param personParams object containing person and household related variables
+	 * @param tourTimeOfDayParams parameters for the tour time of day model
+	 * @param tourType type of the tour for which time window is being predicted
+	 *
+	 * @return an integer in the range of 1 to 1176 representing a particular time window in the day
+	 * 			(1 = (3.25,3.25), 2 = (3.25,3.75), 3 = (3.25, 4.25), ... , 48 = (3.25, 26.75), 49 = (3.75, 3.75), ... , 1176 = (26.75,26.75))
+	 */
+	int predictTourTimeOfDay(PersonParams& personParams, TourTimeOfDayParams& tourTimeOfDayParams, StopType tourType) const;
 
 	/**
 	 * Predicts the next stop for a tour
@@ -83,6 +99,16 @@ public:
 	 * @param isgParams object containing parameters specific to intermediate stop generation model
 	 */
 	int generateIntermediateStop(PersonParams& personParams, StopGenerationParams& isgParams) const;
+
+	/**
+	 * Predicts the departure/arrival time for a stop
+	 *
+	 * @param personParams object containing person and household related variables
+	 * @param stopTimeOfDayParams parameters for the stop time of day model
+	 *
+	 * @return an integer in the range of 1 to 48 representing a particular half-hour time window in the day
+	 */
+	int predictStopTimeOfDay(PersonParams& personParams, StopTimeOfDayParams& stopTimeOfDayParams) const;
 
 
 private:

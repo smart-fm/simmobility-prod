@@ -20,7 +20,7 @@ namespace medium {
 /**
  * Data access object for Population tables
  */
-class PopulationSqlDao : public db::SqlAbstractDao<PersonParams> {
+class PopulationSqlDao : public db::SqlAbstractDao<PersonParams*> {
 public:
 	PopulationSqlDao(db::DB_Connection& connection);
 	virtual ~PopulationSqlDao();

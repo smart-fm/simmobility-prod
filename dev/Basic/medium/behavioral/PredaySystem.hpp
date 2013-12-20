@@ -30,16 +30,10 @@ namespace medium {
  * \author Harish Loganathan
  */
 class PredaySystem {
-public:
-	PredaySystem(PersonParams& personParams, boost::unordered_map<int, ZoneParams>& zoneMap);
-	virtual ~PredaySystem();
-
-	/**
-	 * The sequence of models to be invoked for a person is coded in this function.
-	 */
-	void planDay();
-
 private:
+	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
+	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
+
 	/**
 	 * For each work tour, if the person has a usual work location, this function predicts whether the person goes to his usual location or some other location.
 	 *
@@ -63,7 +57,7 @@ private:
 	/**
 	 * Predicts the time period that will be allotted for the primary activity of a tour.
 	 */
-	std::string& predictTourTimeOfDay(Tour& tour);
+	TimeWindowAvailability predictTourTimeOfDay(Tour& tour);
 
 	/**
 	 * Generates intermediate stops of types predicted by the day pattern model before and after the primary activity of a tour.
@@ -113,8 +107,17 @@ private:
 
     /**
      * Reference to map of zone_id -> ZoneParams
+     * \note this map has 1092 elements
      */
-    boost::unordered_map<int, ZoneParams>& zoneMap;
+    const ZoneMap& zoneMap;
+
+    /**
+     * Reference to Costs [origin zone, destination zone] -> CostParams*
+     * \note these maps have (1092 zones * 1092 zones - 1092 (entries with same origin and destination is not available)) 1191372 elements
+     */
+    const CostMap& amCostMap;
+    const CostMap& pmCostMap;
+    const CostMap& opCostMap;
 
     /**
      * list of tours for this person
@@ -141,6 +144,14 @@ private:
      */
     const PredayLuaModel& predayLuaModel;
 
+public:
+	PredaySystem(PersonParams& personParams, const ZoneMap& zoneMap, const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap);
+	virtual ~PredaySystem();
+
+	/**
+	 * The sequence of models to be invoked for a person is coded in this function.
+	 */
+	void planDay();
 };
 
 } // end namespace medium

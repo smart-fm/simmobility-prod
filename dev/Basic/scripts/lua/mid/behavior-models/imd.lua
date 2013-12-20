@@ -115,14 +115,13 @@ local function computeUtilities(params,dbparams)
 	local female_dummy = params.female_dummy
 	local income_id = params.income_id
 	local income_cat = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
-	local income_mode = income_cat[income_id]
-	local missing_income = params.missing_income
+	local income_mid = income_cat[income_id]
+	local missing_income = params.income_id >= 13 and 1 or 0
 
-	local work_stop_dummy = params.stop_type == 1 and 1 or 0
-	local edu_stop_dummy = params.stop_type == 2 and 1 or 0
-	local shop_stop_dummy = params.stop_type == 3 and 1 or 0
-	local other_stop_dummy = params.stop_type ==4 and 1 or 0
-
+	local work_stop_dummy = dbparams.stop_type == 1 and 1 or 0
+	local edu_stop_dummy = dbparams.stop_type == 2 and 1 or 0
+	local shop_stop_dummy = dbparams.stop_type == 3 and 1 or 0
+	local other_stop_dummy = dbparams.stop_type == 4 and 1 or 0
 
 	--params.car_own_normal is from household table
 	local zero_car = params.car_own_normal == 0 and 1 or 0
@@ -192,7 +191,7 @@ local function computeUtilities(params,dbparams)
 	for i =1,1092 do
 		--dbparams.cost_public(i) = 
 
-		cost_public[i] = dbparams.cost_public(i)
+		cost_public[i] = dbparams:cost_public(i)
 		cost_bus[i] = cost_public[i]
 		cost_mrt[i] = cost_public[i]
 		cost_private_bus[i] = cost_public[i]
@@ -201,19 +200,19 @@ local function computeUtilities(params,dbparams)
 		--dbparams.cost_car_OP(i) = 
 		--dbparams.cost_car_parking(i) = 
 
-		cost_drive1[i] = dbparams.cost_car_ERP(i) + dbparams.cost_car_OP(i) + dbparams.cost_car_parking(i)
-		cost_share2[i] = (dbparams.cost_car_ERP(i) +dbparams. cost_car_OP(i) + dbparams.cost_car_parking(i))/2
-		cost_share3[i] = (dbparams.cost_car_ERP(i) + dbparams.cost_car_OP(i) + dbparams.cost_car_parking(i))/3
-		cost_motor[i] = 0.5*(dbparams.cost_car_ERP(i) + dbparams.cost_car_OP(i))+0.65*dbparams.cost_car_parking(i)
+		cost_drive1[i] = dbparams:cost_car_ERP(i) + dbparams:cost_car_OP(i) + dbparams:cost_car_parking(i)
+		cost_share2[i] = (dbparams:cost_car_ERP(i) + dbparams:cost_car_OP(i) + dbparams:cost_car_parking(i))/2
+		cost_share3[i] = (dbparams:cost_car_ERP(i) + dbparams:cost_car_OP(i) + dbparams:cost_car_parking(i))/3
+		cost_motor[i] = 0.5*(dbparams:cost_car_ERP(i) + dbparams:cost_car_OP(i))+ 0.65*dbparams:cost_car_parking(i)
 
 		--dbparams.walk_distance1(i)= 
 		--dbparams.walk_distance2(i)=
 		--dbparams.central_dummy(i)=
-		d1[i] = dbparams.walk_distance1(i)
-		d2[i] = dbparams.walk_distance2(i)
-		central_dummy[i] = dbparams.central_dummy(i)
+		d1[i] = dbparams:walk_distance1(i)
+		d2[i] = dbparams:walk_distance2(i)
+		central_dummy[i] = dbparams:central_dummy(i)
 
-		cost_taxi_1[i] = 3.4+((d1[i]*(d1[i]>10 and 1 or 0)-10*(d1[i]>10 and 1 or 0))/0.35+(d1[i]*(d1[i]<=10 and 1 or 0)+10*(d1[i]>10 and 1 or 0))/0.4)*0.22+ dbparams.cost_car_ERP(i) + central_dummy[i]*3
+		cost_taxi_1[i] = 3.4+((d1[i]*(d1[i]>10 and 1 or 0)-10*(d1[i]>10 and 1 or 0))/0.35+(d1[i]*(d1[i]<=10 and 1 or 0)+10*(d1[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP(i) + central_dummy[i]*3
 		cost_taxi_2[i] = 3.4+((d2[i]*(d2[i]>10 and 1 or 0)-10*(d2[i]>10 and 1 or 0))/0.35+(d2[i]*(d2[i]<=10 and 1 or 0)+10*(d2[i]>10 and 1 or 0))/0.4)*0.22+ central_dummy[i]*3
 		cost_taxi[i] = (cost_taxi_1[i] + cost_taxi_2[i])/2
 
@@ -228,11 +227,11 @@ local function computeUtilities(params,dbparams)
 
 		--dbparams.tt_public_ivt(i) =
 		--dbparams.tt_public_out(i) =
-		tt_public_ivt[i] = dbparams.tt_public_ivt(i)
-		tt_public_out[i] = dbparams.tt_public_out(i)
+		tt_public_ivt[i] = dbparams:tt_public_ivt(i)
+		tt_public_out[i] = dbparams:tt_public_out(i)
 
 		--dbparams.tt_car_ivt(i) = 
-		tt_car_ivt[i] = dbparams.tt_car_ivt(i)
+		tt_car_ivt[i] = dbparams:tt_car_ivt(i)
 
 		tt_bus[i] = tt_public_ivt[i]+ tt_public_out[i]
 		tt_mrt[i] = tt_public_ivt[i]+ tt_public_out[i]
@@ -249,10 +248,10 @@ local function computeUtilities(params,dbparams)
 		--dbparams.population(i) = 
 		--dbparams.area(i) = 
 		--dbparams.shop(i) = 
-		employment[i] = dbparams.employment(i)
-		population[i] = dbparams.population(i)
-		area[i] = dbparams.area(i)
-		shop[i] = dbparams.shop(i)
+		employment[i] = dbparams:employment(i)
+		population[i] = dbparams:population(i)
+		area[i] = dbparams:area(i)
+		shop[i] = dbparams:shop(i)
 	end
 
 	local V_counter = 0
@@ -319,9 +318,8 @@ end
 local availability = {}
 local function computeAvailabilities(params,dbparams)
 	for i = 1, 1092*9 do 
-	availability[i] = dbparams.availability(i)
-end
-}
+		availability[i] = dbparams:availability(i)
+	end
 end
 
 --scale

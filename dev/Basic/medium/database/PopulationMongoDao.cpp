@@ -42,6 +42,10 @@ void PopulationMongoDao::fromRow(mongo::BSONObj document, PersonParams& outParam
    	outParam.setCarOwnNormal(document.getField(MONGO_FIELD_CAR_OWN_NORMAL).Int());
    	outParam.setCarOwnOffpeak(document.getField(MONGO_FIELD_CAR_OWN_OFFPEAK).Int());
    	outParam.setMotorOwn(document.getField(MONGO_FIELD_MOTOR_OWN).Int());
+   	outParam.setWorkLogSum(document.getField(MONGO_FIELD_WORK_LOGSUM).Double());
+   	outParam.setEduLogSum(document.getField(MONGO_FIELD_EDU_LOGSUM).Double());
+   	outParam.setShopLogSum(document.getField(MONGO_FIELD_SHOP_LOGSUM).Double());
+   	outParam.setOtherLogSum(document.getField(MONGO_FIELD_OTHER_LOGSUM).Double());
 }
 
 

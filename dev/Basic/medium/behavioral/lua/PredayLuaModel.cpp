@@ -133,6 +133,25 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 			.endClass();
 
 	getGlobalNamespace(state.get())
+			.beginClass<TourTimeOfDayParams>("TourTimeOfDayParams")
+				.addFunction("TT_HT1", &TourTimeOfDayParams::getTT_FirstHalfTour)
+				.addFunction("TT_HT2", &TourTimeOfDayParams::getTT_SecondHalfTour)
+				.addProperty("cost_HT1_am", &TourTimeOfDayParams::getCostHt1Am)
+				.addProperty("cost_HT1_pm", &TourTimeOfDayParams::getCostHt1Pm)
+				.addProperty("cost_HT1_op", &TourTimeOfDayParams::getCostHt1Op)
+				.addProperty("cost_HT2_am", &TourTimeOfDayParams::getCostHt2Am)
+				.addProperty("cost_HT2_pm", &TourTimeOfDayParams::getCostHt2Pm)
+				.addProperty("cost_HT2_op", &TourTimeOfDayParams::getCostHt2Op)
+			.endClass();
+
+	getGlobalNamespace(state.get())
+			.beginClass<StopTimeOfDayParams>("StopTimeOfDayParams")
+				.addFunction("TT", &StopTimeOfDayParams::getTravelTime)
+				.addFunction("cost", &StopTimeOfDayParams::getTravelCost)
+				.addFunction("availability", &StopTimeOfDayParams::getAvailability)
+			.endClass();
+
+	getGlobalNamespace(state.get())
 			.beginClass<StopGenerationParams>("StopGenerationParams")
 				.addProperty("tour_type", &StopGenerationParams::getTourType)
 				.addProperty("driver_dummy", &StopGenerationParams::isDriver)
@@ -243,7 +262,7 @@ int sim_mob::medium::PredayLuaModel::predictTourMode(PersonParams& personParams,
 }
 
 int sim_mob::medium::PredayLuaModel::predictTourModeDestination(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const {
-	switch (tourModeDestinationParams.getTourType_TMD()) {
+	switch (tourModeDestinationParams.getTourPurpose()) {
 	case WORK:
 	{
 		LuaRef chooseTMD = getGlobal(state.get(), "choose_tmdw");
@@ -272,9 +291,42 @@ int sim_mob::medium::PredayLuaModel::predictTourModeDestination(PersonParams& pe
 	}
 }
 
+int sim_mob::medium::PredayLuaModel::predictTourTimeOfDay(PersonParams& personParams, TourTimeOfDayParams& tourTimeOfDayParams, StopType tourType) const {
+	switch (tourType) {
+	case WORK:
+	{
+		LuaRef chooseTTDW = getGlobal(state.get(), "choose_ttdw");
+		LuaRef retVal = chooseTTDW(&personParams, &tourTimeOfDayParams);
+		return retVal.cast<int>();
+		break;
+	}
+	case EDUCATION:
+	{
+		LuaRef chooseTTDE = getGlobal(state.get(), "choose_ttde");
+		LuaRef retVal = chooseTTDE(&personParams, &tourTimeOfDayParams);
+		return retVal.cast<int>();
+		break;
+	}
+	case SHOP: // Fall through
+	case OTHER:
+	{
+		LuaRef chooseTTDO = getGlobal(state.get(), "choose_ttdo");
+		LuaRef retVal = chooseTTDO(&personParams, &tourTimeOfDayParams);
+		return retVal.cast<int>();
+		break;
+	}
+	}
+}
+
 int sim_mob::medium::PredayLuaModel::generateIntermediateStop(PersonParams& personParams, StopGenerationParams& isgParams) const {
 	LuaRef chooseISG = getGlobal(state.get(), "choose_isg");
 	LuaRef retVal = chooseISG(&personParams, &isgParams);
+	return retVal.cast<int>();
+}
+
+int sim_mob::medium::PredayLuaModel::predictStopTimeOfDay(PersonParams& personParams, StopTimeOfDayParams& stopTimeOfDayParams) const {
+	LuaRef chooseITD = getGlobal(state.get(), "choose_itd");
+	LuaRef retVal = chooseITD(&personParams, &stopTimeOfDayParams);
 	return retVal.cast<int>();
 }
 

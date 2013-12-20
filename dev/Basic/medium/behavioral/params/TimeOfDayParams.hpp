@@ -10,6 +10,7 @@
  */
 
 #pragma once
+#include <cmath>
 #include <vector>
 
 namespace sim_mob {
@@ -23,48 +24,72 @@ namespace medium {
  */
 class TourTimeOfDayParams {
 public:
-	TourTimeOfDayParams() : numTimeWindows(48) {}
+	TourTimeOfDayParams() : numTimeWindows(48), costHT1_AM(0), costHT1_PM(0), costHT1_OP(0), costHT2_AM(0), costHT2_PM(0), costHT2_OP(0) {}
 	virtual ~TourTimeOfDayParams() {}
 
 	/**
-	 * Templated function to get a specific element from first half tour vector travelTimesFirstHalfTour
+	 * Function to get a specific element from first half tour vector travelTimesFirstHalfTour
 	 *
-	 * @returns the value from the vector if index < 48; returns -1 otherwise;
-	 * \note -1 is an invalid value for travel time and the caller must check for this value.
+	 * @returns 0 (as per Siyu's suggestion) (cost and travel times are not used in this model)
 	 */
-	template <unsigned index>
-	double getTT_FirstHalfTour(){
-		if(index < numTimeWindows) {
-			return travelTimesFirstHalfTour[index];
-		}
-		return -1;
+	double getTT_FirstHalfTour(int index) const{
+		return 0;
 	}
 
 	/**
-	 * Templated function to get a specific element from second half tour vector travelTimesSecondHalfTour
+	 * Function to get a specific element from second half tour vector travelTimesSecondHalfTour
 	 *
-	 * @returns the value from the vector if index < 48; returns -1 otherwise;
-	 * \note -1 is an invalid value for travel time and the caller must check for this value.
+	 * @returns 0 (as per Siyu's suggestion) (cost and travel times are not used in this model)
 	 */
-	template <unsigned index>
-	double getTT_SecondHalfTour(){
-		if(index < numTimeWindows) {
-			return travelTimesSecondHalfTour[index];
-		}
-		return -1;
+	double getTT_SecondHalfTour(int index) const{
+		return 0;
+	}
+
+	int getCostHt1Am() const {
+		return costHT1_AM;
+	}
+
+	int getCostHt1Op() const {
+		return costHT1_OP;
+	}
+
+	int getCostHt1Pm() const {
+		return costHT1_PM;
+	}
+
+	int getCostHt2Am() const {
+		return costHT2_AM;
+	}
+
+	int getCostHt2Op() const {
+		return costHT2_OP;
+	}
+
+	int getCostHt2Pm() const {
+		return costHT2_PM;
 	}
 
 	/**
-	 * Vector storing the travel times for first and second half-tours in various all half-hour windows within a day.
+	 * Vector storing the travel times for first and second half-tours in all half-hour windows within a day.
 	 * The day starts at 0300Hrs and ends at 2659Hrs.
 	 * The half-hour windows are 0300-0330, 0330-0400, 0400-0430, ... , 2600-2630, 2630-0300
 	 * E.g.
 	 * travelTimesFirstHalfTour[0] is the travel time for 0300hrs to 0330hrs (first half-hour window)
 	 * travelTimesFirstHalfTour[47] is the travel time for 2630hrs to 0300hrs (last half-hour window)
+	 *
+	 * \note these vectors are currently not used (cost and travel times are currently not used in this model)
 	 */
 	std::vector<double> travelTimesFirstHalfTour;
 	std::vector<double> travelTimesSecondHalfTour;
-	const unsigned int numTimeWindows;
+
+private:
+	int numTimeWindows;
+	int costHT1_AM;
+	int costHT1_PM;
+	int costHT1_OP;
+	int costHT2_AM;
+	int costHT2_PM;
+	int costHT2_OP;
 
 };
 
@@ -77,11 +102,17 @@ public:
 class StopTimeOfDayParams {
 public:
 	StopTimeOfDayParams(int stopType, int firstBound) : stopType(stopType), firstBound(firstBound), numTimeWindows(48), todHigh(0.0), todLow(0.0) {
-		for(double i=3.25; i<27; i=i+0.5) {
+		for(double i=3.25; i<=26.75; i=i+0.5) {
 			availability[i] = true;
 		}
 	}
 	virtual ~StopTimeOfDayParams() {}
+
+	double getTimeWindow(int choice_idx) {
+		//There are 48 time windows from 3.25 (index 1) to 26.75 (index 48).
+		//We can get the time window by applying a simple calculation on the index value.
+		return ((choice_idx * 0.5) + 2.75);
+	}
 
 	int getFirstBound() const {
 		return firstBound;
@@ -112,13 +143,12 @@ public:
 	}
 
 	/**
-	 * Templated function to get a specific element from vector travelTimes
+	 * Function to get a specific element from vector travelTimes
 	 *
 	 * @returns the value from the vector if index < 48; returns -1 otherwise;
 	 * \note -1 is an invalid value for travel time and the caller must check for this value.
 	 */
-	template <unsigned index>
-	double getTravelTime(){
+	double getTravelTime(unsigned index){
 		if(index < numTimeWindows) {
 			return travelTimes[index];
 		}
@@ -126,13 +156,12 @@ public:
 	}
 
 	/**
-	 * Templated function to get a specific element from vector travelCost
+	 * Function to get a specific element from vector travelCost
 	 *
 	 * @returns the value from the vector if index < 48; returns -1 otherwise;
 	 * \note -1 is an invalid value for travel time and the caller must check for this value.
 	 */
-	template <unsigned index>
-	double getTravelCost(){
+	double getTravelCost(unsigned index){
 		if(index < numTimeWindows) {
 			return travelCost[index];
 		}
@@ -140,10 +169,9 @@ public:
 	}
 
 	/**
-	 * Templated function to get the availability of an alternative
+	 * Function to get the availability of an alternative
 	 */
-	template <unsigned index>
-	int getAvailability(){
+	int getAvailability(unsigned index){
 		if(index < numTimeWindows) {
 			return availability[index];
 		}

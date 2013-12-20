@@ -63,24 +63,24 @@ end
 local utility = {}
 local function computeUtilities(params,dbparams)
 
-	local work_stop_dummy = params.stop_type == 1 and 1 or 0
-	local edu_stop_dummy = params.stop_type == 2 and 1 or 0
-	local shop_stop_dummy = params.stop_type == 3 and 1 or 0
-	local other_stop_dummy = params.stop_type ==4 and 1 or 0 
+	local work_stop_dummy = dbparams.stop_type == 1 and 1 or 0
+	local edu_stop_dummy = dbparams.stop_type == 2 and 1 or 0
+	local shop_stop_dummy = dbparams.stop_type == 3 and 1 or 0
+	local other_stop_dummy = dbparams.stop_type ==4 and 1 or 0 
 
 	local income_id = params.income_id
 	local income_cat = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
 	local income_mid = income_cat[income_id]
 	local missing_income = params.missing_income
 	--whether stop is on first half tour or second half tour
-	local first_bound = params.first_bound
-	local second_bound = params.second_bound 
+	local first_bound = dbparams.first_bound
+	local second_bound = dbparams.second_bound 
 
-	local high_tod = params.high_tod
-	local low_tod = params.low_tod
+	local high_tod = dbparams.high_tod
+	local low_tod = dbparams.low_tod
 
-	local TT = dbparams.TT
-	local cost = dbparams.cost
+	local TT = dbparams:TT
+	local cost = dbparams:cost
 
 	local function sarr_1(t):
 		return first_bound*beta_ARR_1_1 * math.sin(2*pi*t/24.) + first_bound*beta_ARR_1_5 * math.cos(2*pi*t/24.)+first_bound*beta_ARR_1_2 * math.sin(4*pi*t/24.) + first_bound*beta_ARR_1_6 * math.cos(4*pi*t/24.)+first_bound*beta_ARR_1_3 * math.sin(6*pi*t/24.) + first_bound*beta_ARR_1_7 * math.cos(6*pi*t/24.)+first_bound*beta_ARR_1_4 * math.sin(8*pi*t/24.) + first_bound*beta_ARR_1_8 * math.cos(8*pi*t/24.)
@@ -105,7 +105,7 @@ local function computeUtilities(params,dbparams)
 		local dur = first_bound*(high_tod-i+1)+second_bound*(i-low_tod+1)
 		dur = 0.25 + (dur-1)/2
 		
-		utility[i] = sarr_1(arr) + sdep_1(dep) + work_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + edu_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + shop_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + other_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + beta_TT * TT[i] + (1-missing_income) * beta_C_1 * cost[i]/(0.5+income_mid) + missing_income * beta_C_2 *cost[i]
+		utility[i] = sarr_1(arr) + sdep_1(dep) + work_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + edu_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + shop_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + other_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + beta_TT * TT(i) + (1-missing_income) * beta_C_1 * cost(i)/(0.5+income_mid) + missing_income * beta_C_2 *cost(i)
 
 	end
 
@@ -116,7 +116,7 @@ end
 local availability = {}
 local function computeAvailabilities(params,dbparams)
 	for i = 1, 48 do 
-		availability[i] = dbparams.availability[i]
+		availability[i] = dbparams:availability(i)
 	end
 end
 

@@ -28,6 +28,44 @@ using namespace sim_mob;
 using namespace sim_mob::db;
 using namespace sim_mob::medium;
 
+sim_mob::medium::PredayManager::~PredayManager() {
+	// clear Persons
+	for(PersonList::iterator i = personList.begin(); i!=personList.end(); i++) {
+		delete *i;
+	}
+	personList.clear();
+
+	// clear AMCosts
+	for(CostMap::iterator i = amCostMap.begin(); i!=amCostMap.end(); i++) {
+		for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
+			if(j->second) {
+				delete j->second;
+			}
+		}
+	}
+	amCostMap.clear();
+
+	// clear PMCosts
+	for(CostMap::iterator i = pmCostMap.begin(); i!=pmCostMap.end(); i++) {
+		for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
+			if(j->second) {
+				delete j->second;
+			}
+		}
+	}
+	pmCostMap.clear();
+
+	// clear OPCosts
+	for(CostMap::iterator i = opCostMap.begin(); i!=opCostMap.end(); i++) {
+		for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
+			if(j->second) {
+				delete j->second;
+			}
+		}
+	}
+	opCostMap.clear();
+}
+
 void sim_mob::medium::PredayManager::loadPersons(BackendType dbType) {
 	switch(dbType) {
 	case POSTGRES:
@@ -69,11 +107,12 @@ void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType) {
 	switch(dbType) {
 	case POSTGRES:
 	{
-		throw std::runtime_error("Zone information is not available in PostgreSQL yet");
+		throw std::runtime_error("Zone information is not available in PostgreSQL database yet");
 		break;
 	}
 	case MONGO_DB:
 	{
+		zoneMap.reserve(1092);
 		std::string zoneCollectionName = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo").collectionName.at("Zone");
 		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 		std::string emptyString;
@@ -89,15 +128,40 @@ void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType) {
 	}
 }
 
+void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
+	switch(dbType) {
+	case POSTGRES:
+	{
+		throw std::runtime_error("AM, PM and off peak costs are not available in PostgreSQL database yet");
+	}
+	case MONGO_DB:
+	{
+		std::string amCostsCollName = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo").collectionName.at("AMCosts");
+		std::string pmCostsCollName = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo").collectionName.at("PMCosts");
+		std::string opCostsCollName = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo").collectionName.at("OPCosts");
+		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+		std::string emptyString;
+		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+		CostMongoDao amCostDao(dbConfig, db.dbName, amCostsCollName);
+		amCostDao.getAll(amCostMap);
+		Print() << "amCostMap.size():" << amCostMap.size() << std::endl;
+		CostMongoDao pmCostDao(dbConfig, db.dbName, pmCostsCollName);
+		pmCostDao.getAll(pmCostMap);
+		Print() << "pmCostMap.size():" << pmCostMap.size() << std::endl;
+		CostMongoDao opCostDao(dbConfig, db.dbName, opCostsCollName);
+		opCostDao.getAll(opCostMap);
+		Print() << "opCostMap.size():" << opCostMap.size() << std::endl;
+	}
+	}
+}
+
 void sim_mob::medium::PredayManager::distributeAndProcessPersons(uint16_t numWorkers) {
 	processPersons(personList);
 }
 
-
-
 void sim_mob::medium::PredayManager::processPersons(PersonList& persons) {
 	for(PersonList::iterator i = persons.begin(); i!=persons.end(); i++) {
-		PredaySystem predaySystem(*i, zoneMap);
+		PredaySystem predaySystem(**i, zoneMap, amCostMap, pmCostMap, opCostMap);
 		predaySystem.planDay();
 	}
 }

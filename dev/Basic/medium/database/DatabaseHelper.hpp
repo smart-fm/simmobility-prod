@@ -83,6 +83,10 @@ namespace medium {
 	const std::string MONGO_FIELD_CAR_OWN_NORMAL = "car_own_normal";
 	const std::string MONGO_FIELD_CAR_OWN_OFFPEAK = "car_own_offpeak";
 	const std::string MONGO_FIELD_MOTOR_OWN = "motor_own";
+	const std::string MONGO_FIELD_WORK_LOGSUM = "worklogsum";
+	const std::string MONGO_FIELD_EDU_LOGSUM = "edulogsum";
+	const std::string MONGO_FIELD_SHOP_LOGSUM = "shoplogsum";
+	const std::string MONGO_FIELD_OTHER_LOGSUM = "otherlogsum";
 
 	/**
 	 * Fields for mongoDB Zone data

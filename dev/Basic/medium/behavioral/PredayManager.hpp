@@ -17,11 +17,11 @@
 
 namespace sim_mob {
 namespace medium {
-typedef std::vector<PersonParams> PersonList;
-typedef boost::unordered_map<int, ZoneParams> ZoneMap;
-
 class PredayManager {
 public:
+
+	virtual ~PredayManager();
+
 	/**
 	 * Gets person data from the database and stores corresponding PersonParam pointers in personList.
 	 */
@@ -33,11 +33,20 @@ public:
 	void loadZones(db::BackendType dbType);
 
 	/**
+	 * loads the AM, PM and off peak costs data
+	 */
+	void loadCosts(db::BackendType dbType);
+
+	/**
 	 * Distributes persons to different threads and starts the threads which process the persons
 	 */
 	void distributeAndProcessPersons(uint16_t numWorkers = 1);
 
 private:
+	typedef std::vector<PersonParams*> PersonList;
+	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
+	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
+
 	/**
 	 * Threaded function loop.
 	 * Loops through all elements in personList and invokes the Preday system of models for each of them.
@@ -47,7 +56,19 @@ private:
 
 	PersonList personList;
 
-	ZoneMap zoneMap;
+    /**
+     * map of zone_id -> ZoneParams
+     * \note this map has 1092 elements
+     */
+    ZoneMap zoneMap;
+
+    /**
+     * Map of AM, PM and Off peak Costs [origin zone, destination zone] -> CostParams*
+     * \note these maps have (1092 zones * 1092 zones - 1092 (entries with same origin and destination is not available)) 1191372 elements
+     */
+    CostMap amCostMap;
+    CostMap pmCostMap;
+    CostMap opCostMap;
 
 };
 } //end namespace medium

@@ -385,6 +385,7 @@ bool performMainDemand(){
 	PredayManager predayManager;
 	predayManager.loadZones(db::MONGO_DB);
 	predayManager.loadPersons(db::MONGO_DB);
+	predayManager.loadCosts(db::MONGO_DB);
 	predayManager.distributeAndProcessPersons(1);
 	return true;
 }

@@ -141,10 +141,10 @@ local function computeUtilities(params,dbparams)
 	-- gender in this model is the same as female_dummy
 	local gender = params.female_dummy
 	-- work time flexibility 1 for fixed hour, 2 for flexible hour
-	local worktime = params.worktime
+	local worktime = params.fixed_work_hour
 
-	local TT_HT1 = dbparams.TT_HT1
-	local TT_HT2 = dbparams.TT_HT2
+	local TT_HT1 = dbparams:TT_HT1
+	local TT_HT2 = dbparams:TT_HT2
 
 	local cost_HT1_am = dbparams.cost_HT1_am
 	local cost_HT1_pm = dbparams.cost_HT1_pm
@@ -181,7 +181,7 @@ local function computeUtilities(params,dbparams)
 		else
 			dep_am, dep_pm, dep_op = 0, 0, 1
 
-		utility[i] = sarr_1(arr) + sdep_1(dep) + (person_type_id ~= 1 and 1 or 0) * (sarr_2(arr) + sdep_2(dep)) + gender * (sarr_3(arr) + sdep_3(dep)) + (worktime == 2 and 1 or 0) * (sarr_4(arr) + sdep_4(dep)) + beta_DUR_1 * dur + beta_DUR_2 * math.pow(dur,2) + beta_DUR_3 * math.pow(dur,3) + beta_TT1 * TT_HT1[arrid] + beta_TT2 * TT_HT2[depid] + beta_C * (cost_HT1_am * arr_am + cost_HT1_pm * arr_pm + cost_HT1_op * arr_op + cost_HT2_am * dep_am + cost_HT2_pm * dep_pm + cost_HT2_op * dep_op)
+		utility[i] = sarr_1(arr) + sdep_1(dep) + (person_type_id ~= 1 and 1 or 0) * (sarr_2(arr) + sdep_2(dep)) + gender * (sarr_3(arr) + sdep_3(dep)) + (worktime == 2 and 1 or 0) * (sarr_4(arr) + sdep_4(dep)) + beta_DUR_1 * dur + beta_DUR_2 * math.pow(dur,2) + beta_DUR_3 * math.pow(dur,3) + beta_TT1 * TT_HT1(arrid) + beta_TT2 * TT_HT2(depid) + beta_C * (cost_HT1_am * arr_am + cost_HT1_pm * arr_pm + cost_HT1_op * arr_op + cost_HT2_am * dep_am + cost_HT2_pm * dep_pm + cost_HT2_op * dep_op)
 	end
 end
 
@@ -190,7 +190,7 @@ end
 local availability = {}
 local function computeAvailabilities(params,dbparams)
 	for i = 1, 1176 do 
-		availability[i] = dbparams.availability[i]
+		availability[i] = params:getTimeWindowAvailabilityTour(i)
 	end
 end
 

@@ -24,6 +24,7 @@
 #include "database/DB_Connection.hpp"
 #include "logging/Log.hpp"
 #include "mongo/client/dbclient.h"
+#include "PredayClasses.hpp"
 
 
 using namespace std;
@@ -31,8 +32,9 @@ using namespace sim_mob;
 using namespace sim_mob::medium;
 using namespace mongo;
 
-PredaySystem::PredaySystem(PersonParams& personParams, boost::unordered_map<int, ZoneParams>& zoneMap)
-: personParams(personParams), zoneMap(zoneMap), predayLuaModel(PredayLuaProvider::getPredayModel()) // get the thread-local lua model object
+PredaySystem::PredaySystem(PersonParams& personParams, const ZoneMap& zoneMap, const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap)
+: personParams(personParams), zoneMap(zoneMap), amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap),
+  predayLuaModel(PredayLuaProvider::getPredayModel()) // get the thread-local lua model object
 {
 	MongoCollectionsMap mongoColl = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo");
 	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
@@ -70,9 +72,9 @@ bool sim_mob::medium::PredaySystem::predictUsualWorkLocation(PersonParams& perso
 void PredaySystem::predictTourMode(Tour& tour) {
 	TourModeParams tmParams;
 	tmParams.setStopType(tour.getTourType());
-	BSONObj znOrgObj, znDesObj;
-	BSONObj znOrgQuery = BSON("zone_code" << personParams.getHomeLocation());
-	BSONObj znDesQuery = BSON("zone_code" << tour.getPrimaryActivityLocation());
+	mongo::BSONObj znOrgObj, znDesObj;
+	mongo::BSONObj znOrgQuery = BSON("zone_code" << personParams.getHomeLocation());
+	mongo::BSONObj znDesQuery = BSON("zone_code" << tour.getPrimaryActivityLocation());
 	Print() << "zone_code" << tour.getPrimaryActivityLocation() << std::endl;
 	mongoDao["Zone"]->getOne(znOrgQuery, znOrgObj);
 	mongoDao["Zone"]->getOne(znDesQuery, znDesObj);
@@ -84,9 +86,9 @@ void PredaySystem::predictTourMode(Tour& tour) {
 	tmParams.setOriginArea(znOrgObj.getField("area").Double());
 	tmParams.setDestinationArea(znDesObj.getField("area").Double());
 	if(personParams.getHomeLocation() != tour.getPrimaryActivityLocation()) {
-		BSONObj amObj, pmObj;
-		BSONObj amQuery = BSON("origin" << personParams.getHomeLocation() << "destin" << tour.getPrimaryActivityLocation());
-		BSONObj pmQuery = BSON("origin" << tour.getPrimaryActivityLocation()  << "destin" << personParams.getHomeLocation());
+		mongo::BSONObj amObj, pmObj;
+		mongo::BSONObj amQuery = BSON("origin" << personParams.getHomeLocation() << "destin" << tour.getPrimaryActivityLocation());
+		mongo::BSONObj pmQuery = BSON("origin" << tour.getPrimaryActivityLocation()  << "destin" << personParams.getHomeLocation());
 		mongoDao["AMCosts"]->getOne(amQuery, amObj);
 		mongoDao["PMCosts"]->getOne(pmQuery, pmObj);
 		tmParams.setCostPublicFirst(amObj.getField("pub_cost").Double());
@@ -156,98 +158,22 @@ void PredaySystem::predictTourMode(Tour& tour) {
 }
 
 void PredaySystem::predictTourModeDestination(Tour& tour) {
-	TourModeDestinationParams tmdParams(zoneMap, personParams, tour.getTourType());
+	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, tour.getTourType());
 	int modeDest = predayLuaModel.predictTourModeDestination(personParams, tmdParams);
 	tour.setTourMode(tmdParams.getMode_TMD(modeDest));
-	tour.setPrimaryActivityLocation(tmdParams.getDestination_TMD(modeDest));
+	int zone_id = tmdParams.getDestination_TMD(modeDest);
+	tour.setPrimaryActivityLocation(zoneMap.at(zone_id)->getZoneCode());
 }
 
-std::string& PredaySystem::predictTourTimeOfDay(Tour& tour) {
-	string dummy = "";
-	std::string& timeWndw = dummy;
-/*	if(!tour.isSubTour()) {
-		long origin = personParams.getHomeLocation();
-		long destination = tour.getPrimaryActivityLocation();
+TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
+	int timeWndw;
+	if(!tour.isSubTour()) {
+		int origin = personParams.getHomeLocation();
+		int destination = tour.getPrimaryActivityLocation();
 		TourTimeOfDayParams todParams;
-		if(origin != destination) {
-			BSONObjBuilder bsonObjBldr_ttAM;
-			bsonObjBldr_ttAM << "origin" << origin << "destination" << destination;
-			BSONObj bsonObj_tAM = bsonObjBldr_ttAM.obj();
-
-			BSONObjBuilder bsonObjBldr_ttPM;
-			bsonObjBldr_ttPM << "origin" << destination << "destination" << origin;
-			BSONObj bsonObj_tPM = bsonObjBldr_ttPM.obj();
-
-			BSONObjBuilder bsonObjBldr_AMCosts;
-			bsonObjBldr_AMCosts << "origin" << origin << "destin" << destination; // origin is home and destination is primary activity location
-			BSONObj bsonObj_AMCosts = bsonObjBldr_AMCosts.obj();
-
-			BSONObjBuilder bsonObjBldr_PMCosts;
-			bsonObjBldr_PMCosts << "origin" << destination << "destin" << origin; // origin is primary activity location and destination is home
-			BSONObj bsonObj_PMCosts = bsonObjBldr_PMCosts.obj();
-
-			auto_ptr<mongo::DBClientCursor> tCostBusAM = mongoDao["tcost_bus"]->queryDocument(bsonObj_tAM);
-			auto_ptr<mongo::DBClientCursor> tCostBusPM = mongoDao["tcost_bus"]->queryDocument(bsonObj_tPM);
-			BSONObj tCostBusDocAM = tCostBusAM->next();
-			BSONObj tCostBusDocPM = tCostBusPM->next();
-
-			auto_ptr<mongo::DBClientCursor> tCostCarAM = mongoDao["tcost_car"]->queryDocument(bsonObj_tAM);
-			auto_ptr<mongo::DBClientCursor> tCostCarPM = mongoDao["tcost_car"]->queryDocument(bsonObj_tPM);
-			BSONObj tCostCarDocAM = tCostCarAM->next();
-			BSONObj tCostCarDocPM = tCostCarPM->next();
-
-			auto_ptr<mongo::DBClientCursor> amDistance = mongoDao["AMCosts"]->queryDocument(bsonObj_AMCosts);
-			auto_ptr<mongo::DBClientCursor> pmDistance = mongoDao["PMCosts"]->queryDocument(bsonObj_PMCosts);
-			BSONObj amDistanceObj = amDistance->next();
-			BSONObj pmDistanceObj = pmDistance->next();
-
-			try {
-				for (uint32_t i=1; i<=48; i++) {
-					switch(tour.getTourMode()) {
-					case 1: // Fall through
-					case 2:
-					case 3:
-					{
-						todParams.travelTimesFirstHalfTour.push_back(tCostBusDocAM.getField("TT_bus_arrival_" + i).Double());
-						todParams.travelTimesSecondHalfTour.push_back(tCostBusDocPM.getField("TT_bus_arrival_" + i).Double());
-						break;
-					}
-					case 4: // Fall through
-					case 5:
-					case 6:
-					case 7:
-					case 9:
-					{
-						todParams.travelTimesFirstHalfTour.push_back(tCostCarDocAM.getField("TT_car_arrival_" + i).Double());
-						todParams.travelTimesSecondHalfTour.push_back(tCostCarDocPM.getField("TT_car_arrival_" + i).Double());
-						break;
-					}
-					case 8:
-					{
-						double distanceMin = amDistanceObj.getField("distance").Double() - pmDistanceObj.getField("distance").Double();
-						todParams.travelTimesSecondHalfTour.push_back(distanceMin/5);
-						todParams.travelTimesSecondHalfTour.push_back(distanceMin/5);
-						break;
-					}
-					}
-				}
-			}
-			catch(exception& e) {
-				// something unexpected happened while getting data
-				// retrieved values could've been NULL
-				// therefore, setting the travel times to a high value - 999
-				Print() << "Error occurred in predictTourTimeOfDay(): " + e.what() << std::endl;
-				todParams.travelTimesSecondHalfTour.push_back(999);
-				todParams.travelTimesSecondHalfTour.push_back(999);
-			}
-		}
-		LuaRef chooseTTOD = getGlobal(state.get(), "chooseTTOD");
-		LuaRef retVal = chooseTTOD(personParams, todParams);
-		timeWndw = retVal.cast<std::string>();
-		personParams.blockTime(timeWndw);
-
-	}*/
-	return timeWndw;
+		timeWndw = predayLuaModel.predictTourTimeOfDay(personParams, todParams, tour.getTourType());
+	}
+	return TimeWindowAvailability::timeWindowsLookup[timeWndw];
 }
 
 void PredaySystem::generateIntermediateStops(Tour& tour) {
@@ -271,6 +197,7 @@ void PredaySystem::generateIntermediateStops(Tour& tour) {
 
 		//First half tour
 		if(origin != destination) {
+			Print() << "origin" << origin << "destin" << destination << endl;
 			mongo::BSONObj bsonObj_AMCosts = BSON("origin" << origin << "destin" << destination); // origin is home and destination is primary activity location
 			mongo::BSONObj amDistanceObj;
 			mongoDao["AMCosts"]->getOne(bsonObj_AMCosts, amDistanceObj);
@@ -369,32 +296,23 @@ void PredaySystem::predictStopModeDestination(Stop* stop)
 {}
 
 void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
-	/*StopTimeOfDayParams stodParams(stop.getStopTypeID(), isBeforePrimary);
-	double origin = stop.getStopLocation();
+	StopTimeOfDayParams stodParams(stop->getStopTypeID(), isBeforePrimary);
+	double origin = stop->getStopLocation();
 	double destination = personParams.getHomeLocation();
 
 	if(origin != destination) {
-		BSONObjBuilder bsonObjBldrTT, bsonObjBldrTC;
-		bsonObjBldrTT << "origin" << origin << "destination" << destination;
-		BSONObj bsonObjTT = bsonObjBldrTT.obj();
-
-		bsonObjBldrTC << "origin" << destination << "destin" << origin;
-		BSONObj bsonObjTC = bsonObjBldrTC.obj();
-
+		BSONObj bsonObjTT = BSON("origin" << origin << "destination" << destination);
+		BSONObj bsonObjTC = BSON("origin" << destination << "destin" << origin);
+		BSONObj tCostBusDoc;
+		mongoDao["tcost_bus"]->getOne(bsonObjTT, tCostBusDoc);
+		BSONObj tCostCarDoc;
+		mongoDao["tcost_car"]->getOne(bsonObjTT, tCostCarDoc);
+		BSONObj amDistanceObj, pmDistanceObj;
+		mongoDao["AMCosts"]->getOne(bsonObjTC, amDistanceObj);
+		mongoDao["PMCosts"]->getOne(bsonObjTC, pmDistanceObj);
 		try {
-			auto_ptr<mongo::DBClientCursor> tCostBusCursor = mongoDao["tcost_bus"]->queryDocument(bsonObjTT);
-			BSONObj tCostBusDoc = tCostBusCursor->next();
-
-			auto_ptr<mongo::DBClientCursor> tCostCarCursor = mongoDao["tcost_car"]->queryDocument(bsonObjTT);
-			BSONObj tCostCarDoc = tCostCarCursor->next();
-
-			auto_ptr<mongo::DBClientCursor> amDistance = mongoDao["AMCosts"]->queryDocument(bsonObjTC);
-			auto_ptr<mongo::DBClientCursor> pmDistance = mongoDao["PMCosts"]->queryDocument(bsonObjTC);
-			BSONObj amDistanceObj = amDistance->next();
-			BSONObj pmDistanceObj = pmDistance->next();
-
 			for (uint32_t i = 1; i <= 48; i++) {
-				switch (stop.getStopMode()) {
+				switch (stop->getStopMode()) {
 				case 1: // Fall through
 				case 2:
 				case 3:
@@ -433,7 +351,7 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 			// something unexpected happened while getting data
 			// retrieved values could've been NULL
 			// therefore, setting the travel times to a high value - 999
-			Print() << "Error occurred in predictStopTimeOfDay(): " + e.what() << std::endl;
+			Print() << "Error occurred in predictStopTimeOfDay(): " << e.what() << std::endl;
 			stodParams.travelTimes.push_back(999);
 			stodParams.travelTimes.push_back(999);
 		}
@@ -446,39 +364,30 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 
 	// high and low tod
 	if(isBeforePrimary) {
-		stodParams.setTodHigh(stop.getDepartureTime());
-		if(stop.getParentTour() == tours.front()) {
+		stodParams.setTodHigh(stop->getDepartureTime());
+		if(&stop->getParentTour() == tours.front()) {
 			stodParams.setTodLow(3.25);
 		}
 		else {
-			Tour* prevTour = *(std::find(tours.begin(), tours.end(), stop.getParentTour()) - 1);
+			Tour* prevTour = *(std::find(tours.begin(), tours.end(), &stop->getParentTour()) - 1);
 			stodParams.setTodLow(prevTour->getEndTime());
-
 		}
 	}
 	else {
-		stodParams.setTodLow(stop.getArrivalTime());
+		stodParams.setTodLow(stop->getArrivalTime());
 		stodParams.setTodHigh(26.75);
 	}
 
 	// calculate costs
-	BSONObjBuilder bsonObjBldr_costs;
-	bsonObjBldr_costs << "origin" << origin << "destin" << destination;
-	BSONObj costObj = bsonObjBldr_costs.obj();
+	BSONObj costObj = BSON("origin" << origin << "destin" << destination);
+	BSONObj amDoc, pmDoc, opDoc;
+	mongoDao["AMCosts"]->getOne(costObj, amDoc);
+	mongoDao["PMCosts"]->getOne(costObj, pmDoc);
+	mongoDao["OPCosts"]->getOne(costObj, opDoc);
 
-	auto_ptr<mongo::DBClientCursor> amCursor = mongoDao["AMCosts"]->queryDocument(costObj);
-	auto_ptr<mongo::DBClientCursor> pmCursor = mongoDao["PMCosts"]->queryDocument(costObj);
-	auto_ptr<mongo::DBClientCursor> opCursor = mongoDao["OPCosts"]->queryDocument(costObj);
-	BSONObj amDoc = amCursor->next();
-	BSONObj pmDoc = pmCursor->next();
-	BSONObj opDoc = opCursor->next();
-
-	BSONObjBuilder bsonObjBldr_zone;
-	bsonObjBldr_zone << "zone_code" << origin;
-	BSONObj zoneObj = bsonObjBldr_zone.obj();
-
-	auto_ptr<mongo::DBClientCursor> zoneCursor = mongoDao["Zone"]->queryDocument(zoneObj);
-	BSONObj zoneDoc = zoneCursor->next();
+	BSONObj zoneObj = BSON("zone_code" << origin);
+	BSONObj zoneDoc;
+	mongoDao["Zone"]->getOne(zoneObj, zoneDoc);
 
 	double duration, parkingRate, costCarParking, costCarERP, costCarOP, walkDistance;
 	for(int i=1; i<=48; i++) {
@@ -509,7 +418,7 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 			walkDistance = opDoc.getField("distance").Double();
 		}
 
-		switch (stop.getStopMode()) {
+		switch (stop->getStopMode()) {
 		case 1: // Fall through
 		case 2:
 		case 3:
@@ -529,7 +438,7 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 		case 5:
 		case 6:
 		{
-			stodParams.travelCost.push_back((costCarParking+costCarOP+costCarERP)/(stop.getStopMode()-3.0));
+			stodParams.travelCost.push_back((costCarParking+costCarOP+costCarERP)/(stop->getStopMode()-3.0));
 			break;
 		}
 		case 7:
@@ -558,15 +467,14 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 		}
 	}
 
-	LuaRef chooseITOD = getGlobal(state.get(), "choose_itd");
-	LuaRef retVal = chooseITOD(personParams, stodParams);
-	double timeWndw = retVal.cast<double>();
+	int timeWindow_idx = predayLuaModel.predictStopTimeOfDay(personParams, stodParams);
+	double timeWndw = stodParams.getTimeWindow(timeWindow_idx);
 	if(isBeforePrimary) {
-		stop.setArrivalTime(timeWndw);
+		stop->setArrivalTime(timeWndw);
 	}
 	else {
-		stop.setDepartureTime(timeWndw);
-	}*/
+		stop->setDepartureTime(timeWndw);
+	}
 }
 
 void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* prevStop) { // this must set the arrival time for currStop
@@ -920,13 +828,13 @@ void PredaySystem::planDay() {
 		}
 
 		// Predict the time of day for this tour
-		std::string timeWindow = predictTourTimeOfDay(tour);
+		TimeWindowAvailability timeWindow = predictTourTimeOfDay(tour);
 		Stop* primaryActivity = new Stop(tour.getTourType(), tour, true, true);
 		primaryActivity->setStopMode(tour.getTourMode());
 		primaryActivity->setStopLocation(tour.getPrimaryActivityLocation());
-		primaryActivity->allotTime(timeWindow);
+		primaryActivity->allotTime(timeWindow.getStartTime(), timeWindow.getEndTime());
 		tour.addStop(primaryActivity);
-		personParams.blockTime(timeWindow);
+		personParams.blockTime(timeWindow.getStartTime(), timeWindow.getEndTime());
 
 		//Generate stops for this tour
 		generateIntermediateStops(tour);

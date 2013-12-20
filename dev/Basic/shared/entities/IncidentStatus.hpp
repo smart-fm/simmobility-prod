@@ -17,123 +17,177 @@ namespace sim_mob {
 class RoadSegment;
 class IncidentStatus {
 public:
-	enum IncidentStatusType{INCIDENT_CLEARANCE, INCIDENT_FULLYBLOCKING, INCIDENT_OCCURANCE_LANE, INCIDENT_ADJACENT_LANE };
+	enum IncidentStatusType {
+		INCIDENT_CLEARANCE,
+		INCIDENT_FULLYBLOCKING,
+		INCIDENT_OCCURANCE_LANE,
+		INCIDENT_ADJACENT_LANE
+	};
 	IncidentStatus();
 	virtual ~IncidentStatus();
 
-    /**
-      * insert a new incident obstacle into this class
-      * @param inc is incident obstacle.
-      * @return true if inserting successfully .
-      */
+	/**
+	 * insert a new incident obstacle into this class
+	 * @param inc is incident obstacle.
+	 * @return true if inserting successfully .
+	 */
 	bool insertIncident(const Incident* inc);
 
-    /**
-      * remove a old incident obstacle from this class
-      * @param inc is incident obstacle.
-      * @return true if removing successfully .
-      */
+	/**
+	 * remove a old incident obstacle from this class
+	 * @param inc is incident obstacle.
+	 * @return true if removing successfully .
+	 */
 	bool removeIncident(const Incident* inc);
 
-    /**
-      * check whether all incident obstacles are cleared already
-      * @return true if removing successfully .
-      */
+	/**
+	 * check whether all incident obstacles are cleared already
+	 * @return true if removing successfully .
+	 */
 	void checkIsCleared();
 
-    /**
-      * check whether or not fully blocking happen
-      * @param inc is incident object which hold detail description
-      * @return blocking lane id .
-      */
+	/**
+	 * check whether or not fully blocking happen
+	 * @param inc is incident object which hold detail description
+	 * @return blocking lane id .
+	 */
 	int checkBlockingStatus(const Incident*inc);
 
-   /**
-	  * calculate whether the incident is bypassed
-	  * @param forward means car take currently movement on the road segment
-	  * @return current incident length .
-	  */
+	/**
+	 * calculate whether the incident is bypassed
+	 * @param forward means car take currently movement on the road segment
+	 * @return current incident length .
+	 */
 	double reduceIncidentLength(float forward);
 
-   /**
-	  * the getter of current incident length
-	  * @return current incident length .
-	  */
+	/**
+	 * the getter of current incident length
+	 * @return current incident length .
+	 */
 	double getCurrentIncidentLength();
 
-    /**
-      * the setter and getter for the property 'currentStatus'
-      * @return current incident status .
-      */
-	IncidentStatusType getCurrentStatus() {
-		return currentStatus;
-	}
-	void setCurrentStatus(IncidentStatusType value) {
-		currentStatus = value;
-	}
+	/**
+	 * the getter for the property 'currentStatus'
+	 * @return current incident status .
+	 */
+	IncidentStatusType getCurrentStatus();
 
-    /**
-      * reset member parameters to default value.
-      * @return void .
-      */
+	/**
+	 * the setter for the property 'currentStatus'
+	 * @return void .
+	 */
+	void setCurrentStatus(IncidentStatusType value);
+
+	/**
+	 * reset member parameters to default value.
+	 * @return void .
+	 */
 	void resetStatus();
 
-    /**
-      * the setter and getter for the property 'nextLaneIndex'
-      */
-	void setNextLaneIndex(int value);
+	/**
+	 * the getter for the property 'nextLaneIndex'
+	 * return the index of next adjacent lane to incident
+	 */
 	int getNextLaneIndex();
 
-    /**
-      * the setter and getter for the property 'nextLaneIndex'
-      */
+	/**
+	 * the setter for the property 'nextLaneIndex'
+	 * return void
+	 */
+	void setNextLaneIndex(int value);
+
+	/**
+	 * the setter and getter for the property 'nextLaneIndex'
+	 * return void
+	 */
 	void setCurrentLaneIndex(int value);
+
+	/**
+	 * the getter for the property 'nextLaneIndex'
+	 * return current lane index
+	 */
 	int getCurrentLaneIndex();
 
- 	/**
+	/**
 	 * the setter for the property 'defaultSpeedLimit'
+	 * return void
 	 */
 	void setDefaultSpeedLimit(float value);
 
 	/**
 	 * the getter for speed limit in incident lane
+	 * return -1.0 when laneId is invalid or speed limit is not defined in a given lane, otherwise return correct speed limit
 	 */
 	float getSpeedLimit(unsigned int laneId);
 
-    /**
-      * the setter and getter for the property 'visibilityDist'
-      */
+	/**
+	 * the setter for the property 'visibilityDist'
+	 * return void
+	 */
 	void setVisibilityDistance(float value);
+
+	/**
+	 * the getter for the property 'visibilityDist'
+	 * return visibility defined in incident object
+	 */
 	float getVisibilityDistance();
 
-    /**
-      * the setter and getter for the property 'distanceTo'
-      */
+	/**
+	 * the setter for the property 'distanceTo'
+	 */
 	void setDistanceToIncident(float value);
+
+	/**
+	 * the getter for the property 'distanceTo'
+	 * return the distance to incident object
+	 */
 	float getDistanceToIncident();
 
-    /**
-      * the setter and getter for the property 'randomNum'
-      */
+	/**
+	 * the setter for the property 'randomNum'
+	 */
 	void setRandomValue(float value);
+
+	/**
+	 * the getter for the property 'randomNum'
+	 * return a random number for the lane changing decision
+	 */
 	float getRandomValue();
 
-    /**
-      * the setter and getter for the property 'laneSide'
-      */
+	/**
+	 * the setter for the property 'laneSide'
+	 * return void
+	 */
 	void setLaneSide(LANE_CHANGE_SIDE value);
+
+	/**
+	 * the  getter for the property 'laneSide'
+	 * return lane side which is left or right
+	 */
 	LANE_CHANGE_SIDE getLaneSide();
 
-    /**
-      * the setter and getter for the property 'changedLane'
-      */
+	/**
+	 * the setter for the property 'changedLane'
+	 * return void
+	 */
 	void setChangedLane(bool value);
+
+	/**
+	 * the getter for the property 'changedLane'
+	 * return lane changing decision
+	 */
 	bool getChangedLane();
 
-    /**
-      * the setter and getter for the property 'slowdownVelocity'
-      */
+	/**
+	 * the setter for the property 'slowdownVelocity'
+	 * return void
+	 */
 	void setSlowdownVelocity(bool value);
+
+	/**
+	 * the getter for the property 'slowdownVelocity'
+	 * return slowing down velocity decision
+	 */
 	bool getSlowdownVelocity();
 
 private:

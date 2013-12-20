@@ -11,9 +11,11 @@
 
 namespace sim_mob {
 
-
-IncidentStatus::IncidentStatus() : currentStatus(INCIDENT_CLEARANCE), defaultSpeedLimit(0), distanceTo(0), laneSide(LCS_SAME), currentLaneIndex(0), nextLaneIndex(-1), incidentLength(0), changedLane(false), slowdownVelocity(false){
-	 randomNum = Utils::generateFloat(0, 1.0);
+IncidentStatus::IncidentStatus() :
+		currentStatus(INCIDENT_CLEARANCE), defaultSpeedLimit(0), distanceTo(0), laneSide(
+				LCS_SAME), currentLaneIndex(0), nextLaneIndex(-1), incidentLength(
+				0), changedLane(false), slowdownVelocity(false) {
+	randomNum = Utils::generateFloat(0, 1.0);
 }
 
 IncidentStatus::~IncidentStatus() {
@@ -80,11 +82,19 @@ bool IncidentStatus::getSlowdownVelocity() {
 	return slowdownVelocity;
 }
 
-int IncidentStatus::checkBlockingStatus(const Incident*inc){
+IncidentStatus::IncidentStatusType IncidentStatus::getCurrentStatus() {
+	return currentStatus;
+}
+void IncidentStatus::setCurrentStatus(IncidentStatusType value) {
+	currentStatus = value;
+}
+
+int IncidentStatus::checkBlockingStatus(const Incident*inc) {
 	int ret = -1;
 	bool isFullyBlocking = true;
-	for(std::vector<Incident::LaneItem>::const_iterator laneIt=inc->laneItems.begin(); laneIt!=inc->laneItems.end(); laneIt++){
-		if((*laneIt).speedLimit > 0 ){
+	for (std::vector<Incident::LaneItem>::const_iterator laneIt =
+			inc->laneItems.begin(); laneIt != inc->laneItems.end(); laneIt++) {
+		if ((*laneIt).speedLimit > 0) {
 			isFullyBlocking = false;
 			ret = (*laneIt).laneId;
 			break;
@@ -95,41 +105,39 @@ int IncidentStatus::checkBlockingStatus(const Incident*inc){
 }
 
 float IncidentStatus::getSpeedLimit(unsigned int laneId) {
-	if(currentIncidents.size()==0){
+	if (currentIncidents.size() == 0) {
 		return -1.0;
 	}
 
 	float speedLimitFactor = -1.0;
-	if(laneId < currentIncidents[0]->laneItems.size()){
+	if (laneId < currentIncidents[0]->laneItems.size()) {
 		speedLimitFactor = currentIncidents[0]->laneItems[laneId].speedLimit;
 	}
 
-	return speedLimitFactor*defaultSpeedLimit;
+	return speedLimitFactor * defaultSpeedLimit;
 }
 
-double IncidentStatus::reduceIncidentLength(float forward){
-	if(incidentLength>0){
+double IncidentStatus::reduceIncidentLength(float forward) {
+	if (incidentLength > 0) {
 		incidentLength -= forward;
 	}
 	return incidentLength;
 }
-double IncidentStatus::getCurrentIncidentLength(){
+double IncidentStatus::getCurrentIncidentLength() {
 	return incidentLength;
 }
 
+bool IncidentStatus::insertIncident(const Incident* inc) {
 
-bool IncidentStatus::insertIncident(const Incident* inc){
-
-	if(!inc){
+	if (!inc) {
 		return false;
 	}
 
 	bool ret = true;
-	if( currentIncidents.count(inc->incidentId) > 0 ) {
+	if (currentIncidents.count(inc->incidentId) > 0) {
 		ret = false;
 		return ret;
-	}
-	else {
+	} else {
 		currentIncidents.insert(std::make_pair(inc->incidentId, inc));
 	}
 
@@ -138,28 +146,27 @@ bool IncidentStatus::insertIncident(const Incident* inc){
 	currentStatus = INCIDENT_FULLYBLOCKING;
 	incidentLength = inc->length;
 
-	if(destinationLaneId<0){
+	if (destinationLaneId < 0) {
 		slowdownVelocity = true;
 		currentStatus = INCIDENT_OCCURANCE_LANE;
-	}
-	else if(destinationLaneId>=0){
+	} else if (destinationLaneId >= 0) {
 
 		const float convertFactor = 100.0;
-		if(getSpeedLimit(currentLaneIndex)/convertFactor<defaultSpeedLimit){
+		if (getSpeedLimit(currentLaneIndex) / convertFactor
+				< defaultSpeedLimit) {
 			slowdownVelocity = true;
 		}
 
-		if(destinationLaneId!=currentLaneIndex && getSpeedLimit(currentLaneIndex)==0){
+		if (destinationLaneId != currentLaneIndex
+				&& getSpeedLimit(currentLaneIndex) == 0) {
 			currentStatus = INCIDENT_OCCURANCE_LANE;
 			nextLaneIndex = destinationLaneId;
-			if( currentLaneIndex < nextLaneIndex){
+			if (currentLaneIndex < nextLaneIndex) {
 				laneSide = LCS_LEFT;
-			}
-			else {
+			} else {
 				laneSide = LCS_RIGHT;
 			}
-		}
-		else {
+		} else {
 			currentStatus = INCIDENT_ADJACENT_LANE;
 		}
 	}
@@ -167,10 +174,12 @@ bool IncidentStatus::insertIncident(const Incident* inc){
 	return ret;
 }
 
-bool IncidentStatus::removeIncident(const Incident* inc){
+bool IncidentStatus::removeIncident(const Incident* inc) {
 
-	for(std::map<unsigned int, const Incident*>::iterator incIt = currentIncidents.begin(); incIt != currentIncidents.end(); incIt++) {
-		if( (*incIt).first == inc->incidentId ){
+	for (std::map<unsigned int, const Incident*>::iterator incIt =
+			currentIncidents.begin(); incIt != currentIncidents.end();
+			incIt++) {
+		if ((*incIt).first == inc->incidentId) {
 			currentIncidents.erase(inc->incidentId);
 			return true;
 		}
@@ -179,20 +188,18 @@ bool IncidentStatus::removeIncident(const Incident* inc){
 	return false;
 }
 
-void IncidentStatus::checkIsCleared(){
+void IncidentStatus::checkIsCleared() {
 
-	if(currentIncidents.size() ==0 ){
+	if (currentIncidents.size() == 0) {
 		resetStatus();
 	}
 }
 
-
-void IncidentStatus::resetStatus(){
+void IncidentStatus::resetStatus() {
 	currentStatus = INCIDENT_CLEARANCE;
 	nextLaneIndex = -2;
 	changedLane = false;
 	slowdownVelocity = false;
 }
-
 
 } /* namespace sim_mob */

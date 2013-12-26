@@ -18,7 +18,7 @@ namespace sim_mob {
 
 class NS3ClientRegistration: public sim_mob::ClientRegistrationHandler  {
 public:
-	NS3ClientRegistration(/*ConfigParams::ClientType type_ = ConfigParams::NS3_SIMULATOR*/);
+	NS3ClientRegistration(/*ClientRegistrationFactory::ClientType type_ = ClientRegistrationFactory::NS3_SIMULATOR*/);
 	virtual bool handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest request);
 	virtual ~NS3ClientRegistration();
 };

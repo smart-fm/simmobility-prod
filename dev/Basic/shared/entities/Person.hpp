@@ -188,7 +188,7 @@ public:
     Permission canMoveToNextSegment;
 
     //Used for passing various debug data. Do not rely on this for anything long-term.
-    std::string specialStr;
+    //std::string specialStr;
 
     std::stringstream debugMsgs;
     int client_id;

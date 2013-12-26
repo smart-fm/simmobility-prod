@@ -19,7 +19,6 @@ namespace sim_mob {
 
     namespace long_term {
 
-        DECLARE_CUSTOM_CALLBACK_TYPE(HM_ActionEventArgs)
         class HM_ActionEventArgs : public sim_mob::event::EventArgs {
         public:
             HM_ActionEventArgs(BigSerial unitId);
@@ -35,7 +34,6 @@ namespace sim_mob {
             BigSerial unitId;
         };
         
-        DECLARE_CUSTOM_CALLBACK_TYPE(ExternalEventArgs)
         class ExternalEventArgs : public sim_mob::event::EventArgs {
         public:
             ExternalEventArgs(const ExternalEvent& event);

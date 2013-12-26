@@ -12,6 +12,7 @@
 #include <boost/format.hpp>
 #include "DB_Connection.hpp"
 #include "util/LangHelpers.hpp"
+#include "soci.h"
 #include "soci-postgresql.h"
 
 using namespace sim_mob::db;
@@ -25,10 +26,35 @@ namespace {
                                              "user=%3% "
                                              "password=%4% " 
                                              "dbname=%5%";
+
+    /**
+     * Class that holds the session object.
+     */
+    template<typename T>
+    class DB_Session{
+    public:
+
+        DB_Session() {
+        }
+
+        virtual ~DB_Session() {
+        }
+
+        T& getSession() {
+            return session;
+        }
+        T session;
+    };
+    
+    /**
+     * Soci session holder. 
+     */
+    typedef DB_Session<soci::session> SociSessionImpl;
 }
 
+
 DB_Connection::DB_Connection(BackendType type, const DB_Config& config)
-: currentSession(), type(type), connected(false) {
+: currentSession(nullptr), type(type), connected(false) {
     switch (type) {
         case POSTGRES:
         {
@@ -51,7 +77,8 @@ bool DB_Connection::connect() {
         switch (type) {
             case POSTGRES:
             {
-                currentSession.open(postgresql, connectionStr);
+                currentSession = new SociSessionImpl();
+                getSession<soci::session>().open(postgresql, connectionStr);
                 connected = true;
                 break;
             }
@@ -63,7 +90,15 @@ bool DB_Connection::connect() {
 
 bool DB_Connection::disconnect() {
     if (connected) {
-        currentSession.close();
+        switch (type) {
+            case POSTGRES:
+            {
+                getSession<soci::session>().close();
+                delete((SociSessionImpl*)currentSession);
+                break;
+            }
+            default:break;
+        }
         connected = false;
     }
     return !connected;
@@ -73,6 +108,9 @@ bool DB_Connection::isConnected() const {
     return connected;
 }
 
-session& DB_Connection::getSession() {
-    return currentSession;
+template<typename T> T& DB_Connection::getSession()
+{
+    return ((DB_Session<T>*)(currentSession))->getSession();
 }
+
+template soci::session& DB_Connection::getSession<soci::session>();

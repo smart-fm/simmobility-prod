@@ -88,7 +88,7 @@ unsigned int sim_mob::RoadSegment::getSegmentAimsunId() const{
 	try {
 		originId = boost::lexical_cast<int>(segId);
 	} catch( boost::bad_lexical_cast const& ) {
-		Print() << "Error: aimsun id string was not valid" << std::endl;
+		Warn() << "Error: aimsun id string was not valid" << std::endl;
 	}
 
 	return originId;

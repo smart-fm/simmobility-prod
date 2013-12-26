@@ -10,7 +10,7 @@
  */
 #pragma once
 
-#include "database/dao/AbstractDao.hpp"
+#include "database/dao/SqlAbstractDao.hpp"
 #include "database/entity/Unit.hpp"
 
 
@@ -20,7 +20,7 @@ namespace sim_mob {
         /**
          * Data Access Object to Unit table on datasource.
          */
-        class UnitDao : public db::AbstractDao<Unit> {
+        class UnitDao : public db::SqlAbstractDao<Unit> {
         public:
             UnitDao(db::DB_Connection& connection);
             virtual ~UnitDao();

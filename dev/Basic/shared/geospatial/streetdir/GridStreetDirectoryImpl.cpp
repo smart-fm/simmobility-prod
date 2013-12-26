@@ -171,13 +171,6 @@ sim_mob::GridStreetDirectoryImpl::GridStreetDirectoryImpl(const RoadNetwork& net
     for (vector<Link*>::const_iterator iter = network.getLinks().begin(); iter != network.getLinks().end(); ++iter) {
     	buildLookups((*iter)->getSegments(), completedCrossings, network.roadRunnerRegions, network.getCoordTransform(false));
     }
-
-	//TEMP:
-	Print() <<"REGIONS MAP: \n";
-	for (std::map<const RoadSegment*, RoadRunnerRegion>::const_iterator it=rrRegionLookup.begin(); it!=rrRegionLookup.end(); it++) {
-		Print() <<"  " <<it->first <<" => " <<it->second.id <<"\n";
-	}
-	Print() <<"END REGIONS MAP\n";
 }
 
 

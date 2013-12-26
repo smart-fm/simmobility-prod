@@ -261,13 +261,22 @@ const SystemParams::NetworkSource& sim_mob::ConfigParams::networkSource() const
 	return system.networkSource;
 }
 
-std::string& sim_mob::ConfigParams::networkXmlFile()
+std::string& sim_mob::ConfigParams::networkXmlInputFile()
 {
-	return system.networkXmlFile;
+	return system.networkXmlInputFile;
 }
-const std::string& sim_mob::ConfigParams::networkXmlFile() const
+const std::string& sim_mob::ConfigParams::networkXmlInputFile() const
 {
-	return system.networkXmlFile;
+	return system.networkXmlInputFile;
+}
+
+std::string& sim_mob::ConfigParams::networkXmlOutputFile()
+{
+	return system.networkXmlOutputFile;
+}
+const std::string& sim_mob::ConfigParams::networkXmlOutputFile() const
+{
+	return system.networkXmlOutputFile;
 }
 
 std::string& sim_mob::ConfigParams::roadNetworkXsdSchemaFile()

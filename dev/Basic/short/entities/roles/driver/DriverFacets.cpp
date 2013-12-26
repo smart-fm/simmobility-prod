@@ -23,6 +23,7 @@
 #include "geospatial/Point2D.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/PathSetManager.hpp"
+#include "geospatial/RoadRunnerRegion.hpp"
 #include "network/CommunicationDataManager.hpp"
 
 #include "boost/bind.hpp"
@@ -93,6 +94,8 @@ const Point2D SpecialPathB[] = { Point2D(37218351, 14335255), //AIMSUN 75780
 		Point2D(37262150, 14386897), //AIMSUN 45690
 		Point2D(37241080, 14362955), //AIMSUN 61688
 		};
+
+const int distanceCheckToChangeLane = 150;
 
 //Path is in multi-node positions
 vector<WayPoint> ConvertToWaypoints(const Node* origin, const vector<Point2D>& path) {
@@ -376,16 +379,83 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 
 void sim_mob::DriverMovement::frame_tick() {
 
-	//std::cout << "Driver Ticking " << p.now.frame() << std::endl;
 	// lost some params
 	DriverUpdateParams& p2 = parentDriver->getParams();
 
-	if(!(parentDriver->vehicle))
+	if(!(parentDriver->vehicle)) {
 		throw std::runtime_error("Something wrong, Vehicle is NULL");
+	}
+
 	//Are we done already?
 	if (parentDriver->vehicle->isDone()) {
 		getParent()->setToBeRemoved();
 		return;
+	}
+
+	//Specific for Region support.
+	if (parent->getRegionSupportStruct().isEnabled()) {
+		//Currently all_regions only needs to be sent once.
+		if (sentAllRegions.check()) {
+			//Send the Regions.
+			std::vector<RoadRunnerRegion> allRegions;
+			const RoadNetwork& net = ConfigManager::GetInstance().FullConfig().getNetwork();
+			for (std::map<int, RoadRunnerRegion>::const_iterator it=net.roadRunnerRegions.begin(); it!=net.roadRunnerRegions.end(); it++) {
+				allRegions.push_back(it->second);
+			}
+			parent->getRegionSupportStruct().setNewAllRegionsSet(allRegions);
+
+			//If a path has already been set, we will need to transmit it.
+			if (parentDriver->vehicle) {
+				std::vector<const sim_mob::RoadSegment*> path = parentDriver->vehicle->getPath();
+				if (!path.empty()) {
+					//We may be partly along this route, but it is unlikely. Still, just to be safe...
+					const sim_mob::RoadSegment* currseg = parentDriver->vehicle->getCurrSegment();
+
+					//Now save it, taking into account the "current segment"
+					rrPathToSend.clear();
+					for (std::vector<const sim_mob::RoadSegment*>::const_iterator it=path.begin(); it!=path.end(); it++) {
+						//Have we reached our starting segment yet?
+						if (currseg) {
+							if (currseg == *it) {
+								//Signal this by setting currseg to null.
+								currseg = nullptr;
+							} else {
+								continue;
+							}
+						}
+
+						//Add it; we've cleared our current segment check one way or another.
+						rrPathToSend.push_back(*it);
+
+
+						//TEMP:
+						/*const RoadNetwork& rn = ConfigManager::GetInstance().FullConfig().getNetwork();
+						LatLngLocation start = rn.getCoordTransform(true)->transform(DPoint((*it)->getStart()->location.getX(), (*it)->getStart()->location.getY()));
+						LatLngLocation end = rn.getCoordTransform(true)->transform(DPoint((*it)->getEnd()->location.getX(), (*it)->getEnd()->location.getY()));
+						Print() <<"Adding: " <<start.latitude <<"," <<start.longitude <<"\n";
+						Print() <<"    to: " <<end.latitude <<"," <<end.longitude <<"\n";*/
+					}
+				}
+			}
+		}
+
+		//We always need to send a path if one is available.
+		if (!rrPathToSend.empty()) {
+			std::vector<RoadRunnerRegion> regPath;
+			for (std::vector<const RoadSegment*>::const_iterator it=rrPathToSend.begin(); it!=rrPathToSend.end(); it++) {
+				//Determine if this road segment is within a Region.
+				std::pair<RoadRunnerRegion, bool> rReg = StreetDirectory::instance().getRoadRunnerRegion(*it);
+				if (rReg.second) {
+					//Don't add if it's the last item in the list.
+					if (regPath.empty() || (regPath.back().id != rReg.first.id)) {
+						regPath.push_back(rReg.first);
+					}
+				}
+			}
+
+			parent->getRegionSupportStruct().setNewRegionPath(regPath);
+			rrPathToSend.clear();
+		}
 	}
 
 	//Just a bit glitchy...
@@ -707,8 +777,9 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 
 	// check current lane has connector to next link
 	p.isMLC = false;
-	if(p.dis2stop<150) // <150m need check above, ready to change lane
+	if(p.dis2stop<distanceCheckToChangeLane) // <150m need check above, ready to change lane
 	{
+		p.isMLC = true;
 ////		const RoadSegment* currentSegment = vehicle->getCurrSegment();
 		const RoadSegment* nextSegment = parentDriver->vehicle->getNextSegment(false);
 		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (parentDriver->vehicle->getNodeMovingTowards());
@@ -803,7 +874,7 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 		const RoadSegment* curSegment = parentDriver->vehicle->getCurrSegment();
 		const Lane* lane = curSegment->getLane(p.nextLaneIndex);
 		int laneNum = curSegment->getLanes().size()-1;
-		if( !lane->is_vehicle_lane() || p.nextLaneIndex>laneNum ) {
+		if(lane &&(!lane->is_vehicle_lane() || p.nextLaneIndex>laneNum )) {
 			parentDriver->vehicle->setTurningDirection(LCS_SAME);
 			parentDriver->vehicle->setLatVelocity(0);
 			p.nextLaneIndex = p.currLaneIndex;
@@ -1382,7 +1453,7 @@ void sim_mob::DriverMovement::calculateIntersectionTrajectory(DPoint movingFrom,
 	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
 }
 
-void sim_mob::DriverMovement::initLoopSpecialString(vector<WayPoint>& path, const string& value)
+/*void sim_mob::DriverMovement::initLoopSpecialString(vector<WayPoint>& path, const string& value)
 {
 	//In special cases, we may be manually specifying a loop, e.g., "loop:A:5" in the special string.
 	// In this case, "value" will contain ":A:5"; the "loop" having been parsed.
@@ -1408,9 +1479,9 @@ void sim_mob::DriverMovement::initLoopSpecialString(vector<WayPoint>& path, cons
 	if (path.empty()) {
 		path.insert(path.end(), part.begin(), part.end());
 	}
-}
+}*/
 
-void sim_mob::DriverMovement::initTripChainSpecialString(const string& value)
+/*void sim_mob::DriverMovement::initTripChainSpecialString(const string& value)
 {
 	//Sanity check
 	if (value.length()<=1) {
@@ -1420,7 +1491,7 @@ void sim_mob::DriverMovement::initTripChainSpecialString(const string& value)
 	if (!getParent()) {
 		throw std::runtime_error("Parent is not of type Person");
 	}
-}
+}*/
 
 //link path should be retrieved from other class
 //for now, it serves as this purpose
@@ -1445,12 +1516,13 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		Person* parentP = dynamic_cast<Person*> (parent);
 		sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
 
-		if (!parentP || parentP->specialStr.empty()) {
+		//NOTE: I am fairly sure that this if-statement is wrong; we have ALREADY dereferenced parentP, so it's never null.
+		//      However, specialStr IS always empty, so this will always pass. Please review. ~Seth
+		//if (!parentP || parentP->specialStr.empty()) {
 			const StreetDirectory& stdir = StreetDirectory::instance();
 			//path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
 
 			if(subTrip->schedule==nullptr){
-//				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
 				// if use path set
 				if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 					path = PathSetManager::getInstance()->getPathByPerson(getParent());
@@ -1472,18 +1544,11 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 					vector<WayPoint> subPath = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(**first), stdir.DrivingVertex(**second));
 					path.insert( path.end(), subPath.begin(), subPath.end());
 				}
-
-				/*vector<WayPoint>::iterator it;
-				for(it=path.begin(); it!=path.end(); it++){
-					if( (*it).type_ == WayPoint::ROAD_SEGMENT ) {
-						std::cout << "road segment start id :" << (*it).roadSegment_->getStart()->getID() << ". end id : " << (*it).roadSegment_->getEnd()->getID() << std::endl;
-					}
-				}*/
 			}
 
-		} else {
+		//} else {
 			//Retrieve the special string.
-			size_t cInd = parentP->specialStr.find(':');
+			/*size_t cInd = parentP->specialStr.find(':');
 			string specialType = parentP->specialStr.substr(0, cInd);
 			string specialValue = parentP->specialStr.substr(cInd, std::string::npos);
 			if (specialType=="loop") {
@@ -1494,13 +1559,23 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 				initTripChainSpecialString(specialValue);
 			} else {
 				throw std::runtime_error("Unknown special string type.");
-			}
+			}*/
 
-		}
+		//}
 
 		//For now, empty paths aren't supported.
 		if (path.empty()) {
 			throw std::runtime_error("Can't initializePath(); path is empty.");
+		}
+
+		//RoadRunner may need to know of our path, but it can't be send inevitably.
+		if (getParent()->getRegionSupportStruct().isEnabled()) {
+			rrPathToSend.clear();
+			for (std::vector<WayPoint>::const_iterator it=path.begin(); it!=path.end(); it++) {
+				if (it->type_ == WayPoint::ROAD_SEGMENT) {
+					rrPathToSend.push_back(it->roadSegment_);
+				}
+			}
 		}
 
 		//TODO: Start in lane 0?
@@ -1860,6 +1935,10 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 
 			if (uNode ) {
 				nextLane = uNode->getForwardDrivingLane(*params.currLane);
+			}
+
+			if(nextLane==nullptr){
+				std::cout<<"error getForwardDrivingLane no out lane"<<std::endl;
 			}
 
 //			//

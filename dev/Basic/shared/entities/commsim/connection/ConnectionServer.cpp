@@ -14,9 +14,25 @@
 #include "WhoAreYouProtocol.hpp"
 #include "logging/Log.hpp"
 #include "entities/commsim/broker/Broker.hpp"
-namespace sim_mob {
 
-void ConnectionServer::handleNewClient(session_ptr &sess)
+using namespace sim_mob;
+
+sim_mob::ConnectionServer::ConnectionServer(	sim_mob::Broker &broker_,unsigned short port) :
+	broker(broker_),
+	acceptor_(io_service_,boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
+{
+}
+
+sim_mob::ConnectionServer::~ConnectionServer()
+{
+	acceptor_.cancel();
+	acceptor_.close();
+	io_service_.stop();
+	io_service_thread.join();
+}
+
+
+void sim_mob::ConnectionServer::handleNewClient(session_ptr &sess)
 {
 	//using boost_shared_ptr won't let the protocol to release(i guess).
 	//Therefore I used raw pointer. the protocol will delete itself(delete this;)
@@ -25,7 +41,8 @@ void ConnectionServer::handleNewClient(session_ptr &sess)
 }
 
 
-void ConnectionServer::CreatSocketAndAccept() {
+void sim_mob::ConnectionServer::CreatSocketAndAccept()
+{
 	// Start an accept operation for a new connection.
 	std::cout << "Accepting..." <<std::endl; //NOTE: Always print this, even if output is disabled.
 
@@ -37,25 +54,19 @@ void ConnectionServer::CreatSocketAndAccept() {
 	new_sess.reset();
 }
 
-ConnectionServer::ConnectionServer(	sim_mob::Broker &broker_,unsigned short port)
-:
-		broker(broker_),
-		acceptor_(io_service_,boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
-{
-}
-
-void ConnectionServer::start()
+void sim_mob::ConnectionServer::start()
 {
 	io_service_thread = boost::thread(&ConnectionServer::io_service_run,this);
 }
 
-void ConnectionServer::io_service_run()
+void sim_mob::ConnectionServer::io_service_run()
 {
 	acceptor_.listen();
 	CreatSocketAndAccept();
 	io_service_.run();
 }
-void ConnectionServer::handle_accept(const boost::system::error_code& e, session_ptr &sess) {
+void sim_mob::ConnectionServer::handle_accept(const boost::system::error_code& e, session_ptr &sess)
+{
 	if (!e) {
 		std::cout<< "accepted a connection" << std::endl;  //NOTE: Always print this, even if output is disabled.
 		handleNewClient(sess);
@@ -65,40 +76,25 @@ void ConnectionServer::handle_accept(const boost::system::error_code& e, session
 	}
 	CreatSocketAndAccept();
 }
-//void ConnectionServer::RequestClientRegistration(unsigned int ID, unsigned int type, session_ptr session_)
-void ConnectionServer::RequestClientRegistration(sim_mob::ClientRegistrationRequest &request)
+
+void sim_mob::ConnectionServer::RequestClientRegistration(const sim_mob::ClientRegistrationRequest& request)
 {
-//	Print() << "Inside ConnectionServer::RequestClientRegistration" << std::endl;
-	unsigned int ID;
-	unsigned int type;
-	session_ptr session_;
 	std::pair<std::string,ClientRegistrationRequest > p(request.client_type, request);
 	broker.insertClientWaitingList(p);
 }
 
-void ConnectionServer::read_handler(const boost::system::error_code& e, std::string &data, session_ptr &sess) {
-	if (!e) {
-	} else {
-		std::cout << "read Failed" << std::endl;
-	}
-
-}
-
-void ConnectionServer::general_send_handler(const boost::system::error_code& e, session_ptr& sess) {
-	if (!e) {
-//		std::cout << "write Successful" << std::endl;
-	} else {
-		std::cout << "write Failed:" << e.message() <<  std::endl;
-	}
-
-}
-
-ConnectionServer::~ConnectionServer()
+void sim_mob::ConnectionServer::read_handler(const boost::system::error_code& e, std::string &data, session_ptr &sess)
 {
-	acceptor_.cancel();
-	acceptor_.close();
-	io_service_.stop();
-	io_service_thread.join();
+	if (e) {
+		Warn()<<"read Failed\n";
+	}
+
 }
 
-} /* namespace sim_mob */
+void sim_mob::ConnectionServer::general_send_handler(const boost::system::error_code& e, session_ptr& sess)
+{
+	if (e) {
+		Warn() <<"write Failed:" << e.message() <<  std::endl;
+	}
+}
+

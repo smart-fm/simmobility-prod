@@ -205,7 +205,12 @@ sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateV
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 		vector<WayPoint> path = getParent()->getCurrPath();
 		if(path.empty()){
-			if (!getParent() || getParent()->specialStr.empty()) {
+			//NOTE: I am fairly sure that the logic here is wrong; the parent is certainly not null, since
+			//      we JUST called "getCurrPath()". The only reason this if statement was succeeding is that
+			//      specialStr is always empty (we don't use it anymore). Since I am deleting specialStr,
+			//      I commented out this entire "if" statement (although logically is would reduce to always false).
+			//      I think I did the right thing. Please review. ~Seth.
+			//if (!getParent() || getParent()->specialStr.empty()) {
                 // if use path set
 				if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 					path = PathSetManager::getInstance()->getPathByPerson(getParent());
@@ -217,7 +222,7 @@ sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateV
 				}
 				//const StreetDirectory& stdir = StreetDirectory::instance();
 				//path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin.node)), stdir.DrivingVertex(*(parentDriver->goal.node)));
-			}
+			//}
 			getParent()->setCurrPath(path);
 		}
 		//For now, empty paths aren't supported.

@@ -53,7 +53,7 @@ void sim_mob::roadrunner::MulticastHandler::handle(sim_mob::comm::MsgPtr message
 	//1.3 find the client hander first
 	std::string sender_id(msg_header_.sender_id) ; //easy read
 	std::string sender_type(msg_header_.sender_type); //easy read
-	ConfigParams::ClientType clientType;
+	comm::ClientType clientType;
 	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
 	if(!broker->getClientHandler(sender_id,sender_type,clnHandler))
 	{
@@ -63,7 +63,7 @@ void sim_mob::roadrunner::MulticastHandler::handle(sim_mob::comm::MsgPtr message
 
 	//Check the handler's validity.
 	if(!clnHandler->isValid()) {
-		Print() << "Invalid ns3 client handler record" << std::endl;
+		Print() << "Invalid client handler record" << std::endl;
 		return;
 	}
 
@@ -93,17 +93,17 @@ void sim_mob::roadrunner::MulticastHandler::handle(sim_mob::comm::MsgPtr message
 		return;
 	}
 
-	ClientList::pair clientTypes;
-	ClientList::type & all_clients = broker->getClientList();
+	ClientList::Pair clientTypes;
+	ClientList::Type & all_clients = broker->getClientList();
 	sim_mob::comm::MsgData recipients;
 	BOOST_FOREACH(clientTypes , all_clients)
 	{
 		// only the android emulators
-		if(clientTypes.first != ConfigParams::ANDROID_EMULATOR) {
+		if(clientTypes.first != comm::ANDROID_EMULATOR) {
 			continue;
 		}
 
-		ClientList::IdPair clientIds;
+		ClientList::ValuePair clientIds;
 		boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> >& inner = clientTypes.second;
 		BOOST_FOREACH(clientIds , inner)
 		{

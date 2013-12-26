@@ -29,13 +29,22 @@ using namespace sim_mob::db;
 using namespace sim_mob::medium;
 
 sim_mob::medium::PredayManager::~PredayManager() {
+	Print() << "Clearing Person List" << std::endl;
 	// clear Persons
 	for(PersonList::iterator i = personList.begin(); i!=personList.end(); i++) {
 		delete *i;
 	}
 	personList.clear();
 
+	// clear Zones
+	Print() << "Clearing zoneMap" << std::endl;
+	for(ZoneMap::iterator i = zoneMap.begin(); i!=zoneMap.end(); i++) {
+		delete i->second;
+	}
+	zoneMap.clear();
+
 	// clear AMCosts
+	Print() << "Clearing amCostMap" << std::endl;
 	for(CostMap::iterator i = amCostMap.begin(); i!=amCostMap.end(); i++) {
 		for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
 			if(j->second) {
@@ -46,6 +55,7 @@ sim_mob::medium::PredayManager::~PredayManager() {
 	amCostMap.clear();
 
 	// clear PMCosts
+	Print() << "Clearing pmCostMap" << std::endl;
 	for(CostMap::iterator i = pmCostMap.begin(); i!=pmCostMap.end(); i++) {
 		for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
 			if(j->second) {
@@ -56,6 +66,7 @@ sim_mob::medium::PredayManager::~PredayManager() {
 	pmCostMap.clear();
 
 	// clear OPCosts
+	Print() << "Clearing opCostMap" << std::endl;
 	for(CostMap::iterator i = opCostMap.begin(); i!=opCostMap.end(); i++) {
 		for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
 			if(j->second) {
@@ -142,15 +153,15 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
 		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 		std::string emptyString;
 		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+
 		CostMongoDao amCostDao(dbConfig, db.dbName, amCostsCollName);
 		amCostDao.getAll(amCostMap);
-		Print() << "amCostMap.size():" << amCostMap.size() << std::endl;
+
 		CostMongoDao pmCostDao(dbConfig, db.dbName, pmCostsCollName);
 		pmCostDao.getAll(pmCostMap);
-		Print() << "pmCostMap.size():" << pmCostMap.size() << std::endl;
+
 		CostMongoDao opCostDao(dbConfig, db.dbName, opCostsCollName);
 		opCostDao.getAll(opCostMap);
-		Print() << "opCostMap.size():" << opCostMap.size() << std::endl;
 	}
 	}
 }

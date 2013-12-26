@@ -215,7 +215,7 @@ local function computeUtilities(params,dbparams)
 		cost_share2[i] = dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)/2
 		cost_share3[i] = dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)/3
 		cost_motor[i] = 0.5*(dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i))+0.65*dbparams:cost_car_parking(i)
-
+		
 		--dbparams:walk_distance1(i)= AM[(origin,destination[i])]['AM2dis']
 		--dbparams:walk_distance2(i)= PM[(destination[i],origin)]['PM2dis']
 		--dbparams:central_dummy(i)=ZONE[destination[i]]['central_dummy']
@@ -224,7 +224,6 @@ local function computeUtilities(params,dbparams)
 		d1[i] = dbparams:walk_distance1(i)
 		d2[i] = dbparams:walk_distance2(i)
 		central_dummy[i] = dbparams:central_dummy(i)
-
 		cost_taxi_1[i] = 3.4+((d1[i]*(d1[i]>10 and 1 or 0)-10*(d1[i]>10 and 1 or 0))/0.35+(d1[i]*(d1[i]<=10 and 1 or 0)+10*(d1[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_first(i)+central_dummy[i]*3
 		cost_taxi_2[i] = 3.4+((d2[i]*(d2[i]>10 and 1 or 0)-10*(d2[i]>10 and 1 or 0))/0.35+(d2[i]*(d2[i]<=10 and 1 or 0)+10*(d2[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_second(i)+central_dummy[i]*3
 		cost_taxi[i] = cost_taxi_1[i] + cost_taxi_2[i]
@@ -248,12 +247,10 @@ local function computeUtilities(params,dbparams)
 		tt_public_ivt_second[i] = dbparams:tt_public_ivt_second(i)
 		tt_public_out_first[i] = dbparams:tt_public_out_first(i)
 		tt_public_out_second[i] = dbparams:tt_public_out_second(i)
-
 		--dbparams:tt_car_ivt_first(i) = AM[(origin,destination[i])]['car_ivt']
 		--dbparams:tt_car_ivt_second(i) = PM[(destination[i],origin)]['car_ivt']
 		tt_car_ivt_first[i] = dbparams:tt_car_ivt_first(i)
 		tt_car_ivt_second[i] = dbparams:tt_car_ivt_second(i)
-
 		tt_bus[i] = tt_public_ivt_first[i]+ tt_public_ivt_second[i]+tt_public_out_first[i]+tt_public_out_second[i]
 		tt_mrt[i] = tt_public_ivt_first[i]+ tt_public_ivt_second[i]+tt_public_out_first[i]+tt_public_out_second[i]
 		tt_private_bus[i] = tt_car_ivt_first[i] + tt_car_ivt_second[i]
@@ -268,7 +265,6 @@ local function computeUtilities(params,dbparams)
 		--origin is home, destination[i] is zone from 1 to 1092
 		-- 0 if origin == destination
 		average_transfer_number[i] = dbparams:average_transfer_number(i)
-
 		--dbparams:employment(i) = ZONE[i]['employment']
 		--dbparams:population(i) = ZONE[i]['population']
 		--dbparams:area(i) = ZONE[i]['area']
@@ -334,7 +330,6 @@ local function computeUtilities(params,dbparams)
 		V_counter = V_counter +1
 		utility[V_counter] = beta_cons_taxi + cost_over_income_taxi[i] * (1-missing_income)* beta_cost_taxi_1 + cost_taxi[i]*missing_income * beta_cost_taxi_2 + tt_taxi[i] * beta_tt_taxi + beta_central_taxi * central_dummy[i] + beta_log * log(exp(beta_area)*area[i]+exp(beta_population)*population[i]) + (d1[i]+d2[i]) * beta_distance_taxi + beta_female_taxi * female_dummy
 	end
-
 end
 
 
@@ -342,8 +337,6 @@ end
 --the logic to determine availability is the same with current implementation
 local availability = {}
 local function computeAvailabilities(params,dbparams)
-	local isnan = math.isnan
-	local isinf = math.isinf
 	for i = 1, 1092*9 do 
 		availability[i] = dbparams:availability(i)
 	end

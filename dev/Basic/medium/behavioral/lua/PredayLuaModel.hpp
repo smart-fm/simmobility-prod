@@ -11,12 +11,11 @@
 
 #pragma once
 #include <boost/unordered_map.hpp>
-
 #include "behavioral/params/PersonParams.hpp"
 #include "behavioral/params/StopGenerationParams.hpp"
 #include "behavioral/params/TimeOfDayParams.hpp"
 #include "behavioral/params/TourModeParams.hpp"
-#include "behavioral/params/TourModeDestinationParams.hpp"
+#include "behavioral/params/ModeDestinationParams.hpp"
 #include "lua/LuaModel.hpp"
 #include "behavioral/PredayClasses.hpp"
 

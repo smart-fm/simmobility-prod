@@ -139,7 +139,12 @@ public:
 	}
 
 	void setAvgTransfer(double avgTransfer) {
-		this->avgTransfer = avgTransfer;
+		if(avgTransfer != avgTransfer) {
+			this->avgTransfer = 0;
+		}
+		else {
+			this->avgTransfer = avgTransfer;
+		}
 	}
 
 	double getCarCostErp() const {
@@ -147,7 +152,12 @@ public:
 	}
 
 	void setCarCostErp(double carCostErp) {
-		carCostERP = carCostErp;
+		if(carCostErp != carCostErp) {
+			this->carCostERP = 0;
+		}
+		else {
+			this->carCostERP = carCostErp;
+		}
 	}
 
 	double getCarIvt() const {
@@ -155,7 +165,12 @@ public:
 	}
 
 	void setCarIvt(double carIvt) {
-		this->carIvt = carIvt;
+		if(carIvt != carIvt) { // if carIvt is NaN
+			this->carIvt = 0;
+		}
+		else {
+			this->carIvt = carIvt;
+		}
 	}
 
 	int getDestinationZone() const {
@@ -171,7 +186,12 @@ public:
 	}
 
 	void setDistance(double distance) {
-		this->distance = distance;
+		if(distance != distance) {
+			this->distance = 0;
+		}
+		else {
+			this->distance = distance;
+		}
 	}
 
 	int getOriginZone() const {
@@ -187,7 +207,12 @@ public:
 	}
 
 	void setPubCost(double pubCost) {
-		this->pubCost = pubCost;
+		if(pubCost != pubCost) {
+			this->pubCost = 0;
+		}
+		else {
+			this->pubCost = pubCost;
+		}
 	}
 
 	double getPubIvt() const {
@@ -195,7 +220,12 @@ public:
 	}
 
 	void setPubIvt(double pubIvt) {
-		this->pubIvt = pubIvt;
+		if(pubIvt != pubIvt) {
+			this->pubIvt = 0;
+		}
+		else {
+			this->pubIvt = pubIvt;
+		}
 	}
 
 	double getPubOut() const {
@@ -203,7 +233,12 @@ public:
 	}
 
 	void setPubOut(double pubOut) {
-		this->pubOut = pubOut;
+		if(pubOut != pubOut) {
+			this->pubOut = 0;
+		}
+		else {
+			this->pubOut = pubOut;
+		}
 	}
 
 	double getPubWalkt() const {
@@ -211,7 +246,12 @@ public:
 	}
 
 	void setPubWalkt(double pubWalkt) {
-		this->pubWalkt = pubWalkt;
+		if(pubWalkt != pubWalkt) {
+			this->pubWalkt = 0;
+		}
+		else {
+			this->pubWalkt = pubWalkt;
+		}
 	}
 
 	double getPubWtt() const {
@@ -219,7 +259,12 @@ public:
 	}
 
 	void setPubWtt(double pubWtt) {
-		this->pubWtt = pubWtt;
+		if(pubWtt != pubWtt) {
+			this->pubWtt = 0;
+		}
+		else {
+			this->pubWtt = pubWtt;
+		}
 	}
 
 private:

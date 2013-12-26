@@ -307,5 +307,3 @@ function choose_tmw(params,dbparams)
 	local probability = calculate_probability("nl", choice, utility, availability, scale)
 	return make_final_choice(probability)
 end
-
-print ("Corrected machi!")

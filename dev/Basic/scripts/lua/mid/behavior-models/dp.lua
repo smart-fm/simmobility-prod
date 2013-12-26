@@ -4,7 +4,7 @@ Type - MNL
 Authors - Siyu Li, Harish Loganathan
 ]]
 
--- all require statements do not work with C++. They need to be commented. The order in which lua files are loaded must be explicitly controlled in C++. 
+-- require statements do not work with C++. They need to be commented. The order in which lua files are loaded must be explicitly controlled in C++. 
 -- require "Logit"
 
 --Estimated values for all betas
@@ -560,6 +560,6 @@ function choose_dp(params)
 	return choice[idx]
 end
 
-
+print("dp.lua")
 
 

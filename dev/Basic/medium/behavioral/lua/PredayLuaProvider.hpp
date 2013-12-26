@@ -12,7 +12,7 @@ namespace medium {
 				 * Gets the Preday lua model.
 				 *
 				 * Attention: you should not hold this instance.
-				 * This provider will give you and instance based on
+				 * This provider will give you an instance based on
 				 *  current thread context.
 				 *
 				 * @return Lua preday model reference.

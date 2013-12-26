@@ -11,6 +11,7 @@
 
 #pragma once
 #include <boost/unordered_map.hpp>
+#include <cmath>
 #include <string>
 #include "behavioral/params/ZoneCostParams.hpp"
 #include "behavioral/PredayClasses.hpp"
@@ -43,11 +44,6 @@ public:
 
 	virtual ~ModeDestinationParams() {}
 
-	StopType getTourPurpose() const {
-		return purpose;
-	}
-
-
 };
 
 class TourModeDestinationParams : public ModeDestinationParams {
@@ -58,121 +54,125 @@ public:
 
 	virtual ~TourModeDestinationParams() {}
 
-	double getCostPublicFirst_TMD(int zoneId) const {
+	double getCostPublicFirst(int zoneId) const {
 		int destination = zoneMap.at(zoneId)->getZoneCode();
 		if (origin == destination) { return 0; }
 		return amCostsMap.at(origin).at(destination)->getPubCost();
 	}
 
-	double getCostPublicSecond_TMD(int zoneId) const {
+	double getCostPublicSecond(int zoneId) const {
 		int destination = zoneMap.at(zoneId)->getZoneCode();
 		if (origin == destination) { return 0; }
 		return pmCostsMap.at(destination).at(origin)->getPubCost();
 	}
 
-	double getCostCarERPFirst_TMD(int zoneId) const {
+	double getCostCarERPFirst(int zoneId) const {
 		int destination = zoneMap.at(zoneId)->getZoneCode();
 		if (origin == destination) { return 0; }
 		return amCostsMap.at(origin).at(destination)->getCarCostErp();
 	}
 
-	double getCostCarERPSecond_TMD(int zoneId) const {
+	double getCostCarERPSecond(int zoneId) const {
 		int destination = zoneMap.at(zoneId)->getZoneCode();
 		if (origin == destination) { return 0; }
 		return pmCostsMap.at(destination).at(origin)->getCarCostErp();
 	}
 
-	double getCostCarOPFirst_TMD(int zoneId) const {
+	double getCostCarOPFirst(int zoneId) const {
 		int destination = zoneMap.at(zoneId)->getZoneCode();
 		if (origin == destination) { return 0; }
 		return (amCostsMap.at(origin).at(destination)->getDistance() * 0.147);
 	}
 
-	double getCostCarOPSecond_TMD(int zoneId) const {
+	double getCostCarOPSecond(int zoneId) const {
 		int destination = zoneMap.at(zoneId)->getZoneCode();
 		if (origin == destination) { return 0; }
 		return (pmCostsMap.at(destination).at(origin)->getDistance() * 0.147);
 	}
 
-	double getCostCarParking_TMD(int zoneId) const {
+	double getCostCarParking(int zoneId) const {
 		return (8*zoneMap.at(zoneId)->getParkingRate());
 	}
 
-	double getWalkDistance1_TMD(int zoneId) const {
+	double getWalkDistance1(int zoneId) const {
 		int destination = zoneMap.at(zoneId)->getZoneCode();
 		if (origin == destination) { return 0; }
 		return amCostsMap.at(origin).at(destination)->getPubWalkt();
 	}
 
-	double getWalkDistance2_TMD(int zoneId) const {
+	double getWalkDistance2(int zoneId) const {
 		int destination = zoneMap.at(zoneId)->getZoneCode();
 		if (origin == destination) { return 0; }
 		return pmCostsMap.at(destination).at(origin)->getPubWalkt();
 	}
 
-	int getCentralDummy_TMD(int zoneId) const {
-		return zoneMap.at(zoneId)->getCentralDummy();
-	}
-
-	double getTT_PublicIvtFirst_TMD(int zoneId) {
+	double getTT_PublicIvtFirst(int zoneId) {
 		int destination = zoneMap.at(zoneId)->getZoneCode();
 		if (origin == destination) { return 0; }
 		return amCostsMap.at(origin).at(destination)->getPubIvt();
 	}
 
-	double getTT_PublicIvtSecond_TMD(int zoneId) const {
+	double getTT_PublicIvtSecond(int zoneId) const {
 		int destination = zoneMap.at(zoneId)->getZoneCode();
 		if (origin == destination) { return 0; }
 		return pmCostsMap.at(destination).at(origin)->getPubIvt();
 	}
 
-	double getTT_CarIvtFirst_TMD(int zoneId) const {
+	double getTT_CarIvtFirst(int zoneId) const {
 		int destination = zoneMap.at(zoneId)->getZoneCode();
 		if (origin == destination) { return 0; }
 		return amCostsMap.at(origin).at(destination)->getCarIvt();
 	}
 
-	double getTT_CarIvtSecond_TMD(int zoneId) const {
+	double getTT_CarIvtSecond(int zoneId) const {
 		int destination = zoneMap.at(zoneId)->getZoneCode();
 		if (origin == destination) { return 0; }
 		return pmCostsMap.at(destination).at(origin)->getCarIvt();
 	}
 
-	double getTT_PublicOutFirst_TMD(int zoneId) const {
+	double getTT_PublicOutFirst(int zoneId) const {
 		int destination = zoneMap.at(zoneId)->getZoneCode();
 		if (origin == destination) { return 0; }
 		return amCostsMap.at(origin).at(destination)->getPubOut();
 	}
 
-	double getTT_PublicOutSecond_TMD(int zoneId) const {
+	double getTT_PublicOutSecond(int zoneId) const {
 		int destination = zoneMap.at(zoneId)->getZoneCode();
 		if (origin == destination) { return 0; }
 		return pmCostsMap.at(destination).at(origin)->getPubOut();
 	}
 
-	double getAvgTransferNumber_TMD(int zoneId) const {
+	double getAvgTransferNumber(int zoneId) const {
 		int destination = zoneMap.at(zoneId)->getZoneCode();
 		if (origin == destination) { return 0; }
 		return (amCostsMap.at(origin).at(destination)->getAvgTransfer() + pmCostsMap.at(destination).at(origin)->getAvgTransfer())/2;
 	}
 
-	double getEmployment_TMD(int zoneId) const {
-		return zoneMap.at(zoneId)->getEmployment();
+	int getCentralDummy(int zone) {
+		return zoneMap.at(zone)->getCentralDummy();
 	}
 
-	double getArea_TMD(int zoneId) const {
-		return zoneMap.at(zoneId)->getArea();
+	StopType getTourPurpose() const {
+		return purpose;
 	}
 
-	double getPopulation_TMD(int zoneId) const {
-		return zoneMap.at(zoneId)->getPopulation();
+	double getShop(int zone) {
+		return zoneMap.at(zone)->getShop();
 	}
 
-	double getShop_TMD(int zoneId) const {
-		return zoneMap.at(zoneId)->getShop();
+	double getEmployment(int zone) {
+		return zoneMap.at(zone)->getEmployment();
 	}
 
-	void setDrive1Available_TMD(bool drive1Available) {
+	double getPopulation(int zone) {
+		return zoneMap.at(zone)->getPopulation();
+	}
+
+	double getArea(int zone) {
+		return zoneMap.at(zone)->getArea();
+	}
+
+	void setDrive1Available(bool drive1Available) {
 		this->drive1Available = drive1Available;
 	}
 
@@ -233,14 +233,14 @@ public:
 		return 0;
 	}
 
-	int getMode_TMD(int choice) const {
+	int getMode(int choice) const {
 		if (choice < 1 || choice > 9828) {
 			throw std::runtime_error("getMode()::invalid choice id for mode-destination model");
 		}
 		return (choice/zoneMap.size() + 1);
 	}
 
-	int getDestination_TMD(int choice) const {
+	int getDestination(int choice) const {
 		if (choice < 1 || choice > 9828) {
 			throw std::runtime_error("getDestination()::invalid choice id for mode-destination model");
 		}
@@ -257,31 +257,12 @@ private:
 
 class StopModeDestinationParams : public ModeDestinationParams {
 public:
-	StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType stopType, int originCode)
-	: ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, stopType, originCode), homeZone(personParams.getHomeLocation()), driveAvailable(personParams.hasDrivingLicence() * personParams.getCarOwnNormal())
+	StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType stopType, int originCode, int parentTourMode)
+	: ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, stopType, originCode), homeZone(personParams.getHomeLocation()),
+	  driveAvailable(personParams.hasDrivingLicence() * personParams.getCarOwnNormal()), tourMode(parentTourMode)
 	{}
 
 	virtual ~StopModeDestinationParams() {}
-
-	double getShop(int zone) {
-		return zoneMap.at(zone)->getShop();
-	}
-
-	double getEmployment(int zone) {
-		return zoneMap.at(zone)->getEmployment();
-	}
-
-	double getPopulation(int zone) {
-		return zoneMap.at(zone)->getPopulation();
-	}
-
-	double getArea(int zone) {
-		return zoneMap.at(zone)->getArea();
-	}
-
-	double getCentralDummy(int zone) {
-		return zoneMap.at(zone)->getCentralDummy();
-	}
 
 	double getCostCarParking(int zone) {
 		double parkingRate = zoneMap.at(zone)->getParkingRate();
@@ -369,7 +350,41 @@ public:
 		return 0;
 	}
 
+	int getCentralDummy(int zone) {
+		return zoneMap.at(zone)->getCentralDummy();
+	}
+
+	StopType getTourPurpose() const {
+		return purpose;
+	}
+
+	double getShop(int zone) {
+		return zoneMap.at(zone)->getShop();
+	}
+
+	double getEmployment(int zone) {
+		return zoneMap.at(zone)->getEmployment();
+	}
+
+	double getPopulation(int zone) {
+		return zoneMap.at(zone)->getPopulation();
+	}
+
+	double getArea(int zone) {
+		return zoneMap.at(zone)->getArea();
+	}
+
 	int isAvailable_IMD(int choiceId) {
+		int oneModes[] = {1,2,4,5,6,7,8,9};
+		int twoModes[] = {1,2,4,5,6,7,8,9};
+		int threeModes[] = {1,2,3,4,5,6,7,8,9};
+		int fourModes[] = {4,7,8,9};
+		int fiveModes[] = {4,5,7,8,9};
+		int sixModes[] = {4,5,6,7,8,9};
+		int sevenModes[] = {7,8};
+		int eightModes[] = {8};
+		int nineModes[] = {7,8,9};
+
 		/* 1. if the destination == origin, the destination is not available.
 		 * 2. public bus, private bus and MRT/LRT are only available if AM[(origin,destination)][’pub_ivt’]>0 and PM[(destination,origin)][’pub_ivt’]>0
 		 * 3. shared2, shared3+, taxi and motorcycle are available to all.
@@ -390,28 +405,95 @@ public:
 			return 0;
 		}
 		// bus 1-1092; mrt 1093 - 2184; private bus 2185 - 3276; same result for the three modes
-		if (choiceId <= 3 * numZones) {
-			return (pmCostsMap.at(destination).at(origin)->getPubIvt() > 0
+
+		if (choiceId <= 2 * numZones) {
+			bool avail = (pmCostsMap.at(destination).at(origin)->getPubIvt() > 0
 					&& amCostsMap.at(origin).at(destination)->getPubIvt() > 0);
+			switch(tourMode) {
+			case 1:
+			case 2:
+			case 3: return avail;
+			case 4:
+			case 5:
+			case 6:
+			case 7:
+			case 8:
+			case 9: return 0;
+			}
+		}
+		if (choiceId <= 3 * numZones) {
+			bool avail = (pmCostsMap.at(destination).at(origin)->getPubIvt() > 0
+					&& amCostsMap.at(origin).at(destination)->getPubIvt() > 0);
+			switch(tourMode) {
+			case 3: return avail;
+			case 1:
+			case 2:
+			case 4:
+			case 5:
+			case 6:
+			case 7:
+			case 8:
+			case 9: return 0;
+			}
 		}
 		// drive1 3277 - 4368
 		if (choiceId <= 4 * numZones) {
-			return drive1Available;
+			switch(tourMode) {
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+			case 5:
+			case 6: return driveAvailable;
+			case 7:
+			case 8:
+			case 9: return 0;
+			}
 		}
 		// share2 4369 - 5460
 		if (choiceId <= 5 * numZones) {
 			// share2 is available to all
-			return 1;
+			switch(tourMode) {
+			case 1:
+			case 2:
+			case 3:
+			case 5:
+			case 6: return 1;
+			case 4:
+			case 7:
+			case 8:
+			case 9: return 0;
+			}
 		}
 		// share3 5461 - 6552
 		if (choiceId <= 6 * numZones) {
 			// share3 is available to all
-			return 1;
+			switch(tourMode) {
+			case 1:
+			case 2:
+			case 3:
+			case 6: return 1;
+			case 4:
+			case 5:
+			case 7:
+			case 8:
+			case 9: return 0;
+			}
 		}
 		// motor 6553 - 7644
 		if (choiceId <= 7 * numZones) {
 			// share3 is available to all
-			return 1;
+			switch(tourMode) {
+			case 1:
+			case 2:
+			case 3:
+			case 5:
+			case 6:
+			case 4:
+			case 7:
+			case 9: return 1;
+			case 8: return 0;
+			}
 		}
 		// walk 7645 - 8736
 		if (choiceId <= 8 * numZones) {
@@ -421,7 +503,17 @@ public:
 		// taxi 8737 - 9828
 		if (choiceId <= 9 * numZones) {
 			// taxi is available to all
-			return 1;
+			switch(tourMode) {
+			case 1:
+			case 2:
+			case 3:
+			case 5:
+			case 6:
+			case 4:
+			case 9: return 1;
+			case 7:
+			case 8: return 0;
+			}
 		}
 		return 0;
 	}
@@ -429,6 +521,7 @@ public:
 private:
 	int homeZone;
 	int driveAvailable;
+	int tourMode;
 };
 
 

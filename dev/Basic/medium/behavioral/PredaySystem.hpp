@@ -11,7 +11,7 @@
 #pragma once
 #include <boost/unordered_map.hpp>
 
-#include "behavioral/lua/PredayLuaModel.hpp"
+#include "behavioral/lua/PredayLuaProvider.hpp"
 #include "params/PersonParams.hpp"
 #include "PredayClasses.hpp"
 #include "database/PopulationSqlDao.hpp"
@@ -41,64 +41,64 @@ private:
 	 * @param firstOfMultiple indicator whether this tour is the first of multiple work tours
 	 * @return true if the tour is to a usual work location. false otherwise.
 	 */
-	bool predictUsualWorkLocation(PersonParams& personParams, bool firstOfMultiple);
+	bool predictUsualWorkLocation(PersonParams& personParams, bool firstOfMultiple) throw();
 
 	/**
 	 * Predicts the mode of travel for a tour.
 	 * Executed for tours with usual location (usual work or education).
 	 */
-	void predictTourMode(Tour& tour);
+	void predictTourMode(Tour& tour) throw();
 
 	/**
 	 * Predicts the mode and destination together for tours to unusual locations
 	 */
-	void predictTourModeDestination(Tour& tour);
+	void predictTourModeDestination(Tour& tour) throw();
 
 	/**
 	 * Predicts the time period that will be allotted for the primary activity of a tour.
 	 */
-	TimeWindowAvailability predictTourTimeOfDay(Tour& tour);
+	TimeWindowAvailability predictTourTimeOfDay(Tour& tour) throw();
 
 	/**
 	 * Generates intermediate stops of types predicted by the day pattern model before and after the primary activity of a tour.
 	 */
-	void generateIntermediateStops(Tour& tour);
+	void generateIntermediateStops(Tour& tour) throw();
 
 	/**
 	 * Predicts the mode and destination together for stops.
 	 */
-	void predictStopModeDestination(Stop* stop);
+	void predictStopModeDestination(Stop* stop) throw();
 
 	/**
 	 * Predicts the arrival time for stops before the primary activity.
 	 * Predicts the departure time for stops after the primary activity.
 	 */
-	void predictStopTimeOfDay(Stop* stop, bool isBeforePrimary);
+	void predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) throw();
 
 	/**
 	 * Calculates the arrival time for stops in the second half tour.
 	 */
-	void calculateArrivalTime(Stop* currentStop, Stop* prevStop);
+	void calculateArrivalTime(Stop* currentStop, Stop* prevStop) throw();
 
 	/**
 	 * Calculates the departure time for stops in the first half tour.
 	 */
-	void calculateDepartureTime(Stop* currentStop, Stop* nextStop);
+	void calculateDepartureTime(Stop* currentStop, Stop* nextStop) throw();
 
 	/**
 	 * Calculates the time to leave home for starting a tour.
 	 */
-	void calculateTourStartTime(Tour& tour);
+	void calculateTourStartTime(Tour& tour) throw();
 
 	/**
 	 * Calculates the time when the person reaches home at the end of the tour.
 	 */
-	void calculateTourEndTime(Tour& tour);
+	void calculateTourEndTime(Tour& tour) throw();
 
 	/**
 	 * constructs tour objects based on predicted number of tours. Puts the tour objects in tours deque.
 	 */
-	void constructTours();
+	void constructTours() throw();
 
 	/**
 	 * The parameters for a person is obtained from the population and set in personParams.
@@ -139,11 +139,6 @@ private:
      */
     boost::unordered_map<std::string, db::MongoDao*> mongoDao;
 
-    /**
-     * Lua scripts are accessed via this reference
-     */
-    const PredayLuaModel& predayLuaModel;
-
 public:
 	PredaySystem(PersonParams& personParams, const ZoneMap& zoneMap, const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap);
 	virtual ~PredaySystem();
@@ -151,7 +146,7 @@ public:
 	/**
 	 * The sequence of models to be invoked for a person is coded in this function.
 	 */
-	void planDay();
+	void planDay() throw();
 };
 
 } // end namespace medium

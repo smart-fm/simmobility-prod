@@ -9,6 +9,7 @@ Authors - Siyu Li, Harish Loganathan
 
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
+
 local beta_ARR_2_4 = 0.772 
 local beta_ARR_2_5 = 0.309 
 local beta_ARR_2_6 = -0.0774 
@@ -44,6 +45,7 @@ local beta_DEP_1_2 = 4.65
 local k = 3
 local n = 4
 local ps = 3
+local pi = math.pi
 
 local Begin={}
 local End={}
@@ -66,7 +68,7 @@ local comb = {}
 local count = 0
 
 for i=1,48 do
-	for j=1,48
+	for j=1,48 do
 		if j>=i then
 			count=count+1
 			comb[count]={i,j}
@@ -76,14 +78,21 @@ end
 
 
 
-local function sarr_1(t):
+local function sarr_1(t)
 	return beta_ARR_1_1 * math.sin(2*pi*t/24.) + beta_ARR_1_4 * math.cos(2*pi*t/24.)+beta_ARR_1_2 * math.sin(4*pi*t/24.) + beta_ARR_1_5 * math.cos(4*pi*t/24.)+beta_ARR_1_3 * math.sin(6*pi*t/24.) + beta_ARR_1_6 * math.cos(6*pi*t/24.)
-local function sdep_1(t):
+end
+
+local function sdep_1(t)
 	return beta_DEP_1_1 * math.sin(2*pi*t/24.) + beta_DEP_1_4 * math.cos(2*pi*t/24.)+beta_DEP_1_2 * math.sin(4*pi*t/24.) + beta_DEP_1_5 * math.cos(4*pi*t/24.)+beta_DEP_1_3 * math.sin(6*pi*t/24.) + beta_DEP_1_6 * math.cos(6*pi*t/24.)
-local function sarr_2(t):
+end
+
+local function sarr_2(t)
 	return beta_ARR_2_1 * math.sin(2*pi*t/24.) + beta_ARR_2_4 * math.cos(2*pi*t/24.)+beta_ARR_2_2 * math.sin(4*pi*t/24.) + beta_ARR_2_5 * math.cos(4*pi*t/24.)+beta_ARR_2_3 * math.sin(6*pi*t/24.) + beta_ARR_2_6 * math.cos(6*pi*t/24.)
-local function sdep_2(t):
+end
+
+local function sdep_2(t)
 	return beta_DEP_2_1 * math.sin(2*pi*t/24.) + beta_DEP_2_4 * math.cos(2*pi*t/24.)+beta_DEP_2_2 * math.sin(4*pi*t/24.) + beta_DEP_2_5 * math.cos(4*pi*t/24.)+beta_DEP_2_3 * math.sin(6*pi*t/24.) + beta_DEP_2_6 * math.cos(6*pi*t/24.)
+end
 
 local utility = {}
 local function computeUtilities(params,dbparams) 
@@ -94,16 +103,14 @@ local function computeUtilities(params,dbparams)
 	-- work time flexibility 1 for fixed hour, 2 for flexible hour
 	--local worktime = params.worktime
 
-	local TT_HT1 = dbparams:TT_HT1
-	local TT_HT2 = dbparams:TT_HT2
-
 	local cost_HT1_am = dbparams.cost_HT1_am
 	local cost_HT1_pm = dbparams.cost_HT1_pm
 	local cost_HT1_op = dbparams.cost_HT1_op
 	local cost_HT2_am = dbparams.cost_HT2_am
 	local cost_HT2_pm = dbparams.cost_HT2_pm
 	local cost_HT2_op = dbparams.cost_HT2_op
-
+	
+	local pow = math.pow
 	for i =1,1176 do
 		local arrid = comb[i][1]
 		local depid = comb[i][2]
@@ -124,6 +131,7 @@ local function computeUtilities(params,dbparams)
 			arr_am, arr_pm, arr_op = 0, 1, 0
 		else
 			arr_am, arr_pm, arr_op = 0, 0, 1
+		end
 
 		if dep <9.5 and dep >7.5 then 
 			dep_am, dep_pm, dep_op = 1, 0, 0
@@ -131,8 +139,9 @@ local function computeUtilities(params,dbparams)
 			dep_am, dep_pm, dep_op = 0, 1, 0
 		else
 			dep_am, dep_pm, dep_op = 0, 0, 1
+		end
 
-		utility[i] = sarr_1(arr) + sdep_1(dep) + gender * (sarr_2(arr) + sdep_2(dep)) + beta_DUR_1 * dur + beta_DUR_2 * math.pow(dur,2) + beta_DUR_3 * math.pow(dur,3) + beta_TT1 * TT_HT1(arrid) + beta_TT2 * TT_HT2(depid) + beta_C * (cost_HT1_am * arr_am + cost_HT1_pm * arr_pm + cost_HT1_op * arr_op + cost_HT2_am * dep_am + cost_HT2_pm * dep_pm + cost_HT2_op * dep_op)
+		utility[i] = sarr_1(arr) + sdep_1(dep) + gender * (sarr_2(arr) + sdep_2(dep)) + beta_DUR_1 * dur + beta_DUR_2 * pow(dur,2) + beta_DUR_3 * pow(dur,3) + beta_TT1 * dbparams:TT_HT1(arrid) + beta_TT2 * dbparams:TT_HT2(depid) + beta_C * (cost_HT1_am * arr_am + cost_HT1_pm * arr_pm + cost_HT1_op * arr_op + cost_HT2_am * dep_am + cost_HT2_pm * dep_pm + cost_HT2_op * dep_op)
 	end
 end
 
@@ -159,3 +168,4 @@ function choose_ttde(params,dbparams)
 	local probability = calculate_probability("mnl", choice, utility, availability, scale)
 	return make_final_choice(probability)
 end
+

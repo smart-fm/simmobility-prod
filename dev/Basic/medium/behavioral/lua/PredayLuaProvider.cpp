@@ -44,6 +44,12 @@ namespace {
             modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("tmdw"));
             modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("tmds"));
             modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("tmdo"));
+            modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("ttdw"));
+            modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("ttde"));
+            modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("ttdo"));
+            modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("isg"));
+            modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("imd"));
+            modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("itd"));
             modelCtx->predayModel.initialize();
             threadContext.reset(modelCtx);
         }

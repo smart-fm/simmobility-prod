@@ -129,6 +129,17 @@ struct SendBuffer {
 	typedef std::pair<Key, Value> Pair;
 };
 
+/**
+ * This class is the heart of communication simulator
+ * It is responsible for configuring and managing communication simulator.
+ * the update method of broker performs the following:
+ * - managing the synchronization(with internal and external entities)
+ * - Processing the incoming requests for registration(internal and external)
+ * - Processing the incoming/outgoing messages
+ * - clean up
+ * - other application specific settings
+ * It is advisable to subclass from broker to make customized configuration/implementation
+ */
 class Broker  : public sim_mob::Agent {
 protected:
 	typedef std::multimap<std::string,ClientRegistrationRequest > ClientWaitList;
@@ -264,10 +275,14 @@ protected:
 	void cleanup();
 	/**
 	 * 	handlers executed when an agent is going out of simulation(die)
+	 * The number and order of arguments are as per EventPublisher guidelines.
+	 * To avoid comment duplication, refer to the wiki and the corresponding source code for more information
 	 */
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 	/**
 	 * to be called and identify the agent who has just updated
+	 * The number and order of arguments are as per EventPublisher guidelines.
+	 * To avoid comment duplication, refer to the wiki and the corresponding source code for more information
 	 */
 	virtual void onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums);
 	/**

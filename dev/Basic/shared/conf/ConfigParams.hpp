@@ -309,10 +309,6 @@ public:
 	//Communication Simulator accessors and configurators
 	bool& commSimEnabled();
 	const bool& commSimEnabled() const;
-//	bool& androidClientEnabled();
-//	const bool& androidClientEnabled() const;
-//	const std::string& getAndroidClientType() const;
-//	std::string& getAndroidClientType() ;
 	const std::map<std::string, sim_mob::SimulationParams::CommsimElement> &getCommSimElements() const;
 	const std::string& getCommSimMode(std::string name)const;
 	bool commSimmEnabled(std::string &name);

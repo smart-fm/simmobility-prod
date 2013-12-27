@@ -348,23 +348,6 @@ const bool& sim_mob::ConfigParams::commSimEnabled() const
 	return system.simulation.commSimEnabled;
 }
 
-//bool& sim_mob::ConfigParams::androidClientEnabled()
-//{
-//	return system.simulation.androidClientEnabled;
-//}
-//const bool& sim_mob::ConfigParams::androidClientEnabled() const
-//{
-//	return system.simulation.androidClientEnabled;
-//}
-//
-//const std::string& sim_mob::ConfigParams::getAndroidClientType() const {
-//	return system.simulation.androidClientType;
-//}
-//
-//std::string& sim_mob::ConfigParams::getAndroidClientType() {
-//	return system.simulation.androidClientType;
-//}
-
 const std::map<std::string,sim_mob::SimulationParams::CommsimElement> &sim_mob::ConfigParams::getCommSimElements() const{
 	return system.simulation.commsimElements;
 }

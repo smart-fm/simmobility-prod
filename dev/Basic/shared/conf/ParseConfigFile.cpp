@@ -1064,23 +1064,6 @@ void sim_mob::ParseConfigFile::ProcessSystemCommunicationNode(xercesc::DOMElemen
 	}
 }
 
-//void sim_mob::ParseConfigFile::ProcessSystemCommunicationNode(xercesc::DOMElement* node)
-//{
-//	if (!node) { return; }
-//
-//	//The commsim config has an attribute and a child node.
-//	cfg.system.simulation.commSimEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
-//
-//	//TODO: There is a "type" attribute here too, in the latest branch.
-//	xercesc::DOMElement* androidNode = GetSingleElementByName(node, "android_testbed");
-//	if((cfg.system.simulation.androidClientEnabled = ParseBoolean(GetNamedAttributeValue(androidNode, "enabled"), false)))
-//	{
-//		//an optional place to create the broker, i am creating in main.cpp now
-//	}
-//
-//	cfg.system.simulation.androidClientType = ParseString(GetNamedAttributeValue(androidNode, "type"), std::string(""));
-//}
-
 void sim_mob::ParseConfigFile::ProcessWorkerPersonNode(xercesc::DOMElement* node)
 {
 	cfg.system.workers.person.count = ParseInteger(GetNamedAttributeValue(node, "count"));

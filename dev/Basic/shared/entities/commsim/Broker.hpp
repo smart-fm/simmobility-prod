@@ -30,6 +30,12 @@
 
 namespace sim_mob {
 
+/**
+ * This file contains Broker class as the main component in this file.
+ * The rest of the structures are custom data types used in the broker class.
+ * Find the documentation at the beginning of each structure/class.
+ */
+
 //Forward Declarations
 template <class RET,class MSG>
 class MessageFactory;
@@ -129,6 +135,17 @@ struct SendBuffer {
 	typedef std::pair<Key, Value> Pair;
 };
 
+/**
+ * This class is the heart of communication simulator
+ * It is responsible for configuring and managing communication simulator.
+ * the update method of broker performs the following:
+ * - managing the synchronization(with internal and external entities)
+ * - Processing the incoming requests for registration(internal and external)
+ * - Processing the incoming/outgoing messages
+ * - clean up
+ * - other application specific settings
+ * It is advisable to subclass from broker to make customized configuration/implementation
+ */
 class Broker  : public sim_mob::Agent {
 protected:
 	typedef std::multimap<std::string,ClientRegistrationRequest > ClientWaitList;
@@ -264,10 +281,14 @@ protected:
 	void cleanup();
 	/**
 	 * 	handlers executed when an agent is going out of simulation(die)
+	 * The number and order of arguments are as per EventPublisher guidelines.
+	 * To avoid comment duplication, refer to the wiki and the corresponding source code for more information
 	 */
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 	/**
 	 * to be called and identify the agent who has just updated
+	 * The number and order of arguments are as per EventPublisher guidelines.
+	 * To avoid comment duplication, refer to the wiki and the corresponding source code for more information
 	 */
 	virtual void onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums);
 	/**
@@ -296,9 +317,6 @@ protected:
 	void processIncomingData(timeslice);
 
 public:
-	/**
-	 * constructor and destructor
-	 */
 	explicit Broker(const MutexStrategy& mtxStrat, int id=-1, std::string commElement_ = "", std::string commMode_ = "");
 	/**
 	 * 	configure publisher, message handlers and waiting criteria...
@@ -308,7 +326,6 @@ public:
 	 * 	temporary function replacing onAgentUpdate
 	 */
 	void AgentUpdated(Agent *);
-	///	destructor
 	~Broker();
 	//	enable broker
 	void enable();

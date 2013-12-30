@@ -31,14 +31,19 @@
 sim_mob::Roadrunner_Broker::Roadrunner_Broker(const MutexStrategy& mtxStrat, int id ,std::string commElement_, std::string commMode_) :
 Broker(mtxStrat, id, commElement_, commMode_)
 {
-//	//Various Initializations
-//	connection.reset(new ConnectionServer(*this));
-//	brokerCanTickForward = false;
-//	m_messageReceiveCallback = boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)>
-//		(boost::bind(&Broker::messageReceiveCallback,this, _1, _2));
-//
-////	Print() << "Creating Roadrunner Broker [" << this << "]" << std::endl;
-////	configure(); //already done at the time of creation
+	/*
+	 * the following code can be repeating considering the subclassing:
+	 * \code
+	//Various Initializations
+	connection.reset(new ConnectionServer(*this));
+	brokerCanTickForward = false;
+	m_messageReceiveCallback = boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)>
+		(boost::bind(&Broker::messageReceiveCallback,this, _1, _2));
+
+//	Print() << "Creating Roadrunner Broker [" << this << "]" << std::endl;
+//	configure(); //already done at the time of creation
+ * \endcode
+ */
 }
 
 //configure the brokers behavior
@@ -82,33 +87,36 @@ void sim_mob::Roadrunner_Broker::configure()
 		serviceList.push_back(sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS);
 	}
 
+/*
+ * based on the event publisher design, the following code can be replaced by a single
+ * publisher. we leave it here for comparison. one snippet should be finally chosen:
+ * \code
+	BrokerPublisher* onlyLocationsPublisher = new BrokerPublisher();
+	onlyLocationsPublisher->registerEvent(COMMEID_LOCATION);
 
+	publishers.insert(std::make_pair(
+		sim_mob::Services::SIMMOB_SRV_LOCATION,
+		PublisherList::Value(onlyLocationsPublisher))
+	);
 
-//	BrokerPublisher* onlyLocationsPublisher = new BrokerPublisher();
-//	onlyLocationsPublisher->registerEvent(COMMEID_LOCATION);
-//
-//	publishers.insert(std::make_pair(
-//		sim_mob::Services::SIMMOB_SRV_LOCATION,
-//		PublisherList::Value(onlyLocationsPublisher))
-//	);
-//
-//	//NS-3 has its own publishers
-//	if(client_mode == "android-ns3") {
-//		BrokerPublisher* allLocationsPublisher = new BrokerPublisher();
-//		allLocationsPublisher->registerEvent(COMMEID_LOCATION);
-//		publishers.insert(std::make_pair(
-//			sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS,
-//			PublisherList::Value(allLocationsPublisher))
-//		);
-//	}
-//
-//	BrokerPublisher* timePublisher = new BrokerPublisher();
-//	timePublisher->registerEvent(COMMEID_TIME);
-//	publishers.insert(std::make_pair(
-//		sim_mob::Services::SIMMOB_SRV_TIME,
-//		PublisherList::Value(timePublisher))
-//	);
+	//NS-3 has its own publishers
+	if(client_mode == "android-ns3") {
+		BrokerPublisher* allLocationsPublisher = new BrokerPublisher();
+		allLocationsPublisher->registerEvent(COMMEID_LOCATION);
+		publishers.insert(std::make_pair(
+			sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS,
+			PublisherList::Value(allLocationsPublisher))
+		);
+	}
 
+	BrokerPublisher* timePublisher = new BrokerPublisher();
+	timePublisher->registerEvent(COMMEID_TIME);
+	publishers.insert(std::make_pair(
+		sim_mob::Services::SIMMOB_SRV_TIME,
+		PublisherList::Value(timePublisher))
+	);
+	\endcode
+*/
 	//current message factory
 	//todo: choose a factory based on configurations not hardcoding
 	if(client_mode == "android-ns3") {

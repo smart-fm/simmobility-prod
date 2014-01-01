@@ -101,11 +101,13 @@ private:
  */
 class StopTimeOfDayParams {
 public:
-	StopTimeOfDayParams(int stopType, int firstBound) : stopType(stopType), firstBound(firstBound), numTimeWindows(48), todHigh(0.0), todLow(0.0) {
-		for(double i=3.25; i<=26.75; i=i+0.5) {
-			availability[i] = true;
+	StopTimeOfDayParams(int stopType, int firstBound)
+	: stopType(stopType), firstBound(firstBound), numTimeWindows(48), todHigh(0.0), todLow(0.0) {
+		for(int i=1; i<=48; i++) {
+			availability.push_back(true);
 		}
 	}
+
 	virtual ~StopTimeOfDayParams() {}
 
 	double getTimeWindow(int choice_idx) {
@@ -173,9 +175,9 @@ public:
 	 */
 	int getAvailability(unsigned index){
 		if(index < numTimeWindows) {
-			return availability[index];
+			return availability[index-1];
 		}
-		return -1;
+		return 0; // anything else is unavailable
 	}
 
 	/**

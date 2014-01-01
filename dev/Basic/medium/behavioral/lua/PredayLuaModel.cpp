@@ -41,6 +41,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("student_dummy", &PersonParams::isStudent)
 				.addProperty("worker_dummy", &PersonParams::isWorker)
 				.addProperty("income_id", &PersonParams::getIncomeId)
+				.addProperty("missing_income", &PersonParams::getMissingIncome)
 				.addProperty("work_at_home_dummy", &PersonParams::getWorksAtHome)
 				.addProperty("car_own_normal", &PersonParams::getCarOwnNormal)
 				.addProperty("car_own_offpeak", &PersonParams::getCarOwnOffpeak)
@@ -68,7 +69,6 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("work_op", &UsualWorkParams::getZoneEmployment)
 			.endClass()
 
-
 			.beginClass<TourModeParams>("TourModeParams")
 				.addProperty("average_transfer_number",&TourModeParams::getAvgTransfer)
 				.addProperty("central_dummy",&TourModeParams::isCentralZone)
@@ -87,6 +87,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("share2_AV",&TourModeParams::isShare2Available)
 				.addProperty("share3_AV",&TourModeParams::isShare3Available)
 				.addProperty("taxi_AV",&TourModeParams::isTaxiAvailable)
+				.addProperty("walk_AV",&TourModeParams::isWalkAvailable)
 				.addProperty("tt_ivt_car_first",&TourModeParams::getTtCarIvtFirst)
 				.addProperty("tt_ivt_car_second",&TourModeParams::getTtCarIvtSecond)
 				.addProperty("tt_public_ivt_first",&TourModeParams::getTtPublicIvtFirst)
@@ -95,7 +96,6 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("tt_public_waiting_second",&TourModeParams::getTtPublicWaitingSecond)
 				.addProperty("tt_public_walk_first",&TourModeParams::getTtPublicWalkFirst)
 				.addProperty("tt_public_walk_second",&TourModeParams::getTtPublicWalkSecond)
-				.addProperty("tmw_walk_AV",&TourModeParams::isWalkAvailable)
 				.addProperty("walk_distance1",&TourModeParams::getWalkDistance1)
 				.addProperty("walk_distance2",&TourModeParams::getWalkDistance2)
 				.addProperty("destination_area",&TourModeParams::getDestinationArea)
@@ -163,6 +163,10 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 			.beginClass<StopTimeOfDayParams>("StopTimeOfDayParams")
 				.addFunction("TT", &StopTimeOfDayParams::getTravelTime)
 				.addFunction("cost", &StopTimeOfDayParams::getTravelCost)
+				.addProperty("high_tod", &StopTimeOfDayParams::getTodHigh)
+				.addProperty("low_tod", &StopTimeOfDayParams::getTodLow)
+				.addProperty("first_bound", &StopTimeOfDayParams::getFirstBound)
+				.addProperty("second_bound", &StopTimeOfDayParams::getSecondBound)
 				.addFunction("availability", &StopTimeOfDayParams::getAvailability)
 			.endClass()
 
@@ -185,6 +189,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("first_stop", &StopGenerationParams::getFirstStop)
 				.addProperty("second_stop", &StopGenerationParams::getSecondStop)
 				.addProperty("three_plus_stop", &StopGenerationParams::getThreePlusStop)
+				.addProperty("has_subtour", &StopGenerationParams::getHasSubtour)
 				.addFunction("availability", &StopGenerationParams::isAvailable)
 			.endClass();
 
@@ -202,7 +207,8 @@ void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personPara
 		dayPattern["EduI"] = retVal[6].cast<int>();
 		dayPattern["ShopI"] = retVal[7].cast<int>();
 		dayPattern["OthersI"] = retVal[8].cast<int>();
-		Print() << dayPattern["WorkT"] << dayPattern["EduT"] << dayPattern["ShopT"] << dayPattern["OthersT"] << std::endl;
+		Print() << dayPattern["WorkT"] << dayPattern["EduT"] << dayPattern["ShopT"] << dayPattern["OthersT"]
+		        << dayPattern["WorkI"] << dayPattern["EduI"] << dayPattern["ShopI"] << dayPattern["OthersI"] << std::endl;
 	}
 	else {
 		throw std::runtime_error("Error in day pattern prediction. Unexpected return value");
@@ -220,21 +226,21 @@ void sim_mob::medium::PredayLuaModel::predictNumTours(PersonParams& personParams
 	    }
 	}
 	if(dayPattern["EduT"]) {
-		LuaRef chooseNTE = getGlobal(state.get(), "choose_nte");// choose Num. of Education Tours
+		LuaRef chooseNTE = getGlobal(state.get(), "choose_nte"); // choose Num. of Education Tours
 		LuaRef retVal = chooseNTE(&personParams);
 	    if (retVal.isNumber()) {
 	    	numTours["EduT"] = retVal.cast<int>();
 	    }
 	}
 	if(dayPattern["ShopT"]) {
-		LuaRef chooseNTS = getGlobal(state.get(), "choose_nts");// choose Num. of Shopping Tours
+		LuaRef chooseNTS = getGlobal(state.get(), "choose_nts"); // choose Num. of Shopping Tours
 		LuaRef retVal = chooseNTS(&personParams);
 	    if (retVal.isNumber()) {
 	    	numTours["ShopT"] = retVal.cast<int>();
 	    }
 	}
 	if(dayPattern["OthersT"]) {
-		LuaRef chooseNTO = getGlobal(state.get(), "choose_nto");// choose Num. of Other Tours
+		LuaRef chooseNTO = getGlobal(state.get(), "choose_nto"); // choose Num. of Other Tours
 		LuaRef retVal = chooseNTO(&personParams);
 	    if (retVal.isNumber()) {
 	    	numTours["OthersT"] = retVal.cast<int>();
@@ -335,6 +341,12 @@ int sim_mob::medium::PredayLuaModel::predictTourTimeOfDay(PersonParams& personPa
 int sim_mob::medium::PredayLuaModel::generateIntermediateStop(PersonParams& personParams, StopGenerationParams& isgParams) const {
 	LuaRef chooseISG = getGlobal(state.get(), "choose_isg");
 	LuaRef retVal = chooseISG(&personParams, &isgParams);
+	return retVal.cast<int>();
+}
+
+int sim_mob::medium::PredayLuaModel::predictStopModeDestination(PersonParams& personParams, StopModeDestinationParams& imdParams) const {
+	LuaRef chooseIMD = getGlobal(state.get(), "choose_imd");
+	LuaRef retVal = chooseIMD(&personParams, &imdParams);
 	return retVal.cast<int>();
 }
 

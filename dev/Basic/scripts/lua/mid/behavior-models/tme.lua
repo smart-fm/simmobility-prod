@@ -125,7 +125,6 @@ choice["PT"] = {1,2,3}
 choice["car"] = {4,5,6,7}
 choice["other"] = {8,9}
 
-
 --utility
 -- 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
 -- 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
@@ -295,36 +294,28 @@ local function computeUtilities(params,dbparams)
 
 end
 
-
-
 --availability
 --the logic to determine availability is the same with current implementation
 local availability = {}
 local function computeAvailabilities(params,dbparams)
-	availability[1] = {
-		dbparams.tme_publicbus_AV,
-		dbparams.tme_mrt_AV,
-		dbparams.tme_privatebus_AV
-	}
-	availability[2] = {
-		dbparams.tme_drive1_AV,
-		dbparams.tme_share2_AV,
-		dbparams.tme_share3_AV,
-		dbparams.tme_motor_AV
-	}
-	availability[3] = {
-		dbparams.tme_walk_AV,
-		dbparams.tme_taxi_AV
-	}
+ availability = {
+	dbparams.publicbus_AV, 
+	dbparams.mrt_AV, 
+	dbparams.privatebus_AV, 
+	dbparams.drive1_AV, 
+	dbparams.share2_AV, 
+	dbparams.share3_AV, 
+	dbparams.motor_AV, 
+	dbparams.walk_AV, 
+	dbparams.taxi_AV
+}
 end
 
 --scale
-local scale={
-	{1.51,1.51,1.51},
-	{1.45,1.45,1.45,1.45},
-	{1,1}
-}
-
+local scale={}
+scale["PT"] = {1.51,1.51,1.51}
+scale["car"] = {1.45,1.45,1.45,1.45}
+scale["other"] = {1,1}
 
 function choose_tme(params,dbparams)
 	computeUtilities(params,dbparams) 

@@ -44,6 +44,23 @@ public:
 
 	virtual ~ModeDestinationParams() {}
 
+	int getMode(int choice) const {
+		if (choice < 1 || choice > 9828) {
+			throw std::runtime_error("getMode()::invalid choice id for mode-destination model");
+		}
+		return (choice/zoneMap.size() + 1);
+	}
+
+	int getDestination(int choice) const {
+		if (choice < 1 || choice > 9828) {
+			throw std::runtime_error("getDestination()::invalid choice id for mode-destination model");
+		}
+		int zoneId = choice % zoneMap.size();
+		if(zoneId == 0) { // zoneId will become zero for zone 1092.
+			zoneId = zoneMap.size();
+		}
+		return zoneId;
+	}
 };
 
 class TourModeDestinationParams : public ModeDestinationParams {
@@ -231,24 +248,6 @@ public:
 			return 1;
 		}
 		return 0;
-	}
-
-	int getMode(int choice) const {
-		if (choice < 1 || choice > 9828) {
-			throw std::runtime_error("getMode()::invalid choice id for mode-destination model");
-		}
-		return (choice/zoneMap.size() + 1);
-	}
-
-	int getDestination(int choice) const {
-		if (choice < 1 || choice > 9828) {
-			throw std::runtime_error("getDestination()::invalid choice id for mode-destination model");
-		}
-		int zoneId = choice % zoneMap.size();
-		if(zoneId == 0) { // zoneId will become zero for zone 1092.
-			zoneId = zoneMap.size();
-		}
-		return zoneId;
 	}
 
 private:

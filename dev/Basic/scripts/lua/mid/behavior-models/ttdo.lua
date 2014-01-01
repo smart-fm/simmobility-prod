@@ -102,7 +102,6 @@ end
 
 local utility = {}
 local function computeUtilities(params,dbparams) 
-	print("0")
 	--local person_type_id = params.person_type_id 
 	-- gender in this model is the same as female_dummy
 	local gender = params.female_dummy
@@ -159,18 +158,16 @@ local function computeAvailabilities(params,dbparams)
 	end
 end
 
-
 --scale
 local scale={}
 for i = 1, 1176 do
 	scale[i]=1
 end
 
-
 function choose_ttdo(params,dbparams)
 	computeUtilities(params,dbparams) 
 	computeAvailabilities(params,dbparams)
-	local probability = calculate_probability("mnl", choice, utility, availability, scale)
+	local probability = calculate_probability("mnl", choiceset, utility, availability, scale)
 	return make_final_choice(probability)
 end
 

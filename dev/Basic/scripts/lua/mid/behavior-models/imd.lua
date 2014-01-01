@@ -255,6 +255,7 @@ local function computeUtilities(params,dbparams)
 	end
 
 	local V_counter = 0
+	local log = math.log
 
 	--utility function for bus 1-1092
 	for i =1,1092 do

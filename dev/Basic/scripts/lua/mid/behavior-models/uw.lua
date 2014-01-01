@@ -68,14 +68,14 @@ local function computeUtilities(params,dbparams)
 	local fixed_place = params.fixed_place --binary variable
 	local fixed_work_hour = params.fixed_work_hour
 	local female_dummy = params.female_dummy
-	local work_from_home_dummy = params.work_from_home_dummy
+	local work_from_home_dummy = params.work_at_home_dummy
 
 	--first of multiple =1 if this work tour is the first work tour
 	--of many work tours modeled for an agent, else first of multiple =0
 	--subsequent of multiple =1 if this work tour is the subsequent work
 	--tour of many work tours modeled for an agent, else first of multiple =0
-	local first_of_multiple = params.first_of_multiple
-	local subsequent_of_multiple = params.subsequent_of_multiple
+	local first_of_multiple = dbparams.first_of_multiple
+	local subsequent_of_multiple = dbparams.subsequent_of_multiple
 
 	--dbparams.walk_distance1= AM[(origin,destination)]['AM2dis']
 	--origin is home mtz, destination is usual work location mtz
@@ -92,6 +92,7 @@ local function computeUtilities(params,dbparams)
 	if income_id <= 5 then low_income = 1 end
 
 	local employment = math.log(1+work_op)
+	local log = math.log
 
 	local full_time_dummy,part_time_dummy,self_employed_dummy = 0,0,0
 	if person_type_id == 1 then full_time_dummy = 1 end
@@ -100,7 +101,7 @@ local function computeUtilities(params,dbparams)
 
 
 	utility[1] = beta_cons_usual + beta_fixedlocation_usual * fixed_place + beta_fixedtime_usual * fixed_work_hour + beta_female_usual * female_dummy + beta_under3000_usual * low_income + beta_distance_log_usual * log(distance)+beta_distance1_usual * distance + beta_distance2_usual*math.pow(distance,2) + beta_distance3_usual*math.pow(distance,3) + beta_employment_full_usual * employment * full_time_dummy + beta_employment_part_usual* employment * part_time_dummy + beta_employment_self_usual * employment * self_employed_dummy + beta_work_home_usual * work_from_home_dummy + beta_first_work_usual * first_of_multiple + beta_sub_work_usual * subsequent_of_multiple
-	utility[2] = beta_cons_unusual + beta_fixedlocation_unusual * fixed_place + beta_fixedtime_unusual * fixed_work_hour + beta_female_unusual * female_dummy + beta_under3000_unusual * low_income + beta_distance_log_unusual * log(distance)+beta_distance1_unusual * distance + beta_distance2_unusual*math.pow(distance,2) + beta_distance3_unusual*math.pow(distance,3) + beta_employment_full_unusual * employment * full_time_dummy + beta_employment_part_unusual* employment * part_time_dummy + beta_employment_self_unusual * employment * self_employed_dummy + beta_work_home_unusual * work_from_home_dummy + first_work_unusual * first_of_multiple + beta_sub_work_unusual * subsequent_of_multiple
+	utility[2] = beta_cons_unusual + beta_fixedlocation_unusual * fixed_place + beta_fixedtime_unusual * fixed_work_hour + beta_female_unusual * female_dummy + beta_under3000_unusual * low_income + beta_distance_log_unusual * log(distance)+beta_distance1_unusual * distance + beta_distance2_unusual*math.pow(distance,2) + beta_distance3_unusual*math.pow(distance,3) + beta_employment_full_unusual * employment * full_time_dummy + beta_employment_part_unusual* employment * part_time_dummy + beta_employment_self_unusual * employment * self_employed_dummy + beta_work_home_unusual * work_from_home_dummy + beta_first_work_unusual * first_of_multiple + beta_sub_work_unusual * subsequent_of_multiple
 end
 
 --availability

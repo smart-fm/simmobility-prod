@@ -279,27 +279,23 @@ end
 --the logic to determine availability is the same with current implementation
 local availability = {}
 local function computeAvailabilities(params,dbparams)
-	availability[1] = {
-		dbparams.tmw_publicbus_AV,
-		dbparams.tmw_mrt_AV,
-		dbparams.tmw_privatebus_AV
-	}
-	availability[2] = {
-		dbparams.tmw_drive1_AV,
-		dbparams.tmw_share2_AV,
-		dbparams.tmw_share3_AV,
-		dbparams.tmw_motor_AV,
-		dbparams.tmw_walk_AV,
-		dbparams.tmw_taxi_AV
+	availability = {
+		dbparams.publicbus_AV,
+		dbparams.mrt_AV,
+		dbparams.privatebus_AV,
+		dbparams.drive1_AV,
+		dbparams.share2_AV,
+		dbparams.share3_AV,
+		dbparams.motor_AV,
+		dbparams.walk_AV,
+		dbparams.taxi_AV
 	}
 end
 
 --scale
-local scale={
-	{2.82,2.82,2.82},
-	{1,1,1,1,1,1}
-}
-
+local scale = {}
+scale["PT"] = {2.82,2.82,2.82}
+scale["non-PT"] = {1,1,1,1,1,1}
 
 function choose_tmw(params,dbparams)
 	computeUtilities(params,dbparams) 

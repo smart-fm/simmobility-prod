@@ -24,10 +24,9 @@ namespace medium {
  */
 class StopGenerationParams {
 public:
-	StopGenerationParams(Tour& tour, Stop* primaryActivity)
+	StopGenerationParams(Tour& tour, Stop* primaryActivity, const boost::unordered_map<std::string, bool>& dayPattern)
 	: tourMode(tourMode), primActivityArrivalTime(primaryActivity->getArrivalTime()), primActivityDeptTime(primaryActivity->getDepartureTime()),
-	  firstTour(true), firstHalfTour(true), stopCounter(0),
-	  workStopAvailability(0), eduStopAvailability(0), shopStopAvailability(0), otherStopAvailability(0),
+	  firstTour(true), firstHalfTour(true), stopCounter(0), hasSubtour(0),
 	  numRemainingTours(-1), distance(-1.0)	/*distance, initialized with invalid values*/
 	{
 		switch (tour.getTourType()) {
@@ -44,6 +43,11 @@ public:
 			tourType = 4;
 			break;
 		}
+
+		workStopAvailability = dayPattern.at("WorkI");
+		eduStopAvailability = dayPattern.at("EduI");
+		shopStopAvailability = dayPattern.at("ShopI");
+		otherStopAvailability = dayPattern.at("OthersI");
 	}
 
 	virtual ~StopGenerationParams() {}
@@ -207,6 +211,10 @@ public:
 		this->workStopAvailability = workStopAvailability;
 	}
 
+	int getHasSubtour() const {
+		return hasSubtour;
+	}
+
 private:
 
 	int tourType;
@@ -218,6 +226,7 @@ private:
 	double distance;
 	bool firstHalfTour;
 	int stopCounter;
+	int hasSubtour;
 
 	int workStopAvailability;
 	int eduStopAvailability;

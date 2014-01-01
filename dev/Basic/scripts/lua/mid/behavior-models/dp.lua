@@ -310,7 +310,7 @@ local function computeUtilities(params)
 	local age_id = params.age_id
 	local universitystudent = params.universitystudent
 	local only_adults = params.only_adults
-	local only_workers = params.only_workers 
+	local only_workers = params.only_workers
 	local num_underfour = params.num_underfour
 	local presence_of_under15 = params.presence_of_under15
 	local female_dummy = params.female_dummy
@@ -559,7 +559,4 @@ function choose_dp(params)
 	idx = make_final_choice(probability)
 	return choice[idx]
 end
-
-print("dp.lua")
-
 

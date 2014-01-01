@@ -100,6 +100,16 @@ public:
 	int generateIntermediateStop(PersonParams& personParams, StopGenerationParams& isgParams) const;
 
 	/**
+	 * Predicts the mode and destination for an intermediate stop
+	 *
+	 * @param personParams object containing person and household related variables
+	 * @param stopModeDestinationParams parameters specific to stop mode-destination models
+	 *
+	 * @return an integer in the range of 1 to 9828 (9 modes * 1092 zones) which represents a combination of a zone (one of 1092) and a mode (one of 9)
+	 */
+	int predictStopModeDestination(PersonParams& personParams, StopModeDestinationParams& imdParams) const;
+
+	/**
 	 * Predicts the departure/arrival time for a stop
 	 *
 	 * @param personParams object containing person and household related variables

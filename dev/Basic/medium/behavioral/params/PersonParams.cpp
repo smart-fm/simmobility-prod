@@ -27,9 +27,9 @@ sim_mob::medium::PersonParams::~PersonParams() {
 }
 
 void PersonParams::initTimeWindows() {
-	int index = 0;
-	for (double i = 3.25; i <= 26.75; i = i + 0.5) {
-		for (double j=i; j<=26.75; j=j+0.5) {
+	int index = 1;
+	for (double i = 1; i <= 48; i++) {
+		for (double j=i; j<=48; j++) {
 			timeWindowAvailability[index] = new TimeWindowAvailability(i, j); //initialize availability of all time windows to 1
 			index++;
 		}

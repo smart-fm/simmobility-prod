@@ -220,7 +220,7 @@ end
 function choose_ttdw(params,dbparams)
 	computeUtilities(params,dbparams) 
 	computeAvailabilities(params,dbparams)
-	local probability = calculate_probability("mnl", choice, utility, availability, scale)
+	local probability = calculate_probability("mnl", choiceset, utility, availability, scale)
 	return make_final_choice(probability)
 end
 

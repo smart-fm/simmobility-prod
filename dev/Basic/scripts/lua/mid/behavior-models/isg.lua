@@ -4,7 +4,7 @@ Type - MNL
 Authors - Siyu Li, Harish Loganathan
 ]]
 
--- all require statements do not work with C++. They need to be commented. The order in which lua files are loaded must be explicitly controlled in C++. 
+-- require statements do not work with C++. They need to be commented. The order in which lua files are loaded must be explicitly controlled in C++. 
 --require "Logit"
 
 --Estimated values for all betas
@@ -12,7 +12,7 @@ Authors - Siyu Li, Harish Loganathan
 
 local beta_cons_work = -0.428
 local beta_cons_edu = -1.25
-local beta_cons_shopping = －1.42
+local beta_cons_shopping = -1.42
 local beta_cons_other = -1.30
 local beta_cons_Q = 0
 
@@ -224,7 +224,7 @@ local function computeUtilities(params,dbparams)
 	beta_driver_dummy_W * driver_dummy +
 	beta_passenger_dummy_W * passenger_dummy +
 	beta_public_dummy_W * public_dummy +
-	beta_beta_work_logsum * worklogsum+
+	beta_work_logsum * worklogsum+
 	beta_time_window_work * time_window_h +
 	beta_tour_distance_work * math.log(1 + distance) +
 	beta_a700_a930_work * p_700a_930a +
@@ -313,19 +313,14 @@ local function computeUtilities(params,dbparams)
 	beta_zero_tour_remain_Q * 1 * (tour_remain==0 and 1 or 0)+
 	beta_one_tour_remain_Q * 1 * (tour_remain==1 and 1 or 0)+ 
 	beta_twoplus_tour_remain_Q*1*(tour_remain>=2 and 1 or 0)
-
-
 end
-
-
-
 
 --availability
 --the logic to determine availability is the same with current implementation
 local availability = {}
 local function computeAvailabilities(params,dbparams)
 	for i = 1, 5 do 
-		availability[i] = dbparams.availability[i]
+		availability[i] = dbparams:availability(i)
 	end
 end
 

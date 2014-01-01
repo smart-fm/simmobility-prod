@@ -56,7 +56,7 @@ for i =1,48 do
 	depmidpoint[i] = i * 0.5 + 2.75
 end
 
-for i = 1，48 do
+for i = 1,48 do
 	choiceset[i] = i
 end
 
@@ -79,25 +79,41 @@ local function computeUtilities(params,dbparams)
 	local high_tod = dbparams.high_tod
 	local low_tod = dbparams.low_tod
 
-	local TT = dbparams:TT
-	local cost = dbparams:cost
+	local pi = math.pi
+	local sin = math.sin
+	local cos = math.cos
 
-	local function sarr_1(t):
-		return first_bound*beta_ARR_1_1 * math.sin(2*pi*t/24.) + first_bound*beta_ARR_1_5 * math.cos(2*pi*t/24.)+first_bound*beta_ARR_1_2 * math.sin(4*pi*t/24.) + first_bound*beta_ARR_1_6 * math.cos(4*pi*t/24.)+first_bound*beta_ARR_1_3 * math.sin(6*pi*t/24.) + first_bound*beta_ARR_1_7 * math.cos(6*pi*t/24.)+first_bound*beta_ARR_1_4 * math.sin(8*pi*t/24.) + first_bound*beta_ARR_1_8 * math.cos(8*pi*t/24.)
-	local function sdep_1(t):
-		return second_bound*beta_DEP_1_1 * math.sin(2*pi*t/24.) + second_bound*beta_DEP_1_5 * math.cos(2*pi*t/24.)+second_bound*beta_DEP_1_2 * math.sin(4*pi*t/24.) + second_bound*beta_DEP_1_6 * math.cos(4*pi*t/24.)+second_bound*beta_DEP_1_3 * math.sin(6*pi*t/24.) + second_bound*beta_DEP_1_7 * math.cos(6*pi*t/24.)+second_bound*beta_DEP_1_4 * math.sin(8*pi*t/24.) + second_bound*beta_DEP_1_8 * math.cos(8*pi*t/24.)
-	local function sarr_2(t):
-		return first_bound*beta_ARR_2_1 * math.sin(2*pi*t/24.) + first_bound*beta_ARR_2_5 * math.cos(2*pi*t/24.)+first_bound*beta_ARR_2_2 * math.sin(4*pi*t/24.) + first_bound*beta_ARR_2_6 * math.cos(4*pi*t/24.)+first_bound*beta_ARR_2_3 * math.sin(6*pi*t/24.) + first_bound*beta_ARR_2_7 * math.cos(6*pi*t/24.)+first_bound*beta_ARR_2_4 * math.sin(8*pi*t/24.) + first_bound*beta_ARR_2_8 * math.cos(8*pi*t/24.)
-	local function sdep_2(t):
-		return second_bound*beta_DEP_2_1 * math.sin(2*pi*t/24.) + second_bound*beta_DEP_2_5 * math.cos(2*pi*t/24.)+second_bound*beta_DEP_2_2 * math.sin(4*pi*t/24.) + second_bound*beta_DEP_2_6 * math.cos(4*pi*t/24.)+second_bound*beta_DEP_2_3 * math.sin(6*pi*t/24.) + second_bound*beta_DEP_2_7 * math.cos(6*pi*t/24.)+second_bound*beta_DEP_2_4 * math.sin(8*pi*t/24.) + second_bound*beta_DEP_2_8 * math.cos(8*pi*t/24.)
-	local function sarr_3(t):
-		return first_bound*beta_ARR_3_1 * math.sin(2*pi*t/24.) + first_bound*beta_ARR_3_5 * math.cos(2*pi*t/24.)+first_bound*beta_ARR_3_2 * math.sin(4*pi*t/24.) + first_bound*beta_ARR_3_6 * math.cos(4*pi*t/24.)+first_bound*beta_ARR_3_3 * math.sin(6*pi*t/24.) + first_bound*beta_ARR_3_7 * math.cos(6*pi*t/24.)+first_bound*beta_ARR_3_4 * math.sin(8*pi*t/24.) + first_bound*beta_ARR_3_8 * math.cos(8*pi*t/24.)
-	local function sdep_3(t):
-		return second_bound*beta_DEP_3_1 * math.sin(2*pi*t/24.) + second_bound*beta_DEP_3_5 * math.cos(2*pi*t/24.)+second_bound*beta_DEP_3_2 * math.sin(4*pi*t/24.) + second_bound*beta_DEP_3_6 * math.cos(4*pi*t/24.)+second_bound*beta_DEP_3_3 * math.sin(6*pi*t/24.) + second_bound*beta_DEP_3_7 * math.cos(6*pi*t/24.)+second_bound*beta_DEP_3_4 * math.sin(8*pi*t/24.) + second_bound*beta_DEP_3_8 * math.cos(8*pi*t/24.)
-	local function sarr_4(t):
-		return first_bound*beta_ARR_4_1 * math.sin(2*pi*t/24.) + first_bound*beta_ARR_4_5 * math.cos(2*pi*t/24.)+first_bound*beta_ARR_4_2 * math.sin(4*pi*t/24.) + first_bound*beta_ARR_4_6 * math.cos(4*pi*t/24.)+first_bound*beta_ARR_4_3 * math.sin(6*pi*t/24.) + first_bound*beta_ARR_4_7 * math.cos(6*pi*t/24.)+first_bound*beta_ARR_4_4 * math.sin(8*pi*t/24.) + first_bound*beta_ARR_4_8 * math.cos(8*pi*t/24.)
-	local function sdep_4(t):
-		return second_bound*beta_DEP_4_1 * math.sin(2*pi*t/24.) + second_bound*beta_DEP_4_5 * math.cos(2*pi*t/24.)+second_bound*beta_DEP_4_2 * math.sin(4*pi*t/24.) + second_bound*beta_DEP_4_6 * math.cos(4*pi*t/24.)+second_bound*beta_DEP_4_3 * math.sin(6*pi*t/24.) + second_bound*beta_DEP_4_7 * math.cos(6*pi*t/24.)+second_bound*beta_DEP_4_4 * math.sin(8*pi*t/24.) + second_bound*beta_DEP_4_8 * math.cos(8*pi*t/24.)
+	local function sarr_1(t)
+		return first_bound*beta_ARR_1_1 * sin(2*pi*t/24) + first_bound*beta_ARR_1_5 * cos(2*pi*t/24)+first_bound*beta_ARR_1_2 * sin(4*pi*t/24) + first_bound*beta_ARR_1_6 * cos(4*pi*t/24)+first_bound*beta_ARR_1_3 * sin(6*pi*t/24) + first_bound*beta_ARR_1_7 * cos(6*pi*t/24)+first_bound*beta_ARR_1_4 * sin(8*pi*t/24) + first_bound*beta_ARR_1_8 * cos(8*pi*t/24)
+	end
+
+	local function sdep_1(t)
+		return second_bound*beta_DEP_1_1 * sin(2*pi*t/24) + second_bound*beta_DEP_1_5 * cos(2*pi*t/24)+second_bound*beta_DEP_1_2 * sin(4*pi*t/24) + second_bound*beta_DEP_1_6 * cos(4*pi*t/24)+second_bound*beta_DEP_1_3 * sin(6*pi*t/24) + second_bound*beta_DEP_1_7 * cos(6*pi*t/24)+second_bound*beta_DEP_1_4 * sin(8*pi*t/24) + second_bound*beta_DEP_1_8 * cos(8*pi*t/24)
+	end
+
+	local function sarr_2(t)
+		return first_bound*beta_ARR_2_1 * sin(2*pi*t/24) + first_bound*beta_ARR_2_5 * cos(2*pi*t/24)+first_bound*beta_ARR_2_2 * sin(4*pi*t/24) + first_bound*beta_ARR_2_6 * cos(4*pi*t/24)+first_bound*beta_ARR_2_3 * sin(6*pi*t/24) + first_bound*beta_ARR_2_7 * cos(6*pi*t/24)+first_bound*beta_ARR_2_4 * sin(8*pi*t/24) + first_bound*beta_ARR_2_8 * cos(8*pi*t/24)
+	end
+
+	local function sdep_2(t)
+		return second_bound*beta_DEP_2_1 * sin(2*pi*t/24) + second_bound*beta_DEP_2_5 * cos(2*pi*t/24)+second_bound*beta_DEP_2_2 * sin(4*pi*t/24) + second_bound*beta_DEP_2_6 * cos(4*pi*t/24)+second_bound*beta_DEP_2_3 * sin(6*pi*t/24) + second_bound*beta_DEP_2_7 * cos(6*pi*t/24)+second_bound*beta_DEP_2_4 * sin(8*pi*t/24) + second_bound*beta_DEP_2_8 * cos(8*pi*t/24)
+	end
+
+	local function sarr_3(t)
+		return first_bound*beta_ARR_3_1 * sin(2*pi*t/24) + first_bound*beta_ARR_3_5 * cos(2*pi*t/24)+first_bound*beta_ARR_3_2 * sin(4*pi*t/24) + first_bound*beta_ARR_3_6 * cos(4*pi*t/24)+first_bound*beta_ARR_3_3 * sin(6*pi*t/24) + first_bound*beta_ARR_3_7 * cos(6*pi*t/24)+first_bound*beta_ARR_3_4 * sin(8*pi*t/24) + first_bound*beta_ARR_3_8 * cos(8*pi*t/24)
+	end
+
+	local function sdep_3(t)
+		return second_bound*beta_DEP_3_1 * sin(2*pi*t/24) + second_bound*beta_DEP_3_5 * cos(2*pi*t/24)+second_bound*beta_DEP_3_2 * sin(4*pi*t/24) + second_bound*beta_DEP_3_6 * cos(4*pi*t/24)+second_bound*beta_DEP_3_3 * sin(6*pi*t/24) + second_bound*beta_DEP_3_7 * cos(6*pi*t/24)+second_bound*beta_DEP_3_4 * sin(8*pi*t/24) + second_bound*beta_DEP_3_8 * cos(8*pi*t/24)
+	end
+
+	local function sarr_4(t)
+		return first_bound*beta_ARR_4_1 * sin(2*pi*t/24) + first_bound*beta_ARR_4_5 * cos(2*pi*t/24)+first_bound*beta_ARR_4_2 * sin(4*pi*t/24) + first_bound*beta_ARR_4_6 * cos(4*pi*t/24)+first_bound*beta_ARR_4_3 * sin(6*pi*t/24) + first_bound*beta_ARR_4_7 * cos(6*pi*t/24)+first_bound*beta_ARR_4_4 * sin(8*pi*t/24) + first_bound*beta_ARR_4_8 * cos(8*pi*t/24)
+	end
+
+	local function sdep_4(t)
+		return second_bound*beta_DEP_4_1 * sin(2*pi*t/24) + second_bound*beta_DEP_4_5 * cos(2*pi*t/24)+second_bound*beta_DEP_4_2 * sin(4*pi*t/24) + second_bound*beta_DEP_4_6 * cos(4*pi*t/24)+second_bound*beta_DEP_4_3 * sin(6*pi*t/24) + second_bound*beta_DEP_4_7 * cos(6*pi*t/24)+second_bound*beta_DEP_4_4 * sin(8*pi*t/24) + second_bound*beta_DEP_4_8 * cos(8*pi*t/24)
+	end
 
 	for i =1,48 do
 		local arr = arrmidpoint[i]
@@ -105,7 +121,7 @@ local function computeUtilities(params,dbparams)
 		local dur = first_bound*(high_tod-i+1)+second_bound*(i-low_tod+1)
 		dur = 0.25 + (dur-1)/2
 		
-		utility[i] = sarr_1(arr) + sdep_1(dep) + work_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + edu_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + shop_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + other_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + beta_TT * TT(i) + (1-missing_income) * beta_C_1 * cost(i)/(0.5+income_mid) + missing_income * beta_C_2 *cost(i)
+		utility[i] = sarr_1(arr) + sdep_1(dep) + work_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + edu_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + shop_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + other_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + beta_TT * dbparams:TT(i) + (1-missing_income) * beta_C_1 * dbparams:cost(i)/(0.5+income_mid) + missing_income * beta_C_2 * dbparams:cost(i)
 
 	end
 
@@ -129,7 +145,7 @@ end
 function choose_itd(params,dbparams)
 	computeUtilities(params,dbparams) 
 	computeAvailabilities(params,dbparams)
-	local probability = calculate_probability("mnl", choice, utility, availability, scale)
+	local probability = calculate_probability("mnl", choiceset, utility, availability, scale)
 	return make_final_choice(probability)
 end
 

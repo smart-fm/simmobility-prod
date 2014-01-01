@@ -52,23 +52,32 @@ PredaySystem::~PredaySystem()
 	mongoDao.clear();
 }
 
-bool sim_mob::medium::PredaySystem::predictUsualWorkLocation(PersonParams& personParams, bool firstOfMultiple) throw() {
+bool sim_mob::medium::PredaySystem::predictUsualWorkLocation(PersonParams& personParams, bool firstOfMultiple) {
     UsualWorkParams usualWorkParams;
 	usualWorkParams.setFirstOfMultiple((int) firstOfMultiple);
 	usualWorkParams.setSubsequentOfMultiple((int) !firstOfMultiple);
-	BSONObj queryObj = BSON("origin" << personParams.getHomeLocation() << "destin" << personParams.getFixedWorkLocation());
-	BSONObj resultObjAM, resultObjPM, resultObjZone;
-	mongoDao["AMCosts"]->getOne(queryObj, resultObjAM);
-	mongoDao["PMCosts"]->getOne(queryObj, resultObjPM);
-	usualWorkParams.setWalkDistanceAm(resultObjAM.getField("distance").Double());
-	usualWorkParams.setWalkDistanceAm(resultObjPM.getField("distance").Double());
-	queryObj = BSON("zone_code" << personParams.getFixedWorkLocation());
+
+	BSONObj queryObj = BSON("zone_code" << personParams.getFixedWorkLocation());
+	BSONObj resultObjZone;
 	mongoDao["Zone"]->getOne(queryObj, resultObjZone);
 	usualWorkParams.setZoneEmployment(resultObjZone.getField("employment").Double());
+
+	if(personParams.getHomeLocation() != personParams.getFixedWorkLocation()) {
+		queryObj = BSON("origin" << personParams.getHomeLocation() << "destin" << personParams.getFixedWorkLocation());
+		BSONObj resultObjAM, resultObjPM;
+		mongoDao["AMCosts"]->getOne(queryObj, resultObjAM);
+		mongoDao["PMCosts"]->getOne(queryObj, resultObjPM);
+		usualWorkParams.setWalkDistanceAm(resultObjAM.getField("distance").Double());
+		usualWorkParams.setWalkDistancePm(resultObjPM.getField("distance").Double());
+	}
+	else {
+		usualWorkParams.setWalkDistanceAm(0);
+		usualWorkParams.setWalkDistancePm(0);
+	}
 	return PredayLuaProvider::getPredayModel().predictUsualWorkLocation(personParams, usualWorkParams);
 }
 
-void PredaySystem::predictTourMode(Tour& tour) throw() {
+void PredaySystem::predictTourMode(Tour& tour) {
 	TourModeParams tmParams;
 	tmParams.setStopType(tour.getTourType());
 	mongo::BSONObj znOrgObj, znDesObj;
@@ -123,10 +132,10 @@ void PredaySystem::predictTourMode(Tour& tour) throw() {
 			tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
 			tmParams.setShare2Available(1);
 			tmParams.setShare3Available(1);
-			tmParams.setPublicBusAvailable(1);
-			tmParams.setMrtAvailable(1);
-			tmParams.setPrivateBusAvailable(1);
-			tmParams.setWalkAvailable(1);
+			tmParams.setPublicBusAvailable(amObj.getField("pub_ivt").Double() > 0 && pmObj.getField("pub_ivt").Double() > 0);
+			tmParams.setMrtAvailable(amObj.getField("pub_ivt").Double() > 0 && pmObj.getField("pub_ivt").Double() > 0);
+			tmParams.setPrivateBusAvailable(amObj.getField("pub_ivt").Double() > 0 && pmObj.getField("pub_ivt").Double() > 0);
+			tmParams.setWalkAvailable(amObj.getField("pub_ivt").Double() <= 3 && pmObj.getField("pub_ivt").Double() <= 3);
 			tmParams.setTaxiAvailable(1);
 			tmParams.setMotorAvailable(1);
 			break;
@@ -156,7 +165,7 @@ void PredaySystem::predictTourMode(Tour& tour) throw() {
 	tour.setTourMode(PredayLuaProvider::getPredayModel().predictTourMode(personParams, tmParams));
 }
 
-void PredaySystem::predictTourModeDestination(Tour& tour) throw() {
+void PredaySystem::predictTourModeDestination(Tour& tour) {
 	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, tour.getTourType());
 	int modeDest = PredayLuaProvider::getPredayModel().predictTourModeDestination(personParams, tmdParams);
 	tour.setTourMode(tmdParams.getMode(modeDest));
@@ -164,7 +173,7 @@ void PredaySystem::predictTourModeDestination(Tour& tour) throw() {
 	tour.setPrimaryActivityLocation(zoneMap.at(zone_id)->getZoneCode());
 }
 
-TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) throw() {
+TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 	int timeWndw;
 	if(!tour.isSubTour()) {
 		int origin = personParams.getHomeLocation();
@@ -175,7 +184,7 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) throw() {
 	return TimeWindowAvailability::timeWindowsLookup[timeWndw];
 }
 
-void PredaySystem::generateIntermediateStops(Tour& tour) throw() {
+void PredaySystem::generateIntermediateStops(Tour& tour) {
 	if(tour.stops.size() != 1) {
 		stringstream ss;
 		ss << "generateIntermediateStops()|tour object contains " << tour.stops.size() << " stops. 1 stop (primary activity) was expected.";
@@ -186,7 +195,7 @@ void PredaySystem::generateIntermediateStops(Tour& tour) throw() {
 
 	if ((dayPattern.at("WorkI") + dayPattern.at("EduI") + dayPattern.at("ShopI") + dayPattern.at("OthersI")) > 0 ) {
 		//if any stop type was predicted in the day pattern
-		StopGenerationParams isgParams(tour, primaryStop);
+		StopGenerationParams isgParams(tour, primaryStop, dayPattern);
 		int origin = personParams.getHomeLocation();
 		int destination = primaryStop->getStopLocation();
 		isgParams.setFirstTour(tours.front() == &tour);
@@ -230,7 +239,7 @@ void PredaySystem::generateIntermediateStops(Tour& tour) throw() {
 				Stop* generatedStop = new Stop(stopType, tour, false /*not primary*/, true /*in first half tour*/);
 				tour.addStop(generatedStop);
 				Print() << "predictStopModeDestination()" << std::endl;
-				predictStopModeDestination(generatedStop);
+				predictStopModeDestination(generatedStop, nextStop->getStopLocation());
 				calculateDepartureTime(generatedStop, nextStop);
 				if(generatedStop->getDepartureTime() <= 3.25)
 				{
@@ -278,7 +287,7 @@ void PredaySystem::generateIntermediateStops(Tour& tour) throw() {
 				Stop* generatedStop = new Stop(stopType, tour, false /*not primary*/, false  /*not in first half tour*/);
 				tour.addStop(generatedStop);
 				Print() << "predictStopModeDestination()" << std::endl;
-				predictStopModeDestination(generatedStop);
+				predictStopModeDestination(generatedStop, prevStop->getStopLocation());
 				calculateArrivalTime(generatedStop, prevStop);
 				if(generatedStop->getDepartureTime() >=  26.75)
 				{
@@ -297,10 +306,16 @@ void PredaySystem::generateIntermediateStops(Tour& tour) throw() {
 	}
 }
 
-void PredaySystem::predictStopModeDestination(Stop* stop) throw()
-{}
+void PredaySystem::predictStopModeDestination(Stop* stop, int origin)
+{
+	StopModeDestinationParams imdParams(zoneMap, amCostMap, pmCostMap, personParams, stop->getStopType(), origin, stop->getParentTour().getTourMode());
+	int modeDest = PredayLuaProvider::getPredayModel().predictStopModeDestination(personParams, imdParams);
+	stop->setStopMode(imdParams.getMode(modeDest));
+	int zone_id = imdParams.getDestination(modeDest);
+	stop->setStopLocation(zoneMap.at(zone_id)->getZoneCode());
+}
 
-void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) throw() {
+void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 	StopTimeOfDayParams stodParams(stop->getStopTypeID(), isBeforePrimary);
 	double origin = stop->getStopLocation();
 	double destination = personParams.getHomeLocation();
@@ -482,7 +497,7 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) throw(
 	}
 }
 
-void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* prevStop) throw() { // this must set the arrival time for currStop
+void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* prevStop) { // this must set the arrival time for currStop
 	/*
 	 * There are 48 half-hour time windows in a day from 3.25 to 26.75.
 	 * Given a time window x, its choice index can be determined by ((x - 3.25) / 0.5) + 1
@@ -549,7 +564,7 @@ void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* prevStop) throw()
 	currStop.setArrivalTime(currStopArrTime);*/
 }
 
-void PredaySystem::calculateDepartureTime(Stop* currStop,  Stop* nextStop) throw() { // this must set the departure time for the currStop
+void PredaySystem::calculateDepartureTime(Stop* currStop,  Stop* nextStop) { // this must set the departure time for the currStop
 	/*
 	 * There are 48 half-hour time windows in a day from 3.25 to 26.75.
 	 * Given a time window x, its choice index can be determined by ((x - 3.25) / 0.5) + 1
@@ -616,7 +631,7 @@ void PredaySystem::calculateDepartureTime(Stop* currStop,  Stop* nextStop) throw
 	currStop.setDepartureTime(currStopDepTime);*/
 }
 
-void PredaySystem::calculateTourStartTime(Tour& tour) throw() {
+void PredaySystem::calculateTourStartTime(Tour& tour) {
 	/*
 	 * There are 48 half-hour time windows in a day from 3.25 to 26.75.
 	 * Given a time window x, its choice index can be determined by ((x - 3.25) / 0.5) + 1
@@ -684,7 +699,7 @@ void PredaySystem::calculateTourStartTime(Tour& tour) throw() {
 	tour.setStartTime(tourStartTime);*/
 }
 
-void PredaySystem::calculateTourEndTime(Tour& tour) throw() {
+void PredaySystem::calculateTourEndTime(Tour& tour) {
 	/*
 	 * There are 48 half-hour time windows in a day from 3.25 to 26.75.
 	 * Given a time window x, its choice index can be determined by ((x - 3.25) / 0.5) + 1
@@ -752,7 +767,7 @@ void PredaySystem::calculateTourEndTime(Tour& tour) throw() {
 	tour.setEndTime(tourEndTime);*/
 }
 
-void PredaySystem::constructTours() throw() {
+void PredaySystem::constructTours() {
 	if(numTours.size() != 4) {
 		// Probably predictNumTours() was not called prior to this function
 		throw std::runtime_error("Tours cannot be constructed before predicting number of tours for each tour type");
@@ -801,13 +816,8 @@ void PredaySystem::constructTours() throw() {
 	}
 }
 
-void PredaySystem::planDay() throw() {
+void PredaySystem::planDay() {
 	//Predict day pattern
-	personParams.setWorkLogSum(0.0);
-	personParams.setEduLogSum(0.0);
-	personParams.setShopLogSum(0.0);
-	personParams.setOtherLogSum(0.0);
-
 	Print() << "predictDayPattern(" << personParams.getPersonId() << "): " ;
 	PredayLuaProvider::getPredayModel().predictDayPattern(personParams, dayPattern);
 

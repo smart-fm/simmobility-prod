@@ -78,6 +78,10 @@ public:
 		return incomeId;
 	}
 
+	int getMissingIncome() const {
+		return (incomeId >= 13);
+	}
+
 	void setIncomeId(int income_id) {
 		this->incomeId = income_id;
 	}

@@ -92,6 +92,7 @@ public:
 	Stop(StopType stopType, Tour& parentTour, bool primaryActivity, bool firstHalfTour)
 	: stopType(stopType), parentTour(parentTour), primaryActivity(primaryActivity), arrivalTime(0), departureTime(0), stopMode(0), stopLocation(0), inFirstHalfTour(firstHalfTour)
 	{}
+
 	double getArrivalTime() const {
 		return arrivalTime;
 	}

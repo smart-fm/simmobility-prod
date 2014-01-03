@@ -137,6 +137,10 @@ void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType) {
 		throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
 	}
 	}
+
+	for(ZoneMap::iterator i=zoneMap.begin(); i!=zoneMap.end(); i++) {
+		zoneIdLookup[i->second->getZoneCode()] = i->first;
+	}
 }
 
 void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
@@ -171,8 +175,9 @@ void sim_mob::medium::PredayManager::distributeAndProcessPersons(uint16_t numWor
 }
 
 void sim_mob::medium::PredayManager::processPersons(PersonList& persons) {
+
 	for(PersonList::iterator i = persons.begin(); i!=persons.end(); i++) {
-		PredaySystem predaySystem(**i, zoneMap, amCostMap, pmCostMap, opCostMap);
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap);
 		predaySystem.planDay();
 	}
 }

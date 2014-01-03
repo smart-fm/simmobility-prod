@@ -32,8 +32,8 @@ using namespace sim_mob;
 using namespace sim_mob::medium;
 using namespace mongo;
 
-PredaySystem::PredaySystem(PersonParams& personParams, const ZoneMap& zoneMap, const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap)
-: personParams(personParams), zoneMap(zoneMap), amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap)
+PredaySystem::PredaySystem(PersonParams& personParams, const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup, const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap)
+: personParams(personParams), zoneMap(zoneMap), zoneIdLookup(zoneIdLookup), amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap)
 {
 	MongoCollectionsMap mongoColl = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo");
 	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
@@ -52,23 +52,16 @@ PredaySystem::~PredaySystem()
 	mongoDao.clear();
 }
 
-bool sim_mob::medium::PredaySystem::predictUsualWorkLocation(PersonParams& personParams, bool firstOfMultiple) {
+bool sim_mob::medium::PredaySystem::predictUsualWorkLocation(bool firstOfMultiple) {
     UsualWorkParams usualWorkParams;
 	usualWorkParams.setFirstOfMultiple((int) firstOfMultiple);
 	usualWorkParams.setSubsequentOfMultiple((int) !firstOfMultiple);
 
-	BSONObj queryObj = BSON("zone_code" << personParams.getFixedWorkLocation());
-	BSONObj resultObjZone;
-	mongoDao["Zone"]->getOne(queryObj, resultObjZone);
-	usualWorkParams.setZoneEmployment(resultObjZone.getField("employment").Double());
+	usualWorkParams.setZoneEmployment(zoneMap.at(zoneIdLookup.at(personParams.getFixedWorkLocation()))->getEmployment());
 
 	if(personParams.getHomeLocation() != personParams.getFixedWorkLocation()) {
-		queryObj = BSON("origin" << personParams.getHomeLocation() << "destin" << personParams.getFixedWorkLocation());
-		BSONObj resultObjAM, resultObjPM;
-		mongoDao["AMCosts"]->getOne(queryObj, resultObjAM);
-		mongoDao["PMCosts"]->getOne(queryObj, resultObjPM);
-		usualWorkParams.setWalkDistanceAm(resultObjAM.getField("distance").Double());
-		usualWorkParams.setWalkDistancePm(resultObjPM.getField("distance").Double());
+		usualWorkParams.setWalkDistanceAm(amCostMap.at(personParams.getHomeLocation()).at(personParams.getFixedWorkLocation())->getDistance());
+		usualWorkParams.setWalkDistancePm(pmCostMap.at(personParams.getHomeLocation()).at(personParams.getFixedWorkLocation())->getDistance());
 	}
 	else {
 		usualWorkParams.setWalkDistanceAm(0);
@@ -80,51 +73,45 @@ bool sim_mob::medium::PredaySystem::predictUsualWorkLocation(PersonParams& perso
 void PredaySystem::predictTourMode(Tour& tour) {
 	TourModeParams tmParams;
 	tmParams.setStopType(tour.getTourType());
-	mongo::BSONObj znOrgObj, znDesObj;
-	mongo::BSONObj znOrgQuery = BSON("zone_code" << personParams.getHomeLocation());
-	mongo::BSONObj znDesQuery = BSON("zone_code" << tour.getPrimaryActivityLocation());
-	Print() << "zone_code" << tour.getPrimaryActivityLocation() << std::endl;
-	mongoDao["Zone"]->getOne(znOrgQuery, znOrgObj);
-	mongoDao["Zone"]->getOne(znDesQuery, znDesObj);
-	tmParams.setCostCarParking(znDesObj.getField("parking_rate").Double());
-	tmParams.setCentralZone(znDesObj.getField("central_dummy").Double());
-	tmParams.setResidentSize(znOrgObj.getField("resident_workers").Double());
-	tmParams.setWorkOp(znDesObj.getField("employment").Double());
-	tmParams.setEducationOp(znDesObj.getField("total_enrollment").Double());
-	tmParams.setOriginArea(znOrgObj.getField("area").Double());
-	tmParams.setDestinationArea(znDesObj.getField("area").Double());
+
+	ZoneParams* znOrgObj = zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()));
+	ZoneParams* znDesObj = zoneMap.at(tour.getPrimaryActivityLocationId());
+	tmParams.setCostCarParking(znDesObj->getParkingRate());
+	tmParams.setCentralZone(znDesObj->getCentralDummy());
+	tmParams.setResidentSize(znOrgObj->getResidentWorkers());
+	tmParams.setWorkOp(znDesObj->getEmployment());
+	tmParams.setEducationOp(znDesObj->getTotalEnrollment());
+	tmParams.setOriginArea(znOrgObj->getArea());
+	tmParams.setDestinationArea(znDesObj->getArea());
 	if(personParams.getHomeLocation() != tour.getPrimaryActivityLocation()) {
-		mongo::BSONObj amObj, pmObj;
-		mongo::BSONObj amQuery = BSON("origin" << personParams.getHomeLocation() << "destin" << tour.getPrimaryActivityLocation());
-		mongo::BSONObj pmQuery = BSON("origin" << tour.getPrimaryActivityLocation()  << "destin" << personParams.getHomeLocation());
-		mongoDao["AMCosts"]->getOne(amQuery, amObj);
-		mongoDao["PMCosts"]->getOne(pmQuery, pmObj);
-		tmParams.setCostPublicFirst(amObj.getField("pub_cost").Double());
-		tmParams.setCostPublicSecond(pmObj.getField("pub_cost").Double());
-		tmParams.setCostCarErpFirst(amObj.getField("car_cost_erp").Double());
-		tmParams.setCostCarErpSecond(pmObj.getField("car_cost_erp").Double());
-		tmParams.setCostCarOpFirst(amObj.getField("distance").Double() * 0.147);
-		tmParams.setCostCarOpSecond(pmObj.getField("distance").Double() * 0.147);
-		tmParams.setWalkDistance1(amObj.getField("distance").Double());
-		tmParams.setWalkDistance2(pmObj.getField("distance").Double());
-		tmParams.setTtPublicIvtFirst(amObj.getField("pub_ivt").Double());
-		tmParams.setTtPublicIvtSecond(pmObj.getField("pub_ivt").Double());
-		tmParams.setTtPublicWaitingFirst(amObj.getField("pub_wtt").Double());
-		tmParams.setTtPublicWaitingSecond(pmObj.getField("pub_wtt").Double());
-		tmParams.setTtPublicWalkFirst(amObj.getField("pub_walkt").Double());
-		tmParams.setTtPublicWalkSecond(pmObj.getField("pub_walkt").Double());
-		tmParams.setTtCarIvtFirst(amObj.getField("car_ivt").Double());
-		tmParams.setTtCarIvtSecond(pmObj.getField("car_ivt").Double());
-		tmParams.setAvgTransfer((amObj.getField("avg_transfer").Double() + pmObj.getField("avg_transfer").Double())/2);
+		CostParams* amObj = amCostMap.at(personParams.getHomeLocation()).at(tour.getPrimaryActivityLocation());
+		CostParams* pmObj = pmCostMap.at(tour.getPrimaryActivityLocation()).at(personParams.getHomeLocation());
+		tmParams.setCostPublicFirst(amObj->getPubCost());
+		tmParams.setCostPublicSecond(pmObj->getPubCost());
+		tmParams.setCostCarErpFirst(amObj->getCarCostErp());
+		tmParams.setCostCarErpSecond(pmObj->getCarCostErp());
+		tmParams.setCostCarOpFirst(amObj->getDistance() * 0.147);
+		tmParams.setCostCarOpSecond(pmObj->getDistance() * 0.147);
+		tmParams.setWalkDistance1(amObj->getDistance());
+		tmParams.setWalkDistance2(pmObj->getDistance());
+		tmParams.setTtPublicIvtFirst(amObj->getPubIvt());
+		tmParams.setTtPublicIvtSecond(pmObj->getPubIvt());
+		tmParams.setTtPublicWaitingFirst(amObj->getPubWtt());
+		tmParams.setTtPublicWaitingSecond(pmObj->getPubWtt());
+		tmParams.setTtPublicWalkFirst(amObj->getPubWalkt());
+		tmParams.setTtPublicWalkSecond(pmObj->getPubWalkt());
+		tmParams.setTtCarIvtFirst(amObj->getCarIvt());
+		tmParams.setTtCarIvtSecond(pmObj->getCarIvt());
+		tmParams.setAvgTransfer((amObj->getAvgTransfer() + pmObj->getAvgTransfer())/2);
 		switch(tmParams.getStopType()){
 		case WORK:
 			tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
 			tmParams.setShare2Available(1);
 			tmParams.setShare3Available(1);
-			tmParams.setPublicBusAvailable(amObj.getField("pub_ivt").Double() > 0 && pmObj.getField("pub_ivt").Double() > 0);
-			tmParams.setMrtAvailable(amObj.getField("pub_ivt").Double() > 0 && pmObj.getField("pub_ivt").Double() > 0);
-			tmParams.setPrivateBusAvailable(amObj.getField("pub_ivt").Double() > 0 && pmObj.getField("pub_ivt").Double() > 0);
-			tmParams.setWalkAvailable(amObj.getField("pub_ivt").Double() <= 3 && pmObj.getField("pub_ivt").Double() <= 3);
+			tmParams.setPublicBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
+			tmParams.setMrtAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
+			tmParams.setPrivateBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
+			tmParams.setWalkAvailable(amObj->getPubIvt() <= 3 && pmObj->getPubIvt() <= 3);
 			tmParams.setTaxiAvailable(1);
 			tmParams.setMotorAvailable(1);
 			break;
@@ -132,10 +119,10 @@ void PredaySystem::predictTourMode(Tour& tour) {
 			tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
 			tmParams.setShare2Available(1);
 			tmParams.setShare3Available(1);
-			tmParams.setPublicBusAvailable(amObj.getField("pub_ivt").Double() > 0 && pmObj.getField("pub_ivt").Double() > 0);
-			tmParams.setMrtAvailable(amObj.getField("pub_ivt").Double() > 0 && pmObj.getField("pub_ivt").Double() > 0);
-			tmParams.setPrivateBusAvailable(amObj.getField("pub_ivt").Double() > 0 && pmObj.getField("pub_ivt").Double() > 0);
-			tmParams.setWalkAvailable(amObj.getField("pub_ivt").Double() <= 3 && pmObj.getField("pub_ivt").Double() <= 3);
+			tmParams.setPublicBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
+			tmParams.setMrtAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
+			tmParams.setPrivateBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
+			tmParams.setWalkAvailable(amObj->getPubIvt() <= 3 && pmObj->getPubIvt() <= 3);
 			tmParams.setTaxiAvailable(1);
 			tmParams.setMotorAvailable(1);
 			break;
@@ -170,6 +157,7 @@ void PredaySystem::predictTourModeDestination(Tour& tour) {
 	int modeDest = PredayLuaProvider::getPredayModel().predictTourModeDestination(personParams, tmdParams);
 	tour.setTourMode(tmdParams.getMode(modeDest));
 	int zone_id = tmdParams.getDestination(modeDest);
+	tour.setPrimaryActivityLocationId(zone_id);
 	tour.setPrimaryActivityLocation(zoneMap.at(zone_id)->getZoneCode());
 }
 
@@ -185,9 +173,9 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 }
 
 void PredaySystem::generateIntermediateStops(Tour& tour) {
-	if(tour.stops.size() != 1) {
+	if(tour.stops.size() < 1) {
 		stringstream ss;
-		ss << "generateIntermediateStops()|tour object contains " << tour.stops.size() << " stops. 1 stop (primary activity) was expected.";
+		ss << "generateIntermediateStops()|tour object contains no stops. 1 stop (primary activity) was expected.";
 		throw runtime_error(ss.str());
 	}
 	Stop* primaryStop = tour.stops.front(); // The only stop at this point is the primary activity stop
@@ -205,11 +193,8 @@ void PredaySystem::generateIntermediateStops(Tour& tour) {
 
 		//First half tour
 		if(origin != destination) {
-			Print() << "origin" << origin << "destin" << destination << endl;
-			mongo::BSONObj bsonObj_AMCosts = BSON("origin" << origin << "destin" << destination); // origin is home and destination is primary activity location
-			mongo::BSONObj amDistanceObj;
-			mongoDao["AMCosts"]->getOne(bsonObj_AMCosts, amDistanceObj);
-			isgParams.setDistance(amDistanceObj.getField("distance").Double());
+			CostParams* amDistanceObj = amCostMap.at(origin).at(destination);
+			isgParams.setDistance(amDistanceObj->getDistance());
 		}
 		else {
 			isgParams.setDistance(0.0);
@@ -258,10 +243,8 @@ void PredaySystem::generateIntermediateStops(Tour& tour) {
 
 		// Second half tour
 		if(origin != destination) {
-			mongo::BSONObj bsonObj_PMCosts = BSON("origin" << destination << "destin" << origin); // origin is home and destination is primary activity location)
-			mongo::BSONObj pmDistanceObj;
-			mongoDao["PMCosts"]->getOne(bsonObj_PMCosts, pmDistanceObj);
-			isgParams.setDistance(pmDistanceObj.getField("distance").Double());
+			CostParams* pmDistanceObj = pmCostMap.at(origin).at(destination);
+			isgParams.setDistance(pmDistanceObj->getDistance());
 		}
 		else {
 			isgParams.setDistance(0.0);
@@ -312,6 +295,7 @@ void PredaySystem::predictStopModeDestination(Stop* stop, int origin)
 	int modeDest = PredayLuaProvider::getPredayModel().predictStopModeDestination(personParams, imdParams);
 	stop->setStopMode(imdParams.getMode(modeDest));
 	int zone_id = imdParams.getDestination(modeDest);
+	stop->setStopLocationId(zone_id);
 	stop->setStopLocation(zoneMap.at(zone_id)->getZoneCode());
 }
 
@@ -327,21 +311,30 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 		mongoDao["tcost_bus"]->getOne(bsonObjTT, tCostBusDoc);
 		BSONObj tCostCarDoc;
 		mongoDao["tcost_car"]->getOne(bsonObjTT, tCostCarDoc);
-		BSONObj amDistanceObj, pmDistanceObj;
-		mongoDao["AMCosts"]->getOne(bsonObjTC, amDistanceObj);
-		mongoDao["PMCosts"]->getOne(bsonObjTC, pmDistanceObj);
-		try {
-			for (uint32_t i = 1; i <= 48; i++) {
+
+		CostParams* amDistanceObj = amCostMap.at(destination).at(origin);
+		CostParams* pmDistanceObj = pmCostMap.at(destination).at(origin);
+
+		for (uint32_t i = 1; i <= 48; i++) {
+			try {
 				switch (stop->getStopMode()) {
 				case 1: // Fall through
 				case 2:
 				case 3:
 				{
+					std::stringstream fieldName;
 					if(stodParams.getFirstBound()) {
-						stodParams.travelTimes.push_back(tCostBusDoc.getField("TT_bus_arrival_" + i).Double());
+						fieldName << "TT_bus_arrival_" << i;
 					}
 					else {
-						stodParams.travelTimes.push_back(tCostBusDoc.getField("TT_bus_departure_" + i).Double());
+						fieldName << "TT_bus_departure_" << i;
+					}
+					try {
+						stodParams.travelTimes.push_back(tCostBusDoc.getField(fieldName.str()).Double());
+					}
+					catch (exception& e) {
+						//not a double... could be 999
+						stodParams.travelTimes.push_back(tCostBusDoc.getField(fieldName.str()).Int());
 					}
 					break;
 				}
@@ -351,29 +344,35 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 				case 7:
 				case 9:
 				{
+					std::stringstream fieldName;
 					if(stodParams.getFirstBound()) {
-						stodParams.travelTimes.push_back(tCostCarDoc.getField("TT_car_arrival_" + i).Double());
+						fieldName << "TT_car_arrival_" << i;
 					}
 					else {
-						stodParams.travelTimes.push_back(tCostCarDoc.getField("TT_car_departure_" + i).Double());
+						fieldName << "TT_car_departure_" << i;
+					}
+					try {
+						stodParams.travelTimes.push_back(tCostCarDoc.getField(fieldName.str()).Double());
+					}
+					catch (exception& e) {
+						//not a double... could be an integer
+						stodParams.travelTimes.push_back(tCostCarDoc.getField(fieldName.str()).Int());
 					}
 					break;
 				}
 				case 8: {
-					double distanceMin = amDistanceObj.getField("distance").Double() - pmDistanceObj.getField("distance").Double();
+					double distanceMin = amDistanceObj->getDistance() - pmDistanceObj->getDistance();
 					stodParams.travelTimes.push_back(distanceMin/5);
 					break;
 				}
 				}
 			}
-		}
-		catch (exception& e) {
-			// something unexpected happened while getting data
-			// retrieved values could've been NULL
-			// therefore, setting the travel times to a high value - 999
-			Print() << "Error occurred in predictStopTimeOfDay(): " << e.what() << std::endl;
-			stodParams.travelTimes.push_back(999);
-			stodParams.travelTimes.push_back(999);
+			catch (exception& e) {
+				// something unexpected happened while getting data
+				// retrieved values could've been NULL
+				// therefore, setting the travel times to a high value - 999
+				stodParams.travelTimes.push_back(999);
+			}
 		}
 	}
 	else {
@@ -398,85 +397,141 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 		stodParams.setTodHigh(26.75);
 	}
 
-	// calculate costs
-	BSONObj costObj = BSON("origin" << origin << "destin" << destination);
-	BSONObj amDoc, pmDoc, opDoc;
-	mongoDao["AMCosts"]->getOne(costObj, amDoc);
-	mongoDao["PMCosts"]->getOne(costObj, pmDoc);
-	mongoDao["OPCosts"]->getOne(costObj, opDoc);
+	ZoneParams* zoneDoc = zoneMap.at(zoneIdLookup.at(origin));
+	if(origin != destination) {
+		// calculate costs
+		CostParams* amDoc = amCostMap.at(origin).at(destination);
+		CostParams* pmDoc = pmCostMap.at(origin).at(destination);
+		CostParams* opDoc = opCostMap.at(origin).at(destination);
+		double duration, parkingRate, costCarParking, costCarERP, costCarOP, walkDistance;
+		for(int i=1; i<=48; i++) {
 
-	BSONObj zoneObj = BSON("zone_code" << origin);
-	BSONObj zoneDoc;
-	mongoDao["Zone"]->getOne(zoneObj, zoneDoc);
+			if(stodParams.getFirstBound()) {
+				duration = stodParams.getTodHigh() - i + 1;
+			}
+			else { //if(stodParams.getSecondBound())
+				duration = i - stodParams.getTodLow() + 1;
+			}
+			duration = 0.25+(duration-1)*0.5;
+			parkingRate = zoneDoc->getParkingRate();
+			costCarParking = (8*(duration>8)+duration*(duration<=8))*parkingRate;
 
-	double duration, parkingRate, costCarParking, costCarERP, costCarOP, walkDistance;
-	for(int i=1; i<=48; i++) {
-
-		if(stodParams.getFirstBound()) {
-			duration = stodParams.getTodHigh() - i + 1;
-		}
-		else { //if(stodParams.getSecondBound())
-			duration = i - stodParams.getTodLow() + 1;
-		}
-		duration = 0.25+(duration-1)*0.5;
-		parkingRate = zoneDoc.getField("parking_rate").Double();
-		costCarParking = (8*(duration>8)+duration*(duration<=8))*parkingRate;
-
-		if(i >= 10 && i <= 14) { // time window indexes 10 to 14 are AM Peak windows
-			costCarERP = amDoc.getField("car_cost_erp").Double();
-			costCarOP = amDoc.getField("distance").Double() * 0.147;
-			walkDistance = amDoc.getField("distance").Double();
-		}
-		else if (i >= 30 && i <= 34) { // time window indexes 30 to 34 are PM Peak indexes
-			costCarERP = pmDoc.getField("car_cost_erp").Double();
-			costCarOP = pmDoc.getField("distance").Double() * 0.147;
-			walkDistance = pmDoc.getField("distance").Double();
-		}
-		else { // other time window indexes are Off Peak indexes
-			costCarERP = opDoc.getField("car_cost_erp").Double();
-			costCarOP = opDoc.getField("distance").Double() * 0.147;
-			walkDistance = opDoc.getField("distance").Double();
-		}
-
-		switch (stop->getStopMode()) {
-		case 1: // Fall through
-		case 2:
-		case 3:
-		{
 			if(i >= 10 && i <= 14) { // time window indexes 10 to 14 are AM Peak windows
-				stodParams.travelCost.push_back(amDoc.getField("pub_cost").Double());
+				costCarERP = amDoc->getCarCostErp();
+				costCarOP = amDoc->getDistance() * 0.147;
+				walkDistance = amDoc->getDistance();
 			}
 			else if (i >= 30 && i <= 34) { // time window indexes 30 to 34 are PM Peak indexes
-				stodParams.travelCost.push_back(pmDoc.getField("pub_cost").Double());
+				costCarERP = pmDoc->getCarCostErp();
+				costCarOP = pmDoc->getDistance() * 0.147;
+				walkDistance = pmDoc->getDistance();
 			}
 			else { // other time window indexes are Off Peak indexes
-				stodParams.travelCost.push_back(opDoc.getField("pub_cost").Double());
+				costCarERP = opDoc->getCarCostErp();
+				costCarOP = opDoc->getDistance() * 0.147;
+				walkDistance = opDoc->getDistance();
 			}
-			break;
+
+			switch (stop->getStopMode()) {
+			case 1: // Fall through
+			case 2:
+			case 3:
+			{
+				if(i >= 10 && i <= 14) { // time window indexes 10 to 14 are AM Peak windows
+					stodParams.travelCost.push_back(amDoc->getPubCost());
+				}
+				else if (i >= 30 && i <= 34) { // time window indexes 30 to 34 are PM Peak indexes
+					stodParams.travelCost.push_back(pmDoc->getPubCost());
+				}
+				else { // other time window indexes are Off Peak indexes
+					stodParams.travelCost.push_back(opDoc->getPubCost());
+				}
+				break;
+			}
+			case 4: // Fall through
+			case 5:
+			case 6:
+			{
+				stodParams.travelCost.push_back((costCarParking+costCarOP+costCarERP)/(stop->getStopMode()-3.0));
+				break;
+			}
+			case 7:
+			{
+				stodParams.travelCost.push_back((0.5*costCarERP+0.5*costCarOP+0.65*costCarParking));
+				break;
+			}
+			case 9:
+			{
+				stodParams.travelCost.push_back(3.4+costCarERP
+						+3*personParams.getIsFemale()
+						+((walkDistance*(walkDistance>10)-10*(walkDistance>10))/0.35 + (walkDistance*(walkDistance<=10)+10*(walkDistance>10))/0.4)*0.22);
+				break;
+			}
+			case 8: {
+				stodParams.travelCost.push_back(0);
+				break;
+			}
+			}
 		}
-		case 4: // Fall through
-		case 5:
-		case 6:
-		{
-			stodParams.travelCost.push_back((costCarParking+costCarOP+costCarERP)/(stop->getStopMode()-3.0));
-			break;
-		}
-		case 7:
-		{
-			stodParams.travelCost.push_back((0.5*costCarERP+0.5*costCarOP+0.65*costCarParking));
-			break;
-		}
-		case 9:
-		{
-			stodParams.travelCost.push_back(3.4+costCarERP
-					+3*personParams.getIsFemale()
-					+((walkDistance*(walkDistance>10)-10*(walkDistance>10))/0.35 + (walkDistance*(walkDistance<=10)+10*(walkDistance>10))/0.4)*0.22);
-			break;
-		}
-		case 8: {
-			stodParams.travelCost.push_back(0);
-			break;
-		}
+	}
+	else { // if origin and destination are same
+		double duration, parkingRate, costCarParking, costCarERP, costCarOP, walkDistance;
+		for(int i=1; i<=48; i++) {
+
+			if(stodParams.getFirstBound()) {
+				duration = stodParams.getTodHigh() - i + 1;
+			}
+			else { //if(stodParams.getSecondBound())
+				duration = i - stodParams.getTodLow() + 1;
+			}
+			duration = 0.25+(duration-1)*0.5;
+			parkingRate = zoneDoc->getParkingRate();
+			costCarParking = (8*(duration>8)+duration*(duration<=8))*parkingRate;
+
+			costCarERP = 0;
+			costCarOP = 0;
+			walkDistance = 0;
+
+			switch (stop->getStopMode()) {
+			case 1: // Fall through
+			case 2:
+			case 3:
+			{
+				if(i >= 10 && i <= 14) { // time window indexes 10 to 14 are AM Peak windows
+					stodParams.travelCost.push_back(0);
+				}
+				else if (i >= 30 && i <= 34) { // time window indexes 30 to 34 are PM Peak indexes
+					stodParams.travelCost.push_back(0);
+				}
+				else { // other time window indexes are Off Peak indexes
+					stodParams.travelCost.push_back(0);
+				}
+				break;
+			}
+			case 4: // Fall through
+			case 5:
+			case 6:
+			{
+				stodParams.travelCost.push_back((costCarParking+costCarOP+costCarERP)/(stop->getStopMode()-3.0));
+				break;
+			}
+			case 7:
+			{
+				stodParams.travelCost.push_back((0.5*costCarERP+0.5*costCarOP+0.65*costCarParking));
+				break;
+			}
+			case 9:
+			{
+				stodParams.travelCost.push_back(3.4+costCarERP
+						+3*personParams.getIsFemale()
+						+((walkDistance*(walkDistance>10)-10*(walkDistance>10))/0.35 + (walkDistance*(walkDistance<=10)+10*(walkDistance>10))/0.4)*0.22);
+				break;
+			}
+			case 8: {
+				stodParams.travelCost.push_back(0);
+				break;
+			}
+			}
 		}
 	}
 
@@ -767,7 +822,7 @@ void PredaySystem::calculateTourEndTime(Tour& tour) {
 	tour.setEndTime(tourEndTime);*/
 }
 
-void PredaySystem::constructTours() {
+void PredaySystem::constructTours(PersonParams& personParams) {
 	if(numTours.size() != 4) {
 		// Probably predictNumTours() was not called prior to this function
 		throw std::runtime_error("Tours cannot be constructed before predicting number of tours for each tour type");
@@ -780,13 +835,14 @@ void PredaySystem::constructTours() {
 		if(!(personParams.isStudent() == 1) && (personParams.getFixedWorkLocation() != 0)) {
 			//if person not a student and has a fixed work location
 			Print() << "predictUsualWorkLocation()" << std::endl;
-			attendsUsualWorkLocation = predictUsualWorkLocation(personParams, firstOfMultiple); // Predict if this tour is to a usual work location
+			attendsUsualWorkLocation = predictUsualWorkLocation(firstOfMultiple); // Predict if this tour is to a usual work location
 			firstOfMultiple = false;
 		}
 		Tour* workTour = new Tour(WORK);
 		workTour->setUsualLocation(attendsUsualWorkLocation);
 		if(attendsUsualWorkLocation) {
 			workTour->setPrimaryActivityLocation(personParams.getFixedWorkLocation());
+			workTour->setPrimaryActivityLocationId(zoneIdLookup.at(personParams.getFixedWorkLocation()));
 		}
 		tours.push_back(workTour);
 	}
@@ -796,6 +852,7 @@ void PredaySystem::constructTours() {
 		Tour* eduTour = new Tour(EDUCATION);
 		eduTour->setUsualLocation(true); // Education tours are always to usual locations
 		eduTour->setPrimaryActivityLocation(personParams.getFixedSchoolLocation());
+		eduTour->setPrimaryActivityLocationId(zoneIdLookup.at(personParams.getFixedSchoolLocation()));
 		if(personParams.isStudent()) {
 			// if the person is a student, his education tours should be processed before other tour types.
 			tours.push_front(eduTour); // if the person is a student, his education tours should be processed before other tour types.
@@ -829,9 +886,10 @@ void PredaySystem::planDay() {
 	PredayLuaProvider::getPredayModel().predictNumTours(personParams, dayPattern, numTours);
 
 	//Construct tours
-	constructTours();
+	constructTours(personParams);
 
 	//Process each tour
+	Print() << "Tours: " << tours.size() << std::endl;
 	for(std::deque<Tour*>::iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++) {
 		Tour& tour = *(*tourIt);
 		if(tour.isUsualLocation()) {
@@ -851,6 +909,7 @@ void PredaySystem::planDay() {
 		Stop* primaryActivity = new Stop(tour.getTourType(), tour, true, true);
 		primaryActivity->setStopMode(tour.getTourMode());
 		primaryActivity->setStopLocation(tour.getPrimaryActivityLocation());
+		primaryActivity->setStopLocationId(tour.getPrimaryActivityLocationId());
 		primaryActivity->allotTime(timeWindow.getStartTime(), timeWindow.getEndTime());
 		tour.addStop(primaryActivity);
 		personParams.blockTime(timeWindow.getStartTime(), timeWindow.getEndTime());

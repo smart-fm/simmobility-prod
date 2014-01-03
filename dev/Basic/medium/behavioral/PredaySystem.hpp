@@ -41,7 +41,7 @@ private:
 	 * @param firstOfMultiple indicator whether this tour is the first of multiple work tours
 	 * @return true if the tour is to a usual work location. false otherwise.
 	 */
-	bool predictUsualWorkLocation(PersonParams& personParams, bool firstOfMultiple);
+	bool predictUsualWorkLocation(bool firstOfMultiple);
 
 	/**
 	 * Predicts the mode of travel for a tour.
@@ -98,18 +98,19 @@ private:
 	/**
 	 * constructs tour objects based on predicted number of tours. Puts the tour objects in tours deque.
 	 */
-	void constructTours();
+	void constructTours(PersonParams& personParams);
 
 	/**
-	 * The parameters for a person is obtained from the population and set in personParams.
+	 * Person specific parameters
 	 */
-    PersonParams personParams;
+	PersonParams& personParams;
 
     /**
      * Reference to map of zone_id -> ZoneParams
      * \note this map has 1092 elements
      */
     const ZoneMap& zoneMap;
+    const boost::unordered_map<int,int>& zoneIdLookup;
 
     /**
      * Reference to Costs [origin zone, destination zone] -> CostParams*
@@ -140,7 +141,7 @@ private:
     boost::unordered_map<std::string, db::MongoDao*> mongoDao;
 
 public:
-	PredaySystem(PersonParams& personParams, const ZoneMap& zoneMap, const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap);
+	PredaySystem(PersonParams& personParams, const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup, const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap);
 	virtual ~PredaySystem();
 
 	/**

@@ -52,21 +52,6 @@ public:
 	CostMongoDao(db::DB_Config& dbConfig, const std::string& database, const std::string& collection);
 	virtual ~CostMongoDao();
 
-    /**
-     * Gets multiple values from the source and put them on the given list.
-     * @param outList to put the retrieved values.
-     * @return true if some values were returned, false otherwise.
-     */
-    bool getMultiple(mongo::Query query, boost::unordered_map<const std::string, CostParams*>& outList) {
-    	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, query);
-    	while(cursor->more()) {
-    		CostParams* costParams = new CostParams();
-    		fromRow(cursor->next(), *costParams);
-    		outList[costParams->getOrgDest()] = costParams;
-    	}
-    	return true;
-    }
-
     bool getAll(boost::unordered_map<int, boost::unordered_map<int, CostParams*> >& outList) {
     	int i = 0;
     	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());

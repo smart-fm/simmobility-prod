@@ -23,14 +23,6 @@ TimeWindowAvailability::TimeWindowAvailability(double startTime, double endTime)
 	if(startTime > endTime) {
 		throw std::runtime_error("Invalid time window; start time cannot be greater than end time");
 	}
-	double fraction = startTime - std::floor(startTime);
-	if((fraction != 0.25 && fraction != 0.75) || startTime < 3.25 || startTime > 26.75) {
-		throw std::runtime_error("Invalid start time");
-	}
-	fraction = endTime - std::floor(endTime);
-	if((fraction != 0.25 && fraction != 0.75) || endTime < 3.25 || endTime > 26.75) {
-		throw std::runtime_error("Invalid end time");
-	}
 }
 
 namespace sim_mob {
@@ -38,11 +30,11 @@ namespace medium {
 /**
  * initializes all possible time windows in a day and returns a vector of all windows.
  */
-std::vector<TimeWindowAvailability> getAllTimeWindows() {
+std::vector<TimeWindowAvailability> insertAllTimeWindows() {
 	// Following values are hard coded for now.
-	double dayStart = 3.25;
-	double dayEnd = 26.75;
-	double stepSz = 0.5;
+	double dayStart = 1;
+	double dayEnd = 48;
+	double stepSz = 1;
 	size_t numTimeWindows = 1176;
 
     std::vector<TimeWindowAvailability> timeWindows;
@@ -55,7 +47,7 @@ std::vector<TimeWindowAvailability> getAllTimeWindows() {
     return timeWindows;
 }
 
-const std::vector<TimeWindowAvailability> TimeWindowAvailability::timeWindowsLookup = getAllTimeWindows();
+const std::vector<TimeWindowAvailability> TimeWindowAvailability::timeWindowsLookup = insertAllTimeWindows();
 }
 }
 

@@ -61,6 +61,7 @@ private:
      * \note this map has 1092 elements
      */
     ZoneMap zoneMap;
+    boost::unordered_map<int,int> zoneIdLookup;
 
     /**
      * Map of AM, PM and Off peak Costs [origin zone, destination zone] -> CostParams*

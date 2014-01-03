@@ -143,9 +143,13 @@ for i = 1, 48 do
 end
 
 function choose_itd(params,dbparams)
+	print(1)
 	computeUtilities(params,dbparams) 
+	print(2)
 	computeAvailabilities(params,dbparams)
+	print(3)
 	local probability = calculate_probability("mnl", choiceset, utility, availability, scale)
+	print(4)
 	return make_final_choice(probability)
 end
 

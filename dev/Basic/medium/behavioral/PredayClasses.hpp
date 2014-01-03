@@ -90,7 +90,8 @@ class Tour;
 class Stop {
 public:
 	Stop(StopType stopType, Tour& parentTour, bool primaryActivity, bool firstHalfTour)
-	: stopType(stopType), parentTour(parentTour), primaryActivity(primaryActivity), arrivalTime(0), departureTime(0), stopMode(0), stopLocation(0), inFirstHalfTour(firstHalfTour)
+	: stopType(stopType), parentTour(parentTour), primaryActivity(primaryActivity), arrivalTime(0), departureTime(0), stopMode(0),
+	  stopLocation(0), stopId(0), inFirstHalfTour(firstHalfTour)
 	{}
 
 	double getArrivalTime() const {
@@ -163,6 +164,14 @@ public:
 		return inFirstHalfTour;
 	}
 
+	int getStopLocationId() const {
+		return stopId;
+	}
+
+	void setStopLocationId(int stopId) {
+		this->stopId = stopId;
+	}
+
 private:
 	const Tour& parentTour;
 	StopType stopType;
@@ -171,6 +180,7 @@ private:
 	double departureTime;
 	int stopMode;
 	int stopLocation;
+	int stopId;
 	bool inFirstHalfTour;
 };
 
@@ -182,7 +192,8 @@ private:
 class Tour {
 public:
 	Tour(StopType tourType)
-	: tourType(tourType), usualLocation(false), subTour(false), parentTour(nullptr), tourMode(0), primaryActivityLocation(0), startTime(0), endTime(0)
+	: tourType(tourType), usualLocation(false), subTour(false), parentTour(nullptr), tourMode(0),
+	  primaryActivityLocation(0), primaryActivityId(0), startTime(0), endTime(0)
 	{}
 
 	virtual ~Tour() {
@@ -270,6 +281,14 @@ public:
 		}
 	}
 
+	int getPrimaryActivityLocationId() const {
+		return primaryActivityId;
+	}
+
+	void setPrimaryActivityLocationId(int primaryActivityId) {
+		this->primaryActivityId = primaryActivityId;
+	}
+
 	std::deque<Stop*> stops;
 
 private:
@@ -279,6 +298,7 @@ private:
 	Tour* parentTour;
 	int tourMode;
 	int primaryActivityLocation;
+	int primaryActivityId;
 	double startTime;
 	double endTime;
 };

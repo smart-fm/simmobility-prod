@@ -64,6 +64,7 @@ local function binary_search(a, x)
 	local floor = math.floor
 	while lo ~= hi do
 		local mid = floor((lo+hi)/2)
+		print (x,lo,mid,hi,a[mid])
 		local midval = a[mid]
 		if midval > x then 
 			hi = mid
@@ -92,9 +93,13 @@ function make_final_choice(probability)
 	cum_prob = 0
 	for c,p in pairs(probability) do
 		table.insert(choices, c)
+		if(p~=p) then 
+			p = 0
+		end
 		cum_prob = cum_prob + p
 		table.insert(choices_prob, cum_prob)
 	end
+	math.randomseed( os.time() )
 	idx = binary_search(choices_prob, math.random()) 
 	return choices[idx]
 end

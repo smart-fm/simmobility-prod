@@ -181,9 +181,12 @@ void sim_mob::Broker::configure() {
  * are by no means thread safe. No locking imposed because they are updated/used such a
  * way that no race condition is created.clientMessageDone can only be set to true(and only by one of the threads)
  * and incase of messages ,threads access only discrete chuncks of elements (and read-only fashion)
+ * Note, this method has been transferred to RoadRunner.xpp
  */
 
-/*void sim_mob::Broker::preProcessMessage(
+/*
+ \code
+ void sim_mob::Broker::preProcessMessage(
 		boost::shared_ptr<ConnectionHandler> &cnnHandler,
 		std::vector<sim_mob::comm::MsgPtr> & messages, int firstMessageIndex,
 		int lastMessageIndex, bool &clientMessageDone) {
@@ -210,7 +213,9 @@ void sim_mob::Broker::configure() {
 			receiveQueue.post(MessageElement(cnnHandler, *it));
 		}
 	}
-}*/
+}
+\endcode
+*/
 
 
 /**
@@ -244,20 +249,25 @@ void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler
 			receiveQueue.post(MessageElement(cnnHandler, *it));
 		}
 	}
+/**
+ * doing it by thread
+ * Note: not compatible with lower versions of boost. commenting it for now
+ * \code
+	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > m_f = messageFactories[cnnHandler->clientType];
+	std::vector<sim_mob::comm::MsgPtr> messages;
+	m_f->createMessage(input, messages);
+	bool clientMessageDone = false;
+	sim_mob::doByThread(messages, boost::bind(&Broker::preProcessMessage, this,boost::ref(cnnHandler), boost::ref(messages),  _1, _2, boost::ref(clientMessageDone)));
 
-//	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > m_f = messageFactories[cnnHandler->clientType];
-//	std::vector<sim_mob::comm::MsgPtr> messages;
-//	m_f->createMessage(input, messages);
-//	bool clientMessageDone = false;
-//	sim_mob::doByThread(messages, boost::bind(&Broker::preProcessMessage, this,boost::ref(cnnHandler), boost::ref(messages),  _1, _2, boost::ref(clientMessageDone)));
-//
-//	{
-//		boost::unique_lock<boost::mutex> lock(mutex_clientDone);
-//		if (clientDoneChecker.find(cnnHandler) != clientDoneChecker.end()) {
-//			COND_VAR_CLIENT_DONE.notify_one();
-//
-//		}
-//	}
+	{
+		boost::unique_lock<boost::mutex> lock(mutex_clientDone);
+		if (clientDoneChecker.find(cnnHandler) != clientDoneChecker.end()) {
+			COND_VAR_CLIENT_DONE.notify_one();
+
+		}
+	}
+ * \endcode
+ */
 }
 
 boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> sim_mob::Broker::getMessageReceiveCallBack() {
@@ -338,7 +348,8 @@ void  sim_mob::Broker::insertClientWaitingList(std::pair<std::string,ClientRegis
 	clientRegistrationWaitingList.insert(p);
 	COND_VAR_CLIENT_REQUEST.notify_one();
 }
-
+/** modified code
+ * \code
 //PublisherList::Value sim_mob::Broker::getPublisher(sim_mob::Services::SIM_MOB_SERVICE serviceType)
 //{
 //	PublisherList::Type::const_iterator it = publishers.find(serviceType);
@@ -348,6 +359,8 @@ void  sim_mob::Broker::insertClientWaitingList(std::pair<std::string,ClientRegis
 //
 //	throw std::runtime_error("Publishers does not contain the specified service type.");
 //}
+ * \endcode
+ */
 
 sim_mob::event::EventPublisher & sim_mob::Broker::getPublisher(){
 	return publisher;
@@ -571,12 +584,6 @@ void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::even
 //todo suggestion: for publishment, don't iterate through the list of clients, rather, iterate the publishers list, access their subscriber list and say publish and publish for their subscribers(keep the clientlist for MHing only)
 void sim_mob::Broker::processPublishers(timeslice now)
 {
-//	PublisherList::Pair publisher_pair;
-//	BOOST_FOREACH(publisher_pair, publishers)
-//	{
-//		//easy reading
-//		sim_mob::Services::SIM_MOB_SERVICE service = publisher_pair.first;
-//		sim_mob::event::EventPublisher & publisher = *publisher_pair.second;
 	sim_mob::Services::SIM_MOB_SERVICE service;
 	BOOST_FOREACH(service, serviceList){
 		switch (service) {
@@ -959,6 +966,7 @@ Entity::UpdateStatus sim_mob::Broker::update(timeslice now) {
 
 void sim_mob::Broker::removeClient(ClientList::Type::iterator it_erase)
 {
+	//todo: enable this later
 //	Print() << "Broker::removeClient locking mutex_clientList" << std::endl;
 //	if(!it_erase->second)
 //	{

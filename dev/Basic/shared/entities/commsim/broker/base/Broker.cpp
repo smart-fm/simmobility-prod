@@ -372,7 +372,6 @@ void sim_mob::Broker::processClientRegistrationRequests()
 	boost::shared_ptr<ClientRegistrationHandler > handler;
 	ClientWaitList::iterator it_erase;//helps avoid multimap iterator invalidation
 	for (ClientWaitList::iterator it = clientRegistrationWaitingList.begin(); it != clientRegistrationWaitingList.end();) {
-//		handler = clientRegistrationFactory.getHandler((sim_mob::Services::ClientTypeMap[it->first]));
 		comm::ClientType clientType = sim_mob::Services::ClientTypeMap[it->first];
 		handler = ClientRegistrationHandlerMap[clientType];
 		if (!handler) {
@@ -384,16 +383,8 @@ void sim_mob::Broker::processClientRegistrationRequests()
 		{
 			//success: handle() just added to the client to the main client list and started its connectionHandler
 			//	next, see if the waiting state of waiting-for-client-connection changes after this process
-			bool wait = clientBlockers[sim_mob::Services::ClientTypeMap[it->first]]->calculateWaitStatus();
-			//if(!wait) {
-				//	then, get this request out of registration list.
-			//	it_erase =  it/*++*/;//keep the erase candidate. dont loose it :)
-			//	clientRegistrationWaitingList.erase(it_erase) ;
-				//note: if needed,remember to do the necessary work in the
-				//corresponding agent w.r.t the result of handle()
-				//do this through a callback to agent's reuest
-			//}
-			it_erase = it/*++*/;	//keep the erase candidate. dont loose it :)
+			bool wait = clientBlockers[clientType]->calculateWaitStatus();
+			it_erase = it;	//keep the erase candidate. dont loose it :)
 			Print() << "delete from clientRegistrationWaitingList[" << it->first << "]" << std::endl;
 			clientRegistrationWaitingList.erase(it++);
 		} else {

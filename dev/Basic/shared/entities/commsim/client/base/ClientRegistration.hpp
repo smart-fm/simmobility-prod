@@ -77,7 +77,7 @@ class ClientRegistrationHandler {
 	comm::ClientType type;
 	static ClientRegistrationPublisher registrationPublisher;
 public:
-	ClientRegistrationHandler(/*comm::ClientType*/);
+	ClientRegistrationHandler();
 	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest&) = 0;
 	static sim_mob::event::EventPublisher & getPublisher();
 	virtual ~ClientRegistrationHandler();

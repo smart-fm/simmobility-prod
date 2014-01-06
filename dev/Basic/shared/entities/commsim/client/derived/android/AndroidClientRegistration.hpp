@@ -21,9 +21,21 @@ class AndroidClientRegistration: public sim_mob::ClientRegistrationHandler {
 	std::set<sim_mob::Agent*> usedAgents;
 public:
 	AndroidClientRegistration();
+	/*
+	 * some checks to avoid calling this method unnecessarily
+	 */
 	bool initialEvaluation(sim_mob::Broker& broker,AgentsList::type &registeredAgents);
+	/*
+	 * actual handler
+	 */
 	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest&);
+	/*
+	 * find a simmobility agent which has not been associated to this type of a client
+	 */
 	virtual bool findAFreeAgent(AgentsList::type &registeredAgents,AgentsList::type::iterator &freeAgent);
+	/*
+	 * make a client handler
+	 */
 	virtual boost::shared_ptr<ClientHandler> makeClientHandler(sim_mob::Broker&,sim_mob::ClientRegistrationRequest &,sim_mob::AgentInfo freeAgent);
 
 	virtual ~AndroidClientRegistration();

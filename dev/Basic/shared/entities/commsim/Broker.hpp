@@ -257,7 +257,7 @@ protected:
 	/**
 	 * processes clients requests to be registered with the broker
 	 */
-	void processClientRegistrationRequests();
+	virtual void processClientRegistrationRequests();
 	/**
 	 * removes a client from the list of registered agents
 	 * Note: this function is not used any more.

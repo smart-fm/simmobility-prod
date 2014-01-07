@@ -172,49 +172,6 @@ void sim_mob::Broker::configure() {
 							new WaitForAgentRegistration(*this, MIN_AGENTS))));
 }
 
-/**
- * checkes messages one by one, if CLIENT_MESSAGES_DONE messages has been received, raises a flag
- * otherwise post it to incoming queue for future processing
- * Note that this method is usually called by several threads at the same time and some
- * variables like "bool clientMessageDone" and  "std::vector<sim_mob::comm::MsgPtr> messages"
- * are by no means thread safe. No locking imposed because they are updated/used such a
- * way that no race condition is created.clientMessageDone can only be set to true(and only by one of the threads)
- * and incase of messages ,threads access only discrete chuncks of elements (and read-only fashion)
- * Note, this method has been transferred to RoadRunner.xpp
- */
-
-/*
- \code
- void sim_mob::Broker::preProcessMessage(
-		boost::shared_ptr<ConnectionHandler> &cnnHandler,
-		std::vector<sim_mob::comm::MsgPtr> & messages, int firstMessageIndex,
-		int lastMessageIndex, bool &clientMessageDone) {
-
-	for (std::vector<sim_mob::comm::MsgPtr>::iterator it = messages.begin()
-			+ firstMessageIndex; it != messages.begin() + lastMessageIndex;
-			it++) {
-
-		sim_mob::comm::MsgData &data = (*it)->getData();
-		std::string type = data["MESSAGE_TYPE"].asString();
-//		Print() << "Received " << (cnnHandler->clientType == ConfigParams::NS3_SIMULATOR ? "NS3" : ( cnnHandler->clientType == ConfigParams::ANDROID_EMULATOR ? "ANDROID" : "UNKNOWN_TYPE") ) << " : " << type << std::endl;
-		if (type == "CLIENT_MESSAGES_DONE") {
-			boost::unique_lock<boost::mutex> lock(mutex_clientDone);
-			clientDoneChecker.insert(cnnHandler);
-			clientMessageDone = true;
-			//update() will wait until all clients send this message for each tick
-//			Print() << "received CLIENT_MESSAGES_DONE for client["
-//					<< cnnHandler->clientType << ":" << cnnHandler->clientID
-//					<< "]" << std::endl;
-
-//		clientDoneChecker.insert(cnnHandler);
-//		COND_VAR_CLIENT_DONE.notify_one();
-		} else {
-			receiveQueue.post(MessageElement(cnnHandler, *it));
-		}
-	}
-}
-\endcode
-*/
 
 
 /**
@@ -229,19 +186,12 @@ void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler
 	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > messageFactory = messageFactories[cnnHandler->clientType];
 	std::vector<sim_mob::comm::MsgPtr> messages;
 	messageFactory->createMessage(input, messages);
-//	post the messages into the message queue one by one(add their cnnHandler also)
-	for (std::vector<sim_mob::comm::MsgPtr>::iterator it = messages.begin();
-			it != messages.end(); it++) {
 
+	for (std::vector<sim_mob::comm::MsgPtr>::iterator it = messages.begin(); it != messages.end(); it++) {
 		sim_mob::comm::MsgData& data = it->get()->getData();
 		std::string type = data["MESSAGE_TYPE"].asString();
-//		Print() << "Received " << (cnnHandler->clientType == ConfigParams::NS3_SIMULATOR ? "NS3" : ( cnnHandler->clientType == ConfigParams::ANDROID_EMULATOR ? "ANDROID" : "UNKNOWN_TYPE") ) << " : " << type << std::endl;
 		if (type == "CLIENT_MESSAGES_DONE") {
 			boost::unique_lock<boost::mutex> lock(mutex_clientDone);
-			//update() will wait until all clients send this message for each tick
-			Print()
-								<< "received CLIENT_MESSAGES_DONE for client["
-								<< cnnHandler->clientType << ":" << cnnHandler->clientID << "]" << std::endl;
 			clientDoneChecker.insert(cnnHandler);
 			COND_VAR_CLIENT_DONE.notify_one();
 		} else {
@@ -622,8 +572,11 @@ void sim_mob::Broker::processPublishers(timeslice now)
 					}
 					const sim_mob::Agent* agent = clientIt->second->agent;
 					if (agent->getRegionSupportStruct().isEnabled()) {
-						std::vector<sim_mob::RoadRunnerRegion> all_regions = agent->getNewAllRegionsSet();
-						std::vector<sim_mob::RoadRunnerRegion> reg_path = agent->getNewRegionPath();
+						//NOTE: Const-cast is unfortunately necessary. We could also make the Region tracking data mutable.
+						//      We can't push a message back to the Broker, since it has to arrive in the same time tick
+						//      (the Broker uses a half-time-tick mechanism).
+						std::vector<sim_mob::RoadRunnerRegion> all_regions = const_cast<Agent*>(agent)->getAndClearNewAllRegionsSet();
+						std::vector<sim_mob::RoadRunnerRegion> reg_path = const_cast<Agent*>(agent)->getAndClearNewRegionPath();
 						if (!(all_regions.empty() && reg_path.empty())) {
 							publisher.publish(COMMEID_REGIONS_AND_PATH, const_cast<Agent*>(agent), RegionsAndPathEventArgs(agent, all_regions, reg_path));
 						}

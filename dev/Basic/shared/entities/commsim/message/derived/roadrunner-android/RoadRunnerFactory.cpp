@@ -61,17 +61,17 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RoadRunnerFactory::get
 }
 
 
-bool sim_mob::roadrunner::RoadRunnerFactory::createMessage(const std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
+void sim_mob::roadrunner::RoadRunnerFactory::createMessage(const std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
 {
 	Json::Value root;
 	sim_mob::pckt_header packetHeader;
 	if(!sim_mob::JsonParser::parsePacketHeader(input, packetHeader, root))
 	{
-		return false;
+		return;
 	}
 	if(!sim_mob::JsonParser::getPacketMessages(input,root))
 	{
-		return false;
+		return;
 	}
 	for (int index = 0; index < root.size(); index++) {
 		msg_header messageHeader;
@@ -83,7 +83,7 @@ bool sim_mob::roadrunner::RoadRunnerFactory::createMessage(const std::string &in
 		std::map<std::string, RoadRunnerFactory::MessageType>::const_iterator it = MessageMap.find(messageHeader.msg_type);
 		if (it==MessageMap.end()) {
 			Warn() <<"RoadRunnerFactory::createMessage() - Unknown message type: " <<messageHeader.msg_type <<"\n";
-			return false;
+			continue;
 		}
 
 		const Json::Value& curr_json = root[index];
@@ -119,8 +119,6 @@ bool sim_mob::roadrunner::RoadRunnerFactory::createMessage(const std::string &in
 			break;
 		}
 	}		//for loop
-
-	return true;
 }
 
 

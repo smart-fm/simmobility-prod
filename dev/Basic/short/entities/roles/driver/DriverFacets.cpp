@@ -48,6 +48,9 @@ string PrintLCS(LANE_CHANGE_SIDE s) {
 	return "LCS_SAME";
 }
 
+//the minimum speed when approaching to incident
+const float APPROACHING_SPEED = 200;
+
 //used in lane changing, find the start index and end index of polyline in the target lane
 size_t updateStartEndIndex(const std::vector<sim_mob::Point2D>* const currLanePolyLine, double currLaneOffset,
 		size_t defaultValue) {
@@ -236,6 +239,79 @@ void sim_mob::DriverMovement::frame_init() {
 	}
 }
 
+void sim_mob::DriverMovement::responseIncidentStatus(DriverUpdateParams& p, timeslice now) {
+	//slow down velocity when driver views the incident within the visibility distance
+	float incidentGap = parentDriver->vehicle->length;
+	if(incidentStatus.getSlowdownVelocity()){
+		//calculate the distance to the nearest front vehicle, if no front vehicle exists, the distance is given to a enough large gap as 5 kilometers
+		float fwdCarDist = 5000;
+		if( p.nvFwd.exists() ){
+			DPoint dFwd = p.nvFwd.driver->getVehicle()->getPosition();
+			DPoint dCur = parentDriver->vehicle->getPosition();
+			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
+			fwdCarDist = movementVect.getMagnitude()-parentDriver->vehicle->length;
+			if(fwdCarDist < 0) {
+				fwdCarDist = parentDriver->vehicle->length;
+			}
+		}
+
+		//record speed limit for current vehicle
+		float speedLimit = 0;
+		//record current speed
+		float newSpeed = 0;
+		//record approaching speed when it is near to incident position
+		float approachingSpeed = APPROACHING_SPEED;
+		float oldDistToStop = p.perceivedDistToFwdCar;
+		LANE_CHANGE_SIDE oldDirect = p.turningDirection;
+		p.perceivedDistToFwdCar = std::min(incidentStatus.getDistanceToIncident(), fwdCarDist);
+		p.turningDirection = LCS_LEFT;
+
+		//retrieve speed limit decided by whether or not incident lane or adjacent lane
+		speedLimit = incidentStatus.getSpeedLimit(p.currLaneIndex);
+		if(speedLimit==0 && incidentStatus.getDistanceToIncident()>incidentGap)
+			speedLimit = approachingSpeed;
+
+		// recalculate acceleration and velocity when incident happen
+		float newFwdAcc = 0;
+		if(parentDriver->vehicle->getVelocity() > speedLimit){
+			newFwdAcc = cfModel->makeAcceleratingDecision(p, speedLimit, maxLaneSpeed);
+			newSpeed = parentDriver->vehicle->getVelocity()+newFwdAcc*p.elapsedSeconds*100;
+			if(newSpeed < speedLimit){
+				newFwdAcc = 0;
+				newSpeed = speedLimit;
+			}
+		}
+		else {
+			newFwdAcc = 0;
+			newSpeed = speedLimit;
+		}
+
+		//update current velocity so as to response the speed limit defined in incident lane.
+		parentDriver->vehicle->setVelocity(newSpeed);
+		p.perceivedDistToFwdCar = oldDistToStop;
+		p.turningDirection = oldDirect;
+	}
+
+	//stop cars when it already is near the incident location
+	if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_OCCURANCE_LANE ){
+		if(incidentStatus.getSpeedLimit(p.currLaneIndex)==0 && incidentStatus.getDistanceToIncident()<incidentGap) {
+			parentDriver->vehicle->setVelocity(0);
+			parentDriver->vehicle->setAcceleration(0);
+		}
+	}
+
+	if(p.nvFwd.exists() ){//avoid cars stacking together
+		DPoint dFwd = p.nvFwd.driver->getVehicle()->getPosition();
+		DPoint dCur = parentDriver->vehicle->getPosition();
+		DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
+		double len = parentDriver->getVehicle()->length;
+		double dist = movementVect.getMagnitude();
+		if( dist < len){
+			parentDriver->vehicle->setVelocity(0);
+			parentDriver->vehicle->setAcceleration(0);
+		}
+	}
+}
 
 void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslice now) {
 
@@ -245,6 +321,7 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 	if(curLaneIndex<0){
 		return;
 	}
+
 	int nextLaneIndex = curLaneIndex;
 	LANE_CHANGE_SIDE laneSide = LCS_SAME;
 	IncidentStatus::IncidentStatusType status = IncidentStatus::INCIDENT_CLEARANCE;
@@ -258,36 +335,18 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 	bool replan = false;
 	const RoadItem* roadItem = getRoadItemByDistance(sim_mob::INCIDENT, realDist);
 	if(roadItem) {//retrieve front incident obstacle
-		const Incident* inc = dynamic_cast<const Incident*>( roadItem );
-		if(inc){
-			float visibility = inc->visibilityDistance;
-			incidentStatus.setVisibilityDistance(visibility);
-			if( (now.ms() >= inc->startTime) && (now.ms() < inc->startTime+inc->duration) && realDist<visibility){
-				if(curLaneIndex==inc->laneId ){//decide lane side if vehicle is in the incident lane and it is necessary to do changing lane
-					status = IncidentStatus::INCIDENT_OCCURANCE_LANE;
-					if( curLaneIndex < curSegment->getLanes().size()-1){
-						nextLaneIndex = curLaneIndex+1;
-						laneSide = LCS_LEFT;
-					}
-					else {
-						nextLaneIndex = curLaneIndex-1;
-						laneSide = LCS_RIGHT;
-					}
-				}
-				else {
-					incidentStatus.setCurrentStatus(IncidentStatus::INCIDENT_ADJACENT_LANE);
-					incidentStatus.setChangedLane(false);
-				}
-				//make velocity slowing down decision when incident happen
-				unsigned int originId = curSegment->getSegmentAimsunId();
-				if(originId == inc->segmentId){
-					incidentStatus.setSlowdownVelocity(true);
-				}
+		const Incident* incidentObj = dynamic_cast<const Incident*>( roadItem );
 
+		if(incidentObj){
+			float visibility = incidentObj->visibilityDistance;
+			incidentStatus.setVisibilityDistance(visibility);
+			incidentStatus.setCurrentLaneIndex(curLaneIndex);
+
+			if( (now.ms() >= incidentObj->startTime) && (now.ms() < incidentObj->startTime+incidentObj->duration) && realDist<visibility){
 				incidentStatus.setDistanceToIncident(realDist);
-				replan = incidentStatus.insertIncident(inc);
+				replan = incidentStatus.insertIncident(incidentObj);
 				float incidentGap = parentDriver->vehicle->length*2;
-				if(!incidentStatus.getChangedLane() && status==IncidentStatus::INCIDENT_OCCURANCE_LANE){
+				if(!incidentStatus.getChangedLane() && incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_OCCURANCE_LANE){
 					double prob = incidentStatus.getVisibilityDistance()>0 ? incidentStatus.getDistanceToIncident()/incidentStatus.getVisibilityDistance() : 0.0;
 					if(incidentStatus.getDistanceToIncident() < 2*incidentGap){
 						incidentStatus.setChangedLane(true);
@@ -299,8 +358,8 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 					}
 				}
 			}
-			else if( now.ms() > inc->startTime+inc->duration ){// if incident duration is over, the incident obstacle will be removed
-				replan = incidentStatus.removeIncident(inc);
+			else if( now.ms()>incidentObj->startTime+incidentObj->duration ){// if incident duration is over, the incident obstacle will be removed
+				replan = incidentStatus.removeIncident(incidentObj);
 			}
 		}
 	}
@@ -314,9 +373,6 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 	}
 
 	if(replan){//update decision status for incident.
-		incidentStatus.setNextLaneIndex(nextLaneIndex);
-		incidentStatus.setLaneSide(laneSide);
-		incidentStatus.setCurrentStatus(status);
 		incidentStatus.checkIsCleared();
 	}
 }
@@ -797,12 +853,13 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 	//check incident status and decide whether or not do lane changing
 	LANE_CHANGE_MODE mode = DLC;
 	checkIncidentStatus(p, parentDriver->getParams().now);
-	if(incidentStatus.getChangedLane()){
+	if(incidentStatus.getChangedLane() && incidentStatus.getNextLaneIndex()>=0){
 		p.nextLaneIndex = incidentStatus.getNextLaneIndex();
 		parentDriver->vehicle->setTurningDirection(incidentStatus.getLaneSide());
 		mode = MLC;
 	}
-	else if(incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode==MLC) {
+	else if( (incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode==MLC )
+			|| (incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && incidentStatus.getCurrentIncidentLength()>0)) {
 		p.nextLaneIndex = p.currLaneIndex;
 		parentDriver->vehicle->setTurningDirection(LCS_SAME);
 		mode = MLC;
@@ -875,83 +932,8 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 	//Update our chosen acceleration; update our position on the link.
 	parentDriver->vehicle->setAcceleration(newFwdAcc * 100);
 
-	//slow down velocity when driver views the incident within the visibility distance
-	float incidentGap = parentDriver->vehicle->length;
-	if(incidentStatus.getSlowdownVelocity()){
-		//calculate the distance to the nearest front vehicle, if no front vehicle exists, the distance is given to a enough large gap as 5 kilometers
-		float fwdCarDist = 5000;
-		if( p.nvFwd.exists() ){
-			DPoint dFwd = p.nvFwd.driver->getVehicle()->getPosition();
-			DPoint dCur = parentDriver->vehicle->getPosition();
-			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
-			fwdCarDist = movementVect.getMagnitude()-parentDriver->vehicle->length;
-			if(fwdCarDist < 0) {
-				fwdCarDist = parentDriver->vehicle->length;
-			}
-		}
-
-		//record speed limit for current vehicle
-		float speedLimit = 0;
-		//record current speed
-		float newSpeed = 0;
-		//record approaching speed when it is near to incident position
-		float approachingSpeed = 200;
-		float oldDistToStop = p.perceivedDistToFwdCar;
-		LANE_CHANGE_SIDE oldDirect = p.turningDirection;
-		p.perceivedDistToFwdCar = std::min(incidentStatus.getDistanceToIncident(), fwdCarDist);
-		p.turningDirection = LCS_LEFT;
-
-		//retrieve speed limit decided by whether or not incident lane or adjacent lane
-		if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_OCCURANCE_LANE ){
-			speedLimit = incidentStatus.getSpeedLimit();
-			if(speedLimit==0 && incidentStatus.getDistanceToIncident()>incidentGap)
-				speedLimit = approachingSpeed;
-		}
-		else if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_ADJACENT_LANE){
-			speedLimit = incidentStatus.getSpeedLimitOthers();
-		}
-
-		// recalculate acceleration and velocity when incident happen
-		if(parentDriver->vehicle->getVelocity() > speedLimit){
-			newFwdAcc = cfModel->makeAcceleratingDecision(p, speedLimit, maxLaneSpeed);
-			newSpeed = parentDriver->vehicle->getVelocity()+newFwdAcc*p.elapsedSeconds*100;
-			if(newSpeed < speedLimit){
-				newFwdAcc = 0;
-				newSpeed = speedLimit;
-			}
-		}
-		else {
-			newFwdAcc = 0;
-			newSpeed = speedLimit;
-		}
-
-		//update current velocity so as to response the speed limit defined in incident lane.
-		parentDriver->vehicle->setVelocity(newSpeed);
-		//parentDriver->vehicle->setAcceleration(0);
-		p.perceivedDistToFwdCar = oldDistToStop;
-		p.turningDirection = oldDirect;
-	}
-
-	//stop cars when it already is near the incident location
-	if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_OCCURANCE_LANE ){
-		if(incidentStatus.getSpeedLimit()==0 && incidentStatus.getDistanceToIncident()<incidentGap) {
-			parentDriver->vehicle->setVelocity(0);
-			parentDriver->vehicle->setAcceleration(0);
-		}
-	}
-
-	//avoid cars stacking together
-	if(nv.exists() ){
-			DPoint dFwd = nv.driver->getVehicle()->getPosition();
-			DPoint dCur = parentDriver->vehicle->getPosition();
-			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
-			double len = parentDriver->getVehicle()->length;
-			double dist = movementVect.getMagnitude();
-			if( dist < len){
-				parentDriver->vehicle->setVelocity(0);
-				parentDriver->vehicle->setAcceleration(0);
-			}
-	}
+	//response incident
+	responseIncidentStatus(p, parentDriver->getParams().now);
 
 	/*std::cout<<"linkDriving: "<<" id: "<<parentDriver->parent->GetId()<<" velocity: "<<parentDriver->vehicle->getVelocity()/100.0<<
 			" acceleration: "<<parentDriver->vehicle->getAcceleration()/100.0<<
@@ -1087,7 +1069,9 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 	const sim_mob::RoadItem* res = nullptr;
 	itemDis = 0.0;
 
-	if(type != sim_mob::INCIDENT) return res;
+	if(type != sim_mob::INCIDENT) {
+		return res;
+	}
 
 	std::vector<const sim_mob::RoadSegment*>::iterator currentSegIt = parentDriver->vehicle->getPathIterator();
 	std::vector<const sim_mob::RoadSegment*>::iterator currentSegItEnd = parentDriver->vehicle->getPathIteratorEnd();
@@ -1095,14 +1079,26 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 
 	for(;currentSegIt != currentSegItEnd;++currentSegIt)
 	{
-		if(currentSegIt == currentSegItEnd)
+		if(currentSegIt == currentSegItEnd){
 			break;
+		}
 
 		const RoadSegment* rs = *currentSegIt;
-		if (!rs) break;
+		if (!rs) {
+			break;
+		}
 
 		const std::map<centimeter_t, const RoadItem*> obstacles = rs->getObstacles();
 		std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
+
+		if(obstacles.size()==0){
+			if(rs == parentDriver->vehicle->getCurrSegment()){
+				itemDis = parentDriver->vehicle->getCurrentSegmentLength() - parentDriver->vehicle->getDistanceMovedInSegment();
+			}
+			else{
+				itemDis += rs->getLengthOfSegment();
+			}
+		}
 
 		for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
 			const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
@@ -1162,8 +1158,7 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 							return nullptr;
 						}
 					}//end inc
-					RoadSegment* seg = const_cast<RoadSegment*>(rs);
-					itemDis += seg->getLengthOfSegment();
+					itemDis += rs->getLengthOfSegment();
 				}
 
 
@@ -1688,6 +1683,10 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 			* p.elapsedSeconds * p.elapsedSeconds;
 	if (fwdDistance < 0) {
 		fwdDistance = 0;
+	}
+
+	if(incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && incidentStatus.getCurrentIncidentLength()>0){
+		incidentStatus.reduceIncidentLength(fwdDistance);
 	}
 
 

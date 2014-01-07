@@ -4,6 +4,8 @@
 
 #include "RoadRunnerFactory.hpp"
 #include "logging/Log.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/RemoteLogMessage.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/RemoteLogHandler.hpp"
 
 using namespace sim_mob;
 
@@ -15,6 +17,7 @@ sim_mob::roadrunner::RoadRunnerFactory::RoadRunnerFactory(bool useNs3) : useNs3(
 	MessageMap["MULTICAST"] = MULTICAST;
 	MessageMap["UNICAST"] = UNICAST;
 	MessageMap["CLIENT_MESSAGES_DONE"] = CLIENT_MESSAGES_DONE;
+	MessageMap["REMOTE_LOG"] = REMOTE_LOG;
 
 	//MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE)/*("ANNOUNCE",ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND)*/;
 }
@@ -45,6 +48,9 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RoadRunnerFactory::get
 			break;
 		case UNICAST:
 			handler.reset(new sim_mob::roadrunner::UnicastHandler(useNs3));
+			break;
+		case REMOTE_LOG:
+			handler.reset(new sim_mob::roadrunner::RemoteLogHandler());
 			break;
 		default:
 			typeFound = false;
@@ -112,7 +118,12 @@ void sim_mob::roadrunner::RoadRunnerFactory::createMessage(const std::string &in
 			output.push_back(msg);
 			break;
 		}
-
+		case REMOTE_LOG: {
+			sim_mob::comm::MsgPtr msg(new sim_mob::roadrunner::RemoteLogMessage(curr_json));
+			msg->setHandler(getHandler(REMOTE_LOG));
+			output.push_back(msg);
+			break;
+		}
 
 		default:
 			Warn() <<"RoadRunnerFactory::createMessage() - Unhandled message type: " <<messageHeader.msg_type <<"\n";

@@ -64,7 +64,6 @@ local function binary_search(a, x)
 	local floor = math.floor
 	while lo ~= hi do
 		local mid = floor((lo+hi)/2)
-		print (x,lo,mid,hi,a[mid])
 		local midval = a[mid]
 		if midval > x then 
 			hi = mid

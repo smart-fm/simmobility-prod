@@ -207,8 +207,6 @@ void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personPara
 		dayPattern["EduI"] = retVal[6].cast<int>();
 		dayPattern["ShopI"] = retVal[7].cast<int>();
 		dayPattern["OthersI"] = retVal[8].cast<int>();
-		Print() << dayPattern["WorkT"] << dayPattern["EduT"] << dayPattern["ShopT"] << dayPattern["OthersT"]
-		        << dayPattern["WorkI"] << dayPattern["EduI"] << dayPattern["ShopI"] << dayPattern["OthersI"] << std::endl;
 	}
 	else {
 		throw std::runtime_error("Error in day pattern prediction. Unexpected return value");
@@ -246,7 +244,6 @@ void sim_mob::medium::PredayLuaModel::predictNumTours(PersonParams& personParams
 	    	numTours["OthersT"] = retVal.cast<int>();
 	    }
 	}
-	Print() << numTours["WorkT"] << numTours["EduT"] << numTours["ShopT"] << numTours["OthersT"] << std::endl;
 }
 
 bool sim_mob::medium::PredayLuaModel::predictUsualWorkLocation(PersonParams& personParams, UsualWorkParams& usualWorkParams) const {

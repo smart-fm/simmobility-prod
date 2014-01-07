@@ -98,7 +98,7 @@ private:
 	/**
 	 * constructs tour objects based on predicted number of tours. Puts the tour objects in tours deque.
 	 */
-	void constructTours(PersonParams& personParams);
+	void constructTours();
 
 	/**
 	 * Person specific parameters

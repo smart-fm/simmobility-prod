@@ -4,6 +4,14 @@
 
 /*
  * NS3ClientRegistration.hpp
+ *      This Class is responsible to process the registration request.
+ *      Such a request has been previously issued following a client connecting to simmobility.
+ *      registration, in this context, means adding a NS3 client to the list of valid clients
+ *      in the Broker. Processing a registration request, generally, includes an initial
+ *      evaluation, associating the client to a simmobility agent, creating a proper
+ *      client handler and finally do some post processing like informing the client of
+ *      the success of its request.
+ *      the main method is handle(). the rest of the methods are usually helpers.
  *
  *  Created on: May 20, 2013
  *      Author: vahid
@@ -12,14 +20,37 @@
 #pragma once
 
 #include "entities/commsim/client/base/ClientRegistration.hpp"
-#include "entities/commsim/broker/Broker.hpp"
+#include "entities/commsim/Broker.hpp"
 
 namespace sim_mob {
+class ClientHandler;
 
 class NS3ClientRegistration: public sim_mob::ClientRegistrationHandler  {
+	//temporary place holder for inter method data passing
+	boost::shared_ptr<ClientHandler> clientHandler;
+
 public:
-	NS3ClientRegistration(/*ClientRegistrationFactory::ClientType type_ = ClientRegistrationFactory::NS3_SIMULATOR*/);
-	virtual bool handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest request);
+	NS3ClientRegistration(/*ConfigParams::ClientType type_ = ConfigParams::NS3_SIMULATOR*/);
+
+	/**
+	 *  helper function used in handle() method to do some checks
+	 *  in order to avoid calling this method unnecessarily
+	 */
+	virtual bool initialEvaluation(sim_mob::Broker& broker,AgentsList::type &registeredAgents);
+	/**
+	 * helper function used in handle() method to prepare and return a sim_mob::ClientHandler
+	 */
+	virtual boost::shared_ptr<ClientHandler> makeClientHandler(sim_mob::Broker&,sim_mob::ClientRegistrationRequest &,sim_mob::AgentInfo agent = sim_mob::AgentInfo());
+	/**
+	 * Helper function used to send simmobility agents information to ns3 in json format
+	 */
+	void sendAgentsInfo(sim_mob::Broker& broker, boost::shared_ptr<ClientHandler> clientEntry);
+
+	/**
+	 * actual handler used to register a client of ns3 type: NS3_SIMULATOR
+	 */
+	virtual bool handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request);
+	void postProcess(sim_mob::Broker& broker);
 	virtual ~NS3ClientRegistration();
 };
 

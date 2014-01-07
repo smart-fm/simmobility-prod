@@ -14,6 +14,7 @@
 #include "entities/misc/PublicTransit.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "util/DailyTime.hpp"
+#include "util/Factory.hpp"
 
 
 namespace sim_mob {
@@ -107,6 +108,7 @@ public:
 
 	//Use caution here.
 	sim_mob::RoleFactory& getRoleFactoryRW();
+	sim_mob::Factory<sim_mob::Broker>& getBrokerFactoryRW();
 
 	//For generating reaction times
 	ReactionTimeDist* reactDist1;
@@ -219,6 +221,8 @@ private:
 
 	sim_mob::RoadNetwork network;
 	sim_mob::RoleFactory roleFact;
+	sim_mob::Factory<sim_mob::Broker> brokerFact;
+
 	std::map<std::string, sim_mob::BusStop*> busStopNo_busStops;
 	std::map<std::string, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
 
@@ -305,10 +309,9 @@ public:
 	//Communication Simulator accessors and configurators
 	bool& commSimEnabled();
 	const bool& commSimEnabled() const;
-	bool& androidClientEnabled();
-	const bool& androidClientEnabled() const;
-	const std::string& getAndroidClientType() const;
-	 std::string& getAndroidClientType() ;
+	const std::map<std::string, sim_mob::SimulationParams::CommsimElement> &getCommSimElements() const;
+	const std::string& getCommSimMode(std::string name)const;
+	bool commSimmEnabled(std::string &name);
 
 	DailyTime& simStartTime();
 	const DailyTime& simStartTime() const;

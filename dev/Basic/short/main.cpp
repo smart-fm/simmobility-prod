@@ -38,7 +38,12 @@
 #include "util/DailyTime.hpp"
 #include "util/StateSwitcher.hpp"
 #include "entities/signal/Signal.hpp"
-#include "entities/commsim/broker/Broker.hpp"
+#include "entities/commsim/Broker.hpp"
+//temporary hardcode
+//#include "entities/commsim/Broker.hpp"
+#include "entities/commsim/broker/derived/RoadRunner.hpp"
+#include "entities/commsim/broker/derived/STK.hpp"
+
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/ParseConfigFile.hpp"
@@ -295,14 +300,38 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//TODO: We shouldn't add the Broker unless Communication is enabled in the config file.
 //	//..and Assign all communication agents(we have one ns3 communicator for now)
 //	communicationWorkers->assignAWorker(&(sim_mob::NS3_Communicator::GetInstance()));
-	if(ConfigManager::GetInstance().FullConfig().commSimEnabled() && ConfigManager::GetInstance().FullConfig().androidClientEnabled() )
+//	if(ConfigManager::GetInstance().FullConfig().commSimEnabled())
+//	{
+//		const std::string & name = ConfigManager::GetInstance().FullConfig().getAndroidClientType();
+//		Broker *androidBroker = new sim_mob::Broker(MtxStrat_Locked, 0);
+//		Broker::addExternalCommunicator(name, androidBroker);
+//		Print() << "main.cpp:: android broker[" << androidBroker << "] of type[" << name << "] retrieved" << std::endl;
+//		communicationWorkers->assignAWorker(androidBroker);
+//		androidBroker->enable();
+//	}
+
+	if(ConfigManager::GetInstance().FullConfig().commSimEnabled())
 	{
-		const std::string & name = ConfigManager::GetInstance().FullConfig().getAndroidClientType();
-		Broker *androidBroker = new sim_mob::Broker(MtxStrat_Locked, 0);
-		Broker::addExternalCommunicator(name, androidBroker);
-		Print() << "main.cpp:: android broker[" << androidBroker << "] of type[" << name << "] retrieved" << std::endl;
-		communicationWorkers->assignAWorker(androidBroker);
-		androidBroker->enable();
+		const std::map<std::string,sim_mob::SimulationParams::CommsimElement> & elements =
+				ConfigManager::GetInstance().FullConfig().getCommSimElements();
+		std::map<std::string,sim_mob::SimulationParams::CommsimElement>::const_iterator it = elements.begin();
+		for(; it != elements.end(); it++){
+			//todo: to be automated later,(if required at all)
+			if(!(it->second.enabled)) {
+				continue;
+			}
+			Broker *broker =  nullptr;
+			if(it->first == "roadrunner"){
+				broker = new sim_mob::Roadrunner_Broker(MtxStrat_Locked, 0);
+			}
+			else if(it->first == "stk"){
+				broker = new sim_mob::STK_Broker(MtxStrat_Locked, 0, it->second.name, it->second.mode);
+			}
+
+			Broker::addExternalCommunicator(it->first, broker);
+			communicationWorkers->assignAWorker(broker);
+			broker->enable();
+		}
 	}
 
 

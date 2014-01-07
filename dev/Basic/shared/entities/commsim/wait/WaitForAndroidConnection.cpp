@@ -10,7 +10,7 @@
  */
 
 #include "WaitForAndroidConnection.hpp"
-#include "entities/commsim/broker/Broker.hpp"
+#include "entities/commsim/Broker.hpp"
 #include <boost/unordered_map.hpp>
 
 namespace sim_mob {

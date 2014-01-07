@@ -10,7 +10,7 @@
  */
 
 #include "BrokerBlocker.hpp"
-#include "entities/commsim/broker/Broker.hpp"
+#include "entities/commsim/Broker.hpp"
 
 namespace sim_mob {
 

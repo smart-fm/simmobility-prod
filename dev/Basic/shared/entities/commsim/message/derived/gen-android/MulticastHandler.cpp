@@ -10,7 +10,7 @@
 using namespace sim_mob;
 
 
-sim_mob::roadrunner::MulticastHandler::MulticastHandler(bool useNs3) : useNs3(useNs3)
+sim_mob::comm::MulticastHandler::MulticastHandler(bool useNs3) : useNs3(useNs3)
 {
 }
 
@@ -22,7 +22,7 @@ sim_mob::roadrunner::MulticastHandler::MulticastHandler(bool useNs3) : useNs3(us
 //1-multicast is treated same as broadcast
 //2-although it is like a broadcast, simmobility will add the specific receiver
 //information while redirecting to NS3(as opposed to letting NS3 find the recipients)
-void sim_mob::roadrunner::MulticastHandler::handle(sim_mob::comm::MsgPtr message_,Broker* broker){
+void sim_mob::comm::MulticastHandler::handle(sim_mob::comm::MsgPtr message_,Broker* broker){
 //	Print() << "Inside a ANDROID_HDL_MULTICAST::handle" << std::endl;
 //steps:
 	/*
@@ -132,7 +132,7 @@ void sim_mob::roadrunner::MulticastHandler::handle(sim_mob::comm::MsgPtr message
 }//handle()
 
 
-void sim_mob::roadrunner::MulticastHandler::handleClient(const sim_mob::ClientHandler& clientHdlr, sim_mob::comm::MsgData& recipientsList, Broker& broker, sim_mob::comm::MsgData& data)
+void sim_mob::comm::MulticastHandler::handleClient(const sim_mob::ClientHandler& clientHdlr, sim_mob::comm::MsgData& recipientsList, Broker& broker, sim_mob::comm::MsgData& data)
 {
 	if (useNs3) {
 		//add the agent to the list of ns3 agent recipients
@@ -143,7 +143,7 @@ void sim_mob::roadrunner::MulticastHandler::handleClient(const sim_mob::ClientHa
 	}
 }
 
-void sim_mob::roadrunner::MulticastHandler::postPendingMessages(sim_mob::Broker& broker, const sim_mob::Agent& agent, const sim_mob::comm::MsgData& recipientsList, sim_mob::comm::MsgData& data)
+void sim_mob::comm::MulticastHandler::postPendingMessages(sim_mob::Broker& broker, const sim_mob::Agent& agent, const sim_mob::comm::MsgData& recipientsList, sim_mob::comm::MsgData& data)
 {
 	if (useNs3) {
 		//step-5: insert messages into send buffer

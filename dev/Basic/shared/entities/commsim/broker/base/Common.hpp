@@ -21,6 +21,7 @@ enum {
 	// Events for HousingMarket (???)
 	COMMEID_TIME,
 	COMMEID_LOCATION,
+	COMMEID_ALL_LOCATIONS,
 	COMMEID_REGIONS_AND_PATH,
 
 	//special context ids

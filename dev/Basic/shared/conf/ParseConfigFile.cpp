@@ -1051,18 +1051,17 @@ void sim_mob::ParseConfigFile::ProcessSystemMutexEnforcementNode(xercesc::DOMEle
 void sim_mob::ParseConfigFile::ProcessSystemCommunicationNode(xercesc::DOMElement* node)
 {
 	if (!node) { return; }
-
-	//The commsim config has an attribute and a child node.
-	cfg.system.simulation.commSimEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
-
-	//TODO: There is a "type" attribute here too, in the latest branch.
-	xercesc::DOMElement* androidNode = GetSingleElementByName(node, "android_testbed");
-	if((cfg.system.simulation.androidClientEnabled = ParseBoolean(GetNamedAttributeValue(androidNode, "enabled"), false)))
-	{
-		//an optional place to create the broker, i am creating in main.cpp now
+	if(!(cfg.system.simulation.commSimEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled")))) {
+		return;
 	}
-
-	cfg.system.simulation.androidClientType = ParseString(GetNamedAttributeValue(androidNode, "type"), std::string(""));
+	//We use the existing "element child" functions, it's significantly slower to use "getElementsByTagName()"
+	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
+		SimulationParams::CommsimElement element;
+		element.name = ParseString(item->getNodeName());
+		element.mode = ParseString(GetNamedAttributeValue(item, "mode"));
+		element.enabled = ParseBoolean(GetNamedAttributeValue(item, "enabled"));
+		cfg.system.simulation.commsimElements[element.name] = element;
+	}
 }
 
 void sim_mob::ParseConfigFile::ProcessWorkerPersonNode(xercesc::DOMElement* node)

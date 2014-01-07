@@ -10,7 +10,7 @@ namespace comm {
 
 //TODO: This is not the best place for this, but it's certainly better than in ConfigParams
 enum ClientType {
-	UNKNOWN = 0,
+	UNKNOWN_CLIENT = 0,
 	ANDROID_EMULATOR = 1,
 	NS3_SIMULATOR = 2,
 	//add your client type here

@@ -134,6 +134,15 @@ public:
 	bool androidClientEnabled; ///<Is the Android client for our communication simulator enabled?
 	std::string androidClientType; // what version of android communication is specified?
 
+	struct CommsimElement {
+		std::string name;
+		std::string mode;
+		bool enabled;
+		CommsimElement(): name(""),mode(""),enabled(false){
+		}
+	};
+	std::map<std::string,CommsimElement> commsimElements;
+
 	//Reaction time parameters.
 	//TODO: This should be one of the first areas we clean up.
 	ReactionTimeDistDescription reactTimeDistribution1;

@@ -27,13 +27,13 @@ Handler* sim_mob::rr_android_ns3::NS3_MSG_UNICAST::newHandler()
 //handler implementation
 void sim_mob::rr_android_ns3::NS3_HDL_UNICAST::handle(sim_mob::comm::MsgPtr message_,Broker* broker)
 {
-	//find the client destination client_handler
-	boost::shared_ptr<sim_mob::ClientHandler> destination_clnHandler;
+	//find the destination client handler
+	boost::shared_ptr<sim_mob::ClientHandler> destClnHndlr;
 	sim_mob::comm::MsgData& jData = message_->getData();
-	int destination_agent_id = jData["RECEIVING_AGENT_ID"].asInt();
-	ClientList::Type & all_clients = broker->getClientList();
+	int destAgentId = jData["RECEIVING_AGENT_ID"].asInt();
+	ClientList::Type & allClients = broker->getClientList();
 	ClientList::Pair clientTypes;
-	BOOST_FOREACH(clientTypes , all_clients) {
+	BOOST_FOREACH(clientTypes , allClients) {
 		// only the android emulators
 		if (clientTypes.first != comm::ANDROID_EMULATOR) {
 			continue;
@@ -55,18 +55,18 @@ void sim_mob::rr_android_ns3::NS3_HDL_UNICAST::handle(sim_mob::comm::MsgPtr mess
 				continue;
 			}
 			//match agent id
-			if (agent->getId() != destination_agent_id) {
+			if (agent->getId() != destAgentId) {
 				continue;
 			}
 			//destination client handler(for android)
-			destination_clnHandler = clnHandler;
+			destClnHndlr = clnHandler;
 			//no need to search again once the first -and only- match is found
 			break;
 		}
 
 		//insert into sending buffer
-		if (destination_clnHandler && destination_clnHandler->cnnHandler) {
-			broker->insertSendBuffer(destination_clnHandler->cnnHandler, jData);
+		if (destClnHndlr && destClnHndlr->cnnHandler) {
+			broker->insertSendBuffer(destClnHndlr->cnnHandler, jData);
 		}
 	}
 }

@@ -84,7 +84,7 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(
 	clientEntry->requiredServices = request.requiredServices; //will come handy
 	sim_mob::Services::SIM_MOB_SERVICE srv;
 
-	sim_mob::event::EventPublisher & p = broker.getPublisher();
+	sim_mob::event::EventPublisher & publisher = broker.getPublisher();
 	bool regionSupportRequired = false;
 	BOOST_FOREACH(srv, request.requiredServices) {
 
@@ -93,7 +93,7 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(
 //				PublisherList::Value p =
 //						broker.getPublisher(sim_mob::Services::SIMMOB_SRV_TIME);
 //		sim_mob::event::EventPublisher & p = broker.getPublisher();
-				p.subscribe(COMMEID_TIME,
+				publisher.subscribe(COMMEID_TIME,
 											 clientEntry.get(),
 											 &ClientHandler::sendJsonToBroker);
 			break;
@@ -108,14 +108,14 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(
 				//		clientEntry.get(),
 				//		&ClientHandler::OnEvent,
 				//		clientEntry->agent);
-				p.subscribe(COMMEID_LOCATION,
+				publisher.subscribe(COMMEID_LOCATION,
 					clientEntry.get(),
 						&ClientHandler::sendJsonToBroker);
 			break;
 		}
 			case sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH: {
 //				PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH);
-				p.subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(), &ClientHandler::sendJsonToBroker);
+				publisher.subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(), &ClientHandler::sendJsonToBroker);
 //				//We also "enable" Region tracking for this Agent.(not needed any more coz the corresponding if clause at the end of this method wwas shifted to onClientRegister() in the RoadRunner broker-vahid)
 //				regionSupportRequired = true;
 				break;
@@ -132,8 +132,8 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(
 			comm::ANDROID_EMULATOR, clientEntry);
 	//add this agent to the list of the agents who are associated with a android emulator client
 	usedAgents.insert(freeAgent.agent);
-	//tell the agent you are registered
-	freeAgent.comm->setregistered(&broker,true);
+//	//tell the agent you are registered-this is already done in the frame_init of the role(movement facet actuall) no need to do this here.
+//	freeAgent.comm->setregistered(&broker,true);
 	//publish an event to inform- interested parties- of the registration of a new android client
 	broker.getRegistrationPublisher().publish(comm::ANDROID_EMULATOR,
 			ClientRegistrationEventArgs(comm::ANDROID_EMULATOR,

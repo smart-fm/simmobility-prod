@@ -31,19 +31,12 @@ Role* sim_mob::DriverComm::clone(Person* parent) const
 	movement->setParentDriver(driver);
 	behavior->setParentDriverComm(driver);
 	movement->setParentDriverComm(driver);
-	//broker, (external)communicator :( ... setting
 
-//	const ConfigParams &cfg = ConfigManager::GetInstance().FullConfig();
-//	const std::string &type = cfg.getAndroidClientType();
-//	Broker* managingBroker = Broker::getExternalCommunicator(type);
-//	Print() << "Setting Broker["  << managingBroker << "] to drivercomm " << std::endl;
-//	driver->setBroker(managingBroker);
-	//todo this is a hardcoding, to be solved later
-	Broker* rr = Broker::getExternalCommunicator("roadrunner");
-	Broker* stk = Broker::getExternalCommunicator("stk");
-	driver->setBroker("roadrunner", rr);
-	driver->setBroker("stk", stk);
-
+	std::map<std::string, sim_mob::Broker*>::iterator it =  Broker::getExternalCommunicators().begin();
+	while(it != Broker::getExternalCommunicators().end()){
+		driver->setBroker(it->first, it->second);
+		it++;
+	}
 	return driver;
 }
 sim_mob::Agent * DriverComm::getParentAgent()

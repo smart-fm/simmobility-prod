@@ -27,13 +27,10 @@ sim_mob::NS3ClientRegistration::~NS3ClientRegistration() {
 bool sim_mob::NS3ClientRegistration::initialEvaluation(sim_mob::Broker& broker,
 		AgentsList::type &registeredAgents) {
 	bool res = false;
+	//add your conditions here
+	res = !broker.getClientWaitingList().empty();
 
-
-	if (broker.getClientWaitingList().empty()
-	) {
-		return false;
-	}
-	return true;
+	return res;
 }
 
 boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeClientHandler(
@@ -127,13 +124,15 @@ bool sim_mob::NS3ClientRegistration::handle(sim_mob::Broker& broker,
 	}
 
 	//use it to create a client entry
-	boost::shared_ptr<ClientHandler> clientEntry = makeClientHandler(broker,
+	clientHandler = makeClientHandler(broker,
 			request);
-//		AgentsInfo info;
-//		info.insertInfo(AgentsInfo::ADD_AGENT, keys);
-//		clientEntry->cnnHandler->send(info.toJson());//send synchronously
-	sendAgentsInfo(broker, clientEntry);
-	//start listening to the handler
-	clientEntry->cnnHandler->start();
+
+	postProcess(broker);
 	return true;
+}
+
+void sim_mob::NS3ClientRegistration::postProcess(sim_mob::Broker& broker){
+	sendAgentsInfo(broker, clientHandler);
+	//start listening to the handler
+	clientHandler->cnnHandler->start();
 }

@@ -47,8 +47,7 @@ sim_mob::Broker::Broker(const MutexStrategy& mtxStrat, int id, std::string commE
 			void(boost::shared_ptr<ConnectionHandler>, std::string)>(
 			boost::bind(&Broker::messageReceiveCallback, this, _1, _2));
 
-	Print() << "Creating Broker [" << this << "]" << std::endl;
-	configure();
+//	configure();
 }
 
 sim_mob::Broker::~Broker() {
@@ -227,9 +226,9 @@ void sim_mob::Broker::configure() {
  */
 void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHandler, std::string input)
 {
-	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > m_f = messageFactories[cnnHandler->clientType];
+	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > messageFactory = messageFactories[cnnHandler->clientType];
 	std::vector<sim_mob::comm::MsgPtr> messages;
-	m_f->createMessage(input, messages);
+	messageFactory->createMessage(input, messages);
 //	post the messages into the message queue one by one(add their cnnHandler also)
 	for (std::vector<sim_mob::comm::MsgPtr>::iterator it = messages.begin();
 			it != messages.end(); it++) {
@@ -240,9 +239,9 @@ void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler
 		if (type == "CLIENT_MESSAGES_DONE") {
 			boost::unique_lock<boost::mutex> lock(mutex_clientDone);
 			//update() will wait until all clients send this message for each tick
-//			Print()
-//								<< "received CLIENT_MESSAGES_DONE for client["
-//								<< cnnHandler->clientType << ":" << cnnHandler->clientID << "]" << std::endl;
+			Print()
+								<< "received CLIENT_MESSAGES_DONE for client["
+								<< cnnHandler->clientType << ":" << cnnHandler->clientID << "]" << std::endl;
 			clientDoneChecker.insert(cnnHandler);
 			COND_VAR_CLIENT_DONE.notify_one();
 		} else {
@@ -253,11 +252,11 @@ void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler
  * doing it by thread
  * Note: not compatible with lower versions of boost. commenting it for now
  * \code
-	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > m_f = messageFactories[cnnHandler->clientType];
+	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>&, std::string&> > messageFactory = messageFactories[cnnHandler->clientType];
 	std::vector<sim_mob::comm::MsgPtr> messages;
-	m_f->createMessage(input, messages);
+	messageFactory->createMessage(input, messages);
 	bool clientMessageDone = false;
-	sim_mob::doByThread(messages, boost::bind(&Broker::preProcessMessage, this,boost::ref(cnnHandler), boost::ref(messages),  _1, _2, boost::ref(clientMessageDone)));
+	sim_mob::threadLoop(messages, boost::bind(&Broker::preProcessMessage, this,boost::ref(cnnHandler), boost::ref(messages),  _1, _2, boost::ref(clientMessageDone)));
 
 	{
 		boost::unique_lock<boost::mutex> lock(mutex_clientDone);
@@ -372,7 +371,15 @@ void sim_mob::Broker::processClientRegistrationRequests()
 	boost::shared_ptr<ClientRegistrationHandler > handler;
 	ClientWaitList::iterator it_erase;//helps avoid multimap iterator invalidation
 	for (ClientWaitList::iterator it = clientRegistrationWaitingList.begin(); it != clientRegistrationWaitingList.end();) {
-		comm::ClientType clientType = sim_mob::Services::ClientTypeMap[it->first];
+		//what is the client type
+		std::map<std::string, comm::ClientType>::iterator clientTypeIt = sim_mob::Services::ClientTypeMap.find(it->first);
+		if (clientTypeIt == sim_mob::Services::ClientTypeMap.end()) {
+			std::ostringstream out("");
+			out << "Undefined client type: " << it->first <<  std::endl;
+			throw std::runtime_error(out.str());
+		}
+		comm::ClientType clientType = clientTypeIt->second;
+		//find the handler for this client type.
 		handler = ClientRegistrationHandlerMap[clientType];
 		if (!handler) {
 			std::ostringstream out("");
@@ -398,8 +405,6 @@ bool sim_mob::Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
 	Print() << std::dec;
 //	registeredAgents.insert(std::make_pair(value->getEntity(), value));
 	REGISTERED_AGENTS.insert(value->getEntity(), value);
- 	Print() <<std::dec <<REGISTERED_AGENTS.size() <<":  Broker[" <<this <<"] :  Broker::registerEntity [" <<value->getEntity()->getId() <<"]" <<std::endl;
-
 	Print() << REGISTERED_AGENTS.size() << ":  Broker[" << this
 			<< "] :  Broker::registerEntity [" << value->getEntity()->getId()
 			<< "]" << std::endl;
@@ -409,6 +414,7 @@ bool sim_mob::Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
 	sim_mob::messaging::MessageBus::SubscribeEvent(
 			sim_mob::event::EVT_CORE_AGENT_DIED,
 			value->getEntity(), this);
+	 COND_VAR_CLIENT_REQUEST.notify_all();
 	return true;
 }
 
@@ -447,15 +453,16 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent * agent) {
 				{
 					switch(srv)
 					{
-					case sim_mob::Services::SIMMOB_SRV_TIME:
-						publishers[sim_mob::Services::SIMMOB_SRV_TIME]->unSubscribe(COMMEID_TIME,clientHandler);
-						break;
-					case sim_mob::Services::SIMMOB_SRV_LOCATION:
-						publishers[sim_mob::Services::SIMMOB_SRV_LOCATION]->unSubscribe(COMMEID_LOCATION, const_cast<Agent*>(clientHandler->agent),clientHandler);
-						break;
-					case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS:
-						publishers[sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS]->unSubscribe(COMMEID_LOCATION,(void*)COMMCID_ALL_LOCATIONS,clientHandler);
-						break;
+					publisher.unSubscribeAll(clientHandler);
+//					case sim_mob::Services::SIMMOB_SRV_TIME:
+//						publishers[sim_mob::Services::SIMMOB_SRV_TIME]->unSubscribe(COMMEID_TIME,clientHandler);
+//						break;
+//					case sim_mob::Services::SIMMOB_SRV_LOCATION:
+//						publishers[sim_mob::Services::SIMMOB_SRV_LOCATION]->unSubscribe(COMMEID_LOCATION, const_cast<Agent*>(clientHandler->agent),clientHandler);
+//						break;
+//					case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS:
+//						publishers[sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS]->unSubscribe(COMMEID_LOCATION,(void*)COMMCID_ALL_LOCATIONS,clientHandler);
+//						break;
 					}
 				}
 				//invalidate it and clean it up when necessary
@@ -774,7 +781,9 @@ void sim_mob::Broker::refineSubscriptionList(sim_mob::Agent * target) {
 
 //todo:  put a better condition here. this is just a placeholder
 bool sim_mob::Broker::isWaitingForAgentRegistration() const {
-	return agentBlockers.at(0)->calculateWaitStatus();
+	sim_mob::BrokerBlockers::Value blocker = agentBlockers.at(0);
+	bool res = blocker->calculateWaitStatus();
+	return res;
 }
 
 //todo:  put a better condition here. this is just a placeholder
@@ -863,6 +872,8 @@ void sim_mob::Broker::waitForAgentsUpdates() {
 
 bool sim_mob::Broker::isClientDone(
 		boost::shared_ptr<sim_mob::ClientHandler> &clnHandler) {
+	//note: there is no locking provided here as mutex_clientDone
+	//is already locked in the grand caller of this method: wotforclientdone()
 	if (clientDoneChecker.end()
 			== clientDoneChecker.find(clnHandler->cnnHandler)) {
 		return false;
@@ -887,6 +898,7 @@ bool sim_mob::Broker::allClientsAreDone()
 				if (clnHandler->cnnHandler && clnHandler->cnnHandler->isValid() && clnHandler->cnnHandler->is_open()) {
 					//...then check if we're not done.
 					if (!isClientDone(clnHandler)) {
+						Print() << "client type[" << clientByType.first << "] ID[" << clientByID.first << "] not done yet";
 						return false;
 					}
 				}

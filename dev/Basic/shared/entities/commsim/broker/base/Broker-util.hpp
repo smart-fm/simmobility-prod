@@ -86,7 +86,7 @@ public:
 //int NumberOfThreads_cnt = 0;
 ///////////////////////////////////////////////////////////////////////////
 //template<class C,class Fn>
-//void doByThread(C &container, Fn function_){
+//void threadLoop(C &container, Fn function_){
 //	boost::thread_group threads;
 //	int numberOfThreads = ( container.size() > /*MAX_THREAD_GROUP_SIZE ? MAX_THREAD_GROUP_SIZE*/ 20 ? 20 : container.size() );
 //	int nofMsgsPerThread = container.size() / numberOfThreads;

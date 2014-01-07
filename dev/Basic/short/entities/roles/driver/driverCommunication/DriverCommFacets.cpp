@@ -50,8 +50,16 @@ void sim_mob::DriverCommMovement::frame_init() {
 	DriverMovement::frame_init();
 	sim_mob::Agent * agent = 0;
 	//todo: solve this hardcoding
-	this->parentDriverCommRole->RegisterWithBroker("roadrunner");
-	this->parentDriverCommRole->RegisterWithBroker("stk");
+//	this->parentDriverCommRole->RegisterWithBroker("roadrunner");
+//	this->parentDriverCommRole->RegisterWithBroker("stk");
+
+	//register this agent with every broker alive!
+	std::map<std::string, sim_mob::Broker*>::iterator it =  Broker::getExternalCommunicators().begin();
+	while(it != Broker::getExternalCommunicators().end()){
+		Broker *broker = it->second;
+		broker->registerEntity(parentDriverCommRole);
+		it++;
+	}
 }
 
 void sim_mob::DriverCommMovement::frame_tick() {

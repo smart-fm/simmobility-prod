@@ -178,12 +178,12 @@ void sim_mob::STK_Broker::processClientRegistrationRequests()
 
 	int ns3HandleResult = 0;
 	boost::shared_ptr<ClientRegistrationHandler > handler;
-	ClientWaitList::iterator it_erase;//helps avoid multimap iterator invalidation
 	ClientWaitList::iterator it;
 	for (it = clientRegistrationWaitingList.begin(); it != clientRegistrationWaitingList.end();) {
 		comm::ClientType clientType = sim_mob::Services::ClientTypeMap[it->first];
 		if(clientType == comm::NS3_SIMULATOR){
 			//first handle the android emulators
+			it++;
 			continue;
 		}
 		handler = ClientRegistrationHandlerMap[clientType];
@@ -197,7 +197,6 @@ void sim_mob::STK_Broker::processClientRegistrationRequests()
 			//success: handle() just added to the client to the main client list and started its connectionHandler
 			//	next, see if the waiting state of waiting-for-client-connection changes after this process
 			bool wait = clientBlockers[clientType]->calculateWaitStatus();
-			it_erase = it;	//keep the erase candidate. dont loose it :)
 			Print() << "delete from clientRegistrationWaitingList[" << it->first << "]" << std::endl;
 			clientRegistrationWaitingList.erase(it++);
 		} else {
@@ -209,7 +208,7 @@ void sim_mob::STK_Broker::processClientRegistrationRequests()
 	 * now take care of the ns3 simulator
 	 */
 
-	if((clientRegistrationWaitingList.count("NS3_SIMULATOR")) != 1){
+	if((clientRegistrationWaitingList.find("NS3_SIMULATOR")) != clientRegistrationWaitingList.end()){
 		//no ns3 has registered yet, let's not waste time
 		return;
 	}
@@ -218,6 +217,7 @@ void sim_mob::STK_Broker::processClientRegistrationRequests()
 
 
 	handler = ClientRegistrationHandlerMap[comm::NS3_SIMULATOR];
+	//if no handler was found for this type of client, throw an exception
 	if (!handler) {
 		std::ostringstream out("");
 		out << "No Handler for [" << it->first << "] type of client" << std::endl;
@@ -229,7 +229,6 @@ void sim_mob::STK_Broker::processClientRegistrationRequests()
 		//success: handle() just added to the client to the main client list and started its connectionHandler
 		//	next, see if the waiting state of waiting-for-client-connection changes after this process
 		bool wait = clientBlockers[comm::NS3_SIMULATOR]->calculateWaitStatus();
-		it_erase = it;	//keep the erase candidate. dont loose it :)
 		Print() << "delete from clientRegistrationWaitingList[" << it->first << "]" << std::endl;
 		clientRegistrationWaitingList.erase(it);
 	}

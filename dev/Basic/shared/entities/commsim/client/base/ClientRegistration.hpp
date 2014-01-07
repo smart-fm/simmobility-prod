@@ -71,7 +71,14 @@ public:
 class Broker;
 
 /**
- * ClientRegistrationHandler class. No documentation provided.
+ *      This Class is abstract. Its derived classed are responsible to process the registration request.
+ *      Such a request has been previously issued following a client connecting to simmobility.
+ *      registration, in this context, means adding a client to the list of valid clients
+ *      in the Broker. Processing a registration request, generally, includes an initial
+ *      evaluation, associating the client to a simmobility agent, creating a proper
+ *      client handler and finally do some post processing like informing the client of
+ *      the success of its request.
+ *      the main method is handle(). the rest of the methods are usually helpers.
  */
 class ClientRegistrationHandler {
 	comm::ClientType type;
@@ -79,6 +86,7 @@ class ClientRegistrationHandler {
 public:
 	ClientRegistrationHandler();
 	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest&) = 0;
+	virtual void postProcess(sim_mob::Broker& broker);
 	static sim_mob::event::EventPublisher & getPublisher();
 	virtual ~ClientRegistrationHandler();
 };

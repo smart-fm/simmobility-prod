@@ -122,6 +122,10 @@ sim_mob::ClientRegistrationHandler::ClientRegistrationHandler(/*comm::ClientType
 	//registrationPublisher.registerEvent(type);
 }
 
+void sim_mob::ClientRegistrationHandler::postProcess(sim_mob::Broker& broker){
+
+}
+
 sim_mob::ClientRegistrationHandler::~ClientRegistrationHandler()
 {
 }

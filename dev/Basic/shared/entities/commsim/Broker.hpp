@@ -321,7 +321,7 @@ public:
 	/**
 	 * 	configure publisher, message handlers and waiting criteria...
 	 */
-	void configure();
+	virtual void configure();
 	/**
 	 * 	temporary function replacing onAgentUpdate
 	 */

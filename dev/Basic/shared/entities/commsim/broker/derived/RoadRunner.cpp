@@ -31,6 +31,8 @@
 sim_mob::Roadrunner_Broker::Roadrunner_Broker(const MutexStrategy& mtxStrat, int id ,std::string commElement_, std::string commMode_) :
 Broker(mtxStrat, id, commElement_, commMode_)
 {
+	Print() << "Creating Broker for RoadRunner" << std::endl;
+	configure();
 	/*
 	 * the following code can be repeating considering the subclassing:
 	 * \code
@@ -171,6 +173,7 @@ sim_mob::Entity::UpdateStatus sim_mob::Roadrunner_Broker::update(timeslice now) 
 	//(in terms of client type (like ns3, android emulator, etc) and quantity(like enough number of android clients) ).
 	//Block the simulation here(if you have to)
 	wait();
+//	return UpdateStatus(UpdateStatus::RS_CONTINUE);
 	Print()
 			<< "===================== wait Done ======================================="
 			<< std::endl;

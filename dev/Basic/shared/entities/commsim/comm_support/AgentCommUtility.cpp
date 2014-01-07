@@ -107,10 +107,12 @@ bool sim_mob::AgentCommUtilityBase::RegisterWithBroker(const std::string& commEl
 //		info.setEntity(registerr);
 //		communicator = communicator_;
 //		Print() << "AgentCommUtility::Registering With Broker[" << communicator << "]" << std::endl;
-	if(brokers.find(commElement) == brokers.end()) {
+	std::map<const std::string,sim_mob::Broker*>::iterator it = brokers.find(commElement);
+	if(it == brokers.end()) {
 		throw std::runtime_error("Broker Not specified");
 	}
-	return brokers[commElement]->registerEntity(this);
+	sim_mob::Broker * broker = it->second;
+	return broker->registerEntity(this);
 //		std::cout << "agent[" << &getEntity() << "] was registered with outgoing[" << &(getOutgoing()) << "]" << std::endl;
 }
 
@@ -121,16 +123,16 @@ void sim_mob::AgentCommUtilityBase::setregistered(std::string commElement, bool 
 	if(brokers.find(commElement) == brokers.end()) {
 		throw std::runtime_error("Broker Not specified");
 	}
-	if(registered.find(commElement) == registered.end()) {
-		throw std::runtime_error("Broker Not specified");
+	if(registered.find(commElement) != registered.end()) {
+		throw std::runtime_error("Broker Already Registered-");
 	}
 	registered[commElement] = value;
 }
 
-
+//mark the agent as being registered with the given broker
 void sim_mob::AgentCommUtilityBase::setregistered(sim_mob::Broker *broker, bool value)
 {
-	//find the broker in the list
+	//1- find the broker in the list
 	sim_mob::Broker *tempBroker = nullptr;
 	std::string commElement;
 	std::map<const std::string,sim_mob::Broker*>::const_iterator it(brokers.begin()), it_end(brokers.end());
@@ -138,19 +140,20 @@ void sim_mob::AgentCommUtilityBase::setregistered(sim_mob::Broker *broker, bool 
 		if(it->second == broker)
 		{
 			tempBroker = broker;
+			//2.get the broker name(application actually: roadrunner, stk, etc)
 			commElement = it->first;
 			break;
 		}
 	}
-
+	//3.some checks
 	if(!tempBroker) {
 		throw std::runtime_error("Broker Not specified");
 	}
 
-	if(registered.find(commElement) == registered.end()) {
-		throw std::runtime_error("Broker Not specified");
+	if(registered.find(commElement) != registered.end()) {
+		throw std::runtime_error("This Agent has already registered with this Broker");
 	}
-
+	//4.now you will remember you have registered with this broker
 	registered[commElement] = value;
 }
 

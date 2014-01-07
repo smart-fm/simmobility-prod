@@ -164,7 +164,7 @@ public:
 		return parentConflux;
 	}
 
-	double getLengthOfSegment();
+	const double getLengthOfSegment() const;
 
 	void setParentConflux(sim_mob::Conflux* parentConflux) {
 		this->parentConflux = parentConflux;

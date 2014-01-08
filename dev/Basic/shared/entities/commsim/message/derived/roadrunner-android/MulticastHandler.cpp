@@ -96,17 +96,20 @@ void sim_mob::roadrunner::MulticastHandler::handle(sim_mob::comm::MsgPtr message
 	ClientList::Pair clientTypes;
 	ClientList::Type & all_clients = broker->getClientList();
 	sim_mob::comm::MsgData recipients;
+	//iterate through all registered clients
 	BOOST_FOREACH(clientTypes , all_clients)
 	{
-		// only the android emulators
+		// filter out those client sets which are not android emulators
 		if(clientTypes.first != comm::ANDROID_EMULATOR) {
 			continue;
 		}
 
 		ClientList::ValuePair clientIds;
 		boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> >& inner = clientTypes.second;
+		//iterate through android emulator clients
 		BOOST_FOREACH(clientIds , inner)
 		{
+			//get the agent associated to this client
 			boost::shared_ptr<sim_mob::ClientHandler> destClientHandlr  = clientIds.second;
 			const sim_mob::Agent* agent = destClientHandlr->agent;
 
@@ -132,8 +135,10 @@ void sim_mob::roadrunner::MulticastHandler::handle(sim_mob::comm::MsgPtr message
 void sim_mob::roadrunner::MulticastHandler::handleClient(const sim_mob::ClientHandler& clientHdlr, sim_mob::comm::MsgData& recipientsList, Broker& broker, sim_mob::comm::MsgData& data)
 {
 	if (useNs3) {
+		//add the agent to the list of ns3 agent recipients
 		recipientsList.append(clientHdlr.agent->getId());
 	} else {
+		//directly request to send
 		broker.insertSendBuffer(clientHdlr.cnnHandler,data);
 	}
 }

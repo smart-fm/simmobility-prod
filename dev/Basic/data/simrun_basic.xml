@@ -293,7 +293,8 @@
             <!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
             <mutex_enforcement    strategy="buffered" />
         	<communication enabled="no">
-        		<android_testbed type="android-ns3" enabled="yes"/> <!--currently: type="android-only" and "android-ns3" -->
+        		<roadrunner mode="android-only" enabled="no"/> <!--currently: mode="android-only" and "android-ns3" -->
+        		<stk mode="android-ns3" enabled="no"/> 
         	</communication>
 
 		<!--  These don't seem to do anything. ~Seth -->
@@ -414,11 +415,13 @@
         <blockingTimeSec value="5"/>
     </fmodcontroller>
         
-    <!-- incident definition{ incident id, visibilty distance(centrimetre), segment id, percentage position in segment, severity code, capacity factor, start time, duration(mintue), speed limit(kmph) lane id,  compliance weightage, information accessibilty-->
-    <incidentsData enabled="no">
-    	<incident id="1" visibility="5000" segment="40200" position="50" severity="1" cap_factor="1.0" start_time="08:30:40" duration="00:40:00" speed_limit="0" speed_limit_adjacentlanes="20" lane="0" compliance="50" accessibility="50" />
+    <incidentsData enabled="yes">
+    	<incident id="0" visibility="4000" segment="40200" position="60" cap_factor="1.0" start_time="08:30:00" duration="00:32:00" length="1000" compliance="50" accessibility="50" > 
+    		<lane laneId="0" speedLimitFactor="0"/>
+    		<lane laneId="1" speedLimitFactor="0"/>
+    		<lane laneId="2" speedLimitFactor="20"/>
+    	</incident>
     </incidentsData>
-    
     
     
     <!-- For buses (?) -->

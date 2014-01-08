@@ -18,11 +18,23 @@
 #include "entities/commsim/message/base/MessageQueue.hpp"
 #include "entities/commsim/message/base/Handler.hpp"
 #include "entities/commsim/buffer/BufferContainer.hpp"
-#include "entities/commsim/broker/Broker-util.hpp"
+#include "entities/commsim/broker/base/Broker-util.hpp"
+#include "entities/commsim/broker/base/Common.hpp"
+
 #include "util/OneTimeFlag.hpp"
 #include "workers/Worker.hpp"
 
+#include "event/SystemEvents.hpp"
+#include "message/MessageBus.hpp"
+#include "event/EventPublisher.hpp"
+
 namespace sim_mob {
+
+/**
+ * This file contains Broker class as the main component in this file.
+ * The rest of the structures are custom data types used in the broker class.
+ * Find the documentation at the beginning of each structure/class.
+ */
 
 //Forward Declarations
 template <class RET,class MSG>
@@ -38,6 +50,15 @@ class ConnectionServer;
 class ClientHandler;
 class BrokerBlocker;
 
+
+//subclassed Eventpublisher coz its destructor is pure virtual
+class BrokerPublisher: public sim_mob::event::EventPublisher {
+public:
+	BrokerPublisher() {
+	}
+	virtual ~BrokerPublisher() {
+	}
+};
 
  //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
 struct MessageElement{
@@ -114,9 +135,24 @@ struct SendBuffer {
 	typedef std::pair<Key, Value> Pair;
 };
 
+/**
+ * This class is the heart of communication simulator
+ * It is responsible for configuring and managing communication simulator.
+ * the update method of broker performs the following:
+ * - managing the synchronization(with internal and external entities)
+ * - Processing the incoming requests for registration(internal and external)
+ * - Processing the incoming/outgoing messages
+ * - clean up
+ * - other application specific settings
+ * It is advisable to subclass from broker to make customized configuration/implementation
+ */
 class Broker  : public sim_mob::Agent {
-private:
+protected:
 	typedef std::multimap<std::string,ClientRegistrationRequest > ClientWaitList;
+
+	///the external communication entity that is using this broker as interface to from simmobility
+	std::string commElement;//"roadrunner", "stk",...etc
+	std::string commMode; //android-only, android-ns3,...etc
 
 	///	Is this Broker currently enabled?
 	bool enabled;
@@ -129,17 +165,17 @@ private:
 	///	list of authorized clients who have passed the registration process
 	ClientList::Type clientList; //key note: there can be one agent associated with multiple clients in this list. why? : coz clients of any type are i this list. and any one has associated itself to this agent for its specific type's reason
 
-	///Set of clients that need their enableRegionSupport() function called. This can only be done once their time tick is over,
-	///  so we pend them on this list. The extra weak_ptr shouldn't be a problem; if the object is destroyed before its
-	///  call to enableRegionSupport(), it will just be silently dropped.
-	std::set< boost::weak_ptr<sim_mob::ClientHandler> > newClientsWaitingOnRegionEnabling;
-
 	///	connection point to outside simmobility
 	boost::shared_ptr<sim_mob::ConnectionServer> connection;					//accepts, authenticate and registers client connections
 	///	message receive call back function pointer
 	boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> m_messageReceiveCallback;
 	///	list of this broker's publishers
 	PublisherList::Type publishers;
+
+	///Broker's Publisher
+	BrokerPublisher publisher;
+	///services to be published by the broker's publisher
+	std::vector<sim_mob::Services::SIM_MOB_SERVICE> serviceList;
 
 	///	place to gather outgoing data for each tick
 	SendBuffer::Type sendBuffer;
@@ -150,7 +186,12 @@ private:
 	///	to transform the data into messages and assign their message handlers
 	MessageFactories::Type messageFactories; //<client type, message factory>
 	///	list of classes who process client registration requests based on client type
-	sim_mob::ClientRegistrationFactory clientRegistrationFactory;
+//	sim_mob::ClientRegistrationFactory clientRegistrationFactory;
+	//todo this will be configured in the configure() method and
+	//replace the above "clientRegistrationFactory" member for simplicity
+	std::map<comm::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> > ClientRegistrationHandlerMap;
+	//	publishes an event when a client is registered with the broker
+	sim_mob::ClientRegistrationPublisher registrationPublisher;
 	///	internal controlling container
 	std::set<const sim_mob::Agent*> duplicateEntityDoneChecker ;
 	///	internal controlling container
@@ -216,7 +257,7 @@ private:
 	/**
 	 * processes clients requests to be registered with the broker
 	 */
-	void processClientRegistrationRequests();
+	virtual void processClientRegistrationRequests();
 	/**
 	 * removes a client from the list of registered agents
 	 * Note: this function is not used any more.
@@ -230,11 +271,6 @@ private:
 	void waitForClientsDone();
 
 	/**
-	 * Set any properties on "new" clients for this time tick. (Currently we do this with a specialized data-structure per client).
-	 */
-	void setNewClientProps();
-
-	/**
 	 * checks to see if every registered agent has completed its operations for the
 	 * current tick or not.
 	 */
@@ -245,16 +281,24 @@ private:
 	void cleanup();
 	/**
 	 * 	handlers executed when an agent is going out of simulation(die)
+	 * The number and order of arguments are as per EventPublisher guidelines.
+	 * To avoid comment duplication, refer to the wiki and the corresponding source code for more information
 	 */
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 	/**
 	 * to be called and identify the agent who has just updated
+	 * The number and order of arguments are as per EventPublisher guidelines.
+	 * To avoid comment duplication, refer to the wiki and the corresponding source code for more information
 	 */
-	void onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums);
+	virtual void onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums);
+	/**
+	 * 	actuall implementation of onAgentUpdate
+	 */
+	void agentUpdated(const Agent* target );
 	/**
 	 * 	is called when a new client is registered with the broker
 	 */
-	void onClientRegister(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums);
+	virtual void onClientRegister(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums);
 	/**
 	 * 	publish various data the broker has subscibed to
 	 */
@@ -273,19 +317,15 @@ private:
 	void processIncomingData(timeslice);
 
 public:
-	/**
-	 * constructor and destructor
-	 */
-	explicit Broker(const MutexStrategy& mtxStrat, int id=-1);
+	explicit Broker(const MutexStrategy& mtxStrat, int id=-1, std::string commElement_ = "", std::string commMode_ = "");
 	/**
 	 * 	configure publisher, message handlers and waiting criteria...
 	 */
-	void configure();
+	virtual void configure();
 	/**
 	 * 	temporary function replacing onAgentUpdate
 	 */
 	void AgentUpdated(Agent *);
-	///	destructor
 	~Broker();
 	//	enable broker
 	void enable();
@@ -337,17 +377,17 @@ public:
 	void insertClientList(std::string, comm::ClientType , boost::shared_ptr<sim_mob::ClientHandler>&);
 
 	/**
-	 * Call a client's "enableRegionSupport()" method later, after that client is definitely done with its frame_tick() method.
-	 */
-	void pendClientToEnableRegions(boost::shared_ptr<sim_mob::ClientHandler> &clientHandler);
-
-	/**
 	 * 	adds a client to the registration waiting list
 	 */
 	void insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest >);
 
 	///Return an EventPublisher for a given type. Throws an exception if no such type is registered.
-	PublisherList::Value getPublisher(sim_mob::Services::SIM_MOB_SERVICE serviceType);
+//	PublisherList::Value getPublisher(sim_mob::Services::SIM_MOB_SERVICE serviceType);
+	sim_mob::event::EventPublisher & getPublisher();
+	/**
+	 * Accessor to client registration publisher
+	 */
+	sim_mob::ClientRegistrationPublisher &getRegistrationPublisher();
 
 	/**
 	 * 	request to insert into broker's send buffer
@@ -400,6 +440,5 @@ protected:
 	bool allClientsAreDone();
 
 };
-
 
 }

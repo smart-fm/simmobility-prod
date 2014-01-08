@@ -6,57 +6,180 @@
  */
 
 #include "IncidentStatus.hpp"
+#include "util/Utils.hpp"
 #include <cmath>
 
 namespace sim_mob {
 
-unsigned int IncidentStatus::flags = 0;
-IncidentStatus::IncidentStatus() : currentStatus(INCIDENT_CLEARANCE), defaultSpeedLimit(0), speedLimitFactor(0), speedLimitFactorOthers(0), distanceTo(0), laneSide(LCS_SAME), changedLane(false), slowdownVelocity(false){
-	// TODO Auto-generated constructor stub
-	if(flags == 0) {
-		flags = 1;
-		srand (time(0));
-		unsigned int signature = time(0);
-		unsigned int s = 0xFF << (signature * 8);
-		if (!(seed = s)) {
-			seed = time(0);
-		}
-	}
-
-	 randomNum = rand()/(RAND_MAX*1.0);
+IncidentStatus::IncidentStatus() :
+		currentStatus(INCIDENT_CLEARANCE), defaultSpeedLimit(0), distanceTo(0), laneSide(
+				LCS_SAME), currentLaneIndex(0), nextLaneIndex(-1), incidentLength(
+				0), changedLane(false), slowdownVelocity(false) {
+	randomNum = Utils::generateFloat(0, 1.0);
 }
 
 IncidentStatus::~IncidentStatus() {
 	// TODO Auto-generated destructor stub
 }
 
-bool IncidentStatus::insertIncident(const Incident* inc){
-	if( currentIncidents.count(inc->incidentId) > 0 ) {
+void IncidentStatus::setNextLaneIndex(int value) {
+	nextLaneIndex = value;
+}
+int IncidentStatus::getNextLaneIndex() {
+	return nextLaneIndex;
+}
+
+void IncidentStatus::setCurrentLaneIndex(int value) {
+	currentLaneIndex = value;
+}
+int IncidentStatus::getCurrentLaneIndex() {
+	return currentLaneIndex;
+}
+
+void IncidentStatus::setDefaultSpeedLimit(float value) {
+	defaultSpeedLimit = value;
+}
+
+void IncidentStatus::setVisibilityDistance(float value) {
+	visibilityDist = value;
+}
+float IncidentStatus::getVisibilityDistance() {
+	return visibilityDist;
+}
+
+void IncidentStatus::setDistanceToIncident(float value) {
+	distanceTo = value;
+}
+float IncidentStatus::getDistanceToIncident() {
+	return distanceTo;
+}
+
+void IncidentStatus::setRandomValue(float value) {
+	randomNum = value;
+}
+float IncidentStatus::getRandomValue() {
+	return randomNum;
+}
+
+void IncidentStatus::setLaneSide(LANE_CHANGE_SIDE value) {
+	laneSide = value;
+}
+LANE_CHANGE_SIDE IncidentStatus::getLaneSide() {
+	return laneSide;
+}
+
+void IncidentStatus::setChangedLane(bool value) {
+	changedLane = value;
+}
+bool IncidentStatus::getChangedLane() {
+	return changedLane;
+}
+
+void IncidentStatus::setSlowdownVelocity(bool value) {
+	slowdownVelocity = value;
+}
+bool IncidentStatus::getSlowdownVelocity() {
+	return slowdownVelocity;
+}
+
+IncidentStatus::IncidentStatusType IncidentStatus::getCurrentStatus() {
+	return currentStatus;
+}
+void IncidentStatus::setCurrentStatus(IncidentStatusType value) {
+	currentStatus = value;
+}
+
+int IncidentStatus::checkBlockingStatus(const Incident*inc) {
+	int ret = -1;
+	bool isFullyBlocking = true;
+	for (std::vector<Incident::LaneItem>::const_iterator laneIt =
+			inc->laneItems.begin(); laneIt != inc->laneItems.end(); laneIt++) {
+		if ((*laneIt).speedLimit > 0) {
+			isFullyBlocking = false;
+			ret = (*laneIt).laneId;
+			break;
+		}
+	}
+
+	return ret;
+}
+
+float IncidentStatus::getSpeedLimit(unsigned int laneId) {
+	if (currentIncidents.size() == 0) {
+		return -1.0;
+	}
+
+	float speedLimitFactor = -1.0;
+	if (laneId < currentIncidents[0]->laneItems.size()) {
+		speedLimitFactor = currentIncidents[0]->laneItems[laneId].speedLimit;
+	}
+
+	return speedLimitFactor * defaultSpeedLimit;
+}
+
+double IncidentStatus::reduceIncidentLength(float forward) {
+	if (incidentLength > 0) {
+		incidentLength -= forward;
+	}
+	return incidentLength;
+}
+double IncidentStatus::getCurrentIncidentLength() {
+	return incidentLength;
+}
+
+bool IncidentStatus::insertIncident(const Incident* inc) {
+
+	if (!inc) {
 		return false;
 	}
 
-	currentIncidents[inc->incidentId] = inc;
-	if( speedLimitFactor<=0 ){
-		speedLimitFactor = inc->speedlimit;
-	}
-	else{
-		speedLimitFactor = std::min(speedLimitFactor, inc->speedlimit);
-	}
-
-	if( speedLimitFactorOthers<=0 ){
-		speedLimitFactorOthers = inc->speedlimitOthers;
-	}
-	else{
-		speedLimitFactorOthers = std::min(speedLimitFactorOthers, inc->speedlimitOthers);
+	bool ret = true;
+	if (currentIncidents.count(inc->incidentId) > 0) {
+		ret = false;
+		return ret;
+	} else {
+		currentIncidents.insert(std::make_pair(inc->incidentId, inc));
 	}
 
-	return true;
+	int destinationLaneId = checkBlockingStatus(inc);
+
+	currentStatus = INCIDENT_FULLYBLOCKING;
+	incidentLength = inc->length;
+
+	if (destinationLaneId < 0) {
+		slowdownVelocity = true;
+		currentStatus = INCIDENT_OCCURANCE_LANE;
+	} else if (destinationLaneId >= 0) {
+
+		const float convertFactor = 100.0;
+		if (getSpeedLimit(currentLaneIndex) / convertFactor
+				< defaultSpeedLimit) {
+			slowdownVelocity = true;
+		}
+
+		if (destinationLaneId != currentLaneIndex
+				&& getSpeedLimit(currentLaneIndex) == 0) {
+			currentStatus = INCIDENT_OCCURANCE_LANE;
+			nextLaneIndex = destinationLaneId;
+			if (currentLaneIndex < nextLaneIndex) {
+				laneSide = LCS_LEFT;
+			} else {
+				laneSide = LCS_RIGHT;
+			}
+		} else {
+			currentStatus = INCIDENT_ADJACENT_LANE;
+		}
+	}
+
+	return ret;
 }
 
-bool IncidentStatus::removeIncident(const Incident* inc){
+bool IncidentStatus::removeIncident(const Incident* inc) {
 
-	for(std::map<unsigned int, const Incident*>::iterator incIt = currentIncidents.begin(); incIt != currentIncidents.end(); incIt++) {
-		if( (*incIt).first == inc->incidentId ){
+	for (std::map<unsigned int, const Incident*>::iterator incIt =
+			currentIncidents.begin(); incIt != currentIncidents.end();
+			incIt++) {
+		if ((*incIt).first == inc->incidentId) {
 			currentIncidents.erase(inc->incidentId);
 			return true;
 		}
@@ -65,22 +188,18 @@ bool IncidentStatus::removeIncident(const Incident* inc){
 	return false;
 }
 
-void IncidentStatus::checkIsCleared(){
+void IncidentStatus::checkIsCleared() {
 
-	if(currentIncidents.size() ==0 ){
+	if (currentIncidents.size() == 0) {
 		resetStatus();
 	}
 }
 
-
-void IncidentStatus::resetStatus(){
+void IncidentStatus::resetStatus() {
 	currentStatus = INCIDENT_CLEARANCE;
-	nextLaneIndex = -1;
-	speedLimitFactor = -1;
-	speedLimitFactorOthers = -1;
+	nextLaneIndex = -2;
 	changedLane = false;
 	slowdownVelocity = false;
 }
-
 
 } /* namespace sim_mob */

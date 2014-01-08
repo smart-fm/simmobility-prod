@@ -27,6 +27,48 @@ Handler* sim_mob::rr_android_ns3::NS3_MSG_UNICAST::newHandler()
 //handler implementation
 void sim_mob::rr_android_ns3::NS3_HDL_UNICAST::handle(sim_mob::comm::MsgPtr message_,Broker* broker)
 {
+	//find the destination client handler
+	boost::shared_ptr<sim_mob::ClientHandler> destClnHndlr;
+	sim_mob::comm::MsgData& jData = message_->getData();
+	int destAgentId = jData["RECEIVING_AGENT_ID"].asInt();
+	ClientList::Type & allClients = broker->getClientList();
+	ClientList::Pair clientTypes;
+	BOOST_FOREACH(clientTypes , allClients) {
+		// only the android emulators
+		if (clientTypes.first != comm::ANDROID_EMULATOR) {
+			continue;
+		}
+
+		ClientList::ValuePair clientIds;
+		boost::unordered_map<std::string,
+				boost::shared_ptr<sim_mob::ClientHandler> > &inner =
+				clientTypes.second;
+		if (inner.size() == 0) {
+		} else {
+		}
+		BOOST_FOREACH(clientIds , inner) {
+			boost::shared_ptr<sim_mob::ClientHandler> clnHandler =
+					clientIds.second;
+			const Agent* agent;
+			//valid agent
+			if ((agent = clnHandler->agent) == 0) {
+				continue;
+			}
+			//match agent id
+			if (agent->getId() != destAgentId) {
+				continue;
+			}
+			//destination client handler(for android)
+			destClnHndlr = clnHandler;
+			//no need to search again once the first -and only- match is found
+			break;
+		}
+
+		//insert into sending buffer
+		if (destClnHndlr && destClnHndlr->cnnHandler) {
+			broker->insertSendBuffer(destClnHndlr->cnnHandler, jData);
+		}
+	}
 }
 
 

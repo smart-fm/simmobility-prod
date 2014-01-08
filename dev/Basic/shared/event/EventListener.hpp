@@ -19,7 +19,10 @@ namespace sim_mob {
 
         class EventPublisher;
 
-        typedef void* Context;
+        ///A Conext is used to refine event subscriptions.
+        ///It is essentially a "thing" (hence the void*) that
+        /// is used only for identification (hence the const).
+        typedef const void* Context;
 
         ///Interface for all event listener implementation.
         class EventListener {

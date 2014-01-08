@@ -141,6 +141,8 @@ protected:
 
 	void checkIncidentStatus(DriverUpdateParams& p, timeslice now);
 
+	void responseIncidentStatus(DriverUpdateParams& p, timeslice now);
+
 	//Helper: for special strings
 	//NOTE: I am disabling special strings. ~Seth
 	//void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);

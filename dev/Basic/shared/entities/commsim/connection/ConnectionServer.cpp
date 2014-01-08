@@ -13,7 +13,7 @@
 #include "Session.hpp"
 #include "WhoAreYouProtocol.hpp"
 #include "logging/Log.hpp"
-#include "entities/commsim/broker/Broker.hpp"
+#include "entities/commsim/Broker.hpp"
 
 using namespace sim_mob;
 

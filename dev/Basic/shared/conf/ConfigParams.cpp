@@ -90,6 +90,12 @@ sim_mob::RoleFactory& sim_mob::ConfigParams::getRoleFactoryRW()
 }
 
 
+sim_mob::Factory<sim_mob::Broker>& sim_mob::ConfigParams::getBrokerFactoryRW()
+{
+	return brokerFact;
+}
+
+
 /*void sim_mob::ConfigParams::InitUserConf(const std::string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof, const Config::BuiltInModels& builtInModels)
 {
 	//Load using our new config syntax.
@@ -342,22 +348,28 @@ const bool& sim_mob::ConfigParams::commSimEnabled() const
 	return system.simulation.commSimEnabled;
 }
 
-bool& sim_mob::ConfigParams::androidClientEnabled()
-{
-	return system.simulation.androidClientEnabled;
-}
-const bool& sim_mob::ConfigParams::androidClientEnabled() const
-{
-	return system.simulation.androidClientEnabled;
+const std::map<std::string,sim_mob::SimulationParams::CommsimElement> &sim_mob::ConfigParams::getCommSimElements() const{
+	return system.simulation.commsimElements;
 }
 
-const std::string& sim_mob::ConfigParams::getAndroidClientType() const {
-	return system.simulation.androidClientType;
+const std::string& sim_mob::ConfigParams::getCommSimMode(std::string name) const{
+	if(system.simulation.commsimElements.find(name) != system.simulation.commsimElements.end()){
+		return system.simulation.commsimElements.at(name).mode;
+	}
+	std::ostringstream out("");
+	out << "Unknown Communication Simulator : " << name ;
+	throw std::runtime_error(out.str());
 }
 
-std::string& sim_mob::ConfigParams::getAndroidClientType() {
-	return system.simulation.androidClientType;
+bool sim_mob::ConfigParams::commSimmEnabled(std::string &name) {
+	if(system.simulation.commsimElements.find(name) != system.simulation.commsimElements.end()){
+		return system.simulation.commsimElements[name].enabled;
+	}
+	std::ostringstream out("");
+	out << "Unknown Communication Simulator : " << name ;
+	throw std::runtime_error(out.str());
 }
+
 
 DailyTime& sim_mob::ConfigParams::simStartTime()
 {

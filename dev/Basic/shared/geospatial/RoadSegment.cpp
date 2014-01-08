@@ -102,7 +102,7 @@ void sim_mob::RoadSegment::specifyEdgePolylines(const vector< vector<Point2D> >&
 	//TODO: Optionally reset this Segment's own polyline to laneEdge[0].
 }
 
-double sim_mob::RoadSegment::getLengthOfSegment()
+const double sim_mob::RoadSegment::getLengthOfSegment() const
 {
 	std::vector<sim_mob::Point2D> polypointsList = (this)->getLanes().at(0)->getPolyline();
 	double dis=0;

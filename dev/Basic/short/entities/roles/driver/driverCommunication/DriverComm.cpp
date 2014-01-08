@@ -8,7 +8,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 //#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
-#include "entities/commsim/broker/Broker.hpp"
+#include "entities/commsim/Broker.hpp"
 
 namespace sim_mob
 {
@@ -31,14 +31,12 @@ Role* sim_mob::DriverComm::clone(Person* parent) const
 	movement->setParentDriver(driver);
 	behavior->setParentDriverComm(driver);
 	movement->setParentDriverComm(driver);
-	//broker, (external)communicator :( ... setting
 
-	const ConfigParams &cfg = ConfigManager::GetInstance().FullConfig();
-	const std::string &type = cfg.getAndroidClientType();
-	Broker* managingBroker = Broker::getExternalCommunicator(type);
-//	Print() << "Setting Broker["  << managingBroker << "] to drivercomm " << std::endl;
-	driver->setBroker(managingBroker);
-
+	std::map<std::string, sim_mob::Broker*>::iterator it =  Broker::getExternalCommunicators().begin();
+	while(it != Broker::getExternalCommunicators().end()){
+		driver->setBroker(it->first, it->second);
+		it++;
+	}
 	return driver;
 }
 sim_mob::Agent * DriverComm::getParentAgent()

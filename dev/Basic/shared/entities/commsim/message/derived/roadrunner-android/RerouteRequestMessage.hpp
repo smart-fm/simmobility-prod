@@ -6,15 +6,19 @@
 
 #include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/message/base/Message.hpp"
-#include "entities/commsim/message/base/Handler.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/RerouteRequestHandler.hpp"
 
 namespace sim_mob {
 namespace roadrunner {
 
-//Handles logging information remotely.
-class RemoteLogHandler : public sim_mob::Handler {
+class RerouteRequestMessage : public sim_mob::comm::Message {
 public:
-	virtual void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker);
+	RerouteRequestMessage(const sim_mob::comm::MsgData& data_) : Message(data_)
+	{}
+
+	sim_mob::Handler* newHandler() {
+		return new sim_mob::roadrunner::RerouteRequestHandler();
+	}
 };
 
 }}

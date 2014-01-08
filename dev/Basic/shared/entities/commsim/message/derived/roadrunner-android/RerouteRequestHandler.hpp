@@ -11,8 +11,8 @@
 namespace sim_mob {
 namespace roadrunner {
 
-//Handles logging information remotely.
-class RemoteLogHandler : public sim_mob::Handler {
+//Handles a request to re-route.
+class RerouteRequestHandler : public sim_mob::Handler {
 public:
 	virtual void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker);
 };

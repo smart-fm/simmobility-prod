@@ -101,6 +101,31 @@ private:
 	void constructTours();
 
 	/**
+	 * inserts day pattern level information for a person
+	 * This function will be called once after all predictions for every person in the population.
+	 */
+	void insertDayPattern();
+
+	/**
+	 * inserts tour level information for a person
+	 * This function will be called once for every tour of every person in the population.
+	 *
+	 * @param tour an object containing information pertinent to a tour
+	 * @param tourNumber the index of this tour among all tours of this person
+	 */
+	void insertTour(Tour* tour, int tourNumber);
+
+	/**
+	 * inserts tour level information for a person
+	 * This function will be called once for every stop of every tour of every person in the population.
+	 *
+	 * @param stop an object containing information pertinent to a stop
+	 * @param stopNumber the index of this stop among all stops of this tour
+	 * @param tourNumber the index of the stop's parent tour among all tours of this person
+	 */
+	void insertStop(Stop* stop, int stopNumber, int tourNumber);
+
+	/**
 	 * Person specific parameters
 	 */
 	PersonParams& personParams;
@@ -141,13 +166,21 @@ private:
     boost::unordered_map<std::string, db::MongoDao*> mongoDao;
 
 public:
-	PredaySystem(PersonParams& personParams, const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup, const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap);
+	PredaySystem(PersonParams& personParams,
+			const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
+			const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
+			const boost::unordered_map<std::string, db::MongoDao*>& mongoDao);
 	virtual ~PredaySystem();
 
 	/**
-	 * The sequence of models to be invoked for a person is coded in this function.
+	 * Invokes behavior models in a sequence as defined in the system of models
 	 */
 	void planDay();
+
+	/**
+	 * Writes the output of Preday to MongoDB
+	 */
+	void outputPredictionsToMongo();
 };
 
 } // end namespace medium

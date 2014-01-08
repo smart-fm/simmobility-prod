@@ -151,6 +151,15 @@ public:
 		}
 	}
 
+	std::string getStopTypeStr() const {
+		switch(stopType) {
+		case WORK: return "Work";
+		case EDUCATION: return "Education";
+		case SHOP: return "Shop";
+		case OTHER: return "Other";
+		}
+	}
+
 	void setStopType(StopType stopType) {
 		this->stopType = stopType;
 	}
@@ -188,12 +197,12 @@ private:
  * A tour is a sequence of trips and activities of a person for a day.
  * A tour is assumed to start and end at the home location of the person.
  *
+ *\author Harish Loganathan
  */
 class Tour {
 public:
 	Tour(StopType tourType)
-	: tourType(tourType), usualLocation(false), subTour(false), parentTour(nullptr), tourMode(0),
-	  primaryActivityLocation(0), primaryActivityId(0), startTime(0), endTime(0)
+	: tourType(tourType), usualLocation(false), subTour(false), parentTour(nullptr), tourMode(0), tourDestination(0), primaryStop(nullptr), startTime(0), endTime(0)
 	{}
 
 	virtual ~Tour() {
@@ -213,14 +222,6 @@ public:
 
 	const Tour& getParentTour() const {
 		return *parentTour;
-	}
-
-	int getPrimaryActivityLocation() const {
-		return primaryActivityLocation;
-	}
-
-	void setPrimaryActivityLocation(int primaryActivityLocation) {
-		this->primaryActivityLocation = primaryActivityLocation;
 	}
 
 	double getStartTime() const {
@@ -249,6 +250,15 @@ public:
 
 	StopType getTourType() const {
 		return tourType;
+	}
+
+	std::string getTourTypeStr() const {
+		switch(tourType) {
+		case WORK: return "Work";
+		case EDUCATION: return "Education";
+		case SHOP: return "Shop";
+		case OTHER: return "Other";
+		}
 	}
 
 	void setTourType(StopType tourType) {
@@ -281,12 +291,20 @@ public:
 		}
 	}
 
-	int getPrimaryActivityLocationId() const {
-		return primaryActivityId;
+	const Stop* getPrimaryStop() const {
+		return primaryStop;
 	}
 
-	void setPrimaryActivityLocationId(int primaryActivityId) {
-		this->primaryActivityId = primaryActivityId;
+	void setPrimaryStop(Stop* primaryStop) {
+		this->primaryStop = primaryStop;
+	}
+
+	int getTourDestination() const {
+		return tourDestination;
+	}
+
+	void setTourDestination(int tourDestination) {
+		this->tourDestination = tourDestination;
 	}
 
 	std::deque<Stop*> stops;
@@ -295,10 +313,10 @@ private:
 	StopType tourType;
 	bool usualLocation;
 	bool subTour;
-	Tour* parentTour;
+	Tour* parentTour; // in case of sub tours
 	int tourMode;
-	int primaryActivityLocation;
-	int primaryActivityId;
+	int tourDestination;
+	Stop* primaryStop;
 	double startTime;
 	double endTime;
 };

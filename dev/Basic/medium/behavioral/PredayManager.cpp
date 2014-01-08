@@ -175,8 +175,25 @@ void sim_mob::medium::PredayManager::distributeAndProcessPersons(uint16_t numWor
 }
 
 void sim_mob::medium::PredayManager::processPersons(PersonList& persons) {
-	for(PersonList::iterator i = persons.begin(); i!=persons.end(); i++) {
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap);
-		predaySystem.planDay();
+	boost::unordered_map<std::string, db::MongoDao*> mongoDao;
+	MongoCollectionsMap mongoColl = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo");
+	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+	std::string emptyString;
+	for(std::map<std::string, std::string>::const_iterator i=mongoColl.collectionName.begin(); i!=mongoColl.collectionName.end(); i++) {
+		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
+
+	// loop through all persons in the population and plan their day
+	for(PersonList::iterator i = persons.begin(); i!=persons.end(); i++) {
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
+		predaySystem.planDay();
+		predaySystem.outputPredictionsToMongo();
+	}
+
+	// destroy Dao objects
+	for(boost::unordered_map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
+		safe_delete_item(i->second);
+	}
+	mongoDao.clear();
 }

@@ -32,25 +32,15 @@ using namespace sim_mob;
 using namespace sim_mob::medium;
 using namespace mongo;
 
-PredaySystem::PredaySystem(PersonParams& personParams, const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup, const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap)
-: personParams(personParams), zoneMap(zoneMap), zoneIdLookup(zoneIdLookup), amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap)
-{
-	MongoCollectionsMap mongoColl = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo");
-	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
-	string emptyString;
-	for(std::map<std::string, std::string>::const_iterator i=mongoColl.collectionName.begin(); i!=mongoColl.collectionName.end(); i++) {
-		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
-		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
-	}
-}
+PredaySystem::PredaySystem(PersonParams& personParams,
+		const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
+		const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
+		const boost::unordered_map<std::string, db::MongoDao*>& mongoDao)
+: personParams(personParams), zoneMap(zoneMap), zoneIdLookup(zoneIdLookup), amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap), mongoDao(mongoDao)
+{}
 
 PredaySystem::~PredaySystem()
-{
-	for(boost::unordered_map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
-		safe_delete_item(i->second);
-	}
-	mongoDao.clear();
-}
+{}
 
 bool sim_mob::medium::PredaySystem::predictUsualWorkLocation(bool firstOfMultiple) {
     UsualWorkParams usualWorkParams;
@@ -75,7 +65,7 @@ void PredaySystem::predictTourMode(Tour& tour) {
 	tmParams.setStopType(tour.getTourType());
 
 	ZoneParams* znOrgObj = zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()));
-	ZoneParams* znDesObj = zoneMap.at(tour.getPrimaryActivityLocationId());
+	ZoneParams* znDesObj = zoneMap.at(zoneIdLookup.at(tour.getTourDestination()));
 	tmParams.setCostCarParking(znDesObj->getParkingRate());
 	tmParams.setCentralZone(znDesObj->getCentralDummy());
 	tmParams.setResidentSize(znOrgObj->getResidentWorkers());
@@ -83,9 +73,9 @@ void PredaySystem::predictTourMode(Tour& tour) {
 	tmParams.setEducationOp(znDesObj->getTotalEnrollment());
 	tmParams.setOriginArea(znOrgObj->getArea());
 	tmParams.setDestinationArea(znDesObj->getArea());
-	if(personParams.getHomeLocation() != tour.getPrimaryActivityLocation()) {
-		CostParams* amObj = amCostMap.at(personParams.getHomeLocation()).at(tour.getPrimaryActivityLocation());
-		CostParams* pmObj = pmCostMap.at(tour.getPrimaryActivityLocation()).at(personParams.getHomeLocation());
+	if(personParams.getHomeLocation() != tour.getTourDestination()) {
+		CostParams* amObj = amCostMap.at(personParams.getHomeLocation()).at(tour.getTourDestination());
+		CostParams* pmObj = pmCostMap.at(tour.getTourDestination()).at(personParams.getHomeLocation());
 		tmParams.setCostPublicFirst(amObj->getPubCost());
 		tmParams.setCostPublicSecond(pmObj->getPubCost());
 		tmParams.setCostCarErpFirst(amObj->getCarCostErp());
@@ -157,15 +147,14 @@ void PredaySystem::predictTourModeDestination(Tour& tour) {
 	int modeDest = PredayLuaProvider::getPredayModel().predictTourModeDestination(personParams, tmdParams);
 	tour.setTourMode(tmdParams.getMode(modeDest));
 	int zone_id = tmdParams.getDestination(modeDest);
-	tour.setPrimaryActivityLocationId(zone_id);
-	tour.setPrimaryActivityLocation(zoneMap.at(zone_id)->getZoneCode());
+	tour.setTourDestination(zoneMap.at(zone_id)->getZoneCode());
 }
 
 TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 	int timeWndw;
 	if(!tour.isSubTour()) {
 		int origin = personParams.getHomeLocation();
-		int destination = tour.getPrimaryActivityLocation();
+		int destination = tour.getTourDestination();
 		TourTimeOfDayParams todParams;
 		timeWndw = PredayLuaProvider::getPredayModel().predictTourTimeOfDay(personParams, todParams, tour.getTourType());
 	}
@@ -831,8 +820,7 @@ void PredaySystem::constructTours() {
 		Tour* workTour = new Tour(WORK);
 		workTour->setUsualLocation(attendsUsualWorkLocation);
 		if(attendsUsualWorkLocation) {
-			workTour->setPrimaryActivityLocation(personParams.getFixedWorkLocation());
-			workTour->setPrimaryActivityLocationId(zoneIdLookup.at(personParams.getFixedWorkLocation()));
+			workTour->setTourDestination(personParams.getFixedWorkLocation());
 		}
 		tours.push_back(workTour);
 	}
@@ -841,8 +829,7 @@ void PredaySystem::constructTours() {
 	for(int i=0; i<numTours["EduT"]; i++) {
 		Tour* eduTour = new Tour(EDUCATION);
 		eduTour->setUsualLocation(true); // Education tours are always to usual locations
-		eduTour->setPrimaryActivityLocation(personParams.getFixedSchoolLocation());
-		eduTour->setPrimaryActivityLocationId(zoneIdLookup.at(personParams.getFixedSchoolLocation()));
+		eduTour->setTourDestination(personParams.getFixedSchoolLocation());
 		if(personParams.isStudent()) {
 			// if the person is a student, his education tours should be processed before other tour types.
 			tours.push_front(eduTour); // if the person is a student, his education tours should be processed before other tour types.
@@ -891,22 +878,23 @@ void PredaySystem::planDay() {
 			// Predict just the mode for tours to usual location
 			predictTourMode(tour);
 			Print() << "Tour|type: " << tour.getTourType()
-					<< "(TM) Tour mode: " << tour.getTourMode() << "|Tour destination: " << tour.getPrimaryActivityLocation();
+					<< "(TM) Tour mode: " << tour.getTourMode() << "|Tour destination: " << tour.getTourDestination();
 		}
 		else {
 			// Predict mode and destination for tours to not-usual locations
 			predictTourModeDestination(tour);
 			Print() << "Tour|type: " << tour.getTourType()
-					<< "(TMD) Tour mode: " << tour.getTourMode() << "|Tour destination: " << tour.getPrimaryActivityLocation();
+					<< "(TMD) Tour mode: " << tour.getTourMode() << "|Tour destination: " << tour.getTourDestination();
 		}
 
 		// Predict time of day for this tour
 		TimeWindowAvailability timeWindow = predictTourTimeOfDay(tour);
 		Stop* primaryActivity = new Stop(tour.getTourType(), tour, true /*primary activity*/, true /*stop in first half tour*/);
 		primaryActivity->setStopMode(tour.getTourMode());
-		primaryActivity->setStopLocation(tour.getPrimaryActivityLocation());
-		primaryActivity->setStopLocationId(tour.getPrimaryActivityLocationId());
+		primaryActivity->setStopLocation(tour.getTourDestination());
+		primaryActivity->setStopLocationId(zoneIdLookup.at(tour.getTourDestination()));
 		primaryActivity->allotTime(timeWindow.getStartTime(), timeWindow.getEndTime());
+		tour.setPrimaryStop(primaryActivity);
 		tour.addStop(primaryActivity);
 		personParams.blockTime(timeWindow.getStartTime(), timeWindow.getEndTime());
 		Print() << "|primary activity|arrival: " << primaryActivity->getArrivalTime() << "|departure: " << primaryActivity->getDepartureTime() << std::endl;
@@ -918,5 +906,71 @@ void PredaySystem::planDay() {
 		calculateTourEndTime(tour);
 		personParams.blockTime(tour.getStartTime(), tour.getEndTime());
 		Print() << "Tour|start time: " << tour.getStartTime() << "|end time: " << tour.getEndTime() << std::endl;
+	}
+}
+
+void sim_mob::medium::PredaySystem::insertDayPattern()
+{
+	int tourCount = numTours["WorkT"] + numTours["EduT"] + numTours["ShopT"] + numTours["OthersT"];
+	std::stringstream dpStream;
+	dpStream << dayPattern["WorkT"] << "," << dayPattern["EduT"] << "," << dayPattern["ShopT"] << "," << dayPattern["OthersT"]
+	        << "," << dayPattern["WorkI"] << "," << dayPattern["EduI"] << "," << dayPattern["ShopI"] << "," << dayPattern["OthersI"];
+	BSONObj dpDoc = BSON(
+					"_id" << personParams.getPersonId() <<
+					"num_tours" << tourCount <<
+					"day_pattern" << dpStream.str() <<
+					"person_type_id" << personParams.getPersonTypeId()
+					);
+	mongoDao["Output_DayPattern"]->insert(dpDoc);
+}
+
+void sim_mob::medium::PredaySystem::insertTour(Tour* tour, int tourNumber) {
+	int tourCount = numTours["WorkT"] + numTours["EduT"] + numTours["ShopT"] + numTours["OthersT"];
+	BSONObj tourDoc = BSON(
+		"person_type_id" << personParams.getPersonTypeId() <<
+		"num_stops" << (int)tour->stops.size() <<
+		"prim_arr" << tour->getPrimaryStop()->getArrivalTime() <<
+		"start_time" << tour->getStartTime() <<
+		"destination" << tour->getTourDestination() <<
+		"tour_type" << tour->getTourTypeStr() <<
+		"num_tours" << tourCount <<
+		"prim_dept" << tour->getPrimaryStop()->getDepartureTime() <<
+		"end_time" << tour->getEndTime() <<
+		"person_id" << personParams.getPersonId() <<
+		"tour_mode" << tour->getTourMode() <<
+		"tour_num" << tourNumber
+	);
+	mongoDao["Output_Tour"]->insert(tourDoc);
+}
+
+void sim_mob::medium::PredaySystem::insertStop(Stop* stop, int stopNumber, int tourNumber)
+{
+	BSONObj stopDoc = BSON(
+	"arrival" << stop->getArrivalTime() <<
+	"destination" << stop->getStopLocation() <<
+	"primary" << stop->isPrimaryActivity() <<
+	"departure" << stop->getDepartureTime() <<
+	"stop_ctr" << stopNumber <<
+	"stop_type" << stop->getStopTypeStr() <<
+	"person_id" << personParams.getPersonId() <<
+	"tour_num" << tourNumber <<
+	"stop_mode" << stop->getStopMode()
+	);
+	mongoDao["Output_Activity"]->insert(stopDoc);
+}
+
+void sim_mob::medium::PredaySystem::outputPredictionsToMongo() {
+	insertDayPattern();
+	int tourNum=0;
+	Tour* currTour = nullptr;
+	for(std::deque<Tour*>::iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++) {
+		tourNum++;
+		currTour=*tourIt;
+		insertTour(currTour, tourNum);
+		int stopNum=0;
+		for(std::deque<Stop*>::iterator stopIt=currTour->stops.begin(); stopIt!=currTour->stops.end(); stopIt++) {
+			stopNum++;
+			insertStop(*stopIt, stopNum, tourNum);
+		}
 	}
 }

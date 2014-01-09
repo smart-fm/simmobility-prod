@@ -38,6 +38,7 @@ using std::endl;
 //Helper functions
 namespace {
 //Helpful constants
+const int distanceCheckToChangeLane = 150;
 
 //Output helper
 string PrintLCS(LANE_CHANGE_SIDE s) {

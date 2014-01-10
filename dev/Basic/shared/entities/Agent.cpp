@@ -14,6 +14,7 @@
 #include "conf/settings/StrictAgentErrors.h"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "event/SystemEvents.hpp"
+#include "event/args/ReRouteEventArgs.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/Link.hpp"
@@ -358,10 +359,27 @@ void sim_mob::Agent::onEvent(EventId eventId,
         Context ctxId, EventPublisher* sender, 
         const EventArgs& args)
 {
-	//Was commsim enabled for us? If so, start tracking Regions.
-	if (eventId==event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT && ctxId == this) {
-		Print() <<"Enabling Region support for agent: " <<this <<"\n";
-		enableRegionSupport();
+	//Some events only matter if they are for us.
+	if (ctxId == this) {
+		if (eventId==event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT) {
+			//Was commsim enabled for us? If so, start tracking Regions.
+			Print() <<"Enabling Region support for agent: " <<this <<"\n";
+			enableRegionSupport();
+
+			//This requires us to now listen for a new set of events.
+			messaging::MessageBus::SubscribeEvent(
+				sim_mob::event::EVT_CORE_COMMSIM_REROUTING_REQUEST,
+				this, //Only when we are the Agent being requested to re-route..
+				this //Return this event to us (the agent).
+			);
+		} else if (eventId==event::EVT_CORE_COMMSIM_REROUTING_REQUEST) {
+			//Were we requested to re-route?
+			const ReRouteEventArgs& rrArgs = MSG_CAST(ReRouteEventArgs, args);
+
+
+			//TODO: Pass along the blacklisted Region via EventArgs.
+			Warn() <<"TEMP: REROUTING MESSAGES WORK, blacklisting Region: " <<rrArgs.getBlacklistRegion() <<"\n";
+		}
 	}
 }
 

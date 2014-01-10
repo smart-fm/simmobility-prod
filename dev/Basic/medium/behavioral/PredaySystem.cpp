@@ -153,7 +153,81 @@ void PredaySystem::predictTourModeDestination(Tour& tour) {
 TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 	int timeWndw;
 	if(!tour.isSubTour()) {
-		TourTimeOfDayParams todParams;
+		int origin = tour.getTourDestination();
+		int destination = personParams.getHomeLocation();
+		std::vector<double> ttFirstHalfTour, ttSecondHalfTour;
+		if(origin != destination) {
+			BSONObj bsonObjTT = BSON("origin" << origin << "destination" << destination);
+			BSONObj tCostBusDoc;
+			mongoDao["tcost_bus"]->getOne(bsonObjTT, tCostBusDoc);
+			BSONObj tCostCarDoc;
+			mongoDao["tcost_car"]->getOne(bsonObjTT, tCostCarDoc);
+
+			CostParams* amDistanceObj = amCostMap.at(destination).at(origin);
+			CostParams* pmDistanceObj = pmCostMap.at(destination).at(origin);
+
+			for (uint32_t i = 1; i <= 48; i++) {
+				switch (tour.getTourMode()) {
+				case 1: // Fall through
+				case 2:
+				case 3:
+				{
+					std::stringstream arrivalField, departureField;
+					arrivalField << "TT_bus_arrival_" << i;
+					departureField << "TT_bus_departure_" << i;
+					if(tCostBusDoc.getField(arrivalField.str()).isNumber()) {
+						ttFirstHalfTour.push_back(tCostBusDoc.getField(arrivalField.str()).Number());
+					}
+					else {
+						ttFirstHalfTour.push_back(999);
+					}
+					if(tCostBusDoc.getField(departureField.str()).isNumber()) {
+						ttSecondHalfTour.push_back(tCostBusDoc.getField(departureField.str()).Number());
+					}
+					else {
+						ttSecondHalfTour.push_back(999);
+					}
+					break;
+				}
+				case 4: // Fall through
+				case 5:
+				case 6:
+				case 7:
+				case 9:
+				{
+					std::stringstream arrivalField, departureField;
+					arrivalField << "TT_car_arrival_" << i;
+					departureField << "TT_car_departure_" << i;
+					if(tCostCarDoc.getField(arrivalField.str()).isNumber()) {
+						ttFirstHalfTour.push_back(tCostCarDoc.getField(arrivalField.str()).Number());
+					}
+					else {
+						ttFirstHalfTour.push_back(999);
+					}
+					if(tCostCarDoc.getField(departureField.str()).isNumber()) {
+						ttSecondHalfTour.push_back(tCostCarDoc.getField(departureField.str()).Number());
+					}
+					else {
+						ttSecondHalfTour.push_back(999);
+					}
+					break;
+				}
+				case 8: {
+					double travelTime = (amDistanceObj->getDistance() - pmDistanceObj->getDistance())/5.0;
+					ttFirstHalfTour.push_back(travelTime);
+					ttSecondHalfTour.push_back(travelTime);
+					break;
+				}
+				}
+			}
+		}
+		else {
+			for (uint32_t i = 1; i <= 48; i++) {
+				ttFirstHalfTour.push_back(0);
+				ttSecondHalfTour.push_back(0);
+			}
+		}
+		TourTimeOfDayParams todParams(ttFirstHalfTour, ttSecondHalfTour);
 		timeWndw = PredayLuaProvider::getPredayModel().predictTourTimeOfDay(personParams, todParams, tour.getTourType());
 	}
 	return TimeWindowAvailability::timeWindowsLookup[timeWndw];

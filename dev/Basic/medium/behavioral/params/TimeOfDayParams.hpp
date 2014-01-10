@@ -23,25 +23,30 @@ namespace medium {
  */
 class TourTimeOfDayParams {
 public:
-	TourTimeOfDayParams() : numTimeWindows(48), costHT1_AM(0), costHT1_PM(0), costHT1_OP(0), costHT2_AM(0), costHT2_PM(0), costHT2_OP(0) {}
+	TourTimeOfDayParams(std::vector<double>& travelTimesFirstHalfTour, std::vector<double>& travelTimesSecondHalfTour)
+	: numTimeWindows(48), costHT1_AM(0), costHT1_PM(0), costHT1_OP(0), costHT2_AM(0), costHT2_PM(0), costHT2_OP(0),
+	  travelTimesFirstHalfTour(travelTimesFirstHalfTour), travelTimesSecondHalfTour(travelTimesSecondHalfTour)
+	{}
 	virtual ~TourTimeOfDayParams() {}
 
 	/**
 	 * Function to get a specific element from first half tour vector travelTimesFirstHalfTour
 	 *
-	 * @returns 0 (as per Siyu's suggestion) (cost and travel times are not used in this model)
+	 * @param index time window of the day
+	 * @returns travel time of the time window for first half tour
 	 */
 	double getTT_FirstHalfTour(int index) const{
-		return 0;
+		return travelTimesFirstHalfTour[index-1];
 	}
 
 	/**
 	 * Function to get a specific element from second half tour vector travelTimesSecondHalfTour
 	 *
-	 * @returns 0 (as per Siyu's suggestion) (cost and travel times are not used in this model)
+	 * @param index time window of the day
+	 * @returns travel time of the time window for second half tour
 	 */
 	double getTT_SecondHalfTour(int index) const{
-		return 0;
+		return travelTimesSecondHalfTour[index-1];
 	}
 
 	int getCostHt1Am() const {
@@ -76,7 +81,6 @@ public:
 	 * travelTimesFirstHalfTour[0] is the travel time for 0300hrs to 0330hrs (first half-hour window)
 	 * travelTimesFirstHalfTour[47] is the travel time for 2630hrs to 0300hrs (last half-hour window)
 	 *
-	 * \note these vectors are currently not used (cost and travel times are currently not used in this model)
 	 */
 	std::vector<double> travelTimesFirstHalfTour;
 	std::vector<double> travelTimesSecondHalfTour;

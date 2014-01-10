@@ -4,7 +4,8 @@
 
 #include "DriverFacets.hpp"
 #include "BusDriver.hpp"
-#include "algorithm"
+#include <limits>
+#include <algorithm>
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -37,6 +38,7 @@ using std::endl;
 //Helper functions
 namespace {
 //Helpful constants
+const int distanceCheckToChangeLane = 150;
 
 //Output helper
 string PrintLCS(LANE_CHANGE_SIDE s) {
@@ -79,85 +81,6 @@ size_t getLaneIndex(const Lane* l) {
 	return -1; //NOTE: This might not do what you expect! ~Seth
 }
 
-//PathA: Small loop (south)
-const Point2D SpecialPathA[] = { Point2D(37218351, 14335255), //AIMSUN 75780
-		Point2D(37227139, 14327875), //AIMSUN 91218
-		Point2D(37250760, 14355120), //AIMSUN 66508
-		Point2D(37241080, 14362955), //AIMSUN 61688
-		};
-
-//PathB: Large loop
-const Point2D SpecialPathB[] = { Point2D(37218351, 14335255), //AIMSUN 75780
-		Point2D(37227139, 14327875), //AIMSUN 91218
-		Point2D(37250760, 14355120), //AIMSUN 66508
-		Point2D(37270984, 14378959), //AIMSUN 45666
-		Point2D(37262150, 14386897), //AIMSUN 45690
-		Point2D(37241080, 14362955), //AIMSUN 61688
-		};
-
-const int distanceCheckToChangeLane = 150;
-
-//Path is in multi-node positions
-vector<WayPoint> ConvertToWaypoints(const Node* origin, const vector<Point2D>& path) {
-	vector<WayPoint> res;
-
-	//Double-check our first node. Also ensure we have at least 2 nodes (or a path can't be found).
-	if (path.size() < 2 || origin->location != path.front()) {
-		throw std::runtime_error("Special path does not begin on origin.");
-	}
-
-	//Starting at the origin, find the outgoing Link to each node in the list. Then loop around back to the origin.
-	const MultiNode* curr = dynamic_cast<const MultiNode*> (origin);
-	for (vector<Point2D>::const_iterator it = path.begin(); it != path.end(); it++) {
-		if (!curr) {
-			throw std::runtime_error("Not a multinode (in special path).");
-		}
-
-		//Search for the Link to the next point.
-		Point2D nextPt = it + 1 == path.end() ? path.front() : *(it + 1);
-		std::pair<const Link*, bool> nextLink(nullptr, false); //bool == fwd?
-		const set<RoadSegment*>& segs = curr->getRoadSegments();
-		for (set<RoadSegment*>::const_iterator segIt = segs.begin(); segIt != segs.end(); segIt++) {
-			const Link* ln = (*segIt)->getLink();
-			if (ln->getStart()->location == nextPt) {
-				nextLink.first = ln;
-				nextLink.second = false;
-				break;
-			} else if (ln->getEnd()->location == nextPt) {
-				nextLink.first = ln;
-				nextLink.second = true;
-				break;
-			}
-		}
-		if (!nextLink.first) {
-			throw std::runtime_error("Couldn't find a Link between nodes in the Special path");
-		}
-
-		//Add each Segment in the Link's fwd/rev path to the result.
-		const vector<RoadSegment*>& segPath = nextLink.first->getSegments();
-		for (vector<RoadSegment*>::const_iterator pthIt = segPath.begin(); pthIt != segPath.end(); pthIt++) {
-			res.push_back(WayPoint(*pthIt));
-		}
-
-		//Continue
-		curr = dynamic_cast<const MultiNode*> (nextLink.second ? nextLink.first->getEnd() : nextLink.first->getStart());
-	}
-
-	return res;
-}
-
-//For the NS3 paths
-vector<WayPoint> LoadSpecialPath(const Node* origin, char pathLetter) {
-	if (pathLetter == 'A') {
-		size_t sz = sizeof(SpecialPathA) / sizeof(SpecialPathA[0]);
-		return ConvertToWaypoints(origin, vector<Point2D> (SpecialPathA, &SpecialPathA[sz]));
-	} else if (pathLetter == 'B') {
-		size_t sz = sizeof(SpecialPathB) / sizeof(SpecialPathB[0]);
-		return ConvertToWaypoints(origin, vector<Point2D> (SpecialPathB, &SpecialPathB[sz]));
-	} else {
-		throw std::runtime_error("Invalid special path.");
-	}
-}
 
 } //End anon namespace
 
@@ -1453,45 +1376,6 @@ void sim_mob::DriverMovement::calculateIntersectionTrajectory(DPoint movingFrom,
 	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
 }
 
-/*void sim_mob::DriverMovement::initLoopSpecialString(vector<WayPoint>& path, const string& value)
-{
-	//In special cases, we may be manually specifying a loop, e.g., "loop:A:5" in the special string.
-	// In this case, "value" will contain ":A:5"; the "loop" having been parsed.
-	if (value.size()<=1) {
-		throw std::runtime_error("Bad \"loop\" special string.");
-	}
-	//Repeat this path X times.
-	vector<WayPoint> part = LoadSpecialPath(getParent()->originNode.node_, value[1]);
-
-	size_t ind = value.find(':', 1);
-	if (ind != string::npos && ++ind < value.length()) {
-		int amount = -1;
-		std::istringstream(value.substr(ind, string::npos)) >> amount;
-
-		for (size_t i = 0; static_cast<int> (i) < amount && amount > 1; i++) {
-			path.insert(path.end(), part.begin(), part.end());
-		}
-	} else {
-		throw std::runtime_error("Bad \"loop\" special string.");
-	}
-
-	//Just in case one of these failed.
-	if (path.empty()) {
-		path.insert(path.end(), part.begin(), part.end());
-	}
-}*/
-
-/*void sim_mob::DriverMovement::initTripChainSpecialString(const string& value)
-{
-	//Sanity check
-	if (value.length()<=1) {
-		throw std::runtime_error("Invalid special tripchain string.");
-	}
-	//Person* p = dynamic_cast<Person*>(parentAgent);
-	if (!getParent()) {
-		throw std::runtime_error("Parent is not of type Person");
-	}
-}*/
 
 //link path should be retrieved from other class
 //for now, it serves as this purpose

@@ -196,10 +196,10 @@ void sim_mob::Agent::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigne
 
 UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 	//Reset the Region tracking data structures, if applicable.
-	regionAndPathTracker.reset();
+	//regionAndPathTracker.reset();
 
 	//Register for commsim messages, if applicable.
-	if (!commEventRegistered && ConfigManager::GetInstance().XmlConfig().system.simulation.androidClientEnabled) {
+	if (!commEventRegistered && ConfigManager::GetInstance().XmlConfig().system.simulation.commSimEnabled) {
 		commEventRegistered = true;
 		messaging::MessageBus::SubscribeEvent(
 			sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,

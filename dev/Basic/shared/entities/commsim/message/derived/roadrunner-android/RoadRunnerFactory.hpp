@@ -33,6 +33,8 @@ class RoadRunnerFactory : public MessageFactory<std::vector<sim_mob::comm::MsgPt
 		//KEY_REQUEST = 4,
 		//KEY_SEND = 5,
 		CLIENT_MESSAGES_DONE = 6,
+		REMOTE_LOG = 7,
+		REROUTE_REQUEST = 8,
 	};
 
 	std::map<std::string, RoadRunnerFactory::MessageType> MessageMap;
@@ -46,7 +48,7 @@ public:
 
 	//creates a message with correct format + assigns correct handler
 	//todo improve the function to handle array of messages stored in the input string
-	bool createMessage(const std::string& input, std::vector<sim_mob::comm::MsgPtr>& output);
+	void createMessage(const std::string& input, std::vector<sim_mob::comm::MsgPtr>& output);
 
 	//gets a handler either from a cache or by creating a new one
 	boost::shared_ptr<sim_mob::Handler>  getHandler(MessageType);

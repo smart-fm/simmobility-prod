@@ -14,6 +14,11 @@
 namespace sim_mob {
 namespace medium {
 
+/**
+ * Class to hold properties of a zone
+ *
+ * \author Harish Loganathan
+ */
 class ZoneParams {
 public:
 	virtual ~ZoneParams() {}
@@ -120,6 +125,11 @@ private:
 	double residentStudents;
 };
 
+/**
+ * Class to hold cost related parameters
+ *
+ * \author Harish Loganathan
+ */
 class CostParams {
 public:
 	virtual ~CostParams() {}
@@ -138,6 +148,7 @@ public:
 		return avgTransfer;
 	}
 
+	// a != a returns true if a is NaN. This check is used in many setters in this class.
 	void setAvgTransfer(double avgTransfer) {
 		if(avgTransfer != avgTransfer) {
 			this->avgTransfer = 0;
@@ -165,7 +176,7 @@ public:
 	}
 
 	void setCarIvt(double carIvt) {
-		if(carIvt != carIvt) { // if carIvt is NaN
+		if(carIvt != carIvt) {
 			this->carIvt = 0;
 		}
 		else {

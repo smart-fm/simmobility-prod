@@ -352,7 +352,3 @@ int sim_mob::medium::PredayLuaModel::predictStopTimeOfDay(PersonParams& personPa
 	LuaRef retVal = chooseITD(&personParams, &stopTimeOfDayParams);
 	return retVal.cast<int>();
 }
-
-
-
-

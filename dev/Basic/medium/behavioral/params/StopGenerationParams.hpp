@@ -10,7 +10,6 @@
  */
 
 #pragma once
-#include <vector>
 #include "behavioral/PredayClasses.hpp"
 
 namespace sim_mob {

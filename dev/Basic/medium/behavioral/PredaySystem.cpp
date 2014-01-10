@@ -153,8 +153,6 @@ void PredaySystem::predictTourModeDestination(Tour& tour) {
 TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 	int timeWndw;
 	if(!tour.isSubTour()) {
-		int origin = personParams.getHomeLocation();
-		int destination = tour.getTourDestination();
 		TourTimeOfDayParams todParams;
 		timeWndw = PredayLuaProvider::getPredayModel().predictTourTimeOfDay(personParams, todParams, tour.getTourType());
 	}
@@ -212,13 +210,14 @@ void PredaySystem::generateIntermediateStops(Tour& tour) {
 				case 3: stopType = SHOP; break;
 				case 4: stopType = OTHER; break;
 				}
-				Stop* generatedStop = new Stop(stopType, tour, false /*not primary*/, true /*in first half tour*/);
+				generatedStop = new Stop(stopType, tour, false /*not primary*/, true /*in first half tour*/);
 				tour.addStop(generatedStop);
 				predictStopModeDestination(generatedStop, nextStop->getStopLocation());
 				calculateDepartureTime(generatedStop, nextStop);
 				if(generatedStop->getDepartureTime() <= 1)
 				{
 					tour.removeStop(generatedStop);
+					safe_delete_item(generatedStop);
 					stopCounter = stopCounter + 1;
 					continue;
 				}
@@ -237,6 +236,7 @@ void PredaySystem::generateIntermediateStops(Tour& tour) {
 			}
 		}
 
+		generatedStop = nullptr;
 		// Second half tour
 		if(origin != destination) {
 			CostParams* pmDistanceObj = pmCostMap.at(origin).at(destination);
@@ -262,13 +262,14 @@ void PredaySystem::generateIntermediateStops(Tour& tour) {
 				else if (choice == 2) { stopType = EDUCATION; }
 				else if (choice == 3) { stopType = SHOP; }
 				else if (choice == 4) { stopType = OTHER; }
-				Stop* generatedStop = new Stop(stopType, tour, false /*not primary*/, false  /*not in first half tour*/);
+				generatedStop = new Stop(stopType, tour, false /*not primary*/, false  /*not in first half tour*/);
 				tour.addStop(generatedStop);
 				predictStopModeDestination(generatedStop, prevStop->getStopLocation());
 				calculateArrivalTime(generatedStop, prevStop);
 				if(generatedStop->getArrivalTime() >=  48)
 				{
 					tour.removeStop(generatedStop);
+					safe_delete_item(generatedStop);
 					stopCounter = stopCounter + 1;
 					continue;
 				}
@@ -306,7 +307,6 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 
 	if(origin != destination) {
 		BSONObj bsonObjTT = BSON("origin" << origin << "destination" << destination);
-		BSONObj bsonObjTC = BSON("origin" << destination << "destin" << origin);
 		BSONObj tCostBusDoc;
 		mongoDao["tcost_bus"]->getOne(bsonObjTT, tCostBusDoc);
 		BSONObj tCostCarDoc;
@@ -525,18 +525,20 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 		}
 	}
 
-	for(double i=1; i<=48; i++) {
-		if(i <= stodParams.getTodLow() || i >= stodParams.getTodHigh()) {
-			stodParams.availability[i] = false;
-		}
-	}
+	stodParams.updateAvailabilities();
 
-	int timeWindow = PredayLuaProvider::getPredayModel().predictStopTimeOfDay(personParams, stodParams);
+	int timeWindowIdx = PredayLuaProvider::getPredayModel().predictStopTimeOfDay(personParams, stodParams);
 	if(isBeforePrimary) {
-		stop->setArrivalTime(timeWindow);
+		if(timeWindowIdx > stop->getDepartureTime()) {
+			throw std::runtime_error("Predicted arrival time must not be greater than the estimated departure time");
+		}
+		stop->setArrivalTime(timeWindowIdx);
 	}
 	else {
-		stop->setDepartureTime(timeWindow);
+		if(timeWindowIdx < stop->getArrivalTime()) {
+			throw std::runtime_error("Predicted departure time must not be greater than the estimated arrival time");
+		}
+		stop->setDepartureTime(timeWindowIdx);
 	}
 }
 
@@ -550,7 +552,7 @@ void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* prevStop) { // th
 	double travelTime;
 
 	if(currStop->getStopLocation() != prevStop->getStopLocation()) {
-		travelTime = 999.0; // initializing to a high value just in case something goes wrong. tcost_bus and tcost_car has lot of inadmissable data ("NULL")
+		travelTime = 999.0; // initializing to a high value just in case something goes wrong. tcost_bus and tcost_car has lot of inadmissible data ("NULL")
 		std::stringstream fieldName;
 		BSONObj bsonObj = BSON("origin" << currStop->getStopLocation() << "destination" << prevStop->getStopLocation());
 
@@ -740,13 +742,13 @@ void PredaySystem::calculateTourEndTime(Tour& tour) {
 	 * Given a time window x, its choice index can be determined by ((x - 3.25) / 0.5) + 1
 	 */
 	Stop& lastStop = *(tour.stops.back());
-	uint32_t prevActivityDepartureIndex = lastStop.getDepartureTime();
-	double timeWindow = prevActivityDepartureIndex * 0.5 + 2.75;
+	uint32_t lastActivityDepartureIndex = lastStop.getDepartureTime();
+	double timeWindow = lastActivityDepartureIndex * 0.5 + 2.75;
 	double travelTime;
 	if(personParams.getHomeLocation() != lastStop.getStopLocation()) {
 		travelTime = 999.0; // initializing to a high value just in case something goes wrong. tcost_bus and tcost_car has lot of inadmissable data ("NULL")
 		std::stringstream fieldName;
-		BSONObj bsonObj = BSON("origin" << lastStop.getStopLocation() << "destination" << personParams.getHomeLocation());
+		BSONObj bsonObj = BSON("origin" << personParams.getHomeLocation() << "destination" << lastStop.getStopLocation());
 
 		switch(lastStop.getStopMode()) {
 		case 1: // Fall through
@@ -755,7 +757,7 @@ void PredaySystem::calculateTourEndTime(Tour& tour) {
 		{
 			BSONObj tCostBusDoc;
 			mongoDao["tcost_bus"]->getOne(bsonObj, tCostBusDoc);
-			fieldName << "TT_bus_departure_" << prevActivityDepartureIndex;
+			fieldName << "TT_bus_departure_" << lastActivityDepartureIndex;
 			if(tCostBusDoc.getField(fieldName.str()).isNumber()) {
 				travelTime = tCostBusDoc.getField(fieldName.str()).Number();
 			}
@@ -769,7 +771,7 @@ void PredaySystem::calculateTourEndTime(Tour& tour) {
 		{
 			BSONObj tCostCarDoc;
 			mongoDao["tcost_car"]->getOne(bsonObj, tCostCarDoc);
-			fieldName << "TT_car_departure_" << prevActivityDepartureIndex;
+			fieldName << "TT_car_departure_" << lastActivityDepartureIndex;
 			if(tCostCarDoc.getField(fieldName.str()).isNumber()) {
 				travelTime = tCostCarDoc.getField(fieldName.str()).Number();
 			}
@@ -788,7 +790,7 @@ void PredaySystem::calculateTourEndTime(Tour& tour) {
 		travelTime = 0.0;
 	}
 
-	double tourEndTime = prevActivityDepartureIndex + travelTime;
+	double tourEndTime = timeWindow + travelTime;
 	if((tourEndTime - std::floor(tourEndTime)) < 0.5) {
 		tourEndTime = std::floor(tourEndTime) + 0.25;
 	}

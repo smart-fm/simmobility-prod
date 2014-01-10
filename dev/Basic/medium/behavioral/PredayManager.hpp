@@ -24,21 +24,29 @@ public:
 
 	/**
 	 * Gets person data from the database and stores corresponding PersonParam pointers in personList.
+	 *
+	 * @param dbType type of backend where the population data is available
 	 */
 	void loadPersons(db::BackendType dbType);
 
 	/**
 	 * Gets details of all mtz zones
+	 *
+	 * @param dbType type of backend where the zone data is available
 	 */
 	void loadZones(db::BackendType dbType);
 
 	/**
 	 * loads the AM, PM and off peak costs data
+	 *
+	 * @param dbType type of backend where the cost data is available
 	 */
 	void loadCosts(db::BackendType dbType);
 
 	/**
 	 * Distributes persons to different threads and starts the threads which process the persons
+	 *
+	 * @param numWorkers number of threads to create for processing the person list
 	 */
 	void distributeAndProcessPersons(uint16_t numWorkers = 1);
 
@@ -51,6 +59,7 @@ private:
 	 * Threaded function loop.
 	 * Loops through all elements in personList and invokes the Preday system of models for each of them.
 	 *
+	 * @param persons list of persons to process
 	 */
 	void processPersons(PersonList& persons);
 

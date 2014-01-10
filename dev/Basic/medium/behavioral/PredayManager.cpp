@@ -158,6 +158,16 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
 		std::string emptyString;
 		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
 
+		ZoneMap::size_type nZones = zoneMap.size();
+		if(nZones > 0) {
+			// if the zone data was loaded already we can reserve space for costs to speed up the loading
+			// Cost data will be available foe every pair (a,b) of zones where a!=b
+			CostMap::size_type mapSz = nZones * nZones - nZones;
+			amCostMap.reserve(mapSz);
+			pmCostMap.reserve(mapSz);
+			opCostMap.reserve(mapSz);
+		}
+
 		CostMongoDao amCostDao(dbConfig, db.dbName, amCostsCollName);
 		amCostDao.getAll(amCostMap);
 

@@ -29,13 +29,16 @@ public:
      * @return true if some values were returned, false otherwise.
      */
     bool getAllZones(boost::unordered_map<int, ZoneParams*>& outList) {
+    	int i = 0;
     	outList.reserve(connection.getSession<mongo::DBClientConnection>().count(collectionName, mongo::BSONObj()));
     	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
     	while(cursor->more()) {
+    		++i;
     		ZoneParams* zoneParams = new ZoneParams();
     		fromRow(cursor->next(), *zoneParams);
     		outList[zoneParams->getZoneId()] = zoneParams;
     	}
+    	Print() << "Loaded Zones: " << i << std::endl;
     	return true;
     }
 
@@ -52,6 +55,11 @@ public:
 	CostMongoDao(db::DB_Config& dbConfig, const std::string& database, const std::string& collection);
 	virtual ~CostMongoDao();
 
+    /**
+     * Gets all values from the source and put them on the given list.
+     * @param outList to put the retrieved values.
+     * @return true if some values were returned, false otherwise.
+     */
     bool getAll(boost::unordered_map<int, boost::unordered_map<int, CostParams*> >& outList) {
     	int i = 0;
     	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());

@@ -19,6 +19,8 @@ namespace db {
 
 /**
  * Data access object for MongoDB - a NoSQL database
+ *
+ * \author Harish Loganathan
  */
 class MongoDao : public I_Dao<mongo::BSONObj> {
 public:
@@ -49,9 +51,11 @@ public:
      * @param entity to update.
      * @return true if the transaction was committed with success,
      *         false otherwise.
+     *
+     * Note: This function is pure virtual in the base class. Dummy implementation provided to avoid compulsion to implement this function in sub classes
      */
     bool update(mongo::BSONObj& bsonObj) {
-    	throw std::runtime_error("MongoDao::update() - Not implemented yet");
+    	throw std::runtime_error("MongoDao::update() - Not implemented");
     }
 
     /**
@@ -59,9 +63,11 @@ public:
      * @param params to filter.
      * @return true if the transaction was committed with success,
      *         false otherwise.
+     *
+     * Note: This function is pure virtual in the base class. Dummy implementation provided to avoid compulsion to implement this function in sub classes
      */
     bool erase(const Parameters& params) {
-    	throw std::runtime_error("MongoDao::erase() - Not implemented yet");
+    	throw std::runtime_error("MongoDao::erase() - Not implemented");
     }
 
     /**
@@ -69,11 +75,20 @@ public:
      * @param ids to filter.
      * @param outParam to put the value
      * @return true if a value was returned, false otherwise.
+     *
+     * Note: This function is pure virtual in the base class. Dummy implementation provided to avoid compulsion to implement this function in sub classes
      */
     bool getById(const Parameters& ids, mongo::BSONObj& outParam) {
-    	throw std::runtime_error("MongoDao::getById() - Not implemented. Use getAll() or getOne() instead");
+    	throw std::runtime_error("MongoDao::getById() - Not implemented");
     }
 
+    /**
+     * Gets all documents from the collection
+     * @param outlist the container to be filled with objects retrieved from mongoDB
+     * @return true if some values were returned, false otherwise.
+     *
+     * Note: This function is pure virtual in the base class. Dummy implementation provided to avoid compulsion to implement this function in sub classes
+     */
     bool getAll(std::vector<mongo::BSONObj>& outList) {
     	throw std::runtime_error("MongoDao::getAll() - Not implemented");
     }
@@ -82,6 +97,7 @@ public:
 	 * Overload. Fetches a cursor to the result of the query
 	 *
 	 * @param bsonObj a mongo::BSONObj object containing the constructed query
+	 * @return true if a value was returned, false otherwise.
 	 */
 	bool getOne(mongo::BSONObj& bsonObj, mongo::BSONObj& outBsonObj) {
 		mongo::Query query(bsonObj);

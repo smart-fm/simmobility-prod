@@ -26,6 +26,9 @@
 namespace sim_mob {
 namespace medium {
 
+/**
+ * Base class for tour and stop mode destination params
+ */
 class ModeDestinationParams {
 protected:
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
@@ -44,20 +47,37 @@ public:
 
 	virtual ~ModeDestinationParams() {}
 
+	/**
+	 * Returns the mode of a particular choice
+	 *
+	 * @param choice an integer ranging from 1 to (numZones*numModes = 9828) representing a unique combination of mode and destination
+	 * 			(1 to numZones) = mode 1, (numZones+1 to 2*numZones) = mode 2, (2*numZones+1 to 3*numZones) = mode 3, and so on for 9 modes.
+	 * @return the mode represented in choice
+	 */
 	int getMode(int choice) const {
-		if (choice < 1 || choice > 9828) {
+		int nZones = zoneMap.size();
+		int nModes = 9;
+		if (choice < 1 || choice > nZones*nModes) {
 			throw std::runtime_error("getMode()::invalid choice id for mode-destination model");
 		}
-		return (choice/zoneMap.size() + 1);
+		return (choice/nZones + 1);
 	}
 
+	/**
+	 * Returns the destination of a particular choice
+	 *
+	 * @param choice an integer ranging from 1 to (numZones*numModes = 9828) representing a unique combination of mode and destination
+	 * @return the destination represented in choice
+	 */
 	int getDestination(int choice) const {
-		if (choice < 1 || choice > 9828) {
+		int nZones = zoneMap.size();
+		int nModes = 9;
+		if (choice < 1 || choice > nZones*nModes) {
 			throw std::runtime_error("getDestination()::invalid choice id for mode-destination model");
 		}
-		int zoneId = choice % zoneMap.size();
+		int zoneId = choice % nZones;
 		if(zoneId == 0) { // zoneId will become zero for zone 1092.
-			zoneId = zoneMap.size();
+			zoneId = nZones;
 		}
 		return zoneId;
 	}
@@ -200,10 +220,12 @@ public:
 		 * 4. Walk is only avaiable if (AM[(origin,destination)][’distance’]<=2 and PM[(destination,origin)][’distance’]<=2)
 		 * 5. drive alone is available when for the agent, has_driving_license * one_plus_car == True
 		 */
-		if (choiceId < 1 || choiceId > 9828) {
+		int numZones = zoneMap.size();
+		int numModes = 9;
+		if (choiceId < 1 || choiceId > numModes*numZones) {
 			throw std::runtime_error("isAvailable()::invalid choice id for mode-destination model");
 		}
-		int numZones = zoneMap.size();
+
 		int zoneId = choiceId % numZones;
 		if(zoneId == 0) { // zoneId will become zero for the last zone
 			zoneId = numZones;

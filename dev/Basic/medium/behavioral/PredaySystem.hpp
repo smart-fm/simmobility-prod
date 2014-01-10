@@ -22,8 +22,9 @@ namespace medium {
 
 /**
  * Class for pre-day behavioral system of models.
- * Defines the sequence of models to be invoked and also handles dependencies between the models.
- * The models are specified by modelers in an external scripting language is invoked via this class.
+ * Invokes behavior models in a sequence as specified by the system of models.
+ * Handles dependencies between models.
+ * The models specified by modelers in an external scripting language are invoked via this class.
  *
  * \note The only scripting language that is currently supported is Lua
  *
@@ -46,52 +47,76 @@ private:
 	/**
 	 * Predicts the mode of travel for a tour.
 	 * Executed for tours with usual location (usual work or education).
+	 *
+	 * @param tour the tour for which the mode is to be predicted
 	 */
 	void predictTourMode(Tour& tour);
 
 	/**
 	 * Predicts the mode and destination together for tours to unusual locations
+	 *
+	 * @param tour the tour for which the mode and destination are to be predicted
 	 */
 	void predictTourModeDestination(Tour& tour);
 
 	/**
 	 * Predicts the time period that will be allotted for the primary activity of a tour.
+	 *
+	 * @param tour the tour for which the time of day is to be predicted
 	 */
 	TimeWindowAvailability predictTourTimeOfDay(Tour& tour);
 
 	/**
 	 * Generates intermediate stops of types predicted by the day pattern model before and after the primary activity of a tour.
+	 *
+	 * @param tour the tour for which stops are to be generated
 	 */
 	void generateIntermediateStops(Tour& tour);
 
 	/**
 	 * Predicts the mode and destination together for stops.
+	 *
+	 * @param stop the stop for which mode and destination are to be predicted
+	 * @param origin the zone code for origin MTZ
 	 */
 	void predictStopModeDestination(Stop* stop, int origin);
 
 	/**
 	 * Predicts the arrival time for stops before the primary activity.
 	 * Predicts the departure time for stops after the primary activity.
+	 *
+	 * @param stop the stop for which the time of day is to be predicted
+	 * @param isBeforePrimary indicates whether stop is before the primary activity or after the primary activity of the tour
 	 */
 	void predictStopTimeOfDay(Stop* stop, bool isBeforePrimary);
 
 	/**
 	 * Calculates the arrival time for stops in the second half tour.
+	 *
+	 * @param currentStop the stop for which the arrival time is calculated
+	 * @param prevStop the stop before currentStop
 	 */
 	void calculateArrivalTime(Stop* currentStop, Stop* prevStop);
 
 	/**
 	 * Calculates the departure time for stops in the first half tour.
+	 *
+	 * @param currentStop the stop for which the departure time is calculated
+	 * @param nextStop the stop after currentStop
 	 */
 	void calculateDepartureTime(Stop* currentStop, Stop* nextStop);
 
 	/**
 	 * Calculates the time to leave home for starting a tour.
+	 *
+	 * @param tour the tour object for which the start time is to be calculated
 	 */
 	void calculateTourStartTime(Tour& tour);
 
 	/**
 	 * Calculates the time when the person reaches home at the end of the tour.
+	 *
+	 * @param tour the tour object for which the end time is to be calculated
 	 */
 	void calculateTourEndTime(Tour& tour);
 

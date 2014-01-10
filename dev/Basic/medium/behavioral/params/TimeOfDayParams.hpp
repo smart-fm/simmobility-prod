@@ -10,7 +10,6 @@
  */
 
 #pragma once
-#include <cmath>
 #include <vector>
 
 namespace sim_mob {
@@ -103,6 +102,7 @@ class StopTimeOfDayParams {
 public:
 	StopTimeOfDayParams(int stopType, int firstBound)
 	: stopType(stopType), firstBound(firstBound), numTimeWindows(48), todHigh(0.0), todLow(0.0) {
+		availability.reserve(48);
 		for(int i=1; i<=48; i++) {
 			availability.push_back(true);
 		}
@@ -171,6 +171,18 @@ public:
 	}
 
 	/**
+	 * Sets the availabilities of all time windows before low tod and after high tod to false
+	 */
+	void updateAvailabilities() {
+		for(int i=0; i<availability.size(); i++) {
+			int wndw = i+1;
+			if(wndw <= todLow || wndw >= todHigh) {
+				availability[i] = false;
+			}
+		}
+	}
+
+	/**
 	 * Function to get the availability of an alternative
 	 */
 	int getAvailability(unsigned index){
@@ -184,7 +196,8 @@ public:
 	 * Vectors storing travel times and travel costs for each half-hour time window from 3.25 to 26.75
 	 *
 	 * E.g.
-	 * travelTimes[3] is the travel time for 4.25 window
+	 * travelTimes[0] is the travel time for 3.25 window
+	 * travelTimes[3] is the travel time for 4.75 window
 	 * travelCost[47] is the travel cost for 26.75 window
 	 */
 	std::vector<double> travelTimes;

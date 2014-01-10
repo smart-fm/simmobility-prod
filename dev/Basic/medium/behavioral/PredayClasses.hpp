@@ -25,19 +25,24 @@ namespace medium {
 /**
  * An encapsulation of a time window and its availability.
  *
- * startTime and endTime are of the format <3-26>.25 or <3-26>.75
- * The startTime must be lesser than or equal to endTime.
+ * startTime and endTime are integral numbers from 1 to 48
+ * The times are considered in half hour windows.
+ * There are 48 half hour windows in a day.
+ *
  * x.25 represents a time value between x:00 - x:29
  * x.75 represents a time value between x:30 and x:59
+ * - where x varies from 3 to 26
  *
- * 3.25 (0300 to 0329 hrs) is considered that start of the day.
- * 23.75 is 1130 to 1159 hrs
- * 24.25 is 1200 to 1229 hrs
+ * The startTime must be lesser than or equal to endTime.
+ *
+ * 3.25 (0300 to 0329 hrs) is time 1
+ * 3.75 (0330 to 0359 hrs) is time 2
+ * 4.25 (0400 to 0429 hrs) is time 3
  * ... so on
- * 26.75 is 0230 to 0259 hrs
- * 26.75 is considered the end of the day
- *
- * windowString is of the format "startTime,endTime"
+ * 23.75 (1130 to 1159 hrs) is time 42
+ * 24.25 (1200 to 1229 hrs) is time 43
+ * ... so on
+ * 26.75 (0230 to 0259 hrs) is time 48
  *
  * \author Harish Loganathan
  */
@@ -142,6 +147,10 @@ public:
 		return stopType;
 	}
 
+	/**
+	 * returns the stop type as an integer
+	 * used for passing stop type to lua models
+	 */
 	int getStopTypeID() const {
 		switch(stopType) {
 		case WORK: return 1;
@@ -151,6 +160,10 @@ public:
 		}
 	}
 
+	/**
+	 * Returns the stop type in string format.
+	 * used for writing output.
+	 */
 	std::string getStopTypeStr() const {
 		switch(stopType) {
 		case WORK: return "Work";
@@ -164,6 +177,12 @@ public:
 		this->stopType = stopType;
 	}
 
+	/**
+	 * Sets the arrival and departure time of the stop
+	 *
+	 * @param arrivalTime arrival time
+	 * @param departureTime departure time
+	 */
 	void allotTime(double arrivalTime, double departureTime) {
 		this->arrivalTime = arrivalTime;
 		this->departureTime = departureTime;
@@ -252,6 +271,10 @@ public:
 		return tourType;
 	}
 
+	/**
+	 * Returns the tour type in string format.
+	 * used for writing outputs.
+	 */
 	std::string getTourTypeStr() const {
 		switch(tourType) {
 		case WORK: return "Work";
@@ -273,6 +296,12 @@ public:
 		this->usualLocation = usualLocation;
 	}
 
+	/**
+	 * Adds a stop to the stops list appropriately depending on whether the stop
+	 * is in the first half tour or the second.
+	 *
+	 * @param stop stop to be added
+	 */
 	void addStop(Stop* stop) {
 		if(stop->isInFirstHalfTour()) {
 			stops.push_front(stop);
@@ -282,6 +311,12 @@ public:
 		}
 	}
 
+	/**
+	 * removes a stop to the stops list appropriately depending on whether the stop
+	 * is in the first half tour or the second.
+	 *
+	 * @param stop stop to be removed
+	 */
 	void removeStop(Stop* stop) {
 		if(stop->isInFirstHalfTour()) {
 			stops.pop_front();
@@ -307,6 +342,10 @@ public:
 		this->tourDestination = tourDestination;
 	}
 
+	/**
+	 * list of stops in this tour.
+	 * relative ordering of stops according to the time of day in which they occur is maintained in this list.
+	 */
 	std::deque<Stop*> stops;
 
 private:

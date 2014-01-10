@@ -471,10 +471,12 @@ void sim_mob::GridStreetDirectoryImpl::buildLookups(const vector<RoadSegment*>& 
 			for (std::map<int, sim_mob::RoadRunnerRegion>::const_iterator rrIt=roadRunnerRegions.begin(); rrIt!=roadRunnerRegions.end(); rrIt++) {
 				if (point_inside_region(rrIt->second, midpt)) {
 					rrRegionLookup[*segIt] = rrIt->second;
+					rrRegionRevLookup[rrIt->second.id].push_back(*segIt);
 					break;
 				}
 				if (line_intersects_region(rrIt->second, start, end)) {
 					rrRegionLookup[*segIt] = rrIt->second;
+					rrRegionRevLookup[rrIt->second.id].push_back(*segIt);
 					break;
 				}
 			}
@@ -578,6 +580,19 @@ std::pair<sim_mob::RoadRunnerRegion, bool> sim_mob::GridStreetDirectoryImpl::get
 
 	return std::make_pair(RoadRunnerRegion(), false);
 }
+
+
+std::vector<sim_mob::RoadSegment*> sim_mob::GridStreetDirectoryImpl::getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region)
+{
+	//Try to find it.
+	std::map<int, std::vector<RoadSegment*> >::const_iterator it = rrRegionRevLookup.find(region.id);
+	if (it!=rrRegionRevLookup.end()) {
+		return it->second;
+	}
+
+	return std::vector<sim_mob::RoadSegment*>();
+}
+
 
 
 const BusStop* sim_mob::GridStreetDirectoryImpl::getBusStop(const Point2D& position) const

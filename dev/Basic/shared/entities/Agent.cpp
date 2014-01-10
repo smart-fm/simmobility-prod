@@ -6,6 +6,7 @@
 
 #include <cstdlib>
 #include <cmath>
+#include <boost/lexical_cast.hpp>
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -19,6 +20,7 @@
 #include "geospatial/Lane.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
 #include "partitions/PartitionManager.hpp"
@@ -145,6 +147,12 @@ sim_mob::Agent::~Agent() {
 
 void sim_mob::Agent::resetFrameInit() {
 	call_frame_init = true;
+}
+
+void sim_mob::Agent::rerouteWithBlacklist(const std::vector<sim_mob::RoadSegment*>& blacklisted)
+{
+	//TODO: Re-route.
+	Warn() <<"Re-routing not implemented.\n";
 }
 
 //long sim_mob::Agent::getLastUpdatedFrame() const {
@@ -375,10 +383,12 @@ void sim_mob::Agent::onEvent(EventId eventId,
 		} else if (eventId==event::EVT_CORE_COMMSIM_REROUTING_REQUEST) {
 			//Were we requested to re-route?
 			const ReRouteEventArgs& rrArgs = MSG_CAST(ReRouteEventArgs, args);
-
-
-			//TODO: Pass along the blacklisted Region via EventArgs.
-			Warn() <<"TEMP: REROUTING MESSAGES WORK, blacklisting Region: " <<rrArgs.getBlacklistRegion() <<"\n";
+			const std::map<int, sim_mob::RoadRunnerRegion>& regions = ConfigManager::GetInstance().FullConfig().getNetwork().roadRunnerRegions;
+			std::map<int, sim_mob::RoadRunnerRegion>::const_iterator it = regions.find(boost::lexical_cast<int>(rrArgs.getBlacklistRegion()));
+			if (it != regions.end()) {
+				std::vector<sim_mob::RoadSegment*> blacklisted = StreetDirectory::instance().getSegmentsFromRegion(it->second);
+				rerouteWithBlacklist(blacklisted);
+			}
 		}
 	}
 }

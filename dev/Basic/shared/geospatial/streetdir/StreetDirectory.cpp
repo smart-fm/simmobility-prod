@@ -92,6 +92,12 @@ std::pair<RoadRunnerRegion, bool> sim_mob::StreetDirectory::getRoadRunnerRegion(
 	return pimpl_ ? pimpl_->getRoadRunnerRegion(seg) : std::make_pair(RoadRunnerRegion(), false);
 }
 
+std::vector<sim_mob::RoadSegment*> sim_mob::StreetDirectory::getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region)
+{
+	return pimpl_ ? pimpl_->getSegmentsFromRegion(region) : std::vector<sim_mob::RoadSegment*>();
+}
+
+
 const sim_mob::BusStop* sim_mob::StreetDirectory::getBusStop(const Point2D& point) const
 {
     return pimpl_ ? pimpl_->getBusStop(point) : nullptr;

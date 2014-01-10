@@ -38,6 +38,7 @@ class BufferedBase;
 class ShortTermBoundaryProcessor;
 class PackageUtils;
 class UnPackageUtils;
+class RoadSegment;
 class RoadRunnerRegion;
 
 //It is not a good design, now. Need to verify.
@@ -160,6 +161,9 @@ protected:
 	///TODO: Temporary; this allows a child class to reset "call_frame_init", but there is
 	///      probably a better way of doing it.
 	void resetFrameInit();
+
+	//Ask this Agent to re-route.
+	void rerouteWithBlacklist(const std::vector<sim_mob::RoadSegment*>& blacklisted);
 
 private:
 	//For future reference.

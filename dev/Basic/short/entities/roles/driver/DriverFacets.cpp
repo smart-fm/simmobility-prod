@@ -300,8 +300,40 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 	}
 }
 
-void sim_mob::DriverMovement::frame_tick() {
 
+void sim_mob::DriverMovement::setRR_RegionsFromCurrentPath()
+{
+	if (parent->getRegionSupportStruct().isEnabled()) {
+		if (parentDriver->vehicle) {
+			std::vector<const sim_mob::RoadSegment*> path = parentDriver->vehicle->getPath();
+			if (!path.empty()) {
+				//We may be partly along this route, but it is unlikely. Still, just to be safe...
+				const sim_mob::RoadSegment* currseg = parentDriver->vehicle->getCurrSegment();
+
+				//Now save it, taking into account the "current segment"
+				rrPathToSend.clear();
+				for (std::vector<const sim_mob::RoadSegment*>::const_iterator it=path.begin(); it!=path.end(); it++) {
+					//Have we reached our starting segment yet?
+					if (currseg) {
+						if (currseg == *it) {
+							//Signal this by setting currseg to null.
+							currseg = nullptr;
+						} else {
+							continue;
+						}
+					}
+
+					//Add it; we've cleared our current segment check one way or another.
+					rrPathToSend.push_back(*it);
+				}
+			}
+		}
+	}
+}
+
+
+void sim_mob::DriverMovement::frame_tick()
+{
 	// lost some params
 	DriverUpdateParams& p2 = parentDriver->getParams();
 
@@ -328,38 +360,7 @@ void sim_mob::DriverMovement::frame_tick() {
 			parent->getRegionSupportStruct().setNewAllRegionsSet(allRegions);
 
 			//If a path has already been set, we will need to transmit it.
-			if (parentDriver->vehicle) {
-				std::vector<const sim_mob::RoadSegment*> path = parentDriver->vehicle->getPath();
-				if (!path.empty()) {
-					//We may be partly along this route, but it is unlikely. Still, just to be safe...
-					const sim_mob::RoadSegment* currseg = parentDriver->vehicle->getCurrSegment();
-
-					//Now save it, taking into account the "current segment"
-					rrPathToSend.clear();
-					for (std::vector<const sim_mob::RoadSegment*>::const_iterator it=path.begin(); it!=path.end(); it++) {
-						//Have we reached our starting segment yet?
-						if (currseg) {
-							if (currseg == *it) {
-								//Signal this by setting currseg to null.
-								currseg = nullptr;
-							} else {
-								continue;
-							}
-						}
-
-						//Add it; we've cleared our current segment check one way or another.
-						rrPathToSend.push_back(*it);
-
-
-						//TEMP:
-						/*const RoadNetwork& rn = ConfigManager::GetInstance().FullConfig().getNetwork();
-						LatLngLocation start = rn.getCoordTransform(true)->transform(DPoint((*it)->getStart()->location.getX(), (*it)->getStart()->location.getY()));
-						LatLngLocation end = rn.getCoordTransform(true)->transform(DPoint((*it)->getEnd()->location.getX(), (*it)->getEnd()->location.getY()));
-						Print() <<"Adding: " <<start.latitude <<"," <<start.longitude <<"\n";
-						Print() <<"    to: " <<end.latitude <<"," <<end.longitude <<"\n";*/
-					}
-				}
-			}
+			setRR_RegionsFromCurrentPath();
 		}
 
 		//We always need to send a path if one is available.
@@ -1535,9 +1536,13 @@ void sim_mob::DriverMovement::rerouteWithBlacklist(const std::vector<const sim_m
 	//Else, pre-pend the current segment, and reset the current driver.
 	//NOTE: This will put the current driver back onto the start of the current Segment, but since this is only
 	//      used in Road Runner, it doesn't matter right now.
+	//TODO: This *might* work if we save the current advance on the current segment and reset it.
 	vector<WayPoint>::iterator it = path.begin();
 	path.insert(it, WayPoint(parentDriver->vehicle->getCurrSegment()));
 	parentDriver->vehicle->resetPath(path);
+
+	//Finally, update the client with the new list of Region tokens it must acquire.
+	setRR_RegionsFromCurrentPath();
 }
 
 

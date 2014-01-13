@@ -146,6 +146,11 @@ protected:
 
 	void responseIncidentStatus(DriverUpdateParams& p, timeslice now);
 
+	///Set the internal rrRegions array from the current path.
+	///This effectively converts a list of RoadSegments into a (much smaller) list of Regions.
+	///This will trigger communication with the client.
+	void setRR_RegionsFromCurrentPath();
+
 	//Helper: for special strings
 	//NOTE: I am disabling special strings. ~Seth
 	//void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);

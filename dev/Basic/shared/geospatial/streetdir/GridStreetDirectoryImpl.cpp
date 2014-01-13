@@ -582,15 +582,15 @@ std::pair<sim_mob::RoadRunnerRegion, bool> sim_mob::GridStreetDirectoryImpl::get
 }
 
 
-std::vector<sim_mob::RoadSegment*> sim_mob::GridStreetDirectoryImpl::getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region)
+std::vector<const sim_mob::RoadSegment*> sim_mob::GridStreetDirectoryImpl::getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region)
 {
 	//Try to find it.
-	std::map<int, std::vector<RoadSegment*> >::const_iterator it = rrRegionRevLookup.find(region.id);
+	std::map<int, std::vector<const RoadSegment*> >::const_iterator it = rrRegionRevLookup.find(region.id);
 	if (it!=rrRegionRevLookup.end()) {
 		return it->second;
 	}
 
-	return std::vector<sim_mob::RoadSegment*>();
+	return std::vector<const sim_mob::RoadSegment*>();
 }
 
 

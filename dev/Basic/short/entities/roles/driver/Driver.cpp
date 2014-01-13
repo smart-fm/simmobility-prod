@@ -293,7 +293,7 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 }
 
 
-void Driver::rerouteWithBlacklist(const std::vector<sim_mob::RoadSegment*>& blacklisted)
+void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
 {
 	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
 	if (mov) {

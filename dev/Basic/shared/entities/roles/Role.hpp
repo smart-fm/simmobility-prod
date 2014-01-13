@@ -187,7 +187,7 @@ public:
 	///This should keep the Role at its current position, but change all Segments after this one.
 	///Note that if no alternative route exists, this Role's current route will remain unchanged.
 	///(This function is somewhat experimental; use it with caution. Currently only implemented by the Driver class.)
-	virtual void rerouteWithBlacklist(const std::vector<sim_mob::RoadSegment*>& blacklisted) {}
+	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted) {}
 
 protected:
 	Agent* parent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.

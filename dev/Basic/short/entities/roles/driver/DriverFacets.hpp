@@ -130,7 +130,7 @@ public:
 	void updatePositionDuringLaneChange(DriverUpdateParams& p, LANE_CHANGE_SIDE relative);
 
 	///Reroutes around a given blacklisted set of RoadSegments. See Role for documentation.
-	void rerouteWithBlacklist(const std::vector<sim_mob::RoadSegment*>& blacklisted);
+	void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
 
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
@@ -139,7 +139,7 @@ protected:
 
 	sim_mob::Vehicle* initializePath(bool allocateVehicle);
 
-	void resetPath(DriverUpdateParams& p);
+	//void resetPath2(bool mandatory=true, const std::vector<const sim_mob::RoadSegment*>& blacklisted = std::vector<const sim_mob::RoadSegment*>());
 	void setOrigin(DriverUpdateParams& p);
 
 	void checkIncidentStatus(DriverUpdateParams& p, timeslice now);

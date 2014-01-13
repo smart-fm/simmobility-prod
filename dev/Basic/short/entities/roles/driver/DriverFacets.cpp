@@ -1476,31 +1476,39 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 }
 
 
-void sim_mob::DriverMovement::rerouteWithBlacklist(const std::vector<sim_mob::RoadSegment*>& blacklisted)
+void sim_mob::DriverMovement::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
 {
-	//Make sure we've gotten here.
-	Warn() <<"Resetting current path: " <<parentDriver->vehicle <<"\n";
-}
-
-
-
-//link path should be retrieved from other class
-//for now, it serves as this purpose
-void sim_mob::DriverMovement::resetPath(DriverUpdateParams& p) {
-	const Node * node = parentDriver->vehicle->getCurrSegment()->getEnd();
-	//Retrieve the shortest path from the current intersection node to destination and save all RoadSegments in this path.
-	const StreetDirectory& stdir = StreetDirectory::instance();
-	vector<WayPoint> path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*node), stdir.DrivingVertex(*(parentDriver->goal.node)));
-
-	//For now, empty paths aren't supported.
-	if (path.empty()) {
-		throw std::runtime_error("Can't resetPath(); path is empty.");
+	//Skip if we're somehow not driving on a road.
+	if (!(parentDriver && parentDriver->vehicle && parentDriver->vehicle->getCurrSegment())) {
+		return;
 	}
 
+	//Retrieve the shortest path from the current intersection node to destination and save all RoadSegments in this path.
+	//NOTE: This path may be invalid, is there is no LaneConnector from the current Segment to the first segment of the result path.
+	const Node* node = parentDriver->vehicle->getCurrSegment()->getEnd();
+	const StreetDirectory& stdir = StreetDirectory::instance();
+	vector<WayPoint> path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*node), stdir.DrivingVertex(*(parentDriver->goal.node)), blacklisted);
+
+	//TODO: We need to fiddle with the path a bit:
+	//      1) Remove the "central Node to Road Segment" WayPoint.
+	//      2) Find and add a "LaneConnector" WayPoint.
+	//      3) If no such WayPoint exists, clear the path.
+
+	Warn() <<"Resetting with blacklist [" <<blacklisted.size() <<"], found? " <<(path.empty()?"false":"true") <<"\n";
+
+	//If there's no path, keep the current one.
+	if (path.empty()) {
+		return;
+	}
+
+	//Else, pre-pend the current segment, and reset the current driver.
+	//NOTE: This will put the current driver back onto the start of the current Segment, but since this is only
+	//      used in Road Runner, it doesn't matter right now.
 	vector<WayPoint>::iterator it = path.begin();
 	path.insert(it, WayPoint(parentDriver->vehicle->getCurrSegment()));
 	parentDriver->vehicle->resetPath(path);
 }
+
 
 void sim_mob::DriverMovement::setOrigin(DriverUpdateParams& p) {
 	//Set the max speed and target speed.

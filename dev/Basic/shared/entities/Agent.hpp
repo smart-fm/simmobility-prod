@@ -163,7 +163,7 @@ protected:
 	void resetFrameInit();
 
 	//Ask this Agent to re-route.
-	virtual void rerouteWithBlacklist(const std::vector<sim_mob::RoadSegment*>& blacklisted);
+	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
 
 private:
 	//For future reference.

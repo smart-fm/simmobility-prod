@@ -196,7 +196,7 @@ public:
 
 		virtual std::pair<sim_mob::RoadRunnerRegion, bool> getRoadRunnerRegion(const sim_mob::RoadSegment* seg) = 0;
 
-		virtual std::vector<sim_mob::RoadSegment*> getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region) = 0;
+		virtual std::vector<const sim_mob::RoadSegment*> getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region) = 0;
 
 		virtual const BusStop* getBusStop(const Point2D& position) const = 0;
 
@@ -258,7 +258,7 @@ public:
      * If multiple Regions overlap on a RoadSegment, that Segment will only be considered part of
      *   an arbitrary Region.
      */
-    std::vector<sim_mob::RoadSegment*> getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region);
+    std::vector<const sim_mob::RoadSegment*> getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region);
 
 
     const BusStop* getBusStop(const Point2D& position) const;

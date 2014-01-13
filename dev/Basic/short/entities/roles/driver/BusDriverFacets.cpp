@@ -327,11 +327,18 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 						parentBusDriver->lastVisited_Busline.set(busline->getBusLineID());
 						parentBusDriver->lastVisited_BusTrip_SequenceNo.set(bustrip->getBusTripRun_SequenceNum());
 
-//						// any bus visited this bus stop agent, stored the curr_ms with its busline id
+						// any bus visited this bus stop agent, stored the curr_ms with its busline id, currently only monitor 857_1
+						if(busline->getBusLineID() == "857_1") {
+							BusStopAgent* busstopAg = parentBusDriver->lastVisited_BusStop.get()->generatedBusStopAgent;
+							busstopAg->addBuslineIdCurrReachedMSs(busline->getBusLineID(), parentBusDriver->getParams().now.ms());
+							busstopAg->addBuslineIdPassengerCounts(busline->getBusLineID(), bus->getPassengerCount());
+						}
 //						BusStopAgent* busstopAg = parentBusDriver->lastVisited_BusStop.get()->generatedBusStopAgent;
-//						busstopAg->setBuslineIdCurrReachedMSs(busline->getBusLineID(), parentBusDriver->getParams().now.ms());
+//						busstopAg->addBuslineIdCurrReachedMSs(busline->getBusLineID(), parentBusDriver->getParams().now.ms());
+//						busstopAg->addBuslineIdPassengerCounts(busline->getBusLineID(), bus->getPassengerCount());
 						if (busline) {
-							if(busline->getControl_TimePointNum0() == parentBusDriver->busstop_sequence_no.get() || busline->getControl_TimePointNum1() == parentBusDriver->busstop_sequence_no.get()) { // only use holding control at selected time points
+							if(busline->getControl_TimePointNum0() == parentBusDriver->busstop_sequence_no.get() || busline->getControl_TimePointNum1() == parentBusDriver->busstop_sequence_no.get()
+							|| busline->getControl_TimePointNum2() == parentBusDriver->busstop_sequence_no.get() || busline->getControl_TimePointNum3() == parentBusDriver->busstop_sequence_no.get()) { // only use holding control at selected time points
 								parentBusDriver->existed_Request_Mode.set( Role::REQUEST_DECISION_TIME );
 							}
 							else{
@@ -348,6 +355,17 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 					double waitingtime = parentBusDriver->waiting_Time.get();
 					//setWaitTime_BusStop(waitingtime);
 					BUS_STOP_HOLDING_TIME_SEC = waitingtime;
+
+//					BusTrip* bustrip = const_cast<BusTrip*>(dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem)));
+//					if(bustrip && bustrip->itemType==TripChainItem::IT_BUSTRIP) {
+//						const Busline* busline = bustrip->getBusline();
+//						if(busline->getBusLineID() == "857_1") {
+//							if(busline->getControl_TimePointNum0() == parentBusDriver->busstop_sequence_no.get() || busline->getControl_TimePointNum1() == parentBusDriver->busstop_sequence_no.get()
+//							|| busline->getControl_TimePointNum2() == parentBusDriver->busstop_sequence_no.get() || busline->getControl_TimePointNum3() == parentBusDriver->busstop_sequence_no.get()) {
+//								BUS_STOP_HOLDING_TIME_SEC = BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC + 20;
+//							}
+//						}
+//					}
 					if(BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC >= BUS_STOP_HOLDING_TIME_SEC) {// no additional holding time
 						BUS_STOP_WAIT_TIME = BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;
 					} else {
@@ -368,6 +386,16 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 			}
 
 			IndividualBoardingAlighting_New(bus);// after holding time determination, start boarding and alighting
+//			BusTrip* bustrip = const_cast<BusTrip*>(dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem)));
+//			if(bustrip && bustrip->itemType==TripChainItem::IT_BUSTRIP) {
+//				const Busline* busline = bustrip->getBusline();
+//				if(busline->getBusLineID() == "857_1") {
+//					if(busline->getControl_TimePointNum0() == parentBusDriver->busstop_sequence_no.get() || busline->getControl_TimePointNum1() == parentBusDriver->busstop_sequence_no.get()
+//					|| busline->getControl_TimePointNum2() == parentBusDriver->busstop_sequence_no.get() || busline->getControl_TimePointNum3() == parentBusDriver->busstop_sequence_no.get()) {
+//						BUS_STOP_HOLDING_TIME_SEC = BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC + 20;// additional 20 secs
+//					}
+//				}
+//			}
 			if(BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC >= BUS_STOP_HOLDING_TIME_SEC) {// boarding alighting time greater than or equal to the holding time
 				BUS_STOP_WAIT_TIME = BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;// no additional holding time
 			} else {// boarding alighting time smaller than the holding time
@@ -385,13 +413,13 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 //		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop"
 //				<< std::endl;
 
-		// any bus leaving this bus stop agent, stored the curr_ms with its busline id
-		BusTrip* bustrip = const_cast<BusTrip*>(dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem)));
-		if(bustrip && bustrip->itemType==TripChainItem::IT_BUSTRIP) {
-			const Busline* busline = bustrip->getBusline();
-			BusStopAgent* busstopAg = parentBusDriver->lastVisited_BusStop.get()->generatedBusStopAgent;
-			busstopAg->setBuslineIdCurrReachedMSs(busline->getBusLineID(), parentBusDriver->getParams().now.ms());
-		}
+//		// any bus leaving this bus stop agent, stored the curr_ms with its busline id
+//		BusTrip* bustrip = const_cast<BusTrip*>(dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem)));
+//		if(bustrip && bustrip->itemType==TripChainItem::IT_BUSTRIP) {
+//			const Busline* busline = bustrip->getBusline();
+//			BusStopAgent* busstopAg = parentBusDriver->lastVisited_BusStop.get()->generatedBusStopAgent;
+//			busstopAg->setBuslineIdCurrReachedMSs(busline->getBusLineID(), parentBusDriver->getParams().now.ms());
+//		}
 		waitAtStopMS = -1;
 		resetBoardingAlightingVariables();// reset boarding alighting variables when leaving bus stop
 		BUS_STOP_WAIT_TIME = 2;// reset waiting time
@@ -907,6 +935,14 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 	last_boarding_alighting_ms = (last_boarding_ms > last_alighting_ms) ? last_boarding_ms : last_alighting_ms;// determine the last MS, may be boarding MS or alighting MS
 	BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC = (double)((last_boarding_alighting_ms - first_boarding_alighting_ms) / 1000.0 + 0.1f);// set the dwelltime for output, some precision corrected
 	allow_boarding_alighting_flag = true;// next time allow boarding and alighting individually, will not go to this whole loop to check
+
+	// currently only monitor 857_1
+	if(busline->getBusLineID() == "857_1") {
+		busstopAgent->addBuslineIdAlightingNum(busline->getBusLineID(), alighting_MSs.size());
+		busstopAgent->addBuslineIdBoardingNum(busline->getBusLineID(), boarding_MSs.size());
+		busstopAgent->addBuslineIdBoardingAlightingSecs(busline->getBusLineID(), BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC);
+		busstopAgent->addBuslineIdBusTripRunSequenceNum(busline->getBusLineID(), bustrip->getBusTripRun_SequenceNum());
+	}
 //	waitAtStopMS = 0;// reset waitAtStopMS after boarding alighting MS is determined
 }
 

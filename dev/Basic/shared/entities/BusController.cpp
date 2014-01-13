@@ -120,6 +120,9 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Enti
 
 	for(map<string, Busline*>::const_iterator buslinesIt = buslines.begin();buslinesIt!=buslines.end();buslinesIt++) {
 		Busline* busline = buslinesIt->second;
+		if(busline->getBusLineID() == "857_1") {
+			std::cout << "test 857_1 !! " << std::endl;
+		}
 		const vector<BusTrip>& busTrip_vec = busline->queryBusTrips();
 
 		for (vector<BusTrip>::const_iterator tripIt=busTrip_vec.begin(); tripIt!=busTrip_vec.end(); tripIt++) {
@@ -132,7 +135,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Enti
 				currAgTripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));// one person for one busTrip, currently not considering Activity for BusDriver
 				currAg->setTripChain(currAgTripChain);
 				currAg->initTripChain();
-				Print()<<"Person created (assignBusTripChain): "<<currAg->getId()<<" | startTime: "<<tripIt->startTime.getRepr_()<<std::endl;
+				Print()<<"Person created (assignBusTripChain): "<<currAg->getId()<<" | startTime: "<<tripIt->startTime.getRepr_()<<" | buslineId: "<<busline->getBusLineID()<<std::endl;
 
 				// scheduled for dispatch
 				addOrStashBuses(currAg, active_agents);
@@ -202,7 +205,12 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 
 		//If we're on a new BusLine, register it with the scheduler.
 		if(!busline || (curr->route_id != busline->getBusLineID())) {
-			busline = new sim_mob::Busline(curr->route_id,config.busline_control_type());
+			if(curr->route_id == "857_1") {
+				busline = new sim_mob::Busline(curr->route_id,"headway_based");
+			} else {
+				busline = new sim_mob::Busline(curr->route_id,config.busline_control_type());
+			}
+//			busline = new sim_mob::Busline(curr->route_id,config.busline_control_type());
 
 			pt_schedule.registerBusLine(curr->route_id, busline);
 			pt_schedule.registerControlType(curr->route_id, busline->getControlType());
@@ -369,9 +377,9 @@ double sim_mob::BusController::headwayDecision(const string& busline_i, int trip
 	double ETijk = 0;
 	double ATijk_1 = 0;
 	double Hi = 0;
-	double alpha = 0.6;// 0.7(Hi = 100000) range from 0.6 to 0.8
+	double alpha = 0.8;// 0.7(Hi = 100000) range from 0.6 to 0.8
 
-	if (0 == trip_k) {
+	if (trip_k <= 18) { // 857_1, first trip RunNum = 18
 		// the first trip just use Dwell Time, no holding strategy
 		ETijk = ATijk + (DTijk * 1000.0);
 	} else {
@@ -382,7 +390,7 @@ double sim_mob::BusController::headwayDecision(const string& busline_i, int trip
 		std::cout << "real_ArrivalTime in headway Decision: " << " trip_k - 1 " << trip_k - 1 << " busstopSequence_j " << busstopSequence_j << "	" << busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.getRepr_() << std::endl;
 		if(busStopRealTime_tripK_1[busstopSequence_j]->get().Real_busStop) { // data has already updated
 			ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());// there are some cases that buses are bunched together so that k-1 has no values updated yet
-			Hi = 243000;// 444300(test holding), 143000(best), 142000, 140000(headway*100), 138000, 181000(bad effect) ;60000(headway*50)
+			Hi = 480000;// 857_1(headway: 480000ms) 444300(test holding), 143000(best), 142000, 140000(headway*100), 138000, 181000(bad effect) ;60000(headway*50)
 			ETijk = std::max(ATijk_1 + alpha*Hi, ATijk + (DTijk * 1000.0)); // DTijk unit is sec, so change to ms by multiplying 1000
 		} else {// data has not yet updated, sometimes happens especially buses are bunched together(trip_k bus can overtake tripk_1 bus)
 			ETijk = ATijk + (DTijk * 1000.0); // immediately leaving

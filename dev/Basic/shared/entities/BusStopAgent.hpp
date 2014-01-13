@@ -58,8 +58,23 @@ public:
 	const std::string& getBusStopAgentNo() const { return busstopAgentno_; }// get BusStopAgentNum
 	std::vector<sim_mob::WaitBusActivityRole*>& getBoarding_WaitBusActivities() { return boarding_WaitBusActivities; }// get the boarding queue of persons for all Buslines at this BusStopAgent
 	std::vector<sim_mob::Person*>& getAlighted_Persons() { return alighted_Persons; }
-	void setBuslineIdCurrReachedMSs(const std::string& buslineId, uint32_t currReachedMS) {
+	void addBuslineIdCurrReachedMSs(const std::string& buslineId, uint32_t currReachedMS) {
 		buslineId_CurrReachedMSs[buslineId].push_back(currReachedMS);
+	}
+	void addBuslineIdPassengerCounts(const std::string& buslineId, int passengerCounts) {
+		buslineId_passengerCounts[buslineId].push_back(passengerCounts);
+	}
+	void addBuslineIdAlightingNum(const std::string& buslineId, uint32_t alightingNum) {
+		buslineId_AlightingNum[buslineId].push_back(alightingNum);
+	}
+	void addBuslineIdBoardingNum(const std::string& buslineId, uint32_t boardingNum) {
+		buslineId_BoardingNum[buslineId].push_back(boardingNum);
+	}
+	void addBuslineIdBoardingAlightingSecs(const std::string& buslineId, double boardingAlightingSecs) {
+		buslineId_BoardingAlightingSecs[buslineId].push_back(boardingAlightingSecs);
+	}
+	void addBuslineIdBusTripRunSequenceNum(const std::string& buslineId, int bustripRunSequenceNum) {
+		buslineId_bustripRunSequenceNums[buslineId].push_back(bustripRunSequenceNum);
 	}
 	void unregisterAlightedPerons();
 
@@ -82,7 +97,15 @@ private:
 	std::vector<sim_mob::Person*> alighted_Persons;// one alighted queue of persons.(possibly depart the persons continuing waiting and pedestrians moving to other places
 	std::map<std::string, std::vector<uint32_t> > buslineId_HeadwayGapMSs;// for each busline, list all the time headway gaps visited by each bus for this bus stop agent
 	std::map<std::string, std::vector<uint32_t> > buslineId_CurrReachedMSs;// for each busline, store all the curr visited ms of bustrips for this bus stop agent
-	uint32_t frequency_OutputHeadwayGaps;// default every 15min(900000ms) generate output
+
+	// new added variables
+	std::map<std::string, std::vector<int> > buslineId_passengerCounts;
+	std::map<std::string, std::vector<uint32_t> > buslineId_AlightingNum;
+	std::map<std::string, std::vector<uint32_t> > buslineId_BoardingNum;
+	std::map<std::string, std::vector<double> > buslineId_BoardingAlightingSecs;
+	std::map<std::string, std::vector<int> > buslineId_bustripRunSequenceNums;
+
+	uint32_t frequency_OutputHeadwayGaps;// default every 15min(900000ms) generate output, test 3600000(1hour)
 
 
 #ifndef SIMMOB_DISABLE_MPI

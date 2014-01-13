@@ -167,6 +167,12 @@ public:
 	const int getControl_TimePointNum1() const {
 		return control_TimePointNum1;
 	}
+	const int getControl_TimePointNum2() const {
+		return control_TimePointNum2;
+	}
+	const int getControl_TimePointNum3() const {
+		return control_TimePointNum3;
+	}
 	void addBusTrip(BusTrip& aBusTrip);
 	void addFrequencyBusline(const Frequency_Busline& aFrequencyBusline);
 	const std::vector<BusTrip>& queryBusTrips() const {
@@ -183,6 +189,8 @@ private:
 	std::vector<BusTrip> busTrip_vec;// constructed based on MSOffset_headway
 	int control_TimePointNum0; // now only one time point(hardcoded), later extend to the vector<control_TimePoint>
 	int control_TimePointNum1; // now another time point (hardcoded)
+	int control_TimePointNum2;
+	int control_TimePointNum3;
 };
 
 class PT_Schedule { // stored in BusController, Schedule Time Points and Real Time Points should be put separatedly

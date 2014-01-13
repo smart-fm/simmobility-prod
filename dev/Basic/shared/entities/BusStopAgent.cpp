@@ -102,7 +102,7 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 	}
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	uint32_t currMS = (config.simStartTime() + DailyTime(now.ms())).offsetMS_From(DailyTime("00:00:00"));// transfered to ms based on midnight
-	if(currMS % frequency_OutputHeadwayGaps == 0) {
+	if(now.frame() == 108000) {
 		buslineId_HeadwayGapMSs.clear();
 
 		std::stringstream currReachedMSOut;
@@ -110,23 +110,142 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 		for (it = buslineId_CurrReachedMSs.begin(); it != buslineId_CurrReachedMSs.end(); ++it) {
 			// #print 857_1 information
 			if((it->first) == "857_1") {
-				currReachedMSOut << now.frame() << ","
-								 << this->busstop_.busstopno_ << ","
-								 << (it->first) << ","
-								 << (it->second).size() << ",";
+//				currReachedMSOut << now.frame() << ","
+//								 << this->busstop_.busstopno_ << ","
+//								 << (it->first) << ","
+//								 << (it->second).size() << std::endl;
+				currReachedMSOut << "currReachedMsInformation for buslineId " << (it->first) << std::endl;
 				for(int i = 0; i < it->second.size(); i++) {
 	//				currReachedMSOut << " (\"currReachedMS\""
 	//								<< ": " << (it->second)[i];
 	//				currReachedMSOut << "\"})" << std::endl;
-					currReachedMSOut << (it->second)[i] << ",";
+					currReachedMSOut << now.frame() << " "
+									 << "at stop " << this->busstop_.busstopno_ << " "
+									 << (it->first) << " "
+									 << (it->second)[i] << std::endl;
+//					currReachedMSOut << std::endl;
+				}
+				currReachedMSOut << std::endl;
+//				HeadwayAtBusStopInfoPrint() << currReachedMSOut.str();
+			}
+		}
+
+		for (it = buslineId_AlightingNum.begin(); it != buslineId_AlightingNum.end(); ++it) {
+			// #print 857_1 information
+			if((it->first) == "857_1") {
+//				currReachedMSOut << now.frame() << ","
+//								 << this->busstop_.busstopno_ << ","
+//								 << (it->first) << ","
+//								 << (it->second).size() << std::endl;
+				currReachedMSOut << "AlightingInformation for buslineId " << (it->first) << std::endl;
+				for(int j = 0; j < it->second.size(); j++) {
+	//				currReachedMSOut << " (\"currReachedMS\""
+	//								<< ": " << (it->second)[i];
+	//				currReachedMSOut << "\"})" << std::endl;
+					currReachedMSOut << now.frame() << " "
+									 << "alightingNum " << this->busstop_.busstopno_ << " "
+									 << (it->first) << " "
+									 << (it->second)[j] << std::endl;
+//					currReachedMSOut << std::endl;
+				}
+				currReachedMSOut << std::endl;
+//				HeadwayAtBusStopInfoPrint() << currReachedMSOut.str();
+			}
+		}
+
+		for (it = buslineId_BoardingNum.begin(); it != buslineId_BoardingNum.end(); ++it) {
+			// #print 857_1 information
+			if((it->first) == "857_1") {
+//				currReachedMSOut << now.frame() << ","
+//								 << this->busstop_.busstopno_ << ","
+//								 << (it->first) << ","
+//								 << (it->second).size() << std::endl;
+				currReachedMSOut << "BoardingInformation for buslineId " << (it->first) << std::endl;
+				for(int k = 0; k < it->second.size(); k++) {
+	//				currReachedMSOut << " (\"currReachedMS\""
+	//								<< ": " << (it->second)[i];
+	//				currReachedMSOut << "\"})" << std::endl;
+					currReachedMSOut << now.frame() << " "
+									 << "boardingNum " << this->busstop_.busstopno_ << " "
+									 << (it->first) << " "
+									 << (it->second)[k] << std::endl;
+//					currReachedMSOut << std::endl;
+				}
+				currReachedMSOut << std::endl;
+//				HeadwayAtBusStopInfoPrint() << currReachedMSOut.str();
+			}
+		}
+
+		std::map<std::string, std::vector<double> >::const_iterator it1;
+		for (it1 = buslineId_BoardingAlightingSecs.begin(); it1 != buslineId_BoardingAlightingSecs.end(); ++it1) {
+			// #print 857_1 information
+			if((it1->first) == "857_1") {
+//				currReachedMSOut << now.frame() << ","
+//								 << this->busstop_.busstopno_ << ","
+//								 << (it->first) << ","
+//								 << (it->second).size() << std::endl;
+				currReachedMSOut << "BoardingAlightingSecs_Information for buslineId " << (it1->first) << std::endl;
+				for(int m = 0; m < it1->second.size(); m++) {
+	//				currReachedMSOut << " (\"currReachedMS\""
+	//								<< ": " << (it->second)[i];
+	//				currReachedMSOut << "\"})" << std::endl;
+					currReachedMSOut << now.frame() << " "
+									 << "boardingAlightingSecs " << this->busstop_.busstopno_ << " "
+									 << (it1->first) << " "
+									 << (it1->second)[m] << std::endl;
+//					currReachedMSOut << std::endl;
+				}
+				currReachedMSOut << std::endl;
+//				HeadwayAtBusStopInfoPrint() << currReachedMSOut.str();
+			}
+		}
+
+		std::map<std::string, std::vector<int> >::const_iterator it2;
+		for (it2 = buslineId_bustripRunSequenceNums.begin(); it2 != buslineId_bustripRunSequenceNums.end(); ++it2) {
+			// #print 857_1 information
+			if((it2->first) == "857_1") {
+//				currReachedMSOut << now.frame() << ","
+//								 << this->busstop_.busstopno_ << ","
+//								 << (it->first) << ","
+//								 << (it->second).size() << std::endl;
+				currReachedMSOut << "BusTripRunSequenceNumInformation for buslineId " << (it2->first) << std::endl;
+				for(int n = 0; n < it2->second.size(); n++) {
+	//				currReachedMSOut << " (\"currReachedMS\""
+	//								<< ": " << (it->second)[i];
+	//				currReachedMSOut << "\"})" << std::endl;
+					currReachedMSOut << now.frame() << " "
+									 << "bustripRunSequenceNum " << this->busstop_.busstopno_ << " "
+									 << (it2->first) << " "
+									 << (it2->second)[n] << std::endl;
+//					currReachedMSOut << std::endl;
+				}
+				currReachedMSOut << std::endl;
+//				HeadwayAtBusStopInfoPrint() << currReachedMSOut.str();
+			}
+		}
+
+		for (it2 = buslineId_passengerCounts.begin(); it2 != buslineId_passengerCounts.end(); ++it2) {
+			// #print 857_1 information
+			if((it2->first) == "857_1") {
+//				currReachedMSOut << now.frame() << ","
+//								 << this->busstop_.busstopno_ << ","
+//								 << (it->first) << ","
+//								 << (it->second).size() << std::endl;
+				currReachedMSOut << "PassengerCountsInformation for buslineId " << (it2->first) << std::endl;
+				for(int s = 0; s < it2->second.size(); s++) {
+	//				currReachedMSOut << " (\"currReachedMS\""
+	//								<< ": " << (it->second)[i];
+	//				currReachedMSOut << "\"})" << std::endl;
+					currReachedMSOut << now.frame() << " "
+									 << "passengerCounts " << this->busstop_.busstopno_ << " "
+									 << (it2->first) << " "
+									 << (it2->second)[s] << std::endl;
 //					currReachedMSOut << std::endl;
 				}
 				currReachedMSOut << std::endl;
 				HeadwayAtBusStopInfoPrint() << currReachedMSOut.str();
 			}
 		}
-
-
 
 // #print all busline information
 //		for (it = buslineId_CurrReachedMSs.begin(); it != buslineId_CurrReachedMSs.end(); ++it) {

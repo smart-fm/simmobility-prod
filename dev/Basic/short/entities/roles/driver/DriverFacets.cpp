@@ -1485,16 +1485,47 @@ void sim_mob::DriverMovement::rerouteWithBlacklist(const std::vector<const sim_m
 
 	//Retrieve the shortest path from the current intersection node to destination and save all RoadSegments in this path.
 	//NOTE: This path may be invalid, is there is no LaneConnector from the current Segment to the first segment of the result path.
-	const Node* node = parentDriver->vehicle->getCurrSegment()->getEnd();
+	const RoadSegment* currSeg = parentDriver->vehicle->getCurrSegment();
+	const Node* node = currSeg->getEnd();
 	const StreetDirectory& stdir = StreetDirectory::instance();
 	vector<WayPoint> path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*node), stdir.DrivingVertex(*(parentDriver->goal.node)), blacklisted);
 
-	//TODO: We need to fiddle with the path a bit:
-	//      1) Remove the "central Node to Road Segment" WayPoint.
-	//      2) Find and add a "LaneConnector" WayPoint.
-	//      3) If no such WayPoint exists, clear the path.
+	//Given this (tentative) path, we still have to transition from the current Segment.
+	//At the moment this is a bit tedious (since we can't search mid-segment in the StreetDir), but
+	//  the following heuristic should work well enough.
+	const RoadSegment* nextSeg = nullptr;
+	if (path.size() > 1) { //Node, Segment.
+		vector<WayPoint>::iterator it = path.begin();
+		if ((it->type_==WayPoint::NODE) && (it->node_ == node)) {
+			it++;
+			if (it->type_==WayPoint::ROAD_SEGMENT) {
+				nextSeg = it->roadSegment_;
 
-	Warn() <<"Resetting with blacklist [" <<blacklisted.size() <<"], found? " <<(path.empty()?"false":"true") <<"\n";
+			}
+		}
+	}
+
+	//Now find the LaneConnectors. For a UniNode, this is trivial. For a MultiNode, we have to check.
+	//NOTE: If a lane connector is NOT found, there may still be an alternate route... but we can't check this without
+	//      blacklisting the "found" segment and repeating. I think a far better solution would be to modify the
+	//      shortest-path algorithm to allow searching from Segments (the data structure already can handle it),
+	//      but for now we will have to deal with the rare true negative in cities with lots of one-way streets.
+	if (nextSeg) {
+		bool found = false;
+		const MultiNode* mn = dynamic_cast<const MultiNode*>(node);
+		if (mn) {
+			const set<LaneConnector*> lcs = mn->getOutgoingLanes(currSeg);
+			for (set<LaneConnector*>::const_iterator it=lcs.begin(); it!=lcs.end(); it++) {
+				if (((*it)->getLaneFrom()->getRoadSegment()==currSeg) && ((*it)->getLaneTo()->getRoadSegment()==nextSeg)) {
+					found = true;
+					break;
+				}
+			}
+		}
+		if (!found) {
+			path.clear();
+		}
+	}
 
 	//If there's no path, keep the current one.
 	if (path.empty()) {

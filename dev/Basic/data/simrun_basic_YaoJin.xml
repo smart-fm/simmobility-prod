@@ -42,7 +42,7 @@
             <!-- Local copy of the FM server (see wiki for how to set up) -->
           	<database id="fm_local" dbtype="postgres">
                 <host value="localhost"/>
-                <port value="5432"/>
+                <port value="5433"/>
                 <dbname value="SimMobility_DB_WholeSGNew"/>
             </database>
         </databases>
@@ -188,7 +188,7 @@
         <!-- (but will be rounded down.) -->
         <simulation>
             <base_granularity   value="100"   units="ms" />
-            <total_runtime      value="16"      units="minutes" />
+            <total_runtime      value="181"      units="minutes" />
             <total_warmup       value="0"     units="seconds" />
             
             <start_time         value="08:00:00"/>

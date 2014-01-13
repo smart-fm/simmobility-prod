@@ -94,7 +94,7 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick() {
 	if(0!=boarding_MS) {// if boarding_Frame is already set
 		if(boarding_MS == p.now.ms()) {// if currFrame is equal to the boarding_Frame
 			getParent()->setToBeRemoved();
-			boarding_MS = 0;
+			boarding_MS = -1;
 			//Person* person = dynamic_cast<Person*> (parent);
 			if(getParent()) {
 				if(getParent()->getNextRole()) {

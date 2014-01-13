@@ -3,6 +3,11 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "RoadRunnerFactory.hpp"
+#include "logging/Log.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/RemoteLogMessage.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/RerouteRequestMessage.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/RemoteLogHandler.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/RerouteRequestHandler.hpp"
 
 using namespace sim_mob;
 
@@ -14,6 +19,8 @@ sim_mob::roadrunner::RoadRunnerFactory::RoadRunnerFactory(bool useNs3) : useNs3(
 	MessageMap["MULTICAST"] = MULTICAST;
 	MessageMap["UNICAST"] = UNICAST;
 	MessageMap["CLIENT_MESSAGES_DONE"] = CLIENT_MESSAGES_DONE;
+	MessageMap["REMOTE_LOG"] = REMOTE_LOG;
+	MessageMap["REROUTE_REQUEST"] = REROUTE_REQUEST;
 
 	//MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE)/*("ANNOUNCE",ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND)*/;
 }
@@ -45,8 +52,15 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RoadRunnerFactory::get
 		case UNICAST:
 			handler.reset(new sim_mob::roadrunner::UnicastHandler(useNs3));
 			break;
+		case REMOTE_LOG:
+			handler.reset(new sim_mob::roadrunner::RemoteLogHandler());
+			break;
+		case REROUTE_REQUEST:
+			handler.reset(new sim_mob::roadrunner::RerouteRequestHandler());
+			break;
 		default:
 			typeFound = false;
+			break;
 		}
 		//register this baby
 		if(typeFound)
@@ -59,25 +73,33 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RoadRunnerFactory::get
 }
 
 
-bool sim_mob::roadrunner::RoadRunnerFactory::createMessage(std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
+void sim_mob::roadrunner::RoadRunnerFactory::createMessage(const std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
 {
 	Json::Value root;
 	sim_mob::pckt_header packetHeader;
 	if(!sim_mob::JsonParser::parsePacketHeader(input, packetHeader, root))
 	{
-		return false;
+		return;
 	}
 	if(!sim_mob::JsonParser::getPacketMessages(input,root))
 	{
-		return false;
+		return;
 	}
 	for (int index = 0; index < root.size(); index++) {
 		msg_header messageHeader;
 		if (!sim_mob::JsonParser::parseMessageHeader(root[index], messageHeader)) {
 			continue;
 		}
-		Json::Value& curr_json = root[index];
-		switch (MessageMap[messageHeader.msg_type]) {
+
+		//Convert the message type:
+		std::map<std::string, RoadRunnerFactory::MessageType>::const_iterator it = MessageMap.find(messageHeader.msg_type);
+		if (it==MessageMap.end()) {
+			Warn() <<"RoadRunnerFactory::createMessage() - Unknown message type: " <<messageHeader.msg_type <<"\n";
+			continue;
+		}
+
+		const Json::Value& curr_json = root[index];
+		switch (it->second) {
 		case MULTICAST:{
 			//create a message
 			sim_mob::comm::MsgPtr msg(new MulticastMessage(curr_json, useNs3));
@@ -102,14 +124,24 @@ bool sim_mob::roadrunner::RoadRunnerFactory::createMessage(std::string &input, s
 			output.push_back(msg);
 			break;
 		}
-
+		case REMOTE_LOG: {
+			sim_mob::comm::MsgPtr msg(new sim_mob::roadrunner::RemoteLogMessage(curr_json));
+			msg->setHandler(getHandler(REMOTE_LOG));
+			output.push_back(msg);
+			break;
+		}
+		case REROUTE_REQUEST: {
+			sim_mob::comm::MsgPtr msg(new sim_mob::roadrunner::RerouteRequestMessage(curr_json));
+			msg->setHandler(getHandler(REROUTE_REQUEST));
+			output.push_back(msg);
+			break;
+		}
 
 		default:
-			WarnOut("RR_Factory::createMessage() - Unhandled message type.");
+			Warn() <<"RoadRunnerFactory::createMessage() - Unhandled message type: " <<messageHeader.msg_type <<"\n";
+			break;
 		}
 	}		//for loop
-
-	return true;
 }
 
 

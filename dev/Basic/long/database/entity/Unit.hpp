@@ -12,7 +12,7 @@
 
 #include "Common.hpp"
 #include "Types.hpp"
-#include "message/MessageReceiver.hpp"
+#include "geospatial/coord/CoordinateTransform.hpp"
 
 namespace sim_mob {
 
@@ -29,8 +29,9 @@ namespace sim_mob {
         class Unit {
         public:
             Unit(BigSerial id = INVALID_ID, BigSerial buildingId = INVALID_ID, 
-                 BigSerial typeId = INVALID_ID, BigSerial postcodeId = INVALID_ID, 
-                 double area = .0f, int storey = 0, double rent = .0f);
+                 BigSerial typeId = INVALID_ID, BigSerial postcodeId = INVALID_ID,
+                 BigSerial tazId = INVALID_ID, double area = .0f, int storey = 0, 
+                 double rent = .0f, double latitude = 0, double longitude = 0);
             Unit(const Unit& source);
             virtual ~Unit();
 
@@ -42,61 +43,23 @@ namespace sim_mob {
             Unit& operator=(const Unit& source);
 
             /**
-             * gets the Unit unique identifier.
-             * @return value with Unit identifier.
+             * Getters 
              */
             BigSerial getId() const;
-
-            /**
-             * gets the Unit unique identifier.
-             * @return value with Unit identifier.
-             */
             BigSerial getBuildingId() const;
-
-            /**
-             * gets type identifier of the type of unit.
-             * @return type identifier {@see UnitType}.
-             */
             BigSerial getTypeId() const;
-            
-            /**
-             * gets type identifier of the postcode.
-             * @return type identifier {@see Postcode}.
-             */
             BigSerial getPostcodeId() const;
-
-            /**
-             * gets the storey of the unit.
-             * @return unit type {@see UnitType}.
-             */
+            BigSerial getTazId() const;
             int getStorey() const;
-
-            /**
-             * gets the unit Area.
-             * @return unit area value.
-             */
             double getFloorArea() const;
-
-            /**
-             * gets the rent value.
-             * @return rent value.
-             */
             double getRent() const;
+            const LatLngLocation& getLocation() const;
 
             /**
              * Operator to print the Unit data.  
              */
-            friend std::ostream& operator<<(std::ostream& strm, const Unit& data) {
-                return strm << "{"
-                        << "\"id\":\"" << data.id << "\","
-                        << "\"buildingId\":\"" << data.buildingId << "\","
-                        << "\"typeId\":\"" << data.typeId << "\","
-                        << "\"postcodeId\":\"" << data.postcodeId << "\","
-                        << "\"floorArea\":\"" << data.floorArea << "\","
-                        << "\"storey\":\"" << data.storey << "\","
-                        << "\"rent\":\"" << data.rent << "\""
-                        << "}";
-            }
+            friend std::ostream& operator<<(std::ostream& strm, 
+                const Unit& data);
         private:
             friend class UnitDao;
             
@@ -107,9 +70,11 @@ namespace sim_mob {
             BigSerial buildingId;
             BigSerial typeId;
             BigSerial postcodeId;
+            BigSerial tazId;
             double floorArea;
             int storey; 
             double rent;
+            LatLngLocation location;
         };
     }
 }

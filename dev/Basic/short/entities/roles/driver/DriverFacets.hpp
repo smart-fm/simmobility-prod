@@ -20,6 +20,7 @@
 #include "geospatial/RoadItem.hpp"
 #include "entities/IncidentStatus.hpp"
 #include "geospatial/Incident.hpp"
+#include "util/OneTimeFlag.hpp"
 
 namespace sim_mob {
 
@@ -140,9 +141,13 @@ protected:
 
 	void checkIncidentStatus(DriverUpdateParams& p, timeslice now);
 
+	void responseIncidentStatus(DriverUpdateParams& p, timeslice now);
+
 	//Helper: for special strings
-	void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
-	void initTripChainSpecialString(const std::string& value);
+	//NOTE: I am disabling special strings. ~Seth
+	//void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
+	//void initTripChainSpecialString(const std::string& value);
+
 	NearestVehicle & nearestVehicle(DriverUpdateParams& p);
 	void perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params);
 
@@ -199,5 +204,11 @@ private:
 
 	//incident response plan
 	sim_mob::IncidentStatus incidentStatus;
+
+	//Have we sent the list of all regions at least once?
+	OneTimeFlag sentAllRegions;
+
+	//The most recently-set path, which will be sent to RoadRunner.
+	std::vector<const sim_mob::RoadSegment*> rrPathToSend;
 };
 }

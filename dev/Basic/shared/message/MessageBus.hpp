@@ -17,7 +17,7 @@
 namespace sim_mob {
 
     namespace messaging {
-
+        
         class MessageBus : public MessageHandler {
         public:
             typedef boost::shared_ptr<Message> MessagePtr;
@@ -204,5 +204,10 @@ namespace sim_mob {
              */
             static MessageBus& GetInstance();
         };
+        
+        /**
+         * Alias name for MessageBus
+         */
+        typedef MessageBus MsgBus;
     }
 }

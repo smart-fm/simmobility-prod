@@ -113,7 +113,33 @@ void write_xml(XmlWriter& write, const std::pair<sim_mob::Lane*, sim_mob::Lane* 
 	write_xml(write, std::pair<const sim_mob::Lane*, const sim_mob::Lane*>(connectors.first,connectors.second));
 }
 
-
+template<>
+void write_xml(XmlWriter& write,
+		const std::map<const sim_mob::Lane*, sim_mob::UniNode::UniLaneConnector>& newConnectors) {
+//	write_xml(write, newConnector, namer("<laneFrom,laneTo>"), expander("<id,id>"));
+	std::map<const sim_mob::Lane*, sim_mob::UniNode::UniLaneConnector>::const_iterator it;
+	for (it = newConnectors.begin(); it != newConnectors.end(); it++) {
+		write.prop_begin("newConnector");
+		if (!it->first) {
+			throw std::runtime_error("Linkfrom null");
+		} else {
+			write.prop("laneFrom", it->first, namer(), expander("<id>"), false);
+		}
+		if (it->second.left) {
+			write.prop("laneTo_Left", it->second.left, namer(), expander("<id>"),
+					false);
+		}
+		if (it->second.center) {
+			write.prop("laneTo_Center", it->second.center, namer(), expander("<id>"),
+					false);
+		}
+		if (it->second.right) {
+			write.prop("laneTo_Right", it->second.right, namer(), expander("<id>"),
+					false);
+		}
+		write.prop_end();
+	}
+}
 /////////////////////////////////////////////////////////////////////
 // write_xml() - Dispatch
 //               Treat vectors of Point2Ds as poylines.
@@ -345,6 +371,7 @@ void write_xml(XmlWriter& write, const sim_mob::UniNode& und)
 		write.prop("secondPair", und.secondPair, expander("<id,id>"));
 	}
 	write.prop("Connectors", und.getConnectors(), namer("<Connector,<laneFrom,laneTo>>"), expander("<*,<id,id>>"));
+	write.prop("new_Connectors", und.getNewConnectors());
 }
 
 template <>

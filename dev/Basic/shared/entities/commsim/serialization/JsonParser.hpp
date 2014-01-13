@@ -10,11 +10,15 @@
  */
 #pragma once
 
+#include <string>
+#include <vector>
 #include <sstream>
 #include <set>
+
 #include <json/json.h>
 
 #include "entities/commsim/service/Services.hpp"
+#include "geospatial/RoadRunnerRegion.hpp"
 #include "logging/Log.hpp"
 
 namespace sim_mob {
@@ -24,13 +28,13 @@ public:
 	//todo find a way for this hardcoding
 	static sim_mob::Services::SIM_MOB_SERVICE getServiceType(std::string type);
 
-	static bool parsePacketHeader(std::string& input, pckt_header &output, Json::Value &root);
+	static bool parsePacketHeader(const std::string& input, pckt_header &output, Json::Value &root);
 
 	static bool parseMessageHeader(Json::Value & root, msg_header &output);
 
-	static bool parseMessageHeader(std::string& input, msg_header &output);
+	static bool parseMessageHeader(const std::string& input, msg_header &output);
 
-	static bool getPacketMessages(std::string& input, Json::Value &output);
+	static bool getPacketMessages(const std::string& input, Json::Value &output);
 
 	//used for whoami id, type and required services(optional)
 	static bool get_WHOAMI(std::string& input, std::string & type, std::string & ID, std::set<sim_mob::Services::SIM_MOB_SERVICE> &requiredServices);
@@ -50,9 +54,14 @@ public:
 
 	static std::string makeLocationMessageString(int x, int y);
 
-	static Json::Value makeLocationMessage(int x, int y);
+	///Either of the input points (x,y, projected.lat, projected.lng) can be 0, but this does not
+	/// necessarily mean that they are void. (Most road networks will not have (0,0) or (0.0,0.0) as
+	/// valid points though).
+	static Json::Value makeLocationMessage(int x, int y, const LatLngLocation& projected);
 
 	static Json::Value makeLocationArrayElement(unsigned int id, int x, int y);
+
+	static Json::Value makeRegionAndPathMessage(const std::vector<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path);
 
 
 	//@originalMessage input

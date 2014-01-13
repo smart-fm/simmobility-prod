@@ -10,7 +10,7 @@
  */
 
 #include "WaitForAndroidConnection.hpp"
-#include "entities/commsim/broker/Broker.hpp"
+#include "entities/commsim/Broker.hpp"
 #include <boost/unordered_map.hpp>
 
 namespace sim_mob {
@@ -31,8 +31,8 @@ void WaitForAndroidConnection::set_MIN_NOF_Clients(int value) {
 }
 
 bool WaitForAndroidConnection::calculateWaitStatus() {
-	ClientList::type & clients = getBroker().getClientList();
-	int cnt = clients[ConfigParams::ANDROID_EMULATOR].size();
+	ClientList::Type & clients = getBroker().getClientList();
+	int cnt = clients[comm::ANDROID_EMULATOR].size();
 //	Print() << "getBroker().getClientList().size() = " << cnt << " vs " << min_nof_clients << std::endl;
 	if(cnt >= min_nof_clients)
 	{

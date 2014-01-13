@@ -9,7 +9,6 @@
 #include <set>
 #include <boost/thread.hpp>
 #include "buffering/BufferedDataManager.hpp"
-#include "event/EventCollectionMgr.hpp"
 #include "metrics/Frame.hpp"
 #include "event/EventPublisher.hpp"
 #include "event/SystemEvents.hpp"
@@ -30,7 +29,7 @@ class Entity;
 class UpdatePublisher: public sim_mob::event::EventPublisher  {
 public:
 	UpdatePublisher() {
-		RegisterEvent(sim_mob::event::EVT_CORE_AGENT_UPDATED);
+		registerEvent(sim_mob::event::EVT_CORE_AGENT_UPDATED);
 	}
 
 	virtual ~UpdatePublisher(){}
@@ -38,7 +37,6 @@ public:
 
 
 
-DECLARE_CUSTOM_CALLBACK_TYPE(UpdateEventArgs)
 class UpdateEventArgs: public sim_mob::event::EventArgs {
 	const sim_mob::Entity *entity;
 public:
@@ -125,7 +123,6 @@ public:
 
 	void processVirtualQueues();
 	void outputSupplyStats(uint32_t currTick);
-	event::EventCollectionMgr& getEventManager();
 
 	virtual std::ostream* getLogFile() const;
 

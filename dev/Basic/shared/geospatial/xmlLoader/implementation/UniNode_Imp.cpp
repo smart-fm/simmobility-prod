@@ -12,6 +12,7 @@ void sim_mob::xml::UniNode_t_pimpl::pre ()
 	Node_t_pimpl::pre();
 	model = sim_mob::UniNode(0,0);
 	connectors.clear();
+	new_connectors.clear();
 	segmentPairs = std::make_pair(SegmentPair(), SegmentPair());
 }
 
@@ -21,6 +22,10 @@ sim_mob::UniNode* sim_mob::xml::UniNode_t_pimpl::post_UniNode_t ()
 
 	//Save the lane connectors for later.
 	book.addUniNodeLaneConnectorCache(res, connectors);
+
+	if(new_connectors.size() > 0){
+		book.addUniNodeNewLaneConnectorCache(res, new_connectors);
+	}
 	book.addUniNodeSegmentPairCache(res, segmentPairs);
 
 
@@ -47,6 +52,9 @@ void sim_mob::xml::UniNode_t_pimpl::Connectors (std::set<std::pair<unsigned long
 {
 	//Save for later.
 	connectors = value;
+}
+void sim_mob::xml::UniNode_t_pimpl::new_Connectors (std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > & value){
+	new_connectors = value;
 }
 
 

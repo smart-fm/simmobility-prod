@@ -88,7 +88,7 @@ unsigned int sim_mob::RoadSegment::getSegmentAimsunId() const{
 	try {
 		originId = boost::lexical_cast<int>(segId);
 	} catch( boost::bad_lexical_cast const& ) {
-		Print() << "Error: aimsun id string was not valid" << std::endl;
+		Warn() << "Error: aimsun id string was not valid" << std::endl;
 	}
 
 	return originId;
@@ -102,7 +102,7 @@ void sim_mob::RoadSegment::specifyEdgePolylines(const vector< vector<Point2D> >&
 	//TODO: Optionally reset this Segment's own polyline to laneEdge[0].
 }
 
-double sim_mob::RoadSegment::getLengthOfSegment()
+const double sim_mob::RoadSegment::getLengthOfSegment() const
 {
 	std::vector<sim_mob::Point2D> polypointsList = (this)->getLanes().at(0)->getPolyline();
 	double dis=0;

@@ -33,7 +33,7 @@
 
 // Begin prologue.
 //
-// NOTE: Do *not* edit the -pskel.* files; they are generated automatically from the xsd file. 
+// NOTE: Do *not* edit the -pskel.* files; they are generated automatically from the xsd file.
 //       Instead, modify the -pimpl.* files. ~Seth
 //
 // End prologue.
@@ -44,10185 +44,10454 @@ namespace sim_mob
 {
   namespace xml
   {
-    // roadrunner_regions_t_pskel
-    //
+  // roadrunner_regions_t_pskel
+  //
 
-    void roadrunner_regions_t_pskel::
+  void roadrunner_regions_t_pskel::
     region_parser (::sim_mob::xml::roadrunner_region_t_pskel& p)
-    {
-      this->region_parser_ = &p;
-    }
-
-    void roadrunner_regions_t_pskel::
-    parsers (::sim_mob::xml::roadrunner_region_t_pskel& region)
-    {
-      this->region_parser_ = &region;
-    }
-
-    roadrunner_regions_t_pskel::
-    roadrunner_regions_t_pskel ()
-    : region_parser_ (0)
-    {
-    }
-
-    // roadrunner_region_t_pskel
-    //
-
-    void roadrunner_region_t_pskel::
-    id_parser (::xml_schema::int_pskel& p)
-    {
-      this->id_parser_ = &p;
-    }
-
-    void roadrunner_region_t_pskel::
-    shape_parser (::sim_mob::xml::roadrunner_shape_t_pskel& p)
-    {
-      this->shape_parser_ = &p;
-    }
-
-    void roadrunner_region_t_pskel::
-    parsers (::xml_schema::int_pskel& id,
-             ::sim_mob::xml::roadrunner_shape_t_pskel& shape)
-    {
-      this->id_parser_ = &id;
-      this->shape_parser_ = &shape;
-    }
-
-    roadrunner_region_t_pskel::
-    roadrunner_region_t_pskel ()
-    : id_parser_ (0),
-      shape_parser_ (0)
-    {
-    }
-
-    // roadrunner_vertex_t_pskel
-    //
-
-    void roadrunner_vertex_t_pskel::
-    latitude_parser (::xml_schema::double_pskel& p)
-    {
-      this->latitude_parser_ = &p;
-    }
-
-    void roadrunner_vertex_t_pskel::
-    longitude_parser (::xml_schema::double_pskel& p)
-    {
-      this->longitude_parser_ = &p;
-    }
-
-    void roadrunner_vertex_t_pskel::
-    parsers (::xml_schema::double_pskel& latitude,
-             ::xml_schema::double_pskel& longitude)
-    {
-      this->latitude_parser_ = &latitude;
-      this->longitude_parser_ = &longitude;
-    }
-
-    roadrunner_vertex_t_pskel::
-    roadrunner_vertex_t_pskel ()
-    : latitude_parser_ (0),
-      longitude_parser_ (0)
-    {
-    }
-
-    // roadrunner_shape_t_pskel
-    //
-
-    void roadrunner_shape_t_pskel::
-    vertex_parser (::sim_mob::xml::roadrunner_vertex_t_pskel& p)
-    {
-      this->vertex_parser_ = &p;
-    }
-
-    void roadrunner_shape_t_pskel::
-    parsers (::sim_mob::xml::roadrunner_vertex_t_pskel& vertex)
-    {
-      this->vertex_parser_ = &vertex;
-    }
-
-    roadrunner_shape_t_pskel::
-    roadrunner_shape_t_pskel ()
-    : vertex_parser_ (0)
-    {
-    }
-
-    // coordinate_map_t_pskel
-    //
-
-    void coordinate_map_t_pskel::
-    utm_projection_parser (::sim_mob::xml::utm_projection_t_pskel& p)
-    {
-      this->utm_projection_parser_ = &p;
-    }
-
-    void coordinate_map_t_pskel::
-    linear_scale_parser (::sim_mob::xml::linear_scale_t_pskel& p)
-    {
-      this->linear_scale_parser_ = &p;
-    }
-
-    void coordinate_map_t_pskel::
-    parsers (::sim_mob::xml::utm_projection_t_pskel& utm_projection,
-             ::sim_mob::xml::linear_scale_t_pskel& linear_scale)
-    {
-      this->utm_projection_parser_ = &utm_projection;
-      this->linear_scale_parser_ = &linear_scale;
-    }
-
-    coordinate_map_t_pskel::
-    coordinate_map_t_pskel ()
-    : utm_projection_parser_ (0),
-      linear_scale_parser_ (0)
-    {
-    }
-
-    // utm_projection_t_pskel
-    //
-
-    void utm_projection_t_pskel::
-    coordinate_system_parser (::xml_schema::string_pskel& p)
-    {
-      this->coordinate_system_parser_ = &p;
-    }
-
-    void utm_projection_t_pskel::
-    utm_zone_parser (::xml_schema::string_pskel& p)
-    {
-      this->utm_zone_parser_ = &p;
-    }
-
-    void utm_projection_t_pskel::
-    parsers (::xml_schema::string_pskel& coordinate_system,
-             ::xml_schema::string_pskel& utm_zone)
-    {
-      this->coordinate_system_parser_ = &coordinate_system;
-      this->utm_zone_parser_ = &utm_zone;
-    }
-
-    utm_projection_t_pskel::
-    utm_projection_t_pskel ()
-    : coordinate_system_parser_ (0),
-      utm_zone_parser_ (0)
-    {
-    }
-
-    // linear_scale_t_pskel
-    //
-
-    void linear_scale_t_pskel::
-    source_parser (::sim_mob::xml::scale_source_t_pskel& p)
-    {
-      this->source_parser_ = &p;
-    }
-
-    void linear_scale_t_pskel::
-    destination_parser (::sim_mob::xml::scale_destination_t_pskel& p)
-    {
-      this->destination_parser_ = &p;
-    }
-
-    void linear_scale_t_pskel::
-    parsers (::sim_mob::xml::scale_source_t_pskel& source,
-             ::sim_mob::xml::scale_destination_t_pskel& destination)
-    {
-      this->source_parser_ = &source;
-      this->destination_parser_ = &destination;
-    }
-
-    linear_scale_t_pskel::
-    linear_scale_t_pskel ()
-    : source_parser_ (0),
-      destination_parser_ (0)
-    {
-    }
-
-    // scale_source_t_pskel
-    //
-
-    void scale_source_t_pskel::
-    x_range_parser (::xml_schema::string_pskel& p)
-    {
-      this->x_range_parser_ = &p;
-    }
-
-    void scale_source_t_pskel::
-    y_range_parser (::xml_schema::string_pskel& p)
-    {
-      this->y_range_parser_ = &p;
-    }
-
-    void scale_source_t_pskel::
-    parsers (::xml_schema::string_pskel& x_range,
-             ::xml_schema::string_pskel& y_range)
-    {
-      this->x_range_parser_ = &x_range;
-      this->y_range_parser_ = &y_range;
-    }
-
-    scale_source_t_pskel::
-    scale_source_t_pskel ()
-    : x_range_parser_ (0),
-      y_range_parser_ (0)
-    {
-    }
-
-    // scale_destination_t_pskel
-    //
-
-    void scale_destination_t_pskel::
-    longitude_range_parser (::xml_schema::string_pskel& p)
-    {
-      this->longitude_range_parser_ = &p;
-    }
-
-    void scale_destination_t_pskel::
-    latitude_range_parser (::xml_schema::string_pskel& p)
-    {
-      this->latitude_range_parser_ = &p;
-    }
-
-    void scale_destination_t_pskel::
-    parsers (::xml_schema::string_pskel& longitude_range,
-             ::xml_schema::string_pskel& latitude_range)
-    {
-      this->longitude_range_parser_ = &longitude_range;
-      this->latitude_range_parser_ = &latitude_range;
-    }
-
-    scale_destination_t_pskel::
-    scale_destination_t_pskel ()
-    : longitude_range_parser_ (0),
-      latitude_range_parser_ (0)
-    {
-    }
-
-    // Point2D_t_pskel
-    //
-
-    void Point2D_t_pskel::
-    xPos_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->xPos_parser_ = &p;
-    }
-
-    void Point2D_t_pskel::
-    yPos_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->yPos_parser_ = &p;
-    }
-
-    void Point2D_t_pskel::
-    parsers (::xml_schema::unsigned_int_pskel& xPos,
-             ::xml_schema::unsigned_int_pskel& yPos)
-    {
-      this->xPos_parser_ = &xPos;
-      this->yPos_parser_ = &yPos;
-    }
-
-    Point2D_t_pskel::
-    Point2D_t_pskel ()
-    : xPos_parser_ (0),
-      yPos_parser_ (0)
-    {
-    }
-
-    // PolyPoint_t_pskel
-    //
-
-    void PolyPoint_t_pskel::
-    pointID_parser (::xml_schema::string_pskel& p)
-    {
-      this->pointID_parser_ = &p;
-    }
-
-    void PolyPoint_t_pskel::
-    location_parser (::sim_mob::xml::Point2D_t_pskel& p)
-    {
-      this->location_parser_ = &p;
-    }
-
-    void PolyPoint_t_pskel::
-    parsers (::xml_schema::string_pskel& pointID,
-             ::sim_mob::xml::Point2D_t_pskel& location)
-    {
-      this->pointID_parser_ = &pointID;
-      this->location_parser_ = &location;
-    }
-
-    PolyPoint_t_pskel::
-    PolyPoint_t_pskel ()
-    : pointID_parser_ (0),
-      location_parser_ (0)
-    {
-    }
-
-    // PolyLine_t_pskel
-    //
-
-    void PolyLine_t_pskel::
-    PolyPoint_parser (::sim_mob::xml::PolyPoint_t_pskel& p)
-    {
-      this->PolyPoint_parser_ = &p;
-    }
-
-    void PolyLine_t_pskel::
-    parsers (::sim_mob::xml::PolyPoint_t_pskel& PolyPoint)
-    {
-      this->PolyPoint_parser_ = &PolyPoint;
-    }
-
-    PolyLine_t_pskel::
-    PolyLine_t_pskel ()
-    : PolyPoint_parser_ (0)
-    {
-    }
-
-    // lane_t_pskel
-    //
-
-    void lane_t_pskel::
-    laneID_parser (::xml_schema::unsigned_long_pskel& p)
-    {
-      this->laneID_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    width_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->width_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    can_go_straight_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->can_go_straight_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    can_turn_left_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->can_turn_left_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    can_turn_right_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->can_turn_right_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    can_turn_on_red_signal_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->can_turn_on_red_signal_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    can_change_lane_left_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->can_change_lane_left_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    can_change_lane_right_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->can_change_lane_right_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    is_road_shoulder_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->is_road_shoulder_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    is_bicycle_lane_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->is_bicycle_lane_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    is_pedestrian_lane_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->is_pedestrian_lane_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    is_vehicle_lane_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->is_vehicle_lane_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    is_standard_bus_lane_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->is_standard_bus_lane_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    is_whole_day_bus_lane_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->is_whole_day_bus_lane_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    is_high_occupancy_vehicle_lane_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->is_high_occupancy_vehicle_lane_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    can_freely_park_here_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->can_freely_park_here_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    can_stop_here_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->can_stop_here_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    is_u_turn_allowed_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->is_u_turn_allowed_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    PolyLine_parser (::sim_mob::xml::PolyLine_t_pskel& p)
-    {
-      this->PolyLine_parser_ = &p;
-    }
-
-    void lane_t_pskel::
-    parsers (::xml_schema::unsigned_long_pskel& laneID,
-             ::xml_schema::unsigned_int_pskel& width,
-             ::xml_schema::boolean_pskel& can_go_straight,
-             ::xml_schema::boolean_pskel& can_turn_left,
-             ::xml_schema::boolean_pskel& can_turn_right,
-             ::xml_schema::boolean_pskel& can_turn_on_red_signal,
-             ::xml_schema::boolean_pskel& can_change_lane_left,
-             ::xml_schema::boolean_pskel& can_change_lane_right,
-             ::xml_schema::boolean_pskel& is_road_shoulder,
-             ::xml_schema::boolean_pskel& is_bicycle_lane,
-             ::xml_schema::boolean_pskel& is_pedestrian_lane,
-             ::xml_schema::boolean_pskel& is_vehicle_lane,
-             ::xml_schema::boolean_pskel& is_standard_bus_lane,
-             ::xml_schema::boolean_pskel& is_whole_day_bus_lane,
-             ::xml_schema::boolean_pskel& is_high_occupancy_vehicle_lane,
-             ::xml_schema::boolean_pskel& can_freely_park_here,
-             ::xml_schema::boolean_pskel& can_stop_here,
-             ::xml_schema::boolean_pskel& is_u_turn_allowed,
-             ::sim_mob::xml::PolyLine_t_pskel& PolyLine)
-    {
-      this->laneID_parser_ = &laneID;
-      this->width_parser_ = &width;
-      this->can_go_straight_parser_ = &can_go_straight;
-      this->can_turn_left_parser_ = &can_turn_left;
-      this->can_turn_right_parser_ = &can_turn_right;
-      this->can_turn_on_red_signal_parser_ = &can_turn_on_red_signal;
-      this->can_change_lane_left_parser_ = &can_change_lane_left;
-      this->can_change_lane_right_parser_ = &can_change_lane_right;
-      this->is_road_shoulder_parser_ = &is_road_shoulder;
-      this->is_bicycle_lane_parser_ = &is_bicycle_lane;
-      this->is_pedestrian_lane_parser_ = &is_pedestrian_lane;
-      this->is_vehicle_lane_parser_ = &is_vehicle_lane;
-      this->is_standard_bus_lane_parser_ = &is_standard_bus_lane;
-      this->is_whole_day_bus_lane_parser_ = &is_whole_day_bus_lane;
-      this->is_high_occupancy_vehicle_lane_parser_ = &is_high_occupancy_vehicle_lane;
-      this->can_freely_park_here_parser_ = &can_freely_park_here;
-      this->can_stop_here_parser_ = &can_stop_here;
-      this->is_u_turn_allowed_parser_ = &is_u_turn_allowed;
-      this->PolyLine_parser_ = &PolyLine;
-    }
-
-    lane_t_pskel::
-    lane_t_pskel ()
-    : laneID_parser_ (0),
-      width_parser_ (0),
-      can_go_straight_parser_ (0),
-      can_turn_left_parser_ (0),
-      can_turn_right_parser_ (0),
-      can_turn_on_red_signal_parser_ (0),
-      can_change_lane_left_parser_ (0),
-      can_change_lane_right_parser_ (0),
-      is_road_shoulder_parser_ (0),
-      is_bicycle_lane_parser_ (0),
-      is_pedestrian_lane_parser_ (0),
-      is_vehicle_lane_parser_ (0),
-      is_standard_bus_lane_parser_ (0),
-      is_whole_day_bus_lane_parser_ (0),
-      is_high_occupancy_vehicle_lane_parser_ (0),
-      can_freely_park_here_parser_ (0),
-      can_stop_here_parser_ (0),
-      is_u_turn_allowed_parser_ (0),
-      PolyLine_parser_ (0)
-    {
-    }
-
-    // connector_t_pskel
-    //
-
-    void connector_t_pskel::
-    laneFrom_parser (::xml_schema::unsigned_long_pskel& p)
-    {
-      this->laneFrom_parser_ = &p;
-    }
-
-    void connector_t_pskel::
-    laneTo_parser (::xml_schema::unsigned_long_pskel& p)
-    {
-      this->laneTo_parser_ = &p;
-    }
-
-    void connector_t_pskel::
-    parsers (::xml_schema::unsigned_long_pskel& laneFrom,
-             ::xml_schema::unsigned_long_pskel& laneTo)
-    {
-      this->laneFrom_parser_ = &laneFrom;
-      this->laneTo_parser_ = &laneTo;
-    }
-
-    connector_t_pskel::
-    connector_t_pskel ()
-    : laneFrom_parser_ (0),
-      laneTo_parser_ (0)
-    {
-    }
-
-    // connectors_t_pskel
-    //
-
-    void connectors_t_pskel::
-    Connector_parser (::sim_mob::xml::connector_t_pskel& p)
-    {
-      this->Connector_parser_ = &p;
-    }
-
-    void connectors_t_pskel::
-    parsers (::sim_mob::xml::connector_t_pskel& Connector)
-    {
-      this->Connector_parser_ = &Connector;
-    }
-
-    connectors_t_pskel::
-    connectors_t_pskel ()
-    : Connector_parser_ (0)
-    {
-    }
-
-    // Multi_Connector_t_pskel
-    //
-
-    void Multi_Connector_t_pskel::
-    RoadSegment_parser (::xml_schema::unsigned_long_pskel& p)
-    {
-      this->RoadSegment_parser_ = &p;
-    }
-
-    void Multi_Connector_t_pskel::
-    Connectors_parser (::sim_mob::xml::connectors_t_pskel& p)
-    {
-      this->Connectors_parser_ = &p;
-    }
-
-    void Multi_Connector_t_pskel::
-    parsers (::xml_schema::unsigned_long_pskel& RoadSegment,
-             ::sim_mob::xml::connectors_t_pskel& Connectors)
-    {
-      this->RoadSegment_parser_ = &RoadSegment;
-      this->Connectors_parser_ = &Connectors;
-    }
-
-    Multi_Connector_t_pskel::
-    Multi_Connector_t_pskel ()
-    : RoadSegment_parser_ (0),
-      Connectors_parser_ (0)
-    {
-    }
-
-    // Multi_Connectors_t_pskel
-    //
-
-    void Multi_Connectors_t_pskel::
-    MultiConnectors_parser (::sim_mob::xml::Multi_Connector_t_pskel& p)
-    {
-      this->MultiConnectors_parser_ = &p;
-    }
-
-    void Multi_Connectors_t_pskel::
-    parsers (::sim_mob::xml::Multi_Connector_t_pskel& MultiConnectors)
-    {
-      this->MultiConnectors_parser_ = &MultiConnectors;
-    }
-
-    Multi_Connectors_t_pskel::
-    Multi_Connectors_t_pskel ()
-    : MultiConnectors_parser_ (0)
-    {
-    }
-
-    // fwdBckSegments_t_pskel
-    //
-
-    void fwdBckSegments_t_pskel::
-    Segment_parser (::sim_mob::xml::segment_t_pskel& p)
-    {
-      this->Segment_parser_ = &p;
-    }
-
-    void fwdBckSegments_t_pskel::
-    parsers (::sim_mob::xml::segment_t_pskel& Segment)
-    {
-      this->Segment_parser_ = &Segment;
-    }
-
-    fwdBckSegments_t_pskel::
-    fwdBckSegments_t_pskel ()
-    : Segment_parser_ (0)
-    {
-    }
-
-    // RoadSegmentsAt_t_pskel
-    //
-
-    void RoadSegmentsAt_t_pskel::
-    segmentID_parser (::xml_schema::unsigned_long_pskel& p)
-    {
-      this->segmentID_parser_ = &p;
-    }
-
-    void RoadSegmentsAt_t_pskel::
-    parsers (::xml_schema::unsigned_long_pskel& segmentID)
-    {
-      this->segmentID_parser_ = &segmentID;
-    }
-
-    RoadSegmentsAt_t_pskel::
-    RoadSegmentsAt_t_pskel ()
-    : segmentID_parser_ (0)
-    {
-    }
-
-    // laneEdgePolyline_cached_t_pskel
-    //
-
-    void laneEdgePolyline_cached_t_pskel::
-    laneNumber_parser (::xml_schema::short_pskel& p)
-    {
-      this->laneNumber_parser_ = &p;
-    }
-
-    void laneEdgePolyline_cached_t_pskel::
-    polyline_parser (::sim_mob::xml::PolyLine_t_pskel& p)
-    {
-      this->polyline_parser_ = &p;
-    }
-
-    void laneEdgePolyline_cached_t_pskel::
-    parsers (::xml_schema::short_pskel& laneNumber,
-             ::sim_mob::xml::PolyLine_t_pskel& polyline)
-    {
-      this->laneNumber_parser_ = &laneNumber;
-      this->polyline_parser_ = &polyline;
-    }
-
-    laneEdgePolyline_cached_t_pskel::
-    laneEdgePolyline_cached_t_pskel ()
-    : laneNumber_parser_ (0),
-      polyline_parser_ (0)
-    {
-    }
-
-    // laneEdgePolylines_cached_t_pskel
-    //
-
-    void laneEdgePolylines_cached_t_pskel::
-    laneEdgePolyline_cached_parser (::sim_mob::xml::laneEdgePolyline_cached_t_pskel& p)
-    {
-      this->laneEdgePolyline_cached_parser_ = &p;
-    }
-
-    void laneEdgePolylines_cached_t_pskel::
-    parsers (::sim_mob::xml::laneEdgePolyline_cached_t_pskel& laneEdgePolyline_cached)
-    {
-      this->laneEdgePolyline_cached_parser_ = &laneEdgePolyline_cached;
-    }
-
-    laneEdgePolylines_cached_t_pskel::
-    laneEdgePolylines_cached_t_pskel ()
-    : laneEdgePolyline_cached_parser_ (0)
-    {
-    }
-
-    // segment_t_pskel
-    //
-
-    void segment_t_pskel::
-    segmentID_parser (::xml_schema::unsigned_long_pskel& p)
-    {
-      this->segmentID_parser_ = &p;
-    }
-
-    void segment_t_pskel::
-    startingNode_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->startingNode_parser_ = &p;
-    }
-
-    void segment_t_pskel::
-    endingNode_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->endingNode_parser_ = &p;
-    }
-
-    void segment_t_pskel::
-    maxSpeed_parser (::xml_schema::short_pskel& p)
-    {
-      this->maxSpeed_parser_ = &p;
-    }
-
-    void segment_t_pskel::
-    Length_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->Length_parser_ = &p;
-    }
-
-    void segment_t_pskel::
-    Width_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->Width_parser_ = &p;
-    }
-
-    void segment_t_pskel::
-    originalDB_ID_parser (::xml_schema::string_pskel& p)
-    {
-      this->originalDB_ID_parser_ = &p;
-    }
-
-    void segment_t_pskel::
-    polyline_parser (::sim_mob::xml::PolyLine_t_pskel& p)
-    {
-      this->polyline_parser_ = &p;
-    }
-
-    void segment_t_pskel::
-    laneEdgePolylines_cached_parser (::sim_mob::xml::laneEdgePolylines_cached_t_pskel& p)
-    {
-      this->laneEdgePolylines_cached_parser_ = &p;
-    }
-
-    void segment_t_pskel::
-    Lanes_parser (::sim_mob::xml::Lanes_pskel& p)
-    {
-      this->Lanes_parser_ = &p;
-    }
-
-    void segment_t_pskel::
-    Obstacles_parser (::sim_mob::xml::RoadItems_t_pskel& p)
-    {
-      this->Obstacles_parser_ = &p;
-    }
-
-    void segment_t_pskel::
-    KurbLine_parser (::sim_mob::xml::PolyLine_t_pskel& p)
-    {
-      this->KurbLine_parser_ = &p;
-    }
-
-    void segment_t_pskel::
-    parsers (::xml_schema::unsigned_long_pskel& segmentID,
-             ::xml_schema::unsigned_int_pskel& startingNode,
-             ::xml_schema::unsigned_int_pskel& endingNode,
-             ::xml_schema::short_pskel& maxSpeed,
-             ::xml_schema::unsigned_int_pskel& Length,
-             ::xml_schema::unsigned_int_pskel& Width,
-             ::xml_schema::string_pskel& originalDB_ID,
-             ::sim_mob::xml::PolyLine_t_pskel& polyline,
-             ::sim_mob::xml::laneEdgePolylines_cached_t_pskel& laneEdgePolylines_cached,
-             ::sim_mob::xml::Lanes_pskel& Lanes,
-             ::sim_mob::xml::RoadItems_t_pskel& Obstacles,
-             ::sim_mob::xml::PolyLine_t_pskel& KurbLine)
-    {
-      this->segmentID_parser_ = &segmentID;
-      this->startingNode_parser_ = &startingNode;
-      this->endingNode_parser_ = &endingNode;
-      this->maxSpeed_parser_ = &maxSpeed;
-      this->Length_parser_ = &Length;
-      this->Width_parser_ = &Width;
-      this->originalDB_ID_parser_ = &originalDB_ID;
-      this->polyline_parser_ = &polyline;
-      this->laneEdgePolylines_cached_parser_ = &laneEdgePolylines_cached;
-      this->Lanes_parser_ = &Lanes;
-      this->Obstacles_parser_ = &Obstacles;
-      this->KurbLine_parser_ = &KurbLine;
-    }
-
-    segment_t_pskel::
-    segment_t_pskel ()
-    : segmentID_parser_ (0),
-      startingNode_parser_ (0),
-      endingNode_parser_ (0),
-      maxSpeed_parser_ (0),
-      Length_parser_ (0),
-      Width_parser_ (0),
-      originalDB_ID_parser_ (0),
-      polyline_parser_ (0),
-      laneEdgePolylines_cached_parser_ (0),
-      Lanes_parser_ (0),
-      Obstacles_parser_ (0),
-      KurbLine_parser_ (0)
-    {
-    }
-
-    // link_t_pskel
-    //
-
-    void link_t_pskel::
-    linkID_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->linkID_parser_ = &p;
-    }
-
-    void link_t_pskel::
-    roadName_parser (::xml_schema::string_pskel& p)
-    {
-      this->roadName_parser_ = &p;
-    }
-
-    void link_t_pskel::
-    StartingNode_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->StartingNode_parser_ = &p;
-    }
-
-    void link_t_pskel::
-    EndingNode_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->EndingNode_parser_ = &p;
-    }
-
-    void link_t_pskel::
-    Segments_parser (::sim_mob::xml::fwdBckSegments_t_pskel& p)
-    {
-      this->Segments_parser_ = &p;
-    }
-
-    void link_t_pskel::
-    parsers (::xml_schema::unsigned_int_pskel& linkID,
-             ::xml_schema::string_pskel& roadName,
-             ::xml_schema::unsigned_int_pskel& StartingNode,
-             ::xml_schema::unsigned_int_pskel& EndingNode,
-             ::sim_mob::xml::fwdBckSegments_t_pskel& Segments)
-    {
-      this->linkID_parser_ = &linkID;
-      this->roadName_parser_ = &roadName;
-      this->StartingNode_parser_ = &StartingNode;
-      this->EndingNode_parser_ = &EndingNode;
-      this->Segments_parser_ = &Segments;
-    }
-
-    link_t_pskel::
-    link_t_pskel ()
-    : linkID_parser_ (0),
-      roadName_parser_ (0),
-      StartingNode_parser_ (0),
-      EndingNode_parser_ (0),
-      Segments_parser_ (0)
-    {
-    }
-
-    // separator_t_pskel
-    //
-
-    void separator_t_pskel::
-    separator_ID_parser (::xml_schema::unsigned_short_pskel& p)
-    {
-      this->separator_ID_parser_ = &p;
-    }
-
-    void separator_t_pskel::
-    separator_value_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->separator_value_parser_ = &p;
-    }
-
-    void separator_t_pskel::
-    parsers (::xml_schema::unsigned_short_pskel& separator_ID,
-             ::xml_schema::boolean_pskel& separator_value)
-    {
-      this->separator_ID_parser_ = &separator_ID;
-      this->separator_value_parser_ = &separator_value;
-    }
-
-    separator_t_pskel::
-    separator_t_pskel ()
-    : separator_ID_parser_ (0),
-      separator_value_parser_ (0)
-    {
-    }
-
-    // separators_t_pskel
-    //
-
-    void separators_t_pskel::
-    Separator_parser (::sim_mob::xml::separator_t_pskel& p)
-    {
-      this->Separator_parser_ = &p;
-    }
-
-    void separators_t_pskel::
-    parsers (::sim_mob::xml::separator_t_pskel& Separator)
-    {
-      this->Separator_parser_ = &Separator;
-    }
-
-    separators_t_pskel::
-    separators_t_pskel ()
-    : Separator_parser_ (0)
-    {
-    }
-
-    // DomainIsland_t_pskel
-    //
-
-    void DomainIsland_t_pskel::
-    domainIsland_ID_parser (::xml_schema::unsigned_short_pskel& p)
-    {
-      this->domainIsland_ID_parser_ = &p;
-    }
-
-    void DomainIsland_t_pskel::
-    domainIsland_value_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->domainIsland_value_parser_ = &p;
-    }
-
-    void DomainIsland_t_pskel::
-    parsers (::xml_schema::unsigned_short_pskel& domainIsland_ID,
-             ::xml_schema::boolean_pskel& domainIsland_value)
-    {
-      this->domainIsland_ID_parser_ = &domainIsland_ID;
-      this->domainIsland_value_parser_ = &domainIsland_value;
-    }
-
-    DomainIsland_t_pskel::
-    DomainIsland_t_pskel ()
-    : domainIsland_ID_parser_ (0),
-      domainIsland_value_parser_ (0)
-    {
-    }
-
-    // DomainIslands_t_pskel
-    //
-
-    void DomainIslands_t_pskel::
-    domainIslands_parser (::sim_mob::xml::DomainIsland_t_pskel& p)
-    {
-      this->domainIslands_parser_ = &p;
-    }
-
-    void DomainIslands_t_pskel::
-    parsers (::sim_mob::xml::DomainIsland_t_pskel& domainIslands)
-    {
-      this->domainIslands_parser_ = &domainIslands;
-    }
-
-    DomainIslands_t_pskel::
-    DomainIslands_t_pskel ()
-    : domainIslands_parser_ (0)
-    {
-    }
-
-    // offset_t_pskel
-    //
-
-    void offset_t_pskel::
-    offset_ID_parser (::xml_schema::unsigned_short_pskel& p)
-    {
-      this->offset_ID_parser_ = &p;
-    }
-
-    void offset_t_pskel::
-    offset_value_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->offset_value_parser_ = &p;
-    }
-
-    void offset_t_pskel::
-    parsers (::xml_schema::unsigned_short_pskel& offset_ID,
-             ::xml_schema::unsigned_int_pskel& offset_value)
-    {
-      this->offset_ID_parser_ = &offset_ID;
-      this->offset_value_parser_ = &offset_value;
-    }
-
-    offset_t_pskel::
-    offset_t_pskel ()
-    : offset_ID_parser_ (0),
-      offset_value_parser_ (0)
-    {
-    }
-
-    // offsets_t_pskel
-    //
-
-    void offsets_t_pskel::
-    offset_parser (::sim_mob::xml::offset_t_pskel& p)
-    {
-      this->offset_parser_ = &p;
-    }
-
-    void offsets_t_pskel::
-    parsers (::sim_mob::xml::offset_t_pskel& offset)
-    {
-      this->offset_parser_ = &offset;
-    }
-
-    offsets_t_pskel::
-    offsets_t_pskel ()
-    : offset_parser_ (0)
-    {
-    }
-
-    // ChunkLength_t_pskel
-    //
-
-    void ChunkLength_t_pskel::
-    chunklength_ID_parser (::xml_schema::unsigned_short_pskel& p)
-    {
-      this->chunklength_ID_parser_ = &p;
-    }
-
-    void ChunkLength_t_pskel::
-    chunklength_value_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->chunklength_value_parser_ = &p;
-    }
-
-    void ChunkLength_t_pskel::
-    parsers (::xml_schema::unsigned_short_pskel& chunklength_ID,
-             ::xml_schema::unsigned_int_pskel& chunklength_value)
-    {
-      this->chunklength_ID_parser_ = &chunklength_ID;
-      this->chunklength_value_parser_ = &chunklength_value;
-    }
-
-    ChunkLength_t_pskel::
-    ChunkLength_t_pskel ()
-    : chunklength_ID_parser_ (0),
-      chunklength_value_parser_ (0)
-    {
-    }
-
-    // ChunkLengths_t_pskel
-    //
-
-    void ChunkLengths_t_pskel::
-    chunklength_parser (::sim_mob::xml::ChunkLength_t_pskel& p)
-    {
-      this->chunklength_parser_ = &p;
-    }
-
-    void ChunkLengths_t_pskel::
-    parsers (::sim_mob::xml::ChunkLength_t_pskel& chunklength)
-    {
-      this->chunklength_parser_ = &chunklength;
-    }
-
-    ChunkLengths_t_pskel::
-    ChunkLengths_t_pskel ()
-    : chunklength_parser_ (0)
-    {
-    }
-
-    // LanesVector_t_pskel
-    //
-
-    void LanesVector_t_pskel::
-    laneID_parser (::xml_schema::unsigned_long_pskel& p)
-    {
-      this->laneID_parser_ = &p;
-    }
-
-    void LanesVector_t_pskel::
-    parsers (::xml_schema::unsigned_long_pskel& laneID)
-    {
-      this->laneID_parser_ = &laneID;
-    }
-
-    LanesVector_t_pskel::
-    LanesVector_t_pskel ()
-    : laneID_parser_ (0)
-    {
-    }
-
-    // EntranceAngle_t_pskel
-    //
-
-    void EntranceAngle_t_pskel::
-    entranceAngle_ID_parser (::xml_schema::unsigned_short_pskel& p)
-    {
-      this->entranceAngle_ID_parser_ = &p;
-    }
-
-    void EntranceAngle_t_pskel::
-    entranceAngle_value_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->entranceAngle_value_parser_ = &p;
-    }
-
-    void EntranceAngle_t_pskel::
-    parsers (::xml_schema::unsigned_short_pskel& entranceAngle_ID,
-             ::xml_schema::unsigned_int_pskel& entranceAngle_value)
-    {
-      this->entranceAngle_ID_parser_ = &entranceAngle_ID;
-      this->entranceAngle_value_parser_ = &entranceAngle_value;
-    }
-
-    EntranceAngle_t_pskel::
-    EntranceAngle_t_pskel ()
-    : entranceAngle_ID_parser_ (0),
-      entranceAngle_value_parser_ (0)
-    {
-    }
-
-    // EntranceAngles_t_pskel
-    //
-
-    void EntranceAngles_t_pskel::
-    entranceAngle_parser (::sim_mob::xml::EntranceAngle_t_pskel& p)
-    {
-      this->entranceAngle_parser_ = &p;
-    }
-
-    void EntranceAngles_t_pskel::
-    parsers (::sim_mob::xml::EntranceAngle_t_pskel& entranceAngle)
-    {
-      this->entranceAngle_parser_ = &entranceAngle;
-    }
-
-    EntranceAngles_t_pskel::
-    EntranceAngles_t_pskel ()
-    : entranceAngle_parser_ (0)
-    {
-    }
-
-    // Node_t_pskel
-    //
-
-    void Node_t_pskel::
-    nodeID_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->nodeID_parser_ = &p;
-    }
-
-    void Node_t_pskel::
-    location_parser (::sim_mob::xml::Point2D_t_pskel& p)
-    {
-      this->location_parser_ = &p;
-    }
-
-    void Node_t_pskel::
-    originalDB_ID_parser (::xml_schema::string_pskel& p)
-    {
-      this->originalDB_ID_parser_ = &p;
-    }
-
-    void Node_t_pskel::
-    parsers (::xml_schema::unsigned_int_pskel& nodeID,
-             ::sim_mob::xml::Point2D_t_pskel& location,
-             ::xml_schema::string_pskel& originalDB_ID)
-    {
-      this->nodeID_parser_ = &nodeID;
-      this->location_parser_ = &location;
-      this->originalDB_ID_parser_ = &originalDB_ID;
-    }
-
-    Node_t_pskel::
-    Node_t_pskel ()
-    : nodeID_parser_ (0),
-      location_parser_ (0),
-      originalDB_ID_parser_ (0)
-    {
-    }
-
-    // temp_Segmetair_t_pskel
-    //
-
-    void temp_Segmetair_t_pskel::
-    first_parser (::xml_schema::unsigned_long_pskel& p)
-    {
-      this->first_parser_ = &p;
-    }
-
-    void temp_Segmetair_t_pskel::
-    second_parser (::xml_schema::unsigned_long_pskel& p)
-    {
-      this->second_parser_ = &p;
-    }
-
-    void temp_Segmetair_t_pskel::
-    parsers (::xml_schema::unsigned_long_pskel& first,
-             ::xml_schema::unsigned_long_pskel& second)
-    {
-      this->first_parser_ = &first;
-      this->second_parser_ = &second;
-    }
-
-    temp_Segmetair_t_pskel::
-    temp_Segmetair_t_pskel ()
-    : first_parser_ (0),
-      second_parser_ (0)
-    {
-    }
-
-    // UniNode_t_pskel
-    //
-
-    void UniNode_t_pskel::
-    firstPair_parser (::sim_mob::xml::temp_Segmetair_t_pskel& p)
-    {
-      this->firstPair_parser_ = &p;
-    }
-
-    void UniNode_t_pskel::
-    secondPair_parser (::sim_mob::xml::temp_Segmetair_t_pskel& p)
-    {
-      this->secondPair_parser_ = &p;
-    }
-
-    void UniNode_t_pskel::
-    Connectors_parser (::sim_mob::xml::connectors_t_pskel& p)
-    {
-      this->Connectors_parser_ = &p;
-    }
-
-    void UniNode_t_pskel::
-    parsers (::xml_schema::unsigned_int_pskel& nodeID,
-             ::sim_mob::xml::Point2D_t_pskel& location,
-             ::xml_schema::string_pskel& originalDB_ID,
-             ::sim_mob::xml::temp_Segmetair_t_pskel& firstPair,
-             ::sim_mob::xml::temp_Segmetair_t_pskel& secondPair,
-             ::sim_mob::xml::connectors_t_pskel& Connectors)
-    {
-      this->nodeID_parser_ = &nodeID;
-      this->location_parser_ = &location;
-      this->originalDB_ID_parser_ = &originalDB_ID;
-      this->firstPair_parser_ = &firstPair;
-      this->secondPair_parser_ = &secondPair;
-      this->Connectors_parser_ = &Connectors;
-    }
-
-    UniNode_t_pskel::
-    UniNode_t_pskel ()
-    : firstPair_parser_ (0),
-      secondPair_parser_ (0),
-      Connectors_parser_ (0)
-    {
-    }
-
-    // roundabout_t_pskel
-    //
-
-    void roundabout_t_pskel::
-    roadSegmentsAt_parser (::sim_mob::xml::RoadSegmentsAt_t_pskel& p)
-    {
-      this->roadSegmentsAt_parser_ = &p;
-    }
-
-    void roundabout_t_pskel::
-    Connectors_parser (::sim_mob::xml::Multi_Connectors_t_pskel& p)
-    {
-      this->Connectors_parser_ = &p;
-    }
-
-    void roundabout_t_pskel::
-    ChunkLengths_parser (::sim_mob::xml::ChunkLengths_t_pskel& p)
-    {
-      this->ChunkLengths_parser_ = &p;
-    }
-
-    void roundabout_t_pskel::
-    Offsets_parser (::sim_mob::xml::offsets_t_pskel& p)
-    {
-      this->Offsets_parser_ = &p;
-    }
-
-    void roundabout_t_pskel::
-    Separators_parser (::sim_mob::xml::separators_t_pskel& p)
-    {
-      this->Separators_parser_ = &p;
-    }
-
-    void roundabout_t_pskel::
-    addDominantLane_parser (::sim_mob::xml::LanesVector_t_pskel& p)
-    {
-      this->addDominantLane_parser_ = &p;
-    }
-
-    void roundabout_t_pskel::
-    roundaboutDominantIslands_parser (::xml_schema::float_pskel& p)
-    {
-      this->roundaboutDominantIslands_parser_ = &p;
-    }
-
-    void roundabout_t_pskel::
-    roundaboutNumberOfLanes_parser (::xml_schema::int_pskel& p)
-    {
-      this->roundaboutNumberOfLanes_parser_ = &p;
-    }
-
-    void roundabout_t_pskel::
-    entranceAngles_parser (::sim_mob::xml::EntranceAngles_t_pskel& p)
-    {
-      this->entranceAngles_parser_ = &p;
-    }
-
-    void roundabout_t_pskel::
-    parsers (::xml_schema::unsigned_int_pskel& nodeID,
-             ::sim_mob::xml::Point2D_t_pskel& location,
-             ::xml_schema::string_pskel& originalDB_ID,
-             ::sim_mob::xml::RoadSegmentsAt_t_pskel& roadSegmentsAt,
-             ::sim_mob::xml::Multi_Connectors_t_pskel& Connectors,
-             ::sim_mob::xml::ChunkLengths_t_pskel& ChunkLengths,
-             ::sim_mob::xml::offsets_t_pskel& Offsets,
-             ::sim_mob::xml::separators_t_pskel& Separators,
-             ::sim_mob::xml::LanesVector_t_pskel& addDominantLane,
-             ::xml_schema::float_pskel& roundaboutDominantIslands,
-             ::xml_schema::int_pskel& roundaboutNumberOfLanes,
-             ::sim_mob::xml::EntranceAngles_t_pskel& entranceAngles)
-    {
-      this->nodeID_parser_ = &nodeID;
-      this->location_parser_ = &location;
-      this->originalDB_ID_parser_ = &originalDB_ID;
-      this->roadSegmentsAt_parser_ = &roadSegmentsAt;
-      this->Connectors_parser_ = &Connectors;
-      this->ChunkLengths_parser_ = &ChunkLengths;
-      this->Offsets_parser_ = &Offsets;
-      this->Separators_parser_ = &Separators;
-      this->addDominantLane_parser_ = &addDominantLane;
-      this->roundaboutDominantIslands_parser_ = &roundaboutDominantIslands;
-      this->roundaboutNumberOfLanes_parser_ = &roundaboutNumberOfLanes;
-      this->entranceAngles_parser_ = &entranceAngles;
-    }
-
-    roundabout_t_pskel::
-    roundabout_t_pskel ()
-    : roadSegmentsAt_parser_ (0),
-      Connectors_parser_ (0),
-      ChunkLengths_parser_ (0),
-      Offsets_parser_ (0),
-      Separators_parser_ (0),
-      addDominantLane_parser_ (0),
-      roundaboutDominantIslands_parser_ (0),
-      roundaboutNumberOfLanes_parser_ (0),
-      entranceAngles_parser_ (0)
-    {
-    }
-
-    // intersection_t_pskel
-    //
-
-    void intersection_t_pskel::
-    roadSegmentsAt_parser (::sim_mob::xml::RoadSegmentsAt_t_pskel& p)
-    {
-      this->roadSegmentsAt_parser_ = &p;
-    }
-
-    void intersection_t_pskel::
-    Connectors_parser (::sim_mob::xml::Multi_Connectors_t_pskel& p)
-    {
-      this->Connectors_parser_ = &p;
-    }
-
-    void intersection_t_pskel::
-    ChunkLengths_parser (::sim_mob::xml::ChunkLengths_t_pskel& p)
-    {
-      this->ChunkLengths_parser_ = &p;
-    }
-
-    void intersection_t_pskel::
-    Offsets_parser (::sim_mob::xml::offsets_t_pskel& p)
-    {
-      this->Offsets_parser_ = &p;
-    }
-
-    void intersection_t_pskel::
-    Separators_parser (::sim_mob::xml::separators_t_pskel& p)
-    {
-      this->Separators_parser_ = &p;
-    }
-
-    void intersection_t_pskel::
-    additionalDominantLanes_parser (::sim_mob::xml::LanesVector_t_pskel& p)
-    {
-      this->additionalDominantLanes_parser_ = &p;
-    }
-
-    void intersection_t_pskel::
-    additionalSubdominantLanes_parser (::sim_mob::xml::LanesVector_t_pskel& p)
-    {
-      this->additionalSubdominantLanes_parser_ = &p;
-    }
-
-    void intersection_t_pskel::
-    domainIslands_parser (::sim_mob::xml::DomainIslands_t_pskel& p)
-    {
-      this->domainIslands_parser_ = &p;
-    }
-
-    void intersection_t_pskel::
-    parsers (::xml_schema::unsigned_int_pskel& nodeID,
-             ::sim_mob::xml::Point2D_t_pskel& location,
-             ::xml_schema::string_pskel& originalDB_ID,
-             ::sim_mob::xml::RoadSegmentsAt_t_pskel& roadSegmentsAt,
-             ::sim_mob::xml::Multi_Connectors_t_pskel& Connectors,
-             ::sim_mob::xml::ChunkLengths_t_pskel& ChunkLengths,
-             ::sim_mob::xml::offsets_t_pskel& Offsets,
-             ::sim_mob::xml::separators_t_pskel& Separators,
-             ::sim_mob::xml::LanesVector_t_pskel& additionalDominantLanes,
-             ::sim_mob::xml::LanesVector_t_pskel& additionalSubdominantLanes,
-             ::sim_mob::xml::DomainIslands_t_pskel& domainIslands)
-    {
-      this->nodeID_parser_ = &nodeID;
-      this->location_parser_ = &location;
-      this->originalDB_ID_parser_ = &originalDB_ID;
-      this->roadSegmentsAt_parser_ = &roadSegmentsAt;
-      this->Connectors_parser_ = &Connectors;
-      this->ChunkLengths_parser_ = &ChunkLengths;
-      this->Offsets_parser_ = &Offsets;
-      this->Separators_parser_ = &Separators;
-      this->additionalDominantLanes_parser_ = &additionalDominantLanes;
-      this->additionalSubdominantLanes_parser_ = &additionalSubdominantLanes;
-      this->domainIslands_parser_ = &domainIslands;
-    }
-
-    intersection_t_pskel::
-    intersection_t_pskel ()
-    : roadSegmentsAt_parser_ (0),
-      Connectors_parser_ (0),
-      ChunkLengths_parser_ (0),
-      Offsets_parser_ (0),
-      Separators_parser_ (0),
-      additionalDominantLanes_parser_ (0),
-      additionalSubdominantLanes_parser_ (0),
-      domainIslands_parser_ (0)
-    {
-    }
-
-    // RoadItem_t_pskel
-    //
-
-    void RoadItem_t_pskel::
-    id_parser (::xml_schema::unsigned_long_pskel& p)
-    {
-      this->id_parser_ = &p;
-    }
-
-    void RoadItem_t_pskel::
-    Offset_parser (::xml_schema::unsigned_short_pskel& p)
-    {
-      this->Offset_parser_ = &p;
-    }
-
-    void RoadItem_t_pskel::
-    start_parser (::sim_mob::xml::Point2D_t_pskel& p)
-    {
-      this->start_parser_ = &p;
-    }
-
-    void RoadItem_t_pskel::
-    end_parser (::sim_mob::xml::Point2D_t_pskel& p)
-    {
-      this->end_parser_ = &p;
-    }
-
-    void RoadItem_t_pskel::
-    parsers (::xml_schema::unsigned_long_pskel& id,
-             ::xml_schema::unsigned_short_pskel& Offset,
-             ::sim_mob::xml::Point2D_t_pskel& start,
-             ::sim_mob::xml::Point2D_t_pskel& end)
-    {
-      this->id_parser_ = &id;
-      this->Offset_parser_ = &Offset;
-      this->start_parser_ = &start;
-      this->end_parser_ = &end;
-    }
-
-    RoadItem_t_pskel::
-    RoadItem_t_pskel ()
-    : id_parser_ (0),
-      Offset_parser_ (0),
-      start_parser_ (0),
-      end_parser_ (0)
-    {
-    }
-
-    // BusStop_t_pskel
-    //
-
-    void BusStop_t_pskel::
-    xPos_parser (::xml_schema::double_pskel& p)
-    {
-      this->xPos_parser_ = &p;
-    }
-
-    void BusStop_t_pskel::
-    yPos_parser (::xml_schema::double_pskel& p)
-    {
-      this->yPos_parser_ = &p;
-    }
-
-    void BusStop_t_pskel::
-    lane_location_parser (::xml_schema::unsigned_long_pskel& p)
-    {
-      this->lane_location_parser_ = &p;
-    }
-
-    void BusStop_t_pskel::
-    is_terminal_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->is_terminal_parser_ = &p;
-    }
-
-    void BusStop_t_pskel::
-    is_bay_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->is_bay_parser_ = &p;
-    }
-
-    void BusStop_t_pskel::
-    has_shelter_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->has_shelter_parser_ = &p;
-    }
-
-    void BusStop_t_pskel::
-    busCapacityAsLength_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->busCapacityAsLength_parser_ = &p;
-    }
-
-    void BusStop_t_pskel::
-    busstopno_parser (::xml_schema::string_pskel& p)
-    {
-      this->busstopno_parser_ = &p;
-    }
-
-    void BusStop_t_pskel::
-    parsers (::xml_schema::unsigned_long_pskel& id,
-             ::xml_schema::unsigned_short_pskel& Offset,
-             ::sim_mob::xml::Point2D_t_pskel& start,
-             ::sim_mob::xml::Point2D_t_pskel& end,
-             ::xml_schema::double_pskel& xPos,
-             ::xml_schema::double_pskel& yPos,
-             ::xml_schema::unsigned_long_pskel& lane_location,
-             ::xml_schema::boolean_pskel& is_terminal,
-             ::xml_schema::boolean_pskel& is_bay,
-             ::xml_schema::boolean_pskel& has_shelter,
-             ::xml_schema::unsigned_int_pskel& busCapacityAsLength,
-             ::xml_schema::string_pskel& busstopno)
-    {
-      this->id_parser_ = &id;
-      this->Offset_parser_ = &Offset;
-      this->start_parser_ = &start;
-      this->end_parser_ = &end;
-      this->xPos_parser_ = &xPos;
-      this->yPos_parser_ = &yPos;
-      this->lane_location_parser_ = &lane_location;
-      this->is_terminal_parser_ = &is_terminal;
-      this->is_bay_parser_ = &is_bay;
-      this->has_shelter_parser_ = &has_shelter;
-      this->busCapacityAsLength_parser_ = &busCapacityAsLength;
-      this->busstopno_parser_ = &busstopno;
-    }
-
-    BusStop_t_pskel::
-    BusStop_t_pskel ()
-    : xPos_parser_ (0),
-      yPos_parser_ (0),
-      lane_location_parser_ (0),
-      is_terminal_parser_ (0),
-      is_bay_parser_ (0),
-      has_shelter_parser_ (0),
-      busCapacityAsLength_parser_ (0),
-      busstopno_parser_ (0)
-    {
-    }
-
-    // ERP_Gantry_t_pskel
-    //
-
-    void ERP_Gantry_t_pskel::
-    ERP_GantryID_parser (::xml_schema::string_pskel& p)
-    {
-      this->ERP_GantryID_parser_ = &p;
-    }
-
-    void ERP_Gantry_t_pskel::
-    parsers (::xml_schema::unsigned_long_pskel& id,
-             ::xml_schema::unsigned_short_pskel& Offset,
-             ::sim_mob::xml::Point2D_t_pskel& start,
-             ::sim_mob::xml::Point2D_t_pskel& end,
-             ::xml_schema::string_pskel& ERP_GantryID)
-    {
-      this->id_parser_ = &id;
-      this->Offset_parser_ = &Offset;
-      this->start_parser_ = &start;
-      this->end_parser_ = &end;
-      this->ERP_GantryID_parser_ = &ERP_GantryID;
-    }
-
-    ERP_Gantry_t_pskel::
-    ERP_Gantry_t_pskel ()
-    : ERP_GantryID_parser_ (0)
-    {
-    }
-
-    // FormType_pskel
-    //
-
-    void FormType_pskel::
-    TextBox_parser (::xml_schema::int_pskel& p)
-    {
-      this->TextBox_parser_ = &p;
-    }
-
-    void FormType_pskel::
-    TextArea_parser (::xml_schema::int_pskel& p)
-    {
-      this->TextArea_parser_ = &p;
-    }
-
-    void FormType_pskel::
-    Header_parser (::xml_schema::int_pskel& p)
-    {
-      this->Header_parser_ = &p;
-    }
-
-    void FormType_pskel::
-    parsers (::xml_schema::int_pskel& TextBox,
-             ::xml_schema::int_pskel& TextArea,
-             ::xml_schema::int_pskel& Header)
-    {
-      this->TextBox_parser_ = &TextBox;
-      this->TextArea_parser_ = &TextArea;
-      this->Header_parser_ = &Header;
-    }
-
-    FormType_pskel::
-    FormType_pskel ()
-    : TextBox_parser_ (0),
-      TextArea_parser_ (0),
-      Header_parser_ (0)
-    {
-    }
-
-    // PointPair_t_pskel
-    //
-
-    void PointPair_t_pskel::
-    first_parser (::sim_mob::xml::Point2D_t_pskel& p)
-    {
-      this->first_parser_ = &p;
-    }
-
-    void PointPair_t_pskel::
-    second_parser (::sim_mob::xml::Point2D_t_pskel& p)
-    {
-      this->second_parser_ = &p;
-    }
-
-    void PointPair_t_pskel::
-    parsers (::sim_mob::xml::Point2D_t_pskel& first,
-             ::sim_mob::xml::Point2D_t_pskel& second)
-    {
-      this->first_parser_ = &first;
-      this->second_parser_ = &second;
-    }
-
-    PointPair_t_pskel::
-    PointPair_t_pskel ()
-    : first_parser_ (0),
-      second_parser_ (0)
-    {
-    }
-
-    // crossing_t_pskel
-    //
-
-    void crossing_t_pskel::
-    nearLine_parser (::sim_mob::xml::PointPair_t_pskel& p)
-    {
-      this->nearLine_parser_ = &p;
-    }
-
-    void crossing_t_pskel::
-    farLine_parser (::sim_mob::xml::PointPair_t_pskel& p)
-    {
-      this->farLine_parser_ = &p;
-    }
-
-    void crossing_t_pskel::
-    parsers (::xml_schema::unsigned_long_pskel& id,
-             ::xml_schema::unsigned_short_pskel& Offset,
-             ::sim_mob::xml::Point2D_t_pskel& start,
-             ::sim_mob::xml::Point2D_t_pskel& end,
-             ::sim_mob::xml::PointPair_t_pskel& nearLine,
-             ::sim_mob::xml::PointPair_t_pskel& farLine)
-    {
-      this->id_parser_ = &id;
-      this->Offset_parser_ = &Offset;
-      this->start_parser_ = &start;
-      this->end_parser_ = &end;
-      this->nearLine_parser_ = &nearLine;
-      this->farLine_parser_ = &farLine;
-    }
-
-    crossing_t_pskel::
-    crossing_t_pskel ()
-    : nearLine_parser_ (0),
-      farLine_parser_ (0)
-    {
-    }
-
-    // RoadBump_t_pskel
-    //
-
-    void RoadBump_t_pskel::
-    roadBumpID_parser (::xml_schema::string_pskel& p)
-    {
-      this->roadBumpID_parser_ = &p;
-    }
-
-    void RoadBump_t_pskel::
-    segmentID_parser (::xml_schema::unsigned_long_pskel& p)
-    {
-      this->segmentID_parser_ = &p;
-    }
-
-    void RoadBump_t_pskel::
-    parsers (::xml_schema::unsigned_long_pskel& id,
-             ::xml_schema::unsigned_short_pskel& Offset,
-             ::sim_mob::xml::Point2D_t_pskel& start,
-             ::sim_mob::xml::Point2D_t_pskel& end,
-             ::xml_schema::string_pskel& roadBumpID,
-             ::xml_schema::unsigned_long_pskel& segmentID)
-    {
-      this->id_parser_ = &id;
-      this->Offset_parser_ = &Offset;
-      this->start_parser_ = &start;
-      this->end_parser_ = &end;
-      this->roadBumpID_parser_ = &roadBumpID;
-      this->segmentID_parser_ = &segmentID;
-    }
-
-    RoadBump_t_pskel::
-    RoadBump_t_pskel ()
-    : roadBumpID_parser_ (0),
-      segmentID_parser_ (0)
-    {
-    }
-
-    // RoadNetwork_t_pskel
-    //
-
-    void RoadNetwork_t_pskel::
-    coordinate_map_parser (::sim_mob::xml::coordinate_map_t_pskel& p)
-    {
-      this->coordinate_map_parser_ = &p;
-    }
-
-    void RoadNetwork_t_pskel::
-    roadrunner_regions_parser (::sim_mob::xml::roadrunner_regions_t_pskel& p)
-    {
-      this->roadrunner_regions_parser_ = &p;
-    }
-
-    void RoadNetwork_t_pskel::
-    Nodes_parser (::sim_mob::xml::Nodes_pskel& p)
-    {
-      this->Nodes_parser_ = &p;
-    }
-
-    void RoadNetwork_t_pskel::
-    Links_parser (::sim_mob::xml::Links_pskel& p)
-    {
-      this->Links_parser_ = &p;
-    }
-
-    void RoadNetwork_t_pskel::
-    parsers (::sim_mob::xml::coordinate_map_t_pskel& coordinate_map,
-             ::sim_mob::xml::roadrunner_regions_t_pskel& roadrunner_regions,
-             ::sim_mob::xml::Nodes_pskel& Nodes,
-             ::sim_mob::xml::Links_pskel& Links)
-    {
-      this->coordinate_map_parser_ = &coordinate_map;
-      this->roadrunner_regions_parser_ = &roadrunner_regions;
-      this->Nodes_parser_ = &Nodes;
-      this->Links_parser_ = &Links;
-    }
-
-    RoadNetwork_t_pskel::
-    RoadNetwork_t_pskel ()
-    : coordinate_map_parser_ (0),
-      roadrunner_regions_parser_ (0),
-      Nodes_parser_ (0),
-      Links_parser_ (0)
-    {
-    }
-
-    // RoadItems_t_pskel
-    //
-
-    void RoadItems_t_pskel::
-    BusStop_parser (::sim_mob::xml::BusStop_t_pskel& p)
-    {
-      this->BusStop_parser_ = &p;
-    }
-
-    void RoadItems_t_pskel::
-    ERP_Gantry_parser (::sim_mob::xml::ERP_Gantry_t_pskel& p)
-    {
-      this->ERP_Gantry_parser_ = &p;
-    }
-
-    void RoadItems_t_pskel::
-    Crossing_parser (::sim_mob::xml::crossing_t_pskel& p)
-    {
-      this->Crossing_parser_ = &p;
-    }
-
-    void RoadItems_t_pskel::
-    RoadBump_parser (::sim_mob::xml::RoadBump_t_pskel& p)
-    {
-      this->RoadBump_parser_ = &p;
-    }
-
-    void RoadItems_t_pskel::
-    parsers (::sim_mob::xml::BusStop_t_pskel& BusStop,
-             ::sim_mob::xml::ERP_Gantry_t_pskel& ERP_Gantry,
-             ::sim_mob::xml::crossing_t_pskel& Crossing,
-             ::sim_mob::xml::RoadBump_t_pskel& RoadBump)
-    {
-      this->BusStop_parser_ = &BusStop;
-      this->ERP_Gantry_parser_ = &ERP_Gantry;
-      this->Crossing_parser_ = &Crossing;
-      this->RoadBump_parser_ = &RoadBump;
-    }
-
-    RoadItems_t_pskel::
-    RoadItems_t_pskel ()
-    : BusStop_parser_ (0),
-      ERP_Gantry_parser_ (0),
-      Crossing_parser_ (0),
-      RoadBump_parser_ (0)
-    {
-    }
-
-    // TripChainItem_t_pskel
-    //
-
-    void TripChainItem_t_pskel::
-    personID_parser (::xml_schema::string_pskel& p)
-    {
-      this->personID_parser_ = &p;
-    }
-
-    void TripChainItem_t_pskel::
-    itemType_parser (::sim_mob::xml::TripchainItemType_pskel& p)
-    {
-      this->itemType_parser_ = &p;
-    }
-
-    void TripChainItem_t_pskel::
-    sequenceNumber_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->sequenceNumber_parser_ = &p;
-    }
-
-    void TripChainItem_t_pskel::
-    requestTime_parser (::xml_schema::integer_pskel& p)
-    {
-      this->requestTime_parser_ = &p;
-    }
-
-    void TripChainItem_t_pskel::
-    startTime_parser (::xml_schema::string_pskel& p)
-    {
-      this->startTime_parser_ = &p;
-    }
-
-    void TripChainItem_t_pskel::
-    endTime_parser (::xml_schema::string_pskel& p)
-    {
-      this->endTime_parser_ = &p;
-    }
-
-    void TripChainItem_t_pskel::
-    parsers (::xml_schema::string_pskel& personID,
-             ::sim_mob::xml::TripchainItemType_pskel& itemType,
-             ::xml_schema::unsigned_int_pskel& sequenceNumber,
-             ::xml_schema::integer_pskel& requestTime,
-             ::xml_schema::string_pskel& startTime,
-             ::xml_schema::string_pskel& endTime)
-    {
-      this->personID_parser_ = &personID;
-      this->itemType_parser_ = &itemType;
-      this->sequenceNumber_parser_ = &sequenceNumber;
-      this->requestTime_parser_ = &requestTime;
-      this->startTime_parser_ = &startTime;
-      this->endTime_parser_ = &endTime;
-    }
-
-    TripChainItem_t_pskel::
-    TripChainItem_t_pskel ()
-    : personID_parser_ (0),
-      itemType_parser_ (0),
-      sequenceNumber_parser_ (0),
-      requestTime_parser_ (0),
-      startTime_parser_ (0),
-      endTime_parser_ (0)
-    {
-    }
-
-    // Trip_t_pskel
-    //
-
-    void Trip_t_pskel::
-    tripID_parser (::xml_schema::integer_pskel& p)
-    {
-      this->tripID_parser_ = &p;
-    }
-
-    void Trip_t_pskel::
-    fromLocation_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->fromLocation_parser_ = &p;
-    }
-
-    void Trip_t_pskel::
-    fromLocationType_parser (::sim_mob::xml::TripchainItemLocationType_pskel& p)
-    {
-      this->fromLocationType_parser_ = &p;
-    }
-
-    void Trip_t_pskel::
-    toLocation_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->toLocation_parser_ = &p;
-    }
-
-    void Trip_t_pskel::
-    toLocationType_parser (::sim_mob::xml::TripchainItemLocationType_pskel& p)
-    {
-      this->toLocationType_parser_ = &p;
-    }
-
-    void Trip_t_pskel::
-    subTrips_parser (::sim_mob::xml::SubTrips_t_pskel& p)
-    {
-      this->subTrips_parser_ = &p;
-    }
-
-    void Trip_t_pskel::
-    parsers (::xml_schema::string_pskel& personID,
-             ::sim_mob::xml::TripchainItemType_pskel& itemType,
-             ::xml_schema::unsigned_int_pskel& sequenceNumber,
-             ::xml_schema::integer_pskel& requestTime,
-             ::xml_schema::string_pskel& startTime,
-             ::xml_schema::string_pskel& endTime,
-             ::xml_schema::integer_pskel& tripID,
-             ::xml_schema::unsigned_int_pskel& fromLocation,
-             ::sim_mob::xml::TripchainItemLocationType_pskel& fromLocationType,
-             ::xml_schema::unsigned_int_pskel& toLocation,
-             ::sim_mob::xml::TripchainItemLocationType_pskel& toLocationType,
-             ::sim_mob::xml::SubTrips_t_pskel& subTrips)
-    {
-      this->personID_parser_ = &personID;
-      this->itemType_parser_ = &itemType;
-      this->sequenceNumber_parser_ = &sequenceNumber;
-      this->requestTime_parser_ = &requestTime;
-      this->startTime_parser_ = &startTime;
-      this->endTime_parser_ = &endTime;
-      this->tripID_parser_ = &tripID;
-      this->fromLocation_parser_ = &fromLocation;
-      this->fromLocationType_parser_ = &fromLocationType;
-      this->toLocation_parser_ = &toLocation;
-      this->toLocationType_parser_ = &toLocationType;
-      this->subTrips_parser_ = &subTrips;
-    }
-
-    Trip_t_pskel::
-    Trip_t_pskel ()
-    : tripID_parser_ (0),
-      fromLocation_parser_ (0),
-      fromLocationType_parser_ (0),
-      toLocation_parser_ (0),
-      toLocationType_parser_ (0),
-      subTrips_parser_ (0)
-    {
-    }
-
-    // SubTrip_t_pskel
-    //
-
-    void SubTrip_t_pskel::
-    mode_parser (::xml_schema::string_pskel& p)
-    {
-      this->mode_parser_ = &p;
-    }
-
-    void SubTrip_t_pskel::
-    isPrimaryMode_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->isPrimaryMode_parser_ = &p;
-    }
-
-    void SubTrip_t_pskel::
-    ptLineId_parser (::xml_schema::string_pskel& p)
-    {
-      this->ptLineId_parser_ = &p;
-    }
-
-    void SubTrip_t_pskel::
-    parsers (::xml_schema::string_pskel& personID,
-             ::sim_mob::xml::TripchainItemType_pskel& itemType,
-             ::xml_schema::unsigned_int_pskel& sequenceNumber,
-             ::xml_schema::integer_pskel& requestTime,
-             ::xml_schema::string_pskel& startTime,
-             ::xml_schema::string_pskel& endTime,
-             ::xml_schema::integer_pskel& tripID,
-             ::xml_schema::unsigned_int_pskel& fromLocation,
-             ::sim_mob::xml::TripchainItemLocationType_pskel& fromLocationType,
-             ::xml_schema::unsigned_int_pskel& toLocation,
-             ::sim_mob::xml::TripchainItemLocationType_pskel& toLocationType,
-             ::sim_mob::xml::SubTrips_t_pskel& subTrips,
-             ::xml_schema::string_pskel& mode,
-             ::xml_schema::boolean_pskel& isPrimaryMode,
-             ::xml_schema::string_pskel& ptLineId)
-    {
-      this->personID_parser_ = &personID;
-      this->itemType_parser_ = &itemType;
-      this->sequenceNumber_parser_ = &sequenceNumber;
-      this->requestTime_parser_ = &requestTime;
-      this->startTime_parser_ = &startTime;
-      this->endTime_parser_ = &endTime;
-      this->tripID_parser_ = &tripID;
-      this->fromLocation_parser_ = &fromLocation;
-      this->fromLocationType_parser_ = &fromLocationType;
-      this->toLocation_parser_ = &toLocation;
-      this->toLocationType_parser_ = &toLocationType;
-      this->subTrips_parser_ = &subTrips;
-      this->mode_parser_ = &mode;
-      this->isPrimaryMode_parser_ = &isPrimaryMode;
-      this->ptLineId_parser_ = &ptLineId;
-    }
-
-    SubTrip_t_pskel::
-    SubTrip_t_pskel ()
-    : mode_parser_ (0),
-      isPrimaryMode_parser_ (0),
-      ptLineId_parser_ (0)
-    {
-    }
-
-    // SubTrips_t_pskel
-    //
-
-    void SubTrips_t_pskel::
-    subTrip_parser (::sim_mob::xml::SubTrip_t_pskel& p)
-    {
-      this->subTrip_parser_ = &p;
-    }
-
-    void SubTrips_t_pskel::
-    parsers (::sim_mob::xml::SubTrip_t_pskel& subTrip)
-    {
-      this->subTrip_parser_ = &subTrip;
-    }
-
-    SubTrips_t_pskel::
-    SubTrips_t_pskel ()
-    : subTrip_parser_ (0)
-    {
-    }
-
-    // Activity_t_pskel
-    //
-
-    void Activity_t_pskel::
-    description_parser (::xml_schema::string_pskel& p)
-    {
-      this->description_parser_ = &p;
-    }
-
-    void Activity_t_pskel::
-    location_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->location_parser_ = &p;
-    }
-
-    void Activity_t_pskel::
-    locationType_parser (::sim_mob::xml::TripchainItemLocationType_pskel& p)
-    {
-      this->locationType_parser_ = &p;
-    }
-
-    void Activity_t_pskel::
-    isPrimary_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->isPrimary_parser_ = &p;
-    }
-
-    void Activity_t_pskel::
-    isFlexible_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->isFlexible_parser_ = &p;
-    }
-
-    void Activity_t_pskel::
-    isMandatory_parser (::xml_schema::boolean_pskel& p)
-    {
-      this->isMandatory_parser_ = &p;
-    }
-
-    void Activity_t_pskel::
-    parsers (::xml_schema::string_pskel& personID,
-             ::sim_mob::xml::TripchainItemType_pskel& itemType,
-             ::xml_schema::unsigned_int_pskel& sequenceNumber,
-             ::xml_schema::integer_pskel& requestTime,
-             ::xml_schema::string_pskel& startTime,
-             ::xml_schema::string_pskel& endTime,
-             ::xml_schema::string_pskel& description,
-             ::xml_schema::unsigned_int_pskel& location,
-             ::sim_mob::xml::TripchainItemLocationType_pskel& locationType,
-             ::xml_schema::boolean_pskel& isPrimary,
-             ::xml_schema::boolean_pskel& isFlexible,
-             ::xml_schema::boolean_pskel& isMandatory)
-    {
-      this->personID_parser_ = &personID;
-      this->itemType_parser_ = &itemType;
-      this->sequenceNumber_parser_ = &sequenceNumber;
-      this->requestTime_parser_ = &requestTime;
-      this->startTime_parser_ = &startTime;
-      this->endTime_parser_ = &endTime;
-      this->description_parser_ = &description;
-      this->location_parser_ = &location;
-      this->locationType_parser_ = &locationType;
-      this->isPrimary_parser_ = &isPrimary;
-      this->isFlexible_parser_ = &isFlexible;
-      this->isMandatory_parser_ = &isMandatory;
-    }
-
-    Activity_t_pskel::
-    Activity_t_pskel ()
-    : description_parser_ (0),
-      location_parser_ (0),
-      locationType_parser_ (0),
-      isPrimary_parser_ (0),
-      isFlexible_parser_ (0),
-      isMandatory_parser_ (0)
-    {
-    }
-
-    // TripChain_t_pskel
-    //
-
-    void TripChain_t_pskel::
-    personID_parser (::xml_schema::string_pskel& p)
-    {
-      this->personID_parser_ = &p;
-    }
-
-    void TripChain_t_pskel::
-    Trip_parser (::sim_mob::xml::Trip_t_pskel& p)
-    {
-      this->Trip_parser_ = &p;
-    }
-
-    void TripChain_t_pskel::
-    Activity_parser (::sim_mob::xml::Activity_t_pskel& p)
-    {
-      this->Activity_parser_ = &p;
-    }
-
-    void TripChain_t_pskel::
-    parsers (::xml_schema::string_pskel& personID,
-             ::sim_mob::xml::Trip_t_pskel& Trip,
-             ::sim_mob::xml::Activity_t_pskel& Activity)
-    {
-      this->personID_parser_ = &personID;
-      this->Trip_parser_ = &Trip;
-      this->Activity_parser_ = &Activity;
-    }
-
-    TripChain_t_pskel::
-    TripChain_t_pskel ()
-    : personID_parser_ (0),
-      Trip_parser_ (0),
-      Activity_parser_ (0)
-    {
-    }
-
-    // TripChains_t_pskel
-    //
-
-    void TripChains_t_pskel::
-    TripChain_parser (::sim_mob::xml::TripChain_t_pskel& p)
-    {
-      this->TripChain_parser_ = &p;
-    }
-
-    void TripChains_t_pskel::
-    parsers (::sim_mob::xml::TripChain_t_pskel& TripChain)
-    {
-      this->TripChain_parser_ = &TripChain;
-    }
-
-    TripChains_t_pskel::
-    TripChains_t_pskel ()
-    : TripChain_parser_ (0)
-    {
-    }
-
-    // linkAndCrossing_t_pskel
-    //
-
-    void linkAndCrossing_t_pskel::
-    ID_parser (::xml_schema::unsigned_byte_pskel& p)
-    {
-      this->ID_parser_ = &p;
-    }
-
-    void linkAndCrossing_t_pskel::
-    linkID_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->linkID_parser_ = &p;
-    }
-
-    void linkAndCrossing_t_pskel::
-    crossingID_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->crossingID_parser_ = &p;
-    }
-
-    void linkAndCrossing_t_pskel::
-    angle_parser (::xml_schema::unsigned_byte_pskel& p)
-    {
-      this->angle_parser_ = &p;
-    }
-
-    void linkAndCrossing_t_pskel::
-    parsers (::xml_schema::unsigned_byte_pskel& ID,
-             ::xml_schema::unsigned_int_pskel& LinkID,
-             ::xml_schema::unsigned_int_pskel& crossingID,
-             ::xml_schema::unsigned_byte_pskel& angle)
-    {
-      this->ID_parser_ = &ID;
-      this->linkID_parser_ = &LinkID;
-      this->crossingID_parser_ = &crossingID;
-      this->angle_parser_ = &angle;
-    }
-
-    linkAndCrossing_t_pskel::
-    linkAndCrossing_t_pskel ()
-    : ID_parser_ (0),
-      linkID_parser_ (0),
-      crossingID_parser_ (0),
-      angle_parser_ (0)
-    {
-    }
-
-    // linkAndCrossings_t_pskel
-    //
-
-    void linkAndCrossings_t_pskel::
-    linkAndCrossing_parser (::sim_mob::xml::linkAndCrossing_t_pskel& p)
-    {
-      this->linkAndCrossing_parser_ = &p;
-    }
-
-    void linkAndCrossings_t_pskel::
-    parsers (::sim_mob::xml::linkAndCrossing_t_pskel& linkAndCrossing)
-    {
-      this->linkAndCrossing_parser_ = &linkAndCrossing;
-    }
-
-    linkAndCrossings_t_pskel::
-    linkAndCrossings_t_pskel ()
-    : linkAndCrossing_parser_ (0)
-    {
-    }
-
-    // plan_t_pskel
-    //
-
-    void plan_t_pskel::
-    planID_parser (::xml_schema::unsigned_byte_pskel& p)
-    {
-      this->planID_parser_ = &p;
-    }
-
-    void plan_t_pskel::
-    PhasePercentage_parser (::xml_schema::double_pskel& p)
-    {
-      this->PhasePercentage_parser_ = &p;
-    }
-
-    void plan_t_pskel::
-    parsers (::xml_schema::unsigned_byte_pskel& planID,
-             ::xml_schema::double_pskel& PhasePercentage)
-    {
-      this->planID_parser_ = &planID;
-      this->PhasePercentage_parser_ = &PhasePercentage;
-    }
-
-    plan_t_pskel::
-    plan_t_pskel ()
-    : planID_parser_ (0),
-      PhasePercentage_parser_ (0)
-    {
-    }
-
-    // Plans_t_pskel
-    //
-
-    void Plans_t_pskel::
-    plan_parser (::sim_mob::xml::plan_t_pskel& p)
-    {
-      this->plan_parser_ = &p;
-    }
-
-    void Plans_t_pskel::
-    parsers (::sim_mob::xml::plan_t_pskel& plan)
-    {
-      this->plan_parser_ = &plan;
-    }
-
-    Plans_t_pskel::
-    Plans_t_pskel ()
-    : plan_parser_ (0)
-    {
-    }
-
-    // ColorDuration_t_pskel
-    //
-
-    void ColorDuration_t_pskel::
-    TrafficColor_parser (::sim_mob::xml::TrafficColor_t_pskel& p)
-    {
-      this->TrafficColor_parser_ = &p;
-    }
-
-    void ColorDuration_t_pskel::
-    Duration_parser (::xml_schema::unsigned_byte_pskel& p)
-    {
-      this->Duration_parser_ = &p;
-    }
-
-    void ColorDuration_t_pskel::
-    parsers (::sim_mob::xml::TrafficColor_t_pskel& TrafficColor,
-             ::xml_schema::unsigned_byte_pskel& Duration)
-    {
-      this->TrafficColor_parser_ = &TrafficColor;
-      this->Duration_parser_ = &Duration;
-    }
-
-    ColorDuration_t_pskel::
-    ColorDuration_t_pskel ()
-    : TrafficColor_parser_ (0),
-      Duration_parser_ (0)
-    {
-    }
-
-    // ColorSequence_t_pskel
-    //
-
-    void ColorSequence_t_pskel::
-    TrafficLightType_parser (::xml_schema::string_pskel& p)
-    {
-      this->TrafficLightType_parser_ = &p;
-    }
-
-    void ColorSequence_t_pskel::
-    ColorDuration_parser (::sim_mob::xml::ColorDuration_t_pskel& p)
-    {
-      this->ColorDuration_parser_ = &p;
-    }
-
-    void ColorSequence_t_pskel::
-    parsers (::xml_schema::string_pskel& TrafficLightType,
-             ::sim_mob::xml::ColorDuration_t_pskel& ColorDuration)
-    {
-      this->TrafficLightType_parser_ = &TrafficLightType;
-      this->ColorDuration_parser_ = &ColorDuration;
-    }
-
-    ColorSequence_t_pskel::
-    ColorSequence_t_pskel ()
-    : TrafficLightType_parser_ (0),
-      ColorDuration_parser_ (0)
-    {
-    }
-
-    // links_maps_t_pskel
-    //
-
-    void links_maps_t_pskel::
-    links_map_parser (::sim_mob::xml::links_map_t_pskel& p)
-    {
-      this->links_map_parser_ = &p;
-    }
-
-    void links_maps_t_pskel::
-    parsers (::sim_mob::xml::links_map_t_pskel& links_map)
-    {
-      this->links_map_parser_ = &links_map;
-    }
-
-    links_maps_t_pskel::
-    links_maps_t_pskel ()
-    : links_map_parser_ (0)
-    {
-    }
-
-    // links_map_t_pskel
-    //
-
-    void links_map_t_pskel::
-    linkFrom_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->linkFrom_parser_ = &p;
-    }
-
-    void links_map_t_pskel::
-    linkTo_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->linkTo_parser_ = &p;
-    }
-
-    void links_map_t_pskel::
-    SegmentFrom_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->SegmentFrom_parser_ = &p;
-    }
-
-    void links_map_t_pskel::
-    SegmentTo_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->SegmentTo_parser_ = &p;
-    }
-
-    void links_map_t_pskel::
-    ColorSequence_parser (::sim_mob::xml::ColorSequence_t_pskel& p)
-    {
-      this->ColorSequence_parser_ = &p;
-    }
-
-    void links_map_t_pskel::
-    parsers (::xml_schema::unsigned_int_pskel& linkFrom,
-             ::xml_schema::unsigned_int_pskel& linkTo,
-             ::xml_schema::unsigned_int_pskel& SegmentFrom,
-             ::xml_schema::unsigned_int_pskel& SegmentTo,
-             ::sim_mob::xml::ColorSequence_t_pskel& ColorSequence)
-    {
-      this->linkFrom_parser_ = &linkFrom;
-      this->linkTo_parser_ = &linkTo;
-      this->SegmentFrom_parser_ = &SegmentFrom;
-      this->SegmentTo_parser_ = &SegmentTo;
-      this->ColorSequence_parser_ = &ColorSequence;
-    }
-
-    links_map_t_pskel::
-    links_map_t_pskel ()
-    : linkFrom_parser_ (0),
-      linkTo_parser_ (0),
-      SegmentFrom_parser_ (0),
-      SegmentTo_parser_ (0),
-      ColorSequence_parser_ (0)
-    {
-    }
-
-    // crossings_maps_t_pskel
-    //
-
-    void crossings_maps_t_pskel::
-    crossings_map_parser (::sim_mob::xml::crossings_map_t_pskel& p)
-    {
-      this->crossings_map_parser_ = &p;
-    }
-
-    void crossings_maps_t_pskel::
-    parsers (::sim_mob::xml::crossings_map_t_pskel& crossings_map)
-    {
-      this->crossings_map_parser_ = &crossings_map;
-    }
-
-    crossings_maps_t_pskel::
-    crossings_maps_t_pskel ()
-    : crossings_map_parser_ (0)
-    {
-    }
-
-    // crossings_map_t_pskel
-    //
-
-    void crossings_map_t_pskel::
-    LinkID_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->LinkID_parser_ = &p;
-    }
-
-    void crossings_map_t_pskel::
-    crossingID_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->crossingID_parser_ = &p;
-    }
-
-    void crossings_map_t_pskel::
-    ColorSequence_parser (::sim_mob::xml::ColorSequence_t_pskel& p)
-    {
-      this->ColorSequence_parser_ = &p;
-    }
-
-    void crossings_map_t_pskel::
-    parsers (::xml_schema::unsigned_int_pskel& LinkID,
-             ::xml_schema::unsigned_int_pskel& crossingID,
-             ::sim_mob::xml::ColorSequence_t_pskel& ColorSequence)
-    {
-      this->LinkID_parser_ = &LinkID;
-      this->crossingID_parser_ = &crossingID;
-      this->ColorSequence_parser_ = &ColorSequence;
-    }
-
-    crossings_map_t_pskel::
-    crossings_map_t_pskel ()
-    : LinkID_parser_ (0),
-      crossingID_parser_ (0),
-      ColorSequence_parser_ (0)
-    {
-    }
-
-    // Phase_t_pskel
-    //
-
-    void Phase_t_pskel::
-    phaseID_parser (::xml_schema::unsigned_byte_pskel& p)
-    {
-      this->phaseID_parser_ = &p;
-    }
-
-    void Phase_t_pskel::
-    name_parser (::xml_schema::string_pskel& p)
-    {
-      this->name_parser_ = &p;
-    }
-
-    void Phase_t_pskel::
-    links_maps_parser (::sim_mob::xml::links_maps_t_pskel& p)
-    {
-      this->links_maps_parser_ = &p;
-    }
-
-    void Phase_t_pskel::
-    crossings_maps_parser (::sim_mob::xml::crossings_maps_t_pskel& p)
-    {
-      this->crossings_maps_parser_ = &p;
-    }
-
-    void Phase_t_pskel::
-    parsers (::xml_schema::unsigned_byte_pskel& phaseID,
-             ::xml_schema::string_pskel& name,
-             ::sim_mob::xml::links_maps_t_pskel& links_maps,
-             ::sim_mob::xml::crossings_maps_t_pskel& crossings_maps)
-    {
-      this->phaseID_parser_ = &phaseID;
-      this->name_parser_ = &name;
-      this->links_maps_parser_ = &links_maps;
-      this->crossings_maps_parser_ = &crossings_maps;
-    }
-
-    Phase_t_pskel::
-    Phase_t_pskel ()
-    : phaseID_parser_ (0),
-      name_parser_ (0),
-      links_maps_parser_ (0),
-      crossings_maps_parser_ (0)
-    {
-    }
-
-    // Phases_t_pskel
-    //
-
-    void Phases_t_pskel::
-    phase_parser (::sim_mob::xml::Phase_t_pskel& p)
-    {
-      this->phase_parser_ = &p;
-    }
-
-    void Phases_t_pskel::
-    parsers (::sim_mob::xml::Phase_t_pskel& phase)
-    {
-      this->phase_parser_ = &phase;
-    }
-
-    Phases_t_pskel::
-    Phases_t_pskel ()
-    : phase_parser_ (0)
-    {
-    }
-
-    // SplitPlan_t_pskel
-    //
-
-    void SplitPlan_t_pskel::
-    splitplanID_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->splitplanID_parser_ = &p;
-    }
-
-    void SplitPlan_t_pskel::
-    cycleLength_parser (::xml_schema::unsigned_byte_pskel& p)
-    {
-      this->cycleLength_parser_ = &p;
-    }
-
-    void SplitPlan_t_pskel::
-    offset_parser (::xml_schema::unsigned_byte_pskel& p)
-    {
-      this->offset_parser_ = &p;
-    }
-
-    void SplitPlan_t_pskel::
-    ChoiceSet_parser (::sim_mob::xml::Plans_t_pskel& p)
-    {
-      this->ChoiceSet_parser_ = &p;
-    }
-
-    void SplitPlan_t_pskel::
-    parsers (::xml_schema::unsigned_int_pskel& splitplanID,
-             ::xml_schema::unsigned_byte_pskel& cycleLength,
-             ::xml_schema::unsigned_byte_pskel& offset,
-             ::sim_mob::xml::Plans_t_pskel& ChoiceSet)
-    {
-      this->splitplanID_parser_ = &splitplanID;
-      this->cycleLength_parser_ = &cycleLength;
-      this->offset_parser_ = &offset;
-      this->ChoiceSet_parser_ = &ChoiceSet;
-    }
-
-    SplitPlan_t_pskel::
-    SplitPlan_t_pskel ()
-    : splitplanID_parser_ (0),
-      cycleLength_parser_ (0),
-      offset_parser_ (0),
-      ChoiceSet_parser_ (0)
-    {
-    }
-
-    // SCATS_t_pskel
-    //
-
-    void SCATS_t_pskel::
-    signalTimingMode_parser (::sim_mob::xml::signalTimingMode_t_pskel& p)
-    {
-      this->signalTimingMode_parser_ = &p;
-    }
-
-    void SCATS_t_pskel::
-    SplitPlan_parser (::sim_mob::xml::SplitPlan_t_pskel& p)
-    {
-      this->SplitPlan_parser_ = &p;
-    }
-
-    void SCATS_t_pskel::
-    parsers (::sim_mob::xml::signalTimingMode_t_pskel& signalTimingMode,
-             ::sim_mob::xml::SplitPlan_t_pskel& SplitPlan)
-    {
-      this->signalTimingMode_parser_ = &signalTimingMode;
-      this->SplitPlan_parser_ = &SplitPlan;
-    }
-
-    SCATS_t_pskel::
-    SCATS_t_pskel ()
-    : signalTimingMode_parser_ (0),
-      SplitPlan_parser_ (0)
-    {
-    }
-
-    // Signal_t_pskel
-    //
-
-    void Signal_t_pskel::
-    signalID_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->signalID_parser_ = &p;
-    }
-
-    void Signal_t_pskel::
-    nodeID_parser (::xml_schema::unsigned_int_pskel& p)
-    {
-      this->nodeID_parser_ = &p;
-    }
-
-    void Signal_t_pskel::
-    linkAndCrossings_parser (::sim_mob::xml::linkAndCrossings_t_pskel& p)
-    {
-      this->linkAndCrossings_parser_ = &p;
-    }
-
-    void Signal_t_pskel::
-    phases_parser (::sim_mob::xml::Phases_t_pskel& p)
-    {
-      this->phases_parser_ = &p;
-    }
-
-    void Signal_t_pskel::
-    SCATS_parser (::sim_mob::xml::SCATS_t_pskel& p)
-    {
-      this->SCATS_parser_ = &p;
-    }
-
-    void Signal_t_pskel::
-    parsers (::xml_schema::unsigned_int_pskel& signalID,
-             ::xml_schema::unsigned_int_pskel& nodeID,
-             ::sim_mob::xml::linkAndCrossings_t_pskel& linkAndCrossings,
-             ::sim_mob::xml::Phases_t_pskel& phases,
-             ::sim_mob::xml::SCATS_t_pskel& SCATS)
-    {
-      this->signalID_parser_ = &signalID;
-      this->nodeID_parser_ = &nodeID;
-      this->linkAndCrossings_parser_ = &linkAndCrossings;
-      this->phases_parser_ = &phases;
-      this->SCATS_parser_ = &SCATS;
-    }
-
-    Signal_t_pskel::
-    Signal_t_pskel ()
-    : signalID_parser_ (0),
-      nodeID_parser_ (0),
-      linkAndCrossings_parser_ (0),
-      phases_parser_ (0),
-      SCATS_parser_ (0)
-    {
-    }
-
-    // Signals_t_pskel
-    //
-
-    void Signals_t_pskel::
-    Signal_parser (::sim_mob::xml::Signal_t_pskel& p)
-    {
-      this->Signal_parser_ = &p;
-    }
-
-    void Signals_t_pskel::
-    parsers (::sim_mob::xml::Signal_t_pskel& Signal)
-    {
-      this->Signal_parser_ = &Signal;
-    }
-
-    Signals_t_pskel::
-    Signals_t_pskel ()
-    : Signal_parser_ (0)
-    {
-    }
-
-    // GeoSpatial_t_pskel
-    //
-
-    void GeoSpatial_t_pskel::
-    RoadNetwork_parser (::sim_mob::xml::RoadNetwork_t_pskel& p)
-    {
-      this->RoadNetwork_parser_ = &p;
-    }
-
-    void GeoSpatial_t_pskel::
-    parsers (::sim_mob::xml::RoadNetwork_t_pskel& RoadNetwork)
-    {
-      this->RoadNetwork_parser_ = &RoadNetwork;
-    }
-
-    GeoSpatial_t_pskel::
-    GeoSpatial_t_pskel ()
-    : RoadNetwork_parser_ (0)
-    {
-    }
-
-    // SimMobility_t_pskel
-    //
-
-    void SimMobility_t_pskel::
-    GeoSpatial_parser (::sim_mob::xml::GeoSpatial_t_pskel& p)
-    {
-      this->GeoSpatial_parser_ = &p;
-    }
-
-    void SimMobility_t_pskel::
-    TripChains_parser (::sim_mob::xml::TripChains_t_pskel& p)
-    {
-      this->TripChains_parser_ = &p;
-    }
-
-    void SimMobility_t_pskel::
-    Signals_parser (::sim_mob::xml::Signals_t_pskel& p)
-    {
-      this->Signals_parser_ = &p;
-    }
-
-    void SimMobility_t_pskel::
-    parsers (::sim_mob::xml::GeoSpatial_t_pskel& GeoSpatial,
-             ::sim_mob::xml::TripChains_t_pskel& TripChains,
-             ::sim_mob::xml::Signals_t_pskel& Signals)
-    {
-      this->GeoSpatial_parser_ = &GeoSpatial;
-      this->TripChains_parser_ = &TripChains;
-      this->Signals_parser_ = &Signals;
-    }
-
-    SimMobility_t_pskel::
-    SimMobility_t_pskel ()
-    : GeoSpatial_parser_ (0),
-      TripChains_parser_ (0),
-      Signals_parser_ (0)
-    {
-    }
-
-    // Lanes_pskel
-    //
-
-    void Lanes_pskel::
-    Lane_parser (::sim_mob::xml::lane_t_pskel& p)
-    {
-      this->Lane_parser_ = &p;
-    }
-
-    void Lanes_pskel::
-    parsers (::sim_mob::xml::lane_t_pskel& Lane)
-    {
-      this->Lane_parser_ = &Lane;
-    }
-
-    Lanes_pskel::
-    Lanes_pskel ()
-    : Lane_parser_ (0)
-    {
-    }
-
-    // Nodes_pskel
-    //
-
-    void Nodes_pskel::
-    UniNodes_parser (::sim_mob::xml::UniNodes_pskel& p)
-    {
-      this->UniNodes_parser_ = &p;
-    }
-
-    void Nodes_pskel::
-    Intersections_parser (::sim_mob::xml::Intersections_pskel& p)
-    {
-      this->Intersections_parser_ = &p;
-    }
-
-    void Nodes_pskel::
-    roundabouts_parser (::sim_mob::xml::roundabouts_pskel& p)
-    {
-      this->roundabouts_parser_ = &p;
-    }
-
-    void Nodes_pskel::
-    parsers (::sim_mob::xml::UniNodes_pskel& UniNodes,
-             ::sim_mob::xml::Intersections_pskel& Intersections,
-             ::sim_mob::xml::roundabouts_pskel& roundabouts)
-    {
-      this->UniNodes_parser_ = &UniNodes;
-      this->Intersections_parser_ = &Intersections;
-      this->roundabouts_parser_ = &roundabouts;
-    }
-
-    Nodes_pskel::
-    Nodes_pskel ()
-    : UniNodes_parser_ (0),
-      Intersections_parser_ (0),
-      roundabouts_parser_ (0)
-    {
-    }
-
-    // Links_pskel
-    //
-
-    void Links_pskel::
-    Link_parser (::sim_mob::xml::link_t_pskel& p)
-    {
-      this->Link_parser_ = &p;
-    }
-
-    void Links_pskel::
-    parsers (::sim_mob::xml::link_t_pskel& Link)
-    {
-      this->Link_parser_ = &Link;
-    }
-
-    Links_pskel::
-    Links_pskel ()
-    : Link_parser_ (0)
-    {
-    }
-
-    // UniNodes_pskel
-    //
-
-    void UniNodes_pskel::
-    UniNode_parser (::sim_mob::xml::UniNode_t_pskel& p)
-    {
-      this->UniNode_parser_ = &p;
-    }
-
-    void UniNodes_pskel::
-    parsers (::sim_mob::xml::UniNode_t_pskel& UniNode)
-    {
-      this->UniNode_parser_ = &UniNode;
-    }
-
-    UniNodes_pskel::
-    UniNodes_pskel ()
-    : UniNode_parser_ (0)
-    {
-    }
-
-    // Intersections_pskel
-    //
-
-    void Intersections_pskel::
-    Intersection_parser (::sim_mob::xml::intersection_t_pskel& p)
-    {
-      this->Intersection_parser_ = &p;
-    }
-
-    void Intersections_pskel::
-    parsers (::sim_mob::xml::intersection_t_pskel& Intersection)
-    {
-      this->Intersection_parser_ = &Intersection;
-    }
-
-    Intersections_pskel::
-    Intersections_pskel ()
-    : Intersection_parser_ (0)
-    {
-    }
-
-    // roundabouts_pskel
-    //
-
-    void roundabouts_pskel::
-    roundabout_parser (::sim_mob::xml::roundabout_t_pskel& p)
-    {
-      this->roundabout_parser_ = &p;
-    }
-
-    void roundabouts_pskel::
-    parsers (::sim_mob::xml::roundabout_t_pskel& roundabout)
-    {
-      this->roundabout_parser_ = &roundabout;
-    }
-
-    roundabouts_pskel::
-    roundabouts_pskel ()
-    : roundabout_parser_ (0)
-    {
-    }
+  {
+    this->region_parser_ = &p;
   }
+
+  void roadrunner_regions_t_pskel::
+    parsers (::sim_mob::xml::roadrunner_region_t_pskel& region)
+  {
+    this->region_parser_ = &region;
+  }
+
+  roadrunner_regions_t_pskel::
+  roadrunner_regions_t_pskel ()
+  : region_parser_ (0)
+  {
+  }
+
+  // roadrunner_region_t_pskel
+  //
+
+  void roadrunner_region_t_pskel::
+  id_parser (::xml_schema::int_pskel& p)
+  {
+    this->id_parser_ = &p;
+  }
+
+  void roadrunner_region_t_pskel::
+  shape_parser (::sim_mob::xml::roadrunner_shape_t_pskel& p)
+  {
+    this->shape_parser_ = &p;
+  }
+
+  void roadrunner_region_t_pskel::
+  parsers (::xml_schema::int_pskel& id,
+           ::sim_mob::xml::roadrunner_shape_t_pskel& shape)
+  {
+    this->id_parser_ = &id;
+    this->shape_parser_ = &shape;
+  }
+
+  roadrunner_region_t_pskel::
+  roadrunner_region_t_pskel ()
+  : id_parser_ (0),
+    shape_parser_ (0)
+  {
+  }
+
+  // roadrunner_vertex_t_pskel
+  //
+
+  void roadrunner_vertex_t_pskel::
+  latitude_parser (::xml_schema::double_pskel& p)
+  {
+    this->latitude_parser_ = &p;
+  }
+
+  void roadrunner_vertex_t_pskel::
+  longitude_parser (::xml_schema::double_pskel& p)
+  {
+    this->longitude_parser_ = &p;
+  }
+
+  void roadrunner_vertex_t_pskel::
+  parsers (::xml_schema::double_pskel& latitude,
+           ::xml_schema::double_pskel& longitude)
+  {
+    this->latitude_parser_ = &latitude;
+    this->longitude_parser_ = &longitude;
+  }
+
+  roadrunner_vertex_t_pskel::
+  roadrunner_vertex_t_pskel ()
+  : latitude_parser_ (0),
+    longitude_parser_ (0)
+  {
+  }
+
+  // roadrunner_shape_t_pskel
+  //
+
+  void roadrunner_shape_t_pskel::
+    vertex_parser (::sim_mob::xml::roadrunner_vertex_t_pskel& p)
+  {
+    this->vertex_parser_ = &p;
+  }
+
+  void roadrunner_shape_t_pskel::
+  parsers (::sim_mob::xml::roadrunner_vertex_t_pskel& vertex)
+  {
+    this->vertex_parser_ = &vertex;
+  }
+
+  roadrunner_shape_t_pskel::
+  roadrunner_shape_t_pskel ()
+  : vertex_parser_ (0)
+  {
+  }
+
+  // coordinate_map_t_pskel
+  //
+
+  void coordinate_map_t_pskel::
+  utm_projection_parser (::sim_mob::xml::utm_projection_t_pskel& p)
+  {
+    this->utm_projection_parser_ = &p;
+  }
+
+  void coordinate_map_t_pskel::
+  linear_scale_parser (::sim_mob::xml::linear_scale_t_pskel& p)
+  {
+    this->linear_scale_parser_ = &p;
+  }
+
+  void coordinate_map_t_pskel::
+  parsers (::sim_mob::xml::utm_projection_t_pskel& utm_projection,
+           ::sim_mob::xml::linear_scale_t_pskel& linear_scale)
+  {
+    this->utm_projection_parser_ = &utm_projection;
+    this->linear_scale_parser_ = &linear_scale;
+  }
+
+  coordinate_map_t_pskel::
+  coordinate_map_t_pskel ()
+  : utm_projection_parser_ (0),
+    linear_scale_parser_ (0)
+  {
+  }
+
+  // utm_projection_t_pskel
+  //
+
+  void utm_projection_t_pskel::
+  coordinate_system_parser (::xml_schema::string_pskel& p)
+  {
+    this->coordinate_system_parser_ = &p;
+  }
+
+  void utm_projection_t_pskel::
+  utm_zone_parser (::xml_schema::string_pskel& p)
+  {
+    this->utm_zone_parser_ = &p;
+  }
+
+  void utm_projection_t_pskel::
+  parsers (::xml_schema::string_pskel& coordinate_system,
+           ::xml_schema::string_pskel& utm_zone)
+  {
+    this->coordinate_system_parser_ = &coordinate_system;
+    this->utm_zone_parser_ = &utm_zone;
+  }
+
+  utm_projection_t_pskel::
+  utm_projection_t_pskel ()
+  : coordinate_system_parser_ (0),
+    utm_zone_parser_ (0)
+  {
+  }
+
+  // linear_scale_t_pskel
+  //
+
+  void linear_scale_t_pskel::
+  source_parser (::sim_mob::xml::scale_source_t_pskel& p)
+  {
+    this->source_parser_ = &p;
+  }
+
+  void linear_scale_t_pskel::
+  destination_parser (::sim_mob::xml::scale_destination_t_pskel& p)
+  {
+    this->destination_parser_ = &p;
+  }
+
+  void linear_scale_t_pskel::
+  parsers (::sim_mob::xml::scale_source_t_pskel& source,
+           ::sim_mob::xml::scale_destination_t_pskel& destination)
+  {
+    this->source_parser_ = &source;
+    this->destination_parser_ = &destination;
+  }
+
+  linear_scale_t_pskel::
+  linear_scale_t_pskel ()
+  : source_parser_ (0),
+    destination_parser_ (0)
+  {
+  }
+
+  // scale_source_t_pskel
+  //
+
+  void scale_source_t_pskel::
+  x_range_parser (::xml_schema::string_pskel& p)
+  {
+    this->x_range_parser_ = &p;
+  }
+
+  void scale_source_t_pskel::
+  y_range_parser (::xml_schema::string_pskel& p)
+  {
+    this->y_range_parser_ = &p;
+  }
+
+  void scale_source_t_pskel::
+  parsers (::xml_schema::string_pskel& x_range,
+           ::xml_schema::string_pskel& y_range)
+  {
+    this->x_range_parser_ = &x_range;
+    this->y_range_parser_ = &y_range;
+  }
+
+  scale_source_t_pskel::
+  scale_source_t_pskel ()
+  : x_range_parser_ (0),
+    y_range_parser_ (0)
+  {
+  }
+
+  // scale_destination_t_pskel
+  //
+
+  void scale_destination_t_pskel::
+  longitude_range_parser (::xml_schema::string_pskel& p)
+  {
+    this->longitude_range_parser_ = &p;
+  }
+
+  void scale_destination_t_pskel::
+  latitude_range_parser (::xml_schema::string_pskel& p)
+  {
+    this->latitude_range_parser_ = &p;
+  }
+
+  void scale_destination_t_pskel::
+  parsers (::xml_schema::string_pskel& longitude_range,
+           ::xml_schema::string_pskel& latitude_range)
+  {
+    this->longitude_range_parser_ = &longitude_range;
+    this->latitude_range_parser_ = &latitude_range;
+  }
+
+  scale_destination_t_pskel::
+  scale_destination_t_pskel ()
+  : longitude_range_parser_ (0),
+    latitude_range_parser_ (0)
+  {
+  }
+
+  // Point2D_t_pskel
+  //
+
+  void Point2D_t_pskel::
+  xPos_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->xPos_parser_ = &p;
+  }
+
+  void Point2D_t_pskel::
+  yPos_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->yPos_parser_ = &p;
+  }
+
+  void Point2D_t_pskel::
+  parsers (::xml_schema::unsigned_int_pskel& xPos,
+           ::xml_schema::unsigned_int_pskel& yPos)
+  {
+    this->xPos_parser_ = &xPos;
+    this->yPos_parser_ = &yPos;
+  }
+
+  Point2D_t_pskel::
+  Point2D_t_pskel ()
+  : xPos_parser_ (0),
+    yPos_parser_ (0)
+  {
+  }
+
+  // PolyPoint_t_pskel
+  //
+
+  void PolyPoint_t_pskel::
+  pointID_parser (::xml_schema::string_pskel& p)
+  {
+    this->pointID_parser_ = &p;
+  }
+
+  void PolyPoint_t_pskel::
+  location_parser (::sim_mob::xml::Point2D_t_pskel& p)
+  {
+    this->location_parser_ = &p;
+  }
+
+  void PolyPoint_t_pskel::
+  parsers (::xml_schema::string_pskel& pointID,
+           ::sim_mob::xml::Point2D_t_pskel& location)
+  {
+    this->pointID_parser_ = &pointID;
+    this->location_parser_ = &location;
+  }
+
+  PolyPoint_t_pskel::
+  PolyPoint_t_pskel ()
+  : pointID_parser_ (0),
+    location_parser_ (0)
+  {
+  }
+
+  // PolyLine_t_pskel
+  //
+
+  void PolyLine_t_pskel::
+  PolyPoint_parser (::sim_mob::xml::PolyPoint_t_pskel& p)
+  {
+    this->PolyPoint_parser_ = &p;
+  }
+
+  void PolyLine_t_pskel::
+  parsers (::sim_mob::xml::PolyPoint_t_pskel& PolyPoint)
+  {
+    this->PolyPoint_parser_ = &PolyPoint;
+  }
+
+  PolyLine_t_pskel::
+  PolyLine_t_pskel ()
+  : PolyPoint_parser_ (0)
+  {
+  }
+
+  // lane_t_pskel
+  //
+
+  void lane_t_pskel::
+  laneID_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->laneID_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  width_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->width_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  can_go_straight_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->can_go_straight_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  can_turn_left_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->can_turn_left_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  can_turn_right_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->can_turn_right_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  can_turn_on_red_signal_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->can_turn_on_red_signal_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  can_change_lane_left_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->can_change_lane_left_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  can_change_lane_right_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->can_change_lane_right_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  is_road_shoulder_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->is_road_shoulder_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  is_bicycle_lane_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->is_bicycle_lane_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  is_pedestrian_lane_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->is_pedestrian_lane_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  is_vehicle_lane_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->is_vehicle_lane_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  is_standard_bus_lane_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->is_standard_bus_lane_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  is_whole_day_bus_lane_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->is_whole_day_bus_lane_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  is_high_occupancy_vehicle_lane_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->is_high_occupancy_vehicle_lane_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  can_freely_park_here_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->can_freely_park_here_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  can_stop_here_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->can_stop_here_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  is_u_turn_allowed_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->is_u_turn_allowed_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  PolyLine_parser (::sim_mob::xml::PolyLine_t_pskel& p)
+  {
+    this->PolyLine_parser_ = &p;
+  }
+
+  void lane_t_pskel::
+  parsers (::xml_schema::unsigned_long_pskel& laneID,
+           ::xml_schema::unsigned_int_pskel& width,
+           ::xml_schema::boolean_pskel& can_go_straight,
+           ::xml_schema::boolean_pskel& can_turn_left,
+           ::xml_schema::boolean_pskel& can_turn_right,
+           ::xml_schema::boolean_pskel& can_turn_on_red_signal,
+           ::xml_schema::boolean_pskel& can_change_lane_left,
+           ::xml_schema::boolean_pskel& can_change_lane_right,
+           ::xml_schema::boolean_pskel& is_road_shoulder,
+           ::xml_schema::boolean_pskel& is_bicycle_lane,
+           ::xml_schema::boolean_pskel& is_pedestrian_lane,
+           ::xml_schema::boolean_pskel& is_vehicle_lane,
+           ::xml_schema::boolean_pskel& is_standard_bus_lane,
+           ::xml_schema::boolean_pskel& is_whole_day_bus_lane,
+           ::xml_schema::boolean_pskel& is_high_occupancy_vehicle_lane,
+           ::xml_schema::boolean_pskel& can_freely_park_here,
+           ::xml_schema::boolean_pskel& can_stop_here,
+           ::xml_schema::boolean_pskel& is_u_turn_allowed,
+           ::sim_mob::xml::PolyLine_t_pskel& PolyLine)
+  {
+    this->laneID_parser_ = &laneID;
+    this->width_parser_ = &width;
+    this->can_go_straight_parser_ = &can_go_straight;
+    this->can_turn_left_parser_ = &can_turn_left;
+    this->can_turn_right_parser_ = &can_turn_right;
+    this->can_turn_on_red_signal_parser_ = &can_turn_on_red_signal;
+    this->can_change_lane_left_parser_ = &can_change_lane_left;
+    this->can_change_lane_right_parser_ = &can_change_lane_right;
+    this->is_road_shoulder_parser_ = &is_road_shoulder;
+    this->is_bicycle_lane_parser_ = &is_bicycle_lane;
+    this->is_pedestrian_lane_parser_ = &is_pedestrian_lane;
+    this->is_vehicle_lane_parser_ = &is_vehicle_lane;
+    this->is_standard_bus_lane_parser_ = &is_standard_bus_lane;
+    this->is_whole_day_bus_lane_parser_ = &is_whole_day_bus_lane;
+    this->is_high_occupancy_vehicle_lane_parser_ = &is_high_occupancy_vehicle_lane;
+    this->can_freely_park_here_parser_ = &can_freely_park_here;
+    this->can_stop_here_parser_ = &can_stop_here;
+    this->is_u_turn_allowed_parser_ = &is_u_turn_allowed;
+    this->PolyLine_parser_ = &PolyLine;
+  }
+
+  lane_t_pskel::
+  lane_t_pskel ()
+  : laneID_parser_ (0),
+    width_parser_ (0),
+    can_go_straight_parser_ (0),
+    can_turn_left_parser_ (0),
+    can_turn_right_parser_ (0),
+    can_turn_on_red_signal_parser_ (0),
+    can_change_lane_left_parser_ (0),
+    can_change_lane_right_parser_ (0),
+    is_road_shoulder_parser_ (0),
+    is_bicycle_lane_parser_ (0),
+    is_pedestrian_lane_parser_ (0),
+    is_vehicle_lane_parser_ (0),
+    is_standard_bus_lane_parser_ (0),
+    is_whole_day_bus_lane_parser_ (0),
+    is_high_occupancy_vehicle_lane_parser_ (0),
+    can_freely_park_here_parser_ (0),
+    can_stop_here_parser_ (0),
+    is_u_turn_allowed_parser_ (0),
+    PolyLine_parser_ (0)
+  {
+  }
+
+  // connector_t_pskel
+  //
+
+  void connector_t_pskel::
+  laneFrom_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->laneFrom_parser_ = &p;
+  }
+
+  void connector_t_pskel::
+  laneTo_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->laneTo_parser_ = &p;
+  }
+
+  void connector_t_pskel::
+  parsers (::xml_schema::unsigned_long_pskel& laneFrom,
+           ::xml_schema::unsigned_long_pskel& laneTo)
+  {
+    this->laneFrom_parser_ = &laneFrom;
+    this->laneTo_parser_ = &laneTo;
+  }
+
+  connector_t_pskel::
+  connector_t_pskel ()
+  : laneFrom_parser_ (0),
+    laneTo_parser_ (0)
+  {
+  }
+
+  // connectors_t_pskel
+  //
+
+  void connectors_t_pskel::
+  Connector_parser (::sim_mob::xml::connector_t_pskel& p)
+  {
+    this->Connector_parser_ = &p;
+  }
+
+  void connectors_t_pskel::
+  parsers (::sim_mob::xml::connector_t_pskel& Connector)
+  {
+    this->Connector_parser_ = &Connector;
+  }
+
+  connectors_t_pskel::
+  connectors_t_pskel ()
+  : Connector_parser_ (0)
+  {
+  }
+
+  // new_connector_t_pskel
+  //
+
+  void new_connector_t_pskel::
+  laneFrom_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->laneFrom_parser_ = &p;
+  }
+
+  void new_connector_t_pskel::
+  laneTo_Left_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->laneTo_Left_parser_ = &p;
+  }
+
+  void new_connector_t_pskel::
+  laneTo_Center_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->laneTo_Center_parser_ = &p;
+  }
+
+  void new_connector_t_pskel::
+  laneTo_Right_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->laneTo_Right_parser_ = &p;
+  }
+
+  void new_connector_t_pskel::
+  parsers (::xml_schema::unsigned_long_pskel& laneFrom,
+           ::xml_schema::unsigned_long_pskel& laneTo_Left,
+           ::xml_schema::unsigned_long_pskel& laneTo_Center,
+           ::xml_schema::unsigned_long_pskel& laneTo_Right)
+  {
+    this->laneFrom_parser_ = &laneFrom;
+    this->laneTo_Left_parser_ = &laneTo_Left;
+    this->laneTo_Center_parser_ = &laneTo_Center;
+    this->laneTo_Right_parser_ = &laneTo_Right;
+  }
+
+  new_connector_t_pskel::
+  new_connector_t_pskel ()
+  : laneFrom_parser_ (0),
+    laneTo_Left_parser_ (0),
+    laneTo_Center_parser_ (0),
+    laneTo_Right_parser_ (0)
+  {
+  }
+
+  // new_connectors_t_pskel
+  //
+
+  void new_connectors_t_pskel::
+  new_connector_parser (::sim_mob::xml::new_connector_t_pskel& p)
+  {
+    this->new_connector_parser_ = &p;
+  }
+
+  void new_connectors_t_pskel::
+  parsers (::sim_mob::xml::new_connector_t_pskel& new_connector)
+  {
+    this->new_connector_parser_ = &new_connector;
+  }
+
+  new_connectors_t_pskel::
+  new_connectors_t_pskel ()
+  : new_connector_parser_ (0)
+  {
+  }
+
+  // Multi_Connector_t_pskel
+  //
+
+  void Multi_Connector_t_pskel::
+  RoadSegment_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->RoadSegment_parser_ = &p;
+  }
+
+  void Multi_Connector_t_pskel::
+  Connectors_parser (::sim_mob::xml::connectors_t_pskel& p)
+  {
+    this->Connectors_parser_ = &p;
+  }
+
+  void Multi_Connector_t_pskel::
+  parsers (::xml_schema::unsigned_long_pskel& RoadSegment,
+           ::sim_mob::xml::connectors_t_pskel& Connectors)
+  {
+    this->RoadSegment_parser_ = &RoadSegment;
+    this->Connectors_parser_ = &Connectors;
+  }
+
+  Multi_Connector_t_pskel::
+  Multi_Connector_t_pskel ()
+  : RoadSegment_parser_ (0),
+    Connectors_parser_ (0)
+  {
+  }
+
+  // Multi_Connectors_t_pskel
+  //
+
+  void Multi_Connectors_t_pskel::
+  MultiConnectors_parser (::sim_mob::xml::Multi_Connector_t_pskel& p)
+  {
+    this->MultiConnectors_parser_ = &p;
+  }
+
+  void Multi_Connectors_t_pskel::
+  parsers (::sim_mob::xml::Multi_Connector_t_pskel& MultiConnectors)
+  {
+    this->MultiConnectors_parser_ = &MultiConnectors;
+  }
+
+  Multi_Connectors_t_pskel::
+  Multi_Connectors_t_pskel ()
+  : MultiConnectors_parser_ (0)
+  {
+  }
+
+  // fwdBckSegments_t_pskel
+  //
+
+  void fwdBckSegments_t_pskel::
+  Segment_parser (::sim_mob::xml::segment_t_pskel& p)
+  {
+    this->Segment_parser_ = &p;
+  }
+
+  void fwdBckSegments_t_pskel::
+  parsers (::sim_mob::xml::segment_t_pskel& Segment)
+  {
+    this->Segment_parser_ = &Segment;
+  }
+
+  fwdBckSegments_t_pskel::
+  fwdBckSegments_t_pskel ()
+  : Segment_parser_ (0)
+  {
+  }
+
+  // RoadSegmentsAt_t_pskel
+  //
+
+  void RoadSegmentsAt_t_pskel::
+  segmentID_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->segmentID_parser_ = &p;
+  }
+
+  void RoadSegmentsAt_t_pskel::
+  parsers (::xml_schema::unsigned_long_pskel& segmentID)
+  {
+    this->segmentID_parser_ = &segmentID;
+  }
+
+  RoadSegmentsAt_t_pskel::
+  RoadSegmentsAt_t_pskel ()
+  : segmentID_parser_ (0)
+  {
+  }
+
+  // laneEdgePolyline_cached_t_pskel
+  //
+
+  void laneEdgePolyline_cached_t_pskel::
+  laneNumber_parser (::xml_schema::short_pskel& p)
+  {
+    this->laneNumber_parser_ = &p;
+  }
+
+  void laneEdgePolyline_cached_t_pskel::
+  polyline_parser (::sim_mob::xml::PolyLine_t_pskel& p)
+  {
+    this->polyline_parser_ = &p;
+  }
+
+  void laneEdgePolyline_cached_t_pskel::
+  parsers (::xml_schema::short_pskel& laneNumber,
+           ::sim_mob::xml::PolyLine_t_pskel& polyline)
+  {
+    this->laneNumber_parser_ = &laneNumber;
+    this->polyline_parser_ = &polyline;
+  }
+
+  laneEdgePolyline_cached_t_pskel::
+  laneEdgePolyline_cached_t_pskel ()
+  : laneNumber_parser_ (0),
+    polyline_parser_ (0)
+  {
+  }
+
+  // laneEdgePolylines_cached_t_pskel
+  //
+
+  void laneEdgePolylines_cached_t_pskel::
+  laneEdgePolyline_cached_parser (::sim_mob::xml::laneEdgePolyline_cached_t_pskel& p)
+  {
+    this->laneEdgePolyline_cached_parser_ = &p;
+  }
+
+  void laneEdgePolylines_cached_t_pskel::
+  parsers (::sim_mob::xml::laneEdgePolyline_cached_t_pskel& laneEdgePolyline_cached)
+  {
+    this->laneEdgePolyline_cached_parser_ = &laneEdgePolyline_cached;
+  }
+
+  laneEdgePolylines_cached_t_pskel::
+  laneEdgePolylines_cached_t_pskel ()
+  : laneEdgePolyline_cached_parser_ (0)
+  {
+  }
+
+  // segment_t_pskel
+  //
+
+  void segment_t_pskel::
+  segmentID_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->segmentID_parser_ = &p;
+  }
+
+  void segment_t_pskel::
+  startingNode_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->startingNode_parser_ = &p;
+  }
+
+  void segment_t_pskel::
+  endingNode_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->endingNode_parser_ = &p;
+  }
+
+  void segment_t_pskel::
+  maxSpeed_parser (::xml_schema::short_pskel& p)
+  {
+    this->maxSpeed_parser_ = &p;
+  }
+
+  void segment_t_pskel::
+  Length_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->Length_parser_ = &p;
+  }
+
+  void segment_t_pskel::
+  Width_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->Width_parser_ = &p;
+  }
+
+  void segment_t_pskel::
+  originalDB_ID_parser (::xml_schema::string_pskel& p)
+  {
+    this->originalDB_ID_parser_ = &p;
+  }
+
+  void segment_t_pskel::
+  polyline_parser (::sim_mob::xml::PolyLine_t_pskel& p)
+  {
+    this->polyline_parser_ = &p;
+  }
+
+  void segment_t_pskel::
+  laneEdgePolylines_cached_parser (::sim_mob::xml::laneEdgePolylines_cached_t_pskel& p)
+  {
+    this->laneEdgePolylines_cached_parser_ = &p;
+  }
+
+  void segment_t_pskel::
+  Lanes_parser (::sim_mob::xml::Lanes_pskel& p)
+  {
+    this->Lanes_parser_ = &p;
+  }
+
+  void segment_t_pskel::
+  Obstacles_parser (::sim_mob::xml::RoadItems_t_pskel& p)
+  {
+    this->Obstacles_parser_ = &p;
+  }
+
+  void segment_t_pskel::
+  KurbLine_parser (::sim_mob::xml::PolyLine_t_pskel& p)
+  {
+    this->KurbLine_parser_ = &p;
+  }
+
+  void segment_t_pskel::
+  parsers (::xml_schema::unsigned_long_pskel& segmentID,
+           ::xml_schema::unsigned_int_pskel& startingNode,
+           ::xml_schema::unsigned_int_pskel& endingNode,
+           ::xml_schema::short_pskel& maxSpeed,
+           ::xml_schema::unsigned_int_pskel& Length,
+           ::xml_schema::unsigned_int_pskel& Width,
+           ::xml_schema::string_pskel& originalDB_ID,
+           ::sim_mob::xml::PolyLine_t_pskel& polyline,
+           ::sim_mob::xml::laneEdgePolylines_cached_t_pskel& laneEdgePolylines_cached,
+           ::sim_mob::xml::Lanes_pskel& Lanes,
+           ::sim_mob::xml::RoadItems_t_pskel& Obstacles,
+           ::sim_mob::xml::PolyLine_t_pskel& KurbLine)
+  {
+    this->segmentID_parser_ = &segmentID;
+    this->startingNode_parser_ = &startingNode;
+    this->endingNode_parser_ = &endingNode;
+    this->maxSpeed_parser_ = &maxSpeed;
+    this->Length_parser_ = &Length;
+    this->Width_parser_ = &Width;
+    this->originalDB_ID_parser_ = &originalDB_ID;
+    this->polyline_parser_ = &polyline;
+    this->laneEdgePolylines_cached_parser_ = &laneEdgePolylines_cached;
+    this->Lanes_parser_ = &Lanes;
+    this->Obstacles_parser_ = &Obstacles;
+    this->KurbLine_parser_ = &KurbLine;
+  }
+
+  segment_t_pskel::
+  segment_t_pskel ()
+  : segmentID_parser_ (0),
+    startingNode_parser_ (0),
+    endingNode_parser_ (0),
+    maxSpeed_parser_ (0),
+    Length_parser_ (0),
+    Width_parser_ (0),
+    originalDB_ID_parser_ (0),
+    polyline_parser_ (0),
+    laneEdgePolylines_cached_parser_ (0),
+    Lanes_parser_ (0),
+    Obstacles_parser_ (0),
+    KurbLine_parser_ (0)
+  {
+  }
+
+  // link_t_pskel
+  //
+
+  void link_t_pskel::
+  linkID_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->linkID_parser_ = &p;
+  }
+
+  void link_t_pskel::
+  roadName_parser (::xml_schema::string_pskel& p)
+  {
+    this->roadName_parser_ = &p;
+  }
+
+  void link_t_pskel::
+  StartingNode_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->StartingNode_parser_ = &p;
+  }
+
+  void link_t_pskel::
+  EndingNode_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->EndingNode_parser_ = &p;
+  }
+
+  void link_t_pskel::
+  Segments_parser (::sim_mob::xml::fwdBckSegments_t_pskel& p)
+  {
+    this->Segments_parser_ = &p;
+  }
+
+  void link_t_pskel::
+  parsers (::xml_schema::unsigned_int_pskel& linkID,
+           ::xml_schema::string_pskel& roadName,
+           ::xml_schema::unsigned_int_pskel& StartingNode,
+           ::xml_schema::unsigned_int_pskel& EndingNode,
+           ::sim_mob::xml::fwdBckSegments_t_pskel& Segments)
+  {
+    this->linkID_parser_ = &linkID;
+    this->roadName_parser_ = &roadName;
+    this->StartingNode_parser_ = &StartingNode;
+    this->EndingNode_parser_ = &EndingNode;
+    this->Segments_parser_ = &Segments;
+  }
+
+  link_t_pskel::
+  link_t_pskel ()
+  : linkID_parser_ (0),
+    roadName_parser_ (0),
+    StartingNode_parser_ (0),
+    EndingNode_parser_ (0),
+    Segments_parser_ (0)
+  {
+  }
+
+  // separator_t_pskel
+  //
+
+  void separator_t_pskel::
+  separator_ID_parser (::xml_schema::unsigned_short_pskel& p)
+  {
+    this->separator_ID_parser_ = &p;
+  }
+
+  void separator_t_pskel::
+  separator_value_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->separator_value_parser_ = &p;
+  }
+
+  void separator_t_pskel::
+  parsers (::xml_schema::unsigned_short_pskel& separator_ID,
+           ::xml_schema::boolean_pskel& separator_value)
+  {
+    this->separator_ID_parser_ = &separator_ID;
+    this->separator_value_parser_ = &separator_value;
+  }
+
+  separator_t_pskel::
+  separator_t_pskel ()
+  : separator_ID_parser_ (0),
+    separator_value_parser_ (0)
+  {
+  }
+
+  // separators_t_pskel
+  //
+
+  void separators_t_pskel::
+  Separator_parser (::sim_mob::xml::separator_t_pskel& p)
+  {
+    this->Separator_parser_ = &p;
+  }
+
+  void separators_t_pskel::
+  parsers (::sim_mob::xml::separator_t_pskel& Separator)
+  {
+    this->Separator_parser_ = &Separator;
+  }
+
+  separators_t_pskel::
+  separators_t_pskel ()
+  : Separator_parser_ (0)
+  {
+  }
+
+  // DomainIsland_t_pskel
+  //
+
+  void DomainIsland_t_pskel::
+  domainIsland_ID_parser (::xml_schema::unsigned_short_pskel& p)
+  {
+    this->domainIsland_ID_parser_ = &p;
+  }
+
+  void DomainIsland_t_pskel::
+  domainIsland_value_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->domainIsland_value_parser_ = &p;
+  }
+
+  void DomainIsland_t_pskel::
+  parsers (::xml_schema::unsigned_short_pskel& domainIsland_ID,
+           ::xml_schema::boolean_pskel& domainIsland_value)
+  {
+    this->domainIsland_ID_parser_ = &domainIsland_ID;
+    this->domainIsland_value_parser_ = &domainIsland_value;
+  }
+
+  DomainIsland_t_pskel::
+  DomainIsland_t_pskel ()
+  : domainIsland_ID_parser_ (0),
+    domainIsland_value_parser_ (0)
+  {
+  }
+
+  // DomainIslands_t_pskel
+  //
+
+  void DomainIslands_t_pskel::
+  domainIslands_parser (::sim_mob::xml::DomainIsland_t_pskel& p)
+  {
+    this->domainIslands_parser_ = &p;
+  }
+
+  void DomainIslands_t_pskel::
+  parsers (::sim_mob::xml::DomainIsland_t_pskel& domainIslands)
+  {
+    this->domainIslands_parser_ = &domainIslands;
+  }
+
+  DomainIslands_t_pskel::
+  DomainIslands_t_pskel ()
+  : domainIslands_parser_ (0)
+  {
+  }
+
+  // offset_t_pskel
+  //
+
+  void offset_t_pskel::
+  offset_ID_parser (::xml_schema::unsigned_short_pskel& p)
+  {
+    this->offset_ID_parser_ = &p;
+  }
+
+  void offset_t_pskel::
+  offset_value_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->offset_value_parser_ = &p;
+  }
+
+  void offset_t_pskel::
+  parsers (::xml_schema::unsigned_short_pskel& offset_ID,
+           ::xml_schema::unsigned_int_pskel& offset_value)
+  {
+    this->offset_ID_parser_ = &offset_ID;
+    this->offset_value_parser_ = &offset_value;
+  }
+
+  offset_t_pskel::
+  offset_t_pskel ()
+  : offset_ID_parser_ (0),
+    offset_value_parser_ (0)
+  {
+  }
+
+  // offsets_t_pskel
+  //
+
+  void offsets_t_pskel::
+  offset_parser (::sim_mob::xml::offset_t_pskel& p)
+  {
+    this->offset_parser_ = &p;
+  }
+
+  void offsets_t_pskel::
+  parsers (::sim_mob::xml::offset_t_pskel& offset)
+  {
+    this->offset_parser_ = &offset;
+  }
+
+  offsets_t_pskel::
+  offsets_t_pskel ()
+  : offset_parser_ (0)
+  {
+  }
+
+  // ChunkLength_t_pskel
+  //
+
+  void ChunkLength_t_pskel::
+  chunklength_ID_parser (::xml_schema::unsigned_short_pskel& p)
+  {
+    this->chunklength_ID_parser_ = &p;
+  }
+
+  void ChunkLength_t_pskel::
+  chunklength_value_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->chunklength_value_parser_ = &p;
+  }
+
+  void ChunkLength_t_pskel::
+  parsers (::xml_schema::unsigned_short_pskel& chunklength_ID,
+           ::xml_schema::unsigned_int_pskel& chunklength_value)
+  {
+    this->chunklength_ID_parser_ = &chunklength_ID;
+    this->chunklength_value_parser_ = &chunklength_value;
+  }
+
+  ChunkLength_t_pskel::
+  ChunkLength_t_pskel ()
+  : chunklength_ID_parser_ (0),
+    chunklength_value_parser_ (0)
+  {
+  }
+
+  // ChunkLengths_t_pskel
+  //
+
+  void ChunkLengths_t_pskel::
+  chunklength_parser (::sim_mob::xml::ChunkLength_t_pskel& p)
+  {
+    this->chunklength_parser_ = &p;
+  }
+
+  void ChunkLengths_t_pskel::
+  parsers (::sim_mob::xml::ChunkLength_t_pskel& chunklength)
+  {
+    this->chunklength_parser_ = &chunklength;
+  }
+
+  ChunkLengths_t_pskel::
+  ChunkLengths_t_pskel ()
+  : chunklength_parser_ (0)
+  {
+  }
+
+  // LanesVector_t_pskel
+  //
+
+  void LanesVector_t_pskel::
+  laneID_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->laneID_parser_ = &p;
+  }
+
+  void LanesVector_t_pskel::
+  parsers (::xml_schema::unsigned_long_pskel& laneID)
+  {
+    this->laneID_parser_ = &laneID;
+  }
+
+  LanesVector_t_pskel::
+  LanesVector_t_pskel ()
+  : laneID_parser_ (0)
+  {
+  }
+
+  // EntranceAngle_t_pskel
+  //
+
+  void EntranceAngle_t_pskel::
+  entranceAngle_ID_parser (::xml_schema::unsigned_short_pskel& p)
+  {
+    this->entranceAngle_ID_parser_ = &p;
+  }
+
+  void EntranceAngle_t_pskel::
+  entranceAngle_value_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->entranceAngle_value_parser_ = &p;
+  }
+
+  void EntranceAngle_t_pskel::
+  parsers (::xml_schema::unsigned_short_pskel& entranceAngle_ID,
+           ::xml_schema::unsigned_int_pskel& entranceAngle_value)
+  {
+    this->entranceAngle_ID_parser_ = &entranceAngle_ID;
+    this->entranceAngle_value_parser_ = &entranceAngle_value;
+  }
+
+  EntranceAngle_t_pskel::
+  EntranceAngle_t_pskel ()
+  : entranceAngle_ID_parser_ (0),
+    entranceAngle_value_parser_ (0)
+  {
+  }
+
+  // EntranceAngles_t_pskel
+  //
+
+  void EntranceAngles_t_pskel::
+  entranceAngle_parser (::sim_mob::xml::EntranceAngle_t_pskel& p)
+  {
+    this->entranceAngle_parser_ = &p;
+  }
+
+  void EntranceAngles_t_pskel::
+  parsers (::sim_mob::xml::EntranceAngle_t_pskel& entranceAngle)
+  {
+    this->entranceAngle_parser_ = &entranceAngle;
+  }
+
+  EntranceAngles_t_pskel::
+  EntranceAngles_t_pskel ()
+  : entranceAngle_parser_ (0)
+  {
+  }
+
+  // Node_t_pskel
+  //
+
+  void Node_t_pskel::
+  nodeID_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->nodeID_parser_ = &p;
+  }
+
+  void Node_t_pskel::
+  location_parser (::sim_mob::xml::Point2D_t_pskel& p)
+  {
+    this->location_parser_ = &p;
+  }
+
+  void Node_t_pskel::
+  originalDB_ID_parser (::xml_schema::string_pskel& p)
+  {
+    this->originalDB_ID_parser_ = &p;
+  }
+
+  void Node_t_pskel::
+  parsers (::xml_schema::unsigned_int_pskel& nodeID,
+           ::sim_mob::xml::Point2D_t_pskel& location,
+           ::xml_schema::string_pskel& originalDB_ID)
+  {
+    this->nodeID_parser_ = &nodeID;
+    this->location_parser_ = &location;
+    this->originalDB_ID_parser_ = &originalDB_ID;
+  }
+
+  Node_t_pskel::
+  Node_t_pskel ()
+  : nodeID_parser_ (0),
+    location_parser_ (0),
+    originalDB_ID_parser_ (0)
+  {
+  }
+
+  // temp_Segmetair_t_pskel
+  //
+
+  void temp_Segmetair_t_pskel::
+  first_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->first_parser_ = &p;
+  }
+
+  void temp_Segmetair_t_pskel::
+  second_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->second_parser_ = &p;
+  }
+
+  void temp_Segmetair_t_pskel::
+  parsers (::xml_schema::unsigned_long_pskel& first,
+           ::xml_schema::unsigned_long_pskel& second)
+  {
+    this->first_parser_ = &first;
+    this->second_parser_ = &second;
+  }
+
+  temp_Segmetair_t_pskel::
+  temp_Segmetair_t_pskel ()
+  : first_parser_ (0),
+    second_parser_ (0)
+  {
+  }
+
+  // UniNode_t_pskel
+  //
+
+  void UniNode_t_pskel::
+  firstPair_parser (::sim_mob::xml::temp_Segmetair_t_pskel& p)
+  {
+    this->firstPair_parser_ = &p;
+  }
+
+  void UniNode_t_pskel::
+  secondPair_parser (::sim_mob::xml::temp_Segmetair_t_pskel& p)
+  {
+    this->secondPair_parser_ = &p;
+  }
+
+  void UniNode_t_pskel::
+  Connectors_parser (::sim_mob::xml::connectors_t_pskel& p)
+  {
+    this->Connectors_parser_ = &p;
+  }
+
+  void UniNode_t_pskel::
+  new_Connectors_parser (::sim_mob::xml::new_connectors_t_pskel& p)
+  {
+    this->new_Connectors_parser_ = &p;
+  }
+
+  void UniNode_t_pskel::
+  parsers (::xml_schema::unsigned_int_pskel& nodeID,
+           ::sim_mob::xml::Point2D_t_pskel& location,
+           ::xml_schema::string_pskel& originalDB_ID,
+           ::sim_mob::xml::temp_Segmetair_t_pskel& firstPair,
+           ::sim_mob::xml::temp_Segmetair_t_pskel& secondPair,
+           ::sim_mob::xml::connectors_t_pskel& Connectors,
+           ::sim_mob::xml::new_connectors_t_pskel& new_Connectors)
+  {
+    this->nodeID_parser_ = &nodeID;
+    this->location_parser_ = &location;
+    this->originalDB_ID_parser_ = &originalDB_ID;
+    this->firstPair_parser_ = &firstPair;
+    this->secondPair_parser_ = &secondPair;
+    this->Connectors_parser_ = &Connectors;
+    this->new_Connectors_parser_ = &new_Connectors;
+  }
+
+  UniNode_t_pskel::
+  UniNode_t_pskel ()
+  : firstPair_parser_ (0),
+    secondPair_parser_ (0),
+    Connectors_parser_ (0),
+    new_Connectors_parser_ (0)
+  {
+  }
+
+  // roundabout_t_pskel
+  //
+
+  void roundabout_t_pskel::
+  roadSegmentsAt_parser (::sim_mob::xml::RoadSegmentsAt_t_pskel& p)
+  {
+    this->roadSegmentsAt_parser_ = &p;
+  }
+
+  void roundabout_t_pskel::
+  Connectors_parser (::sim_mob::xml::Multi_Connectors_t_pskel& p)
+  {
+    this->Connectors_parser_ = &p;
+  }
+
+  void roundabout_t_pskel::
+  ChunkLengths_parser (::sim_mob::xml::ChunkLengths_t_pskel& p)
+  {
+    this->ChunkLengths_parser_ = &p;
+  }
+
+  void roundabout_t_pskel::
+  Offsets_parser (::sim_mob::xml::offsets_t_pskel& p)
+  {
+    this->Offsets_parser_ = &p;
+  }
+
+  void roundabout_t_pskel::
+  Separators_parser (::sim_mob::xml::separators_t_pskel& p)
+  {
+    this->Separators_parser_ = &p;
+  }
+
+  void roundabout_t_pskel::
+  addDominantLane_parser (::sim_mob::xml::LanesVector_t_pskel& p)
+  {
+    this->addDominantLane_parser_ = &p;
+  }
+
+  void roundabout_t_pskel::
+  roundaboutDominantIslands_parser (::xml_schema::float_pskel& p)
+  {
+    this->roundaboutDominantIslands_parser_ = &p;
+  }
+
+  void roundabout_t_pskel::
+  roundaboutNumberOfLanes_parser (::xml_schema::int_pskel& p)
+  {
+    this->roundaboutNumberOfLanes_parser_ = &p;
+  }
+
+  void roundabout_t_pskel::
+  entranceAngles_parser (::sim_mob::xml::EntranceAngles_t_pskel& p)
+  {
+    this->entranceAngles_parser_ = &p;
+  }
+
+  void roundabout_t_pskel::
+  parsers (::xml_schema::unsigned_int_pskel& nodeID,
+           ::sim_mob::xml::Point2D_t_pskel& location,
+           ::xml_schema::string_pskel& originalDB_ID,
+           ::sim_mob::xml::RoadSegmentsAt_t_pskel& roadSegmentsAt,
+           ::sim_mob::xml::Multi_Connectors_t_pskel& Connectors,
+           ::sim_mob::xml::ChunkLengths_t_pskel& ChunkLengths,
+           ::sim_mob::xml::offsets_t_pskel& Offsets,
+           ::sim_mob::xml::separators_t_pskel& Separators,
+           ::sim_mob::xml::LanesVector_t_pskel& addDominantLane,
+           ::xml_schema::float_pskel& roundaboutDominantIslands,
+           ::xml_schema::int_pskel& roundaboutNumberOfLanes,
+           ::sim_mob::xml::EntranceAngles_t_pskel& entranceAngles)
+  {
+    this->nodeID_parser_ = &nodeID;
+    this->location_parser_ = &location;
+    this->originalDB_ID_parser_ = &originalDB_ID;
+    this->roadSegmentsAt_parser_ = &roadSegmentsAt;
+    this->Connectors_parser_ = &Connectors;
+    this->ChunkLengths_parser_ = &ChunkLengths;
+    this->Offsets_parser_ = &Offsets;
+    this->Separators_parser_ = &Separators;
+    this->addDominantLane_parser_ = &addDominantLane;
+    this->roundaboutDominantIslands_parser_ = &roundaboutDominantIslands;
+    this->roundaboutNumberOfLanes_parser_ = &roundaboutNumberOfLanes;
+    this->entranceAngles_parser_ = &entranceAngles;
+  }
+
+  roundabout_t_pskel::
+  roundabout_t_pskel ()
+  : roadSegmentsAt_parser_ (0),
+    Connectors_parser_ (0),
+    ChunkLengths_parser_ (0),
+    Offsets_parser_ (0),
+    Separators_parser_ (0),
+    addDominantLane_parser_ (0),
+    roundaboutDominantIslands_parser_ (0),
+    roundaboutNumberOfLanes_parser_ (0),
+    entranceAngles_parser_ (0)
+  {
+  }
+
+  // intersection_t_pskel
+  //
+
+  void intersection_t_pskel::
+  roadSegmentsAt_parser (::sim_mob::xml::RoadSegmentsAt_t_pskel& p)
+  {
+    this->roadSegmentsAt_parser_ = &p;
+  }
+
+  void intersection_t_pskel::
+  Connectors_parser (::sim_mob::xml::Multi_Connectors_t_pskel& p)
+  {
+    this->Connectors_parser_ = &p;
+  }
+
+  void intersection_t_pskel::
+  ChunkLengths_parser (::sim_mob::xml::ChunkLengths_t_pskel& p)
+  {
+    this->ChunkLengths_parser_ = &p;
+  }
+
+  void intersection_t_pskel::
+  Offsets_parser (::sim_mob::xml::offsets_t_pskel& p)
+  {
+    this->Offsets_parser_ = &p;
+  }
+
+  void intersection_t_pskel::
+  Separators_parser (::sim_mob::xml::separators_t_pskel& p)
+  {
+    this->Separators_parser_ = &p;
+  }
+
+  void intersection_t_pskel::
+  additionalDominantLanes_parser (::sim_mob::xml::LanesVector_t_pskel& p)
+  {
+    this->additionalDominantLanes_parser_ = &p;
+  }
+
+  void intersection_t_pskel::
+  additionalSubdominantLanes_parser (::sim_mob::xml::LanesVector_t_pskel& p)
+  {
+    this->additionalSubdominantLanes_parser_ = &p;
+  }
+
+  void intersection_t_pskel::
+  domainIslands_parser (::sim_mob::xml::DomainIslands_t_pskel& p)
+  {
+    this->domainIslands_parser_ = &p;
+  }
+
+  void intersection_t_pskel::
+  parsers (::xml_schema::unsigned_int_pskel& nodeID,
+           ::sim_mob::xml::Point2D_t_pskel& location,
+           ::xml_schema::string_pskel& originalDB_ID,
+           ::sim_mob::xml::RoadSegmentsAt_t_pskel& roadSegmentsAt,
+           ::sim_mob::xml::Multi_Connectors_t_pskel& Connectors,
+           ::sim_mob::xml::ChunkLengths_t_pskel& ChunkLengths,
+           ::sim_mob::xml::offsets_t_pskel& Offsets,
+           ::sim_mob::xml::separators_t_pskel& Separators,
+           ::sim_mob::xml::LanesVector_t_pskel& additionalDominantLanes,
+           ::sim_mob::xml::LanesVector_t_pskel& additionalSubdominantLanes,
+           ::sim_mob::xml::DomainIslands_t_pskel& domainIslands)
+  {
+    this->nodeID_parser_ = &nodeID;
+    this->location_parser_ = &location;
+    this->originalDB_ID_parser_ = &originalDB_ID;
+    this->roadSegmentsAt_parser_ = &roadSegmentsAt;
+    this->Connectors_parser_ = &Connectors;
+    this->ChunkLengths_parser_ = &ChunkLengths;
+    this->Offsets_parser_ = &Offsets;
+    this->Separators_parser_ = &Separators;
+    this->additionalDominantLanes_parser_ = &additionalDominantLanes;
+    this->additionalSubdominantLanes_parser_ = &additionalSubdominantLanes;
+    this->domainIslands_parser_ = &domainIslands;
+  }
+
+  intersection_t_pskel::
+  intersection_t_pskel ()
+  : roadSegmentsAt_parser_ (0),
+    Connectors_parser_ (0),
+    ChunkLengths_parser_ (0),
+    Offsets_parser_ (0),
+    Separators_parser_ (0),
+    additionalDominantLanes_parser_ (0),
+    additionalSubdominantLanes_parser_ (0),
+    domainIslands_parser_ (0)
+  {
+  }
+
+  // RoadItem_t_pskel
+  //
+
+  void RoadItem_t_pskel::
+  id_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->id_parser_ = &p;
+  }
+
+  void RoadItem_t_pskel::
+  Offset_parser (::xml_schema::unsigned_short_pskel& p)
+  {
+    this->Offset_parser_ = &p;
+  }
+
+  void RoadItem_t_pskel::
+  start_parser (::sim_mob::xml::Point2D_t_pskel& p)
+  {
+    this->start_parser_ = &p;
+  }
+
+  void RoadItem_t_pskel::
+  end_parser (::sim_mob::xml::Point2D_t_pskel& p)
+  {
+    this->end_parser_ = &p;
+  }
+
+  void RoadItem_t_pskel::
+  parsers (::xml_schema::unsigned_long_pskel& id,
+           ::xml_schema::unsigned_short_pskel& Offset,
+           ::sim_mob::xml::Point2D_t_pskel& start,
+           ::sim_mob::xml::Point2D_t_pskel& end)
+  {
+    this->id_parser_ = &id;
+    this->Offset_parser_ = &Offset;
+    this->start_parser_ = &start;
+    this->end_parser_ = &end;
+  }
+
+  RoadItem_t_pskel::
+  RoadItem_t_pskel ()
+  : id_parser_ (0),
+    Offset_parser_ (0),
+    start_parser_ (0),
+    end_parser_ (0)
+  {
+  }
+
+  // BusStop_t_pskel
+  //
+
+  void BusStop_t_pskel::
+  xPos_parser (::xml_schema::double_pskel& p)
+  {
+    this->xPos_parser_ = &p;
+  }
+
+  void BusStop_t_pskel::
+  yPos_parser (::xml_schema::double_pskel& p)
+  {
+    this->yPos_parser_ = &p;
+  }
+
+  void BusStop_t_pskel::
+  lane_location_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->lane_location_parser_ = &p;
+  }
+
+  void BusStop_t_pskel::
+  is_terminal_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->is_terminal_parser_ = &p;
+  }
+
+  void BusStop_t_pskel::
+  is_bay_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->is_bay_parser_ = &p;
+  }
+
+  void BusStop_t_pskel::
+  has_shelter_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->has_shelter_parser_ = &p;
+  }
+
+  void BusStop_t_pskel::
+  busCapacityAsLength_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->busCapacityAsLength_parser_ = &p;
+  }
+
+  void BusStop_t_pskel::
+  busstopno_parser (::xml_schema::string_pskel& p)
+  {
+    this->busstopno_parser_ = &p;
+  }
+
+  void BusStop_t_pskel::
+  parsers (::xml_schema::unsigned_long_pskel& id,
+           ::xml_schema::unsigned_short_pskel& Offset,
+           ::sim_mob::xml::Point2D_t_pskel& start,
+           ::sim_mob::xml::Point2D_t_pskel& end,
+           ::xml_schema::double_pskel& xPos,
+           ::xml_schema::double_pskel& yPos,
+           ::xml_schema::unsigned_long_pskel& lane_location,
+           ::xml_schema::boolean_pskel& is_terminal,
+           ::xml_schema::boolean_pskel& is_bay,
+           ::xml_schema::boolean_pskel& has_shelter,
+           ::xml_schema::unsigned_int_pskel& busCapacityAsLength,
+           ::xml_schema::string_pskel& busstopno)
+  {
+    this->id_parser_ = &id;
+    this->Offset_parser_ = &Offset;
+    this->start_parser_ = &start;
+    this->end_parser_ = &end;
+    this->xPos_parser_ = &xPos;
+    this->yPos_parser_ = &yPos;
+    this->lane_location_parser_ = &lane_location;
+    this->is_terminal_parser_ = &is_terminal;
+    this->is_bay_parser_ = &is_bay;
+    this->has_shelter_parser_ = &has_shelter;
+    this->busCapacityAsLength_parser_ = &busCapacityAsLength;
+    this->busstopno_parser_ = &busstopno;
+  }
+
+  BusStop_t_pskel::
+  BusStop_t_pskel ()
+  : xPos_parser_ (0),
+    yPos_parser_ (0),
+    lane_location_parser_ (0),
+    is_terminal_parser_ (0),
+    is_bay_parser_ (0),
+    has_shelter_parser_ (0),
+    busCapacityAsLength_parser_ (0),
+    busstopno_parser_ (0)
+  {
+  }
+
+  // ERP_Gantry_t_pskel
+  //
+
+  void ERP_Gantry_t_pskel::
+  ERP_GantryID_parser (::xml_schema::string_pskel& p)
+  {
+    this->ERP_GantryID_parser_ = &p;
+  }
+
+  void ERP_Gantry_t_pskel::
+  parsers (::xml_schema::unsigned_long_pskel& id,
+           ::xml_schema::unsigned_short_pskel& Offset,
+           ::sim_mob::xml::Point2D_t_pskel& start,
+           ::sim_mob::xml::Point2D_t_pskel& end,
+           ::xml_schema::string_pskel& ERP_GantryID)
+  {
+    this->id_parser_ = &id;
+    this->Offset_parser_ = &Offset;
+    this->start_parser_ = &start;
+    this->end_parser_ = &end;
+    this->ERP_GantryID_parser_ = &ERP_GantryID;
+  }
+
+  ERP_Gantry_t_pskel::
+  ERP_Gantry_t_pskel ()
+  : ERP_GantryID_parser_ (0)
+  {
+  }
+
+  // FormType_pskel
+  //
+
+  void FormType_pskel::
+  TextBox_parser (::xml_schema::int_pskel& p)
+  {
+    this->TextBox_parser_ = &p;
+  }
+
+  void FormType_pskel::
+  TextArea_parser (::xml_schema::int_pskel& p)
+  {
+    this->TextArea_parser_ = &p;
+  }
+
+  void FormType_pskel::
+  Header_parser (::xml_schema::int_pskel& p)
+  {
+    this->Header_parser_ = &p;
+  }
+
+  void FormType_pskel::
+  parsers (::xml_schema::int_pskel& TextBox,
+           ::xml_schema::int_pskel& TextArea,
+           ::xml_schema::int_pskel& Header)
+  {
+    this->TextBox_parser_ = &TextBox;
+    this->TextArea_parser_ = &TextArea;
+    this->Header_parser_ = &Header;
+  }
+
+  FormType_pskel::
+  FormType_pskel ()
+  : TextBox_parser_ (0),
+    TextArea_parser_ (0),
+    Header_parser_ (0)
+  {
+  }
+
+  // PointPair_t_pskel
+  //
+
+  void PointPair_t_pskel::
+  first_parser (::sim_mob::xml::Point2D_t_pskel& p)
+  {
+    this->first_parser_ = &p;
+  }
+
+  void PointPair_t_pskel::
+  second_parser (::sim_mob::xml::Point2D_t_pskel& p)
+  {
+    this->second_parser_ = &p;
+  }
+
+  void PointPair_t_pskel::
+  parsers (::sim_mob::xml::Point2D_t_pskel& first,
+           ::sim_mob::xml::Point2D_t_pskel& second)
+  {
+    this->first_parser_ = &first;
+    this->second_parser_ = &second;
+  }
+
+  PointPair_t_pskel::
+  PointPair_t_pskel ()
+  : first_parser_ (0),
+    second_parser_ (0)
+  {
+  }
+
+  // crossing_t_pskel
+  //
+
+  void crossing_t_pskel::
+  nearLine_parser (::sim_mob::xml::PointPair_t_pskel& p)
+  {
+    this->nearLine_parser_ = &p;
+  }
+
+  void crossing_t_pskel::
+  farLine_parser (::sim_mob::xml::PointPair_t_pskel& p)
+  {
+    this->farLine_parser_ = &p;
+  }
+
+  void crossing_t_pskel::
+  parsers (::xml_schema::unsigned_long_pskel& id,
+           ::xml_schema::unsigned_short_pskel& Offset,
+           ::sim_mob::xml::Point2D_t_pskel& start,
+           ::sim_mob::xml::Point2D_t_pskel& end,
+           ::sim_mob::xml::PointPair_t_pskel& nearLine,
+           ::sim_mob::xml::PointPair_t_pskel& farLine)
+  {
+    this->id_parser_ = &id;
+    this->Offset_parser_ = &Offset;
+    this->start_parser_ = &start;
+    this->end_parser_ = &end;
+    this->nearLine_parser_ = &nearLine;
+    this->farLine_parser_ = &farLine;
+  }
+
+  crossing_t_pskel::
+  crossing_t_pskel ()
+  : nearLine_parser_ (0),
+    farLine_parser_ (0)
+  {
+  }
+
+  // RoadBump_t_pskel
+  //
+
+  void RoadBump_t_pskel::
+  roadBumpID_parser (::xml_schema::string_pskel& p)
+  {
+    this->roadBumpID_parser_ = &p;
+  }
+
+  void RoadBump_t_pskel::
+  segmentID_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->segmentID_parser_ = &p;
+  }
+
+  void RoadBump_t_pskel::
+  parsers (::xml_schema::unsigned_long_pskel& id,
+           ::xml_schema::unsigned_short_pskel& Offset,
+           ::sim_mob::xml::Point2D_t_pskel& start,
+           ::sim_mob::xml::Point2D_t_pskel& end,
+           ::xml_schema::string_pskel& roadBumpID,
+           ::xml_schema::unsigned_long_pskel& segmentID)
+  {
+    this->id_parser_ = &id;
+    this->Offset_parser_ = &Offset;
+    this->start_parser_ = &start;
+    this->end_parser_ = &end;
+    this->roadBumpID_parser_ = &roadBumpID;
+    this->segmentID_parser_ = &segmentID;
+  }
+
+  RoadBump_t_pskel::
+  RoadBump_t_pskel ()
+  : roadBumpID_parser_ (0),
+    segmentID_parser_ (0)
+  {
+  }
+
+  // RoadNetwork_t_pskel
+  //
+
+  void RoadNetwork_t_pskel::
+  coordinate_map_parser (::sim_mob::xml::coordinate_map_t_pskel& p)
+  {
+    this->coordinate_map_parser_ = &p;
+  }
+
+  void RoadNetwork_t_pskel::
+  roadrunner_regions_parser (::sim_mob::xml::roadrunner_regions_t_pskel& p)
+  {
+    this->roadrunner_regions_parser_ = &p;
+  }
+
+  void RoadNetwork_t_pskel::
+  Nodes_parser (::sim_mob::xml::Nodes_pskel& p)
+  {
+    this->Nodes_parser_ = &p;
+  }
+
+  void RoadNetwork_t_pskel::
+  Links_parser (::sim_mob::xml::Links_pskel& p)
+  {
+    this->Links_parser_ = &p;
+  }
+
+  void RoadNetwork_t_pskel::
+  parsers (::sim_mob::xml::coordinate_map_t_pskel& coordinate_map,
+           ::sim_mob::xml::roadrunner_regions_t_pskel& roadrunner_regions,
+           ::sim_mob::xml::Nodes_pskel& Nodes,
+           ::sim_mob::xml::Links_pskel& Links)
+  {
+    this->coordinate_map_parser_ = &coordinate_map;
+    this->roadrunner_regions_parser_ = &roadrunner_regions;
+    this->Nodes_parser_ = &Nodes;
+    this->Links_parser_ = &Links;
+  }
+
+  RoadNetwork_t_pskel::
+  RoadNetwork_t_pskel ()
+  : coordinate_map_parser_ (0),
+    roadrunner_regions_parser_ (0),
+    Nodes_parser_ (0),
+    Links_parser_ (0)
+  {
+  }
+
+  // RoadItems_t_pskel
+  //
+
+  void RoadItems_t_pskel::
+  BusStop_parser (::sim_mob::xml::BusStop_t_pskel& p)
+  {
+    this->BusStop_parser_ = &p;
+  }
+
+  void RoadItems_t_pskel::
+  ERP_Gantry_parser (::sim_mob::xml::ERP_Gantry_t_pskel& p)
+  {
+    this->ERP_Gantry_parser_ = &p;
+  }
+
+  void RoadItems_t_pskel::
+  Crossing_parser (::sim_mob::xml::crossing_t_pskel& p)
+  {
+    this->Crossing_parser_ = &p;
+  }
+
+  void RoadItems_t_pskel::
+  RoadBump_parser (::sim_mob::xml::RoadBump_t_pskel& p)
+  {
+    this->RoadBump_parser_ = &p;
+  }
+
+  void RoadItems_t_pskel::
+  parsers (::sim_mob::xml::BusStop_t_pskel& BusStop,
+           ::sim_mob::xml::ERP_Gantry_t_pskel& ERP_Gantry,
+           ::sim_mob::xml::crossing_t_pskel& Crossing,
+           ::sim_mob::xml::RoadBump_t_pskel& RoadBump)
+  {
+    this->BusStop_parser_ = &BusStop;
+    this->ERP_Gantry_parser_ = &ERP_Gantry;
+    this->Crossing_parser_ = &Crossing;
+    this->RoadBump_parser_ = &RoadBump;
+  }
+
+  RoadItems_t_pskel::
+  RoadItems_t_pskel ()
+  : BusStop_parser_ (0),
+    ERP_Gantry_parser_ (0),
+    Crossing_parser_ (0),
+    RoadBump_parser_ (0)
+  {
+  }
+
+  // TripChainItem_t_pskel
+  //
+
+  void TripChainItem_t_pskel::
+  personID_parser (::xml_schema::string_pskel& p)
+  {
+    this->personID_parser_ = &p;
+  }
+
+  void TripChainItem_t_pskel::
+  itemType_parser (::sim_mob::xml::TripchainItemType_pskel& p)
+  {
+    this->itemType_parser_ = &p;
+  }
+
+  void TripChainItem_t_pskel::
+  sequenceNumber_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->sequenceNumber_parser_ = &p;
+  }
+
+  void TripChainItem_t_pskel::
+  requestTime_parser (::xml_schema::integer_pskel& p)
+  {
+    this->requestTime_parser_ = &p;
+  }
+
+  void TripChainItem_t_pskel::
+  startTime_parser (::xml_schema::string_pskel& p)
+  {
+    this->startTime_parser_ = &p;
+  }
+
+  void TripChainItem_t_pskel::
+  endTime_parser (::xml_schema::string_pskel& p)
+  {
+    this->endTime_parser_ = &p;
+  }
+
+  void TripChainItem_t_pskel::
+  parsers (::xml_schema::string_pskel& personID,
+           ::sim_mob::xml::TripchainItemType_pskel& itemType,
+           ::xml_schema::unsigned_int_pskel& sequenceNumber,
+           ::xml_schema::integer_pskel& requestTime,
+           ::xml_schema::string_pskel& startTime,
+           ::xml_schema::string_pskel& endTime)
+  {
+    this->personID_parser_ = &personID;
+    this->itemType_parser_ = &itemType;
+    this->sequenceNumber_parser_ = &sequenceNumber;
+    this->requestTime_parser_ = &requestTime;
+    this->startTime_parser_ = &startTime;
+    this->endTime_parser_ = &endTime;
+  }
+
+  TripChainItem_t_pskel::
+  TripChainItem_t_pskel ()
+  : personID_parser_ (0),
+    itemType_parser_ (0),
+    sequenceNumber_parser_ (0),
+    requestTime_parser_ (0),
+    startTime_parser_ (0),
+    endTime_parser_ (0)
+  {
+  }
+
+  // Trip_t_pskel
+  //
+
+  void Trip_t_pskel::
+  tripID_parser (::xml_schema::integer_pskel& p)
+  {
+    this->tripID_parser_ = &p;
+  }
+
+  void Trip_t_pskel::
+  fromLocation_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->fromLocation_parser_ = &p;
+  }
+
+  void Trip_t_pskel::
+  fromLocationType_parser (::sim_mob::xml::TripchainItemLocationType_pskel& p)
+  {
+    this->fromLocationType_parser_ = &p;
+  }
+
+  void Trip_t_pskel::
+  toLocation_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->toLocation_parser_ = &p;
+  }
+
+  void Trip_t_pskel::
+  toLocationType_parser (::sim_mob::xml::TripchainItemLocationType_pskel& p)
+  {
+    this->toLocationType_parser_ = &p;
+  }
+
+  void Trip_t_pskel::
+  subTrips_parser (::sim_mob::xml::SubTrips_t_pskel& p)
+  {
+    this->subTrips_parser_ = &p;
+  }
+
+  void Trip_t_pskel::
+  parsers (::xml_schema::string_pskel& personID,
+           ::sim_mob::xml::TripchainItemType_pskel& itemType,
+           ::xml_schema::unsigned_int_pskel& sequenceNumber,
+           ::xml_schema::integer_pskel& requestTime,
+           ::xml_schema::string_pskel& startTime,
+           ::xml_schema::string_pskel& endTime,
+           ::xml_schema::integer_pskel& tripID,
+           ::xml_schema::unsigned_int_pskel& fromLocation,
+           ::sim_mob::xml::TripchainItemLocationType_pskel& fromLocationType,
+           ::xml_schema::unsigned_int_pskel& toLocation,
+           ::sim_mob::xml::TripchainItemLocationType_pskel& toLocationType,
+           ::sim_mob::xml::SubTrips_t_pskel& subTrips)
+  {
+    this->personID_parser_ = &personID;
+    this->itemType_parser_ = &itemType;
+    this->sequenceNumber_parser_ = &sequenceNumber;
+    this->requestTime_parser_ = &requestTime;
+    this->startTime_parser_ = &startTime;
+    this->endTime_parser_ = &endTime;
+    this->tripID_parser_ = &tripID;
+    this->fromLocation_parser_ = &fromLocation;
+    this->fromLocationType_parser_ = &fromLocationType;
+    this->toLocation_parser_ = &toLocation;
+    this->toLocationType_parser_ = &toLocationType;
+    this->subTrips_parser_ = &subTrips;
+  }
+
+  Trip_t_pskel::
+  Trip_t_pskel ()
+  : tripID_parser_ (0),
+    fromLocation_parser_ (0),
+    fromLocationType_parser_ (0),
+    toLocation_parser_ (0),
+    toLocationType_parser_ (0),
+    subTrips_parser_ (0)
+  {
+  }
+
+  // SubTrip_t_pskel
+  //
+
+  void SubTrip_t_pskel::
+  mode_parser (::xml_schema::string_pskel& p)
+  {
+    this->mode_parser_ = &p;
+  }
+
+  void SubTrip_t_pskel::
+  isPrimaryMode_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->isPrimaryMode_parser_ = &p;
+  }
+
+  void SubTrip_t_pskel::
+  ptLineId_parser (::xml_schema::string_pskel& p)
+  {
+    this->ptLineId_parser_ = &p;
+  }
+
+  void SubTrip_t_pskel::
+  parsers (::xml_schema::string_pskel& personID,
+           ::sim_mob::xml::TripchainItemType_pskel& itemType,
+           ::xml_schema::unsigned_int_pskel& sequenceNumber,
+           ::xml_schema::integer_pskel& requestTime,
+           ::xml_schema::string_pskel& startTime,
+           ::xml_schema::string_pskel& endTime,
+           ::xml_schema::integer_pskel& tripID,
+           ::xml_schema::unsigned_int_pskel& fromLocation,
+           ::sim_mob::xml::TripchainItemLocationType_pskel& fromLocationType,
+           ::xml_schema::unsigned_int_pskel& toLocation,
+           ::sim_mob::xml::TripchainItemLocationType_pskel& toLocationType,
+           ::sim_mob::xml::SubTrips_t_pskel& subTrips,
+           ::xml_schema::string_pskel& mode,
+           ::xml_schema::boolean_pskel& isPrimaryMode,
+           ::xml_schema::string_pskel& ptLineId)
+  {
+    this->personID_parser_ = &personID;
+    this->itemType_parser_ = &itemType;
+    this->sequenceNumber_parser_ = &sequenceNumber;
+    this->requestTime_parser_ = &requestTime;
+    this->startTime_parser_ = &startTime;
+    this->endTime_parser_ = &endTime;
+    this->tripID_parser_ = &tripID;
+    this->fromLocation_parser_ = &fromLocation;
+    this->fromLocationType_parser_ = &fromLocationType;
+    this->toLocation_parser_ = &toLocation;
+    this->toLocationType_parser_ = &toLocationType;
+    this->subTrips_parser_ = &subTrips;
+    this->mode_parser_ = &mode;
+    this->isPrimaryMode_parser_ = &isPrimaryMode;
+    this->ptLineId_parser_ = &ptLineId;
+  }
+
+  SubTrip_t_pskel::
+  SubTrip_t_pskel ()
+  : mode_parser_ (0),
+    isPrimaryMode_parser_ (0),
+    ptLineId_parser_ (0)
+  {
+  }
+
+  // SubTrips_t_pskel
+  //
+
+  void SubTrips_t_pskel::
+  subTrip_parser (::sim_mob::xml::SubTrip_t_pskel& p)
+  {
+    this->subTrip_parser_ = &p;
+  }
+
+  void SubTrips_t_pskel::
+  parsers (::sim_mob::xml::SubTrip_t_pskel& subTrip)
+  {
+    this->subTrip_parser_ = &subTrip;
+  }
+
+  SubTrips_t_pskel::
+  SubTrips_t_pskel ()
+  : subTrip_parser_ (0)
+  {
+  }
+
+  // Activity_t_pskel
+  //
+
+  void Activity_t_pskel::
+  description_parser (::xml_schema::string_pskel& p)
+  {
+    this->description_parser_ = &p;
+  }
+
+  void Activity_t_pskel::
+  location_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->location_parser_ = &p;
+  }
+
+  void Activity_t_pskel::
+  locationType_parser (::sim_mob::xml::TripchainItemLocationType_pskel& p)
+  {
+    this->locationType_parser_ = &p;
+  }
+
+  void Activity_t_pskel::
+  isPrimary_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->isPrimary_parser_ = &p;
+  }
+
+  void Activity_t_pskel::
+  isFlexible_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->isFlexible_parser_ = &p;
+  }
+
+  void Activity_t_pskel::
+  isMandatory_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->isMandatory_parser_ = &p;
+  }
+
+  void Activity_t_pskel::
+  parsers (::xml_schema::string_pskel& personID,
+           ::sim_mob::xml::TripchainItemType_pskel& itemType,
+           ::xml_schema::unsigned_int_pskel& sequenceNumber,
+           ::xml_schema::integer_pskel& requestTime,
+           ::xml_schema::string_pskel& startTime,
+           ::xml_schema::string_pskel& endTime,
+           ::xml_schema::string_pskel& description,
+           ::xml_schema::unsigned_int_pskel& location,
+           ::sim_mob::xml::TripchainItemLocationType_pskel& locationType,
+           ::xml_schema::boolean_pskel& isPrimary,
+           ::xml_schema::boolean_pskel& isFlexible,
+           ::xml_schema::boolean_pskel& isMandatory)
+  {
+    this->personID_parser_ = &personID;
+    this->itemType_parser_ = &itemType;
+    this->sequenceNumber_parser_ = &sequenceNumber;
+    this->requestTime_parser_ = &requestTime;
+    this->startTime_parser_ = &startTime;
+    this->endTime_parser_ = &endTime;
+    this->description_parser_ = &description;
+    this->location_parser_ = &location;
+    this->locationType_parser_ = &locationType;
+    this->isPrimary_parser_ = &isPrimary;
+    this->isFlexible_parser_ = &isFlexible;
+    this->isMandatory_parser_ = &isMandatory;
+  }
+
+  Activity_t_pskel::
+  Activity_t_pskel ()
+  : description_parser_ (0),
+    location_parser_ (0),
+    locationType_parser_ (0),
+    isPrimary_parser_ (0),
+    isFlexible_parser_ (0),
+    isMandatory_parser_ (0)
+  {
+  }
+
+  // TripChain_t_pskel
+  //
+
+  void TripChain_t_pskel::
+  personID_parser (::xml_schema::string_pskel& p)
+  {
+    this->personID_parser_ = &p;
+  }
+
+  void TripChain_t_pskel::
+  Trip_parser (::sim_mob::xml::Trip_t_pskel& p)
+  {
+    this->Trip_parser_ = &p;
+  }
+
+  void TripChain_t_pskel::
+  Activity_parser (::sim_mob::xml::Activity_t_pskel& p)
+  {
+    this->Activity_parser_ = &p;
+  }
+
+  void TripChain_t_pskel::
+  parsers (::xml_schema::string_pskel& personID,
+           ::sim_mob::xml::Trip_t_pskel& Trip,
+           ::sim_mob::xml::Activity_t_pskel& Activity)
+  {
+    this->personID_parser_ = &personID;
+    this->Trip_parser_ = &Trip;
+    this->Activity_parser_ = &Activity;
+  }
+
+  TripChain_t_pskel::
+  TripChain_t_pskel ()
+  : personID_parser_ (0),
+    Trip_parser_ (0),
+    Activity_parser_ (0)
+  {
+  }
+
+  // TripChains_t_pskel
+  //
+
+  void TripChains_t_pskel::
+  TripChain_parser (::sim_mob::xml::TripChain_t_pskel& p)
+  {
+    this->TripChain_parser_ = &p;
+  }
+
+  void TripChains_t_pskel::
+  parsers (::sim_mob::xml::TripChain_t_pskel& TripChain)
+  {
+    this->TripChain_parser_ = &TripChain;
+  }
+
+  TripChains_t_pskel::
+  TripChains_t_pskel ()
+  : TripChain_parser_ (0)
+  {
+  }
+
+  // linkAndCrossing_t_pskel
+  //
+
+  void linkAndCrossing_t_pskel::
+  ID_parser (::xml_schema::unsigned_byte_pskel& p)
+  {
+    this->ID_parser_ = &p;
+  }
+
+  void linkAndCrossing_t_pskel::
+  linkID_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->linkID_parser_ = &p;
+  }
+
+  void linkAndCrossing_t_pskel::
+  crossingID_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->crossingID_parser_ = &p;
+  }
+
+  void linkAndCrossing_t_pskel::
+  angle_parser (::xml_schema::unsigned_byte_pskel& p)
+  {
+    this->angle_parser_ = &p;
+  }
+
+  void linkAndCrossing_t_pskel::
+  parsers (::xml_schema::unsigned_byte_pskel& ID,
+           ::xml_schema::unsigned_int_pskel& linkID,
+           ::xml_schema::unsigned_int_pskel& crossingID,
+           ::xml_schema::unsigned_byte_pskel& angle)
+  {
+    this->ID_parser_ = &ID;
+    this->linkID_parser_ = &linkID;
+    this->crossingID_parser_ = &crossingID;
+    this->angle_parser_ = &angle;
+  }
+
+  linkAndCrossing_t_pskel::
+  linkAndCrossing_t_pskel ()
+  : ID_parser_ (0),
+    linkID_parser_ (0),
+    crossingID_parser_ (0),
+    angle_parser_ (0)
+  {
+  }
+
+  // linkAndCrossings_t_pskel
+  //
+
+  void linkAndCrossings_t_pskel::
+  linkAndCrossing_parser (::sim_mob::xml::linkAndCrossing_t_pskel& p)
+  {
+    this->linkAndCrossing_parser_ = &p;
+  }
+
+  void linkAndCrossings_t_pskel::
+  parsers (::sim_mob::xml::linkAndCrossing_t_pskel& linkAndCrossing)
+  {
+    this->linkAndCrossing_parser_ = &linkAndCrossing;
+  }
+
+  linkAndCrossings_t_pskel::
+  linkAndCrossings_t_pskel ()
+  : linkAndCrossing_parser_ (0)
+  {
+  }
+
+  // plan_t_pskel
+  //
+
+  void plan_t_pskel::
+  planID_parser (::xml_schema::unsigned_byte_pskel& p)
+  {
+    this->planID_parser_ = &p;
+  }
+
+  void plan_t_pskel::
+  PhasePercentage_parser (::xml_schema::double_pskel& p)
+  {
+    this->PhasePercentage_parser_ = &p;
+  }
+
+  void plan_t_pskel::
+  parsers (::xml_schema::unsigned_byte_pskel& planID,
+           ::xml_schema::double_pskel& PhasePercentage)
+  {
+    this->planID_parser_ = &planID;
+    this->PhasePercentage_parser_ = &PhasePercentage;
+  }
+
+  plan_t_pskel::
+  plan_t_pskel ()
+  : planID_parser_ (0),
+    PhasePercentage_parser_ (0)
+  {
+  }
+
+  // Plans_t_pskel
+  //
+
+  void Plans_t_pskel::
+  plan_parser (::sim_mob::xml::plan_t_pskel& p)
+  {
+    this->plan_parser_ = &p;
+  }
+
+  void Plans_t_pskel::
+  parsers (::sim_mob::xml::plan_t_pskel& plan)
+  {
+    this->plan_parser_ = &plan;
+  }
+
+  Plans_t_pskel::
+  Plans_t_pskel ()
+  : plan_parser_ (0)
+  {
+  }
+
+  // ColorDuration_t_pskel
+  //
+
+  void ColorDuration_t_pskel::
+  TrafficColor_parser (::sim_mob::xml::TrafficColor_t_pskel& p)
+  {
+    this->TrafficColor_parser_ = &p;
+  }
+
+  void ColorDuration_t_pskel::
+  Duration_parser (::xml_schema::unsigned_byte_pskel& p)
+  {
+    this->Duration_parser_ = &p;
+  }
+
+  void ColorDuration_t_pskel::
+  parsers (::sim_mob::xml::TrafficColor_t_pskel& TrafficColor,
+           ::xml_schema::unsigned_byte_pskel& Duration)
+  {
+    this->TrafficColor_parser_ = &TrafficColor;
+    this->Duration_parser_ = &Duration;
+  }
+
+  ColorDuration_t_pskel::
+  ColorDuration_t_pskel ()
+  : TrafficColor_parser_ (0),
+    Duration_parser_ (0)
+  {
+  }
+
+  // ColorSequence_t_pskel
+  //
+
+  void ColorSequence_t_pskel::
+  TrafficLightType_parser (::xml_schema::string_pskel& p)
+  {
+    this->TrafficLightType_parser_ = &p;
+  }
+
+  void ColorSequence_t_pskel::
+  ColorDuration_parser (::sim_mob::xml::ColorDuration_t_pskel& p)
+  {
+    this->ColorDuration_parser_ = &p;
+  }
+
+  void ColorSequence_t_pskel::
+  parsers (::xml_schema::string_pskel& TrafficLightType,
+           ::sim_mob::xml::ColorDuration_t_pskel& ColorDuration)
+  {
+    this->TrafficLightType_parser_ = &TrafficLightType;
+    this->ColorDuration_parser_ = &ColorDuration;
+  }
+
+  ColorSequence_t_pskel::
+  ColorSequence_t_pskel ()
+  : TrafficLightType_parser_ (0),
+    ColorDuration_parser_ (0)
+  {
+  }
+
+  // links_maps_t_pskel
+  //
+
+  void links_maps_t_pskel::
+  links_map_parser (::sim_mob::xml::links_map_t_pskel& p)
+  {
+    this->links_map_parser_ = &p;
+  }
+
+  void links_maps_t_pskel::
+  parsers (::sim_mob::xml::links_map_t_pskel& links_map)
+  {
+    this->links_map_parser_ = &links_map;
+  }
+
+  links_maps_t_pskel::
+  links_maps_t_pskel ()
+  : links_map_parser_ (0)
+  {
+  }
+
+  // links_map_t_pskel
+  //
+
+  void links_map_t_pskel::
+  LinkFrom_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->LinkFrom_parser_ = &p;
+  }
+
+  void links_map_t_pskel::
+  LinkTo_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->LinkTo_parser_ = &p;
+  }
+
+  void links_map_t_pskel::
+  SegmentFrom_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->SegmentFrom_parser_ = &p;
+  }
+
+  void links_map_t_pskel::
+  SegmentTo_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->SegmentTo_parser_ = &p;
+  }
+
+  void links_map_t_pskel::
+  ColorSequence_parser (::sim_mob::xml::ColorSequence_t_pskel& p)
+  {
+    this->ColorSequence_parser_ = &p;
+  }
+
+  void links_map_t_pskel::
+  parsers (::xml_schema::unsigned_int_pskel& LinkFrom,
+           ::xml_schema::unsigned_int_pskel& LinkTo,
+           ::xml_schema::unsigned_int_pskel& SegmentFrom,
+           ::xml_schema::unsigned_int_pskel& SegmentTo,
+           ::sim_mob::xml::ColorSequence_t_pskel& ColorSequence)
+  {
+    this->LinkFrom_parser_ = &LinkFrom;
+    this->LinkTo_parser_ = &LinkTo;
+    this->SegmentFrom_parser_ = &SegmentFrom;
+    this->SegmentTo_parser_ = &SegmentTo;
+    this->ColorSequence_parser_ = &ColorSequence;
+  }
+
+  links_map_t_pskel::
+  links_map_t_pskel ()
+  : LinkFrom_parser_ (0),
+    LinkTo_parser_ (0),
+    SegmentFrom_parser_ (0),
+    SegmentTo_parser_ (0),
+    ColorSequence_parser_ (0)
+  {
+  }
+
+  // crossings_maps_t_pskel
+  //
+
+  void crossings_maps_t_pskel::
+  crossings_map_parser (::sim_mob::xml::crossings_map_t_pskel& p)
+  {
+    this->crossings_map_parser_ = &p;
+  }
+
+  void crossings_maps_t_pskel::
+  parsers (::sim_mob::xml::crossings_map_t_pskel& crossings_map)
+  {
+    this->crossings_map_parser_ = &crossings_map;
+  }
+
+  crossings_maps_t_pskel::
+  crossings_maps_t_pskel ()
+  : crossings_map_parser_ (0)
+  {
+  }
+
+  // crossings_map_t_pskel
+  //
+
+  void crossings_map_t_pskel::
+  linkID_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->linkID_parser_ = &p;
+  }
+
+  void crossings_map_t_pskel::
+  crossingID_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->crossingID_parser_ = &p;
+  }
+
+  void crossings_map_t_pskel::
+  ColorSequence_parser (::sim_mob::xml::ColorSequence_t_pskel& p)
+  {
+    this->ColorSequence_parser_ = &p;
+  }
+
+  void crossings_map_t_pskel::
+  parsers (::xml_schema::unsigned_int_pskel& linkID,
+           ::xml_schema::unsigned_int_pskel& crossingID,
+           ::sim_mob::xml::ColorSequence_t_pskel& ColorSequence)
+  {
+    this->linkID_parser_ = &linkID;
+    this->crossingID_parser_ = &crossingID;
+    this->ColorSequence_parser_ = &ColorSequence;
+  }
+
+  crossings_map_t_pskel::
+  crossings_map_t_pskel ()
+  : linkID_parser_ (0),
+    crossingID_parser_ (0),
+    ColorSequence_parser_ (0)
+  {
+  }
+
+  // Phase_t_pskel
+  //
+
+  void Phase_t_pskel::
+  phaseID_parser (::xml_schema::unsigned_byte_pskel& p)
+  {
+    this->phaseID_parser_ = &p;
+  }
+
+  void Phase_t_pskel::
+  name_parser (::xml_schema::string_pskel& p)
+  {
+    this->name_parser_ = &p;
+  }
+
+  void Phase_t_pskel::
+  links_maps_parser (::sim_mob::xml::links_maps_t_pskel& p)
+  {
+    this->links_maps_parser_ = &p;
+  }
+
+  void Phase_t_pskel::
+  crossings_maps_parser (::sim_mob::xml::crossings_maps_t_pskel& p)
+  {
+    this->crossings_maps_parser_ = &p;
+  }
+
+  void Phase_t_pskel::
+  parsers (::xml_schema::unsigned_byte_pskel& phaseID,
+           ::xml_schema::string_pskel& name,
+           ::sim_mob::xml::links_maps_t_pskel& links_maps,
+           ::sim_mob::xml::crossings_maps_t_pskel& crossings_maps)
+  {
+    this->phaseID_parser_ = &phaseID;
+    this->name_parser_ = &name;
+    this->links_maps_parser_ = &links_maps;
+    this->crossings_maps_parser_ = &crossings_maps;
+  }
+
+  Phase_t_pskel::
+  Phase_t_pskel ()
+  : phaseID_parser_ (0),
+    name_parser_ (0),
+    links_maps_parser_ (0),
+    crossings_maps_parser_ (0)
+  {
+  }
+
+  // Phases_t_pskel
+  //
+
+  void Phases_t_pskel::
+  phase_parser (::sim_mob::xml::Phase_t_pskel& p)
+  {
+    this->phase_parser_ = &p;
+  }
+
+  void Phases_t_pskel::
+  parsers (::sim_mob::xml::Phase_t_pskel& phase)
+  {
+    this->phase_parser_ = &phase;
+  }
+
+  Phases_t_pskel::
+  Phases_t_pskel ()
+  : phase_parser_ (0)
+  {
+  }
+
+  // SplitPlan_t_pskel
+  //
+
+  void SplitPlan_t_pskel::
+  splitplanID_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->splitplanID_parser_ = &p;
+  }
+
+  void SplitPlan_t_pskel::
+  cycleLength_parser (::xml_schema::unsigned_byte_pskel& p)
+  {
+    this->cycleLength_parser_ = &p;
+  }
+
+  void SplitPlan_t_pskel::
+  offset_parser (::xml_schema::unsigned_byte_pskel& p)
+  {
+    this->offset_parser_ = &p;
+  }
+
+  void SplitPlan_t_pskel::
+  ChoiceSet_parser (::sim_mob::xml::Plans_t_pskel& p)
+  {
+    this->ChoiceSet_parser_ = &p;
+  }
+
+  void SplitPlan_t_pskel::
+  parsers (::xml_schema::unsigned_int_pskel& splitplanID,
+           ::xml_schema::unsigned_byte_pskel& cycleLength,
+           ::xml_schema::unsigned_byte_pskel& offset,
+           ::sim_mob::xml::Plans_t_pskel& ChoiceSet)
+  {
+    this->splitplanID_parser_ = &splitplanID;
+    this->cycleLength_parser_ = &cycleLength;
+    this->offset_parser_ = &offset;
+    this->ChoiceSet_parser_ = &ChoiceSet;
+  }
+
+  SplitPlan_t_pskel::
+  SplitPlan_t_pskel ()
+  : splitplanID_parser_ (0),
+    cycleLength_parser_ (0),
+    offset_parser_ (0),
+    ChoiceSet_parser_ (0)
+  {
+  }
+
+  // SCATS_t_pskel
+  //
+
+  void SCATS_t_pskel::
+  signalTimingMode_parser (::sim_mob::xml::signalTimingMode_t_pskel& p)
+  {
+    this->signalTimingMode_parser_ = &p;
+  }
+
+  void SCATS_t_pskel::
+  SplitPlan_parser (::sim_mob::xml::SplitPlan_t_pskel& p)
+  {
+    this->SplitPlan_parser_ = &p;
+  }
+
+  void SCATS_t_pskel::
+  parsers (::sim_mob::xml::signalTimingMode_t_pskel& signalTimingMode,
+           ::sim_mob::xml::SplitPlan_t_pskel& SplitPlan)
+  {
+    this->signalTimingMode_parser_ = &signalTimingMode;
+    this->SplitPlan_parser_ = &SplitPlan;
+  }
+
+  SCATS_t_pskel::
+  SCATS_t_pskel ()
+  : signalTimingMode_parser_ (0),
+    SplitPlan_parser_ (0)
+  {
+  }
+
+  // Signal_t_pskel
+  //
+
+  void Signal_t_pskel::
+  signalID_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->signalID_parser_ = &p;
+  }
+
+  void Signal_t_pskel::
+  nodeID_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->nodeID_parser_ = &p;
+  }
+
+  void Signal_t_pskel::
+  linkAndCrossings_parser (::sim_mob::xml::linkAndCrossings_t_pskel& p)
+  {
+    this->linkAndCrossings_parser_ = &p;
+  }
+
+  void Signal_t_pskel::
+  phases_parser (::sim_mob::xml::Phases_t_pskel& p)
+  {
+    this->phases_parser_ = &p;
+  }
+
+  void Signal_t_pskel::
+  SCATS_parser (::sim_mob::xml::SCATS_t_pskel& p)
+  {
+    this->SCATS_parser_ = &p;
+  }
+
+  void Signal_t_pskel::
+  parsers (::xml_schema::unsigned_int_pskel& signalID,
+           ::xml_schema::unsigned_int_pskel& nodeID,
+           ::sim_mob::xml::linkAndCrossings_t_pskel& linkAndCrossings,
+           ::sim_mob::xml::Phases_t_pskel& phases,
+           ::sim_mob::xml::SCATS_t_pskel& SCATS)
+  {
+    this->signalID_parser_ = &signalID;
+    this->nodeID_parser_ = &nodeID;
+    this->linkAndCrossings_parser_ = &linkAndCrossings;
+    this->phases_parser_ = &phases;
+    this->SCATS_parser_ = &SCATS;
+  }
+
+  Signal_t_pskel::
+  Signal_t_pskel ()
+  : signalID_parser_ (0),
+    nodeID_parser_ (0),
+    linkAndCrossings_parser_ (0),
+    phases_parser_ (0),
+    SCATS_parser_ (0)
+  {
+  }
+
+  // Signals_t_pskel
+  //
+
+  void Signals_t_pskel::
+  Signal_parser (::sim_mob::xml::Signal_t_pskel& p)
+  {
+    this->Signal_parser_ = &p;
+  }
+
+  void Signals_t_pskel::
+  parsers (::sim_mob::xml::Signal_t_pskel& Signal)
+  {
+    this->Signal_parser_ = &Signal;
+  }
+
+  Signals_t_pskel::
+  Signals_t_pskel ()
+  : Signal_parser_ (0)
+  {
+  }
+
+  // GeoSpatial_t_pskel
+  //
+
+  void GeoSpatial_t_pskel::
+  RoadNetwork_parser (::sim_mob::xml::RoadNetwork_t_pskel& p)
+  {
+    this->RoadNetwork_parser_ = &p;
+  }
+
+  void GeoSpatial_t_pskel::
+  parsers (::sim_mob::xml::RoadNetwork_t_pskel& RoadNetwork)
+  {
+    this->RoadNetwork_parser_ = &RoadNetwork;
+  }
+
+  GeoSpatial_t_pskel::
+  GeoSpatial_t_pskel ()
+  : RoadNetwork_parser_ (0)
+  {
+  }
+
+  // SimMobility_t_pskel
+  //
+
+  void SimMobility_t_pskel::
+  GeoSpatial_parser (::sim_mob::xml::GeoSpatial_t_pskel& p)
+  {
+    this->GeoSpatial_parser_ = &p;
+  }
+
+  void SimMobility_t_pskel::
+  TripChains_parser (::sim_mob::xml::TripChains_t_pskel& p)
+  {
+    this->TripChains_parser_ = &p;
+  }
+
+  void SimMobility_t_pskel::
+  Signals_parser (::sim_mob::xml::Signals_t_pskel& p)
+  {
+    this->Signals_parser_ = &p;
+  }
+
+  void SimMobility_t_pskel::
+  parsers (::sim_mob::xml::GeoSpatial_t_pskel& GeoSpatial,
+           ::sim_mob::xml::TripChains_t_pskel& TripChains,
+           ::sim_mob::xml::Signals_t_pskel& Signals)
+  {
+    this->GeoSpatial_parser_ = &GeoSpatial;
+    this->TripChains_parser_ = &TripChains;
+    this->Signals_parser_ = &Signals;
+  }
+
+  SimMobility_t_pskel::
+  SimMobility_t_pskel ()
+  : GeoSpatial_parser_ (0),
+    TripChains_parser_ (0),
+    Signals_parser_ (0)
+  {
+  }
+
+  // Lanes_pskel
+  //
+
+  void Lanes_pskel::
+  Lane_parser (::sim_mob::xml::lane_t_pskel& p)
+  {
+    this->Lane_parser_ = &p;
+  }
+
+  void Lanes_pskel::
+  parsers (::sim_mob::xml::lane_t_pskel& Lane)
+  {
+    this->Lane_parser_ = &Lane;
+  }
+
+  Lanes_pskel::
+  Lanes_pskel ()
+  : Lane_parser_ (0)
+  {
+  }
+
+  // Nodes_pskel
+  //
+
+  void Nodes_pskel::
+  UniNodes_parser (::sim_mob::xml::UniNodes_pskel& p)
+  {
+    this->UniNodes_parser_ = &p;
+  }
+
+  void Nodes_pskel::
+  Intersections_parser (::sim_mob::xml::Intersections_pskel& p)
+  {
+    this->Intersections_parser_ = &p;
+  }
+
+  void Nodes_pskel::
+  roundabouts_parser (::sim_mob::xml::roundabouts_pskel& p)
+  {
+    this->roundabouts_parser_ = &p;
+  }
+
+  void Nodes_pskel::
+  parsers (::sim_mob::xml::UniNodes_pskel& UniNodes,
+           ::sim_mob::xml::Intersections_pskel& Intersections,
+           ::sim_mob::xml::roundabouts_pskel& roundabouts)
+  {
+    this->UniNodes_parser_ = &UniNodes;
+    this->Intersections_parser_ = &Intersections;
+    this->roundabouts_parser_ = &roundabouts;
+  }
+
+  Nodes_pskel::
+  Nodes_pskel ()
+  : UniNodes_parser_ (0),
+    Intersections_parser_ (0),
+    roundabouts_parser_ (0)
+  {
+  }
+
+  // Links_pskel
+  //
+
+  void Links_pskel::
+  Link_parser (::sim_mob::xml::link_t_pskel& p)
+  {
+    this->Link_parser_ = &p;
+  }
+
+  void Links_pskel::
+  parsers (::sim_mob::xml::link_t_pskel& Link)
+  {
+    this->Link_parser_ = &Link;
+  }
+
+  Links_pskel::
+  Links_pskel ()
+  : Link_parser_ (0)
+  {
+  }
+
+  // UniNodes_pskel
+  //
+
+  void UniNodes_pskel::
+  UniNode_parser (::sim_mob::xml::UniNode_t_pskel& p)
+  {
+    this->UniNode_parser_ = &p;
+  }
+
+  void UniNodes_pskel::
+  parsers (::sim_mob::xml::UniNode_t_pskel& UniNode)
+  {
+    this->UniNode_parser_ = &UniNode;
+  }
+
+  UniNodes_pskel::
+  UniNodes_pskel ()
+  : UniNode_parser_ (0)
+  {
+  }
+
+  // Intersections_pskel
+  //
+
+  void Intersections_pskel::
+  Intersection_parser (::sim_mob::xml::intersection_t_pskel& p)
+  {
+    this->Intersection_parser_ = &p;
+  }
+
+  void Intersections_pskel::
+  parsers (::sim_mob::xml::intersection_t_pskel& Intersection)
+  {
+    this->Intersection_parser_ = &Intersection;
+  }
+
+  Intersections_pskel::
+  Intersections_pskel ()
+  : Intersection_parser_ (0)
+  {
+  }
+
+  // roundabouts_pskel
+  //
+
+  void roundabouts_pskel::
+  roundabout_parser (::sim_mob::xml::roundabout_t_pskel& p)
+  {
+    this->roundabout_parser_ = &p;
+  }
+
+  void roundabouts_pskel::
+  parsers (::sim_mob::xml::roundabout_t_pskel& roundabout)
+  {
+    this->roundabout_parser_ = &roundabout;
+  }
+
+  roundabouts_pskel::
+  roundabouts_pskel ()
+  : roundabout_parser_ (0)
+  {
+  }
+}
 }
 
 namespace sim_mob
 {
   namespace xml
   {
-    // roadrunner_regions_t_pskel
-    //
+  // roadrunner_regions_t_pskel
+  //
 
-    void roadrunner_regions_t_pskel::
-    region (const sim_mob::RoadRunnerRegion&)
-    {
-    }
+  void roadrunner_regions_t_pskel::
+  region (const sim_mob::RoadRunnerRegion&)
+  {
+  }
+
+  bool roadrunner_regions_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-    bool roadrunner_regions_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "region" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->region_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->region_parser_)
+        this->region_parser_->pre ();
 
-      if (n == "region" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->region_parser_;
+      return true;
+    }
 
-        if (this->region_parser_)
-          this->region_parser_->pre ();
+    return false;
+  }
 
-        return true;
-      }
+  bool roadrunner_regions_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "region" && ns.empty ())
+    {
+      if (this->region_parser_)
+        this->region (this->region_parser_->post_roadrunner_region_t ());
 
-      return false;
+      return true;
     }
 
-    bool roadrunner_regions_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+    return false;
+  }
 
-      if (n == "region" && ns.empty ())
-      {
-        if (this->region_parser_)
-          this->region (this->region_parser_->post_roadrunner_region_t ());
+  // roadrunner_region_t_pskel
+  //
 
-        return true;
-      }
+  void roadrunner_region_t_pskel::
+  id (int)
+  {
+  }
 
-      return false;
-    }
+  void roadrunner_region_t_pskel::
+  shape (const std::vector<sim_mob::LatLngLocation>&)
+  {
+  }
+
+  bool roadrunner_region_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    // roadrunner_region_t_pskel
-    //
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-    void roadrunner_region_t_pskel::
-    id (int)
+    if (n == "id" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->id_parser_;
+
+      if (this->id_parser_)
+        this->id_parser_->pre ();
+
+      return true;
     }
 
-    void roadrunner_region_t_pskel::
-    shape (const std::vector<sim_mob::LatLngLocation>&)
+    if (n == "shape" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->shape_parser_;
+
+      if (this->shape_parser_)
+        this->shape_parser_->pre ();
+
+      return true;
     }
+
+    return false;
+  }
+
+  bool roadrunner_region_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-    bool roadrunner_region_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "id" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->id_parser_)
+        this->id (this->id_parser_->post_int ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      return true;
+    }
 
-      if (n == "id" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->id_parser_;
+    if (n == "shape" && ns.empty ())
+    {
+      if (this->shape_parser_)
+        this->shape (this->shape_parser_->post_roadrunner_shape_t ());
+
+      return true;
+    }
 
-        if (this->id_parser_)
-          this->id_parser_->pre ();
+    return false;
+  }
 
-        return true;
-      }
+  // roadrunner_vertex_t_pskel
+  //
 
-      if (n == "shape" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->shape_parser_;
+  void roadrunner_vertex_t_pskel::
+  latitude (double)
+  {
+  }
 
-        if (this->shape_parser_)
-          this->shape_parser_->pre ();
+  void roadrunner_vertex_t_pskel::
+  longitude (double)
+  {
+  }
 
-        return true;
-      }
+  bool roadrunner_vertex_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      return false;
-    }
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-    bool roadrunner_region_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "latitude" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->latitude_parser_;
 
-      if (n == "id" && ns.empty ())
-      {
-        if (this->id_parser_)
-          this->id (this->id_parser_->post_int ());
+      if (this->latitude_parser_)
+        this->latitude_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "shape" && ns.empty ())
-      {
-        if (this->shape_parser_)
-          this->shape (this->shape_parser_->post_roadrunner_shape_t ());
+    if (n == "longitude" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->longitude_parser_;
 
-        return true;
-      }
+      if (this->longitude_parser_)
+        this->longitude_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // roadrunner_vertex_t_pskel
-    //
+    return false;
+  }
 
-    void roadrunner_vertex_t_pskel::
-    latitude (double)
-    {
-    }
+  bool roadrunner_vertex_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-    void roadrunner_vertex_t_pskel::
-    longitude (double)
+    if (n == "latitude" && ns.empty ())
     {
+      if (this->latitude_parser_)
+        this->latitude (this->latitude_parser_->post_double ());
+
+      return true;
     }
 
-    bool roadrunner_vertex_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "longitude" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->longitude_parser_)
+        this->longitude (this->longitude_parser_->post_double ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      return true;
+    }
 
-      if (n == "latitude" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->latitude_parser_;
+    return false;
+  }
 
-        if (this->latitude_parser_)
-          this->latitude_parser_->pre ();
+  // roadrunner_shape_t_pskel
+  //
 
-        return true;
-      }
+  void roadrunner_shape_t_pskel::
+  vertex (const sim_mob::LatLngLocation&)
+  {
+  }
 
-      if (n == "longitude" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->longitude_parser_;
+  bool roadrunner_shape_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-        if (this->longitude_parser_)
-          this->longitude_parser_->pre ();
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        return true;
-      }
+    if (n == "vertex" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->vertex_parser_;
 
-      return false;
+      if (this->vertex_parser_)
+        this->vertex_parser_->pre ();
+
+      return true;
     }
+
+    return false;
+  }
 
-    bool roadrunner_vertex_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+  bool roadrunner_shape_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "vertex" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      if (this->vertex_parser_)
+        this->vertex (this->vertex_parser_->post_roadrunner_vertex_t ());
 
-      if (n == "latitude" && ns.empty ())
-      {
-        if (this->latitude_parser_)
-          this->latitude (this->latitude_parser_->post_double ());
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "longitude" && ns.empty ())
-      {
-        if (this->longitude_parser_)
-          this->longitude (this->longitude_parser_->post_double ());
+  // coordinate_map_t_pskel
+  //
 
-        return true;
-      }
+  void coordinate_map_t_pskel::
+  utm_projection (sim_mob::UTM_Projection*)
+  {
+  }
 
-      return false;
-    }
+  void coordinate_map_t_pskel::
+  linear_scale (sim_mob::LinearScale*)
+  {
+  }
+
+  bool coordinate_map_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    // roadrunner_shape_t_pskel
-    //
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-    void roadrunner_shape_t_pskel::
-    vertex (const sim_mob::LatLngLocation&)
+    if (n == "utm_projection" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->utm_projection_parser_;
+
+      if (this->utm_projection_parser_)
+        this->utm_projection_parser_->pre ();
+
+      return true;
     }
 
-    bool roadrunner_shape_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "linear_scale" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->linear_scale_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->linear_scale_parser_)
+        this->linear_scale_parser_->pre ();
 
-      if (n == "vertex" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->vertex_parser_;
+      return true;
+    }
 
-        if (this->vertex_parser_)
-          this->vertex_parser_->pre ();
+    return false;
+  }
 
-        return true;
-      }
+  bool coordinate_map_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "utm_projection" && ns.empty ())
+    {
+      if (this->utm_projection_parser_)
+        this->utm_projection (this->utm_projection_parser_->post_utm_projection_t ());
 
-      return false;
+      return true;
     }
 
-    bool roadrunner_shape_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "linear_scale" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      if (this->linear_scale_parser_)
+        this->linear_scale (this->linear_scale_parser_->post_linear_scale_t ());
 
-      if (n == "vertex" && ns.empty ())
-      {
-        if (this->vertex_parser_)
-          this->vertex (this->vertex_parser_->post_roadrunner_vertex_t ());
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      return false;
-    }
+  // utm_projection_t_pskel
+  //
+
+  void utm_projection_t_pskel::
+  coordinate_system (const ::std::string&)
+  {
+  }
+
+  void utm_projection_t_pskel::
+  utm_zone (const ::std::string&)
+  {
+  }
+
+  bool utm_projection_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    // coordinate_map_t_pskel
-    //
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-    void coordinate_map_t_pskel::
-    utm_projection (sim_mob::UTM_Projection*)
+    if (n == "coordinate_system" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->coordinate_system_parser_;
+
+      if (this->coordinate_system_parser_)
+        this->coordinate_system_parser_->pre ();
+
+      return true;
     }
 
-    void coordinate_map_t_pskel::
-    linear_scale (sim_mob::LinearScale*)
+    if (n == "utm_zone" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->utm_zone_parser_;
+
+      if (this->utm_zone_parser_)
+        this->utm_zone_parser_->pre ();
+
+      return true;
     }
 
-    bool coordinate_map_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    return false;
+  }
+
+  bool utm_projection_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "coordinate_system" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->coordinate_system_parser_)
+        this->coordinate_system (this->coordinate_system_parser_->post_string ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      return true;
+    }
 
-      if (n == "utm_projection" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->utm_projection_parser_;
+    if (n == "utm_zone" && ns.empty ())
+    {
+      if (this->utm_zone_parser_)
+        this->utm_zone (this->utm_zone_parser_->post_string ());
 
-        if (this->utm_projection_parser_)
-          this->utm_projection_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "linear_scale" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->linear_scale_parser_;
+  // linear_scale_t_pskel
+  //
 
-        if (this->linear_scale_parser_)
-          this->linear_scale_parser_->pre ();
+  void linear_scale_t_pskel::
+  source (const std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range>&)
+  {
+  }
 
-        return true;
-      }
+  void linear_scale_t_pskel::
+  destination (const std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range>&)
+  {
+  }
 
-      return false;
-    }
+  bool linear_scale_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    bool coordinate_map_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "source" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->source_parser_;
 
-      if (n == "utm_projection" && ns.empty ())
-      {
-        if (this->utm_projection_parser_)
-          this->utm_projection (this->utm_projection_parser_->post_utm_projection_t ());
+      if (this->source_parser_)
+        this->source_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "linear_scale" && ns.empty ())
-      {
-        if (this->linear_scale_parser_)
-          this->linear_scale (this->linear_scale_parser_->post_linear_scale_t ());
+    if (n == "destination" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->destination_parser_;
 
-        return true;
-      }
+      if (this->destination_parser_)
+        this->destination_parser_->pre ();
 
-      return false;
+      return true;
     }
+
+    return false;
+  }
 
-    // utm_projection_t_pskel
-    //
+  bool linear_scale_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-    void utm_projection_t_pskel::
-    coordinate_system (const ::std::string&)
+    if (n == "source" && ns.empty ())
     {
+      if (this->source_parser_)
+        this->source (this->source_parser_->post_scale_source_t ());
+
+      return true;
     }
 
-    void utm_projection_t_pskel::
-    utm_zone (const ::std::string&)
+    if (n == "destination" && ns.empty ())
     {
+      if (this->destination_parser_)
+        this->destination (this->destination_parser_->post_scale_destination_t ());
+
+      return true;
     }
 
-    bool utm_projection_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
+    return false;
+  }
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+  // scale_source_t_pskel
+  //
 
-      if (n == "coordinate_system" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->coordinate_system_parser_;
+  void scale_source_t_pskel::
+  x_range (const ::std::string&)
+  {
+  }
 
-        if (this->coordinate_system_parser_)
-          this->coordinate_system_parser_->pre ();
+  void scale_source_t_pskel::
+  y_range (const ::std::string&)
+  {
+  }
 
-        return true;
-      }
+  bool scale_source_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      if (n == "utm_zone" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->utm_zone_parser_;
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        if (this->utm_zone_parser_)
-          this->utm_zone_parser_->pre ();
+    if (n == "x_range" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->x_range_parser_;
 
-        return true;
-      }
+      if (this->x_range_parser_)
+        this->x_range_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool utm_projection_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "y_range" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->y_range_parser_;
 
-      if (n == "coordinate_system" && ns.empty ())
-      {
-        if (this->coordinate_system_parser_)
-          this->coordinate_system (this->coordinate_system_parser_->post_string ());
+      if (this->y_range_parser_)
+        this->y_range_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "utm_zone" && ns.empty ())
-      {
-        if (this->utm_zone_parser_)
-          this->utm_zone (this->utm_zone_parser_->post_string ());
+    return false;
+  }
 
-        return true;
-      }
+  bool scale_source_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-      return false;
-    }
+    if (n == "x_range" && ns.empty ())
+    {
+      if (this->x_range_parser_)
+        this->x_range (this->x_range_parser_->post_string ());
 
-    // linear_scale_t_pskel
-    //
+      return true;
+    }
 
-    void linear_scale_t_pskel::
-    source (const std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range>&)
+    if (n == "y_range" && ns.empty ())
     {
+      if (this->y_range_parser_)
+        this->y_range (this->y_range_parser_->post_string ());
+
+      return true;
     }
+
+    return false;
+  }
+
+  // scale_destination_t_pskel
+  //
+
+  void scale_destination_t_pskel::
+  longitude_range (const ::std::string&)
+  {
+  }
+
+  void scale_destination_t_pskel::
+  latitude_range (const ::std::string&)
+  {
+  }
+
+  bool scale_destination_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    void linear_scale_t_pskel::
-    destination (const std::pair<sim_mob::LinearScale::Range, sim_mob::LinearScale::Range>&)
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "longitude_range" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->longitude_range_parser_;
+
+      if (this->longitude_range_parser_)
+        this->longitude_range_parser_->pre ();
+
+      return true;
     }
 
-    bool linear_scale_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "latitude_range" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->latitude_range_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->latitude_range_parser_)
+        this->latitude_range_parser_->pre ();
 
-      if (n == "source" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->source_parser_;
+      return true;
+    }
 
-        if (this->source_parser_)
-          this->source_parser_->pre ();
+    return false;
+  }
 
-        return true;
-      }
+  bool scale_destination_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-      if (n == "destination" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->destination_parser_;
+    if (n == "longitude_range" && ns.empty ())
+    {
+      if (this->longitude_range_parser_)
+        this->longitude_range (this->longitude_range_parser_->post_string ());
 
-        if (this->destination_parser_)
-          this->destination_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "latitude_range" && ns.empty ())
+    {
+      if (this->latitude_range_parser_)
+        this->latitude_range (this->latitude_range_parser_->post_string ());
 
-      return false;
+      return true;
     }
+
+    return false;
+  }
+
+  // Point2D_t_pskel
+  //
+
+  void Point2D_t_pskel::
+  xPos (unsigned int)
+  {
+  }
+
+  void Point2D_t_pskel::
+  yPos (unsigned int)
+  {
+  }
+
+  bool Point2D_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    bool linear_scale_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "xPos" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->xPos_parser_;
 
-      if (n == "source" && ns.empty ())
-      {
-        if (this->source_parser_)
-          this->source (this->source_parser_->post_scale_source_t ());
+      if (this->xPos_parser_)
+        this->xPos_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "destination" && ns.empty ())
-      {
-        if (this->destination_parser_)
-          this->destination (this->destination_parser_->post_scale_destination_t ());
+    if (n == "yPos" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->yPos_parser_;
 
-        return true;
-      }
+      if (this->yPos_parser_)
+        this->yPos_parser_->pre ();
 
-      return false;
+      return true;
     }
+
+    return false;
+  }
 
-    // scale_source_t_pskel
-    //
+  bool Point2D_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-    void scale_source_t_pskel::
-    x_range (const ::std::string&)
+    if (n == "xPos" && ns.empty ())
     {
+      if (this->xPos_parser_)
+        this->xPos (this->xPos_parser_->post_unsigned_int ());
+
+      return true;
     }
 
-    void scale_source_t_pskel::
-    y_range (const ::std::string&)
+    if (n == "yPos" && ns.empty ())
     {
+      if (this->yPos_parser_)
+        this->yPos (this->yPos_parser_->post_unsigned_int ());
+
+      return true;
     }
 
-    bool scale_source_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
+    return false;
+  }
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+  // PolyPoint_t_pskel
+  //
 
-      if (n == "x_range" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->x_range_parser_;
+  void PolyPoint_t_pskel::
+  pointID (const ::std::string&)
+  {
+  }
 
-        if (this->x_range_parser_)
-          this->x_range_parser_->pre ();
+  void PolyPoint_t_pskel::
+  location (sim_mob::Point2D)
+  {
+  }
 
-        return true;
-      }
+  bool PolyPoint_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      if (n == "y_range" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->y_range_parser_;
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        if (this->y_range_parser_)
-          this->y_range_parser_->pre ();
+    if (n == "pointID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->pointID_parser_;
 
-        return true;
-      }
+      if (this->pointID_parser_)
+        this->pointID_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool scale_source_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "location" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->location_parser_;
 
-      if (n == "x_range" && ns.empty ())
-      {
-        if (this->x_range_parser_)
-          this->x_range (this->x_range_parser_->post_string ());
+      if (this->location_parser_)
+        this->location_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "y_range" && ns.empty ())
-      {
-        if (this->y_range_parser_)
-          this->y_range (this->y_range_parser_->post_string ());
+    return false;
+  }
 
-        return true;
-      }
+  bool PolyPoint_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-      return false;
-    }
+    if (n == "pointID" && ns.empty ())
+    {
+      if (this->pointID_parser_)
+        this->pointID (this->pointID_parser_->post_string ());
 
-    // scale_destination_t_pskel
-    //
+      return true;
+    }
 
-    void scale_destination_t_pskel::
-    longitude_range (const ::std::string&)
+    if (n == "location" && ns.empty ())
     {
+      if (this->location_parser_)
+        this->location (this->location_parser_->post_Point2D_t ());
+
+      return true;
     }
+
+    return false;
+  }
+
+  // PolyLine_t_pskel
+  //
+
+  void PolyLine_t_pskel::
+  PolyPoint (sim_mob::Point2D)
+  {
+  }
 
-    void scale_destination_t_pskel::
-    latitude_range (const ::std::string&)
+  bool PolyLine_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "PolyPoint" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->PolyPoint_parser_;
+
+      if (this->PolyPoint_parser_)
+        this->PolyPoint_parser_->pre ();
+
+      return true;
     }
 
-    bool scale_destination_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    return false;
+  }
+
+  bool PolyLine_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "PolyPoint" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->PolyPoint_parser_)
+        this->PolyPoint (this->PolyPoint_parser_->post_PolyPoint_t ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      return true;
+    }
 
-      if (n == "longitude_range" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->longitude_range_parser_;
+    return false;
+  }
 
-        if (this->longitude_range_parser_)
-          this->longitude_range_parser_->pre ();
+  // lane_t_pskel
+  //
 
-        return true;
-      }
+  void lane_t_pskel::
+  laneID (unsigned long long)
+  {
+  }
 
-      if (n == "latitude_range" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->latitude_range_parser_;
+  void lane_t_pskel::
+  width (unsigned int)
+  {
+  }
 
-        if (this->latitude_range_parser_)
-          this->latitude_range_parser_->pre ();
+  void lane_t_pskel::
+  can_go_straight (bool)
+  {
+  }
 
-        return true;
-      }
+  void lane_t_pskel::
+  can_turn_left (bool)
+  {
+  }
 
-      return false;
-    }
+  void lane_t_pskel::
+  can_turn_right (bool)
+  {
+  }
 
-    bool scale_destination_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+  void lane_t_pskel::
+  can_turn_on_red_signal (bool)
+  {
+  }
 
-      if (n == "longitude_range" && ns.empty ())
-      {
-        if (this->longitude_range_parser_)
-          this->longitude_range (this->longitude_range_parser_->post_string ());
+  void lane_t_pskel::
+  can_change_lane_left (bool)
+  {
+  }
 
-        return true;
-      }
+  void lane_t_pskel::
+  can_change_lane_right (bool)
+  {
+  }
 
-      if (n == "latitude_range" && ns.empty ())
-      {
-        if (this->latitude_range_parser_)
-          this->latitude_range (this->latitude_range_parser_->post_string ());
+  void lane_t_pskel::
+  is_road_shoulder (bool)
+  {
+  }
 
-        return true;
-      }
+  void lane_t_pskel::
+  is_bicycle_lane (bool)
+  {
+  }
 
-      return false;
-    }
+  void lane_t_pskel::
+  is_pedestrian_lane (bool)
+  {
+  }
+
+  void lane_t_pskel::
+  is_vehicle_lane (bool)
+  {
+  }
+
+  void lane_t_pskel::
+  is_standard_bus_lane (bool)
+  {
+  }
 
-    // Point2D_t_pskel
-    //
+  void lane_t_pskel::
+  is_whole_day_bus_lane (bool)
+  {
+  }
 
-    void Point2D_t_pskel::
-    xPos (unsigned int)
+  void lane_t_pskel::
+  is_high_occupancy_vehicle_lane (bool)
+  {
+  }
+
+  void lane_t_pskel::
+  can_freely_park_here (bool)
+  {
+  }
+
+  void lane_t_pskel::
+  can_stop_here (bool)
+  {
+  }
+
+  void lane_t_pskel::
+  is_u_turn_allowed (bool)
+  {
+  }
+
+  void lane_t_pskel::
+  PolyLine (std::vector<sim_mob::Point2D>)
+  {
+  }
+
+  bool lane_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "laneID" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneID_parser_;
+
+      if (this->laneID_parser_)
+        this->laneID_parser_->pre ();
+
+      return true;
     }
 
-    void Point2D_t_pskel::
-    yPos (unsigned int)
+    if (n == "width" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->width_parser_;
+
+      if (this->width_parser_)
+        this->width_parser_->pre ();
+
+      return true;
     }
 
-    bool Point2D_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "can_go_straight" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->can_go_straight_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->can_go_straight_parser_)
+        this->can_go_straight_parser_->pre ();
 
-      if (n == "xPos" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->xPos_parser_;
+      return true;
+    }
 
-        if (this->xPos_parser_)
-          this->xPos_parser_->pre ();
+    if (n == "can_turn_left" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->can_turn_left_parser_;
 
-        return true;
-      }
+      if (this->can_turn_left_parser_)
+        this->can_turn_left_parser_->pre ();
 
-      if (n == "yPos" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->yPos_parser_;
+      return true;
+    }
 
-        if (this->yPos_parser_)
-          this->yPos_parser_->pre ();
+    if (n == "can_turn_right" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->can_turn_right_parser_;
 
-        return true;
-      }
+      if (this->can_turn_right_parser_)
+        this->can_turn_right_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool Point2D_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "can_turn_on_red_signal" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->can_turn_on_red_signal_parser_;
 
-      if (n == "xPos" && ns.empty ())
-      {
-        if (this->xPos_parser_)
-          this->xPos (this->xPos_parser_->post_unsigned_int ());
+      if (this->can_turn_on_red_signal_parser_)
+        this->can_turn_on_red_signal_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "yPos" && ns.empty ())
-      {
-        if (this->yPos_parser_)
-          this->yPos (this->yPos_parser_->post_unsigned_int ());
+    if (n == "can_change_lane_left" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->can_change_lane_left_parser_;
 
-        return true;
-      }
+      if (this->can_change_lane_left_parser_)
+        this->can_change_lane_left_parser_->pre ();
 
-      return false;
+      return true;
     }
-
-    // PolyPoint_t_pskel
-    //
 
-    void PolyPoint_t_pskel::
-    pointID (const ::std::string&)
+    if (n == "can_change_lane_right" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->can_change_lane_right_parser_;
+
+      if (this->can_change_lane_right_parser_)
+        this->can_change_lane_right_parser_->pre ();
+
+      return true;
     }
 
-    void PolyPoint_t_pskel::
-    location (sim_mob::Point2D)
+    if (n == "is_road_shoulder" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->is_road_shoulder_parser_;
+
+      if (this->is_road_shoulder_parser_)
+        this->is_road_shoulder_parser_->pre ();
+
+      return true;
     }
 
-    bool PolyPoint_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "is_bicycle_lane" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->is_bicycle_lane_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->is_bicycle_lane_parser_)
+        this->is_bicycle_lane_parser_->pre ();
 
-      if (n == "pointID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->pointID_parser_;
+      return true;
+    }
 
-        if (this->pointID_parser_)
-          this->pointID_parser_->pre ();
+    if (n == "is_pedestrian_lane" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->is_pedestrian_lane_parser_;
 
-        return true;
-      }
+      if (this->is_pedestrian_lane_parser_)
+        this->is_pedestrian_lane_parser_->pre ();
 
-      if (n == "location" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->location_parser_;
+      return true;
+    }
 
-        if (this->location_parser_)
-          this->location_parser_->pre ();
+    if (n == "is_vehicle_lane" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->is_vehicle_lane_parser_;
 
-        return true;
-      }
+      if (this->is_vehicle_lane_parser_)
+        this->is_vehicle_lane_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool PolyPoint_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "is_standard_bus_lane" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->is_standard_bus_lane_parser_;
 
-      if (n == "pointID" && ns.empty ())
-      {
-        if (this->pointID_parser_)
-          this->pointID (this->pointID_parser_->post_string ());
+      if (this->is_standard_bus_lane_parser_)
+        this->is_standard_bus_lane_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "location" && ns.empty ())
-      {
-        if (this->location_parser_)
-          this->location (this->location_parser_->post_Point2D_t ());
+    if (n == "is_whole_day_bus_lane" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->is_whole_day_bus_lane_parser_;
 
-        return true;
-      }
+      if (this->is_whole_day_bus_lane_parser_)
+        this->is_whole_day_bus_lane_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // PolyLine_t_pskel
-    //
-
-    void PolyLine_t_pskel::
-    PolyPoint (sim_mob::Point2D)
+    if (n == "is_high_occupancy_vehicle_lane" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->is_high_occupancy_vehicle_lane_parser_;
+
+      if (this->is_high_occupancy_vehicle_lane_parser_)
+        this->is_high_occupancy_vehicle_lane_parser_->pre ();
+
+      return true;
     }
 
-    bool PolyLine_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "can_freely_park_here" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->can_freely_park_here_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->can_freely_park_here_parser_)
+        this->can_freely_park_here_parser_->pre ();
 
-      if (n == "PolyPoint" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->PolyPoint_parser_;
+      return true;
+    }
 
-        if (this->PolyPoint_parser_)
-          this->PolyPoint_parser_->pre ();
+    if (n == "can_stop_here" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->can_stop_here_parser_;
 
-        return true;
-      }
+      if (this->can_stop_here_parser_)
+        this->can_stop_here_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool PolyLine_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "is_u_turn_allowed" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "PolyPoint" && ns.empty ())
-      {
-        if (this->PolyPoint_parser_)
-          this->PolyPoint (this->PolyPoint_parser_->post_PolyPoint_t ());
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->is_u_turn_allowed_parser_;
 
-        return true;
-      }
+      if (this->is_u_turn_allowed_parser_)
+        this->is_u_turn_allowed_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // lane_t_pskel
-    //
-
-    void lane_t_pskel::
-    laneID (unsigned long long)
+    if (n == "PolyLine" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->PolyLine_parser_;
+
+      if (this->PolyLine_parser_)
+        this->PolyLine_parser_->pre ();
+
+      return true;
     }
+
+    return false;
+  }
 
-    void lane_t_pskel::
-    width (unsigned int)
+  bool lane_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "laneID" && ns.empty ())
     {
+      if (this->laneID_parser_)
+        this->laneID (this->laneID_parser_->post_unsigned_long ());
+
+      return true;
     }
 
-    void lane_t_pskel::
-    can_go_straight (bool)
+    if (n == "width" && ns.empty ())
     {
+      if (this->width_parser_)
+        this->width (this->width_parser_->post_unsigned_int ());
+
+      return true;
     }
 
-    void lane_t_pskel::
-    can_turn_left (bool)
+    if (n == "can_go_straight" && ns.empty ())
     {
+      if (this->can_go_straight_parser_)
+        this->can_go_straight (this->can_go_straight_parser_->post_boolean ());
+
+      return true;
     }
 
-    void lane_t_pskel::
-    can_turn_right (bool)
+    if (n == "can_turn_left" && ns.empty ())
     {
+      if (this->can_turn_left_parser_)
+        this->can_turn_left (this->can_turn_left_parser_->post_boolean ());
+
+      return true;
     }
 
-    void lane_t_pskel::
-    can_turn_on_red_signal (bool)
+    if (n == "can_turn_right" && ns.empty ())
     {
+      if (this->can_turn_right_parser_)
+        this->can_turn_right (this->can_turn_right_parser_->post_boolean ());
+
+      return true;
     }
 
-    void lane_t_pskel::
-    can_change_lane_left (bool)
+    if (n == "can_turn_on_red_signal" && ns.empty ())
     {
+      if (this->can_turn_on_red_signal_parser_)
+        this->can_turn_on_red_signal (this->can_turn_on_red_signal_parser_->post_boolean ());
+
+      return true;
     }
 
-    void lane_t_pskel::
-    can_change_lane_right (bool)
+    if (n == "can_change_lane_left" && ns.empty ())
     {
+      if (this->can_change_lane_left_parser_)
+        this->can_change_lane_left (this->can_change_lane_left_parser_->post_boolean ());
+
+      return true;
     }
 
-    void lane_t_pskel::
-    is_road_shoulder (bool)
+    if (n == "can_change_lane_right" && ns.empty ())
     {
+      if (this->can_change_lane_right_parser_)
+        this->can_change_lane_right (this->can_change_lane_right_parser_->post_boolean ());
+
+      return true;
     }
 
-    void lane_t_pskel::
-    is_bicycle_lane (bool)
+    if (n == "is_road_shoulder" && ns.empty ())
     {
+      if (this->is_road_shoulder_parser_)
+        this->is_road_shoulder (this->is_road_shoulder_parser_->post_boolean ());
+
+      return true;
     }
 
-    void lane_t_pskel::
-    is_pedestrian_lane (bool)
+    if (n == "is_bicycle_lane" && ns.empty ())
     {
+      if (this->is_bicycle_lane_parser_)
+        this->is_bicycle_lane (this->is_bicycle_lane_parser_->post_boolean ());
+
+      return true;
     }
 
-    void lane_t_pskel::
-    is_vehicle_lane (bool)
+    if (n == "is_pedestrian_lane" && ns.empty ())
     {
+      if (this->is_pedestrian_lane_parser_)
+        this->is_pedestrian_lane (this->is_pedestrian_lane_parser_->post_boolean ());
+
+      return true;
     }
 
-    void lane_t_pskel::
-    is_standard_bus_lane (bool)
+    if (n == "is_vehicle_lane" && ns.empty ())
     {
+      if (this->is_vehicle_lane_parser_)
+        this->is_vehicle_lane (this->is_vehicle_lane_parser_->post_boolean ());
+
+      return true;
     }
 
-    void lane_t_pskel::
-    is_whole_day_bus_lane (bool)
+    if (n == "is_standard_bus_lane" && ns.empty ())
     {
+      if (this->is_standard_bus_lane_parser_)
+        this->is_standard_bus_lane (this->is_standard_bus_lane_parser_->post_boolean ());
+
+      return true;
     }
 
-    void lane_t_pskel::
-    is_high_occupancy_vehicle_lane (bool)
+    if (n == "is_whole_day_bus_lane" && ns.empty ())
     {
+      if (this->is_whole_day_bus_lane_parser_)
+        this->is_whole_day_bus_lane (this->is_whole_day_bus_lane_parser_->post_boolean ());
+
+      return true;
     }
 
-    void lane_t_pskel::
-    can_freely_park_here (bool)
+    if (n == "is_high_occupancy_vehicle_lane" && ns.empty ())
     {
+      if (this->is_high_occupancy_vehicle_lane_parser_)
+        this->is_high_occupancy_vehicle_lane (this->is_high_occupancy_vehicle_lane_parser_->post_boolean ());
+
+      return true;
     }
 
-    void lane_t_pskel::
-    can_stop_here (bool)
+    if (n == "can_freely_park_here" && ns.empty ())
     {
+      if (this->can_freely_park_here_parser_)
+        this->can_freely_park_here (this->can_freely_park_here_parser_->post_boolean ());
+
+      return true;
     }
 
-    void lane_t_pskel::
-    is_u_turn_allowed (bool)
+    if (n == "can_stop_here" && ns.empty ())
     {
+      if (this->can_stop_here_parser_)
+        this->can_stop_here (this->can_stop_here_parser_->post_boolean ());
+
+      return true;
     }
 
-    void lane_t_pskel::
-    PolyLine (std::vector<sim_mob::Point2D>)
+    if (n == "is_u_turn_allowed" && ns.empty ())
     {
+      if (this->is_u_turn_allowed_parser_)
+        this->is_u_turn_allowed (this->is_u_turn_allowed_parser_->post_boolean ());
+
+      return true;
     }
 
-    bool lane_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "PolyLine" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->PolyLine_parser_)
+        this->PolyLine (this->PolyLine_parser_->post_PolyLine_t ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      return true;
+    }
 
-      if (n == "laneID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->laneID_parser_;
+    return false;
+  }
 
-        if (this->laneID_parser_)
-          this->laneID_parser_->pre ();
+  // connector_t_pskel
+  //
 
-        return true;
-      }
+  void connector_t_pskel::
+  laneFrom (unsigned long long)
+  {
+  }
 
-      if (n == "width" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->width_parser_;
+  void connector_t_pskel::
+  laneTo (unsigned long long)
+  {
+  }
 
-        if (this->width_parser_)
-          this->width_parser_->pre ();
+  bool connector_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-        return true;
-      }
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-      if (n == "can_go_straight" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->can_go_straight_parser_;
+    if (n == "laneFrom" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneFrom_parser_;
 
-        if (this->can_go_straight_parser_)
-          this->can_go_straight_parser_->pre ();
+      if (this->laneFrom_parser_)
+        this->laneFrom_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "can_turn_left" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->can_turn_left_parser_;
+    if (n == "laneTo" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneTo_parser_;
 
-        if (this->can_turn_left_parser_)
-          this->can_turn_left_parser_->pre ();
+      if (this->laneTo_parser_)
+        this->laneTo_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "can_turn_right" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->can_turn_right_parser_;
+    return false;
+  }
 
-        if (this->can_turn_right_parser_)
-          this->can_turn_right_parser_->pre ();
+  bool connector_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-        return true;
-      }
+    if (n == "laneFrom" && ns.empty ())
+    {
+      if (this->laneFrom_parser_)
+        this->laneFrom (this->laneFrom_parser_->post_unsigned_long ());
 
-      if (n == "can_turn_on_red_signal" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->can_turn_on_red_signal_parser_;
+      return true;
+    }
 
-        if (this->can_turn_on_red_signal_parser_)
-          this->can_turn_on_red_signal_parser_->pre ();
+    if (n == "laneTo" && ns.empty ())
+    {
+      if (this->laneTo_parser_)
+        this->laneTo (this->laneTo_parser_->post_unsigned_long ());
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "can_change_lane_left" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->can_change_lane_left_parser_;
+    return false;
+  }
 
-        if (this->can_change_lane_left_parser_)
-          this->can_change_lane_left_parser_->pre ();
+  // connectors_t_pskel
+  //
 
-        return true;
-      }
+  void connectors_t_pskel::
+  Connector (std::pair<unsigned long,unsigned long>)
+  {
+  }
 
-      if (n == "can_change_lane_right" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->can_change_lane_right_parser_;
+  bool connectors_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-        if (this->can_change_lane_right_parser_)
-          this->can_change_lane_right_parser_->pre ();
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        return true;
-      }
+    if (n == "Connector" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Connector_parser_;
 
-      if (n == "is_road_shoulder" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->is_road_shoulder_parser_;
+      if (this->Connector_parser_)
+        this->Connector_parser_->pre ();
 
-        if (this->is_road_shoulder_parser_)
-          this->is_road_shoulder_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "is_bicycle_lane" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->is_bicycle_lane_parser_;
+  bool connectors_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-        if (this->is_bicycle_lane_parser_)
-          this->is_bicycle_lane_parser_->pre ();
+    if (n == "Connector" && ns.empty ())
+    {
+      if (this->Connector_parser_)
+        this->Connector (this->Connector_parser_->post_connector_t ());
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "is_pedestrian_lane" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->is_pedestrian_lane_parser_;
+    return false;
+  }
 
-        if (this->is_pedestrian_lane_parser_)
-          this->is_pedestrian_lane_parser_->pre ();
+  // new_connector_t_pskel
+  //
 
-        return true;
-      }
+  void new_connector_t_pskel::
+  laneFrom (unsigned long long)
+  {
+  }
 
-      if (n == "is_vehicle_lane" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->is_vehicle_lane_parser_;
+  void new_connector_t_pskel::
+  laneTo_Left (unsigned long long)
+  {
+  }
 
-        if (this->is_vehicle_lane_parser_)
-          this->is_vehicle_lane_parser_->pre ();
+  void new_connector_t_pskel::
+  laneTo_Center (unsigned long long)
+  {
+  }
 
-        return true;
-      }
+  void new_connector_t_pskel::
+  laneTo_Right (unsigned long long)
+  {
+  }
 
-      if (n == "is_standard_bus_lane" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->is_standard_bus_lane_parser_;
+  bool new_connector_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-        if (this->is_standard_bus_lane_parser_)
-          this->is_standard_bus_lane_parser_->pre ();
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        return true;
-      }
+    if (n == "laneFrom" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneFrom_parser_;
 
-      if (n == "is_whole_day_bus_lane" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->is_whole_day_bus_lane_parser_;
+      if (this->laneFrom_parser_)
+        this->laneFrom_parser_->pre ();
 
-        if (this->is_whole_day_bus_lane_parser_)
-          this->is_whole_day_bus_lane_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "laneTo_Left" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneTo_Left_parser_;
 
-      if (n == "is_high_occupancy_vehicle_lane" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->is_high_occupancy_vehicle_lane_parser_;
+      if (this->laneTo_Left_parser_)
+        this->laneTo_Left_parser_->pre ();
 
-        if (this->is_high_occupancy_vehicle_lane_parser_)
-          this->is_high_occupancy_vehicle_lane_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "laneTo_Center" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneTo_Center_parser_;
 
-      if (n == "can_freely_park_here" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->can_freely_park_here_parser_;
+      if (this->laneTo_Center_parser_)
+        this->laneTo_Center_parser_->pre ();
 
-        if (this->can_freely_park_here_parser_)
-          this->can_freely_park_here_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "laneTo_Right" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneTo_Right_parser_;
 
-      if (n == "can_stop_here" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->can_stop_here_parser_;
+      if (this->laneTo_Right_parser_)
+        this->laneTo_Right_parser_->pre ();
 
-        if (this->can_stop_here_parser_)
-          this->can_stop_here_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "is_u_turn_allowed" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->is_u_turn_allowed_parser_;
+  bool new_connector_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-        if (this->is_u_turn_allowed_parser_)
-          this->is_u_turn_allowed_parser_->pre ();
+    if (n == "laneFrom" && ns.empty ())
+    {
+      if (this->laneFrom_parser_)
+        this->laneFrom (this->laneFrom_parser_->post_unsigned_long ());
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "PolyLine" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->PolyLine_parser_;
+    if (n == "laneTo_Left" && ns.empty ())
+    {
+      if (this->laneTo_Left_parser_)
+        this->laneTo_Left (this->laneTo_Left_parser_->post_unsigned_long ());
 
-        if (this->PolyLine_parser_)
-          this->PolyLine_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "laneTo_Center" && ns.empty ())
+    {
+      if (this->laneTo_Center_parser_)
+        this->laneTo_Center (this->laneTo_Center_parser_->post_unsigned_long ());
 
-      return false;
+      return true;
     }
 
-    bool lane_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "laneTo_Right" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      if (this->laneTo_Right_parser_)
+        this->laneTo_Right (this->laneTo_Right_parser_->post_unsigned_long ());
 
-      if (n == "laneID" && ns.empty ())
-      {
-        if (this->laneID_parser_)
-          this->laneID (this->laneID_parser_->post_unsigned_long ());
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "width" && ns.empty ())
-      {
-        if (this->width_parser_)
-          this->width (this->width_parser_->post_unsigned_int ());
+  // new_connectors_t_pskel
+  //
 
-        return true;
-      }
+  void new_connectors_t_pskel::
+  new_connector (std::pair<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &)
+  {
+  }
 
-      if (n == "can_go_straight" && ns.empty ())
-      {
-        if (this->can_go_straight_parser_)
-          this->can_go_straight (this->can_go_straight_parser_->post_boolean ());
+  bool new_connectors_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-        return true;
-      }
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-      if (n == "can_turn_left" && ns.empty ())
-      {
-        if (this->can_turn_left_parser_)
-          this->can_turn_left (this->can_turn_left_parser_->post_boolean ());
+    if (n == "new_connector" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->new_connector_parser_;
 
-        return true;
-      }
+      if (this->new_connector_parser_)
+        this->new_connector_parser_->pre ();
 
-      if (n == "can_turn_right" && ns.empty ())
-      {
-        if (this->can_turn_right_parser_)
-          this->can_turn_right (this->can_turn_right_parser_->post_boolean ());
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "can_turn_on_red_signal" && ns.empty ())
-      {
-        if (this->can_turn_on_red_signal_parser_)
-          this->can_turn_on_red_signal (this->can_turn_on_red_signal_parser_->post_boolean ());
+  bool new_connectors_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-        return true;
-      }
+    if (n == "new_connector" && ns.empty ())
+    {
+      if (this->new_connector_parser_)
+        this->new_connector (this->new_connector_parser_->post_new_connector_t ());
 
-      if (n == "can_change_lane_left" && ns.empty ())
-      {
-        if (this->can_change_lane_left_parser_)
-          this->can_change_lane_left (this->can_change_lane_left_parser_->post_boolean ());
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "can_change_lane_right" && ns.empty ())
-      {
-        if (this->can_change_lane_right_parser_)
-          this->can_change_lane_right (this->can_change_lane_right_parser_->post_boolean ());
+  // Multi_Connector_t_pskel
+  //
 
-        return true;
-      }
+  void Multi_Connector_t_pskel::
+  RoadSegment (unsigned long long)
+  {
+  }
 
-      if (n == "is_road_shoulder" && ns.empty ())
-      {
-        if (this->is_road_shoulder_parser_)
-          this->is_road_shoulder (this->is_road_shoulder_parser_->post_boolean ());
+  void Multi_Connector_t_pskel::
+  Connectors (std::set<std::pair<unsigned long,unsigned long> >)
+  {
+  }
 
-        return true;
-      }
+  bool Multi_Connector_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      if (n == "is_bicycle_lane" && ns.empty ())
-      {
-        if (this->is_bicycle_lane_parser_)
-          this->is_bicycle_lane (this->is_bicycle_lane_parser_->post_boolean ());
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        return true;
-      }
+    if (n == "RoadSegment" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->RoadSegment_parser_;
 
-      if (n == "is_pedestrian_lane" && ns.empty ())
-      {
-        if (this->is_pedestrian_lane_parser_)
-          this->is_pedestrian_lane (this->is_pedestrian_lane_parser_->post_boolean ());
+      if (this->RoadSegment_parser_)
+        this->RoadSegment_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "is_vehicle_lane" && ns.empty ())
-      {
-        if (this->is_vehicle_lane_parser_)
-          this->is_vehicle_lane (this->is_vehicle_lane_parser_->post_boolean ());
+    if (n == "Connectors" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Connectors_parser_;
 
-        return true;
-      }
+      if (this->Connectors_parser_)
+        this->Connectors_parser_->pre ();
 
-      if (n == "is_standard_bus_lane" && ns.empty ())
-      {
-        if (this->is_standard_bus_lane_parser_)
-          this->is_standard_bus_lane (this->is_standard_bus_lane_parser_->post_boolean ());
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "is_whole_day_bus_lane" && ns.empty ())
-      {
-        if (this->is_whole_day_bus_lane_parser_)
-          this->is_whole_day_bus_lane (this->is_whole_day_bus_lane_parser_->post_boolean ());
+  bool Multi_Connector_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-        return true;
-      }
+    if (n == "RoadSegment" && ns.empty ())
+    {
+      if (this->RoadSegment_parser_)
+        this->RoadSegment (this->RoadSegment_parser_->post_unsigned_long ());
 
-      if (n == "is_high_occupancy_vehicle_lane" && ns.empty ())
-      {
-        if (this->is_high_occupancy_vehicle_lane_parser_)
-          this->is_high_occupancy_vehicle_lane (this->is_high_occupancy_vehicle_lane_parser_->post_boolean ());
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "Connectors" && ns.empty ())
+    {
+      if (this->Connectors_parser_)
+        this->Connectors (this->Connectors_parser_->post_connectors_t ());
 
-      if (n == "can_freely_park_here" && ns.empty ())
-      {
-        if (this->can_freely_park_here_parser_)
-          this->can_freely_park_here (this->can_freely_park_here_parser_->post_boolean ());
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "can_stop_here" && ns.empty ())
-      {
-        if (this->can_stop_here_parser_)
-          this->can_stop_here (this->can_stop_here_parser_->post_boolean ());
+  // Multi_Connectors_t_pskel
+  //
 
-        return true;
-      }
+  void Multi_Connectors_t_pskel::
+  MultiConnectors (const std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&)
+  {
+  }
 
-      if (n == "is_u_turn_allowed" && ns.empty ())
-      {
-        if (this->is_u_turn_allowed_parser_)
-          this->is_u_turn_allowed (this->is_u_turn_allowed_parser_->post_boolean ());
+  bool Multi_Connectors_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-        return true;
-      }
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-      if (n == "PolyLine" && ns.empty ())
-      {
-        if (this->PolyLine_parser_)
-          this->PolyLine (this->PolyLine_parser_->post_PolyLine_t ());
+    if (n == "MultiConnectors" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->MultiConnectors_parser_;
 
-        return true;
-      }
+      if (this->MultiConnectors_parser_)
+        this->MultiConnectors_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // connector_t_pskel
-    //
+    return false;
+  }
 
-    void connector_t_pskel::
-    laneFrom (unsigned long long)
-    {
-    }
-
-    void connector_t_pskel::
-    laneTo (unsigned long long)
-    {
-    }
+  bool Multi_Connectors_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-    bool connector_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "MultiConnectors" && ns.empty ())
     {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "laneFrom" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->laneFrom_parser_;
+      if (this->MultiConnectors_parser_)
+        this->MultiConnectors (this->MultiConnectors_parser_->post_Multi_Connector_t ());
 
-        if (this->laneFrom_parser_)
-          this->laneFrom_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "laneTo" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->laneTo_parser_;
+  // fwdBckSegments_t_pskel
+  //
 
-        if (this->laneTo_parser_)
-          this->laneTo_parser_->pre ();
+  void fwdBckSegments_t_pskel::
+  Segment (sim_mob::RoadSegment*)
+  {
+  }
 
-        return true;
-      }
+  bool fwdBckSegments_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      return false;
-    }
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-    bool connector_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "Segment" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "laneFrom" && ns.empty ())
-      {
-        if (this->laneFrom_parser_)
-          this->laneFrom (this->laneFrom_parser_->post_unsigned_long ());
-
-        return true;
-      }
-
-      if (n == "laneTo" && ns.empty ())
-      {
-        if (this->laneTo_parser_)
-          this->laneTo (this->laneTo_parser_->post_unsigned_long ());
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Segment_parser_;
 
-        return true;
-      }
+      if (this->Segment_parser_)
+        this->Segment_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // connectors_t_pskel
-    //
+    return false;
+  }
 
-    void connectors_t_pskel::
-    Connector (std::pair<unsigned long,unsigned long>)
-    {
-    }
+  bool fwdBckSegments_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-    bool connectors_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "Segment" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->Segment_parser_)
+        this->Segment (this->Segment_parser_->post_segment_t ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      return true;
+    }
 
-      if (n == "Connector" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Connector_parser_;
+    return false;
+  }
 
-        if (this->Connector_parser_)
-          this->Connector_parser_->pre ();
+  // RoadSegmentsAt_t_pskel
+  //
 
-        return true;
-      }
+  void RoadSegmentsAt_t_pskel::
+  segmentID (unsigned long long)
+  {
+  }
 
-      return false;
-    }
+  bool RoadSegmentsAt_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    bool connectors_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-      if (n == "Connector" && ns.empty ())
-      {
-        if (this->Connector_parser_)
-          this->Connector (this->Connector_parser_->post_connector_t ());
+    if (n == "segmentID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->segmentID_parser_;
 
-        return true;
-      }
+      if (this->segmentID_parser_)
+        this->segmentID_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // Multi_Connector_t_pskel
-    //
+    return false;
+  }
 
-    void Multi_Connector_t_pskel::
-    RoadSegment (unsigned long long)
-    {
-    }
+  bool RoadSegmentsAt_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-    void Multi_Connector_t_pskel::
-    Connectors (std::set<std::pair<unsigned long,unsigned long> >)
+    if (n == "segmentID" && ns.empty ())
     {
+      if (this->segmentID_parser_)
+        this->segmentID (this->segmentID_parser_->post_unsigned_long ());
+
+      return true;
     }
 
-    bool Multi_Connector_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
+    return false;
+  }
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+  // laneEdgePolyline_cached_t_pskel
+  //
 
-      if (n == "RoadSegment" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->RoadSegment_parser_;
+  void laneEdgePolyline_cached_t_pskel::
+  laneNumber (short)
+  {
+  }
 
-        if (this->RoadSegment_parser_)
-          this->RoadSegment_parser_->pre ();
+  void laneEdgePolyline_cached_t_pskel::
+  polyline (std::vector<sim_mob::Point2D>)
+  {
+  }
 
-        return true;
-      }
+  bool laneEdgePolyline_cached_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      if (n == "Connectors" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Connectors_parser_;
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        if (this->Connectors_parser_)
-          this->Connectors_parser_->pre ();
+    if (n == "laneNumber" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneNumber_parser_;
 
-        return true;
-      }
+      if (this->laneNumber_parser_)
+        this->laneNumber_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool Multi_Connector_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "polyline" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "RoadSegment" && ns.empty ())
-      {
-        if (this->RoadSegment_parser_)
-          this->RoadSegment (this->RoadSegment_parser_->post_unsigned_long ());
-
-        return true;
-      }
-
-      if (n == "Connectors" && ns.empty ())
-      {
-        if (this->Connectors_parser_)
-          this->Connectors (this->Connectors_parser_->post_connectors_t ());
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->polyline_parser_;
 
-        return true;
-      }
+      if (this->polyline_parser_)
+        this->polyline_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // Multi_Connectors_t_pskel
-    //
+    return false;
+  }
 
-    void Multi_Connectors_t_pskel::
-    MultiConnectors (const std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&)
+  bool laneEdgePolyline_cached_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "laneNumber" && ns.empty ())
     {
+      if (this->laneNumber_parser_)
+        this->laneNumber (this->laneNumber_parser_->post_short ());
+
+      return true;
     }
 
-    bool Multi_Connectors_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "polyline" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->polyline_parser_)
+        this->polyline (this->polyline_parser_->post_PolyLine_t ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      return true;
+    }
 
-      if (n == "MultiConnectors" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->MultiConnectors_parser_;
+    return false;
+  }
 
-        if (this->MultiConnectors_parser_)
-          this->MultiConnectors_parser_->pre ();
+  // laneEdgePolylines_cached_t_pskel
+  //
 
-        return true;
-      }
+  void laneEdgePolylines_cached_t_pskel::
+  laneEdgePolyline_cached (std::pair<short,std::vector<sim_mob::Point2D> >)
+  {
+  }
 
-      return false;
-    }
+  bool laneEdgePolylines_cached_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    bool Multi_Connectors_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-      if (n == "MultiConnectors" && ns.empty ())
-      {
-        if (this->MultiConnectors_parser_)
-          this->MultiConnectors (this->MultiConnectors_parser_->post_Multi_Connector_t ());
+    if (n == "laneEdgePolyline_cached" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneEdgePolyline_cached_parser_;
 
-        return true;
-      }
+      if (this->laneEdgePolyline_cached_parser_)
+        this->laneEdgePolyline_cached_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // fwdBckSegments_t_pskel
-    //
+    return false;
+  }
 
-    void fwdBckSegments_t_pskel::
-    Segment (sim_mob::RoadSegment*)
-    {
-    }
+  bool laneEdgePolylines_cached_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-    bool fwdBckSegments_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "laneEdgePolyline_cached" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->laneEdgePolyline_cached_parser_)
+        this->laneEdgePolyline_cached (this->laneEdgePolyline_cached_parser_->post_laneEdgePolyline_cached_t ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      return true;
+    }
 
-      if (n == "Segment" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Segment_parser_;
+    return false;
+  }
 
-        if (this->Segment_parser_)
-          this->Segment_parser_->pre ();
+  // segment_t_pskel
+  //
 
-        return true;
-      }
+  void segment_t_pskel::
+  segmentID (unsigned long long)
+  {
+  }
 
-      return false;
-    }
+  void segment_t_pskel::
+  startingNode (unsigned int)
+  {
+  }
 
-    bool fwdBckSegments_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+  void segment_t_pskel::
+  endingNode (unsigned int)
+  {
+  }
 
-      if (n == "Segment" && ns.empty ())
-      {
-        if (this->Segment_parser_)
-          this->Segment (this->Segment_parser_->post_segment_t ());
+  void segment_t_pskel::
+  maxSpeed (short)
+  {
+  }
 
-        return true;
-      }
+  void segment_t_pskel::
+  Length (unsigned int)
+  {
+  }
 
-      return false;
-    }
+  void segment_t_pskel::
+  Width (unsigned int)
+  {
+  }
 
-    // RoadSegmentsAt_t_pskel
-    //
+  void segment_t_pskel::
+  originalDB_ID (const ::std::string&)
+  {
+  }
 
-    void RoadSegmentsAt_t_pskel::
-    segmentID (unsigned long long)
-    {
-    }
+  void segment_t_pskel::
+  polyline (std::vector<sim_mob::Point2D>)
+  {
+  }
 
-    bool RoadSegmentsAt_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
+  void segment_t_pskel::
+  laneEdgePolylines_cached (std::vector<std::vector<sim_mob::Point2D> >)
+  {
+  }
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+  void segment_t_pskel::
+  Lanes (std::vector<sim_mob::Lane*>)
+  {
+  }
 
-      if (n == "segmentID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->segmentID_parser_;
+  void segment_t_pskel::
+  Obstacles (std::map<sim_mob::centimeter_t,const RoadItem*>)
+  {
+  }
 
-        if (this->segmentID_parser_)
-          this->segmentID_parser_->pre ();
+  void segment_t_pskel::
+  KurbLine (std::vector<sim_mob::Point2D>)
+  {
+  }
 
-        return true;
-      }
+  bool segment_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      return false;
-    }
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-    bool RoadSegmentsAt_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "segmentID" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->segmentID_parser_;
 
-      if (n == "segmentID" && ns.empty ())
-      {
-        if (this->segmentID_parser_)
-          this->segmentID (this->segmentID_parser_->post_unsigned_long ());
-
-        return true;
-      }
+      if (this->segmentID_parser_)
+        this->segmentID_parser_->pre ();
 
-      return false;
+      return true;
     }
-
-    // laneEdgePolyline_cached_t_pskel
-    //
 
-    void laneEdgePolyline_cached_t_pskel::
-    laneNumber (short)
+    if (n == "startingNode" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->startingNode_parser_;
+
+      if (this->startingNode_parser_)
+        this->startingNode_parser_->pre ();
+
+      return true;
     }
 
-    void laneEdgePolyline_cached_t_pskel::
-    polyline (std::vector<sim_mob::Point2D>)
+    if (n == "endingNode" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->endingNode_parser_;
+
+      if (this->endingNode_parser_)
+        this->endingNode_parser_->pre ();
+
+      return true;
     }
 
-    bool laneEdgePolyline_cached_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "maxSpeed" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->maxSpeed_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->maxSpeed_parser_)
+        this->maxSpeed_parser_->pre ();
 
-      if (n == "laneNumber" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->laneNumber_parser_;
+      return true;
+    }
 
-        if (this->laneNumber_parser_)
-          this->laneNumber_parser_->pre ();
+    if (n == "Length" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Length_parser_;
 
-        return true;
-      }
+      if (this->Length_parser_)
+        this->Length_parser_->pre ();
 
-      if (n == "polyline" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->polyline_parser_;
+      return true;
+    }
 
-        if (this->polyline_parser_)
-          this->polyline_parser_->pre ();
+    if (n == "Width" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Width_parser_;
 
-        return true;
-      }
+      if (this->Width_parser_)
+        this->Width_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool laneEdgePolyline_cached_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "originalDB_ID" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->originalDB_ID_parser_;
 
-      if (n == "laneNumber" && ns.empty ())
-      {
-        if (this->laneNumber_parser_)
-          this->laneNumber (this->laneNumber_parser_->post_short ());
+      if (this->originalDB_ID_parser_)
+        this->originalDB_ID_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "polyline" && ns.empty ())
-      {
-        if (this->polyline_parser_)
-          this->polyline (this->polyline_parser_->post_PolyLine_t ());
+    if (n == "polyline" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->polyline_parser_;
 
-        return true;
-      }
+      if (this->polyline_parser_)
+        this->polyline_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // laneEdgePolylines_cached_t_pskel
-    //
-
-    void laneEdgePolylines_cached_t_pskel::
-    laneEdgePolyline_cached (std::pair<short,std::vector<sim_mob::Point2D> >)
+    if (n == "laneEdgePolylines_cached" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneEdgePolylines_cached_parser_;
+
+      if (this->laneEdgePolylines_cached_parser_)
+        this->laneEdgePolylines_cached_parser_->pre ();
+
+      return true;
     }
 
-    bool laneEdgePolylines_cached_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "Lanes" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Lanes_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->Lanes_parser_)
+        this->Lanes_parser_->pre ();
 
-      if (n == "laneEdgePolyline_cached" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->laneEdgePolyline_cached_parser_;
+      return true;
+    }
 
-        if (this->laneEdgePolyline_cached_parser_)
-          this->laneEdgePolyline_cached_parser_->pre ();
+    if (n == "Obstacles" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Obstacles_parser_;
 
-        return true;
-      }
+      if (this->Obstacles_parser_)
+        this->Obstacles_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool laneEdgePolylines_cached_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "KurbLine" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "laneEdgePolyline_cached" && ns.empty ())
-      {
-        if (this->laneEdgePolyline_cached_parser_)
-          this->laneEdgePolyline_cached (this->laneEdgePolyline_cached_parser_->post_laneEdgePolyline_cached_t ());
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->KurbLine_parser_;
 
-        return true;
-      }
+      if (this->KurbLine_parser_)
+        this->KurbLine_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // segment_t_pskel
-    //
+    return false;
+  }
 
-    void segment_t_pskel::
-    segmentID (unsigned long long)
-    {
-    }
+  bool segment_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-    void segment_t_pskel::
-    startingNode (unsigned int)
+    if (n == "segmentID" && ns.empty ())
     {
+      if (this->segmentID_parser_)
+        this->segmentID (this->segmentID_parser_->post_unsigned_long ());
+
+      return true;
     }
 
-    void segment_t_pskel::
-    endingNode (unsigned int)
+    if (n == "startingNode" && ns.empty ())
     {
+      if (this->startingNode_parser_)
+        this->startingNode (this->startingNode_parser_->post_unsigned_int ());
+
+      return true;
     }
 
-    void segment_t_pskel::
-    maxSpeed (short)
+    if (n == "endingNode" && ns.empty ())
     {
+      if (this->endingNode_parser_)
+        this->endingNode (this->endingNode_parser_->post_unsigned_int ());
+
+      return true;
     }
 
-    void segment_t_pskel::
-    Length (unsigned int)
+    if (n == "maxSpeed" && ns.empty ())
     {
+      if (this->maxSpeed_parser_)
+        this->maxSpeed (this->maxSpeed_parser_->post_short ());
+
+      return true;
     }
 
-    void segment_t_pskel::
-    Width (unsigned int)
+    if (n == "Length" && ns.empty ())
     {
+      if (this->Length_parser_)
+        this->Length (this->Length_parser_->post_unsigned_int ());
+
+      return true;
     }
 
-    void segment_t_pskel::
-    originalDB_ID (const ::std::string&)
+    if (n == "Width" && ns.empty ())
     {
+      if (this->Width_parser_)
+        this->Width (this->Width_parser_->post_unsigned_int ());
+
+      return true;
     }
 
-    void segment_t_pskel::
-    polyline (std::vector<sim_mob::Point2D>)
+    if (n == "originalDB_ID" && ns.empty ())
     {
+      if (this->originalDB_ID_parser_)
+        this->originalDB_ID (this->originalDB_ID_parser_->post_string ());
+
+      return true;
     }
 
-    void segment_t_pskel::
-    laneEdgePolylines_cached (std::vector<std::vector<sim_mob::Point2D> >)
+    if (n == "polyline" && ns.empty ())
     {
+      if (this->polyline_parser_)
+        this->polyline (this->polyline_parser_->post_PolyLine_t ());
+
+      return true;
     }
 
-    void segment_t_pskel::
-    Lanes (std::vector<sim_mob::Lane*>)
+    if (n == "laneEdgePolylines_cached" && ns.empty ())
     {
+      if (this->laneEdgePolylines_cached_parser_)
+        this->laneEdgePolylines_cached (this->laneEdgePolylines_cached_parser_->post_laneEdgePolylines_cached_t ());
+
+      return true;
     }
 
-    void segment_t_pskel::
-    Obstacles (std::map<sim_mob::centimeter_t,const RoadItem*>)
+    if (n == "Lanes" && ns.empty ())
     {
+      if (this->Lanes_parser_)
+        this->Lanes (this->Lanes_parser_->post_Lanes ());
+
+      return true;
     }
 
-    void segment_t_pskel::
-    KurbLine (std::vector<sim_mob::Point2D>)
+    if (n == "Obstacles" && ns.empty ())
     {
+      if (this->Obstacles_parser_)
+        this->Obstacles (this->Obstacles_parser_->post_RoadItems_t ());
+
+      return true;
     }
 
-    bool segment_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "KurbLine" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->KurbLine_parser_)
+        this->KurbLine (this->KurbLine_parser_->post_PolyLine_t ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      return true;
+    }
 
-      if (n == "segmentID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->segmentID_parser_;
+    return false;
+  }
 
-        if (this->segmentID_parser_)
-          this->segmentID_parser_->pre ();
+  // link_t_pskel
+  //
 
-        return true;
-      }
+  void link_t_pskel::
+  linkID (unsigned int)
+  {
+  }
 
-      if (n == "startingNode" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->startingNode_parser_;
+  void link_t_pskel::
+  roadName (const ::std::string&)
+  {
+  }
 
-        if (this->startingNode_parser_)
-          this->startingNode_parser_->pre ();
+  void link_t_pskel::
+  StartingNode (unsigned int)
+  {
+  }
 
-        return true;
-      }
+  void link_t_pskel::
+  EndingNode (unsigned int)
+  {
+  }
 
-      if (n == "endingNode" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->endingNode_parser_;
+  void link_t_pskel::
+  Segments (std::vector<sim_mob::RoadSegment*>)
+  {
+  }
 
-        if (this->endingNode_parser_)
-          this->endingNode_parser_->pre ();
+  bool link_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-        return true;
-      }
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-      if (n == "maxSpeed" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->maxSpeed_parser_;
+    if (n == "linkID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->linkID_parser_;
 
-        if (this->maxSpeed_parser_)
-          this->maxSpeed_parser_->pre ();
+      if (this->linkID_parser_)
+        this->linkID_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "Length" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Length_parser_;
+    if (n == "roadName" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->roadName_parser_;
 
-        if (this->Length_parser_)
-          this->Length_parser_->pre ();
+      if (this->roadName_parser_)
+        this->roadName_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "Width" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Width_parser_;
+    if (n == "StartingNode" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->StartingNode_parser_;
 
-        if (this->Width_parser_)
-          this->Width_parser_->pre ();
+      if (this->StartingNode_parser_)
+        this->StartingNode_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "originalDB_ID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->originalDB_ID_parser_;
+    if (n == "EndingNode" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->EndingNode_parser_;
 
-        if (this->originalDB_ID_parser_)
-          this->originalDB_ID_parser_->pre ();
+      if (this->EndingNode_parser_)
+        this->EndingNode_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "polyline" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->polyline_parser_;
+    if (n == "Segments" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Segments_parser_;
 
-        if (this->polyline_parser_)
-          this->polyline_parser_->pre ();
+      if (this->Segments_parser_)
+        this->Segments_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "laneEdgePolylines_cached" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->laneEdgePolylines_cached_parser_;
+    return false;
+  }
 
-        if (this->laneEdgePolylines_cached_parser_)
-          this->laneEdgePolylines_cached_parser_->pre ();
+  bool link_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-        return true;
-      }
-
-      if (n == "Lanes" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Lanes_parser_;
-
-        if (this->Lanes_parser_)
-          this->Lanes_parser_->pre ();
-
-        return true;
-      }
+    if (n == "linkID" && ns.empty ())
+    {
+      if (this->linkID_parser_)
+        this->linkID (this->linkID_parser_->post_unsigned_int ());
 
-      if (n == "Obstacles" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Obstacles_parser_;
+      return true;
+    }
 
-        if (this->Obstacles_parser_)
-          this->Obstacles_parser_->pre ();
+    if (n == "roadName" && ns.empty ())
+    {
+      if (this->roadName_parser_)
+        this->roadName (this->roadName_parser_->post_string ());
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "KurbLine" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->KurbLine_parser_;
+    if (n == "StartingNode" && ns.empty ())
+    {
+      if (this->StartingNode_parser_)
+        this->StartingNode (this->StartingNode_parser_->post_unsigned_int ());
 
-        if (this->KurbLine_parser_)
-          this->KurbLine_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "EndingNode" && ns.empty ())
+    {
+      if (this->EndingNode_parser_)
+        this->EndingNode (this->EndingNode_parser_->post_unsigned_int ());
 
-      return false;
+      return true;
     }
 
-    bool segment_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "Segments" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      if (this->Segments_parser_)
+        this->Segments (this->Segments_parser_->post_fwdBckSegments_t ());
 
-      if (n == "segmentID" && ns.empty ())
-      {
-        if (this->segmentID_parser_)
-          this->segmentID (this->segmentID_parser_->post_unsigned_long ());
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "startingNode" && ns.empty ())
-      {
-        if (this->startingNode_parser_)
-          this->startingNode (this->startingNode_parser_->post_unsigned_int ());
+  // separator_t_pskel
+  //
 
-        return true;
-      }
+  void separator_t_pskel::
+  separator_ID (unsigned short)
+  {
+  }
 
-      if (n == "endingNode" && ns.empty ())
-      {
-        if (this->endingNode_parser_)
-          this->endingNode (this->endingNode_parser_->post_unsigned_int ());
+  void separator_t_pskel::
+  separator_value (bool)
+  {
+  }
 
-        return true;
-      }
+  void separator_t_pskel::
+  post_separator_t ()
+  {
+  }
 
-      if (n == "maxSpeed" && ns.empty ())
-      {
-        if (this->maxSpeed_parser_)
-          this->maxSpeed (this->maxSpeed_parser_->post_short ());
+  bool separator_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-        return true;
-      }
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-      if (n == "Length" && ns.empty ())
-      {
-        if (this->Length_parser_)
-          this->Length (this->Length_parser_->post_unsigned_int ());
+    if (n == "separator_ID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->separator_ID_parser_;
 
-        return true;
-      }
+      if (this->separator_ID_parser_)
+        this->separator_ID_parser_->pre ();
 
-      if (n == "Width" && ns.empty ())
-      {
-        if (this->Width_parser_)
-          this->Width (this->Width_parser_->post_unsigned_int ());
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "separator_value" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->separator_value_parser_;
 
-      if (n == "originalDB_ID" && ns.empty ())
-      {
-        if (this->originalDB_ID_parser_)
-          this->originalDB_ID (this->originalDB_ID_parser_->post_string ());
+      if (this->separator_value_parser_)
+        this->separator_value_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "polyline" && ns.empty ())
-      {
-        if (this->polyline_parser_)
-          this->polyline (this->polyline_parser_->post_PolyLine_t ());
+    return false;
+  }
 
-        return true;
-      }
+  bool separator_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-      if (n == "laneEdgePolylines_cached" && ns.empty ())
-      {
-        if (this->laneEdgePolylines_cached_parser_)
-          this->laneEdgePolylines_cached (this->laneEdgePolylines_cached_parser_->post_laneEdgePolylines_cached_t ());
+    if (n == "separator_ID" && ns.empty ())
+    {
+      if (this->separator_ID_parser_)
+        this->separator_ID (this->separator_ID_parser_->post_unsigned_short ());
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "Lanes" && ns.empty ())
-      {
-        if (this->Lanes_parser_)
-          this->Lanes (this->Lanes_parser_->post_Lanes ());
+    if (n == "separator_value" && ns.empty ())
+    {
+      if (this->separator_value_parser_)
+        this->separator_value (this->separator_value_parser_->post_boolean ());
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "Obstacles" && ns.empty ())
-      {
-        if (this->Obstacles_parser_)
-          this->Obstacles (this->Obstacles_parser_->post_RoadItems_t ());
+    return false;
+  }
 
-        return true;
-      }
+  // separators_t_pskel
+  //
 
-      if (n == "KurbLine" && ns.empty ())
-      {
-        if (this->KurbLine_parser_)
-          this->KurbLine (this->KurbLine_parser_->post_PolyLine_t ());
+  void separators_t_pskel::
+  Separator ()
+  {
+  }
 
-        return true;
-      }
+  void separators_t_pskel::
+  post_separators_t ()
+  {
+  }
 
-      return false;
-    }
+  bool separators_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    // link_t_pskel
-    //
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-    void link_t_pskel::
-    linkID (unsigned int)
+    if (n == "Separator" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Separator_parser_;
+
+      if (this->Separator_parser_)
+        this->Separator_parser_->pre ();
+
+      return true;
     }
+
+    return false;
+  }
 
-    void link_t_pskel::
-    roadName (const ::std::string&)
+  bool separators_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "Separator" && ns.empty ())
     {
+      if (this->Separator_parser_)
+      {
+        this->Separator_parser_->post_separator_t ();
+        this->Separator ();
+      }
+
+      return true;
     }
+
+    return false;
+  }
+
+  // DomainIsland_t_pskel
+  //
+
+  void DomainIsland_t_pskel::
+  domainIsland_ID (unsigned short)
+  {
+  }
+
+  void DomainIsland_t_pskel::
+  domainIsland_value (bool)
+  {
+  }
+
+  void DomainIsland_t_pskel::
+  post_DomainIsland_t ()
+  {
+  }
+
+  bool DomainIsland_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    void link_t_pskel::
-    StartingNode (unsigned int)
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "domainIsland_ID" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->domainIsland_ID_parser_;
+
+      if (this->domainIsland_ID_parser_)
+        this->domainIsland_ID_parser_->pre ();
+
+      return true;
     }
 
-    void link_t_pskel::
-    EndingNode (unsigned int)
+    if (n == "domainIsland_value" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->domainIsland_value_parser_;
+
+      if (this->domainIsland_value_parser_)
+        this->domainIsland_value_parser_->pre ();
+
+      return true;
     }
+
+    return false;
+  }
 
-    void link_t_pskel::
-    Segments (std::vector<sim_mob::RoadSegment*>)
+  bool DomainIsland_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "domainIsland_ID" && ns.empty ())
     {
+      if (this->domainIsland_ID_parser_)
+        this->domainIsland_ID (this->domainIsland_ID_parser_->post_unsigned_short ());
+
+      return true;
     }
 
-    bool link_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "domainIsland_value" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->domainIsland_value_parser_)
+        this->domainIsland_value (this->domainIsland_value_parser_->post_boolean ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "linkID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->linkID_parser_;
+      return true;
+    }
 
-        if (this->linkID_parser_)
-          this->linkID_parser_->pre ();
+    return false;
+  }
 
-        return true;
-      }
+  // DomainIslands_t_pskel
+  //
 
-      if (n == "roadName" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->roadName_parser_;
+  void DomainIslands_t_pskel::
+  domainIslands ()
+  {
+  }
 
-        if (this->roadName_parser_)
-          this->roadName_parser_->pre ();
+  void DomainIslands_t_pskel::
+  post_DomainIslands_t ()
+  {
+  }
 
-        return true;
-      }
+  bool DomainIslands_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      if (n == "StartingNode" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->StartingNode_parser_;
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        if (this->StartingNode_parser_)
-          this->StartingNode_parser_->pre ();
+    if (n == "domainIslands" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->domainIslands_parser_;
 
-        return true;
-      }
+      if (this->domainIslands_parser_)
+        this->domainIslands_parser_->pre ();
 
-      if (n == "EndingNode" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->EndingNode_parser_;
+      return true;
+    }
 
-        if (this->EndingNode_parser_)
-          this->EndingNode_parser_->pre ();
+    return false;
+  }
 
-        return true;
-      }
+  bool DomainIslands_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-      if (n == "Segments" && ns.empty ())
+    if (n == "domainIslands" && ns.empty ())
+    {
+      if (this->domainIslands_parser_)
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Segments_parser_;
-
-        if (this->Segments_parser_)
-          this->Segments_parser_->pre ();
-
-        return true;
+        this->domainIslands_parser_->post_DomainIsland_t ();
+        this->domainIslands ();
       }
 
-      return false;
+      return true;
     }
 
-    bool link_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+    return false;
+  }
 
-      if (n == "linkID" && ns.empty ())
-      {
-        if (this->linkID_parser_)
-          this->linkID (this->linkID_parser_->post_unsigned_int ());
+  // offset_t_pskel
+  //
 
-        return true;
-      }
+  void offset_t_pskel::
+  offset_ID (unsigned short)
+  {
+  }
 
-      if (n == "roadName" && ns.empty ())
-      {
-        if (this->roadName_parser_)
-          this->roadName (this->roadName_parser_->post_string ());
+  void offset_t_pskel::
+  offset_value (unsigned int)
+  {
+  }
 
-        return true;
-      }
+  void offset_t_pskel::
+  post_offset_t ()
+  {
+  }
 
-      if (n == "StartingNode" && ns.empty ())
-      {
-        if (this->StartingNode_parser_)
-          this->StartingNode (this->StartingNode_parser_->post_unsigned_int ());
+  bool offset_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-        return true;
-      }
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-      if (n == "EndingNode" && ns.empty ())
-      {
-        if (this->EndingNode_parser_)
-          this->EndingNode (this->EndingNode_parser_->post_unsigned_int ());
+    if (n == "offset_ID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->offset_ID_parser_;
 
-        return true;
-      }
+      if (this->offset_ID_parser_)
+        this->offset_ID_parser_->pre ();
 
-      if (n == "Segments" && ns.empty ())
-      {
-        if (this->Segments_parser_)
-          this->Segments (this->Segments_parser_->post_fwdBckSegments_t ());
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "offset_value" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->offset_value_parser_;
+
+      if (this->offset_value_parser_)
+        this->offset_value_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // separator_t_pskel
-    //
+    return false;
+  }
 
-    void separator_t_pskel::
-    separator_ID (unsigned short)
-    {
-    }
+  bool offset_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-    void separator_t_pskel::
-    separator_value (bool)
+    if (n == "offset_ID" && ns.empty ())
     {
+      if (this->offset_ID_parser_)
+        this->offset_ID (this->offset_ID_parser_->post_unsigned_short ());
+
+      return true;
     }
 
-    void separator_t_pskel::
-    post_separator_t ()
+    if (n == "offset_value" && ns.empty ())
     {
+      if (this->offset_value_parser_)
+        this->offset_value (this->offset_value_parser_->post_unsigned_int ());
+
+      return true;
     }
 
-    bool separator_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
+    return false;
+  }
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+  // offsets_t_pskel
+  //
 
-      if (n == "separator_ID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->separator_ID_parser_;
+  void offsets_t_pskel::
+  offset ()
+  {
+  }
 
-        if (this->separator_ID_parser_)
-          this->separator_ID_parser_->pre ();
+  void offsets_t_pskel::
+  post_offsets_t ()
+  {
+  }
 
-        return true;
-      }
+  bool offsets_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      if (n == "separator_value" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->separator_value_parser_;
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        if (this->separator_value_parser_)
-          this->separator_value_parser_->pre ();
+    if (n == "offset" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->offset_parser_;
 
-        return true;
-      }
+      if (this->offset_parser_)
+        this->offset_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool separator_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "separator_ID" && ns.empty ())
-      {
-        if (this->separator_ID_parser_)
-          this->separator_ID (this->separator_ID_parser_->post_unsigned_short ());
+    return false;
+  }
 
-        return true;
-      }
+  bool offsets_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-      if (n == "separator_value" && ns.empty ())
+    if (n == "offset" && ns.empty ())
+    {
+      if (this->offset_parser_)
       {
-        if (this->separator_value_parser_)
-          this->separator_value (this->separator_value_parser_->post_boolean ());
-
-        return true;
+        this->offset_parser_->post_offset_t ();
+        this->offset ();
       }
 
-      return false;
+      return true;
     }
 
-    // separators_t_pskel
-    //
+    return false;
+  }
 
-    void separators_t_pskel::
-    Separator ()
-    {
-    }
+  // ChunkLength_t_pskel
+  //
 
-    void separators_t_pskel::
-    post_separators_t ()
-    {
-    }
+  void ChunkLength_t_pskel::
+  chunklength_ID (unsigned short)
+  {
+  }
 
-    bool separators_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
+  void ChunkLength_t_pskel::
+  chunklength_value (unsigned int)
+  {
+  }
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+  void ChunkLength_t_pskel::
+  post_ChunkLength_t ()
+  {
+  }
 
-      if (n == "Separator" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Separator_parser_;
+  bool ChunkLength_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-        if (this->Separator_parser_)
-          this->Separator_parser_->pre ();
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        return true;
-      }
+    if (n == "chunklength_ID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->chunklength_ID_parser_;
 
-      return false;
+      if (this->chunklength_ID_parser_)
+        this->chunklength_ID_parser_->pre ();
+
+      return true;
     }
 
-    bool separators_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "chunklength_value" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->chunklength_value_parser_;
 
-      if (n == "Separator" && ns.empty ())
-      {
-        if (this->Separator_parser_)
-        {
-          this->Separator_parser_->post_separator_t ();
-          this->Separator ();
-        }
-
-        return true;
-      }
+      if (this->chunklength_value_parser_)
+        this->chunklength_value_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // DomainIsland_t_pskel
-    //
+    return false;
+  }
 
-    void DomainIsland_t_pskel::
-    domainIsland_ID (unsigned short)
-    {
-    }
+  bool ChunkLength_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-    void DomainIsland_t_pskel::
-    domainIsland_value (bool)
+    if (n == "chunklength_ID" && ns.empty ())
     {
+      if (this->chunklength_ID_parser_)
+        this->chunklength_ID (this->chunklength_ID_parser_->post_unsigned_short ());
+
+      return true;
     }
 
-    void DomainIsland_t_pskel::
-    post_DomainIsland_t ()
+    if (n == "chunklength_value" && ns.empty ())
     {
+      if (this->chunklength_value_parser_)
+        this->chunklength_value (this->chunklength_value_parser_->post_unsigned_int ());
+
+      return true;
     }
 
-    bool DomainIsland_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
+    return false;
+  }
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+  // ChunkLengths_t_pskel
+  //
 
-      if (n == "domainIsland_ID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->domainIsland_ID_parser_;
+  void ChunkLengths_t_pskel::
+  chunklength ()
+  {
+  }
 
-        if (this->domainIsland_ID_parser_)
-          this->domainIsland_ID_parser_->pre ();
+  void ChunkLengths_t_pskel::
+  post_ChunkLengths_t ()
+  {
+  }
 
-        return true;
-      }
+  bool ChunkLengths_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      if (n == "domainIsland_value" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->domainIsland_value_parser_;
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        if (this->domainIsland_value_parser_)
-          this->domainIsland_value_parser_->pre ();
+    if (n == "chunklength" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->chunklength_parser_;
 
-        return true;
-      }
+      if (this->chunklength_parser_)
+        this->chunklength_parser_->pre ();
 
-      return false;
+      return true;
     }
-
-    bool DomainIsland_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
 
-      if (n == "domainIsland_ID" && ns.empty ())
-      {
-        if (this->domainIsland_ID_parser_)
-          this->domainIsland_ID (this->domainIsland_ID_parser_->post_unsigned_short ());
+    return false;
+  }
 
-        return true;
-      }
+  bool ChunkLengths_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-      if (n == "domainIsland_value" && ns.empty ())
+    if (n == "chunklength" && ns.empty ())
+    {
+      if (this->chunklength_parser_)
       {
-        if (this->domainIsland_value_parser_)
-          this->domainIsland_value (this->domainIsland_value_parser_->post_boolean ());
-
-        return true;
+        this->chunklength_parser_->post_ChunkLength_t ();
+        this->chunklength ();
       }
 
-      return false;
+      return true;
     }
+
+    return false;
+  }
+
+  // LanesVector_t_pskel
+  //
+
+  void LanesVector_t_pskel::
+  laneID (unsigned long long)
+  {
+  }
 
-    // DomainIslands_t_pskel
-    //
+  void LanesVector_t_pskel::
+  post_LanesVector_t ()
+  {
+  }
 
-    void DomainIslands_t_pskel::
-    domainIslands ()
+  bool LanesVector_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "laneID" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneID_parser_;
+
+      if (this->laneID_parser_)
+        this->laneID_parser_->pre ();
+
+      return true;
     }
 
-    void DomainIslands_t_pskel::
-    post_DomainIslands_t ()
+    return false;
+  }
+
+  bool LanesVector_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "laneID" && ns.empty ())
     {
+      if (this->laneID_parser_)
+        this->laneID (this->laneID_parser_->post_unsigned_long ());
+
+      return true;
     }
 
-    bool DomainIslands_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
+    return false;
+  }
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+  // EntranceAngle_t_pskel
+  //
 
-      if (n == "domainIslands" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->domainIslands_parser_;
+  void EntranceAngle_t_pskel::
+  entranceAngle_ID (unsigned short)
+  {
+  }
 
-        if (this->domainIslands_parser_)
-          this->domainIslands_parser_->pre ();
+  void EntranceAngle_t_pskel::
+  entranceAngle_value (unsigned int)
+  {
+  }
 
-        return true;
-      }
+  void EntranceAngle_t_pskel::
+  post_EntranceAngle_t ()
+  {
+  }
 
-      return false;
-    }
+  bool EntranceAngle_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-    bool DomainIslands_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "entranceAngle_ID" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->entranceAngle_ID_parser_;
 
-      if (n == "domainIslands" && ns.empty ())
-      {
-        if (this->domainIslands_parser_)
-        {
-          this->domainIslands_parser_->post_DomainIsland_t ();
-          this->domainIslands ();
-        }
-
-        return true;
-      }
+      if (this->entranceAngle_ID_parser_)
+        this->entranceAngle_ID_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // offset_t_pskel
-    //
-
-    void offset_t_pskel::
-    offset_ID (unsigned short)
+    if (n == "entranceAngle_value" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->entranceAngle_value_parser_;
+
+      if (this->entranceAngle_value_parser_)
+        this->entranceAngle_value_parser_->pre ();
+
+      return true;
     }
+
+    return false;
+  }
 
-    void offset_t_pskel::
-    offset_value (unsigned int)
+  bool EntranceAngle_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "entranceAngle_ID" && ns.empty ())
     {
+      if (this->entranceAngle_ID_parser_)
+        this->entranceAngle_ID (this->entranceAngle_ID_parser_->post_unsigned_short ());
+
+      return true;
     }
 
-    void offset_t_pskel::
-    post_offset_t ()
+    if (n == "entranceAngle_value" && ns.empty ())
     {
+      if (this->entranceAngle_value_parser_)
+        this->entranceAngle_value (this->entranceAngle_value_parser_->post_unsigned_int ());
+
+      return true;
     }
 
-    bool offset_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
+    return false;
+  }
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+  // EntranceAngles_t_pskel
+  //
 
-      if (n == "offset_ID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->offset_ID_parser_;
+  void EntranceAngles_t_pskel::
+  entranceAngle ()
+  {
+  }
 
-        if (this->offset_ID_parser_)
-          this->offset_ID_parser_->pre ();
+  void EntranceAngles_t_pskel::
+  post_EntranceAngles_t ()
+  {
+  }
 
-        return true;
-      }
+  bool EntranceAngles_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      if (n == "offset_value" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->offset_value_parser_;
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        if (this->offset_value_parser_)
-          this->offset_value_parser_->pre ();
+    if (n == "entranceAngle" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->entranceAngle_parser_;
 
-        return true;
-      }
+      if (this->entranceAngle_parser_)
+        this->entranceAngle_parser_->pre ();
 
-      return false;
+      return true;
     }
-
-    bool offset_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
 
-      if (n == "offset_ID" && ns.empty ())
-      {
-        if (this->offset_ID_parser_)
-          this->offset_ID (this->offset_ID_parser_->post_unsigned_short ());
+    return false;
+  }
 
-        return true;
-      }
+  bool EntranceAngles_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-      if (n == "offset_value" && ns.empty ())
+    if (n == "entranceAngle" && ns.empty ())
+    {
+      if (this->entranceAngle_parser_)
       {
-        if (this->offset_value_parser_)
-          this->offset_value (this->offset_value_parser_->post_unsigned_int ());
-
-        return true;
+        this->entranceAngle_parser_->post_EntranceAngle_t ();
+        this->entranceAngle ();
       }
 
-      return false;
+      return true;
     }
 
-    // offsets_t_pskel
-    //
+    return false;
+  }
 
-    void offsets_t_pskel::
-    offset ()
-    {
-    }
+  // Node_t_pskel
+  //
 
-    void offsets_t_pskel::
-    post_offsets_t ()
-    {
-    }
+  void Node_t_pskel::
+  nodeID (unsigned int)
+  {
+  }
 
-    bool offsets_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
+  void Node_t_pskel::
+  location (sim_mob::Point2D)
+  {
+  }
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+  void Node_t_pskel::
+  originalDB_ID (const ::std::string&)
+  {
+  }
 
-      if (n == "offset" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->offset_parser_;
+  bool Node_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-        if (this->offset_parser_)
-          this->offset_parser_->pre ();
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        return true;
-      }
+    if (n == "nodeID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->nodeID_parser_;
+
+      if (this->nodeID_parser_)
+        this->nodeID_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool offsets_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "location" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->location_parser_;
 
-      if (n == "offset" && ns.empty ())
-      {
-        if (this->offset_parser_)
-        {
-          this->offset_parser_->post_offset_t ();
-          this->offset ();
-        }
-
-        return true;
-      }
+      if (this->location_parser_)
+        this->location_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // ChunkLength_t_pskel
-    //
-
-    void ChunkLength_t_pskel::
-    chunklength_ID (unsigned short)
+    if (n == "originalDB_ID" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->originalDB_ID_parser_;
+
+      if (this->originalDB_ID_parser_)
+        this->originalDB_ID_parser_->pre ();
+
+      return true;
     }
+
+    return false;
+  }
 
-    void ChunkLength_t_pskel::
-    chunklength_value (unsigned int)
+  bool Node_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "nodeID" && ns.empty ())
     {
+      if (this->nodeID_parser_)
+        this->nodeID (this->nodeID_parser_->post_unsigned_int ());
+
+      return true;
     }
 
-    void ChunkLength_t_pskel::
-    post_ChunkLength_t ()
+    if (n == "location" && ns.empty ())
     {
+      if (this->location_parser_)
+        this->location (this->location_parser_->post_Point2D_t ());
+
+      return true;
     }
 
-    bool ChunkLength_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "originalDB_ID" && ns.empty ())
     {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->originalDB_ID_parser_)
+        this->originalDB_ID (this->originalDB_ID_parser_->post_string ());
 
-      if (n == "chunklength_ID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->chunklength_ID_parser_;
+      return true;
+    }
 
-        if (this->chunklength_ID_parser_)
-          this->chunklength_ID_parser_->pre ();
+    return false;
+  }
 
-        return true;
-      }
+  // temp_Segmetair_t_pskel
+  //
 
-      if (n == "chunklength_value" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->chunklength_value_parser_;
+  void temp_Segmetair_t_pskel::
+  first (unsigned long long)
+  {
+  }
 
-        if (this->chunklength_value_parser_)
-          this->chunklength_value_parser_->pre ();
+  void temp_Segmetair_t_pskel::
+  second (unsigned long long)
+  {
+  }
 
-        return true;
-      }
+  bool temp_Segmetair_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      return false;
-    }
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-    bool ChunkLength_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "first" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->first_parser_;
 
-      if (n == "chunklength_ID" && ns.empty ())
-      {
-        if (this->chunklength_ID_parser_)
-          this->chunklength_ID (this->chunklength_ID_parser_->post_unsigned_short ());
+      if (this->first_parser_)
+        this->first_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "chunklength_value" && ns.empty ())
-      {
-        if (this->chunklength_value_parser_)
-          this->chunklength_value (this->chunklength_value_parser_->post_unsigned_int ());
+    if (n == "second" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->second_parser_;
 
-        return true;
-      }
+      if (this->second_parser_)
+        this->second_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // ChunkLengths_t_pskel
-    //
+    return false;
+  }
 
-    void ChunkLengths_t_pskel::
-    chunklength ()
-    {
-    }
+  bool temp_Segmetair_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-    void ChunkLengths_t_pskel::
-    post_ChunkLengths_t ()
+    if (n == "first" && ns.empty ())
     {
+      if (this->first_parser_)
+        this->first (this->first_parser_->post_unsigned_long ());
+
+      return true;
     }
 
-    bool ChunkLengths_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "second" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->second_parser_)
+        this->second (this->second_parser_->post_unsigned_long ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      return true;
+    }
 
-      if (n == "chunklength" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->chunklength_parser_;
+    return false;
+  }
 
-        if (this->chunklength_parser_)
-          this->chunklength_parser_->pre ();
+  // UniNode_t_pskel
+  //
 
-        return true;
-      }
+  void UniNode_t_pskel::
+  firstPair (std::pair<unsigned long,unsigned long>)
+  {
+  }
 
-      return false;
-    }
+  void UniNode_t_pskel::
+  secondPair (std::pair<unsigned long,unsigned long>)
+  {
+  }
 
-    bool ChunkLengths_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+  void UniNode_t_pskel::
+  Connectors (std::set<std::pair<unsigned long,unsigned long> >)
+  {
+  }
 
-      if (n == "chunklength" && ns.empty ())
-      {
-        if (this->chunklength_parser_)
-        {
-          this->chunklength_parser_->post_ChunkLength_t ();
-          this->chunklength ();
-        }
-
-        return true;
-      }
+  void UniNode_t_pskel::
+  new_Connectors (std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &)
+  {
+  }
 
-      return false;
-    }
+  bool UniNode_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    // LanesVector_t_pskel
-    //
+    if (this->::sim_mob::xml::Node_t_pskel::_start_element_impl (ns, n, t))
+      return true;
 
-    void LanesVector_t_pskel::
-    laneID (unsigned long long)
+    if (n == "firstPair" && ns.empty ())
     {
-    }
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->firstPair_parser_;
 
-    void LanesVector_t_pskel::
-    post_LanesVector_t ()
-    {
+      if (this->firstPair_parser_)
+        this->firstPair_parser_->pre ();
+
+      return true;
     }
 
-    bool LanesVector_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "secondPair" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->secondPair_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->secondPair_parser_)
+        this->secondPair_parser_->pre ();
 
-      if (n == "laneID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->laneID_parser_;
+      return true;
+    }
 
-        if (this->laneID_parser_)
-          this->laneID_parser_->pre ();
+    if (n == "Connectors" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Connectors_parser_;
 
-        return true;
-      }
+      if (this->Connectors_parser_)
+        this->Connectors_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool LanesVector_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "new_Connectors" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "laneID" && ns.empty ())
-      {
-        if (this->laneID_parser_)
-          this->laneID (this->laneID_parser_->post_unsigned_long ());
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->new_Connectors_parser_;
 
-        return true;
-      }
+      if (this->new_Connectors_parser_)
+        this->new_Connectors_parser_->pre ();
 
-      return false;
+      return true;
     }
+
+    return false;
+  }
 
-    // EntranceAngle_t_pskel
-    //
+  bool UniNode_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::sim_mob::xml::Node_t_pskel::_end_element_impl (ns, n))
+      return true;
 
-    void EntranceAngle_t_pskel::
-    entranceAngle_ID (unsigned short)
+    if (n == "firstPair" && ns.empty ())
     {
+      if (this->firstPair_parser_)
+        this->firstPair (this->firstPair_parser_->post_temp_Segmetair_t ());
+
+      return true;
     }
 
-    void EntranceAngle_t_pskel::
-    entranceAngle_value (unsigned int)
+    if (n == "secondPair" && ns.empty ())
     {
+      if (this->secondPair_parser_)
+        this->secondPair (this->secondPair_parser_->post_temp_Segmetair_t ());
+
+      return true;
     }
 
-    void EntranceAngle_t_pskel::
-    post_EntranceAngle_t ()
+    if (n == "Connectors" && ns.empty ())
     {
+      if (this->Connectors_parser_)
+        this->Connectors (this->Connectors_parser_->post_connectors_t ());
+
+      return true;
     }
 
-    bool EntranceAngle_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "new_Connectors" && ns.empty ())
     {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->new_Connectors_parser_)
+        this->new_Connectors (this->new_Connectors_parser_->post_new_connectors_t ());
 
-      if (n == "entranceAngle_ID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->entranceAngle_ID_parser_;
+      return true;
+    }
 
-        if (this->entranceAngle_ID_parser_)
-          this->entranceAngle_ID_parser_->pre ();
+    return false;
+  }
 
-        return true;
-      }
+  // roundabout_t_pskel
+  //
 
-      if (n == "entranceAngle_value" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->entranceAngle_value_parser_;
+  void roundabout_t_pskel::
+  roadSegmentsAt (std::set<unsigned long>)
+  {
+  }
 
-        if (this->entranceAngle_value_parser_)
-          this->entranceAngle_value_parser_->pre ();
+  void roundabout_t_pskel::
+  Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&)
+  {
+  }
 
-        return true;
-      }
+  void roundabout_t_pskel::
+  ChunkLengths ()
+  {
+  }
 
-      return false;
-    }
+  void roundabout_t_pskel::
+  Offsets ()
+  {
+  }
 
-    bool EntranceAngle_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+  void roundabout_t_pskel::
+  Separators ()
+  {
+  }
 
-      if (n == "entranceAngle_ID" && ns.empty ())
-      {
-        if (this->entranceAngle_ID_parser_)
-          this->entranceAngle_ID (this->entranceAngle_ID_parser_->post_unsigned_short ());
+  void roundabout_t_pskel::
+  addDominantLane ()
+  {
+  }
 
-        return true;
-      }
+  void roundabout_t_pskel::
+  roundaboutDominantIslands (float)
+  {
+  }
 
-      if (n == "entranceAngle_value" && ns.empty ())
-      {
-        if (this->entranceAngle_value_parser_)
-          this->entranceAngle_value (this->entranceAngle_value_parser_->post_unsigned_int ());
+  void roundabout_t_pskel::
+  roundaboutNumberOfLanes (int)
+  {
+  }
 
-        return true;
-      }
+  void roundabout_t_pskel::
+  entranceAngles ()
+  {
+  }
 
-      return false;
-    }
+  bool roundabout_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    // EntranceAngles_t_pskel
-    //
+    if (this->::sim_mob::xml::Node_t_pskel::_start_element_impl (ns, n, t))
+      return true;
 
-    void EntranceAngles_t_pskel::
-    entranceAngle ()
+    if (n == "roadSegmentsAt" && ns.empty ())
     {
-    }
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->roadSegmentsAt_parser_;
 
-    void EntranceAngles_t_pskel::
-    post_EntranceAngles_t ()
-    {
+      if (this->roadSegmentsAt_parser_)
+        this->roadSegmentsAt_parser_->pre ();
+
+      return true;
     }
 
-    bool EntranceAngles_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "Connectors" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Connectors_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->Connectors_parser_)
+        this->Connectors_parser_->pre ();
 
-      if (n == "entranceAngle" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->entranceAngle_parser_;
+      return true;
+    }
 
-        if (this->entranceAngle_parser_)
-          this->entranceAngle_parser_->pre ();
+    if (n == "ChunkLengths" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ChunkLengths_parser_;
 
-        return true;
-      }
+      if (this->ChunkLengths_parser_)
+        this->ChunkLengths_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool EntranceAngles_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "Offsets" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Offsets_parser_;
 
-      if (n == "entranceAngle" && ns.empty ())
-      {
-        if (this->entranceAngle_parser_)
-        {
-          this->entranceAngle_parser_->post_EntranceAngle_t ();
-          this->entranceAngle ();
-        }
-
-        return true;
-      }
+      if (this->Offsets_parser_)
+        this->Offsets_parser_->pre ();
 
-      return false;
+      return true;
     }
-
-    // Node_t_pskel
-    //
 
-    void Node_t_pskel::
-    nodeID (unsigned int)
+    if (n == "Separators" && ns.empty ())
     {
-    }
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Separators_parser_;
 
-    void Node_t_pskel::
-    location (sim_mob::Point2D)
-    {
-    }
+      if (this->Separators_parser_)
+        this->Separators_parser_->pre ();
 
-    void Node_t_pskel::
-    originalDB_ID (const ::std::string&)
-    {
+      return true;
     }
 
-    bool Node_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "addDominantLane" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->addDominantLane_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->addDominantLane_parser_)
+        this->addDominantLane_parser_->pre ();
 
-      if (n == "nodeID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->nodeID_parser_;
-
-        if (this->nodeID_parser_)
-          this->nodeID_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "location" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->location_parser_;
+      return true;
+    }
 
-        if (this->location_parser_)
-          this->location_parser_->pre ();
+    if (n == "roundaboutDominantIslands" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->roundaboutDominantIslands_parser_;
 
-        return true;
-      }
+      if (this->roundaboutDominantIslands_parser_)
+        this->roundaboutDominantIslands_parser_->pre ();
 
-      if (n == "originalDB_ID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->originalDB_ID_parser_;
+      return true;
+    }
 
-        if (this->originalDB_ID_parser_)
-          this->originalDB_ID_parser_->pre ();
+    if (n == "roundaboutNumberOfLanes" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->roundaboutNumberOfLanes_parser_;
 
-        return true;
-      }
+      if (this->roundaboutNumberOfLanes_parser_)
+        this->roundaboutNumberOfLanes_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool Node_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "entranceAngles" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "nodeID" && ns.empty ())
-      {
-        if (this->nodeID_parser_)
-          this->nodeID (this->nodeID_parser_->post_unsigned_int ());
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->entranceAngles_parser_;
 
-        return true;
-      }
+      if (this->entranceAngles_parser_)
+        this->entranceAngles_parser_->pre ();
 
-      if (n == "location" && ns.empty ())
-      {
-        if (this->location_parser_)
-          this->location (this->location_parser_->post_Point2D_t ());
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "originalDB_ID" && ns.empty ())
-      {
-        if (this->originalDB_ID_parser_)
-          this->originalDB_ID (this->originalDB_ID_parser_->post_string ());
+  bool roundabout_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::sim_mob::xml::Node_t_pskel::_end_element_impl (ns, n))
+      return true;
 
-        return true;
-      }
+    if (n == "roadSegmentsAt" && ns.empty ())
+    {
+      if (this->roadSegmentsAt_parser_)
+        this->roadSegmentsAt (this->roadSegmentsAt_parser_->post_RoadSegmentsAt_t ());
 
-      return false;
+      return true;
     }
 
-    // temp_Segmetair_t_pskel
-    //
-
-    void temp_Segmetair_t_pskel::
-    first (unsigned long long)
+    if (n == "Connectors" && ns.empty ())
     {
-    }
+      if (this->Connectors_parser_)
+        this->Connectors (this->Connectors_parser_->post_Multi_Connectors_t ());
 
-    void temp_Segmetair_t_pskel::
-    second (unsigned long long)
-    {
+      return true;
     }
 
-    bool temp_Segmetair_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "ChunkLengths" && ns.empty ())
     {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "first" && ns.empty ())
+      if (this->ChunkLengths_parser_)
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->first_parser_;
-
-        if (this->first_parser_)
-          this->first_parser_->pre ();
-
-        return true;
+        this->ChunkLengths_parser_->post_ChunkLengths_t ();
+        this->ChunkLengths ();
       }
 
-      if (n == "second" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->second_parser_;
-
-        if (this->second_parser_)
-          this->second_parser_->pre ();
+      return true;
+    }
 
-        return true;
+    if (n == "Offsets" && ns.empty ())
+    {
+      if (this->Offsets_parser_)
+      {
+        this->Offsets_parser_->post_offsets_t ();
+        this->Offsets ();
       }
 
-      return false;
+      return true;
     }
 
-    bool temp_Segmetair_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "Separators" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "first" && ns.empty ())
+      if (this->Separators_parser_)
       {
-        if (this->first_parser_)
-          this->first (this->first_parser_->post_unsigned_long ());
-
-        return true;
+        this->Separators_parser_->post_separators_t ();
+        this->Separators ();
       }
 
-      if (n == "second" && ns.empty ())
-      {
-        if (this->second_parser_)
-          this->second (this->second_parser_->post_unsigned_long ());
+      return true;
+    }
 
-        return true;
+    if (n == "addDominantLane" && ns.empty ())
+    {
+      if (this->addDominantLane_parser_)
+      {
+        this->addDominantLane_parser_->post_LanesVector_t ();
+        this->addDominantLane ();
       }
 
-      return false;
+      return true;
     }
 
-    // UniNode_t_pskel
-    //
-
-    void UniNode_t_pskel::
-    firstPair (std::pair<unsigned long,unsigned long>)
+    if (n == "roundaboutDominantIslands" && ns.empty ())
     {
-    }
+      if (this->roundaboutDominantIslands_parser_)
+        this->roundaboutDominantIslands (this->roundaboutDominantIslands_parser_->post_float ());
 
-    void UniNode_t_pskel::
-    secondPair (std::pair<unsigned long,unsigned long>)
-    {
+      return true;
     }
 
-    void UniNode_t_pskel::
-    Connectors (std::set<std::pair<unsigned long,unsigned long> >)
+    if (n == "roundaboutNumberOfLanes" && ns.empty ())
     {
+      if (this->roundaboutNumberOfLanes_parser_)
+        this->roundaboutNumberOfLanes (this->roundaboutNumberOfLanes_parser_->post_int ());
+
+      return true;
     }
 
-    bool UniNode_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "entranceAngles" && ns.empty ())
     {
-      XSD_UNUSED (t);
-
-      if (this->::sim_mob::xml::Node_t_pskel::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "firstPair" && ns.empty ())
+      if (this->entranceAngles_parser_)
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->firstPair_parser_;
-
-        if (this->firstPair_parser_)
-          this->firstPair_parser_->pre ();
-
-        return true;
+        this->entranceAngles_parser_->post_EntranceAngles_t ();
+        this->entranceAngles ();
       }
 
-      if (n == "secondPair" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->secondPair_parser_;
-
-        if (this->secondPair_parser_)
-          this->secondPair_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "Connectors" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Connectors_parser_;
+  // intersection_t_pskel
+  //
 
-        if (this->Connectors_parser_)
-          this->Connectors_parser_->pre ();
+  void intersection_t_pskel::
+  roadSegmentsAt (std::set<unsigned long>)
+  {
+  }
 
-        return true;
-      }
+  void intersection_t_pskel::
+  Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&)
+  {
+  }
 
-      return false;
-    }
+  void intersection_t_pskel::
+  ChunkLengths ()
+  {
+  }
 
-    bool UniNode_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::sim_mob::xml::Node_t_pskel::_end_element_impl (ns, n))
-        return true;
+  void intersection_t_pskel::
+  Offsets ()
+  {
+  }
 
-      if (n == "firstPair" && ns.empty ())
-      {
-        if (this->firstPair_parser_)
-          this->firstPair (this->firstPair_parser_->post_temp_Segmetair_t ());
+  void intersection_t_pskel::
+  Separators ()
+  {
+  }
 
-        return true;
-      }
+  void intersection_t_pskel::
+  additionalDominantLanes ()
+  {
+  }
 
-      if (n == "secondPair" && ns.empty ())
-      {
-        if (this->secondPair_parser_)
-          this->secondPair (this->secondPair_parser_->post_temp_Segmetair_t ());
+  void intersection_t_pskel::
+  additionalSubdominantLanes ()
+  {
+  }
 
-        return true;
-      }
+  void intersection_t_pskel::
+  domainIslands ()
+  {
+  }
 
-      if (n == "Connectors" && ns.empty ())
-      {
-        if (this->Connectors_parser_)
-          this->Connectors (this->Connectors_parser_->post_connectors_t ());
+  bool intersection_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-        return true;
-      }
+    if (this->::sim_mob::xml::Node_t_pskel::_start_element_impl (ns, n, t))
+      return true;
 
-      return false;
-    }
+    if (n == "roadSegmentsAt" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->roadSegmentsAt_parser_;
 
-    // roundabout_t_pskel
-    //
+      if (this->roadSegmentsAt_parser_)
+        this->roadSegmentsAt_parser_->pre ();
 
-    void roundabout_t_pskel::
-    roadSegmentsAt (std::set<unsigned long>)
-    {
+      return true;
     }
 
-    void roundabout_t_pskel::
-    Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&)
+    if (n == "Connectors" && ns.empty ())
     {
-    }
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Connectors_parser_;
 
-    void roundabout_t_pskel::
-    ChunkLengths ()
-    {
-    }
+      if (this->Connectors_parser_)
+        this->Connectors_parser_->pre ();
 
-    void roundabout_t_pskel::
-    Offsets ()
-    {
+      return true;
     }
 
-    void roundabout_t_pskel::
-    Separators ()
+    if (n == "ChunkLengths" && ns.empty ())
     {
-    }
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ChunkLengths_parser_;
 
-    void roundabout_t_pskel::
-    addDominantLane ()
-    {
-    }
+      if (this->ChunkLengths_parser_)
+        this->ChunkLengths_parser_->pre ();
 
-    void roundabout_t_pskel::
-    roundaboutDominantIslands (float)
-    {
+      return true;
     }
 
-    void roundabout_t_pskel::
-    roundaboutNumberOfLanes (int)
+    if (n == "Offsets" && ns.empty ())
     {
-    }
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Offsets_parser_;
 
-    void roundabout_t_pskel::
-    entranceAngles ()
-    {
+      if (this->Offsets_parser_)
+        this->Offsets_parser_->pre ();
+
+      return true;
     }
 
-    bool roundabout_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "Separators" && ns.empty ())
     {
-      XSD_UNUSED (t);
-
-      if (this->::sim_mob::xml::Node_t_pskel::_start_element_impl (ns, n, t))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Separators_parser_;
 
-      if (n == "roadSegmentsAt" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->roadSegmentsAt_parser_;
-
-        if (this->roadSegmentsAt_parser_)
-          this->roadSegmentsAt_parser_->pre ();
+      if (this->Separators_parser_)
+        this->Separators_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "Connectors" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Connectors_parser_;
+    if (n == "additionalDominantLanes" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->additionalDominantLanes_parser_;
 
-        if (this->Connectors_parser_)
-          this->Connectors_parser_->pre ();
+      if (this->additionalDominantLanes_parser_)
+        this->additionalDominantLanes_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "ChunkLengths" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->ChunkLengths_parser_;
+    if (n == "additionalSubdominantLanes" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->additionalSubdominantLanes_parser_;
 
-        if (this->ChunkLengths_parser_)
-          this->ChunkLengths_parser_->pre ();
+      if (this->additionalSubdominantLanes_parser_)
+        this->additionalSubdominantLanes_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "Offsets" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Offsets_parser_;
+    if (n == "domainIslands" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->domainIslands_parser_;
 
-        if (this->Offsets_parser_)
-          this->Offsets_parser_->pre ();
+      if (this->domainIslands_parser_)
+        this->domainIslands_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "Separators" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Separators_parser_;
+    return false;
+  }
 
-        if (this->Separators_parser_)
-          this->Separators_parser_->pre ();
+  bool intersection_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::sim_mob::xml::Node_t_pskel::_end_element_impl (ns, n))
+      return true;
 
-        return true;
-      }
+    if (n == "roadSegmentsAt" && ns.empty ())
+    {
+      if (this->roadSegmentsAt_parser_)
+        this->roadSegmentsAt (this->roadSegmentsAt_parser_->post_RoadSegmentsAt_t ());
 
-      if (n == "addDominantLane" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->addDominantLane_parser_;
+      return true;
+    }
 
-        if (this->addDominantLane_parser_)
-          this->addDominantLane_parser_->pre ();
+    if (n == "Connectors" && ns.empty ())
+    {
+      if (this->Connectors_parser_)
+        this->Connectors (this->Connectors_parser_->post_Multi_Connectors_t ());
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "roundaboutDominantIslands" && ns.empty ())
+    if (n == "ChunkLengths" && ns.empty ())
+    {
+      if (this->ChunkLengths_parser_)
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->roundaboutDominantIslands_parser_;
-
-        if (this->roundaboutDominantIslands_parser_)
-          this->roundaboutDominantIslands_parser_->pre ();
-
-        return true;
+        this->ChunkLengths_parser_->post_ChunkLengths_t ();
+        this->ChunkLengths ();
       }
-
-      if (n == "roundaboutNumberOfLanes" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->roundaboutNumberOfLanes_parser_;
-
-        if (this->roundaboutNumberOfLanes_parser_)
-          this->roundaboutNumberOfLanes_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "entranceAngles" && ns.empty ())
+    if (n == "Offsets" && ns.empty ())
+    {
+      if (this->Offsets_parser_)
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->entranceAngles_parser_;
-
-        if (this->entranceAngles_parser_)
-          this->entranceAngles_parser_->pre ();
-
-        return true;
+        this->Offsets_parser_->post_offsets_t ();
+        this->Offsets ();
       }
 
-      return false;
+      return true;
     }
 
-    bool roundabout_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "Separators" && ns.empty ())
     {
-      if (this->::sim_mob::xml::Node_t_pskel::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "roadSegmentsAt" && ns.empty ())
+      if (this->Separators_parser_)
       {
-        if (this->roadSegmentsAt_parser_)
-          this->roadSegmentsAt (this->roadSegmentsAt_parser_->post_RoadSegmentsAt_t ());
-
-        return true;
+        this->Separators_parser_->post_separators_t ();
+        this->Separators ();
       }
 
-      if (n == "Connectors" && ns.empty ())
-      {
-        if (this->Connectors_parser_)
-          this->Connectors (this->Connectors_parser_->post_Multi_Connectors_t ());
-
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "ChunkLengths" && ns.empty ())
+    if (n == "additionalDominantLanes" && ns.empty ())
+    {
+      if (this->additionalDominantLanes_parser_)
       {
-        if (this->ChunkLengths_parser_)
-        {
-          this->ChunkLengths_parser_->post_ChunkLengths_t ();
-          this->ChunkLengths ();
-        }
-
-        return true;
+        this->additionalDominantLanes_parser_->post_LanesVector_t ();
+        this->additionalDominantLanes ();
       }
 
-      if (n == "Offsets" && ns.empty ())
-      {
-        if (this->Offsets_parser_)
-        {
-          this->Offsets_parser_->post_offsets_t ();
-          this->Offsets ();
-        }
-
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "Separators" && ns.empty ())
+    if (n == "additionalSubdominantLanes" && ns.empty ())
+    {
+      if (this->additionalSubdominantLanes_parser_)
       {
-        if (this->Separators_parser_)
-        {
-          this->Separators_parser_->post_separators_t ();
-          this->Separators ();
-        }
-
-        return true;
+        this->additionalSubdominantLanes_parser_->post_LanesVector_t ();
+        this->additionalSubdominantLanes ();
       }
+
+      return true;
+    }
 
-      if (n == "addDominantLane" && ns.empty ())
+    if (n == "domainIslands" && ns.empty ())
+    {
+      if (this->domainIslands_parser_)
       {
-        if (this->addDominantLane_parser_)
-        {
-          this->addDominantLane_parser_->post_LanesVector_t ();
-          this->addDominantLane ();
-        }
-
-        return true;
+        this->domainIslands_parser_->post_DomainIslands_t ();
+        this->domainIslands ();
       }
 
-      if (n == "roundaboutDominantIslands" && ns.empty ())
-      {
-        if (this->roundaboutDominantIslands_parser_)
-          this->roundaboutDominantIslands (this->roundaboutDominantIslands_parser_->post_float ());
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "roundaboutNumberOfLanes" && ns.empty ())
-      {
-        if (this->roundaboutNumberOfLanes_parser_)
-          this->roundaboutNumberOfLanes (this->roundaboutNumberOfLanes_parser_->post_int ());
+  // RoadItem_t_pskel
+  //
 
-        return true;
-      }
+  void RoadItem_t_pskel::
+  id (unsigned long long)
+  {
+  }
 
-      if (n == "entranceAngles" && ns.empty ())
-      {
-        if (this->entranceAngles_parser_)
-        {
-          this->entranceAngles_parser_->post_EntranceAngles_t ();
-          this->entranceAngles ();
-        }
-
-        return true;
-      }
+  void RoadItem_t_pskel::
+  Offset (unsigned short)
+  {
+  }
 
-      return false;
-    }
+  void RoadItem_t_pskel::
+  start (sim_mob::Point2D)
+  {
+  }
 
-    // intersection_t_pskel
-    //
+  void RoadItem_t_pskel::
+  end (sim_mob::Point2D)
+  {
+  }
 
-    void intersection_t_pskel::
-    roadSegmentsAt (std::set<unsigned long>)
-    {
-    }
+  bool RoadItem_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    void intersection_t_pskel::
-    Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&)
-    {
-    }
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-    void intersection_t_pskel::
-    ChunkLengths ()
+    if (n == "id" && ns.empty ())
     {
-    }
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->id_parser_;
 
-    void intersection_t_pskel::
-    Offsets ()
-    {
-    }
+      if (this->id_parser_)
+        this->id_parser_->pre ();
 
-    void intersection_t_pskel::
-    Separators ()
-    {
+      return true;
     }
 
-    void intersection_t_pskel::
-    additionalDominantLanes ()
+    if (n == "Offset" && ns.empty ())
     {
-    }
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Offset_parser_;
 
-    void intersection_t_pskel::
-    additionalSubdominantLanes ()
-    {
-    }
+      if (this->Offset_parser_)
+        this->Offset_parser_->pre ();
 
-    void intersection_t_pskel::
-    domainIslands ()
-    {
+      return true;
     }
 
-    bool intersection_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "start" && ns.empty ())
     {
-      XSD_UNUSED (t);
-
-      if (this->::sim_mob::xml::Node_t_pskel::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "roadSegmentsAt" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->roadSegmentsAt_parser_;
-
-        if (this->roadSegmentsAt_parser_)
-          this->roadSegmentsAt_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "Connectors" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Connectors_parser_;
-
-        if (this->Connectors_parser_)
-          this->Connectors_parser_->pre ();
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->start_parser_;
 
-        return true;
-      }
-
-      if (n == "ChunkLengths" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->ChunkLengths_parser_;
-
-        if (this->ChunkLengths_parser_)
-          this->ChunkLengths_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "Offsets" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Offsets_parser_;
-
-        if (this->Offsets_parser_)
-          this->Offsets_parser_->pre ();
-
-        return true;
-      }
+      if (this->start_parser_)
+        this->start_parser_->pre ();
 
-      if (n == "Separators" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Separators_parser_;
-
-        if (this->Separators_parser_)
-          this->Separators_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "end" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->end_parser_;
 
-      if (n == "additionalDominantLanes" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->additionalDominantLanes_parser_;
+      if (this->end_parser_)
+        this->end_parser_->pre ();
 
-        if (this->additionalDominantLanes_parser_)
-          this->additionalDominantLanes_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "additionalSubdominantLanes" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->additionalSubdominantLanes_parser_;
+  bool RoadItem_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-        if (this->additionalSubdominantLanes_parser_)
-          this->additionalSubdominantLanes_parser_->pre ();
+    if (n == "id" && ns.empty ())
+    {
+      if (this->id_parser_)
+        this->id (this->id_parser_->post_unsigned_long ());
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "domainIslands" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->domainIslands_parser_;
+    if (n == "Offset" && ns.empty ())
+    {
+      if (this->Offset_parser_)
+        this->Offset (this->Offset_parser_->post_unsigned_short ());
 
-        if (this->domainIslands_parser_)
-          this->domainIslands_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "start" && ns.empty ())
+    {
+      if (this->start_parser_)
+        this->start (this->start_parser_->post_Point2D_t ());
 
-      return false;
+      return true;
     }
 
-    bool intersection_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "end" && ns.empty ())
     {
-      if (this->::sim_mob::xml::Node_t_pskel::_end_element_impl (ns, n))
-        return true;
+      if (this->end_parser_)
+        this->end (this->end_parser_->post_Point2D_t ());
 
-      if (n == "roadSegmentsAt" && ns.empty ())
-      {
-        if (this->roadSegmentsAt_parser_)
-          this->roadSegmentsAt (this->roadSegmentsAt_parser_->post_RoadSegmentsAt_t ());
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "Connectors" && ns.empty ())
-      {
-        if (this->Connectors_parser_)
-          this->Connectors (this->Connectors_parser_->post_Multi_Connectors_t ());
+  // BusStop_t_pskel
+  //
 
-        return true;
-      }
+  void BusStop_t_pskel::
+  xPos (double)
+  {
+  }
 
-      if (n == "ChunkLengths" && ns.empty ())
-      {
-        if (this->ChunkLengths_parser_)
-        {
-          this->ChunkLengths_parser_->post_ChunkLengths_t ();
-          this->ChunkLengths ();
-        }
-
-        return true;
-      }
+  void BusStop_t_pskel::
+  yPos (double)
+  {
+  }
 
-      if (n == "Offsets" && ns.empty ())
-      {
-        if (this->Offsets_parser_)
-        {
-          this->Offsets_parser_->post_offsets_t ();
-          this->Offsets ();
-        }
-
-        return true;
-      }
+  void BusStop_t_pskel::
+  lane_location (unsigned long long)
+  {
+  }
 
-      if (n == "Separators" && ns.empty ())
-      {
-        if (this->Separators_parser_)
-        {
-          this->Separators_parser_->post_separators_t ();
-          this->Separators ();
-        }
-
-        return true;
-      }
+  void BusStop_t_pskel::
+  is_terminal (bool)
+  {
+  }
 
-      if (n == "additionalDominantLanes" && ns.empty ())
-      {
-        if (this->additionalDominantLanes_parser_)
-        {
-          this->additionalDominantLanes_parser_->post_LanesVector_t ();
-          this->additionalDominantLanes ();
-        }
-
-        return true;
-      }
+  void BusStop_t_pskel::
+  is_bay (bool)
+  {
+  }
 
-      if (n == "additionalSubdominantLanes" && ns.empty ())
-      {
-        if (this->additionalSubdominantLanes_parser_)
-        {
-          this->additionalSubdominantLanes_parser_->post_LanesVector_t ();
-          this->additionalSubdominantLanes ();
-        }
-
-        return true;
-      }
+  void BusStop_t_pskel::
+  has_shelter (bool)
+  {
+  }
 
-      if (n == "domainIslands" && ns.empty ())
-      {
-        if (this->domainIslands_parser_)
-        {
-          this->domainIslands_parser_->post_DomainIslands_t ();
-          this->domainIslands ();
-        }
-
-        return true;
-      }
+  void BusStop_t_pskel::
+  busCapacityAsLength (unsigned int)
+  {
+  }
 
-      return false;
-    }
+  void BusStop_t_pskel::
+  busstopno (const ::std::string&)
+  {
+  }
 
-    // RoadItem_t_pskel
-    //
+  bool BusStop_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    void RoadItem_t_pskel::
-    id (unsigned long long)
-    {
-    }
+    if (this->::sim_mob::xml::RoadItem_t_pskel::_start_element_impl (ns, n, t))
+      return true;
 
-    void RoadItem_t_pskel::
-    Offset (unsigned short)
+    if (n == "xPos" && ns.empty ())
     {
-    }
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->xPos_parser_;
 
-    void RoadItem_t_pskel::
-    start (sim_mob::Point2D)
-    {
-    }
+      if (this->xPos_parser_)
+        this->xPos_parser_->pre ();
 
-    void RoadItem_t_pskel::
-    end (sim_mob::Point2D)
-    {
+      return true;
     }
 
-    bool RoadItem_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "yPos" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->yPos_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->yPos_parser_)
+        this->yPos_parser_->pre ();
 
-      if (n == "id" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->id_parser_;
+      return true;
+    }
 
-        if (this->id_parser_)
-          this->id_parser_->pre ();
+    if (n == "lane_location" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->lane_location_parser_;
 
-        return true;
-      }
+      if (this->lane_location_parser_)
+        this->lane_location_parser_->pre ();
 
-      if (n == "Offset" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Offset_parser_;
+      return true;
+    }
 
-        if (this->Offset_parser_)
-          this->Offset_parser_->pre ();
+    if (n == "is_terminal" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->is_terminal_parser_;
 
-        return true;
-      }
+      if (this->is_terminal_parser_)
+        this->is_terminal_parser_->pre ();
 
-      if (n == "start" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->start_parser_;
+      return true;
+    }
 
-        if (this->start_parser_)
-          this->start_parser_->pre ();
+    if (n == "is_bay" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->is_bay_parser_;
 
-        return true;
-      }
+      if (this->is_bay_parser_)
+        this->is_bay_parser_->pre ();
 
-      if (n == "end" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->end_parser_;
+      return true;
+    }
 
-        if (this->end_parser_)
-          this->end_parser_->pre ();
+    if (n == "has_shelter" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->has_shelter_parser_;
 
-        return true;
-      }
+      if (this->has_shelter_parser_)
+        this->has_shelter_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool RoadItem_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "busCapacityAsLength" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->busCapacityAsLength_parser_;
 
-      if (n == "id" && ns.empty ())
-      {
-        if (this->id_parser_)
-          this->id (this->id_parser_->post_unsigned_long ());
+      if (this->busCapacityAsLength_parser_)
+        this->busCapacityAsLength_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "Offset" && ns.empty ())
-      {
-        if (this->Offset_parser_)
-          this->Offset (this->Offset_parser_->post_unsigned_short ());
+    if (n == "busstopno" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->busstopno_parser_;
 
-        return true;
-      }
+      if (this->busstopno_parser_)
+        this->busstopno_parser_->pre ();
 
-      if (n == "start" && ns.empty ())
-      {
-        if (this->start_parser_)
-          this->start (this->start_parser_->post_Point2D_t ());
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "end" && ns.empty ())
-      {
-        if (this->end_parser_)
-          this->end (this->end_parser_->post_Point2D_t ());
+  bool BusStop_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::sim_mob::xml::RoadItem_t_pskel::_end_element_impl (ns, n))
+      return true;
 
-        return true;
-      }
+    if (n == "xPos" && ns.empty ())
+    {
+      if (this->xPos_parser_)
+        this->xPos (this->xPos_parser_->post_double ());
 
-      return false;
+      return true;
     }
-
-    // BusStop_t_pskel
-    //
 
-    void BusStop_t_pskel::
-    xPos (double)
+    if (n == "yPos" && ns.empty ())
     {
-    }
+      if (this->yPos_parser_)
+        this->yPos (this->yPos_parser_->post_double ());
 
-    void BusStop_t_pskel::
-    yPos (double)
-    {
+      return true;
     }
 
-    void BusStop_t_pskel::
-    lane_location (unsigned long long)
+    if (n == "lane_location" && ns.empty ())
     {
-    }
+      if (this->lane_location_parser_)
+        this->lane_location (this->lane_location_parser_->post_unsigned_long ());
 
-    void BusStop_t_pskel::
-    is_terminal (bool)
-    {
+      return true;
     }
 
-    void BusStop_t_pskel::
-    is_bay (bool)
+    if (n == "is_terminal" && ns.empty ())
     {
-    }
+      if (this->is_terminal_parser_)
+        this->is_terminal (this->is_terminal_parser_->post_boolean ());
 
-    void BusStop_t_pskel::
-    has_shelter (bool)
-    {
+      return true;
     }
 
-    void BusStop_t_pskel::
-    busCapacityAsLength (unsigned int)
+    if (n == "is_bay" && ns.empty ())
     {
-    }
+      if (this->is_bay_parser_)
+        this->is_bay (this->is_bay_parser_->post_boolean ());
 
-    void BusStop_t_pskel::
-    busstopno (const ::std::string&)
-    {
+      return true;
     }
 
-    bool BusStop_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "has_shelter" && ns.empty ())
     {
-      XSD_UNUSED (t);
-
-      if (this->::sim_mob::xml::RoadItem_t_pskel::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "xPos" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->xPos_parser_;
-
-        if (this->xPos_parser_)
-          this->xPos_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "yPos" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->yPos_parser_;
-
-        if (this->yPos_parser_)
-          this->yPos_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "lane_location" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->lane_location_parser_;
-
-        if (this->lane_location_parser_)
-          this->lane_location_parser_->pre ();
+      if (this->has_shelter_parser_)
+        this->has_shelter (this->has_shelter_parser_->post_boolean ());
 
-        return true;
-      }
-
-      if (n == "is_terminal" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->is_terminal_parser_;
-
-        if (this->is_terminal_parser_)
-          this->is_terminal_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "is_bay" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->is_bay_parser_;
-
-        if (this->is_bay_parser_)
-          this->is_bay_parser_->pre ();
-
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "has_shelter" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->has_shelter_parser_;
+    if (n == "busCapacityAsLength" && ns.empty ())
+    {
+      if (this->busCapacityAsLength_parser_)
+        this->busCapacityAsLength (this->busCapacityAsLength_parser_->post_unsigned_int ());
 
-        if (this->has_shelter_parser_)
-          this->has_shelter_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "busstopno" && ns.empty ())
+    {
+      if (this->busstopno_parser_)
+        this->busstopno (this->busstopno_parser_->post_string ());
 
-      if (n == "busCapacityAsLength" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->busCapacityAsLength_parser_;
+      return true;
+    }
 
-        if (this->busCapacityAsLength_parser_)
-          this->busCapacityAsLength_parser_->pre ();
+    return false;
+  }
 
-        return true;
-      }
+  // ERP_Gantry_t_pskel
+  //
 
-      if (n == "busstopno" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->busstopno_parser_;
+  void ERP_Gantry_t_pskel::
+  ERP_GantryID (const ::std::string&)
+  {
+  }
 
-        if (this->busstopno_parser_)
-          this->busstopno_parser_->pre ();
+  void ERP_Gantry_t_pskel::
+  post_ERP_Gantry_t ()
+  {
+  }
 
-        return true;
-      }
+  bool ERP_Gantry_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      return false;
-    }
+    if (this->::sim_mob::xml::RoadItem_t_pskel::_start_element_impl (ns, n, t))
+      return true;
 
-    bool BusStop_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "ERP_GantryID" && ns.empty ())
     {
-      if (this->::sim_mob::xml::RoadItem_t_pskel::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "xPos" && ns.empty ())
-      {
-        if (this->xPos_parser_)
-          this->xPos (this->xPos_parser_->post_double ());
-
-        return true;
-      }
-
-      if (n == "yPos" && ns.empty ())
-      {
-        if (this->yPos_parser_)
-          this->yPos (this->yPos_parser_->post_double ());
-
-        return true;
-      }
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ERP_GantryID_parser_;
 
-      if (n == "lane_location" && ns.empty ())
-      {
-        if (this->lane_location_parser_)
-          this->lane_location (this->lane_location_parser_->post_unsigned_long ());
+      if (this->ERP_GantryID_parser_)
+        this->ERP_GantryID_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "is_terminal" && ns.empty ())
-      {
-        if (this->is_terminal_parser_)
-          this->is_terminal (this->is_terminal_parser_->post_boolean ());
+    return false;
+  }
 
-        return true;
-      }
+  bool ERP_Gantry_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::sim_mob::xml::RoadItem_t_pskel::_end_element_impl (ns, n))
+      return true;
 
-      if (n == "is_bay" && ns.empty ())
-      {
-        if (this->is_bay_parser_)
-          this->is_bay (this->is_bay_parser_->post_boolean ());
+    if (n == "ERP_GantryID" && ns.empty ())
+    {
+      if (this->ERP_GantryID_parser_)
+        this->ERP_GantryID (this->ERP_GantryID_parser_->post_string ());
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "has_shelter" && ns.empty ())
-      {
-        if (this->has_shelter_parser_)
-          this->has_shelter (this->has_shelter_parser_->post_boolean ());
+    return false;
+  }
 
-        return true;
-      }
+  // FormType_pskel
+  //
 
-      if (n == "busCapacityAsLength" && ns.empty ())
-      {
-        if (this->busCapacityAsLength_parser_)
-          this->busCapacityAsLength (this->busCapacityAsLength_parser_->post_unsigned_int ());
+  void FormType_pskel::
+  TextBox (int)
+  {
+  }
 
-        return true;
-      }
+  void FormType_pskel::
+  TextArea (int)
+  {
+  }
 
-      if (n == "busstopno" && ns.empty ())
-      {
-        if (this->busstopno_parser_)
-          this->busstopno (this->busstopno_parser_->post_string ());
+  void FormType_pskel::
+  Header (int)
+  {
+  }
 
-        return true;
-      }
+  void FormType_pskel::
+  post_FormType ()
+  {
+  }
 
-      return false;
-    }
+  bool FormType_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    // ERP_Gantry_t_pskel
-    //
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-    void ERP_Gantry_t_pskel::
-    ERP_GantryID (const ::std::string&)
+    if (n == "TextBox" && ns.empty ())
     {
-    }
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->TextBox_parser_;
 
-    void ERP_Gantry_t_pskel::
-    post_ERP_Gantry_t ()
-    {
+      if (this->TextBox_parser_)
+        this->TextBox_parser_->pre ();
+
+      return true;
     }
 
-    bool ERP_Gantry_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "TextArea" && ns.empty ())
     {
-      XSD_UNUSED (t);
-
-      if (this->::sim_mob::xml::RoadItem_t_pskel::_start_element_impl (ns, n, t))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->TextArea_parser_;
 
-      if (n == "ERP_GantryID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->ERP_GantryID_parser_;
-
-        if (this->ERP_GantryID_parser_)
-          this->ERP_GantryID_parser_->pre ();
-
-        return true;
-      }
+      if (this->TextArea_parser_)
+        this->TextArea_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool ERP_Gantry_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "Header" && ns.empty ())
     {
-      if (this->::sim_mob::xml::RoadItem_t_pskel::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Header_parser_;
 
-      if (n == "ERP_GantryID" && ns.empty ())
-      {
-        if (this->ERP_GantryID_parser_)
-          this->ERP_GantryID (this->ERP_GantryID_parser_->post_string ());
-
-        return true;
-      }
+      if (this->Header_parser_)
+        this->Header_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // FormType_pskel
-    //
+    return false;
+  }
 
-    void FormType_pskel::
-    TextBox (int)
-    {
-    }
+  bool FormType_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-    void FormType_pskel::
-    TextArea (int)
+    if (n == "TextBox" && ns.empty ())
     {
-    }
+      if (this->TextBox_parser_)
+        this->TextBox (this->TextBox_parser_->post_int ());
 
-    void FormType_pskel::
-    Header (int)
-    {
+      return true;
     }
 
-    void FormType_pskel::
-    post_FormType ()
+    if (n == "TextArea" && ns.empty ())
     {
+      if (this->TextArea_parser_)
+        this->TextArea (this->TextArea_parser_->post_int ());
+
+      return true;
     }
 
-    bool FormType_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "Header" && ns.empty ())
     {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->Header_parser_)
+        this->Header (this->Header_parser_->post_int ());
 
-      if (n == "TextBox" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->TextBox_parser_;
+      return true;
+    }
 
-        if (this->TextBox_parser_)
-          this->TextBox_parser_->pre ();
+    return false;
+  }
 
-        return true;
-      }
+  // PointPair_t_pskel
+  //
 
-      if (n == "TextArea" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->TextArea_parser_;
+  void PointPair_t_pskel::
+  first (sim_mob::Point2D)
+  {
+  }
 
-        if (this->TextArea_parser_)
-          this->TextArea_parser_->pre ();
+  void PointPair_t_pskel::
+  second (sim_mob::Point2D)
+  {
+  }
 
-        return true;
-      }
+  bool PointPair_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      if (n == "Header" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Header_parser_;
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        if (this->Header_parser_)
-          this->Header_parser_->pre ();
+    if (n == "first" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->first_parser_;
 
-        return true;
-      }
+      if (this->first_parser_)
+        this->first_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool FormType_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "second" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "TextBox" && ns.empty ())
-      {
-        if (this->TextBox_parser_)
-          this->TextBox (this->TextBox_parser_->post_int ());
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->second_parser_;
 
-        return true;
-      }
+      if (this->second_parser_)
+        this->second_parser_->pre ();
 
-      if (n == "TextArea" && ns.empty ())
-      {
-        if (this->TextArea_parser_)
-          this->TextArea (this->TextArea_parser_->post_int ());
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "Header" && ns.empty ())
-      {
-        if (this->Header_parser_)
-          this->Header (this->Header_parser_->post_int ());
+  bool PointPair_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-        return true;
-      }
+    if (n == "first" && ns.empty ())
+    {
+      if (this->first_parser_)
+        this->first (this->first_parser_->post_Point2D_t ());
 
-      return false;
+      return true;
     }
 
-    // PointPair_t_pskel
-    //
-
-    void PointPair_t_pskel::
-    first (sim_mob::Point2D)
+    if (n == "second" && ns.empty ())
     {
-    }
+      if (this->second_parser_)
+        this->second (this->second_parser_->post_Point2D_t ());
 
-    void PointPair_t_pskel::
-    second (sim_mob::Point2D)
-    {
+      return true;
     }
 
-    bool PointPair_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
+    return false;
+  }
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+  // crossing_t_pskel
+  //
 
-      if (n == "first" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->first_parser_;
+  void crossing_t_pskel::
+  nearLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>)
+  {
+  }
 
-        if (this->first_parser_)
-          this->first_parser_->pre ();
+  void crossing_t_pskel::
+  farLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>)
+  {
+  }
 
-        return true;
-      }
+  bool crossing_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      if (n == "second" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->second_parser_;
+    if (this->::sim_mob::xml::RoadItem_t_pskel::_start_element_impl (ns, n, t))
+      return true;
 
-        if (this->second_parser_)
-          this->second_parser_->pre ();
+    if (n == "nearLine" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->nearLine_parser_;
 
-        return true;
-      }
+      if (this->nearLine_parser_)
+        this->nearLine_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool PointPair_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "farLine" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "first" && ns.empty ())
-      {
-        if (this->first_parser_)
-          this->first (this->first_parser_->post_Point2D_t ());
-
-        return true;
-      }
-
-      if (n == "second" && ns.empty ())
-      {
-        if (this->second_parser_)
-          this->second (this->second_parser_->post_Point2D_t ());
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->farLine_parser_;
 
-        return true;
-      }
+      if (this->farLine_parser_)
+        this->farLine_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // crossing_t_pskel
-    //
+    return false;
+  }
 
-    void crossing_t_pskel::
-    nearLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>)
-    {
-    }
+  bool crossing_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::sim_mob::xml::RoadItem_t_pskel::_end_element_impl (ns, n))
+      return true;
 
-    void crossing_t_pskel::
-    farLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>)
+    if (n == "nearLine" && ns.empty ())
     {
+      if (this->nearLine_parser_)
+        this->nearLine (this->nearLine_parser_->post_PointPair_t ());
+
+      return true;
     }
 
-    bool crossing_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "farLine" && ns.empty ())
     {
-      XSD_UNUSED (t);
-
-      if (this->::sim_mob::xml::RoadItem_t_pskel::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "nearLine" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->nearLine_parser_;
+      if (this->farLine_parser_)
+        this->farLine (this->farLine_parser_->post_PointPair_t ());
 
-        if (this->nearLine_parser_)
-          this->nearLine_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "farLine" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->farLine_parser_;
-
-        if (this->farLine_parser_)
-          this->farLine_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    bool crossing_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::sim_mob::xml::RoadItem_t_pskel::_end_element_impl (ns, n))
-        return true;
+    return false;
+  }
 
-      if (n == "nearLine" && ns.empty ())
-      {
-        if (this->nearLine_parser_)
-          this->nearLine (this->nearLine_parser_->post_PointPair_t ());
+  // RoadBump_t_pskel
+  //
 
-        return true;
-      }
+  void RoadBump_t_pskel::
+  roadBumpID (const ::std::string&)
+  {
+  }
 
-      if (n == "farLine" && ns.empty ())
-      {
-        if (this->farLine_parser_)
-          this->farLine (this->farLine_parser_->post_PointPair_t ());
+  void RoadBump_t_pskel::
+  segmentID (unsigned long long)
+  {
+  }
 
-        return true;
-      }
+  void RoadBump_t_pskel::
+  post_RoadBump_t ()
+  {
+  }
 
-      return false;
-    }
+  bool RoadBump_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    // RoadBump_t_pskel
-    //
+    if (this->::sim_mob::xml::RoadItem_t_pskel::_start_element_impl (ns, n, t))
+      return true;
 
-    void RoadBump_t_pskel::
-    roadBumpID (const ::std::string&)
+    if (n == "roadBumpID" && ns.empty ())
     {
-    }
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->roadBumpID_parser_;
 
-    void RoadBump_t_pskel::
-    segmentID (unsigned long long)
-    {
-    }
+      if (this->roadBumpID_parser_)
+        this->roadBumpID_parser_->pre ();
 
-    void RoadBump_t_pskel::
-    post_RoadBump_t ()
-    {
+      return true;
     }
 
-    bool RoadBump_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "segmentID" && ns.empty ())
     {
-      XSD_UNUSED (t);
-
-      if (this->::sim_mob::xml::RoadItem_t_pskel::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "roadBumpID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->roadBumpID_parser_;
-
-        if (this->roadBumpID_parser_)
-          this->roadBumpID_parser_->pre ();
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->segmentID_parser_;
 
-        return true;
-      }
-
-      if (n == "segmentID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->segmentID_parser_;
-
-        if (this->segmentID_parser_)
-          this->segmentID_parser_->pre ();
+      if (this->segmentID_parser_)
+        this->segmentID_parser_->pre ();
 
-        return true;
-      }
-
-      return false;
+      return true;
     }
-
-    bool RoadBump_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::sim_mob::xml::RoadItem_t_pskel::_end_element_impl (ns, n))
-        return true;
 
-      if (n == "roadBumpID" && ns.empty ())
-      {
-        if (this->roadBumpID_parser_)
-          this->roadBumpID (this->roadBumpID_parser_->post_string ());
-
-        return true;
-      }
-
-      if (n == "segmentID" && ns.empty ())
-      {
-        if (this->segmentID_parser_)
-          this->segmentID (this->segmentID_parser_->post_unsigned_long ());
-
-        return true;
-      }
+    return false;
+  }
 
-      return false;
-    }
-
-    // RoadNetwork_t_pskel
-    //
+  bool RoadBump_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::sim_mob::xml::RoadItem_t_pskel::_end_element_impl (ns, n))
+      return true;
 
-    void RoadNetwork_t_pskel::
-    coordinate_map (const std::vector<sim_mob::CoordinateTransform*>&)
+    if (n == "roadBumpID" && ns.empty ())
     {
-    }
+      if (this->roadBumpID_parser_)
+        this->roadBumpID (this->roadBumpID_parser_->post_string ());
 
-    void RoadNetwork_t_pskel::
-    roadrunner_regions (const std::map<int, sim_mob::RoadRunnerRegion>&)
-    {
+      return true;
     }
 
-    void RoadNetwork_t_pskel::
-    Nodes (const helper::NodesRes&)
+    if (n == "segmentID" && ns.empty ())
     {
-    }
+      if (this->segmentID_parser_)
+        this->segmentID (this->segmentID_parser_->post_unsigned_long ());
 
-    void RoadNetwork_t_pskel::
-    Links (const std::vector<sim_mob::Link*>&)
-    {
+      return true;
     }
-
-    bool RoadNetwork_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+    return false;
+  }
 
-      if (n == "coordinate_map" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->coordinate_map_parser_;
+  // RoadNetwork_t_pskel
+  //
 
-        if (this->coordinate_map_parser_)
-          this->coordinate_map_parser_->pre ();
+  void RoadNetwork_t_pskel::
+  coordinate_map (const std::vector<sim_mob::CoordinateTransform*>&)
+  {
+  }
 
-        return true;
-      }
+  void RoadNetwork_t_pskel::
+  roadrunner_regions (const std::map<int, sim_mob::RoadRunnerRegion>&)
+  {
+  }
 
-      if (n == "roadrunner_regions" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->roadrunner_regions_parser_;
+  void RoadNetwork_t_pskel::
+  Nodes (const helper::NodesRes&)
+  {
+  }
 
-        if (this->roadrunner_regions_parser_)
-          this->roadrunner_regions_parser_->pre ();
+  void RoadNetwork_t_pskel::
+  Links (const std::vector<sim_mob::Link*>&)
+  {
+  }
 
-        return true;
-      }
+  bool RoadNetwork_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      if (n == "Nodes" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Nodes_parser_;
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        if (this->Nodes_parser_)
-          this->Nodes_parser_->pre ();
+    if (n == "coordinate_map" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->coordinate_map_parser_;
 
-        return true;
-      }
+      if (this->coordinate_map_parser_)
+        this->coordinate_map_parser_->pre ();
 
-      if (n == "Links" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Links_parser_;
+      return true;
+    }
 
-        if (this->Links_parser_)
-          this->Links_parser_->pre ();
+    if (n == "roadrunner_regions" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->roadrunner_regions_parser_;
 
-        return true;
-      }
+      if (this->roadrunner_regions_parser_)
+        this->roadrunner_regions_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool RoadNetwork_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "Nodes" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Nodes_parser_;
 
-      if (n == "coordinate_map" && ns.empty ())
-      {
-        if (this->coordinate_map_parser_)
-          this->coordinate_map (this->coordinate_map_parser_->post_coordinate_map_t ());
+      if (this->Nodes_parser_)
+        this->Nodes_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "roadrunner_regions" && ns.empty ())
-      {
-        if (this->roadrunner_regions_parser_)
-          this->roadrunner_regions (this->roadrunner_regions_parser_->post_roadrunner_regions_t ());
+    if (n == "Links" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Links_parser_;
 
-        return true;
-      }
+      if (this->Links_parser_)
+        this->Links_parser_->pre ();
 
-      if (n == "Nodes" && ns.empty ())
-      {
-        if (this->Nodes_parser_)
-          this->Nodes (this->Nodes_parser_->post_Nodes ());
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "Links" && ns.empty ())
-      {
-        if (this->Links_parser_)
-          this->Links (this->Links_parser_->post_Links ());
+  bool RoadNetwork_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-        return true;
-      }
+    if (n == "coordinate_map" && ns.empty ())
+    {
+      if (this->coordinate_map_parser_)
+        this->coordinate_map (this->coordinate_map_parser_->post_coordinate_map_t ());
 
-      return false;
+      return true;
     }
 
-    // RoadItems_t_pskel
-    //
-
-    void RoadItems_t_pskel::
-    BusStop (std::pair<unsigned long,sim_mob::BusStop*>)
+    if (n == "roadrunner_regions" && ns.empty ())
     {
-    }
+      if (this->roadrunner_regions_parser_)
+        this->roadrunner_regions (this->roadrunner_regions_parser_->post_roadrunner_regions_t ());
 
-    void RoadItems_t_pskel::
-    ERP_Gantry ()
-    {
+      return true;
     }
 
-    void RoadItems_t_pskel::
-    Crossing (std::pair<unsigned long,sim_mob::Crossing*>)
+    if (n == "Nodes" && ns.empty ())
     {
-    }
+      if (this->Nodes_parser_)
+        this->Nodes (this->Nodes_parser_->post_Nodes ());
 
-    void RoadItems_t_pskel::
-    RoadBump ()
-    {
+      return true;
     }
 
-    bool RoadItems_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "Links" && ns.empty ())
     {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->Links_parser_)
+        this->Links (this->Links_parser_->post_Links ());
 
-      if (n == "BusStop" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->BusStop_parser_;
-
-        if (this->BusStop_parser_)
-          this->BusStop_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "ERP_Gantry" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->ERP_Gantry_parser_;
-
-        if (this->ERP_Gantry_parser_)
-          this->ERP_Gantry_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "Crossing" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Crossing_parser_;
+  // RoadItems_t_pskel
+  //
 
-        if (this->Crossing_parser_)
-          this->Crossing_parser_->pre ();
+  void RoadItems_t_pskel::
+  BusStop (std::pair<unsigned long,sim_mob::BusStop*>)
+  {
+  }
 
-        return true;
-      }
+  void RoadItems_t_pskel::
+  ERP_Gantry ()
+  {
+  }
 
-      if (n == "RoadBump" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->RoadBump_parser_;
+  void RoadItems_t_pskel::
+  Crossing (std::pair<unsigned long,sim_mob::Crossing*>)
+  {
+  }
 
-        if (this->RoadBump_parser_)
-          this->RoadBump_parser_->pre ();
+  void RoadItems_t_pskel::
+  RoadBump ()
+  {
+  }
 
-        return true;
-      }
+  bool RoadItems_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      return false;
-    }
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-    bool RoadItems_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "BusStop" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "BusStop" && ns.empty ())
-      {
-        if (this->BusStop_parser_)
-          this->BusStop (this->BusStop_parser_->post_BusStop_t ());
-
-        return true;
-      }
-
-      if (n == "ERP_Gantry" && ns.empty ())
-      {
-        if (this->ERP_Gantry_parser_)
-        {
-          this->ERP_Gantry_parser_->post_ERP_Gantry_t ();
-          this->ERP_Gantry ();
-        }
-
-        return true;
-      }
-
-      if (n == "Crossing" && ns.empty ())
-      {
-        if (this->Crossing_parser_)
-          this->Crossing (this->Crossing_parser_->post_crossing_t ());
-
-        return true;
-      }
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->BusStop_parser_;
 
-      if (n == "RoadBump" && ns.empty ())
-      {
-        if (this->RoadBump_parser_)
-        {
-          this->RoadBump_parser_->post_RoadBump_t ();
-          this->RoadBump ();
-        }
-
-        return true;
-      }
+      if (this->BusStop_parser_)
+        this->BusStop_parser_->pre ();
 
-      return false;
+      return true;
     }
-
-    // TripChainItem_t_pskel
-    //
 
-    void TripChainItem_t_pskel::
-    personID (const ::std::string&)
+    if (n == "ERP_Gantry" && ns.empty ())
     {
-    }
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ERP_Gantry_parser_;
+
+      if (this->ERP_Gantry_parser_)
+        this->ERP_Gantry_parser_->pre ();
 
-    void TripChainItem_t_pskel::
-    itemType (std::string)
-    {
+      return true;
     }
 
-    void TripChainItem_t_pskel::
-    sequenceNumber (unsigned int)
+    if (n == "Crossing" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Crossing_parser_;
+
+      if (this->Crossing_parser_)
+        this->Crossing_parser_->pre ();
+
+      return true;
     }
 
-    void TripChainItem_t_pskel::
-    requestTime (long long)
+    if (n == "RoadBump" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->RoadBump_parser_;
+
+      if (this->RoadBump_parser_)
+        this->RoadBump_parser_->pre ();
+
+      return true;
     }
+
+    return false;
+  }
 
-    void TripChainItem_t_pskel::
-    startTime (const ::std::string&)
+  bool RoadItems_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "BusStop" && ns.empty ())
     {
+      if (this->BusStop_parser_)
+        this->BusStop (this->BusStop_parser_->post_BusStop_t ());
+
+      return true;
     }
 
-    void TripChainItem_t_pskel::
-    endTime (const ::std::string&)
+    if (n == "ERP_Gantry" && ns.empty ())
     {
+      if (this->ERP_Gantry_parser_)
+      {
+        this->ERP_Gantry_parser_->post_ERP_Gantry_t ();
+        this->ERP_Gantry ();
+      }
+
+      return true;
     }
 
-    bool TripChainItem_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "Crossing" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->Crossing_parser_)
+        this->Crossing (this->Crossing_parser_->post_crossing_t ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      return true;
+    }
 
-      if (n == "personID" && ns.empty ())
+    if (n == "RoadBump" && ns.empty ())
+    {
+      if (this->RoadBump_parser_)
       {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->personID_parser_;
-
-        if (this->personID_parser_)
-          this->personID_parser_->pre ();
-
-        return true;
+        this->RoadBump_parser_->post_RoadBump_t ();
+        this->RoadBump ();
       }
-
-      if (n == "itemType" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->itemType_parser_;
-
-        if (this->itemType_parser_)
-          this->itemType_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "sequenceNumber" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->sequenceNumber_parser_;
+    return false;
+  }
 
-        if (this->sequenceNumber_parser_)
-          this->sequenceNumber_parser_->pre ();
+  // TripChainItem_t_pskel
+  //
 
-        return true;
-      }
+  void TripChainItem_t_pskel::
+  personID (const ::std::string&)
+  {
+  }
 
-      if (n == "requestTime" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->requestTime_parser_;
+  void TripChainItem_t_pskel::
+  itemType (std::string)
+  {
+  }
 
-        if (this->requestTime_parser_)
-          this->requestTime_parser_->pre ();
+  void TripChainItem_t_pskel::
+  sequenceNumber (unsigned int)
+  {
+  }
 
-        return true;
-      }
+  void TripChainItem_t_pskel::
+  requestTime (long long)
+  {
+  }
 
-      if (n == "startTime" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->startTime_parser_;
+  void TripChainItem_t_pskel::
+  startTime (const ::std::string&)
+  {
+  }
 
-        if (this->startTime_parser_)
-          this->startTime_parser_->pre ();
+  void TripChainItem_t_pskel::
+  endTime (const ::std::string&)
+  {
+  }
 
-        return true;
-      }
+  bool TripChainItem_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      if (n == "endTime" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->endTime_parser_;
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        if (this->endTime_parser_)
-          this->endTime_parser_->pre ();
+    if (n == "personID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->personID_parser_;
 
-        return true;
-      }
+      if (this->personID_parser_)
+        this->personID_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool TripChainItem_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "itemType" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->itemType_parser_;
 
-      if (n == "personID" && ns.empty ())
-      {
-        if (this->personID_parser_)
-          this->personID (this->personID_parser_->post_string ());
+      if (this->itemType_parser_)
+        this->itemType_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "itemType" && ns.empty ())
-      {
-        if (this->itemType_parser_)
-          this->itemType (this->itemType_parser_->post_TripchainItemType ());
+    if (n == "sequenceNumber" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->sequenceNumber_parser_;
 
-        return true;
-      }
+      if (this->sequenceNumber_parser_)
+        this->sequenceNumber_parser_->pre ();
 
-      if (n == "sequenceNumber" && ns.empty ())
-      {
-        if (this->sequenceNumber_parser_)
-          this->sequenceNumber (this->sequenceNumber_parser_->post_unsigned_int ());
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "requestTime" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->requestTime_parser_;
 
-      if (n == "requestTime" && ns.empty ())
-      {
-        if (this->requestTime_parser_)
-          this->requestTime (this->requestTime_parser_->post_integer ());
+      if (this->requestTime_parser_)
+        this->requestTime_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "startTime" && ns.empty ())
-      {
-        if (this->startTime_parser_)
-          this->startTime (this->startTime_parser_->post_string ());
+    if (n == "startTime" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->startTime_parser_;
 
-        return true;
-      }
+      if (this->startTime_parser_)
+        this->startTime_parser_->pre ();
 
-      if (n == "endTime" && ns.empty ())
-      {
-        if (this->endTime_parser_)
-          this->endTime (this->endTime_parser_->post_string ());
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "endTime" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->endTime_parser_;
+
+      if (this->endTime_parser_)
+        this->endTime_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // Trip_t_pskel
-    //
+    return false;
+  }
 
-    void Trip_t_pskel::
-    tripID (long long)
-    {
-    }
+  bool TripChainItem_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-    void Trip_t_pskel::
-    fromLocation (unsigned int)
+    if (n == "personID" && ns.empty ())
     {
-    }
+      if (this->personID_parser_)
+        this->personID (this->personID_parser_->post_string ());
 
-    void Trip_t_pskel::
-    fromLocationType (std::string)
-    {
+      return true;
     }
 
-    void Trip_t_pskel::
-    toLocation (unsigned int)
+    if (n == "itemType" && ns.empty ())
     {
+      if (this->itemType_parser_)
+        this->itemType (this->itemType_parser_->post_TripchainItemType ());
+
+      return true;
     }
 
-    void Trip_t_pskel::
-    toLocationType (std::string)
+    if (n == "sequenceNumber" && ns.empty ())
     {
+      if (this->sequenceNumber_parser_)
+        this->sequenceNumber (this->sequenceNumber_parser_->post_unsigned_int ());
+
+      return true;
     }
 
-    void Trip_t_pskel::
-    subTrips (std::vector<sim_mob::SubTrip>)
+    if (n == "requestTime" && ns.empty ())
     {
+      if (this->requestTime_parser_)
+        this->requestTime (this->requestTime_parser_->post_integer ());
+
+      return true;
     }
 
-    sim_mob::TripChainItem* Trip_t_pskel::
-    post_Trip_t ()
+    if (n == "startTime" && ns.empty ())
     {
-      return post_TripChainItem_t ();
+      if (this->startTime_parser_)
+        this->startTime (this->startTime_parser_->post_string ());
+
+      return true;
     }
 
-    bool Trip_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "endTime" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->endTime_parser_)
+        this->endTime (this->endTime_parser_->post_string ());
 
-      if (this->::sim_mob::xml::TripChainItem_t_pskel::_start_element_impl (ns, n, t))
-        return true;
+      return true;
+    }
 
-      if (n == "tripID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->tripID_parser_;
+    return false;
+  }
 
-        if (this->tripID_parser_)
-          this->tripID_parser_->pre ();
+  // Trip_t_pskel
+  //
 
-        return true;
-      }
+  void Trip_t_pskel::
+  tripID (long long)
+  {
+  }
 
-      if (n == "fromLocation" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->fromLocation_parser_;
+  void Trip_t_pskel::
+  fromLocation (unsigned int)
+  {
+  }
 
-        if (this->fromLocation_parser_)
-          this->fromLocation_parser_->pre ();
+  void Trip_t_pskel::
+  fromLocationType (std::string)
+  {
+  }
 
-        return true;
-      }
+  void Trip_t_pskel::
+  toLocation (unsigned int)
+  {
+  }
 
-      if (n == "fromLocationType" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->fromLocationType_parser_;
+  void Trip_t_pskel::
+  toLocationType (std::string)
+  {
+  }
 
-        if (this->fromLocationType_parser_)
-          this->fromLocationType_parser_->pre ();
+  void Trip_t_pskel::
+  subTrips (std::vector<sim_mob::SubTrip>)
+  {
+  }
 
-        return true;
-      }
+  sim_mob::TripChainItem* Trip_t_pskel::
+  post_Trip_t ()
+  {
+    return post_TripChainItem_t ();
+  }
 
-      if (n == "toLocation" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->toLocation_parser_;
+  bool Trip_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-        if (this->toLocation_parser_)
-          this->toLocation_parser_->pre ();
+    if (this->::sim_mob::xml::TripChainItem_t_pskel::_start_element_impl (ns, n, t))
+      return true;
 
-        return true;
-      }
+    if (n == "tripID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->tripID_parser_;
 
-      if (n == "toLocationType" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->toLocationType_parser_;
+      if (this->tripID_parser_)
+        this->tripID_parser_->pre ();
 
-        if (this->toLocationType_parser_)
-          this->toLocationType_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "fromLocation" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->fromLocation_parser_;
 
-      if (n == "subTrips" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->subTrips_parser_;
+      if (this->fromLocation_parser_)
+        this->fromLocation_parser_->pre ();
 
-        if (this->subTrips_parser_)
-          this->subTrips_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "fromLocationType" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->fromLocationType_parser_;
 
-      return false;
+      if (this->fromLocationType_parser_)
+        this->fromLocationType_parser_->pre ();
+
+      return true;
     }
 
-    bool Trip_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "toLocation" && ns.empty ())
     {
-      if (this->::sim_mob::xml::TripChainItem_t_pskel::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "tripID" && ns.empty ())
-      {
-        if (this->tripID_parser_)
-          this->tripID (this->tripID_parser_->post_integer ());
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->toLocation_parser_;
 
-        return true;
-      }
+      if (this->toLocation_parser_)
+        this->toLocation_parser_->pre ();
 
-      if (n == "fromLocation" && ns.empty ())
-      {
-        if (this->fromLocation_parser_)
-          this->fromLocation (this->fromLocation_parser_->post_unsigned_int ());
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "toLocationType" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->toLocationType_parser_;
 
-      if (n == "fromLocationType" && ns.empty ())
-      {
-        if (this->fromLocationType_parser_)
-          this->fromLocationType (this->fromLocationType_parser_->post_TripchainItemLocationType ());
+      if (this->toLocationType_parser_)
+        this->toLocationType_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "toLocation" && ns.empty ())
-      {
-        if (this->toLocation_parser_)
-          this->toLocation (this->toLocation_parser_->post_unsigned_int ());
+    if (n == "subTrips" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->subTrips_parser_;
 
-        return true;
-      }
+      if (this->subTrips_parser_)
+        this->subTrips_parser_->pre ();
 
-      if (n == "toLocationType" && ns.empty ())
-      {
-        if (this->toLocationType_parser_)
-          this->toLocationType (this->toLocationType_parser_->post_TripchainItemLocationType ());
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "subTrips" && ns.empty ())
-      {
-        if (this->subTrips_parser_)
-          this->subTrips (this->subTrips_parser_->post_SubTrips_t ());
+  bool Trip_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::sim_mob::xml::TripChainItem_t_pskel::_end_element_impl (ns, n))
+      return true;
 
-        return true;
-      }
+    if (n == "tripID" && ns.empty ())
+    {
+      if (this->tripID_parser_)
+        this->tripID (this->tripID_parser_->post_integer ());
 
-      return false;
+      return true;
     }
 
-    // SubTrip_t_pskel
-    //
+    if (n == "fromLocation" && ns.empty ())
+    {
+      if (this->fromLocation_parser_)
+        this->fromLocation (this->fromLocation_parser_->post_unsigned_int ());
+
+      return true;
+    }
 
-    void SubTrip_t_pskel::
-    mode (const ::std::string&)
+    if (n == "fromLocationType" && ns.empty ())
     {
+      if (this->fromLocationType_parser_)
+        this->fromLocationType (this->fromLocationType_parser_->post_TripchainItemLocationType ());
+
+      return true;
     }
 
-    void SubTrip_t_pskel::
-    isPrimaryMode (bool)
+    if (n == "toLocation" && ns.empty ())
     {
+      if (this->toLocation_parser_)
+        this->toLocation (this->toLocation_parser_->post_unsigned_int ());
+
+      return true;
     }
 
-    void SubTrip_t_pskel::
-    ptLineId (const ::std::string&)
+    if (n == "toLocationType" && ns.empty ())
     {
+      if (this->toLocationType_parser_)
+        this->toLocationType (this->toLocationType_parser_->post_TripchainItemLocationType ());
+
+      return true;
     }
 
-    bool SubTrip_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "subTrips" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->subTrips_parser_)
+        this->subTrips (this->subTrips_parser_->post_SubTrips_t ());
 
-      if (this->::sim_mob::xml::Trip_t_pskel::_start_element_impl (ns, n, t))
-        return true;
+      return true;
+    }
 
-      if (n == "mode" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->mode_parser_;
+    return false;
+  }
 
-        if (this->mode_parser_)
-          this->mode_parser_->pre ();
+  // SubTrip_t_pskel
+  //
 
-        return true;
-      }
+  void SubTrip_t_pskel::
+  mode (const ::std::string&)
+  {
+  }
 
-      if (n == "isPrimaryMode" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->isPrimaryMode_parser_;
+  void SubTrip_t_pskel::
+  isPrimaryMode (bool)
+  {
+  }
 
-        if (this->isPrimaryMode_parser_)
-          this->isPrimaryMode_parser_->pre ();
+  void SubTrip_t_pskel::
+  ptLineId (const ::std::string&)
+  {
+  }
 
-        return true;
-      }
+  bool SubTrip_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      if (n == "ptLineId" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->ptLineId_parser_;
+    if (this->::sim_mob::xml::Trip_t_pskel::_start_element_impl (ns, n, t))
+      return true;
 
-        if (this->ptLineId_parser_)
-          this->ptLineId_parser_->pre ();
+    if (n == "mode" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->mode_parser_;
 
-        return true;
-      }
+      if (this->mode_parser_)
+        this->mode_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool SubTrip_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "isPrimaryMode" && ns.empty ())
     {
-      if (this->::sim_mob::xml::Trip_t_pskel::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "mode" && ns.empty ())
-      {
-        if (this->mode_parser_)
-          this->mode (this->mode_parser_->post_string ());
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->isPrimaryMode_parser_;
 
-        return true;
-      }
-
-      if (n == "isPrimaryMode" && ns.empty ())
-      {
-        if (this->isPrimaryMode_parser_)
-          this->isPrimaryMode (this->isPrimaryMode_parser_->post_boolean ());
+      if (this->isPrimaryMode_parser_)
+        this->isPrimaryMode_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "ptLineId" && ns.empty ())
-      {
-        if (this->ptLineId_parser_)
-          this->ptLineId (this->ptLineId_parser_->post_string ());
+    if (n == "ptLineId" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ptLineId_parser_;
 
-        return true;
-      }
+      if (this->ptLineId_parser_)
+        this->ptLineId_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // SubTrips_t_pskel
-    //
+    return false;
+  }
 
-    void SubTrips_t_pskel::
-    subTrip (sim_mob::SubTrip)
-    {
-    }
+  bool SubTrip_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::sim_mob::xml::Trip_t_pskel::_end_element_impl (ns, n))
+      return true;
 
-    bool SubTrips_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "mode" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->mode_parser_)
+        this->mode (this->mode_parser_->post_string ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      return true;
+    }
 
-      if (n == "subTrip" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->subTrip_parser_;
+    if (n == "isPrimaryMode" && ns.empty ())
+    {
+      if (this->isPrimaryMode_parser_)
+        this->isPrimaryMode (this->isPrimaryMode_parser_->post_boolean ());
 
-        if (this->subTrip_parser_)
-          this->subTrip_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "ptLineId" && ns.empty ())
+    {
+      if (this->ptLineId_parser_)
+        this->ptLineId (this->ptLineId_parser_->post_string ());
 
-      return false;
+      return true;
     }
 
-    bool SubTrips_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+    return false;
+  }
 
-      if (n == "subTrip" && ns.empty ())
-      {
-        if (this->subTrip_parser_)
-          this->subTrip (this->subTrip_parser_->post_SubTrip_t ());
+  // SubTrips_t_pskel
+  //
 
-        return true;
-      }
+  void SubTrips_t_pskel::
+  subTrip (sim_mob::SubTrip)
+  {
+  }
 
-      return false;
-    }
+  bool SubTrips_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    // Activity_t_pskel
-    //
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-    void Activity_t_pskel::
-    description (const ::std::string&)
+    if (n == "subTrip" && ns.empty ())
     {
-    }
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->subTrip_parser_;
 
-    void Activity_t_pskel::
-    location (unsigned int)
-    {
-    }
+      if (this->subTrip_parser_)
+        this->subTrip_parser_->pre ();
 
-    void Activity_t_pskel::
-    locationType (std::string)
-    {
+      return true;
     }
 
-    void Activity_t_pskel::
-    isPrimary (bool)
-    {
-    }
+    return false;
+  }
 
-    void Activity_t_pskel::
-    isFlexible (bool)
-    {
-    }
+  bool SubTrips_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-    void Activity_t_pskel::
-    isMandatory (bool)
+    if (n == "subTrip" && ns.empty ())
     {
-    }
+      if (this->subTrip_parser_)
+        this->subTrip (this->subTrip_parser_->post_SubTrip_t ());
 
-    sim_mob::TripChainItem* Activity_t_pskel::
-    post_Activity_t ()
-    {
-      return post_TripChainItem_t ();
+      return true;
     }
-
-    bool Activity_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
 
-      if (this->::sim_mob::xml::TripChainItem_t_pskel::_start_element_impl (ns, n, t))
-        return true;
+    return false;
+  }
 
-      if (n == "description" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->description_parser_;
+  // Activity_t_pskel
+  //
 
-        if (this->description_parser_)
-          this->description_parser_->pre ();
+  void Activity_t_pskel::
+  description (const ::std::string&)
+  {
+  }
 
-        return true;
-      }
+  void Activity_t_pskel::
+  location (unsigned int)
+  {
+  }
 
-      if (n == "location" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->location_parser_;
+  void Activity_t_pskel::
+  locationType (std::string)
+  {
+  }
 
-        if (this->location_parser_)
-          this->location_parser_->pre ();
+  void Activity_t_pskel::
+  isPrimary (bool)
+  {
+  }
 
-        return true;
-      }
+  void Activity_t_pskel::
+  isFlexible (bool)
+  {
+  }
 
-      if (n == "locationType" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->locationType_parser_;
+  void Activity_t_pskel::
+  isMandatory (bool)
+  {
+  }
 
-        if (this->locationType_parser_)
-          this->locationType_parser_->pre ();
+  sim_mob::TripChainItem* Activity_t_pskel::
+  post_Activity_t ()
+  {
+    return post_TripChainItem_t ();
+  }
 
-        return true;
-      }
+  bool Activity_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      if (n == "isPrimary" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->isPrimary_parser_;
+    if (this->::sim_mob::xml::TripChainItem_t_pskel::_start_element_impl (ns, n, t))
+      return true;
 
-        if (this->isPrimary_parser_)
-          this->isPrimary_parser_->pre ();
+    if (n == "description" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->description_parser_;
 
-        return true;
-      }
+      if (this->description_parser_)
+        this->description_parser_->pre ();
 
-      if (n == "isFlexible" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->isFlexible_parser_;
+      return true;
+    }
 
-        if (this->isFlexible_parser_)
-          this->isFlexible_parser_->pre ();
+    if (n == "location" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->location_parser_;
 
-        return true;
-      }
+      if (this->location_parser_)
+        this->location_parser_->pre ();
 
-      if (n == "isMandatory" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->isMandatory_parser_;
+      return true;
+    }
 
-        if (this->isMandatory_parser_)
-          this->isMandatory_parser_->pre ();
+    if (n == "locationType" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->locationType_parser_;
 
-        return true;
-      }
+      if (this->locationType_parser_)
+        this->locationType_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool Activity_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "isPrimary" && ns.empty ())
     {
-      if (this->::sim_mob::xml::TripChainItem_t_pskel::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "description" && ns.empty ())
-      {
-        if (this->description_parser_)
-          this->description (this->description_parser_->post_string ());
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->isPrimary_parser_;
 
-        return true;
-      }
+      if (this->isPrimary_parser_)
+        this->isPrimary_parser_->pre ();
 
-      if (n == "location" && ns.empty ())
-      {
-        if (this->location_parser_)
-          this->location (this->location_parser_->post_unsigned_int ());
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "isFlexible" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->isFlexible_parser_;
 
-      if (n == "locationType" && ns.empty ())
-      {
-        if (this->locationType_parser_)
-          this->locationType (this->locationType_parser_->post_TripchainItemLocationType ());
+      if (this->isFlexible_parser_)
+        this->isFlexible_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "isPrimary" && ns.empty ())
-      {
-        if (this->isPrimary_parser_)
-          this->isPrimary (this->isPrimary_parser_->post_boolean ());
+    if (n == "isMandatory" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->isMandatory_parser_;
 
-        return true;
-      }
+      if (this->isMandatory_parser_)
+        this->isMandatory_parser_->pre ();
 
-      if (n == "isFlexible" && ns.empty ())
-      {
-        if (this->isFlexible_parser_)
-          this->isFlexible (this->isFlexible_parser_->post_boolean ());
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  }
 
-      if (n == "isMandatory" && ns.empty ())
-      {
-        if (this->isMandatory_parser_)
-          this->isMandatory (this->isMandatory_parser_->post_boolean ());
+  bool Activity_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::sim_mob::xml::TripChainItem_t_pskel::_end_element_impl (ns, n))
+      return true;
 
-        return true;
-      }
+    if (n == "description" && ns.empty ())
+    {
+      if (this->description_parser_)
+        this->description (this->description_parser_->post_string ());
 
-      return false;
+      return true;
     }
 
-    // TripChain_t_pskel
-    //
+    if (n == "location" && ns.empty ())
+    {
+      if (this->location_parser_)
+        this->location (this->location_parser_->post_unsigned_int ());
+
+      return true;
+    }
 
-    void TripChain_t_pskel::
-    personID (const ::std::string&)
+    if (n == "locationType" && ns.empty ())
     {
+      if (this->locationType_parser_)
+        this->locationType (this->locationType_parser_->post_TripchainItemLocationType ());
+
+      return true;
     }
 
-    void TripChain_t_pskel::
-    Trip (sim_mob::TripChainItem*)
+    if (n == "isPrimary" && ns.empty ())
     {
+      if (this->isPrimary_parser_)
+        this->isPrimary (this->isPrimary_parser_->post_boolean ());
+
+      return true;
     }
 
-    void TripChain_t_pskel::
-    Activity (sim_mob::TripChainItem*)
+    if (n == "isFlexible" && ns.empty ())
     {
+      if (this->isFlexible_parser_)
+        this->isFlexible (this->isFlexible_parser_->post_boolean ());
+
+      return true;
     }
 
-    bool TripChain_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "isMandatory" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->isMandatory_parser_)
+        this->isMandatory (this->isMandatory_parser_->post_boolean ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      return true;
+    }
 
-      if (n == "personID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->personID_parser_;
+    return false;
+  }
 
-        if (this->personID_parser_)
-          this->personID_parser_->pre ();
+  // TripChain_t_pskel
+  //
 
-        return true;
-      }
+  void TripChain_t_pskel::
+  personID (const ::std::string&)
+  {
+  }
 
-      if (n == "Trip" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Trip_parser_;
+  void TripChain_t_pskel::
+  Trip (sim_mob::TripChainItem*)
+  {
+  }
 
-        if (this->Trip_parser_)
-          this->Trip_parser_->pre ();
+  void TripChain_t_pskel::
+  Activity (sim_mob::TripChainItem*)
+  {
+  }
 
-        return true;
-      }
+  bool TripChain_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-      if (n == "Activity" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Activity_parser_;
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        if (this->Activity_parser_)
-          this->Activity_parser_->pre ();
+    if (n == "personID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->personID_parser_;
 
-        return true;
-      }
+      if (this->personID_parser_)
+        this->personID_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    bool TripChain_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "Trip" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "personID" && ns.empty ())
-      {
-        if (this->personID_parser_)
-          this->personID (this->personID_parser_->post_string ());
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Trip_parser_;
 
-        return true;
-      }
-
-      if (n == "Trip" && ns.empty ())
-      {
-        if (this->Trip_parser_)
-          this->Trip (this->Trip_parser_->post_Trip_t ());
+      if (this->Trip_parser_)
+        this->Trip_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "Activity" && ns.empty ())
-      {
-        if (this->Activity_parser_)
-          this->Activity (this->Activity_parser_->post_Activity_t ());
+    if (n == "Activity" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Activity_parser_;
 
-        return true;
-      }
+      if (this->Activity_parser_)
+        this->Activity_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // TripChains_t_pskel
-    //
+    return false;
+  }
 
-    void TripChains_t_pskel::
-    TripChain (std::pair<std::string, std::vector<sim_mob::TripChainItem*> >)
+  bool TripChain_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "personID" && ns.empty ())
     {
+      if (this->personID_parser_)
+        this->personID (this->personID_parser_->post_string ());
+
+      return true;
     }
 
-    void TripChains_t_pskel::
-    post_TripChains_t ()
+    if (n == "Trip" && ns.empty ())
     {
+      if (this->Trip_parser_)
+        this->Trip (this->Trip_parser_->post_Trip_t ());
+
+      return true;
     }
 
-    bool TripChains_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "Activity" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->Activity_parser_)
+        this->Activity (this->Activity_parser_->post_Activity_t ());
+
+      return true;
+    }
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+    return false;
+  }
 
-      if (n == "TripChain" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->TripChain_parser_;
+  // TripChains_t_pskel
+  //
 
-        if (this->TripChain_parser_)
-          this->TripChain_parser_->pre ();
+  void TripChains_t_pskel::
+  TripChain (std::pair<std::string, std::vector<sim_mob::TripChainItem*> >)
+  {
+  }
 
-        return true;
-      }
+  void TripChains_t_pskel::
+  post_TripChains_t ()
+  {
+  }
 
-      return false;
-    }
+  bool TripChains_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-    bool TripChains_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-      if (n == "TripChain" && ns.empty ())
-      {
-        if (this->TripChain_parser_)
-          this->TripChain (this->TripChain_parser_->post_TripChain_t ());
+    if (n == "TripChain" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->TripChain_parser_;
 
-        return true;
-      }
+      if (this->TripChain_parser_)
+        this->TripChain_parser_->pre ();
 
-      return false;
+      return true;
     }
 
-    // linkAndCrossing_t_pskel
-    //
+    return false;
+  }
 
-    void linkAndCrossing_t_pskel::
-    ID (unsigned char)
-    {
-    }
+  bool TripChains_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-    void linkAndCrossing_t_pskel::
-    linkID (unsigned int)
+    if (n == "TripChain" && ns.empty ())
     {
-    }
+      if (this->TripChain_parser_)
+        this->TripChain (this->TripChain_parser_->post_TripChain_t ());
 
-    void linkAndCrossing_t_pskel::
-    crossingID (unsigned int)
-    {
+      return true;
     }
 
-    void linkAndCrossing_t_pskel::
-    angle (unsigned char)
-    {
-    }
+    return false;
+  }
 
-    bool linkAndCrossing_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
+  // linkAndCrossing_t_pskel
+  //
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+  void linkAndCrossing_t_pskel::
+  ID (unsigned char)
+  {
+  }
 
-      if (n == "ID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->ID_parser_;
+  void linkAndCrossing_t_pskel::
+  linkID (unsigned int)
+  {
+  }
 
-        if (this->ID_parser_)
-          this->ID_parser_->pre ();
+  void linkAndCrossing_t_pskel::
+  crossingID (unsigned int)
+  {
+  }
 
-        return true;
-      }
+  void linkAndCrossing_t_pskel::
+  angle (unsigned char)
+  {
+  }
 
-      if (n == "linkID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->linkID_parser_;
+  bool linkAndCrossing_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
 
-        if (this->linkID_parser_)
-          this->linkID_parser_->pre ();
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
 
-        return true;
-      }
+    if (n == "ID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ID_parser_;
 
-      if (n == "crossingID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->crossingID_parser_;
+      if (this->ID_parser_)
+        this->ID_parser_->pre ();
 
-        if (this->crossingID_parser_)
-          this->crossingID_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "linkID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->linkID_parser_;
 
-      if (n == "angle" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->angle_parser_;
+      if (this->linkID_parser_)
+        this->linkID_parser_->pre ();
 
-        if (this->angle_parser_)
-          this->angle_parser_->pre ();
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "crossingID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->crossingID_parser_;
 
-      return false;
+      if (this->crossingID_parser_)
+        this->crossingID_parser_->pre ();
+
+      return true;
     }
 
-    bool linkAndCrossing_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "angle" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->angle_parser_;
 
-      if (n == "ID" && ns.empty ())
-      {
-        if (this->ID_parser_)
-          this->ID (this->ID_parser_->post_unsigned_byte ());
+      if (this->angle_parser_)
+        this->angle_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "linkID" && ns.empty ())
-      {
-        if (this->linkID_parser_)
-          this->linkID (this->linkID_parser_->post_unsigned_int ());
+    return false;
+  }
 
-        return true;
-      }
+  bool linkAndCrossing_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
 
-      if (n == "crossingID" && ns.empty ())
-      {
-        if (this->crossingID_parser_)
-          this->crossingID (this->crossingID_parser_->post_unsigned_int ());
+    if (n == "ID" && ns.empty ())
+    {
+      if (this->ID_parser_)
+        this->ID (this->ID_parser_->post_unsigned_byte ());
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "angle" && ns.empty ())
-      {
-        if (this->angle_parser_)
-          this->angle (this->angle_parser_->post_unsigned_byte ());
+    if (n == "linkID" && ns.empty ())
+    {
+      if (this->linkID_parser_)
+        this->linkID (this->linkID_parser_->post_unsigned_int ());
 
-        return true;
-      }
+      return true;
+    }
+
+    if (n == "crossingID" && ns.empty ())
+    {
+      if (this->crossingID_parser_)
+        this->crossingID (this->crossingID_parser_->post_unsigned_int ());
 
-      return false;
+      return true;
     }
+
+    if (n == "angle" && ns.empty ())
+    {
+      if (this->angle_parser_)
+        this->angle (this->angle_parser_->post_unsigned_byte ());
+
+      return true;
+    }
+
+    return false;
+  }
 
-    // linkAndCrossings_t_pskel
-    //
+  // linkAndCrossings_t_pskel
+  //
 
-    void linkAndCrossings_t_pskel::
+  void linkAndCrossings_t_pskel::
     linkAndCrossing (sim_mob::LinkAndCrossing&)
+  {
+  }
+
+  bool linkAndCrossings_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "linkAndCrossing" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->linkAndCrossing_parser_;
+
+      if (this->linkAndCrossing_parser_)
+        this->linkAndCrossing_parser_->pre ();
+
+      return true;
     }
 
-    bool linkAndCrossings_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    return false;
+  }
+
+  bool linkAndCrossings_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "linkAndCrossing" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->linkAndCrossing_parser_)
+        this->linkAndCrossing (this->linkAndCrossing_parser_->post_linkAndCrossing_t ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "linkAndCrossing" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->linkAndCrossing_parser_;
-
-        if (this->linkAndCrossing_parser_)
-          this->linkAndCrossing_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    bool linkAndCrossings_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    return false;
+  }
+
+  // plan_t_pskel
+  //
+
+  void plan_t_pskel::
+  planID (unsigned char)
+  {
+  }
+
+  void plan_t_pskel::
+  PhasePercentage (double)
+  {
+  }
+
+  bool plan_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "planID" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->planID_parser_;
 
-      if (n == "linkAndCrossing" && ns.empty ())
-      {
-        if (this->linkAndCrossing_parser_)
-          this->linkAndCrossing (this->linkAndCrossing_parser_->post_linkAndCrossing_t ());
+      if (this->planID_parser_)
+        this->planID_parser_->pre ();
 
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    // plan_t_pskel
-    //
-
-    void plan_t_pskel::
-    planID (unsigned char)
+    if (n == "PhasePercentage" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->PhasePercentage_parser_;
+
+      if (this->PhasePercentage_parser_)
+        this->PhasePercentage_parser_->pre ();
+
+      return true;
     }
 
-    void plan_t_pskel::
-    PhasePercentage (double)
+    return false;
+  }
+
+  bool plan_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "planID" && ns.empty ())
     {
+      if (this->planID_parser_)
+        this->planID (this->planID_parser_->post_unsigned_byte ());
+
+      return true;
     }
 
-    bool plan_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "PhasePercentage" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->PhasePercentage_parser_)
+        this->PhasePercentage (this->PhasePercentage_parser_->post_double ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "planID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->planID_parser_;
-
-        if (this->planID_parser_)
-          this->planID_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "PhasePercentage" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->PhasePercentage_parser_;
-
-        if (this->PhasePercentage_parser_)
-          this->PhasePercentage_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    bool plan_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+    return false;
+  }
 
-      if (n == "planID" && ns.empty ())
-      {
-        if (this->planID_parser_)
-          this->planID (this->planID_parser_->post_unsigned_byte ());
+  // Plans_t_pskel
+  //
 
-        return true;
-      }
-
-      if (n == "PhasePercentage" && ns.empty ())
-      {
-        if (this->PhasePercentage_parser_)
-          this->PhasePercentage (this->PhasePercentage_parser_->post_double ());
-
-        return true;
-      }
-
-      return false;
-    }
-
-    // Plans_t_pskel
-    //
-
-    void Plans_t_pskel::
+  void Plans_t_pskel::
     plan (std::pair<short,std::vector<double> >&)
+  {
+  }
+
+  bool Plans_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "plan" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->plan_parser_;
+
+      if (this->plan_parser_)
+        this->plan_parser_->pre ();
+
+      return true;
     }
 
-    bool Plans_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    return false;
+  }
+
+  bool Plans_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "plan" && ns.empty ())
     {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "plan" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->plan_parser_;
-
-        if (this->plan_parser_)
-          this->plan_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
-    }
-
-    bool Plans_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "plan" && ns.empty ())
-      {
-        if (this->plan_parser_)
+      if (this->plan_parser_)
           this->plan (this->plan_parser_->post_plan_t ());
 
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    // ColorDuration_t_pskel
-    //
+    return false;
+  }
 
-    void ColorDuration_t_pskel::
-    TrafficColor (sim_mob::TrafficColor)
-    {
-    }
+  // ColorDuration_t_pskel
+  //
 
-    void ColorDuration_t_pskel::
+  void ColorDuration_t_pskel::
+  TrafficColor (sim_mob::TrafficColor)
+  {
+  }
+
+  void ColorDuration_t_pskel::
     Duration (int)
+  {
+  }
+
+  bool ColorDuration_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "TrafficColor" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->TrafficColor_parser_;
+
+      if (this->TrafficColor_parser_)
+        this->TrafficColor_parser_->pre ();
+
+      return true;
     }
 
-    bool ColorDuration_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "Duration" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Duration_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->Duration_parser_)
+        this->Duration_parser_->pre ();
 
-      if (n == "TrafficColor" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->TrafficColor_parser_;
-
-        if (this->TrafficColor_parser_)
-          this->TrafficColor_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "Duration" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Duration_parser_;
-
-        if (this->Duration_parser_)
-          this->Duration_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    bool ColorDuration_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    return false;
+  }
+
+  bool ColorDuration_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "TrafficColor" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      if (this->TrafficColor_parser_)
+        this->TrafficColor (this->TrafficColor_parser_->post_TrafficColor_t ());
 
-      if (n == "TrafficColor" && ns.empty ())
-      {
-        if (this->TrafficColor_parser_)
-          this->TrafficColor (this->TrafficColor_parser_->post_TrafficColor_t ());
-
-        return true;
-      }
-
-      if (n == "Duration" && ns.empty ())
-      {
-        if (this->Duration_parser_)
-          this->Duration (this->Duration_parser_->post_unsigned_byte ());
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    // ColorSequence_t_pskel
-    //
-
-    void ColorSequence_t_pskel::
-    TrafficLightType (const ::std::string&)
+    if (n == "Duration" && ns.empty ())
     {
+      if (this->Duration_parser_)
+        this->Duration (this->Duration_parser_->post_unsigned_byte ());
+
+      return true;
     }
 
-    void ColorSequence_t_pskel::
+    return false;
+  }
+
+  // ColorSequence_t_pskel
+  //
+
+  void ColorSequence_t_pskel::
+  TrafficLightType (const ::std::string&)
+  {
+  }
+
+  void ColorSequence_t_pskel::
     ColorDuration (std::pair<sim_mob::TrafficColor,int>&)
+  {
+  }
+
+  bool ColorSequence_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "TrafficLightType" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->TrafficLightType_parser_;
+
+      if (this->TrafficLightType_parser_)
+        this->TrafficLightType_parser_->pre ();
+
+      return true;
     }
 
-    bool ColorSequence_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "ColorDuration" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ColorDuration_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->ColorDuration_parser_)
+        this->ColorDuration_parser_->pre ();
 
-      if (n == "TrafficLightType" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->TrafficLightType_parser_;
-
-        if (this->TrafficLightType_parser_)
-          this->TrafficLightType_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "ColorDuration" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->ColorDuration_parser_;
-
-        if (this->ColorDuration_parser_)
-          this->ColorDuration_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    bool ColorSequence_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    return false;
+  }
+
+  bool ColorSequence_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "TrafficLightType" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      if (this->TrafficLightType_parser_)
+        this->TrafficLightType (this->TrafficLightType_parser_->post_string ());
 
-      if (n == "TrafficLightType" && ns.empty ())
-      {
-        if (this->TrafficLightType_parser_)
-          this->TrafficLightType (this->TrafficLightType_parser_->post_string ());
-
-        return true;
-      }
-
-      if (n == "ColorDuration" && ns.empty ())
-      {
-        if (this->ColorDuration_parser_)
-          this->ColorDuration (this->ColorDuration_parser_->post_ColorDuration_t ());
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    // links_maps_t_pskel
-    //
+    if (n == "ColorDuration" && ns.empty ())
+    {
+      if (this->ColorDuration_parser_)
+        this->ColorDuration (this->ColorDuration_parser_->post_ColorDuration_t ());
 
-    void links_maps_t_pskel::
+      return true;
+    }
+
+    return false;
+  }
+
+  // links_maps_t_pskel
+  //
+
+  void links_maps_t_pskel::
     links_map (std::pair<sim_mob::Link*,sim_mob::linkToLink>&)
+  {
+  }
+
+  bool links_maps_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "links_map" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->links_map_parser_;
+
+      if (this->links_map_parser_)
+        this->links_map_parser_->pre ();
+
+      return true;
     }
 
-    bool links_maps_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    return false;
+  }
+
+  bool links_maps_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "links_map" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->links_map_parser_)
+        this->links_map (this->links_map_parser_->post_links_map_t ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "links_map" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->links_map_parser_;
-
-        if (this->links_map_parser_)
-          this->links_map_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    bool links_maps_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    return false;
+  }
+
+  // links_map_t_pskel
+  //
+
+  void links_map_t_pskel::
+  LinkFrom (unsigned int)
+  {
+  }
+
+  void links_map_t_pskel::
+  LinkTo (unsigned int)
+  {
+  }
+
+  void links_map_t_pskel::
+  SegmentFrom (unsigned int)
+  {
+  }
+
+  void links_map_t_pskel::
+  SegmentTo (unsigned int)
+  {
+  }
+
+  void links_map_t_pskel::
+  ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,int> > >&)
+  {
+  }
+
+  bool links_map_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "LinkFrom" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->LinkFrom_parser_;
 
-      if (n == "links_map" && ns.empty ())
-      {
-        if (this->links_map_parser_)
-          this->links_map (this->links_map_parser_->post_links_map_t ());
+      if (this->LinkFrom_parser_)
+        this->LinkFrom_parser_->pre ();
 
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    // links_map_t_pskel
-    //
-
-    void links_map_t_pskel::
-    linkFrom (unsigned int)
+    if (n == "LinkTo" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->LinkTo_parser_;
+
+      if (this->LinkTo_parser_)
+        this->LinkTo_parser_->pre ();
+
+      return true;
     }
 
-    void links_map_t_pskel::
-    linkTo (unsigned int)
+    if (n == "SegmentFrom" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->SegmentFrom_parser_;
+
+      if (this->SegmentFrom_parser_)
+        this->SegmentFrom_parser_->pre ();
+
+      return true;
     }
 
-    void links_map_t_pskel::
-    SegmentFrom (unsigned int)
+    if (n == "SegmentTo" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->SegmentTo_parser_;
+
+      if (this->SegmentTo_parser_)
+        this->SegmentTo_parser_->pre ();
+
+      return true;
     }
 
-    void links_map_t_pskel::
-    SegmentTo (unsigned int)
+    if (n == "ColorSequence" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ColorSequence_parser_;
+
+      if (this->ColorSequence_parser_)
+        this->ColorSequence_parser_->pre ();
+
+      return true;
     }
 
-    void links_map_t_pskel::
+    return false;
+  }
+
+  bool links_map_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "LinkFrom" && ns.empty ())
+    {
+      if (this->LinkFrom_parser_)
+        this->LinkFrom (this->LinkFrom_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "LinkTo" && ns.empty ())
+    {
+      if (this->LinkTo_parser_)
+        this->LinkTo (this->LinkTo_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "SegmentFrom" && ns.empty ())
+    {
+      if (this->SegmentFrom_parser_)
+        this->SegmentFrom (this->SegmentFrom_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "SegmentTo" && ns.empty ())
+    {
+      if (this->SegmentTo_parser_)
+        this->SegmentTo (this->SegmentTo_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "ColorSequence" && ns.empty ())
+    {
+      if (this->ColorSequence_parser_)
+        this->ColorSequence (this->ColorSequence_parser_->post_ColorSequence_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // crossings_maps_t_pskel
+  //
+
+  void crossings_maps_t_pskel::
+  crossings_map (std::pair<sim_mob::Crossing *, sim_mob::Crossings>)
+  {
+  }
+
+  bool crossings_maps_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "crossings_map" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->crossings_map_parser_;
+
+      if (this->crossings_map_parser_)
+        this->crossings_map_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool crossings_maps_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "crossings_map" && ns.empty ())
+    {
+      if (this->crossings_map_parser_)
+        this->crossings_map (this->crossings_map_parser_->post_crossings_map_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // crossings_map_t_pskel
+  //
+
+  void crossings_map_t_pskel::
+  linkID (unsigned int)
+  {
+  }
+
+  void crossings_map_t_pskel::
+  crossingID (unsigned int)
+  {
+  }
+
+  void crossings_map_t_pskel::
     ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,int> > >&)
+  {
+  }
+
+  bool crossings_map_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "linkID" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->linkID_parser_;
+
+      if (this->linkID_parser_)
+        this->linkID_parser_->pre ();
+
+      return true;
     }
 
-    bool links_map_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "crossingID" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->crossingID_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->crossingID_parser_)
+        this->crossingID_parser_->pre ();
 
-      if (n == "LinkFrom" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->linkFrom_parser_;
-
-        if (this->linkFrom_parser_)
-          this->linkFrom_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "LinkTo" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->linkTo_parser_;
-
-        if (this->linkTo_parser_)
-          this->linkTo_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "SegmentFrom" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->SegmentFrom_parser_;
-
-        if (this->SegmentFrom_parser_)
-          this->SegmentFrom_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "SegmentTo" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->SegmentTo_parser_;
-
-        if (this->SegmentTo_parser_)
-          this->SegmentTo_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "ColorSequence" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->ColorSequence_parser_;
-
-        if (this->ColorSequence_parser_)
-          this->ColorSequence_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    bool links_map_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "ColorSequence" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ColorSequence_parser_;
 
-      if (n == "LinkFrom" && ns.empty ())
-      {
-        if (this->linkFrom_parser_)
-          this->linkFrom (this->linkFrom_parser_->post_unsigned_int ());
+      if (this->ColorSequence_parser_)
+        this->ColorSequence_parser_->pre ();
 
-        return true;
-      }
-
-      if (n == "LinkTo" && ns.empty ())
-      {
-        if (this->linkTo_parser_)
-          this->linkTo (this->linkTo_parser_->post_unsigned_int ());
-
-        return true;
-      }
-
-      if (n == "SegmentFrom" && ns.empty ())
-      {
-        if (this->SegmentFrom_parser_)
-          this->SegmentFrom (this->SegmentFrom_parser_->post_unsigned_int ());
-
-        return true;
-      }
-
-      if (n == "SegmentTo" && ns.empty ())
-      {
-        if (this->SegmentTo_parser_)
-          this->SegmentTo (this->SegmentTo_parser_->post_unsigned_int ());
-
-        return true;
-      }
-
-      if (n == "ColorSequence" && ns.empty ())
-      {
-        if (this->ColorSequence_parser_)
-          this->ColorSequence (this->ColorSequence_parser_->post_ColorSequence_t ());
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    // crossings_maps_t_pskel
-    //
+    return false;
+  }
 
-    void crossings_maps_t_pskel::
-    crossings_map (std::pair<sim_mob::Crossing *, sim_mob::Crossings>)
+  bool crossings_map_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "linkID" && ns.empty ())
     {
+      if (this->linkID_parser_)
+        this->linkID (this->linkID_parser_->post_unsigned_int ());
+
+      return true;
     }
 
-    bool crossings_maps_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "crossingID" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->crossingID_parser_)
+        this->crossingID (this->crossingID_parser_->post_unsigned_int ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "crossings_map" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->crossings_map_parser_;
-
-        if (this->crossings_map_parser_)
-          this->crossings_map_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    bool crossings_maps_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "ColorSequence" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      if (this->ColorSequence_parser_)
+        this->ColorSequence (this->ColorSequence_parser_->post_ColorSequence_t ());
 
-      if (n == "crossings_map" && ns.empty ())
-      {
-        if (this->crossings_map_parser_)
-          this->crossings_map (this->crossings_map_parser_->post_crossings_map_t ());
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    // crossings_map_t_pskel
-    //
+    return false;
+  }
 
-    void crossings_map_t_pskel::
-    LinkID (unsigned int)
-    {
-    }
+  // Phase_t_pskel
+  //
 
-    void crossings_map_t_pskel::
-    crossingID (unsigned int)
-    {
-    }
+  void Phase_t_pskel::
+  phaseID (unsigned char)
+  {
+  }
 
-    void crossings_map_t_pskel::
-    ColorSequence (std::pair<sim_mob::TrafficLightType, std::vector<std::pair<TrafficColor,int> > >&)
-    {
-    }
+  void Phase_t_pskel::
+  name (const ::std::string&)
+  {
+  }
 
-    bool crossings_map_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "LinkID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->LinkID_parser_;
-
-        if (this->LinkID_parser_)
-          this->LinkID_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "crossingID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->crossingID_parser_;
-
-        if (this->crossingID_parser_)
-          this->crossingID_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "ColorSequence" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->ColorSequence_parser_;
-
-        if (this->ColorSequence_parser_)
-          this->ColorSequence_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
-    }
-
-    bool crossings_map_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "LinkID" && ns.empty ())
-      {
-        if (this->LinkID_parser_)
-          this->LinkID (this->LinkID_parser_->post_unsigned_int ());
-
-        return true;
-      }
-
-      if (n == "crossingID" && ns.empty ())
-      {
-        if (this->crossingID_parser_)
-          this->crossingID (this->crossingID_parser_->post_unsigned_int ());
-
-        return true;
-      }
-
-      if (n == "ColorSequence" && ns.empty ())
-      {
-        if (this->ColorSequence_parser_)
-          this->ColorSequence (this->ColorSequence_parser_->post_ColorSequence_t ());
-
-        return true;
-      }
-
-      return false;
-    }
-
-    // Phase_t_pskel
-    //
-
-    void Phase_t_pskel::
-    phaseID (unsigned char)
-    {
-    }
-
-    void Phase_t_pskel::
-    name (const ::std::string&)
-    {
-    }
-
-    void Phase_t_pskel::
+  void Phase_t_pskel::
     links_maps (std::multimap<sim_mob::Link*,sim_mob::linkToLink>&)
-    {
-    }
+  {
+  }
 
-    void Phase_t_pskel::
+  void Phase_t_pskel::
     crossings_maps (std::map<sim_mob::Crossing *, sim_mob::Crossings>&)
+  {
+  }
+
+  bool Phase_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "phaseID" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->phaseID_parser_;
+
+      if (this->phaseID_parser_)
+        this->phaseID_parser_->pre ();
+
+      return true;
     }
 
-    bool Phase_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "name" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->name_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->name_parser_)
+        this->name_parser_->pre ();
 
-      if (n == "phaseID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->phaseID_parser_;
-
-        if (this->phaseID_parser_)
-          this->phaseID_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "name" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->name_parser_;
-
-        if (this->name_parser_)
-          this->name_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "links_maps" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->links_maps_parser_;
-
-        if (this->links_maps_parser_)
-          this->links_maps_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "crossings_maps" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->crossings_maps_parser_;
-
-        if (this->crossings_maps_parser_)
-          this->crossings_maps_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    bool Phase_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "links_maps" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->links_maps_parser_;
 
-      if (n == "phaseID" && ns.empty ())
-      {
-        if (this->phaseID_parser_)
-          this->phaseID (this->phaseID_parser_->post_unsigned_byte ());
+      if (this->links_maps_parser_)
+        this->links_maps_parser_->pre ();
 
-        return true;
-      }
-
-      if (n == "name" && ns.empty ())
-      {
-        if (this->name_parser_)
-          this->name (this->name_parser_->post_string ());
-
-        return true;
-      }
-
-      if (n == "links_maps" && ns.empty ())
-      {
-        if (this->links_maps_parser_)
-          this->links_maps (this->links_maps_parser_->post_links_maps_t ());
-
-        return true;
-      }
-
-      if (n == "crossings_maps" && ns.empty ())
-      {
-        if (this->crossings_maps_parser_)
-          this->crossings_maps (this->crossings_maps_parser_->post_crossings_maps_t ());
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    // Phases_t_pskel
-    //
+    if (n == "crossings_maps" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->crossings_maps_parser_;
 
-    void Phases_t_pskel::
+      if (this->crossings_maps_parser_)
+        this->crossings_maps_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Phase_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "phaseID" && ns.empty ())
+    {
+      if (this->phaseID_parser_)
+        this->phaseID (this->phaseID_parser_->post_unsigned_byte ());
+
+      return true;
+    }
+
+    if (n == "name" && ns.empty ())
+    {
+      if (this->name_parser_)
+        this->name (this->name_parser_->post_string ());
+
+      return true;
+    }
+
+    if (n == "links_maps" && ns.empty ())
+    {
+      if (this->links_maps_parser_)
+        this->links_maps (this->links_maps_parser_->post_links_maps_t ());
+
+      return true;
+    }
+
+    if (n == "crossings_maps" && ns.empty ())
+    {
+      if (this->crossings_maps_parser_)
+        this->crossings_maps (this->crossings_maps_parser_->post_crossings_maps_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // Phases_t_pskel
+  //
+
+  void Phases_t_pskel::
     phase (sim_mob::Phase&)
+  {
+  }
+
+  bool Phases_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "phase" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->phase_parser_;
+
+      if (this->phase_parser_)
+        this->phase_parser_->pre ();
+
+      return true;
     }
 
-    bool Phases_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    return false;
+  }
+
+  bool Phases_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "phase" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      if (this->phase_parser_)
+        this->phase (this->phase_parser_->post_Phase_t ());
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "phase" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->phase_parser_;
-
-        if (this->phase_parser_)
-          this->phase_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    bool Phases_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+    return false;
+  }
 
-      if (n == "phase" && ns.empty ())
-      {
-        if (this->phase_parser_)
-          this->phase (this->phase_parser_->post_Phase_t ());
+  // SplitPlan_t_pskel
+  //
 
-        return true;
-      }
+  void SplitPlan_t_pskel::
+  splitplanID (unsigned int)
+  {
+  }
 
-      return false;
-    }
+  void SplitPlan_t_pskel::
+  cycleLength (unsigned char)
+  {
+  }
 
-    // SplitPlan_t_pskel
-    //
+  void SplitPlan_t_pskel::
+  offset (unsigned char)
+  {
+  }
 
-    void SplitPlan_t_pskel::
-    splitplanID (unsigned int)
-    {
-    }
-
-    void SplitPlan_t_pskel::
-    cycleLength (unsigned char)
-    {
-    }
-
-    void SplitPlan_t_pskel::
-    offset (unsigned char)
-    {
-    }
-
-    void SplitPlan_t_pskel::
+  void SplitPlan_t_pskel::
     ChoiceSet (std::vector<std::vector<double> >&)
+  {
+  }
+
+  bool SplitPlan_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "splitplanID" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->splitplanID_parser_;
+
+      if (this->splitplanID_parser_)
+        this->splitplanID_parser_->pre ();
+
+      return true;
     }
 
-    bool SplitPlan_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "cycleLength" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->cycleLength_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->cycleLength_parser_)
+        this->cycleLength_parser_->pre ();
 
-      if (n == "splitplanID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->splitplanID_parser_;
-
-        if (this->splitplanID_parser_)
-          this->splitplanID_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "cycleLength" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->cycleLength_parser_;
-
-        if (this->cycleLength_parser_)
-          this->cycleLength_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "offset" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->offset_parser_;
-
-        if (this->offset_parser_)
-          this->offset_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "ChoiceSet" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->ChoiceSet_parser_;
-
-        if (this->ChoiceSet_parser_)
-          this->ChoiceSet_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    bool SplitPlan_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "offset" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->offset_parser_;
 
-      if (n == "splitplanID" && ns.empty ())
-      {
-        if (this->splitplanID_parser_)
-          this->splitplanID (this->splitplanID_parser_->post_unsigned_int ());
+      if (this->offset_parser_)
+        this->offset_parser_->pre ();
 
-        return true;
-      }
-
-      if (n == "cycleLength" && ns.empty ())
-      {
-        if (this->cycleLength_parser_)
-          this->cycleLength (this->cycleLength_parser_->post_unsigned_byte ());
-
-        return true;
-      }
-
-      if (n == "offset" && ns.empty ())
-      {
-        if (this->offset_parser_)
-          this->offset (this->offset_parser_->post_unsigned_byte ());
-
-        return true;
-      }
-
-      if (n == "ChoiceSet" && ns.empty ())
-      {
-        if (this->ChoiceSet_parser_)
-          this->ChoiceSet (this->ChoiceSet_parser_->post_Plans_t ());
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    // SCATS_t_pskel
-    //
-
-    void SCATS_t_pskel::
-    signalTimingMode (int)
+    if (n == "ChoiceSet" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ChoiceSet_parser_;
+
+      if (this->ChoiceSet_parser_)
+        this->ChoiceSet_parser_->pre ();
+
+      return true;
     }
 
-    void SCATS_t_pskel::
+    return false;
+  }
+
+  bool SplitPlan_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "splitplanID" && ns.empty ())
+    {
+      if (this->splitplanID_parser_)
+        this->splitplanID (this->splitplanID_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "cycleLength" && ns.empty ())
+    {
+      if (this->cycleLength_parser_)
+        this->cycleLength (this->cycleLength_parser_->post_unsigned_byte ());
+
+      return true;
+    }
+
+    if (n == "offset" && ns.empty ())
+    {
+      if (this->offset_parser_)
+        this->offset (this->offset_parser_->post_unsigned_byte ());
+
+      return true;
+    }
+
+    if (n == "ChoiceSet" && ns.empty ())
+    {
+      if (this->ChoiceSet_parser_)
+        this->ChoiceSet (this->ChoiceSet_parser_->post_Plans_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // SCATS_t_pskel
+  //
+
+  void SCATS_t_pskel::
+  signalTimingMode (int)
+  {
+  }
+
+  void SCATS_t_pskel::
     SplitPlan (sim_mob::SplitPlan&)
+  {
+  }
+
+  bool SCATS_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "signalTimingMode" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->signalTimingMode_parser_;
+
+      if (this->signalTimingMode_parser_)
+        this->signalTimingMode_parser_->pre ();
+
+      return true;
     }
 
-    bool SCATS_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "SplitPlan" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->SplitPlan_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->SplitPlan_parser_)
+        this->SplitPlan_parser_->pre ();
 
-      if (n == "signalTimingMode" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->signalTimingMode_parser_;
-
-        if (this->signalTimingMode_parser_)
-          this->signalTimingMode_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "SplitPlan" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->SplitPlan_parser_;
-
-        if (this->SplitPlan_parser_)
-          this->SplitPlan_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    bool SCATS_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    return false;
+  }
+
+  bool SCATS_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "signalTimingMode" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      if (this->signalTimingMode_parser_)
+        this->signalTimingMode (this->signalTimingMode_parser_->post_signalTimingMode_t ());
 
-      if (n == "signalTimingMode" && ns.empty ())
-      {
-        if (this->signalTimingMode_parser_)
-          this->signalTimingMode (this->signalTimingMode_parser_->post_signalTimingMode_t ());
-
-        return true;
-      }
-
-      if (n == "SplitPlan" && ns.empty ())
-      {
-        if (this->SplitPlan_parser_)
-          this->SplitPlan (this->SplitPlan_parser_->post_SplitPlan_t ());
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    // Signal_t_pskel
-    //
-
-    void Signal_t_pskel::
-    signalID (unsigned int)
+    if (n == "SplitPlan" && ns.empty ())
     {
+      if (this->SplitPlan_parser_)
+        this->SplitPlan (this->SplitPlan_parser_->post_SplitPlan_t ());
+
+      return true;
     }
 
-    void Signal_t_pskel::
-    nodeID (unsigned int)
-    {
-    }
+    return false;
+  }
 
-    void Signal_t_pskel::
+  // Signal_t_pskel
+  //
+
+  void Signal_t_pskel::
+  signalID (unsigned int)
+  {
+  }
+
+  void Signal_t_pskel::
+  nodeID (unsigned int)
+  {
+  }
+
+  void Signal_t_pskel::
     linkAndCrossings (sim_mob::LinkAndCrossingC&)
-    {
-    }
+  {
+  }
 
-    void Signal_t_pskel::
+  void Signal_t_pskel::
     phases (sim_mob::Signal::phases&)
-    {
-    }
+  {
+  }
 
-    void Signal_t_pskel::
+  void Signal_t_pskel::
     SCATS (sim_mob::xml::helper::SignalHelper::SCATS_Info&)
+  {
+  }
+
+  bool Signal_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "signalID" && ns.empty ())
     {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->signalID_parser_;
+
+      if (this->signalID_parser_)
+        this->signalID_parser_->pre ();
+
+      return true;
     }
 
-    bool Signal_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
+    if (n == "nodeID" && ns.empty ())
     {
-      XSD_UNUSED (t);
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->nodeID_parser_;
 
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
+      if (this->nodeID_parser_)
+        this->nodeID_parser_->pre ();
 
-      if (n == "signalID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->signalID_parser_;
-
-        if (this->signalID_parser_)
-          this->signalID_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "nodeID" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->nodeID_parser_;
-
-        if (this->nodeID_parser_)
-          this->nodeID_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "linkAndCrossings" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->linkAndCrossings_parser_;
-
-        if (this->linkAndCrossings_parser_)
-          this->linkAndCrossings_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "phases" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->phases_parser_;
-
-        if (this->phases_parser_)
-          this->phases_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "SCATS" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->SCATS_parser_;
-
-        if (this->SCATS_parser_)
-          this->SCATS_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    bool Signal_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
+    if (n == "linkAndCrossings" && ns.empty ())
     {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->linkAndCrossings_parser_;
 
-      if (n == "signalID" && ns.empty ())
-      {
-        if (this->signalID_parser_)
-          this->signalID (this->signalID_parser_->post_unsigned_int ());
+      if (this->linkAndCrossings_parser_)
+        this->linkAndCrossings_parser_->pre ();
 
-        return true;
-      }
+      return true;
+    }
 
-      if (n == "nodeID" && ns.empty ())
-      {
-        if (this->nodeID_parser_)
-          this->nodeID (this->nodeID_parser_->post_unsigned_int ());
+    if (n == "phases" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->phases_parser_;
 
-        return true;
-      }
+      if (this->phases_parser_)
+        this->phases_parser_->pre ();
 
-      if (n == "linkAndCrossings" && ns.empty ())
-      {
-        if (this->linkAndCrossings_parser_)
-          this->linkAndCrossings (this->linkAndCrossings_parser_->post_linkAndCrossings_t ());
+      return true;
+    }
 
-        return true;
-      }
+    if (n == "SCATS" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->SCATS_parser_;
 
-      if (n == "phases" && ns.empty ())
-      {
-        if (this->phases_parser_)
+      if (this->SCATS_parser_)
+        this->SCATS_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Signal_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "signalID" && ns.empty ())
+    {
+      if (this->signalID_parser_)
+        this->signalID (this->signalID_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "nodeID" && ns.empty ())
+    {
+      if (this->nodeID_parser_)
+        this->nodeID (this->nodeID_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "linkAndCrossings" && ns.empty ())
+    {
+      if (this->linkAndCrossings_parser_)
+        this->linkAndCrossings (this->linkAndCrossings_parser_->post_linkAndCrossings_t ());
+
+      return true;
+    }
+
+    if (n == "phases" && ns.empty ())
+    {
+      if (this->phases_parser_)
           this->phases (this->phases_parser_->post_phases_t ());
 
-        return true;
-      }
-
-      if (n == "SCATS" && ns.empty ())
-      {
-        if (this->SCATS_parser_)
-          this->SCATS (this->SCATS_parser_->post_SCATS_t ());
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
 
-    // Signals_t_pskel
-    //
-
-    void Signals_t_pskel::
-    Signal (sim_mob::Signal*)
+    if (n == "SCATS" && ns.empty ())
     {
+      if (this->SCATS_parser_)
+        this->SCATS (this->SCATS_parser_->post_SCATS_t ());
+
+      return true;
     }
 
-    bool Signals_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "Signal" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Signal_parser_;
-
-        if (this->Signal_parser_)
-          this->Signal_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
-    }
-
-    bool Signals_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "Signal" && ns.empty ())
-      {
-        if (this->Signal_parser_)
-          this->Signal (this->Signal_parser_->post_Signal_t ());
-
-        return true;
-      }
-
-      return false;
-    }
-
-    // GeoSpatial_t_pskel
-    //
-
-    void GeoSpatial_t_pskel::
-    RoadNetwork (sim_mob::RoadNetwork&)
-    {
-    }
-
-    void GeoSpatial_t_pskel::
-    post_GeoSpatial_t ()
-    {
-    }
-
-    bool GeoSpatial_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "RoadNetwork" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->RoadNetwork_parser_;
-
-        if (this->RoadNetwork_parser_)
-          this->RoadNetwork_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
-    }
-
-    bool GeoSpatial_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "RoadNetwork" && ns.empty ())
-      {
-        if (this->RoadNetwork_parser_)
-          this->RoadNetwork (this->RoadNetwork_parser_->post_RoadNetwork_t ());
-
-        return true;
-      }
-
-      return false;
-    }
-
-    // SimMobility_t_pskel
-    //
-
-    void SimMobility_t_pskel::
-    GeoSpatial ()
-    {
-    }
-
-    void SimMobility_t_pskel::
-    TripChains ()
-    {
-    }
-
-    void SimMobility_t_pskel::
-    Signals (std::vector<sim_mob::Signal*>&)
-    {
-    }
-
-    void SimMobility_t_pskel::
-    post_SimMobility_t ()
-    {
-    }
-
-    bool SimMobility_t_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "GeoSpatial" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->GeoSpatial_parser_;
-
-        if (this->GeoSpatial_parser_)
-          this->GeoSpatial_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "TripChains" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->TripChains_parser_;
-
-        if (this->TripChains_parser_)
-          this->TripChains_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "Signals" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Signals_parser_;
-
-        if (this->Signals_parser_)
-          this->Signals_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
-    }
-
-    bool SimMobility_t_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "GeoSpatial" && ns.empty ())
-      {
-        if (this->GeoSpatial_parser_)
-        {
-          this->GeoSpatial_parser_->post_GeoSpatial_t ();
-          this->GeoSpatial ();
-        }
-
-        return true;
-      }
-
-      if (n == "TripChains" && ns.empty ())
-      {
-        if (this->TripChains_parser_)
-        {
-          this->TripChains_parser_->post_TripChains_t ();
-          this->TripChains ();
-        }
-
-        return true;
-      }
-
-      if (n == "Signals" && ns.empty ())
-      {
-        if (this->Signals_parser_)
-          this->Signals (this->Signals_parser_->post_Signals_t ());
-
-        return true;
-      }
-
-      return false;
-    }
-
-    // Lanes_pskel
-    //
-
-    void Lanes_pskel::
-    Lane (sim_mob::Lane*)
-    {
-    }
-
-    bool Lanes_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "Lane" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Lane_parser_;
-
-        if (this->Lane_parser_)
-          this->Lane_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
-    }
-
-    bool Lanes_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "Lane" && ns.empty ())
-      {
-        if (this->Lane_parser_)
-          this->Lane (this->Lane_parser_->post_lane_t ());
-
-        return true;
-      }
-
-      return false;
-    }
-
-    // Nodes_pskel
-    //
-
-    void Nodes_pskel::
-    UniNodes (const std::set<sim_mob::UniNode*>&)
-    {
-    }
-
-    void Nodes_pskel::
-    Intersections (const std::vector<sim_mob::MultiNode*>&)
-    {
-    }
-
-    void Nodes_pskel::
-    roundabouts (const std::vector<sim_mob::MultiNode*>&)
-    {
-    }
-
-    bool Nodes_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "UniNodes" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->UniNodes_parser_;
-
-        if (this->UniNodes_parser_)
-          this->UniNodes_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "Intersections" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Intersections_parser_;
-
-        if (this->Intersections_parser_)
-          this->Intersections_parser_->pre ();
-
-        return true;
-      }
-
-      if (n == "roundabouts" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->roundabouts_parser_;
-
-        if (this->roundabouts_parser_)
-          this->roundabouts_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
-    }
-
-    bool Nodes_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "UniNodes" && ns.empty ())
-      {
-        if (this->UniNodes_parser_)
-          this->UniNodes (this->UniNodes_parser_->post_UniNodes ());
-
-        return true;
-      }
-
-      if (n == "Intersections" && ns.empty ())
-      {
-        if (this->Intersections_parser_)
-          this->Intersections (this->Intersections_parser_->post_Intersections ());
-
-        return true;
-      }
-
-      if (n == "roundabouts" && ns.empty ())
-      {
-        if (this->roundabouts_parser_)
-          this->roundabouts (this->roundabouts_parser_->post_roundabouts ());
-
-        return true;
-      }
-
-      return false;
-    }
-
-    // Links_pskel
-    //
-
-    void Links_pskel::
-    Link (sim_mob::Link*)
-    {
-    }
-
-    bool Links_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "Link" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Link_parser_;
-
-        if (this->Link_parser_)
-          this->Link_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
-    }
-
-    bool Links_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "Link" && ns.empty ())
-      {
-        if (this->Link_parser_)
-          this->Link (this->Link_parser_->post_link_t ());
-
-        return true;
-      }
-
-      return false;
-    }
-
-    // UniNodes_pskel
-    //
-
-    void UniNodes_pskel::
-    UniNode (sim_mob::UniNode*)
-    {
-    }
-
-    bool UniNodes_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "UniNode" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->UniNode_parser_;
-
-        if (this->UniNode_parser_)
-          this->UniNode_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
-    }
-
-    bool UniNodes_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "UniNode" && ns.empty ())
-      {
-        if (this->UniNode_parser_)
-          this->UniNode (this->UniNode_parser_->post_UniNode_t ());
-
-        return true;
-      }
-
-      return false;
-    }
-
-    // Intersections_pskel
-    //
-
-    void Intersections_pskel::
-    Intersection (sim_mob::MultiNode*)
-    {
-    }
-
-    bool Intersections_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "Intersection" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->Intersection_parser_;
-
-        if (this->Intersection_parser_)
-          this->Intersection_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
-    }
-
-    bool Intersections_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "Intersection" && ns.empty ())
-      {
-        if (this->Intersection_parser_)
-          this->Intersection (this->Intersection_parser_->post_intersection_t ());
-
-        return true;
-      }
-
-      return false;
-    }
-
-    // roundabouts_pskel
-    //
-
-    void roundabouts_pskel::
-    roundabout (sim_mob::MultiNode*)
-    {
-    }
-
-    bool roundabouts_pskel::
-    _start_element_impl (const ::xml_schema::ro_string& ns,
-                         const ::xml_schema::ro_string& n,
-                         const ::xml_schema::ro_string* t)
-    {
-      XSD_UNUSED (t);
-
-      if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-        return true;
-
-      if (n == "roundabout" && ns.empty ())
-      {
-        this->::xml_schema::complex_content::context_.top ().parser_ = this->roundabout_parser_;
-
-        if (this->roundabout_parser_)
-          this->roundabout_parser_->pre ();
-
-        return true;
-      }
-
-      return false;
-    }
-
-    bool roundabouts_pskel::
-    _end_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n)
-    {
-      if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-        return true;
-
-      if (n == "roundabout" && ns.empty ())
-      {
-        if (this->roundabout_parser_)
-          this->roundabout (this->roundabout_parser_->post_roundabout_t ());
-
-        return true;
-      }
-
-      return false;
-    }
+    return false;
   }
+
+  // Signals_t_pskel
+  //
+
+  void Signals_t_pskel::
+  Signal (sim_mob::Signal*)
+  {
+  }
+
+  bool Signals_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "Signal" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Signal_parser_;
+
+      if (this->Signal_parser_)
+        this->Signal_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Signals_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "Signal" && ns.empty ())
+    {
+      if (this->Signal_parser_)
+        this->Signal (this->Signal_parser_->post_Signal_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // GeoSpatial_t_pskel
+  //
+
+  void GeoSpatial_t_pskel::
+  RoadNetwork (sim_mob::RoadNetwork&)
+  {
+  }
+
+  void GeoSpatial_t_pskel::
+  post_GeoSpatial_t ()
+  {
+  }
+
+  bool GeoSpatial_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "RoadNetwork" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->RoadNetwork_parser_;
+
+      if (this->RoadNetwork_parser_)
+        this->RoadNetwork_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool GeoSpatial_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "RoadNetwork" && ns.empty ())
+    {
+      if (this->RoadNetwork_parser_)
+        this->RoadNetwork (this->RoadNetwork_parser_->post_RoadNetwork_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // SimMobility_t_pskel
+  //
+
+  void SimMobility_t_pskel::
+  GeoSpatial ()
+  {
+  }
+
+  void SimMobility_t_pskel::
+  TripChains ()
+  {
+  }
+
+  void SimMobility_t_pskel::
+    Signals (std::vector<sim_mob::Signal*>&)
+  {
+  }
+
+  void SimMobility_t_pskel::
+  post_SimMobility_t ()
+  {
+  }
+
+  bool SimMobility_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "GeoSpatial" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->GeoSpatial_parser_;
+
+      if (this->GeoSpatial_parser_)
+        this->GeoSpatial_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "TripChains" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->TripChains_parser_;
+
+      if (this->TripChains_parser_)
+        this->TripChains_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "Signals" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Signals_parser_;
+
+      if (this->Signals_parser_)
+        this->Signals_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool SimMobility_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "GeoSpatial" && ns.empty ())
+    {
+      if (this->GeoSpatial_parser_)
+      {
+        this->GeoSpatial_parser_->post_GeoSpatial_t ();
+        this->GeoSpatial ();
+      }
+
+      return true;
+    }
+
+    if (n == "TripChains" && ns.empty ())
+    {
+      if (this->TripChains_parser_)
+      {
+        this->TripChains_parser_->post_TripChains_t ();
+        this->TripChains ();
+      }
+
+      return true;
+    }
+
+    if (n == "Signals" && ns.empty ())
+    {
+      if (this->Signals_parser_)
+        this->Signals (this->Signals_parser_->post_Signals_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // Lanes_pskel
+  //
+
+  void Lanes_pskel::
+  Lane (sim_mob::Lane*)
+  {
+  }
+
+  bool Lanes_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "Lane" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Lane_parser_;
+
+      if (this->Lane_parser_)
+        this->Lane_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Lanes_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "Lane" && ns.empty ())
+    {
+      if (this->Lane_parser_)
+        this->Lane (this->Lane_parser_->post_lane_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // Nodes_pskel
+  //
+
+  void Nodes_pskel::
+  UniNodes (const std::set<sim_mob::UniNode*>&)
+  {
+  }
+
+  void Nodes_pskel::
+  Intersections (const std::vector<sim_mob::MultiNode*>&)
+  {
+  }
+
+  void Nodes_pskel::
+  roundabouts (const std::vector<sim_mob::MultiNode*>&)
+  {
+  }
+
+  bool Nodes_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "UniNodes" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->UniNodes_parser_;
+
+      if (this->UniNodes_parser_)
+        this->UniNodes_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "Intersections" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Intersections_parser_;
+
+      if (this->Intersections_parser_)
+        this->Intersections_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "roundabouts" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->roundabouts_parser_;
+
+      if (this->roundabouts_parser_)
+        this->roundabouts_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Nodes_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "UniNodes" && ns.empty ())
+    {
+      if (this->UniNodes_parser_)
+        this->UniNodes (this->UniNodes_parser_->post_UniNodes ());
+
+      return true;
+    }
+
+    if (n == "Intersections" && ns.empty ())
+    {
+      if (this->Intersections_parser_)
+        this->Intersections (this->Intersections_parser_->post_Intersections ());
+
+      return true;
+    }
+
+    if (n == "roundabouts" && ns.empty ())
+    {
+      if (this->roundabouts_parser_)
+        this->roundabouts (this->roundabouts_parser_->post_roundabouts ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // Links_pskel
+  //
+
+  void Links_pskel::
+  Link (sim_mob::Link*)
+  {
+  }
+
+  bool Links_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "Link" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Link_parser_;
+
+      if (this->Link_parser_)
+        this->Link_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Links_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "Link" && ns.empty ())
+    {
+      if (this->Link_parser_)
+        this->Link (this->Link_parser_->post_link_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // UniNodes_pskel
+  //
+
+  void UniNodes_pskel::
+  UniNode (sim_mob::UniNode*)
+  {
+  }
+
+  bool UniNodes_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "UniNode" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->UniNode_parser_;
+
+      if (this->UniNode_parser_)
+        this->UniNode_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool UniNodes_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "UniNode" && ns.empty ())
+    {
+      if (this->UniNode_parser_)
+        this->UniNode (this->UniNode_parser_->post_UniNode_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // Intersections_pskel
+  //
+
+  void Intersections_pskel::
+  Intersection (sim_mob::MultiNode*)
+  {
+  }
+
+  bool Intersections_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "Intersection" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Intersection_parser_;
+
+      if (this->Intersection_parser_)
+        this->Intersection_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Intersections_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "Intersection" && ns.empty ())
+    {
+      if (this->Intersection_parser_)
+        this->Intersection (this->Intersection_parser_->post_intersection_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // roundabouts_pskel
+  //
+
+  void roundabouts_pskel::
+  roundabout (sim_mob::MultiNode*)
+  {
+  }
+
+  bool roundabouts_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "roundabout" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->roundabout_parser_;
+
+      if (this->roundabout_parser_)
+        this->roundabout_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool roundabouts_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "roundabout" && ns.empty ())
+    {
+      if (this->roundabout_parser_)
+        this->roundabout (this->roundabout_parser_->post_roundabout_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+}
 }
 
 // Begin epilogue.
 //
 //
 // End epilogue.
+
 

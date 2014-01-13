@@ -75,8 +75,13 @@ const vector<const RoadSegment*>& sim_mob::UniNode::getRoadSegments() const
 
 UniNode::UniLaneConnector sim_mob::UniNode::getForwardLanes(const Lane& from) const
 {
-	map<const Lane*, UniLaneConnector>::const_iterator it = new_connectors.find(&from);
-	if (it==new_connectors.end()) {
+	map<const Lane*, UniLaneConnector>::const_iterator it = newConnectors.find(&from);
+	if (it==newConnectors.end()) {
+		Print()<< "newConnectors with size(" << newConnectors.size() << ") doesnt have "  << &from << std::endl;
+		for(it = newConnectors.begin(); it!=newConnectors.end(); it++){
+			Print() << it->first << ": " << it->second.left << " ' " << it->second.center  << " ' " << it->second.right << std::endl;
+		}
+		Print() << "---------" << std::endl;
 		return UniLaneConnector();
 	}
 	return it->second;;
@@ -105,7 +110,7 @@ void sim_mob::UniNode::buildConnectorsFromAlignedLanes(UniNode* node, pair<unsig
 {
 	node->cachedSegmentsList.clear();
 	node->connectors.clear();
-	node->new_connectors.clear();
+	node->newConnectors.clear();
 
 	//Compute for each pair of Segments at this node
 	for (size_t runID=0; runID<2; runID++) {
@@ -143,7 +148,7 @@ void sim_mob::UniNode::buildNewConnectorsFromAlignedLanes(UniNode* node, const R
 		lc.right = toSeg->getLane(toIDCenter+1);
 
 		//Save it.
-		node->new_connectors[fromSeg->getLane(fromID)] = lc;
+		node->newConnectors[fromSeg->getLane(fromID)] = lc;
 	}
 
 }

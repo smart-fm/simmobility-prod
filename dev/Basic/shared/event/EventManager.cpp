@@ -21,87 +21,83 @@ using std::map;
 using std::list;
 using std::pair;
 
-EM_EventArgs::EM_EventArgs() : EventArgs(){}
-EM_EventArgs::~EM_EventArgs(){}
+EM_EventArgs::EM_EventArgs() : EventArgs() {
+}
 
+EM_EventArgs::~EM_EventArgs() {
+}
 
-EventManager::EventManager() : temporalWindows(TimesliceComparator()),
+EventManager::EventManager() : windows(TimeComparator()),
 currTime(timeslice(0, 0)) {
-    RegisterEvent(EM_WND_EXPIRED);
-    RegisterEvent(EM_WND_UPDATED); // future...
+    registerEvent(EM_WND_EXPIRED);
+    registerEvent(EM_WND_UPDATED); // future...
 }
 
 EventManager::~EventManager() {
-    for (TemporalWindowMap::iterator itr = temporalWindows.begin();
-            itr != temporalWindows.end(); itr++) {
-        TemporalWindowList* wList = itr->second;
-        for (TemporalWindowList::iterator litr = wList->begin();
-                litr != wList->end(); litr++) {
-            TemporalWindow* window = *litr;
-            safe_delete_item(window);
+    for (WindowMap::iterator itr = windows.begin(); itr != windows.end(); 
+            itr++) {
+        WindowList& wList = itr->second;
+        for (WindowList::iterator litr = wList.begin();
+                litr != wList.end(); litr++) {
+            TemporalWindow& window = *litr;
         }
         //clears the entry. 
-        wList->clear();
-        safe_delete_item(wList);
+        wList.clear();
     }
-    temporalWindows.clear();
+    windows.clear();
 }
 
-void EventManager::Update(const timeslice& currTime) {
-    
+void EventManager::update(const timeslice& currTime) {
+
     this->currTime = currTime;
-    
+
     {// synchronized scope
-    	upgrade_lock<shared_mutex> upgradeLock(windowsMutex);
-    	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
-        TemporalWindowMap::iterator itr = temporalWindows.find(currTime);
-        if (itr != temporalWindows.end()) { //we have windows to update.
-            TemporalWindowList* wList = itr->second;
-            if (wList) {
-                for (TemporalWindowList::iterator litr = wList->begin();
-                        litr != wList->end(); litr++) {
-                    TemporalWindow* window = *litr;
-                    if (window && window->IsExpired(currTime)) {//only to confirm
-                        Publish(EM_WND_EXPIRED, window, EventArgs());
-                        // remove all subscribers for this window and event.
-                        UnSubscribeAll(EM_WND_EXPIRED, window);
-                        safe_delete_item(window);
-                    }
+        upgrade_lock<shared_mutex> upgradeLock(windowsMutex);
+        upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
+        WindowMap::iterator itr = windows.find(currTime);
+        if (itr != windows.end()) { //we have windows to update.
+            WindowList& wList = itr->second;
+            for (WindowList::iterator litr = wList.begin();
+                    litr != wList.end(); litr++) {
+                TemporalWindow& window = *litr;
+                if (window.isExpired(currTime)) {//only to confirm
+                    publish(EM_WND_EXPIRED, &window, EventArgs());
+                    // remove all subscribers for this window and event.
+                    unSubscribeAll(EM_WND_EXPIRED, &window);
                 }
                 //clears the entry. 
-                wList->clear();
-                temporalWindows.erase(currTime);
-                safe_delete_item(wList);
+                wList.clear();
+                windows.erase(currTime);
             }
         }
     }
 }
 
-void EventManager::Schedule(const timeslice& target, EventListenerPtr listener) {
-    Schedule(target, listener, nullptr);
+void EventManager::schedule(const timeslice& target,
+        EventListenerPtr listener) {
+    schedule(target, listener, Callback());
 }
 
-void EventManager::Schedule(const timeslice& target, EventListenerPtr listener,
-        ListenerContextCallback callback) {
+void EventManager::schedule(const timeslice& target, EventListenerPtr listener,
+        Callback callback) {
 
     {// synchronized scope
-    	upgrade_lock<shared_mutex> upgradeLock(windowsMutex);
-    	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
-        TemporalWindowMap::iterator itr = temporalWindows.find(target);
-        TemporalWindowList* listPtr = nullptr;
-        if (itr == temporalWindows.end()) { // is not registered
-            std::pair < TemporalWindowMap::iterator, bool> ret = temporalWindows.insert(
-                    pair<timeslice, TemporalWindowList*>(target, new TemporalWindowList()));
-            listPtr = ret.first->second;
+        upgrade_lock<shared_mutex> upgradeLock(windowsMutex);
+        upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
+        WindowMap::iterator itr = windows.find(target);
+        WindowList* listPtr = nullptr;
+        if (itr == windows.end()) { // is not registered
+            MapRetVal ret = windows.insert(MapEntry(target, WindowList()));
+            listPtr = &(ret.first->second);
         } else {
-            listPtr = itr->second;
+            listPtr = &(itr->second);
         }
-        TemporalWindow* tw = new TemporalWindow(currTime, target);
-        TemporalWindowList::iterator litr = listPtr->insert(listPtr->end(), tw);
+        TemporalWindow tw(currTime, target);
+        WindowList::iterator litr = listPtr->insert(listPtr->end(), tw);
         if (callback) {
-            Subscribe(EM_WND_EXPIRED, *litr, listener, callback);
+            subscribe(EM_WND_EXPIRED, listener, callback, &(*litr));
         } else {
-            Subscribe(EM_WND_EXPIRED, *litr, listener);
+            subscribe(EM_WND_EXPIRED, listener, &(*litr));
         }
     }
 }
@@ -111,7 +107,8 @@ void EventManager::Schedule(const timeslice& target, EventListenerPtr listener,
  * TEMPORAL WINDOW.
  *  
  */
-EventManager::TemporalWindow::TemporalWindow(const timeslice& from, const timeslice& to)
+EventManager::TemporalWindow::TemporalWindow(const timeslice& from,
+        const timeslice& to)
 : from(from), to(to) {
 
 }
@@ -119,15 +116,15 @@ EventManager::TemporalWindow::TemporalWindow(const timeslice& from, const timesl
 EventManager::TemporalWindow::~TemporalWindow() {
 }
 
-bool EventManager::TemporalWindow::IsExpired(const timeslice& current) const {
+bool EventManager::TemporalWindow::isExpired(const timeslice& current) const {
     return (current.ms() > to.ms() ||
             (current.ms() == to.ms() && current.frame() >= to.frame()));
 }
 
-const timeslice& EventManager::TemporalWindow::GetTo() const {
+const timeslice& EventManager::TemporalWindow::getTo() const {
     return to;
 }
 
-const timeslice& EventManager::TemporalWindow::GetFrom() const {
+const timeslice& EventManager::TemporalWindow::getFrom() const {
     return from;
 }

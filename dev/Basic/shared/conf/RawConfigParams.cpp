@@ -21,7 +21,7 @@ sim_mob::WorkerParams::Worker::Worker() : count(0), granularityMs(0)
 sim_mob::SimulationParams::SimulationParams() :
 	baseGranMS(0), totalRuntimeMS(0), totalWarmupMS(0), auraManagerImplementation(AuraManager::IMPL_RSTAR),
 	workGroupAssigmentStrategy(WorkGroup::ASSIGN_ROUNDROBIN), partitioningSolutionId(0), startingAutoAgentID(0),
-	mutexStategy(MtxStrat_Buffered), commSimEnabled(false), androidClientEnabled(false),androidClientType(""),
+	mutexStategy(MtxStrat_Buffered), commSimEnabled(false), androidClientType(""),
     /*reacTime_distributionType1(0), reacTime_distributionType2(0), reacTime_mean1(0), reacTime_mean2(0),
     reacTime_standardDev1(0), reacTime_standardDev2(0),*/ passenger_distribution_busstop(0),
     passenger_mean_busstop(0), passenger_standardDev_busstop(0), passenger_percent_boarding(0),

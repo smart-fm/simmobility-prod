@@ -9,7 +9,7 @@
  * Created on April 23, 2013, 5:17 PM
  */
 #pragma once
-#include "database/dao/AbstractDao.hpp"
+#include "database/dao/SqlAbstractDao.hpp"
 #include "database/entity/Household.hpp"
 
 using namespace boost;
@@ -19,7 +19,7 @@ namespace sim_mob {
         /**
          * Data Access Object to Household table on datasource.
          */
-        class HouseholdDao : public db::AbstractDao<Household> {
+        class HouseholdDao : public db::SqlAbstractDao<Household> {
         public:
             HouseholdDao(db::DB_Connection& connection);
             virtual ~HouseholdDao();

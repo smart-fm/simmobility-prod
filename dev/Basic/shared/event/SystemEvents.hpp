@@ -33,15 +33,16 @@ enum CoreEvent {
 	//agent life cycle.
 	EVT_CORE_AGENT_DIED,
 	EVT_CORE_AGENT_UPDATED,
+
+	//Called when the commsim Broker establishes a connection with an Agent.
+	//NOTE: This only happens in the short-term, but it is registered at the Agent level, so it must be in "shared".
+	EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
 };
 
 enum CoreContext {
 	CXT_CORE_AGENT_UPDATE
 };
 
-
-///Arguments for agent life-cycle events.
-DECLARE_CUSTOM_CALLBACK_TYPE (AgentLifeCycleEventArgs)
 
 ///Agent Life Cycle event args (no documentation provided).
 class AgentLifeCycleEventArgs : public EventArgs {

@@ -53,7 +53,7 @@ void sim_mob::roadrunner::MulticastHandler::handle(sim_mob::comm::MsgPtr message
 	//1.3 find the client hander first
 	std::string sender_id(msg_header_.sender_id) ; //easy read
 	std::string sender_type(msg_header_.sender_type); //easy read
-	ConfigParams::ClientType clientType;
+	comm::ClientType clientType;
 	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
 	if(!broker->getClientHandler(sender_id,sender_type,clnHandler))
 	{
@@ -63,7 +63,7 @@ void sim_mob::roadrunner::MulticastHandler::handle(sim_mob::comm::MsgPtr message
 
 	//Check the handler's validity.
 	if(!clnHandler->isValid()) {
-		Print() << "Invalid ns3 client handler record" << std::endl;
+		Print() << "Invalid client handler record" << std::endl;
 		return;
 	}
 
@@ -93,20 +93,23 @@ void sim_mob::roadrunner::MulticastHandler::handle(sim_mob::comm::MsgPtr message
 		return;
 	}
 
-	ClientList::pair clientTypes;
-	ClientList::type & all_clients = broker->getClientList();
+	ClientList::Pair clientTypes;
+	ClientList::Type & all_clients = broker->getClientList();
 	sim_mob::comm::MsgData recipients;
+	//iterate through all registered clients
 	BOOST_FOREACH(clientTypes , all_clients)
 	{
-		// only the android emulators
-		if(clientTypes.first != ConfigParams::ANDROID_EMULATOR) {
+		// filter out those client sets which are not android emulators
+		if(clientTypes.first != comm::ANDROID_EMULATOR) {
 			continue;
 		}
 
-		ClientList::IdPair clientIds;
+		ClientList::ValuePair clientIds;
 		boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> >& inner = clientTypes.second;
+		//iterate through android emulator clients
 		BOOST_FOREACH(clientIds , inner)
 		{
+			//get the agent associated to this client
 			boost::shared_ptr<sim_mob::ClientHandler> destClientHandlr  = clientIds.second;
 			const sim_mob::Agent* agent = destClientHandlr->agent;
 
@@ -132,8 +135,10 @@ void sim_mob::roadrunner::MulticastHandler::handle(sim_mob::comm::MsgPtr message
 void sim_mob::roadrunner::MulticastHandler::handleClient(const sim_mob::ClientHandler& clientHdlr, sim_mob::comm::MsgData& recipientsList, Broker& broker, sim_mob::comm::MsgData& data)
 {
 	if (useNs3) {
+		//add the agent to the list of ns3 agent recipients
 		recipientsList.append(clientHdlr.agent->getId());
 	} else {
+		//directly request to send
 		broker.insertSendBuffer(clientHdlr.cnnHandler,data);
 	}
 }

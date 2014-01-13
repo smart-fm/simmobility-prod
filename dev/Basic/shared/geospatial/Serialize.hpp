@@ -489,7 +489,7 @@ void write_xml(XmlWriter& write, const sim_mob::Phase& phase) {
 
 			write.prop_begin("crossings_map");
 			if (it->first && it->second.link) {
-				write.prop("LinkID", it->second.link, namer(), expander("<id>"),
+				write.prop("linkID", it->second.link, namer(), expander("<id>"),
 						false);
 				write.prop("crossingID", it->first->getRoadItemID());
 			}

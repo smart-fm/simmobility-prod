@@ -87,14 +87,15 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_init() {
 		getParent()->xPos.set(busStop_dest->xPos);// set xPos to WaitBusActivityRole
 		getParent()->yPos.set(busStop_dest->yPos);// set yPos to WaitBusActivityRole
 	}
-	parentWaitBusActivityRole->TimeOfReachingBusStop = parentWaitBusActivityRole->getParams().now.ms();
+//	parentWaitBusActivityRole->TimeOfReachingBusStop = parentWaitBusActivityRole->getParams().now.ms();
+	parentWaitBusActivityRole->TimeOfReachingBusStop = getParent()->currTick.ms();
 	buslineid = "857_1";// set Busline information(hardcoded now, later from Public Transit Route Choice to choose the busline)
 }
 
 void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick() {
 	WaitBusActivityRoleUpdateParams &p = parentWaitBusActivityRole->getParams();
 	if(0!=boarding_MS) {// if boarding_Frame is already set
-		if(boarding_MS == p.now.ms()) {// if currFrame is equal to the boarding_Frame
+		if(boarding_MS == p.now.ms()) {// if currFrame is equal to the boarding_Frame, boarding finished
 			getParent()->setToBeRemoved();
 			isBoarded = true;
 //			boarding_MS = -1;
@@ -104,7 +105,9 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick() {
 					Passenger* passenger = dynamic_cast<Passenger*> (getParent()->getNextRole());// check whether nextRole is passenger Role or not
 					if(passenger) {
 						//BusDriver* driver = dynamic_cast<BusDriver*>(busDriver);
-						parentWaitBusActivityRole->waitingTimeAtBusStop = p.now.ms() - parentWaitBusActivityRole->TimeOfReachingBusStop;
+						// startBoardingMS = boarding_MS(finished time) - boardingSEC(for this person)
+						// waitingTime = startBoardingMS - TimeOfReachingBusStop
+						parentWaitBusActivityRole->waitingTimeAtBusStop = p.now.ms() - getParent()->getBoardingCharacteristics() * 1000 - parentWaitBusActivityRole->TimeOfReachingBusStop;
 						passenger->setWaitingTimeAtStop(parentWaitBusActivityRole->waitingTimeAtBusStop);
 						passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
 						passenger->BoardedBus.set(true);

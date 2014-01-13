@@ -50,7 +50,7 @@ void PassengerBehavior::frame_tick_output() {
 sim_mob::PassengerMovement::PassengerMovement(sim_mob::Person* parentAgent):
 		MovementFacet(parentAgent), parentPassenger(nullptr), alighting_MS(0),
 		WaitingTime(-1), TimeOfReachingBusStop(0), displayX(0), displayY(0),skip(0),
-		timeOfStartBoarding(0), travelTime(0), busTripRunNum(0), buslineId("")
+		timeOfStartTrip(0), travelTime(0), busTripRunNum(0), buslineId("")
 {
 }
 
@@ -83,7 +83,7 @@ void sim_mob::PassengerMovement::frame_init() {
 		getParent()->yPos.force(OriginBusstopAg->getBusStop().yPos);// set yPos to WaitBusActivityRole
 		OriginBusStop = const_cast<BusStop*>(getParent()->originNode.busStop_);
 		DestBusStop = const_cast<BusStop*>(getParent()->destNode.busStop_);
-		timeOfStartBoarding = getParent()->currTick.ms();
+		timeOfStartTrip = getParent()->currTick.ms();
 		if(getParent()) {
 			getParent()->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
 		}
@@ -112,7 +112,7 @@ void sim_mob::PassengerMovement::frame_init() {
 	}
 
 //	TimeOfReachingBusStop=parentPassenger->getParams().now.ms();
-	timeOfStartBoarding = getParent()->currTick.ms();;
+	timeOfStartTrip = getParent()->currTick.ms();;
 	if(getParent()) {
 		getParent()->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
 	}
@@ -138,7 +138,9 @@ void sim_mob::PassengerMovement::frame_tick() {
 					newRole->Movement()->frame_init();
 				} else {
 					getParent()->setToBeRemoved();//removes passenger if destination is reached
-					travelTime = p.now.ms() - timeOfStartBoarding + getParent()->getAlightingCharacteristics() * 1000;
+					// startAlightingMS = alighting_MS(finished time) - alightingSEC(for this person)
+					// travelTime = startAlightTime - TimeOfStartTrip
+					travelTime = p.now.ms() - getParent()->getAlightingCharacteristics() * 1000 - timeOfStartTrip;
 					const uint32_t waitingTimeAtStop = parentPassenger->getWaitingTimeAtStop();
 					PassengerInfoPrint() << "iamwaiting id "<<getParent()->getId()<<" from "<<getParent()->originNode.busStop_->busstopno_<<" to "<<getParent()->destNode.busStop_->busstopno_<<" "
 							<<(ConfigManager::GetInstance().FullConfig().simStartTime() + DailyTime(getParent()->getStartTime()) + DailyTime(waitingTimeAtStop)).getRepr_()<<" "

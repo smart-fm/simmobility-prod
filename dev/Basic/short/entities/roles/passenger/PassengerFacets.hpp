@@ -115,7 +115,7 @@ private:
 	std::vector<Busline*> BuslinesToTake;///buslines passenger can take;decided by passenger upon reaching busstop
 	double WaitingTime;
 	double TimeOfReachingBusStop;
-	uint32_t timeOfStartBoarding;
+	uint32_t timeOfStartTrip;
 	uint32_t travelTime;
 	///For display purposes: offset this Passenger by a given +x, +y
 	Point2D DisplayOffset;

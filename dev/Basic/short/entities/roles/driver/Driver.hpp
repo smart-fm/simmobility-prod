@@ -109,6 +109,9 @@ public:
 	Shared< std::vector<int> > stop_event_lastAlightingPassengers;
 
 	Vehicle* getVehicle() { return vehicle; }
+
+	///Reroute around a blacklisted set of RoadSegments. See Role's comments for more information.
+	virtual void rerouteWithBlacklist(const std::vector<sim_mob::RoadSegment*>& blacklisted);
 //
 public:
 	double startTime;

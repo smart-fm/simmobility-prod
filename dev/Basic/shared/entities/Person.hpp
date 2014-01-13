@@ -54,8 +54,9 @@ public:
 	//Person objects are spatial in nature
 	virtual bool isNonspatial() { return false; }
 
-	//Update Person behavior (old)
-	//virtual Entity::UpdateStatus update(timeslice now);
+	///Reroute to the destination with the given set of blacklisted RoadSegments.
+	///If the Agent cannot complete this new route, it will fall back onto the old route.
+	virtual void rerouteWithBlacklist(const std::vector<sim_mob::RoadSegment*>& blacklisted);
 
 	///Load a Person's config-specified properties, creating a placeholder trip chain if
 	/// requested.

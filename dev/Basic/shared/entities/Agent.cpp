@@ -151,8 +151,7 @@ void sim_mob::Agent::resetFrameInit() {
 
 void sim_mob::Agent::rerouteWithBlacklist(const std::vector<sim_mob::RoadSegment*>& blacklisted)
 {
-	//TODO: Re-route.
-	Warn() <<"Re-routing not implemented.\n";
+	//By default, re-routing does nothing. Subclasses of Agent can add behavior for this.
 }
 
 //long sim_mob::Agent::getLastUpdatedFrame() const {

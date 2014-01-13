@@ -210,6 +210,15 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 }
 
 
+void Person::rerouteWithBlacklist(const std::vector<sim_mob::RoadSegment*>& blacklisted)
+{
+	//This requires the Role's intervention.
+	if (currRole) {
+		currRole->rerouteWithBlacklist(blacklisted);
+	}
+}
+
+
 bool sim_mob::Person::frame_init(timeslice now)
 {
 	currTick = now;
@@ -409,7 +418,7 @@ UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
 		return UpdateStatus::Done;
 	}
 
-	//advance the trip,subtrip or activity....
+	//advance the trip, subtrip or activity....
 	if(!first_update_tick) {
 		if(!(advanceCurrentTripChainItem())) {
 			return UpdateStatus::Done;

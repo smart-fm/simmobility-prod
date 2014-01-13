@@ -1399,53 +1399,31 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 
 		Person* parentP = dynamic_cast<Person*> (parent);
 		sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
+		const StreetDirectory& stdir = StreetDirectory::instance();
 
-		//NOTE: I am fairly sure that this if-statement is wrong; we have ALREADY dereferenced parentP, so it's never null.
-		//      However, specialStr IS always empty, so this will always pass. Please review. ~Seth
-		//if (!parentP || parentP->specialStr.empty()) {
-			const StreetDirectory& stdir = StreetDirectory::instance();
-			//path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
-
-			if(subTrip->schedule==nullptr){
-				// if use path set
-				if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-					path = PathSetManager::getInstance()->getPathByPerson(getParent());
-				}
-				else
-				{
-					const StreetDirectory& stdir = StreetDirectory::instance();
-					path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
-				}
-
+		if(subTrip->schedule==nullptr){
+			// if use path set
+			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+				path = PathSetManager::getInstance()->getPathByPerson(getParent());
 			}
-			else {
-				std::vector<Node*>& routes = subTrip->schedule->routes;
-				std::vector<Node*>::iterator first = routes.begin();
-				std::vector<Node*>::iterator second = first;
-
-				path.clear();
-				for(second++; first!=routes.end() && second!=routes.end(); first++, second++){
-					vector<WayPoint> subPath = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(**first), stdir.DrivingVertex(**second));
-					path.insert( path.end(), subPath.begin(), subPath.end());
-				}
-			}
-
-		//} else {
-			//Retrieve the special string.
-			/*size_t cInd = parentP->specialStr.find(':');
-			string specialType = parentP->specialStr.substr(0, cInd);
-			string specialValue = parentP->specialStr.substr(cInd, std::string::npos);
-			if (specialType=="loop") {
-				initLoopSpecialString(path, specialValue);
-			} else if (specialType=="tripchain") {
+			else
+			{
 				const StreetDirectory& stdir = StreetDirectory::instance();
 				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
-				initTripChainSpecialString(specialValue);
-			} else {
-				throw std::runtime_error("Unknown special string type.");
-			}*/
+			}
 
-		//}
+		}
+		else {
+			std::vector<Node*>& routes = subTrip->schedule->routes;
+			std::vector<Node*>::iterator first = routes.begin();
+			std::vector<Node*>::iterator second = first;
+
+			path.clear();
+			for(second++; first!=routes.end() && second!=routes.end(); first++, second++){
+				vector<WayPoint> subPath = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(**first), stdir.DrivingVertex(**second));
+				path.insert( path.end(), subPath.begin(), subPath.end());
+			}
+		}
 
 		//For now, empty paths aren't supported.
 		if (path.empty()) {
@@ -1496,6 +1474,15 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 	getParent()->setNextPathPlanned(true);
 	return res;
 }
+
+
+void sim_mob::DriverMovement::rerouteWithBlacklist(const std::vector<sim_mob::RoadSegment*>& blacklisted)
+{
+	//Make sure we've gotten here.
+	Warn() <<"Resetting current path: " <<parentDriver->vehicle <<"\n";
+}
+
+
 
 //link path should be retrieved from other class
 //for now, it serves as this purpose

@@ -327,9 +327,9 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 						parentBusDriver->lastVisited_Busline.set(busline->getBusLineID());
 						parentBusDriver->lastVisited_BusTrip_SequenceNo.set(bustrip->getBusTripRun_SequenceNum());
 
-						// any bus visited this bus stop agent, stored the curr_ms with its busline id
-						BusStopAgent* busstopAg = parentBusDriver->lastVisited_BusStop.get()->generatedBusStopAgent;
-						busstopAg->setBuslineIdCurrReachedMSs(busline->getBusLineID(), parentBusDriver->getParams().now.ms());
+//						// any bus visited this bus stop agent, stored the curr_ms with its busline id
+//						BusStopAgent* busstopAg = parentBusDriver->lastVisited_BusStop.get()->generatedBusStopAgent;
+//						busstopAg->setBuslineIdCurrReachedMSs(busline->getBusLineID(), parentBusDriver->getParams().now.ms());
 						if (busline) {
 							if(busline->getControl_TimePointNum0() == parentBusDriver->busstop_sequence_no.get() || busline->getControl_TimePointNum1() == parentBusDriver->busstop_sequence_no.get()) { // only use holding control at selected time points
 								parentBusDriver->existed_Request_Mode.set( Role::REQUEST_DECISION_TIME );
@@ -384,6 +384,14 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 			|| (waitAtStopMS >= BUS_STOP_WAIT_TIME)) {
 //		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop"
 //				<< std::endl;
+
+		// any bus leaving this bus stop agent, stored the curr_ms with its busline id
+		BusTrip* bustrip = const_cast<BusTrip*>(dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem)));
+		if(bustrip && bustrip->itemType==TripChainItem::IT_BUSTRIP) {
+			const Busline* busline = bustrip->getBusline();
+			BusStopAgent* busstopAg = parentBusDriver->lastVisited_BusStop.get()->generatedBusStopAgent;
+			busstopAg->setBuslineIdCurrReachedMSs(busline->getBusLineID(), parentBusDriver->getParams().now.ms());
+		}
 		waitAtStopMS = -1;
 		resetBoardingAlightingVariables();// reset boarding alighting variables when leaving bus stop
 		BUS_STOP_WAIT_TIME = 2;// reset waiting time

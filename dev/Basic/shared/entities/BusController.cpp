@@ -195,6 +195,8 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 	int step = 0;
 	all_children.clear();
 	bool busstop_busline_registered=false;
+	// record the last dispatching time
+	DailyTime lastBusDispatchTime;
 	for (vector<sim_mob::PT_bus_dispatch_freq>::const_iterator curr=busdispatch_freq.begin(); curr!=busdispatch_freq.end(); curr++) {
 		vector<sim_mob::PT_bus_dispatch_freq>::const_iterator next = curr+1;
 
@@ -218,8 +220,12 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 		//  and add it during each time step.
 		DailyTime advance(curr->headway_sec*1000);// curr->headway_sec*200
 		for(DailyTime startTime = curr->start_time; startTime.isBeforeEqual(nextTime); startTime += advance) {
-			//TODO: I am setting the Vehicle ID to -1 for now; it *definitely* shouldn't be the same as the Agent ID.
+			// deal with small gaps between the group dispatching times
+			if((startTime - lastBusDispatchTime).isBeforeEqual(advance)) {
+				startTime = lastBusDispatchTime + advance;
+			}
 
+			//TODO: I am setting the Vehicle ID to -1 for now; it *definitely* shouldn't be the same as the Agent ID.
 			BusTrip bustrip("", "BusTrip", 0, -1, startTime, DailyTime("00:00:00"), step++, busline, -1, curr->route_id, nullptr, "node", nullptr, "node");
 
 			//Try to find our data.
@@ -243,6 +249,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 			if(bustrip.setBusRouteInfo(segments, stops)) {
 				busline->addBusTrip(bustrip);
 			}
+			lastBusDispatchTime = startTime;
 		}
 	}
 

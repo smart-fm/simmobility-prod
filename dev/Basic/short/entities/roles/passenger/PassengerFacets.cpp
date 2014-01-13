@@ -144,7 +144,7 @@ void sim_mob::PassengerMovement::frame_tick() {
 					const uint32_t waitingTimeAtStop = parentPassenger->getWaitingTimeAtStop();
 					PassengerInfoPrint() << "iamwaiting id "<<getParent()->getId()<<" from "<<getParent()->originNode.busStop_->busstopno_<<" to "<<getParent()->destNode.busStop_->busstopno_<<" "
 							<<(ConfigManager::GetInstance().FullConfig().simStartTime() + DailyTime(getParent()->getStartTime()) + DailyTime(waitingTimeAtStop)).getRepr_()<<" "
-							<<waitingTimeAtStop<<" bustripRunNum " << getBusTripRunNum() << " "<<" buslineid " << getBuslineId() << " TravelTime " << travelTime << std::endl;
+							<<waitingTimeAtStop<<" bustripRunNum " << getBusTripRunNum() << " buslineid " << getBuslineId() << " TravelTime " << travelTime << std::endl;
 					parentPassenger->busdriver.set(nullptr);// assign this busdriver to Passenger
 					parentPassenger->BoardedBus.set(false);
 					parentPassenger->AlightedBus.set(true);

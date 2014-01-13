@@ -119,7 +119,7 @@ void write_xml(XmlWriter& write,
 //	write_xml(write, newConnector, namer("<laneFrom,laneTo>"), expander("<id,id>"));
 	std::map<const sim_mob::Lane*, sim_mob::UniNode::UniLaneConnector>::const_iterator it;
 	for (it = newConnectors.begin(); it != newConnectors.end(); it++) {
-		write.prop_begin("newConnector");
+		write.prop_begin("new_connector");
 		if (!it->first) {
 			throw std::runtime_error("Linkfrom null");
 		} else {
@@ -488,7 +488,7 @@ void write_xml(XmlWriter& write, const sim_mob::Phase& phase) {
 
 			write.prop_begin("crossings_map");
 			if (it->first && it->second.link) {
-				write.prop("LinkID", it->second.link, namer(), expander("<id>"),
+				write.prop("linkID", it->second.link, namer(), expander("<id>"),
 						false);
 				write.prop("crossingID", it->first->getRoadItemID());
 			}

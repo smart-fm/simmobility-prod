@@ -104,39 +104,88 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 	uint32_t currMS = (config.simStartTime() + DailyTime(now.ms())).offsetMS_From(DailyTime("00:00:00"));// transfered to ms based on midnight
 	if(currMS % frequency_OutputHeadwayGaps == 0) {
 		buslineId_HeadwayGapMSs.clear();
-		std::map<std::string, std::vector<uint32_t> >::const_iterator iter;
-		std::stringstream headwayGapMSOut;
-		for (iter = buslineId_CurrReachedMSs.begin(); iter != buslineId_CurrReachedMSs.end(); ++iter) {
-			if(iter->second.size() >= 2) {
-//				headwayGapMSOut << "(\"BusStopAgent\""
-//								<<" frame no:" << now.frame()
-//								<< " bus stop no:" << this->busstop_.busstopno_ << std::endl;
-				for(int i = 0; i < iter->second.size() - 1; i++) {
-//					headwayGapMSOut << "iter->second[i+1]: " << iter->second[i+1]
-//					                << "iter->second[i]: " << iter->second[i]
-//					                << std::endl;
-					buslineId_HeadwayGapMSs[iter->first].push_back(iter->second[i+1] - iter->second[i]);
+
+		std::stringstream currReachedMSOut;
+		std::map<std::string, std::vector<uint32_t> >::const_iterator it;
+		for (it = buslineId_CurrReachedMSs.begin(); it != buslineId_CurrReachedMSs.end(); ++it) {
+			// #print 857_1 information
+			if((it->first) == "857_1") {
+				currReachedMSOut << now.frame() << ","
+								 << this->busstop_.busstopno_ << ","
+								 << (it->first) << ","
+								 << (it->second).size() << ",";
+				for(int i = 0; i < it->second.size(); i++) {
+	//				currReachedMSOut << " (\"currReachedMS\""
+	//								<< ": " << (it->second)[i];
+	//				currReachedMSOut << "\"})" << std::endl;
+					currReachedMSOut << (it->second)[i] << ",";
+//					currReachedMSOut << std::endl;
 				}
+				currReachedMSOut << std::endl;
+				HeadwayAtBusStopInfoPrint() << currReachedMSOut.str();
 			}
 		}
 
+
+
+// #print all busline information
+//		for (it = buslineId_CurrReachedMSs.begin(); it != buslineId_CurrReachedMSs.end(); ++it) {
+//			currReachedMSOut << "(\"BusStopAgent\""
+//							<<" frame no:" << now.frame()
+//							<< " bus stop no:" << this->busstop_.busstopno_ << std::endl;
+//			currReachedMSOut << " (\"buslineID\""
+//							<< ": " << (it->first)
+//							<< " currReachedMS size: " << (it->second).size()
+//							<< std::endl;
+//			for(int i = 0; i < it->second.size(); i++) {
+////				currReachedMSOut << " (\"currReachedMS\""
+////								<< ": " << (it->second)[i];
+////				currReachedMSOut << "\"})" << std::endl;
+//				currReachedMSOut << (it->second)[i];
+//				currReachedMSOut << std::endl;
+//			}
+//			currReachedMSOut << std::endl;
+//		}
+//		HeadwayAtBusStopInfoPrint() << currReachedMSOut.str();
+
+
+
+
+// #print headway gaps
+//		std::map<std::string, std::vector<uint32_t> >::const_iterator iter;
 //		std::stringstream headwayGapMSOut;
-		for(iter = buslineId_HeadwayGapMSs.begin(); iter != buslineId_HeadwayGapMSs.end(); ++iter) {
-			headwayGapMSOut << "(\"BusStopAgent\""
-							<<" frame no:" << now.frame()
-							<< " bus stop no:" << this->busstop_.busstopno_ << std::endl;
-			headwayGapMSOut << " (\"buslineID\""
-							<< ": " << (iter->first)
-							<< " headway size: " << (iter->second).size()
-							<< std::endl;
-			for(int i = 0; i < iter->second.size(); i++) {
-				headwayGapMSOut << " (\"headwayGap\""
-								<< ": " << (iter->second)[i];
-				headwayGapMSOut << "\"})" << std::endl;
-			}
-			headwayGapMSOut << std::endl;
-		}
-		HeadwayAtBusStopInfoPrint() << headwayGapMSOut.str();
+//		for (iter = buslineId_CurrReachedMSs.begin(); iter != buslineId_CurrReachedMSs.end(); ++iter) {
+//			if(iter->second.size() >= 2) {
+////				headwayGapMSOut << "(\"BusStopAgent\""
+////								<<" frame no:" << now.frame()
+////								<< " bus stop no:" << this->busstop_.busstopno_ << std::endl;
+//				for(int i = 0; i < iter->second.size() - 1; i++) {
+////					headwayGapMSOut << "iter->second[i+1]: " << iter->second[i+1]
+////					                << "iter->second[i]: " << iter->second[i]
+////					                << std::endl;
+//					buslineId_HeadwayGapMSs[iter->first].push_back(iter->second[i+1] - iter->second[i]);
+//				}
+//			}
+//		}
+//
+////		std::stringstream headwayGapMSOut;
+//		for(iter = buslineId_HeadwayGapMSs.begin(); iter != buslineId_HeadwayGapMSs.end(); ++iter) {
+//			headwayGapMSOut << "(\"BusStopAgent\""
+//							<<" frame no:" << now.frame()
+//							<< " bus stop no:" << this->busstop_.busstopno_ << std::endl;
+//			headwayGapMSOut << " (\"buslineID\""
+//							<< ": " << (iter->first)
+//							<< " headway size: " << (iter->second).size()
+//							<< std::endl;
+//			for(int i = 0; i < iter->second.size(); i++) {
+//				headwayGapMSOut << " (\"headwayGap\""
+//								<< ": " << (iter->second)[i];
+//				headwayGapMSOut << "\"})" << std::endl;
+//			}
+//			headwayGapMSOut << std::endl;
+//		}
+//		HeadwayAtBusStopInfoPrint() << headwayGapMSOut.str();
+//		HeadwayAtBusStopInfoPrint() << std::endl;
 	}
 
 }

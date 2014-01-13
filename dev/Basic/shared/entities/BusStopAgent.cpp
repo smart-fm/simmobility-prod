@@ -161,11 +161,23 @@ Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 		}
 		if(!boarding_WaitBusActivities.empty())
 			sort(boarding_WaitBusActivities.begin(),boarding_WaitBusActivities.end(),less_than_TimeOfReachingBusStop());
-		for(int i = 0; i < boarding_WaitBusActivities.size(); i++) {
-			WaitBusActivityRoleMovement* waitbusactivityRoleMovement = dynamic_cast<WaitBusActivityRoleMovement*> (boarding_WaitBusActivities[i]->Movement());
-			if(waitbusactivityRoleMovement->boarding_MS == -1) {
-				boarding_WaitBusActivities.erase(boarding_WaitBusActivities.begin() + i);
-			}
+//		for(int i = 0; i < boarding_WaitBusActivities.size(); i++) {
+//			WaitBusActivityRoleMovement* waitbusactivityRoleMovement = dynamic_cast<WaitBusActivityRoleMovement*> (boarding_WaitBusActivities[i]->Movement());
+////			if(waitbusactivityRoleMovement->boarding_MS == -1) {
+////				boarding_WaitBusActivities.erase(boarding_WaitBusActivities.begin() + i);
+////			}
+//			if(waitbusactivityRoleMovement->isBoarded) {
+//				boarding_WaitBusActivities.erase(boarding_WaitBusActivities.begin() + i);
+//			}
+//		}
+	}
+	for(int i = 0; i < boarding_WaitBusActivities.size(); i++) {
+		WaitBusActivityRoleMovement* waitbusactivityRoleMovement = dynamic_cast<WaitBusActivityRoleMovement*> (boarding_WaitBusActivities[i]->Movement());
+//			if(waitbusactivityRoleMovement->boarding_MS == -1) {
+//				boarding_WaitBusActivities.erase(boarding_WaitBusActivities.begin() + i);
+//			}
+		if(waitbusactivityRoleMovement->isBoarded) {
+			boarding_WaitBusActivities.erase(boarding_WaitBusActivities.begin() + i);
 		}
 	}
 	//unregisterAlightedPerons();// check the Alighted Queue and unregister Alighted Persons

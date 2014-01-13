@@ -67,6 +67,8 @@ sim_mob::WaitBusActivityRoleMovementImpl::~WaitBusActivityRoleMovementImpl() {
 
 void sim_mob::WaitBusActivityRoleMovementImpl::frame_init() {
 	// special case: fnode, tnode are all stop ids, for scenarios
+	isTagged = false;
+	isBoarded = false;
 	if(getParent()->originNode.type_== WayPoint::BUS_STOP && getParent()->destNode.type_== WayPoint::BUS_STOP) {
 		busStopAgent = getParent()->originNode.busStop_->generatedBusStopAgent;
 		getParent()->xPos.force(busStopAgent->getBusStop().xPos);// set xPos to WaitBusActivityRole
@@ -86,7 +88,7 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_init() {
 		getParent()->yPos.set(busStop_dest->yPos);// set yPos to WaitBusActivityRole
 	}
 	parentWaitBusActivityRole->TimeOfReachingBusStop = parentWaitBusActivityRole->getParams().now.ms();
-	buslineid = "7_2";// set Busline information(hardcoded now, later from Public Transit Route Choice to choose the busline)
+	buslineid = "857_1";// set Busline information(hardcoded now, later from Public Transit Route Choice to choose the busline)
 }
 
 void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick() {
@@ -94,7 +96,8 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick() {
 	if(0!=boarding_MS) {// if boarding_Frame is already set
 		if(boarding_MS == p.now.ms()) {// if currFrame is equal to the boarding_Frame
 			getParent()->setToBeRemoved();
-			boarding_MS = -1;
+			isBoarded = true;
+//			boarding_MS = -1;
 			//Person* person = dynamic_cast<Person*> (parent);
 			if(getParent()) {
 				if(getParent()->getNextRole()) {

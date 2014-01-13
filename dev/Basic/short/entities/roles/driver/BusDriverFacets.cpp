@@ -741,8 +741,9 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 		// determine the boarding frame for each possible persons
 		for(i = 0; i < boarding_waitBusActivities.size(); i++) {
 			WaitBusActivityRoleMovement* waitbusactivityrolemovement = dynamic_cast<WaitBusActivityRoleMovement*> (boarding_waitBusActivities[i]->Movement());
-			if(waitbusactivityrolemovement->getBuslineID() == busline->getBusLineID()) // calculate how many persons want to board this bus based on the BusLineID
+			if(waitbusactivityrolemovement->getBuslineID() == busline->getBusLineID() && (!waitbusactivityrolemovement->isTagged)) // calculate how many persons want to board this bus based on the BusLineID
 			{
+				waitbusactivityrolemovement->isTagged = true;
 				BoardingNum_Pos[boardingNum] = i;// record the previous pos in the boarding_WaitBusActivities
 				boardingNum++;
 			}
@@ -805,14 +806,14 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 		for(i = 0; i < (bus->passengers_inside_bus).size(); i++) {
 			Person* p = dynamic_cast<Person*>((bus->passengers_inside_bus)[i]);
 			if(p) {
-				if(parentBusDriver->getParams().now.frame() == 25210) {
-					std::cout << "!!!!error captured: " << std::endl;
-					std::cout << p->getRole()->name << std::endl;
-					std::cout << p->getDatabaseId() << std::endl;
-				}
+//				if(parentBusDriver->getParams().now.frame() == 25210) {
+//					std::cout << "!!!!error captured: " << std::endl;
+//					std::cout << p->getRole()->name << std::endl;
+//					std::cout << p->getDatabaseId() << std::endl;
+//				}
 				Passenger* passenger = dynamic_cast<Passenger*>(p->getRole());
-				PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
 				if(passenger) {
+					PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
 					if(passenger_movement) {
 						if(passenger_movement->getDestBusStop() == parentBusDriver->lastVisited_BusStop.get()) // it reached the DestBusStop and it want to alight
 						{
@@ -852,8 +853,14 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 		// determine the boarding frame for each possible persons
 		for(i = 0; i < boarding_waitBusActivities.size(); i++) {
 			WaitBusActivityRoleMovement* waitbusactivityrolemovement = dynamic_cast<WaitBusActivityRoleMovement*> (boarding_waitBusActivities[i]->Movement());
-			if(waitbusactivityrolemovement->getBuslineID() == busline->getBusLineID()) // calculate how many persons want to board this bus based on the BusLineID
+//			if(waitbusactivityrolemovement->getBuslineID() == busline->getBusLineID()) // calculate how many persons want to board this bus based on the BusLineID
+//			{
+//				BoardingNum_Pos[boardingNum] = i;// record the previous pos in the boarding_WaitBusActivities
+//				boardingNum++;
+//			}
+			if(waitbusactivityrolemovement->getBuslineID() == busline->getBusLineID() && (!waitbusactivityrolemovement->isTagged)) // calculate how many persons want to board this bus based on the BusLineID
 			{
+				waitbusactivityrolemovement->isTagged = true;
 				BoardingNum_Pos[boardingNum] = i;// record the previous pos in the boarding_WaitBusActivities
 				boardingNum++;
 			}

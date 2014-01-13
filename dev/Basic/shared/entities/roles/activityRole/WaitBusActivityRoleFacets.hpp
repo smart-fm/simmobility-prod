@@ -59,6 +59,10 @@ public:
 public:
     //Set by the BusDriver to the MS this Person should board the bus.
 	uint32_t boarding_MS;
+	// indicate whether WaitBusActivityRole is already boarded or not, at initialize stage (isBoarded is false)
+	bool isBoarded;
+	// tag to indicate the WaitBusActivityRole already determine which bus to take
+	bool isTagged;
 	//Indicates the BusDriver of the bus we will board when "boarding_Frame" is reached.
 	sim_mob::BusDriver* busDriver;
 protected:

@@ -198,22 +198,6 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 	isQueuingAfterUpdate = person->isQueuing;
 	segStatsAftrUpdt = findSegStats(segAfterUpdate);
 
-	//debugging dequeue error
-	if(person->getId() == 84205 || person->getId() == 13282) {
-		Print() << person->getId()
-				<< "|person->currWorkerProvider: " << person->currWorkerProvider
-				<< "|roleBeforeUpdate: " << (roleBeforeUpdate? roleBeforeUpdate->getRoleName() : "No role")
-				<< "|segBeforeUpdate: " << segBeforeUpdate->getStartEnd()
-				<< "|laneBeforeUpdate:" << (laneBeforeUpdate? laneBeforeUpdate->getLaneID() : 0)
-				<< "|isQueuingBeforeUpdate:" << isQueuingBeforeUpdate
-				<< "|roleAfterUpdate: " << roleAfterUpdate->getRoleName()
-				<< "|segAfterUpdate: " << segAfterUpdate->getStartEnd()
-				<< "|laneAfterUpdate: " << (laneAfterUpdate? laneAfterUpdate->getLaneID() : 0)
-				<< "|isQueuingAfterUpdate: " << isQueuingAfterUpdate
-				<< "|distance: " << person->distanceToEndOfSegment
-				<< "|lastUpdatedFrame: " << person->getLastUpdatedFrame() << std::endl;
-	}
-
 	if (!laneBeforeUpdate) { //If the person was in virtual queue or was performing an activity
 		if(laneAfterUpdate) { //If the person has moved to another lane (possibly even to laneInfinity if he was performing activity) in some segment
 			segStatsAftrUpdt->addAgent(laneAfterUpdate, person);

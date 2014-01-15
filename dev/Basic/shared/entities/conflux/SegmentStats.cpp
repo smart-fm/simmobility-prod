@@ -461,8 +461,8 @@ double sim_mob::SegmentStats::speed_density_function(bool hasVehicle,
 	//double density = numVehicles / (getRoadSegment()->computeLaneZeroLength() / 100.0);
 	//maxSpeed according to AIMSUN
 	double freeFlowSpeed = getRoadSegment()->maxSpeed / 3.6 * 100; // Converting from Kmph to cm/s
-	//The following default values were suggested by Yang Lu
-	double minSpeed = 300.0;
+	//The following default values were suggested by Yang Lu.
+	double minSpeed = 0.3 * freeFlowSpeed; // 30% of free flow speed
 	double jamDensity = 0.2; //density during traffic jam in veh/meter
 	double alpha = 1.8; //Model parameter of speed density function
 	double beta = 1.9; //Model parameter of speed density function

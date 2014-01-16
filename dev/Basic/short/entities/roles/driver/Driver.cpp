@@ -107,14 +107,6 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
 	,stop_event_nodeid(mtxStrat, -1)
 {
-//	if (Debug::Drivers) {
-//		DebugStream <<"Driver starting: ";
-//		if (parent) { DebugStream <<parent->getId(); } else { DebugStream <<"<null>"; }
-//		DebugStream <<endl;
-//	}
-//	trafficSignal = nullptr;
-	//vehicle = nullptr;
-//	lastIndex = -1;
 	//This is something of a quick fix; if there is no parent, then that means the
 	//  reaction times haven't been initialized yet and will crash. ~Seth
 	if (parent) {
@@ -134,19 +126,8 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	perceivedAccOfFwdCar = new FixedDelayed<double>(reacTime,true);
 	perceivedDistToFwdCar = new FixedDelayed<double>(reacTime,true);
 	perceivedDistToTrafficSignal = new FixedDelayed<double>(reacTime,true);
-
-
 	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
 
-
-//	//Initialize our models. These should be swapable later.
-//	lcModel = new MITSIM_LC_Model();
-//	cfModel = new MITSIM_CF_Model();
-//	intModel = new SimpleIntDrivingModel();
-//
-//	//Some one-time flags and other related defaults.
-//	nextLaneInNextLink = nullptr;
-//	disToFwdVehicleLastFrame = maxVisibleDis;
 	// record start time
 	startTime = getParams().now.ms()/1000.0;
 	isAleadyStarted = false;
@@ -311,58 +292,11 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	nvRightBack2 = NearestVehicle();
 }
 
-namespace {
-/*vector<const Agent*> GetAgentsInCrossing(const Crossing* crossing, const Driver* refAgent) {
-	//Put x and y coordinates into planar arrays.
-	int x[4] = { crossing->farLine.first.getX(), crossing->farLine.second.getX(), crossing->nearLine.first.getX(),
-			crossing->nearLine.second.getX() };
-	int y[4] = { crossing->farLine.first.getY(), crossing->farLine.second.getY(), crossing->nearLine.first.getY(),
-			crossing->nearLine.second.getY() };
 
-	//Prepare minimum/maximum values.
-	int xmin = x[0];
-	int xmax = x[0];
-	int ymin = y[0];
-	int ymax = y[0];
-	for (int i = 0; i < 4; i++) {
-		if (x[i] < xmin)
-			xmin = x[i];
-		if (x[i] > xmax)
-			xmax = x[i];
-		if (y[i] < ymin)
-			ymin = y[i];
-		if (y[i] > ymax)
-			ymax = y[i];
+void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
+{
+	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
+	if (mov) {
+		mov->rerouteWithBlacklist(blacklisted);
 	}
-
-	//Create a rectangle from xmin,ymin to xmax,ymax
-	//TODO: This is completely unnecessary; Crossings are already in order, so
-	//      crossing.far.first and crossing.near.second already defines a rectangle.
-	Point2D rectMinPoint = Point2D(xmin, ymin);
-	Point2D rectMaxPoint = Point2D(xmax, ymax);
-
-//	PerformanceProfile::instance().markStartQuery(this->run_on_thread_id);
-	return AuraManager::instance().agentsInRect(rectMinPoint, rectMaxPoint, refAgent);
-//	PerformanceProfile::instance().markEndQuery(run_on_thread_id);
-}*/
-} //End anon namespace
-
-namespace {
-//Helper function for reading points; similar to the one in simpleconf, but it throws an
-//  exception if it fails.
-Point2D readPoint(const string& str) {
-	//Does it match the pattern?
-	size_t commaPos = str.find(',');
-	if (commaPos==string::npos) {
-		throw std::runtime_error("Point string badly formatted.");
-	}
-
-	//Try to parse its substrings
-	int xPos, yPos;
-	std::istringstream(str.substr(0, commaPos)) >> xPos;
-	std::istringstream(str.substr(commaPos+1, string::npos)) >> yPos;
-
-	return Point2D(xPos, yPos);
 }
-} //End anon namespace
-

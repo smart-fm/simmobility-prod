@@ -42,7 +42,7 @@ std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKS
 	std::list< sim_mob::PathLength > sortList;
 	while(true)
 	{
-		std::vector<sim_mob::WayPoint> path_previous = A.back();
+		std::vector<sim_mob::WayPoint> pathPrevious = A.back();
 		std::vector< std::vector<sim_mob::WayPoint> > C;
 		// blacklist is initiated for every iteration so that previously blocked links are restored.
 		std::vector<const RoadSegment*> blacklist;
@@ -52,10 +52,10 @@ std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKS
 			std::vector<sim_mob::WayPoint> path_inA = A[i];
 			C.push_back(path_inA);
 		}
-		for(int i=0;i<path_previous.size();i++)
+		for(int i=0;i<pathPrevious.size();i++)
 		{
-			if (path_previous[i].type_ == WayPoint::ROAD_SEGMENT) {
-				const sim_mob::RoadSegment *nextRootPathLink = path_previous[i].roadSegment_;
+			if (pathPrevious[i].type_ == WayPoint::ROAD_SEGMENT) {
+				const sim_mob::RoadSegment *nextRootPathLink = pathPrevious[i].roadSegment_;
 				const sim_mob::Node *spur_node = nextRootPathLink->getStart();
 				// block link C^j[i].
 				std::vector< std::vector<sim_mob::WayPoint> > D;
@@ -107,7 +107,7 @@ std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKS
 					C.push_back(path_inD);
 				}
 				// update rootpath.
-				rootPath.push_back(path_previous[i]);
+				rootPath.push_back(pathPrevious[i]);
 			} // end type_
 		} // end for
 		if(sortList.size()>0)

@@ -102,12 +102,12 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 	}
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	uint32_t currMS = (config.simStartTime() + DailyTime(now.ms())).offsetMS_From(DailyTime("00:00:00"));// transfered to ms based on midnight
+	// record 3 hours' information
 	if(now.frame() == 108000) {
-		buslineId_HeadwayGapMSs.clear();
-
 		std::stringstream currReachedMSOut;
 		std::map<std::string, std::vector<uint32_t> >::const_iterator it;
-		for (it = buslineId_CurrReachedMSs.begin(); it != buslineId_CurrReachedMSs.end(); ++it) {
+		buslineIdCurrReachedMSs.clear();
+		for (it = buslineIdCurrReachedMSs.begin(); it != buslineIdCurrReachedMSs.end(); ++it) {
 			// #print 857_1 information
 			if((it->first) == "857_1") {
 				currReachedMSOut << "currReachedMsInformation for buslineId " << (it->first) << std::endl;
@@ -121,7 +121,8 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 			}
 		}
 
-		for (it = buslineId_AlightingNum.begin(); it != buslineId_AlightingNum.end(); ++it) {
+		buslineIdAlightingNum.clear();
+		for (it = buslineIdAlightingNum.begin(); it != buslineIdAlightingNum.end(); ++it) {
 			// #print 857_1 information
 			if((it->first) == "857_1") {
 				currReachedMSOut << "AlightingInformation for buslineId " << (it->first) << std::endl;
@@ -135,7 +136,8 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 			}
 		}
 
-		for (it = buslineId_BoardingNum.begin(); it != buslineId_BoardingNum.end(); ++it) {
+		buslineIdBoardingNum.clear();
+		for (it = buslineIdBoardingNum.begin(); it != buslineIdBoardingNum.end(); ++it) {
 			// #print 857_1 information
 			if((it->first) == "857_1") {
 				currReachedMSOut << "BoardingInformation for buslineId " << (it->first) << std::endl;
@@ -150,7 +152,8 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 		}
 
 		std::map<std::string, std::vector<double> >::const_iterator it1;
-		for (it1 = buslineId_BoardingAlightingSecs.begin(); it1 != buslineId_BoardingAlightingSecs.end(); ++it1) {
+		buslineIdBoardingAlightingSecs.clear();
+		for (it1 = buslineIdBoardingAlightingSecs.begin(); it1 != buslineIdBoardingAlightingSecs.end(); ++it1) {
 			// #print 857_1 information
 			if((it1->first) == "857_1") {
 				currReachedMSOut << "BoardingAlightingSecs_Information for buslineId " << (it1->first) << std::endl;
@@ -165,7 +168,8 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 		}
 
 		std::map<std::string, std::vector<int> >::const_iterator it2;
-		for (it2 = buslineId_bustripRunSequenceNums.begin(); it2 != buslineId_bustripRunSequenceNums.end(); ++it2) {
+		buslineIdBusTripRunSequenceNums.clear();
+		for (it2 = buslineIdBusTripRunSequenceNums.begin(); it2 != buslineIdBusTripRunSequenceNums.end(); ++it2) {
 			// #print 857_1 information
 			if((it2->first) == "857_1") {
 				currReachedMSOut << "BusTripRunSequenceNumInformation for buslineId " << (it2->first) << std::endl;
@@ -179,7 +183,8 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 			}
 		}
 
-		for (it2 = buslineId_passengerCounts.begin(); it2 != buslineId_passengerCounts.end(); ++it2) {
+		buslineIdPassengerCounts.clear();
+		for (it2 = buslineIdPassengerCounts.begin(); it2 != buslineIdPassengerCounts.end(); ++it2) {
 			// #print 857_1 information
 			if((it2->first) == "857_1") {
 				currReachedMSOut << "PassengerCountsInformation for buslineId " << (it2->first) << std::endl;
@@ -213,45 +218,6 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 //			currReachedMSOut << std::endl;
 //		}
 //		HeadwayAtBusStopInfoPrint() << currReachedMSOut.str();
-
-
-
-
-// #print headway gaps
-//		std::map<std::string, std::vector<uint32_t> >::const_iterator iter;
-//		std::stringstream headwayGapMSOut;
-//		for (iter = buslineId_CurrReachedMSs.begin(); iter != buslineId_CurrReachedMSs.end(); ++iter) {
-//			if(iter->second.size() >= 2) {
-////				headwayGapMSOut << "(\"BusStopAgent\""
-////								<<" frame no:" << now.frame()
-////								<< " bus stop no:" << this->busstop_.busstopno_ << std::endl;
-//				for(int i = 0; i < iter->second.size() - 1; i++) {
-////					headwayGapMSOut << "iter->second[i+1]: " << iter->second[i+1]
-////					                << "iter->second[i]: " << iter->second[i]
-////					                << std::endl;
-//					buslineId_HeadwayGapMSs[iter->first].push_back(iter->second[i+1] - iter->second[i]);
-//				}
-//			}
-//		}
-//
-////		std::stringstream headwayGapMSOut;
-//		for(iter = buslineId_HeadwayGapMSs.begin(); iter != buslineId_HeadwayGapMSs.end(); ++iter) {
-//			headwayGapMSOut << "(\"BusStopAgent\""
-//							<<" frame no:" << now.frame()
-//							<< " bus stop no:" << this->busstop_.busstopno_ << std::endl;
-//			headwayGapMSOut << " (\"buslineID\""
-//							<< ": " << (iter->first)
-//							<< " headway size: " << (iter->second).size()
-//							<< std::endl;
-//			for(int i = 0; i < iter->second.size(); i++) {
-//				headwayGapMSOut << " (\"headwayGap\""
-//								<< ": " << (iter->second)[i];
-//				headwayGapMSOut << "\"})" << std::endl;
-//			}
-//			headwayGapMSOut << std::endl;
-//		}
-//		HeadwayAtBusStopInfoPrint() << headwayGapMSOut.str();
-//		HeadwayAtBusStopInfoPrint() << std::endl;
 	}
 
 }
@@ -269,38 +235,20 @@ Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 		 	if(waitbusactivityRole) {
 		 		WaitBusActivityRoleMovement* waitbusactivityRoleMovement = dynamic_cast<WaitBusActivityRoleMovement*> (waitbusactivityRole->Movement());
 		 		if((!waitbusactivityRoleMovement->getRegisteredFlag()) && (waitbusactivityRoleMovement->getBusStopAgent() == this)) {// not registered and waiting in this BusStopAgent
-		 			boarding_WaitBusActivities.push_back(waitbusactivityRole);
+		 			boardingWaitBusActivities.push_back(waitbusactivityRole);
 		 			waitbusactivityRoleMovement->setRegisteredFlag(true);// set this person's role to be registered
 		 		}
 		 	}
 		}
-		if(!boarding_WaitBusActivities.empty())
-			sort(boarding_WaitBusActivities.begin(),boarding_WaitBusActivities.end(),less_than_TimeOfReachingBusStop());
+		if(!boardingWaitBusActivities.empty())
+			sort(boardingWaitBusActivities.begin(),boardingWaitBusActivities.end(),less_than_TimeOfReachingBusStop());
 	}
-	for(int i = 0; i < boarding_WaitBusActivities.size(); i++) {
-		WaitBusActivityRoleMovement* waitbusactivityRoleMovement = dynamic_cast<WaitBusActivityRoleMovement*> (boarding_WaitBusActivities[i]->Movement());
+	for(int i = 0; i < boardingWaitBusActivities.size(); i++) {
+		WaitBusActivityRoleMovement* waitbusactivityRoleMovement = dynamic_cast<WaitBusActivityRoleMovement*> (boardingWaitBusActivities[i]->Movement());
 		if(waitbusactivityRoleMovement->isBoarded) {
-			boarding_WaitBusActivities.erase(boarding_WaitBusActivities.begin() + i);
+			boardingWaitBusActivities.erase(boardingWaitBusActivities.begin() + i);
 		}
 	}
 
 	return Entity::UpdateStatus::Continue;
-}
-
-void sim_mob::BusStopAgent::unregisterAlightedPerons()
-{
-	for(int i = 0; i < alighted_Persons.size(); i++) {
-		if(!(alighted_Persons[i]->currWorkerProvider)) {
-			std::cout << "alighted_Persons[i]->getRole(): " << alighted_Persons[i]->getRole() << std::endl;
-			alighted_Persons.erase(alighted_Persons.begin() + i);// ghost, erase this person from the BusStopAgent
-		} else {
-			if(!alighted_Persons[i]->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
-			{
-				std::cout << "End of trip chain...." << std::endl;
-			}
-			if(alighted_Persons[i]->getNextRole()->roleType == Role::RL_PEDESTRIAN) {// if roleType belong to Pedestrian type
-				alighted_Persons.erase(alighted_Persons.begin() + i);// erase this person from the BusStopAgent
-			}
-		}
-	}
 }

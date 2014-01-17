@@ -25,7 +25,6 @@ namespace sim_mob {
  */
 class Busline;
 
-// offsetMS_From(ConfigParams::GetInstance().simStartTime)???
 /**
  * \author Yao Jin
  */

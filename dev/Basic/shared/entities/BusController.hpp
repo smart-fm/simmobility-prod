@@ -108,15 +108,10 @@ protected:
 	virtual void frame_output(timeslice now);
 
 private:
-	//void dispatchFrameTick(timeslice now);
-	//void frame_init(timeslice now);
-	//void frame_tick_output(timeslice now);
-
 	double scheduledDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_busStop);// scheduled-based control
 	double headwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_busStop); // headway-based control
 	double evenheadwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_busStop); // evenheadway-based control
 	double hybridDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_busStop); // hybrid-based control(evenheadway while restricting the maximum holding time)
-
 
 	uint32_t frameNumberCheck;// check some frame number to do control
 	uint32_t nextTimeTickToStage;// next timeTick to be checked

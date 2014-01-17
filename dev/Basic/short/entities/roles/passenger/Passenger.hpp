@@ -69,7 +69,6 @@ public:
 #endif
 
 public:
-	//uint32_t alighting_MS;// to record the alighting_MS for each individual person
 	sim_mob::Shared<Driver*> busdriver;///passenger should have info about the driver
 	sim_mob::Shared<bool> BoardedBus;
 	sim_mob::Shared<bool> AlightedBus;

@@ -28,7 +28,7 @@ class BusStopAgent  : public sim_mob::Agent
 {
 public:
 	BusStopAgent(BusStop const & busstop, const MutexStrategy& mtxStrat, int id=-1)
-		  : Agent(mtxStrat, id), busstop_(busstop), frequency_OutputHeadwayGaps(900000){};
+		  : Agent(mtxStrat, id), busstop_(busstop) {};
 
 	//Return the number of known BusStopAgents
 	static size_t AllBusStopAgentsCount();
@@ -56,27 +56,25 @@ public:
 	BusStop const & getBusStop() const { return busstop_; }
 	void setBusStopAgentNo(const std::string& busstopno) { busstopAgentno_ = busstopno; }// set BusStopAgentNum
 	const std::string& getBusStopAgentNo() const { return busstopAgentno_; }// get BusStopAgentNum
-	std::vector<sim_mob::WaitBusActivityRole*>& getBoarding_WaitBusActivities() { return boarding_WaitBusActivities; }// get the boarding queue of persons for all Buslines at this BusStopAgent
-	std::vector<sim_mob::Person*>& getAlighted_Persons() { return alighted_Persons; }
+	std::vector<sim_mob::WaitBusActivityRole*>& getBoarding_WaitBusActivities() { return boardingWaitBusActivities; }// get the boarding queue of persons for all Buslines at this BusStopAgent
 	void addBuslineIdCurrReachedMSs(const std::string& buslineId, uint32_t currReachedMS) {
-		buslineId_CurrReachedMSs[buslineId].push_back(currReachedMS);
+		buslineIdCurrReachedMSs[buslineId].push_back(currReachedMS);
 	}
 	void addBuslineIdPassengerCounts(const std::string& buslineId, int passengerCounts) {
-		buslineId_passengerCounts[buslineId].push_back(passengerCounts);
+		buslineIdPassengerCounts[buslineId].push_back(passengerCounts);
 	}
 	void addBuslineIdAlightingNum(const std::string& buslineId, uint32_t alightingNum) {
-		buslineId_AlightingNum[buslineId].push_back(alightingNum);
+		buslineIdAlightingNum[buslineId].push_back(alightingNum);
 	}
 	void addBuslineIdBoardingNum(const std::string& buslineId, uint32_t boardingNum) {
-		buslineId_BoardingNum[buslineId].push_back(boardingNum);
+		buslineIdBoardingNum[buslineId].push_back(boardingNum);
 	}
 	void addBuslineIdBoardingAlightingSecs(const std::string& buslineId, double boardingAlightingSecs) {
-		buslineId_BoardingAlightingSecs[buslineId].push_back(boardingAlightingSecs);
+		buslineIdBoardingAlightingSecs[buslineId].push_back(boardingAlightingSecs);
 	}
 	void addBuslineIdBusTripRunSequenceNum(const std::string& buslineId, int bustripRunSequenceNum) {
-		buslineId_bustripRunSequenceNums[buslineId].push_back(bustripRunSequenceNum);
+		buslineIdBusTripRunSequenceNums[buslineId].push_back(bustripRunSequenceNum);
 	}
-	void unregisterAlightedPerons();
 
 	virtual ~BusStopAgent(){}
 	virtual void load(const std::map<std::string, std::string>& configProps){}
@@ -90,22 +88,26 @@ public:
 
 private:
 	static std::vector<BusStopAgent *> all_BusstopAgents_;
-
-	sim_mob::BusStop const & busstop_; // BusStop object reference
-	std::string busstopAgentno_; //currently is equal to busstopno_
-	std::vector<sim_mob::WaitBusActivityRole*> boarding_WaitBusActivities;// one boarding queue of persons for all Buslines(temporary, each BusDriver will construct a new queue based on this)
-	std::vector<sim_mob::Person*> alighted_Persons;// one alighted queue of persons.(possibly depart the persons continuing waiting and pedestrians moving to other places
-	std::map<std::string, std::vector<uint32_t> > buslineId_HeadwayGapMSs;// for each busline, list all the time headway gaps visited by each bus for this bus stop agent
-	std::map<std::string, std::vector<uint32_t> > buslineId_CurrReachedMSs;// for each busline, store all the curr visited ms of bustrips for this bus stop agent
+	// BusStop object reference
+	sim_mob::BusStop const & busstop_;
+	//currently is equal to busstopno_
+	std::string busstopAgentno_;
+	// one boarding queue of persons for all Buslines(temporary, each BusDriver will construct a new queue based on this)
+	std::vector<sim_mob::WaitBusActivityRole*> boardingWaitBusActivities;
 
 	// new added variables
-	std::map<std::string, std::vector<int> > buslineId_passengerCounts;
-	std::map<std::string, std::vector<uint32_t> > buslineId_AlightingNum;
-	std::map<std::string, std::vector<uint32_t> > buslineId_BoardingNum;
-	std::map<std::string, std::vector<double> > buslineId_BoardingAlightingSecs;
-	std::map<std::string, std::vector<int> > buslineId_bustripRunSequenceNums;
-
-	uint32_t frequency_OutputHeadwayGaps;// default every 15min(900000ms) generate output, test 3600000(1hour)
+	// for each busline, store all the curr arriving ms of bustrips at this bus stop agent
+	std::map<std::string, std::vector<uint32_t> > buslineIdCurrReachedMSs;
+	// for each busline, store all the passenger counts of buses arriving at this bus stop agent
+	std::map<std::string, std::vector<int> > buslineIdPassengerCounts;
+	// for each busline, store the passenger alighting num of bustrips at this bus stop agent
+	std::map<std::string, std::vector<uint32_t> > buslineIdAlightingNum;
+	// for each busline, store the passenger boarding num of bustrips at this bus stop agent
+	std::map<std::string, std::vector<uint32_t> > buslineIdBoardingNum;
+	// for each busline, store the boarding and alighting secs(dwell time secs) of bustrips at this bus stop agent
+	std::map<std::string, std::vector<double> > buslineIdBoardingAlightingSecs;
+	// for each busline, store the bus trip run sequence num of bustrips at this bus stop agent
+	std::map<std::string, std::vector<int> > buslineIdBusTripRunSequenceNums;
 
 
 #ifndef SIMMOB_DISABLE_MPI

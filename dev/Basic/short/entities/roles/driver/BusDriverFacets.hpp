@@ -118,17 +118,17 @@ public:
 	size_t no_passengers_alighting;
 
 	// flag to indicate whether boarding and alighting is allowed, if it is false, boarding alighting frame is not determined(reset after BusDriver leaves the BusStop)
-	bool allow_boarding_alighting_flag;
+	bool allowBoardingAlightingFlag;
 	// a tempoary boarding queue, will be cleared after BusDriver leaves the BusStop
-	std::vector<sim_mob::Person*> virtualBoarding_Persons;
-	// record the BoardingNum_Pos map based on the boarding queue in the BusStopAgent, cleared after BusDriver leaves the BusStop
-	std::map<int, int> BoardingNum_Pos;
-	// record the AlightingNum_Pos map based on the passenger queue in the Bus, cleared after BusDriver leaves the BusStop
-	std::map<int, int> AlightingNum_Pos;
-	// boarding_MSs for possible boarding persons, cleared after leaving the BusStop
-	std::vector<uint32_t> boarding_MSs;
-	// alighting_MSs for possible alighting persons, cleared after leaving the BusStop
-	std::vector<uint32_t> alighting_MSs;
+	std::vector<sim_mob::Person*> virtualBoardingPersons;
+	// record the BoardingNumPos map based on the boarding queue in the BusStopAgent, cleared after BusDriver leaves the BusStop
+	std::map<int, int> BoardingNumPos;
+	// record the AlightingNumPos map based on the passenger queue in the Bus, cleared after BusDriver leaves the BusStop
+	std::map<int, int> AlightingNumPos;
+	// boardingMSs for possible boarding persons, cleared after leaving the BusStop
+	std::vector<uint32_t> boardingMSs;
+	// alightingMSs for possible alighting persons, cleared after leaving the BusStop
+	std::vector<uint32_t> alightingMSs;
 	// the first boarding and alighting MS where bus will start boarding and alighting, reset after leaving the BusStop
 	uint32_t first_boarding_alighting_ms;
 	// the last boarding and alighting MS and bus will leaves the BusStop, reset after leaving the BusStop

@@ -954,7 +954,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 								PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
 								if(passenger_movement) {
 									passenger_movement->PassengerBoardBus_Choice( this->getParentDriver() );
-									passenger_movement->alighting_MS = 1;
+									passenger_movement->alightingMS = 1;
 								}
 					 	 	}
 					 	}
@@ -973,7 +973,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 									PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
 									if(passenger_movement) {
 										passenger_movement->PassengerAlightBus(this->getParentDriver());
-										passenger_movement->alighting_MS = 1;
+										passenger_movement->alightingMS = 1;
 									}
 
 									itPerson = schedule->insidePassengers.erase(itPerson);

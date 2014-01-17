@@ -425,9 +425,9 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 				getParent()->canMoveToNextSegment = Person::NONE; // so that advance() and setParentData() is called subsequently
 			}
 		}
-		//Person is in virtual queue (should remain in virtual queues if canGoTo failed)
 		else if (vehicle->getNextSegment(false) == getParent()->getCurrSegment() ){
-			Print() << "DriverMovement::flowIntoNextLinkIfPossible|Frame#: " << p.now.frame() << "|Person: " << getParent()->getId() << " remains in virtual queue" << std::endl;
+			//Person is in virtual queue (should remain in virtual queues if canGoTo failed)
+			//do nothing
 		}
 		else{
 			DebugStream << "Driver " << getParent()->getId()
@@ -754,7 +754,6 @@ void DriverMovement::setOrigin(DriverUpdateParams& p) {
 	{
 		p.elapsedSeconds = p.secondsInTick;
 		getParent()->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
-		Print() << "DriverMovement::setOrigin|Frame#: " << p.now.frame() << "|Person: " << getParent()->getId() << "|canGoToNextRdSeg failed, will remain in lane infinity!" << std::endl;
 	}
 }
 

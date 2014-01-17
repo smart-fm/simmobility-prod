@@ -300,8 +300,40 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 	}
 }
 
-void sim_mob::DriverMovement::frame_tick() {
 
+void sim_mob::DriverMovement::setRR_RegionsFromCurrentPath()
+{
+	if (parent->getRegionSupportStruct().isEnabled()) {
+		if (parentDriver->vehicle) {
+			std::vector<const sim_mob::RoadSegment*> path = parentDriver->vehicle->getPath();
+			if (!path.empty()) {
+				//We may be partly along this route, but it is unlikely. Still, just to be safe...
+				const sim_mob::RoadSegment* currseg = parentDriver->vehicle->getCurrSegment();
+
+				//Now save it, taking into account the "current segment"
+				rrPathToSend.clear();
+				for (std::vector<const sim_mob::RoadSegment*>::const_iterator it=path.begin(); it!=path.end(); it++) {
+					//Have we reached our starting segment yet?
+					if (currseg) {
+						if (currseg == *it) {
+							//Signal this by setting currseg to null.
+							currseg = nullptr;
+						} else {
+							continue;
+						}
+					}
+
+					//Add it; we've cleared our current segment check one way or another.
+					rrPathToSend.push_back(*it);
+				}
+			}
+		}
+	}
+}
+
+
+void sim_mob::DriverMovement::frame_tick()
+{
 	// lost some params
 	DriverUpdateParams& p2 = parentDriver->getParams();
 
@@ -328,38 +360,7 @@ void sim_mob::DriverMovement::frame_tick() {
 			parent->getRegionSupportStruct().setNewAllRegionsSet(allRegions);
 
 			//If a path has already been set, we will need to transmit it.
-			if (parentDriver->vehicle) {
-				std::vector<const sim_mob::RoadSegment*> path = parentDriver->vehicle->getPath();
-				if (!path.empty()) {
-					//We may be partly along this route, but it is unlikely. Still, just to be safe...
-					const sim_mob::RoadSegment* currseg = parentDriver->vehicle->getCurrSegment();
-
-					//Now save it, taking into account the "current segment"
-					rrPathToSend.clear();
-					for (std::vector<const sim_mob::RoadSegment*>::const_iterator it=path.begin(); it!=path.end(); it++) {
-						//Have we reached our starting segment yet?
-						if (currseg) {
-							if (currseg == *it) {
-								//Signal this by setting currseg to null.
-								currseg = nullptr;
-							} else {
-								continue;
-							}
-						}
-
-						//Add it; we've cleared our current segment check one way or another.
-						rrPathToSend.push_back(*it);
-
-
-						//TEMP:
-						/*const RoadNetwork& rn = ConfigManager::GetInstance().FullConfig().getNetwork();
-						LatLngLocation start = rn.getCoordTransform(true)->transform(DPoint((*it)->getStart()->location.getX(), (*it)->getStart()->location.getY()));
-						LatLngLocation end = rn.getCoordTransform(true)->transform(DPoint((*it)->getEnd()->location.getX(), (*it)->getEnd()->location.getY()));
-						Print() <<"Adding: " <<start.latitude <<"," <<start.longitude <<"\n";
-						Print() <<"    to: " <<end.latitude <<"," <<end.longitude <<"\n";*/
-					}
-				}
-			}
+			setRR_RegionsFromCurrentPath();
 		}
 
 		//We always need to send a path if one is available.
@@ -1399,53 +1400,31 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 
 		Person* parentP = dynamic_cast<Person*> (parent);
 		sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
+		const StreetDirectory& stdir = StreetDirectory::instance();
 
-		//NOTE: I am fairly sure that this if-statement is wrong; we have ALREADY dereferenced parentP, so it's never null.
-		//      However, specialStr IS always empty, so this will always pass. Please review. ~Seth
-		//if (!parentP || parentP->specialStr.empty()) {
-			const StreetDirectory& stdir = StreetDirectory::instance();
-			//path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
-
-			if(subTrip->schedule==nullptr){
-				// if use path set
-				if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-					path = PathSetManager::getInstance()->getPathByPerson(getParent());
-				}
-				else
-				{
-					const StreetDirectory& stdir = StreetDirectory::instance();
-					path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
-				}
-
+		if(subTrip->schedule==nullptr){
+			// if use path set
+			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+				path = PathSetManager::getInstance()->getPathByPerson(getParent());
 			}
-			else {
-				std::vector<Node*>& routes = subTrip->schedule->routes;
-				std::vector<Node*>::iterator first = routes.begin();
-				std::vector<Node*>::iterator second = first;
-
-				path.clear();
-				for(second++; first!=routes.end() && second!=routes.end(); first++, second++){
-					vector<WayPoint> subPath = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(**first), stdir.DrivingVertex(**second));
-					path.insert( path.end(), subPath.begin(), subPath.end());
-				}
-			}
-
-		//} else {
-			//Retrieve the special string.
-			/*size_t cInd = parentP->specialStr.find(':');
-			string specialType = parentP->specialStr.substr(0, cInd);
-			string specialValue = parentP->specialStr.substr(cInd, std::string::npos);
-			if (specialType=="loop") {
-				initLoopSpecialString(path, specialValue);
-			} else if (specialType=="tripchain") {
+			else
+			{
 				const StreetDirectory& stdir = StreetDirectory::instance();
 				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
-				initTripChainSpecialString(specialValue);
-			} else {
-				throw std::runtime_error("Unknown special string type.");
-			}*/
+			}
 
-		//}
+		}
+		else {
+			std::vector<Node*>& routes = subTrip->schedule->routes;
+			std::vector<Node*>::iterator first = routes.begin();
+			std::vector<Node*>::iterator second = first;
+
+			path.clear();
+			for(second++; first!=routes.end() && second!=routes.end(); first++, second++){
+				vector<WayPoint> subPath = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(**first), stdir.DrivingVertex(**second));
+				path.insert( path.end(), subPath.begin(), subPath.end());
+			}
+		}
 
 		//For now, empty paths aren't supported.
 		if (path.empty()) {
@@ -1497,23 +1476,75 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 	return res;
 }
 
-//link path should be retrieved from other class
-//for now, it serves as this purpose
-void sim_mob::DriverMovement::resetPath(DriverUpdateParams& p) {
-	const Node * node = parentDriver->vehicle->getCurrSegment()->getEnd();
-	//Retrieve the shortest path from the current intersection node to destination and save all RoadSegments in this path.
-	const StreetDirectory& stdir = StreetDirectory::instance();
-	vector<WayPoint> path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*node), stdir.DrivingVertex(*(parentDriver->goal.node)));
 
-	//For now, empty paths aren't supported.
-	if (path.empty()) {
-		throw std::runtime_error("Can't resetPath(); path is empty.");
+void sim_mob::DriverMovement::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
+{
+	//Skip if we're somehow not driving on a road.
+	if (!(parentDriver && parentDriver->vehicle && parentDriver->vehicle->getCurrSegment())) {
+		return;
 	}
 
+	//Retrieve the shortest path from the current intersection node to destination and save all RoadSegments in this path.
+	//NOTE: This path may be invalid, is there is no LaneConnector from the current Segment to the first segment of the result path.
+	const RoadSegment* currSeg = parentDriver->vehicle->getCurrSegment();
+	const Node* node = currSeg->getEnd();
+	const StreetDirectory& stdir = StreetDirectory::instance();
+	vector<WayPoint> path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*node), stdir.DrivingVertex(*(parentDriver->goal.node)), blacklisted);
+
+	//Given this (tentative) path, we still have to transition from the current Segment.
+	//At the moment this is a bit tedious (since we can't search mid-segment in the StreetDir), but
+	//  the following heuristic should work well enough.
+	const RoadSegment* nextSeg = nullptr;
+	if (path.size() > 1) { //Node, Segment.
+		vector<WayPoint>::iterator it = path.begin();
+		if ((it->type_==WayPoint::NODE) && (it->node_ == node)) {
+			it++;
+			if (it->type_==WayPoint::ROAD_SEGMENT) {
+				nextSeg = it->roadSegment_;
+
+			}
+		}
+	}
+
+	//Now find the LaneConnectors. For a UniNode, this is trivial. For a MultiNode, we have to check.
+	//NOTE: If a lane connector is NOT found, there may still be an alternate route... but we can't check this without
+	//      blacklisting the "found" segment and repeating. I think a far better solution would be to modify the
+	//      shortest-path algorithm to allow searching from Segments (the data structure already can handle it),
+	//      but for now we will have to deal with the rare true negative in cities with lots of one-way streets.
+	if (nextSeg) {
+		bool found = false;
+		const MultiNode* mn = dynamic_cast<const MultiNode*>(node);
+		if (mn) {
+			const set<LaneConnector*> lcs = mn->getOutgoingLanes(currSeg);
+			for (set<LaneConnector*>::const_iterator it=lcs.begin(); it!=lcs.end(); it++) {
+				if (((*it)->getLaneFrom()->getRoadSegment()==currSeg) && ((*it)->getLaneTo()->getRoadSegment()==nextSeg)) {
+					found = true;
+					break;
+				}
+			}
+		}
+		if (!found) {
+			path.clear();
+		}
+	}
+
+	//If there's no path, keep the current one.
+	if (path.empty()) {
+		return;
+	}
+
+	//Else, pre-pend the current segment, and reset the current driver.
+	//NOTE: This will put the current driver back onto the start of the current Segment, but since this is only
+	//      used in Road Runner, it doesn't matter right now.
+	//TODO: This *might* work if we save the current advance on the current segment and reset it.
 	vector<WayPoint>::iterator it = path.begin();
 	path.insert(it, WayPoint(parentDriver->vehicle->getCurrSegment()));
 	parentDriver->vehicle->resetPath(path);
+
+	//Finally, update the client with the new list of Region tokens it must acquire.
+	setRR_RegionsFromCurrentPath();
 }
+
 
 void sim_mob::DriverMovement::setOrigin(DriverUpdateParams& p) {
 	//Set the max speed and target speed.

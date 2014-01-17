@@ -405,6 +405,7 @@ public:
 	 */
 	boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> getMessageReceiveCallBack();
 
+
 	/**
 	 * 	broker, as an agent, has an update function
 	 */

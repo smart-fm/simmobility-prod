@@ -223,6 +223,7 @@ boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> sim_mob
 	return m_messageReceiveCallback;
 }
 
+
 void sim_mob::Broker::onEvent(event::EventId eventId,
 		sim_mob::event::Context ctxId, event::EventPublisher* sender,
 		const event::EventArgs& args) {

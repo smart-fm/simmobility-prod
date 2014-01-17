@@ -140,9 +140,15 @@ double SegmentStats::getDensity(bool hasVehicle) {
 	if(movingLength > 0) {
 		if (roadSegment->getLaneZeroLength() > 10*vehicle_length) {
 			density = numMovingInSegment(true)/(movingLength/100.0);
+			Print() << "rdSeg: " << roadSegment->getStartEnd() << "|length: " << roadSegment->getLaneZeroLength() << "|long: true"
+					<< "|movingCount: " << numMovingInSegment(true) << "|queueCount: " << queueCount << "|movingLength: " << movingLength
+					<< "|density = movingCount/movingLength = " << density << std::endl;
 		}
 		else {
 			density = queueCount/(movingLength/100.0);
+			Print() << "rdSeg: " << roadSegment->getStartEnd() << "|length: " << roadSegment->getLaneZeroLength() << "|long: true"
+					<< "|movingCount: " << numMovingInSegment(true) << "|queueCount: " << queueCount << "|movingLength: " << movingLength
+					<< "|density = queueCount/movingLength = " << density << std::endl;
 		}
 	}
 	else {

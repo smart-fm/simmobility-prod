@@ -467,9 +467,9 @@ double sim_mob::Conflux::computeTimeToReachEndOfLink(const sim_mob::RoadSegment*
 	std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt = std::find(segments.begin(), segments.end(), seg);
 
 	sim_mob::SegmentStats* segStats = findSegStats(seg);
-	double timeToReachEndOfLink = distanceToEndOfSeg * getSegmentSpeed(seg,true);
+	double timeToReachEndOfLink = distanceToEndOfSeg / getSegmentSpeed(seg,true);
 	for(std::vector<sim_mob::RoadSegment*>::const_iterator i = rdSegIt+1; i!=segments.end(); i++) {
-		timeToReachEndOfLink += (*i)->getLaneZeroLength() * getSegmentSpeed((*i),true);
+		timeToReachEndOfLink += (*i)->getLaneZeroLength() / getSegmentSpeed((*i),true);
 	}
 	return timeToReachEndOfLink;
 }

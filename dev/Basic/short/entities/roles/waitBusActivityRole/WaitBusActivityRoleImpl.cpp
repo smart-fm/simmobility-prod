@@ -74,7 +74,7 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_init() {
 		getParent()->xPos.force(busStopAgent->getBusStop().xPos);// set xPos to WaitBusActivityRole
 		getParent()->yPos.force(busStopAgent->getBusStop().yPos);// set yPos to WaitBusActivityRole
 		parentWaitBusActivityRole->TimeOfReachingBusStop = parentWaitBusActivityRole->getParams().now.ms();
-		buslineid = "857_1";// set Busline information(hardcoded now, later from Public Transit Route Choice to choose the busline)
+		buslineId = "857_1";// set Busline information(hardcoded now, later from Public Transit Route Choice to choose the busline)
 		return;
 	}
 	if(getParent()->destNode.type_== WayPoint::BUS_STOP) { // to here waiting(busstop)
@@ -89,23 +89,20 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_init() {
 	}
 //	parentWaitBusActivityRole->TimeOfReachingBusStop = parentWaitBusActivityRole->getParams().now.ms();
 	parentWaitBusActivityRole->TimeOfReachingBusStop = getParent()->currTick.ms();
-	buslineid = "857_1";// set Busline information(hardcoded now, later from Public Transit Route Choice to choose the busline)
+	buslineId = "857_1";// set Busline information(hardcoded now, later from Public Transit Route Choice to choose the busline)
 }
 
 void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick() {
 	WaitBusActivityRoleUpdateParams &p = parentWaitBusActivityRole->getParams();
-	if(0!=boarding_MS) {// if boarding_Frame is already set
-		if(boarding_MS == p.now.ms()) {// if currFrame is equal to the boarding_Frame, boarding finished
+	if(0!=boardingMS) {// if boarding_Frame is already set
+		if(boardingMS == p.now.ms()) {// if currFrame is equal to the boarding_Frame, boarding finished
 			getParent()->setToBeRemoved();
 			isBoarded = true;
-//			boarding_MS = -1;
-			//Person* person = dynamic_cast<Person*> (parent);
 			if(getParent()) {
 				if(getParent()->getNextRole()) {
 					Passenger* passenger = dynamic_cast<Passenger*> (getParent()->getNextRole());// check whether nextRole is passenger Role or not
 					if(passenger) {
-						//BusDriver* driver = dynamic_cast<BusDriver*>(busDriver);
-						// startBoardingMS = boarding_MS(finished time) - boardingSEC(for this person)
+						// startBoardingMS = boardingMS(finished time) - boardingSEC(for this person)
 						// waitingTime = startBoardingMS - TimeOfReachingBusStop
 						parentWaitBusActivityRole->waitingTimeAtBusStop = p.now.ms() - getParent()->getBoardingCharacteristics() * 1000 - parentWaitBusActivityRole->TimeOfReachingBusStop;
 						passenger->setWaitingTimeAtStop(parentWaitBusActivityRole->waitingTimeAtBusStop);
@@ -126,17 +123,16 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick_output() {
 	}
 
 	//Reset our offset if it's set to zero
-	if (DisplayOffset.getX()==0 && DisplayOffset.getY()==0) {
+	if (displayOffset.getX()==0 && displayOffset.getY()==0) {
 	   boost::mt19937 gen(static_cast<unsigned int>(getParent()->getId()*getParent()->getId()));
 	   boost::uniform_int<> distX(0, 249);
 	   boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varX(gen, distX);
 	   boost::uniform_int<> distY(0, 99);
 	   boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varY(gen, distY);
 	   unsigned int value = (unsigned int)varX();
-	   DisplayOffset.setX(value+1);
+	   displayOffset.setX(value+1);
 	   value= (unsigned int)varY();
-	   DisplayOffset.setY(value+1);
+	   displayOffset.setY(value+1);
 	}
-	//LogOut("("<<"\"passenger\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+DisplayOffset.getX()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+DisplayOffset.getY()+DisplayOffset.getY())<<"\",})"<<std::endl);
-	LogOut("("<<"\"passenger\","<<getParent()->currTick.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(getParent()->xPos.get()+DisplayOffset.getX())<<"\"," <<"\"yPos\":\""<<(getParent()->yPos.get()+DisplayOffset.getY())<<"\",})"<<std::endl);
+	LogOut("("<<"\"passenger\","<<getParent()->currTick.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(getParent()->xPos.get()+displayOffset.getX())<<"\"," <<"\"yPos\":\""<<(getParent()->yPos.get()+displayOffset.getY())<<"\",})"<<std::endl);
 }

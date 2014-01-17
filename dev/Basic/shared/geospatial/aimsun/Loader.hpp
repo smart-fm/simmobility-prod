@@ -138,8 +138,8 @@ class BusStopFinder
 public:
 	BusStopFinder(const Node* src, const Node* dest);
 	Busline* getBusLineToTake(){ return BusLineToTake; }
-	BusStop* getSourceBusStop(){ return OriginBusStop; }
-	BusStop* getDestinationBusStop(){ return DestBusStop;}
+	BusStop* getSourceBusStop(){ return originBusStop; }
+	BusStop* getDestinationBusStop(){ return destBusStop;}
 
 private:
 	BusStop* findNearbyBusStop(const Node* src);
@@ -147,8 +147,8 @@ private:
 	BusStop* getBusStop(const Node* node,sim_mob::RoadSegment* segment);
 
 private:
-	BusStop* OriginBusStop;
-    BusStop* DestBusStop;
+	BusStop* originBusStop;
+    BusStop* destBusStop;
     Busline* BusLineToTake;
 };
 

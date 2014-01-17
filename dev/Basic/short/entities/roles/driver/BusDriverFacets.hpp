@@ -130,13 +130,13 @@ public:
 	// alightingMSs for possible alighting persons, cleared after leaving the BusStop
 	std::vector<uint32_t> alightingMSs;
 	// the first boarding and alighting MS where bus will start boarding and alighting, reset after leaving the BusStop
-	uint32_t first_boarding_alighting_ms;
+	uint32_t firstBoardingAlightingMS;
 	// the last boarding and alighting MS and bus will leaves the BusStop, reset after leaving the BusStop
-	uint32_t last_boarding_alighting_ms;
-	// temporary boardingMS offset for boarding queue erase purpose, reset after leaving the BusStop
-	int boardingMS_offset;
-	// temporary alightingMS offset for passenger queue erase purpose, reset after leaving the BusStop
-	int alightingMS_offset;
+	uint32_t lastBoardingAlightingMS;
+	// temporary boardingmsOffset for boarding queue erase purpose, reset after leaving the BusStop
+	int boardingmsOffset;
+	// temporary alightingmsOffset for passenger queue erase purpose, reset after leaving the BusStop
+	int alightingmsOffset;
 	// holdingtime SECS
 	double BUS_STOP_HOLDING_TIME_SEC;
 	// dwelltime(boarding and alighting time SECS)

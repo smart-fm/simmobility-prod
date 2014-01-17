@@ -139,10 +139,10 @@ sim_mob::Frequency_Busline::Frequency_Busline(DailyTime start_Time, DailyTime en
 sim_mob::Busline::Busline(std::string busline_id, std::string controlType)
 : busline_id(busline_id), controlType(getControlTypeFromString(controlType))
 {
-	control_TimePointNum0 = 15;// the number 2 in( 0->1->2->3 )
-	control_TimePointNum1 = 21;
-	control_TimePointNum2 = 39;
-	control_TimePointNum3 = 51;
+	controlTimePointNum0 = 15;// the number 2 in( 0->1->2->3 )
+	controlTimePointNum1 = 21;
+	controlTimePointNum2 = 39;
+	controlTimePointNum3 = 51;
 }
 
 sim_mob::Busline::~Busline()
@@ -209,7 +209,7 @@ void sim_mob::PT_Schedule::registerBusLine(const std::string busline_id, Busline
 void sim_mob::PT_Schedule::registerControlType(const std::string busline_id, const CONTROL_TYPE aControlType)
 {
 	if (buslineID_controlType.count(busline_id)>0) {
-		throw std::runtime_error("Duplicate buslineid.");
+		throw std::runtime_error("Duplicate buslineId.");
 	}
 
 	buslineID_controlType[busline_id] = aControlType;

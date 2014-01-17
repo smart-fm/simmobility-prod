@@ -10,20 +10,6 @@
 using std::vector;
 using namespace sim_mob;
 
-//BusStop* getbusStop(const Node* node,sim_mob::RoadSegment* segment)
-//{
-// 	 std::map<centimeter_t, const RoadItem*>::const_iterator ob_it;
-// 	 const std::map<centimeter_t, const RoadItem*> & obstacles =segment->obstacles;
-// 	 for (ob_it = obstacles.begin(); ob_it != obstacles.end(); ++ob_it) {
-// 		RoadItem* ri = const_cast<RoadItem*>(ob_it->second);
-// 		BusStop *bs = dynamic_cast<BusStop*>(ri);
-// 		if (bs && ((segment->getStart() == node) || (segment->getEnd() == node) )) {
-// 			return bs;
-// 		}
-// 	 }
-// 	 return nullptr;
-//}
-
 sim_mob::WaitBusActivityRole::WaitBusActivityRole(Agent* parent, sim_mob::WaitBusActivityRoleBehavior* behavior, sim_mob::WaitBusActivityRoleMovement* movement, Role::type roleType_, std::string roleName) :
 		Role(behavior, movement, parent, roleName, roleType_), params(parent->getGenerator()), TimeOfReachingBusStop(0), waitingTimeAtBusStop(0)
 {

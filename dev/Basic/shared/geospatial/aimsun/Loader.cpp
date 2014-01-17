@@ -2710,8 +2710,8 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 
 sim_mob::BusStopFinder::BusStopFinder(const Node* src, const Node* dest)
 {
-	OriginBusStop = findNearbyBusStop(src);
-    DestBusStop = findNearbyBusStop(dest);
+	originBusStop = findNearbyBusStop(src);
+    destBusStop = findNearbyBusStop(dest);
 }
 
 sim_mob::BusStop* sim_mob::BusStopFinder::findNearbyBusStop(const Node* node)
@@ -2793,51 +2793,6 @@ sim_mob::BusStop* sim_mob::BusStopFinder::findNearbyBusStop(const Node* node)
 
 	 return bs1;
 }
-
-//Commenting out; this function doesn't return anything and is never used.
-/*sim_mob::Busline* sim_mob::BusStopFinder::findBusLineToTaken()
-{
-	 vector<Busline*> buslines=OriginBusStop->BusLines;//list of available buslines at busstop
-	 int prev=0;
-	 for(int i=0;i<buslines.size();i++)
-	 {
-	  //query through the busstops for each available busline at the busstop
-	  //and see if it goes to the passengers destination.If more than one busline avaiable
-	  //choose the busline with the shortest path
-
-	  const std::vector<BusTrip>& BusTrips = buslines[i]->queryBusTrips();
-
-	  //busstops has the info about the list of bus stops a particular bus line goes to
-	  std::vector<const sim_mob::BusStop*> busstops=BusTrips[0].getBusRouteInfo().getBusStops();
-
-	  std::vector<const sim_mob::BusStop*>::iterator it;
-	  int noOfBusstops=0;
-
-	  //queries through list of bus stops of bus line starting from current bus stop to end bus stop
-	  //this is to see if the particular bus line has the destination bus stop of passenger
-	  //if yes and if its shortest available route, the bus line is added to the list of bus lines passenger is supposed to take
-	  for(it=++std::find(busstops.begin(),busstops.end(),OriginBusStop);it!=busstops.end();it++)
-	  {
-		 BusStop* bs=const_cast<sim_mob::BusStop*>(*it);
-
-		  //checking if the bus stop is the destination bus stop of passenger
-		  if(bs==DestBusStop)//add this bus line to the list,if it is the shortest
-		  {
-			  if(prev==0 || prev> noOfBusstops)
-			  {
-				  BusLineToTake = buslines[i];
-			      prev=noOfBusstops;
-			  }
-			  else if(prev==noOfBusstops)
-			  {
-				  BusLineToTake = buslines[i];//update the list of bus lines passenger is supposed to take
-				  prev=noOfBusstops;
-			  }
-		  }
-		  noOfBusstops++;
-	  }
-	 }
-}*/
 
 sim_mob::BusStop* sim_mob::BusStopFinder::getBusStop(const Node* node,sim_mob::RoadSegment* segment)
 {

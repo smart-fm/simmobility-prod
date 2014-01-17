@@ -96,6 +96,7 @@ private:
 	std::vector<sim_mob::WaitBusActivityRole*> boardingWaitBusActivities;
 
 	// new added variables
+
 	// for each busline, store all the curr arriving ms of bustrips at this bus stop agent
 	std::map<std::string, std::vector<uint32_t> > buslineIdCurrReachedMSs;
 	// for each busline, store all the passenger counts of buses arriving at this bus stop agent

@@ -1015,7 +1015,8 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice(sim_mob::Person
 		if(sp)
 		{
 			sp->utility = getUtilityBySinglePath(sp);
-			ps->logsum += exp(sp->utility);
+			sp->utility = exp(sp->utility);
+			ps->logsum += sp->utility;
 		}
 	}
 	// step 2:

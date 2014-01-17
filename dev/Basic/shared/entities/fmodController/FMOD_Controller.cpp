@@ -667,6 +667,79 @@ void FMOD_Controller::dispatchPendingAgents(timeslice now)
 			++it;
 		}
 	}
+
+	// for testing
+	static int kk = 0;
+	if( kk++ == 0){
+
+		const StreetDirectory& stdir = StreetDirectory::instance();
+		sim_mob::Node* node1 = const_cast<sim_mob::Node*>(stdir.getNode(45666));
+		sim_mob::Node* node2 = const_cast<sim_mob::Node*>(stdir.getNode(58950));
+		sim_mob::Node* node3 = const_cast<sim_mob::Node*>(stdir.getNode(75956));
+		sim_mob::Node* node4 = const_cast<sim_mob::Node*>(stdir.getNode(66508));
+		sim_mob::Node* node5 = const_cast<sim_mob::Node*>(stdir.getNode(93730));
+
+		DailyTime start(5*60*1000);
+		start += ConfigManager::GetInstance().FullConfig().simStartTime();
+		sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", node1, "node", node4, "node");
+
+		FMODSchedule* schedule = new FMODSchedule();
+		schedule->routes.push_back(node1);
+		schedule->routes.push_back(node2);
+		schedule->routes.push_back(node3);
+		schedule->routes.push_back(node4);
+		schedule->routes.push_back(node5);
+
+		FMODSchedule::STOP stop;
+		stop.stopId = 58950;
+		stop.dwellTime = 0;
+		stop.scheduleId = 222;
+		stop.boardingPassengers.push_back(5);
+		stop.boardingPassengers.push_back(2);
+		stop.boardingPassengers.push_back(3);
+		stop.boardingPassengers.push_back(4);
+		schedule->stopSchdules.push_back(stop);
+
+		FMODSchedule::STOP stpB;
+		stpB.stopId = 75956;
+		stpB.dwellTime = 0;
+		stpB.scheduleId = 222;
+		stpB.alightingPassengers.push_back(5);
+		stpB.alightingPassengers.push_back(2);
+		stpB.alightingPassengers.push_back(3);
+		stpB.alightingPassengers.push_back(4);
+		schedule->stopSchdules.push_back(stpB);
+
+		std::cout << "stop schedule size is :" << schedule->stopSchdules.size() << std::endl;
+
+		SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), node1, "node", node4, "node", "Car");
+		subTrip.schedule = schedule;
+		((Trip*)tc)->addSubTrip(subTrip);
+
+		std::vector<sim_mob::TripChainItem*>  tcs;
+		tcs.push_back(tc);
+		//tcs.push_back(tc);
+
+		//Activity* waiting = new Activity();
+		//waiting->personID = 1;
+		//waiting->itemType = TripChainItem::IT_ACTIVITY;
+		//waiting->sequenceNumber = 1;
+		//waiting->description = "waiting";
+		//waiting->isPrimary = false;
+		//waiting->isFlexible = false;
+		//waiting->isMandatory = false;
+		//waiting->location = node5;
+		//waiting->locationType = TripChainItem::LT_NODE;
+		//waiting->startTime = start;
+		//waiting->endTime = DailyTime(10*60*1000)+ConfigParams::GetInstance().simStartTime;;
+		//tcs.push_back(waiting);
+
+		sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
+		person->parentEntity = this;
+		person->client_id = 101;
+		person->laneID = 1;
+		allDrivers.push_back(person);
+	}
 }
 
 }

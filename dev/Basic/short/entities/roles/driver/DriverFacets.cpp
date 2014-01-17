@@ -910,16 +910,17 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 					 	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((node->getLocation().getX() - 3500),(node->getLocation().getY() - 3500)),Point2D((node->getLocation().getX() + 3500),(node->getLocation().getY() + 3500)), parentAgent);
 					 	for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
 					 	{
+							const Person* p = dynamic_cast<const Person*>( (*it) );
+							Passenger* passenger = p ? dynamic_cast<Passenger*>(p->getRole()) : nullptr;
+
+							if (!passenger) {
+							  continue;
+							}
+
 					 		//passenger boarding
 							vector<int>& boardingpeople = stopSchedule.boardingPassengers;
-							if( std::find(boardingpeople.begin(), boardingpeople.end(), (*it)->getId() ) != boardingpeople.end() )
+							if( std::find(boardingpeople.begin(), boardingpeople.end(), p->client_id ) != boardingpeople.end() )
 							{
-								const Person* p = dynamic_cast<const Person*>( (*it) );
-								Passenger* passenger = p ? dynamic_cast<Passenger*>(p->getRole()) : nullptr;
-
-								if (!passenger) {
-								  continue;
-								}
 
 								schedule->insidePassengers.push_back( p );
 								PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
@@ -936,7 +937,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 						{
 							vector<const Person*>::iterator itPerson=schedule->insidePassengers.begin();
 							while(itPerson!=schedule->insidePassengers.end()){
-								if((*it) == (int)(*itPerson)->getId() ){
+								if((*it) == (int)(*itPerson)->client_id ){
 									Passenger* passenger = dynamic_cast<Passenger*>((*itPerson)->getRole());
 									if (!passenger)
 										continue;

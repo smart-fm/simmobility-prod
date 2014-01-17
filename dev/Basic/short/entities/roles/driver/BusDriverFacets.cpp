@@ -310,10 +310,6 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 			bus->TimeOfBusreachingBusstop=p.now.ms();
 
 			bus->setPassengerCountOld(bus->getPassengerCount());// record the old passenger number
-//			IndividualBoardingAlighting_New(bus);
-
-			//Back to both branches:
-			//DwellTime_ijk.set(dwellTime_record);
 
 			if ((waitAtStopMS == p.elapsedSeconds) && bus)// 0.1s
 			{
@@ -355,17 +351,6 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 					double waitingtime = parentBusDriver->waiting_Time.get();
 					//setWaitTime_BusStop(waitingtime);
 					BUS_STOP_HOLDING_TIME_SEC = waitingtime;
-
-//					BusTrip* bustrip = const_cast<BusTrip*>(dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem)));
-//					if(bustrip && bustrip->itemType==TripChainItem::IT_BUSTRIP) {
-//						const Busline* busline = bustrip->getBusline();
-//						if(busline->getBusLineID() == "857_1") {
-//							if(busline->getControl_TimePointNum0() == parentBusDriver->busstop_sequence_no.get() || busline->getControl_TimePointNum1() == parentBusDriver->busstop_sequence_no.get()
-//							|| busline->getControl_TimePointNum2() == parentBusDriver->busstop_sequence_no.get() || busline->getControl_TimePointNum3() == parentBusDriver->busstop_sequence_no.get()) {
-//								BUS_STOP_HOLDING_TIME_SEC = BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC + 20;
-//							}
-//						}
-//					}
 					if(BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC >= BUS_STOP_HOLDING_TIME_SEC) {// no additional holding time
 						BUS_STOP_WAIT_TIME = BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;
 					} else {
@@ -373,12 +358,10 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 					}
 				}
 				else if(mode == Role::REQUEST_STORE_ARRIVING_TIME ){
-					//setWaitTime_BusStop(DwellTime_ijk.get());
 					BUS_STOP_HOLDING_TIME_SEC = parentBusDriver->DwellTime_ijk.get();
 				}
 				else{
 					std::cout << "no request existed, something is wrong!!! " << std::endl;
-					//setWaitTime_BusStop(DwellTime_ijk.get());
 					BUS_STOP_HOLDING_TIME_SEC = parentBusDriver->DwellTime_ijk.get();
 				}
 				parentBusDriver->existed_Request_Mode.set( Role::REQUEST_NONE );
@@ -386,16 +369,6 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 			}
 
 			IndividualBoardingAlighting_New(bus);// after holding time determination, start boarding and alighting
-//			BusTrip* bustrip = const_cast<BusTrip*>(dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem)));
-//			if(bustrip && bustrip->itemType==TripChainItem::IT_BUSTRIP) {
-//				const Busline* busline = bustrip->getBusline();
-//				if(busline->getBusLineID() == "857_1") {
-//					if(busline->getControl_TimePointNum0() == parentBusDriver->busstop_sequence_no.get() || busline->getControl_TimePointNum1() == parentBusDriver->busstop_sequence_no.get()
-//					|| busline->getControl_TimePointNum2() == parentBusDriver->busstop_sequence_no.get() || busline->getControl_TimePointNum3() == parentBusDriver->busstop_sequence_no.get()) {
-//						BUS_STOP_HOLDING_TIME_SEC = BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC + 20;// additional 20 secs
-//					}
-//				}
-//			}
 			if(BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC >= BUS_STOP_HOLDING_TIME_SEC) {// boarding alighting time greater than or equal to the holding time
 				BUS_STOP_WAIT_TIME = BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;// no additional holding time
 			} else {// boarding alighting time smaller than the holding time
@@ -410,9 +383,6 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 	}
 	if (isBusLeavingBusStop()
 			|| (waitAtStopMS >= BUS_STOP_WAIT_TIME)) {
-//		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop"
-//				<< std::endl;
-
 //		// any bus leaving this bus stop agent, stored the curr_ms with its busline id
 //		BusTrip* bustrip = const_cast<BusTrip*>(dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem)));
 //		if(bustrip && bustrip->itemType==TripChainItem::IT_BUSTRIP) {
@@ -439,14 +409,6 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 	//Return the remaining amount (obtained by calling updatePositionOnLink)
 	return updatePositionOnLink(p);
 }
-
-//double sim_mob::BusDriverMovement::getPositionX() const {
-//	return parentBusDriver->vehicle ? parentBusDriver->vehicle->getX() : 0;
-//}
-//
-//double sim_mob::BusDriverMovement::getPositionY() const {
-//	return parentBusDriver->vehicle ? parentBusDriver->vehicle->getY() : 0;
-//}
 
 double sim_mob::BusDriverMovement::busAccelerating(DriverUpdateParams& p) {
 	//Retrieve a new acceleration value.
@@ -743,9 +705,6 @@ void sim_mob::BusDriverMovement::IndividualBoardingAlighting_New(Bus* bus)
 void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 {
 	uint32_t curr_ms = parentBusDriver->getParams().now.ms();
-//	if(parentBusDriver->getParams().now.frame() >= 1201) {
-//		std::cout << "Test stop pos " << std::endl;
-//	}
 	int i = 0;
 	int j = 0;
 	int boardingNum = 0;
@@ -761,8 +720,6 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 	const Busline* busline = nullptr;
 	BusStopAgent* busstopAgent = parentBusDriver->lastVisited_BusStop.get()->generatedBusStopAgent;
 	std::vector<sim_mob::WaitBusActivityRole*>& boarding_waitBusActivities = busstopAgent->getBoarding_WaitBusActivities();// get the boarding queue of persons for all Buslines
-	//std::cout << "boarding_waitBusActivities.size(): " << boarding_waitBusActivities.size() << std::endl;
-	//Person* person = dynamic_cast<Person*>(parent);
 	const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem));
 	if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
 		busline = bustrip->getBusline();
@@ -836,17 +793,9 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 
 	} else { // normal busstop, both boarding and alighting
 		// determine the alighting frame for each possible persons
-//		if(busstopAgent->getBusStop().busstopno_ == "59069") {
-//			std::cout << "test here!!! " << std::endl;
-//		}
 		for(i = 0; i < (bus->passengers_inside_bus).size(); i++) {
 			Person* p = dynamic_cast<Person*>((bus->passengers_inside_bus)[i]);
 			if(p) {
-//				if(parentBusDriver->getParams().now.frame() == 25210) {
-//					std::cout << "!!!!error captured: " << std::endl;
-//					std::cout << p->getRole()->name << std::endl;
-//					std::cout << p->getDatabaseId() << std::endl;
-//				}
 				Passenger* passenger = dynamic_cast<Passenger*>(p->getRole());
 				if(passenger) {
 					PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
@@ -972,11 +921,7 @@ void sim_mob::BusDriverMovement::StartBoardingAlighting(Bus* bus)
 						}
 					}
 					bus->setPassengerCount(bus->getPassengerCount()-1);
-					//alightingMS_offset++;
 				}
-//				(bus->passengers_inside_bus).erase((bus->passengers_inside_bus.begin() + AlightingNum_Pos[i]) - alightingMS_offset);// erase also from left-hand side
-//				bus->setPassengerCount(bus->getPassengerCount()-1);
-//				alightingMS_offset++;
 			}
 		}
 	}
@@ -989,16 +934,7 @@ void sim_mob::BusDriverMovement::StartBoardingAlighting(Bus* bus)
 				std::cout << "busline ID: " << bus->getBusLineID() << " bus trip Run No: " << bustrip->getBusTripRun_SequenceNum() << "BoardingNum_Pos[i]: " << BoardingNum_Pos[i] << std::endl;
 				if(!boarding_waitBusActivities.empty()) {
 					(bus->passengers_inside_bus).push_back(virtualBoarding_Persons[i]);
-//					boarding_waitBusActivities.erase((boarding_waitBusActivities.begin() + BoardingNum_Pos[i]));
-//					for(int j = 0; j < BoardingNum_Pos.size(); j++) {
-//						if (BoardingNum_Pos[j] > BoardingNum_Pos[i]){
-//							BoardingNum_Pos[j] = BoardingNum_Pos[j] - 1;
-//						}
-//					}
 					bus->setPassengerCount(bus->getPassengerCount()+1);
-//					boarding_waitBusActivities.erase((boarding_waitBusActivities.begin() + BoardingNum_Pos[i]) - boardingMS_offset);//  erase this Person in the BusStopAgent
-//					bus->setPassengerCount(bus->getPassengerCount()+1);
-//					boardingMS_offset++;
 				}
 			}
 		}

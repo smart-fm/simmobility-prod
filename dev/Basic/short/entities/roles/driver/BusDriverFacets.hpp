@@ -20,7 +20,6 @@
 namespace sim_mob {
 
 class BusDriver;
-//class Bus;
 
 class BusDriverBehavior: public sim_mob::DriverBehavior {
 public:
@@ -100,9 +99,6 @@ public:
     ///dwell time calculation module
  	virtual double dwellTimeCalculation(int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
  	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
-
-// 	double getPositionX() const;
-// 	double getPositionY() const;
 
 	// get total waiting time at the BusStop
 	double getWaitTime_BusStop() { return BUS_STOP_WAIT_TIME; }

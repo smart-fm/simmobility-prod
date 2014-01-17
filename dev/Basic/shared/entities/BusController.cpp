@@ -54,20 +54,7 @@ void sim_mob::BusController::InitializeAllControllers(std::set<Entity*>& agents_
 	for (vector<BusController*>::iterator it=all_busctrllers_.begin(); it!=all_busctrllers_.end(); it++) {
 		(*it)->setPTScheduleFromConfig(busdispatch_freq);
 		(*it)->assignBusTripChainWithPerson(agents_list);
-
-//		unsigned int preTickMS = ((*it)->nextTimeTickToStage)*ConfigManager::GetInstance().FullConfig().baseGranMS();
-//		unsigned int curTickMS = ((*it)->nextTimeTickToStage+1)*ConfigManager::GetInstance().FullConfig().baseGranMS();
-//
-//		std::vector<Entity*> active_agents;
-//		(*it)->dynamicalGenerateAgent(preTickMS, curTickMS, active_agents);
-//
-//		for(vector<Entity*>::iterator it=active_agents.begin(); it!=active_agents.end(); it++)	{
-//			(*it)->currWorkerProvider->scheduleForBred((*it));
-//			//this->currWorker->scheduleForBred((*it));
-//		}
 	}
-
-
 }
 
 
@@ -120,9 +107,6 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Enti
 
 	for(map<string, Busline*>::const_iterator buslinesIt = buslines.begin();buslinesIt!=buslines.end();buslinesIt++) {
 		Busline* busline = buslinesIt->second;
-		if(busline->getBusLineID() == "857_1") {
-			std::cout << "test 857_1 !! " << std::endl;
-		}
 		const vector<BusTrip>& busTrip_vec = busline->queryBusTrips();
 
 		for (vector<BusTrip>::const_iterator tripIt=busTrip_vec.begin(); tripIt!=busTrip_vec.end(); tripIt++) {
@@ -205,12 +189,12 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 
 		//If we're on a new BusLine, register it with the scheduler.
 		if(!busline || (curr->route_id != busline->getBusLineID())) {
-			if(curr->route_id == "857_1") {
-				busline = new sim_mob::Busline(curr->route_id,"headway_based");
-			} else {
-				busline = new sim_mob::Busline(curr->route_id,config.busline_control_type());
-			}
-//			busline = new sim_mob::Busline(curr->route_id,config.busline_control_type());
+//			if(curr->route_id == "857_1") {
+//				busline = new sim_mob::Busline(curr->route_id,"headway_based");
+//			} else {
+//				busline = new sim_mob::Busline(curr->route_id,config.busline_control_type());
+//			}
+			busline = new sim_mob::Busline(curr->route_id,config.busline_control_type());
 
 			pt_schedule.registerBusLine(curr->route_id, busline);
 			pt_schedule.registerControlType(curr->route_id, busline->getControlType());
@@ -588,28 +572,6 @@ void sim_mob::BusController::unregisteredChild(Entity* child)
 
 Entity::UpdateStatus sim_mob::BusController::frame_tick(timeslice now)
 {
-//	//Note: The WorkGroup (see below) will delay an entity until its time tick has arrived, so there's nothing wrong
-//	//      with dispatching early. To reflect this, I've added +3 to the next time tick. Ideally, the BusController
-//	//      would stage the Bus as soon as it was 100% sure that this bus would run. (We can add functionality later for
-//	//      updating a pending request). In other words, let the WorkGroup do what it does best. ~Seth
-//	unsigned int preTickMS = (nextTimeTickToStage+1)*ConfigManager::GetInstance().FullConfig().baseGranMS();
-//	unsigned int curTickMS = (nextTimeTickToStage+2)*ConfigManager::GetInstance().FullConfig().baseGranMS();
-//
-//	std::vector<Entity*> active_agents;
-//	dynamicalGenerateAgent(preTickMS, curTickMS, active_agents);
-//
-//	for(vector<Entity*>::iterator it=active_agents.begin(); it!=active_agents.end(); it++)	{
-//		this->currWorkerProvider->scheduleForBred((*it));
-//		//this->currWorker->scheduleForBred((*it));
-//	}
-//
-//	handleDriverRequest();
-//
-//	nextTimeTickToStage++;
-//
-//	return Entity::UpdateStatus::Continue;
-
-
 	nextTimeTickToStage += tickStep;
 	unsigned int nextTickMS = (nextTimeTickToStage+3)*ConfigManager::GetInstance().FullConfig().baseGranMS();
 

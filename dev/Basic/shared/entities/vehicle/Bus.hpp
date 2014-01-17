@@ -27,10 +27,9 @@ class Bus : public sim_mob::Vehicle {
 public:
 	Bus(const BusRoute& route, const Vehicle* clone, std::string busLine_)
 	: Vehicle(*clone), passengerCount(0), passengerCount_Old(0),busline(busLine_), route(route), ptCheck(0,0), DistThreshold(2000)
-	, busCapacity(85), TimeOfBusreachingBusstop(0)
+	, busCapacity(40), TimeOfBusreachingBusstop(0)
 	{}
 
-//	BusRoute& getRoute() { return route; }
 	int getPassengerCount() const { return passengerCount; }
 	int getBusCapacity() const { return busCapacity; }
 	void setPassengerCount(int val) { passengerCount = val; }
@@ -38,7 +37,6 @@ public:
 	int getBusNumber() { return busNumber; }
 	int getPassengerCountOld() const { return passengerCount_Old; }
 	void setPassengerCountOld(int val) { passengerCount_Old = val; }
-	//bool isSendToBusController(BusController &busctrller);
 	std::vector<const sim_mob::Agent*> passengers_distribition;//added by Meenu
 	std::string getBusLineID()
 	{

@@ -60,13 +60,6 @@ sim_mob::PassengerMovement::~PassengerMovement() {
 
 void sim_mob::PassengerMovement::setParentBufferedData()
 {
-//	//if passenger inside bus,update position of the passenger agent(inside bus)every frame tick
-//	if((isAtBusStop()==false)and(this->busdriver.get()!=NULL))
-//	{
-//		//passenger x,y position equals the bus drivers x,y position as passenger is inside the bus
-//		parent->xPos.set(this->busdriver.get()->getPositionX());
-//		parent->yPos.set(this->busdriver.get()->getPositionY());
-//	}
 	if(parentPassenger->busdriver.get()!=nullptr)
 	{
 		parent->xPos.set(parentPassenger->busdriver.get()->getVehicle()->getPosition().x);

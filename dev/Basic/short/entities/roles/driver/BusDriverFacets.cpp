@@ -43,7 +43,7 @@ void BusDriverBehavior::frame_tick_output() {
 sim_mob::BusDriverMovement::BusDriverMovement(sim_mob::Person* parentAgent):
 	DriverMovement(parentAgent), parentBusDriver(nullptr), lastTickDistanceToBusStop(-1), demo_passenger_increase(false),
 	dwellTime_record(0), first_busstop(true), last_busstop(false), passengerCountOld_display_flag(false),
-	no_passengers_boarding(0), no_passengers_alighting(0), allowBoardingAlightingFlag(false), firstBoardingAlightingMS(0),
+	noPassengersBoarding(0), noPassengersAlighting(0), allowBoardingAlightingFlag(false), firstBoardingAlightingMS(0),
 	lastBoardingAlightingMS(0), boardingmsOffset(0), alightingmsOffset(0),
 	BUS_STOP_HOLDING_TIME_SEC(2), BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC(2), waitAtStopMS(-1), BUS_STOP_WAIT_TIME(2)
 {
@@ -638,7 +638,7 @@ void sim_mob::BusDriverMovement::AlightingPassengers(Bus* bus)//for alighting pa
 					if (passenger_movement->PassengerAlightBus(this->getParentBusDriver()) == true) //check if passenger wants to alight the bus
 					{
 						itr = (bus->passengers_inside_bus).erase(bus->passengers_inside_bus.begin() + i);
-						no_passengers_alighting++;
+						noPassengersAlighting++;
 					}
 					else
 					{
@@ -672,7 +672,7 @@ void sim_mob::BusDriverMovement::BoardingPassengers_Choice(Bus* bus)
 	 	       if (passenger_movement->isAtBusStop() == true) //if passenger agent is waiting at the approaching bus stop
 	 			{
 	 	    	   if(passenger_movement->PassengerBoardBus_Choice(this->getParentBusDriver())==true)
-	 	    		  no_passengers_boarding++;
+	 	    		   noPassengersBoarding++;
 	 			}
 
 	 		}

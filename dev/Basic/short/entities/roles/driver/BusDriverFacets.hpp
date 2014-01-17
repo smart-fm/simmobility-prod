@@ -114,8 +114,8 @@ public:
 	bool first_busstop;
 	bool last_busstop;
 	bool passengerCountOld_display_flag;
-	size_t no_passengers_boarding;
-	size_t no_passengers_alighting;
+	size_t noPassengersBoarding;
+	size_t noPassengersAlighting;
 
 	// flag to indicate whether boarding and alighting is allowed, if it is false, boarding alighting frame is not determined(reset after BusDriver leaves the BusStop)
 	bool allowBoardingAlightingFlag;

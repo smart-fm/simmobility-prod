@@ -809,9 +809,6 @@ void sim_mob::Conflux::call_movement_frame_output(timeslice now, Person* person)
 	if (!isToBeRemoved()) {
 		person->currRole->Movement()->frame_tick_output();
 	}
-
-	//now is the right time to ask for resetting of updateParams
-	person->setResetParamsRequired(true);
 }
 
 void sim_mob::Conflux::reportLinkTravelTimes(timeslice frameNumber) {
@@ -873,6 +870,12 @@ UpdateStatus sim_mob::Conflux::perform_person_move(timeslice now, Person* person
 
 	//Perform the main update tick
 	UpdateStatus retVal = call_movement_frame_tick(now, person);
+
+	//This persons next movement will be in the next tick
+	if (retVal.status != UpdateStatus::RS_DONE && person->remainingTimeThisTick<=0) {
+		//now is the right time to ask for resetting of updateParams
+		person->setResetParamsRequired(true);
+	}
 
 	return retVal;
 }

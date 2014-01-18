@@ -138,18 +138,13 @@ double SegmentStats::getDensity(bool hasVehicle) {
 	unsigned int queueCount = numQueueingInSegment(true);
 	movingLength = roadSegment->getLaneZeroLength()*vehLaneCount - queueCount*vehicle_length;
 	if(movingLength > 0) {
-		if (roadSegment->getLaneZeroLength() > 10*vehicle_length) {
+		/*Some lines in this if section are commented as per Yang Lu's suggestion */
+		//if (roadSegment->getLaneZeroLength() > 10*vehicle_length) {
 			density = numMovingInSegment(true)/(movingLength/100.0);
-			Print() << "rdSeg: " << roadSegment->getStartEnd() << "|length: " << roadSegment->getLaneZeroLength() << "|long: true"
-					<< "|movingCount: " << numMovingInSegment(true) << "|queueCount: " << queueCount << "|movingLength: " << movingLength
-					<< "|density = movingCount/movingLength = " << density << std::endl;
-		}
-		else {
-			density = queueCount/(movingLength/100.0);
-			Print() << "rdSeg: " << roadSegment->getStartEnd() << "|length: " << roadSegment->getLaneZeroLength() << "|long: true"
-					<< "|movingCount: " << numMovingInSegment(true) << "|queueCount: " << queueCount << "|movingLength: " << movingLength
-					<< "|density = queueCount/movingLength = " << density << std::endl;
-		}
+		//}
+		//else {
+		//	density = queueCount/(movingLength/100.0);
+		//}
 	}
 	else {
 		density = 1/(vehicle_length/100.0);
@@ -529,13 +524,16 @@ void sim_mob::SegmentStats::updateLaneParams(timeslice frameNumber) {
 std::string sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber){
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 		std::stringstream msg;
+		double density = segDensity
+							* 1000.0 /* Density is converted to veh/km/lane for the output */
+							* numVehicleLanes; /* Multiplied with number of lanes to get the density in veh/km/segment*/
 		msg <<"(\"segmentState\""
 			<<","<<frameNumber.frame()
 			<<","<<roadSegment
 			<<",{"
-			<<"\"speed\":\""<<segVehicleSpeed
-			<<"\",\"flow\":\""<<segFlow
-			<<"\",\"density\":\""<<segDensity*1000.0	/* Density is converted to veh/km/lane for the output */
+			<<"\"speed\":\""<< segVehicleSpeed
+			<<"\",\"flow\":\""<< segFlow
+			<<"\",\"density\":\""<< density
 			<<"\"})"<<std::endl;
 		return msg.str();
 	}

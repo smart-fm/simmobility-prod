@@ -874,11 +874,6 @@ UpdateStatus sim_mob::Conflux::perform_person_move(timeslice now, Person* person
 	//Perform the main update tick
 	UpdateStatus retVal = call_movement_frame_tick(now, person);
 
-	//Save the output
-	if (retVal.status != UpdateStatus::RS_DONE && person->remainingTimeThisTick<=0) {
-		call_movement_frame_output(now, person);
-	}
-
 	return retVal;
 }
 

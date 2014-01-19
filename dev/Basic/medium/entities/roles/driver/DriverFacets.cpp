@@ -92,7 +92,7 @@ void sim_mob::medium::DriverMovement::frame_tick() {
 	{
 		if (vehicle->hasPath() && laneInfinity)
 		{
-			//at start vehicle will be in lane infinity. set origin will move it to the correct lane
+			//the vehicle will be in lane infinity before it starts starts. set origin will move it to the correct lane
 			if (getParent()->getCurrLane() == laneInfinity){
 				setOrigin(p2);
 			}
@@ -460,12 +460,7 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& p) {
 	unsigned int total = vehicle->getCurrSegment()->getParentConflux()->numMovingInSegment(nextRdSeg, true)
 						+ vehicle->getCurrSegment()->getParentConflux()->numQueueingInSegment(nextRdSeg, true);
 
-	int vehLaneCount = 0;
-	for(std::vector<sim_mob::Lane*>::const_iterator laneIt=nextRdSeg->getLanes().begin(); laneIt!=nextRdSeg->getLanes().end(); laneIt++)
-	{
-		if (!(*laneIt)->is_pedestrian_lane()) { vehLaneCount += 1; }
-	}
-
+	int vehLaneCount = nextRdSeg->getParentConflux()->getVehicleLaneCounts(nextRdSeg);
 	double max_allowed = (vehLaneCount * nextRdSeg->getLaneZeroLength()/vehicle->length);
 	return (total < max_allowed);
 }
@@ -821,8 +816,9 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const RoadSegment* nextRd
 	//1. Get queueing counts for all lanes of the next Segment
 	//2. Select the lane with the least queue length
 	//3. Update nextLaneInNextLink and targetLaneIndex accordingly
-	if(!nextRdSeg)
+	if(!nextRdSeg) {
 		return nullptr;
+	}
 
 	const sim_mob::Lane* minQueueLengthLane = nullptr;
 	const sim_mob::Lane* minAgentsLane = nullptr;
@@ -838,8 +834,8 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const RoadSegment* nextRd
 	//getBestLaneGroup logic
 	for ( ; i != nextRdSeg->getLanes().end(); ++i){
 		if ( !((*i)->is_pedestrian_lane())){
-			if(nextToNextRdSeg) {
-				if( !isConnectedToNextSeg(*i, nextToNextRdSeg))	continue;
+			if(nextToNextRdSeg && !isConnectedToNextSeg(*i, nextToNextRdSeg))	{
+				continue;
 			}
 			laneGroup.push_back(*i);
 			std::pair<unsigned int, unsigned int> counts = vehicle->getCurrSegment()->getParentConflux()->getLaneAgentCounts(*i); //<Q,M>

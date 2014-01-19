@@ -1024,6 +1024,11 @@ void sim_mob::Conflux::findBoundaryConfluxes() {
 	}
 }
 
+int sim_mob::Conflux::getVehicleLaneCounts(const sim_mob::RoadSegment* rdSeg) {
+	sim_mob::SegmentStats* segStats = findSegStats(rdSeg);
+	return segStats->getNumVehicleLanes();
+}
+
 unsigned int sim_mob::Conflux::getNumRemainingInLaneInfinity() {
 	unsigned int count = 0;
 	sim_mob::SegmentStats* segStats = nullptr;

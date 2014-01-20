@@ -161,14 +161,15 @@ void sim_mob::PassengerMovement::frame_tick_output() {
 	int yPos =0;
 
 
+	const int offset = 800;
 	if((parentPassenger->BoardedBus.get()==false) && (parentPassenger->AlightedBus.get()==false)) {
 		//output passenger on visualizer only if passenger on road
-		xPos = getParent()->xPos.get()+DisplayOffset.getX();
-		yPos = getParent()->yPos.get()+DisplayOffset.getY();
+		xPos = getParent()->xPos.get()+DisplayOffset.getX()+offset;
+		yPos = getParent()->yPos.get()+DisplayOffset.getY()-offset;
 	} else if((parentPassenger->BoardedBus.get()==false) && (parentPassenger->AlightedBus.get()==true)) {
 		//output passenger on visualizer only if passenger on road
-		xPos = displayX-DisplayOffset.getX()-DisplayOffset.getX();
-		yPos = displayY-DisplayOffset.getY()-DisplayOffset.getY();
+		xPos = displayX-DisplayOffset.getX()-DisplayOffset.getX()+offset;
+		yPos = displayY-DisplayOffset.getY()-DisplayOffset.getY()-offset;
 	}
 
 	LogOut("(\"passenger"

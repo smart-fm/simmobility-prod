@@ -492,7 +492,7 @@ MessageList FMOD_Controller::generateRequest(timeslice now)
 	for (RequestMap it=allRequests.begin(); it!=allRequests.end(); it++) {
 
 		DailyTime tm(it->first->departureTimeEarly);
-		tm.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());
+		//tm.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());
 		DailyTime dias(1*3600*1000);
 
 		if( tm.getValue() > (curr.getValue()-dias.getValue() )){
@@ -679,7 +679,7 @@ void FMOD_Controller::dispatchPendingAgents(timeslice now)
 		sim_mob::Node* node4 = const_cast<sim_mob::Node*>(stdir.getNode(66508));
 		sim_mob::Node* node5 = const_cast<sim_mob::Node*>(stdir.getNode(93730));
 
-		DailyTime start(5*60*1000);
+		DailyTime start(10*60*1000);
 		start += ConfigManager::GetInstance().FullConfig().simStartTime();
 		sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", node1, "node", node4, "node");
 
@@ -698,6 +698,7 @@ void FMOD_Controller::dispatchPendingAgents(timeslice now)
 		stop.boardingPassengers.push_back(2);
 		stop.boardingPassengers.push_back(3);
 		stop.boardingPassengers.push_back(4);
+		stop.boardingPassengers.push_back(1);
 		schedule->stopSchdules.push_back(stop);
 
 		FMODSchedule::STOP stpB;
@@ -737,7 +738,7 @@ void FMOD_Controller::dispatchPendingAgents(timeslice now)
 		sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
 		person->parentEntity = this;
 		person->client_id = 101;
-		person->laneID = 1;
+		person->laneID = 2;
 		allDrivers.push_back(person);
 	}
 }

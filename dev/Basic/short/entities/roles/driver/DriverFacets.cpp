@@ -877,12 +877,11 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 		double dwellTime = 0;
 		double distance = parentDriver->vehicle->getDistanceToSegmentEnd();
 
-		if( stop->getID() == 75956 ){
-			std::cout << "distance is : " << distance << std::endl;
-		}
-
 		//judge whether near to stopping node
-		if( distance<500 ){
+		const int stopRegion = 800;
+		if( distance<stopRegion ){
+
+			std::cout << "distance (to node id : "<< stop->getID() << " ) is : " << distance << std::endl;
 
 			for(int i = 0; i<schedule->stopSchdules.size(); i++){
 

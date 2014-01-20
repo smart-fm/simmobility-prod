@@ -41,8 +41,8 @@ void BusDriverBehavior::frame_tick_output() {
 
 
 sim_mob::BusDriverMovement::BusDriverMovement(sim_mob::Person* parentAgent):
-	DriverMovement(parentAgent), parentBusDriver(nullptr), lastTickDistanceToBusStop(-1), demo_passenger_increase(false),
-	dwellTime_record(0), first_busstop(true), last_busstop(false), passengerCountOld_display_flag(false),
+	DriverMovement(parentAgent), parentBusDriver(nullptr), lastTickDistanceToBusStop(-1), demoPassengerIncrease(false),
+	dwellTimeRecord(0), firstBusStop(true), lastBusStop(false), passengerCountOldDisplayFlag(false),
 	noPassengersBoarding(0), noPassengersAlighting(0), allowBoardingAlightingFlag(false), firstBoardingAlightingMS(0),
 	lastBoardingAlightingMS(0), boardingmsOffset(0), alightingmsOffset(0),
 	BUS_STOP_HOLDING_TIME_SEC(2), BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC(2), waitAtStopMS(-1), BUS_STOP_WAIT_TIME(2)
@@ -366,9 +366,9 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 				BUS_STOP_WAIT_TIME = BUS_STOP_HOLDING_TIME_SEC;// additional holding time
 			}
 			if (waitAtStopMS >= BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC) {// larger than dwell time(boarding and alighting time)
-				passengerCountOld_display_flag = false;
+				passengerCountOldDisplayFlag = false;
 			} else {
-				passengerCountOld_display_flag = true;
+				passengerCountOldDisplayFlag = true;
 			}
 		}
 	}
@@ -524,7 +524,7 @@ double sim_mob::BusDriverMovement::getDistanceToBusStopOfSegment(const RoadSegme
 				parentBusDriver->ypos_approachingbusstop = bs->yPos;
 				if (parentBusDriver->busstop_sequence_no.get() == (busStops.size() - 1)) // check whether it is the last bus stop in the busstop list
 				{
-					last_busstop = true;
+					lastBusStop = true;
 				}
 				if (rs == parentBusDriver->vehicle->getCurrSegment()) {
 
@@ -596,7 +596,7 @@ void sim_mob::BusDriverMovement::frame_tick_output() {
 		Bus* bus = dynamic_cast<Bus*>(parentBusDriver->vehicle);
 		int passengerCount = 0;
 		if (bus) {
-			passengerCount = passengerCountOld_display_flag ? bus->getPassengerCountOld() : bus->getPassengerCount();
+			passengerCount = passengerCountOldDisplayFlag ? bus->getPassengerCountOld() : bus->getPassengerCount();
 		}
 
 		LogOut(

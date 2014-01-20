@@ -108,12 +108,12 @@ public:
 	Vehicle* initializePath_bus(bool allocateVehicle);
 
 	double lastTickDistanceToBusStop;
-	bool demo_passenger_increase;
-	double dwellTime_record;// set by BusDriver(temporary), only needed by BusDriver
+	bool demoPassengerIncrease;
+	double dwellTimeRecord;// set by BusDriver(temporary), only needed by BusDriver
 	//double xpos_approachingbusstop,ypos_approachingbusstop;
-	bool first_busstop;
-	bool last_busstop;
-	bool passengerCountOld_display_flag;
+	bool firstBusStop;
+	bool lastBusStop;
+	bool passengerCountOldDisplayFlag;
 	size_t noPassengersBoarding;
 	size_t noPassengersAlighting;
 

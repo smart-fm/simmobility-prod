@@ -42,7 +42,7 @@
             <!-- Local copy of the FM server (see wiki for how to set up) -->
           	<database id="fm_local" dbtype="postgres">
                 <host value="localhost"/>
-                <port value="5433"/>
+                <port value="5432"/>
                 <dbname value="SimMobility_DB_WholeSGNew"/>
             </database>
         </databases>
@@ -188,7 +188,7 @@
         <!-- (but will be rounded down.) -->
         <simulation>
             <base_granularity   value="100"   units="ms" />
-            <total_runtime      value="181"      units="minutes" />
+            <total_runtime      value="30"      units="minutes" />
             <total_warmup       value="0"     units="seconds" />
             
             <start_time         value="08:00:00"/>
@@ -207,7 +207,7 @@
          	<partitioning_solution_id   value="1"	units="unit" />
             
             <!--  <load_agents order="database drivers pedestrians"/> -->
-             <load_agents order="database drivers"/>
+             <load_agents order="database"/>
             
             <!-- Optional. At what value do we start counting for automatically -->
             <!-- generated Agent IDs? Set to a high value if you want to avoid  -->

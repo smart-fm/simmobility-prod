@@ -540,6 +540,7 @@ void sim_mob::BusController::handleRequestParams(sim_mob::DriverRequestParams rP
 				storeRealTimes_eachBusStop(lastVisited_Busline->get(),lastVisited_BusTrip_SequenceNo->get(),busstop_sequence_no->get(),real_ArrivalTime->get(),DwellTime_ijk->get(),lastVisited_BusStop->get(), *realTime);
 			}
 			last_busStopRealTimes->set(*realTime);
+			safe_delete_item(realTime);
 		}
 	}
 }

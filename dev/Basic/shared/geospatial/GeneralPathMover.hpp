@@ -82,7 +82,7 @@ public:
 	const sim_mob::Lane* getCurrLane() const;
 	const sim_mob::Point2D& getCurrPolypoint() const;
 	const sim_mob::Point2D& getNextPolypoint() const;
-	const sim_mob::Point2D& getNextPolypoint2() const;
+	const sim_mob::Point2D& getNextPolypointNew() const;
 	//bool isMovingForwardsOnCurrSegment() const;
 	double getCurrLinkReportedLength() const;
 

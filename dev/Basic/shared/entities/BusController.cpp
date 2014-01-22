@@ -270,13 +270,13 @@ void sim_mob::BusController::storeRealTimes_eachBusStop(const std::string& busli
 
 	if(trip_k > 0){
 		const vector<BusTrip>& BusTrips = busline->queryBusTrips();
-		const vector<Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
+		const vector<Shared<BusStop_RealTimes>* >& busStopRealTimeTripkMinusOne = BusTrips[trip_k - 1].getBusStopRealTimes();
 
-		std::cout << "busline: " << busline->getBusLineID() << " trip_k - 1 = " << trip_k - 1 << " busStopRealTime_tripK_1  size(): " << busStopRealTime_tripK_1.size() << std::endl;
-		int iSize = busStopRealTime_tripK_1.size();
-		for(int i = 0; i < iSize; i++) {
-			if(busStopRealTime_tripK_1[i]->get().Real_busStop) {
-				std::cout << "real_ArrivalTime: " << i << " " << busStopRealTime_tripK_1[i]->get().real_ArrivalTime.getRepr_() << " bus stop no: " << busStopRealTime_tripK_1[i]->get().Real_busStop->busstopno_ << std::endl;
+		std::cout << "busline: " << busline->getBusLineID() << " trip_k - 1 = " << trip_k - 1 << " busStopRealTimeTripkMinusOne  size(): " << busStopRealTimeTripkMinusOne.size() << std::endl;
+		size_t iSize = busStopRealTimeTripkMinusOne.size();
+		for(size_t i = 0; i < iSize; i++) {
+			if(busStopRealTimeTripkMinusOne[i]->get().Real_busStop) {
+				std::cout << "real_ArrivalTime: " << i << " " << busStopRealTimeTripkMinusOne[i]->get().real_ArrivalTime.getRepr_() << " bus stop no: " << busStopRealTimeTripkMinusOne[i]->get().Real_busStop->busstopno_ << std::endl;
 			}
 		}
 	}
@@ -368,12 +368,12 @@ double sim_mob::BusController::headwayDecision(const string& busline_i, int trip
 		ETijk = ATijk + (DTijk * 1000.0);
 	} else {
 		const vector<BusTrip>& BusTrips = busline->queryBusTrips();
-		const vector<Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
+		const vector<Shared<BusStop_RealTimes>* >& busStopRealTimeTripkMinusOne = BusTrips[trip_k - 1].getBusStopRealTimes();
 
-		std::cout << "busStopRealTime_tripK_1  size(): " << busStopRealTime_tripK_1.size() << std::endl;
-		std::cout << "real_ArrivalTime in headway Decision: " << " trip_k - 1 " << trip_k - 1 << " busstopSequence_j " << busstopSequence_j << "	" << busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.getRepr_() << std::endl;
-		if(busStopRealTime_tripK_1[busstopSequence_j]->get().Real_busStop) { // data has already updated
-			ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());// there are some cases that buses are bunched together so that k-1 has no values updated yet
+		std::cout << "busStopRealTime_tripK_1  size(): " << busStopRealTimeTripkMinusOne.size() << std::endl;
+		std::cout << "real_ArrivalTime in headway Decision: " << " trip_k - 1 " << trip_k - 1 << " busstopSequence_j " << busstopSequence_j << "	" << busStopRealTimeTripkMinusOne[busstopSequence_j]->get().real_ArrivalTime.getRepr_() << std::endl;
+		if(busStopRealTimeTripkMinusOne[busstopSequence_j]->get().Real_busStop) { // data has already updated
+			ATijk_1 = busStopRealTimeTripkMinusOne[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());// there are some cases that buses are bunched together so that k-1 has no values updated yet
 			Hi = 480000;// 857_1(headway: 480000ms) 444300(test holding), 143000(best), 142000, 140000(headway*100), 138000, 181000(bad effect) ;60000(headway*50)
 			ETijk = std::max(ATijk_1 + alpha*Hi, ATijk + (DTijk * 1000.0)); // DTijk unit is sec, so change to ms by multiplying 1000
 		} else {// data has not yet updated, sometimes happens especially buses are bunched together(trip_k bus can overtake tripk_1 bus)
@@ -422,8 +422,8 @@ double sim_mob::BusController::evenheadwayDecision(const string& busline_i, int 
 	}
 	else {
 		lastVisitedStopNum = BusTrips[trip_k+1].lastVisitedStop_SequenceNumber;//last stop visited by bus trip k+1
-		const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
-		ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());
+		const vector <Shared<BusStop_RealTimes>* >& busStopRealTimeTripkMinusOne = BusTrips[trip_k - 1].getBusStopRealTimes();
+		ATijk_1 = busStopRealTimeTripkMinusOne[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());
 
 		const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripKplus1 = BusTrips[trip_k + 1].getBusStopRealTimes();
 		ATimk_plus1 = busStopRealTime_tripKplus1[lastVisitedStopNum]->get().real_ArrivalTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());
@@ -476,8 +476,8 @@ double sim_mob::BusController::hybridDecision(const string& busline_i, int trip_
 		}
 		else {
 			lastVisitedStopNum = BusTrips[trip_k+1].lastVisitedStop_SequenceNumber;//last stop visited by bus trip k+1
-			const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
-			ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());
+			const vector <Shared<BusStop_RealTimes>* >& busStopRealTimeTripkMinusOne = BusTrips[trip_k - 1].getBusStopRealTimes();
+			ATijk_1 = busStopRealTimeTripkMinusOne[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());
 
 			const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripKplus1 = BusTrips[trip_k + 1].getBusStopRealTimes();
 			ATimk_plus1 = busStopRealTime_tripKplus1[lastVisitedStopNum]->get().real_ArrivalTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());

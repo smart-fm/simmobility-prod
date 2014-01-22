@@ -881,7 +881,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 		const int stopRegion = 800;
 		if( distance<stopRegion ){
 
-			std::cout << "distance (to node id : "<< stop->getID() << " ) is : " << distance << std::endl;
+			//std::cout << "distance (to node id : "<< stop->getID() << " ) is : " << distance << std::endl;
 
 			for(int i = 0; i<schedule->stopSchdules.size(); i++){
 

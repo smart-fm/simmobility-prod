@@ -13,6 +13,8 @@
 
 namespace sim_mob
 {
+// frame tick update frequency MS for BusStopAgent
+const uint32_t busStopUpdateFrequencyMS = 5000;
 
 //Forward declarations
 class PackageUtils;

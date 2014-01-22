@@ -101,9 +101,9 @@ public:
  	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
 	// get total waiting time at the BusStop
-	double getWaitTime_BusStop() { return BUS_STOP_WAIT_TIME; }
+	double getWaitTime_BusStop() { return busStopWaitTime; }
 	// set total waiting time at the BusStop
-	void setWaitTime_BusStop(double time) { BUS_STOP_WAIT_TIME = time; }
+	void setWaitTime_BusStop(double time) { busStopWaitTime = time; }
 	// initialize Bus Path by BusTrip information
 	Vehicle* initializePath_bus(bool allocateVehicle);
 
@@ -137,10 +137,10 @@ public:
 	int boardingmsOffset;
 	// temporary alightingmsOffset for passenger queue erase purpose, reset after leaving the BusStop
 	int alightingmsOffset;
-	// holdingtime SECS
-	double BUS_STOP_HOLDING_TIME_SEC;
-	// dwelltime(boarding and alighting time SECS)
-	double BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;
+	// holding time Secs
+	double busStopHoldingTimeSec;
+	// dwelltime(boarding and alighting time Secs)
+	double busStopWaitBoardingAlightingSec;
 
 protected:
 	//Override the following behavior
@@ -155,7 +155,7 @@ private:
 	std::vector<const BusStop*> busStops;
 	// waiting MS adding at the BusStop
 	double waitAtStopMS;
-	// total waiting time (can be holding time or dwelltime)
-	double BUS_STOP_WAIT_TIME;
+	// total waiting time Secs(can be holding time or dwell time)
+	double busStopWaitTime;
 };
 }

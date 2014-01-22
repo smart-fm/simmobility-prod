@@ -888,9 +888,6 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 			}
 	}
 
-	/*std::cout<<"linkDriving: "<<" id: "<<parentDriver->parent->GetId()<<" velocity: "<<parentDriver->vehicle->getVelocity()/100.0<<
-			" acceleration: "<<parentDriver->vehicle->getAcceleration()/100.0<<
-			" moveinseg: "<<parentDriver->vehicle->getDistanceMovedInSegment()<<std::endl;*/
 	return updatePositionOnLink(p);
 }
 

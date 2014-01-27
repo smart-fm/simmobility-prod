@@ -33,13 +33,12 @@ sim_mob::msg_header::msg_header(string sender_id_, string sender_type_, string m
 {}
 
 sim_mob::pckt_header::pckt_header()
+	: nof_msgs("0"), dest_agent("0")
 {}
 
-sim_mob::pckt_header::pckt_header(string nof_msgs_)
-	: nof_msgs(nof_msgs_)
-{}
-
-sim_mob::pckt_header::pckt_header(int nof_msgs_) : nof_msgs(boost::lexical_cast<string>(nof_msgs_))
+sim_mob::pckt_header::pckt_header(int nof_msgs_, const std::string& dest_agent)
+	: nof_msgs(boost::lexical_cast<string>(nof_msgs_)),
+	  dest_agent(dest_agent)
 {}
 
 

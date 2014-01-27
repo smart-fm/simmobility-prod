@@ -74,7 +74,7 @@ std::string AgentsInfo::toJson()
 				jArray_temp->append(jElement);
 			}
 	}
-	pckt_header pHeader_("1");
+	pckt_header pHeader_(1, "0");
 	jHeader = JsonParser::createPacketHeader(pHeader_);
 	jElement.clear();//to make a message
 	msg_header mHeader_("0", "SIMMOBILITY", "AGENTS_INFO", "SYS");

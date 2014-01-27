@@ -647,7 +647,7 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 		if (!(nof_messages = jpacketData.size())) {
 			continue;
 		}
-		jheader = JsonParser::createPacketHeader(pckt_header(nof_messages));
+		jheader = JsonParser::createPacketHeader(pckt_header(nof_messages, cnn->clientID));
 		jpacket.clear();
 		jpacket["PACKET_HEADER"] = jheader;
 		jpacket["DATA"] = jpacketData;

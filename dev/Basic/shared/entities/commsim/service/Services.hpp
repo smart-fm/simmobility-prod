@@ -59,12 +59,12 @@ struct msg_header {
 
 struct pckt_header {
 	//data
-	std::string sender_id,sender_type, nof_msgs, size_bytes;
+	std::string nof_msgs;
+	std::string dest_agent; //Which agent is expected to receive these messages?
 
 	//constructor(s)
 	pckt_header();
-	pckt_header(std::string	nof_msgs_);
-	pckt_header(int	nof_msgs_);
+	pckt_header(int	nof_msgs_, const std::string& dest_agent);
 };
 
 }

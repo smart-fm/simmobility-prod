@@ -140,6 +140,7 @@ Json::Value sim_mob::JsonParser::createPacketHeader(pckt_header pHeader_)
 {
 	Json::Value header;
 	header["NOF_MESSAGES"] = pHeader_.nof_msgs;
+	header["DEST_AGENT"] = pHeader_.dest_agent;
 	return header;
 }
 
@@ -155,8 +156,7 @@ Json::Value sim_mob::JsonParser::createMessageHeader(msg_header mHeader_)
 
 std::string sim_mob::JsonParser::makeWhoAreYouPacket()
 {
-	Json::Value whoAreYou_Packet_Header = createPacketHeader(
-			pckt_header("1"));
+	Json::Value whoAreYou_Packet_Header = createPacketHeader(pckt_header(1, "0"));
 	Json::Value whoAreYou = createMessageHeader(
 			msg_header("0", "SIMMOBILITY", "WHOAREYOU", "SYS"));
 	//no more fiels is needed

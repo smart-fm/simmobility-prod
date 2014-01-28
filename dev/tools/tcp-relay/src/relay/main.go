@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"flag"
 	"bufio"
 	"regexp"
 )
@@ -20,6 +21,10 @@ type Connection struct {
 
 //Holds all our network-related data.
 type NetData struct {
+	//Deub flag?
+	debug_flag bool
+
+	//What addresses are we listening on?
 	listenAddr string
 	remoteAddr string
 
@@ -59,6 +64,10 @@ func main() {
 		//clients_lock : make(sync.RWMutex),
 	}
 
+	//Parse our command line flags.
+	flag.BoolVar(&params.debug_flag, "debug", false, "Turns on detailed tracing of messages (may want to pipe into a file).")
+	flag.Parse()
+
 	//Listen/connect on the local address.
 	sock_serve, err := net.Listen("tcp", params.listenAddr) 
 	if err != nil { 
@@ -66,7 +75,7 @@ func main() {
 		os.Exit(2)
 	} 
 
-	fmt.Println("Params loaded; listening for client connections.")
+	fmt.Println("Params loaded; listening for client connections. Debug is: " , params.debug_flag)
 
 	//Listen forever for new connections. 
 	for { 
@@ -120,8 +129,9 @@ func receive_remote(params *NetData) {
 			os.Exit(2)
 		}
 
-		//TODO: Use conn (maybe wrapped).
-		fmt.Println("Reading data from the server")
+		if params.debug_flag {
+			fmt.Print("Reading data from the server ###" , line , "###\n")
+		}
 		params.incoming <- line
     }
 }
@@ -161,7 +171,9 @@ func forward_to_client(params *NetData) {
 			}
 		}
 
-		fmt.Println("Writing to client: " + destId)
+		if params.debug_flag {
+			fmt.Print("Writing to client with id [" , destId , "], data: ###" , line , "###\n")
+		}
 		_,err := destConn.write.WriteString(line)
 		if err != nil {
 			fmt.Println("local write failed: %v", err)
@@ -176,7 +188,9 @@ func forward_to_server(params *NetData) {
 	var line string
 	for {
 		line = <-params.outgoing
-		fmt.Println("Writing to server")
+		if params.debug_flag {
+			fmt.Print("Writing to server: ###" , line , "###\n")
+		}
 		_,err := params.remote.write.WriteString(line)
 		if err != nil {
 			fmt.Println("remote write failed: %v", err)
@@ -216,7 +230,9 @@ func receive_client(params *NetData, localconn Connection) {
 	params.clients_lock.Unlock()
 
 	//Forward this message.
-	fmt.Println("Reading first line of data from the client: " + sendId)
+	if params.debug_flag {
+		fmt.Print("Reading (first time) from client with id [" , sendId , "], data: ###" , line , "###\n")
+	}
 	params.outgoing <- line
 
 	//Now, just keep reading from the client, and pushing this information to the server.
@@ -227,7 +243,9 @@ func receive_client(params *NetData, localconn Connection) {
 			os.Exit(2)
 		}
 
-		fmt.Println("Reading data from the client: " + sendId)
+		if params.debug_flag {
+			fmt.Print("Reading from client with id [" , sendId , "], data: ###" , line , "###\n")
+		}
 		params.outgoing <- line
     }
 }

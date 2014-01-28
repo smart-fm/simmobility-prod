@@ -102,13 +102,16 @@ func main() {
 			go receive_remote(&params)
 			go forward_to_client(&params)
 			go forward_to_server(&params)
+		} else {
+			//Inject a "NEW_CLIENT" message here, which instructs the server to send a WHOAREYOU message.
+			fmt.Println("New local connection on existing remote connection.") 
+			new_cli_msg := "      71{\"PACKET_HEADER\":{\"NOF_MESSAGES\":\"1\"},\"DATA\":[{\"MESSAGE_TYPE\":\"NEW_CLIENT\",\"SENDER\":\"0\",\"SENDER_TYPE\":\"RELAY\"}]}\n"
+			params.outgoing <- new_cli_msg
 		}
 
 		//Make a reader/writer.
 		localconn.read = bufio.NewReader(localconn.conn)
 		localconn.write = bufio.NewWriter(localconn.conn)
-
-		//TODO: We may need to inject a "NEWCLIENT" message here.
 
 		//Pend this client until later.
 		params.pending_clients <- localconn

@@ -35,7 +35,7 @@ private:
 	boost::shared_ptr<Session>  sess;
 	ConnectionServer &server;
 	bool registerSuccess;
-	std::map<unsigned int, boost::shared_ptr<Session> > clientRegistrationWaitingList;
+//	std::map<unsigned int, boost::shared_ptr<Session> > clientRegistrationWaitingList;
 //	void startClientRegistration(boost::shared_ptr<Session> &sess);
 	void WhoAreYou_handler(const boost::system::error_code& e);
 	void WhoAreYou_response_handler(const boost::system::error_code& e);

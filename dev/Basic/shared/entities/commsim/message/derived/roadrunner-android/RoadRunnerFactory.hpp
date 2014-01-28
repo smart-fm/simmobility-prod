@@ -35,6 +35,7 @@ class RoadRunnerFactory : public MessageFactory<std::vector<sim_mob::comm::MsgPt
 		CLIENT_MESSAGES_DONE = 6,
 		REMOTE_LOG = 7,
 		REROUTE_REQUEST = 8,
+		NEW_CLIENT = 9,
 	};
 
 	std::map<std::string, RoadRunnerFactory::MessageType> MessageMap;

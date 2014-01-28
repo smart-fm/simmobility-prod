@@ -5,9 +5,11 @@
 #include "RoadRunnerFactory.hpp"
 #include "logging/Log.hpp"
 #include "entities/commsim/message/derived/roadrunner-android/RemoteLogMessage.hpp"
-#include "entities/commsim/message/derived/roadrunner-android/RerouteRequestMessage.hpp"
 #include "entities/commsim/message/derived/roadrunner-android/RemoteLogHandler.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/RerouteRequestMessage.hpp"
 #include "entities/commsim/message/derived/roadrunner-android/RerouteRequestHandler.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/NewClientMessage.hpp"
+#include "entities/commsim/message/derived/roadrunner-android/NewClientHandler.hpp"
 
 using namespace sim_mob;
 
@@ -21,6 +23,7 @@ sim_mob::roadrunner::RoadRunnerFactory::RoadRunnerFactory(bool useNs3) : useNs3(
 	MessageMap["CLIENT_MESSAGES_DONE"] = CLIENT_MESSAGES_DONE;
 	MessageMap["REMOTE_LOG"] = REMOTE_LOG;
 	MessageMap["REROUTE_REQUEST"] = REROUTE_REQUEST;
+	MessageMap["NEW_CLIENT"] = NEW_CLIENT;
 
 	//MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE)/*("ANNOUNCE",ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND)*/;
 }
@@ -133,6 +136,12 @@ void sim_mob::roadrunner::RoadRunnerFactory::createMessage(const std::string &in
 		case REROUTE_REQUEST: {
 			sim_mob::comm::MsgPtr msg(new sim_mob::roadrunner::RerouteRequestMessage(curr_json));
 			msg->setHandler(getHandler(REROUTE_REQUEST));
+			output.push_back(msg);
+			break;
+		}
+		case NEW_CLIENT: {
+			sim_mob::comm::MsgPtr msg(new sim_mob::roadrunner::NewClientMessage(curr_json));
+			msg->setHandler(getHandler(NEW_CLIENT));
 			output.push_back(msg);
 			break;
 		}

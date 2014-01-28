@@ -28,7 +28,7 @@ bool sim_mob::NS3ClientRegistration::initialEvaluation(sim_mob::Broker& broker,
 		AgentsList::type &registeredAgents) {
 	bool res = false;
 	//add your conditions here
-	res = !broker.getClientWaitingList().empty();
+	res = broker.getClientWaitingListSize()>0;
 
 	return res;
 }

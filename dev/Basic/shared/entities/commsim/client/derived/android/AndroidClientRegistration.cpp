@@ -30,12 +30,12 @@ AndroidClientRegistration::AndroidClientRegistration(/*ConfigParams::ClientType 
 bool AndroidClientRegistration::initialEvaluation(sim_mob::Broker& broker,AgentsList::type &registeredAgents){
 
 	//some checks to avoid calling this method unnecessarily
-	if (broker.getClientWaitingList().empty()
+	if (broker.getClientWaitingListSize()==0
 			|| registeredAgents.empty()
 			|| usedAgents.size() == registeredAgents.size()) {
 		Print()
 				<< "AndroidClientRegistration::handle initial failure, returning false"
-				<< broker.getClientWaitingList().size() << "-"
+				<< broker.getClientWaitingListSize() << "-"
 				<< registeredAgents.size() << "-"
 				<< usedAgents.size() << std::endl;
 		return false;

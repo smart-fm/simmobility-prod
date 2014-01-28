@@ -252,9 +252,14 @@ AgentsList::type& sim_mob::Broker::getRegisteredAgents(
 	return REGISTERED_AGENTS.getAgents();
 }
 
-Broker::ClientWaitList& sim_mob::Broker::getClientWaitingList()
+/*Broker::ClientWaitList& sim_mob::Broker::getClientWaitingList()
 {
 	return clientRegistrationWaitingList;
+}*/
+
+size_t sim_mob::Broker::getClientWaitingListSize() const
+{
+	return clientRegistrationWaitingList.size();
 }
 
 ClientList::Type& sim_mob::Broker::getClientList()

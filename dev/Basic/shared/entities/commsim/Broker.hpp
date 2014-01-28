@@ -357,10 +357,15 @@ public:
 	 * 	unregister an agent
 	 */
 	void unRegisterEntity(sim_mob::Agent * agent);
+
 	/**
 	 * 	returns list of clients waiting to be admitted as registered clients
 	 */
-	ClientWaitList & getClientWaitingList();
+	//ClientWaitList & getClientWaitingList();
+
+	///Returns the size of the list of clients waiting to be admitted as registered clients.
+	size_t getClientWaitingListSize() const;
+
 	/**
 	 * 	returns list of registered clients
 	 */

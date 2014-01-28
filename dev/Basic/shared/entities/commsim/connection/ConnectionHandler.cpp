@@ -42,7 +42,7 @@ void ConnectionHandler::start()
 
 
 	Json::Value packet;
-	Json::Value packet_header = JsonParser::createPacketHeader(pckt_header(1, "0"));
+	Json::Value packet_header = JsonParser::createPacketHeader(pckt_header(1, clientID));
 	Json::Value msg = JsonParser::createMessageHeader(msg_header("0","SIMMOBILITY","READY", "SYS"));
 	packet["PACKET_HEADER"] = packet_header;
 	packet["DATA"].append(msg);//no other data element needed

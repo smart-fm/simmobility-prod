@@ -121,7 +121,7 @@ func receive_remote(params *NetData) {
 		}
 
 		//TODO: Use conn (maybe wrapped).
-		fmt.Println("Reading data from the server..")
+		fmt.Println("Reading data from the server")
 		params.incoming <- line
     }
 }
@@ -161,7 +161,7 @@ func forward_to_client(params *NetData) {
 			}
 		}
 
-		fmt.Println("Writing to client.")
+		fmt.Println("Writing to client: " + destId)
 		_,err := destConn.write.WriteString(line)
 		if err != nil {
 			fmt.Println("local write failed: %v", err)
@@ -176,7 +176,7 @@ func forward_to_server(params *NetData) {
 	var line string
 	for {
 		line = <-params.outgoing
-		fmt.Println("Writing to server.")
+		fmt.Println("Writing to server")
 		_,err := params.remote.write.WriteString(line)
 		if err != nil {
 			fmt.Println("remote write failed: %v", err)
@@ -216,7 +216,7 @@ func receive_client(params *NetData, localconn Connection) {
 	params.clients_lock.Unlock()
 
 	//Forward this message.
-	fmt.Println("Reading first line of data from the client.")
+	fmt.Println("Reading first line of data from the client: " + sendId)
 	params.outgoing <- line
 
 	//Now, just keep reading from the client, and pushing this information to the server.
@@ -227,7 +227,7 @@ func receive_client(params *NetData, localconn Connection) {
 			os.Exit(2)
 		}
 
-		fmt.Println("Reading data from the client.")
+		fmt.Println("Reading data from the client: " + sendId)
 		params.outgoing <- line
     }
 }

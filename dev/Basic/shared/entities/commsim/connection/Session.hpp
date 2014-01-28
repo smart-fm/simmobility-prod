@@ -170,12 +170,12 @@ public:
     }
     else
     {
-      try
-      {
+      /*try
+      {*/
     	  std::string archive_data(&inbound_data_[0], inbound_data_.size());
     	  input = archive_data;
           boost::get<0>(handler)(e);
-      }
+      /*}
       catch (std::exception& e)
       {
         // Unable to decode data.
@@ -183,7 +183,7 @@ public:
         boost::system::error_code error(boost::asio::error::invalid_argument);
         boost::get<0>(handler)(error);
         return;
-      }
+      }*/
     }
 
 	  inbound_data_.clear();

@@ -46,7 +46,6 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RoadRunnerFactory::get
 	else
 	{
 		//else, create a cache entry ...
-		bool typeFound = true;
 		switch(type)
 		{
 		case MULTICAST:
@@ -61,15 +60,15 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RoadRunnerFactory::get
 		case REROUTE_REQUEST:
 			handler.reset(new sim_mob::roadrunner::RerouteRequestHandler());
 			break;
-		default:
-			typeFound = false;
+		case NEW_CLIENT:
+			handler.reset(new sim_mob::roadrunner::NewClientHandler());
 			break;
+		default:
+			Warn() <<"Unknown handler for given handler type: " <<type <<"\n";
+			throw std::runtime_error("Unknown handler.");
 		}
 		//register this baby
-		if(typeFound)
-		{
-			HandlerMap[type] = handler;
-		}
+		HandlerMap[type] = handler;
 	}
 
 	return handler;

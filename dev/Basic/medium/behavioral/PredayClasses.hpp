@@ -94,7 +94,7 @@ class Tour;
  */
 class Stop {
 public:
-	Stop(StopType stopType, Tour& parentTour, bool primaryActivity, bool firstHalfTour)
+	Stop(StopType stopType, Tour* parentTour, bool primaryActivity, bool firstHalfTour)
 	: stopType(stopType), parentTour(parentTour), primaryActivity(primaryActivity), arrivalTime(0), departureTime(0), stopMode(0),
 	  stopLocation(0), stopId(0), inFirstHalfTour(firstHalfTour)
 	{}
@@ -115,7 +115,7 @@ public:
 		this->departureTime = departureTime;
 	}
 
-	const Tour& getParentTour() const {
+	const Tour* getParentTour() const {
 		return parentTour;
 	}
 
@@ -201,7 +201,7 @@ public:
 	}
 
 private:
-	const Tour& parentTour;
+	const Tour* parentTour;
 	StopType stopType;
 	bool primaryActivity;
 	double arrivalTime;
@@ -239,8 +239,8 @@ public:
 		this->endTime = endTime;
 	}
 
-	const Tour& getParentTour() const {
-		return *parentTour;
+	const Tour* getParentTour() const {
+		return parentTour;
 	}
 
 	double getStartTime() const {

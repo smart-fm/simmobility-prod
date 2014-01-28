@@ -34,6 +34,8 @@ class PredaySystem {
 private:
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
+	typedef std::deque<Tour*> TourList;
+	typedef std::deque<Stop*> StopList;
 
 	/**
 	 * For each work tour, if the person has a usual work location, this function predicts whether the person goes to his usual location or some other location.
@@ -50,28 +52,28 @@ private:
 	 *
 	 * @param tour the tour for which the mode is to be predicted
 	 */
-	void predictTourMode(Tour& tour);
+	void predictTourMode(Tour* tour);
 
 	/**
 	 * Predicts the mode and destination together for tours to unusual locations
 	 *
 	 * @param tour the tour for which the mode and destination are to be predicted
 	 */
-	void predictTourModeDestination(Tour& tour);
+	void predictTourModeDestination(Tour* tour);
 
 	/**
 	 * Predicts the time period that will be allotted for the primary activity of a tour.
 	 *
 	 * @param tour the tour for which the time of day is to be predicted
 	 */
-	TimeWindowAvailability predictTourTimeOfDay(Tour& tour);
+	TimeWindowAvailability predictTourTimeOfDay(Tour* tour);
 
 	/**
 	 * Generates intermediate stops of types predicted by the day pattern model before and after the primary activity of a tour.
 	 *
 	 * @param tour the tour for which stops are to be generated
 	 */
-	void generateIntermediateStops(Tour& tour);
+	void generateIntermediateStops(Tour* tour);
 
 	/**
 	 * Predicts the mode and destination together for stops.
@@ -111,14 +113,14 @@ private:
 	 *
 	 * @param tour the tour object for which the start time is to be calculated
 	 */
-	void calculateTourStartTime(Tour& tour);
+	void calculateTourStartTime(Tour* tour);
 
 	/**
 	 * Calculates the time when the person reaches home at the end of the tour.
 	 *
 	 * @param tour the tour object for which the end time is to be calculated
 	 */
-	void calculateTourEndTime(Tour& tour);
+	void calculateTourEndTime(Tour* tour);
 
 	/**
 	 * constructs tour objects based on predicted number of tours. Puts the tour objects in tours deque.
@@ -173,7 +175,7 @@ private:
     /**
      * list of tours for this person
      */
-    std::deque<Tour*> tours;
+    TourList tours;
 
     /**
      * The predicted day pattern for the person indicating whether the person wants to make tours and stops of each type (Work, Education, Shopping, Others).

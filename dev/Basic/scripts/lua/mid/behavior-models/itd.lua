@@ -82,6 +82,7 @@ local function computeUtilities(params,dbparams)
 	local pi = math.pi
 	local sin = math.sin
 	local cos = math.cos
+	local pow = math.pow
 
 	local function sarr_1(t)
 		return first_bound*beta_ARR_1_1 * sin(2*pi*t/24) + first_bound*beta_ARR_1_5 * cos(2*pi*t/24)+first_bound*beta_ARR_1_2 * sin(4*pi*t/24) + first_bound*beta_ARR_1_6 * cos(4*pi*t/24)+first_bound*beta_ARR_1_3 * sin(6*pi*t/24) + first_bound*beta_ARR_1_7 * cos(6*pi*t/24)+first_bound*beta_ARR_1_4 * sin(8*pi*t/24) + first_bound*beta_ARR_1_8 * cos(8*pi*t/24)
@@ -121,7 +122,7 @@ local function computeUtilities(params,dbparams)
 		local dur = first_bound*(high_tod-i+1)+second_bound*(i-low_tod+1)
 		dur = 0.25 + (dur-1)/2
 		
-		utility[i] = sarr_1(arr) + sdep_1(dep) + work_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + edu_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + shop_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + other_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * math.pow(dur,2) + beta_DUR_3_work * math.pow(dur,3)) + beta_TT * dbparams:TT(i) + (1-missing_income) * beta_C_1 * dbparams:cost(i)/(0.5+income_mid) + missing_income * beta_C_2 * dbparams:cost(i)
+		utility[i] = sarr_1(arr) + sdep_1(dep) + work_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * pow(dur,2) + beta_DUR_3_work * pow(dur,3)) + edu_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * pow(dur,2) + beta_DUR_3_work * pow(dur,3)) + shop_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * pow(dur,2) + beta_DUR_3_work * pow(dur,3)) + other_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * pow(dur,2) + beta_DUR_3_work * pow(dur,3)) + beta_TT * dbparams:TT(i) + (1-missing_income) * beta_C_1 * dbparams:cost(i)/(0.5+income_mid) + missing_income * beta_C_2 * dbparams:cost(i)
 
 	end
 

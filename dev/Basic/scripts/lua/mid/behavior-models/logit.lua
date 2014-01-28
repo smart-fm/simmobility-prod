@@ -17,7 +17,9 @@ local function calculate_multinomial_logit_probability(choices, utility, availab
 		evsum = evsum + probability[k]	
 	end
 	for c in pairs(probability) do
-		probability[c] = probability[c]/evsum
+		if (probability[c] ~= 0) then
+			probability[c] = probability[c]/evsum
+		end
 	end
 	return probability
 end
@@ -32,6 +34,10 @@ local function calculate_nested_logit_probability(choiceset, utility, availables
 		local mu = scales[nest][1]
 		local nest_evsum = 0
 		for i,c in ipairs(choices) do
+			if utility[c] ~= utility[c] then 
+				utility[c] = 0
+				availables[c] = 0
+			end
 			local evmuc = availables[c] * exp(mu*utility[c])
 			evmu[c] = evmuc
 			nest_evsum = nest_evsum + evmuc

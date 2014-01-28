@@ -540,9 +540,10 @@ local function computeAvailabilities(params)
 		if person_type_id == 4 then
 			availability[i] = 1
 		else
-			availability[i] = 0
 			if choice[i][2] == 0 then 
 				availability[i] = 1
+			else
+				availability[i] = 0
 			end
 		end
 	end

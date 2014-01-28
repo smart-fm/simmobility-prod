@@ -40,7 +40,12 @@ PredaySystem::PredaySystem(PersonParams& personParams,
 {}
 
 PredaySystem::~PredaySystem()
-{}
+{
+	for(TourList::iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++) {
+		safe_delete_item(*tourIt);
+	}
+	tours.clear();
+}
 
 bool sim_mob::medium::PredaySystem::predictUsualWorkLocation(bool firstOfMultiple) {
     UsualWorkParams usualWorkParams;
@@ -60,12 +65,12 @@ bool sim_mob::medium::PredaySystem::predictUsualWorkLocation(bool firstOfMultipl
 	return PredayLuaProvider::getPredayModel().predictUsualWorkLocation(personParams, usualWorkParams);
 }
 
-void PredaySystem::predictTourMode(Tour& tour) {
+void PredaySystem::predictTourMode(Tour* tour) {
 	TourModeParams tmParams;
-	tmParams.setStopType(tour.getTourType());
+	tmParams.setStopType(tour->getTourType());
 
 	ZoneParams* znOrgObj = zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()));
-	ZoneParams* znDesObj = zoneMap.at(zoneIdLookup.at(tour.getTourDestination()));
+	ZoneParams* znDesObj = zoneMap.at(zoneIdLookup.at(tour->getTourDestination()));
 	tmParams.setCostCarParking(znDesObj->getParkingRate());
 	tmParams.setCentralZone(znDesObj->getCentralDummy());
 	tmParams.setResidentSize(znOrgObj->getResidentWorkers());
@@ -73,9 +78,9 @@ void PredaySystem::predictTourMode(Tour& tour) {
 	tmParams.setEducationOp(znDesObj->getTotalEnrollment());
 	tmParams.setOriginArea(znOrgObj->getArea());
 	tmParams.setDestinationArea(znDesObj->getArea());
-	if(personParams.getHomeLocation() != tour.getTourDestination()) {
-		CostParams* amObj = amCostMap.at(personParams.getHomeLocation()).at(tour.getTourDestination());
-		CostParams* pmObj = pmCostMap.at(tour.getTourDestination()).at(personParams.getHomeLocation());
+	if(personParams.getHomeLocation() != tour->getTourDestination()) {
+		CostParams* amObj = amCostMap.at(personParams.getHomeLocation()).at(tour->getTourDestination());
+		CostParams* pmObj = pmCostMap.at(tour->getTourDestination()).at(personParams.getHomeLocation());
 		tmParams.setCostPublicFirst(amObj->getPubCost());
 		tmParams.setCostPublicSecond(pmObj->getPubCost());
 		tmParams.setCostCarErpFirst(amObj->getCarCostErp());
@@ -139,21 +144,21 @@ void PredaySystem::predictTourMode(Tour& tour) {
 		tmParams.setAvgTransfer(0);
 	}
 
-	tour.setTourMode(PredayLuaProvider::getPredayModel().predictTourMode(personParams, tmParams));
+	tour->setTourMode(PredayLuaProvider::getPredayModel().predictTourMode(personParams, tmParams));
 }
 
-void PredaySystem::predictTourModeDestination(Tour& tour) {
-	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, tour.getTourType());
+void PredaySystem::predictTourModeDestination(Tour* tour) {
+	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, tour->getTourType());
 	int modeDest = PredayLuaProvider::getPredayModel().predictTourModeDestination(personParams, tmdParams);
-	tour.setTourMode(tmdParams.getMode(modeDest));
+	tour->setTourMode(tmdParams.getMode(modeDest));
 	int zone_id = tmdParams.getDestination(modeDest);
-	tour.setTourDestination(zoneMap.at(zone_id)->getZoneCode());
+	tour->setTourDestination(zoneMap.at(zone_id)->getZoneCode());
 }
 
-TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
+TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour* tour) {
 	int timeWndw;
-	if(!tour.isSubTour()) {
-		int origin = tour.getTourDestination();
+	if(!tour->isSubTour()) {
+		int origin = tour->getTourDestination();
 		int destination = personParams.getHomeLocation();
 		std::vector<double> ttFirstHalfTour, ttSecondHalfTour;
 		if(origin != destination) {
@@ -167,7 +172,7 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 			CostParams* pmDistanceObj = pmCostMap.at(destination).at(origin);
 
 			for (uint32_t i = 1; i <= 48; i++) {
-				switch (tour.getTourMode()) {
+				switch (tour->getTourMode()) {
 				case 1: // Fall through
 				case 2:
 				case 3:
@@ -228,18 +233,18 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 			}
 		}
 		TourTimeOfDayParams todParams(ttFirstHalfTour, ttSecondHalfTour);
-		timeWndw = PredayLuaProvider::getPredayModel().predictTourTimeOfDay(personParams, todParams, tour.getTourType());
+		timeWndw = PredayLuaProvider::getPredayModel().predictTourTimeOfDay(personParams, todParams, tour->getTourType());
 	}
 	return TimeWindowAvailability::timeWindowsLookup[timeWndw];
 }
 
-void PredaySystem::generateIntermediateStops(Tour& tour) {
-	if(tour.stops.size() != 1) {
+void PredaySystem::generateIntermediateStops(Tour* tour) {
+	if(tour->stops.size() != 1) {
 		stringstream ss;
-		ss << "generateIntermediateStops()|tour contains " << tour.stops.size() << " stops. Exactly 1 stop (primary activity) was expected.";
+		ss << "generateIntermediateStops()|tour contains " << tour->stops.size() << " stops. Exactly 1 stop (primary activity) was expected.";
 		throw runtime_error(ss.str());
 	}
-	Stop* primaryStop = tour.stops.front(); // The only stop at this point is the primary activity stop
+	Stop* primaryStop = tour->stops.front(); // The only stop at this point is the primary activity stop
 	Stop* generatedStop = nullptr;
 
 	if ((dayPattern.at("WorkI") + dayPattern.at("EduI") + dayPattern.at("ShopI") + dayPattern.at("OthersI")) > 0 ) {
@@ -247,8 +252,8 @@ void PredaySystem::generateIntermediateStops(Tour& tour) {
 		StopGenerationParams isgParams(tour, primaryStop, dayPattern);
 		int origin = personParams.getHomeLocation();
 		int destination = primaryStop->getStopLocation();
-		isgParams.setFirstTour(tours.front() == &tour);
-		std::deque<Tour*>::iterator currTourIterator = std::find(tours.begin(), tours.end(), &tour);
+		isgParams.setFirstTour(tours.front() == tour);
+		TourList::iterator currTourIterator = std::find(tours.begin(), tours.end(), tour);
 		size_t numToursAfter = tours.size() - (std::distance(tours.begin(), currTourIterator) /*num. of tours before this tour*/ + 1 /*this tour*/);
 		isgParams.setNumRemainingTours(numToursAfter);
 
@@ -264,7 +269,7 @@ void PredaySystem::generateIntermediateStops(Tour& tour) {
 
 		double prevDepartureTime = 1; // first window; start of day
 		double nextArrivalTime = primaryStop->getArrivalTime();
-		if (tours.front() != &tour) { // if this tour is not the first tour of the day
+		if (tours.front() != tour) { // if this tour is not the first tour of the day
 			Tour* previousTour = *(currTourIterator-1);
 			prevDepartureTime = previousTour->getEndTime(); // departure time id taken as the end time of the previous tour
 		}
@@ -285,17 +290,28 @@ void PredaySystem::generateIntermediateStops(Tour& tour) {
 				case 4: stopType = OTHER; break;
 				}
 				generatedStop = new Stop(stopType, tour, false /*not primary*/, true /*in first half tour*/);
-				tour.addStop(generatedStop);
+				tour->addStop(generatedStop);
 				predictStopModeDestination(generatedStop, nextStop->getStopLocation());
 				calculateDepartureTime(generatedStop, nextStop);
 				if(generatedStop->getDepartureTime() <= 1)
 				{
-					tour.removeStop(generatedStop);
+					tour->removeStop(generatedStop);
 					safe_delete_item(generatedStop);
 					stopCounter = stopCounter + 1;
 					continue;
 				}
 				predictStopTimeOfDay(generatedStop, true);
+				if(generatedStop->getArrivalTime() > generatedStop->getDepartureTime()) {
+					Print() << "Discarding generated stop|"
+							<< "|arrival: " << generatedStop->getArrivalTime()
+							<< "|departure: " << generatedStop->getDepartureTime()
+							<< "|1st HT"
+							<< "|arrival time is greater than departure time";
+					tour->removeStop(generatedStop);
+					safe_delete_item(generatedStop);
+					stopCounter = stopCounter + 1;
+					continue;
+				}
 				nextStop = generatedStop;
 				personParams.blockTime(generatedStop->getArrivalTime(), generatedStop->getDepartureTime());
 				nextArrivalTime = generatedStop->getArrivalTime();
@@ -337,17 +353,28 @@ void PredaySystem::generateIntermediateStops(Tour& tour) {
 				else if (choice == 3) { stopType = SHOP; }
 				else if (choice == 4) { stopType = OTHER; }
 				generatedStop = new Stop(stopType, tour, false /*not primary*/, false  /*not in first half tour*/);
-				tour.addStop(generatedStop);
+				tour->addStop(generatedStop);
 				predictStopModeDestination(generatedStop, prevStop->getStopLocation());
 				calculateArrivalTime(generatedStop, prevStop);
 				if(generatedStop->getArrivalTime() >=  48)
 				{
-					tour.removeStop(generatedStop);
+					tour->removeStop(generatedStop);
 					safe_delete_item(generatedStop);
 					stopCounter = stopCounter + 1;
 					continue;
 				}
 				predictStopTimeOfDay(generatedStop, false);
+				if(generatedStop->getArrivalTime() > generatedStop->getDepartureTime()) {
+					Print() << "Discarding generated stop|"
+							<< "|arrival: " << generatedStop->getArrivalTime()
+							<< "|departure: " << generatedStop->getDepartureTime()
+							<< "|2nd HT"
+							<< "|arrival time is greater than departure time";
+					tour->removeStop(generatedStop);
+					safe_delete_item(generatedStop);
+					stopCounter = stopCounter + 1;
+					continue;
+				}
 				prevStop = generatedStop;
 				personParams.blockTime(generatedStop->getArrivalTime(), generatedStop->getDepartureTime());
 				prevDepartureTime = generatedStop->getDepartureTime();
@@ -366,7 +393,7 @@ void PredaySystem::generateIntermediateStops(Tour& tour) {
 
 void PredaySystem::predictStopModeDestination(Stop* stop, int origin)
 {
-	StopModeDestinationParams imdParams(zoneMap, amCostMap, pmCostMap, personParams, stop->getStopType(), origin, stop->getParentTour().getTourMode());
+	StopModeDestinationParams imdParams(zoneMap, amCostMap, pmCostMap, personParams, stop->getStopType(), origin, stop->getParentTour()->getTourMode());
 	int modeDest = PredayLuaProvider::getPredayModel().predictStopModeDestination(personParams, imdParams);
 	stop->setStopMode(imdParams.getMode(modeDest));
 	int zone_id = imdParams.getDestination(modeDest);
@@ -448,11 +475,11 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 	// high and low tod
 	if(isBeforePrimary) {
 		stodParams.setTodHigh(stop->getDepartureTime());
-		if(&stop->getParentTour() == tours.front()) {
+		if(stop->getParentTour() == tours.front()) {
 			stodParams.setTodLow(1);
 		}
 		else {
-			Tour* prevTour = *(std::find(tours.begin(), tours.end(), &stop->getParentTour()) - 1);
+			Tour* prevTour = *(std::find(tours.begin(), tours.end(), stop->getParentTour()) - 1);
 			stodParams.setTodLow(prevTour->getEndTime());
 		}
 	}
@@ -604,13 +631,13 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 	int timeWindowIdx = PredayLuaProvider::getPredayModel().predictStopTimeOfDay(personParams, stodParams);
 	if(isBeforePrimary) {
 		if(timeWindowIdx > stop->getDepartureTime()) {
-			throw std::runtime_error("Predicted arrival time must not be greater than the estimated departure time");
+			Print() << "Predicted arrival time must not be greater than the estimated departure time";
 		}
 		stop->setArrivalTime(timeWindowIdx);
 	}
 	else {
 		if(timeWindowIdx < stop->getArrivalTime()) {
-			throw std::runtime_error("Predicted departure time must not be greater than the estimated arrival time");
+			Print() << "Predicted departure time must not be greater than the estimated arrival time";
 		}
 		stop->setDepartureTime(timeWindowIdx);
 	}
@@ -744,20 +771,20 @@ void PredaySystem::calculateDepartureTime(Stop* currStop,  Stop* nextStop) { // 
 	currStop->setDepartureTime(currStopDepTime);
 }
 
-void PredaySystem::calculateTourStartTime(Tour& tour) {
+void PredaySystem::calculateTourStartTime(Tour* tour) {
 	/*
 	 * There are 48 half-hour time windows in a day from 3.25 to 26.75.
 	 * Given a time window i, its choice index can be determined by (i * 0.5 + 2.75)
 	 */
-	Stop& firstStop = *(tour.stops.front());
-	uint32_t firstActivityArrivalIndex = firstStop.getArrivalTime();
+	Stop* firstStop = tour->stops.front();
+	uint32_t firstActivityArrivalIndex = firstStop->getArrivalTime();
 	double timeWindow = firstActivityArrivalIndex * 0.5 + 2.75;
 	double travelTime;
-	if(personParams.getHomeLocation() != firstStop.getStopLocation()) {
+	if(personParams.getHomeLocation() != firstStop->getStopLocation()) {
 		travelTime = 999.0; // initializing to a high value just in case something goes wrong. tcost_bus and tcost_car has lot of inadmissable data ("NULL")
 		std::stringstream fieldName;
-		BSONObj bsonObj = BSON("origin" << personParams.getHomeLocation() << "destination" << firstStop.getStopLocation());
-		switch(firstStop.getStopMode()) {
+		BSONObj bsonObj = BSON("origin" << personParams.getHomeLocation() << "destination" << firstStop->getStopLocation());
+		switch(firstStop->getStopMode()) {
 		case 1: // Fall through
 		case 2:
 		case 3:
@@ -786,8 +813,8 @@ void PredaySystem::calculateTourStartTime(Tour& tour) {
 		}
 		case 8:
 		{
-			double distanceMin = amCostMap.at(personParams.getHomeLocation()).at(firstStop.getStopLocation())->getDistance()
-									- pmCostMap.at(personParams.getHomeLocation()).at(firstStop.getStopLocation())->getDistance();
+			double distanceMin = amCostMap.at(personParams.getHomeLocation()).at(firstStop->getStopLocation())->getDistance()
+									- pmCostMap.at(personParams.getHomeLocation()).at(firstStop->getStopLocation())->getDistance();
 			travelTime = distanceMin/5;
 			break;
 		}
@@ -807,24 +834,24 @@ void PredaySystem::calculateTourStartTime(Tour& tour) {
 	tourStartTime = (tourStartTime - 2.75) / 0.5;
 	tourStartTime = (tourStartTime >= 1)? tourStartTime : 1;
 	tourStartTime = (tourStartTime <= 48)? tourStartTime : 48;
-	tour.setStartTime(tourStartTime);
+	tour->setStartTime(tourStartTime);
 }
 
-void PredaySystem::calculateTourEndTime(Tour& tour) {
+void PredaySystem::calculateTourEndTime(Tour* tour) {
 	/*
 	 * There are 48 half-hour time windows in a day from 3.25 to 26.75.
 	 * Given a time window x, its choice index can be determined by ((x - 3.25) / 0.5) + 1
 	 */
-	Stop& lastStop = *(tour.stops.back());
-	uint32_t lastActivityDepartureIndex = lastStop.getDepartureTime();
+	Stop* lastStop = tour->stops.back();
+	uint32_t lastActivityDepartureIndex = lastStop->getDepartureTime();
 	double timeWindow = lastActivityDepartureIndex * 0.5 + 2.75;
 	double travelTime;
-	if(personParams.getHomeLocation() != lastStop.getStopLocation()) {
+	if(personParams.getHomeLocation() != lastStop->getStopLocation()) {
 		travelTime = 999.0; // initializing to a high value just in case something goes wrong. tcost_bus and tcost_car has lot of inadmissable data ("NULL")
 		std::stringstream fieldName;
-		BSONObj bsonObj = BSON("origin" << personParams.getHomeLocation() << "destination" << lastStop.getStopLocation());
+		BSONObj bsonObj = BSON("origin" << personParams.getHomeLocation() << "destination" << lastStop->getStopLocation());
 
-		switch(lastStop.getStopMode()) {
+		switch(lastStop->getStopMode()) {
 		case 1: // Fall through
 		case 2:
 		case 3:
@@ -853,8 +880,8 @@ void PredaySystem::calculateTourEndTime(Tour& tour) {
 		}
 		case 8:
 		{
-			double distanceMin = amCostMap.at(personParams.getHomeLocation()).at(lastStop.getStopLocation())->getDistance()
-													- pmCostMap.at(personParams.getHomeLocation()).at(lastStop.getStopLocation())->getDistance();
+			double distanceMin = amCostMap.at(personParams.getHomeLocation()).at(lastStop->getStopLocation())->getDistance()
+													- pmCostMap.at(personParams.getHomeLocation()).at(lastStop->getStopLocation())->getDistance();
 			travelTime = distanceMin/5;
 			break;
 		}
@@ -874,7 +901,7 @@ void PredaySystem::calculateTourEndTime(Tour& tour) {
 	tourEndTime = (tourEndTime - 2.75) / 0.5;
 	tourEndTime = (tourEndTime >= 1)? tourEndTime : 1;
 	tourEndTime = (tourEndTime <= 48)? tourEndTime : 48;
-	tour.setEndTime(tourEndTime);
+	tour->setEndTime(tourEndTime);
 }
 
 void PredaySystem::constructTours() {
@@ -948,30 +975,30 @@ void PredaySystem::planDay() {
 
 	//Process each tour
 	Print() << "Tours: " << tours.size() << std::endl;
-	for(std::deque<Tour*>::iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++) {
-		Tour& tour = *(*tourIt);
-		if(tour.isUsualLocation()) {
+	for(TourList::iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++) {
+		Tour* tour = *tourIt;
+		if(tour->isUsualLocation()) {
 			// Predict just the mode for tours to usual location
 			predictTourMode(tour);
-			Print() << "Tour|type: " << tour.getTourType()
-					<< "(TM) Tour mode: " << tour.getTourMode() << "|Tour destination: " << tour.getTourDestination();
+			Print() << "Tour|type: " << tour->getTourType()
+					<< "(TM) Tour mode: " << tour->getTourMode() << "|Tour destination: " << tour->getTourDestination();
 		}
 		else {
 			// Predict mode and destination for tours to not-usual locations
 			predictTourModeDestination(tour);
-			Print() << "Tour|type: " << tour.getTourType()
-					<< "(TMD) Tour mode: " << tour.getTourMode() << "|Tour destination: " << tour.getTourDestination();
+			Print() << "Tour|type: " << tour->getTourType()
+					<< "(TMD) Tour mode: " << tour->getTourMode() << "|Tour destination: " << tour->getTourDestination();
 		}
 
 		// Predict time of day for this tour
 		TimeWindowAvailability timeWindow = predictTourTimeOfDay(tour);
-		Stop* primaryActivity = new Stop(tour.getTourType(), tour, true /*primary activity*/, true /*stop in first half tour*/);
-		primaryActivity->setStopMode(tour.getTourMode());
-		primaryActivity->setStopLocation(tour.getTourDestination());
-		primaryActivity->setStopLocationId(zoneIdLookup.at(tour.getTourDestination()));
+		Stop* primaryActivity = new Stop(tour->getTourType(), tour, true /*primary activity*/, true /*stop in first half tour*/);
+		primaryActivity->setStopMode(tour->getTourMode());
+		primaryActivity->setStopLocation(tour->getTourDestination());
+		primaryActivity->setStopLocationId(zoneIdLookup.at(tour->getTourDestination()));
 		primaryActivity->allotTime(timeWindow.getStartTime(), timeWindow.getEndTime());
-		tour.setPrimaryStop(primaryActivity);
-		tour.addStop(primaryActivity);
+		tour->setPrimaryStop(primaryActivity);
+		tour->addStop(primaryActivity);
 		personParams.blockTime(timeWindow.getStartTime(), timeWindow.getEndTime());
 		Print() << "|primary activity|arrival: " << primaryActivity->getArrivalTime() << "|departure: " << primaryActivity->getDepartureTime() << std::endl;
 
@@ -980,8 +1007,8 @@ void PredaySystem::planDay() {
 
 		calculateTourStartTime(tour);
 		calculateTourEndTime(tour);
-		personParams.blockTime(tour.getStartTime(), tour.getEndTime());
-		Print() << "Tour|start time: " << tour.getStartTime() << "|end time: " << tour.getEndTime() << std::endl;
+		personParams.blockTime(tour->getStartTime(), tour->getEndTime());
+		Print() << "Tour|start time: " << tour->getStartTime() << "|end time: " << tour->getEndTime() << std::endl;
 	}
 }
 
@@ -1039,12 +1066,12 @@ void sim_mob::medium::PredaySystem::outputPredictionsToMongo() {
 	insertDayPattern();
 	int tourNum=0;
 	Tour* currTour = nullptr;
-	for(std::deque<Tour*>::iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++) {
+	for(TourList::iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++) {
 		tourNum++;
 		currTour=*tourIt;
 		insertTour(currTour, tourNum);
 		int stopNum=0;
-		for(std::deque<Stop*>::iterator stopIt=currTour->stops.begin(); stopIt!=currTour->stops.end(); stopIt++) {
+		for(StopList::iterator stopIt=currTour->stops.begin(); stopIt!=currTour->stops.end(); stopIt++) {
 			stopNum++;
 			insertStop(*stopIt, stopNum, tourNum);
 		}

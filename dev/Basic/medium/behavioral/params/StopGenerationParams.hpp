@@ -23,12 +23,12 @@ namespace medium {
  */
 class StopGenerationParams {
 public:
-	StopGenerationParams(Tour& tour, Stop* primaryActivity, const boost::unordered_map<std::string, bool>& dayPattern)
+	StopGenerationParams(Tour* tour, Stop* primaryActivity, const boost::unordered_map<std::string, bool>& dayPattern)
 	: tourMode(tourMode), primActivityArrivalTime(primaryActivity->getArrivalTime()), primActivityDeptTime(primaryActivity->getDepartureTime()),
 	  firstTour(true), firstHalfTour(true), stopCounter(0), hasSubtour(0),
 	  numRemainingTours(-1), distance(-1.0)	/*distance, initialized with invalid values*/
 	{
-		switch (tour.getTourType()) {
+		switch (tour->getTourType()) {
 		case WORK:
 			tourType = 1;
 			break;

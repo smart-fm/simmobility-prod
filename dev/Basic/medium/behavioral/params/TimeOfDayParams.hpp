@@ -190,7 +190,7 @@ public:
 	 * Function to get the availability of an alternative
 	 */
 	int getAvailability(unsigned index){
-		if(index < numTimeWindows) {
+		if(index < numTimeWindows && index > 0) {
 			return availability[index-1];
 		}
 		return 0; // anything else is unavailable

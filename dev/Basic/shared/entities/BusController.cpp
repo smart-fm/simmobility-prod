@@ -533,16 +533,15 @@ void sim_mob::BusController::handleRequestParams(sim_mob::DriverRequestParams rP
 		if(existed_Request_Mode && lastVisited_Busline && lastVisited_BusTrip_SequenceNo && busstop_sequence_no
 		   && real_ArrivalTime && DwellTime_ijk && lastVisited_BusStop && last_busStopRealTimes && waiting_Time)
 		{
-			BusStop_RealTimes* realTime = new BusStop_RealTimes();
+			BusStop_RealTimes realTime;
 			if(existed_Request_Mode->get() == Role::REQUEST_DECISION_TIME ){
-				double waitingtime = decisionCalculation(lastVisited_Busline->get(),lastVisited_BusTrip_SequenceNo->get(),busstop_sequence_no->get(),real_ArrivalTime->get(),DwellTime_ijk->get(),*realTime,lastVisited_BusStop->get());
+				double waitingtime = decisionCalculation(lastVisited_Busline->get(),lastVisited_BusTrip_SequenceNo->get(),busstop_sequence_no->get(),real_ArrivalTime->get(),DwellTime_ijk->get(),realTime,lastVisited_BusStop->get());
 				waiting_Time->set(waitingtime);
 			}
 			else if(existed_Request_Mode->get() == Role::REQUEST_STORE_ARRIVING_TIME ){
-				storeRealTimes_eachBusStop(lastVisited_Busline->get(),lastVisited_BusTrip_SequenceNo->get(),busstop_sequence_no->get(),real_ArrivalTime->get(),DwellTime_ijk->get(),lastVisited_BusStop->get(), *realTime);
+				storeRealTimes_eachBusStop(lastVisited_Busline->get(),lastVisited_BusTrip_SequenceNo->get(),busstop_sequence_no->get(),real_ArrivalTime->get(),DwellTime_ijk->get(),lastVisited_BusStop->get(), realTime);
 			}
-			last_busStopRealTimes->set(*realTime);
-			safe_delete_item(realTime);
+			last_busStopRealTimes->set(realTime);
 		}
 	}
 }

@@ -191,7 +191,7 @@
             <total_runtime      value="30"      units="minutes" />
             <total_warmup       value="0"     units="seconds" />
             
-            <start_time         value="08:00:00"/>
+            <start_time         value="05:38:00"/>
             
             <!-- Implementation to use for the Aura Manager. -->
             <!-- Values include: simtree, rdu, rstar (default) -->

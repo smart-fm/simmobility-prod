@@ -115,6 +115,9 @@ public:
 	const std::vector<Shared<BusStop_RealTimes>* >& getBusStopRealTimes() const {
 		return busStopRealTimes_vec;
 	}
+	void safeDeleteBusStopRealTimesVec() {
+		clear_delete_vector(busStopRealTimes_vec);
+	}
 	int lastVisitedStop_SequenceNumber;
 
 private:

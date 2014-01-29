@@ -147,7 +147,10 @@ sim_mob::Busline::Busline(std::string busline_id, std::string controlType)
 
 sim_mob::Busline::~Busline()
 {
-
+//	clear_delete_vector(busTrip_vec);
+	for(int i = 0; i < busTrip_vec.size(); i++) {
+		busTrip_vec[i].safeDeleteBusStopRealTimesVec();
+	}
 }
 
 CONTROL_TYPE sim_mob::Busline::getControlTypeFromString(std::string ControlType)
@@ -194,7 +197,11 @@ sim_mob::PT_Schedule::PT_Schedule()
 
 sim_mob::PT_Schedule::~PT_Schedule()
 {
-
+	std::map<std::string, Busline*>::iterator it;
+	for (it = buslineID_busline.begin(); it != buslineID_busline.end(); ++it) {
+		safe_delete_item(it->second);
+	}
+	buslineID_busline.clear();
 }
 
 void sim_mob::PT_Schedule::registerBusLine(const std::string busline_id, Busline* aBusline)

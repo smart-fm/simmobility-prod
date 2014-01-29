@@ -188,7 +188,7 @@
         <!-- (but will be rounded down.) -->
         <simulation>
             <base_granularity   value="100"   units="ms" />
-            <total_runtime      value="30"      units="minutes" />
+            <total_runtime      value="20"      units="minutes" />
             <total_warmup       value="0"     units="seconds" />
             
             <start_time         value="05:38:00"/>

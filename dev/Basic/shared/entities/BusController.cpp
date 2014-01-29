@@ -77,8 +77,6 @@ BusController* sim_mob::BusController::TEMP_Get_Bc_1()
 	return all_busctrllers_.front();
 }
 
-
-
 void sim_mob::BusController::buildSubscriptionList(vector<BufferedBase*>& subsList)
 {
 	Agent::buildSubscriptionList(subsList);

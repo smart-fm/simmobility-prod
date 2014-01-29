@@ -24,20 +24,20 @@ class ConnectionServer;
 class WhoAreYouProtocol
 {
 public:
-//	sim_mob::boost::shared_ptr<sim_mob::Session> sess__;
-	WhoAreYouProtocol(boost::shared_ptr<Session> &sess_, ConnectionServer &);
-	void start();
-	bool isDone();
-//	void getTypeAndID(std::string &input, std::string & out_type, std::string & out_ID);
-	sim_mob::ClientRegistrationRequest getSubscriptionRequest(std::string);
-	std::string response; //json string containing ID & type of the client
+	WhoAreYouProtocol(boost::shared_ptr<Session> &sess_, ConnectionServer &, Broker& broker);
+
+	void queryAgentAsync();
 private:
 	boost::shared_ptr<Session>  sess;
 	ConnectionServer &server;
-	bool registerSuccess;
-//	std::map<unsigned int, boost::shared_ptr<Session> > clientRegistrationWaitingList;
-//	void startClientRegistration(boost::shared_ptr<Session> &sess);
+	Broker& broker;
+	std::string response; //json string containing ID & type of the client
+
+	sim_mob::ClientRegistrationRequest getSubscriptionRequest(std::string);
+
 	void WhoAreYou_handler(const boost::system::error_code& e);
+
+	//TODO: Migrate this elsewhere.
 	void WhoAreYou_response_handler(const boost::system::error_code& e);
 };
 

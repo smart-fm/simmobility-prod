@@ -36,8 +36,22 @@ void sim_mob::ConnectionServer::handleNewClient(session_ptr &sess)
 {
 	//using boost_shared_ptr won't let the protocol to release(i guess).
 	//Therefore I used raw pointer. the protocol will delete itself(delete this;)
-	WhoAreYouProtocol *registration = new WhoAreYouProtocol(sess,*this);
-	registration->start();
+	WhoAreYouProtocol *registration = new WhoAreYouProtocol(sess,*this, broker);
+	registration->queryAgentAsync();
+
+	//NOTE: Since a connection via the ConnectionServer *always* represents a new session, we
+	//      need to bind to the normal message loop here (through broker?)
+	//TODO: Basically, the WhoAreYouProtocol would call this:
+	//      server.RequestClientRegistration(request);
+	//      ...where "server" is this server. This would add the session to the Broker's
+	//      client list, and it would be processed on the next turn tick.
+	//TODO: The Broker would then call AndroidClientRegistration::handle(), which calls its own
+	//      internal method, makeClientHandler(). This function calls the Broker's getMessageReceiveCallBack()
+	//      function, which returns a function pointer to Broker::messageReceiveCallback(). This function
+	//      is where we will need to handle agent/message multiplexing. (Since all Messages go through the Broker,
+	//      this is not actually so challenging).
+	//TODO: The main problem here is that AndroidClientRegistration::handle() does BOTH agent assignment and
+	//      boost::reader stuff. So we need to decouple it.
 }
 
 

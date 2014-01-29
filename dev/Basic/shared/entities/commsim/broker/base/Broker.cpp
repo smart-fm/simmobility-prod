@@ -257,11 +257,6 @@ AgentsList::type& sim_mob::Broker::getRegisteredAgents(
 	return REGISTERED_AGENTS.getAgents();
 }
 
-/*Broker::ClientWaitList& sim_mob::Broker::getClientWaitingList()
-{
-	return clientRegistrationWaitingList;
-}*/
-
 size_t sim_mob::Broker::getClientWaitingListSize() const
 {
 	return clientRegistrationWaitingList.size();
@@ -300,6 +295,12 @@ void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType cl
 {
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 	clientList[clientType][clientID] = clientHandler;
+}
+
+void sim_mob::Broker::insertIntoWaitingOnWHOAMI(session_ptr session)
+{
+	boost::unique_lock<boost::mutex> lock(mutex_WaitingWHOAMI);
+	waitingWHOAMI_List.push_back(session);
 }
 
 void  sim_mob::Broker::insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest > p)//pair<client type, request>

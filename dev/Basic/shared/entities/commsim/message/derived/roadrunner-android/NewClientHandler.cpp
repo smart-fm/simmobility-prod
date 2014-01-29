@@ -27,11 +27,13 @@ void sim_mob::roadrunner::NewClientHandler::handle(sim_mob::comm::MsgPtr message
 	//
 
 	//New session, copy the old.
+	//TODO: This is a temporary passed by reference! Remove it.
 	session_ptr newSess(new sim_mob::Session(broker->getConnectionServer()->io_service_));
 
 	//TODO: Actually, this might be sufficient, since the session is a shared pointer.
-	WhoAreYouProtocol *registration = new sim_mob::WhoAreYouProtocol(newSess, *broker->getConnectionServer());
-	registration->start();
+	WhoAreYouProtocol *registration = new sim_mob::WhoAreYouProtocol(newSess, *broker->getConnectionServer(), *broker);
+	registration->queryAgentAsync();
 
-	//throw std::runtime_error("NEW_CLIENT not yet supported.");
+	//TODO: We need to somehow make it clear that agent pairing needs to happen (e.g., ask the Broker to assign an Agent), but
+	//      a new asynchronous reader should NOT be assigned (we already have one, and sockets aren't thread-safe in boost).
 }

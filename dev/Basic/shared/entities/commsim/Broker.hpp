@@ -165,6 +165,8 @@ protected:
 	///	list of authorized clients who have passed the registration process
 	ClientList::Type clientList; //key note: there can be one agent associated with multiple clients in this list. why? : coz clients of any type are i this list. and any one has associated itself to this agent for its specific type's reason
 
+	std::vector<session_ptr> waitingWHOAMI_List;
+
 	///	connection point to outside simmobility
 	boost::shared_ptr<sim_mob::ConnectionServer> connection;					//accepts, authenticate and registers client connections
 	///	message receive call back function pointer
@@ -220,6 +222,10 @@ protected:
 	boost::mutex mutex_agentDone;
 	boost::condition_variable COND_VAR_CLIENT_REQUEST;
 	boost::condition_variable COND_VAR_CLIENT_DONE;
+
+	//Mutex for the waitingWHOAMI list.
+	boost::mutex mutex_WaitingWHOAMI;
+
 	/*
 	 *
 	 */
@@ -394,6 +400,21 @@ public:
 	 * 	adds a client to the registration waiting list
 	 */
 	void insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest >);
+
+
+	/**
+	 * When a new connection is registered (or a NEW_CLIENT message goes out), the
+	 *   ConnectionServer sends out a WHOAREYOU message, and then waits for a response.
+	 *   Since this response comes in asynchronously, the session pointer is
+	 *   pushed to the Broker using this function. It is then paired up with an Agent
+	 *   upon receiving a WHOAMI message through the normal channels.
+	 * NOTE: For now, this pairing is arbitrary in the case of multiple connections.
+	 *       To ensure that ONLY the agent who received the WHOAREYOU can respond, one
+	 *       might add a unique token to the WHOAREYOU message that is then relayed back
+	 *       in the WHOAMI (but at the moment this is not necessary.
+	 */
+	void insertIntoWaitingOnWHOAMI(session_ptr session);
+
 
 	///Return an EventPublisher for a given type. Throws an exception if no such type is registered.
 //	PublisherList::Value getPublisher(sim_mob::Services::SIM_MOB_SERVICE serviceType);

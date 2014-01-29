@@ -53,6 +53,11 @@ sim_mob::Broker::Broker(const MutexStrategy& mtxStrat, int id, std::string commE
 sim_mob::Broker::~Broker() {
 }
 
+//NOTE: Dangerous; used only in one place.
+boost::shared_ptr<sim_mob::ConnectionServer> sim_mob::Broker::getConnectionServer() {
+	return connection;
+}
+
 void sim_mob::Broker::enable() {
 	enabled = true;
 }
@@ -446,7 +451,7 @@ void sim_mob::Broker::processIncomingData(timeslice now) {
 	while (receiveQueue.pop(msgTuple)) {
 		sim_mob::comm::MsgPtr &msg = msgTuple.msg;
 		sim_mob::comm::MsgData data = msg->getData();
-		msg->supplyHandler()->handle(msg, this);
+		msg->supplyHandler()->handle(msg, this, msgTuple.cnnHandler);
 	}
 }
 

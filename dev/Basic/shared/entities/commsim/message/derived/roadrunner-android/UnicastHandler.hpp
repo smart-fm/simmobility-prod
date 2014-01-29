@@ -20,7 +20,7 @@ class UnicastHandler : public sim_mob::Handler {
 public:
 	UnicastHandler(bool useNs3);
 
-	void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker);
+	void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller);
 
 private:
 	virtual void postProcess(sim_mob::Broker& broker, const sim_mob::Agent& destAgent, sim_mob::ClientHandler& destCliHandler, const std::string andrSensorId, const std::string& andrSensorType, sim_mob::comm::MsgData &data);

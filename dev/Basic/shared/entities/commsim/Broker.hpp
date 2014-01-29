@@ -327,6 +327,15 @@ public:
 	 */
 	void AgentUpdated(Agent *);
 	~Broker();
+
+
+	///Retrieve the connection server (used to shoehorn in new clients.
+	///NOTE: This is VERY RISKY; it might be a better idea to intercept "NEW_CLIENT" messages
+	///      in Broker and have the Broker force the new connection, rather than going through
+	///      a NewClientHandler.
+	boost::shared_ptr<sim_mob::ConnectionServer> getConnectionServer();
+
+
 	//	enable broker
 	void enable();
 	/**

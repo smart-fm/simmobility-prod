@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <boost/shared_ptr.hpp>
 #include "entities/commsim/message/Types.hpp"
+#include "entities/commsim/connection/ConnectionHandler.hpp"
 
 namespace sim_mob {
 
@@ -17,7 +19,7 @@ public:
 	virtual ~Handler() {}
 
 	///Handle a given message.
-	virtual void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker*) = 0;
+	virtual void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker*, boost::shared_ptr<sim_mob::ConnectionHandler> caller) = 0;
 };
 
 

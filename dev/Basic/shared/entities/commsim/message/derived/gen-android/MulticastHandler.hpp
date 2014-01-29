@@ -29,7 +29,7 @@ class MulticastHandler : public sim_mob::Handler {
 public:
 	MulticastHandler(bool useNs3);
 
-	void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker);
+	void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller);
 
 private:
 	//Called whenever a client is found that we must dispatch a message to.

@@ -44,7 +44,7 @@ WhoAreYouProtocol::WhoAreYouProtocol(session_ptr &sess_, ConnectionServer &serve
 	void WhoAreYouProtocol::WhoAreYou_handler(const boost::system::error_code& e) {
 		if(e)
 		{
-			WarnOut( "Failed to send whoareu message" <<  std::endl);
+			WarnOut( "Failed to send WHOAREYOU message: " <<e.category().name() <<" : " <<e.value() << " : " <<e.message() <<std::endl);
 		}
 		else
 		{

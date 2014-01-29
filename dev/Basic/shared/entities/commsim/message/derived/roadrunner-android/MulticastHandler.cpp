@@ -22,7 +22,7 @@ sim_mob::roadrunner::MulticastHandler::MulticastHandler(bool useNs3) : useNs3(us
 //1-multicast is treated same as broadcast
 //2-although it is like a broadcast, simmobility will add the specific receiver
 //information while redirecting to NS3(as opposed to letting NS3 find the recipients)
-void sim_mob::roadrunner::MulticastHandler::handle(sim_mob::comm::MsgPtr message_,Broker* broker){
+void sim_mob::roadrunner::MulticastHandler::handle(sim_mob::comm::MsgPtr message_,Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller){
 //	Print() << "Inside a ANDROID_HDL_MULTICAST::handle" << std::endl;
 //steps:
 	/*

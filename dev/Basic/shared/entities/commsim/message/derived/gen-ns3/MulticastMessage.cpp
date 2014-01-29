@@ -35,7 +35,7 @@ Handler* sim_mob::comm::NS3_MSG_MULTICAST::newHandler()
 
 //you are going to handle something like this:
 //{"MESSAGE_CAT":"APP","MESSAGE_TYPE":"MULTICAST","MULTICAST_DATA":"TVVMVElDQVNUIFN0cmluZyBmcm9tIGNsaWVudCAxMTQ=","RECEIVING_AGENT_ID":75,"SENDER":"0","SENDER_TYPE":"NS3_SIMULATOR"}
-void sim_mob::comm::NS3_HDL_MULTICAST::handle(sim_mob::comm::MsgPtr message_, Broker* broker) {
+void sim_mob::comm::NS3_HDL_MULTICAST::handle(sim_mob::comm::MsgPtr message_, Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller) {
 	//find the client destination client_handler
 	boost::shared_ptr<sim_mob::ClientHandler> destination_clnHandler;
 	sim_mob::comm::MsgData& jData = message_->getData();

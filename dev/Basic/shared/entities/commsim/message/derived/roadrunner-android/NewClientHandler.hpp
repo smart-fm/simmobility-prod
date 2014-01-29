@@ -16,9 +16,7 @@ namespace roadrunner {
 //Handles a request for a new client to be added.
 class NewClientHandler : public sim_mob::Handler {
 public:
-	virtual void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker) {
-		throw std::runtime_error("NEW_CLIENT not yet supported.");
-	}
+	virtual void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller);
 };
 
 }}

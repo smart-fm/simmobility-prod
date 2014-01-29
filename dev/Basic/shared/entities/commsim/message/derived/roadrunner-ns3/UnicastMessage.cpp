@@ -25,7 +25,7 @@ Handler* sim_mob::rr_android_ns3::NS3_MSG_UNICAST::newHandler()
 }
 
 //handler implementation
-void sim_mob::rr_android_ns3::NS3_HDL_UNICAST::handle(sim_mob::comm::MsgPtr message_,Broker* broker)
+void sim_mob::rr_android_ns3::NS3_HDL_UNICAST::handle(sim_mob::comm::MsgPtr message_,Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller)
 {
 	//find the destination client handler
 	boost::shared_ptr<sim_mob::ClientHandler> destClnHndlr;

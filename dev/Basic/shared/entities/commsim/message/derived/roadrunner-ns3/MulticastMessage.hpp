@@ -37,7 +37,7 @@ public:
 //Handler for the above message
 class NS3_HDL_MULTICAST : public sim_mob::Handler {
 public:
-	void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker);
+	void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller);
 };
 
 }}

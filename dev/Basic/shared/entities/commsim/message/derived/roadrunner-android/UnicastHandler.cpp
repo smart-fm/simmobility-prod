@@ -20,7 +20,7 @@ sim_mob::roadrunner::UnicastHandler::UnicastHandler(bool useNs3) : useNs3(useNs3
 
 
 //handler implementation
-void sim_mob::roadrunner::UnicastHandler::handle(sim_mob::comm::MsgPtr message_,Broker* broker)
+void sim_mob::roadrunner::UnicastHandler::handle(sim_mob::comm::MsgPtr message_,Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller)
 {
 	//steps:
 		/*

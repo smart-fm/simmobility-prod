@@ -10,8 +10,8 @@
  */
 
 #include "ConnectionServer.hpp"
-#include "Session.hpp"
-#include "WhoAreYouProtocol.hpp"
+#include "entities/commsim/connection/Session.hpp"
+#include "entities/commsim/connection/WhoAreYouProtocol.hpp"
 #include "logging/Log.hpp"
 #include "entities/commsim/Broker.hpp"
 

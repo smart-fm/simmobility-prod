@@ -29,16 +29,14 @@ public:
      * @return true if some values were returned, false otherwise.
      */
     bool getAll(std::vector<PersonParams*>& outList) {
-    	unsigned int i = 0;
     	outList.reserve(connection.getSession<mongo::DBClientConnection>().count(collectionName, mongo::BSONObj()));
     	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
     	while(cursor->more()) {
     		PersonParams* personParams = new PersonParams();
     		fromRow(cursor->next(), *personParams);
     		outList.push_back(personParams);
-    		i++;
     	}
-    	Print() << "Persons loaded from MongoDB: " << i << std::endl;
+    	Print() << "Persons loaded from MongoDB: " << outList.size() << std::endl;
     	return true;
     }
 

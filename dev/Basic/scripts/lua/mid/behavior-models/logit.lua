@@ -2,6 +2,7 @@
 Description: Probability computation functions for multinomial and nested logit models
 Author: Harish Loganathan
 ]]
+math.randomseed( os.time() )
 
 local function calculate_multinomial_logit_probability(choices, utility, availables)
 	local probability = {}
@@ -104,7 +105,6 @@ function make_final_choice(probability)
 		cum_prob = cum_prob + p
 		table.insert(choices_prob, cum_prob)
 	end
-	math.randomseed( os.time() )
 	idx = binary_search(choices_prob, math.random()) 
 	return choices[idx]
 end

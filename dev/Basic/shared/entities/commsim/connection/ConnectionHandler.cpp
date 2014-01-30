@@ -16,8 +16,8 @@
 
 using namespace sim_mob;
 
-sim_mob::ConnectionHandler::ConnectionHandler(session_ptr session, boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_, std::string clientID_, sim_mob::comm::ClientType clientType)
-	: messageReceiveCallback(messageReceiveCallback_), clientType(clientType), session(session),/* clientId(clientId),*/ valid(true), isAsyncWrite(false),
+sim_mob::ConnectionHandler::ConnectionHandler(session_ptr session, boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_, sim_mob::comm::ClientType clientType)
+	: messageReceiveCallback(messageReceiveCallback_), clientType(clientType), session(session), valid(true), isAsyncWrite(false),
 	  isAsyncRead(false), pendingReads(0)
 {
 }

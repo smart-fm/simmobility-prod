@@ -70,15 +70,12 @@ bool sim_mob::Broker::isEnabled() const {
 	return enabled;
 }
 
-bool sim_mob::Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler, const sim_mob::comm::MsgData &value )
+bool sim_mob::Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> conn, boost::shared_ptr<sim_mob::ClientHandler> client, const Json::Value& msg)
 {
-	if(!cnnHandler) {
+	if(!(conn && client && conn->isValid() && client->isValid())) {
 		return false;
 	}
-	if (cnnHandler->isValid() == false) {
-		return false;
-	}
-	sendBuffer[cnnHandler].add(value);
+	sendBuffer[conn].add(SendBufferItem(client, msg));
 	return true;
 }
 
@@ -508,8 +505,7 @@ void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::even
 		//if we are operating on android-ns3 set up,
 		//each android client registration should be brought to
 		//ns3's attention
-		if (ConfigManager::GetInstance().FullConfig().getCommSimMode(commElement)
-				!= "android-ns3") {
+		if (ConfigManager::GetInstance().FullConfig().getCommSimMode(commElement) != "android-ns3") {
 			break;
 		}
 		//note: based on the current implementation of
@@ -533,7 +529,7 @@ void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::even
 		//sorry again, compatibility issue. I will change this later.
 		Json::Value jArray_add;
 		jArray_add["ADD"].append(jArray_agent);
-		insertSendBuffer(clientHandler->cnnHandler, jArray_add);
+		insertSendBuffer(clientHandler->cnnHandler, clientHandler, jArray_add);
 		break;
 	}
 
@@ -626,7 +622,7 @@ void sim_mob::Broker::sendReadyToReceive()
 				msg_header_.sender_type = "SIMMOBILITY";
 				sim_mob::comm::MsgData msg = JsonParser::createMessageHeader(
 						msg_header_);
-				insertSendBuffer(clnHandler->cnnHandler, msg);
+				insertSendBuffer(clnHandler->cnnHandler, clnHandler, msg);
 			}
 		}
 	}
@@ -634,38 +630,48 @@ void sim_mob::Broker::sendReadyToReceive()
 
 void sim_mob::Broker::processOutgoingData(timeslice now)
 {
-//	now send what you have to send:
-	int debug_sendBuffer_cnt = sendBuffer.size();
-	int debug_cnt = 0;
-	int debug_buffer_size;
-	Json::FastWriter debug_writer;
-	std::ostringstream debug_out;
-	for(SendBuffer::Type::iterator it = sendBuffer.begin(); it!= sendBuffer.end(); it++, debug_cnt++) {
-		sim_mob::BufferContainer<sim_mob::comm::MsgData> & buffer = it->second;
+	for(SendBuffer::Type::iterator it = sendBuffer.begin(); it!= sendBuffer.end(); it++) {
+		sim_mob::BufferContainer<SendBufferItem>& data = it->second;
+		//sim_mob::BufferContainer<sim_mob::comm::MsgData> & buffer = it->second;
 		boost::shared_ptr<sim_mob::ConnectionHandler> cnn = it->first;
 
-		//build a jsoncpp structure comprising of a header and data array(containing messages)
-		Json::Value jpacket;
-		Json::Value jheader;
-		Json::Value jpacketData;
-		Json::Value jmsg;
-		debug_buffer_size = buffer.size();
-		jpacketData.clear();
-		while (buffer.pop(jmsg)) {
-			jpacketData.append(jmsg);
-		}
-		int nof_messages;
-		if (!(nof_messages = jpacketData.size())) {
-			continue;
-		}
-		jheader = JsonParser::createPacketHeader(pckt_header(nof_messages, cnn->clientId));
-		jpacket.clear();
-		jpacket["PACKET_HEADER"] = jheader;
-		jpacket["DATA"] = jpacketData;
+		//Our data stream contains several messages pointing to different clients. We need to
+		// de-multiplex these, creating a mega-"message" of type Json::Value for each client.
+		std::map<boost::shared_ptr<sim_mob::ClientHandler>, Json::Value> messages;
 
-		//convert the jsoncpp packet to a json string
-		std::string str = Json::FastWriter().write(jpacket);
-		cnn->forwardMessage(str);
+		SendBufferItem datum;
+		while (data.pop(datum)) {
+			//TODO: This seems un-needed; can't we just .append() it? ~Seth
+			if (messages.find(datum.client)==messages.end()) {
+				messages[datum.client].clear();
+			}
+			messages[datum.client].append(datum.msg);
+		}
+
+		//build a jsoncpp structure (per client) comprising of a header and data array(containing messages)
+		for (std::map<boost::shared_ptr<sim_mob::ClientHandler>, Json::Value>::const_iterator msgIt=messages.begin(); msgIt!=messages.end(); msgIt++) {
+			//TODO: Is the .clear() really needed? ~Seth
+			Json::Value jpacket;
+			jpacket.clear();
+
+			//Make sure we have something to send.
+			int numMsgs = msgIt->second.size();
+			if (numMsgs == 0) {
+				continue;
+			}
+
+			//Write the header; this will route the message properly once it reaches the TCP relay.
+			Json::Value jheader = JsonParser::createPacketHeader(pckt_header(numMsgs, msgIt->first->clientID));
+			jpacket["PACKET_HEADER"] = jheader;
+
+			//Write the data, serialize it.
+			jpacket["DATA"] = msgIt->second;
+			std::string str = Json::FastWriter().write(jpacket);
+
+			//Forward to the given client.
+			//TODO: We can add per-client routing here.
+			cnn->forwardMessage(str);
+		}
 	}
 	sendBuffer.clear();
 }

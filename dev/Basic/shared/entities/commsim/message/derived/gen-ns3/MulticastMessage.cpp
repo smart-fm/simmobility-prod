@@ -74,7 +74,7 @@ void sim_mob::comm::NS3_HDL_MULTICAST::handle(sim_mob::comm::MsgPtr message_, Br
 
 		//insert into sending buffer
 		if (destination_clnHandler && destination_clnHandler->cnnHandler) {
-			broker->insertSendBuffer(destination_clnHandler->cnnHandler, jData);
+			broker->insertSendBuffer(destination_clnHandler->cnnHandler, destination_clnHandler, jData);
 		}
 	}
 

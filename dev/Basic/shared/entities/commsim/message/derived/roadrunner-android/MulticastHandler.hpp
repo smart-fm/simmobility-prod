@@ -34,6 +34,7 @@ public:
 private:
 	//Called whenever a client is found that we must dispatch a message to.
 	//Behavior differs for ns3 versus android-only.
+	//TODO: The client handler can't really be const, since we are expecting to respond to this messsage at some point (which may modify the client).
 	virtual void handleClient(const sim_mob::ClientHandler& clientHdlr, sim_mob::comm::MsgData& recipientsList, sim_mob::Broker& broker, sim_mob::comm::MsgData& data);
 
 	//Called when all client have been processed and messages may now be sent.

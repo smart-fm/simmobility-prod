@@ -39,7 +39,7 @@ boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeCl
 
 	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker));
 	boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler(
-		new ConnectionHandler(request.session_, broker.getMessageReceiveCallBack(), request.clientID, comm::NS3_SIMULATOR)
+		new ConnectionHandler(request.session_, broker.getMessageReceiveCallBack(), comm::NS3_SIMULATOR)
 	);
 	clientEntry->cnnHandler = cnnHandler;
 	clientEntry->AgentCommUtility_ = 0; //not needed

@@ -24,7 +24,6 @@
 
 namespace sim_mob {
 //Forward Declarations
-class ClientHandler;
 class Broker;
 class ConnectionHandler;
 class JsonSerializableEventArgs;
@@ -33,7 +32,8 @@ template<class T>
 class AgentCommUtility;
 class Agent;
 
-class ClientHandler: public sim_mob::event::EventListener {
+class ClientHandler;
+class ClientHandler: public sim_mob::event::EventListener, public boost::enable_shared_from_this<ClientHandler> {
 	sim_mob::Broker & broker;
 	bool valid;
 public:

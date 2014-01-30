@@ -62,16 +62,14 @@ bool AndroidClientRegistration::findAFreeAgent(AgentsList::type &registeredAgent
 
 boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, sim_mob::AgentInfo freeAgent)
 {
-	//Create a ClientHandler pointing to the Broker.
-	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker));
-
 	//Create a ConnectionHandler pointing from this session to the Broker's callback method.
 	boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler(
-		new ConnectionHandler(request.session_,
-			broker.getMessageReceiveCallBack(), request.clientID,
-			comm::ANDROID_EMULATOR
+		new ConnectionHandler(request.session_, broker.getMessageReceiveCallBack(), comm::ANDROID_EMULATOR
 		)
 	);
+
+	//Create a ClientHandler pointing to the Broker.
+	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker));
 
 	//Set agent-related properties for this entry.
 	clientEntry->AgentCommUtility_ = freeAgent.comm;
@@ -99,7 +97,7 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(si
 				publisher.subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(), &ClientHandler::sendJsonToBroker);
 				break;
 			default:
-				Warn() <<"Android client requested service which could not be provided.\n";
+				Warn() <<"Android client requested service which could not be provided.\n"; break;
 		}
 	}
 

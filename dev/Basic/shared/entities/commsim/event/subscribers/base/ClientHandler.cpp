@@ -33,7 +33,7 @@ sim_mob::Broker& sim_mob::ClientHandler::getBroker()
 void sim_mob::ClientHandler::sendJsonToBroker(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const sim_mob::comm::JsonSerializableEventArgs& argums)
 {
 	//now send to broker's buffer
-	getBroker().insertSendBuffer(cnnHandler, argums.toJSON());
+	getBroker().insertSendBuffer(cnnHandler, shared_from_this(), argums.toJSON());
 }
 
 bool sim_mob::ClientHandler::isValid()

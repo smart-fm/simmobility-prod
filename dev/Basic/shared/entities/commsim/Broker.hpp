@@ -122,13 +122,23 @@ struct BrokerBlockers {
 };
 
 /**
+ * Helper struct: items in our SendBuffer
+ */
+struct SendBufferItem {
+	boost::shared_ptr<sim_mob::ClientHandler> client; //The client sending this message.
+	sim_mob::comm::MsgData msg; //The message being sent.
+	SendBufferItem() {}
+	SendBufferItem(boost::shared_ptr<sim_mob::ClientHandler> client, sim_mob::comm::MsgData msg) : client(client), msg(msg) {}
+};
+
+/**
  * A typedef-container for our SendBuffer container type.
  * NOTE: This was only used here, so I am removing the template parameter.
  */
 struct SendBuffer {
 	//The base types stored in our container.
 	typedef boost::shared_ptr<sim_mob::ConnectionHandler> Key;
-	typedef sim_mob::BufferContainer<Json::Value> Value;
+	typedef sim_mob::BufferContainer<SendBufferItem> Value;
 
 	//The container itself and a "pair" type.
 	typedef boost::unordered_map<Key, Value> Type;
@@ -434,8 +444,7 @@ public:
 	/**
 	 * 	request to insert into broker's send buffer
 	 */
-	bool insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler>, const Json::Value&);
-//	void preProcessMessage(boost::shared_ptr<ConnectionHandler> &cnnHandler,std::vector<sim_mob::comm::MsgPtr>  & messages, int firstMessageIndex, int lastMessageIndex, bool &clientMessageDone);
+	bool insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> conn, boost::shared_ptr<sim_mob::ClientHandler> client, const Json::Value& msg);
 
 	/**
 	 * 	callback function executed upon message arrival

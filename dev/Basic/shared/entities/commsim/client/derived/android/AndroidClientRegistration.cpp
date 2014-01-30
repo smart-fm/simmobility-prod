@@ -60,115 +60,86 @@ bool AndroidClientRegistration::findAFreeAgent(AgentsList::type &registeredAgent
 	return false;
 }
 
-boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(
-		sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request,
-		sim_mob::AgentInfo freeAgent) {
-
-	//use it to create a client entry
+boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, sim_mob::AgentInfo freeAgent)
+{
+	//Create a ClientHandler pointing to the Broker.
 	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker));
 
+	//Create a ConnectionHandler pointing from this session to the Broker's callback method.
 	boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler(
-			new ConnectionHandler(request.session_,
-					broker.getMessageReceiveCallBack(), request.clientID,
-					comm::ANDROID_EMULATOR,
-					(unsigned long int) (freeAgent.agent)//just remembered that we can/should filter agents based on the agent type ...-vahid
-					));
+		new ConnectionHandler(request.session_,
+			broker.getMessageReceiveCallBack(), request.clientID,
+			comm::ANDROID_EMULATOR
+		)
+	);
 
-	clientEntry->cnnHandler = cnnHandler;
-
+	//Set agent-related properties for this entry.
 	clientEntry->AgentCommUtility_ = freeAgent.comm;
-//todo: some of there information are already available in the connectionHandler! omit redundancies  -vahid
 	clientEntry->agent = freeAgent.agent;
 	clientEntry->clientID = request.clientID;
-	clientEntry->client_type = comm::ANDROID_EMULATOR;
-	clientEntry->requiredServices = request.requiredServices; //will come handy
-	sim_mob::Services::SIM_MOB_SERVICE srv;
 
-	sim_mob::event::EventPublisher & publisher = broker.getPublisher();
+	//Set communication-related properties for this entry.
+	clientEntry->cnnHandler = cnnHandler;
+	clientEntry->client_type = comm::ANDROID_EMULATOR;
+	clientEntry->requiredServices = request.requiredServices;
+
+	//Subscribe to relevant services for each required service.
+	sim_mob::Services::SIM_MOB_SERVICE srv;
+	sim_mob::event::EventPublisher& publisher = broker.getPublisher();
 	bool regionSupportRequired = false;
 	BOOST_FOREACH(srv, request.requiredServices) {
-
 		switch (srv) {
-		case sim_mob::Services::SIMMOB_SRV_TIME: {
-//				PublisherList::Value p =
-//						broker.getPublisher(sim_mob::Services::SIMMOB_SRV_TIME);
-//		sim_mob::event::EventPublisher & p = broker.getPublisher();
-				publisher.subscribe(COMMEID_TIME,
-											 clientEntry.get(),
-											 &ClientHandler::sendJsonToBroker);
-			break;
-		}
-		case sim_mob::Services::SIMMOB_SRV_LOCATION: {
-//				PublisherList::Value p =
-//						broker.getPublisher(sim_mob::Services::SIMMOB_SRV_LOCATION);
-
-				//NOTE: It does not seem like we even use the "Context" pointer, so I am switching
-				//      this to a regular CALLBACK_HANDLER. Please review. ~Seth
-				//p->subscribe(COMMEID_LOCATION,
-				//		clientEntry.get(),
-				//		&ClientHandler::OnEvent,
-				//		clientEntry->agent);
-				publisher.subscribe(COMMEID_LOCATION,
-					clientEntry.get(),
-						&ClientHandler::sendJsonToBroker);
-			break;
-		}
-			case sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH: {
-//				PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH);
+			case sim_mob::Services::SIMMOB_SRV_TIME:
+				publisher.subscribe(COMMEID_TIME, clientEntry.get(), &ClientHandler::sendJsonToBroker);
+				break;
+			case sim_mob::Services::SIMMOB_SRV_LOCATION:
+				publisher.subscribe(COMMEID_LOCATION, clientEntry.get(), &ClientHandler::sendJsonToBroker);
+				break;
+			case sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH:
 				publisher.subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(), &ClientHandler::sendJsonToBroker);
-//				//We also "enable" Region tracking for this Agent.(not needed any more coz the corresponding if clause at the end of this method wwas shifted to onClientRegister() in the RoadRunner broker-vahid)
-//				regionSupportRequired = true;
 				break;
-			}
-			default: {
+			default:
 				Warn() <<"Android client requested service which could not be provided.\n";
-				break;
-			}
 		}
-		}
+	}
 
 	//also, add the client entry to broker(for message handler purposes)
-	broker.insertClientList(clientEntry->clientID,
-			comm::ANDROID_EMULATOR, clientEntry);
+	broker.insertClientList(clientEntry->clientID, comm::ANDROID_EMULATOR, clientEntry);
+
 	//add this agent to the list of the agents who are associated with a android emulator client
 	usedAgents.insert(freeAgent.agent);
-//	//tell the agent you are registered-this is already done in the frame_init of the role(movement facet actuall) no need to do this here.
-//	freeAgent.comm->setregistered(&broker,true);
-	//publish an event to inform- interested parties- of the registration of a new android client
-	broker.getRegistrationPublisher().publish(comm::ANDROID_EMULATOR,
-			ClientRegistrationEventArgs(comm::ANDROID_EMULATOR,
-					clientEntry));
-	return clientEntry;
 
+	//publish an event to inform- interested parties- of the registration of a new android client
+	broker.getRegistrationPublisher().publish(comm::ANDROID_EMULATOR, ClientRegistrationEventArgs(comm::ANDROID_EMULATOR, clientEntry));
+	return clientEntry;
 }
 
-bool AndroidClientRegistration::handle(sim_mob::Broker& broker,
-		sim_mob::ClientRegistrationRequest &request) {
-//This part is locked in fear of registered agents' iterator invalidation in the middle of the process
+bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, bool uniqueSocket) {
+	//This part is locked in fear of registered agents' iterator invalidation in the middle of the process
 	AgentsList::Mutex registered_agents_mutex;
 	AgentsList::type &registeredAgents = broker.getRegisteredAgents(&registered_agents_mutex);
-
 	AgentsList::Lock lock(registered_agents_mutex);
+
 	//some checks to avoid calling this method unnecessarily
-	if(!initialEvaluation(broker,registeredAgents))
-	{
+	if(!initialEvaluation(broker,registeredAgents)) {
 		return false;
 	}
 
-		AgentsList::type::iterator freeAgent;
-
+	AgentsList::type::iterator freeAgent;
 	if (!findAFreeAgent(registeredAgents, freeAgent)) {
-		//you couldn't find a free function
 		return false;
 	}
 
-		//use it to create a client entry
-		boost::shared_ptr<ClientHandler> clientEntry = makeClientHandler(broker,request,freeAgent->second);
 
-		//start listening to the handler
-		clientEntry->cnnHandler->start();
-		Print() << "AndroidClient  Registered:" << std::endl;
-		return true;
+throw std::runtime_error("TODO: We need to take uniqueSocket into account.");
+
+	//use it to create a client entry
+	boost::shared_ptr<ClientHandler> clientEntry = makeClientHandler(broker,request,freeAgent->second);
+
+	//start listening to the handler
+	clientEntry->cnnHandler->start();
+	Print() << "AndroidClient  Registered. Unique socket? " <<(uniqueSocket?"Yes":"No") << std::endl;
+	return true;
 }
 
 AndroidClientRegistration::~AndroidClientRegistration() {

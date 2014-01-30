@@ -31,7 +31,7 @@ void sim_mob::roadrunner::NewClientHandler::handle(sim_mob::comm::MsgPtr message
 	session_ptr newSess(new sim_mob::Session(broker->getConnectionServer()->io_service_));
 
 	//TODO: Actually, this might be sufficient, since the session is a shared pointer.
-	WhoAreYouProtocol *registration = new sim_mob::WhoAreYouProtocol(newSess, *broker->getConnectionServer(), *broker);
+	WhoAreYouProtocol *registration = new sim_mob::WhoAreYouProtocol(newSess, *broker->getConnectionServer(), *broker, false);
 	registration->queryAgentAsync();
 
 	//TODO: We need to somehow make it clear that agent pairing needs to happen (e.g., ask the Broker to assign an Agent), but

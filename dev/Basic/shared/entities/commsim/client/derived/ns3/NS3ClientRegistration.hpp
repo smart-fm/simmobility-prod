@@ -49,7 +49,7 @@ public:
 	/**
 	 * actual handler used to register a client of ns3 type: NS3_SIMULATOR
 	 */
-	virtual bool handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request);
+	virtual bool handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, bool uniqueSocket);
 	void postProcess(sim_mob::Broker& broker);
 	virtual ~NS3ClientRegistration();
 };

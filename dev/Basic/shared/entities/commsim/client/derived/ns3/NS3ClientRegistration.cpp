@@ -39,13 +39,8 @@ boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeCl
 
 	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker));
 	boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler(
-			new ConnectionHandler(
-					request.session_
-//				,broker
-//				,&Broker::messageReceiveCallback
-					, broker.getMessageReceiveCallBack(), request.clientID,
-					comm::NS3_SIMULATOR, (unsigned long int) (0) //not needed
-					));
+		new ConnectionHandler(request.session_, broker.getMessageReceiveCallBack(), request.clientID, comm::NS3_SIMULATOR)
+	);
 	clientEntry->cnnHandler = cnnHandler;
 	clientEntry->AgentCommUtility_ = 0; //not needed
 	//todo: some of there information are already available in the connectionHandler! omit redundancies  -vahid
@@ -112,8 +107,12 @@ void sim_mob::NS3ClientRegistration::sendAgentsInfo(sim_mob::Broker& broker,
 	clientEntry->cnnHandler->send(info.toJson());	//send synchronously
 }
 
-bool sim_mob::NS3ClientRegistration::handle(sim_mob::Broker& broker,
-		sim_mob::ClientRegistrationRequest &request) {
+bool sim_mob::NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, bool uniqueSocket)
+{
+	//For now, this only works on its own dedicated socket.
+	if (!uniqueSocket) {
+		throw std::runtime_error("NS3ClientRegistration requires a unique socket connection.");
+	}
 
 //	//This part is locked in fear of registered agents' iterator invalidation in the middle of the process
 	AgentsList::Mutex *registered_agents_mutex;

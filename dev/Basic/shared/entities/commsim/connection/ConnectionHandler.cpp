@@ -15,22 +15,12 @@
 #include "entities/commsim/serialization/JsonParser.hpp"
 
 namespace sim_mob {
-ConnectionHandler::ConnectionHandler(
-		session_ptr session_ ,
-//		Broker& broker,
-//		messageReceiveCallback callback,
-		boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_,
-		std::string clientID_,
-		unsigned int ClienType_ ,
-		unsigned int agentPtr_
-		):messageReceiveCallback(messageReceiveCallback_)//theBroker(broker), receiveCallBack(callback)
-
+ConnectionHandler::ConnectionHandler(session_ptr session_, boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_,
+		std::string clientID_, unsigned int ClienType_) : messageReceiveCallback(messageReceiveCallback_)
 {
 	mySession = session_;
 	clientID = clientID_;
 	clientType = ClienType_;
-	agentPtr = agentPtr_;
-//	incomingMessage = "'\0'";
 	valid = true;
 }
 
@@ -39,8 +29,6 @@ ConnectionHandler::~ConnectionHandler(){
 }
 void ConnectionHandler::start()
 {
-
-
 	Json::Value packet;
 	Json::Value packet_header = JsonParser::createPacketHeader(pckt_header(1, clientID));
 	Json::Value msg = JsonParser::createMessageHeader(msg_header("0","SIMMOBILITY","READY", "SYS"));
@@ -91,7 +79,7 @@ void ConnectionHandler::async_send(std::string str)
 {
 	mySession->async_write(str,boost::bind(&ConnectionHandler::sendHandler, this, boost::asio::placeholders::error));
 }
-bool ConnectionHandler::send(std::string str) {
+void ConnectionHandler::send(std::string str) {
 	boost::system::error_code ec;
 	mySession->write(str, ec);
 }

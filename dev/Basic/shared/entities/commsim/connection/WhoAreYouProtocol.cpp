@@ -18,7 +18,8 @@
 
 namespace sim_mob {
 
-WhoAreYouProtocol::WhoAreYouProtocol(session_ptr &sess_, ConnectionServer &server_, Broker& broker):sess(sess_),server(server_),broker(broker)
+WhoAreYouProtocol::WhoAreYouProtocol(session_ptr &sess_, ConnectionServer &server_, Broker& broker, bool uniqueSocket)
+	: sess(sess_), server(server_), broker(broker), uniqueSocket(uniqueSocket)
 {
 }
 
@@ -47,6 +48,14 @@ void WhoAreYouProtocol::WhoAreYou_handler(const boost::system::error_code& e) {
 	//Save this session on the Broker for later.
 	broker.insertIntoWaitingOnWHOAMI(sess);
 
+	//Start listening to this socket if it's new.
+	if (uniqueSocket) {
+		sess->async_read(response,
+			boost::bind(&WhoAreYouProtocol::WhoAreYou_response_handler, this,
+			boost::asio::placeholders::error));
+	}
+
+
 	//NOTE: This code assumes that only one client is sending on the socket, which is incorrect.
 	//      Fortunately, we can handle WHOAMI in the normal message loop.
 	/*else {
@@ -70,7 +79,7 @@ void WhoAreYouProtocol::WhoAreYou_response_handler(const boost::system::error_co
 			std::string str = root[0].toStyledString();
 			if((sim_mob::JsonParser::parseMessageHeader(str,mHeader))&&(mHeader.msg_type == "WHOAMI")) {
 				sim_mob::ClientRegistrationRequest request = getSubscriptionRequest(str);
-				server.RequestClientRegistration(request);
+				server.RequestClientRegistration(request, uniqueSocket);
 				delete this; //first time in my life! people say it is ok.
 			}
 		}

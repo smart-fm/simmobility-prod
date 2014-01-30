@@ -36,7 +36,7 @@ void sim_mob::ConnectionServer::handleNewClient(session_ptr &sess)
 {
 	//using boost_shared_ptr won't let the protocol to release(i guess).
 	//Therefore I used raw pointer. the protocol will delete itself(delete this;)
-	WhoAreYouProtocol *registration = new WhoAreYouProtocol(sess,*this, broker);
+	WhoAreYouProtocol *registration = new WhoAreYouProtocol(sess,*this, broker, true);
 	registration->queryAgentAsync();
 
 	//NOTE: Since a connection via the ConnectionServer *always* represents a new session, we
@@ -91,10 +91,9 @@ void sim_mob::ConnectionServer::handle_accept(const boost::system::error_code& e
 	CreatSocketAndAccept();
 }
 
-void sim_mob::ConnectionServer::RequestClientRegistration(const sim_mob::ClientRegistrationRequest& request)
+void sim_mob::ConnectionServer::RequestClientRegistration(const sim_mob::ClientRegistrationRequest& request, bool uniqueSocket)
 {
-	std::pair<std::string,ClientRegistrationRequest > p(request.client_type, request);
-	broker.insertClientWaitingList(p);
+	broker.insertClientWaitingList(request.client_type, request, uniqueSocket);
 }
 
 void sim_mob::ConnectionServer::read_handler(const boost::system::error_code& e, std::string &data, session_ptr &sess)

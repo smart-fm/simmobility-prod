@@ -38,7 +38,7 @@ public:
 	/**
 	 * actual handler used to register a client of android type: ANDROID_EMULATOR
 	 */
-	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest&);
+	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest&, bool uniqueSocket);
 	/**
 	 * helper function used in handle() method to find a simmobility agent which has not been associated to this type of a client
 	 */

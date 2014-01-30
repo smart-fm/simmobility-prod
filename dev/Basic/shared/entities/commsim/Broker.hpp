@@ -148,7 +148,14 @@ struct SendBuffer {
  */
 class Broker  : public sim_mob::Agent {
 protected:
-	typedef std::multimap<std::string,ClientRegistrationRequest > ClientWaitList;
+	struct ClientWaiting {
+		ClientRegistrationRequest request;
+		bool uniqueSocket;
+		ClientWaiting(ClientRegistrationRequest request, bool uniqueSocket) : request(request), uniqueSocket(uniqueSocket) {}
+	};
+
+	//clientType => ClientWaiting
+	typedef std::multimap<std::string, ClientWaiting> ClientWaitList;
 
 	///the external communication entity that is using this broker as interface to from simmobility
 	std::string commElement;//"roadrunner", "stk",...etc
@@ -399,7 +406,7 @@ public:
 	/**
 	 * 	adds a client to the registration waiting list
 	 */
-	void insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest >);
+	void insertClientWaitingList(std::string clientType, ClientRegistrationRequest request, bool uniqueSocket);
 
 
 	/**

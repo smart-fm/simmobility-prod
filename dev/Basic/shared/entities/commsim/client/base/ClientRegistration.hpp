@@ -85,7 +85,7 @@ class ClientRegistrationHandler {
 	static ClientRegistrationPublisher registrationPublisher;
 public:
 	ClientRegistrationHandler();
-	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest&) = 0;
+	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest&, bool uniqueSocket) = 0;
 	virtual void postProcess(sim_mob::Broker& broker);
 	static sim_mob::event::EventPublisher & getPublisher();
 	virtual ~ClientRegistrationHandler();

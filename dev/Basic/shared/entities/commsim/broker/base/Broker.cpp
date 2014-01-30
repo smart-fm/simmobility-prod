@@ -303,10 +303,11 @@ void sim_mob::Broker::insertIntoWaitingOnWHOAMI(session_ptr session)
 	waitingWHOAMI_List.push_back(session);
 }
 
-void  sim_mob::Broker::insertClientWaitingList(std::pair<std::string,ClientRegistrationRequest > p)//pair<client type, request>
+
+void  sim_mob::Broker::insertClientWaitingList(std::string clientType, ClientRegistrationRequest request, bool uniqueSocket)
 {
 	boost::unique_lock<boost::mutex> lock(mutex_client_request);
-	clientRegistrationWaitingList.insert(p);
+	clientRegistrationWaitingList.insert(std::make_pair(clientType,ClientWaiting(request,uniqueSocket)));
 	COND_VAR_CLIENT_REQUEST.notify_one();
 }
 /** modified code
@@ -348,7 +349,7 @@ void sim_mob::Broker::processClientRegistrationRequests()
 			out << "No Handler for [" << it->first << "] type of client" << std::endl;
 			throw std::runtime_error(out.str());
 		}
-		if(handler->handle(*this,it->second))
+		if(handler->handle(*this,it->second.request, it->second.uniqueSocket))
 		{
 			//success: handle() just added to the client to the main client list and started its connectionHandler
 			//	next, see if the waiting state of waiting-for-client-connection changes after this process
@@ -431,7 +432,6 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent * agent) {
 				//don't erase it here. it may already have something to send
 				//invalidation 1:
 				it_erase->second->agent = nullptr;
-				it_erase->second->cnnHandler->agentPtr = 0; //this is even more important
 				//or a better version //todo: use one version only
 				it_erase->second->setValidation(false);
 				it_erase->second->cnnHandler->setValidation(false); //this is even more important

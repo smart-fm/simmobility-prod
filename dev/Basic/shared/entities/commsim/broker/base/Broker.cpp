@@ -188,7 +188,7 @@ void sim_mob::Broker::configure() {
  */
 void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHandler, std::string input)
 {
-	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > messageFactory = messageFactories[cnnHandler->clientType];
+	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > messageFactory = messageFactories[cnnHandler->getClientType()];
 	std::vector<sim_mob::comm::MsgPtr> messages;
 	messageFactory->createMessage(input, messages);
 
@@ -658,7 +658,7 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 		if (!(nof_messages = jpacketData.size())) {
 			continue;
 		}
-		jheader = JsonParser::createPacketHeader(pckt_header(nof_messages, cnn->clientID));
+		jheader = JsonParser::createPacketHeader(pckt_header(nof_messages, cnn->clientId));
 		jpacket.clear();
 		jpacket["PACKET_HEADER"] = jheader;
 		jpacket["DATA"] = jpacketData;

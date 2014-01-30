@@ -153,7 +153,7 @@ sim_mob::Busline::~Busline()
 	}
 }
 
-CONTROL_TYPE sim_mob::Busline::getControlTypeFromString(std::string ControlType)
+ControlTypes sim_mob::Busline::getControlTypeFromString(std::string ControlType)
 {
 	ControlType.erase(remove_if(ControlType.begin(), ControlType.end(), isspace),
 			ControlType.end());
@@ -198,45 +198,45 @@ sim_mob::PT_Schedule::PT_Schedule()
 sim_mob::PT_Schedule::~PT_Schedule()
 {
 	std::map<std::string, Busline*>::iterator it;
-	for (it = buslineID_busline.begin(); it != buslineID_busline.end(); ++it) {
+	for (it = buslineIdBuslineMap.begin(); it != buslineIdBuslineMap.end(); ++it) {
 		safe_delete_item(it->second);
 	}
-	buslineID_busline.clear();
+	buslineIdBuslineMap.clear();
 }
 
-void sim_mob::PT_Schedule::registerBusLine(const std::string busline_id, Busline* aBusline)
+void sim_mob::PT_Schedule::registerBusLine(const std::string buslineId, Busline* aBusline)
 {
-	if (buslineID_busline.count(busline_id)>0) {
+	if (buslineIdBuslineMap.count(buslineId)>0) {
 		throw std::runtime_error("Duplicate buslineid.");
 	}
 
-	buslineID_busline[busline_id] = aBusline;
+	buslineIdBuslineMap[buslineId] = aBusline;
 }
 
-void sim_mob::PT_Schedule::registerControlType(const std::string busline_id, const CONTROL_TYPE aControlType)
+void sim_mob::PT_Schedule::registerControlType(const std::string buslineId, const ControlTypes aControlType)
 {
-	if (buslineID_controlType.count(busline_id)>0) {
+	if (buslineIdControlTypeMap.count(buslineId)>0) {
 		throw std::runtime_error("Duplicate buslineId.");
 	}
 
-	buslineID_controlType[busline_id] = aControlType;
+	buslineIdControlTypeMap[buslineId] = aControlType;
 }
 
-Busline* sim_mob::PT_Schedule::findBusline(const std::string& busline_id)
+Busline* sim_mob::PT_Schedule::findBusline(const std::string& buslineId)
 {
 	std::map<std::string, Busline*>::const_iterator it;
-	it = buslineID_busline.find(busline_id);
-	if (it!=buslineID_busline.end()) {
+	it = buslineIdBuslineMap.find(buslineId);
+	if (it!=buslineIdBuslineMap.end()) {
 		return it->second;
 	}
 	return nullptr;
 }
 
-CONTROL_TYPE sim_mob::PT_Schedule::findBuslineControlType(const std::string& busline_id)
+ControlTypes sim_mob::PT_Schedule::findBuslineControlType(const std::string& buslineId)
 {
-	std::map<std::string, CONTROL_TYPE>::const_iterator it;
-	it = buslineID_controlType.find(busline_id);
-	if (it!=buslineID_controlType.end()) {
+	std::map<std::string, ControlTypes>::const_iterator it;
+	it = buslineIdControlTypeMap.find(buslineId);
+	if (it!=buslineIdControlTypeMap.end()) {
 		return it->second;
 	}
 	return NO_CONTROL;

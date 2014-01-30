@@ -100,7 +100,7 @@ void sim_mob::BusController::remBus(Bus* bus)
 void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Entity*>& active_agents)
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	const map<string, Busline*>& buslines = pt_schedule.get_busLines();
+	const map<string, Busline*>& buslines = pt_schedule.getBusLines();
 	if(0 == buslines.size()) {
 		throw std::runtime_error("Error: No busline in the PT_Schedule, please check the setPTSchedule.");
 	}
@@ -136,7 +136,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Enti
 void sim_mob::BusController::dynamicalGenerateAgent(unsigned int preTicks, unsigned int curTicks, std::vector<Entity*>& active_agents)
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	const map<string, Busline*>& buslines = pt_schedule.get_busLines();
+	const map<string, Busline*>& buslines = pt_schedule.getBusLines();
 	if(0 == buslines.size()) {
 		throw std::runtime_error("Error: No busline in the PT_Schedule, please check the setPTSchedule.");
 	}
@@ -284,7 +284,7 @@ void sim_mob::BusController::storeRealTimes_eachBusStop(const std::string& busli
 
 double sim_mob::BusController::decisionCalculation(const string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_BusStop)
 {
-	CONTROL_TYPE controltype = pt_schedule.findBuslineControlType(busline_i);
+	ControlTypes controltype = pt_schedule.findBuslineControlType(busline_i);
 	Busline* busline = pt_schedule.findBusline(busline_i);
 	if(!busline) {
 		std::cout << "wrong busline assigned:" << std::endl;

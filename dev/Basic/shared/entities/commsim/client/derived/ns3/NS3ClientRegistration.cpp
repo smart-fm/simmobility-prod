@@ -104,7 +104,7 @@ void sim_mob::NS3ClientRegistration::sendAgentsInfo(sim_mob::Broker& broker,
 //no lock and const_cast at the cost of a lot of copying
 	AgentsInfo info;
 	info.insertInfo(AgentsInfo::ADD_AGENT, keys);
-	clientEntry->cnnHandler->send(info.toJson());	//send synchronously
+	clientEntry->cnnHandler->sendImmediately(info.toJson());	//send synchronously
 }
 
 bool sim_mob::NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, bool uniqueSocket)
@@ -133,5 +133,5 @@ bool sim_mob::NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::Cl
 void sim_mob::NS3ClientRegistration::postProcess(sim_mob::Broker& broker){
 	sendAgentsInfo(broker, clientHandler);
 	//start listening to the handler
-	clientHandler->cnnHandler->start();
+	clientHandler->cnnHandler->startListening(*clientHandler);
 }

@@ -11,79 +11,120 @@
 
 #include "ConnectionHandler.hpp"
 #include "entities/commsim/Broker.hpp"
+#include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/commsim/serialization/JsonParser.hpp"
 
 using namespace sim_mob;
 
 sim_mob::ConnectionHandler::ConnectionHandler(session_ptr session, boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_, std::string clientID_, sim_mob::comm::ClientType clientType)
-	: messageReceiveCallback(messageReceiveCallback_), clientType(clientType), session(session), clientId(clientId), valid(true)
+	: messageReceiveCallback(messageReceiveCallback_), clientType(clientType), session(session),/* clientId(clientId),*/ valid(true), isAsyncWrite(false),
+	  isAsyncRead(false), pendingReads(0)
 {
 }
 
 
-void sim_mob::ConnectionHandler::start()
+void sim_mob::ConnectionHandler::startListening(ClientHandler& newClient)
 {
-	Json::Value packet;
-	Json::Value packet_header = JsonParser::createPacketHeader(pckt_header(1, clientId));
+	//Write the header/message body.
+	Json::Value packet_header = JsonParser::createPacketHeader(pckt_header(1, newClient.clientID));
 	Json::Value msg = JsonParser::createMessageHeader(msg_header("0","SIMMOBILITY","READY", "SYS"));
+
+	//Put them together into a single "packet".
+	Json::Value packet;
 	packet["PACKET_HEADER"] = packet_header;
 	packet["DATA"].append(msg);//no other data element needed
 	std::string readyMessage = Json::FastWriter().write(packet);
-	session->async_write(readyMessage,boost::bind(&ConnectionHandler::readyHandler, this, boost::asio::placeholders::error,readyMessage));
+
+	//Send it through normal channels.
+	forwardMessage(readyMessage);
 }
 
-
-
-void sim_mob::ConnectionHandler::readyHandler(const boost::system::error_code &e, std::string str)
+void sim_mob::ConnectionHandler::forwardMessage(std::string str)
 {
-	if(e)
-	{
-		std::cerr << "Connection Not Ready[" << e.message() << "] Trying Again" << std::endl;
-		session->async_write(str,boost::bind(&ConnectionHandler::readyHandler, this, boost::asio::placeholders::error,str));
-	}
-	else
-	{
-		//will not pass 'message' variable as argument coz it
-		//is global between functions. some function read into it, another function read from it
-		session->async_read(incomingMessage,
-			boost::bind(&ConnectionHandler::readHandler, this,
-					boost::asio::placeholders::error));
-
+	//Send or pend, depending on whether we are in the middle of an existing call to write() or not.
+	boost::unique_lock<boost::mutex> lock(async_write_mutex);
+	if (isAsyncWrite) {
+		pendingMsg.push_front(str);
+	} else {
+		isAsyncWrite = true;
+		sendMessage(str);
 	}
 }
 
-void sim_mob::ConnectionHandler::readHandler(const boost::system::error_code& e)
-{
 
-	if(e)
-	{
-		std::cerr << "Read Fail [" << e.message() << "]" << std::endl;
+void sim_mob::ConnectionHandler::sendMessage(const std::string& msg)
+{
+	outgoingMessage = msg;
+	session->async_write(outgoingMessage,boost::bind(&ConnectionHandler::messageSentHandle, this, boost::asio::placeholders::error,outgoingMessage));
+}
+
+void sim_mob::ConnectionHandler::readMessage()
+{
+	session->async_read(incomingMessage, boost::bind(&ConnectionHandler::messageReceivedHandle, this, boost::asio::placeholders::error));
+}
+
+
+void sim_mob::ConnectionHandler::messageSentHandle(const boost::system::error_code &e, std::string str)
+{
+	//If there's an error, we can just re-send it (we are still protected by isAsyncWrite).
+	if(e) {
+		Warn() << "Connection Not Ready[" << e.message() << "] Trying Again" << std::endl;
+		sendMessage(str);
+		return;
 	}
-	else
+
+	//At this point we can schedule another async_write. If the pending list is non-empty, just pull from that.
 	{
-		//call the receive handler in the broker
-		messageReceiveCallback(shared_from_this(),incomingMessage);
-		//	keep reading
-		session->async_read(incomingMessage,
-			boost::bind(&ConnectionHandler::readHandler, this,
-			boost::asio::placeholders::error)
-		);
+	boost::unique_lock<boost::mutex> lock(async_write_mutex);
+	if (!pendingMsg.empty()) {
+		sendMessage(pendingMsg.back());
+		pendingMsg.pop_back();
+	} else {
+		//We're done writing; the next write will have to be triggered by a call to forwardMessage().
+		isAsyncWrite = false;
+	}
+	} //async_write_mutex unlocks
+
+	//Typically, we would listen for an incoming message here. We have to make sure we are not waiting on a write-lock, however.
+	boost::unique_lock<boost::mutex> lock(async_read_mutex);
+	if (isAsyncRead) {
+		pendingReads += 1;
+	} else {
+		readMessage();
 	}
 }
 
-void sim_mob::ConnectionHandler::async_send(std::string str)
+void sim_mob::ConnectionHandler::messageReceivedHandle(const boost::system::error_code& e)
 {
-	session->async_write(str,boost::bind(&ConnectionHandler::sendHandler, this, boost::asio::placeholders::error));
+	if(e) {
+		Warn() <<"Read Fail [" << e.message() << "]" << std::endl;
+		return;
+	}
+
+	//call the receive handler in the broker
+	messageReceiveCallback(shared_from_this(),incomingMessage);
+
+	//Keep reading?
+	boost::unique_lock<boost::mutex> lock(async_read_mutex);
+	pendingReads -= 1;
+	if (pendingReads > 0) {
+		readMessage();
+	} else {
+		isAsyncRead = false;
+	}
 }
-void sim_mob::ConnectionHandler::send(std::string str)
+
+void sim_mob::ConnectionHandler::sendImmediately(const std::string& str)
 {
+	boost::unique_lock<boost::mutex> lock1(async_write_mutex);
+	boost::unique_lock<boost::mutex> lock2(async_read_mutex);
+	if (isAsyncRead || isAsyncWrite) {
+		throw std::runtime_error("Sending data in immediate mode on an asynchronous socket.");
+	}
+
 	boost::system::error_code ec;
-	session->write(str, ec);
-}
-
-void sim_mob::ConnectionHandler::sendHandler(const boost::system::error_code& e)
-{
-//	Print() << "Write to agent[" << agentPtr << "]  client["  << clientID << "] " <<(e?"Failed":"Success") << std::endl;
+	outgoingMessage = str;
+	session->write(outgoingMessage, ec);
 }
 
 session_ptr& sim_mob::ConnectionHandler::getSession()

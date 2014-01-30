@@ -137,7 +137,7 @@ throw std::runtime_error("TODO: We need to take uniqueSocket into account.");
 	boost::shared_ptr<ClientHandler> clientEntry = makeClientHandler(broker,request,freeAgent->second);
 
 	//start listening to the handler
-	clientEntry->cnnHandler->start();
+	clientEntry->cnnHandler->startListening(*clientEntry);
 	Print() << "AndroidClient  Registered. Unique socket? " <<(uniqueSocket?"Yes":"No") << std::endl;
 	return true;
 }

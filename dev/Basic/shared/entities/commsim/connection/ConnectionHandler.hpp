@@ -11,14 +11,19 @@
 
 #pragma once
 
+#include <list>
+
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
+#include <boost/thread/mutex.hpp>
 #include <boost/enable_shared_from_this.hpp>
+
 #include "logging/Log.hpp"
 #include "entities/commsim/connection/Session.hpp"
 #include "entities/commsim/client/ClientType.hpp"
 
 namespace sim_mob {
+class ClientHandler;
 class ConnectionHandler;
 class ConnectionHandler: public boost::enable_shared_from_this<ConnectionHandler> {
 public:
@@ -27,31 +32,57 @@ public:
 	ConnectionHandler(session_ptr session , boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_,
 			std::string clientId = "'\0'", sim_mob::comm::ClientType clientType = sim_mob::comm::UNKNOWN_CLIENT);
 
-	//metadata
-	//some of such data is duplicated in the broker client list entries
-	//
+
+	//Start listening to messages for a new client. This also sends the "READY" message to that client.
+	void startListening(ClientHandler& newClient);
+
+	//Send a message on behalf of the given client.
+	void forwardMessage(std::string str);
+
+	//TODO: Remove! This information belongs in the ClientHandler.
 	std::string clientId;
 
-	void start();
-	void readyHandler(const boost::system::error_code &e, std::string str);
-	void readHandler(const boost::system::error_code& e);
-	void async_send(std::string str);
-	void send(std::string str);
-	void sendHandler(const boost::system::error_code& e) ;
+	void messageSentHandle(const boost::system::error_code &e, std::string str);
+	void messageReceivedHandle(const boost::system::error_code& e);
+
 	session_ptr& getSession();
 	bool is_open();
 	bool isValid();
 	void setValidation(bool);
 	sim_mob::comm::ClientType getClientType() const;
 
+	//Send a synchronous message. NOTE: Be careful with this! The ConnectionHandler is designed for
+	// asynchronous sending.
+	void sendImmediately(const std::string& str);
+
 private:
+	//Helper: send a message, read a message.
+	void sendMessage(const std::string& msg);
+	void readMessage();
+
 	//What type of clients (Android, NS3) can this ConnectionHandler manage?
 	sim_mob::comm::ClientType clientType;
 
 	session_ptr session;
 	boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback;
-	std::string incomingMessage;
 	bool valid;
-};//ConnectionHandler
 
-} /* namespace sim_mob */
+	//The current incoming/outgoing messages. Boost wants these passed by reference.
+	std::string outgoingMessage;
+	std::string incomingMessage;
+
+	//The following variables relate to the actual sending of data on this ConnectionHandler:
+	//These mutexes lock them, as they can arrive in a non-thread-safe manner.
+	boost::mutex async_write_mutex;
+	boost::mutex async_read_mutex;
+
+	//Lock async_write. If this flag is true, we can't call async_write, so outgoing messages are pended to an array.
+	bool isAsyncWrite;
+	std::list<std::string> pendingMsg; //Messages pending to be sent out.
+
+	//Lock async_read. If this flag is true, we can't call async_read until the current operation completes.
+	bool isAsyncRead;
+	long pendingReads; //How many "read" operations are pending.
+};
+
+}

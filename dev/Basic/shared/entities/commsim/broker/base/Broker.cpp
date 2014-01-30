@@ -665,7 +665,7 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 
 		//convert the jsoncpp packet to a json string
 		std::string str = Json::FastWriter().write(jpacket);
-		cnn->async_send(str);
+		cnn->forwardMessage(str);
 	}
 	sendBuffer.clear();
 }

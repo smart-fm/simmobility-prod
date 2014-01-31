@@ -38,6 +38,8 @@ public:
 	NS3_Factory();
 	virtual ~NS3_Factory();
 	void createMessage(const std::string &str, std::vector<sim_mob::comm::MsgPtr>&output);
+
+private:
 	boost::shared_ptr<sim_mob::Handler>  getHandler(MessageType);
 };
 

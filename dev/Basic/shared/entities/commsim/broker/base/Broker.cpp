@@ -70,12 +70,12 @@ bool sim_mob::Broker::isEnabled() const {
 	return enabled;
 }
 
-bool sim_mob::Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ConnectionHandler> conn, boost::shared_ptr<sim_mob::ClientHandler> client, const Json::Value& msg)
+bool sim_mob::Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler> client, const Json::Value& msg)
 {
-	if(!(conn && client && conn->isValid() && client->isValid())) {
+	if(!(client && client->connHandle && client->isValid() && client->connHandle->isValid())) {
 		return false;
 	}
-	sendBuffer[conn].add(SendBufferItem(client, msg));
+	sendBuffer[client->connHandle].add(SendBufferItem(client, msg));
 	return true;
 }
 
@@ -409,7 +409,7 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent * agent) {
 				//unsubscribe from all publishers he is subscribed to
 				sim_mob::ClientHandler * clientHandler = it_erase->second.get();
 				sim_mob::Services::SIM_MOB_SERVICE srv;
-				BOOST_FOREACH(srv, clientHandler->requiredServices)
+				BOOST_FOREACH(srv, clientHandler->getRequiredServices())
 				{
 					switch(srv)
 					{
@@ -431,7 +431,7 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent * agent) {
 				it_erase->second->agent = nullptr;
 				//or a better version //todo: use one version only
 				it_erase->second->setValidation(false);
-				it_erase->second->cnnHandler->setValidation(false); //this is even more important
+				it_erase->second->connHandle->setValidation(false); //this is even more important
 			}
 			else
 			{
@@ -529,7 +529,7 @@ void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::even
 		//sorry again, compatibility issue. I will change this later.
 		Json::Value jArray_add;
 		jArray_add["ADD"].append(jArray_agent);
-		insertSendBuffer(clientHandler->cnnHandler, clientHandler, jArray_add);
+		insertSendBuffer(clientHandler, jArray_add);
 		break;
 	}
 
@@ -622,7 +622,7 @@ void sim_mob::Broker::sendReadyToReceive()
 				msg_header_.sender_type = "SIMMOBILITY";
 				sim_mob::comm::MsgData msg = JsonParser::createMessageHeader(
 						msg_header_);
-				insertSendBuffer(clnHandler->cnnHandler, clnHandler, msg);
+				insertSendBuffer(clnHandler, msg);
 			}
 		}
 	}
@@ -661,7 +661,7 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 			}
 
 			//Write the header; this will route the message properly once it reaches the TCP relay.
-			Json::Value jheader = JsonParser::createPacketHeader(pckt_header(numMsgs, msgIt->first->clientID));
+			Json::Value jheader = JsonParser::createPacketHeader(pckt_header(numMsgs, msgIt->first->clientId));
 			jpacket["PACKET_HEADER"] = jheader;
 
 			//Write the data, serialize it.
@@ -841,12 +841,10 @@ void sim_mob::Broker::waitForAgentsUpdates() {
 	}
 }
 
-bool sim_mob::Broker::isClientDone(
-		boost::shared_ptr<sim_mob::ClientHandler> &clnHandler) {
+bool sim_mob::Broker::isClientDone(boost::shared_ptr<sim_mob::ClientHandler> &clnHandler) {
 	//note: there is no locking provided here as mutex_clientDone
 	//is already locked in the grand caller of this method: wotforclientdone()
-	if (clientDoneChecker.end()
-			== clientDoneChecker.find(clnHandler->cnnHandler)) {
+	if (clientDoneChecker.end() == clientDoneChecker.find(clnHandler->connHandle)) {
 		return false;
 	}
 	return true;
@@ -866,7 +864,7 @@ bool sim_mob::Broker::allClientsAreDone()
 			//If we have a valid client handler.
 			if (clnHandler && clnHandler->isValid()) {
 				//...and a valid connection handler.
-				if (clnHandler->cnnHandler && clnHandler->cnnHandler->isValid() && clnHandler->cnnHandler->is_open()) {
+				if (clnHandler->connHandle && clnHandler->connHandle->isValid() && clnHandler->connHandle->is_open()) {
 					//...then check if we're not done.
 					if (!isClientDone(clnHandler)) {
 						Print() << "client type[" << clientByType.first << "] ID[" << clientByID.first << "] not done yet";

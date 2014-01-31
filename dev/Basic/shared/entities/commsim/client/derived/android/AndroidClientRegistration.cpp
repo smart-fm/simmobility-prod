@@ -69,17 +69,18 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(si
 	);
 
 	//Create a ClientHandler pointing to the Broker.
-	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker));
+	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker, cnnHandler, freeAgent.comm, freeAgent.agent, request.clientID));
+	clientEntry->setRequiredServices(request.requiredServices);
 
 	//Set agent-related properties for this entry.
-	clientEntry->AgentCommUtility_ = freeAgent.comm;
-	clientEntry->agent = freeAgent.agent;
-	clientEntry->clientID = request.clientID;
+	//clientEntry->AgentCommUtility_ = freeAgent.comm;
+	//clientEntry->agent = freeAgent.agent;
+	//clientEntry->clientID = request.clientID;
 
 	//Set communication-related properties for this entry.
-	clientEntry->cnnHandler = cnnHandler;
-	clientEntry->client_type = comm::ANDROID_EMULATOR;
-	clientEntry->requiredServices = request.requiredServices;
+	//clientEntry->cnnHandler = cnnHandler;
+	//clientEntry->client_type = comm::ANDROID_EMULATOR;
+	//clientEntry->requiredServices = request.requiredServices;
 
 	//Subscribe to relevant services for each required service.
 	sim_mob::Services::SIM_MOB_SERVICE srv;
@@ -102,7 +103,7 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(si
 	}
 
 	//also, add the client entry to broker(for message handler purposes)
-	broker.insertClientList(clientEntry->clientID, comm::ANDROID_EMULATOR, clientEntry);
+	broker.insertClientList(request.clientID, comm::ANDROID_EMULATOR, clientEntry);
 
 	//add this agent to the list of the agents who are associated with a android emulator client
 	usedAgents.insert(freeAgent.agent);
@@ -135,7 +136,7 @@ throw std::runtime_error("TODO: We need to take uniqueSocket into account.");
 	boost::shared_ptr<ClientHandler> clientEntry = makeClientHandler(broker,request,freeAgent->second);
 
 	//start listening to the handler
-	clientEntry->cnnHandler->startListening(*clientEntry);
+	clientEntry->connHandle->startListening(*clientEntry);
 	Print() << "AndroidClient  Registered. Unique socket? " <<(uniqueSocket?"Yes":"No") << std::endl;
 	return true;
 }

@@ -238,8 +238,7 @@ void sim_mob::Roadrunner_Broker::onClientRegister(sim_mob::event::EventId id, si
 	//Enable Region support if this client requested it.
 //	if (regionSupportRequired) {
 	boost::shared_ptr<ClientHandler> cnnHandler = argums.getClient();
-	if(cnnHandler->requiredServices.find(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH)
-			!= cnnHandler->requiredServices.end()){
+	if(cnnHandler->getRequiredServices().find(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH) != cnnHandler->getRequiredServices().end()){
 		pendClientToEnableRegions(cnnHandler);
 	}
 //	}

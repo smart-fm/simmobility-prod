@@ -139,7 +139,7 @@ void sim_mob::roadrunner::MulticastHandler::handleClient(const sim_mob::ClientHa
 		recipientsList.append(clientHdlr.agent->getId());
 	} else {
 		//directly request to send
-		broker.insertSendBuffer(clientHdlr.cnnHandler, boost::shared_ptr<ClientHandler>(const_cast<ClientHandler*>(&clientHdlr)), data);
+		broker.insertSendBuffer(boost::shared_ptr<ClientHandler>(const_cast<ClientHandler*>(&clientHdlr)), data);
 	}
 }
 
@@ -154,7 +154,7 @@ void sim_mob::roadrunner::MulticastHandler::postPendingMessages(sim_mob::Broker&
 			//add two extra field to mark the agent ids(used in simmobility to identify agents)
 			data["SENDING_AGENT"] = agent.getId();
 			data["RECIPIENTS"] = recipientsList;
-			broker.insertSendBuffer(ns3_clnHandler->cnnHandler, ns3_clnHandler, data);
+			broker.insertSendBuffer(ns3_clnHandler, data);
 		}
 	}
 }

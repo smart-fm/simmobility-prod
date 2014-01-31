@@ -88,9 +88,9 @@ void sim_mob::comm::UnicastHandler::postProcess(sim_mob::Broker& broker, const s
 			WarnOut("ANDROID_HDL_UNICAST::sending_clnHandler not fount->handle failed" << std::endl);
 			return;
 		}
-		broker.insertSendBuffer(ns3_clnHandler->cnnHandler, ns3_clnHandler, data);
+		broker.insertSendBuffer(ns3_clnHandler, data);
 	} else {
-		broker.insertSendBuffer(destCliHandler.cnnHandler, boost::shared_ptr<ClientHandler>(const_cast<ClientHandler*>(&destCliHandler)), data);
+		broker.insertSendBuffer(boost::shared_ptr<ClientHandler>(const_cast<ClientHandler*>(&destCliHandler)), data);
 	}
 }
 

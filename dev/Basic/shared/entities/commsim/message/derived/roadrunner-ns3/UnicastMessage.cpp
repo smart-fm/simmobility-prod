@@ -65,8 +65,8 @@ void sim_mob::rr_android_ns3::NS3_HDL_UNICAST::handle(sim_mob::comm::MsgPtr mess
 		}
 
 		//insert into sending buffer
-		if (destClnHndlr && destClnHndlr->cnnHandler) {
-			broker->insertSendBuffer(destClnHndlr->cnnHandler, destClnHndlr, jData);
+		if (destClnHndlr && destClnHndlr->connHandle) {
+			broker->insertSendBuffer(destClnHndlr, jData);
 		}
 	}
 }

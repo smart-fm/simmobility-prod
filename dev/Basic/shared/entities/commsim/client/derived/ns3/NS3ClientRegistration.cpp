@@ -35,19 +35,23 @@ bool sim_mob::NS3ClientRegistration::initialEvaluation(sim_mob::Broker& broker,
 
 boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeClientHandler(
 		sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request,
-		sim_mob::AgentInfo agent) {
+		sim_mob::AgentInfo agent)
+{
 
-	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker));
 	boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler(
 		new ConnectionHandler(request.session_, broker.getMessageReceiveCallBack(), comm::NS3_SIMULATOR)
 	);
-	clientEntry->cnnHandler = cnnHandler;
-	clientEntry->AgentCommUtility_ = 0; //not needed
+
+	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker, cnnHandler, nullptr, nullptr, request.clientID));
+	clientEntry->setRequiredServices(request.requiredServices);
+
+	//clientEntry->cnnHandler = cnnHandler;
+	//clientEntry->AgentCommUtility_ = 0; //not needed
 	//todo: some of there information are already available in the connectionHandler! omit redundancies  -vahid
-	clientEntry->agent = 0;	//not needed
-	clientEntry->clientID = request.clientID;
-	clientEntry->client_type = comm::NS3_SIMULATOR;
-	clientEntry->requiredServices = request.requiredServices; //will come handy
+	//clientEntry->agent = 0;	//not needed
+	//clientEntry->clientID = request.clientID;
+	//clientEntry->client_type = comm::NS3_SIMULATOR;
+	//clientEntry->requiredServices = request.requiredServices; //will come handy
 
 	sim_mob::event::EventPublisher & p = broker.getPublisher();
 	sim_mob::Services::SIM_MOB_SERVICE srv;
@@ -78,8 +82,7 @@ boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeCl
 	}
 
 	//also, add the client entry to broker(for message handler purposes)
-	broker.insertClientList(clientEntry->clientID, comm::NS3_SIMULATOR,
-			clientEntry);
+	broker.insertClientList(clientEntry->clientId, comm::NS3_SIMULATOR, clientEntry);
 
 	return clientEntry;
 
@@ -104,7 +107,7 @@ void sim_mob::NS3ClientRegistration::sendAgentsInfo(sim_mob::Broker& broker,
 //no lock and const_cast at the cost of a lot of copying
 	AgentsInfo info;
 	info.insertInfo(AgentsInfo::ADD_AGENT, keys);
-	clientEntry->cnnHandler->sendImmediately(info.toJson());	//send synchronously
+	clientEntry->connHandle->sendImmediately(info.toJson());	//send synchronously
 }
 
 bool sim_mob::NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, bool uniqueSocket)
@@ -133,5 +136,5 @@ bool sim_mob::NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::Cl
 void sim_mob::NS3ClientRegistration::postProcess(sim_mob::Broker& broker){
 	sendAgentsInfo(broker, clientHandler);
 	//start listening to the handler
-	clientHandler->cnnHandler->startListening(*clientHandler);
+	clientHandler->connHandle->startListening(*clientHandler);
 }

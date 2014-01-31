@@ -15,10 +15,12 @@
 
 using namespace sim_mob;
 
-sim_mob::ClientHandler::ClientHandler(sim_mob::Broker & broker_) :
-	broker(broker_), valid(true), AgentCommUtility_(nullptr), agent(nullptr),
-	client_type(0)
+sim_mob::ClientHandler::ClientHandler(sim_mob::Broker& broker, boost::shared_ptr<sim_mob::ConnectionHandler> conn, sim_mob::AgentCommUtilityBase* agentComm, const sim_mob::Agent* agent, std::string clientId)
+	: broker(broker), valid(true), connHandle(conn), agentComm(agentComm), agent(agent), clientId(clientId)
 {
+	if (!conn) {
+		throw std::runtime_error("Cannot create a client handler with a null connection handler.");
+	}
 }
 
 sim_mob::ClientHandler::~ClientHandler()
@@ -30,13 +32,23 @@ sim_mob::Broker& sim_mob::ClientHandler::getBroker()
 	return broker;
 }
 
+void sim_mob::ClientHandler::setRequiredServices(const std::set<sim_mob::Services::SIM_MOB_SERVICE>& requiredServices)
+{
+	this->requiredServices = requiredServices;
+}
+
+const std::set<sim_mob::Services::SIM_MOB_SERVICE>& sim_mob::ClientHandler::getRequiredServices()
+{
+	return requiredServices;
+}
+
 void sim_mob::ClientHandler::sendJsonToBroker(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const sim_mob::comm::JsonSerializableEventArgs& argums)
 {
 	//now send to broker's buffer
-	getBroker().insertSendBuffer(cnnHandler, shared_from_this(), argums.toJSON());
+	getBroker().insertSendBuffer(shared_from_this(), argums.toJSON());
 }
 
-bool sim_mob::ClientHandler::isValid()
+bool sim_mob::ClientHandler::isValid() const
 {
 	return valid;
 }

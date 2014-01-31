@@ -34,24 +34,36 @@ class Agent;
 
 class ClientHandler;
 class ClientHandler: public sim_mob::event::EventListener, public boost::enable_shared_from_this<ClientHandler> {
-	sim_mob::Broker & broker;
-	bool valid;
 public:
-	ClientHandler(sim_mob::Broker&);
-	virtual ~ClientHandler();
+	/**
+	 * conn is the connection handler this client can use to send messages.
+	 */
+	ClientHandler(sim_mob::Broker& broker, boost::shared_ptr<sim_mob::ConnectionHandler> conn, sim_mob::AgentCommUtilityBase* agentComm, const sim_mob::Agent* agent, std::string clientId);
 
-	boost::shared_ptr<sim_mob::ConnectionHandler > cnnHandler;
-	sim_mob::AgentCommUtilityBase* AgentCommUtility_; //represents a Role, so dont use a boost::share_ptr whose object is created somewhere else. it is dangerous
-	const sim_mob::Agent* agent;//same: dont use a boost::share_ptr whose object is created somewhere else. it is dangerous
-	std::string clientID;
-	unsigned int client_type; //ns3, android emulator, FMOD etc
-	std::set<sim_mob::Services::SIM_MOB_SERVICE> requiredServices;
-	sim_mob::Broker &getBroker();
+	virtual ~ClientHandler();
 
 	//event functions:
 	void sendJsonToBroker(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const sim_mob::comm::JsonSerializableEventArgs& args);
-	bool isValid();
+
+	//Getters/setters
+	void setRequiredServices(const std::set<sim_mob::Services::SIM_MOB_SERVICE>& requiredServices);
+	const std::set<sim_mob::Services::SIM_MOB_SERVICE>& getRequiredServices();
+	bool isValid() const;
 	void setValidation(bool);
+	sim_mob::Broker &getBroker();
+
+
+
+private:
+	std::set<sim_mob::Services::SIM_MOB_SERVICE> requiredServices;
+	sim_mob::Broker& broker;
+	bool valid;
+
+public: //TODO: Some of these should clearly be private; however, for now they are all accessed in too many places.
+	boost::shared_ptr<sim_mob::ConnectionHandler> connHandle;
+	sim_mob::AgentCommUtilityBase* agentComm; //represents a Role, so dont use a boost::share_ptr whose object is created somewhere else. it is dangerous
+	const sim_mob::Agent* agent;//same: dont use a boost::share_ptr whose object is created somewhere else. it is dangerous
+	std::string clientId;
 };
 
 } /* namespace sim_mob */

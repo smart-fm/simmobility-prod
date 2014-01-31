@@ -110,10 +110,10 @@ void sim_mob::NS3ClientRegistration::sendAgentsInfo(sim_mob::Broker& broker,
 	clientEntry->connHandle->sendImmediately(info.toJson());	//send synchronously
 }
 
-bool sim_mob::NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, bool uniqueSocket)
+bool sim_mob::NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn)
 {
 	//For now, this only works on its own dedicated socket.
-	if (!uniqueSocket) {
+	if (existingConn) {
 		throw std::runtime_error("NS3ClientRegistration requires a unique socket connection.");
 	}
 

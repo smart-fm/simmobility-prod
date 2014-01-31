@@ -23,6 +23,7 @@
 
 namespace sim_mob {
 
+class ConnectionHandler;
 
 /**
  * ClientRegistrationRequest class. No documentation provided.
@@ -43,19 +44,6 @@ public:
 
 class ClientRegistrationHandler;
 
-
-/**
- * ClientRegistrationFactory class. No documentation provided.
- */
-/*class ClientRegistrationFactory {
-	std::map<comm::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> > ClientRegistrationHandlerMap;
-public:
-	ClientRegistrationFactory();
-	virtual ~ClientRegistrationFactory();
-
-	///gets a handler either from a cache or by creating a new one
-	boost::shared_ptr<sim_mob::ClientRegistrationHandler> getHandler(comm::ClientType type);
-};*/
 
 
 /**
@@ -79,13 +67,16 @@ class Broker;
  *      client handler and finally do some post processing like informing the client of
  *      the success of its request.
  *      the main method is handle(). the rest of the methods are usually helpers.
+ *
+ *      Note that if "existingConn" is non-null, the given "existing" ConnectionHandler is used
+ *        to multiplex reads and writes from the new ClientHandler.
  */
 class ClientRegistrationHandler {
 	comm::ClientType type;
 	static ClientRegistrationPublisher registrationPublisher;
 public:
 	ClientRegistrationHandler();
-	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest&, bool uniqueSocket) = 0;
+	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest&, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn) = 0;
 	virtual void postProcess(sim_mob::Broker& broker);
 	static sim_mob::event::EventPublisher & getPublisher();
 	virtual ~ClientRegistrationHandler();

@@ -196,6 +196,42 @@ void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler
 			boost::unique_lock<boost::mutex> lock(mutex_clientDone);
 			clientDoneChecker.insert(cnnHandler);
 			COND_VAR_CLIENT_DONE.notify_one();
+		} else if (type == "WHOAMI") {
+			//Retrieve the next available connection.
+			//TODO: We can lock this with a token (unique random number) if you want to get the EXACT agent
+			//      that initiated this request. For homogenous agents like RR clients, it doesn't matter.
+			//      So for now, just don't multiplex, e.g., STK and Android on the same connection.
+			session_ptr ptr;
+			{
+				boost::unique_lock<boost::mutex> lock(mutex_WaitingWHOAMI);
+				if (!waitingWHOAMI_List.empty()) {
+					ptr = waitingWHOAMI_List.front();
+					waitingWHOAMI_List.pop_front();
+				}
+			}
+			if (!ptr) {
+				throw std::runtime_error("WHOAMI received, but no clients are in the waiting list.");
+			}
+
+throw std::runtime_error("Broker is not handling anything yet (still tightly coupled).");
+
+			//Now, perform the normal initialization routine.
+			//TODO: This can definitely be simplified; it was copied from WhoAreYouProtocol and Jsonparser.
+			/*if (!(data.isMember("ID") && data.isMember("TYPE"))) {
+				throw std::runtime_error("Can't access required fields.");
+			}
+			sim_mob::ClientRegistrationRequest candidate;
+			candidate.session_ = ptr;
+			candidate.clientID = data["ID"].asString();
+			candidate.client_type = data["TYPE"].asString();
+			if (!data["REQUIRED_SERVICES"].isNull() && data["REQUIRED_SERVICES"].isArray()) {
+				const Json::Value services = data["REQUIRED_SERVICES"];
+				for (size_t index=0; index<services.size(); index++) {
+					std::string type = services[index].asString();
+					candidate.requiredServices.insert(getServiceType(type));
+				}
+			}
+			server.RequestClientRegistration(request, existingConn);*/
 		} else {
 			receiveQueue.post(MessageElement(cnnHandler, *it));
 		}
@@ -301,10 +337,10 @@ void sim_mob::Broker::insertIntoWaitingOnWHOAMI(session_ptr session)
 }
 
 
-void  sim_mob::Broker::insertClientWaitingList(std::string clientType, ClientRegistrationRequest request, bool uniqueSocket)
+void  sim_mob::Broker::insertClientWaitingList(std::string clientType, ClientRegistrationRequest request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn)
 {
 	boost::unique_lock<boost::mutex> lock(mutex_client_request);
-	clientRegistrationWaitingList.insert(std::make_pair(clientType,ClientWaiting(request,uniqueSocket)));
+	clientRegistrationWaitingList.insert(std::make_pair(clientType,ClientWaiting(request,existingConn)));
 	COND_VAR_CLIENT_REQUEST.notify_one();
 }
 /** modified code
@@ -346,7 +382,7 @@ void sim_mob::Broker::processClientRegistrationRequests()
 			out << "No Handler for [" << it->first << "] type of client" << std::endl;
 			throw std::runtime_error(out.str());
 		}
-		if(handler->handle(*this,it->second.request, it->second.uniqueSocket))
+		if(handler->handle(*this,it->second.request, it->second.existingConn))
 		{
 			//success: handle() just added to the client to the main client list and started its connectionHandler
 			//	next, see if the waiting state of waiting-for-client-connection changes after this process

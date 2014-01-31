@@ -38,15 +38,17 @@ public:
 	/**
 	 * actual handler used to register a client of android type: ANDROID_EMULATOR
 	 */
-	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest&, bool uniqueSocket);
+	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest&, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn);
 	/**
 	 * helper function used in handle() method to find a simmobility agent which has not been associated to this type of a client
 	 */
 	virtual bool findAFreeAgent(AgentsList::type &registeredAgents,AgentsList::type::iterator &freeAgent);
+
 	/**
 	 * helper function used in handle() method to prepare and return a sim_mob::ClientHandler
+	 * If connHandle is null, create a new connection handler. Otherwise, just re-use it.
 	 */
-	virtual boost::shared_ptr<ClientHandler> makeClientHandler(sim_mob::Broker&,sim_mob::ClientRegistrationRequest &,sim_mob::AgentInfo freeAgent);
+	virtual boost::shared_ptr<ClientHandler> makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> connHandle, sim_mob::Broker&,sim_mob::ClientRegistrationRequest &,sim_mob::AgentInfo freeAgent);
 
 	virtual ~AndroidClientRegistration();
 };

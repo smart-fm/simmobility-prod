@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <list>
+
 #include <boost/thread/condition_variable.hpp>
 #include <boost/unordered_map.hpp>
 
@@ -160,8 +162,8 @@ class Broker  : public sim_mob::Agent {
 protected:
 	struct ClientWaiting {
 		ClientRegistrationRequest request;
-		bool uniqueSocket;
-		ClientWaiting(ClientRegistrationRequest request, bool uniqueSocket) : request(request), uniqueSocket(uniqueSocket) {}
+		boost::shared_ptr<sim_mob::ConnectionHandler> existingConn;
+		ClientWaiting(ClientRegistrationRequest request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn) : request(request), existingConn(existingConn) {}
 	};
 
 	//clientType => ClientWaiting
@@ -182,7 +184,7 @@ protected:
 	///	list of authorized clients who have passed the registration process
 	ClientList::Type clientList; //key note: there can be one agent associated with multiple clients in this list. why? : coz clients of any type are i this list. and any one has associated itself to this agent for its specific type's reason
 
-	std::vector<session_ptr> waitingWHOAMI_List;
+	std::list<session_ptr> waitingWHOAMI_List;
 
 	///	connection point to outside simmobility
 	boost::shared_ptr<sim_mob::ConnectionServer> connection;					//accepts, authenticate and registers client connections
@@ -416,7 +418,7 @@ public:
 	/**
 	 * 	adds a client to the registration waiting list
 	 */
-	void insertClientWaitingList(std::string clientType, ClientRegistrationRequest request, bool uniqueSocket);
+	void insertClientWaitingList(std::string clientType, ClientRegistrationRequest request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn);
 
 
 	/**

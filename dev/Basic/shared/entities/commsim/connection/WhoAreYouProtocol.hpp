@@ -20,12 +20,13 @@
 namespace sim_mob {
 class Session;
 class ConnectionServer;
+class ConnectionHandler;
 
 class WhoAreYouProtocol
 {
 public:
 	///uniqueSocket is true if this socket is being used for the first time (it causes the Broker to add a listener).
-	WhoAreYouProtocol(boost::shared_ptr<Session> &sess_, ConnectionServer &, Broker& broker, bool uniqueSocket);
+	WhoAreYouProtocol(boost::shared_ptr<Session> &sess_, ConnectionServer &, Broker& broker, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn);
 
 	void queryAgentAsync();
 private:
@@ -33,7 +34,7 @@ private:
 	ConnectionServer &server;
 	Broker& broker;
 	std::string response; //json string containing ID & type of the client
-	bool uniqueSocket;
+	boost::shared_ptr<sim_mob::ConnectionHandler> existingConn;
 
 	sim_mob::ClientRegistrationRequest getSubscriptionRequest(std::string);
 

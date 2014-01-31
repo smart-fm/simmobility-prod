@@ -192,7 +192,7 @@ void sim_mob::STK_Broker::processClientRegistrationRequests()
 			out << "No Handler for [" << it->first << "] type of client" << std::endl;
 			throw std::runtime_error(out.str());
 		}
-		if(handler->handle(*this,it->second.request, it->second.uniqueSocket))
+		if(handler->handle(*this,it->second.request, it->second.existingConn))
 		{
 			//success: handle() just added to the client to the main client list and started its connectionHandler
 			//	next, see if the waiting state of waiting-for-client-connection changes after this process
@@ -224,7 +224,7 @@ void sim_mob::STK_Broker::processClientRegistrationRequests()
 		throw std::runtime_error(out.str());
 	}
 
-	if(handler->handle(*this,it->second.request, it->second.uniqueSocket))
+	if(handler->handle(*this,it->second.request, it->second.existingConn))
 	{
 		//success: handle() just added to the client to the main client list and started its connectionHandler
 		//	next, see if the waiting state of waiting-for-client-connection changes after this process

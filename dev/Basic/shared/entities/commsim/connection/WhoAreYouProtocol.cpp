@@ -18,8 +18,8 @@
 
 namespace sim_mob {
 
-WhoAreYouProtocol::WhoAreYouProtocol(session_ptr &sess_, ConnectionServer &server_, Broker& broker, bool uniqueSocket)
-	: sess(sess_), server(server_), broker(broker), uniqueSocket(uniqueSocket)
+WhoAreYouProtocol::WhoAreYouProtocol(session_ptr &sess_, ConnectionServer &server_, Broker& broker, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn)
+	: sess(sess_), server(server_), broker(broker), existingConn(existingConn)
 {
 }
 
@@ -49,7 +49,8 @@ void WhoAreYouProtocol::WhoAreYou_handler(const boost::system::error_code& e) {
 	broker.insertIntoWaitingOnWHOAMI(sess);
 
 	//Start listening to this socket if it's new.
-	if (uniqueSocket) {
+	//TODO: It might make more sense to migrate this behavior to the Broker anyway.
+	if (!existingConn) {
 		sess->async_read(response,
 			boost::bind(&WhoAreYouProtocol::WhoAreYou_response_handler, this,
 			boost::asio::placeholders::error));
@@ -79,7 +80,7 @@ void WhoAreYouProtocol::WhoAreYou_response_handler(const boost::system::error_co
 			std::string str = root[0].toStyledString();
 			if((sim_mob::JsonParser::parseMessageHeader(str,mHeader))&&(mHeader.msg_type == "WHOAMI")) {
 				sim_mob::ClientRegistrationRequest request = getSubscriptionRequest(str);
-				server.RequestClientRegistration(request, uniqueSocket);
+				server.RequestClientRegistration(request, existingConn);
 				delete this; //first time in my life! people say it is ok.
 			}
 		}

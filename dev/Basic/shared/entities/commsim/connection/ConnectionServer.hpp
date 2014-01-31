@@ -32,8 +32,12 @@ public:
 	ConnectionServer(sim_mob::Broker &broker_,unsigned short port = DEFAULT_SERVER_PORT);
 	~ConnectionServer();
 
+	///This function is called exactly once for every new incoming connection (session).
 	void handleNewClient(boost::shared_ptr<sim_mob::Session> &sess);
+
+	///This is used to loop accepting connections.
 	void CreatSocketAndAccept();
+
 	void start();
 	void io_service_run();
 	void handle_accept(const boost::system::error_code& e, boost::shared_ptr<sim_mob::Session> &sess);

@@ -36,12 +36,12 @@ private:
 	std::string response; //json string containing ID & type of the client
 	boost::shared_ptr<sim_mob::ConnectionHandler> existingConn;
 
-	sim_mob::ClientRegistrationRequest getSubscriptionRequest(std::string);
+	//sim_mob::ClientRegistrationRequest getSubscriptionRequest(std::string);
 
-	void WhoAreYou_handler(const boost::system::error_code& e);
+	//void WhoAreYou_handler(const boost::system::error_code& e);
 
 	//TODO: Migrate this elsewhere.
-	void WhoAreYou_response_handler(const boost::system::error_code& e);
+	//void WhoAreYou_response_handler(const boost::system::error_code& e);
 };
 
 } /* namespace sim_mob */

@@ -29,7 +29,7 @@ class ConnectionHandler: public boost::enable_shared_from_this<ConnectionHandler
 public:
 	//NOTE: Passing "callback" by value and then saving it by reference is a bad idea!
 	//      For now I've made both work by value; you may need to modify this. ~Seth
-	ConnectionHandler(session_ptr session , boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_, sim_mob::comm::ClientType clientType = sim_mob::comm::UNKNOWN_CLIENT);
+	ConnectionHandler(session_ptr session , boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_/*, sim_mob::comm::ClientType clientType = sim_mob::comm::UNKNOWN_CLIENT*/);
 
 
 	//Start listening to messages for a new client. This also sends the "READY" message to that client.
@@ -45,7 +45,10 @@ public:
 	bool is_open();
 	bool isValid();
 	void setValidation(bool);
+
+	//NOTE: The first WHOAMI message that arrives at this ConnectionHandler sets the expected ClientType.
 	sim_mob::comm::ClientType getClientType() const;
+	void setClientType(sim_mob::comm::ClientType newCType);
 
 	//Send a synchronous message. NOTE: Be careful with this! The ConnectionHandler is designed for
 	// asynchronous sending.
@@ -56,7 +59,7 @@ private:
 	void sendMessage(const std::string& msg);
 	void readMessage();
 
-	//What type of clients (Android, NS3) can this ConnectionHandler manage?
+	//What type of clients (Android, NS3) can this ConnectionHandler manage? Starts off as Unknown.
 	sim_mob::comm::ClientType clientType;
 
 	session_ptr session;

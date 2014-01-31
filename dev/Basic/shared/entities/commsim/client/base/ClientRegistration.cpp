@@ -76,16 +76,17 @@ using namespace sim_mob;
 
 sim_mob::ClientRegistrationRequest::ClientRegistrationRequest(const ClientRegistrationRequest& other) :
 	clientID(other.clientID) ,client_type(other.client_type)
+	//session_(other.session_)
 {
 	//if(other.requiredServices.size() > 0)
 	//{
-		requiredServices = other.requiredServices;
+	//	requiredServices = other.requiredServices;
 	//}
 
 	//NOTE: Copy semantics on shared_ptrs shouldn't require this check.
 	//if(other.session_)
 	//{
-		session_ = other.session_;
+	//	session_ = other.session_;
 	//}
 }
 

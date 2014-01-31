@@ -16,8 +16,8 @@
 
 using namespace sim_mob;
 
-sim_mob::ConnectionHandler::ConnectionHandler(session_ptr session, boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_, sim_mob::comm::ClientType clientType)
-	: messageReceiveCallback(messageReceiveCallback_), clientType(clientType), session(session), valid(true), isAsyncWrite(false),
+sim_mob::ConnectionHandler::ConnectionHandler(session_ptr session, boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_/*, sim_mob::comm::ClientType clientType*/)
+	: messageReceiveCallback(messageReceiveCallback_), clientType(comm::UNKNOWN_CLIENT), session(session), valid(true), isAsyncWrite(false),
 	  isAsyncRead(false), pendingReads(0)
 {
 }
@@ -151,4 +151,12 @@ void ConnectionHandler::setValidation(bool value)
 sim_mob::comm::ClientType sim_mob::ConnectionHandler::getClientType() const
 {
 	return clientType;
+}
+
+void sim_mob::ConnectionHandler::setClientType(sim_mob::comm::ClientType newCType)
+{
+	if (this->clientType != comm::UNKNOWN_CLIENT) {
+		throw std::runtime_error("Cannot change the client type once it has been set.");
+	}
+	this->clientType = newCType;
 }

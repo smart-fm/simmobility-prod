@@ -33,25 +33,16 @@ bool sim_mob::NS3ClientRegistration::initialEvaluation(sim_mob::Broker& broker,
 	return res;
 }
 
-boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeClientHandler(
-		sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request,
-		sim_mob::AgentInfo agent)
+boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> existingConn,
+		sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, sim_mob::AgentInfo agent)
 {
 
-	boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler(
-		new ConnectionHandler(request.session_, broker.getMessageReceiveCallBack(), comm::NS3_SIMULATOR)
-	);
+	/*boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler(
+		new ConnectionHandler(request.session_, broker.getMessageReceiveCallBack())
+	);*/
 
-	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker, cnnHandler, nullptr, nullptr, request.clientID));
+	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker, existingConn, nullptr, nullptr, request.clientID));
 	clientEntry->setRequiredServices(request.requiredServices);
-
-	//clientEntry->cnnHandler = cnnHandler;
-	//clientEntry->AgentCommUtility_ = 0; //not needed
-	//todo: some of there information are already available in the connectionHandler! omit redundancies  -vahid
-	//clientEntry->agent = 0;	//not needed
-	//clientEntry->clientID = request.clientID;
-	//clientEntry->client_type = comm::NS3_SIMULATOR;
-	//clientEntry->requiredServices = request.requiredServices; //will come handy
 
 	sim_mob::event::EventPublisher & p = broker.getPublisher();
 	sim_mob::Services::SIM_MOB_SERVICE srv;
@@ -126,8 +117,7 @@ bool sim_mob::NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::Cl
 	}
 
 	//use it to create a client entry
-	clientHandler = makeClientHandler(broker,
-			request);
+	clientHandler = makeClientHandler(existingConn, broker, request);
 
 	postProcess(broker);
 	return true;

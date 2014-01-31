@@ -184,7 +184,7 @@ protected:
 	///	list of authorized clients who have passed the registration process
 	ClientList::Type clientList; //key note: there can be one agent associated with multiple clients in this list. why? : coz clients of any type are i this list. and any one has associated itself to this agent for its specific type's reason
 
-	std::list<session_ptr> waitingWHOAMI_List;
+	std::list< boost::shared_ptr<sim_mob::ConnectionHandler> > waitingWHOAMI_List;
 
 	///	connection point to outside simmobility
 	boost::shared_ptr<sim_mob::ConnectionServer> connection;					//accepts, authenticate and registers client connections
@@ -432,7 +432,7 @@ public:
 	 *       might add a unique token to the WHOAREYOU message that is then relayed back
 	 *       in the WHOAMI (but at the moment this is not necessary.
 	 */
-	void insertIntoWaitingOnWHOAMI(session_ptr session);
+	void insertIntoWaitingOnWHOAMI(boost::shared_ptr<sim_mob::ConnectionHandler> newConn);
 
 
 	///Return an EventPublisher for a given type. Throws an exception if no such type is registered.

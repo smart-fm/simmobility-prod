@@ -155,6 +155,11 @@ void sim_mob::Broker::configure() {
 
 		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
 		messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, android_factory));
+
+		//We assume the "UNKNOWN" type also knows about android messages.
+		//This is needed, since a ConnectionHandler will have an unknown type until the first "WHOAMI" message is sent.
+		Warn() <<"Boot-strapping \"Unknown\" type with RRFactory messages.\n";
+		messageFactories.insert(std::make_pair(comm::UNKNOWN_CLIENT, android_factory));
 	}
 
 	// wait for connection criteria for this broker
@@ -185,7 +190,9 @@ void sim_mob::Broker::configure() {
  */
 void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHandler, std::string input)
 {
+	//TODO: It does not make any sense to require knowledge of a ConnectionHandler's type.
 	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > messageFactory = messageFactories[cnnHandler->getClientType()];
+
 	std::vector<sim_mob::comm::MsgPtr> messages;
 	messageFactory->createMessage(input, messages);
 
@@ -201,17 +208,26 @@ void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler
 			//TODO: We can lock this with a token (unique random number) if you want to get the EXACT agent
 			//      that initiated this request. For homogenous agents like RR clients, it doesn't matter.
 			//      So for now, just don't multiplex, e.g., STK and Android on the same connection.
-			session_ptr ptr;
+			boost::shared_ptr<ConnectionHandler> connHandle;
 			{
 				boost::unique_lock<boost::mutex> lock(mutex_WaitingWHOAMI);
 				if (!waitingWHOAMI_List.empty()) {
-					ptr = waitingWHOAMI_List.front();
+					connHandle = waitingWHOAMI_List.front();
 					waitingWHOAMI_List.pop_front();
 				}
 			}
-			if (!ptr) {
+			if (!connHandle) {
 				throw std::runtime_error("WHOAMI received, but no clients are in the waiting list.");
 			}
+
+			//We now basically need to do this:
+			//Request a registration (which may or may not multiplex streams).
+			sim_mob::ClientRegistrationRequest request;
+			//request.session_ = sess;
+			//Set other properties.
+			//server.RequestClientRegistration(request, existingConn);
+
+			//NOTE: At this point we need to check the Connection's clientType and set it if it is UNKNOWN.
 
 throw std::runtime_error("Broker is not handling anything yet (still tightly coupled).");
 
@@ -330,10 +346,10 @@ void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType cl
 	clientList[clientType][clientID] = clientHandler;
 }
 
-void sim_mob::Broker::insertIntoWaitingOnWHOAMI(session_ptr session)
+void sim_mob::Broker::insertIntoWaitingOnWHOAMI(boost::shared_ptr<sim_mob::ConnectionHandler> newConn)
 {
 	boost::unique_lock<boost::mutex> lock(mutex_WaitingWHOAMI);
-	waitingWHOAMI_List.push_back(session);
+	waitingWHOAMI_List.push_back(newConn);
 }
 
 

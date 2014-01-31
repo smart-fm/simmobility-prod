@@ -40,7 +40,7 @@ public:
 	/**
 	 * helper function used in handle() method to prepare and return a sim_mob::ClientHandler
 	 */
-	virtual boost::shared_ptr<ClientHandler> makeClientHandler(sim_mob::Broker&,sim_mob::ClientRegistrationRequest &,sim_mob::AgentInfo agent = sim_mob::AgentInfo());
+	virtual boost::shared_ptr<ClientHandler> makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> existingConn, sim_mob::Broker&,sim_mob::ClientRegistrationRequest &,sim_mob::AgentInfo agent = sim_mob::AgentInfo());
 	/**
 	 * Helper function used to send simmobility agents information to ns3 in json format
 	 */

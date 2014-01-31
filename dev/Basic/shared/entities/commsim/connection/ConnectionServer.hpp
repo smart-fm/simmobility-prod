@@ -41,9 +41,9 @@ public:
 	void start();
 	void io_service_run();
 	void handle_accept(const boost::system::error_code& e, boost::shared_ptr<sim_mob::Session> &sess);
-	void RequestClientRegistration(const sim_mob::ClientRegistrationRequest& request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn);
-	void read_handler(const boost::system::error_code& e, std::string &data, boost::shared_ptr<sim_mob::Session>& sess);
-	void general_send_handler(const boost::system::error_code& e, boost::shared_ptr<sim_mob::Session>& sess);
+	//void RequestClientRegistration(const sim_mob::ClientRegistrationRequest& request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn);
+	//void read_handler(const boost::system::error_code& e, std::string &data, boost::shared_ptr<sim_mob::Session>& sess);
+	//void general_send_handler(const boost::system::error_code& e, boost::shared_ptr<sim_mob::Session>& sess);
 
 	boost::thread io_service_thread; //thread to run the io_service
 	boost::asio::io_service io_service_;

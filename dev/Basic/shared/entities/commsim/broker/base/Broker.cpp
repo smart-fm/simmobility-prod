@@ -220,34 +220,40 @@ void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler
 				throw std::runtime_error("WHOAMI received, but no clients are in the waiting list.");
 			}
 
-			//We now basically need to do this:
-			//Request a registration (which may or may not multiplex streams).
-			sim_mob::ClientRegistrationRequest request;
-			//request.session_ = sess;
-			//Set other properties.
-			//server.RequestClientRegistration(request, existingConn);
-
-			//NOTE: At this point we need to check the Connection's clientType and set it if it is UNKNOWN.
-
-throw std::runtime_error("Broker is not handling anything yet (still tightly coupled).");
-
-			//Now, perform the normal initialization routine.
+			//Since we now have a WHOAMI request AND a valid ConnectionHandler, we can pend a registration request.
 			//TODO: This can definitely be simplified; it was copied from WhoAreYouProtocol and Jsonparser.
-			/*if (!(data.isMember("ID") && data.isMember("TYPE"))) {
+			sim_mob::ClientRegistrationRequest candidate;
+			if (!(data.isMember("ID") && data.isMember("TYPE"))) {
 				throw std::runtime_error("Can't access required fields.");
 			}
-			sim_mob::ClientRegistrationRequest candidate;
-			candidate.session_ = ptr;
 			candidate.clientID = data["ID"].asString();
 			candidate.client_type = data["TYPE"].asString();
 			if (!data["REQUIRED_SERVICES"].isNull() && data["REQUIRED_SERVICES"].isArray()) {
 				const Json::Value services = data["REQUIRED_SERVICES"];
 				for (size_t index=0; index<services.size(); index++) {
-					std::string type = services[index].asString();
-					candidate.requiredServices.insert(getServiceType(type));
+					std::string type = services[int(index)].asString();
+					candidate.requiredServices.insert(JsonParser::getServiceType(type));
 				}
 			}
-			server.RequestClientRegistration(request, existingConn);*/
+
+			//What type is this?
+			std::map<std::string, comm::ClientType>::const_iterator clientTypeIt = sim_mob::Services::ClientTypeMap.find(candidate.client_type);
+			if (clientTypeIt == sim_mob::Services::ClientTypeMap.end()) {
+				throw std::runtime_error("Client type is unknown; cannot re-assign.");
+			}
+
+			//At this point we need to check the Connection's clientType and set it if it is UNKNOWN.
+			//If it is known, make sure it's the expected type.
+			if (connHandle->getClientType() == comm::UNKNOWN_CLIENT) {
+				connHandle->setClientType(clientTypeIt->second);
+			} else {
+				if (connHandle->getClientType() != clientTypeIt->second) {
+					throw std::runtime_error("ConnectionHandler received a message for a clientType it did not expect.");
+				}
+			}
+
+			//Now, wait on it.
+			insertClientWaitingList(candidate.client_type, candidate, connHandle);
 		} else {
 			receiveQueue.post(MessageElement(cnnHandler, *it));
 		}

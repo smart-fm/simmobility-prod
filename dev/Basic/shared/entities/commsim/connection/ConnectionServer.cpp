@@ -39,20 +39,6 @@ void sim_mob::ConnectionServer::handleNewClient(session_ptr &sess)
 	//Therefore I used raw pointer. the protocol will delete itself(delete this;)
 	WhoAreYouProtocol *registration = new WhoAreYouProtocol(sess,*this, broker, boost::shared_ptr<ConnectionHandler>());
 	registration->queryAgentAsync();
-
-	//NOTE: Since a connection via the ConnectionServer *always* represents a new session, we
-	//      need to bind to the normal message loop here (through broker?)
-	//TODO: Basically, the WhoAreYouProtocol would call this:
-	//      server.RequestClientRegistration(request);
-	//      ...where "server" is this server. This would add the session to the Broker's
-	//      client list, and it would be processed on the next turn tick.
-	//TODO: The Broker would then call AndroidClientRegistration::handle(), which calls its own
-	//      internal method, makeClientHandler(). This function calls the Broker's getMessageReceiveCallBack()
-	//      function, which returns a function pointer to Broker::messageReceiveCallback(). This function
-	//      is where we will need to handle agent/message multiplexing. (Since all Messages go through the Broker,
-	//      this is not actually so challenging).
-	//TODO: The main problem here is that AndroidClientRegistration::handle() does BOTH agent assignment and
-	//      boost::reader stuff. So we need to decouple it.
 }
 
 
@@ -92,7 +78,7 @@ void sim_mob::ConnectionServer::handle_accept(const boost::system::error_code& e
 	CreatSocketAndAccept();
 }
 
-void sim_mob::ConnectionServer::RequestClientRegistration(const sim_mob::ClientRegistrationRequest& request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn)
+/*void sim_mob::ConnectionServer::RequestClientRegistration(const sim_mob::ClientRegistrationRequest& request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn)
 {
 	broker.insertClientWaitingList(request.client_type, request, existingConn);
 }
@@ -110,5 +96,5 @@ void sim_mob::ConnectionServer::general_send_handler(const boost::system::error_
 	if (e) {
 		Warn() <<"write Failed:" << e.message() <<  std::endl;
 	}
-}
+}*/
 

@@ -138,6 +138,11 @@ void sim_mob::Roadrunner_Broker::configure()
 
 		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
 		messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, android_factory));
+
+		//We assume the "UNKNOWN" type also knows about android messages.
+		//This is needed, since a ConnectionHandler will have an unknown type until the first "WHOAMI" message is sent.
+		Warn() <<"Boot-strapping \"Unknown\" type with RRFactory messages.\n";
+		messageFactories.insert(std::make_pair(comm::UNKNOWN_CLIENT, android_factory));
 	}
 
 	// wait for connection criteria for this broker

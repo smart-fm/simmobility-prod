@@ -21,6 +21,7 @@
 #include "geospatial/RoadRunnerRegion.hpp"
 
 //todo :temprorary
+#include "entities/commsim/message/base/BasicMessageFactory.hpp"
 #include "entities/commsim/message/derived/roadrunner-android/RoadRunnerFactory.hpp"
 #include "entities/commsim/message/derived/roadrunner-ns3/Ns3Factory.hpp"
 
@@ -139,10 +140,10 @@ void sim_mob::Roadrunner_Broker::configure()
 		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
 		messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, android_factory));
 
-		//We assume the "UNKNOWN" type also knows about android messages.
-		//This is needed, since a ConnectionHandler will have an unknown type until the first "WHOAMI" message is sent.
-		Warn() <<"Boot-strapping \"Unknown\" type with RRFactory messages.\n";
-		messageFactories.insert(std::make_pair(comm::UNKNOWN_CLIENT, android_factory));
+		//We assume the "UNKNOWN" type knows about connection messages.
+		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> >
+			basic_factory(new sim_mob::BasicMessageFactory());
+		messageFactories.insert(std::make_pair(comm::UNKNOWN_CLIENT, basic_factory));
 	}
 
 	// wait for connection criteria for this broker

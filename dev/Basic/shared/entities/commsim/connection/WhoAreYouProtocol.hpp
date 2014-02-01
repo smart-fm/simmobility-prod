@@ -25,16 +25,8 @@ class ConnectionHandler;
 class WhoAreYouProtocol
 {
 public:
-	///existingConn can be used to multiplex connections. If null, it will be created when "queryAgentAsync()" is called.
-	WhoAreYouProtocol(boost::shared_ptr<Session> &sess_, ConnectionServer &, Broker& broker, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn);
-
-	void queryAgentAsync();
-private:
-	boost::shared_ptr<Session>  sess;
-	ConnectionServer &server;
-	Broker& broker;
-	std::string response; //json string containing ID & type of the client
-	boost::shared_ptr<sim_mob::ConnectionHandler> existingConn;
+	//Begin the query process for agents. conn must be non-null, but you can re-use an existing conn if required.
+	static void QueryAgentAsync(boost::shared_ptr<sim_mob::ConnectionHandler> conn, Broker& broker);
 };
 
 }

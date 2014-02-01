@@ -18,24 +18,19 @@
 
 namespace sim_mob {
 
-WhoAreYouProtocol::WhoAreYouProtocol(session_ptr &sess_, ConnectionServer &server_, Broker& broker, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn)
-	: sess(sess_), server(server_), broker(broker), existingConn(existingConn)
-{
-}
-
-void WhoAreYouProtocol::queryAgentAsync()
+void WhoAreYouProtocol::QueryAgentAsync(boost::shared_ptr<sim_mob::ConnectionHandler> conn, Broker& broker)
 {
 	//We'll need to make a new ConnectionHandler if we don't have an existing one.
-	if (!existingConn) {
-		existingConn.reset(new ConnectionHandler(sess, broker.getMessageReceiveCallBack()));
+	if (!conn) {
+		throw std::runtime_error("Cannot QueryAgentAsync() without an existing connection.");
 	}
 
-	//Inform the Broker about this session.
-	broker.insertIntoWaitingOnWHOAMI(existingConn);
+	//Inform the Broker that this connection is waiting on a WHOAMI response.
+	broker.insertIntoWaitingOnWHOAMI(conn);
 
 	//At this point, we have a ConnectionHandler that can at least receive messages. So send the "WHOAREYOU" request.
 	//This will be received by the Broker, and added to the messageReceived() callback, which should then be filtered as expected.
-	existingConn->forwardMessage(JsonParser::makeWhoAreYouPacket());
+	conn->forwardMessage(JsonParser::makeWhoAreYouPacket());
 }
 
 

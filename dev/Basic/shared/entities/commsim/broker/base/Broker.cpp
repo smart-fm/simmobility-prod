@@ -18,6 +18,7 @@
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/commsim/event/RegionsAndPathEventArgs.hpp"
+#include "entities/commsim/message/base/BasicMessageFactory.hpp"
 
 #include "entities/commsim/wait/WaitForAndroidConnection.hpp"
 #include "entities/commsim/wait/WaitForNS3Connection.hpp"
@@ -156,10 +157,10 @@ void sim_mob::Broker::configure() {
 		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
 		messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, android_factory));
 
-		//We assume the "UNKNOWN" type also knows about android messages.
-		//This is needed, since a ConnectionHandler will have an unknown type until the first "WHOAMI" message is sent.
-		Warn() <<"Boot-strapping \"Unknown\" type with RRFactory messages.\n";
-		messageFactories.insert(std::make_pair(comm::UNKNOWN_CLIENT, android_factory));
+		//We assume the "UNKNOWN" type knows about connection messages.
+		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> >
+			basic_factory(new sim_mob::BasicMessageFactory());
+		messageFactories.insert(std::make_pair(comm::UNKNOWN_CLIENT, basic_factory));
 	}
 
 	// wait for connection criteria for this broker
@@ -190,6 +191,8 @@ void sim_mob::Broker::configure() {
  */
 void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHandler, std::string input)
 {
+	Warn() <<"Message receive: ###" <<input <<"###\n";
+
 	//TODO: It does not make any sense to require knowledge of a ConnectionHandler's type.
 	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > messageFactory = messageFactories[cnnHandler->getClientType()];
 
@@ -199,6 +202,9 @@ void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler
 	for (std::vector<sim_mob::comm::MsgPtr>::iterator it = messages.begin(); it != messages.end(); it++) {
 		sim_mob::comm::MsgData& data = it->get()->getData();
 		std::string type = data["MESSAGE_TYPE"].asString();
+
+		Warn() <<"Message type: " <<type <<"\n";
+
 		if (type == "CLIENT_MESSAGES_DONE") {
 			boost::unique_lock<boost::mutex> lock(mutex_clientDone);
 			clientDoneChecker.insert(cnnHandler);

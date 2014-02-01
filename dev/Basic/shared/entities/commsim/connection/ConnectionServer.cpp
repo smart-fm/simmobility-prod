@@ -35,10 +35,8 @@ sim_mob::ConnectionServer::~ConnectionServer()
 
 void sim_mob::ConnectionServer::handleNewClient(session_ptr &sess)
 {
-	//using boost_shared_ptr won't let the protocol to release(i guess).
-	//Therefore I used raw pointer. the protocol will delete itself(delete this;)
-	WhoAreYouProtocol *registration = new WhoAreYouProtocol(sess,*this, broker, boost::shared_ptr<ConnectionHandler>());
-	registration->queryAgentAsync();
+	boost::shared_ptr<ConnectionHandler> conn(new ConnectionHandler(sess, broker.getMessageReceiveCallBack()));
+	WhoAreYouProtocol::QueryAgentAsync(conn, broker);
 }
 
 

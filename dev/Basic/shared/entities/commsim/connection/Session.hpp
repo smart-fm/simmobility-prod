@@ -18,7 +18,7 @@ namespace sim_mob {
 
 //Helper: Pointer to a session.
 class Session;
-typedef boost::shared_ptr<Session> session_ptr;;
+typedef boost::shared_ptr<Session> session_ptr;
 
 
 /// The session class provides serialization primitives on top of a socket.
@@ -132,9 +132,9 @@ void sim_mob::Session::handle_read_header(const boost::system::error_code& e,/*s
 		std::size_t inbound_data_size = 0;
 		is >> std::hex >> inbound_data_size;
 		if (!(inbound_data_size)) {
-			WarnOut( "ERROR in session-Handle_read_header\n" );
-			WarnOut("  ... on string: " <<inbound_header_ <<"\n");
-			return;
+			//Note: The server has no way of recovering in this case, so we just throw an exception.
+			Warn() <<"ERROR in Session::handle_read_header\n  ...on string: " <<inbound_header_ <<"\n";
+			throw std::runtime_error("Session::handle_read_header() can't read data size.");
 		}
 		inbound_data_.resize(inbound_data_size);
 

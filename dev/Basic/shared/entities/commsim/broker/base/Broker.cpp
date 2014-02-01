@@ -40,23 +40,21 @@ using namespace sim_mob;
 std::map<std::string, sim_mob::Broker*> sim_mob::Broker::externalCommunicators;
 
 sim_mob::Broker::Broker(const MutexStrategy& mtxStrat, int id, std::string commElement, std::string commMode) :
-		Agent(mtxStrat, id), enabled(true) , commElement(commElement), commMode(commMode){
+		Agent(mtxStrat, id), enabled(true) , commElement(commElement), commMode(commMode),
+		brokerCanTickForward(false)
+{
 	//Various Initializations
 	connection.reset(new ConnectionServer(*this));
-	brokerCanTickForward = false;
 	m_messageReceiveCallback = boost::function<
-			void(boost::shared_ptr<ConnectionHandler>, std::string)>(
-			boost::bind(&Broker::messageReceiveCallback, this, _1, _2));
+		void(boost::shared_ptr<ConnectionHandler>, std::string)>(
+		boost::bind(&Broker::messageReceiveCallback, this, _1, _2)
+	);
 
 //	configure();
 }
 
-sim_mob::Broker::~Broker() {
-}
-
-//NOTE: Dangerous; used only in one place.
-boost::shared_ptr<sim_mob::ConnectionServer> sim_mob::Broker::getConnectionServer() {
-	return connection;
+sim_mob::Broker::~Broker()
+{
 }
 
 void sim_mob::Broker::enable() {

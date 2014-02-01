@@ -10,8 +10,8 @@
 
 #include "entities/commsim/broker/base/Common.hpp"
 #include "entities/commsim/comm_support/AgentCommUtility.hpp"
-#include "entities/commsim/connection/ConnectionServer.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
+#include "entities/commsim/connection/ConnectionServer.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/commsim/event/RegionsAndPathEventArgs.hpp"
 

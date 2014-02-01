@@ -18,7 +18,7 @@
 
 using namespace sim_mob;
 
-sim_mob::ConnectionServer::ConnectionServer(	sim_mob::Broker &broker_,unsigned short port) :
+sim_mob::ConnectionServer::ConnectionServer(sim_mob::Broker &broker_,unsigned short port) :
 	broker(broker_),
 	acceptor_(io_service_,boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
 {
@@ -45,12 +45,14 @@ void sim_mob::ConnectionServer::CreatSocketAndAccept()
 	// Start an accept operation for a new connection.
 	std::cout << "Accepting..." <<std::endl; //NOTE: Always print this, even if output is disabled.
 
-	new_sess.reset(new sim_mob::Session(io_service_));
-	Print() << "Valid Session[" << new_sess.get() << "]" << std::endl;
-	acceptor_.async_accept(new_sess->socket(),
-			boost::bind(&ConnectionServer::handle_accept, this,
-					boost::asio::placeholders::error, new_sess));
-	new_sess.reset();
+	//Make and track a new session pointer.
+	session_ptr newSess(new sim_mob::Session(io_service_));
+	knownSessions.push_back(newSess);
+
+	acceptor_.async_accept(newSess->socket(),
+		boost::bind(&ConnectionServer::handle_accept, this,
+		boost::asio::placeholders::error, newSess)
+	);
 }
 
 void sim_mob::ConnectionServer::start()
@@ -76,23 +78,5 @@ void sim_mob::ConnectionServer::handle_accept(const boost::system::error_code& e
 	CreatSocketAndAccept();
 }
 
-/*void sim_mob::ConnectionServer::RequestClientRegistration(const sim_mob::ClientRegistrationRequest& request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn)
-{
-	broker.insertClientWaitingList(request.client_type, request, existingConn);
-}
 
-void sim_mob::ConnectionServer::read_handler(const boost::system::error_code& e, std::string &data, session_ptr &sess)
-{
-	if (e) {
-		Warn()<<"read Failed\n";
-	}
-
-}
-
-void sim_mob::ConnectionServer::general_send_handler(const boost::system::error_code& e, session_ptr& sess)
-{
-	if (e) {
-		Warn() <<"write Failed:" << e.message() <<  std::endl;
-	}
-}*/
 

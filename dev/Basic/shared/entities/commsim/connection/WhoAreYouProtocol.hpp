@@ -19,7 +19,6 @@
 
 namespace sim_mob {
 class Session;
-class ConnectionServer;
 class ConnectionHandler;
 
 class WhoAreYouProtocol

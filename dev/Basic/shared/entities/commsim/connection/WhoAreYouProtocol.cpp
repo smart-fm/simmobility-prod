@@ -10,11 +10,8 @@
  */
 
 #include "WhoAreYouProtocol.hpp"
-#include "ConnectionServer.hpp"
-#include "Session.hpp"
 #include "entities/commsim/serialization/JsonParser.hpp"
 #include "entities/commsim/Broker.hpp"
-#include "logging/Log.hpp"
 
 namespace sim_mob {
 

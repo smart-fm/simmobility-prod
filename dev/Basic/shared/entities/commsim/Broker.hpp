@@ -187,7 +187,8 @@ protected:
 	std::list< boost::shared_ptr<sim_mob::ConnectionHandler> > waitingWHOAMI_List;
 
 	///	connection point to outside simmobility
-	boost::shared_ptr<sim_mob::ConnectionServer> connection;					//accepts, authenticate and registers client connections
+	boost::shared_ptr<ConnectionServer> connection;
+
 	///	message receive call back function pointer
 	boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> m_messageReceiveCallback;
 	///	list of this broker's publishers
@@ -358,7 +359,7 @@ public:
 	///NOTE: This is VERY RISKY; it might be a better idea to intercept "NEW_CLIENT" messages
 	///      in Broker and have the Broker force the new connection, rather than going through
 	///      a NewClientHandler.
-	boost::shared_ptr<sim_mob::ConnectionServer> getConnectionServer();
+	//boost::shared_ptr<sim_mob::ConnectionServer> getConnectionServer();
 
 
 	//	enable broker

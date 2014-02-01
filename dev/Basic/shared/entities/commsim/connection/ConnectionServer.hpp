@@ -20,10 +20,11 @@
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <boost/tuple/tuple.hpp>
-#include<queue>
+#include <queue>
 
 #include <entities/commsim/client/base/ClientRegistration.hpp>
 #include <entities/commsim/connection/Session.hpp>
+
 namespace sim_mob {
 class Broker;
 
@@ -41,14 +42,14 @@ public:
 	void start();
 	void io_service_run();
 	void handle_accept(const boost::system::error_code& e, boost::shared_ptr<sim_mob::Session> &sess);
-	//void RequestClientRegistration(const sim_mob::ClientRegistrationRequest& request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn);
-	//void read_handler(const boost::system::error_code& e, std::string &data, boost::shared_ptr<sim_mob::Session>& sess);
-	//void general_send_handler(const boost::system::error_code& e, boost::shared_ptr<sim_mob::Session>& sess);
 
 	boost::thread io_service_thread; //thread to run the io_service
 	boost::asio::io_service io_service_;
 private:
-	sim_mob::session_ptr new_sess;
+	//List of Sessions that this ConnectionServer knows about. The ConnectionServer holds on to these so that
+	// they are not removed.
+	std::vector<sim_mob::session_ptr> knownSessions;
+
 	const static unsigned int DEFAULT_SERVER_PORT = 6745;
 	boost::asio::ip::tcp::acceptor acceptor_;
 	sim_mob::Broker &broker;

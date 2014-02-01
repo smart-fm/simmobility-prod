@@ -31,9 +31,8 @@ public:
 	//      For now I've made both work by value; you may need to modify this. ~Seth
 	ConnectionHandler(session_ptr session , boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_/*, sim_mob::comm::ClientType clientType = sim_mob::comm::UNKNOWN_CLIENT*/);
 
-
-	//Start listening to messages for a new client. This also sends the "READY" message to that client.
-	void startListening(ClientHandler& newClient);
+	//Send a "READY" message to the given client.
+	void forwardReadyMessage(ClientHandler& newClient);
 
 	//Send a message on behalf of the given client.
 	void forwardMessage(std::string str);

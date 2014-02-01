@@ -191,7 +191,8 @@ void sim_mob::Broker::configure() {
  */
 void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHandler, std::string input)
 {
-	Warn() <<"Message receive: ###" <<input <<"###\n";
+//TEMP
+Warn() <<"Message receive: ###" <<input <<"###\n";
 
 	//TODO: It does not make any sense to require knowledge of a ConnectionHandler's type.
 	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > messageFactory = messageFactories[cnnHandler->getClientType()];
@@ -202,8 +203,6 @@ void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler
 	for (std::vector<sim_mob::comm::MsgPtr>::iterator it = messages.begin(); it != messages.end(); it++) {
 		sim_mob::comm::MsgData& data = it->get()->getData();
 		std::string type = data["MESSAGE_TYPE"].asString();
-
-		Warn() <<"Message type: " <<type <<"\n";
 
 		if (type == "CLIENT_MESSAGES_DONE") {
 			boost::unique_lock<boost::mutex> lock(mutex_clientDone);

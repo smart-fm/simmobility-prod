@@ -62,12 +62,6 @@ bool AndroidClientRegistration::findAFreeAgent(AgentsList::type &registeredAgent
 
 boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> connHandle, sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, sim_mob::AgentInfo freeAgent)
 {
-	//Create a ConnectionHandler pointing from this session to the Broker's callback method.
-	//This only happens if an existing connection handler is not passed in to this function.
-//	if (!connHandle) {
-//		connHandle.reset(new ConnectionHandler(request.session_, broker.getMessageReceiveCallBack()));
-//	}
-
 	//Create a ClientHandler pointing to the Broker.
 	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker, connHandle, freeAgent.comm, freeAgent.agent, request.clientID));
 	clientEntry->setRequiredServices(request.requiredServices);
@@ -105,8 +99,6 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(bo
 }
 
 bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn) {
-///////////////
-//This is related to getting a free Agent.
 	//This part is locked in fear of registered agents' iterator invalidation in the middle of the process
 	AgentsList::Mutex registered_agents_mutex;
 	AgentsList::type &registeredAgents = broker.getRegisteredAgents(&registered_agents_mutex);
@@ -121,22 +113,12 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 	if (!findAFreeAgent(registeredAgents, freeAgent)) {
 		return false;
 	}
-//////////////////
 
-/////This needs to be changed.
 	//use it to create a client entry
 	boost::shared_ptr<ClientHandler> clientEntry = makeClientHandler(existingConn, broker,request,freeAgent->second);
 
-//////////////////
-//This proceeds as normal?
-//////////////////
-	//Now that we have a (possibly shared), safely locked, buffered connection, we can send the "WHOAREYOU" packet.
-	//clientEntry->connHandle->forwardMessage(JsonParser::makeWhoAreYouPacket());
-
-	//start listening to the handler
-	//NOTE: This doesn't do anything like what its name suggets!
-throw std::runtime_error("ERROR: startListening() has to be called AFTER WHOAMI is received; make the Broker do it.");
-	clientEntry->connHandle->startListening(*clientEntry);
+	//Inform the client we are ready to proceed.
+	clientEntry->connHandle->forwardReadyMessage(*clientEntry);
 
 	Print() << "AndroidClient  Registered. Multiplexed socket? " <<(existingConn?"Yes":"No") << std::endl;
 	return true;

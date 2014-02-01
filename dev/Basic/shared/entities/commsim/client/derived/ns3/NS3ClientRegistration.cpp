@@ -125,6 +125,7 @@ bool sim_mob::NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::Cl
 
 void sim_mob::NS3ClientRegistration::postProcess(sim_mob::Broker& broker){
 	sendAgentsInfo(broker, clientHandler);
-	//start listening to the handler
-	clientHandler->connHandle->startListening(*clientHandler);
+
+	//Inform the handler we are ready to proceed.
+	clientHandler->connHandle->forwardReadyMessage(*clientHandler);
 }

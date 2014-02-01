@@ -23,7 +23,7 @@ sim_mob::ConnectionHandler::ConnectionHandler(session_ptr session, boost::functi
 }
 
 
-void sim_mob::ConnectionHandler::startListening(ClientHandler& newClient)
+void sim_mob::ConnectionHandler::forwardReadyMessage(ClientHandler& newClient)
 {
 	//Write the header/message body.
 	Json::Value packet_header = JsonParser::createPacketHeader(pckt_header(1, newClient.clientId));

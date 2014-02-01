@@ -33,49 +33,53 @@ sim_mob::ConnectionServer::~ConnectionServer()
 }
 
 
-void sim_mob::ConnectionServer::handleNewClient(session_ptr &sess)
-{
-	boost::shared_ptr<ConnectionHandler> conn(new ConnectionHandler(sess, broker.getMessageReceiveCallBack()));
-	WhoAreYouProtocol::QueryAgentAsync(conn, broker);
-}
-
-
-void sim_mob::ConnectionServer::CreatSocketAndAccept()
-{
-	// Start an accept operation for a new connection.
-	std::cout << "Accepting..." <<std::endl; //NOTE: Always print this, even if output is disabled.
-
-	//Make and track a new session pointer.
-	session_ptr newSess(new sim_mob::Session(io_service_));
-	knownSessions.push_back(newSess);
-
-	acceptor_.async_accept(newSess->socket(),
-		boost::bind(&ConnectionServer::handle_accept, this,
-		boost::asio::placeholders::error, newSess)
-	);
-}
-
 void sim_mob::ConnectionServer::start()
 {
 	io_service_thread = boost::thread(&ConnectionServer::io_service_run,this);
 }
 
+
+void sim_mob::ConnectionServer::handleNewClient()
+{
+	boost::shared_ptr<ConnectionHandler> conn(new ConnectionHandler(newSess, broker.getMessageReceiveCallBack()));
+	WhoAreYouProtocol::QueryAgentAsync(conn, broker);
+}
+
+
+void sim_mob::ConnectionServer::creatSocketAndAccept()
+{
+	// Start an accept operation for a new connection.
+	std::cout << "Accepting..." <<std::endl; //NOTE: Always print this, even if output is disabled.
+
+	//Make and track a new session pointer.
+	newSess.reset(new sim_mob::Session(io_service_));
+	knownSessions.push_back(newSess);
+
+	//Accept the next connection.
+	acceptor_.async_accept(newSess->getSocket(),
+		boost::bind(&ConnectionServer::handle_accept, this,
+		boost::asio::placeholders::error)
+	);
+}
+
 void sim_mob::ConnectionServer::io_service_run()
 {
 	acceptor_.listen();
-	CreatSocketAndAccept();
+	creatSocketAndAccept();
 	io_service_.run();
 }
-void sim_mob::ConnectionServer::handle_accept(const boost::system::error_code& e, session_ptr &sess)
+void sim_mob::ConnectionServer::handle_accept(const boost::system::error_code& e)
 {
 	if (!e) {
 		std::cout<< "accepted a connection" << std::endl;  //NOTE: Always print this, even if output is disabled.
-		handleNewClient(sess);
+		handleNewClient();
 	} else {
 		std::cout<< "refused a connection" << std::endl;  //NOTE: Always print this, even if output is disabled.
 		WarnOut("Connection Refused" << std::endl);
 	}
-	CreatSocketAndAccept();
+
+	//Continue; accept the next connection.
+	creatSocketAndAccept();
 }
 
 

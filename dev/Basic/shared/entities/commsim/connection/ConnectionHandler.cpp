@@ -134,7 +134,7 @@ session_ptr& sim_mob::ConnectionHandler::getSession()
 
 bool sim_mob::ConnectionHandler::is_open()
 {
-	return session->socket().is_open();
+	return session->isOpen();
 }
 
 

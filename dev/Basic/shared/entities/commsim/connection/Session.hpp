@@ -32,12 +32,16 @@ class Session : public boost::enable_shared_from_this<Session>
 public:
 	/// Constructor.
 	Session(boost::asio::io_service &io_service);
-
 	~Session();
 
-	/// Get the underlying socket. Used for making a Session or for accepting
-	/// an incoming connection.
-	boost::asio::ip::tcp::socket& socket();
+	///Get the underlying socket. Used by the ConnectionServer to continue looping to the next connection.
+	boost::asio::ip::tcp::socket& getSocket();
+
+	///Is this Session's socket open?
+	bool isOpen() const;
+
+private:
+	friend class ConnectionHandler;
 
 	bool makeWriteBuffer(std::string &input, std::vector<boost::asio::const_buffer> &output, boost::system::error_code &ec);
 

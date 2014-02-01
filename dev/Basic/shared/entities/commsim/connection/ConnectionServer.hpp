@@ -33,22 +33,26 @@ public:
 	ConnectionServer(sim_mob::Broker &broker_,unsigned short port = DEFAULT_SERVER_PORT);
 	~ConnectionServer();
 
-	///This function is called exactly once for every new incoming connection (session).
-	void handleNewClient(boost::shared_ptr<sim_mob::Session> &sess);
-
-	///This is used to loop accepting connections.
-	void CreatSocketAndAccept();
-
 	void start();
 	void io_service_run();
-	void handle_accept(const boost::system::error_code& e, boost::shared_ptr<sim_mob::Session> &sess);
+	void handle_accept(const boost::system::error_code& e);
 
 	boost::thread io_service_thread; //thread to run the io_service
 	boost::asio::io_service io_service_;
+
 private:
+	///This function is called exactly once for every new incoming connection (session).
+	void handleNewClient();
+
+	///This is used to loop accepting connections.
+	void creatSocketAndAccept();
+
 	//List of Sessions that this ConnectionServer knows about. The ConnectionServer holds on to these so that
 	// they are not removed.
 	std::vector<sim_mob::session_ptr> knownSessions;
+
+	//The current Session we are waiting on.
+	session_ptr newSess;
 
 	const static unsigned int DEFAULT_SERVER_PORT = 6745;
 	boost::asio::ip::tcp::acceptor acceptor_;

@@ -18,9 +18,14 @@ sim_mob::Session::~Session()
 }
 
 
-boost::asio::ip::tcp::socket& sim_mob::Session::socket()
+boost::asio::ip::tcp::socket& sim_mob::Session::getSocket()
 {
-  return socket_;
+	return socket_;
+}
+
+bool sim_mob::Session::isOpen() const
+{
+	return socket_.is_open();
 }
 
 bool sim_mob::Session::makeWriteBuffer(std::string &input, std::vector<boost::asio::const_buffer> &output, boost::system::error_code &ec)

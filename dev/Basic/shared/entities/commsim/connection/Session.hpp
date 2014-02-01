@@ -40,24 +40,22 @@ public:
 	///Is this Session's socket open?
 	bool isOpen() const;
 
-private:
-	friend class ConnectionHandler;
-
-	bool makeWriteBuffer(std::string &input, std::vector<boost::asio::const_buffer> &output, boost::system::error_code &ec);
-
+	//Write data immediately to the underlying socket. WARNING: Almost never do this! Use the async functions.
 	bool write(std::string &input, boost::system::error_code &ec);
-
-	bool write(std::string &input);
 
 	/// Asynchronously write a data structure to the socket.
 	template <typename Handler>
 	void async_write(std::string &data, Handler handler);
 
-
 	/// Asynchronously read a data structure from the socket.
 	template <typename Handler>
 	void async_read(std::string &input, Handler handler);
 
+private:
+
+	bool makeWriteBuffer(std::string &input, std::vector<boost::asio::const_buffer> &output, boost::system::error_code &ec);
+
+//	bool write(std::string &input);
 
 	/// Handle a completed read of a message header. The handler is passed using
 	/// a tuple since boost::bind seems to have trouble binding a function object

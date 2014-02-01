@@ -63,7 +63,7 @@ bool sim_mob::Session::write(std::string &input, boost::system::error_code &ec)
 	return true;
 }
 
-bool sim_mob::Session::write(std::string &input)
+/*bool sim_mob::Session::write(std::string &input)
 {
 	boost::system::error_code ec_;
 	std::vector<boost::asio::const_buffer> buffers;
@@ -81,3 +81,4 @@ bool sim_mob::Session::write(std::string &input)
 
 
 
+*/

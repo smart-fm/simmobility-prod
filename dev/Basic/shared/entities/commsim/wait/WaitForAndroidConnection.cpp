@@ -31,15 +31,17 @@ void WaitForAndroidConnection::set_MIN_NOF_Clients(int value) {
 }
 
 bool WaitForAndroidConnection::calculateWaitStatus() {
-	ClientList::Type & clients = getBroker().getClientList();
-	int cnt = clients[comm::ANDROID_EMULATOR].size();
-//	Print() << "getBroker().getClientList().size() = " << cnt << " vs " << min_nof_clients << std::endl;
-	if(cnt >= min_nof_clients)
-	{
-
-		setWaitStatus(false);
+	const ClientList::Type & clients = getBroker().getClientList();
+	ClientList::Type::const_iterator it = clients.find(comm::ANDROID_EMULATOR);
+	if (it==clients.end()) {
+		throw std::runtime_error("Unexpected in WaitForAndroidConnection::calculateWaitStatus()");
 	}
-	else{
+
+	int cnt = it->second.size();
+//	Print() << "getBroker().getClientList().size() = " << cnt << " vs " << min_nof_clients << std::endl;
+	if(cnt >= min_nof_clients) {
+		setWaitStatus(false);
+	} else {
 		setWaitStatus(true);
 	}
 	return isWaiting();

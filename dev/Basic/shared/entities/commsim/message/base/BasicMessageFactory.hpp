@@ -26,7 +26,7 @@ class BasicMessageFactory : public MessageFactory<std::vector<sim_mob::comm::Msg
 public:
 	virtual ~BasicMessageFactory();
 
-	void createMessage(const std::string& input, std::vector<sim_mob::comm::MsgPtr>& output);
+	void createMessage(const std::string& input, std::vector<sim_mob::comm::MsgPtr>& output) const;
 };
 
 

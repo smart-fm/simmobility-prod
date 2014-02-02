@@ -25,6 +25,8 @@ void WhoAreYouProtocol::QueryAgentAsync(boost::shared_ptr<sim_mob::ConnectionHan
 	//Inform the Broker that this connection is waiting on a WHOAMI response.
 	broker.insertIntoWaitingOnWHOAMI(conn);
 
+Warn() <<"Forwarding whoareyou\n";
+
 	//At this point, we have a ConnectionHandler that can at least receive messages. So send the "WHOAREYOU" request.
 	//This will be received by the Broker, and added to the messageReceived() callback, which should then be filtered as expected.
 	conn->forwardMessage(JsonParser::makeWhoAreYouPacket());

@@ -31,8 +31,13 @@ void WaitForNS3Connection::set_MIN_NOF_Clients(int value) {
 }
 
 bool WaitForNS3Connection::calculateWaitStatus() {
-	ClientList::Type & clients = getBroker().getClientList();
-	int cnt = clients[comm::NS3_SIMULATOR].size();
+	const ClientList::Type & clients = getBroker().getClientList();
+	ClientList::Type::const_iterator it = clients.find(comm::NS3_SIMULATOR);
+	if (it==clients.end()) {
+		throw std::runtime_error("Unexpected in WaitForNS3Connection::calculateWaitStatus()");
+	}
+
+	int cnt = it->second.size();
 	if(cnt >= min_nof_clients)
 	{
 		setWaitStatus(false);

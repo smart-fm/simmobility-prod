@@ -30,26 +30,29 @@ sim_mob::comm::NS3_Factory::NS3_Factory() {
 	MessageMap["MULTICAST"] = MULTICAST;
 	MessageMap["UNICAST"] = UNICAST;
 	MessageMap["CLIENT_MESSAGES_DONE"] = CLIENT_MESSAGES_DONE;
+
+	//This has to be done at creation time.
+	HandlerMap[MULTICAST] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::comm::NS3_HDL_MULTICAST());
+	HandlerMap[UNICAST] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::comm::NS3_HDL_UNICAST());
 }
 
 sim_mob::comm::NS3_Factory::~NS3_Factory()
 {}
 
 //gets a handler either from a chche or by creating a new one
-boost::shared_ptr<sim_mob::Handler>  sim_mob::comm::NS3_Factory::getHandler(MessageType type)
+boost::shared_ptr<sim_mob::Handler>  sim_mob::comm::NS3_Factory::getHandler(MessageType type) const
 {
 	boost::shared_ptr<sim_mob::Handler> handler;
  	//if handler is already registered && the registered handler is not null
- 	std::map<MessageType, boost::shared_ptr<sim_mob::Handler> >::iterator it = HandlerMap.find(type);
- 	if((it != HandlerMap.end())&&((*it).second!= 0))
- 	{
+ 	std::map<MessageType, boost::shared_ptr<sim_mob::Handler> >::const_iterator it = HandlerMap.find(type);
+ 	if((it != HandlerMap.end())&&((*it).second!= 0)) {
  		//get the handler ...
  		handler = (*it).second;
- 	}
- 	else
- 	{
+ 	} else {
+ 		throw std::runtime_error("No handler entry found; can't modify HandlerMap at runtime.");
+
  		//else, create a cache entry ...
- 		bool typeFound = true;
+ 		/*bool typeFound = true;
  		switch(type)
  		{
  		case MULTICAST:
@@ -65,7 +68,7 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::comm::NS3_Factory::getHandler(Mess
  		if(typeFound)
  		{
  			HandlerMap[type] = handler;
- 		}
+ 		}*/
  	}
 
  	return handler;
@@ -74,7 +77,7 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::comm::NS3_Factory::getHandler(Mess
 
 //creates a message with correct format + assigns correct handler
 //todo improve the function to handle array of messages stored in the input string
-void sim_mob::comm::NS3_Factory::createMessage(const std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
+void sim_mob::comm::NS3_Factory::createMessage(const std::string &input, std::vector<sim_mob::comm::MsgPtr>& output) const
 {
 	//	std::vector<msg_t> result;
 	//	 Print() << "inside RR_NS3_Factory::createMessage" << std::endl;
@@ -106,7 +109,7 @@ void sim_mob::comm::NS3_Factory::createMessage(const std::string &input, std::ve
 		}
 
  		Json::Value& curr_json = root[index];
- 		switch (MessageMap[messageHeader.msg_type]) {
+ 		switch (it->second) {
  		case MULTICAST:{
  			//create a message
  			sim_mob::comm::MsgPtr msg(new sim_mob::comm::NS3_MSG_MULTICAST(curr_json));

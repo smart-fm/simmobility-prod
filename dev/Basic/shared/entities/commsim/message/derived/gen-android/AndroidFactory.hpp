@@ -46,12 +46,12 @@ public:
 
 	//creates a message with correct format + assigns correct handler
 	//todo improve the function to handle array of messages stored in the input string
-	void createMessage(const std::string& input, std::vector<sim_mob::comm::MsgPtr>& output);
-
-	//gets a handler either from a cache or by creating a new one
-	boost::shared_ptr<sim_mob::Handler>  getHandler(MessageType);
+	void createMessage(const std::string& input, std::vector<sim_mob::comm::MsgPtr>& output) const;
 
 private:
+	//gets a handler either from a cache or by creating a new one
+	boost::shared_ptr<sim_mob::Handler>  getHandler(MessageType) const;
+
 	bool useNs3;
 };
 

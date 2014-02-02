@@ -25,7 +25,12 @@ sim_mob::roadrunner::RoadRunnerFactory::RoadRunnerFactory(bool useNs3) : useNs3(
 	MessageMap["REROUTE_REQUEST"] = REROUTE_REQUEST;
 	MessageMap["NEW_CLIENT"] = NEW_CLIENT;
 
-	//MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE)/*("ANNOUNCE",ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND)*/;
+	//This has to be done at creation time.
+	HandlerMap[MULTICAST] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::roadrunner::MulticastHandler(useNs3));
+	HandlerMap[UNICAST] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::roadrunner::UnicastHandler(useNs3));
+	HandlerMap[REMOTE_LOG] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::roadrunner::RemoteLogHandler());
+	HandlerMap[REROUTE_REQUEST] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::roadrunner::RerouteRequestHandler());
+	HandlerMap[NEW_CLIENT] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::roadrunner::NewClientHandler());
 }
 
 sim_mob::roadrunner::RoadRunnerFactory::~RoadRunnerFactory()
@@ -33,20 +38,19 @@ sim_mob::roadrunner::RoadRunnerFactory::~RoadRunnerFactory()
 
 
 
-boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RoadRunnerFactory::getHandler(MessageType type)
+boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RoadRunnerFactory::getHandler(MessageType type) const
 {
 	boost::shared_ptr<sim_mob::Handler> handler;
 	//if handler is already registered && the registered handler is not null
-	typename std::map<MessageType, boost::shared_ptr<sim_mob::Handler> >::iterator it = HandlerMap.find(type);
-	if((it != HandlerMap.end())&&((*it).second!= 0))
-	{
+	typename std::map<MessageType, boost::shared_ptr<sim_mob::Handler> >::const_iterator it = HandlerMap.find(type);
+	if((it != HandlerMap.end())&&((*it).second!= 0)) {
 		//get the handler ...
 		handler = (*it).second;
-	}
-	else
-	{
+	} else {
+ 		throw std::runtime_error("No handler entry found; can't modify HandlerMap at runtime.");
+
 		//else, create a cache entry ...
-		switch(type)
+		/*switch(type)
 		{
 		case MULTICAST:
 			handler.reset(new sim_mob::roadrunner::MulticastHandler(useNs3));
@@ -68,28 +72,29 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RoadRunnerFactory::get
 			throw std::runtime_error("Unknown handler.");
 		}
 		//register this baby
-		HandlerMap[type] = handler;
+		HandlerMap[type] = handler;*/
 	}
 
 	return handler;
 }
 
 
-void sim_mob::roadrunner::RoadRunnerFactory::createMessage(const std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
+void sim_mob::roadrunner::RoadRunnerFactory::createMessage(const std::string &input, std::vector<sim_mob::comm::MsgPtr>& output) const
 {
 	Json::Value root;
 	sim_mob::pckt_header packetHeader;
-	if(!sim_mob::JsonParser::parsePacketHeader(input, packetHeader, root))
-	{
+	if(!sim_mob::JsonParser::parsePacketHeader(input, packetHeader, root)) {
+		Warn() <<"RoadRunnerFactory::createMessage() cannot parse packet header.\n";
 		return;
 	}
-	if(!sim_mob::JsonParser::getPacketMessages(input,root))
-	{
+	if(!sim_mob::JsonParser::getPacketMessages(input,root)) {
+		Warn() <<"RoadRunnerFactory::createMessage() cannot parse packet message.\n";
 		return;
 	}
 	for (int index = 0; index < root.size(); index++) {
 		msg_header messageHeader;
 		if (!sim_mob::JsonParser::parseMessageHeader(root[index], messageHeader)) {
+			Warn() <<"RoadRunnerFactory::createMessage() cannot parse message header.\n";
 			continue;
 		}
 

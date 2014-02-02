@@ -216,8 +216,10 @@ protected:
 	sim_mob::ClientRegistrationPublisher registrationPublisher;
 	///	internal controlling container
 	std::set<const sim_mob::Agent*> duplicateEntityDoneChecker ;
-	///	internal controlling container
-	std::set<boost::shared_ptr<sim_mob::ConnectionHandler> > clientDoneChecker;
+
+	///As CLIENT_MESSAGES_DONE messages are received, their respective client handlers are added to this checker.
+	///When all clients have finished sending their messages, the time tick can advance.
+	std::set< boost::shared_ptr<sim_mob::ConnectionHandler> > clientDoneChecker;
 
 	///	some control members(//todo: no need to be static as there can be multiple brokers with different requirements)
 	static const unsigned int MIN_CLIENTS = 1; //minimum number of registered clients(not waiting list)
@@ -404,7 +406,7 @@ public:
 	/**
 	 * 	returns list of registered clients
 	 */
-	ClientList::Type & getClientList();
+	const ClientList::Type & getClientList();
 	/**
 	 *
 	 * 	searches for a client of specific ID and Type
@@ -485,10 +487,7 @@ protected:
 	 * 	wait for the registered agents to complete their tick
 	 */
 	void waitForAgentsUpdates();
-	/**
-	 * 	wait for a message from the client stating that they are done sending messages for this tick
-	 */
-	bool isClientDone(boost::shared_ptr<sim_mob::ClientHandler> &);
+
 	/**
 	 * 	wait for a message from all of the registered the client stating that they are done sending messages for this tick
 	 */

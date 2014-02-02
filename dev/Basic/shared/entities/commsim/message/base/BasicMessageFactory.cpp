@@ -17,7 +17,7 @@ sim_mob::BasicMessageFactory::~BasicMessageFactory()
 {}
 
 
-void sim_mob::BasicMessageFactory::createMessage(const std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
+void sim_mob::BasicMessageFactory::createMessage(const std::string &input, std::vector<sim_mob::comm::MsgPtr>& output) const
 {
 	Json::Value root;
 	sim_mob::pckt_header packetHeader;

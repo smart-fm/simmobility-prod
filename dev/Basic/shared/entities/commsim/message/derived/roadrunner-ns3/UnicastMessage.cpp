@@ -31,7 +31,7 @@ void sim_mob::rr_android_ns3::NS3_HDL_UNICAST::handle(sim_mob::comm::MsgPtr mess
 	boost::shared_ptr<sim_mob::ClientHandler> destClnHndlr;
 	sim_mob::comm::MsgData& jData = message_->getData();
 	int destAgentId = jData["RECEIVING_AGENT_ID"].asInt();
-	ClientList::Type & allClients = broker->getClientList();
+	const ClientList::Type & allClients = broker->getClientList();
 	ClientList::Pair clientTypes;
 	BOOST_FOREACH(clientTypes , allClients) {
 		// only the android emulators

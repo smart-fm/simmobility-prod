@@ -16,7 +16,9 @@ sim_mob::comm::AndroidFactory::AndroidFactory(bool useNs3) : useNs3(useNs3)
 	MessageMap["UNICAST"] = UNICAST;
 	MessageMap["CLIENT_MESSAGES_DONE"] = CLIENT_MESSAGES_DONE;
 
-	//MessageMap = boost::assign::map_list_of("MULTICAST", MULTICAST)("UNICAST", UNICAST)("CLIENT_MESSAGES_DONE",CLIENT_MESSAGES_DONE)/*("ANNOUNCE",ANNOUNCE)("KEY_REQUEST", KEY_REQUEST)("KEY_SEND",KEY_SEND)*/;
+	//This has to be done at creation time.
+	HandlerMap[MULTICAST] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::comm::MulticastHandler(useNs3));
+	HandlerMap[UNICAST] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::comm::UnicastHandler(useNs3));
 }
 
 sim_mob::comm::AndroidFactory::~AndroidFactory()
@@ -24,20 +26,19 @@ sim_mob::comm::AndroidFactory::~AndroidFactory()
 
 
 
-boost::shared_ptr<sim_mob::Handler>  sim_mob::comm::AndroidFactory::getHandler(MessageType type)
+boost::shared_ptr<sim_mob::Handler>  sim_mob::comm::AndroidFactory::getHandler(MessageType type) const
 {
 	boost::shared_ptr<sim_mob::Handler> handler;
 	//if handler is already registered && the registered handler is not null
-	typename std::map<MessageType, boost::shared_ptr<sim_mob::Handler> >::iterator it = HandlerMap.find(type);
-	if((it != HandlerMap.end())&&((*it).second!= 0))
-	{
+	typename std::map<MessageType, boost::shared_ptr<sim_mob::Handler> >::const_iterator it = HandlerMap.find(type);
+	if((it != HandlerMap.end())&&((*it).second!= 0)) {
 		//get the handler ...
 		handler = (*it).second;
-	}
-	else
-	{
+	} else {
+ 		throw std::runtime_error("No handler entry found; can't modify HandlerMap at runtime.");
+
 		//else, create a cache entry ...
-		bool typeFound = true;
+		/*bool typeFound = true;
 		switch(type)
 		{
 		case MULTICAST:
@@ -54,14 +55,14 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::comm::AndroidFactory::getHandler(M
 		if(typeFound)
 		{
 			HandlerMap[type] = handler;
-		}
+		}*/
 	}
 
 	return handler;
 }
 
 
-void sim_mob::comm::AndroidFactory::createMessage(const std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
+void sim_mob::comm::AndroidFactory::createMessage(const std::string &input, std::vector<sim_mob::comm::MsgPtr>& output) const
 {
 	Json::Value root;
 	sim_mob::pckt_header packetHeader;

@@ -94,7 +94,7 @@ void sim_mob::comm::MulticastHandler::handle(sim_mob::comm::MsgPtr message_,Brok
 	}
 
 	ClientList::Pair clientTypes;
-	ClientList::Type & all_clients = broker->getClientList();
+	const ClientList::Type & all_clients = broker->getClientList();
 	sim_mob::comm::MsgData recipients;
 	//iterate through all registered clients
 	BOOST_FOREACH(clientTypes , all_clients)

@@ -189,14 +189,19 @@ void sim_mob::Broker::configure() {
  */
 void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHandler, std::string input)
 {
+	//NOTE: Be careful; this function can be called multiple times by different "threads". Make sure you are locking where required.
+
 //TEMP
 Warn() <<"Message receive: ###" <<input <<"###\n";
 
 	//TODO: It does not make any sense to require knowledge of a ConnectionHandler's type.
-	boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > messageFactory = messageFactories[cnnHandler->getClientType()];
+	MessageFactories::Type::iterator msgFactIt = messageFactories.find(cnnHandler->getClientType());
+	if (msgFactIt==messageFactories.end()) {
+		throw std::runtime_error("Message factory type does not exist.");
+	}
 
 	std::vector<sim_mob::comm::MsgPtr> messages;
-	messageFactory->createMessage(input, messages);
+	msgFactIt->second->createMessage(input, messages);
 
 	for (std::vector<sim_mob::comm::MsgPtr>::iterator it = messages.begin(); it != messages.end(); it++) {
 		sim_mob::comm::MsgData& data = it->get()->getData();
@@ -320,16 +325,33 @@ size_t sim_mob::Broker::getClientWaitingListSize() const
 	return clientRegistrationWaitingList.size();
 }
 
-ClientList::Type& sim_mob::Broker::getClientList()
+const ClientList::Type& sim_mob::Broker::getClientList()
 {
 	return clientList;
 }
 
-bool sim_mob::Broker::getClientHandler(std::string clientId,
-		std::string clientType,
-		boost::shared_ptr<sim_mob::ClientHandler> &output) {
+bool sim_mob::Broker::getClientHandler(std::string clientId, std::string clientType, boost::shared_ptr<sim_mob::ClientHandler> &output)
+{
+	std::map<std::string, comm::ClientType>::iterator clientTypeIt = sim_mob::Services::ClientTypeMap.find(clientType);
+	if (clientTypeIt != sim_mob::Services::ClientTypeMap.end()) {
+		ClientList::Type::iterator innerIt = clientList.find(clientTypeIt->second);
+		if (innerIt != clientList.end()) {
+			ClientList::Value::iterator finalIt = innerIt->second.find(clientId);
+			if (finalIt != innerIt->second.end()) {
+				output = finalIt->second;
+				return true;
+			}
+		}
+	}
+
+	Warn() <<"Client " << clientId << " of type " << clientType << " not found" << std::endl;
+	return false;
+
+	//map::at() is only available in C++11. ~Seth
+	//Also, catching exceptions as a way of avoid "if" statements is bad form in C++.
+
 	//use try catch to use map's .at() and search only once
-	try {
+	/*try {
 		comm::ClientType clientType_ = sim_mob::Services::ClientTypeMap.at(clientType);
 		boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > & inner = clientList[clientType_];
 		try {
@@ -346,7 +368,7 @@ bool sim_mob::Broker::getClientHandler(std::string clientId,
 		return false;
 	}
 	//program never reaches here :)
-	return false;
+	return false;*/
 }
 
 void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType clientType, boost::shared_ptr<sim_mob::ClientHandler> &clientHandler)
@@ -902,14 +924,6 @@ void sim_mob::Broker::waitForAgentsUpdates() {
 	}
 }
 
-bool sim_mob::Broker::isClientDone(boost::shared_ptr<sim_mob::ClientHandler> &clnHandler) {
-	//note: there is no locking provided here as mutex_clientDone
-	//is already locked in the grand caller of this method: wotforclientdone()
-	if (clientDoneChecker.end() == clientDoneChecker.find(clnHandler->connHandle)) {
-		return false;
-	}
-	return true;
-}
 
 bool sim_mob::Broker::allClientsAreDone()
 {
@@ -927,8 +941,8 @@ bool sim_mob::Broker::allClientsAreDone()
 				//...and a valid connection handler.
 				if (clnHandler->connHandle && clnHandler->connHandle->isValid() && clnHandler->connHandle->is_open()) {
 					//...then check if we're not done.
-					if (!isClientDone(clnHandler)) {
-						Print() << "client type[" << clientByType.first << "] ID[" << clientByID.first << "] not done yet";
+					if (clientDoneChecker.find(clnHandler->connHandle) == clientDoneChecker.end()) {
+						Print() << "client type[" << clientByType.first << "] ID[" << clientByID.first << "] not done yet\n";
 						return false;
 					}
 				}

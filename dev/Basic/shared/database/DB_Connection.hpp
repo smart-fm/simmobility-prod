@@ -23,7 +23,6 @@ namespace sim_mob {
             SQL_SERVER//not implemented
         };
 
-        /*
 
         /** 
          * Class that represents an Database connection.

@@ -33,15 +33,15 @@ public:
 class AgentsList {
 public:
 	//easy reading only
-	typedef typename std::map<const sim_mob::Agent*, AgentInfo> type;//this one is for public use
+	typedef std::map<const sim_mob::Agent*, AgentInfo> type;//this one is for public use
 
 private:
 	//the main storage
 	type data;
 
 public:
-	typedef typename  boost::recursive_mutex Mutex;
-	typedef typename boost::unique_lock<Mutex> Lock;
+	typedef boost::recursive_mutex Mutex;
+	typedef boost::unique_lock<Mutex> Lock;
 	mutable Mutex mutex;
 
 	///function to insert into the container (only checkes the unqueness of agent)

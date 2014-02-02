@@ -372,11 +372,11 @@ public:
 
 };
 
-inline std::string makeWaypointsetString(std::vector<WayPoint>& wp);
+std::string makeWaypointsetString(std::vector<WayPoint>& wp);
 std::string getNumberFromAimsunId(std::string &aimsunid);
 std::vector<WayPoint*> convertWaypoint2Point(std::vector<WayPoint> wp);
 std::vector<WayPoint> convertWaypointP2Wp(std::vector<WayPoint*> wp);
-inline double generateSinglePathLength(std::vector<WayPoint*>& wp); // unit is meter
+double generateSinglePathLength(std::vector<WayPoint*>& wp); // unit is meter
 //inline void generatePathSizeForPathSet(sim_mob::PathSet *ps);
 inline void generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCatch=true);
 inline std::map<const RoadSegment*,WayPoint> generateSegPathByWaypointPath(std::vector<WayPoint>& wp);
@@ -384,7 +384,7 @@ inline std::map<const RoadSegment*,WayPoint*> generateSegPathByWaypointPathP(std
 
 inline int calculateRightTurnNumberByWaypoints(std::map<const RoadSegment*,WayPoint>& segWp);
 inline size_t getLaneIndex2(const Lane* l);
-inline void calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::SinglePath *sp);
+void calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::SinglePath *sp);
 inline float gen_random_float(float min, float max)
 {
     boost::mt19937 rng;

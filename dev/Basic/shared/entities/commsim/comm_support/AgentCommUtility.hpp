@@ -29,10 +29,12 @@ namespace sim_mob {
 class Agent;
 
 class AgentCommUtilityBase {
-private:
+protected:
 	//the following flags allow access to the incoming and outgoing buffers by bothe owner(communicating agent) and communicator agent without imposing any lock on the buffers
 	bool incomingIsDirty;     //there is something in the incoming buffer (buffer is written by 'communicator' agent; to be read by the 'communicating' agent)
 	bool outgoingIsDirty;		//there is something in the outgoing buffer (buffer is written by 'communicating' agent; to be read by the 'communicator' agent)
+
+private:
 
 	bool writeIncomingDone;//the 'communicator' agent updated/write_to the incoming buffer of the 'communicating' agent
 	bool readOutgoingDone;//the 'communicator' agent  read the outgoing buffer of the 'communicating' agent

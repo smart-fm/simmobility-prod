@@ -217,9 +217,17 @@ protected:
 	///	internal controlling container
 	std::set<const sim_mob::Agent*> duplicateEntityDoneChecker ;
 
-	///As CLIENT_MESSAGES_DONE messages are received, their respective client handlers are added to this checker.
-	///When all clients have finished sending their messages, the time tick can advance.
-	std::set< boost::shared_ptr<sim_mob::ConnectionHandler> > clientDoneChecker;
+	///Helper struct for client checking (below)
+	struct ConnClientStatus {
+		int total;
+		int done;
+		ConnClientStatus() : total(0), done(0) {}
+	};
+
+	///This map tracks the number of ClientHandlers connected per ConnectionHandler, as well as the number (per tick)
+	///  that have already sent the CLIENT_MESSAGES_DONE message. It is locked by its associated mutex.
+	std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, ConnClientStatus> clientDoneChecklist;
+	boost::mutex mutex_client_done_chk;
 
 	///	some control members(//todo: no need to be static as there can be multiple brokers with different requirements)
 	static const unsigned int MIN_CLIENTS = 1; //minimum number of registered clients(not waiting list)
@@ -356,14 +364,6 @@ public:
 	void AgentUpdated(Agent *);
 	~Broker();
 
-
-	///Retrieve the connection server (used to shoehorn in new clients.
-	///NOTE: This is VERY RISKY; it might be a better idea to intercept "NEW_CLIENT" messages
-	///      in Broker and have the Broker force the new connection, rather than going through
-	///      a NewClientHandler.
-	//boost::shared_ptr<sim_mob::ConnectionServer> getConnectionServer();
-
-
 	//	enable broker
 	void enable();
 	/**
@@ -395,10 +395,6 @@ public:
 	 */
 	void unRegisterEntity(sim_mob::Agent * agent);
 
-	/**
-	 * 	returns list of clients waiting to be admitted as registered clients
-	 */
-	//ClientWaitList & getClientWaitingList();
 
 	///Returns the size of the list of clients waiting to be admitted as registered clients.
 	size_t getClientWaitingListSize() const;

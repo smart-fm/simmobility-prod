@@ -209,7 +209,18 @@ Warn() <<"Message receive: ###" <<input <<"###\n";
 
 		if (type == "CLIENT_MESSAGES_DONE") {
 			boost::unique_lock<boost::mutex> lock(mutex_clientDone);
-			clientDoneChecker.insert(cnnHandler);
+			{
+			boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
+			std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, ConnClientStatus>::iterator chkIt = clientDoneChecklist.find(cnnHandler);
+			if (chkIt==clientDoneChecklist.end()) {
+				throw std::runtime_error("Unexpected client/connection mapping.");
+			}
+			chkIt->second.done++;
+			} //mutex_client_done_chk unlocks
+
+			Print() << "connection [" <<&(*cnnHandler) << "] DONE\n";
+
+
 			COND_VAR_CLIENT_DONE.notify_one();
 		} else if (type == "WHOAMI") {
 			//Retrieve the next available connection.
@@ -373,8 +384,16 @@ bool sim_mob::Broker::getClientHandler(std::string clientId, std::string clientT
 
 void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType clientType, boost::shared_ptr<sim_mob::ClientHandler> &clientHandler)
 {
+	{
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 	clientList[clientType][clientID] = clientHandler;
+	}
+
+	Print() << "connection [" <<&(*clientHandler->connHandle) << "] +1 client\n";
+
+	//+1 client for this connection.
+	boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
+	clientDoneChecklist[clientHandler->connHandle].total++;
 }
 
 void sim_mob::Broker::insertIntoWaitingOnWHOAMI(boost::shared_ptr<sim_mob::ConnectionHandler> newConn)
@@ -940,9 +959,16 @@ bool sim_mob::Broker::allClientsAreDone()
 			if (clnHandler && clnHandler->isValid()) {
 				//...and a valid connection handler.
 				if (clnHandler->connHandle && clnHandler->connHandle->isValid() && clnHandler->connHandle->is_open()) {
-					//...then check if we're not done.
-					if (clientDoneChecker.find(clnHandler->connHandle) == clientDoneChecker.end()) {
-						Print() << "client type[" << clientByType.first << "] ID[" << clientByID.first << "] not done yet\n";
+					//Check if this connection's "done" count equals its "total" known agent count.
+					//TODO: This actually checks the same connection handler multiple times if connections are multiplexed
+					//      (one for each ClientHandler). This is harmless, but inefficient.
+					boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
+					std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, ConnClientStatus>::iterator chkIt = clientDoneChecklist.find(clnHandler->connHandle);
+					if (chkIt==clientDoneChecklist.end()) {
+						throw std::runtime_error("Client somehow registered without a valid connection handler.");
+					}
+					if (chkIt->second.done < chkIt->second.total) {
+						Print() << "connection [" <<&(*clnHandler->connHandle) << "] not done yet: " <<chkIt->second.done <<" of " <<chkIt->second.total <<"\n";
 						return false;
 					}
 				}
@@ -1042,7 +1068,14 @@ void sim_mob::Broker::cleanup()
 {
 	//for internal use
 	duplicateEntityDoneChecker.clear();
-	clientDoneChecker.clear();
+
+	//clientDoneChecker.clear();
+	boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
+	std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, ConnClientStatus>::iterator chkIt = clientDoneChecklist.begin();
+	for (;chkIt!=clientDoneChecklist.end(); chkIt++) {
+		chkIt->second.done = 0;
+	}
+
 	return;
 
 	//note:this part is supposed to delete clientList entries for the dead agents

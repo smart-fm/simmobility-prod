@@ -188,12 +188,7 @@ void sim_mob::Broker::configure() {
  * (remember that a message object carries a reference to its handler also(except for "CLIENT_MESSAGES_DONE" messages)
  */
 void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler> cnnHandler, std::string input)
-{
-	//NOTE: Be careful; this function can be called multiple times by different "threads". Make sure you are locking where required.
-
-//TEMP
-Warn() <<"Message receive: ###" <<input <<"###\n";
-
+{ //NOTE: Be careful; this function can be called multiple times by different "threads". Make sure you are locking where required.
 	//TODO: It does not make any sense to require knowledge of a ConnectionHandler's type.
 	MessageFactories::Type::iterator msgFactIt = messageFactories.find(cnnHandler->getClientType());
 	if (msgFactIt==messageFactories.end()) {

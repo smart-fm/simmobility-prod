@@ -87,9 +87,8 @@ void sim_mob::ConnectionHandler::messageSentHandle(const boost::system::error_co
 
 	//Typically, we would listen for an incoming message here. We have to make sure we are not waiting on a write-lock, however.
 	boost::unique_lock<boost::mutex> lock(async_read_mutex);
-	if (isAsyncRead) {
-		pendingReads += 1;
-	} else {
+	pendingReads += 1;
+	if (!isAsyncRead) {
 		isAsyncRead = true;
 		readMessage();
 	}

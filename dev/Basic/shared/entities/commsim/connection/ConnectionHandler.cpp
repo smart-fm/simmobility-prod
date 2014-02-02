@@ -43,6 +43,7 @@ void sim_mob::ConnectionHandler::forwardMessage(std::string str)
 {
 	//Send or pend, depending on whether we are in the middle of an existing call to write() or not.
 	boost::unique_lock<boost::mutex> lock(async_write_mutex);
+
 	if (isAsyncWrite) {
 		pendingMsg.push_front(str);
 	} else {
@@ -90,6 +91,7 @@ void sim_mob::ConnectionHandler::messageSentHandle(const boost::system::error_co
 	if (isAsyncRead) {
 		pendingReads += 1;
 	} else {
+		isAsyncRead = true;
 		readMessage();
 	}
 }

@@ -74,13 +74,13 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(bo
 	BOOST_FOREACH(srv, request.requiredServices) {
 		switch (srv) {
 			case sim_mob::Services::SIMMOB_SRV_TIME:
-				publisher.subscribe(COMMEID_TIME, clientEntry.get(), &ClientHandler::sendJsonToBroker);
+				publisher.subscribe(COMMEID_TIME, clientEntry.get(), &ClientHandler::sendJsonToBroker, clientEntry->agent);
 				break;
 			case sim_mob::Services::SIMMOB_SRV_LOCATION:
-				publisher.subscribe(COMMEID_LOCATION, clientEntry.get(), &ClientHandler::sendJsonToBroker);
+				publisher.subscribe(COMMEID_LOCATION, clientEntry.get(), &ClientHandler::sendJsonToBroker, clientEntry->agent);
 				break;
 			case sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH:
-				publisher.subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(), &ClientHandler::sendJsonToBroker);
+				publisher.subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(), &ClientHandler::sendJsonToBroker, clientEntry->agent);
 				break;
 			default:
 				Warn() <<"Android client requested service which could not be provided.\n"; break;

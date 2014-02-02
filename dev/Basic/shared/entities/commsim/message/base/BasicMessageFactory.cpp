@@ -43,7 +43,6 @@ void sim_mob::BasicMessageFactory::createMessage(const std::string &input, std::
 		//Create the message
 		const Json::Value& curr_json = root[index];
 		sim_mob::comm::MsgPtr msg(new WhoAmIMessage(curr_json));
-		//... and then assign the handler pointer to message's member
 		output.push_back(msg);
 	}
 }

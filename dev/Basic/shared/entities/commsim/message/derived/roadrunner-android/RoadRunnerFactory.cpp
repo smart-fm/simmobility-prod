@@ -10,6 +10,7 @@
 #include "entities/commsim/message/derived/roadrunner-android/RerouteRequestHandler.hpp"
 #include "entities/commsim/message/derived/roadrunner-android/NewClientMessage.hpp"
 #include "entities/commsim/message/derived/roadrunner-android/NewClientHandler.hpp"
+#include "entities/commsim/message/base/WhoAmIMessage.hpp"
 
 using namespace sim_mob;
 
@@ -24,6 +25,7 @@ sim_mob::roadrunner::RoadRunnerFactory::RoadRunnerFactory(bool useNs3) : useNs3(
 	MessageMap["REMOTE_LOG"] = REMOTE_LOG;
 	MessageMap["REROUTE_REQUEST"] = REROUTE_REQUEST;
 	MessageMap["NEW_CLIENT"] = NEW_CLIENT;
+	MessageMap["WHOAMI"] = WHOAMI;
 
 	//This has to be done at creation time.
 	HandlerMap[MULTICAST] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::roadrunner::MulticastHandler(useNs3));
@@ -146,6 +148,12 @@ void sim_mob::roadrunner::RoadRunnerFactory::createMessage(const std::string &in
 		case NEW_CLIENT: {
 			sim_mob::comm::MsgPtr msg(new sim_mob::roadrunner::NewClientMessage(curr_json));
 			msg->setHandler(getHandler(NEW_CLIENT));
+			output.push_back(msg);
+			break;
+		}
+		case WHOAMI: {
+			//No handler for this message type.
+			sim_mob::comm::MsgPtr msg(new sim_mob::WhoAmIMessage(curr_json));
 			output.push_back(msg);
 			break;
 		}

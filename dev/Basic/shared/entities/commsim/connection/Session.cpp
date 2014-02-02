@@ -28,57 +28,27 @@ bool sim_mob::Session::isOpen() const
 	return socket_.is_open();
 }
 
-bool sim_mob::Session::makeWriteBuffer(std::string &input, std::vector<boost::asio::const_buffer> &output, boost::system::error_code &ec)
+std::string sim_mob::Session::MakeWriteBuffer(const std::string &input)
 {
 	// Format the header.
 	std::ostringstream header_stream;
-	header_stream << std::setw(header_length) << std::hex << input.size();
+	header_stream <<std::setw(header_length) <<std::hex <<input.size();
 	if (!header_stream || header_stream.str().size() != header_length) {
-		// Something went wrong, inform the caller.
-		ec = boost::system::error_code(boost::asio::error::invalid_argument);
-		return false;
+		throw std::runtime_error("MakeWriteBuffer: unexpected.");
 	}
-	outbound_header_ = header_stream.str(); //not used
 
-	output.push_back(boost::asio::buffer(outbound_header_));
-	output.push_back(boost::asio::buffer(input));
-	return true;
+	//Done.
+	return header_stream.str();
 }
 
-bool sim_mob::Session::write(std::string &input, boost::system::error_code &ec)
+bool sim_mob::Session::write(const std::string &input, boost::system::error_code &ec)
 {
-	boost::system::error_code ec_;
 	std::vector<boost::asio::const_buffer> buffers;
-	makeWriteBuffer(input, buffers, ec_);
-	ec = ec_;
-	if (ec_) {
-		return false;
-	}
+	outbound_header_ = MakeWriteBuffer(input);
+	buffers.push_back(boost::asio::buffer(outbound_header_));
+	buffers.push_back(boost::asio::buffer(input));
 
-	boost::asio::write(socket_, buffers, ec_);
-	ec = ec_;
-	if (ec_) {
-		return false;
-	}
-	return true;
+	boost::asio::write(socket_, buffers, ec);
+	return !ec;
 }
 
-/*bool sim_mob::Session::write(std::string &input)
-{
-	boost::system::error_code ec_;
-	std::vector<boost::asio::const_buffer> buffers;
-	makeWriteBuffer(input, buffers, ec_);
-	if (ec_) {
-		return false;
-	}
-
-	boost::asio::write(socket_, buffers, ec_);
-	if (ec_) {
-		return false;
-	}
-	return true;
-}
-
-
-
-*/

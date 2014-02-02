@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <string>
 #include <sstream>
+#include <stdexcept>
 #include <vector>
 #include "logging/Log.hpp"
 
@@ -41,32 +42,30 @@ public:
 	bool isOpen() const;
 
 	//Write data immediately to the underlying socket. WARNING: Almost never do this! Use the async functions.
-	bool write(std::string &input, boost::system::error_code &ec);
+	bool write(const std::string &input, boost::system::error_code &ec);
 
 	/// Asynchronously write a data structure to the socket.
 	template <typename Handler>
-	void async_write(std::string &data, Handler handler);
+	void async_write(const std::string &data, Handler handler);
 
 	/// Asynchronously read a data structure from the socket.
 	template <typename Handler>
 	void async_read(std::string &input, Handler handler);
 
 private:
+	static std::string MakeWriteBuffer(const std::string &input);
 
-	bool makeWriteBuffer(std::string &input, std::vector<boost::asio::const_buffer> &output, boost::system::error_code &ec);
-
-//	bool write(std::string &input);
 
 	/// Handle a completed read of a message header. The handler is passed using
 	/// a tuple since boost::bind seems to have trouble binding a function object
 	/// created using boost::bind as a parameter.
 	template <typename Handler>
-	void handle_read_header(const boost::system::error_code& e,/*std::vector<char>*t*/std::string &input, boost::tuple<Handler> handler);
+	void handle_read_header(const boost::system::error_code& e,std::string &input, boost::tuple<Handler> handler);
 
 
 	/// Handle a completed read of message data.
 	template <typename Handler>
-	void handle_read_data(const boost::system::error_code& e,/*std::vector<char> * t*/std::string &input, boost::tuple<Handler> handler);
+	void handle_read_data(const boost::system::error_code& e,std::string &input, boost::tuple<Handler> handler);
 
 private:
 	/// The underlying socket.
@@ -93,18 +92,10 @@ private:
 ///////////////////////////////////////////////////////
 
 template <typename Handler>
-void sim_mob::Session::async_write(std::string &data, Handler handler)
+void sim_mob::Session::async_write(const std::string &data, Handler handler)
 {
 	// Format the header.
-	std::ostringstream header_stream;
-	header_stream << std::setw(header_length) << std::hex << data.size();
-	if (!header_stream || header_stream.str().size() != header_length) {
-		// Something went wrong, inform the caller.
-		boost::system::error_code error(boost::asio::error::invalid_argument);
-		socket_.get_io_service().post(boost::bind(handler, error));
-		return;
-	}
-	outbound_header_ = header_stream.str(); //not used
+	outbound_header_ = MakeWriteBuffer(data);
 
 	std::vector<boost::asio::const_buffer> buffers;
 	buffers.push_back(boost::asio::buffer(outbound_header_));
@@ -119,7 +110,7 @@ void sim_mob::Session::async_read(std::string &input, Handler handler)
 	input.clear();
 
 	// Issue a read operation to read exactly the number of bytes in a header.
-	void (Session::*f)(const boost::system::error_code&,/*std::vector<char>*,*/ std::string &, boost::tuple<Handler>) = &Session::handle_read_header<Handler>;
+	void (Session::*f)(const boost::system::error_code&, std::string &, boost::tuple<Handler>) = &Session::handle_read_header<Handler>;
 	boost::asio::async_read(socket_, boost::asio::buffer(inbound_header_),boost::bind(f,shared_from_this(), boost::asio::placeholders::error,boost::ref(input)/*, t*/,boost::make_tuple(handler)));
 }
 
@@ -140,13 +131,13 @@ void sim_mob::Session::handle_read_header(const boost::system::error_code& e,/*s
 		}
 		inbound_data_.resize(inbound_data_size);
 
-		void (Session::*f)(const boost::system::error_code&,/*std::vector<char>**/std::string &, boost::tuple<Handler>) = &Session::handle_read_data<Handler>;
+		void (Session::*f)(const boost::system::error_code&, std::string &, boost::tuple<Handler>) = &Session::handle_read_data<Handler>;
 		boost::asio::async_read(socket_, boost::asio::buffer(inbound_data_),boost::bind(f, shared_from_this(),boost::asio::placeholders::error, /*t,*/ boost::ref(input), handler));
 	}
 }
 
 template <typename Handler>
-void sim_mob::Session::handle_read_data(const boost::system::error_code& e,/*std::vector<char> * t*/std::string &input, boost::tuple<Handler> handler) {
+void sim_mob::Session::handle_read_data(const boost::system::error_code& e, std::string &input, boost::tuple<Handler> handler) {
 	if(e) {
 		boost::get<0>(handler)(e);
 	} else {

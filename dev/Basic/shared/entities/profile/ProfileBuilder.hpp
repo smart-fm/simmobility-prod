@@ -222,6 +222,7 @@ private:
 
 	static std::string GetCurrentTime();
 
+public:
 	void flushLogFile();
 	//void logAuraMgrUpdateGeneric(const AuraManager& auraMgr, const std::string& action, uint32_t currFrame, const std::string& message="");
 	//void logWorkerUpdateGeneric(const Worker& wrk, const std::string& action, uint32_t currFrame, const std::string& message="", size_t numAgents=0);

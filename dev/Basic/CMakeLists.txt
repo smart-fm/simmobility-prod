@@ -228,6 +228,7 @@ option(SIMMOB_PROFILE_ON "Turn on profiling. If this flag is off, all SIMMOB_PRO
 option(SIMMOB_PROFILE_AGENT_UPDATES "Log all Agent update ticks per thread and start time. Useful for debugging parallelization errors, but very slow." OFF)
 option(SIMMOB_PROFILE_WORKER_UPDATES "Log all Worker update ticks, including start and end time. This can be used to measure the real-world cost of threading, but is only likely accurate if frame ticks are relatively large (~100ms). Also very slow." OFF)
 option(SIMMOB_PROFILE_AURAMGR "Log the time taken to update the Aura Manager's spatial index. Usually combined with PROFILE_WORKER_UPDATES. Can be slow." OFF)
+option(SIMMOB_PROFILE_COMMSIM "Log the various stages of the Broker's update phase, including network communication and waiting on Agents. Can be slow." OFF) 
 
 #Option: interactive mode flag (for the GUI)
 option(SIMMOB_INTERACTIVE_MODE "Force Sim Mobility to synchronize interactively with the GUI or console." OFF)

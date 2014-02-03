@@ -42,6 +42,78 @@
   #define PROFILE_LOG_AGENT_UPDATE_END(wrkprov, agent, now) DO_NOTHING
 #endif
 
+///Helper macro: call wrkprov->getProfileBuilder()->logCommsimUpdateBegin(agent, now)
+///Performs no processing if SIMMOB_PROFILE_COMMSIM_UPDATES or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM_UPDATES)
+  #define PROFILE_LOG_COMMSIM_UPDATE_BEGIN(wrkprov, agent, now) \
+		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimUpdateBegin(agent, now); }
+#else
+  #define PROFILE_LOG_COMMSIM_UPDATE_BEGIN(wrkprov, agent, now) DO_NOTHING
+#endif
+
+///Helper macro: call wrkprov->getProfileBuilder()->logCommsimUpdateEnd(agent, now)
+///Performs no processing if SIMMOB_PROFILE_COMMSIM_UPDATES or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM_UPDATES)
+  #define PROFILE_LOG_COMMSIM_UPDATE_END(wrkprov, agent, now) \
+          if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimUpdateEnd(agent, now); }
+#else
+  #define PROFILE_LOG_COMMSIM_UPDATE_END(wrkprov, agent, now) DO_NOTHING
+#endif
+
+///Helper macro: call wrkprov->getProfileBuilder()->logCommsimLocalComputeBegin(agent, now, numAgents)
+///Performs no processing if SIMMOB_PROFILE_COMMSIM_UPDATES or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM_UPDATES)
+  #define PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_BEGIN(wrkprov, agent, now, numAgents) \
+		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimLocalComputeBegin(agent, now, numAgents); }
+#else
+  #define PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_BEGIN(wrkprov, agent, now, numAgents) DO_NOTHING
+#endif
+
+///Helper macro: call wrkprov->getProfileBuilder()->logCommsimLocalComputeEnd(agent, now, numAgents)
+///Performs no processing if SIMMOB_PROFILE_COMMSIM_UPDATES or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM_UPDATES)
+  #define PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_END(wrkprov, agent, now, numAgents) \
+          if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimLocalComputeEnd(agent, now, numAgents); }
+#else
+  #define PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_END(wrkprov, agent, now, numAgents) DO_NOTHING
+#endif
+
+///Helper macro: call wrkprov->getProfileBuilder()->logCommsimMixedComputeBegin(agent, now, numAgents)
+///Performs no processing if SIMMOB_PROFILE_COMMSIM_UPDATES or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM_UPDATES)
+  #define PROFILE_LOG_COMMSIM_MIXED_COMPUTE_BEGIN(wrkprov, agent, now, numAgents) \
+		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimMixedComputeBegin(agent, now, numAgents); }
+#else
+  #define PROFILE_LOG_COMMSIM_MIXED_COMPUTE_BEGIN(wrkprov, agent, now, numAgents) DO_NOTHING
+#endif
+
+///Helper macro: call wrkprov->getProfileBuilder()->logCommsimMixedComputeEnd(agent, now, numAgents)
+///Performs no processing if SIMMOB_PROFILE_COMMSIM_UPDATES or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM_UPDATES)
+  #define PROFILE_LOG_COMMSIM_MIXED_COMPUTE_END(wrkprov, agent, now, numAgents) \
+          if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimMixedComputeEnd(agent, now, numAgents); }
+#else
+  #define PROFILE_LOG_COMMSIM_MIXED_COMPUTE_END(wrkprov, agent, now, numAgents) DO_NOTHING
+#endif
+
+///Helper macro: call wrkprov->getProfileBuilder()->logCommsimAndroidComputeBegin(agent, now)
+///Performs no processing if SIMMOB_PROFILE_COMMSIM_UPDATES or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM_UPDATES)
+  #define PROFILE_LOG_COMMSIM_ANDROID_COMPUTE_BEGIN(wrkprov, agent, now) \
+		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimAndroidComputeBegin(agent, now); }
+#else
+  #define PROFILE_LOG_COMMSIM_ANDROID_COMPUTE_BEGIN(wrkprov, agent, now) DO_NOTHING
+#endif
+
+///Helper macro: call wrkprov->getProfileBuilder()->logCommsimAndroidComputeEnd(agent, now)
+///Performs no processing if SIMMOB_PROFILE_COMMSIM_UPDATES or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM_UPDATES)
+  #define PROFILE_LOG_COMMSIM_ANDROID_COMPUTE_END(wrkprov, agent, now) \
+          if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimAndroidComputeEnd(agent, now); }
+#else
+  #define PROFILE_LOG_COMMSIM_ANDROID_COMPUTE_END(wrkprov, agent, now) DO_NOTHING
+#endif
+
 ///Helper macro: call wrkprov->getProfileBuilder()->logAgentException(agent, now, ex);
 ///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
 /*#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
@@ -51,7 +123,7 @@
   #define PROFILE_LOG_AGENT_EXCEPTION(wrkprov, agent, now, ex) DO_NOTHING
 #endif*/
 
-///Helper macro: call profie.logWorkerUpdateBegin(wrk, currFrame)
+///Helper macro: call profie.logWorkerUpdateBegin(wrk, currFrame, numAgents)
 ///Performs no processing if SIMMOB_PROFILE_WORKER_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_WORKER_UPDATES)
   #define PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, wrk, currFrame, numAgents) \
@@ -203,6 +275,21 @@ public:
 //	void logAgentDeleted(const Agent* ag);
 //	void logAgentException(const Agent* ag, timeslice now, const std::exception& ex);
 
+	//Commsim-related log items.
+	//"Local" computations are on the Sim Mobility server, while "Android" are on the clients.
+	//"Mixed" computations cover packet buffering (the first of which triggers an Android client to continue),
+	//        so they should be considered mostly "Android"-level.
+	//numAgents should remain constant through all of these, but we re-calculate it for Mixed compute in
+	//        case it is incorrect for Local (so use Mixed if the values differ).
+	void logCommsimUpdateBegin(const Agent* ag, timeslice now);
+	void logCommsimUpdateEnd(const Agent* ag, timeslice now);
+	void logCommsimLocalComputeBegin(const Agent* ag, timeslice now, size_t numAgents);
+	void logCommsimLocalComputeEnd(const Agent* ag, timeslice now, size_t numAgents);
+	void logCommsimMixedComputeBegin(const Agent* ag, timeslice now, size_t numAgents);
+	void logCommsimMixedComputeEnd(const Agent* ag, timeslice now, size_t numAgents);
+	void logCommsimAndroidComputeBegin(const Agent* ag, timeslice now);
+	void logCommsimAndroidComputeEnd(const Agent* ag, timeslice now);
+
 	void logQueryStart(const Agent* ag, timeslice now);
 	void logQueryEnd(const Agent* ag, timeslice now);
 
@@ -245,6 +332,14 @@ private:
 	LogItem WorkerEndLogItem;
 	LogItem AgentStartLogItem;
 	LogItem AgentEndLogItem;
+	LogItem CommsimStartLogItem;
+	LogItem CommsimEndLogItem;
+	LogItem CommsimLocalComputeStartLogItem;
+	LogItem CommsimLocalComputeEndLogItem;
+	LogItem CommsimMixedComputeStartLogItem;
+	LogItem CommsimMixedComputeEndLogItem;
+	LogItem CommsimAndroidComputeStartLogItem;
+	LogItem CommsimAndroidComputeEndLogItem;
 	LogItem QueryStartLogItem;
 	LogItem QueryEndLogItem;
 };

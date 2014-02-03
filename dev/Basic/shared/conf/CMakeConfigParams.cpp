@@ -95,6 +95,18 @@ bool sim_mob::CMakeConfigParams::ProfileAuraMgrUpdates(bool accountForOnFlag) co
 #endif
 }
 
+bool sim_mob::CMakeConfigParams::ProfileCommsimUpdates(bool accountForOnFlag) const
+{
+#ifdef SIMMOB_PROFILE_COMMSIM
+	if (accountForOnFlag) {
+		return ProfileOn();
+	}
+	return true;
+#else
+	return false;
+#endif
+}
+
 
 bool sim_mob::CMakeConfigParams::UsingConfluxes() const
 {

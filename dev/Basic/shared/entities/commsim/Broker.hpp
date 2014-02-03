@@ -318,10 +318,15 @@ protected:
 	 * current tick or not.
 	 */
 	bool allAgentUpdatesDone();
+
+	///Return the number of registered agents.
+	size_t getRegisteredAgentsSize();
+
 	/**
 	 * internal cleanup at each tick
 	 */
 	void cleanup();
+
 	/**
 	 * 	handlers executed when an agent is going out of simulation(die)
 	 * The number and order of arguments are as per EventPublisher guidelines.

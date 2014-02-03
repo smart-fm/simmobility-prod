@@ -396,6 +396,9 @@ void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType cl
 	}
 
 	//+1 client for this connection.
+	//TODO: We never decrement the total count (but the simulator seems to proceed fine).
+	//      I am fairly sure this is a bug, but since the simulator doesn't freeze then
+	//      I'm not sure how to debug it. We should re-visit this later. ~Seth
 	boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
 	clientDoneChecklist[clientHandler->connHandle].total++;
 }
@@ -556,7 +559,7 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent * agent)
 }
 
 void sim_mob::Broker::processIncomingData(timeslice now) {
-	//just pop off the message queue and click handl ;)
+	//just pop off the message queue and click handle ;)
 	MessageElement msgTuple;
 	while (receiveQueue.pop(msgTuple)) {
 		sim_mob::comm::MsgPtr &msg = msgTuple.msg;
@@ -591,6 +594,12 @@ bool sim_mob::Broker::allAgentUpdatesDone()
 		}
 	}
 	return res;*/
+}
+
+size_t sim_mob::Broker::getRegisteredAgentsSize()
+{
+	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
+	return REGISTERED_AGENTS.size();
 }
 
 void sim_mob::Broker::agentUpdated(const Agent* target ){
@@ -953,8 +962,6 @@ bool sim_mob::Broker::wait() {
 }
 
 void sim_mob::Broker::waitForAgentsUpdates() {
-	int i = 0;
-
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
 	while(!allAgentUpdatesDone()) {
 		if (EnableDebugOutput) {

@@ -53,6 +53,10 @@ public:
 	///If "accountForOnFlag" is false, *only* the cmake define flag is checked.
 	bool ProfileAuraMgrUpdates(bool accountForOnFlag=true) const;
 
+	///Synced to the value of SIMMOB_PROFILE_COMMSIM; used for runtime checks.
+	///If "accountForOnFlag" is false, *only* the cmake define flag is checked.
+	bool ProfileCommsimUpdates(bool accountForOnFlag=true) const;
+
 	///Synced to the value of SIMMOB_USE_CONFLUXES; used for runtime checks.
 	bool UsingConfluxes() const;
 

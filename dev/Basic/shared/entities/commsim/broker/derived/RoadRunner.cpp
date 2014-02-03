@@ -19,6 +19,7 @@
 #include "entities/commsim/client/derived/ns3/NS3ClientRegistration.hpp"
 
 #include "geospatial/RoadRunnerRegion.hpp"
+#include "entities/profile/ProfileBuilder.hpp"
 
 //todo :temprorary
 #include "entities/commsim/message/base/BasicMessageFactory.hpp"
@@ -170,6 +171,8 @@ sim_mob::Entity::UpdateStatus sim_mob::Roadrunner_Broker::update(timeslice now) 
 		Print() << "Broker tick:" << now.frame() << std::endl;
 	}
 
+	PROFILE_LOG_COMMSIM_UPDATE_BEGIN(currWorkerProvider, this, now);
+
 	//step-1 : Create/start the thread if this is the first frame.
 	//TODO: transfer this to frame_init
 	if (now.frame() == 0) {
@@ -183,14 +186,15 @@ sim_mob::Entity::UpdateStatus sim_mob::Roadrunner_Broker::update(timeslice now) 
 	//Step-2: Ensure that we have enough clients to process
 	//(in terms of client type (like ns3, android emulator, etc) and quantity(like enough number of android clients) ).
 	//Block the simulation here(if you have to)
-	wait();
-//	return UpdateStatus(UpdateStatus::RS_CONTINUE);
+	wait(); //Not profiled; this will only likely happen once.
 
 	if (EnableDebugOutput) {
 		Print() << "===================== wait Done =======================================\n";
 	}
 
 	//step-3: Process what has been received in your receive container(message queue perhaps)
+	size_t numAgents = getRegisteredAgentsSize();
+	PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_BEGIN(currWorkerProvider, this, now, numAgents);
 	processIncomingData(now);
 	if (EnableDebugOutput) {
 		Print() << "===================== processIncomingData Done =======================================\n";
@@ -211,9 +215,15 @@ sim_mob::Entity::UpdateStatus sim_mob::Roadrunner_Broker::update(timeslice now) 
 
 //	step-5.5:for each client, append a message at the end of all messages saying Broker is ready to receive your messages
 	sendReadyToReceive();
+	PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_END(currWorkerProvider, this, now, numAgents);
+
+	//This may have changed (or we should at least log if it did).
+	numAgents = getRegisteredAgentsSize();
 
 	//step-6: Now send all what has been prepared, by different sources, to their corresponding destications(clients)
+	PROFILE_LOG_COMMSIM_MIXED_COMPUTE_BEGIN(currWorkerProvider, this, now, numAgents);
 	processOutgoingData(now);
+	PROFILE_LOG_COMMSIM_MIXED_COMPUTE_END(currWorkerProvider, this, now, numAgents);
 	if (EnableDebugOutput) {
 		Print() << "===================== processOutgoingData Done =======================================\n";
 	}
@@ -221,7 +231,9 @@ sim_mob::Entity::UpdateStatus sim_mob::Roadrunner_Broker::update(timeslice now) 
 	//step-7:
 	//the clients will now send whatever they want to send(into the incoming messagequeue)
 	//followed by a Done! message.That is when Broker can go forwardClientList::pair clientByType;
+	PROFILE_LOG_COMMSIM_ANDROID_COMPUTE_BEGIN(currWorkerProvider, this, now);
 	waitForClientsDone();
+	PROFILE_LOG_COMMSIM_ANDROID_COMPUTE_END(currWorkerProvider, this, now);
 	if (EnableDebugOutput) {
 		Print() << "===================== waitForClientsDone Done =======================================\n";
 	}
@@ -238,6 +250,9 @@ sim_mob::Entity::UpdateStatus sim_mob::Roadrunner_Broker::update(timeslice now) 
 	//step-9: final steps that should be taken before leaving the tick
 	//prepare for next tick.
 	cleanup();
+
+	PROFILE_LOG_COMMSIM_UPDATE_END(currWorkerProvider, this, now);
+
 	return UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
 

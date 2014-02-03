@@ -381,15 +381,15 @@ public:
 	/**
 	 * 	list of registered agents + mutex
 	 */
-	AgentsList::type &getRegisteredAgents(AgentsList::Mutex *mutex);
+	AgentsList::type &getRegisteredAgents(AgentsList::Mutex* mutex);
 	/**
 	 * 	register an agent
 	 */
-	bool registerEntity(sim_mob::AgentCommUtilityBase * );
+	void registerEntity(sim_mob::AgentCommUtilityBase* agent);
 	/**
 	 * 	unregister an agent
 	 */
-	void unRegisterEntity(sim_mob::AgentCommUtilityBase *value);
+	void unRegisterEntity(sim_mob::AgentCommUtilityBase* agent);
 	/**
 	 * 	unregister an agent
 	 */

@@ -84,7 +84,7 @@ public:
 
 	//this is used to register the drived class
 	//(which is also an agent) to the communicator agent
-	bool RegisterWithBroker(const std::string& commElement);
+	void RegisterWithBroker(const std::string& commElement);
 
 	//	subscriptionInfo getSubscriptionInfo();
 	void setregistered(std::string commElement,bool value);

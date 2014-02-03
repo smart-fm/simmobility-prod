@@ -57,15 +57,18 @@ sim_mob::Broker::~Broker()
 {
 }
 
-void sim_mob::Broker::enable() {
+void sim_mob::Broker::enable()
+{
 	enabled = true;
 }
 
-void sim_mob::Broker::disable() {
+void sim_mob::Broker::disable()
+{
 	enabled = false;
 }
 
-bool sim_mob::Broker::isEnabled() const {
+bool sim_mob::Broker::isEnabled() const
+{
 	return enabled;
 }
 
@@ -78,7 +81,8 @@ bool sim_mob::Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler>
 	return true;
 }
 
-void sim_mob::Broker::configure() {
+void sim_mob::Broker::configure()
+{
 	//Only configure once.
 	if (!configured_.check()) {
 		return;
@@ -173,9 +177,10 @@ void sim_mob::Broker::configure() {
 
 	// wait for connection criteria for this broker
 	agentBlockers.insert(
-			std::make_pair(0,
-					boost::shared_ptr<WaitForAgentRegistration>(
-							new WaitForAgentRegistration(*this, MIN_AGENTS))));
+		std::make_pair(0,
+			boost::shared_ptr<WaitForAgentRegistration>(
+				new WaitForAgentRegistration(*this, MIN_AGENTS)))
+	);
 }
 
 
@@ -293,34 +298,32 @@ void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler
  */
 }
 
-boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> sim_mob::Broker::getMessageReceiveCallBack() {
+boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> sim_mob::Broker::getMessageReceiveCallBack()
+{
 	return m_messageReceiveCallback;
 }
 
 
-void sim_mob::Broker::onEvent(event::EventId eventId,
-		sim_mob::event::Context ctxId, event::EventPublisher* sender,
-		const event::EventArgs& args) {
+void sim_mob::Broker::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
+{
 	switch (eventId) {
-	case sim_mob::event::EVT_CORE_AGENT_DIED: {
-		const event::AgentLifeCycleEventArgs& args_ =
-				MSG_CAST(event::AgentLifeCycleEventArgs, args);
-				unRegisterEntity(args_.GetAgent());
-				Print() << "unregistering entity[" << args_.GetAgentId() << "]" << std::endl;
-				break;
-			}
-			default:break;
+		case sim_mob::event::EVT_CORE_AGENT_DIED: {
+			const event::AgentLifeCycleEventArgs& args_ = MSG_CAST(event::AgentLifeCycleEventArgs, args);
+			unRegisterEntity(args_.GetAgent());
+			Print() << "unregistering entity[" << args_.GetAgentId() << "]" << std::endl;
+			break;
 		}
-
 	}
+}
 
-AgentsList::type& sim_mob::Broker::getRegisteredAgents() {
+AgentsList::type& sim_mob::Broker::getRegisteredAgents()
+{
 	//use it with caution
 	return REGISTERED_AGENTS.getAgents();
 }
 
-AgentsList::type& sim_mob::Broker::getRegisteredAgents(
-		AgentsList::Mutex* mutex) {
+AgentsList::type& sim_mob::Broker::getRegisteredAgents(AgentsList::Mutex* mutex)
+{
 	//always supply the mutex along
 	mutex = REGISTERED_AGENTS.getMutex();
 	return REGISTERED_AGENTS.getAgents();
@@ -457,29 +460,29 @@ void sim_mob::Broker::processClientRegistrationRequests()
 	}
 }
 
-bool sim_mob::Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
+void sim_mob::Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
 {
 	Print() << std::dec;
-//	registeredAgents.insert(std::make_pair(value->getEntity(), value));
 	REGISTERED_AGENTS.insert(value->getEntity(), value);
 	Print() << REGISTERED_AGENTS.size() << ":  Broker[" << this
 			<< "] :  Broker::registerEntity [" << value->getEntity()->getId()
 			<< "]" << std::endl;
+
 	//feedback
 	value->registrationCallBack(commElement, true);
+
 	//tell me if you are dying
-	sim_mob::messaging::MessageBus::SubscribeEvent(
-			sim_mob::event::EVT_CORE_AGENT_DIED,
-			value->getEntity(), this);
+	sim_mob::messaging::MessageBus::SubscribeEvent(sim_mob::event::EVT_CORE_AGENT_DIED,value->getEntity(), this);
 	 COND_VAR_CLIENT_REQUEST.notify_all();
-	return true;
 }
 
-void sim_mob::Broker::unRegisterEntity(sim_mob::AgentCommUtilityBase *value) {
+void sim_mob::Broker::unRegisterEntity(sim_mob::AgentCommUtilityBase *value)
+{
 	unRegisterEntity(value->getEntity());
 }
 
-void sim_mob::Broker::unRegisterEntity(sim_mob::Agent * agent) {
+void sim_mob::Broker::unRegisterEntity(sim_mob::Agent * agent)
+{
 	Print() << "inside Broker::unRegisterEntity for agent[" << agent << "]"
 			<< std::endl;
 	//search agent's list looking for this agent
@@ -1052,7 +1055,8 @@ void sim_mob::Broker::removeClient(ClientList::Type::iterator it_erase)
 //	Print() << "Broker::removeClient UNlocking mutex_clientList" << std::endl;
 }
 
-void sim_mob::Broker::waitForClientsDone() {
+void sim_mob::Broker::waitForClientsDone()
+{
 	boost::unique_lock<boost::mutex> lock(mutex_clientDone);
 	while (!allClientsAreDone()) {
 		COND_VAR_CLIENT_DONE.wait(lock);
@@ -1079,32 +1083,35 @@ void sim_mob::Broker::cleanup()
 
 }
 
-std::map<std::string, sim_mob::Broker*>& sim_mob::Broker::getExternalCommunicators() {
+std::map<std::string, sim_mob::Broker*>& sim_mob::Broker::getExternalCommunicators()
+{
 	return externalCommunicators;
 }
 
-sim_mob::Broker* sim_mob::Broker::getExternalCommunicator(
-		const std::string & value) {
+sim_mob::Broker* sim_mob::Broker::getExternalCommunicator(const std::string & value)
+{
 	if (externalCommunicators.find(value) != externalCommunicators.end()) {
 		return externalCommunicators[value];
 	}
 	return 0;
 }
 
-void sim_mob::Broker::addExternalCommunicator(const std::string & name,
-		sim_mob::Broker* broker) {
+void sim_mob::Broker::addExternalCommunicator(const std::string & name, sim_mob::Broker* broker)
+{
 	externalCommunicators.insert(std::make_pair(name, broker));
 }
 
 //abstracts & virtuals
-void sim_mob::Broker::load(
-		const std::map<std::string, std::string>& configProps) {
+void sim_mob::Broker::load(const std::map<std::string, std::string>& configProps)
+{
 }
 
-void sim_mob::Broker::frame_output(timeslice now) {
+void sim_mob::Broker::frame_output(timeslice now)
+{
 }
 
-bool sim_mob::Broker::isNonspatial() {
+bool sim_mob::Broker::isNonspatial()
+{
 	return true;
 }
 

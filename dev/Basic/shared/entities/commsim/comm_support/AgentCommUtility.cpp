@@ -99,7 +99,7 @@ void sim_mob::AgentCommUtilityBase::init()
 }
 
 
-bool sim_mob::AgentCommUtilityBase::RegisterWithBroker(const std::string& commElement)
+void sim_mob::AgentCommUtilityBase::RegisterWithBroker(const std::string& commElement)
 {
 
 //		//todo here you are copying twice while once is possibl, I guess.
@@ -112,7 +112,7 @@ bool sim_mob::AgentCommUtilityBase::RegisterWithBroker(const std::string& commEl
 		throw std::runtime_error("Broker Not specified");
 	}
 	sim_mob::Broker * broker = it->second;
-	return broker->registerEntity(this);
+	broker->registerEntity(this);
 //		std::cout << "agent[" << &getEntity() << "] was registered with outgoing[" << &(getOutgoing()) << "]" << std::endl;
 }
 

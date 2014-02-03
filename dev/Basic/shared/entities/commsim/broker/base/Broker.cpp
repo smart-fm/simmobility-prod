@@ -35,6 +35,11 @@
 #include "entities/commsim/message/derived/roadrunner-android/RoadRunnerFactory.hpp"
 #include "entities/commsim/message/derived/roadrunner-ns3/Ns3Factory.hpp"
 
+namespace {
+//TEMPORARY: I just need an easy way to disable output for now. This is *not* the ideal solution.
+const bool EnableDebugOutput = false;
+} //End unnamed namespace
+
 using namespace sim_mob;
 
 std::map<std::string, sim_mob::Broker*> sim_mob::Broker::externalCommunicators;
@@ -977,57 +982,69 @@ bool sim_mob::Broker::allClientsAreDone()
 }
 
 Entity::UpdateStatus sim_mob::Broker::update(timeslice now) {
-	Print() << "Broker tick:" << now.frame() << std::endl;
+	if (EnableDebugOutput) {
+		Print() << "Broker tick:" << now.frame() << std::endl;
+	}
 
 	//step-1 : Create/start the thread if this is the first frame.
 	//TODO: transfer this to frame_init
 	if (now.frame() == 0) {
 		connection->start();
 	}
-	Print()
-			<< "=====================ConnectionStarted ======================================="
-			<< std::endl;
+
+	if (EnableDebugOutput) {
+		Print() << "=====================ConnectionStarted =======================================\n";
+	}
 
 	//Step-2: Ensure that we have enough clients to process
 	//(in terms of client type (like ns3, android emulator, etc) and quantity(like enough number of android clients) ).
 	//Block the simulation here(if you have to)
 	wait();
-	Print()
-			<< "===================== wait Done ======================================="
-			<< std::endl;
+
+	if (EnableDebugOutput) {
+		Print() << "===================== wait Done =======================================\n";
+	}
 
 	//step-3: Process what has been received in your receive container(message queue perhaps)
 	processIncomingData(now);
-	Print()
-			<< "===================== processIncomingData Done ======================================="
-			<< std::endl;
+
+	if (EnableDebugOutput) {
+		Print() << "===================== processIncomingData Done =======================================\n";
+	}
 
 	//step-4: if need be, wait for all agents(or others)
 	//to complete their tick so that you are the last one ticking)
 	waitForAgentsUpdates();
-	Print()
-			<< "===================== waitForAgentsUpdates Done ======================================="
-			<< std::endl;
+
+	if (EnableDebugOutput) {
+		Print()<< "===================== waitForAgentsUpdates Done =======================================\n";
+	}
 
 	//step-5: signal the publishers to publish their data
 	processPublishers(now);
-	Print()
-			<< "===================== processPublishers Done ======================================="
-			<< std::endl;
+
+	if (EnableDebugOutput) {
+		Print() << "===================== processPublishers Done =======================================\n";
+	}
+
 //	step-5.5:for each client, append a message at the end of all messages saying Broker is ready to receive your messages
 	sendReadyToReceive();
 
 	//step-6: Now send all what has been prepared, by different sources, to their corresponding destications(clients)
 	processOutgoingData(now);
-	Print()
-			<< "===================== processOutgoingData Done ======================================="
-			<< std::endl;
+
+	if (EnableDebugOutput) {
+		Print() << "===================== processOutgoingData Done =======================================\n";
+	}
 
 	//step-7:
 	//the clients will now send whatever they want to send(into the incoming messagequeue)
 	//followed by a Done! message.That is when Broker can go forwardClientList::pair clientByType;
 	waitForClientsDone();
-	Print() << "===================== waitForClientsDone Done =======================================" << std::endl;
+
+	if (EnableDebugOutput) {
+		Print() << "===================== waitForClientsDone Done =======================================\n";
+	}
 
 	//step-9: final steps that should be taken before leaving the tick
 	//prepare for next tick.

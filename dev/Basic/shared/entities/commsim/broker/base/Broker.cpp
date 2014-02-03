@@ -35,11 +35,6 @@
 #include "entities/commsim/message/derived/roadrunner-android/RoadRunnerFactory.hpp"
 #include "entities/commsim/message/derived/roadrunner-ns3/Ns3Factory.hpp"
 
-namespace {
-//TEMPORARY: I just need an easy way to disable output for now. This is *not* the ideal solution.
-const bool EnableDebugOutput = false;
-} //End unnamed namespace
-
 using namespace sim_mob;
 
 std::map<std::string, sim_mob::Broker*> sim_mob::Broker::externalCommunicators;
@@ -223,7 +218,9 @@ void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler
 			chkIt->second.done++;
 			} //mutex_client_done_chk unlocks
 
-			Print() << "connection [" <<&(*cnnHandler) << "] DONE\n";
+			if (EnableDebugOutput) {
+				Print() << "connection [" <<&(*cnnHandler) << "] DONE\n";
+			}
 
 
 			COND_VAR_CLIENT_DONE.notify_one();
@@ -315,7 +312,9 @@ void sim_mob::Broker::onEvent(event::EventId eventId, sim_mob::event::Context ct
 		case sim_mob::event::EVT_CORE_AGENT_DIED: {
 			const event::AgentLifeCycleEventArgs& args_ = MSG_CAST(event::AgentLifeCycleEventArgs, args);
 			unRegisterEntity(args_.GetAgent());
-			Print() << "unregistering entity[" << args_.GetAgentId() << "]" << std::endl;
+			if (EnableDebugOutput) {
+				Print() << "unregistering entity[" << args_.GetAgentId() << "]" << std::endl;
+			}
 			break;
 		}
 	}
@@ -392,7 +391,9 @@ void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType cl
 	clientList[clientType][clientID] = clientHandler;
 	}
 
-	Print() << "connection [" <<&(*clientHandler->connHandle) << "] +1 client\n";
+	if (EnableDebugOutput) {
+		Print() << "connection [" <<&(*clientHandler->connHandle) << "] +1 client\n";
+	}
 
 	//+1 client for this connection.
 	boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
@@ -457,7 +458,10 @@ void sim_mob::Broker::processClientRegistrationRequests()
 			//	next, see if the waiting state of waiting-for-client-connection changes after this process
 			bool wait = clientBlockers[clientType]->calculateWaitStatus();
 			it_erase = it;	//keep the erase candidate. dont loose it :)
-			Print() << "delete from clientRegistrationWaitingList[" << it->first << "]" << std::endl;
+
+			if (EnableDebugOutput) {
+				Print() << "delete from clientRegistrationWaitingList[" << it->first << "]" << std::endl;
+			}
 			clientRegistrationWaitingList.erase(it++);
 		} else {
 			it++;
@@ -467,11 +471,13 @@ void sim_mob::Broker::processClientRegistrationRequests()
 
 void sim_mob::Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
 {
-	Print() << std::dec;
 	REGISTERED_AGENTS.insert(value->getEntity(), value);
-	Print() << REGISTERED_AGENTS.size() << ":  Broker[" << this
+	if (EnableDebugOutput) {
+		Print() << std::dec;
+		Print() << REGISTERED_AGENTS.size() << ":  Broker[" << this
 			<< "] :  Broker::registerEntity [" << value->getEntity()->getId()
 			<< "]" << std::endl;
+	}
 
 	//feedback
 	value->registrationCallBack(commElement, true);
@@ -488,8 +494,9 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::AgentCommUtilityBase *value)
 
 void sim_mob::Broker::unRegisterEntity(sim_mob::Agent * agent)
 {
-	Print() << "inside Broker::unRegisterEntity for agent[" << agent << "]"
-			<< std::endl;
+	if (EnableDebugOutput) {
+		Print() << "inside Broker::unRegisterEntity for agent[" << agent << "]\n";
+	}
 	//search agent's list looking for this agent
 	REGISTERED_AGENTS.erase(agent);
 
@@ -825,7 +832,9 @@ bool sim_mob::Broker::deadEntityCheck(sim_mob::AgentCommUtilityBase * info) {
 //you better hope they are dead otherwise you have to hold the simulation
 //tick waiting for them to finish
 void sim_mob::Broker::refineSubscriptionList() {
-	Print() << "inside Broker::refineSubscriptionList" << std::endl;
+	if (EnableDebugOutput) {
+		Print() << "inside Broker::refineSubscriptionList" << std::endl;
+	}
 
 	//do all the operation using the objects's mutex
 	boost::function<void(sim_mob::Agent*)> Fn = boost::bind(
@@ -837,8 +846,9 @@ void sim_mob::Broker::refineSubscriptionList() {
 void sim_mob::Broker::refineSubscriptionList(sim_mob::Agent * target) {
 	//you or your worker are probably dead already. you just don't know it
 	if (!target->currWorkerProvider) {
-		Print() << "1-refine subscription for agent [" << target << "]"
-				<< std::endl;
+		if (EnableDebugOutput) {
+			Print() << "1-refine subscription for agent [" << target << "]" << std::endl;
+		}
 		unRegisterEntity(target);
 		return;
 	}
@@ -847,8 +857,9 @@ void sim_mob::Broker::refineSubscriptionList(sim_mob::Agent * target) {
 	std::set<sim_mob::Entity*>::const_iterator it_entity = std::find(
 			managedEntities_.begin(), managedEntities_.end(), target);
 	if (it_entity == managedEntities_.end()) {
-		Print() << "2-refine subscription for agent [" << target << "]"
-				<< std::endl;
+		if (EnableDebugOutput) {
+			Print() << "2-refine subscription for agent [" << target << "]" << std::endl;
+		}
 		unRegisterEntity(target);
 		return;
 	}
@@ -875,8 +886,9 @@ bool sim_mob::Broker::isWaitingForAnyClientConnection() {
 	BOOST_FOREACH(pp, clientBlockers) {
 		i++;
 		if (pp.second->isWaiting()) {
-			Print() << " isWaitingForAnyClientConnection[" << i << "] : wait"
-					<< std::endl;
+			if (EnableDebugOutput) {
+				Print() << " isWaitingForAnyClientConnection[" << i << "] : wait" << std::endl;
+			}
 			return true;
 		}
 	}
@@ -907,9 +919,13 @@ bool sim_mob::Broker::wait() {
 	{
 		boost::unique_lock<boost::mutex> lock(mutex_client_request);
 		while (!brokerCanTickForward) {
-			Print() << " brokerCanTickForward->WAITING" << std::endl;
+			if (EnableDebugOutput) {
+				Print() << " brokerCanTickForward->WAITING" << std::endl;
+			}
 			COND_VAR_CLIENT_REQUEST.wait(lock);
-			Print() << "COND_VAR_CLIENT_REQUEST released" << std::endl;
+			if (EnableDebugOutput) {
+				Print() << "COND_VAR_CLIENT_REQUEST released" << std::endl;
+			}
 			processClientRegistrationRequests();
 
 			bool res1 = isWaitingForAgentRegistration();
@@ -917,8 +933,9 @@ bool sim_mob::Broker::wait() {
 			bool res3 = !res1 && !res2;
 			bool res = /*brokerCanTickForward ||*/res3;
 			brokerCanTickForward = res;
-			Print() << "brokerCanTickForward[" << res1 << "-" << res2 << "]"
-					<< std::endl;
+			if (EnableDebugOutput) {
+				Print() << "brokerCanTickForward[" << res1 << "-" << res2 << "]" << std::endl;
+			}
 			//	brokerCanTickForward = brokerCanTickForward || ((isWaitingForAgentRegistration() && !isWaitingForAnyClientConnection()));
 //		Print() << "Broker::wait()::Secondary Evaluation => " << (brokerCanTickForward ? "True" : "false") << std::endl;
 		}
@@ -940,9 +957,13 @@ void sim_mob::Broker::waitForAgentsUpdates() {
 
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
 	while(!allAgentUpdatesDone()) {
-		Print() << "waitForAgentsUpdates _WAIT" << std::endl;
+		if (EnableDebugOutput) {
+			Print() << "waitForAgentsUpdates _WAIT" << std::endl;
+		}
 		COND_VAR_AGENT_DONE.wait(lock);
-		Print() << "waitForAgentsUpdates _WAIT_released" << std::endl;
+		if (EnableDebugOutput) {
+			Print() << "waitForAgentsUpdates _WAIT_released" << std::endl;
+		}
 	}
 }
 
@@ -971,7 +992,9 @@ bool sim_mob::Broker::allClientsAreDone()
 						throw std::runtime_error("Client somehow registered without a valid connection handler.");
 					}
 					if (chkIt->second.done < chkIt->second.total) {
-						Print() << "connection [" <<&(*clnHandler->connHandle) << "] not done yet: " <<chkIt->second.done <<" of " <<chkIt->second.total <<"\n";
+						if (EnableDebugOutput) {
+							Print() << "connection [" <<&(*clnHandler->connHandle) << "] not done yet: " <<chkIt->second.done <<" of " <<chkIt->second.total <<"\n";
+						}
 						return false;
 					}
 				}

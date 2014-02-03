@@ -29,10 +29,10 @@ void sim_mob::AgentsList::AgentsList::erase(Agent * agent)
 
 	type::iterator it = data.find(agent);
 	if (it!=data.end()) {
-		Print() << "AgentsList::erase test:  agent[" << agent << "] found for deletion" << std::endl;
+		//Print() << "AgentsList::erase test:  agent[" << agent << "] found for deletion" << std::endl;
 		data.erase(it);
 	} else {
-		Print() << "AgentsList::erase test:  agent[" << agent << "] NOT found for deletion" << std::endl;
+		//Print() << "AgentsList::erase test:  agent[" << agent << "] NOT found for deletion" << std::endl;
 	}
 }
 

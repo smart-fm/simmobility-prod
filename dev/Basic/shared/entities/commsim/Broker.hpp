@@ -53,6 +53,13 @@ class ClientHandler;
 class BrokerBlocker;
 
 
+namespace {
+//TEMPORARY: I just need an easy way to disable output for now. This is *not* the ideal solution.
+const bool EnableDebugOutput = false;
+} //End unnamed namespace
+
+
+
 //subclassed Eventpublisher coz its destructor is pure virtual
 class BrokerPublisher: public sim_mob::event::EventPublisher {
 public:

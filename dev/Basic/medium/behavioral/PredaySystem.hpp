@@ -192,6 +192,11 @@ private:
      */
     boost::unordered_map<std::string, db::MongoDao*> mongoDao;
 
+    /**
+     * used for logging messages
+     */
+    std::stringstream logStream;
+
 public:
 	PredaySystem(PersonParams& personParams,
 			const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,

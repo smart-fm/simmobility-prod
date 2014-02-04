@@ -36,7 +36,9 @@ PredaySystem::PredaySystem(PersonParams& personParams,
 		const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 		const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
 		const boost::unordered_map<std::string, db::MongoDao*>& mongoDao)
-: personParams(personParams), zoneMap(zoneMap), zoneIdLookup(zoneIdLookup), amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap), mongoDao(mongoDao)
+: personParams(personParams), zoneMap(zoneMap), zoneIdLookup(zoneIdLookup),
+  amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap),
+  mongoDao(mongoDao), logStream(std::stringstream::out)
 {}
 
 PredaySystem::~PredaySystem()
@@ -302,7 +304,7 @@ void PredaySystem::generateIntermediateStops(Tour* tour) {
 				}
 				predictStopTimeOfDay(generatedStop, true);
 				if(generatedStop->getArrivalTime() > generatedStop->getDepartureTime()) {
-					Print() << "Discarding generated stop|"
+					logStream << "Discarding generated stop|"
 							<< "|arrival: " << generatedStop->getArrivalTime()
 							<< "|departure: " << generatedStop->getDepartureTime()
 							<< "|1st HT"
@@ -316,7 +318,7 @@ void PredaySystem::generateIntermediateStops(Tour* tour) {
 				personParams.blockTime(generatedStop->getArrivalTime(), generatedStop->getDepartureTime());
 				nextArrivalTime = generatedStop->getArrivalTime();
 				stopCounter = stopCounter + 1;
-				Print() << "Generated stop|type: " << generatedStop->getStopTypeID()
+				logStream << "Generated stop|type: " << generatedStop->getStopTypeID()
 						<< "|mode: " << generatedStop->getStopMode()
 						<< "|destination: " << generatedStop->getStopLocation()
 						<< "|1st HT "
@@ -365,7 +367,7 @@ void PredaySystem::generateIntermediateStops(Tour* tour) {
 				}
 				predictStopTimeOfDay(generatedStop, false);
 				if(generatedStop->getArrivalTime() > generatedStop->getDepartureTime()) {
-					Print() << "Discarding generated stop|"
+					logStream << "Discarding generated stop|"
 							<< "|arrival: " << generatedStop->getArrivalTime()
 							<< "|departure: " << generatedStop->getDepartureTime()
 							<< "|2nd HT"
@@ -379,7 +381,7 @@ void PredaySystem::generateIntermediateStops(Tour* tour) {
 				personParams.blockTime(generatedStop->getArrivalTime(), generatedStop->getDepartureTime());
 				prevDepartureTime = generatedStop->getDepartureTime();
 				stopCounter = stopCounter + 1;
-				Print() << "Generated stop|type: " << generatedStop->getStopTypeID()
+				logStream << "Generated stop|type: " << generatedStop->getStopTypeID()
 						<< "|mode: " << generatedStop->getStopMode()
 						<< "|destination: " << generatedStop->getStopLocation()
 						<< "|2nd HT "
@@ -631,13 +633,13 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 	int timeWindowIdx = PredayLuaProvider::getPredayModel().predictStopTimeOfDay(personParams, stodParams);
 	if(isBeforePrimary) {
 		if(timeWindowIdx > stop->getDepartureTime()) {
-			Print() << "Predicted arrival time must not be greater than the estimated departure time";
+			logStream << "Predicted arrival time must not be greater than the estimated departure time";
 		}
 		stop->setArrivalTime(timeWindowIdx);
 	}
 	else {
 		if(timeWindowIdx < stop->getArrivalTime()) {
-			Print() << "Predicted departure time must not be greater than the estimated arrival time";
+			logStream << "Predicted departure time must not be greater than the estimated arrival time";
 		}
 		stop->setDepartureTime(timeWindowIdx);
 	}
@@ -919,7 +921,7 @@ void PredaySystem::constructTours() {
 			attendsUsualWorkLocation = predictUsualWorkLocation(firstOfMultiple); // Predict if this tour is to a usual work location
 			firstOfMultiple = false;
 		}
-		Print() << "Attends usual work location: " << attendsUsualWorkLocation << std::endl;
+		logStream << "Attends usual work location: " << attendsUsualWorkLocation << std::endl;
 		Tour* workTour = new Tour(WORK);
 		workTour->setUsualLocation(attendsUsualWorkLocation);
 		if(attendsUsualWorkLocation) {
@@ -954,39 +956,39 @@ void PredaySystem::constructTours() {
 }
 
 void PredaySystem::planDay() {
-	Print() << std::endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+	logStream << std::endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
 	//Predict day pattern
-	Print() << "Person: " << personParams.getPersonId() << "| home: " << personParams.getHomeLocation() << std:: endl;
-	Print() << "Day Pattern: " ;
+	logStream << "Person: " << personParams.getPersonId() << "| home: " << personParams.getHomeLocation() << std:: endl;
+	logStream << "Day Pattern: " ;
 	PredayLuaProvider::getPredayModel().predictDayPattern(personParams, dayPattern);
-	Print() << dayPattern["WorkT"] << dayPattern["EduT"] << dayPattern["ShopT"] << dayPattern["OthersT"]
+	logStream << dayPattern["WorkT"] << dayPattern["EduT"] << dayPattern["ShopT"] << dayPattern["OthersT"]
 	        << dayPattern["WorkI"] << dayPattern["EduI"] << dayPattern["ShopI"] << dayPattern["OthersI"] << std::endl;
 
 	//Predict number of Tours
 	if(dayPattern.size() <= 0) {
 		throw std::runtime_error("Cannot invoke number of tours model without a day pattern");
 	}
-	Print() << "Num. Tours: ";
+	logStream << "Num. Tours: ";
 	PredayLuaProvider::getPredayModel().predictNumTours(personParams, dayPattern, numTours);
-	Print() << numTours["WorkT"] << numTours["EduT"] << numTours["ShopT"] << numTours["OthersT"] << std::endl;
+	logStream << numTours["WorkT"] << numTours["EduT"] << numTours["ShopT"] << numTours["OthersT"] << std::endl;
 
 	//Construct tours.
 	constructTours();
 
 	//Process each tour
-	Print() << "Tours: " << tours.size() << std::endl;
+	logStream << "Tours: " << tours.size() << std::endl;
 	for(TourList::iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++) {
 		Tour* tour = *tourIt;
 		if(tour->isUsualLocation()) {
 			// Predict just the mode for tours to usual location
 			predictTourMode(tour);
-			Print() << "Tour|type: " << tour->getTourType()
+			logStream << "Tour|type: " << tour->getTourType()
 					<< "(TM) Tour mode: " << tour->getTourMode() << "|Tour destination: " << tour->getTourDestination();
 		}
 		else {
 			// Predict mode and destination for tours to not-usual locations
 			predictTourModeDestination(tour);
-			Print() << "Tour|type: " << tour->getTourType()
+			logStream << "Tour|type: " << tour->getTourType()
 					<< "(TMD) Tour mode: " << tour->getTourMode() << "|Tour destination: " << tour->getTourDestination();
 		}
 
@@ -1000,7 +1002,7 @@ void PredaySystem::planDay() {
 		tour->setPrimaryStop(primaryActivity);
 		tour->addStop(primaryActivity);
 		personParams.blockTime(timeWindow.getStartTime(), timeWindow.getEndTime());
-		Print() << "|primary activity|arrival: " << primaryActivity->getArrivalTime() << "|departure: " << primaryActivity->getDepartureTime() << std::endl;
+		logStream << "|primary activity|arrival: " << primaryActivity->getArrivalTime() << "|departure: " << primaryActivity->getDepartureTime() << std::endl;
 
 		//Generate stops for this tour
 		generateIntermediateStops(tour);
@@ -1008,8 +1010,10 @@ void PredaySystem::planDay() {
 		calculateTourStartTime(tour);
 		calculateTourEndTime(tour);
 		personParams.blockTime(tour->getStartTime(), tour->getEndTime());
-		Print() << "Tour|start time: " << tour->getStartTime() << "|end time: " << tour->getEndTime() << std::endl;
+		logStream << "Tour|start time: " << tour->getStartTime() << "|end time: " << tour->getEndTime() << std::endl;
 	}
+
+	Print() << logStream.str();
 }
 
 void sim_mob::medium::PredaySystem::insertDayPattern()

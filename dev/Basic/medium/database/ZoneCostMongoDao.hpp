@@ -36,7 +36,6 @@ public:
     		fromRow(cursor->next(), *zoneParams);
     		outList[zoneParams->getZoneId()] = zoneParams;
     	}
-    	Print() << "Loaded Zones: " << outList.size() << std::endl;
     	return true;
     }
 
@@ -65,7 +64,6 @@ public:
     		fromRow(cursor->next(), *costParams);
     		outList[costParams->getOriginZone()][costParams->getDestinationZone()] = costParams;
     	}
-    	Print() << "Loaded CostParams: " << outList.size() << std::endl;
     	return true;
     }
 

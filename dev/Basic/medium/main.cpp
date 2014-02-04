@@ -381,12 +381,12 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 /**
  * Simulation loop for the demand simulator
  */
-bool performMainDemand(){
+bool performMainDemand(unsigned numThreads){
 	PredayManager predayManager;
 	predayManager.loadZones(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
 	predayManager.loadPersons(db::MONGO_DB);
-	predayManager.distributeAndProcessPersons(1);
+	predayManager.distributeAndProcessPersons(numThreads);
 	return true;
 }
 
@@ -436,7 +436,18 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	}
 	else if (ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
 		Print() << "Mid-term run mode: demand" << std::endl;
-		return performMainDemand();
+		int numThreads = 2; // default number of threads
+		try {
+			std::string numThreadsStr = ConfigManager::GetInstanceRW().FullConfig().system.genericProps.at("demand_threads");
+			numThreads = std::atoi(numThreadsStr.c_str());
+			if(numThreads <= 0) {
+				throw std::runtime_error("inadmissible number of threads specified. Please check generic property 'demand_threads'");
+			}
+		}
+		catch (const std::out_of_range& oorx) {
+			Print() << "generic property 'demand_threads' was not specified. Defaulting to 2 threads.";
+		}
+		return performMainDemand(numThreads);
 	}
 	else {
 		throw std::runtime_error("Invalid Mid-term run mode. Admissible values are \"demand\" and \"supply\"");

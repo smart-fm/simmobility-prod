@@ -12,7 +12,7 @@
 #include "PredayManager.hpp"
 
 #include <algorithm>
-
+#include <boost/thread.hpp>
 #include "behavioral/PredaySystem.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -130,6 +130,7 @@ void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType) {
 		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
 		ZoneMongoDao zoneDao(dbConfig, db.dbName, zoneCollectionName);
 		zoneDao.getAllZones(zoneMap);
+		Print() << "MTZ Zones loaded" << std::endl;
 		break;
 	}
 	default:
@@ -170,21 +171,50 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
 
 		CostMongoDao amCostDao(dbConfig, db.dbName, amCostsCollName);
 		amCostDao.getAll(amCostMap);
+		Print() << "AM Costs Loaded" << std::endl;
 
 		CostMongoDao pmCostDao(dbConfig, db.dbName, pmCostsCollName);
 		pmCostDao.getAll(pmCostMap);
+		Print() << "PM Costs Loaded" << std::endl;
 
 		CostMongoDao opCostDao(dbConfig, db.dbName, opCostsCollName);
 		opCostDao.getAll(opCostMap);
+		Print() << "OP Costs Loaded" << std::endl;
 	}
 	}
 }
 
-void sim_mob::medium::PredayManager::distributeAndProcessPersons(uint16_t numWorkers) {
-	processPersons(personList);
+void sim_mob::medium::PredayManager::distributeAndProcessPersons(unsigned numWorkers) {
+	boost::thread_group threadGroup;
+	if(numWorkers == 1) { // if single threaded execution was requested
+		processPersons(personList.begin(), personList.end());
+	}
+	else {
+		PersonList::size_type numPersons = personList.size();
+		PersonList::size_type numPersonsPerThread = numPersons / numWorkers;
+		PersonList::iterator first = personList.begin();
+		PersonList::iterator last = personList.begin()+numPersonsPerThread;
+		Print() << "numPersons:" << numPersons << "|numWorkers:" << numWorkers
+				<< "|numPersonsPerThread:" << numPersonsPerThread << std::endl;
+		for(int i = 1; i<=numWorkers; i++) {
+			threadGroup.create_thread( boost::bind(&PredayManager::processPersons, this, first, last) );
+			first = last;
+			if(i+1 == numWorkers) {
+				last = personList.end();
+			}
+			else {
+				last = last + numPersonsPerThread;
+			}
+		}
+		threadGroup.join_all();
+	}
+
 }
 
-void sim_mob::medium::PredayManager::processPersons(PersonList& persons) {
+void sim_mob::medium::PredayManager::processPersons(
+		PersonList::iterator firstPersonIt,
+		PersonList::iterator oneAfterLastPersonIt)
+{
 	boost::unordered_map<std::string, db::MongoDao*> mongoDao;
 	MongoCollectionsMap mongoColl = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo");
 	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
@@ -195,7 +225,7 @@ void sim_mob::medium::PredayManager::processPersons(PersonList& persons) {
 	}
 
 	// loop through all persons in the population and plan their day
-	for(PersonList::iterator i = persons.begin(); i!=persons.end(); i++) {
+	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
 		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
 		predaySystem.planDay();
 		predaySystem.outputPredictionsToMongo();

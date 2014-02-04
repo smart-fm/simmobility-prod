@@ -48,7 +48,7 @@ public:
 	 *
 	 * @param numWorkers number of threads to create for processing the person list
 	 */
-	void distributeAndProcessPersons(uint16_t numWorkers = 1);
+	void distributeAndProcessPersons(unsigned numWorkers = 1);
 
 private:
 	typedef std::vector<PersonParams*> PersonList;
@@ -57,11 +57,15 @@ private:
 
 	/**
 	 * Threaded function loop.
-	 * Loops through all elements in personList and invokes the Preday system of models for each of them.
+	 * Loops through all elements in personList within the specified range and
+	 * invokes the Preday system of models for each of them.
 	 *
-	 * @param persons list of persons to process
+	 * @param first personList iterator corresponding to the first person to be
+	 * 				processed
+	 * @param last personList iterator corresponding to the person after the
+	 * 				last person to be processed
 	 */
-	void processPersons(PersonList& persons);
+	void processPersons(PersonList::iterator first, PersonList::iterator last);
 
 	PersonList personList;
 

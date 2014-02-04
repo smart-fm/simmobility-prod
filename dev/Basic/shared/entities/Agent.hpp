@@ -38,6 +38,7 @@ class BufferedBase;
 class ShortTermBoundaryProcessor;
 class PackageUtils;
 class UnPackageUtils;
+class RoadSegment;
 class RoadRunnerRegion;
 
 //It is not a good design, now. Need to verify.
@@ -160,6 +161,9 @@ protected:
 	///TODO: Temporary; this allows a child class to reset "call_frame_init", but there is
 	///      probably a better way of doing it.
 	void resetFrameInit();
+
+	//Ask this Agent to re-route.
+	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
 
 private:
 	//For future reference.
@@ -392,9 +396,11 @@ public:
 			return enabled;
 		}
 
-		///Call this function in the Agent's "update()" method to reset the list of Regions/Paths.
-		void reset() {
+		///Reset the list of Regions (or paths)
+		void resetAllRegionsSet() {
 			newAllRegions.clear();
+		}
+		void resetNewRegionPath() {
 			newRegionPath.clear();
 		}
 
@@ -436,12 +442,20 @@ public:
 	///Returns the current set of "all Regions", but only if region-tracking is enabled, and only if
 	/// the region set has changed since the last time tick.
 	///See RegionAndPathTracker for more information.
-	std::vector<sim_mob::RoadRunnerRegion> getNewAllRegionsSet() const{ return regionAndPathTracker.getNewAllRegionsSet(); }
+	std::vector<sim_mob::RoadRunnerRegion> getAndClearNewAllRegionsSet() {
+		std::vector<sim_mob::RoadRunnerRegion> res = regionAndPathTracker.getNewAllRegionsSet();
+		regionAndPathTracker.resetAllRegionsSet();
+		return res;
+	}
 
 	///Returns the current set of Regions this Agent expects to travel through on its way to its goal,
 	///but only if region-tracking is enabled, and only if the path set has changed since the last time tick.
 	///See RegionAndPathTracker for more information.
-	std::vector<sim_mob::RoadRunnerRegion> getNewRegionPath() const { return regionAndPathTracker.getNewRegionPath(); }
+	std::vector<sim_mob::RoadRunnerRegion> getAndClearNewRegionPath() {
+		std::vector<sim_mob::RoadRunnerRegion> res = regionAndPathTracker.getNewRegionPath();
+		regionAndPathTracker.resetNewRegionPath();
+		return res;
+	}
 
 	///Get the Region-support object. This is used for all other Region-related queries.
 	RegionAndPathTracker& getRegionSupportStruct() { return regionAndPathTracker; }

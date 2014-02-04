@@ -134,7 +134,7 @@ public:
 	sim_mob::MutexStrategy mutexStategy; ///<Locking strategy for Shared<> properties.
 
 	bool commSimEnabled;  ///<Is our communication simulator enabled?
-	bool androidClientEnabled; ///<Is the Android client for our communication simulator enabled?
+	//bool androidClientEnabled; ///<Is the Android client for our communication simulator enabled?
 	std::string androidClientType; // what version of android communication is specified?
 
 	struct CommsimElement {

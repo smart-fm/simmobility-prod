@@ -30,6 +30,8 @@ public:
 protected:
 	virtual std::pair<sim_mob::RoadRunnerRegion, bool> getRoadRunnerRegion(const sim_mob::RoadSegment* seg);
 
+	virtual std::vector<const sim_mob::RoadSegment*> getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region);
+
 	virtual const BusStop* getBusStop(const Point2D& position) const;
 
 	virtual const Node* getNode(const int id) const;
@@ -102,6 +104,7 @@ private:
     std::set<const BusStop*> busStops_;
     std::set<const Node*> nodes;
     std::map<const RoadSegment*, RoadRunnerRegion> rrRegionLookup;
+    std::map<int, std::vector<const RoadSegment*> > rrRegionRevLookup; ///<Indexed by Region ID
     std::map<const unsigned int, const sim_mob::RoadSegment*> segmentByAimsunID;
 
 };

@@ -1015,7 +1015,8 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice(sim_mob::Person
 		if(sp)
 		{
 			sp->utility = getUtilityBySinglePath(sp);
-			ps->logsum += exp(sp->utility);
+			sp->utility = exp(sp->utility);
+			ps->logsum += sp->utility;
 		}
 	}
 	// step 2:
@@ -1116,7 +1117,7 @@ void sim_mob::PathSetManager::initParameters()
 	bLeftTurns = 0.0;
 	bWork = 0.0;
 	bLeisure = 0.0;
-	highway_bias = 1.0;
+	highway_bias = 0.5;
 }
 sim_mob::PathSet* sim_mob::PathSetManager::getPathSetByPersonIdAndSubTripId(std::string personId,std::string subTripId)
 {

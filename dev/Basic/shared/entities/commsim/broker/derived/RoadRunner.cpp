@@ -80,8 +80,10 @@ void sim_mob::Roadrunner_Broker::configure()
 
 	publisher.registerEvent(COMMEID_LOCATION);
 	publisher.registerEvent(COMMEID_TIME);
+	publisher.registerEvent(COMMEID_REGIONS_AND_PATH);
 	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_LOCATION);
 	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_TIME);
+	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH);
 
 	//NS-3 has its own publishers
 	if (client_mode == "android-ns3") {

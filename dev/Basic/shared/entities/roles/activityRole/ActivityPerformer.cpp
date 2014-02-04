@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 /*
- * \file Pedestrian.cpp
+ * \file ActivityPerformer.cpp
  *
  *  \author Harish
  */
@@ -59,7 +59,6 @@ sim_mob::DailyTime sim_mob::ActivityPerformer::getActivityEndTime() const {
 
 void sim_mob::ActivityPerformer::setActivityEndTime(
 		sim_mob::DailyTime activityEndTime) {
-	std::cout << "activityEndTime = " << activityEndTime.toString() <<"\n";
 	this->activityEndTime = activityEndTime;
 }
 
@@ -69,8 +68,7 @@ sim_mob::DailyTime sim_mob::ActivityPerformer::getActivityStartTime() const {
 
 void sim_mob::ActivityPerformer::setActivityStartTime(
 		sim_mob::DailyTime activityStartTime) {
-	std::cout << "activityStartTime = " << activityStartTime.toString() <<"\n";
-	this->activityStartTime = DailyTime(activityStartTime.toString());
+	this->activityStartTime = activityStartTime;
 }
 
 sim_mob::Node* sim_mob::ActivityPerformer::getLocation() const {

@@ -74,7 +74,7 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::comm::NS3_Factory::getHandler(Mess
 
 //creates a message with correct format + assigns correct handler
 //todo improve the function to handle array of messages stored in the input string
-bool sim_mob::comm::NS3_Factory::createMessage(const std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
+void sim_mob::comm::NS3_Factory::createMessage(const std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
 {
 	//	std::vector<msg_t> result;
 	//	 Print() << "inside RR_NS3_Factory::createMessage" << std::endl;
@@ -83,11 +83,11 @@ bool sim_mob::comm::NS3_Factory::createMessage(const std::string &input, std::ve
  	sim_mob::pckt_header packetHeader;
  	if(!sim_mob::JsonParser::parsePacketHeader(input, packetHeader, root))
  	{
- 		return false;
+ 		return;
  	}
  	if(!sim_mob::JsonParser::getPacketMessages(input,root))
  	{
- 		return false;
+ 		return;
  	}
  	for (int index = 0; index < root.size(); index++) {
 
@@ -97,6 +97,14 @@ bool sim_mob::comm::NS3_Factory::createMessage(const std::string &input, std::ve
  		if (!sim_mob::JsonParser::parseMessageHeader(root[index], messageHeader)) {
  			continue;
  		}
+
+		//Convert the message type:
+		std::map<std::string, NS3_Factory::MessageType>::const_iterator it = MessageMap.find(messageHeader.msg_type);
+		if (it==MessageMap.end()) {
+			Warn() <<"NS3_Factory::createMessage() - Unknown message type: " <<messageHeader.msg_type <<"\n";
+			continue;
+		}
+
  		Json::Value& curr_json = root[index];
  		switch (MessageMap[messageHeader.msg_type]) {
  		case MULTICAST:{
@@ -130,6 +138,6 @@ bool sim_mob::comm::NS3_Factory::createMessage(const std::string &input, std::ve
  		}
  	}		//for loop
 
- 	return true;
+ 	return;
 }
 

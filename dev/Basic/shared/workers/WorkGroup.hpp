@@ -97,6 +97,10 @@ public:
 	 */
 	void findBoundaryConfluxes();
 
+	unsigned int getNumAgentsWithNoPath() {
+		return numAgentsWithNoPath;
+	}
+
 private:
 	void clear();
 	void interrupt();
@@ -202,6 +206,9 @@ private:
 
 	//Profile
 	sim_mob::ProfileBuilder* profile;
+
+	//Number of agents who have no path and hence discarded from the simulation.
+	unsigned int numAgentsWithNoPath;
 };
 
 

@@ -42,12 +42,25 @@ class QueryTick:
     self.startTime = None
     self.endTime = None
     self.wrkId = None
+class CommsimTick:
+  def __init__(self):
+    self.startTime = None
+    self.endTime = None
+    self.wrkId = None
+    self.numAgents = None
+class CommsimGlob:
+  def __init__(self):
+    self.update = CommsimTick()
+    self.localComp = CommsimTick()
+    self.mixedComp = CommsimTick()
+    self.androidComp = CommsimTick()
 
 
 #Containers of helper classes.
 workerTicks = {} #(workerId,tick) => WorkerTick
 auraMgrTicks = {} #(aMgrId,tick) => AuraMgrTick
 queryTicks = {} #(agentId,tick) => QueryTick
+commsimTicks = {} #(agentId,tick) => CommsimGlob
 
 
 def parse_time(inStr):
@@ -124,6 +137,54 @@ def parse_auramgr_tick(auraMgrTicks, props, parseBegin):
     auraMgrTicks[key].startTime = parse_time(props['real-time'])
   else:
     auraMgrTicks[key].endTime = parse_time(props['real-time'])
+
+
+def parse_commsim_tick(commsimTicks, props, subType, parseBegin): #subtype: 'U','L','M','A' for update,local,mixed,android. 
+  #Required properties.
+  if not('real-time' in props and 'broker' in props and 'tick' in props and 'worker' in props):
+    print ("Warning: Skipping CommSim; missing required properties[1].")
+    return
+  if (subType=='L' or subType=='M') and not 'num-agents' in props:
+    print ("Warning: Skipping CommSim; missing required properties[2].")
+    return
+
+  #Add it
+  key = (props['broker'], props['tick'])
+  if not key in commsimTicks:
+    commsimTicks[key] = CommsimGlob()
+
+  #Pull out the appropriate CommsimTick
+  commTick = None
+  if subType=='U':
+    commTick = commsimTicks[key].update
+  elif subType=='L':
+    commTick = commsimTicks[key].localComp
+  elif subType=='M':
+    commTick = commsimTicks[key].mixedComp
+  elif subType=='A':
+    commTick = commsimTicks[key].androidComp
+  if not commTick:
+    print("Warning: Skipping CommSim; unknown sub-type")
+    return
+
+  #Make sure we are not overwriting anything:
+  if parseBegin and commTick.startTime is not None:
+    print ("Warning: skipping existing CommSim startTime for: (%s,%s)" % (props['broker'], props['tick']))
+    return
+  if not parseBegin and commTick.endTime is not None:
+    print ("Warning: skipping existing CommSim endTime for: (%s,%s)" % (props['broker'], props['tick']))
+    return
+
+  #Save it
+  if parseBegin:
+    commTick.startTime = parse_time(props['real-time'])
+  else:
+    commTick.endTime = parse_time(props['real-time'])
+
+  #Save additional properties
+  commTick.wrkId = props['worker']
+  if 'num-agents' in props:
+    commTick.numAgents = props['num-agents']
 
 
 def parse_query_tick(queryTicks, props, parseBegin):
@@ -205,6 +266,26 @@ def dispatch_auramgr_update_action(act, props):
   else:
     print ("Unknown aura manager action: %s" % act)
 
+def dispatch_commsim_update_action(act, props):
+  global commsimTicks
+  if act=='commsim-update-begin':
+    parse_commsim_tick(commsimTicks, props, 'U', True)
+  elif act=='commsim-update-end':
+    parse_commsim_tick(commsimTicks, props, 'U', False)
+  elif act=='commsim-local-compute-begin':
+    parse_commsim_tick(commsimTicks, props, 'L', True)
+  elif act=='commsim-local-compute-end':
+    parse_commsim_tick(commsimTicks, props, 'L', False)
+  elif act=='commsim-mixed-compute-begin':
+    parse_commsim_tick(commsimTicks, props, 'M', True)
+  elif act=='commsim-mixed-compute-end':
+    parse_commsim_tick(commsimTicks, props, 'M', False)
+  elif act=='commsim-android-compute-begin':
+    parse_commsim_tick(commsimTicks, props, 'A', True)
+  elif act=='commsim-android-compute-end':
+    parse_commsim_tick(commsimTicks, props, 'A', False)
+  else:
+    print ("Unknown commsim action: %s" % act)
 
 def dispatch_query_action(act, props):
   global queryTicks
@@ -241,6 +322,8 @@ def dispatch_line(props):
     dispatch_query_action(act, props)
   elif act.startswith('auramgr-update-'):
     dispatch_auramgr_update_action(act, props)
+  elif act.startswith('commsim-'):
+    dispatch_commsim_update_action(act, props)
   else:
     print ("Unknown action: %s" % act)
 

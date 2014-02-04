@@ -41,7 +41,7 @@ std::map<std::string, sim_mob::Broker*> sim_mob::Broker::externalCommunicators;
 
 sim_mob::Broker::Broker(const MutexStrategy& mtxStrat, int id, std::string commElement, std::string commMode) :
 		Agent(mtxStrat, id), enabled(true) , commElement(commElement), commMode(commMode),
-		brokerCanTickForward(false)
+		brokerCanTickForward(false), numAgents(0)
 {
 	//Various Initializations
 	connection.reset(new ConnectionServer(*this));
@@ -396,11 +396,9 @@ void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType cl
 	}
 
 	//+1 client for this connection.
-	//TODO: We never decrement the total count (but the simulator seems to proceed fine).
-	//      I am fairly sure this is a bug, but since the simulator doesn't freeze then
-	//      I'm not sure how to debug it. We should re-visit this later. ~Seth
 	boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
 	clientDoneChecklist[clientHandler->connHandle].total++;
+	numAgents++;
 }
 
 void sim_mob::Broker::insertIntoWaitingOnWHOAMI(boost::shared_ptr<sim_mob::ConnectionHandler> newConn)
@@ -495,7 +493,7 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::AgentCommUtilityBase *value)
 	unRegisterEntity(value->getEntity());
 }
 
-void sim_mob::Broker::unRegisterEntity(sim_mob::Agent * agent)
+void sim_mob::Broker::unRegisterEntity(sim_mob::Agent* agent)
 {
 	if (EnableDebugOutput) {
 		Print() << "inside Broker::unRegisterEntity for agent[" << agent << "]\n";
@@ -544,9 +542,19 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent * agent)
 				//don't erase it here. it may already have something to send
 				//invalidation 1:
 				it_erase->second->agent = nullptr;
-				//or a better version //todo: use one version only
 				it_erase->second->setValidation(false);
-				it_erase->second->connHandle->setValidation(false); //this is even more important
+
+				//Update the connection count too.
+				boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
+				std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, ConnClientStatus>::iterator chkIt = clientDoneChecklist.find(it_erase->second->connHandle);
+				if (chkIt==clientDoneChecklist.end()) {
+					throw std::runtime_error("Client somehow registered without a valid connection handler.");
+				}
+				chkIt->second.total--;
+				numAgents--;
+				if (chkIt->second.total==0) {
+					it_erase->second->connHandle->setValidation(false); //this is even more important
+				}
 			}
 			else
 			{
@@ -596,11 +604,7 @@ bool sim_mob::Broker::allAgentUpdatesDone()
 	return res;*/
 }
 
-size_t sim_mob::Broker::getRegisteredAgentsSize()
-{
-	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
-	return REGISTERED_AGENTS.size();
-}
+
 
 void sim_mob::Broker::agentUpdated(const Agent* target ){
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
@@ -885,6 +889,10 @@ bool sim_mob::Broker::isWaitingForAgentRegistration() const {
 //todo:  put a better condition here. this is just a placeholder
 bool sim_mob::Broker::clientsQualify() const {
 	return clientList.size() >= MIN_CLIENTS;
+}
+
+size_t sim_mob::Broker::getNumConnectedAgents() const {
+	return numAgents;
 }
 
 //returns true if you need to wait

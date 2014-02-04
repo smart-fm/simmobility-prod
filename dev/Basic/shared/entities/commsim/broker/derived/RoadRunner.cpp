@@ -193,7 +193,7 @@ sim_mob::Entity::UpdateStatus sim_mob::Roadrunner_Broker::update(timeslice now) 
 	}
 
 	//step-3: Process what has been received in your receive container(message queue perhaps)
-	size_t numAgents = getRegisteredAgentsSize();
+	size_t numAgents = getNumConnectedAgents();
 	PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_BEGIN(currWorkerProvider, this, now, numAgents);
 	processIncomingData(now);
 	if (EnableDebugOutput) {
@@ -218,7 +218,7 @@ sim_mob::Entity::UpdateStatus sim_mob::Roadrunner_Broker::update(timeslice now) 
 	PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_END(currWorkerProvider, this, now, numAgents);
 
 	//This may have changed (or we should at least log if it did).
-	numAgents = getRegisteredAgentsSize();
+	numAgents = getNumConnectedAgents();
 
 	//step-6: Now send all what has been prepared, by different sources, to their corresponding destications(clients)
 	PROFILE_LOG_COMMSIM_MIXED_COMPUTE_BEGIN(currWorkerProvider, this, now, numAgents);

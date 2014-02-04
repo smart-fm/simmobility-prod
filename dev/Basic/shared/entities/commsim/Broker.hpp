@@ -263,6 +263,9 @@ protected:
 	//Mutex for the waitingWHOAMI list.
 	boost::mutex mutex_WaitingWHOAMI;
 
+	//Number of connected Agents (entities which respond with a WHOAMI).
+	size_t numAgents;
+
 	/*
 	 *
 	 */
@@ -291,6 +294,10 @@ protected:
 	 * Note: this function is not used any more.
 	 */
 	bool clientsQualify() const;
+
+	///Return the number of clients that have completed the registration process.
+	size_t getNumConnectedAgents() const;
+
 	/**
 	 * The Following two methods revise the registration of the registered agents.
 	 * Note: these functions are not used any more.
@@ -318,9 +325,6 @@ protected:
 	 * current tick or not.
 	 */
 	bool allAgentUpdatesDone();
-
-	///Return the number of registered agents.
-	size_t getRegisteredAgentsSize();
 
 	/**
 	 * internal cleanup at each tick

@@ -43,8 +43,8 @@
 #endif
 
 ///Helper macro: call wrkprov->getProfileBuilder()->logCommsimUpdateBegin(agent, now)
-///Performs no processing if SIMMOB_PROFILE_COMMSIM_UPDATES or SIMMOB_PROFILE_ON is undefined.
-#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM_UPDATES)
+///Performs no processing if SIMMOB_PROFILE_COMMSIM or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM)
   #define PROFILE_LOG_COMMSIM_UPDATE_BEGIN(wrkprov, agent, now) \
 		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimUpdateBegin(agent, now); }
 #else
@@ -52,8 +52,8 @@
 #endif
 
 ///Helper macro: call wrkprov->getProfileBuilder()->logCommsimUpdateEnd(agent, now)
-///Performs no processing if SIMMOB_PROFILE_COMMSIM_UPDATES or SIMMOB_PROFILE_ON is undefined.
-#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM_UPDATES)
+///Performs no processing if SIMMOB_PROFILE_COMMSIM or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM)
   #define PROFILE_LOG_COMMSIM_UPDATE_END(wrkprov, agent, now) \
           if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimUpdateEnd(agent, now); }
 #else
@@ -61,8 +61,8 @@
 #endif
 
 ///Helper macro: call wrkprov->getProfileBuilder()->logCommsimLocalComputeBegin(agent, now, numAgents)
-///Performs no processing if SIMMOB_PROFILE_COMMSIM_UPDATES or SIMMOB_PROFILE_ON is undefined.
-#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM_UPDATES)
+///Performs no processing if SIMMOB_PROFILE_COMMSIM or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM)
   #define PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_BEGIN(wrkprov, agent, now, numAgents) \
 		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimLocalComputeBegin(agent, now, numAgents); }
 #else
@@ -70,8 +70,8 @@
 #endif
 
 ///Helper macro: call wrkprov->getProfileBuilder()->logCommsimLocalComputeEnd(agent, now, numAgents)
-///Performs no processing if SIMMOB_PROFILE_COMMSIM_UPDATES or SIMMOB_PROFILE_ON is undefined.
-#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM_UPDATES)
+///Performs no processing if SIMMOB_PROFILE_COMMSIM or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM)
   #define PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_END(wrkprov, agent, now, numAgents) \
           if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimLocalComputeEnd(agent, now, numAgents); }
 #else
@@ -79,8 +79,8 @@
 #endif
 
 ///Helper macro: call wrkprov->getProfileBuilder()->logCommsimMixedComputeBegin(agent, now, numAgents)
-///Performs no processing if SIMMOB_PROFILE_COMMSIM_UPDATES or SIMMOB_PROFILE_ON is undefined.
-#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM_UPDATES)
+///Performs no processing if SIMMOB_PROFILE_COMMSIM or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM)
   #define PROFILE_LOG_COMMSIM_MIXED_COMPUTE_BEGIN(wrkprov, agent, now, numAgents) \
 		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimMixedComputeBegin(agent, now, numAgents); }
 #else
@@ -88,8 +88,8 @@
 #endif
 
 ///Helper macro: call wrkprov->getProfileBuilder()->logCommsimMixedComputeEnd(agent, now, numAgents)
-///Performs no processing if SIMMOB_PROFILE_COMMSIM_UPDATES or SIMMOB_PROFILE_ON is undefined.
-#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM_UPDATES)
+///Performs no processing if SIMMOB_PROFILE_COMMSIM or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM)
   #define PROFILE_LOG_COMMSIM_MIXED_COMPUTE_END(wrkprov, agent, now, numAgents) \
           if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimMixedComputeEnd(agent, now, numAgents); }
 #else
@@ -97,8 +97,8 @@
 #endif
 
 ///Helper macro: call wrkprov->getProfileBuilder()->logCommsimAndroidComputeBegin(agent, now)
-///Performs no processing if SIMMOB_PROFILE_COMMSIM_UPDATES or SIMMOB_PROFILE_ON is undefined.
-#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM_UPDATES)
+///Performs no processing if SIMMOB_PROFILE_COMMSIM or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM)
   #define PROFILE_LOG_COMMSIM_ANDROID_COMPUTE_BEGIN(wrkprov, agent, now) \
 		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimAndroidComputeBegin(agent, now); }
 #else
@@ -106,8 +106,8 @@
 #endif
 
 ///Helper macro: call wrkprov->getProfileBuilder()->logCommsimAndroidComputeEnd(agent, now)
-///Performs no processing if SIMMOB_PROFILE_COMMSIM_UPDATES or SIMMOB_PROFILE_ON is undefined.
-#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM_UPDATES)
+///Performs no processing if SIMMOB_PROFILE_COMMSIM or SIMMOB_PROFILE_ON is undefined.
+#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM)
   #define PROFILE_LOG_COMMSIM_ANDROID_COMPUTE_END(wrkprov, agent, now) \
           if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimAndroidComputeEnd(agent, now); }
 #else

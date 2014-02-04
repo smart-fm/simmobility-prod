@@ -184,7 +184,10 @@ def parse_commsim_tick(commsimTicks, props, subType, parseBegin): #subtype: 'U',
   #Save additional properties
   commTick.wrkId = props['worker']
   if 'num-agents' in props:
-    commTick.numAgents = props['num-agents']
+    if not commTick.numAgents:
+      commTick.numAgents = props['num-agents']
+    if commTick.numAgents != props['num-agents']:
+      print("Warning: commsim has two different values for num-agents.")
 
 
 def parse_query_tick(queryTicks, props, parseBegin):
@@ -254,6 +257,59 @@ def print_query_ticks(out, lines):
     else:
       print ("Warning: skipping output Query (some properties missing).")
 
+def print_commsim_ticks(out, lines, wrkLines):
+  #Guess the brokerId
+  brokerId = None
+  for key in lines:
+    brokerId = key[0]
+    break
+
+  #We need to know the largest worker time tick and the total number of connected agents, barring the 
+  #  Broker's threaed. Build a lookup now.
+  wrkLookup = {} #tick => (time, connected)
+  for key in wrkLines:
+    if key[0] == brokerId:
+      continue
+    if key[1] not in wrkLookup:
+      wrkLookup[key[1]] = [0,0]
+    wrkLookup[key[1]][0] = max(wrkLookup[key[1]][0], wrkLines[key].endTime-wrkLines[key].startTime)
+    wrkLookup[key[1]][1] += int(wrkLines[key].numAgents)
+
+  #Now print
+  for key in lines:
+    #Check: only 1 broker
+    if brokerId != key[0]:
+      print("Warning: multiple Brokers not supported, skipping.")
+      continue
+
+    #Quick validate
+    cm = lines[key]
+    if not (cm.update.startTime and cm.update.endTime and cm.update.wrkId):
+      print("Warning: skipping output Commsim; missing \"update\" tick.")
+      continue
+    if not (cm.localComp.startTime and cm.localComp.endTime and cm.localComp.wrkId and cm.localComp.numAgents):
+      print("Warning: skipping output Commsim; missing \"local\" tick.")
+      continue
+    if not (cm.mixedComp.startTime and cm.mixedComp.endTime and cm.mixedComp.wrkId and cm.mixedComp.numAgents):
+      print("Warning: skipping output Commsim; missing \"mixed\" tick.")
+      continue
+    if not (cm.androidComp.startTime and cm.androidComp.endTime and cm.androidComp.wrkId):
+      print("Warning: skipping output Commsim; missing \"android\" tick.")
+      continue
+
+    #Retrieve the largest worker tick and the total connected agents.
+    if not key[1] in wrkLookup:
+      print("Warning: skipping output Commsim; missing worker lookup entry")
+      continue
+    wrkTime = wrkLookup[key[1]][0]
+    wrkAgents = wrkLookup[key[1]][1]
+
+    #Print
+    updateTime = cm.update.endTime-cm.update.startTime
+    localTime = cm.localComp.endTime-cm.localComp.startTime
+    mixedTime = cm.mixedComp.endTime-cm.mixedComp.startTime
+    androidTime = cm.androidComp.endTime-cm.androidComp.startTime
+    out.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (key[1], wrkTime, wrkAgents, cm.mixedComp.numAgents, updateTime, localTime, mixedTime, androidTime))
 
 
 
@@ -374,6 +430,9 @@ def run_main(inFilePath):
   out3.write('%s\t%s\t%s\t%s\n' % ('AgentID', 'Tick', 'Len(Nano)', 'OnWorker'))
   print_query_ticks(out3, queryTicks)
 
+  out4 = open("commsim.csv", 'w')
+  out4.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % ('tick', 'work_longest', 'agents_total', 'agents_connected', 'broker_len', 'local_len', 'mixed_len', 'android_len'))
+  print_commsim_ticks(out4, commsimTicks, workerTicks)
 
 
 

@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 import sys
 import os
@@ -64,8 +64,8 @@ def parse_time(inStr):
     nanoscale = 10 ** 9
 
   #Convert
-  sec = long(mRes.group(1))
-  nano = long(mRes.group(2))
+  sec = int(mRes.group(1))
+  nano = int(mRes.group(2))
   res = nanoscale*sec + nano 
   return res
 
@@ -73,10 +73,10 @@ def parse_time(inStr):
 def parse_work_tick(workerTicks, props, parseBegin):
   #Required properties.
   if not('real-time' in props and 'worker' in props and 'tick' in props):
-    print "Warning: Skipping Worker; missing required properties."
+    print ("Warning: Skipping Worker; missing required properties.")
     return
   if parseBegin and not 'num-agents' in props:
-    print "Warning: Skipping Worker; missing required properties."
+    print ("Warning: Skipping Worker; missing required properties.")
     return
 
   #Add it
@@ -103,7 +103,7 @@ def parse_work_tick(workerTicks, props, parseBegin):
 def parse_auramgr_tick(auraMgrTicks, props, parseBegin):
   #Required properties.
   if not('real-time' in props and 'auramgr' in props and 'tick' in props):
-    print "Warning: Skipping AuraMgr; missing required properties."
+    print ("Warning: Skipping AuraMgr; missing required properties.")
     return
 
   #Add it
@@ -129,7 +129,7 @@ def parse_auramgr_tick(auraMgrTicks, props, parseBegin):
 def parse_query_tick(queryTicks, props, parseBegin):
   #Required properties.
   if not('real-time' in props and 'agent' in props and 'worker' in props and 'tick' in props):
-    print "Warning: Skipping Query; missing required properties."
+    print ("Warning: Skipping Query; missing required properties.")
     return
 
   #Add it
@@ -171,7 +171,7 @@ def print_work_ticks(out, lines):
     if wrk.startTime and wrk.endTime and wrk.numAgents:
       out.write('%s\t%s\t%s\t%s\n' % (key[0], key[1], wrk.endTime-wrk.startTime, wrk.numAgents))
     else:
-      print "Warning: skipping output Worker (some properties missing)."
+      print ("Warning: skipping output Worker (some properties missing).")
 
 
 
@@ -182,7 +182,7 @@ def print_auramgr_ticks(out, lines):
     if am.startTime and am.endTime:
       out.write('%s\t%s\t%s\n' % (key[0], key[1], am.endTime-am.startTime))
     else:
-      print "Warning: skipping output AuraManager (some properties missing)."
+      print ("Warning: skipping output AuraManager (some properties missing).")
 
 def print_query_ticks(out, lines):
   for key in lines:
@@ -191,7 +191,7 @@ def print_query_ticks(out, lines):
     if qr.startTime and qr.endTime:
       out.write('%s\t%s\t%s\t%s\n' % (key[0], key[1], qr.endTime-qr.startTime, qr.wrkId))
     else:
-      print "Warning: skipping output Query (some properties missing)."
+      print ("Warning: skipping output Query (some properties missing).")
 
 
 

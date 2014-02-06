@@ -18,7 +18,7 @@ using namespace sim_mob;
 
 sim_mob::ConnectionHandler::ConnectionHandler(session_ptr session, boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_/*, sim_mob::comm::ClientType clientType*/)
 	: messageReceiveCallback(messageReceiveCallback_), clientType(comm::UNKNOWN_CLIENT), session(session), valid(true), isAsyncWrite(false),
-	  isAsyncRead(false), pendingReads(0)
+	  isAsyncRead(false)
 {
 }
 
@@ -87,7 +87,6 @@ void sim_mob::ConnectionHandler::messageSentHandle(const boost::system::error_co
 
 	//Typically, we would listen for an incoming message here. We have to make sure we are not waiting on a write-lock, however.
 	boost::unique_lock<boost::mutex> lock(async_read_mutex);
-	pendingReads += 1;
 	if (!isAsyncRead) {
 		isAsyncRead = true;
 		readMessage();
@@ -106,12 +105,11 @@ void sim_mob::ConnectionHandler::messageReceivedHandle(const boost::system::erro
 
 	//Keep reading?
 	boost::unique_lock<boost::mutex> lock(async_read_mutex);
-	pendingReads -= 1;
-	if (pendingReads > 0) {
-		readMessage();
-	} else {
-		isAsyncRead = false;
-	}
+	//if (pendingReads > 0) {
+	readMessage();
+	//} else {
+	//	isAsyncRead = false;
+	//}
 }
 
 void sim_mob::ConnectionHandler::sendImmediately(const std::string& str)

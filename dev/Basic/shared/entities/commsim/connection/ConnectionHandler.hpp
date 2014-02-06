@@ -80,7 +80,7 @@ private:
 
 	//Lock async_read. If this flag is true, we can't call async_read until the current operation completes.
 	bool isAsyncRead;
-	long pendingReads; //How many "read" operations are pending.
+	//long pendingReads; //How many "read" operations are pending.
 };
 
 }

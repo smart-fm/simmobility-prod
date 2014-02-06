@@ -1882,10 +1882,6 @@ void DatabaseLoader::createBusStopAgents()
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
 		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy());
-//		if(100001500 == busstop->parentSegment_->getSegmentID())
-//		{
-//			std::cout << " segment 100001500 added a busStop " << busstop->getRoadItemID() << "  at obstacle " << distOrigin << std::endl;
-//		}
 	}
 
 	for(map<std::string,BusStopSG>::iterator it = bustopSG_.begin(); it != bustopSG_.end(); it++) {
@@ -1914,10 +1910,6 @@ void DatabaseLoader::createBusStopAgents()
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
 		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy());
-//		if(100001500 == busstop->parentSegment_->getSegmentID())
-//		{
-//			std::cout << " segment 100001500 added a busStop " << busstop->getRoadItemID() << "  at obstacle " << distOrigin << std::endl;
-//		}
 	}
 }
 

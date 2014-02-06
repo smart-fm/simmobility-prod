@@ -132,7 +132,7 @@ private:
 };
 
 
-enum ControlTypes {
+enum controlTypes {
 	NO_CONTROL, SCHEDULE_BASED, HEADWAY_BASED, EVENHEADWAY_BASED, HYBRID_BASED
 };
 
@@ -155,8 +155,8 @@ public:
 	Busline(std::string busline_id="", std::string controlType="no_control"); // default no control(only follow the schedule given)
 	virtual ~Busline();
 
-	static ControlTypes getControlTypeFromString(std::string ControlType);
-	const ControlTypes getControlType() const
+	static controlTypes getControlTypeFromString(std::string controlType);
+	const controlTypes getControlType() const
 	{
 		return controlType;
 	}
@@ -186,7 +186,7 @@ public:
 	void resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, Shared<BusStop_RealTimes>* busStopRealTimes);// mainly for realTimes
 private:
 	std::string busline_id;
-	ControlTypes controlType;
+	controlTypes controlType;
 	std::vector<Frequency_Busline> frequency_busline; // provide different headways according to the offset from simulation for each busline
 	std::vector<BusTrip> busTrip_vec;// constructed based on MSOffset_headway
 	int controlTimePointNum0; // now only one time point(hardcoded), later extend to the vector<control_TimePoint>
@@ -201,13 +201,13 @@ public:
 	virtual ~PT_Schedule();
 
 	void registerBusLine(const std::string buslineId, Busline* aBusline);
-	void registerControlType(const std::string buslineId, const ControlTypes aControlType);
+	void registerControlType(const std::string buslineId, const controlTypes controlType);
 	Busline* findBusline(const std::string& buslineId);
-	ControlTypes findBuslineControlType(const std::string& buslineId);
+	controlTypes findBuslineControlType(const std::string& buslineId);
 	std::map<std::string, Busline*>& getBusLines() { return buslineIdBuslineMap; }
 private:
 	std::map<std::string, Busline*> buslineIdBuslineMap;// need new 2 times(one for particular trip, one for backup in BusController
-	std::map<std::string, ControlTypes> buslineIdControlTypeMap;// busline--->controlType
+	std::map<std::string, controlTypes> buslineIdControlTypeMap;// busline--->controlType
 };
 
 }

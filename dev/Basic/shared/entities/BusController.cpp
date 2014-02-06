@@ -284,7 +284,7 @@ void sim_mob::BusController::storeRealTimes_eachBusStop(const std::string& busli
 
 double sim_mob::BusController::decisionCalculation(const string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_BusStop)
 {
-	ControlTypes controltype = pt_schedule.findBuslineControlType(busline_i);
+	controlTypes controlType = pt_schedule.findBuslineControlType(busline_i);
 	Busline* busline = pt_schedule.findBusline(busline_i);
 	if(!busline) {
 		std::cout << "wrong busline assigned:" << std::endl;
@@ -295,7 +295,7 @@ double sim_mob::BusController::decisionCalculation(const string& busline_i, int 
 	double departure_time = 0; // If we use Control, since the busstopSequence_j is in the middle, so should not be 0
 	double waitTime_BusStop = 0;
 
-	switch(controltype) {
+	switch(controlType) {
 	case SCHEDULE_BASED:
 		departure_time = scheduledDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, realTime, lastVisited_BusStop);
 		waitTime_BusStop = (departure_time - ATijk) * 0.001;

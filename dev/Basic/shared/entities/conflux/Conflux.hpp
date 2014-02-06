@@ -192,6 +192,8 @@ public:
 		this->parentWorker = parentWorker;
 	}
 
+	int getVehicleLaneCounts(const sim_mob::RoadSegment* segStats);
+
 	bool hasSpaceInVirtualQueue(sim_mob::Link* lnk);
 	void pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p);
 

@@ -198,22 +198,6 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 	isQueuingAfterUpdate = person->isQueuing;
 	segStatsAftrUpdt = findSegStats(segAfterUpdate);
 
-	//debugging dequeue error
-	if(person->getId() == 84205 || person->getId() == 13282) {
-		Print() << person->getId()
-				<< "|person->currWorkerProvider: " << person->currWorkerProvider
-				<< "|roleBeforeUpdate: " << (roleBeforeUpdate? roleBeforeUpdate->getRoleName() : "No role")
-				<< "|segBeforeUpdate: " << segBeforeUpdate->getStartEnd()
-				<< "|laneBeforeUpdate:" << (laneBeforeUpdate? laneBeforeUpdate->getLaneID() : 0)
-				<< "|isQueuingBeforeUpdate:" << isQueuingBeforeUpdate
-				<< "|roleAfterUpdate: " << roleAfterUpdate->getRoleName()
-				<< "|segAfterUpdate: " << segAfterUpdate->getStartEnd()
-				<< "|laneAfterUpdate: " << (laneAfterUpdate? laneAfterUpdate->getLaneID() : 0)
-				<< "|isQueuingAfterUpdate: " << isQueuingAfterUpdate
-				<< "|distance: " << person->distanceToEndOfSegment
-				<< "|lastUpdatedFrame: " << person->getLastUpdatedFrame() << std::endl;
-	}
-
 	if (!laneBeforeUpdate) { //If the person was in virtual queue or was performing an activity
 		if(laneAfterUpdate) { //If the person has moved to another lane (possibly even to laneInfinity if he was performing activity) in some segment
 			segStatsAftrUpdt->addAgent(laneAfterUpdate, person);
@@ -483,9 +467,9 @@ double sim_mob::Conflux::computeTimeToReachEndOfLink(const sim_mob::RoadSegment*
 	std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt = std::find(segments.begin(), segments.end(), seg);
 
 	sim_mob::SegmentStats* segStats = findSegStats(seg);
-	double timeToReachEndOfLink = distanceToEndOfSeg * getSegmentSpeed(seg,true);
+	double timeToReachEndOfLink = distanceToEndOfSeg / getSegmentSpeed(seg,true);
 	for(std::vector<sim_mob::RoadSegment*>::const_iterator i = rdSegIt+1; i!=segments.end(); i++) {
-		timeToReachEndOfLink += (*i)->getLaneZeroLength() * getSegmentSpeed((*i),true);
+		timeToReachEndOfLink += (*i)->getLaneZeroLength() / getSegmentSpeed((*i),true);
 	}
 	return timeToReachEndOfLink;
 }
@@ -825,9 +809,6 @@ void sim_mob::Conflux::call_movement_frame_output(timeslice now, Person* person)
 	if (!isToBeRemoved()) {
 		person->currRole->Movement()->frame_tick_output();
 	}
-
-	//now is the right time to ask for resetting of updateParams
-	person->setResetParamsRequired(true);
 }
 
 void sim_mob::Conflux::reportLinkTravelTimes(timeslice frameNumber) {
@@ -890,9 +871,10 @@ UpdateStatus sim_mob::Conflux::perform_person_move(timeslice now, Person* person
 	//Perform the main update tick
 	UpdateStatus retVal = call_movement_frame_tick(now, person);
 
-	//Save the output
+	//This persons next movement will be in the next tick
 	if (retVal.status != UpdateStatus::RS_DONE && person->remainingTimeThisTick<=0) {
-		call_movement_frame_output(now, person);
+		//now is the right time to ask for resetting of updateParams
+		person->setResetParamsRequired(true);
 	}
 
 	return retVal;
@@ -1040,6 +1022,11 @@ void sim_mob::Conflux::findBoundaryConfluxes() {
 			}
 		}
 	}
+}
+
+int sim_mob::Conflux::getVehicleLaneCounts(const sim_mob::RoadSegment* rdSeg) {
+	sim_mob::SegmentStats* segStats = findSegStats(rdSeg);
+	return segStats->getNumVehicleLanes();
 }
 
 unsigned int sim_mob::Conflux::getNumRemainingInLaneInfinity() {

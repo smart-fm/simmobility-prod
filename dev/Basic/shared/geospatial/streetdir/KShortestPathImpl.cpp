@@ -28,106 +28,116 @@ std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKS
 		sim_mob::PathSet& ps_,
 		std::map<std::string,SinglePath*>& wp_spPool)
 {
-	std::vector< std::vector<sim_mob::WayPoint> > A;
+	std::vector< std::vector<sim_mob::WayPoint> > pathFound;
 	std::vector<const RoadSegment*> bl;
 	std::vector<sim_mob::WayPoint> p = stdir->SearchShortestDrivingPath(
 			stdir->DrivingVertex(*from),
 			stdir->DrivingVertex(*to),
 			bl);
-	A.push_back(p);
+	pathFound.push_back(p);
 	storeSegments(p);
 	std::vector<sim_mob::WayPoint> rootPath;
 //	int kk=0;
-	std::map<std::string, std::vector<sim_mob::WayPoint> > B; // store path ,key=segid_segid_...
+	std::map<std::string, std::vector<sim_mob::WayPoint> > pathIdMap; // store path ,key=segid_segid_...
 	std::list< sim_mob::PathLength > sortList;
 	while(true)
 	{
-		std::vector<sim_mob::WayPoint> path_ = A.back();
-		for(int i=0;i<path_.size();++i)
+		std::vector<sim_mob::WayPoint> pathPrevious = pathFound.back();
+		std::vector< std::vector<sim_mob::WayPoint> > pathWayPoints;
+		// blacklist is initiated for every iteration so that previously blocked links are restored.
+		std::vector<const RoadSegment*> blacklist;
+		// set path list pathWayPoints = pathFound.
+		for(int i=0;i<pathFound.size();i++)
 		{
-			if (path_[i].type_ == WayPoint::ROAD_SEGMENT) {
-				const sim_mob::RoadSegment *roadSeg = path_[i].roadSegment_;
-				// 1.0 get segment's start node,end node
-				const sim_mob::Node *start_node = roadSeg->getStart();
-				const sim_mob::Node *end_node = roadSeg->getEnd();
-				// 2.0 change rootPath
-				rootPath.push_back(path_[i]);
-				// 3.0 get all segments start from the start node
-				std::vector<const RoadSegment*> blacklist;
-				const MultiNode* multiNode = dynamic_cast<const MultiNode*> (start_node);
-				if(multiNode)
+			std::vector<sim_mob::WayPoint> path_inA = pathFound[i];
+			pathWayPoints.push_back(path_inA);
+		}
+		for(int i=0;i<pathPrevious.size();i++)
+		{
+			if (pathPrevious[i].type_ == WayPoint::ROAD_SEGMENT) {
+				const sim_mob::RoadSegment *nextRootPathLink = pathPrevious[i].roadSegment_;
+				const sim_mob::Node *spur_node = nextRootPathLink->getStart();
+				// block link pathWayPoints^j[i].
+				std::vector< std::vector<sim_mob::WayPoint> > pathSegments;
+				for(int j=0;j<pathWayPoints.size();j++)
 				{
-					blacklist.push_back(roadSeg);
-//					const std::set<sim_mob::LaneConnector*>& lcs = multiNode->getOutgoingLanes(roadSeg);
-					std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > connectors = multiNode->getConnectors();
-//					for (std::set<LaneConnector*>::const_iterator it2 = lcs.begin(); it2 != lcs.end(); it2++) {
-					for (std::map<const  sim_mob::RoadSegment*, std::set< sim_mob::LaneConnector*> >::const_iterator it_con=connectors.begin();
-							it_con!=connectors.end(); it_con++)
+					std::vector<sim_mob::WayPoint> path_inC = pathWayPoints[j];
+					if (i > path_inC.size() || path_inC.empty() )
 					{
-						const sim_mob::RoadSegment* rs = it_con->first;
-						// 4.0 check segments whether in A
-						if( segmentInPaths(rs) ){
-							// 5.0 make black list
-							blacklist.push_back(rs);
+						continue;
+					}
+					if (path_inC[i].type_ == WayPoint::ROAD_SEGMENT) {
+						const sim_mob::RoadSegment *blocklink = path_inC[i].roadSegment_;
+						blacklist.push_back(blocklink);
+						// compare nextRootPathLink with blocklink.
+						if(nextRootPathLink == blocklink)
+						{
+							pathSegments.push_back(path_inC);
 						}
-					}// end for connectors
+					}
 				}
-				else // uninode
-				{
-					blacklist.push_back(roadSeg);
-				}
-				// 6.0 get spurPath from end node to des node
+				// block spurnode. <-- this is for the purpose of looplessness, but is it necessary in our case?
+				// find spurpath from spurnode to destination.
 				std::vector<sim_mob::WayPoint> p2 = stdir->SearchShortestDrivingPath(
-						stdir->DrivingVertex(*end_node),
-						stdir->DrivingVertex(*to),
-						blacklist);
-				// 6.1 make complete path
+										stdir->DrivingVertex(*spur_node),
+										stdir->DrivingVertex(*to),
+										blacklist);
+				// make complete path.
 				p2.insert(p2.begin(),rootPath.begin(),rootPath.end());
-				// 7.0 store rootPath+spurPath to B
-				// 7.1 make id for p2
+				// store rootPath+spurPath to pathIdMap
+				// make id for p2
 				std::string id = sim_mob::makeWaypointsetString(p2);
-				std::map<std::string, std::vector<sim_mob::WayPoint> >::iterator it_id = B.find(id);
-				if(it_id == B.end() ) // never see this path before
+				std::map<std::string, std::vector<sim_mob::WayPoint> >::iterator it_id = pathIdMap.find(id);
+				if(it_id == pathIdMap.end() ) // never see this path before
 				{
-					B.insert(std::make_pair(id,p2));
+					pathIdMap.insert(std::make_pair(id,p2));
 					// calculate length
 					double l_ = sim_mob::generateSinglePathLength(p2);
 					sim_mob::PathLength pl;
 					pl.length  = l_;
 					pl.path = p2;
-					// 7.2 store p2 in list to sort
+					//store p2 in list to sort
 					sortList.push_back(pl);
 				} // end it_id
-			}// end type_
-		}// end for
-		// 8.0 sort list
-		sortList.sort(PathLengthComparator());
-		// 9.0 store B[0] to A
-		// get lowest cost path and push to A
+				// update path list pathWayPoints.
+				pathWayPoints.clear();
+				for(int j=0;j<pathSegments.size();j++)
+				{
+					std::vector<sim_mob::WayPoint> path_inD = pathSegments[j];
+					pathWayPoints.push_back(path_inD);
+				}
+				// update rootpath.
+				rootPath.push_back(pathPrevious[i]);
+			} // end type_
+		} // end for
 		if(sortList.size()>0)
 		{
-			//
+			// sort list
+			sortList.sort(PathLengthComparator());
+			// store pathIdMap[0] to pathFound
+			// get lowest cost path and push to pathFound
 			sim_mob::PathLength pl_ = *(sortList.begin());
-			A.push_back(pl_.path);
+			pathFound.push_back(pl_.path);
 			// remove from sortlist
 			sortList.pop_front();
 			rootPath.clear();
 		}
 		else
 		{
-			// no more path in sort list
+			// if path list pathIdMap is empty.
 			break;
 		}
-		// 10.0 if A.size = k ,return
-		if(A.size()==k)
+		// if pathFound.size = k, return
+		if(pathFound.size()==k)
 		{
 			break;
 		}
 	} // end while
+
 	//
-	for(int i=0;i<A.size();++i)
+	for(int i=0;i<pathFound.size();++i)
 	{
-		std::vector<sim_mob::WayPoint> path_ = A[i];
+		std::vector<sim_mob::WayPoint> path_ = pathFound[i];
 		std::string id = sim_mob::makeWaypointsetString(path_);
 		std::map<std::string,SinglePath*>::iterator it_id =  wp_spPool.find(id);
 		if(it_id==wp_spPool.end())
@@ -153,7 +163,7 @@ std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKS
 			wp_spPool.insert(std::make_pair(id,s));
 		}
 	}
-	return A;
+	return pathFound;
 }
 void sim_mob::K_ShortestPathImpl::storeSegments(std::vector<sim_mob::WayPoint> path)
 {

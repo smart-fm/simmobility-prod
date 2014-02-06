@@ -197,8 +197,11 @@ sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateV
 		parentDriver->goal.point = parentDriver->goal.node->location;
 
 		if(parentDriver->origin.node == parentDriver->goal.node){
-			std::cout << "origin:"<<parentDriver->origin.node->getID()<<" |dest:"<<parentDriver->goal.node->getID()<<std::endl;
-			Print()<<"DriverMovement::initializePath | Can't initializePath(); origin and destination are the same for driver "<<getParent()->GetId()<<std::endl;
+			Print()
+			<< "DriverMovement::initializePath | Can't initializePath(); origin and destination are the same for driver " <<getParent()->GetId()
+			<< "\norigin:" << parentDriver->origin.node->getID()
+			<< "\ndestination:" << parentDriver->goal.node->getID()
+			<< std::endl;
 			return res;
 		}
 
@@ -229,7 +232,7 @@ sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateV
 		if (path.empty()) {
 			//throw std::runtime_error("Can't initializePath(); path is empty.");
 			Print()<<"DriverMovement::initializePath | Can't initializePath(); path is empty for driver "
-					<<getParent()->GetId()<<std::endl;
+				   <<getParent()->GetId()<<std::endl;
 			return res;
 		}
 

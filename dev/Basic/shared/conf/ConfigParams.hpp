@@ -289,6 +289,7 @@ public:
 
 	///If empty, use the default provided in "xsi:schemaLocation".
 	std::string& roadNetworkXsdSchemaFile();
+	void setRoadNetworkXsdSchemaFile(std::string& name);
 	const std::string& roadNetworkXsdSchemaFile() const;
 
 	///Which tree implementation to use for spatial partitioning for the aura manager.

@@ -51,6 +51,7 @@ public:
 
 private:
 	ConfigParams& get_config() const; ///<Helper, single point of creatino for ConfigParams;
+	ConfigParams& get_config_rw(); ///<Helper, single point of creatino for ConfigParams and can read write;
 
 	static ConfigManager* instance;
 	mutable ConfigParams* config;  //We create on retrieval, mostly for convenience. Hence, mutable.

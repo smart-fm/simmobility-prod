@@ -119,7 +119,7 @@ void write_xml(XmlWriter& write,
 //	write_xml(write, newConnector, namer("<laneFrom,laneTo>"), expander("<id,id>"));
 	std::map<const sim_mob::Lane*, sim_mob::UniNode::UniLaneConnector>::const_iterator it;
 	for (it = newConnectors.begin(); it != newConnectors.end(); it++) {
-		write.prop_begin("newConnector");
+		write.prop_begin("new_connector");
 		if (!it->first) {
 			throw std::runtime_error("Linkfrom null");
 		} else {
@@ -217,13 +217,11 @@ void write_xml(XmlWriter& write, const sim_mob::RoadSegment& rs)
 
 	//NOTE: We don't pass a namer in here, since vectors<> of Point2Ds are a special case.
 	write.prop("polyline", rs.polyline);
-
 	std::vector< std::vector<Point2D> > laneLines;
 	for (size_t i=0; i<=rs.getLanes().size(); i++) {
 		laneLines.push_back(const_cast<sim_mob::RoadSegment&>(rs).getLaneEdgePolyline(i));
 	}
     write.prop("laneEdgePolylines_cached", wrap_lanes(laneLines), namer("<laneEdgePolyline_cached,<laneNumber,polyline>>"));
-
 	write.prop("Lanes", rs.getLanes(), namer("<Lane>"));
 	write.prop("Obstacles", rs.getObstacles());
 
@@ -250,6 +248,7 @@ void write_xml(XmlWriter& write, const sim_mob::Lane& ln)
 	write.prop("can_freely_park_here", ln.can_freely_park_here());
 	write.prop("can_stop_here", ln.can_stop_here());
 	write.prop("is_u_turn_allowed", ln.is_u_turn_allowed());
+	write.prop("PolyLine", ln.polyline_);
 }
 
 
@@ -489,7 +488,7 @@ void write_xml(XmlWriter& write, const sim_mob::Phase& phase) {
 
 			write.prop_begin("crossings_map");
 			if (it->first && it->second.link) {
-				write.prop("LinkID", it->second.link, namer(), expander("<id>"),
+				write.prop("linkID", it->second.link, namer(), expander("<id>"),
 						false);
 				write.prop("crossingID", it->first->getRoadItemID());
 			}

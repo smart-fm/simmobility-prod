@@ -341,10 +341,6 @@ void sim_mob::RoadSegment::makeLanePolylineFromEdges(Lane* lane, const vector<Po
 //TODO: Restore const-correctness after cleaning up sidewalks.
 const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int laneID) /*const*/
 {
-	if(this->getSegmentID() == 100004201)
-	{
-		std::cout<<"find it"<<std::endl;
-	}
 	//TEMP: Due to the way we manually insert sidewalks, this is needed for now.
 	bool syncNeeded = false;
 	for (size_t i=0; i<lanes.size(); i++) {

@@ -64,6 +64,7 @@ public:
 
 	//TEMP: Added for XML loading.
 	void setConnectorAt(const sim_mob::RoadSegment* key, std::set<sim_mob::LaneConnector*>& val) { this->connectors[key] = val; }
+	// increase the laneconnectors if the roadsegment already is key in connectors
 	void setConnectorAt2(const sim_mob::RoadSegment* key, std::set<sim_mob::LaneConnector*>& val);
 	void addRoadSegmentAt(sim_mob::RoadSegment* rs) { roadSegmentsAt.insert(rs); }
 

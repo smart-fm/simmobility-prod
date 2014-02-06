@@ -104,6 +104,7 @@ private:
 	builtIn.intDrivingModels["linear"] = new Fake_IntDriving_Model();
 }*/
 
+const int DEFAULT_NUM_THREADS_DEMAND = 2; // default number of threads for demand
 } //End anon namespace
 
 //Current software version.
@@ -439,16 +440,18 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	}
 	else if (ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
 		Print() << "Mid-term run mode: demand" << std::endl;
-		int numThreads = 2; // default number of threads
+		int numThreads = DEFAULT_NUM_THREADS_DEMAND;
 		try {
 			std::string numThreadsStr = ConfigManager::GetInstanceRW().FullConfig().system.genericProps.at("demand_threads");
 			numThreads = std::atoi(numThreadsStr.c_str());
-			if(numThreads <= 0) {
+			if(numThreads < 1) {
 				throw std::runtime_error("inadmissible number of threads specified. Please check generic property 'demand_threads'");
 			}
 		}
 		catch (const std::out_of_range& oorx) {
-			Print() << "generic property 'demand_threads' was not specified. Defaulting to 2 threads.";
+			Print() << "generic property 'demand_threads' was not specified."
+					<< " Defaulting to " << numThreads << " threads."
+					<< std::endl;
 		}
 		return performMainDemand(numThreads);
 	}

@@ -196,10 +196,21 @@ void sim_mob::medium::PredayManager::distributeAndProcessPersons(unsigned numWor
 		PersonList::iterator last = personList.begin()+numPersonsPerThread;
 		Print() << "numPersons:" << numPersons << "|numWorkers:" << numWorkers
 				<< "|numPersonsPerThread:" << numPersonsPerThread << std::endl;
+
+		/*
+		 * Passing different iterators on the same list into the threaded
+		 * function. So each thread will iterate mutually exclusive and
+		 * exhaustive set of persons from the population.
+		 *
+		 * Note that each thread will iterate the same personList with different
+		 * start and end iterators. It is therefore important that none of the
+		 * threads change the personList.
+		 */
 		for(int i = 1; i<=numWorkers; i++) {
 			threadGroup.create_thread( boost::bind(&PredayManager::processPersons, this, first, last) );
 			first = last;
 			if(i+1 == numWorkers) {
+				// if the next iteration is the last take all remaining persons
 				last = personList.end();
 			}
 			else {
@@ -224,7 +235,7 @@ void sim_mob::medium::PredayManager::processPersons(
 		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
 
-	// loop through all persons in the population and plan their day
+	// loop through all persons within the range and plan their day
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
 		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
 		predaySystem.planDay();

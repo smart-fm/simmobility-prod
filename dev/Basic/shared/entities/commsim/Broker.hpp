@@ -494,7 +494,7 @@ protected:
 	/**
 	 * 	Wait for clients
 	 */
-	bool wait();
+	bool waitAndAcceptConnections();
 	/**
 	 * 	wait for the registered agents to complete their tick
 	 */

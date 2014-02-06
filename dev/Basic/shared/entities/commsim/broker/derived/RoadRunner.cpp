@@ -171,22 +171,22 @@ sim_mob::Entity::UpdateStatus sim_mob::Roadrunner_Broker::update(timeslice now) 
 		Print() << "Broker tick:" << now.frame() << std::endl;
 	}
 
-	PROFILE_LOG_COMMSIM_UPDATE_BEGIN(currWorkerProvider, this, now);
-
 	//step-1 : Create/start the thread if this is the first frame.
 	//TODO: transfer this to frame_init
 	if (now.frame() == 0) {
-		connection->start();
+		connection->start(); //Not profiled; this only happens once.
 	}
 
 	if (EnableDebugOutput) {
 		Print() << "=====================ConnectionStarted =======================================\n";
 	}
 
+	PROFILE_LOG_COMMSIM_UPDATE_BEGIN(currWorkerProvider, this, now);
+
 	//Step-2: Ensure that we have enough clients to process
 	//(in terms of client type (like ns3, android emulator, etc) and quantity(like enough number of android clients) ).
 	//Block the simulation here(if you have to)
-	wait(); //Not profiled; this will only likely happen once.
+	waitAndAcceptConnections();
 
 	if (EnableDebugOutput) {
 		Print() << "===================== wait Done =======================================\n";
@@ -194,7 +194,6 @@ sim_mob::Entity::UpdateStatus sim_mob::Roadrunner_Broker::update(timeslice now) 
 
 	//step-3: Process what has been received in your receive container(message queue perhaps)
 	size_t numAgents = getNumConnectedAgents();
-	PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_BEGIN(currWorkerProvider, this, now, numAgents);
 	processIncomingData(now);
 	if (EnableDebugOutput) {
 		Print() << "===================== processIncomingData Done =======================================\n";
@@ -202,7 +201,10 @@ sim_mob::Entity::UpdateStatus sim_mob::Roadrunner_Broker::update(timeslice now) 
 
 	//step-4: if need be, wait for all agents(or others)
 	//to complete their tick so that you are the last one ticking)
+	PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_BEGIN(currWorkerProvider, this, now, numAgents);
 	waitForAgentsUpdates();
+	PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_END(currWorkerProvider, this, now, numAgents);
+
 	if (EnableDebugOutput) {
 		Print() << "===================== waitForAgentsUpdates Done =======================================\n";
 	}
@@ -215,7 +217,6 @@ sim_mob::Entity::UpdateStatus sim_mob::Roadrunner_Broker::update(timeslice now) 
 
 //	step-5.5:for each client, append a message at the end of all messages saying Broker is ready to receive your messages
 	sendReadyToReceive();
-	PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_END(currWorkerProvider, this, now, numAgents);
 
 	//This may have changed (or we should at least log if it did).
 	numAgents = getNumConnectedAgents();

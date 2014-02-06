@@ -913,7 +913,7 @@ bool sim_mob::Broker::isWaitingForAnyClientConnection() {
 	return false;
 }
 
-bool sim_mob::Broker::wait() {
+bool sim_mob::Broker::waitAndAcceptConnections() {
 	//	Initial evaluation
 	{
 		boost::unique_lock<boost::mutex> lock(mutex_client_request);
@@ -1037,7 +1037,7 @@ Entity::UpdateStatus sim_mob::Broker::update(timeslice now) {
 	//Step-2: Ensure that we have enough clients to process
 	//(in terms of client type (like ns3, android emulator, etc) and quantity(like enough number of android clients) ).
 	//Block the simulation here(if you have to)
-	wait();
+	waitAndAcceptConnections();
 
 	if (EnableDebugOutput) {
 		Print() << "===================== wait Done =======================================\n";

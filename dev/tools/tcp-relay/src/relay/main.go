@@ -78,12 +78,14 @@ func main() {
 	fmt.Println("Params loaded; listening for client connections. Debug is: " , params.debug_flag)
 
 	//Listen forever for new connections. 
+	totalConn := 0
 	for { 
 		var localconn Connection;
 		localconn.conn, err = sock_serve.Accept() 
 		if err != nil { 
 			fmt.Println("accept failed: %v", err) 
 		}
+		totalConn += 1
 
 		//The first time, connect to the server.
 		if params.remote.read == nil {
@@ -104,7 +106,7 @@ func main() {
 			go forward_to_server(&params)
 		} else {
 			//Inject a "NEW_CLIENT" message here, which instructs the server to send a WHOAREYOU message.
-			fmt.Println("New local connection on existing remote connection.") 
+			fmt.Println("New local connection on existing remote connection: " , totalConn) 
 			new_cli_msg := "      71{\"PACKET_HEADER\":{\"NOF_MESSAGES\":\"1\"},\"DATA\":[{\"MESSAGE_TYPE\":\"NEW_CLIENT\",\"SENDER\":\"0\",\"SENDER_TYPE\":\"RELAY\"}]}\n"
 			params.outgoing <- new_cli_msg
 		}

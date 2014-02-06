@@ -199,8 +199,6 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 
 			//Check whether the link is one-way
 			if (parentLink->hasOpposingLink==0)
-			//if (!StreetDirectory::instance().searchLink(parentLink->getEnd(), parentLink->getStart()))
-			//if(parentLink->getPath(false).empty() || parentLink->getPath().empty())
 			{
 				//Add a sidewalk on the other side of the road segment
 				Lane* swLane2 = new Lane(this, lanes.size());

@@ -154,12 +154,11 @@ Json::Value sim_mob::JsonParser::createMessageHeader(msg_header mHeader_)
 	return header;
 }
 
-std::string sim_mob::JsonParser::makeWhoAreYouPacket()
+std::string sim_mob::JsonParser::makeWhoAreYouPacket(const std::string& token)
 {
 	Json::Value whoAreYou_Packet_Header = createPacketHeader(pckt_header(1, "0"));
-	Json::Value whoAreYou = createMessageHeader(
-			msg_header("0", "SIMMOBILITY", "WHOAREYOU", "SYS"));
-	//no more fiels is needed
+	Json::Value whoAreYou = createMessageHeader(msg_header("0", "SIMMOBILITY", "WHOAREYOU", "SYS"));
+	whoAreYou["token"] = token;
 	Json::Value packet;
 	packet["DATA"].append(whoAreYou);
 	packet["PACKET_HEADER"] = whoAreYou_Packet_Header;

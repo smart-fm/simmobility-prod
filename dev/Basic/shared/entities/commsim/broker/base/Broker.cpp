@@ -225,26 +225,10 @@ void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler
 
 			COND_VAR_CLIENT_DONE.notify_one();
 		} else if (type == "WHOAMI") {
-			//Retrieve the next available connection.
-			//TODO: We can lock this with a token (unique random number) if you want to get the EXACT agent
-			//      that initiated this request. For homogenous agents like RR clients, it doesn't matter.
-			//      So for now, just don't multiplex, e.g., STK and Android on the same connection.
-			boost::shared_ptr<ConnectionHandler> connHandle;
-			{
-				boost::unique_lock<boost::mutex> lock(mutex_WaitingWHOAMI);
-				if (!waitingWHOAMI_List.empty()) {
-					connHandle = waitingWHOAMI_List.front();
-					waitingWHOAMI_List.pop_front();
-				}
-			}
-			if (!connHandle) {
-				throw std::runtime_error("WHOAMI received, but no clients are in the waiting list.");
-			}
-
 			//Since we now have a WHOAMI request AND a valid ConnectionHandler, we can pend a registration request.
 			//TODO: This can definitely be simplified; it was copied from WhoAreYouProtocol and Jsonparser.
 			sim_mob::ClientRegistrationRequest candidate;
-			if (!(data.isMember("ID") && data.isMember("TYPE"))) {
+			if (!(data.isMember("ID") && data.isMember("TYPE") && data.isMember("token"))) {
 				throw std::runtime_error("Can't access required fields.");
 			}
 			candidate.clientID = data["ID"].asString();
@@ -257,10 +241,27 @@ void sim_mob::Broker::messageReceiveCallback(boost::shared_ptr<ConnectionHandler
 				}
 			}
 
+			//Retrieve the token.
+			std::string token = data["token"].asString();
+
 			//What type is this?
 			std::map<std::string, comm::ClientType>::const_iterator clientTypeIt = sim_mob::Services::ClientTypeMap.find(candidate.client_type);
 			if (clientTypeIt == sim_mob::Services::ClientTypeMap.end()) {
 				throw std::runtime_error("Client type is unknown; cannot re-assign.");
+			}
+
+			//Retrieve the connection associated with this token.
+			boost::shared_ptr<ConnectionHandler> connHandle;
+			{
+				boost::unique_lock<boost::mutex> lock(mutex_WaitingWHOAMI);
+				std::map<std::string, boost::shared_ptr<sim_mob::ConnectionHandler> >::const_iterator connHan = tokenConnectionLookup.find(token);
+				if (connHan == tokenConnectionLookup.end()) {
+					throw std::runtime_error("Unknown token; can't receive WHOAMI.");
+				}
+				connHandle = connHan->second;
+			}
+			if (!connHandle) {
+				throw std::runtime_error("WHOAMI received, but no clients are in the waiting list.");
 			}
 
 			//At this point we need to check the Connection's clientType and set it if it is UNKNOWN.
@@ -401,10 +402,11 @@ void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType cl
 	numAgents++;
 }
 
-void sim_mob::Broker::insertIntoWaitingOnWHOAMI(boost::shared_ptr<sim_mob::ConnectionHandler> newConn)
+void sim_mob::Broker::insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn)
 {
 	boost::unique_lock<boost::mutex> lock(mutex_WaitingWHOAMI);
-	waitingWHOAMI_List.push_back(newConn);
+	tokenConnectionLookup[token] = newConn;
+	//waitingWHOAMI_List.push_back(newConn);
 }
 
 

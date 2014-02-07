@@ -10,6 +10,9 @@
  */
 
 #include "ConnectionHandler.hpp"
+
+#include <sstream>
+
 #include "entities/commsim/Broker.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/commsim/serialization/JsonParser.hpp"
@@ -20,6 +23,10 @@ sim_mob::ConnectionHandler::ConnectionHandler(session_ptr session, boost::functi
 	: messageReceiveCallback(messageReceiveCallback_), clientType(comm::UNKNOWN_CLIENT), session(session), valid(true), isAsyncWrite(false),
 	  isAsyncRead(false)
 {
+	//Set the token to the pointer address of this ConnectionHandler.
+	std::stringstream tk;
+	tk <<this;
+	token = tk.str();
 }
 
 
@@ -135,6 +142,10 @@ bool sim_mob::ConnectionHandler::is_open()
 	return session->isOpen();
 }
 
+std::string sim_mob::ConnectionHandler::getToken() const
+{
+	return token;
+}
 
 bool sim_mob::ConnectionHandler::isValid()
 {

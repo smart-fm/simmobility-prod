@@ -191,7 +191,7 @@ protected:
 	///	list of authorized clients who have passed the registration process
 	ClientList::Type clientList; //key note: there can be one agent associated with multiple clients in this list. why? : coz clients of any type are i this list. and any one has associated itself to this agent for its specific type's reason
 
-	std::list< boost::shared_ptr<sim_mob::ConnectionHandler> > waitingWHOAMI_List;
+	std::map<std::string, boost::shared_ptr<sim_mob::ConnectionHandler> > tokenConnectionLookup;
 
 	///	connection point to outside simmobility
 	boost::shared_ptr<ConnectionServer> connection;
@@ -442,12 +442,12 @@ public:
 	 *   Since this response comes in asynchronously, the session pointer is
 	 *   pushed to the Broker using this function. It is then paired up with an Agent
 	 *   upon receiving a WHOAMI message through the normal channels.
-	 * NOTE: For now, this pairing is arbitrary in the case of multiple connections.
+	 * NOTE: For now, this pairing is arbitrary for agents on the same connector. You could
 	 *       To ensure that ONLY the agent who received the WHOAREYOU can respond, one
-	 *       might add a unique token to the WHOAREYOU message that is then relayed back
-	 *       in the WHOAMI (but at the moment this is not necessary.
+	 *       might add a unique token PER AGENT to the WHOAREYOU message that is then relayed back
+	 *       in the WHOAMI (but at the moment this is not necessary. Currently the token is only unique per connection.
 	 */
-	void insertIntoWaitingOnWHOAMI(boost::shared_ptr<sim_mob::ConnectionHandler> newConn);
+	void insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn);
 
 
 	///Return an EventPublisher for a given type. Throws an exception if no such type is registered.

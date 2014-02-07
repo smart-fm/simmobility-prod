@@ -53,6 +53,9 @@ public:
 	// asynchronous sending.
 	void sendImmediately(const std::string& str);
 
+	//A token is used to uniquely identify ConnectionHandlers.
+	std::string getToken() const;
+
 private:
 	//Helper: send a message, read a message.
 	void sendMessage(const std::string& msg);
@@ -81,6 +84,8 @@ private:
 	//Lock async_read. If this flag is true, we can't call async_read until the current operation completes.
 	bool isAsyncRead;
 	//long pendingReads; //How many "read" operations are pending.
+
+	std::string token;
 };
 
 }

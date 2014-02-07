@@ -45,7 +45,9 @@ public:
 
 	static Json::Value createMessageHeader(msg_header mHeader_);
 
-	static std::string makeWhoAreYouPacket();
+	///The token is used to link to the proper ConnectionHandler when the WHOAMI response is received.
+	///So make sure it is unique per ConnectionHandler (it does not have to be unique per agent).
+	static std::string makeWhoAreYouPacket(const std::string& token);
 
 //	just conveys the tick
 	static Json::Value makeTimeData(unsigned int tick, unsigned int elapsedMs);

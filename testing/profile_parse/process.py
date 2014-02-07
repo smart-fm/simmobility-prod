@@ -309,7 +309,7 @@ def print_commsim_ticks(out, lines, wrkLines):
     localTime = cm.localComp.endTime-cm.localComp.startTime
     mixedTime = cm.mixedComp.endTime-cm.mixedComp.startTime
     androidTime = cm.androidComp.endTime-cm.androidComp.startTime
-    out.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (key[1], wrkTime, wrkAgents, cm.mixedComp.numAgents, updateTime, localTime, mixedTime, androidTime))
+    out.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (key[1], str(int(key[1])//10), wrkTime, wrkAgents, cm.mixedComp.numAgents, updateTime, localTime, mixedTime, androidTime, localTime+mixedTime, localTime+2*mixedTime, localTime+mixedTime+androidTime))
 
 
 
@@ -431,7 +431,7 @@ def run_main(inFilePath):
   print_query_ticks(out3, queryTicks)
 
   out4 = open("commsim.csv", 'w')
-  out4.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % ('tick', 'work_longest', 'agents_total', 'agents_connected', 'broker_len', 'local_len', 'mixed_len', 'android_len'))
+  out4.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % ('tick', 'time_s', 'work_longest', 'agents_total', 'agents_connected', 'broker_len', 'local_len', 'mixed_len', 'android_len', 'localMixed', 'local2Mixed', 'localMixedAndroid'))
   print_commsim_ticks(out4, commsimTicks, workerTicks)
 
 

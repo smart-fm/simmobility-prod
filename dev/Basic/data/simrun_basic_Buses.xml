@@ -235,14 +235,6 @@
             <reacTime_mean2      value="500" />
             <reacTime_standardDev1    value="100" />
             <reacTime_standardDev2    value="100" />
-            
-            <passenger_distribution_busstop      value="0" /> <!-- 0 is normal distribution, 1 is log normal-->
-            <passenger_mean_busstop      value="10" />
-            <passenger_standardDev_busstop    value="2" />
-            <passenger_percent_boarding value="100"/>
-            <passenger_percent_alighting value="40"/>
-            <passenger_min_uniform_distribution value="40"/>
-            <passenger_max_uniform_distribution value="60"/>
         </simulation>
         
         <!-- Time granularities for each component -->
@@ -275,7 +267,8 @@
         
         <!-- If loading from XML, which file? Default (or blank string) will force private/SimMobilityInput.xml -->
         <!-- This only has an effect if network_source is set to "xml" -->
-        <network_xml_file value=""/>
+        <network_xml_file_input value=""/>
+        <network_xml_file_output value=""/>
 	
 	<!-- If loading from the database, which database, proc_map, and credentials are used? -->
 	<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
@@ -317,9 +310,6 @@
             <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
             <property key="busline_control_type" value="no_control"/>
 
-            <!-- The percentage of passengers boarding and alighting at each bus stop (default 100, each.). -->
-            <property key="passenger_percent_boarding" value="100"/>
-            <property key="passenger_percent_alighting" value="40"/>
         </generic_props>
     </system>
 

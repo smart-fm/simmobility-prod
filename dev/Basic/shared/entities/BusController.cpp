@@ -29,10 +29,15 @@ vector<BusController*> BusController::all_busctrllers_;
 
 bool BusController::busBreak = false;
 int BusController::busstopindex = 1;
-// planned headway(ms) of the buses
-const double plannedHeadwayMS = 480000;
-const double secsConvertUnit = 0.001;
-const double millisecsConvertUnit = 1000.0;
+
+namespace {
+	// planned headway(ms) of the buses
+	const double PLANNED_HEADWAY_MS = 480000;
+	// secs conversion unit from milliseconds
+	const double SECS_CONVERT_UNIT = 0.001;
+	// millisecs conversion unit from seconds
+	const double MILLISECS_CONVERT_UNIT = 1000.0;
+}
 
 void sim_mob::BusController::RegisterNewBusController(unsigned int startTime, const MutexStrategy& mtxStrat)
 {
@@ -260,7 +265,7 @@ void sim_mob::BusController::storeRealTimes_eachBusStop(const std::string& busli
 
 	double ETijk = 0;
 	double departureTime = 0;
-	departureTime = ATijk + (DTijk * millisecsConvertUnit);
+	departureTime = ATijk + (DTijk * MILLISECS_CONVERT_UNIT);
 	BusStop_RealTimes busStop_RealTimes(ConfigManager::GetInstance().FullConfig().simStartTime() + DailyTime(ATijk), ConfigManager::GetInstance().FullConfig().simStartTime() + DailyTime(departureTime));
 	busStop_RealTimes.setReal_BusStop(lastVisited_BusStop);
 	realTime = (busStop_RealTimes);
@@ -300,19 +305,19 @@ double sim_mob::BusController::decisionCalculation(const string& busline_i, int 
 	switch(controlType) {
 	case SCHEDULE_BASED:
 		departureTime = scheduledDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, realTime, lastVisited_BusStop);
-		waitTimeBusStop = (departureTime - ATijk) * secsConvertUnit;
+		waitTimeBusStop = (departureTime - ATijk) * SECS_CONVERT_UNIT;
 		break;
 	case HEADWAY_BASED:
 		departureTime = headwayDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, realTime, lastVisited_BusStop);
-		waitTimeBusStop = (departureTime - ATijk) * secsConvertUnit;
+		waitTimeBusStop = (departureTime - ATijk) * SECS_CONVERT_UNIT;
 		break;
 	case EVENHEADWAY_BASED:
 		departureTime = evenheadwayDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, realTime, lastVisited_BusStop);
-		waitTimeBusStop = (departureTime - ATijk) * secsConvertUnit;
+		waitTimeBusStop = (departureTime - ATijk) * SECS_CONVERT_UNIT;
 		break;
 	case HYBRID_BASED:
 		departureTime = hybridDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, realTime, lastVisited_BusStop);
-		waitTimeBusStop = (departureTime - ATijk) * secsConvertUnit;
+		waitTimeBusStop = (departureTime - ATijk) * SECS_CONVERT_UNIT;
 		break;
 	default:
 		// may add default scheduled departure time here
@@ -343,7 +348,7 @@ double sim_mob::BusController::scheduledDecision(const string& busline_i, int tr
 	//StopInformation(Times)
 	const vector<BusStop_ScheduledTimes>& busStopScheduledTime_tripK = BusTrips[trip_k].getBusStopScheduledTimes();
 	SETijk = busStopScheduledTime_tripK[busstopSequence_j].scheduled_DepartureTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());
-	ETijk = std::max(SETijk - sij, ATijk + (DTijk * millisecsConvertUnit));
+	ETijk = std::max(SETijk - sij, ATijk + (DTijk * MILLISECS_CONVERT_UNIT));
 
 	storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_busStop, realTime);
 
@@ -367,7 +372,7 @@ double sim_mob::BusController::headwayDecision(const string& busline_i, int trip
 
 	if (trip_k <= 18) { // 857_1, first trip RunNum = 18
 		// the first trip just use Dwell Time, no holding strategy
-		ETijk = ATijk + (DTijk * millisecsConvertUnit);
+		ETijk = ATijk + (DTijk * MILLISECS_CONVERT_UNIT);
 	} else {
 		const vector<BusTrip>& BusTrips = busline->queryBusTrips();
 		const vector<Shared<BusStop_RealTimes>* >& busStopRealTimeTripkMinusOne = BusTrips[trip_k - 1].getBusStopRealTimes();
@@ -376,10 +381,10 @@ double sim_mob::BusController::headwayDecision(const string& busline_i, int trip
 		std::cout << "real_ArrivalTime in headway Decision: " << " trip_k - 1 " << trip_k - 1 << " busstopSequence_j " << busstopSequence_j << "	" << busStopRealTimeTripkMinusOne[busstopSequence_j]->get().real_ArrivalTime.getRepr_() << std::endl;
 		if(busStopRealTimeTripkMinusOne[busstopSequence_j]->get().Real_busStop) { // data has already updated
 			ATijkMinusOne = busStopRealTimeTripkMinusOne[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());// there are some cases that buses are bunched together so that k-1 has no values updated yet
-			Hi = plannedHeadwayMS;// 857_1(headway: 480000ms) 444300(test holding), 143000(best), 142000, 140000(headway*100), 138000, 181000(bad effect) ;60000(headway*50)
-			ETijk = std::max(ATijkMinusOne + alpha*Hi, ATijk + (DTijk * millisecsConvertUnit)); // DTijk unit is sec, so change to ms by multiplying 1000
+			Hi = PLANNED_HEADWAY_MS;// 857_1(headway: 480000ms) 444300(test holding), 143000(best), 142000, 140000(headway*100), 138000, 181000(bad effect) ;60000(headway*50)
+			ETijk = std::max(ATijkMinusOne + alpha*Hi, ATijk + (DTijk * MILLISECS_CONVERT_UNIT)); // DTijk unit is sec, so change to ms by multiplying 1000
 		} else {// data has not yet updated, sometimes happens especially buses are bunched together(trip_k bus can overtake tripk_1 bus)
-			ETijk = ATijk + (DTijk * millisecsConvertUnit); // immediately leaving
+			ETijk = ATijk + (DTijk * MILLISECS_CONVERT_UNIT); // immediately leaving
 		}
 
 
@@ -415,7 +420,7 @@ double sim_mob::BusController::evenheadwayDecision(const string& busline_i, int 
 
 	if (0 == trip_k) {
 		// the first trip just use Dwell Time, no holding strategy
-		ETijk = ATijk + (DTijk * millisecsConvertUnit);
+		ETijk = ATijk + (DTijk * MILLISECS_CONVERT_UNIT);
 
 	}
 	else if(lastTrip || lastVisitedStopNum == -1){
@@ -434,7 +439,7 @@ double sim_mob::BusController::evenheadwayDecision(const string& busline_i, int 
 		SRTmj = busStopScheduledTime_tripKplus1[busstopSequence_j].scheduled_ArrivalTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime())
 				- busStopScheduledTime_tripKplus1[lastVisitedStopNum].scheduled_DepartureTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());
 
-		ETijk = std::max(ATijkMinusOne + (ATimkPlusOne + SRTmj - ATijkMinusOne)/2.0, ATijk + (DTijk * millisecsConvertUnit)); // need some changes for precision
+		ETijk = std::max(ATijkMinusOne + (ATimkPlusOne + SRTmj - ATijkMinusOne)/2.0, ATijk + (DTijk * MILLISECS_CONVERT_UNIT)); // need some changes for precision
 
 	}
 
@@ -469,7 +474,7 @@ double sim_mob::BusController::hybridDecision(const string& busline_i, int trip_
 
 		if (0 == trip_k) {
 			// the first trip just use Dwell Time, no holding strategy
-			ETijk = ATijk + (DTijk * millisecsConvertUnit);
+			ETijk = ATijk + (DTijk * MILLISECS_CONVERT_UNIT);
 
 		}
 		else if(lastTrip || lastVisitedStopNum == -1){
@@ -487,8 +492,8 @@ double sim_mob::BusController::hybridDecision(const string& busline_i, int trip_
 			const vector<BusStop_ScheduledTimes>& busStopScheduledTime_tripKplus1 = BusTrips[trip_k + 1].getBusStopScheduledTimes();
 			SRTmj = busStopScheduledTime_tripKplus1[busstopSequence_j].scheduled_ArrivalTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime())
 					- busStopScheduledTime_tripKplus1[lastVisitedStopNum].scheduled_DepartureTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());
-			Hi = plannedHeadwayMS;
-			ETijk = std::max(std::min(ATijkMinusOne + (ATimkPlusOne + SRTmj - ATijkMinusOne)/2.0, (ATijkMinusOne + Hi)),(double)(ATijk) + (DTijk * millisecsConvertUnit)); // need some changes for precision
+			Hi = PLANNED_HEADWAY_MS;
+			ETijk = std::max(std::min(ATijkMinusOne + (ATimkPlusOne + SRTmj - ATijkMinusOne)/2.0, (ATijkMinusOne + Hi)),(double)(ATijk) + (DTijk * MILLISECS_CONVERT_UNIT)); // need some changes for precision
 		}
 
 		storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_busStop, realTime);

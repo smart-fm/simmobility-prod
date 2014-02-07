@@ -41,7 +41,7 @@ pre ()
 }
 
 void sim_mob::xml::crossings_map_t_pimpl::
-LinkID (unsigned int linkID)
+linkID (unsigned int linkID)
 {
 //  std::cout << "linkID: " << linkID << std::endl;
   model.link = book.getLink(linkID);

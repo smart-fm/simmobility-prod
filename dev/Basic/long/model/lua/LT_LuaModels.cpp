@@ -112,7 +112,7 @@ void HM_LuaModel::mapClasses() {
 void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket,
         vector<ExpectationEntry>& outValues) const{
     LuaRef funcRef = getGlobal(state.get(), "calulateUnitExpectations");
-    LuaRef retVal = funcRef(unit, timeOnMarket);
+    LuaRef retVal = funcRef(&unit, timeOnMarket);
     if (retVal.isTable()) {
         for (int i = 1; i <= retVal.length(); i++) {
             ExpectationEntry entry;
@@ -125,7 +125,7 @@ void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket,
 
 double HM_LuaModel::calculateHedonicPrice(const Unit& unit) const{
     LuaRef funcRef = getGlobal(state.get(), "calculateHedonicPrice");
-    LuaRef retVal = funcRef(unit);
+    LuaRef retVal = funcRef(&unit);
     if (retVal.isNumber()) {
         return retVal.cast<double>();
     }
@@ -134,7 +134,7 @@ double HM_LuaModel::calculateHedonicPrice(const Unit& unit) const{
 
 double HM_LuaModel::calculateSurplus(const HousingMarket::Entry& entry, int unitBids) const{
     LuaRef funcRef = getGlobal(state.get(), "calculateSurplus");
-    LuaRef retVal = funcRef(entry, unitBids);
+    LuaRef retVal = funcRef(&entry, unitBids);
     if (retVal.isNumber()) {
         return retVal.cast<double>();
     }
@@ -143,7 +143,7 @@ double HM_LuaModel::calculateSurplus(const HousingMarket::Entry& entry, int unit
 
 double HM_LuaModel::calulateWP(const Household& hh, const Unit& unit) const{
     LuaRef funcRef = getGlobal(state.get(), "calculateWP");
-    LuaRef retVal = funcRef(hh, unit);
+    LuaRef retVal = funcRef(&hh, &unit);
     if (retVal.isNumber()) {
         return retVal.cast<double>();
     }

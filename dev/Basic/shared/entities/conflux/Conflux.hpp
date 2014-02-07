@@ -8,6 +8,7 @@
 
 #include "entities/Agent.hpp"
 #include "entities/signal/Signal.hpp"
+#include "boost/thread/shared_mutex.hpp"
 
 namespace sim_mob {
 
@@ -49,6 +50,7 @@ private:
 	const sim_mob::MultiNode* multiNode;
 
 	const sim_mob::Signal* signal;
+
 
 	/**
 	 * segments in this conflux (on upstream links)
@@ -94,6 +96,11 @@ private:
 	 * this map stores (length-of-B+length-of-C) against A
 	 */
 	std::map<const sim_mob::RoadSegment*, double> lengthsOfSegmentsAhead;
+
+	/**
+	 * provide virtual queue protection
+	 */
+	boost::recursive_mutex mutexOfVirtualQueue;
 
 	/**
 	 * For each downstream link, this map stores the number of persons that can be
@@ -184,6 +191,8 @@ public:
 	void setParentWorker(sim_mob::Worker* parentWorker) {
 		this->parentWorker = parentWorker;
 	}
+
+	int getVehicleLaneCounts(const sim_mob::RoadSegment* segStats);
 
 	bool hasSpaceInVirtualQueue(sim_mob::Link* lnk);
 	void pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p);

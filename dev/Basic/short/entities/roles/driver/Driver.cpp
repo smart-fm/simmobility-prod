@@ -96,83 +96,6 @@ size_t getLaneIndex(const Lane* l) {
 	return -1; //NOTE: This might not do what you expect! ~Seth
 }
 
-//PathA: Small loop (south)
-const Point2D SpecialPathA[] = { Point2D(37218351, 14335255), //AIMSUN 75780
-		Point2D(37227139, 14327875), //AIMSUN 91218
-		Point2D(37250760, 14355120), //AIMSUN 66508
-		Point2D(37241080, 14362955), //AIMSUN 61688
-		};
-
-//PathB: Large loop
-const Point2D SpecialPathB[] = { Point2D(37218351, 14335255), //AIMSUN 75780
-		Point2D(37227139, 14327875), //AIMSUN 91218
-		Point2D(37250760, 14355120), //AIMSUN 66508
-		Point2D(37270984, 14378959), //AIMSUN 45666
-		Point2D(37262150, 14386897), //AIMSUN 45690
-		Point2D(37241080, 14362955), //AIMSUN 61688
-		};
-
-//Path is in multi-node positions
-vector<WayPoint> ConvertToWaypoints(const Node* origin, const vector<Point2D>& path) {
-	vector<WayPoint> res;
-
-	//Double-check our first node. Also ensure we have at least 2 nodes (or a path can't be found).
-	if (path.size() < 2 || origin->location != path.front()) {
-		throw std::runtime_error("Special path does not begin on origin.");
-	}
-
-	//Starting at the origin, find the outgoing Link to each node in the list. Then loop around back to the origin.
-	const MultiNode* curr = dynamic_cast<const MultiNode*> (origin);
-	for (vector<Point2D>::const_iterator it = path.begin(); it != path.end(); it++) {
-		if (!curr) {
-			throw std::runtime_error("Not a multinode (in special path).");
-		}
-
-		//Search for the Link to the next point.
-		Point2D nextPt = it + 1 == path.end() ? path.front() : *(it + 1);
-		std::pair<const Link*, bool> nextLink(nullptr, false); //bool == fwd?
-		const set<RoadSegment*>& segs = curr->getRoadSegments();
-		for (set<RoadSegment*>::const_iterator segIt = segs.begin(); segIt != segs.end(); segIt++) {
-			const Link* ln = (*segIt)->getLink();
-			if (ln->getStart()->location == nextPt) {
-				nextLink.first = ln;
-				nextLink.second = false;
-				break;
-			} else if (ln->getEnd()->location == nextPt) {
-				nextLink.first = ln;
-				nextLink.second = true;
-				break;
-			}
-		}
-		if (!nextLink.first) {
-			throw std::runtime_error("Couldn't find a Link between nodes in the Special path");
-		}
-
-		//Add each Segment in the Link's fwd/rev path to the result.
-		const vector<RoadSegment*>& segPath = nextLink.first->getSegments();
-		for (vector<RoadSegment*>::const_iterator pthIt = segPath.begin(); pthIt != segPath.end(); pthIt++) {
-			res.push_back(WayPoint(*pthIt));
-		}
-
-		//Continue
-		curr = dynamic_cast<const MultiNode*> (nextLink.second ? nextLink.first->getEnd() : nextLink.first->getStart());
-	}
-
-	return res;
-}
-
-//For the NS3 paths
-vector<WayPoint> LoadSpecialPath(const Node* origin, char pathLetter) {
-	if (pathLetter == 'A') {
-		size_t sz = sizeof(SpecialPathA) / sizeof(SpecialPathA[0]);
-		return ConvertToWaypoints(origin, vector<Point2D> (SpecialPathA, &SpecialPathA[sz]));
-	} else if (pathLetter == 'B') {
-		size_t sz = sizeof(SpecialPathB) / sizeof(SpecialPathB[0]);
-		return ConvertToWaypoints(origin, vector<Point2D> (SpecialPathB, &SpecialPathB[sz]));
-	} else {
-		throw std::runtime_error("Invalid special path.");
-	}
-}
 
 } //End anon namespace
 
@@ -184,14 +107,6 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
 	,stop_event_nodeid(mtxStrat, -1)
 {
-//	if (Debug::Drivers) {
-//		DebugStream <<"Driver starting: ";
-//		if (parent) { DebugStream <<parent->getId(); } else { DebugStream <<"<null>"; }
-//		DebugStream <<endl;
-//	}
-//	trafficSignal = nullptr;
-	//vehicle = nullptr;
-//	lastIndex = -1;
 	//This is something of a quick fix; if there is no parent, then that means the
 	//  reaction times haven't been initialized yet and will crash. ~Seth
 	if (parent) {
@@ -211,19 +126,8 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	perceivedAccOfFwdCar = new FixedDelayed<double>(reacTime,true);
 	perceivedDistToFwdCar = new FixedDelayed<double>(reacTime,true);
 	perceivedDistToTrafficSignal = new FixedDelayed<double>(reacTime,true);
-
-
 	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
 
-
-//	//Initialize our models. These should be swapable later.
-//	lcModel = new MITSIM_LC_Model();
-//	cfModel = new MITSIM_CF_Model();
-//	intModel = new SimpleIntDrivingModel();
-//
-//	//Some one-time flags and other related defaults.
-//	nextLaneInNextLink = nullptr;
-//	disToFwdVehicleLastFrame = maxVisibleDis;
 	// record start time
 	startTime = getParams().now.ms()/1000.0;
 	isAleadyStarted = false;
@@ -388,58 +292,11 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	nvRightBack2 = NearestVehicle();
 }
 
-namespace {
-/*vector<const Agent*> GetAgentsInCrossing(const Crossing* crossing, const Driver* refAgent) {
-	//Put x and y coordinates into planar arrays.
-	int x[4] = { crossing->farLine.first.getX(), crossing->farLine.second.getX(), crossing->nearLine.first.getX(),
-			crossing->nearLine.second.getX() };
-	int y[4] = { crossing->farLine.first.getY(), crossing->farLine.second.getY(), crossing->nearLine.first.getY(),
-			crossing->nearLine.second.getY() };
 
-	//Prepare minimum/maximum values.
-	int xmin = x[0];
-	int xmax = x[0];
-	int ymin = y[0];
-	int ymax = y[0];
-	for (int i = 0; i < 4; i++) {
-		if (x[i] < xmin)
-			xmin = x[i];
-		if (x[i] > xmax)
-			xmax = x[i];
-		if (y[i] < ymin)
-			ymin = y[i];
-		if (y[i] > ymax)
-			ymax = y[i];
+void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
+{
+	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
+	if (mov) {
+		mov->rerouteWithBlacklist(blacklisted);
 	}
-
-	//Create a rectangle from xmin,ymin to xmax,ymax
-	//TODO: This is completely unnecessary; Crossings are already in order, so
-	//      crossing.far.first and crossing.near.second already defines a rectangle.
-	Point2D rectMinPoint = Point2D(xmin, ymin);
-	Point2D rectMaxPoint = Point2D(xmax, ymax);
-
-//	PerformanceProfile::instance().markStartQuery(this->run_on_thread_id);
-	return AuraManager::instance().agentsInRect(rectMinPoint, rectMaxPoint, refAgent);
-//	PerformanceProfile::instance().markEndQuery(run_on_thread_id);
-}*/
-} //End anon namespace
-
-namespace {
-//Helper function for reading points; similar to the one in simpleconf, but it throws an
-//  exception if it fails.
-Point2D readPoint(const string& str) {
-	//Does it match the pattern?
-	size_t commaPos = str.find(',');
-	if (commaPos==string::npos) {
-		throw std::runtime_error("Point string badly formatted.");
-	}
-
-	//Try to parse its substrings
-	int xPos, yPos;
-	std::istringstream(str.substr(0, commaPos)) >> xPos;
-	std::istringstream(str.substr(commaPos+1, string::npos)) >> yPos;
-
-	return Point2D(xPos, yPos);
 }
-} //End anon namespace
-

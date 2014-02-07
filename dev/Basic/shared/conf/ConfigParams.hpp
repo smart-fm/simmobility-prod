@@ -14,6 +14,7 @@
 #include "entities/misc/PublicTransit.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "util/DailyTime.hpp"
+#include "util/Factory.hpp"
 
 
 namespace sim_mob {
@@ -80,12 +81,12 @@ public:
 		std::set<unsigned int> manualAgentIDs;
 	};
 
-	enum ClientType {
+	/*enum ClientType {
 		UNKNOWN = 0,
 		ANDROID_EMULATOR = 1,
 		NS3_SIMULATOR = 2,
 		//add your client type here
-	};
+	};*/
 
 	/*enum NetworkSource {
 		NETSRC_XML,
@@ -107,6 +108,7 @@ public:
 
 	//Use caution here.
 	sim_mob::RoleFactory& getRoleFactoryRW();
+	sim_mob::Factory<sim_mob::Broker>& getBrokerFactoryRW();
 
 	//For generating reaction times
 	ReactionTimeDist* reactDist1;
@@ -219,6 +221,8 @@ private:
 
 	sim_mob::RoadNetwork network;
 	sim_mob::RoleFactory roleFact;
+	sim_mob::Factory<sim_mob::Broker> brokerFact;
+
 	std::map<std::string, sim_mob::BusStop*> busStopNo_busStops;
 	std::map<std::string, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
 
@@ -276,11 +280,16 @@ public:
 	const SystemParams::NetworkSource& networkSource() const;
 
 	///If loading the network from an XML file, which file? Empty=private/SimMobilityInput.xml
-	std::string& networkXmlFile();
-	const std::string& networkXmlFile() const;
+	std::string& networkXmlInputFile();
+	const std::string& networkXmlInputFile() const;
+
+	///If writing the network to an XML file, which file? Empty= dont write at all
+	std::string& networkXmlOutputFile();
+	const std::string& networkXmlOutputFile() const;
 
 	///If empty, use the default provided in "xsi:schemaLocation".
 	std::string& roadNetworkXsdSchemaFile();
+	void setRoadNetworkXsdSchemaFile(std::string& name);
 	const std::string& roadNetworkXsdSchemaFile() const;
 
 	///Which tree implementation to use for spatial partitioning for the aura manager.
@@ -301,10 +310,9 @@ public:
 	//Communication Simulator accessors and configurators
 	bool& commSimEnabled();
 	const bool& commSimEnabled() const;
-	bool& androidClientEnabled();
-	const bool& androidClientEnabled() const;
-	const std::string& getAndroidClientType() const;
-	 std::string& getAndroidClientType() ;
+	const std::map<std::string, sim_mob::SimulationParams::CommsimElement> &getCommSimElements() const;
+	const std::string& getCommSimMode(std::string name)const;
+	bool commSimmEnabled(std::string &name);
 
 	DailyTime& simStartTime();
 	const DailyTime& simStartTime() const;

@@ -36,8 +36,17 @@ struct FMOD_ControllerParams {
 ///represent the incident data section of the config file
 struct IncidentParams {
 	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
-			capFactor(0), startTime(0), duration(0), speedLimit(0), speedLimitOthers(0), laneId(0),
-			compliance(0), accessibility(0), xLaneStartPos(0),yLaneStartPos(0),xLaneEndPos(0),yLaneEndPos(0){}
+			capFactor(0), startTime(0), duration(0), length(0),	compliance(0), accessibility(0){}
+
+	struct LaneParams {
+		LaneParams() : laneId(0), speedLimit(0), xLaneStartPos(0), yLaneStartPos(0), xLaneEndPos(0),yLaneEndPos(0){}
+		unsigned int laneId;
+		float speedLimit;
+		float xLaneStartPos;
+		float yLaneStartPos;
+		float xLaneEndPos;
+		float yLaneEndPos;
+	};
 
 	unsigned int incidentId;
 	float visibilityDistance;
@@ -47,15 +56,10 @@ struct IncidentParams {
 	float capFactor;
 	unsigned int startTime;
 	unsigned int duration;
-	float speedLimit;
-	float speedLimitOthers;
-	unsigned int laneId;
+	float length;
 	float compliance;
 	float accessibility;
-	float xLaneStartPos;
-	float yLaneStartPos;
-	float xLaneEndPos;
-	float yLaneEndPos;
+	std::vector<LaneParams> laneParams;
 };
 
 ///Represents a Bust Stop in the config file. (NOTE: Further documentation needed.)
@@ -127,8 +131,17 @@ public:
 	sim_mob::MutexStrategy mutexStategy; ///<Locking strategy for Shared<> properties.
 
 	bool commSimEnabled;  ///<Is our communication simulator enabled?
-	bool androidClientEnabled; ///<Is the Android client for our communication simulator enabled?
+	//bool androidClientEnabled; ///<Is the Android client for our communication simulator enabled?
 	std::string androidClientType; // what version of android communication is specified?
+
+	struct CommsimElement {
+		std::string name;
+		std::string mode;
+		bool enabled;
+		CommsimElement(): name(""),mode(""),enabled(false){
+		}
+	};
+	std::map<std::string,CommsimElement> commsimElements;
 
 	//Reaction time parameters.
 	//TODO: This should be one of the first areas we clean up.
@@ -178,7 +191,8 @@ public:
 	bool mergeLogFiles;  ///<If true, we take time to merge the output of the individual log files after the simulation is complete.
 
 	NetworkSource networkSource; ///<Whethere to load the network from the database or from an XML file.
-	std::string networkXmlFile;  ///<If loading the network from an XML file, which file? Empty=private/SimMobilityInput.xml
+	std::string networkXmlInputFile;  ///<If loading the network from an XML file, which file? Empty=private/SimMobilityInput.xml
+	std::string networkXmlOutputFile;  ///<If loading the network from an XML file, which file? Empty=private/SimMobilityInput.xml
 	DatabaseDetails networkDatabase; //<If loading from the database, how do we connect?
 
 	std::string roadNetworkXsdSchemaFile; ///<Valid path to a schema file for loading XML road network files.

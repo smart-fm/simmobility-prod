@@ -11,6 +11,8 @@
 
 #include "MulticastMessage.hpp"
 
+#include <boost/foreach.hpp>
+
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/AuraManager.hpp"
 
@@ -22,7 +24,7 @@ using namespace sim_mob;
  * ****************************   NS3   ************************************************************************************************************
  * ************************************************************************************************************************************************
  */
-sim_mob::rr_android_ns3::NS3_MSG_MULTICAST::NS3_MSG_MULTICAST(sim_mob::comm::MsgData data_): Message(data_)
+sim_mob::rr_android_ns3::NS3_MSG_MULTICAST::NS3_MSG_MULTICAST(const sim_mob::comm::MsgData& data_): Message(data_)
 {}
 
 Handler* sim_mob::rr_android_ns3::NS3_MSG_MULTICAST::newHandler()
@@ -38,15 +40,15 @@ void sim_mob::rr_android_ns3::NS3_HDL_MULTICAST::handle(sim_mob::comm::MsgPtr me
 	boost::shared_ptr<sim_mob::ClientHandler> destination_clnHandler;
 	sim_mob::comm::MsgData& jData = message_->getData();
 	int destination_agent_id = jData["RECEIVING_AGENT_ID"].asInt();
-	ClientList::type & all_clients = broker->getClientList();
-	ClientList::pair clientTypes;
+	ClientList::Type & all_clients = broker->getClientList();
+	ClientList::Pair clientTypes;
 	BOOST_FOREACH(clientTypes , all_clients) {
 		// only the android emulators
-		if (clientTypes.first != ConfigParams::ANDROID_EMULATOR) {
+		if (clientTypes.first != comm::ANDROID_EMULATOR) {
 			continue;
 		}
 
-		ClientList::IdPair clientIds;
+		ClientList::ValuePair clientIds;
 		boost::unordered_map<std::string,
 				boost::shared_ptr<sim_mob::ClientHandler> > &inner =
 				clientTypes.second;

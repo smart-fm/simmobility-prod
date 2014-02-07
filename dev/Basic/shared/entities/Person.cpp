@@ -209,9 +209,18 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 	}
 
 	//One more check: If they have a special string, save it now
-	it = configProps.find("special");
+	/*it = configProps.find("special");
 	if (it != configProps.end()) {
 		this->specialStr = it->second;
+	}*/
+}
+
+
+void Person::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
+{
+	//This requires the Role's intervention.
+	if (currRole) {
+		currRole->rerouteWithBlacklist(blacklisted);
 	}
 }
 
@@ -415,7 +424,7 @@ UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
 		return UpdateStatus::Done;
 	}
 
-	//advance the trip,subtrip or activity....
+	//advance the trip, subtrip or activity....
 	if(!first_update_tick) {
 		if(!(advanceCurrentTripChainItem())) {
 			return UpdateStatus::Done;

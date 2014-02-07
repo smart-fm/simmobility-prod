@@ -4,7 +4,8 @@
 
 #include "DriverFacets.hpp"
 #include "BusDriver.hpp"
-#include "algorithm"
+#include <limits>
+#include <algorithm>
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -23,6 +24,7 @@
 #include "geospatial/Point2D.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/PathSetManager.hpp"
+#include "geospatial/RoadRunnerRegion.hpp"
 #include "network/CommunicationDataManager.hpp"
 
 #include "boost/bind.hpp"
@@ -36,6 +38,7 @@ using std::endl;
 //Helper functions
 namespace {
 //Helpful constants
+const int distanceCheckToChangeLane = 150;
 
 //Output helper
 string PrintLCS(LANE_CHANGE_SIDE s) {
@@ -46,6 +49,9 @@ string PrintLCS(LANE_CHANGE_SIDE s) {
 	}
 	return "LCS_SAME";
 }
+
+//the minimum speed when approaching to incident
+const float APPROACHING_SPEED = 200;
 
 //used in lane changing, find the start index and end index of polyline in the target lane
 size_t updateStartEndIndex(const std::vector<sim_mob::Point2D>* const currLanePolyLine, double currLaneOffset,
@@ -75,85 +81,6 @@ size_t getLaneIndex(const Lane* l) {
 	return -1; //NOTE: This might not do what you expect! ~Seth
 }
 
-//PathA: Small loop (south)
-const Point2D SpecialPathA[] = { Point2D(37218351, 14335255), //AIMSUN 75780
-		Point2D(37227139, 14327875), //AIMSUN 91218
-		Point2D(37250760, 14355120), //AIMSUN 66508
-		Point2D(37241080, 14362955), //AIMSUN 61688
-		};
-
-//PathB: Large loop
-const Point2D SpecialPathB[] = { Point2D(37218351, 14335255), //AIMSUN 75780
-		Point2D(37227139, 14327875), //AIMSUN 91218
-		Point2D(37250760, 14355120), //AIMSUN 66508
-		Point2D(37270984, 14378959), //AIMSUN 45666
-		Point2D(37262150, 14386897), //AIMSUN 45690
-		Point2D(37241080, 14362955), //AIMSUN 61688
-		};
-
-const int distanceCheckToChangeLane = 150;
-
-//Path is in multi-node positions
-vector<WayPoint> ConvertToWaypoints(const Node* origin, const vector<Point2D>& path) {
-	vector<WayPoint> res;
-
-	//Double-check our first node. Also ensure we have at least 2 nodes (or a path can't be found).
-	if (path.size() < 2 || origin->location != path.front()) {
-		throw std::runtime_error("Special path does not begin on origin.");
-	}
-
-	//Starting at the origin, find the outgoing Link to each node in the list. Then loop around back to the origin.
-	const MultiNode* curr = dynamic_cast<const MultiNode*> (origin);
-	for (vector<Point2D>::const_iterator it = path.begin(); it != path.end(); it++) {
-		if (!curr) {
-			throw std::runtime_error("Not a multinode (in special path).");
-		}
-
-		//Search for the Link to the next point.
-		Point2D nextPt = it + 1 == path.end() ? path.front() : *(it + 1);
-		std::pair<const Link*, bool> nextLink(nullptr, false); //bool == fwd?
-		const set<RoadSegment*>& segs = curr->getRoadSegments();
-		for (set<RoadSegment*>::const_iterator segIt = segs.begin(); segIt != segs.end(); segIt++) {
-			const Link* ln = (*segIt)->getLink();
-			if (ln->getStart()->location == nextPt) {
-				nextLink.first = ln;
-				nextLink.second = false;
-				break;
-			} else if (ln->getEnd()->location == nextPt) {
-				nextLink.first = ln;
-				nextLink.second = true;
-				break;
-			}
-		}
-		if (!nextLink.first) {
-			throw std::runtime_error("Couldn't find a Link between nodes in the Special path");
-		}
-
-		//Add each Segment in the Link's fwd/rev path to the result.
-		const vector<RoadSegment*>& segPath = nextLink.first->getSegments();
-		for (vector<RoadSegment*>::const_iterator pthIt = segPath.begin(); pthIt != segPath.end(); pthIt++) {
-			res.push_back(WayPoint(*pthIt));
-		}
-
-		//Continue
-		curr = dynamic_cast<const MultiNode*> (nextLink.second ? nextLink.first->getEnd() : nextLink.first->getStart());
-	}
-
-	return res;
-}
-
-//For the NS3 paths
-vector<WayPoint> LoadSpecialPath(const Node* origin, char pathLetter) {
-	if (pathLetter == 'A') {
-		size_t sz = sizeof(SpecialPathA) / sizeof(SpecialPathA[0]);
-		return ConvertToWaypoints(origin, vector<Point2D> (SpecialPathA, &SpecialPathA[sz]));
-	} else if (pathLetter == 'B') {
-		size_t sz = sizeof(SpecialPathB) / sizeof(SpecialPathB[0]);
-		return ConvertToWaypoints(origin, vector<Point2D> (SpecialPathB, &SpecialPathB[sz]));
-	} else {
-		throw std::runtime_error("Invalid special path.");
-	}
-}
 
 } //End anon namespace
 
@@ -235,6 +162,79 @@ void sim_mob::DriverMovement::frame_init() {
 	}
 }
 
+void sim_mob::DriverMovement::responseIncidentStatus(DriverUpdateParams& p, timeslice now) {
+	//slow down velocity when driver views the incident within the visibility distance
+	float incidentGap = parentDriver->vehicle->length;
+	if(incidentStatus.getSlowdownVelocity()){
+		//calculate the distance to the nearest front vehicle, if no front vehicle exists, the distance is given to a enough large gap as 5 kilometers
+		float fwdCarDist = 5000;
+		if( p.nvFwd.exists() ){
+			DPoint dFwd = p.nvFwd.driver->getVehicle()->getPosition();
+			DPoint dCur = parentDriver->vehicle->getPosition();
+			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
+			fwdCarDist = movementVect.getMagnitude()-parentDriver->vehicle->length;
+			if(fwdCarDist < 0) {
+				fwdCarDist = parentDriver->vehicle->length;
+			}
+		}
+
+		//record speed limit for current vehicle
+		float speedLimit = 0;
+		//record current speed
+		float newSpeed = 0;
+		//record approaching speed when it is near to incident position
+		float approachingSpeed = APPROACHING_SPEED;
+		float oldDistToStop = p.perceivedDistToFwdCar;
+		LANE_CHANGE_SIDE oldDirect = p.turningDirection;
+		p.perceivedDistToFwdCar = std::min(incidentStatus.getDistanceToIncident(), fwdCarDist);
+		p.turningDirection = LCS_LEFT;
+
+		//retrieve speed limit decided by whether or not incident lane or adjacent lane
+		speedLimit = incidentStatus.getSpeedLimit(p.currLaneIndex);
+		if(speedLimit==0 && incidentStatus.getDistanceToIncident()>incidentGap)
+			speedLimit = approachingSpeed;
+
+		// recalculate acceleration and velocity when incident happen
+		float newFwdAcc = 0;
+		if(parentDriver->vehicle->getVelocity() > speedLimit){
+			newFwdAcc = cfModel->makeAcceleratingDecision(p, speedLimit, maxLaneSpeed);
+			newSpeed = parentDriver->vehicle->getVelocity()+newFwdAcc*p.elapsedSeconds*100;
+			if(newSpeed < speedLimit){
+				newFwdAcc = 0;
+				newSpeed = speedLimit;
+			}
+		}
+		else {
+			newFwdAcc = 0;
+			newSpeed = speedLimit;
+		}
+
+		//update current velocity so as to response the speed limit defined in incident lane.
+		parentDriver->vehicle->setVelocity(newSpeed);
+		p.perceivedDistToFwdCar = oldDistToStop;
+		p.turningDirection = oldDirect;
+	}
+
+	//stop cars when it already is near the incident location
+	if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_OCCURANCE_LANE ){
+		if(incidentStatus.getSpeedLimit(p.currLaneIndex)==0 && incidentStatus.getDistanceToIncident()<incidentGap) {
+			parentDriver->vehicle->setVelocity(0);
+			parentDriver->vehicle->setAcceleration(0);
+		}
+	}
+
+	if(p.nvFwd.exists() ){//avoid cars stacking together
+		DPoint dFwd = p.nvFwd.driver->getVehicle()->getPosition();
+		DPoint dCur = parentDriver->vehicle->getPosition();
+		DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
+		double len = parentDriver->getVehicle()->length;
+		double dist = movementVect.getMagnitude();
+		if( dist < len){
+			parentDriver->vehicle->setVelocity(0);
+			parentDriver->vehicle->setAcceleration(0);
+		}
+	}
+}
 
 void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslice now) {
 
@@ -244,6 +244,7 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 	if(curLaneIndex<0){
 		return;
 	}
+
 	int nextLaneIndex = curLaneIndex;
 	LANE_CHANGE_SIDE laneSide = LCS_SAME;
 	IncidentStatus::IncidentStatusType status = IncidentStatus::INCIDENT_CLEARANCE;
@@ -257,36 +258,18 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 	bool replan = false;
 	const RoadItem* roadItem = getRoadItemByDistance(sim_mob::INCIDENT, realDist);
 	if(roadItem) {//retrieve front incident obstacle
-		const Incident* inc = dynamic_cast<const Incident*>( roadItem );
-		if(inc){
-			float visibility = inc->visibilityDistance;
-			incidentStatus.setVisibilityDistance(visibility);
-			if( (now.ms() >= inc->startTime) && (now.ms() < inc->startTime+inc->duration) && realDist<visibility){
-				if(curLaneIndex==inc->laneId ){//decide lane side if vehicle is in the incident lane and it is necessary to do changing lane
-					status = IncidentStatus::INCIDENT_OCCURANCE_LANE;
-					if( curLaneIndex < curSegment->getLanes().size()-1){
-						nextLaneIndex = curLaneIndex+1;
-						laneSide = LCS_LEFT;
-					}
-					else {
-						nextLaneIndex = curLaneIndex-1;
-						laneSide = LCS_RIGHT;
-					}
-				}
-				else {
-					incidentStatus.setCurrentStatus(IncidentStatus::INCIDENT_ADJACENT_LANE);
-					incidentStatus.setChangedLane(false);
-				}
-				//make velocity slowing down decision when incident happen
-				unsigned int originId = curSegment->getSegmentAimsunId();
-				if(originId == inc->segmentId){
-					incidentStatus.setSlowdownVelocity(true);
-				}
+		const Incident* incidentObj = dynamic_cast<const Incident*>( roadItem );
 
+		if(incidentObj){
+			float visibility = incidentObj->visibilityDistance;
+			incidentStatus.setVisibilityDistance(visibility);
+			incidentStatus.setCurrentLaneIndex(curLaneIndex);
+
+			if( (now.ms() >= incidentObj->startTime) && (now.ms() < incidentObj->startTime+incidentObj->duration) && realDist<visibility){
 				incidentStatus.setDistanceToIncident(realDist);
-				replan = incidentStatus.insertIncident(inc);
+				replan = incidentStatus.insertIncident(incidentObj);
 				float incidentGap = parentDriver->vehicle->length*2;
-				if(!incidentStatus.getChangedLane() && status==IncidentStatus::INCIDENT_OCCURANCE_LANE){
+				if(!incidentStatus.getChangedLane() && incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_OCCURANCE_LANE){
 					double prob = incidentStatus.getVisibilityDistance()>0 ? incidentStatus.getDistanceToIncident()/incidentStatus.getVisibilityDistance() : 0.0;
 					if(incidentStatus.getDistanceToIncident() < 2*incidentGap){
 						incidentStatus.setChangedLane(true);
@@ -298,8 +281,8 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 					}
 				}
 			}
-			else if( now.ms() > inc->startTime+inc->duration ){// if incident duration is over, the incident obstacle will be removed
-				replan = incidentStatus.removeIncident(inc);
+			else if( now.ms()>incidentObj->startTime+incidentObj->duration ){// if incident duration is over, the incident obstacle will be removed
+				replan = incidentStatus.removeIncident(incidentObj);
 			}
 		}
 	}
@@ -313,25 +296,90 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 	}
 
 	if(replan){//update decision status for incident.
-		incidentStatus.setNextLaneIndex(nextLaneIndex);
-		incidentStatus.setLaneSide(laneSide);
-		incidentStatus.setCurrentStatus(status);
 		incidentStatus.checkIsCleared();
 	}
 }
 
-void sim_mob::DriverMovement::frame_tick() {
 
-	//std::cout << "Driver Ticking " << p.now.frame() << std::endl;
+void sim_mob::DriverMovement::setRR_RegionsFromCurrentPath()
+{
+	if (parent->getRegionSupportStruct().isEnabled()) {
+		if (parentDriver->vehicle) {
+			std::vector<const sim_mob::RoadSegment*> path = parentDriver->vehicle->getPath();
+			if (!path.empty()) {
+				//We may be partly along this route, but it is unlikely. Still, just to be safe...
+				const sim_mob::RoadSegment* currseg = parentDriver->vehicle->getCurrSegment();
+
+				//Now save it, taking into account the "current segment"
+				rrPathToSend.clear();
+				for (std::vector<const sim_mob::RoadSegment*>::const_iterator it=path.begin(); it!=path.end(); it++) {
+					//Have we reached our starting segment yet?
+					if (currseg) {
+						if (currseg == *it) {
+							//Signal this by setting currseg to null.
+							currseg = nullptr;
+						} else {
+							continue;
+						}
+					}
+
+					//Add it; we've cleared our current segment check one way or another.
+					rrPathToSend.push_back(*it);
+				}
+			}
+		}
+	}
+}
+
+
+void sim_mob::DriverMovement::frame_tick()
+{
 	// lost some params
 	DriverUpdateParams& p2 = parentDriver->getParams();
 
-	if(!(parentDriver->vehicle))
+	if(!(parentDriver->vehicle)) {
 		throw std::runtime_error("Something wrong, Vehicle is NULL");
+	}
+
 	//Are we done already?
 	if (parentDriver->vehicle->isDone()) {
 		getParent()->setToBeRemoved();
 		return;
+	}
+
+	//Specific for Region support.
+	if (parent->getRegionSupportStruct().isEnabled()) {
+		//Currently all_regions only needs to be sent once.
+		if (sentAllRegions.check()) {
+			//Send the Regions.
+			std::vector<RoadRunnerRegion> allRegions;
+			const RoadNetwork& net = ConfigManager::GetInstance().FullConfig().getNetwork();
+			for (std::map<int, RoadRunnerRegion>::const_iterator it=net.roadRunnerRegions.begin(); it!=net.roadRunnerRegions.end(); it++) {
+				allRegions.push_back(it->second);
+			}
+			parent->getRegionSupportStruct().setNewAllRegionsSet(allRegions);
+
+			//If a path has already been set, we will need to transmit it.
+			setRR_RegionsFromCurrentPath();
+		}
+
+		//We always need to send a path if one is available.
+		if (!rrPathToSend.empty()) {
+			std::vector<RoadRunnerRegion> regPath;
+			for (std::vector<const RoadSegment*>::const_iterator it=rrPathToSend.begin(); it!=rrPathToSend.end(); it++) {
+				//Determine if this road segment is within a Region.
+				std::pair<RoadRunnerRegion, bool> rReg = StreetDirectory::instance().getRoadRunnerRegion(*it);
+				if (rReg.second) {
+					//Don't add if it's the last item in the list.
+					if (regPath.empty() || (regPath.back().id != rReg.first.id)) {
+						regPath.push_back(rReg.first);
+					}
+				}
+			}
+
+			parent->getRegionSupportStruct().setNewRegionPath(regPath);
+			rrPathToSend.clear();
+		}
 	}
 
 	//Just a bit glitchy...
@@ -732,12 +780,13 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 	//check incident status and decide whether or not do lane changing
 	LANE_CHANGE_MODE mode = DLC;
 	checkIncidentStatus(p, parentDriver->getParams().now);
-	if(incidentStatus.getChangedLane()){
+	if(incidentStatus.getChangedLane() && incidentStatus.getNextLaneIndex()>=0){
 		p.nextLaneIndex = incidentStatus.getNextLaneIndex();
 		parentDriver->vehicle->setTurningDirection(incidentStatus.getLaneSide());
 		mode = MLC;
 	}
-	else if(incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode==MLC) {
+	else if( (incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode==MLC )
+			|| (incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && incidentStatus.getCurrentIncidentLength()>0)) {
 		p.nextLaneIndex = p.currLaneIndex;
 		parentDriver->vehicle->setTurningDirection(LCS_SAME);
 		mode = MLC;
@@ -752,7 +801,7 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 		const RoadSegment* curSegment = parentDriver->vehicle->getCurrSegment();
 		const Lane* lane = curSegment->getLane(p.nextLaneIndex);
 		int laneNum = curSegment->getLanes().size()-1;
-		if( !lane->is_vehicle_lane() || p.nextLaneIndex>laneNum ) {
+		if(lane &&(!lane->is_vehicle_lane() || p.nextLaneIndex>laneNum )) {
 			parentDriver->vehicle->setTurningDirection(LCS_SAME);
 			parentDriver->vehicle->setLatVelocity(0);
 			p.nextLaneIndex = p.currLaneIndex;
@@ -810,83 +859,8 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 	//Update our chosen acceleration; update our position on the link.
 	parentDriver->vehicle->setAcceleration(newFwdAcc * 100);
 
-	//slow down velocity when driver views the incident within the visibility distance
-	float incidentGap = parentDriver->vehicle->length;
-	if(incidentStatus.getSlowdownVelocity()){
-		//calculate the distance to the nearest front vehicle, if no front vehicle exists, the distance is given to a enough large gap as 5 kilometers
-		float fwdCarDist = 5000;
-		if( p.nvFwd.exists() ){
-			DPoint dFwd = p.nvFwd.driver->getVehicle()->getPosition();
-			DPoint dCur = parentDriver->vehicle->getPosition();
-			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
-			fwdCarDist = movementVect.getMagnitude()-parentDriver->vehicle->length;
-			if(fwdCarDist < 0) {
-				fwdCarDist = parentDriver->vehicle->length;
-			}
-		}
-
-		//record speed limit for current vehicle
-		float speedLimit = 0;
-		//record current speed
-		float newSpeed = 0;
-		//record approaching speed when it is near to incident position
-		float approachingSpeed = 200;
-		float oldDistToStop = p.perceivedDistToFwdCar;
-		LANE_CHANGE_SIDE oldDirect = p.turningDirection;
-		p.perceivedDistToFwdCar = std::min(incidentStatus.getDistanceToIncident(), fwdCarDist);
-		p.turningDirection = LCS_LEFT;
-
-		//retrieve speed limit decided by whether or not incident lane or adjacent lane
-		if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_OCCURANCE_LANE ){
-			speedLimit = incidentStatus.getSpeedLimit();
-			if(speedLimit==0 && incidentStatus.getDistanceToIncident()>incidentGap)
-				speedLimit = approachingSpeed;
-		}
-		else if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_ADJACENT_LANE){
-			speedLimit = incidentStatus.getSpeedLimitOthers();
-		}
-
-		// recalculate acceleration and velocity when incident happen
-		if(parentDriver->vehicle->getVelocity() > speedLimit){
-			newFwdAcc = cfModel->makeAcceleratingDecision(p, speedLimit, maxLaneSpeed);
-			newSpeed = parentDriver->vehicle->getVelocity()+newFwdAcc*p.elapsedSeconds*100;
-			if(newSpeed < speedLimit){
-				newFwdAcc = 0;
-				newSpeed = speedLimit;
-			}
-		}
-		else {
-			newFwdAcc = 0;
-			newSpeed = speedLimit;
-		}
-
-		//update current velocity so as to response the speed limit defined in incident lane.
-		parentDriver->vehicle->setVelocity(newSpeed);
-		//parentDriver->vehicle->setAcceleration(0);
-		p.perceivedDistToFwdCar = oldDistToStop;
-		p.turningDirection = oldDirect;
-	}
-
-	//stop cars when it already is near the incident location
-	if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_OCCURANCE_LANE ){
-		if(incidentStatus.getSpeedLimit()==0 && incidentStatus.getDistanceToIncident()<incidentGap) {
-			parentDriver->vehicle->setVelocity(0);
-			parentDriver->vehicle->setAcceleration(0);
-		}
-	}
-
-	//avoid cars stacking together
-	if(nv.exists() ){
-			DPoint dFwd = nv.driver->getVehicle()->getPosition();
-			DPoint dCur = parentDriver->vehicle->getPosition();
-			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
-			double len = parentDriver->getVehicle()->length;
-			double dist = movementVect.getMagnitude();
-			if( dist < len){
-				parentDriver->vehicle->setVelocity(0);
-				parentDriver->vehicle->setAcceleration(0);
-			}
-	}
+	//response incident
+	responseIncidentStatus(p, parentDriver->getParams().now);
 
 	return updatePositionOnLink(p);
 }
@@ -1019,7 +993,9 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 	const sim_mob::RoadItem* res = nullptr;
 	itemDis = 0.0;
 
-	if(type != sim_mob::INCIDENT) return res;
+	if(type != sim_mob::INCIDENT) {
+		return res;
+	}
 
 	std::vector<const sim_mob::RoadSegment*>::iterator currentSegIt = parentDriver->vehicle->getPathIterator();
 	std::vector<const sim_mob::RoadSegment*>::iterator currentSegItEnd = parentDriver->vehicle->getPathIteratorEnd();
@@ -1027,14 +1003,26 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 
 	for(;currentSegIt != currentSegItEnd;++currentSegIt)
 	{
-		if(currentSegIt == currentSegItEnd)
+		if(currentSegIt == currentSegItEnd){
 			break;
+		}
 
 		const RoadSegment* rs = *currentSegIt;
-		if (!rs) break;
+		if (!rs) {
+			break;
+		}
 
 		const std::map<centimeter_t, const RoadItem*> obstacles = rs->getObstacles();
 		std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
+
+		if(obstacles.size()==0){
+			if(rs == parentDriver->vehicle->getCurrSegment()){
+				itemDis = parentDriver->vehicle->getCurrentSegmentLength() - parentDriver->vehicle->getDistanceMovedInSegment();
+			}
+			else{
+				itemDis += rs->getLengthOfSegment();
+			}
+		}
 
 		for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
 			const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
@@ -1094,8 +1082,7 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 							return nullptr;
 						}
 					}//end inc
-					RoadSegment* seg = const_cast<RoadSegment*>(rs);
-					itemDis += seg->getLengthOfSegment();
+					itemDis += rs->getLengthOfSegment();
 				}
 
 
@@ -1390,45 +1377,6 @@ void sim_mob::DriverMovement::calculateIntersectionTrajectory(DPoint movingFrom,
 	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
 }
 
-void sim_mob::DriverMovement::initLoopSpecialString(vector<WayPoint>& path, const string& value)
-{
-	//In special cases, we may be manually specifying a loop, e.g., "loop:A:5" in the special string.
-	// In this case, "value" will contain ":A:5"; the "loop" having been parsed.
-	if (value.size()<=1) {
-		throw std::runtime_error("Bad \"loop\" special string.");
-	}
-	//Repeat this path X times.
-	vector<WayPoint> part = LoadSpecialPath(getParent()->originNode.node_, value[1]);
-
-	size_t ind = value.find(':', 1);
-	if (ind != string::npos && ++ind < value.length()) {
-		int amount = -1;
-		std::istringstream(value.substr(ind, string::npos)) >> amount;
-
-		for (size_t i = 0; static_cast<int> (i) < amount && amount > 1; i++) {
-			path.insert(path.end(), part.begin(), part.end());
-		}
-	} else {
-		throw std::runtime_error("Bad \"loop\" special string.");
-	}
-
-	//Just in case one of these failed.
-	if (path.empty()) {
-		path.insert(path.end(), part.begin(), part.end());
-	}
-}
-
-void sim_mob::DriverMovement::initTripChainSpecialString(const string& value)
-{
-	//Sanity check
-	if (value.length()<=1) {
-		throw std::runtime_error("Invalid special tripchain string.");
-	}
-	//Person* p = dynamic_cast<Person*>(parentAgent);
-	if (!getParent()) {
-		throw std::runtime_error("Parent is not of type Person");
-	}
-}
 
 //link path should be retrieved from other class
 //for now, it serves as this purpose
@@ -1452,63 +1400,45 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 
 		Person* parentP = dynamic_cast<Person*> (parent);
 		sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
+		const StreetDirectory& stdir = StreetDirectory::instance();
 
-		if (!parentP || parentP->specialStr.empty()) {
-			const StreetDirectory& stdir = StreetDirectory::instance();
-			//path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
-
-			if(subTrip->schedule==nullptr){
-//				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
-				// if use path set
-				if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-					path = PathSetManager::getInstance()->getPathByPerson(getParent());
-				}
-				else
-				{
-					const StreetDirectory& stdir = StreetDirectory::instance();
-					path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
-				}
-
+		if(subTrip->schedule==nullptr){
+			// if use path set
+			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+				path = PathSetManager::getInstance()->getPathByPerson(getParent());
 			}
-			else {
-				std::vector<Node*>& routes = subTrip->schedule->routes;
-				std::vector<Node*>::iterator first = routes.begin();
-				std::vector<Node*>::iterator second = first;
-
-				path.clear();
-				for(second++; first!=routes.end() && second!=routes.end(); first++, second++){
-					vector<WayPoint> subPath = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(**first), stdir.DrivingVertex(**second));
-					path.insert( path.end(), subPath.begin(), subPath.end());
-				}
-
-				/*vector<WayPoint>::iterator it;
-				for(it=path.begin(); it!=path.end(); it++){
-					if( (*it).type_ == WayPoint::ROAD_SEGMENT ) {
-						std::cout << "road segment start id :" << (*it).roadSegment_->getStart()->getID() << ". end id : " << (*it).roadSegment_->getEnd()->getID() << std::endl;
-					}
-				}*/
-			}
-
-		} else {
-			//Retrieve the special string.
-			size_t cInd = parentP->specialStr.find(':');
-			string specialType = parentP->specialStr.substr(0, cInd);
-			string specialValue = parentP->specialStr.substr(cInd, std::string::npos);
-			if (specialType=="loop") {
-				initLoopSpecialString(path, specialValue);
-			} else if (specialType=="tripchain") {
+			else
+			{
 				const StreetDirectory& stdir = StreetDirectory::instance();
 				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
-				initTripChainSpecialString(specialValue);
-			} else {
-				throw std::runtime_error("Unknown special string type.");
 			}
 
+		}
+		else {
+			std::vector<Node*>& routes = subTrip->schedule->routes;
+			std::vector<Node*>::iterator first = routes.begin();
+			std::vector<Node*>::iterator second = first;
+
+			path.clear();
+			for(second++; first!=routes.end() && second!=routes.end(); first++, second++){
+				vector<WayPoint> subPath = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(**first), stdir.DrivingVertex(**second));
+				path.insert( path.end(), subPath.begin(), subPath.end());
+			}
 		}
 
 		//For now, empty paths aren't supported.
 		if (path.empty()) {
 			throw std::runtime_error("Can't initializePath(); path is empty.");
+		}
+
+		//RoadRunner may need to know of our path, but it can't be send inevitably.
+		if (getParent()->getRegionSupportStruct().isEnabled()) {
+			rrPathToSend.clear();
+			for (std::vector<WayPoint>::const_iterator it=path.begin(); it!=path.end(); it++) {
+				if (it->type_ == WayPoint::ROAD_SEGMENT) {
+					rrPathToSend.push_back(it->roadSegment_);
+				}
+			}
 		}
 
 		//TODO: Start in lane 0?
@@ -1546,23 +1476,75 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 	return res;
 }
 
-//link path should be retrieved from other class
-//for now, it serves as this purpose
-void sim_mob::DriverMovement::resetPath(DriverUpdateParams& p) {
-	const Node * node = parentDriver->vehicle->getCurrSegment()->getEnd();
-	//Retrieve the shortest path from the current intersection node to destination and save all RoadSegments in this path.
-	const StreetDirectory& stdir = StreetDirectory::instance();
-	vector<WayPoint> path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*node), stdir.DrivingVertex(*(parentDriver->goal.node)));
 
-	//For now, empty paths aren't supported.
-	if (path.empty()) {
-		throw std::runtime_error("Can't resetPath(); path is empty.");
+void sim_mob::DriverMovement::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
+{
+	//Skip if we're somehow not driving on a road.
+	if (!(parentDriver && parentDriver->vehicle && parentDriver->vehicle->getCurrSegment())) {
+		return;
 	}
 
+	//Retrieve the shortest path from the current intersection node to destination and save all RoadSegments in this path.
+	//NOTE: This path may be invalid, is there is no LaneConnector from the current Segment to the first segment of the result path.
+	const RoadSegment* currSeg = parentDriver->vehicle->getCurrSegment();
+	const Node* node = currSeg->getEnd();
+	const StreetDirectory& stdir = StreetDirectory::instance();
+	vector<WayPoint> path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*node), stdir.DrivingVertex(*(parentDriver->goal.node)), blacklisted);
+
+	//Given this (tentative) path, we still have to transition from the current Segment.
+	//At the moment this is a bit tedious (since we can't search mid-segment in the StreetDir), but
+	//  the following heuristic should work well enough.
+	const RoadSegment* nextSeg = nullptr;
+	if (path.size() > 1) { //Node, Segment.
+		vector<WayPoint>::iterator it = path.begin();
+		if ((it->type_==WayPoint::NODE) && (it->node_ == node)) {
+			it++;
+			if (it->type_==WayPoint::ROAD_SEGMENT) {
+				nextSeg = it->roadSegment_;
+
+			}
+		}
+	}
+
+	//Now find the LaneConnectors. For a UniNode, this is trivial. For a MultiNode, we have to check.
+	//NOTE: If a lane connector is NOT found, there may still be an alternate route... but we can't check this without
+	//      blacklisting the "found" segment and repeating. I think a far better solution would be to modify the
+	//      shortest-path algorithm to allow searching from Segments (the data structure already can handle it),
+	//      but for now we will have to deal with the rare true negative in cities with lots of one-way streets.
+	if (nextSeg) {
+		bool found = false;
+		const MultiNode* mn = dynamic_cast<const MultiNode*>(node);
+		if (mn) {
+			const set<LaneConnector*> lcs = mn->getOutgoingLanes(currSeg);
+			for (set<LaneConnector*>::const_iterator it=lcs.begin(); it!=lcs.end(); it++) {
+				if (((*it)->getLaneFrom()->getRoadSegment()==currSeg) && ((*it)->getLaneTo()->getRoadSegment()==nextSeg)) {
+					found = true;
+					break;
+				}
+			}
+		}
+		if (!found) {
+			path.clear();
+		}
+	}
+
+	//If there's no path, keep the current one.
+	if (path.empty()) {
+		return;
+	}
+
+	//Else, pre-pend the current segment, and reset the current driver.
+	//NOTE: This will put the current driver back onto the start of the current Segment, but since this is only
+	//      used in Road Runner, it doesn't matter right now.
+	//TODO: This *might* work if we save the current advance on the current segment and reset it.
 	vector<WayPoint>::iterator it = path.begin();
 	path.insert(it, WayPoint(parentDriver->vehicle->getCurrSegment()));
 	parentDriver->vehicle->resetPath(path);
+
+	//Finally, update the client with the new list of Region tokens it must acquire.
+	setRR_RegionsFromCurrentPath();
 }
+
 
 void sim_mob::DriverMovement::setOrigin(DriverUpdateParams& p) {
 	//Set the max speed and target speed.
@@ -1616,6 +1598,10 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 			* p.elapsedSeconds * p.elapsedSeconds;
 	if (fwdDistance < 0) {
 		fwdDistance = 0;
+	}
+
+	if(incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && incidentStatus.getCurrentIncidentLength()>0){
+		incidentStatus.reduceIncidentLength(fwdDistance);
 	}
 
 
@@ -1864,6 +1850,10 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 
 			if (uNode ) {
 				nextLane = uNode->getForwardDrivingLane(*params.currLane);
+			}
+
+			if(nextLane==nullptr){
+				std::cout<<"error getForwardDrivingLane no out lane"<<std::endl;
 			}
 
 //			//

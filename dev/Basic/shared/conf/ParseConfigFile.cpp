@@ -577,10 +577,16 @@ void sim_mob::ParseConfigFile::ProcessSystemNode(DOMElement* node)
 	ProcessSystemSingleThreadedNode(GetSingleElementByName(node, "single_threaded"));
 	ProcessSystemMergeLogFilesNode(GetSingleElementByName(node, "merge_log_files"));
 	ProcessSystemNetworkSourceNode(GetSingleElementByName(node, "network_source"));
-	ProcessSystemNetworkXmlFileNode(GetSingleElementByName(node, "network_xml_file"));
+	ProcessSystemNetworkXmlInputFileNode(GetSingleElementByName(node, "network_xml_file_input"));
+	ProcessSystemNetworkXmlOutputFileNode(GetSingleElementByName(node, "network_xml_file_output"));
 	ProcessSystemDatabaseNode(GetSingleElementByName(node, "network_database"));
 	ProcessSystemXmlSchemaFilesNode(GetSingleElementByName(node, "xsd_schema_files", true));
 	ProcessSystemGenericPropsNode(GetSingleElementByName(node, "generic_props"));
+
+	//Warn against using the old field name for xml_file.
+	if (GetSingleElementByName(node, "network_xml_file", false)) {
+		throw std::runtime_error("Using old parameter: \"network_xml_file\"; please change it to \"network_xml_file_input.\"");
+	}
 }
 
 
@@ -917,9 +923,14 @@ void sim_mob::ParseConfigFile::ProcessSystemNetworkSourceNode(xercesc::DOMElemen
 }
 
 
-void sim_mob::ParseConfigFile::ProcessSystemNetworkXmlFileNode(xercesc::DOMElement* node)
+void sim_mob::ParseConfigFile::ProcessSystemNetworkXmlInputFileNode(xercesc::DOMElement* node)
 {
-	cfg.system.networkXmlFile = ParseNonemptyString(GetNamedAttributeValue(node, "value"), "private/SimMobilityInput.xml");
+	cfg.system.networkXmlInputFile = ParseNonemptyString(GetNamedAttributeValue(node, "value"), "private/SimMobilityInput.xml");
+}
+
+void sim_mob::ParseConfigFile::ProcessSystemNetworkXmlOutputFileNode(xercesc::DOMElement* node)
+{
+	cfg.system.networkXmlOutputFile = ParseNonemptyString(GetNamedAttributeValue(node, "value"), "");//or NetworkCopy.xml
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemDatabaseNode(xercesc::DOMElement* node)
@@ -1040,18 +1051,17 @@ void sim_mob::ParseConfigFile::ProcessSystemMutexEnforcementNode(xercesc::DOMEle
 void sim_mob::ParseConfigFile::ProcessSystemCommunicationNode(xercesc::DOMElement* node)
 {
 	if (!node) { return; }
-
-	//The commsim config has an attribute and a child node.
-	cfg.system.simulation.commSimEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
-
-	//TODO: There is a "type" attribute here too, in the latest branch.
-	xercesc::DOMElement* androidNode = GetSingleElementByName(node, "android_testbed");
-	if((cfg.system.simulation.androidClientEnabled = ParseBoolean(GetNamedAttributeValue(androidNode, "enabled"), false)))
-	{
-		//an optional place to create the broker, i am creating in main.cpp now
+	if(!(cfg.system.simulation.commSimEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled")))) {
+		return;
 	}
-
-	cfg.system.simulation.androidClientType = ParseString(GetNamedAttributeValue(androidNode, "type"), std::string(""));
+	//We use the existing "element child" functions, it's significantly slower to use "getElementsByTagName()"
+	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
+		SimulationParams::CommsimElement element;
+		element.name = ParseString(item->getNodeName());
+		element.mode = ParseString(GetNamedAttributeValue(item, "mode"));
+		element.enabled = ParseBoolean(GetNamedAttributeValue(item, "enabled"));
+		cfg.system.simulation.commsimElements[element.name] = element;
+	}
 }
 
 void sim_mob::ParseConfigFile::ProcessWorkerPersonNode(xercesc::DOMElement* node)
@@ -1151,15 +1161,20 @@ void sim_mob::ParseConfigFile::ProcessIncidentsNode(xercesc::DOMElement* node)
 		incident.visibilityDistance = ParseFloat(GetNamedAttributeValue(item, "visibility"));
 		incident.segmentId = ParseUnsignedInt(GetNamedAttributeValue(item, "segment") );
 		incident.position = ParseFloat(GetNamedAttributeValue(item, "position"));
-		incident.severity = ParseUnsignedInt(GetNamedAttributeValue(item, "severity") );
 		incident.capFactor = ParseFloat(GetNamedAttributeValue(item, "cap_factor") );
 		incident.startTime = ParseDailyTime(GetNamedAttributeValue(item, "start_time") ).getValue();
 		incident.duration = ParseDailyTime(GetNamedAttributeValue(item, "duration") ).getValue();
-		incident.speedLimit = ParseFloat(GetNamedAttributeValue(item, "speed_limit") );
-		incident.speedLimitOthers = ParseFloat(GetNamedAttributeValue(item, "speed_limit_adjacentlanes") );
-		incident.laneId = ParseUnsignedInt(GetNamedAttributeValue(item, "lane") );
+		incident.length = ParseFloat(GetNamedAttributeValue(item, "length") );
 		incident.compliance = ParseFloat(GetNamedAttributeValue(item, "compliance") );
 		incident.accessibility = ParseFloat(GetNamedAttributeValue(item, "accessibility") );
+
+		for(DOMElement* child=item->getFirstElementChild(); child; child=child->getNextElementSibling()){
+			IncidentParams::LaneParams lane;
+			lane.laneId = ParseUnsignedInt(GetNamedAttributeValue(child, "laneId"));
+			lane.speedLimit = ParseFloat(GetNamedAttributeValue(child, "speedLimitFactor") );
+			incident.laneParams.push_back(lane);
+		}
+
 		cfg.incidents.push_back(incident);
 	}
 }

@@ -28,7 +28,7 @@ namespace rr_android_ns3 {
 ///NS3 unicast message (no documentation provided).
 class NS3_MSG_UNICAST : public sim_mob::comm::Message {
 public:
-	NS3_MSG_UNICAST(sim_mob::comm::MsgData& data_);
+	NS3_MSG_UNICAST(const sim_mob::comm::MsgData& data_);
 	sim_mob::Handler* newHandler();
 };
 

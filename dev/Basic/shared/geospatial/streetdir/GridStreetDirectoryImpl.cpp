@@ -171,13 +171,6 @@ sim_mob::GridStreetDirectoryImpl::GridStreetDirectoryImpl(const RoadNetwork& net
     for (vector<Link*>::const_iterator iter = network.getLinks().begin(); iter != network.getLinks().end(); ++iter) {
     	buildLookups((*iter)->getSegments(), completedCrossings, network.roadRunnerRegions, network.getCoordTransform(false));
     }
-
-	//TEMP:
-	Print() <<"REGIONS MAP: \n";
-	for (std::map<const RoadSegment*, RoadRunnerRegion>::const_iterator it=rrRegionLookup.begin(); it!=rrRegionLookup.end(); it++) {
-		Print() <<"  " <<it->first <<" => " <<it->second.id <<"\n";
-	}
-	Print() <<"END REGIONS MAP\n";
 }
 
 
@@ -478,10 +471,12 @@ void sim_mob::GridStreetDirectoryImpl::buildLookups(const vector<RoadSegment*>& 
 			for (std::map<int, sim_mob::RoadRunnerRegion>::const_iterator rrIt=roadRunnerRegions.begin(); rrIt!=roadRunnerRegions.end(); rrIt++) {
 				if (point_inside_region(rrIt->second, midpt)) {
 					rrRegionLookup[*segIt] = rrIt->second;
+					rrRegionRevLookup[rrIt->second.id].push_back(*segIt);
 					break;
 				}
 				if (line_intersects_region(rrIt->second, start, end)) {
 					rrRegionLookup[*segIt] = rrIt->second;
+					rrRegionRevLookup[rrIt->second.id].push_back(*segIt);
 					break;
 				}
 			}
@@ -585,6 +580,19 @@ std::pair<sim_mob::RoadRunnerRegion, bool> sim_mob::GridStreetDirectoryImpl::get
 
 	return std::make_pair(RoadRunnerRegion(), false);
 }
+
+
+std::vector<const sim_mob::RoadSegment*> sim_mob::GridStreetDirectoryImpl::getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region)
+{
+	//Try to find it.
+	std::map<int, std::vector<const RoadSegment*> >::const_iterator it = rrRegionRevLookup.find(region.id);
+	if (it!=rrRegionRevLookup.end()) {
+		return it->second;
+	}
+
+	return std::vector<const sim_mob::RoadSegment*>();
+}
+
 
 
 const BusStop* sim_mob::GridStreetDirectoryImpl::getBusStop(const Point2D& position) const

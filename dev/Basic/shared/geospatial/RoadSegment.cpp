@@ -88,7 +88,7 @@ unsigned int sim_mob::RoadSegment::getSegmentAimsunId() const{
 	try {
 		originId = boost::lexical_cast<int>(segId);
 	} catch( boost::bad_lexical_cast const& ) {
-		Print() << "Error: aimsun id string was not valid" << std::endl;
+		Warn() << "Error: aimsun id string was not valid" << std::endl;
 	}
 
 	return originId;
@@ -102,7 +102,7 @@ void sim_mob::RoadSegment::specifyEdgePolylines(const vector< vector<Point2D> >&
 	//TODO: Optionally reset this Segment's own polyline to laneEdge[0].
 }
 
-double sim_mob::RoadSegment::getLengthOfSegment()
+const double sim_mob::RoadSegment::getLengthOfSegment() const
 {
 	std::vector<sim_mob::Point2D> polypointsList = (this)->getLanes().at(0)->getPolyline();
 	double dis=0;
@@ -146,7 +146,11 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 	bool edgesExist = !laneEdgePolylines_cached.empty();
 	for (size_t i=0; i<lanes.size(); i++) {
 		if (edgesExist) {
-			makeLanePolylineFromEdges(lanes[i], laneEdgePolylines_cached[i], laneEdgePolylines_cached[i+1]);
+			//check lane polyline already exist
+			if(lanes[i]->polyline_.size() == 0)
+			{
+				makeLanePolylineFromEdges(lanes[i], laneEdgePolylines_cached[i], laneEdgePolylines_cached[i+1]);
+			}
 		} else {
 			lanes[i]->makePolylineFromParentSegment();
 		}
@@ -160,49 +164,53 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 		}
 	}
 
-	//TEMP FIX
-	//Now, add one more edge and one more lane representing the sidewalk.
-	//TODO: This requires our function (and several others) to be declared non-const.
-	//      Re-enable const correctness when we remove this code.
-	//TEMP: For now, we just add the outer lane as a sidewalk. This won't quite work for bi-directional
-	//      segments or for one-way Links. But it should be sufficient for the demo.
-	Lane* swLane = new Lane(this, lanes.size());
-	swLane->is_pedestrian_lane(true);
-	swLane->width_ = lanes.back()->width_/2;
-	swLane->polyline_ = sim_mob::ShiftPolyline(lanes.back()->polyline_, lanes.back()->getWidth()/2+swLane->getWidth()/2);
-
-	//Add it, update
-	lanes.push_back(swLane);
-	width += swLane->width_;
-
-	vector<Point2D> res = makeLaneEdgeFromPolyline(lanes.back(), false);
-	laneEdgePolylines_cached.push_back(res);//crash -vahid
-
-	//Add an extra sidewalk on the other side if it's a road segment on a one-way link.
-	sim_mob::Link* parentLink = getLink();
-
-	if(parentLink)
+	bool needGeneratePedLane = true;
+	if(lanes.back()->is_pedestrian_lane()) // last lane is ped lane, it means already generate before
 	{
-		//Make sure we're not generating Lanes for XML data
-		if (parentLink->hasOpposingLink<0) {
-			throw std::runtime_error("Link::hasOpposingLink has not been initialized, but someone is attempting to use it.");
-		}
+		needGeneratePedLane = false;
+	}
+	if(needGeneratePedLane)
+	{
+		//TEMP FIX
+		//Now, add one more edge and one more lane representing the sidewalk.
+		//TODO: This requires our function (and several others) to be declared non-const.
+		//      Re-enable const correctness when we remove this code.
+		//TEMP: For now, we just add the outer lane as a sidewalk. This won't quite work for bi-directional
+		//      segments or for one-way Links. But it should be sufficient for the demo.
+		Lane* swLane = new Lane(this, lanes.size());
+		swLane->is_pedestrian_lane(true);
+		swLane->width_ = lanes.back()->width_/2;
+		swLane->polyline_ = sim_mob::ShiftPolyline(lanes.back()->polyline_, lanes.back()->getWidth()/2+swLane->getWidth()/2);
 
-		//Check whether the link is one-way
-		if (parentLink->hasOpposingLink==0)
-		//if (!StreetDirectory::instance().searchLink(parentLink->getEnd(), parentLink->getStart()))
-		//if(parentLink->getPath(false).empty() || parentLink->getPath().empty())
+		//Add it, update
+		lanes.push_back(swLane);
+		width += swLane->width_;
+		vector<Point2D> res = makeLaneEdgeFromPolyline(lanes.back(), false);
+		laneEdgePolylines_cached.push_back(res);//crash -vahid
+		//Add an extra sidewalk on the other side if it's a road segment on a one-way link.
+		sim_mob::Link* parentLink = getLink();
+
+		if(parentLink)
 		{
-			//Add a sidewalk on the other side of the road segment
-			Lane* swLane2 = new Lane(this, lanes.size());
-			swLane2->is_pedestrian_lane(true);
+			//Make sure we're not generating Lanes for XML data
+			if (parentLink->hasOpposingLink<0) {
+				throw std::runtime_error("Link::hasOpposingLink has not been initialized, but someone is attempting to use it.");
+			}
 
-			swLane2->width_ = lanes.front()->width_/2;
-			swLane2->polyline_ = sim_mob::ShiftPolyline(lanes.front()->polyline_, lanes.front()->getWidth()/2+swLane2->getWidth()/2, false);
-			lanes.insert(lanes.begin(), swLane2);
+			//Check whether the link is one-way
+			if (parentLink->hasOpposingLink==0)
+			{
+				//Add a sidewalk on the other side of the road segment
+				Lane* swLane2 = new Lane(this, lanes.size());
+				swLane2->is_pedestrian_lane(true);
 
-			width += swLane2->width_;
-			laneEdgePolylines_cached.insert(laneEdgePolylines_cached.begin(), makeLaneEdgeFromPolyline(lanes[0], true));
+				swLane2->width_ = lanes.front()->width_/2;
+				swLane2->polyline_ = sim_mob::ShiftPolyline(lanes.front()->polyline_, lanes.front()->getWidth()/2+swLane2->getWidth()/2, false);
+				lanes.insert(lanes.begin(), swLane2);
+
+				width += swLane2->width_;
+				laneEdgePolylines_cached.insert(laneEdgePolylines_cached.begin(), makeLaneEdgeFromPolyline(lanes[0], true));
+			}
 		}
 	}
 }

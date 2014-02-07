@@ -92,7 +92,7 @@ void sim_mob::medium::DriverMovement::frame_tick() {
 	{
 		if (vehicle->hasPath() && laneInfinity)
 		{
-			//at start vehicle will be in lane infinity. set origin will move it to the correct lane
+			//the vehicle will be in lane infinity before it starts starts. set origin will move it to the correct lane
 			if (getParent()->getCurrLane() == laneInfinity){
 				setOrigin(p2);
 			}
@@ -197,15 +197,23 @@ sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateV
 		parentDriver->goal.point = parentDriver->goal.node->location;
 
 		if(parentDriver->origin.node == parentDriver->goal.node){
-			std::cout << "origin:"<<parentDriver->origin.node->getID()<<" |dest:"<<parentDriver->goal.node->getID()<<std::endl;
-			Print()<<"DriverMovement::initializePath | Can't initializePath(); origin and destination are the same for driver "<<getParent()->GetId()<<std::endl;
+			Print()
+			<< "DriverMovement::initializePath | Can't initializePath(); origin and destination are the same for driver " <<getParent()->GetId()
+			<< "\norigin:" << parentDriver->origin.node->getID()
+			<< "\ndestination:" << parentDriver->goal.node->getID()
+			<< std::endl;
 			return res;
 		}
 
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 		vector<WayPoint> path = getParent()->getCurrPath();
 		if(path.empty()){
-			if (!getParent() || getParent()->specialStr.empty()) {
+			//NOTE: I am fairly sure that the logic here is wrong; the parent is certainly not null, since
+			//      we JUST called "getCurrPath()". The only reason this if statement was succeeding is that
+			//      specialStr is always empty (we don't use it anymore). Since I am deleting specialStr,
+			//      I commented out this entire "if" statement (although logically is would reduce to always false).
+			//      I think I did the right thing. Please review. ~Seth.
+			//if (!getParent() || getParent()->specialStr.empty()) {
                 // if use path set
 				if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 					path = PathSetManager::getInstance()->getPathByPerson(getParent());
@@ -217,14 +225,14 @@ sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateV
 				}
 				//const StreetDirectory& stdir = StreetDirectory::instance();
 				//path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin.node)), stdir.DrivingVertex(*(parentDriver->goal.node)));
-			}
+			//}
 			getParent()->setCurrPath(path);
 		}
 		//For now, empty paths aren't supported.
 		if (path.empty()) {
 			//throw std::runtime_error("Can't initializePath(); path is empty.");
 			Print()<<"DriverMovement::initializePath | Can't initializePath(); path is empty for driver "
-					<<getParent()->GetId()<<std::endl;
+				   <<getParent()->GetId()<<std::endl;
 			return res;
 		}
 
@@ -420,9 +428,9 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 				getParent()->canMoveToNextSegment = Person::NONE; // so that advance() and setParentData() is called subsequently
 			}
 		}
-		//Person is in virtual queue (should remain in virtual queues if canGoTo failed)
 		else if (vehicle->getNextSegment(false) == getParent()->getCurrSegment() ){
-			Print() << "DriverMovement::flowIntoNextLinkIfPossible|Frame#: " << p.now.frame() << "|Person: " << getParent()->getId() << " remains in virtual queue" << std::endl;
+			//Person is in virtual queue (should remain in virtual queues if canGoTo failed)
+			//do nothing
 		}
 		else{
 			DebugStream << "Driver " << getParent()->getId()
@@ -455,12 +463,7 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& p) {
 	unsigned int total = vehicle->getCurrSegment()->getParentConflux()->numMovingInSegment(nextRdSeg, true)
 						+ vehicle->getCurrSegment()->getParentConflux()->numQueueingInSegment(nextRdSeg, true);
 
-	int vehLaneCount = 0;
-	for(std::vector<sim_mob::Lane*>::const_iterator laneIt=nextRdSeg->getLanes().begin(); laneIt!=nextRdSeg->getLanes().end(); laneIt++)
-	{
-		if (!(*laneIt)->is_pedestrian_lane()) { vehLaneCount += 1; }
-	}
-
+	int vehLaneCount = nextRdSeg->getParentConflux()->getVehicleLaneCounts(nextRdSeg);
 	double max_allowed = (vehLaneCount * nextRdSeg->getLaneZeroLength()/vehicle->length);
 	return (total < max_allowed);
 }
@@ -749,7 +752,6 @@ void DriverMovement::setOrigin(DriverUpdateParams& p) {
 	{
 		p.elapsedSeconds = p.secondsInTick;
 		getParent()->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
-		Print() << "DriverMovement::setOrigin|Frame#: " << p.now.frame() << "|Person: " << getParent()->getId() << "|canGoToNextRdSeg failed, will remain in lane infinity!" << std::endl;
 	}
 }
 
@@ -817,8 +819,9 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const RoadSegment* nextRd
 	//1. Get queueing counts for all lanes of the next Segment
 	//2. Select the lane with the least queue length
 	//3. Update nextLaneInNextLink and targetLaneIndex accordingly
-	if(!nextRdSeg)
+	if(!nextRdSeg) {
 		return nullptr;
+	}
 
 	const sim_mob::Lane* minQueueLengthLane = nullptr;
 	const sim_mob::Lane* minAgentsLane = nullptr;
@@ -834,8 +837,8 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const RoadSegment* nextRd
 	//getBestLaneGroup logic
 	for ( ; i != nextRdSeg->getLanes().end(); ++i){
 		if ( !((*i)->is_pedestrian_lane())){
-			if(nextToNextRdSeg) {
-				if( !isConnectedToNextSeg(*i, nextToNextRdSeg))	continue;
+			if(nextToNextRdSeg && !isConnectedToNextSeg(*i, nextToNextRdSeg))	{
+				continue;
 			}
 			laneGroup.push_back(*i);
 			std::pair<unsigned int, unsigned int> counts = vehicle->getCurrSegment()->getParentConflux()->getLaneAgentCounts(*i); //<Q,M>

@@ -43,10 +43,17 @@ ConfigParams& sim_mob::ConfigManager::get_config() const
 	}
 	return *config;
 }
+ConfigParams& sim_mob::ConfigManager::get_config_rw()
+{
+	if (!config) {
+		config = new ConfigParams();
+	}
+	return *config;
+}
 
 ConfigParams& sim_mob::ConfigManager::FullConfig()
 {
-	return get_config();
+	return get_config_rw();
 }
 
 const ConfigParams& sim_mob::ConfigManager::FullConfig() const

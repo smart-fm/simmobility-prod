@@ -248,7 +248,6 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	 * they will be assigned a worker.
 	 */
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
-		// personWorkers->assignAWorker(*it);
 		personWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
 	}
 
@@ -391,6 +390,10 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		/*if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			throw std::runtime_error("ERROR: pending_agents shouldn't be used if Dynamic Dispatch is disabled.");
 		}*/
+	}
+
+	if(personWorkers->getNumAgentsWithNoPath() > 0) {
+		cout << personWorkers->getNumAgentsWithNoPath() << " persons were not added to the simulation because they could not find a path." << std::endl;
 	}
 
 	//Save our output files if we are merging them later.

@@ -4,7 +4,10 @@
 
 #include "JsonParser.hpp"
 
+#include <boost/lexical_cast.hpp>
+
 using namespace sim_mob;
+using std::string;
 
 
 sim_mob::Services::SIM_MOB_SERVICE sim_mob::JsonParser::getServiceType(std::string type)
@@ -17,7 +20,7 @@ sim_mob::Services::SIM_MOB_SERVICE sim_mob::JsonParser::getServiceType(std::stri
 	return Services::SIMMOB_SRV_UNKNOWN;
 }
 
-bool sim_mob::JsonParser::parsePacketHeader(std::string& input, pckt_header &output, Json::Value &root)
+bool sim_mob::JsonParser::parsePacketHeader(const std::string& input, pckt_header &output, Json::Value &root)
 {
 	Json::Value packet_header;
 	Json::Reader reader;
@@ -56,7 +59,7 @@ bool sim_mob::JsonParser::parseMessageHeader(Json::Value & root, msg_header &out
 }
 
 
-bool sim_mob::JsonParser::parseMessageHeader(std::string& input, msg_header &output)
+bool sim_mob::JsonParser::parseMessageHeader(const std::string& input, msg_header &output)
 {
 	Json::Value root;
 	Json::Reader reader;
@@ -67,7 +70,7 @@ bool sim_mob::JsonParser::parseMessageHeader(std::string& input, msg_header &out
 	return parseMessageHeader(root,output);
 }
 
-bool sim_mob::JsonParser::getPacketMessages(std::string& input, Json::Value &output)
+bool sim_mob::JsonParser::getPacketMessages(const std::string& input, Json::Value &output)
 {
 	Json::Value root;
 	Json::Reader reader;
@@ -94,8 +97,7 @@ bool sim_mob::JsonParser::get_WHOAMI(std::string& input, std::string & type, std
 	}
 
 	if (!((root.isMember("ID")) && (root.isMember("TYPE")))) {
-		WarnOut( "WHOAMI format incomplete.Parsing '" << input
-				<< "' Failed" << std::endl);
+		WarnOut( "WHOAMI format incomplete.Parsing '" << input << "' Failed" << std::endl);
 		return false;
 	}
 	ID = root["ID"].asString();
@@ -123,8 +125,7 @@ bool sim_mob::JsonParser::get_WHOAMI_Services(std::string& input, std::set<sim_m
 		return false;
 	}
 	if (!root.isMember("services")) {
-		WarnOut( "Parsing services in [" << input << "] Failed"
-				<< std::endl);
+		WarnOut( "Parsing services in [" << input << "] Failed" << std::endl);
 		return false;
 	}
 	const Json::Value array = root["services"];
@@ -185,18 +186,56 @@ std::string sim_mob::JsonParser::makeTimeDataString(unsigned int tick, unsigned 
 
 std::string sim_mob::JsonParser::makeLocationMessageString(int x, int y)
 {
-	Json::Value loc = makeLocationMessage(x,y);
+	Json::Value loc = makeLocationMessage(x,y, LatLngLocation());
 	Json::FastWriter writer;
 	return writer.write(loc);
 }
 
-Json::Value sim_mob::JsonParser::makeLocationMessage(int x, int y)
+Json::Value sim_mob::JsonParser::makeLocationMessage(int x, int y, const LatLngLocation& projected)
 {
 	Json::Value loc = createMessageHeader(msg_header("0", "SIMMOBILITY", "LOCATION_DATA", "SYS"));
 	loc["x"] = x;
 	loc["y"] = y;
+	loc["lat"] = projected.latitude;
+	loc["lng"] = projected.longitude;
 
 	return loc;
+}
+
+Json::Value sim_mob::JsonParser::makeRegionAndPathMessage(const std::vector<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path)
+{
+	Json::Value res = createMessageHeader(msg_header("0", "SIMMOBILITY", "REGIONS_AND_PATH_DATA", "SYS"));
+
+	//Add the set of "all regions" by ID
+	{
+	Json::Value allRegionsObj;
+	for (std::vector<sim_mob::RoadRunnerRegion>::const_iterator it=all_regions.begin(); it!=all_regions.end(); it++) {
+		//When we send all regions, we actually have to send the entire object, since RoadRunner needs the Lat/Lng coords in order
+		// to do its own Region tracking.
+		Json::Value regionObj;
+		regionObj["id"] = boost::lexical_cast<string>(it->id);
+		regionObj["vertices"] = Json::Value();
+		for (std::vector<sim_mob::LatLngLocation>::const_iterator latlngIt=it->points.begin(); latlngIt!=it->points.end(); latlngIt++) {
+			Json::Value latLngObj;
+			latLngObj["latitude"] = latlngIt->latitude;
+			latLngObj["longitude"] = latlngIt->longitude;
+			regionObj["vertices"].append(latLngObj);
+		}
+		allRegionsObj.append(regionObj);
+	}
+	res["all_regions"] = allRegionsObj;
+	}
+
+	//Add the set of "path regions" by ID.
+	{
+	Json::Value pathRegionsObj;
+	for (std::vector<sim_mob::RoadRunnerRegion>::const_iterator it=region_path.begin(); it!=region_path.end(); it++) {
+		pathRegionsObj.append(boost::lexical_cast<string>(it->id));
+	}
+	res["region_path"] = pathRegionsObj;
+	}
+
+	return res;
 }
 
 Json::Value sim_mob::JsonParser::makeLocationArrayElement(unsigned int id, int x, int y)

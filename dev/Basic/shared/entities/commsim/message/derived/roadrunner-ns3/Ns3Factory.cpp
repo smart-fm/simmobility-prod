@@ -74,7 +74,7 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::rr_android_ns3::NS3_Factory::getHa
 
 //creates a message with correct format + assigns correct handler
 //todo improve the function to handle array of messages stored in the input string
-bool sim_mob::rr_android_ns3::NS3_Factory::createMessage(std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
+void sim_mob::rr_android_ns3::NS3_Factory::createMessage(const std::string &input, std::vector<sim_mob::comm::MsgPtr>& output)
 {
 	//	std::vector<msg_t> result;
 	//	 Print() << "inside RR_NS3_Factory::createMessage" << std::endl;
@@ -83,11 +83,11 @@ bool sim_mob::rr_android_ns3::NS3_Factory::createMessage(std::string &input, std
  	sim_mob::pckt_header packetHeader;
  	if(!sim_mob::JsonParser::parsePacketHeader(input, packetHeader, root))
  	{
- 		return false;
+ 		return;
  	}
  	if(!sim_mob::JsonParser::getPacketMessages(input,root))
  	{
- 		return false;
+ 		return;
  	}
  	for (int index = 0; index < root.size(); index++) {
 
@@ -130,6 +130,5 @@ bool sim_mob::rr_android_ns3::NS3_Factory::createMessage(std::string &input, std
  		}
  	}		//for loop
 
- 	return true;
 }
 

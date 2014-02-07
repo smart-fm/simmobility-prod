@@ -257,9 +257,9 @@ void sim_mob::BusController::storeRealTimes_eachBusStop(const std::string& busli
 	}
 
 	double ETijk = 0;
-	double departure_time = 0;
-	departure_time = ATijk + (DTijk * 1000.0);
-	BusStop_RealTimes busStop_RealTimes(ConfigManager::GetInstance().FullConfig().simStartTime() + DailyTime(ATijk), ConfigManager::GetInstance().FullConfig().simStartTime() + DailyTime(departure_time));
+	double departureTime = 0;
+	departureTime = ATijk + (DTijk * 1000.0);
+	BusStop_RealTimes busStop_RealTimes(ConfigManager::GetInstance().FullConfig().simStartTime() + DailyTime(ATijk), ConfigManager::GetInstance().FullConfig().simStartTime() + DailyTime(departureTime));
 	busStop_RealTimes.setReal_BusStop(lastVisited_BusStop);
 	realTime = (busStop_RealTimes);
 
@@ -284,7 +284,7 @@ void sim_mob::BusController::storeRealTimes_eachBusStop(const std::string& busli
 
 double sim_mob::BusController::decisionCalculation(const string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_BusStop)
 {
-	controlTypes controlType = pt_schedule.findBuslineControlType(busline_i);
+	ControlTypes controlType = pt_schedule.findBuslineControlType(busline_i);
 	Busline* busline = pt_schedule.findBusline(busline_i);
 	if(!busline) {
 		std::cout << "wrong busline assigned:" << std::endl;
@@ -292,33 +292,33 @@ double sim_mob::BusController::decisionCalculation(const string& busline_i, int 
 	}
 	const vector<BusTrip>& BusTrips = busline->queryBusTrips();
 
-	double departure_time = 0; // If we use Control, since the busstopSequence_j is in the middle, so should not be 0
-	double waitTime_BusStop = 0;
+	double departureTime = 0; // If we use Control, since the busstopSequence_j is in the middle, so should not be 0
+	double waitTimeBusStop = 0;
 
 	switch(controlType) {
 	case SCHEDULE_BASED:
-		departure_time = scheduledDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, realTime, lastVisited_BusStop);
-		waitTime_BusStop = (departure_time - ATijk) * 0.001;
+		departureTime = scheduledDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, realTime, lastVisited_BusStop);
+		waitTimeBusStop = (departureTime - ATijk) * 0.001;
 		break;
 	case HEADWAY_BASED:
-		departure_time = headwayDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, realTime, lastVisited_BusStop);
-		waitTime_BusStop = (departure_time - ATijk) * 0.001;
+		departureTime = headwayDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, realTime, lastVisited_BusStop);
+		waitTimeBusStop = (departureTime - ATijk) * 0.001;
 		break;
 	case EVENHEADWAY_BASED:
-		departure_time = evenheadwayDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, realTime, lastVisited_BusStop);
-		waitTime_BusStop = (departure_time - ATijk) * 0.001;
+		departureTime = evenheadwayDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, realTime, lastVisited_BusStop);
+		waitTimeBusStop = (departureTime - ATijk) * 0.001;
 		break;
 	case HYBRID_BASED:
-		departure_time = hybridDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, realTime, lastVisited_BusStop);
-		waitTime_BusStop = (departure_time - ATijk) * 0.001;
+		departureTime = hybridDecision(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, realTime, lastVisited_BusStop);
+		waitTimeBusStop = (departureTime - ATijk) * 0.001;
 		break;
 	default:
 		// may add default scheduled departure time here
 		storeRealTimes_eachBusStop(busline_i, trip_k, busstopSequence_j, ATijk, DTijk, lastVisited_BusStop, realTime);
-		waitTime_BusStop = DTijk;
+		waitTimeBusStop = DTijk;
 		break;
 	}
-	return waitTime_BusStop;
+	return waitTimeBusStop;
 }
 
 double sim_mob::BusController::scheduledDecision(const string& busline_i, int trip_k, int busstopSequence_j, double ATijk, double DTijk, BusStop_RealTimes& realTime, const BusStop* lastVisited_busStop)

@@ -152,7 +152,7 @@ sim_mob::Busline::~Busline()
 	}
 }
 
-controlTypes sim_mob::Busline::getControlTypeFromString(std::string controlType)
+ControlTypes sim_mob::Busline::getControlTypeFromString(std::string controlType)
 {
 	controlType.erase(remove_if(controlType.begin(), controlType.end(), isspace),
 			controlType.end());
@@ -212,7 +212,7 @@ void sim_mob::PT_Schedule::registerBusLine(const std::string buslineId, Busline*
 	buslineIdBuslineMap[buslineId] = aBusline;
 }
 
-void sim_mob::PT_Schedule::registerControlType(const std::string buslineId, const controlTypes controlType)
+void sim_mob::PT_Schedule::registerControlType(const std::string buslineId, const ControlTypes controlType)
 {
 	if (buslineIdControlTypeMap.count(buslineId)>0) {
 		throw std::runtime_error("Duplicate buslineId.");
@@ -231,9 +231,9 @@ Busline* sim_mob::PT_Schedule::findBusline(const std::string& buslineId)
 	return nullptr;
 }
 
-controlTypes sim_mob::PT_Schedule::findBuslineControlType(const std::string& buslineId)
+ControlTypes sim_mob::PT_Schedule::findBuslineControlType(const std::string& buslineId)
 {
-	std::map<std::string, controlTypes>::const_iterator it;
+	std::map<std::string, ControlTypes>::const_iterator it;
 	it = buslineIdControlTypeMap.find(buslineId);
 	if (it!=buslineIdControlTypeMap.end()) {
 		return it->second;

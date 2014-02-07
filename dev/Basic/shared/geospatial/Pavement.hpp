@@ -91,7 +91,7 @@ public:
 	std::map<centimeter_t, const RoadItem*> &getObstacles() { return obstacles;}
 	const std::map<centimeter_t, const RoadItem*> &getObstacles() const { return obstacles;}
 	///Safe way of adding obstacles to this RoadSegment. Allows "fixing" obstacles which are too far.
-	void addObstacle(centimeter_t offset, const RoadItem* item, bool fixErrors=true);
+	bool addObstacle(centimeter_t offset, const RoadItem* item, bool fixErrors=true);
 
 	///Return the next obstacle from a given point on this Pavement.
 	sim_mob::RoadItemAndOffsetPair nextObstacle(const sim_mob::Point2D& pos, bool isForward) const;

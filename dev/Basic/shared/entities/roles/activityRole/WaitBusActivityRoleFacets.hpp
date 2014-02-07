@@ -46,7 +46,7 @@ public:
 	void setRegisteredFlag(bool registeredFlag) { registered = registeredFlag; } // set the registered flag
 	sim_mob::BusStopAgent* getBusStopAgent() { return busStopAgent; }
 	BusStop* setBusStopXY(const Node* node);//to find the nearest busstop to a node
-	std::string getBuslineID() { return buslineid; }
+	std::string getBuslineID() { return buslineId; }
 
 	//bool isOnCrossing() const;
 	WaitBusActivityRole* getParentWaitBusActivityRole() const {
@@ -58,7 +58,11 @@ public:
 
 public:
     //Set by the BusDriver to the MS this Person should board the bus.
-	uint32_t boarding_MS;
+	uint32_t boardingMS;
+	// indicate whether WaitBusActivityRole is already boarded or not, at initialize stage (isBoarded is false)
+	bool isBoarded;
+	// tag to indicate the WaitBusActivityRole already determine which bus to take
+	bool isTagged;
 	//Indicates the BusDriver of the bus we will board when "boarding_Frame" is reached.
 	sim_mob::BusDriver* busDriver;
 protected:
@@ -69,22 +73,11 @@ protected:
 	// indicate at which busStopAgent he is waiting for a bus
 	sim_mob::BusStopAgent* busStopAgent;
 	//uint32_t TimeOfReachingBusStop;
-	std::string buslineid;
-	Point2D DisplayOffset;
+	std::string buslineId;
+	Point2D displayOffset;
 
 public:
 	WaitBusActivityRole* parentWaitBusActivityRole;
 };
-
-//struct less_than_TimeOfReachingBusStop {
-//	inline bool operator() (const WaitBusActivityRole* wbaRole1, const WaitBusActivityRole* wbaRole2)
-//	{
-//		if ((!wbaRole1) || (!wbaRole2)) {
-//			return 0;
-//		}
-//
-//		return (wbaRole1->getTimeOfReachingBusStop() < wbaRole2->getTimeOfReachingBusStop());
-//	}
-//};
 }
 

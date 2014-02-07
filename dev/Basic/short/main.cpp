@@ -137,10 +137,14 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		//Log::Init("out.txt");
 		Warn::Init("warn.log");
 		Print::Init("<stdout>");
+		PassengerInfoPrint::Init("PassengerInfo.txt");
+		HeadwayAtBusStopInfoPrint::Init("HeadwayAtBusStopInfo.txt");
 	} else {
 		//Log::Ignore();
 		Warn::Ignore();
 		Print::Ignore();
+		PassengerInfoPrint::Ignore();
+		HeadwayAtBusStopInfoPrint::Ignore();
 	}
 
 	ProfileBuilder* prof = nullptr;

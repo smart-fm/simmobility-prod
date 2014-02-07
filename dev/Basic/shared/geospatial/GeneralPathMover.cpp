@@ -616,8 +616,6 @@ double sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 			{
 				DebugStream << "Now in Intersection. Distance from Node center: " << Fmt_M(dist((*currSegmentIt)->getEnd()->location, myPos)) << endl;
 			}
-
-			//Return early; we can't actually move the car now.
 			inIntersection = true;
 			return distAlongPolyline;
 		}
@@ -773,6 +771,17 @@ const Point2D& sim_mob::GeneralPathMover::getNextPolypoint() const
 {
 	throwIf(!isPathSet(), GeneralPathMover::ErrorPathNotSet);
 	throwIf(isDoneWithEntireRoute(), GeneralPathMover::ErrorGeneralPathDone);
+	return *nextPolypoint;
+}
+
+const Point2D& sim_mob::GeneralPathMover::getNextPolypointNew() const
+{
+	throwIf(!isPathSet(), GeneralPathMover::ErrorPathNotSet);
+	throwIf(isDoneWithEntireRoute(), GeneralPathMover::ErrorGeneralPathDone);
+	if(nextPolypoint == polypointsList.end())
+	{
+		return *currPolypoint;
+	}
 	return *nextPolypoint;
 }
 

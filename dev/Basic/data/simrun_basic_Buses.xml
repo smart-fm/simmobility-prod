@@ -40,10 +40,10 @@
             </database>
 
             <!-- Local copy of the FM server (see wiki for how to set up) -->
-            <database id="fm_local" dbtype="postgres">
+          	<database id="fm_local" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
-                <dbname value="SimMobility_DB_New"/>
+                <dbname value="SimMobility_DB_WholeSGNew"/>
             </database>
         </databases>
 	
@@ -89,7 +89,7 @@
                 <mapping name="turning" procedure="get_lane_connector_bugis()"/>
                 <mapping name="polyline" procedure="get_section_polyline_bugis()"/>
                 <mapping name="tripchain" procedure="get_tripchains()"/>
-                <mapping name="signal" procedure="get_traffic_signals()"/>
+                <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
 		
 		<!-- These public-transit mappings have currently only been tested with the large-bugis network. -->
@@ -98,6 +98,28 @@
                 <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
                 <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
                 <mapping name="busstop" procedure="get_bus_stop_bugis()"/>
+            </proc_map>
+            
+            <!-- The whole Singapore network -->
+            <proc_map id="wholeSG" format="aimsun">
+                <mapping name="node" procedure="get_node_sg()"/>
+                <mapping name="section" procedure="get_section_sg()"/>
+                <mapping name="crossing" procedure="get_pedestrian_crossing()"/>
+                <mapping name="lane" procedure="get_lanes_bugis()"/>
+                <mapping name="turning" procedure="get_lane_connector_bugis()"/>
+                <mapping name="polyline" procedure="get_section_polyline_sg()"/>
+                <mapping name="tripchain" procedure="get_tripchains()"/>
+                <mapping name="signal" procedure=""/>
+                <mapping name="phase" procedure="get_lane_connector_phases()"/>
+		
+		<!-- These public-transit mappings have been tested with the whole Singapore network. -->
+                <mapping name="bus_schedule" procedure="get_bus_schedule()"/>
+                <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('saturday')"/>
+                <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
+                <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+      	<!-- user either can choose mapping name "busstop" or "busstopSG" (not both) for their purpose -->
+                <mapping name="busstop" procedure="get_bus_stop_bugis()"/>
+                <mapping name="busstopSG" procedure=""/>
             </proc_map>
                 
             <!-- The large Bugis-area network -->
@@ -168,10 +190,10 @@
         <!-- (but will be rounded down.) -->
         <simulation>
             <base_granularity   value="100"   units="ms" />
-            <total_runtime      value="5"      units="minutes" />
-            <total_warmup       value="10"     units="seconds" />
+            <total_runtime      value="20"      units="minutes" />
+            <total_warmup       value="0"     units="seconds" />
             
-            <start_time         value="08:00:00"/>
+            <start_time         value="05:38:00"/>
             
             <!-- Implementation to use for the Aura Manager. -->
             <!-- Values include: simtree, rdu, rstar (default) -->
@@ -187,7 +209,7 @@
          	<partitioning_solution_id   value="1"	units="unit" />
             
             <!--  <load_agents order="database drivers pedestrians"/> -->
-             <load_agents order="drivers pedestrians"/>
+             <load_agents order="database"/>
             
             <!-- Optional. At what value do we start counting for automatically -->
             <!-- generated Agent IDs? Set to a high value if you want to avoid  -->
@@ -198,7 +220,7 @@
             <!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
             <mutex_enforcement    strategy="buffered" />
         	<communication enabled="no">
-        		<android_testbed type="android-ns3" enabled="yes"/> <!--currently: type="android-only" and "android-ns3" -->
+        		<android_testbed type="android-ns3" enabled="no"/> <!--currently: type="android-only" and "android-ns3" -->
         	</communication>
 
 <!--  These don't seem to do anything. ~Seth -->
@@ -213,14 +235,6 @@
             <reacTime_mean2      value="500" />
             <reacTime_standardDev1    value="100" />
             <reacTime_standardDev2    value="100" />
-            
-            <passenger_distribution_busstop      value="0" /> <!-- 0 is normal distribution, 1 is log normal-->
-            <passenger_mean_busstop      value="10" />
-            <passenger_standardDev_busstop    value="2" />
-            <passenger_percent_boarding value="100"/>
-            <passenger_percent_alighting value="40"/>
-            <passenger_min_uniform_distribution value="40"/>
-            <passenger_max_uniform_distribution value="60"/>
         </simulation>
         
         <!-- Time granularities for each component -->
@@ -243,7 +257,7 @@
         
         <!-- Setting to true will combine all out* files into one out.txt and delete the out* files. -->
         <!-- Note that this may take quite some time to complete. -->
-        <!-- NOTE: We currently don't delete the source files; this seems un-needed. -->
+        <!-- NOTE: We currently don't dedrivers pedestrianslete the source files; this seems un-needed. -->
         <merge_log_files value="true"/>
         
         <!-- Setting to "database" will load the road network from the database. By default we load from "xml". -->
@@ -253,12 +267,13 @@
         
         <!-- If loading from XML, which file? Default (or blank string) will force private/SimMobilityInput.xml -->
         <!-- This only has an effect if network_source is set to "xml" -->
-        <network_xml_file value=""/>
+        <network_xml_file_input value=""/>
+        <network_xml_file_output value=""/>
 	
 	<!-- If loading from the database, which database, proc_map, and credentials are used? -->
 	<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
 	<!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
-	<network_database database="fm_remote" credentials="fm_local_yaojin" proc_map="bugis_large"/>
+		<network_database database="fm_local" credentials="fm_local_yaojin" proc_map="wholeSG"/>
 
         <!-- Where to find our various schema files. -->
         <!-- Overrides xsi:schemaLocation in the files themselves. -->
@@ -293,11 +308,8 @@
             <property key="mutex_enforcement_strategy" value="buffered"/> 
 
             <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
-            <property key="busline_control_type" value="headway_based"/>
+            <property key="busline_control_type" value="no_control"/>
 
-            <!-- The percentage of passengers boarding and alighting at each bus stop (default 100, each.). -->
-            <property key="passenger_percent_boarding" value="100"/>
-            <property key="passenger_percent_alighting" value="40"/>
         </generic_props>
     </system>
 
@@ -337,10 +349,7 @@
     <!--West node is: 37227139,14327875-->
     <drivers>
 <!-- These test the short term -->
-	   	<driver originPos="37227139,14327875" destPos="37270984,14378959" time="0" lane="2"/>
-	   	<driver originPos="37245506,14359431" destPos="37254988,14351820" time="0" lane="1"/>
-	   	<driver originPos="37232503,14369823" destPos="37240057,14318241" time="0"/>
-	   	<driver originPos="37240057,14318241" destPos="37232503,14369823" time="0" lane="3"/>
+	   	<driver originPos="37227139,14327875" destPos="37250760,14355120" time="0" lane="2"/>
     </drivers> 
     <pedestrians> 
    		<!--Pedestrian start locations-->
@@ -350,22 +359,9 @@
     	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
     	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="1000"/>  	
     </pedestrians>
-    
-    <!-- Bus Drivers. This is just for testing; currently a lot of Bus information is simply generated. -->
-    <!-- Note that Buses are loaded with "drivers", since I don't want to add a new tag for testing data -->
-	<busdrivers>
-	</busdrivers>
-    
+        
     <buscontrollers>
-		<buscontroller time="0" />	
+		<buscontroller time="0" />
 	</buscontrollers>
-	
-   <!-- <signals> -->
-        <!-- Any of the following signals will not be created if it has already been created by
-             the 'signal' stored procedure above.  Note that this <signals> section will be
-             removed soon and without notice.  After that, only signals found in the database
-             will be created.  -->
-    <!--    <signal xpos="37250760" ypos="14355120"/>
-    </signals>-->
 </config>
 

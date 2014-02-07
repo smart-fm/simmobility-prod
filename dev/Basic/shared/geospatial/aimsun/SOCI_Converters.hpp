@@ -404,5 +404,31 @@ template<> struct type_conversion<sim_mob::aimsun::BusStop>
     }
 };
 
+template<> struct type_conversion<sim_mob::aimsun::BusStopSG>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::aimsun::BusStopSG &res)
+    {
+    	res.bus_stop_no = vals.get<std::string>("stop_id", "");
+    	res.stop_code= vals.get<std::string>("stop_code", "");
+    	res.stop_name = vals.get<std::string>("stop_name", "");
+    	res.stop_lat = vals.get<std::string>("stop_lat", "");
+    	res.stop_lon = vals.get<std::string>("stop_lon", "");
+    	res.section_id = vals.get<std::string>("section_id", "");
+    	res.aimsun_section = vals.get<int>("aimsun_section", 0);
+    }
+    static void to_base(const sim_mob::aimsun::BusStopSG& src, soci::values& vals, soci::indicator& ind)
+    {
+    	//std::cout<<"I am here"<<src.xPos<<"    "<<src.yPos<<std::endl;
+    	vals.set("stop_id", src.bus_stop_no);
+    	vals.set("stop_code", src.stop_code);
+    	vals.set("stop_name", src.stop_name);
+    	vals.set("stop_lat", src.xPos);
+    	vals.set("stop_lon", src.yPos);
+        vals.set("section_id", src.section_id);
+        vals.set("aimsun_section", src.aimsun_section);
+        ind = i_ok;
+    }
+};
 
 }

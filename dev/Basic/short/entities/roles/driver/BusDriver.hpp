@@ -72,7 +72,7 @@ public:
 	// set by BusDriver, reset once stop at any busStop
 	Shared<double> DwellTime_ijk;
 	// set by BusDriver(temporary), only needed by BusDriver
-	double dwellTime_record;
+	double dwellTimeRecord;
 	// set by BusDriver, has 0.1sec delay
 	Shared<int> busstop_sequence_no;
 	//get bus line information

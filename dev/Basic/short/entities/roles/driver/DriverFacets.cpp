@@ -539,8 +539,8 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 
 	const RoadSegment* prevSegment = parentDriver->vehicle->getCurrSegment();
 
-	params.TEMP_lastKnownPolypoint = DPoint(parentDriver->vehicle->getCurrPolylineVector().getEndX(),
-			parentDriver->vehicle->getCurrPolylineVector().getEndY());
+	params.TEMP_lastKnownPolypoint = DPoint(parentDriver->vehicle->getCurrPolylineVector2().getEndX(),
+			parentDriver->vehicle->getCurrPolylineVector2().getEndY());
 
 
 	//First, handle driving behavior inside an intersection.
@@ -591,6 +591,9 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 		//creating a new entry in agent's travelStats for the new link, with entry time
 		parentAgent->initLinkTravelStats(parentDriver->vehicle->getCurrSegment()->getLink(), actualTime);
 	}
+
+	params.TEMP_lastKnownPolypoint = DPoint(parentDriver->vehicle->getCurrPolylineVector2().getEndX(),
+				parentDriver->vehicle->getCurrPolylineVector2().getEndY());
 
 	return true;
 }
@@ -859,9 +862,6 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 	//response incident
 	responseIncidentStatus(p, parentDriver->getParams().now);
 
-	/*std::cout<<"linkDriving: "<<" id: "<<parentDriver->parent->GetId()<<" velocity: "<<parentDriver->vehicle->getVelocity()/100.0<<
-			" acceleration: "<<parentDriver->vehicle->getAcceleration()/100.0<<
-			" moveinseg: "<<parentDriver->vehicle->getDistanceMovedInSegment()<<std::endl;*/
 	return updatePositionOnLink(p);
 }
 
@@ -925,7 +925,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 								PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
 								if(passenger_movement) {
 									passenger_movement->PassengerBoardBus_Choice( this->getParentDriver() );
-									passenger_movement->alighting_MS = 1;
+									passenger_movement->alightingMS = 1;
 								}
 					 	 	}
 					 	}
@@ -944,7 +944,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 									PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
 									if(passenger_movement) {
 										passenger_movement->PassengerAlightBus(this->getParentDriver());
-										passenger_movement->alighting_MS = 1;
+										passenger_movement->alightingMS = 1;
 									}
 
 									itPerson = schedule->insidePassengers.erase(itPerson);
@@ -2413,6 +2413,7 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 			 * todo:think of something for this else clause! you are going continue with No color!S
 			 */
 //			color = trafficSignal->getDriverLight(*p.currLane).forward;
+			color = sim_mob::Green;
 		}
 		switch (color) {
 		case sim_mob::Red:

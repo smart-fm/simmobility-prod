@@ -507,7 +507,8 @@ void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::even
 		//registration and configuration process. So the following implementation
 		//should be executed for those android clients who will join AFTER
 		//ns3's registration. So we check if the ns3 is already registered or not:
-		if (clientList.find(comm::NS3_SIMULATOR) == clientList.end()) {
+		ClientList::Type::iterator it;
+		if ((it = clientList.find(comm::NS3_SIMULATOR)) == clientList.end()) {
 			break;
 		}
 		msg_header mHeader_("0", "SIMMOBILITY", "AGENTS_INFO", "SYS");
@@ -522,7 +523,9 @@ void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::even
 		//sorry again, compatibility issue. I will change this later.
 		Json::Value jArray_add;
 		jArray_add["ADD"].append(jArray_agent);
-		insertSendBuffer(clientHandler->cnnHandler, jArray_add);
+		//send to ns3's client handler
+		boost::shared_ptr<ClientHandler> & NS3clientHandler = it->second["0"];
+		insertSendBuffer(NS3clientHandler->cnnHandler, jArray_add);
 		break;
 	}
 
@@ -654,6 +657,7 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 
 		//convert the jsoncpp packet to a json string
 		std::string str = Json::FastWriter().write(jpacket);
+		Print() << "Sending '" << str << "'" << std::endl;
 		cnn->async_send(str);
 	}
 	sendBuffer.clear();

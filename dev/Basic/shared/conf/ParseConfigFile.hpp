@@ -51,6 +51,7 @@ private:
 	void ProcessFMOD_Node(xercesc::DOMElement* node);
 	void ProcessIncidentsNode(xercesc::DOMElement* node);
 	void ProcessBusStopScheduledTimesNode(xercesc::DOMElement* node);
+	void ProcessPersonCharacteristicsNode(xercesc::DOMElement* node);
 	void ProcessDriversNode(xercesc::DOMElement* node);
 	void ProcessPedestriansNode(xercesc::DOMElement* node);
 	void ProcessBusDriversNode(xercesc::DOMElement* node);

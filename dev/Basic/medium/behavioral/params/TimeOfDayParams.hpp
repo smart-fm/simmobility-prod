@@ -36,6 +36,9 @@ public:
 	 * @returns travel time of the time window for first half tour
 	 */
 	double getTT_FirstHalfTour(int index) const{
+		if(index < 1 || index > travelTimesFirstHalfTour.size()) {
+			throw std::runtime_error("TourTimeOfDayParams::getTT_FirstHalfTour() - Travel time requested for invalid time window");
+		}
 		return travelTimesFirstHalfTour[index-1];
 	}
 
@@ -46,6 +49,9 @@ public:
 	 * @returns travel time of the time window for second half tour
 	 */
 	double getTT_SecondHalfTour(int index) const{
+		if(index < 1 || index > travelTimesSecondHalfTour.size()) {
+			throw std::runtime_error("TourTimeOfDayParams::getTT_SecondHalfTour() - Travel time requested for invalid time window");
+		}
 		return travelTimesSecondHalfTour[index-1];
 	}
 

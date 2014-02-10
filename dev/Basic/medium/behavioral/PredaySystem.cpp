@@ -314,7 +314,7 @@ void PredaySystem::generateIntermediateStops(Tour* tour) {
 
 		int stopCounter = 0;
 		isgParams.setStopCounter(stopCounter);
-		int choice;
+		int choice = 0; //not a valid choice; just initializing here.
 
 		Stop* nextStop = primaryStop;
 		while(choice != QUIT_CHOICE_ISG && stopCounter<MAX_STOPS_IN_HALF_TOUR){

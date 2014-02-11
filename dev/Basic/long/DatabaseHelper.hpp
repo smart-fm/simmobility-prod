@@ -26,7 +26,7 @@ namespace sim_mob {
         const std::string CALIBRATION_SCHEMA = "calibration.";
         const std::string LIMIT_10 = " limit 10";
         const std::string LIMIT_ALL = "";
-        const std::string LIMIT = LIMIT_ALL;
+        const std::string LIMIT = LIMIT_10;
 
         /**
          * Tables
@@ -70,6 +70,7 @@ namespace sim_mob {
         const std::string DB_FIELD_LIFESTYLE_ID = "lifestyle_id";
         const std::string DB_FIELD_VEHICLE_CATEGORY_ID = "vehicle_category_id";
         const std::string DB_FIELD_ETHNICITY_ID = "ethnicity_id";
+        const std::string DB_FIELD_TENURE_ID = "tenure_id";
         const std::string DB_FIELD_INCOME = "income";
         const std::string DB_FIELD_FLOOR_AREA = "floor_area";
         const std::string DB_FIELD_YEAR = "year";
@@ -84,7 +85,7 @@ namespace sim_mob {
         const std::string DB_FIELD_STOREYS = "storeys";
         const std::string DB_FIELD_PARKING_SPACES = "parking_spaces";
         const std::string DB_FIELD_RESIDENTIAL_UNITS = "residential_units";
-        const std::string DB_FIELD_LAND_AREA = "land_area";
+        const std::string DB_FIELD_LANDED_AREA = "landed_area";
         const std::string DB_FIELD_IMPROVEMENT_VALUE = "improvement_value";
         const std::string DB_FIELD_TAX_EXEMPT = "tax_exempt";
         const std::string DB_FIELD_NON_RESIDENTIAL_SQFT = "non_residential_sqft";

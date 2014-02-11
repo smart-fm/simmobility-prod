@@ -64,7 +64,7 @@ namespace sim_mob {
 
         const double INVALID_DOUBLE = -1;
         const int INVALID_ID = -1;
-        const std::string EMPTY_STR = "";
+        const std::string EMPTY_STR = std::string();
 
         /**
          * DEFAULT VALUES

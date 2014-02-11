@@ -34,6 +34,7 @@ namespace sim_mob {
         const std::string DB_TABLE_HOUSEHOLD = APPLY_SCHEMA(MAIN_SCHEMA, "household");
         const std::string DB_TABLE_BUILDING = APPLY_SCHEMA(MAIN_SCHEMA, "building");
         const std::string DB_TABLE_UNIT = APPLY_SCHEMA(MAIN_SCHEMA, "unit");
+        const std::string DB_TABLE_POSTCODE = APPLY_SCHEMA(MAIN_SCHEMA, "postcode");
         /**
          * Views
          */
@@ -51,6 +52,9 @@ namespace sim_mob {
         const std::string DB_FUNC_DEL_BUILDING_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "deleteBuildingById(:id)");
         const std::string DB_FUNC_GET_BUILDINGS = APPLY_SCHEMA(MAIN_SCHEMA, "getBuildings()");
         const std::string DB_FUNC_GET_BUILDING_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getBuildingById(:id)");
+        const std::string DB_FUNC_DEL_POSTCODE_BY_ID = DB_EMPTY_QUERY;
+        const std::string DB_FUNC_GET_POSTCODES = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodes()");
+        const std::string DB_FUNC_GET_POSTCODE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodeById(:id)");
 
         /**
          * Fields
@@ -94,6 +98,7 @@ namespace sim_mob {
         const std::string DB_FIELD_LONGITUDE = "longitude";
         const std::string DB_FIELD_NAME = "name";
         const std::string DB_FIELD_TYPE = "type";
+        const std::string DB_FIELD_CODE = "code";
 
         /**
          * INSERT
@@ -110,6 +115,7 @@ namespace sim_mob {
 
         const std::string DB_INSERT_BUILDING = DB_EMPTY_QUERY;
         const std::string DB_INSERT_UNIT = DB_EMPTY_QUERY;
+        const std::string DB_INSERT_POSTCODE = DB_EMPTY_QUERY;
 
         /**
          * UPDATE
@@ -126,6 +132,7 @@ namespace sim_mob {
 
         const std::string DB_UPDATE_BUILDING = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_UNIT = DB_EMPTY_QUERY;
+        const std::string DB_UPDATE_POSTCODE = DB_EMPTY_QUERY;
 
         /**
          * DELETE
@@ -136,6 +143,8 @@ namespace sim_mob {
                 + DB_FUNC_DEL_BUILDING_BY_ID;
         const std::string DB_DELETE_UNIT = "SELECT * FROM " 
                 + DB_FUNC_DEL_UNIT_BY_ID;
+        const std::string DB_DELETE_POSTCODE = "SELECT * FROM " 
+                + DB_FUNC_DEL_POSTCODE_BY_ID;
 
         /**
          * GET ALL
@@ -149,6 +158,9 @@ namespace sim_mob {
         const std::string DB_GETALL_UNIT = "SELECT * FROM "
                 + DB_FUNC_GET_UNITS
                 + LIMIT;
+        const std::string DB_GETALL_POSTCODE = "SELECT * FROM "
+                + DB_FUNC_GET_POSTCODES
+                + LIMIT;
 
         /**
          * GET BY ID
@@ -159,5 +171,7 @@ namespace sim_mob {
                 + DB_FUNC_GET_BUILDING_BY_ID;
         const std::string DB_GETBYID_UNIT = "SELECT * FROM " +
                 DB_FUNC_GET_UNIT_BY_ID;
+        const std::string DB_GETBYID_POSTCODE = "SELECT * FROM " +
+                DB_FUNC_GET_POSTCODE_BY_ID;
     }
 }

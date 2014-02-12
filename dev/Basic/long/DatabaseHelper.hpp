@@ -26,7 +26,7 @@ namespace sim_mob {
         const std::string CALIBRATION_SCHEMA = "calibration.";
         const std::string LIMIT_10 = " limit 10";
         const std::string LIMIT_ALL = "";
-        const std::string LIMIT = LIMIT_10;
+        const std::string LIMIT = LIMIT_ALL;
 
         /**
          * Tables
@@ -193,11 +193,9 @@ namespace sim_mob {
                 + DB_FUNC_GET_UNITS
                 + LIMIT;
         const std::string DB_GETALL_POSTCODE = "SELECT * FROM "
-                + DB_FUNC_GET_POSTCODES
-                + LIMIT;
+                + DB_FUNC_GET_POSTCODES;
         const std::string DB_GETALL_POSTCODE_AMENITIES = "SELECT * FROM "
-                + DB_FUNC_GET_POSTCODES_AMENITIES
-                + LIMIT;
+                + DB_FUNC_GET_POSTCODES_AMENITIES;
         
         /**
          * GET BY ID

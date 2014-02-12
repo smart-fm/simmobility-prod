@@ -42,23 +42,100 @@
         - unitId (long integer)            : Unit identifier.
 ]]
 
+--[[****************************************************************************
+    GLOBAL STATIC LOOKUP DATA
+******************************************************************************]]
+
+CAR_CATEGORIES = {[1]=true, [6]=true, [7]=true, [8]=true, [9]=true, [16]=true,
+                     [17]=true, [18]=true, [22]=true, [23]=true, [24]=true, 
+                     [25]=true, [27]=true }
+
 
 --[[****************************************************************************
     SELLER FUNCTIONS
 ******************************************************************************]]
+function getStoreyEstimation(storey)
+    if storey >= 0 and storey <= 5 then return storey
+    elseif storey >= 6 and storey <= 10 then return 177.50
+    elseif storey >= 11 and storey <= 15 then return 299.00
+    elseif storey >= 16 and storey <= 20 then return 581.90
+    elseif storey >= 21 and storey <= 25 then return 921.30
+    elseif storey >= 26 and storey <= 30 then return 1109.00
+    elseif storey >= 31 and storey <= 35 then return 1800.00
+    elseif storey >= 36 and storey <= 41 then return 1936.00
+    else return 1936.00
+    end
+end
+
+--[[
+    Calculates the hedonic price for the given HDB Unit.
+    
+    @param unit to calculate the hedonic price.
+    @param building where the unit belongs
+    @param postcode of the unit.
+    @param amenities close to the unit.
+    @return hedonic price value.
+]]
+function calculateHDB_HedonicPrice(unit, postcode, amenities)
+ local hedonicPrice = getStoreyEstimation(unit.storey);
+ if amenities ~= nil then
+    hedonicPrice =  hedonicPrice +
+                    (amenities.distanceToCBD * (-76.01) +
+                    amenities.distanceToJob * (1.69) +
+                    (amenities.pms_1km and 26.78 or 0) +
+                    amenities.distanceToMall * (-56.17) +
+                    (amenities.mrt_200m and 443.60 or 0) +
+                    (amenities.mrt_400m and 273.50 or 0) +
+                    (amenities.express_200m and -121.00 or 0) +                    
+                    (amenities.bus_200m and 37.30 or 0))
+ end
+    return hedonicPrice;
+end
+
+--[[
+    Calculates the hedonic price for the given private Unit.
+    
+    @param unit to calculate the hedonic price.
+    @param building where the unit belongs
+    @param postcode of the unit.
+    @param amenities close to the unit.
+    @return hedonic price value.
+]]
+function calculatePrivate_HedonicPrice(unit, postcode, amenities)
+ local hedonicPrice = 0
+ if amenities ~= nil then
+    hedonicPrice = hedonicPrice +
+                    (amenities.distanceToCBD * (-164.80) +
+                    amenities.distanceToJob * (15.26) +
+                    (amenities.pms_1km and 196.30 or 0) +
+                    amenities.distanceToMall * (-362.10) +
+                    (amenities.mrt_200m and -841.80 or 0) +
+                    (amenities.mrt_400m and 367.10 or 0) +
+                    (amenities.express_200m and -545.50 or 0) +                    
+                    (amenities.bus_200m and -4215.00 or 0) +
+                    (amenities.bus_400m and -3580.00 or 0) +
+                    (amenities.condo and 1657.00 or 0) +
+                    (amenities.detached and -352.10 or 0) +
+                    (amenities.semi and 736.20 or 0) +
+                    (amenities.terrace and 911.50 or 0) +
+                    (amenities.ec and 1319.00 or 0))
+ end
+    return hedonicPrice;
+end
 
 --[[
     Calculates the hedonic price for the given Unit.
     
-    @param unit to get the hedonic price.
+    @param unit to calculate the hedonic price.
     @return hedonic price value.
 ]]
-function calculateHedonicPrice(unit)
-    return unit.rent +
-           (unit.rent * 1.0 +
-            unit.typeId * 1.0 +
-            unit.storey * 1.0 +
-            unit.floorArea * 1.0)
+function calculateHedonicPrice(unit, postcode, amenities)
+    if amenities ~= nil then
+        return (amenities.hdb) and 
+                calculateHDB_HedonicPrice(unit, postcode, amenities) or
+                calculatePrivate_HedonicPrice(unit, postcode, amenities);
+    end
+    return -1
 end
 
 --[[
@@ -130,10 +207,9 @@ end
     @return the surplus for the given unit.
 ]]
 function calculateSurplus (entry, unitBids)
-    local urgencyToBuy = 1.0 -- urgency that the bidder has to buy the home.
-    local priceQuality = 1.0 -- Importance of the price for the bidder.
-    return math.pow(entry.askingPrice, (urgencyToBuy + 1)) / 
-           (unitBids * priceQuality)
+    local maximumBids = 20
+    local rateOfBuyers = 1.4
+    return (maximumBids-unitBids)*entry.askingPrice/rateOfBuyers
 end
 
 --[[
@@ -142,20 +218,24 @@ end
 
     This method calculates the willingness to pay following this formula:
 
-    wp = (HHIncomeWeight * HHIncome) + (UnitAttrWeight1 * UnitAttr1) + ... 
-         (UnitAttrWeightN * UnitAttrN)
+    wp = theta0 + (theta1 * UNIT_AREA * (NUMBER_OF_MEMBERS/INCOME)) + 
+        (theta2 * INCOME) + (theta3 (IF HH has cars))
 
     @param household.
     @param unit to calculate the wp.
     @return value of the willingness to pay of the given household.
 ]]
-function calculateWP (household, unit)
-    return ((household.income * 1.0)
-            + (unit.floorArea * 1.0)
-            + (unit.typeId * 1.0)
-            + (unit.rent * 1.0)
-            + (unit.storey * 1.0));
+
+function calculateWP (household, unit, postcode, amenities)
+    local theta0 = 11.880
+    local theta1 = 13.288
+    local theta2 = 0.002
+    local theta3 = 8.840
+
+    return theta0 + 
+           (theta1 * unit.floorArea * (household.size/household.income)) +
+           (theta2 * household.income) +
+           (CAR_CATEGORIES[household.vehicleCategoryId] and theta3 or 0)
 end
 
---print (findMaxArg(calculateExpectation,20, 4, 1, 2, nil, 0.001, 100000))
 --print (calulateUnitExpectations(nil, 7)[1].price)

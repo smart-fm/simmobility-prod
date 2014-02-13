@@ -11,6 +11,7 @@
 #include <vector>
 #include <boost/unordered_map.hpp>
 #include "util/SingletonHolder.hpp"
+#include "database/entity/Building.hpp"
 #include "database/entity/Postcode.hpp"
 #include "database/entity/PostcodeAmenities.hpp"
 
@@ -30,30 +31,34 @@ namespace sim_mob {
         class DataManager {
         public:
             virtual ~DataManager();
-        
+
             /**
              * Loads the necessary data from datasource.
              */
             void load();
-            
+
             const Postcode* getPostcodeById(const BigSerial postcodeId) const;
             const PostcodeAmenities* getAmenitiesById(const BigSerial postcodeId) const;
             const Postcode* getPostcodeByCode(const std::string& code) const;
             const PostcodeAmenities* getAmenitiesByCode(const std::string& code) const;
-        
+            const Building* getBuildingById(const BigSerial buildingId) const;
+
         private:
             template<typename T> friend class DataManagerLifeCycle;
             DataManager();
-            
+
         public:
-           
+            typedef std::vector<Building> BuildingList;
             typedef std::vector<Postcode> PostcodeList;
             typedef std::vector<PostcodeAmenities> PostcodeAmenitiesList;
+            typedef boost::unordered_map<BigSerial, Building*> BuildingMap;
             typedef boost::unordered_map<BigSerial, Postcode*> PostcodeMap;
             typedef boost::unordered_map<BigSerial, PostcodeAmenities*> PostcodeAmenitiesMap;
             typedef boost::unordered_map<std::string, Postcode*> PostcodeByCodeMap;
             typedef boost::unordered_map<std::string, PostcodeAmenities*> PostcodeAmenitiesByCodeMap;
         private:
+            BuildingList buildings;
+            BuildingMap buildingsById;
             PostcodeList postcodes;
             PostcodeAmenitiesList amenities;
             PostcodeMap postcodesById;
@@ -61,7 +66,7 @@ namespace sim_mob {
             PostcodeByCodeMap postcodesByCode;
             PostcodeAmenitiesByCodeMap amenitiesByCode;
         };
-        
+
         /**
          * DataManager Singleton.
          */
@@ -77,7 +82,7 @@ namespace sim_mob {
                 delete obj;
             }
         };
-        
+
         typedef SingletonHolder<DataManager, DataManagerLifeCycle> DataManagerSingleton;
     }
 }

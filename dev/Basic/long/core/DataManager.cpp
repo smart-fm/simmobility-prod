@@ -9,6 +9,7 @@
 
 #include "DataManager.hpp"
 #include "database/DB_Connection.hpp"
+#include "database/dao/BuildingDao.hpp"
 #include "database/dao/PostcodeDao.hpp"
 #include "database/dao/PostcodeAmenitiesDao.hpp"
 
@@ -37,12 +38,22 @@ void DataManager::load() {
     DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
     conn.connect();
     if (conn.isConnected()) {
-        // Households
+        //buildings
+        BuildingDao buildingDao(conn);
+        buildingDao.getAll(buildings);
+        // Postcodes
         PostcodeDao postcodeDao(conn);
         postcodeDao.getAll(postcodes);
+        // amenities
         PostcodeAmenitiesDao amenitiesDao(conn);
         amenitiesDao.getAll(amenities);
-
+        
+        //Index all buildings.
+        for (BuildingList::iterator it = buildings.begin(); 
+                it != buildings.end(); it++) {
+            buildingsById.insert(std::make_pair(it->getId(), &(*it)));
+        }
+        
         //Index all postcodes.
         for (PostcodeList::iterator it = postcodes.begin(); 
                 it != postcodes.end(); it++) {
@@ -60,6 +71,14 @@ void DataManager::load() {
             }
         }
     }
+}
+
+const Building* DataManager::getBuildingById(const BigSerial buildingId) const {
+    BuildingMap::const_iterator itr = buildingsById.find(buildingId);
+    if (itr != buildingsById.end()) {
+        return (*itr).second;
+    }
+    return nullptr;
 }
 
 const Postcode* DataManager::getPostcodeById(const BigSerial postcodeId) const {

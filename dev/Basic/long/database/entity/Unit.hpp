@@ -30,8 +30,7 @@ namespace sim_mob {
         public:
             Unit(BigSerial id = INVALID_ID, BigSerial buildingId = INVALID_ID, 
                  BigSerial typeId = INVALID_ID, BigSerial postcodeId = INVALID_ID,
-                 BigSerial tazId = INVALID_ID, double area = .0f, int storey = 0, 
-                 double rent = .0f);
+                 double area = .0f, int storey = 0, double rent = .0f);
             Unit(const Unit& source);
             virtual ~Unit();
 
@@ -49,7 +48,6 @@ namespace sim_mob {
             BigSerial getBuildingId() const;
             BigSerial getTypeId() const;
             BigSerial getPostcodeId() const;
-            BigSerial getTazId() const;
             int getStorey() const;
             double getFloorArea() const;
             double getRent() const;
@@ -69,7 +67,6 @@ namespace sim_mob {
             BigSerial buildingId;
             BigSerial typeId;
             BigSerial postcodeId;
-            BigSerial tazId;
             double floorArea;
             int storey; 
             double rent;

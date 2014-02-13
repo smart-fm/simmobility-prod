@@ -16,16 +16,15 @@ using namespace sim_mob::long_term;
 
 
 Unit::Unit(BigSerial id, BigSerial buildingId, BigSerial typeId, BigSerial postcodeId,
-        BigSerial tazId, double floorArea, int storey, double rent) :
+           double floorArea, int storey, double rent) :
 id(id), buildingId(buildingId), typeId(typeId), postcodeId(postcodeId), 
-tazId(tazId), storey(storey), floorArea(floorArea), rent(rent){}
+storey(storey), floorArea(floorArea), rent(rent){}
 
 Unit::Unit(const Unit& source) {
     this->id = source.id;
     this->buildingId = source.buildingId;
     this->typeId = source.typeId;
     this->postcodeId = source.postcodeId;
-    this->tazId = source.tazId;
     this->storey = source.storey;
     this->floorArea = source.floorArea;
     this->rent = source.rent;
@@ -39,7 +38,6 @@ Unit& Unit::operator=(const Unit& source) {
     this->buildingId = source.buildingId;
     this->typeId = source.typeId;
     this->postcodeId = source.postcodeId;
-    this->tazId = source.tazId;
     this->storey = source.storey;
     this->floorArea = source.floorArea;
     this->rent = source.rent;
@@ -60,10 +58,6 @@ BigSerial Unit::getTypeId() const {
 
 BigSerial Unit::getPostcodeId() const{
     return postcodeId;
-}
-
-BigSerial Unit::getTazId() const{
-    return tazId;
 }
 
 int Unit::getStorey() const {
@@ -87,7 +81,6 @@ namespace sim_mob {
                     << "\"buildingId\":\"" << data.buildingId << "\","
                     << "\"typeId\":\"" << data.typeId << "\","
                     << "\"postcodeId\":\"" << data.postcodeId << "\","
-                    << "\"tazId\":\"" << data.tazId << "\","
                     << "\"floorArea\":\"" << data.floorArea << "\","
                     << "\"storey\":\"" << data.storey << "\","
                     << "\"rent\":\"" << data.rent << "\""

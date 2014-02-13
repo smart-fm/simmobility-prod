@@ -49,7 +49,7 @@
 CAR_CATEGORIES = {[1]=true, [6]=true, [7]=true, [8]=true, [9]=true, [16]=true,
                      [17]=true, [18]=true, [22]=true, [23]=true, [24]=true, 
                      [25]=true, [27]=true }
-
+SIMULATION_YEAR = 2008
 
 --[[****************************************************************************
     SELLER FUNCTIONS
@@ -76,8 +76,11 @@ end
     @param amenities close to the unit.
     @return hedonic price value.
 ]]
-function calculateHDB_HedonicPrice(unit, postcode, amenities)
- local hedonicPrice = getStoreyEstimation(unit.storey);
+function calculateHDB_HedonicPrice(unit, building, postcode, amenities)
+ local hedonicPrice = getStoreyEstimation(unit.storey) + 
+                      ((building ~= nil) and 
+                            ((SIMULATION_YEAR - building.builtYear)* -17.64) or 0)
+
  if amenities ~= nil then
     hedonicPrice =  hedonicPrice +
                     (amenities.distanceToCBD * (-76.01) +
@@ -101,10 +104,11 @@ end
     @param amenities close to the unit.
     @return hedonic price value.
 ]]
-function calculatePrivate_HedonicPrice(unit, postcode, amenities)
+function calculatePrivate_HedonicPrice(unit, building, postcode, amenities)
  local hedonicPrice = 0
  if amenities ~= nil then
     hedonicPrice = hedonicPrice +
+                    9575.00 + -- intercept
                     (amenities.distanceToCBD * (-164.80) +
                     amenities.distanceToJob * (15.26) +
                     (amenities.pms_1km and 196.30 or 0) +
@@ -129,11 +133,11 @@ end
     @param unit to calculate the hedonic price.
     @return hedonic price value.
 ]]
-function calculateHedonicPrice(unit, postcode, amenities)
+function calculateHedonicPrice(unit, building, postcode, amenities)
     if amenities ~= nil then
         return (amenities.hdb) and 
-                calculateHDB_HedonicPrice(unit, postcode, amenities) or
-                calculatePrivate_HedonicPrice(unit, postcode, amenities);
+                calculateHDB_HedonicPrice(unit, building, postcode, amenities) or
+                calculatePrivate_HedonicPrice(unit, building, postcode, amenities);
     end
     return -1
 end
@@ -226,7 +230,7 @@ end
     @return value of the willingness to pay of the given household.
 ]]
 
-function calculateWP (household, unit, postcode, amenities)
+function calculateWP (household, unit)
     local theta0 = 11.880
     local theta1 = 13.288
     local theta2 = 0.002

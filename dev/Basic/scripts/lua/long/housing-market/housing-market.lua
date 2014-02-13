@@ -27,7 +27,6 @@
         - buildingId (long integer)        : Building identifier.
         - typeId (long integer)            : Unit type identifier.
         - postcodeId (long integer)        : Postcode identifier.
-        - tazId (long integer)             : TAZ identifier.
         - floorArea (real)                 : Floor area.
         - storey (integer)                 : Number of storeys.
         - rent (real)                      : Montly rent.
@@ -37,6 +36,51 @@
         - hedonicPrice (real)              : Unit hedonic price.
         - askingPrice (real)               : Unit asking price.
         - unitId (long integer)            : Unit identifier.
+
+    Building fields:
+        - id (long integer)                : Building identifier.
+        - builtYear (integer)              : Year when the building was built.
+        - landedArea (real)                : Building area.
+        - parcelId (long integer)          : Parcel identifier.
+        - parkingSpaces (long integer)     : Number of parking spaces available.
+        - tenureId (long integer)          : Tenure identifier.
+        - typeId (long integer)            : Type identifier.
+
+    Postcode fields:
+        - id (long integer)                : Postcode internal identifier.
+        - code (string)                    : Real postcode
+        - location (Location)              : Location object with location
+            - latitude (real)              : Latitude value.
+            - longitude (real)             : Longitude value.
+        - tazId (long integer)             : Taz id.
+
+    PostcodeAmenities fields:
+        - postcode (string)                : Real postcode
+        - buildingName (string)            : Building name associated to the postcode.
+        - unitBlock (string)               : Block associated to the postcode.
+        - roadName (string)                : Road name where the postcode is located.
+        - mtzNumber (string)               : MTZ number.
+        - mrtStation (string)              : MRT station.
+        - distanceToMRT (real)             : Distance to the nearest MRT.        
+        - distanceToBus (real)             : Distance to the nearest Bus Stop.        
+        - distanceToExpress (real)         : Distance to the nearest Highway.        
+        - distanceToPMS30 (real)           : Distance to the nearest Primary school.        
+        - distanceToCBD (real)             : Distance to the nearest CBD.        
+        - distanceToMall (real)            : Distance to the nearest Mall.        
+        - distanceToJob (real)             : Distance to JOB by car.        
+        - mrt_200m (boolean)               : Tells if postcode has MRT within 200 meters
+        - mrt_400m (boolean)               : Tells if postcode has MRT within 400 meters
+        - express_200m (boolean)           : Tells if postcode has Highway within 200 meters
+        - bus_200m (boolean)               : Tells if postcode has Bus Stop within 200 meters
+        - bus_400m (boolean)               : Tells if postcode has Bus Stop within 400 meters
+        - pms_1km (boolean)                : Tells if postcode has Primary School within 1 KM
+        - apartment (boolean)              : Tells if postcode is an apartament.
+        - condo (boolean)                  : Tells if postcode is a condominium.
+        - terrace (boolean)                : Tells if postcode is/has a terrace.
+        - semi (boolean)                   : Tells if postcode is a semi
+        - ec (boolean)                     : Tells if postcode is a ec
+        - private (boolean)                : Tells if postcode is a private unit
+        - hdb (boolean)                    : Tells if postcode is a HDB unit
 ]]
 
 --[[****************************************************************************
@@ -128,7 +172,9 @@ end
     Calculates the hedonic price for the given Unit.
     
     @param unit to calculate the hedonic price.
-    @return hedonic price value.
+    @param building where the unit belongs
+    @param postcode of the unit.
+    @param amenities close to the unit.
 ]]
 function calculateHedonicPrice(unit, building, postcode, amenities)
     if amenities ~= nil then

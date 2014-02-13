@@ -113,14 +113,16 @@
                 <mapping name="turning" procedure="get_lane_connector_bugis()"/>
                 <mapping name="polyline" procedure="get_section_polyline_bugis()"/>
                 <mapping name="tripchain" procedure="get_tripchains()"/>
+                <mapping name="busstop" procedure="get_bus_stop_bugis()"/>
                 <mapping name="signal" procedure="get_traffic_signals()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
-                <!-- These public-transit mappings have currently only been tested with the large-bugis network. -->
-                <mapping name="bus_schedule" procedure="get_bus_schedule()"/>
+                <!-- These public-transit mappings tested with the large-bugis network. -->
+                <!-- "pt_bus_dispatch_freq" store some bus dispatching schedules for buses -->
+                <!-- "pt_bus_routes" store some bus routes for buses -->
+                <!-- "pt_bus_stops" store some bus stops for buses -->
                 <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('saturday')"/>
                 <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
                 <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
-                <mapping name="busstop" procedure="get_bus_stop_bugis()"/>
             </proc_map>
                 
                 
@@ -133,9 +135,9 @@
                 <mapping name="turning" procedure="get_lane_connector_bugis()"/>
                 <mapping name="polyline" procedure="get_section_polyline_sg2()"/>
                 <mapping name="tripchain" procedure="get_preday_scaled_car_tripchains()"/>
+                <mapping name="busstop" procedure="get_bus_stop()"/>
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases_bugis()"/>
-                <mapping name="busstop" procedure="get_bus_stop()"/>
             </proc_map>
                  
             <!-- entire Singapore network with HITS trip chains -->
@@ -147,14 +149,16 @@
                 <mapping name="turning" procedure="get_lane_connector_bugis()"/>
                 <mapping name="polyline" procedure="get_section_polyline_sg2()"/>
                 <mapping name="tripchain" procedure="get_hits_tripchains()"/>
+                <mapping name="busstop" procedure="get_bus_stop()"/>
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases_BUGIS()"/>
-                <!-- These public-transit mappings have currently only been tested with the large-bugis network. -->
-                <mapping name="bus_schedule" procedure="get_bus_schedule()"/>
+                <!-- These public-transit mappings tested with the whole Singapore network. -->
+                <!-- "pt_bus_dispatch_freq" store some bus dispatching schedules for buses -->
+                <!-- "pt_bus_routes" store some bus routes for buses -->
+                <!-- "pt_bus_stops" store some bus stops for buses -->
                 <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('saturday')"/>
                 <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
                 <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
-                <mapping name="busstop" procedure="get_bus_stop()"/>
             </proc_map>
         </db_proc_groups>
 	
@@ -307,8 +311,8 @@
         <!-- In other words, you DO NOT need to update the parser just to add a simple string-based configuration parameter to -->
         <!-- the config file. This is intended to be used for new or temporary features. -->
         <generic_props>
-            <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
-            <property key="busline_control_type" value="headway_based"/>
+            <!-- The current control strategy for buses. Can be "headway_based", "schedule_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
+            <property key="busline_control_type" value="no_control"/>
         </generic_props>
     </system>
 
@@ -330,12 +334,11 @@
     	</incident>
     </incidentsData>
     
-    
-    <!-- For buses (?) -->
-    <!-- TODO: Are we actually using this any more? -->
+    <!-- This is data only for "schedule_based", "evenheadway_based" or "hybrid_based" control strategies -->
+    <!-- each item store the scheduled offset arriving time(ms) and offset departure time(ms) at some bus stops -->
     <scheduledTimes>
-        <stop offsetAT="11600"  offsetDT="17600"  />
-        <stop offsetAT="74800"  offsetDT="80800"  />
+        <stop offsetAT="11600" offsetDT="17600" />
+        <stop offsetAT="74800" offsetDT="80800" />
         <stop offsetAT="101000" offsetDT="107100" />
         <stop offsetAT="124000" offsetDT="130000" />   	
         <stop offsetAT="174300" offsetDT="180300" />	
@@ -376,6 +379,12 @@
 	<busdrivers>
 	</busdrivers>
     
+    <!-- To Enable Buses: make sure the following stored procedures in your <proc_map> not empty and valid -->
+    <!-- 1. "pt_bus_dispatch_freq" -->
+    <!-- 2. "pt_bus_routes" -->
+    <!-- 3. "pt_bus_stops" -->
+    <!-- With the above three procedures present and valid, enable buses with "<buscontroller time="0" />" in the <buscontrollers> -->
+    <!-- To Disable Buses: user can simply comment the buscontroller in the <buscontrollers> -->
     <buscontrollers>
 		<buscontroller time="0" />	
 	</buscontrollers>

@@ -31,7 +31,7 @@ namespace sim_mob {
             Unit(BigSerial id = INVALID_ID, BigSerial buildingId = INVALID_ID, 
                  BigSerial typeId = INVALID_ID, BigSerial postcodeId = INVALID_ID,
                  BigSerial tazId = INVALID_ID, double area = .0f, int storey = 0, 
-                 double rent = .0f, double latitude = 0, double longitude = 0);
+                 double rent = .0f);
             Unit(const Unit& source);
             virtual ~Unit();
 
@@ -53,8 +53,7 @@ namespace sim_mob {
             int getStorey() const;
             double getFloorArea() const;
             double getRent() const;
-            const LatLngLocation& getLocation() const;
-
+            
             /**
              * Operator to print the Unit data.  
              */
@@ -74,7 +73,6 @@ namespace sim_mob {
             double floorArea;
             int storey; 
             double rent;
-            LatLngLocation location;
         };
     }
 }

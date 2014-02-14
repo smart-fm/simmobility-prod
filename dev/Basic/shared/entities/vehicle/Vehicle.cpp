@@ -106,8 +106,9 @@ const sim_mob::RoadSegment* sim_mob::Vehicle::getSecondSegmentAhead() {
 }
 
 const RoadSegment* sim_mob::Vehicle::hasNextSegment(bool inSameLink) const {
-	if(!fwdMovement.isDoneWithEntireRoute())
+	if(!fwdMovement.isDoneWithEntireRoute()) {
 		return fwdMovement.getNextSegment(inSameLink);
+	}
 	return nullptr;
 }
 std::vector<const sim_mob::RoadSegment*>::iterator sim_mob::Vehicle::getPathIterator()
@@ -152,6 +153,10 @@ double sim_mob::Vehicle::getCurrLinkReportedLength() const {
 sim_mob::DynamicVector sim_mob::Vehicle::getCurrPolylineVector() const {
 	return DynamicVector(fwdMovement.getCurrPolypoint().getX(), fwdMovement.getCurrPolypoint().getY(),
 			fwdMovement.getNextPolypoint().getX(), fwdMovement.getNextPolypoint().getY());
+}
+sim_mob::DynamicVector sim_mob::Vehicle::getCurrPolylineVector2() const {
+	return DynamicVector(fwdMovement.getCurrPolypoint().getX(), fwdMovement.getCurrPolypoint().getY(),
+			fwdMovement.getNextPolypointNew().getX(), fwdMovement.getNextPolypointNew().getY());
 }
 
 bool sim_mob::Vehicle::hasPath() const {

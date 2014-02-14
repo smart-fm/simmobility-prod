@@ -20,7 +20,6 @@
 namespace sim_mob {
 
 class BusDriver;
-//class Bus;
 
 class BusDriverBehavior: public sim_mob::DriverBehavior {
 public:
@@ -101,50 +100,47 @@ public:
  	virtual double dwellTimeCalculation(int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
  	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
-// 	double getPositionX() const;
-// 	double getPositionY() const;
-
 	// get total waiting time at the BusStop
-	double getWaitTime_BusStop() { return BUS_STOP_WAIT_TIME; }
+	double getWaitTime_BusStop() { return busStopWaitTime; }
 	// set total waiting time at the BusStop
-	void setWaitTime_BusStop(double time) { BUS_STOP_WAIT_TIME = time; }
+	void setWaitTime_BusStop(double time) { busStopWaitTime = time; }
 	// initialize Bus Path by BusTrip information
 	Vehicle* initializePath_bus(bool allocateVehicle);
 
 	double lastTickDistanceToBusStop;
-	bool demo_passenger_increase;
-	double dwellTime_record;// set by BusDriver(temporary), only needed by BusDriver
+	bool demoPassengerIncrease;
+	double dwellTimeRecord;// set by BusDriver(temporary), only needed by BusDriver
 	//double xpos_approachingbusstop,ypos_approachingbusstop;
-	bool first_busstop;
-	bool last_busstop;
-	bool passengerCountOld_display_flag;
-	size_t no_passengers_boarding;
-	size_t no_passengers_alighting;
+	bool firstBusStop;
+	bool lastBusStop;
+	bool passengerCountOldDisplayFlag;
+	size_t noPassengersBoarding;
+	size_t noPassengersAlighting;
 
 	// flag to indicate whether boarding and alighting is allowed, if it is false, boarding alighting frame is not determined(reset after BusDriver leaves the BusStop)
-	bool allow_boarding_alighting_flag;
+	bool allowBoardingAlightingFlag;
 	// a tempoary boarding queue, will be cleared after BusDriver leaves the BusStop
-	std::vector<sim_mob::Person*> virtualBoarding_Persons;
-	// record the BoardingNum_Pos map based on the boarding queue in the BusStopAgent, cleared after BusDriver leaves the BusStop
-	std::map<int, int> BoardingNum_Pos;
-	// record the AlightingNum_Pos map based on the passenger queue in the Bus, cleared after BusDriver leaves the BusStop
-	std::map<int, int> AlightingNum_Pos;
-	// boarding_MSs for possible boarding persons, cleared after leaving the BusStop
-	std::vector<uint32_t> boarding_MSs;
-	// alighting_MSs for possible alighting persons, cleared after leaving the BusStop
-	std::vector<uint32_t> alighting_MSs;
+	std::vector<sim_mob::Person*> virtualBoardingPersons;
+	// record the BoardingNumPos map based on the boarding queue in the BusStopAgent, cleared after BusDriver leaves the BusStop
+	std::map<int, int> BoardingNumPos;
+	// record the AlightingNumPos map based on the passenger queue in the Bus, cleared after BusDriver leaves the BusStop
+	std::map<int, int> AlightingNumPos;
+	// boardingMSs for possible boarding persons, cleared after leaving the BusStop
+	std::vector<uint32_t> boardingMSs;
+	// alightingMSs for possible alighting persons, cleared after leaving the BusStop
+	std::vector<uint32_t> alightingMSs;
 	// the first boarding and alighting MS where bus will start boarding and alighting, reset after leaving the BusStop
-	uint32_t first_boarding_alighting_ms;
+	uint32_t firstBoardingAlightingMS;
 	// the last boarding and alighting MS and bus will leaves the BusStop, reset after leaving the BusStop
-	uint32_t last_boarding_alighting_ms;
-	// temporary boardingMS offset for boarding queue erase purpose, reset after leaving the BusStop
-	int boardingMS_offset;
-	// temporary alightingMS offset for passenger queue erase purpose, reset after leaving the BusStop
-	int alightingMS_offset;
-	// holdingtime SECS
-	double BUS_STOP_HOLDING_TIME_SEC;
-	// dwelltime(boarding and alighting time SECS)
-	double BUS_STOP_WAIT_BOARDING_ALIGHTING_SEC;
+	uint32_t lastBoardingAlightingMS;
+	// temporary boardingmsOffset for boarding queue erase purpose, reset after leaving the BusStop
+	int boardingmsOffset;
+	// temporary alightingmsOffset for passenger queue erase purpose, reset after leaving the BusStop
+	int alightingmsOffset;
+	// holding time Secs
+	double busStopHoldingTimeSec;
+	// dwelltime(boarding and alighting time Secs)
+	double busStopWaitBoardingAlightingSec;
 
 protected:
 	//Override the following behavior
@@ -159,7 +155,7 @@ private:
 	std::vector<const BusStop*> busStops;
 	// waiting MS adding at the BusStop
 	double waitAtStopMS;
-	// total waiting time (can be holding time or dwelltime)
-	double BUS_STOP_WAIT_TIME;
+	// total waiting time Secs(can be holding time or dwell time)
+	double busStopWaitTime;
 };
 }

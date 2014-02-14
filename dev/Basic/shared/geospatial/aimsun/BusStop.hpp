@@ -49,6 +49,23 @@ public:
 
 };
 
+class BusStopSG : public Base {
+public:
+	std::string  bus_stop_no;
+	std::string stop_code;
+	std::string  stop_name;
+	std::string stop_lat;
+	std::string stop_lon;
+	std::string section_id;
+	int aimsun_section;
+	Section* atSection;
+
+	double xPos;
+	double yPos;
+
+	BusStopSG() : Base(), atSection(nullptr) {}
+};
+
 
 }
 }

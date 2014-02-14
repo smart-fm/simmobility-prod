@@ -19,7 +19,7 @@ using std::map;
 using std::string;
 
 sim_mob::Passenger::Passenger(Agent* parent, MutexStrategy mtxStrat, sim_mob::PassengerBehavior* behavior, sim_mob::PassengerMovement* movement, Role::type roleType_, std::string roleName) :
-		Role(behavior, movement, parent, roleName, roleType_), BoardedBus(mtxStrat,false), AlightedBus(mtxStrat,false), busdriver(mtxStrat,nullptr), params(parent->getGenerator())
+		Role(behavior, movement, parent, roleName, roleType_), BoardedBus(mtxStrat,false), AlightedBus(mtxStrat,false), busdriver(mtxStrat,nullptr), params(parent->getGenerator()), waitingTimeAtStop(0)
 {
 }
 

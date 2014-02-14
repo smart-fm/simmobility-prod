@@ -156,6 +156,7 @@ private:
 	//vector<sim_mob::BusSchedule> busschedule_;
 
 	map<std::string,BusStop> busstop_;
+	map<std::string,BusStopSG> bustopSG_;
 	multimap<int,Phase> phases_;//one node_id is mapped to many phases
 
 	vector<sim_mob::BoundarySegment*> boundary_segments;
@@ -185,6 +186,7 @@ public:
 
 private:
 	void LoadBusStop(const std::string& storedProc);
+	void LoadBusStopSG(const std::string& storedProc);
 	void LoadPhase(const std::string& storedProc);
 
 
@@ -718,6 +720,11 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 
 		//The following are only set for Trips or Activities respectively
 		if(it->itemType == sim_mob::TripChainItem::IT_TRIP) {
+			// check stops
+			if(it->tripfromLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP && it->triptoLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP) {
+				tripchains_.push_back(*it);
+				std::cout << "from stop: " << it->tmp_fromLocationNodeID << " to stop: " << it->tmp_toLocationNodeID << std::endl;
+			}
 			//check nodes
 			if(nodes_.count(it->tmp_fromLocationNodeID)==0) {
 				std::cout<< "Invalid trip chain fromNode reference."<<std::endl;
@@ -778,6 +785,36 @@ void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 		        busstop.xPos *= 100;
 		        busstop.yPos *= 100;
 	        busstop_.insert(std::make_pair(busstop.bus_stop_no, busstop));
+		        //std :: cout.precision(15);
+		        //std :: cout << "Bus Stop ID is: "<< busstop.bus_stop_no <<"    "<< busstop.xPos << "     "<< busstop.yPos  <<std::endl;
+
+		        //it->atSection = &sections_[it->TMP_AtSectionID];
+		        	//	busstop_.push_back(*it);
+	}
+}
+
+void DatabaseLoader::LoadBusStopSG(const std::string& storedProc)
+{
+	//Bus stops are optional
+	if (storedProc.empty()) {
+		return;
+	}
+
+	soci::rowset<BusStopSG> rows = (sql_.prepare <<"select * from " + storedProc);
+	for (soci::rowset<BusStopSG>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
+	{
+		BusStopSG busstop = *iter;
+//		         Convert from meters to centimeters.
+		busstop.bus_stop_no.erase(remove_if(busstop.bus_stop_no.begin(), busstop.bus_stop_no.end(), isspace),
+				busstop.bus_stop_no.end());
+		busstop.stop_lat.erase(remove_if(busstop.stop_lat.begin(), busstop.stop_lat.end(), isspace),
+				busstop.stop_lat.end());
+		busstop.stop_lon.erase(remove_if(busstop.stop_lon.begin(), busstop.stop_lon.end(), isspace),
+				busstop.stop_lon.end());
+
+		        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat) * 100;
+		        busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon) * 100;
+		        bustopSG_.insert(std::make_pair(busstop.bus_stop_no, busstop));
 		        //std :: cout.precision(15);
 		        //std :: cout << "Bus Stop ID is: "<< busstop.bus_stop_no <<"    "<< busstop.xPos << "     "<< busstop.yPos  <<std::endl;
 
@@ -954,8 +991,9 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain", false));
-	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
+	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal", false));
 	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
+	LoadBusStopSG(getStoredProcedure(storedProcs, "busstopSG", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
 
 	//add by xuyan
@@ -1198,12 +1236,23 @@ sim_mob::Activity* MakeActivity(const TripChainItem& tcItem) {
 
 
 sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
+	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 	sim_mob::Trip* tripToSave = new sim_mob::Trip();
 	tripToSave->tripID = tcItem.tripID;
 	tripToSave->setPersonID(tcItem.personID);
 	tripToSave->itemType = tcItem.itemType;
 	tripToSave->sequenceNumber = tcItem.sequenceNumber;
-	tripToSave->fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
+	if(tcItem.fromLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP) {
+		std::string fromStop_no = boost::lexical_cast<std::string>(tcItem.tmp_fromLocationNodeID);
+		sim_mob::BusStop* fromBusStop = config.getBusStopNo_BusStops()[fromStop_no];
+		if(fromBusStop) {
+			tripToSave->fromLocation = sim_mob::WayPoint(fromBusStop);
+		} else {
+			return nullptr;
+		}
+	} else {
+		tripToSave->fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
+	}
 	tripToSave->fromLocationType = tcItem.fromLocationType;
 	tripToSave->startTime = tcItem.startTime;
 	return tripToSave;
@@ -1345,13 +1394,28 @@ sim_mob::BusTrip* MakeBusTrip(const TripChainItem& tcItem, const std::map<std::s
 }
 
 sim_mob::SubTrip MakeSubTrip(const TripChainItem& tcItem) {
+	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 	sim_mob::SubTrip aSubTripInTrip;
 	aSubTripInTrip.setPersonID(tcItem.personID);
 	aSubTripInTrip.itemType = tcItem.itemType;
 	aSubTripInTrip.tripID = tcItem.tmp_subTripID;
-	aSubTripInTrip.fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
+	if(tcItem.fromLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP) {
+		std::string fromStop_no = boost::lexical_cast<std::string>(tcItem.tmp_fromLocationNodeID);
+		sim_mob::BusStop* fromBusStop = config.getBusStopNo_BusStops()[fromStop_no];
+		if(fromBusStop) {
+			aSubTripInTrip.fromLocation = sim_mob::WayPoint(fromBusStop);
+		}
+	} else {
+		aSubTripInTrip.fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
+	}
 	aSubTripInTrip.fromLocationType = tcItem.fromLocationType;
-	aSubTripInTrip.toLocation = sim_mob::WayPoint( tcItem.toLocation->generatedNode );
+	if(tcItem.toLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP) {
+		std::string toStop_no = boost::lexical_cast<std::string>(tcItem.tmp_toLocationNodeID);
+		sim_mob::BusStop* toBusStop = config.getBusStopNo_BusStops()[toStop_no];
+		aSubTripInTrip.toLocation = sim_mob::WayPoint(toBusStop);
+	} else {
+		aSubTripInTrip.toLocation = sim_mob::WayPoint( tcItem.toLocation->generatedNode );
+	}
 	aSubTripInTrip.toLocationType = tcItem.toLocationType;
 	aSubTripInTrip.mode = tcItem.mode;
 	aSubTripInTrip.isPrimaryMode = tcItem.isPrimaryMode;
@@ -1362,11 +1426,16 @@ sim_mob::SubTrip MakeSubTrip(const TripChainItem& tcItem) {
 
 void AddSubTrip(sim_mob::Trip* parent, const sim_mob::SubTrip& subTrip) {
 	// Update the trip destination so that toLocation eventually points to the destination of the trip.
+	if(!parent) {
+		return;
+	}
 	parent->toLocation = subTrip.toLocation;
 	parent->toLocationType = subTrip.toLocationType;
 
-	//Add it to the list.
-	parent->addSubTrip(subTrip);
+	if(subTrip.fromLocation.busStop_ && subTrip.toLocation.busStop_) {
+		//Add it to the list.
+		parent->addSubTrip(subTrip);
+	}
 }
 
 void DatabaseLoader::DecorateAndTranslateObjects()
@@ -1597,38 +1666,10 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 
 	sim_mob::aimsun::Loader::FixupLanesAndCrossings(res);
 
+	// Create BusStopAgents based on the Bus Stops
+	createBusStopAgents();
 	//Save all trip chains
 	saveTripChains(tcs);
-
-	//Save all bus stops
-	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++) {
-		std::map<int,Section>::iterator findPtr = sections_.find(it->second.TMP_AtSectionID);
-		if(findPtr == sections_.end())
-		{
-			continue;
-		}
-		//Create the bus stop
-		sim_mob::BusStop *busstop = new sim_mob::BusStop();
-		sim_mob::RoadSegment* parentSeg = sections_[it->second.TMP_AtSectionID].generatedSegment;busstop->busstopno_ = it->second.bus_stop_no;
-		busstop->setParentSegment(parentSeg);
-
-		busstop->xPos = it->second.xPos;
-		busstop->yPos = it->second.yPos;
-
-		//Add the bus stop to its parent segment's obstacle list at an estimated offset.
-		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.TMP_AtSectionID].generatedSegment);
-		busstop->getParentSegment()->addObstacle(distOrigin, busstop);
-
-		sim_mob::ConfigManager::GetInstanceRW().FullConfig().getBusStopNo_BusStops()[busstop->busstopno_] = busstop;
-
-		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
-		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy());
-//		if(100001500 == busstop->parentSegment_->getSegmentID())
-//		{
-//			std::cout << " segment 100001500 added a busStop " << busstop->getRoadItemID() << "  at obstacle " << distOrigin << std::endl;
-//		}
-	}
 
 	/*vahid:
 	 * and Now we extend the signal functionality by adding extra information for signal's split plans, offset, cycle length, phases
@@ -1814,10 +1855,62 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 void DatabaseLoader::createBusStopAgents()
 {
 	//int j = 0；
-	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++)
-    {
+	//Save all bus stops
+	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++) {
+		std::map<int,Section>::iterator findPtr = sections_.find(it->second.TMP_AtSectionID);
+		if(findPtr == sections_.end())
+		{
+			continue;
+		}
+		//Create the bus stop
+		sim_mob::BusStop *busstop = new sim_mob::BusStop();
+		sim_mob::RoadSegment* parentSeg = sections_[it->second.TMP_AtSectionID].generatedSegment;
+		busstop->busstopno_ = it->second.bus_stop_no;
+		busstop->setParentSegment(parentSeg);
 
-    }
+		busstop->xPos = it->second.xPos;
+		busstop->yPos = it->second.yPos;
+
+		//Add the bus stop to its parent segment's obstacle list at an estimated offset.
+		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.TMP_AtSectionID].generatedSegment);
+		if(!busstop->getParentSegment()->addObstacle(distOrigin, busstop)) {
+			sim_mob::Warn() << "Can't add obstacle; something is already at that offset. " << busstop->busstopno_ << std::endl;
+		}
+
+		sim_mob::ConfigManager::GetInstanceRW().FullConfig().getBusStopNo_BusStops()[busstop->busstopno_] = busstop;
+
+		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
+		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
+		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy());
+	}
+
+	for(map<std::string,BusStopSG>::iterator it = bustopSG_.begin(); it != bustopSG_.end(); it++) {
+		std::map<int,Section>::iterator findPtr = sections_.find(it->second.aimsun_section);
+		if(findPtr == sections_.end())
+		{
+			continue;
+		}
+		//Create the bus stop
+		sim_mob::BusStop *busstop = new sim_mob::BusStop();
+		sim_mob::RoadSegment* parentSeg = sections_[it->second.aimsun_section].generatedSegment;
+		busstop->busstopno_ = it->second.bus_stop_no;
+		busstop->setParentSegment(parentSeg);
+
+		busstop->xPos = it->second.xPos;
+		busstop->yPos = it->second.yPos;
+
+		//Add the bus stop to its parent segment's obstacle list at an estimated offset.
+		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.aimsun_section].generatedSegment);
+		if(!busstop->getParentSegment()->addObstacle(distOrigin, busstop)) {
+			sim_mob::Warn() << "Can't add obstacle; something is already at that offset. " << busstop->busstopno_ << std::endl;
+		}
+
+		sim_mob::ConfigManager::GetInstanceRW().FullConfig().getBusStopNo_BusStops()[busstop->busstopno_] = busstop;
+
+		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
+		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
+		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy());
+	}
 }
 
 //Another temporary function
@@ -2608,8 +2701,8 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 
 sim_mob::BusStopFinder::BusStopFinder(const Node* src, const Node* dest)
 {
-	OriginBusStop = findNearbyBusStop(src);
-    DestBusStop = findNearbyBusStop(dest);
+	originBusStop = findNearbyBusStop(src);
+    destBusStop = findNearbyBusStop(dest);
 }
 
 sim_mob::BusStop* sim_mob::BusStopFinder::findNearbyBusStop(const Node* node)
@@ -2691,51 +2784,6 @@ sim_mob::BusStop* sim_mob::BusStopFinder::findNearbyBusStop(const Node* node)
 
 	 return bs1;
 }
-
-//Commenting out; this function doesn't return anything and is never used.
-/*sim_mob::Busline* sim_mob::BusStopFinder::findBusLineToTaken()
-{
-	 vector<Busline*> buslines=OriginBusStop->BusLines;//list of available buslines at busstop
-	 int prev=0;
-	 for(int i=0;i<buslines.size();i++)
-	 {
-	  //query through the busstops for each available busline at the busstop
-	  //and see if it goes to the passengers destination.If more than one busline avaiable
-	  //choose the busline with the shortest path
-
-	  const std::vector<BusTrip>& BusTrips = buslines[i]->queryBusTrips();
-
-	  //busstops has the info about the list of bus stops a particular bus line goes to
-	  std::vector<const sim_mob::BusStop*> busstops=BusTrips[0].getBusRouteInfo().getBusStops();
-
-	  std::vector<const sim_mob::BusStop*>::iterator it;
-	  int noOfBusstops=0;
-
-	  //queries through list of bus stops of bus line starting from current bus stop to end bus stop
-	  //this is to see if the particular bus line has the destination bus stop of passenger
-	  //if yes and if its shortest available route, the bus line is added to the list of bus lines passenger is supposed to take
-	  for(it=++std::find(busstops.begin(),busstops.end(),OriginBusStop);it!=busstops.end();it++)
-	  {
-		 BusStop* bs=const_cast<sim_mob::BusStop*>(*it);
-
-		  //checking if the bus stop is the destination bus stop of passenger
-		  if(bs==DestBusStop)//add this bus line to the list,if it is the shortest
-		  {
-			  if(prev==0 || prev> noOfBusstops)
-			  {
-				  BusLineToTake = buslines[i];
-			      prev=noOfBusstops;
-			  }
-			  else if(prev==noOfBusstops)
-			  {
-				  BusLineToTake = buslines[i];//update the list of bus lines passenger is supposed to take
-				  prev=noOfBusstops;
-			  }
-		  }
-		  noOfBusstops++;
-	  }
-	 }
-}*/
 
 sim_mob::BusStop* sim_mob::BusStopFinder::getBusStop(const Node* node,sim_mob::RoadSegment* segment)
 {

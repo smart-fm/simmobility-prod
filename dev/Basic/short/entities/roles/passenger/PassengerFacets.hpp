@@ -58,8 +58,8 @@ public:
 	bool isDestBusStopReached();
 	Point2D getXYPosition();
 	Point2D getDestPosition();
-	const BusStop* getOriginBusStop() { return OriginBusStop; }
-	const BusStop* getDestBusStop() { return DestBusStop; }
+	const BusStop* getOriginBusStop() { return originBusStop; }
+	const BusStop* getDestBusStop() { return destBusStop; }
 
 	///NOTE: These boarding/alighting functions are called from BusDriver and used to transfer data.
 
@@ -95,20 +95,31 @@ public:
 	void setParentPassenger(Passenger* parentPassenger) {
 		this->parentPassenger = parentPassenger;
 	}
+	const int getBusTripRunNum() const {
+		return busTripRunNum;
+	}
+	const std::string& getBuslineId() const {
+		return buslineId;
+	}
 
 public:
-	uint32_t alighting_MS;// to record the alighting_MS for each individual person
+	// to record the alightingMS for each individual person
+	uint32_t alightingMS;
+	int busTripRunNum;// busTripRunNum to record the bus trip run num
+	std::string buslineId;// busline_id to record the bus line id
 
 private:
 	Passenger* parentPassenger;
-	BusStop* OriginBusStop;///busstop passenger is starting the trip from
-    BusStop* DestBusStop;///busstop passenger is ending the trip
+	BusStop* originBusStop;///busstop passenger is starting the trip from
+    BusStop* destBusStop;///busstop passenger is ending the trip
 
-	std::vector<Busline*> BuslinesToTake;///buslines passenger can take;decided by passenger upon reaching busstop
-	double WaitingTime;
-	double TimeOfReachingBusStop;
+	std::vector<Busline*> buslinesToTake;///buslines passenger can take;decided by passenger upon reaching busstop
+	double waitingTime;
+	double timeOfReachingBusStop;
+	uint32_t timeOfStartTrip;
+	uint32_t travelTime;
 	///For display purposes: offset this Passenger by a given +x, +y
-	Point2D DisplayOffset;
+	Point2D displayOffset;
 
 	///for display purpose of alighting passengers
 	int displayX;

@@ -961,7 +961,6 @@ void sim_mob::SimRTree::updateAllInternalAgents(std::map<const sim_mob::Agent*, 
 					connectorMap.erase(it);
 				}
 
-				std::cout << "one_agent->check():" << one_agent->getId() << std::endl;
 				one_leaf->agent_buffer.erase(one_leaf->agent_buffer.begin() + (offset));
 				insertAgent(one_agent, connectorMap);
 			}

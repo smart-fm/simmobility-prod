@@ -45,7 +45,7 @@ WaitBusActivityRoleBehavior::~WaitBusActivityRoleBehavior() {}
 
 sim_mob::WaitBusActivityRoleMovement::WaitBusActivityRoleMovement(sim_mob::Person* parentAgent, std::string buslineid):
 		MovementFacet(parentAgent), parentWaitBusActivityRole(nullptr), busStopAgent(nullptr), registered(false),
-		buslineid(buslineid), boarding_MS(0), busDriver(nullptr)
+		buslineId(buslineid), boardingMS(0), busDriver(nullptr), isTagged(false), isBoarded(false)
 {
 
 }

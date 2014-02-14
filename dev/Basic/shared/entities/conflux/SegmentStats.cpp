@@ -138,12 +138,13 @@ double SegmentStats::getDensity(bool hasVehicle) {
 	unsigned int queueCount = numQueueingInSegment(true);
 	movingLength = roadSegment->getLaneZeroLength()*vehLaneCount - queueCount*vehicle_length;
 	if(movingLength > 0) {
-		if (roadSegment->getLaneZeroLength() > 10*vehicle_length) {
+		/*Some lines in this if section are commented as per Yang Lu's suggestion */
+		//if (roadSegment->getLaneZeroLength() > 10*vehicle_length) {
 			density = numMovingInSegment(true)/(movingLength/100.0);
-		}
-		else {
-			density = queueCount/(movingLength/100.0);
-		}
+		//}
+		//else {
+		//	density = queueCount/(movingLength/100.0);
+		//}
 	}
 	else {
 		density = 1/(vehicle_length/100.0);
@@ -461,8 +462,8 @@ double sim_mob::SegmentStats::speed_density_function(bool hasVehicle,
 	//double density = numVehicles / (getRoadSegment()->computeLaneZeroLength() / 100.0);
 	//maxSpeed according to AIMSUN
 	double freeFlowSpeed = getRoadSegment()->maxSpeed / 3.6 * 100; // Converting from Kmph to cm/s
-	//The following default values were suggested by Yang Lu
-	double minSpeed = 300.0;
+	//The following default values were suggested by Yang Lu.
+	double minSpeed = 0.3 * freeFlowSpeed; // 30% of free flow speed
 	double jamDensity = 0.2; //density during traffic jam in veh/meter
 	double alpha = 1.8; //Model parameter of speed density function
 	double beta = 1.9; //Model parameter of speed density function
@@ -523,13 +524,16 @@ void sim_mob::SegmentStats::updateLaneParams(timeslice frameNumber) {
 std::string sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber){
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 		std::stringstream msg;
+		double density = segDensity
+							* 1000.0 /* Density is converted to veh/km/lane for the output */
+							* numVehicleLanes; /* Multiplied with number of lanes to get the density in veh/km/segment*/
 		msg <<"(\"segmentState\""
 			<<","<<frameNumber.frame()
 			<<","<<roadSegment
 			<<",{"
-			<<"\"speed\":\""<<segVehicleSpeed
-			<<"\",\"flow\":\""<<segFlow
-			<<"\",\"density\":\""<<segDensity*1000.0	/* Density is converted to veh/km/lane for the output */
+			<<"\"speed\":\""<< segVehicleSpeed
+			<<"\",\"flow\":\""<< segFlow
+			<<"\",\"density\":\""<< density
 			<<"\"})"<<std::endl;
 		return msg.str();
 	}

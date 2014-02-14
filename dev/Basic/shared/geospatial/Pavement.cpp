@@ -10,7 +10,7 @@
 using namespace sim_mob;
 
 
-void sim_mob::Pavement::addObstacle(centimeter_t offset, const RoadItem* item, bool fixErrors)
+bool sim_mob::Pavement::addObstacle(centimeter_t offset, const RoadItem* item, bool fixErrors)
 {
 	//do samll swith so that more items can be added in the same location
 	while (obstacles.count(offset)>0){
@@ -35,11 +35,14 @@ void sim_mob::Pavement::addObstacle(centimeter_t offset, const RoadItem* item, b
 	if (obstacles.count(offset)>0) {
 		//For now we can't fix it.
 		//TODO: There's multiple fixes; just pick one.
-		throw std::runtime_error("Can't add obstacle; something is already at that offset.");
+//		throw std::runtime_error("Can't add obstacle; something is already at that offset.");
+		std::cout << "Can't add obstacle; something is already at that offset." << std::endl;
+		return false;
 	}
 
 	//Add it.
 	obstacles[offset] = item;
+	return true;
 }
 
 

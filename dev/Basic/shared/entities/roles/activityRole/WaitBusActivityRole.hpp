@@ -62,25 +62,13 @@ public:
 //	sim_mob::BusStopAgent* getBusStopAgent() { return busStopAgent; }
 //	BusStop* setBusStopXY(const Node* node);//to find the nearest busstop to a node
 	uint32_t getTimeOfReachingBusStop() const { return TimeOfReachingBusStop; }
-//	//void setTimeofReachingBusStop(uint32_t time) { TimeOfReachingBusStop = time; }
-//	std::string getBuslineID() { return buslineid; }
+	uint32_t getWaitingTimeAtBusStop() const {
+		return waitingTimeAtBusStop;
+	}
 
-//public:
-//    //Set by the BusDriver to the MS this Person should board the bus.
-//	uint32_t boarding_MS;
-//	//Indicates the BusDriver of the bus we will board when "boarding_Frame" is reached.
-//	sim_mob::BusDriver* busDriver;
-//protected:
-//	//Indicates whether or not this Activity has registered with the appropriate BusStopAgent.
-//	//An unregistered Activity will not be able to board buses.
-//	//BusStopAgents will automatically register every WaitBusActivityRole in their vicinity periodically.
-//	bool registered;
-//	// indicate at which busStopAgent he is waiting for a bus
-//	sim_mob::BusStopAgent* busStopAgent;
-//	uint32_t TimeOfReachingBusStop;
-//	std::string buslineid;
 public:
 	uint32_t TimeOfReachingBusStop;
+	uint32_t waitingTimeAtBusStop;
 
 private:
 	WaitBusActivityRoleUpdateParams params;

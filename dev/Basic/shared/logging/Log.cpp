@@ -28,6 +28,16 @@ boost::shared_ptr<boost::mutex>   sim_mob::Print::log_mutex;
 std::ostream*   sim_mob::Print::log_handle = &std::cout;
 std::ofstream   sim_mob::Print::log_file;
 
+//PassengerInfoPrint
+boost::shared_ptr<boost::mutex>   sim_mob::PassengerInfoPrint::log_mutex;
+std::ostream*   sim_mob::PassengerInfoPrint::log_handle = &std::cout;
+std::ofstream   sim_mob::PassengerInfoPrint::log_file;
+
+//HeadwayAtBusStopInfoPrint
+boost::shared_ptr<boost::mutex>   sim_mob::HeadwayAtBusStopInfoPrint::log_mutex;
+std::ostream*   sim_mob::HeadwayAtBusStopInfoPrint::log_handle = &std::cout;
+std::ofstream   sim_mob::HeadwayAtBusStopInfoPrint::log_file;
+
 
 boost::shared_ptr<boost::mutex> sim_mob::StaticLogManager::RegisterStream(const std::ostream* str)
 {
@@ -120,6 +130,80 @@ void sim_mob::Print::Ignore()
 }
 
 bool sim_mob::Print::IsEnabled()
+{
+	return log_handle;
+}
+
+
+//////////////////////////////////////////////////////////////
+// PassengerInfoPrint implementation
+//////////////////////////////////////////////////////////////
+
+sim_mob::PassengerInfoPrint::PassengerInfoPrint()
+{
+	if (log_mutex) {
+		local_lock = boost::mutex::scoped_lock(*log_mutex);
+	}
+}
+
+
+sim_mob::PassengerInfoPrint::~PassengerInfoPrint()
+{
+	//Flush any pending output to stdout.
+	if (log_handle) {
+		(*log_handle) <<std::flush;
+	}
+}
+
+void sim_mob::PassengerInfoPrint::Init(const string& path)
+{
+	log_handle = OpenStream(path, log_file);
+	log_mutex = RegisterStream(log_handle);
+}
+
+void sim_mob::PassengerInfoPrint::Ignore()
+{
+	log_handle = nullptr;
+	log_mutex.reset();
+}
+
+bool sim_mob::PassengerInfoPrint::IsEnabled()
+{
+	return log_handle;
+}
+
+//////////////////////////////////////////////////////////////
+// HeadwayAtBusStopInfoPrint implementation
+//////////////////////////////////////////////////////////////
+
+sim_mob::HeadwayAtBusStopInfoPrint::HeadwayAtBusStopInfoPrint()
+{
+	if (log_mutex) {
+		local_lock = boost::mutex::scoped_lock(*log_mutex);
+	}
+}
+
+sim_mob::HeadwayAtBusStopInfoPrint::~HeadwayAtBusStopInfoPrint()
+{
+	//Flush any pending output to stdout.
+	if (log_handle) {
+		(*log_handle) <<std::flush;
+	}
+}
+
+void sim_mob::HeadwayAtBusStopInfoPrint::Init(const string& path)
+{
+	log_handle = OpenStream(path, log_file);
+	log_mutex = RegisterStream(log_handle);
+}
+
+void sim_mob::HeadwayAtBusStopInfoPrint::Ignore()
+{
+	log_handle = nullptr;
+	log_mutex.reset();
+}
+
+bool sim_mob::HeadwayAtBusStopInfoPrint::IsEnabled()
 {
 	return log_handle;
 }

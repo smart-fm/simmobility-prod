@@ -25,7 +25,6 @@ namespace sim_mob {
  */
 class Busline;
 
-// offsetMS_From(ConfigParams::GetInstance().simStartTime)???
 /**
  * \author Yao Jin
  */
@@ -116,6 +115,9 @@ public:
 	const std::vector<Shared<BusStop_RealTimes>* >& getBusStopRealTimes() const {
 		return busStopRealTimes_vec;
 	}
+	void safeDeleteBusStopRealTimesVec() {
+		clear_delete_vector(busStopRealTimes_vec);
+	}
 	int lastVisitedStop_SequenceNumber;
 
 private:
@@ -130,7 +132,7 @@ private:
 };
 
 
-enum CONTROL_TYPE {
+enum ControlTypes {
 	NO_CONTROL, SCHEDULE_BASED, HEADWAY_BASED, EVENHEADWAY_BASED, HYBRID_BASED
 };
 
@@ -153,19 +155,25 @@ public:
 	Busline(std::string busline_id="", std::string controlType="no_control"); // default no control(only follow the schedule given)
 	virtual ~Busline();
 
-	static CONTROL_TYPE getControlTypeFromString(std::string ControlType);
-	const CONTROL_TYPE getControlType() const
+	static ControlTypes getControlTypeFromString(std::string controlType);
+	const ControlTypes getControlType() const
 	{
 		return controlType;
 	}
 	const std::string& getBusLineID() const {
 		return busline_id;
 	}
-	const int getControl_TimePointNum0() const {
-		return control_TimePointNum0;
+	const int getControlTimePointNum0() const {
+		return controlTimePointNum0;
 	}
-	const int getControl_TimePointNum1() const {
-		return control_TimePointNum1;
+	const int getControlTimePointNum1() const {
+		return controlTimePointNum1;
+	}
+	const int getControlTimePointNum2() const {
+		return controlTimePointNum2;
+	}
+	const int getControlTimePointNum3() const {
+		return controlTimePointNum3;
 	}
 	void addBusTrip(BusTrip& aBusTrip);
 	void addFrequencyBusline(const Frequency_Busline& aFrequencyBusline);
@@ -178,11 +186,13 @@ public:
 	void resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, Shared<BusStop_RealTimes>* busStopRealTimes);// mainly for realTimes
 private:
 	std::string busline_id;
-	CONTROL_TYPE controlType;
+	ControlTypes controlType;
 	std::vector<Frequency_Busline> frequency_busline; // provide different headways according to the offset from simulation for each busline
 	std::vector<BusTrip> busTrip_vec;// constructed based on MSOffset_headway
-	int control_TimePointNum0; // now only one time point(hardcoded), later extend to the vector<control_TimePoint>
-	int control_TimePointNum1; // now another time point (hardcoded)
+	int controlTimePointNum0; // now only one time point(hardcoded), later extend to the vector<control_TimePoint>
+	int controlTimePointNum1; // now another time point (hardcoded)
+	int controlTimePointNum2;
+	int controlTimePointNum3;
 };
 
 class PT_Schedule { // stored in BusController, Schedule Time Points and Real Time Points should be put separatedly
@@ -190,14 +200,14 @@ public:
 	PT_Schedule();
 	virtual ~PT_Schedule();
 
-	void registerBusLine(const std::string busline_id, Busline* aBusline);
-	void registerControlType(const std::string busline_id, const CONTROL_TYPE aControlType);
-	Busline* findBusline(const std::string& busline_id);
-	CONTROL_TYPE findBuslineControlType(const std::string& busline_id);
-	std::map<std::string, Busline*>& get_busLines() { return buslineID_busline; }
+	void registerBusLine(const std::string buslineId, Busline* aBusline);
+	void registerControlType(const std::string buslineId, const ControlTypes controlType);
+	Busline* findBusline(const std::string& buslineId);
+	ControlTypes findBuslineControlType(const std::string& buslineId);
+	std::map<std::string, Busline*>& getBusLines() { return buslineIdBuslineMap; }
 private:
-	std::map<std::string, Busline*> buslineID_busline;// need new 2 times(one for particular trip, one for backup in BusController
-	std::map<std::string, CONTROL_TYPE> buslineID_controlType;// busline--->controlType
+	std::map<std::string, Busline*> buslineIdBuslineMap;// need new 2 times(one for particular trip, one for backup in BusController
+	std::map<std::string, ControlTypes> buslineIdControlTypeMap;// busline--->controlType
 };
 
 }

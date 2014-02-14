@@ -86,12 +86,30 @@
 --[[****************************************************************************
     GLOBAL STATIC LOOKUP DATA
 ******************************************************************************]]
+--[[
+    Helper function to mark tables as read-only.
+]]
+function readOnlyTable(table)
+   return setmetatable({}, {
+     __index = table,
+     __newindex = function(table, key, value)
+                    error("Attempt to modify read-only table")
+                  end,
+     __metatable = false
+   });
+end
 
-CAR_CATEGORIES = {[1]=true, [6]=true, [7]=true, [8]=true, [9]=true, [16]=true,
-                     [17]=true, [18]=true, [22]=true, [23]=true, [24]=true, 
-                     [25]=true, [27]=true }
-SIMULATION_YEAR = 2008
+--MATH constants.
+MATH = readOnlyTable {E = math.exp(1)}
 
+--Simulation constants.
+CONSTANTS = readOnlyTable {
+  SIMULATION_YEAR   = 2008,
+}
+
+CAR_CATEGORIES = readOnlyTable {[1]=true, [6]=true, [7]=true, [8]=true, [9]=true, [16]=true,
+                                [17]=true, [18]=true, [22]=true, [23]=true, [24]=true, 
+                                [25]=true, [27]=true }
 --[[****************************************************************************
     SELLER FUNCTIONS
 ******************************************************************************]]
@@ -118,9 +136,10 @@ end
     @return hedonic price value.
 ]]
 function calculateHDB_HedonicPrice(unit, building, postcode, amenities)
+ local simulationYear = CONSTANTS.SIMULATION_YEAR;
  local hedonicPrice = getStoreyEstimation(unit.storey) + 
                       ((building ~= nil) and 
-                            ((SIMULATION_YEAR - building.builtYear)* -17.64) or 0)
+                            ((simulationYear - building.builtYear)* -17.64) or 0)
 
  if amenities ~= nil then
     hedonicPrice =  hedonicPrice +
@@ -196,7 +215,7 @@ end
     @return expectation value.
 ]]
 function calculateExpectation(price, v, theta, alpha)
-    local E = math.exp(1)
+    local E = MATH.E
     --Calculates the bids distribution using F(X) = X/Price where F(V(t+1)) = V(t+1)/Price
     local bidsDistribution = (v / price)
     --Calculates the probability of not having any bid greater than v.
@@ -285,5 +304,3 @@ function calculateWP (household, unit)
            (theta2 * household.income) +
            (CAR_CATEGORIES[household.vehicleCategoryId] and theta3 or 0)
 end
-
---print (calulateUnitExpectations(nil, 7)[1].price)

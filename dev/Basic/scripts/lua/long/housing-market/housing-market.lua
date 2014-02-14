@@ -150,6 +150,7 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities)
  if amenities ~= nil then
     hedonicPrice = hedonicPrice +
                     9575.00 + -- intercept
+                    (-1239.00) + -- Resale estimation
                     (amenities.distanceToCBD * (-164.80) +
                     amenities.distanceToJob * (15.26) +
                     (amenities.pms_1km and 196.30 or 0) +

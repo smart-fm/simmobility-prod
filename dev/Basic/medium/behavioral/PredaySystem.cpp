@@ -193,6 +193,9 @@ void PredaySystem::predictTourModeDestination(Tour* tour) {
 }
 
 TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour* tour) {
+	if(!tour) {
+		throw std::runtime_error("predictTourTimeOfDay():: nullptr was passed for tour");
+	}
 	int timeWndw;
 	if(!tour->isSubTour()) {
 		int origin = tour->getTourDestination();
@@ -273,7 +276,7 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour* tour) {
 		TourTimeOfDayParams todParams(ttFirstHalfTour, ttSecondHalfTour);
 		timeWndw = PredayLuaProvider::getPredayModel().predictTourTimeOfDay(personParams, todParams, tour->getTourType());
 	}
-	return TimeWindowAvailability::timeWindowsLookup[timeWndw];
+	return TimeWindowAvailability::timeWindowsLookup.at(timeWndw);
 }
 
 void PredaySystem::generateIntermediateStops(Tour* tour) {
@@ -442,6 +445,9 @@ void PredaySystem::predictStopModeDestination(Stop* stop, int origin)
 }
 
 void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
+	if(!stop) {
+		throw std::runtime_error("predictStopTimeOfDay()::nullptr was passed for stop");
+	}
 	StopTimeOfDayParams stodParams(stop->getStopTypeID(), isBeforePrimary);
 	double origin = stop->getStopLocation();
 	double destination = personParams.getHomeLocation();

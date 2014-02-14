@@ -54,12 +54,12 @@ namespace {
 	const int FIRST_INDEX = 1;
 	const int LAST_WINDOW = 26.75;
 	const int LAST_INDEX = 48;
-	inline double getTimeWindowFromIndex(uint32_t index) {
+	inline double getTimeWindowFromIndex(const uint32_t index) {
 		return (index * 0.5 /*half hour windows*/)
 				+ 2.75 /*the day starts at 3.25*/;
 	}
 
-	inline uint32_t getIndexFromTimeWindow(double window) {
+	inline uint32_t getIndexFromTimeWindow(const double window) {
 		return (window - 2.75 /*the day starts at 3.25*/)
 				/ 0.5;
 	}

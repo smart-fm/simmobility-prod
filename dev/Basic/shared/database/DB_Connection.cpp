@@ -11,11 +11,14 @@
 
 #include <boost/format.hpp>
 #include "DB_Connection.hpp"
-#include "util/LangHelpers.hpp"
+#include "mongo/client/dbclient.h"
 #include "soci.h"
 #include "soci-postgresql.h"
+#include "util/LangHelpers.hpp"
+
 
 using namespace sim_mob::db;
+using namespace mongo;
 using std::string;
 using soci::postgresql;
 using soci::session;
@@ -50,6 +53,11 @@ namespace {
      * Soci session holder. 
      */
     typedef DB_Session<soci::session> SociSessionImpl;
+
+    /**
+     * Mongo session holder
+     */
+    typedef DB_Session<mongo::DBClientConnection> MongoSessionImpl;
 }
 
 
@@ -63,6 +71,11 @@ DB_Connection::DB_Connection(BackendType type, const DB_Config& config)
                  % config.getPassword() % config.getDatabaseName();
             connectionStr = fmtr.str();
             break;
+        }
+        case MONGO_DB:
+        {
+        	connectionStr = config.getHost();
+        	break;
         }
         default:break;
     }
@@ -82,6 +95,13 @@ bool DB_Connection::connect() {
                 connected = true;
                 break;
             }
+            case MONGO_DB:
+            {
+            	currentSession = new MongoSessionImpl();
+            	getSession<mongo::DBClientConnection>().connect(connectionStr);
+            	connected = true;
+            	break;
+            }
             default:break;
         }
     }
@@ -94,8 +114,14 @@ bool DB_Connection::disconnect() {
             case POSTGRES:
             {
                 getSession<soci::session>().close();
-                delete((SociSessionImpl*)currentSession);
+                delete (SociSessionImpl*)currentSession;
                 break;
+            }
+            case MONGO_DB:
+            {
+            	// No need to explicitly close the connection. Just delete.
+            	delete (MongoSessionImpl*)currentSession;
+            	break;
             }
             default:break;
         }
@@ -114,3 +140,4 @@ template<typename T> T& DB_Connection::getSession()
 }
 
 template soci::session& DB_Connection::getSession<soci::session>();
+template mongo::DBClientConnection& DB_Connection::getSession<mongo::DBClientConnection>();

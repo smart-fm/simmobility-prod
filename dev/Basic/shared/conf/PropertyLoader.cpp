@@ -24,6 +24,10 @@ PropertyLoader::PropertyLoader(const PropertyLoader& source)
 : filePath(source.filePath), section(source.section) {
 }
 
+sim_mob::PropertyLoader::PropertyLoader()
+: filePath(""), section(""){
+}
+
 PropertyLoader::~PropertyLoader() {
 }
 

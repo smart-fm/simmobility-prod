@@ -256,7 +256,7 @@ void sim_mob::Worker::processVirtualQueues() {
 }
 
 void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
-	if (ConfigManager::GetInstance().FullConfig().UsingConfluxes()) {
+	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
 		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 		{
 			const unsigned int msPerFrame = ConfigManager::GetInstance().FullConfig().baseGranMS();
@@ -277,7 +277,7 @@ void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
 void sim_mob::Worker::findBoundaryConfluxes() {
 	unsigned int boundaryCount = 0;
 	unsigned int multipleReceiverCount = 0;
-	if (ConfigManager::GetInstance().FullConfig().UsingConfluxes()) {
+	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
 		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 		{
 			(*it)->findBoundaryConfluxes();
@@ -600,7 +600,7 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 	unsigned int infCount = 0;
 	unsigned int vqCount = 0;
 	//Confluxes require an additional set of updates.
-	if (ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
+	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
 		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
 			vqCount += (*it)->resetOutputBounds();
 			total += (*it)->getAllPersons().size();

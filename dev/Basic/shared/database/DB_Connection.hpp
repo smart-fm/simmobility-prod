@@ -20,7 +20,8 @@ namespace sim_mob {
             POSTGRES,
             MYSQL, //not implemented
             ORACLE, //not implemented
-            SQL_SERVER//not implemented
+            SQL_SERVER,//not implemented
+            MONGO_DB
         };
 
         /*

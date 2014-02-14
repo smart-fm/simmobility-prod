@@ -157,10 +157,12 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     StreetDirectory::instance().init(cfg.getNetwork(), true);
     std::cout << "Street Directory initialized" <<std::endl;
 
-    //Process Confluxes
-    size_t sizeBefore = cfg.getConfluxes().size();
-    sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
-    std::cout <<"Confluxes size before(" <<sizeBefore <<") and after(" <<cfg.getConfluxes().size() <<")\n";
+    //Process Confluxes if required
+    if(cfg.RunningMidSupply()) {
+		size_t sizeBefore = cfg.getConfluxes().size();
+		sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
+		std::cout <<"Confluxes size before(" <<sizeBefore <<") and after(" <<cfg.getConfluxes().size() <<")\n";
+    }
 
     //Maintain unique/non-colliding IDs.
     ConfigParams::AgentConstraints constraints;

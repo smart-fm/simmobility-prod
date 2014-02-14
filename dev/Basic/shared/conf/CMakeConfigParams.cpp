@@ -95,16 +95,6 @@ bool sim_mob::CMakeConfigParams::ProfileAuraMgrUpdates(bool accountForOnFlag) co
 #endif
 }
 
-
-bool sim_mob::CMakeConfigParams::UsingConfluxes() const
-{
-#ifdef SIMMOB_USE_CONFLUXES
-	return true;
-#else
-	return false;
-#endif
-}
-
 bool sim_mob::CMakeConfigParams::InteractiveMode() const
 {
 #ifdef SIMMOB_INTERACTIVE_MODE

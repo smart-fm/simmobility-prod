@@ -65,7 +65,7 @@ WorkGroup* sim_mob::WorkGroupManager::newWorkGroup(unsigned int numWorkers, unsi
 	//Most of this involves passing paramters on to the WorkGroup itself, and then bookkeeping via static data.
 	WorkGroup* res = new WorkGroup(registeredWorkGroups.size(), numWorkers, numSimTicks, tickStep, auraMgr, partitionMgr);
 	currBarrierCount += numWorkers;
-	if (auraMgr || partitionMgr || ConfigManager::GetInstance().FullConfig().UsingConfluxes()) {
+	if (auraMgr || partitionMgr || ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
 		auraBarrierNeeded = true;
 	}
 
@@ -195,7 +195,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_AuraManager(const std::set<Agent*>
 	}
 
 	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
-		if (ConfigManager::GetInstance().FullConfig().UsingConfluxes()) {
+		if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
 			(*it)->processVirtualQueues();
 			(*it)->outputSupplyStats();
 		}

@@ -235,9 +235,6 @@ option(SIMMOB_INTERACTIVE_MODE "Force Sim Mobility to synchronize interactively 
 #Option: use path set mode flag
 option(SIMMOB_PATHSET_MODE "Use path set when generate path for driver" OFF)
 
-#Option: enable confluxes
-option (SIMMOB_USE_CONFLUXES  "Turn Confluxes on/off" OFF) 
-
 #Force gcc to output single line errors. 
 # This makes it easier for Eclipse to parse and understand each error.
 IF(CMAKE_COMPILER_IS_GNUCC)
@@ -389,6 +386,11 @@ LIST(APPEND LibraryList ${JSONCPP_LIBRARY})
 find_package(Lua REQUIRED)
 include_directories(${LUA_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${LUA_LIBRARIES} -ldl)
+
+#Find MongoDB
+find_package(MongoClient REQUIRED)
+include_directories(${MONGOCLIENT_INCLUDE_DIRS})
+LIST(APPEND LibraryList ${MONGOCLIENT_LIBRARY} -lcrypto -lssl)
 
 #Optionally find: MPI
 IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")

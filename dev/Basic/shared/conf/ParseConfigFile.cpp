@@ -276,8 +276,14 @@ Point2D ParsePoint2D(const XMLCh* srcX, Point2D* defValue) {
 
 int ParseInteger(const XMLCh* srcX, int* defValue) {
 	if (srcX) {
-		std::string src = TranscodeString(srcX);
-		return boost::lexical_cast<int>(src);
+		int value = 0;
+		try {
+			std::string src = TranscodeString(srcX);
+			value = boost::lexical_cast<int>(src);
+		} catch( boost::bad_lexical_cast const& ) {
+			throw std::runtime_error("Bad formatted source string for Integer parsing.");
+		}
+		return value;
 	}
 
 	//Wasn't found.
@@ -302,8 +308,14 @@ float ParseFloat(const XMLCh* srcX, float* defValue) {
 
 unsigned int ParseUnsignedInt(const XMLCh* srcX, unsigned int* defValue) {
 	if (srcX) {
-		std::string src = TranscodeString(srcX);
-		return boost::lexical_cast<unsigned int>(src);
+		unsigned int value = 0;
+		try {
+			std::string src = TranscodeString(srcX);
+			value = boost::lexical_cast<unsigned int>(src);
+		} catch( boost::bad_lexical_cast const& ) {
+			throw std::runtime_error("Bad formatted source string for unsigned integer parsing.");
+		}
+		return value;
 	}
 
 	//Wasn't found.
@@ -406,6 +418,9 @@ unsigned int ParseUnsignedInt(const XMLCh* src) { //No default
 }
 float ParseFloat(const XMLCh* src) {
 	return ParseFloat(src, nullptr);
+}
+float ParseFloat(const XMLCh* src, float defValue) {
+	return ParseFloat(src, &defValue);
 }
 unsigned int ParseGranularitySingle(const XMLCh* src, unsigned int defValue) {
 	return ParseGranularitySingle(src, &defValue);

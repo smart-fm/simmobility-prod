@@ -31,7 +31,7 @@ namespace sim_mob {
          */
         class HouseholdAgent :  public LT_Agent {
         public:
-            HouseholdAgent(HM_Model* model, Household* hh, 
+            HouseholdAgent(HM_Model* model, const Household* hh, 
                     HousingMarket* market);
             virtual ~HouseholdAgent();
             
@@ -92,7 +92,7 @@ namespace sim_mob {
         private:
             HM_Model* model;
             HousingMarket* market;
-            Household* household;
+            const Household* household;
             UnitIdList unitIds;
             HouseholdBidderRole* bidder;
             HouseholdSellerRole* seller;

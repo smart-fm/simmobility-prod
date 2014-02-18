@@ -26,7 +26,7 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(HM_Model* model, Household* household,
+HouseholdAgent::HouseholdAgent(HM_Model* model, const Household* household,
         HousingMarket* market)
 : LT_Agent(household->getId()), model(model), market(market), 
         household(household) {
@@ -121,8 +121,8 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId,
 }
 
 void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args) {
-    PrintOut("Agent :" << getId() << " received an external event: " << 
-             args.getEvent().getType() << endl);
+    //PrintOut("Agent :" << getId() << " received an external event: " << 
+    //         args.getEvent().getType() << endl);
     switch(args.getEvent().getType()){
         case ExternalEvent::LOST_JOB:
         case ExternalEvent::NEW_CHILD:

@@ -17,6 +17,7 @@
 #include "message/MessageBus.hpp"
 #include "model/lua/LuaProvider.hpp"
 #include "message/LT_Message.hpp"
+#include "core/DataManager.hpp"
 
 
 using namespace sim_mob::long_term;
@@ -80,7 +81,6 @@ void HouseholdSellerRole::update(timeslice now) {
     }
     if (hasUnitsToSale) {
         const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
-        HM_Model* model = getParent()->getModel();
         HousingMarket* market = getParent()->getMarket();
         const vector<BigSerial>& unitIds = getParent()->getUnitIds();
         //get values from parent.
@@ -89,7 +89,7 @@ void HouseholdSellerRole::update(timeslice now) {
                 itr != unitIds.end(); itr++) {
             // Decides to put the house on market.
             BigSerial unitId = *itr;
-            unit = model->getUnitById(unitId);
+            unit = DataManagerSingleton::getInstance().getUnitById(unitId);
             double hedonicPrice = luaModel.calculateHedonicPrice(*unit);
             calculateUnitExpectations(*unit);
             market->addEntry(HousingMarket::Entry(getParent(), *unit,
@@ -155,7 +155,6 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
 
 void HouseholdSellerRole::adjustNotSelledUnits() {
     HousingMarket* market = getParent()->getMarket();
-    HM_Model* model = getParent()->getModel();
     const vector<BigSerial> unitIds = getParent()->getUnitIds();
     const Unit* unit = nullptr;
     const HousingMarket::Entry* unitEntry;
@@ -164,7 +163,7 @@ void HouseholdSellerRole::adjustNotSelledUnits() {
             itr != unitIds.end(); itr++) {
         BigSerial unitId = *itr;
         unitEntry = market->getEntryById(unitId);
-        unit = model->getUnitById(unitId);
+        unit = DataManagerSingleton::getInstance().getUnitById(unitId);
         if (getCurrentExpectation(unitId, entry)) {
             //IMPROVE THIS PLEASE.....
             HousingMarket::Entry updatedEntry(*unitEntry);

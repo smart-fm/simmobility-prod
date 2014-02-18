@@ -9,6 +9,8 @@
 
 #include "DataManager.hpp"
 #include "database/DB_Connection.hpp"
+#include "database/dao/HouseholdDao.hpp"
+#include "database/dao/UnitDao.hpp"
 #include "database/dao/BuildingDao.hpp"
 #include "database/dao/PostcodeDao.hpp"
 #include "database/dao/PostcodeAmenitiesDao.hpp"
@@ -16,6 +18,54 @@
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 using namespace sim_mob::db;
+namespace {
+
+    /**
+     * Load data from datasouce from given connection using the 
+     * given list and template DAO.
+     * @param conn Datasource connection.
+     * @param list (out) to fill.
+     */
+    template <typename T, typename K>
+    inline void loadData(DB_Connection& conn, K& list) {
+        if (conn.isConnected()) {
+            T dao(conn);
+            dao.getAll(list);
+        }
+    }
+
+    /**
+     * Load data from datasouce from given connection using the 
+     * given list and template DAO.
+     * This function fills the given map using the given getter function. 
+     * 
+     * Maps should be like map<KEY, *Obj> 
+     *    - KEY object returned by given getter function.
+     *    - *Obj pointer to the loaded object. 
+     * 
+     * @param conn Datasource connection.
+     * @param list (out) to fill.
+     * @param map (out) to fill.
+     * @param getter function pointer to get the map KEY.
+     */
+    template <typename T, typename K, typename M, typename F>
+    inline void loadData(DB_Connection& conn, K& list, M& map, F getter) {
+        loadData<T>(conn, list);
+        //Index all buildings.
+        for (typename K::iterator it = list.begin(); it != list.end(); it++) {
+            map.insert(std::make_pair(((*it).*getter)(), &(*it)));
+        }
+    }
+
+    template <typename T, typename M, typename K>
+    inline const T* getById(const M& map, const K& key) {
+        typename M::const_iterator itr = map.find(key);
+        if (itr != map.end()) {
+            return (*itr).second;
+        }
+        return nullptr;
+    }
+}
 
 DataManager::DataManager() {
 }
@@ -27,6 +77,12 @@ DataManager::~DataManager() {
     postcodesByCode.clear();
     postcodes.clear();
     amenities.clear();
+    buildings.clear();
+    buildingsById.clear();
+    units.clear();
+    unitsById.clear();
+    households.clear();
+    householdsById.clear();
 }
 
 void DataManager::load() {
@@ -38,29 +94,19 @@ void DataManager::load() {
     DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
     conn.connect();
     if (conn.isConnected()) {
-        //buildings
-        BuildingDao buildingDao(conn);
-        buildingDao.getAll(buildings);
-        // Postcodes
-        PostcodeDao postcodeDao(conn);
-        postcodeDao.getAll(postcodes);
-        // amenities
-        PostcodeAmenitiesDao amenitiesDao(conn);
-        amenitiesDao.getAll(amenities);
-        
-        //Index all buildings.
-        for (BuildingList::iterator it = buildings.begin(); 
-                it != buildings.end(); it++) {
-            buildingsById.insert(std::make_pair(it->getId(), &(*it)));
-        }
-        
-        //Index all postcodes.
-        for (PostcodeList::iterator it = postcodes.begin(); 
+        loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
+        loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
+        loadData<BuildingDao>(conn, buildings, buildingsById, &Building::getId);
+        loadData<PostcodeDao>(conn, postcodes);
+        loadData<PostcodeAmenitiesDao>(conn, amenities);
+
+        // (Special case) Index all postcodes.
+        for (PostcodeList::iterator it = postcodes.begin();
                 it != postcodes.end(); it++) {
             postcodesById.insert(std::make_pair(it->getId(), &(*it)));
             postcodesByCode.insert(std::make_pair(it->getCode(), &(*it)));
         }
-        
+
         //Index all amenities. 
         for (PostcodeAmenitiesList::iterator it = amenities.begin();
                 it != amenities.end(); it++) {
@@ -74,41 +120,33 @@ void DataManager::load() {
 }
 
 const Building* DataManager::getBuildingById(const BigSerial buildingId) const {
-    BuildingMap::const_iterator itr = buildingsById.find(buildingId);
-    if (itr != buildingsById.end()) {
-        return (*itr).second;
-    }
-    return nullptr;
+    return getById<Building>(buildingsById, buildingId);
 }
 
 const Postcode* DataManager::getPostcodeById(const BigSerial postcodeId) const {
-    PostcodeMap::const_iterator itr = postcodesById.find(postcodeId);
-    if (itr != postcodesById.end()) {
-        return (*itr).second;
-    }
-    return nullptr;
+    return getById<Postcode>(postcodesById, postcodeId);
 }
 
 const PostcodeAmenities* DataManager::getAmenitiesById(const BigSerial postcodeId) const {
-    PostcodeAmenitiesMap::const_iterator itr = amenitiesById.find(postcodeId);
-    if (itr != amenitiesById.end()) {
-        return (*itr).second;
-    }
-    return nullptr;
+    return getById<PostcodeAmenities>(amenitiesById, postcodeId);
 }
 
 const Postcode* DataManager::getPostcodeByCode(const std::string& code) const {
-    PostcodeByCodeMap::const_iterator itr = postcodesByCode.find(code);
-    if (itr != postcodesByCode.end()) {
-        return (*itr).second;
-    }
-    return nullptr;
+    return getById<Postcode>(postcodesByCode, code);
 }
 
 const PostcodeAmenities* DataManager::getAmenitiesByCode(const std::string& code) const {
-    PostcodeAmenitiesByCodeMap::const_iterator itr = amenitiesByCode.find(code);
-    if (itr != amenitiesByCode.end()) {
-        return (*itr).second;
-    }
-    return nullptr;
+    return getById<PostcodeAmenities>(amenitiesByCode, code);
+}
+
+const Unit* DataManager::getUnitById(const BigSerial unitId) const {
+    return getById<Unit>(unitsById, unitId);
+}
+
+const Household* DataManager::getHouseholdById(const BigSerial householdId) const {
+    return getById<Household>(householdsById, householdId);
+}
+
+const DataManager::HouseholdList& DataManager::getHouseholds() const {
+    return households;
 }

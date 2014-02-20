@@ -102,8 +102,11 @@ namespace sim_mob {
              * @param target of the message.
              * @param type of the message.
              * @param message to send.
+             * @param processOnMainThread processes the message on main thread
+             * on a thread safe way. Attention if the value is true this message 
+             * will be processed before the context thread messages. 
              */
-            static void PostMessage(MessageHandler* target, Message::MessageType type, MessagePtr message);
+            static void PostMessage(MessageHandler* target, Message::MessageType type, MessagePtr message, bool processOnMainThread = false);
 
             /**
              * Subscribes to the given event. 

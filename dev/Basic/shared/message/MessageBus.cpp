@@ -71,12 +71,14 @@ namespace {
      * @param priority tells the priority of the message. Notice that 
      *        Notice that each message should have a priority => MIN_CUSTOM_PRIORITY,
      *        Otherwise the default priority will be MIN_CUSTOM_PRIORITY.
+     * @param processOnMainThread tells to process the message 
+     *        within the main thread context.
      */
     typedef struct MessageEntry {
 
         MessageEntry()
         : destination(nullptr), internal(false), event(false),
-        priority(MessageBus::MB_MIN_MSG_PRIORITY) {
+        priority(MessageBus::MB_MIN_MSG_PRIORITY), processOnMainThread(false){
         }
 
         MessageEntry(const MessageEntry& source) {
@@ -86,6 +88,7 @@ namespace {
             this->internal = source.internal;
             this->priority = source.priority;
             this->event = source.event;
+            this->processOnMainThread = source.processOnMainThread;
         }
 
         MessageHandler* destination;
@@ -94,6 +97,7 @@ namespace {
         bool internal;
         int priority;
         bool event;
+        bool processOnMainThread;
     } *MessageEntryPtr;
 
     struct ComparePriority {
@@ -421,14 +425,18 @@ void MessageBus::DispatchMessages() {
                            context->totalMessages++;
                         }
                     }
-                } else {// is is a regular/single message
-                    ThreadContext* destinationContext = static_cast<ThreadContext*> (entry->destination->context);
-                    if (destinationContext) {
-                        destinationContext->input.push(entry);
-                    }else{
-                        // handler is no longer available.
-                        safe_delete_item(entry);
-                        context->deletedMessages++;
+                } else {// it is a regular/single message
+                    if (entry->processOnMainThread) {
+                        mainContext->input.push(entry);
+                    } else {
+                        ThreadContext* destinationContext = static_cast<ThreadContext*> (entry->destination->context);
+                        if (destinationContext) {
+                            destinationContext->input.push(entry);
+                        } else {
+                            // handler is no longer available.
+                            safe_delete_item(entry);
+                            context->deletedMessages++;
+                        }
                     }
                 }
                 // internal messages go to the input queue of the main context.
@@ -448,7 +456,7 @@ void MessageBus::ThreadDispatchMessages() {
             MessageEntryPtr entry = context->input.top();
             if (entry && entry->destination && entry->message.get()) {
                 ThreadContext* destinationContext = static_cast<ThreadContext*> (entry->destination->context);
-                if (context->threadId != destinationContext->threadId) {
+                if (!entry->processOnMainThread && context->threadId != destinationContext->threadId) {
                     throw runtime_error("Thread contexts inconsistency.");
                 }
                 entry->destination->HandleMessage(entry->type, *(entry->message.get()));
@@ -460,7 +468,8 @@ void MessageBus::ThreadDispatchMessages() {
     }
 }
 
-void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType type, MessageBus::MessagePtr message) {
+void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType type, 
+                             MessageBus::MessagePtr message, bool processOnMainThread) {
     CheckThreadContext();
     ThreadContext* context = GetThreadContext();
     if (context) {
@@ -474,6 +483,7 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
             entry->priority = (!internalMsg && !eventMsg && message->GetPriority() < MB_MIN_MSG_PRIORITY) ? MB_MIN_MSG_PRIORITY : message->priority;
             entry->internal = (internalMsg != nullptr);
             entry->event = (eventMsg != nullptr);
+            entry->processOnMainThread = processOnMainThread;
             context->output.push(entry);
             context->totalMessages++;
         }

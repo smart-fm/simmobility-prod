@@ -155,23 +155,24 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
 
 void HouseholdSellerRole::adjustNotSelledUnits() {
     HousingMarket* market = getParent()->getMarket();
-    const vector<BigSerial> unitIds = getParent()->getUnitIds();
+    const vector<BigSerial>& unitIds = getParent()->getUnitIds();
     const Unit* unit = nullptr;
-    const HousingMarket::Entry* unitEntry;
-    ExpectationEntry entry;
+    const HousingMarket::Entry* unitEntry = nullptr;
     for (vector<BigSerial>::const_iterator itr = unitIds.begin();
             itr != unitIds.end(); itr++) {
         BigSerial unitId = *itr;
         unitEntry = market->getEntryById(unitId);
         unit = DataManagerSingleton::getInstance().getUnitById(unitId);
-        if (getCurrentExpectation(unitId, entry)) {
-            //IMPROVE THIS PLEASE.....
-            HousingMarket::Entry updatedEntry(*unitEntry);
-            updatedEntry.setAskingPrice(entry.price);
-            market->updateEntry(updatedEntry);
+        if (unitEntry && unit){
+            ExpectationEntry entry;
+            if (getCurrentExpectation(unitId, entry)) {
+                //IMPROVE THIS PLEASE.....
+                HousingMarket::Entry updatedEntry(*unitEntry);
+                updatedEntry.setAskingPrice(entry.price);
+                market->updateEntry(updatedEntry);
+            }
         }
     }
-}
 
 void HouseholdSellerRole::notifyWinnerBidders() {
     HousingMarket* market = getParent()->getMarket();
@@ -202,7 +203,7 @@ bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId, Expecta
     ExpectationMap::iterator expectations = unitExpectations.find(unitId);
     if (expectations != unitExpectations.end()) {
         if (currentExpectationIndex < expectations->second.size()) {
-            ExpectationEntry expectation = expectations->second.at(currentExpectationIndex);
+            ExpectationEntry& expectation = expectations->second.at(currentExpectationIndex);
             outEntry.expectation = expectation.expectation;
             outEntry.price = expectation.price;
             return true;

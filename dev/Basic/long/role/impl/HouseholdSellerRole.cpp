@@ -173,6 +173,7 @@ void HouseholdSellerRole::adjustNotSelledUnits() {
             }
         }
     }
+}
 
 void HouseholdSellerRole::notifyWinnerBidders() {
     HousingMarket* market = getParent()->getMarket();

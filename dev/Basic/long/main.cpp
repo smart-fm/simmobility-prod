@@ -30,6 +30,7 @@
 #include "core/DataManager.hpp"
 
 #include "unit-tests/dao/DaoTests.hpp"
+#include "core/AgentsLookup.hpp"
 
 using std::cout;
 using std::endl;
@@ -59,8 +60,8 @@ const int DATA_SIZE = 30;
 int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulationTime) {
     PrintOut("#################### LONG-TERM SIMULATION ####################" << endl);
     //Simulation Statistics
-    PrintOut("#Simulation Number  :" << simulationNumber << endl);
-    PrintOut("#Simulation Time (s):" << simulationTime.getTime() << endl);
+    PrintOut("#Simulation Number  : " << simulationNumber << endl);
+    PrintOut("#Simulation Time (s): " << simulationTime.getTime() << endl);
     //Models Statistics
     PrintOut(endl);
     PrintOut("#Models:" << endl);
@@ -79,8 +80,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
     //Initiate configuration instance
     LT_ConfigSingleton::getInstance();
     PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
-    //Loads data
-    DataManagerSingleton::getInstance().load();
+    
     //configure time.
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     config.baseGranMS() = TICK_STEP;
@@ -90,11 +90,18 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
    
     //simulation time.
     StopWatch simulationWatch;
+    
+    //Starts clock.
+    simulationWatch.start();
+    
+    //Loads data and initialize singletons.
+    DataManagerSingleton::getInstance().load();
+    AgentsLookupSingleton::getInstance();
+    
     vector<Model*> models;
     EventsInjector injector;
     HM_Model* model = nullptr;
     {
-        simulationWatch.start();   
         WorkGroupManager wgMgr;
         wgMgr.setSingleThreadMode(config.singleThreaded());
         
@@ -128,8 +135,12 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
             resLogFiles = wgMgr.retrieveOutFileNames();
         }
         model->stop();
-        simulationWatch.stop();
     }
+    
+    //reset singletons and stop watch.
+    DataManagerSingleton::getInstance().reset();
+    AgentsLookupSingleton::getInstance().reset();
+    simulationWatch.stop();
    
     printReport(simulationNumber, models, simulationWatch);
     //delete all models.

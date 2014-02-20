@@ -24,7 +24,7 @@ namespace sim_mob {
          */
         class Bid {
         public:
-            Bid(BigSerial id, int bidderId, LT_Agent* bidder, float value, 
+            Bid(BigSerial id, BigSerial bidderId, LT_Agent* bidder, float value, 
                     timeslice& time);
             Bid(const Bid& source);
             virtual ~Bid();
@@ -46,7 +46,7 @@ namespace sim_mob {
              * Gets the Bidder unique identifier.
              * @return value with Bidder identifier.
              */
-            int getBidderId() const;
+            BigSerial getBidderId() const;
             
             /**
              * Gets the Bidder pointer.
@@ -81,7 +81,7 @@ namespace sim_mob {
         private:
             timeslice time;
             BigSerial unitId;
-            int bidderId;
+            BigSerial bidderId;
             float value;
             LT_Agent* bidder;
         };

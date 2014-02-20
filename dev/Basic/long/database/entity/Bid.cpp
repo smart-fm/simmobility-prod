@@ -14,7 +14,7 @@
 
 using namespace sim_mob::long_term;
 
-Bid::Bid(BigSerial unitId, int bidderId, LT_Agent* bidder, float value, timeslice& time)
+Bid::Bid(BigSerial unitId, BigSerial bidderId, LT_Agent* bidder, float value, timeslice& time)
 : unitId(unitId), bidderId(bidderId), value(value), time(time), bidder(bidder) {
 }
 
@@ -46,7 +46,7 @@ BigSerial Bid::getUnitId() const {
     return unitId;
 }
 
-int Bid::getBidderId() const {
+BigSerial Bid::getBidderId() const {
     return bidderId;
 }
 

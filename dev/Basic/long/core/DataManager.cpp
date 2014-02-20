@@ -67,10 +67,14 @@ namespace {
     }
 }
 
-DataManager::DataManager() {
+DataManager::DataManager() : readyToLoad(true){
 }
 
 DataManager::~DataManager() {
+    reset();
+}
+
+void DataManager::reset() {
     amenitiesById.clear();
     amenitiesByCode.clear();
     postcodesById.clear();
@@ -83,11 +87,15 @@ DataManager::~DataManager() {
     unitsById.clear();
     households.clear();
     householdsById.clear();
+    readyToLoad = true;
 }
 
 void DataManager::load() {
-    //load postcodes
-
+    //first resets old data if necessary.
+    if (!readyToLoad){
+        reset();
+    }
+    
     DB_Config dbConfig(LT_DB_CONFIG_FILE);
     dbConfig.load();
     // Connect to database and load data.
@@ -117,6 +125,7 @@ void DataManager::load() {
             }
         }
     }
+    readyToLoad = false;
 }
 
 const Building* DataManager::getBuildingById(const BigSerial buildingId) const {

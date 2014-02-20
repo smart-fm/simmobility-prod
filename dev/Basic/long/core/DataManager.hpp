@@ -55,6 +55,11 @@ namespace sim_mob {
              * Loads the necessary data from datasource.
              */
             void load();
+            
+            /**
+             * Clears all data.
+             */
+            void reset();
 
             const Postcode* getPostcodeById(const BigSerial postcodeId) const;
             const PostcodeAmenities* getAmenitiesById(const BigSerial postcodeId) const;
@@ -81,6 +86,7 @@ namespace sim_mob {
             UnitMap unitsById;
             HouseholdList households;
             HouseholdMap householdsById;
+            bool readyToLoad;
         };
 
         /**

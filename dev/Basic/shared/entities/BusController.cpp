@@ -89,6 +89,12 @@ void sim_mob::BusController::buildSubscriptionList(vector<BufferedBase*>& subsLi
 	Agent::buildSubscriptionList(subsList);
 }
 
+void sim_mob::BusController::CollectAndProcessAllRequests()
+{
+	for (std::vector<BusController*>::iterator it=all_busctrllers_.begin(); it!=all_busctrllers_.end(); it++) {
+		(*it)->handleDriverRequest();
+	}
+}
 
 
 void sim_mob::BusController::addBus(Bus* bus)
@@ -582,6 +588,9 @@ Entity::UpdateStatus sim_mob::BusController::frame_tick(timeslice now)
 	nextTimeTickToStage += tickStep;
 	unsigned int nextTickMS = (nextTimeTickToStage+3)*ConfigManager::GetInstance().FullConfig().baseGranMS();
 
+	if(!pending_buses.empty()){
+		std::cout << "bus start time :" << pending_buses.top()->getStartTime() << std::endl;
+	}
 	//Stage any pending entities that will start during this time tick.
 	while (!pending_buses.empty() && pending_buses.top()->getStartTime() <= nextTickMS) {
 		///////////////////////////////////////////////////////////////////

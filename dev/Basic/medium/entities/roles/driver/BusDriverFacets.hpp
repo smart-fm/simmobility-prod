@@ -29,13 +29,13 @@ public:
 	virtual void frame_tick();
 	virtual void frame_tick_output();
 
-	sim_mob::medium::BusDriver* getParentBusDriver() const {
+	/*sim_mob::medium::BusDriver* getParentBusDriver() const {
 		return parentBusDriver;
 	}
 
 	void setParentBusDriver(sim_mob::medium::BusDriver* parentBusDriver) {
 		this->parentBusDriver = parentBusDriver;
-	}
+	}*/
 
 protected:
 	sim_mob::medium::BusDriver* parentBusDriver;
@@ -52,13 +52,13 @@ public:
 	virtual void frame_tick_output();
 	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
 
-	sim_mob::medium::BusDriver* getParentBusDriver() const {
+	/*sim_mob::medium::BusDriver* getParentBusDriver() const {
 		return parentBusDriver;
 	}
 
 	void setParentBusDriver(sim_mob::medium::BusDriver* parentBusDriver) {
 		this->parentBusDriver = parentBusDriver;
-	}
+	}*/
 
 protected:
 	virtual Vehicle* initializePath(bool allocateVehicle);

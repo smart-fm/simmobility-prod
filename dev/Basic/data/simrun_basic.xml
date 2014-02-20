@@ -221,12 +221,12 @@
             <!--    2) Don't put any passwords to databases on the FM server. -->
             <plaintext-credential id="fm_local_yaojin">
                 <username value="postgres"/>
-                <password value="some_password"/>
+                <password value="5M_S1mM0bility"/>
             </plaintext-credential>
 
             <plaintext-credential id="harish_cred">
                 <username value="postgres"/>
-                <password value="secret"/>
+                <password value="5M_S1mM0bility"/>
             </plaintext-credential>
         </credentials>
     
@@ -275,10 +275,10 @@
         <!-- (but will be rounded down.) -->
         <simulation>
             <base_granularity   value="100"   units="ms" />
-            <total_runtime      value="5"      units="minutes" />
+            <total_runtime      value="30"      units="minutes" />
             <total_warmup       value="10"     units="seconds" />
             
-            <start_time         value="08:00:00"/>
+            <start_time         value="08:30:00"/>
             
             <!-- Implementation to use for the Aura Manager. -->
             <!-- Values include: simtree, rdu, rstar (default) -->
@@ -295,7 +295,7 @@
             
             <!-- Order in which agents are to be loaded into the simulation -->
             <!-- Values include: database, drivers, pedestrians, passenger, xml-tripchains -->
-            <load_agents order="drivers pedestrians"/>
+            <load_agents order="database"/>
             
             <!-- Optional. At what value do we start counting for automatically -->
             <!-- generated Agent IDs? Set to a high value if you want to avoid  -->
@@ -381,7 +381,7 @@
             <!-- Used only by mid-term. Admissible values are "demand", "supply" -->
             <!-- and "demand+supply". Determines whether to run SimMobility_Medium's -->
             <!-- demand simulator or the supply simulator -->
-            <property key="mid_term_run_mode" value="demand"/> 
+            <property key="mid_term_run_mode" value="supply"/> 
             
             <!-- Adding external scripts as a generic proerty for now. -->
             <!-- A dedicated element will be created when we have more uses for this --> 

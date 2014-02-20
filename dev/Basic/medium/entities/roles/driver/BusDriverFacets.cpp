@@ -49,7 +49,8 @@ void sim_mob::medium::BusDriverMovement::frame_init() {
 	if (newVeh) {
 		safe_delete_item(vehicle);
 		vehicle = newVeh;
-		parentBusDriver->setResource(newVeh);
+		//parentBusDriver->setResource(newVeh);
+		parentDriver->setResource(newVeh);
 	}
 }
 

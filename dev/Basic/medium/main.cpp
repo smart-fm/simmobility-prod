@@ -282,6 +282,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		//Agent-based cycle, steps 1,2,3,4 of 4
 		wgMgr.waitAllGroups();
 
+		BusController::CollectAndProcessAllRequests();
+
 		//Check if the warmup period has ended.
 		if (warmupDone) {
 			//updateGUI(agents);

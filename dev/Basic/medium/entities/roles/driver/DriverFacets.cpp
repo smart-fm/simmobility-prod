@@ -87,6 +87,7 @@ void sim_mob::medium::DriverMovement::frame_init() {
 
 void sim_mob::medium::DriverMovement::frame_tick() {
 	DriverUpdateParams& p2 = parentDriver->getParams();
+
 	const Lane* laneInfinity = vehicle->getCurrSegment()->getParentConflux()->getLaneInfinity(vehicle->getCurrSegment());
 	if(vehicle->getCurrSegment() == getParent()->getCurrSegment() )
 	{

@@ -27,11 +27,15 @@ AgentsLookup::AgentsLookup() {
 }
 
 AgentsLookup::~AgentsLookup() {
+    reset();
+}
+
+void AgentsLookup::reset() {
     householdsById.clear();
 }
 
 void AgentsLookup::addHousehold(const HouseholdAgent* agent) {
-    if (agent && !getById<HouseholdAgent>(householdsById, agent->GetId())){
+    if (agent && !getById<HouseholdAgent>(householdsById, agent->GetId())) {
         householdsById.insert(std::make_pair(agent->GetId(), agent));
     }
 }

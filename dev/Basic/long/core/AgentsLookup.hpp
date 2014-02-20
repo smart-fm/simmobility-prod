@@ -32,6 +32,11 @@ namespace sim_mob {
              * @param agent pointer to add.
              */
             void addHousehold(const HouseholdAgent* agent);
+            
+            /**
+             * Clears all data.
+             */
+            void reset();
 
             /**
              * Getters 

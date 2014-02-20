@@ -110,21 +110,21 @@ void HousingMarket::addEntry(const Entry& entry) {
     // entry will be available only on the next tick
     MessageBus::PostMessage(this, LTMID_HMI_ADD_ENTRY,
             MessageBus::MessagePtr(
-            new HM_AddEntryMsg(entry)));
+            new HM_AddEntryMsg(entry)), true);
 }
 
 void HousingMarket::updateEntry(const HousingMarket::Entry& entry) {
     // entry will be available only on the next tick
     MessageBus::PostMessage(this, LTMID_HMI_ADD_ENTRY,
             MessageBus::MessagePtr(
-            new HM_AddEntryMsg(entry)));
+            new HM_AddEntryMsg(entry)), true);
 }
 
 void HousingMarket::removeEntry(const BigSerial& unitId) {
     // entry will be available only on the next tick
     MessageBus::PostMessage(this, LTMID_HMI_RM_ENTRY,
             MessageBus::MessagePtr(
-            new HM_RemoveEntryMsg(unitId)));
+            new HM_RemoveEntryMsg(unitId)), true);
 }
 
 const HousingMarket::EntryMap& HousingMarket::getAvailableEntries() {

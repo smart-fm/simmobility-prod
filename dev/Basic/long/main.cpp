@@ -27,6 +27,9 @@
 #include "Common.hpp"
 #include "config/LT_Config.hpp"
 #include "core/EventsInjector.hpp"
+#include "core/DataManager.hpp"
+
+#include "unit-tests/dao/DaoTests.hpp"
 
 using std::cout;
 using std::endl;
@@ -49,7 +52,7 @@ timeval start_time;
 const int MAX_ITERATIONS = 1;
 const int TICK_STEP = 1;
 const int DAYS = 365;
-const int WORKERS = 1;
+const int WORKERS = 8;
 const int DATA_SIZE = 30;
 
 
@@ -76,6 +79,8 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
     //Initiate configuration instance
     LT_ConfigSingleton::getInstance();
     PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
+    //Loads data
+    DataManagerSingleton::getInstance().load();
     //configure time.
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     config.baseGranMS() = TICK_STEP;
@@ -154,5 +159,7 @@ int main(int ARGC, char* ARGV[]) {
         Utils::printAndDeleteLogFiles(resLogFiles);
     }
     ConfigManager::GetInstanceRW().reset();
+    //unit_tests::DaoTests tests;
+    //tests.testAll();
     return 0;
 }

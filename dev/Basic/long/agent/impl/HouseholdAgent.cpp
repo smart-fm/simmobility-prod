@@ -140,21 +140,21 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args) {
 
 
 void HouseholdAgent::onWorkerEnter() {
-    MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB, this);
-    MessageBus::SubscribeEvent(LTEID_EXT_NEW_CHILD, this);
-    MessageBus::SubscribeEvent(LTEID_EXT_LOST_JOB, this);
-    MessageBus::SubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this);
-    MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this);
+    MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB, this, this);
+    MessageBus::SubscribeEvent(LTEID_EXT_NEW_CHILD, this, this);
+    MessageBus::SubscribeEvent(LTEID_EXT_LOST_JOB, this, this);
+    MessageBus::SubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this, this);
+    MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
     //MessageBus::SubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
     //MessageBus::SubscribeEvent(LTEID_HM_UNIT_REMOVED, market, this);
 }
 
 void HouseholdAgent::onWorkerExit() {
-    MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_JOB, this);
-    MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_CHILD, this);
-    MessageBus::UnSubscribeEvent(LTEID_EXT_LOST_JOB, this);
-    MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this);
-    MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this);
+    MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_JOB, this, this);
+    MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_CHILD, this, this);
+    MessageBus::UnSubscribeEvent(LTEID_EXT_LOST_JOB, this, this);
+    MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this, this);
+    MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
     //MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
     //MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_REMOVED, market, this);
 }

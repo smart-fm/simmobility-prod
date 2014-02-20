@@ -13,6 +13,7 @@
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
+#include "core/AgentsLookup.hpp"
 
 
 using namespace sim_mob;
@@ -46,6 +47,7 @@ void HM_Model::startImpl() {
         if (unit) {
             hhAgent->addUnitId(unit->getId());
         }
+        AgentsLookupSingleton::getInstance().addHousehold(hhAgent);
         agents.push_back(hhAgent);
         workGroup.assignAWorker(hhAgent);
     }

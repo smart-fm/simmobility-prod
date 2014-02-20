@@ -76,8 +76,8 @@ UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 
 	resetPositionOfLastUpdatedAgentOnLanes();
 
-	//reset the remaining times of persons in lane infinity if required.
-	resetPersonRemTimesInVQ();
+	//reset the remaining times of persons in lane infinity and VQ if required.
+	resetPersonRemTimes();
 
 	if (sim_mob::StreetDirectory::instance().signalAt(*multiNode) != nullptr) {
 		updateUnsignalized(); //TODO: Update Signalized must be implemented and called here
@@ -361,7 +361,7 @@ void sim_mob::Conflux::resetCurrSegsOnUpLinks() {
  * in the previous tick due to traffic congestion in their starting segment.
  * 2. Persons who got added to and remained virtual queue in the previous tick
  */
-void sim_mob::Conflux::resetPersonRemTimesInVQ() {
+void sim_mob::Conflux::resetPersonRemTimes() {
 	SegmentStats* segStats = nullptr;
 	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator upStrmSegMapIt = upstreamSegmentsMap.begin(); upStrmSegMapIt!=upstreamSegmentsMap.end(); upStrmSegMapIt++) {
 		for(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt=upStrmSegMapIt->second.begin(); rdSegIt!=upStrmSegMapIt->second.end(); rdSegIt++) {
@@ -901,8 +901,7 @@ bool sim_mob::cmp_person_remainingTimeThisTick::operator ()(const Person* x, con
 	return (x->getRemainingTimeThisTick() > y->getRemainingTimeThisTick());
 }
 
-//Sort all agents in lane (based on remaining time this tick)
-void sim_mob::sortPersons_DecreasingRemTime(std::deque<Person*> personList) {
+void sim_mob::sortPersons_DecreasingRemTime(std::deque<Person*>& personList) {
 	cmp_person_remainingTimeThisTick cmp_person_remainingTimeThisTick_obj;
 
 	if(personList.size() > 1) { //ordering is required only if we have more than 1 person in the deque

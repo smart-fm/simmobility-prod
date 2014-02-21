@@ -19,7 +19,7 @@ namespace sim_mob {
 namespace medium {
 
 sim_mob::medium::BusDriverBehavior::BusDriverBehavior(sim_mob::Person* parentAgent):
-	DriverBehavior(parentAgent), parentBusDriver(nullptr) {}
+	DriverBehavior(parentAgent) {}
 
 sim_mob::medium::BusDriverBehavior::~BusDriverBehavior() {}
 
@@ -37,7 +37,7 @@ void sim_mob::medium::BusDriverBehavior::frame_tick_output() {
 
 
 sim_mob::medium::BusDriverMovement::BusDriverMovement(sim_mob::Person* parentAgent):
-	DriverMovement(parentAgent), parentBusDriver(nullptr) {}
+	DriverMovement(parentAgent) {}
 
 sim_mob::medium::BusDriverMovement::~BusDriverMovement() {}
 
@@ -59,8 +59,8 @@ void sim_mob::medium::BusDriverMovement::frame_tick() {
 }
 
 void sim_mob::medium::BusDriverMovement::frame_tick_output() {
-	parentBusDriver->getParams();
-	DriverUpdateParams &p = parentBusDriver->getParams();
+	parentDriver->getParams();
+	DriverUpdateParams &p = parentDriver->getParams();
 	//Skip?
 	if (vehicle->isDone() || ConfigManager::GetInstance().FullConfig().using_MPI || ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) {
 		return;
@@ -69,7 +69,7 @@ void sim_mob::medium::BusDriverMovement::frame_tick_output() {
 	std::stringstream logout;
 	logout << "(\"BusDriver\""
 			<<","<<getParent()->getId()
-			<<","<<parentBusDriver->getParams().now.frame()
+			<<","<<parentDriver->getParams().now.frame()
 			<<",{"
 			<<"\"RoadSegment\":\""<< (getParent()->getCurrSegment()->getSegmentID())
 			<<"\",\"Lane\":\""<<(getParent()->getCurrLane()->getLaneID())
@@ -103,12 +103,12 @@ sim_mob::Vehicle* sim_mob::medium::BusDriverMovement::initializePath(bool alloca
 	if(!getParent()->getNextPathPlanned()){
 		//Save local copies of the parent's origin/destination nodes.
 		if( getParent()->originNode.type_ != WayPoint::INVALID){
-			parentBusDriver->origin.node = getParent()->originNode.node_;
-			parentBusDriver->origin.point = parentBusDriver->origin.node->location;
+			getParentDriver()->origin.node = getParent()->originNode.node_;
+			getParentDriver()->origin.point = getParentDriver()->origin.node->location;
 		}
 		if( getParent()->destNode.type_ != WayPoint::INVALID ){
-			parentBusDriver->goal.node = getParent()->destNode.node_;
-			parentBusDriver->goal.point = parentBusDriver->goal.node->location;
+			getParentDriver()->goal.node = getParent()->destNode.node_;
+			getParentDriver()->goal.point = getParentDriver()->goal.node->location;
 		}
 
 		//Retrieve the path from origin to destination and save all RoadSegments in this path.

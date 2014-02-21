@@ -38,7 +38,7 @@ public:
 	}*/
 
 protected:
-	sim_mob::medium::BusDriver* parentBusDriver;
+
 };
 
 class BusDriverMovement: public DriverMovement {
@@ -63,7 +63,6 @@ public:
 protected:
 	virtual Vehicle* initializePath(bool allocateVehicle);
 
-	sim_mob::medium::BusDriver* parentBusDriver;
 };
 
 }

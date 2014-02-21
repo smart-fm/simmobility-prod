@@ -38,6 +38,8 @@ public:
 		this->parentDriver = parentDriver;
 	}
 
+	sim_mob::medium::Driver* getParentDriver();
+
 protected:
 	/**
 	 * Pointer to the parent Driver role.

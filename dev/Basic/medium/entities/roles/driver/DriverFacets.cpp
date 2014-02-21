@@ -64,6 +64,9 @@ void DriverBehavior::frame_tick_output() {
 	throw std::runtime_error("DriverBehavior::frame_tick_output is not implemented yet");
 }
 
+sim_mob::medium::Driver* sim_mob::medium::DriverBehavior::getParentDriver() {
+	return parentDriver;
+}
 
 sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	MovementFacet(parentAgent), parentDriver(nullptr), vehicle(nullptr), currLane(nullptr), nextLaneInNextSegment(nullptr) {}
@@ -71,6 +74,8 @@ sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 sim_mob::medium::DriverMovement::~DriverMovement() {
 	safe_delete_item(vehicle);
 }
+
+
 
 void sim_mob::medium::DriverMovement::frame_init() {
 	//Save the path from orign to next activity location in allRoadSegments

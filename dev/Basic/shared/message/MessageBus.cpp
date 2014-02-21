@@ -102,12 +102,12 @@ namespace {
 
     struct ComparePriority {
 
-        bool operator()(const MessageEntryPtr t1, const MessageEntryPtr t2) const {
-            return (t1 && t2 && t1->priority > t2->priority);
+        bool operator()(const MessageEntry& t1, const MessageEntry& t2) const {
+            return (t1.priority > t2.priority);
         }
     };
 
-    typedef priority_queue<MessageEntryPtr, std::deque<MessageEntryPtr>, ComparePriority> MessageQueue;
+    typedef priority_queue<MessageEntry, std::deque<MessageEntry>, ComparePriority> MessageQueue;
 
     /**
      * Represents a thread context.
@@ -139,10 +139,7 @@ namespace {
          * @param queue to clean up.
          */
         void CleanUpQueue(MessageQueue& queue) {
-            MessageEntryPtr entry = nullptr;
             while (!queue.empty()) {
-                entry = queue.top();
-                safe_delete_item(entry);
                 queue.pop();
             }
         }
@@ -408,8 +405,8 @@ void MessageBus::DispatchMessages() {
         while (lstItr != threadContexts.end()) {
             ThreadContext* context = (*lstItr);
             while (!context->output.empty()) {
-                MessageEntryPtr entry = context->output.top();
-                if (entry->event) {
+                const MessageEntry& entry = context->output.top();
+                if (entry.event) {
                     //if it is an event then we need to distribute the event for all
                     //publishers in the system.
                     ContextList::iterator lstItr1 = threadContexts.begin();
@@ -417,8 +414,8 @@ void MessageBus::DispatchMessages() {
                         ThreadContext* ctx = (*lstItr1);
                         //main context will receive the original message 
                         //for other the message entry is cloned.
-                        MessageEntryPtr newEntry = (ctx->main) ? entry : new MessageEntry(*entry);
-                        newEntry->destination = dynamic_cast<MessageHandler*> (ctx->eventPublisher);
+                        MessageEntry newEntry(entry);
+                        newEntry.destination = dynamic_cast<MessageHandler*> (ctx->eventPublisher);
                         ctx->input.push(newEntry);
                         lstItr1++;
                         if (!(ctx->main)){
@@ -426,15 +423,14 @@ void MessageBus::DispatchMessages() {
                         }
                     }
                 } else {// it is a regular/single message
-                    if (entry->processOnMainThread) {
+                    if (entry.processOnMainThread) {
                         mainContext->input.push(entry);
                     } else {
-                        ThreadContext* destinationContext = static_cast<ThreadContext*> (entry->destination->context);
+                        ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->context);
                         if (destinationContext) {
                             destinationContext->input.push(entry);
                         } else {
                             // handler is no longer available.
-                            safe_delete_item(entry);
                             context->deletedMessages++;
                         }
                     }
@@ -453,16 +449,15 @@ void MessageBus::ThreadDispatchMessages() {
     ThreadContext* context = GetThreadContext();
     if (context) {
         while (!context->input.empty()) {
-            MessageEntryPtr entry = context->input.top();
-            if (entry && entry->destination && entry->message.get()) {
-                ThreadContext* destinationContext = static_cast<ThreadContext*> (entry->destination->context);
-                if (!entry->processOnMainThread && context->threadId != destinationContext->threadId) {
+            const MessageEntry& entry = context->input.top();
+            if (entry.destination && entry.message.get()) {
+                ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->context);
+                if (!entry.processOnMainThread && context->threadId != destinationContext->threadId) {
                     throw runtime_error("Thread contexts inconsistency.");
                 }
-                entry->destination->HandleMessage(entry->type, *(entry->message.get()));
+                entry.destination->HandleMessage(entry.type, *(entry.message.get()));
             }
             context->input.pop();
-            safe_delete_item(entry);
             context->deletedMessages++;
         }
     }
@@ -476,14 +471,14 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
         InternalMessage* internalMsg = dynamic_cast<InternalMessage*> (message.get());
         InternalEventMessage* eventMsg = dynamic_cast<InternalEventMessage*> (message.get());
         if (destination || eventMsg) {
-            MessageEntryPtr entry = new MessageEntry();
-            entry->destination = destination;
-            entry->type = type;
-            entry->message = message;
-            entry->priority = (!internalMsg && !eventMsg && message->GetPriority() < MB_MIN_MSG_PRIORITY) ? MB_MIN_MSG_PRIORITY : message->priority;
-            entry->internal = (internalMsg != nullptr);
-            entry->event = (eventMsg != nullptr);
-            entry->processOnMainThread = processOnMainThread;
+            MessageEntry entry;
+            entry.destination = destination;
+            entry.type = type;
+            entry.message = message;
+            entry.priority = (!internalMsg && !eventMsg && message->GetPriority() < MB_MIN_MSG_PRIORITY) ? MB_MIN_MSG_PRIORITY : message->priority;
+            entry.internal = (internalMsg != nullptr);
+            entry.event = (eventMsg != nullptr);
+            entry.processOnMainThread = processOnMainThread;
             context->output.push(entry);
             context->totalMessages++;
         }

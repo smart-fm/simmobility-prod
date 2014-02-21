@@ -18,7 +18,7 @@
 #include "model/lua/LuaProvider.hpp"
 #include "message/LT_Message.hpp"
 #include "core/DataManager.hpp"
-
+#include "core/AgentsLookup.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::messaging;
@@ -29,13 +29,26 @@ using sim_mob::Math;
 namespace {
     const int TIME_ON_MARKET = 10;
     const int TIME_INTERVAL = 7;
+   
+    const std::string LOG_EXPECTATION = "Seller: [%1%] Price: [%2%] Expectation [%3%].";
+    //bid_timestamp, seller_id, bidder_id, unit_id, bid_value, status(0 - REJECTED, 1- ACCEPTED)
+    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%";
 
-    const std::string LOG_BID_RECEIVED = "Agent: [%1%] received a bid: [%2%] at [%3%].";
-
-    inline void printBid(const HouseholdAgent& agent, const Bid& bid,
-            const timeslice& now) {
-        boost::format fmtr = boost::format(LOG_BID_RECEIVED) % agent.getId() % bid % now.ms();
-        PrintOut(fmtr.str() << endl);
+    inline void printBid(const HouseholdAgent& agent, const Bid& bid, bool accepted) {
+        boost::format fmtr = boost::format(LOG_BID) % bid.getTime().ms() 
+                                                    % agent.getId() 
+                                                    % bid.getBidderId() 
+                                                    % bid.getUnitId()
+                                                    % bid.getValue()
+                                                    % ((accepted) ? 1 : 0);
+        AgentsLookupSingleton::getInstance().getLogger().log(fmtr.str());
+        //PrintOut(fmtr.str() << endl);
+    }
+    
+    inline void printExpectation(const HouseholdAgent& agent, const ExpectationEntry& exp) {
+        boost::format fmtr = boost::format(LOG_EXPECTATION) % agent.getId() % exp.price % exp.expectation;
+        //PrintOut(fmtr.str() << endl);
+        //AgentsLookupSingleton::getInstance().getLogger().log(fmtr.str());
     }
 
     /**
@@ -47,9 +60,12 @@ namespace {
         return bid.getValue() > entry.expectation;
     }
 
-    inline void replyBid(const Bid& bid, const BidResponse& response) {
+    inline void replyBid(const HouseholdAgent& agent, const Bid& bid, 
+            const BidResponse& response) {
         MessageBus::PostMessage(bid.getBidder(), LTMID_BID_RSP,
                 MessageBus::MessagePtr(new BidMessage(bid, response)));
+         //print bid.
+         printBid(agent, bid, (response == ACCEPTED));
     }
 }
 
@@ -130,23 +146,21 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
                         // it is necessary to notify the old max bidder
                         // that his bid was not accepted.
                         //reply to sender.
-                        replyBid(*maxBidOfDay, BETTER_OFFER);
+                        replyBid(*getParent(), *maxBidOfDay, BETTER_OFFER);
                         maxBidsOfDay.erase(unitId);
                         //update the new bid and bidder.
                         maxBidsOfDay.insert(BidEntry(unitId, msg.getBid()));
                     } else {
-                        replyBid(msg.getBid(), BETTER_OFFER);
+                        replyBid(*getParent(), msg.getBid(), BETTER_OFFER);
                     }
                 } else {
-                    replyBid(msg.getBid(), NOT_ACCEPTED);
+                    replyBid(*getParent(), msg.getBid(), NOT_ACCEPTED);
                 }
             } else {
                 // Sellers is not the owner of the unit or unit is not available.
-                replyBid(msg.getBid(), NOT_AVAILABLE);
+                replyBid(*getParent(), msg.getBid(), NOT_AVAILABLE);
             }
             Statistics::increment(Statistics::N_BIDS);
-            //print bid.
-            printBid(*getParent(), msg.getBid(), currentTime);
             break;
         }
         default:break;
@@ -180,7 +194,7 @@ void HouseholdSellerRole::notifyWinnerBidders() {
     for (Bids::iterator itr = maxBidsOfDay.begin(); itr != maxBidsOfDay.end();
             itr++) {
         Bid& maxBidOfDay = itr->second;
-        replyBid(maxBidOfDay, ACCEPTED);
+        replyBid(*getParent(), maxBidOfDay, ACCEPTED);
         market->removeEntry(maxBidOfDay.getUnitId());
         getParent()->removeUnitId(maxBidOfDay.getUnitId());
         unitExpectations.erase(maxBidOfDay.getUnitId());
@@ -196,7 +210,7 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit) {
     unitExpectations.erase(unit.getId());
     unitExpectations.insert(ExpectationMapEntry(unit.getId(), expectationList));
     for (int i = 0; i < TIME_ON_MARKET; i++) {
-        PrintOut("Seller:[" << getParent()->getId() << "] Price:[" << expectationList[i].price << "] Expectation:[" << expectationList[i].expectation << "]." << endl);
+        printExpectation(*getParent(), expectationList[i]);
     }
 }
 

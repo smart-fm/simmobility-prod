@@ -21,6 +21,7 @@
 #include "model/lua/LuaProvider.hpp"
 #include "model/HM_Model.hpp"
 #include "entities/commsim/message/base/Message.hpp"
+#include "core/AgentsLookup.hpp"
 
 using std::list;
 using std::endl;
@@ -30,32 +31,6 @@ using namespace sim_mob::messaging;
 using boost::format;
 
 namespace {
-
-    const std::string LOG_BID_ACCEPTED = "Agent: [%1%] bid: [%2%] was accepted.";
-    const std::string LOG_BID_REJECTED = "Agent: [%1%] bid: [%2%] was rejected.";
-
-    inline void printBid(const HouseholdAgent& agent, const Bid& bid,
-            const BidResponse& resp) {
-        std::string msg = "";
-        switch (resp) {
-            case ACCEPTED:// Bid accepted 
-            {
-                msg = LOG_BID_ACCEPTED;
-                break;
-            }
-            case NOT_ACCEPTED:
-            {
-                msg = LOG_BID_REJECTED;
-                break;
-            }
-            default:break;
-        }
-
-        if (!msg.empty()) {
-            format fmtr = boost::format(LOG_BID_ACCEPTED) % agent.getId() % bid;
-            PrintOut(fmtr.str() << endl);
-        }
-    }
 
     /**
      * Send given bid to given owner.
@@ -126,8 +101,6 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type,
             }
             waitingForResponse = false;
             Statistics::increment(Statistics::N_BID_RESPONSES);
-            //print out bid.
-            printBid(*getParent(), msg.getBid(), msg.getResponse());
             break;
         }
         default:break;

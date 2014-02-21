@@ -261,8 +261,7 @@ public:
 	///Some settings for bus stop arrivals/departures.
 	std::map<int, BusStopScheduledTime> busScheduledTimes; //The int is a "bus stop ID", starting from 0.
 
-//	//Some settings for person characteristics(age range, boarding alighting secs)
-//	std::map<int, PersonCharacteristics> personCharacteristics;
+	//Person characteristics parameters
 	PersonCharacteristicsParams personCharacteristicsParams;
 
 	//@{

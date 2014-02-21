@@ -62,6 +62,28 @@ struct IncidentParams {
 	std::vector<LaneParams> laneParams;
 };
 
+///Represents a Person's Characteristic in the config file. (NOTE: Further documentation needed.)
+struct PersonCharacteristics {
+	PersonCharacteristics() : lowerAge(0), upperAge(0), lowerSecs(0), upperSecs(0) {}
+
+	unsigned int lowerAge; // lowerAge
+	unsigned int upperAge; // upperAge
+	int lowerSecs;// lowerSecs
+	int upperSecs;// upperSecs
+};
+
+///represent the person characteristics data section of the config file
+struct PersonCharacteristicsParams {
+
+	PersonCharacteristicsParams() : lowestAge(100), highestAge(0), DEFAULT_LOWER_SECS(3), DEFAULT_UPPER_SECS(10) {}
+	int lowestAge;
+	int highestAge;
+	const int DEFAULT_LOWER_SECS;
+	const int DEFAULT_UPPER_SECS;
+	//Some settings for person characteristics(age range, boarding alighting secs)
+	std::map<int, PersonCharacteristics> personCharacteristics;
+};
+
 ///Represents a Bust Stop in the config file. (NOTE: Further documentation needed.)
 struct BusStopScheduledTime {
 	BusStopScheduledTime() : offsetAT(0), offsetDT(0) {}
@@ -69,7 +91,6 @@ struct BusStopScheduledTime {
 	unsigned int offsetAT; //<Presumably arrival time?
 	unsigned int offsetDT; //<Presumably departure time?
 };
-
 
 ///Represents a complete connection to the database, via Construct ID.
 struct DatabaseDetails {
@@ -242,6 +263,9 @@ public:
 
 	///Some settings for bus stop arrivals/departures.
 	std::map<int, BusStopScheduledTime> busScheduledTimes; //The int is a "bus stop ID", starting from 0.
+
+	//Person characteristics parameters
+	PersonCharacteristicsParams personCharacteristicsParams;
 
 	//@{
 	///Templates for creating entities of various types.

@@ -276,8 +276,14 @@ Point2D ParsePoint2D(const XMLCh* srcX, Point2D* defValue) {
 
 int ParseInteger(const XMLCh* srcX, int* defValue) {
 	if (srcX) {
-		std::string src = TranscodeString(srcX);
-		return boost::lexical_cast<int>(src);
+		int value = 0;
+		try {
+			std::string src = TranscodeString(srcX);
+			value = boost::lexical_cast<int>(src);
+		} catch( boost::bad_lexical_cast const& ) {
+			throw std::runtime_error("Bad formatted source string for Integer parsing.");
+		}
+		return value;
 	}
 
 	//Wasn't found.
@@ -302,8 +308,14 @@ float ParseFloat(const XMLCh* srcX, float* defValue) {
 
 unsigned int ParseUnsignedInt(const XMLCh* srcX, unsigned int* defValue) {
 	if (srcX) {
-		std::string src = TranscodeString(srcX);
-		return boost::lexical_cast<unsigned int>(src);
+		unsigned int value = 0;
+		try {
+			std::string src = TranscodeString(srcX);
+			value = boost::lexical_cast<unsigned int>(src);
+		} catch( boost::bad_lexical_cast const& ) {
+			throw std::runtime_error("Bad formatted source string for unsigned integer parsing.");
+		}
+		return value;
 	}
 
 	//Wasn't found.
@@ -406,6 +418,9 @@ unsigned int ParseUnsignedInt(const XMLCh* src) { //No default
 }
 float ParseFloat(const XMLCh* src) {
 	return ParseFloat(src, nullptr);
+}
+float ParseFloat(const XMLCh* src, float defValue) {
+	return ParseFloat(src, &defValue);
 }
 unsigned int ParseGranularitySingle(const XMLCh* src, unsigned int defValue) {
 	return ParseGranularitySingle(src, &defValue);
@@ -559,6 +574,7 @@ void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
 	ProcessIncidentsNode(GetSingleElementByName(rootNode, "incidentsData"));
 	ProcessConstructsNode(GetSingleElementByName(rootNode,"constructs"));
 	ProcessBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes"));
+	ProcessPersonCharacteristicsNode(GetSingleElementByName(rootNode, "personCharacteristics"));
 
 	//Agents all follow a template.
 	ProcessDriversNode(GetSingleElementByName(rootNode, "drivers"));
@@ -638,6 +654,40 @@ void sim_mob::ParseConfigFile::ProcessBusStopScheduledTimesNode(xercesc::DOMElem
 	}
 }
 
+void sim_mob::ParseConfigFile::ProcessPersonCharacteristicsNode(xercesc::DOMElement* node)
+{
+	if (!node) {
+		return;
+	}
+
+	//Loop through all children
+	int count=0;
+	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
+		if (TranscodeString(item->getNodeName())!="person") {
+			Warn() <<"Invalid personCharacteristics child node.\n";
+			continue;
+		}
+
+		//Retrieve properties, add a new item to the vector.
+		PersonCharacteristics res;
+		res.lowerAge = ParseUnsignedInt(GetNamedAttributeValue(item, "lowerAge"), static_cast<unsigned int>(0));
+		res.upperAge = ParseUnsignedInt(GetNamedAttributeValue(item, "upperAge"), static_cast<unsigned int>(0));
+		res.lowerSecs = ParseInteger(GetNamedAttributeValue(item, "lowerSecs"), static_cast<int>(0));
+		res.upperSecs = ParseInteger(GetNamedAttributeValue(item, "upperSecs"), static_cast<int>(0));
+		cfg.personCharacteristicsParams.personCharacteristics[count++] = res;
+	}
+
+	std::map<int, PersonCharacteristics> personCharacteristics =  cfg.personCharacteristicsParams.personCharacteristics;
+	// calculate lowest age and highest age in the ranges
+	for(std::map<int, PersonCharacteristics>::const_iterator iter=personCharacteristics.begin();iter != personCharacteristics.end();iter++) {
+		if(cfg.personCharacteristicsParams.lowestAge > iter->second.lowerAge) {
+			cfg.personCharacteristicsParams.lowestAge = iter->second.lowerAge;
+		}
+		if(cfg.personCharacteristicsParams.highestAge < iter->second.upperAge) {
+			cfg.personCharacteristicsParams.highestAge = iter->second.upperAge;
+		}
+	}
+}
 
 void sim_mob::ParseConfigFile::ProcessConstructsNode(xercesc::DOMElement* node)
 {

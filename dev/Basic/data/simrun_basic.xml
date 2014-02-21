@@ -427,6 +427,16 @@
         <stop offsetAT="403600" offsetDT="409600" />        
     </scheduledTimes>
     
+    <!-- usually elder persons are slower than younger persons (upperAge maximum is 100)-->
+    <!-- and their boarding alighting secs are larger than younger persons -->
+    <!-- the default age range are followings and you can edit their lowerSecs or upperSecs -->
+    <personCharacteristics>
+        <person lowerAge="20" upperAge="30" lowerSecs="3" upperSecs="7"/>
+        <person lowerAge="30" upperAge="40" lowerSecs="4" upperSecs="8"/>
+        <person lowerAge="40" upperAge="50" lowerSecs="5" upperSecs="9"/>
+        <person lowerAge="50" upperAge="60" lowerSecs="6" upperSecs="10"/>
+     </personCharacteristics>
+    
     
     <!--Driver start locations-->
     <!--3 drivers start at the N/S/E/W and each turns a different way-->

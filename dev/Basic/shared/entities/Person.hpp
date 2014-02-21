@@ -146,9 +146,9 @@ public:
 		this->resetParamsRequired = resetParamsRequired;
 	}
 	// get boarding time secs for this person
-	double getBoardingCharacteristics() const { return BOARDING_TIME_SEC; }
+	double getBoardingCharacteristics() const { return boardingTimeSecs; }
 	// get alighting time secs for this person
-	double getAlightingCharacteristics() const { return ALIGTHING_TIME_SEC; }
+	double getAlightingCharacteristics() const { return alightingTimeSecs; }
 
 	// pointer to current item in trip chain
     std::vector<TripChainItem*>::iterator currTripChainItem;
@@ -233,9 +233,9 @@ private:
     // person's age
     unsigned int age;
     // person's boarding time secs
-    double BOARDING_TIME_SEC;
+    double boardingTimeSecs;
     // person's alighting time secs
-    double ALIGTHING_TIME_SEC;
+    double alightingTimeSecs;
     std::vector<WayPoint> currPath;
 
 public:

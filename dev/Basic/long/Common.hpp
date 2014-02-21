@@ -59,9 +59,10 @@ namespace sim_mob {
             // Messages for biding process
             LTMID_BID,
             LTMID_BID_RSP,
+            LTMID_LOG,
         };
 
-
+        const int INTERNAL_MESSAGE_PRIORITY = 5;
         const double INVALID_DOUBLE = -1;
         const int INVALID_ID = -1;
         const std::string EMPTY_STR = std::string();

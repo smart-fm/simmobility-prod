@@ -152,6 +152,10 @@ void sim_mob::Broker::configure()
 		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
 		messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, android_factory));
 		messageFactories.insert(std::make_pair(comm::NS3_SIMULATOR, ns3_factory));
+
+		//We assume the "UNKNOWN" type knows about connection messages.
+		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > basic_factory(new sim_mob::BasicMessageFactory());
+		messageFactories.insert(std::make_pair(comm::UNKNOWN_CLIENT, basic_factory));
 	} else if (client_type == "android-only") {
 		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> >
 			android_factory(new sim_mob::roadrunner::RoadRunnerFactory(false));
@@ -160,8 +164,7 @@ void sim_mob::Broker::configure()
 		messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, android_factory));
 
 		//We assume the "UNKNOWN" type knows about connection messages.
-		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> >
-			basic_factory(new sim_mob::BasicMessageFactory());
+		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > basic_factory(new sim_mob::BasicMessageFactory());
 		messageFactories.insert(std::make_pair(comm::UNKNOWN_CLIENT, basic_factory));
 	}
 

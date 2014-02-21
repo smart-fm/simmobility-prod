@@ -53,9 +53,6 @@ public:
 	///If "accountForOnFlag" is false, *only* the cmake define flag is checked.
 	bool ProfileAuraMgrUpdates(bool accountForOnFlag=true) const;
 
-	///Synced to the value of SIMMOB_USE_CONFLUXES; used for runtime checks.
-	bool UsingConfluxes() const;
-
 	///Synced to the value of SIMMOB_INTERACTIVE_MODE; used for to detect if we're running "interactively"
 	/// with the GUI or console.
 	bool InteractiveMode() const;

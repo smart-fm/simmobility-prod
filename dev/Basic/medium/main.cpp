@@ -16,13 +16,16 @@
 //main.cpp (top-level) files can generally get away with including GenConfig.h
 #include "GenConfig.h"
 
+#include "behavioral/PredayManager.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/ParseConfigFile.hpp"
 #include "conf/ExpandAndValidateConfigFile.hpp"
+#include "database/DB_Connection.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/Agent.hpp"
+#include "entities/BusController.hpp"
 #include "entities/Person.hpp"
 #include "entities/models/CarFollowModel.hpp"
 #include "entities/models/LaneChangeModel.hpp"
@@ -37,14 +40,14 @@
 #include "geospatial/UniNode.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
+#include "logging/Log.hpp"
 #include "util/DailyTime.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Utils.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
-#include "logging/Log.hpp"
-#include "entities/BusController.hpp"
+
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -101,56 +104,16 @@ private:
 	builtIn.intDrivingModels["linear"] = new Fake_IntDriving_Model();
 }*/
 
+const int DEFAULT_NUM_THREADS_DEMAND = 2; // default number of threads for demand
 } //End anon namespace
 
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
 
-
 /**
- * Main simulation loop.
- * \note
- * For doxygen, we are setting the variable JAVADOC AUTOBRIEF to "true"
- * This isn't necessary for class-level documentation, but if we want
- * documentation for a short method (like "get" or "set") then it makes sense to
- * have a few lines containing brief/full comments. (See the manual's description
- * of JAVADOC AUTOBRIEF). Of course, we can discuss this first.
- *
- * \par
- * See Buffered.hpp for an example of this in action.
- *
- * \par
- * ~Seth
- *
- * This function is separate from main() to allow for easy scoping of WorkGroup objects.
+ * Main simulation loop for the supply simulator
  */
-bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles) {
-	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
-	
-	//Parse the config file (this *does not* create anything, it just reads it.).
-	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
-
-	//Enable or disable logging (all together, for now).
-	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
-	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
-	//      has been loaded or not. The new Config class makes this much clearer.
-	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
-		//Log::Init("out.txt");
-		Warn::Init("warn.log");
-		Print::Init("<stdout>");
-	} else {
-		//Log::Ignore();
-		Warn::Ignore();
-		Print::Ignore();
-	}
-
-	if (ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
-		std::cout << "Confluxes ON!" << std::endl;
-	}
-	else {
-		throw std::runtime_error("Confluxes OFF! Please turn SIMMOB_USE_CONFLUXES on in CMakeCache.txt and run the program again.");
-	}
-
+bool performMainSupply(const std::string& configFileName, std::list<std::string>& resLogFiles) {
 	ProfileBuilder* prof = nullptr;
 	if (ConfigManager::GetInstance().CMakeConfig().ProfileOn()) {
 		ProfileBuilder::InitLogFile("profile_trace.txt");
@@ -176,10 +139,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 
 	//Load our user config file
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
-	//Load our user config file
-//	ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof, builtIn);
-	std::cout<<"performMainMed: trip chain pool size "<<
-			ConfigManager::GetInstance().FullConfig().getTripChains().size()<<std::endl;
+	std::cout<<"performMainMed: trip chain pool size "<< ConfigManager::GetInstance().FullConfig().getTripChains().size()<<std::endl;
 
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		// init path set manager
@@ -422,6 +382,83 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	safe_delete_item(prof);
 	return true;
 }
+/**
+ * Simulation loop for the demand simulator
+ */
+bool performMainDemand(unsigned numThreads){
+	PredayManager predayManager;
+	predayManager.loadZones(db::MONGO_DB);
+	predayManager.loadCosts(db::MONGO_DB);
+	predayManager.loadPersons(db::MONGO_DB);
+	predayManager.distributeAndProcessPersons(numThreads);
+	return true;
+}
+
+/**
+ * Main simulation loop.
+ * \note
+ * For doxygen, we are setting the variable JAVADOC AUTOBRIEF to "true"
+ * This isn't necessary for class-level documentation, but if we want
+ * documentation for a short method (like "get" or "set") then it makes sense to
+ * have a few lines containing brief/full comments. (See the manual's description
+ * of JAVADOC AUTOBRIEF). Of course, we can discuss this first.
+ *
+ * \par
+ * See Buffered.hpp for an example of this in action.
+ *
+ * \par
+ * ~Seth
+ *
+ * This function is separate from main() to allow for easy scoping of WorkGroup objects.
+ */
+bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles) {
+	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
+
+	//Parse the config file (this *does not* create anything, it just reads it.).
+	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
+
+	//Enable or disable logging (all together, for now).
+	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
+	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
+	//      has been loaded or not. The new Config class makes this much clearer.
+	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
+		//Log::Init("out.txt");
+		Warn::Init("warn.log");
+		Print::Init("<stdout>");
+	} else {
+		//Log::Ignore();
+		Warn::Ignore();
+		Print::Ignore();
+	}
+
+	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply() && ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
+		throw std::runtime_error("Mid-term run mode \"demand+supply\" is not supported yet. Please run demand and supply separately.");
+	}
+	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
+		Print() << "Mid-term run mode: supply" << std::endl;
+		return performMainSupply(configFileName, resLogFiles);
+	}
+	else if (ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
+		Print() << "Mid-term run mode: demand" << std::endl;
+		int numThreads = DEFAULT_NUM_THREADS_DEMAND;
+		try {
+			std::string numThreadsStr = ConfigManager::GetInstanceRW().FullConfig().system.genericProps.at("demand_threads");
+			numThreads = std::atoi(numThreadsStr.c_str());
+			if(numThreads < 1) {
+				throw std::runtime_error("inadmissible number of threads specified. Please check generic property 'demand_threads'");
+			}
+		}
+		catch (const std::out_of_range& oorx) {
+			Print() << "generic property 'demand_threads' was not specified."
+					<< " Defaulting to " << numThreads << " threads."
+					<< std::endl;
+		}
+		return performMainDemand(numThreads);
+	}
+	else {
+		throw std::runtime_error("Invalid Mid-term run mode. Admissible values are \"demand\" and \"supply\"");
+	}
+}
 
 int main(int ARGC, char* ARGV[])
 {
@@ -470,7 +507,7 @@ int main(int ARGC, char* ARGV[])
 	if (args.size() > 1) {
 		configFileName = args[1];
 	} else {
-		cout << "No config file specified; using default." << endl;
+		Print() << "No config file specified; using default." << endl;
 	}
 	Print() << "Using config file: " << configFileName << endl;
 

@@ -33,6 +33,7 @@ namespace sim_mob {
          */
         PropertyLoader(const std::string& filePath, const std::string& section);
         PropertyLoader(const PropertyLoader& source);
+        PropertyLoader();
         virtual ~PropertyLoader();
 
         const std::string& getSection() const;

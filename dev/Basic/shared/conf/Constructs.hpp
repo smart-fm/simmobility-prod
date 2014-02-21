@@ -70,5 +70,21 @@ private:
 	std::string password;
 };
 
+class ExternalScriptsMap : public Identifiable {
+public:
+	ExternalScriptsMap(const std::string& id="", const std::string& scriptFilesPath="", const std::string& scriptsLang="");
+
+	std::string path;
+	std::string scriptLanguage;
+	std::map<std::string, std::string> scriptFileName; //key=>value
+};
+
+class MongoCollectionsMap : public Identifiable {
+public:
+	MongoCollectionsMap(const std::string& id="", const std::string& dbName="");
+
+	std::string dbName;
+	std::map<std::string, std::string> collectionName; //key=>value
+};
 
 }

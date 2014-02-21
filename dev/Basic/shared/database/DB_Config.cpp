@@ -24,8 +24,8 @@ namespace {
 
 DB_Config::DB_Config(const string& file)
 : PropertyLoader(file, SECTION),
-port(0), host(""), password(""), username(""), databaseName("") {
-}
+port(0), host(""), password(""), username(""), databaseName("")
+{}
 
 DB_Config::DB_Config(const DB_Config& orig) 
 : PropertyLoader(orig) {
@@ -36,8 +36,13 @@ DB_Config::DB_Config(const DB_Config& orig)
     databaseName = orig.databaseName;
 }
 
-DB_Config::~DB_Config() {
-}
+DB_Config::DB_Config(std::string& host, std::string& port, std::string& dbname, std::string& username, std::string& password)
+: PropertyLoader(), port(std::atoi(port.c_str())), host(host), databaseName(dbname), username(username), password(password)
+{}
+
+
+DB_Config::~DB_Config()
+{}
 
 const string& DB_Config::getDatabaseName() const {
     return databaseName;

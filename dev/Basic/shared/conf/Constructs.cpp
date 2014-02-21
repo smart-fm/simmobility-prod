@@ -33,6 +33,12 @@ sim_mob::Database::Database(const std::string& id) : Identifiable(id)
 sim_mob::Credential::Credential(const std::string& id) : Identifiable(id)
 {}
 
+sim_mob::ExternalScriptsMap::ExternalScriptsMap(const std::string& id, const std::string& scriptFilesPath, const std::string& scriptsLang) : Identifiable(id), path(scriptFilesPath), scriptLanguage(scriptsLang)
+{}
+
+sim_mob::MongoCollectionsMap::MongoCollectionsMap(const std::string& id, const std::string& dbName) : Identifiable(id), dbName(dbName)
+{}
+
 std::string sim_mob::Credential::getUsername() const
 {
 	return username;

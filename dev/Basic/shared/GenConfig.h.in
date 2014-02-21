@@ -41,7 +41,6 @@
 #cmakedefine SIMMOB_INTERACTIVE_MODE
 #cmakedefine SIMMOB_XML_WRITER
 #cmakedefine SIMMOB_USE_TEST_GUI
-#cmakedefine SIMMOB_USE_CONFLUXES
 
 
 

@@ -99,7 +99,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
 	  client_id(-1)
 {
-	if (!ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
+	if (!ConfigManager::GetInstance().FullConfig().RunningMidSupply() && !ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
 		simplyModifyTripChain(tcs);
 	}
 	initTripChain();
@@ -484,19 +484,13 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 		{
 			std::vector<SubTrip>::iterator subChainItem1, subChainItem2;
 			std::vector<sim_mob::SubTrip>& subtrip = (dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
-			for(subChainItem1 = subtrip.begin();subChainItem1!=subtrip.end(); subChainItem1++)
-			{
-				//std::cout << "first item  " << subChainItem1->fromLocation.getID() << " " <<subChainItem1->toLocation.getID() <<" mode " <<subChainItem1->mode << std::endl;
-			}
+
 			subChainItem2 = subChainItem1 = subtrip.begin();
 			subChainItem2++;
 			vector<SubTrip> newsubchain;
 			newsubchain.push_back(*subChainItem1);
 			while(subChainItem1!=subtrip.end() && subChainItem2!=subtrip.end() )
 			{
-				//std::cout << "first item  " << subChainItem1->fromLocation.getID() << " " <<subChainItem1->toLocation.getID() << std::endl;
-				//std::cout << "second item  " << subChainItem2->fromLocation.getID() << " " <<subChainItem2->toLocation.getID() << std::endl;
-
 				WayPoint source, destination;
 				if( (subChainItem1->mode=="Walk") && (subChainItem2->mode=="BusTravel") )
 				{

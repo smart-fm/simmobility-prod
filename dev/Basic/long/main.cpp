@@ -26,12 +26,11 @@
 #include "model/HM_Model.hpp"
 #include "Common.hpp"
 #include "config/LT_Config.hpp"
-#include "core/EventsInjector.hpp"
 #include "core/DataManager.hpp"
+#include "core/AgentsLookup.hpp"
 
 #include "unit-tests/dao/DaoTests.hpp"
-#include "core/AgentsLookup.hpp"
-#include "core/LoggerAgent.hpp"
+
 
 using std::cout;
 using std::endl;
@@ -96,11 +95,12 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
     simulationWatch.start();
     
     //Loads data and initialize singletons.
-    DataManagerSingleton::getInstance().load();
-    AgentsLookupSingleton::getInstance();
+    DataManager& dataManager = DataManagerSingleton::getInstance();
+    AgentsLookup& agentsLookup = AgentsLookupSingleton::getInstance();
+    //loads all necessary data
+    dataManager.load();
     
     vector<Model*> models;
-    EventsInjector injector;
     HM_Model* model = nullptr;
     {
         WorkGroupManager wgMgr;
@@ -118,8 +118,8 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         eventsWorker->initWorkers(nullptr);
         
         //assign agents
-        logsWorker->assignAWorker(&(AgentsLookupSingleton::getInstance().getLogger()));
-        eventsWorker->assignAWorker(&injector);
+        logsWorker->assignAWorker(&(agentsLookup.getLogger()));
+        eventsWorker->assignAWorker(&(agentsLookup.getEventsInjector()));
         //models 
         model = new HM_Model(*hmWorkers);
         models.push_back(model);
@@ -142,8 +142,8 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
     }
     
     //reset singletons and stop watch.
-    DataManagerSingleton::getInstance().reset();
-    AgentsLookupSingleton::getInstance().reset();
+    dataManager.reset();
+    agentsLookup.reset();
     simulationWatch.stop();
    
     printReport(simulationNumber, models, simulationWatch);

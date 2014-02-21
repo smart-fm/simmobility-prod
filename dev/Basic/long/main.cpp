@@ -31,6 +31,7 @@
 
 #include "unit-tests/dao/DaoTests.hpp"
 #include "core/AgentsLookup.hpp"
+#include "core/LoggerAgent.hpp"
 
 using std::cout;
 using std::endl;
@@ -106,15 +107,18 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         wgMgr.setSingleThreadMode(config.singleThreaded());
         
         // -- Events injector work group.
+        WorkGroup* logsWorker = wgMgr.newWorkGroup(1, DAYS, TICK_STEP);
         WorkGroup* eventsWorker = wgMgr.newWorkGroup(1, DAYS, TICK_STEP);
         WorkGroup* hmWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
         
         //init work groups.
         wgMgr.initAllGroups();
+        logsWorker->initWorkers(nullptr);
         hmWorkers->initWorkers(nullptr);
         eventsWorker->initWorkers(nullptr);
         
         //assign agents
+        logsWorker->assignAWorker(&(AgentsLookupSingleton::getInstance().getLogger()));
         eventsWorker->assignAWorker(&injector);
         //models 
         model = new HM_Model(*hmWorkers);

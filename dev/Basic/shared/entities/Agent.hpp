@@ -72,7 +72,7 @@ class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vec
  *
  * Agents maintain an x and a y position. They may have different behavioral models.
  */
-class Agent : public sim_mob::Entity, public event::EventListener {
+class Agent : public sim_mob::Entity {
 public:
 	static int createdAgents;
 	static int diedAgents;

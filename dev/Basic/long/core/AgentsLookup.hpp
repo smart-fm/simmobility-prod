@@ -11,6 +11,7 @@
 #include <boost/unordered_map.hpp>
 #include "util/SingletonHolder.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
+#include "LoggerAgent.hpp"
 
 namespace sim_mob {
 
@@ -34,6 +35,11 @@ namespace sim_mob {
             void addHousehold(const HouseholdAgent* agent);
             
             /**
+             * Gets logger agent.
+             */
+            LoggerAgent& getLogger();
+            
+            /**
              * Clears all data.
              */
             void reset();
@@ -49,6 +55,7 @@ namespace sim_mob {
 
         private:
             HouseholdMap householdsById;
+            LoggerAgent logger;
         };
 
         /**

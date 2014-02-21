@@ -23,7 +23,7 @@ namespace {
     }
 }
 
-AgentsLookup::AgentsLookup() {
+AgentsLookup::AgentsLookup(){
 }
 
 AgentsLookup::~AgentsLookup() {
@@ -42,4 +42,8 @@ void AgentsLookup::addHousehold(const HouseholdAgent* agent) {
 
 const HouseholdAgent* AgentsLookup::getHouseholdById(const BigSerial id) const {
     return getById<HouseholdAgent>(householdsById, id);
+}
+
+LoggerAgent& AgentsLookup::getLogger() {
+    return logger;
 }

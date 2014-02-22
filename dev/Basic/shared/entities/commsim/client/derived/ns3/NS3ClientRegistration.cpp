@@ -36,11 +36,6 @@ bool sim_mob::NS3ClientRegistration::initialEvaluation(sim_mob::Broker& broker,
 boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> existingConn,
 		sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, sim_mob::AgentInfo agent)
 {
-
-	/*boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler(
-		new ConnectionHandler(request.session_, broker.getMessageReceiveCallBack())
-	);*/
-
 	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker, existingConn, nullptr, nullptr, request.clientID));
 	clientEntry->setRequiredServices(request.requiredServices);
 
@@ -104,14 +99,13 @@ void sim_mob::NS3ClientRegistration::sendAgentsInfo(sim_mob::Broker& broker,
 bool sim_mob::NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn)
 {
 	//For now, this only works on its own dedicated socket.
-	if (existingConn) {
-		throw std::runtime_error("NS3ClientRegistration requires a unique socket connection.");
-	}
+	//if (existingConn) {
+	//	throw std::runtime_error("NS3ClientRegistration requires a unique socket connection.");
+	//}
 
 //	//This part is locked in fear of registered agents' iterator invalidation in the middle of the process
 	AgentsList::Mutex *registered_agents_mutex;
-	AgentsList::type &registeredAgents = broker.getRegisteredAgents(
-			registered_agents_mutex);
+	AgentsList::type &registeredAgents = broker.getRegisteredAgents(registered_agents_mutex);
 	if (!initialEvaluation(broker, registeredAgents)) {
 		return false;
 	}
@@ -119,13 +113,12 @@ bool sim_mob::NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::Cl
 	//use it to create a client entry
 	clientHandler = makeClientHandler(existingConn, broker, request);
 
-	postProcess(broker);
-	return true;
-}
-
-void sim_mob::NS3ClientRegistration::postProcess(sim_mob::Broker& broker){
+	//AgentsInfo is required before READY
 	sendAgentsInfo(broker, clientHandler);
 
 	//Inform the handler we are ready to proceed.
 	clientHandler->connHandle->forwardReadyMessage(*clientHandler);
+
+	return true;
 }
+

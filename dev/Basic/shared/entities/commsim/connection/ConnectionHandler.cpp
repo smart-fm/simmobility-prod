@@ -119,7 +119,7 @@ void sim_mob::ConnectionHandler::messageReceivedHandle(const boost::system::erro
 	//}
 }
 
-void sim_mob::ConnectionHandler::sendImmediately(const std::string& str)
+/*void sim_mob::ConnectionHandler::sendImmediately(const std::string& str)
 {
 	boost::unique_lock<boost::mutex> lock1(async_write_mutex);
 	boost::unique_lock<boost::mutex> lock2(async_read_mutex);
@@ -130,7 +130,7 @@ void sim_mob::ConnectionHandler::sendImmediately(const std::string& str)
 	boost::system::error_code ec;
 	outgoingMessage = str;
 	session->write(outgoingMessage, ec);
-}
+}*/
 
 session_ptr& sim_mob::ConnectionHandler::getSession()
 {

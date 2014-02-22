@@ -74,8 +74,8 @@ boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeCl
 
 }
 
-void sim_mob::NS3ClientRegistration::sendAgentsInfo(sim_mob::Broker& broker,
-		boost::shared_ptr<ClientHandler> clientEntry) {
+void sim_mob::NS3ClientRegistration::sendAgentsInfo(sim_mob::Broker& broker, boost::shared_ptr<ClientHandler> clientEntry)
+{
 	//send some initial configuration information to NS3
 	std::set<sim_mob::Entity *> keys;
 	{			//multi-threaded section, need locking
@@ -90,10 +90,11 @@ void sim_mob::NS3ClientRegistration::sendAgentsInfo(sim_mob::Broker& broker,
 			keys.insert(it->second.agent);
 		}
 	}
-//no lock and const_cast at the cost of a lot of copying
+
+	//no lock and const_cast at the cost of a lot of copying
 	AgentsInfo info;
 	info.insertInfo(AgentsInfo::ADD_AGENT, keys);
-	clientEntry->connHandle->sendImmediately(info.toJson());	//send synchronously
+	clientEntry->connHandle->forwardMessage(info.toJson());	//send synchronously
 }
 
 bool sim_mob::NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn)

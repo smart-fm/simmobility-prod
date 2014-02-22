@@ -51,7 +51,7 @@ public:
 
 	//Send a synchronous message. NOTE: Be careful with this! The ConnectionHandler is designed for
 	// asynchronous sending.
-	void sendImmediately(const std::string& str);
+	//void sendImmediately(const std::string& str);
 
 	//A token is used to uniquely identify ConnectionHandlers.
 	std::string getToken() const;

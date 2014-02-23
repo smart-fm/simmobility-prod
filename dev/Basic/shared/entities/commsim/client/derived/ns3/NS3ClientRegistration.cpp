@@ -13,6 +13,7 @@
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "event/EventPublisher.hpp"
+#include "entities/Person.hpp"
 #include "entities/commsim/broker/base/Common.hpp"
 #include "entities/commsim/event/AllLocationsEventArgs.hpp"
 #include "AgentsInfo.hpp"
@@ -88,6 +89,16 @@ void sim_mob::NS3ClientRegistration::sendAgentsInfo(sim_mob::Broker& broker, boo
 				it++) {
 			//BOOST_FOREACH(agent, agents) {
 			keys.insert(it->second.agent);
+		}
+
+		//We are cheating a bit here.
+		StartTimePriorityQueue pending(Agent::pending_agents);
+		while (!pending.empty()) {
+			Person* p = dynamic_cast<Person*>(pending.top());
+			if (p) {
+				keys.insert(p);
+			}
+			pending.pop();
 		}
 	}
 

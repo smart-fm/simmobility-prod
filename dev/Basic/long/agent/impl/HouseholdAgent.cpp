@@ -26,12 +26,12 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(HM_Model* model, const Household* household,
-        HousingMarket* market, bool marketSeller)
-: LT_Agent(household->getId()), model(model), market(market),
-household(household), marketSeller(marketSeller) {
+HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, 
+        const Household* household, HousingMarket* market, bool marketSeller)
+: LT_Agent(id), model(model), market(market), household(household), 
+        marketSeller(marketSeller), bidder (nullptr), seller(nullptr) {
     seller = new HouseholdSellerRole(this);
-    seller->setActive(false);
+    seller->setActive(marketSeller);
     if (!marketSeller) {
         bidder = new HouseholdBidderRole(this);
         bidder->setActive(false);

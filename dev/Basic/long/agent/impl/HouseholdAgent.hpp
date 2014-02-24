@@ -31,7 +31,7 @@ namespace sim_mob {
          */
         class HouseholdAgent :  public LT_Agent {
         public:
-            HouseholdAgent(HM_Model* model, const Household* hh, 
+            HouseholdAgent(BigSerial id, HM_Model* model, const Household* hh, 
                     HousingMarket* market, bool marketSeller = false);
             virtual ~HouseholdAgent();
             

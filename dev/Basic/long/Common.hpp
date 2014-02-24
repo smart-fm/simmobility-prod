@@ -27,18 +27,15 @@ namespace sim_mob {
             LTEID_START = event::EVT_LONG_START,
             
             // Model life cycle events.
-            LTEID_MODEL_START = LTEID_START + 100,
             LTEID_MODEL_STARTED,
             LTEID_MODEL_STOPPED,
 
             // Events for HousingMarket
             // housing market action (unit was ADDED, REMOVED or UPDATED )
-            LTEID_MH_START = LTEID_START + 200,
             LTEID_HM_UNIT_ADDED,
             LTEID_HM_UNIT_REMOVED,
             
             // External Events
-            LTEID_EXTERNAL_START = LTEID_START + 300,
             LTEID_EXT_NEW_JOB,
             LTEID_EXT_LOST_JOB,
             LTEID_EXT_NEW_JOB_LOCATION,

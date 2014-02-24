@@ -725,3 +725,7 @@ void sim_mob::WorkGroup::findBoundaryConfluxes() {
 		(*itw)->findBoundaryConfluxes();
 	}
 }
+
+unsigned int sim_mob::WorkGroup::getNumberOfWorkers() const {
+    return this->numWorkers;
+}

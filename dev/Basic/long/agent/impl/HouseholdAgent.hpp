@@ -32,7 +32,7 @@ namespace sim_mob {
         class HouseholdAgent :  public LT_Agent {
         public:
             HouseholdAgent(HM_Model* model, const Household* hh, 
-                    HousingMarket* market);
+                    HousingMarket* market, bool marketSeller = false);
             virtual ~HouseholdAgent();
             
             //not-thread safe
@@ -96,6 +96,7 @@ namespace sim_mob {
             UnitIdList unitIds;
             HouseholdBidderRole* bidder;
             HouseholdSellerRole* seller;
+            bool marketSeller; //tells if the agent is only a fake market seller
         };
     }
 }

@@ -69,6 +69,7 @@ namespace sim_mob {
             const Unit* getUnitById(const BigSerial unitId) const;
             const Household* getHouseholdById(const BigSerial householdId) const;
             const HouseholdList& getHouseholds() const;
+            const UnitList& getUnits() const;
         private:
             template<typename T> friend class DataManagerLifeCycle;
             DataManager();

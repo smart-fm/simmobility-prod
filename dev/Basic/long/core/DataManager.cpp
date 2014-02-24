@@ -67,7 +67,7 @@ namespace {
     }
 }
 
-DataManager::DataManager() : readyToLoad(true){
+DataManager::DataManager() : readyToLoad(true) {
 }
 
 DataManager::~DataManager() {
@@ -92,10 +92,10 @@ void DataManager::reset() {
 
 void DataManager::load() {
     //first resets old data if necessary.
-    if (!readyToLoad){
+    if (!readyToLoad) {
         reset();
     }
-    
+
     DB_Config dbConfig(LT_DB_CONFIG_FILE);
     dbConfig.load();
     // Connect to database and load data.
@@ -158,4 +158,8 @@ const Household* DataManager::getHouseholdById(const BigSerial householdId) cons
 
 const DataManager::HouseholdList& DataManager::getHouseholds() const {
     return households;
+}
+
+const DataManager::UnitList& DataManager::getUnits() const {
+    return units;
 }

@@ -13,6 +13,12 @@ using namespace sim_mob;
 using namespace sim_mob::long_term;
 namespace {
 
+    /**
+     * Gets object for the given map testing if the key exists or not.
+     * @param map should be a map like map<K, T*> or map<K, const T*>.
+     * @param key to search
+     * @return object pointer or nullptr if key does not exists.
+     */
     template <typename T, typename M, typename K>
     inline const T* getById(const M& map, const K& key) {
         typename M::const_iterator itr = map.find(key);

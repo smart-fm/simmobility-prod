@@ -22,6 +22,7 @@
 #include "model/HM_Model.hpp"
 #include "entities/commsim/message/base/Message.hpp"
 #include "core/AgentsLookup.hpp"
+#include "core/DataManager.hpp"
 
 using std::list;
 using std::endl;
@@ -111,13 +112,21 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
     HousingMarket* market = getParent()->getMarket();
     const Household* household = getParent()->getHousehold();
     const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
-    const HousingMarket::EntryMap& entries = market->getAvailableEntries();
+    
+    //get available entries (for preferable zones if exists)
+    HousingMarket::EntryList entries;
+    if (getParent()->getPreferableZones().empty()) {
+        market->getAvailableEntries(entries);
+    } else {
+        market->getAvailableEntries(getParent()->getPreferableZones(), entries);
+    }
+  
     // choose the unit to bid with max surplus.
     const HousingMarket::Entry* maxEntry = nullptr;
     float maxSurplus = -1;
-    for (HousingMarket::EntryMap::const_iterator itr = entries.begin();
+    for (HousingMarket::EntryList::const_iterator itr = entries.begin();
             itr != entries.end(); itr++) {
-        const HousingMarket::Entry* entry = &(itr->second);
+        const HousingMarket::Entry* entry = &(*itr);
         if ((entry->getOwner() != getParent())) {
             float surplus = luaModel.calculateSurplus(*entry,
                     getBidsCounter(entry->getUnitId()));
@@ -129,13 +138,17 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
     }
     // Exists some unit to bid.
     if (maxEntry) {
-        float bidValue = maxSurplus +
-                luaModel.calulateWP(*household, maxEntry->getUnit());
+        DataManager& dman = DataManagerSingleton::getInstance();
+        const Unit* unit = dman.getUnitById(maxEntry->getUnitId());
+        if (unit){
+            float bidValue = maxSurplus +
+                    luaModel.calulateWP(*household, *unit);
 
-        if (maxEntry->getOwner() && bidValue > 0.0f) {
-            bid(maxEntry->getOwner(), Bid(maxEntry->getUnitId(),
-                    household->getId(), getParent(), bidValue, now));
-            return true;
+            if (maxEntry->getOwner() && bidValue > 0.0f) {
+                bid(maxEntry->getOwner(), Bid(maxEntry->getUnitId(),
+                        household->getId(), getParent(), bidValue, now));
+                return true;
+            }
         }
     }
     return false;

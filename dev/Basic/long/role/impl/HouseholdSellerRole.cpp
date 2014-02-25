@@ -101,15 +101,17 @@ void HouseholdSellerRole::update(timeslice now) {
         const vector<BigSerial>& unitIds = getParent()->getUnitIds();
         //get values from parent.
         const Unit* unit = nullptr;
+        DataManager& dman = DataManagerSingleton::getInstance();
         for (vector<BigSerial>::const_iterator itr = unitIds.begin();
                 itr != unitIds.end(); itr++) {
             // Decides to put the house on market.
             BigSerial unitId = *itr;
-            unit = DataManagerSingleton::getInstance().getUnitById(unitId);
+            unit = dman.getUnitById(unitId);
+            BigSerial tazId = dman.getUnitTazId(unitId);
             double hedonicPrice = luaModel.calculateHedonicPrice(*unit);
             calculateUnitExpectations(*unit);
-            market->addEntry(HousingMarket::Entry(getParent(), *unit,
-                    hedonicPrice, hedonicPrice));
+            market->addEntry(HousingMarket::Entry(getParent(), unit->getId(), 
+                    unit->getPostcodeId(), tazId, hedonicPrice, hedonicPrice));
             selling = true;
             startSellingTime = now.ms();
         }

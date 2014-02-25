@@ -119,7 +119,8 @@ void HM_LuaModel::mapClasses() {
             .endClass();
     getGlobalNamespace(state.get())
             .beginClass <HousingMarket::Entry> ("UnitEntry")
-            .addProperty("unit", &HousingMarket::Entry::getUnit)
+            .addProperty("tazId", &HousingMarket::Entry::getTazId)
+            .addProperty("postcodeId", &HousingMarket::Entry::getPostcodeId)
             .addProperty("hedonicPrice", &HousingMarket::Entry::getHedonicPrice)
             .addProperty("askingPrice", &HousingMarket::Entry::getAskingPrice)
             .addProperty("unitId", &HousingMarket::Entry::getUnitId)

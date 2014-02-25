@@ -59,12 +59,13 @@ namespace sim_mob {
              */
             class Entry {
             public:
-                Entry(LT_Agent* owner, const Unit& unit, double askingPrice,
-                        double hedonicPrice);
+                Entry(LT_Agent* owner, BigSerial unitId, BigSerial postcodeId, 
+                        BigSerial tazId, double askingPrice, double hedonicPrice);
                 virtual ~Entry();
 
                 BigSerial getUnitId() const;
-                const Unit& getUnit() const;
+                BigSerial getPostcodeId() const;
+                BigSerial getTazId() const;
                 double getAskingPrice() const;
                 double getHedonicPrice() const;
                 LT_Agent* getOwner() const;
@@ -74,14 +75,17 @@ namespace sim_mob {
                 void setOwner(LT_Agent* owner);
 
             private:
+                BigSerial tazId;
+                BigSerial postcodeId;
                 BigSerial unitId;
-                const Unit& unit;
                 double askingPrice;
                 double hedonicPrice;
                 LT_Agent* owner;
             };
-
+            typedef std::vector<BigSerial> IdList;
+            typedef std::vector<Entry> EntryList;
             typedef boost::unordered_map<BigSerial, Entry> EntryMap;
+            typedef boost::unordered_map<BigSerial, EntryMap> EntryMapById;
 
         public:
             HousingMarket();
@@ -115,11 +119,17 @@ namespace sim_mob {
             void removeEntry(const BigSerial& unitId);
 
             /**
-             * Get all available entries map.
-             * You should not change the returned values.
-             * @return EntryMap will all entries.
+             * Get available entries map filtered by given Taz ids.
+             * @param tazIds to filter the options.
+             * @param outList list to receive available units filtered by ids.
              */
-            const EntryMap& getAvailableEntries();
+            void getAvailableEntries(const IdList& tazIds, EntryList& outList);
+            
+            /**
+             * Get all available entries map.
+             * @param outList list to receive available units.
+             */
+            void getAvailableEntries(EntryList& outList);
 
             /**
              * Get a pointer of the entry by given unit identifier.
@@ -152,6 +162,7 @@ namespace sim_mob {
 
         private:
             EntryMap entriesById;
+            EntryMapById entriesByTazId;
         };
     }
 }

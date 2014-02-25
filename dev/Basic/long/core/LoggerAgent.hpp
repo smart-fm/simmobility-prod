@@ -35,6 +35,10 @@ namespace sim_mob {
              */
             virtual UpdateStatus update(timeslice now);
             
+            /**
+             * Log the given message. 
+             * @param logMsg to print.
+             */
             void log(const std::string& logMsg);
             
         protected:

@@ -69,14 +69,18 @@ namespace {
     }
 }
 
+HouseholdSellerRole::SellingUnitInfo::SellingUnitInfo() :
+startedDay(0), interval(0), daysOnMarket(0), numExpectations(0) {
+}
+
 HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent)
-: LT_AgentRole(parent), currentTime(0, 0), hasUnitsToSale(true),
-currentExpectationIndex(0), startSellingTime(0), selling(false) {
+: LT_AgentRole(parent), currentTime(0, 0), hasUnitsToSale(true), 
+selling(false) {
 
 }
 
 HouseholdSellerRole::~HouseholdSellerRole() {
-    maxBidsOfDay.clear();
+    sellingUnitsMap.clear();
 }
 
 void HouseholdSellerRole::update(timeslice now) {
@@ -87,13 +91,7 @@ void HouseholdSellerRole::update(timeslice now) {
 
         }
         // Verify if is time to adjust prices for units.
-        if (TIME_INTERVAL > 0) {
-            int index = floor(abs(now.ms() - startSellingTime) / TIME_INTERVAL);
-            if (index > currentExpectationIndex) {
-                currentExpectationIndex = index;
-                adjustNotSelledUnits();
-            }
-        }
+        adjustNotSoldUnits();
     }
     if (hasUnitsToSale) {
         const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
@@ -113,7 +111,6 @@ void HouseholdSellerRole::update(timeslice now) {
             market->addEntry(HousingMarket::Entry(getParent(), unit->getId(), 
                     unit->getPostcodeId(), tazId, hedonicPrice, hedonicPrice));
             selling = true;
-            startSellingTime = now.ms();
         }
         hasUnitsToSale = false;
     }
@@ -142,7 +139,7 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
                     }
 
                     if (!maxBidOfDay) {
-                        maxBidsOfDay.insert(BidEntry(unitId, msg.getBid()));
+                        maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
                     } else if (maxBidOfDay->getValue() < msg.getBid().getValue()) {
                         // bid is higher than the current one of the day.
                         // it is necessary to notify the old max bidder
@@ -151,7 +148,7 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
                         replyBid(*getParent(), *maxBidOfDay, BETTER_OFFER);
                         maxBidsOfDay.erase(unitId);
                         //update the new bid and bidder.
-                        maxBidsOfDay.insert(BidEntry(unitId, msg.getBid()));
+                        maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
                     } else {
                         replyBid(*getParent(), msg.getBid(), BETTER_OFFER);
                     }
@@ -169,20 +166,21 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
     }
 }
 
-void HouseholdSellerRole::adjustNotSelledUnits() {
+void HouseholdSellerRole::adjustNotSoldUnits() {
     HousingMarket* market = getParent()->getMarket();
-    const vector<BigSerial>& unitIds = getParent()->getUnitIds();
+    const IdVector& unitIds = getParent()->getUnitIds();
     const Unit* unit = nullptr;
     const HousingMarket::Entry* unitEntry = nullptr;
-    for (vector<BigSerial>::const_iterator itr = unitIds.begin();
-            itr != unitIds.end(); itr++) {
+    DataManager& dman = DataManagerSingleton::getInstance();
+    for (IdVector::const_iterator itr = unitIds.begin(); itr != unitIds.end(); 
+            itr++) {
         BigSerial unitId = *itr;
         unitEntry = market->getEntryById(unitId);
-        unit = DataManagerSingleton::getInstance().getUnitById(unitId);
+        unit = dman.getUnitById(unitId);
         if (unitEntry && unit){
             ExpectationEntry entry;
-            if (getCurrentExpectation(unitId, entry)) {
-                //IMPROVE THIS PLEASE.....
+            if (getCurrentExpectation(unitId, entry) 
+                && entry.price != unitEntry->getAskingPrice()) {
                 HousingMarket::Entry updatedEntry(*unitEntry);
                 updatedEntry.setAskingPrice(entry.price);
                 market->updateEntry(updatedEntry);
@@ -199,7 +197,7 @@ void HouseholdSellerRole::notifyWinnerBidders() {
         replyBid(*getParent(), maxBidOfDay, ACCEPTED);
         market->removeEntry(maxBidOfDay.getUnitId());
         getParent()->removeUnitId(maxBidOfDay.getUnitId());
-        unitExpectations.erase(maxBidOfDay.getUnitId());
+        sellingUnitsMap.erase(maxBidOfDay.getUnitId());
     }
     // notify winners.
     maxBidsOfDay.clear();
@@ -207,20 +205,27 @@ void HouseholdSellerRole::notifyWinnerBidders() {
 
 void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit) {
     const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
-    ExpectationList expectationList;
-    luaModel.calulateUnitExpectations(unit, TIME_ON_MARKET, expectationList);
-    unitExpectations.erase(unit.getId());
-    unitExpectations.insert(ExpectationMapEntry(unit.getId(), expectationList));
-    for (int i = 0; i < TIME_ON_MARKET; i++) {
-        printExpectation(*getParent(), expectationList[i]);
+    SellingUnitInfo info;
+    info.startedDay = currentTime.ms();
+    info.interval = TIME_INTERVAL;
+    info.daysOnMarket = TIME_ON_MARKET;
+    info.numExpectations = (info.interval == 0) ? 0 : ceil(abs(info.daysOnMarket/info.interval));
+    luaModel.calulateUnitExpectations(unit, info.numExpectations, info.expectations);
+    sellingUnitsMap.erase(unit.getId());
+    sellingUnitsMap.insert(std::make_pair(unit.getId(), info));
+    for (int i = 0; i < info.numExpectations; i++) {
+        printExpectation(*getParent(), info.expectations[i]);
     }
 }
 
-bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId, ExpectationEntry& outEntry) {
-    ExpectationMap::iterator expectations = unitExpectations.find(unitId);
-    if (expectations != unitExpectations.end()) {
-        if (currentExpectationIndex < expectations->second.size()) {
-            ExpectationEntry& expectation = expectations->second.at(currentExpectationIndex);
+bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId,
+        ExpectationEntry& outEntry) {
+    UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
+    if (it != sellingUnitsMap.end()) {
+        SellingUnitInfo& info = it->second;
+        unsigned int index = floor(abs(info.startedDay - currentTime.ms()) / info.interval);
+        if (index < info.expectations.size()) {
+            ExpectationEntry& expectation = info.expectations[index];
             outEntry.expectation = expectation.expectation;
             outEntry.price = expectation.price;
             return true;

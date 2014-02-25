@@ -26,8 +26,8 @@ namespace sim_mob {
          * This guarantees thread safety without locks using 
          * the following assumptions:
          *  1- All calls to update, add and delete entry will produce 
-         * an internal message that will be processed in the thread where the 
-         * HousingMarket entity is placed. This means that all actions will be 
+         * an internal message that will be processed in the MessageBus 
+         * main thread. This means that all actions will be 
          * available only in the very beginning of the next tick.
          * 
          *  2- It is guaranteed that the list is not changed during the 
@@ -42,7 +42,8 @@ namespace sim_mob {
          * the current list of available units.
          * 
          * Th main responsibility is the management of: 
-         *  - avaliable units
+         *  - avaliable units to sell
+         *  - Notify agents which are looking for home. 
          */
         class HousingMarket : public sim_mob::Entity {
         public:

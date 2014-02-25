@@ -46,7 +46,7 @@ namespace sim_mob {
             typedef boost::unordered_map<std::string, Postcode*> PostcodeByCodeMap;
             typedef boost::unordered_map<std::string, PostcodeAmenities*> PostcodeAmenitiesByCodeMap;
             typedef boost::unordered_map<BigSerial, Unit*> UnitMap;
-            typedef boost::unordered_map<BigSerial, Household*> HouseholdMap; 
+            typedef boost::unordered_map<BigSerial, Household*> HouseholdMap;
             
         public:
             virtual ~DataManager();
@@ -68,6 +68,7 @@ namespace sim_mob {
             const Building* getBuildingById(const BigSerial buildingId) const;
             const Unit* getUnitById(const BigSerial unitId) const;
             const Household* getHouseholdById(const BigSerial householdId) const;
+            const BigSerial getUnitTazId(const BigSerial unitId) const;
             const HouseholdList& getHouseholds() const;
             const UnitList& getUnits() const;
         private:

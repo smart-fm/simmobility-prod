@@ -156,6 +156,17 @@ const Household* DataManager::getHouseholdById(const BigSerial householdId) cons
     return getById<Household>(householdsById, householdId);
 }
 
+const BigSerial DataManager::getUnitTazId(const BigSerial unitId) const {
+    const Unit* unit = getUnitById(unitId);
+    if (unit) {
+        const Postcode* pc = getPostcodeById(unit->getPostcodeId());
+        if (pc) {
+            return pc->getTazId();
+        }
+    }
+    return INVALID_ID;
+}
+
 const DataManager::HouseholdList& DataManager::getHouseholds() const {
     return households;
 }

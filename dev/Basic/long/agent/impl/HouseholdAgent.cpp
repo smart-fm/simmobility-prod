@@ -16,6 +16,7 @@
 #include "role/impl/HouseholdBidderRole.hpp"
 #include "role/impl/HouseholdSellerRole.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "core/DataManager.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -45,6 +46,10 @@ HouseholdAgent::~HouseholdAgent() {
 
 void HouseholdAgent::addUnitId(const BigSerial& unitId) {
     unitIds.push_back(unitId);
+    BigSerial tazId = DataManagerSingleton::getInstance().getUnitTazId(unitId);
+    if (tazId != INVALID_ID) {
+        preferableZones.push_back(tazId);
+    }
 }
 
 void HouseholdAgent::removeUnitId(const BigSerial& unitId) {
@@ -54,6 +59,10 @@ void HouseholdAgent::removeUnitId(const BigSerial& unitId) {
 
 const std::vector<BigSerial>& HouseholdAgent::getUnitIds() const {
     return unitIds;
+}
+
+const std::vector<BigSerial>& HouseholdAgent::getPreferableZones() const {
+    return preferableZones;
 }
 
 HM_Model* HouseholdAgent::getModel() const{

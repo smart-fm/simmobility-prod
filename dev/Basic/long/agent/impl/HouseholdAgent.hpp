@@ -39,6 +39,7 @@ namespace sim_mob {
             void addUnitId (const BigSerial& unitId);
             void removeUnitId (const BigSerial& unitId);
             const std::vector<BigSerial>& getUnitIds() const;
+            const std::vector<BigSerial>& getPreferableZones() const;
             HM_Model* getModel() const;
             HousingMarket* getMarket() const;
             const Household* getHousehold() const;
@@ -87,13 +88,14 @@ namespace sim_mob {
              */
             void processExternalEvent(const ExternalEventArgs& args);
         private:
-            typedef std::vector<BigSerial> UnitIdList;
+            typedef std::vector<BigSerial> IdList;
       
         private:
             HM_Model* model;
             HousingMarket* market;
             const Household* household;
-            UnitIdList unitIds;
+            IdList unitIds;
+            IdList preferableZones;
             HouseholdBidderRole* bidder;
             HouseholdSellerRole* seller;
             bool marketSeller; //tells if the agent is only a fake market seller

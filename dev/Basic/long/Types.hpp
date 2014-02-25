@@ -12,6 +12,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include "stddef.h"
 #include "util/LangHelpers.hpp"
 #include "Common.hpp"
@@ -20,6 +21,7 @@ namespace sim_mob {
     namespace long_term {
         
         typedef long long BigSerial;
+        typedef std::vector<BigSerial> IdVector;
         
         enum Sex {
             UNKNOWN_SEX = 0,

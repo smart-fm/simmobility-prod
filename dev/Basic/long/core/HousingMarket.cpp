@@ -147,10 +147,10 @@ void HousingMarket::removeEntry(const BigSerial& unitId) {
             new HM_RemoveEntryMsg(unitId)), true);
 }
 
-void HousingMarket::getAvailableEntries(const HousingMarket::IdList& tazIds, 
+void HousingMarket::getAvailableEntries(const IdVector& tazIds, 
         HousingMarket::EntryList& outList){
     //Iterates over all ids and copies all entries to the outList.
-    for (IdList::const_iterator it = tazIds.begin(); it != tazIds.end(); it++) {
+    for (IdVector::const_iterator it = tazIds.begin(); it != tazIds.end(); it++) {
         BigSerial tazId = *it;
         if (mapContains(entriesByTazId, tazId)) {
             HousingMarket::EntryMap& map = entriesByTazId.find(tazId)->second;

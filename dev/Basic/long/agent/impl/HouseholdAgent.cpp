@@ -57,11 +57,11 @@ void HouseholdAgent::removeUnitId(const BigSerial& unitId) {
             unitIds.end());
 }
 
-const std::vector<BigSerial>& HouseholdAgent::getUnitIds() const {
+const IdVector& HouseholdAgent::getUnitIds() const {
     return unitIds;
 }
 
-const std::vector<BigSerial>& HouseholdAgent::getPreferableZones() const {
+const IdVector& HouseholdAgent::getPreferableZones() const {
     return preferableZones;
 }
 

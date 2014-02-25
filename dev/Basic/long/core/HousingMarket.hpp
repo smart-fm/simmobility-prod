@@ -83,7 +83,6 @@ namespace sim_mob {
                 double hedonicPrice;
                 LT_Agent* owner;
             };
-            typedef std::vector<BigSerial> IdList;
             typedef std::vector<Entry> EntryList;
             typedef boost::unordered_map<BigSerial, Entry> EntryMap;
             typedef boost::unordered_map<BigSerial, EntryMap> EntryMapById;
@@ -124,7 +123,7 @@ namespace sim_mob {
              * @param tazIds to filter the options.
              * @param outList list to receive available units filtered by ids.
              */
-            void getAvailableEntries(const IdList& tazIds, EntryList& outList);
+            void getAvailableEntries(const IdVector& tazIds, EntryList& outList);
             
             /**
              * Get all available entries map.

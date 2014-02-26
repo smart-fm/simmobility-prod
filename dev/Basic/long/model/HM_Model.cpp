@@ -79,10 +79,11 @@ void HM_Model::startImpl() {
             fakeSellers[vacancies % numberOfFakeSellers]->addUnitId(it->getId());
             vacancies++;
         }
-        //TESTS ONLY.
-        if (vacancies > 100)
-            break;
     }
+    addMetadata("Initial Units", units.size());
+    addMetadata("Initial Households", households.size());
+    addMetadata("Initial Vacancies", vacancies);
+    addMetadata("Fake Sellers", numberOfFakeSellers);
 }
 
 void HM_Model::stopImpl() {

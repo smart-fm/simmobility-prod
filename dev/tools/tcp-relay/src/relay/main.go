@@ -43,8 +43,10 @@ type NetData struct {
 	clients_by_id map[string]Connection
 	clients_lock sync.RWMutex
 
-	//Finally, the remote connection. This remains null until the first client connection attempt.
-	remote Connection
+	//The same remote connection is handed off multiple times using these channels.
+	//Push something onto the first and then read from the second.
+	getRemote chan bool
+	remote chan Connection
 }
 
 
@@ -55,13 +57,14 @@ type NetData struct {
 func main() {
 	//Get our data structure (partly) going
 	params := NetData{
-		listenAddr : "128.30.87.128:6799",
-		remoteAddr : "128.30.87.128:6745",
+		listenAddr : "192.168.0.102:6799",
+		remoteAddr : "192.168.0.102:6745",
 		outgoing : make(chan string),
 		incoming : make(chan string),
 		pending_clients : make(chan Connection),
 		clients_by_id : make(map[string]Connection),
-		//clients_lock : make(sync.RWMutex),
+		getRemote : make(chan bool),
+		remote : make(chan Connection),
 	}
 
 	//Parse our command line flags.
@@ -79,6 +82,7 @@ func main() {
 
 	//Listen forever for new connections. 
 	totalConn := 0
+	firstTime := true
 	for { 
 		var localconn Connection;
 		localconn.conn, err = sock_serve.Accept() 
@@ -87,48 +91,78 @@ func main() {
 		}
 		totalConn += 1
 
-		//The first time, connect to the server.
-		if params.remote.read == nil {
-			fmt.Println("Opening remote connection.") 
-			params.remote.conn, err = net.Dial("tcp", params.remoteAddr) 
-			if err != nil { 
-				fmt.Println("remote dial failed: %v", err)
-				os.Exit(2)
-			}
-
-			//Create our readers/writers
-			params.remote.read = bufio.NewReader(params.remote.conn)
-			params.remote.write = bufio.NewWriter(params.remote.conn)
-
-			//Start our server threads here
-			go receive_remote(&params)
-			go forward_to_client(&params)
-			go forward_to_server(&params)
-		} else {
-			//Inject a "NEW_CLIENT" message here, which instructs the server to send a WHOAREYOU message.
-			fmt.Println("New local connection on existing remote connection: " , totalConn) 
-			new_cli_msg := "      71{\"PACKET_HEADER\":{\"NOF_MESSAGES\":\"1\"},\"DATA\":[{\"MESSAGE_TYPE\":\"NEW_CLIENT\",\"SENDER\":\"0\",\"SENDER_TYPE\":\"RELAY\"}]}\n"
-			params.outgoing <- new_cli_msg
-		}
-
-		//Make a reader/writer.
-		localconn.read = bufio.NewReader(localconn.conn)
-		localconn.write = bufio.NewWriter(localconn.conn)
-
-		//Pend this client until later.
-		params.pending_clients <- localconn
-
-		//...but start its reader/writer loops now.
-		go receive_client(&params, localconn)
+		//Connect in a different goroutine, so we can get back to handling connections.
+		go handle_connection(&params, localconn, firstTime, totalConn)
+		firstTime = false
 	} 
 }
+
+
+func connect_and_distribute(params *NetData) {
+	//Connect
+	conn, err := net.Dial("tcp", params.remoteAddr) 
+	if err != nil { 
+		fmt.Println("remote dial failed: %v", err)
+		os.Exit(2)
+	}
+
+	//Create our readers/writers
+	var res Connection
+	res.conn = conn
+	res.read = bufio.NewReader(res.conn)
+	res.write = bufio.NewWriter(res.conn)
+
+	//Start our server threads here
+	go receive_remote(params)
+	go forward_to_client(params)
+	go forward_to_server(params)
+
+	//Now just spin and hand out connections as they are requested.
+	for {
+		_ = <-params.getRemote
+		params.remote <- res
+	}
+}
+
+
+func get_remote(params* NetData) Connection {
+	params.getRemote <- true
+	res := <-params.remote
+	return res
+}
+
+
+func handle_connection(params *NetData, localconn Connection, firstTime bool, totalConn int) {
+	//The first time, connect to the server.
+	if firstTime {
+		fmt.Println("Opening remote connection.")
+		go connect_and_distribute(params)
+	} else {
+		//Inject a "NEW_CLIENT" message here, which instructs the server to send a WHOAREYOU message.
+		fmt.Println("New local connection on existing remote connection: " , totalConn) 
+		new_cli_msg := "      71{\"PACKET_HEADER\":{\"NOF_MESSAGES\":\"1\"},\"DATA\":[{\"MESSAGE_TYPE\":\"NEW_CLIENT\",\"SENDER\":\"0\",\"SENDER_TYPE\":\"RELAY\"}]}\n"
+		params.outgoing <- new_cli_msg
+	}
+
+	//Make a reader/writer.
+	localconn.read = bufio.NewReader(localconn.conn)
+	localconn.write = bufio.NewWriter(localconn.conn)
+
+	//Pend this client until later.
+	params.pending_clients <- localconn
+
+	//...but start its reader/writer loops now.
+	go receive_client(params, localconn)
+}
+
 
 //Receive a message from the server and push it to "incoming".
 //Should be FAST.
 func receive_remote(params *NetData) {
 	//Keep reading from the server, and pushing it to the client.
+	remote := get_remote(params)
 	for {
-		line,err := params.remote.read.ReadString('\n')
+		line,err := remote.read.ReadString('\n')
 		if err != nil { 
 			fmt.Println("remote read failed: %v", err)
 			os.Exit(2)
@@ -191,17 +225,18 @@ func forward_to_client(params *NetData) {
 //Pull lines from outgoing and forward to the server
 func forward_to_server(params *NetData) {
 	var line string
+	remote := get_remote(params)
 	for {
 		line = <-params.outgoing
 		if params.debug_flag {
 			fmt.Print("Writing to server: ###" , line , "###\n")
 		}
-		_,err := params.remote.write.WriteString(line)
+		_,err := remote.write.WriteString(line)
 		if err != nil {
 			fmt.Println("remote write failed: %v", err)
 			os.Exit(2)
 		}
-		params.remote.write.Flush()
+		remote.write.Flush()
 	}
 }
 

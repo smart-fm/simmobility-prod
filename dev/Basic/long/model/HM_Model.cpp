@@ -57,7 +57,7 @@ void HM_Model::startImpl() {
     // Assign households to the units.
     for (DataManager::HouseholdList::const_iterator it = households.begin();
             it != households.end(); it++) {
-        const Household* household = &(*it);
+        const Household* household = *it;
         HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,
                 household, &market);
         const Unit* unit = dman.getUnitById(household->getUnitId());
@@ -75,8 +75,8 @@ void HM_Model::startImpl() {
     for (DataManager::UnitList::const_iterator it = units.begin();
             it != units.end(); it++) {
         //this unit is a vacancy
-        if (assignedUnits.find(it->getId()) == assignedUnits.end()) {
-            fakeSellers[vacancies % numberOfFakeSellers]->addUnitId(it->getId());
+        if (assignedUnits.find((*it)->getId()) == assignedUnits.end()) {
+            fakeSellers[vacancies % numberOfFakeSellers]->addUnitId((*it)->getId());
             vacancies++;
         }
     }

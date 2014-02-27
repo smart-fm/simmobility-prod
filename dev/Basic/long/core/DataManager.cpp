@@ -53,7 +53,7 @@ namespace {
         loadData<T>(conn, list);
         //Index all buildings.
         for (typename K::iterator it = list.begin(); it != list.end(); it++) {
-            map.insert(std::make_pair(((*it).*getter)(), &(*it)));
+            map.insert(std::make_pair(((*it)->*getter)(), *it));
         }
     }
 
@@ -79,14 +79,14 @@ void DataManager::reset() {
     amenitiesByCode.clear();
     postcodesById.clear();
     postcodesByCode.clear();
-    postcodes.clear();
-    amenities.clear();
-    buildings.clear();
     buildingsById.clear();
-    units.clear();
     unitsById.clear();
-    households.clear();
     householdsById.clear();
+    clear_delete_vector(units);
+    clear_delete_vector(buildings);
+    clear_delete_vector(households);
+    clear_delete_vector(amenities);
+    clear_delete_vector(postcodes);
     readyToLoad = true;
 }
 
@@ -105,23 +105,22 @@ void DataManager::load() {
         loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
         loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
         loadData<BuildingDao>(conn, buildings, buildingsById, &Building::getId);
-        loadData<PostcodeDao>(conn, postcodes);
-        loadData<PostcodeAmenitiesDao>(conn, amenities);
+        loadData<PostcodeDao>(conn, postcodes, postcodesById, &Postcode::getId);
+        loadData<PostcodeAmenitiesDao>(conn, amenities, amenitiesByCode, 
+                &PostcodeAmenities::getPostcode);
 
         // (Special case) Index all postcodes.
         for (PostcodeList::iterator it = postcodes.begin();
                 it != postcodes.end(); it++) {
-            postcodesById.insert(std::make_pair(it->getId(), &(*it)));
-            postcodesByCode.insert(std::make_pair(it->getCode(), &(*it)));
+            postcodesByCode.insert(std::make_pair((*it)->getCode(), *it));
         }
 
         //Index all amenities. 
         for (PostcodeAmenitiesList::iterator it = amenities.begin();
                 it != amenities.end(); it++) {
-            amenitiesByCode.insert(std::make_pair(it->getPostcode(), &(*it)));
-            const Postcode* pc = getPostcodeByCode(it->getPostcode());
+            const Postcode* pc = getPostcodeByCode((*it)->getPostcode());
             if (pc) {
-                amenitiesById.insert(std::make_pair(pc->getId(), &(*it)));
+                amenitiesById.insert(std::make_pair(pc->getId(), *it));
             }
         }
     }

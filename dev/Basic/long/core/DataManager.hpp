@@ -35,11 +35,11 @@ namespace sim_mob {
          */
         class DataManager {
         public:
-            typedef std::vector<Household> HouseholdList;
-            typedef std::vector<Unit> UnitList;
-            typedef std::vector<Building> BuildingList;
-            typedef std::vector<Postcode> PostcodeList;
-            typedef std::vector<PostcodeAmenities> PostcodeAmenitiesList;
+            typedef std::vector<Household*> HouseholdList;
+            typedef std::vector<Unit*> UnitList;
+            typedef std::vector<Building*> BuildingList;
+            typedef std::vector<Postcode*> PostcodeList;
+            typedef std::vector<PostcodeAmenities*> PostcodeAmenitiesList;
             typedef boost::unordered_map<BigSerial, Building*> BuildingMap;
             typedef boost::unordered_map<BigSerial, Postcode*> PostcodeMap;
             typedef boost::unordered_map<BigSerial, PostcodeAmenities*> PostcodeAmenitiesMap;

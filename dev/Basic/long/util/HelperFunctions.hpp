@@ -12,7 +12,7 @@
 #pragma once
 
 #include <vector>
-
+#include <boost/unordered_map.hpp>
 namespace sim_mob {
     namespace long_term {
         
@@ -37,6 +37,21 @@ namespace sim_mob {
         }
         
         /**
+         * Deletes all dynamically allocated objects within the given map.
+         * @param src map of pointers.
+         */
+        template <typename K, typename T>
+        void deleteAll(boost::unordered_map<K, T*>& src) {
+            typename boost::unordered_map<K, T*>::iterator it;
+            for (it = src.begin(); it != src.end(); it++) {
+                if ((*it)) {
+                    delete *it;
+                }
+            }
+            src.clear();
+        }
+        
+        /**
          * Copies a vector of Pointers to another vector of pointers.
          * This **ONLY** replicates pointers.
          * This method does not allocate new memory.
@@ -52,7 +67,7 @@ namespace sim_mob {
         }
         
         /**
-         * Copies a vector of Pointers to another vector of pointers.
+         * Copies a vector of Pointers to another vector of constant pointers.
          * This **ONLY** replicates pointers.
          * This method does not allocate new memory.
          * @param src vector of pointers.
@@ -63,6 +78,21 @@ namespace sim_mob {
             typename std::vector<T*>::iterator it;
             for (it = src.begin(); it != src.end(); it++) {
                 dst.push_back((*it));
+            }
+        }
+        
+        /**
+         * Copies a map of pointers to a vector of constant pointers.
+         * This **ONLY** replicates pointers.
+         * This method does not allocate new memory.
+         * @param src map of pointers.
+         * @param dst vector to copy.
+         */
+        template <typename K, typename T>
+        void copy(boost::unordered_map<K,T*>& src, std::vector<const T*>& dst) {
+            typename boost::unordered_map<K,T*>::iterator it;
+            for (it = src.begin(); it != src.end(); it++) {
+                dst.push_back(it->second);
             }
         }
     }

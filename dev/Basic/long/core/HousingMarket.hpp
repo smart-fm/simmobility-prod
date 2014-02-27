@@ -162,8 +162,7 @@ namespace sim_mob {
             void onWorkerExit();
 
         private:
-            EntryList entries; //holds the original copies.
-            EntryMap entriesById; // only lookup.
+            EntryMap entriesById; // original copies
             EntryMapById entriesByTazId; // only lookup.
         };
     }

@@ -125,9 +125,8 @@ HousingMarket::HousingMarket() : Entity(-1) {
 }
 
 HousingMarket::~HousingMarket() {
-    entriesById.clear();
     entriesByTazId.clear();
-    clear_delete_vector(entries);
+    safe_delete_item(entriesById);
 }
 
 void HousingMarket::addEntry(const Entry& entry) {
@@ -168,7 +167,7 @@ void HousingMarket::getAvailableEntries(const IdVector& tazIds,
 }
 
 void HousingMarket::getAvailableEntries(ConstEntryList& outList) {
-    copy(entries, outList);
+    copy(entriesById, outList);
 }
             
 const HousingMarket::Entry* HousingMarket::getEntryById(const BigSerial& unitId) {
@@ -200,7 +199,6 @@ void HousingMarket::HandleMessage(Message::MessageType type,
                 entry->setOwner(msg.entry.getOwner());
             } else {
                 Entry* newEntry = new Entry(msg.entry);
-                entries.push_back(newEntry);
                 //Is assumed that this code runs always in a thread-safe way.
                 entriesById.insert(std::make_pair(unitId, newEntry));
                 BigSerial tazId = msg.entry.getTazId();
@@ -228,7 +226,7 @@ void HousingMarket::HandleMessage(Message::MessageType type,
                 }
                 //remove from the map by id.
                 entriesById.erase(msg.unitId);
-                deleteValue(entries, entry);
+                safe_delete_item(entry);
                 //notify subscribers.
                 MessageBus::PublishEvent(LTEID_HM_UNIT_REMOVED, this,
                     MessageBus::EventArgsPtr(new HM_ActionEventArgs(msg.unitId)));

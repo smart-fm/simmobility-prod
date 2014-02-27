@@ -114,7 +114,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
     const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
     
     //get available entries (for preferable zones if exists)
-    HousingMarket::EntryList entries;
+    HousingMarket::ConstEntryList entries;
     if (getParent()->getPreferableZones().empty()) {
         market->getAvailableEntries(entries);
     } else {
@@ -124,9 +124,9 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
     // choose the unit to bid with max surplus.
     const HousingMarket::Entry* maxEntry = nullptr;
     float maxSurplus = -1;
-    for (HousingMarket::EntryList::const_iterator itr = entries.begin();
+    for (HousingMarket::ConstEntryList::const_iterator itr = entries.begin();
             itr != entries.end(); itr++) {
-        const HousingMarket::Entry* entry = &(*itr);
+        const HousingMarket::Entry* entry = *itr;
         if ((entry->getOwner() != getParent())) {
             float surplus = luaModel.calculateSurplus(*entry,
                     getBidsCounter(entry->getUnitId()));

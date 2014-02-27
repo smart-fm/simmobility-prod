@@ -83,8 +83,9 @@ namespace sim_mob {
                 double hedonicPrice;
                 LT_Agent* owner;
             };
-            typedef std::vector<Entry> EntryList;
-            typedef boost::unordered_map<BigSerial, Entry> EntryMap;
+            typedef std::vector<Entry*> EntryList;
+            typedef std::vector<const Entry*> ConstEntryList;
+            typedef boost::unordered_map<BigSerial, Entry*> EntryMap;
             typedef boost::unordered_map<BigSerial, EntryMap> EntryMapById;
 
         public:
@@ -123,13 +124,13 @@ namespace sim_mob {
              * @param tazIds to filter the options.
              * @param outList list to receive available units filtered by ids.
              */
-            void getAvailableEntries(const IdVector& tazIds, EntryList& outList);
+            void getAvailableEntries(const IdVector& tazIds, ConstEntryList& outList);
             
             /**
              * Get all available entries map.
              * @param outList list to receive available units.
              */
-            void getAvailableEntries(EntryList& outList);
+            void getAvailableEntries(ConstEntryList& outList);
 
             /**
              * Get a pointer of the entry by given unit identifier.
@@ -161,8 +162,9 @@ namespace sim_mob {
             void onWorkerExit();
 
         private:
-            EntryMap entriesById;
-            EntryMapById entriesByTazId;
+            EntryList entries; //holds the original copies.
+            EntryMap entriesById; // only lookup.
+            EntryMapById entriesByTazId; // only lookup.
         };
     }
 }

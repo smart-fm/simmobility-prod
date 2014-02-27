@@ -200,6 +200,7 @@ void HousingMarket::HandleMessage(Message::MessageType type,
                 entry->setOwner(msg.entry.getOwner());
             } else {
                 Entry* newEntry = new Entry(msg.entry);
+                entries.push_back(newEntry);
                 //Is assumed that this code runs always in a thread-safe way.
                 entriesById.insert(std::make_pair(unitId, newEntry));
                 BigSerial tazId = msg.entry.getTazId();

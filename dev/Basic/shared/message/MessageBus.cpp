@@ -11,12 +11,14 @@
 #include "MessageBus.hpp"
 #include "event/EventPublisher.hpp"
 #include "util/LangHelpers.hpp"
+#include <boost/format.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/tss.hpp>
 #include <boost/unordered/unordered_map.hpp>
 #include <queue>
 #include <list>
 #include <iostream>
+#include "logging/Log.hpp"
 
 using namespace sim_mob::messaging;
 using namespace sim_mob::event;
@@ -42,6 +44,8 @@ namespace {
     const unsigned int MB_MSGI_START = 1000;
     const unsigned int INTERNAL_EVENT_MSG_PRIORITY = 3;
     const unsigned int INTERNAL_EVENT_ACTION_PRIORITY = 4;
+    
+    const std::string REPORT_LINE = "# Id: %-25s Received: %-12s Processed: %-12s Events: %-12s Remaining: %-12s";
 
     enum InternalMessages {
         MSGI_ADD_HANDLER = MB_MSGI_START,
@@ -124,8 +128,9 @@ namespace {
         input(ComparePriority()),
         output(ComparePriority()),
         main(false),
-        totalMessages(0),
-        deletedMessages(0) {
+        receivedMessages(0),
+        processedMessages(0),
+        eventMessages(0) {
         }
 
         virtual ~ThreadContext() {
@@ -151,12 +156,14 @@ namespace {
         //event publisher for each thread context.
         EventPublisher* eventPublisher;
         // statistics
-        unsigned long long int totalMessages;
-        unsigned long long int deletedMessages;
+        unsigned long long int receivedMessages;
+        unsigned long long int processedMessages;
+        unsigned long long int eventMessages;
+        
     };
 
     typedef list<ThreadContext*> ContextList;
-
+    
     /***************************************************************************
      *                              Internal Classes
      **************************************************************************/
@@ -294,18 +301,23 @@ namespace {
      * @return ThreadContext pointer or nullptr.
      */
     ThreadContext* GetThreadContext();
-
+    
+    void deleteContext(ThreadContext* ctx){}
     /**
-     * Destroys the given thread context.
-     * @param context to destroy. 
+     * Deletes all contexts in the system
      */
-    void DeleteContext(ThreadContext* context);
+    void deleteAllContexts();
+    
+    /**
+     * Prints the report.
+     */
+    void printReport();
 
     /***************************************************************************
      *                              Global variables
      **************************************************************************/
 
-    boost::thread_specific_ptr<ThreadContext> threadContext(DeleteContext);
+    boost::thread_specific_ptr<ThreadContext> threadContext (deleteContext);
     ContextList threadContexts;
     boost::shared_mutex contextsMutex;
 }// anonymous namespace
@@ -331,9 +343,9 @@ void MessageBus::RegisterMainThread() {
 
 void MessageBus::UnRegisterMainThread() {
     CheckMainThread();
+    printReport();
     GetInstance().context = nullptr;
-    threadContexts.clear();
-    threadContext.reset();
+    deleteAllContexts();
 }
 
 void MessageBus::RegisterThread() {
@@ -355,14 +367,16 @@ void MessageBus::RegisterThread() {
 }
 
 void MessageBus::UnRegisterThread() {
-    CheckThreadContext();
+    // Unsafe operation for now.
+    // Context will remain until the end of the simulation.
+   /* CheckThreadContext();
     ThreadContext* context = GetThreadContext();
     {// thread-safe scope
         upgrade_lock<shared_mutex> upgradeLock(contextsMutex);
         upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
         threadContexts.remove(context);
     }
-    threadContext.reset();
+    threadContext.reset();*/
 }
 
 void MessageBus::RegisterHandler(MessageHandler* handler) {
@@ -407,6 +421,7 @@ void MessageBus::DispatchMessages() {
             while (!context->output.empty()) {
                 const MessageEntry& entry = context->output.top();
                 if (entry.event) {
+                    context->eventMessages++;
                     //if it is an event then we need to distribute the event for all
                     //publishers in the system.
                     ContextList::iterator lstItr1 = threadContexts.begin();
@@ -418,20 +433,15 @@ void MessageBus::DispatchMessages() {
                         newEntry.destination = dynamic_cast<MessageHandler*> (ctx->eventPublisher);
                         ctx->input.push(newEntry);
                         lstItr1++;
-                        if (!(ctx->main)){
-                           context->totalMessages++;
-                        }
                     }
                 } else {// it is a regular/single message
+                    context->receivedMessages++;
                     if (entry.processOnMainThread) {
                         mainContext->input.push(entry);
                     } else {
                         ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->context);
                         if (destinationContext) {
                             destinationContext->input.push(entry);
-                        } else {
-                            // handler is no longer available.
-                            context->deletedMessages++;
                         }
                     }
                 }
@@ -458,7 +468,7 @@ void MessageBus::ThreadDispatchMessages() {
                 entry.destination->HandleMessage(entry.type, *(entry.message.get()));
             }
             context->input.pop();
-            context->deletedMessages++;
+            context->processedMessages++;
         }
     }
 }
@@ -480,7 +490,6 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
             entry.event = (eventMsg != nullptr);
             entry.processOnMainThread = processOnMainThread;
             context->output.push(entry);
-            context->totalMessages++;
         }
     }
 }
@@ -590,14 +599,64 @@ namespace {
     ThreadContext* GetThreadContext() {
         return threadContext.get();
     }
-
-    void DeleteContext(ThreadContext* context) {
-        if (context) {
-            /*cout << "Thread: " << context->threadId
-                    << " Received: " << context->totalMessages
-                    << " Deleted: " << context->deletedMessages + context->input.size() + context->output.size()
-                    << std::endl;*/
-            safe_delete_item(context);
+    
+    void deleteAllContexts() {
+        ContextList::iterator itr = threadContexts.begin();
+        while (itr != threadContexts.end()) {
+            ThreadContext* ctx = (*itr);
+            safe_delete_item(ctx);
+            itr++;
         }
+        threadContexts.clear();
+    }
+
+    void printReport() {
+        PrintOut(endl);
+        PrintOut("###################      MESSAGE BUS      ####################" << endl);
+        //Simulation Statistics
+        PrintOut(endl);
+        unsigned long long int totalReceived = 0;
+        unsigned long long int totalProcessed = 0;
+        unsigned long long int totalEvents = 0;
+        unsigned long long int totalRemaining = 0;
+        ContextList::iterator itr = threadContexts.begin();
+        while (itr != threadContexts.end()) {
+            ThreadContext* ctx = (*itr);
+            if (ctx) {
+                long long int remaining = (ctx->input.size() + ctx->output.size());
+                boost::format fmtr = boost::format(REPORT_LINE);
+                fmtr % ctx->threadId %
+                        ctx->receivedMessages %
+                        ctx->processedMessages %
+                        ctx->eventMessages %
+                        (remaining);
+                if (ctx->main){
+                    PrintOut(fmtr.str() << " (main thread)" << endl);
+                }else{
+                    PrintOut(fmtr.str() << endl);
+                }
+                
+                totalReceived += ctx->receivedMessages;
+                totalProcessed += ctx->processedMessages;
+                totalEvents += ctx->eventMessages;
+                totalRemaining += remaining;
+            }
+            itr++;
+        }
+        PrintOut(endl);
+        boost::format fmtr = boost::format(REPORT_LINE);
+        fmtr % "TOTAL" %
+                totalReceived %
+                totalProcessed %
+                totalEvents %
+                totalRemaining;
+        PrintOut(fmtr.str() << endl);
+        PrintOut(endl);
+        size_t numThreads = threadContexts.size();
+        long long int balance = abs(totalProcessed - totalReceived - (totalEvents * numThreads)) - totalRemaining;
+        PrintOut("Balance (Should be 0):  " << balance << std::endl); 
+        PrintOut(endl);
+        PrintOut("##############################################################" << endl);
+        PrintOut(endl);
     }
 }

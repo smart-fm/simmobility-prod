@@ -17,7 +17,17 @@
 namespace sim_mob {
 
     namespace messaging {
-        
+        /**
+         * 
+         * NOTE:  MessageBus needs it own barrier to be a full independent system.
+         * For now it is totally dependent of the SimMobility barriers then be 
+         * careful with the following assumptions:
+         * 
+         * - Method DistributeMessages should be called on main thread while 
+         * workers still waiting in the frameTick barrier. Otherwise we cannot guarantee 
+         * the thread-safety for the internal messages and main thread messages. 
+         * 
+         */
         class MessageBus : public MessageHandler {
         public:
             typedef boost::shared_ptr<Message> MessagePtr;

@@ -78,7 +78,7 @@ private:
 	/**
 	 *  Map to store the vehicle counts of each road segment on this conflux
 	 */
-	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> segmentAgents;
+	std::multimap<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> segmentAgents;
 
 	/**
 	 *  Worker to which this conflux belongs to
@@ -180,7 +180,7 @@ public:
 		return downstreamSegments;
 	}
 
-	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> getSegmentAgents() const {
+	std::multimap<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> getSegmentAgents() const {
 		return segmentAgents;
 	}
 

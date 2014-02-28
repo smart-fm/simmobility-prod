@@ -825,14 +825,14 @@ void sim_mob::ParseConfigFile::ProcessFMOD_Node(xercesc::DOMElement* node)
 	}
 
 	//The fmod tag has an attribute
-	cfg.fmod.enabled = ParseBoolean(GetNamedAttributeValue(node, "switch"), false);
+	cfg.fmod.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 
 	//Now set the rest.
-	cfg.fmod.ipAddress = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "ipaddress"), "value"), "");
+	cfg.fmod.ipAddress = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "ip_address"), "value"), "");
 	cfg.fmod.port = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "port"), "value"), static_cast<unsigned int>(0));
-	cfg.fmod.updateTimeMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "updateTimeMS"), "value"), static_cast<unsigned int>(0));
-	cfg.fmod.mapfile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "mapfile"), "value"), "");
-	cfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blockingTimeSec"), "value"), static_cast<unsigned int>(0));
+	cfg.fmod.updateTimeMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "update_time_ms"), "value"), static_cast<unsigned int>(0));
+	cfg.fmod.mapfile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "map_file"), "value"), "");
+	cfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blocking_time_sec"), "value"), static_cast<unsigned int>(0));
 }
 
 

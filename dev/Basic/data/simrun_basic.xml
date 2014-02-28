@@ -395,13 +395,13 @@
     </system>
 
     
-    <!-- FMOD controller settings -->
-    <fmodcontroller switch="false">
-        <ipaddress value="127.0.0.1"/>
+    <!-- FMOD controller settings. This is for FMOD extention -->
+    <fmodcontroller enabled="false">
+        <ip_address value="127.0.0.1"/>
         <port value="9000"/>
-        <updateTimeMS value="500"/>
-        <mapfile value="cityhall/cityhall.osm"/>
-        <blockingTimeSec value="5"/>
+        <update_time_ms value="500"/>
+        <map_file value="cityhall/cityhall.osm"/>
+        <blocking_time_sec value="5"/>
     </fmodcontroller>
         
     <incidentsData enabled="yes">

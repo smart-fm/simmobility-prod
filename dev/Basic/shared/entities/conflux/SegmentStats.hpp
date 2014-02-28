@@ -229,4 +229,6 @@ public:
 	std::stringstream debugMsgs; // handy to throw meaningful error messages
 };
 
+typedef boost::shared_ptr<SegmentStats> SegmentStatsPtr;
+
 }

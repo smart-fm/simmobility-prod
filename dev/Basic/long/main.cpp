@@ -147,11 +147,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         model->stop();
     }
     
-    //reset singletons and stop watch.
-    dataManager.reset();
-    agentsLookup.reset();
     simulationWatch.stop();
-   
     printReport(simulationNumber, models, simulationWatch);
     //delete all models.
     while (!models.empty()) {
@@ -160,8 +156,10 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         safe_delete_item(modelToDelete);
     }
     models.clear();
-    
-    
+
+    //reset singletons and stop watch.
+    dataManager.reset();
+    agentsLookup.reset();    
 }
 
 int main(int ARGC, char* ARGV[]) {

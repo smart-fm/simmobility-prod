@@ -29,8 +29,9 @@ using sim_mob::Math;
 namespace {
     const int TIME_ON_MARKET = 10;
     const int TIME_INTERVAL = 7;
-   
-    const std::string LOG_EXPECTATION = "Seller: [%1%] Price: [%2%] Expectation [%3%].";
+    
+    //bid_timestamp, seller_id, unit_id, price, expectation
+    const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%";
     //bid_timestamp, seller_id, bidder_id, unit_id, bid_value, status(0 - REJECTED, 1- ACCEPTED)
     const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%";
 
@@ -41,14 +42,21 @@ namespace {
                                                     % bid.getUnitId()
                                                     % bid.getValue()
                                                     % ((accepted) ? 1 : 0);
-        AgentsLookupSingleton::getInstance().getLogger().log(fmtr.str());
+        AgentsLookupSingleton::getInstance().getLogger()
+                .log(LoggerAgent::BIDS,fmtr.str());
         //PrintOut(fmtr.str() << endl);
     }
     
-    inline void printExpectation(const HouseholdAgent& agent, const ExpectationEntry& exp) {
-        boost::format fmtr = boost::format(LOG_EXPECTATION) % agent.getId() % exp.price % exp.expectation;
+    inline void printExpectation(const timeslice& now, BigSerial unitId,
+            const HouseholdAgent& agent, const ExpectationEntry& exp) {
+        boost::format fmtr = boost::format(LOG_EXPECTATION) % now.ms() 
+                                                            % agent.getId() 
+                                                            % unitId
+                                                            % exp.price
+                                                            % exp.expectation;
+        AgentsLookupSingleton::getInstance()
+                .getLogger().log(LoggerAgent::EXPECTATIONS, fmtr.str());
         //PrintOut(fmtr.str() << endl);
-        //AgentsLookupSingleton::getInstance().getLogger().log(fmtr.str());
     }
 
     /**
@@ -214,7 +222,7 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit) {
     sellingUnitsMap.erase(unit.getId());
     sellingUnitsMap.insert(std::make_pair(unit.getId(), info));
     for (int i = 0; i < info.numExpectations; i++) {
-        printExpectation(*getParent(), info.expectations[i]);
+        printExpectation(currentTime, unit.getId(), *getParent(), info.expectations[i]);
     }
 }
 

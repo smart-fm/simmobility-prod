@@ -9,6 +9,9 @@
 #pragma once
 
 #include "entities/Entity.hpp"
+#include <iostream>
+#include <fstream>
+#include <boost/unordered_map.hpp>
 
 namespace sim_mob {
 
@@ -27,6 +30,12 @@ namespace sim_mob {
          */
         class LoggerAgent : public Entity {
         public:
+            // STATIC for now this will change in the future with new output mechanisms
+            enum LogFile{
+                BIDS,
+                EXPECTATIONS,
+                STDOUT
+            };
             LoggerAgent();
             virtual ~LoggerAgent();
             
@@ -39,7 +48,7 @@ namespace sim_mob {
              * Log the given message. 
              * @param logMsg to print.
              */
-            void log(const std::string& logMsg);
+            void log(LogFile outputType, const std::string& logMsg);
             
         protected:
             /**
@@ -57,6 +66,9 @@ namespace sim_mob {
              */
             void onWorkerEnter();
             void onWorkerExit();
+        private:
+            typedef boost::unordered_map<LogFile, std::ofstream*> Files;
+            boost::unordered_map<LogFile, std::ofstream*> streams; 
         };
     }
 }

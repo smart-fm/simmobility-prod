@@ -124,7 +124,7 @@ private:
 	FMOD_MsgQueue msgSendQueue;
 	FMOD_MsgQueue msgReceiveQueue;
 	std::string messageSnd;
-	boost::array<char, 1> ReceivedBuf;
+	boost::array<char, 20480> ReceivedBuf;
 };
 
 typedef boost::shared_ptr<FMOD_Client> FmodClientPtr;

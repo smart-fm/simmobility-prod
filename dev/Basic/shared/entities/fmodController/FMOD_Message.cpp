@@ -11,6 +11,7 @@
 
 #include "FMOD_Message.hpp"
 #include "sstream"
+#include <boost/lexical_cast.hpp>
 
 namespace sim_mob {
 
@@ -82,8 +83,8 @@ void MsgVehicleInit::createMessage(const std::string& msg)
 	{
 		Json::Value item = arrVeh[i];
 		Supply suplier;
-		suplier.vehicleId = item["vehicle_id"].asInt();
-		suplier.nodeId = item["node_id"].asInt();
+		suplier.vehicleId = boost::lexical_cast<int>(item["vehicle_id"].asCString());
+		suplier.nodeId = boost::lexical_cast<int>(item["node_id"].asCString());
 		vehicles.push_back(suplier);
 	}
 }
@@ -115,14 +116,14 @@ void MsgOffer::createMessage(const std::string& msg)
 		Json::Value item = arrVeh[i];
 		Offer offer;
 		offer.schduleId = item["schdule_id"].asString();
-		offer.serviceType = item["service_type"].asInt();
+		offer.serviceType = boost::lexical_cast<int>(item["service_type"].asCString());
 		offer.fare = item["fare"].asInt();
 		offer.departureTimeEarly = item["departure_time_early"].asString();
 		offer.depatureTimeLate = item["depature_time_late"].asString();
 		offer.arivalTimeEarly = item["arival_time_early"].asString();
 		offer.arrivalTimeLate = item["arrival_time_late"].asString();
-		offer.travelTime = item["travel_time"].asInt();
-		offer.travelDistance = item["travel_distance"].asInt();
+		offer.travelTime = boost::lexical_cast<int>(item["travel_time"].asCString());
+		offer.travelDistance = boost::lexical_cast<int>(item["travel_distance"].asCString());
 		offers.push_back(offer);
 	}
 }
@@ -289,9 +290,9 @@ void MsgSchedule::createMessage(const std::string& msg)
 		return;
 	}
 
-	vehicleId = root["vehicle_id"].asInt();
+	vehicleId = boost::lexical_cast<int>(root["vehicle_id"].asCString());
 	scheduleId = root["schedule_id"].asString();
-	serviceType = root["service_type"].asInt();
+	serviceType = boost::lexical_cast<int>(root["service_type"].asCString());
 
 	Json::Value arrStops = root["stop_schdules"];
 	for(int i=0; i<arrStops.size(); i++)
@@ -320,7 +321,7 @@ void MsgSchedule::createMessage(const std::string& msg)
 		Json::Value item = arrPassengers[i];
 		Passenger pass;
 		pass.clientId = item["client_id"].asString();
-		pass.price = item["price"].asInt();
+		pass.price = boost::lexical_cast<int>(item["price"].asCString());
 		passengers.push_back(pass);
 	}
 
@@ -330,7 +331,7 @@ void MsgSchedule::createMessage(const std::string& msg)
 		Json::Value item = arrRoutes[i];
 		Route route;
 		route.id = item["id"].asString();
-		route.type = item["type"].asInt();
+		route.type = boost::lexical_cast<int>(item["type"].asCString());
 		routes.push_back(route);
 	}
 }

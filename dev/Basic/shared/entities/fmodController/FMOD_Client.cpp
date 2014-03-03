@@ -87,7 +87,7 @@ void FMOD_Client::handleWrite(const boost::system::error_code& error, size_t byt
 void FMOD_Client::handleRead(const boost::system::error_code& error, size_t bytesTransferred)
 {
 	if( error == 0 ){
-		msgReceiveQueue.pushMessage(ReceivedBuf.data());
+		msgReceiveQueue.pushMessage(ReceivedBuf.data(), true);
 		receiveData();
 	}
 	else{
@@ -150,10 +150,16 @@ bool FMOD_Client::receiveData()
 	boost::system::error_code err;
 	try
 	{
-		boost::asio::async_read(socket_, boost::asio::buffer(ReceivedBuf),
+		/*boost::asio::async_read(socket_, boost::asio::buffer(ReceivedBuf),
 							  boost::bind(&FMOD_Client::handleRead,shared_from_this(),
 							  boost::asio::placeholders::error,
-							  boost::asio::placeholders::bytes_transferred));
+							  boost::asio::placeholders::bytes_transferred));*/
+
+		socket_.async_read_some(boost::asio::buffer(ReceivedBuf),
+								boost::bind(&FMOD_Client::handleRead,shared_from_this(),
+								boost::asio::placeholders::error,
+								boost::asio::placeholders::bytes_transferred)) ;
+
 		 if(err) {
 			 std::cerr<<"start: receive error "<<err.message()<<std::endl;
 			 return false;

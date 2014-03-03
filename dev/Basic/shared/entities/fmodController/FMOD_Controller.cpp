@@ -295,15 +295,7 @@ void FMOD_Controller::updateMessagesInBlocking(timeslice now)
 
 	std::string message;
 	MessageList ret = collectVehStops();
-	connectPoint->sendMessage(ret);
-	connectPoint->waitMessageInBlocking(message, waitingseconds);
-	if(FMOD_Message::analyzeMessageID(message)!= FMOD_Message::MSG_ACK ){
-		std::cout << "Fmod Controller not receive correct acknowledge message" << std::endl;
-		return;
-	}
-
-	if(curTickMS%updateTiming == 0){
-		ret = collectVehPos();
+	if(ret.size()>0){
 		connectPoint->sendMessage(ret);
 		connectPoint->flush();
 		connectPoint->waitMessageInBlocking(message, waitingseconds);
@@ -314,12 +306,28 @@ void FMOD_Controller::updateMessagesInBlocking(timeslice now)
 	}
 
 	if(curTickMS%updateTiming == 0){
+		ret = collectVehPos();
+		if(ret.size()>0){
+			connectPoint->sendMessage(ret);
+			connectPoint->flush();
+			connectPoint->waitMessageInBlocking(message, waitingseconds);
+			if(FMOD_Message::analyzeMessageID(message)!= FMOD_Message::MSG_ACK ){
+				std::cout << "Fmod Controller not receive correct acknowledge message" << std::endl;
+				return;
+			}
+		}
+	}
+
+	if(curTickMS%updateTiming == 0){
 		ret = collectLinkTravelTime();
-		connectPoint->sendMessage(ret);
-		connectPoint->waitMessageInBlocking(message, waitingseconds);
-		if(FMOD_Message::analyzeMessageID(message)!= FMOD_Message::MSG_ACK ){
-			std::cout << "Fmod Controller not receive correct acknowledge message" << std::endl;
-			return;
+		if(ret.size()>0){
+			connectPoint->sendMessage(ret);
+			connectPoint->flush();
+			connectPoint->waitMessageInBlocking(message, waitingseconds);
+			if(FMOD_Message::analyzeMessageID(message)!= FMOD_Message::MSG_ACK ){
+				std::cout << "Fmod Controller not receive correct acknowledge message" << std::endl;
+				return;
+			}
 		}
 	}
 
@@ -436,7 +444,7 @@ MessageList FMOD_Controller::collectVehPos()
 MessageList FMOD_Controller::collectLinkTravelTime()
 {
 	MessageList msgs;
-
+	bool isEmpty=false;
 	for(std::vector<Agent*>::iterator it=allChildren.begin(); it!=allChildren.end(); it++){
 
 		const std::map<double, linkTravelStats>& travelStatsMap = (*it)->linkTravelStatsMap.get();
@@ -473,10 +481,13 @@ MessageList FMOD_Controller::collectLinkTravelTime()
 		travel.wayId = (itTT->first)->getLinkId();
 		travel.travelTime = (itTT->second).linkTravelTime;
 		msgTravel.links.push_back(travel);
+		isEmpty = true;
 	}
 
-	std::string msg = msgTravel.buildToString();
-	msgs.push(msg);
+	if(isEmpty){
+		std::string msg = msgTravel.buildToString();
+		msgs.push(msg);
+	}
 
 	return msgs;
 }

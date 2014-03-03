@@ -92,8 +92,11 @@ HouseholdSellerRole::~HouseholdSellerRole() {
 }
 
 void HouseholdSellerRole::update(timeslice now) {
+    timeslice lastTime = currentTime;
+    //update current time.
+    currentTime = now;
     if (selling){
-        if (now.ms() > currentTime.ms()) {
+        if (now.ms() > lastTime.ms()) {
             // Day has changed we need to notify the last day winners.
             notifyWinnerBidders();
 
@@ -122,8 +125,6 @@ void HouseholdSellerRole::update(timeslice now) {
         }
         hasUnitsToSale = false;
     }
-    //update current time.
-    currentTime = now;
 }
 
 void HouseholdSellerRole::HandleMessage(Message::MessageType type,
@@ -217,7 +218,7 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit) {
     info.startedDay = currentTime.ms();
     info.interval = TIME_INTERVAL;
     info.daysOnMarket = TIME_ON_MARKET;
-    info.numExpectations = (info.interval == 0) ? 0 : ceil(abs(info.daysOnMarket/info.interval));
+    info.numExpectations = (info.interval == 0) ? 0 : ceil((double)info.daysOnMarket/(double)info.interval);
     luaModel.calulateUnitExpectations(unit, info.numExpectations, info.expectations);
     sellingUnitsMap.erase(unit.getId());
     sellingUnitsMap.insert(std::make_pair(unit.getId(), info));

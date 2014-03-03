@@ -44,9 +44,7 @@ namespace sim_mob {
         void deleteAll(boost::unordered_map<K, T*>& src) {
             typename boost::unordered_map<K, T*>::iterator it;
             for (it = src.begin(); it != src.end(); it++) {
-                if ((*it)) {
-                    delete *it;
-                }
+                safe_delete_item(it->second);
             }
             src.clear();
         }

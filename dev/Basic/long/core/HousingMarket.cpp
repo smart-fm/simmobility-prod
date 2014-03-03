@@ -126,7 +126,7 @@ HousingMarket::HousingMarket() : Entity(-1) {
 
 HousingMarket::~HousingMarket() {
     entriesByTazId.clear();
-    safe_delete_item(entriesById);
+    deleteAll(entriesById);
 }
 
 void HousingMarket::addEntry(const Entry& entry) {

@@ -27,7 +27,7 @@ using std::endl;
 using sim_mob::Math;
 
 namespace {
-    const int TIME_ON_MARKET = 10;
+    const int TIME_ON_MARKET = 30;
     const int TIME_INTERVAL = 7;
     
     //bid_timestamp, seller_id, unit_id, price, expectation

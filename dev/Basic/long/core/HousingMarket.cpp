@@ -207,9 +207,9 @@ void HousingMarket::HandleMessage(Message::MessageType type,
                 }
                 entriesByTazId.find(tazId)->second.insert(
                         std::make_pair(unitId, newEntry));
-                //notify subscribers.
-                MessageBus::PublishEvent(LTEID_HM_UNIT_ADDED, this,
-                        MessageBus::EventArgsPtr(new HM_ActionEventArgs(unitId)));
+                //notify subscribers. FOR NOW we are not using this.
+                //MessageBus::PublishEvent(LTEID_HM_UNIT_ADDED, this,
+                  //      MessageBus::EventArgsPtr(new HM_ActionEventArgs(unitId)));
             }
             break;
         }
@@ -227,9 +227,9 @@ void HousingMarket::HandleMessage(Message::MessageType type,
                 //remove from the map by id.
                 entriesById.erase(msg.unitId);
                 safe_delete_item(entry);
-                //notify subscribers.
-                MessageBus::PublishEvent(LTEID_HM_UNIT_REMOVED, this,
-                    MessageBus::EventArgsPtr(new HM_ActionEventArgs(msg.unitId)));
+                //notify subscribers. FOR NOW we are not using this.
+                //MessageBus::PublishEvent(LTEID_HM_UNIT_REMOVED, this,
+                //    MessageBus::EventArgsPtr(new HM_ActionEventArgs(msg.unitId)));
             }
             break;
         }

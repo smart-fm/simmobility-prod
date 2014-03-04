@@ -123,12 +123,12 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
   
     // choose the unit to bid with max surplus.
     const HousingMarket::Entry* maxEntry = nullptr;
-    float maxSurplus = -1;
+    double maxSurplus = -1;
     for (HousingMarket::ConstEntryList::const_iterator itr = entries.begin();
             itr != entries.end(); itr++) {
         const HousingMarket::Entry* entry = *itr;
         if ((entry->getOwner() != getParent())) {
-            float surplus = luaModel.calculateSurplus(*entry,
+            double surplus = luaModel.calculateSurplus(*entry,
                     getBidsCounter(entry->getUnitId()));
             if (surplus > maxSurplus) {
                 maxSurplus = surplus;
@@ -141,12 +141,13 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
         DataManager& dman = DataManagerSingleton::getInstance();
         const Unit* unit = dman.getUnitById(maxEntry->getUnitId());
         if (unit){
-            float bidValue = maxSurplus +
-                    luaModel.calulateWP(*household, *unit);
+            double wp = luaModel.calulateWP(*household, *unit);
+            double bidValue = maxSurplus + wp;
 
             if (maxEntry->getOwner() && bidValue > 0.0f) {
                 bid(maxEntry->getOwner(), Bid(maxEntry->getUnitId(),
-                        household->getId(), getParent(), bidValue, now));
+                        household->getId(), getParent(), bidValue, now, wp, 
+                        maxSurplus));
                 return true;
             }
         }

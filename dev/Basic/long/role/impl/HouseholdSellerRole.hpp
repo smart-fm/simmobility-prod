@@ -74,7 +74,10 @@ namespace sim_mob {
              *        If it not exists the values should be 0.
              * @return true if exists valid expectation, false otherwise.
              */
-            bool getCurrentExpectation(const BigSerial& unitId, ExpectationEntry& outEntry);
+            bool getCurrentExpectation(const BigSerial& unitId, 
+                ExpectationEntry& outEntry);
+        public:
+            typedef boost::unordered_map<BigSerial, unsigned int> CounterMap;
         private:
             typedef std::vector<ExpectationEntry> ExpectationList;
 
@@ -95,6 +98,7 @@ namespace sim_mob {
             Bids maxBidsOfDay;
             UnitsInfoMap sellingUnitsMap;
             volatile bool selling;
+            CounterMap dailyBids;
         };
     }
 }

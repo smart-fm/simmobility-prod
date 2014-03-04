@@ -429,9 +429,9 @@ MessageList FMOD_Controller::collectVehPos()
 			DailyTime start(curr.getValue()+base.getValue());
 
 			msg_pos.currentTime = start.toString();
-			msg_pos.vehicleId = person->client_id;
-			msg_pos.latitude = person->xPos.get();
-			msg_pos.longtitude = person->yPos.get();
+			msg_pos.vehicleId = boost::lexical_cast<std::string>(person->client_id);
+			msg_pos.latitude = boost::lexical_cast<std::string>(person->xPos.get());
+			msg_pos.longtitude = boost::lexical_cast<std::string>(person->yPos.get());
 
 			std::string msg = msg_pos.buildToString();
 			msgs.push(msg);
@@ -497,20 +497,26 @@ MessageList FMOD_Controller::generateRequest(timeslice now)
 	MessageList msgs;
 
 	unsigned int curTickMS = (frameTicks)*ConfigManager::GetInstance().FullConfig().baseGranMS();
-	DailyTime curr(curTickMS);
+	DailyTime currTicks(curTickMS);
 	DailyTime base(ConfigManager::GetInstance().FullConfig().simStartTime());
+	DailyTime current(currTicks.getValue()+base.getValue());
 	typedef std::map<Request*, TripChainItem*>::iterator RequestMap;
-	for (RequestMap it=allRequests.begin(); it!=allRequests.end(); it++) {
+	RequestMap itr=allRequests.begin();
+	while (itr!=allRequests.end()) {
 
-		DailyTime tm(it->first->departureTimeEarly);
-		//tm.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());
-		DailyTime dias(1*3600*1000);
+		DailyTime tm(itr->first->departureTimeEarly);
 
-		if( tm.getValue() > (curr.getValue()-dias.getValue() )){
+		if( tm.getValue() <= current.getValue()){
 			MsgRequest request;
+			request.currentTime = current.toString();
 			request.messageID_ = FMOD_Message::MSG_REQUEST;
-			request.request = *it->first;
+			request.request = *itr->first;
 			msgs.push( request.buildToString() );
+
+			allRequests.erase(itr++);
+		}
+		else {
+			++itr;
 		}
 	}
 
@@ -679,7 +685,7 @@ void FMOD_Controller::dispatchPendingAgents(timeslice now)
 		}
 	}
 
-	// for testing
+	/* for testing
 	static int kk = 0;
 	if( kk++ == 0){
 
@@ -751,7 +757,7 @@ void FMOD_Controller::dispatchPendingAgents(timeslice now)
 		person->client_id = 101;
 		person->laneID = 2;
 		allDrivers.push_back(person);
-	}
+	}*/
 }
 
 }

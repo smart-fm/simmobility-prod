@@ -32,7 +32,7 @@ std::string FMOD_Message::buildToString()
 	std::string msg;
 
 	std::stringstream buffer;
-	buffer << "message " << this->messageID_ << std::endl;
+	buffer << this->messageID_ << std::endl;
 	msg = buffer.str();
 
 	return msg;
@@ -41,11 +41,11 @@ std::string FMOD_Message::buildToString()
 FMOD_Message::FMOD_MessageID FMOD_Message::analyzeMessageID(const std::string& msg)
 {
 	FMOD_MessageID ID = MSG_DEFALUTVALUE;
-	int index1 = msg.find("message ");
-	if( index1 > 0 )
+	int index1 = 0; //msg.find("message ");
+	if( index1 >= 0 )
 	{
 		int index2 = msg.find(",", index1);
-		std::string message_id = msg.substr(index1, index2-index2);
+		std::string message_id = msg.substr(index1, index2-index1);
 		ID = (FMOD_MessageID)atoi(message_id.c_str());
 	}
 	return ID;
@@ -162,7 +162,7 @@ std::string MsgInitialize::buildToString()
 	Request["version"] = this->version;
 
 	std::stringstream buffer;
-	buffer << "message " << this->messageID_ << "," << Request << std::endl;
+	buffer << this->messageID_ << "," << Request << std::endl;
 	msg = buffer.str();
 
 	return msg;
@@ -173,18 +173,20 @@ std::string MsgRequest::buildToString()
 	std::string msg;
 	Json::Value Request;
 	Request["current_time"] = this->currentTime;
-	Request["client_id"] = this->request.clientId;
-	Request["orgin"] = this->request.origin;
-	Request["destination"] = this->request.destination;
+	Request["client_id"] = boost::lexical_cast<std::string>(this->request.clientId);
+	Request["origin"] = boost::lexical_cast<std::string>(this->request.origin);
+	Request["destination"] = boost::lexical_cast<std::string>(this->request.destination);
 	Request["departure_time_early"] = this->request.departureTimeEarly;
 	Request["depature_time_late"] = this->request.departureTimeLate;
 	Request["arriavl_time_early"] = this->request.arrivalTimeEarly;
 	Request["arrival_time_late"] = this->request.arrivalTimeLate;
-	Request["seat_num"] = this->seatNum;
+	Request["seat_num"] = boost::lexical_cast<std::string>(this->seatNum);
 
 	std::stringstream buffer;
-	buffer << "message " << this->messageID_ << "," << Request << std::endl;
+	buffer << this->messageID_ << ",0," << Request << std::endl;
 	msg = buffer.str();
+
+	//std::cout<< msg << std::endl;
 
 	return msg;
 }
@@ -200,7 +202,7 @@ std::string MsgAccept::buildToString()
 	Request["accept"]["arrive_time"] = this->arrivalTime;
 
 	std::stringstream buffer;
-	buffer << "message " << this->messageID_ << "," << Request << std::endl;
+	buffer << this->messageID_ << "," << Request << std::endl;
 	msg = buffer.str();
 
 	return msg;
@@ -222,7 +224,7 @@ std::string MsgLinkTravel::buildToString()
 	}
 
 	std::stringstream buffer;
-	buffer << "message " << this->messageID_ << "," << Request << std::endl;
+	buffer << this->messageID_ << "," << Request << std::endl;
 	msg = buffer.str();
 
 	return msg;
@@ -249,7 +251,7 @@ std::string MsgVehicleStop::buildToString()
 	}
 
 	std::stringstream buffer;
-	buffer << "message " << this->messageID_ << "," << Request << std::endl;
+	buffer << this->messageID_ << "," << Request << std::endl;
 	msg = buffer.str();
 
 	return msg;
@@ -265,7 +267,7 @@ std::string MsgVehiclePos::buildToString()
 	Request["longtitude"] = this->longtitude;
 
 	std::stringstream buffer;
-	buffer << "message " << this->messageID_ << "," << Request << std::endl;
+	buffer << this->messageID_ << "," << Request << std::endl;
 	msg = buffer.str();
 
 	return msg;

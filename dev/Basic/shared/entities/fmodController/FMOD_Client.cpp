@@ -88,6 +88,7 @@ void FMOD_Client::handleRead(const boost::system::error_code& error, size_t byte
 {
 	if( error == 0 ){
 		msgReceiveQueue.pushMessage(ReceivedBuf.data(), true);
+		ReceivedBuf.assign(0);
 		receiveData();
 	}
 	else{

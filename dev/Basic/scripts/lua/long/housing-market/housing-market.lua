@@ -217,7 +217,7 @@ end
 function calculateExpectation(price, v, theta, alpha)
     local E = MATH.E
     --Calculates the bids distribution using F(X) = X/Price where F(V(t+1)) = V(t+1)/Price
-    local bidsDistribution = (v / price)
+    local bidsDistribution = (price == 0 and 0 or (v / price))
     --Calculates the probability of not having any bid greater than v.
     local priceProb = math.pow(E, -((theta / math.pow(price, alpha)) * (1 - bidsDistribution)))
     --// Calculates expected maximum bid.
@@ -298,9 +298,10 @@ function calculateWP (household, unit)
     local theta1 = 13.288
     local theta2 = 0.002
     local theta3 = 8.840
+    local p1 = household.income == 0 and 0 or (household.size/household.income)
 
     return theta0 + 
-           (theta1 * unit.floorArea * (household.size/household.income)) +
+           (theta1 * unit.floorArea * p1) +
            (theta2 * household.income) +
            (CAR_CATEGORIES[household.vehicleCategoryId] and theta3 or 0)
 end

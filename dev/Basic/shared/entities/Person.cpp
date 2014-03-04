@@ -835,8 +835,16 @@ void sim_mob::Person::setPersonCharacteristics()
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	std::map<int, PersonCharacteristics> personCharacteristics =  config.personCharacteristicsParams.personCharacteristics;
 
-	int lowestAge = config.personCharacteristicsParams.lowestAge;
-	int highestAge = config.personCharacteristicsParams.highestAge;
+	int lowestAge = 0;
+	int highestAge = 0;
+	// if no personCharacteristics item in the config file, introduce default lowestAge and highestAge
+	if(personCharacteristics.empty()) {
+        lowestAge = 20;
+        highestAge = 60;
+    } else {
+	    lowestAge = config.personCharacteristicsParams.lowestAge;
+	    highestAge = config.personCharacteristicsParams.highestAge;
+    }
 	const int defaultLowerSecs = config.personCharacteristicsParams.DEFAULT_LOWER_SECS;
 	const int defaultUpperSecs = config.personCharacteristicsParams.DEFAULT_UPPER_SECS;
 	boost::mt19937 gen(static_cast<unsigned int>(getId()*getId()));

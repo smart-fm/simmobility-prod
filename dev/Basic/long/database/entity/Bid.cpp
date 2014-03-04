@@ -14,8 +14,10 @@
 
 using namespace sim_mob::long_term;
 
-Bid::Bid(BigSerial unitId, BigSerial bidderId, LT_Agent* bidder, float value, timeslice& time)
-: unitId(unitId), bidderId(bidderId), value(value), time(time), bidder(bidder) {
+Bid::Bid(BigSerial unitId, BigSerial bidderId, LT_Agent* bidder, double value, 
+        timeslice& time, double willingnessToPay, double surplus)
+: unitId(unitId), bidderId(bidderId), value(value), time(time), bidder(bidder),
+willingnessToPay(willingnessToPay), surplus(surplus){
 }
 
 Bid::Bid(const Bid& source) : time(source.time) {
@@ -23,11 +25,13 @@ Bid::Bid(const Bid& source) : time(source.time) {
     this->bidderId = source.bidderId;
     this->value = source.value;
     this->bidder = source.bidder;
+    this->surplus = source.surplus;
+    this->willingnessToPay = source.willingnessToPay;
 }
 
 Bid::Bid()
 : unitId(INVALID_ID), bidderId(INVALID_ID), value(.0f), time(0,0), 
-        bidder(nullptr) {
+        bidder(nullptr), willingnessToPay(0), surplus(0) {
 }
 
 Bid::~Bid() {
@@ -39,6 +43,8 @@ Bid& Bid::operator=(const Bid& source) {
     this->value = source.value;
     this->time = source.time;
     this->bidder = source.bidder;
+    this->surplus = source.surplus;
+    this->willingnessToPay = source.willingnessToPay;
     return *this;
 }
 
@@ -50,7 +56,7 @@ BigSerial Bid::getBidderId() const {
     return bidderId;
 }
 
-float Bid::getValue() const {
+double Bid::getValue() const {
     return value;
 }
 
@@ -60,6 +66,14 @@ const timeslice& Bid::getTime() const {
 
 LT_Agent* Bid::getBidder() const{
     return bidder;
+}
+
+double Bid::getWillingnessToPay() const {
+    return willingnessToPay;
+}
+
+double Bid::getSurplus() const {
+    return surplus;
 }
 
 namespace sim_mob {

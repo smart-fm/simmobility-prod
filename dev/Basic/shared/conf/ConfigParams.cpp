@@ -424,8 +424,9 @@ bool sim_mob::ConfigParams::RunningMidSupply() const {
 		return (run_mode == "supply" || run_mode == "demand+supply");
 	}
 	catch (const std::out_of_range& oorx) {
-		throw std::runtime_error("generic property 'mid_term_run_mode' not found");
+		//throw std::runtime_error("generic property 'mid_term_run_mode' not found");
 	}
+        return false;
 }
 
 bool sim_mob::ConfigParams::RunningMidDemand() const {
@@ -434,8 +435,9 @@ bool sim_mob::ConfigParams::RunningMidDemand() const {
 		return (run_mode == "demand" || run_mode == "demand+supply");
 	}
 	catch (const std::out_of_range& oorx) {
-		throw std::runtime_error("generic property 'mid_term_run_mode' not found");
+		//throw std::runtime_error("generic property 'mid_term_run_mode' not found");
 	}
+        return false;
 }
 
 unsigned int sim_mob::ConfigParams::communicationTimeStepInMilliSeconds() const

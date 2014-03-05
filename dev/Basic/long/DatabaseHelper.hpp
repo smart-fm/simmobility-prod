@@ -34,6 +34,8 @@ namespace sim_mob {
         const std::string DB_TABLE_HOUSEHOLD = APPLY_SCHEMA(MAIN_SCHEMA, "household");
         const std::string DB_TABLE_BUILDING = APPLY_SCHEMA(MAIN_SCHEMA, "building");
         const std::string DB_TABLE_UNIT = APPLY_SCHEMA(MAIN_SCHEMA, "unit");
+        const std::string DB_TABLE_DEVELOPER = APPLY_SCHEMA(MAIN_SCHEMA, "developer");
+        
         /**
          * Views
          */
@@ -51,6 +53,8 @@ namespace sim_mob {
         const std::string DB_FUNC_DEL_BUILDING_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "deleteBuildingById(:id)");
         const std::string DB_FUNC_GET_BUILDINGS = APPLY_SCHEMA(MAIN_SCHEMA, "getBuildings()");
         const std::string DB_FUNC_GET_BUILDING_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getBuildingById(:id)");
+        const std::string DB_FUNC_GET_DEVELPERS = APPLY_SCHEMA(MAIN_SCHEMA, "getDevelopers()");
+        const std::string DB_FUNC_GET_DEVELOPER_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getDeveloperById(:id)");
 
         /**
          * Fields
@@ -148,6 +152,8 @@ namespace sim_mob {
         const std::string DB_GETALL_UNIT = "SELECT * FROM "
                 + DB_FUNC_GET_UNITS
                 + LIMIT;
+        const std::string DB_GETALL_DEVELOPERS = "SELECT * FROM "
+                + DB_FUNC_GET_DEVELPERS;
 
         /**
          * GET BY ID
@@ -158,5 +164,7 @@ namespace sim_mob {
                 + DB_FUNC_GET_BUILDING_BY_ID;
         const std::string DB_GETBYID_UNIT = "SELECT * FROM " +
                 DB_FUNC_GET_UNIT_BY_ID;
+        const std::string DB_GETBYID_DEVELOPER = "SELECT * FROM " +
+                DB_FUNC_GET_DEVELOPER_BY_ID;
     }
 }

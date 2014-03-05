@@ -400,7 +400,7 @@
         <ip_address value="127.0.0.1"/>
         <port value="9000"/>
         <update_time_ms value="500"/>
-        <map_file value="cityhall/cityhall.osm"/>
+        <map_file value="map/random001/mynetwork.osm"/>
         <blocking_time_sec value="5"/>
     </fmodcontroller>
         

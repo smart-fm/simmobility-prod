@@ -161,10 +161,15 @@ void HouseholdSellerRole::update(timeslice now) {
             BigSerial unitId = *itr;
             unit = dman.getUnitById(unitId);
             BigSerial tazId = dman.getUnitTazId(unitId);
-            double hedonicPrice = luaModel.calculateHedonicPrice(*unit);
             calculateUnitExpectations(*unit);
-            market->addEntry(HousingMarket::Entry(getParent(), unit->getId(),
-                    unit->getPostcodeId(), tazId, hedonicPrice, hedonicPrice));
+            //get first expectation to add the entry on market.
+            ExpectationEntry firstExpectation; 
+            if(getCurrentExpectation(unit->getId(), firstExpectation)){
+                market->addEntry(HousingMarket::Entry(getParent(), unit->getId(),
+                        unit->getPostcodeId(), tazId, 
+                        firstExpectation.price, 
+                        firstExpectation.hedonicPrice));
+            }
             selling = true;
         }
         hasUnitsToSale = false;
@@ -287,9 +292,12 @@ bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId,
         unsigned int index = floor(abs(info.startedDay - currentTime.ms()) / info.interval);
         if (index < info.expectations.size()) {
             ExpectationEntry& expectation = info.expectations[index];
-            outEntry.expectation = expectation.expectation;
-            outEntry.price = expectation.price;
-            return true;
+            if (expectation.price > 0 && expectation.hedonicPrice > 0){
+                outEntry.hedonicPrice = expectation.hedonicPrice;
+                outEntry.expectation = expectation.expectation;
+                outEntry.price = expectation.price;
+                return true;
+            }
         }
     }
     return false;

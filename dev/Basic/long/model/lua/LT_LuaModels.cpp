@@ -104,6 +104,7 @@ void HM_LuaModel::mapClasses() {
     getGlobalNamespace(state.get())
             .beginClass <ExpectationEntry> ("ExpectationEntry")
             .addConstructor <void (*) (void) > ()
+            .addData("hedonicPrice", &ExpectationEntry::hedonicPrice)
             .addData("price", &ExpectationEntry::price)
             .addData("expectation", &ExpectationEntry::expectation)
             .endClass();
@@ -190,13 +191,15 @@ void HM_LuaModel::mapClasses() {
 
 void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket,
         vector<ExpectationEntry>& outValues) const {
+    const BigSerial pcId = unit.getPostcodeId();
     LuaRef funcRef = getGlobal(state.get(), "calulateUnitExpectations");
-    LuaRef retVal = funcRef(&unit, timeOnMarket);
+    LuaRef retVal = funcRef(&unit, timeOnMarket, getBuilding(unit.getBuildingId()),
+            getPostcode(pcId), getAmenities(pcId));
     if (retVal.isTable()) {
         for (int i = 1; i <= retVal.length(); i++) {
-            ExpectationEntry entry;
-            entry.price = retVal[i].cast<ExpectationEntry>().price;
-            entry.expectation = retVal[i].cast<ExpectationEntry>().expectation;
+            ExpectationEntry entry = retVal[i].cast<ExpectationEntry>();
+            //entry.price = .price;
+            //entry.expectation = retVal[i].cast<ExpectationEntry>().expectation;
             outValues.push_back(entry);
         }
     }

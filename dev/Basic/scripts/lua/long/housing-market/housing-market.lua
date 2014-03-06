@@ -99,9 +99,6 @@ function readOnlyTable(table)
    });
 end
 
---MATH constants.
-MATH = readOnlyTable {E = math.exp(1)}
-
 --Simulation constants.
 CONSTANTS = readOnlyTable {
   SIMULATION_YEAR   = 2008,
@@ -210,23 +207,19 @@ end
     
     @param price of the unit.
     @param v is the last expectation.
-    @param theta is the ratio of events expected by the seller.
-    @param alpha is the importance of the price for seller.
+    @param a is the ratio of events expected by the seller.
+    @param b is the importance of the price for seller.
+    @param cost
     @return expectation value.
 ]]
-function calculateExpectation(price, v, theta, alpha)
-    local E = MATH.E
-    --Calculates the bids distribution using F(X) = X/Price where F(V(t+1)) = V(t+1)/Price
-    local bidsDistribution = (price == 0 and 0 or (v / price))
-    --Calculates the probability of not having any bid greater than v.
-    local priceProb = math.pow(E, -((theta / math.pow(price, alpha)) * (1 - bidsDistribution)))
-    --// Calculates expected maximum bid.
-    local p1 = math.pow(price, 2 * alpha + 1)
-    local p2 = (price * (theta * math.pow(price, -alpha) - 1))
-    local p3 = math.pow(E, (theta * math.pow(price, -alpha)* (bidsDistribution - 1)))
-    local p4 = (price - theta * v * math.pow(price, -alpha))
-    local expectedMaxBid = (p1 * (p2 + p3 * p4)) / (theta * theta)
-    return (v * priceProb + (1 - priceProb) * expectedMaxBid) - (0.01 * price)
+function calculateExpectation(price, v, a, b, cost)
+    local E = Math.E
+    local rateOfBuyers = a - (b * price)
+    local expectation = price 
+                        + (math.pow(E,-rateOfBuyers*(price-v)/price)-1)*price/rateOfBuyers 
+                        + math.pow(E,-rateOfBuyers)*v 
+                        - cost
+    return expectation
 end
 
 
@@ -236,19 +229,31 @@ end
 
     @param unit to sell.
     @param timeOnMarket number of expectations which are necessary to calculate.
+    @param building where the unit belongs
+    @param postcode of the unit.
+    @param amenities close to the unit.
     @return array of ExpectationEntry's with N expectations (N should be equal to timeOnMarket).
 ]]
-function calulateUnitExpectations (unit, timeOnMarket)
+function calulateUnitExpectations (unit, timeOnMarket, building, postcode, amenities)
     local expectations = {}
-    local price = 20
-    local expectation = 4
-    local theta = 1.0 -- ratio of events expected by the seller
-    local alpha = 2.0 -- Importance of the price for seller.
+    local hedonicPrice = calculateHedonicPrice(unit, building, postcode, amenities)
+    local expectation = hedonicPrice -- IMPORTANT : this should be the hedonic value
+    local price = 20 -- starting point for price search
+    local a = 1.0 -- ratio of events expected by the seller
+    local b = 0.5 -- Importance of the price for seller.
+    local cost = 0.1 -- Cost of being in the market
     for i=1,timeOnMarket do
         entry = ExpectationEntry()
+        entry.hedonicPrice = hedonicPrice
         entry.price = findMaxArg(calculateExpectation,
-                price, expectation, theta, alpha, 0, 0.001, 100000)
-        entry.expectation = calculateExpectation(entry.price, expectation, theta, alpha);
+                price, expectation, a, b, cost, 0.001, 10000)
+        entry.expectation = calculateExpectation(entry.price, expectation, a, b, cost);
+        if Math.nan(entry.expectation) or Math.nan(entry.price) then
+           entry.hedonicPrice = 0
+           entry.expectation = 0
+           entry.price = 0
+        end
+        --print ("PRICE: " .. entry.price .. " EXPECTATION: " .. entry.expectation) 
         expectation = entry.expectation;
         expectations[i] = entry
     end
@@ -275,8 +280,9 @@ end
 ]]
 function calculateSurplus (entry, unitBids)
     local maximumBids = 20
-    local rateOfBuyers = 1.4
-    return (maximumBids-unitBids)*entry.askingPrice/rateOfBuyers
+    local a = 1.4
+    local b = 0.5
+    return (maximumBids-unitBids) * entry.askingPrice / ((a - b) * entry.askingPrice)
 end
 
 --[[
@@ -294,14 +300,13 @@ end
 ]]
 
 function calculateWP (household, unit)
-    local theta0 = 11.880
-    local theta1 = 13.288
-    local theta2 = 0.002
-    local theta3 = 8.840
+    local theta0 = -42.889
+    local theta1 = 20.923
+    local theta2 = 0.0024
+    local theta3 = 0
     local p1 = household.income == 0 and 0 or (household.size/household.income)
-
-    return theta0 + 
+    return (theta0 + 
            (theta1 * unit.floorArea * p1) +
            (theta2 * household.income) +
-           (CAR_CATEGORIES[household.vehicleCategoryId] and theta3 or 0)
+           (CAR_CATEGORIES[household.vehicleCategoryId] and theta3 or 0))
 end

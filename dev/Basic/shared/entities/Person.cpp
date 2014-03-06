@@ -38,6 +38,11 @@ typedef Entity::UpdateStatus UpdateStatus;
 
 
 namespace {
+	// default lowest age
+	const int DEFAULT_LOWEST_AGE = 20;
+	// default highest age
+	const int DEFAULT_HIGHEST_AGE = 60;
+
 Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 {
 	//Make sure we have something to work with
@@ -833,10 +838,15 @@ sim_mob::Role* sim_mob::Person::getNextRole() const {
 void sim_mob::Person::setPersonCharacteristics()
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	std::map<int, PersonCharacteristics> personCharacteristics =  config.personCharacteristicsParams.personCharacteristics;
+	const std::map<int, PersonCharacteristics>& personCharacteristics = config.personCharacteristicsParams.personCharacteristics;
 
-	int lowestAge = config.personCharacteristicsParams.lowestAge;
-	int highestAge = config.personCharacteristicsParams.highestAge;
+	int lowestAge = DEFAULT_LOWEST_AGE;
+	int highestAge = DEFAULT_HIGHEST_AGE;
+	// if no personCharacteristics item in the config file, introduce default lowestAge and highestAge
+	if (!personCharacteristics.empty()) {
+		lowestAge = config.personCharacteristicsParams.lowestAge;
+		highestAge = config.personCharacteristicsParams.highestAge;
+	}
 	const int defaultLowerSecs = config.personCharacteristicsParams.DEFAULT_LOWER_SECS;
 	const int defaultUpperSecs = config.personCharacteristicsParams.DEFAULT_UPPER_SECS;
 	boost::mt19937 gen(static_cast<unsigned int>(getId()*getId()));

@@ -39,9 +39,9 @@ typedef Entity::UpdateStatus UpdateStatus;
 
 namespace {
 	// default lowest age
-	const int defaultLowestAge = 20;
+	const int DEFAULT_LOWEST_AGE = 20;
 	// default highest age
-	const int defaultHighestAge = 60;
+	const int DEFAULT_HIGHEST_AGE = 60;
 
 Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 {
@@ -840,8 +840,8 @@ void sim_mob::Person::setPersonCharacteristics()
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	const std::map<int, PersonCharacteristics>& personCharacteristics =  config.personCharacteristicsParams.personCharacteristics;
 
-	int lowestAge = defaultLowestAge;
-	int highestAge = defaultHighestAge;
+	int lowestAge = DEFAULT_LOWEST_AGE;
+	int highestAge = DEFAULT_HIGHEST_AGE;
 	// if no personCharacteristics item in the config file, introduce default lowestAge and highestAge
 	if(!personCharacteristics.empty()) {
 	    lowestAge = config.personCharacteristicsParams.lowestAge;

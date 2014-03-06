@@ -645,7 +645,9 @@ void FMOD_Controller::handleVehicleInit(const std::string& msg)
 		Node* node = const_cast<Node*>( stdir.getNode( (*it).nodeId ) );
 		if(node != nullptr){
 			DailyTime start(0);
-			sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", node, "node", node, "node");
+			sim_mob::Trip* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", node, "node", node, "node");
+			sim_mob::SubTrip subTrip("", "Trip", 0, 1, DailyTime(), DailyTime(), node, "node", node, "node", "Car");
+			tc->addSubTrip(subTrip);
 			std::vector<sim_mob::TripChainItem*>  tcs;
 			tcs.push_back(tc);
 

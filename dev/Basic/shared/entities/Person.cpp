@@ -99,9 +99,9 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0),
 	  client_id(-1)
 {
-	if (!ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
+	/*if (!ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
 		simplyModifyTripChain(tcs);
-	}
+	}*/
 	initTripChain();
 }
 

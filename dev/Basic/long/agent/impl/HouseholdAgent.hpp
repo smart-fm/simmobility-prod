@@ -9,7 +9,6 @@
  * Created on May 16, 2013, 6:36 PM
  */
 #pragma once
-#include <vector>
 #include "core/HousingMarket.hpp"
 #include "agent/LT_Agent.hpp"
 #include "database/entity/Household.hpp"
@@ -29,20 +28,21 @@ namespace sim_mob {
          * - Sell units.
          * - Bid units. 
          */
-        class HouseholdAgent :  public LT_Agent {
+        class HouseholdAgent : public LT_Agent {
         public:
-            HouseholdAgent(HM_Model* model, Household* hh, 
-                    HousingMarket* market);
+            HouseholdAgent(BigSerial id, HM_Model* model, const Household* hh, 
+                    HousingMarket* market, bool marketSeller = false);
             virtual ~HouseholdAgent();
             
             //not-thread safe
             void addUnitId (const BigSerial& unitId);
             void removeUnitId (const BigSerial& unitId);
-            const std::vector<BigSerial>& getUnitIds() const;
+            const IdVector& getUnitIds() const;
+            const IdVector& getPreferableZones() const;
             HM_Model* getModel() const;
             HousingMarket* getMarket() const;
             const Household* getHousehold() const;
-            
+        
         protected:
             /**
              * Inherited from LT_Agent.
@@ -86,16 +86,16 @@ namespace sim_mob {
              * @param args
              */
             void processExternalEvent(const ExternalEventArgs& args);
-        private:
-            typedef std::vector<BigSerial> UnitIdList;
-      
+            
         private:
             HM_Model* model;
             HousingMarket* market;
-            Household* household;
-            UnitIdList unitIds;
+            const Household* household;
+            IdVector unitIds;
+            IdVector preferableZones;
             HouseholdBidderRole* bidder;
             HouseholdSellerRole* seller;
+            bool marketSeller; //tells if the agent is only a fake market seller
         };
     }
 }

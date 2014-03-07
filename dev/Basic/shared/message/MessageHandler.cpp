@@ -21,6 +21,6 @@ MessageHandler::~MessageHandler() {
     context = NULL;
 }
 
-unsigned int MessageHandler::GetId() {
+unsigned int MessageHandler::GetId() const {
     return id;
 }

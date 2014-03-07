@@ -11,6 +11,9 @@
 #include "model/lua/LuaProvider.hpp"
 #include "message/MessageBus.hpp"
 #include "event/LT_EventArgs.hpp"
+#include "agent/impl/HouseholdAgent.hpp"
+#include "AgentsLookup.hpp"
+#include "message/LT_Message.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -68,10 +71,14 @@ Entity::UpdateStatus EventsInjector::update(timeslice now) {
     //(now+1) - events for the next day once our events are 1 tick delayed
     model.getExternalEvents((now.ms() + 1), events);
     vector<ExternalEvent>::iterator it = events.begin();
+    AgentsLookup& lookup = AgentsLookupSingleton::getInstance();
+    const HouseholdAgent* agent = nullptr;
     for (it; it != events.end(); ++it) {
-        //TODO: Agent as context improves performence 
-        MessageBus::PublishEvent(toEventId(it->getType()), 
-                MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
+        agent = lookup.getHouseholdById(it->getHouseholdId());
+        if (agent){
+                MessageBus::PublishEvent(toEventId(it->getType()), const_cast<HouseholdAgent*>(agent), 
+                        MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
+        }
     }
     return Entity::UpdateStatus(Entity::UpdateStatus::RS_CONTINUE);
 }

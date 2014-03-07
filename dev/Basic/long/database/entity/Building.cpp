@@ -13,11 +13,12 @@
 
 using namespace sim_mob::long_term;
 
-Building::Building(BigSerial id, BigSerial typeId,
-        BigSerial parcelId, int builtYear,
-        double floorArea, int storeys, int parkingSpaces) :
-id(id), typeId(typeId), parcelId(parcelId), builtYear(builtYear),
-floorArea(floorArea), storeys(storeys), parkingSpaces(parkingSpaces) {
+Building::Building(BigSerial id, BigSerial typeId, BigSerial parcelId, 
+        BigSerial tenureId, int builtYear, double landedArea, int storeys, 
+        int parkingSpaces) :
+id(id), typeId(typeId), parcelId(parcelId), tenureId(tenureId), 
+builtYear(builtYear), landedArea(landedArea), storeys(storeys), 
+parkingSpaces(parkingSpaces) {
 }
 
 Building::~Building() {
@@ -27,16 +28,11 @@ Building& Building::operator=(const Building& source) {
     this->id = source.id;
     this->typeId = source.typeId;
     this->parcelId = source.parcelId;
+    this->tenureId = source.tenureId;
     this->builtYear = source.builtYear;
-    this->floorArea = source.floorArea;
     this->parkingSpaces = source.parkingSpaces;
     this->storeys = source.storeys;
-    this->residentialUnits = source.residentialUnits;
-    this->landArea = source.landArea;
-    this->improvementValue = source.improvementValue;
-    this->taxExempt = source.taxExempt;
-    this->nonResidentialSqft = source.nonResidentialSqft;
-    this->sqftPerUnit = source.sqftPerUnit;
+    this->landedArea = source.landedArea;
     return *this;
 }
 
@@ -52,12 +48,12 @@ BigSerial Building::getParcelId() const {
     return parcelId;
 }
 
-int Building::getBuiltYear() const {
-    return builtYear;
+BigSerial Building::getTenureId() const {
+    return tenureId;
 }
 
-double Building::getFloorArea() const {
-    return floorArea;
+int Building::getBuiltYear() const {
+    return builtYear;
 }
 
 int Building::getStoreys() const {
@@ -68,28 +64,8 @@ int Building::getParkingSpaces() const {
     return parkingSpaces;
 }
 
-int Building::getResidentialUnits() const {
-    return residentialUnits;
-}
-
-double Building::getLandArea() const {
-    return landArea;
-}
-
-int Building::getImprovementValue() const {
-    return improvementValue;
-}
-
-int Building::getTaxExempt() const {
-    return taxExempt;
-}
-
-double Building::getNonResidentialSqft() const {
-    return nonResidentialSqft;
-}
-
-double Building::getSqftPerUnit() const {
-    return sqftPerUnit;
+double Building::getLandedArea() const {
+    return landedArea;
 }
 
 namespace sim_mob {
@@ -100,16 +76,11 @@ namespace sim_mob {
                     << "\"id\":\"" << data.id << "\","
                     << "\"typeId\":\"" << data.typeId << "\","
                     << "\"parcelId\":\"" << data.parcelId << "\","
+                    << "\"tenureId\":\"" << data.tenureId << "\","
                     << "\"builtYear\":\"" << data.builtYear << "\","
-                    << "\"floorArea\":\"" << data.floorArea << "\","
                     << "\"storeys\":\"" << data.storeys << "\","
                     << "\"parkingSpaces\":\"" << data.parkingSpaces << "\","
-                    << "\"residentialUnits\":\"" << data.residentialUnits << "\","
-                    << "\"landArea\":\"" << data.landArea << "\","
-                    << "\"improvementValue\":\"" << data.improvementValue << "\","
-                    << "\"taxExempt\":\"" << data.taxExempt << "\","
-                    << "\"nonResidentialSqft\":\"" << data.nonResidentialSqft << "\","
-                    << "\"sqftPerUnit\":\"" << data.sqftPerUnit << "\""
+                    << "\"landArea\":\"" << data.landedArea << "\""
                     << "}";
         }
     }

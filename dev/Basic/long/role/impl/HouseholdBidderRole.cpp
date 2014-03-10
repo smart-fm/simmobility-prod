@@ -21,6 +21,8 @@
 #include "model/lua/LuaProvider.hpp"
 #include "model/HM_Model.hpp"
 #include "entities/commsim/message/base/Message.hpp"
+#include "core/AgentsLookup.hpp"
+#include "core/DataManager.hpp"
 
 using std::list;
 using std::endl;
@@ -30,32 +32,6 @@ using namespace sim_mob::messaging;
 using boost::format;
 
 namespace {
-
-    const std::string LOG_BID_ACCEPTED = "Agent: [%1%] bid: [%2%] was accepted.";
-    const std::string LOG_BID_REJECTED = "Agent: [%1%] bid: [%2%] was rejected.";
-
-    inline void printBid(const HouseholdAgent& agent, const Bid& bid,
-            const BidResponse& resp) {
-        std::string msg = "";
-        switch (resp) {
-            case ACCEPTED:// Bid accepted 
-            {
-                msg = LOG_BID_ACCEPTED;
-                break;
-            }
-            case NOT_ACCEPTED:
-            {
-                msg = LOG_BID_REJECTED;
-                break;
-            }
-            default:break;
-        }
-
-        if (!msg.empty()) {
-            format fmtr = boost::format(LOG_BID_ACCEPTED) % agent.getId() % bid;
-            PrintOut(fmtr.str() << endl);
-        }
-    }
 
     /**
      * Send given bid to given owner.
@@ -126,8 +102,6 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type,
             }
             waitingForResponse = false;
             Statistics::increment(Statistics::N_BID_RESPONSES);
-            //print out bid.
-            printBid(*getParent(), msg.getBid(), msg.getResponse());
             break;
         }
         default:break;
@@ -138,15 +112,23 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
     HousingMarket* market = getParent()->getMarket();
     const Household* household = getParent()->getHousehold();
     const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
-    const HousingMarket::EntryMap& entries = market->getAvailableEntries();
+    
+    //get available entries (for preferable zones if exists)
+    HousingMarket::ConstEntryList entries;
+    if (getParent()->getPreferableZones().empty()) {
+        market->getAvailableEntries(entries);
+    } else {
+        market->getAvailableEntries(getParent()->getPreferableZones(), entries);
+    }
+  
     // choose the unit to bid with max surplus.
     const HousingMarket::Entry* maxEntry = nullptr;
-    float maxSurplus = -1;
-    for (HousingMarket::EntryMap::const_iterator itr = entries.begin();
+    double maxSurplus = -1;
+    for (HousingMarket::ConstEntryList::const_iterator itr = entries.begin();
             itr != entries.end(); itr++) {
-        const HousingMarket::Entry* entry = &(itr->second);
+        const HousingMarket::Entry* entry = *itr;
         if ((entry->getOwner() != getParent())) {
-            float surplus = luaModel.calculateSurplus(*entry,
+            double surplus = luaModel.calculateSurplus(*entry,
                     getBidsCounter(entry->getUnitId()));
             if (surplus > maxSurplus) {
                 maxSurplus = surplus;
@@ -156,13 +138,18 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
     }
     // Exists some unit to bid.
     if (maxEntry) {
-        float bidValue = maxSurplus +
-                luaModel.calulateWP(*household, maxEntry->getUnit());
+        DataManager& dman = DataManagerSingleton::getInstance();
+        const Unit* unit = dman.getUnitById(maxEntry->getUnitId());
+        if (unit){
+            double wp = luaModel.calulateWP(*household, *unit);
+            double bidValue = maxSurplus + wp;
 
-        if (maxEntry->getOwner() && bidValue > 0.0f) {
-            bid(maxEntry->getOwner(), Bid(maxEntry->getUnitId(),
-                    household->getId(), getParent(), bidValue, now));
-            return true;
+            if (maxEntry->getOwner() && bidValue > 0.0f) {
+                bid(maxEntry->getOwner(), Bid(maxEntry->getUnitId(),
+                        household->getId(), getParent(), bidValue, now, wp, 
+                        maxSurplus));
+                return true;
+            }
         }
     }
     return false;

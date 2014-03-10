@@ -35,6 +35,7 @@ namespace sim_mob {
         const std::string DB_TABLE_BUILDING = APPLY_SCHEMA(MAIN_SCHEMA, "building");
         const std::string DB_TABLE_UNIT = APPLY_SCHEMA(MAIN_SCHEMA, "unit");
         const std::string DB_TABLE_DEVELOPER = APPLY_SCHEMA(MAIN_SCHEMA, "developer");
+        const std::string DB_TABLE_PARCEL = APPLY_SCHEMA(MAIN_SCHEMA, "parcel");
         const std::string DB_TABLE_POSTCODE = APPLY_SCHEMA(MAIN_SCHEMA, "postcode");
         const std::string DB_TABLE_POSTCODE_AMENITIES = APPLY_SCHEMA(MAIN_SCHEMA, "postcode_amenities");
         
@@ -57,6 +58,8 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_BUILDING_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getBuildingById(:id)");
         const std::string DB_FUNC_GET_DEVELPERS = APPLY_SCHEMA(MAIN_SCHEMA, "getDevelopers()");
         const std::string DB_FUNC_GET_DEVELOPER_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getDeveloperById(:id)");
+        const std::string DB_FUNC_GET_PARCELS = APPLY_SCHEMA(MAIN_SCHEMA, "getParcels()");
+        const std::string DB_FUNC_GET_PARCEL_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getParcelById(:id)");
         const std::string DB_FUNC_DEL_POSTCODE_BY_ID = DB_EMPTY_QUERY;
         const std::string DB_FUNC_GET_POSTCODES = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodes()");
         const std::string DB_FUNC_GET_POSTCODE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodeById(:id)");
@@ -133,7 +136,14 @@ namespace sim_mob {
         const std::string DB_FIELD_EC = "ec";
         const std::string DB_FIELD_PRIVATE = "private";
         const std::string DB_FIELD_HDB = "hdb";
-
+        const std::string DB_FIELD_LAND_USE_ZONE_ID = "land_use_zone_id";
+        const std::string DB_FIELD_AREA = "area";
+        const std::string DB_FIELD_LENGTH = "length";
+        const std::string DB_FIELD_MIN_X = "min_x";
+        const std::string DB_FIELD_MAX_X = "max_x";
+        const std::string DB_FIELD_MIN_Y = "min_y";
+        const std::string DB_FIELD_MAX_Y = "max_y";
+        
         /**
          * INSERT
          */
@@ -196,6 +206,8 @@ namespace sim_mob {
                 + LIMIT;
         const std::string DB_GETALL_DEVELOPERS = "SELECT * FROM "
                 + DB_FUNC_GET_DEVELPERS;
+        const std::string DB_GETALL_PARCELS = "SELECT * FROM "
+                + DB_FUNC_GET_PARCELS;
         const std::string DB_GETALL_POSTCODE = "SELECT * FROM "
                 + DB_FUNC_GET_POSTCODES;
         const std::string DB_GETALL_POSTCODE_AMENITIES = "SELECT * FROM "
@@ -212,6 +224,8 @@ namespace sim_mob {
                 DB_FUNC_GET_UNIT_BY_ID;
         const std::string DB_GETBYID_DEVELOPER = "SELECT * FROM " +
                 DB_FUNC_GET_DEVELOPER_BY_ID;
+        const std::string DB_GETBYID_PARCEL = "SELECT * FROM " +
+                DB_FUNC_GET_PARCEL_BY_ID;
         const std::string DB_GETBYID_POSTCODE = "SELECT * FROM " +
                 DB_FUNC_GET_POSTCODE_BY_ID;
         const std::string DB_GETBYID_POSTCODE_AMENITIES = "SELECT * FROM " +

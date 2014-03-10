@@ -17,6 +17,8 @@
 #include "database/dao/UnitDao.hpp"
 #include "database/dao/PostcodeDao.hpp"
 #include "database/dao/PostcodeAmenitiesDao.hpp"
+#include "database/dao/ParcelDao.hpp"
+#include "database/dao/DeveloperDao.hpp"
 
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
@@ -60,4 +62,6 @@ void DaoTests::testAll() {
     TestDao<UnitDao, Unit>();
     TestDao<PostcodeDao, Postcode>();
     TestDao<PostcodeAmenitiesDao, PostcodeAmenities>();
+    TestDao<DeveloperDao, Developer>();
+    TestDao<ParcelDao, Parcel>();
 }

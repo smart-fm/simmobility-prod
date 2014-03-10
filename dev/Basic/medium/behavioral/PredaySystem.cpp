@@ -54,14 +54,13 @@ namespace {
 	const int FIRST_INDEX = 1;
 	const int LAST_WINDOW = 26.75;
 	const int LAST_INDEX = 48;
+
 	inline double getTimeWindowFromIndex(const uint32_t index) {
-		return (index * 0.5 /*half hour windows*/)
-				+ 2.75 /*the day starts at 3.25*/;
+		return (index * 0.5 /*half hour windows*/) + 2.75 /*the day starts at 3.25*/;
 	}
 
 	inline uint32_t getIndexFromTimeWindow(const double window) {
-		return (window - 2.75 /*the day starts at 3.25*/)
-				/ 0.5;
+		return (window - 2.75 /*the day starts at 3.25*/) / 0.5;
 	}
 }
 
@@ -876,6 +875,10 @@ void PredaySystem::calculateTourStartTime(Tour* tour) {
 		travelTime = 0.0;
 	}
 
+	if (travelTime > 900) {
+		int gotcha = 0;
+	}
+
 	double tourStartTime = timeWindow - travelTime;
 	// align to corresponding time window
 	if((tourStartTime - std::floor(tourStartTime)) < 0.5) {
@@ -885,7 +888,7 @@ void PredaySystem::calculateTourStartTime(Tour* tour) {
 		tourStartTime = std::floor(tourStartTime) + 0.75;
 	}
 	tourStartTime = getIndexFromTimeWindow(tourStartTime);
-	tourStartTime = (tourStartTime >= FIRST_INDEX)? tourStartTime : 1;
+	tourStartTime = (tourStartTime >= FIRST_INDEX)? tourStartTime : FIRST_INDEX;
 	tourStartTime = (tourStartTime <= LAST_INDEX)? tourStartTime : LAST_INDEX;
 	tour->setStartTime(tourStartTime);
 }

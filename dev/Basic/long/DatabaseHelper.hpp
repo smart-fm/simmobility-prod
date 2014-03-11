@@ -36,6 +36,7 @@ namespace sim_mob {
         const std::string DB_TABLE_UNIT = APPLY_SCHEMA(MAIN_SCHEMA, "unit");
         const std::string DB_TABLE_DEVELOPER = APPLY_SCHEMA(MAIN_SCHEMA, "developer");
         const std::string DB_TABLE_PARCEL = APPLY_SCHEMA(MAIN_SCHEMA, "parcel");
+        const std::string DB_TABLE_TEMPLATE = APPLY_SCHEMA(MAIN_SCHEMA, "template");
         const std::string DB_TABLE_POSTCODE = APPLY_SCHEMA(MAIN_SCHEMA, "postcode");
         const std::string DB_TABLE_POSTCODE_AMENITIES = APPLY_SCHEMA(MAIN_SCHEMA, "postcode_amenities");
         
@@ -60,6 +61,8 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_DEVELOPER_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getDeveloperById(:id)");
         const std::string DB_FUNC_GET_PARCELS = APPLY_SCHEMA(MAIN_SCHEMA, "getParcels()");
         const std::string DB_FUNC_GET_PARCEL_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getParcelById(:id)");
+        const std::string DB_FUNC_GET_TEMPLATES = APPLY_SCHEMA(MAIN_SCHEMA, "getTemplates()");
+        const std::string DB_FUNC_GET_TEMPLATE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getTemplateById(:id)");
         const std::string DB_FUNC_DEL_POSTCODE_BY_ID = DB_EMPTY_QUERY;
         const std::string DB_FUNC_GET_POSTCODES = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodes()");
         const std::string DB_FUNC_GET_POSTCODE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodeById(:id)");
@@ -208,6 +211,8 @@ namespace sim_mob {
                 + DB_FUNC_GET_DEVELPERS;
         const std::string DB_GETALL_PARCELS = "SELECT * FROM "
                 + DB_FUNC_GET_PARCELS;
+        const std::string DB_GETALL_TEMPLATES = "SELECT * FROM "
+                + DB_FUNC_GET_TEMPLATES;
         const std::string DB_GETALL_POSTCODE = "SELECT * FROM "
                 + DB_FUNC_GET_POSTCODES;
         const std::string DB_GETALL_POSTCODE_AMENITIES = "SELECT * FROM "
@@ -226,6 +231,8 @@ namespace sim_mob {
                 DB_FUNC_GET_DEVELOPER_BY_ID;
         const std::string DB_GETBYID_PARCEL = "SELECT * FROM " +
                 DB_FUNC_GET_PARCEL_BY_ID;
+        const std::string DB_GETBYID_TEMPLATE = "SELECT * FROM " +
+                DB_FUNC_GET_TEMPLATE_BY_ID;
         const std::string DB_GETBYID_POSTCODE = "SELECT * FROM " +
                 DB_FUNC_GET_POSTCODE_BY_ID;
         const std::string DB_GETBYID_POSTCODE_AMENITIES = "SELECT * FROM " +

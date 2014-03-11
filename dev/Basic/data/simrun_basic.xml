@@ -262,9 +262,9 @@
             <mongo_collection name="OPCosts" collection="OPCosts"/>
             <mongo_collection name="PMCosts" collection="PMCosts"/>
             <mongo_collection name="Zone" collection="Zone"/>
-            <mongo_collection name="Output_DayPattern" collection="person_tours_cpp_10_3"/>
-            <mongo_collection name="Output_Tour" collection="tours_cpp_10_3"/>
-            <mongo_collection name="Output_Activity" collection="activity_cpp_10_3"/>
+            <mongo_collection name="Output_DayPattern" collection="person_tours_cpp_11_3"/>
+            <mongo_collection name="Output_Tour" collection="tours_cpp_11_3"/>
+            <mongo_collection name="Output_Activity" collection="activity_cpp_11_3"/>
         </mongo_collections>
     </constructs>
 

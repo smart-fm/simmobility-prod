@@ -137,6 +137,7 @@ void FMOD_Controller::collectRequest()
 				request->arrivalTimeEarly = "-1";
 				request->arrivalTimeLate = "-1";
 				request->origin = 0;
+
 				if( trip->fromLocation.type_ == WayPoint::NODE )
 					request->origin = trip->fromLocation.node_->getID();
 				request->destination = 0;
@@ -510,6 +511,7 @@ MessageList FMOD_Controller::generateRequest(timeslice now)
 			MsgRequest request;
 			request.currentTime = current.toString();
 			request.messageID_ = FMOD_Message::MSG_REQUEST;
+			request.seatNum = 1;
 			request.request = *itr->first;
 			msgs.push( request.buildToString() );
 
@@ -580,6 +582,9 @@ void FMOD_Controller::handleScheduleMessage(const std::string& msg)
 				startNode = node;
 			}
 			endNode = node;
+		}
+		else {
+			std::cout << "Fmod Controller not receive correct schedule including wrong node id" << std::endl;
 		}
 	}
 

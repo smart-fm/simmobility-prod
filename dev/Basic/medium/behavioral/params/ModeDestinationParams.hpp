@@ -60,7 +60,7 @@ public:
 		if (choice < 1 || choice > nZones*nModes) {
 			throw std::runtime_error("getMode()::invalid choice id for mode-destination model");
 		}
-		return (choice/nZones + 1);
+		return ((choice-1)/nZones + 1);
 	}
 
 	/**

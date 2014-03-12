@@ -221,12 +221,12 @@
             <!--    2) Don't put any passwords to databases on the FM server. -->
             <plaintext-credential id="fm_local_yaojin">
                 <username value="postgres"/>
-                <password value="5M_S1mM0bility"/>
+                <password value="some_password"/>
             </plaintext-credential>
 
             <plaintext-credential id="harish_cred">
                 <username value="postgres"/>
-                <password value="5M_S1mM0bility"/>
+                <password value="some_password"/>
             </plaintext-credential>
         </credentials>
     

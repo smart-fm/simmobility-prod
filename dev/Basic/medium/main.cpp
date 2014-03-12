@@ -431,6 +431,13 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		Print::Ignore();
 	}
 
+	try {
+		ConfigManager::GetInstance().FullConfig().system.genericProps.at("mid_term_run_mode");
+	}
+	catch (const std::out_of_range& oorx) {
+		throw std::runtime_error("missing mandatory property 'mid_term_run_mode'");
+	}
+
 	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply() && ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
 		throw std::runtime_error("Mid-term run mode \"demand+supply\" is not supported yet. Please run demand and supply separately.");
 	}

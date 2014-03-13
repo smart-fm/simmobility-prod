@@ -11,6 +11,7 @@
 #include <boost/unordered_map.hpp>
 #include "util/SingletonHolder.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
+#include "agent/impl/DeveloperAgent.hpp"
 #include "LoggerAgent.hpp"
 #include "EventsInjector.hpp"
 
@@ -25,6 +26,7 @@ namespace sim_mob {
         class AgentsLookup {
         public:
             typedef boost::unordered_map<BigSerial, const HouseholdAgent*> HouseholdMap;
+            typedef boost::unordered_map<BigSerial, const DeveloperAgent*> DeveloperMap;
 
         public:
             virtual ~AgentsLookup();
@@ -34,6 +36,12 @@ namespace sim_mob {
              * @param agent pointer to add.
              */
             void addHousehold(const HouseholdAgent* agent);
+            
+            /**
+             * Adds new developer agent for lookup.
+             * @param agent pointer to add.
+             */
+            void addDeveloper(const DeveloperAgent* agent);
             
             /**
              * Gets logger agent.
@@ -54,13 +62,14 @@ namespace sim_mob {
              * Getters 
              */
             const HouseholdAgent* getHouseholdById(const BigSerial id) const;
-
+            const DeveloperAgent* getDeveloperById(const BigSerial id) const;
         private:
             template<typename T> friend class AgentsLookupLifeCycle;
             AgentsLookup();
 
         private:
             HouseholdMap householdsById;
+            DeveloperMap developersById;
             LoggerAgent logger;
             EventsInjector injector;
         };

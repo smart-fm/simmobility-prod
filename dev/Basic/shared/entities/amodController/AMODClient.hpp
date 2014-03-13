@@ -2,7 +2,7 @@
  * AMODClient.hpp
  *
  *  Created on: Mar 13, 2014
- *      Author: redheli
+ *      Author: Max
  */
 
 #ifndef AMODCLIENT_HPP_

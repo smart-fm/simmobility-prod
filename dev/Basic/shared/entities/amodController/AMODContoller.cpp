@@ -3,20 +3,23 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 /*
- * AMODClient.cpp
+ * AMODContoller.cpp
  *
  *  Created on: Mar 13, 2014
  *      Author: Max
  */
 
-#include "AMODClient.hpp"
+#include "AMODContoller.hpp"
 
+namespace sim_mob {
 
-sim_mob::AMOD::AMODClient::AMODClient() {
+sim_mob::AMOD::AMODContoller::AMODContoller() {
 	// TODO Auto-generated constructor stub
 
 }
 
-sim_mob::AMOD::AMODClient::~AMODClient() {
+sim_mob::AMOD::AMODContoller::~AMODContoller() {
 	// TODO Auto-generated destructor stub
 }
+
+} /* namespace sim_mob */

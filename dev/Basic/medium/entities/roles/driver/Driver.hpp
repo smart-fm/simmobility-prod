@@ -38,7 +38,7 @@ namespace medium
 
 class DriverBehavior;
 class DriverMovement;
-class BusDriverMovement;
+
 /**
  * Medium-term Driver.
  * \author Seth N. Hetu
@@ -77,7 +77,7 @@ protected:
 
 	friend class DriverBehavior;
 	friend class DriverMovement;
-	friend class BusDriverMovement;
+
 };
 
 

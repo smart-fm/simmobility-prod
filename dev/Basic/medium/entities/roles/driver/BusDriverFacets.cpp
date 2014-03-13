@@ -91,6 +91,14 @@ void sim_mob::medium::BusDriverMovement::flowIntoNextLinkIfPossible(UpdateParams
 	DriverMovement::flowIntoNextLinkIfPossible(p);
 }
 
+sim_mob::medium::BusDriver* sim_mob::medium::BusDriverBehavior::getParentDriver() const {
+	return dynamic_cast<sim_mob::medium::BusDriver*>(parentDriver);
+}
+
+sim_mob::medium::BusDriver* sim_mob::medium::BusDriverMovement::getParentDriver() const {
+	return dynamic_cast<sim_mob::medium::BusDriver*>(parentDriver);
+}
+
 sim_mob::Vehicle* sim_mob::medium::BusDriverMovement::initializePath(bool allocateVehicle)
 {
 	Vehicle* res = nullptr;

@@ -8,6 +8,7 @@
  */
 
 #include "DataManager.hpp"
+#include "util/HelperFunctions.hpp"
 #include "database/DB_Connection.hpp"
 #include "database/dao/HouseholdDao.hpp"
 #include "database/dao/UnitDao.hpp"
@@ -19,43 +20,6 @@ using namespace sim_mob;
 using namespace sim_mob::long_term;
 using namespace sim_mob::db;
 namespace {
-
-    /**
-     * Load data from datasouce from given connection using the 
-     * given list and template DAO.
-     * @param conn Datasource connection.
-     * @param list (out) to fill.
-     */
-    template <typename T, typename K>
-    inline void loadData(DB_Connection& conn, K& list) {
-        if (conn.isConnected()) {
-            T dao(conn);
-            dao.getAll(list);
-        }
-    }
-
-    /**
-     * Load data from datasouce from given connection using the 
-     * given list and template DAO.
-     * This function fills the given map using the given getter function. 
-     * 
-     * Maps should be like map<KEY, *Obj> 
-     *    - KEY object returned by given getter function.
-     *    - *Obj pointer to the loaded object. 
-     * 
-     * @param conn Datasource connection.
-     * @param list (out) to fill.
-     * @param map (out) to fill.
-     * @param getter function pointer to get the map KEY.
-     */
-    template <typename T, typename K, typename M, typename F>
-    inline void loadData(DB_Connection& conn, K& list, M& map, F getter) {
-        loadData<T>(conn, list);
-        //Index all buildings.
-        for (typename K::iterator it = list.begin(); it != list.end(); it++) {
-            map.insert(std::make_pair(((*it)->*getter)(), *it));
-        }
-    }
 
     template <typename T, typename M, typename K>
     inline const T* getById(const M& map, const K& key) {

@@ -30,6 +30,7 @@
 #include "core/AgentsLookup.hpp"
 
 #include "unit-tests/dao/DaoTests.hpp"
+#include "model/DeveloperModel.hpp"
 
 
 using std::cout;
@@ -107,7 +108,6 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
     dataManager.load();
     
     vector<Model*> models;
-    HM_Model* model = nullptr;
     {
         WorkGroupManager wgMgr;
         wgMgr.setSingleThreadMode(config.singleThreaded());
@@ -116,20 +116,25 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         WorkGroup* logsWorker = wgMgr.newWorkGroup(1, DAYS, TICK_STEP);
         WorkGroup* eventsWorker = wgMgr.newWorkGroup(1, DAYS, TICK_STEP);
         WorkGroup* hmWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
+        WorkGroup* devWorkers = wgMgr.newWorkGroup(1, DAYS, TICK_STEP);
         
         //init work groups.
         wgMgr.initAllGroups();
         logsWorker->initWorkers(nullptr);
         hmWorkers->initWorkers(nullptr);
         eventsWorker->initWorkers(nullptr);
+        devWorkers->initWorkers(nullptr);
         
         //assign agents
         logsWorker->assignAWorker(&(agentsLookup.getLogger()));
         eventsWorker->assignAWorker(&(agentsLookup.getEventsInjector()));
         //models 
-        model = new HM_Model(*hmWorkers);
-        models.push_back(model);
-        model->start();
+        models.push_back(new HM_Model(*hmWorkers));
+        models.push_back(new DeveloperModel(*devWorkers));
+        //start all models.
+        for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++) {
+            (*it)->start();
+        }
         
         //Start work groups and all threads.
         wgMgr.startAllWorkGroups();
@@ -144,7 +149,11 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
             config.mergeLogFiles()) {
             resLogFiles = wgMgr.retrieveOutFileNames();
         }
-        model->stop();
+        
+        //stop all models.
+        for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++) {
+            (*it)->stop();
+        }
     }
     
     simulationWatch.stop();

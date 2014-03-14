@@ -19,7 +19,7 @@ public:
 	AMODClient();
 	virtual ~AMODClient();
 };
-
+typedef boost::shared_ptr<AMODClient> AmodClientPtr;
 } /* namespace AMOD */
 } /* namespace sim_mob */
 

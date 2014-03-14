@@ -20,6 +20,24 @@ class AMODContoller {
 public:
 	AMODContoller();
 	virtual ~AMODContoller();
+
+	/**
+	  * connect to AMOD simulator
+	  * @return true if successfully .
+	  */
+	bool connectAmodService();
+
+private:
+	//identify whether or not communication is created
+	bool isConnectFmodServer;
+private:
+	AmodClientPtr connectPoint;
+	std::string ipAddress;
+	std::string mapFile;
+	int port;
+	int updateTiming;
+	int frameTicks;
+	int waitingseconds;
 };
 
 } /* namespace AMOD */

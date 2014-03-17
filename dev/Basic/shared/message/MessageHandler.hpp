@@ -37,7 +37,7 @@ namespace sim_mob {
              * NOTE: used only for debug but it will be necessary on the future.
              * @return id value associated.
              */
-            unsigned int GetId();
+            unsigned int GetId() const;
 
         private:
             friend class MessageBus;

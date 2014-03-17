@@ -34,6 +34,9 @@ namespace sim_mob {
         const std::string DB_TABLE_HOUSEHOLD = APPLY_SCHEMA(MAIN_SCHEMA, "household");
         const std::string DB_TABLE_BUILDING = APPLY_SCHEMA(MAIN_SCHEMA, "building");
         const std::string DB_TABLE_UNIT = APPLY_SCHEMA(MAIN_SCHEMA, "unit");
+        const std::string DB_TABLE_POSTCODE = APPLY_SCHEMA(MAIN_SCHEMA, "postcode");
+        const std::string DB_TABLE_POSTCODE_AMENITIES = APPLY_SCHEMA(MAIN_SCHEMA, "postcode_amenities");
+        
         /**
          * Views
          */
@@ -51,7 +54,13 @@ namespace sim_mob {
         const std::string DB_FUNC_DEL_BUILDING_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "deleteBuildingById(:id)");
         const std::string DB_FUNC_GET_BUILDINGS = APPLY_SCHEMA(MAIN_SCHEMA, "getBuildings()");
         const std::string DB_FUNC_GET_BUILDING_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getBuildingById(:id)");
+        const std::string DB_FUNC_DEL_POSTCODE_BY_ID = DB_EMPTY_QUERY;
+        const std::string DB_FUNC_GET_POSTCODES = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodes()");
+        const std::string DB_FUNC_GET_POSTCODE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodeById(:id)");
 
+        const std::string DB_FUNC_DEL_POSTCODE_AMENITIES_BY_ID = DB_EMPTY_QUERY;
+        const std::string DB_FUNC_GET_POSTCODES_AMENITIES = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodeAmenities()");
+        const std::string DB_FUNC_GET_POSTCODE_AMENITIES_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodeAmenitiesById(:id)");
         /**
          * Fields
          */
@@ -70,6 +79,7 @@ namespace sim_mob {
         const std::string DB_FIELD_LIFESTYLE_ID = "lifestyle_id";
         const std::string DB_FIELD_VEHICLE_CATEGORY_ID = "vehicle_category_id";
         const std::string DB_FIELD_ETHNICITY_ID = "ethnicity_id";
+        const std::string DB_FIELD_TENURE_ID = "tenure_id";
         const std::string DB_FIELD_INCOME = "income";
         const std::string DB_FIELD_FLOOR_AREA = "floor_area";
         const std::string DB_FIELD_YEAR = "year";
@@ -84,7 +94,7 @@ namespace sim_mob {
         const std::string DB_FIELD_STOREYS = "storeys";
         const std::string DB_FIELD_PARKING_SPACES = "parking_spaces";
         const std::string DB_FIELD_RESIDENTIAL_UNITS = "residential_units";
-        const std::string DB_FIELD_LAND_AREA = "land_area";
+        const std::string DB_FIELD_LANDED_AREA = "landed_area";
         const std::string DB_FIELD_IMPROVEMENT_VALUE = "improvement_value";
         const std::string DB_FIELD_TAX_EXEMPT = "tax_exempt";
         const std::string DB_FIELD_NON_RESIDENTIAL_SQFT = "non_residential_sqft";
@@ -93,6 +103,34 @@ namespace sim_mob {
         const std::string DB_FIELD_LONGITUDE = "longitude";
         const std::string DB_FIELD_NAME = "name";
         const std::string DB_FIELD_TYPE = "type";
+        const std::string DB_FIELD_CODE = "code";
+        const std::string DB_FIELD_POSTCODE = "postcode";
+        const std::string DB_FIELD_BUILDING_NAME = "building_name";
+        const std::string DB_FIELD_ROAD_NAME = "road_name";
+        const std::string DB_FIELD_UNIT_BLOCK = "unit_block";
+        const std::string DB_FIELD_MTZ_NUMBER = "mtz_number";
+        const std::string DB_FIELD_MRT_STATION = "mrt_station";
+        const std::string DB_FIELD_DISTANCE_TO_MRT = "distance_mrt";
+        const std::string DB_FIELD_DISTANCE_TO_BUS = "distance_bus";
+        const std::string DB_FIELD_DISTANCE_TO_PMS30 = "distance_pms30";
+        const std::string DB_FIELD_DISTANCE_TO_CBD = "distance_cbd";
+        const std::string DB_FIELD_DISTANCE_TO_MALL = "distance_mall";
+        const std::string DB_FIELD_DISTANCE_TO_JOB = "distance_job";
+        const std::string DB_FIELD_DISTANCE_TO_EXPRESS = "distance_express";
+        const std::string DB_FIELD_MRT_200M = "mrt_200m";
+        const std::string DB_FIELD_MRT_400M = "mrt_400m";
+        const std::string DB_FIELD_EXPRESS_200M = "express_200m";
+        const std::string DB_FIELD_BUS_200M = "bus_200m";
+        const std::string DB_FIELD_BUS_400M = "bus_400m";
+        const std::string DB_FIELD_PMS_1KM = "pms_1km";
+        const std::string DB_FIELD_APARTMENT = "apartment";
+        const std::string DB_FIELD_CONDO = "condo";
+        const std::string DB_FIELD_TERRACE = "terrace";
+        const std::string DB_FIELD_SEMI = "semi";
+        const std::string DB_FIELD_DETACHED = "detached";
+        const std::string DB_FIELD_EC = "ec";
+        const std::string DB_FIELD_PRIVATE = "private";
+        const std::string DB_FIELD_HDB = "hdb";
 
         /**
          * INSERT
@@ -109,6 +147,8 @@ namespace sim_mob {
 
         const std::string DB_INSERT_BUILDING = DB_EMPTY_QUERY;
         const std::string DB_INSERT_UNIT = DB_EMPTY_QUERY;
+        const std::string DB_INSERT_POSTCODE = DB_EMPTY_QUERY;
+        const std::string DB_INSERT_POSTCODE_AMENITIES = DB_EMPTY_QUERY;
 
         /**
          * UPDATE
@@ -125,6 +165,8 @@ namespace sim_mob {
 
         const std::string DB_UPDATE_BUILDING = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_UNIT = DB_EMPTY_QUERY;
+        const std::string DB_UPDATE_POSTCODE = DB_EMPTY_QUERY;
+        const std::string DB_UPDATE_POSTCODE_AMENITIES = DB_EMPTY_QUERY;
 
         /**
          * DELETE
@@ -135,6 +177,8 @@ namespace sim_mob {
                 + DB_FUNC_DEL_BUILDING_BY_ID;
         const std::string DB_DELETE_UNIT = "SELECT * FROM " 
                 + DB_FUNC_DEL_UNIT_BY_ID;
+        const std::string DB_DELETE_POSTCODE = DB_EMPTY_QUERY;
+        const std::string DB_DELETE_POSTCODE_AMENITIES = DB_EMPTY_QUERY;
 
         /**
          * GET ALL
@@ -148,7 +192,11 @@ namespace sim_mob {
         const std::string DB_GETALL_UNIT = "SELECT * FROM "
                 + DB_FUNC_GET_UNITS
                 + LIMIT;
-
+        const std::string DB_GETALL_POSTCODE = "SELECT * FROM "
+                + DB_FUNC_GET_POSTCODES;
+        const std::string DB_GETALL_POSTCODE_AMENITIES = "SELECT * FROM "
+                + DB_FUNC_GET_POSTCODES_AMENITIES;
+        
         /**
          * GET BY ID
          */
@@ -158,5 +206,9 @@ namespace sim_mob {
                 + DB_FUNC_GET_BUILDING_BY_ID;
         const std::string DB_GETBYID_UNIT = "SELECT * FROM " +
                 DB_FUNC_GET_UNIT_BY_ID;
+        const std::string DB_GETBYID_POSTCODE = "SELECT * FROM " +
+                DB_FUNC_GET_POSTCODE_BY_ID;
+        const std::string DB_GETBYID_POSTCODE_AMENITIES = "SELECT * FROM " +
+                DB_FUNC_GET_POSTCODE_AMENITIES_BY_ID;
     }
 }

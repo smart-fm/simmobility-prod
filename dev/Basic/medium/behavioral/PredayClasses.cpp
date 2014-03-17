@@ -38,7 +38,6 @@ std::vector<TimeWindowAvailability> insertAllTimeWindows() {
 	size_t numTimeWindows = 1176;
 
     std::vector<TimeWindowAvailability> timeWindows;
-    timeWindows.reserve(numTimeWindows); // to avoid unnecessary calls to copy constructor
     for(double i = dayStart; i <= dayEnd; i=i+stepSz) {
         for(double j = i; j <= dayEnd; j=j+stepSz) {
         	timeWindows.push_back(TimeWindowAvailability(i,j));

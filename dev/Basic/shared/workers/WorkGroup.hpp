@@ -100,7 +100,8 @@ public:
 	unsigned int getNumAgentsWithNoPath() {
 		return numAgentsWithNoPath;
 	}
-
+        
+        unsigned int getNumberOfWorkers() const;
 private:
 	void clear();
 	void interrupt();

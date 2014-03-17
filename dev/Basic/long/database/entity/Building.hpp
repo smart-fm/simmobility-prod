@@ -20,8 +20,9 @@ namespace sim_mob {
         class Building {
         public:
             Building(BigSerial id = INVALID_ID, BigSerial typeId = INVALID_ID,
-                    BigSerial parcelId = INVALID_ID, int builtYear = 0,
-                    double floorArea = .0f, int storeys = 0, int parkingSpaces = 0);
+                    BigSerial parcelId = INVALID_ID, 
+                    BigSerial tenureId = INVALID_ID, int builtYear = 0,
+                    double landedArea = .0f, int storeys = 0, int parkingSpaces = 0);
 
             virtual ~Building();
 
@@ -42,18 +43,18 @@ namespace sim_mob {
              * @return id.
              */
             BigSerial getParcelId() const;
+            
+            /**
+             * Gets unique identifier of the building tenure.
+             * @return id.
+             */
+            BigSerial getTenureId() const;
 
             /**
              * Gets the year that the building was built.
              * @return the year that the building was built.
              */
             int getBuiltYear() const;
-
-            /**
-             * Gets the floor area value.
-             * @return floor area value.
-             */
-            double getFloorArea() const;
 
             /**
              * Gets number of storeys.
@@ -68,15 +69,10 @@ namespace sim_mob {
             int getParkingSpaces() const;
             
             /**
-             * Gets number of residential units.
-             * @return stories number.
+             * Gets the landed area of the building.
+             * @return area value.
              */
-            int getResidentialUnits() const;
-            double getLandArea() const;
-            int getImprovementValue() const;
-            int getTaxExempt() const;
-            double getNonResidentialSqft() const;
-            double getSqftPerUnit() const;
+            double getLandedArea() const;
                 
             /**
              * Assign operator.
@@ -97,16 +93,11 @@ namespace sim_mob {
             BigSerial id;
             BigSerial typeId;
             BigSerial parcelId;
+            BigSerial tenureId;
             int builtYear;
-            double floorArea;
             int storeys;
             int parkingSpaces;
-            int residentialUnits;
-            double landArea;
-            int improvementValue;
-            int taxExempt;
-            double nonResidentialSqft;
-            double sqftPerUnit;
+            double landedArea;
         };
     }
 }

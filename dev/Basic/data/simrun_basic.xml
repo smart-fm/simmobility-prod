@@ -221,7 +221,7 @@
             <!--    2) Don't put any passwords to databases on the FM server. -->
             <plaintext-credential id="fm_local_yaojin">
                 <username value="postgres"/>
-                <password value="some_password"/>
+                <password value="5M_S1mM0bility"/>
             </plaintext-credential>
 
             <plaintext-credential id="harish_cred">
@@ -262,9 +262,9 @@
             <mongo_collection name="OPCosts" collection="OPCosts"/>
             <mongo_collection name="PMCosts" collection="PMCosts"/>
             <mongo_collection name="Zone" collection="Zone"/>
-            <mongo_collection name="Output_DayPattern" collection="person_tours_cpp"/>
-            <mongo_collection name="Output_Tour" collection="tours_cpp"/>
-            <mongo_collection name="Output_Activity" collection="activity_cpp"/>
+            <mongo_collection name="Output_DayPattern" collection="person_tours_cpp_11_3"/>
+            <mongo_collection name="Output_Tour" collection="tours_cpp_11_3"/>
+            <mongo_collection name="Output_Activity" collection="activity_cpp_11_3"/>
         </mongo_collections>
     </constructs>
 
@@ -275,10 +275,10 @@
         <!-- (but will be rounded down.) -->
         <simulation>
             <base_granularity   value="100"   units="ms" />
-            <total_runtime      value="5"      units="minutes" />
+            <total_runtime      value="30"      units="minutes" />
             <total_warmup       value="10"     units="seconds" />
             
-            <start_time         value="08:00:00"/>
+            <start_time         value="08:30:00"/>
             
             <!-- Implementation to use for the Aura Manager. -->
             <!-- Values include: simtree, rdu, rstar (default) -->
@@ -295,7 +295,7 @@
             
             <!-- Order in which agents are to be loaded into the simulation -->
             <!-- Values include: database, drivers, pedestrians, passenger, xml-tripchains -->
-            <load_agents order="drivers pedestrians"/>
+            <load_agents order="drivers"/>
             
             <!-- Optional. At what value do we start counting for automatically -->
             <!-- generated Agent IDs? Set to a high value if you want to avoid  -->
@@ -356,8 +356,8 @@
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
         <!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
         <!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
-        <!-- <network_database database="fm_local" credentials="fm_local" proc_map="bugis_small_custom"/-->
-        <network_database database="fm_remote" credentials="fm_local_yaojin" proc_map="bugis_large"/>
+        <network_database database="fm_local" credentials="harish_cred" proc_map="bugis_large"/>
+        <!--<network_database database="fm_remote" credentials="fm_local_yaojin" proc_map="bugis_large"/>-->
         
         <!-- Where to find our various schema files. -->
         <!-- Overrides xsi:schemaLocation in the files themselves. -->
@@ -378,10 +378,10 @@
             <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
             <property key="busline_control_type" value="headway_based"/>
 
-            <!-- Used only by mid-term. Admissible values are "demand", "supply" -->
+            <!-- Used only by mid-term. Admissible values are "none", "demand", "supply" -->
             <!-- and "demand+supply". Determines whether to run SimMobility_Medium's -->
             <!-- demand simulator or the supply simulator -->
-            <property key="mid_term_run_mode" value="demand"/> 
+            <property key="mid_term_run_mode" value="none"/> 
             
             <!-- Adding external scripts as a generic proerty for now. -->
             <!-- A dedicated element will be created when we have more uses for this --> 
@@ -395,13 +395,13 @@
     </system>
 
     
-    <!-- FMOD controller settings -->
-    <fmodcontroller switch="false">
-        <ipaddress value="127.0.0.1"/>
+    <!-- FMOD controller settings. This is for FMOD extention -->
+    <fmodcontroller enabled="false">
+        <ip_address value="127.0.0.1"/>
         <port value="9000"/>
-        <updateTimeMS value="500"/>
-        <mapfile value="cityhall/cityhall.osm"/>
-        <blockingTimeSec value="5"/>
+        <update_time_ms value="500"/>
+        <map_file value="cityhall/cityhall.osm"/>
+        <blocking_time_sec value="5"/>
     </fmodcontroller>
         
     <incidentsData enabled="yes">
@@ -426,16 +426,6 @@
         <stop offsetAT="376100" offsetDT="382100" />    
         <stop offsetAT="403600" offsetDT="409600" />        
     </scheduledTimes>
-    
-    <!-- usually elder persons are slower than younger persons (upperAge maximum is 100)-->
-    <!-- and their boarding alighting secs are larger than younger persons -->
-    <!-- the default age range are followings and you can edit their lowerSecs or upperSecs -->
-    <personCharacteristics>
-        <person lowerAge="20" upperAge="30" lowerSecs="3" upperSecs="7"/>
-        <person lowerAge="30" upperAge="40" lowerSecs="4" upperSecs="8"/>
-        <person lowerAge="40" upperAge="50" lowerSecs="5" upperSecs="9"/>
-        <person lowerAge="50" upperAge="60" lowerSecs="6" upperSecs="10"/>
-     </personCharacteristics>
     
     
     <!--Driver start locations-->

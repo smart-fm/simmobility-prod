@@ -14,7 +14,7 @@
 
 using namespace sim_mob::messaging;
 
-Message::Message() : priority(5), sender(NULL) {
+Message::Message() : priority(5), sender(nullptr) {
 }
 
 Message::Message(const Message& source) {

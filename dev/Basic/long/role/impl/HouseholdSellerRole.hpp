@@ -23,7 +23,6 @@ namespace sim_mob {
         class HouseholdAgent;
         class HM_Model;
         class HousingMarket;
-
         /**
          * Household Seller role.
          *
@@ -57,9 +56,9 @@ namespace sim_mob {
             void notifyWinnerBidders();
             
             /**
-             * Adjust parameters of all units that were not selled.
+             * Adjust parameters of all units that were not sold.
              */
-            void adjustNotSelledUnits();
+            void adjustNotSoldUnits();
             
             /**
              * Calculates the unit expectations to the maximum period of time 
@@ -75,23 +74,31 @@ namespace sim_mob {
              *        If it not exists the values should be 0.
              * @return true if exists valid expectation, false otherwise.
              */
-            bool getCurrentExpectation(const BigSerial& unitId, ExpectationEntry& outEntry);
+            bool getCurrentExpectation(const BigSerial& unitId, 
+                ExpectationEntry& outEntry);
+        public:
+            typedef boost::unordered_map<BigSerial, unsigned int> CounterMap;
         private:
-
             typedef std::vector<ExpectationEntry> ExpectationList;
-            typedef std::pair<BigSerial, ExpectationList> ExpectationMapEntry; 
-            typedef boost::unordered_map<BigSerial, ExpectationList> ExpectationMap; 
+
+            struct SellingUnitInfo {
+                SellingUnitInfo();
+                ExpectationList expectations;
+                unsigned int startedDay; //day when the unit was added on market.
+                unsigned int daysOnMarket; //number of days to stay on market.
+                unsigned int interval; //interval to re-evaluate the expectation.
+                unsigned int numExpectations; //ceil(daysOnMarket/interval) to re-evaluate the expectation.
+            };
+            typedef boost::unordered_map<BigSerial, SellingUnitInfo> UnitsInfoMap;
             typedef boost::unordered_map<BigSerial, Bid> Bids;
-            typedef std::pair<BigSerial, Bid> BidEntry;
             
             timeslice currentTime;
             volatile bool hasUnitsToSale;
             //Current max bid information.
             Bids maxBidsOfDay;
-            ExpectationMap unitExpectations;
-            int currentExpectationIndex;
-            int startSellingTime;
+            UnitsInfoMap sellingUnitsMap;
             volatile bool selling;
+            CounterMap dailyBids;
         };
     }
 }

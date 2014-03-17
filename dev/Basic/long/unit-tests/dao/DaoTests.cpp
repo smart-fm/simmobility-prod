@@ -15,7 +15,8 @@
 #include "database/dao/HouseholdDao.hpp"
 #include "database/dao/BuildingDao.hpp"
 #include "database/dao/UnitDao.hpp"
-
+#include "database/dao/PostcodeDao.hpp"
+#include "database/dao/PostcodeAmenitiesDao.hpp"
 
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
@@ -57,4 +58,6 @@ void DaoTests::testAll() {
     TestDao<HouseholdDao, Household>();
     TestDao<BuildingDao, Building>();
     TestDao<UnitDao, Unit>();
+    TestDao<PostcodeDao, Postcode>();
+    TestDao<PostcodeAmenitiesDao, PostcodeAmenities>();
 }

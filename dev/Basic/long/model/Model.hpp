@@ -7,6 +7,7 @@
  * Created on October 21, 2013, 4:24 PM
  */
 #pragma once
+#include <map>
 #include <vector>
 #include <string>
 #include "workers/WorkGroup.hpp"
@@ -21,7 +22,21 @@ namespace sim_mob {
          */
         class Model {
         public:
+
+            struct MetadataEntry {
+            public:
+                std::string getKey() const {return key;}
+                std::string getValue() const {return value;}
+                
+            private:
+                friend class Model;
+                std::string key;
+                std::string value;
+            };
             
+            typedef std::vector<MetadataEntry> Metadata;
+        
+        public:
             Model(const std::string& name, WorkGroup& workGroup);
             virtual ~Model();
             
@@ -62,6 +77,17 @@ namespace sim_mob {
              */
             const std::string& getName() const;
             
+            /**
+             * Gets the relevant information (metadata) about the model 
+             * to print out on the output report.
+             * 
+             * Please **do not use** this function to exchange data for other 
+             * purposes.
+             * 
+             * @return 
+             */
+            const Metadata& getMetadata() const;
+            
         protected:
             /**
              * Abstract method to be implemented by Model specializations.
@@ -79,16 +105,44 @@ namespace sim_mob {
              */
             virtual void stopImpl() = 0;
         
+            /**
+             * Adds metadata to the model to be printed in the end of the simulation.
+             * @param varName variable name.
+             * @param value of the variable.
+             */
+            template<typename T>
+            void addMetadata(const std::string& varName, const T& value) {
+                MetadataMap::iterator itMap = metadataMapping.find(varName);
+                if (itMap != metadataMapping.end()){
+                    for (Metadata::iterator it = metadata.begin();
+                            it != metadata.end(); it++) {
+                        if (it->key == varName){
+                            it->value = Utils::toStr(value);
+                        }
+                    }
+                } else {
+                    MetadataEntry entry;
+                    entry.key = varName;
+                    entry.value = Utils::toStr(value);
+                    metadata.push_back(entry);
+                    metadataMapping.insert(std::make_pair(entry.getKey(), 
+                            entry.getValue()));
+                }
+            }
         protected:
             WorkGroup& workGroup;
             std::vector<Agent*> agents;
         
         private:
+            typedef std::map<std::string, std::string> MetadataMap;
+            
             volatile bool running;
             //watches
             StopWatch startWatch;
             StopWatch stopWatch;
             std::string name;
+            Metadata metadata;
+            MetadataMap metadataMapping;// only for mapping.
         };
     }
 }

@@ -12,6 +12,7 @@
 #include "PredaySystem.hpp"
 
 #include <boost/algorithm/string.hpp>
+#include <cmath>
 #include <string>
 #include "behavioral/lua/PredayLuaProvider.hpp"
 #include "behavioral/params/StopGenerationParams.hpp"
@@ -52,16 +53,38 @@ namespace {
 	//Time related
 	const double FIRST_WINDOW = 3.25;
 	const int FIRST_INDEX = 1;
-	const int LAST_WINDOW = 26.75;
+	const double LAST_WINDOW = 26.75;
 	const int LAST_INDEX = 48;
-	inline double getTimeWindowFromIndex(const uint32_t index) {
-		return (index * 0.5 /*half hour windows*/)
-				+ 2.75 /*the day starts at 3.25*/;
+
+	inline double getTimeWindowFromIndex(const double index) {
+		return (index * 0.5 /*half hour windows*/) + 2.75 /*the day starts at 3.25*/;
 	}
 
-	inline uint32_t getIndexFromTimeWindow(const double window) {
-		return (window - 2.75 /*the day starts at 3.25*/)
-				/ 0.5;
+	inline double getIndexFromTimeWindow(const double window) {
+		return (window - 2.75 /*the day starts at 3.25*/) / 0.5;
+	}
+
+	double alignTime(double time) {
+		// align to corresponding time window
+		//1. split the computed tour end time into integral and fractional parts
+		double intPart,fractPart;
+		fractPart = std::modf(time, &intPart);
+
+		//2. perform sanity checks on the integral part and align the fractional part to nearest time window
+		if (intPart < FIRST_WINDOW) {
+			time = FIRST_WINDOW;
+		}
+		else if (intPart > LAST_WINDOW) {
+			time = LAST_WINDOW;
+		}
+		else if(std::abs(fractPart) < 0.5) {
+			time = intPart + 0.25;
+		}
+		else {
+			time = intPart + 0.75;
+		}
+
+		return time;
 	}
 }
 
@@ -276,7 +299,7 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour* tour) {
 		TourTimeOfDayParams todParams(ttFirstHalfTour, ttSecondHalfTour);
 		timeWndw = PredayLuaProvider::getPredayModel().predictTourTimeOfDay(personParams, todParams, tour->getTourType());
 	}
-	return TimeWindowAvailability::timeWindowsLookup.at(timeWndw);
+	return TimeWindowAvailability::timeWindowsLookup.at(timeWndw - 1); //timeWndw ranges from 1 - 1176. Vector starts from 0.
 }
 
 void PredaySystem::generateIntermediateStops(Tour* tour) {
@@ -698,7 +721,7 @@ void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* prevStop) { // th
 	 * There are 48 half-hour time windows in a day from 3.25 to 26.75.
 	 * Given a time window x, its choice index can be determined by ((x - 2.75) / 0.5) + 1
 	 */
-	uint32_t prevActivityDepartureIndex = prevStop->getDepartureTime();
+	double prevActivityDepartureIndex = prevStop->getDepartureTime();
 	double timeWindow = getTimeWindowFromIndex(prevActivityDepartureIndex);
 	double travelTime;
 
@@ -748,13 +771,11 @@ void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* prevStop) { // th
 	}
 
 	double currStopArrTime = timeWindow + travelTime;
-	// align to corresponding time window
-	if((currStopArrTime - std::floor(currStopArrTime)) < 0.5) {
-		currStopArrTime = std::floor(currStopArrTime) + 0.25;
-	}
-	else {
-		currStopArrTime = std::floor(currStopArrTime) + 0.75;
-	}
+
+	// travel time can be unreasonably high sometimes
+	// E.g. when the travel time is unknown, the default is set to 999
+	currStopArrTime = alignTime(currStopArrTime);
+
 	currStopArrTime = getIndexFromTimeWindow(currStopArrTime);
 	currStop->setArrivalTime(currStopArrTime);
 }
@@ -764,7 +785,7 @@ void PredaySystem::calculateDepartureTime(Stop* currStop,  Stop* nextStop) { // 
 	 * There are 48 half-hour time windows in a day from 3.25 to 26.75.
 	 * Given a time window i, its choice index can be determined by (i * 0.5 + 2.75)
 	 */
-	uint32_t nextActivityArrivalIndex = nextStop->getArrivalTime();
+	double nextActivityArrivalIndex = nextStop->getArrivalTime();
 	double timeWindow = getTimeWindowFromIndex(nextActivityArrivalIndex);
 	double travelTime;
 	if(currStop->getStopLocation() != nextStop->getStopLocation()) {
@@ -812,13 +833,11 @@ void PredaySystem::calculateDepartureTime(Stop* currStop,  Stop* nextStop) { // 
 	}
 
 	double currStopDepTime = timeWindow - travelTime;
-	// align to corresponding time window
-	if((currStopDepTime - std::floor(currStopDepTime)) < 0.5) {
-		currStopDepTime = std::floor(currStopDepTime) + 0.25;
-	}
-	else {
-		currStopDepTime = std::floor(currStopDepTime) + 0.75;
-	}
+
+	// travel time can be unreasonably high sometimes
+	// E.g. when the travel time is unknown, the default is set to 999
+	currStopDepTime = alignTime(currStopDepTime);
+
 	currStopDepTime = getIndexFromTimeWindow(currStopDepTime);
 	currStop->setDepartureTime(currStopDepTime);
 }
@@ -829,7 +848,7 @@ void PredaySystem::calculateTourStartTime(Tour* tour) {
 	 * Given a time window i, its choice index can be determined by (i * 0.5 + 2.75)
 	 */
 	Stop* firstStop = tour->stops.front();
-	uint32_t firstActivityArrivalIndex = firstStop->getArrivalTime();
+	double firstActivityArrivalIndex = firstStop->getArrivalTime();
 	double timeWindow = getTimeWindowFromIndex(firstActivityArrivalIndex);
 	double travelTime;
 	if(personParams.getHomeLocation() != firstStop->getStopLocation()) {
@@ -877,16 +896,12 @@ void PredaySystem::calculateTourStartTime(Tour* tour) {
 	}
 
 	double tourStartTime = timeWindow - travelTime;
-	// align to corresponding time window
-	if((tourStartTime - std::floor(tourStartTime)) < 0.5) {
-		tourStartTime = std::floor(tourStartTime) + 0.25;
-	}
-	else {
-		tourStartTime = std::floor(tourStartTime) + 0.75;
-	}
+
+	// travel time can be unreasonably high sometimes
+	// E.g. when the travel time is unknown, the default is set to 999
+	tourStartTime = alignTime(tourStartTime);
+
 	tourStartTime = getIndexFromTimeWindow(tourStartTime);
-	tourStartTime = (tourStartTime >= FIRST_INDEX)? tourStartTime : 1;
-	tourStartTime = (tourStartTime <= LAST_INDEX)? tourStartTime : LAST_INDEX;
 	tour->setStartTime(tourStartTime);
 }
 
@@ -896,7 +911,7 @@ void PredaySystem::calculateTourEndTime(Tour* tour) {
 	 * Given a time window x, its choice index can be determined by ((x - 3.25) / 0.5) + 1
 	 */
 	Stop* lastStop = tour->stops.back();
-	uint32_t lastActivityDepartureIndex = lastStop->getDepartureTime();
+	double lastActivityDepartureIndex = lastStop->getDepartureTime();
 	double timeWindow = getTimeWindowFromIndex(lastActivityDepartureIndex);
 	double travelTime;
 	if(personParams.getHomeLocation() != lastStop->getStopLocation()) {
@@ -945,16 +960,12 @@ void PredaySystem::calculateTourEndTime(Tour* tour) {
 	}
 
 	double tourEndTime = timeWindow + travelTime;
-	// align to corresponding time window
-	if((tourEndTime - std::floor(tourEndTime)) < 0.5) {
-		tourEndTime = std::floor(tourEndTime) + 0.25;
-	}
-	else {
-		tourEndTime = std::floor(tourEndTime) + 0.75;
-	}
+
+	// travel time can be unreasonably high sometimes
+	// E.g. when the travel time is unknown, the default is set to 999
+	tourEndTime = alignTime(tourEndTime);
+
 	tourEndTime = getIndexFromTimeWindow(tourEndTime);
-	tourEndTime = (tourEndTime >= FIRST_INDEX)? tourEndTime : FIRST_INDEX;
-	tourEndTime = (tourEndTime <= LAST_INDEX)? tourEndTime : LAST_INDEX;
 	tour->setEndTime(tourEndTime);
 }
 

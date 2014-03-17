@@ -70,6 +70,15 @@ namespace sim_mob {
              * @return true if some values were returned, false otherwise.
              */
             virtual bool getAll(std::vector<T>& outList) = 0;
+            
+            /**
+             * Gets all values from the source and put them on the given list.
+             * This function allocates memory dynamically. 
+             * Caller is responsible for delete each element.
+             * @param outList to put the retrieved values. 
+             * @return true if some values were returned, false otherwise.
+             */
+            virtual bool getAll(std::vector<T*>& outList) = 0;
         };
     }
 }

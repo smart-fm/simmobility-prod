@@ -1,8 +1,7 @@
 --ATTENTION requies cant be used with c++ (for now)
 
---package.path = package.path .. ";../?.lua"
---require "common"
---require "tests.classes"
+package.path = package.path .. ";../scripts/lua/long/?.lua;../?.lua"
+require "common"
 
 --[[****************************************************************************
     OBJECTS INFORMATION
@@ -86,18 +85,6 @@
 --[[****************************************************************************
     GLOBAL STATIC LOOKUP DATA
 ******************************************************************************]]
---[[
-    Helper function to mark tables as read-only.
-]]
-function readOnlyTable(table)
-   return setmetatable({}, {
-     __index = table,
-     __newindex = function(table, key, value)
-                    error("Attempt to modify read-only table")
-                  end,
-     __metatable = false
-   });
-end
 
 --Simulation constants.
 CONSTANTS = readOnlyTable {

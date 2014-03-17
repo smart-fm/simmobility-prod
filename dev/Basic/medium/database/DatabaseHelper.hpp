@@ -27,6 +27,11 @@ namespace medium {
      */
     const std::string MAIN_SCHEMA = "main.";
 
+    /**
+     * Tables
+     */
+    const std::string DB_TABLE_PREDAY_FLAT_TRIPCHAINS = "preday_trip_chains_flat";
+
 	/**
 	 * Views for long-term population database
 	 */
@@ -55,6 +60,54 @@ namespace medium {
 	const std::string DB_FIELD_CAR_OWN_NORMAL = "car_own_normal";
 	const std::string DB_FIELD_CAR_OWN_OFFPEAK = "car_own_offpeak";
 	const std::string DB_FIELD_MOTOR_OWN = "motor_own";
+
+	/**
+	 * Fields for flat trip chain table (preday_trip_chains_flat)
+	 */
+	const std::string DB_FIELD_PERSON_ID = "person_id";
+	const std::string DB_FIELD_TC_SEQ_NO = "tc_seq_no";
+	const std::string DB_FIELD_TC_ITEM_TYPE = "tc_item_type";
+	const std::string DB_FIELD_TRIP_ID = "trip_id";
+	const std::string DB_FIELD_TRIP_ORIGIN = "trip_origin";
+	const std::string DB_FIELD_TRIP_DESTINATION = "trip_destination";
+	const std::string DB_FIELD_SUBTRIP_ID = "subtrip_id";
+	const std::string DB_FIELD_SUBTRIP_ORIGIN = "subtrip_origin";
+	const std::string DB_FIELD_SUBTRIP_DESTINATION = "subtrip_destination";
+	const std::string DB_FIELD_SUBTRIP_MODE = "subtrip_mode";
+	const std::string DB_FIELD_IS_PRIMARY_MODE = "is_primary_mode";
+	const std::string DB_FIELD_START_TIME = "start_time";
+	const std::string DB_FIELD_ACTIVITY_ID = "activity_id";
+	const std::string DB_FIELD_ACTIVITY_TYPE = "activity_type";
+	const std::string DB_FIELD_IS_PRIMARY_ACTIVITY = "is_primary_activity";
+	const std::string DB_FIELD_ACTIVITY_LOCATION = "activity_location";
+	const std::string DB_FIELD_ACTIVITY_START_TIME = "activity_start_time";
+	const std::string DB_FIELD_ACTIVITY_END_TIME = "activity_end_time";
+
+	/**
+	 * INSERT trip chain item
+	 */
+	const std::string DB_INSERT_TRIP_CHAIN_ITEM = "INSERT INTO "
+            + DB_TABLE_PREDAY_FLAT_TRIPCHAINS + " ("
+            + DB_FIELD_PERSON_ID + ", "
+            + DB_FIELD_TC_SEQ_NO + ", "
+            + DB_FIELD_TC_ITEM_TYPE + ", "
+            + DB_FIELD_TRIP_ID + ", "
+            + DB_FIELD_TRIP_ORIGIN + ", "
+            + DB_FIELD_TRIP_DESTINATION + ", "
+            + DB_FIELD_SUBTRIP_ID + ", "
+            + DB_FIELD_SUBTRIP_ORIGIN + ", "
+            + DB_FIELD_SUBTRIP_DESTINATION + ", "
+            + DB_FIELD_SUBTRIP_MODE + ", "
+            + DB_FIELD_IS_PRIMARY_MODE + ", "
+            + DB_FIELD_START_TIME + ", "
+            + DB_FIELD_ACTIVITY_ID + ", "
+            + DB_FIELD_ACTIVITY_TYPE + ", "
+            + DB_FIELD_IS_PRIMARY_ACTIVITY + ", "
+            + DB_FIELD_ACTIVITY_LOCATION + ", "
+            + DB_FIELD_ACTIVITY_START_TIME + ", "
+            + DB_FIELD_ACTIVITY_END_TIME
+            + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10,"
+            		   +":v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18)";
 
     /**
      * GET ALL for long-term population database

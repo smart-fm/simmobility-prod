@@ -34,6 +34,7 @@ class PredaySystem {
 private:
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
+	typedef boost::unordered_map<int, std::vector<long> > ZoneNodeMap;
 	typedef std::deque<Tour*> TourList;
 	typedef std::deque<Stop*> StopList;
 
@@ -213,6 +214,11 @@ public:
 	 * Writes the output of Preday to MongoDB
 	 */
 	void outputPredictionsToMongo();
+
+	/**
+	 * Converts predictions to Trip chains and writes them off to PostGreSQL
+	 */
+	void outputTripChainsToPostgreSQL(ZoneNodeMap& zoneNodeMap);
 };
 
 } // end namespace medium

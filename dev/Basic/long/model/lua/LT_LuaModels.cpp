@@ -47,68 +47,13 @@ namespace {
     inline const Building* getBuilding(const BigSerial id) {
         return DataManagerSingleton::getInstance().getBuildingById(id);
     }
-}
-
-/******************************************************************************
- *                         EXTERNAL EVENTS LUA
- ******************************************************************************/
-
-ExternalEventsModel::ExternalEventsModel() : lua::LuaModel() {
-}
-
-ExternalEventsModel::ExternalEventsModel(const ExternalEventsModel& orig)
-: lua::LuaModel(orig) {
-}
-
-ExternalEventsModel::~ExternalEventsModel() {
-}
-
-void ExternalEventsModel::getExternalEvents(int day,
-        vector<ExternalEvent>& outValues) const {
-    LuaRef funcRef = getGlobal(state.get(), "getExternalEvents");
-    LuaRef retVal = funcRef(day);
-    if (retVal.isTable()) {
-        for (int i = 1; i <= retVal.length(); i++) {
-            outValues.push_back(retVal[i].cast<ExternalEvent>());
-        }
-    }
-}
-
-void ExternalEventsModel::mapClasses() {
-    getGlobalNamespace(state.get())
-            .beginClass <ExternalEvent> ("ExternalEvent")
-            .addConstructor <void (*) (void) > ()
-            .addProperty("day", &ExternalEvent::getDay,
-            &ExternalEvent::setDay)
-            .addProperty("type", &ExternalEvent::getType,
-            &ExternalEvent::setType)
-            .addProperty("householdId", &ExternalEvent::getHouseholdId,
-            &ExternalEvent::setHouseholdId)
-            .endClass();
-}
-
-/******************************************************************************
- *                         HOUSING MARKET LUA
- ******************************************************************************/
-
-HM_LuaModel::HM_LuaModel() : lua::LuaModel() {
-}
-
-HM_LuaModel::HM_LuaModel(const HM_LuaModel& orig) : lua::LuaModel(orig) {
-}
-
-HM_LuaModel::~HM_LuaModel() {
-}
-
-void HM_LuaModel::mapClasses() {
-    getGlobalNamespace(state.get())
-            .beginClass <ExpectationEntry> ("ExpectationEntry")
-            .addConstructor <void (*) (void) > ()
-            .addData("hedonicPrice", &ExpectationEntry::hedonicPrice)
-            .addData("price", &ExpectationEntry::price)
-            .addData("expectation", &ExpectationEntry::expectation)
-            .endClass();
-    getGlobalNamespace(state.get())
+    
+    /**
+     * Maps common classes for lua models 
+     * @param state
+     */
+    inline void mapCommonClasses(lua_State* state) {
+        getGlobalNamespace(state)
             .beginClass <Unit> ("Unit")
             .addProperty("id", &Unit::getId)
             .addProperty("buildingId", &Unit::getBuildingId)
@@ -118,36 +63,14 @@ void HM_LuaModel::mapClasses() {
             .addProperty("storey", &Unit::getStorey)
             .addProperty("rent", &Unit::getRent)
             .endClass();
-    getGlobalNamespace(state.get())
-            .beginClass <HousingMarket::Entry> ("UnitEntry")
-            .addProperty("tazId", &HousingMarket::Entry::getTazId)
-            .addProperty("postcodeId", &HousingMarket::Entry::getPostcodeId)
-            .addProperty("hedonicPrice", &HousingMarket::Entry::getHedonicPrice)
-            .addProperty("askingPrice", &HousingMarket::Entry::getAskingPrice)
-            .addProperty("unitId", &HousingMarket::Entry::getUnitId)
-            .endClass();
-    getGlobalNamespace(state.get())
-            .beginClass <Household> ("Household")
-            .addProperty("id", &Household::getId)
-            .addProperty("lifestyleId", &Household::getLifestyleId)
-            .addProperty("unitId", &Household::getUnitId)
-            .addProperty("ethnicityId", &Household::getEthnicityId)
-            .addProperty("vehicleCategoryId", &Household::getVehicleCategoryId)
-            .addProperty("size", &Household::getSize)
-            .addProperty("children", &Household::getChildren)
-            .addProperty("income", &Household::getIncome)
-            .addProperty("housingDuration", &Household::getHousingDuration)
-            .addProperty("workers", &Household::getWorkers)
-            .addProperty("ageOfHead", &Household::getAgeOfHead)
-            .endClass();
-    getGlobalNamespace(state.get())
+    getGlobalNamespace(state)
             .beginClass <Postcode> ("Postcode")
             .addProperty("id", &Postcode::getId)
             .addProperty("code", &Postcode::getCode)
             .addProperty("location", &Postcode::getLocation)
             .addProperty("tazId", &Postcode::getTazId)
             .endClass();
-    getGlobalNamespace(state.get())
+    getGlobalNamespace(state)
             .beginClass <PostcodeAmenities> ("PostcodeAmenities")
             .addProperty("postcode", &PostcodeAmenities::getPostcode)
             .addProperty("buildingName", &PostcodeAmenities::getBuildingName)
@@ -177,7 +100,7 @@ void HM_LuaModel::mapClasses() {
             .addProperty("_private", &PostcodeAmenities::isPrivate)
             .addProperty("hdb", &PostcodeAmenities::isHdb)
             .endClass();
-    getGlobalNamespace(state.get())
+    getGlobalNamespace(state)
             .beginClass <Building> ("Building")
             .addProperty("id", &Building::getId)
             .addProperty("builtYear", &Building::getBuiltYear)
@@ -187,6 +110,89 @@ void HM_LuaModel::mapClasses() {
             .addProperty("tenureId", &Building::getTenureId)
             .addProperty("typeId", &Building::getTypeId)
             .endClass();
+    }
+}
+
+/******************************************************************************
+ *                         EXTERNAL EVENTS LUA
+ ******************************************************************************/
+
+ExternalEventsModel::ExternalEventsModel() : lua::LuaModel() {
+}
+
+ExternalEventsModel::ExternalEventsModel(const ExternalEventsModel& orig)
+: lua::LuaModel(orig) {
+}
+
+ExternalEventsModel::~ExternalEventsModel() {
+}
+
+void ExternalEventsModel::getExternalEvents(int day,
+        vector<ExternalEvent>& outValues) const {
+    LuaRef funcRef = getGlobal(state.get(), "getExternalEvents");
+    LuaRef retVal = funcRef(day);
+    if (retVal.isTable()) {
+        for (int i = 1; i <= retVal.length(); i++) {
+            outValues.push_back(retVal[i].cast<ExternalEvent>());
+        }
+    }
+}
+
+void ExternalEventsModel::mapClasses() {
+    getGlobalNamespace(state.get())
+        .beginClass <ExternalEvent> ("ExternalEvent")
+        .addConstructor <void (*) (void) > ()
+        .addProperty("day", &ExternalEvent::getDay, &ExternalEvent::setDay)
+        .addProperty("type", &ExternalEvent::getType, &ExternalEvent::setType)
+        .addProperty("householdId", &ExternalEvent::getHouseholdId, &ExternalEvent::setHouseholdId)
+    .endClass();
+}
+
+/******************************************************************************
+ *                         HOUSING MARKET LUA
+ ******************************************************************************/
+
+HM_LuaModel::HM_LuaModel() : lua::LuaModel() {
+}
+
+HM_LuaModel::HM_LuaModel(const HM_LuaModel& orig) : lua::LuaModel(orig) {
+}
+
+HM_LuaModel::~HM_LuaModel() {
+}
+
+void HM_LuaModel::mapClasses() {
+    getGlobalNamespace(state.get())
+            .beginClass <ExpectationEntry> ("ExpectationEntry")
+            .addConstructor <void (*) (void) > ()
+            .addData("hedonicPrice", &ExpectationEntry::hedonicPrice)
+            .addData("price", &ExpectationEntry::price)
+            .addData("expectation", &ExpectationEntry::expectation)
+            .endClass();
+    getGlobalNamespace(state.get())
+            .beginClass <HousingMarket::Entry> ("UnitEntry")
+            .addProperty("tazId", &HousingMarket::Entry::getTazId)
+            .addProperty("postcodeId", &HousingMarket::Entry::getPostcodeId)
+            .addProperty("hedonicPrice", &HousingMarket::Entry::getHedonicPrice)
+            .addProperty("askingPrice", &HousingMarket::Entry::getAskingPrice)
+            .addProperty("unitId", &HousingMarket::Entry::getUnitId)
+            .endClass();
+    getGlobalNamespace(state.get())
+            .beginClass <Household> ("Household")
+            .addProperty("id", &Household::getId)
+            .addProperty("lifestyleId", &Household::getLifestyleId)
+            .addProperty("unitId", &Household::getUnitId)
+            .addProperty("ethnicityId", &Household::getEthnicityId)
+            .addProperty("vehicleCategoryId", &Household::getVehicleCategoryId)
+            .addProperty("size", &Household::getSize)
+            .addProperty("children", &Household::getChildren)
+            .addProperty("income", &Household::getIncome)
+            .addProperty("housingDuration", &Household::getHousingDuration)
+            .addProperty("workers", &Household::getWorkers)
+            .addProperty("ageOfHead", &Household::getAgeOfHead)
+            .endClass();
+    
+    mapCommonClasses(state.get());
 }
 
 void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket,
@@ -232,4 +238,18 @@ double HM_LuaModel::calulateWP(const Household& hh, const Unit& unit) const {
         return retVal.cast<double>();
     }
     return INVALID_DOUBLE;
+}
+
+/******************************************************************************
+ *                         Developer LUA
+ ******************************************************************************/
+
+DeveloperLuaModel::DeveloperLuaModel() : lua::LuaModel() {
+}
+
+DeveloperLuaModel::~DeveloperLuaModel() {
+}
+
+void DeveloperLuaModel::mapClasses() {
+    mapCommonClasses(state.get());
 }

@@ -101,6 +101,21 @@ namespace sim_mob {
              */
             void mapClasses();
         };
+
+        /**
+         * Represents the Lua model to the Developer model.
+         */
+        class DeveloperLuaModel : public lua::LuaModel {
+        public:
+            DeveloperLuaModel();
+            virtual ~DeveloperLuaModel();
+
+        private:
+
+            /**
+             * Inherited from LuaModel
+             */
+            void mapClasses();
+        };
     }
 }
-

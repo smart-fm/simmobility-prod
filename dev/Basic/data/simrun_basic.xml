@@ -345,19 +345,19 @@
         <!-- Setting to "database" will load the road network from the database. By default we load from "xml". -->
         <!-- NOTE: This is fairly confusing; later we'll make it easier for different users to -->
         <!--       maintain their own configurations. -->
-        <network_source value="database"/>
+        <network_source value="xml"/>
         
         <!-- If loading from XML, which input file? Default (or blank string) will force private/SimMobilityInput.xml -->
         <!-- If Writing XML, which output file? Default (or blank string) don't write at all -->
         <!-- This only has an effect if network_source is set to "xml" -->
-        <network_xml_file_input value=""/>
+        <network_xml_file_input value="data/testNewConnector.xml"/>
         <network_xml_file_output value=""/>
     
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
         <!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
-        <!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
+        <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> 
         <!-- <network_database database="fm_local" credentials="fm_local" proc_map="bugis_small_custom"/-->
-        <network_database database="fm_remote" credentials="fm_local_yaojin" proc_map="bugis_large"/>
+        <!-- <network_database database="fm_remote" credentials="fm_local_yaojin" proc_map="bugis_large"/>-->
         
         <!-- Where to find our various schema files. -->
         <!-- Overrides xsi:schemaLocation in the files themselves. -->
@@ -474,7 +474,7 @@
     <!-- With the above three procedures present and valid, enable buses with "<buscontroller time="0" />" in the <buscontrollers> -->
     <!-- To Disable Buses: user can simply comment the buscontroller in the <buscontrollers> -->
     <buscontrollers>
-        <buscontroller time="0" />    
+       <!-- <buscontroller time="0" />    -->
     </buscontrollers>
     
 <!--<signals> -->

@@ -23,6 +23,16 @@ void ProcessUniNodeConnectors(const helper::Bookkeeping& book,std::set<sim_mob::
 	}
 }
 
+//Helper: Create new LaneConnector entries for all UniNodes
+void ProcessUniNodeNewConnectors(const helper::Bookkeeping& book,std::set<sim_mob::UniNode*>& nodes) {
+	for(std::set<sim_mob::UniNode*>::iterator it = nodes.begin(); it!=nodes.end(); it ++) {
+		sim_mob::UniNode::buildNewConnectorsFromAlignedLanes((*it), (*it)->firstPair.first, (*it)->firstPair.second, 0 ,0);
+		if((*it)->secondPair.first && (*it)->secondPair.second){
+			sim_mob::UniNode::buildNewConnectorsFromAlignedLanes((*it), (*it)->secondPair.first, (*it)->secondPair.second, 0 ,0);
+		}
+	}
+}
+
 ////Helper: Create LaneConnector entries for a single UniNode
 //void ProcessUniNodeNewConnectors(const helper::Bookkeeping& book, sim_mob::UniNode* node, helper::Bookkeeping::UNNConnect new_connectors) {
 //	helper::Bookkeeping::UNNConnect::iterator it = new_connectors.begin();
@@ -157,6 +167,7 @@ void sim_mob::xml::GeoSpatial_t_pimpl::RoadNetwork (sim_mob::RoadNetwork& rn)
 	//Process various left-over items.
 	ProcessUniNodeConnectors(book, rn.getUniNodes());
 //	ProcessUniNodeNewConnectors(book, rn.getUniNodes());
+	ProcessUniNodeNewConnectors(book, rn.getUniNodes());
 	ProcessMultiNodeConnectors(book, rn.getNodes());
 
 	//Ugh; this shouldn't be needed.... (see Loader.cpp)

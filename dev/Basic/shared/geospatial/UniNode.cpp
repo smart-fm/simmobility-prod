@@ -151,6 +151,7 @@ void sim_mob::UniNode::buildNewConnectorsFromAlignedLanes(UniNode* node, const R
 		node->newConnectors[fromSeg->getLane(fromID)] = lc;
 	}
 
+
 }
 
 

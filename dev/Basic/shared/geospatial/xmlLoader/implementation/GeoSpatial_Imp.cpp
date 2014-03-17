@@ -24,47 +24,14 @@ void ProcessUniNodeConnectors(const helper::Bookkeeping& book,std::set<sim_mob::
 }
 
 //Helper: Create new LaneConnector entries for all UniNodes
-void ProcessUniNodeNewConnectors(const helper::Bookkeeping& book,std::set<sim_mob::UniNode*>& nodes) {
+void ProcessUniNodeForwardLanes(const helper::Bookkeeping& book,std::set<sim_mob::UniNode*>& nodes) {
 	for(std::set<sim_mob::UniNode*>::iterator it = nodes.begin(); it!=nodes.end(); it ++) {
-		sim_mob::UniNode::buildNewConnectorsFromAlignedLanes((*it), (*it)->firstPair.first, (*it)->firstPair.second, 0 ,0);
+		sim_mob::UniNode::buildForwardLanesFromAlignedLanes((*it), (*it)->firstPair.first, (*it)->firstPair.second, 0 ,0);
 		if((*it)->secondPair.first && (*it)->secondPair.second){
-			sim_mob::UniNode::buildNewConnectorsFromAlignedLanes((*it), (*it)->secondPair.first, (*it)->secondPair.second, 0 ,0);
+			sim_mob::UniNode::buildForwardLanesFromAlignedLanes((*it), (*it)->secondPair.first, (*it)->secondPair.second, 0 ,0);
 		}
 	}
 }
-
-////Helper: Create LaneConnector entries for a single UniNode
-//void ProcessUniNodeNewConnectors(const helper::Bookkeeping& book, sim_mob::UniNode* node, helper::Bookkeeping::UNNConnect new_connectors) {
-//	helper::Bookkeeping::UNNConnect::iterator it = new_connectors.begin();
-//	if(new_connectors.begin()== new_connectors.end()){
-//		std::cout << "opps new_connectors is emptyfor uninode  " <<  node->getID() << std::endl;
-//	}
-//	for( ;it!= new_connectors.end(); it ++) {
-////		std::cout << "Processing Tupple :" << it->first << " : " << it->second.get<0>() << " : " << it->second.get<1>() << " : " << it->second.get<2>()  << std::endl;
-//		boost::tuple<unsigned long,unsigned long,unsigned long> laneIds = it->second;
-//		boost::tuple<sim_mob::Lane*,sim_mob::Lane*,sim_mob::Lane*> lanePtrs;
-//		unsigned long id = boost::get<0>(it->second);
-//		if(id > 0){
-//			lanePtrs.get<0>() = book.getLane(boost::get<0>(it->second));
-//		}
-//		id = boost::get<1>(it->second);
-//		if(id > 0){
-//			lanePtrs.get<1>() = book.getLane(boost::get<1>(it->second));
-//		}
-//		id = boost::get<2>(it->second);
-//		if(id > 0){
-//			lanePtrs.get<2>() = book.getLane(boost::get<2>(it->second));
-//		}
-//		node->setNewConnectorAt(book.getLane(it->first), lanePtrs);
-//
-//	}
-//}
-////Helper: Create new LaneConnector entries for all UniNodes
-//void ProcessUniNodeNewConnectors(const helper::Bookkeeping& book,std::set<sim_mob::UniNode*>& nodes) {
-//	for(std::set<sim_mob::UniNode*>::iterator it = nodes.begin(); it!=nodes.end(); it ++) {
-//		ProcessUniNodeNewConnectors(book, *it, book.getUniNodeNewLaneConnectorCache(*it));
-//	}
-//}
 
 //Helper: Create segment pairs entries for a single UniNode
 void ProcessUniNodeSegPairs(const helper::Bookkeeping& book, sim_mob::UniNode* node, helper::Bookkeeping::SegPair segPair) {
@@ -166,8 +133,8 @@ void sim_mob::xml::GeoSpatial_t_pimpl::RoadNetwork (sim_mob::RoadNetwork& rn)
 
 	//Process various left-over items.
 	ProcessUniNodeConnectors(book, rn.getUniNodes());
-//	ProcessUniNodeNewConnectors(book, rn.getUniNodes());
-	ProcessUniNodeNewConnectors(book, rn.getUniNodes());
+//	ProcessUniNodeForwardLanes(book, rn.getUniNodes());
+	ProcessUniNodeForwardLanes(book, rn.getUniNodes());
 	ProcessMultiNodeConnectors(book, rn.getNodes());
 
 	//Ugh; this shouldn't be needed.... (see Loader.cpp)

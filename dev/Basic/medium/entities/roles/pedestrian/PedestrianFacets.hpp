@@ -50,6 +50,7 @@ protected:
 
 protected:
 	sim_mob::medium::Pedestrian* parentPedestrian;
+	int remainingTimeToComplete;
 
 };
 

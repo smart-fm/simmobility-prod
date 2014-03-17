@@ -611,74 +611,6 @@ namespace sim_mob
   {
   }
 
-//  // new_connector_t_pskel
-//  //
-//
-//  void new_connector_t_pskel::
-//  laneFrom_parser (::xml_schema::unsigned_long_pskel& p)
-//  {
-//    this->laneFrom_parser_ = &p;
-//  }
-//
-//  void new_connector_t_pskel::
-//  laneTo_Left_parser (::xml_schema::unsigned_long_pskel& p)
-//  {
-//    this->laneTo_Left_parser_ = &p;
-//  }
-//
-//  void new_connector_t_pskel::
-//  laneTo_Center_parser (::xml_schema::unsigned_long_pskel& p)
-//  {
-//    this->laneTo_Center_parser_ = &p;
-//  }
-//
-//  void new_connector_t_pskel::
-//  laneTo_Right_parser (::xml_schema::unsigned_long_pskel& p)
-//  {
-//    this->laneTo_Right_parser_ = &p;
-//  }
-//
-//  void new_connector_t_pskel::
-//  parsers (::xml_schema::unsigned_long_pskel& laneFrom,
-//           ::xml_schema::unsigned_long_pskel& laneTo_Left,
-//           ::xml_schema::unsigned_long_pskel& laneTo_Center,
-//           ::xml_schema::unsigned_long_pskel& laneTo_Right)
-//  {
-//    this->laneFrom_parser_ = &laneFrom;
-//    this->laneTo_Left_parser_ = &laneTo_Left;
-//    this->laneTo_Center_parser_ = &laneTo_Center;
-//    this->laneTo_Right_parser_ = &laneTo_Right;
-//  }
-//
-//  new_connector_t_pskel::
-//  new_connector_t_pskel ()
-//  : laneFrom_parser_ (0),
-//    laneTo_Left_parser_ (0),
-//    laneTo_Center_parser_ (0),
-//    laneTo_Right_parser_ (0)
-//  {
-//  }
-//
-//  // new_connectors_t_pskel
-//  //
-//
-//  void new_connectors_t_pskel::
-//  new_connector_parser (::sim_mob::xml::new_connector_t_pskel& p)
-//  {
-//    this->new_connector_parser_ = &p;
-//  }
-//
-//  void new_connectors_t_pskel::
-//  parsers (::sim_mob::xml::new_connector_t_pskel& new_connector)
-//  {
-//    this->new_connector_parser_ = &new_connector;
-//  }
-//
-//  new_connectors_t_pskel::
-//  new_connectors_t_pskel ()
-//  : new_connector_parser_ (0)
-//  {
-//  }
 
   // Multi_Connector_t_pskel
   //
@@ -1367,20 +1299,13 @@ namespace sim_mob
     this->Connectors_parser_ = &p;
   }
 
-//  void UniNode_t_pskel::
-//  new_Connectors_parser (::sim_mob::xml::new_connectors_t_pskel& p)
-//  {
-//    this->new_Connectors_parser_ = &p;
-//  }
-//
   void UniNode_t_pskel::
   parsers (::xml_schema::unsigned_int_pskel& nodeID,
            ::sim_mob::xml::Point2D_t_pskel& location,
            ::xml_schema::string_pskel& originalDB_ID,
            ::sim_mob::xml::temp_Segmetair_t_pskel& firstPair,
            ::sim_mob::xml::temp_Segmetair_t_pskel& secondPair,
-           ::sim_mob::xml::connectors_t_pskel& Connectors/*,
-           ::sim_mob::xml::new_connectors_t_pskel& new_Connectors*/)
+           ::sim_mob::xml::connectors_t_pskel& Connectors)
   {
     this->nodeID_parser_ = &nodeID;
     this->location_parser_ = &location;
@@ -1388,15 +1313,13 @@ namespace sim_mob
     this->firstPair_parser_ = &firstPair;
     this->secondPair_parser_ = &secondPair;
     this->Connectors_parser_ = &Connectors;
-//    this->new_Connectors_parser_ = &new_Connectors;
   }
 
   UniNode_t_pskel::
   UniNode_t_pskel ()
   : firstPair_parser_ (0),
     secondPair_parser_ (0),
-    Connectors_parser_ (0)/*,
-    new_Connectors_parser_ (0)*/
+    Connectors_parser_ (0)
   {
   }
 
@@ -4497,172 +4420,6 @@ namespace sim_mob
     return false;
   }
 
-//  // new_connector_t_pskel
-//  //
-//
-//  void new_connector_t_pskel::
-//  laneFrom (unsigned long long)
-//  {
-//  }
-//
-//  void new_connector_t_pskel::
-//  laneTo_Left (unsigned long long)
-//  {
-//  }
-//
-//  void new_connector_t_pskel::
-//  laneTo_Center (unsigned long long)
-//  {
-//  }
-//
-//  void new_connector_t_pskel::
-//  laneTo_Right (unsigned long long)
-//  {
-//  }
-//
-//  bool new_connector_t_pskel::
-//  _start_element_impl (const ::xml_schema::ro_string& ns,
-//                       const ::xml_schema::ro_string& n,
-//                       const ::xml_schema::ro_string* t)
-//  {
-//    XSD_UNUSED (t);
-//
-//    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-//      return true;
-//
-//    if (n == "laneFrom" && ns.empty ())
-//    {
-//      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneFrom_parser_;
-//
-//      if (this->laneFrom_parser_)
-//        this->laneFrom_parser_->pre ();
-//
-//      return true;
-//    }
-//
-//    if (n == "laneTo_Left" && ns.empty ())
-//    {
-//      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneTo_Left_parser_;
-//
-//      if (this->laneTo_Left_parser_)
-//        this->laneTo_Left_parser_->pre ();
-//
-//      return true;
-//    }
-//
-//    if (n == "laneTo_Center" && ns.empty ())
-//    {
-//      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneTo_Center_parser_;
-//
-//      if (this->laneTo_Center_parser_)
-//        this->laneTo_Center_parser_->pre ();
-//
-//      return true;
-//    }
-//
-//    if (n == "laneTo_Right" && ns.empty ())
-//    {
-//      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneTo_Right_parser_;
-//
-//      if (this->laneTo_Right_parser_)
-//        this->laneTo_Right_parser_->pre ();
-//
-//      return true;
-//    }
-//
-//    return false;
-//  }
-//
-//  bool new_connector_t_pskel::
-//  _end_element_impl (const ::xml_schema::ro_string& ns,
-//                     const ::xml_schema::ro_string& n)
-//  {
-//    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-//      return true;
-//
-//    if (n == "laneFrom" && ns.empty ())
-//    {
-//      if (this->laneFrom_parser_)
-//        this->laneFrom (this->laneFrom_parser_->post_unsigned_long ());
-//
-//      return true;
-//    }
-//
-//    if (n == "laneTo_Left" && ns.empty ())
-//    {
-//      if (this->laneTo_Left_parser_)
-//        this->laneTo_Left (this->laneTo_Left_parser_->post_unsigned_long ());
-//
-//      return true;
-//    }
-//
-//    if (n == "laneTo_Center" && ns.empty ())
-//    {
-//      if (this->laneTo_Center_parser_)
-//        this->laneTo_Center (this->laneTo_Center_parser_->post_unsigned_long ());
-//
-//      return true;
-//    }
-//
-//    if (n == "laneTo_Right" && ns.empty ())
-//    {
-//      if (this->laneTo_Right_parser_)
-//        this->laneTo_Right (this->laneTo_Right_parser_->post_unsigned_long ());
-//
-//      return true;
-//    }
-//
-//    return false;
-//  }
-//
-//  // new_connectors_t_pskel
-//  //
-//
-//  void new_connectors_t_pskel::
-//  new_connector (std::pair<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &)
-//  {
-//  }
-//
-//  bool new_connectors_t_pskel::
-//  _start_element_impl (const ::xml_schema::ro_string& ns,
-//                       const ::xml_schema::ro_string& n,
-//                       const ::xml_schema::ro_string* t)
-//  {
-//    XSD_UNUSED (t);
-//
-//    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-//      return true;
-//
-//    if (n == "new_connector" && ns.empty ())
-//    {
-//      this->::xml_schema::complex_content::context_.top ().parser_ = this->new_connector_parser_;
-//
-//      if (this->new_connector_parser_)
-//        this->new_connector_parser_->pre ();
-//
-//      return true;
-//    }
-//
-//    return false;
-//  }
-//
-//  bool new_connectors_t_pskel::
-//  _end_element_impl (const ::xml_schema::ro_string& ns,
-//                     const ::xml_schema::ro_string& n)
-//  {
-//    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-//      return true;
-//
-//    if (n == "new_connector" && ns.empty ())
-//    {
-//      if (this->new_connector_parser_)
-//        this->new_connector (this->new_connector_parser_->post_new_connector_t ());
-//
-//      return true;
-//    }
-//
-//    return false;
-//  }
 
   // Multi_Connector_t_pskel
   //
@@ -6356,10 +6113,6 @@ namespace sim_mob
   {
   }
 
-//  void UniNode_t_pskel::
-//  new_Connectors (std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &)
-//  {
-//  }
 
   bool UniNode_t_pskel::
   _start_element_impl (const ::xml_schema::ro_string& ns,
@@ -6401,16 +6154,6 @@ namespace sim_mob
       return true;
     }
 
-//    if (n == "new_Connectors" && ns.empty ())
-//    {
-//      this->::xml_schema::complex_content::context_.top ().parser_ = this->new_Connectors_parser_;
-//
-//      if (this->new_Connectors_parser_)
-//        this->new_Connectors_parser_->pre ();
-//
-//      return true;
-//    }
-
     return false;
   }
 
@@ -6445,13 +6188,6 @@ namespace sim_mob
       return true;
     }
 
-//    if (n == "new_Connectors" && ns.empty ())
-//    {
-//      if (this->new_Connectors_parser_)
-//        this->new_Connectors (this->new_Connectors_parser_->post_new_connectors_t ());
-//
-//      return true;
-//    }
 
     return false;
   }

@@ -151,7 +151,6 @@ void sim_mob::UniNode::buildForwardLanesFromAlignedLanes(UniNode* node, const Ro
 		node->forwardLanes[fromSeg->getLane(fromID)] = lc;
 	}
 
-
 }
 
 

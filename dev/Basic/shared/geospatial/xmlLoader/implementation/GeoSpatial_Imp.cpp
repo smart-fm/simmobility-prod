@@ -133,7 +133,6 @@ void sim_mob::xml::GeoSpatial_t_pimpl::RoadNetwork (sim_mob::RoadNetwork& rn)
 
 	//Process various left-over items.
 	ProcessUniNodeConnectors(book, rn.getUniNodes());
-//	ProcessUniNodeForwardLanes(book, rn.getUniNodes());
 	ProcessUniNodeForwardLanes(book, rn.getUniNodes());
 	ProcessMultiNodeConnectors(book, rn.getNodes());
 

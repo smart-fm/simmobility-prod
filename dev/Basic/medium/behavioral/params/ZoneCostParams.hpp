@@ -292,5 +292,6 @@ private:
 	double avgTransfer;
 	double pubCost;
 };
+
 }
 }

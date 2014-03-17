@@ -118,5 +118,10 @@ namespace medium {
 	const std::string MONGO_FIELD_COST_AVG_TRANSFER = "avg_transfer";
 	const std::string MONGO_FIELD_COST_PUB_COST = "pub_cost";
 
+	/**
+	 * Fields from MongoDB zone_aimsunnode_mapping data
+	 */
+	const std::string MONGO_FIELD_NODE_ID = "Node_id";
+
 } // end namespace medium
 } // end namespace sim_mob

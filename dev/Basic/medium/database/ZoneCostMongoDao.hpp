@@ -11,6 +11,7 @@
 
 #pragma once
 #include <boost/unordered_map.hpp>
+#include <vector>
 #include "behavioral/params/ZoneCostParams.hpp"
 #include "database/dao/MongoDao.hpp"
 #include "database/DB_Config.hpp"
@@ -78,5 +79,18 @@ public:
      */
     void fromRow(mongo::BSONObj document, CostParams& outParam);
 };
-}
-}
+
+class ZoneNodeMappingDao : db::MongoDao {
+public:
+	ZoneNodeMappingDao(db::DB_Config& dbConfig, const std::string& database, const std::string& collection);
+	virtual ~ZoneNodeMappingDao();
+
+    /**
+     * Gets all values from the source and put them on the given list.
+     * @param outList to put the retrieved values.
+     * @return true if some values were returned, false otherwise.
+     */
+    bool getAll(boost::unordered_map<int, std::vector<long> >& outList);
+};
+} // end namespace medium
+} // end namespace sim_mob

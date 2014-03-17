@@ -116,33 +116,56 @@ void sim_mob::medium::PredayManager::loadPersons(BackendType dbType) {
 
 void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType) {
 	switch(dbType) {
-	case POSTGRES:
-	{
-		throw std::runtime_error("Zone information is not available in PostgreSQL database yet");
-		break;
-	}
-	case MONGO_DB:
-	{
-		//zoneMap.reserve(1092);
-                zoneMap.rehash(ceil(1092 / zoneMap.max_load_factor()));
-		std::string zoneCollectionName = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo").collectionName.at("Zone");
-		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
-		std::string emptyString;
-		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
-		ZoneMongoDao zoneDao(dbConfig, db.dbName, zoneCollectionName);
-		zoneDao.getAllZones(zoneMap);
-		Print() << "MTZ Zones loaded" << std::endl;
-		break;
-	}
-	default:
-	{
-		throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
-	}
+		case POSTGRES:
+		{
+			throw std::runtime_error("Zone information is not available in PostgreSQL database yet");
+			break;
+		}
+		case MONGO_DB:
+		{
+			std::string zoneCollectionName = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo").collectionName.at("Zone");
+			Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+			std::string emptyString;
+			db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+			ZoneMongoDao zoneDao(dbConfig, db.dbName, zoneCollectionName);
+			zoneDao.getAllZones(zoneMap);
+			Print() << "MTZ Zones loaded" << std::endl;
+			break;
+		}
+		default:
+		{
+			throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
+		}
 	}
 
 	for(ZoneMap::iterator i=zoneMap.begin(); i!=zoneMap.end(); i++) {
 		zoneIdLookup[i->second->getZoneCode()] = i->first;
 	}
+}
+
+void sim_mob::medium::PredayManager::loadZoneNodes(db::BackendType dbType) {
+	switch(dbType) {
+		case POSTGRES:
+		{
+			throw std::runtime_error("AM, PM and off peak costs are not available in PostgreSQL database yet");
+		}
+		case MONGO_DB:
+		{
+			std::string zoneNodeCollectionName = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo").collectionName.at("zone_node");
+			Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+			std::string emptyString;
+			db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+			ZoneNodeMappingDao zoneNodeDao(dbConfig, db.dbName, zoneNodeCollectionName);
+			zoneNodeDao.getAll(zoneNodeMap);
+			Print() << "Zones-Node mapping loaded" << std::endl;
+			break;
+		}
+		default:
+		{
+			throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
+		}
+	}
+	Print() << "zoneNodeMap.size() : " << zoneNodeMap.size() << std::endl;
 }
 
 void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {

@@ -67,8 +67,8 @@ namespace xml {
   class lane_t_pskel;
   class connector_t_pskel;
   class connectors_t_pskel;
-  class new_connector_t_pskel;
-  class new_connectors_t_pskel;
+//  class new_connector_t_pskel;
+//  class new_connectors_t_pskel;
   class Multi_Connector_t_pskel;
   class Multi_Connectors_t_pskel;
   class fwdBckSegments_t_pskel;
@@ -1229,113 +1229,113 @@ namespace xml {
     sim_mob::xml::connector_t_pskel* Connector_parser_;
   };
 
-  class new_connector_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    laneFrom (unsigned long long);
-
-    virtual void
-    laneTo_Left (unsigned long long);
-
-    virtual void
-    laneTo_Center (unsigned long long);
-
-    virtual void
-    laneTo_Right (unsigned long long);
-
-    virtual std::pair<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &
-    post_new_connector_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    laneFrom_parser (::xml_schema::unsigned_long_pskel&);
-
-    void
-    laneTo_Left_parser (::xml_schema::unsigned_long_pskel&);
-
-    void
-    laneTo_Center_parser (::xml_schema::unsigned_long_pskel&);
-
-    void
-    laneTo_Right_parser (::xml_schema::unsigned_long_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_long_pskel& /* laneFrom */,
-             ::xml_schema::unsigned_long_pskel& /* laneTo_Left */,
-             ::xml_schema::unsigned_long_pskel& /* laneTo_Center */,
-             ::xml_schema::unsigned_long_pskel& /* laneTo_Right */);
-
-    // Constructor.
-    //
-    new_connector_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_long_pskel* laneFrom_parser_;
-    ::xml_schema::unsigned_long_pskel* laneTo_Left_parser_;
-    ::xml_schema::unsigned_long_pskel* laneTo_Center_parser_;
-    ::xml_schema::unsigned_long_pskel* laneTo_Right_parser_;
-  };
-
-  class new_connectors_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    new_connector (std::pair<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &);
-
-    virtual std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &
-    post_new_connectors_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    new_connector_parser (sim_mob::xml::new_connector_t_pskel&);
-
-    void
-    parsers (sim_mob::xml::new_connector_t_pskel& /* new_connector */);
-
-    // Constructor.
-    //
-    new_connectors_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    sim_mob::xml::new_connector_t_pskel* new_connector_parser_;
-  };
+//  class new_connector_t_pskel: public ::xml_schema::complex_content
+//  {
+//    public:
+//    // Parser callbacks. Override them in your implementation.
+//    //
+//    // virtual void
+//    // pre ();
+//
+//    virtual void
+//    laneFrom (unsigned long long);
+//
+//    virtual void
+//    laneTo_Left (unsigned long long);
+//
+//    virtual void
+//    laneTo_Center (unsigned long long);
+//
+//    virtual void
+//    laneTo_Right (unsigned long long);
+//
+//    virtual std::pair<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &
+//    post_new_connector_t () = 0;
+//
+//    // Parser construction API.
+//    //
+//    void
+//    laneFrom_parser (::xml_schema::unsigned_long_pskel&);
+//
+//    void
+//    laneTo_Left_parser (::xml_schema::unsigned_long_pskel&);
+//
+//    void
+//    laneTo_Center_parser (::xml_schema::unsigned_long_pskel&);
+//
+//    void
+//    laneTo_Right_parser (::xml_schema::unsigned_long_pskel&);
+//
+//    void
+//    parsers (::xml_schema::unsigned_long_pskel& /* laneFrom */,
+//             ::xml_schema::unsigned_long_pskel& /* laneTo_Left */,
+//             ::xml_schema::unsigned_long_pskel& /* laneTo_Center */,
+//             ::xml_schema::unsigned_long_pskel& /* laneTo_Right */);
+//
+//    // Constructor.
+//    //
+//    new_connector_t_pskel ();
+//
+//    // Implementation.
+//    //
+//    protected:
+//    virtual bool
+//    _start_element_impl (const ::xml_schema::ro_string&,
+//                         const ::xml_schema::ro_string&,
+//                         const ::xml_schema::ro_string*);
+//
+//    virtual bool
+//    _end_element_impl (const ::xml_schema::ro_string&,
+//                       const ::xml_schema::ro_string&);
+//
+//    protected:
+//    ::xml_schema::unsigned_long_pskel* laneFrom_parser_;
+//    ::xml_schema::unsigned_long_pskel* laneTo_Left_parser_;
+//    ::xml_schema::unsigned_long_pskel* laneTo_Center_parser_;
+//    ::xml_schema::unsigned_long_pskel* laneTo_Right_parser_;
+//  };
+//
+//  class new_connectors_t_pskel: public ::xml_schema::complex_content
+//  {
+//    public:
+//    // Parser callbacks. Override them in your implementation.
+//    //
+//    // virtual void
+//    // pre ();
+//
+//    virtual void
+//    new_connector (std::pair<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &);
+//
+//    virtual std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &
+//    post_new_connectors_t () = 0;
+//
+//    // Parser construction API.
+//    //
+//    void
+//    new_connector_parser (sim_mob::xml::new_connector_t_pskel&);
+//
+//    void
+//    parsers (sim_mob::xml::new_connector_t_pskel& /* new_connector */);
+//
+//    // Constructor.
+//    //
+//    new_connectors_t_pskel ();
+//
+//    // Implementation.
+//    //
+//    protected:
+//    virtual bool
+//    _start_element_impl (const ::xml_schema::ro_string&,
+//                         const ::xml_schema::ro_string&,
+//                         const ::xml_schema::ro_string*);
+//
+//    virtual bool
+//    _end_element_impl (const ::xml_schema::ro_string&,
+//                       const ::xml_schema::ro_string&);
+//
+//    protected:
+//    sim_mob::xml::new_connector_t_pskel* new_connector_parser_;
+//  };
 
   class Multi_Connector_t_pskel: public ::xml_schema::complex_content
   {
@@ -2436,8 +2436,8 @@ namespace xml {
     virtual void
     Connectors (std::set<std::pair<unsigned long,unsigned long> >);
 
-    virtual void
-    new_Connectors (std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &);
+//    virtual void
+//    new_Connectors (std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > &);
 
     virtual sim_mob::UniNode*
     post_UniNode_t () = 0;
@@ -2453,8 +2453,8 @@ namespace xml {
     void
     Connectors_parser (sim_mob::xml::connectors_t_pskel&);
 
-    void
-    new_Connectors_parser (sim_mob::xml::new_connectors_t_pskel&);
+//    void
+//    new_Connectors_parser (sim_mob::xml::new_connectors_t_pskel&);
 
     void
     parsers (::xml_schema::unsigned_int_pskel& /* nodeID */,
@@ -2462,8 +2462,8 @@ namespace xml {
              ::xml_schema::string_pskel& /* originalDB_ID */,
              sim_mob::xml::temp_Segmetair_t_pskel& /* firstPair */,
              sim_mob::xml::temp_Segmetair_t_pskel& /* secondPair */,
-             sim_mob::xml::connectors_t_pskel& /* Connectors */,
-             sim_mob::xml::new_connectors_t_pskel& /* new_Connectors */);
+             sim_mob::xml::connectors_t_pskel& /* Connectors *//*,
+             sim_mob::xml::new_connectors_t_pskel&  new_Connectors */);
 
     // Constructor.
     //
@@ -2485,7 +2485,7 @@ namespace xml {
     sim_mob::xml::temp_Segmetair_t_pskel* firstPair_parser_;
     sim_mob::xml::temp_Segmetair_t_pskel* secondPair_parser_;
     sim_mob::xml::connectors_t_pskel* Connectors_parser_;
-    sim_mob::xml::new_connectors_t_pskel* new_Connectors_parser_;
+//    sim_mob::xml::new_connectors_t_pskel* new_Connectors_parser_;
   };
 
   class roundabout_t_pskel: public virtual sim_mob::xml::Node_t_pskel

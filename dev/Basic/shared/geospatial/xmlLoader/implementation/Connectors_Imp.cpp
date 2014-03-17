@@ -24,24 +24,24 @@ void sim_mob::xml::connectors_t_pimpl::Connector (std::pair<unsigned long,unsign
 
 /////////////////////////////////////////////
 
-// new_connectors_t_pimpl
+//// new_connectors_t_pimpl
+////
 //
-
-void sim_mob::xml::new_connectors_t_pimpl::
-pre ()
-{
-	model.clear();
-}
-
-void sim_mob::xml::new_connectors_t_pimpl::
-new_connector (std::pair<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > & value)
-{
-  model[value.first] = value.second;
-}
-
-std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > & sim_mob::xml::new_connectors_t_pimpl::
-post_new_connectors_t ()
-{
-  return model;
-}
+//void sim_mob::xml::new_connectors_t_pimpl::
+//pre ()
+//{
+//	model.clear();
+//}
+//
+//void sim_mob::xml::new_connectors_t_pimpl::
+//new_connector (std::pair<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > & value)
+//{
+//  model[value.first] = value.second;
+//}
+//
+//std::map<unsigned long,boost::tuple<unsigned long,unsigned long,unsigned long> > & sim_mob::xml::new_connectors_t_pimpl::
+//post_new_connectors_t ()
+//{
+//  return model;
+//}
 

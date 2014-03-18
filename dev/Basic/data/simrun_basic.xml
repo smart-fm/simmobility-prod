@@ -338,13 +338,15 @@
 
     
     <!-- FMOD controller settings -->
-    <fmodcontroller switch="false">
-        <ipaddress value="127.0.0.1"/>
+    <fmodcontroller enabled="true">
+        <ip_address value="127.0.0.1"/>
         <port value="9000"/>
-        <updateTimeMS value="500"/>
-        <mapfile value="cityhall/cityhall.osm"/>
-        <blockingTimeSec value="5"/>
+        <interval_travel_MS value="60000"/>
+        <interval_pos_MS value ="6000"/>
+        <map_file value="map/random001/mynetwork.osm"/>
+        <blocking_time_Sec value="10"/>
     </fmodcontroller>
+
         
     <incidentsData enabled="yes">
     	<incident id="0" visibility="4000" segment="40200" position="60" cap_factor="1.0" start_time="08:30:00" duration="00:32:00" length="1000" compliance="50" accessibility="50" > 

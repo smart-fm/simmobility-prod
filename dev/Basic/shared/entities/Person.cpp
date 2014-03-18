@@ -218,6 +218,16 @@ void Person::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>
 	}
 }
 
+void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
+{
+	sim_mob::Agent::onEvent(eventId, ctxId, sender, args);
+
+	//role gets chance to handle event
+	if(currRole){
+		currRole->onParentEvent(eventId, ctxId, sender, args);
+	}
+}
+
 
 bool sim_mob::Person::frame_init(timeslice now)
 {

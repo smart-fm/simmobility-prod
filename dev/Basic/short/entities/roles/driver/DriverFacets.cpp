@@ -865,6 +865,11 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 	return updatePositionOnLink(p);
 }
 
+void sim_mob::DriverMovement::assignNewFMODSchedule(FMODSchedule* schedule)
+{
+
+}
+
 bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, DriverUpdateParams& p)
 {
 	bool ret = false;

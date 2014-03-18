@@ -12,7 +12,6 @@
 #include <boost/thread.hpp>
 #include <boost/lexical_cast.hpp>
 #include "FMOD_Controller.hpp"
-#include "FMOD_Message.hpp"
 #include "entities/Person.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -65,14 +64,12 @@ bool FMOD_Controller::frame_init(timeslice now)
 Entity::UpdateStatus FMOD_Controller::frame_tick(timeslice now)
 {
 	frameTicks++;
-	unsigned int curTickMS = (frameTicks)*ConfigManager::GetInstance().FullConfig().baseGranMS();
-
 
 	if(frameTicks%2 == 0){
-		processMessagesInBlocking(now);
+		updateMessagesInBlocking(now);
 	}
 	else if(frameTicks%2 == 1){
-		updateMessagesInBlocking(now);
+		processMessagesInBlocking(now);
 	}
 
 	dispatchPendingAgents(now);
@@ -84,6 +81,27 @@ void FMOD_Controller::frame_output(timeslice now)
 {
 
 }
+
+void FMOD_Controller::finalizeMessageToFMOD()
+{
+	if(!isConnectFmodServer)
+		return;
+
+	MsgFinalize request;
+	request.messageID_ = FMOD_Message::MSG_FINALIZE;
+
+	DailyTime endTime(ConfigManager::GetInstance().FullConfig().baseGranMS()+ConfigManager::GetInstance().FullConfig().totalRuntimeInMilliSeconds());
+	request.end_time = endTime.toString();
+	std::string msg = request.buildToString();
+	connectPoint->sendMessage(msg);
+	connectPoint->flush();
+
+	std::string message;
+	if( !connectPoint->waitMessageInBlocking(message, waitingseconds)){
+		std::cout << "FMOD communication in blocking mode not receive data asap" << std::endl;
+	}
+}
+
 
 bool FMOD_Controller::insertFmodItems(const std::string& personID, TripChainItem* item)
 {
@@ -191,6 +209,7 @@ bool FMOD_Controller::connectFmodService()
 		else{
 			handleVehicleInit(message);
 			isConnectFmodServer = true;
+			publisher.registerEvent(EVENT_DISPATCH_REQUEST);
 		}
 	}
 	else {
@@ -203,6 +222,9 @@ bool FMOD_Controller::connectFmodService()
 
 void FMOD_Controller::stopClientService()
 {
+	if(!isConnectFmodServer)
+		return;
+
 	connectPoint->stop();
 	ioService.stop();
 }
@@ -292,8 +314,6 @@ void FMOD_Controller::updateMessagesInBlocking(timeslice now)
 	if(!isConnectFmodServer)
 		return;
 
-	unsigned int curTickMS = (frameTicks)*ConfigManager::GetInstance().FullConfig().baseGranMS();
-
 	std::string message;
 	MessageList ret = collectVehStops();
 	if(ret.size()>0){
@@ -306,7 +326,7 @@ void FMOD_Controller::updateMessagesInBlocking(timeslice now)
 		}
 	}
 
-	if(curTickMS%updateTiming == 0){
+	if(now.ms()%updatePosTime == 0){
 		ret = collectVehPos();
 		if(ret.size()>0){
 			connectPoint->sendMessage(ret);
@@ -319,7 +339,7 @@ void FMOD_Controller::updateMessagesInBlocking(timeslice now)
 		}
 	}
 
-	if(curTickMS%updateTiming == 0){
+	if(now.ms()%updateTravelTime == 0){
 		ret = collectLinkTravelTime();
 		if(ret.size()>0){
 			connectPoint->sendMessage(ret);
@@ -331,8 +351,6 @@ void FMOD_Controller::updateMessagesInBlocking(timeslice now)
 			}
 		}
 	}
-
-
 }
 
 void FMOD_Controller::updateMessages(timeslice now)
@@ -340,17 +358,15 @@ void FMOD_Controller::updateMessages(timeslice now)
 	if(!isConnectFmodServer)
 		return;
 
-	unsigned int curTickMS = (frameTicks)*ConfigManager::GetInstance().FullConfig().baseGranMS();
-
 	MessageList ret = collectVehStops();
 	connectPoint->sendMessage(ret);
 
-	if(curTickMS%updateTiming == 0){
+	if(now.ms()%updatePosTime == 0){
 		ret = collectVehPos();
 		connectPoint->sendMessage(ret);
 	}
 
-	if(curTickMS%updateTiming == 0){
+	if(now.ms()%updateTravelTime == 0){
 		ret = collectLinkTravelTime();
 		connectPoint->sendMessage(ret);
 	}
@@ -361,8 +377,8 @@ void FMOD_Controller::updateMessages(timeslice now)
 MessageList FMOD_Controller::collectVehStops()
 {
 	MessageList msgs;
-	for(std::vector<Agent*>::iterator it=allChildren.begin(); it!=allChildren.end(); it++){
-		Person* person = dynamic_cast<sim_mob::Person*>(*it);
+	for(std::vector<Person*>::iterator it=allChildren.begin(); it!=allChildren.end(); it++){
+		Person* person = (*it);
 		if(person){
 
 			int client_id = person->client_id;
@@ -418,8 +434,8 @@ MessageList FMOD_Controller::collectVehPos()
 {
 	MessageList msgs;
 
-	for(std::vector<Agent*>::iterator it=allChildren.begin(); it!=allChildren.end(); it++){
-		Person* person = dynamic_cast<sim_mob::Person*>(*it);
+	for(std::vector<Person*>::iterator it=allChildren.begin(); it!=allChildren.end(); it++){
+		Person* person = (*it);
 		if(person){
 			MsgVehiclePos msg_pos;
 			msg_pos.messageID_ = FMOD_Message::MSG_VEHICLEPOS;
@@ -446,7 +462,7 @@ MessageList FMOD_Controller::collectLinkTravelTime()
 {
 	MessageList msgs;
 	bool isEmpty=false;
-	for(std::vector<Agent*>::iterator it=allChildren.begin(); it!=allChildren.end(); it++){
+	for(std::vector<Person*>::iterator it=allChildren.begin(); it!=allChildren.end(); it++){
 
 		const std::map<double, linkTravelStats>& travelStatsMap = (*it)->linkTravelStatsMap.get();
 		for(std::map<double, linkTravelStats>::const_iterator itTravel=travelStatsMap.begin(); itTravel!=travelStatsMap.end(); itTravel++ ){
@@ -524,6 +540,7 @@ MessageList FMOD_Controller::generateRequest(timeslice now)
 
 	return msgs;
 }
+
 MessageList FMOD_Controller::handleOfferMessage(const std::string& msg)
 {
 	MessageList msgs;
@@ -548,6 +565,7 @@ MessageList FMOD_Controller::handleOfferMessage(const std::string& msg)
 
 	return msgs;
 }
+
 MessageList FMOD_Controller::handleConfirmMessage(const std::string& msg)
 {
 	MessageList msgs;
@@ -569,7 +587,7 @@ void FMOD_Controller::handleScheduleMessage(const std::string& msg)
 	MsgSchedule msgRequest;
 	msgRequest.createMessage( msg );
 
-	FMODSchedule* schedule = new FMODSchedule();
+	sim_mob::FMODSchedule* schedule = new sim_mob::FMODSchedule();
 	sim_mob::Node* startNode=nullptr;
 	sim_mob::Node* endNode=nullptr;
 	for(std::vector<MsgSchedule::Route>::iterator it=msgRequest.routes.begin(); it!=msgRequest.routes.end(); it++){
@@ -590,7 +608,7 @@ void FMOD_Controller::handleScheduleMessage(const std::string& msg)
 
 	DailyTime start(0);
 	for(std::vector<MsgSchedule::Stop>::iterator it=msgRequest.stopSchdules.begin(); it!=msgRequest.stopSchdules.end(); it++){
-		FMODSchedule::STOP stop;
+		sim_mob::FMODSchedule::STOP stop;
 		stop.stopId = boost::lexical_cast<int>( (*it).stopId );
 		stop.scheduleId = boost::lexical_cast<int>( msgRequest.scheduleId );
 		stop.dwellTime = 0;
@@ -618,10 +636,21 @@ void FMOD_Controller::handleScheduleMessage(const std::string& msg)
 		sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
 		person->client_id = msgRequest.vehicleId ;
 		person->parentEntity = this;
+		//publisher.subscribe((event::EventId)sim_mob::FMOD::EVENT_DISPATCH_REQUEST, person);
+		messaging::MessageBus::SubscribeEvent((event::EventId)sim_mob::FMOD::EVENT_DISPATCH_REQUEST, this, person);
 		allDrivers.push_back(person);
 		parkingCoord.enterTo(person->originNode.node_, person);
 	}
-
+	else{
+		std::vector<Person*>::iterator it;
+		for(it=allChildren.begin(); it!=allChildren.end(); it++){
+			if ((*it)->client_id==msgRequest.vehicleId ) {
+				//publisher.publish((event::EventId)sim_mob::FMOD::EVENT_DISPATCH_REQUEST, (*it), FMOD_RequestEventArgs());
+				messaging::MessageBus::PublishEvent((event::EventId)sim_mob::FMOD::EVENT_DISPATCH_REQUEST, (*it),
+											messaging::MessageBus::EventArgsPtr(new sim_mob::FMOD_RequestEventArgs(schedule)));
+			}
+		}
+	}
 }
 
 void FMOD_Controller::unregisteredChild(Entity* child)
@@ -629,7 +658,7 @@ void FMOD_Controller::unregisteredChild(Entity* child)
 	Agent* agent = dynamic_cast<Agent*>(child);
 	if(agent)
 	{
-		std::vector<Agent*>::iterator it = std::find(allChildren.begin(), allChildren.end(), agent);
+		std::vector<Person*>::iterator it = std::find(allChildren.begin(), allChildren.end(), agent);
 		if (it != allChildren.end() ) {
 			allChildren.erase(it);
 
@@ -669,7 +698,7 @@ void FMOD_Controller::handleVehicleInit(const std::string& msg)
 void FMOD_Controller::dispatchPendingAgents(timeslice now)
 {
 	unsigned int curTickMS = (frameTicks)*ConfigManager::GetInstance().FullConfig().baseGranMS();
-	std::vector<Agent*>::iterator it=allPersons.begin();
+	std::vector<Person*>::iterator it=allPersons.begin();
 	while(it!=allPersons.end()){
 		if( (*it)->getStartTime() < curTickMS ){
 			this->currWorkerProvider->scheduleForBred( (*it) );

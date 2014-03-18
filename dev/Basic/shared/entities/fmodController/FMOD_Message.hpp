@@ -16,11 +16,38 @@
 #include <iostream>
 #include <boost/shared_ptr.hpp>
 #include <json/json.h>
+#include "event/SystemEvents.hpp"
+#include "event/args/EventArgs.hpp"
+#include "message/MessageBus.hpp"
+#include "event/EventPublisher.hpp"
 
 namespace sim_mob {
 
+/**
+ * Subclasses both EventArgs, This is to allow it to function as an Event callback parameter.
+ */
+class FMODSchedule;
+class FMOD_RequestEventArgs : public sim_mob::event::EventArgs {
+public:
+	FMOD_RequestEventArgs(FMODSchedule* sch):schedule(sch){;}
+	virtual ~FMOD_RequestEventArgs() {}
+	FMODSchedule* schedule;
+};
+
+//subclassed Eventpublisher coz its destructor is pure virtual
+class FMOD_Publisher: public sim_mob::event::EventPublisher {
+public:
+	FMOD_Publisher() {
+	}
+	virtual ~FMOD_Publisher() {
+	}
+};
+
 namespace FMOD
 {
+enum {
+	EVENT_DISPATCH_REQUEST = 4000000
+};
 
 /**
   * package a FMOD message
@@ -29,7 +56,7 @@ class FMOD_Message {
 public:
 
 	enum FMOD_MessageID{MSG_DEFALUTVALUE=0, MSG_INITIALIZE=1, MSG_SIMULATION_SETTINGS=2, MSG_LINKTRAVELUPADTE=3, MSG_REQUEST=4, MSG_OFFER=5, MSG_ACCEPT=6, MSG_CONFIRMATION=7,
-		MSG_VEHICLESTOP=81, MSG_VEHICLEPOS=82, MSG_SCHEDULE_FETCH=91, MSG_SCHEDULE=92, MSG_ACK=999};
+		MSG_VEHICLESTOP=81, MSG_VEHICLEPOS=82, MSG_SCHEDULE_FETCH=91, MSG_SCHEDULE=92, MSG_ACK=999, MSG_FINALIZE=11};
 
 	FMOD_Message();
 	virtual ~FMOD_Message();
@@ -290,6 +317,18 @@ public:
       * @return void.
       */
 	virtual void createMessage(const std::string& msg);
+};
+
+class MsgFinalize : public FMOD_Message {
+public:
+	std::string end_time;
+
+public:
+    /**
+      * build a json string from message value.
+      * @return final string which contain FMOD message.
+      */
+	virtual std::string buildToString();
 };
 }
 

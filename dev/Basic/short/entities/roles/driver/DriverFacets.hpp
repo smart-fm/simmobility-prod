@@ -195,6 +195,8 @@ public:
 
 	void intersectionVelocityUpdate();
 
+	void assignNewFMODSchedule(FMODSchedule* schedule);
+
 	//This always returns the lane we are moving towards; regardless of if we've passed the
 	//  halfway point or not.
 	LANE_CHANGE_SIDE getCurrLaneChangeDirection() const;

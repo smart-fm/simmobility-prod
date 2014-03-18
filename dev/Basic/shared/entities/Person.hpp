@@ -199,6 +199,12 @@ protected:
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
 	virtual void frame_output(timeslice now);
 
+	/**
+	 * Inherited from Agent.
+	 */
+	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+
+
 private:
 	//to indicate that Role's updateParams has to be reset.
 	bool resetParamsRequired;

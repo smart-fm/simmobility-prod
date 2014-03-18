@@ -105,6 +105,8 @@ public:
 		safe_delete_item(movementFacet);
 	}
 
+	virtual void onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args){;}
+
 	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
 	virtual Role* clone(Person* parent) const = 0;
 	std::string getRoleName()const {return name;}

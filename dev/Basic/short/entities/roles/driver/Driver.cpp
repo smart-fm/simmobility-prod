@@ -37,7 +37,7 @@
 #include "util/DynamicVector.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/DebugFlags.hpp"
-
+#include "entities/fmodController/FMOD_Message.hpp"
 #include "partitions/PartitionManager.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -182,6 +182,19 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 
 	return res;
 }
+
+
+void sim_mob::Driver::onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
+{
+	if(eventId == sim_mob::FMOD::EVENT_DISPATCH_REQUEST){
+		const sim_mob::FMOD_RequestEventArgs& request = dynamic_cast<const sim_mob::FMOD_RequestEventArgs&>(args);
+		sim_mob::DriverMovement* movement = dynamic_cast<sim_mob::DriverMovement*>(movementFacet);
+		if(movement){
+			movement->assignNewFMODSchedule(request.schedule);
+		}
+	}
+}
+
 
 std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
 {

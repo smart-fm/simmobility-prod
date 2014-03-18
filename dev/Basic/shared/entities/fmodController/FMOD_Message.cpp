@@ -337,6 +337,21 @@ void MsgSchedule::createMessage(const std::string& msg)
 		routes.push_back(route);
 	}
 }
+
+
+std::string MsgFinalize::buildToString(){
+	std::string msg;
+	Json::Value Request;
+	Request["end_time"] = this->end_time;
+
+	std::stringstream buffer;
+	buffer << this->messageID_ << "," << Request << std::endl;
+	msg = buffer.str();
+
+	return msg;
+}
+
+
 }
 
 } /* namespace sim_mob */

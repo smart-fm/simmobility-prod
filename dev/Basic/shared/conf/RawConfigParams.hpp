@@ -23,12 +23,13 @@ namespace sim_mob {
 
 ///Represents the FMOD controller section of the config file.
 struct FMOD_ControllerParams {
-	FMOD_ControllerParams() : enabled(false), port(0), updateTimeMS(0), blockingTimeSec(0) {}
+	FMOD_ControllerParams() : enabled(false), port(0), updateTravelMS(0), updatePosMS(0), blockingTimeSec(0) {}
 
 	bool enabled;
 	std::string ipAddress;
 	unsigned int port;
-	unsigned int updateTimeMS;
+	unsigned int updateTravelMS;
+	unsigned int updatePosMS;
 	std::string mapfile;
 	unsigned int blockingTimeSec;
 };

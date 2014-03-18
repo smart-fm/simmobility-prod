@@ -15,7 +15,9 @@
 #include "params/PersonParams.hpp"
 #include "PredayClasses.hpp"
 #include "database/PopulationSqlDao.hpp"
+#include "database/TripChainSqlDao.hpp"
 #include "database/dao/MongoDao.hpp"
+#include "util/Utils.hpp"
 
 namespace sim_mob {
 namespace medium {
@@ -154,6 +156,22 @@ private:
 	void insertStop(Stop* stop, int stopNumber, int tourNumber);
 
 	/**
+	 * generates a random time  within the time window passed in preday's representation.
+	 *
+	 * @param window time window in preday format (E.g. 4.75 => 4:30 to 4:59 AM)
+	 * @return a random time within the window in hh24:mm:ss format
+	 */
+	std::string getRandomTimeInWindow(double window);
+
+	/**
+	 * returns a random element from the list of nodes
+	 *
+	 * @param nodes the list of nodes
+	 * @returns a random element of the list
+	 */
+	long getRandomNodeInZone(std::vector<long>& nodes);
+
+	/**
 	 * Person specific parameters
 	 */
 	PersonParams& personParams;
@@ -194,15 +212,26 @@ private:
     boost::unordered_map<std::string, db::MongoDao*> mongoDao;
 
     /**
+     * Data access objects to write trip chains
+     */
+    TripChainSqlDao& tripChainDao;
+
+    /**
      * used for logging messages
      */
     std::stringstream logStream;
+
+    /**
+     * used for generating random integers
+     */
+    sim_mob::Utils utils;
 
 public:
 	PredaySystem(PersonParams& personParams,
 			const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 			const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
-			const boost::unordered_map<std::string, db::MongoDao*>& mongoDao);
+			const boost::unordered_map<std::string, db::MongoDao*>& mongoDao,
+			TripChainSqlDao& tripChainDao);
 	virtual ~PredaySystem();
 
 	/**

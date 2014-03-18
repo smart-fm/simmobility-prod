@@ -76,20 +76,20 @@ public:
 		this->activityType = activityType;
 	}
 
-	bool isIsPrimaryActivity() const {
-		return isPrimaryActivity;
+	bool isPrimaryActivity() const {
+		return primaryActivity;
 	}
 
-	void setIsPrimaryActivity(bool isPrimaryActivity) {
-		this->isPrimaryActivity = isPrimaryActivity;
+	void setPrimaryActivity(bool isPrimaryActivity) {
+		this->primaryActivity = isPrimaryActivity;
 	}
 
-	bool isIsPrimaryMode() const {
-		return isPrimaryMode;
+	bool isPrimaryMode() const {
+		return primaryMode;
 	}
 
-	void setIsPrimaryMode(bool isPrimaryMode) {
-		this->isPrimaryMode = isPrimaryMode;
+	void setPrimaryMode(bool isPrimaryMode) {
+		this->primaryMode = isPrimaryMode;
 	}
 
 	const std::string& getPersonId() const {
@@ -191,11 +191,11 @@ private:
 	int subtripOrigin;
 	int subtripDestination;
 	std::string subtripMode;
-	bool isPrimaryMode;
+	bool primaryMode;
 	std::string startTime;
 	std::string activityId;
 	std::string activityType;
-	bool isPrimaryActivity;
+	bool primaryActivity;
 	int activityLocation;
 	std::string activityStartTime;
 	std::string activityEndTime;

@@ -387,11 +387,11 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
  */
 bool performMainDemand(unsigned numThreads){
 	PredayManager predayManager;
-	//predayManager.loadZones(db::MONGO_DB);
-	//predayManager.loadCosts(db::MONGO_DB);
-	//predayManager.loadPersons(db::MONGO_DB);
+	predayManager.loadZones(db::MONGO_DB);
+	predayManager.loadCosts(db::MONGO_DB);
+	predayManager.loadPersons(db::MONGO_DB);
 	predayManager.loadZoneNodes(db::MONGO_DB);
-	//predayManager.distributeAndProcessPersons(numThreads);
+	predayManager.distributeAndProcessPersons(numThreads);
 	return true;
 }
 

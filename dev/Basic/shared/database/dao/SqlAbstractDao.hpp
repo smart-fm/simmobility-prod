@@ -99,29 +99,40 @@ namespace sim_mob {
             virtual ~SqlAbstractDao() {
             }
 
-            virtual T& insert(T& entity) {
+            virtual T& insert(T& entity, bool returning = false) {
                 if (isConnected()) {
+                    // Get data to insert.
+                    Parameters params;
+                    toRow(entity, params, false);
+
                     Transaction tr(connection.getSession<soci::session>());
                     Statement query(connection.getSession<soci::session>());
                     //append returning clause. 
                     //Attention: this is only prepared for POSTGRES.
                     std::string upperQuery = 
                             boost::to_upper_copy(defaultQueries[INSERT]);
-                    size_t found = upperQuery.rfind(DB_RETURNING_CLAUSE);
-                    if (found == std::string::npos) {
-                        upperQuery += DB_RETURNING_ALL_CLAUSE;
+
+
+
+                    if(returning) {
+						size_t found = upperQuery.rfind(DB_RETURNING_CLAUSE);
+						if (found == std::string::npos) {
+							upperQuery += DB_RETURNING_ALL_CLAUSE;
+						}
                     }
-                    // Get data to insert.
-                    Parameters params;
-                    toRow(entity, params, false);
+
                     // prepare statement.
                     prepareStatement(upperQuery, params, query);
+
                     //TODO: POSTGRES ONLY for now
                     //execute and return data if (RETURNING clause is defined)
                     ResultSet rs(query);
-                    ResultSet::const_iterator it = rs.begin();
-                    if (it != rs.end()) {
-                        fromRow((*it), entity);
+
+                    if (returning) {
+						ResultSet::const_iterator it = rs.begin();
+						if (it != rs.end()) {
+							fromRow((*it), entity);
+						}
                     }
                     tr.commit();
                 }

@@ -21,6 +21,7 @@
 #include "database/DB_Config.hpp"
 #include "database/PopulationSqlDao.hpp"
 #include "database/PopulationMongoDao.hpp"
+#include "database/TripChainSqlDao.hpp"
 #include "database/ZoneCostMongoDao.hpp"
 #include "util/LangHelpers.hpp"
 
@@ -265,11 +266,27 @@ void sim_mob::medium::PredayManager::processPersons(
 		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
 
+	Database database = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_local");
+	std::string cred_id = ConfigManager::GetInstance().FullConfig().system.networkDatabase.credentials;
+	Credential credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
+	std::string username = credentials.getUsername();
+	std::string password = credentials.getPassword(false);
+	DB_Config dbConfig(database.host, database.port, database.dbName, username, password);
+
+	// Connect to database and load data.
+	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+	conn.connect();
+	if (!conn.isConnected()) {
+		throw std::runtime_error("Could not connect to PostgreSQL database. Check credentials.");
+	}
+	TripChainSqlDao tcDao(conn);
+
 	// loop through all persons within the range and plan their day
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, tcDao);
 		predaySystem.planDay();
 		predaySystem.outputPredictionsToMongo();
+		predaySystem.outputTripChainsToPostgreSQL(zoneNodeMap);
 	}
 
 	// destroy Dao objects

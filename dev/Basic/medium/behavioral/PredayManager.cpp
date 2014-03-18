@@ -123,7 +123,7 @@ void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType) {
 	}
 	case MONGO_DB:
 	{
-		zoneMap.reserve(1092);
+//		zoneMap.reserve(1092);
 		std::string zoneCollectionName = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo").collectionName.at("Zone");
 		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 		std::string emptyString;
@@ -164,9 +164,9 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
 			// if the zone data was loaded already we can reserve space for costs to speed up the loading
 			// Cost data will be available foe every pair (a,b) of zones where a!=b
 			CostMap::size_type mapSz = nZones * nZones - nZones;
-			amCostMap.reserve(mapSz);
-			pmCostMap.reserve(mapSz);
-			opCostMap.reserve(mapSz);
+//			amCostMap.reserve(mapSz);
+//			pmCostMap.reserve(mapSz);
+//			opCostMap.reserve(mapSz);
 		}
 
 		CostMongoDao amCostDao(dbConfig, db.dbName, amCostsCollName);

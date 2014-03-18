@@ -29,7 +29,7 @@ public:
      * @return true if some values were returned, false otherwise.
      */
     bool getAllZones(boost::unordered_map<int, ZoneParams*>& outList) {
-    	outList.reserve(connection.getSession<mongo::DBClientConnection>().count(collectionName, mongo::BSONObj()));
+//    	outList.reserve(connection.getSession<mongo::DBClientConnection>().count(collectionName, mongo::BSONObj()));
     	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
     	while(cursor->more()) {
     		ZoneParams* zoneParams = new ZoneParams();

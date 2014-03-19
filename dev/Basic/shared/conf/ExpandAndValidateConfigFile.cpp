@@ -177,6 +177,8 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     //Start all "FMOD" entities.
     LoadFMOD_Controller();
 
+    LoadAMOD_Controller();
+
 	//combine incident information to road network
 	verifyIncidents();
 

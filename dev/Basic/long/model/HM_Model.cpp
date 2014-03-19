@@ -17,6 +17,7 @@
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
+#include "util/HelperFunctions.hpp"
 
 
 
@@ -73,6 +74,34 @@ namespace {
     }
 }
 
+HM_Model::TazStats::TazStats(BigSerial tazId) : tazId(tazId), 
+        hhNum(0), hhTotalIncome(0) {
+}
+
+HM_Model::TazStats::~TazStats() {
+}
+
+void HM_Model::TazStats::updateStats(const Household& household) {
+    hhNum++;
+    hhTotalIncome += household.getIncome();
+}
+
+BigSerial HM_Model::TazStats::getTazId() const {
+    return tazId;
+}
+
+long int HM_Model::TazStats::getHH_Num() const {
+    return hhNum;
+}
+
+double HM_Model::TazStats::getHH_TotalIncome() const {
+    return hhTotalIncome;
+}
+
+double HM_Model::TazStats::getHH_AvgIncome() const {
+    return hhTotalIncome / static_cast<double> (hhNum);
+}
+
 HM_Model::HM_Model(WorkGroup& workGroup)
 : Model(MODEL_NAME, workGroup) {
 }
@@ -97,6 +126,22 @@ BigSerial HM_Model::getUnitTazId(BigSerial unitId) const {
                 .getPostcodeTazId(unit->getPostcodeId());
     }
     return tazId;
+}
+
+const HM_Model::TazStats* HM_Model::getTazStats(BigSerial tazId) const{
+    StatsMap::const_iterator itr = stats.find(tazId);
+    if (itr != stats.end()) {
+        return (*itr).second;
+    }
+    return nullptr;
+}
+
+const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const {
+    BigSerial tazId = getUnitTazId(unitId);
+    if (tazId != INVALID_ID) {
+        return getTazStats(tazId);
+    }
+    return nullptr;
 }
 
 void HM_Model::startImpl() {
@@ -127,7 +172,6 @@ void HM_Model::startImpl() {
         fakeSellers.push_back(fakeSeller);
     }
 
-    DataManager& dman = DataManagerSingleton::getInstance();
     boost::unordered_map<BigSerial, BigSerial> assignedUnits;
 
     // Assign households to the units.
@@ -141,6 +185,21 @@ void HM_Model::startImpl() {
             hhAgent->addUnitId(unit->getId());
             assignedUnits.insert(std::make_pair(unit->getId(), unit->getId()));
         }
+        BigSerial tazId = getUnitTazId(household->getUnitId());
+        if (tazId != INVALID_ID){
+            const HM_Model::TazStats* tazStats = 
+                getTazStatsByUnitId(household->getUnitId());
+            if (!tazStats){
+                tazStats = new TazStats(tazId);
+                stats.insert(std::make_pair(tazId, const_cast<HM_Model::TazStats*>(tazStats)));
+            }
+            const_cast<HM_Model::TazStats*>(tazStats)->updateStats(*household);
+            /*PrintOut(" Taz: "   << tazId << 
+                     " Total: " << tazStats->getHH_TotalIncome() << 
+                     " Num: "   << tazStats->getHH_Num() << 
+                     " AVG: "   << tazStats->getHH_AvgIncome() << std::endl);*/
+        }
+        
         AgentsLookupSingleton::getInstance().addHousehold(hhAgent);
         agents.push_back(hhAgent);
         workGroup.assignAWorker(hhAgent);
@@ -162,4 +221,9 @@ void HM_Model::startImpl() {
 }
 
 void HM_Model::stopImpl() {
+    deleteAll(stats);
+    clear_delete_vector(households);
+    clear_delete_vector(units);
+    householdsById.clear();
+    unitsById.clear();
 }

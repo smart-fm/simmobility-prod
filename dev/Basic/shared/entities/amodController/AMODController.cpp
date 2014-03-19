@@ -43,11 +43,12 @@ bool AMODController::connectAmodService()
 		// for initialization
 		sim_mob::FMOD::MsgInitialize request;
 		request.messageID_ = sim_mob::FMOD::FMOD_Message::MSG_INITIALIZE;
-		request.mapType = "osm";
+		request.mapType = "xml";
 		request.mapFile = mapFile;
 		request.version = 1;
 		request.startTime = ConfigManager::GetInstance().FullConfig().simStartTime().toString();
 		std::string msg = request.buildToString();
+		std::cout<<"msg: "<<msg<<std::endl;
 		connectPoint->sendMessage(msg);
 		connectPoint->flush();
 

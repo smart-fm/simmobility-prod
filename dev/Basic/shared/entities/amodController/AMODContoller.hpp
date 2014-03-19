@@ -12,6 +12,8 @@
 #ifndef AMODCONTOLLER_HPP_
 #define AMODCONTOLLER_HPP_
 
+#include "AMODClient.hpp"
+
 namespace sim_mob {
 
 namespace AMOD {
@@ -38,6 +40,9 @@ private:
 	int updateTiming;
 	int frameTicks;
 	int waitingseconds;
+private:
+	static AMODContoller* pInstance;
+	static boost::asio::io_service ioService;
 };
 
 } /* namespace AMOD */

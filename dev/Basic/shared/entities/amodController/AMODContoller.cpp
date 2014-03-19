@@ -13,6 +13,7 @@
 #include "entities/fmodController/FMOD_Message.hpp"
 #include <boost/thread.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/asio.hpp>
 #include "entities/Person.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -24,6 +25,8 @@
 namespace sim_mob {
 namespace AMOD
 {
+boost::asio::io_service AMODContoller::ioService;
+
 sim_mob::AMOD::AMODContoller::AMODContoller() {
 	// TODO Auto-generated constructor stub
 

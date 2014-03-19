@@ -12,7 +12,9 @@
 #include "AMODClient.hpp"
 
 
-sim_mob::AMOD::AMODClient::AMODClient() {
+sim_mob::AMOD::AMODClient::AMODClient(boost::asio::io_service& ioService)
+	:sim_mob::FMOD::FMOD_Client(ioService)
+{
 	// TODO Auto-generated constructor stub
 
 }

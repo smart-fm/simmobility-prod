@@ -16,7 +16,7 @@ namespace AMOD {
 
 class AMODClient : public sim_mob::FMOD::FMOD_Client{
 public:
-	AMODClient();
+	AMODClient(boost::asio::io_service& ioService);
 	virtual ~AMODClient();
 };
 typedef boost::shared_ptr<AMODClient> AmodClientPtr;

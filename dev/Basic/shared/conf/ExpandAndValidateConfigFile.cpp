@@ -15,6 +15,7 @@
 #include "entities/Person.hpp"
 #include "entities/BusController.hpp"
 #include "entities/fmodController/FMOD_Controller.hpp"
+#include "entities/amodController/AMODController.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -354,7 +355,14 @@ void sim_mob::ExpandAndValidateConfigFile::LoadFMOD_Controller()
 		sim_mob::FMOD::FMOD_Controller::instance()->connectFmodService();
 	}
 }
-
+void sim_mob::ExpandAndValidateConfigFile::LoadAMOD_Controller()
+{
+	if (cfg.amod.enabled) {
+		sim_mob::AMOD::AMODController::registerController(-1, cfg.mutexStategy());
+		sim_mob::AMOD::AMODController::instance()->settings(cfg.amod.ipAddress, cfg.amod.port, cfg.amod.updateTimeMS, cfg.amod.mapfile, cfg.amod.blockingTimeSec);
+		sim_mob::AMOD::AMODController::instance()->connectAmodService();
+	}
+}
 
 
 void sim_mob::ExpandAndValidateConfigFile::LoadAgentsInOrder(ConfigParams::AgentConstraints& constraints)

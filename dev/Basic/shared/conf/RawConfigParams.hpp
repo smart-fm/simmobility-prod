@@ -33,6 +33,17 @@ struct FMOD_ControllerParams {
 	unsigned int blockingTimeSec;
 };
 
+struct AMOD_ControllerParams {
+	AMOD_ControllerParams() : enabled(false), port(0), updateTimeMS(0), blockingTimeSec(0) {}
+
+	bool enabled;
+	std::string ipAddress;
+	unsigned int port;
+	unsigned int updateTimeMS;
+	std::string mapfile;
+	unsigned int blockingTimeSec;
+};
+
 ///represent the incident data section of the config file
 struct IncidentParams {
 	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
@@ -257,6 +268,8 @@ public:
 
 	///Settings for the FMOD controller.
 	FMOD_ControllerParams fmod;
+
+	FMOD_ControllerParams amod;
 
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;

@@ -49,6 +49,7 @@ private:
 	void LoadNetworkFromDatabase();
 	void WarnMidroadSidewalks();
 	void LoadFMOD_Controller();
+	void LoadAMOD_Controller();
 	void LoadAgentsInOrder(ConfigParams::AgentConstraints& constraints);
 	void GenerateAgentsFromTripChain(ConfigParams::AgentConstraints& constraints);
 	void GenerateXMLAgents(const std::vector<EntityTemplate>& xmlItems, const std::string& roleName, ConfigParams::AgentConstraints& constraints);

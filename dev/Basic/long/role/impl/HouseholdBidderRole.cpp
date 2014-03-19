@@ -112,6 +112,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
     HousingMarket* market = getParent()->getMarket();
     const Household* household = getParent()->getHousehold();
     const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
+    const HM_Model* model = getParent()->getModel();
     
     //get available entries (for preferable zones if exists)
     HousingMarket::ConstEntryList entries;
@@ -138,8 +139,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
     }
     // Exists some unit to bid.
     if (maxEntry) {
-        DataManager& dman = DataManagerSingleton::getInstance();
-        const Unit* unit = dman.getUnitById(maxEntry->getUnitId());
+        const Unit* unit = model->getUnitById(maxEntry->getUnitId());
         if (unit){
             double wp = luaModel.calulateWP(*household, *unit);
             double bidValue = maxSurplus + wp;

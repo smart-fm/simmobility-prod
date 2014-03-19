@@ -10,21 +10,67 @@
 #include "HM_Model.hpp"
 #include <boost/unordered_map.hpp>
 #include "util/LangHelpers.hpp"
+#include "database/DB_Connection.hpp"
+#include "database/dao/HouseholdDao.hpp"
+#include "database/dao/UnitDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
 
 
+
 using namespace sim_mob;
 using namespace sim_mob::long_term;
+using namespace sim_mob::db;
 using std::vector;
+using std::map;
 using boost::unordered_map;
 
 using std::string;
+
 namespace {
     const string MODEL_NAME = "Housing Market Model";
     const BigSerial FAKE_IDS_START = 9999900;
+
+    //TEMPORARY...
+
+    /**
+     * Load data from datasouce from given connection using the 
+     * given list and template DAO.
+     * @param conn Datasource connection.
+     * @param list (out) to fill.
+     */
+    template <typename T, typename K>
+    inline void loadData(DB_Connection& conn, K& list) {
+        if (conn.isConnected()) {
+            T dao(conn);
+            dao.getAll(list);
+        }
+    }
+
+    /**
+     * Load data from datasouce from given connection using the 
+     * given list and template DAO.
+     * This function fills the given map using the given getter function. 
+     * 
+     * Maps should be like map<KEY, *Obj> 
+     *    - KEY object returned by given getter function.
+     *    - *Obj pointer to the loaded object. 
+     * 
+     * @param conn Datasource connection.
+     * @param list (out) to fill.
+     * @param map (out) to fill.
+     * @param getter function pointer to get the map KEY.
+     */
+    template <typename T, typename K, typename M, typename F>
+    inline void loadData(DB_Connection& conn, K& list, M& map, F getter) {
+        loadData<T>(conn, list);
+        //Index all buildings.
+        for (typename K::iterator it = list.begin(); it != list.end(); it++) {
+            map.insert(std::make_pair(((*it)->*getter)(), *it));
+        }
+    }
 }
 
 HM_Model::HM_Model(WorkGroup& workGroup)
@@ -35,13 +81,45 @@ HM_Model::~HM_Model() {
     stopImpl(); //for now
 }
 
+const Unit* HM_Model::getUnitById(BigSerial id) const {
+    UnitMap::const_iterator itr = unitsById.find(id);
+    if (itr != unitsById.end()) {
+        return (*itr).second;
+    }
+    return nullptr;
+}
+
+BigSerial HM_Model::getUnitTazId(BigSerial unitId) const {
+    const Unit* unit = getUnitById(unitId);
+    BigSerial tazId = INVALID_ID;
+    if (unit) {
+        tazId = DataManagerSingleton::getInstance()
+                .getPostcodeTazId(unit->getPostcodeId());
+    }
+    return tazId;
+}
+
 void HM_Model::startImpl() {
+    // Loads necessary data from database.
+    DB_Config dbConfig(LT_DB_CONFIG_FILE);
+    dbConfig.load();
+    // Connect to database and load data for this model.
+    DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+    conn.connect();
+    if (conn.isConnected()) {
+        //Load households
+        loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
+        //Load units
+        loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
+    }
+
     workGroup.assignAWorker(&market);
     unsigned int numberOfFakeSellers = workGroup.getNumberOfWorkers();
+
     //create fake seller agents to sell vacant units.
     std::vector<HouseholdAgent*> fakeSellers;
     for (int i = 0; i < numberOfFakeSellers; i++) {
-        HouseholdAgent* fakeSeller = new HouseholdAgent((FAKE_IDS_START + i), 
+        HouseholdAgent* fakeSeller = new HouseholdAgent((FAKE_IDS_START + i),
                 this, nullptr, &market, true);
         AgentsLookupSingleton::getInstance().addHousehold(fakeSeller);
         agents.push_back(fakeSeller);
@@ -50,17 +128,15 @@ void HM_Model::startImpl() {
     }
 
     DataManager& dman = DataManagerSingleton::getInstance();
-    const DataManager::HouseholdList& households = dman.getHouseholds();
-    const DataManager::UnitList& units = dman.getUnits();
     boost::unordered_map<BigSerial, BigSerial> assignedUnits;
 
     // Assign households to the units.
-    for (DataManager::HouseholdList::const_iterator it = households.begin();
+    for (HouseholdList::const_iterator it = households.begin();
             it != households.end(); it++) {
         const Household* household = *it;
         HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,
                 household, &market);
-        const Unit* unit = dman.getUnitById(household->getUnitId());
+        const Unit* unit = getUnitById(household->getUnitId());
         if (unit) {
             hhAgent->addUnitId(unit->getId());
             assignedUnits.insert(std::make_pair(unit->getId(), unit->getId()));
@@ -72,8 +148,7 @@ void HM_Model::startImpl() {
 
     unsigned int vacancies = 0;
     //assign vacancies to fake seller
-    for (DataManager::UnitList::const_iterator it = units.begin();
-            it != units.end(); it++) {
+    for (UnitList::const_iterator it = units.begin(); it != units.end(); it++) {
         //this unit is a vacancy
         if (assignedUnits.find((*it)->getId()) == assignedUnits.end()) {
             fakeSellers[vacancies % numberOfFakeSellers]->addUnitId((*it)->getId());
@@ -88,4 +163,3 @@ void HM_Model::startImpl() {
 
 void HM_Model::stopImpl() {
 }
-

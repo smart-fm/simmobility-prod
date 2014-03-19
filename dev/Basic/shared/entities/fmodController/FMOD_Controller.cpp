@@ -209,7 +209,7 @@ bool FMOD_Controller::connectFmodService()
 		else{
 			handleVehicleInit(message);
 			isConnectFmodServer = true;
-			publisher.registerEvent(EVENT_DISPATCH_REQUEST);
+			publisher.registerEvent(EVENT_DISPATCH_FMOD_SCHEDULES_REQUEST);
 		}
 	}
 	else {
@@ -587,67 +587,34 @@ void FMOD_Controller::handleScheduleMessage(const std::string& msg)
 	MsgSchedule msgRequest;
 	msgRequest.createMessage( msg );
 
-	sim_mob::FMODSchedule* schedule = new sim_mob::FMODSchedule();
 	sim_mob::Node* startNode=nullptr;
 	sim_mob::Node* endNode=nullptr;
-	for(std::vector<MsgSchedule::Route>::iterator it=msgRequest.routes.begin(); it!=msgRequest.routes.end(); it++){
-		const StreetDirectory& stdir = StreetDirectory::instance();
-		int id = boost::lexical_cast<int>( (*it).id );
-		sim_mob::Node* node = const_cast<sim_mob::Node*>(stdir.getNode(id));
-		if(node){
-			schedule->routes.push_back(node);
-			if(startNode==nullptr){
-				startNode = node;
-			}
-			endNode = node;
-		}
-		else {
-			std::cout << "Fmod Controller not receive correct schedule including wrong node id" << std::endl;
-		}
-	}
-
 	DailyTime start(0);
-	for(std::vector<MsgSchedule::Stop>::iterator it=msgRequest.stopSchdules.begin(); it!=msgRequest.stopSchdules.end(); it++){
-		sim_mob::FMODSchedule::STOP stop;
-		stop.stopId = boost::lexical_cast<int>( (*it).stopId );
-		stop.scheduleId = boost::lexical_cast<int>( msgRequest.scheduleId );
-		stop.dwellTime = 0;
-		for(std::vector<std::string>::iterator itP=(*it).alightingPassengers.begin(); itP!=(*it).alightingPassengers.end(); itP++){
-			stop.alightingPassengers.push_back( boost::lexical_cast<int>( (*itP) ) );
-		}
-		for(std::vector<std::string>::iterator itP=(*it).boardingPassengers.begin(); itP!=(*it).boardingPassengers.end(); itP++){
-			stop.boardingPassengers.push_back( boost::lexical_cast<int>( (*itP) ) );
-		}
-		schedule->stopSchdules.push_back(stop);
-		if(start.getValue()==0){
-			start = DailyTime( (*it).arrivalTime );
-		}
-	}
 
 	sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", startNode, "node", endNode, "node");
-	SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), startNode, "node", endNode, "node", "Car");
-	subTrip.schedule = schedule;
+	SubTrip subTrip("-1", "Trip", 0, -1, DailyTime(msgRequest.getStartTime()), DailyTime(), startNode, "node", endNode, "node", "Car");
 	((Trip*)tc)->addSubTrip(subTrip);
 
 	std::vector<sim_mob::TripChainItem*>  tcs;
 	tcs.push_back(tc);
 
-	if( parkingCoord.remove(msgRequest.vehicleId) ){
+	if( parkingCoord.remove(msgRequest.getVehicleId()) ){
 		sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
-		person->client_id = msgRequest.vehicleId ;
+		person->client_id = msgRequest.getVehicleId() ;
 		person->parentEntity = this;
-		//publisher.subscribe((event::EventId)sim_mob::FMOD::EVENT_DISPATCH_REQUEST, person);
-		messaging::MessageBus::SubscribeEvent((event::EventId)sim_mob::FMOD::EVENT_DISPATCH_REQUEST, this, person);
+		person->schedules = msgRequest.schedules;
+		//publisher.subscribe((event::EventId)sim_mob::FMOD::EVENT_DISPATCH_FMOD_SCHEDULES_REQUEST, person);
+		messaging::MessageBus::SubscribeEvent((event::EventId)sim_mob::FMOD::EVENT_DISPATCH_FMOD_SCHEDULES_REQUEST, this, person);
 		allDrivers.push_back(person);
 		parkingCoord.enterTo(person->originNode.node_, person);
 	}
 	else{
 		std::vector<Person*>::iterator it;
 		for(it=allChildren.begin(); it!=allChildren.end(); it++){
-			if ((*it)->client_id==msgRequest.vehicleId ) {
-				//publisher.publish((event::EventId)sim_mob::FMOD::EVENT_DISPATCH_REQUEST, (*it), FMOD_RequestEventArgs());
-				messaging::MessageBus::PublishEvent((event::EventId)sim_mob::FMOD::EVENT_DISPATCH_REQUEST, (*it),
-											messaging::MessageBus::EventArgsPtr(new sim_mob::FMOD_RequestEventArgs(schedule)));
+			if ((*it)->client_id==msgRequest.getVehicleId() ) {
+				//publisher.publish((event::EventId)sim_mob::FMOD::EVENT_DISPATCH_FMOD_SCHEDULES_REQUEST, (*it), FMOD_RequestEventArgs());
+				messaging::MessageBus::PublishEvent((event::EventId)sim_mob::FMOD::EVENT_DISPATCH_FMOD_SCHEDULES_REQUEST, (*it),
+											messaging::MessageBus::EventArgsPtr(new sim_mob::FMOD_RequestEventArgs(msgRequest.schedules)));
 			}
 		}
 	}

@@ -23,15 +23,51 @@
 
 namespace sim_mob {
 
+class Person;
+class Node;
+/**
+ * This class hold schedule information from FMOD.
+ */
+class FMOD_Schedule
+{
+public:
+	int vehicleId;
+	int scheduleId;
+	std::vector<std::string> replaceSchedules;
+	int serviceType;
+	struct Stop
+	{
+		int stopId;
+		int dwellTime;
+		std::string arrivalTime;
+		std::string depatureTime;
+		std::vector< int > boardingPassengers;
+		std::vector< int > alightingPassengers;
+	};
+	std::vector<Stop> stopSchdules;
+	struct Passenger
+	{
+		std::string clientId;
+		int price;
+	};
+	std::vector<Passenger> passengers;
+	struct Route
+	{
+		std::string id;
+		int type;
+	};
+	std::vector<Node*> routes;
+	std::vector<const Person*> insidePassengers;
+};
+
 /**
  * Subclasses both EventArgs, This is to allow it to function as an Event callback parameter.
  */
-class FMODSchedule;
 class FMOD_RequestEventArgs : public sim_mob::event::EventArgs {
 public:
-	FMOD_RequestEventArgs(FMODSchedule* sch):schedule(sch){;}
+	FMOD_RequestEventArgs(std::list<FMOD_Schedule> schs):schedules(schs){;}
 	virtual ~FMOD_RequestEventArgs() {}
-	FMODSchedule* schedule;
+	const std::list<FMOD_Schedule> schedules;
 };
 
 //subclassed Eventpublisher coz its destructor is pure virtual
@@ -46,7 +82,7 @@ public:
 namespace FMOD
 {
 enum {
-	EVENT_DISPATCH_REQUEST = 4000000
+	EVENT_DISPATCH_FMOD_SCHEDULES_REQUEST = 4000000
 };
 
 /**
@@ -285,32 +321,13 @@ public:
   */
 class MsgSchedule : public FMOD_Message {
 public:
-	int vehicleId;
-	std::string scheduleId;
-	std::vector<std::string> replaceSchedules;
-	int serviceType;
-	struct Stop
-	{
-		std::string stopId;
-		std::string arrivalTime;
-		std::string depatureTime;
-		std::vector< std::string > boardingPassengers;
-		std::vector< std::string > alightingPassengers;
-	};
-	std::vector<Stop> stopSchdules;
-	struct Passenger
-	{
-		std::string clientId;
-		int price;
-	};
-	std::vector<Passenger> passengers;
-	struct Route
-	{
-		std::string id;
-		int type;
-	};
-	std::vector<Route> routes;
+	std::list<FMOD_Schedule> schedules;
+
 public:
+
+	int getVehicleId();
+
+	unsigned int getStartTime();
 
     /**
       * create message value from a json string

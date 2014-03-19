@@ -13,6 +13,7 @@
 #include "entities/Agent.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/LangHelpers.hpp"
+#include "entities/fmodController/FMOD_Message.hpp"
 
 namespace sim_mob
 {
@@ -193,6 +194,8 @@ public:
 
     std::stringstream debugMsgs;
     int client_id;
+
+    std::list<sim_mob::FMOD_Schedule> schedules;
 
 protected:
 	virtual bool frame_init(timeslice now);

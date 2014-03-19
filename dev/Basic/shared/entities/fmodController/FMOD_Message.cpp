@@ -12,6 +12,11 @@
 #include "FMOD_Message.hpp"
 #include "sstream"
 #include <boost/lexical_cast.hpp>
+#include "util/DailyTime.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/Link.hpp"
 
 namespace sim_mob {
 
@@ -273,6 +278,30 @@ std::string MsgVehiclePos::buildToString()
 	return msg;
 }
 
+int MsgSchedule::getVehicleId()
+{
+	int ret = -1;
+
+	if(schedules.size()>0){
+		ret = schedules.front().vehicleId;
+	}
+
+	return ret;
+}
+
+unsigned int MsgSchedule::getStartTime()
+{
+	int ret = 0;
+
+	if(schedules.size()>0){
+		sim_mob::DailyTime start(schedules.front().stopSchdules[0].depatureTime);
+		ret = start.getValue();
+	}
+
+	return ret;
+}
+
+
 void MsgSchedule::createMessage(const std::string& msg)
 {
 	FMOD_Message::createMessage(msg);
@@ -292,49 +321,63 @@ void MsgSchedule::createMessage(const std::string& msg)
 		return;
 	}
 
-	vehicleId = boost::lexical_cast<int>(root["vehicle_id"].asCString());
-	scheduleId = root["schedule_id"].asString();
-	serviceType = boost::lexical_cast<int>(root["service_type"].asCString());
+	Json::Value arrSchedules = root["schedules"];
+	for(int k=0; k<arrSchedules.size(); k++){
 
-	Json::Value arrStops = root["stop_schdules"];
-	for(int i=0; i<arrStops.size(); i++)
-	{
-		Json::Value item = arrStops[i];
-		Stop stop;
-		stop.stopId = item["stop"].asString();
-		stop.arrivalTime = item["arrival_time"].asString();
-		stop.depatureTime = item["depature_time"].asString();
-		Json::Value arrPassengers = item["board_passengers"];
-		for(int k=0; k<arrPassengers.size(); k++){
-			Json::Value val = arrPassengers[k];
-			stop.boardingPassengers.push_back(val.asString());
+		Json::Value itemSchedule = arrSchedules[k];
+		FMOD_Schedule schedule;
+		schedule.vehicleId = boost::lexical_cast<int>(itemSchedule["vehicle_id"].asCString());
+		schedule.scheduleId = boost::lexical_cast<int>(itemSchedule["schedule_id"].asString());
+		schedule.serviceType = boost::lexical_cast<int>(itemSchedule["service_type"].asCString());
+
+		Json::Value arrStops = itemSchedule["stop_schdules"];
+		for(int i=0; i<arrStops.size(); i++)
+		{
+			Json::Value item = arrStops[i];
+			FMOD_Schedule::Stop stop;
+			stop.stopId = boost::lexical_cast<int>(item["stop"].asString());
+			stop.arrivalTime = item["arrival_time"].asString();
+			stop.depatureTime = item["depature_time"].asString();
+			stop.dwellTime = 0;
+
+			Json::Value arrPassengers = item["board_passengers"];
+			for(int k=0; k<arrPassengers.size(); k++){
+				Json::Value val = arrPassengers[k];
+				stop.boardingPassengers.push_back(boost::lexical_cast<int>(val.asString()));
+			}
+			arrPassengers = item["alight_passengers"];
+			for(int k=0; k<arrPassengers.size(); k++){
+				Json::Value val = arrPassengers[k];
+				stop.alightingPassengers.push_back(boost::lexical_cast<int>(val.asString()));
+			}
+			schedule.stopSchdules.push_back(stop);
 		}
-		arrPassengers = item["alight_passengers"];
-		for(int k=0; k<arrPassengers.size(); k++){
-			Json::Value val = arrPassengers[k];
-			stop.alightingPassengers.push_back(val.asString());
+
+		Json::Value arrPassengers = itemSchedule["passengers"];
+		for(int i=0; i<arrStops.size(); i++)
+		{
+			Json::Value item = arrPassengers[i];
+			FMOD_Schedule::Passenger pass;
+			pass.clientId = item["client_id"].asString();
+			pass.price = boost::lexical_cast<int>(item["price"].asCString());
+			schedule.passengers.push_back(pass);
 		}
-		stopSchdules.push_back(stop);
-	}
 
-	Json::Value arrPassengers = root["passengers"];
-	for(int i=0; i<arrStops.size(); i++)
-	{
-		Json::Value item = arrPassengers[i];
-		Passenger pass;
-		pass.clientId = item["client_id"].asString();
-		pass.price = boost::lexical_cast<int>(item["price"].asCString());
-		passengers.push_back(pass);
-	}
-
-	Json::Value arrRoutes = root["route"];
-	for(int i=0; i<arrStops.size(); i++)
-	{
-		Json::Value item = arrRoutes[i];
-		Route route;
-		route.id = item["id"].asString();
-		route.type = boost::lexical_cast<int>(item["type"].asCString());
-		routes.push_back(route);
+		Json::Value arrRoutes = itemSchedule["route"];
+		for(int i=0; i<arrStops.size(); i++)
+		{
+			Json::Value item = arrRoutes[i];
+			FMOD_Schedule::Route route;
+			route.id = item["id"].asString();
+			route.type = boost::lexical_cast<int>(item["type"].asCString());
+			const StreetDirectory& stdir = StreetDirectory::instance();
+			int id = boost::lexical_cast<int>( route.id );
+			sim_mob::Node* node = const_cast<sim_mob::Node*>(stdir.getNode(id));
+			if(node){
+				schedule.routes.push_back(node);
+			}
+		}
+		schedules.push_back(schedule);
 	}
 }
 

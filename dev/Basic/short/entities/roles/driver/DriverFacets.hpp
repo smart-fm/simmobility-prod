@@ -21,7 +21,7 @@
 #include "entities/IncidentStatus.hpp"
 #include "geospatial/Incident.hpp"
 #include "util/OneTimeFlag.hpp"
-
+#include "entities/fmodController/FMOD_Message.hpp"
 namespace sim_mob {
 
 class DriverBehavior: public sim_mob::BehaviorFacet {
@@ -188,14 +188,14 @@ private:
 
 	void findCrossing(DriverUpdateParams& p);
 
-	bool processFMODSchedule(FMODSchedule* schedule, DriverUpdateParams& p);
+	bool processFMODSchedule(FMOD_Schedule* schedule, DriverUpdateParams& p);
 
 public:
 	double targetSpeed;			//the speed which the vehicle is going to achieve
 
 	void intersectionVelocityUpdate();
 
-	void assignNewFMODSchedule(FMODSchedule* schedule);
+	void assignNewFMODSchedule(const sim_mob::FMOD_RequestEventArgs& request);
 
 	//This always returns the lane we are moving towards; regardless of if we've passed the
 	//  halfway point or not.

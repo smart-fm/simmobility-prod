@@ -37,6 +37,13 @@ public:
 	void loadZones(db::BackendType dbType);
 
 	/**
+	 * Gets the list of nodes within each zone and stores them in a map
+	 *
+	 * @param dbType type of backend where the zone node mapping data is available
+	 */
+	void loadZoneNodes(db::BackendType dbType);
+
+	/**
 	 * loads the AM, PM and off peak costs data
 	 *
 	 * @param dbType type of backend where the cost data is available
@@ -54,6 +61,7 @@ private:
 	typedef std::vector<PersonParams*> PersonList;
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
+	typedef boost::unordered_map<int, std::vector<long> > ZoneNodeMap;
 
 	/**
 	 * Threaded function loop.
@@ -74,6 +82,7 @@ private:
      * \note this map has 1092 elements
      */
     ZoneMap zoneMap;
+    ZoneNodeMap zoneNodeMap;
     boost::unordered_map<int,int> zoneIdLookup;
 
     /**

@@ -42,7 +42,7 @@ namespace sim_mob {
              * @param bsonObj a mongo::BSONObj containing object to insert
              * @return true if the transaction was committed with success; false otherwise.
              */
-            mongo::BSONObj& insert(mongo::BSONObj& bsonObj) {
+            mongo::BSONObj& insert(mongo::BSONObj& bsonObj, bool returning = false) {
                 connection.getSession<mongo::DBClientConnection>().insert(collectionName, bsonObj);
                 return bsonObj; // Unnecessary return just to comply with the base interface
             }

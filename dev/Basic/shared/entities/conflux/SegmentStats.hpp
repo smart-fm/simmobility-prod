@@ -146,7 +146,6 @@ private:
 	std::map<const sim_mob::Lane*, sim_mob::Person* > frontalAgents;
 
 	bool downstreamCopy;
-	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginal;
 
 	double segVehicleSpeed; //speed of vehicles in segment for each frame
 	double segPedSpeed; //speed of pedestrians on this segment for each frame--not used at the moment

@@ -16,7 +16,9 @@ using std::string;
 namespace sim_mob {
 
 SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream) :
-			roadSegment(rdSeg), segDensity(0.0), segPedSpeed(0.0), segFlow(0), lastAcceptTime(0.0), debugMsgs(std::stringstream::out) {
+	roadSegment(rdSeg), segDensity(0.0), segPedSpeed(0.0), segFlow(0),
+	lastAcceptTime(0.0), debugMsgs(std::stringstream::out)
+{
 	segVehicleSpeed = getRoadSegment()->maxSpeed / 3.6 * 100; //converting from kmph to m/s
 	numVehicleLanes = 0;
 
@@ -26,7 +28,6 @@ SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream)
 	while (lane != rdSeg->getLanes().end()) {
 		laneStatsMap.insert(std::make_pair(*lane, new sim_mob::LaneStats(*lane)));
 		laneStatsMap[*lane]->initLaneParams(*lane, segVehicleSpeed, segPedSpeed);
-		prevTickLaneCountsFromOriginal.insert(std::make_pair(*lane, std::make_pair(0, 0))); // initialized to zero (irrespective of whether this is downstreamCopy)
 		if (!(*lane)->is_pedestrian_lane()) {
 			numVehicleLanes++;
 		}
@@ -39,7 +40,6 @@ SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream)
 	 */
 	laneInfinity = new sim_mob::Lane(const_cast<sim_mob::RoadSegment*>(rdSeg), 9);
 	laneStatsMap.insert(std::make_pair(laneInfinity, new sim_mob::LaneStats(laneInfinity, true)));
-	prevTickLaneCountsFromOriginal.insert(std::make_pair(laneInfinity, std::make_pair(0, 0)));
 	downstreamCopy = isDownstream;
 }
 

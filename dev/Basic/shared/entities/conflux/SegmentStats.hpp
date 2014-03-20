@@ -57,8 +57,10 @@ public:
 
 	std::deque<sim_mob::Person*> laneAgents;
 
-	LaneStats(const sim_mob::Lane* laneInSegment, bool isLaneInfinity = false) :
-		queueCount(0), initialQueueCount(0), laneParams(new LaneParams()), positionOfLastUpdatedAgent(-1.0), lane(laneInSegment), laneInfinity(isLaneInfinity), debugMsgs(std::stringstream::out) {}
+	LaneStats(const sim_mob::Lane* laneInSegment, double length, bool isLaneInfinity = false) :
+		queueCount(0), initialQueueCount(0), laneParams(new LaneParams()),
+		positionOfLastUpdatedAgent(-1.0), lane(laneInSegment), length(length),
+		laneInfinity(isLaneInfinity), debugMsgs(std::stringstream::out) {}
 	~LaneStats() {
 		safe_delete_item(laneParams);
 	}
@@ -121,6 +123,7 @@ private:
 	double positionOfLastUpdatedAgent;
 	const sim_mob::Lane* lane;
 	const bool laneInfinity;
+	double length;
 
 	/**
 	 * laneAgentsCopy is a copy of laneAgents taken at the start of each tick solely for iterating the agents.
@@ -142,10 +145,8 @@ class SegmentStats {
 private:
 	const sim_mob::RoadSegment* roadSegment;
 	std::map<const sim_mob::Lane*, sim_mob::LaneStats* > laneStatsMap;
-
 	std::map<const sim_mob::Lane*, sim_mob::Person* > frontalAgents;
-
-	bool downstreamCopy;
+	double length;
 
 	double segVehicleSpeed; //speed of vehicles in segment for each frame
 	double segPedSpeed; //speed of pedestrians on this segment for each frame--not used at the moment
@@ -155,7 +156,7 @@ private:
 	unsigned int segFlow;
 
 public:
-	SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream = false);
+	SegmentStats(const sim_mob::RoadSegment* rdSeg, double length);
 	~SegmentStats() {
 		for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator i=laneStatsMap.begin(); i!=laneStatsMap.end(); i++) {
 			safe_delete_item(i->second);

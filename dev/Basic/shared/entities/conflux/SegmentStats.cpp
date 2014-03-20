@@ -15,18 +15,17 @@ using std::string;
 
 namespace sim_mob {
 
-SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream) :
-	roadSegment(rdSeg), segDensity(0.0), segPedSpeed(0.0), segFlow(0),
-	lastAcceptTime(0.0), debugMsgs(std::stringstream::out)
+SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double length) :
+	roadSegment(rdSeg), length(length), segDensity(0.0), segPedSpeed(0.0),
+	segFlow(0),	lastAcceptTime(0.0), debugMsgs(std::stringstream::out)
 {
 	segVehicleSpeed = getRoadSegment()->maxSpeed / 3.6 * 100; //converting from kmph to m/s
 	numVehicleLanes = 0;
 
 	// initialize LaneAgents in the map
-	std::vector<sim_mob::Lane*>::const_iterator lane =
-			rdSeg->getLanes().begin();
+	std::vector<sim_mob::Lane*>::const_iterator lane = rdSeg->getLanes().begin();
 	while (lane != rdSeg->getLanes().end()) {
-		laneStatsMap.insert(std::make_pair(*lane, new sim_mob::LaneStats(*lane)));
+		laneStatsMap.insert(std::make_pair(*lane, new sim_mob::LaneStats(*lane, length)));
 		laneStatsMap[*lane]->initLaneParams(*lane, segVehicleSpeed, segPedSpeed);
 		if (!(*lane)->is_pedestrian_lane()) {
 			numVehicleLanes++;
@@ -39,8 +38,7 @@ SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream)
 	 * TODO: Must check if we can have a bit pattern (Refer lane constructor) for laneInfinity.
 	 */
 	laneInfinity = new sim_mob::Lane(const_cast<sim_mob::RoadSegment*>(rdSeg), 9);
-	laneStatsMap.insert(std::make_pair(laneInfinity, new sim_mob::LaneStats(laneInfinity, true)));
-	downstreamCopy = isDownstream;
+	laneStatsMap.insert(std::make_pair(laneInfinity, new sim_mob::LaneStats(laneInfinity, length, true)));
 }
 
 void SegmentStats::addAgent(const sim_mob::Lane* lane, sim_mob::Person* p) {

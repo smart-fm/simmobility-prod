@@ -296,17 +296,22 @@ end
 
     @param household.
     @param unit to calculate the wp.
+    @param tazStats with statictics about taz.
+    @param amenities postcode amenities information.
     @return value of the willingness to pay of the given household.
 ]]
 
-function calculateWP (household, unit)
-    local theta0 = -42.889
-    local theta1 = 20.923
-    local theta2 = 0.0024
-    local theta3 = 0
-    local p1 = household.income == 0 and 0 or (household.size/household.income)
-    return (theta0 + 
-           (theta1 * unit.floorArea * p1) +
-           (theta2 * household.income) +
-           (CAR_CATEGORIES[household.vehicleCategoryId] and theta3 or 0))
+function calculateWP (household, unit, tazStats, amenities)
+    local b1 = 2.459
+    local b2 = 7.116
+    local b3 = -0.066
+    local b4 = -0.050
+    local hasCar = (CAR_CATEGORIES[household.vehicleCategoryId] and 1 or 0)
+    local x=  ((b1 * unit.floorArea * Math.ln(household.size))                  --  b1 * Area_Per_Unit  *ln(HouseHold_Size) + 
+           +(b2 * (household.income / household.size) * tazStats.hhAvgIncome)   --  b2 * HouseHold_Income / HouseHold_Size * Zone_Average_Income +
+           +(b3 * (amenities.distanceToCBD) * hasCar)                           --  b3 * Distance_to_CBD*(Dummie_if_car) +
+           +(b4 * (amenities.distanceToCBD) * (1-hasCar)))/1000                 --  b4 * Distance_to_CBD*(1-Dummie_if_car)
+    --Area_Per_Unit, HouseHold_Size,HouseHold_Income,Distance_to_CBD, Zone_Average_Income, HasCar, WP
+    --print (unit.floorArea..",".. household.size .. "," .. household.income .. ","..amenities.distanceToCBD .. ","..tazStats.hhAvgIncome .. ",".. hasCar .."," .. x)
+    return x
 end

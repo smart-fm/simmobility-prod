@@ -140,8 +140,9 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
     // Exists some unit to bid.
     if (maxEntry) {
         const Unit* unit = model->getUnitById(maxEntry->getUnitId());
-        if (unit){
-            double wp = luaModel.calulateWP(*household, *unit);
+        const HM_Model::TazStats* stats = model->getTazStatsByUnitId(maxEntry->getUnitId());
+        if (unit && stats){
+            double wp = luaModel.calulateWP(*household, *unit, *stats);
             double bidValue = maxSurplus + wp;
 
             if (maxEntry->getOwner() && bidValue > 0.0f) {

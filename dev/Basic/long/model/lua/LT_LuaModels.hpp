@@ -14,6 +14,7 @@
 #include "database/entity/Household.hpp"
 #include "database/entity/ExternalEvent.hpp"
 #include "core/HousingMarket.hpp"
+#include "model/HM_Model.hpp"
 
 namespace sim_mob {
     namespace long_term {
@@ -89,10 +90,12 @@ namespace sim_mob {
              * 
              * @param household.
              * @param unit to calculate the wp.
+             * @param stats Taz statistics.
              * @return value of the willingness to pay of the given household 
              *         or sim_mob::long_term::INVALID_DOUBLE
              */
-            double calulateWP(const Household& hh, const Unit& unit) const;
+            double calulateWP(const Household& hh, const Unit& unit, 
+                const HM_Model::TazStats& stats) const;
 
         private:
 

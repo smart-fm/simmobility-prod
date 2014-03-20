@@ -12,6 +12,7 @@
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"
 #include "core/DataManager.hpp"
+#include "model/HM_Model.hpp"
 
 
 using namespace sim_mob;
@@ -101,6 +102,12 @@ HM_LuaModel::~HM_LuaModel() {
 }
 
 void HM_LuaModel::mapClasses() {
+    getGlobalNamespace(state.get())
+            .beginClass <HM_Model::TazStats> ("TazStats")
+            .addProperty("hhNum", &HM_Model::TazStats::getHH_Num)
+            .addProperty("hhTotalIncome", &HM_Model::TazStats::getHH_TotalIncome)
+            .addProperty("hhAvgIncome", &HM_Model::TazStats::getHH_AvgIncome)
+            .endClass();
     getGlobalNamespace(state.get())
             .beginClass <ExpectationEntry> ("ExpectationEntry")
             .addConstructor <void (*) (void) > ()
@@ -225,9 +232,11 @@ double HM_LuaModel::calculateSurplus(const HousingMarket::Entry& entry, int unit
     return INVALID_DOUBLE;
 }
 
-double HM_LuaModel::calulateWP(const Household& hh, const Unit& unit) const {
+double HM_LuaModel::calulateWP(const Household& hh, const Unit& unit, 
+        const HM_Model::TazStats& stats) const {
+    const BigSerial pcId = unit.getPostcodeId();
     LuaRef funcRef = getGlobal(state.get(), "calculateWP");
-    LuaRef retVal = funcRef(&hh, &unit);
+    LuaRef retVal = funcRef(&hh, &unit, &stats, getAmenities(pcId));
     if (retVal.isNumber()) {
         return retVal.cast<double>();
     }

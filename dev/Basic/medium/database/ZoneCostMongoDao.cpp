@@ -64,7 +64,7 @@ sim_mob::medium::ZoneNodeMappingDao::~ZoneNodeMappingDao()
 {}
 
 bool sim_mob::medium::ZoneNodeMappingDao::getAll(boost::unordered_map<int, std::vector<long> >& outList) {
-	unsigned long long numZones = connection.getSession<mongo::DBClientConnection>().count(collectionName, mongo::BSONObj());
+	int numZones = connection.getSession<mongo::DBClientConnection>().count(collectionName, mongo::BSONObj());
 	for(int znid = 1; znid <= numZones; znid++) {
 		mongo::Query queryObj = QUERY("Zone_ID" << znid);
     	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, queryObj);

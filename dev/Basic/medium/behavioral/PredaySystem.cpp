@@ -30,6 +30,7 @@
 #include "logging/Log.hpp"
 #include "mongo/client/dbclient.h"
 #include "PredayClasses.hpp"
+#include "util/Utils.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -1154,7 +1155,7 @@ void sim_mob::medium::PredaySystem::insertStop(Stop* stop, int stopNumber, int t
 
 std::string sim_mob::medium::PredaySystem::getRandomTimeInWindow(double mid) {
 	int hour = int(std::floor(mid));
-	int minute = (utils.generateInt(0,29)) + ((mid - hour - 0.25)*60);
+	int minute = (Utils::generateInt(0,29)) + ((mid - hour - 0.25)*60);
 	std::stringstream random_time;
 	hour = hour % 24;
 	if (hour < 10) {
@@ -1181,7 +1182,7 @@ long sim_mob::medium::PredaySystem::getRandomNodeInZone(std::vector<long>& nodes
 	if(numNodes == 1) {
 		return nodes.front();
 	}
-	int offset = utils.generateInt(0,numNodes-1);
+	int offset = Utils::generateInt(0,numNodes-1);
 	std::vector<long>::iterator it = nodes.begin();
 	std::advance(it, offset);
 	return *it;

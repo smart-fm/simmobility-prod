@@ -17,7 +17,6 @@
 #include "database/PopulationSqlDao.hpp"
 #include "database/TripChainSqlDao.hpp"
 #include "database/dao/MongoDao.hpp"
-#include "util/Utils.hpp"
 
 namespace sim_mob {
 namespace medium {
@@ -220,11 +219,6 @@ private:
      * used for logging messages
      */
     std::stringstream logStream;
-
-    /**
-     * used for generating random integers
-     */
-    sim_mob::Utils utils;
 
 public:
 	PredaySystem(PersonParams& personParams,

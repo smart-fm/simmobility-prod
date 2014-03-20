@@ -11,6 +11,10 @@
 
 namespace sim_mob {
 
+struct cmp_person_distToSegmentEnd : public std::greater<Person*> {
+	bool operator() (const Person* x, const Person* y) const;
+};
+
 /**
  * Data structure to store lane specific parameters for supply.
  *
@@ -143,8 +147,9 @@ private:
 class SegmentStats {
 
 private:
+	typedef std::map<const sim_mob::Lane*, sim_mob::LaneStats* > LaneStatsMap;
 	const sim_mob::RoadSegment* roadSegment;
-	std::map<const sim_mob::Lane*, sim_mob::LaneStats* > laneStatsMap;
+	LaneStatsMap laneStatsMap;
 	std::map<const sim_mob::Lane*, sim_mob::Person* > frontalAgents;
 	double length;
 
@@ -157,12 +162,7 @@ private:
 
 public:
 	SegmentStats(const sim_mob::RoadSegment* rdSeg, double length);
-	~SegmentStats() {
-		for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator i=laneStatsMap.begin(); i!=laneStatsMap.end(); i++) {
-			safe_delete_item(i->second);
-		}
-		safe_delete_item(laneInfinity);
-	}
+	~SegmentStats();
 
 	enum VehicleType { car, bus, none };
 	//TODO: in all functions which gets lane as a parameter, we must check if the lane belongs to the road segment.
@@ -173,6 +173,7 @@ public:
 	bool isFront(const sim_mob::Lane* lane, sim_mob::Person* person);
 	std::deque<Person*> getAgents(const sim_mob::Lane* lane);
 	std::deque<Person*> getAgents();
+
 	const sim_mob::RoadSegment* getRoadSegment() const;
 	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getAgentCountsOnLanes();
 	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane); //returns std::pair<queuingCount, movingCount>

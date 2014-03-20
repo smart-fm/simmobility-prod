@@ -15,6 +15,20 @@ using std::string;
 
 namespace sim_mob {
 
+bool cmp_person_distToSegmentEnd::operator ()
+		(const Person* x, const Person* y) const {
+	if ((!x) || (!y)) {
+		std::stringstream debugMsgs;
+		debugMsgs
+				<< "cmp_person_remainingTimeThisTick: Comparison failed because at least one of the arguments is null"
+				<< "|x: " << (x ? x->getId() : 0) << "|y: "
+				<< (y ? y->getId() : 0);
+		throw std::runtime_error(debugMsgs.str());
+	}
+	//person x > y iff x's distance to end of segment is greater than y's
+	return (x->distanceToEndOfSegment > y->distanceToEndOfSegment);
+}
+
 SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double length) :
 	roadSegment(rdSeg), length(length), segDensity(0.0), segPedSpeed(0.0),
 	segFlow(0),	lastAcceptTime(0.0), debugMsgs(std::stringstream::out)
@@ -39,6 +53,13 @@ SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double length) :
 	 */
 	laneInfinity = new sim_mob::Lane(const_cast<sim_mob::RoadSegment*>(rdSeg), 9);
 	laneStatsMap.insert(std::make_pair(laneInfinity, new sim_mob::LaneStats(laneInfinity, length, true)));
+}
+
+SegmentStats::~SegmentStats() {
+	for(LaneStatsMap::iterator i=laneStatsMap.begin(); i!=laneStatsMap.end(); i++) {
+		safe_delete_item(i->second);
+	}
+	safe_delete_item(laneInfinity);
 }
 
 void SegmentStats::addAgent(const sim_mob::Lane* lane, sim_mob::Person* p) {
@@ -79,7 +100,7 @@ std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const sim
 
 std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > SegmentStats::getAgentCountsOnLanes() {
 	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > agentCountsOnLanes;
-	std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator laneStatsIt =
+	LaneStatsMap::iterator laneStatsIt =
 			laneStatsMap.begin();
 	while (laneStatsIt != laneStatsMap.end()) {
 		agentCountsOnLanes.insert(std::make_pair(laneStatsIt->first, getLaneAgentCounts(laneStatsIt->first)));
@@ -106,7 +127,7 @@ unsigned int SegmentStats::numMovingInSegment(bool hasVehicle) {
 	std::vector<sim_mob::Lane*>::const_iterator lane = roadSegment->getLanes().begin();
 	while (lane != roadSegment->getLanes().end()) {
 		if ((hasVehicle && !(*lane)->is_pedestrian_lane()) || (!hasVehicle && (*lane)->is_pedestrian_lane())) {
-			std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator laneStatsIt = laneStatsMap.find(*lane);
+			LaneStatsMap::iterator laneStatsIt = laneStatsMap.find(*lane);
 			if (laneStatsIt != laneStatsMap.end()) {
 				movingCounts = movingCounts + laneStatsIt->second->getMovingAgentsCount();
 			} else {
@@ -157,7 +178,7 @@ unsigned int SegmentStats::numQueueingInSegment(bool hasVehicle) {
 			roadSegment->getLanes().begin();
 	while (lane != roadSegment->getLanes().end()) {
 		if ((hasVehicle && !(*lane)->is_pedestrian_lane()) || (!hasVehicle && (*lane)->is_pedestrian_lane())) {
-			std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator laneStatsIt = laneStatsMap.find(*lane);
+			LaneStatsMap::iterator laneStatsIt = laneStatsMap.find(*lane);
 			if (laneStatsIt != laneStatsMap.end()) {
 				queuingCounts = queuingCounts + laneStatsIt->second->getQueuingAgentsCount();
 			} else {
@@ -252,7 +273,7 @@ sim_mob::Person* SegmentStats::agentClosestToStopLineFromFrontalAgents() {
 
 void SegmentStats::resetFrontalAgents() {
 	frontalAgents.clear();
-	for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
+	for (LaneStatsMap::iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
 		i->second->resetIterator();
 		Person* person = i->second->next();
 		frontalAgents.insert(std::make_pair(i->first, person));
@@ -508,7 +529,7 @@ void sim_mob::SegmentStats::updateLaneParams(timeslice frameNumber) {
 	segDensity = getDensity(true);
 	segVehicleSpeed = speed_density_function(true, segDensity);
 	//need to update segPedSpeed in future
-	std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator it = laneStatsMap.begin();
+	LaneStatsMap::iterator it = laneStatsMap.begin();
 	for (; it != laneStatsMap.end(); ++it) {
 		//filtering out the pedestrian lanes for now
 		if (!(it->first)->is_pedestrian_lane()) {
@@ -546,7 +567,7 @@ double sim_mob::SegmentStats::getSegSpeed(bool hasVehicle) {
 }
 
 bool SegmentStats::hasAgents() {
-	std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator laneIt = laneStatsMap.begin();
+	LaneStatsMap::iterator laneIt = laneStatsMap.begin();
 	while (laneIt != laneStatsMap.end()) {
 		if (laneIt->second->laneAgents.size() > 0) {
 			return true;
@@ -569,7 +590,7 @@ unsigned int sim_mob::SegmentStats::getInitialQueueCount(const Lane* lane) {
 }
 
 void SegmentStats::resetPositionOfLastUpdatedAgentOnLanes() {
-	for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
+	for (LaneStatsMap::iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
 		i->second->setPositionOfLastUpdatedAgent(-1.0);
 	}
 }
@@ -588,7 +609,7 @@ void SegmentStats::resetSegFlow() {
 
 unsigned int SegmentStats::computeExpectedOutputPerTick() {
 	float count = 0;
-	for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
+	for (LaneStatsMap::iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
 		count += (*i).second->laneParams->getOutputFlowRate() * ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
 	}
 	return std::floor(count);
@@ -597,10 +618,10 @@ unsigned int SegmentStats::computeExpectedOutputPerTick() {
 void SegmentStats::printAgents() {
 	Print() << "\nSegment: " << roadSegment->getStartEnd() << "|length "
 			<< roadSegment->getLaneZeroLength() << std::endl;
-	for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
+	for (LaneStatsMap::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
 		(*i).second->printAgents();
 	}
-	for (std::map<const sim_mob::Lane*, sim_mob::LaneStats*>::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
+	for (LaneStatsMap::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
 		(*i).second->printAgents(true);
 	}
 }

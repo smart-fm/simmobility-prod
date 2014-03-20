@@ -888,7 +888,8 @@ const Lane* sim_mob::Conflux::getLaneInfinity(const RoadSegment* rdSeg) {
 	return findSegStats(rdSeg)->laneInfinity;
 }
 
-bool sim_mob::cmp_person_remainingTimeThisTick::operator ()(const Person* x, const Person* y) const {
+bool sim_mob::cmp_person_remainingTimeThisTick::operator ()
+			(const Person* x, const Person* y) const {
 	if ((!x) || (!y)) {
 		std::stringstream debugMsgs;
 		debugMsgs

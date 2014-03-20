@@ -262,6 +262,7 @@
             <mongo_collection name="OPCosts" collection="OPCosts"/>
             <mongo_collection name="PMCosts" collection="PMCosts"/>
             <mongo_collection name="Zone" collection="Zone"/>
+            <mongo_collection name="zone_node" collection="zone_aimsunnode_mapping"/>
             <mongo_collection name="Output_DayPattern" collection="person_tours_cpp"/>
             <mongo_collection name="Output_Tour" collection="tours_cpp"/>
             <mongo_collection name="Output_Activity" collection="activity_cpp"/>

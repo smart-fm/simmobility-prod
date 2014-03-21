@@ -344,6 +344,15 @@ public:
 	 */
 	void findBoundaryConfluxes();
 
+	/**
+	 * given a person p with a trip chain, create path for his first trip and
+	 * return his starting segment.
+	 *
+	 * @param p person for whom the starting segment is needed
+	 * @return constant pointer to the starting segment of the person's constructed path
+	 */
+	static const sim_mob::RoadSegment* constructPath(Person* p);
+
 	bool isBoundary; //A conflux that receives person from at least one conflux that belongs to another worker
 	bool isMultipleReceiver; //A conflux that receives persons from confluxes that belong to multiple other workers
 };

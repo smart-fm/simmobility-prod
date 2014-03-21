@@ -339,10 +339,6 @@ void sim_mob::Conflux::initCandidateAgents() {
 	}
 }
 
-std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > sim_mob::Conflux::getLanewiseAgentCounts(const sim_mob::RoadSegment* rdSeg) {
-	return findSegStats(rdSeg)->getAgentCountsOnLanes();
-}
-
 unsigned int sim_mob::Conflux::numMovingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle) {
 	return findSegStats(rdSeg)->numMovingInSegment(hasVehicle);
 }

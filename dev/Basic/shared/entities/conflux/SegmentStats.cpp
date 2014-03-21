@@ -98,23 +98,8 @@ std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const sim
 	return std::make_pair(laneStatsMap.at(lane)->getQueuingAgentsCount(), laneStatsMap.at(lane)->getMovingAgentsCount());
 }
 
-std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > SegmentStats::getAgentCountsOnLanes() {
-	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > agentCountsOnLanes;
-	LaneStatsMap::iterator laneStatsIt =
-			laneStatsMap.begin();
-	while (laneStatsIt != laneStatsMap.end()) {
-		agentCountsOnLanes.insert(std::make_pair(laneStatsIt->first, getLaneAgentCounts(laneStatsIt->first)));
-		laneStatsIt++;
-	}
-	return agentCountsOnLanes;
-}
-
 const sim_mob::RoadSegment* sim_mob::SegmentStats::getRoadSegment() const {
 	return roadSegment;
-}
-
-bool SegmentStats::isFront(const sim_mob::Lane* lane, sim_mob::Person* person) {
-	return (person == laneStatsMap.find(lane)->second->laneAgents.front());
 }
 
 unsigned int SegmentStats::numAgentsInLane(const sim_mob::Lane* lane) {

@@ -146,7 +146,7 @@ private:
  */
 class SegmentStats {
 
-private:
+protected:
 	typedef std::map<const sim_mob::Lane*, sim_mob::LaneStats* > LaneStatsMap;
 	const sim_mob::RoadSegment* roadSegment;
 	LaneStatsMap laneStatsMap;
@@ -170,12 +170,11 @@ public:
 	void removeAgent(const sim_mob::Lane* lane, sim_mob::Person* ag, bool wasQueuing);
 	sim_mob::Person* dequeue(const sim_mob::Lane* lane, bool isQueuingBfrUpdate);
 	sim_mob::Person* dequeue(const sim_mob::Person* person, const sim_mob::Lane* lane, bool isQueuingBfrUpdate);
-	bool isFront(const sim_mob::Lane* lane, sim_mob::Person* person);
+
 	std::deque<Person*> getAgents(const sim_mob::Lane* lane);
 	std::deque<Person*> getAgents();
 
 	const sim_mob::RoadSegment* getRoadSegment() const;
-	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getAgentCountsOnLanes();
 	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane); //returns std::pair<queuingCount, movingCount>
 	unsigned int numAgentsInLane(const sim_mob::Lane* lane);
 	void updateQueueStatus(const sim_mob::Lane* lane, sim_mob::Person* p);

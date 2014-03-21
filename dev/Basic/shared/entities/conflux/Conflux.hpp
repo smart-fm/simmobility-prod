@@ -229,14 +229,6 @@ public:
 	void addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* rdSeg);
 
 	/**
-	 * get lanewise agent counts in a segment
-	 * @param rdSeg segment for which the counts are needed
-	 * @returns lane wise std::pair<queuingCount, movingCount>
-	 */
-	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> >
-	getLanewiseAgentCounts(const sim_mob::RoadSegment* rdSeg);
-
-	/**
 	 * The following 2 functions gets the moving and queuing counts of a segment respectively
 	 */
 	unsigned int numMovingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);

@@ -8,6 +8,7 @@
 #include "DriverUpdateParams.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/vehicle/Vehicle.hpp"
+#include "entities/conflux/SegmentStats.hpp"
 
 namespace sim_mob {
 namespace medium {
@@ -100,6 +101,13 @@ public:
 	}
 
 protected:
+	typedef std::vector<sim_mob::SegmentStats*> Path;
+
+	/**
+	 * Path of this driver
+	 */
+	Path path;
+
 	/**
 	 * Pointer to the parent Driver role.
 	 */

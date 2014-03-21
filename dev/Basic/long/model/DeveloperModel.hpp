@@ -11,6 +11,7 @@
 #include "database/entity/Developer.hpp"
 #include "database/entity/Template.hpp"
 #include "database/entity/Parcel.hpp"
+#include "database/entity/LandUseZone.hpp"
 
 namespace sim_mob {
     namespace long_term {
@@ -20,6 +21,7 @@ namespace sim_mob {
             typedef std::vector<Developer*> DeveloperList;
             typedef std::vector<Template*> TemplateList;
             typedef std::vector<Parcel*> ParcelList;
+            typedef std::vector<LandUseZone*> LandUseZonesList;
         public:
             DeveloperModel(WorkGroup& workGroup);
             virtual ~DeveloperModel();
@@ -33,6 +35,7 @@ namespace sim_mob {
             DeveloperList developers;
             TemplateList templates;
             ParcelList parcels;
+            LandUseZonesList zones;
         };
     }
 }

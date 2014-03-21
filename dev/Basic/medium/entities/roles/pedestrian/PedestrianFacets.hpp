@@ -45,12 +45,12 @@ public:
 
 	void setParentPedestrian(sim_mob::medium::Pedestrian* parentPedestrian);
 
-protected:
-	virtual Vehicle* initializePath(bool allocateVehicle);
 
 protected:
 	sim_mob::medium::Pedestrian* parentPedestrian;
 	int remainingTimeToComplete;
+	int totalTimeToCompleteMS;
+	const float walkSpeed;
 
 };
 

@@ -185,7 +185,7 @@ public:
 	bool isPrimaryMode;
 	std::string ptLineId; //Public transit (bus or train) line identifier.
 
-	FMODSchedule* schedule;
+	float totalDistanceOD;
 
 	SubTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,int requestTime=-1,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,

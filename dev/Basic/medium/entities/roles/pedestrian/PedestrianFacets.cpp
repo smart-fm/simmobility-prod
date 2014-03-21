@@ -6,7 +6,8 @@
  */
 
 #include "PedestrianFacets.hpp"
-
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 namespace sim_mob {
 
@@ -24,7 +25,7 @@ PedestrianBehavior::~PedestrianBehavior()
 }
 
 PedestrianMovement::PedestrianMovement(sim_mob::Person* parentAgent):
-		MovementFacet(parentAgent), parentPedestrian(nullptr)
+		MovementFacet(parentAgent), parentPedestrian(nullptr), totalTimeToCompleteMS(0), walkSpeed(200)
 {
 
 }
@@ -44,20 +45,25 @@ void PedestrianBehavior::setParentPedestrian(sim_mob::medium::Pedestrian* parent
 
 void PedestrianMovement::frame_init(){
 
+	float totalTime = getParent()->currSubTrip->totalDistanceOD/walkSpeed;
+	totalTimeToCompleteMS = totalTime;
 }
+
 void PedestrianMovement::frame_tick()
 {
+	unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
 
+	totalTimeToCompleteMS -= tickMS;
+	if(totalTimeToCompleteMS <= 0){
+		getParent()->setToBeRemoved();
+	}
 }
+
 void PedestrianMovement::frame_tick_output(){
 
 }
 void PedestrianMovement::flowIntoNextLinkIfPossible(UpdateParams& p){
 
-}
-
-Vehicle* PedestrianMovement::initializePath(bool allocateVehicle){
-	return nullptr;
 }
 
 

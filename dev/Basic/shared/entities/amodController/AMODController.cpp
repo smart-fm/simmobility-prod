@@ -57,6 +57,7 @@ bool AMODController::connectAmodService()
 			std::cout << "AMOD communication in blocking mode not receive data asap" << std::endl;
 		}
 		else{
+			std::cout<<"message: "<<message<<std::endl;
 			handleVehicleInit(message);
 			isConnectAmodServer = true;
 		}

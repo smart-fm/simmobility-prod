@@ -39,6 +39,7 @@ namespace sim_mob {
         const std::string DB_TABLE_TEMPLATE = APPLY_SCHEMA(MAIN_SCHEMA, "template");
         const std::string DB_TABLE_POSTCODE = APPLY_SCHEMA(MAIN_SCHEMA, "postcode");
         const std::string DB_TABLE_POSTCODE_AMENITIES = APPLY_SCHEMA(MAIN_SCHEMA, "postcode_amenities");
+        const std::string DB_TABLE_LAND_USE_ZONE = APPLY_SCHEMA(MAIN_SCHEMA, "land_use_zone");
         
         /**
          * Views
@@ -69,6 +70,8 @@ namespace sim_mob {
         const std::string DB_FUNC_DEL_POSTCODE_AMENITIES_BY_ID = DB_EMPTY_QUERY;
         const std::string DB_FUNC_GET_POSTCODES_AMENITIES = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodeAmenities()");
         const std::string DB_FUNC_GET_POSTCODE_AMENITIES_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodeAmenitiesById(:id)");
+        const std::string DB_FUNC_GET_LAND_USE_ZONES = APPLY_SCHEMA(MAIN_SCHEMA, "getLandUseZones()");
+        const std::string DB_FUNC_GET_LAND_USE_ZONE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getLandUseZoneById(:id)");
         /**
          * Fields
          */
@@ -146,6 +149,7 @@ namespace sim_mob {
         const std::string DB_FIELD_MAX_X = "max_x";
         const std::string DB_FIELD_MIN_Y = "min_y";
         const std::string DB_FIELD_MAX_Y = "max_y";
+        const std::string DB_FIELD_GPR = "gpr";
         
         /**
          * INSERT
@@ -217,6 +221,8 @@ namespace sim_mob {
                 + DB_FUNC_GET_POSTCODES;
         const std::string DB_GETALL_POSTCODE_AMENITIES = "SELECT * FROM "
                 + DB_FUNC_GET_POSTCODES_AMENITIES;
+        const std::string DB_GETALL_LAND_USE_ZONES = "SELECT * FROM "
+                + DB_FUNC_GET_LAND_USE_ZONES;
         
         /**
          * GET BY ID
@@ -237,5 +243,7 @@ namespace sim_mob {
                 DB_FUNC_GET_POSTCODE_BY_ID;
         const std::string DB_GETBYID_POSTCODE_AMENITIES = "SELECT * FROM " +
                 DB_FUNC_GET_POSTCODE_AMENITIES_BY_ID;
+         const std::string DB_GETBYID_LAND_USE_ZONE = "SELECT * FROM " +
+                DB_FUNC_GET_LAND_USE_ZONE_BY_ID;
     }
 }

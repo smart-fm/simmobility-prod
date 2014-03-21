@@ -20,6 +20,7 @@
 #include "database/dao/ParcelDao.hpp"
 #include "database/dao/DeveloperDao.hpp"
 #include "database/dao/TemplateDao.hpp"
+#include "database/dao/LandUseZoneDao.hpp"
 
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
@@ -27,8 +28,8 @@ using namespace unit_tests;
 using std::cout;
 using std::endl;
 
-namespace{
-    const int ID_TO_GET =1;
+namespace {
+    const int ID_TO_GET = 1;
 }
 
 template <typename T, typename K>
@@ -45,14 +46,14 @@ void TestDao() {
         sim_mob::db::Parameters keys;
         keys.push_back(ID_TO_GET);
         if (dao.getById(keys, valueById)) {
-        	PrintOut("Get by id: " << valueById << endl);
+            PrintOut("Get by id: " << valueById << endl);
         }
 
         std::vector<K> values;
         dao.getAll(values);
         PrintOut("GetAll Size: " << values.size() << endl);
         for (typename std::vector<K>::iterator it = values.begin(); it != values.end(); it++) {
-        	PrintOut("Value: " << (*it) << endl);
+            PrintOut("Value: " << (*it) << endl);
         }
     }
 }
@@ -66,4 +67,5 @@ void DaoTests::testAll() {
     TestDao<DeveloperDao, Developer>();
     TestDao<ParcelDao, Parcel>();
     TestDao<TemplateDao, Template>();
+    TestDao<LandUseZoneDao, LandUseZone>();
 }

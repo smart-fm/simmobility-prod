@@ -38,11 +38,6 @@ typedef Entity::UpdateStatus UpdateStatus;
 
 
 namespace {
-	// default lowest age
-	const int DEFAULT_LOWEST_AGE = 20;
-	// default highest age
-	const int DEFAULT_HIGHEST_AGE = 60;
-
 Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 {
 	//Make sure we have something to work with
@@ -94,19 +89,19 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
 	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), remainingTimeThisTick(0.0),
 	requestedNextSegment(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
-	age(0), boardingTimeSecs(0), alightingTimeSecs(0), client_id(-1), resetParamsRequired(false)
+	age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0), client_id(-1), resetParamsRequired(false)
 {
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
 	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegment(nullptr), canMoveToNextSegment(NONE),
 	  databaseID(tcs.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
-	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
+	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0),
 	  client_id(-1)
 {
-	if (!ConfigManager::GetInstance().FullConfig().RunningMidSupply() && !ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
+	/*if (!ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
 		simplyModifyTripChain(tcs);
-	}
+	}*/
 	initTripChain();
 }
 
@@ -116,12 +111,6 @@ void sim_mob::Person::initTripChain(){
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM)
 	{
 		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW()).begin();
-		// if the first tripchain item is passenger, create waitBusActivityRole
-		if(currSubTrip->mode == "BusTravel") {
-			const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
-			currRole = rf.createRole("waitBusActivityRole", this);
-			nextRole = rf.createRole("passenger", this);
-		}
 		//consider putting this in IT_TRIP clause
 		if(!updateOD(*currTripChainItem)){ //Offer some protection
 				throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
@@ -226,6 +215,16 @@ void Person::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>
 	//This requires the Role's intervention.
 	if (currRole) {
 		currRole->rerouteWithBlacklist(blacklisted);
+	}
+}
+
+void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
+{
+	sim_mob::Agent::onEvent(eventId, ctxId, sender, args);
+
+	//role gets chance to handle event
+	if(currRole){
+		currRole->onParentEvent(eventId, ctxId, sender, args);
 	}
 }
 
@@ -489,13 +488,19 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 		{
 			std::vector<SubTrip>::iterator subChainItem1, subChainItem2;
 			std::vector<sim_mob::SubTrip>& subtrip = (dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
-
+			for(subChainItem1 = subtrip.begin();subChainItem1!=subtrip.end(); subChainItem1++)
+			{
+				//std::cout << "first item  " << subChainItem1->fromLocation.getID() << " " <<subChainItem1->toLocation.getID() <<" mode " <<subChainItem1->mode << std::endl;
+			}
 			subChainItem2 = subChainItem1 = subtrip.begin();
 			subChainItem2++;
 			vector<SubTrip> newsubchain;
 			newsubchain.push_back(*subChainItem1);
 			while(subChainItem1!=subtrip.end() && subChainItem2!=subtrip.end() )
 			{
+				//std::cout << "first item  " << subChainItem1->fromLocation.getID() << " " <<subChainItem1->toLocation.getID() << std::endl;
+				//std::cout << "second item  " << subChainItem2->fromLocation.getID() << " " <<subChainItem2->toLocation.getID() << std::endl;
+
 				WayPoint source, destination;
 				if( (subChainItem1->mode=="Walk") && (subChainItem2->mode=="BusTravel") )
 				{
@@ -837,39 +842,48 @@ sim_mob::Role* sim_mob::Person::getNextRole() const {
 
 void sim_mob::Person::setPersonCharacteristics()
 {
-	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	const std::map<int, PersonCharacteristics>& personCharacteristics = config.personCharacteristicsParams.personCharacteristics;
-
-	int lowestAge = DEFAULT_LOWEST_AGE;
-	int highestAge = DEFAULT_HIGHEST_AGE;
-	// if no personCharacteristics item in the config file, introduce default lowestAge and highestAge
-	if (!personCharacteristics.empty()) {
-		lowestAge = config.personCharacteristicsParams.lowestAge;
-		highestAge = config.personCharacteristicsParams.highestAge;
-	}
-	const int defaultLowerSecs = config.personCharacteristicsParams.DEFAULT_LOWER_SECS;
-	const int defaultUpperSecs = config.personCharacteristicsParams.DEFAULT_UPPER_SECS;
 	boost::mt19937 gen(static_cast<unsigned int>(getId()*getId()));
-	boost::uniform_int<> ageRange(lowestAge, highestAge);
+	boost::uniform_int<> ageRange(20, 60);
 	boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAge(gen, ageRange);
 	age = (unsigned int)varAge();
-	boost::uniform_int<> BoardingTime(defaultLowerSecs, defaultUpperSecs);
-	boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
-	boardingTimeSecs = varBoardingTime();
+	if(age >= 20 && age < 30)
+	{
+		boost::uniform_int<> BoardingTime(3, 7);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
+		BOARDING_TIME_SEC = varBoardingTime();
 
-	boost::uniform_int<> AlightingTime(defaultLowerSecs, defaultUpperSecs);
-	boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
-	alightingTimeSecs = varAlightingTime();
+		boost::uniform_int<> AlightingTime(3, 7);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
+		ALIGTHING_TIME_SEC = varAlightingTime();
+	}
+	if(age >=30 && age < 40)
+	{
+		boost::uniform_int<> BoardingTime(4, 8);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
+		BOARDING_TIME_SEC = varBoardingTime();
 
-	for(std::map<int, PersonCharacteristics>::const_iterator iter=personCharacteristics.begin();iter != personCharacteristics.end();iter++) {
-		if(age >= iter->second.lowerAge && age < iter->second.upperAge) {
-			boost::uniform_int<> BoardingTime(iter->second.lowerSecs, iter->second.upperSecs);
-			boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
-			boardingTimeSecs = varBoardingTime();
+		boost::uniform_int<> AlightingTime(4, 8);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
+		ALIGTHING_TIME_SEC = varAlightingTime();
+	}
+	if(age >= 40 && age < 50)
+	{
+		boost::uniform_int<> BoardingTime(5, 9);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
+		BOARDING_TIME_SEC = varBoardingTime();
 
-			boost::uniform_int<> AlightingTime(iter->second.lowerSecs, iter->second.upperSecs);
-			boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
-			alightingTimeSecs = varAlightingTime();
-		}
+		boost::uniform_int<> AlightingTime(5, 9);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
+		ALIGTHING_TIME_SEC = varAlightingTime();
+	}
+	if(age >= 50 && age <= 60)
+	{
+		boost::uniform_int<> BoardingTime(6, 10);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
+		BOARDING_TIME_SEC = varBoardingTime();
+
+		boost::uniform_int<> AlightingTime(6, 10);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
+		ALIGTHING_TIME_SEC = varAlightingTime();
 	}
 }

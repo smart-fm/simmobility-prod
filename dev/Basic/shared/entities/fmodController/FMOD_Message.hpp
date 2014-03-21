@@ -16,11 +16,74 @@
 #include <iostream>
 #include <boost/shared_ptr.hpp>
 #include <json/json.h>
+#include "event/SystemEvents.hpp"
+#include "event/args/EventArgs.hpp"
+#include "message/MessageBus.hpp"
+#include "event/EventPublisher.hpp"
 
 namespace sim_mob {
 
+class Person;
+class Node;
+/**
+ * This class hold schedule information from FMOD.
+ */
+class FMOD_Schedule
+{
+public:
+	int vehicleId;
+	int scheduleId;
+	std::vector<std::string> replaceSchedules;
+	int serviceType;
+	struct Stop
+	{
+		int stopId;
+		int dwellTime;
+		std::string arrivalTime;
+		std::string depatureTime;
+		std::vector< int > boardingPassengers;
+		std::vector< int > alightingPassengers;
+	};
+	std::vector<Stop> stopSchdules;
+	struct Passenger
+	{
+		std::string clientId;
+		int price;
+	};
+	std::vector<Passenger> passengers;
+	struct Route
+	{
+		std::string id;
+		int type;
+	};
+	std::vector<Node*> routes;
+	std::vector<const Person*> insidePassengers;
+};
+
+/**
+ * Subclasses both EventArgs, This is to allow it to function as an Event callback parameter.
+ */
+class FMOD_RequestEventArgs : public sim_mob::event::EventArgs {
+public:
+	FMOD_RequestEventArgs(std::list<FMOD_Schedule> schs):schedules(schs){;}
+	virtual ~FMOD_RequestEventArgs() {}
+	const std::list<FMOD_Schedule> schedules;
+};
+
+//subclassed Eventpublisher coz its destructor is pure virtual
+class FMOD_Publisher: public sim_mob::event::EventPublisher {
+public:
+	FMOD_Publisher() {
+	}
+	virtual ~FMOD_Publisher() {
+	}
+};
+
 namespace FMOD
 {
+enum {
+	EVENT_DISPATCH_FMOD_SCHEDULES_REQUEST = 4000000
+};
 
 /**
   * package a FMOD message
@@ -29,7 +92,7 @@ class FMOD_Message {
 public:
 
 	enum FMOD_MessageID{MSG_DEFALUTVALUE=0, MSG_INITIALIZE=1, MSG_SIMULATION_SETTINGS=2, MSG_LINKTRAVELUPADTE=3, MSG_REQUEST=4, MSG_OFFER=5, MSG_ACCEPT=6, MSG_CONFIRMATION=7,
-		MSG_VEHICLESTOP=81, MSG_VEHICLEPOS=82, MSG_SCHEDULE_FETCH=91, MSG_SCHEDULE=92, MSG_ACK=100};
+		MSG_VEHICLESTOP=81, MSG_VEHICLEPOS=82, MSG_SCHEDULE_FETCH=91, MSG_SCHEDULE=92, MSG_ACK=999, MSG_FINALIZE=11};
 
 	FMOD_Message();
 	virtual ~FMOD_Message();
@@ -258,38 +321,31 @@ public:
   */
 class MsgSchedule : public FMOD_Message {
 public:
-	int vehicleId;
-	std::string scheduleId;
-	std::vector<std::string> replaceSchedules;
-	int serviceType;
-	struct Stop
-	{
-		std::string stopId;
-		std::string arrivalTime;
-		std::string depatureTime;
-		std::vector< std::string > boardingPassengers;
-		std::vector< std::string > alightingPassengers;
-	};
-	std::vector<Stop> stopSchdules;
-	struct Passenger
-	{
-		std::string clientId;
-		int price;
-	};
-	std::vector<Passenger> passengers;
-	struct Route
-	{
-		std::string id;
-		int type;
-	};
-	std::vector<Route> routes;
+	std::list<FMOD_Schedule> schedules;
+
 public:
+
+	int getVehicleId();
+
+	unsigned int getStartTime();
 
     /**
       * create message value from a json string
       * @return void.
       */
 	virtual void createMessage(const std::string& msg);
+};
+
+class MsgFinalize : public FMOD_Message {
+public:
+	std::string end_time;
+
+public:
+    /**
+      * build a json string from message value.
+      * @return final string which contain FMOD message.
+      */
+	virtual std::string buildToString();
 };
 }
 

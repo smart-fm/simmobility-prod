@@ -11,6 +11,12 @@
 
 #include "FMOD_Message.hpp"
 #include "sstream"
+#include <boost/lexical_cast.hpp>
+#include "util/DailyTime.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/Link.hpp"
 
 namespace sim_mob {
 
@@ -31,7 +37,7 @@ std::string FMOD_Message::buildToString()
 	std::string msg;
 
 	std::stringstream buffer;
-	buffer << "message " << this->messageID_ << std::endl;
+	buffer << this->messageID_ << std::endl;
 	msg = buffer.str();
 
 	return msg;
@@ -40,11 +46,11 @@ std::string FMOD_Message::buildToString()
 FMOD_Message::FMOD_MessageID FMOD_Message::analyzeMessageID(const std::string& msg)
 {
 	FMOD_MessageID ID = MSG_DEFALUTVALUE;
-	int index1 = msg.find("message ");
-	if( index1 > 0 )
+	int index1 = 0; //msg.find("message ");
+	if( index1 >= 0 )
 	{
 		int index2 = msg.find(",", index1);
-		std::string message_id = msg.substr(index1, index2-index2);
+		std::string message_id = msg.substr(index1, index2-index1);
 		ID = (FMOD_MessageID)atoi(message_id.c_str());
 	}
 	return ID;
@@ -82,8 +88,8 @@ void MsgVehicleInit::createMessage(const std::string& msg)
 	{
 		Json::Value item = arrVeh[i];
 		Supply suplier;
-		suplier.vehicleId = item["vehicle_id"].asInt();
-		suplier.nodeId = item["node_id"].asInt();
+		suplier.vehicleId = boost::lexical_cast<int>(item["vehicle_id"].asCString());
+		suplier.nodeId = boost::lexical_cast<int>(item["node_id"].asCString());
 		vehicles.push_back(suplier);
 	}
 }
@@ -115,14 +121,14 @@ void MsgOffer::createMessage(const std::string& msg)
 		Json::Value item = arrVeh[i];
 		Offer offer;
 		offer.schduleId = item["schdule_id"].asString();
-		offer.serviceType = item["service_type"].asInt();
+		offer.serviceType = boost::lexical_cast<int>(item["service_type"].asCString());
 		offer.fare = item["fare"].asInt();
 		offer.departureTimeEarly = item["departure_time_early"].asString();
 		offer.depatureTimeLate = item["depature_time_late"].asString();
 		offer.arivalTimeEarly = item["arival_time_early"].asString();
 		offer.arrivalTimeLate = item["arrival_time_late"].asString();
-		offer.travelTime = item["travel_time"].asInt();
-		offer.travelDistance = item["travel_distance"].asInt();
+		offer.travelTime = boost::lexical_cast<int>(item["travel_time"].asCString());
+		offer.travelDistance = boost::lexical_cast<int>(item["travel_distance"].asCString());
 		offers.push_back(offer);
 	}
 }
@@ -161,7 +167,7 @@ std::string MsgInitialize::buildToString()
 	Request["version"] = this->version;
 
 	std::stringstream buffer;
-	buffer << "message " << this->messageID_ << "," << Request << std::endl;
+	buffer << this->messageID_ << "," << Request << std::endl;
 	msg = buffer.str();
 
 	return msg;
@@ -172,18 +178,20 @@ std::string MsgRequest::buildToString()
 	std::string msg;
 	Json::Value Request;
 	Request["current_time"] = this->currentTime;
-	Request["client_id"] = this->request.clientId;
-	Request["orgin"] = this->request.origin;
-	Request["destination"] = this->request.destination;
+	Request["client_id"] = boost::lexical_cast<std::string>(this->request.clientId);
+	Request["origin"] = boost::lexical_cast<std::string>(this->request.origin);
+	Request["destination"] = boost::lexical_cast<std::string>(this->request.destination);
 	Request["departure_time_early"] = this->request.departureTimeEarly;
 	Request["depature_time_late"] = this->request.departureTimeLate;
 	Request["arriavl_time_early"] = this->request.arrivalTimeEarly;
 	Request["arrival_time_late"] = this->request.arrivalTimeLate;
-	Request["seat_num"] = this->seatNum;
+	Request["seat_num"] = boost::lexical_cast<std::string>(this->seatNum);
 
 	std::stringstream buffer;
-	buffer << "message " << this->messageID_ << "," << Request << std::endl;
+	buffer << this->messageID_ << ",0," << Request << std::endl;
 	msg = buffer.str();
+
+	//std::cout<< msg << std::endl;
 
 	return msg;
 }
@@ -199,7 +207,7 @@ std::string MsgAccept::buildToString()
 	Request["accept"]["arrive_time"] = this->arrivalTime;
 
 	std::stringstream buffer;
-	buffer << "message " << this->messageID_ << "," << Request << std::endl;
+	buffer << this->messageID_ << "," << Request << std::endl;
 	msg = buffer.str();
 
 	return msg;
@@ -221,7 +229,7 @@ std::string MsgLinkTravel::buildToString()
 	}
 
 	std::stringstream buffer;
-	buffer << "message " << this->messageID_ << "," << Request << std::endl;
+	buffer << this->messageID_ << "," << Request << std::endl;
 	msg = buffer.str();
 
 	return msg;
@@ -248,7 +256,7 @@ std::string MsgVehicleStop::buildToString()
 	}
 
 	std::stringstream buffer;
-	buffer << "message " << this->messageID_ << "," << Request << std::endl;
+	buffer << this->messageID_ << "," << Request << std::endl;
 	msg = buffer.str();
 
 	return msg;
@@ -264,11 +272,35 @@ std::string MsgVehiclePos::buildToString()
 	Request["longtitude"] = this->longtitude;
 
 	std::stringstream buffer;
-	buffer << "message " << this->messageID_ << "," << Request << std::endl;
+	buffer << this->messageID_ << "," << Request << std::endl;
 	msg = buffer.str();
 
 	return msg;
 }
+
+int MsgSchedule::getVehicleId()
+{
+	int ret = -1;
+
+	if(schedules.size()>0){
+		ret = schedules.front().vehicleId;
+	}
+
+	return ret;
+}
+
+unsigned int MsgSchedule::getStartTime()
+{
+	int ret = 0;
+
+	if(schedules.size()>0){
+		sim_mob::DailyTime start(schedules.front().stopSchdules[0].depatureTime);
+		ret = start.getValue();
+	}
+
+	return ret;
+}
+
 
 void MsgSchedule::createMessage(const std::string& msg)
 {
@@ -289,51 +321,80 @@ void MsgSchedule::createMessage(const std::string& msg)
 		return;
 	}
 
-	vehicleId = root["vehicle_id"].asInt();
-	scheduleId = root["schedule_id"].asString();
-	serviceType = root["service_type"].asInt();
+	Json::Value arrSchedules = root["schedules"];
+	for(int k=0; k<arrSchedules.size(); k++){
 
-	Json::Value arrStops = root["stop_schdules"];
-	for(int i=0; i<arrStops.size(); i++)
-	{
-		Json::Value item = arrStops[i];
-		Stop stop;
-		stop.stopId = item["stop"].asString();
-		stop.arrivalTime = item["arrival_time"].asString();
-		stop.depatureTime = item["depature_time"].asString();
-		Json::Value arrPassengers = item["board_passengers"];
-		for(int k=0; k<arrPassengers.size(); k++){
-			Json::Value val = arrPassengers[k];
-			stop.boardingPassengers.push_back(val.asString());
+		Json::Value itemSchedule = arrSchedules[k];
+		FMOD_Schedule schedule;
+		schedule.vehicleId = boost::lexical_cast<int>(itemSchedule["vehicle_id"].asCString());
+		schedule.scheduleId = boost::lexical_cast<int>(itemSchedule["schedule_id"].asString());
+		schedule.serviceType = boost::lexical_cast<int>(itemSchedule["service_type"].asCString());
+
+		Json::Value arrStops = itemSchedule["stop_schdules"];
+		for(int i=0; i<arrStops.size(); i++)
+		{
+			Json::Value item = arrStops[i];
+			FMOD_Schedule::Stop stop;
+			stop.stopId = boost::lexical_cast<int>(item["stop"].asString());
+			stop.arrivalTime = item["arrival_time"].asString();
+			stop.depatureTime = item["depature_time"].asString();
+			stop.dwellTime = 0;
+
+			Json::Value arrPassengers = item["board_passengers"];
+			for(int k=0; k<arrPassengers.size(); k++){
+				Json::Value val = arrPassengers[k];
+				stop.boardingPassengers.push_back(boost::lexical_cast<int>(val.asString()));
+			}
+			arrPassengers = item["alight_passengers"];
+			for(int k=0; k<arrPassengers.size(); k++){
+				Json::Value val = arrPassengers[k];
+				stop.alightingPassengers.push_back(boost::lexical_cast<int>(val.asString()));
+			}
+			schedule.stopSchdules.push_back(stop);
 		}
-		arrPassengers = item["alight_passengers"];
-		for(int k=0; k<arrPassengers.size(); k++){
-			Json::Value val = arrPassengers[k];
-			stop.alightingPassengers.push_back(val.asString());
+
+		Json::Value arrPassengers = itemSchedule["passengers"];
+		for(int i=0; i<arrStops.size(); i++)
+		{
+			Json::Value item = arrPassengers[i];
+			FMOD_Schedule::Passenger pass;
+			pass.clientId = item["client_id"].asString();
+			pass.price = boost::lexical_cast<int>(item["price"].asCString());
+			schedule.passengers.push_back(pass);
 		}
-		stopSchdules.push_back(stop);
-	}
 
-	Json::Value arrPassengers = root["passengers"];
-	for(int i=0; i<arrStops.size(); i++)
-	{
-		Json::Value item = arrPassengers[i];
-		Passenger pass;
-		pass.clientId = item["client_id"].asString();
-		pass.price = item["price"].asInt();
-		passengers.push_back(pass);
-	}
-
-	Json::Value arrRoutes = root["route"];
-	for(int i=0; i<arrStops.size(); i++)
-	{
-		Json::Value item = arrRoutes[i];
-		Route route;
-		route.id = item["id"].asString();
-		route.type = item["type"].asInt();
-		routes.push_back(route);
+		Json::Value arrRoutes = itemSchedule["route"];
+		for(int i=0; i<arrStops.size(); i++)
+		{
+			Json::Value item = arrRoutes[i];
+			FMOD_Schedule::Route route;
+			route.id = item["id"].asString();
+			route.type = boost::lexical_cast<int>(item["type"].asCString());
+			const StreetDirectory& stdir = StreetDirectory::instance();
+			int id = boost::lexical_cast<int>( route.id );
+			sim_mob::Node* node = const_cast<sim_mob::Node*>(stdir.getNode(id));
+			if(node){
+				schedule.routes.push_back(node);
+			}
+		}
+		schedules.push_back(schedule);
 	}
 }
+
+
+std::string MsgFinalize::buildToString(){
+	std::string msg;
+	Json::Value Request;
+	Request["end_time"] = this->end_time;
+
+	std::stringstream buffer;
+	buffer << this->messageID_ << "," << Request << std::endl;
+	msg = buffer.str();
+
+	return msg;
+}
+
+
 }
 
 } /* namespace sim_mob */

@@ -332,7 +332,7 @@
           <xs:element name="firstPair" type="geo:temp_Segmetair_t" minOccurs="0" />
           <xs:element name="secondPair" type="geo:temp_Segmetair_t" minOccurs="0" />
           <xs:element name="Connectors" type="geo:connectors_t"/>
-          <xs:element name="new_Connectors" type="geo:new_connectors_t"/>
+          <xs:element name="new_Connectors" type="geo:new_connectors_t" minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

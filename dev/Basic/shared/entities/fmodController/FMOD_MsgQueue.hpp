@@ -45,7 +45,7 @@ public:
       * @param msg is to store message content
       * @return void.
       */
-	void pushMessage(std::string msg);
+	void pushMessage(std::string msg, bool notified=false);
 
     /**
       * pop up the first message from this storage.

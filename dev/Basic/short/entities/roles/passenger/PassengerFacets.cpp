@@ -7,10 +7,8 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/Person.hpp"
-#include "entities/BusStopAgent.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
-#include "logging/Log.hpp"
 
 using namespace sim_mob;
 
@@ -48,9 +46,8 @@ void PassengerBehavior::frame_tick_output() {
 }
 
 sim_mob::PassengerMovement::PassengerMovement(sim_mob::Person* parentAgent):
-		MovementFacet(parentAgent), parentPassenger(nullptr), alightingMS(0),
-		waitingTime(-1), timeOfReachingBusStop(0), displayX(0), displayY(0),skip(0),
-		timeOfStartTrip(0), travelTime(0), busTripRunNum(0), buslineId("")
+		MovementFacet(parentAgent), parentPassenger(nullptr), alighting_MS(0),
+		WaitingTime(-1), TimeOfReachingBusStop(0), displayX(0), displayY(0),skip(0)
 {
 }
 
@@ -60,6 +57,13 @@ sim_mob::PassengerMovement::~PassengerMovement() {
 
 void sim_mob::PassengerMovement::setParentBufferedData()
 {
+//	//if passenger inside bus,update position of the passenger agent(inside bus)every frame tick
+//	if((isAtBusStop()==false)and(this->busdriver.get()!=NULL))
+//	{
+//		//passenger x,y position equals the bus drivers x,y position as passenger is inside the bus
+//		parent->xPos.set(this->busdriver.get()->getPositionX());
+//		parent->yPos.set(this->busdriver.get()->getPositionY());
+//	}
 	if(parentPassenger->busdriver.get()!=nullptr)
 	{
 		parent->xPos.set(parentPassenger->busdriver.get()->getVehicle()->getPosition().x);
@@ -69,27 +73,15 @@ void sim_mob::PassengerMovement::setParentBufferedData()
 
 void sim_mob::PassengerMovement::frame_init() {
 	//initialization
-//	WaitingTime = -1;
-	if(getParent()->originNode.type_== WayPoint::BUS_STOP && getParent()->destNode.type_== WayPoint::BUS_STOP) {
-		BusStopAgent* OriginBusstopAg = getParent()->originNode.busStop_->generatedBusStopAgent;
-		getParent()->xPos.force(OriginBusstopAg->getBusStop().xPos);// set xPos to WaitBusActivityRole
-		getParent()->yPos.force(OriginBusstopAg->getBusStop().yPos);// set yPos to WaitBusActivityRole
-		originBusStop = const_cast<BusStop*>(getParent()->originNode.busStop_);
-		destBusStop = const_cast<BusStop*>(getParent()->destNode.busStop_);
-		timeOfStartTrip = getParent()->currTick.ms();
-		if(getParent()) {
-			getParent()->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
-		}
-		return;
-	}
-	originBusStop=nullptr;
+	WaitingTime = -1;
+	OriginBusStop=nullptr;
 	if(getParent()->originNode.type_==WayPoint::NODE) {
-		originBusStop = setBusStopXY(getParent()->originNode.node_);
+		OriginBusStop = setBusStopXY(getParent()->originNode.node_);
 	}
 
-	if(originBusStop) {
-		getParent()->xPos.set(originBusStop->xPos);
-		getParent()->yPos.set(originBusStop->yPos);
+	if(OriginBusStop) {
+		getParent()->xPos.set(OriginBusStop->xPos);
+		getParent()->yPos.set(OriginBusStop->yPos);
 	}
 	else if(parent->originNode.type_==WayPoint::NODE)
 	{
@@ -98,13 +90,14 @@ void sim_mob::PassengerMovement::frame_init() {
 		parent->yPos.set(node->getLocation().getY());
 	}
 
-	destBusStop=nullptr;
+	DestBusStop=nullptr;
 	if(getParent()->destNode.type_ == WayPoint::NODE )
 	{
-		destBusStop = setBusStopXY(getParent()->destNode.node_);
+		DestBusStop = setBusStopXY(getParent()->destNode.node_);
 	}
 
-	timeOfStartTrip = getParent()->currTick.ms();;
+	TimeOfReachingBusStop=parentPassenger->getParams().now.ms();
+	//Person* person = dynamic_cast<Person*> (parent);
 	if(getParent()) {
 		getParent()->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
 	}
@@ -113,9 +106,9 @@ void sim_mob::PassengerMovement::frame_init() {
 
 void sim_mob::PassengerMovement::frame_tick() {
 	PassengerUpdateParams &p = parentPassenger->getParams();
-	if(0 != alightingMS) {
-		if(alightingMS == p.now.ms()) {
-			alightingMS = 0;
+	if(0 != alighting_MS) {
+		if(alighting_MS == p.now.ms()) {
+			alighting_MS = 0;
 			//Person* person = dynamic_cast<Person*> (parent);
 			if(getParent()) {
 				if(!getParent()->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
@@ -130,11 +123,6 @@ void sim_mob::PassengerMovement::frame_tick() {
 					newRole->Movement()->frame_init();
 				} else {
 					getParent()->setToBeRemoved();//removes passenger if destination is reached
-					travelTime = p.now.ms() - getParent()->getAlightingCharacteristics() * 1000 - timeOfStartTrip;
-					const uint32_t waitingTimeAtStop = parentPassenger->getWaitingTimeAtStop();
-					PassengerInfoPrint() << "iamwaiting id "<<getParent()->getId()<<" from "<<getParent()->originNode.busStop_->busstopno_<<" to "<<getParent()->destNode.busStop_->busstopno_<<" "
-							<<(ConfigManager::GetInstance().FullConfig().simStartTime() + DailyTime(getParent()->getStartTime()) + DailyTime(waitingTimeAtStop)).getRepr_()<<" "
-							<<waitingTimeAtStop<<" bustripRunNum " << getBusTripRunNum() << " buslineid " << getBuslineId() << " TravelTime " << travelTime << std::endl;
 					parentPassenger->busdriver.set(nullptr);// assign this busdriver to Passenger
 					parentPassenger->BoardedBus.set(false);
 					parentPassenger->AlightedBus.set(true);
@@ -149,16 +137,16 @@ void sim_mob::PassengerMovement::frame_tick() {
 void sim_mob::PassengerMovement::frame_tick_output() {
 	PassengerUpdateParams &p = parentPassenger->getParams();
 	//Reset our offset if it's set to zero
-	if (displayOffset.getX()==0 && displayOffset.getY()==0) {
+	if (DisplayOffset.getX()==0 && DisplayOffset.getY()==0) {
 	   boost::mt19937 gen(static_cast<unsigned int>(getParent()->getId()*getParent()->getId()));
 	   boost::uniform_int<> distX(0, 249);
 	   boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varX(gen, distX);
 	   boost::uniform_int<> distY(0, 99);
 	   boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varY(gen, distY);
 	   unsigned int value = (unsigned int)varX();
-	   displayOffset.setX(value+1);
+	   DisplayOffset.setX(value+1);
 	   value= (unsigned int)varY();
-	   displayOffset.setY(value+1);
+	   DisplayOffset.setY(value+1);
 	}
 
 	//MPI-specific output.
@@ -173,18 +161,19 @@ void sim_mob::PassengerMovement::frame_tick_output() {
 	int yPos =0;
 
 
+	const int offset = 800;
 	if((parentPassenger->BoardedBus.get()==false) && (parentPassenger->AlightedBus.get()==false)) {
 		//output passenger on visualizer only if passenger on road
-		xPos = getParent()->xPos.get()+displayOffset.getX();
-		yPos = getParent()->yPos.get()+displayOffset.getY();
+		xPos = getParent()->xPos.get()+DisplayOffset.getX()+offset;
+		yPos = getParent()->yPos.get()+DisplayOffset.getY()-offset;
 	} else if((parentPassenger->BoardedBus.get()==false) && (parentPassenger->AlightedBus.get()==true)) {
 		//output passenger on visualizer only if passenger on road
-		xPos = displayX-displayOffset.getX()-displayOffset.getX();
-		yPos = displayY-displayOffset.getY()-displayOffset.getY();
+		xPos = displayX-DisplayOffset.getX()-DisplayOffset.getX()+offset;
+		yPos = displayY-DisplayOffset.getY()-DisplayOffset.getY()-offset;
 	}
 
 	LogOut("(\"passenger"
-		<<"\","<<getParent()->currTick.frame()
+		<<"\","<<p.now.frame()
 		<<","<<getParent()->getId()
 		<<","<<"{\"xPos\":\""<<xPos
 		<<"\"," <<"\"yPos\":\""<<yPos
@@ -215,7 +204,7 @@ Point2D sim_mob::PassengerMovement::getXYPosition()
 
 Point2D sim_mob::PassengerMovement::getDestPosition()
 {
-	return Point2D((destBusStop->xPos),(destBusStop->yPos));
+	return Point2D((DestBusStop->xPos),(DestBusStop->yPos));
 }
 
 bool sim_mob::PassengerMovement::PassengerAlightBus(Driver* driver)
@@ -259,7 +248,7 @@ bool sim_mob::PassengerMovement::isBusBoarded()
 
 void sim_mob::PassengerMovement::findWaitingTime(Bus* bus)
 {
-	waitingTime=(bus->TimeOfBusreachingBusstop)-(timeOfReachingBusStop);
+	WaitingTime=(bus->TimeOfBusreachingBusstop)-(TimeOfReachingBusStop);
 }
 
 BusStop* sim_mob::PassengerMovement::setBusStopXY(const Node* node)//to find the nearest busstop to a node
@@ -346,10 +335,10 @@ bool sim_mob::PassengerMovement::PassengerBoardBus_Choice(Driver* driver)
  {
 	BusDriver* busdriver = dynamic_cast<BusDriver*>( driver );
 	if(busdriver){
-		for(int i=0;i<buslinesToTake.size();i++)
+		for(int i=0;i<BuslinesToTake.size();i++)
 		{
 			 Bus* bus = dynamic_cast<Bus*>(busdriver->getVehicle());
-			if(buslinesToTake[i]->getBusLineID()==bus->getBusLineID())//boards if approaching busline of approaching busline
+			if(BuslinesToTake[i]->getBusLineID()==bus->getBusLineID())//boards if approaching busline of approaching busline
 			//is in the pre-decided busline list
 			{
 			  if(bus->getPassengerCount()+1<=bus->getBusCapacity())
@@ -361,7 +350,7 @@ bool sim_mob::PassengerMovement::PassengerBoardBus_Choice(Driver* driver)
 				parentPassenger->BoardedBus.set(true);//to indicate passenger has boarded bus
 				parentPassenger->AlightedBus.set(false);//to indicate whether passenger has alighted bus
 				findWaitingTime(bus);
-				buslinesToTake.clear();
+				BuslinesToTake.clear();
 				return true;
 			 }
 			}
@@ -377,9 +366,9 @@ bool sim_mob::PassengerMovement::PassengerBoardBus_Choice(Driver* driver)
 
 void sim_mob::PassengerMovement::FindBusLines() //find bus lines there and decide which line to board based on shortest path
  {
-	 if(originBusStop!=nullptr && parentPassenger->BoardedBus.get()==false)
+	 if(OriginBusStop!=nullptr && parentPassenger->BoardedBus.get()==false)
 	 {
-		 vector<Busline*> buslines=originBusStop->BusLines;//list of available buslines at busstop
+		 vector<Busline*> buslines=OriginBusStop->BusLines;//list of available buslines at busstop
          int prev=0;
 		 for(int i=0;i<buslines.size();i++)
 		 {
@@ -398,22 +387,22 @@ void sim_mob::PassengerMovement::FindBusLines() //find bus lines there and decid
 		  //queries through list of bus stops of bus line starting from current bus stop to end bus stop
 		  //this is to see if the particular bus line has the destination bus stop of passenger
 		  //if yes and if its shortest available route, the bus line is added to the list of bus lines passenger is supposed to take
-		  for(it=++std::find(busstops.begin(),busstops.end(),originBusStop);it!=busstops.end();it++)
+		  for(it=++std::find(busstops.begin(),busstops.end(),OriginBusStop);it!=busstops.end();it++)
 		  {
    			  BusStop* bs=const_cast<BusStop*>(*it);
 
    			  //checking if the bus stop is the destination bus stop of passenger
-			  if(bs==destBusStop)//add this bus line to the list,if it is the shortest
+			  if(bs==DestBusStop)//add this bus line to the list,if it is the shortest
 			  {
 				  if(prev==0 || prev> noOfBusstops)
 				  {
-					  buslinesToTake.clear();
-					  buslinesToTake.push_back(buslines[i]);
+					  BuslinesToTake.clear();
+					  BuslinesToTake.push_back(buslines[i]);
 				      prev=noOfBusstops;
 				  }
 				  else if(prev==noOfBusstops)
 				  {
-					  buslinesToTake.push_back(buslines[i]);//update the list of bus lines passenger is supposed to take
+					  BuslinesToTake.push_back(buslines[i]);//update the list of bus lines passenger is supposed to take
 					  prev=noOfBusstops;
 				  }
 			  }
@@ -425,6 +414,6 @@ void sim_mob::PassengerMovement::FindBusLines() //find bus lines there and decid
 
 std::vector<Busline*> sim_mob::PassengerMovement::ReturnBusLines()
 {
-	 return buslinesToTake;
+	 return BuslinesToTake;
 }
 }

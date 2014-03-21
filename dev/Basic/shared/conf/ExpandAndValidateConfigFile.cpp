@@ -353,7 +353,7 @@ void sim_mob::ExpandAndValidateConfigFile::LoadFMOD_Controller()
 {
 	if (cfg.fmod.enabled) {
 		sim_mob::FMOD::FMOD_Controller::registerController(-1, cfg.mutexStategy());
-		sim_mob::FMOD::FMOD_Controller::instance()->settings(cfg.fmod.ipAddress, cfg.fmod.port, cfg.fmod.updateTimeMS, cfg.fmod.mapfile, cfg.fmod.blockingTimeSec);
+		sim_mob::FMOD::FMOD_Controller::instance()->settings(cfg.fmod.ipAddress, cfg.fmod.port, cfg.fmod.updateTravelMS, cfg.fmod.updatePosMS, cfg.fmod.mapfile, cfg.fmod.blockingTimeSec);
 		sim_mob::FMOD::FMOD_Controller::instance()->connectFmodService();
 	}
 }
@@ -361,7 +361,7 @@ void sim_mob::ExpandAndValidateConfigFile::LoadAMOD_Controller()
 {
 	if (cfg.amod.enabled) {
 		sim_mob::AMOD::AMODController::registerController(-1, cfg.mutexStategy());
-		sim_mob::AMOD::AMODController::instance()->settings(cfg.amod.ipAddress, cfg.amod.port, cfg.amod.updateTimeMS, cfg.amod.mapfile, cfg.amod.blockingTimeSec);
+		sim_mob::AMOD::AMODController::instance()->settings(cfg.amod.ipAddress, cfg.amod.port, cfg.amod.updateTravelMS, cfg.amod.mapfile, cfg.amod.blockingTimeSec);
 		sim_mob::AMOD::AMODController::instance()->connectAmodService();
 	}
 }

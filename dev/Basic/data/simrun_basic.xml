@@ -2,25 +2,29 @@
 
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
 
+<!-- This config file was originally designed to test loading network geometry via AIMSUN tables. -->
+<!-- Somehow, it ended up being the basis for every test we run. -->
 <config>
     <!-- Anything in the "constructs" section is created with an ID and some structure (e.g., an object) -->
     <!-- The idea here is to allow re-using some common settings in multiple places, and to allow multiple optional -->
-    <!-- items (e.g. database connections), without having to comment out the ones which are not used. -->
+    <!-- items (e.g. database connections), withouh having to comment out the ones which are not used. -->
     <!-- Key to the idea of a construct is that if it is incorrectly specified, it is only considered to be an error if -->
     <!-- it is USED. In other words, the parser will flag it as an error, but pend that error until the construct is requested. -->
     <!-- A construct ID must be unique for its type (databases, credentials, etc.) -->
     <!-- Note that constructs can be defined and used out-of-order, since their IDs are only resolved once they are retrieved. -->
     <constructs>
         <!-- Define distributions which may be used for a variety of things. -->
-        <!-- NOTE: These are not currently created or used, but should be added soon. -->
+	<!-- NOTE: These are not currently created or used, but should be added soon. -->
         <distributions>
-            <!-- Distributions pertinent to driver reaction times -->
             <dist id="driver_react_1" type="lognormal"  mean="500"  stdev="100"/>
             <dist id="driver_react_2" type="lognormal"  mean="500"  stdev="100"/>
+
+            <!-- Distributions relating to passengers. -->
+            <dist id="passenger_distribution_busstop" type="normal" mean="10" stdev="1"/>
         </distributions>
 
         <!-- Various database connections, used for loading network and agent data. -->
-        <!-- Note that credentials (login details) are stored in a separate construct. -->
+	<!-- Note that credentials (login details) are stored in a separate construct. -->
         <databases>
             <!-- FM server connection -->
             <database id="fm_remote" dbtype="postgres">
@@ -39,25 +43,11 @@
             <database id="fm_local" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
-                <dbname value="SimMobility_DB"/>
+                <dbname value="SimMobility_DB_New"/>
             </database>
-
-            <database id="fm_local_lt" dbtype="postgres">
-                <host value="localhost"/>
-                <port value="5432"/>
-                <dbname value="sim_mob_lt"/>
-            </database>
-            
-            <!-- Variables stores for preday demand simulator-->
-            <database id="fm_mongo" dbtype="mongodb">
-                <host value="localhost"/>
-                <port value="27017"/>
-                <dbname value="mydb"/>
-            </database>
-
         </databases>
-    
-        <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
+	
+	<!-- Groupings of stored procedures, used for loading network data from certain tables. -->
         <db_proc_groups>
             <!-- The small Bugis-area network -->
             <proc_map id="bugis_small" format="aimsun">
@@ -81,7 +71,7 @@
                 <mapping name="lane" procedure="get_lanes()"/>
                 <mapping name="turning" procedure="get_lane_connector()"/>
                 <mapping name="polyline" procedure="get_section_polyline()"/>
-                <mapping name="tripchain" procedure="get_tripchains()"/>
+                <mapping name="tripchain" procedure=""/>
                 <mapping name="busstop" procedure="get_bus_stop()"/>
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
@@ -101,12 +91,10 @@
                 <mapping name="phase" procedure="get_lane_connector_phases_marina_bay()"/>
             </proc_map>
 
-            <!-- For testing purposes, if you want to control which signals are  --> 
-            <!-- created, then use this proc_map to disable the automatic signal -->  
-            <!-- creation via database lookup, and add entries in the top-level -->  
-            <!-- <signals> section below.  Note that this feature will be removed -->  
-            <!-- soon and without notice. After that, only signals found in the -->  
-            <!-- database or in XML files will be created. --> 
+            <!-- For testing purposes, if you want to control which signals are created, then use this proc_map to
+                 disable the automatic signal creation via database lookup, and add entries in the top-level 
+                 <signals> section below.  Note that this feature will be removed soon and without notice.  
+                 After that, only signals found in the database or in XML files will be created. --> 
             <proc_map id="bugis_small_nosignal" format="aimsun">
                 <mapping name="node" procedure="get_node()"/>
                 <mapping name="section" procedure="get_section()"/>
@@ -129,34 +117,18 @@
                 <mapping name="turning" procedure="get_lane_connector_bugis()"/>
                 <mapping name="polyline" procedure="get_section_polyline_bugis()"/>
                 <mapping name="tripchain" procedure="get_tripchains()"/>
-                <mapping name="busstop" procedure="get_bus_stop_bugis()"/>
                 <mapping name="signal" procedure="get_traffic_signals()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
-                <!-- These public-transit mappings tested with the large-bugis network. -->
-                <!-- "pt_bus_dispatch_freq" store some bus dispatching schedules for buses -->
-                <!-- "pt_bus_routes" store some bus routes for buses -->
-                <!-- "pt_bus_stops" store some bus stops for buses -->
+		
+		<!-- These public-transit mappings have currently only been tested with the large-bugis network. -->
+                <mapping name="bus_schedule" procedure="get_bus_schedule()"/>
                 <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('saturday')"/>
                 <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
                 <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+                <mapping name="busstop" procedure="get_bus_stop_bugis()"/>
             </proc_map>
                 
-                
-            <!-- Entire singapore network -->
-            <proc_map id="singapore" format="aimsun">
-                <mapping name="node" procedure="get_node_sg()"/>
-                <mapping name="section" procedure="get_section_sg()"/>
-                <mapping name="crossing" procedure="get_pedestrian_crossing_bugis()"/>
-                <mapping name="lane" procedure="get_lanes_bugis()"/>
-                <mapping name="turning" procedure="get_lane_connector_bugis()"/>
-                <mapping name="polyline" procedure="get_section_polyline_sg2()"/>
-                <mapping name="tripchain" procedure="get_preday_scaled_car_tripchains()"/>
-                <mapping name="busstop" procedure="get_bus_stop()"/>
-                <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
-                <mapping name="phase" procedure="get_lane_connector_phases_bugis()"/>
-            </proc_map>
-                 
-            <!-- entire Singapore network with HITS trip chains -->
+            <!-- The large Bugis-area network -->
             <proc_map id="HITS" format="aimsun">
                 <mapping name="node" procedure="get_node_sg()"/>
                 <mapping name="section" procedure="get_section_sg()"/>
@@ -165,108 +137,61 @@
                 <mapping name="turning" procedure="get_lane_connector_bugis()"/>
                 <mapping name="polyline" procedure="get_section_polyline_sg2()"/>
                 <mapping name="tripchain" procedure="get_hits_tripchains()"/>
-                <mapping name="busstop" procedure="get_bus_stop()"/>
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases_BUGIS()"/>
-                <!-- These public-transit mappings tested with the whole Singapore network. -->
-                <!-- "pt_bus_dispatch_freq" store some bus dispatching schedules for buses -->
-                <!-- "pt_bus_routes" store some bus routes for buses -->
-                <!-- "pt_bus_stops" store some bus stops for buses -->
+		
+		<!-- These public-transit mappings have currently only been tested with the large-bugis network. -->
+                <mapping name="bus_schedule" procedure="get_bus_schedule()"/>
                 <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('saturday')"/>
                 <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
                 <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
-            </proc_map>
-
-            <!-- Preday demand -->
-            <proc_map id="preday" format="long-term">
-                <mapping name="population" procedure="get_preday_person()"/>
-                <mapping name="landuse" procedure="get_landuse()"/>
+                <mapping name="busstop" procedure="get_bus_stop()"/>
             </proc_map>
         </db_proc_groups>
-    
-        <!-- Login credentials to be used for database connections. These can be plaintext, -->
-        <!-- file-based, and possibly even signed. Note that invalid credentials will simply be ignored. -->
-        <credentials>
-            <!-- A file-based credential loads credentials from a JSON file with its own special format. -->
-            <!-- Multiple files can be listed, and they will be tried in order until one is found. -->
-            <!-- If the first existing file has an error, parsing will NOT continue to the next file. -->
-            <!-- The actual credentials file looks something like this: -->
-            <!-- 
-            {
-                "username" : "postgres",
-                "password" : "AbCdEfG=",
-                "algorithm" : ["clear","xor23","base64","cipher"]
-            }
-            -->
-            <!-- Here, the username is stored in cleartext. The password is stored according to the algorithm listed. -->
-            <!-- So in this example, the "clear" text is first "xor23"'d, then "base64" encoded, then finally we arrive at the "cipher" text. -->
-            <!-- If you  just want to store the password in cleartext, use "algorithm" : ["clear","cipher"] -->
-            <file-based-credential id="fm_remote">
-                <file path="private/fm_remote.cred.txt"/>
-                <file path="/usr/share/simmobility/credentials/fm_remote.cred.txt"/> <!-- For example -->
-            </file-based-credential>
-          
-            <file-based-credential id="fm_local">
-                <file path="private/fm_local.cred.txt"/>
-            </file-based-credential>
-      
-            <file-based-credential id="fm_remote_path_choice">
-                <file path="private/fm_remote.cred.txt"/>
-                <file path="/usr/share/simmobility/credentials/fm_remote.cred.txt"/> <!-- For example -->
-            </file-based-credential>
-      
-            <!-- Plaintext credentials can be used to store the password verbatim. -->
-            <!-- BE CAREFUL with these; remember that EVERYONE can see them: -->
-            <!--    1) Don't put any passwords here that you care about (e.g., email accounts) -->
-            <!--    2) Don't put any passwords to databases on the FM server. -->
-            <plaintext-credential id="fm_local_yaojin">
-                <username value="postgres"/>
-                <password value="5M_S1mM0bility"/>
-            </plaintext-credential>
-
-            <plaintext-credential id="harish_cred">
-                <username value="postgres"/>
-                <password value="secret"/>
-            </plaintext-credential>
-        </credentials>
-    
-        <!--File names for any non-C++ scripts to be executed during simulation -->
-        <external_scripts id="preday_scripts" path="scripts/lua/mid/behavior-models/" format="lua">
-            <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
-            <script name="dp" file="dp.lua"/> <!-- Day Pattern -->
-            <script name="ntw" file="ntw.lua"/> <!-- Number Of Tours Work -->
-            <script name="nte" file="nte.lua"/> <!-- Number Of Tours Education -->
-            <script name="nts" file="nts.lua"/> <!--Number Of Tours Shopping -->
-            <script name="nto" file="nto.lua"/> <!--Number Of Tours Others -->
-            <script name="uw" file="uw.lua"/> <!--Attend Usual Work -->
-            <script name="tmw" file="tmw.lua"/> <!--Tour Mode Work -->
-            <script name="tme" file="tme.lua"/> <!--Tour Mode Education -->
-            <script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->
-            <script name="tmds" file="tmds.lua"/> <!--Tour Mode/Destination Shopping -->
-            <script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->
-            <script name="tws" file="tws.lua"/> <!--Work Based Sub-Tours -->
-            <script name="ttdw" file="ttdw.lua"/> <!--Tour Time Of Day Work -->
-            <script name="ttdo" file="ttdo.lua"/> <!--Tour Time Of Day Others -->
-            <script name="ttde" file="ttde.lua"/> <!--Tour Time Of Day Education -->
-            <script name="isg" file="isg.lua"/> <!--Intermediate Stop Generation -->
-            <script name="imd" file="imd.lua"/> <!--Intermediate Stop Mode/Destination -->
-            <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->
-        </external_scripts>
-    
-        <!-- Names of MongoDB database and collections -->
-        <mongo_collections id="preday_mongo" db_name="mydb">
-            <mongo_collection name="population" collection="hits_population"/>
-            <mongo_collection name="tcost_bus" collection="tcost_bus"/>
-            <mongo_collection name="tcost_car" collection="tcost_car"/>
-            <mongo_collection name="AMCosts" collection="AMCosts"/>
-            <mongo_collection name="OPCosts" collection="OPCosts"/>
-            <mongo_collection name="PMCosts" collection="PMCosts"/>
-            <mongo_collection name="Zone" collection="Zone"/>
-            <mongo_collection name="Output_DayPattern" collection="person_tours_cpp_11_3"/>
-            <mongo_collection name="Output_Tour" collection="tours_cpp_11_3"/>
-            <mongo_collection name="Output_Activity" collection="activity_cpp_11_3"/>
-        </mongo_collections>
+	
+	<!-- Login credentials to be used for database connections. These can be plaintext, -->
+	<!-- file-based, and possibly even signed. Note that invalid credentials will simply be ignored. -->
+	<credentials>
+	  <!-- A file-based credential loads credentials from a JSON file with its own special format. -->
+	  <!-- Multiple files can be listed, and they will be tried in order until one is found. -->
+	  <!-- If the first existing file has an error, parsing will NOT continue to the next file. -->
+	  <!-- The actual credentials file looks something like this: -->
+	  <!-- 
+                  {
+                    "username" : "postgres",
+		    "password" : "AbCdEfG=",
+		    "algorithm" : ["clear","xor23","base64","cipher"]
+		  }
+          -->
+	  <!-- Here, the username is stored in cleartext. The password is stored according to the algorithm listed. -->
+	  <!-- So in this example, the "clear" text is first "xor23"'d, then "base64" encoded, then finally we arrive at the "cipher" text. -->
+	  <!-- If you  just want to store the password in cleartext, use "algorithm" : ["clear","cipher"] -->
+	  <file-based-credential id="fm_remote">
+	    <file path="private/fm_remote.cred.txt"/>
+	    <file path="/usr/share/simmobility/credentials/fm_remote.cred.txt"/> <!-- For example -->
+	  </file-based-credential>
+	  
+	  <file-based-credential id="fm_local">
+	    <file path="private/fm_local.cred.txt"/>
+	  </file-based-credential>
+	  
+	  <file-based-credential id="fm_remote_path_choice">
+	    <file path="private/fm_remote.cred.txt"/>
+	    <file path="/usr/share/simmobility/credentials/fm_remote.cred.txt"/> <!-- For example -->
+	  </file-based-credential>
+	  
+	  <!-- Plaintext credentials can be used to store the password verbatim. -->
+	  <!-- BE CAREFUL with these; remember that EVERYONE can see them: -->
+	  <!--    1) Don't put any passwords here that you care about (e.g., email accounts) -->
+	  <!--    2) Don't put any passwords to databases on the FM server. -->
+	  <plaintext-credential id="fm_local_yaojin">
+	    <username value="postgres"/>
+	    <password value="5M_S1mM0bility"/>
+	  </plaintext-credential>
+	</credentials>
+	
     </constructs>
+
 
     <!-- System configuration properties -->
     <system>
@@ -275,10 +200,10 @@
         <!-- (but will be rounded down.) -->
         <simulation>
             <base_granularity   value="100"   units="ms" />
-            <total_runtime      value="30"      units="minutes" />
+            <total_runtime      value="5"      units="minutes" />
             <total_warmup       value="10"     units="seconds" />
             
-            <start_time         value="08:30:00"/>
+            <start_time         value="08:00:00"/>
             
             <!-- Implementation to use for the Aura Manager. -->
             <!-- Values include: simtree, rdu, rstar (default) -->
@@ -291,11 +216,10 @@
             <workgroup_assignment value="roundrobin"/>
                         
             <!-- Properties for SimMobility-MPI -->
-            <partitioning_solution_id   value="1"    units="unit" />
+         	<partitioning_solution_id   value="1"	units="unit" />
             
-            <!-- Order in which agents are to be loaded into the simulation -->
-            <!-- Values include: database, drivers, pedestrians, passenger, xml-tripchains -->
-            <load_agents order="drivers"/>
+            <!--  <load_agents order="database drivers pedestrians"/> -->
+             <load_agents order="drivers pedestrians"/>
             
             <!-- Optional. At what value do we start counting for automatically -->
             <!-- generated Agent IDs? Set to a high value if you want to avoid  -->
@@ -305,16 +229,16 @@
             
             <!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
             <mutex_enforcement    strategy="buffered" />
-            
-            <!-- This element configures communication simulator. -->
-            <!-- it is possible to enable or disable the communication simulation capability -->
-            <!-- in general, or any of the communication simulation entities in particular. -->
-            <!-- Moreover, there can be custom configuration settings for each communication -->
-            <!-- simulation entities like 'mode' of operation. -->
-            <communication enabled="no">
-                <roadrunner mode="android-only" enabled="no"/> <!--currently: mode="android-only" and "android-ns3" -->
-                <stk mode="android-ns3" enabled="no"/> 
-            </communication>
+        	<communication enabled="no">
+        		<roadrunner mode="android-only" enabled="no"/> <!--currently: mode="android-only" and "android-ns3" -->
+        		<stk mode="android-ns3" enabled="no"/> 
+        	</communication>
+
+<!--  These don't seem to do anything. ~Seth -->
+<!--   		    <communication_simulator value="yes"/> -->
+<!--            <reacTime_LeadingVehicle      value="1500"      units="ms" /> -->
+<!--            <reacTime_SubjectVehicle      value="1500"      units="ms" /> -->
+<!--            <reacTime_Gap      value="1500"      units="ms" /> -->
 
             <reacTime_distributionType1      value="1" /> <!-- 0 is normal distribution, 1 is log normal-->
             <reacTime_distributionType2      value="1" />
@@ -322,19 +246,32 @@
             <reacTime_mean2      value="500" />
             <reacTime_standardDev1    value="100" />
             <reacTime_standardDev2    value="100" />
+            
+            <passenger_distribution_busstop      value="0" /> <!-- 0 is normal distribution, 1 is log normal-->
+            <passenger_mean_busstop      value="10" />
+            <passenger_standardDev_busstop    value="2" />
+            <passenger_percent_boarding value="100"/>
+            <passenger_percent_alighting value="40"/>
+            <passenger_min_uniform_distribution value="40"/>
+            <passenger_max_uniform_distribution value="60"/>
         </simulation>
-                
+        
+        <!-- Time granularities for each component -->
+        <!-- Each must be a multiple of the "base" granularity -->
+<!--         <granularities>
+            <person  value="100"   units="ms" /> 
+            <signal value="1"   units="seconds" />  
+            <communication  value="100"  units="ms" />  
+        </granularities>-->
+        
         <!-- List of all Worker types and their properties. -->
-        <!-- granularity of each component must be a multiple of the "base" granularity -->
         <workers>
             <person count="1" granularity="100ms"/> <!-- Person agents (with Roles) -->
             <signal count="1" granularity="1 second"/> <!-- Traffic signals -->
-            <communication count="0" granularity="100ms"/>  <!-- Communication simulator -->
+        	<communication count="0" granularity="100ms"/>  <!-- Communication simulator -->
         </workers>
         
         <!-- Setting to true should push everything onto one thread. -->
-        <!-- NOTE: Setting to true will cause the synchronization barriers not to be used. -->
-        <!-- Be careful about any functional logic which depends on the barriers -->
         <single_threaded value="false"/>
         
         <!-- Setting to true will combine all out* files into one out.txt and delete the out* files. -->
@@ -352,13 +289,12 @@
         <!-- This only has an effect if network_source is set to "xml" -->
         <network_xml_file_input value=""/>
         <network_xml_file_output value=""/>
-    
-        <!-- If loading from the database, which database, proc_map, and credentials are used? -->
-        <!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
-        <!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
-        <network_database database="fm_local" credentials="harish_cred" proc_map="bugis_large"/>
-        <!--<network_database database="fm_remote" credentials="fm_local_yaojin" proc_map="bugis_large"/>-->
-        
+	
+	<!-- If loading from the database, which database, proc_map, and credentials are used? -->
+	<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
+	<!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
+<!--	<network_database database="fm_local" credentials="fm_local" proc_map="bugis_small_custom"/-->
+	<network_database database="fm_remote" credentials="fm_local_yaojin" proc_map="bugis_large"/>
         <!-- Where to find our various schema files. -->
         <!-- Overrides xsi:schemaLocation in the files themselves. -->
         <!-- Note that absolute paths are allowed, and that relative paths are relative to the current working directory. -->
@@ -373,58 +309,67 @@
         
         <!-- The new parser will simply load everything in the "generic_props" section into "SystemParams.genericProps".  -->
         <!-- In other words, you DO NOT need to update the parser just to add a simple string-based configuration parameter to -->
-        <!-- the config file. This is intended to be used for new or temporary features. -->
+	<!-- the config file. This is intended to be used for new or temporary features. -->
+	<!-- NOTE -->
+	<!-- At the moment, these are just example values; they are not read and do nothing in Sim Mobility. -->
+	<!-- END NOTE -->
         <generic_props>
+            <!-- The partitioning scheme used by SimMobility-MPI -->
+            <!-- TODO: Valid values? -->
+            <property key="partitioning_solution_id" value="1"/>
+
+            <!-- Optional. At what value do we start counting for automatically -->
+            <!-- generated Agent IDs? Set to a high value if you want to avoid  -->
+            <!-- ID collisions when manually specifying Agent IDs in the config file. -->
+            <!-- Setting this to zero has the same effect as leaving it out; the default value is zero. -->
+            <property key="auto_id_start" value="0"/>
+
+            <!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
+            <property key="mutex_enforcement_strategy" value="buffered"/> 
+
             <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
             <property key="busline_control_type" value="headway_based"/>
 
-            <!-- Used only by mid-term. Admissible values are "none", "demand", "supply" -->
-            <!-- and "demand+supply". Determines whether to run SimMobility_Medium's -->
-            <!-- demand simulator or the supply simulator -->
-            <property key="mid_term_run_mode" value="none"/> 
-            
-            <!-- Adding external scripts as a generic proerty for now. -->
-            <!-- A dedicated element will be created when we have more uses for this --> 
-            <!-- property than just the mid-term preday demand simulator-->
-            <property key="external_scripts" value="preday_scripts"/>
-            
-            <!-- Number of threads to create for processing the population in-->
-            <!-- the preday demand simulator -->
-            <property key="demand_threads" value="3"/>
+            <!-- The percentage of passengers boarding and alighting at each bus stop (default 100, each.). -->
+            <property key="passenger_percent_boarding" value="100"/>
+            <property key="passenger_percent_alighting" value="40"/>
         </generic_props>
     </system>
 
     
-    <!-- FMOD controller settings. This is for FMOD extention -->
-    <fmodcontroller enabled="false">
+    <!-- FMOD controller settings -->
+    <fmodcontroller enabled="true">
         <ip_address value="127.0.0.1"/>
         <port value="9000"/>
-        <update_time_ms value="500"/>
-        <map_file value="cityhall/cityhall.osm"/>
-        <blocking_time_sec value="5"/>
+        <interval_travel_MS value="60000"/>
+        <interval_pos_MS value ="6000"/>
+        <map_file value="map/random001/mynetwork.osm"/>
+        <blocking_time_Sec value="10"/>
     </fmodcontroller>
+
         
     <incidentsData enabled="yes">
-        <incident id="0" visibility="4000" segment="40200" position="60" cap_factor="1.0" start_time="08:30:00" duration="00:32:00" length="1000" compliance="50" accessibility="50" > 
-            <lane laneId="0" speedLimitFactor="0"/>
-            <lane laneId="1" speedLimitFactor="0"/>
-            <lane laneId="2" speedLimitFactor="20"/>
-        </incident>
+    	<incident id="0" visibility="4000" segment="40200" position="60" cap_factor="1.0" start_time="08:30:00" duration="00:32:00" length="1000" compliance="50" accessibility="50" > 
+    		<lane laneId="0" speedLimitFactor="0"/>
+    		<lane laneId="1" speedLimitFactor="0"/>
+    		<lane laneId="2" speedLimitFactor="20"/>
+    	</incident>
     </incidentsData>
     
-    <!-- This is data only for "schedule_based", "evenheadway_based" or "hybrid_based" control strategies -->
-    <!-- each item store the scheduled offset arriving time(ms) and offset departure time(ms) at some bus stops -->
+    
+    <!-- For buses (?) -->
+    <!-- TODO: Are we actually using this any more? -->
     <scheduledTimes>
-        <stop offsetAT="11600" offsetDT="17600" />
-        <stop offsetAT="74800" offsetDT="80800" />
+        <stop offsetAT="11600"  offsetDT="17600"  />
+        <stop offsetAT="74800"  offsetDT="80800"  />
         <stop offsetAT="101000" offsetDT="107100" />
-        <stop offsetAT="124000" offsetDT="130000" />       
-        <stop offsetAT="174300" offsetDT="180300" />    
+        <stop offsetAT="124000" offsetDT="130000" />   	
+        <stop offsetAT="174300" offsetDT="180300" />	
         <stop offsetAT="254400" offsetDT="260400" />
         <stop offsetAT="287800" offsetDT="293800" />
-        <stop offsetAT="313500" offsetDT="319500" />       
-        <stop offsetAT="376100" offsetDT="382100" />    
-        <stop offsetAT="403600" offsetDT="409600" />        
+        <stop offsetAT="313500" offsetDT="319500" />   	
+        <stop offsetAT="376100" offsetDT="382100" />	
+        <stop offsetAT="403600" offsetDT="409600" />		
     </scheduledTimes>
     
     
@@ -436,43 +381,36 @@
     <!--East node is: 37270984,14378959-->
     <!--West node is: 37227139,14327875-->
     <drivers>
-        <!-- These test the short term -->
-        <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="0" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="0"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="0" lane="3"/>
+<!-- These test the short term -->
+	   	<driver originPos="37227139,14327875" destPos="37270984,14378959" time="0" lane="2"/>
+	   	<driver originPos="37245506,14359431" destPos="37254988,14351820" time="0" lane="1"/>
+	   	<driver originPos="37232503,14369823" destPos="37240057,14318241" time="0"/>
+	   	<driver originPos="37240057,14318241" destPos="37232503,14369823" time="0" lane="3"/>
     </drivers> 
-    
     <pedestrians> 
-        <!--Pedestrian start locations-->
-        <!--group of 3-->     
+   		<!--Pedestrian start locations-->
+	    <!--group of 3-->     
         <!--group of 5-->
-        <pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
-        <pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
-        <pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="1000"/>      
+    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
+    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
+    	<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="1000"/>  	
     </pedestrians>
     
     <!-- Bus Drivers. This is just for testing; currently a lot of Bus information is simply generated. -->
     <!-- Note that Buses are loaded with "drivers", since I don't want to add a new tag for testing data -->
-    <busdrivers>
-    </busdrivers>
+	<busdrivers>
+	</busdrivers>
     
-    <!-- To Enable Buses: make sure the following stored procedures in your <proc_map> not empty and valid -->
-    <!-- 1. "pt_bus_dispatch_freq" -->
-    <!-- 2. "pt_bus_routes" -->
-    <!-- 3. "pt_bus_stops" -->
-    <!-- With the above three procedures present and valid, enable buses with "<buscontroller time="0" />" in the <buscontrollers> -->
-    <!-- To Disable Buses: user can simply comment the buscontroller in the <buscontrollers> -->
     <buscontrollers>
-        <buscontroller time="0" />    
-    </buscontrollers>
-    
-<!--<signals> -->
-    <!-- Any of the following signals will not be created if it has already been created by -->
-    <!-- the 'signal' stored procedure above.  Note that this <signals> section will be -->
-    <!-- removed soon and without notice.  After that, only signals found in the database -->
-    <!-- will be created. -->
-<!--<signal xpos="37250760" ypos="14355120"/>
-    </signals> -->
+		<buscontroller time="0" />	
+	</buscontrollers>
+	
+   <!-- <signals> -->
+        <!-- Any of the following signals will not be created if it has already been created by
+             the 'signal' stored procedure above.  Note that this <signals> section will be
+             removed soon and without notice.  After that, only signals found in the database
+             will be created.  -->
+    <!--    <signal xpos="37250760" ypos="14355120"/>
+    </signals>-->
 </config>
 

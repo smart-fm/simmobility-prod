@@ -86,6 +86,10 @@ public:
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 	virtual std::vector<sim_mob::BufferedBase*> getDriverInternalParams();
 	void handleUpdateRequest(MovementFacet* mFacet);
+
+	//handle parent event from other agents
+	virtual void onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+
 //Buffered data
 public:
 	Shared<const Lane*> currLane_;

@@ -343,7 +343,24 @@ void sim_mob::DriverMovement::frame_tick()
 
 	//Are we done already?
 	if (parentDriver->vehicle->isDone()) {
-		getParent()->setToBeRemoved();
+		if(parent->schedules.size()>1){
+			parent->schedules.pop_front();
+			std::vector<Node*>& routes = parent->schedules.front().routes;
+			std::vector<Node*>::iterator first = routes.begin();
+			std::vector<Node*>::iterator second = first;
+
+			vector<WayPoint> path;
+			const StreetDirectory& stdir = StreetDirectory::instance();
+			for(second++; first!=routes.end() && second!=routes.end(); first++, second++){
+				vector<WayPoint> subPath = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(**first), stdir.DrivingVertex(**second));
+				path.insert( path.end(), subPath.begin(), subPath.end());
+			}
+			parentDriver->vehicle->resetPath(path);
+		}
+		else{
+			getParent()->setToBeRemoved();
+		}
+
 		return;
 	}
 
@@ -768,14 +785,13 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 		}
 	}
 
-	FMODSchedule* schedule = parentDriver->vehicle->schedule;
-	if(processFMODSchedule(schedule, p)){
-		parentDriver->vehicle->setAcceleration(-5000);
+	Person* parentP = dynamic_cast<Person*> (parent);
+	if(parentP && parentP->schedules.size() && processFMODSchedule(&parentP->schedules.front(), p)){
+		parentDriver->vehicle->setAcceleration(0);
 		parentDriver->vehicle->setVelocity(0);
 		p.currSpeed = parentDriver->vehicle->getVelocity() / 100;
 		return updatePositionOnLink(p);
 	}
-
 
 	//check incident status and decide whether or not do lane changing
 	LANE_CHANGE_MODE mode = DLC;
@@ -865,7 +881,12 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 	return updatePositionOnLink(p);
 }
 
-bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, DriverUpdateParams& p)
+void sim_mob::DriverMovement::assignNewFMODSchedule(const sim_mob::FMOD_RequestEventArgs& request)
+{
+	const std::list<FMOD_Schedule>& schedules = request.schedules;
+}
+
+bool sim_mob::DriverMovement::processFMODSchedule(FMOD_Schedule* schedule, DriverUpdateParams& p)
 {
 	bool ret = false;
 	if(schedule) // check whether need stop here
@@ -877,16 +898,15 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 		double dwellTime = 0;
 		double distance = parentDriver->vehicle->getDistanceToSegmentEnd();
 
-		if( stop->getID() == 75956 ){
-			std::cout << "distance is : " << distance << std::endl;
-		}
-
 		//judge whether near to stopping node
-		if( distance<500 ){
+		const int stopRegion = 800;
+		if( distance<stopRegion ){
+
+			//std::cout << "distance (to node id : "<< stop->getID() << " ) is : " << distance << std::endl;
 
 			for(int i = 0; i<schedule->stopSchdules.size(); i++){
 
-				FMODSchedule::STOP& stopSchedule = schedule->stopSchdules[i];
+				FMOD_Schedule::Stop& stopSchedule = schedule->stopSchdules[i];
 
 				if( stopSchedule.stopId==stop->getID()){
 
@@ -897,7 +917,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 					if(dwellTime==0){
 
 						parentDriver->stop_event_type.set(1);
-						parentDriver->stop_event_scheduleid.set(stopSchedule.scheduleId);
+						parentDriver->stop_event_scheduleid.set(schedule->scheduleId);
 						parentDriver->stop_event_nodeid.set(stop->getID());
 
 						int passengersnum = stopSchedule.alightingPassengers.size()+stopSchedule.boardingPassengers.size();
@@ -910,16 +930,17 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 					 	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((node->getLocation().getX() - 3500),(node->getLocation().getY() - 3500)),Point2D((node->getLocation().getX() + 3500),(node->getLocation().getY() + 3500)), parentAgent);
 					 	for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
 					 	{
+							const Person* p = dynamic_cast<const Person*>( (*it) );
+							Passenger* passenger = p ? dynamic_cast<Passenger*>(p->getRole()) : nullptr;
+
+							if (!passenger) {
+							  continue;
+							}
+
 					 		//passenger boarding
 							vector<int>& boardingpeople = stopSchedule.boardingPassengers;
-							if( std::find(boardingpeople.begin(), boardingpeople.end(), (*it)->getId() ) != boardingpeople.end() )
+							if( std::find(boardingpeople.begin(), boardingpeople.end(), p->client_id ) != boardingpeople.end() )
 							{
-								const Person* p = dynamic_cast<const Person*>( (*it) );
-								Passenger* passenger = p ? dynamic_cast<Passenger*>(p->getRole()) : nullptr;
-
-								if (!passenger) {
-								  continue;
-								}
 
 								schedule->insidePassengers.push_back( p );
 								PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
@@ -936,7 +957,7 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 						{
 							vector<const Person*>::iterator itPerson=schedule->insidePassengers.begin();
 							while(itPerson!=schedule->insidePassengers.end()){
-								if((*it) == (int)(*itPerson)->getId() ){
+								if((*it) == (int)(*itPerson)->client_id ){
 									Passenger* passenger = dynamic_cast<Passenger*>((*itPerson)->getRole());
 									if (!passenger)
 										continue;
@@ -1402,7 +1423,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
 		const StreetDirectory& stdir = StreetDirectory::instance();
 
-		if(subTrip->schedule==nullptr){
+		if(parentP && parentP->schedules.size()==0){
 			// if use path set
 			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 				path = PathSetManager::getInstance()->getPathByPerson(getParent());
@@ -1415,7 +1436,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 
 		}
 		else {
-			std::vector<Node*>& routes = subTrip->schedule->routes;
+			std::vector<Node*>& routes = parentP->schedules.front().routes;
 			std::vector<Node*>::iterator first = routes.begin();
 			std::vector<Node*>::iterator second = first;
 
@@ -1463,12 +1484,6 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		if (allocateVehicle) {
 			res = new Vehicle(path, startLaneId, length, width);
 		}
-
-		if(subTrip->schedule && res){
-			int stopid = subTrip->schedule->stopSchdules[0].stopId;
-			res->schedule = subTrip->schedule ;
-		}
-
 	}
 
 	//to indicate that the path to next activity is already planned

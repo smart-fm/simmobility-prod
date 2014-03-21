@@ -507,6 +507,10 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		partitionImpl.stopMPIEnvironment();
 	}
 
+	if(sim_mob::FMOD::FMOD_Controller::instanceExists()){
+		sim_mob::FMOD::FMOD_Controller::instance()->finalizeMessageToFMOD();
+	}
+
 	std::cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
 
 	cout << "Max Agents at any given time: " <<maxAgents <<std::endl;

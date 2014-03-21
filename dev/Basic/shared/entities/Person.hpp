@@ -13,6 +13,7 @@
 #include "entities/Agent.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/LangHelpers.hpp"
+#include "entities/fmodController/FMOD_Message.hpp"
 
 namespace sim_mob
 {
@@ -196,10 +197,18 @@ public:
     std::stringstream debugMsgs;
     int client_id;
 
+    std::list<sim_mob::FMOD_Schedule> schedules;
+
 protected:
 	virtual bool frame_init(timeslice now);
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
 	virtual void frame_output(timeslice now);
+
+	/**
+	 * Inherited from Agent.
+	 */
+	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+
 
 private:
 	//to indicate that Role's updateParams has to be reset.

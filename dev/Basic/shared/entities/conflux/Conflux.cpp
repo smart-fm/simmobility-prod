@@ -10,6 +10,7 @@
  */
 
 #include "Conflux.hpp"
+#include <math.h>
 
 #include <algorithm>
 #include <map>
@@ -29,6 +30,7 @@
 #include "logging/Log.hpp"
 #include "util/Utils.hpp"
 #include "workers/Worker.hpp"
+#include "util/AlgorithmBase.hpp"
 
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
@@ -74,6 +76,8 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* p, const sim_mob::RoadSegment* 
 UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 	currFrameNumber = frameNumber;
 
+//	std::cout << "frameNumber:" << frameNumber.frame() << std::endl;
+
 	resetPositionOfLastUpdatedAgentOnLanes();
 
 	//reset the remaining times of persons in lane infinity and VQ if required.
@@ -96,12 +100,24 @@ void sim_mob::Conflux::updateSignalized() {
 }
 
 void sim_mob::Conflux::updateUnsignalized() {
+
+//#define UsingTopCMergeInConflux
+#ifdef UsingTopCMergeInConflux
+	//merge vehicles on conflux
+	std::deque<sim_mob::Person*> all_persons_in_reverse_order = getAllPersonsUsingTopCMerge();
+
+	std::deque<sim_mob::Person*>::iterator person_iter = all_persons_in_reverse_order.begin();
+	for (; person_iter != all_persons_in_reverse_order.end(); person_iter++) {
+		updateAgent(*person_iter);
+	}
+#else
 	initCandidateAgents();
 	sim_mob::Person* person = agentClosestToIntersection();
 	while (person) {
 		updateAgent(person);
 		person = agentClosestToIntersection(); // get next Person to update
 	}
+#endif
 
 	// We would have to add and erase persons in activityPerformers in updateAgent(). Therefore we need to iterate on a copy.
 	std::deque<sim_mob::Person*> activityPerformersCopy = activityPerformers;
@@ -926,6 +942,65 @@ std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersons() {
 	}
 	allPersonsInCfx.insert(allPersonsInCfx.end(), activityPerformers.begin(), activityPerformers.end());
 	return allPersonsInCfx;
+}
+
+std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersonsUsingTopCMerge() {
+	std::deque<sim_mob::Person*> tmpAgents;
+	sim_mob::SegmentStats* segStats = nullptr;
+//	std::vector< std::deque<sim_mob::Person*> > all_person_lists;
+	std::vector< std::deque<sim_mob::Person*>* > all_person_lists;
+
+	int sum_capacity = 0;
+
+	//need to calculate the time to intersection for each vehicle.
+	//basic test-case shows that this calculation is kind of costly.
+	if (AlgorithmBase::order_by_setting == ORDERING_BY_DRIVING_TIME_TO_INTERSECTION) {
+
+		for (std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator upStrmSegMapIt = upstreamSegmentsMap.begin(); upStrmSegMapIt != upstreamSegmentsMap.end();
+				upStrmSegMapIt++) {
+			double accumalted_travel_time_on_downstream_segments = 0;
+
+			for (std::vector<sim_mob::RoadSegment*>::const_reverse_iterator rdSegIt = upStrmSegMapIt->second.rbegin(); rdSegIt != upStrmSegMapIt->second.rend(); rdSegIt++) {
+				segStats = findSegStats(*rdSegIt);
+				std::deque<sim_mob::Person*> all_agents = segStats->getAgents();
+				double speed = segStats->getSegSpeed(true);
+
+				for (std::deque<sim_mob::Person*>::iterator p_it = all_agents.begin(); p_it != all_agents.end(); p_it++) {
+					(*p_it)->drivingTimeToEndOfLink = (*p_it)->distanceToEndOfSegment / speed + accumalted_travel_time_on_downstream_segments;
+				}
+
+				accumalted_travel_time_on_downstream_segments += (*rdSegIt)->getLaneZeroLength() / speed;
+			}
+		}
+	}
+
+
+//	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator upStrmSegMapIt = upstreamSegmentsMap.begin(); upStrmSegMapIt != upstreamSegmentsMap.end(); upStrmSegMapIt++) {
+//		std::deque<sim_mob::Person*> one_deque;
+//		all_person_lists.push_back(one_deque);
+//	}
+
+	int index = 0;
+	for (std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator upStrmSegMapIt = upstreamSegmentsMap.begin(); upStrmSegMapIt != upstreamSegmentsMap.end(); upStrmSegMapIt++, index++) {
+		std::deque<sim_mob::Person*>* person_on_the_link = new std::deque<sim_mob::Person*>();
+
+		sum_capacity += (int)(ceil(upStrmSegMapIt->second[0]->capacity * 5 / 3600)); //hard-code
+
+		//Note that the segments must be in a reserved order
+		for (std::vector<sim_mob::RoadSegment*>::const_reverse_iterator rdSegIt = upStrmSegMapIt->second.rbegin(); rdSegIt != upStrmSegMapIt->second.rend(); rdSegIt++) {
+			segStats = findSegStats(*rdSegIt);
+			tmpAgents = segStats->getAgentsByTopCMerge();
+			person_on_the_link->insert(person_on_the_link->end(), tmpAgents.begin(), tmpAgents.end());
+//			all_person_lists[index].insert(all_person_lists[index].end(), tmpAgents.begin(), tmpAgents.end());
+		}
+
+		all_person_lists.push_back(person_on_the_link);
+	}
+
+	//for testing
+//	sum_capacity = 2;
+
+	return AlgorithmBase::topCMerge(all_person_lists, sum_capacity);
 }
 
 void sim_mob::Conflux::setRdSegTravelTimes(Person* ag, double rdSegExitTime) {

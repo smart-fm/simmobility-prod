@@ -4,12 +4,15 @@
 
 #include "SegmentStats.hpp"
 
+#include <math.h>
+
 #include <cmath>
 #include <algorithm>
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "logging/Log.hpp"
+#include "util/AlgorithmBase.hpp"
 
 using std::string;
 
@@ -74,6 +77,21 @@ std::deque<sim_mob::Person*> SegmentStats::getAgents() {
 
 	return segAgents;
 }
+
+std::deque<sim_mob::Person*> SegmentStats::getAgentsByTopCMerge() {
+	std::vector< std::deque<sim_mob::Person*>* > all_person_lists;
+	int capacity = (int)(ceil(roadSegment->capacity * 5 / 3600)); //hard-code
+
+	for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator lnIt = laneStatsMap.begin(); lnIt != laneStatsMap.end(); lnIt++) {
+		all_person_lists.push_back(&(lnIt->second->laneAgents));
+	}
+
+	//for testing
+//	capacity = 2;
+
+	return AlgorithmBase::topCMerge(all_person_lists, capacity);
+}
+
 
 std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const sim_mob::Lane* lane) {
 	return std::make_pair(laneStatsMap.at(lane)->getQueuingAgentsCount(), laneStatsMap.at(lane)->getMovingAgentsCount());

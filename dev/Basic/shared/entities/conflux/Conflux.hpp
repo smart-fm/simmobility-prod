@@ -333,6 +333,13 @@ public:
 	std::deque<sim_mob::Person*> getAllPersons();
 
 	/**
+	 * get a list of all persons in this conflux
+	 * ORDER_BY_WHAT = 0: by location
+	 * ORDER_BY_WHAT = 1: by time
+	 */
+	std::deque<sim_mob::Person*> getAllPersonsUsingTopCMerge();
+
+	/**
 	 * get number of persons in lane infinities of this conflux
 	 */
 	unsigned int getNumRemainingInLaneInfinity();

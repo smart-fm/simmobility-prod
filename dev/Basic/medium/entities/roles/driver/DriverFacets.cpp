@@ -44,6 +44,21 @@ using std::set;
 using std::map;
 using std::string;
 
+namespace {
+void initSegStatsPath(vector<sim_mob::WayPoint>& wpPath,
+		vector<const sim_mob::SegmentStats*>& ssPath) {
+	for (vector<sim_mob::WayPoint>::iterator it = wpPath.begin();
+			it != wpPath.end(); it++) {
+		if (it->type_ == WayPoint::ROAD_SEGMENT) {
+			const sim_mob::RoadSegment* rdSeg = it->roadSegment_;
+			const sim_mob::SegmentStats* segStats =
+					rdSeg->getParentConflux()->findSegStats(rdSeg);
+			ssPath.push_back(segStats);
+		}
+	}
+}
+}
+
 namespace sim_mob {
 namespace medium {
 
@@ -71,16 +86,15 @@ sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	distToSegmentEnd(0), velocity(0)
 {}
 
-sim_mob::medium::DriverMovement::~DriverMovement() {
-	safe_delete_item(vehicle);
-}
+sim_mob::medium::DriverMovement::~DriverMovement() {}
 
 void sim_mob::medium::DriverMovement::frame_init() {
 	//Save the path from orign to next activity location in allRoadSegments
-	Vehicle* newVeh = initializePath(true);
+	Vehicle* newVeh = new Vehicle();
+	initializePath();
 	if (newVeh) {
-		safe_delete_item(vehicle);
-		vehicle = newVeh;
+		Vehicle* oldVehicle = parentDriver->getResource();
+		safe_delete_item(oldVehicle);
 		parentDriver->setResource(newVeh);
 	}
 	else{
@@ -189,9 +203,7 @@ void sim_mob::medium::DriverMovement::frame_tick_output() {
 	LogOut(logout.str());
 }
 
-sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateVehicle) {
-	Vehicle* res = nullptr;
-
+void sim_mob::medium::DriverMovement::initializePath() {
 	//Only initialize if the next path has not been planned for yet.
 	if(!getParent()->getNextPathPlanned()){
 		//Save local copies of the parent's origin/destination nodes.
@@ -206,46 +218,37 @@ sim_mob::Vehicle* sim_mob::medium::DriverMovement::initializePath(bool allocateV
 			<< "\norigin:" << parentDriver->origin.node->getID()
 			<< "\ndestination:" << parentDriver->goal.node->getID()
 			<< std::endl;
-			return res;
+			return;
 		}
 
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
-		vector<WayPoint> path = getParent()->getCurrPath();
-		if(path.empty()){
+		vector<WayPoint> wp_path = getParent()->getCurrPath();
+		if(wp_path.empty()){
 			// if use path set
 			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-				path = PathSetManager::getInstance()->getPathByPerson(getParent());
+				wp_path = PathSetManager::getInstance()->getPathByPerson(getParent());
 			}
 			else
 			{
 				const StreetDirectory& stdir = StreetDirectory::instance();
-				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
+				wp_path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
 			}
-			getParent()->setCurrPath(path);
+			getParent()->setCurrPath(wp_path);
 		}
 		//For now, empty paths aren't supported.
-		if (path.empty()) {
+		if (wp_path.empty()) {
 			//throw std::runtime_error("Can't initializePath(); path is empty.");
 			Print()<<"DriverMovement::initializePath | Can't initializePath(); path is empty for driver "
 				   <<getParent()->GetId()<<std::endl;
-			return res;
+			return;
 		}
 
-		//TODO: Start in lane 0?
-		int startlaneID = 0;
-
-		// Bus should be at least 1200 to be displayed on Visualizer
-		const double length = 400;
-		const double width = 200;
-
-		//A non-null vehicle means we are moving.
-		if (allocateVehicle) {
-			res = new Vehicle(path, startlaneID, length, width);
-		}
+		initSegStatsPath(wp_path, path);
+		currSegStatIt = path.begin();
 	}
 	//to indicate that the path to next activity is already planned
 	getParent()->setNextPathPlanned(true);
-	return res;
+	return;
 }
 
 void DriverMovement::setParentData(DriverUpdateParams& p) {

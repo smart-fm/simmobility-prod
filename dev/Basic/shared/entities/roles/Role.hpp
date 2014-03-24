@@ -103,6 +103,7 @@ public:
 	virtual ~Role() {
 		safe_delete_item(behaviorFacet);
 		safe_delete_item(movementFacet);
+		safe_delete_item(currResource);
 	}
 
 	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.

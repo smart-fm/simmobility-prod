@@ -89,7 +89,7 @@ public:
 	double getLastAccept(const Lane* l);
 	void setLastAccept(const Lane* l, double lastAccept);
 	void updateFlow(const RoadSegment* rdSeg, double startPos, double endPos);
-	virtual Vehicle* initializePath(bool allocateVehicle);
+	virtual void initializePath();
 	void setOrigin(DriverUpdateParams& p);
 
 	sim_mob::medium::Driver* getParentDriver() const {
@@ -108,7 +108,7 @@ public:
 	}
 
 protected:
-	typedef std::vector<sim_mob::SegmentStats*> Path;
+	typedef std::vector<const sim_mob::SegmentStats*> Path;
 
 	/**
 	 * Pointer to the parent Driver role.

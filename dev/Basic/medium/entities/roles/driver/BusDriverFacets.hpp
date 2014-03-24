@@ -61,7 +61,7 @@ public:
 	}
 
 protected:
-	virtual Vehicle* initializePath(bool allocateVehicle);
+	virtual void initializePath();
 
 	sim_mob::medium::BusDriver* parentBusDriver;
 };

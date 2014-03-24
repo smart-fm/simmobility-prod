@@ -100,13 +100,15 @@ public:
 		this->parentDriver = parentDriver;
 	}
 
+	double getPositionInSegment() const {
+		return this->distToSegmentEnd;
+	}
+	void setPositionInSegment(double dist2end){
+		this->distToSegmentEnd = dist2end;
+	}
+
 protected:
 	typedef std::vector<sim_mob::SegmentStats*> Path;
-
-	/**
-	 * Path of this driver
-	 */
-	Path path;
 
 	/**
 	 * Pointer to the parent Driver role.
@@ -114,15 +116,31 @@ protected:
 	sim_mob::medium::Driver* parentDriver;
 
 	/**
-	 * The vehicle allocated to this driver
+	 * Path of this driver
 	 */
-	Vehicle* vehicle;
+	Path path;
+
+	Path::iterator currSegStatIt;
 
 	const Lane* currLane;
 	const Lane* nextLaneInNextSegment;
+	bool isQueuing;
+	double vehicleLength;
+	double velocity;
+
+	//distance to the end of the current segment.
+	double distToSegmentEnd;
 
 	mutable std::stringstream DebugStream;
 
+	const sim_mob::RoadSegment* getCurrSegment() const;
+	const sim_mob::RoadSegment* getNextSegment(bool inSameLink=true) const;
+	const sim_mob::RoadSegment* getSecondSegmentAhead() const;
+	const sim_mob::RoadSegment* getPrevSegment(bool inSameLink=true) const;
+	bool hasNextSegment(bool inSameLink) const;
+	void advanceInPath();
+	bool isPathCompleted() const;
+	void moveFwdInSegment(double fwdDisplacement);
 	bool isConnectedToNextSeg(const Lane* lane, const RoadSegment* nextRdSeg);
 	void addToQueue(const Lane* lane);
 	void removeFromQueue();

@@ -22,6 +22,7 @@
 #include "database/dao/TemplateDao.hpp"
 #include "database/dao/LandUseZoneDao.hpp"
 #include "database/dao/DevelopmentTypeTemplateDao.hpp"
+#include "database/dao/TemplateUnitTypeDao.hpp"
 
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
@@ -73,4 +74,5 @@ void DaoTests::testAll() {
     TestDao<TemplateDao, Template>();
     TestDao<LandUseZoneDao, LandUseZone>();
     TestDao<DevelopmentTypeTemplateDao, DevelopmentTypeTemplate>(2);
+    TestDao<TemplateUnitTypeDao, TemplateUnitType>(2);
 }

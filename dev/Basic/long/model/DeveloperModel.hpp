@@ -12,6 +12,8 @@
 #include "database/entity/Template.hpp"
 #include "database/entity/Parcel.hpp"
 #include "database/entity/LandUseZone.hpp"
+#include "database/entity/DevelopmentTypeTemplate.hpp"
+#include "database/entity/TemplateUnitType.hpp"
 
 namespace sim_mob {
     namespace long_term {
@@ -22,6 +24,8 @@ namespace sim_mob {
             typedef std::vector<Template*> TemplateList;
             typedef std::vector<Parcel*> ParcelList;
             typedef std::vector<LandUseZone*> LandUseZonesList;
+            typedef std::vector<DevelopmentTypeTemplate*> DevelopmentTypeTemplateList;
+            typedef std::vector<TemplateUnitType*> TemplateUnitTypeList;
         public:
             DeveloperModel(WorkGroup& workGroup);
             virtual ~DeveloperModel();
@@ -36,6 +40,8 @@ namespace sim_mob {
             TemplateList templates;
             ParcelList parcels;
             LandUseZonesList zones;
+            DevelopmentTypeTemplateList developmentTypeTemplates;
+            TemplateUnitTypeList templateUnitTypes;
         };
     }
 }

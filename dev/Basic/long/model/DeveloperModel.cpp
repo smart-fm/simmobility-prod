@@ -17,6 +17,8 @@
 #include "database/dao/ParcelDao.hpp"
 #include "database/dao/TemplateDao.hpp"
 #include "database/dao/LandUseZoneDao.hpp"
+#include "database/dao/DevelopmentTypeTemplateDao.hpp"
+#include "database/dao/TemplateUnitTypeDao.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -50,6 +52,10 @@ void DeveloperModel::startImpl() {
         loadData<ParcelDao>(conn, parcels);
         //load land use zones
         loadData<LandUseZoneDao>(conn, zones);
+        //load DevelopmentType-Templates
+        loadData<DevelopmentTypeTemplateDao>(conn, developmentTypeTemplates);
+        //load Template - UnitType
+        loadData<TemplateUnitTypeDao>(conn, templateUnitTypes);
     }
 
     for (DeveloperList::iterator it = developers.begin(); it != developers.end();
@@ -64,6 +70,8 @@ void DeveloperModel::startImpl() {
     addMetadata("Initial Templates", templates.size());
     addMetadata("Initial Parcels", parcels.size());
     addMetadata("Initial Zones", zones.size());
+    addMetadata("Initial DevelopmentTypeTemplates", developmentTypeTemplates.size());
+    addMetadata("Initial TemplateUnitTypes", templateUnitTypes.size());
 }
 
 void DeveloperModel::stopImpl() {
@@ -71,4 +79,6 @@ void DeveloperModel::stopImpl() {
     clear_delete_vector(templates);
     clear_delete_vector(parcels);
     clear_delete_vector(zones);
+    clear_delete_vector(developmentTypeTemplates);
+    clear_delete_vector(templateUnitTypes);
 }

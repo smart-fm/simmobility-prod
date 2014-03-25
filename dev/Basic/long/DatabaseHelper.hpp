@@ -40,7 +40,8 @@ namespace sim_mob {
         const std::string DB_TABLE_POSTCODE = APPLY_SCHEMA(MAIN_SCHEMA, "postcode");
         const std::string DB_TABLE_POSTCODE_AMENITIES = APPLY_SCHEMA(MAIN_SCHEMA, "postcode_amenities");
         const std::string DB_TABLE_LAND_USE_ZONE = APPLY_SCHEMA(MAIN_SCHEMA, "land_use_zone");
-        
+        const std::string DB_TABLE_DEVELOPMENT_TYPE_TEMPLATE = APPLY_SCHEMA(MAIN_SCHEMA, "development_type_template");
+
         /**
          * Views
          */
@@ -72,6 +73,8 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_POSTCODE_AMENITIES_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodeAmenitiesById(:id)");
         const std::string DB_FUNC_GET_LAND_USE_ZONES = APPLY_SCHEMA(MAIN_SCHEMA, "getLandUseZones()");
         const std::string DB_FUNC_GET_LAND_USE_ZONE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getLandUseZoneById(:id)");
+        const std::string DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATES = APPLY_SCHEMA(MAIN_SCHEMA, "getDevelopmentTypeTemplates()");
+        const std::string DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getDevelopmentTypeTemplateById(:devId, :templateId)");
         /**
          * Fields
          */
@@ -150,18 +153,22 @@ namespace sim_mob {
         const std::string DB_FIELD_MIN_Y = "min_y";
         const std::string DB_FIELD_MAX_Y = "max_y";
         const std::string DB_FIELD_GPR = "gpr";
-        
+        const std::string DB_FIELD_DENSITY = "density";
+        const std::string DB_FIELD_DEVELOPMENT_TYPE_ID = "development_type_id";
+        const std::string DB_FIELD_TEMPLATE_ID = "template_id";
+
+
         /**
          * INSERT
          */
-        const std::string DB_INSERT_HOUSEHOLD = "INSERT INTO " 
+        const std::string DB_INSERT_HOUSEHOLD = "INSERT INTO "
                 + DB_TABLE_HOUSEHOLD + " ("
                 + DB_FIELD_ID + ", "
                 + DB_FIELD_UNIT_ID + ", "
                 + DB_FIELD_SIZE + ", "
                 + DB_FIELD_CHILDREN + ", "
                 + DB_FIELD_INCOME + ", "
-                + DB_FIELD_HOUSING_DURATION 
+                + DB_FIELD_HOUSING_DURATION
                 + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)";
 
         const std::string DB_INSERT_BUILDING = DB_EMPTY_QUERY;
@@ -172,14 +179,14 @@ namespace sim_mob {
         /**
          * UPDATE
          */
-        const std::string DB_UPDATE_HOUSEHOLD = "UPDATE " 
+        const std::string DB_UPDATE_HOUSEHOLD = "UPDATE "
                 + DB_TABLE_HOUSEHOLD + " SET "
                 + DB_FIELD_UNIT_ID + "= :v1, "
                 + DB_FIELD_SIZE + "= :v2, "
                 + DB_FIELD_CHILDREN + "= :v3, "
                 + DB_FIELD_INCOME + "= :v4, "
-                + DB_FIELD_HOUSING_DURATION 
-                + "= :v5 WHERE " 
+                + DB_FIELD_HOUSING_DURATION
+                + "= :v5 WHERE "
                 + DB_FIELD_ID + "=:v6";
 
         const std::string DB_UPDATE_BUILDING = DB_EMPTY_QUERY;
@@ -190,11 +197,11 @@ namespace sim_mob {
         /**
          * DELETE
          */
-        const std::string DB_DELETE_HOUSEHOLD = "SELECT * FROM " 
+        const std::string DB_DELETE_HOUSEHOLD = "SELECT * FROM "
                 + DB_FUNC_DEL_HOUSEHOLD_BY_ID;
         const std::string DB_DELETE_BUILDING = "SELECT * FROM "
                 + DB_FUNC_DEL_BUILDING_BY_ID;
-        const std::string DB_DELETE_UNIT = "SELECT * FROM " 
+        const std::string DB_DELETE_UNIT = "SELECT * FROM "
                 + DB_FUNC_DEL_UNIT_BY_ID;
         const std::string DB_DELETE_POSTCODE = DB_EMPTY_QUERY;
         const std::string DB_DELETE_POSTCODE_AMENITIES = DB_EMPTY_QUERY;
@@ -223,13 +230,15 @@ namespace sim_mob {
                 + DB_FUNC_GET_POSTCODES_AMENITIES;
         const std::string DB_GETALL_LAND_USE_ZONES = "SELECT * FROM "
                 + DB_FUNC_GET_LAND_USE_ZONES;
-        
+        const std::string DB_GETALL_DEVELOPMENT_TYPE_TEMPLATES = "SELECT * FROM "
+                + DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATES;
+
         /**
          * GET BY ID
          */
         const std::string DB_GETBYID_HOUSEHOLD = "SELECT * FROM "
                 + DB_FUNC_GET_HOUSEHOLD_BY_ID;
-        const std::string DB_GETBYID_BUILDING = "SELECT * FROM " 
+        const std::string DB_GETBYID_BUILDING = "SELECT * FROM "
                 + DB_FUNC_GET_BUILDING_BY_ID;
         const std::string DB_GETBYID_UNIT = "SELECT * FROM " +
                 DB_FUNC_GET_UNIT_BY_ID;
@@ -243,7 +252,9 @@ namespace sim_mob {
                 DB_FUNC_GET_POSTCODE_BY_ID;
         const std::string DB_GETBYID_POSTCODE_AMENITIES = "SELECT * FROM " +
                 DB_FUNC_GET_POSTCODE_AMENITIES_BY_ID;
-         const std::string DB_GETBYID_LAND_USE_ZONE = "SELECT * FROM " +
+        const std::string DB_GETBYID_LAND_USE_ZONE = "SELECT * FROM " +
                 DB_FUNC_GET_LAND_USE_ZONE_BY_ID;
+        const std::string DB_GETBYID_DEVELOPMENT_TYPE_TEMPLATE = "SELECT * FROM " +
+                DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATE_BY_ID;
     }
 }

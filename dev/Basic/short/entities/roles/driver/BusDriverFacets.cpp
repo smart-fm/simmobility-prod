@@ -103,7 +103,8 @@ Vehicle* sim_mob::BusDriverMovement::initializePath_bus(bool allocateVehicle) {
 
 			//A non-null vehicle means we are moving.
 			if (allocateVehicle) {
-				res = new Vehicle(path, startlaneID, vehicle_id, length, width);
+				res = new Vehicle(vehicle_id, length, width);
+				fwdDriverMovement.setPath(path, startlaneID);
 			}
 		}
 
@@ -159,11 +160,11 @@ void sim_mob::BusDriverMovement::frame_init() {
 					if (busStops.empty()) {
 						Warn() << "Error: No BusStops assigned from BusTrips!!! "<< std::endl;
 						// This case can be true, so use the BusStops found by Path instead
-						busStops = findBusStopInPath(parentBusDriver->vehicle->getCompletePath());
+						busStops = findBusStopInPath(fwdDriverMovement.fullPath);
 					}
 				}
 			} else {
-				busStops = findBusStopInPath(parentBusDriver->vehicle->getCompletePath());
+				busStops = findBusStopInPath(fwdDriverMovement.fullPath);
 			}
 		}
 		//Unique to BusDrivers: reset your route
@@ -267,7 +268,7 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 		double acc = busAccelerating(p) * 100;
 
 		//move to most left lane
-		p.nextLaneIndex =parentBusDriver->vehicle->getCurrSegment()->getLanes().back()->getLaneID();
+		p.nextLaneIndex =fwdDriverMovement.getCurrSegment()->getLanes().back()->getLaneID();
 		LANE_CHANGE_SIDE lcs =mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
 		parentBusDriver->vehicle->setTurningDirection(lcs);
 		double newLatVel;
@@ -465,7 +466,7 @@ bool sim_mob::BusDriverMovement::isBusLeavingBusStop() {
 
 double sim_mob::BusDriverMovement::distanceToNextBusStop() {
 	double distanceToCurrentSegmentBusStop = getDistanceToBusStopOfSegment(
-			parentBusDriver->vehicle->getCurrSegment());
+			fwdDriverMovement.getCurrSegment());
 	if(distanceToCurrentSegmentBusStop >= 0) {
 		return distanceToCurrentSegmentBusStop;
 	}
@@ -525,7 +526,7 @@ double sim_mob::BusDriverMovement::getDistanceToBusStopOfSegment(const RoadSegme
 				{
 					lastBusStop = true;
 				}
-				if (rs == parentBusDriver->vehicle->getCurrSegment()) {
+				if (rs == fwdDriverMovement.getCurrSegment()) {
 
 					if (stopPoint < 0) {
 						throw std::runtime_error(

@@ -28,9 +28,9 @@ sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID, double leng
 	initPath(wp_path, startLaneID);
 }
 
-sim_mob::Vehicle::Vehicle(vector<const RoadSegment*> path, int startLaneID, int vehicle_id, double length, double width) :
-	vehicle_id(vehicle_id), length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(false), turningDirection(LCS_SAME), isQueuing(false),  schedule(nullptr){
-	fwdMovement.setPath(path, startLaneID);
+sim_mob::Vehicle::Vehicle(int vehicle_id, double length, double width) :
+	vehicle_id(vehicle_id), length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(false), turningDirection(LCS_SAME), isQueuing(false),  schedule(nullptr)
+{
 }
 
 sim_mob::Vehicle::Vehicle() :

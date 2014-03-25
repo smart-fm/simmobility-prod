@@ -16,6 +16,7 @@
 #include "DriverUpdateParams.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "Driver.hpp"
+#include "DriverPathMover.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "geospatial/RoadItem.hpp"
 #include "entities/IncidentStatus.hpp"
@@ -74,17 +75,17 @@ protected:
 	Driver* parentDriver;
 
 protected:
-	//Update models
+	// Update models
 	LaneChangeModel* lcModel;
 	CarFollowModel* cfModel;
 	IntersectionDrivingModel* intModel;
 
+	// DriverPathMover
+	DriverPathMover fwdDriverMovement;
 private:
 	//Sample stored data which takes reaction time into account.
-
 	int lastIndex;
 	double disToFwdVehicleLastFrame; //to find whether vehicle is going to crash in current frame.
-	                                     //so distance in last frame need to be remembered.
 
 public:
 	double maxLaneSpeed;

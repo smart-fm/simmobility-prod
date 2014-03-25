@@ -41,6 +41,8 @@ namespace sim_mob {
         const std::string DB_TABLE_POSTCODE_AMENITIES = APPLY_SCHEMA(MAIN_SCHEMA, "postcode_amenities");
         const std::string DB_TABLE_LAND_USE_ZONE = APPLY_SCHEMA(MAIN_SCHEMA, "land_use_zone");
         const std::string DB_TABLE_DEVELOPMENT_TYPE_TEMPLATE = APPLY_SCHEMA(MAIN_SCHEMA, "development_type_template");
+        const std::string DB_TABLE_TEMPLATE_UNIT_TYPE = APPLY_SCHEMA(MAIN_SCHEMA, "template_unit_type");
+
 
         /**
          * Views
@@ -75,6 +77,8 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_LAND_USE_ZONE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getLandUseZoneById(:id)");
         const std::string DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATES = APPLY_SCHEMA(MAIN_SCHEMA, "getDevelopmentTypeTemplates()");
         const std::string DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getDevelopmentTypeTemplateById(:devId, :templateId)");
+        const std::string DB_FUNC_GET_TEMPLATE_UNIT_TYPES = APPLY_SCHEMA(MAIN_SCHEMA, "getTemplateUnitTypes()");
+        const std::string DB_FUNC_GET_TEMPLATE_UNIT_TYPE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getTemplateUnitTypeById(:templateId, :unitTypeId)");
         /**
          * Fields
          */
@@ -156,6 +160,8 @@ namespace sim_mob {
         const std::string DB_FIELD_DENSITY = "density";
         const std::string DB_FIELD_DEVELOPMENT_TYPE_ID = "development_type_id";
         const std::string DB_FIELD_TEMPLATE_ID = "template_id";
+        const std::string DB_FIELD_UNIT_TYPE_ID = "unit_type_id";
+        const std::string DB_FIELD_PROPORTION = "proportion";
 
 
         /**
@@ -232,6 +238,8 @@ namespace sim_mob {
                 + DB_FUNC_GET_LAND_USE_ZONES;
         const std::string DB_GETALL_DEVELOPMENT_TYPE_TEMPLATES = "SELECT * FROM "
                 + DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATES;
+        const std::string DB_GETALL_TEMPLATE_UNIT_TYPE = "SELECT * FROM "
+                + DB_FUNC_GET_TEMPLATE_UNIT_TYPES;
 
         /**
          * GET BY ID
@@ -256,5 +264,7 @@ namespace sim_mob {
                 DB_FUNC_GET_LAND_USE_ZONE_BY_ID;
         const std::string DB_GETBYID_DEVELOPMENT_TYPE_TEMPLATE = "SELECT * FROM " +
                 DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATE_BY_ID;
+        const std::string DB_GETBYID_TEMPLATE_UNIT_TYPE = "SELECT * FROM " +
+                DB_FUNC_GET_TEMPLATE_UNIT_TYPE_BY_ID;
     }
 }

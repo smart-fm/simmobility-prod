@@ -21,6 +21,7 @@
 #include "database/dao/DeveloperDao.hpp"
 #include "database/dao/TemplateDao.hpp"
 #include "database/dao/LandUseZoneDao.hpp"
+#include "database/dao/DevelopmentTypeTemplateDao.hpp"
 
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
@@ -33,7 +34,7 @@ namespace {
 }
 
 template <typename T, typename K>
-void TestDao() {
+void TestDao(unsigned int ids = 1) {
     PrintOut("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
     DB_Config config(LT_DB_CONFIG_FILE);
     config.load();
@@ -44,7 +45,10 @@ void TestDao() {
         K valueById;
         //Get by id
         sim_mob::db::Parameters keys;
-        keys.push_back(ID_TO_GET);
+        for (unsigned int i = 0; i < ids; i++){
+            keys.push_back(ID_TO_GET);
+        }
+        
         if (dao.getById(keys, valueById)) {
             PrintOut("Get by id: " << valueById << endl);
         }
@@ -68,4 +72,5 @@ void DaoTests::testAll() {
     TestDao<ParcelDao, Parcel>();
     TestDao<TemplateDao, Template>();
     TestDao<LandUseZoneDao, LandUseZone>();
+    TestDao<DevelopmentTypeTemplateDao, DevelopmentTypeTemplate>(2);
 }

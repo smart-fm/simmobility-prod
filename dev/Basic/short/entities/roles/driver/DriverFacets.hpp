@@ -21,6 +21,7 @@
 #include "entities/IncidentStatus.hpp"
 #include "geospatial/Incident.hpp"
 #include "util/OneTimeFlag.hpp"
+#include "IncidentPerformer.hpp"
 
 namespace sim_mob {
 
@@ -69,6 +70,11 @@ public:
 	void setParentDriver(Driver* parentDriver) {
 		this->parentDriver = parentDriver;
 	}
+
+	CarFollowModel* getCarFollowModel() {
+		return cfModel;
+	}
+
 
 protected:
 	Driver* parentDriver;
@@ -142,10 +148,6 @@ protected:
 	//void resetPath2(bool mandatory=true, const std::vector<const sim_mob::RoadSegment*>& blacklisted = std::vector<const sim_mob::RoadSegment*>());
 	void setOrigin(DriverUpdateParams& p);
 
-	void checkIncidentStatus(DriverUpdateParams& p, timeslice now);
-
-	void responseIncidentStatus(DriverUpdateParams& p, timeslice now);
-
 	///Set the internal rrRegions array from the current path.
 	///This effectively converts a list of RoadSegments into a (much smaller) list of Regions.
 	///This will trigger communication with the client.
@@ -210,13 +212,13 @@ private:
 	//For generating a debugging trace
 	mutable std::stringstream DebugStream;
 
-	//incident response plan
-	sim_mob::IncidentStatus incidentStatus;
-
 	//Have we sent the list of all regions at least once?
 	OneTimeFlag sentAllRegions;
 
 	//The most recently-set path, which will be sent to RoadRunner.
 	std::vector<const sim_mob::RoadSegment*> rrPathToSend;
+
+	//perform incident response
+	IncidentPerformer incidentPerformer;
 };
 }

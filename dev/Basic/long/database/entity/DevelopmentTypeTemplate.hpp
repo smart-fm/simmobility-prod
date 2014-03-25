@@ -20,7 +20,7 @@ namespace sim_mob {
         class DevelopmentTypeTemplate {
         public:
             DevelopmentTypeTemplate(BigSerial developmentTypeId = INVALID_ID,
-                    BigSerial template_id = INVALID_ID,
+                    BigSerial templateId = INVALID_ID,
                     double density = 0);
 
             virtual ~DevelopmentTypeTemplate();

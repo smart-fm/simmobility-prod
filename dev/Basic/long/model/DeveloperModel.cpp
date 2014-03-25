@@ -23,6 +23,7 @@
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 using namespace sim_mob::db;
+using std::runtime_error;
 
 using std::string;
 namespace {
@@ -60,12 +61,25 @@ void DeveloperModel::startImpl() {
 
     for (DeveloperList::iterator it = developers.begin(); it != developers.end();
             it++) {
-        DeveloperAgent* devAgent = new DeveloperAgent(*it);
+        DeveloperAgent* devAgent = new DeveloperAgent(*it, this);
         AgentsLookupSingleton::getInstance().addDeveloper(devAgent);
         agents.push_back(devAgent);
         workGroup.assignAWorker(devAgent);
     }
 
+    //Assign parcels to developers.
+    int index = 0;
+    for (ParcelList::iterator it = parcels.begin(); it != parcels.end();
+            it++) {
+        DeveloperAgent* devAgent = dynamic_cast<DeveloperAgent*> (agents[index % agents.size()]);
+        if (devAgent) {
+            devAgent->assignParcel((*it)->getId());
+        } else {
+            throw runtime_error("Developer Model: Must be a developer agent.");
+        }
+        index++;
+    }
+    
     addMetadata("Initial Developers", developers.size());
     addMetadata("Initial Templates", templates.size());
     addMetadata("Initial Parcels", parcels.size());

@@ -16,10 +16,19 @@ namespace sim_mob {
 
     namespace long_term {
 
+        class DeveloperModel;
+        
         class DeveloperAgent : public LT_Agent {
         public:
-            DeveloperAgent(Developer* developer);
+            DeveloperAgent(Developer* developer, DeveloperModel* model);
             virtual ~DeveloperAgent();
+            
+            /**
+             * Assigns a parcel to be processed by this agent.
+             * 
+             * @param parcelId parcel to process.
+             */
+            void assignParcel(BigSerial parcelId);
         protected:
             /**
              * Inherited from LT_Agent.
@@ -45,6 +54,8 @@ namespace sim_mob {
         
         private:
             Developer* developer;
+            DeveloperModel* model;
+            IdVector parcelsToProcess;
         };
     }
 }

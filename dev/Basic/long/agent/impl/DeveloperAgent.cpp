@@ -60,7 +60,7 @@ namespace {
          *  Iterates over all developer parcels and developmenttype templates and 
          *  get all potential projects which have a density >= GPR. 
          */
-        for (int i = 0; i < parcelsToProcess.size(); i++) {
+        for (size_t i = 0; i < parcelsToProcess.size(); i++) {
             const Parcel* parcel = model.getParcelById(parcelsToProcess[i]);
             if (parcel) {
                 const LandUseZone* zone = model.getZoneById(parcel->getLandUseZoneId());

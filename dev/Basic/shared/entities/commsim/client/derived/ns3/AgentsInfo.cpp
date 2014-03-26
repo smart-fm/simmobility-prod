@@ -94,7 +94,7 @@ std::string AgentsInfo::toJson()
 	//convert the jsoncpp packet to a json string
 	Json::FastWriter writer;
 	std::string res =  writer.write(jPacket);
-//	std::cout << "AGENTS_INFO : '" << res << "'" << std::endl;
+//std::cout << "AGENTS_INFO : ###" << res << "###" << std::endl;
 	return res;
 }
 AgentsInfo::~AgentsInfo() {

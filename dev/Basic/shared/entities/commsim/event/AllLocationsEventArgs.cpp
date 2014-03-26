@@ -10,7 +10,7 @@
  */
 
 #include "AllLocationsEventArgs.hpp"
-
+/*
 using namespace sim_mob;
 
 sim_mob::AllLocationsEventArgs::AllLocationsEventArgs(AgentsList  &registered_Agents_):registered_Agents(registered_Agents_)
@@ -39,3 +39,4 @@ Json::Value sim_mob::AllLocationsEventArgs::toJSON()const
 }
 
 
+*/

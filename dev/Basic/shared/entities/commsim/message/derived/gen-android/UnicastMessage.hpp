@@ -18,7 +18,7 @@
 namespace sim_mob {
 namespace comm {
 
-class UnicastMessage : public sim_mob::comm::Message {
+/*class UnicastMessage : public sim_mob::comm::Message {
 public:
 	UnicastMessage(const sim_mob::comm::MsgData& data_, bool useNs3) : Message(data_), useNs3(useNs3)
 	{}
@@ -29,7 +29,7 @@ public:
 
 private:
 	bool useNs3;
-};
+};*/
 
 }}
 

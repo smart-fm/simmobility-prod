@@ -28,7 +28,7 @@ public:
 namespace comm {
 
 ///Base Message (no documentation provided).
-class Message {
+/*class Message {
 	sim_mob::comm::MsgData data;
 	sim_mob::comm::MsgHandler handler;
 public:
@@ -40,6 +40,6 @@ public:
 	void setHandler( sim_mob::comm::MsgHandler handler_);
 
 	sim_mob::comm::MsgData& getData();
-};
+};*/
 
 }}

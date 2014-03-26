@@ -9,7 +9,7 @@
  *      Author: vahid
  */
 
-#include "LocationEventArgs.hpp"
+/*#include "LocationEventArgs.hpp"
 #include "entities/Agent.hpp"
 #include "geospatial/coord/CoordinateTransform.hpp"
 #include "geospatial/RoadNetwork.hpp"
@@ -37,5 +37,5 @@ Json::Value sim_mob::LocationEventArgs::toJSON() const
 
 	return JsonParser::makeLocationMessage(agent->xPos.get(), agent->yPos.get(), loc);
 }
-
+*/
 

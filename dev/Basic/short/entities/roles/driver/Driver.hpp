@@ -112,6 +112,7 @@ public:
 
 	///Reroute around a blacklisted set of RoadSegments. See Role's comments for more information.
 	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
+	virtual DPoint getPosition() const;
 //
 public:
 	double startTime;

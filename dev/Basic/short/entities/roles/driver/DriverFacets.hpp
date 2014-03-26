@@ -80,6 +80,7 @@ protected:
 	CarFollowModel* cfModel;
 	IntersectionDrivingModel* intModel;
 
+public:
 	// DriverPathMover
 	DriverPathMover fwdDriverMovement;
 private:
@@ -162,6 +163,7 @@ protected:
 
 	NearestVehicle & nearestVehicle(DriverUpdateParams& p);
 	void perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params);
+	double getAngle() const;  ///<For display purposes only.
 
 private:
 	bool AvoidCrashWhenLaneChanging(DriverUpdateParams& p);

@@ -453,7 +453,7 @@ void sim_mob::DriverMovement::frame_tick_output() {
 		return;
 	}
 
-	double baseAngle = fwdDriverMovement.isInIntersection() ? intModel->getCurrentAngle() : parentDriver->vehicle->getAngle();
+	double baseAngle = fwdDriverMovement.isInIntersection() ? intModel->getCurrentAngle() : getAngle();
 
 	//Inform the GUI if interactive mode is active.
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
@@ -2103,6 +2103,18 @@ void sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Pedest
 		params.npedFwd.distance = std::min(params.npedFwd.distance, otherVect.getMagnitude() - parentDriver->vehicle->length / 2
 				- 300);
 	}
+}
+
+double sim_mob::DriverMovement::getAngle() const
+{
+	if (fwdDriverMovement.isDoneWithEntireRoute()) {
+		return 0; //Shouldn't matter.
+	}
+
+	DynamicVector temp(fwdDriverMovement.getCurrPolypoint().getX(), fwdDriverMovement.getCurrPolypoint().getY(),
+			fwdDriverMovement.getNextPolypoint().getX(), fwdDriverMovement.getNextPolypoint().getY());
+
+	return temp.getAngle();
 }
 
 void sim_mob::DriverMovement::updateNearbyAgents() {

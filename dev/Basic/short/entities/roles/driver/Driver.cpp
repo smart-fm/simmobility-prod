@@ -300,3 +300,27 @@ void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>
 		mov->rerouteWithBlacklist(blacklisted);
 	}
 }
+
+DPoint Driver::getPosition() const
+{
+//	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
+//	//Temp
+//	if (mov->fwdDriverMovement.isInIntersection() && (posInIntersection.x == 0 || posInIntersection.y == 0)) {
+//		Warn() <<"WARNING: Vehicle is in intersection without a position!" <<std::endl;
+//	}
+//
+//	DPoint origPos = fwdMovement.getPosition();
+//	if (isInIntersection() && posInIntersection.x != 0 && posInIntersection.y != 0) {
+//		//Override: Intersection driving
+//		origPos.x = posInIntersection.x;
+//		origPos.y = posInIntersection.y;
+//	} else if (latMovement != 0 && !fwdMovement.isDoneWithEntireRoute()) {
+//		DynamicVector latMv(0, 0, fwdMovement.getNextPolypoint().getX() - fwdMovement.getCurrPolypoint().getX(),
+//				fwdMovement.getNextPolypoint().getY() - fwdMovement.getCurrPolypoint().getY());
+//		latMv.flipLeft();
+//		latMv.scaleVectTo(latMovement).translateVect();
+//		origPos.x += latMv.getX();
+//		origPos.y += latMv.getY();
+//	}
+//	return origPos;
+}

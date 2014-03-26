@@ -54,8 +54,8 @@ public:
 class FMODSchedule;
 class Vehicle {
 public:
-	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
-	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID, double length, double width); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
+	Vehicle(int startLaneID);
+	Vehicle(double length, double width); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
 	Vehicle(int vehicle_id, double length, double width); //Test
 	Vehicle();  //There is no wpPoint to initialize one Vehicle when crossing
 	Vehicle(const Vehicle& copy); ///<Copy constructor
@@ -78,8 +78,7 @@ public:
 	double getX() const;   ///<Retrieve the vehicle's absolute position, x
 	double getY() const;   ///<Retrieve the vehicle's absolute position, y
 	double getDistanceMovedInSegment() const;   ///<Retrieve the total distance moved in this segment so far.
-	double getDistanceToSegmentStart() const;
-	double getDistanceToSegmentEnd() const;
+//	double getDistanceToSegmentEnd() const;
 
 	// segment length is based on lane's polypoints , which lane? it is a problem...
 	// be careful, it is not relate to segment's start ,end nodes
@@ -102,9 +101,6 @@ public:
 	int getVehicleID() const;
 	double getAngle() const;  ///<For display purposes only.
 	LANE_CHANGE_SIDE getTurningDirection() const;
-
-	//Helper method; used in BusDriver
-	const std::vector<const sim_mob::RoadSegment*>& getCompletePath() const;
 
 	//More stuff; some might be optional.
 	const sim_mob::RoadSegment* getCurrSegment() const;
@@ -174,7 +170,6 @@ public:
 	double getPositionInSegment();
 	void setPositionInSegment(double newDist2end);
 	//unit cm, this is based on lane zero's polypoints
-	 double getNextSegmentLength();
 
 private:
 

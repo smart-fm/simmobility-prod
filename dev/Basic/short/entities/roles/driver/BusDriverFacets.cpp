@@ -145,7 +145,7 @@ void sim_mob::BusDriverMovement::frame_init() {
 		delete newVeh;
 
 		//This code is used by Driver to set a few properties of the Vehicle/Bus.
-		if (!(parentBusDriver->vehicle->hasPath())) {
+		if (!(fwdDriverMovement.isPathSet())) {
 			throw std::runtime_error(
 					"Vehicle could not be created for bus driver; no route!");
 		}
@@ -198,20 +198,20 @@ vector<const BusStop*> sim_mob::BusDriverMovement::findBusStopInPath(const vecto
 
 double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 {
-	if ((parentBusDriver->getParams().now.ms() / 1000.0 - parentBusDriver->startTime > 10)&& (parentBusDriver->vehicle->getDistanceMovedInSegment() > 2000) && parentBusDriver->isAleadyStarted == false) {
+	if ((parentBusDriver->getParams().now.ms() / 1000.0 - parentBusDriver->startTime > 10)&& (fwdDriverMovement.getCurrDistAlongRoadSegment() > 2000) && parentBusDriver->isAleadyStarted == false) {
 		parentBusDriver->isAleadyStarted = true;
 	}
 	p.isAlreadyStart = parentBusDriver->isAleadyStarted;
-	if (!(parentBusDriver->vehicle->hasNextSegment(true))) {
-		p.dis2stop = parentBusDriver->vehicle->getAllRestRoadSegmentsLength()- parentBusDriver->vehicle->getDistanceMovedInSegment() - parentBusDriver->vehicle->length / 2- 300;
+	if (!(hasNextSegment(true))) {
+		p.dis2stop = fwdDriverMovement.getAllRestRoadSegmentsLength() - fwdDriverMovement.getCurrDistAlongRoadSegment() - parentBusDriver->vehicle->length / 2- 300;
 		if (p.nvFwd.distance < p.dis2stop)
 			p.dis2stop = p.nvFwd.distance;
 		p.dis2stop /= 100;
 	} else {
-		p.nextLaneIndex = std::min<int>(p.currLaneIndex,parentBusDriver->vehicle->getNextSegment()->getLanes().size() - 1);
-		if (parentBusDriver->vehicle->getNextSegment()->getLanes().at(p.nextLaneIndex)->is_pedestrian_lane()) {
+		p.nextLaneIndex = std::min<int>(p.currLaneIndex,fwdDriverMovement.getNextSegment(true)->getLanes().size() - 1);
+		if (fwdDriverMovement.getNextSegment(true)->getLanes().at(p.nextLaneIndex)->is_pedestrian_lane()) {
 			p.nextLaneIndex--;
-			p.dis2stop = parentBusDriver->vehicle->getCurrPolylineLength()- parentBusDriver->vehicle->getDistanceMovedInSegment() + 1000;
+			p.dis2stop = fwdDriverMovement.getCurrPolylineTotalDist() - fwdDriverMovement.getCurrDistAlongRoadSegment() + 1000;
 		} else
 			p.dis2stop = 1000;//defalut 1000m
 	}
@@ -253,7 +253,7 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 
 	parentBusDriver->vehicle->setTurningDirection(lcs);
 	double newLatVel;
-	newLatVel = lcModel->executeLaneChanging(p,parentBusDriver->vehicle->getAllRestRoadSegmentsLength(), parentBusDriver->vehicle->length,parentBusDriver->vehicle->getTurningDirection(), MLC);
+	newLatVel = lcModel->executeLaneChanging(p,fwdDriverMovement.getAllRestRoadSegmentsLength(), parentBusDriver->vehicle->length,parentBusDriver->vehicle->getTurningDirection(), MLC);
 	parentBusDriver->vehicle->setLatVelocity(newLatVel * 10);
 	if (parentBusDriver->vehicle->getLatVelocity() > 0)
 		parentBusDriver->vehicle->setTurningDirection(LCS_LEFT);
@@ -272,7 +272,7 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 		LANE_CHANGE_SIDE lcs =mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
 		parentBusDriver->vehicle->setTurningDirection(lcs);
 		double newLatVel;
-		newLatVel = mitsim_lc_model->executeLaneChanging(p,parentBusDriver->vehicle->getAllRestRoadSegmentsLength(), parentBusDriver->vehicle->length,parentBusDriver->vehicle->getTurningDirection(), MLC);
+		newLatVel = mitsim_lc_model->executeLaneChanging(p,fwdDriverMovement.getAllRestRoadSegmentsLength(), parentBusDriver->vehicle->length,parentBusDriver->vehicle->getTurningDirection(), MLC);
 		parentBusDriver->vehicle->setLatVelocity(newLatVel * 5);
 
 		// reduce speed
@@ -392,10 +392,10 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 	lastTickDistanceToBusStop = distanceToNextBusStop();
 
 	DynamicVector segmentlength(
-			parentBusDriver->vehicle->getCurrSegment()->getStart()->location.getX(),
-			parentBusDriver->vehicle->getCurrSegment()->getStart()->location.getY(),
-			parentBusDriver->vehicle->getCurrSegment()->getEnd()->location.getX(),
-			parentBusDriver->vehicle->getCurrSegment()->getEnd()->location.getY());
+			fwdDriverMovement.getCurrSegment()->getStart()->location.getX(),
+			fwdDriverMovement.getCurrSegment()->getStart()->location.getY(),
+			fwdDriverMovement.getCurrSegment()->getEnd()->location.getX(),
+			fwdDriverMovement.getCurrSegment()->getEnd()->location.getY());
 
 	//Return the remaining amount (obtained by calling updatePositionOnLink)
 	return updatePositionOnLink(p);
@@ -471,9 +471,9 @@ double sim_mob::BusDriverMovement::distanceToNextBusStop() {
 		return distanceToCurrentSegmentBusStop;
 	}
 	double distanceToNextSegmentBusStop = -1;
-	if (parentBusDriver->vehicle->hasNextSegment(true))
+	if (hasNextSegment(true))
 		distanceToNextSegmentBusStop = getDistanceToBusStopOfSegment(
-				parentBusDriver->vehicle->getNextSegment(true));
+				fwdDriverMovement.getNextSegment(true));
 
 	if (distanceToCurrentSegmentBusStop >= 0
 			&& distanceToNextSegmentBusStop >= 0) {
@@ -558,8 +558,8 @@ double sim_mob::BusDriverMovement::getDistanceToBusStopOfSegment(const RoadSegme
 					DynamicVector busToSegmentStartDistance(currentX, currentY,
 							rs->getStart()->location.getX(),
 							rs->getStart()->location.getY());
-					distance = parentBusDriver->vehicle->getCurrentSegmentLength()
-							- parentBusDriver->vehicle->getDistanceMovedInSegment() + stopPoint;
+					distance = fwdDriverMovement.getCurrentSegmentLength()
+							- fwdDriverMovement.getCurrDistAlongRoadSegment() + stopPoint;
 
 				}
 			} // end of if isFound
@@ -578,13 +578,13 @@ void sim_mob::BusDriverMovement::frame_tick() {
 
 void sim_mob::BusDriverMovement::frame_tick_output() {
 	DriverUpdateParams &p = parentBusDriver->getParams();
-	if (parentBusDriver->vehicle->isDone()) {
+	if (fwdDriverMovement.isDoneWithEntireRoute()) {
 		return;
 	}
 
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 		double baseAngle =
-				parentBusDriver->vehicle->isInIntersection() ?
+				fwdDriverMovement.isInIntersection() ?
 						intModel->getCurrentAngle() : parentBusDriver->vehicle->getAngle();
 
 		//MPI-specific output.

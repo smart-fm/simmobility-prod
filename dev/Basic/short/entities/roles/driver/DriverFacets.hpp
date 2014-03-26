@@ -91,7 +91,10 @@ public:
 	double maxLaneSpeed;
 	//for coordinate transform
 	void setParentBufferedData();			///<set next data to parent buffer data
-
+	//Call once
+	void initPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
+	void resetPath(std::vector<sim_mob::WayPoint> wp_path);
+	const sim_mob::RoadSegment* hasNextSegment(bool inSameLink) const;
     /**
       * get nearest obstacle in perceptionDis
       * @param type is obstacle type, currently only two types are BusStop and Incident.
@@ -189,6 +192,9 @@ private:
 
 	void findCrossing(DriverUpdateParams& p);
 
+	double getDistanceToSegmentEnd() const;
+	sim_mob::DynamicVector getCurrPolylineVector() const;
+	sim_mob::DynamicVector getCurrPolylineVector2() const;
 	bool processFMODSchedule(FMODSchedule* schedule, DriverUpdateParams& p);
 
 public:

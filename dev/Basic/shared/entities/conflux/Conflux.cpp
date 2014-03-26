@@ -760,11 +760,11 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 				}
 				else if((*person->currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) {
 					if (call_movement_frame_init(now, person)){
-						person->setCallFrameInit(false);
-						const RoadSegment* curSeg = person->getRole()->getResource()->getCurrSegment();
-						person->setCurrSegment(curSeg);
-						person->setCurrLane(curSeg->getParentConflux()->findSegStats(curSeg)->laneInfinity);
-						person->distanceToEndOfSegment = curSeg->getLaneZeroLength();
+//						person->setCallFrameInit(false);
+//						const RoadSegment* curSeg = person->getRole()->getResource()->getCurrSegment();
+//						person->setCurrSegment(curSeg);
+//						person->setCurrLane(curSeg->getParentConflux()->findSegStats(curSeg)->laneInfinity);
+//						person->distanceToEndOfSegment = curSeg->getLaneZeroLength();
 					}
 					else{
 						return UpdateStatus::Done;

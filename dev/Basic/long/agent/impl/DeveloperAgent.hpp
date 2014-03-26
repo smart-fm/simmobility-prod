@@ -29,6 +29,7 @@ namespace sim_mob {
              * @param parcelId parcel to process.
              */
             void assignParcel(BigSerial parcelId);
+       
         protected:
             /**
              * Inherited from LT_Agent.

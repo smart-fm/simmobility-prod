@@ -111,3 +111,11 @@ const Parcel* DeveloperModel::getParcelById(BigSerial id) const {
     }
     return nullptr;
 }
+
+const DeveloperModel::DevelopmentTypeTemplateList& DeveloperModel::getDevelopmentTypeTemplates() const {
+    return developmentTypeTemplates;
+}
+
+const DeveloperModel::TemplateUnitTypeList& DeveloperModel::getTemplateUnitType() const {
+    return templateUnitTypes;
+}

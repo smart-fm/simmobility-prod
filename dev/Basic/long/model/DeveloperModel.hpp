@@ -38,6 +38,8 @@ namespace sim_mob {
              */
             unsigned int getTimeInterval() const;
             const Parcel* getParcelById(BigSerial id) const;
+            const DevelopmentTypeTemplateList& getDevelopmentTypeTemplates() const;
+            const TemplateUnitTypeList& getTemplateUnitType() const;
         protected:
             /**
              * Inherited from Model.

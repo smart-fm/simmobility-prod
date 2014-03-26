@@ -28,10 +28,11 @@ using std::runtime_error;
 using std::string;
 namespace {
     const string MODEL_NAME = "Developer Model";
+    const unsigned int TIME_INTERVAL = 30;//In days (7 - weekly, 30 - Montly)
 }
 
 DeveloperModel::DeveloperModel(WorkGroup& workGroup)
-: Model(MODEL_NAME, workGroup) {
+: Model(MODEL_NAME, workGroup), timeInterval(TIME_INTERVAL) {
 }
 
 DeveloperModel::~DeveloperModel() {
@@ -50,7 +51,7 @@ void DeveloperModel::startImpl() {
         //Load templates
         loadData<TemplateDao>(conn, templates);
         //Load parcels
-        loadData<ParcelDao>(conn, parcels);
+        loadData<ParcelDao>(conn, parcels, parcelsById, &Parcel::getId);
         //load land use zones
         loadData<LandUseZoneDao>(conn, zones);
         //load DevelopmentType-Templates
@@ -68,7 +69,7 @@ void DeveloperModel::startImpl() {
     }
 
     //Assign parcels to developers.
-    int index = 0;
+    unsigned int index = 0;
     for (ParcelList::iterator it = parcels.begin(); it != parcels.end();
             it++) {
         DeveloperAgent* devAgent = dynamic_cast<DeveloperAgent*> (agents[index % agents.size()]);
@@ -80,6 +81,7 @@ void DeveloperModel::startImpl() {
         index++;
     }
     
+    addMetadata("Time Interval", timeInterval);
     addMetadata("Initial Developers", developers.size());
     addMetadata("Initial Templates", templates.size());
     addMetadata("Initial Parcels", parcels.size());
@@ -89,10 +91,23 @@ void DeveloperModel::startImpl() {
 }
 
 void DeveloperModel::stopImpl() {
+    parcelsById.clear();
     clear_delete_vector(developers);
     clear_delete_vector(templates);
     clear_delete_vector(parcels);
     clear_delete_vector(zones);
     clear_delete_vector(developmentTypeTemplates);
     clear_delete_vector(templateUnitTypes);
+}
+
+unsigned int DeveloperModel::getTimeInterval() const{
+    return timeInterval;
+}
+
+const Parcel* DeveloperModel::getParcelById(BigSerial id) const {
+    ParcelMap::const_iterator itr = parcelsById.find(id);
+    if (itr != parcelsById.end()) {
+        return itr->second;
+    }
+    return nullptr;
 }

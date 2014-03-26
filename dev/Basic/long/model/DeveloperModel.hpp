@@ -7,6 +7,7 @@
  * Created on March 11, 2014, 3:08 PM
  */
 #pragma once
+#include "boost/unordered_map.hpp"
 #include "Model.hpp"
 #include "database/entity/Developer.hpp"
 #include "database/entity/Template.hpp"
@@ -26,9 +27,17 @@ namespace sim_mob {
             typedef std::vector<LandUseZone*> LandUseZonesList;
             typedef std::vector<DevelopmentTypeTemplate*> DevelopmentTypeTemplateList;
             typedef std::vector<TemplateUnitType*> TemplateUnitTypeList;
+            //maps
+            typedef boost::unordered_map<BigSerial,Parcel*> ParcelMap;
         public:
             DeveloperModel(WorkGroup& workGroup);
             virtual ~DeveloperModel();
+            
+            /**
+             * Getters 
+             */
+            unsigned int getTimeInterval() const;
+            const Parcel* getParcelById(BigSerial id) const;
         protected:
             /**
              * Inherited from Model.
@@ -42,6 +51,8 @@ namespace sim_mob {
             LandUseZonesList zones;
             DevelopmentTypeTemplateList developmentTypeTemplates;
             TemplateUnitTypeList templateUnitTypes;
+            ParcelMap parcelsById;
+            unsigned int timeInterval;
         };
     }
 }

@@ -158,7 +158,7 @@ private:
 	 * @param wasQueuing flag indicating whether the person was queuing at the start of the tick
 	 * @param wasActivityPerformer flag indicating whether the person was performing an activity at the start of the tick
 	 */
-	void killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg,
+	void killAgent(sim_mob::Person* person, sim_mob::SegmentStats* prevSegStats,
 			const sim_mob::Lane* prevLane, bool wasQueuing, bool wasActivityPerformer);
 
 	/**

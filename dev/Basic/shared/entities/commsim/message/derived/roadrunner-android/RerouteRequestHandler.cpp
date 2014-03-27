@@ -12,7 +12,7 @@ using namespace sim_mob;
 
 
 //handler implementation
-void sim_mob::roadrunner::RerouteRequestHandler::handle(sim_mob::comm::MsgPtr message_,Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller)
+/*void sim_mob::roadrunner::RerouteRequestHandler::handle(sim_mob::comm::MsgPtr message_,Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller)
 {
 	//Just parse it manually.
 	sim_mob::comm::MsgData &data = message_->getData();
@@ -36,5 +36,5 @@ void sim_mob::roadrunner::RerouteRequestHandler::handle(sim_mob::comm::MsgPtr me
 	sim_mob::messaging::MessageBus::PublishEvent(sim_mob::event::EVT_CORE_COMMSIM_REROUTING_REQUEST,
 			agentHandle->agent, messaging::MessageBus::EventArgsPtr(new event::ReRouteEventArgs(blacklistRegion.asString())));
 }
-
+*/
 

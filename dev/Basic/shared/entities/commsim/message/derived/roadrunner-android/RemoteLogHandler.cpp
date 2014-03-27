@@ -10,7 +10,7 @@ using namespace sim_mob;
 
 
 //handler implementation
-void sim_mob::roadrunner::RemoteLogHandler::handle(sim_mob::comm::MsgPtr message_,Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller)
+/*void sim_mob::roadrunner::RemoteLogHandler::handle(sim_mob::comm::MsgPtr message_,Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller)
 {
 	//Just parse it manually.
 	sim_mob::comm::MsgData &data = message_->getData();
@@ -26,3 +26,4 @@ void sim_mob::roadrunner::RemoteLogHandler::handle(sim_mob::comm::MsgPtr message
 }
 
 
+*/

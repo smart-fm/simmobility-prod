@@ -2,15 +2,8 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * WhoAreYouProtocol.cpp
- *
- *  Created on: May 29, 2013
- *      Author: vahid
- */
-
 #include "WhoAreYouProtocol.hpp"
-#include "entities/commsim/serialization/JsonParser.hpp"
+#include "entities/commsim/serialization/CommsimSerializer.hpp"
 #include "entities/commsim/Broker.hpp"
 
 namespace sim_mob {

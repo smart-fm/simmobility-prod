@@ -30,7 +30,7 @@ public:
 	BrokerBlocker(sim_mob::Broker &);
 	sim_mob::Broker & getBroker() const;
 	virtual bool calculateWaitStatus() = 0;
-	bool isWaiting();
+	bool isWaiting() const;
 	virtual ~BrokerBlocker();
 };
 

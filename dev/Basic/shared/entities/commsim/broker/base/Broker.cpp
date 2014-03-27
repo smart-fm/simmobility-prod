@@ -19,6 +19,7 @@
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/commsim/event/RegionsAndPathEventArgs.hpp"
 #include "entities/commsim/message/base/BasicMessageFactory.hpp"
+#include "entities/commsim/message/derived/roadrunner-ns3/MulticastMessage.hpp"
 
 #include "entities/commsim/wait/WaitForAndroidConnection.hpp"
 #include "entities/commsim/wait/WaitForNS3Connection.hpp"
@@ -72,7 +73,7 @@ bool sim_mob::Broker::isEnabled() const
 	return enabled;
 }
 
-bool sim_mob::Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler> client, const std::string& destAgId, const std::string& message)
+bool sim_mob::Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler> client,  const std::string& message)
 {
 	if(!(client && client->connHandle && client->isValid() && client->connHandle->isValid())) {
 		return false;
@@ -81,15 +82,15 @@ bool sim_mob::Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler>
 	boost::unique_lock<boost::mutex> lock(mutex_send_buffer);
 	SendBufferKey key;
 	key.client = client;
-	key.destAgentId = destAgId;
 
 	//Is this the first message received for this ClientHandler/destID pair?
 	if (sendBuffer.find(key)==sendBuffer.end()) {
-		CommsimSerializer::serialize_begin(sendBuffer[key]);
+		OngoingSerialization& ongoing = sendBuffer[key];
+		CommsimSerializer::serialize_begin(ongoing, client->clientId);
 	}
 
 	//Now just add it.
-	CommsimSerializer::makeGeneric(sendBuffer[key], message);
+	CommsimSerializer::addGeneric(sendBuffer[key], message);
 	return true;
 }
 
@@ -155,29 +156,42 @@ void sim_mob::Broker::configure()
 
 	//TODO: We need to move the DIFFERENT message types here into the handleLookup.
 	//      MOST of them should be the default; the android-ns3 and android-only settings should only change a few of them.
-	std::map<unsigned int, void*> messageFactories;
+	//std::map<unsigned int, void*> messageFactories;
 
-	if(client_type == "android-ns3") {
+	bool useNs3 = false;
+	if (client_type == "android-ns3") {
+		useNs3 = true;
+	} else if (client_type == "android-only") {
+		useNs3 = false;
+	} else { throw std::runtime_error("Unknown clientType in Broker."); }
+
+	handleLookup.addHandlerOverride("MULTICAST", new sim_mob::roadrunner::MulticastHandler(useNs3));
+	handleLookup.addHandlerOverride("UNICAST", new sim_mob::roadrunner::UnicastHandler(useNs3));
+	if(useNs3) {
+		//TODO: These need to coexist; currently they will just crash.
+		handleLookup.addHandlerOverride("MULTICAST", new sim_mob::rr_android_ns3::NS3_HDL_MULTICAST());
+		handleLookup.addHandlerOverride("UNICAST", new sim_mob::rr_android_ns3::NS3_HDL_UNICAST());
+
 		//boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > android_factory();
 		//boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > ns3_factory();
 
 		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
-		messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, new sim_mob::roadrunner::RoadRunnerFactory(true)));
-		messageFactories.insert(std::make_pair(comm::NS3_SIMULATOR, new sim_mob::rr_android_ns3::NS3_Factory()));
+		//messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, new sim_mob::roadrunner::RoadRunnerFactory(true)));
+		//messageFactories.insert(std::make_pair(comm::NS3_SIMULATOR, new sim_mob::rr_android_ns3::NS3_Factory()));
 
 		//We assume the "UNKNOWN" type knows about connection messages.
 		//boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > basic_factory();
-		messageFactories.insert(std::make_pair(comm::UNKNOWN_CLIENT, new sim_mob::BasicMessageFactory()));
-	} else if (client_type == "android-only") {
+	//	messageFactories.insert(std::make_pair(comm::UNKNOWN_CLIENT, new sim_mob::BasicMessageFactory()));
+	} //else if (client_type == "android-only") {
 		//boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > android_factory();
 
 		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
-		messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, new sim_mob::roadrunner::RoadRunnerFactory(false)));
+		//messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, new sim_mob::roadrunner::RoadRunnerFactory(false)));
 
 		//We assume the "UNKNOWN" type knows about connection messages.
 		//boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > basic_factory();
-		messageFactories.insert(std::make_pair(comm::UNKNOWN_CLIENT, new sim_mob::BasicMessageFactory()));
-	}
+	//	messageFactories.insert(std::make_pair(comm::UNKNOWN_CLIENT, new sim_mob::BasicMessageFactory()));
+	//}
 
 	// wait for connection criteria for this broker
 	clientBlockers.insert(std::make_pair(comm::ANDROID_EMULATOR,
@@ -262,21 +276,21 @@ void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnn
 				//Since we now have a WHOAMI request AND a valid ConnectionHandler, we can pend a registration request.
 				//TODO: This can definitely be simplified; it was copied from WhoAreYouProtocol and Jsonparser.
 				sim_mob::ClientRegistrationRequest candidate;
-				if (!(data.isMember("ID") && data.isMember("TYPE") && data.isMember("token"))) {
+				if (!(jsMsg.isMember("ID") && jsMsg.isMember("TYPE") && jsMsg.isMember("token"))) {
 					throw std::runtime_error("Can't access required fields.");
 				}
-				candidate.clientID = data["ID"].asString();
-				candidate.client_type = data["TYPE"].asString();
-				if (!data["REQUIRED_SERVICES"].isNull() && data["REQUIRED_SERVICES"].isArray()) {
-					const Json::Value services = data["REQUIRED_SERVICES"];
+				candidate.clientID = jsMsg["ID"].asString();
+				candidate.client_type = jsMsg["TYPE"].asString();
+				if (!jsMsg["REQUIRED_SERVICES"].isNull() && jsMsg["REQUIRED_SERVICES"].isArray()) {
+					const Json::Value services = jsMsg["REQUIRED_SERVICES"];
 					for (size_t index=0; index<services.size(); index++) {
 						std::string type = services[int(index)].asString();
-						candidate.requiredServices.insert(JsonParser::getServiceType(type));
+						candidate.requiredServices.insert(Services::GetServiceType(type));
 					}
 				}
 
 				//Retrieve the token.
-				std::string token = data["token"].asString();
+				std::string token = jsMsg["token"].asString();
 
 				//What type is this?
 				std::map<std::string, comm::ClientType>::const_iterator clientTypeIt = sim_mob::Services::ClientTypeMap.find(candidate.client_type);
@@ -315,7 +329,7 @@ void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnn
 	}
 
 	//New messages to process
-	receiveQueue.push(MessageElement(cnnHandler, conglom));
+	receiveQueue.post(MessageElement(cnnHandler, conglom));
 }
 
 /*boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> sim_mob::Broker::getMessageReceiveCallBack()
@@ -361,6 +375,8 @@ const ClientList::Type& sim_mob::Broker::getClientList()
 	return clientList;
 }
 
+//TODO: We need to avoid the clientType requirement. It is currently easy enough to generate unique IDs, and you can always
+//      incorporate the clientType into the ID if you're not 100% sure (but for now we only serialize integers anyway).
 bool sim_mob::Broker::getClientHandler(std::string clientId, std::string clientType, boost::shared_ptr<sim_mob::ClientHandler> &output)
 {
 	std::map<std::string, comm::ClientType>::iterator clientTypeIt = sim_mob::Services::ClientTypeMap.find(clientType);
@@ -377,29 +393,6 @@ bool sim_mob::Broker::getClientHandler(std::string clientId, std::string clientT
 
 	Warn() <<"Client " << clientId << " of type " << clientType << " not found" << std::endl;
 	return false;
-
-	//map::at() is only available in C++11. ~Seth
-	//Also, catching exceptions as a way of avoid "if" statements is bad form in C++.
-
-	//use try catch to use map's .at() and search only once
-	/*try {
-		comm::ClientType clientType_ = sim_mob::Services::ClientTypeMap.at(clientType);
-		boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> > & inner = clientList[clientType_];
-		try {
-			output = inner.at(clientId); //this is what we are looking for
-			return true;
-		} catch (std::out_of_range &e) {
-			WarnOut(
-					"Client " << clientId << " of type " << clientType << " not found" << std::endl);
-			return false;
-		}
-
-	} catch (std::out_of_range& e) {
-		Print() << "Client type" << clientType << " not found" << std::endl;
-		return false;
-	}
-	//program never reaches here :)
-	return false;*/
 }
 
 void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType clientType, boost::shared_ptr<sim_mob::ClientHandler> &clientHandler)
@@ -472,8 +465,9 @@ void sim_mob::Broker::processClientRegistrationRequests()
 			out << "No Handler for [" << it->first << "] type of client" << std::endl;
 			throw std::runtime_error(out.str());
 		}
-		if(handler->handle(*this,it->second.request, it->second.existingConn))
-		{
+
+
+		if(handler->handle(*this,it->second.request, it->second.existingConn)) {
 			//success: handle() just added to the client to the main client list and started its connectionHandler
 			//	next, see if the waiting state of waiting-for-client-connection changes after this process
 			bool wait = clientBlockers[clientType]->calculateWaitStatus();
@@ -526,8 +520,7 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent* agent)
 	{
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 	//search registered clients list looking for this agent. whoever has it, dump him
-	for(ClientList::Type::iterator it_clientType = clientList.begin(); it_clientType != clientList.end(); it_clientType++)
-	{
+	for(ClientList::Type::iterator it_clientType = clientList.begin(); it_clientType != clientList.end(); it_clientType++) {
 		boost::unordered_map<std::string, boost::shared_ptr<sim_mob::ClientHandler> >::iterator
 			it_clientID(it_clientType->second.begin()),
 			it_clientID_end(it_clientType->second.end()),
@@ -540,12 +533,14 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent* agent)
 				it_erase = it_clientID++;
 				//unsubscribe from all publishers he is subscribed to
 				sim_mob::ClientHandler * clientHandler = it_erase->second.get();
-				sim_mob::Services::SIM_MOB_SERVICE srv;
-				BOOST_FOREACH(srv, clientHandler->getRequiredServices())
+
+				//TODO: This seems wrong; we are unsubscribing multiple times.
+				for (std::set<sim_mob::Services::SIM_MOB_SERVICE>::const_iterator it=clientHandler->getRequiredServices().begin(); it!=clientHandler->getRequiredServices().end(); it++)
 				{
-					switch(srv)
-					{
 					publisher.unSubscribeAll(clientHandler);
+
+					switch(*it)
+					{
 //					case sim_mob::Services::SIMMOB_SRV_TIME:
 //						publishers[sim_mob::Services::SIMMOB_SRV_TIME]->unSubscribe(COMMEID_TIME,clientHandler);
 //						break;
@@ -661,6 +656,7 @@ void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::even
 		if (ConfigManager::GetInstance().FullConfig().getCommSimMode(commElement) != "android-ns3") {
 			break;
 		}
+
 		//note: based on the current implementation of
 		// the ns3 client registration handler, informing the
 		//statistics of android clients IS a part of ns3
@@ -669,9 +665,22 @@ void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::even
 		//ns3's registration. So we check if the ns3 is already registered or not:
 		ClientList::Type::iterator it;
 		if ((it = clientList.find(comm::NS3_SIMULATOR)) == clientList.end()) {
+			std::cout <<"ERROR: Android client registered without a known ns-3 handler (and one was expected).\n";
 			break;
 		}
-		msg_header mHeader_("0", "SIMMOBILITY", "AGENTS_INFO", "SYS");
+
+		//Create the AgentsInfo message.
+		std::vector<unsigned int> agentIds;
+		agentIds.push_back(clientHandler->agent->getId());
+		std::string message = CommsimSerializer::makeAgentsInfo(agentIds, std::vector<unsigned int>());
+
+
+		//Add it.
+		//TODO: ns-3 currently uses client ID 0, but it shouldn't.
+		boost::shared_ptr<ClientHandler>& NS3clientHandler = it->second["0"];
+		insertSendBuffer(NS3clientHandler, message);
+
+		/*msg_header mHeader_("0", "SIMMOBILITY", "AGENTS_INFO", "SYS");
 		sim_mob::comm::MsgData jMsg = JsonParser::createMessageHeader(mHeader_);
 		const Agent *agent = clientHandler->agent;
 		Json::Value jAgent;
@@ -683,7 +692,7 @@ void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::even
 
 		//send to ns3's client handler
 		boost::shared_ptr<ClientHandler> & NS3clientHandler = it->second["0"];
-		insertSendBuffer(NS3clientHandler, jMsg);
+		insertSendBuffer(NS3clientHandler, jMsg);*/
 
 		break;
 	}
@@ -695,23 +704,17 @@ void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::even
 //todo suggestion: for publishment, don't iterate through the list of clients, rather, iterate the publishers list, access their subscriber list and say publish and publish for their subscribers(keep the clientlist for MHing only)
 void sim_mob::Broker::processPublishers(timeslice now)
 {
-	sim_mob::Services::SIM_MOB_SERVICE service;
-	BOOST_FOREACH(service, serviceList){
-		switch (service) {
+	for (std::vector<Services::SIM_MOB_SERVICE>::const_iterator servIt=serviceList.begin(); servIt!=serviceList.end(); servIt++) {
+		switch (*servIt) {
 		case sim_mob::Services::SIMMOB_SRV_TIME: {
 			publisher.publish(COMMEID_TIME, TimeEventArgs(now));
 			break;
 		}
 		case sim_mob::Services::SIMMOB_SRV_LOCATION: {
-
 			//get to each client handler, look at his requred service and then publish for him
-			ClientList::Pair clientsByType;
-			ClientList::ValuePair clientsByID;
-			BOOST_FOREACH(clientsByType, clientList)
-			{
-				BOOST_FOREACH(clientsByID, clientsByType.second)
-				{
-					boost::shared_ptr<sim_mob::ClientHandler> & cHandler = clientsByID.second;//easy read
+			for (ClientList::Type::const_iterator ctypeIt=clientList.begin(); ctypeIt!=clientList.end(); ctypeIt++) {
+				for (ClientList::Value::const_iterator cidIt=ctypeIt->second.begin(); cidIt!=ctypeIt->second.end(); cidIt++) {
+					const boost::shared_ptr<sim_mob::ClientHandler>& cHandler = cidIt->second;
 					if(cHandler && cHandler->agent && cHandler->isValid()){//todo refine subscription list to get rid of hustle and risks
 						publisher.publish(COMMEID_LOCATION, const_cast<Agent*>(cHandler->agent),LocationEventArgs(cHandler->agent));
 					}
@@ -749,7 +752,7 @@ void sim_mob::Broker::processPublishers(timeslice now)
 			break;
 		}
 		default:
-			Warn() <<"Broker::processPubliBshers() - Unhandled service type: " <<service <<"\n";
+			Warn() <<"Broker::processPubliBshers() - Unhandled service type: " <<*servIt <<"\n";
 			break;
 		}
 	}
@@ -761,50 +764,80 @@ sim_mob::ClientRegistrationPublisher & sim_mob::Broker::getRegistrationPublisher
 
 void sim_mob::Broker::sendReadyToReceive()
 {
-	ClientList::Pair clientByType;
-	ClientList::ValuePair clientByID;
+	//Iterate over all clients actually waiting in the client list.
+	//NOTE: This is slightly different than how the previous code did it, but it *should* work.
+	//It will at least fail predictably: if the simulator freezes in the first time tick for a new agent, this is where to look.
+	//TODO: We need a better way of tracking <client,destAgentID> pairs anyway; that fix will likely simplify this function.
+	std::map<SendBufferKey, std::string> pendingMessages;
+	for (std::map<SendBufferKey, OngoingSerialization>::const_iterator it=sendBuffer.begin(); it!=sendBuffer.end(); it++) {
+		pendingMessages[it->first] = CommsimSerializer::makeReadyToReceive();
+	}
 
-	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
-	msg_header msg_header_;
-	{
+	for (std::map<SendBufferKey, std::string>::const_iterator it=pendingMessages.begin(); it!=pendingMessages.end(); it++) {
+		insertSendBuffer(it->first.client, it->second);
+	}
+
+
+
+	//ClientList::Pair clientByType;
+	//ClientList::ValuePair clientByID;
+	//boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
+	//msg_header msg_header_;
+/*	{
 		boost::unique_lock<boost::mutex> lock(mutex_clientList);
-		BOOST_FOREACH(clientByType, clientList) {
-			BOOST_FOREACH(clientByID, clientByType.second) {
-				clnHandler = clientByID.second;
-				msg_header_.msg_cat = "SYS";
-				msg_header_.msg_type = "READY_TO_RECEIVE";
-				msg_header_.sender_id = "0";
-				msg_header_.sender_type = "SIMMOBILITY";
-				sim_mob::comm::MsgData msg = JsonParser::createMessageHeader(
-						msg_header_);
-				insertSendBuffer(clnHandler, msg);
+		for (ClientList::Type::iterator listIt=clientList.begin(); listIt!=clientList.end(); listIt++) {
+			for (ClientList::Value::iterator clientIt=listIt->second.begin(); clientIt!=listIt->second.end(); clientIt++) {
+
+//		BOOST_FOREACH(clientByType, clientList) {
+			//BOOST_FOREACH(clientByID, clientByType.second) {
+				const boost::shared_ptr<sim_mob::ClientHandler>& clnHandler = clientIt->second;
+				msg_header msgHeader;
+				msgHeader.msg_cat = "SYS";
+				msgHeader.msg_type = "READY_TO_RECEIVE";
+				msgHeader.sender_id = "0";
+				msgHeader.sender_type = "SIMMOBILITY";
+				sim_mob::comm::MsgData msg = JsonParser::createMessageHeader(msgHeader);
+				insertSendBuffer(clnHandler,  msg);
 			}
 		}
-	}
+	}*/
 }
 
 void sim_mob::Broker::processOutgoingData(timeslice now)
 {
-	for(SendBuffer::Type::iterator it = sendBuffer.begin(); it!= sendBuffer.end(); it++) {
-		sim_mob::BufferContainer<SendBufferItem>& data = it->second;
+	for (std::map<SendBufferKey, OngoingSerialization>::iterator it=sendBuffer.begin(); it!=sendBuffer.end(); it++) {
+	//for(SendBuffer::Type::iterator it = sendBuffer.begin(); it!= sendBuffer.end(); it++) {
+		//sim_mob::BufferContainer<SendBufferItem>& data = it->second;
 		//sim_mob::BufferContainer<sim_mob::comm::MsgData> & buffer = it->second;
-		boost::shared_ptr<sim_mob::ConnectionHandler> cnn = it->first;
+
+		boost::shared_ptr<sim_mob::ConnectionHandler> conn = it->first.client->connHandle;
 
 		//Our data stream contains several messages pointing to different clients. We need to
 		// de-multiplex these, creating a mega-"message" of type Json::Value for each client.
-		std::map<boost::shared_ptr<sim_mob::ClientHandler>, Json::Value> messages;
+		//std::map<boost::shared_ptr<sim_mob::ClientHandler>, Json::Value> messages;
 
-		SendBufferItem datum;
+		/*SendBufferItem datum;
 		while (data.pop(datum)) {
 			//TODO: This seems un-needed; can't we just .append() it? ~Seth
 			if (messages.find(datum.client)==messages.end()) {
 				messages[datum.client].clear();
 			}
 			messages[datum.client].append(datum.msg);
+		}*/
+
+		//Getting the string is easy:
+		BundleHeader header;
+		std::string message;
+		if (!CommsimSerializer::serialize_end(it->second, header, message)) {
+			throw std::runtime_error("Broker: Could not finalize serialization.");
 		}
 
+		//Forward to the given client.
+		//TODO: We can add per-client routing here.
+		conn->forwardMessage(message);
+
 		//build a jsoncpp structure (per client) comprising of a header and data array(containing messages)
-		for (std::map<boost::shared_ptr<sim_mob::ClientHandler>, Json::Value>::const_iterator msgIt=messages.begin(); msgIt!=messages.end(); msgIt++) {
+		/*for (std::map<boost::shared_ptr<sim_mob::ClientHandler>, Json::Value>::const_iterator msgIt=messages.begin(); msgIt!=messages.end(); msgIt++) {
 			//TODO: Is the .clear() really needed? ~Seth
 			Json::Value jpacket;
 			jpacket.clear();
@@ -826,8 +859,10 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 			//Forward to the given client.
 			//TODO: We can add per-client routing here.
 			cnn->forwardMessage(str);
-		}
+		}*/
 	}
+
+	//Clear the buffer for the next time tick.
 	sendBuffer.clear();
 }
 
@@ -928,16 +963,17 @@ size_t sim_mob::Broker::getNumConnectedAgents() const {
 //returns true if you need to wait
 bool sim_mob::Broker::isWaitingForAnyClientConnection() {
 //	Print() << "inside isWaitingForAnyClientConnection " << clientBlockers.size() << std::endl;
-	BrokerBlockers::Pair pp;
-	int i = -1;
-	BOOST_FOREACH(pp, clientBlockers) {
-		i++;
-		if (pp.second->isWaiting()) {
+	//BrokerBlockers::Pair pp;
+	int i = 0;
+	for (BrokerBlockers::Type::const_iterator it=clientBlockers.begin(); it!=clientBlockers.end(); it++) {
+	//BOOST_FOREACH(pp, clientBlockers) {
+		if (it->second->isWaiting()) {
 			if (EnableDebugOutput) {
 				Print() << " isWaitingForAnyClientConnection[" << i << "] : wait" << std::endl;
 			}
 			return true;
 		}
+		i++;
 	}
 //	Print() << "isWaitingForAnyClientConnection : Dont wait" << std::endl;
 	return false;
@@ -1015,15 +1051,18 @@ void sim_mob::Broker::waitForAgentsUpdates() {
 
 bool sim_mob::Broker::allClientsAreDone()
 {
-	ClientList::Pair clientByType;
-	ClientList::ValuePair clientByID;
+	//ClientList::Pair clientByType;
+	//ClientList::ValuePair clientByID;
 
 	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
 	msg_header msg_header_;
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
-	BOOST_FOREACH(clientByType, clientList) {
-		BOOST_FOREACH(clientByID, clientByType.second) {
-			clnHandler = clientByID.second;
+
+	for (ClientList::Type::const_iterator ctypeIt=clientList.begin(); ctypeIt!=clientList.end(); ctypeIt++) {
+		for (ClientList::Value::const_iterator cidIt=ctypeIt->second.begin(); cidIt!=ctypeIt->second.end(); cidIt++) {
+	//BOOST_FOREACH(clientByType, clientList) {
+		//BOOST_FOREACH(clientByID, clientByType.second) {
+			clnHandler = cidIt->second;
 			//If we have a valid client handler.
 			if (clnHandler && clnHandler->isValid()) {
 				//...and a valid connection handler.
@@ -1049,7 +1088,8 @@ bool sim_mob::Broker::allClientsAreDone()
 	return true;
 }
 
-Entity::UpdateStatus sim_mob::Broker::update(timeslice now) {
+Entity::UpdateStatus sim_mob::Broker::update(timeslice now)
+{
 	if (EnableDebugOutput) {
 		Print() << "Broker tick:" << now.frame() << std::endl;
 	}
@@ -1199,5 +1239,6 @@ bool sim_mob::Broker::isNonspatial()
 {
 	return true;
 }
+
 
 

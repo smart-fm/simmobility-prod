@@ -2,18 +2,13 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * AllLocationsEventArgs.cpp
- *
- *  Created on: Jul 5, 2013
- *      Author: vahid
- */
-
 #include "AllLocationsEventArgs.hpp"
-/*
+
+#include "entities/commsim/serialization/CommsimSerializer.hpp"
+
 using namespace sim_mob;
 
-sim_mob::AllLocationsEventArgs::AllLocationsEventArgs(AgentsList  &registered_Agents_):registered_Agents(registered_Agents_)
+sim_mob::AllLocationsEventArgs::AllLocationsEventArgs(const AgentsList& registeredAgents) : registeredAgents(registeredAgents)
 {
 }
 
@@ -21,13 +16,26 @@ sim_mob::AllLocationsEventArgs::~AllLocationsEventArgs()
 {
 }
 
-void sim_mob::AllLocationsEventArgs::TOJSON(sim_mob::Agent* agent,Json::Value &loc)const
+std::string sim_mob::AllLocationsEventArgs::serialize() const
+{
+	std::map<unsigned int, DPoint> allLocs;
+
+	//NOTE: I am fairly sure that this is only ever called in a thread-safe context. ~Seth
+	const AgentsList::type& aList = registeredAgents.getAgents();
+	for (sim_mob::AgentsList::type::const_iterator it=aList.begin(); it!=aList.end(); it++) {
+		allLocs[it->first->getId()] = DPoint(it->first->xPos.get(), it->first->yPos.get());
+	}
+
+	return CommsimSerializer::makeAllLocations(allLocs);
+}
+
+/*void sim_mob::AllLocationsEventArgs::TOJSON(sim_mob::Agent* agent,Json::Value &loc)const
 {
 	const Json::Value & t = JsonParser::makeLocationArrayElement(agent->getId(),agent->xPos.get(), agent->yPos.get());
 	loc["LOCATIONS"].append(t);
-}
+}*/
 
-Json::Value sim_mob::AllLocationsEventArgs::toJSON()const
+/*Json::Value sim_mob::AllLocationsEventArgs::toJSON()const
 {
 	Json::Value loc;
 	loc = JsonParser::createMessageHeader(msg_header("0", "SIMMOBILITY", "ALL_LOCATIONS_DATA", "SYS"));
@@ -37,6 +45,4 @@ Json::Value sim_mob::AllLocationsEventArgs::toJSON()const
 	registered_Agents.for_each_agent(Fn);
 	return loc;
 }
-
-
 */

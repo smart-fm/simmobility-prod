@@ -2,15 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * MULTICAST_Message.h
- *
- *  Created on: May 9, 2013
- *      Author: vahid
- *      multicast messages come from android clients(only) and
- *      are supposed to be routed to ns3
- */
-
 #pragma once
 
 #include "entities/commsim/message/Types.hpp"
@@ -27,17 +18,17 @@ namespace rr_android_ns3 {
 
 
 ///NS3 multicast message class (no documentation provided).
-class NS3_MSG_MULTICAST : public sim_mob::comm::Message {
+/*class NS3_MSG_MULTICAST : public sim_mob::comm::Message {
 public:
 	NS3_MSG_MULTICAST(const sim_mob::comm::MsgData& data_);
 	sim_mob::Handler* newHandler();
-};
+};*/
 
 
 //Handler for the above message
 class NS3_HDL_MULTICAST : public sim_mob::Handler {
 public:
-	void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller);
+	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const;
 };
 
 }}

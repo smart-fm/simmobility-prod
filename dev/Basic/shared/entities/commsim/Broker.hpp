@@ -134,9 +134,10 @@ struct BrokerBlockers {
 
 
 ///Helper struct: key for our SendBuffer
+//TODO: Just a typedef will do.
 struct SendBufferKey {
 	boost::shared_ptr<sim_mob::ClientHandler> client; //The client to send this mesage to.
-	std::string destAgentId; //The ID of the receiving agent.
+	//std::string destAgentId; //The ID of the receiving agent.
 };
 
 /**
@@ -218,6 +219,7 @@ protected:
 	AgentsList REGISTERED_AGENTS;
 	///	waiting list for external clients willing to communication with simmobility
 	ClientWaitList clientRegistrationWaitingList; //<client type, requestform>
+
 	///	list of authorized clients who have passed the registration process
 	ClientList::Type clientList; //key note: there can be one agent associated with multiple clients in this list. why? : coz clients of any type are i this list. and any one has associated itself to this agent for its specific type's reason
 
@@ -233,6 +235,7 @@ protected:
 
 	///Broker's Publisher
 	BrokerPublisher publisher;
+
 	///services to be published by the broker's publisher
 	std::vector<sim_mob::Services::SIM_MOB_SERVICE> serviceList;
 
@@ -500,7 +503,7 @@ public:
 	/**
 	 * 	request to insert into broker's send buffer
 	 */
-	bool insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler> client, const std::string& destAgId, const std::string& message);
+	bool insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler> client, const std::string& message);
 
 	/**
 	 * 	callback function executed upon message arrival

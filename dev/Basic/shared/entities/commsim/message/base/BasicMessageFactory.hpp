@@ -18,7 +18,7 @@ namespace sim_mob {
  * This class can create messages that all clients must know about; in particular, the WHOAMI message.
  * Note that the WHOAMI message has no handler, as it is filtered through the Broker.
  */
-class BasicMessageFactory : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> {
+/*class BasicMessageFactory : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> {
 	enum MessageType {
 		WHOAMI = 1
 	};
@@ -27,7 +27,7 @@ public:
 	virtual ~BasicMessageFactory();
 
 	void createMessage(const std::string& input, std::vector<sim_mob::comm::MsgPtr>& output) const;
-};
+};*/
 
 
 }

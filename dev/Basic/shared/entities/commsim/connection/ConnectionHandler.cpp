@@ -2,12 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * ConnectionHandler.cpp
- *
- *  Created on: May 29, 2013
- *      Author: vahid
- */
 
 #include "ConnectionHandler.hpp"
 
@@ -15,7 +9,7 @@
 
 #include "entities/commsim/Broker.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
-#include "entities/commsim/serialization/JsonParser.hpp"
+#include "entities/commsim/serialization/CommsimSerializer.hpp"
 
 using namespace sim_mob;
 

@@ -2,12 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * NS3ClientRegistration.cpp
- *
- *  Created on: May 20, 2013
- *      Author: vahid
- */
 
 #include "NS3ClientRegistration.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
@@ -43,12 +37,11 @@ boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeCl
 	sim_mob::event::EventPublisher & p = broker.getPublisher();
 	sim_mob::Services::SIM_MOB_SERVICE srv;
 	int size_i = request.requiredServices.size();
-	BOOST_FOREACH(srv, request.requiredServices) {
-		switch (srv) {
+	for (std::set<sim_mob::Services::SIM_MOB_SERVICE>::const_iterator it=request.requiredServices.begin(); it!=request.requiredServices.end(); it++) {
+		switch (*it) {
 		case sim_mob::Services::SIMMOB_SRV_TIME: {
 //			 PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_TIME);
-			p.subscribe(COMMEID_TIME, clientEntry.get(),
-					&ClientHandler::sendJsonToBroker);
+			p.subscribe(COMMEID_TIME, clientEntry.get(), &ClientHandler::sendSerializedMessageToBroker);
 			break;
 		}
 		case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS: {
@@ -60,9 +53,7 @@ boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeCl
 			//	clientEntry.get(),
 			//	&ClientHandler::OnEvent,
 			//	COMMCID_ALL_LOCATIONS);
-			p.subscribe(COMMEID_ALL_LOCATIONS, clientEntry.get(),
-					&ClientHandler::sendJsonToBroker,
-					(void*) COMMCID_ALL_LOCATIONS);
+			p.subscribe(COMMEID_ALL_LOCATIONS, clientEntry.get(), &ClientHandler::sendSerializedMessageToBroker, (void*) COMMCID_ALL_LOCATIONS);
 			break;
 		}
 		}

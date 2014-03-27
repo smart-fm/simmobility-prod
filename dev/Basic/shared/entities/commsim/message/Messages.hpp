@@ -37,6 +37,20 @@ struct AllLocationsMessage : public sim_mob::MessageBase {
 	AllLocationsMessage(const MessageBase& base) : MessageBase(base) {}
 };
 
+struct RemoteLogMessage : public sim_mob::MessageBase {
+	std::string logMessage; ///<The text being sent.
+	RemoteLogMessage(const MessageBase& base) : MessageBase(base) {}
+};
+
+struct RerouteRequestMessage : public sim_mob::MessageBase {
+	std::string blacklistRegion; ///<The region to avoid.
+	RerouteRequestMessage(const MessageBase& base) : MessageBase(base) {}
+};
+
+struct NewClientMessage : public sim_mob::MessageBase {
+	NewClientMessage(const MessageBase& base) : MessageBase(base) {}
+};
+
 
 }
 

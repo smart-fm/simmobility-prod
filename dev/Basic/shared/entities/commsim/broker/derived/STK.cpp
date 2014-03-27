@@ -20,6 +20,7 @@
 #include "geospatial/RoadRunnerRegion.hpp"
 
 //todo :temprorary
+#include "entities/commsim/message/base/BasicMessageFactory.hpp"
 #include "entities/commsim/message/derived/gen-android/AndroidFactory.hpp"
 #include "entities/commsim/message/derived/gen-ns3/Ns3Factory.hpp"
 
@@ -114,28 +115,34 @@ void sim_mob::STK_Broker::configure()
 	\endcode
 */
 
-	//current message factory
-	//todo: choose a factory based on configurations not hardcoding
+
+	//TODO: We need to move the DIFFERENT message types here into the handleLookup.
+	//      MOST of them should be the default; the android-ns3 and android-only settings should only change a few of them.
+	std::map<unsigned int, void*> messageFactories;
+
 	if(client_mode == "android-ns3") {
-		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> >
-			android_factory(new sim_mob::comm::AndroidFactory(true));
-		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> >
-			ns3_factory(new sim_mob::comm::NS3_Factory());
+		//boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > android_factory(new sim_mob::comm::AndroidFactory(true));
+		//boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > ns3_factory(new sim_mob::comm::NS3_Factory());
+
+		messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, new sim_mob::comm::AndroidFactory(true)));
+		messageFactories.insert(std::make_pair(comm::NS3_SIMULATOR, new sim_mob::comm::NS3_Factory()));
+	//	messageFactories.insert(std::make_pair(comm::UNKNOWN_CLIENT, new sim_mob::BasicMessageFactory()));
 
 		//note that both client types refer to the same message factory belonging to stk application. we will modify this to a more generic approach later-vahid
-		messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, android_factory));
-		messageFactories.insert(std::make_pair(comm::NS3_SIMULATOR, ns3_factory));
+		//messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, android_factory));
+		//messageFactories.insert(std::make_pair(comm::NS3_SIMULATOR, ns3_factory));
 	} else if (client_mode == "android-only") {
-		boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> >
-			android_factory(new sim_mob::comm::AndroidFactory(false));
+		//boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > android_factory(new sim_mob::comm::AndroidFactory(false));
+
+		messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, new sim_mob::comm::AndroidFactory(false)));
+		//messageFactories.insert(std::make_pair(comm::UNKNOWN_CLIENT, new sim_mob::BasicMessageFactory()));
 
 		//note that both client types refer to the same message factory belonging to stk application. we will modify this to a more generic approach later-vahid
-		messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, android_factory));
+		//messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, android_factory));
 	}
 
 	// wait for connection criteria for this broker
-	clientBlockers.insert(std::make_pair(comm::ANDROID_EMULATOR,
-			boost::shared_ptr<WaitForAndroidConnection>(new WaitForAndroidConnection(*this,MIN_CLIENTS))));
+	clientBlockers.insert(std::make_pair(comm::ANDROID_EMULATOR, boost::shared_ptr<WaitForAndroidConnection>(new WaitForAndroidConnection(*this,MIN_CLIENTS))));
 
 
 	if(client_mode == "android-ns3") {

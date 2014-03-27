@@ -2,13 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * ClientHandler.hpp
- *
- *  Created on: May 28, 2013
- *      Author: vahid
- */
-
 #pragma once
 
 #include <map>
@@ -17,13 +10,13 @@
 #include <boost/shared_ptr.hpp>
 
 #include "event/EventListener.hpp"
+#include "entities/commsim/event/BaseCommsimEventArgs.hpp"
 #include "entities/commsim/event/TimeEventArgs.hpp"
 #include "entities/commsim/event/LocationEventArgs.hpp"
 #include "entities/commsim/event/AllLocationsEventArgs.hpp"
 #include "entities/commsim/service/Services.hpp"
 
 namespace sim_mob {
-//Forward Declarations
 class Broker;
 class ConnectionHandler;
 class JsonSerializableEventArgs;
@@ -35,15 +28,12 @@ class Agent;
 class ClientHandler;
 class ClientHandler: public sim_mob::event::EventListener, public boost::enable_shared_from_this<ClientHandler> {
 public:
-	/**
-	 * conn is the connection handler this client can use to send messages.
-	 */
+	///conn is the connection handler this client can use to send messages.
 	ClientHandler(sim_mob::Broker& broker, boost::shared_ptr<sim_mob::ConnectionHandler> conn, sim_mob::AgentCommUtilityBase* agentComm, const sim_mob::Agent* agent, std::string clientId);
-
 	virtual ~ClientHandler();
 
 	//event functions:
-	void sendJsonToBroker(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const sim_mob::comm::JsonSerializableEventArgs& args);
+	void sendSerializedMessageToBroker(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const sim_mob::BaseCommsimEventArgs& args);
 
 	//Getters/setters
 	void setRequiredServices(const std::set<sim_mob::Services::SIM_MOB_SERVICE>& requiredServices);

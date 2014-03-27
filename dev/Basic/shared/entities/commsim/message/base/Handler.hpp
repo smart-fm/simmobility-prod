@@ -14,13 +14,13 @@ namespace sim_mob {
 class Broker;
 
 ///A message handler (no documentation provided).
-class Handler {
+/*class Handler {
 public:
 	virtual ~Handler() {}
 
 	///Handle a given message.
 	virtual void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker*, boost::shared_ptr<sim_mob::ConnectionHandler> caller) = 0;
-};
+};*/
 
 
 }

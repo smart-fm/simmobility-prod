@@ -24,6 +24,16 @@ std::map<string, comm::ClientType> sim_mob::Services::ClientTypeMap =
 			("ANDROID_EMULATOR", comm::ANDROID_EMULATOR)
 			("NS3_SIMULATOR", comm::NS3_SIMULATOR);
 
+sim_mob::Services::SIM_MOB_SERVICE sim_mob::Services::GetServiceType(std::string type)
+{
+	std::map<std::string, Services::SIM_MOB_SERVICE>::iterator it = Services::ServiceMap.find(type);
+	if (it != Services::ServiceMap.end()) {
+		return it->second;
+	}
+
+	return Services::SIMMOB_SRV_UNKNOWN;
+}
+
 
 sim_mob::msg_header::msg_header()
 {}

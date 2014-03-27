@@ -11,8 +11,8 @@ using namespace sim_mob;
 
 
 //handler implementation
-void sim_mob::roadrunner::NewClientHandler::handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller)
+/*void sim_mob::roadrunner::NewClientHandler::handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller)
 {
 	//Query this agent's ID; tell the Broker that we are expecting a reply.
 	WhoAreYouProtocol::QueryAgentAsync(caller, *broker);
-}
+}*/

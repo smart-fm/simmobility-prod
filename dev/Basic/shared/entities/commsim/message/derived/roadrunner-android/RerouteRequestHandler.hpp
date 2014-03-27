@@ -12,10 +12,10 @@ namespace sim_mob {
 namespace roadrunner {
 
 //Handles a request to re-route.
-class RerouteRequestHandler : public sim_mob::Handler {
+/*class RerouteRequestHandler : public sim_mob::Handler {
 public:
 	virtual void handle(sim_mob::comm::MsgPtr message_, sim_mob::Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller);
-};
+};*/
 
 }}
 

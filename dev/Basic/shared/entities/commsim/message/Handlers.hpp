@@ -17,12 +17,19 @@ public:
 	HandlerLookup();
 	~HandlerLookup();
 
-	//Retrieve a message handler for a given message type.
-	const Handler* getHandler(const std::string& msgType);
+	///Retrieve a message handler for a given message type.
+	///If any custom handlers are defined, the default type is ignored and the custom type is returned instead.
+	const Handler* getHandler(const std::string& msgType) const;
+
+	///Add an override for a known handler type. Fails if an override has already been specified.
+	void addHandlerOverride(const std::string& mType, const Handler* handler);
 
 private:
-	//Handy lookup for handler types.
-	std::map<std::string, const Handler*> HandlerMap;
+	///Handy lookup for default handler types.
+	std::map<std::string, const Handler*> defaultHandlerMap;
+
+	///Lookup for application-defined (custom) types.These override the default types.
+	std::map<std::string, const Handler*> customHandlerMap;
 };
 
 
@@ -48,6 +55,21 @@ public:
 };
 
 class MulticastHandler : public Handler {
+public:
+	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const;
+};
+
+class RemoteLogHandler : public Handler {
+public:
+	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const;
+};
+
+class RerouteRequestHandler : public Handler {
+public:
+	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const;
+};
+
+class NewClientHandler : public Handler {
 public:
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const;
 };

@@ -17,11 +17,11 @@
 namespace sim_mob {
 
 ///The WhoAmI message is sent to every client.
-class WhoAmIMessage : public sim_mob::comm::Message {
+/*class WhoAmIMessage : public sim_mob::comm::Message {
 public:
 	WhoAmIMessage(const sim_mob::comm::MsgData& data_) : Message(data_)
 	{}
-};
+};*/
 
 
 }

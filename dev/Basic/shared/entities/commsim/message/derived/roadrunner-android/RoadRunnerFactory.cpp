@@ -30,9 +30,11 @@ sim_mob::roadrunner::RoadRunnerFactory::RoadRunnerFactory(bool useNs3) : useNs3(
 	//This has to be done at creation time.
 	HandlerMap[MULTICAST] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::roadrunner::MulticastHandler(useNs3));
 	HandlerMap[UNICAST] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::roadrunner::UnicastHandler(useNs3));
-	HandlerMap[REMOTE_LOG] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::roadrunner::RemoteLogHandler());
-	HandlerMap[REROUTE_REQUEST] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::roadrunner::RerouteRequestHandler());
-	HandlerMap[NEW_CLIENT] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::roadrunner::NewClientHandler());
+
+	//Already moved.
+	//HandlerMap[REMOTE_LOG] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::roadrunner::RemoteLogHandler());
+	//HandlerMap[REROUTE_REQUEST] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::roadrunner::RerouteRequestHandler());
+	//HandlerMap[NEW_CLIENT] = boost::shared_ptr<sim_mob::Handler>(new sim_mob::roadrunner::NewClientHandler());
 }
 
 sim_mob::roadrunner::RoadRunnerFactory::~RoadRunnerFactory()

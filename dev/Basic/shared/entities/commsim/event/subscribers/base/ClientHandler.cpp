@@ -42,10 +42,10 @@ const std::set<sim_mob::Services::SIM_MOB_SERVICE>& sim_mob::ClientHandler::getR
 	return requiredServices;
 }
 
-void sim_mob::ClientHandler::sendJsonToBroker(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const sim_mob::comm::JsonSerializableEventArgs& argums)
+void sim_mob::ClientHandler::sendSerializedMessageToBroker(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const sim_mob::BaseCommsimEventArgs& argums)
 {
 	//now send to broker's buffer
-	getBroker().insertSendBuffer(shared_from_this(), argums.toJSON());
+	getBroker().insertSendBuffer(shared_from_this(), argums.serialize());
 }
 
 bool sim_mob::ClientHandler::isValid() const

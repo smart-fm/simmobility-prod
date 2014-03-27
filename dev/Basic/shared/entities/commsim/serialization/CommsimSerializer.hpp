@@ -15,8 +15,9 @@
 
 namespace sim_mob {
 
-
+class RoadRunnerRegion;
 class CommsimSerializer;
+class LatLngLocation;
 
 //NOTE: This is used in sm4ns3; leaving it here to allow WFD serialization. We may remove it later.
 struct WFD_Group{
@@ -78,6 +79,9 @@ private:
  * serialize_end(s, hRes, res);
  */
 class OngoingSerialization {
+public:
+	OngoingSerialization() {}
+
 	//Inefficient, but needed
 	OngoingSerialization(const OngoingSerialization& other) : vHead(other.vHead) {
 		messages.str(other.messages.str());
@@ -103,7 +107,7 @@ public:
 	///Begin serialization of a series of messages. Call this once, followed by several calls to makeX(), followed by serialize_end().
 	///TODO: We can improve efficiency by taking in the total message count, senderID, and destID, and partially building the varying header here.
 	///      We would need to add dummy characters for the message lengths, and then overwrite them later during serialize_end().
-	static void serialize_begin(OngoingSerialization& ongoing);
+	static void serialize_begin(OngoingSerialization& ongoing, const std::string& destAgId);
 
 	///Finish serialization of a series of messages. See serialize_begin() for usage.
 	static bool serialize_end(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res);
@@ -134,6 +138,15 @@ public:
 	//Deserialize a MULTICAST message.
 	static MulticastMessage parseMulticast(const MessageConglomerate& msg, int msgNumber);
 
+	//Deserialize a REMOTE_LOG message.
+	static RemoteLogMessage parseRemoteLog(const MessageConglomerate& msg, int msgNumber);
+
+	//Deserialize a REROUTE_REQUEST message.
+	static RerouteRequestMessage parseRerouteRequest(const MessageConglomerate& msg, int msgNumber);
+
+	//Deserialize a NEW_CLIENT message.
+	static NewClientMessage parseNewClient(const MessageConglomerate& msg, int msgNumber);
+
 	//Serialize a WHOAMI message.
 	static void makeWhoAmI(OngoingSerialization& ongoing, const std::string& token);
 
@@ -153,13 +166,37 @@ public:
 	//Serialize a GOCLIENT message.
 	static void makeGoClient(OngoingSerialization& ongoing, const std::map<unsigned int, WFD_Group>& wfdGroups);
 
-	//Append a generic string of unknown serialization.
-	//TODO: Currently used as a workaround for our multi-threaded Broker.
-	static void makeGeneric(OngoingSerialization& ongoing, const std::string& msg);
-
 	//Serialize an unknown JSON-encoded message.
 	//TODO: This function will be removed soon, it is the only incompatibility currently left between v0 and v1.
 	static void makeUnknownJSON(OngoingSerialization& ongoing, const Json::Value& json);
+
+
+//NOTE: Alternative, string-returning functions.
+public:
+	//Serialize AGENTS_INFO to a string.
+	//TODO: You will have to manage the OngoingSerialization struct yourself if you use this.
+	static std::string makeAgentsInfo(const std::vector<unsigned int>& addAgents, const std::vector<unsigned int>& remAgents);
+
+	//Serialize READY_TO_RECEIVE to a string.
+	static std::string makeReadyToReceive();
+
+	//Serialize ALL_LOCATIONS to a string.
+	static std::string makeAllLocations(const std::map<unsigned int, DPoint>& allLocations);
+
+	//Serialize MULTICAST to a string.
+	static std::string makeMulticast(unsigned int sendAgentId, const std::vector<unsigned int>& receiveAgentIds, const std::string& data);
+
+	//Serialize LOCATION_DATA to a string.
+	static std::string makeLocation(int x, int y, const LatLngLocation& projected);
+
+	//Serialize REGIONS_AND_PATH_DATA to a string.
+	static std::string makeRegionAndPath(const std::vector<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path);
+
+	//Serialize TIME_DATA to a string.
+	static std::string makeTimeData(unsigned int tick, unsigned int elapsedMs);
+
+	//Append an already serialized string to an OngoingSerialization.
+	static void addGeneric(OngoingSerialization& ongoing, const std::string& msg);
 
 
 private:

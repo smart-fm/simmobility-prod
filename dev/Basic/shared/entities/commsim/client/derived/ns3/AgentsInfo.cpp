@@ -2,18 +2,12 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * AgentsInfo.cpp
- *
- *  Created on: Jul 16, 2013
- *      Author: vahid
- */
 
 #include "AgentsInfo.hpp"
 #include <json/json.h>
 #include "entities/Agent.hpp"
 #include "entities/commsim/service/Services.hpp"
-#include "entities/commsim/serialization/JsonParser.hpp"
+#include "entities/commsim/serialization/CommsimSerializer.hpp"
 #include <boost/foreach.hpp>
 
 namespace sim_mob {
@@ -47,34 +41,35 @@ void AgentsInfo::insertInfo(Mode mode,sim_mob::Entity* value) {
 }
 std::string AgentsInfo::toJson()
 {
-	Json::Value jPacket,jHeader,jArray_add,JArray_delete,jElement;
-	Json::Value *jArray_temp;
-	std::map<Mode, std::set<sim_mob::Entity*> >::iterator
-	it(all_agents.begin()), it_end(all_agents.end());
-	sim_mob::Entity* t;
-	for(; it != it_end; it++)
-	{
+	//Json::Value jPacket,jHeader,jArray_add,JArray_delete,jElement;
+	//Json::Value* jArray_temp;
+	//sim_mob::Entity* t;
 
-			switch(it->first)
-			{
-			case ADD_AGENT:{
-				jArray_temp = &jArray_add;
+	std::vector<unsigned int> addAgIds;
+	std::vector<unsigned int> remAgIds;
+	for(std::map<Mode, std::set<sim_mob::Entity*> >::iterator it = all_agents.begin(); it != all_agents.end(); it++) {
+		std::vector<unsigned int>* currVec = nullptr;
+		switch(it->first) {
+			case ADD_AGENT: {
+				currVec = &addAgIds;
 				break;
 			}
-			case REMOVE_AGENT:{
-				jArray_temp = &JArray_delete;
+			case REMOVE_AGENT: {
+				currVec = &remAgIds;
 				break;
 			}
-			}
+			default: { throw std::runtime_error("Unknown add/rem agent enum type."); }
+		}
 
-			BOOST_FOREACH(t, it->second)
-			{
-				jElement.clear();
-				jElement["AGENT_ID"] = t->getId();
-				jArray_temp->append(jElement);
-			}
+		for (std::set<Entity*>::const_iterator eIt=it->second.begin(); eIt!=it->second.end(); eIt++) {
+		//BOOST_FOREACH(t, it->second) {
+			currVec->push_back((*eIt)->getId());
+			//jElement.clear();
+			//jElement["AGENT_ID"] = (*eIt)->getId();
+			//jArray_temp->append(jElement);
+		}
 	}
-	pckt_header pHeader_(1, "0");
+	/*pckt_header pHeader_(1, "0");
 	jHeader = JsonParser::createPacketHeader(pHeader_);
 	jElement.clear();//to make a message
 	msg_header mHeader_("0", "SIMMOBILITY", "AGENTS_INFO", "SYS");
@@ -89,13 +84,15 @@ std::string AgentsInfo::toJson()
 	}
 
 	jPacket["PACKET_HEADER"] = jHeader;
-	jPacket["DATA"].append(jElement);
+	jPacket["DATA"].append(jElement);*/
 
 	//convert the jsoncpp packet to a json string
-	Json::FastWriter writer;
-	std::string res =  writer.write(jPacket);
+	//Json::FastWriter writer;
+	//std::string res =  writer.write(jPacket);
 //std::cout << "AGENTS_INFO : ###" << res << "###" << std::endl;
-	return res;
+	//return res;
+
+	return CommsimSerializer::makeAgentsInfo(addAgIds, remAgIds);
 }
 AgentsInfo::~AgentsInfo() {
 	// TODO Auto-generated destructor stub

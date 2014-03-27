@@ -2,12 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * AndroidClientRegistration.cpp
- *
- *  Created on: May 20, 2013
- *      Author: vahid
- */
 
 #include "AndroidClientRegistration.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
@@ -20,15 +14,12 @@
 using namespace sim_mob;
 
 
-
-
-
-AndroidClientRegistration::AndroidClientRegistration(/*ConfigParams::ClientType type_*/) : ClientRegistrationHandler(/*ConfigParams::ANDROID_EMULATOR*/){
-	// TODO Auto-generated constructor stub
+AndroidClientRegistration::AndroidClientRegistration(/*ConfigParams::ClientType type_*/) : ClientRegistrationHandler()
+{
 }
 
-bool AndroidClientRegistration::initialEvaluation(sim_mob::Broker& broker,AgentsList::type &registeredAgents){
-
+bool AndroidClientRegistration::initialEvaluation(sim_mob::Broker& broker,AgentsList::type &registeredAgents)
+{
 	//some checks to avoid calling this method unnecessarily
 	if (broker.getClientWaitingListSize()==0
 			|| registeredAgents.empty()
@@ -60,7 +51,7 @@ bool AndroidClientRegistration::findAFreeAgent(AgentsList::type &registeredAgent
 	return false;
 }
 
-boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> connHandle, sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, sim_mob::AgentInfo freeAgent)
+boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> connHandle, sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest& request, sim_mob::AgentInfo freeAgent)
 {
 	//Create a ClientHandler pointing to the Broker.
 	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker, connHandle, freeAgent.comm, freeAgent.agent, request.clientID));
@@ -68,19 +59,21 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(bo
 
 	//Subscribe to relevant services for each required service.
 	//TODO: This is *probably* correct, since we are attaching it to the clientEntry.
-	sim_mob::Services::SIM_MOB_SERVICE srv;
+	//sim_mob::Services::SIM_MOB_SERVICE srv;
 	sim_mob::event::EventPublisher& publisher = broker.getPublisher();
 	bool regionSupportRequired = false;
-	BOOST_FOREACH(srv, request.requiredServices) {
-		switch (srv) {
+
+	for (std::set<sim_mob::Services::SIM_MOB_SERVICE>::const_iterator it=request.requiredServices.begin(); it!=request.requiredServices.end(); it++) {
+	//BOOST_FOREACH(srv, request.requiredServices) {
+		switch (*it) {
 			case sim_mob::Services::SIMMOB_SRV_TIME:
-				publisher.subscribe(COMMEID_TIME, clientEntry.get(), &ClientHandler::sendJsonToBroker, clientEntry->agent);
+				publisher.subscribe(COMMEID_TIME, clientEntry.get(), &ClientHandler::sendSerializedMessageToBroker, clientEntry->agent);
 				break;
 			case sim_mob::Services::SIMMOB_SRV_LOCATION:
-				publisher.subscribe(COMMEID_LOCATION, clientEntry.get(), &ClientHandler::sendJsonToBroker, clientEntry->agent);
+				publisher.subscribe(COMMEID_LOCATION, clientEntry.get(), &ClientHandler::sendSerializedMessageToBroker, clientEntry->agent);
 				break;
 			case sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH:
-				publisher.subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(), &ClientHandler::sendJsonToBroker, clientEntry->agent);
+				publisher.subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(), &ClientHandler::sendSerializedMessageToBroker, clientEntry->agent);
 				break;
 			default:
 				Warn() <<"Android client requested service which could not be provided.\n"; break;
@@ -98,7 +91,7 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(bo
 	return clientEntry;
 }
 
-bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn) {
+bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest& request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn) {
 	//This part is locked in fear of registered agents' iterator invalidation in the middle of the process
 	AgentsList::Mutex registered_agents_mutex;
 	AgentsList::type &registeredAgents = broker.getRegisteredAgents(&registered_agents_mutex);

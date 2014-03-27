@@ -45,6 +45,8 @@ public:
 
 	static std::map<std::string, SIM_MOB_SERVICE> ServiceMap;
 	static std::map<std::string, comm::ClientType>	ClientTypeMap;
+
+	static SIM_MOB_SERVICE GetServiceType(std::string type);
 };
 
 

@@ -22,6 +22,8 @@
 #include "entities/commsim/buffer/BufferContainer.hpp"
 #include "entities/commsim/broker/base/Broker-util.hpp"
 #include "entities/commsim/broker/base/Common.hpp"
+#include "entities/commsim/message/Handlers.hpp"
+#include "entities/commsim/serialization/CommsimSerializer.hpp"
 
 #include "util/OneTimeFlag.hpp"
 #include "workers/Worker.hpp"
@@ -72,24 +74,24 @@ public:
  //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
 struct MessageElement{
 	MessageElement(){}
-	MessageElement(boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler, sim_mob::comm::MsgPtr msg) :
-		cnnHandler(cnnHandler), msg(msg){}
+	MessageElement(boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler, const MessageConglomerate& conglom) :
+		cnnHandler(cnnHandler), conglom(conglom){}
 
 	boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler;
-	sim_mob::comm::MsgPtr msg;
+	MessageConglomerate conglom;
 };
 
 
 /**
  * A typedef-container for our MessageFactories container type.
  */
-struct MessageFactories {
+/*struct MessageFactories {
 	typedef unsigned int Key;
 	typedef boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > Value;
 
 	typedef std::map<Key, Value> Type;
 	typedef std::pair<Key, Value> Pair;
-};
+};*/
 
 
 /**
@@ -130,21 +132,28 @@ struct BrokerBlockers {
 	typedef std::pair<Key, Value> Pair;
 };
 
+
+///Helper struct: key for our SendBuffer
+struct SendBufferKey {
+	boost::shared_ptr<sim_mob::ClientHandler> client; //The client to send this mesage to.
+	std::string destAgentId; //The ID of the receiving agent.
+};
+
 /**
  * Helper struct: items in our SendBuffer
  */
-struct SendBufferItem {
+/*struct SendBufferItem {
 	boost::shared_ptr<sim_mob::ClientHandler> client; //The client sending this message.
 	sim_mob::comm::MsgData msg; //The message being sent.
 	SendBufferItem() {}
 	SendBufferItem(boost::shared_ptr<sim_mob::ClientHandler> client, sim_mob::comm::MsgData msg) : client(client), msg(msg) {}
-};
+};*/
 
 /**
  * A typedef-container for our SendBuffer container type.
  * NOTE: This was only used here, so I am removing the template parameter.
  */
-struct SendBuffer {
+/*struct SendBuffer {
 	//The base types stored in our container.
 	typedef boost::shared_ptr<sim_mob::ConnectionHandler> Key;
 	typedef sim_mob::BufferContainer<SendBufferItem> Value;
@@ -152,7 +161,20 @@ struct SendBuffer {
 	//The container itself and a "pair" type.
 	typedef boost::unordered_map<Key, Value> Type;
 	typedef std::pair<Key, Value> Pair;
+};*/
+
+
+
+///Isolates external Broker functionality.
+class BrokerBase {
+public:
+	virtual ~BrokerBase() {}
+
+	//Used by: TODO
+	virtual void onMessageReceived(boost::shared_ptr<ConnectionHandler>cnnHadler, const BundleHeader& header, std::string message) = 0;
 };
+
+
 
 /**
  * This class is the heart of communication simulator
@@ -165,7 +187,11 @@ struct SendBuffer {
  * - other application specific settings
  * It is advisable to subclass from broker to make customized configuration/implementation
  */
-class Broker  : public sim_mob::Agent {
+class Broker : public sim_mob::Agent, public sim_mob::BrokerBase {
+public:
+	explicit Broker(const MutexStrategy& mtxStrat, int id=-1, std::string commElement_ = "", std::string commMode_ = "");
+	virtual ~Broker();
+
 protected:
 	struct ClientWaiting {
 		ClientRegistrationRequest request;
@@ -175,6 +201,10 @@ protected:
 
 	//clientType => ClientWaiting
 	typedef std::multimap<std::string, ClientWaiting> ClientWaitList;
+
+	///Lookup for message handlers by type.
+	///TODO: We need to register custom handlers for different clients, similar to how we use "overrides" for RoadRunner.
+	HandlerLookup handleLookup;
 
 	///the external communication entity that is using this broker as interface to from simmobility
 	std::string commElement;//"roadrunner", "stk",...etc
@@ -197,7 +227,7 @@ protected:
 	boost::shared_ptr<ConnectionServer> connection;
 
 	///	message receive call back function pointer
-	boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> m_messageReceiveCallback;
+	//boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> m_messageReceiveCallback;
 	///	list of this broker's publishers
 	PublisherList::Type publishers;
 
@@ -207,13 +237,21 @@ protected:
 	std::vector<sim_mob::Services::SIM_MOB_SERVICE> serviceList;
 
 	///	place to gather outgoing data for each tick
-	SendBuffer::Type sendBuffer;
+	//SendBuffer::Type sendBuffer;
+	std::map<SendBufferKey, OngoingSerialization> sendBuffer;
+
+	//Lock the send buffer (note: I am not entirely sure how thread-safe the sendBuffer is, so I am locking it just in case).
+	//TODO: In the future, all clients on the same Broker should share a non-locked list of OngoingSerializations,
+	//      and the Broker can just collate these.
+	boost::mutex mutex_send_buffer;
+
 
 	///	incoming data(from clients to broker) is saved here in the form of messages
 	sim_mob::comm::MessageQueue<sim_mob::MessageElement> receiveQueue;
+
 	///	list of classes that process incoming data(w.r.t client type)
 	///	to transform the data into messages and assign their message handlers
-	MessageFactories::Type messageFactories; //<client type, message factory>
+//	MessageFactories::Type messageFactories; //<client type, message factory>
 	///	list of classes who process client registration requests based on client type
 //	sim_mob::ClientRegistrationFactory clientRegistrationFactory;
 	//todo this will be configured in the configure() method and
@@ -369,7 +407,8 @@ protected:
 	void processIncomingData(timeslice);
 
 public:
-	explicit Broker(const MutexStrategy& mtxStrat, int id=-1, std::string commElement_ = "", std::string commMode_ = "");
+
+
 	/**
 	 * 	configure publisher, message handlers and waiting criteria...
 	 */
@@ -378,7 +417,7 @@ public:
 	 * 	temporary function replacing onAgentUpdate
 	 */
 	void AgentUpdated(Agent *);
-	~Broker();
+
 
 	//	enable broker
 	void enable();
@@ -461,17 +500,18 @@ public:
 	/**
 	 * 	request to insert into broker's send buffer
 	 */
-	bool insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler> client, const Json::Value& msg);
+	bool insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler> client, const std::string& destAgId, const std::string& message);
 
 	/**
 	 * 	callback function executed upon message arrival
 	 */
-	void messageReceiveCallback(boost::shared_ptr<ConnectionHandler>cnnHadler , std::string message);
+	virtual void onMessageReceived(boost::shared_ptr<ConnectionHandler>cnnHadler, const BundleHeader& header, std::string message);
 
 	/**
 	 * 	The Accessor used by other entities to note the broker's message receive call back function
 	 */
-	boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> getMessageReceiveCallBack();
+	//TODO: Replace with a "BrokerBase" class.
+	//boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> getMessageReceiveCallBack();
 
 
 	/**

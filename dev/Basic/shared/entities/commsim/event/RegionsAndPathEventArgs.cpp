@@ -2,7 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-#include "RegionsAndPathEventArgs.hpp"
+/*#include "RegionsAndPathEventArgs.hpp"
 #include "entities/Agent.hpp"
 
 using namespace sim_mob;
@@ -23,3 +23,4 @@ Json::Value sim_mob::RegionsAndPathEventArgs::toJSON() const
 }
 
 
+*/

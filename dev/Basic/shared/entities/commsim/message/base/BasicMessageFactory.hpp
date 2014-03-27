@@ -9,7 +9,7 @@
 
 #include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/message/base/Message.hpp"
-#include "entities/commsim/serialization/JsonParser.hpp"
+#include "entities/commsim/serialization/CommsimSerializer.hpp"
 
 
 namespace sim_mob {

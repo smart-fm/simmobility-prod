@@ -10,11 +10,11 @@
  */
 
 #pragma once
-
+/*
 #include<iostream>
 
 #include "event/EventListener.hpp"
-#include "entities/commsim/serialization/JsonParser.hpp"
+#include "entities/commsim/serialization/CommsimSerializer.hpp"
 #include "entities/commsim/Broker.hpp"
 #include "entities/commsim/event/JsonSerializableEventArgs.hpp"
 
@@ -30,4 +30,4 @@ public:
 	virtual ~AllLocationsEventArgs();
 };
 
-} /* namespace sim_mob */
+}*/ /* namespace sim_mob */

@@ -14,10 +14,10 @@ namespace comm {
  * This is currently only used by commsim events; we might want to expand on this functionality
  *   and make it available through, e.g., the "util" folder.
  */
-class JsonSerializable {
+/*class JsonSerializable {
 public:
 	virtual ~JsonSerializable() {}
 	virtual Json::Value toJSON() const = 0;
-};
+};*/
 
 }}

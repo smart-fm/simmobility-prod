@@ -11,9 +11,9 @@
 
 #pragma once
 
-#include <iostream>
+/*#include <iostream>
 
-#include "entities/commsim/serialization/JsonParser.hpp"
+#include "entities/commsim/serialization/CommsimSerializer.hpp"
 #include "event/EventListener.hpp"
 #include "metrics/Frame.hpp"
 #include "entities/commsim/event/JsonSerializableEventArgs.hpp"
@@ -32,4 +32,4 @@ private:
 };
 
 
-} /* namespace sim_mob */
+} *//* namespace sim_mob */

@@ -9,7 +9,7 @@
  *      Author: vahid
  */
 
-#include "TimeEventArgs.hpp"
+/*#include "TimeEventArgs.hpp"
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -28,3 +28,4 @@ Json::Value sim_mob::TimeEventArgs::toJSON() const
 {
 	return sim_mob::JsonParser::makeTimeData(time.frame(), ConfigManager::GetInstance().FullConfig().baseGranMS());
 }
+*/

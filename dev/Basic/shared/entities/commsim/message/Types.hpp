@@ -13,7 +13,7 @@
  * Hence, I've moved these definitions to sim_mob::comm. ~Seth
  */
 
-#include <boost/shared_ptr.hpp>
+/*#include <boost/shared_ptr.hpp>
 #include <json/json.h>
 
 namespace sim_mob {
@@ -35,4 +35,4 @@ typedef boost::shared_ptr<sim_mob::comm::Message> MsgPtr;
 ///The type of a Handler for a Message class (usually a shared_ptr).
 typedef boost::shared_ptr<sim_mob::Handler> MsgHandler;
 
-}}
+}}*/

@@ -627,11 +627,9 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 		}
 	}
 
-	FMODSchedule* schedule = parentDriver->vehicle->schedule;
-	if(processFMODSchedule(schedule, p)){
-		parentDriver->vehicle->setAcceleration(-5000);
+	if(fmodPerformer.performFmodSchedule(parentDriver, p)){
+		parentDriver->vehicle->setAcceleration(0);
 		parentDriver->vehicle->setVelocity(0);
-		p.currSpeed = parentDriver->vehicle->getVelocity() / 100;
 		return updatePositionOnLink(p);
 	}
 
@@ -723,121 +721,6 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 
 	return updatePositionOnLink(p);
 }
-
-bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, DriverUpdateParams& p)
-{
-	bool ret = false;
-	if(schedule) // check whether need stop here
-	{
-		const RoadSegment* currSegment = parentDriver->vehicle->getCurrSegment();
-		const Node* stop = currSegment->getEnd();
-		bool isFound = false;
-		static int count = 0;
-		double dwellTime = 0;
-		double distance = parentDriver->vehicle->getDistanceToSegmentEnd();
-
-		if( stop->getID() == 75956 ){
-			std::cout << "distance is : " << distance << std::endl;
-		}
-
-		//judge whether near to stopping node
-		if( distance<500 ){
-
-			for(int i = 0; i<schedule->stopSchdules.size(); i++){
-
-				FMODSchedule::STOP& stopSchedule = schedule->stopSchdules[i];
-
-				if( stopSchedule.stopId==stop->getID()){
-
-					isFound = true;
-					dwellTime = stopSchedule.dwellTime;
-
-					//arrive at scheduling node
-					if(dwellTime==0){
-
-						parentDriver->stop_event_type.set(1);
-						parentDriver->stop_event_scheduleid.set(stopSchedule.scheduleId);
-						parentDriver->stop_event_nodeid.set(stop->getID());
-
-						int passengersnum = stopSchedule.alightingPassengers.size()+stopSchedule.boardingPassengers.size();
-						dwellTime = stopSchedule.dwellTime = dwellTimeCalculation(3, 3, 0, 0,0, passengersnum);
-
-						//boarding and alighting
-						const RoadSegment* seg = parentDriver->vehicle->getCurrSegment();
-						const Node* node = seg->getEnd();
-						const Agent* parentAgent = (parentDriver?parentDriver->getParent():nullptr);
-					 	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((node->getLocation().getX() - 3500),(node->getLocation().getY() - 3500)),Point2D((node->getLocation().getX() + 3500),(node->getLocation().getY() + 3500)), parentAgent);
-					 	for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
-					 	{
-					 		//passenger boarding
-							vector<int>& boardingpeople = stopSchedule.boardingPassengers;
-							if( std::find(boardingpeople.begin(), boardingpeople.end(), (*it)->getId() ) != boardingpeople.end() )
-							{
-								const Person* p = dynamic_cast<const Person*>( (*it) );
-								Passenger* passenger = p ? dynamic_cast<Passenger*>(p->getRole()) : nullptr;
-
-								if (!passenger) {
-								  continue;
-								}
-
-								schedule->insidePassengers.push_back( p );
-								PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
-								if(passenger_movement) {
-									passenger_movement->PassengerBoardBus_Choice( this->getParentDriver() );
-									passenger_movement->alightingMS = 1;
-								}
-					 	 	}
-					 	}
-
-						//alighting
-						vector<int>& alightingpeople = stopSchedule.alightingPassengers;
-						for( vector<int>::iterator it=alightingpeople.begin(); it!=alightingpeople.end(); it++ )
-						{
-							vector<const Person*>::iterator itPerson=schedule->insidePassengers.begin();
-							while(itPerson!=schedule->insidePassengers.end()){
-								if((*it) == (int)(*itPerson)->getId() ){
-									Passenger* passenger = dynamic_cast<Passenger*>((*itPerson)->getRole());
-									if (!passenger)
-										continue;
-
-									PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
-									if(passenger_movement) {
-										passenger_movement->PassengerAlightBus(this->getParentDriver());
-										passenger_movement->alightingMS = 1;
-									}
-
-									itPerson = schedule->insidePassengers.erase(itPerson);
-								}
-								else{
-									itPerson++;
-								}
-							}
-						}
-
-						//update shared parameters to record boarding and alighting person
-						parentDriver->stop_event_lastAlightingPassengers.set( stopSchedule.alightingPassengers );
-						parentDriver->stop_event_lastBoardingPassengers.set( stopSchedule.boardingPassengers );
-					}
-
-					// stopping at scheduling node
-					dwellTime -= p.elapsedSeconds;
-					schedule->stopSchdules[i].dwellTime = dwellTime;
-
-					//depature from this node
-					if(dwellTime < 0 ){
-						parentDriver->stop_event_type.set(0);
-					}
-				}
-			}
-		}
-
-		if(isFound && dwellTime>0.0){
-			ret = true;
-		}
-	}
-	return ret;
-}
-
 
 void sim_mob::DriverMovement::setParentBufferedData() {
 	getParent()->xPos.set(parentDriver->vehicle->getX());

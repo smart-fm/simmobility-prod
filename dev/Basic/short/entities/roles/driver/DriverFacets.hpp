@@ -22,6 +22,7 @@
 #include "geospatial/Incident.hpp"
 #include "util/OneTimeFlag.hpp"
 #include "IncidentPerformer.hpp"
+#include "FmodSchedulesPerformer.hpp"
 
 namespace sim_mob {
 
@@ -187,10 +188,7 @@ private:
 	void setTrafficSignalParams(DriverUpdateParams& p);
 	void intersectionDriving(DriverUpdateParams& p);
 
-
 	void findCrossing(DriverUpdateParams& p);
-
-	bool processFMODSchedule(FMODSchedule* schedule, DriverUpdateParams& p);
 
 public:
 	double targetSpeed;			//the speed which the vehicle is going to achieve
@@ -220,5 +218,8 @@ private:
 
 	//perform incident response
 	IncidentPerformer incidentPerformer;
+
+	//perform fmod tasks
+	FmodSchedulesPerformer fmodPerformer;
 };
 }

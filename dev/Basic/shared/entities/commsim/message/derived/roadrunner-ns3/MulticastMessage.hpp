@@ -26,9 +26,14 @@ public:
 
 
 //Handler for the above message
-class NS3_HDL_MULTICAST : public sim_mob::Handler {
+/*class NS3_HDL_MULTICAST : public sim_mob::Handler {
 public:
+	NS3_HDL_MULTICAST(bool useNs3) : useNs3(useNs3) {}
+
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const;
-};
+
+private:
+	bool useNs3;
+};*/
 
 }}

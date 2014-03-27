@@ -26,7 +26,7 @@ class MulticastMessage;
 namespace roadrunner {
 
 ///Shared functionality for both the AndroidMulticastHandler and the AndroidNs3MulticastHandler
-class MulticastHandler : public sim_mob::Handler {
+/*class MulticastHandler : public sim_mob::Handler {
 public:
 	MulticastHandler(bool useNs3);
 
@@ -44,6 +44,6 @@ private:
 
 private:
 	bool useNs3;
-};
+};*/
 
 }}

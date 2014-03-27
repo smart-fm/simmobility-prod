@@ -132,11 +132,11 @@ public:
 	//Deserialize an ALL_LOCATIONS message.
 	static AllLocationsMessage parseAllLocations(const MessageConglomerate& msg, int msgNumber);
 
-	//Deserialize a UNICAST message.
-	static UnicastMessage parseUnicast(const MessageConglomerate& msg, int msgNumber);
+	//Deserialize an OPAQUE_SEND message.
+	static OpaqueSendMessage parseOpaqueSend(const MessageConglomerate& msg, int msgNumber);
 
-	//Deserialize a MULTICAST message.
-	static MulticastMessage parseMulticast(const MessageConglomerate& msg, int msgNumber);
+	//Deserialize an OPAQUE_RECEIVE message.
+	static OpaqueReceiveMessage parseOpaqueReceive(const MessageConglomerate& msg, int msgNumber);
 
 	//Deserialize a REMOTE_LOG message.
 	static RemoteLogMessage parseRemoteLog(const MessageConglomerate& msg, int msgNumber);
@@ -161,7 +161,7 @@ public:
 
 	//Serialize a MULTICAST message (used in the trace runner).
 	//(The actual client simply mutates the incoming MULTICAST message, so this function is only used in trace.)
-	static void makeMulticast(OngoingSerialization& ongoing, unsigned int sendAgentId, const std::vector<unsigned int>& receiveAgentIds, const std::string& data);
+	//static void makeMulticast(OngoingSerialization& ongoing, unsigned int sendAgentId, const std::vector<unsigned int>& receiveAgentIds, const std::string& data);
 
 	//Serialize a GOCLIENT message.
 	static void makeGoClient(OngoingSerialization& ongoing, const std::map<unsigned int, WFD_Group>& wfdGroups);
@@ -183,8 +183,11 @@ public:
 	//Serialize ALL_LOCATIONS to a string.
 	static std::string makeAllLocations(const std::map<unsigned int, DPoint>& allLocations);
 
-	//Serialize MULTICAST to a string.
-	static std::string makeMulticast(unsigned int sendAgentId, const std::vector<unsigned int>& receiveAgentIds, const std::string& data);
+	//Serialize OPAQUE_SEND to a string.
+	static std::string makeOpaqueSend(const std::string& fromId, const std::vector<std::string>& toIds, bool broadcast, const std::string& data);
+
+	//Serialize OPAQUE_RECEIVE to a string.
+	static std::string makeOpaqueReceive(const std::string& fromId, const std::string& toId, const std::string& data);
 
 	//Serialize LOCATION_DATA to a string.
 	static std::string makeLocation(int x, int y, const LatLngLocation& projected);

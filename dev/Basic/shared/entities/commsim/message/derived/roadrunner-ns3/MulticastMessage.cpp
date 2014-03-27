@@ -33,12 +33,16 @@ Handler* sim_mob::rr_android_ns3::NS3_MSG_MULTICAST::newHandler()
 	return new NS3_HDL_MULTICAST();
 }*/
 
-
+/*
 
 //you are going to handle something like this:
 //{"MESSAGE_CAT":"APP","MESSAGE_TYPE":"MULTICAST","MULTICAST_DATA":"TVVMVElDQVNUIFN0cmluZyBmcm9tIGNsaWVudCAxMTQ=","RECEIVING_AGENT_ID":75,"SENDER":"0","SENDER_TYPE":"NS3_SIMULATOR"}
 void sim_mob::rr_android_ns3::NS3_HDL_MULTICAST::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const
 {
+	if (!useNs3) {
+		throw std::runtime_error("NS-3 handler called when ns-3 was disabled.");
+	}
+
 	MulticastMessage mcMsg = CommsimSerializer::parseMulticast(messages, msgNumber);
 
 	//At this point, ns-3 has processed the message, so there should only be one recipient.
@@ -84,5 +88,5 @@ void sim_mob::rr_android_ns3::NS3_HDL_MULTICAST::handle(boost::shared_ptr<Connec
 
 }
 
-
+*/
 

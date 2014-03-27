@@ -345,49 +345,54 @@ sim_mob::AllLocationsMessage sim_mob::CommsimSerializer::parseAllLocations(const
 }
 
 
-sim_mob::UnicastMessage sim_mob::CommsimSerializer::parseUnicast(const MessageConglomerate& msg, int msgNumber)
+sim_mob::OpaqueSendMessage sim_mob::CommsimSerializer::parseOpaqueSend(const MessageConglomerate& msg, int msgNumber)
 {
-	sim_mob::UnicastMessage res(CommsimSerializer::parseMessageBase(msg, msgNumber));
+	sim_mob::OpaqueSendMessage res(CommsimSerializer::parseMessageBase(msg, msgNumber));
 
 	if (NEW_BUNDLES) {
 		throw std::runtime_error("parse() for NEW_BUNDLES not yet supported.");
 	} else {
 		const Json::Value& jsMsg = msg.getMessage(msgNumber);
 
-		if (!jsMsg.isMember("RECEIVER")) { throw std::runtime_error("Badly formatted Unicast message."); }
+		if (!(jsMsg.isMember("FROM_ID") && jsMsg.isMember("TO_IDS") && jsMsg.isMember("BROADCAST") && jsMsg.isMember("DATA") && jsMsg["TO_IDS"].isArray())) {
+			throw std::runtime_error("Badly formatted OPAQUE_SEND message.");
+		}
 
 		//Fairly simple.
-		res.receiver = jsMsg["RECEIVER"].asString();
+		res.fromId = jsMsg["FROM_ID"].asString();
+		res.broadcast = jsMsg["BROADCAST"].asBool();
+		res.data = jsMsg["DATA"].asString();
+		const Json::Value& toIds = jsMsg["TO_IDS"];
+		for (unsigned int i=0; i<toIds.size(); i++) {
+			res.toIds.push_back(toIds[i].asString());
+		}
+
+		//Fail-safe
+		if (res.broadcast && !res.toIds.empty()) {
+			throw std::runtime_error("Cannot call opaque_send with both \"broadcast\" as true and a non-empty toIds list.");
+		}
 	}
 	return res;
 }
 
 
-sim_mob::MulticastMessage sim_mob::CommsimSerializer::parseMulticast(const MessageConglomerate& msg, int msgNumber)
+sim_mob::OpaqueReceiveMessage sim_mob::CommsimSerializer::parseOpaqueReceive(const MessageConglomerate& msg, int msgNumber)
 {
-	sim_mob::MulticastMessage res(CommsimSerializer::parseMessageBase(msg, msgNumber));
+	sim_mob::OpaqueReceiveMessage res(CommsimSerializer::parseMessageBase(msg, msgNumber));
 
 	if (NEW_BUNDLES) {
 		throw std::runtime_error("parse() for NEW_BUNDLES not yet supported.");
 	} else {
 		const Json::Value& jsMsg = msg.getMessage(msgNumber);
 
-		if (!(jsMsg.isMember("SENDING_AGENT") && jsMsg.isMember("RECIPIENTS") && jsMsg.isMember("DATA"))) {
-			throw std::runtime_error("Badly formatted Multicast message.");
-		}
-
-		//Safeguard.
-		if (jsMsg.isMember("RECEIVING_AGENT_ID")) {
-			throw std::runtime_error("Error: Multicast messages should always use the RECIPIENTS list, not RECEIVING_AGENT_ID");
+		if (!(jsMsg.isMember("FROM_ID") && jsMsg.isMember("TO_ID") && jsMsg.isMember("DATA"))) {
+			throw std::runtime_error("Badly formatted OPAQUE_RECEIVE message.");
 		}
 
 		//Save and return.
-		res.sendingAgent = jsMsg["SENDING_AGENT"].asUInt();
-		res.msgData = jsMsg["MULTICAST_DATA"].asString();
-		const Json::Value& recip = jsMsg["RECIPIENTS"];
-		for (unsigned int i=0; i<recip.size(); i++) {
-			res.recipients.push_back(recip[i].asUInt());
-		}
+		res.fromId = jsMsg["FROM_ID"].asString();
+		res.toId = jsMsg["TO_ID"].asString();
+		res.data = jsMsg["DATA"].asString();
 	}
 	return res;
 }
@@ -558,31 +563,52 @@ std::string sim_mob::CommsimSerializer::makeAllLocations(const std::map<unsigned
 }
 
 
-void sim_mob::CommsimSerializer::makeMulticast(OngoingSerialization& ongoing, unsigned int sendAgentId, const std::vector<unsigned int>& receiveAgentIds, const std::string& data)
+/*void sim_mob::CommsimSerializer::makeMulticast(OngoingSerialization& ongoing, unsigned int sendAgentId, const std::vector<unsigned int>& receiveAgentIds, const std::string& data)
 {
 	addGeneric(ongoing, makeMulticast(sendAgentId, receiveAgentIds, data));
-}
+}*/
 
-std::string sim_mob::CommsimSerializer::makeMulticast(unsigned int sendAgentId, const std::vector<unsigned int>& receiveAgentIds, const std::string& data)
+
+
+
+std::string sim_mob::CommsimSerializer::makeOpaqueSend(const std::string& fromId, const std::vector<std::string>& toIds, bool broadcast, const std::string& data)
 {
 	if (NEW_BUNDLES) {
 		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
 	} else {
 		Json::Value res;
-		addDefaultMessageProps(res, "MULTICAST");
-		res["SENDER_TYPE"] = "APP"; //...but override this one.
+		addDefaultMessageProps(res, "OPAQUE_SEND");
+		//res["SENDER_TYPE"] = "APP"; //...but override this one.
 		//res["SENDER"] = "106"; //NOTE: I think this is wrong.
 
-		//We need to include the ORIGINAL sending agent, since this message may have been relayed by the Broker/ns-3
-		res["SENDING_AGENT"] = sendAgentId;
-
-		//Add the DATA section
+		//Simple props.
+		res["FROM_ID"] = fromId;
+		res["BROADCAST"] = broadcast;
 		res["DATA"] = data;
 
-		//Add all "RECIPIENTS"
-		for (std::vector<unsigned int>::const_iterator it=receiveAgentIds.begin(); it!=receiveAgentIds.end(); it++) {
-			res["RECIPIENTS"].append(*it);
+		//Add all "TO_IDS"
+		for (std::vector<std::string>::const_iterator it=toIds.begin(); it!=toIds.end(); it++) {
+			res["TO_IDS"].append(*it);
 		}
+
+		//Now append it.
+		return Json::FastWriter().write(res);
+	}
+}
+
+
+std::string sim_mob::CommsimSerializer::makeOpaqueReceive(const std::string& fromId, const std::string& toId, const std::string& data)
+{
+	if (NEW_BUNDLES) {
+		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
+	} else {
+		Json::Value res;
+		addDefaultMessageProps(res, "OPAQUE_RECEIVE");
+
+		//Simple props.
+		res["FROM_ID"] = fromId;
+		res["TO_ID"] = toId;
+		res["DATA"] = data;
 
 		//Now append it.
 		return Json::FastWriter().write(res);

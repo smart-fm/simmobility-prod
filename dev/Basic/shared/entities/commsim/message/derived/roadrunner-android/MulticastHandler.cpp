@@ -13,7 +13,7 @@
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
 
 using namespace sim_mob;
-
+/*
 
 sim_mob::roadrunner::MulticastHandler::MulticastHandler(bool useNs3) : useNs3(useNs3)
 {
@@ -42,12 +42,12 @@ void sim_mob::roadrunner::MulticastHandler::handle(boost::shared_ptr<ConnectionH
 	//	step-1: Find the sending agent
 
 	//1.1: parse
-	/*sim_mob::comm::MsgData &data = message_->getData();
-	msg_header msg_header_;
-	if(!sim_mob::JsonParser::parseMessageHeader(data,msg_header_)) {
-		WarnOut("ANDROID_HDL_MULTICAST::handle: message header incomplete" << std::endl);
-		return;
-	}*/
+	//sim_mob::comm::MsgData &data = message_->getData();
+	//msg_header msg_header_;
+	//if(!sim_mob::JsonParser::parseMessageHeader(data,msg_header_)) {
+	//	WarnOut("ANDROID_HDL_MULTICAST::handle: message header incomplete" << std::endl);
+	//	return;
+	//}
 
 	//1.2 do a double check: the sending agent is an ANDROID_EMULATOR
 	//TODO: This will have to go.
@@ -165,4 +165,4 @@ void sim_mob::roadrunner::MulticastHandler::postPendingMessages(sim_mob::Broker&
 	}
 }
 
-
+*/

@@ -14,17 +14,27 @@
 
 namespace sim_mob {
 
-struct UnicastMessage : public sim_mob::MessageBase {
-	std::string receiver; ///<Who to send this to.
-	UnicastMessage(const MessageBase& base) : MessageBase(base) {}
+///A Uni/Multicast-style opaque message, sent from ONE agent to ONE other agent *or* broadcast to anyone in range.
+///This struct carries the information from the first agent to Sim Mobility (which may relay it to ns-3).
+///Note that from/to IDs here represent the end-goal agents (e.g., from emulator#1 to emulator#2), NOT the communication sender/destination.
+struct OpaqueSendMessage : public sim_mob::MessageBase {
+	std::string fromId; ///<The Agent sending this message.
+	std::vector<std::string> toIds; ///<The Agent(s) we are sending this message to.
+	bool broadcast; ///<If true, Sim Mobility will overwrite "toIds" with the nearest Agents (using the Aura Manager).
+	std::string data; ///<The actual message data
+	OpaqueSendMessage(const MessageBase& base) : MessageBase(base) {}
 };
 
-struct MulticastMessage : public sim_mob::MessageBase {
-	unsigned int sendingAgent;
-	std::vector<unsigned int> recipients;
-	std::string msgData;
-	MulticastMessage(const MessageBase& base) : MessageBase(base) {}
+///A Uni/Multicast-style opaque message, sent from ONE agent to ONE other agent.
+///This struct carries the information from (optionally) ns-3 to Sim Mobility and (always) Sim Mobility to the recipient..
+///Note that from/to IDs here represent the end-goal agents (e.g., from emulator#1 to emulator#2), NOT the communication sender/destination.
+struct OpaqueReceiveMessage : public sim_mob::MessageBase {
+	std::string fromId; ///<The Agent sending this message.
+	std::string toId; ///<The Agent we are sending this message to.
+	std::string data; ///<The actual message data
+	OpaqueReceiveMessage(const MessageBase& base) : MessageBase(base) {}
 };
+
 
 struct AgentsInfoMessage : public sim_mob::MessageBase {
 	std::vector<unsigned int> addAgentIds; ///<Agent IDs to add

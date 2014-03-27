@@ -11,6 +11,9 @@
 
 namespace sim_mob {
 
+class OpaqueSendMessage;
+class OpaqueReceiveMessage;
+
 ///Handy lookup class for handlers.
 class HandlerLookup {
 public:
@@ -39,6 +42,14 @@ class NullHandler : public Handler {
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const {}
 };
 
+///A handler that throws an exception
+class ObsoleteHandler : public Handler {
+	virtual ~ObsoleteHandler() {}
+	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const {
+		throw std::runtime_error("MULTICAST/UNICAST messages are obsolete (or, encountered another obsolete message type). Use OPAQUE_SEND and OPAQUE_RECEIVE instead.");
+	}
+};
+
 class AllLocationHandler : public Handler {
 public:
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const;
@@ -49,15 +60,15 @@ public:
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const;
 };
 
-class UnicastHandler : public Handler {
+/*class OpaqueSendHandler : public Handler {
 public:
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const;
 };
 
-class MulticastHandler : public Handler {
+class OpaqueReceiveHandler : public Handler {
 public:
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const;
-};
+};*/
 
 class RemoteLogHandler : public Handler {
 public:
@@ -73,6 +84,40 @@ class NewClientHandler : public Handler {
 public:
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const;
 };
+
+
+//OpaqueSend/Receive are more complex; we might move them later.
+class OpaqueSendHandler : public sim_mob::Handler {
+public:
+	OpaqueSendHandler(bool useNs3) : useNs3(useNs3) {}
+
+	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const;
+
+private:
+	//Called whenever a client is found that we must dispatch a message to.
+	//Behavior differs for ns3 versus android-only.
+	//TODO: The client handler can't really be const, since we are expecting to respond to this messsage at some point (which may modify the client).
+	void handleClient(const sim_mob::ClientHandler& clientHdlr, std::vector<std::string>& receiveAgentIds, sim_mob::Broker& broker, const OpaqueSendMessage& currMsg) const;
+
+	//Called when all client have been processed and messages may now be sent.
+	//Behavior only exists for ns-3 (where messages are delayed).
+	void postPendingMessages(sim_mob::Broker& broker, const sim_mob::Agent& agent, const std::vector<std::string>& receiveAgentIds, const OpaqueSendMessage& currMsg) const;
+
+private:
+	const bool useNs3;
+};
+
+
+class OpaqueReceiveHandler : public sim_mob::Handler {
+public:
+	OpaqueReceiveHandler(bool useNs3) : useNs3(useNs3) {}
+
+	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const;
+
+private:
+	const bool useNs3;
+};
+
 
 
 }

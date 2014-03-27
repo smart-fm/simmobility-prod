@@ -165,12 +165,17 @@ void sim_mob::Broker::configure()
 		useNs3 = false;
 	} else { throw std::runtime_error("Unknown clientType in Broker."); }
 
-	handleLookup.addHandlerOverride("MULTICAST", new sim_mob::roadrunner::MulticastHandler(useNs3));
-	handleLookup.addHandlerOverride("UNICAST", new sim_mob::roadrunner::UnicastHandler(useNs3));
-	if(useNs3) {
-		//TODO: These need to coexist; currently they will just crash.
-		handleLookup.addHandlerOverride("MULTICAST", new sim_mob::rr_android_ns3::NS3_HDL_MULTICAST());
-		handleLookup.addHandlerOverride("UNICAST", new sim_mob::rr_android_ns3::NS3_HDL_UNICAST());
+
+	//TODO: Multi/Unicast need to be handled in a similar manner. The "useNs-3 version" should handle everything.
+	handleLookup.addHandlerOverride("OPAQUE_SEND", new sim_mob::OpaqueSendHandler(useNs3));
+	handleLookup.addHandlerOverride("OPAQUE_SEND", new sim_mob::roadrunner::UnicastHandler(useNs3));
+
+	//We register an OPAQUE_RECEIVE with the "useNs3" flag ---if ns3 is disabled, calling handle()-ing these messages will raise an error.
+	handleLookup.addHandlerOverride("OPAQUE_RECEIVE", new sim_mob::OpaqueReceiveHandler(useNs3));
+	handleLookup.addHandlerOverride("OPAQUE_RECEIVE", new sim_mob::rr_android_ns3::NS3_HDL_UNICAST());
+
+	//if(useNs3) {
+
 
 		//boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > android_factory();
 		//boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > ns3_factory();
@@ -182,7 +187,7 @@ void sim_mob::Broker::configure()
 		//We assume the "UNKNOWN" type knows about connection messages.
 		//boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > basic_factory();
 	//	messageFactories.insert(std::make_pair(comm::UNKNOWN_CLIENT, new sim_mob::BasicMessageFactory()));
-	} //else if (client_type == "android-only") {
+	//} //else if (client_type == "android-only") {
 		//boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > android_factory();
 
 		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid

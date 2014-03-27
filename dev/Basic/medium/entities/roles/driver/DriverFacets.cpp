@@ -546,7 +546,7 @@ bool DriverMovement::advanceMovingVehicle(sim_mob::medium::DriverUpdateParams& p
 		throw std::runtime_error("agent's current lane is not set!");
 	}
 
-	getSegSpeed();
+	setVelocity();
 
 	double vu = velocity;
 
@@ -619,7 +619,7 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(sim_mob::medium::DriverUpd
 	double xf = 0.0;
 	double tf = 0.0;
 
-	getSegSpeed();
+	setVelocity();
 	double vu = velocity;
 
 	double output = getOutputCounter(currLane, pathMover.getCurrSegStats());
@@ -664,7 +664,7 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(sim_mob::medium::DriverUpd
 	return res;
 }
 
-void DriverMovement::getSegSpeed() {
+void DriverMovement::setVelocity() {
 	velocity = pathMover.getCurrSegStats()->getSegSpeed(true);
 }
 

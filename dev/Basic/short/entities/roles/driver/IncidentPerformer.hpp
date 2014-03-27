@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * IncidentPerformer.hpp
  *
@@ -8,8 +12,7 @@
 #include "entities/IncidentStatus.hpp"
 #include "DriverUpdateParams.hpp"
 
-#ifndef INCIDENTPERFORMER_HPP_
-#define INCIDENTPERFORMER_HPP_
+#pragma once
 
 namespace sim_mob {
 
@@ -42,7 +45,10 @@ private:
 	//incident response plan
 	sim_mob::IncidentStatus incidentStatus;
 
+	//check whether ahead vehicles exists
+	void checkAheadVehicles(Driver* parent, DriverUpdateParams& p);
+
 };
 
 } /* namespace sim_mob */
-#endif /* INCIDENTPERFORMER_HPP_ */
+

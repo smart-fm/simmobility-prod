@@ -42,7 +42,6 @@ void sim_mob::IncidentPerformer::responseIncidentStatus(Driver* parentDriver, Dr
 				fwdCarDist = parentDriver->getVehicle()->length;
 			}
 		}
-
 		//record speed limit for current vehicle
 		float speedLimit = 0;
 		//record current speed
@@ -53,11 +52,11 @@ void sim_mob::IncidentPerformer::responseIncidentStatus(Driver* parentDriver, Dr
 		LANE_CHANGE_SIDE oldDirect = p.turningDirection;
 		p.perceivedDistToFwdCar = std::min(incidentStatus.getDistanceToIncident(), fwdCarDist);
 		p.turningDirection = LCS_LEFT;
-
 		//retrieve speed limit decided by whether or not incident lane or adjacent lane
 		speedLimit = incidentStatus.getSpeedLimit(p.currLaneIndex);
-		if(speedLimit==0 && incidentStatus.getDistanceToIncident()>incidentGap)
+		if(speedLimit==0 && incidentStatus.getDistanceToIncident()>incidentGap){
 			speedLimit = approachingSpeed;
+		}
 
 		// recalculate acceleration and velocity when incident happen
 		float newFwdAcc = 0;
@@ -88,6 +87,11 @@ void sim_mob::IncidentPerformer::responseIncidentStatus(Driver* parentDriver, Dr
 			parentDriver->getVehicle()->setAcceleration(0);
 		}
 	}
+
+	checkAheadVehicles(parentDriver, p);
+}
+
+void sim_mob::IncidentPerformer::checkAheadVehicles(Driver* parentDriver, DriverUpdateParams& p){
 
 	if(p.nvFwd.exists() ){//avoid cars stacking together
 		DPoint dFwd = p.nvFwd.driver->getVehicle()->getPosition();

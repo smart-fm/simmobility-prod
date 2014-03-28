@@ -19,6 +19,7 @@ namespace medium
 
 class PassengerBehavior;
 class PassengerMovement;
+class Driver;
 
 /**
  * A medium-term Passenger.
@@ -37,9 +38,15 @@ public:
 	virtual void make_frame_tick_params(timeslice now) { throw std::runtime_error("make_frame_tick_params not implemented in Passenger."); }
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() { throw std::runtime_error("getSubscriptionParams not implemented in Passenger."); }
 
+	void setAssociateDriver(Driver* driver);
+
+	Driver* getAssociateDriver();
+
 private:
 	friend class PassengerBehavior;
 	friend class PassengerMovement;
+
+	Driver* associateDriver;
 };
 
 

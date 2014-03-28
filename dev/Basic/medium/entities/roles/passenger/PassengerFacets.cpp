@@ -6,6 +6,7 @@
  */
 
 #include "PassengerFacets.hpp"
+#include "Passenger.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
@@ -52,6 +53,11 @@ void PassengerMovement::frame_tick()
 {
 	unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
 	totalTimeToCompleteMS += tickMS;
+
+	if(parentPassenger->getAssociateDriver()==nullptr)
+	{
+		getParent()->setToBeRemoved();
+	}
 }
 
 void PassengerMovement::frame_tick_output(){

@@ -96,6 +96,7 @@ public:
 	void initPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
 	void resetPath(std::vector<sim_mob::WayPoint> wp_path);
 	const sim_mob::RoadSegment* hasNextSegment(bool inSameLink) const;
+	DPoint getPosition() const;
     /**
       * get nearest obstacle in perceptionDis
       * @param type is obstacle type, currently only two types are BusStop and Incident.

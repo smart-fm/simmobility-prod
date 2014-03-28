@@ -124,6 +124,7 @@ public:
 	void shiftToNewLanePolyline(bool moveLeft);
 	void moveToNewLanePolyline(int laneID);
 	void setPositionInIntersection(double x, double y);
+	DPoint& getPositionInIntersection() const;
 	void setTurningDirection(LANE_CHANGE_SIDE direction);
 	//Modifiers
 	void setVelocity(double value);      ///<Set the forward velocity.

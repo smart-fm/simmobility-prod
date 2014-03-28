@@ -83,6 +83,11 @@ void sim_mob::Vehicle::setPositionInIntersection(double x, double y) {
 	posInIntersection.y = y;
 }
 
+DPoint& sim_mob::Vehicle::getPositionInIntersection() const
+{
+	return posInIntersection;
+}
+
 const RoadSegment* sim_mob::Vehicle::getCurrSegment() const {
 	return fwdMovement.getCurrSegment();
 }

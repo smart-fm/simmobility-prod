@@ -495,8 +495,8 @@ double sim_mob::BusDriverMovement::dwellTimeCalculation(int A, int B, int delta_
 double sim_mob::BusDriverMovement::getDistanceToBusStopOfSegment(const RoadSegment* rs) {
 
 	double distance = -100;
-	double currentX = parentBusDriver->vehicle->getX();
-	double currentY = parentBusDriver->vehicle->getY();
+	double currentX = parentBusDriver->currPos.x;
+	double currentY = parentBusDriver->currPos.y;
 	const std::map<centimeter_t, const RoadItem*> & obstacles = rs->obstacles;
 	for (std::map<centimeter_t, const RoadItem*>::const_iterator o_it =
 			obstacles.begin(); o_it != obstacles.end(); o_it++) {
@@ -604,8 +604,8 @@ void sim_mob::BusDriverMovement::frame_tick_output() {
 			<<","<<p.now.frame()
 			<<","<<getParent()->getId()
 			<<",{"
-			<<"\"xPos\":\""<<static_cast<int>(bus->getX())
-			<<"\",\"yPos\":\""<<static_cast<int>(bus->getY())
+			<<"\"xPos\":\""<<static_cast<int>(parentBusDriver->currPos.x)
+			<<"\",\"yPos\":\""<<static_cast<int>(parentBusDriver->currPos.y)
 			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
 			<<"\",\"length\":\""<<static_cast<int>(3*bus->length)
 			<<"\",\"width\":\""<<static_cast<int>(2*bus->width)

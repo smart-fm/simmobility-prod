@@ -169,8 +169,8 @@ void sim_mob::DriverMovement::responseIncidentStatus(DriverUpdateParams& p, time
 		//calculate the distance to the nearest front vehicle, if no front vehicle exists, the distance is given to a enough large gap as 5 kilometers
 		float fwdCarDist = 5000;
 		if( p.nvFwd.exists() ){
-			DPoint dFwd = p.nvFwd.driver->getVehicle()->getPosition();
-			DPoint dCur = parentDriver->vehicle->getPosition();
+			DPoint dFwd = p.nvFwd.driver->currPos;
+			DPoint dCur = parentDriver->currPos;
 			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
 			fwdCarDist = movementVect.getMagnitude()-parentDriver->vehicle->length;
 			if(fwdCarDist < 0) {
@@ -224,8 +224,8 @@ void sim_mob::DriverMovement::responseIncidentStatus(DriverUpdateParams& p, time
 	}
 
 	if(p.nvFwd.exists() ){//avoid cars stacking together
-		DPoint dFwd = p.nvFwd.driver->getVehicle()->getPosition();
-		DPoint dCur = parentDriver->vehicle->getPosition();
+		DPoint dFwd = p.nvFwd.driver->currPos;
+		DPoint dCur = parentDriver->currPos;
 		DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
 		double len = parentDriver->getVehicle()->length;
 		double dist = movementVect.getMagnitude();
@@ -432,7 +432,8 @@ void sim_mob::DriverMovement::frame_tick()
 
 	//Print output for this frame.
 	disToFwdVehicleLastFrame = p2.nvFwd.distance;
-
+	parentDriver->currDistAlongRoadSegment = fwdDriverMovement.getCurrDistAlongRoadSegment();
+	parentDriver->currPos = getPosition();
 //	std::cout << "parentDriver->vehicle->getX():" << parentDriver->vehicle->getX() << std::endl;
 //	std::cout << "parentDriver->vehicle->getY():" << parentDriver->vehicle->getY() << std::endl;
 
@@ -478,8 +479,8 @@ void sim_mob::DriverMovement::frame_tick_output() {
 			<<","<<p.now.frame()
 			<<","<<getParent()->getId()
 			<<",{"
-			<<"\"xPos\":\""<<static_cast<int>(parentDriver->vehicle->getX())
-			<<"\",\"yPos\":\""<<static_cast<int>(parentDriver->vehicle->getY())
+			<<"\"xPos\":\""<<static_cast<int>(parentDriver->currPos.x)
+			<<"\",\"yPos\":\""<<static_cast<int>(parentDriver->currPos.y)
 			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
 			<<"\",\"length\":\""<<static_cast<int>(parentDriver->vehicle->length)
 			<<"\",\"width\":\""<<static_cast<int>(parentDriver->vehicle->width)
@@ -868,7 +869,7 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 
 double sim_mob::DriverMovement::getDistanceToSegmentEnd() const
 {
-	DynamicVector dis(parentDriver->vehicle->getX(), parentDriver->vehicle->getY(),
+	DynamicVector dis(parentDriver->currPos.x, parentDriver->currPos.y,
 			fwdDriverMovement.getCurrSegment()->getEnd()->location.getX(),
 			fwdDriverMovement.getCurrSegment()->getEnd()->location.getY());
 	return dis.getMagnitude();
@@ -990,8 +991,8 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 
 
 void sim_mob::DriverMovement::setParentBufferedData() {
-	getParent()->xPos.set(parentDriver->vehicle->getX());
-	getParent()->yPos.set(parentDriver->vehicle->getY());
+	getParent()->xPos.set(parentDriver->currPos.x);
+	getParent()->yPos.set(parentDriver->currPos.y);
 
 	//TODO: Need to see how the parent agent uses its velocity vector.
 	getParent()->fwdVel.set(parentDriver->vehicle->getVelocity());
@@ -1032,6 +1033,29 @@ const RoadSegment* sim_mob::DriverMovement::hasNextSegment(bool inSameLink) cons
 		return fwdDriverMovement.getNextSegment(inSameLink);
 	}
 	return nullptr;
+}
+
+DPoint sim_mob::DriverMovement::getPosition() const
+{
+	//Temp
+	if (fwdDriverMovement.isInIntersection() && (parentDriver->vehicle->getPositionInIntersection().x == 0 || parentDriver->vehicle->getPositionInIntersection().y == 0)) {
+		Warn() <<"WARNING: Vehicle is in intersection without a position!" <<std::endl;
+	}
+
+	DPoint origPos = getPosition();
+	if (fwdDriverMovement.isInIntersection() && parentDriver->vehicle->getPositionInIntersection().x != 0 && parentDriver->vehicle->getPositionInIntersection().y != 0) {
+		//Override: Intersection driving
+		origPos.x = parentDriver->vehicle->getPositionInIntersection().x;
+		origPos.y = parentDriver->vehicle->getPositionInIntersection().y;
+	} else if (parentDriver->vehicle->latMovement != 0 && !fwdDriverMovement.isDoneWithEntireRoute()) {
+		DynamicVector latMv(0, 0, fwdDriverMovement.getNextPolypoint().getX() - fwdDriverMovement.getCurrPolypoint().getX(),
+				fwdDriverMovement.getNextPolypoint().getY() - fwdDriverMovement.getCurrPolypoint().getY());
+		latMv.flipLeft();
+		latMv.scaleVectTo(parentDriver->vehicle->latMovement).translateVect();
+		origPos.x += latMv.getX();
+		origPos.y += latMv.getY();
+	}
+	return origPos;
 }
 
 const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob::RoadItemType type,double &itemDis,double perceptionDis,bool isInSameLink)
@@ -1630,7 +1654,7 @@ void sim_mob::DriverMovement::findCrossing(DriverUpdateParams& p) {
 		//TODO: Please double-check that this does what's intended.
 		Point2D interSect = LineLineIntersect(getCurrPolylineVector(), crossing->farLine.first,
 				crossing->farLine.second);
-		DynamicVector toCrossing(parentDriver->vehicle->getX(), parentDriver->vehicle->getY(), interSect.getX(), interSect.getY());
+		DynamicVector toCrossing(parentDriver->currPos.x, parentDriver->currPos.y, interSect.getX(), interSect.getY());
 
 		p.crossingFwdDistance = toCrossing.getMagnitude();
 		p.isCrossingAhead = true;
@@ -1694,7 +1718,7 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 		}
 
 		std::stringstream msg;
-		msg << "Error moving vehicle forward for Agent ID: " << getParent()->getId() << "," << this->parentDriver->vehicle->getX() << "," << this->parentDriver->vehicle->getY() << "\n" << ex.what();
+		msg << "Error moving vehicle forward for Agent ID: " << getParent()->getId() << "," << this->parentDriver->currPos.x << "," << this->parentDriver->currPos.y << "\n" << ex.what();
 		throw std::runtime_error(msg.str().c_str());
 	}
 
@@ -1854,7 +1878,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 		return false;
 
 //	int other_offset = other_driver->currLaneOffset_.get();
-	int other_offset = other_driver->vehicle->getDistanceMovedInSegment();
+	int other_offset = other_driver->currDistAlongRoadSegment;
 
 	//If the vehicle is in the same Road segment
 	if (fwdDriverMovement.getCurrSegment() == otherRoadSegment) {
@@ -2055,8 +2079,8 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 //					std::cout<<"find this " <<other_driver->parent->getId()<<std::endl;
 					// 2. other_driver's distance move in the segment, it is also the distance vh to intersection
 					double currSL = fwdDriverMovement.getCurrentSegmentLength();
-					double disMIS = parentDriver->vehicle->getDistanceMovedInSegment();
-					double otherdis = other_driver->vehicle->getDistanceMovedInSegment();
+					double disMIS = fwdDriverMovement.getCurrDistAlongRoadSegment();
+					double otherdis = other_driver->currDistAlongRoadSegment;
 					double distance =  currSL- disMIS + otherdis;
 					// 3. compare the distance and set params.nvFwdNextLink
 					check_and_set_min_nextlink_car_dist(params.nvFwdNextLink, distance, parentDriver->vehicle, other_driver);
@@ -2134,7 +2158,7 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 
 	//NOTE: Let the AuraManager handle dispatching to the "advanced" function.
 	vector<const Agent*> nearby_agents;
-	if(parentDriver->vehicle->getX() > 0 && parentDriver->vehicle->getY() > 0) {
+	if(parentDriver->currPos.x > 0 && parentDriver->currPos.y > 0) {
 		const Agent* parentAgent = (parentDriver?parentDriver->getParent():nullptr);
 		nearby_agents = AuraManager::instance().nearbyAgents(Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind, parentAgent);
 	} else {

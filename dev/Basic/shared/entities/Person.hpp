@@ -79,7 +79,7 @@ public:
     void simplyModifyTripChain(std::vector<TripChainItem*>& tripChain);
 
     //combine together all the pedestrian roles and insert waiting activity at bus stop
-    void adjustTripChainsForMedium(std::vector<TripChainItem*>& tripChain);
+    void computeDistanceForWalkTrips(std::vector<TripChainItem*>& tripChain);
 
     ///Change the role of this person: Driver, Passenger, Pedestrian
     void changeRole(sim_mob::Role* newRole);

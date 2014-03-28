@@ -1047,11 +1047,11 @@ DPoint sim_mob::DriverMovement::getPosition() const
 		//Override: Intersection driving
 		origPos.x = parentDriver->vehicle->getPositionInIntersection().x;
 		origPos.y = parentDriver->vehicle->getPositionInIntersection().y;
-	} else if (parentDriver->vehicle->latMovement != 0 && !fwdDriverMovement.isDoneWithEntireRoute()) {
+	} else if (parentDriver->vehicle->getLateralMovement() != 0 && !fwdDriverMovement.isDoneWithEntireRoute()) {
 		DynamicVector latMv(0, 0, fwdDriverMovement.getNextPolypoint().getX() - fwdDriverMovement.getCurrPolypoint().getX(),
 				fwdDriverMovement.getNextPolypoint().getY() - fwdDriverMovement.getCurrPolypoint().getY());
 		latMv.flipLeft();
-		latMv.scaleVectTo(parentDriver->vehicle->latMovement).translateVect();
+		latMv.scaleVectTo(parentDriver->vehicle->getLateralMovement()).translateVect();
 		origPos.x += latMv.getX();
 		origPos.y += latMv.getY();
 	}

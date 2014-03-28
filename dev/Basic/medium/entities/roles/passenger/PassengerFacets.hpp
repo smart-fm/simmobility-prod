@@ -1,5 +1,5 @@
 /*
- * PedestrainFacets.h
+ * PassengerFacets.h
  *
  *  Created on: Mar 13, 2014
  *      Author: zhang huai peng

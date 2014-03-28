@@ -1,5 +1,5 @@
 /*
- * PedestrainFacets.cpp
+ * PassengerFacets.cpp
  *
  *  Created on: Mar 13, 2014
  *      Author: zhang huai peng

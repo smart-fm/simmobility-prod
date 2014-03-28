@@ -489,38 +489,45 @@ void sim_mob::Person::adjustTripChainsForMedium(std::vector<TripChainItem*>& tri
 			std::vector<SubTrip>::iterator subChainItem[2];
 			std::vector<sim_mob::SubTrip>& subtrip = (dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
 
-			subChainItem[1] = subChainItem[0] = subtrip.begin();
-			subChainItem[1]++;
-			while(subChainItem[0]!=subtrip.end() && subChainItem[1]!=subtrip.end() )
+			subChainItem[0] = subChainItem[1] = subtrip.begin();
+			while(subChainItem[1]!=subtrip.end() )
 			{
-				if((subChainItem[0]->mode=="Walk") && (subChainItem[1]->mode=="walk"))
+				if((subChainItem[1]->mode=="Walk"))
 				{
 					const StreetDirectory& stdir = StreetDirectory::instance();
 
 					StreetDirectory::VertexDesc source, destination;
 					vector<WayPoint> wp_path;
 					float distance = 0;
-					for(int k=0; k<2; k++){
-						if(subChainItem[k]->fromLocation.type_==WayPoint::NODE)
-							source = stdir.WalkingVertex(*subChainItem[k]->fromLocation.node_);
-						else if(subChainItem[k]->fromLocation.type_==WayPoint::BUS_STOP)
-							source = stdir.WalkingVertex(*subChainItem[k]->fromLocation.busStop_);
+					if(subChainItem[1]->fromLocation.type_==WayPoint::NODE){
+						source = stdir.WalkingVertex(*subChainItem[1]->fromLocation.node_);
+					}
+					else if(subChainItem[1]->fromLocation.type_==WayPoint::BUS_STOP){
+						source = stdir.WalkingVertex(*subChainItem[1]->fromLocation.busStop_);
+					}
 
-						if(subChainItem[k]->toLocation.type_==WayPoint::NODE)
-							destination = stdir.WalkingVertex(*subChainItem[k]->toLocation.node_);
-						else if(subChainItem[k]->toLocation.type_==WayPoint::BUS_STOP)
-							destination = stdir.WalkingVertex(*subChainItem[k]->toLocation.busStop_);
+					if(subChainItem[1]->toLocation.type_==WayPoint::NODE){
+						destination = stdir.WalkingVertex(*subChainItem[1]->toLocation.node_);
+					}
+					else if(subChainItem[1]->toLocation.type_==WayPoint::BUS_STOP){
+						destination = stdir.WalkingVertex(*subChainItem[1]->toLocation.busStop_);
+					}
 
-						wp_path = stdir.SearchShortestWalkingPath(source, destination);
-						for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
-							if (it->type_ == WayPoint::ROAD_SEGMENT) {
-								distance += it->roadSegment_->getLengthOfSegment();
-							}
+					wp_path = stdir.SearchShortestWalkingPath(source, destination);
+					for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
+						if (it->type_ == WayPoint::ROAD_SEGMENT) {
+							distance += it->roadSegment_->getLengthOfSegment();
 						}
 					}
 
-					subChainItem[0]->totalDistanceOD += distance;
-					subChainItem[1] = subtrip.erase(subChainItem[1]);
+					subChainItem[1]->totalDistanceOD += distance;
+					if(subChainItem[0]!=subChainItem[1] && subChainItem[0]->mode=="Walk"){
+						subChainItem[0]->totalDistanceOD += distance;
+						subChainItem[1] = subtrip.erase(subChainItem[1]);
+					}
+					else {
+						subChainItem[0] = subChainItem[1]++;
+					}
 				}
 				else
 				{

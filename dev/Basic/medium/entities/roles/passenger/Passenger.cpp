@@ -2,12 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * Pedestrian.cpp
- *
- *  Created on: 2011-6-20
- *      Author: Linbo
- */
+
 
 #include "Passenger.hpp"
 #include "PassengerFacets.hpp"

@@ -339,6 +339,18 @@ public:
 	 */
 	std::deque<sim_mob::Person*> getAllPersonsUsingTopCMerge();
 
+	/*
+	 * Merge agents in different links in the same conflux
+	 */
+	enum CONFLUX_VEHICLE_ORDER
+	{
+		CONFLUX_ORDERING_BY_DISTANCE_TO_INTERSECTION,
+		CONFLUX_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION
+	};
+	CONFLUX_VEHICLE_ORDER order_by_setting;
+
+	std::deque<sim_mob::Person*> topCMergeDifferentLinksInConflux(std::vector< std::deque<sim_mob::Person*> >& all_person_lists, int Capacity);
+
 	/**
 	 * get number of persons in lane infinities of this conflux
 	 */

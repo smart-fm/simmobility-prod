@@ -12,14 +12,13 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "logging/Log.hpp"
-#include "util/AlgorithmBase.hpp"
 
 using std::string;
 
 namespace sim_mob {
 
 SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream) :
-			roadSegment(rdSeg), segDensity(0.0), segPedSpeed(0.0), segFlow(0), lastAcceptTime(0.0), debugMsgs(std::stringstream::out) {
+			roadSegment(rdSeg), segDensity(0.0), segPedSpeed(0.0), segFlow(0), lastAcceptTime(0.0), debugMsgs(std::stringstream::out), order_by_setting(SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION) {
 	segVehicleSpeed = getRoadSegment()->maxSpeed / 3.6 * 100; //converting from kmph to m/s
 	numVehicleLanes = 0;
 
@@ -79,17 +78,71 @@ std::deque<sim_mob::Person*> SegmentStats::getAgents() {
 }
 
 std::deque<sim_mob::Person*> SegmentStats::getAgentsByTopCMerge() {
-	std::vector< std::deque<sim_mob::Person*>* > all_person_lists;
+	std::vector< std::deque<sim_mob::Person*> > all_person_lists;
 	int capacity = (int)(ceil(roadSegment->capacity * 5 / 3600)); //hard-code
 
 	for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator lnIt = laneStatsMap.begin(); lnIt != laneStatsMap.end(); lnIt++) {
-		all_person_lists.push_back(&(lnIt->second->laneAgents));
+		all_person_lists.push_back((lnIt->second->laneAgents));
 	}
 
 	//for testing
 //	capacity = 2;
 
-	return AlgorithmBase::topCMerge(all_person_lists, capacity);
+	return topCMergeDifferentLanesInSegment(all_person_lists, capacity);
+}
+
+std::deque<sim_mob::Person*> SegmentStats::topCMergeDifferentLanesInSegment(std::vector<std::deque<sim_mob::Person*> >& all_person_lists, int Capacity) {
+	std::deque<sim_mob::Person*> merged_deque;
+	std::vector<std::deque<sim_mob::Person*>::iterator> iterator_lists;
+
+	//init location
+	int deque_size = all_person_lists.size();
+	for (std::vector<std::deque<sim_mob::Person*> >::iterator it = all_person_lists.begin(); it != all_person_lists.end(); ++it) {
+		iterator_lists.push_back(((*it)).begin());
+	}
+
+	//pick the Top C
+	for (int i = 0; i < Capacity; i++) {
+		int which_queue = -1;
+		double min_distance = std::numeric_limits<double>::max();
+		sim_mob::Person* which_person = NULL;
+
+		for (int i = 0; i < deque_size; i++) {
+			//order by location
+			if (order_by_setting == SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION) {
+				if (iterator_lists[i] != (all_person_lists[i]).end() && (*iterator_lists[i])->distanceToEndOfSegment < min_distance) {
+					which_queue = i;
+					min_distance = (*iterator_lists[i])->distanceToEndOfSegment;
+					which_person = (*iterator_lists[i]);
+				}
+			}
+			//order by time
+			else if (order_by_setting == SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION) {
+				if (iterator_lists[i] != (all_person_lists[i]).end() && (*iterator_lists[i])->drivingTimeToEndOfLink < min_distance) {
+					which_queue = i;
+					min_distance = (*iterator_lists[i])->drivingTimeToEndOfLink;
+					which_person = (*iterator_lists[i]);
+				}
+			}
+		}
+
+		if (which_queue < 0) {
+			//no vehicle any more
+			return merged_deque;
+		} else {
+			iterator_lists[which_queue]++;
+			merged_deque.push_back(which_person);
+		}
+	}
+
+	//After pick the Top C, there are still some vehicles left in the deque
+	for (int i = 0; i < deque_size; i++) {
+		if (iterator_lists[i] != (all_person_lists[i]).end()) {
+			merged_deque.insert(merged_deque.end(), iterator_lists[i], (all_person_lists[i]).end());
+		}
+	}
+
+	return merged_deque;
 }
 
 

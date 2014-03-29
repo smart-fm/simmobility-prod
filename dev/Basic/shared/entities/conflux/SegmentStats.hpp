@@ -177,6 +177,13 @@ public:
 	//top-C Merge
 	std::deque<sim_mob::Person*> getAgentsByTopCMerge();
 
+	enum SEGMENT_VEHICLE_ORDER {
+		SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION, SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION
+	};
+	SEGMENT_VEHICLE_ORDER order_by_setting;
+
+	std::deque<sim_mob::Person*> topCMergeDifferentLanesInSegment(std::vector< std::deque<sim_mob::Person*> >& all_person_lists, int Capacity);
+
 	const sim_mob::RoadSegment* getRoadSegment() const;
 	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getAgentCountsOnLanes();
 	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane); //returns std::pair<queuingCount, movingCount>

@@ -19,7 +19,7 @@ using namespace sim_mob;
 using std::vector;
 
 sim_mob::Vehicle::Vehicle(double length, double width) :
-	length(length), width(width), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME), isQueuing(false), schedule(nullptr) {
+	length(length), width(width), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(false), turningDirection(LCS_SAME), isQueuing(false), schedule(nullptr) {
 }
 
 sim_mob::Vehicle::Vehicle(int vehicle_id, double length, double width) :

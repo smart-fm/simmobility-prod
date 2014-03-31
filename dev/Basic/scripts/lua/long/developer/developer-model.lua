@@ -62,6 +62,11 @@ require "common"
         - ec (boolean)                     : Tells if postcode is a ec
         - private (boolean)                : Tells if postcode is a private unit
         - hdb (boolean)                    : Tells if postcode is a HDB unit
+
+    PotentialUnit:
+        - floorArea (real)                 : Floor area.
+        - unitTypeId (long integer)        : Unit type identifier.
+        - freehold (boolean)               : Tells if unit is freehold or not.
 ]]
 
 --[[****************************************************************************
@@ -179,9 +184,11 @@ UNIT_TYPE_COEFFICIENTS = readOnlyTable
 --[[
     Calculates the revenue for the given future unit.
 ]]
-function calculateUnitRevenue(unit, building, postcode, amenities)
+function calculateUnitRevenue(unit, amenities)
+    print(string.format("UnitType: %d, FloorArea: %f, Freehold: %s", unit.unitTypeId, unit.floorArea, unit.freehold))
+    --print( .. unit.unitTypeId .. " FloorArea: " .. unit.floorArea .. " Freehold: ".. unit.freehold )
     return 0;
 end
 
-print(UNIT_TYPE_COEFFICIENTS[6][11])
+--print(UNIT_TYPE_COEFFICIENTS[6][11])
 

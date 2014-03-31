@@ -12,6 +12,7 @@
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"
 #include "core/DataManager.hpp"
+#include "model/DeveloperModel.hpp"
 
 
 using namespace sim_mob;
@@ -251,5 +252,21 @@ DeveloperLuaModel::~DeveloperLuaModel() {
 }
 
 void DeveloperLuaModel::mapClasses() {
+    getGlobalNamespace(state.get())
+            .beginClass <PotentialUnit> ("PotentialUnit")
+            .addProperty("floorArea", &PotentialUnit::getFloorArea)
+            .addProperty("unitTypeId", &PotentialUnit::getUnitTypeId)
+            .addProperty("freehold", &PotentialUnit::isFreehold)
+            .endClass();
     mapCommonClasses(state.get());
+}
+
+double DeveloperLuaModel::calulateUnitRevenue(const PotentialUnit& unit,
+        const PostcodeAmenities& amenities) const {
+    LuaRef funcRef = getGlobal(state.get(), "calculateUnitRevenue");
+    LuaRef retVal = funcRef(&unit, &amenities);
+    if (retVal.isNumber()) {
+        return retVal.cast<double>();
+    }
+    return INVALID_DOUBLE;
 }

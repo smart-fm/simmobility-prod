@@ -99,7 +99,7 @@ double HM_Model::TazStats::getHH_TotalIncome() const {
 }
 
 double HM_Model::TazStats::getHH_AvgIncome() const {
-    return hhTotalIncome / static_cast<double> (hhNum);
+    return hhTotalIncome / static_cast<double> ((hhNum == 0) ? 1 : hhNum);
 }
 
 HM_Model::HM_Model(WorkGroup& workGroup)

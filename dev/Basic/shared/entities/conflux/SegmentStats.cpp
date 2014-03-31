@@ -77,7 +77,7 @@ std::deque<sim_mob::Person*> SegmentStats::getAgents() {
 
 void SegmentStats::getAgentsByTopCMerge(std::deque<sim_mob::Person*>& mergedPersonList) {
 	std::vector< std::deque<sim_mob::Person*> > allPersonLists;
-	int capacity = (int)(ceil(roadSegment->capacity * 5 / 3600)); //hard-code
+	int capacity = (int)(ceil(roadSegment->capacity * 5 / 3600)); //hard-code: 5 is the time step
 
 	for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator lnIt = laneStatsMap.begin(); lnIt != laneStatsMap.end(); lnIt++) {
 		allPersonLists.push_back((lnIt->second->laneAgents));
@@ -97,7 +97,7 @@ void SegmentStats::topCMergeDifferentLanesInSegment(std::deque<sim_mob::Person*>
 
 	//pick the Top C
 	for (size_t c = 0; c < Capacity; c++) {
-		int whichDueue = -1;
+		int whichDeque = -1;
 		double minDistance = std::numeric_limits<double>::max();
 		sim_mob::Person* whichPerson = NULL;
 
@@ -105,7 +105,7 @@ void SegmentStats::topCMergeDifferentLanesInSegment(std::deque<sim_mob::Person*>
 			//order by location
 			if (orderBySetting == SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION) {
 				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->distanceToEndOfSegment < minDistance) {
-					whichDueue = i;
+					whichDeque = i;
 					minDistance = (*iteratorLists[i])->distanceToEndOfSegment;
 					whichPerson = (*iteratorLists[i]);
 				}
@@ -113,18 +113,18 @@ void SegmentStats::topCMergeDifferentLanesInSegment(std::deque<sim_mob::Person*>
 			//order by time
 			else if (orderBySetting == SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION) {
 				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->drivingTimeToEndOfLink < minDistance) {
-					whichDueue = i;
+					whichDeque = i;
 					minDistance = (*iteratorLists[i])->drivingTimeToEndOfLink;
 					whichPerson = (*iteratorLists[i]);
 				}
 			}
 		}
 
-		if (whichDueue < 0) {
+		if (whichDeque < 0) {
 			//no vehicle any more
 			return;
 		} else {
-			iteratorLists[whichDueue]++;
+			iteratorLists[whichDeque]++;
 			mergedPersonList.push_back(whichPerson);
 		}
 	}

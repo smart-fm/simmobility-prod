@@ -15,6 +15,7 @@
 #include "database/entity/Developer.hpp"
 #include "database/entity/PotentialProject.hpp"
 #include "model/DeveloperModel.hpp"
+#include "model/lua/LuaProvider.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -102,9 +103,13 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
         createPotentialProjects(parcelsToProcess, *model, projects);
         std::vector<PotentialProject>::iterator it;
         for (it = projects.begin(); it != projects.end(); it++) {
-            PrintOut("Project: " << (*it) <<std::endl);
-            
-            //LUA calculate COST, HPI and REVENUE
+            //PrintOut("Project: " << (*it) <<std::endl);
+            const std::vector<PotentialUnit>& units = (*it).getUnits();
+            std::vector<PotentialUnit>::const_iterator unitsItr;
+            for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++) {
+                PostcodeAmenities amenities;
+                LuaProvider::getDeveloperModel().calulateUnitRevenue((*unitsItr), amenities);
+            }
         }
     }
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);

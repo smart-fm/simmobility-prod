@@ -10,7 +10,7 @@
  */
 
 #include "Conflux.hpp"
-#include <math.h>
+#include <cmath>
 
 #include <algorithm>
 #include <map>
@@ -75,8 +75,6 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* p, const sim_mob::RoadSegment* 
 UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 	currFrameNumber = frameNumber;
 
-//	std::cout << "frameNumber:" << frameNumber.frame() << std::endl;
-
 	resetPositionOfLastUpdatedAgentOnLanes();
 
 	//reset the remaining times of persons in lane infinity and VQ if required.
@@ -103,7 +101,8 @@ void sim_mob::Conflux::updateUnsignalized() {
 #define UsingTopCMergeInConflux
 #ifdef UsingTopCMergeInConflux
 	//merge vehicles on conflux
-	std::deque<sim_mob::Person*> all_persons_in_reverse_order = getAllPersonsUsingTopCMerge();
+	std::deque<sim_mob::Person*> all_persons_in_reverse_order;
+	getAllPersonsUsingTopCMerge(all_persons_in_reverse_order);
 
 	std::deque<sim_mob::Person*>::iterator person_iter = all_persons_in_reverse_order.begin();
 	for (; person_iter != all_persons_in_reverse_order.end(); person_iter++) {
@@ -943,11 +942,9 @@ std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersons() {
 	return allPersonsInCfx;
 }
 
-std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersonsUsingTopCMerge() {
-	std::deque<sim_mob::Person*> tmpAgents;
+void sim_mob::Conflux::getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>& mergedPersonDeque) {
 	sim_mob::SegmentStats* segStats = nullptr;
-	std::vector< std::deque<sim_mob::Person*> > all_person_lists;
-//	std::vector< std::deque<sim_mob::Person*>* > all_person_lists;
+	std::vector< std::deque<sim_mob::Person*> > allPersonLists;
 
 	int sum_capacity = 0;
 
@@ -957,7 +954,7 @@ std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersonsUsingTopCMerge() {
 
 		for (std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator upStrmSegMapIt = upstreamSegmentsMap.begin(); upStrmSegMapIt != upstreamSegmentsMap.end();
 				upStrmSegMapIt++) {
-			double accumalted_travel_time_on_downstream_segments = 0;
+			double accumaltedTravelTimeOnDownstreamSegments = 0;
 
 			for (std::vector<sim_mob::RoadSegment*>::const_reverse_iterator rdSegIt = upStrmSegMapIt->second.rbegin(); rdSegIt != upStrmSegMapIt->second.rend(); rdSegIt++) {
 				segStats = findSegStats(*rdSegIt);
@@ -965,18 +962,18 @@ std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersonsUsingTopCMerge() {
 				double speed = segStats->getSegSpeed(true);
 
 				for (std::deque<sim_mob::Person*>::iterator p_it = all_agents.begin(); p_it != all_agents.end(); p_it++) {
-					(*p_it)->drivingTimeToEndOfLink = (*p_it)->distanceToEndOfSegment / speed + accumalted_travel_time_on_downstream_segments;
+					(*p_it)->drivingTimeToEndOfLink = (*p_it)->distanceToEndOfSegment / speed + accumaltedTravelTimeOnDownstreamSegments;
 				}
 
-				accumalted_travel_time_on_downstream_segments += (*rdSegIt)->getLaneZeroLength() / speed;
+				accumaltedTravelTimeOnDownstreamSegments += (*rdSegIt)->getLaneZeroLength() / speed;
 			}
 		}
 	}
 
 	//
 	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator upStrmSegMapIt = upstreamSegmentsMap.begin(); upStrmSegMapIt != upstreamSegmentsMap.end(); upStrmSegMapIt++) {
-		std::deque<sim_mob::Person*> one_deque;
-		all_person_lists.push_back(one_deque);
+		std::deque<sim_mob::Person*> oneDeque;
+		allPersonLists.push_back(oneDeque);
 	}
 
 	int index = 0;
@@ -986,69 +983,65 @@ std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersonsUsingTopCMerge() {
 		//Note that the segments must be in a reserved order
 		for (std::vector<sim_mob::RoadSegment*>::const_reverse_iterator rdSegIt = upStrmSegMapIt->second.rbegin(); rdSegIt != upStrmSegMapIt->second.rend(); rdSegIt++) {
 			segStats = findSegStats(*rdSegIt);
-			tmpAgents = segStats->getAgentsByTopCMerge();
-			all_person_lists[index].insert(all_person_lists[index].end(), tmpAgents.begin(), tmpAgents.end());
+
+			std::deque<sim_mob::Person*> tmpAgents;
+			segStats->getAgentsByTopCMerge(tmpAgents);
+			allPersonLists[index].insert(allPersonLists[index].end(), tmpAgents.begin(), tmpAgents.end());
 		}
 	}
 
-	//for testing
-//	sum_capacity = 2;
-
-	return topCMergeDifferentLinksInConflux(all_person_lists, sum_capacity);
+	topCMergeDifferentLinksInConflux(mergedPersonDeque, allPersonLists, sum_capacity);
 }
 
-std::deque<sim_mob::Person*> sim_mob::Conflux::topCMergeDifferentLinksInConflux(std::vector< std::deque<sim_mob::Person*> >& all_person_lists, int Capacity) {
-	std::deque<sim_mob::Person*> merged_deque;
-	std::vector<std::deque<sim_mob::Person*>::iterator> iterator_lists;
+void sim_mob::Conflux::topCMergeDifferentLinksInConflux(std::deque<sim_mob::Person*>& mergedPersonDeque, std::vector< std::deque<sim_mob::Person*> >& allPersonLists, int Capacity) {
+	std::vector<std::deque<sim_mob::Person*>::iterator> iteratorLists;
 
 	//init location
-	int deque_size = all_person_lists.size();
-	for (std::vector<std::deque<sim_mob::Person*> >::iterator it = all_person_lists.begin(); it != all_person_lists.end(); ++it) {
-		iterator_lists.push_back(((*it)).begin());
+	int dequeSize = allPersonLists.size();
+	for (std::vector<std::deque<sim_mob::Person*> >::iterator it = allPersonLists.begin(); it != allPersonLists.end(); ++it) {
+		iteratorLists.push_back(((*it)).begin());
 	}
 
 	//pick the Top C
 	for (int i = 0; i < Capacity; i++) {
-		int which_queue = -1;
+		int whichDueue = -1;
 		double min_distance = std::numeric_limits<double>::max();
-		sim_mob::Person* which_person = NULL;
+		sim_mob::Person* whichPerson = NULL;
 
-		for (int i = 0; i < deque_size; i++) {
+		for (int i = 0; i < dequeSize; i++) {
 			//order by location
 			if (order_by_setting == CONFLUX_ORDERING_BY_DISTANCE_TO_INTERSECTION) {
-				if (iterator_lists[i] != (all_person_lists[i]).end() && (*iterator_lists[i])->distanceToEndOfSegment < min_distance) {
-					which_queue = i;
-					min_distance = (*iterator_lists[i])->distanceToEndOfSegment;
-					which_person = (*iterator_lists[i]);
+				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->distanceToEndOfSegment < min_distance) {
+					whichDueue = i;
+					min_distance = (*iteratorLists[i])->distanceToEndOfSegment;
+					whichPerson = (*iteratorLists[i]);
 				}
 			}
 			//order by time
 			else if (order_by_setting == CONFLUX_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION) {
-				if (iterator_lists[i] != (all_person_lists[i]).end() && (*iterator_lists[i])->drivingTimeToEndOfLink < min_distance) {
-					which_queue = i;
-					min_distance = (*iterator_lists[i])->drivingTimeToEndOfLink;
-					which_person = (*iterator_lists[i]);
+				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->drivingTimeToEndOfLink < min_distance) {
+					whichDueue = i;
+					min_distance = (*iteratorLists[i])->drivingTimeToEndOfLink;
+					whichPerson = (*iteratorLists[i]);
 				}
 			}
 		}
 
-		if (which_queue < 0) {
+		if (whichDueue < 0) {
 			//no vehicle any more
-			return merged_deque;
+			return;
 		} else {
-			iterator_lists[which_queue]++;
-			merged_deque.push_back(which_person);
+			iteratorLists[whichDueue]++;
+			mergedPersonDeque.push_back(whichPerson);
 		}
 	}
 
 	//After pick the Top C, there are still some vehicles left in the deque
-	for (int i = 0; i < deque_size; i++) {
-		if (iterator_lists[i] != (all_person_lists[i]).end()) {
-			merged_deque.insert(merged_deque.end(), iterator_lists[i], (all_person_lists[i]).end());
+	for (int i = 0; i < dequeSize; i++) {
+		if (iteratorLists[i] != (allPersonLists[i]).end()) {
+			mergedPersonDeque.insert(mergedPersonDeque.end(), iteratorLists[i], (allPersonLists[i]).end());
 		}
 	}
-
-	return merged_deque;
 }
 
 void sim_mob::Conflux::setRdSegTravelTimes(Person* ag, double rdSegExitTime) {

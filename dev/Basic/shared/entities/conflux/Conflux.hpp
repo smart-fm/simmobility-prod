@@ -337,7 +337,7 @@ public:
 	 * ORDER_BY_WHAT = 0: by location
 	 * ORDER_BY_WHAT = 1: by time
 	 */
-	std::deque<sim_mob::Person*> getAllPersonsUsingTopCMerge();
+	void getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>& mergedPersonDeque);
 
 	/*
 	 * Merge agents in different links in the same conflux
@@ -349,7 +349,7 @@ public:
 	};
 	CONFLUX_VEHICLE_ORDER order_by_setting;
 
-	std::deque<sim_mob::Person*> topCMergeDifferentLinksInConflux(std::vector< std::deque<sim_mob::Person*> >& all_person_lists, int Capacity);
+	void topCMergeDifferentLinksInConflux(std::deque<sim_mob::Person*>& mergedPersonDeque, std::vector< std::deque<sim_mob::Person*> >& allPersonLists, int Capacity);
 
 	/**
 	 * get number of persons in lane infinities of this conflux

@@ -4,8 +4,6 @@
 
 #include "SegmentStats.hpp"
 
-#include <math.h>
-
 #include <cmath>
 #include <algorithm>
 
@@ -77,72 +75,66 @@ std::deque<sim_mob::Person*> SegmentStats::getAgents() {
 	return segAgents;
 }
 
-std::deque<sim_mob::Person*> SegmentStats::getAgentsByTopCMerge() {
-	std::vector< std::deque<sim_mob::Person*> > all_person_lists;
+void SegmentStats::getAgentsByTopCMerge(std::deque<sim_mob::Person*>& mergedPersonList) {
+	std::vector< std::deque<sim_mob::Person*> > allPersonLists;
 	int capacity = (int)(ceil(roadSegment->capacity * 5 / 3600)); //hard-code
 
 	for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator lnIt = laneStatsMap.begin(); lnIt != laneStatsMap.end(); lnIt++) {
-		all_person_lists.push_back((lnIt->second->laneAgents));
+		allPersonLists.push_back((lnIt->second->laneAgents));
 	}
 
-	//for testing
-//	capacity = 2;
-
-	return topCMergeDifferentLanesInSegment(all_person_lists, capacity);
+	topCMergeDifferentLanesInSegment(mergedPersonList, allPersonLists, capacity);
 }
 
-std::deque<sim_mob::Person*> SegmentStats::topCMergeDifferentLanesInSegment(std::vector<std::deque<sim_mob::Person*> >& all_person_lists, int Capacity) {
-	std::deque<sim_mob::Person*> merged_deque;
-	std::vector<std::deque<sim_mob::Person*>::iterator> iterator_lists;
+void SegmentStats::topCMergeDifferentLanesInSegment(std::deque<sim_mob::Person*>& mergedPersonList, std::vector<std::deque<sim_mob::Person*> >& allPersonLists, int Capacity) {
+	std::vector<std::deque<sim_mob::Person*>::iterator> iteratorLists;
 
 	//init location
-	int deque_size = all_person_lists.size();
-	for (std::vector<std::deque<sim_mob::Person*> >::iterator it = all_person_lists.begin(); it != all_person_lists.end(); ++it) {
-		iterator_lists.push_back(((*it)).begin());
+	int dequeSize = allPersonLists.size();
+	for (std::vector<std::deque<sim_mob::Person*> >::iterator it = allPersonLists.begin(); it != allPersonLists.end(); ++it) {
+		iteratorLists.push_back(((*it)).begin());
 	}
 
 	//pick the Top C
 	for (int i = 0; i < Capacity; i++) {
-		int which_queue = -1;
+		int whichDueue = -1;
 		double min_distance = std::numeric_limits<double>::max();
-		sim_mob::Person* which_person = NULL;
+		sim_mob::Person* whichPerson = NULL;
 
-		for (int i = 0; i < deque_size; i++) {
+		for (int i = 0; i < dequeSize; i++) {
 			//order by location
 			if (order_by_setting == SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION) {
-				if (iterator_lists[i] != (all_person_lists[i]).end() && (*iterator_lists[i])->distanceToEndOfSegment < min_distance) {
-					which_queue = i;
-					min_distance = (*iterator_lists[i])->distanceToEndOfSegment;
-					which_person = (*iterator_lists[i]);
+				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->distanceToEndOfSegment < min_distance) {
+					whichDueue = i;
+					min_distance = (*iteratorLists[i])->distanceToEndOfSegment;
+					whichPerson = (*iteratorLists[i]);
 				}
 			}
 			//order by time
 			else if (order_by_setting == SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION) {
-				if (iterator_lists[i] != (all_person_lists[i]).end() && (*iterator_lists[i])->drivingTimeToEndOfLink < min_distance) {
-					which_queue = i;
-					min_distance = (*iterator_lists[i])->drivingTimeToEndOfLink;
-					which_person = (*iterator_lists[i]);
+				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->drivingTimeToEndOfLink < min_distance) {
+					whichDueue = i;
+					min_distance = (*iteratorLists[i])->drivingTimeToEndOfLink;
+					whichPerson = (*iteratorLists[i]);
 				}
 			}
 		}
 
-		if (which_queue < 0) {
+		if (whichDueue < 0) {
 			//no vehicle any more
-			return merged_deque;
+			return;
 		} else {
-			iterator_lists[which_queue]++;
-			merged_deque.push_back(which_person);
+			iteratorLists[whichDueue]++;
+			mergedPersonList.push_back(whichPerson);
 		}
 	}
 
 	//After pick the Top C, there are still some vehicles left in the deque
-	for (int i = 0; i < deque_size; i++) {
-		if (iterator_lists[i] != (all_person_lists[i]).end()) {
-			merged_deque.insert(merged_deque.end(), iterator_lists[i], (all_person_lists[i]).end());
+	for (int i = 0; i < dequeSize; i++) {
+		if (iteratorLists[i] != (allPersonLists[i]).end()) {
+			mergedPersonList.insert(mergedPersonList.end(), iteratorLists[i], (allPersonLists[i]).end());
 		}
 	}
-
-	return merged_deque;
 }
 
 

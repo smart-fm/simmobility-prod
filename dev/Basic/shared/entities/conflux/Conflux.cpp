@@ -10,13 +10,14 @@
  */
 
 #include "Conflux.hpp"
-#include <cmath>
+
 
 #include <algorithm>
+#include <cmath>
 #include <map>
 #include <stdexcept>
 #include <vector>
-#include <algorithm>
+
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/Person.hpp"
@@ -961,6 +962,9 @@ void sim_mob::Conflux::getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>&
 				std::deque<sim_mob::Person*> all_agents = segStats->getAgents();
 				double speed = segStats->getSegSpeed(true);
 
+				//If speed is 0, treat it as a very small value
+				if(speed < 0.000001) speed = 0.000001;
+
 				for (std::deque<sim_mob::Person*>::iterator p_it = all_agents.begin(); p_it != all_agents.end(); p_it++) {
 					(*p_it)->drivingTimeToEndOfLink = (*p_it)->distanceToEndOfSegment / speed + accumaltedTravelTimeOnDownstreamSegments;
 				}
@@ -997,18 +1001,18 @@ void sim_mob::Conflux::topCMergeDifferentLinksInConflux(std::deque<sim_mob::Pers
 	std::vector<std::deque<sim_mob::Person*>::iterator> iteratorLists;
 
 	//init location
-	int dequeSize = allPersonLists.size();
+	size_t dequeSize = allPersonLists.size();
 	for (std::vector<std::deque<sim_mob::Person*> >::iterator it = allPersonLists.begin(); it != allPersonLists.end(); ++it) {
 		iteratorLists.push_back(((*it)).begin());
 	}
 
 	//pick the Top C
-	for (int i = 0; i < Capacity; i++) {
+	for (size_t c = 0; c < Capacity; c++) {
 		int whichDueue = -1;
 		double min_distance = std::numeric_limits<double>::max();
 		sim_mob::Person* whichPerson = NULL;
 
-		for (int i = 0; i < dequeSize; i++) {
+		for (size_t i = 0; i < dequeSize; i++) {
 			//order by location
 			if (order_by_setting == CONFLUX_ORDERING_BY_DISTANCE_TO_INTERSECTION) {
 				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->distanceToEndOfSegment < min_distance) {
@@ -1037,7 +1041,7 @@ void sim_mob::Conflux::topCMergeDifferentLinksInConflux(std::deque<sim_mob::Pers
 	}
 
 	//After pick the Top C, there are still some vehicles left in the deque
-	for (int i = 0; i < dequeSize; i++) {
+	for (size_t i = 0; i < dequeSize; i++) {
 		if (iteratorLists[i] != (allPersonLists[i]).end()) {
 			mergedPersonDeque.insert(mergedPersonDeque.end(), iteratorLists[i], (allPersonLists[i]).end());
 		}

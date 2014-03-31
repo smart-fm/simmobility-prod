@@ -90,18 +90,18 @@ void SegmentStats::topCMergeDifferentLanesInSegment(std::deque<sim_mob::Person*>
 	std::vector<std::deque<sim_mob::Person*>::iterator> iteratorLists;
 
 	//init location
-	int dequeSize = allPersonLists.size();
+	size_t dequeSize = allPersonLists.size();
 	for (std::vector<std::deque<sim_mob::Person*> >::iterator it = allPersonLists.begin(); it != allPersonLists.end(); ++it) {
 		iteratorLists.push_back(((*it)).begin());
 	}
 
 	//pick the Top C
-	for (int i = 0; i < Capacity; i++) {
+	for (size_t c = 0; c < Capacity; c++) {
 		int whichDueue = -1;
 		double minDistance = std::numeric_limits<double>::max();
 		sim_mob::Person* whichPerson = NULL;
 
-		for (int i = 0; i < dequeSize; i++) {
+		for (size_t i = 0; i < dequeSize; i++) {
 			//order by location
 			if (order_by_setting == SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION) {
 				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->distanceToEndOfSegment < minDistance) {
@@ -130,7 +130,7 @@ void SegmentStats::topCMergeDifferentLanesInSegment(std::deque<sim_mob::Person*>
 	}
 
 	//After pick the Top C, there are still some vehicles left in the deque
-	for (int i = 0; i < dequeSize; i++) {
+	for (size_t i = 0; i < dequeSize; i++) {
 		if (iteratorLists[i] != (allPersonLists[i]).end()) {
 			mergedPersonList.insert(mergedPersonList.end(), iteratorLists[i], (allPersonLists[i]).end());
 		}

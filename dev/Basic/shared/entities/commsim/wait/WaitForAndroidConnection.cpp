@@ -2,35 +2,34 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * WaitForAndroidConnection.cpp
- *
- *  Created on: Jul 15, 2013
- *      Author: vahid
- */
 
 #include "WaitForAndroidConnection.hpp"
 #include "entities/commsim/Broker.hpp"
 #include <boost/unordered_map.hpp>
 
-namespace sim_mob {
+using namespace sim_mob;
 
-WaitForAndroidConnection::WaitForAndroidConnection(sim_mob::Broker & broker_,int min_nof_clients_ ):
-		BrokerBlocker(broker_),
-		min_nof_clients(min_nof_clients_) {
-	// TODO Auto-generated constructor stub
-
+sim_mob::WaitForAndroidConnection::WaitForAndroidConnection(sim_mob::Broker & broker_,int min_nof_clients_ ) :
+	BrokerBlocker(broker_), min_nof_clients(min_nof_clients_)
+{
 }
 
-short WaitForAndroidConnection::get_MIN_NOF_Clients() {
+sim_mob::WaitForAndroidConnection::~WaitForAndroidConnection()
+{
+}
+
+short sim_mob::WaitForAndroidConnection::get_MIN_NOF_Clients()
+{
 	return min_nof_clients;
 }
 
-void WaitForAndroidConnection::set_MIN_NOF_Clients(int value) {
+void sim_mob::WaitForAndroidConnection::set_MIN_NOF_Clients(int value)
+{
 	min_nof_clients = value;
 }
 
-bool WaitForAndroidConnection::calculateWaitStatus() {
+bool sim_mob::WaitForAndroidConnection::calculateWaitStatus()
+{
 	const ClientList::Type & clients = getBroker().getClientList();
 	ClientList::Type::const_iterator it = clients.find(comm::ANDROID_EMULATOR);
 	if (it==clients.end()) {
@@ -38,7 +37,6 @@ bool WaitForAndroidConnection::calculateWaitStatus() {
 	}
 
 	int cnt = it->second.size();
-//	Print() << "getBroker().getClientList().size() = " << cnt << " vs " << min_nof_clients << std::endl;
 	if(cnt >= min_nof_clients) {
 		setWaitStatus(false);
 	} else {
@@ -47,8 +45,3 @@ bool WaitForAndroidConnection::calculateWaitStatus() {
 	return isWaiting();
 }
 
-WaitForAndroidConnection::~WaitForAndroidConnection() {
-	// TODO Auto-generated destructor stub
-}
-
-} /* namespace sim_mob */

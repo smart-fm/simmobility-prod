@@ -2,64 +2,54 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * WaitForAgentRegistration.cpp
- *
- *  Created on: Sep 9, 2013
- *      Author: vahid
- */
 
 #include "WaitForAgentRegistration.hpp"
 #include "entities/commsim/Broker.hpp"
-namespace sim_mob {
 
-WaitForAgentRegistration::WaitForAgentRegistration(sim_mob::Broker & broker_,unsigned int min_start, unsigned int stop_threshold):
-				BrokerBlocker(broker_),
-				min_start(min_start),
-				stop_threshold(stop_threshold),
-				started(false){
-	// TODO Auto-generated constructor stub
+using namespace sim_mob;
 
+sim_mob::WaitForAgentRegistration::WaitForAgentRegistration(sim_mob::Broker& broker, unsigned int minAgents) :
+	BrokerBlocker(broker), minAgents(minAgents),  started(false)
+{
 }
 
-bool WaitForAgentRegistration::calculateWaitStatus() {
-	AgentsList::type &registeredAgents = getBroker().getRegisteredAgents();
-	int size = registeredAgents.size();
-//	AgentsList &registered_Agents = getBroker().getRegisteredAgents();
-	if(!started)
-	{
-		if(size >= min_start)
-		{
+sim_mob::WaitForAgentRegistration::~WaitForAgentRegistration()
+{
+}
+
+
+bool WaitForAgentRegistration::calculateWaitStatus()
+{
+	size_t numAg = getBroker().getRegisteredAgentsSize();
+	//AgentsList::type& registeredAgents = getBroker().getRegisteredAgents();
+	//int size = registeredAgents.size();
+	if(!started) {
+		bool waitStat = numAg<minAgents;
+		setWaitStatus(waitStat);
+		if (waitStat) {
+			started = true;
+		}
+
+		/*if(size >= minAgents) {
 			//no need to wait
 			setWaitStatus(false);
 			//you are considered as "started"
 			started = true;
-		}
-		else
-		{
+		} else {
 			Print() << "min_start(" <<  min_start << ") >= registeredAgents.size(" << size << ") =>setWaitStatus(true)" << std::endl;
 			setWaitStatus(true);
-		}
-	}
-	else {//if already started
-		if(size < stop_threshold)
-		{
+		}*/
+	} else {
+		setWaitStatus(false);
+		/*if(size < 0) { //Size will never be <0
 			Print() << "min_stop=>registeredAgents.size()= " << size << std::endl;
 			//you must wait
 			setWaitStatus(true);
-		}
-		else
-		{
+		} else {
 			setWaitStatus(false);
-		}
-
+		}*/
 	}
 
 	return isWaiting();
 }
 
-WaitForAgentRegistration::~WaitForAgentRegistration() {
-	// TODO Auto-generated destructor stub
-}
-
-} /* namespace sim_mob */

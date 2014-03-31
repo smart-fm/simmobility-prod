@@ -18,6 +18,10 @@ AndroidClientRegistration::AndroidClientRegistration(/*ConfigParams::ClientType 
 {
 }
 
+AndroidClientRegistration::~AndroidClientRegistration()
+{
+}
+
 bool AndroidClientRegistration::initialEvaluation(sim_mob::Broker& broker,AgentsList::type &registeredAgents)
 {
 	//some checks to avoid calling this method unnecessarily
@@ -51,10 +55,10 @@ bool AndroidClientRegistration::findAFreeAgent(AgentsList::type &registeredAgent
 	return false;
 }
 
-boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> connHandle, sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest& request, sim_mob::AgentInfo freeAgent)
+boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> connHandle, sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest& request, const Agent* freeAgent)
 {
 	//Create a ClientHandler pointing to the Broker.
-	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker, connHandle,  freeAgent.agent, request.clientID));
+	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker, connHandle,  freeAgent, request.clientID));
 	clientEntry->setRequiredServices(request.requiredServices);
 
 	//Subscribe to relevant services for each required service.
@@ -84,7 +88,7 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(bo
 	broker.insertClientList(request.clientID, comm::ANDROID_EMULATOR, clientEntry);
 
 	//add this agent to the list of the agents who are associated with a android emulator client
-	usedAgents.insert(freeAgent.agent);
+	usedAgents.insert(freeAgent);
 
 	//publish an event to inform- interested parties- of the registration of a new android client
 	broker.getRegistrationPublisher().publish(comm::ANDROID_EMULATOR, ClientRegistrationEventArgs(comm::ANDROID_EMULATOR, clientEntry));
@@ -94,7 +98,7 @@ boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(bo
 bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest& request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn) {
 	//This part is locked in fear of registered agents' iterator invalidation in the middle of the process
 	AgentsList::Mutex registered_agents_mutex;
-	AgentsList::type &registeredAgents = broker.getRegisteredAgents(&registered_agents_mutex);
+	AgentsList::type& registeredAgents = broker.getRegisteredAgents(&registered_agents_mutex);
 	AgentsList::Lock lock(registered_agents_mutex);
 
 	//some checks to avoid calling this method unnecessarily
@@ -108,7 +112,7 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 	}
 
 	//use it to create a client entry
-	boost::shared_ptr<ClientHandler> clientEntry = makeClientHandler(existingConn, broker,request,freeAgent->second);
+	boost::shared_ptr<ClientHandler> clientEntry = makeClientHandler(existingConn, broker,request,freeAgent->second.agent);
 
 	//Inform the client we are ready to proceed.
 	clientEntry->connHandle->forwardReadyMessage(*clientEntry);
@@ -116,8 +120,3 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 	Print() << "AndroidClient  Registered. Multiplexed socket? " <<(existingConn?"Yes":"No") << std::endl;
 	return true;
 }
-
-AndroidClientRegistration::~AndroidClientRegistration() {
-	// TODO Auto-generated destructor stub
-}
-

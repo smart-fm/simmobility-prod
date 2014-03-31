@@ -36,14 +36,7 @@ public:
 };
 
 
-/**
- * ClientRegistrationPublisher class. No documentation provided.
- */
-class ClientRegistrationPublisher : public sim_mob::event::EventPublisher
-{
-public:
-	virtual ~ClientRegistrationPublisher() {}
-};
+
 
 
 class Broker;
@@ -62,14 +55,15 @@ class Broker;
  *        to multiplex reads and writes from the new ClientHandler.
  */
 class ClientRegistrationHandler {
-	comm::ClientType type;
-	static ClientRegistrationPublisher registrationPublisher;
 public:
 	ClientRegistrationHandler();
+	virtual ~ClientRegistrationHandler();
 	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest&, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn) = 0;
 	virtual void postProcess(sim_mob::Broker& broker);
 	static sim_mob::event::EventPublisher & getPublisher();
-	virtual ~ClientRegistrationHandler();
+
+private:
+	comm::ClientType type;
 };
 
 

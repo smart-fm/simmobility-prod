@@ -29,84 +29,8 @@
 sim_mob::Roadrunner_Broker::Roadrunner_Broker(const MutexStrategy& mtxStrat, int id ,std::string commElement_, std::string commMode_) :
 Broker(mtxStrat, id, commElement_, commMode_)
 {
-	Print() << "Creating Broker for RoadRunner" << std::endl;
-	configure();
 }
 
-//configure the brokers behavior
-//publishers, blockers(synchronizers) and message handlers... to name a few
-void sim_mob::Roadrunner_Broker::configure()
-{
-	//Only configure once.
-	if (!configured_.check()) {
-		return;
-	}
-
-	std::string client_mode = ConfigManager::GetInstance().FullConfig().getCommSimMode(commElement);
-
-	sim_mob::Worker::GetUpdatePublisher().subscribe(sim_mob::event::EVT_CORE_AGENT_UPDATED,
-                this,
-                &Roadrunner_Broker::onAgentUpdate,
-                (event::Context)sim_mob::event::CXT_CORE_AGENT_UPDATE);
-
-	//	client registration handlers
-	//	Also listen to publishers who announce registration of new clients...
-	ClientRegistrationHandlerMap[comm::ANDROID_EMULATOR].reset(new sim_mob::AndroidClientRegistration());
-	registrationPublisher.registerEvent(comm::ANDROID_EMULATOR);
-	registrationPublisher.subscribe((event::EventId)comm::ANDROID_EMULATOR, this, &Roadrunner_Broker::onClientRegister);
-
-	if(client_mode == "android-ns3") {
-		ClientRegistrationHandlerMap[comm::NS3_SIMULATOR].reset(new sim_mob::NS3ClientRegistration());
-		registrationPublisher.registerEvent(comm::NS3_SIMULATOR);
-		//listen to publishers who announce registration of new clients...
-		registrationPublisher.subscribe((event::EventId)comm::NS3_SIMULATOR, this, &Roadrunner_Broker::onClientRegister);
-	}
-
-
-	publisher.registerEvent(COMMEID_LOCATION);
-	publisher.registerEvent(COMMEID_TIME);
-	publisher.registerEvent(COMMEID_REGIONS_AND_PATH);
-	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_LOCATION);
-	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_TIME);
-	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH);
-
-	//NS-3 has its own publishers
-	if (client_mode == "android-ns3") {
-		publisher.registerEvent(COMMEID_ALL_LOCATIONS);
-		serviceList.push_back(sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS);
-	}
-
-
-	bool useNs3 = false;
-	if (client_mode == "android-ns3") {
-		useNs3 = true;
-	} else if (client_mode == "android-only") {
-		useNs3 = false;
-	} else { throw std::runtime_error("Unknown clientType in Broker."); }
-
-
-	//Register handlers with "useNs3" flag. OpaqueReceive will throw an exception if it attempts to process a message and useNs3 is not set.
-	handleLookup.addHandlerOverride("OPAQUE_SEND", new sim_mob::OpaqueSendHandler(useNs3));
-	handleLookup.addHandlerOverride("OPAQUE_RECEIVE", new sim_mob::OpaqueReceiveHandler(useNs3));
-
-
-	// wait for connection criteria for this broker
-	clientBlockers.insert(std::make_pair(comm::ANDROID_EMULATOR,
-			boost::shared_ptr<WaitForAndroidConnection>(new
-					WaitForAndroidConnection(*this,MIN_CLIENTS))));
-
-
-	if(client_mode == "android-ns3") {
-		clientBlockers.insert(std::make_pair(comm::NS3_SIMULATOR,
-				boost::shared_ptr<WaitForNS3Connection>(new WaitForNS3Connection(*this))));
-
-	}
-
-	// wait for connection criteria for this broker
-	agentBlockers.insert(std::make_pair(0,
-			boost::shared_ptr<WaitForAgentRegistration>(new WaitForAgentRegistration(*this,MIN_AGENTS))));
-
-}
 
 
 sim_mob::Entity::UpdateStatus sim_mob::Roadrunner_Broker::update(timeslice now) {
@@ -200,24 +124,10 @@ sim_mob::Entity::UpdateStatus sim_mob::Roadrunner_Broker::update(timeslice now) 
 	return UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
 
-void sim_mob::Roadrunner_Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums)
-{
-	Broker::onAgentUpdate(id,context,sender,argums);
-}
-
-void sim_mob::Roadrunner_Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums)
+/*void sim_mob::Roadrunner_Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums)
 {
 	Broker::onClientRegister(id,context,sender,argums);
-
-	//Enable Region support if this client requested it.
-//	if (regionSupportRequired) {
-	boost::shared_ptr<ClientHandler> cnnHandler = argums.getClient();
-	if(cnnHandler->getRequiredServices().find(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH) != cnnHandler->getRequiredServices().end()){
-		pendClientToEnableRegions(cnnHandler);
-	}
-//	}
-
-}
+}*/
 
 
 void sim_mob::Roadrunner_Broker::setNewClientProps()
@@ -245,8 +155,3 @@ void sim_mob::Roadrunner_Broker::setNewClientProps()
 	newClientsWaitingOnRegionEnabling.clear();
 }
 
-void sim_mob::Roadrunner_Broker::pendClientToEnableRegions(boost::shared_ptr<sim_mob::ClientHandler> &clientHandler)
-{
-	boost::unique_lock<boost::mutex> lock(mutex_clientList);
-	newClientsWaitingOnRegionEnabling.insert(clientHandler);
-}

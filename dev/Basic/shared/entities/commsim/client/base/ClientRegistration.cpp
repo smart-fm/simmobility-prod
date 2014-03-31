@@ -24,20 +24,20 @@ using namespace sim_mob;
  ******************************************************************************************************
  */
 
-ClientRegistrationPublisher sim_mob::ClientRegistrationHandler::registrationPublisher;
 
-sim_mob::ClientRegistrationHandler::ClientRegistrationHandler(/*comm::ClientType type):type(type*/)
+sim_mob::ClientRegistrationHandler::ClientRegistrationHandler()
 {
-	//registrationPublisher.registerEvent(type);
-}
-
-void sim_mob::ClientRegistrationHandler::postProcess(sim_mob::Broker& broker){
-
 }
 
 sim_mob::ClientRegistrationHandler::~ClientRegistrationHandler()
 {
 }
+
+
+void sim_mob::ClientRegistrationHandler::postProcess(sim_mob::Broker& broker)
+{
+}
+
 
 /******************************************************************************************************
  ***********************************ClientRegistrationEventArgs****************************************

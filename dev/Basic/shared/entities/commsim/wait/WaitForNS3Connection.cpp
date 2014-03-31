@@ -2,35 +2,33 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * WaitForNS3Connection.cpp
- *
- *  Created on: Jul 15, 2013
- *      Author: vahid
- */
-
 #include "WaitForNS3Connection.hpp"
 #include "entities/commsim/Broker.hpp"
 #include <boost/unordered_map.hpp>
 
-namespace sim_mob {
+using namespace sim_mob;
 
-WaitForNS3Connection::WaitForNS3Connection(sim_mob::Broker & broker_,int min_nof_clients_ ):
-				BrokerBlocker(broker_),
-				min_nof_clients(min_nof_clients_) {
-	// TODO Auto-generated constructor stub
-
+sim_mob::WaitForNS3Connection::WaitForNS3Connection(sim_mob::Broker & broker_,int min_nof_clients_ ) :
+	BrokerBlocker(broker_), min_nof_clients(min_nof_clients_)
+{
 }
 
-short WaitForNS3Connection::get_MIN_NOF_Clients() {
+sim_mob::WaitForNS3Connection::~WaitForNS3Connection()
+{
+}
+
+short sim_mob::WaitForNS3Connection::get_MIN_NOF_Clients()
+{
 	return min_nof_clients;
 }
 
-void WaitForNS3Connection::set_MIN_NOF_Clients(int value) {
+void sim_mob::WaitForNS3Connection::set_MIN_NOF_Clients(int value)
+{
 	min_nof_clients = value;
 }
 
-bool WaitForNS3Connection::calculateWaitStatus() {
+bool sim_mob::WaitForNS3Connection::calculateWaitStatus()
+{
 	const ClientList::Type & clients = getBroker().getClientList();
 	ClientList::Type::const_iterator it = clients.find(comm::NS3_SIMULATOR);
 	if (it==clients.end()) {
@@ -49,8 +47,3 @@ bool WaitForNS3Connection::calculateWaitStatus() {
 
 }
 
-WaitForNS3Connection::~WaitForNS3Connection() {
-	// TODO Auto-generated destructor stub
-}
-
-} /* namespace sim_mob */

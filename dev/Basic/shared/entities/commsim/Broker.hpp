@@ -58,14 +58,18 @@ const bool EnableDebugOutput = false;
 
 
 
-//subclassed Eventpublisher coz its destructor is pure virtual
-class BrokerPublisher: public sim_mob::event::EventPublisher {
+///BrokerPublisher class. No documentation provided.
+class BrokerPublisher : public sim_mob::event::EventPublisher {
 public:
-	BrokerPublisher() {
-	}
-	virtual ~BrokerPublisher() {
-	}
+	virtual ~BrokerPublisher() {}
 };
+
+///ClientRegistrationPublisher class. No documentation provided.
+class ClientRegistrationPublisher : public sim_mob::event::EventPublisher {
+public:
+	virtual ~ClientRegistrationPublisher() {}
+};
+
 
  //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
 struct MessageElement{
@@ -187,7 +191,7 @@ protected:
 
 	///	Is this Broker currently enabled?
 	bool enabled;
-	OneTimeFlag configured_;
+	//OneTimeFlag configured_;
 	//	list of the registered agents and their corresponding communication equipment
 //	AgentsMap::type registeredAgents;
 	AgentsList REGISTERED_AGENTS;
@@ -205,7 +209,7 @@ protected:
 	///	message receive call back function pointer
 	//boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> m_messageReceiveCallback;
 	///	list of this broker's publishers
-	PublisherList::Type publishers;
+	//PublisherList::Type publishers;
 
 	///Broker's Publisher
 	BrokerPublisher publisher;
@@ -280,6 +284,13 @@ protected:
 
 	//Number of connected Agents (entities which respond with a WHOAMI).
 	size_t numAgents;
+
+
+	///Set of clients that need their enableRegionSupport() function called. This can only be done once their time tick is over,
+	///  so we pend them on this list. The extra weak_ptr shouldn't be a problem; if the object is destroyed before its
+	///  call to enableRegionSupport(), it will just be silently dropped.
+	std::set< boost::weak_ptr<sim_mob::ClientHandler> > newClientsWaitingOnRegionEnabling;
+
 
 	/*
 	 *
@@ -366,6 +377,7 @@ protected:
 	 * 	is called when a new client is registered with the broker
 	 */
 	virtual void onClientRegister(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums);
+
 	/**
 	 * 	publish various data the broker has subscibed to
 	 */
@@ -410,6 +422,9 @@ public:
 	 * 	list of registered agents
 	 */
 	AgentsList::type &getRegisteredAgents();
+
+	size_t getRegisteredAgentsSize() const;
+
 	/**
 	 * 	list of registered agents + mutex
 	 */

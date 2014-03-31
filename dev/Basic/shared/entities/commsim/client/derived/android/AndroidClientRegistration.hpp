@@ -27,7 +27,7 @@ namespace sim_mob {
 
 
 class AndroidClientRegistration: public sim_mob::ClientRegistrationHandler {
-	std::set<sim_mob::Agent*> usedAgents;
+	std::set<const sim_mob::Agent*> usedAgents;
 public:
 	AndroidClientRegistration();
 	/**
@@ -48,7 +48,7 @@ public:
 	 * helper function used in handle() method to prepare and return a sim_mob::ClientHandler
 	 * If connHandle is null, create a new connection handler. Otherwise, just re-use it.
 	 */
-	virtual boost::shared_ptr<ClientHandler> makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> connHandle, sim_mob::Broker&,sim_mob::ClientRegistrationRequest &,sim_mob::AgentInfo freeAgent);
+	virtual boost::shared_ptr<ClientHandler> makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> connHandle, sim_mob::Broker&,sim_mob::ClientRegistrationRequest &, const sim_mob::Agent* freeAgent);
 
 	virtual ~AndroidClientRegistration();
 };

@@ -14,6 +14,8 @@
 
 #include "entities/commsim/broker/base/Common.hpp"
 #include "entities/commsim/comm_support/AgentCommUtility.hpp"
+#include "entities/commsim/client/derived/android/AndroidClientRegistration.hpp"
+#include "entities/commsim/client/derived/ns3/NS3ClientRegistration.hpp"
 #include "entities/commsim/connection/ConnectionServer.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
@@ -41,12 +43,8 @@ sim_mob::Broker::Broker(const MutexStrategy& mtxStrat, int id, std::string commE
 {
 	//Various Initializations
 	connection.reset(new ConnectionServer(*this));
-	/*m_messageReceiveCallback = boost::function<
-		void(boost::shared_ptr<ConnectionHandler>, std::string)>(
-		boost::bind(&Broker::messageReceiveCallback, this, _1, _2)
-	);*/
 
-//	configure();
+	configure();
 }
 
 sim_mob::Broker::~Broker()
@@ -89,63 +87,85 @@ bool sim_mob::Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler>
 
 void sim_mob::Broker::configure()
 {
-	//Only configure once.
-	if (!configured_.check()) {
-		return;
-	}
-
 	//Dispatch differently depending on whether we are using "android-ns3" or "android-only"
 	//TODO: Find a more dynamic way of adding new clients.
-	const std::string &client_type =
-			ConfigManager::GetInstance().FullConfig().getCommSimMode(commElement);
+	std::string client_type = ConfigManager::GetInstance().FullConfig().getCommSimMode(commElement);
 
+	//NOTE: I am fairly sure we don't need a context here, since the handler never checks it.
 	sim_mob::Worker::GetUpdatePublisher().subscribe(sim_mob::event::EVT_CORE_AGENT_UPDATED, 
-                this, 
-                &Broker::onAgentUpdate,
-                (event::Context)sim_mob::event::CXT_CORE_AGENT_UPDATE);
+		this, &Broker::onAgentUpdate
+	);
 
-	{
+
+	//Register events and services that the client can request.
+	publisher.registerEvent(COMMEID_LOCATION);
+	publisher.registerEvent(COMMEID_TIME);
+	publisher.registerEvent(COMMEID_REGIONS_AND_PATH);
+	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_LOCATION);
+	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_TIME);
+	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH);
+	//if (client_mode == "android-ns3") {
+		publisher.registerEvent(COMMEID_ALL_LOCATIONS);
+		serviceList.push_back(sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS);
+	//}
+
+
+	//NOTE: It seems that these "BrokerPublishers" don't do anything.
+	/*{
 	BrokerPublisher* onlyLocationsPublisher = new BrokerPublisher();
 	onlyLocationsPublisher->registerEvent(COMMEID_LOCATION);
 	publishers.insert(std::make_pair(
 		sim_mob::Services::SIMMOB_SRV_LOCATION,
 		PublisherList::Value(onlyLocationsPublisher))
 	);
-	}
+	}*/
 
 	//The Region publisher should be generally useful.
-	{
-	BrokerPublisher* regionPublisher = new BrokerPublisher();
-	regionPublisher->registerEvent(COMMEID_REGIONS_AND_PATH);
-	publishers.insert(std::make_pair(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH, PublisherList::Value(regionPublisher)));
-	}
+	//{
+	/*BrokerPublisher* regionPublisher = new BrokerPublisher();
+	regionPublisher->registerEvent(COMMEID_REGIONS_AND_PATH);*/
+	//publishers.insert(std::make_pair(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH, PublisherList::Value(regionPublisher)));
+	//}
 
 	//NS-3 has its own publishers
-	if (client_type == "android-ns3") {
+	/*if (client_type == "android-ns3") {
 		BrokerPublisher* allLocationsPublisher = new BrokerPublisher();
 		allLocationsPublisher->registerEvent(COMMEID_LOCATION);
 		publishers.insert(std::make_pair(
 			sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS,
 			PublisherList::Value(allLocationsPublisher))
 		);
-	}
+	}*/
 
-	{
+	/*{
 	BrokerPublisher* timePublisher = new BrokerPublisher();
 	timePublisher->registerEvent(COMMEID_TIME);
 	publishers.insert(std::make_pair(
 		sim_mob::Services::SIMMOB_SRV_TIME,
 		PublisherList::Value(timePublisher))
 	);
-	}
+	}*/
 
+	//	client registration handlers
+	//	Also listen to publishers who announce registration of new clients...
+	ClientRegistrationHandlerMap[comm::ANDROID_EMULATOR].reset(new sim_mob::AndroidClientRegistration());
+	//if(client_mode == "android-ns3") {
+		ClientRegistrationHandlerMap[comm::NS3_SIMULATOR].reset(new sim_mob::NS3ClientRegistration());
+	//}
+
+
+	//Hook up Android emulators to OnClientRegister
+	registrationPublisher.registerEvent(comm::ANDROID_EMULATOR);
 	registrationPublisher.subscribe((event::EventId)comm::ANDROID_EMULATOR, this, &Broker::onClientRegister);
 
-	if (client_type == "android-ns3") {
-		//listen to publishers who announce registration of new clients...
-
+	//Hook up the NS-3 simulator to OnClientRegister.
+	//if (client_type == "android-ns3") {
+		registrationPublisher.registerEvent(comm::NS3_SIMULATOR);
 		registrationPublisher.subscribe((event::EventId)comm::NS3_SIMULATOR, this, &Broker::onClientRegister);
-	}
+	//}
+
+
+
 
 	bool useNs3 = false;
 	if (client_type == "android-ns3") {
@@ -160,22 +180,20 @@ void sim_mob::Broker::configure()
 	handleLookup.addHandlerOverride("OPAQUE_RECEIVE", new sim_mob::OpaqueReceiveHandler(useNs3));
 
 
-	// wait for connection criteria for this broker
+	//We always wait for MIN_CLIENTS Android emulators and MIN_CLIENTS Agents.
 	clientBlockers.insert(std::make_pair(comm::ANDROID_EMULATOR,
-			boost::shared_ptr<sim_mob::WaitForAndroidConnection>(new sim_mob::WaitForAndroidConnection(*this,MIN_CLIENTS))));
-
-
-	if(client_type == "android-ns3") {
-		clientBlockers.insert(std::make_pair(comm::NS3_SIMULATOR,
-				boost::shared_ptr<WaitForNS3Connection>(new WaitForNS3Connection(*this))));
-	}
-
-	// wait for connection criteria for this broker
-	agentBlockers.insert(
-		std::make_pair(0,
-			boost::shared_ptr<WaitForAgentRegistration>(
-				new WaitForAgentRegistration(*this, MIN_AGENTS)))
+		boost::shared_ptr<sim_mob::WaitForAndroidConnection>(new sim_mob::WaitForAndroidConnection(*this,MIN_CLIENTS)))
 	);
+	agentBlockers.insert(std::make_pair(0,
+		boost::shared_ptr<WaitForAgentRegistration>(new WaitForAgentRegistration(*this, MIN_AGENTS)))
+	);
+
+	//If ns-3 is on, we also wait for the ns-3 connection.
+	if(useNs3) {
+		clientBlockers.insert(std::make_pair(comm::NS3_SIMULATOR,
+			boost::shared_ptr<WaitForNS3Connection>(new WaitForNS3Connection(*this)))
+		);
+	}
 }
 
 
@@ -303,6 +321,11 @@ void sim_mob::Broker::onEvent(event::EventId eventId, sim_mob::event::Context ct
 	}
 }
 
+size_t sim_mob::Broker::getRegisteredAgentsSize() const
+{
+	return REGISTERED_AGENTS.getAgents().size();
+}
+
 AgentsList::type& sim_mob::Broker::getRegisteredAgents()
 {
 	//use it with caution
@@ -377,19 +400,6 @@ void  sim_mob::Broker::insertClientWaitingList(std::string clientType, ClientReg
 	clientRegistrationWaitingList.insert(std::make_pair(clientType,ClientWaiting(request,existingConn)));
 	COND_VAR_CLIENT_REQUEST.notify_one();
 }
-/** modified code
- * \code
-//PublisherList::Value sim_mob::Broker::getPublisher(sim_mob::Services::SIM_MOB_SERVICE serviceType)
-//{
-//	PublisherList::Type::const_iterator it = publishers.find(serviceType);
-//	if (it != publishers.end()) {
-//		return it->second;
-//	}
-//
-//	throw std::runtime_error("Publishers does not contain the specified service type.");
-//}
- * \endcode
- */
 
 sim_mob::event::EventPublisher & sim_mob::Broker::getPublisher()
 {
@@ -399,39 +409,60 @@ sim_mob::event::EventPublisher & sim_mob::Broker::getPublisher()
 
 void sim_mob::Broker::processClientRegistrationRequests()
 {
-	boost::shared_ptr<ClientRegistrationHandler > handler;
-	ClientWaitList::iterator it_erase;//helps avoid multimap iterator invalidation
-	for (ClientWaitList::iterator it = clientRegistrationWaitingList.begin(); it != clientRegistrationWaitingList.end();) {
-		//what is the client type
+	//We need to process the Android emulators first (or the ns-3 simulator won't be able to find enough valid Agents).
+	for (ClientWaitList::iterator it = clientRegistrationWaitingList.begin(); it != clientRegistrationWaitingList.end(); it++) {
+		//Retrieve the clientType.
 		std::map<std::string, comm::ClientType>::iterator clientTypeIt = sim_mob::Services::ClientTypeMap.find(it->first);
 		if (clientTypeIt == sim_mob::Services::ClientTypeMap.end()) {
-			std::ostringstream out("");
-			out << "Undefined client type: " << it->first <<  std::endl;
-			throw std::runtime_error(out.str());
+			std::stringstream msg;
+			msg <<"Undefined client type: \"" <<it->first <<"\"\n";
+			throw std::runtime_error(msg.str());
 		}
 		comm::ClientType clientType = clientTypeIt->second;
-		//find the handler for this client type.
-		handler = ClientRegistrationHandlerMap[clientType];
-		if (!handler) {
-			std::ostringstream out("");
-			out << "No Handler for [" << it->first << "] type of client" << std::endl;
-			throw std::runtime_error(out.str());
+
+		//Handle NS-3 simulators AFTER Android emulators.
+		if(clientTypeIt->second== comm::NS3_SIMULATOR){
+			continue;
+		}
+
+		//Find the handler for this client type.
+		std::map<comm::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> >::iterator regisIt = ClientRegistrationHandlerMap.find(clientType);
+		if (regisIt==ClientRegistrationHandlerMap.end() || !regisIt->second) {
+			std::stringstream msg;
+			msg <<"No Handler for client type: \"" <<it->first << "\"\n";
+			throw std::runtime_error(msg.str());
 		}
 
 
-		if(handler->handle(*this,it->second.request, it->second.existingConn)) {
+		if(regisIt->second->handle(*this,it->second.request, it->second.existingConn)) {
 			//success: handle() just added to the client to the main client list and started its connectionHandler
 			//	next, see if the waiting state of waiting-for-client-connection changes after this process
-			bool wait = clientBlockers[clientType]->calculateWaitStatus();
-			it_erase = it;	//keep the erase candidate. dont loose it :)
-
-			if (EnableDebugOutput) {
-				Print() << "delete from clientRegistrationWaitingList[" << it->first << "]" << std::endl;
-			}
-			clientRegistrationWaitingList.erase(it++);
-		} else {
-			it++;
+			clientBlockers[clientType]->calculateWaitStatus(); //TODO: First, do we need this? Second, this seems trivial..
+			clientRegistrationWaitingList.erase(it);
 		}
+	}
+
+	//Now, handle the ns-3 simulators.
+	//NOTE: The original code returned early if "clientRegistrationWaitingList.find("NS3_SIMULATOR") != clientRegistrationWaitingList.end()",
+	//      so I am not sure if this code even executes. For now, I'm assuming this was a bug, and that client registration should proceed now. ~Seth
+	ClientWaitList::iterator it = clientRegistrationWaitingList.find("NS3_SIMULATOR");
+	if (it == clientRegistrationWaitingList.end()) {
+		return;
+	}
+
+
+	std::map<comm::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> >::iterator regisIt = ClientRegistrationHandlerMap.find(comm::NS3_SIMULATOR);
+	if (regisIt==ClientRegistrationHandlerMap.end() || !regisIt->second) {
+		std::stringstream msg;
+		msg <<"No Handler for client type: \"" << it->first << "\"\n";
+		throw std::runtime_error(msg.str());
+	}
+
+	if(regisIt->second->handle(*this,it->second.request, it->second.existingConn)) {
+		//success: handle() just added to the client to the main client list and started its connectionHandler
+		//	next, see if the waiting state of waiting-for-client-connection changes after this process
+		clientBlockers[comm::NS3_SIMULATOR]->calculateWaitStatus(); //TODO: Again, do we need this?
+		clientRegistrationWaitingList.erase(it);
 	}
 }
 
@@ -651,7 +682,16 @@ void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::even
 	default: break;
 
 	}
+
+
+	//Enable Region support if this client requested it.
+	if(clientHandler->getRequiredServices().find(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH) != clientHandler->getRequiredServices().end()){
+		boost::unique_lock<boost::mutex> lock(mutex_clientList);
+		newClientsWaitingOnRegionEnabling.insert(clientHandler);
+	}
 }
+
+
 
 //todo: again this function is also intrusive to Broker. find a way to move the following switch cases outside the broker-vahid
 //todo suggestion: for publishment, don't iterate through the list of clients, rather, iterate the publishers list, access their subscriber list and say publish and publish for their subscribers(keep the clientlist for MHing only)

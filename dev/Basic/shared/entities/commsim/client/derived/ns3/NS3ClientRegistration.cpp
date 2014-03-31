@@ -56,6 +56,7 @@ boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeCl
 			p.subscribe(COMMEID_ALL_LOCATIONS, clientEntry.get(), &ClientHandler::sendSerializedMessageToBroker, (void*) COMMCID_ALL_LOCATIONS);
 			break;
 		}
+		default: break;
 		}
 	}
 

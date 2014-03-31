@@ -38,8 +38,9 @@ void sim_mob::STK_Broker::configure()
 		return;
 	}
 
+	//NOTE: I am fairly sure we don't need a context here, since the handler never checks it.
 	const std::string & client_mode = ConfigManager::GetInstance().FullConfig().getCommSimMode(commElement);
-	sim_mob::Worker::GetUpdatePublisher().subscribe((event::EventId)sim_mob::event::EVT_CORE_AGENT_UPDATED, this, &STK_Broker::onAgentUpdate, (event::EventId)sim_mob::event::CXT_CORE_AGENT_UPDATE);
+	sim_mob::Worker::GetUpdatePublisher().subscribe(sim_mob::event::EVT_CORE_AGENT_UPDATED, this, &STK_Broker::onAgentUpdate /*, sim_mob::event::CXT_CORE_AGENT_UPDATE*/);
 
 	//	client registration handlers
 	//	Also listen to publishers who announce registration of new clients...

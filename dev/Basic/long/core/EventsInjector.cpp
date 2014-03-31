@@ -37,7 +37,8 @@ namespace {
                 return LTEID_EXT_NEW_JOB_LOCATION;
             case ExternalEvent::NEW_SCHOOL_LOCATION:
                 return LTEID_EXT_NEW_SCHOOL_LOCATION;
-            default: -1;
+            default:
+            	return -1;
         }
     }
 }
@@ -68,10 +69,9 @@ Entity::UpdateStatus EventsInjector::update(timeslice now) {
     //(now+1) - events for the next day once our events are 1 tick delayed
     model.getExternalEvents((now.ms() + 1), events);
     vector<ExternalEvent>::iterator it = events.begin();
-    for (it; it != events.end(); ++it) {
+    for (; it != events.end(); ++it) {
         //TODO: Agent as context improves performence 
-        MessageBus::PublishEvent(toEventId(it->getType()), 
-                MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
+        MessageBus::PublishEvent(toEventId(it->getType()), MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
     }
     return Entity::UpdateStatus(Entity::UpdateStatus::RS_CONTINUE);
 }

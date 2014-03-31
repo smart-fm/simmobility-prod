@@ -491,8 +491,8 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent* agent)
 				{
 					publisher.unSubscribeAll(clientHandler);
 
-					switch(*it)
-					{
+//					switch(*it)
+//					{
 //					case sim_mob::Services::SIMMOB_SRV_TIME:
 //						publishers[sim_mob::Services::SIMMOB_SRV_TIME]->unSubscribe(COMMEID_TIME,clientHandler);
 //						break;
@@ -502,7 +502,7 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent* agent)
 //					case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS:
 //						publishers[sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS]->unSubscribe(COMMEID_LOCATION,(void*)COMMCID_ALL_LOCATIONS,clientHandler);
 //						break;
-					}
+//					}
 				}
 				//invalidate it and clean it up when necessary
 				//don't erase it here. it may already have something to send
@@ -648,6 +648,7 @@ void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::even
 
 		break;
 	}
+	default: break;
 
 	}
 }

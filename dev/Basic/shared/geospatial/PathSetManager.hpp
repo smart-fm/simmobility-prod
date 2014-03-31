@@ -71,7 +71,7 @@ public:
 public:
 	bool generateAllPathSetWithTripChain();
 	bool generateAllPathSetWithTripChain2();
-	bool generateAllPathSetWithTripChainPool(std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool);
+	void generateAllPathSetWithTripChainPool(std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool);
 	void generatePaths2Node(const sim_mob::Node *toNode);
 //	sim_mob::SinglePath * generateSinglePathByFromToNodes(const sim_mob::Node *fromNode,
 //				   const sim_mob::Node *toNode);
@@ -279,7 +279,7 @@ public:
 	PathSet():has_path(0) {};
 	PathSet(const sim_mob::Node *fn,const sim_mob::Node *tn) : fromNode(fn),toNode(tn),logsum(0),has_path(0) {}
 	PathSet(PathSet *ps);
-	PathSet(PathSet &ps);
+	PathSet(const PathSet &ps);
 	~PathSet();
 	bool isInit;
 	bool hasBestChoice;

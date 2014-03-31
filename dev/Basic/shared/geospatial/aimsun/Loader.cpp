@@ -2409,6 +2409,7 @@ bool sim_mob::aimsun::Loader::LoadPathSetDataWithId(const std::string& connectio
 		std::map<std::string,SinglePath*> &waypoint_singlepathPool,
 		std::map<std::string,sim_mob::PathSet* >& pathSetPool,std::string& pathset_id)
 {
+	return false;
 //	bool res=false;
 //	std::cout << "LoadPathSetDataWithId: loading " <<pathset_id<<" data from db"<< std::endl;
 //	//Connection string will look something like this:

@@ -227,7 +227,7 @@ namespace sim_mob {
                     prepareStatement(queryStr, params, query);
                     ResultSet rs(query);
                     ResultSet::const_iterator it = rs.begin();
-                    for (it; it != rs.end(); ++it) {
+                    for (; it != rs.end(); ++it) {
                         T model;
                         fromRow((*it), model);
                         outParam.push_back(model);
@@ -270,7 +270,7 @@ namespace sim_mob {
                     const Parameters& params, Statement& outParam) {
                 outParam << queryStr;
                 Parameters::const_iterator it = params.begin();
-                for (it; it != params.end(); ++it) {
+                for (; it != params.end(); ++it) {
                     outParam, boost::apply_visitor(UsePtrConverter(), *it);
                 }
             }

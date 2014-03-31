@@ -25,7 +25,7 @@ namespace comm{
  * This is NOT necessarily a clean solution; in fact, I will examine the messages and handlers to see if we
  * can share more functionality there and remove the templates entirely. ~Seth
  */
-class AndroidFactory : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> {
+/*class AndroidFactory : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> {
 	enum MessageType {
 		MULTICAST = 1,
 		UNICAST = 2,
@@ -55,5 +55,5 @@ private:
 	bool useNs3;
 };
 
-
+*/
 }}

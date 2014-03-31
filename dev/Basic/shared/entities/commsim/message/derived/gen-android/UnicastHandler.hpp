@@ -16,7 +16,7 @@ class ClientHandler;
 namespace comm {
 
 //Generic handler for ns3+android and android-only activities.
-class UnicastHandler : public sim_mob::Handler {
+/*class UnicastHandler : public sim_mob::Handler {
 public:
 	UnicastHandler(bool useNs3);
 
@@ -28,6 +28,6 @@ private:
 private:
 	bool useNs3;
 };
-
+*/
 }}
 

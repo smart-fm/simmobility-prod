@@ -180,6 +180,9 @@ public:
 	//Serialize READY_TO_RECEIVE to a string.
 	static std::string makeReadyToReceive();
 
+	//Serialize READY to a string.
+	static std::string makeReady();
+
 	//Serialize ALL_LOCATIONS to a string.
 	static std::string makeAllLocations(const std::map<unsigned int, DPoint>& allLocations);
 
@@ -197,6 +200,9 @@ public:
 
 	//Serialize TIME_DATA to a string.
 	static std::string makeTimeData(unsigned int tick, unsigned int elapsedMs);
+
+	//Serialize WHOAREYOU to string.
+	static std::string makeWhoAreYou(const std::string& token);
 
 	//Append an already serialized string to an OngoingSerialization.
 	static void addGeneric(OngoingSerialization& ongoing, const std::string& msg);

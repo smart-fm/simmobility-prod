@@ -21,7 +21,7 @@ sim_mob::Broker& sim_mob::BrokerBlocker::getBroker() const
 	return broker;
 }
 
-bool sim_mob::BrokerBlocker::isWaiting() const
+bool sim_mob::BrokerBlocker::isWaiting()
 {
 	boost::unique_lock<boost::mutex> lock(mutex_);
 	return wait_status;

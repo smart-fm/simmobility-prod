@@ -14,7 +14,7 @@
 
 using namespace sim_mob;
 
-
+/*
 sim_mob::roadrunner::RoadRunnerFactory::RoadRunnerFactory(bool useNs3) : useNs3(useNs3)
 {
 	//Doing it manually; C++1 doesn't like the boost assignment.
@@ -54,29 +54,7 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::roadrunner::RoadRunnerFactory::get
  		throw std::runtime_error("No handler entry found; can't modify HandlerMap at runtime.");
 
 		//else, create a cache entry ...
-		/*switch(type)
-		{
-		case MULTICAST:
-			handler.reset(new sim_mob::roadrunner::MulticastHandler(useNs3));
-			break;
-		case UNICAST:
-			handler.reset(new sim_mob::roadrunner::UnicastHandler(useNs3));
-			break;
-		case REMOTE_LOG:
-			handler.reset(new sim_mob::roadrunner::RemoteLogHandler());
-			break;
-		case REROUTE_REQUEST:
-			handler.reset(new sim_mob::roadrunner::RerouteRequestHandler());
-			break;
-		case NEW_CLIENT:
-			handler.reset(new sim_mob::roadrunner::NewClientHandler());
-			break;
-		default:
-			Warn() <<"Unknown handler for given handler type: " <<type <<"\n";
-			throw std::runtime_error("Unknown handler.");
-		}
-		//register this baby
-		HandlerMap[type] = handler;*/
+
 	}
 
 	return handler;
@@ -166,5 +144,5 @@ void sim_mob::roadrunner::RoadRunnerFactory::createMessage(const std::string &in
 		}
 	}		//for loop
 }
-
+*/
 

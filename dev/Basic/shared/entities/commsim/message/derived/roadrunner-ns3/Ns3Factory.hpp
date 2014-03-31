@@ -22,7 +22,7 @@ namespace rr_android_ns3 {
 
 
 ///NS3 RR factory (no documentation provided).
-class NS3_Factory : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> {
+/*class NS3_Factory : public MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> {
 	enum MessageType {
 		MULTICAST = 1,
 		UNICAST = 2,
@@ -42,6 +42,6 @@ public:
 private:
 	boost::shared_ptr<sim_mob::Handler>  getHandler(MessageType) const;
 };
-
+*/
 }}
 

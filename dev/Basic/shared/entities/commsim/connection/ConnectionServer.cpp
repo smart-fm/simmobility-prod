@@ -18,8 +18,8 @@
 
 using namespace sim_mob;
 
-sim_mob::ConnectionServer::ConnectionServer(sim_mob::Broker &broker_,unsigned short port) :
-	broker(broker_),
+sim_mob::ConnectionServer::ConnectionServer(sim_mob::BrokerBase& broker, unsigned short port) :
+	broker(broker),
 	acceptor_(io_service_,boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
 {
 }
@@ -41,7 +41,7 @@ void sim_mob::ConnectionServer::start()
 
 void sim_mob::ConnectionServer::handleNewClient()
 {
-	boost::shared_ptr<ConnectionHandler> conn(new ConnectionHandler(newSess, broker.getMessageReceiveCallBack()));
+	boost::shared_ptr<ConnectionHandler> conn(new ConnectionHandler(newSess, broker));
 	WhoAreYouProtocol::QueryAgentAsync(conn, broker);
 }
 

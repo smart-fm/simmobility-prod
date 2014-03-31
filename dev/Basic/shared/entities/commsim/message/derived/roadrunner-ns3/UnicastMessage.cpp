@@ -13,7 +13,7 @@
 
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 
-using namespace sim_mob;
+/*using namespace sim_mob;
 
 
 sim_mob::rr_android_ns3::NS3_MSG_UNICAST::NS3_MSG_UNICAST(const sim_mob::comm::MsgData& data_): Message(data_)
@@ -72,4 +72,4 @@ void sim_mob::rr_android_ns3::NS3_HDL_UNICAST::handle(sim_mob::comm::MsgPtr mess
 }
 
 
-
+*/

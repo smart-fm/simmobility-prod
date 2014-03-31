@@ -4,16 +4,19 @@
 
 #pragma once
 
-#include <boost/asio.hpp>
-#include <boost/bind.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/tuple/tuple.hpp>
 #include <iomanip>
 #include <string>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
+
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/tuple/tuple.hpp>
+
 #include "logging/Log.hpp"
+#include "entities/commsim/serialization/BundleVersion.hpp"
 
 namespace sim_mob {
 
@@ -50,7 +53,7 @@ public:
 
 	/// Asynchronously read a data structure from the socket.
 	template <typename Handler>
-	void async_read(std::string &input, Handler handler);
+	void async_read(BundleHeader& header, std::string &input, Handler handler);
 
 private:
 	static std::string MakeWriteBuffer(const std::string &input);
@@ -60,7 +63,7 @@ private:
 	/// a tuple since boost::bind seems to have trouble binding a function object
 	/// created using boost::bind as a parameter.
 	template <typename Handler>
-	void handle_read_header(const boost::system::error_code& e,std::string &input, boost::tuple<Handler> handler);
+	void handle_read_header(const boost::system::error_code& e, BundleHeader& header, std::string &input, boost::tuple<Handler> handler);
 
 
 	/// Handle a completed read of message data.
@@ -105,23 +108,40 @@ void sim_mob::Session::async_write(const std::string &data, Handler handler)
 
 
 template <typename Handler>
-void sim_mob::Session::async_read(std::string &input, Handler handler)
+void sim_mob::Session::async_read(BundleHeader& header, std::string &input, Handler handler)
 {
 	input.clear();
 
 	// Issue a read operation to read exactly the number of bytes in a header.
-	void (Session::*f)(const boost::system::error_code&, std::string &, boost::tuple<Handler>) = &Session::handle_read_header<Handler>;
-	boost::asio::async_read(socket_, boost::asio::buffer(inbound_header_),boost::bind(f,shared_from_this(), boost::asio::placeholders::error,boost::ref(input)/*, t*/,boost::make_tuple(handler)));
+	void (Session::*f)(const boost::system::error_code&, BundleHeader&, std::string &, boost::tuple<Handler>) = &Session::handle_read_header<Handler>;
+	boost::asio::async_read(socket_, boost::asio::buffer(inbound_header_),boost::bind(f,shared_from_this(), boost::asio::placeholders::error, boost::ref(header), boost::ref(input),boost::make_tuple(handler)));
 }
 
 
 template <typename Handler>
-void sim_mob::Session::handle_read_header(const boost::system::error_code& e,/*std::vector<char>*t*/std::string &input, boost::tuple<Handler> handler)
+void sim_mob::Session::handle_read_header(const boost::system::error_code& e, BundleHeader& header, std::string& input, boost::tuple<Handler> handler)
 {
 	if (e) {
 		boost::get<0>(handler)(e);
 	} else {
-		std::istringstream is(std::string(inbound_header_, header_length));
+		// Determine the length of the serialized data.
+		header = BundleParser::read_bundle_header(std::string(inbound_header_, header_length));
+		if (header.remLen == 0) {
+			// Header doesn't seem to be valid. Inform the caller.
+			boost::system::error_code error(boost::asio::error::invalid_argument);
+			boost::get<0>(handler)(error);
+			return;
+		}
+
+		// Start an asynchronous call to receive the data.
+		inbound_data_.resize(header.remLen);
+		void (Session::*f)(const boost::system::error_code&, std::string&, boost::tuple<Handler>)
+			= &Session::handle_read_data<Handler>;
+		boost::asio::async_read(socket_, boost::asio::buffer(inbound_data_),
+			boost::bind(f, shared_from_this(), boost::asio::placeholders::error, boost::ref(input), handler));
+
+
+/*		std::istringstream is(std::string(inbound_header_, header_length));
 		std::size_t inbound_data_size = 0;
 		is >> std::hex >> inbound_data_size;
 		if (!(inbound_data_size)) {
@@ -132,7 +152,7 @@ void sim_mob::Session::handle_read_header(const boost::system::error_code& e,/*s
 		inbound_data_.resize(inbound_data_size);
 
 		void (Session::*f)(const boost::system::error_code&, std::string &, boost::tuple<Handler>) = &Session::handle_read_data<Handler>;
-		boost::asio::async_read(socket_, boost::asio::buffer(inbound_data_),boost::bind(f, shared_from_this(),boost::asio::placeholders::error, /*t,*/ boost::ref(input), handler));
+		boost::asio::async_read(socket_, boost::asio::buffer(inbound_data_),boost::bind(f, shared_from_this(),boost::asio::placeholders::error,  boost::ref(input), handler));*/
 	}
 }
 

@@ -12,7 +12,7 @@
  */
 
 #pragma once
-
+/*
 #include "entities/commsim/message/Types.hpp"
 #include "entities/commsim/message/base/Message.hpp"
 #include "entities/commsim/message/base/Handler.hpp"
@@ -45,3 +45,4 @@ private:
 };
 
 }}
+*/

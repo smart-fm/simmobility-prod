@@ -11,7 +11,7 @@
 namespace sim_mob {
 namespace roadrunner {
 
-class NewClientMessage : public sim_mob::comm::Message {
+/*class NewClientMessage : public sim_mob::comm::Message {
 public:
 	NewClientMessage(const sim_mob::comm::MsgData& data_) : Message(data_)
 	{}
@@ -19,7 +19,7 @@ public:
 	sim_mob::Handler* newHandler() {
 		return new sim_mob::roadrunner::NewClientHandler();
 	}
-};
+};*/
 
 }}
 

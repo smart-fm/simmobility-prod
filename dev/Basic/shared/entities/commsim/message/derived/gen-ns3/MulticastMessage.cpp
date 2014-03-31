@@ -10,7 +10,7 @@
  */
 
 #include "MulticastMessage.hpp"
-
+/*
 #include <boost/foreach.hpp>
 
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
@@ -20,10 +20,6 @@ using namespace sim_mob;
 
 
 
-/***************************************************************************************************************************************************
- * ****************************   NS3   ************************************************************************************************************
- * ************************************************************************************************************************************************
- */
 sim_mob::comm::NS3_MSG_MULTICAST::NS3_MSG_MULTICAST(const sim_mob::comm::MsgData& data_): Message(data_)
 {}
 
@@ -83,3 +79,4 @@ void sim_mob::comm::NS3_HDL_MULTICAST::handle(sim_mob::comm::MsgPtr message_, Br
 
 
 
+*/

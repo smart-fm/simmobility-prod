@@ -80,17 +80,15 @@ bool sim_mob::Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler>
 	}
 
 	boost::unique_lock<boost::mutex> lock(mutex_send_buffer);
-	SendBufferKey key;
-	key.client = client;
 
 	//Is this the first message received for this ClientHandler/destID pair?
-	if (sendBuffer.find(key)==sendBuffer.end()) {
-		OngoingSerialization& ongoing = sendBuffer[key];
+	if (sendBuffer.find(client)==sendBuffer.end()) {
+		OngoingSerialization& ongoing = sendBuffer[client];
 		CommsimSerializer::serialize_begin(ongoing, client->clientId);
 	}
 
 	//Now just add it.
-	CommsimSerializer::addGeneric(sendBuffer[key], message);
+	CommsimSerializer::addGeneric(sendBuffer[client], message);
 	return true;
 }
 
@@ -166,13 +164,12 @@ void sim_mob::Broker::configure()
 	} else { throw std::runtime_error("Unknown clientType in Broker."); }
 
 
-	//TODO: Multi/Unicast need to be handled in a similar manner. The "useNs-3 version" should handle everything.
+	//Register handlers with "useNs3" flag. OpaqueReceive will throw an exception if it attempts to process a message and useNs3 is not set.
 	handleLookup.addHandlerOverride("OPAQUE_SEND", new sim_mob::OpaqueSendHandler(useNs3));
-	handleLookup.addHandlerOverride("OPAQUE_SEND", new sim_mob::roadrunner::UnicastHandler(useNs3));
-
-	//We register an OPAQUE_RECEIVE with the "useNs3" flag ---if ns3 is disabled, calling handle()-ing these messages will raise an error.
 	handleLookup.addHandlerOverride("OPAQUE_RECEIVE", new sim_mob::OpaqueReceiveHandler(useNs3));
-	handleLookup.addHandlerOverride("OPAQUE_RECEIVE", new sim_mob::rr_android_ns3::NS3_HDL_UNICAST());
+
+	//handleLookup.addHandlerOverride("OPAQUE_SEND", new sim_mob::roadrunner::UnicastHandler(useNs3));
+	//handleLookup.addHandlerOverride("OPAQUE_RECEIVE", new sim_mob::rr_android_ns3::NS3_HDL_UNICAST());
 
 	//if(useNs3) {
 
@@ -445,7 +442,8 @@ void  sim_mob::Broker::insertClientWaitingList(std::string clientType, ClientReg
  * \endcode
  */
 
-sim_mob::event::EventPublisher & sim_mob::Broker::getPublisher(){
+sim_mob::event::EventPublisher & sim_mob::Broker::getPublisher()
+{
 	return publisher;
 }
 
@@ -763,7 +761,8 @@ void sim_mob::Broker::processPublishers(timeslice now)
 	}
 }
 
-sim_mob::ClientRegistrationPublisher & sim_mob::Broker::getRegistrationPublisher(){
+sim_mob::ClientRegistrationPublisher & sim_mob::Broker::getRegistrationPublisher()
+{
 	return registrationPublisher;
 }
 
@@ -773,13 +772,13 @@ void sim_mob::Broker::sendReadyToReceive()
 	//NOTE: This is slightly different than how the previous code did it, but it *should* work.
 	//It will at least fail predictably: if the simulator freezes in the first time tick for a new agent, this is where to look.
 	//TODO: We need a better way of tracking <client,destAgentID> pairs anyway; that fix will likely simplify this function.
-	std::map<SendBufferKey, std::string> pendingMessages;
-	for (std::map<SendBufferKey, OngoingSerialization>::const_iterator it=sendBuffer.begin(); it!=sendBuffer.end(); it++) {
+	std::map<SendBuffer::Key, std::string> pendingMessages;
+	for (std::map<SendBuffer::Key, OngoingSerialization>::const_iterator it=sendBuffer.begin(); it!=sendBuffer.end(); it++) {
 		pendingMessages[it->first] = CommsimSerializer::makeReadyToReceive();
 	}
 
-	for (std::map<SendBufferKey, std::string>::const_iterator it=pendingMessages.begin(); it!=pendingMessages.end(); it++) {
-		insertSendBuffer(it->first.client, it->second);
+	for (std::map<SendBuffer::Key, std::string>::const_iterator it=pendingMessages.begin(); it!=pendingMessages.end(); it++) {
+		insertSendBuffer(it->first, it->second);
 	}
 
 
@@ -810,12 +809,12 @@ void sim_mob::Broker::sendReadyToReceive()
 
 void sim_mob::Broker::processOutgoingData(timeslice now)
 {
-	for (std::map<SendBufferKey, OngoingSerialization>::iterator it=sendBuffer.begin(); it!=sendBuffer.end(); it++) {
+	for (std::map<SendBuffer::Key, OngoingSerialization>::iterator it=sendBuffer.begin(); it!=sendBuffer.end(); it++) {
 	//for(SendBuffer::Type::iterator it = sendBuffer.begin(); it!= sendBuffer.end(); it++) {
 		//sim_mob::BufferContainer<SendBufferItem>& data = it->second;
 		//sim_mob::BufferContainer<sim_mob::comm::MsgData> & buffer = it->second;
 
-		boost::shared_ptr<sim_mob::ConnectionHandler> conn = it->first.client->connHandle;
+		boost::shared_ptr<sim_mob::ConnectionHandler> conn = it->first->connHandle;
 
 		//Our data stream contains several messages pointing to different clients. We need to
 		// de-multiplex these, creating a mega-"message" of type Json::Value for each client.
@@ -872,7 +871,8 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 }
 
 //checks to see if the subscribed entity(agent) is alive
-bool sim_mob::Broker::deadEntityCheck(sim_mob::AgentCommUtilityBase * info) {
+bool sim_mob::Broker::deadEntityCheck(sim_mob::AgentCommUtilityBase * info)
+{
 	if (!info) {
 		throw std::runtime_error("Invalid AgentCommUtility\n");
 	}
@@ -914,7 +914,8 @@ bool sim_mob::Broker::deadEntityCheck(sim_mob::AgentCommUtilityBase * info) {
 //those who are not done with their update and check if they are dead.
 //you better hope they are dead otherwise you have to hold the simulation
 //tick waiting for them to finish
-void sim_mob::Broker::refineSubscriptionList() {
+void sim_mob::Broker::refineSubscriptionList()
+{
 	if (EnableDebugOutput) {
 		Print() << "inside Broker::refineSubscriptionList" << std::endl;
 	}
@@ -926,7 +927,8 @@ void sim_mob::Broker::refineSubscriptionList() {
 }
 
 //tick waiting for them to finish
-void sim_mob::Broker::refineSubscriptionList(sim_mob::Agent * target) {
+void sim_mob::Broker::refineSubscriptionList(sim_mob::Agent * target)
+{
 	//you or your worker are probably dead already. you just don't know it
 	if (!target->currWorkerProvider) {
 		if (EnableDebugOutput) {
@@ -950,23 +952,27 @@ void sim_mob::Broker::refineSubscriptionList(sim_mob::Agent * target) {
 //sim_mob::Broker sim_mob::Broker::instance(MtxStrat_Locked, 0);
 
 //todo:  put a better condition here. this is just a placeholder
-bool sim_mob::Broker::isWaitingForAgentRegistration() const {
+bool sim_mob::Broker::isWaitingForAgentRegistration() const
+{
 	sim_mob::BrokerBlockers::Value blocker = agentBlockers.at(0);
 	bool res = blocker->calculateWaitStatus();
 	return res;
 }
 
 //todo:  put a better condition here. this is just a placeholder
-bool sim_mob::Broker::clientsQualify() const {
+bool sim_mob::Broker::clientsQualify() const
+{
 	return clientList.size() >= MIN_CLIENTS;
 }
 
-size_t sim_mob::Broker::getNumConnectedAgents() const {
+size_t sim_mob::Broker::getNumConnectedAgents() const
+{
 	return numAgents;
 }
 
 //returns true if you need to wait
-bool sim_mob::Broker::isWaitingForAnyClientConnection() {
+bool sim_mob::Broker::isWaitingForAnyClientConnection()
+{
 //	Print() << "inside isWaitingForAnyClientConnection " << clientBlockers.size() << std::endl;
 	//BrokerBlockers::Pair pp;
 	int i = 0;
@@ -1040,7 +1046,8 @@ bool sim_mob::Broker::waitAndAcceptConnections() {
 	return true;
 }
 
-void sim_mob::Broker::waitForAgentsUpdates() {
+void sim_mob::Broker::waitForAgentsUpdates()
+{
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
 	while(!allAgentUpdatesDone()) {
 		if (EnableDebugOutput) {

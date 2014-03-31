@@ -5,7 +5,7 @@
 #pragma once
 
 #include "event/args/EventArgs.hpp"
-#include "entities/commsim/event/JsonSerializable.hpp"
+//#include "entities/commsim/event/JsonSerializable.hpp"
 
 namespace sim_mob {
 namespace comm {

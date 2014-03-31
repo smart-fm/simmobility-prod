@@ -7,7 +7,7 @@
 
 using namespace sim_mob;
 
-
+/*
 sim_mob::comm::AndroidFactory::AndroidFactory(bool useNs3) : useNs3(useNs3)
 {
 	//Doing it manually; C++1 doesn't like the boost assignment.
@@ -38,24 +38,7 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::comm::AndroidFactory::getHandler(M
  		throw std::runtime_error("No handler entry found; can't modify HandlerMap at runtime.");
 
 		//else, create a cache entry ...
-		/*bool typeFound = true;
-		switch(type)
-		{
-		case MULTICAST:
-			handler.reset(new sim_mob::comm::MulticastHandler(useNs3));
-			break;
-		case UNICAST:
-			handler.reset(new sim_mob::comm::UnicastHandler(useNs3));
-			break;
-		default:
-			typeFound = false;
-			break;
-		}
-		//register this baby
-		if(typeFound)
-		{
-			HandlerMap[type] = handler;
-		}*/
+
 	}
 
 	return handler;
@@ -125,3 +108,4 @@ void sim_mob::comm::AndroidFactory::createMessage(const std::string &input, std:
 }
 
 
+*/

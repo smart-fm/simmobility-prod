@@ -61,6 +61,7 @@ public:
 
 	///returns the container . not safe if used/iterated without mutex
 	AgentsList::type &getAgents();
+	const AgentsList::type &getAgents() const;
 
 	///returns the mutex used to operate on the container of this class. use it along with getAgents(()
 	///as it is dangerous to work without locking in a multithreaded environment

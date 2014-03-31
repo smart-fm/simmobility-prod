@@ -19,17 +19,19 @@
 #include <boost/enable_shared_from_this.hpp>
 
 #include "logging/Log.hpp"
+#include "entities/commsim/serialization/BundleVersion.hpp"
 #include "entities/commsim/connection/Session.hpp"
 #include "entities/commsim/client/ClientType.hpp"
 
 namespace sim_mob {
+class BrokerBase;
 class ClientHandler;
 class ConnectionHandler;
 class ConnectionHandler: public boost::enable_shared_from_this<ConnectionHandler> {
 public:
 	//NOTE: Passing "callback" by value and then saving it by reference is a bad idea!
 	//      For now I've made both work by value; you may need to modify this. ~Seth
-	ConnectionHandler(session_ptr session , boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_/*, sim_mob::comm::ClientType clientType = sim_mob::comm::UNKNOWN_CLIENT*/);
+	ConnectionHandler(session_ptr session, BrokerBase& broker);
 
 	//Send a "READY" message to the given client.
 	void forwardReadyMessage(ClientHandler& newClient);
@@ -41,8 +43,8 @@ public:
 	void messageReceivedHandle(const boost::system::error_code& e);
 
 	session_ptr& getSession();
-	bool is_open();
-	bool isValid();
+	bool is_open() const;
+	bool isValid() const;
 	void setValidation(bool);
 
 	//NOTE: The first WHOAMI message that arrives at this ConnectionHandler sets the expected ClientType.
@@ -65,12 +67,14 @@ private:
 	sim_mob::comm::ClientType clientType;
 
 	session_ptr session;
-	boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback;
+	//boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback;
+	BrokerBase& broker;
 	bool valid;
 
-	//The current incoming/outgoing messages. Boost wants these passed by reference.
+	//The current incoming/outgoing messages/headers. Boost wants these passed by reference.
 	std::string outgoingMessage;
 	std::string incomingMessage;
+	BundleHeader incomingHeader;
 
 	//The following variables relate to the actual sending of data on this ConnectionHandler:
 	//These mutexes lock them, as they can arrive in a non-thread-safe manner.

@@ -8,8 +8,10 @@
 #include <set>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/enable_shared_from_this.hpp>
 
 #include "event/EventListener.hpp"
+#include "entities/commsim/comm_support/AgentCommUtility.hpp"
 #include "entities/commsim/event/BaseCommsimEventArgs.hpp"
 #include "entities/commsim/event/TimeEventArgs.hpp"
 #include "entities/commsim/event/LocationEventArgs.hpp"

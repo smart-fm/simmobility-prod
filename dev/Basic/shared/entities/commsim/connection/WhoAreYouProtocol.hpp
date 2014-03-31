@@ -18,6 +18,7 @@
 #include <entities/commsim/client/base/ClientRegistration.hpp>
 
 namespace sim_mob {
+class BrokerBase;
 class Session;
 class ConnectionHandler;
 
@@ -25,7 +26,7 @@ class WhoAreYouProtocol
 {
 public:
 	//Begin the query process for agents. conn must be non-null, but you can re-use an existing conn if required.
-	static void QueryAgentAsync(boost::shared_ptr<sim_mob::ConnectionHandler> conn, Broker& broker);
+	static void QueryAgentAsync(boost::shared_ptr<sim_mob::ConnectionHandler> conn, BrokerBase& broker);
 };
 
 }

@@ -5,6 +5,7 @@
 #include "TimeEventArgs.hpp"
 
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
+#include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
 using namespace sim_mob;

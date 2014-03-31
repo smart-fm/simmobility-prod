@@ -563,6 +563,23 @@ std::string sim_mob::CommsimSerializer::makeAllLocations(const std::map<unsigned
 }
 
 
+std::string sim_mob::CommsimSerializer::makeWhoAreYou(const std::string& token)
+{
+	if (NEW_BUNDLES) {
+		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
+	} else {
+		Json::Value res;
+		addDefaultMessageProps(res, "WHOAREYOU");
+
+		//Add the token.
+		res["token"] = token;
+
+		//Now append it.
+		return Json::FastWriter().write(res);
+	}
+}
+
+
 /*void sim_mob::CommsimSerializer::makeMulticast(OngoingSerialization& ongoing, unsigned int sendAgentId, const std::vector<unsigned int>& receiveAgentIds, const std::string& data)
 {
 	addGeneric(ongoing, makeMulticast(sendAgentId, receiveAgentIds, data));
@@ -656,6 +673,20 @@ std::string sim_mob::CommsimSerializer::makeReadyToReceive()
 		//First make the single message.
 		Json::Value res;
 		addDefaultMessageProps(res, "READY_TO_RECEIVE");
+
+		//That's it.
+		return Json::FastWriter().write(res);
+	}
+}
+
+std::string sim_mob::CommsimSerializer::makeReady()
+{
+	if (NEW_BUNDLES) {
+		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
+	} else {
+		//First make the single message.
+		Json::Value res;
+		addDefaultMessageProps(res, "READYE");
 
 		//That's it.
 		return Json::FastWriter().write(res);
@@ -915,18 +946,6 @@ Json::Value sim_mob::CommsimSerializer::createMessageHeader(msg_header mHeader_)
 	return header;
 }
 
-std::string sim_mob::CommsimSerializer::makeWhoAreYouPacket(const std::string& token)
-{
-	Json::Value whoAreYou_Packet_Header = createPacketHeader(pckt_header(1, "0"));
-	Json::Value whoAreYou = createMessageHeader(msg_header("0", "SIMMOBILITY", "WHOAREYOU", "SYS"));
-	whoAreYou["token"] = token;
-	Json::Value packet;
-	packet["DATA"].append(whoAreYou);
-	packet["PACKET_HEADER"] = whoAreYou_Packet_Header;
-	Json::FastWriter writer;
-
-	return writer.write(packet);
-}
 
 //	just conveys the tick
 Json::Value sim_mob::CommsimSerializer::makeTimeData(unsigned int tick, unsigned int elapsedMs)

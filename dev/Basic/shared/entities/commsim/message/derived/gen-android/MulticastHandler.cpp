@@ -8,7 +8,7 @@
 #include "entities/AuraManager.hpp"
 
 using namespace sim_mob;
-
+/*
 
 sim_mob::comm::MulticastHandler::MulticastHandler(bool useNs3) : useNs3(useNs3)
 {
@@ -25,13 +25,13 @@ sim_mob::comm::MulticastHandler::MulticastHandler(bool useNs3) : useNs3(useNs3)
 void sim_mob::comm::MulticastHandler::handle(sim_mob::comm::MsgPtr message_,Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller){
 //	Print() << "Inside a ANDROID_HDL_MULTICAST::handle" << std::endl;
 //steps:
-	/*
-	 * 1- Find the sending agent
-	 * 2- Find its nearby agents
-	 * 3- for each agent find the client handler
-	 * 4- fabricate a message for each(core  is taken from the original message)
-	 * 5- insert messages into send buffer
-	 */
+	//
+	// 1- Find the sending agent
+	// 2- Find its nearby agents
+	// 3- for each agent find the client handler
+	// 4- fabricate a message for each(core  is taken from the original message)
+	// 5- insert messages into send buffer
+	//
 
 //	step-1: Find the sending agent
 
@@ -160,3 +160,4 @@ void sim_mob::comm::MulticastHandler::postPendingMessages(sim_mob::Broker& broke
 }
 
 
+*/

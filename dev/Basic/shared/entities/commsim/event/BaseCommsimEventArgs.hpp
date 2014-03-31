@@ -6,6 +6,8 @@
 
 #include <string>
 
+#include "event/args/EventArgs.hpp"
+
 namespace sim_mob {
 
 /**

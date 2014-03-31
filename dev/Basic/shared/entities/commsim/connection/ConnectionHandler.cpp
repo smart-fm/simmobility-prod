@@ -13,8 +13,8 @@
 
 using namespace sim_mob;
 
-sim_mob::ConnectionHandler::ConnectionHandler(session_ptr session, boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_/*, sim_mob::comm::ClientType clientType*/)
-	: messageReceiveCallback(messageReceiveCallback_), clientType(comm::UNKNOWN_CLIENT), session(session), valid(true), isAsyncWrite(false),
+sim_mob::ConnectionHandler::ConnectionHandler(session_ptr session, BrokerBase& broker)
+	: broker(broker), clientType(comm::UNKNOWN_CLIENT), session(session), valid(true), isAsyncWrite(false),
 	  isAsyncRead(false)
 {
 	//Set the token to the pointer address of this ConnectionHandler.
@@ -27,17 +27,17 @@ sim_mob::ConnectionHandler::ConnectionHandler(session_ptr session, boost::functi
 void sim_mob::ConnectionHandler::forwardReadyMessage(ClientHandler& newClient)
 {
 	//Write the header/message body.
-	Json::Value packet_header = JsonParser::createPacketHeader(pckt_header(1, newClient.clientId));
+	/*Json::Value packet_header = JsonParser::createPacketHeader(pckt_header(1, newClient.clientId));
 	Json::Value msg = JsonParser::createMessageHeader(msg_header("0","SIMMOBILITY","READY", "SYS"));
 
 	//Put them together into a single "packet".
 	Json::Value packet;
 	packet["PACKET_HEADER"] = packet_header;
 	packet["DATA"].append(msg);//no other data element needed
-	std::string readyMessage = Json::FastWriter().write(packet);
+	std::string readyMessage = Json::FastWriter().write(packet);*/
 
 	//Send it through normal channels.
-	forwardMessage(readyMessage);
+	forwardMessage(CommsimSerializer::makeReady());
 }
 
 void sim_mob::ConnectionHandler::forwardMessage(std::string str)
@@ -61,7 +61,7 @@ void sim_mob::ConnectionHandler::sendMessage(const std::string& msg)
 
 void sim_mob::ConnectionHandler::readMessage()
 {
-	session->async_read(incomingMessage, boost::bind(&ConnectionHandler::messageReceivedHandle, this, boost::asio::placeholders::error));
+	session->async_read(incomingHeader, incomingMessage, boost::bind(&ConnectionHandler::messageReceivedHandle, this, boost::asio::placeholders::error));
 }
 
 
@@ -102,7 +102,7 @@ void sim_mob::ConnectionHandler::messageReceivedHandle(const boost::system::erro
 	}
 
 	//call the receive handler in the broker
-	messageReceiveCallback(shared_from_this(),incomingMessage);
+	broker.onMessageReceived(shared_from_this(), incomingHeader, incomingMessage);
 
 	//Keep reading?
 	boost::unique_lock<boost::mutex> lock(async_read_mutex);
@@ -131,7 +131,7 @@ session_ptr& sim_mob::ConnectionHandler::getSession()
 	return session;
 }
 
-bool sim_mob::ConnectionHandler::is_open()
+bool sim_mob::ConnectionHandler::is_open() const
 {
 	return session->isOpen();
 }
@@ -141,7 +141,7 @@ std::string sim_mob::ConnectionHandler::getToken() const
 	return token;
 }
 
-bool sim_mob::ConnectionHandler::isValid()
+bool sim_mob::ConnectionHandler::isValid() const
 {
 	return valid;
 }

@@ -89,6 +89,12 @@ AgentsList::type& sim_mob::AgentsList::getAgents()
 	return data;
 }
 
+const AgentsList::type& sim_mob::AgentsList::getAgents() const
+{
+	Lock lock(mutex);
+	return data;
+}
+
 AgentsList::Mutex* sim_mob::AgentsList::getMutex()
 {
 	return &mutex;

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <stdexcept>
 #include <jsoncpp/json/json.h>
 
 #include "entities/commsim/message/HandlerBase.hpp"

@@ -8,7 +8,7 @@
 #include "entities/commsim/message/base/Message.hpp"
 #include "entities/commsim/message/base/Handler.hpp"
 
-namespace sim_mob {
+/*namespace sim_mob {
 class Agent;
 class Broker;
 class ClientHandler;
@@ -31,3 +31,4 @@ private:
 
 }}
 
+*/

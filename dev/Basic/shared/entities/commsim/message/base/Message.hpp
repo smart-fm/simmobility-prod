@@ -17,13 +17,13 @@ namespace sim_mob {
 
 
 ///MessageFactory (no documentation provided).
-template <class RET,class MSG>
+/*template <class RET,class MSG>
 class MessageFactory {
 public:
 	virtual ~MessageFactory() {}
 	virtual void createMessage(const MSG& input,RET& output) const = 0;
 };
-
+*/
 
 namespace comm {
 

@@ -12,7 +12,7 @@
 #include "UnicastHandler.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 
-using namespace sim_mob;
+/*using namespace sim_mob;
 
 sim_mob::comm::UnicastHandler::UnicastHandler(bool useNs3) : useNs3(useNs3)
 {
@@ -23,11 +23,11 @@ sim_mob::comm::UnicastHandler::UnicastHandler(bool useNs3) : useNs3(useNs3)
 void sim_mob::comm::UnicastHandler::handle(sim_mob::comm::MsgPtr message_,Broker* broker, boost::shared_ptr<sim_mob::ConnectionHandler> caller)
 {
 	//steps:
-		/*
-		 * 1- Find the destination agent and the corresponding client handler
-		 * 2- fabricate a message for the destination(core data is taken from the original message)
-		 * 3- insert messages into send buffer
-		 */
+		//
+		 // 1- Find the destination agent and the corresponding client handler
+		 // 2- fabricate a message for the destination(core data is taken from the original message)
+		 // 3- insert messages into send buffer
+		 //
 	//	step-1: Find the target agent and the corresponding client handler
 	sim_mob::comm::MsgData &data = message_->getData();
 		sim_mob::msg_header msg_header_;
@@ -95,4 +95,4 @@ void sim_mob::comm::UnicastHandler::postProcess(sim_mob::Broker& broker, const s
 }
 
 
-
+*/

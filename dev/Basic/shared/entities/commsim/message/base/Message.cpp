@@ -4,7 +4,7 @@
 
 #include "Message.hpp"
 
-sim_mob::comm::Message::Message(const sim_mob::comm::MsgData& data_) : data(data_)
+/*sim_mob::comm::Message::Message(const sim_mob::comm::MsgData& data_) : data(data_)
 {}
 
 sim_mob::comm::MsgHandler sim_mob::comm::Message::supplyHandler()
@@ -21,3 +21,4 @@ sim_mob::comm::MsgData& sim_mob::comm::Message::getData()
 {
 	return data;
 }
+*/

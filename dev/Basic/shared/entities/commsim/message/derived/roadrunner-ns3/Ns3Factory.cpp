@@ -22,7 +22,7 @@
 #include "logging/Log.hpp"
 
 using namespace sim_mob;
-
+/*
 
 sim_mob::rr_android_ns3::NS3_Factory::NS3_Factory() {
 	//Doing it manually; C++1 doesn't like the boost assignment.
@@ -52,23 +52,7 @@ boost::shared_ptr<sim_mob::Handler>  sim_mob::rr_android_ns3::NS3_Factory::getHa
  		throw std::runtime_error("No handler entry found; can't modify HandlerMap at runtime.");
 
  		//else, create a cache entry ...
-/* 		bool typeFound = true;
- 		switch(type)
- 		{
- 		case MULTICAST:
- 			handler.reset(new sim_mob::rr_android_ns3::NS3_HDL_MULTICAST());
- 			break;
- 		case UNICAST:
- 			handler.reset(new sim_mob::rr_android_ns3::NS3_HDL_UNICAST());
- 			break;
- 		default:
- 			typeFound = false;
- 		}
- 		//register this baby
- 		if(typeFound)
- 		{
- 			HandlerMap[type] = handler;
- 		}*/
+
  	}
 
  	return handler;
@@ -96,7 +80,7 @@ void sim_mob::rr_android_ns3::NS3_Factory::createMessage(const std::string &inpu
 
  		Json::FastWriter w;
  		msg_header messageHeader;
- //		std::string  msgStr;// =  /*const_cast<std::string&>*/(root[index].asString());
+ //		std::string  msgStr;// =  (root[index].asString());
  		if (!sim_mob::JsonParser::parseMessageHeader(root[index], messageHeader)) {
  			continue;
  		}
@@ -142,4 +126,4 @@ void sim_mob::rr_android_ns3::NS3_Factory::createMessage(const std::string &inpu
  	}		//for loop
 
 }
-
+*/

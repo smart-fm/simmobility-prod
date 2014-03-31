@@ -133,11 +133,9 @@ struct BrokerBlockers {
 };
 
 
-///Helper struct: key for our SendBuffer
-//TODO: Just a typedef will do.
-struct SendBufferKey {
-	boost::shared_ptr<sim_mob::ClientHandler> client; //The client to send this mesage to.
-	//std::string destAgentId; //The ID of the receiving agent.
+///Helper typedef: key for our SendBuffer
+struct SendBuffer {
+	typedef boost::shared_ptr<sim_mob::ClientHandler> Key;
 };
 
 /**
@@ -173,6 +171,9 @@ public:
 
 	//Used by: TODO
 	virtual void onMessageReceived(boost::shared_ptr<ConnectionHandler>cnnHadler, const BundleHeader& header, std::string message) = 0;
+
+	//Used by: TODO
+	virtual void insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn) = 0;
 };
 
 
@@ -241,7 +242,7 @@ protected:
 
 	///	place to gather outgoing data for each tick
 	//SendBuffer::Type sendBuffer;
-	std::map<SendBufferKey, OngoingSerialization> sendBuffer;
+	std::map<SendBuffer::Key, OngoingSerialization> sendBuffer;
 
 	//Lock the send buffer (note: I am not entirely sure how thread-safe the sendBuffer is, so I am locking it just in case).
 	//TODO: In the future, all clients on the same Broker should share a non-locked list of OngoingSerializations,
@@ -489,7 +490,7 @@ public:
 	 *       might add a unique token PER AGENT to the WHOAREYOU message that is then relayed back
 	 *       in the WHOAMI (but at the moment this is not necessary. Currently the token is only unique per connection.
 	 */
-	void insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn);
+	virtual void insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn);
 
 
 	///Return an EventPublisher for a given type. Throws an exception if no such type is registered.

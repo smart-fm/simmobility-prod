@@ -21,17 +21,23 @@
 namespace sim_mob {
 class Broker;
 class BrokerBlocker {
+public:
+	BrokerBlocker(sim_mob::Broker& broker);
+	virtual ~BrokerBlocker();
+
+	sim_mob::Broker & getBroker() const;
+	virtual bool calculateWaitStatus() = 0;
+	bool isWaiting();
+
+protected:
+	void setWaitStatus(bool);
+
+private:
 	sim_mob::Broker & broker;
 	bool wait_status;
 	boost::mutex	mutex_;
-protected:
-	void setWaitStatus(bool);
-public:
-	BrokerBlocker(sim_mob::Broker &);
-	sim_mob::Broker & getBroker() const;
-	virtual bool calculateWaitStatus() = 0;
-	bool isWaiting() const;
-	virtual ~BrokerBlocker();
+
 };
 
-} /* namespace sim_mob */
+}
+

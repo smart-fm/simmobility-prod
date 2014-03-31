@@ -4,11 +4,17 @@
 
 #include "Handlers.hpp"
 
+#include <boost/shared_ptr.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include "entities/Agent.hpp"
+#include "entities/commsim/connection/WhoAreYouProtocol.hpp"
 #include "entities/commsim/message/Messages.hpp"
-#include "entities/commsim/serializaion/CommsimSerializer.hpp"
+#include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
+#include "entities/commsim/serialization/CommsimSerializer.hpp"
+#include "event/args/ReRouteEventArgs.hpp"
+#include "message/MessageBus.hpp"
 
 namespace {
 //Helper: retrieve an agent via its ID, using the clientHandle. Returns null if not found.
@@ -109,22 +115,22 @@ void sim_mob::AllLocationHandler::handle(boost::shared_ptr<ConnectionHandler> ha
 
 
 
-void sim_mob::OpaqueSendHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const
-{
+//void sim_mob::OpaqueSendHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const
+//{
 	//Ask the serializer for a Unicast message.
-	OpaqueSendMessage ucMsg = CommsimSerializer::parseOpaqueSend(messages, msgNumber);
+//	OpaqueSendMessage ucMsg = CommsimSerializer::parseOpaqueSend(messages, msgNumber);
 
-	throw std::runtime_error("TODO: OpaqueSend");
-}
+	//throw std::runtime_error("TODO: OpaqueSend");
+//}
 
 
-void sim_mob::OpaqueReceiveHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const
-{
+//void sim_mob::OpaqueReceiveHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const
+//{
 	//Ask the serializer for a Multicast message.
-	OpaqueReceiveMessage mcMsg = CommsimSerializer::parseOpaqueReceive(messages, msgNumber);
+//	OpaqueReceiveMessage mcMsg = CommsimSerializer::parseOpaqueReceive(messages, msgNumber);
 
-	throw std::runtime_error("TODO: OpaqueReceive");
-}
+//	throw std::runtime_error("TODO: OpaqueReceive");
+//}
 
 void sim_mob::RemoteLogHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const
 {
@@ -157,7 +163,7 @@ void sim_mob::RerouteRequestHandler::handle(boost::shared_ptr<ConnectionHandler>
 
 	//Now dispatch through the MessageBus.
 	sim_mob::messaging::MessageBus::PublishEvent(sim_mob::event::EVT_CORE_COMMSIM_REROUTING_REQUEST,
-		agentHandle->agent, messaging::MessageBus::EventArgsPtr(new event::ReRouteEventArgs(rmMsg.blacklistRegion))
+		agentHandle->agent, sim_mob::messaging::MessageBus::EventArgsPtr(new sim_mob::event::ReRouteEventArgs(rmMsg.blacklistRegion))
 	);
 }
 
@@ -167,7 +173,7 @@ void sim_mob::NewClientHandler::handle(boost::shared_ptr<ConnectionHandler> hand
 	NewClientMessage rmMsg = CommsimSerializer::parseNewClient(messages, msgNumber);
 
 	//Query this agent's ID; tell the Broker that we are expecting a reply.
-	WhoAreYouProtocol::QueryAgentAsync(handler, *broker);
+	sim_mob::WhoAreYouProtocol::QueryAgentAsync(handler, *broker);
 }
 
 
@@ -263,7 +269,7 @@ void sim_mob::OpaqueSendHandler::handle(boost::shared_ptr<ConnectionHandler> han
 			}
 
 			//ClientList::ValuePair clientIds;
-			boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> >& inner = clientIt->second;
+			const boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> >& inner = clientIt->second;
 
 			//iterate through android emulator clients
 			for (boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> >::const_iterator it=inner.begin(); it!=inner.end(); it++) {
@@ -284,7 +290,7 @@ void sim_mob::OpaqueSendHandler::handle(boost::shared_ptr<ConnectionHandler> han
 					//just add the recipients
 				//directly request to send
 				std::string msg = CommsimSerializer::makeOpaqueReceive(sendMsg.fromId, agentId, sendMsg.data);
-				broker->insertSendBuffer(boost::shared_ptr<ClientHandler>(const_cast<ClientHandler*>(&destClientHandlr)), msg);
+				broker->insertSendBuffer(boost::shared_ptr<ClientHandler>(destClientHandlr), msg);
 
 				//handleClient(*destClientHandlr, receiveAgentHandles, *broker, sendMsg);
 			}
@@ -338,7 +344,7 @@ void sim_mob::OpaqueReceiveHandler::handle(boost::shared_ptr<ConnectionHandler> 
 		}
 
 		//ClientList::ValuePair clientIds;
-		boost::unordered_map<std::string,boost::shared_ptr<sim_mob::ClientHandler> > &inner = ctypeIt->second;
+		const boost::unordered_map<std::string,boost::shared_ptr<sim_mob::ClientHandler> > &inner = ctypeIt->second;
 		for (boost::unordered_map<std::string,boost::shared_ptr<sim_mob::ClientHandler> >::const_iterator it=inner.begin(); it!=inner.end(); it++) {
 		//BOOST_FOREACH(clientIds , inner) {
 			boost::shared_ptr<sim_mob::ClientHandler> clnHandler = it->second;

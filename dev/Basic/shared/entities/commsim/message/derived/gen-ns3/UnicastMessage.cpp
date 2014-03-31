@@ -14,7 +14,7 @@
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 
 using namespace sim_mob;
-
+/*
 
 sim_mob::comm::NS3_MSG_UNICAST::NS3_MSG_UNICAST(const sim_mob::comm::MsgData& data_): Message(data_)
 {}
@@ -34,3 +34,4 @@ void sim_mob::comm::NS3_HDL_UNICAST::handle(sim_mob::comm::MsgPtr message_,Broke
 
 
 
+*/

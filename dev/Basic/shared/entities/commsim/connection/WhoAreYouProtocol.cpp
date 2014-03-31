@@ -6,9 +6,9 @@
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
 #include "entities/commsim/Broker.hpp"
 
-namespace sim_mob {
+using namespace sim_mob;
 
-void WhoAreYouProtocol::QueryAgentAsync(boost::shared_ptr<sim_mob::ConnectionHandler> conn, Broker& broker)
+void sim_mob::WhoAreYouProtocol::QueryAgentAsync(boost::shared_ptr<sim_mob::ConnectionHandler> conn, BrokerBase& broker)
 {
 	//We'll need to make a new ConnectionHandler if we don't have an existing one.
 	if (!conn) {
@@ -20,8 +20,6 @@ void WhoAreYouProtocol::QueryAgentAsync(boost::shared_ptr<sim_mob::ConnectionHan
 
 	//At this point, we have a ConnectionHandler that can at least receive messages. So send the "WHOAREYOU" request.
 	//This will be received by the Broker, and added to the messageReceived() callback, which should then be filtered as expected.
-	conn->forwardMessage(JsonParser::makeWhoAreYouPacket(conn->getToken()));
+	conn->forwardMessage(CommsimSerializer::makeWhoAreYou(conn->getToken()));
 }
 
-
-} /* namespace sim_mob */

@@ -5,6 +5,9 @@
 #include "LocationEventArgs.hpp"
 
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
+#include "entities/Agent.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 
 using namespace sim_mob;

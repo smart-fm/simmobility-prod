@@ -26,11 +26,11 @@
 #include <entities/commsim/connection/Session.hpp>
 
 namespace sim_mob {
-class Broker;
+class BrokerBase;
 
 class ConnectionServer {
 public:
-	ConnectionServer(sim_mob::Broker &broker_,unsigned short port = DEFAULT_SERVER_PORT);
+	ConnectionServer(BrokerBase& broker, unsigned short port = DEFAULT_SERVER_PORT);
 	~ConnectionServer();
 
 	void start();
@@ -56,7 +56,7 @@ private:
 
 	const static unsigned int DEFAULT_SERVER_PORT = 6745;
 	boost::asio::ip::tcp::acceptor acceptor_;
-	sim_mob::Broker &broker;
+	sim_mob::BrokerBase& broker;
 };
 
 } /* namespace sim_mob */

@@ -17,7 +17,7 @@
 #include "entities/commsim/message/base/Message.hpp"
 #include "entities/commsim/message/base/Handler.hpp"
 #include "entities/commsim/message/derived/roadrunner-android/UnicastHandler.hpp"
-
+/*
 namespace sim_mob {
 class Agent;
 class Broker;
@@ -39,3 +39,4 @@ public:
 };
 
 }}
+*/

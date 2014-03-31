@@ -277,7 +277,7 @@ LoopDetector::check(boost::unordered_set<Vehicle const *> & vehicles)
 bool
 LoopDetector::check(Vehicle const & vehicle)
 {
-    Vector2D<double> pos(vehicle.getX() - center_.getX(), vehicle.getY() - center_.getY());
+    Vector2D<double> pos(vehicle.currPos.x - center_.getX(), vehicle.currPos.y - center_.getY());
     // The dot product produces the projection onto the orientation vector.  If the projection
     // falls within the extents (ie, the width and length), then the vehicle is hovering over
     // the loop detector.

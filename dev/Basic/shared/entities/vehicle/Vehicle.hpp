@@ -68,6 +68,7 @@ public:
 	const double width;   ///<width of the vehicle
 	bool isQueuing; 	 ///<for mid-term use
 	FMODSchedule* schedule;
+	DPoint currPos;
 
 	//Call once
 	void initPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);

@@ -784,9 +784,9 @@ double sim_mob::DriverPathMover::getCurrDistAlongPolyline() const
 double sim_mob::DriverPathMover::getCurrDistAlongRoadSegment() const
 {
 	throwIf(!isPathSet(), DriverPathMover::ErrorPathNotSet);
-	if(isInIntersection()) {
-		throw std::runtime_error("Can't get distance in Segment while in an intersection.");
-	}
+//	if(isInIntersection()) {
+//		throw std::runtime_error("Can't get distance in Segment while in an intersection.");
+//	}
 
 	//Get the ratio of distance moved over the current one.
 	double distRatio = std::min(distAlongPolyline, currPolylineLength()) / currPolylineLength();

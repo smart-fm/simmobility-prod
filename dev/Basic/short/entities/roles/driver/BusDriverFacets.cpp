@@ -534,8 +534,8 @@ double sim_mob::BusDriverMovement::getDistanceToBusStopOfSegment(const RoadSegme
 					}
 
 					if (stopPoint >= 0) {
-						DynamicVector BusDistfromStart(parentBusDriver->vehicle->getX(),
-								parentBusDriver->vehicle->getY(),
+						DynamicVector BusDistfromStart(parentBusDriver->currPos.x,
+								parentBusDriver->currPos.y,
 								rs->getStart()->location.getX(),
 								rs->getStart()->location.getY());
 //						distance = stopPoint

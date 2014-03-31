@@ -434,6 +434,8 @@ void sim_mob::DriverMovement::frame_tick()
 	disToFwdVehicleLastFrame = p2.nvFwd.distance;
 	parentDriver->currDistAlongRoadSegment = fwdDriverMovement.getCurrDistAlongRoadSegment();
 	parentDriver->currPos = getPosition();
+	parentDriver->vehicle->currPos = getPosition();
+
 //	std::cout << "parentDriver->vehicle->getX():" << parentDriver->vehicle->getX() << std::endl;
 //	std::cout << "parentDriver->vehicle->getY():" << parentDriver->vehicle->getY() << std::endl;
 
@@ -1042,7 +1044,7 @@ DPoint sim_mob::DriverMovement::getPosition() const
 		Warn() <<"WARNING: Vehicle is in intersection without a position!" <<std::endl;
 	}
 
-	DPoint origPos = getPosition();
+	DPoint origPos = fwdDriverMovement.getPosition();
 	if (fwdDriverMovement.isInIntersection() && parentDriver->vehicle->getPositionInIntersection().x != 0 && parentDriver->vehicle->getPositionInIntersection().y != 0) {
 		//Override: Intersection driving
 		origPos.x = parentDriver->vehicle->getPositionInIntersection().x;
@@ -2160,9 +2162,9 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 	vector<const Agent*> nearby_agents;
 	if(parentDriver->currPos.x > 0 && parentDriver->currPos.y > 0) {
 		const Agent* parentAgent = (parentDriver?parentDriver->getParent():nullptr);
-		nearby_agents = AuraManager::instance().nearbyAgents(Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind, parentAgent);
+		nearby_agents = AuraManager::instance().nearbyAgents(Point2D(parentDriver->currPos.x, parentDriver->currPos.y), *params.currLane, dis, parentDriver->distanceBehind, parentAgent);
 	} else {
-		Warn() << "A driver's location (x or y) is < 0, X:" << parentDriver->vehicle->getX() << ",Y:" << parentDriver->vehicle->getY() << std::endl;
+		Warn() << "A driver's location (x or y) is < 0, X:" << parentDriver->currPos.x << ",Y:" << parentDriver->currPos.y << std::endl;
 	}
 	/*if (this->parent->connector_to_Sim_Tree) {
 		if(parentDriver->vehicle->getX() > 0 && parentDriver->vehicle->getY() > 0) {

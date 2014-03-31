@@ -98,23 +98,23 @@ void SegmentStats::topCMergeDifferentLanesInSegment(std::deque<sim_mob::Person*>
 	//pick the Top C
 	for (int i = 0; i < Capacity; i++) {
 		int whichDueue = -1;
-		double min_distance = std::numeric_limits<double>::max();
+		double minDistance = std::numeric_limits<double>::max();
 		sim_mob::Person* whichPerson = NULL;
 
 		for (int i = 0; i < dequeSize; i++) {
 			//order by location
 			if (order_by_setting == SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION) {
-				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->distanceToEndOfSegment < min_distance) {
+				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->distanceToEndOfSegment < minDistance) {
 					whichDueue = i;
-					min_distance = (*iteratorLists[i])->distanceToEndOfSegment;
+					minDistance = (*iteratorLists[i])->distanceToEndOfSegment;
 					whichPerson = (*iteratorLists[i]);
 				}
 			}
 			//order by time
 			else if (order_by_setting == SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION) {
-				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->drivingTimeToEndOfLink < min_distance) {
+				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->drivingTimeToEndOfLink < minDistance) {
 					whichDueue = i;
-					min_distance = (*iteratorLists[i])->drivingTimeToEndOfLink;
+					minDistance = (*iteratorLists[i])->drivingTimeToEndOfLink;
 					whichPerson = (*iteratorLists[i]);
 				}
 			}

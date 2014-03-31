@@ -15,14 +15,10 @@
 #include "entities/commsim/client/ClientType.hpp"
 #include "entities/commsim/client/base/ClientRegistration.hpp"
 #include "entities/commsim/service/Services.hpp"
-#include "entities/commsim/message/Types.hpp"
-#include "entities/commsim/message/base/Message.hpp"
-#include "entities/commsim/message/base/MessageQueue.hpp"
-#include "entities/commsim/message/base/Handler.hpp"
-#include "entities/commsim/buffer/BufferContainer.hpp"
 #include "entities/commsim/broker/base/Broker-util.hpp"
 #include "entities/commsim/broker/base/Common.hpp"
 #include "entities/commsim/message/Handlers.hpp"
+#include "entities/commsim/message/ThreadSafeQueue.hpp"
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
 
 #include "util/OneTimeFlag.hpp"
@@ -138,29 +134,6 @@ struct SendBuffer {
 	typedef boost::shared_ptr<sim_mob::ClientHandler> Key;
 };
 
-/**
- * Helper struct: items in our SendBuffer
- */
-/*struct SendBufferItem {
-	boost::shared_ptr<sim_mob::ClientHandler> client; //The client sending this message.
-	sim_mob::comm::MsgData msg; //The message being sent.
-	SendBufferItem() {}
-	SendBufferItem(boost::shared_ptr<sim_mob::ClientHandler> client, sim_mob::comm::MsgData msg) : client(client), msg(msg) {}
-};*/
-
-/**
- * A typedef-container for our SendBuffer container type.
- * NOTE: This was only used here, so I am removing the template parameter.
- */
-/*struct SendBuffer {
-	//The base types stored in our container.
-	typedef boost::shared_ptr<sim_mob::ConnectionHandler> Key;
-	typedef sim_mob::BufferContainer<SendBufferItem> Value;
-
-	//The container itself and a "pair" type.
-	typedef boost::unordered_map<Key, Value> Type;
-	typedef std::pair<Key, Value> Pair;
-};*/
 
 
 
@@ -251,7 +224,7 @@ protected:
 
 
 	///	incoming data(from clients to broker) is saved here in the form of messages
-	sim_mob::comm::MessageQueue<sim_mob::MessageElement> receiveQueue;
+	sim_mob::ThreadSafeQueue<sim_mob::MessageElement> receiveQueue;
 
 	///	list of classes that process incoming data(w.r.t client type)
 	///	to transform the data into messages and assign their message handlers
@@ -510,13 +483,6 @@ public:
 	 * 	callback function executed upon message arrival
 	 */
 	virtual void onMessageReceived(boost::shared_ptr<ConnectionHandler>cnnHadler, const BundleHeader& header, std::string message);
-
-	/**
-	 * 	The Accessor used by other entities to note the broker's message receive call back function
-	 */
-	//TODO: Replace with a "BrokerBase" class.
-	//boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> getMessageReceiveCallBack();
-
 
 	/**
 	 * 	broker, as an agent, has an update function

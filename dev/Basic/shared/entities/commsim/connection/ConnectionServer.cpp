@@ -10,11 +10,14 @@
  */
 
 #include "ConnectionServer.hpp"
+
+#include <boost/shared_ptr.hpp>
+
 #include "entities/commsim/connection/Session.hpp"
+#include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "entities/commsim/connection/WhoAreYouProtocol.hpp"
 #include "logging/Log.hpp"
 #include "entities/commsim/Broker.hpp"
-#include <boost/shared_ptr.hpp>
 
 using namespace sim_mob;
 

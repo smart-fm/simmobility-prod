@@ -227,57 +227,6 @@ private:
 
 
 
-
-/*class JsonParser {
-public:
-	//todo find a way for this hardcoding
-	static sim_mob::Services::SIM_MOB_SERVICE getServiceType(std::string type);
-
-	static bool parsePacketHeader(const std::string& input, pckt_header &output, Json::Value &root);
-
-	static bool parseMessageHeader(Json::Value & root, msg_header &output);
-
-	static bool parseMessageHeader(const std::string& input, msg_header &output);
-
-	static bool getPacketMessages(const std::string& input, Json::Value &output);
-
-	//used for whoami id, type and required services(optional)
-	static bool get_WHOAMI(std::string& input, std::string & type, std::string & ID, std::set<sim_mob::Services::SIM_MOB_SERVICE> &requiredServices);
-
-	static bool get_WHOAMI_Services(std::string& input, std::set<sim_mob::Services::SIM_MOB_SERVICE> & services);
-
-	static Json::Value createPacketHeader(pckt_header pHeader_);
-
-	static Json::Value createMessageHeader(msg_header mHeader_);
-
-	///The token is used to link to the proper ConnectionHandler when the WHOAMI response is received.
-	///So make sure it is unique per ConnectionHandler (it does not have to be unique per agent).
-	static std::string makeWhoAreYouPacket(const std::string& token);
-
-//	just conveys the tick
-	static Json::Value makeTimeData(unsigned int tick, unsigned int elapsedMs);
-
-	static std::string makeTimeDataString(unsigned int tick, unsigned int elapsedMs);
-
-	static std::string makeLocationMessageString(int x, int y);
-
-	///Either of the input points (x,y, projected.lat, projected.lng) can be 0, but this does not
-	/// necessarily mean that they are void. (Most road networks will not have (0,0) or (0.0,0.0) as
-	/// valid points though).
-	static Json::Value makeLocationMessage(int x, int y, const LatLngLocation& projected);
-
-	static Json::Value makeLocationArrayElement(unsigned int id, int x, int y);
-
-	static Json::Value makeRegionAndPathMessage(const std::vector<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path);
-
-
-	//@originalMessage input
-	//@extractedType output
-	//@extractedData output
-	//@root output
-	static bool getMessageTypeAndData(std::string &originalMessage, std::string &extractedType, std::string &extractedData, Json::Value &root_);
-};*/
-
 }
 
 

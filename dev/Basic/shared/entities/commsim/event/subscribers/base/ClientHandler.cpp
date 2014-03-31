@@ -11,12 +11,11 @@
 
 #include "ClientHandler.hpp"
 #include "entities/commsim/Broker.hpp"
-#include "entities/commsim/event/JsonSerializableEventArgs.hpp"
 
 using namespace sim_mob;
 
-sim_mob::ClientHandler::ClientHandler(sim_mob::Broker& broker, boost::shared_ptr<sim_mob::ConnectionHandler> conn, sim_mob::AgentCommUtilityBase* agentComm, const sim_mob::Agent* agent, std::string clientId)
-	: broker(broker), valid(true), connHandle(conn), agentComm(agentComm), agent(agent), clientId(clientId)
+sim_mob::ClientHandler::ClientHandler(sim_mob::Broker& broker, boost::shared_ptr<sim_mob::ConnectionHandler> conn,  const sim_mob::Agent* agent, std::string clientId)
+	: broker(broker), valid(true), connHandle(conn), agent(agent), clientId(clientId)
 {
 	if (!conn) {
 		throw std::runtime_error("Cannot create a client handler with a null connection handler.");

@@ -31,7 +31,7 @@ class ClientHandler;
 class ClientHandler: public sim_mob::event::EventListener, public boost::enable_shared_from_this<ClientHandler> {
 public:
 	///conn is the connection handler this client can use to send messages.
-	ClientHandler(sim_mob::Broker& broker, boost::shared_ptr<sim_mob::ConnectionHandler> conn, sim_mob::AgentCommUtilityBase* agentComm, const sim_mob::Agent* agent, std::string clientId);
+	ClientHandler(sim_mob::Broker& broker, boost::shared_ptr<sim_mob::ConnectionHandler> conn, const sim_mob::Agent* agent, std::string clientId);
 	virtual ~ClientHandler();
 
 	//event functions:
@@ -53,7 +53,6 @@ private:
 
 public: //TODO: Some of these should clearly be private; however, for now they are all accessed in too many places.
 	boost::shared_ptr<sim_mob::ConnectionHandler> connHandle;
-	sim_mob::AgentCommUtilityBase* agentComm; //represents a Role, so dont use a boost::share_ptr whose object is created somewhere else. it is dangerous
 	const sim_mob::Agent* agent;//same: dont use a boost::share_ptr whose object is created somewhere else. it is dangerous
 	std::string clientId;
 };

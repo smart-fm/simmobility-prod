@@ -22,10 +22,3 @@ std::string sim_mob::TimeEventArgs::serialize() const
 {
 	return sim_mob::CommsimSerializer::makeTimeData(time.frame(), ConfigManager::GetInstance().FullConfig().baseGranMS());
 }
-
-/*
- Json::Value sim_mob::TimeEventArgs::toJSON() const
-{
-	return sim_mob::JsonParser::makeTimeData(time.frame(), ConfigManager::GetInstance().FullConfig().baseGranMS());
-}
- */

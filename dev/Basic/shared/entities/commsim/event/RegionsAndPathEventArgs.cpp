@@ -24,8 +24,3 @@ std::string sim_mob::RegionsAndPathEventArgs::serialize() const
 	return CommsimSerializer::makeRegionAndPath(allRegions, regionPath);
 }
 
-/*Json::Value sim_mob::RegionsAndPathEventArgs::toJSON() const
-{
-	//TODO: Replace with Regions and Paths, actual serialized format.
-	return JsonParser::makeRegionAndPathMessage(all_regions, region_path);
-}*/

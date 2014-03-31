@@ -7,8 +7,8 @@
 
 using namespace sim_mob;
 
-sim_mob::AgentInfo::AgentInfo(Agent * a_, AgentCommUtilityBase * b_, bool v)
-	: agent(a_), comm(b_), valid(v), done(false)
+sim_mob::AgentInfo::AgentInfo(Agent * a_, bool v)
+	: agent(a_), valid(v), done(false)
 {
 }
 
@@ -17,10 +17,10 @@ sim_mob::AgentInfo::AgentInfo(Agent * a_, AgentCommUtilityBase * b_, bool v)
  * ********* Change Container ***************************************
  * ******************************************************************
  */
-void sim_mob::AgentsList::insert(Agent * a, AgentCommUtilityBase * b, bool valid )
+void sim_mob::AgentsList::insert(Agent * a, bool valid )
 {
 	Lock lock(mutex);
-	data.insert(std::make_pair(a, AgentInfo(a,b,valid)));
+	data.insert(std::make_pair(a, AgentInfo(a,valid)));
 }
 
 void sim_mob::AgentsList::AgentsList::erase(Agent * agent)

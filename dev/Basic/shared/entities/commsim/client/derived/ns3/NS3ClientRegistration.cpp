@@ -31,7 +31,7 @@ bool sim_mob::NS3ClientRegistration::initialEvaluation(sim_mob::Broker& broker,
 boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> existingConn,
 		sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, sim_mob::AgentInfo agent)
 {
-	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker, existingConn, nullptr, nullptr, request.clientID));
+	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker, existingConn, nullptr, request.clientID));
 	clientEntry->setRequiredServices(request.requiredServices);
 
 	sim_mob::event::EventPublisher & p = broker.getPublisher();

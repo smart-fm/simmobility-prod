@@ -54,7 +54,7 @@ bool AndroidClientRegistration::findAFreeAgent(AgentsList::type &registeredAgent
 boost::shared_ptr<ClientHandler> AndroidClientRegistration::makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> connHandle, sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest& request, sim_mob::AgentInfo freeAgent)
 {
 	//Create a ClientHandler pointing to the Broker.
-	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker, connHandle, freeAgent.comm, freeAgent.agent, request.clientID));
+	boost::shared_ptr<ClientHandler> clientEntry(new ClientHandler(broker, connHandle,  freeAgent.agent, request.clientID));
 	clientEntry->setRequiredServices(request.requiredServices);
 
 	//Subscribe to relevant services for each required service.

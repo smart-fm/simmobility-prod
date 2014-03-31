@@ -20,7 +20,6 @@
 #include "message/MessageBus.hpp"
 #include "model/lua/LuaProvider.hpp"
 #include "model/HM_Model.hpp"
-#include "entities/commsim/message/base/Message.hpp"
 
 using std::list;
 using std::endl;

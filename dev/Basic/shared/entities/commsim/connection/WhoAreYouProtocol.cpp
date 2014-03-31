@@ -5,6 +5,7 @@
 #include "WhoAreYouProtocol.hpp"
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
 #include "entities/commsim/Broker.hpp"
+#include "entities/commsim/connection/ConnectionHandler.hpp"
 
 using namespace sim_mob;
 

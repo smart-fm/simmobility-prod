@@ -13,20 +13,19 @@
 #include "util/LangHelpers.hpp"
 
 
-namespace sim_mob
-{
-	const unsigned int MAX_THREAD_GROUP_SIZE = 20; //minimum number of registered agents
+namespace sim_mob {
+
+const unsigned int MAX_THREAD_GROUP_SIZE = 20; //minimum number of registered agents
+
 //Forward Declaration
-class AgentCommUtilityBase;
 class Agent;
 
 class AgentInfo {
 public:
 	Agent * agent;
-	AgentCommUtilityBase * comm;
 	bool valid;
 	bool done;
-	explicit AgentInfo(Agent* a_=nullptr, AgentCommUtilityBase* b_=nullptr, bool valid=true);
+	explicit AgentInfo(Agent* a_=nullptr,bool valid=true);
 };
 
 
@@ -45,7 +44,7 @@ public:
 	mutable Mutex mutex;
 
 	///function to insert into the container (only checkes the unqueness of agent)
-	void insert(Agent * a, AgentCommUtilityBase * b, bool valid = true);
+	void insert(Agent * a,  bool valid = true);
 
 	///returns the size of the container
 	int size() const;

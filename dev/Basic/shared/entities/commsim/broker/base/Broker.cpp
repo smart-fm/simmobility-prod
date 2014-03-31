@@ -18,8 +18,6 @@
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/commsim/event/RegionsAndPathEventArgs.hpp"
-#include "entities/commsim/message/base/BasicMessageFactory.hpp"
-#include "entities/commsim/message/derived/roadrunner-ns3/MulticastMessage.hpp"
 
 #include "entities/commsim/wait/WaitForAndroidConnection.hpp"
 #include "entities/commsim/wait/WaitForNS3Connection.hpp"
@@ -32,9 +30,6 @@
 
 #include "geospatial/RoadRunnerRegion.hpp"
 
-//todo :temprorary
-#include "entities/commsim/message/derived/roadrunner-android/RoadRunnerFactory.hpp"
-#include "entities/commsim/message/derived/roadrunner-ns3/Ns3Factory.hpp"
 
 using namespace sim_mob;
 
@@ -152,10 +147,6 @@ void sim_mob::Broker::configure()
 		registrationPublisher.subscribe((event::EventId)comm::NS3_SIMULATOR, this, &Broker::onClientRegister);
 	}
 
-	//TODO: We need to move the DIFFERENT message types here into the handleLookup.
-	//      MOST of them should be the default; the android-ns3 and android-only settings should only change a few of them.
-	//std::map<unsigned int, void*> messageFactories;
-
 	bool useNs3 = false;
 	if (client_type == "android-ns3") {
 		useNs3 = true;
@@ -168,32 +159,6 @@ void sim_mob::Broker::configure()
 	handleLookup.addHandlerOverride("OPAQUE_SEND", new sim_mob::OpaqueSendHandler(useNs3));
 	handleLookup.addHandlerOverride("OPAQUE_RECEIVE", new sim_mob::OpaqueReceiveHandler(useNs3));
 
-	//handleLookup.addHandlerOverride("OPAQUE_SEND", new sim_mob::roadrunner::UnicastHandler(useNs3));
-	//handleLookup.addHandlerOverride("OPAQUE_RECEIVE", new sim_mob::rr_android_ns3::NS3_HDL_UNICAST());
-
-	//if(useNs3) {
-
-
-		//boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > android_factory();
-		//boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > ns3_factory();
-
-		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
-		//messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, new sim_mob::roadrunner::RoadRunnerFactory(true)));
-		//messageFactories.insert(std::make_pair(comm::NS3_SIMULATOR, new sim_mob::rr_android_ns3::NS3_Factory()));
-
-		//We assume the "UNKNOWN" type knows about connection messages.
-		//boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > basic_factory();
-	//	messageFactories.insert(std::make_pair(comm::UNKNOWN_CLIENT, new sim_mob::BasicMessageFactory()));
-	//} //else if (client_type == "android-only") {
-		//boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > android_factory();
-
-		//note that both client types refer to the same message factory belonging to roadrunner application. we will modify this to a more generic approach later-vahid
-		//messageFactories.insert(std::make_pair(comm::ANDROID_EMULATOR, new sim_mob::roadrunner::RoadRunnerFactory(false)));
-
-		//We assume the "UNKNOWN" type knows about connection messages.
-		//boost::shared_ptr<sim_mob::MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > basic_factory();
-	//	messageFactories.insert(std::make_pair(comm::UNKNOWN_CLIENT, new sim_mob::BasicMessageFactory()));
-	//}
 
 	// wait for connection criteria for this broker
 	clientBlockers.insert(std::make_pair(comm::ANDROID_EMULATOR,
@@ -226,15 +191,6 @@ void sim_mob::Broker::configure()
  */
 void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnnHandler, const BundleHeader& header, std::string input)
 {
-	//TODO: It does not make any sense to require knowledge of a ConnectionHandler's type.
-	/*MessageFactories::Type::iterator msgFactIt = messageFactories.find(cnnHandler->getClientType());
-	if (msgFactIt==messageFactories.end()) {
-		throw std::runtime_error("Message factory type does not exist.");
-	}*/
-
-	//TODO: We need a trace flag for this.
-	//std::cout <<"MSG: ###" <<input <<"###\n";
-
 	//If the stream has closed, fail. (Otherwise, the simulation will freeze.)
 	if(input.empty()){
 		throw std::runtime_error("Empty packet; canceling simulation.");
@@ -245,9 +201,6 @@ void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnn
 	if (!CommsimSerializer::deserialize(header, input, conglom)) {
 		throw std::runtime_error("Broker couldn't parse packet.");
 	}
-
-	//std::vector<sim_mob::comm::MsgPtr> messages;
-	//msgFactIt->second->createMessage(input, messages);
 
 
 	//We have to introspect a little bit, in order to find our CLIENT_MESSAGES_DONE and WHOAMI messages.
@@ -331,13 +284,9 @@ void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnn
 	}
 
 	//New messages to process
-	receiveQueue.post(MessageElement(cnnHandler, conglom));
+	receiveQueue.push(MessageElement(cnnHandler, conglom));
 }
 
-/*boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> sim_mob::Broker::getMessageReceiveCallBack()
-{
-	return m_messageReceiveCallback;
-}*/
 
 
 void sim_mob::Broker::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
@@ -810,10 +759,6 @@ void sim_mob::Broker::sendReadyToReceive()
 void sim_mob::Broker::processOutgoingData(timeslice now)
 {
 	for (std::map<SendBuffer::Key, OngoingSerialization>::iterator it=sendBuffer.begin(); it!=sendBuffer.end(); it++) {
-	//for(SendBuffer::Type::iterator it = sendBuffer.begin(); it!= sendBuffer.end(); it++) {
-		//sim_mob::BufferContainer<SendBufferItem>& data = it->second;
-		//sim_mob::BufferContainer<sim_mob::comm::MsgData> & buffer = it->second;
-
 		boost::shared_ptr<sim_mob::ConnectionHandler> conn = it->first->connHandle;
 
 		//Our data stream contains several messages pointing to different clients. We need to

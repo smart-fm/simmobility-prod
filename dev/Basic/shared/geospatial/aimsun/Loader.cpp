@@ -2676,23 +2676,14 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 				}
 
 				// set conflux pointer to the segments and create SegmentStats for the segment
-				for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin(); segIt != upSegs.end(); segIt++)
+				for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin();
+						segIt != upSegs.end(); segIt++)
 				{
 					if((*segIt)->parentConflux == nullptr)
 					{
 						// assign only if not already assigned
 						(*segIt)->parentConflux = conflux;
 						conflux->segmentAgents.insert(std::make_pair(*segIt, new SegmentStats(*segIt)));
-
-						//split one road segment to multiply segment statistics
-						const map<centimeter_t, const RoadItem*>& obstacles = (*segIt)->obstacles;
-						for(map<centimeter_t, const RoadItem*>::const_iterator obsIt = obstacles.begin(); obsIt!=obstacles.end(); ++obsIt) {
-							const BusStop* res = dynamic_cast<const BusStop*>(obsIt->second);
-							if (res) {
-								conflux->segmentAgents.insert(std::make_pair(*segIt, new SegmentStats(*segIt)));
-							}
-						}
-
 						multinode_confluxes.insert(std::make_pair(segsAt->first, conflux));
 					}
 					else if((*segIt)->parentConflux != conflux)

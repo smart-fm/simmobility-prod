@@ -29,13 +29,15 @@ struct cmp_person_remainingTimeThisTick : public std::greater<Person*> {
   bool operator() (const Person* x, const Person* y) const;
 };
 
-//Sort all agents in lane (based on remaining time this tick)
-void sortPersons_DecreasingRemTime(std::deque<Person*> personList);
+/**
+ * Sort all persons in non-increasing order of remaining times in the current tick
+ * @param personList list of persons to be sorted
+ */
+void sortPersons_DecreasingRemTime(std::deque<Person*>& personList);
 
 /**
- * Class representing an intersection along with the half-links (links are bidirectional. Half-link means one side
- * of the link which is unidirectional) which are upstream to the intersection. For all downstream half-links (which
- * conceptually belong to another Conflux), we maintain a temporary data structure.
+ * Class representing a grouping of an intersection along with the links which
+ * are directly upstream to that intersection.
  *
  * \author Harish Loganathan
  */
@@ -45,27 +47,32 @@ class Conflux : public sim_mob::Agent {
 
 private:
 	/**
-	 *  MultiNode around which this conflux is constructed
+	 *  MultiNode (intersection) around which this conflux is constructed
 	 */
 	const sim_mob::MultiNode* multiNode;
 
+	/**
+	 * Signal at the multinode of this conflux (if any).
+	 * Note: Signals do not work in the mid-term. This is useless for now.
+	 */
 	const sim_mob::Signal* signal;
 
-
 	/**
-	 * segments in this conflux (on upstream links)
-	 * stores std::map<link which flows into the multinode, segments on the link>
+	 * Link-wise list of road segments in this conflux
+	 * stores std::map<link upstream to multiNode, segments on link>
 	 */
 	std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> > upstreamSegmentsMap;
 
 	/**
-	 * virtual queues are used to hold persons which come from previous conflux when the this conflux is not
-	 * processed for the current tick. Each link in the conflux has a virtual queue
+	 * virtual queues are used to hold persons who want to move in from adjacent
+	 * confluxes when this conflux is not processed for the current tick yet.
+	 * Each link in the conflux has 1 virtual queue.
 	 */
 	std::map<sim_mob::Link*, std::deque<sim_mob::Person*> > virtualQueuesMap;
 
 	/**
-	 * keeps a pointer to a road segment on each link to keep track of the current segment that is being processed
+	 * data structure to hold a pointer to a road segment on each link to
+	 * keep track of the current segment that is being processed.
 	 */
 	std::map<sim_mob::Link*, const sim_mob::RoadSegment*> currSegsOnUpLinks;
 
@@ -76,9 +83,10 @@ private:
 	std::set<const sim_mob::RoadSegment*> downstreamSegments;
 
 	/**
-	 *  Map to store the vehicle counts of each road segment on this conflux
+	 *  Map which stores the SegmentStats for all road segments on upstream links
+	 *  The Segment stats in-turn contain LaneStats which contain the persons.
 	 */
-	std::multimap<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> segmentAgents;
+	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> segmentAgents;
 
 	/**
 	 *  Worker to which this conflux belongs to
@@ -111,40 +119,79 @@ private:
 	/**holds the current frame number for which this conflux is being processed*/
 	timeslice currFrameNumber;
 
+	/**list of persons performing activities within the vicinity of this conflux*/
 	std::deque<Person*> activityPerformers;
 
-	/** function to call agents' updates if the MultiNode is signalized */
+	/** function to call persons' updates if the MultiNode is signalized */
 	void updateSignalized();
 
-	/** function to call agents' updates if the MultiNode is not signalized */
+	/** function to call persons' updates if the MultiNode is not signalized */
 	void updateUnsignalized();
 
-	/** calls an Agent's update and does housekeeping for the conflux depending on the agent's new location */
+	/**
+	 * moves the person and does housekeeping for the conflux
+	 * @param person the person to move
+	 * */
 	void updateAgent(sim_mob::Person* person);
 
-	/** calls frame_tick() of the movement facet for the person's role*/
+	/**
+	 * calls frame_tick() of the movement facet for the person's role
+	 * @param now current tick
+	 * @param person person to be moved
+	 */
 	UpdateStatus perform_person_move(timeslice now, Person* person);
 
-	/** calls frame_init of the movement facet for the person's role*/
+	/**
+	 * calls frame_init of the movement facet for the person's role
+	 * @param now current tick
+	 * @param person person to be moved
+	 */
 	bool call_movement_frame_init(timeslice now, Person* person);
 
-	/** calls frame_tick of the movement facet for the person's role*/
+	/**
+	 * calls frame_tick of the movement facet for the person's role
+	 * @param now current tick
+	 * @param person person to be moved
+	 */
 	Entity::UpdateStatus call_movement_frame_tick(timeslice now, Person* person);
 
-	/** calls frame_tick of the movement facet for the person's role*/
+	/**
+	 * calls frame_tick of the movement facet for the person's role
+	 * @param now current tick
+	 * @param person person to be moved
+	 */
 	void call_movement_frame_output(timeslice now, Person* person);
 
 	/** function to initialize candidate agents in each tick*/
 	void initCandidateAgents();
 
-	/** sets the iterators on currSegToUpLinks to the segments at the end of the half links*/
+	/** sets the iterators on currSegToUpLinks to the segments at the end of the links*/
 	void resetCurrSegsOnUpLinks();
 
 	/** selects the agent closest to the intersection from candidateAgents;*/
 	sim_mob::Person* agentClosestToIntersection();
 
-	void killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg, const sim_mob::Lane* prevLane, bool wasQueuing, bool wasActivityPerformer);
+	/**
+	 * removes the agent from the conflux and marks it for removal by the worker.
+	 * The person gets removed from the simulation at the end of the current tick.
+	 * @param ag the person to be removed
+	 * @param prevRdSeg the segment where the person started in the current tick
+	 * @param prevLane the lane from which the person started in the current tick
+	 * @param wasQueuing flag indicating whether the person was queuing at the start of the tick
+	 * @param wasActivityPerformer flag indicating whether the person was performing an activity at the start of the tick
+	 */
+	void killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg,
+			const sim_mob::Lane* prevLane, bool wasQueuing, bool wasActivityPerformer);
 
+	/**
+	 * Resets the remainingTime of persons who remain in
+	 * lane infinities and virtual queues across ticks
+	 * Note: This may include
+	 * 1. newly starting persons who (were supposed to, but) could not get added
+	 * to the simulation in the previous tick due to traffic congestion in their
+	 * starting segment. (lane infinity)
+	 * 2. Persons who got added to and remained virtual queue in the previous tick
+	 */
 	void resetPersonRemTimesInVQ();
 
 	//NOTE: New Agents use frame_* methods, but Conflux is fine just using update()
@@ -180,7 +227,7 @@ public:
 		return downstreamSegments;
 	}
 
-	std::multimap<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> getSegmentAgents() const {
+	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> getSegmentAgents() const {
 		return segmentAgents;
 	}
 
@@ -198,18 +245,22 @@ public:
 	void pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p);
 
 	/**
-	 * adds the agent into this conflux
+	 * adds a person into this conflux
+	 * @param ag person to be added
+	 * @param rdSeg starting road segment of ag
 	 */
 	void addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* rdSeg);
 	void addAgent(sim_mob::Person* ag, const sim_mob::Node* startingNode);
 
 	/**
 	 * get lanewise agent counts in a segment
+	 * @param rdSeg segment for which the counts are needed
+	 * @returns lane wise std::pair<queuingCount, movingCount>
 	 */
 	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getLanewiseAgentCounts(const sim_mob::RoadSegment* rdSeg); //returns std::pair<queuingCount, movingCount>
 
 	/**
-	 * moving and queuing counts
+	 * The following 2 functions gets the moving and queuing counts of a segment respectively
 	 */
 	unsigned int numMovingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
 	unsigned int numQueueingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
@@ -217,6 +268,9 @@ public:
 	/**Searches upstream and downstream segments to get the segmentStats for the requested road segment*/
 	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg);
 
+	/**
+	 * supply params related functions
+	 */
 	double getOutputFlowRate(const Lane* lane);
 	int getOutputCounter(const Lane* lane);
 	void setOutputCounter(const Lane* lane, int count);
@@ -286,15 +340,36 @@ public:
 	double getPositionOfLastUpdatedAgentInLane(const Lane* lane);
 	const Lane* getLaneInfinity(const RoadSegment* rdSeg);
 
+	/**
+	 * returns the time to reach the end of the link from a road segment on that
+	 * link
+	 * @param seg the road segment from which the time is to be measured
+	 * @param distanceToEndOfSeg remaining distance in seg
+	 */
 	double computeTimeToReachEndOfLink(const sim_mob::RoadSegment* seg, double distanceToEndOfSeg);
 
+	/**
+	 * update the number of persons that can be added to the downstream confluxes
+	 * from this conflux
+	 */
 	unsigned int resetOutputBounds();
 
+	/**
+	 * get a list of all persons in this conflux
+	 */
 	std::deque<sim_mob::Person*> getAllPersons();
 
-	void findBoundaryConfluxes();
-
+	/**
+	 * get number of persons in lane infinities of this conflux
+	 */
 	unsigned int getNumRemainingInLaneInfinity();
+
+	/**
+	 * determines if this conflux is connected to any conflux that belongs to
+	 * another worker; also determines if all connected confluxes have the same
+	 * worker or not
+	 */
+	void findBoundaryConfluxes();
 
 	bool isBoundary; //A conflux that receives person from at least one conflux that belongs to another worker
 	bool isMultipleReceiver; //A conflux that receives persons from confluxes that belong to multiple other workers

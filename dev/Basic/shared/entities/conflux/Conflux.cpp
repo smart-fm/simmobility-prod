@@ -318,19 +318,8 @@ void sim_mob::Conflux::initCandidateAgents() {
 		lnk = i->first;
 		while (currSegsOnUpLinks.at(lnk)) {
 			rdSeg = currSegsOnUpLinks.at(lnk);
-
-			std::pair < std::multimap<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator,
-			std::multimap<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator> ret;
-			ret = segmentAgents.equal_range(rdSeg);
-
-			if(ret.first!=ret.second){
-				sim_mob::SegmentStats* segStat = ret.first->second;
-				segStat->resetFrontalAgents();
-				candidateAgents.insert(std::make_pair(rdSeg, segStat->agentClosestToStopLineFromFrontalAgents()));
-			}
-
-			//segmentAgents.at(rdSeg)->resetFrontalAgents();
-			//candidateAgents.insert(std::make_pair(rdSeg, segmentAgents.at(rdSeg)->agentClosestToStopLineFromFrontalAgents()));
+			segmentAgents.at(rdSeg)->resetFrontalAgents();
+			candidateAgents.insert(std::make_pair(rdSeg, segmentAgents.at(rdSeg)->agentClosestToStopLineFromFrontalAgents()));
 			if(!candidateAgents.at(rdSeg)) {
 				// this road segment is deserted. search the next (which is, technically, the previous).
 				const std::vector<sim_mob::RoadSegment*> segments = i->second; // or upstreamSegmentsMap.at(lnk);
@@ -556,31 +545,13 @@ sim_mob::Person* sim_mob::Conflux::agentClosestToIntersection() {
 		candidateAgents.erase(agRdSeg);
 		const std::vector<sim_mob::RoadSegment*> segments = agRdSeg->getLink()->getSegments();
 		std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt = std::find(segments.begin(), segments.end(), agRdSeg);
-		/*sim_mob::Person* nextAg = segmentAgents.at(*rdSegIt)->agentClosestToStopLineFromFrontalAgents();
+		sim_mob::Person* nextAg = segmentAgents.at(*rdSegIt)->agentClosestToStopLineFromFrontalAgents();
 		while (!nextAg && rdSegIt != segments.begin()) {
 			currSegsOnUpLinks.erase((*rdSegIt)->getLink());
 			rdSegIt--;
 			currSegsOnUpLinks.insert(std::make_pair((*rdSegIt)->getLink(), *rdSegIt)); // No agents in the entire link
 			segmentAgents.at(*rdSegIt)->resetFrontalAgents();
 			nextAg = segmentAgents.at(*rdSegIt)->agentClosestToStopLineFromFrontalAgents();
-		}
-		candidateAgents.insert(std::make_pair(*rdSegIt, nextAg));*/
-
-		std::pair < std::multimap<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator,
-		std::multimap<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator> ret;
-		std::multimap<const sim_mob::RoadSegment*, sim_mob::SegmentStats*>::iterator rdStatIt;
-		ret = segmentAgents.equal_range(*rdSegIt);
-		sim_mob::SegmentStats* segStat = ret.first->second;
-		sim_mob::Person* nextAg = segStat->agentClosestToStopLineFromFrontalAgents();
-		while(!nextAg && rdSegIt!=segments.begin()) {
-			currSegsOnUpLinks.erase((*rdSegIt)->getLink());
-			rdSegIt--;
-			currSegsOnUpLinks.insert(std::make_pair((*rdSegIt)->getLink(), *rdSegIt)); // No agents in the entire link
-			ret = segmentAgents.equal_range(*rdSegIt);
-			for(rdStatIt=ret.first; rdStatIt!=ret.second && !nextAg; rdStatIt++){
-				segStat = rdStatIt->second;
-				nextAg = segStat->agentClosestToStopLineFromFrontalAgents();
-			}
 		}
 		candidateAgents.insert(std::make_pair(*rdSegIt, nextAg));
 	}
@@ -931,7 +902,7 @@ bool sim_mob::cmp_person_remainingTimeThisTick::operator ()(const Person* x, con
 }
 
 //Sort all agents in lane (based on remaining time this tick)
-void sim_mob::sortPersons_DecreasingRemTime(std::deque<Person*> personList) {
+void sim_mob::sortPersons_DecreasingRemTime(std::deque<Person*>& personList) {
 	cmp_person_remainingTimeThisTick cmp_person_remainingTimeThisTick_obj;
 
 	if(personList.size() > 1) { //ordering is required only if we have more than 1 person in the deque

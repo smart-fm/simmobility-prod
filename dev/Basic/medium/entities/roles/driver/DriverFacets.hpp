@@ -69,44 +69,44 @@ public:
 	/**
 	 * For moving into a new link after getting permission from the managing conflux
 	 */
-	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
+	void flowIntoNextLinkIfPossible(DriverUpdateParams& params);
 
 	/**
 	 * sets fields in the parent person so that the conflux can manage the person
 	 *
-	 * @param p driver update params for current tick
+	 * @param params driver update params for current tick
 	 */
-	void setParentData(DriverUpdateParams& p);	///<set next data to parent buffer data
+	void setParentData(DriverUpdateParams& params);	///<set next data to parent buffer data
 
 	/**
 	 * adds to the time spent by driver in current tick
 	 *
-	 * @param p driver update params for current tick
+	 * @param params driver update params for current tick
 	 */
-	void stepFwdInTime(DriverUpdateParams& p, double time);
+	void stepFwdInTime(DriverUpdateParams& params, double time);
 
 	/**
 	 * moves the driver forward along its path
 	 *
-	 * @param p driver update params for current tick
+	 * @param params driver update params for current tick
 	 */
-	bool advance(DriverUpdateParams& p);
+	bool advance(DriverUpdateParams& params);
 
 	/**
 	 * moves driver to the next segment
 	 *
-	 * @param p driver update params for current tick
+	 * @param params driver update params for current tick
 	 * @returns true if successfully moved to next segment; false otherwise
 	 */
-	bool moveToNextSegment(DriverUpdateParams& p);
+	bool moveToNextSegment(DriverUpdateParams& params);
 
 	/**
 	 * checks whether the driver can move into the next segment in path
 	 *
-	 * @param p driver update params for current tick
+	 * @param params driver update params for current tick
 	 * @param nextSegStats next segment stats in path
 	 */
-	bool canGoToNextRdSeg(DriverUpdateParams& p, const sim_mob::SegmentStats* nextSegStats);
+	bool canGoToNextRdSeg(DriverUpdateParams& params, const sim_mob::SegmentStats* nextSegStats);
 
 	/**
 	 * sets position of driver in queue
@@ -116,36 +116,35 @@ public:
 	/**
 	 * move driver forward within the seg stats
 	 *
-	 * @param p driver update params for current tick
 	 * @param distance distance to move forward
 	 * @returns status of move (success = true, failure = false)
 	 */
-	bool moveInSegment(DriverUpdateParams& p2, double distance);
+	bool moveInSegment(double distance);
 
 	/**
 	 * move driver forward in queue
 	 *
-	 * @param p driver update params for current tick
+	 * @param params driver update params for current tick
 	 * @returns status of move (success = true, failure = false)
 	 */
-	bool advanceQueuingVehicle(DriverUpdateParams& p);
+	bool advanceQueuingVehicle(DriverUpdateParams& params);
 
 	/**
 	 * move driver forward in the moving part of seg stats
 	 *
-	 * @param p driver update params for current tick
+	 * @param params driver update params for current tick
 	 * @returns status of move (success = true, failure = false)
 	 */
-	bool advanceMovingVehicle(DriverUpdateParams& p);
+	bool advanceMovingVehicle(DriverUpdateParams& params);
 
 	/**
 	 * move driver forward in seg stats which had a queue at the start of the current tick
 	 * but the queue has dissipated within this tick
 	 *
-	 * @param p driver update params for current tick
+	 * @param params driver update params for current tick
 	 * @returns status of move (success = true, failure = false)
 	 */
-	bool advanceMovingVehicleWithInitialQ(DriverUpdateParams& p);
+	bool advanceMovingVehicleWithInitialQ(DriverUpdateParams& params);
 
 	/**
 	 * sets the speed of the driver from the current seg stats
@@ -159,7 +158,7 @@ public:
 	 * @param segStats segment stats corresponding to lane l's segment
 	 * @return num. of vehicles that can move out
 	 */
-	int getOutputCounter(const Lane* l, const sim_mob::SegmentStats* segStats);
+	int getOutputCounter(const Lane* lane, const sim_mob::SegmentStats* segStats);
 
 	/**
 	 * set number of vehicles that can move out of a lane in this tick
@@ -168,14 +167,14 @@ public:
 	 * @param count new value of outpur counter
 	 * @param segStats segStats segment stats corresponding to lane l's segment
 	 */
-	void setOutputCounter(const Lane* l, int count, const sim_mob::SegmentStats* segStats);
+	void setOutputCounter(const Lane* lane, int count, const sim_mob::SegmentStats* segStats);
 
 
-	double getOutputFlowRate(const Lane* l);
-	double getAcceptRate(const Lane* l, const sim_mob::SegmentStats* segStats);
-	double getQueueLength(const Lane* l);
-	double getLastAccept(const Lane* l, const sim_mob::SegmentStats* segStats);
-	void setLastAccept(const Lane* l, double lastAccept, const sim_mob::SegmentStats* segStats);
+	double getOutputFlowRate(const Lane* lane);
+	double getAcceptRate(const Lane* lane, const sim_mob::SegmentStats* segStats);
+	double getQueueLength(const Lane* lane);
+	double getLastAccept(const Lane* lane, const sim_mob::SegmentStats* segStats);
+	void setLastAccept(const Lane* lane, double lastAccept, const sim_mob::SegmentStats* segStats);
 
 	/**
 	 * update flow of segment
@@ -194,7 +193,7 @@ public:
 	 * @return true if the path has successfully been set; false otherwise.
 	 */
 	virtual bool initializePath();
-	void setOrigin(DriverUpdateParams& p);
+	void setOrigin(DriverUpdateParams& params);
 
 	sim_mob::medium::Driver* getParentDriver() const {
 		return parentDriver;
@@ -219,7 +218,7 @@ protected:
 
 	mutable std::stringstream DebugStream;
 
-	double getInitialQueueLength(const Lane* l);
+	double getInitialQueueLength(const Lane* lane);
 
 	/**
 	 * checks if lane is connected to the next segment stats

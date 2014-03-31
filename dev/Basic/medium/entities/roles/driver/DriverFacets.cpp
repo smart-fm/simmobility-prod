@@ -42,6 +42,10 @@ using std::map;
 using std::string;
 
 namespace {
+/**
+ * accepts a list of WayPoint-s and returns a list of SegmentStats* corresponding
+ * to RoadSegment* in the list of WayPoint.
+ */
 void initSegStatsPath(vector<sim_mob::WayPoint>& wpPath,
 		vector<const sim_mob::SegmentStats*>& ssPath) {
 	for (vector<sim_mob::WayPoint>::iterator it = wpPath.begin();
@@ -53,6 +57,13 @@ void initSegStatsPath(vector<sim_mob::WayPoint>& wpPath,
 			ssPath.push_back(segStats);
 		}
 	}
+}
+
+/**
+ * converts time from milli-seconds to seconds
+ */
+inline double converToSeconds(uint32_t timeInMs) {
+	return (timeInMs/1000.0);
 }
 }
 
@@ -81,7 +92,11 @@ sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	MovementFacet(parentAgent), parentDriver(nullptr), vehicleLength(400),
 	currLane(nullptr), laneInNextSegment(nullptr), isQueuing(false),
 	velocity(0)
-{}
+{
+	if(vehicleLength == 0) {
+		throw std::runtime_error("Driver cannot be initialized with a Vehicle of length = 0");
+	}
+}
 
 sim_mob::medium::DriverMovement::~DriverMovement() {}
 
@@ -99,7 +114,7 @@ void sim_mob::medium::DriverMovement::frame_init() {
 }
 
 void sim_mob::medium::DriverMovement::frame_tick() {
-	sim_mob::medium::DriverUpdateParams& p2 = parentDriver->getParams();
+	sim_mob::medium::DriverUpdateParams& params = parentDriver->getParams();
 	const sim_mob::SegmentStats* currSegStats = pathMover.getCurrSegStats();
 	if(currSegStats == getParent()->getCurrSegStats())
 	{
@@ -107,7 +122,7 @@ void sim_mob::medium::DriverMovement::frame_tick() {
 		{
 			//the vehicle will be in lane infinity before it starts starts. set origin will move it to the correct lane
 			if (getParent()->getCurrLane() == currSegStats->laneInfinity){
-				setOrigin(p2);
+				setOrigin(params);
 			}
 		} else {
 			Warn() <<"ERROR: Vehicle could not be created for driver; no route!" <<std::endl;
@@ -150,7 +165,7 @@ void sim_mob::medium::DriverMovement::frame_tick() {
 */
 	//=====================================incident==============================================
 	if(getParent()->canMoveToNextSegment == Person::GRANTED) {
-		flowIntoNextLinkIfPossible(p2);
+		flowIntoNextLinkIfPossible(params);
 	}
 	else if (getParent()->canMoveToNextSegment == Person::DENIED){
 		if(currLane) {
@@ -161,20 +176,20 @@ void sim_mob::medium::DriverMovement::frame_tick() {
 				addToQueue(currLane); // adds to queue if not already in queue
 			}
 
-			p2.elapsedSeconds = p2.secondsInTick;
+			params.elapsedSeconds = params.secondsInTick;
 			getParent()->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
-			setParentData(p2);
+			setParentData(params);
 		}
 	}
 	//if vehicle is still in lane infinity, it shouldn't be advanced
 	if (currLane && getParent()->canMoveToNextSegment == Person::NONE) {
-		advance(p2);
-		setParentData(p2);
+		advance(params);
+		setParentData(params);
 	}
 }
 
 void sim_mob::medium::DriverMovement::frame_tick_output() {
-	const sim_mob::medium::DriverUpdateParams& p = parentDriver->getParams();
+	const sim_mob::medium::DriverUpdateParams& params = parentDriver->getParams();
 	if (pathMover.isPathCompleted() || ConfigManager::GetInstance().FullConfig().using_MPI || ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) {
 		return;
 	}
@@ -182,7 +197,7 @@ void sim_mob::medium::DriverMovement::frame_tick_output() {
 	std::stringstream logout;
 	logout << "(\"Driver\""
 			<<","<<getParent()->getId()
-			<<","<<p.now.frame()
+			<<","<<params.now.frame()
 			<<",{"
 			<<"\"RoadSegment\":\""<< (getParent()->getCurrSegStats()->getRoadSegment()->getSegmentID())
 			<<"\",\"Lane\":\""<<((getParent()->getCurrLane())? getParent()->getCurrLane()->getLaneID():0)
@@ -240,6 +255,9 @@ bool sim_mob::medium::DriverMovement::initializePath() {
 		}
 		std::vector<const sim_mob::SegmentStats*> path;
 		initSegStatsPath(wp_path, path);
+		if(path.empty()) {
+			return false;
+		}
 		pathMover.setPath(path);
 		const sim_mob::SegmentStats* firstSegStat = path.front();
 		person->setCurrSegStats(firstSegStat);
@@ -251,12 +269,12 @@ bool sim_mob::medium::DriverMovement::initializePath() {
 	return true;
 }
 
-void DriverMovement::setParentData(sim_mob::medium::DriverUpdateParams& p) {
+void DriverMovement::setParentData(sim_mob::medium::DriverUpdateParams& params) {
 	if(!pathMover.isPathCompleted()) {
 		getParent()->distanceToEndOfSegment = pathMover.getPositionInSegment();
 		getParent()->setCurrLane(currLane);
 		getParent()->setCurrSegStats(pathMover.getCurrSegStats());
-		getParent()->setRemainingTimeThisTick(p.secondsInTick - p.elapsedSeconds);
+		getParent()->setRemainingTimeThisTick(params.secondsInTick - params.elapsedSeconds);
 	}
 	else {
 		getParent()->distanceToEndOfSegment = 0.0;
@@ -267,11 +285,11 @@ void DriverMovement::setParentData(sim_mob::medium::DriverUpdateParams& p) {
 	}
 }
 
-void DriverMovement::stepFwdInTime(sim_mob::medium::DriverUpdateParams& p, double time) {
-	p.elapsedSeconds = p.elapsedSeconds + time;
+void DriverMovement::stepFwdInTime(sim_mob::medium::DriverUpdateParams& params, double time) {
+	params.elapsedSeconds = params.elapsedSeconds + time;
 }
 
-bool DriverMovement::advance(sim_mob::medium::DriverUpdateParams& p) {
+bool DriverMovement::advance(sim_mob::medium::DriverUpdateParams& params) {
 	if (pathMover.isPathCompleted()) {
 		getParent()->setToBeRemoved();
 		return false;
@@ -283,26 +301,21 @@ bool DriverMovement::advance(sim_mob::medium::DriverUpdateParams& p) {
 
 	if (isQueuing)
 	{
-		return advanceQueuingVehicle(p);
+		return advanceQueuingVehicle(params);
 	}
 	else //vehicle is moving
 	{
-		return advanceMovingVehicle(p);
+		return advanceMovingVehicle(params);
 	}
 }
 
-bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& p) {
+bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& params) {
 	bool res = false;
 	bool isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
 	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
 	const sim_mob::SegmentStats* nxtSegStat = nullptr;
 
-	if (isNewLinkNext) {
-		nxtSegStat = pathMover.getNextSegStats(false);
-	}
-	else {
-		nxtSegStat = pathMover.getNextSegStats(true);
-	}
+	nxtSegStat = pathMover.getNextSegStats(!isNewLinkNext);
 
 	if (!nxtSegStat) {
 		//vehicle is done
@@ -336,9 +349,9 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& p) {
 						+ (0.01 * vehicle->length) / (nextRdSeg->getParentConflux()->getSegmentSpeed(nextRdSeg, true) ); // skip input capacity
 	}*/
 
-	p.elapsedSeconds = std::max(p.elapsedSeconds, departTime - (p.now.ms()/1000.0)); //in seconds
+	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - converToSeconds(params.now.ms())); //in seconds
 
-	if (canGoToNextRdSeg(p, nxtSegStat)){
+	if (canGoToNextRdSeg(params, nxtSegStat)){
 		if (isQueuing){
 			removeFromQueue();
 		}
@@ -347,7 +360,7 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& p) {
 		currLane = laneInNextSegment;
 		pathMover.advanceInPath();
 		pathMover.setPositionInSegment(nxtSegStat->getLength());
-		double linkExitTimeSec =  p.elapsedSeconds + (p.now.ms()/1000.0);
+		double linkExitTimeSec =  params.elapsedSeconds + (converToSeconds(params.now.ms()));
 		setLastAccept(currLane, linkExitTimeSec, nxtSegStat);
 
 		if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
@@ -357,7 +370,7 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& p) {
 				updateRdSegTravelTimes(prevSegStats, linkExitTimeSec);
 			}
 		}
-		res = advance(p);
+		res = advance(params);
 	}
 	else{
 		if (isQueuing){
@@ -366,18 +379,17 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& p) {
 		else{
 			addToQueue(currLane);
 		}
-		p.elapsedSeconds = p.secondsInTick;
+		params.elapsedSeconds = params.secondsInTick;
 		getParent()->setRemainingTimeThisTick(0.0);
 	}
 	return res;
 }
 
-void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
+void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params) {
 	//This function gets called for 2 cases.
 	//1. Driver is added to virtual queue
 	//2. Driver is in previous segment trying to add to the next
 
-	sim_mob::medium::DriverUpdateParams& p = dynamic_cast<sim_mob::medium::DriverUpdateParams&>(up);
 	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
 	const sim_mob::SegmentStats* nextSegStats = pathMover.getNextSegStats(false);
 	const sim_mob::SegmentStats* nextToNextSegStats = pathMover.getSecondSegStatsAhead();
@@ -387,9 +399,9 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 	//Commenting out the delay from accept rate as per Yang Lu's suggestion (we use this delay only in setOrigin)
 	double departTime = getLastAccept(laneInNextSegment, nextSegStats)/* + getAcceptRate(laneInNextSegment, nextSegStats)*/; //in seconds
 
-	p.elapsedSeconds = std::max(p.elapsedSeconds, departTime - (p.now.ms()/1000.0)); //in seconds
+	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (converToSeconds(params.now.ms()))); //in seconds
 
-	if (canGoToNextRdSeg(p, nextSegStats)){
+	if (canGoToNextRdSeg(params, nextSegStats)){
 		if (isQueuing){
 			removeFromQueue();
 		}
@@ -399,7 +411,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 		pathMover.advanceInPath();
 		pathMover.setPositionInSegment(nextSegStats->getLength());
 
-		double linkExitTimeSec =  p.elapsedSeconds + (p.now.ms()/1000.0);
+		double linkExitTimeSec =  params.elapsedSeconds + (converToSeconds(params.now.ms()));
 		//set Link Travel time for previous link
 		const SegmentStats* prevSegStats = pathMover.getPrevSegStats(false);
 		if (prevSegStats) {
@@ -412,7 +424,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 			}
 		}
 		setLastAccept(currLane, linkExitTimeSec, nextSegStats);
-		setParentData(p);
+		setParentData(params);
 		getParent()->canMoveToNextSegment = Person::NONE;
 	}
 	else {
@@ -445,15 +457,15 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 
 			throw::std::runtime_error(DebugStream.str());
 		}
-		p.elapsedSeconds = p.secondsInTick;
+		params.elapsedSeconds = params.secondsInTick;
 		getParent()->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
 	}
 }
 
-bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& p,
+bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& params,
 		const sim_mob::SegmentStats* nextSegStats) {
 	//return false if the Driver cannot be added during this time tick
-	if (p.elapsedSeconds >= p.secondsInTick) {
+	if (params.elapsedSeconds >= params.secondsInTick) {
 		return false;
 	}
 
@@ -466,7 +478,7 @@ bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& p,
 						+ nextSegStats->numQueueingInSegment(true);
 
 	int vehLaneCount = nextSegStats->getNumVehicleLanes();
-	double max_allowed = (vehLaneCount * nextSegStats->getLength()/vehicleLength);
+	double max_allowed = (vehLaneCount * nextSegStats->getLength()/vehicleLength); //safe because vehicle length cannot be 0
 	return (total < max_allowed);
 }
 
@@ -484,7 +496,7 @@ void DriverMovement::moveInQueue() {
 	}
 }
 
-bool DriverMovement::moveInSegment(sim_mob::medium::DriverUpdateParams& p2, double distance) {
+bool DriverMovement::moveInSegment(double distance) {
 	double startPos = pathMover.getPositionInSegment();
 
 	try {
@@ -502,53 +514,50 @@ bool DriverMovement::moveInSegment(sim_mob::medium::DriverUpdateParams& p2, doub
 	return true;
 }
 
-bool DriverMovement::advanceQueuingVehicle(sim_mob::medium::DriverUpdateParams& p) {
+bool DriverMovement::advanceQueuingVehicle(sim_mob::medium::DriverUpdateParams& params) {
 	bool res = false;
 
-	double t0 = p.elapsedSeconds;
-	double x0 = pathMover.getPositionInSegment();
-	double xf = 0.0;
-	double tf = 0.0;
+	double initialTimeSpent = params.elapsedSeconds;
+	double initialDistToSegEnd = pathMover.getPositionInSegment();
+	double finalTimeSpent = 0.0;
+	double finalDistToSegEnd = 0.0;
 
 	double output = getOutputCounter(currLane, pathMover.getCurrSegStats());
 	double outRate = getOutputFlowRate(currLane);
-	tf = t0 + x0/(3.0*vehicleLength*outRate); //assuming vehicle length is in cm
-	if (output > 0 && tf < p.secondsInTick &&
+	finalDistToSegEnd = initialTimeSpent + initialDistToSegEnd/(3.0*vehicleLength*outRate); //assuming vehicle length is in cm; vehicle length and outrate cannot be 0
+	if (output > 0 && finalDistToSegEnd < params.secondsInTick &&
 			currLane->getRoadSegment()->getParentConflux()->getPositionOfLastUpdatedAgentInLane(currLane) == -1)
 	{
-		res = moveToNextSegment(p);
-		xf = pathMover.getPositionInSegment();
+		res = moveToNextSegment(params);
+		finalTimeSpent = pathMover.getPositionInSegment();
 	}
 	else
 	{
 		moveInQueue();
-		xf = pathMover.getPositionInSegment();
-		p.elapsedSeconds =  p.secondsInTick;
+		finalTimeSpent = pathMover.getPositionInSegment();
+		params.elapsedSeconds =  params.secondsInTick;
 	}
 	//unless it is handled previously;
 	//1. update current position of vehicle/driver with xf
 	//2. update current time, p.timeThisTick, with tf
-	pathMover.setPositionInSegment(xf);
+	pathMover.setPositionInSegment(finalTimeSpent);
 
 	return res;
 }
 
-bool DriverMovement::advanceMovingVehicle(sim_mob::medium::DriverUpdateParams& p) {
+bool DriverMovement::advanceMovingVehicle(sim_mob::medium::DriverUpdateParams& params) {
 
 	bool res = false;
-	double t0 = p.elapsedSeconds;
-	double x0 = pathMover.getPositionInSegment();
-//	std::cout<<"rdSeg: "<<pathMover.getPositionInSegment()<<std::endl;
-	double xf = 0.0;
-	double tf = 0.0;
+	double initialTimeSpent = params.elapsedSeconds;
+	double initialDistToSegEnd = pathMover.getPositionInSegment();
+	double finalDistToSegEnd = 0.0;
+	double finalTimeSpent = 0.0;
 
 	if(!currLane) {
 		throw std::runtime_error("agent's current lane is not set!");
 	}
 
 	setVelocity();
-
-	double vu = velocity;
 
 	double output = getOutputCounter(currLane, pathMover.getCurrSegStats());
 
@@ -559,65 +568,65 @@ bool DriverMovement::advanceMovingVehicle(sim_mob::medium::DriverUpdateParams& p
 	if (laneQueueLength >  currLane->getRoadSegment()->getLaneZeroLength())
 	{
 		addToQueue(currLane);
-		p.elapsedSeconds = p.secondsInTick;
+		params.elapsedSeconds = params.secondsInTick;
 	}
 	else if (laneQueueLength > 0)
 	{
-		tf = t0 + (x0-laneQueueLength)/vu; //time to reach end of queue
+		finalTimeSpent = initialTimeSpent + (initialDistToSegEnd-laneQueueLength)/velocity; //time to reach end of queue
 
-		if (tf < p.secondsInTick)
+		if (finalTimeSpent < params.secondsInTick)
 		{
 			addToQueue(currLane);
-			p.elapsedSeconds = p.secondsInTick;
+			params.elapsedSeconds = params.secondsInTick;
 		}
 		else
 		{
-			xf = x0 - vu * (p.secondsInTick - t0);
-			res = moveInSegment(p, x0 - xf);
-			pathMover.setPositionInSegment(xf);
-			p.elapsedSeconds = p.secondsInTick;
+			finalDistToSegEnd = initialDistToSegEnd - (velocity * (params.secondsInTick - initialTimeSpent));
+			res = moveInSegment(initialDistToSegEnd - finalDistToSegEnd);
+			pathMover.setPositionInSegment(finalDistToSegEnd);
+			params.elapsedSeconds = params.secondsInTick;
 		}
 	}
 	else if (getInitialQueueLength(currLane) > 0)
 	{
-		res = advanceMovingVehicleWithInitialQ(p);
+		res = advanceMovingVehicleWithInitialQ(params);
 	}
 	else //no queue or no initial queue
 	{
-		tf = t0 + x0/vu;
-		if (tf < p.secondsInTick)
+		finalTimeSpent = initialTimeSpent + initialDistToSegEnd/velocity;
+		if (finalTimeSpent < params.secondsInTick)
 		{
 			if (output > 0)
 			{
 				pathMover.setPositionInSegment(0.0);
-				p.elapsedSeconds = tf;
-				res = moveToNextSegment(p);
+				params.elapsedSeconds = finalTimeSpent;
+				res = moveToNextSegment(params);
 			}
 			else
 			{
 				addToQueue(currLane);
-				p.elapsedSeconds = p.secondsInTick;
+				params.elapsedSeconds = params.secondsInTick;
 			}
 		}
 		else
 		{
-			tf = p.secondsInTick;
-			xf = x0-vu*(tf-t0);
-			res = moveInSegment(p, x0-xf);
-			pathMover.setPositionInSegment(xf);
-			p.elapsedSeconds = tf;
+			finalTimeSpent = params.secondsInTick;
+			finalDistToSegEnd = initialDistToSegEnd-(velocity*(finalTimeSpent-initialTimeSpent));
+			res = moveInSegment(initialDistToSegEnd-finalDistToSegEnd);
+			pathMover.setPositionInSegment(finalDistToSegEnd);
+			params.elapsedSeconds = finalTimeSpent;
 		}
 	}
 	return res;
 }
 
-bool DriverMovement::advanceMovingVehicleWithInitialQ(sim_mob::medium::DriverUpdateParams& p) {
+bool DriverMovement::advanceMovingVehicleWithInitialQ(sim_mob::medium::DriverUpdateParams& params) {
 
 	bool res = false;
-	double t0 = p.elapsedSeconds;
-	double x0 = pathMover.getPositionInSegment();
-	double xf = 0.0;
-	double tf = 0.0;
+	double initialTimeSpent = params.elapsedSeconds;
+	double initialDistToSegEnd = pathMover.getPositionInSegment();
+	double finalTimeSpent = 0.0;
+	double finalDistToSegEnd = 0.0;
 
 	setVelocity();
 	double vu = velocity;
@@ -625,41 +634,41 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(sim_mob::medium::DriverUpd
 	double output = getOutputCounter(currLane, pathMover.getCurrSegStats());
 	double outRate = getOutputFlowRate(currLane);
 
-	double timeToDissipateQ = getInitialQueueLength(currLane)/(3.0*outRate*vehicleLength); //assuming vehicle length is in cm
-	double timeToReachEndSeg = t0 + x0/vu;
-	tf = std::max(timeToDissipateQ, timeToReachEndSeg);
+	double timeToDissipateQ = getInitialQueueLength(currLane)/(3.0*outRate*vehicleLength); //assuming vehicle length is in cm; vehicle length and outrate cannot be 0
+	double timeToReachEndSeg = initialTimeSpent + initialDistToSegEnd/vu;
+	finalDistToSegEnd = std::max(timeToDissipateQ, timeToReachEndSeg);
 
-	if (tf < p.secondsInTick)
+	if (finalDistToSegEnd < params.secondsInTick)
 	{
 		if (output > 0)
 		{
 			pathMover.setPositionInSegment(0.0);
-			p.elapsedSeconds = tf;
-			res = moveToNextSegment(p);
+			params.elapsedSeconds = finalDistToSegEnd;
+			res = moveToNextSegment(params);
 		}
 		else
 		{
 			addToQueue(currLane);
-			p.elapsedSeconds = p.secondsInTick;
+			params.elapsedSeconds = params.secondsInTick;
 		}
 	}
 	else
 	{
-		if( fabs(tf-timeToReachEndSeg) < 0.001 && timeToReachEndSeg > p.secondsInTick)
+		if( fabs(finalDistToSegEnd-timeToReachEndSeg) < 0.001 && timeToReachEndSeg > params.secondsInTick)
 		{
-			tf = p.secondsInTick;
-			xf = x0-vu*(tf-t0);
-			res = moveInSegment(p, x0-xf);
+			finalDistToSegEnd = params.secondsInTick;
+			finalTimeSpent = initialDistToSegEnd-vu*(finalDistToSegEnd-initialTimeSpent);
+			res = moveInSegment(initialDistToSegEnd - finalTimeSpent);
 		}
 		else
 		{
-			xf = 0.0 ;
-			res = moveInSegment(p, x0-xf);
-			tf = p.secondsInTick;
+			finalTimeSpent = 0.0 ;
+			res = moveInSegment(initialDistToSegEnd - finalTimeSpent);
+			finalDistToSegEnd = params.secondsInTick;
 		}
 
-		pathMover.setPositionInSegment(xf);
-		p.elapsedSeconds = tf;
+		pathMover.setPositionInSegment(finalTimeSpent);
+		params.elapsedSeconds = finalDistToSegEnd;
 	}
 	return res;
 }
@@ -668,32 +677,32 @@ void DriverMovement::setVelocity() {
 	velocity = pathMover.getCurrSegStats()->getSegSpeed(true);
 }
 
-int DriverMovement::getOutputCounter(const Lane* l, const sim_mob::SegmentStats* segStats) {
-	return segStats->getLaneParams(l)->getOutputCounter();
+int DriverMovement::getOutputCounter(const Lane* lane, const sim_mob::SegmentStats* segStats) {
+	return segStats->getLaneParams(lane)->getOutputCounter();
 }
 
-void DriverMovement::setOutputCounter(const Lane* l, int count, const sim_mob::SegmentStats* segStats) {
-	return segStats->getLaneParams(l)->setOutputCounter(count);
+void DriverMovement::setOutputCounter(const Lane* lane, int count, const sim_mob::SegmentStats* segStats) {
+	return segStats->getLaneParams(lane)->setOutputCounter(count);
 }
 
-double DriverMovement::getOutputFlowRate(const Lane* l) {
-	return pathMover.getCurrSegStats()->getLaneParams(l)->getOutputFlowRate();
+double DriverMovement::getOutputFlowRate(const Lane* lane) {
+	return pathMover.getCurrSegStats()->getLaneParams(lane)->getOutputFlowRate();
 }
 
-double DriverMovement::getAcceptRate(const Lane* l, const sim_mob::SegmentStats* segStats) {
-	return segStats->getLaneParams(l)->getAcceptRate();
+double DriverMovement::getAcceptRate(const Lane* lane, const sim_mob::SegmentStats* segStats) {
+	return segStats->getLaneParams(lane)->getAcceptRate();
 }
 
-double DriverMovement::getQueueLength(const Lane* l) {
-	return ((pathMover.getCurrSegStats()->getLaneAgentCounts(l)).first) * (vehicleLength);
+double DriverMovement::getQueueLength(const Lane* lane) {
+	return ((pathMover.getCurrSegStats()->getLaneAgentCounts(lane)).first) * (vehicleLength);
 }
 
-double DriverMovement::getLastAccept(const Lane* l, const sim_mob::SegmentStats* segStats) {
-	return segStats->getLaneParams(l)->getLastAccept();
+double DriverMovement::getLastAccept(const Lane* lane, const sim_mob::SegmentStats* segStats) {
+	return segStats->getLaneParams(lane)->getLastAccept();
 }
 
-void DriverMovement::setLastAccept(const Lane* l, double lastAccept, const sim_mob::SegmentStats* segStats) {
-	segStats->getLaneParams(l)->setLastAccept(lastAccept);
+void DriverMovement::setLastAccept(const Lane* lane, double lastAccept, const sim_mob::SegmentStats* segStats) {
+	segStats->getLaneParams(lane)->setLastAccept(lastAccept);
 }
 
 void DriverMovement::updateFlow(const sim_mob::RoadSegment* rdSeg, double startPos, double endPos) {
@@ -703,13 +712,13 @@ void DriverMovement::updateFlow(const sim_mob::RoadSegment* rdSeg, double startP
 	}
 }
 
-void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& p) {
+void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
 
 	//Vehicles start at rest
 	velocity = 0;
 
-	if(p.now.ms() < getParent()->getStartTime()) {
-		stepFwdInTime(p, (getParent()->getStartTime() - p.now.ms())/1000.0); //set time to start - to accommodate drivers starting during the frame
+	if(params.now.ms() < getParent()->getStartTime()) {
+		stepFwdInTime(params, (getParent()->getStartTime() - params.now.ms())/1000.0); //set time to start - to accommodate drivers starting during the frame
 	}
 
 	// here the person tries to move into a proper lane in the current segstats
@@ -734,9 +743,9 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& p) {
 						+ (0.01 * vehicle->length) / (getCurrSegment()->getParentConflux()->getSegmentSpeed(getCurrSegment(), true) ); // skip input capacity
 	}*/
 
-	p.elapsedSeconds = std::max(p.elapsedSeconds, departTime - (p.now.ms()/1000.0));	//in seconds
+	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (converToSeconds(params.now.ms())));	//in seconds
 
-	if(canGoToNextRdSeg(p, currSegStats))
+	if(canGoToNextRdSeg(params, currSegStats))
 	{
 		//set position to start
 		if(currSegStats)
@@ -744,16 +753,16 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& p) {
 			pathMover.setPositionInSegment(currSegStats->getLength());
 		}
 		currLane = laneInNextSegment;
-		double actualT = p.elapsedSeconds + (p.now.ms()/1000.0);
+		double actualT = params.elapsedSeconds + (converToSeconds(params.now.ms()));
 		getParent()->initLinkTravelStats(currSegStats->getRoadSegment()->getLink(), actualT);
 
 		setLastAccept(currLane, actualT, currSegStats);
-		setParentData(p);
+		setParentData(params);
 		getParent()->canMoveToNextSegment = Person::NONE;
 	}
 	else
 	{
-		p.elapsedSeconds = p.secondsInTick;
+		params.elapsedSeconds = params.secondsInTick;
 		getParent()->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
 	}
 }
@@ -878,8 +887,8 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextS
 	return minQueueLengthLane;
 }
 
-double DriverMovement::getInitialQueueLength(const Lane* l) {
-	return getParent()->getCurrSegStats()->getInitialQueueCount(l) * vehicleLength;
+double DriverMovement::getInitialQueueLength(const Lane* lane) {
+	return getParent()->getCurrSegStats()->getInitialQueueCount(lane) * vehicleLength;
 }
 
 void DriverMovement::insertIncident(const RoadSegment* rdSeg, double newFlowRate) {

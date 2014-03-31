@@ -146,6 +146,9 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 		}
 		std::vector<const sim_mob::SegmentStats*> path;
 		initSegStatsPath(pathRoadSeg, path);
+		if(path.empty()) {
+			return false;
+		}
 		pathMover.setPath(path);
 		const sim_mob::SegmentStats* firstSegStat = path.front();
 		person->setCurrSegStats(firstSegStat);

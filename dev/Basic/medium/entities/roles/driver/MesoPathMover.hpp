@@ -15,8 +15,8 @@ public:
 	double getPositionInSegment() const {
 		return this->distToSegmentEnd;
 	}
-	void setPositionInSegment(double dist2end) {
-		this->distToSegmentEnd = dist2end;
+	void setPositionInSegment(double distanceToEnd) {
+		this->distToSegmentEnd = distanceToEnd;
 	}
 
 	/**

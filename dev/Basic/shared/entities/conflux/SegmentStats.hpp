@@ -206,7 +206,7 @@ public:
 	unsigned int getSegFlow();
 	void incrementSegFlow();
 	void resetSegFlow();
-	unsigned int getInitialQueueCount(const Lane* l) const;
+	unsigned int getInitialQueueCount(const Lane* lane) const;
 	unsigned int computeExpectedOutputPerTick();
 
 	// This function prints all agents in this segment

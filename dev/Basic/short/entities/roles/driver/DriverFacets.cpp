@@ -1876,7 +1876,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 //	}
 
 
-	if(fwdDriverMovement.isInIntersection() || other_driver->vehicle->isInIntersection())
+	if(fwdDriverMovement.isInIntersection() || other_driver->isInIntersection.get())
 		return false;
 
 //	int other_offset = other_driver->currLaneOffset_.get();
@@ -1886,7 +1886,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 	if (fwdDriverMovement.getCurrSegment() == otherRoadSegment) {
 		//Set distance equal to the _forward_ distance between these two vehicles.
 //		int distance = other_offset - params.currLaneOffset;
-		int distance = other_offset - parentDriver->vehicle->getDistanceMovedInSegment();
+		int distance = other_offset - fwdDriverMovement.getCurrDistAlongRoadSegment();
 		if (distance == 0)
 			return false;
 		bool fwd = distance >= 0;

@@ -382,13 +382,13 @@ const ClientList::Type& sim_mob::Broker::getClientList()
 
 //TODO: We need to avoid the clientType requirement. It is currently easy enough to generate unique IDs, and you can always
 //      incorporate the clientType into the ID if you're not 100% sure (but for now we only serialize integers anyway).
-bool sim_mob::Broker::getClientHandler(std::string clientId, std::string clientType, boost::shared_ptr<sim_mob::ClientHandler> &output)
+bool sim_mob::Broker::getClientHandler(std::string clientId, std::string clientType, boost::shared_ptr<sim_mob::ClientHandler> &output) const
 {
 	std::map<std::string, comm::ClientType>::iterator clientTypeIt = sim_mob::Services::ClientTypeMap.find(clientType);
 	if (clientTypeIt != sim_mob::Services::ClientTypeMap.end()) {
-		ClientList::Type::iterator innerIt = clientList.find(clientTypeIt->second);
+		ClientList::Type::const_iterator innerIt = clientList.find(clientTypeIt->second);
 		if (innerIt != clientList.end()) {
-			ClientList::Value::iterator finalIt = innerIt->second.find(clientId);
+			ClientList::Value::const_iterator finalIt = innerIt->second.find(clientId);
 			if (finalIt != innerIt->second.end()) {
 				output = finalIt->second;
 				return true;

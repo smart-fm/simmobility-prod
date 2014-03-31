@@ -97,11 +97,11 @@ private:
 	//Called whenever a client is found that we must dispatch a message to.
 	//Behavior differs for ns3 versus android-only.
 	//TODO: The client handler can't really be const, since we are expecting to respond to this messsage at some point (which may modify the client).
-	void handleClient(const sim_mob::ClientHandler& clientHdlr, std::vector<std::string>& receiveAgentIds, sim_mob::Broker& broker, const OpaqueSendMessage& currMsg) const;
+	//void handleClient(const sim_mob::ClientHandler& clientHdlr, std::vector<std::string>& receiveAgentIds, sim_mob::Broker& broker, const OpaqueSendMessage& currMsg) const;
 
 	//Called when all client have been processed and messages may now be sent.
 	//Behavior only exists for ns-3 (where messages are delayed).
-	void postPendingMessages(sim_mob::Broker& broker, const sim_mob::Agent& agent, const std::vector<std::string>& receiveAgentIds, const OpaqueSendMessage& currMsg) const;
+	//void postPendingMessages(sim_mob::Broker& broker, const sim_mob::Agent& agent, const std::vector<std::string>& receiveAgentIds, const OpaqueSendMessage& currMsg) const;
 
 private:
 	const bool useNs3;

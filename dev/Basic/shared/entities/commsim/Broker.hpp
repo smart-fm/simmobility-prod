@@ -465,7 +465,7 @@ public:
 	 *
 	 * 	searches for a client of specific ID and Type
 	 */
-	bool getClientHandler(std::string clientId,std::string clientType, boost::shared_ptr<sim_mob::ClientHandler> &output);
+	bool getClientHandler(std::string clientId,std::string clientType, boost::shared_ptr<sim_mob::ClientHandler> &output) const;
 
 	/**
 	 * 	adds to the list of registered clients

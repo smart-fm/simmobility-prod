@@ -13,6 +13,7 @@
 #include "message/MessageBus.hpp"
 #include "role/LT_Role.hpp"
 #include "database/entity/Developer.hpp"
+#include "database/entity/PotentialProject.hpp"
 #include "model/DeveloperModel.hpp"
 
 using namespace sim_mob::long_term;
@@ -30,7 +31,7 @@ namespace {
      * @param project to create the units.
      * @param templates available unit type templates.
      */
-    inline void createProjectUnits(DeveloperModel::PotentialProject& project,
+    inline void createProjectUnits(PotentialProject& project, 
             const DeveloperModel::TemplateUnitTypeList& templates) {
         double totalArea = project.getDevTemplate()->getDensity() * project.getParcel()->getArea();
         DeveloperModel::TemplateUnitTypeList::const_iterator itr;
@@ -38,7 +39,7 @@ namespace {
             if ((*itr)->getTemplateId() == project.getDevTemplate()->getTemplateId()) {
                 double proportion = static_cast<double> ((*itr)->getProportion());
                 double area = totalArea * (proportion / 100);
-                project.addUnit(DeveloperModel::PotentialUnit((*itr)->getUnitTypeId(), area, false));
+                project.addUnit(PotentialUnit((*itr)->getUnitTypeId(), area, false));
             }
         }
     }
@@ -51,7 +52,7 @@ namespace {
      */
     inline void createPotentialProjects(std::vector<BigSerial>& parcelsToProcess,
             const DeveloperModel& model,
-            std::vector<DeveloperModel::PotentialProject>& outProjects) {
+            std::vector<PotentialProject>& outProjects) {
         const DeveloperModel::DevelopmentTypeTemplateList& devTemplates =
                 model.getDevelopmentTypeTemplates();
         const DeveloperModel::TemplateUnitTypeList& unitTemplates =
@@ -67,7 +68,7 @@ namespace {
                 DeveloperModel::DevelopmentTypeTemplateList::const_iterator it;
                 for (it = devTemplates.begin(); it != devTemplates.end(); it++) {
                     if ((*it)->getDensity() >= zone->getGPR()) {
-                        DeveloperModel::PotentialProject project((*it), parcel, zone);
+                        PotentialProject project((*it), parcel, zone);
                         createProjectUnits(project, unitTemplates);
                         outProjects.push_back(project);
                     }
@@ -97,9 +98,9 @@ bool DeveloperAgent::onFrameInit(timeslice now) {
 Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     
     if (model && (now.ms() % model->getTimeInterval()) == 0) {
-        std::vector<DeveloperModel::PotentialProject> projects;
+        std::vector<PotentialProject> projects;
         createPotentialProjects(parcelsToProcess, *model, projects);
-        std::vector<DeveloperModel::PotentialProject>::iterator it;
+        std::vector<PotentialProject>::iterator it;
         for (it = projects.begin(); it != projects.end(); it++) {
             PrintOut("Project: " << (*it) <<std::endl);
             

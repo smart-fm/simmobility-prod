@@ -22,60 +22,6 @@ namespace sim_mob {
         class DeveloperModel : public Model {
         public:
 
-            /**
-             * Represents a potential unit. 
-             */
-            class PotentialUnit {
-            public:
-                PotentialUnit(BigSerial unitTypeId = INVALID_ID,
-                        double floorArea = 0, bool freehold = false);
-                virtual ~PotentialUnit();
-                 //Getters
-                const BigSerial getUnitTypeId() const;
-                double getFloorArea() const;
-                bool isFreehold() const;
-                friend std::ostream& operator<<(std::ostream& strm, 
-                    const PotentialUnit& data);
-            private:
-                BigSerial unitTypeId;
-                double floorArea;
-                bool freehold;
-            };
-
-            /**
-             * Represents a potential project.
-             */
-            class PotentialProject {
-            public:
-                PotentialProject(const DevelopmentTypeTemplate* devTemplate = nullptr,
-                        const Parcel* parcel = nullptr, const LandUseZone* zone = nullptr);
-                virtual ~PotentialProject();
-                /**
-                 * Adds new unit.
-                 * @param unit to add.
-                 */
-                void addUnit(const PotentialUnit& unit);
-                
-                //Getters
-                const DevelopmentTypeTemplate* getDevTemplate() const;
-                const Parcel* getParcel() const;
-                const LandUseZone* getZone() const;
-                const std::vector<PotentialUnit>& getUnits() const;
-                double getCost() const;
-                double getRevenue() const;
-                //Setters
-                void setCost(const double cost);
-                void setRevenue(const double revenue);
-                friend std::ostream& operator<<(std::ostream& strm, 
-                    const PotentialProject& data);
-            private:
-                const DevelopmentTypeTemplate* devTemplate;
-                const Parcel* parcel;
-                const  LandUseZone* zone;
-                std::vector<PotentialUnit> units;
-                double cost;
-                double revenue;
-            };
             typedef std::vector<Developer*> DeveloperList;
             typedef std::vector<Template*> TemplateList;
             typedef std::vector<Parcel*> ParcelList;

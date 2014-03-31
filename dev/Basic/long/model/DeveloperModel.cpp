@@ -31,70 +31,6 @@ namespace {
     const unsigned int TIME_INTERVAL = 30; //In days (7 - weekly, 30 - Montly)
 }
 
-DeveloperModel::PotentialUnit::PotentialUnit(BigSerial unitTypeId, double floorArea, bool freehold)
-: unitTypeId(unitTypeId), floorArea(floorArea), freehold(freehold) {
-
-}
-
-DeveloperModel::PotentialUnit::~PotentialUnit() {
-}
-
-const BigSerial DeveloperModel::PotentialUnit::getUnitTypeId() const {
-    return unitTypeId;
-}
-
-double DeveloperModel::PotentialUnit::getFloorArea() const {
-    return floorArea;
-}
-
-bool DeveloperModel::PotentialUnit::isFreehold() const {
-    return freehold;
-}
-
-DeveloperModel::PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate,
-        const Parcel* parcel, const LandUseZone* zone)
-: devTemplate(devTemplate), parcel(parcel), zone(zone), cost(0), revenue(0) {
-}
-
-DeveloperModel::PotentialProject::~PotentialProject() {
-}
-
-void DeveloperModel::PotentialProject::addUnit(const DeveloperModel::PotentialUnit& unit){
-    units.push_back(unit);
-}
-
-const DevelopmentTypeTemplate* DeveloperModel::PotentialProject::getDevTemplate() const {
-    return devTemplate;
-}
-
-const Parcel* DeveloperModel::PotentialProject::getParcel() const {
-    return parcel;
-}
-
-const LandUseZone* DeveloperModel::PotentialProject::getZone() const {
-    return zone;
-}
-
-const std::vector<DeveloperModel::PotentialUnit>& DeveloperModel::PotentialProject::getUnits() const {
-    return units;
-}
-
-double DeveloperModel::PotentialProject::getCost() const {
-    return cost;
-}
-
-double DeveloperModel::PotentialProject::getRevenue() const {
-    return revenue;
-}
-
-void DeveloperModel::PotentialProject::setCost(const double cost) {
-    this->cost = cost;
-}
-
-void DeveloperModel::PotentialProject::setRevenue(const double revenue) {
-    this->revenue = revenue;
-}
-
 DeveloperModel::DeveloperModel(WorkGroup& workGroup)
 : Model(MODEL_NAME, workGroup), timeInterval(TIME_INTERVAL) {
 }
@@ -190,38 +126,4 @@ const DeveloperModel::DevelopmentTypeTemplateList& DeveloperModel::getDevelopmen
 
 const DeveloperModel::TemplateUnitTypeList& DeveloperModel::getTemplateUnitType() const {
     return templateUnitTypes;
-}
-
-namespace sim_mob {
-    namespace long_term {
-
-        std::ostream& operator<<(std::ostream& strm, const DeveloperModel::PotentialUnit& data) {
-            return strm << "{"
-                    << "\"unitTypeId\":\"" << data.getUnitTypeId() << "\","
-                    << "\"floorArea\":\"" << data.getFloorArea() << "\","
-                    << "\"freehold\":\"" << data.isFreehold() << "\""
-                    << "}";
-        }
-        
-        std::ostream& operator<<(std::ostream& strm, const DeveloperModel::PotentialProject& data) {
-            std::stringstream unitsStr;
-            unitsStr << "[";
-            std::vector<DeveloperModel::PotentialUnit>::const_iterator itr;
-            const std::vector<DeveloperModel::PotentialUnit>& units = data.getUnits();
-            for(itr=units.begin(); itr != units.end(); itr++){
-                unitsStr << (*itr) << (((itr+1) != units.end()) ? "," : "");
-            }
-            unitsStr << "]";
-            return strm << "{"
-                    << "\"templateId\":\"" << data.getDevTemplate()->getTemplateId() << "\","
-                    << "\"parcelId\":\"" << data.getParcel()->getId() << "\","
-                    << "\"zoneId\":\"" << data.getZone()->getId() << "\","
-                    << "\"gpr\":\"" << data.getZone()->getGPR() << "\","
-                    << "\"density\":\"" << data.getDevTemplate()->getDensity() << "\","
-                    << "\"cost\":\"" << data.getCost() << "\","
-                    << "\"revenue\":\"" << data.getRevenue() << "\","
-                    << "\"units\":\"" << unitsStr.str() << "\""
-                    << "}";
-        }
-    }
 }

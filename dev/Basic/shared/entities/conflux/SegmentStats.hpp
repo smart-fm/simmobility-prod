@@ -180,7 +180,7 @@ public:
 	enum SEGMENT_VEHICLE_ORDER {
 		SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION, SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION
 	};
-	SEGMENT_VEHICLE_ORDER order_by_setting;
+	SEGMENT_VEHICLE_ORDER orderBySetting;
 
 	void topCMergeDifferentLanesInSegment(std::deque<sim_mob::Person*>& mergedPersonList, std::vector< std::deque<sim_mob::Person*> >& allPersonLists, int Capacity);
 

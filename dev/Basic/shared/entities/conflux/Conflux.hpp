@@ -347,7 +347,7 @@ public:
 		CONFLUX_ORDERING_BY_DISTANCE_TO_INTERSECTION,
 		CONFLUX_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION
 	};
-	CONFLUX_VEHICLE_ORDER order_by_setting;
+	CONFLUX_VEHICLE_ORDER orderBySetting;
 
 	void topCMergeDifferentLinksInConflux(std::deque<sim_mob::Person*>& mergedPersonDeque, std::vector< std::deque<sim_mob::Person*> >& allPersonLists, int Capacity);
 

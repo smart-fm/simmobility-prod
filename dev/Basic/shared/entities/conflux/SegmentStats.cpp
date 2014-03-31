@@ -16,7 +16,7 @@ using std::string;
 namespace sim_mob {
 
 SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream) :
-			roadSegment(rdSeg), segDensity(0.0), segPedSpeed(0.0), segFlow(0), lastAcceptTime(0.0), debugMsgs(std::stringstream::out), order_by_setting(SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION) {
+			roadSegment(rdSeg), segDensity(0.0), segPedSpeed(0.0), segFlow(0), lastAcceptTime(0.0), debugMsgs(std::stringstream::out), orderBySetting(SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION) {
 	segVehicleSpeed = getRoadSegment()->maxSpeed / 3.6 * 100; //converting from kmph to m/s
 	numVehicleLanes = 0;
 
@@ -103,7 +103,7 @@ void SegmentStats::topCMergeDifferentLanesInSegment(std::deque<sim_mob::Person*>
 
 		for (size_t i = 0; i < dequeSize; i++) {
 			//order by location
-			if (order_by_setting == SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION) {
+			if (orderBySetting == SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION) {
 				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->distanceToEndOfSegment < minDistance) {
 					whichDueue = i;
 					minDistance = (*iteratorLists[i])->distanceToEndOfSegment;
@@ -111,7 +111,7 @@ void SegmentStats::topCMergeDifferentLanesInSegment(std::deque<sim_mob::Person*>
 				}
 			}
 			//order by time
-			else if (order_by_setting == SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION) {
+			else if (orderBySetting == SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION) {
 				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->drivingTimeToEndOfLink < minDistance) {
 					whichDueue = i;
 					minDistance = (*iteratorLists[i])->drivingTimeToEndOfLink;

@@ -974,8 +974,7 @@ void sim_mob::Conflux::getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>&
 		}
 	}
 
-	int index = 0;
-	for (std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator upStrmSegMapIt = upstreamSegmentsMap.begin(); upStrmSegMapIt != upstreamSegmentsMap.end(); upStrmSegMapIt++, index++) {
+	for (std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator upStrmSegMapIt = upstreamSegmentsMap.begin(); upStrmSegMapIt != upstreamSegmentsMap.end(); upStrmSegMapIt++) {
 		sumCapacity += (int)(ceil(upStrmSegMapIt->second[0]->capacity * 5 / 3600)); //hard-code
 
 		std::deque<sim_mob::Person*> oneDeque;
@@ -986,7 +985,7 @@ void sim_mob::Conflux::getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>&
 
 			std::deque<sim_mob::Person*> tmpAgents;
 			segStats->getAgentsByTopCMerge(tmpAgents);
-			oneDeque.insert(allPersonLists[index].end(), tmpAgents.begin(), tmpAgents.end());
+			oneDeque.insert(oneDeque.end(), tmpAgents.begin(), tmpAgents.end());
 		}
 
 		allPersonLists.push_back(oneDeque);
@@ -1006,7 +1005,7 @@ void sim_mob::Conflux::topCMergeDifferentLinksInConflux(std::deque<sim_mob::Pers
 
 	//pick the Top C
 	for (size_t c = 0; c < Capacity; c++) {
-		int whichDueue = -1;
+		int whichQueue = -1;
 		double minDistance = std::numeric_limits<double>::max();
 		sim_mob::Person* whichPerson = NULL;
 
@@ -1014,7 +1013,7 @@ void sim_mob::Conflux::topCMergeDifferentLinksInConflux(std::deque<sim_mob::Pers
 			//order by location
 			if (orderBySetting == CONFLUX_ORDERING_BY_DISTANCE_TO_INTERSECTION) {
 				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->distanceToEndOfSegment < minDistance) {
-					whichDueue = i;
+					whichQueue = i;
 					minDistance = (*iteratorLists[i])->distanceToEndOfSegment;
 					whichPerson = (*iteratorLists[i]);
 				}
@@ -1022,18 +1021,18 @@ void sim_mob::Conflux::topCMergeDifferentLinksInConflux(std::deque<sim_mob::Pers
 			//order by time
 			else if (orderBySetting == CONFLUX_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION) {
 				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->drivingTimeToEndOfLink < minDistance) {
-					whichDueue = i;
+					whichQueue = i;
 					minDistance = (*iteratorLists[i])->drivingTimeToEndOfLink;
 					whichPerson = (*iteratorLists[i]);
 				}
 			}
 		}
 
-		if (whichDueue < 0) {
+		if (whichQueue < 0) {
 			//no vehicle any more
 			return;
 		} else {
-			iteratorLists[whichDueue]++;
+			iteratorLists[whichQueue]++;
 			mergedPersonDeque.push_back(whichPerson);
 		}
 	}

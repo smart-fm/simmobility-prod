@@ -226,7 +226,7 @@
 
             <plaintext-credential id="harish_cred">
                 <username value="postgres"/>
-                <password value="5M_S1mM0bility"/>
+                <password value="secret"/>
             </plaintext-credential>
         </credentials>
     
@@ -262,9 +262,10 @@
             <mongo_collection name="OPCosts" collection="OPCosts"/>
             <mongo_collection name="PMCosts" collection="PMCosts"/>
             <mongo_collection name="Zone" collection="Zone"/>
-            <mongo_collection name="Output_DayPattern" collection="person_tours_cpp"/>
-            <mongo_collection name="Output_Tour" collection="tours_cpp"/>
-            <mongo_collection name="Output_Activity" collection="activity_cpp"/>
+            <mongo_collection name="zone_node" collection="zone_aimsunnode_mapping"/>
+            <mongo_collection name="Output_DayPattern" collection="person_tours_cpp_11_3"/>
+            <mongo_collection name="Output_Tour" collection="tours_cpp_11_3"/>
+            <mongo_collection name="Output_Activity" collection="activity_cpp_11_3"/>
         </mongo_collections>
     </constructs>
 
@@ -295,7 +296,7 @@
             
             <!-- Order in which agents are to be loaded into the simulation -->
             <!-- Values include: database, drivers, pedestrians, passenger, xml-tripchains -->
-            <load_agents order="database"/>
+            <load_agents order="drivers"/>
             
             <!-- Optional. At what value do we start counting for automatically -->
             <!-- generated Agent IDs? Set to a high value if you want to avoid  -->
@@ -356,8 +357,8 @@
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
         <!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
         <!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
-        <!-- <network_database database="fm_local" credentials="fm_local" proc_map="bugis_small_custom"/-->
-        <network_database database="fm_remote" credentials="fm_local_yaojin" proc_map="bugis_large"/>
+        <network_database database="fm_local" credentials="harish_cred" proc_map="bugis_large"/>
+        <!--<network_database database="fm_remote" credentials="fm_local_yaojin" proc_map="bugis_large"/>-->
         
         <!-- Where to find our various schema files. -->
         <!-- Overrides xsi:schemaLocation in the files themselves. -->
@@ -378,10 +379,10 @@
             <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
             <property key="busline_control_type" value="headway_based"/>
 
-            <!-- Used only by mid-term. Admissible values are "demand", "supply" -->
+            <!-- Used only by mid-term. Admissible values are "none", "demand", "supply" -->
             <!-- and "demand+supply". Determines whether to run SimMobility_Medium's -->
             <!-- demand simulator or the supply simulator -->
-            <property key="mid_term_run_mode" value="supply"/> 
+            <property key="mid_term_run_mode" value="none"/> 
             
             <!-- Adding external scripts as a generic proerty for now. -->
             <!-- A dedicated element will be created when we have more uses for this --> 

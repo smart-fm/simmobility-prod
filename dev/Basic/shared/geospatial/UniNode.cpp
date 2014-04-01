@@ -75,10 +75,10 @@ const vector<const RoadSegment*>& sim_mob::UniNode::getRoadSegments() const
 
 UniNode::UniLaneConnector sim_mob::UniNode::getForwardLanes(const Lane& from) const
 {
-	map<const Lane*, UniLaneConnector>::const_iterator it = newConnectors.find(&from);
-	if (it==newConnectors.end()) {
-		Print()<< "newConnectors with size(" << newConnectors.size() << ") doesnt have "  << &from << std::endl;
-		for(it = newConnectors.begin(); it!=newConnectors.end(); it++){
+	map<const Lane*, UniLaneConnector>::const_iterator it = forwardLanes.find(&from);
+	if (it==forwardLanes.end()) {
+		Print()<< "forwardLanes with size(" << forwardLanes.size() << ") doesnt have "  << &from << std::endl;
+		for(it = forwardLanes.begin(); it!=forwardLanes.end(); it++){
 			Print() << it->first << ": " << it->second.left << " ' " << it->second.center  << " ' " << it->second.right << std::endl;
 		}
 		Print() << "---------" << std::endl;
@@ -110,7 +110,7 @@ void sim_mob::UniNode::buildConnectorsFromAlignedLanes(UniNode* node, pair<unsig
 {
 	node->cachedSegmentsList.clear();
 	node->connectors.clear();
-	node->newConnectors.clear();
+	node->forwardLanes.clear();
 
 	//Compute for each pair of Segments at this node
 	for (size_t runID=0; runID<2; runID++) {
@@ -128,12 +128,12 @@ void sim_mob::UniNode::buildConnectorsFromAlignedLanes(UniNode* node, pair<unsig
 
 		//Dispatch
 		buildConnectorsFromAlignedLanes(node, segPair.first, segPair.second, fromToPair.first, fromToPair.second);
-		buildNewConnectorsFromAlignedLanes(node, segPair.first, segPair.second, fromToPair.first, fromToPair.second);
+		buildForwardLanesFromAlignedLanes(node, segPair.first, segPair.second, fromToPair.first, fromToPair.second);
 	}
 }
 
 
-void sim_mob::UniNode::buildNewConnectorsFromAlignedLanes(UniNode* node, const RoadSegment* fromSeg, const RoadSegment* toSeg, unsigned int fromAlignLane, unsigned int toAlignLane)
+void sim_mob::UniNode::buildForwardLanesFromAlignedLanes(UniNode* node, const RoadSegment* fromSeg, const RoadSegment* toSeg, unsigned int fromAlignLane, unsigned int toAlignLane)
 {
 	//Get the "to" lane offset.
 	int alignOffset = static_cast<int>(toAlignLane) - static_cast<int>(fromAlignLane);
@@ -148,7 +148,7 @@ void sim_mob::UniNode::buildNewConnectorsFromAlignedLanes(UniNode* node, const R
 		lc.right = toSeg->getLane(toIDCenter+1);
 
 		//Save it.
-		node->newConnectors[fromSeg->getLane(fromID)] = lc;
+		node->forwardLanes[fromSeg->getLane(fromID)] = lc;
 	}
 
 }

@@ -11,13 +11,18 @@
 
 #include "PredaySystem.hpp"
 
+#include <algorithm>
 #include <boost/algorithm/string.hpp>
+#include <cmath>
+#include <cstdlib>
 #include <string>
+#include <sstream>
 #include "behavioral/lua/PredayLuaProvider.hpp"
+#include "behavioral/params/ModeDestinationParams.hpp"
 #include "behavioral/params/StopGenerationParams.hpp"
 #include "behavioral/params/TimeOfDayParams.hpp"
 #include "behavioral/params/TourModeParams.hpp"
-#include "behavioral/params/ModeDestinationParams.hpp"
+#include "behavioral/params/TripChainItemParams.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
@@ -25,7 +30,7 @@
 #include "logging/Log.hpp"
 #include "mongo/client/dbclient.h"
 #include "PredayClasses.hpp"
-
+#include "util/Utils.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -52,26 +57,68 @@ namespace {
 	//Time related
 	const double FIRST_WINDOW = 3.25;
 	const int FIRST_INDEX = 1;
-	const int LAST_WINDOW = 26.75;
+	const double LAST_WINDOW = 26.75;
 	const int LAST_INDEX = 48;
-	inline double getTimeWindowFromIndex(const uint32_t index) {
-		return (index * 0.5 /*half hour windows*/)
-				+ 2.75 /*the day starts at 3.25*/;
+
+	std::map<int, std::string> setModeMap() {
+		// 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
+		// 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
+		//mode_idx_ref = { 1 : 3, 2 : 5, 3 : 3, 4 : 1, 5 : 6, 6 : 6, 7 : 8, 8 : 2, 9 : 4 }
+		std::map<int, std::string> res;
+		res[1] = "Bus";
+		res[2] = "MRT";
+		res[3] = "Bus";
+		res[4] = "Car";
+		res[5] = "Car Sharing";
+		res[6] = "Car Sharing";
+		res[7] = "Bike";
+		res[8] = "Walk";
+		res[9] = "Taxi";
+		return res;
 	}
 
-	inline uint32_t getIndexFromTimeWindow(const double window) {
-		return (window - 2.75 /*the day starts at 3.25*/)
-				/ 0.5;
+	const std::map<int,std::string> modeMap = setModeMap();
+
+	inline double getTimeWindowFromIndex(const double index) {
+		return (index * 0.5 /*half hour windows*/) + 2.75 /*the day starts at 3.25*/;
+	}
+
+	inline double getIndexFromTimeWindow(const double window) {
+		return (window - 2.75 /*the day starts at 3.25*/) / 0.5;
+	}
+
+	double alignTime(double time) {
+		// align to corresponding time window
+		//1. split the computed tour end time into integral and fractional parts
+		double intPart,fractPart;
+		fractPart = std::modf(time, &intPart);
+
+		//2. perform sanity checks on the integral part and align the fractional part to nearest time window
+		if (intPart < FIRST_WINDOW) {
+			time = FIRST_WINDOW;
+		}
+		else if (intPart > LAST_WINDOW) {
+			time = LAST_WINDOW;
+		}
+		else if(std::abs(fractPart) < 0.5) {
+			time = intPart + 0.25;
+		}
+		else {
+			time = intPart + 0.75;
+		}
+
+		return time;
 	}
 }
 
 PredaySystem::PredaySystem(PersonParams& personParams,
 		const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 		const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
-		const boost::unordered_map<std::string, db::MongoDao*>& mongoDao)
+		const boost::unordered_map<std::string, db::MongoDao*>& mongoDao,
+		TripChainSqlDao& tripChainDao)
 : personParams(personParams), zoneMap(zoneMap), zoneIdLookup(zoneIdLookup),
   amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap),
-  mongoDao(mongoDao), logStream(std::stringstream::out)
+  mongoDao(mongoDao), tripChainDao(tripChainDao), logStream(std::stringstream::out)
 {}
 
 PredaySystem::~PredaySystem()
@@ -276,7 +323,7 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour* tour) {
 		TourTimeOfDayParams todParams(ttFirstHalfTour, ttSecondHalfTour);
 		timeWndw = PredayLuaProvider::getPredayModel().predictTourTimeOfDay(personParams, todParams, tour->getTourType());
 	}
-	return TimeWindowAvailability::timeWindowsLookup.at(timeWndw);
+	return TimeWindowAvailability::timeWindowsLookup.at(timeWndw - 1); //timeWndw ranges from 1 - 1176. Vector starts from 0.
 }
 
 void PredaySystem::generateIntermediateStops(Tour* tour) {
@@ -698,7 +745,7 @@ void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* prevStop) { // th
 	 * There are 48 half-hour time windows in a day from 3.25 to 26.75.
 	 * Given a time window x, its choice index can be determined by ((x - 2.75) / 0.5) + 1
 	 */
-	uint32_t prevActivityDepartureIndex = prevStop->getDepartureTime();
+	double prevActivityDepartureIndex = prevStop->getDepartureTime();
 	double timeWindow = getTimeWindowFromIndex(prevActivityDepartureIndex);
 	double travelTime;
 
@@ -748,13 +795,11 @@ void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* prevStop) { // th
 	}
 
 	double currStopArrTime = timeWindow + travelTime;
-	// align to corresponding time window
-	if((currStopArrTime - std::floor(currStopArrTime)) < 0.5) {
-		currStopArrTime = std::floor(currStopArrTime) + 0.25;
-	}
-	else {
-		currStopArrTime = std::floor(currStopArrTime) + 0.75;
-	}
+
+	// travel time can be unreasonably high sometimes
+	// E.g. when the travel time is unknown, the default is set to 999
+	currStopArrTime = alignTime(currStopArrTime);
+
 	currStopArrTime = getIndexFromTimeWindow(currStopArrTime);
 	currStop->setArrivalTime(currStopArrTime);
 }
@@ -764,7 +809,7 @@ void PredaySystem::calculateDepartureTime(Stop* currStop,  Stop* nextStop) { // 
 	 * There are 48 half-hour time windows in a day from 3.25 to 26.75.
 	 * Given a time window i, its choice index can be determined by (i * 0.5 + 2.75)
 	 */
-	uint32_t nextActivityArrivalIndex = nextStop->getArrivalTime();
+	double nextActivityArrivalIndex = nextStop->getArrivalTime();
 	double timeWindow = getTimeWindowFromIndex(nextActivityArrivalIndex);
 	double travelTime;
 	if(currStop->getStopLocation() != nextStop->getStopLocation()) {
@@ -812,13 +857,11 @@ void PredaySystem::calculateDepartureTime(Stop* currStop,  Stop* nextStop) { // 
 	}
 
 	double currStopDepTime = timeWindow - travelTime;
-	// align to corresponding time window
-	if((currStopDepTime - std::floor(currStopDepTime)) < 0.5) {
-		currStopDepTime = std::floor(currStopDepTime) + 0.25;
-	}
-	else {
-		currStopDepTime = std::floor(currStopDepTime) + 0.75;
-	}
+
+	// travel time can be unreasonably high sometimes
+	// E.g. when the travel time is unknown, the default is set to 999
+	currStopDepTime = alignTime(currStopDepTime);
+
 	currStopDepTime = getIndexFromTimeWindow(currStopDepTime);
 	currStop->setDepartureTime(currStopDepTime);
 }
@@ -829,7 +872,7 @@ void PredaySystem::calculateTourStartTime(Tour* tour) {
 	 * Given a time window i, its choice index can be determined by (i * 0.5 + 2.75)
 	 */
 	Stop* firstStop = tour->stops.front();
-	uint32_t firstActivityArrivalIndex = firstStop->getArrivalTime();
+	double firstActivityArrivalIndex = firstStop->getArrivalTime();
 	double timeWindow = getTimeWindowFromIndex(firstActivityArrivalIndex);
 	double travelTime;
 	if(personParams.getHomeLocation() != firstStop->getStopLocation()) {
@@ -877,16 +920,12 @@ void PredaySystem::calculateTourStartTime(Tour* tour) {
 	}
 
 	double tourStartTime = timeWindow - travelTime;
-	// align to corresponding time window
-	if((tourStartTime - std::floor(tourStartTime)) < 0.5) {
-		tourStartTime = std::floor(tourStartTime) + 0.25;
-	}
-	else {
-		tourStartTime = std::floor(tourStartTime) + 0.75;
-	}
+
+	// travel time can be unreasonably high sometimes
+	// E.g. when the travel time is unknown, the default is set to 999
+	tourStartTime = alignTime(tourStartTime);
+
 	tourStartTime = getIndexFromTimeWindow(tourStartTime);
-	tourStartTime = (tourStartTime >= FIRST_INDEX)? tourStartTime : 1;
-	tourStartTime = (tourStartTime <= LAST_INDEX)? tourStartTime : LAST_INDEX;
 	tour->setStartTime(tourStartTime);
 }
 
@@ -896,7 +935,7 @@ void PredaySystem::calculateTourEndTime(Tour* tour) {
 	 * Given a time window x, its choice index can be determined by ((x - 3.25) / 0.5) + 1
 	 */
 	Stop* lastStop = tour->stops.back();
-	uint32_t lastActivityDepartureIndex = lastStop->getDepartureTime();
+	double lastActivityDepartureIndex = lastStop->getDepartureTime();
 	double timeWindow = getTimeWindowFromIndex(lastActivityDepartureIndex);
 	double travelTime;
 	if(personParams.getHomeLocation() != lastStop->getStopLocation()) {
@@ -945,16 +984,12 @@ void PredaySystem::calculateTourEndTime(Tour* tour) {
 	}
 
 	double tourEndTime = timeWindow + travelTime;
-	// align to corresponding time window
-	if((tourEndTime - std::floor(tourEndTime)) < 0.5) {
-		tourEndTime = std::floor(tourEndTime) + 0.25;
-	}
-	else {
-		tourEndTime = std::floor(tourEndTime) + 0.75;
-	}
+
+	// travel time can be unreasonably high sometimes
+	// E.g. when the travel time is unknown, the default is set to 999
+	tourEndTime = alignTime(tourEndTime);
+
 	tourEndTime = getIndexFromTimeWindow(tourEndTime);
-	tourEndTime = (tourEndTime >= FIRST_INDEX)? tourEndTime : FIRST_INDEX;
-	tourEndTime = (tourEndTime <= LAST_INDEX)? tourEndTime : LAST_INDEX;
 	tour->setEndTime(tourEndTime);
 }
 
@@ -1118,6 +1153,41 @@ void sim_mob::medium::PredaySystem::insertStop(Stop* stop, int stopNumber, int t
 	mongoDao["Output_Activity"]->insert(stopDoc);
 }
 
+std::string sim_mob::medium::PredaySystem::getRandomTimeInWindow(double mid) {
+	int hour = int(std::floor(mid));
+	int minute = (Utils::generateInt(0,29)) + ((mid - hour - 0.25)*60);
+	std::stringstream random_time;
+	hour = hour % 24;
+	if (hour < 10) {
+		random_time << "0" << hour << ":";
+	}
+	else {
+		random_time << hour << ":";
+	}
+	if (minute < 10) {
+		random_time << "0" << minute << ":";
+	}
+	else {
+		random_time << minute << ":";
+	}
+	random_time << "00"; //seconds
+	return random_time.str();
+}
+
+long sim_mob::medium::PredaySystem::getRandomNodeInZone(std::vector<long>& nodes) {
+	size_t numNodes = nodes.size();
+	if(numNodes == 0) {
+		return 0;
+	}
+	if(numNodes == 1) {
+		return nodes.front();
+	}
+	int offset = Utils::generateInt(0,numNodes-1);
+	std::vector<long>::iterator it = nodes.begin();
+	std::advance(it, offset);
+	return *it;
+}
+
 void sim_mob::medium::PredaySystem::outputPredictionsToMongo() {
 	insertDayPattern();
 	int tourNum=0;
@@ -1131,5 +1201,122 @@ void sim_mob::medium::PredaySystem::outputPredictionsToMongo() {
 			stopNum++;
 			insertStop(*stopIt, stopNum, tourNum);
 		}
+	}
+}
+
+void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(ZoneNodeMap& zoneNodeMap) {
+	size_t numTours = tours.size();
+	if (numTours == 0) {
+		return;
+	}
+	std::srand(clock());
+	std::list<TripChainItemParams> tripChain;
+	std::string personId = personParams.getPersonId();
+	int seqNum = 0;
+	int prevNode = 0;
+	int nextNode = 0;
+	std::string prevDeptTime = "";
+	std::string primaryMode = "";
+	bool atHome = true;
+	int homeNode = personParams.getHomeLocation();
+	int tourNum = 0;
+	for(TourList::iterator tourIt = tours.begin(); tourIt != tours.end(); tourIt++) {
+		tourNum = tourNum + 1;
+		Tour* tour = *tourIt;
+		int stopNum = 0;
+		for(StopList::iterator stopIt = tour->stops.begin(); stopIt != tour->stops.end(); stopIt++) {
+			stopNum = stopNum + 1;
+			Stop* stop = *stopIt;
+			int nextNode = getRandomNodeInZone(zoneNodeMap[stop->getStopLocationId()]);
+			seqNum = seqNum + 1;
+			TripChainItemParams tcTrip;
+			tcTrip.setPersonId(personId);
+			tcTrip.setTcSeqNum(seqNum);
+			tcTrip.setTcItemType("Trip");
+			std::stringstream tripId;
+			tripId << personId << "_" << tourNum << "_" << seqNum;
+			tcTrip.setTripId(tripId.str());
+			tripId << "_1"; //first and only subtrip
+			tcTrip.setSubtripId(tripId.str());
+			tcTrip.setSubtripMode(modeMap.at(stop->getStopMode()));
+			tcTrip.setPrimaryMode((tour->getTourMode() == stop->getStopMode()));
+			tcTrip.setActivityId("0");
+			tcTrip.setActivityType("dummy");
+			tcTrip.setActivityLocation(0);
+			tcTrip.setPrimaryActivity(false);
+			if(atHome) {
+				// first trip in the tour
+				tcTrip.setTripOrigin(homeNode);
+				tcTrip.setTripDestination(nextNode);
+				tcTrip.setSubtripOrigin(homeNode);
+				tcTrip.setSubtripDestination(nextNode);
+				std::string startTimeStr = getRandomTimeInWindow(tour->getStartTime());
+				tcTrip.setStartTime(startTimeStr);
+				tripChain.push_back(tcTrip);
+				atHome = false;
+			}
+			else {
+				tcTrip.setTripOrigin(prevNode);
+				tcTrip.setTripDestination(nextNode);
+				tcTrip.setSubtripOrigin(prevNode);
+				tcTrip.setSubtripDestination(nextNode);
+				tcTrip.setStartTime(prevDeptTime);
+				tripChain.push_back(tcTrip);
+			}
+			seqNum = seqNum + 1;
+			TripChainItemParams tcActivity;
+			tcActivity.setPersonId(personId);
+			tcActivity.setTcSeqNum(seqNum);
+			tcActivity.setTcItemType("Activity");
+			tcActivity.setTripId("0");
+			tcActivity.setSubtripId("0");
+			tcActivity.setPrimaryMode(false);
+			tcActivity.setTripOrigin(0);
+			tcActivity.setTripDestination(0);
+			tcActivity.setSubtripOrigin(0);
+			tcActivity.setSubtripDestination(0);
+			std::stringstream actId;
+			actId << personId << "_" << tourNum << "_" << seqNum;
+			tcActivity.setActivityId(actId.str());
+			tcActivity.setActivityType(stop->getStopTypeStr());
+			tcActivity.setActivityLocation(nextNode);
+			tcActivity.setPrimaryActivity(stop->isPrimaryActivity());
+			std::string arrTimeStr = getRandomTimeInWindow(stop->getArrivalTime());
+			std::string deptTimeStr = getRandomTimeInWindow(stop->getDepartureTime());
+			tcActivity.setActivityStartTime(arrTimeStr);
+			tcActivity.setActivityEndTime(deptTimeStr);
+			tripChain.push_back(tcActivity);
+			prevNode = nextNode; //activity location
+			prevDeptTime = deptTimeStr;
+		}
+		// insert last trip in tour
+		seqNum = seqNum + 1;
+		TripChainItemParams tcTrip;
+		tcTrip.setPersonId(personId);
+		tcTrip.setTcSeqNum(seqNum);
+		tcTrip.setTcItemType("Trip");
+		std::stringstream tripId;
+		tripId << personId << "_" << tourNum << "_" << seqNum;
+		tcTrip.setTripId(tripId.str());
+		tripId << "_1"; //first and only subtrip
+		tcTrip.setSubtripId(tripId.str());
+		tcTrip.setSubtripMode(modeMap.at(tour->stops.back()->getStopMode()));
+		tcTrip.setPrimaryMode((tour->getTourMode() == tour->stops.back()->getStopMode()));
+		tcTrip.setStartTime(prevDeptTime);
+		tcTrip.setTripOrigin(prevNode);
+		tcTrip.setTripDestination(homeNode);
+		tcTrip.setSubtripOrigin(prevNode);
+		tcTrip.setSubtripDestination(homeNode);
+		tcTrip.setActivityId("0");
+		tcTrip.setActivityType("dummy");
+		tcTrip.setActivityLocation(0);
+		tcTrip.setPrimaryActivity(false);
+		tripChain.push_back(tcTrip);
+		atHome = true;
+	}
+
+	for(std::list<TripChainItemParams>::iterator tcIt=tripChain.begin();
+			tcIt!=tripChain.end();tcIt++) {
+		tripChainDao.insert(*tcIt);
 	}
 }

@@ -40,6 +40,7 @@ typedef Entity::UpdateStatus UpdateStatus;
  */
 namespace{
     const float SECOND_MS = 1000.0;
+    const double INFINITESIMAL_DOUBLE = 0.000001;
 }
 
 sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id)
@@ -963,8 +964,8 @@ void sim_mob::Conflux::getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>&
 				double speed = segStats->getSegSpeed(true);
 
 				//If speed is 0, treat it as a very small value
-				if(speed < 0.000001) {
-					speed = 0.000001;
+				if(speed < INFINITESIMAL_DOUBLE) {
+					speed = INFINITESIMAL_DOUBLE;
 				}
 
 				for (std::deque<sim_mob::Person*>::iterator pIt = allPersons.begin(); pIt != allPersons.end(); pIt++) {

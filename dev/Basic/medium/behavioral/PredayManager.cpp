@@ -164,9 +164,9 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
 			// if the zone data was loaded already we can reserve space for costs to speed up the loading
 			// Cost data will be available foe every pair (a,b) of zones where a!=b
 			CostMap::size_type mapSz = nZones * nZones - nZones;
-			amCostMap.rehash(mapSz);
-			pmCostMap.rehash(mapSz);
-			opCostMap.rehash(mapSz);
+			amCostMap.rehash(mapSz / amCostMap.max_load_factor());
+			pmCostMap.rehash(mapSz / pmCostMap.max_load_factor());
+			opCostMap.rehash(mapSz / opCostMap.max_load_factor());
 		}
 
 		CostMongoDao amCostDao(dbConfig, db.dbName, amCostsCollName);

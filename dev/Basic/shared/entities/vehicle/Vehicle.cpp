@@ -160,11 +160,6 @@ double sim_mob::Vehicle::getLateralMovement() const {
 	return latMovement;
 }
 
-bool sim_mob::Vehicle::isInIntersection() const {
-	throw_if_error();
-	return fwdMovement.isInIntersection();
-}
-
 bool sim_mob::Vehicle::isDone() const {
 	throw_if_error();
 	bool done = (fwdMovement.isDoneWithEntireRoute());

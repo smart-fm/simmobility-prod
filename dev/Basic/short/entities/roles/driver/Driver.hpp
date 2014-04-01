@@ -132,15 +132,11 @@ protected:
 
 
 protected:
-	//Temporary variable which will be flushed each time tick. We save it
-	// here to avoid constantly allocating and clearing memory each time tick.
-//	DriverUpdateParams params;
+	// driver path-mover split purpose, we save the currPos in the Driver
 	DPoint currPos;
 
 private:
 //	//Sample stored data which takes reaction time into account.
-//
-//	int lastIndex;
 	size_t reacTime;
 	FixedDelayed<double> *perceivedFwdVel;
 	FixedDelayed<double> *perceivedFwdAcc;
@@ -154,10 +150,6 @@ private:
 	NodePoint goal;    //first, assume that each vehicle moves towards a goal
 
 public:
-//	double maxLaneSpeed;
-//	//for coordinate transform
-//	void setParentBufferedData();			///<set next data to parent buffer data
-
 	Agent* getDriverParent(const Driver *self) { return self->parent; }
 
 public:

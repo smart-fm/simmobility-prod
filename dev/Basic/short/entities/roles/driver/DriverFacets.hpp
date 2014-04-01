@@ -49,11 +49,6 @@ protected:
 };
 
 class DriverMovement: public sim_mob::MovementFacet {
-//public:
-//	const static int distanceInFront = 3000;
-//	const static int distanceBehind = 500;
-//	const static int maxVisibleDis = 5000;
-
 public:
 	explicit DriverMovement(sim_mob::Person* parentAgent = nullptr);
 	virtual ~DriverMovement();
@@ -128,9 +123,6 @@ private:
 public:
 //	//TODO: This may be risky, as it exposes non-buffered properties to other vehicles.
 //	const Vehicle* getVehicle() const {return vehicle;}
-//
-//	//This is probably ok.
-//	const double getVehicleLength() const { return vehicle->length; }
 
 	void updateAdjacentLanes(DriverUpdateParams& p);
 	void updatePositionDuringLaneChange(DriverUpdateParams& p, LANE_CHANGE_SIDE relative);
@@ -145,7 +137,6 @@ protected:
 
 	sim_mob::Vehicle* initializePath(bool allocateVehicle);
 
-	//void resetPath2(bool mandatory=true, const std::vector<const sim_mob::RoadSegment*>& blacklisted = std::vector<const sim_mob::RoadSegment*>());
 	void setOrigin(DriverUpdateParams& p);
 
 	void checkIncidentStatus(DriverUpdateParams& p, timeslice now);
@@ -159,9 +150,6 @@ protected:
 
 	//Helper: for special strings
 	//NOTE: I am disabling special strings. ~Seth
-	//void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
-	//void initTripChainSpecialString(const std::string& value);
-
 	NearestVehicle & nearestVehicle(DriverUpdateParams& p);
 	void perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params);
 	double getAngle() const;  ///<For display purposes only.
@@ -182,9 +170,7 @@ private:
 
 	void updateNearbyAgents();
 	bool updateNearbyAgent(const sim_mob::Agent* other, const sim_mob::Driver* other_driver);
-//	void handleUpdateRequestDriverTo(const Driver* target, DriverUpdateParams& targetParams)//incomplete
 	void updateNearbyAgent(const sim_mob::Agent* other, const sim_mob::Pedestrian* pedestrian);
-	//void updateCurrLaneLength(DriverUpdateParams& p);
 	void updateDisToLaneEnd();
 
 	void saveCurrTrafficSignal();

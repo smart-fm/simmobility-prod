@@ -73,7 +73,6 @@ public:
 	double getVelocity() const;      ///<Retrieve forward velocity.
 	double getLatVelocity() const;   ///<Retrieve lateral velocity.
 	double getAcceleration() const;  ///<Retrieve forward acceleration.
-	bool isInIntersection() const;   ///<Are we now in an intersection?
 	bool isDone() const; ///<Are we fully done with our path?
 	bool hasPath() const; ///<Do we have a path to move on?
 
@@ -111,8 +110,6 @@ public:
 	static Vehicle* unpack(UnPackageUtils& unpackage);
 #endif
 
-//private:
-	//temp
 private:
 	//Trying a slightly more dynamic moving model.
 	int vehicle_id;
@@ -125,6 +122,7 @@ private:
 
 	//Override for when we're in an intersection.
 	DPoint posInIntersection;
+	// driver path-mover split purpose, we save the currPos in the Vehicle
 	DPoint currPos;
 
 public:

@@ -419,13 +419,23 @@ unsigned int sim_mob::ConfigParams::signalTimeStepInMilliSeconds() const
 }
 
 bool sim_mob::ConfigParams::RunningMidSupply() const {
-	const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
-	return (run_mode == "supply" || run_mode == "demand+supply");
+    try {
+        const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
+        return (run_mode == "supply" || run_mode == "demand+supply");
+    } catch (std::exception &e) {
+        //if does not exists then returns false;
+        return false;
+    }
 }
 
 bool sim_mob::ConfigParams::RunningMidDemand() const {
-	const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
-	return (run_mode == "demand" || run_mode == "demand+supply");
+    try {
+        const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
+        return (run_mode == "demand" || run_mode == "demand+supply");
+    } catch (std::exception &e) {
+        //if property does not exists then returns false;
+        return false;
+    }
 }
 
 unsigned int sim_mob::ConfigParams::communicationTimeStepInMilliSeconds() const

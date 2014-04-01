@@ -11,8 +11,6 @@
 #include <vector>
 #include <boost/unordered_map.hpp>
 #include "util/SingletonHolder.hpp"
-#include "database/entity/Household.hpp"
-#include "database/entity/Unit.hpp"
 #include "database/entity/Building.hpp"
 #include "database/entity/Postcode.hpp"
 #include "database/entity/PostcodeAmenities.hpp"
@@ -35,8 +33,6 @@ namespace sim_mob {
          */
         class DataManager {
         public:
-            typedef std::vector<Household*> HouseholdList;
-            typedef std::vector<Unit*> UnitList;
             typedef std::vector<Building*> BuildingList;
             typedef std::vector<Postcode*> PostcodeList;
             typedef std::vector<PostcodeAmenities*> PostcodeAmenitiesList;
@@ -44,10 +40,7 @@ namespace sim_mob {
             typedef boost::unordered_map<BigSerial, Postcode*> PostcodeMap;
             typedef boost::unordered_map<BigSerial, PostcodeAmenities*> PostcodeAmenitiesMap;
             typedef boost::unordered_map<std::string, Postcode*> PostcodeByCodeMap;
-            typedef boost::unordered_map<std::string, PostcodeAmenities*> PostcodeAmenitiesByCodeMap;
-            typedef boost::unordered_map<BigSerial, Unit*> UnitMap;
-            typedef boost::unordered_map<BigSerial, Household*> HouseholdMap;
-            
+            typedef boost::unordered_map<std::string, PostcodeAmenities*> PostcodeAmenitiesByCodeMap;  
         public:
             virtual ~DataManager();
 
@@ -66,11 +59,7 @@ namespace sim_mob {
             const Postcode* getPostcodeByCode(const std::string& code) const;
             const PostcodeAmenities* getAmenitiesByCode(const std::string& code) const;
             const Building* getBuildingById(const BigSerial buildingId) const;
-            const Unit* getUnitById(const BigSerial unitId) const;
-            const Household* getHouseholdById(const BigSerial householdId) const;
-            const BigSerial getUnitTazId(const BigSerial unitId) const;
-            const HouseholdList& getHouseholds() const;
-            const UnitList& getUnits() const;
+            BigSerial getPostcodeTazId(const BigSerial postcodeId) const;
         private:
             template<typename T> friend class DataManagerLifeCycle;
             DataManager();
@@ -84,10 +73,6 @@ namespace sim_mob {
             PostcodeAmenitiesMap amenitiesById;
             PostcodeByCodeMap postcodesByCode;
             PostcodeAmenitiesByCodeMap amenitiesByCode;
-            UnitList units;
-            UnitMap unitsById;
-            HouseholdList households;
-            HouseholdMap householdsById;
             bool readyToLoad;
         };
 

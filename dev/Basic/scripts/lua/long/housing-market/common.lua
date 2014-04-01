@@ -14,7 +14,7 @@ Math = setmetatable({}, {
     __metatable = "The metatable is locked";
 })
  
-Math.E = Math.exp(1) -- euler's number
+Math.E = math.exp(1) -- euler's number
 Math.PHI = (1 + Math.sqrt(5))/2 -- golden ratio
 
 Math.nan = function(x) -- tests if value is nan
@@ -29,6 +29,9 @@ Math.finite = function(x) -- tests if value is finite
     return (x == x and x > -math.huge and x < math.huge)
 end
 
+Math.ln = function(x)
+    return math.log(x) / math.log(Math.E)
+end
 
 --
  --F'(x) = (f(x + crit) - f(x - crit)) / 2*crit 

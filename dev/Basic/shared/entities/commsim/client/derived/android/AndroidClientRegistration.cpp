@@ -14,13 +14,6 @@
 using namespace sim_mob;
 
 
-AndroidClientRegistration::AndroidClientRegistration(/*ConfigParams::ClientType type_*/) : ClientRegistrationHandler()
-{
-}
-
-AndroidClientRegistration::~AndroidClientRegistration()
-{
-}
 
 bool AndroidClientRegistration::initialEvaluation(sim_mob::Broker& broker,AgentsList::type &registeredAgents)
 {

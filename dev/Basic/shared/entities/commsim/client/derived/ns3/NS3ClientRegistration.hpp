@@ -30,7 +30,7 @@ class NS3ClientRegistration: public sim_mob::ClientRegistrationHandler  {
 	boost::shared_ptr<ClientHandler> clientHandler;
 
 public:
-	NS3ClientRegistration(/*ConfigParams::ClientType type_ = ConfigParams::NS3_SIMULATOR*/);
+	virtual ~NS3ClientRegistration() {}
 
 	/**
 	 *  helper function used in handle() method to do some checks
@@ -50,7 +50,7 @@ public:
 	 * actual handler used to register a client of ns3 type: NS3_SIMULATOR
 	 */
 	virtual bool handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn);
-	virtual ~NS3ClientRegistration();
+
 };
 
 } /* namespace sim_mob */

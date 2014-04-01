@@ -13,12 +13,7 @@
 #include "entities/commsim/event/AllLocationsEventArgs.hpp"
 
 
-sim_mob::NS3ClientRegistration::NS3ClientRegistration() : ClientRegistrationHandler()
-{
-}
-sim_mob::NS3ClientRegistration::~NS3ClientRegistration()
-{
-}
+
 
 bool sim_mob::NS3ClientRegistration::initialEvaluation(sim_mob::Broker& broker, AgentsList::type &registeredAgents)
 {

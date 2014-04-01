@@ -146,7 +146,7 @@ void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnn
 	bool res = false;
 	for (int i=0; i<conglom.getCount(); i++) {
 		if (NEW_BUNDLES) {
-			throw std::runtime_error("parseAgentsInfo() for NEW_BUNDLES not yet supported.");
+			throw std::runtime_error("onMessageReceived() for NEW_BUNDLES not yet supported.");
 		} else {
 			const Json::Value& jsMsg = conglom.getMessage(i);
 			if (jsMsg.isMember("MESSAGE_TYPE") && jsMsg["MESSAGE_TYPE"] == "CLIENT_MESSAGES_DONE") {
@@ -312,7 +312,7 @@ void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType cl
 
 	//publish an event to inform- interested parties- of the registration of a new android client
 	if (clientType==comm::ANDROID_EMULATOR) {
-		registrationPublisher.publish(comm::ANDROID_EMULATOR, ClientRegistrationEventArgs(comm::ANDROID_EMULATOR, clientHandler));
+		registrationPublisher.publish(comm::ANDROID_EMULATOR, ClientRegistrationEventArgs(clientHandler));
 	}
 }
 
@@ -527,7 +527,7 @@ void sim_mob::Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::
 
 void sim_mob::Broker::onAndroidClientRegister(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums)
 {
-	boost::shared_ptr<ClientHandler>clientHandler = argums.getClient();
+	boost::shared_ptr<ClientHandler>clientHandler = argums.client;
 
 	//if we are operating on android-ns3 set up, each android client registration should be brought to ns3's attention
 	//TODO: We should keep the "useNs3" flag instead of checking the config file every time.

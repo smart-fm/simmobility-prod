@@ -2,12 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * ClientRegistration.hpp
- *
- *  Created on: May 29, 2013
- *      Author: vahid
- */
 
 #pragma once
 
@@ -16,29 +10,33 @@
 #include <string>
 
 #include <boost/shared_ptr.hpp>
-#include "entities/Agent.hpp"
 #include "entities/commsim/service/Services.hpp"
-#include "event/EventPublisher.hpp"
+#include "event/args/EventArgs.hpp"
 
 namespace sim_mob {
 
+class Broker;
+class ClientHandler;
 class ConnectionHandler;
 
-/**
- * ClientRegistrationRequest class. No documentation provided.
- */
-class ClientRegistrationRequest {
-public:
+
+///Simple struct to hold a registration request for a client (Android/ns-3).
+struct ClientRegistrationRequest {
 	std::string clientID;
-	std::string client_type; //ns3, android emulator, FMOD etc
+	std::string client_type; ///<ns-3 or android.
 	std::set<sim_mob::Services::SIM_MOB_SERVICE> requiredServices;
 };
 
 
+///Simple EventArgs wrapper containing the ClientHandler for a given agent registration.
+class ClientRegistrationEventArgs: public sim_mob::event::EventArgs {
+public:
+	ClientRegistrationEventArgs(boost::shared_ptr<ClientHandler>& client) : client(client) {}
+	virtual ~ClientRegistrationEventArgs() {}
 
+	boost::shared_ptr<ClientHandler> client;
+};
 
-
-class Broker;
 
 /**
  *      This Class is abstract. Its derived classed are responsible to process the registration request.
@@ -55,32 +53,12 @@ class Broker;
  */
 class ClientRegistrationHandler {
 public:
-	ClientRegistrationHandler();
-	virtual ~ClientRegistrationHandler();
+	virtual ~ClientRegistrationHandler() {}
 	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest&, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn) = 0;
-	virtual void postProcess(sim_mob::Broker& broker);
-	static sim_mob::event::EventPublisher & getPublisher();
-
-private:
-	comm::ClientType type;
 };
 
 
 
-class ClientHandler;
+}
 
-/**
- * ClientRegistrationEventArgs class. No documentation provided.
- */
-class ClientRegistrationEventArgs: public sim_mob::event::EventArgs {
-	boost::shared_ptr<ClientHandler> client;
-	comm::ClientType type;
-public:
-	ClientRegistrationEventArgs(comm::ClientType, boost::shared_ptr<ClientHandler>&);
-	boost::shared_ptr<ClientHandler> getClient() const;
-	comm::ClientType getClientType() const;
-	virtual ~ClientRegistrationEventArgs();
-};
-
-}//namespace sim_mob
 

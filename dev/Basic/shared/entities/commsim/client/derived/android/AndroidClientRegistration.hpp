@@ -21,7 +21,7 @@ namespace sim_mob {
  */
 class AndroidClientRegistration: public sim_mob::ClientRegistrationHandler {
 public:
-	AndroidClientRegistration();
+	virtual ~AndroidClientRegistration() {}
 	/**
 	 *  helper function used in handle() method to do some checks
 	 *  in order to avoid calling this method unnecessarily
@@ -42,7 +42,7 @@ public:
 	 */
 	virtual boost::shared_ptr<ClientHandler> makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> connHandle, sim_mob::Broker&,sim_mob::ClientRegistrationRequest &, const sim_mob::Agent* freeAgent);
 
-	virtual ~AndroidClientRegistration();
+
 
 private:
 	std::set<const sim_mob::Agent*> usedAgents;

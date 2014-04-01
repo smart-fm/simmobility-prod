@@ -96,7 +96,7 @@ void sim_mob::medium::BusDriverMovement::frame_tick_output() {
 }
 
 
-void sim_mob::medium::BusDriverMovement::flowIntoNextLinkIfPossible(UpdateParams& p) {
+void sim_mob::medium::BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& p) {
 	Print()<<"BusDriver_movement flowIntoNextLinkIfPossible called"<<std::endl;
 	DriverMovement::flowIntoNextLinkIfPossible(p);
 }

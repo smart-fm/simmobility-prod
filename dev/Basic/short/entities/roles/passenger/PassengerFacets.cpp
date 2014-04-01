@@ -62,8 +62,8 @@ void sim_mob::PassengerMovement::setParentBufferedData()
 {
 	if(parentPassenger->busdriver.get()!=nullptr)
 	{
-		parent->xPos.set(parentPassenger->busdriver.get()->currPos.x);
-		parent->yPos.set(parentPassenger->busdriver.get()->currPos.y);
+		parent->xPos.set(parentPassenger->busdriver.get()->getCurrPosition().x);
+		parent->yPos.set(parentPassenger->busdriver.get()->getCurrPosition().y);
 	}
 }
 
@@ -243,10 +243,10 @@ bool sim_mob::PassengerMovement::PassengerAlightBus(Driver* driver)
 		parentPassenger->busdriver.set(nullptr);//passenger should store the bus driver
 		parentPassenger->BoardedBus.set(false);//to indicate passenger has boarded bus
 		parentPassenger->AlightedBus.set(true);//to indicate whether passenger has alighted bus
-		parent->xPos.set(driver->currPos.x);
-		parent->yPos.set(driver->currPos.y);
-		displayX = driver->currPos.x;
-		displayY = driver->currPos.y;
+		parent->xPos.set(driver->getCurrPosition().x);
+		parent->yPos.set(driver->getCurrPosition().y);
+		displayX = driver->getCurrPosition().x;
+		displayY = driver->getCurrPosition().y;
 	}
 
      return false;

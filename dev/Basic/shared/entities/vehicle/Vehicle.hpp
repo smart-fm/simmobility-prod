@@ -68,7 +68,6 @@ public:
 	const double width;   ///<width of the vehicle
 	bool isQueuing; 	 ///<for mid-term use
 	FMODSchedule* schedule;
-	DPoint currPos;
 
 	double getLateralMovement() const;         ///<Retrieve a value representing how far to the LEFT of the current lane the vehicle has moved.
 	double getVelocity() const;      ///<Retrieve forward velocity.
@@ -95,7 +94,10 @@ public:
 	void setVelocity(double value);      ///<Set the forward velocity.
 	void setLatVelocity(double value);   ///<Set the lateral velocity.
 	void setAcceleration(double value);  ///<Set the forward acceleration.
-//	double moveFwd(double amt);            ///<Move this car forward. Automatically moved it to new Segments unless it's in an intersection.
+	// for path-mover splitting purpose
+	void setCurrPosition(DPoint& currPosition);
+	const DPoint& getCurrPosition() const;
+
 	void moveFwd_med(double amt);
 	void actualMoveToNextSegmentAndUpdateDir_med();		//~melani for mid-term
 	void moveLat(double amt);            ///<Move this car laterally. NOTE: This will _add_ the amt to the current value.
@@ -123,6 +125,7 @@ private:
 
 	//Override for when we're in an intersection.
 	DPoint posInIntersection;
+	DPoint currPos;
 
 public:
 //	DPoint getPosition() const;

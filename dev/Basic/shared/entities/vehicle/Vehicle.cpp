@@ -117,6 +117,18 @@ void sim_mob::Vehicle::setAcceleration(double value) {
 	fwdAccel = value;
 }
 
+void sim_mob::Vehicle::setCurrPosition(DPoint& currPosition)
+{
+	throw_if_error();
+	currPos = currPosition;
+}
+
+const DPoint& sim_mob::Vehicle::getCurrPosition() const
+{
+	throw_if_error();
+	return currPos;
+}
+
 void sim_mob::Vehicle::moveFwd_med(double amt) {
 	throw_if_error();
 	fwdMovement.advance_med(amt);

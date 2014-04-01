@@ -112,12 +112,15 @@ public:
 
 	///Reroute around a blacklisted set of RoadSegments. See Role's comments for more information.
 	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
-//
+	// for path-mover splitting purpose
+	void setCurrPosition(DPoint& currPosition);
+	const DPoint& getCurrPosition() const;
+
 public:
 	double startTime;
 	bool isAleadyStarted;
 	double currDistAlongRoadSegment;
-	DPoint currPos;
+
 //Basic data
 protected:
 	//unsigned int currTimeMS;
@@ -132,6 +135,7 @@ protected:
 	//Temporary variable which will be flushed each time tick. We save it
 	// here to avoid constantly allocating and clearing memory each time tick.
 //	DriverUpdateParams params;
+	DPoint currPos;
 
 private:
 //	//Sample stored data which takes reaction time into account.

@@ -114,17 +114,6 @@ sim_mob::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	//vehicle = nullptr;
 	lastIndex = -1;
 
-//	if (parentAgent) {
-//		ReactionTimeDist* r1 = ConfigParams::GetInstance().reactDist1;
-//		ReactionTimeDist* r2 = ConfigParams::GetInstance().reactDist2;
-//		if (r1 && r2) {
-//			reacTime = r1->getReactionTime() + r2->getReactionTime();
-//			reacTime = 0;
-//		} else {
-//			throw std::runtime_error("Reaction time distributions have not been initialized yet.");
-//		}
-//	}
-
 	//Initialize our models. These should be swapable later.
 	lcModel = new MITSIM_LC_Model();
 	cfModel = new MITSIM_CF_Model();
@@ -169,8 +158,8 @@ void sim_mob::DriverMovement::responseIncidentStatus(DriverUpdateParams& p, time
 		//calculate the distance to the nearest front vehicle, if no front vehicle exists, the distance is given to a enough large gap as 5 kilometers
 		float fwdCarDist = 5000;
 		if( p.nvFwd.exists() ){
-			DPoint dFwd = p.nvFwd.driver->currPos;
-			DPoint dCur = parentDriver->currPos;
+			DPoint dFwd = p.nvFwd.driver->getCurrPosition();
+			DPoint dCur = parentDriver->getCurrPosition();
 			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
 			fwdCarDist = movementVect.getMagnitude()-parentDriver->vehicle->length;
 			if(fwdCarDist < 0) {
@@ -224,8 +213,8 @@ void sim_mob::DriverMovement::responseIncidentStatus(DriverUpdateParams& p, time
 	}
 
 	if(p.nvFwd.exists() ){//avoid cars stacking together
-		DPoint dFwd = p.nvFwd.driver->currPos;
-		DPoint dCur = parentDriver->currPos;
+		DPoint dFwd = p.nvFwd.driver->getCurrPosition();
+		DPoint dCur = parentDriver->getCurrPosition();
 		DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
 		double len = parentDriver->getVehicle()->length;
 		double dist = movementVect.getMagnitude();
@@ -433,17 +422,9 @@ void sim_mob::DriverMovement::frame_tick()
 	//Print output for this frame.
 	disToFwdVehicleLastFrame = p2.nvFwd.distance;
 	parentDriver->currDistAlongRoadSegment = fwdDriverMovement.getCurrDistAlongRoadSegment();
-	parentDriver->currPos = getPosition();
-	parentDriver->vehicle->currPos = getPosition();
-
-//	std::cout << "parentDriver->vehicle->getX():" << parentDriver->vehicle->getX() << std::endl;
-//	std::cout << "parentDriver->vehicle->getY():" << parentDriver->vehicle->getY() << std::endl;
-
-//	this->parent->xPos_Sim = static_cast<int>(parentDriver->vehicle->getX());
-//	this->parent->yPos_Sim = static_cast<int>(parentDriver->vehicle->getY());
-
-//	std::cout << "ID:" << this->parent->getId() << ",this->parent->xPos_Sim:" << this->parent->xPos_Sim << std::endl;
-//	std::cout << "this->parent->yPos_Sim:" << this->parent->yPos_Sim << std::endl;
+//	parentDriver->currPos = getPosition();
+	parentDriver->setCurrPosition(getPosition());
+	parentDriver->vehicle->setCurrPosition(getPosition());
 }
 
 void sim_mob::DriverMovement::frame_tick_output() {
@@ -481,8 +462,8 @@ void sim_mob::DriverMovement::frame_tick_output() {
 			<<","<<p.now.frame()
 			<<","<<getParent()->getId()
 			<<",{"
-			<<"\"xPos\":\""<<static_cast<int>(parentDriver->currPos.x)
-			<<"\",\"yPos\":\""<<static_cast<int>(parentDriver->currPos.y)
+			<<"\"xPos\":\""<<static_cast<int>(parentDriver->getCurrPosition().x)
+			<<"\",\"yPos\":\""<<static_cast<int>(parentDriver->getCurrPosition().y)
 			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
 			<<"\",\"length\":\""<<static_cast<int>(parentDriver->vehicle->length)
 			<<"\",\"width\":\""<<static_cast<int>(parentDriver->vehicle->width)
@@ -871,7 +852,7 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 
 double sim_mob::DriverMovement::getDistanceToSegmentEnd() const
 {
-	DynamicVector dis(parentDriver->currPos.x, parentDriver->currPos.y,
+	DynamicVector dis(parentDriver->getCurrPosition().x, parentDriver->getCurrPosition().y,
 			fwdDriverMovement.getCurrSegment()->getEnd()->location.getX(),
 			fwdDriverMovement.getCurrSegment()->getEnd()->location.getY());
 	return dis.getMagnitude();
@@ -993,8 +974,8 @@ bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, Driver
 
 
 void sim_mob::DriverMovement::setParentBufferedData() {
-	getParent()->xPos.set(parentDriver->currPos.x);
-	getParent()->yPos.set(parentDriver->currPos.y);
+	getParent()->xPos.set(parentDriver->getCurrPosition().x);
+	getParent()->yPos.set(parentDriver->getCurrPosition().y);
 
 	//TODO: Need to see how the parent agent uses its velocity vector.
 	getParent()->fwdVel.set(parentDriver->vehicle->getVelocity());
@@ -1037,7 +1018,7 @@ const RoadSegment* sim_mob::DriverMovement::hasNextSegment(bool inSameLink) cons
 	return nullptr;
 }
 
-DPoint sim_mob::DriverMovement::getPosition() const
+DPoint& sim_mob::DriverMovement::getPosition() const
 {
 	//Temp
 	if (fwdDriverMovement.isInIntersection() && (parentDriver->vehicle->getPositionInIntersection().x == 0 || parentDriver->vehicle->getPositionInIntersection().y == 0)) {
@@ -1656,7 +1637,7 @@ void sim_mob::DriverMovement::findCrossing(DriverUpdateParams& p) {
 		//TODO: Please double-check that this does what's intended.
 		Point2D interSect = LineLineIntersect(getCurrPolylineVector(), crossing->farLine.first,
 				crossing->farLine.second);
-		DynamicVector toCrossing(parentDriver->currPos.x, parentDriver->currPos.y, interSect.getX(), interSect.getY());
+		DynamicVector toCrossing(parentDriver->getCurrPosition().x, parentDriver->getCurrPosition().y, interSect.getX(), interSect.getY());
 
 		p.crossingFwdDistance = toCrossing.getMagnitude();
 		p.isCrossingAhead = true;
@@ -1720,7 +1701,7 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 		}
 
 		std::stringstream msg;
-		msg << "Error moving vehicle forward for Agent ID: " << getParent()->getId() << "," << this->parentDriver->currPos.x << "," << this->parentDriver->currPos.y << "\n" << ex.what();
+		msg << "Error moving vehicle forward for Agent ID: " << getParent()->getId() << "," << this->parentDriver->getCurrPosition().x << "," << this->parentDriver->getCurrPosition().y << "\n" << ex.what();
 		throw std::runtime_error(msg.str().c_str());
 	}
 
@@ -2160,23 +2141,12 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 
 	//NOTE: Let the AuraManager handle dispatching to the "advanced" function.
 	vector<const Agent*> nearby_agents;
-	if(parentDriver->currPos.x > 0 && parentDriver->currPos.y > 0) {
+	if(parentDriver->getCurrPosition().x > 0 && parentDriver->getCurrPosition().y > 0) {
 		const Agent* parentAgent = (parentDriver?parentDriver->getParent():nullptr);
-		nearby_agents = AuraManager::instance().nearbyAgents(Point2D(parentDriver->currPos.x, parentDriver->currPos.y), *params.currLane, dis, parentDriver->distanceBehind, parentAgent);
+		nearby_agents = AuraManager::instance().nearbyAgents(Point2D(parentDriver->getCurrPosition().x, parentDriver->getCurrPosition().y), *params.currLane, dis, parentDriver->distanceBehind, parentAgent);
 	} else {
-		Warn() << "A driver's location (x or y) is < 0, X:" << parentDriver->currPos.x << ",Y:" << parentDriver->currPos.y << std::endl;
+		Warn() << "A driver's location (x or y) is < 0, X:" << parentDriver->getCurrPosition().x << ",Y:" << parentDriver->getCurrPosition().y << std::endl;
 	}
-	/*if (this->parent->connector_to_Sim_Tree) {
-		if(parentDriver->vehicle->getX() > 0 && parentDriver->vehicle->getY() > 0) {
-			nearby_agents = AuraManager::instance().advanced_nearbyAgents(Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind, this->parent->connector_to_Sim_Tree);
-		} else {
-			Warn() << "A driver's location (x or y) is < 0, X:" << parentDriver->vehicle->getX() << ",Y:" << parentDriver->vehicle->getY() << std::endl;
-		}
-	} else {
-		if(parentDriver->vehicle->getX() > 0 && parentDriver->vehicle->getY() > 0)
-		nearby_agents = AuraManager::instance().nearbyAgents(Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind);
-	}*/
-
 
 	PROFILE_LOG_QUERY_END(getParent()->currWorkerProvider, getParent(), params.now);
 #endif
@@ -2187,12 +2157,6 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 	params.nvFwdNextLink.distance = 50000;
 	params.nvFwd.driver=NULL;
 	params.nvFwd.distance = 50000;
-
-//	if (getParams().now.ms()/1000.0 >  93.7
-//			 && parent->getId() == 402)
-//		{
-//			std::cout<<"asdf"<<std::endl;
-//		}
 
 	for (vector<const Agent*>::iterator it = nearby_agents.begin(); it != nearby_agents.end(); it++) {
 		//Perform no action on non-Persons
@@ -2214,11 +2178,6 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 		 */
 
 		other->getRole()->handleUpdateRequest(this);
-//		boost::function<void(sim_mob::Person*,sim_mob::Role*)> Fn = boost::bind(&DriverMovement::p, this,_1,_2);
-//		if(!updateNearbyAgent(other, dynamic_cast<const Driver*> (other->getRole())))
-//		{
-//			updateNearbyAgent(other, dynamic_cast<const Pedestrian*> (other->getRole()));
-//		}
 	}
 }
 

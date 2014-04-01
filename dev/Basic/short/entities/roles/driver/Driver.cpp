@@ -196,9 +196,11 @@ std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
 
 	return res;
 }
+
 void sim_mob::Driver::handleUpdateRequest(MovementFacet* mFacet){
 	mFacet->updateNearbyAgent(this->getParent(),this);
 }
+
 void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 {
 	UpdateParams::reset(now);
@@ -293,11 +295,20 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	nvRightBack2 = NearestVehicle();
 }
 
-
 void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
 {
 	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
 	if (mov) {
 		mov->rerouteWithBlacklist(blacklisted);
 	}
+}
+
+void Driver::setCurrPosition(DPoint& currPosition)
+{
+	currPos = currPosition;
+}
+
+const DPoint& Driver::getCurrPosition() const
+{
+	return currPos;
 }

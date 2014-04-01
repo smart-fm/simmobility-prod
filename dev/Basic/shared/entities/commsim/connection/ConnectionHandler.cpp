@@ -110,9 +110,9 @@ std::string sim_mob::ConnectionHandler::getToken() const
 	return token;
 }
 
-void ConnectionHandler::setValidation(bool value)
+void ConnectionHandler::invalidate()
 {
-	valid = value;
+	valid = false;
 }
 
 sim_mob::comm::ClientType sim_mob::ConnectionHandler::getClientType() const

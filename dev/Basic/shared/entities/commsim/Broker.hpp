@@ -317,12 +317,6 @@ protected:
 	size_t getNumConnectedAgents() const;
 
 	/**
-	 * The Following two methods revise the registration of the registered agents.
-	 * Note: these functions are not used any more.
-	 */
-	void refineSubscriptionList();
-	void refineSubscriptionList(sim_mob::Agent * target);
-	/**
 	 * processes clients requests to be registered with the broker
 	 */
 	virtual void processClientRegistrationRequests();
@@ -408,12 +402,13 @@ public:
 	 * 	register an agent
 	 */
 	void registerEntity(sim_mob::AgentCommUtilityBase* agent);
+
+
 	/**
-	 * 	unregister an agent
-	 */
-	void unRegisterEntity(sim_mob::AgentCommUtilityBase* agent);
-	/**
-	 * 	unregister an agent
+	 * Deactivate an Agent. This will render it "invalid" for the current time tick.
+	 * This function is called when an EVT_CORE_AGENT_DIED event arrives; that occurs at the
+	 * start of the time tick, so for the current time tick the agent is considered un-usable
+	 * for the purposes of commsim communication.
 	 */
 	void unRegisterEntity(sim_mob::Agent * agent);
 

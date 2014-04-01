@@ -234,9 +234,6 @@ void sim_mob::Broker::onEvent(event::EventId eventId, sim_mob::event::Context ct
 		case sim_mob::event::EVT_CORE_AGENT_DIED: {
 			const event::AgentLifeCycleEventArgs& args_ = MSG_CAST(event::AgentLifeCycleEventArgs, args);
 			unRegisterEntity(args_.GetAgent());
-			if (EnableDebugOutput) {
-				Print() << "unregistering entity[" << args_.GetAgentId() << "]" << std::endl;
-			}
 			break;
 		}
 	}
@@ -402,16 +399,13 @@ void sim_mob::Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
 	 COND_VAR_CLIENT_REQUEST.notify_all();
 }
 
-void sim_mob::Broker::unRegisterEntity(sim_mob::AgentCommUtilityBase *value)
-{
-	unRegisterEntity(value->getEntity());
-}
 
 void sim_mob::Broker::unRegisterEntity(sim_mob::Agent* agent)
 {
 	if (EnableDebugOutput) {
-		Print() << "inside Broker::unRegisterEntity for agent[" << agent << "]\n";
+		Print() << "inside Broker::unRegisterEntity for agent: \"" << agent << "\"\n";
 	}
+
 	//search agent's list looking for this agent
 	REGISTERED_AGENTS.erase(agent);
 
@@ -422,37 +416,18 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent* agent)
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 	//search registered clients list looking for this agent. whoever has it, dump him
 	for(ClientList::Type::iterator it_clientType = clientList.begin(); it_clientType != clientList.end(); it_clientType++) {
-		boost::unordered_map<std::string, boost::shared_ptr<sim_mob::ClientHandler> >::iterator
-			it_clientID(it_clientType->second.begin()),
-			it_clientID_end(it_clientType->second.end()),
-			it_erase;
-
-		for(; it_clientID != it_clientID_end; )
-		{
-			if(it_clientID->second->agent == agent)
-			{
-				it_erase = it_clientID++;
+		boost::unordered_map<std::string, boost::shared_ptr<sim_mob::ClientHandler> >::iterator it_clientID = it_clientType->second.begin();
+		for(; it_clientID != it_clientType->second.end(); ) {
+			if(it_clientID->second->agent == agent) {
+				boost::unordered_map<std::string, boost::shared_ptr<sim_mob::ClientHandler> >::iterator it_erase = it_clientID++;
 				//unsubscribe from all publishers he is subscribed to
-				sim_mob::ClientHandler * clientHandler = it_erase->second.get();
+				sim_mob::ClientHandler* clientHandler = it_erase->second.get();
 
 				//TODO: This seems wrong; we are unsubscribing multiple times.
-				for (std::set<sim_mob::Services::SIM_MOB_SERVICE>::const_iterator it=clientHandler->getRequiredServices().begin(); it!=clientHandler->getRequiredServices().end(); it++)
-				{
+				for (std::set<sim_mob::Services::SIM_MOB_SERVICE>::const_iterator it=clientHandler->getRequiredServices().begin(); it!=clientHandler->getRequiredServices().end(); it++) {
 					publisher.unSubscribeAll(clientHandler);
-
-//					switch(*it)
-//					{
-//					case sim_mob::Services::SIMMOB_SRV_TIME:
-//						publishers[sim_mob::Services::SIMMOB_SRV_TIME]->unSubscribe(COMMEID_TIME,clientHandler);
-//						break;
-//					case sim_mob::Services::SIMMOB_SRV_LOCATION:
-//						publishers[sim_mob::Services::SIMMOB_SRV_LOCATION]->unSubscribe(COMMEID_LOCATION, const_cast<Agent*>(clientHandler->agent),clientHandler);
-//						break;
-//					case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS:
-//						publishers[sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS]->unSubscribe(COMMEID_LOCATION,(void*)COMMCID_ALL_LOCATIONS,clientHandler);
-//						break;
-//					}
 				}
+
 				//invalidate it and clean it up when necessary
 				//don't erase it here. it may already have something to send
 				//invalidation 1:
@@ -468,16 +443,13 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent* agent)
 				chkIt->second.total--;
 				numAgents--;
 				if (chkIt->second.total==0) {
-					it_erase->second->connHandle->setValidation(false); //this is even more important
+					it_erase->second->connHandle->invalidate(); //this is even more important
 				}
-			}
-			else
-			{
+			} else {
 				it_clientID++;
 			}
-		}//inner loop
-
-	} //outer loop
+		}
+	}
 	}
 }
 
@@ -689,50 +661,12 @@ void sim_mob::Broker::sendReadyToReceive()
 	for (std::map<SendBuffer::Key, std::string>::const_iterator it=pendingMessages.begin(); it!=pendingMessages.end(); it++) {
 		insertSendBuffer(it->first, it->second);
 	}
-
-
-
-	//ClientList::Pair clientByType;
-	//ClientList::ValuePair clientByID;
-	//boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
-	//msg_header msg_header_;
-/*	{
-		boost::unique_lock<boost::mutex> lock(mutex_clientList);
-		for (ClientList::Type::iterator listIt=clientList.begin(); listIt!=clientList.end(); listIt++) {
-			for (ClientList::Value::iterator clientIt=listIt->second.begin(); clientIt!=listIt->second.end(); clientIt++) {
-
-//		BOOST_FOREACH(clientByType, clientList) {
-			//BOOST_FOREACH(clientByID, clientByType.second) {
-				const boost::shared_ptr<sim_mob::ClientHandler>& clnHandler = clientIt->second;
-				msg_header msgHeader;
-				msgHeader.msg_cat = "SYS";
-				msgHeader.msg_type = "READY_TO_RECEIVE";
-				msgHeader.sender_id = "0";
-				msgHeader.sender_type = "SIMMOBILITY";
-				sim_mob::comm::MsgData msg = JsonParser::createMessageHeader(msgHeader);
-				insertSendBuffer(clnHandler,  msg);
-			}
-		}
-	}*/
 }
 
 void sim_mob::Broker::processOutgoingData(timeslice now)
 {
 	for (std::map<SendBuffer::Key, OngoingSerialization>::iterator it=sendBuffer.begin(); it!=sendBuffer.end(); it++) {
 		boost::shared_ptr<sim_mob::ConnectionHandler> conn = it->first->connHandle;
-
-		//Our data stream contains several messages pointing to different clients. We need to
-		// de-multiplex these, creating a mega-"message" of type Json::Value for each client.
-		//std::map<boost::shared_ptr<sim_mob::ClientHandler>, Json::Value> messages;
-
-		/*SendBufferItem datum;
-		while (data.pop(datum)) {
-			//TODO: This seems un-needed; can't we just .append() it? ~Seth
-			if (messages.find(datum.client)==messages.end()) {
-				messages[datum.client].clear();
-			}
-			messages[datum.client].append(datum.msg);
-		}*/
 
 		//Getting the string is easy:
 		BundleHeader header;
@@ -744,31 +678,6 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 		//Forward to the given client.
 		//TODO: We can add per-client routing here.
 		conn->forwardMessage(message);
-
-		//build a jsoncpp structure (per client) comprising of a header and data array(containing messages)
-		/*for (std::map<boost::shared_ptr<sim_mob::ClientHandler>, Json::Value>::const_iterator msgIt=messages.begin(); msgIt!=messages.end(); msgIt++) {
-			//TODO: Is the .clear() really needed? ~Seth
-			Json::Value jpacket;
-			jpacket.clear();
-
-			//Make sure we have something to send.
-			int numMsgs = msgIt->second.size();
-			if (numMsgs == 0) {
-				continue;
-			}
-
-			//Write the header; this will route the message properly once it reaches the TCP relay.
-			Json::Value jheader = JsonParser::createPacketHeader(pckt_header(numMsgs, msgIt->first->clientId));
-			jpacket["PACKET_HEADER"] = jheader;
-
-			//Write the data, serialize it.
-			jpacket["DATA"] = msgIt->second;
-			std::string str = Json::FastWriter().write(jpacket);
-
-			//Forward to the given client.
-			//TODO: We can add per-client routing here.
-			cnn->forwardMessage(str);
-		}*/
 	}
 
 	//Clear the buffer for the next time tick.
@@ -784,75 +693,26 @@ bool sim_mob::Broker::deadEntityCheck(sim_mob::AgentCommUtilityBase * info)
 
 	Agent * target = info->getEntity();
 	try {
-
 		if (!(target->currWorkerProvider)) {
-//			Print() << "1-deadEntityCheck for[" << target << "]" << std::endl;
 			return true;
 		}
 
 		//one more check to see if the entity is deleted
-		const std::set<sim_mob::Entity*> & managedEntities_ =
-				target->currWorkerProvider->getEntities();
-		std::set<sim_mob::Entity*>::const_iterator it =
-				managedEntities_.begin();
+		const std::set<sim_mob::Entity*> & managedEntities_ = target->currWorkerProvider->getEntities();
+		std::set<sim_mob::Entity*>::const_iterator it = managedEntities_.begin();
 		if (!managedEntities_.size()) {
-//			Print() << "2-deadEntityCheck for[" << target << "]" << std::endl;
 			return true;
 		}
-		for (std::set<sim_mob::Entity*>::const_iterator it =
-				managedEntities_.begin(); it != managedEntities_.end(); it++) {
+		for (std::set<sim_mob::Entity*>::const_iterator it = managedEntities_.begin(); it != managedEntities_.end(); it++) {
 			//agent is still being managed, so it is not dead
 			if (*it == target)
 				return false;
 		}
 	} catch (std::exception& e) {
-//		Print() << "3-deadEntityCheck for[" << target << "]" << std::endl;
 		return true;
 	}
 
-//	Print() << "4-deadEntityCheck for[" << target << "]" << std::endl;
-
 	return true;
-}
-
-//iterate the entire agent registration list looking for
-//those who are not done with their update and check if they are dead.
-//you better hope they are dead otherwise you have to hold the simulation
-//tick waiting for them to finish
-void sim_mob::Broker::refineSubscriptionList()
-{
-	if (EnableDebugOutput) {
-		Print() << "inside Broker::refineSubscriptionList" << std::endl;
-	}
-
-	//do all the operation using the objects's mutex
-	boost::function<void(sim_mob::Agent*)> Fn = boost::bind(
-			&Broker::refineSubscriptionList, this, _1);
-	REGISTERED_AGENTS.for_each_agent(Fn);
-}
-
-//tick waiting for them to finish
-void sim_mob::Broker::refineSubscriptionList(sim_mob::Agent * target)
-{
-	//you or your worker are probably dead already. you just don't know it
-	if (!target->currWorkerProvider) {
-		if (EnableDebugOutput) {
-			Print() << "1-refine subscription for agent [" << target << "]" << std::endl;
-		}
-		unRegisterEntity(target);
-		return;
-	}
-	const std::set<sim_mob::Entity*> & managedEntities_ =
-			(target->currWorkerProvider)->getEntities();
-	std::set<sim_mob::Entity*>::const_iterator it_entity = std::find(
-			managedEntities_.begin(), managedEntities_.end(), target);
-	if (it_entity == managedEntities_.end()) {
-		if (EnableDebugOutput) {
-			Print() << "2-refine subscription for agent [" << target << "]" << std::endl;
-		}
-		unRegisterEntity(target);
-		return;
-	}
 }
 
 

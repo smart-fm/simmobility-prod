@@ -34,7 +34,7 @@ public:
 	void forwardMessage(std::string str);
 
 	bool isValid() const;
-	void setValidation(bool);
+	void invalidate();
 
 	//NOTE: The first WHOAMI message that arrives at this ConnectionHandler sets the expected ClientType.
 	sim_mob::comm::ClientType getClientType() const;

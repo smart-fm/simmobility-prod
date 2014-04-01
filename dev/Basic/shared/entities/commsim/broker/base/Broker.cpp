@@ -195,7 +195,7 @@ void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnn
 				//Retrieve the connection associated with this token.
 				boost::shared_ptr<ConnectionHandler> connHandle;
 				{
-					boost::unique_lock<boost::mutex> lock(mutex_WaitingWHOAMI);
+					boost::unique_lock<boost::mutex> lock(mutex_token_lookup);
 					std::map<std::string, boost::shared_ptr<sim_mob::ConnectionHandler> >::const_iterator connHan = tokenConnectionLookup.find(token);
 					if (connHan == tokenConnectionLookup.end()) {
 						throw std::runtime_error("Unknown token; can't receive WHOAMI.");
@@ -309,9 +309,8 @@ void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType cl
 
 void sim_mob::Broker::insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn)
 {
-	boost::unique_lock<boost::mutex> lock(mutex_WaitingWHOAMI);
+	boost::unique_lock<boost::mutex> lock(mutex_token_lookup);
 	tokenConnectionLookup[token] = newConn;
-	//waitingWHOAMI_List.push_back(newConn);
 }
 
 

@@ -19,7 +19,6 @@
 
 namespace sim_mob {
 class BrokerBase;
-class Session;
 class ConnectionHandler;
 
 class WhoAreYouProtocol

@@ -53,8 +53,8 @@ private:
 
 public: //TODO: Some of these should clearly be private; however, for now they are all accessed in too many places.
 	boost::shared_ptr<sim_mob::ConnectionHandler> connHandle;
-	const sim_mob::Agent* agent;//same: dont use a boost::share_ptr whose object is created somewhere else. it is dangerous
+	const sim_mob::Agent* agent;
 	std::string clientId;
 };
 
-} /* namespace sim_mob */
+}

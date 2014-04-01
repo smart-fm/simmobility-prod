@@ -26,16 +26,6 @@ sim_mob::ConnectionHandler::ConnectionHandler(session_ptr session, BrokerBase& b
 
 void sim_mob::ConnectionHandler::forwardReadyMessage(ClientHandler& newClient)
 {
-	//Write the header/message body.
-	/*Json::Value packet_header = JsonParser::createPacketHeader(pckt_header(1, newClient.clientId));
-	Json::Value msg = JsonParser::createMessageHeader(msg_header("0","SIMMOBILITY","READY", "SYS"));
-
-	//Put them together into a single "packet".
-	Json::Value packet;
-	packet["PACKET_HEADER"] = packet_header;
-	packet["DATA"].append(msg);//no other data element needed
-	std::string readyMessage = Json::FastWriter().write(packet);*/
-
 	//Send it through normal channels.
 	forwardMessage(CommsimSerializer::makeReady());
 }
@@ -56,21 +46,21 @@ void sim_mob::ConnectionHandler::forwardMessage(std::string str)
 void sim_mob::ConnectionHandler::sendMessage(const std::string& msg)
 {
 	outgoingMessage = msg;
-	session->async_write(outgoingMessage,boost::bind(&ConnectionHandler::messageSentHandle, this, boost::asio::placeholders::error,outgoingMessage));
+	session->async_write(outgoingMessage, this);
 }
 
 void sim_mob::ConnectionHandler::readMessage()
 {
-	session->async_read(incomingHeader, incomingMessage, boost::bind(&ConnectionHandler::messageReceivedHandle, this, boost::asio::placeholders::error));
+	session->async_read(incomingHeader, incomingMessage, this);
 }
 
 
-void sim_mob::ConnectionHandler::messageSentHandle(const boost::system::error_code &e, std::string str)
+void sim_mob::ConnectionHandler::messageSentHandle(const boost::system::error_code &e)
 {
 	//If there's an error, we can just re-send it (we are still protected by isAsyncWrite).
 	if(e) {
 		Warn() << "Connection Not Ready[" << e.message() << "] Trying Again" << std::endl;
-		sendMessage(str);
+		sendMessage(outgoingMessage);
 		return;
 	}
 
@@ -104,27 +94,10 @@ void sim_mob::ConnectionHandler::messageReceivedHandle(const boost::system::erro
 	//call the receive handler in the broker
 	broker.onMessageReceived(shared_from_this(), incomingHeader, incomingMessage);
 
-	//Keep reading?
+	//Always expect a new message.
 	boost::unique_lock<boost::mutex> lock(async_read_mutex);
-	//if (pendingReads > 0) {
 	readMessage();
-	//} else {
-	//	isAsyncRead = false;
-	//}
 }
-
-/*void sim_mob::ConnectionHandler::sendImmediately(const std::string& str)
-{
-	boost::unique_lock<boost::mutex> lock1(async_write_mutex);
-	boost::unique_lock<boost::mutex> lock2(async_read_mutex);
-	if (isAsyncRead || isAsyncWrite) {
-		throw std::runtime_error("Sending data in immediate mode on an asynchronous socket.");
-	}
-
-	boost::system::error_code ec;
-	outgoingMessage = str;
-	session->write(outgoingMessage, ec);
-}*/
 
 session_ptr& sim_mob::ConnectionHandler::getSession()
 {

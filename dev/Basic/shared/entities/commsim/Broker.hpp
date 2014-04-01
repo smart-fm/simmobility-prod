@@ -153,7 +153,7 @@ public:
 	//Used by: TODO
 	virtual void onMessageReceived(boost::shared_ptr<ConnectionHandler>cnnHadler, const BundleHeader& header, std::string message) = 0;
 
-	//Used by: TODO
+	//Used by the WhoAreYouProtocol when clients connect.
 	virtual void insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn) = 0;
 
 	//Used by the BrokerBlocker subclasses. Hopefully we can further abstract these.
@@ -178,6 +178,13 @@ class Broker : public sim_mob::Agent, public sim_mob::BrokerBase {
 public:
 	explicit Broker(const MutexStrategy& mtxStrat, int id=-1, std::string commElement_ = "", std::string commMode_ = "");
 	virtual ~Broker();
+
+private:
+	///List of all known tokens and their associated ConnectionHandlers.
+	///This list is built over time, as new connections/Agents are added (ConnectionHandlers should never be removed).
+	/// THREADING: This data structure is modified by parallel threads.
+	std::map<std::string, boost::shared_ptr<sim_mob::ConnectionHandler> > tokenConnectionLookup;
+	boost::mutex mutex_token_lookup; ///<Mutex to lock tokenConnectionLookup.
 
 protected:
 	struct ClientWaiting {
@@ -205,7 +212,6 @@ protected:
 	///	list of authorized clients who have passed the registration process
 	ClientList::Type clientList; //key note: there can be one agent associated with multiple clients in this list. why? : coz clients of any type are i this list. and any one has associated itself to this agent for its specific type's reason
 
-	std::map<std::string, boost::shared_ptr<sim_mob::ConnectionHandler> > tokenConnectionLookup;
 
 	///	connection point to outside simmobility
 	ConnectionServer connection;
@@ -270,9 +276,6 @@ protected:
 	boost::mutex mutex_agentDone;
 	boost::condition_variable COND_VAR_CLIENT_REQUEST;
 	boost::condition_variable COND_VAR_CLIENT_DONE;
-
-	//Mutex for the waitingWHOAMI list.
-	boost::mutex mutex_WaitingWHOAMI;
 
 	//Number of connected Agents (entities which respond with a WHOAMI).
 	size_t numAgents;
@@ -449,10 +452,12 @@ public:
 	 *       To ensure that ONLY the agent who received the WHOAREYOU can respond, one
 	 *       might add a unique token PER AGENT to the WHOAREYOU message that is then relayed back
 	 *       in the WHOAMI (but at the moment this is not necessary. Currently the token is only unique per connection.
+	 * THREADING: This function is called directly by thread (via the WhoAreYouProtocol).
 	 */
 	virtual void insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn);
 
 	sim_mob::event::EventPublisher & getPublisher();
+
 	/**
 	 * Accessor to client registration publisher
 	 */

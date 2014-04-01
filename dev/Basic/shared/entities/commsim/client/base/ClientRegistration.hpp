@@ -18,7 +18,6 @@
 #include <boost/shared_ptr.hpp>
 #include "entities/Agent.hpp"
 #include "entities/commsim/service/Services.hpp"
-#include "entities/commsim/connection/Session.hpp"
 #include "event/EventPublisher.hpp"
 
 namespace sim_mob {

@@ -39,9 +39,6 @@ public:
 	//Send a message on behalf of the given client.
 	void forwardMessage(std::string str);
 
-	void messageSentHandle(const boost::system::error_code &e, std::string str);
-	void messageReceivedHandle(const boost::system::error_code& e);
-
 	session_ptr& getSession();
 	bool is_open() const;
 	bool isValid() const;
@@ -51,12 +48,14 @@ public:
 	sim_mob::comm::ClientType getClientType() const;
 	void setClientType(sim_mob::comm::ClientType newCType);
 
-	//Send a synchronous message. NOTE: Be careful with this! The ConnectionHandler is designed for
-	// asynchronous sending.
-	//void sendImmediately(const std::string& str);
-
 	//A token is used to uniquely identify ConnectionHandlers.
 	std::string getToken() const;
+
+	///Callback used by Session to indicate a message has been sent.
+	void messageSentHandle(const boost::system::error_code &e);
+
+	///Callback used by Session to indicate a message has been received.
+	void messageReceivedHandle(const boost::system::error_code& e);
 
 private:
 	//Helper: send a message, read a message.

@@ -47,7 +47,12 @@ void PersonParams::blockTime(double startTime, double endTime) {
 		}
 	}
 	else {
-		throw std::runtime_error("invalid time window was passed for blocking");
+		std::stringstream errStream;
+		errStream << "invalid time window was passed for blocking"
+				<< " |start: " << startTime
+				<< " |end: " << endTime
+				<<std::endl;
+		throw std::runtime_error(errStream.str());
 	}
 }
 

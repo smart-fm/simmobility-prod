@@ -62,42 +62,6 @@ const bool EnableDebugOutput = false;
 
 
 
-
- //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
-struct MessageElement{
-	MessageElement(){}
-	MessageElement(boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler, const MessageConglomerate& conglom) :
-		cnnHandler(cnnHandler), conglom(conglom){}
-
-	boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler;
-	MessageConglomerate conglom;
-};
-
-
-/**
- * A typedef-container for our MessageFactories container type.
- */
-/*struct MessageFactories {
-	typedef unsigned int Key;
-	typedef boost::shared_ptr<MessageFactory<std::vector<sim_mob::comm::MsgPtr>, std::string> > Value;
-
-	typedef std::map<Key, Value> Type;
-	typedef std::pair<Key, Value> Pair;
-};*/
-
-
-/**
- * A typedef-container for our PublisherList container type.
- */
-struct PublisherList {
-	typedef sim_mob::Services::SIM_MOB_SERVICE Key;
-	typedef boost::shared_ptr<sim_mob::event::EventPublisher> Value;
-
-	typedef std::map<Key, Value> Type;
-	typedef std::pair<Key, Value> Pair;
-};
-
-
 /**
  * A typedef-container for our ClientList container type.
  */
@@ -109,25 +73,6 @@ struct ClientList {
 	typedef std::pair<Key, Value> Pair;
 	typedef std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > ValuePair;
 
-};
-
-
-/**
- * A typedef-container for our BrokerBlockers container type.
- * [Blocker type: simmobility agents, android emulator, ns3 simulator  etc]
- */
-struct BrokerBlockers {
-	typedef unsigned int Key;
-	typedef boost::shared_ptr<sim_mob::BrokerBlocker> Value;
-
-	typedef std::map<Key, Value> Type;
-	typedef std::pair<Key, Value> Pair;
-};
-
-
-///Helper typedef: key for our SendBuffer
-struct SendBuffer {
-	typedef boost::shared_ptr<sim_mob::ClientHandler> Key;
 };
 
 
@@ -175,6 +120,20 @@ private:
 	boost::mutex mutex_token_lookup; ///<Mutex to lock tokenConnectionLookup.
 
 protected:
+	 //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
+	struct MessageElement{
+		MessageElement(){}
+		MessageElement(boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler, const MessageConglomerate& conglom) : cnnHandler(cnnHandler), conglom(conglom){}
+
+		boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler;
+		MessageConglomerate conglom;
+	};
+
+	///Helper typedef: key for our SendBuffer
+	struct SendBuffer {
+		typedef boost::shared_ptr<sim_mob::ClientHandler> Key;
+	};
+
 	///BrokerPublisher class. No documentation provided.
 	class BrokerPublisher : public sim_mob::event::EventPublisher {
 	public:
@@ -195,6 +154,9 @@ protected:
 
 	//clientType => ClientWaiting
 	typedef std::multimap<std::string, ClientWaiting> ClientWaitList;
+
+
+protected:
 
 	///Lookup for message handlers by type.
 	///TODO: We need to register custom handlers for different clients, similar to how we use "overrides" for RoadRunner.
@@ -232,7 +194,7 @@ protected:
 	boost::mutex mutex_send_buffer;
 
 	///	incoming data(from clients to broker) is saved here in the form of messages
-	sim_mob::ThreadSafeQueue<sim_mob::MessageElement> receiveQueue;
+	sim_mob::ThreadSafeQueue<MessageElement> receiveQueue;
 
 	//todo this will be configured in the configure() method and
 	//replace the above "clientRegistrationFactory" member for simplicity

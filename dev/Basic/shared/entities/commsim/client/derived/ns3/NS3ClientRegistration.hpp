@@ -20,7 +20,7 @@
 #pragma once
 
 #include "entities/commsim/client/base/ClientRegistration.hpp"
-#include "entities/commsim/Broker.hpp"
+#include "entities/commsim/broker/Broker.hpp"
 
 namespace sim_mob {
 class ClientHandler;

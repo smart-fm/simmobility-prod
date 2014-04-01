@@ -7,7 +7,7 @@
 
 #include <sstream>
 
-#include "entities/commsim/Broker.hpp"
+#include "entities/commsim/broker/Broker.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
 

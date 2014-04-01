@@ -3,8 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "WaitForNS3Connection.hpp"
-#include "entities/commsim/Broker.hpp"
-#include <boost/unordered_map.hpp>
+#include "entities/commsim/broker/Broker.hpp"
 
 using namespace sim_mob;
 

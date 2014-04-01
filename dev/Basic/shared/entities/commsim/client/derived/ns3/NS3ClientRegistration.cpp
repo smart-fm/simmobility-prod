@@ -8,7 +8,7 @@
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "event/EventPublisher.hpp"
 #include "entities/Person.hpp"
-#include "entities/commsim/broker/base/Common.hpp"
+#include "entities/commsim/broker/Common.hpp"
 #include "entities/commsim/event/AllLocationsEventArgs.hpp"
 #include "AgentsInfo.hpp"
 #include <boost/foreach.hpp>

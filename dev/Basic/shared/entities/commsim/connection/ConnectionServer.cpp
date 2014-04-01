@@ -17,7 +17,7 @@
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "entities/commsim/connection/WhoAreYouProtocol.hpp"
 #include "logging/Log.hpp"
-#include "entities/commsim/Broker.hpp"
+#include "entities/commsim/broker/Broker.hpp"
 
 using namespace sim_mob;
 

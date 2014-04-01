@@ -7,8 +7,7 @@
 #include "entities/Person.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-//#include "entities/communicator/NS3/NS3_Communicator/NS3_Communicator.hpp"
-#include "entities/commsim/Broker.hpp"
+#include "entities/commsim/broker/Broker.hpp"
 
 namespace sim_mob
 {

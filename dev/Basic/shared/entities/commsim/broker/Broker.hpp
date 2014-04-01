@@ -15,8 +15,8 @@
 #include "entities/commsim/client/ClientType.hpp"
 #include "entities/commsim/client/base/ClientRegistration.hpp"
 #include "entities/commsim/service/Services.hpp"
-#include "entities/commsim/broker/base/Broker-util.hpp"
-#include "entities/commsim/broker/base/Common.hpp"
+#include "entities/commsim/broker/Broker-util.hpp"
+#include "entities/commsim/broker/Common.hpp"
 #include "entities/commsim/message/Handlers.hpp"
 #include "entities/commsim/message/ThreadSafeQueue.hpp"
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
@@ -61,18 +61,6 @@ const bool EnableDebugOutput = false;
 } //End unnamed namespace
 
 
-
-///BrokerPublisher class. No documentation provided.
-class BrokerPublisher : public sim_mob::event::EventPublisher {
-public:
-	virtual ~BrokerPublisher() {}
-};
-
-///ClientRegistrationPublisher class. No documentation provided.
-class ClientRegistrationPublisher : public sim_mob::event::EventPublisher {
-public:
-	virtual ~ClientRegistrationPublisher() {}
-};
 
 
  //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
@@ -187,6 +175,18 @@ private:
 	boost::mutex mutex_token_lookup; ///<Mutex to lock tokenConnectionLookup.
 
 protected:
+	///BrokerPublisher class. No documentation provided.
+	class BrokerPublisher : public sim_mob::event::EventPublisher {
+	public:
+		virtual ~BrokerPublisher() {}
+	};
+
+	///ClientRegistrationPublisher class. No documentation provided.
+	class ClientRegistrationPublisher : public sim_mob::event::EventPublisher {
+	public:
+		virtual ~ClientRegistrationPublisher() {}
+	};
+
 	struct ClientWaiting {
 		ClientRegistrationRequest request;
 		boost::shared_ptr<sim_mob::ConnectionHandler> existingConn;
@@ -239,7 +239,7 @@ protected:
 	std::map<comm::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> > ClientRegistrationHandlerMap;
 
 	//	publishes an event when a client is registered with the broker
-	sim_mob::ClientRegistrationPublisher registrationPublisher;
+	ClientRegistrationPublisher registrationPublisher;
 
 	///	internal controlling container
 	std::set<const sim_mob::Agent*> duplicateEntityDoneChecker ;
@@ -452,11 +452,6 @@ public:
 	virtual void insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn);
 
 	sim_mob::event::EventPublisher & getPublisher();
-
-	/**
-	 * Accessor to client registration publisher
-	 */
-	sim_mob::ClientRegistrationPublisher &getRegistrationPublisher();
 
 	/**
 	 * 	request to insert into broker's send buffer

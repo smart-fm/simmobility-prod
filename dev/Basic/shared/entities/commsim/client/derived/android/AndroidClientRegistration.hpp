@@ -2,32 +2,24 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/**
- * AndroidClientRegistration.hpp
- *
- *  Created on: May 20, 2013
- *      Author: vahid
- *
- *      This Class is responsible to process the registration request. Such a request
- *      has been previously issued following an android client connecting to simmobility.
- *      registration, in this context, means adding a client to the list of valid clients
- *      in the Broker. Processing a registration request, generally, includes an initial
- *      evaluation, associating the client to a simmobility agent, creating a proper
- *      client handler and finally do some post processing like informing the client of
- *      the success of its request.
- *      the main method is handle(). the rest of the methods are usually helpers.
- */
-
 #pragma once
 
 #include "entities/commsim/client/base/ClientRegistration.hpp"
-#include "entities/commsim/Broker.hpp"
+#include "entities/commsim/broker/Broker.hpp"
 namespace sim_mob {
 
 
-
+/**
+ * This Class is responsible to process the registration request. Such a request
+ * has been previously issued following an android client connecting to simmobility.
+ * registration, in this context, means adding a client to the list of valid clients
+ * in the Broker. Processing a registration request, generally, includes an initial
+ * evaluation, associating the client to a simmobility agent, creating a proper
+ * client handler and finally do some post processing like informing the client of
+ * the success of its request.
+ * the main method is handle(). the rest of the methods are usually helpers.
+ */
 class AndroidClientRegistration: public sim_mob::ClientRegistrationHandler {
-	std::set<const sim_mob::Agent*> usedAgents;
 public:
 	AndroidClientRegistration();
 	/**
@@ -51,6 +43,9 @@ public:
 	virtual boost::shared_ptr<ClientHandler> makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> connHandle, sim_mob::Broker&,sim_mob::ClientRegistrationRequest &, const sim_mob::Agent* freeAgent);
 
 	virtual ~AndroidClientRegistration();
+
+private:
+	std::set<const sim_mob::Agent*> usedAgents;
 };
 
 

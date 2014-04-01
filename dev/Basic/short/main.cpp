@@ -44,7 +44,7 @@
 #include "conf/ExpandAndValidateConfigFile.hpp"
 
 #include "entities/signal/Signal.hpp"
-#include "entities/commsim/Broker.hpp"
+#include "entities/commsim/broker/Broker.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"
 #include "entities/Person.hpp"

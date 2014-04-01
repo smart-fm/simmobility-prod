@@ -10,7 +10,7 @@
  */
 
 #include "ClientHandler.hpp"
-#include "entities/commsim/Broker.hpp"
+#include "entities/commsim/broker/Broker.hpp"
 
 using namespace sim_mob;
 

@@ -2,7 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-#include "entities/commsim/Broker.hpp"
+#include "Broker.hpp"
 
 #include <sstream>
 #include <boost/assign/list_of.hpp>
@@ -12,7 +12,7 @@
 #include "conf/ConfigParams.hpp"
 #include "workers/Worker.hpp"
 
-#include "entities/commsim/broker/base/Common.hpp"
+#include "entities/commsim/broker/Common.hpp"
 #include "entities/commsim/comm_support/AgentCommUtility.hpp"
 #include "entities/commsim/client/derived/android/AndroidClientRegistration.hpp"
 #include "entities/commsim/client/derived/ns3/NS3ClientRegistration.hpp"
@@ -302,6 +302,11 @@ void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType cl
 	boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
 	clientDoneChecklist[clientHandler->connHandle].total++;
 	numAgents++;
+
+	//publish an event to inform- interested parties- of the registration of a new android client
+	if (clientType==comm::ANDROID_EMULATOR) {
+		registrationPublisher.publish(comm::ANDROID_EMULATOR, ClientRegistrationEventArgs(comm::ANDROID_EMULATOR, clientHandler));
+	}
 }
 
 void sim_mob::Broker::insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn)
@@ -640,11 +645,6 @@ void sim_mob::Broker::processPublishers(timeslice now)
 			break;
 		}
 	}
-}
-
-sim_mob::ClientRegistrationPublisher & sim_mob::Broker::getRegistrationPublisher()
-{
-	return registrationPublisher;
 }
 
 void sim_mob::Broker::sendReadyToReceive()

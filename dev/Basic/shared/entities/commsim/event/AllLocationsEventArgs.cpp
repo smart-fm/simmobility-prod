@@ -5,7 +5,7 @@
 #include "AllLocationsEventArgs.hpp"
 
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
-#include "entities/commsim/broker/base/Broker-util.hpp"
+#include "entities/commsim/broker/Broker-util.hpp"
 #include "entities/Agent.hpp"
 
 using namespace sim_mob;

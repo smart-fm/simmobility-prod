@@ -7,7 +7,6 @@
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "entities/commsim/broker/Common.hpp"
-#include "entities/commsim/comm_support/AgentCommUtility.hpp"
 #include "event/EventPublisher.hpp"
 #include "entities/commsim/event/RegionsAndPathEventArgs.hpp"
 
@@ -42,9 +41,8 @@ bool AndroidClientRegistration::findAFreeAgent(AgentsList::type &registeredAgent
 		}
 	}
 
-	Print()
-					<< "AndroidClientRegistration::handle couldn't find a free agent among ["
-					<< registeredAgents.size() << "], returning false" << std::endl;
+	Print() << "AndroidClientRegistration::handle couldn't find a free agent among ["
+			<< registeredAgents.size() << "], returning false" << std::endl;
 	return false;
 }
 

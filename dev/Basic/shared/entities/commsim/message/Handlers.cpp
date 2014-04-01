@@ -9,6 +9,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include "entities/Agent.hpp"
+#include "entities/commsim/broker/Broker.hpp"
 #include "entities/commsim/connection/WhoAreYouProtocol.hpp"
 #include "entities/commsim/message/Messages.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"

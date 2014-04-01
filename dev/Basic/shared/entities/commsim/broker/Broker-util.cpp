@@ -3,7 +3,8 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Broker-util.hpp"
-#include "entities/commsim/comm_support/AgentCommUtility.hpp"
+
+#include "logging/Log.hpp"
 
 using namespace sim_mob;
 

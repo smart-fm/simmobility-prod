@@ -46,8 +46,18 @@ void AgentsLookup::addHousehold(const HouseholdAgent* agent) {
     }
 }
 
+void AgentsLookup::addDeveloper(const DeveloperAgent* agent) {
+    if (agent && !getById<DeveloperAgent>(developersById, agent->GetId())) {
+        developersById.insert(std::make_pair(agent->GetId(), agent));
+    }
+}
+
 const HouseholdAgent* AgentsLookup::getHouseholdById(const BigSerial id) const {
     return getById<HouseholdAgent>(householdsById, id);
+}
+
+const DeveloperAgent* AgentsLookup::getDeveloperById(const BigSerial id) const {
+    return getById<DeveloperAgent>(developersById, id);
 }
 
 LoggerAgent& AgentsLookup::getLogger() {

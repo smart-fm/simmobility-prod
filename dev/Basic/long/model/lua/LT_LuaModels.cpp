@@ -12,6 +12,7 @@
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"
 #include "core/DataManager.hpp"
+#include "model/DeveloperModel.hpp"
 #include "model/HM_Model.hpp"
 
 
@@ -48,6 +49,70 @@ namespace {
     inline const Building* getBuilding(const BigSerial id) {
         return DataManagerSingleton::getInstance().getBuildingById(id);
     }
+    
+    /**
+     * Maps common classes for lua models 
+     * @param state
+     */
+    inline void mapCommonClasses(lua_State* state) {
+        getGlobalNamespace(state)
+            .beginClass <Unit> ("Unit")
+            .addProperty("id", &Unit::getId)
+            .addProperty("buildingId", &Unit::getBuildingId)
+            .addProperty("typeId", &Unit::getTypeId)
+            .addProperty("postcodeId", &Unit::getPostcodeId)
+            .addProperty("floorArea", &Unit::getFloorArea)
+            .addProperty("storey", &Unit::getStorey)
+            .addProperty("rent", &Unit::getRent)
+            .endClass();
+    getGlobalNamespace(state)
+            .beginClass <Postcode> ("Postcode")
+            .addProperty("id", &Postcode::getId)
+            .addProperty("code", &Postcode::getCode)
+            .addProperty("location", &Postcode::getLocation)
+            .addProperty("tazId", &Postcode::getTazId)
+            .endClass();
+    getGlobalNamespace(state)
+            .beginClass <PostcodeAmenities> ("PostcodeAmenities")
+            .addProperty("postcode", &PostcodeAmenities::getPostcode)
+            .addProperty("buildingName", &PostcodeAmenities::getBuildingName)
+            .addProperty("unitBlock", &PostcodeAmenities::getUnitBlock)
+            .addProperty("roadName", &PostcodeAmenities::getRoadName)
+            .addProperty("mtzNumber", &PostcodeAmenities::getMtzNumber)
+            .addProperty("mrtStation", &PostcodeAmenities::getMrtStation)
+            .addProperty("distanceToMRT", &PostcodeAmenities::getDistanceToMRT)
+            .addProperty("distanceToBus", &PostcodeAmenities::getDistanceToBus)
+            .addProperty("distanceToExpress", &PostcodeAmenities::getDistanceToExpress)
+            .addProperty("distanceToPMS30", &PostcodeAmenities::getDistanceToPMS30)
+            .addProperty("distanceToCBD", &PostcodeAmenities::getDistanceToCBD)
+            .addProperty("distanceToMall", &PostcodeAmenities::getDistanceToMall)
+            .addProperty("distanceToJob", &PostcodeAmenities::getDistanceToJob)
+            .addProperty("mrt_200m", &PostcodeAmenities::hasMRT_200m)
+            .addProperty("mrt_400m", &PostcodeAmenities::hasMRT_400m)
+            .addProperty("express_200m", &PostcodeAmenities::hasExpress_200m)
+            .addProperty("bus_200m", &PostcodeAmenities::hasBus_200m)
+            .addProperty("bus_400m", &PostcodeAmenities::hasBus_400m)
+            .addProperty("pms_1km", &PostcodeAmenities::hasPms_1km)
+            .addProperty("apartment", &PostcodeAmenities::isApartment)
+            .addProperty("condo", &PostcodeAmenities::isCondo)
+            .addProperty("terrace", &PostcodeAmenities::isTerrace)
+            .addProperty("semi", &PostcodeAmenities::isSemi)
+            .addProperty("detached", &PostcodeAmenities::isDetached)
+            .addProperty("ec", &PostcodeAmenities::isEc)
+            .addProperty("_private", &PostcodeAmenities::isPrivate)
+            .addProperty("hdb", &PostcodeAmenities::isHdb)
+            .endClass();
+    getGlobalNamespace(state)
+            .beginClass <Building> ("Building")
+            .addProperty("id", &Building::getId)
+            .addProperty("builtYear", &Building::getBuiltYear)
+            .addProperty("landedArea", &Building::getLandedArea)
+            .addProperty("parcelId", &Building::getParcelId)
+            .addProperty("parkingSpaces", &Building::getParkingSpaces)
+            .addProperty("tenureId", &Building::getTenureId)
+            .addProperty("typeId", &Building::getTypeId)
+            .endClass();
+    }
 }
 
 /******************************************************************************
@@ -77,15 +142,12 @@ void ExternalEventsModel::getExternalEvents(int day,
 
 void ExternalEventsModel::mapClasses() {
     getGlobalNamespace(state.get())
-            .beginClass <ExternalEvent> ("ExternalEvent")
-            .addConstructor <void (*) (void) > ()
-            .addProperty("day", &ExternalEvent::getDay,
-            &ExternalEvent::setDay)
-            .addProperty("type", &ExternalEvent::getType,
-            &ExternalEvent::setType)
-            .addProperty("householdId", &ExternalEvent::getHouseholdId,
-            &ExternalEvent::setHouseholdId)
-            .endClass();
+        .beginClass <ExternalEvent> ("ExternalEvent")
+        .addConstructor <void (*) (void) > ()
+        .addProperty("day", &ExternalEvent::getDay, &ExternalEvent::setDay)
+        .addProperty("type", &ExternalEvent::getType, &ExternalEvent::setType)
+        .addProperty("householdId", &ExternalEvent::getHouseholdId, &ExternalEvent::setHouseholdId)
+    .endClass();
 }
 
 /******************************************************************************
@@ -116,16 +178,6 @@ void HM_LuaModel::mapClasses() {
             .addData("expectation", &ExpectationEntry::expectation)
             .endClass();
     getGlobalNamespace(state.get())
-            .beginClass <Unit> ("Unit")
-            .addProperty("id", &Unit::getId)
-            .addProperty("buildingId", &Unit::getBuildingId)
-            .addProperty("typeId", &Unit::getTypeId)
-            .addProperty("postcodeId", &Unit::getPostcodeId)
-            .addProperty("floorArea", &Unit::getFloorArea)
-            .addProperty("storey", &Unit::getStorey)
-            .addProperty("rent", &Unit::getRent)
-            .endClass();
-    getGlobalNamespace(state.get())
             .beginClass <HousingMarket::Entry> ("UnitEntry")
             .addProperty("tazId", &HousingMarket::Entry::getTazId)
             .addProperty("postcodeId", &HousingMarket::Entry::getPostcodeId)
@@ -147,53 +199,8 @@ void HM_LuaModel::mapClasses() {
             .addProperty("workers", &Household::getWorkers)
             .addProperty("ageOfHead", &Household::getAgeOfHead)
             .endClass();
-    getGlobalNamespace(state.get())
-            .beginClass <Postcode> ("Postcode")
-            .addProperty("id", &Postcode::getId)
-            .addProperty("code", &Postcode::getCode)
-            .addProperty("location", &Postcode::getLocation)
-            .addProperty("tazId", &Postcode::getTazId)
-            .endClass();
-    getGlobalNamespace(state.get())
-            .beginClass <PostcodeAmenities> ("PostcodeAmenities")
-            .addProperty("postcode", &PostcodeAmenities::getPostcode)
-            .addProperty("buildingName", &PostcodeAmenities::getBuildingName)
-            .addProperty("unitBlock", &PostcodeAmenities::getUnitBlock)
-            .addProperty("roadName", &PostcodeAmenities::getRoadName)
-            .addProperty("mtzNumber", &PostcodeAmenities::getMtzNumber)
-            .addProperty("mrtStation", &PostcodeAmenities::getMrtStation)
-            .addProperty("distanceToMRT", &PostcodeAmenities::getDistanceToMRT)
-            .addProperty("distanceToBus", &PostcodeAmenities::getDistanceToBus)
-            .addProperty("distanceToExpress", &PostcodeAmenities::getDistanceToExpress)
-            .addProperty("distanceToPMS30", &PostcodeAmenities::getDistanceToPMS30)
-            .addProperty("distanceToCBD", &PostcodeAmenities::getDistanceToCBD)
-            .addProperty("distanceToMall", &PostcodeAmenities::getDistanceToMall)
-            .addProperty("distanceToJob", &PostcodeAmenities::getDistanceToJob)
-            .addProperty("mrt_200m", &PostcodeAmenities::hasMRT_200m)
-            .addProperty("mrt_400m", &PostcodeAmenities::hasMRT_400m)
-            .addProperty("express_200m", &PostcodeAmenities::hasExpress_200m)
-            .addProperty("bus_200m", &PostcodeAmenities::hasBus_200m)
-            .addProperty("bus_400m", &PostcodeAmenities::hasBus_400m)
-            .addProperty("pms_1km", &PostcodeAmenities::hasPms_1km)
-            .addProperty("apartment", &PostcodeAmenities::isApartment)
-            .addProperty("condo", &PostcodeAmenities::isCondo)
-            .addProperty("terrace", &PostcodeAmenities::isTerrace)
-            .addProperty("semi", &PostcodeAmenities::isSemi)
-            .addProperty("detached", &PostcodeAmenities::isDetached)
-            .addProperty("ec", &PostcodeAmenities::isEc)
-            .addProperty("_private", &PostcodeAmenities::isPrivate)
-            .addProperty("hdb", &PostcodeAmenities::isHdb)
-            .endClass();
-    getGlobalNamespace(state.get())
-            .beginClass <Building> ("Building")
-            .addProperty("id", &Building::getId)
-            .addProperty("builtYear", &Building::getBuiltYear)
-            .addProperty("landedArea", &Building::getLandedArea)
-            .addProperty("parcelId", &Building::getParcelId)
-            .addProperty("parkingSpaces", &Building::getParkingSpaces)
-            .addProperty("tenureId", &Building::getTenureId)
-            .addProperty("typeId", &Building::getTypeId)
-            .endClass();
+    
+    mapCommonClasses(state.get());
 }
 
 void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket,
@@ -237,6 +244,36 @@ double HM_LuaModel::calulateWP(const Household& hh, const Unit& unit,
     const BigSerial pcId = unit.getPostcodeId();
     LuaRef funcRef = getGlobal(state.get(), "calculateWP");
     LuaRef retVal = funcRef(&hh, &unit, &stats, getAmenities(pcId));
+    if (retVal.isNumber()) {
+        return retVal.cast<double>();
+    }
+    return INVALID_DOUBLE;
+}
+
+/******************************************************************************
+ *                         Developer LUA
+ ******************************************************************************/
+
+DeveloperLuaModel::DeveloperLuaModel() : lua::LuaModel() {
+}
+
+DeveloperLuaModel::~DeveloperLuaModel() {
+}
+
+void DeveloperLuaModel::mapClasses() {
+    getGlobalNamespace(state.get())
+            .beginClass <PotentialUnit> ("PotentialUnit")
+            .addProperty("floorArea", &PotentialUnit::getFloorArea)
+            .addProperty("unitTypeId", &PotentialUnit::getUnitTypeId)
+            .addProperty("freehold", &PotentialUnit::isFreehold)
+            .endClass();
+    mapCommonClasses(state.get());
+}
+
+double DeveloperLuaModel::calulateUnitRevenue(const PotentialUnit& unit,
+        const PostcodeAmenities& amenities) const {
+    LuaRef funcRef = getGlobal(state.get(), "calculateUnitRevenue");
+    LuaRef retVal = funcRef(&unit, &amenities);
     if (retVal.isNumber()) {
         return retVal.cast<double>();
     }

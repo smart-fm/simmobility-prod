@@ -20,15 +20,23 @@ namespace sim_mob {
     namespace long_term {
 
         /**
-         * Singleton responsible for managing necessary data for the simulation.
+         * 
+         * The main purpose of this Singleton is to provide a centralized way to 
+         * lookup *static* information between models during the simulation like:
+         * 
+         * - Postcodes
+         * - Tazes
+         * - Postcode amenities.
+         * - etc..
          * 
          * Extensions to this class must be aware of the main purpose of it.
          * The main goal of this class is a centralized point to access to the
          * static and lookup information. For that reason this class is a 
          * Singleton and **is not thread-safe**.
          * 
-         * If you need to change some of the strutures within this class you 
+         * If you need to change some of the structures within this class you 
          * must be careful and provide a thread-safe way to do it.
+         * 
          * 
          */
         class DataManager {

@@ -1,6 +1,18 @@
+--[[****************************************************************************
+    GLOBAL STATIC LOOKUP DATA
+******************************************************************************]]
 --[[
-    Lua 5.1 Copyright (C) 1994-2006 Lua.org, PUC-Rio
+    Helper function to mark tables as read-only.
 ]]
+function readOnlyTable(table)
+   return setmetatable({}, {
+     __index = table,
+     __newindex = function(table, key, value)
+                    error("Attempt to modify read-only table")
+                  end,
+     __metatable = false
+   });
+end
 
 
 --[[

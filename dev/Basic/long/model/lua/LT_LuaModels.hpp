@@ -13,6 +13,8 @@
 #include "database/entity/Unit.hpp"
 #include "database/entity/Household.hpp"
 #include "database/entity/ExternalEvent.hpp"
+#include "database/entity/PostcodeAmenities.hpp"
+#include "database/entity/PotentialProject.hpp"
 #include "core/HousingMarket.hpp"
 #include "model/HM_Model.hpp"
 
@@ -104,6 +106,35 @@ namespace sim_mob {
              */
             void mapClasses();
         };
+
+        /**
+         * Represents the Lua model to the Developer model.
+         */
+        class DeveloperLuaModel : public lua::LuaModel {
+        public:
+            DeveloperLuaModel();
+            virtual ~DeveloperLuaModel();
+
+            /**
+             * Calculates the future revenue with given potential unit for the 
+             * given Potential project.
+             * 
+             * Attention: given postcode can be the real postcode (if it is a redevelopment)
+             * or it can be the nearest postcode of the parcel.
+             *  
+             * @param unit to calculate the the future revenue.
+             * @param postcode amenities.
+             * @return value of the future revenue or long_term::INVALID_DOUBLE
+             */
+            double calulateUnitRevenue (const PotentialUnit& unit, 
+                const PostcodeAmenities& amenities) const;
+            
+        private:
+
+            /**
+             * Inherited from LuaModel
+             */
+            void mapClasses();
+        };
     }
 }
-

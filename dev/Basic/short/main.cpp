@@ -37,17 +37,14 @@
 #include "geospatial/Lane.hpp"
 #include "util/DailyTime.hpp"
 #include "util/StateSwitcher.hpp"
-#include "entities/signal/Signal.hpp"
-#include "entities/commsim/Broker.hpp"
-//temporary hardcode
-//#include "entities/commsim/Broker.hpp"
-#include "entities/commsim/broker/derived/RoadRunner.hpp"
-#include "entities/commsim/broker/derived/STK.hpp"
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/ParseConfigFile.hpp"
 #include "conf/ExpandAndValidateConfigFile.hpp"
+
+#include "entities/signal/Signal.hpp"
+#include "entities/commsim/Broker.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"
 #include "entities/Person.hpp"
@@ -77,8 +74,6 @@
 #include "logging/Log.hpp"
 #include "util/Utils.hpp"
 
-
-//add by xuyan
 #include "partitions/PartitionManager.hpp"
 #include "partitions/ShortTermBoundaryProcessor.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
@@ -86,7 +81,6 @@
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
 #include <iostream>
-//#include <tinyxml.h>
 
 using std::cout;
 using std::endl;
@@ -321,16 +315,14 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 				continue;
 			}
 			Broker *broker =  nullptr;
-			if(it->first == "roadrunner"){
-				broker = new sim_mob::Roadrunner_Broker(MtxStrat_Locked, 0);
-			}
-			else if(it->first == "stk"){
-				broker = new sim_mob::STK_Broker(MtxStrat_Locked, 0, it->second.name, it->second.mode);
+			if(it->first == "roadrunner") {
+				broker = new sim_mob::Broker(MtxStrat_Locked, 0, it->second.name, it->second.mode);
+			} else if(it->first == "stk") {
+				broker = new sim_mob::Broker(MtxStrat_Locked, 0, it->second.name, it->second.mode);
 			}
 
 			Broker::addExternalCommunicator(it->first, broker);
 			communicationWorkers->assignAWorker(broker);
-			broker->enable();
 		}
 	}
 

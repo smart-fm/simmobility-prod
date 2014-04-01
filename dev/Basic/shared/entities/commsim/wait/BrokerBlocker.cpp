@@ -3,33 +3,25 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "BrokerBlocker.hpp"
+
 #include "entities/commsim/Broker.hpp"
 
 using namespace sim_mob;
 
-sim_mob::BrokerBlocker::BrokerBlocker(sim_mob::Broker & broker_) : broker(broker_)
+sim_mob::BrokerBlocker::BrokerBlocker() : passed(false)
 {
-	wait_status = true;
 }
 
 sim_mob::BrokerBlocker::~BrokerBlocker()
 {
 }
 
-sim_mob::Broker& sim_mob::BrokerBlocker::getBroker() const
-{
-	return broker;
-}
 
-bool sim_mob::BrokerBlocker::isWaiting()
+bool sim_mob::BrokerBlocker::pass(BrokerBase& broker)
 {
-	boost::unique_lock<boost::mutex> lock(mutex_);
-	return wait_status;
-}
-
-void sim_mob::BrokerBlocker::setWaitStatus(bool value)
-{
-	boost::unique_lock<boost::mutex> lock(mutex_);
-	wait_status = value;
+	if (!passed) {
+		passed = calculateWaitStatus(broker);
+	}
+	return passed;
 }
 

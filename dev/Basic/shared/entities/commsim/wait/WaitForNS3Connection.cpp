@@ -8,8 +8,7 @@
 
 using namespace sim_mob;
 
-sim_mob::WaitForNS3Connection::WaitForNS3Connection(sim_mob::Broker & broker_,int min_nof_clients_ ) :
-	BrokerBlocker(broker_), min_nof_clients(min_nof_clients_)
+sim_mob::WaitForNS3Connection::WaitForNS3Connection() : BrokerBlocker(), numClients(0)
 {
 }
 
@@ -17,33 +16,20 @@ sim_mob::WaitForNS3Connection::~WaitForNS3Connection()
 {
 }
 
-short sim_mob::WaitForNS3Connection::get_MIN_NOF_Clients()
+void sim_mob::WaitForNS3Connection::reset(unsigned int numClients)
 {
-	return min_nof_clients;
+	this->numClients = numClients;
+	passed = false;
 }
 
-void sim_mob::WaitForNS3Connection::set_MIN_NOF_Clients(int value)
+bool sim_mob::WaitForNS3Connection::calculateWaitStatus(BrokerBase& broker) const
 {
-	min_nof_clients = value;
-}
-
-bool sim_mob::WaitForNS3Connection::calculateWaitStatus()
-{
-	const ClientList::Type & clients = getBroker().getClientList();
+	const ClientList::Type& clients = broker.getClientList();
 	ClientList::Type::const_iterator it = clients.find(comm::NS3_SIMULATOR);
 	if (it==clients.end()) {
 		throw std::runtime_error("Unexpected in WaitForNS3Connection::calculateWaitStatus()");
 	}
 
-	int cnt = it->second.size();
-	if(cnt >= min_nof_clients)
-	{
-		setWaitStatus(false);
-	}
-	else {
-	setWaitStatus(true);
-	}
-	return isWaiting();//need to wait
-
+	return it->second.size()>=numClients;
 }
 

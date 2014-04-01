@@ -20,6 +20,10 @@
 #include "entities/commsim/message/Handlers.hpp"
 #include "entities/commsim/message/ThreadSafeQueue.hpp"
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
+#include "entities/commsim/wait/WaitForAgentRegistration.hpp"
+#include "entities/commsim/wait/WaitForAndroidConnection.hpp"
+#include "entities/commsim/wait/WaitForNS3Connection.hpp"
+#include "entities/commsim/connection/ConnectionServer.hpp"
 
 #include "util/OneTimeFlag.hpp"
 #include "workers/Worker.hpp"
@@ -151,6 +155,10 @@ public:
 
 	//Used by: TODO
 	virtual void insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn) = 0;
+
+	//Used by the BrokerBlocker subclasses. Hopefully we can further abstract these.
+	virtual size_t getRegisteredAgentsSize() const = 0;
+	virtual const ClientList::Type & getClientList() const = 0;
 };
 
 
@@ -189,11 +197,7 @@ protected:
 	std::string commElement;//"roadrunner", "stk",...etc
 	std::string commMode; //android-only, android-ns3,...etc
 
-	///	Is this Broker currently enabled?
-	bool enabled;
-	//OneTimeFlag configured_;
 	//	list of the registered agents and their corresponding communication equipment
-//	AgentsMap::type registeredAgents;
 	AgentsList REGISTERED_AGENTS;
 	///	waiting list for external clients willing to communication with simmobility
 	ClientWaitList clientRegistrationWaitingList; //<client type, requestform>
@@ -204,12 +208,7 @@ protected:
 	std::map<std::string, boost::shared_ptr<sim_mob::ConnectionHandler> > tokenConnectionLookup;
 
 	///	connection point to outside simmobility
-	boost::shared_ptr<ConnectionServer> connection;
-
-	///	message receive call back function pointer
-	//boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> m_messageReceiveCallback;
-	///	list of this broker's publishers
-	//PublisherList::Type publishers;
+	ConnectionServer connection;
 
 	///Broker's Publisher
 	BrokerPublisher publisher;
@@ -226,20 +225,16 @@ protected:
 	//      and the Broker can just collate these.
 	boost::mutex mutex_send_buffer;
 
-
 	///	incoming data(from clients to broker) is saved here in the form of messages
 	sim_mob::ThreadSafeQueue<sim_mob::MessageElement> receiveQueue;
 
-	///	list of classes that process incoming data(w.r.t client type)
-	///	to transform the data into messages and assign their message handlers
-//	MessageFactories::Type messageFactories; //<client type, message factory>
-	///	list of classes who process client registration requests based on client type
-//	sim_mob::ClientRegistrationFactory clientRegistrationFactory;
 	//todo this will be configured in the configure() method and
 	//replace the above "clientRegistrationFactory" member for simplicity
 	std::map<comm::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> > ClientRegistrationHandlerMap;
+
 	//	publishes an event when a client is registered with the broker
 	sim_mob::ClientRegistrationPublisher registrationPublisher;
+
 	///	internal controlling container
 	std::set<const sim_mob::Agent*> duplicateEntityDoneChecker ;
 
@@ -262,14 +257,11 @@ protected:
 	///	list of all brokers
 	static std::map<std::string, sim_mob::Broker*> externalCommunicators;
 
-	///	used to help deciding whether Broker tick forward or block the simulation
-	bool brokerCanTickForward;
-
-	///	container for classes who evaluate wait-for-connection criteria for every type of client
-	BrokerBlockers::Type clientBlockers; // <client type, BrokerBlocker class>
+	WaitForAndroidConnection waitAndroidBlocker;
+	WaitForNS3Connection waitNs3Blocker;
 
 	///	container for classes who evaluate wait-for-connection criteria for simmobility agents
-	BrokerBlockers::Type agentBlockers; // <N/A, BrokerBlocker class>
+	WaitForAgentRegistration waitAgentBlocker;
 
 	//various controlling mutexes and condition variables
 	boost::mutex mutex_client_request;
@@ -296,6 +288,7 @@ protected:
 	 *
 	 */
 	boost::condition_variable COND_VAR_AGENT_DONE;
+
 	/**
 	 * There Can be different types of External Entities(clients)
 	 * that are configure to be working with Broker. Each one of
@@ -304,12 +297,8 @@ protected:
 	 * The following method will examine all those Conditions and reports
 	 * back if any client is not connected when it was supposed to be connected.
 	 */
-	bool isWaitingForAnyClientConnection();
-	/**
-	 * Returns true if enough agent subscriptions exist to allow the broker
-	 * to proceed forward with its update method.
-	 */
-	bool isWaitingForAgentRegistration() const;
+	bool checkAllBrokerBlockers();
+
 	/**
 	 * checks wether an agent(entity) is dead or alive.
 	 * Note: this function is not used any more.
@@ -334,11 +323,10 @@ protected:
 	 * processes clients requests to be registered with the broker
 	 */
 	virtual void processClientRegistrationRequests();
-	/**
-	 * removes a client from the list of registered agents
-	 * Note: this function is not used any more.
-	 */
-	void removeClient(ClientList::Type::iterator it_erase);
+
+
+	void setNewClientProps();
+
 	/**
 	 * checks to see if a client has sent all what it had to send during the current tick
 	 * Note: The client will send an explicit message stating it is 'done' with whatever
@@ -346,11 +334,6 @@ protected:
 	 */
 	void waitForClientsDone();
 
-	/**
-	 * checks to see if every registered agent has completed its operations for the
-	 * current tick or not.
-	 */
-	bool allAgentUpdatesDone();
 
 	/**
 	 * internal cleanup at each tick
@@ -407,23 +390,12 @@ public:
 	 */
 	void AgentUpdated(Agent *);
 
-
-	//	enable broker
-	void enable();
-	/**
-	 * 	disable broker
-	 */
-	void disable();
-	/**
-	 * 	returns true if broker is enabled
-	 */
-	bool isEnabled() const;
 	/**
 	 * 	list of registered agents
 	 */
 	AgentsList::type &getRegisteredAgents();
 
-	size_t getRegisteredAgentsSize() const;
+	virtual size_t getRegisteredAgentsSize() const;
 
 	/**
 	 * 	list of registered agents + mutex
@@ -449,7 +421,7 @@ public:
 	/**
 	 * 	returns list of registered clients
 	 */
-	const ClientList::Type & getClientList();
+	virtual const ClientList::Type & getClientList() const;
 	/**
 	 *
 	 * 	searches for a client of specific ID and Type
@@ -480,9 +452,6 @@ public:
 	 */
 	virtual void insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn);
 
-
-	///Return an EventPublisher for a given type. Throws an exception if no such type is registered.
-//	PublisherList::Value getPublisher(sim_mob::Services::SIM_MOB_SERVICE serviceType);
 	sim_mob::event::EventPublisher & getPublisher();
 	/**
 	 * Accessor to client registration publisher
@@ -509,17 +478,15 @@ public:
 	 * 	Add proper entries in simmobility's configuration class
 	 */
 	static void addExternalCommunicator(const std::string & name, sim_mob::Broker* broker);
-	//abstracts & virtuals
-	void load(const std::map<std::string, std::string>& configProps);
-	bool frame_init(timeslice now);
-	Entity::UpdateStatus frame_tick(timeslice now);
-	void frame_output(timeslice now);
+
+	///Implements pure virtual Agent::isNonspatial. Returns true.
 	bool isNonspatial();
+
 protected:
 	/**
 	 * 	Wait for clients
 	 */
-	bool waitAndAcceptConnections();
+	void waitAndAcceptConnections();
 	/**
 	 * 	wait for the registered agents to complete their tick
 	 */
@@ -529,6 +496,14 @@ protected:
 	 * 	wait for a message from all of the registered the client stating that they are done sending messages for this tick
 	 */
 	bool allClientsAreDone();
+
+
+public:
+	//Unused, required overrides.
+	void load(const std::map<std::string, std::string>& configProps); ///<Implements pure virtual Agent::load(). Unused.
+	bool frame_init(timeslice now); ///<Implements pure virtual Agent::frame_init(). Unused.
+	Entity::UpdateStatus frame_tick(timeslice now); ///<Implements pure virtual Agent::frame_tick(). Unused.
+	void frame_output(timeslice now); ///<Implements pure virtual Agent::frame_output. Unused.
 
 };
 

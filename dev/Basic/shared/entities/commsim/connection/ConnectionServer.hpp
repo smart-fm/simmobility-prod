@@ -59,4 +59,5 @@ private:
 	sim_mob::BrokerBase& broker;
 };
 
-} /* namespace sim_mob */
+}
+

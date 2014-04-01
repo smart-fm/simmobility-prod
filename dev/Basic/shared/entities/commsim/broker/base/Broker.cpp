@@ -16,7 +16,6 @@
 #include "entities/commsim/comm_support/AgentCommUtility.hpp"
 #include "entities/commsim/client/derived/android/AndroidClientRegistration.hpp"
 #include "entities/commsim/client/derived/ns3/NS3ClientRegistration.hpp"
-#include "entities/commsim/connection/ConnectionServer.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/commsim/event/RegionsAndPathEventArgs.hpp"
@@ -27,8 +26,9 @@
 
 #include "event/SystemEvents.hpp"
 #include "event/args/EventArgs.hpp"
-#include "message/MessageBus.hpp"
 #include "event/EventPublisher.hpp"
+#include "message/MessageBus.hpp"
+#include "entities/profile/ProfileBuilder.hpp"
 
 #include "geospatial/RoadRunnerRegion.hpp"
 
@@ -38,32 +38,14 @@ using namespace sim_mob;
 std::map<std::string, sim_mob::Broker*> sim_mob::Broker::externalCommunicators;
 
 sim_mob::Broker::Broker(const MutexStrategy& mtxStrat, int id, std::string commElement, std::string commMode) :
-		Agent(mtxStrat, id), enabled(true) , commElement(commElement), commMode(commMode),
-		brokerCanTickForward(false), numAgents(0)
+		Agent(mtxStrat, id), commElement(commElement), commMode(commMode), numAgents(0), connection(*this)
 {
 	//Various Initializations
-	connection.reset(new ConnectionServer(*this));
-
 	configure();
 }
 
 sim_mob::Broker::~Broker()
 {
-}
-
-void sim_mob::Broker::enable()
-{
-	enabled = true;
-}
-
-void sim_mob::Broker::disable()
-{
-	enabled = false;
-}
-
-bool sim_mob::Broker::isEnabled() const
-{
-	return enabled;
 }
 
 bool sim_mob::Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler> client,  const std::string& message)
@@ -87,10 +69,6 @@ bool sim_mob::Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler>
 
 void sim_mob::Broker::configure()
 {
-	//Dispatch differently depending on whether we are using "android-ns3" or "android-only"
-	//TODO: Find a more dynamic way of adding new clients.
-	std::string client_type = ConfigManager::GetInstance().FullConfig().getCommSimMode(commElement);
-
 	//NOTE: I am fairly sure we don't need a context here, since the handler never checks it.
 	sim_mob::Worker::GetUpdatePublisher().subscribe(sim_mob::event::EVT_CORE_AGENT_UPDATED, 
 		this, &Broker::onAgentUpdate
@@ -101,72 +79,26 @@ void sim_mob::Broker::configure()
 	publisher.registerEvent(COMMEID_LOCATION);
 	publisher.registerEvent(COMMEID_TIME);
 	publisher.registerEvent(COMMEID_REGIONS_AND_PATH);
+	publisher.registerEvent(COMMEID_ALL_LOCATIONS);
 	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_LOCATION);
 	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_TIME);
 	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH);
-	//if (client_mode == "android-ns3") {
-		publisher.registerEvent(COMMEID_ALL_LOCATIONS);
-		serviceList.push_back(sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS);
-	//}
+	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS);
 
-
-	//NOTE: It seems that these "BrokerPublishers" don't do anything.
-	/*{
-	BrokerPublisher* onlyLocationsPublisher = new BrokerPublisher();
-	onlyLocationsPublisher->registerEvent(COMMEID_LOCATION);
-	publishers.insert(std::make_pair(
-		sim_mob::Services::SIMMOB_SRV_LOCATION,
-		PublisherList::Value(onlyLocationsPublisher))
-	);
-	}*/
-
-	//The Region publisher should be generally useful.
-	//{
-	/*BrokerPublisher* regionPublisher = new BrokerPublisher();
-	regionPublisher->registerEvent(COMMEID_REGIONS_AND_PATH);*/
-	//publishers.insert(std::make_pair(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH, PublisherList::Value(regionPublisher)));
-	//}
-
-	//NS-3 has its own publishers
-	/*if (client_type == "android-ns3") {
-		BrokerPublisher* allLocationsPublisher = new BrokerPublisher();
-		allLocationsPublisher->registerEvent(COMMEID_LOCATION);
-		publishers.insert(std::make_pair(
-			sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS,
-			PublisherList::Value(allLocationsPublisher))
-		);
-	}*/
-
-	/*{
-	BrokerPublisher* timePublisher = new BrokerPublisher();
-	timePublisher->registerEvent(COMMEID_TIME);
-	publishers.insert(std::make_pair(
-		sim_mob::Services::SIMMOB_SRV_TIME,
-		PublisherList::Value(timePublisher))
-	);
-	}*/
-
-	//	client registration handlers
-	//	Also listen to publishers who announce registration of new clients...
+	//Listen to Android/NS-3 client registrations.
 	ClientRegistrationHandlerMap[comm::ANDROID_EMULATOR].reset(new sim_mob::AndroidClientRegistration());
-	//if(client_mode == "android-ns3") {
-		ClientRegistrationHandlerMap[comm::NS3_SIMULATOR].reset(new sim_mob::NS3ClientRegistration());
-	//}
-
+	ClientRegistrationHandlerMap[comm::NS3_SIMULATOR].reset(new sim_mob::NS3ClientRegistration());
 
 	//Hook up Android emulators to OnClientRegister
 	registrationPublisher.registerEvent(comm::ANDROID_EMULATOR);
 	registrationPublisher.subscribe((event::EventId)comm::ANDROID_EMULATOR, this, &Broker::onClientRegister);
 
 	//Hook up the NS-3 simulator to OnClientRegister.
-	//if (client_type == "android-ns3") {
-		registrationPublisher.registerEvent(comm::NS3_SIMULATOR);
-		registrationPublisher.subscribe((event::EventId)comm::NS3_SIMULATOR, this, &Broker::onClientRegister);
-	//}
+	registrationPublisher.registerEvent(comm::NS3_SIMULATOR);
+	registrationPublisher.subscribe((event::EventId)comm::NS3_SIMULATOR, this, &Broker::onClientRegister);
 
-
-
-
+	//Dispatch differently depending on whether we are using "android-ns3" or "android-only"
+	std::string client_type = ConfigManager::GetInstance().FullConfig().getCommSimMode(commElement);
 	bool useNs3 = false;
 	if (client_type == "android-ns3") {
 		useNs3 = true;
@@ -179,21 +111,10 @@ void sim_mob::Broker::configure()
 	handleLookup.addHandlerOverride("OPAQUE_SEND", new sim_mob::OpaqueSendHandler(useNs3));
 	handleLookup.addHandlerOverride("OPAQUE_RECEIVE", new sim_mob::OpaqueReceiveHandler(useNs3));
 
-
-	//We always wait for MIN_CLIENTS Android emulators and MIN_CLIENTS Agents.
-	clientBlockers.insert(std::make_pair(comm::ANDROID_EMULATOR,
-		boost::shared_ptr<sim_mob::WaitForAndroidConnection>(new sim_mob::WaitForAndroidConnection(*this,MIN_CLIENTS)))
-	);
-	agentBlockers.insert(std::make_pair(0,
-		boost::shared_ptr<WaitForAgentRegistration>(new WaitForAgentRegistration(*this, MIN_AGENTS)))
-	);
-
-	//If ns-3 is on, we also wait for the ns-3 connection.
-	if(useNs3) {
-		clientBlockers.insert(std::make_pair(comm::NS3_SIMULATOR,
-			boost::shared_ptr<WaitForNS3Connection>(new WaitForNS3Connection(*this)))
-		);
-	}
+	//We always wait for MIN_CLIENTS Android emulators and MIN_CLIENTS Agents (and optionally, 1 ns-3 client).
+	waitAndroidBlocker.reset(MIN_CLIENTS);
+	waitAgentBlocker.reset(MIN_AGENTS);
+	waitNs3Blocker.reset(useNs3?1:0);
 }
 
 
@@ -344,7 +265,7 @@ size_t sim_mob::Broker::getClientWaitingListSize() const
 	return clientRegistrationWaitingList.size();
 }
 
-const ClientList::Type& sim_mob::Broker::getClientList()
+const ClientList::Type& sim_mob::Broker::getClientList() const
 {
 	return clientList;
 }
@@ -437,7 +358,6 @@ void sim_mob::Broker::processClientRegistrationRequests()
 		if(regisIt->second->handle(*this,it->second.request, it->second.existingConn)) {
 			//success: handle() just added to the client to the main client list and started its connectionHandler
 			//	next, see if the waiting state of waiting-for-client-connection changes after this process
-			clientBlockers[clientType]->calculateWaitStatus(); //TODO: First, do we need this? Second, this seems trivial..
 			clientRegistrationWaitingList.erase(it);
 		}
 	}
@@ -461,7 +381,6 @@ void sim_mob::Broker::processClientRegistrationRequests()
 	if(regisIt->second->handle(*this,it->second.request, it->second.existingConn)) {
 		//success: handle() just added to the client to the main client list and started its connectionHandler
 		//	next, see if the waiting state of waiting-for-client-connection changes after this process
-		clientBlockers[comm::NS3_SIMULATOR]->calculateWaitStatus(); //TODO: Again, do we need this?
 		clientRegistrationWaitingList.erase(it);
 	}
 }
@@ -596,7 +515,8 @@ void sim_mob::Broker::processIncomingData(timeslice now) {
 	}
 }
 
-bool sim_mob::Broker::frame_init(timeslice now) {
+bool sim_mob::Broker::frame_init(timeslice now)
+{
 	return true;
 }
 
@@ -605,10 +525,10 @@ Entity::UpdateStatus sim_mob::Broker::frame_tick(timeslice now) {
 }
 
 //todo consider scrabbing DriverComm
-bool sim_mob::Broker::allAgentUpdatesDone()
+/*bool sim_mob::Broker::allAgentUpdatesDone()
 {
 	return !REGISTERED_AGENTS.hasNotDone();
-}
+}*/
 
 
 
@@ -935,15 +855,7 @@ void sim_mob::Broker::refineSubscriptionList(sim_mob::Agent * target)
 		return;
 	}
 }
-//sim_mob::Broker sim_mob::Broker::instance(MtxStrat_Locked, 0);
 
-//todo:  put a better condition here. this is just a placeholder
-bool sim_mob::Broker::isWaitingForAgentRegistration() const
-{
-	sim_mob::BrokerBlockers::Value blocker = agentBlockers.at(0);
-	bool res = blocker->calculateWaitStatus();
-	return res;
-}
 
 //todo:  put a better condition here. this is just a placeholder
 bool sim_mob::Broker::clientsQualify() const
@@ -957,85 +869,41 @@ size_t sim_mob::Broker::getNumConnectedAgents() const
 }
 
 //returns true if you need to wait
-bool sim_mob::Broker::isWaitingForAnyClientConnection()
+bool sim_mob::Broker::checkAllBrokerBlockers()
 {
-//	Print() << "inside isWaitingForAnyClientConnection " << clientBlockers.size() << std::endl;
-	//BrokerBlockers::Pair pp;
-	int i = 0;
-	for (BrokerBlockers::Type::const_iterator it=clientBlockers.begin(); it!=clientBlockers.end(); it++) {
-	//BOOST_FOREACH(pp, clientBlockers) {
-		if (it->second->isWaiting()) {
-			if (EnableDebugOutput) {
-				Print() << " isWaitingForAnyClientConnection[" << i << "] : wait" << std::endl;
-			}
-			return true;
-		}
-		i++;
+	bool pass = waitAgentBlocker.pass(*this) && waitAndroidBlocker.pass(*this) && waitNs3Blocker.pass(*this);
+	if (!pass && EnableDebugOutput) {
+		Print() <<"BrokerBlocker is causing simulator to wait.\n";
 	}
-//	Print() << "isWaitingForAnyClientConnection : Dont wait" << std::endl;
-	return false;
+	return pass;
 }
 
-bool sim_mob::Broker::waitAndAcceptConnections() {
-	//	Initial evaluation
-	{
+void sim_mob::Broker::waitAndAcceptConnections() {
+	//Wait for more clients if:
+	//  1- number of subscribers is too low
+	//  2-there is no client(emulator) waiting in the queue
+	//  3-this update function never started to process any data so far
+	for (;;) {
 		boost::unique_lock<boost::mutex> lock(mutex_client_request);
+
+		//Add pending clients, check if this means we can advance.
 		processClientRegistrationRequests();
-		bool res1 = isWaitingForAgentRegistration();
-		bool res2 = isWaitingForAnyClientConnection();
-		bool res3 = !res1 && !res2;
-		bool res = /*brokerCanTickForward || */res3;
-		brokerCanTickForward = res;
-	}
 
-	/**if:
-	 * 1- number of subscribers is too low
-	 * 2-there is no client(emulator) waiting in the queue
-	 * 3-this update function never started to process any data so far
-	 * then:
-	 *  wait for enough number of clients and agents to join
-	 */
-
-	{
-		boost::unique_lock<boost::mutex> lock(mutex_client_request);
-		while (!brokerCanTickForward) {
+		//Sleep if we're not ready.
+		if (!checkAllBrokerBlockers()) {
 			if (EnableDebugOutput) {
 				Print() << " brokerCanTickForward->WAITING" << std::endl;
 			}
-			COND_VAR_CLIENT_REQUEST.wait(lock);
-			if (EnableDebugOutput) {
-				Print() << "COND_VAR_CLIENT_REQUEST released" << std::endl;
-			}
-			processClientRegistrationRequests();
 
-			bool res1 = isWaitingForAgentRegistration();
-			bool res2 = isWaitingForAnyClientConnection();
-			bool res3 = !res1 && !res2;
-			bool res = /*brokerCanTickForward ||*/res3;
-			brokerCanTickForward = res;
-			if (EnableDebugOutput) {
-				Print() << "brokerCanTickForward[" << res1 << "-" << res2 << "]" << std::endl;
-			}
-			//	brokerCanTickForward = brokerCanTickForward || ((isWaitingForAgentRegistration() && !isWaitingForAnyClientConnection()));
-//		Print() << "Broker::wait()::Secondary Evaluation => " << (brokerCanTickForward ? "True" : "false") << std::endl;
+			COND_VAR_CLIENT_REQUEST.wait(lock);
 		}
 	}
-
-	//broker started before but suddenly is no more qualified to run
-//	if(brokerCanTickForward && (!isWaitingForAgentRegistration())) {
-//		//don't block, just cooperate & don't do anything until this simulation ends
-//		//TODO: This might be why our client eventually gives up.
-//		return false;
-//	}
-
-	//Success! Continue.
-	return true;
 }
 
 void sim_mob::Broker::waitForAgentsUpdates()
 {
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
-	while(!allAgentUpdatesDone()) {
+	while(REGISTERED_AGENTS.hasNotDone()) {
 		if (EnableDebugOutput) {
 			Print() << "waitForAgentsUpdates _WAIT" << std::endl;
 		}
@@ -1095,12 +963,14 @@ Entity::UpdateStatus sim_mob::Broker::update(timeslice now)
 	//step-1 : Create/start the thread if this is the first frame.
 	//TODO: transfer this to frame_init
 	if (now.frame() == 0) {
-		connection->start();
+		connection.start();  //Not profiled; this only happens once.
 	}
 
 	if (EnableDebugOutput) {
 		Print() << "=====================ConnectionStarted =======================================\n";
 	}
+
+	PROFILE_LOG_COMMSIM_UPDATE_BEGIN(currWorkerProvider, this, now);
 
 	//Step-2: Ensure that we have enough clients to process
 	//(in terms of client type (like ns3, android emulator, etc) and quantity(like enough number of android clients) ).
@@ -1112,16 +982,17 @@ Entity::UpdateStatus sim_mob::Broker::update(timeslice now)
 	}
 
 	//step-3: Process what has been received in your receive container(message queue perhaps)
+	size_t numAgents = getNumConnectedAgents();
 	processIncomingData(now);
-
 	if (EnableDebugOutput) {
 		Print() << "===================== processIncomingData Done =======================================\n";
 	}
 
 	//step-4: if need be, wait for all agents(or others)
 	//to complete their tick so that you are the last one ticking)
+	PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_BEGIN(currWorkerProvider, this, now, numAgents);
 	waitForAgentsUpdates();
-
+	PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_END(currWorkerProvider, this, now, numAgents);
 	if (EnableDebugOutput) {
 		Print()<< "===================== waitForAgentsUpdates Done =======================================\n";
 	}
@@ -1136,9 +1007,13 @@ Entity::UpdateStatus sim_mob::Broker::update(timeslice now)
 //	step-5.5:for each client, append a message at the end of all messages saying Broker is ready to receive your messages
 	sendReadyToReceive();
 
-	//step-6: Now send all what has been prepared, by different sources, to their corresponding destications(clients)
-	processOutgoingData(now);
+	//This may have changed (or we should at least log if it did).
+	numAgents = getNumConnectedAgents();
 
+	//step-6: Now send all what has been prepared, by different sources, to their corresponding destications(clients)
+	PROFILE_LOG_COMMSIM_MIXED_COMPUTE_BEGIN(currWorkerProvider, this, now, numAgents);
+	processOutgoingData(now);
+	PROFILE_LOG_COMMSIM_MIXED_COMPUTE_END(currWorkerProvider, this, now, numAgents);
 	if (EnableDebugOutput) {
 		Print() << "===================== processOutgoingData Done =======================================\n";
 	}
@@ -1146,36 +1021,53 @@ Entity::UpdateStatus sim_mob::Broker::update(timeslice now)
 	//step-7:
 	//the clients will now send whatever they want to send(into the incoming messagequeue)
 	//followed by a Done! message.That is when Broker can go forwardClientList::pair clientByType;
+	PROFILE_LOG_COMMSIM_ANDROID_COMPUTE_BEGIN(currWorkerProvider, this, now);
 	waitForClientsDone();
-
+	PROFILE_LOG_COMMSIM_ANDROID_COMPUTE_END(currWorkerProvider, this, now);
 	if (EnableDebugOutput) {
 		Print() << "===================== waitForClientsDone Done =======================================\n";
+	}
+
+	//step-8:
+	//Now that all clients are done, set any properties on new clients.
+	//TODO: This is RR only.
+	if (!newClientsWaitingOnRegionEnabling.empty()) {
+		setNewClientProps();
+		if (EnableDebugOutput) {
+			Print() << "===================== setNewClientProps Done =======================================\n";
+		}
 	}
 
 	//step-9: final steps that should be taken before leaving the tick
 	//prepare for next tick.
 	cleanup();
+	PROFILE_LOG_COMMSIM_UPDATE_END(currWorkerProvider, this, now);
 	return UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
 
-void sim_mob::Broker::removeClient(ClientList::Type::iterator it_erase)
+void sim_mob::Broker::setNewClientProps()
 {
-	//todo: enable this later
-//	Print() << "Broker::removeClient locking mutex_clientList" << std::endl;
-//	if(!it_erase->second)
-//	{
-//		return;
-//	}
-//	//delete the connection handler inside the client handler
-//	if(it_erase->second->cnnHandler)
-//	{
-////		it_erase->second->cnnHandler.reset();
-//	}
-//	//delete the clientHandler
-////	it_erase->second.reset();
-//	//remove it from the list
-//	clientList.erase(it_erase);
-//	Print() << "Broker::removeClient UNlocking mutex_clientList" << std::endl;
+	//NOTE: I am locking this anyway, just to be safe. (In case a new Broker request arrives in the meantime). ~Seth
+	boost::unique_lock<boost::mutex> lock(mutex_clientList);
+
+	//Now, loop through each client and send it a message to inform that the Broker has registered it.
+	for (std::set< boost::weak_ptr<sim_mob::ClientHandler> >::iterator it=newClientsWaitingOnRegionEnabling.begin(); it!=newClientsWaitingOnRegionEnabling.end(); it++) {
+		//Attempt to resolve the weak pointer.
+		boost::shared_ptr<sim_mob::ClientHandler> cHand = it->lock();
+		if (cHand) {
+			//NOTE: Be CAREFUL here using the Agent pointer as a Context (void*). If you have a class with multiple inheritance,
+			//      the void* for different realizations of the same object may have DIFFERENT pointer values. ~Seth
+			messaging::MessageBus::PublishEvent(sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
+				cHand->agent,
+				messaging::MessageBus::EventArgsPtr(new event::EventArgs())
+			);
+		} else {
+			Warn() <<"Broker::setNewClientProps() -- Client was destroyed before its weak_ptr() could be resolved.\n";
+		}
+	}
+
+	//These clients have been processed.
+	newClientsWaitingOnRegionEnabling.clear();
 }
 
 void sim_mob::Broker::waitForClientsDone()

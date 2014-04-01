@@ -8,8 +8,7 @@
 
 using namespace sim_mob;
 
-sim_mob::WaitForAgentRegistration::WaitForAgentRegistration(sim_mob::Broker& broker, unsigned int minAgents) :
-	BrokerBlocker(broker), minAgents(minAgents),  started(false)
+sim_mob::WaitForAgentRegistration::WaitForAgentRegistration() : BrokerBlocker(), minAgents(0)
 {
 }
 
@@ -17,39 +16,16 @@ sim_mob::WaitForAgentRegistration::~WaitForAgentRegistration()
 {
 }
 
-
-bool WaitForAgentRegistration::calculateWaitStatus()
+void sim_mob::WaitForAgentRegistration::reset(unsigned int minAgents)
 {
-	size_t numAg = getBroker().getRegisteredAgentsSize();
-	//AgentsList::type& registeredAgents = getBroker().getRegisteredAgents();
-	//int size = registeredAgents.size();
-	if(!started) {
-		bool waitStat = numAg<minAgents;
-		setWaitStatus(waitStat);
-		if (waitStat) {
-			started = true;
-		}
+	this->minAgents = minAgents;
+	passed = false;
+}
 
-		/*if(size >= minAgents) {
-			//no need to wait
-			setWaitStatus(false);
-			//you are considered as "started"
-			started = true;
-		} else {
-			Print() << "min_start(" <<  min_start << ") >= registeredAgents.size(" << size << ") =>setWaitStatus(true)" << std::endl;
-			setWaitStatus(true);
-		}*/
-	} else {
-		setWaitStatus(false);
-		/*if(size < 0) { //Size will never be <0
-			Print() << "min_stop=>registeredAgents.size()= " << size << std::endl;
-			//you must wait
-			setWaitStatus(true);
-		} else {
-			setWaitStatus(false);
-		}*/
-	}
 
-	return isWaiting();
+bool WaitForAgentRegistration::calculateWaitStatus(BrokerBase& broker) const
+{
+	size_t numAg = broker.getRegisteredAgentsSize();
+	return numAg>=minAgents;
 }
 

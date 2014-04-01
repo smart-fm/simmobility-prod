@@ -12,15 +12,14 @@ class Broker;
 
 class WaitForNS3Connection: public sim_mob::BrokerBlocker {
 public:
-	WaitForNS3Connection(sim_mob::Broker & broker_,int min_nof_clients_ = 1);
+	WaitForNS3Connection();
 	virtual ~WaitForNS3Connection();
 
-	short get_MIN_NOF_Clients();
-	void set_MIN_NOF_Clients(int);
-	virtual bool calculateWaitStatus();
+	void reset(unsigned int numClients);
+	virtual bool calculateWaitStatus(BrokerBase& broker) const;
 
 private:
-	int min_nof_clients;
+	int numClients;
 };
 
 }

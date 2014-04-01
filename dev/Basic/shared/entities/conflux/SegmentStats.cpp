@@ -77,7 +77,7 @@ std::deque<sim_mob::Person*> SegmentStats::getAgents() {
 
 void SegmentStats::getAgentsByTopCMerge(std::deque<sim_mob::Person*>& mergedPersonList) {
 	std::vector< std::deque<sim_mob::Person*> > allPersonLists;
-	int capacity = (int)(ceil(roadSegment->capacity * 5 / 3600)); //hard-code: 5 is the time step
+	int capacity = (int)(ceil(roadSegment->getCapacityPerInterval())); //hard-code: 5 is the time step
 
 	for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator lnIt = laneStatsMap.begin(); lnIt != laneStatsMap.end(); lnIt++) {
 		allPersonLists.push_back((lnIt->second->laneAgents));
@@ -86,7 +86,7 @@ void SegmentStats::getAgentsByTopCMerge(std::deque<sim_mob::Person*>& mergedPers
 	topCMergeDifferentLanesInSegment(mergedPersonList, allPersonLists, capacity);
 }
 
-void SegmentStats::topCMergeDifferentLanesInSegment(std::deque<sim_mob::Person*>& mergedPersonList, std::vector<std::deque<sim_mob::Person*> >& allPersonLists, int Capacity) {
+void SegmentStats::topCMergeDifferentLanesInSegment(std::deque<sim_mob::Person*>& mergedPersonList, std::vector<std::deque<sim_mob::Person*> >& allPersonLists, int capacity) {
 	std::vector<std::deque<sim_mob::Person*>::iterator> iteratorLists;
 
 	//init location
@@ -96,7 +96,7 @@ void SegmentStats::topCMergeDifferentLanesInSegment(std::deque<sim_mob::Person*>
 	}
 
 	//pick the Top C
-	for (size_t c = 0; c < Capacity; c++) {
+	for (size_t c = 0; c < capacity; c++) {
 		int whichDeque = -1;
 		double minDistance = std::numeric_limits<double>::max();
 		sim_mob::Person* whichPerson = NULL;

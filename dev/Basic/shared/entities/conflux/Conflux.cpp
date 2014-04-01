@@ -963,7 +963,9 @@ void sim_mob::Conflux::getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>&
 				double speed = segStats->getSegSpeed(true);
 
 				//If speed is 0, treat it as a very small value
-				if(speed < 0.000001) speed = 0.000001;
+				if(speed < 0.000001) {
+					speed = 0.000001;
+				}
 
 				for (std::deque<sim_mob::Person*>::iterator pIt = allPersons.begin(); pIt != allPersons.end(); pIt++) {
 					(*pIt)->drivingTimeToEndOfLink = (*pIt)->distanceToEndOfSegment / speed + totalTimeToSegEnd;
@@ -975,7 +977,7 @@ void sim_mob::Conflux::getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>&
 	}
 
 	for (std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator upStrmSegMapIt = upstreamSegmentsMap.begin(); upStrmSegMapIt != upstreamSegmentsMap.end(); upStrmSegMapIt++) {
-		sumCapacity += (int)(ceil(upStrmSegMapIt->second[0]->capacity * 5 / 3600)); //hard-code: 5 is the time step
+		sumCapacity += (int)(ceil(upStrmSegMapIt->second[0]->getCapacityPerInterval() )); //hard-code: 5 is the time step
 
 		std::deque<sim_mob::Person*> oneDeque;
 

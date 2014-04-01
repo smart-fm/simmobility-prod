@@ -15,7 +15,7 @@
 #include <set>
 #include <iostream>
 namespace sim_mob {
-class Entity;
+/*class Entity;
 
 class AgentsInfo {
 
@@ -32,6 +32,6 @@ public:
 	virtual ~AgentsInfo();
 private:
 	std::map<Mode, std::set<sim_mob::Entity*> > all_agents; //map<type(active,pending) , std::vector<agents>
-};
+};*/
 
 } /* namespace sim_mob */

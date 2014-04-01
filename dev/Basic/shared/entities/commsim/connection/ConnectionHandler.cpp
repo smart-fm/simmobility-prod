@@ -26,27 +26,37 @@ sim_mob::ConnectionHandler::ConnectionHandler(session_ptr session, BrokerBase& b
 
 void sim_mob::ConnectionHandler::forwardReadyMessage(ClientHandler& newClient)
 {
+	//Create it.
+	OngoingSerialization ongoing;
+	CommsimSerializer::serialize_begin(ongoing, boost::lexical_cast<std::string>(newClient.agent->getId()));
+	CommsimSerializer::addGeneric(ongoing, CommsimSerializer::makeReady());
+
+	BundleHeader hRes;
+	std::string msg;
+	CommsimSerializer::serialize_end(ongoing, hRes, msg);
+
 	//Send it through normal channels.
-	forwardMessage(CommsimSerializer::makeReady());
+	forwardMessage(hRes, msg);
 }
 
-void sim_mob::ConnectionHandler::forwardMessage(std::string str)
+void sim_mob::ConnectionHandler::forwardMessage(const BundleHeader& head, const std::string& str)
 {
 	//Send or pend, depending on whether we are in the middle of an existing call to write() or not.
 	boost::unique_lock<boost::mutex> lock(async_write_mutex);
 	if (isAsyncWrite) {
-		pendingMsg.push_front(str);
+		pendingMsg.push_front(std::make_pair(head, str));
 	} else {
 		isAsyncWrite = true;
-		sendMessage(str);
+		sendMessage(head, str);
 	}
 }
 
 
-void sim_mob::ConnectionHandler::sendMessage(const std::string& msg)
+void sim_mob::ConnectionHandler::sendMessage(const BundleHeader& head, const std::string& msg)
 {
 	outgoingMessage = msg;
-	session->async_write(outgoingMessage, this);
+	outgoingHeader = head;
+	session->async_write(outgoingHeader, outgoingMessage, this);
 }
 
 void sim_mob::ConnectionHandler::readMessage()
@@ -60,7 +70,7 @@ void sim_mob::ConnectionHandler::messageSentHandle(const boost::system::error_co
 	//If there's an error, we can just re-send it (we are still protected by isAsyncWrite).
 	if(e) {
 		Warn() << "Connection Not Ready[" << e.message() << "] Trying Again" << std::endl;
-		sendMessage(outgoingMessage);
+		sendMessage(outgoingHeader, outgoingMessage);
 		return;
 	}
 
@@ -68,7 +78,7 @@ void sim_mob::ConnectionHandler::messageSentHandle(const boost::system::error_co
 	{
 	boost::unique_lock<boost::mutex> lock(async_write_mutex);
 	if (!pendingMsg.empty()) {
-		sendMessage(pendingMsg.back());
+		sendMessage(pendingMsg.back().first, pendingMsg.back().second);
 		pendingMsg.pop_back();
 	} else {
 		//We're done writing; the next write will have to be triggered by a call to forwardMessage().

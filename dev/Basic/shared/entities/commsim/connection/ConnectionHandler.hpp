@@ -31,7 +31,7 @@ public:
 	void forwardReadyMessage(ClientHandler& newClient);
 
 	//Send a message on behalf of the given client.
-	void forwardMessage(std::string str);
+	void forwardMessage(const BundleHeader& head, const std::string& str);
 
 	bool isValid() const;
 	void invalidate();
@@ -51,7 +51,7 @@ public:
 
 private:
 	//Helper: send a message, read a message.
-	void sendMessage(const std::string& msg);
+	void sendMessage(const BundleHeader& head, const std::string& msg);
 	void readMessage();
 
 	//What type of clients (Android, NS3) can this ConnectionHandler manage? Starts off as Unknown.
@@ -63,6 +63,7 @@ private:
 	bool valid;
 
 	//The current incoming/outgoing messages/headers. Boost wants these passed by reference.
+	BundleHeader outgoingHeader;
 	std::string outgoingMessage;
 	std::string incomingMessage;
 	BundleHeader incomingHeader;
@@ -74,7 +75,7 @@ private:
 
 	//Lock async_write. If this flag is true, we can't call async_write, so outgoing messages are pended to an array.
 	bool isAsyncWrite;
-	std::list<std::string> pendingMsg; //Messages pending to be sent out.
+	std::list< std::pair<BundleHeader, std::string> > pendingMsg; //Messages pending to be sent out.
 
 	//Lock async_read. If this flag is true, we can't call async_read until the current operation completes.
 	bool isAsyncRead;

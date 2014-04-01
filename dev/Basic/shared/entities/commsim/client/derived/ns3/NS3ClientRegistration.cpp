@@ -13,14 +13,15 @@
 #include "AgentsInfo.hpp"
 #include <boost/foreach.hpp>
 
-sim_mob::NS3ClientRegistration::NS3ClientRegistration() :
-		ClientRegistrationHandler() {
+sim_mob::NS3ClientRegistration::NS3ClientRegistration() : ClientRegistrationHandler()
+{
 }
-sim_mob::NS3ClientRegistration::~NS3ClientRegistration() {
+sim_mob::NS3ClientRegistration::~NS3ClientRegistration()
+{
 }
 
-bool sim_mob::NS3ClientRegistration::initialEvaluation(sim_mob::Broker& broker,
-		AgentsList::type &registeredAgents) {
+bool sim_mob::NS3ClientRegistration::initialEvaluation(sim_mob::Broker& broker, AgentsList::type &registeredAgents)
+{
 	bool res = false;
 	//add your conditions here
 	res = broker.getClientWaitingListSize()>0;
@@ -70,34 +71,37 @@ boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeCl
 void sim_mob::NS3ClientRegistration::sendAgentsInfo(sim_mob::Broker& broker, boost::shared_ptr<ClientHandler> clientEntry)
 {
 	//send some initial configuration information to NS3
-	std::set<sim_mob::Entity *> keys;
-	{			//multi-threaded section, need locking
-		AgentsList::Mutex mutex;
-		AgentsList::type & agents = broker.getRegisteredAgents(&mutex);
-		AgentsList::Lock lock(mutex);
-		//please mind the AgentInfo vs AgentsInfo
-		//AgentInfo agent;
-		for (AgentsList::type::iterator it = agents.begin(); it != agents.end();
-				it++) {
-			//BOOST_FOREACH(agent, agents) {
-			keys.insert(it->second.agent);
-		}
+	std::vector<unsigned int> keys;
 
-		//We are cheating a bit here.
-		StartTimePriorityQueue pending(Agent::pending_agents);
-		while (!pending.empty()) {
-			Person* p = dynamic_cast<Person*>(pending.top());
-			if (p) {
-				keys.insert(p);
-			}
-			pending.pop();
-		}
+	{//multi-threaded section, need locking
+	AgentsList::Mutex mutex;
+	AgentsList::type & agents = broker.getRegisteredAgents(&mutex);
+	AgentsList::Lock lock(mutex);
+
+	//please mind the AgentInfo vs AgentsInfo
+	for (AgentsList::type::iterator it = agents.begin(); it != agents.end(); it++) {
+		keys.push_back(it->second.agent->getId());
 	}
 
-	//no lock and const_cast at the cost of a lot of copying
-	AgentsInfo info;
-	info.insertInfo(AgentsInfo::ADD_AGENT, keys);
-	clientEntry->connHandle->forwardMessage(info.toJson());	//send synchronously
+	//We are cheating a bit here.
+	StartTimePriorityQueue pending(Agent::pending_agents);
+	while (!pending.empty()) {
+		Person* p = dynamic_cast<Person*>(pending.top());
+		if (p) {
+			keys.push_back(p->getId());
+		}
+		pending.pop();
+	}
+	}
+
+	OngoingSerialization ongoing;
+	CommsimSerializer::serialize_begin(ongoing, boost::lexical_cast<std::string>(clientEntry->agent->getId()));
+	CommsimSerializer::addGeneric(ongoing, CommsimSerializer::makeAgentsInfo(keys, std::vector<unsigned int>()));
+
+	BundleHeader hRes;
+	std::string msg;
+	CommsimSerializer::serialize_end(ongoing, hRes, msg);
+	clientEntry->connHandle->forwardMessage(hRes, msg);
 }
 
 bool sim_mob::NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn)

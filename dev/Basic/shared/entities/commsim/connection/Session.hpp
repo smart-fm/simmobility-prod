@@ -48,16 +48,16 @@ public:
 	bool isOpen() const;
 
 	//Write data immediately to the underlying socket. WARNING: Almost never do this! Use the async functions.
-	bool write(const std::string &input, boost::system::error_code &ec);
+	bool write(const BundleHeader& header, const std::string &input, boost::system::error_code &ec);
 
 	/// Asynchronously write a data structure to the socket.
-	void async_write(const std::string &data, ConnectionHandler* handler);
+	void async_write(const BundleHeader& header, const std::string &data, ConnectionHandler* handler);
 
 	/// Asynchronously read a data structure from the socket.
 	void async_read(BundleHeader& header, std::string &input, ConnectionHandler* handler);
 
 private:
-	static std::string MakeWriteBuffer(const std::string &input);
+	static std::string MakeWriteBuffer(const BundleHeader& header);
 
 
 	/// Handle a completed read of a message header. The handler is passed using

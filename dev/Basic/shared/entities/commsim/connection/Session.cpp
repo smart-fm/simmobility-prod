@@ -30,23 +30,20 @@ bool sim_mob::Session::isOpen() const
 	return socket_.is_open();
 }
 
-std::string sim_mob::Session::MakeWriteBuffer(const std::string &input)
+std::string sim_mob::Session::MakeWriteBuffer(const BundleHeader& header)
 {
-	// Format the header.
-	std::ostringstream header_stream;
-	header_stream <<std::setw(header_length) <<std::hex <<input.size();
-	if (!header_stream || header_stream.str().size() != header_length) {
+	//Format the header.
+	std::string res = BundleParser::make_bundle_header(header);
+	if (res.empty()) {
 		throw std::runtime_error("MakeWriteBuffer: unexpected.");
 	}
-
-	//Done.
-	return header_stream.str();
+	return res;
 }
 
-bool sim_mob::Session::write(const std::string &input, boost::system::error_code &ec)
+bool sim_mob::Session::write(const BundleHeader& header, const std::string &input, boost::system::error_code &ec)
 {
 	std::vector<boost::asio::const_buffer> buffers;
-	outbound_header_ = MakeWriteBuffer(input);
+	outbound_header_ = MakeWriteBuffer(header);
 	buffers.push_back(boost::asio::buffer(outbound_header_));
 	buffers.push_back(boost::asio::buffer(input));
 
@@ -55,10 +52,10 @@ bool sim_mob::Session::write(const std::string &input, boost::system::error_code
 }
 
 
-void sim_mob::Session::async_write(const std::string &data, ConnectionHandler* handler)
+void sim_mob::Session::async_write(const BundleHeader& header, const std::string &data, ConnectionHandler* handler)
 {
 	// Format the header.
-	outbound_header_ = MakeWriteBuffer(data);
+	outbound_header_ = MakeWriteBuffer(header);
 
 	std::vector<boost::asio::const_buffer> buffers;
 	buffers.push_back(boost::asio::buffer(outbound_header_));

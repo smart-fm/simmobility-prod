@@ -649,7 +649,7 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 
 		//Forward to the given client.
 		//TODO: We can add per-client routing here.
-		conn->forwardMessage(message);
+		conn->forwardMessage(header, message);
 	}
 
 	//Clear the buffer for the next time tick.

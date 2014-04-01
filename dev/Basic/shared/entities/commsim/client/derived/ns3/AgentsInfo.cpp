@@ -10,41 +10,38 @@
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
 #include <boost/foreach.hpp>
 
-namespace sim_mob {
-
-AgentsInfo::AgentsInfo() {
-	// TODO Auto-generated constructor stub
+using namespace sim_mob;
+/*
+sim_mob::AgentsInfo::AgentsInfo()
+{
 }
 
-void AgentsInfo::insertInfo(std::map<Mode, std::set<sim_mob::Entity*> > &values)
+sim_mob::AgentsInfo::~AgentsInfo()
+{
+}
+
+
+void sim_mob::AgentsInfo::insertInfo(std::map<Mode, std::set<sim_mob::Entity*> > &values)
 {
 	std::map<Mode, std::set<sim_mob::Entity*> >::iterator it(values.begin()), it_end(values.end());
-	for(; it != it_end; it++ )
-	{
+	for(; it != it_end; it++ ) {
 		all_agents[it->first].insert(it->second.begin(), it->second.end());
 	}
 
 }
 
-void AgentsInfo::insertInfo(Mode mode, std::set<sim_mob::Entity*>  &values)
+void sim_mob::AgentsInfo::insertInfo(Mode mode, std::set<sim_mob::Entity*>  &values)
 {
-//	std::set<sim_mob::Entity*>::iterator it(values.begin()), it_end(values.end());
-//	for(; it != it_end; it++ )
-//	{
-		all_agents[mode].insert(values.begin(), values.end());
-//	}
-
+	all_agents[mode].insert(values.begin(), values.end());
 }
 
-void AgentsInfo::insertInfo(Mode mode,sim_mob::Entity* value) {
+void sim_mob::AgentsInfo::insertInfo(Mode mode,sim_mob::Entity* value)
+{
 	all_agents[mode].insert(value);
 }
-std::string AgentsInfo::toJson()
-{
-	//Json::Value jPacket,jHeader,jArray_add,JArray_delete,jElement;
-	//Json::Value* jArray_temp;
-	//sim_mob::Entity* t;
 
+std::string sim_mob::AgentsInfo::toJson()
+{
 	std::vector<unsigned int> addAgIds;
 	std::vector<unsigned int> remAgIds;
 	for(std::map<Mode, std::set<sim_mob::Entity*> >::iterator it = all_agents.begin(); it != all_agents.end(); it++) {
@@ -62,40 +59,10 @@ std::string AgentsInfo::toJson()
 		}
 
 		for (std::set<Entity*>::const_iterator eIt=it->second.begin(); eIt!=it->second.end(); eIt++) {
-		//BOOST_FOREACH(t, it->second) {
 			currVec->push_back((*eIt)->getId());
-			//jElement.clear();
-			//jElement["AGENT_ID"] = (*eIt)->getId();
-			//jArray_temp->append(jElement);
 		}
 	}
-	/*pckt_header pHeader_(1, "0");
-	jHeader = JsonParser::createPacketHeader(pHeader_);
-	jElement.clear();//to make a message
-	msg_header mHeader_("0", "SIMMOBILITY", "AGENTS_INFO", "SYS");
-	jElement = JsonParser::createMessageHeader(mHeader_);
-	if(jArray_add.size())
-	{
-		jElement["ADD"] = jArray_add;
-	}
-	if(JArray_delete.size())
-	{
-		jElement["DELETE"] = JArray_delete;
-	}
-
-	jPacket["PACKET_HEADER"] = jHeader;
-	jPacket["DATA"].append(jElement);*/
-
-	//convert the jsoncpp packet to a json string
-	//Json::FastWriter writer;
-	//std::string res =  writer.write(jPacket);
-//std::cout << "AGENTS_INFO : ###" << res << "###" << std::endl;
-	//return res;
 
 	return CommsimSerializer::makeAgentsInfo(addAgIds, remAgIds);
 }
-AgentsInfo::~AgentsInfo() {
-	// TODO Auto-generated destructor stub
-}
-
-} /* namespace sim_mob */
+*/

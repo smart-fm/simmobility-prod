@@ -19,8 +19,16 @@ void sim_mob::WhoAreYouProtocol::QueryAgentAsync(boost::shared_ptr<sim_mob::Conn
 	//Inform the Broker that this connection is waiting on a WHOAMI response.
 	broker.insertIntoWaitingOnWHOAMI(conn->getToken(), conn);
 
+	OngoingSerialization ongoing;
+	CommsimSerializer::serialize_begin(ongoing, "0"); //Destination ID of zero is allowed ONLY for WHOAREYOU (since the client is unknown).
+	CommsimSerializer::addGeneric(ongoing, CommsimSerializer::makeWhoAreYou(conn->getToken()));
+
+	BundleHeader hRes;
+	std::string msg;
+	CommsimSerializer::serialize_end(ongoing, hRes, msg);
+
 	//At this point, we have a ConnectionHandler that can at least receive messages. So send the "WHOAREYOU" request.
 	//This will be received by the Broker, and added to the messageReceived() callback, which should then be filtered as expected.
-	conn->forwardMessage(CommsimSerializer::makeWhoAreYou(conn->getToken()));
+	conn->forwardMessage(hRes, msg);
 }
 

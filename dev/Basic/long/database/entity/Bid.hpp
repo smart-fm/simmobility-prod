@@ -24,8 +24,9 @@ namespace sim_mob {
          */
         class Bid {
         public:
-            Bid(BigSerial id, int bidderId, LT_Agent* bidder, float value, 
-                    timeslice& time);
+            Bid(BigSerial id, BigSerial bidderId, LT_Agent* bidder, double value, 
+                    timeslice& time, double willingnessToPay = .0f, 
+                    double surplus = .0f);
             Bid(const Bid& source);
             virtual ~Bid();
 
@@ -46,7 +47,7 @@ namespace sim_mob {
              * Gets the Bidder unique identifier.
              * @return value with Bidder identifier.
              */
-            int getBidderId() const;
+            BigSerial getBidderId() const;
             
             /**
              * Gets the Bidder pointer.
@@ -58,7 +59,19 @@ namespace sim_mob {
              * Gets the value of the bid.
              * @return the value of the bid.
              */
-            float getValue() const;
+            double getValue() const;
+            
+            /**
+             * Gets the value of the surplus for the current unit.
+             * @return the value of the surplus.
+             */
+            double getSurplus() const;
+            
+            /**
+             * Gets the value of the willingness to pay of the bidder to this unit.
+             * @return the value of the willingness to pay.
+             */
+            double getWillingnessToPay() const;
             
             /**
              * Gets the time of the bid.
@@ -81,9 +94,15 @@ namespace sim_mob {
         private:
             timeslice time;
             BigSerial unitId;
-            int bidderId;
-            float value;
+            BigSerial bidderId;
+            double value;
             LT_Agent* bidder;
+            
+            /**
+             * Bidder information. 
+             */ 
+            double surplus;
+            double willingnessToPay;
         };
     }
 }

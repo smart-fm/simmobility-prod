@@ -21,6 +21,7 @@
 #include "database/DB_Config.hpp"
 #include "database/PopulationSqlDao.hpp"
 #include "database/PopulationMongoDao.hpp"
+#include "database/TripChainSqlDao.hpp"
 #include "database/ZoneCostMongoDao.hpp"
 #include "util/LangHelpers.hpp"
 
@@ -116,32 +117,56 @@ void sim_mob::medium::PredayManager::loadPersons(BackendType dbType) {
 
 void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType) {
 	switch(dbType) {
-	case POSTGRES:
-	{
-		throw std::runtime_error("Zone information is not available in PostgreSQL database yet");
-		break;
-	}
-	case MONGO_DB:
-	{
-//		zoneMap.reserve(1092);
-		std::string zoneCollectionName = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo").collectionName.at("Zone");
-		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
-		std::string emptyString;
-		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
-		ZoneMongoDao zoneDao(dbConfig, db.dbName, zoneCollectionName);
-		zoneDao.getAllZones(zoneMap);
-		Print() << "MTZ Zones loaded" << std::endl;
-		break;
-	}
-	default:
-	{
-		throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
-	}
+		case POSTGRES:
+		{
+			throw std::runtime_error("Zone information is not available in PostgreSQL database yet");
+			break;
+		}
+		case MONGO_DB:
+		{
+			std::string zoneCollectionName = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo").collectionName.at("Zone");
+			Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+			std::string emptyString;
+			db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+			ZoneMongoDao zoneDao(dbConfig, db.dbName, zoneCollectionName);
+			zoneDao.getAllZones(zoneMap);
+			Print() << "MTZ Zones loaded" << std::endl;
+			break;
+		}
+		default:
+		{
+			throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
+		}
 	}
 
 	for(ZoneMap::iterator i=zoneMap.begin(); i!=zoneMap.end(); i++) {
 		zoneIdLookup[i->second->getZoneCode()] = i->first;
 	}
+}
+
+void sim_mob::medium::PredayManager::loadZoneNodes(db::BackendType dbType) {
+	switch(dbType) {
+		case POSTGRES:
+		{
+			throw std::runtime_error("AM, PM and off peak costs are not available in PostgreSQL database yet");
+		}
+		case MONGO_DB:
+		{
+			std::string zoneNodeCollectionName = ConfigManager::GetInstance().FullConfig().constructs.mongoCollectionsMap.at("preday_mongo").collectionName.at("zone_node");
+			Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+			std::string emptyString;
+			db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+			ZoneNodeMappingDao zoneNodeDao(dbConfig, db.dbName, zoneNodeCollectionName);
+			zoneNodeDao.getAll(zoneNodeMap);
+			Print() << "Zones-Node mapping loaded" << std::endl;
+			break;
+		}
+		default:
+		{
+			throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
+		}
+	}
+	Print() << "zoneNodeMap.size() : " << zoneNodeMap.size() << std::endl;
 }
 
 void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
@@ -164,9 +189,15 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
 			// if the zone data was loaded already we can reserve space for costs to speed up the loading
 			// Cost data will be available foe every pair (a,b) of zones where a!=b
 			CostMap::size_type mapSz = nZones * nZones - nZones;
-			amCostMap.rehash(mapSz / amCostMap.max_load_factor());
-			pmCostMap.rehash(mapSz / pmCostMap.max_load_factor());
-			opCostMap.rehash(mapSz / opCostMap.max_load_factor());
+                        
+                        //boost 1.49
+                        amCostMap.rehash(ceil(mapSz / amCostMap.max_load_factor()));
+                        pmCostMap.rehash(ceil(mapSz / pmCostMap.max_load_factor()));
+                        opCostMap.rehash(ceil(mapSz / opCostMap.max_load_factor()));
+			//boost >= 1.50
+                        //amCostMap.reserve(mapSz);
+			//pmCostMap.reserve(mapSz);
+			//opCostMap.reserve(mapSz);
 		}
 
 		CostMongoDao amCostDao(dbConfig, db.dbName, amCostsCollName);
@@ -235,11 +266,27 @@ void sim_mob::medium::PredayManager::processPersons(
 		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
 
+	Database database = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_local");
+	std::string cred_id = ConfigManager::GetInstance().FullConfig().system.networkDatabase.credentials;
+	Credential credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
+	std::string username = credentials.getUsername();
+	std::string password = credentials.getPassword(false);
+	DB_Config dbConfig(database.host, database.port, database.dbName, username, password);
+
+	// Connect to database and load data.
+	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+	conn.connect();
+	if (!conn.isConnected()) {
+		throw std::runtime_error("Could not connect to PostgreSQL database. Check credentials.");
+	}
+	TripChainSqlDao tcDao(conn);
+
 	// loop through all persons within the range and plan their day
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, tcDao);
 		predaySystem.planDay();
 		predaySystem.outputPredictionsToMongo();
+		predaySystem.outputTripChainsToPostgreSQL(zoneNodeMap);
 	}
 
 	// destroy Dao objects

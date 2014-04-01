@@ -38,7 +38,7 @@ namespace sim_mob {
              * @return true if the transaction was committed with success,
              *         false otherwise.
              */
-            virtual T& insert(T& entity) = 0;
+            virtual T& insert(T& entity, bool returning) = 0;
 
             /**
              * Updates the given entity into the data source.
@@ -70,6 +70,15 @@ namespace sim_mob {
              * @return true if some values were returned, false otherwise.
              */
             virtual bool getAll(std::vector<T>& outList) = 0;
+            
+            /**
+             * Gets all values from the source and put them on the given list.
+             * This function allocates memory dynamically. 
+             * Caller is responsible for delete each element.
+             * @param outList to put the retrieved values. 
+             * @return true if some values were returned, false otherwise.
+             */
+            virtual bool getAll(std::vector<T*>& outList) = 0;
         };
     }
 }

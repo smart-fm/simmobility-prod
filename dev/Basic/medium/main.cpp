@@ -391,6 +391,7 @@ bool performMainDemand(unsigned numThreads){
 	predayManager.loadZones(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
 	predayManager.loadPersons(db::MONGO_DB);
+	predayManager.loadZoneNodes(db::MONGO_DB);
 	predayManager.distributeAndProcessPersons(numThreads);
 	return true;
 }
@@ -430,6 +431,13 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		//Log::Ignore();
 		Warn::Ignore();
 		Print::Ignore();
+	}
+
+	try {
+		ConfigManager::GetInstance().FullConfig().system.genericProps.at("mid_term_run_mode");
+	}
+	catch (const std::out_of_range& oorx) {
+		throw std::runtime_error("missing mandatory property 'mid_term_run_mode'");
 	}
 
 	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply() && ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {

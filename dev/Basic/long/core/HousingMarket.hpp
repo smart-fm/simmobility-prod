@@ -26,8 +26,8 @@ namespace sim_mob {
          * This guarantees thread safety without locks using 
          * the following assumptions:
          *  1- All calls to update, add and delete entry will produce 
-         * an internal message that will be processed in the thread where the 
-         * HousingMarket entity is placed. This means that all actions will be 
+         * an internal message that will be processed in the MessageBus 
+         * main thread. This means that all actions will be 
          * available only in the very beginning of the next tick.
          * 
          *  2- It is guaranteed that the list is not changed during the 
@@ -42,7 +42,8 @@ namespace sim_mob {
          * the current list of available units.
          * 
          * Th main responsibility is the management of: 
-         *  - avaliable units
+         *  - avaliable units to sell
+         *  - Notify agents which are looking for home. 
          */
         class HousingMarket : public sim_mob::Entity {
         public:
@@ -59,12 +60,13 @@ namespace sim_mob {
              */
             class Entry {
             public:
-                Entry(LT_Agent* owner, const Unit& unit, double askingPrice,
-                        double hedonicPrice);
+                Entry(LT_Agent* owner, BigSerial unitId, BigSerial postcodeId, 
+                        BigSerial tazId, double askingPrice, double hedonicPrice);
                 virtual ~Entry();
 
                 BigSerial getUnitId() const;
-                const Unit& getUnit() const;
+                BigSerial getPostcodeId() const;
+                BigSerial getTazId() const;
                 double getAskingPrice() const;
                 double getHedonicPrice() const;
                 LT_Agent* getOwner() const;
@@ -74,14 +76,17 @@ namespace sim_mob {
                 void setOwner(LT_Agent* owner);
 
             private:
+                BigSerial tazId;
+                BigSerial postcodeId;
                 BigSerial unitId;
-                const Unit& unit;
                 double askingPrice;
                 double hedonicPrice;
                 LT_Agent* owner;
             };
-
-            typedef boost::unordered_map<BigSerial, Entry> EntryMap;
+            typedef std::vector<Entry*> EntryList;
+            typedef std::vector<const Entry*> ConstEntryList;
+            typedef boost::unordered_map<BigSerial, Entry*> EntryMap;
+            typedef boost::unordered_map<BigSerial, EntryMap> EntryMapById;
 
         public:
             HousingMarket();
@@ -115,11 +120,17 @@ namespace sim_mob {
             void removeEntry(const BigSerial& unitId);
 
             /**
-             * Get all available entries map.
-             * You should not change the returned values.
-             * @return EntryMap will all entries.
+             * Get available entries map filtered by given Taz ids.
+             * @param tazIds to filter the options.
+             * @param outList list to receive available units filtered by ids.
              */
-            const EntryMap& getAvailableEntries();
+            void getAvailableEntries(const IdVector& tazIds, ConstEntryList& outList);
+            
+            /**
+             * Get all available entries map.
+             * @param outList list to receive available units.
+             */
+            void getAvailableEntries(ConstEntryList& outList);
 
             /**
              * Get a pointer of the entry by given unit identifier.
@@ -151,7 +162,8 @@ namespace sim_mob {
             void onWorkerExit();
 
         private:
-            EntryMap entriesById;
+            EntryMap entriesById; // original copies
+            EntryMapById entriesByTazId; // only lookup.
         };
     }
 }

@@ -12,6 +12,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include "stddef.h"
 #include "util/LangHelpers.hpp"
 #include "Common.hpp"
@@ -20,6 +21,7 @@ namespace sim_mob {
     namespace long_term {
         
         typedef long long BigSerial;
+        typedef std::vector<BigSerial> IdVector;
         
         enum Sex {
             UNKNOWN_SEX = 0,
@@ -88,7 +90,8 @@ namespace sim_mob {
          * Structs
          */
         typedef struct ExpectationEntry_ {
-            ExpectationEntry_() : price(0), expectation(0){}
+            ExpectationEntry_() : price(0), expectation(0), hedonicPrice(0){}
+            double hedonicPrice;
             double price;
             double expectation;
         } ExpectationEntry;

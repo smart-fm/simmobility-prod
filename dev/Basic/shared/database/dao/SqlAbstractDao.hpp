@@ -11,6 +11,7 @@
 #pragma once
 #include <vector>
 #include <boost/algorithm/string.hpp>
+#include <boost/unordered_map.hpp>
 #include "database/DB_Connection.hpp"
 #include "util/LangHelpers.hpp"
 #include "soci.h"
@@ -18,267 +19,348 @@
 
 namespace {
 
-    typedef soci::details::use_type_ptr UseTypePtr;
+typedef soci::details::use_type_ptr UseTypePtr;
 
-    /**
-     * Visitor that will convert an variant value into details::use_type_ptr.
-     */
-    class UsePtrConverter : public boost::static_visitor<UseTypePtr> {
-    public: // visitor interfaces
+/**
+ * Visitor that will convert an variant value into details::use_type_ptr.
+ */
+class UsePtrConverter: public boost::static_visitor<UseTypePtr> {
+public:
+	// visitor interfaces
 
-        template <typename T>
-        UseTypePtr operator()(const T& val) const {
-            return soci::use(val);
-        }
-    };
-    // POSTGRES dependent. Needs to be fixed.
-    const std::string DB_RETURNING_CLAUSE = "RETURNING";
-    const std::string DB_RETURNING_ALL_CLAUSE = " " + DB_RETURNING_CLAUSE + " * ";
+	template<typename T>
+	UseTypePtr operator()(const T& val) const {
+		return soci::use(val);
+	}
+};
+// POSTGRES dependent. Needs to be fixed.
+const std::string DB_RETURNING_CLAUSE = "RETURNING";
+const std::string DB_RETURNING_ALL_CLAUSE = " " + DB_RETURNING_CLAUSE + " * ";
 }
 
 namespace sim_mob {
 
-    namespace db {
-        typedef soci::row Row;
-        typedef soci::rowset<Row> ResultSet;
+namespace db {
+typedef soci::row Row;
+typedef soci::rowset<Row> ResultSet;
 
-        /**
-         * Represents an Abstract implementation of Data Access Object for 
-         * SQL databases to a given template entity.
-         * 
-         * Example:
-         *     DB Table: Person
-         *     Entity on System: Person
-         *     Dao on System: PersonDao : AbstractDao<Person>
-         * 
-         * Each entity *must* provide two main things:
-         * Mandatory:
-         *  - Empty constructor.
-         * 
-         * Optional:
-         *  - Operator<< defined
-         *  - Friendship to the concrete Dao. (nice to have)
-         * 
-         * Each DAO implementation *must* provide the following things:
-         * Mandatory:
-         *  - override fromRow() to convert SELECT statements to Entities.
-         *  - override toRow() to convert data for CRUD statements.
-         *  - Default queries:
-         *      defaultQueries[INSERT] = "INSERT.....";
-         *      defaultQueries[UPDATE] = "UPDATE.....";
-         *      defaultQueries[DELETE] = "DELETE.....";
-         *      defaultQueries[GET_ALL] = "SELECT * FROM.....";
-         *      defaultQueries[GET_BY_ID] = SELECT * FROM..WHERE..";
-         * NOTE: all parameters values for prepared statements are used like 
-         *       "field = :myfield"
-         * 
-         * 
-         * Attention: The given connection is not managed by DAO implementation.
-         * This implementation is not thread-safe.
-         * 
-         */
-        template <typename T> class SqlAbstractDao : public I_Dao<T>{
-        public:
+/**
+ * Represents an Abstract implementation of Data Access Object for
+ * SQL databases to a given template entity.
+ *
+ * Example:
+ *     DB Table: Person
+ *     Entity on System: Person
+ *     Dao on System: PersonDao : AbstractDao<Person>
+ *
+ * Each entity *must* provide two main things:
+ * Mandatory:
+ *  - Empty constructor.
+ *
+ * Optional:
+ *  - Operator<< defined
+ *  - Friendship to the concrete Dao. (nice to have)
+ *
+ * Each DAO implementation *must* provide the following things:
+ * Mandatory:
+ *  - override fromRow() to convert SELECT statements to Entities.
+ *  - override toRow() to convert data for CRUD statements.
+ *  - Default queries:
+ *      defaultQueries[INSERT] = "INSERT.....";
+ *      defaultQueries[UPDATE] = "UPDATE.....";
+ *      defaultQueries[DELETE] = "DELETE.....";
+ *      defaultQueries[GET_ALL] = "SELECT * FROM.....";
+ *      defaultQueries[GET_BY_ID] = SELECT * FROM..WHERE..";
+ * NOTE: all parameters values for prepared statements are used like
+ *       "field = :myfield"
+ *
+ *
+ * Attention: The given connection is not managed by DAO implementation.
+ * This implementation is not thread-safe.
+ *
+ */
+template<typename T> class SqlAbstractDao: public I_Dao<T> {
+public:
 
-            SqlAbstractDao(DB_Connection& connection, 
-                    const std::string& tableName,
-                    const std::string& insertQuery, 
-                    const std::string& updateQuery,
-                    const std::string& deleteQuery, 
-                    const std::string& getAllQuery,
-                    const std::string& getByIdQuery)
-            : connection(connection), tableName(tableName) {
-                defaultQueries[INSERT] = insertQuery;
-                defaultQueries[UPDATE] = updateQuery;
-                defaultQueries[DELETE] = deleteQuery;
-                defaultQueries[GET_ALL] = getAllQuery;
-                defaultQueries[GET_BY_ID] = getByIdQuery;
-            }
+	SqlAbstractDao(DB_Connection& connection, const std::string& tableName,
+			const std::string& insertQuery, const std::string& updateQuery,
+			const std::string& deleteQuery, const std::string& getAllQuery,
+			const std::string& getByIdQuery) :
+			connection(connection), tableName(tableName) {
+		defaultQueries[INSERT] = insertQuery;
+		defaultQueries[UPDATE] = updateQuery;
+		defaultQueries[DELETE] = deleteQuery;
+		defaultQueries[GET_ALL] = getAllQuery;
+		defaultQueries[GET_BY_ID] = getByIdQuery;
+	}
 
-            virtual ~SqlAbstractDao() {
-            }
+	virtual ~SqlAbstractDao() {
+	}
 
-            virtual T& insert(T& entity) {
-                if (isConnected()) {
-                    Transaction tr(connection.getSession<soci::session>());
-                    Statement query(connection.getSession<soci::session>());
-                    //append returning clause. 
-                    //Attention: this is only prepared for POSTGRES.
-                    std::string upperQuery = 
-                            boost::to_upper_copy(defaultQueries[INSERT]);
-                    size_t found = upperQuery.rfind(DB_RETURNING_CLAUSE);
-                    if (found == std::string::npos) {
-                        upperQuery += DB_RETURNING_ALL_CLAUSE;
-                    }
-                    // Get data to insert.
-                    Parameters params;
-                    toRow(entity, params, false);
-                    // prepare statement.
-                    prepareStatement(upperQuery, params, query);
-                    //TODO: POSTGRES ONLY for now
-                    //execute and return data if (RETURNING clause is defined)
-                    ResultSet rs(query);
-                    ResultSet::const_iterator it = rs.begin();
-                    if (it != rs.end()) {
-                        fromRow((*it), entity);
-                    }
-                    tr.commit();
-                }
-                return entity;
-            }
+	virtual T& insert(T& entity, bool returning = false) {
+		if (isConnected()) {
+			// Get data to insert.
+			Parameters params;
+			toRow(entity, params, false);
 
-            virtual bool update(T& entity) {
-                if (isConnected()) {
-                    Transaction tr(connection.getSession<soci::session>());
-                    Statement query(connection.getSession<soci::session>());
-                    // Get data to insert.
-                    Parameters params;
-                    toRow(entity, params, true);
-                    // prepare statement.
-                    prepareStatement(defaultQueries[UPDATE], params, query);
-                    ResultSet rs(query);
-                    tr.commit();
-                    return true;
-                }
-                return false;
-            }
+			Transaction tr(connection.getSession<soci::session>());
+			Statement query(connection.getSession<soci::session>());
+			//append returning clause.
+			//Attention: this is only prepared for POSTGRES.
+			std::string upperQuery = boost::to_upper_copy(
+					defaultQueries[INSERT]);
 
-            virtual bool erase(const Parameters& params) {
-                if (isConnected()) {
-                    Transaction tr(connection.getSession<soci::session>());
-                    Statement query(connection.getSession<soci::session>());
-                    // prepare statement.
-                    prepareStatement(defaultQueries[DELETE], params, query);
-                    //execute query.
-                    ResultSet rs(query);
-                    tr.commit();
-                    return true;
-                }
-                return false;
-            }
+			if (returning) {
+				size_t found = upperQuery.rfind(DB_RETURNING_CLAUSE);
+				if (found == std::string::npos) {
+					upperQuery += DB_RETURNING_ALL_CLAUSE;
+				}
+			}
 
-            virtual bool getById(const Parameters& ids, T& outParam) {
-                return getByValues(defaultQueries[GET_BY_ID], ids, outParam);
-            }
+			// prepare statement.
+			prepareStatement(upperQuery, params, query);
 
-            virtual bool getAll(std::vector<T>& outList) {
-                return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, 
-                        outList);
-            }
+			//TODO: POSTGRES ONLY for now
+			//execute and return data if (RETURNING clause is defined)
+			ResultSet rs(query);
 
-        protected: // Protected types
+			if (returning) {
+				ResultSet::const_iterator it = rs.begin();
+				if (it != rs.end()) {
+					fromRow((*it), entity);
+				}
+			}
+			tr.commit();
+		}
+		return entity;
+	}
 
-            /**
-             * Converts a given row into a T type.
-             * @param result result row.
-             * @param outParam (Out parameter) to receive data from row.
-             */
-            virtual void fromRow(Row& result, T& outParam) {
-            }
+	virtual bool update(T& entity) {
+		if (isConnected()) {
+			Transaction tr(connection.getSession<soci::session>());
+			Statement query(connection.getSession<soci::session>());
+			// Get data to insert.
+			Parameters params;
+			toRow(entity, params, true);
+			// prepare statement.
+			prepareStatement(defaultQueries[UPDATE], params, query);
+			ResultSet rs(query);
+			tr.commit();
+			return true;
+		}
+		return false;
+	}
 
-            /**
-             * Converts the given T data into a Parameter list to create a row.
-             * @param data to create a new row.
-             * @param outParams Parameter list that will receive the data.
-             * @param update tells you if it is an update or an insert.
-             */
-            virtual void toRow(T& data, Parameters& outParams, bool update) {
-            }
+	virtual bool erase(const Parameters& params) {
+		if (isConnected()) {
+			Transaction tr(connection.getSession<soci::session>());
+			Statement query(connection.getSession<soci::session>());
+			// prepare statement.
+			prepareStatement(defaultQueries[DELETE], params, query);
+			//execute query.
+			ResultSet rs(query);
+			tr.commit();
+			return true;
+		}
+		return false;
+	}
 
-            /**
-             * Enum for default queries.
-             */
-            enum DefaultQuery {
-                INSERT = 0,
-                UPDATE,
-                DELETE,
-                GET_ALL,
-                GET_BY_ID,
-                NUM_QUERIES
-            };
+	virtual bool getById(const Parameters& ids, T& outParam) {
+		return getByValues(defaultQueries[GET_BY_ID], ids, outParam);
+	}
 
-            typedef soci::details::prepare_temp_type Statement;
-            typedef soci::transaction Transaction;
+	virtual bool getAll(std::vector<T>& outList) {
+		return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outList);
+	}
 
-        protected: // methods
+	virtual bool getAll(std::vector<T*>& outList) {
+		return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outList);
+	}
 
-            /**
-             * Tells we DAO has connection to the database.
-             * @return 
-             */
-            bool isConnected() {
-                return (connection.isConnected());
-            }
+	template<typename K, typename F>
+	bool getAll(boost::unordered_map<K, T>& outMap, F getter) {
+		return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outMap,
+				getter);
+	}
 
-            /**
-             * Helper function that allows get a list of 
-             * Entity objects (vector<T>) by given params. 
-             * The output will be assigned on outParam using the *fromRow*.
-             * @param queryStr query string.
-             * @param params to filter the query (to put on Where clause).
-             * @param outParam to fill with retrieved objects.
-             * @return true if some value was returned, false otherwise.
-             */
-            bool getByValues(const std::string& queryStr,
-                    const Parameters& params, std::vector<T>& outParam) {
-                bool hasValues = false;
-                if (isConnected()) {
-                    Statement query(connection.getSession<soci::session>());
-                    prepareStatement(queryStr, params, query);
-                    ResultSet rs(query);
-                    ResultSet::const_iterator it = rs.begin();
-                    for (it; it != rs.end(); ++it) {
-                        T model;
-                        fromRow((*it), model);
-                        outParam.push_back(model);
-                        hasValues = true;
-                    }
-                }
-                return hasValues;
-            }
+	template<typename K, typename F>
+	bool getAll(boost::unordered_map<K, T*>& outMap, F getter) {
+		return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outMap,
+				getter);
+	}
 
-            /**
-             * Helper function that allows get a Entity <T> by given params. 
-             * The output will be assigned on outParam using the *fromRow*.
-             * @param queryStr query string.
-             * @param params to filter the query (to put on Where clause).
-             * @param outParam to fill with retrieved object.
-             * @return true if a value was returned, false otherwise.
-             */
-            bool getByValues(const std::string& queryStr,
-                    const Parameters& params, T& outParam) {
-                if (isConnected()) {
-                    Statement query(connection.getSession<soci::session>());
-                    prepareStatement(queryStr, params, query);
-                    ResultSet rs(query);
-                    ResultSet::const_iterator it = rs.begin();
-                    if (it != rs.end()) {
-                        fromRow((*it), outParam);
-                        return true;
-                    }
-                }
-                return false;
-            }
+protected:
+	// Protected types
 
-            /**
-             * Helper function to prepare the given statement.
-             * @param queryStr query string.
-             * @param params to put on the statement.
-             * @param outParam out statement.
-             */
-            void prepareStatement(const std::string& queryStr,
-                    const Parameters& params, Statement& outParam) {
-                outParam << queryStr;
-                Parameters::const_iterator it = params.begin();
-                for (it; it != params.end(); ++it) {
-                    outParam, boost::apply_visitor(UsePtrConverter(), *it);
-                }
-            }
+	/**
+	 * Converts a given row into a T type.
+	 * @param result result row.
+	 * @param outParam (Out parameter) to receive data from row.
+	 */
+	virtual void fromRow(Row& result, T& outParam) {
+	}
 
-        protected:
-            DB_Connection& connection;
-            std::string tableName;
-            std::string defaultQueries[NUM_QUERIES+1];
-        };
-    }
+	/**
+	 * Converts the given T data into a Parameter list to create a row.
+	 * @param data to create a new row.
+	 * @param outParams Parameter list that will receive the data.
+	 * @param update tells you if it is an update or an insert.
+	 */
+	virtual void toRow(T& data, Parameters& outParams, bool update) {
+	}
+
+	/**
+	 * Enum for default queries.
+	 */
+	enum DefaultQuery {
+		INSERT = 0, UPDATE, DELETE, GET_ALL, GET_BY_ID, NUM_QUERIES
+	};
+
+	typedef soci::details::prepare_temp_type Statement;
+	typedef soci::transaction Transaction;
+
+protected:
+	// methods
+
+	/**
+	 * Tells we DAO has connection to the database.
+	 * @return
+	 */
+	bool isConnected() {
+		return (connection.isConnected());
+	}
+
+	/**
+	 * Helper function that allows get a list of
+	 * Entity objects (vector<V>) by given params.
+	 * The output will be assigned on outParam using the *fromRow*.
+	 * @param queryStr query string.
+	 * @param params to filter the query (to put on Where clause).
+	 * @param outParam to fill with retrieved objects.
+	 * @param getter to get the object key to insert on map.
+	 * @return true if some value was returned, false otherwise.
+	 */
+	template<typename V, typename F>
+	bool getByValues(const std::string& queryStr, const Parameters& params,
+			V& outParam, F getter) {
+		bool hasValues = false;
+		if (isConnected()) {
+			Statement query(connection.getSession<soci::session>());
+			prepareStatement(queryStr, params, query);
+			ResultSet rs(query);
+			ResultSet::const_iterator it = rs.begin();
+			for (it; it != rs.end(); ++it) {
+				appendRow((*it), outParam, getter);
+				hasValues = true;
+			}
+		}
+		return hasValues;
+	}
+
+	/**
+	 * Helper function that allows get a list of
+	 * Entity objects (vector<V>) by given params.
+	 * The output will be assigned on outParam using the *fromRow*.
+	 * @param queryStr query string.
+	 * @param params to filter the query (to put on Where clause).
+	 * @param outParam to fill with retrieved objects.
+	 * @return true if some value was returned, false otherwise.
+	 */
+	template<typename V>
+	bool getByValues(const std::string& queryStr, const Parameters& params,
+			V& outParam) {
+		bool hasValues = false;
+		if (isConnected()) {
+			Statement query(connection.getSession<soci::session>());
+			prepareStatement(queryStr, params, query);
+			ResultSet rs(query);
+			ResultSet::const_iterator it = rs.begin();
+			for (it; it != rs.end(); ++it) {
+				appendRow((*it), outParam);
+				hasValues = true;
+			}
+		}
+		return hasValues;
+	}
+
+	/**
+	 * Helper function to prepare the given statement.
+	 * @param queryStr query string.
+	 * @param params to put on the statement.
+	 * @param outParam out statement.
+	 */
+	void prepareStatement(const std::string& queryStr, const Parameters& params,
+			Statement& outParam) {
+		outParam << queryStr;
+		Parameters::const_iterator it = params.begin();
+		for (it; it != params.end(); ++it) {
+			outParam, boost::apply_visitor(UsePtrConverter(), *it);
+		}
+	}
+
+private:
+
+	/**
+	 * Append row to the given object.
+	 * @param row to create the object.
+	 * @param list to fill.
+	 */
+	void appendRow(Row& row, T& obj) {
+		fromRow(row, obj);
+	}
+
+	/**
+	 * Append row using dynamic memory.
+	 * @param row to create the object.
+	 * @param list to fill.
+	 */
+	void appendRow(Row& row, std::vector<T*>& list) {
+		T* model = new T();
+		fromRow(row, *model);
+		list.push_back(model);
+	}
+
+	/**
+	 * Append row using automatic memory.
+	 * @param row to create the object.
+	 * @param list to fill.
+	 */
+	void appendRow(Row& row, std::vector<T>& list) {
+		T model;
+		fromRow(row, model);
+		list.push_back(model);
+	}
+
+	/**
+	 * Append row using automatic memory.
+	 * @param row to create the object.
+	 * @param map to fill.
+	 * @param getter to get the key.
+	 */
+	template<typename K, typename F>
+	void appendRow(Row& row, boost::unordered_map<K, T>& map, F getter) {
+		T model;
+		fromRow(row, model);
+		map.insert(std::make_pair(((model).*getter)(), model));
+	}
+
+	/**
+	 * Append row using dynamic memory.
+	 * @param row to create the object.
+	 * @param map to fill.
+	 * @param getter to get the key.
+	 */
+	template<typename K, typename F>
+	void appendRow(Row& row, boost::unordered_map<K, T*>& map, F getter) {
+		T* model = new T();
+		fromRow(row, *model);
+		map.insert(std::make_pair(((model).*getter)(), model));
+	}
+
+protected:
+	DB_Connection& connection;
+	std::string tableName;
+	std::string defaultQueries[NUM_QUERIES + 1];
+};
+}
 }

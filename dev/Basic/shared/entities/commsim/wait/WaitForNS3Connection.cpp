@@ -23,12 +23,7 @@ void sim_mob::WaitForNS3Connection::reset(unsigned int numClients)
 
 bool sim_mob::WaitForNS3Connection::calculateWaitStatus(BrokerBase& broker) const
 {
-	const ClientList::Type& clients = broker.getClientList();
-	ClientList::Type::const_iterator it = clients.find(comm::NS3_SIMULATOR);
-	if (it==clients.end()) {
-		throw std::runtime_error("Unexpected in WaitForNS3Connection::calculateWaitStatus()");
-	}
-
-	return it->second.size()>=numClients;
+	unsigned int numNs3 = broker.getNs3ClientHandler() ? 1 : 0;
+	return numNs3>=numClients;
 }
 

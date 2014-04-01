@@ -66,13 +66,7 @@ const bool EnableDebugOutput = false;
  * A typedef-container for our ClientList container type.
  */
 struct ClientList {
-	typedef sim_mob::comm::ClientType Key;
-	typedef boost::unordered_map< std::string , boost::shared_ptr<sim_mob::ClientHandler> > Value;
-
-	typedef std::map<Key, Value> Type;
-	typedef std::pair<Key, Value> Pair;
-	typedef std::pair<std::string , boost::shared_ptr<sim_mob::ClientHandler> > ValuePair;
-
+	typedef std::map< std::string , boost::shared_ptr<sim_mob::ClientHandler> > Type;
 };
 
 
@@ -91,7 +85,12 @@ public:
 
 	//Used by the BrokerBlocker subclasses. Hopefully we can further abstract these.
 	virtual size_t getRegisteredAgentsSize() const = 0;
-	virtual const ClientList::Type & getClientList() const = 0;
+	virtual const ClientList::Type& getAndroidClientList() const = 0;
+
+	//Used by the Handlers to react to different messages.
+	virtual bool insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler> client, const std::string& message) = 0;
+	virtual boost::shared_ptr<sim_mob::ClientHandler> getAndroidClientHandler(std::string clientId) const = 0;
+	virtual boost::shared_ptr<sim_mob::ClientHandler> getNs3ClientHandler() const = 0;
 };
 
 
@@ -166,13 +165,19 @@ protected:
 	std::string commElement;//"roadrunner", "stk",...etc
 	std::string commMode; //android-only, android-ns3,...etc
 
-	//	list of the registered agents and their corresponding communication equipment
-	AgentsList REGISTERED_AGENTS;
+
 	///	waiting list for external clients willing to communication with simmobility
 	ClientWaitList clientRegistrationWaitingList; //<client type, requestform>
 
-	///	list of authorized clients who have passed the registration process
-	ClientList::Type clientList; //key note: there can be one agent associated with multiple clients in this list. why? : coz clients of any type are i this list. and any one has associated itself to this agent for its specific type's reason
+
+	///List of (Sim Mobility) Agents that have registered themselves with the Broker.
+	AgentsList registeredAgents;
+
+	///List of Android clients that have completed registration with the Broker.
+	ClientList::Type registeredAndroidClients;
+
+	///List of NS-3 clients that have completed registration with the Broker. (Note: There should only be zero or one).
+	ClientList::Type registeredNs3Clients;
 
 
 	///	connection point to outside simmobility
@@ -273,7 +278,7 @@ protected:
 	 * Returns true if enough clients exist to allow the broker to update.
 	 * Note: this function is not used any more.
 	 */
-	bool clientsQualify() const;
+	//bool clientsQualify() const;
 
 	///Return the number of clients that have completed the registration process.
 	size_t getNumConnectedAgents() const;
@@ -315,10 +320,9 @@ protected:
 	 * 	actuall implementation of onAgentUpdate
 	 */
 	void agentUpdated(const Agent* target );
-	/**
-	 * 	is called when a new client is registered with the broker
-	 */
-	virtual void onClientRegister(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums);
+
+	///Called when a new Android client registers.
+	virtual void onAndroidClientRegister(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums);
 
 	/**
 	 * 	publish various data the broker has subscibed to
@@ -381,12 +385,15 @@ public:
 	/**
 	 * 	returns list of registered clients
 	 */
-	virtual const ClientList::Type & getClientList() const;
+	virtual const ClientList::Type& getAndroidClientList() const;
+
 	/**
-	 *
-	 * 	searches for a client of specific ID and Type
+	 * 	searches for an Android client of specific ID
 	 */
-	bool getClientHandler(std::string clientId,std::string clientType, boost::shared_ptr<sim_mob::ClientHandler> &output) const;
+	virtual boost::shared_ptr<sim_mob::ClientHandler> getAndroidClientHandler(std::string clientId) const;
+
+	///Retrieves the ns-3 client, if it exists.
+	virtual boost::shared_ptr<sim_mob::ClientHandler> getNs3ClientHandler() const;
 
 	/**
 	 * 	adds to the list of registered clients
@@ -418,7 +425,7 @@ public:
 	/**
 	 * 	request to insert into broker's send buffer
 	 */
-	bool insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler> client, const std::string& message);
+	virtual bool insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler> client, const std::string& message);
 
 	/**
 	 * 	callback function executed upon message arrival

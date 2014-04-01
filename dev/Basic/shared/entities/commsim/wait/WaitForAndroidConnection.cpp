@@ -24,12 +24,6 @@ void sim_mob::WaitForAndroidConnection::reset(unsigned int numClients)
 
 bool sim_mob::WaitForAndroidConnection::calculateWaitStatus(BrokerBase& broker) const
 {
-	const ClientList::Type & clients = broker.getClientList();
-	ClientList::Type::const_iterator it = clients.find(comm::ANDROID_EMULATOR);
-	if (it==clients.end()) {
-		throw std::runtime_error("Unexpected in WaitForAndroidConnection::calculateWaitStatus()");
-	}
-
-	return it->second.size()>=numClients;
+	return broker.getAndroidClientList().size()>=numClients;
 }
 

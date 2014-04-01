@@ -91,11 +91,11 @@ void sim_mob::Broker::configure()
 
 	//Hook up Android emulators to OnClientRegister
 	registrationPublisher.registerEvent(comm::ANDROID_EMULATOR);
-	registrationPublisher.subscribe((event::EventId)comm::ANDROID_EMULATOR, this, &Broker::onClientRegister);
+	registrationPublisher.subscribe((event::EventId)comm::ANDROID_EMULATOR, this, &Broker::onAndroidClientRegister);
 
 	//Hook up the NS-3 simulator to OnClientRegister.
 	registrationPublisher.registerEvent(comm::NS3_SIMULATOR);
-	registrationPublisher.subscribe((event::EventId)comm::NS3_SIMULATOR, this, &Broker::onClientRegister);
+	//registrationPublisher.subscribe((event::EventId)comm::NS3_SIMULATOR, this, &Broker::onClientRegister);
 
 	//Dispatch differently depending on whether we are using "android-ns3" or "android-only"
 	std::string client_type = ConfigManager::GetInstance().FullConfig().getCommSimMode(commElement);
@@ -241,20 +241,20 @@ void sim_mob::Broker::onEvent(event::EventId eventId, sim_mob::event::Context ct
 
 size_t sim_mob::Broker::getRegisteredAgentsSize() const
 {
-	return REGISTERED_AGENTS.getAgents().size();
+	return registeredAgents.getAgents().size();
 }
 
 AgentsList::type& sim_mob::Broker::getRegisteredAgents()
 {
 	//use it with caution
-	return REGISTERED_AGENTS.getAgents();
+	return registeredAgents.getAgents();
 }
 
 AgentsList::type& sim_mob::Broker::getRegisteredAgents(AgentsList::Mutex* mutex)
 {
 	//always supply the mutex along
-	mutex = REGISTERED_AGENTS.getMutex();
-	return REGISTERED_AGENTS.getAgents();
+	mutex = registeredAgents.getMutex();
+	return registeredAgents.getAgents();
 }
 
 size_t sim_mob::Broker::getClientWaitingListSize() const
@@ -262,36 +262,43 @@ size_t sim_mob::Broker::getClientWaitingListSize() const
 	return clientRegistrationWaitingList.size();
 }
 
-const ClientList::Type& sim_mob::Broker::getClientList() const
+const ClientList::Type& sim_mob::Broker::getAndroidClientList() const
 {
-	return clientList;
+	return registeredAndroidClients;
 }
 
-//TODO: We need to avoid the clientType requirement. It is currently easy enough to generate unique IDs, and you can always
-//      incorporate the clientType into the ID if you're not 100% sure (but for now we only serialize integers anyway).
-bool sim_mob::Broker::getClientHandler(std::string clientId, std::string clientType, boost::shared_ptr<sim_mob::ClientHandler> &output) const
+
+boost::shared_ptr<sim_mob::ClientHandler> sim_mob::Broker::getAndroidClientHandler(std::string clientId) const
 {
-	std::map<std::string, comm::ClientType>::iterator clientTypeIt = sim_mob::Services::ClientTypeMap.find(clientType);
-	if (clientTypeIt != sim_mob::Services::ClientTypeMap.end()) {
-		ClientList::Type::const_iterator innerIt = clientList.find(clientTypeIt->second);
-		if (innerIt != clientList.end()) {
-			ClientList::Value::const_iterator finalIt = innerIt->second.find(clientId);
-			if (finalIt != innerIt->second.end()) {
-				output = finalIt->second;
-				return true;
-			}
-		}
+	ClientList::Type::const_iterator it=registeredAndroidClients.find(clientId);
+	if (it!=registeredAndroidClients.end()) {
+		return it->second;
 	}
 
-	Warn() <<"Client " << clientId << " of type " << clientType << " not found" << std::endl;
-	return false;
+	Warn() <<"Client " << clientId << " not found\n";
+	return boost::shared_ptr<sim_mob::ClientHandler>();
+}
+
+boost::shared_ptr<sim_mob::ClientHandler> sim_mob::Broker::getNs3ClientHandler() const
+{
+	if (registeredNs3Clients.size() == 1) {
+		return registeredNs3Clients.begin()->second;
+	}
+	Warn() <<"Ns-3 client not found; count: " <<registeredNs3Clients.size() <<"\n";
+	return boost::shared_ptr<sim_mob::ClientHandler>();
 }
 
 void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType clientType, boost::shared_ptr<sim_mob::ClientHandler> &clientHandler)
 {
-	{
-	boost::unique_lock<boost::mutex> lock(mutex_clientList);
-	clientList[clientType][clientID] = clientHandler;
+	if (clientType==comm::ANDROID_EMULATOR) {
+		registeredAndroidClients[clientID] = clientHandler;
+	} else if (clientType==comm::NS3_SIMULATOR) {
+		if (!registeredNs3Clients.empty()) {
+			throw std::runtime_error("Unable to insert into ns-3 client list; multiple ns-3 clients not supported.");
+		}
+		registeredNs3Clients[clientID] = clientHandler;
+	} else {
+		throw std::runtime_error("Unable to insert into client list; unknown type.");
 	}
 
 	if (EnableDebugOutput) {
@@ -388,10 +395,10 @@ void sim_mob::Broker::processClientRegistrationRequests()
 
 void sim_mob::Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
 {
-	REGISTERED_AGENTS.insert(value->getEntity(), value);
+	registeredAgents.insert(value->getEntity(), value);
 	if (EnableDebugOutput) {
 		Print() << std::dec;
-		Print() << REGISTERED_AGENTS.size() << ":  Broker[" << this
+		Print() << registeredAgents.size() << ":  Broker[" << this
 			<< "] :  Broker::registerEntity [" << value->getEntity()->getId()
 			<< "]" << std::endl;
 	}
@@ -412,50 +419,51 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent* agent)
 	}
 
 	//search agent's list looking for this agent
-	REGISTERED_AGENTS.erase(agent);
+	registeredAgents.erase(agent);
 
 	//search the internal container also
 	duplicateEntityDoneChecker.erase(agent);
 
 	{
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
-	//search registered clients list looking for this agent. whoever has it, dump him
-	for(ClientList::Type::iterator it_clientType = clientList.begin(); it_clientType != clientList.end(); it_clientType++) {
-		boost::unordered_map<std::string, boost::shared_ptr<sim_mob::ClientHandler> >::iterator it_clientID = it_clientType->second.begin();
-		for(; it_clientID != it_clientType->second.end(); ) {
-			if(it_clientID->second->agent == agent) {
-				boost::unordered_map<std::string, boost::shared_ptr<sim_mob::ClientHandler> >::iterator it_erase = it_clientID++;
-				//unsubscribe from all publishers he is subscribed to
-				sim_mob::ClientHandler* clientHandler = it_erase->second.get();
 
-				//TODO: This seems wrong; we are unsubscribing multiple times.
-				for (std::set<sim_mob::Services::SIM_MOB_SERVICE>::const_iterator it=clientHandler->getRequiredServices().begin(); it!=clientHandler->getRequiredServices().end(); it++) {
-					publisher.unSubscribeAll(clientHandler);
-				}
+	//Sanity check: We can't remove the ns-3 simulator right now.
+	if (!registeredNs3Clients.empty() && agent==registeredNs3Clients.begin()->second->agent) {
+		throw std::runtime_error("Ns-3 simulator cannot be un-registered.");
+	}
 
-				//invalidate it and clean it up when necessary
-				//don't erase it here. it may already have something to send
-				//invalidation 1:
-				it_erase->second->agent = nullptr;
-				it_erase->second->setValidation(false);
+	//TODO: Perhaps we need a lookup by agent pointer too?
+	for (ClientList::Type::iterator it=registeredAndroidClients.begin(); it!=registeredAndroidClients.end(); it++) {
+		if(agent == it->second->agent) {
+			//unsubscribe from all publishers he is subscribed to
+			sim_mob::ClientHandler* clientHandler = it->second.get();
 
-				//Update the connection count too.
-				boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
-				std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, ConnClientStatus>::iterator chkIt = clientDoneChecklist.find(it_erase->second->connHandle);
-				if (chkIt==clientDoneChecklist.end()) {
-					throw std::runtime_error("Client somehow registered without a valid connection handler.");
-				}
-				chkIt->second.total--;
-				numAgents--;
-				if (chkIt->second.total==0) {
-					it_erase->second->connHandle->invalidate(); //this is even more important
-				}
-			} else {
-				it_clientID++;
+			//TODO: This seems wrong; we are unsubscribing multiple times.
+			for (std::set<sim_mob::Services::SIM_MOB_SERVICE>::const_iterator it2=clientHandler->getRequiredServices().begin(); it2!=clientHandler->getRequiredServices().end(); it2++) {
+				publisher.unSubscribeAll(clientHandler);
+			}
+
+			//invalidate it and clean it up when necessary
+			//don't erase it here. it may already have something to send
+			//invalidation 1:
+			it->second->agent = nullptr;
+			it->second->setValidation(false);
+
+			//Update the connection count too.
+			boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
+			std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, ConnClientStatus>::iterator chkIt = clientDoneChecklist.find(it->second->connHandle);
+			if (chkIt==clientDoneChecklist.end()) {
+				throw std::runtime_error("Client somehow registered without a valid connection handler.");
+			}
+			chkIt->second.total--;
+			numAgents--;
+			if (chkIt->second.total==0) {
+				it->second->connHandle->invalidate(); //this is even more important
 			}
 		}
 	}
 	}
+
 }
 
 void sim_mob::Broker::processIncomingData(timeslice now) {
@@ -496,21 +504,16 @@ bool sim_mob::Broker::frame_init(timeslice now)
 	return true;
 }
 
-Entity::UpdateStatus sim_mob::Broker::frame_tick(timeslice now) {
+Entity::UpdateStatus sim_mob::Broker::frame_tick(timeslice now)
+{
 	return Entity::UpdateStatus::Continue;
 }
-
-//todo consider scrabbing DriverComm
-/*bool sim_mob::Broker::allAgentUpdatesDone()
-{
-	return !REGISTERED_AGENTS.hasNotDone();
-}*/
 
 
 
 void sim_mob::Broker::agentUpdated(const Agent* target ){
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
-	if(REGISTERED_AGENTS.setDone(target,true)) {
+	if(registeredAgents.setDone(target,true)) {
 		COND_VAR_AGENT_DONE.notify_all();
 	}
 }
@@ -522,63 +525,36 @@ void sim_mob::Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::
 }
 
 
-void sim_mob::Broker::onClientRegister(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums)
+void sim_mob::Broker::onAndroidClientRegister(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const ClientRegistrationEventArgs& argums)
 {
-	comm::ClientType type = argums.getClientType();
 	boost::shared_ptr<ClientHandler>clientHandler = argums.getClient();
 
-	switch (type) {
-	case comm::ANDROID_EMULATOR: {
-		//if we are operating on android-ns3 set up,
-		//each android client registration should be brought to
-		//ns3's attention
-		if (ConfigManager::GetInstance().FullConfig().getCommSimMode(commElement) != "android-ns3") {
-			break;
-		}
-
-		//note: based on the current implementation of
-		// the ns3 client registration handler, informing the
-		//statistics of android clients IS a part of ns3
-		//registration and configuration process. So the following implementation
-		//should be executed for those android clients who will join AFTER
-		//ns3's registration. So we check if the ns3 is already registered or not:
-		ClientList::Type::iterator it;
-		if ((it = clientList.find(comm::NS3_SIMULATOR)) == clientList.end()) {
-			std::cout <<"ERROR: Android client registered without a known ns-3 handler (and one was expected).\n";
-			break;
-		}
-
-		//Create the AgentsInfo message.
-		std::vector<unsigned int> agentIds;
-		agentIds.push_back(clientHandler->agent->getId());
-		std::string message = CommsimSerializer::makeAgentsInfo(agentIds, std::vector<unsigned int>());
-
-
-		//Add it.
-		//TODO: ns-3 currently uses client ID 0, but it shouldn't.
-		boost::shared_ptr<ClientHandler>& NS3clientHandler = it->second["0"];
-		insertSendBuffer(NS3clientHandler, message);
-
-		/*msg_header mHeader_("0", "SIMMOBILITY", "AGENTS_INFO", "SYS");
-		sim_mob::comm::MsgData jMsg = JsonParser::createMessageHeader(mHeader_);
-		const Agent *agent = clientHandler->agent;
-		Json::Value jAgent;
-		jAgent["AGENT_ID"] = agent->getId();
-		//sorry it should be in an array to be compatible with the other
-		//place where many agents are informed to be added
-		//sorry again, compatibility issue. I will change this later.
-		jMsg["ADD"].append(jAgent);
-
-		//send to ns3's client handler
-		boost::shared_ptr<ClientHandler> & NS3clientHandler = it->second["0"];
-		insertSendBuffer(NS3clientHandler, jMsg);*/
-
-		break;
-	}
-	default: break;
-
+	//if we are operating on android-ns3 set up, each android client registration should be brought to ns3's attention
+	//TODO: We should keep the "useNs3" flag instead of checking the config file every time.
+	if (ConfigManager::GetInstance().FullConfig().getCommSimMode(commElement) != "android-ns3") {
+		return;
 	}
 
+	//note: based on the current implementation of
+	// the ns3 client registration handler, informing the
+	//statistics of android clients IS a part of ns3
+	//registration and configuration process. So the following implementation
+	//should be executed for those android clients who will join AFTER
+	//ns3's registration. So we check if the ns3 is already registered or not:
+	boost::shared_ptr<sim_mob::ClientHandler> nsHand = getNs3ClientHandler();
+	if (!nsHand) {
+		std::cout <<"ERROR: Android client registered without a known ns-3 handler (and one was expected).\n";
+		return;
+	}
+
+	//Create the AgentsInfo message.
+	std::vector<unsigned int> agentIds;
+	agentIds.push_back(clientHandler->agent->getId());
+	std::string message = CommsimSerializer::makeAgentsInfo(agentIds, std::vector<unsigned int>());
+
+
+	//Add it.
+	insertSendBuffer(nsHand, message);
 
 	//Enable Region support if this client requested it.
 	if(clientHandler->getRequiredServices().find(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH) != clientHandler->getRequiredServices().end()){
@@ -600,19 +576,17 @@ void sim_mob::Broker::processPublishers(timeslice now)
 			break;
 		}
 		case sim_mob::Services::SIMMOB_SRV_LOCATION: {
-			//get to each client handler, look at his requred service and then publish for him
-			for (ClientList::Type::const_iterator ctypeIt=clientList.begin(); ctypeIt!=clientList.end(); ctypeIt++) {
-				for (ClientList::Value::const_iterator cidIt=ctypeIt->second.begin(); cidIt!=ctypeIt->second.end(); cidIt++) {
-					const boost::shared_ptr<sim_mob::ClientHandler>& cHandler = cidIt->second;
-					if(cHandler && cHandler->agent && cHandler->isValid()){//todo refine subscription list to get rid of hustle and risks
-						publisher.publish(COMMEID_LOCATION, const_cast<Agent*>(cHandler->agent),LocationEventArgs(cHandler->agent));
-					}
+			//get to each client handler, look at his requred service and then publish for him.
+			for (ClientList::Type::const_iterator it=registeredAndroidClients.begin(); it!=registeredAndroidClients.end(); it++) {
+				const boost::shared_ptr<sim_mob::ClientHandler>& cHandler = it->second;
+				if(cHandler && cHandler->agent && cHandler->isValid()){
+					publisher.publish(COMMEID_LOCATION, const_cast<Agent*>(cHandler->agent),LocationEventArgs(cHandler->agent));
 				}
 			}
 			break;
 		}
 		case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS: {
-			publisher.publish(COMMEID_ALL_LOCATIONS,(void*) COMMCID_ALL_LOCATIONS,AllLocationsEventArgs(REGISTERED_AGENTS));
+			publisher.publish(COMMEID_ALL_LOCATIONS,(void*) COMMCID_ALL_LOCATIONS,AllLocationsEventArgs(registeredAgents));
 			break;
 		}
 		case sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH: {
@@ -620,21 +594,19 @@ void sim_mob::Broker::processPublishers(timeslice now)
 			//If so, publish it.
 			//NOTE: This is somewhat inefficient; we can probably offload some of this responsibility to the Workers or
 			//      to the EventManager itself. For now, though, its performance hit is not noticeable. ~Seth
-			for (ClientList::Type::iterator listIt=clientList.begin(); listIt!=clientList.end(); listIt++) {
-				for (ClientList::Value::iterator clientIt=listIt->second.begin(); clientIt!=listIt->second.end(); clientIt++) {
-					if(!(clientIt->second->isValid()&&clientIt->second->agent)){
-						continue;
-					}
-					const sim_mob::Agent* agent = clientIt->second->agent;
-					if (agent->getRegionSupportStruct().isEnabled()) {
-						//NOTE: Const-cast is unfortunately necessary. We could also make the Region tracking data mutable.
-						//      We can't push a message back to the Broker, since it has to arrive in the same time tick
-						//      (the Broker uses a half-time-tick mechanism).
-						std::vector<sim_mob::RoadRunnerRegion> all_regions = const_cast<Agent*>(agent)->getAndClearNewAllRegionsSet();
-						std::vector<sim_mob::RoadRunnerRegion> reg_path = const_cast<Agent*>(agent)->getAndClearNewRegionPath();
-						if (!(all_regions.empty() && reg_path.empty())) {
-							publisher.publish(COMMEID_REGIONS_AND_PATH, const_cast<Agent*>(agent), RegionsAndPathEventArgs(agent, all_regions, reg_path));
-						}
+			for (ClientList::Type::const_iterator it=registeredAndroidClients.begin(); it!=registeredAndroidClients.end(); it++) {
+				if(!(it->second->isValid()&&it->second->agent)){
+					continue;
+				}
+				const sim_mob::Agent* agent = it->second->agent;
+				if (agent->getRegionSupportStruct().isEnabled()) {
+					//NOTE: Const-cast is unfortunately necessary. We could also make the Region tracking data mutable.
+					//      We can't push a message back to the Broker, since it has to arrive in the same time tick
+					//      (the Broker uses a half-time-tick mechanism).
+					std::vector<sim_mob::RoadRunnerRegion> all_regions = const_cast<Agent*>(agent)->getAndClearNewAllRegionsSet();
+					std::vector<sim_mob::RoadRunnerRegion> reg_path = const_cast<Agent*>(agent)->getAndClearNewRegionPath();
+					if (!(all_regions.empty() && reg_path.empty())) {
+						publisher.publish(COMMEID_REGIONS_AND_PATH, const_cast<Agent*>(agent), RegionsAndPathEventArgs(agent, all_regions, reg_path));
 					}
 				}
 			}
@@ -717,10 +689,10 @@ bool sim_mob::Broker::deadEntityCheck(sim_mob::AgentCommUtilityBase * info)
 
 
 //todo:  put a better condition here. this is just a placeholder
-bool sim_mob::Broker::clientsQualify() const
+/*bool sim_mob::Broker::clientsQualify() const
 {
 	return clientList.size() >= MIN_CLIENTS;
-}
+}*/
 
 size_t sim_mob::Broker::getNumConnectedAgents() const
 {
@@ -762,7 +734,7 @@ void sim_mob::Broker::waitAndAcceptConnections() {
 void sim_mob::Broker::waitForAgentsUpdates()
 {
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
-	while(REGISTERED_AGENTS.hasNotDone()) {
+	while(registeredAgents.hasNotDone()) {
 		if (EnableDebugOutput) {
 			Print() << "waitForAgentsUpdates _WAIT" << std::endl;
 		}
@@ -780,27 +752,25 @@ bool sim_mob::Broker::allClientsAreDone()
 	msg_header msg_header_;
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 
-	for (ClientList::Type::const_iterator ctypeIt=clientList.begin(); ctypeIt!=clientList.end(); ctypeIt++) {
-		for (ClientList::Value::const_iterator cidIt=ctypeIt->second.begin(); cidIt!=ctypeIt->second.end(); cidIt++) {
-			clnHandler = cidIt->second;
-			//If we have a valid client handler.
-			if (clnHandler && clnHandler->isValid()) {
-				//...and a valid connection handler.
-				if (clnHandler->connHandle && clnHandler->connHandle->isValid()) {
-					//Check if this connection's "done" count equals its "total" known agent count.
-					//TODO: This actually checks the same connection handler multiple times if connections are multiplexed
-					//      (one for each ClientHandler). This is harmless, but inefficient.
-					boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
-					std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, ConnClientStatus>::iterator chkIt = clientDoneChecklist.find(clnHandler->connHandle);
-					if (chkIt==clientDoneChecklist.end()) {
-						throw std::runtime_error("Client somehow registered without a valid connection handler.");
+	for (ClientList::Type::const_iterator it=registeredAndroidClients.begin(); it!=registeredAndroidClients.end(); it++) {
+		clnHandler = it->second;
+		//If we have a valid client handler.
+		if (clnHandler && clnHandler->isValid()) {
+			//...and a valid connection handler.
+			if (clnHandler->connHandle && clnHandler->connHandle->isValid()) {
+				//Check if this connection's "done" count equals its "total" known agent count.
+				//TODO: This actually checks the same connection handler multiple times if connections are multiplexed
+				//      (one for each ClientHandler). This is harmless, but inefficient.
+				boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
+				std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, ConnClientStatus>::iterator chkIt = clientDoneChecklist.find(clnHandler->connHandle);
+				if (chkIt==clientDoneChecklist.end()) {
+					throw std::runtime_error("Client somehow registered without a valid connection handler.");
+				}
+				if (chkIt->second.done < chkIt->second.total) {
+					if (EnableDebugOutput) {
+						Print() << "connection [" <<&(*clnHandler->connHandle) << "] not done yet: " <<chkIt->second.done <<" of " <<chkIt->second.total <<"\n";
 					}
-					if (chkIt->second.done < chkIt->second.total) {
-						if (EnableDebugOutput) {
-							Print() << "connection [" <<&(*clnHandler->connHandle) << "] not done yet: " <<chkIt->second.done <<" of " <<chkIt->second.total <<"\n";
-						}
-						return false;
-					}
+					return false;
 				}
 			}
 		}

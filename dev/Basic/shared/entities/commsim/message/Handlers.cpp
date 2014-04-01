@@ -16,26 +16,6 @@
 #include "event/args/ReRouteEventArgs.hpp"
 #include "message/MessageBus.hpp"
 
-namespace {
-//Helper: retrieve an agent via its ID, using the clientHandle. Returns null if not found.
-const sim_mob::Agent* retrieveAgent(const sim_mob::MessageBase& message, const sim_mob::Broker& broker) {
-	//First get the handler.
-	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
-	if(!broker.getClientHandler(message.sender_id, message.sender_type, clnHandler)) {
-		return nullptr;
-	}
-
-	//Check the handler's validity.
-	if(!clnHandler->isValid()) {
-		return nullptr;
-	}
-
-	//This should be sufficient.
-	return clnHandler->agent;
-}
-
-} //End un-named namespace.
-
 
 
 sim_mob::HandlerLookup::HandlerLookup() 
@@ -96,7 +76,7 @@ void sim_mob::HandlerLookup::addHandlerOverride(const std::string& mType, const 
 }
 
 
-void sim_mob::AgentsInfoHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const
+void sim_mob::AgentsInfoHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const
 {
 	//Ask the serializer for an AgentsInfo message.
 	AgentsInfoMessage aInfo = CommsimSerializer::parseAgentsInfo(messages, msgNumber);
@@ -105,7 +85,7 @@ void sim_mob::AgentsInfoHandler::handle(boost::shared_ptr<ConnectionHandler> han
 }
 
 
-void sim_mob::AllLocationHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const
+void sim_mob::AllLocationHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const
 {
 	//Ask the serializer for an AllLocations message.
 	AllLocationsMessage aInfo = CommsimSerializer::parseAllLocations(messages, msgNumber);
@@ -114,25 +94,7 @@ void sim_mob::AllLocationHandler::handle(boost::shared_ptr<ConnectionHandler> ha
 }
 
 
-
-//void sim_mob::OpaqueSendHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const
-//{
-	//Ask the serializer for a Unicast message.
-//	OpaqueSendMessage ucMsg = CommsimSerializer::parseOpaqueSend(messages, msgNumber);
-
-	//throw std::runtime_error("TODO: OpaqueSend");
-//}
-
-
-//void sim_mob::OpaqueReceiveHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const
-//{
-	//Ask the serializer for a Multicast message.
-//	OpaqueReceiveMessage mcMsg = CommsimSerializer::parseOpaqueReceive(messages, msgNumber);
-
-//	throw std::runtime_error("TODO: OpaqueReceive");
-//}
-
-void sim_mob::RemoteLogHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const
+void sim_mob::RemoteLogHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const
 {
 	//Ask the serializer for a RemoteLog message.
 	RemoteLogMessage rmMsg = CommsimSerializer::parseRemoteLog(messages, msgNumber);
@@ -143,14 +105,14 @@ void sim_mob::RemoteLogHandler::handle(boost::shared_ptr<ConnectionHandler> hand
 	Print() <<"Client [" <<rmMsg.sender_id <<"] relayed remote log message: \"" <<rmMsg.logMessage <<"\"\n";
 }
 
-void sim_mob::RerouteRequestHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const
+void sim_mob::RerouteRequestHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const
 {
 	//Ask the serializer for a RerouteRequest message.
 	RerouteRequestMessage rmMsg = CommsimSerializer::parseRerouteRequest(messages, msgNumber);
 
 	//Does this agent exist?
-	boost::shared_ptr<sim_mob::ClientHandler> agentHandle;
-	if(!broker->getClientHandler(rmMsg.sender_id, rmMsg.sender_type, agentHandle)) {
+	boost::shared_ptr<sim_mob::ClientHandler> agentHandle = broker->getAndroidClientHandler(rmMsg.sender_id);
+	if(!agentHandle) {
 		WarnOut("RerouteRequest can't find Agent (self)." << std::endl);
 		return;
 	}
@@ -167,7 +129,7 @@ void sim_mob::RerouteRequestHandler::handle(boost::shared_ptr<ConnectionHandler>
 	);
 }
 
-void sim_mob::NewClientHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const
+void sim_mob::NewClientHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const
 {
 	//Ask the serializer for a NewClient message.
 	NewClientMessage rmMsg = CommsimSerializer::parseNewClient(messages, msgNumber);
@@ -185,40 +147,18 @@ void sim_mob::NewClientHandler::handle(boost::shared_ptr<ConnectionHandler> hand
 //1-multicast is treated same as broadcast
 //2-although it is like a broadcast, simmobility will add the specific receiver
 //  information while redirecting to NS3(as opposed to letting NS3 find the recipients)
-void sim_mob::OpaqueSendHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const
+void sim_mob::OpaqueSendHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const
 {
 	OpaqueSendMessage sendMsg = CommsimSerializer::parseOpaqueSend(messages, msgNumber);
 
-	//steps:
-	// 1- Find the sending agent
-	// 2- Find its nearby agents
-	// 3- for each agent find the client handler
-	// 4- fabricate a message for each(core  is taken from the original message)
-	// 5- insert messages into send buffer
-
-	//	step-1: Find the sending agent
-
-	//1.1: parse
-	//sim_mob::comm::MsgData &data = message_->getData();
-	//msg_header msg_header_;
-	//if(!sim_mob::JsonParser::parseMessageHeader(data,msg_header_)) {
-	//	WarnOut("ANDROID_HDL_MULTICAST::handle: message header incomplete" << std::endl);
-	//	return;
-	//}
-
-	//1.2 do a double check: the sending agent is an ANDROID_EMULATOR
-	//TODO: This will have to go.
-	//if(sendMsg.sender_type != "ANDROID_EMULATOR") {
-	//	return;
-	//}
-
 	//Retrieve the sending agent, making sure that it is still valid.
-	const Agent* sendAgent = retrieveAgent(sendMsg, *broker);
-	if(!sendAgent) {
+	boost::shared_ptr<sim_mob::ClientHandler> clnHandler = broker->getAndroidClientHandler(sendMsg.sender_id);
+	if (!(clnHandler && clnHandler->isValid() && clnHandler->agent)) {
 		Print() << "Invalid agent record" << std::endl;
 		return;
 	}
 
+	const Agent* sendAgent = sendAgent = clnHandler->agent;
 	//If "broadcast" is set, we have to build up a list of receiving agents.
 	if (sendMsg.broadcast) {
 		//Get agents around you.
@@ -248,8 +188,10 @@ void sim_mob::OpaqueSendHandler::handle(boost::shared_ptr<ConnectionHandler> han
 	if (useNs3) {
 		//step-5: insert messages into send buffer
 		//NOTE: This part only exists for ns-3+android.
-		boost::shared_ptr<sim_mob::ClientHandler> ns3Handle;
-		broker->getClientHandler("0", "NS3_SIMULATOR", ns3Handle);
+		boost::shared_ptr<sim_mob::ClientHandler> ns3Handle = broker->getNs3ClientHandler();
+		if (!ns3Handle) {
+			throw std::runtime_error("Expected ns-3 client handler; returned null.");
+		}
 
 		//add two extra field to mark the agent ids(used in simmobility to identify agents)
 		//data["SENDING_AGENT"] = agent.getId();
@@ -259,61 +201,31 @@ void sim_mob::OpaqueSendHandler::handle(boost::shared_ptr<ConnectionHandler> han
 	} else {
 		//ClientList::Pair clientTypes;
 		//iterate through all registered clients
-		const ClientList::Type& allClients = broker->getClientList();
+		const ClientList::Type& allClients = broker->getAndroidClientList();
 		for (ClientList::Type::const_iterator clientIt=allClients.begin(); clientIt!=allClients.end(); clientIt++) {
-		//BOOST_FOREACH(clientTypes , all_clients) {
-			// filter out those client sets which are not android emulators
-			//TODO: We should really filter by "isNonSpatial()" ---all agents *should* get the message if it is a multicast.
-			if(clientIt->first != comm::ANDROID_EMULATOR) {
+			//Get the agent associated to this client
+			boost::shared_ptr<sim_mob::ClientHandler> destClientHandlr  = clientIt->second;
+			const sim_mob::Agent* agent = destClientHandlr->agent;
+			std::string agentId = boost::lexical_cast<std::string>(agent->getId());
+
+			//See if the agent associated with this handle is in our list of recipients.
+			if(std::find(sendMsg.toIds.begin(), sendMsg.toIds.end(), agentId) == sendMsg.toIds.end()) {
 				continue;
 			}
 
-			//ClientList::ValuePair clientIds;
-			const boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> >& inner = clientIt->second;
-
-			//iterate through android emulator clients
-			for (boost::unordered_map<std::string , boost::shared_ptr<sim_mob::ClientHandler> >::const_iterator it=inner.begin(); it!=inner.end(); it++) {
-			//BOOST_FOREACH(clientIds , inner) {
-				//Get the agent associated to this client
-				boost::shared_ptr<sim_mob::ClientHandler> destClientHandlr  = it->second;
-				const sim_mob::Agent* agent = destClientHandlr->agent;
-				std::string agentId = boost::lexical_cast<std::string>(agent->getId());
-
-				//See if the agent associated with this handle is in our list of recipients.
-				if(std::find(sendMsg.toIds.begin(), sendMsg.toIds.end(), agentId) == sendMsg.toIds.end()) {
-					continue;
-				}
-
-				//step-4: fabricate a message for each(core  is taken from the original message)
-					//actually, you don't need to modify any field in
-					//the original jsoncpp's Json::Value message.
-					//just add the recipients
-				//directly request to send
-				std::string msg = CommsimSerializer::makeOpaqueReceive(sendMsg.fromId, agentId, sendMsg.data);
-				broker->insertSendBuffer(boost::shared_ptr<ClientHandler>(destClientHandlr), msg);
-
-				//handleClient(*destClientHandlr, receiveAgentHandles, *broker, sendMsg);
-			}
+			//step-4: fabricate a message for each(core  is taken from the original message)
+			//actually, you don't need to modify any field in the original jsoncpp's Json::Value message.
+			//just add the recipients directly request to send
+			std::string msg = CommsimSerializer::makeOpaqueReceive(sendMsg.fromId, agentId, sendMsg.data);
+			broker->insertSendBuffer(boost::shared_ptr<ClientHandler>(destClientHandlr), msg);
 		}
 	}
 
 }
 
-/*
-void sim_mob::OpaqueSendHandler::handleClient(const sim_mob::ClientHandler& clientHdlr, std::vector<std::string>& receiveAgentIds, Broker& broker, const OpaqueSendMessage& currMsg) const
-{
-
-}
-
-void sim_mob::OpaqueSendHandler::postPendingMessages(sim_mob::Broker& broker, const sim_mob::Agent& agent, const std::vector<std::string>& receiveAgentIds, const OpaqueSendMessage& currMsg) const
-{
-
-}*/
-
 
 //you are going to handle something like this:
-//{"MESSAGE_CAT":"APP","MESSAGE_TYPE":"MULTICAST","MULTICAST_DATA":"TVVMVElDQVNUIFN0cmluZyBmcm9tIGNsaWVudCAxMTQ=","RECEIVING_AGENT_ID":75,"SENDER":"0","SENDER_TYPE":"NS3_SIMULATOR"}
-void sim_mob::OpaqueReceiveHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const
+void sim_mob::OpaqueReceiveHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const
 {
 	if (!useNs3) {
 		throw std::runtime_error("NS-3 handler called when ns-3 was disabled.");
@@ -321,46 +233,24 @@ void sim_mob::OpaqueReceiveHandler::handle(boost::shared_ptr<ConnectionHandler> 
 
 	OpaqueReceiveMessage recMsg = CommsimSerializer::parseOpaqueReceive(messages, msgNumber);
 
-	//At this point, ns-3 has processed the message, so there should only be one recipient.
-	//if (recMsg.recipients.size() != 1) {
-	//	throw std::runtime_error("Error: recipients list should have exactly one recipient.");
-	//}
-
 	//Get the client handler for this recipient.
 	boost::shared_ptr<sim_mob::ClientHandler> receiveAgentHandle;
 
 	//find the client destination client_handler
-	//boost::shared_ptr<sim_mob::ClientHandler> destination_clnHandler;
-	//sim_mob::comm::MsgData& jData = message_->getData();
-	//int destination_agent_id = jData["RECEIVING_AGENT_ID"].asInt();
-	const ClientList::Type& all_clients = broker->getClientList();
-	for (ClientList::Type::const_iterator ctypeIt=all_clients.begin(); ctypeIt!=all_clients.end(); ctypeIt++) {
-	//ClientList::Pair clientTypes;
-	//BOOST_FOREACH(clientTypes , all_clients) {
-		// only the android emulators
-		//TODO: We should really check this in a different way.
-		if (ctypeIt->first != comm::ANDROID_EMULATOR) {
-			continue;
-		}
-
-		//ClientList::ValuePair clientIds;
-		const boost::unordered_map<std::string,boost::shared_ptr<sim_mob::ClientHandler> > &inner = ctypeIt->second;
-		for (boost::unordered_map<std::string,boost::shared_ptr<sim_mob::ClientHandler> >::const_iterator it=inner.begin(); it!=inner.end(); it++) {
-		//BOOST_FOREACH(clientIds , inner) {
-			boost::shared_ptr<sim_mob::ClientHandler> clnHandler = it->second;
-			//valid agent, matching ID
-			if (clnHandler->agent && boost::lexical_cast<std::string>(clnHandler->agent->getId()) == recMsg.toId) {
-				receiveAgentHandle = clnHandler;
-				break;
-			}
-		}
-
-		//insert into sending buffer
-		if (receiveAgentHandle && receiveAgentHandle->connHandle) {
-			broker->insertSendBuffer(receiveAgentHandle, CommsimSerializer::makeOpaqueReceive(recMsg.fromId, recMsg.toId, recMsg.data));
+	const ClientList::Type& all_clients = broker->getAndroidClientList();
+	for (ClientList::Type::const_iterator clientIt=all_clients.begin(); clientIt!=all_clients.end(); clientIt++) {
+		boost::shared_ptr<sim_mob::ClientHandler> clnHandler = clientIt->second;
+		//valid agent, matching ID
+		if (clnHandler->agent && boost::lexical_cast<std::string>(clnHandler->agent->getId()) == recMsg.toId) {
+			receiveAgentHandle = clnHandler;
+			break;
 		}
 	}
 
+	//insert into sending buffer
+	if (receiveAgentHandle && receiveAgentHandle->connHandle) {
+		broker->insertSendBuffer(receiveAgentHandle, CommsimSerializer::makeOpaqueReceive(recMsg.fromId, recMsg.toId, recMsg.data));
+	}
 }
 
 

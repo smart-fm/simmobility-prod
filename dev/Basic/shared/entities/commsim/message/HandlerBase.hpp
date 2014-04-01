@@ -10,7 +10,7 @@ namespace sim_mob {
 
 class ConnectionHandler;
 class MessageConglomerate;
-class Broker;
+class BrokerBase;
 
 ///A base class for anything that can "handle" a message. Note that the message is passed in 
 /// as a Json object, so handlers should proceed to parse the type of message they expect in the 
@@ -18,7 +18,7 @@ class Broker;
 class Handler {
 public:
 	virtual ~Handler() {}
-	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, Broker* broker) const = 0;
+	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const = 0;
 };
 
 }

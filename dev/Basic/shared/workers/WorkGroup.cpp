@@ -660,11 +660,11 @@ void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 	}
 }
 
-const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* p) {
+const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* person) {
 	/*
 	 * TODO: This function must be re-written to get the starting segment without establishing the entire path.
 	 */
-	std::vector<sim_mob::TripChainItem*> agTripChain = p->getTripChain();
+	std::vector<sim_mob::TripChainItem*>& agTripChain = person->getTripChain();
 	const sim_mob::TripChainItem* firstItem = agTripChain.front();
 
 	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
@@ -676,7 +676,7 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 	const sim_mob::RoadSegment* rdSeg = nullptr;
 
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		path = PathSetManager::getInstance()->getPathByPerson(p);
+		path = PathSetManager::getInstance()->getPathByPerson(person);
 	}
 	else{
 		if (role == "driver") {
@@ -688,8 +688,7 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 			path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*firstSubTrip.fromLocation.node_), stdir.WalkingVertex(*firstSubTrip.toLocation.node_));
 		}
 		else if (role == "busdriver") {
-			//throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");
-			const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(p->currTripChainItem));
+			const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
 			vector<const RoadSegment*> pathRoadSeg = bustrip->getBusRouteInfo().getRoadSegments();
 			std::cout << "BusTrip path size = " << pathRoadSeg.size() << std::endl;
 			std::vector<const RoadSegment*>::iterator itor;
@@ -709,7 +708,7 @@ const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* 
 		 * BusDriver code, and pathSet code, generates only segment-list. Therefore we traverse through
 		 * the path until we find the first road segment.
 		 */
-		p->setCurrPath(path);
+		person->setCurrPath(path);
 		for (vector<WayPoint>::iterator it = path.begin(); it != path.end(); it++) {
 			if (it->type_ == WayPoint::ROAD_SEGMENT) {
 					rdSeg = it->roadSegment_;

@@ -149,18 +149,17 @@ void HouseholdSellerRole::update(timeslice now) {
         adjustNotSoldUnits();
     }
     if (hasUnitsToSale) {
-        const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
+        const HM_Model* model = getParent()->getModel();
         HousingMarket* market = getParent()->getMarket();
         const vector<BigSerial>& unitIds = getParent()->getUnitIds();
         //get values from parent.
         const Unit* unit = nullptr;
-        DataManager& dman = DataManagerSingleton::getInstance();
         for (vector<BigSerial>::const_iterator itr = unitIds.begin();
                 itr != unitIds.end(); itr++) {
             // Decides to put the house on market.
             BigSerial unitId = *itr;
-            unit = dman.getUnitById(unitId);
-            BigSerial tazId = dman.getUnitTazId(unitId);
+            unit = model->getUnitById(unitId);
+            BigSerial tazId = model->getUnitTazId(unitId);
             calculateUnitExpectations(*unit);
             //get first expectation to add the entry on market.
             ExpectationEntry firstExpectation; 
@@ -232,16 +231,16 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
 }
 
 void HouseholdSellerRole::adjustNotSoldUnits() {
+    const HM_Model* model = getParent()->getModel();
     HousingMarket* market = getParent()->getMarket();
     const IdVector& unitIds = getParent()->getUnitIds();
     const Unit* unit = nullptr;
     const HousingMarket::Entry* unitEntry = nullptr;
-    DataManager& dman = DataManagerSingleton::getInstance();
     for (IdVector::const_iterator itr = unitIds.begin(); itr != unitIds.end();
             itr++) {
         BigSerial unitId = *itr;
         unitEntry = market->getEntryById(unitId);
-        unit = dman.getUnitById(unitId);
+        unit = model->getUnitById(unitId);
         if (unitEntry && unit) {
             ExpectationEntry entry;
             if (getCurrentExpectation(unitId, entry)

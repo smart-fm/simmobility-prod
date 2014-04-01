@@ -1,6 +1,18 @@
+--[[****************************************************************************
+    GLOBAL STATIC LOOKUP DATA
+******************************************************************************]]
 --[[
-    Lua 5.1 Copyright (C) 1994-2006 Lua.org, PUC-Rio
+    Helper function to mark tables as read-only.
 ]]
+function readOnlyTable(table)
+   return setmetatable({}, {
+     __index = table,
+     __newindex = function(table, key, value)
+                    error("Attempt to modify read-only table")
+                  end,
+     __metatable = false
+   });
+end
 
 
 --[[
@@ -14,7 +26,7 @@ Math = setmetatable({}, {
     __metatable = "The metatable is locked";
 })
  
-Math.E = Math.exp(1) -- euler's number
+Math.E = math.exp(1) -- euler's number
 Math.PHI = (1 + Math.sqrt(5))/2 -- golden ratio
 
 Math.nan = function(x) -- tests if value is nan
@@ -29,6 +41,9 @@ Math.finite = function(x) -- tests if value is finite
     return (x == x and x > -math.huge and x < math.huge)
 end
 
+Math.ln = function(x)
+    return math.log(x) / math.log(Math.E)
+end
 
 --
  --F'(x) = (f(x + crit) - f(x - crit)) / 2*crit 

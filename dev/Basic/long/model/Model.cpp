@@ -41,6 +41,9 @@ Model::Model(const std::string& name, WorkGroup& workGroup)
 }
 
 Model::~Model() {
+    if (running){
+        stop();
+    }
     deleteAgents(agents);
 }
 

@@ -46,7 +46,7 @@ HouseholdAgent::~HouseholdAgent() {
 
 void HouseholdAgent::addUnitId(const BigSerial& unitId) {
     unitIds.push_back(unitId);
-    BigSerial tazId = DataManagerSingleton::getInstance().getUnitTazId(unitId);
+    BigSerial tazId = model->getUnitTazId(unitId);
     if (tazId != INVALID_ID) {
         preferableZones.push_back(tazId);
     }

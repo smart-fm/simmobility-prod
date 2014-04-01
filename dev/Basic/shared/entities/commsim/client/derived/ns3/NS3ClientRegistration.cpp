@@ -4,14 +4,14 @@
 
 
 #include "NS3ClientRegistration.hpp"
+
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "event/EventPublisher.hpp"
 #include "entities/Person.hpp"
 #include "entities/commsim/broker/Common.hpp"
 #include "entities/commsim/event/AllLocationsEventArgs.hpp"
-#include "AgentsInfo.hpp"
-#include <boost/foreach.hpp>
+
 
 sim_mob::NS3ClientRegistration::NS3ClientRegistration() : ClientRegistrationHandler()
 {
@@ -41,19 +41,12 @@ boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeCl
 	for (std::set<sim_mob::Services::SIM_MOB_SERVICE>::const_iterator it=request.requiredServices.begin(); it!=request.requiredServices.end(); it++) {
 		switch (*it) {
 		case sim_mob::Services::SIMMOB_SRV_TIME: {
-//			 PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_TIME);
 			p.subscribe(COMMEID_TIME, clientEntry.get(), &ClientHandler::sendSerializedMessageToBroker);
 			break;
 		}
 		case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS: {
-//			PublisherList::Value p = broker.getPublisher(sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS);
-
 			//NOTE: It does not seem like we even use the "Context" pointer, so I am switching
 			//      this to a regular CALLBACK_HANDLER. Please review. ~Seth
-			//p->subscribe(COMMEID_LOCATION,
-			//	clientEntry.get(),
-			//	&ClientHandler::OnEvent,
-			//	COMMCID_ALL_LOCATIONS);
 			p.subscribe(COMMEID_ALL_LOCATIONS, clientEntry.get(), &ClientHandler::sendSerializedMessageToBroker, (void*) COMMCID_ALL_LOCATIONS);
 			break;
 		}

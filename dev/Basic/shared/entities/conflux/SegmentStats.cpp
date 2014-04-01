@@ -16,7 +16,7 @@ using std::string;
 namespace sim_mob {
 
 SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream) :
-			roadSegment(rdSeg), segDensity(0.0), segPedSpeed(0.0), segFlow(0), lastAcceptTime(0.0), debugMsgs(std::stringstream::out) {
+			roadSegment(rdSeg), segDensity(0.0), segPedSpeed(0.0), segFlow(0), lastAcceptTime(0.0), debugMsgs(std::stringstream::out), orderBySetting(SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION) {
 	segVehicleSpeed = getRoadSegment()->maxSpeed / 3.6 * 100; //converting from kmph to m/s
 	numVehicleLanes = 0;
 
@@ -74,6 +74,69 @@ std::deque<sim_mob::Person*> SegmentStats::getAgents() {
 
 	return segAgents;
 }
+
+void SegmentStats::getAgentsByTopCMerge(std::deque<sim_mob::Person*>& mergedPersonList) {
+	std::vector< std::deque<sim_mob::Person*> > allPersonLists;
+	int capacity = (int)(ceil(roadSegment->getCapacityPerInterval())); //hard-code: 5 is the time step
+
+	for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator lnIt = laneStatsMap.begin(); lnIt != laneStatsMap.end(); lnIt++) {
+		allPersonLists.push_back((lnIt->second->laneAgents));
+	}
+
+	topCMergeDifferentLanesInSegment(mergedPersonList, allPersonLists, capacity);
+}
+
+void SegmentStats::topCMergeDifferentLanesInSegment(std::deque<sim_mob::Person*>& mergedPersonList, std::vector<std::deque<sim_mob::Person*> >& allPersonLists, int capacity) {
+	std::vector<std::deque<sim_mob::Person*>::iterator> iteratorLists;
+
+	//init location
+	size_t dequeSize = allPersonLists.size();
+	for (std::vector<std::deque<sim_mob::Person*> >::iterator it = allPersonLists.begin(); it != allPersonLists.end(); ++it) {
+		iteratorLists.push_back(((*it)).begin());
+	}
+
+	//pick the Top C
+	for (size_t c = 0; c < capacity; c++) {
+		int whichDeque = -1;
+		double minDistance = std::numeric_limits<double>::max();
+		sim_mob::Person* whichPerson = NULL;
+
+		for (size_t i = 0; i < dequeSize; i++) {
+			//order by location
+			if (orderBySetting == SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION) {
+				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->distanceToEndOfSegment < minDistance) {
+					whichDeque = i;
+					minDistance = (*iteratorLists[i])->distanceToEndOfSegment;
+					whichPerson = (*iteratorLists[i]);
+				}
+			}
+			//order by time
+			else if (orderBySetting == SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION) {
+				if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->drivingTimeToEndOfLink < minDistance) {
+					whichDeque = i;
+					minDistance = (*iteratorLists[i])->drivingTimeToEndOfLink;
+					whichPerson = (*iteratorLists[i]);
+				}
+			}
+		}
+
+		if (whichDeque < 0) {
+			//no vehicle any more
+			return;
+		} else {
+			iteratorLists[whichDeque]++;
+			mergedPersonList.push_back(whichPerson);
+		}
+	}
+
+	//After pick the Top C, there are still some vehicles left in the deque
+	for (size_t i = 0; i < dequeSize; i++) {
+		if (iteratorLists[i] != (allPersonLists[i]).end()) {
+			mergedPersonList.insert(mergedPersonList.end(), iteratorLists[i], (allPersonLists[i]).end());
+		}
+	}
+}
+
 
 std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const sim_mob::Lane* lane) {
 	return std::make_pair(laneStatsMap.at(lane)->getQueuingAgentsCount(), laneStatsMap.at(lane)->getMovingAgentsCount());
@@ -527,6 +590,25 @@ std::string sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber){
 		double density = segDensity
 							* 1000.0 /* Density is converted to veh/km/lane for the output */
 							* numVehicleLanes; /* Multiplied with number of lanes to get the density in veh/km/segment*/
+
+#define SHOW_NUMBER_VEHICLE_ON_SEGMENT
+#ifdef SHOW_NUMBER_VEHICLE_ON_SEGMENT
+
+		msg <<"(\"segmentState\""
+			<<","<<frameNumber.frame()
+			<<","<<roadSegment
+			<<",{"
+			<<"\"speed\":\""<< segVehicleSpeed
+			<<"\",\"flow\":\""<< segFlow
+			<<"\",\"density\":\""<< density
+			<<"\",\"total_vehicles\":\""<< getAgents().size()
+			<<"\",\"moving_vehicles\":\""<< numMovingInSegment(true)
+			<<"\",\"queue_vehicles\":\""<< numQueueingInSegment(true)
+			<<"\",\"numVehicleLanes1\":\""<< numVehicleLanes
+			<<"\",\"getLaneZeroLength\":\""<< roadSegment->getLaneZeroLength()
+			<<"\"})"<<std::endl;
+#else
+
 		msg <<"(\"segmentState\""
 			<<","<<frameNumber.frame()
 			<<","<<roadSegment
@@ -535,6 +617,7 @@ std::string sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber){
 			<<"\",\"flow\":\""<< segFlow
 			<<"\",\"density\":\""<< density
 			<<"\"})"<<std::endl;
+#endif
 		return msg.str();
 	}
 	return "";

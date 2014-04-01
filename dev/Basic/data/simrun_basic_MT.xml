@@ -428,6 +428,12 @@
         <stop offsetAT="403600" offsetDT="409600" />        
     </scheduledTimes>
     
+    <personCharacteristics>
+        <person lowerAge="20" upperAge="30" lowerSecs="3" upperSecs="7"/>
+        <person lowerAge="30" upperAge="40" lowerSecs="4" upperSecs="8"/>
+        <person lowerAge="40" upperAge="50" lowerSecs="5" upperSecs="9"/>
+        <person lowerAge="50" upperAge="60" lowerSecs="6" upperSecs="10"/>
+    </personCharacteristics>
     
     <!--Driver start locations-->
     <!--3 drivers start at the N/S/E/W and each turns a different way-->
@@ -465,7 +471,7 @@
     <!-- With the above three procedures present and valid, enable buses with "<buscontroller time="0" />" in the <buscontrollers> -->
     <!-- To Disable Buses: user can simply comment the buscontroller in the <buscontrollers> -->
     <buscontrollers>
-        <buscontroller time="0" />    
+        <!--buscontroller time="0" -->   
     </buscontrollers>
     
 <!--<signals> -->

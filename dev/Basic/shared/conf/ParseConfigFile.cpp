@@ -577,8 +577,9 @@ void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
 	ProcessPersonCharacteristicsNode(GetSingleElementByName(rootNode, "personCharacteristics"));
 
 	//Agents all follow a template.
-	ProcessDriversNode(GetSingleElementByName(rootNode, "drivers"));
+
 	ProcessPedestriansNode(GetSingleElementByName(rootNode, "pedestrians"));
+	ProcessDriversNode(GetSingleElementByName(rootNode, "drivers"));
 	ProcessBusDriversNode(GetSingleElementByName(rootNode, "busdrivers"));
 	ProcessPassengersNode(GetSingleElementByName(rootNode, "passengers"));
 	ProcessSignalsNode(GetSingleElementByName(rootNode, "signals"));

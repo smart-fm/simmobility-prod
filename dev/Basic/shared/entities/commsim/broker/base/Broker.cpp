@@ -916,22 +916,17 @@ void sim_mob::Broker::waitForAgentsUpdates()
 
 bool sim_mob::Broker::allClientsAreDone()
 {
-	//ClientList::Pair clientByType;
-	//ClientList::ValuePair clientByID;
-
 	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
 	msg_header msg_header_;
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 
 	for (ClientList::Type::const_iterator ctypeIt=clientList.begin(); ctypeIt!=clientList.end(); ctypeIt++) {
 		for (ClientList::Value::const_iterator cidIt=ctypeIt->second.begin(); cidIt!=ctypeIt->second.end(); cidIt++) {
-	//BOOST_FOREACH(clientByType, clientList) {
-		//BOOST_FOREACH(clientByID, clientByType.second) {
 			clnHandler = cidIt->second;
 			//If we have a valid client handler.
 			if (clnHandler && clnHandler->isValid()) {
 				//...and a valid connection handler.
-				if (clnHandler->connHandle && clnHandler->connHandle->isValid() && clnHandler->connHandle->is_open()) {
+				if (clnHandler->connHandle && clnHandler->connHandle->isValid()) {
 					//Check if this connection's "done" count equals its "total" known agent count.
 					//TODO: This actually checks the same connection handler multiple times if connections are multiplexed
 					//      (one for each ClientHandler). This is harmless, but inefficient.

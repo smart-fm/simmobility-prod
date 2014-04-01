@@ -2,12 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * ConnectionHandler.hpp
- *
- *  Created on: May 29, 2013
- *      Author: vahid
- */
 
 #pragma once
 
@@ -39,8 +33,6 @@ public:
 	//Send a message on behalf of the given client.
 	void forwardMessage(std::string str);
 
-	session_ptr& getSession();
-	bool is_open() const;
 	bool isValid() const;
 	void setValidation(bool);
 

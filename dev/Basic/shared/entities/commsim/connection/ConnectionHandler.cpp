@@ -99,24 +99,15 @@ void sim_mob::ConnectionHandler::messageReceivedHandle(const boost::system::erro
 	readMessage();
 }
 
-session_ptr& sim_mob::ConnectionHandler::getSession()
-{
-	return session;
-}
 
-bool sim_mob::ConnectionHandler::is_open() const
+bool sim_mob::ConnectionHandler::isValid() const
 {
-	return session->isOpen();
+	return valid && session->isOpen();
 }
 
 std::string sim_mob::ConnectionHandler::getToken() const
 {
 	return token;
-}
-
-bool sim_mob::ConnectionHandler::isValid() const
-{
-	return valid;
 }
 
 void ConnectionHandler::setValidation(bool value)

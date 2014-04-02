@@ -133,13 +133,10 @@ void sim_mob::DriverPathMover::setPath(const vector<const RoadSegment*>& path, i
 	distAlongPolyline = 0;
 
 	inIntersection = false;
-	//calcNewLaneDistances();
 
 	distMovedInCurrSegment = 0;
 	distOfThisSegment = CalcSegmentLaneZeroDist(currSegmentIt, fullPath.end());
 	distOfRestSegments = CalcRestSegmentsLaneZeroDist(currSegmentIt, fullPath.end());
-
-//	setStartPositionInSegment(); //for mid-term
 }
 
 
@@ -222,7 +219,6 @@ void sim_mob::DriverPathMover::resetPath(const vector<const RoadSegment*>& path)
 
 void sim_mob::DriverPathMover::calcNewLaneDistances()
 {
-//	DynamicVector zeroPoly(currLaneZeroPolypoint->getX(), currLaneZeroPolypoint->getY(), nextLaneZeroPolypoint->getX(), nextLaneZeroPolypoint->getY());
 	DynamicVector zeroPoly(currPolypoint->getX(), currPolypoint->getY(), nextPolypoint->getX(), nextPolypoint->getY());
 	distMovedInCurrSegment += zeroPoly.getMagnitude();
 }
@@ -537,18 +533,10 @@ double sim_mob::DriverPathMover::advanceToNextPolyline(bool isFwd)
 	if(isFwd){
 		currPolypoint++;
 		nextPolypoint++;
-
-		//Advance lane zero pointers
-//		currLaneZeroPolypoint++;
-//		nextLaneZeroPolypoint++;
 	}
 	else{
 		currPolypoint++;
 		nextPolypoint++;
-
-		//Advance lane zero pointers
-//		currLaneZeroPolypoint++;
-//		nextLaneZeroPolypoint++;
 	}
 
 	//Update length, OR move to a new Segment
@@ -618,9 +606,6 @@ const Lane* sim_mob::DriverPathMover::actualMoveToNextSegmentAndUpdateDir()
 	distOfThisSegment = CalcSegmentLaneZeroDist(currSegmentIt, fullPath.end());
 	distOfRestSegments = CalcRestSegmentsLaneZeroDist(currSegmentIt, fullPath.end());
 
-	//In case we moved
-	//distAlongPolyline = distMovedInSegment; //NOTE: Should probably factor this out into a sep. variable.
-
 	if (currSegmentIt == fullPath.end())
 	{
 		return nullptr;
@@ -630,7 +615,6 @@ const Lane* sim_mob::DriverPathMover::actualMoveToNextSegmentAndUpdateDir()
 	currLaneID = std::min<int>(currLaneID, (*currSegmentIt)->getLanes().size() - 1);
 
 	//Is this new segment part of a Link we're traversing in reverse?
-	//const Node* prevNode = isMovingForwards ? (*(currSegmentIt-1))->getEnd() : (*(currSegmentIt-1))->getStart();
 	if (nextInNewLink)
 	{
 		//calcNewLaneDistances();
@@ -784,9 +768,6 @@ double sim_mob::DriverPathMover::getCurrDistAlongPolyline() const
 double sim_mob::DriverPathMover::getCurrDistAlongRoadSegment() const
 {
 	throwIf(!isPathSet(), DriverPathMover::ErrorPathNotSet);
-//	if(isInIntersection()) {
-//		throw std::runtime_error("Can't get distance in Segment while in an intersection.");
-//	}
 
 	//Get the ratio of distance moved over the current one.
 	double distRatio = std::min(distAlongPolyline, currPolylineLength()) / currPolylineLength();
@@ -949,9 +930,6 @@ void sim_mob::DriverPathMover::actualMoveToNextSegmentAndUpdateDir_med()
 	currSegmentIt++;
 
 	//Reset our distance; calculate the total lane-zero distance of this segment.
-//	distMovedInCurrSegment = 0;
-//	distOfThisSegment = CalcSegmentLaneZeroDist(currSegmentIt, fullPath.end());
-//	distOfRestSegments = CalcRestSegmentsLaneZeroDist(currSegmentIt, fullPath.end());
 
 	if (currSegmentIt == fullPath.end())
 	{

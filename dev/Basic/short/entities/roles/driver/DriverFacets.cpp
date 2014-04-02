@@ -422,7 +422,6 @@ void sim_mob::DriverMovement::frame_tick()
 	//Print output for this frame.
 	disToFwdVehicleLastFrame = p2.nvFwd.distance;
 	parentDriver->currDistAlongRoadSegment = fwdDriverMovement.getCurrDistAlongRoadSegment();
-//	parentDriver->currPos = getPosition();
 	parentDriver->setCurrPosition(getPosition());
 	parentDriver->vehicle->setCurrPosition(getPosition());
 }

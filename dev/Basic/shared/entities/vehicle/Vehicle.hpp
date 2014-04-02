@@ -126,7 +126,6 @@ private:
 	DPoint currPos;
 
 public:
-//	DPoint getPosition() const;
 	/*needed by mid-term*/
 	double getPositionInSegment();
 	void setPositionInSegment(double newDist2end);

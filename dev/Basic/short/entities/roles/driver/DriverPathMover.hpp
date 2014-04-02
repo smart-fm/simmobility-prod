@@ -126,7 +126,8 @@ public:
 	double getNextSegmentLength();
 	void advance_med(double fwdDistance);
 	void actualMoveToNextSegmentAndUpdateDir_med();
-//private:
+	double currPolylineLength() const;
+
 public:
 	//List of RoadSegments we're moving to in order.
 	std::vector<const sim_mob::RoadSegment*> fullPath;
@@ -145,7 +146,6 @@ public:
 	//Movement along a single line
 	double distAlongPolyline;
 	double distAlongSegment; //for mid-term use
-	double currPolylineLength() const;
 
 	//Counter
 	//NOTE: This is always the same regardless of what lane you're in. In other words,
@@ -182,7 +182,7 @@ public:
 	struct PathWithDirection{
 		std::vector<const RoadSegment*> path;
 		std::vector<bool> areFwds;
-	}pathWithDirection;
+	} pathWithDirection;
 
 private:
 	//Error messages for throw_if.

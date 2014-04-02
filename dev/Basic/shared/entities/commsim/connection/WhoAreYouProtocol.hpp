@@ -15,7 +15,6 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
 
-#include <entities/commsim/client/base/ClientRegistration.hpp>
 
 namespace sim_mob {
 class BrokerBase;

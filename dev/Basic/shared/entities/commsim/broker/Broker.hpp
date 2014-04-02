@@ -5,6 +5,7 @@
 #pragma once
 
 #include <list>
+#include <queue>
 
 #include <boost/thread/condition_variable.hpp>
 #include <boost/unordered_map.hpp>
@@ -13,7 +14,7 @@
 
 #include "entities/Agent.hpp"
 #include "entities/commsim/client/ClientType.hpp"
-#include "entities/commsim/client/base/ClientRegistration.hpp"
+#include "entities/commsim/client/ClientRegistration.hpp"
 #include "entities/commsim/service/Services.hpp"
 #include "entities/commsim/broker/Broker-util.hpp"
 #include "entities/commsim/broker/Common.hpp"
@@ -83,6 +84,11 @@ public:
 	//Used by the WhoAreYouProtocol when clients connect.
 	virtual void insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn) = 0;
 
+	//Used by ClientRegistration when a ClientHandler object has been created. Failing to save the ClientHandler here will lead to its destruction.
+	virtual void insertClientList(std::string, comm::ClientType , boost::shared_ptr<sim_mob::ClientHandler>&) = 0;
+	virtual AgentsList::type &getRegisteredAgents(AgentsList::Mutex* mutex) = 0;
+	virtual sim_mob::event::EventPublisher & getPublisher() = 0;
+
 	//Used by the BrokerBlocker subclasses. Hopefully we can further abstract these.
 	virtual size_t getRegisteredAgentsSize() const = 0;
 	virtual const ClientList::Type& getAndroidClientList() const = 0;
@@ -110,13 +116,6 @@ class Broker : public sim_mob::Agent, public sim_mob::BrokerBase {
 public:
 	explicit Broker(const MutexStrategy& mtxStrat, int id=-1, std::string commElement_ = "", std::string commMode_ = "");
 	virtual ~Broker();
-
-private:
-	///List of all known tokens and their associated ConnectionHandlers.
-	///This list is built over time, as new connections/Agents are added (ConnectionHandlers should never be removed).
-	/// THREADING: This data structure is modified by parallel threads.
-	std::map<std::string, boost::shared_ptr<sim_mob::ConnectionHandler> > tokenConnectionLookup;
-	boost::mutex mutex_token_lookup; ///<Mutex to lock tokenConnectionLookup.
 
 protected:
 	 //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
@@ -148,11 +147,24 @@ protected:
 	struct ClientWaiting {
 		ClientRegistrationRequest request;
 		boost::shared_ptr<sim_mob::ConnectionHandler> existingConn;
-		ClientWaiting(ClientRegistrationRequest request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn) : request(request), existingConn(existingConn) {}
+		ClientWaiting(ClientRegistrationRequest request=ClientRegistrationRequest(), boost::shared_ptr<sim_mob::ConnectionHandler> existingConn=boost::shared_ptr<sim_mob::ConnectionHandler>()) :
+			request(request), existingConn(existingConn) {}
 	};
 
 	//clientType => ClientWaiting
-	typedef std::multimap<std::string, ClientWaiting> ClientWaitList;
+	//typedef std::multimap<std::string, ClientWaiting> ClientWaitList;
+
+private:
+	///List of all known tokens and their associated ConnectionHandlers.
+	///This list is built over time, as new connections/Agents are added (ConnectionHandlers should never be removed).
+	/// THREADING: This data structure is modified by parallel threads.
+	std::map<std::string, boost::shared_ptr<sim_mob::ConnectionHandler> > tokenConnectionLookup;
+	boost::mutex mutex_token_lookup; ///<Mutex to lock tokenConnectionLookup.
+
+	///Waiting list for external Android/Ns-3 clients willing to communication with Sim Mobility.
+	std::queue<ClientWaiting> clientWaitListAndroid;
+	std::queue<ClientWaiting> clientWaitListNs3;
+	boost::mutex mutex_client_wait_list; ///<Mutex for locking the clientWaitListX variables.
 
 
 protected:
@@ -164,10 +176,6 @@ protected:
 	///the external communication entity that is using this broker as interface to from simmobility
 	std::string commElement;//"roadrunner", "stk",...etc
 	std::string commMode; //android-only, android-ns3,...etc
-
-
-	///	waiting list for external clients willing to communication with simmobility
-	ClientWaitList clientRegistrationWaitingList; //<client type, requestform>
 
 
 	///List of (Sim Mobility) Agents that have registered themselves with the Broker.
@@ -203,7 +211,10 @@ protected:
 
 	//todo this will be configured in the configure() method and
 	//replace the above "clientRegistrationFactory" member for simplicity
-	std::map<comm::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> > ClientRegistrationHandlerMap;
+	//std::map<comm::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> > ClientRegistrationHandlerMap;
+
+	ClientRegistrationHandler registrationHandler;
+
 
 	//	publishes an event when a client is registered with the broker
 	ClientRegistrationPublisher registrationPublisher;
@@ -237,7 +248,6 @@ protected:
 	WaitForAgentRegistration waitAgentBlocker;
 
 	//various controlling mutexes and condition variables
-	boost::mutex mutex_client_request;
 	boost::mutex mutex_clientList;
 	boost::mutex mutex_clientDone;
 	boost::mutex mutex_agentDone;
@@ -287,6 +297,12 @@ protected:
 	 * processes clients requests to be registered with the broker
 	 */
 	virtual void processClientRegistrationRequests();
+
+	///Helper: Scans a single waitList and processes/removes all entries that it can.
+	///The flag "isNs3" indicates an ns-3 simulator; otherwise, it's treated as Android.
+	///For now, ns-3 is our only special type.
+	void scanAndProcessWaitList(std::queue<ClientWaiting>& waitList, bool isNs3);
+
 
 
 	void setNewClientProps();
@@ -363,7 +379,7 @@ public:
 	/**
 	 * 	list of registered agents + mutex
 	 */
-	AgentsList::type &getRegisteredAgents(AgentsList::Mutex* mutex);
+	virtual AgentsList::type &getRegisteredAgents(AgentsList::Mutex* mutex);
 	/**
 	 * 	register an agent
 	 */
@@ -380,7 +396,7 @@ public:
 
 
 	///Returns the size of the list of clients waiting to be admitted as registered clients.
-	size_t getClientWaitingListSize() const;
+	//size_t getClientWaitingListSize() const;
 
 	/**
 	 * 	returns list of registered clients
@@ -398,7 +414,7 @@ public:
 	/**
 	 * 	adds to the list of registered clients
 	 */
-	void insertClientList(std::string, comm::ClientType , boost::shared_ptr<sim_mob::ClientHandler>&);
+	virtual void insertClientList(std::string, comm::ClientType , boost::shared_ptr<sim_mob::ClientHandler>&);
 
 	/**
 	 * 	adds a client to the registration waiting list
@@ -420,7 +436,7 @@ public:
 	 */
 	virtual void insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn);
 
-	sim_mob::event::EventPublisher & getPublisher();
+	virtual sim_mob::event::EventPublisher& getPublisher();
 
 	/**
 	 * 	request to insert into broker's send buffer

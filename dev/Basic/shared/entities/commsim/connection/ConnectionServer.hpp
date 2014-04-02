@@ -22,7 +22,7 @@
 #include <boost/tuple/tuple.hpp>
 #include <queue>
 
-#include <entities/commsim/client/base/ClientRegistration.hpp>
+#include <entities/commsim/client/ClientRegistration.hpp>
 #include <entities/commsim/connection/Session.hpp>
 
 namespace sim_mob {

@@ -81,17 +81,6 @@ public:
 		std::set<unsigned int> manualAgentIDs;
 	};
 
-	/*enum ClientType {
-		UNKNOWN = 0,
-		ANDROID_EMULATOR = 1,
-		NS3_SIMULATOR = 2,
-		//add your client type here
-	};*/
-
-	/*enum NetworkSource {
-		NETSRC_XML,
-		NETSRC_DATABASE,
-	};*/
 
 	unsigned int totalRuntimeTicks;   ///<Number of ticks to run the simulation for. (Includes "warmup" ticks.)
 	unsigned int totalWarmupTicks;    ///<Number of ticks considered "warmup".

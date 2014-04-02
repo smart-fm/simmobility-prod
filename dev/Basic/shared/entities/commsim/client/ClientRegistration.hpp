@@ -11,11 +11,12 @@
 
 #include <boost/shared_ptr.hpp>
 #include "entities/commsim/service/Services.hpp"
+#include "entities/commsim/broker/Broker-util.hpp"
 #include "event/args/EventArgs.hpp"
 
 namespace sim_mob {
 
-class Broker;
+class BrokerBase;
 class ClientHandler;
 class ConnectionHandler;
 
@@ -47,14 +48,31 @@ public:
  *      client handler and finally do some post processing like informing the client of
  *      the success of its request.
  *      the main method is handle(). the rest of the methods are usually helpers.
- *
- *      Note that if "existingConn" is non-null, the given "existing" ConnectionHandler is used
- *        to multiplex reads and writes from the new ClientHandler.
  */
 class ClientRegistrationHandler {
 public:
-	virtual ~ClientRegistrationHandler() {}
-	virtual bool handle(sim_mob::Broker&, sim_mob::ClientRegistrationRequest&, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn) = 0;
+	bool handle(BrokerBase&, sim_mob::ClientRegistrationRequest&, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn, bool isNs3Client);
+
+private:
+	///Helper function: Find an agent from the list of registeredAgents that is not in our set of usedAgents.
+	///Returns null if no such agent exists.
+	const Agent* findAFreeAgent(const AgentsList::type &registeredAgents);
+
+	/**
+	 * helper function used in handle() method to prepare and return a sim_mob::ClientHandler
+	 * If connHandle is null, create a new connection handler. Otherwise, just re-use it.
+	 */
+	boost::shared_ptr<ClientHandler> makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> connHandle, BrokerBase&, sim_mob::ClientRegistrationRequest &, const sim_mob::Agent* freeAgent, bool isNs3Client);
+
+	/**
+	 * Helper function used to send simmobility agents information to ns3 in json format
+	 */
+	void sendAgentsInfo(AgentsList::type& agents, boost::shared_ptr<ClientHandler> clientEntry);
+
+
+private:
+	std::set<const Agent*> usedAgents;
+
 };
 
 

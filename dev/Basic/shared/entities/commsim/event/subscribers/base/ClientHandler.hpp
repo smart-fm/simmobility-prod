@@ -18,7 +18,7 @@
 #include "entities/commsim/service/Services.hpp"
 
 namespace sim_mob {
-class Broker;
+class BrokerBase;
 class ConnectionHandler;
 class JsonSerializableEventArgs;
 class Agent;
@@ -27,7 +27,7 @@ class ClientHandler;
 class ClientHandler: public sim_mob::event::EventListener, public boost::enable_shared_from_this<ClientHandler> {
 public:
 	///conn is the connection handler this client can use to send messages.
-	ClientHandler(sim_mob::Broker& broker, boost::shared_ptr<sim_mob::ConnectionHandler> conn, const sim_mob::Agent* agent, std::string clientId);
+	ClientHandler(BrokerBase& broker, boost::shared_ptr<sim_mob::ConnectionHandler> conn, const sim_mob::Agent* agent, std::string clientId);
 	virtual ~ClientHandler();
 
 	//event functions:
@@ -38,13 +38,13 @@ public:
 	const std::set<sim_mob::Services::SIM_MOB_SERVICE>& getRequiredServices();
 	bool isValid() const;
 	void setValidation(bool);
-	sim_mob::Broker &getBroker();
+	//sim_mob::Broker &getBroker();
 
 
 
 private:
 	std::set<sim_mob::Services::SIM_MOB_SERVICE> requiredServices;
-	sim_mob::Broker& broker;
+	sim_mob::BrokerBase& broker;
 	bool valid;
 
 public: //TODO: Some of these should clearly be private; however, for now they are all accessed in too many places.

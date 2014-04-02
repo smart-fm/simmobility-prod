@@ -14,8 +14,6 @@
 
 #include "entities/commsim/broker/Common.hpp"
 #include "entities/commsim/comm_support/AgentCommUtility.hpp"
-#include "entities/commsim/client/derived/android/AndroidClientRegistration.hpp"
-#include "entities/commsim/client/derived/ns3/NS3ClientRegistration.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/commsim/event/RegionsAndPathEventArgs.hpp"
@@ -86,8 +84,8 @@ void sim_mob::Broker::configure()
 	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS);
 
 	//Listen to Android/NS-3 client registrations.
-	ClientRegistrationHandlerMap[comm::ANDROID_EMULATOR].reset(new sim_mob::AndroidClientRegistration());
-	ClientRegistrationHandlerMap[comm::NS3_SIMULATOR].reset(new sim_mob::NS3ClientRegistration());
+	//ClientRegistrationHandlerMap[comm::ANDROID_EMULATOR].reset(new sim_mob::AndroidClientRegistration());
+	//ClientRegistrationHandlerMap[comm::NS3_SIMULATOR].reset(new sim_mob::NS3ClientRegistration());
 
 	//Hook up Android emulators to OnClientRegister
 	registrationPublisher.registerEvent(comm::ANDROID_EMULATOR);
@@ -257,10 +255,12 @@ AgentsList::type& sim_mob::Broker::getRegisteredAgents(AgentsList::Mutex* mutex)
 	return registeredAgents.getAgents();
 }
 
-size_t sim_mob::Broker::getClientWaitingListSize() const
+/*size_t sim_mob::Broker::getClientWaitingListSize() const
 {
-	return clientRegistrationWaitingList.size();
-}
+	boost::unique_lock<boost::mutex> lock(mutex_client_wait_list);
+	return clientWaitListAndroid.size() + clientWaitListNs3.size();
+	//return clientRegistrationWaitingList.size();
+}*/
 
 const ClientList::Type& sim_mob::Broker::getAndroidClientList() const
 {
@@ -325,8 +325,17 @@ void sim_mob::Broker::insertIntoWaitingOnWHOAMI(const std::string& token, boost:
 
 void  sim_mob::Broker::insertClientWaitingList(std::string clientType, ClientRegistrationRequest request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn)
 {
-	boost::unique_lock<boost::mutex> lock(mutex_client_request);
-	clientRegistrationWaitingList.insert(std::make_pair(clientType,ClientWaiting(request,existingConn)));
+	//TODO: The clientType will have to come from somewhere else (e.g., ONLY in the WHOAMI message).
+	{
+	boost::unique_lock<boost::mutex> lock(mutex_client_wait_list);
+	if (clientType=="android") {
+		clientWaitListAndroid.push(ClientWaiting(request,existingConn));
+	} else if (clientType=="ns-3") {
+		clientWaitListNs3.push(ClientWaiting(request,existingConn));
+	} else {
+		throw std::runtime_error("Can't insert client into waiting list: unknown type.");
+	}
+	}
 	COND_VAR_CLIENT_REQUEST.notify_one();
 }
 
@@ -336,61 +345,38 @@ sim_mob::event::EventPublisher & sim_mob::Broker::getPublisher()
 }
 
 
+void sim_mob::Broker::scanAndProcessWaitList(std::queue<ClientWaiting>& waitList, bool isNs3)
+{
+	for (;;) {
+		//Retrieve the next ClientWaiting request; minimal locking. Does NOT remove the element (it might not handle() properly).
+		ClientWaiting item;
+		{
+		boost::unique_lock<boost::mutex> lock(mutex_client_wait_list);
+		if (waitList.empty()) {
+			break;
+		}
+		item = waitList.front();
+		}
+
+		//Try to handle it. If this succeeds, remove it (it's guaranteed to be at the front of the queue).
+		if(registrationHandler.handle(*this, item.request, item.existingConn, isNs3)) { //true=ns3
+			boost::unique_lock<boost::mutex> lock(mutex_client_wait_list);
+			waitList.pop();
+		} else {
+			//Assume that if the first Android client can't match then none will be able to.
+			break;
+		}
+	}
+}
+
+
 void sim_mob::Broker::processClientRegistrationRequests()
 {
-	//We need to process the Android emulators first (or the ns-3 simulator won't be able to find enough valid Agents).
-	for (ClientWaitList::iterator it = clientRegistrationWaitingList.begin(); it != clientRegistrationWaitingList.end(); it++) {
-		//Retrieve the clientType.
-		std::map<std::string, comm::ClientType>::iterator clientTypeIt = sim_mob::Services::ClientTypeMap.find(it->first);
-		if (clientTypeIt == sim_mob::Services::ClientTypeMap.end()) {
-			std::stringstream msg;
-			msg <<"Undefined client type: \"" <<it->first <<"\"\n";
-			throw std::runtime_error(msg.str());
-		}
-		comm::ClientType clientType = clientTypeIt->second;
+	//NOTE: Earlier comments suggest that Android clients *must* be processed first, so I have preserved this order.
+	scanAndProcessWaitList(clientWaitListAndroid, false);
 
-		//Handle NS-3 simulators AFTER Android emulators.
-		if(clientTypeIt->second== comm::NS3_SIMULATOR){
-			continue;
-		}
-
-		//Find the handler for this client type.
-		std::map<comm::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> >::iterator regisIt = ClientRegistrationHandlerMap.find(clientType);
-		if (regisIt==ClientRegistrationHandlerMap.end() || !regisIt->second) {
-			std::stringstream msg;
-			msg <<"No Handler for client type: \"" <<it->first << "\"\n";
-			throw std::runtime_error(msg.str());
-		}
-
-
-		if(regisIt->second->handle(*this,it->second.request, it->second.existingConn)) {
-			//success: handle() just added to the client to the main client list and started its connectionHandler
-			//	next, see if the waiting state of waiting-for-client-connection changes after this process
-			clientRegistrationWaitingList.erase(it);
-		}
-	}
-
-	//Now, handle the ns-3 simulators.
-	//NOTE: The original code returned early if "clientRegistrationWaitingList.find("NS3_SIMULATOR") != clientRegistrationWaitingList.end()",
-	//      so I am not sure if this code even executes. For now, I'm assuming this was a bug, and that client registration should proceed now. ~Seth
-	ClientWaitList::iterator it = clientRegistrationWaitingList.find("NS3_SIMULATOR");
-	if (it == clientRegistrationWaitingList.end()) {
-		return;
-	}
-
-
-	std::map<comm::ClientType, boost::shared_ptr<sim_mob::ClientRegistrationHandler> >::iterator regisIt = ClientRegistrationHandlerMap.find(comm::NS3_SIMULATOR);
-	if (regisIt==ClientRegistrationHandlerMap.end() || !regisIt->second) {
-		std::stringstream msg;
-		msg <<"No Handler for client type: \"" << it->first << "\"\n";
-		throw std::runtime_error(msg.str());
-	}
-
-	if(regisIt->second->handle(*this,it->second.request, it->second.existingConn)) {
-		//success: handle() just added to the client to the main client list and started its connectionHandler
-		//	next, see if the waiting state of waiting-for-client-connection changes after this process
-		clientRegistrationWaitingList.erase(it);
-	}
+	//Now repeat for ns-3.
+	scanAndProcessWaitList(clientWaitListNs3, true);
 }
 
 void sim_mob::Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
@@ -408,7 +394,7 @@ void sim_mob::Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
 
 	//tell me if you are dying
 	sim_mob::messaging::MessageBus::SubscribeEvent(sim_mob::event::EVT_CORE_AGENT_DIED,value->getEntity(), this);
-	 COND_VAR_CLIENT_REQUEST.notify_all();
+	COND_VAR_CLIENT_REQUEST.notify_all();
 }
 
 
@@ -715,7 +701,7 @@ void sim_mob::Broker::waitAndAcceptConnections() {
 	//  2-there is no client(emulator) waiting in the queue
 	//  3-this update function never started to process any data so far
 	for (;;) {
-		boost::unique_lock<boost::mutex> lock(mutex_client_request);
+		//boost::unique_lock<boost::mutex> lock(mutex_client_wait_list);
 
 		//Add pending clients, check if this means we can advance.
 		processClientRegistrationRequests();
@@ -726,6 +712,8 @@ void sim_mob::Broker::waitAndAcceptConnections() {
 				Print() << " brokerCanTickForward->WAITING" << std::endl;
 			}
 
+			//NOTE: I am fairly sure this is an acceptable place to establish the lock.
+			boost::unique_lock<boost::mutex> lock(mutex_client_wait_list);
 			COND_VAR_CLIENT_REQUEST.wait(lock);
 		}
 	}

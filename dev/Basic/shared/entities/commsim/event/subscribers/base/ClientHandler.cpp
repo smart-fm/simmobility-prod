@@ -14,7 +14,7 @@
 
 using namespace sim_mob;
 
-sim_mob::ClientHandler::ClientHandler(sim_mob::Broker& broker, boost::shared_ptr<sim_mob::ConnectionHandler> conn,  const sim_mob::Agent* agent, std::string clientId)
+sim_mob::ClientHandler::ClientHandler(BrokerBase& broker, boost::shared_ptr<sim_mob::ConnectionHandler> conn,  const sim_mob::Agent* agent, std::string clientId)
 	: broker(broker), valid(true), connHandle(conn), agent(agent), clientId(clientId)
 {
 	if (!conn) {
@@ -24,11 +24,6 @@ sim_mob::ClientHandler::ClientHandler(sim_mob::Broker& broker, boost::shared_ptr
 
 sim_mob::ClientHandler::~ClientHandler()
 {
-}
-
-sim_mob::Broker& sim_mob::ClientHandler::getBroker()
-{
-	return broker;
 }
 
 void sim_mob::ClientHandler::setRequiredServices(const std::set<sim_mob::Services::SIM_MOB_SERVICE>& requiredServices)
@@ -44,7 +39,7 @@ const std::set<sim_mob::Services::SIM_MOB_SERVICE>& sim_mob::ClientHandler::getR
 void sim_mob::ClientHandler::sendSerializedMessageToBroker(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const sim_mob::BaseCommsimEventArgs& argums)
 {
 	//now send to broker's buffer
-	getBroker().insertSendBuffer(shared_from_this(), argums.serialize());
+	broker.insertSendBuffer(shared_from_this(), argums.serialize());
 }
 
 bool sim_mob::ClientHandler::isValid() const

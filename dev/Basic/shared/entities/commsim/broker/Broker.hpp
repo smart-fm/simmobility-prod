@@ -48,7 +48,7 @@ class MessageFactory;
 template<class T>
 class Message;
 
-class AgentCommUtilityBase;
+class AgentCommUtility;
 class Publisher;
 class ConnectionHandler;
 class ConnectionServer;
@@ -273,7 +273,7 @@ protected:
 	 * checks wether an agent(entity) is dead or alive.
 	 * Note: this function is not used any more.
 	 */
-	bool deadEntityCheck(sim_mob::AgentCommUtilityBase * info);
+	bool deadEntityCheck(sim_mob::AgentCommUtility * info);
 
 	/**
 	 * processes clients requests to be registered with the broker
@@ -424,7 +424,7 @@ public:
 public:
 	///Register an Agent with the Broker. This will add it to the registeredAgents list.
 	///TODO: This has to do with the AgentCommUtility classes, which need some cleanup.
-	void registerEntity(sim_mob::AgentCommUtilityBase* agent);
+	void registerEntity(sim_mob::AgentCommUtility* agent);
 
 
 	//TODO: Not sustainable, but works for now.

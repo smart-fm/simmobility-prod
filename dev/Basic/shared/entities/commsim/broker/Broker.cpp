@@ -367,7 +367,7 @@ void sim_mob::Broker::processClientRegistrationRequests()
 	scanAndProcessWaitList(clientWaitListNs3, true);
 }
 
-void sim_mob::Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
+void sim_mob::Broker::registerEntity(sim_mob::AgentCommUtility* value)
 {
 	registeredAgents.insert(value->getEntity(), value);
 	if (EnableDebugOutput) {
@@ -611,7 +611,7 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 }
 
 //checks to see if the subscribed entity(agent) is alive
-bool sim_mob::Broker::deadEntityCheck(sim_mob::AgentCommUtilityBase * info)
+bool sim_mob::Broker::deadEntityCheck(sim_mob::AgentCommUtility * info)
 {
 	if (!info) {
 		throw std::runtime_error("Invalid AgentCommUtility\n");

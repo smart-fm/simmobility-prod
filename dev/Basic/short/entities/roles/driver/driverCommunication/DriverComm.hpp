@@ -14,7 +14,7 @@ class Broker;
 class DriverCommMovement;
 class DriverCommBehavior;
 
-class DriverComm : public Driver, public AgentCommUtility<std::string>
+class DriverComm : public Driver, public AgentCommUtility
 {
 	static int totalSendCnt;
 	static int totalReceiveCnt;

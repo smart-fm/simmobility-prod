@@ -14,21 +14,6 @@ using namespace sim_mob;
 
 
 
-bool AndroidClientRegistration::initialEvaluation(sim_mob::Broker& broker,AgentsList::type &registeredAgents)
-{
-	//some checks to avoid calling this method unnecessarily
-	if (broker.getClientWaitingListSize()==0
-			|| registeredAgents.empty()
-			|| usedAgents.size() == registeredAgents.size()) {
-		Print()
-				<< "AndroidClientRegistration::handle initial failure, returning false"
-				<< broker.getClientWaitingListSize() << "-"
-				<< registeredAgents.size() << "-"
-				<< usedAgents.size() << std::endl;
-		return false;
-	}
-	return true;
-}
 
 bool AndroidClientRegistration::findAFreeAgent(AgentsList::type &registeredAgents,AgentsList::type::iterator &freeAgent){
 	//find the first free agent(someone who is not yet been associated to an andriod client)
@@ -91,7 +76,7 @@ bool AndroidClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientR
 	AgentsList::Lock lock(registered_agents_mutex);
 
 	//some checks to avoid calling this method unnecessarily
-	if(!initialEvaluation(broker,registeredAgents)) {
+	if (broker.getClientWaitingListSize()==0) {
 		return false;
 	}
 

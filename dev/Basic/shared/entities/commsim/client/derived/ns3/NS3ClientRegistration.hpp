@@ -32,11 +32,7 @@ class NS3ClientRegistration: public sim_mob::ClientRegistrationHandler  {
 public:
 	virtual ~NS3ClientRegistration() {}
 
-	/**
-	 *  helper function used in handle() method to do some checks
-	 *  in order to avoid calling this method unnecessarily
-	 */
-	virtual bool initialEvaluation(sim_mob::Broker& broker,AgentsList::type &registeredAgents);
+
 	/**
 	 * helper function used in handle() method to prepare and return a sim_mob::ClientHandler
 	 */

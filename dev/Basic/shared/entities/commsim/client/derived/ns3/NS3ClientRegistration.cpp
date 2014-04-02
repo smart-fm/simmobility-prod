@@ -14,16 +14,6 @@
 
 
 
-
-bool sim_mob::NS3ClientRegistration::initialEvaluation(sim_mob::Broker& broker, AgentsList::type &registeredAgents)
-{
-	bool res = false;
-	//add your conditions here
-	res = broker.getClientWaitingListSize()>0;
-
-	return res;
-}
-
 boost::shared_ptr<sim_mob::ClientHandler> sim_mob::NS3ClientRegistration::makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> existingConn,
 		sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request)
 {
@@ -95,9 +85,11 @@ void sim_mob::NS3ClientRegistration::sendAgentsInfo(sim_mob::Broker& broker, boo
 bool sim_mob::NS3ClientRegistration::handle(sim_mob::Broker& broker, sim_mob::ClientRegistrationRequest &request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn)
 {
 //	//This part is locked in fear of registered agents' iterator invalidation in the middle of the process
-	AgentsList::Mutex *registered_agents_mutex;
-	AgentsList::type &registeredAgents = broker.getRegisteredAgents(registered_agents_mutex);
-	if (!initialEvaluation(broker, registeredAgents)) {
+	AgentsList::Mutex registered_agents_mutex;
+	AgentsList::type &registeredAgents = broker.getRegisteredAgents(&registered_agents_mutex);
+	AgentsList::Lock lock(registered_agents_mutex);
+
+	if (broker.getClientWaitingListSize()==0) {
 		return false;
 	}
 

@@ -22,11 +22,7 @@ namespace sim_mob {
 class AndroidClientRegistration: public sim_mob::ClientRegistrationHandler {
 public:
 	virtual ~AndroidClientRegistration() {}
-	/**
-	 *  helper function used in handle() method to do some checks
-	 *  in order to avoid calling this method unnecessarily
-	 */
-	bool initialEvaluation(sim_mob::Broker& broker,AgentsList::type &registeredAgents);
+
 	/**
 	 * actual handler used to register a client of android type: ANDROID_EMULATOR
 	 */

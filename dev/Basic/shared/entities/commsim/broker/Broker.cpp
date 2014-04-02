@@ -33,6 +33,13 @@
 
 using namespace sim_mob;
 
+namespace {
+///Some control parameters.
+const unsigned int MIN_CLIENTS = 1; //minimum number of registered clients(not waiting list)
+const unsigned int MIN_AGENTS = 1;  //minimum number of registered agents
+} //End un-named namespace.
+
+
 std::map<std::string, sim_mob::Broker*> sim_mob::Broker::externalCommunicators;
 
 sim_mob::Broker::Broker(const MutexStrategy& mtxStrat, int id, std::string commElement, std::string commMode) :
@@ -72,20 +79,11 @@ void sim_mob::Broker::configure()
 		this, &Broker::onAgentUpdate
 	);
 
-
 	//Register events and services that the client can request.
 	publisher.registerEvent(COMMEID_LOCATION);
 	publisher.registerEvent(COMMEID_TIME);
 	publisher.registerEvent(COMMEID_REGIONS_AND_PATH);
 	publisher.registerEvent(COMMEID_ALL_LOCATIONS);
-	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_LOCATION);
-	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_TIME);
-	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH);
-	serviceList.push_back(sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS);
-
-	//Listen to Android/NS-3 client registrations.
-	//ClientRegistrationHandlerMap[comm::ANDROID_EMULATOR].reset(new sim_mob::AndroidClientRegistration());
-	//ClientRegistrationHandlerMap[comm::NS3_SIMULATOR].reset(new sim_mob::NS3ClientRegistration());
 
 	//Hook up Android emulators to OnClientRegister
 	registrationPublisher.registerEvent(comm::ANDROID_EMULATOR);
@@ -242,11 +240,6 @@ size_t sim_mob::Broker::getRegisteredAgentsSize() const
 	return registeredAgents.getAgents().size();
 }
 
-AgentsList::type& sim_mob::Broker::getRegisteredAgents()
-{
-	//use it with caution
-	return registeredAgents.getAgents();
-}
 
 AgentsList::type& sim_mob::Broker::getRegisteredAgents(AgentsList::Mutex* mutex)
 {
@@ -255,12 +248,6 @@ AgentsList::type& sim_mob::Broker::getRegisteredAgents(AgentsList::Mutex* mutex)
 	return registeredAgents.getAgents();
 }
 
-/*size_t sim_mob::Broker::getClientWaitingListSize() const
-{
-	boost::unique_lock<boost::mutex> lock(mutex_client_wait_list);
-	return clientWaitListAndroid.size() + clientWaitListNs3.size();
-	//return clientRegistrationWaitingList.size();
-}*/
 
 const ClientList::Type& sim_mob::Broker::getAndroidClientList() const
 {
@@ -407,9 +394,6 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent* agent)
 	//search agent's list looking for this agent
 	registeredAgents.erase(agent);
 
-	//search the internal container also
-	duplicateEntityDoneChecker.erase(agent);
-
 	{
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 
@@ -555,54 +539,37 @@ void sim_mob::Broker::onAndroidClientRegister(sim_mob::event::EventId id, sim_mo
 //todo suggestion: for publishment, don't iterate through the list of clients, rather, iterate the publishers list, access their subscriber list and say publish and publish for their subscribers(keep the clientlist for MHing only)
 void sim_mob::Broker::processPublishers(timeslice now)
 {
-	for (std::vector<Services::SIM_MOB_SERVICE>::const_iterator servIt=serviceList.begin(); servIt!=serviceList.end(); servIt++) {
-		switch (*servIt) {
-		case sim_mob::Services::SIMMOB_SRV_TIME: {
-			publisher.publish(COMMEID_TIME, TimeEventArgs(now));
-			break;
-		}
-		case sim_mob::Services::SIMMOB_SRV_LOCATION: {
-			//get to each client handler, look at his requred service and then publish for him.
-			for (ClientList::Type::const_iterator it=registeredAndroidClients.begin(); it!=registeredAndroidClients.end(); it++) {
-				const boost::shared_ptr<sim_mob::ClientHandler>& cHandler = it->second;
-				if(cHandler && cHandler->agent && cHandler->isValid()){
-					publisher.publish(COMMEID_LOCATION, const_cast<Agent*>(cHandler->agent),LocationEventArgs(cHandler->agent));
-				}
-			}
-			break;
-		}
-		case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS: {
-			publisher.publish(COMMEID_ALL_LOCATIONS,(void*) COMMCID_ALL_LOCATIONS,AllLocationsEventArgs(registeredAgents));
-			break;
-		}
-		case sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH: {
-			//Scan every communicating Agent and see if they need a Region or Path update sent to the client.
-			//If so, publish it.
-			//NOTE: This is somewhat inefficient; we can probably offload some of this responsibility to the Workers or
-			//      to the EventManager itself. For now, though, its performance hit is not noticeable. ~Seth
-			for (ClientList::Type::const_iterator it=registeredAndroidClients.begin(); it!=registeredAndroidClients.end(); it++) {
-				if(!(it->second->isValid()&&it->second->agent)){
-					continue;
-				}
-				const sim_mob::Agent* agent = it->second->agent;
-				if (agent->getRegionSupportStruct().isEnabled()) {
-					//NOTE: Const-cast is unfortunately necessary. We could also make the Region tracking data mutable.
-					//      We can't push a message back to the Broker, since it has to arrive in the same time tick
-					//      (the Broker uses a half-time-tick mechanism).
-					std::vector<sim_mob::RoadRunnerRegion> all_regions = const_cast<Agent*>(agent)->getAndClearNewAllRegionsSet();
-					std::vector<sim_mob::RoadRunnerRegion> reg_path = const_cast<Agent*>(agent)->getAndClearNewRegionPath();
-					if (!(all_regions.empty() && reg_path.empty())) {
-						publisher.publish(COMMEID_REGIONS_AND_PATH, const_cast<Agent*>(agent), RegionsAndPathEventArgs(agent, all_regions, reg_path));
-					}
-				}
-			}
-			break;
-		}
-		default:
-			Warn() <<"Broker::processPubliBshers() - Unhandled service type: " <<*servIt <<"\n";
-			break;
+	//Publish Time service.
+	publisher.publish(COMMEID_TIME, TimeEventArgs(now));
+
+	//Publish Location service
+	for (ClientList::Type::const_iterator it=registeredAndroidClients.begin(); it!=registeredAndroidClients.end(); it++) {
+		const boost::shared_ptr<sim_mob::ClientHandler>& cHandler = it->second;
+		if(cHandler && cHandler->agent && cHandler->isValid()){
+			publisher.publish(COMMEID_LOCATION, const_cast<Agent*>(cHandler->agent),LocationEventArgs(cHandler->agent));
 		}
 	}
+
+	//Publish RegionsAndPath service.
+	for (ClientList::Type::const_iterator it=registeredAndroidClients.begin(); it!=registeredAndroidClients.end(); it++) {
+		if(!(it->second->isValid()&&it->second->agent)){
+			continue;
+		}
+		const sim_mob::Agent* agent = it->second->agent;
+		if (agent->getRegionSupportStruct().isEnabled()) {
+			//NOTE: Const-cast is unfortunately necessary. We could also make the Region tracking data mutable.
+			//      We can't push a message back to the Broker, since it has to arrive in the same time tick
+			//      (the Broker uses a half-time-tick mechanism).
+			std::vector<sim_mob::RoadRunnerRegion> all_regions = const_cast<Agent*>(agent)->getAndClearNewAllRegionsSet();
+			std::vector<sim_mob::RoadRunnerRegion> reg_path = const_cast<Agent*>(agent)->getAndClearNewRegionPath();
+			if (!(all_regions.empty() && reg_path.empty())) {
+				publisher.publish(COMMEID_REGIONS_AND_PATH, const_cast<Agent*>(agent), RegionsAndPathEventArgs(agent, all_regions, reg_path));
+			}
+		}
+	}
+
+	//Publish AllLocations service.
+	publisher.publish(COMMEID_ALL_LOCATIONS,(void*) COMMCID_ALL_LOCATIONS,AllLocationsEventArgs(registeredAgents));
 }
 
 void sim_mob::Broker::sendReadyToReceive()
@@ -674,16 +641,6 @@ bool sim_mob::Broker::deadEntityCheck(sim_mob::AgentCommUtilityBase * info)
 }
 
 
-//todo:  put a better condition here. this is just a placeholder
-/*bool sim_mob::Broker::clientsQualify() const
-{
-	return clientList.size() >= MIN_CLIENTS;
-}*/
-
-size_t sim_mob::Broker::getNumConnectedAgents() const
-{
-	return numAgents;
-}
 
 //returns true if you need to wait
 bool sim_mob::Broker::checkAllBrokerBlockers()
@@ -794,7 +751,6 @@ Entity::UpdateStatus sim_mob::Broker::update(timeslice now)
 	}
 
 	//step-3: Process what has been received in your receive container(message queue perhaps)
-	size_t numAgents = getNumConnectedAgents();
 	processIncomingData(now);
 	if (EnableDebugOutput) {
 		Print() << "===================== processIncomingData Done =======================================\n";
@@ -818,9 +774,6 @@ Entity::UpdateStatus sim_mob::Broker::update(timeslice now)
 
 //	step-5.5:for each client, append a message at the end of all messages saying Broker is ready to receive your messages
 	sendReadyToReceive();
-
-	//This may have changed (or we should at least log if it did).
-	numAgents = getNumConnectedAgents();
 
 	//step-6: Now send all what has been prepared, by different sources, to their corresponding destications(clients)
 	PROFILE_LOG_COMMSIM_MIXED_COMPUTE_BEGIN(currWorkerProvider, this, now, numAgents);
@@ -892,9 +845,6 @@ void sim_mob::Broker::waitForClientsDone()
 
 void sim_mob::Broker::cleanup()
 {
-	//for internal use
-	duplicateEntityDoneChecker.clear();
-
 	//clientDoneChecker.clear();
 	boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
 	std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, ConnClientStatus>::iterator chkIt = clientDoneChecklist.begin();

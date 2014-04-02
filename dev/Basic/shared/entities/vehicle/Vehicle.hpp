@@ -63,12 +63,6 @@ public:
 	//Enable polymorphism
 	virtual ~Vehicle(){}
 
-public:
-	const double length;  ///<length of the vehicle
-	const double width;   ///<width of the vehicle
-	bool isQueuing; 	 ///<for mid-term use
-	FMODSchedule* schedule;
-
 	double getLateralMovement() const;         ///<Retrieve a value representing how far to the LEFT of the current lane the vehicle has moved.
 	double getVelocity() const;      ///<Retrieve forward velocity.
 	double getLatVelocity() const;   ///<Retrieve lateral velocity.
@@ -102,6 +96,11 @@ public:
 	void moveLat(double amt);            ///<Move this car laterally. NOTE: This will _add_ the amt to the current value.
 	void resetLateralMovement();         ///<Put this car back in the center of the current lane.
 
+	/*needed by mid-term*/
+	double getPositionInSegment();
+	void setPositionInSegment(double newDist2end);
+	//unit cm, this is based on lane zero's polypoints
+
 #ifndef SIMMOB_DISABLE_MPI
 public:
 	///Serialization
@@ -109,6 +108,12 @@ public:
 
 	static Vehicle* unpack(UnPackageUtils& unpackage);
 #endif
+
+public:
+	const double length;  ///<length of the vehicle
+	const double width;   ///<width of the vehicle
+	bool isQueuing; 	 ///<for mid-term use
+	FMODSchedule* schedule;
 
 private:
 	//Trying a slightly more dynamic moving model.
@@ -124,12 +129,6 @@ private:
 	DPoint posInIntersection;
 	// driver path-mover split purpose, we save the currPos in the Vehicle
 	DPoint currPos;
-
-public:
-	/*needed by mid-term*/
-	double getPositionInSegment();
-	void setPositionInSegment(double newDist2end);
-	//unit cm, this is based on lane zero's polypoints
 
 private:
 

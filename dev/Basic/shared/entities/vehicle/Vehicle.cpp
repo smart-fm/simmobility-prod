@@ -163,8 +163,6 @@ double sim_mob::Vehicle::getLateralMovement() const {
 bool sim_mob::Vehicle::isDone() const {
 	throw_if_error();
 	bool done = (fwdMovement.isDoneWithEntireRoute());
-//	std::cout << (park.isparkingTimeOver()? "Vehicle::isDone=> parkingTimeOver" : "Vehicle::isDone=> parking NOT TimeOver");
-//	std::cout << "\n\n\n";
 	return done;
 }
 

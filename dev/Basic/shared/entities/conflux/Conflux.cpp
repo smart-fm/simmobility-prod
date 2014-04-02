@@ -361,10 +361,6 @@ void sim_mob::Conflux::initCandidateAgents() {
 	}
 }
 
-unsigned int sim_mob::Conflux::numMovingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle) {
-	return findSegStats(rdSeg)->numMovingInSegment(hasVehicle);
-}
-
 void sim_mob::Conflux::resetCurrSegsOnUpLinks() {
 	currSegsOnUpLinks.clear();
 	for(std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> >::iterator i = upstreamSegmentsMap.begin(); i != upstreamSegmentsMap.end(); i++) {
@@ -576,26 +572,6 @@ sim_mob::Person* sim_mob::Conflux::agentClosestToIntersection() {
 	return ag;
 }
 
-unsigned int sim_mob::Conflux::numQueueingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle) {
-	return findSegStats(rdSeg)->numQueueingInSegment(hasVehicle);
-}
-
-double sim_mob::Conflux::getOutputFlowRate(const Lane* lane) {
-	return findSegStats(lane->getRoadSegment())->getLaneParams(lane)->getOutputFlowRate();
-}
-
-int sim_mob::Conflux::getOutputCounter(const Lane* lane) {
-	return findSegStats(lane->getRoadSegment())->getLaneParams(lane)->getOutputCounter();
-}
-
-void sim_mob::Conflux::setOutputCounter(const Lane* lane, int count) {
-	findSegStats(lane->getRoadSegment())->getLaneParams(lane)->setOutputCounter(count);
-}
-
-double sim_mob::Conflux::getAcceptRate(const Lane* lane) {
-	return findSegStats(lane->getRoadSegment())->getLaneParams(lane)->getAcceptRate();
-}
-
 void sim_mob::Conflux::updateSupplyStats(const Lane* lane, double newOutputFlowRate) {
 	findSegStats(lane->getRoadSegment())->updateLaneParams(lane, newOutputFlowRate);
 }
@@ -615,14 +591,6 @@ void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
 	}
 }
 
-std::pair<unsigned int, unsigned int> sim_mob::Conflux::getLaneAgentCounts(const sim_mob::Lane* lane) {
-	return findSegStats(lane->getRoadSegment())->getLaneAgentCounts(lane);
-}
-
-unsigned int sim_mob::Conflux::getInitialQueueCount(const Lane* lane) {
-	return findSegStats(lane->getRoadSegment())->getInitialQueueCount(lane);
-}
-
 void sim_mob::Conflux::killAgent(sim_mob::Person* person,
 		sim_mob::SegmentStats* prevSegStats, const sim_mob::Lane* prevLane,
 		bool wasQueuing, bool wasActPerformer) {
@@ -635,14 +603,6 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person,
 	} /*else the person must have started from a VQ*/
 	parentWorker->remEntity(person);
 	parentWorker->scheduleForRemoval(person);
-}
-
-double sim_mob::Conflux::getLastAccept(const Lane* lane) {
-	return findSegStats(lane->getRoadSegment())->getLaneParams(lane)->getLastAccept();
-}
-
-void sim_mob::Conflux::setLastAccept(const Lane* lane, double lastAcceptTime) {
-	findSegStats(lane->getRoadSegment())->getLaneParams(lane)->setLastAccept(lastAcceptTime);
 }
 
 void sim_mob::Conflux::resetPositionOfLastUpdatedAgentOnLanes() {
@@ -855,10 +815,6 @@ void sim_mob::Conflux::restoreLaneParams(const Lane* lane) {
 	findSegStats(lane->getRoadSegment())->restoreLaneParams(lane);
 }
 
-double sim_mob::Conflux::getSegmentFlow(const RoadSegment* rdSeg){
-	return findSegStats(rdSeg)->getSegFlow();
-}
-
 void sim_mob::Conflux::incrementSegmentFlow(const RoadSegment* rdSeg) {
 	findSegStats(rdSeg)->incrementSegFlow();
 }
@@ -900,10 +856,6 @@ UpdateStatus sim_mob::Conflux::perform_person_move(timeslice now, Person* person
 
 double sim_mob::Conflux::getPositionOfLastUpdatedAgentInLane(const Lane* lane) {
 	return findSegStats(lane->getRoadSegment())->getPositionOfLastUpdatedAgentInLane(lane);
-}
-
-const Lane* sim_mob::Conflux::getLaneInfinity(const RoadSegment* rdSeg) {
-	return findSegStats(rdSeg)->laneInfinity;
 }
 
 bool sim_mob::cmp_person_remainingTimeThisTick::operator ()
@@ -1144,11 +1096,6 @@ void sim_mob::Conflux::findBoundaryConfluxes() {
 			}
 		}
 	}
-}
-
-int sim_mob::Conflux::getVehicleLaneCounts(const sim_mob::RoadSegment* rdSeg) {
-	sim_mob::SegmentStats* segStats = findSegStats(rdSeg);
-	return segStats->getNumVehicleLanes();
 }
 
 unsigned int sim_mob::Conflux::getNumRemainingInLaneInfinity() {

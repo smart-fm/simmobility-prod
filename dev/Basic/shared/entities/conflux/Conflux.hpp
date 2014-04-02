@@ -116,10 +116,18 @@ private:
 	/**list of persons performing activities within the vicinity of this conflux*/
 	std::deque<Person*> activityPerformers;
 
-	/** function to call persons' updates if the MultiNode is signalized */
+	/**
+	 * function to call persons' updates if the MultiNode is signalized
+	 * \note this function is not implemented. Multinodes with signals are given
+	 * the same treatment as those without signals.
+	 */
 	void updateSignalized();
 
-	/** function to call persons' updates if the MultiNode is not signalized */
+	/**
+	 * function to call persons' updates if the MultiNode is not signalized
+	 * \note this function is currently used for all multinodes irrespective of
+	 * whether they have signals or not.
+	 */
 	void updateUnsignalized();
 
 	/**
@@ -128,16 +136,34 @@ private:
 	 * */
 	void updateAgent(sim_mob::Person* person);
 
-	/** calls frame_tick() of the movement facet for the person's role*/
+	/**
+	 * calls frame_tick() of the movement facet for the person's role
+	 * @param now current time slice
+	 * @param person person to move
+	 */
 	UpdateStatus perform_person_move(timeslice now, Person* person);
 
-	/** calls frame_init of the movement facet for the person's role*/
+	/**
+	 * calls frame_init of the movement facet for the person's role
+	 * @param now current time slice
+	 * @param person person to initialize
+	 * @return true if the role corresponding to this subtrip has been constructed successfully; false otherwise
+	 */
 	bool call_movement_frame_init(timeslice now, Person* person);
 
-	/** calls frame_tick of the movement facet for the person's role*/
+	/**
+	 * calls frame_tick of the movement facet for the person's role
+	 * @param now current time slice
+	 * @param person person to tick
+	 * @return update status
+	 */
 	Entity::UpdateStatus call_movement_frame_tick(timeslice now, Person* person);
 
-	/** calls frame_tick of the movement facet for the person's role*/
+	/**
+	 * calls frame_tick of the movement facet for the person's role
+	 * @param now current time slice
+	 * @param person person whose frame output is required
+	 */
 	void call_movement_frame_output(timeslice now, Person* person);
 
 	/** function to initialize candidate agents in each tick*/
@@ -204,10 +230,6 @@ public:
 		return downstreamSegments;
 	}
 
-	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> getSegmentAgents() const {
-		return segmentAgents;
-	}
-
 	sim_mob::Worker* getParentWorker() const {
 		return parentWorker;
 	}
@@ -215,8 +237,6 @@ public:
 	void setParentWorker(sim_mob::Worker* parentWorker) {
 		this->parentWorker = parentWorker;
 	}
-
-	int getVehicleLaneCounts(const sim_mob::RoadSegment* segStats);
 
 	bool hasSpaceInVirtualQueue(sim_mob::Link* lnk);
 	void pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p);
@@ -228,33 +248,18 @@ public:
 	 */
 	void addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* rdSeg);
 
-	/**
-	 * The following 2 functions gets the moving and queuing counts of a segment respectively
-	 */
-	unsigned int numMovingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
-	unsigned int numQueueingInSegment(const sim_mob::RoadSegment* rdSeg, bool hasVehicle);
-
 	/**Searches upstream and downstream segments to get the segmentStats for the requested road segment*/
 	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg);
 
 	/**
 	 * supply params related functions
 	 */
-	double getOutputFlowRate(const Lane* lane);
-	int getOutputCounter(const Lane* lane);
-	void setOutputCounter(const Lane* lane, int count);
-	double getAcceptRate(const Lane* lane);
 	double getSegmentSpeed(const RoadSegment* rdSeg, bool hasVehicle);
 	void updateSupplyStats(const Lane* lane, double newOutputFlowRate);
 	void restoreSupplyStats(const Lane* lane);
-	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane); //returns std::pair<queuingCount, movingCount>
-	unsigned int getInitialQueueCount(const Lane* lane);
-	double getLastAccept(const Lane* lane);
-	void setLastAccept(const Lane* lane, double lastAccept);
 	void resetPositionOfLastUpdatedAgentOnLanes();
 	void updateLaneParams(const Lane* lane, double newOutFlowRate);
 	void restoreLaneParams(const Lane* lane);
-	double getSegmentFlow(const RoadSegment* rdSeg);
 	void incrementSegmentFlow(const RoadSegment* rdSeg);
 	void resetSegmentFlows();
 
@@ -303,7 +308,6 @@ public:
 	//================ end of road segment travel time computation ========================
 
 	double getPositionOfLastUpdatedAgentInLane(const Lane* lane);
-	const Lane* getLaneInfinity(const RoadSegment* rdSeg);
 
 	/**
 	 * returns the time to reach the end of the link from a road segment on that
@@ -325,9 +329,10 @@ public:
 	std::deque<sim_mob::Person*> getAllPersons();
 
 	/**
-	 * get a list of all persons in this conflux
+	 * get an ordered list of all persons in this conflux
 	 * ORDER_BY_WHAT = 0: by location
 	 * ORDER_BY_WHAT = 1: by time
+	 * @param mergedPersonDeque output list that must contain the merged list of persons
 	 */
 	void getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>& mergedPersonDeque);
 
@@ -341,7 +346,14 @@ public:
 	};
 	CONFLUX_VEHICLE_ORDER orderBySetting;
 
-	void topCMergeDifferentLinksInConflux(std::deque<sim_mob::Person*>& mergedPersonDeque, std::vector< std::deque<sim_mob::Person*> >& allPersonLists, int Capacity);
+	/**
+	 * merges the ordered list of persons on each link of the conflux into 1
+	 * @param mergedPersonDeque output list that must contain the merged list of persons
+	 * @param allPersonLists list of list of persons to merge
+	 * @param capacity capacity till which the relative ordering of persons is important
+	 */
+	void topCMergeDifferentLinksInConflux(std::deque<sim_mob::Person*>& mergedPersonDeque,
+			std::vector< std::deque<sim_mob::Person*> >& allPersonLists, int capacity);
 
 	/**
 	 * get number of persons in lane infinities of this conflux

@@ -11,6 +11,10 @@
 
 namespace sim_mob {
 
+struct cmp_person_distToSegmentEnd : public std::greater<Person*> {
+	bool operator() (const Person* x, const Person* y) const;
+};
+
 /**
  * Data structure to store lane specific parameters for supply.
  *
@@ -57,8 +61,10 @@ public:
 
 	std::deque<sim_mob::Person*> laneAgents;
 
-	LaneStats(const sim_mob::Lane* laneInSegment, bool isLaneInfinity = false) :
-		queueCount(0), initialQueueCount(0), laneParams(new LaneParams()), positionOfLastUpdatedAgent(-1.0), lane(laneInSegment), laneInfinity(isLaneInfinity), debugMsgs(std::stringstream::out) {}
+	LaneStats(const sim_mob::Lane* laneInSegment, double length, bool isLaneInfinity = false) :
+		queueCount(0), initialQueueCount(0), laneParams(new LaneParams()),
+		positionOfLastUpdatedAgent(-1.0), lane(laneInSegment), length(length),
+		laneInfinity(isLaneInfinity) {}
 	~LaneStats() {
 		safe_delete_item(laneParams);
 	}
@@ -69,8 +75,8 @@ public:
 	void clear();
 	sim_mob::Person* dequeue(bool isQueuingBfrUpdate);
 	sim_mob::Person* dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate);
-	unsigned int getQueuingAgentsCount();
-	unsigned int getMovingAgentsCount();
+	unsigned int getQueuingAgentsCount() const;
+	unsigned int getMovingAgentsCount() const;
 
 	void resetIterator();
 	sim_mob::Person* next();
@@ -81,7 +87,7 @@ public:
 	void updateAcceptRate(const sim_mob::Lane* lane, double upSpeed);
 
 	// This function prints all agents in laneAgents
-	void printAgents(bool copy = false);
+	void printAgents(bool copy = false) const;
 
 	/*Verifies if the invariant that the order in laneAgents of each lane matches with the ordering w.r.t the distance to the end of segment*/
 	void verifyOrdering();
@@ -110,10 +116,11 @@ public:
 		return laneInfinity;
 	}
 
-	LaneParams* laneParams;
+	double getLength() const {
+		return length;
+	}
 
-	//TODO: To be removed after debugging.
-	std::stringstream debugMsgs;
+	LaneParams* laneParams;
 
 private:
 	unsigned int queueCount;
@@ -121,6 +128,7 @@ private:
 	double positionOfLastUpdatedAgent;
 	const sim_mob::Lane* lane;
 	const bool laneInfinity;
+	double length;
 
 	/**
 	 * laneAgentsCopy is a copy of laneAgents taken at the start of each tick solely for iterating the agents.
@@ -139,14 +147,12 @@ private:
  */
 class SegmentStats {
 
-private:
+protected:
+	typedef std::map<const sim_mob::Lane*, sim_mob::LaneStats* > LaneStatsMap;
 	const sim_mob::RoadSegment* roadSegment;
-	std::map<const sim_mob::Lane*, sim_mob::LaneStats* > laneStatsMap;
-
+	LaneStatsMap laneStatsMap;
 	std::map<const sim_mob::Lane*, sim_mob::Person* > frontalAgents;
-
-	bool downstreamCopy;
-	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > prevTickLaneCountsFromOriginal;
+	double length;
 
 	double segVehicleSpeed; //speed of vehicles in segment for each frame
 	double segPedSpeed; //speed of pedestrians on this segment for each frame--not used at the moment
@@ -156,13 +162,8 @@ private:
 	unsigned int segFlow;
 
 public:
-	SegmentStats(const sim_mob::RoadSegment* rdSeg, bool isDownstream = false);
-	~SegmentStats() {
-		for(std::map<const sim_mob::Lane*, sim_mob::LaneStats* >::iterator i=laneStatsMap.begin(); i!=laneStatsMap.end(); i++) {
-			safe_delete_item(i->second);
-		}
-		safe_delete_item(laneInfinity);
-	}
+	SegmentStats(const sim_mob::RoadSegment* rdSeg, double length);
+	~SegmentStats();
 
 	enum VehicleType { car, bus, none };
 	//TODO: in all functions which gets lane as a parameter, we must check if the lane belongs to the road segment.
@@ -170,7 +171,7 @@ public:
 	void removeAgent(const sim_mob::Lane* lane, sim_mob::Person* ag, bool wasQueuing);
 	sim_mob::Person* dequeue(const sim_mob::Lane* lane, bool isQueuingBfrUpdate);
 	sim_mob::Person* dequeue(const sim_mob::Person* person, const sim_mob::Lane* lane, bool isQueuingBfrUpdate);
-	bool isFront(const sim_mob::Lane* lane, sim_mob::Person* person);
+
 	std::deque<Person*> getAgents(const sim_mob::Lane* lane);
 	std::deque<Person*> getAgents();
 
@@ -186,8 +187,7 @@ public:
 	void topCMergeDifferentLanesInSegment(std::deque<sim_mob::Person*>& mergedPersonList, std::vector< std::deque<sim_mob::Person*> >& allPersonLists, int Capacity);
 
 	const sim_mob::RoadSegment* getRoadSegment() const;
-	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> > getAgentCountsOnLanes();
-	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane); //returns std::pair<queuingCount, movingCount>
+	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane) const; //returns std::pair<queuingCount, movingCount>
 	unsigned int numAgentsInLane(const sim_mob::Lane* lane);
 	void updateQueueStatus(const sim_mob::Lane* lane, sim_mob::Person* p);
 
@@ -197,14 +197,14 @@ public:
 	bool hasAgents();
 	bool canAccommodate(SegmentStats::VehicleType type);
 
-	unsigned int numMovingInSegment(bool hasVehicle);
-	unsigned int numQueueingInSegment(bool hasVehicle);
+	unsigned int numMovingInSegment(bool hasVehicle) const;
+	unsigned int numQueueingInSegment(bool hasVehicle) const;
 
-	double getPositionOfLastUpdatedAgentInLane(const Lane* lane);
+	double getPositionOfLastUpdatedAgentInLane(const Lane* lane) const;
 	void setPositionOfLastUpdatedAgentInLane(double positionOfLastUpdatedAgentInLane, const Lane* lane);
 	void resetPositionOfLastUpdatedAgentOnLanes();
 
-	sim_mob::LaneParams* getLaneParams(const Lane* lane);
+	sim_mob::LaneParams* getLaneParams(const Lane* lane) const;
 	double speed_density_function(bool hasVehicle, double segDensity);
 	void restoreLaneParams(const Lane* lane);
 	void updateLaneParams(const Lane* lane, double newOutputFlowRate);
@@ -212,12 +212,12 @@ public:
 
 	std::string reportSegmentStats(timeslice frameNumber);
 
-	double getSegSpeed(bool hasVehicle);
+	double getSegSpeed(bool hasVehicle) const;
 	double getDensity(bool hasVehicle);
 	unsigned int getSegFlow();
 	void incrementSegFlow();
 	void resetSegFlow();
-	unsigned int getInitialQueueCount(const Lane* l);
+	unsigned int getInitialQueueCount(const Lane* lane) const;
 	unsigned int computeExpectedOutputPerTick();
 
 	// This function prints all agents in this segment
@@ -227,14 +227,16 @@ public:
 		return numVehicleLanes;
 	}
 
+	double getLength() const {
+		return length;
+	}
+
 	/**
 	 * laneInfinity is an augmented lane in the roadSegment. laneInfinity will be used only by confluxes and related objects for now.
 	 * The LaneStats object created for laneInfinity stores the new persons who will start at this roadSegment. A Person will be
 	 * added to laneInfinity (LaneStats corresponding to laneInfinity) when his start time falls within the current tick. The actual lane
 	 * and moving/queuing status is still unknown for persons in laneInfinity. The frame_init function of the agent's role will have
 	 * to put the persons from laneInfinity on moving/queuing vehicle lists on appropriate real lane.
-	 *
-	 * Persons who are performing an activity are also stashed in laneInfinity. TODO: Double check this
 	 */
 	const sim_mob::Lane* laneInfinity;
 

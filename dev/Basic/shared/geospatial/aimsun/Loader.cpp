@@ -2679,16 +2679,17 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 				for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin();
 						segIt != upSegs.end(); segIt++)
 				{
-					if((*segIt)->parentConflux == nullptr)
+					sim_mob::RoadSegment* rdSeg = *segIt;
+					if(rdSeg->parentConflux == nullptr)
 					{
 						// assign only if not already assigned
-						(*segIt)->parentConflux = conflux;
-						conflux->segmentAgents.insert(std::make_pair(*segIt, new SegmentStats(*segIt)));
+						rdSeg->parentConflux = conflux;
+						conflux->segmentAgents.insert(std::make_pair(rdSeg, new SegmentStats(rdSeg, rdSeg->getLaneZeroLength())));
 						multinode_confluxes.insert(std::make_pair(segsAt->first, conflux));
 					}
-					else if((*segIt)->parentConflux != conflux)
+					else if(rdSeg->parentConflux != conflux)
 					{
-						debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for segment " << (*segIt)->getStartEnd()<< std::endl;
+						debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for segment " << rdSeg->getStartEnd()<< std::endl;
 						throw std::runtime_error(debugMsgs.str());
 					}
 				}

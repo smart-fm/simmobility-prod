@@ -158,7 +158,7 @@ private:
 	 * @param wasQueuing flag indicating whether the person was queuing at the start of the tick
 	 * @param wasActivityPerformer flag indicating whether the person was performing an activity at the start of the tick
 	 */
-	void killAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* prevRdSeg,
+	void killAgent(sim_mob::Person* person, sim_mob::SegmentStats* prevSegStats,
 			const sim_mob::Lane* prevLane, bool wasQueuing, bool wasActivityPerformer);
 
 	/**
@@ -227,14 +227,6 @@ public:
 	 * @param rdSeg starting road segment of ag
 	 */
 	void addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* rdSeg);
-
-	/**
-	 * get lanewise agent counts in a segment
-	 * @param rdSeg segment for which the counts are needed
-	 * @returns lane wise std::pair<queuingCount, movingCount>
-	 */
-	std::map<const sim_mob::Lane*, std::pair<unsigned int, unsigned int> >
-	getLanewiseAgentCounts(const sim_mob::RoadSegment* rdSeg);
 
 	/**
 	 * The following 2 functions gets the moving and queuing counts of a segment respectively
@@ -362,6 +354,15 @@ public:
 	 * worker or not
 	 */
 	void findBoundaryConfluxes();
+
+	/**
+	 * given a person p with a trip chain, create path for his first trip and
+	 * return his starting segment.
+	 *
+	 * @param p person for whom the starting segment is needed
+	 * @return constant pointer to the starting segment of the person's constructed path
+	 */
+	static const sim_mob::RoadSegment* constructPath(Person* p);
 
 	bool isBoundary; //A conflux that receives person from at least one conflux that belongs to another worker
 	bool isMultipleReceiver; //A conflux that receives persons from confluxes that belong to multiple other workers

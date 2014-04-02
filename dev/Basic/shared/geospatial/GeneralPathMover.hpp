@@ -148,7 +148,6 @@ public:
 
 	//Movement along a single line
 	double distAlongPolyline;
-	double distAlongSegment; //for mid-term use
 	double currPolylineLength() const;
 
 	//Counter

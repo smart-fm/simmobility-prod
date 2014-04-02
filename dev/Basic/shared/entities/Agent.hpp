@@ -139,18 +139,8 @@ public:
 	void setToBeRemoved();
 	void clearToBeRemoved(); ///<Temporary function.
 
-	/* *
-	 * I'm keeping getters and setters for current lane, segment and link in Agent class to be able to determine the
-	 * location of the agent without having to dynamic_cast to Person and get the role.
-	 * If these are irrelevant for some sub-class of agent (E.g. Signal), the sub class can just ignore these.
-	 * ~ Harish
-	 */
 	virtual const sim_mob::Link* getCurrLink() const;
 	virtual	void setCurrLink(const sim_mob::Link* link);
-	virtual const sim_mob::RoadSegment* getCurrSegment() const;
-	virtual	void setCurrSegment(const sim_mob::RoadSegment* rdSeg);
-	virtual const sim_mob::Lane* getCurrLane() const;
-	virtual	void setCurrLane(const sim_mob::Lane* lane);
 
 	/**
 	 * Inherited from EventListener.
@@ -178,28 +168,32 @@ public:
 	{
 	public:
 		const Link* link_;
-		unsigned int linkEntryTime_;
+		double linkEntryTime_;
+		double linkExitTime_;
 		std::map<double, unsigned int> rolesMap; //<timestamp, newRoleID>
 
+		/* note: link exit time will be available only when the agent exits the
+		 * link. -1 is a dummy value indication that the agent is in the link*/
 		linkTravelStats(const Link* link,
 				unsigned int linkEntryTime)
-		: link_(link), linkEntryTime_(linkEntryTime)
-		{
-		}
+		: link_(link), linkEntryTime_(linkEntryTime), linkExitTime_(-1)
+		{}
 	};
 
 	struct rdSegTravelStats
 	{
 	public:
 		const RoadSegment* rdSeg_;
-		unsigned int rdSegEntryTime_;
+		double rdSegEntryTime_;
+		double rdSegExitTime_;
 		std::map<double, unsigned int> rolesMap; //<timestamp, newRoleID>
 
+		/* note: segment exit time will be available only when the agent exits the
+		 * segment. -1 is a dummy value indication that the agent is in the segment*/
 		rdSegTravelStats(const RoadSegment* rdSeg,
 				unsigned int rdSegEntryTime)
-		: rdSeg_(rdSeg), rdSegEntryTime_(rdSegEntryTime)
-		{
-		}
+		: rdSeg_(rdSeg), rdSegEntryTime_(rdSegEntryTime), rdSegExitTime_(-1)
+		{}
 	};
 
 public:
@@ -270,6 +264,7 @@ public:
 	}
 	rdSegTravelStats currRdSegTravelStats;
 	sim_mob::Shared< std::map<double, rdSegTravelStats> > rdSegTravelStatsMap; //<linkExitTime, travelStats>
+	//==================== end of road segment travel time computation ============================
 
 	//============================ link travel time computation ===================================
 	//travelStats for each agent will be updated either for a role change or link change
@@ -329,8 +324,6 @@ protected:
 	//      number stream. We can probably raise this to the Worker level if we require it.
 	boost::mt19937 gen;
 	const sim_mob::Link* currLink;
-	const sim_mob::Lane* currLane;
-	const sim_mob::RoadSegment* currSegment;
 
 public:
 	int getOwnRandomNumber();

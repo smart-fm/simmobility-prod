@@ -219,8 +219,10 @@ protected:
 	std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, ConnClientStatus> clientDoneChecklist;
 	boost::mutex mutex_client_done_chk;
 
-	///	list of all brokers
-	static std::map<std::string, sim_mob::Broker*> externalCommunicators;
+	//Broker singleton.
+	//TODO: This is not really a singleton; we set/get it in various places. But we need a way of communicating the Broker to the
+	//      Agents. For now, this is fine --we only need to clean this up once/if we have multiple Brokers in the system at once.
+	static Broker* single_broker;
 
 	WaitForAndroidConnection waitAndroidBlocker;
 	WaitForNS3Connection waitNs3Blocker;
@@ -424,12 +426,10 @@ public:
 	///TODO: This has to do with the AgentCommUtility classes, which need some cleanup.
 	void registerEntity(sim_mob::AgentCommUtilityBase* agent);
 
-	//TODO: Something about this seems off. Need to investigate the DriverComm class.
-	static std::map<std::string, sim_mob::Broker*>& getExternalCommunicators() ;
-	static sim_mob::Broker* getExternalCommunicator(const std::string & value) ;
 
-	//TODO: We only have one "communicator", so there must be a better way of handling this.
-	static void addExternalCommunicator(const std::string & name, sim_mob::Broker* broker);
+	//TODO: Not sustainable, but works for now.
+	static void SetSingleBroker(Broker* broker);
+	static Broker* GetSingleBroker();
 
 
 	///The Broker performs all updates via Agent::update(), not frame_init() and frame_tick().

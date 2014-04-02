@@ -321,7 +321,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 				broker = new sim_mob::Broker(MtxStrat_Locked, 0, it->second.name, it->second.mode);
 			}
 
-			Broker::addExternalCommunicator(it->first, broker);
+			Broker::SetSingleBroker(broker);
 			communicationWorkers->assignAWorker(broker);
 		}
 	}

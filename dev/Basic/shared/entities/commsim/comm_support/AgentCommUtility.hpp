@@ -46,11 +46,11 @@ private:
 	unsigned int type;//do you want to register as a pedestrian, driver,....
 
 protected:
-	std::map<const std::string,sim_mob::Broker*> brokers;
+	Broker* broker;
+	bool registered;
 
 public:
-	std::map<const std::string,bool> registered;
-	void (AgentCommUtilityBase::*registrationCallback)(std::string ,bool);
+	void (AgentCommUtilityBase::*registrationCallback)(bool);
 
 	boost::shared_mutex mutex;
 	boost::shared_mutex mutex_outgoing;
@@ -58,9 +58,8 @@ public:
 
 	AgentCommUtilityBase(sim_mob::Agent* entity_);
 
-	void setBroker(const std::string& commElement,sim_mob::Broker *broker);
-
-	sim_mob::Broker *getBroker(const std::string& commElement);
+	void setBroker(sim_mob::Broker *broker);
+	sim_mob::Broker *getBroker();
 
 	void setwriteIncomingDone(bool value);
 
@@ -84,13 +83,13 @@ public:
 
 	//this is used to register the drived class
 	//(which is also an agent) to the communicator agent
-	void RegisterWithBroker(const std::string& commElement);
+	void RegisterWithBroker();
 
 	//	subscriptionInfo getSubscriptionInfo();
-	void setregistered(std::string commElement,bool value);
+	void setregistered(bool value);
 	void setregistered(sim_mob::Broker *broker, bool value);
 
-	void registrationCallBack(std::string commElement, bool registered);
+	void registrationCallBack(bool registered);
 
 	sim_mob::Agent* getEntity();
 

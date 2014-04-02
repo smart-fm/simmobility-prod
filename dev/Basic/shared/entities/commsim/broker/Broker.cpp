@@ -40,7 +40,8 @@ const unsigned int MIN_AGENTS = 1;  //minimum number of registered agents
 } //End un-named namespace.
 
 
-std::map<std::string, sim_mob::Broker*> sim_mob::Broker::externalCommunicators;
+Broker* sim_mob::Broker::single_broker(nullptr);
+
 
 sim_mob::Broker::Broker(const MutexStrategy& mtxStrat, int id, std::string commElement, std::string commMode) :
 		Agent(mtxStrat, id), commElement(commElement), commMode(commMode), numAgents(0), connection(*this)
@@ -377,7 +378,7 @@ void sim_mob::Broker::registerEntity(sim_mob::AgentCommUtilityBase* value)
 	}
 
 	//feedback
-	value->registrationCallBack(commElement, true);
+	value->registrationCallBack(true);
 
 	//tell me if you are dying
 	sim_mob::messaging::MessageBus::SubscribeEvent(sim_mob::event::EVT_CORE_AGENT_DIED,value->getEntity(), this);
@@ -860,22 +861,21 @@ void sim_mob::Broker::cleanup()
 
 }
 
-std::map<std::string, sim_mob::Broker*>& sim_mob::Broker::getExternalCommunicators()
+void sim_mob::Broker::SetSingleBroker(Broker* broker)
 {
-	return externalCommunicators;
-}
-
-sim_mob::Broker* sim_mob::Broker::getExternalCommunicator(const std::string & value)
-{
-	if (externalCommunicators.find(value) != externalCommunicators.end()) {
-		return externalCommunicators[value];
+	if (single_broker) {
+		throw std::runtime_error("Cannot SetSingleBroker(); it has already been set.");
 	}
-	return 0;
+	Broker::single_broker = broker;
 }
 
-void sim_mob::Broker::addExternalCommunicator(const std::string & name, sim_mob::Broker* broker)
+
+Broker* sim_mob::Broker::GetSingleBroker()
 {
-	externalCommunicators.insert(std::make_pair(name, broker));
+	if (!single_broker) {
+		throw std::runtime_error("Cannot GetSingleBroker(); it has not been set yet.");
+	}
+	return Broker::single_broker;
 }
 
 //abstracts & virtuals

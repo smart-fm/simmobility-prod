@@ -286,6 +286,7 @@ public:
 
 	bool isQueuing;
 	double distanceToEndOfSegment;
+	double drivingTimeToEndOfLink;
 	double movingVelocity;
 
 	//timeslice enqueueTick;

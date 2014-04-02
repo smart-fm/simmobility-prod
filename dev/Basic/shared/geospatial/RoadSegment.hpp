@@ -149,6 +149,9 @@ public:
 	///Maximum speed of this road segment.
 	unsigned int maxSpeed;
 	double capacity;
+
+	double getCapacityPerInterval() const;
+
 	///TODO This should be made private again.
 	mutable std::vector<std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
 	void setLanes(std::vector<sim_mob::Lane*>);

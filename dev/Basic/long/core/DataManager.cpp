@@ -8,9 +8,8 @@
  */
 
 #include "DataManager.hpp"
+#include "util/HelperFunctions.hpp"
 #include "database/DB_Connection.hpp"
-#include "database/dao/HouseholdDao.hpp"
-#include "database/dao/UnitDao.hpp"
 #include "database/dao/BuildingDao.hpp"
 #include "database/dao/PostcodeDao.hpp"
 #include "database/dao/PostcodeAmenitiesDao.hpp"
@@ -19,43 +18,6 @@ using namespace sim_mob;
 using namespace sim_mob::long_term;
 using namespace sim_mob::db;
 namespace {
-
-    /**
-     * Load data from datasouce from given connection using the 
-     * given list and template DAO.
-     * @param conn Datasource connection.
-     * @param list (out) to fill.
-     */
-    template <typename T, typename K>
-    inline void loadData(DB_Connection& conn, K& list) {
-        if (conn.isConnected()) {
-            T dao(conn);
-            dao.getAll(list);
-        }
-    }
-
-    /**
-     * Load data from datasouce from given connection using the 
-     * given list and template DAO.
-     * This function fills the given map using the given getter function. 
-     * 
-     * Maps should be like map<KEY, *Obj> 
-     *    - KEY object returned by given getter function.
-     *    - *Obj pointer to the loaded object. 
-     * 
-     * @param conn Datasource connection.
-     * @param list (out) to fill.
-     * @param map (out) to fill.
-     * @param getter function pointer to get the map KEY.
-     */
-    template <typename T, typename K, typename M, typename F>
-    inline void loadData(DB_Connection& conn, K& list, M& map, F getter) {
-        loadData<T>(conn, list);
-        //Index all buildings.
-        for (typename K::iterator it = list.begin(); it != list.end(); it++) {
-            map.insert(std::make_pair(((*it)->*getter)(), *it));
-        }
-    }
 
     template <typename T, typename M, typename K>
     inline const T* getById(const M& map, const K& key) {
@@ -80,11 +42,7 @@ void DataManager::reset() {
     postcodesById.clear();
     postcodesByCode.clear();
     buildingsById.clear();
-    unitsById.clear();
-    householdsById.clear();
-    clear_delete_vector(units);
     clear_delete_vector(buildings);
-    clear_delete_vector(households);
     clear_delete_vector(amenities);
     clear_delete_vector(postcodes);
     readyToLoad = true;
@@ -102,8 +60,6 @@ void DataManager::load() {
     DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
     conn.connect();
     if (conn.isConnected()) {
-        loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
-        loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
         loadData<BuildingDao>(conn, buildings, buildingsById, &Building::getId);
         loadData<PostcodeDao>(conn, postcodes, postcodesById, &Postcode::getId);
         loadData<PostcodeAmenitiesDao>(conn, amenities, amenitiesByCode, 
@@ -147,29 +103,10 @@ const PostcodeAmenities* DataManager::getAmenitiesByCode(const std::string& code
     return getById<PostcodeAmenities>(amenitiesByCode, code);
 }
 
-const Unit* DataManager::getUnitById(const BigSerial unitId) const {
-    return getById<Unit>(unitsById, unitId);
-}
-
-const Household* DataManager::getHouseholdById(const BigSerial householdId) const {
-    return getById<Household>(householdsById, householdId);
-}
-
-const BigSerial DataManager::getUnitTazId(const BigSerial unitId) const {
-    const Unit* unit = getUnitById(unitId);
-    if (unit) {
-        const Postcode* pc = getPostcodeById(unit->getPostcodeId());
-        if (pc) {
-            return pc->getTazId();
-        }
+BigSerial DataManager::getPostcodeTazId(const BigSerial postcodeId) const {
+    const Postcode* pc = getPostcodeById(postcodeId);
+    if (pc) {
+        return pc->getTazId();
     }
     return INVALID_ID;
-}
-
-const DataManager::HouseholdList& DataManager::getHouseholds() const {
-    return households;
-}
-
-const DataManager::UnitList& DataManager::getUnits() const {
-    return units;
 }

@@ -164,12 +164,12 @@
 		</scannerConfigBuildInfo>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
 		<buildTargets>
 			<target name="CMake [D.1] Short" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>cmake</buildCommand>
 				<buildArguments>-E chdir "${ProjDirPath}/Debug" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_SHORT:BOOL=ON -DBUILD_MEDIUM:BOOL=OFF -DBUILD_LONG:BOOL=OFF -DBUILD_TESTS:BOOL=OFF</buildArguments>
-				<buildTarget/>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>false</useDefaultCommand>
 				<runAllBuilders>false</runAllBuilders>
@@ -177,7 +177,6 @@
 			<target name="CMake [D.2] Medium" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>cmake</buildCommand>
 				<buildArguments>-E chdir "${ProjDirPath}/Debug" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_SHORT:BOOL=OFF -DBUILD_MEDIUM:BOOL=ON -DBUILD_LONG:BOOL=OFF -DBUILD_TESTS:BOOL=OFF</buildArguments>
-				<buildTarget/>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>false</useDefaultCommand>
 				<runAllBuilders>false</runAllBuilders>
@@ -214,6 +213,13 @@
 			<target name="CMake [D.1] Short Release" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>cmake</buildCommand>
 				<buildArguments>-E chdir "${ProjDirPath}/Release" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_SHORT:BOOL=ON -DBUILD_MEDIUM:BOOL=OFF -DBUILD_LONG:BOOL=OFF -DBUILD_TESTS:BOOL=OFF</buildArguments>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>false</useDefaultCommand>
+				<runAllBuilders>false</runAllBuilders>
+			</target>
+			<target name="CMake [D.2] Medium Release" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>cmake</buildCommand>
+				<buildArguments>-E chdir "${ProjDirPath}/Release" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_SHORT:BOOL=OFF -DBUILD_MEDIUM:BOOL=ON -DBUILD_LONG:BOOL=OFF -DBUILD_TESTS:BOOL=OFF</buildArguments>
 				<buildTarget/>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>false</useDefaultCommand>
@@ -221,5 +227,4 @@
 			</target>
 		</buildTargets>
 	</storageModule>
-	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>

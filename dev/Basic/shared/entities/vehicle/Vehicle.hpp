@@ -29,34 +29,13 @@ namespace sim_mob {
 
 class PackageUtils;
 class UnPackageUtils;
-
-/*// Commented out by Vahid
-class Park
-{
-	bool parkingEnabled;
-	double parkingTime;
-	double elapsedParkingTime;
-public:
-	Park(double parkingTime_,bool parkingEnabled_ = true) : parkingTime(parkingTime_), parkingEnabled(parkingEnabled_), elapsedParkingTime(0){}
-	void enableParking() { parkingEnabled = true; }
-	void disableParking() { parkingEnabled = false; }
-	bool isParkingEnabled(){ return parkingEnabled;}
-	void setParkingTime(double time) { parkingTime = time; }
-	double getParkingTime() { return parkingTime; }
-	void incrementElapsedParkingTime(double time) { elapsedParkingTime += time;}
-	void setElapsedParkingTime(double time) { elapsedParkingTime = time;}
-	double getElapsedParkingTime() { return elapsedParkingTime;}
-	bool isparkingTimeOver() const {
-//		std::cout << "isparkingTimeOver()::elapsedParkingTime =" << elapsedParkingTime << "   parkingTime = " << parkingTime << std::endl;
-		return elapsedParkingTime >= parkingTime; }
-};*/
-
 class FMODSchedule;
+
 class Vehicle {
 public:
 //	Vehicle(int startLaneID);
 	Vehicle(double length, double width); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
-	Vehicle(int vehicle_id, double length, double width); //Test
+	Vehicle(int vehicleId, double length, double width); //Test
 //	Vehicle();  //There is no wpPoint to initialize one Vehicle when crossing
 	Vehicle(const Vehicle& copy); ///<Copy constructor
 
@@ -117,7 +96,7 @@ public:
 
 private:
 	//Trying a slightly more dynamic moving model.
-	int vehicle_id;
+	int vehicleId;
 	GeneralPathMover fwdMovement;
 	double latMovement;
 	double fwdVelocity;
@@ -135,9 +114,9 @@ private:
 
 	//NOTE: The error state is a temporary sanity check to help me debug this class. There are certainly
 	//      better ways to handle this (e.g., non-default constructor).
-	bool error_state;
+	bool errorState;
 	void throw_if_error() const {
-		if (error_state) {
+		if (errorState) {
 			throw std::runtime_error("Error: can't perform certain actions on an uninitialized vehicle.");
 		}
 	}

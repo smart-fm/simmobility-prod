@@ -19,19 +19,19 @@ using namespace sim_mob;
 using std::vector;
 
 sim_mob::Vehicle::Vehicle(double length, double width) :
-	length(length), width(width), vehicle_id(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(false), turningDirection(LCS_SAME), isQueuing(false), schedule(nullptr) {
+	length(length), width(width), vehicleId(0), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), errorState(false), turningDirection(LCS_SAME), isQueuing(false), schedule(nullptr) {
 }
 
-sim_mob::Vehicle::Vehicle(int vehicle_id, double length, double width) :
-	vehicle_id(vehicle_id), length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(false), turningDirection(LCS_SAME), isQueuing(false),  schedule(nullptr)
+sim_mob::Vehicle::Vehicle(int vehicleId, double length, double width) :
+	vehicleId(vehicleId), length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), errorState(false), turningDirection(LCS_SAME), isQueuing(false),  schedule(nullptr)
 {
 }
 
 sim_mob::Vehicle::Vehicle(const Vehicle& copyFrom) :
-	length(copyFrom.length), width(copyFrom.width), vehicle_id(copyFrom.vehicle_id),
+	length(copyFrom.length), width(copyFrom.width), vehicleId(copyFrom.vehicleId),
 			latMovement(copyFrom.latMovement), fwdVelocity(copyFrom.fwdVelocity), latVelocity(copyFrom.latVelocity),
-			fwdAccel(copyFrom.fwdAccel), posInIntersection(copyFrom.posInIntersection), error_state(
-					copyFrom.error_state), turningDirection(LCS_SAME), isQueuing(copyFrom.isQueuing), schedule(copyFrom.schedule) {
+			fwdAccel(copyFrom.fwdAccel), posInIntersection(copyFrom.posInIntersection), errorState(
+					copyFrom.errorState), turningDirection(LCS_SAME), isQueuing(copyFrom.isQueuing), schedule(copyFrom.schedule) {
 }
 
 void sim_mob::Vehicle::setPositionInIntersection(double x, double y) {

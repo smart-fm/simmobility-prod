@@ -11,11 +11,11 @@ namespace sim_mob
 
 class Broker;
 class DriverCommMovement;
-class DriverCommBehavior;
+class DriverBehavior;
 
 class DriverComm : public Driver {
 public:
-	DriverComm(Person* parent, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverCommBehavior* behavior = nullptr, sim_mob::DriverCommMovement* movement = nullptr);
+	DriverComm(Person* parent, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior = nullptr, sim_mob::DriverCommMovement* movement = nullptr);
 	virtual ~DriverComm();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

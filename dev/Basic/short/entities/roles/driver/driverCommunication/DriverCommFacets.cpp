@@ -16,16 +16,6 @@ using std::endl;
 using namespace sim_mob;
 
 
-sim_mob::DriverCommBehavior::DriverCommBehavior(sim_mob::Person* parentAgent):
-	DriverBehavior(parentAgent)
-{
-}
-
-sim_mob::DriverCommBehavior::~DriverCommBehavior()
-{
-}
-
-
 sim_mob::DriverCommMovement::DriverCommMovement(sim_mob::Person* parentAgent) :
 	DriverMovement(parentAgent)
 {

@@ -13,7 +13,6 @@
 #include "workers/Worker.hpp"
 
 #include "entities/commsim/broker/Common.hpp"
-#include "entities/commsim/comm_support/AgentCommUtility.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
 #include "entities/commsim/event/RegionsAndPathEventArgs.hpp"
@@ -367,21 +366,18 @@ void sim_mob::Broker::processClientRegistrationRequests()
 	scanAndProcessWaitList(clientWaitListNs3, true);
 }
 
-void sim_mob::Broker::registerEntity(sim_mob::AgentCommUtility* value)
+void sim_mob::Broker::registerEntity(sim_mob::Agent* agent)
 {
-	registeredAgents.insert(value->getEntity(), value);
+	registeredAgents.insert(agent);
 	if (EnableDebugOutput) {
 		Print() << std::dec;
 		Print() << registeredAgents.size() << ":  Broker[" << this
-			<< "] :  Broker::registerEntity [" << value->getEntity()->getId()
+			<< "] :  Broker::registerEntity [" << agent->getId()
 			<< "]" << std::endl;
 	}
 
-	//feedback
-	value->registrationCallBack(true);
-
 	//tell me if you are dying
-	sim_mob::messaging::MessageBus::SubscribeEvent(sim_mob::event::EVT_CORE_AGENT_DIED,value->getEntity(), this);
+	sim_mob::messaging::MessageBus::SubscribeEvent(sim_mob::event::EVT_CORE_AGENT_DIED,agent, this);
 	COND_VAR_CLIENT_REQUEST.notify_all();
 }
 
@@ -608,37 +604,6 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 
 	//Clear the buffer for the next time tick.
 	sendBuffer.clear();
-}
-
-//checks to see if the subscribed entity(agent) is alive
-bool sim_mob::Broker::deadEntityCheck(sim_mob::AgentCommUtility * info)
-{
-	if (!info) {
-		throw std::runtime_error("Invalid AgentCommUtility\n");
-	}
-
-	Agent * target = info->getEntity();
-	try {
-		if (!(target->currWorkerProvider)) {
-			return true;
-		}
-
-		//one more check to see if the entity is deleted
-		const std::set<sim_mob::Entity*> & managedEntities_ = target->currWorkerProvider->getEntities();
-		std::set<sim_mob::Entity*>::const_iterator it = managedEntities_.begin();
-		if (!managedEntities_.size()) {
-			return true;
-		}
-		for (std::set<sim_mob::Entity*>::const_iterator it = managedEntities_.begin(); it != managedEntities_.end(); it++) {
-			//agent is still being managed, so it is not dead
-			if (*it == target)
-				return false;
-		}
-	} catch (std::exception& e) {
-		return true;
-	}
-
-	return true;
 }
 
 

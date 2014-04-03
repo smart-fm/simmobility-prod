@@ -15,7 +15,7 @@ int sim_mob::DriverComm::totalSendCnt = 0;
 int sim_mob::DriverComm::totalReceiveCnt = 0;
 
 sim_mob::DriverComm::DriverComm(Person* parent/*, */, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverCommBehavior* behavior, sim_mob::DriverCommMovement* movement):
-		Driver(parent,mtxStrat,behavior, movement), AgentCommUtility(parent)
+		Driver(parent,mtxStrat,behavior, movement)
 {
 }
 
@@ -30,11 +30,9 @@ Role* sim_mob::DriverComm::clone(Person* parent) const
 	DriverComm* driver = new DriverComm(parent, /*&this->communicator, */parent->getMutexStrategy(), behavior, movement);
 	behavior->setParentDriver(driver);
 	movement->setParentDriver(driver);
-	behavior->setParentDriverComm(driver);
-	movement->setParentDriverComm(driver);
+	//behavior->setParentDriverComm(driver);
+	//movement->setParentDriverComm(driver);
 
-
-	driver->setBroker(Broker::GetSingleBroker());
 	return driver;
 }
 

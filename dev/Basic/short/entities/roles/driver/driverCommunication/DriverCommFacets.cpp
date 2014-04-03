@@ -4,6 +4,9 @@
 
 #include "DriverCommFacets.hpp"
 
+#include "entities/commsim/broker/Broker.hpp"
+#include "entities/Person.hpp"
+
 using namespace sim_mob;
 using std::vector;
 using std::set;
@@ -14,7 +17,7 @@ using namespace sim_mob;
 
 
 sim_mob::DriverCommBehavior::DriverCommBehavior(sim_mob::Person* parentAgent):
-	DriverBehavior(parentAgent),parentDriverCommRole(nullptr)
+	DriverBehavior(parentAgent)
 {
 }
 
@@ -39,7 +42,7 @@ void sim_mob::DriverCommBehavior::frame_tick_output()
 
 
 sim_mob::DriverCommMovement::DriverCommMovement(sim_mob::Person* parentAgent):
-	DriverMovement(parentAgent), parentDriverCommRole(nullptr)
+	DriverMovement(parentAgent)
 {
 }
 
@@ -50,10 +53,9 @@ sim_mob::DriverCommMovement::~DriverCommMovement()
 void sim_mob::DriverCommMovement::frame_init()
 {
 	DriverMovement::frame_init();
-	sim_mob::Agent * agent = 0;
 
 	//Register this Agent with the Broker singleton.
-	Broker::GetSingleBroker()->registerEntity(parentDriverCommRole);
+	Broker::GetSingleBroker()->registerEntity(parent);
 }
 
 void sim_mob::DriverCommMovement::frame_tick()
@@ -67,7 +69,7 @@ void sim_mob::DriverCommMovement::frame_tick_output()
 }
 
 
-DriverComm* sim_mob::DriverCommMovement::getParentDriverComm() const
+/*DriverComm* sim_mob::DriverCommMovement::getParentDriverComm() const
 {
 	return parentDriverCommRole;
 }
@@ -75,5 +77,5 @@ DriverComm* sim_mob::DriverCommMovement::getParentDriverComm() const
 void sim_mob::DriverCommMovement::setParentDriverComm(DriverComm* parentDriverCommRole_)
 {
 	this->parentDriverCommRole = parentDriverCommRole_;
-}
+}*/
 

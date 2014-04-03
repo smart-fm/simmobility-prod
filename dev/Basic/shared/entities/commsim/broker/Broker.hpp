@@ -35,20 +35,7 @@
 
 namespace sim_mob {
 
-/**
- * This file contains Broker class as the main component in this file.
- * The rest of the structures are custom data types used in the broker class.
- * Find the documentation at the beginning of each structure/class.
- */
-
-//Forward Declarations
-template <class RET,class MSG>
-class MessageFactory;
-
-template<class T>
-class Message;
-
-class AgentCommUtility;
+class Agent;
 class Publisher;
 class ConnectionHandler;
 class ConnectionServer;
@@ -270,12 +257,6 @@ protected:
 	bool checkAllBrokerBlockers();
 
 	/**
-	 * checks wether an agent(entity) is dead or alive.
-	 * Note: this function is not used any more.
-	 */
-	bool deadEntityCheck(sim_mob::AgentCommUtility * info);
-
-	/**
 	 * processes clients requests to be registered with the broker
 	 */
 	virtual void processClientRegistrationRequests();
@@ -424,7 +405,7 @@ public:
 public:
 	///Register an Agent with the Broker. This will add it to the registeredAgents list.
 	///TODO: This has to do with the AgentCommUtility classes, which need some cleanup.
-	void registerEntity(sim_mob::AgentCommUtility* agent);
+	void registerEntity(sim_mob::Agent* agent);
 
 
 	//TODO: Not sustainable, but works for now.

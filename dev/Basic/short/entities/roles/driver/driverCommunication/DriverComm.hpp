@@ -5,7 +5,6 @@
 #pragma once
 
 #include "entities/roles/driver/Driver.hpp"
-#include "entities/commsim/comm_support/AgentCommUtility.hpp"
 
 namespace sim_mob
 {
@@ -14,7 +13,7 @@ class Broker;
 class DriverCommMovement;
 class DriverCommBehavior;
 
-class DriverComm : public Driver, public AgentCommUtility
+class DriverComm : public Driver
 {
 	static int totalSendCnt;
 	static int totalReceiveCnt;

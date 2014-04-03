@@ -49,26 +49,6 @@ public:
 	static SIM_MOB_SERVICE GetServiceType(std::string type);
 };
 
-
-struct msg_header {
-	//data
-	std::string sender_id, sender_type, msg_type, msg_cat;
-
-	//constructor
-	msg_header();
-	msg_header(std::string sender_id_, std::string sender_type_, std::string msg_type_, std::string msg_cat_="UNK");
-};
-
-struct pckt_header {
-	//data
-	std::string nof_msgs;
-	std::string dest_agent; //Which agent is expected to receive these messages?
-
-	//constructor(s)
-	pckt_header();
-	pckt_header(int	nof_msgs_, const std::string& dest_agent);
-};
-
 }
 
 

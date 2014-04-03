@@ -8,7 +8,7 @@
 #include <sstream>
 
 #include "entities/commsim/broker/Broker.hpp"
-#include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
+#include "entities/commsim/client/ClientHandler.hpp"
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
 
 using namespace sim_mob;

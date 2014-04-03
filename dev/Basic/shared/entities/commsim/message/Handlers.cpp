@@ -12,7 +12,7 @@
 #include "entities/commsim/broker/Broker.hpp"
 #include "entities/commsim/connection/WhoAreYouProtocol.hpp"
 #include "entities/commsim/message/Messages.hpp"
-#include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
+#include "entities/commsim/client/ClientHandler.hpp"
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
 #include "message/MessageBus.hpp"

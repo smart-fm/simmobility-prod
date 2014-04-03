@@ -8,9 +8,8 @@
 #include "util/LangHelpers.hpp"
 
 #include "entities/Person.hpp"
-#include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
+#include "entities/commsim/client/ClientHandler.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
-#include "entities/commsim/broker/Common.hpp"
 #include "entities/commsim/broker/Broker.hpp"
 #include "event/EventPublisher.hpp"
 
@@ -25,22 +24,25 @@ boost::shared_ptr<ClientHandler> sim_mob::ClientRegistrationHandler::makeClientH
 	clientEntry->setRequiredServices(request.requiredServices);
 
 	//Subscribe to relevant services for each required service.
-	sim_mob::event::EventPublisher& publisher = broker.getPublisher();
 	for (std::set<sim_mob::Services::SIM_MOB_SERVICE>::const_iterator it=request.requiredServices.begin(); it!=request.requiredServices.end(); it++) {
 		switch (*it) {
 			case sim_mob::Services::SIMMOB_SRV_TIME:
-				publisher.subscribe(COMMEID_TIME, clientEntry.get(), &ClientHandler::sendSerializedMessageToBroker, clientEntry->agent);
+				clientEntry->regisTime = true;
 				break;
 			case sim_mob::Services::SIMMOB_SRV_LOCATION:
-				publisher.subscribe(COMMEID_LOCATION, clientEntry.get(), &ClientHandler::sendSerializedMessageToBroker, clientEntry->agent);
+				clientEntry->regisLocation = true;
 				break;
 			case sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH:
-				publisher.subscribe(COMMEID_REGIONS_AND_PATH, clientEntry.get(), &ClientHandler::sendSerializedMessageToBroker, clientEntry->agent);
+				clientEntry->regisRegionPath = true;
+				break;
+			case sim_mob::Services::SIMMOB_SRV_ALL_LOCATIONS:
+				clientEntry->regisAllLocations = true;
 				break;
 			default:
-				Warn() <<"Android client requested service which could not be provided.\n"; break;
+				Warn() <<"Client requested service which could not be provided.\n"; break;
 		}
 	}
+
 
 	//also, add the client entry to broker(for message handler purposes)
 	broker.insertClientList(request.clientID, (isNs3Client?comm::NS3_SIMULATOR:comm::ANDROID_EMULATOR), clientEntry);

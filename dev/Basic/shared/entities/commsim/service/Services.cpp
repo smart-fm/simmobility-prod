@@ -35,21 +35,5 @@ sim_mob::Services::SIM_MOB_SERVICE sim_mob::Services::GetServiceType(std::string
 }
 
 
-sim_mob::msg_header::msg_header()
-{}
-
-sim_mob::msg_header::msg_header(string sender_id_, string sender_type_, string msg_type_, string msg_cat_)
-	: sender_id(sender_id_), sender_type(sender_type_), msg_type(msg_type_), msg_cat(msg_cat_)
-{}
-
-sim_mob::pckt_header::pckt_header()
-	: nof_msgs("0"), dest_agent("0")
-{}
-
-sim_mob::pckt_header::pckt_header(int nof_msgs_, const std::string& dest_agent)
-	: nof_msgs(boost::lexical_cast<string>(nof_msgs_)),
-	  dest_agent(dest_agent)
-{}
-
 
 

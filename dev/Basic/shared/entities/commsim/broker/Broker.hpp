@@ -16,7 +16,6 @@
 #include "entities/commsim/client/ClientType.hpp"
 #include "entities/commsim/client/ClientRegistration.hpp"
 #include "entities/commsim/service/Services.hpp"
-#include "entities/commsim/broker/Common.hpp"
 #include "entities/commsim/message/Handlers.hpp"
 #include "entities/commsim/message/ThreadSafeQueue.hpp"
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
@@ -55,11 +54,12 @@ struct ClientList {
 	typedef std::map< std::string , boost::shared_ptr<sim_mob::ClientHandler> > Type;
 };
 
-///Helper struct: used to track if agents are done/valid.
+///Helper struct: used to track Agent information required by the Broker.
+///THREADING: The "done" parameter is accessed concurrently.
 struct AgentInfo {
-	bool valid;
-	bool done;
-	AgentInfo() : valid(true), done(false) {}
+	AgentInfo() :  done(false) {}
+
+	bool done; ///<Is this Agent done with its own internal processing.
 };
 
 
@@ -78,7 +78,6 @@ public:
 	//Used by ClientRegistration when a ClientHandler object has been created. Failing to save the ClientHandler here will lead to its destruction.
 	virtual void insertClientList(std::string, comm::ClientType , boost::shared_ptr<sim_mob::ClientHandler>&) = 0;
 	virtual std::map<const Agent*, AgentInfo>& getRegisteredAgents() = 0;
-	virtual sim_mob::event::EventPublisher& getPublisher() = 0;
 
 	//Used by the BrokerBlocker subclasses. Hopefully we can further abstract these.
 	virtual size_t getRegisteredAgentsSize() const = 0;
@@ -173,7 +172,7 @@ private:
 	///      all Agents in registeredAgents are done. Right now, this only causes the ns-3 simulator to be occasionally
 	///      missing a few Agents on their first time ticks. We can fix this with Messages, but we'd need a way to
 	///      check the message type on the EXACT time tick it registered. For now, we can accept a few missing Agents.
-	std::vector<const Agent*> preRegisterAgents;
+	std::map<const Agent*, AgentInfo> preRegisterAgents;
 	boost::mutex mutex_pre_register_agents; ///<Mutex for locking preRegisterAgents.
 
 
@@ -187,8 +186,7 @@ protected:
 
 
 	///List of (Sim Mobility) Agents that have registered themselves with the Broker.
-	///This list is not modified in parallel (in previous commits it was).
-	//AgentsList registeredAgents;
+	///THREADING: The "AgentInfo::done" parameter is accessed in parallel, as each Agent updates. Make sure to lock it with mutex_AgentDone
 	std::map<const Agent*, AgentInfo> registeredAgents;
 
 	///List of Android clients that have completed registration with the Broker.
@@ -202,7 +200,7 @@ protected:
 	ConnectionServer connection;
 
 	///Broker's Publisher
-	BrokerPublisher publisher;
+	//BrokerPublisher publisher;
 
 	//Publishes an event when a client is registered with the broker
 	ClientRegistrationPublisher registrationPublisher;
@@ -405,10 +403,6 @@ public:
 	///Retrieve the list of registeredAgents, and the mutex used to lock it. Use this for more extensive modificatoins.
 	///Implements the BrokerBase interface.
 	virtual std::map<const Agent*, AgentInfo>& getRegisteredAgents();
-
-	///Retrieve the Broker's EventPublisher.
-	///Implements the BrokerBase interface.
-	virtual sim_mob::event::EventPublisher& getPublisher();
 
 	///Retrieve just the size of the registeredAgentsList.
 	///Implements the BrokerBase interface.

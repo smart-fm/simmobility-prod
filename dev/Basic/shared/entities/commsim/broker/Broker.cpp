@@ -12,10 +12,8 @@
 #include "conf/ConfigParams.hpp"
 #include "workers/Worker.hpp"
 
-#include "entities/commsim/broker/Common.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
-#include "entities/commsim/event/subscribers/base/ClientHandler.hpp"
-#include "entities/commsim/event/RegionsAndPathEventArgs.hpp"
+#include "entities/commsim/client/ClientHandler.hpp"
 
 #include "entities/commsim/wait/WaitForAndroidConnection.hpp"
 #include "entities/commsim/wait/WaitForNS3Connection.hpp"
@@ -59,6 +57,10 @@ bool sim_mob::Broker::insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler>
 		return false;
 	}
 
+	///TODO: It is not clear that this is needed; basically, the Broker tells the Publishers to publish all events,
+	///      and the publishers call this method. (It may be called from other places that do require a lock, but it's
+	///      possible these are all thread-local). We need to re-examine the Publisher model for this class; it seems like
+	///      a lot of unnecessary extra work.
 	boost::unique_lock<boost::mutex> lock(mutex_send_buffer);
 
 	//Is this the first message received for this ClientHandler/destID pair?
@@ -79,19 +81,12 @@ void sim_mob::Broker::configure()
 		this, &Broker::onAgentUpdate
 	);
 
-	//Register events and services that the client can request.
-	publisher.registerEvent(COMMEID_LOCATION);
-	publisher.registerEvent(COMMEID_TIME);
-	publisher.registerEvent(COMMEID_REGIONS_AND_PATH);
-	publisher.registerEvent(COMMEID_ALL_LOCATIONS);
-
 	//Hook up Android emulators to OnClientRegister
 	registrationPublisher.registerEvent(comm::ANDROID_EMULATOR);
 	registrationPublisher.subscribe((event::EventId)comm::ANDROID_EMULATOR, this, &Broker::onAndroidClientRegister);
 
 	//Hook up the NS-3 simulator to OnClientRegister.
 	registrationPublisher.registerEvent(comm::NS3_SIMULATOR);
-	//registrationPublisher.subscribe((event::EventId)comm::NS3_SIMULATOR, this, &Broker::onClientRegister);
 
 	//Dispatch differently depending on whether we are using "android-ns3" or "android-only"
 	std::string client_type = ConfigManager::GetInstance().FullConfig().getCommSimMode(commElement);
@@ -324,17 +319,12 @@ void  sim_mob::Broker::insertClientWaitingList(std::string clientType, ClientReg
 	COND_VAR_CLIENT_REQUEST.notify_one();
 }
 
-sim_mob::event::EventPublisher & sim_mob::Broker::getPublisher()
-{
-	return publisher;
-}
-
 
 void sim_mob::Broker::processAgentRegistrationRequests()
 {
 	boost::unique_lock<boost::mutex> lock(mutex_pre_register_agents);
-	for (std::vector<const Agent*>::const_iterator it=preRegisterAgents.begin(); it!=preRegisterAgents.end(); it++) {
-		registeredAgents[*it] = AgentInfo();
+	for (std::map<const Agent*, AgentInfo>::const_iterator it=preRegisterAgents.begin(); it!=preRegisterAgents.end(); it++) {
+		registeredAgents[it->first] = it->second;
 	}
 	preRegisterAgents.clear();
 }
@@ -377,7 +367,7 @@ void sim_mob::Broker::processClientRegistrationRequests()
 void sim_mob::Broker::registerEntity(sim_mob::Agent* agent)
 {
 	boost::unique_lock<boost::mutex> lock(mutex_pre_register_agents);
-	preRegisterAgents.push_back(agent);
+	preRegisterAgents[agent] = AgentInfo();
 
 	//Register to receive a callback when this entity is removed.
 	sim_mob::messaging::MessageBus::SubscribeEvent(sim_mob::event::EVT_CORE_AGENT_DIED, agent, this);
@@ -393,8 +383,12 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent* agent)
 		Print() << "inside Broker::unRegisterEntity for agent: \"" << agent << "\"\n";
 	}
 
-	//search agent's list looking for this agent
-	registeredAgents.erase(agent);
+	//Erase from the registered agents list.
+	if (registeredAgents.erase(agent) == 0) {
+		//If not found, it might be in the pre-registered list.
+		boost::unique_lock<boost::mutex> lock(mutex_pre_register_agents);
+		preRegisterAgents.erase(agent);
+	}
 
 	{
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
@@ -410,14 +404,11 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent* agent)
 			//unsubscribe from all publishers he is subscribed to
 			sim_mob::ClientHandler* clientHandler = it->second.get();
 
-			//TODO: This seems wrong; we are unsubscribing multiple times.
-			for (std::set<sim_mob::Services::SIM_MOB_SERVICE>::const_iterator it2=clientHandler->getRequiredServices().begin(); it2!=clientHandler->getRequiredServices().end(); it2++) {
-				publisher.unSubscribeAll(clientHandler);
-			}
-
-			//invalidate it and clean it up when necessary
-			//don't erase it here. it may already have something to send
-			//invalidation 1:
+			//Note: We only set validation to false, rather than actually removing the ClientHandler.
+			//      I *think* the reason we do this is because the Agent may send one last message, then tell its Worker
+			//      that it is "done", thus triggering this asynchronous message. However, we update the connection count
+			//      below. I think we need to double-check our ClientHandler lifecycle, maybe using a "preRemove" list, just
+			//      like we have a "preRegister". ~Seth
 			it->second->agent = nullptr;
 			it->second->setValidation(false);
 
@@ -485,10 +476,21 @@ Entity::UpdateStatus sim_mob::Broker::frame_tick(timeslice now)
 
 void sim_mob::Broker::agentUpdated(const Agent* target )
 {
-	//Retrieve the Agent.
+	//The Agent is either located in the preRegister list or the reigstered list. In the case of the former,
+	//all we have to do is change its "done" flag; we don't have to signal anything (it will be copied over before that anyway).
+	{
+	boost::unique_lock<boost::mutex> lock(mutex_pre_register_agents);
+	std::map<const Agent*, AgentInfo>::iterator it = preRegisterAgents.find(target);
+	if (it!=preRegisterAgents.end()) {
+		it->second.done = true;
+		return;
+	}
+	}
+
+	//If it's in the registered list, we need to also signal the conditional variable; the Broker might be waiting for this.
 	std::map<const Agent*, AgentInfo>::iterator it = registeredAgents.find(target);
 	if (it==registeredAgents.end()) {
-		Warn() <<"Warning! Agent: " <<target->getId() <<" couldn't be found in the registered agents list.\n";
+		Warn() <<"Warning! Agent: " <<target->getId() <<" couldn't be found in the registered OR pre-registered agents list.\n";
 		return;
 	}
 
@@ -551,37 +553,54 @@ void sim_mob::Broker::onAndroidClientRegister(sim_mob::event::EventId id, sim_mo
 //todo suggestion: for publishment, don't iterate through the list of clients, rather, iterate the publishers list, access their subscriber list and say publish and publish for their subscribers(keep the clientlist for MHing only)
 void sim_mob::Broker::processPublishers(timeslice now)
 {
-	//Publish Time service.
-	publisher.publish(COMMEID_TIME, TimeEventArgs(now));
+	//Create a single Time message.
+	std::string timeMsg = CommsimSerializer::makeTimeData(now.frame(), ConfigManager::GetInstance().FullConfig().baseGranMS());
 
-	//Publish Location service
-	for (ClientList::Type::const_iterator it=registeredAndroidClients.begin(); it!=registeredAndroidClients.end(); it++) {
-		const boost::shared_ptr<sim_mob::ClientHandler>& cHandler = it->second;
-		if(cHandler && cHandler->agent && cHandler->isValid()){
-			publisher.publish(COMMEID_LOCATION, const_cast<Agent*>(cHandler->agent),LocationEventArgs(cHandler->agent));
-		}
+	//Create a single AllLocations message.
+	std::map<unsigned int, DPoint> allLocs;
+	for (std::map<const Agent*, AgentInfo>::const_iterator it=registeredAgents.begin(); it!=registeredAgents.end(); it++) {
+		allLocs[it->first->getId()] = DPoint(it->first->xPos.get(), it->first->yPos.get());
 	}
+	std::string allLocMsg = CommsimSerializer::makeAllLocations(allLocs);
 
-	//Publish RegionsAndPath service.
+	//Process all clients for messages.
 	for (ClientList::Type::const_iterator it=registeredAndroidClients.begin(); it!=registeredAndroidClients.end(); it++) {
-		if(!(it->second->isValid()&&it->second->agent)){
+		//Skip dead Agents.
+		const boost::shared_ptr<sim_mob::ClientHandler>& cHandler = it->second;
+		if(!(cHandler && cHandler->agent && cHandler->isValid())) {
 			continue;
 		}
-		const sim_mob::Agent* agent = it->second->agent;
-		if (agent->getRegionSupportStruct().isEnabled()) {
-			//NOTE: Const-cast is unfortunately necessary. We could also make the Region tracking data mutable.
-			//      We can't push a message back to the Broker, since it has to arrive in the same time tick
-			//      (the Broker uses a half-time-tick mechanism).
-			std::vector<sim_mob::RoadRunnerRegion> all_regions = const_cast<Agent*>(agent)->getAndClearNewAllRegionsSet();
-			std::vector<sim_mob::RoadRunnerRegion> reg_path = const_cast<Agent*>(agent)->getAndClearNewRegionPath();
-			if (!(all_regions.empty() && reg_path.empty())) {
-				publisher.publish(COMMEID_REGIONS_AND_PATH, const_cast<Agent*>(agent), RegionsAndPathEventArgs(agent, all_regions, reg_path));
+
+		//Publish whatever this agent requests.
+		if (cHandler->regisTime) {
+			insertSendBuffer(cHandler, timeMsg);
+		}
+		if (cHandler->regisLocation) {
+			//Attempt to reverse-project the Agent's (x,y) location into Lat/Lng, if such a projection is possible.
+			LatLngLocation loc;
+			CoordinateTransform* trans = ConfigManager::GetInstance().FullConfig().getNetwork().getCoordTransform(false);
+			if (trans) {
+				loc = trans->transform(DPoint(cHandler->agent->xPos.get(), cHandler->agent->yPos.get()));
+			}
+
+			insertSendBuffer(cHandler, CommsimSerializer::makeLocation(cHandler->agent->xPos.get(), cHandler->agent->yPos.get(), loc));
+		}
+		if (cHandler->regisRegionPath) {
+			if (cHandler->agent->getRegionSupportStruct().isEnabled()) {
+				//NOTE: Const-cast is unfortunately necessary. We could also make the Region tracking data mutable.
+				//      We can't push a message back to the Broker, since it has to arrive in the same time tick
+				//      (the Broker uses a half-time-tick mechanism).
+				std::vector<sim_mob::RoadRunnerRegion> all_regions = const_cast<Agent*>(cHandler->agent)->getAndClearNewAllRegionsSet();
+				std::vector<sim_mob::RoadRunnerRegion> reg_path = const_cast<Agent*>(cHandler->agent)->getAndClearNewRegionPath();
+				if (!(all_regions.empty() && reg_path.empty())) {
+					insertSendBuffer(cHandler, CommsimSerializer::makeRegionAndPath(all_regions, reg_path));
+				}
 			}
 		}
+		if (cHandler->regisAllLocations) {
+			insertSendBuffer(cHandler, allLocMsg);
+		}
 	}
-
-	//Publish AllLocations service.
-	publisher.publish(COMMEID_ALL_LOCATIONS,(void*) COMMCID_ALL_LOCATIONS,AllLocationsEventArgs(registeredAgents));
 }
 
 void sim_mob::Broker::sendReadyToReceive()
@@ -694,7 +713,6 @@ void sim_mob::Broker::waitForAgentsUpdates()
 bool sim_mob::Broker::allClientsAreDone()
 {
 	boost::shared_ptr<sim_mob::ClientHandler> clnHandler;
-	msg_header msg_header_;
 	boost::unique_lock<boost::mutex> lock(mutex_clientList);
 
 	for (ClientList::Type::const_iterator it=registeredAndroidClients.begin(); it!=registeredAndroidClients.end(); it++) {

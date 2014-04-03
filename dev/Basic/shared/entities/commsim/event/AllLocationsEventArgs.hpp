@@ -5,21 +5,24 @@
 
 #pragma once
 
+#include <map>
+
 #include "entities/commsim/event/BaseCommsimEventArgs.hpp"
 
 namespace sim_mob {
 
-class AgentsList;
+class Agent;
+struct AgentInfo;
 
 class AllLocationsEventArgs: public BaseCommsimEventArgs {
 public:
-	AllLocationsEventArgs(const sim_mob::AgentsList& registeredAgents);
+	AllLocationsEventArgs(const std::map<const Agent*, AgentInfo>& registeredAgents);
 	virtual ~AllLocationsEventArgs();
 
 	virtual std::string serialize() const;
 
 private:
-	const sim_mob::AgentsList& registeredAgents;
+	const std::map<const Agent*, AgentInfo>& registeredAgents;
 };
 
 }

@@ -16,7 +16,6 @@
 #include "entities/commsim/client/ClientType.hpp"
 #include "entities/commsim/client/ClientRegistration.hpp"
 #include "entities/commsim/service/Services.hpp"
-#include "entities/commsim/broker/Broker-util.hpp"
 #include "entities/commsim/broker/Common.hpp"
 #include "entities/commsim/message/Handlers.hpp"
 #include "entities/commsim/message/ThreadSafeQueue.hpp"
@@ -36,6 +35,7 @@
 namespace sim_mob {
 
 class Agent;
+struct AgentInfo;
 class Publisher;
 class ConnectionHandler;
 class ConnectionServer;
@@ -50,13 +50,17 @@ const bool EnableDebugOutput = false;
 
 
 
-/**
- * A typedef-container for our ClientList container type.
- */
+///A typedef-container for our ClientList container type.
 struct ClientList {
 	typedef std::map< std::string , boost::shared_ptr<sim_mob::ClientHandler> > Type;
 };
 
+///Helper struct: used to track if agents are done/valid.
+struct AgentInfo {
+	bool valid;
+	bool done;
+	AgentInfo() : valid(true), done(false) {}
+};
 
 
 
@@ -73,7 +77,7 @@ public:
 
 	//Used by ClientRegistration when a ClientHandler object has been created. Failing to save the ClientHandler here will lead to its destruction.
 	virtual void insertClientList(std::string, comm::ClientType , boost::shared_ptr<sim_mob::ClientHandler>&) = 0;
-	virtual AgentsList::type& getRegisteredAgents(AgentsList::Mutex* mutex) = 0;
+	virtual std::map<const Agent*, AgentInfo>& getRegisteredAgents() = 0;
 	virtual sim_mob::event::EventPublisher& getPublisher() = 0;
 
 	//Used by the BrokerBlocker subclasses. Hopefully we can further abstract these.
@@ -161,6 +165,18 @@ private:
 	boost::mutex mutex_client_wait_list; ///<Mutex for locking the clientWaitListX variables.
 
 
+	///List of (Sim Mobility) Agents that have made themselves known to the Broker but have not yet been registered.
+	///THREADING: This list is modified in parallel by Agents during their individual update() ticks.
+	///           The Broker will flush this list to the registeredAgents list in two places. First, while
+	///           checking for new Client connections. Second, while checking if all registeredAgents are done.
+	///TODO: It is still technically possible for some agents to remain in preRegiter when the Broker has determined that
+	///      all Agents in registeredAgents are done. Right now, this only causes the ns-3 simulator to be occasionally
+	///      missing a few Agents on their first time ticks. We can fix this with Messages, but we'd need a way to
+	///      check the message type on the EXACT time tick it registered. For now, we can accept a few missing Agents.
+	std::vector<const Agent*> preRegisterAgents;
+	boost::mutex mutex_pre_register_agents; ///<Mutex for locking preRegisterAgents.
+
+
 protected:
 	///Lookup for message handlers by type.
 	HandlerLookup handleLookup;
@@ -171,7 +187,9 @@ protected:
 
 
 	///List of (Sim Mobility) Agents that have registered themselves with the Broker.
-	AgentsList registeredAgents;
+	///This list is not modified in parallel (in previous commits it was).
+	//AgentsList registeredAgents;
+	std::map<const Agent*, AgentInfo> registeredAgents;
 
 	///List of Android clients that have completed registration with the Broker.
 	ClientList::Type registeredAndroidClients;
@@ -262,7 +280,10 @@ protected:
 	/**
 	 * processes clients requests to be registered with the broker
 	 */
-	virtual void processClientRegistrationRequests();
+	void processClientRegistrationRequests();
+
+	//Process Agents requesting to be registered with the Broker.
+	void processAgentRegistrationRequests();
 
 	///Helper: Scans a single waitList and processes/removes all entries that it can.
 	///The flag "isNs3" indicates an ns-3 simulator; otherwise, it's treated as Android.
@@ -383,7 +404,7 @@ public:
 
 	///Retrieve the list of registeredAgents, and the mutex used to lock it. Use this for more extensive modificatoins.
 	///Implements the BrokerBase interface.
-	virtual AgentsList::type& getRegisteredAgents(AgentsList::Mutex* mutex);
+	virtual std::map<const Agent*, AgentInfo>& getRegisteredAgents();
 
 	///Retrieve the Broker's EventPublisher.
 	///Implements the BrokerBase interface.

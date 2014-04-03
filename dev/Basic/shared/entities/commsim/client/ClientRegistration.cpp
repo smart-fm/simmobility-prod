@@ -53,13 +53,8 @@ boost::shared_ptr<ClientHandler> sim_mob::ClientRegistrationHandler::makeClientH
 	return clientEntry;
 }
 
-bool sim_mob::ClientRegistrationHandler::handle(BrokerBase& broker, sim_mob::ClientRegistrationRequest& request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn, bool isNs3Client) {
-	//This part is locked in fear of registered agents' iterator invalidation in the middle of the process
-	//TODO: Is registeredAgents really accessed in parallel? It shouldn't be...
-	AgentsList::Mutex registered_agents_mutex;
-	AgentsList::type& registeredAgents = broker.getRegisteredAgents(&registered_agents_mutex);
-	AgentsList::Lock lock(registered_agents_mutex);
-
+bool sim_mob::ClientRegistrationHandler::handle(BrokerBase& broker, sim_mob::ClientRegistrationRequest& request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn, bool isNs3Client)
+{
 	//some checks to avoid calling this method unnecessarily
 	//TODO: It seems like this check is actually not mandatory; I'd like to remove it. ~Seth
 	//if (broker.getClientWaitingListSize()==0) {
@@ -67,7 +62,7 @@ bool sim_mob::ClientRegistrationHandler::handle(BrokerBase& broker, sim_mob::Cli
 	//}
 
 	//Android clients require a free agent to associate with.
-	const Agent* agent = isNs3Client ? nullptr : findAFreeAgent(registeredAgents);
+	const Agent* agent = isNs3Client ? nullptr : findAFreeAgent(broker.getRegisteredAgents());
 	if (!isNs3Client && !agent) {
 		return false;
 	}
@@ -77,7 +72,7 @@ bool sim_mob::ClientRegistrationHandler::handle(BrokerBase& broker, sim_mob::Cli
 
 	//AgentsInfo is required before READY
 	if (isNs3Client) {
-		sendAgentsInfo(registeredAgents, clientEntry);
+		sendAgentsInfo(broker.getRegisteredAgents(), clientEntry);
 	}
 
 	//Inform the client we are ready to proceed.
@@ -92,19 +87,14 @@ bool sim_mob::ClientRegistrationHandler::handle(BrokerBase& broker, sim_mob::Cli
 
 
 
-void sim_mob::ClientRegistrationHandler::sendAgentsInfo(AgentsList::type& agents, boost::shared_ptr<ClientHandler> clientEntry)
+void sim_mob::ClientRegistrationHandler::sendAgentsInfo(const std::map<const Agent*, AgentInfo>& agents, boost::shared_ptr<ClientHandler> clientEntry)
 {
 	//send some initial configuration information to NS3
 	std::vector<unsigned int> keys;
 
-	//{//multi-threaded section, need locking //This is already locked in the outer function.
-	//AgentsList::Mutex mutex;
-	//AgentsList::type & agents = broker.getRegisteredAgents(&mutex);
-	//AgentsList::Lock lock(mutex);
-
 	//please mind the AgentInfo vs AgentsInfo
-	for (AgentsList::type::iterator it = agents.begin(); it != agents.end(); it++) {
-		keys.push_back(it->second.agent->getId());
+	for (std::map<const Agent*, AgentInfo>::const_iterator it = agents.begin(); it != agents.end(); it++) {
+		keys.push_back(it->first->getId());
 	}
 
 	//We are cheating a bit here.
@@ -116,7 +106,6 @@ void sim_mob::ClientRegistrationHandler::sendAgentsInfo(AgentsList::type& agents
 		}
 		pending.pop();
 	}
-	//}
 
 	OngoingSerialization ongoing;
 	CommsimSerializer::serialize_begin(ongoing, boost::lexical_cast<std::string>(clientEntry->agent->getId()));
@@ -129,11 +118,11 @@ void sim_mob::ClientRegistrationHandler::sendAgentsInfo(AgentsList::type& agents
 }
 
 
-const Agent* sim_mob::ClientRegistrationHandler::findAFreeAgent(const AgentsList::type& registeredAgents)
+const Agent* sim_mob::ClientRegistrationHandler::findAFreeAgent(const std::map<const Agent*, AgentInfo>& registeredAgents)
 {
-	for (AgentsList::type::const_iterator it=registeredAgents.begin(); it!=registeredAgents.end(); it++) {
-		if (usedAgents.find(it->second.agent) == usedAgents.end()) {
-			return it->second.agent;
+	for (std::map<const Agent*, AgentInfo>::const_iterator it=registeredAgents.begin(); it!=registeredAgents.end(); it++) {
+		if (usedAgents.find(it->first) == usedAgents.end()) {
+			return it->first;
 		}
 	}
 

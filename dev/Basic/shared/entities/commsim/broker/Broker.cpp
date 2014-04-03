@@ -237,15 +237,13 @@ void sim_mob::Broker::onEvent(event::EventId eventId, sim_mob::event::Context ct
 
 size_t sim_mob::Broker::getRegisteredAgentsSize() const
 {
-	return registeredAgents.getAgents().size();
+	return registeredAgents.size();
 }
 
 
-AgentsList::type& sim_mob::Broker::getRegisteredAgents(AgentsList::Mutex* mutex)
+std::map<const Agent*, AgentInfo>& sim_mob::Broker::getRegisteredAgents()
 {
-	//always supply the mutex along
-	mutex = registeredAgents.getMutex();
-	return registeredAgents.getAgents();
+	return registeredAgents;
 }
 
 
@@ -332,6 +330,16 @@ sim_mob::event::EventPublisher & sim_mob::Broker::getPublisher()
 }
 
 
+void sim_mob::Broker::processAgentRegistrationRequests()
+{
+	boost::unique_lock<boost::mutex> lock(mutex_pre_register_agents);
+	for (std::vector<const Agent*>::const_iterator it=preRegisterAgents.begin(); it!=preRegisterAgents.end(); it++) {
+		registeredAgents[*it] = AgentInfo();
+	}
+	preRegisterAgents.clear();
+}
+
+
 void sim_mob::Broker::scanAndProcessWaitList(std::queue<ClientWaiting>& waitList, bool isNs3)
 {
 	for (;;) {
@@ -368,13 +376,13 @@ void sim_mob::Broker::processClientRegistrationRequests()
 
 void sim_mob::Broker::registerEntity(sim_mob::Agent* agent)
 {
-	registeredAgents.insert(agent);
-	if (EnableDebugOutput) {
-		Print() << std::dec <<"Agent added: " <<agent->getId() <<", total agents: " <<registeredAgents.size() <<"\n";
-	}
+	boost::unique_lock<boost::mutex> lock(mutex_pre_register_agents);
+	preRegisterAgents.push_back(agent);
 
 	//Register to receive a callback when this entity is removed.
 	sim_mob::messaging::MessageBus::SubscribeEvent(sim_mob::event::EVT_CORE_AGENT_DIED, agent, this);
+
+	//Wake up any threads waiting on this.
 	COND_VAR_CLIENT_REQUEST.notify_all();
 }
 
@@ -475,11 +483,21 @@ Entity::UpdateStatus sim_mob::Broker::frame_tick(timeslice now)
 
 
 
-void sim_mob::Broker::agentUpdated(const Agent* target ){
-	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
-	if(registeredAgents.setDone(target)) {
-		COND_VAR_AGENT_DONE.notify_all();
+void sim_mob::Broker::agentUpdated(const Agent* target )
+{
+	//Retrieve the Agent.
+	std::map<const Agent*, AgentInfo>::iterator it = registeredAgents.find(target);
+	if (it==registeredAgents.end()) {
+		Warn() <<"Warning! Agent: " <<target->getId() <<" couldn't be found in the registered agents list.\n";
+		return;
 	}
+
+	//Update, signal the condition variable.
+	{
+	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
+	it->second.done = true;
+	}
+	COND_VAR_AGENT_DONE.notify_all();
 }
 
 void sim_mob::Broker::onAgentUpdate(sim_mob::event::EventId id, sim_mob::event::Context context, sim_mob::event::EventPublisher* sender, const UpdateEventArgs& argums)
@@ -623,7 +641,10 @@ void sim_mob::Broker::waitAndAcceptConnections() {
 	for (;;) {
 		//boost::unique_lock<boost::mutex> lock(mutex_client_wait_list);
 
-		//Add pending clients, check if this means we can advance.
+		//Add pending Agents.
+		processAgentRegistrationRequests();
+
+		//Add pending clients.
 		processClientRegistrationRequests();
 
 		//Sleep if we're not ready.
@@ -642,13 +663,29 @@ void sim_mob::Broker::waitAndAcceptConnections() {
 void sim_mob::Broker::waitForAgentsUpdates()
 {
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
-	while(registeredAgents.hasNotDone()) {
-		if (EnableDebugOutput) {
-			Print() << "waitForAgentsUpdates _WAIT" << std::endl;
+	bool notDone = true;
+	while (notDone) {
+		//Add pending Agents (to make sure we're checking that ALL agents are done).
+		processAgentRegistrationRequests();
+
+		//Check if any Agents in the registeredAgents list is not done.
+		notDone = false;
+		for (std::map<const Agent*, AgentInfo>::const_iterator it=registeredAgents.begin(); it!=registeredAgents.end(); it++) {
+			if (!it->second.done) {
+				notDone = true;
+				break;
+			}
 		}
-		COND_VAR_AGENT_DONE.wait(lock);
-		if (EnableDebugOutput) {
-			Print() << "waitForAgentsUpdates _WAIT_released" << std::endl;
+
+		//If so, sleep until more agents list themselves as done.
+		if (notDone) {
+			if (EnableDebugOutput) {
+				Print() << "waitForAgentsUpdates _WAIT" << std::endl;
+			}
+			COND_VAR_AGENT_DONE.wait(lock);
+			if (EnableDebugOutput) {
+				Print() << "waitForAgentsUpdates _WAIT_released" << std::endl;
+			}
 		}
 	}
 }

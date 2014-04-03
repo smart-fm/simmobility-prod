@@ -11,11 +11,12 @@
 
 #include <boost/shared_ptr.hpp>
 #include "entities/commsim/service/Services.hpp"
-#include "entities/commsim/broker/Broker-util.hpp"
 #include "event/args/EventArgs.hpp"
 
 namespace sim_mob {
 
+class Agent;
+struct AgentInfo;
 class BrokerBase;
 class ClientHandler;
 class ConnectionHandler;
@@ -56,7 +57,7 @@ public:
 private:
 	///Helper function: Find an agent from the list of registeredAgents that is not in our set of usedAgents.
 	///Returns null if no such agent exists.
-	const Agent* findAFreeAgent(const AgentsList::type &registeredAgents);
+	const Agent* findAFreeAgent(const std::map<const Agent*, AgentInfo>& registeredAgents);
 
 	/**
 	 * helper function used in handle() method to prepare and return a sim_mob::ClientHandler
@@ -67,7 +68,7 @@ private:
 	/**
 	 * Helper function used to send simmobility agents information to ns3 in json format
 	 */
-	void sendAgentsInfo(AgentsList::type& agents, boost::shared_ptr<ClientHandler> clientEntry);
+	void sendAgentsInfo(const std::map<const Agent*, AgentInfo>& agents, boost::shared_ptr<ClientHandler> clientEntry);
 
 
 private:

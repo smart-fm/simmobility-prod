@@ -5,12 +5,12 @@
 #include "AllLocationsEventArgs.hpp"
 
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
-#include "entities/commsim/broker/Broker-util.hpp"
+#include "entities/commsim/broker/Broker.hpp"
 #include "entities/Agent.hpp"
 
 using namespace sim_mob;
 
-sim_mob::AllLocationsEventArgs::AllLocationsEventArgs(const AgentsList& registeredAgents) : registeredAgents(registeredAgents)
+sim_mob::AllLocationsEventArgs::AllLocationsEventArgs(const std::map<const Agent*, AgentInfo>& registeredAgents) : registeredAgents(registeredAgents)
 {
 }
 
@@ -21,10 +21,7 @@ sim_mob::AllLocationsEventArgs::~AllLocationsEventArgs()
 std::string sim_mob::AllLocationsEventArgs::serialize() const
 {
 	std::map<unsigned int, DPoint> allLocs;
-
-	//NOTE: I am fairly sure that this is only ever called in a thread-safe context. ~Seth
-	const AgentsList::type& aList = registeredAgents.getAgents();
-	for (sim_mob::AgentsList::type::const_iterator it=aList.begin(); it!=aList.end(); it++) {
+	for (std::map<const Agent*, AgentInfo>::const_iterator it=registeredAgents.begin(); it!=registeredAgents.end(); it++) {
 		allLocs[it->first->getId()] = DPoint(it->first->xPos.get(), it->first->yPos.get());
 	}
 

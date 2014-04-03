@@ -13,21 +13,12 @@ class Broker;
 class DriverCommMovement;
 class DriverCommBehavior;
 
-class DriverComm : public Driver
-{
-	static int totalSendCnt;
-	static int totalReceiveCnt;
-	int sendCnt,receiveCnt;
+class DriverComm : public Driver {
 public:
-
-	DriverComm(Person* parent/*, Broker* managingBroker*/, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverCommBehavior* behavior = nullptr, sim_mob::DriverCommMovement* movement = nullptr);
+	DriverComm(Person* parent, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverCommBehavior* behavior = nullptr, sim_mob::DriverCommMovement* movement = nullptr);
 	virtual ~DriverComm();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
-
-	void receiveModule(timeslice now);
-	void sendModule(timeslice now);
-	sim_mob::Agent * getParentAgent();
 };
 
 }//namspace sim_mob

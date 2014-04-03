@@ -76,7 +76,7 @@ public:
 	bool hasNotDone() const;
 
 	//	sets Done value of an element in the container, give an agent
-	bool setDone(const Agent* agent , bool value);
+	bool setDone(const Agent* agent);
 };
 
 }

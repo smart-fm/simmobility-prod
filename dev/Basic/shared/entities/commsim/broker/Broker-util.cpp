@@ -141,13 +141,13 @@ bool sim_mob::AgentsList::hasNotDone() const {
 }
 
 
-bool sim_mob::AgentsList::setDone(const Agent* agent , bool value)
+bool sim_mob::AgentsList::setDone(const Agent* agent)
 {
 	Lock lock(mutex);
 
 	type::iterator it = data.find(agent);
 	if (it!=data.end()) {
-		it->second.done = value;
+		it->second.done = true;
 		return true;
 	}
 

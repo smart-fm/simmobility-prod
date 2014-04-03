@@ -25,23 +25,8 @@ sim_mob::DriverCommBehavior::~DriverCommBehavior()
 {
 }
 
-void sim_mob::DriverCommBehavior::frame_init()
-{
-	DriverBehavior::frame_init();
-}
 
-void sim_mob::DriverCommBehavior::frame_tick()
-{
-	DriverBehavior::frame_tick();
-}
-
-void sim_mob::DriverCommBehavior::frame_tick_output()
-{
-	DriverBehavior::frame_tick_output();
-}
-
-
-sim_mob::DriverCommMovement::DriverCommMovement(sim_mob::Person* parentAgent):
+sim_mob::DriverCommMovement::DriverCommMovement(sim_mob::Person* parentAgent) :
 	DriverMovement(parentAgent)
 {
 }
@@ -58,24 +43,4 @@ void sim_mob::DriverCommMovement::frame_init()
 	Broker::GetSingleBroker()->registerEntity(parent);
 }
 
-void sim_mob::DriverCommMovement::frame_tick()
-{
-	DriverMovement::frame_tick();
-}
-
-void sim_mob::DriverCommMovement::frame_tick_output()
-{
-	DriverMovement::frame_tick_output();
-}
-
-
-/*DriverComm* sim_mob::DriverCommMovement::getParentDriverComm() const
-{
-	return parentDriverCommRole;
-}
-
-void sim_mob::DriverCommMovement::setParentDriverComm(DriverComm* parentDriverCommRole_)
-{
-	this->parentDriverCommRole = parentDriverCommRole_;
-}*/
 

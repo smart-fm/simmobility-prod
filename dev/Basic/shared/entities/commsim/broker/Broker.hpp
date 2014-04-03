@@ -84,6 +84,9 @@ public:
 	virtual bool insertSendBuffer(boost::shared_ptr<sim_mob::ClientHandler> client, const std::string& message) = 0;
 	virtual boost::shared_ptr<sim_mob::ClientHandler> getAndroidClientHandler(std::string clientId) const = 0;
 	virtual boost::shared_ptr<sim_mob::ClientHandler> getNs3ClientHandler() const = 0;
+
+	//Called by the DriverCommFacet.
+	virtual void registerEntity(sim_mob::Agent* agent) = 0;
 };
 
 
@@ -209,7 +212,7 @@ protected:
 	//Broker singleton.
 	//TODO: This is not really a singleton; we set/get it in various places. But we need a way of communicating the Broker to the
 	//      Agents. For now, this is fine --we only need to clean this up once/if we have multiple Brokers in the system at once.
-	static Broker* single_broker;
+	static BrokerBase* single_broker;
 
 	WaitForAndroidConnection waitAndroidBlocker;
 	WaitForNS3Connection waitNs3Blocker;
@@ -352,6 +355,10 @@ protected:
 
 
 public:
+	///Register an Agent with the Broker. This will add it to the registeredAgents list.
+	///This function is called by the DriverCommFacet to inform the Broker that a valid Agent now exists.
+	virtual void registerEntity(sim_mob::Agent* agent);
+
 	///Callback function executed upon message arrival. Implements the BrokerBase interface.
 	virtual void onMessageReceived(boost::shared_ptr<ConnectionHandler>cnnHadler, const BundleHeader& header, std::string message);
 
@@ -403,15 +410,9 @@ public:
 	virtual boost::shared_ptr<sim_mob::ClientHandler> getNs3ClientHandler() const;
 
 public:
-	///Register an Agent with the Broker. This will add it to the registeredAgents list.
-	///TODO: This has to do with the AgentCommUtility classes, which need some cleanup.
-	void registerEntity(sim_mob::Agent* agent);
-
-
 	//TODO: Not sustainable, but works for now.
-	static void SetSingleBroker(Broker* broker);
-	static Broker* GetSingleBroker();
-
+	static void SetSingleBroker(BrokerBase* broker);
+	static BrokerBase* GetSingleBroker();
 
 	///The Broker performs all updates via Agent::update(), not frame_init() and frame_tick().
 	Entity::UpdateStatus update(timeslice now);

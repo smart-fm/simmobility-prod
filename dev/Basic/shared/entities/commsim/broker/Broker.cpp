@@ -39,7 +39,7 @@ const unsigned int MIN_AGENTS = 1;  //minimum number of registered agents
 } //End un-named namespace.
 
 
-Broker* sim_mob::Broker::single_broker(nullptr);
+BrokerBase* sim_mob::Broker::single_broker(nullptr);
 
 
 sim_mob::Broker::Broker(const MutexStrategy& mtxStrat, int id, std::string commElement, std::string commMode) :
@@ -370,14 +370,11 @@ void sim_mob::Broker::registerEntity(sim_mob::Agent* agent)
 {
 	registeredAgents.insert(agent);
 	if (EnableDebugOutput) {
-		Print() << std::dec;
-		Print() << registeredAgents.size() << ":  Broker[" << this
-			<< "] :  Broker::registerEntity [" << agent->getId()
-			<< "]" << std::endl;
+		Print() << std::dec <<"Agent added: " <<agent->getId() <<", total agents: " <<registeredAgents.size() <<"\n";
 	}
 
-	//tell me if you are dying
-	sim_mob::messaging::MessageBus::SubscribeEvent(sim_mob::event::EVT_CORE_AGENT_DIED,agent, this);
+	//Register to receive a callback when this entity is removed.
+	sim_mob::messaging::MessageBus::SubscribeEvent(sim_mob::event::EVT_CORE_AGENT_DIED, agent, this);
 	COND_VAR_CLIENT_REQUEST.notify_all();
 }
 
@@ -480,7 +477,7 @@ Entity::UpdateStatus sim_mob::Broker::frame_tick(timeslice now)
 
 void sim_mob::Broker::agentUpdated(const Agent* target ){
 	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
-	if(registeredAgents.setDone(target,true)) {
+	if(registeredAgents.setDone(target)) {
 		COND_VAR_AGENT_DONE.notify_all();
 	}
 }
@@ -738,7 +735,7 @@ Entity::UpdateStatus sim_mob::Broker::update(timeslice now)
 		Print() << "===================== processPublishers Done =======================================\n";
 	}
 
-//	step-5.5:for each client, append a message at the end of all messages saying Broker is ready to receive your messages
+	//step-5.5:for each client, append a message at the end of all messages saying Broker is ready to receive your messages
 	sendReadyToReceive();
 
 	//step-6: Now send all what has been prepared, by different sources, to their corresponding destications(clients)
@@ -826,7 +823,7 @@ void sim_mob::Broker::cleanup()
 
 }
 
-void sim_mob::Broker::SetSingleBroker(Broker* broker)
+void sim_mob::Broker::SetSingleBroker(BrokerBase* broker)
 {
 	if (single_broker) {
 		throw std::runtime_error("Cannot SetSingleBroker(); it has already been set.");
@@ -835,7 +832,7 @@ void sim_mob::Broker::SetSingleBroker(Broker* broker)
 }
 
 
-Broker* sim_mob::Broker::GetSingleBroker()
+BrokerBase* sim_mob::Broker::GetSingleBroker()
 {
 	if (!single_broker) {
 		throw std::runtime_error("Cannot GetSingleBroker(); it has not been set yet.");

@@ -291,19 +291,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	signalStatusWorkers->initWorkers(nullptr);
 	communicationWorkers->initWorkers(nullptr);
 
-	//TODO: We shouldn't add the Broker unless Communication is enabled in the config file.
-//	//..and Assign all communication agents(we have one ns3 communicator for now)
-//	communicationWorkers->assignAWorker(&(sim_mob::NS3_Communicator::GetInstance()));
-//	if(ConfigManager::GetInstance().FullConfig().commSimEnabled())
-//	{
-//		const std::string & name = ConfigManager::GetInstance().FullConfig().getAndroidClientType();
-//		Broker *androidBroker = new sim_mob::Broker(MtxStrat_Locked, 0);
-//		Broker::addExternalCommunicator(name, androidBroker);
-//		Print() << "main.cpp:: android broker[" << androidBroker << "] of type[" << name << "] retrieved" << std::endl;
-//		communicationWorkers->assignAWorker(androidBroker);
-//		androidBroker->enable();
-//	}
-
 	if(ConfigManager::GetInstance().FullConfig().commSimEnabled())
 	{
 		const std::map<std::string,sim_mob::SimulationParams::CommsimElement> & elements =
@@ -540,8 +527,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		cout << "   Person Agents: " << numDriver << " (Driver)   "
 				<< numPedestrian << " (Pedestrian)   " << numPassenger << " (Passenger) " << (numPerson
 				- numDriver - numPedestrian) << " (Other)" << endl;
-//		cout << "Created: " << Agent::createdAgents << "\nDied: "<< Agent::diedAgents << "\nDied For Broker: "<< Broker::diedAgents
-//				<< "\nSubscribed For Broker: "<< Broker::subscribedAgents <<endl;
 	}
 
 	if (ConfigManager::GetInstance().FullConfig().numAgentsSkipped>0) {
@@ -552,9 +537,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		cout << "WARNING! There are still " << Agent::pending_agents.size()
 				<< " Agents waiting to be scheduled; next start time is: "
 				<< Agent::pending_agents.top()->getStartTime() << " ms\n";
-		/*if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			throw std::runtime_error("ERROR: pending_agents shouldn't be used if Dynamic Dispatch is disabled.");
-		}*/
 	}
 
 	//Save our output files if we are merging them later.

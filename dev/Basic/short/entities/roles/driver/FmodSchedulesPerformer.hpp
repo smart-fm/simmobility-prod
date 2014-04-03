@@ -20,9 +20,18 @@ public:
 	FmodSchedulesPerformer();
 	virtual ~FmodSchedulesPerformer();
 
+    /**
+      * perform fmod schedules required by fmod server
+      * @return true if operation successfully, otherwise false
+      */
 	bool performFmodSchedule(Driver* parentDriver, DriverUpdateParams& p);
 
 private:
+
+    /**
+      * process concrete  task inside each schedule required by fmod server
+      * @return true if operation successfully, otherwise false
+      */
 	bool processTripsInSchedule(Driver* parentDriver, FMODSchedule* schedule, FMODSchedule::STOP& stopSchedule, DriverUpdateParams& p);
 
 };

@@ -58,6 +58,9 @@ using std::endl;
 namespace {
 //Helpful constants
 
+// millisecs conversion unit from seconds
+const double MILLISECS_CONVERT_UNIT = 1000.0;
+
 //Output helper
 string PrintLCS(LANE_CHANGE_SIDE s) {
 	if (s == LCS_LEFT) {
@@ -129,7 +132,7 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
 
 	// record start time
-	startTime = getParams().now.ms()/1000.0;
+	startTime = getParams().now.ms()/MILLISECS_CONVERT_UNIT;
 	isAleadyStarted = false;
 	currDistAlongRoadSegment = 0;
 }

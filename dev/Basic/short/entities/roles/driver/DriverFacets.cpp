@@ -122,9 +122,6 @@ sim_mob::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	//Some one-time flags and other related defaults.
 	nextLaneInNextLink = nullptr;
 	disToFwdVehicleLastFrame = parentDriver->maxVisibleDis;
-//	// record start time
-//	startTime = parentDriver->getParams().now.ms()/1000.0;
-//	isAleadyStarted = false;
 }
 
 sim_mob::DriverMovement::~DriverMovement()

@@ -60,7 +60,7 @@ public:
 	const sim_mob::RoadSegment* hasNextSegment(bool inSameLink) const;
 	const sim_mob::Lane* getCurrLane() const;
 	void setPositionInIntersection(double x, double y);
-	DPoint& getPositionInIntersection();
+	const DPoint& getPositionInIntersection();
 	void setTurningDirection(LANE_CHANGE_SIDE direction);
 	//Modifiers
 	void setVelocity(double value);      ///<Set the forward velocity.

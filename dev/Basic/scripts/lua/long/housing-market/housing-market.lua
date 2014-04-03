@@ -112,7 +112,8 @@ end
 
 --[[
     Calculates the hedonic price for the given HDB Unit.
-    
+    Following the documentation prices are in (SGD per sqm).
+
     @param unit to calculate the hedonic price.
     @param building where the unit belongs
     @param postcode of the unit.
@@ -122,25 +123,30 @@ end
 function calculateHDB_HedonicPrice(unit, building, postcode, amenities)
  local simulationYear = CONSTANTS.SIMULATION_YEAR;
  local hedonicPrice = getStoreyEstimation(unit.storey) + 
-                      ((building ~= nil) and 
-                            ((simulationYear - building.builtYear)* -17.64) or 0)
-
+                      ((building ~= nil) and -- age
+                            ((simulationYear - building.builtYear) * -23.26) or 0)
  if amenities ~= nil then
     hedonicPrice =  hedonicPrice +
-                    (amenities.distanceToCBD * (-76.01) +
-                    amenities.distanceToJob * (1.69) +
-                    (amenities.pms_1km and 26.78 or 0) +
-                    amenities.distanceToMall * (-56.17) +
-                    (amenities.mrt_200m and 443.60 or 0) +
-                    (amenities.mrt_400m and 273.50 or 0) +
-                    (amenities.express_200m and -121.00 or 0) +                    
-                    (amenities.bus_200m and 37.30 or 0))
+                    4295 + -- intercept
+                    (amenities.distanceToCBD * (-80.4) +
+                    amenities.distanceToJob * (0.001966) +
+                    (amenities.pms_1km and 25.67 or 0) +
+                    amenities.distanceToMall * (-56.46) +
+                    (amenities.mrt_200m and 462.90 or 0) +
+                    (amenities.mrt_400m and 274.60 or 0) +
+                    (amenities.express_200m and -140.10 or 0) +                    
+                    (amenities.bus_200m and 62.43 or 0))
  end
+    
+    --print(string.format("HDB Price: %d, dist_job: %s, dist_cdb: %s, pms1KM: %s, dist_mall: %s, mrt_200m: %s, mrt_400m: %s, dist_express_200m: %s, bus_200m: %s"
+    --, hedonicPrice, (amenities.distanceToJob * (0.001966)), (amenities.distanceToCBD * (-80.4)), (amenities.pms_1km and 25.67 or 0), (amenities.distanceToMall * (-56.46)), (amenities.mrt_200m and 462.90 or 0),
+    --                (amenities.mrt_400m and 274.60 or 0), (amenities.express_200m and -140.10 or 0), (amenities.bus_200m and 62.43 or 0)))
     return hedonicPrice;
 end
 
 --[[
     Calculates the hedonic price for the given private Unit.
+    Following the documentation prices are in (SGD per sqm).
     
     @param unit to calculate the hedonic price.
     @param building where the unit belongs
@@ -155,9 +161,9 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities)
                     9575.00 + -- intercept
                     (-1239.00) + -- Resale estimation
                     (amenities.distanceToCBD * (-164.80) +
-                    amenities.distanceToJob * (15.26) +
+                    amenities.distanceToJob * (0.001526) +
                     (amenities.pms_1km and 196.30 or 0) +
-                    amenities.distanceToMall * (-362.10) +
+                    amenities.distanceToMall * (-361.20) +
                     (amenities.mrt_200m and -841.80 or 0) +
                     (amenities.mrt_400m and 367.10 or 0) +
                     (amenities.express_200m and -545.50 or 0) +                    
@@ -174,6 +180,7 @@ end
 
 --[[
     Calculates the hedonic price for the given Unit.
+    Following the documentation prices are in (SGD per sqm).
     
     @param unit to calculate the hedonic price.
     @param building where the unit belongs

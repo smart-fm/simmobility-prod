@@ -8,11 +8,15 @@
 #include "IncidentPerformer.hpp"
 #include "Driver.hpp"
 
-namespace sim_mob {
-
-
+namespace {
 //the minimum speed when approaching to incident
 const float APPROACHING_SPEED = 200;
+// the factor of how many meters each second
+const float convertFactor = 1000.0/3600.0;
+}
+
+namespace sim_mob {
+
 
 IncidentPerformer::IncidentPerformer() {
 	// TODO Auto-generated constructor stub
@@ -62,8 +66,11 @@ void sim_mob::IncidentPerformer::responseIncidentStatus(Driver* parentDriver, Dr
 		float newFwdAcc = 0;
 		if(parentDriver->getVehicle()->getVelocity() > speedLimit){
 			DriverMovement* driverMovement = dynamic_cast<DriverMovement*>(parentDriver->Movement());
+			if(!driverMovement){
+				return;
+			}
 			newFwdAcc = driverMovement->getCarFollowModel()->makeAcceleratingDecision(p, speedLimit, driverMovement->maxLaneSpeed);
-			newSpeed = parentDriver->getVehicle()->getVelocity()+newFwdAcc*p.elapsedSeconds*100;
+			newSpeed = calculateSpeedbyAcceleration(parentDriver->getVehicle()->getVelocity(), newFwdAcc, p.elapsedSeconds);
 			if(newSpeed < speedLimit){
 				newFwdAcc = 0;
 				newSpeed = speedLimit;
@@ -119,7 +126,7 @@ void sim_mob::IncidentPerformer::checkIncidentStatus(Driver* parentDriver, Drive
 	LANE_CHANGE_SIDE laneSide = LCS_SAME;
 	IncidentStatus::IncidentStatusType status = IncidentStatus::INCIDENT_CLEARANCE;
 	incidentStatus.setDistanceToIncident(0);
-	const float convertFactor = 1000.0/3600.0;
+
 	incidentStatus.setDefaultSpeedLimit(curSegment->maxSpeed*convertFactor);
 
 	const std::map<centimeter_t, const RoadItem*> obstacles = curSegment->getObstacles();
@@ -127,6 +134,9 @@ void sim_mob::IncidentPerformer::checkIncidentStatus(Driver* parentDriver, Drive
 	double realDist = 0;
 	bool replan = false;
 	DriverMovement* driverMovement = dynamic_cast<DriverMovement*>(parentDriver->Movement());
+	if(!driverMovement){
+		return;
+	}
 	const RoadItem* roadItem = driverMovement->getRoadItemByDistance(sim_mob::INCIDENT, realDist);
 	if(roadItem) {//retrieve front incident obstacle
 		const Incident* incidentObj = dynamic_cast<const Incident*>( roadItem );
@@ -139,10 +149,10 @@ void sim_mob::IncidentPerformer::checkIncidentStatus(Driver* parentDriver, Drive
 			if( (now.ms() >= incidentObj->startTime) && (now.ms() < incidentObj->startTime+incidentObj->duration) && realDist<visibility){
 				incidentStatus.setDistanceToIncident(realDist);
 				replan = incidentStatus.insertIncident(incidentObj);
-				float incidentGap = parentDriver->getVehicle()->length*2;
+				float incidentGap = parentDriver->getVehicle()->length;
 				if(!incidentStatus.getChangedLane() && incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_OCCURANCE_LANE){
 					double prob = incidentStatus.getVisibilityDistance()>0 ? incidentStatus.getDistanceToIncident()/incidentStatus.getVisibilityDistance() : 0.0;
-					if(incidentStatus.getDistanceToIncident() < 2*incidentGap){
+					if(incidentStatus.getDistanceToIncident() < incidentGap){
 						incidentStatus.setChangedLane(true);
 					}
 					else {
@@ -171,6 +181,10 @@ void sim_mob::IncidentPerformer::checkIncidentStatus(Driver* parentDriver, Drive
 	}
 }
 
+float IncidentPerformer::calculateSpeedbyAcceleration(float curSpeed, float acc, float elapsedSeconds)
+{
+	return curSpeed+acc*elapsedSeconds;
+}
 
 
 } /* namespace sim_mob */

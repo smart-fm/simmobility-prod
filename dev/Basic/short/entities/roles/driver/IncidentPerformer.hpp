@@ -30,12 +30,18 @@ public:
 
 	/**
 	 * Check current incident status.
+	 * @param paren is pointer to the class Driver
+	 * @param p is reference to the DriverUpdateParam which recording parameters for updating driver
+	 * @param now is current simulation time
 	 * @return void .
 	 */
 	void checkIncidentStatus(Driver* parent, DriverUpdateParams& p, timeslice now);
 
 	/**
-	 * reponse incident.
+	 * response processing when incident happen.
+	 * @param paren is pointer to the class Driver
+	 * @param p is reference to the DriverUpdateParam which recording parameters for updating driver
+	 * @param now is current simulation time
 	 * @return void .
 	 */
 	void responseIncidentStatus(Driver* parent, DriverUpdateParams& p, timeslice now);
@@ -45,8 +51,23 @@ private:
 	//incident response plan
 	sim_mob::IncidentStatus incidentStatus;
 
-	//check whether ahead vehicles exists
+
+	/**
+	 * check whether ahead vehicles exists.
+	 * @param paren is pointer to the class Driver
+	 * @param p is reference to the DriverUpdateParam which recording parameters for updating driver
+	 * @return void .
+	 */
 	void checkAheadVehicles(Driver* parent, DriverUpdateParams& p);
+
+	/**
+	 * check whether ahead vehicles exists.
+	 * @param curSpeed is current velocity
+	 * @param acc is current acceleration
+	 * @param elapsedSeconds is elapsed time during current frame tick
+	 * @return void .
+	 */
+	inline float calculateSpeedbyAcceleration(float curSpeed, float acc, float elapsedSeconds);
 
 };
 

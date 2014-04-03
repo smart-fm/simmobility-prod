@@ -78,7 +78,7 @@ public:
     //modify trip chain so that a new item is inserted between walk and bus travel mode
     void simplyModifyTripChain(std::vector<TripChainItem*>& tripChain);
 
-    //combine together all the pedestrian roles and insert waiting activity at bus stop
+    //combine together all the pedestrian roles and calculate total distance for walk trips
     void computeDistanceForWalkTrips(std::vector<TripChainItem*>& tripChain);
 
     ///Change the role of this person: Driver, Passenger, Pedestrian

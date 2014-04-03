@@ -62,9 +62,7 @@ void PedestrianMovement::frame_tick()
 void PedestrianMovement::frame_tick_output(){
 
 }
-void PedestrianMovement::flowIntoNextLinkIfPossible(UpdateParams& p){
 
-}
 
 
 }

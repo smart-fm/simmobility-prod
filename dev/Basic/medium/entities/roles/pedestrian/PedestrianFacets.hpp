@@ -41,17 +41,18 @@ public:
 	virtual void frame_init();
 	virtual void frame_tick();
 	virtual void frame_tick_output();
-	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
 
 	void setParentPedestrian(sim_mob::medium::Pedestrian* parentPedestrian);
 
 
 protected:
 	sim_mob::medium::Pedestrian* parentPedestrian;
+	//record the current remaining time to the destination
 	int remainingTimeToComplete;
+	//record the total time from original location to destination location
 	int totalTimeToCompleteMS;
+	//pedestrian's walking speed
 	const float walkSpeed;
-
 };
 
 }

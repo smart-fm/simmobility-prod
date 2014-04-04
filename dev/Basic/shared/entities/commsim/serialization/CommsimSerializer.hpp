@@ -103,6 +103,8 @@ private:
  * The latter set of functions are named "serialize()" and "deserialize()", with variants for when a single message is expeted.
  */
 class CommsimSerializer {
+
+//Combining/Separating multiple messages via OngoingSerializations or MessageConglomerates.
 public:
 	///Begin serialization of a series of messages. Call this once, followed by several calls to makeX(), followed by serialize_end().
 	///TODO: We can improve efficiency by taking in the total message count, senderID, and destID, and partially building the varying header here.
@@ -123,6 +125,11 @@ public:
 	//Turn a string into a Json::Value object. NOTE: This is only used in one very specific case.
 	static bool parseJSON(const std::string& input, Json::Value &output);
 
+	//Append an already serialized string to an OngoingSerialization.
+	static void addGeneric(OngoingSerialization& ongoing, const std::string& msg);
+
+//Parsing functions.
+public:
 	//Deserialize common properties associated with all messages.
 	static MessageBase parseMessageBase(const MessageConglomerate& msg, int msgNumber);
 
@@ -153,28 +160,10 @@ public:
 	//Serialize a CLIENT_MESSAGES_DONE message.
 	static void makeClientDone(OngoingSerialization& ongoing);
 
-	//Serialize an AGENTS_INFO message (used in the trace runner).
-	static void makeAgentsInfo(OngoingSerialization& ongoing, const std::vector<unsigned int>& addAgents, const std::vector<unsigned int>& remAgents);
 
-	//Serialize an ALL_LOCATIONS message (used in the trace runner).
-	static void makeAllLocations(OngoingSerialization& ongoing, const std::map<unsigned int, DPoint>& allLocations);
-
-	//Serialize a MULTICAST message (used in the trace runner).
-	//(The actual client simply mutates the incoming MULTICAST message, so this function is only used in trace.)
-	//static void makeMulticast(OngoingSerialization& ongoing, unsigned int sendAgentId, const std::vector<unsigned int>& receiveAgentIds, const std::string& data);
-
-	//Serialize a GOCLIENT message.
-	static void makeGoClient(OngoingSerialization& ongoing, const std::map<unsigned int, WFD_Group>& wfdGroups);
-
-	//Serialize an unknown JSON-encoded message.
-	//TODO: This function will be removed soon, it is the only incompatibility currently left between v0 and v1.
-	static void makeUnknownJSON(OngoingSerialization& ongoing, const Json::Value& json);
-
-
-//NOTE: Alternative, string-returning functions.
+//Serialization messages.
 public:
 	//Serialize AGENTS_INFO to a string.
-	//TODO: You will have to manage the OngoingSerialization struct yourself if you use this.
 	static std::string makeAgentsInfo(const std::vector<unsigned int>& addAgents, const std::vector<unsigned int>& remAgents);
 
 	//Serialize READY_TO_RECEIVE to a string.
@@ -203,9 +192,6 @@ public:
 
 	//Serialize WHOAREYOU to string.
 	static std::string makeWhoAreYou(const std::string& token);
-
-	//Append an already serialized string to an OngoingSerialization.
-	static void addGeneric(OngoingSerialization& ongoing, const std::string& msg);
 
 
 private:

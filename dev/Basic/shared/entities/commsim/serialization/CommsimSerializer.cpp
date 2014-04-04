@@ -500,10 +500,6 @@ void sim_mob::CommsimSerializer::makeClientDone(OngoingSerialization& ongoing)
 	}
 }
 
-void sim_mob::CommsimSerializer::makeAgentsInfo(OngoingSerialization& ongoing, const std::vector<unsigned int>& addAgents, const std::vector<unsigned int>& remAgents)
-{
-	addGeneric(ongoing, makeAgentsInfo(addAgents, remAgents));
-}
 
 std::string sim_mob::CommsimSerializer::makeAgentsInfo(const std::vector<unsigned int>& addAgents, const std::vector<unsigned int>& remAgents)
 {
@@ -532,11 +528,6 @@ std::string sim_mob::CommsimSerializer::makeAgentsInfo(const std::vector<unsigne
 	}
 }
 
-
-void sim_mob::CommsimSerializer::makeAllLocations(OngoingSerialization& ongoing, const std::map<unsigned int, DPoint>& allLocations)
-{
-	addGeneric(ongoing, makeAllLocations(allLocations));
-}
 
 
 std::string sim_mob::CommsimSerializer::makeAllLocations(const std::map<unsigned int, DPoint>& allLocations)
@@ -578,13 +569,6 @@ std::string sim_mob::CommsimSerializer::makeWhoAreYou(const std::string& token)
 		return Json::FastWriter().write(res);
 	}
 }
-
-
-/*void sim_mob::CommsimSerializer::makeMulticast(OngoingSerialization& ongoing, unsigned int sendAgentId, const std::vector<unsigned int>& receiveAgentIds, const std::string& data)
-{
-	addGeneric(ongoing, makeMulticast(sendAgentId, receiveAgentIds, data));
-}*/
-
 
 
 
@@ -633,37 +617,6 @@ std::string sim_mob::CommsimSerializer::makeOpaqueReceive(const std::string& fro
 }
 
 
-void sim_mob::CommsimSerializer::makeGoClient(OngoingSerialization& ongoing, const std::map<unsigned int, WFD_Group>& wfdGroups)
-{
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
-	} else {
-		//First make the single message.
-		Json::Value res;
-		addDefaultMessageProps(res, "GOCLIENT");
-
-		//Custom properties.
-		res["ID"] = "0";
-		res["TYPE"] = "NS3_SIMULATOR";
-
-		//Multi-group formation.
-		for(std::map<unsigned int, WFD_Group>::const_iterator it=wfdGroups.begin(); it!=wfdGroups.end(); it++) {
-			Json::Value clientMsg;
-			clientMsg["GO"] = it->second.GO;
-			for(std::vector<unsigned int>::const_iterator it2=it->second.members.begin(); it2!=it->second.members.end(); it2++) {
-				clientMsg["CLIENTS"].append(*it2);
-			}
-			res["GROUPS"].append(clientMsg);
-		}
-
-		//Now append it.
-		std::string nextMsg = Json::FastWriter().write(res);
-		ongoing.messages <<nextMsg;
-
-		//Keep the header up-to-date.
-		ongoing.vHead.msgLengths.push_back(nextMsg.size());
-	}
-}
 
 std::string sim_mob::CommsimSerializer::makeReadyToReceive()
 {
@@ -784,19 +737,5 @@ void sim_mob::CommsimSerializer::addGeneric(OngoingSerialization& ongoing, const
 	ongoing.vHead.msgLengths.push_back(msg.size());
 }
 
-
-void sim_mob::CommsimSerializer::makeUnknownJSON(OngoingSerialization& ongoing, const Json::Value& json)
-{
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
-	} else {
-		//Just append, and hope it's formatted correctly.
-		std::string nextMsg = Json::FastWriter().write(json);
-		ongoing.messages <<nextMsg;
-
-		//Keep the header up-to-date.
-		ongoing.vHead.msgLengths.push_back(nextMsg.size());
-	}
-}
 
 

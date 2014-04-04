@@ -123,17 +123,13 @@ public:
 
 //Basic data
 protected:
-	//unsigned int currTimeMS;
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
+	// driver path-mover split purpose, we save the currPos in the Driver
+	DPoint currPos;
 	//This should be done through the Role class itself; for now, I'm just forcing
 	//  it so that we can get the mid-term working. ~Seth
 	virtual Vehicle* getResource() { return vehicle; }
-
-
-protected:
-	// driver path-mover split purpose, we save the currPos in the Driver
-	DPoint currPos;
 
 private:
 //	//Sample stored data which takes reaction time into account.

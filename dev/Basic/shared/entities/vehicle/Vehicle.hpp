@@ -109,9 +109,6 @@ private:
 	// driver path-mover split purpose, we save the currPos in the Vehicle
 	DPoint currPos;
 
-private:
-
-
 	//NOTE: The error state is a temporary sanity check to help me debug this class. There are certainly
 	//      better ways to handle this (e.g., non-default constructor).
 	bool errorState;

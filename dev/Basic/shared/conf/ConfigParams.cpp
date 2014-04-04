@@ -240,6 +240,11 @@ const unsigned int& sim_mob::ConfigParams::baseGranMS() const
 	return system.simulation.baseGranMS;
 }
 
+const double& sim_mob::ConfigParams::baseGranSecond() const
+{
+	return system.simulation.baseGranSecond;
+}
+
 bool& sim_mob::ConfigParams::singleThreaded()
 {
 	return system.singleThreaded;

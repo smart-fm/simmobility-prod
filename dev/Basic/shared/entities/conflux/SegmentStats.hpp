@@ -172,11 +172,8 @@ public:
 	sim_mob::Person* dequeue(const sim_mob::Lane* lane, bool isQueuingBfrUpdate);
 	sim_mob::Person* dequeue(const sim_mob::Person* person, const sim_mob::Lane* lane, bool isQueuingBfrUpdate);
 
-	std::deque<Person*> getAgents(const sim_mob::Lane* lane);
+	std::deque<Person*>& getAgents(const sim_mob::Lane* lane);
 	std::deque<Person*> getAgents();
-
-	//top-C Merge
-	void getAgentsByTopCMerge(std::deque<sim_mob::Person*>& mergedPersonList);
 
 	enum SEGMENT_VEHICLE_ORDER {
 		SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION,
@@ -184,7 +181,8 @@ public:
 	};
 	SEGMENT_VEHICLE_ORDER orderBySetting;
 
-	void topCMergeDifferentLanesInSegment(std::deque<sim_mob::Person*>& mergedPersonList, std::vector< std::deque<sim_mob::Person*> >& allPersonLists, int Capacity);
+	void updateLinkDrivingTimes(double drivingTimeToEndOfLink);
+	void topCMergeLanesInSegment(std::deque<sim_mob::Person*>& mergedPersonList);
 
 	const sim_mob::RoadSegment* getRoadSegment() const;
 	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane) const; //returns std::pair<queuingCount, movingCount>

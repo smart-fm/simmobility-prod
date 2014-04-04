@@ -46,6 +46,13 @@ class Conflux : public sim_mob::Agent {
 	friend class sim_mob::aimsun::Loader;
 
 private:
+	//typedefs
+	typedef std::deque<sim_mob::Person*> PersonList;
+	typedef std::vector<sim_mob::SegmentStats*> SegmentStatsList;
+	typedef std::map<sim_mob::Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
+	typedef std::map<sim_mob::Link*, PersonList> VirtualQueueMap;
+	typedef std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> SegmentStatsMap;
+
 	/**
 	 *  MultiNode (intersection) around which this conflux is constructed
 	 */
@@ -59,22 +66,22 @@ private:
 
 	/**
 	 * Link-wise list of road segments in this conflux
-	 * stores std::map<link upstream to multiNode, segments on link>
+	 * stores std::map<link upstream to multiNode, segment stats on link>
 	 */
-	std::map<sim_mob::Link*, const std::vector<sim_mob::RoadSegment*> > upstreamSegmentsMap;
+	UpstreamSegmentStatsMap upstreamSegStatsMap;
 
 	/**
 	 * virtual queues are used to hold persons who want to move in from adjacent
 	 * confluxes when this conflux is not processed for the current tick yet.
 	 * Each link in the conflux has 1 virtual queue.
 	 */
-	std::map<sim_mob::Link*, std::deque<sim_mob::Person*> > virtualQueuesMap;
+	VirtualQueueMap virtualQueuesMap;
 
 	/**
 	 * data structure to hold a pointer to a road segment on each link to
 	 * keep track of the current segment that is being processed.
 	 */
-	std::map<sim_mob::Link*, const sim_mob::RoadSegment*> currSegsOnUpLinks;
+	std::map<sim_mob::Link*, sim_mob::SegmentStats*> currSegsOnUpLinks;
 
 	/**
 	 * segments on downstream links
@@ -86,7 +93,7 @@ private:
 	 *  Map which stores the SegmentStats for all road segments on upstream links
 	 *  The Segment stats in-turn contain LaneStats which contain the persons.
 	 */
-	std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> segmentAgents;
+	SegmentStatsMap segmentAgents;
 
 	/**
 	 *  Worker to which this conflux belongs to.
@@ -97,7 +104,7 @@ private:
 	/**
 	 * structure to store the frontal agents in each road segment
 	 */
-	std::map<const sim_mob::RoadSegment*, sim_mob::Person* > candidateAgents;
+	std::map<sim_mob::SegmentStats*, sim_mob::Person* > candidateAgents;
 
 	/**
 	 * mutex to protect virtual queues
@@ -114,7 +121,7 @@ private:
 	timeslice currFrameNumber;
 
 	/**list of persons performing activities within the vicinity of this conflux*/
-	std::deque<Person*> activityPerformers;
+	PersonList activityPerformers;
 
 	/**
 	 * function to call persons' updates if the MultiNode is signalized
@@ -254,9 +261,7 @@ public:
 	/**
 	 * supply params related functions
 	 */
-	double getSegmentSpeed(const RoadSegment* rdSeg, bool hasVehicle);
-	void updateSupplyStats(const Lane* lane, double newOutputFlowRate);
-	void restoreSupplyStats(const Lane* lane);
+	double getSegmentSpeed(SegmentStats* segStats, bool hasVehicle) const;
 	void resetPositionOfLastUpdatedAgentOnLanes();
 	void updateLaneParams(const Lane* lane, double newOutFlowRate);
 	void restoreLaneParams(const Lane* lane);
@@ -312,10 +317,10 @@ public:
 	/**
 	 * returns the time to reach the end of the link from a road segment on that
 	 * link
-	 * @param seg the road segment from which the time is to be measured
+	 * @param segStats the segment from which the time is to be measured
 	 * @param distanceToEndOfSeg remaining distance in seg
 	 */
-	double computeTimeToReachEndOfLink(const sim_mob::RoadSegment* seg, double distanceToEndOfSeg);
+	double computeTimeToReachEndOfLink(sim_mob::SegmentStats* segStats, double distanceToEndOfSeg) const;
 
 	/**
 	 * update the number of persons that can be added to the downstream confluxes
@@ -330,21 +335,9 @@ public:
 
 	/**
 	 * get an ordered list of all persons in this conflux
-	 * ORDER_BY_WHAT = 0: by location
-	 * ORDER_BY_WHAT = 1: by time
 	 * @param mergedPersonDeque output list that must contain the merged list of persons
 	 */
 	void getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>& mergedPersonDeque);
-
-	/*
-	 * Merge agents in different links in the same conflux
-	 */
-	enum CONFLUX_VEHICLE_ORDER
-	{
-		CONFLUX_ORDERING_BY_DISTANCE_TO_INTERSECTION,
-		CONFLUX_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION
-	};
-	CONFLUX_VEHICLE_ORDER orderBySetting;
 
 	/**
 	 * merges the ordered list of persons on each link of the conflux into 1
@@ -371,10 +364,10 @@ public:
 	 * given a person p with a trip chain, create path for his first trip and
 	 * return his starting segment.
 	 *
-	 * @param p person for whom the starting segment is needed
+	 * @param person person for whom the starting segment is needed
 	 * @return constant pointer to the starting segment of the person's constructed path
 	 */
-	static const sim_mob::RoadSegment* constructPath(Person* p);
+	static const sim_mob::RoadSegment* constructPath(Person* person);
 
 	bool isBoundary; //A conflux that receives person from at least one conflux that belongs to another worker
 	bool isMultipleReceiver; //A conflux that receives persons from confluxes that belong to multiple other workers

@@ -39,6 +39,11 @@ const unsigned int MIN_AGENTS = 1;  //minimum number of registered agents
 
 BrokerBase* sim_mob::Broker::single_broker(nullptr);
 
+const std::string sim_mob::Broker::ClientTypeAndroid = "android";
+const std::string sim_mob::Broker::ClientTypeNs3 = "ns-3";
+
+const unsigned int sim_mob::Broker::EventNewAndroidClient = 95000;
+
 
 sim_mob::Broker::Broker(const MutexStrategy& mtxStrat, int id, std::string commElement, std::string commMode) :
 		Agent(mtxStrat, id), commElement(commElement), commMode(commMode), numAgents(0), connection(*this)
@@ -82,11 +87,11 @@ void sim_mob::Broker::configure()
 	);
 
 	//Hook up Android emulators to OnClientRegister
-	registrationPublisher.registerEvent(comm::ANDROID_EMULATOR);
-	registrationPublisher.subscribe((event::EventId)comm::ANDROID_EMULATOR, this, &Broker::onAndroidClientRegister);
+	registrationPublisher.registerEvent(EventNewAndroidClient);
+	registrationPublisher.subscribe(EventNewAndroidClient, this, &Broker::onAndroidClientRegister);
 
 	//Hook up the NS-3 simulator to OnClientRegister.
-	registrationPublisher.registerEvent(comm::NS3_SIMULATOR);
+	//registrationPublisher.registerEvent(comm::NS3_SIMULATOR);
 
 	//Dispatch differently depending on whether we are using "android-ns3" or "android-only"
 	std::string client_type = ConfigManager::GetInstance().FullConfig().getCommSimMode(commElement);
@@ -161,11 +166,11 @@ void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnn
 				//Since we now have a WHOAMI request AND a valid ConnectionHandler, we can pend a registration request.
 				//TODO: This can definitely be simplified; it was copied from WhoAreYouProtocol and Jsonparser.
 				sim_mob::ClientRegistrationRequest candidate;
-				if (!(jsMsg.isMember("ID") && jsMsg.isMember("TYPE") && jsMsg.isMember("token"))) {
+				if (!(jsMsg.isMember("ID") && jsMsg.isMember("type") && jsMsg.isMember("token"))) {
 					throw std::runtime_error("Can't access required fields.");
 				}
 				candidate.clientID = jsMsg["ID"].asString();
-				candidate.client_type = jsMsg["TYPE"].asString();
+				candidate.client_type = jsMsg["type"].asString();
 				if (!jsMsg["REQUIRED_SERVICES"].isNull() && jsMsg["REQUIRED_SERVICES"].isArray()) {
 					const Json::Value services = jsMsg["REQUIRED_SERVICES"];
 					for (size_t index=0; index<services.size(); index++) {
@@ -178,8 +183,9 @@ void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnn
 				std::string token = jsMsg["token"].asString();
 
 				//What type is this?
-				std::map<std::string, comm::ClientType>::const_iterator clientTypeIt = sim_mob::Services::ClientTypeMap.find(candidate.client_type);
-				if (clientTypeIt == sim_mob::Services::ClientTypeMap.end()) {
+				//std::map<std::string, comm::ClientType>::const_iterator clientTypeIt = sim_mob::Services::ClientTypeMap.find(type);
+				//if (clientTypeIt == sim_mob::Services::ClientTypeMap.end()) {
+				if (!(candidate.client_type==Broker::ClientTypeAndroid || candidate.client_type==Broker::ClientTypeNs3)) {
 					throw std::runtime_error("Client type is unknown; cannot re-assign.");
 				}
 
@@ -199,10 +205,10 @@ void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnn
 
 				//At this point we need to check the Connection's clientType and set it if it is UNKNOWN.
 				//If it is known, make sure it's the expected type.
-				if (connHandle->getClientType() == comm::UNKNOWN_CLIENT) {
-					connHandle->setClientType(clientTypeIt->second);
+				if (connHandle->getClientType().empty()) {
+					connHandle->setClientType(candidate.client_type);
 				} else {
-					if (connHandle->getClientType() != clientTypeIt->second) {
+					if (connHandle->getClientType() != candidate.client_type) {
 						throw std::runtime_error("ConnectionHandler received a message for a clientType it did not expect.");
 					}
 				}
@@ -268,11 +274,11 @@ boost::shared_ptr<sim_mob::ClientHandler> sim_mob::Broker::getNs3ClientHandler()
 	return boost::shared_ptr<sim_mob::ClientHandler>();
 }
 
-void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType clientType, boost::shared_ptr<sim_mob::ClientHandler> &clientHandler)
+void sim_mob::Broker::insertClientList(const std::string& clientID, const std::string& cType, boost::shared_ptr<sim_mob::ClientHandler>& clientHandler)
 {
-	if (clientType==comm::ANDROID_EMULATOR) {
+	if (cType==ClientTypeAndroid) {
 		registeredAndroidClients[clientID] = clientHandler;
-	} else if (clientType==comm::NS3_SIMULATOR) {
+	} else if (cType==ClientTypeNs3) {
 		if (!registeredNs3Clients.empty()) {
 			throw std::runtime_error("Unable to insert into ns-3 client list; multiple ns-3 clients not supported.");
 		}
@@ -291,8 +297,8 @@ void sim_mob::Broker::insertClientList(std::string clientID, comm::ClientType cl
 	numAgents++;
 
 	//publish an event to inform- interested parties- of the registration of a new android client
-	if (clientType==comm::ANDROID_EMULATOR) {
-		registrationPublisher.publish(comm::ANDROID_EMULATOR, ClientRegistrationEventArgs(clientHandler));
+	if (cType==Broker::ClientTypeAndroid) {
+		registrationPublisher.publish(Broker::EventNewAndroidClient, ClientRegistrationEventArgs(clientHandler));
 	}
 }
 

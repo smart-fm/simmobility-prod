@@ -14,7 +14,7 @@
 using namespace sim_mob;
 
 sim_mob::ConnectionHandler::ConnectionHandler(session_ptr session, BrokerBase& broker)
-	: broker(broker), clientType(comm::UNKNOWN_CLIENT), session(session), valid(true), isAsyncWrite(false),
+	: broker(broker), session(session), valid(true), isAsyncWrite(false),
 	  isAsyncRead(false)
 {
 	//Set the token to the pointer address of this ConnectionHandler.
@@ -125,14 +125,14 @@ void ConnectionHandler::invalidate()
 	valid = false;
 }
 
-sim_mob::comm::ClientType sim_mob::ConnectionHandler::getClientType() const
+std::string sim_mob::ConnectionHandler::getClientType() const
 {
 	return clientType;
 }
 
-void sim_mob::ConnectionHandler::setClientType(sim_mob::comm::ClientType newCType)
+void sim_mob::ConnectionHandler::setClientType(const std::string& newCType)
 {
-	if (this->clientType != comm::UNKNOWN_CLIENT) {
+	if (!this->clientType.empty()) {
 		throw std::runtime_error("Cannot change the client type once it has been set.");
 	}
 	this->clientType = newCType;

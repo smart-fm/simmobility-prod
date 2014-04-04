@@ -13,7 +13,6 @@
 #include "conf/ConfigParams.hpp"
 
 #include "entities/Agent.hpp"
-#include "entities/commsim/client/ClientType.hpp"
 #include "entities/commsim/client/ClientRegistration.hpp"
 #include "entities/commsim/service/Services.hpp"
 #include "entities/commsim/message/Handlers.hpp"
@@ -76,7 +75,7 @@ public:
 	virtual void insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn) = 0;
 
 	//Used by ClientRegistration when a ClientHandler object has been created. Failing to save the ClientHandler here will lead to its destruction.
-	virtual void insertClientList(std::string, comm::ClientType , boost::shared_ptr<sim_mob::ClientHandler>&) = 0;
+	virtual void insertClientList(const std::string& clientID, const std::string& cType, boost::shared_ptr<sim_mob::ClientHandler>& clientHandler) = 0;
 	virtual std::map<const Agent*, AgentInfo>& getRegisteredAgents() = 0;
 
 	//Used by the BrokerBlocker subclasses. Hopefully we can further abstract these.
@@ -110,8 +109,15 @@ public:
 	explicit Broker(const MutexStrategy& mtxStrat, int id=-1, std::string commElement_ = "", std::string commMode_ = "");
 	virtual ~Broker();
 
+	//Known client types: android, ns-3, by ID string.
+	static const std::string ClientTypeAndroid;
+	static const std::string ClientTypeNs3;
+
 protected:
-	 //since we have not created the original key/values, we wont use shared_ptr to avoid crashing
+	//Event ID: new Android client added. (Couldn't find a good place to put this).
+	static const unsigned int EventNewAndroidClient;
+
+	//since we have not created the original key/values, we wont use shared_ptr to avoid crashing
 	struct MessageElement{
 		MessageElement(){}
 		MessageElement(boost::shared_ptr<sim_mob::ConnectionHandler> cnnHandler, const MessageConglomerate& conglom) : cnnHandler(cnnHandler), conglom(conglom){}
@@ -398,7 +404,7 @@ public:
 
 	///Add a ClientHandler to the list of registered Android or NS3 clients, based on the clientType parameter.
 	///Implements the BrokerBase interface.
-	virtual void insertClientList(std::string clientID, comm::ClientType cType, boost::shared_ptr<sim_mob::ClientHandler>& clientHandler);
+	virtual void insertClientList(const std::string& clientID, const std::string& cType, boost::shared_ptr<sim_mob::ClientHandler>& clientHandler);
 
 	///Retrieve the list of registeredAgents, and the mutex used to lock it. Use this for more extensive modificatoins.
 	///Implements the BrokerBase interface.

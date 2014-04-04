@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <string>
 #include <list>
 
 #include <boost/shared_ptr.hpp>
@@ -15,7 +16,6 @@
 #include "logging/Log.hpp"
 #include "entities/commsim/serialization/BundleVersion.hpp"
 #include "entities/commsim/connection/Session.hpp"
-#include "entities/commsim/client/ClientType.hpp"
 
 namespace sim_mob {
 class BrokerBase;
@@ -37,8 +37,8 @@ public:
 	void invalidate();
 
 	//NOTE: The first WHOAMI message that arrives at this ConnectionHandler sets the expected ClientType.
-	sim_mob::comm::ClientType getClientType() const;
-	void setClientType(sim_mob::comm::ClientType newCType);
+	std::string getClientType() const;
+	void setClientType(const std::string& newCType);
 
 	//A token is used to uniquely identify ConnectionHandlers.
 	std::string getToken() const;
@@ -54,8 +54,8 @@ private:
 	void sendMessage(const BundleHeader& head, const std::string& msg);
 	void readMessage();
 
-	//What type of clients (Android, NS3) can this ConnectionHandler manage? Starts off as Unknown.
-	sim_mob::comm::ClientType clientType;
+	//What type of clients (Android, NS3) can this ConnectionHandler manage? Starts off as empty (unknown).
+	std::string clientType;
 
 	session_ptr session;
 	//boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback;

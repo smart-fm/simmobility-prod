@@ -45,7 +45,7 @@ boost::shared_ptr<ClientHandler> sim_mob::ClientRegistrationHandler::makeClientH
 
 
 	//also, add the client entry to broker(for message handler purposes)
-	broker.insertClientList(request.clientID, (isNs3Client?comm::NS3_SIMULATOR:comm::ANDROID_EMULATOR), clientEntry);
+	broker.insertClientList(request.clientID, (isNs3Client?Broker::ClientTypeNs3:Broker::ClientTypeAndroid), clientEntry);
 
 	//add this agent to the list of the agents who are associated with a android emulator client
 	if (freeAgent) {

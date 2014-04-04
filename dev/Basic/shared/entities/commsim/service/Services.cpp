@@ -19,11 +19,6 @@ std::map<string, sim_mob::Services::SIM_MOB_SERVICE> sim_mob::Services::ServiceM
 			("SIMMOB_SRV_REGIONS_AND_PATH", SIMMOB_SRV_REGIONS_AND_PATH)
 			;
 
-std::map<string, comm::ClientType> sim_mob::Services::ClientTypeMap =
-		boost::assign::map_list_of
-			("ANDROID_EMULATOR", comm::ANDROID_EMULATOR)
-			("NS3_SIMULATOR", comm::NS3_SIMULATOR);
-
 sim_mob::Services::SIM_MOB_SERVICE sim_mob::Services::GetServiceType(std::string type)
 {
 	std::map<std::string, Services::SIM_MOB_SERVICE>::iterator it = Services::ServiceMap.find(type);

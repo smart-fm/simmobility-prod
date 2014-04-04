@@ -110,7 +110,7 @@ void sim_mob::ClientRegistrationHandler::sendAgentsInfo(const std::map<const Age
 	}
 
 	OngoingSerialization ongoing;
-	CommsimSerializer::serialize_begin(ongoing, boost::lexical_cast<std::string>(clientEntry->agent->getId()));
+	CommsimSerializer::serialize_begin(ongoing, boost::lexical_cast<std::string>(clientEntry->clientId));
 	CommsimSerializer::addGeneric(ongoing, CommsimSerializer::makeAgentsInfo(keys, std::vector<unsigned int>()));
 
 	BundleHeader hRes;

@@ -56,10 +56,19 @@ public:
 	///Used to retrieve; v1
 	void getMessage(int msgNumber, int& offset, int& length) const;
 
-	///Retriee the underlying message string; v1
+	///Retrieve the underlying message string; v1
 	const std::string& getUnderlyingString() const;
 
+	///Set the sender's ID
+	void setSenderId(const std::string& id);
+
+	///Retrieve the sender's ID.
+	const std::string& getSenderId() const;
+
 private:
+	//We include a copy of the sender's ID (destination will always be 0, since MessageConglomerates are only used for received messages.
+	std::string senderId;
+
 	//v0 only requires this.
 	std::vector<Json::Value> messages_v0;
 
@@ -117,10 +126,6 @@ public:
 	//Deserialize a string containing a PACKET_HEADER and a DATA section into a vecot of JSON objects
 	// representing the data section only. The PACKET_HEADER is dealt with internally.
 	static bool deserialize(const BundleHeader& header, const std::string& msgStr, MessageConglomerate& res);
-
-	//Deserialize when only a single message is expected (the "expectedType").
-	//Returns the MessageBase (since that's all we know) and the full message string (as a Conglomerate with a single item) for additional item retrieval.
-	static bool deserialize_single(const BundleHeader& header, const std::string& msgStr, const std::string& expectedType, MessageBase& resMsg, MessageConglomerate& remConglom);
 
 	//Turn a string into a Json::Value object. NOTE: This is only used in one very specific case.
 	static bool parseJSON(const std::string& input, Json::Value &output);

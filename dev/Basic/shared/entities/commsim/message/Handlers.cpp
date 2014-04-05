@@ -103,7 +103,7 @@ void sim_mob::RemoteLogHandler::handle(boost::shared_ptr<ConnectionHandler> hand
 	//Now we can just log it.
 	//At the moment, we are so many levels removed from Broker that we'll just put it on stdout.
 	//Ideally, it would (eventually) go into out.txt.
-	Print() <<"Client [" <<rmMsg.sender_id <<"] relayed remote log message: \"" <<rmMsg.logMessage <<"\"\n";
+	Print() <<"Client [" <<messages.getSenderId() <<"] relayed remote log message: \"" <<rmMsg.logMessage <<"\"\n";
 }
 
 void sim_mob::RerouteRequestHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const
@@ -111,8 +111,8 @@ void sim_mob::RerouteRequestHandler::handle(boost::shared_ptr<ConnectionHandler>
 	//Ask the serializer for a RerouteRequest message.
 	RerouteRequestMessage rmMsg = CommsimSerializer::parseRerouteRequest(messages, msgNumber);
 
-	//Does this agent exist?
-	boost::shared_ptr<sim_mob::ClientHandler> agentHandle = broker->getAndroidClientHandler(rmMsg.sender_id);
+	//Does this client exist?
+	boost::shared_ptr<sim_mob::ClientHandler> agentHandle = broker->getAndroidClientHandler(messages.getSenderId());
 	if(!agentHandle) {
 		WarnOut("RerouteRequest can't find Agent (self)." << std::endl);
 		return;
@@ -152,8 +152,8 @@ void sim_mob::OpaqueSendHandler::handle(boost::shared_ptr<ConnectionHandler> han
 {
 	OpaqueSendMessage sendMsg = CommsimSerializer::parseOpaqueSend(messages, msgNumber);
 
-	//Retrieve the sending agent, making sure that it is still valid.
-	boost::shared_ptr<sim_mob::ClientHandler> clnHandler = broker->getAndroidClientHandler(sendMsg.sender_id);
+	//Retrieve the sending client/agent, making sure that it is still valid.
+	boost::shared_ptr<sim_mob::ClientHandler> clnHandler = broker->getAndroidClientHandler(messages.getSenderId());
 	if (!(clnHandler && clnHandler->isValid() && clnHandler->agent)) {
 		Print() << "Invalid agent record" << std::endl;
 		return;

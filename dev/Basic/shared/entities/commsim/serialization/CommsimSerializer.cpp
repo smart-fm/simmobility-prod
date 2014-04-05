@@ -63,6 +63,16 @@ const std::string& sim_mob::MessageConglomerate::getUnderlyingString() const
 	return messages_v1;
 }
 
+const std::string& sim_mob::MessageConglomerate::getSenderId() const
+{
+	return senderId;
+}
+
+void sim_mob::MessageConglomerate::setSenderId(const std::string& id)
+{
+	senderId = id;
+}
+
 
 void sim_mob::CommsimSerializer::serialize_begin(OngoingSerialization& ongoing, const std::string& destAgId)
 {
@@ -119,7 +129,8 @@ bool sim_mob::CommsimSerializer::serialize_end_v0(const OngoingSerialization& on
 {
 	//Build the header.
 	Json::Value pktHeader;
-	pktHeader["NOF_MESSAGES"] = boost::lexical_cast<std::string>(ongoing.vHead.msgLengths.size());
+	pktHeader["send_client"] = ongoing.vHead.sendId;
+	pktHeader["dest_client"] = ongoing.vHead.sendId;
 
 	//Turn the current data string into a Json array. (Inefficient, but that doesn't matter for v0)
 	std::string data = "[" + ongoing.messages.str() + "]";
@@ -132,8 +143,8 @@ bool sim_mob::CommsimSerializer::serialize_end_v0(const OngoingSerialization& on
 
 	//Combine.
 	Json::Value root;
-	root["PACKET_HEADER"] = pktHeader;
-	root["DATA"] = dataArr;
+	root["header"] = pktHeader;
+	root["messages"] = dataArr;
 	res = Json::FastWriter().write(root);
 
 	//Reflect changes to the bundle header.
@@ -162,20 +173,21 @@ bool sim_mob::CommsimSerializer::deserialize_v0(const std::string& msgStr, Messa
 		return false;
 	}
 
-	//We don't actually need any information from the packet header, but it must exist.
-	if (!root.isMember("PACKET_HEADER")) {
-		std::cout <<"Packet header not found in input: \"" << msgStr << "\"\n";
+	//Retrieve the sender ID from the packet header.
+	if (!(root.isMember("header") && root["header"].isMember("send_client"))) {
+		std::cout <<"Bundle header (or part of it) not found in input: \"" << msgStr << "\"\n";
 		return false;
 	}
+	res.setSenderId(root["header"]["send_client"].asString());
 
 	//Retrieve the DATA section, which must be an array.
-	if (!root.isMember("DATA") && root["DATA"].isArray()) {
-		std::cout <<"A 'DATA' section with correct format was not found in input: \"" <<msgStr <<"\"\n";
+	if (!root.isMember("messages") && root["messages"].isArray()) {
+		std::cout <<"A 'messages' section with correct format was not found in input: \"" <<msgStr <<"\"\n";
 		return false;
 	}
 
 	//Now extract the messages one by one.
-	const Json::Value& data = root["DATA"];
+	const Json::Value& data = root["messages"];
 	for (unsigned int i=0; i<data.size(); i++) {
 		res.addMessage(data[i]);
 	}
@@ -201,6 +213,7 @@ bool sim_mob::CommsimSerializer::deserialize_v1(const BundleHeader& header, cons
 		idStr <<msgStr[i++];
 	}
 	vHead.sendId = idStr.str();
+	res.setSenderId(vHead.sendId);
 	idStr.str("");
 	for (int sz=0; sz<header.destIdLen; sz++) {
 		idStr <<msgStr[i++];
@@ -216,35 +229,6 @@ bool sim_mob::CommsimSerializer::deserialize_v1(const BundleHeader& header, cons
 	return true;
 }
 
-
-bool sim_mob::CommsimSerializer::deserialize_single(const BundleHeader& header, const std::string& msgStr, const std::string& expectedType, sim_mob::MessageBase& resMsg, MessageConglomerate& remConglom)
-{
-	if (!CommsimSerializer::deserialize(header, msgStr, remConglom)) {
-		std::cout <<"Error deserializing message.\n";
-		return false;
-	}
-
-	//There should only be one message.
-	if (remConglom.getCount() != 1) {
-		std::cout <<"Error: expected a single message (" <<expectedType <<").\n";
-		return false;
-	}
-
-	//Make sure it's actually of the expected type.
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("deserialize_single for NEW_BUNDLES not yet supported.");
-	} else {
-		if (!(remConglom.getMessage(0).isMember("MESSAGE_TYPE") && remConglom.getMessage(0)["MESSAGE_TYPE"] == expectedType)) {
-			std::cout <<"Error: unexpected message type (or none).\n";
-			return false;
-		}
-	}
-
-	//Parse it into a base message; we'll deal with the custom properties on our own.
-	resMsg = CommsimSerializer::parseMessageBase(remConglom, 0);
-
-	return true;
-}
 
 
 bool sim_mob::CommsimSerializer::parseJSON(const std::string& input, Json::Value &output)
@@ -269,14 +253,11 @@ sim_mob::MessageBase sim_mob::CommsimSerializer::parseMessageBase(const MessageC
 		const Json::Value& jsMsg = msg.getMessage(msgNumber);
 
 		//Common properties.
-		if (!(jsMsg.isMember("SENDER") && jsMsg.isMember("SENDER_TYPE") && jsMsg.isMember("MESSAGE_TYPE") && jsMsg.isMember("MESSAGE_CAT"))) {
-			throw std::runtime_error("Base message is missing some required parameters.");
+		if (!jsMsg.isMember("msg_type")) {
+			throw std::runtime_error("Base message is missing required parameter 'msg_type'.");
 		}
 
-		res.sender_id = jsMsg["SENDER"].asString();
-		res.sender_type = jsMsg["SENDER_TYPE"].asString();
-		res.msg_type = jsMsg["MESSAGE_TYPE"].asString();
-		res.msg_cat = jsMsg["MESSAGE_CAT"].asString();
+		res.msg_type = jsMsg["msg_type"].asString();
 	}
 	return res;
 }

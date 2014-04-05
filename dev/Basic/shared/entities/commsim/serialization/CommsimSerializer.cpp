@@ -263,6 +263,33 @@ sim_mob::MessageBase sim_mob::CommsimSerializer::parseMessageBase(const MessageC
 }
 
 
+sim_mob::IdResponseMessage sim_mob::CommsimSerializer::parseIdResponse(const MessageConglomerate& msg, int msgNumber)
+{
+	sim_mob::IdResponseMessage res(CommsimSerializer::parseMessageBase(msg, msgNumber));
+
+	if (NEW_BUNDLES) {
+		throw std::runtime_error("parse() for NEW_BUNDLES not yet supported.");
+	} else {
+		const Json::Value& jsMsg = msg.getMessage(msgNumber);
+
+		//Required props.
+		if (!(jsMsg.isMember("token") && jsMsg.isMember("id") && jsMsg.isMember("type") && jsMsg.isMember("services") && jsMsg["services"].isArray())) {
+			throw std::runtime_error("Missing or malformed required properties.");
+		}
+
+		//Set them
+		res.id = jsMsg["id"].asString();
+		res.token = jsMsg["token"].asString();
+		res.type = jsMsg["type"].asString();
+		for (unsigned int i=0; i<jsMsg["services"].size(); i++) {
+			res.services.push_back(jsMsg["services"][i].asString());
+		}
+	}
+
+	return res;
+}
+
+
 sim_mob::AgentsInfoMessage sim_mob::CommsimSerializer::parseAgentsInfo(const MessageConglomerate& msg, int msgNumber)
 {
 	sim_mob::AgentsInfoMessage res(CommsimSerializer::parseMessageBase(msg, msgNumber));
@@ -432,54 +459,29 @@ sim_mob::NewClientMessage sim_mob::CommsimSerializer::parseNewClient(const Messa
 }
 
 
-void sim_mob::CommsimSerializer::addDefaultMessageProps(Json::Value& msg, const std::string& msgType)
+/*void sim_mob::CommsimSerializer::addDefaultMessageProps(Json::Value& msg, const std::string& msgType)
 {
-	msg["SENDER"] = "0";
-	msg["SENDER_TYPE"] = "NS3_SIMULATOR";
-	msg["MESSAGE_TYPE"] = msgType;
-	msg["MESSAGE_CAT"] = "SYS";
-}
+	msg["msg_type"] = msgType;
+}*/
 
 
-void sim_mob::CommsimSerializer::makeWhoAmI(OngoingSerialization& ongoing, const std::string& token)
+std::string sim_mob::CommsimSerializer::makeIdRequest(const std::string& token)
 {
 	if (NEW_BUNDLES) {
 		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
 	} else {
 		Json::Value res;
-		addDefaultMessageProps(res, "WHOAMI");
-		res["ID"] = "0";
+		res["msg_type"] = "id_request";
+
+		//Add the token.
 		res["token"] = token;
-		res["TYPE"] = "NS3_SIMULATOR";
-		res["REQUIRED_SERVICES"].append("SIMMOB_SRV_TIME");
-		res["REQUIRED_SERVICES"].append("SIMMOB_SRV_ALL_LOCATIONS");
-		res["REQUIRED_SERVICES"].append("SIMMOB_SRV_UNKNOWN");
 
 		//Now append it.
-		std::string nextMsg = Json::FastWriter().write(res);
-		ongoing.messages <<nextMsg;
-
-		//Keep the header up-to-date.
-		ongoing.vHead.msgLengths.push_back(nextMsg.size());
+		return Json::FastWriter().write(res);
 	}
 }
 
-void sim_mob::CommsimSerializer::makeClientDone(OngoingSerialization& ongoing)
-{
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
-	} else {
-		Json::Value res;
-		addDefaultMessageProps(res, "CLIENT_MESSAGES_DONE");
 
-		//Now append it.
-		std::string nextMsg = Json::FastWriter().write(res);
-		ongoing.messages <<nextMsg;
-
-		//Keep the header up-to-date.
-		ongoing.vHead.msgLengths.push_back(nextMsg.size());
-	}
-}
 
 
 std::string sim_mob::CommsimSerializer::makeAgentsInfo(const std::vector<unsigned int>& addAgents, const std::vector<unsigned int>& remAgents)
@@ -488,8 +490,7 @@ std::string sim_mob::CommsimSerializer::makeAgentsInfo(const std::vector<unsigne
 		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
 	} else {
 		Json::Value res;
-		addDefaultMessageProps(res, "AGENTS_INFO");
-		res["SENDER_TYPE"] = "SIMMOBILITY"; //...but override this one.
+		res["msg_type"] = "AGENTS_INFO";
 
 		//Add all "ADD" agents.
 		Json::Value singleAgent;
@@ -517,7 +518,7 @@ std::string sim_mob::CommsimSerializer::makeAllLocations(const std::map<unsigned
 		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
 	} else {
 		Json::Value res;
-		addDefaultMessageProps(res, "ALL_LOCATIONS_DATA");
+		res["msg_type"] = "ALL_LOCATIONS_DATA";
 		res["SENDER_TYPE"] = "SIMMOBILITY"; //...but override this one.
 
 		//Add all "LOCATIONS"
@@ -535,23 +536,6 @@ std::string sim_mob::CommsimSerializer::makeAllLocations(const std::map<unsigned
 }
 
 
-std::string sim_mob::CommsimSerializer::makeWhoAreYou(const std::string& token)
-{
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
-	} else {
-		Json::Value res;
-		addDefaultMessageProps(res, "WHOAREYOU");
-
-		//Add the token.
-		res["token"] = token;
-
-		//Now append it.
-		return Json::FastWriter().write(res);
-	}
-}
-
-
 
 std::string sim_mob::CommsimSerializer::makeOpaqueSend(const std::string& fromId, const std::vector<std::string>& toIds, bool broadcast, const std::string& data)
 {
@@ -559,9 +543,7 @@ std::string sim_mob::CommsimSerializer::makeOpaqueSend(const std::string& fromId
 		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
 	} else {
 		Json::Value res;
-		addDefaultMessageProps(res, "OPAQUE_SEND");
-		//res["SENDER_TYPE"] = "APP"; //...but override this one.
-		//res["SENDER"] = "106"; //NOTE: I think this is wrong.
+		res["msg_type"] = "OPAQUE_SEND";
 
 		//Simple props.
 		res["FROM_ID"] = fromId;
@@ -585,7 +567,7 @@ std::string sim_mob::CommsimSerializer::makeOpaqueReceive(const std::string& fro
 		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
 	} else {
 		Json::Value res;
-		addDefaultMessageProps(res, "OPAQUE_RECEIVE");
+		res["msg_type"] = "OPAQUE_RECEIVE";
 
 		//Simple props.
 		res["FROM_ID"] = fromId;
@@ -606,7 +588,7 @@ std::string sim_mob::CommsimSerializer::makeReadyToReceive()
 	} else {
 		//First make the single message.
 		Json::Value res;
-		addDefaultMessageProps(res, "READY_TO_RECEIVE");
+		res["msg_type"] = "READY_TO_RECEIVE";
 
 		//That's it.
 		return Json::FastWriter().write(res);
@@ -620,7 +602,7 @@ std::string sim_mob::CommsimSerializer::makeReady()
 	} else {
 		//First make the single message.
 		Json::Value res;
-		addDefaultMessageProps(res, "READYE");
+		res["msg_type"] = "READY";
 
 		//That's it.
 		return Json::FastWriter().write(res);
@@ -634,7 +616,7 @@ std::string sim_mob::CommsimSerializer::makeLocation(int x, int y, const LatLngL
 	} else {
 		//First make the single message.
 		Json::Value res;
-		addDefaultMessageProps(res, "LOCATION_DATA");
+		res["msg_type"] = "LOCATION_DATA";
 
 		//Custom properties
 		res["x"] = x;
@@ -654,7 +636,7 @@ std::string sim_mob::CommsimSerializer::makeRegionAndPath(const std::vector<sim_
 	} else {
 		//First make the single message.
 		Json::Value res;
-		addDefaultMessageProps(res, "REGIONS_AND_PATH_DATA");
+		res["msg_type"] = "REGIONS_AND_PATH_DATA";
 
 		//Add the set of "all regions" by ID
 		{
@@ -697,7 +679,7 @@ std::string sim_mob::CommsimSerializer::makeTimeData(unsigned int tick, unsigned
 	} else {
 		//First make the single message.
 		Json::Value res;
-		addDefaultMessageProps(res, "TIME_DATA");
+		res["msg_type"] = "TIME_DATA";
 
 		//Custom properties
 		res["tick"] = tick;

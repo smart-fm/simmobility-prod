@@ -35,6 +35,14 @@ struct OpaqueReceiveMessage : public sim_mob::MessageBase {
 	OpaqueReceiveMessage(const MessageBase& base) : MessageBase(base) {}
 };
 
+struct IdResponseMessage : public sim_mob::MessageBase {
+	std::string token;
+	std::string id;
+	std::string type;
+	std::vector<std::string> services;
+
+	IdResponseMessage(const MessageBase& base) : MessageBase(base) {}
+};
 
 struct AgentsInfoMessage : public sim_mob::MessageBase {
 	std::vector<unsigned int> addAgentIds; ///<Agent IDs to add

@@ -21,7 +21,7 @@ void sim_mob::WhoAreYouProtocol::QueryAgentAsync(boost::shared_ptr<sim_mob::Conn
 
 	OngoingSerialization ongoing;
 	CommsimSerializer::serialize_begin(ongoing, "0"); //Destination ID of zero is allowed ONLY for WHOAREYOU (since the client is unknown).
-	CommsimSerializer::addGeneric(ongoing, CommsimSerializer::makeWhoAreYou(conn->getToken()));
+	CommsimSerializer::addGeneric(ongoing, CommsimSerializer::makeIdRequest(conn->getToken()));
 
 	BundleHeader hRes;
 	std::string msg;

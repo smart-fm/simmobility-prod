@@ -162,45 +162,34 @@ void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnn
 
 
 				COND_VAR_CLIENT_DONE.notify_one();
-			} else if (jsMsg.isMember("MESSAGE_TYPE") && jsMsg["MESSAGE_TYPE"] == "WHOAMI") {
-				//Since we now have a WHOAMI request AND a valid ConnectionHandler, we can pend a registration request.
-				//TODO: This can definitely be simplified; it was copied from WhoAreYouProtocol and Jsonparser.
-				sim_mob::ClientRegistrationRequest candidate;
-				if (!(jsMsg.isMember("ID") && jsMsg.isMember("type") && jsMsg.isMember("token"))) {
-					throw std::runtime_error("Can't access required fields.");
-				}
-				candidate.clientID = jsMsg["ID"].asString();
-				candidate.client_type = jsMsg["type"].asString();
-				if (!jsMsg["REQUIRED_SERVICES"].isNull() && jsMsg["REQUIRED_SERVICES"].isArray()) {
-					const Json::Value services = jsMsg["REQUIRED_SERVICES"];
-					for (size_t index=0; index<services.size(); index++) {
-						std::string type = services[int(index)].asString();
-						candidate.requiredServices.insert(Services::GetServiceType(type));
-					}
-				}
-
-				//Retrieve the token.
-				std::string token = jsMsg["token"].asString();
+			} else if (jsMsg.isMember("msg_type") && jsMsg["msg_type"] == "id_response") {
+				IdResponseMessage msg = CommsimSerializer::parseIdResponse(conglom, i);
 
 				//What type is this?
-				//std::map<std::string, comm::ClientType>::const_iterator clientTypeIt = sim_mob::Services::ClientTypeMap.find(type);
-				//if (clientTypeIt == sim_mob::Services::ClientTypeMap.end()) {
-				if (!(candidate.client_type==Broker::ClientTypeAndroid || candidate.client_type==Broker::ClientTypeNs3)) {
+				if (!(msg.type==Broker::ClientTypeAndroid || msg.type==Broker::ClientTypeNs3)) {
 					throw std::runtime_error("Client type is unknown; cannot re-assign.");
+				}
+
+				//Since we now have an "id_response" AND a valid ConnectionHandler, we can pend a registration request.
+				sim_mob::ClientRegistrationRequest candidate;
+				candidate.clientID = msg.id;
+				candidate.client_type = msg.type;
+				for (size_t i=0; i<msg.services.size(); i++) {
+					candidate.requiredServices.insert(Services::GetServiceType(msg.services[i]));
 				}
 
 				//Retrieve the connection associated with this token.
 				boost::shared_ptr<ConnectionHandler> connHandle;
 				{
 					boost::unique_lock<boost::mutex> lock(mutex_token_lookup);
-					std::map<std::string, boost::shared_ptr<sim_mob::ConnectionHandler> >::const_iterator connHan = tokenConnectionLookup.find(token);
+					std::map<std::string, boost::shared_ptr<sim_mob::ConnectionHandler> >::const_iterator connHan = tokenConnectionLookup.find(msg.token);
 					if (connHan == tokenConnectionLookup.end()) {
-						throw std::runtime_error("Unknown token; can't receive WHOAMI.");
+						throw std::runtime_error("Unknown token; can't receive id_response.");
 					}
 					connHandle = connHan->second;
 				}
 				if (!connHandle) {
-					throw std::runtime_error("WHOAMI received, but no clients are in the waiting list.");
+					throw std::runtime_error("id_response received, but no clients are in the waiting list.");
 				}
 
 				//At this point we need to check the Connection's clientType and set it if it is UNKNOWN.

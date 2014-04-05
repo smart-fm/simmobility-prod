@@ -138,6 +138,9 @@ public:
 	//Deserialize common properties associated with all messages.
 	static MessageBase parseMessageBase(const MessageConglomerate& msg, int msgNumber);
 
+	//Deserialize an "id_response" message.
+	static IdResponseMessage parseIdResponse(const MessageConglomerate& msg, int msgNumber);
+
 	//Deserialize an AGENTS_INFO message.
 	static AgentsInfoMessage parseAgentsInfo(const MessageConglomerate& msg, int msgNumber);
 
@@ -159,15 +162,12 @@ public:
 	//Deserialize a NEW_CLIENT message.
 	static NewClientMessage parseNewClient(const MessageConglomerate& msg, int msgNumber);
 
-	//Serialize a WHOAMI message.
-	static void makeWhoAmI(OngoingSerialization& ongoing, const std::string& token);
-
-	//Serialize a CLIENT_MESSAGES_DONE message.
-	static void makeClientDone(OngoingSerialization& ongoing);
-
 
 //Serialization messages.
 public:
+	//Serialize "id_request" to string.
+	static std::string makeIdRequest(const std::string& token);
+
 	//Serialize AGENTS_INFO to a string.
 	static std::string makeAgentsInfo(const std::vector<unsigned int>& addAgents, const std::vector<unsigned int>& remAgents);
 
@@ -195,9 +195,6 @@ public:
 	//Serialize TIME_DATA to a string.
 	static std::string makeTimeData(unsigned int tick, unsigned int elapsedMs);
 
-	//Serialize WHOAREYOU to string.
-	static std::string makeWhoAreYou(const std::string& token);
-
 
 private:
 	///Helper: deserialize v0
@@ -213,7 +210,7 @@ private:
 	static bool serialize_end_v1(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res);
 
 	//Add default MessageBase properties to an existing Json-encoded message.
-	static void addDefaultMessageProps(Json::Value& msg, const std::string& msgType);
+	//static void addDefaultMessageProps(Json::Value& msg, const std::string& msgType);
 };
 
 

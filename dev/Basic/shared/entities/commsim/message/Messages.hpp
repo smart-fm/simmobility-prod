@@ -65,9 +65,9 @@ struct RerouteRequestMessage : public sim_mob::MessageBase {
 	RerouteRequestMessage(const MessageBase& base) : MessageBase(base) {}
 };
 
-struct NewClientMessage : public sim_mob::MessageBase {
+/*struct NewClientMessage : public sim_mob::MessageBase {
 	NewClientMessage(const MessageBase& base) : MessageBase(base) {}
-};
+};*/
 
 
 }

@@ -340,7 +340,7 @@ protected:
 	/**
 	 * 	sends a signal to clients(through send buffer) telling them broker is ready to receive their data for the current tick
 	 */
-	void sendReadyToReceive();
+	void sendReadyToReceive(timeslice now);
 
 	/**
 	 * 	sends out data accumulated in the send buffer

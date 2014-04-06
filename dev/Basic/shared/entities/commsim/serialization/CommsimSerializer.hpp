@@ -141,26 +141,18 @@ public:
 	//Deserialize an "id_response" message.
 	static IdResponseMessage parseIdResponse(const MessageConglomerate& msg, int msgNumber);
 
-	//Deserialize an AGENTS_INFO message.
-	static AgentsInfoMessage parseAgentsInfo(const MessageConglomerate& msg, int msgNumber);
-
-	//Deserialize an ALL_LOCATIONS message.
-	static AllLocationsMessage parseAllLocations(const MessageConglomerate& msg, int msgNumber);
-
-	//Deserialize an OPAQUE_SEND message.
-	static OpaqueSendMessage parseOpaqueSend(const MessageConglomerate& msg, int msgNumber);
-
-	//Deserialize an OPAQUE_RECEIVE message.
-	static OpaqueReceiveMessage parseOpaqueReceive(const MessageConglomerate& msg, int msgNumber);
-
-	//Deserialize a REMOTE_LOG message.
-	static RemoteLogMessage parseRemoteLog(const MessageConglomerate& msg, int msgNumber);
-
-	//Deserialize a REROUTE_REQUEST message.
+	//Deserialize a "reroute_request" message.
 	static RerouteRequestMessage parseRerouteRequest(const MessageConglomerate& msg, int msgNumber);
 
-	//Deserialize a NEW_CLIENT message.
-	static NewClientMessage parseNewClient(const MessageConglomerate& msg, int msgNumber);
+	//Deserialize an "opaque_send" message.
+	static OpaqueSendMessage parseOpaqueSend(const MessageConglomerate& msg, int msgNumber);
+
+	//Deserialize an "opaque_receive" message.
+	static OpaqueReceiveMessage parseOpaqueReceive(const MessageConglomerate& msg, int msgNumber);
+
+	//Deserialize a "remote_log" message.
+	static RemoteLogMessage parseRemoteLog(const MessageConglomerate& msg, int msgNumber);
+
 
 
 //Serialization messages.
@@ -168,32 +160,29 @@ public:
 	//Serialize "id_request" to string.
 	static std::string makeIdRequest(const std::string& token);
 
-	//Serialize AGENTS_INFO to a string.
-	static std::string makeAgentsInfo(const std::vector<unsigned int>& addAgents, const std::vector<unsigned int>& remAgents);
+	//Serialize "id_ack" to a string.
+	static std::string makeIdAck();
 
-	//Serialize READY_TO_RECEIVE to a string.
-	static std::string makeReadyToReceive();
+	//Serialize "ticked_simmob" to a string.
+	static std::string makeTickedSimMob(unsigned int tick, unsigned int elapsedMs);
 
-	//Serialize READY to a string.
-	static std::string makeReady();
-
-	//Serialize ALL_LOCATIONS to a string.
-	static std::string makeAllLocations(const std::map<unsigned int, DPoint>& allLocations);
-
-	//Serialize OPAQUE_SEND to a string.
-	static std::string makeOpaqueSend(const std::string& fromId, const std::vector<std::string>& toIds, bool broadcast, const std::string& data);
-
-	//Serialize OPAQUE_RECEIVE to a string.
-	static std::string makeOpaqueReceive(const std::string& fromId, const std::string& toId, const std::string& data);
-
-	//Serialize LOCATION_DATA to a string.
+	//Serialize "location" to a string.
 	static std::string makeLocation(int x, int y, const LatLngLocation& projected);
 
-	//Serialize REGIONS_AND_PATH_DATA to a string.
-	static std::string makeRegionAndPath(const std::vector<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path);
+	//Serialize "regions_and_path" to a string.
+	static std::string makeRegionsAndPath(const std::vector<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path);
 
-	//Serialize TIME_DATA to a string.
-	static std::string makeTimeData(unsigned int tick, unsigned int elapsedMs);
+	//Serialize "new_agents" to a string.
+	static std::string makeNewAgents(const std::vector<unsigned int>& addAgents, const std::vector<unsigned int>& remAgents);
+
+	//Serialize "all_locations" to a string.
+	static std::string makeAllLocations(const std::map<unsigned int, DPoint>& allLocations);
+
+	//Serialize "opaque_send" to a string.
+	static std::string makeOpaqueSend(const std::string& fromId, const std::vector<std::string>& toIds, bool broadcast, const std::string& data);
+
+	//Serialize "opaque_receive" to a string.
+	static std::string makeOpaqueReceive(const std::string& fromId, const std::string& toId, const std::string& data);
 
 
 private:
@@ -208,9 +197,6 @@ private:
 
 	///Helper: serialize v1
 	static bool serialize_end_v1(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res);
-
-	//Add default MessageBase properties to an existing Json-encoded message.
-	//static void addDefaultMessageProps(Json::Value& msg, const std::string& msgType);
 };
 
 

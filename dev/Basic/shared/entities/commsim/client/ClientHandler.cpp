@@ -10,7 +10,7 @@ using namespace sim_mob;
 
 sim_mob::ClientHandler::ClientHandler(BrokerBase& broker, boost::shared_ptr<sim_mob::ConnectionHandler> conn,  const sim_mob::Agent* agent, std::string clientId) :
 	broker(broker), valid(true), connHandle(conn), agent(agent), clientId(clientId),
-	regisTime(false), regisLocation(false), regisRegionPath(false), regisAllLocations(false)
+	regisLocation(false), regisRegionPath(false), regisAllLocations(false)
 {
 	if (!conn) {
 		throw std::runtime_error("Cannot create a client handler with a null connection handler.");

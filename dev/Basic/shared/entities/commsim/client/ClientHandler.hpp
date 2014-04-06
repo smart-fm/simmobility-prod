@@ -46,7 +46,6 @@ public: //TODO: Some of these should clearly be private; however, for now they a
 public:
 	//TODO: These are kind of hackish, but it makes sense (Clients register for these events).
 	//      There may be a better way to do this later.
-	bool regisTime; ///<Has this Client registered for TIME_INFO events?
 	bool regisLocation; ///<Has this Client registered for LOCATION_UPDATE events?
 	bool regisRegionPath; ///<Has this Client registered for REGIONS_AND_PATHS events? (typically only RoadRunner)
 	bool regisAllLocations; ///<Has this Client registered for ALL_LOCATIONS events? (typically only ns-3)

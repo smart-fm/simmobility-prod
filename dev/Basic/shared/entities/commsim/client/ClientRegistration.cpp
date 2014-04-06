@@ -26,9 +26,9 @@ boost::shared_ptr<ClientHandler> sim_mob::ClientRegistrationHandler::makeClientH
 	//Subscribe to relevant services for each required service.
 	for (std::set<sim_mob::Services::SIM_MOB_SERVICE>::const_iterator it=request.requiredServices.begin(); it!=request.requiredServices.end(); it++) {
 		switch (*it) {
-			case sim_mob::Services::SIMMOB_SRV_TIME:
-				clientEntry->regisTime = true;
-				break;
+//			case sim_mob::Services::SIMMOB_SRV_TIME:
+//				clientEntry->regisTime = true;
+//				break;
 			case sim_mob::Services::SIMMOB_SRV_LOCATION:
 				clientEntry->regisLocation = true;
 				break;
@@ -111,7 +111,7 @@ void sim_mob::ClientRegistrationHandler::sendAgentsInfo(const std::map<const Age
 
 	OngoingSerialization ongoing;
 	CommsimSerializer::serialize_begin(ongoing, boost::lexical_cast<std::string>(clientEntry->clientId));
-	CommsimSerializer::addGeneric(ongoing, CommsimSerializer::makeAgentsInfo(keys, std::vector<unsigned int>()));
+	CommsimSerializer::addGeneric(ongoing, CommsimSerializer::makeNewAgents(keys, std::vector<unsigned int>()));
 
 	BundleHeader hRes;
 	std::string msg;

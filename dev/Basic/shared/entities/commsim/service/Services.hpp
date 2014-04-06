@@ -25,7 +25,6 @@ namespace sim_mob {
 class Services {
 public:
 	enum SIM_MOB_SERVICE {
-		SIMMOB_SRV_TIME,
 		SIMMOB_SRV_LOCATION,
 		SIMMOB_SRV_ALL_LOCATIONS,
 
@@ -36,9 +35,7 @@ public:
 		//          set is never re-sent, and the Path set is re-sent only in the case of re-routing.
 		//NOTE: There is probably a more efficient way to do this, with the Agent requesting the Region/Path set only
 		//      when it needs it. For now, I am trying to do this within the "Services" framework we provide. ~Seth
-		SIMMOB_SRV_REGIONS_AND_PATH,
-
-		SIMMOB_SRV_UNKNOWN,
+		SIMMOB_SRV_REGIONS_AND_PATH
 	};
 
 	static std::map<std::string, SIM_MOB_SERVICE> ServiceMap;

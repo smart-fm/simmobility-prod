@@ -104,8 +104,8 @@ void sim_mob::Broker::configure()
 
 
 	//Register handlers with "useNs3" flag. OpaqueReceive will throw an exception if it attempts to process a message and useNs3 is not set.
-	handleLookup.addHandlerOverride("OPAQUE_SEND", new sim_mob::OpaqueSendHandler(useNs3));
-	handleLookup.addHandlerOverride("OPAQUE_RECEIVE", new sim_mob::OpaqueReceiveHandler(useNs3));
+	handleLookup.addHandlerOverride("opaque_send", new sim_mob::OpaqueSendHandler(useNs3));
+	handleLookup.addHandlerOverride("opaque_receive", new sim_mob::OpaqueReceiveHandler(useNs3));
 
 	//We always wait for MIN_CLIENTS Android emulators and MIN_CLIENTS Agents (and optionally, 1 ns-3 client).
 	waitAndroidBlocker.reset(MIN_CLIENTS);
@@ -145,7 +145,7 @@ void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnn
 			throw std::runtime_error("onMessageReceived() for NEW_BUNDLES not yet supported.");
 		} else {
 			const Json::Value& jsMsg = conglom.getMessage(i);
-			if (jsMsg.isMember("MESSAGE_TYPE") && jsMsg["MESSAGE_TYPE"] == "CLIENT_MESSAGES_DONE") {
+			if (jsMsg.isMember("msg_type") && jsMsg["msg_type"] == "ticked_client") {
 				boost::unique_lock<boost::mutex> lock(mutex_clientDone);
 				{
 				boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
@@ -434,14 +434,14 @@ void sim_mob::Broker::processIncomingData(timeslice now) {
 				throw std::runtime_error("processIncoming() for NEW_BUNDLES not yet supported.");
 			} else {
 				const Json::Value& jsMsg = msgTuple.conglom.getMessage(i);
-				if (!jsMsg.isMember("MESSAGE_TYPE")) {
+				if (!jsMsg.isMember("msg_type")) {
 					std::cout <<"Invalid message, no message_type\n";
 					return;
 				}
 
 				//Certain message types have already been handled.
-				std::string msgType = jsMsg["MESSAGE_TYPE"].asString();
-				if (msgType=="CLIENT_MESSAGES_DONE" || msgType=="WHOAMI") {
+				std::string msgType = jsMsg["msg_type"].asString();
+				if (msgType=="ticked_client" || msgType=="id_response") {
 					continue;
 				}
 
@@ -529,7 +529,7 @@ void sim_mob::Broker::onAndroidClientRegister(sim_mob::event::EventId id, sim_mo
 	//Create the AgentsInfo message.
 	std::vector<unsigned int> agentIds;
 	agentIds.push_back(clientHandler->agent->getId());
-	std::string message = CommsimSerializer::makeAgentsInfo(agentIds, std::vector<unsigned int>());
+	std::string message = CommsimSerializer::makeNewAgents(agentIds, std::vector<unsigned int>());
 
 
 	//Add it.
@@ -549,7 +549,7 @@ void sim_mob::Broker::onAndroidClientRegister(sim_mob::event::EventId id, sim_mo
 void sim_mob::Broker::processPublishers(timeslice now)
 {
 	//Create a single Time message.
-	std::string timeMsg = CommsimSerializer::makeTimeData(now.frame(), ConfigManager::GetInstance().FullConfig().baseGranMS());
+	//std::string timeMsg = CommsimSerializer::makeTimeData(now.frame(), ConfigManager::GetInstance().FullConfig().baseGranMS());
 
 	//Create a single AllLocations message.
 	std::map<unsigned int, DPoint> allLocs;
@@ -567,9 +567,9 @@ void sim_mob::Broker::processPublishers(timeslice now)
 		}
 
 		//Publish whatever this agent requests.
-		if (cHandler->regisTime) {
+		/*if (cHandler->regisTime) {
 			insertSendBuffer(cHandler, timeMsg);
-		}
+		}*/
 		if (cHandler->regisLocation) {
 			//Attempt to reverse-project the Agent's (x,y) location into Lat/Lng, if such a projection is possible.
 			LatLngLocation loc;
@@ -588,7 +588,7 @@ void sim_mob::Broker::processPublishers(timeslice now)
 				std::vector<sim_mob::RoadRunnerRegion> all_regions = const_cast<Agent*>(cHandler->agent)->getAndClearNewAllRegionsSet();
 				std::vector<sim_mob::RoadRunnerRegion> reg_path = const_cast<Agent*>(cHandler->agent)->getAndClearNewRegionPath();
 				if (!(all_regions.empty() && reg_path.empty())) {
-					insertSendBuffer(cHandler, CommsimSerializer::makeRegionAndPath(all_regions, reg_path));
+					insertSendBuffer(cHandler, CommsimSerializer::makeRegionsAndPath(all_regions, reg_path));
 				}
 			}
 		}
@@ -598,7 +598,7 @@ void sim_mob::Broker::processPublishers(timeslice now)
 	}
 }
 
-void sim_mob::Broker::sendReadyToReceive()
+void sim_mob::Broker::sendReadyToReceive(timeslice now)
 {
 	//Iterate over all clients actually waiting in the client list.
 	//NOTE: This is slightly different than how the previous code did it, but it *should* work.
@@ -606,7 +606,7 @@ void sim_mob::Broker::sendReadyToReceive()
 	//TODO: We need a better way of tracking <client,destAgentID> pairs anyway; that fix will likely simplify this function.
 	std::map<SendBuffer::Key, std::string> pendingMessages;
 	for (std::map<SendBuffer::Key, OngoingSerialization>::const_iterator it=sendBuffer.begin(); it!=sendBuffer.end(); it++) {
-		pendingMessages[it->first] = CommsimSerializer::makeReadyToReceive();
+		pendingMessages[it->first] = CommsimSerializer::makeTickedSimMob(now.frame(), ConfigManager::GetInstance().FullConfig().baseGranMS());
 	}
 
 	for (std::map<SendBuffer::Key, std::string>::const_iterator it=pendingMessages.begin(); it!=pendingMessages.end(); it++) {
@@ -786,7 +786,7 @@ Entity::UpdateStatus sim_mob::Broker::update(timeslice now)
 	}
 
 	//step-5.5:for each client, append a message at the end of all messages saying Broker is ready to receive your messages
-	sendReadyToReceive();
+	sendReadyToReceive(now);
 
 	//step-6: Now send all what has been prepared, by different sources, to their corresponding destications(clients)
 	PROFILE_LOG_COMMSIM_MIXED_COMPUTE_BEGIN(currWorkerProvider, this, now, numAgents);

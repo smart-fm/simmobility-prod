@@ -4,6 +4,7 @@
 
 #include "Services.hpp"
 
+#include <stdexcept>
 #include <boost/lexical_cast.hpp>
 #include <boost/assign.hpp>
 
@@ -13,10 +14,9 @@ using namespace sim_mob;
 
 std::map<string, sim_mob::Services::SIM_MOB_SERVICE> sim_mob::Services::ServiceMap =
 		boost::assign::map_list_of
-			("SIMMOB_SRV_TIME", SIMMOB_SRV_TIME)
-			("SIMMOB_SRV_LOCATION", SIMMOB_SRV_LOCATION)
-			("SIMMOB_SRV_ALL_LOCATIONS", SIMMOB_SRV_ALL_LOCATIONS)
-			("SIMMOB_SRV_REGIONS_AND_PATH", SIMMOB_SRV_REGIONS_AND_PATH)
+			("srv_location", SIMMOB_SRV_LOCATION)
+			("srv_all_locations", SIMMOB_SRV_ALL_LOCATIONS)
+			("srv_regions_and_path", SIMMOB_SRV_REGIONS_AND_PATH)
 			;
 
 sim_mob::Services::SIM_MOB_SERVICE sim_mob::Services::GetServiceType(std::string type)
@@ -26,7 +26,7 @@ sim_mob::Services::SIM_MOB_SERVICE sim_mob::Services::GetServiceType(std::string
 		return it->second;
 	}
 
-	return Services::SIMMOB_SRV_UNKNOWN;
+	throw std::runtime_error("Unknown service type string.");
 }
 
 

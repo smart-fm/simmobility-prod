@@ -22,15 +22,12 @@
 sim_mob::HandlerLookup::HandlerLookup() 
 {
 	//Register all known handlers.
-	defaultHandlerMap["ALL_LOCATIONS_DATA"] = new sim_mob::AllLocationHandler();
-	defaultHandlerMap["AGENTS_INFO"] = new sim_mob::AgentsInfoHandler();
-	defaultHandlerMap["TIME_DATA"] = new sim_mob::NullHandler();
-	defaultHandlerMap["READY_TO_RECEIVE"] = new sim_mob::NullHandler();
-	defaultHandlerMap["WHOAMI"] = new sim_mob::NullHandler();
-	defaultHandlerMap["CLIENT_MESSAGES_DONE"] = new sim_mob::NullHandler();
-	defaultHandlerMap["REMOTE_LOG"] = new sim_mob::RemoteLogHandler();
-	defaultHandlerMap["REROUTE_REQUEST"] = new sim_mob::RerouteRequestHandler();
-	defaultHandlerMap["NEW_CLIENT"] = new sim_mob::NewClientHandler();
+	defaultHandlerMap["id_response"] = new sim_mob::NullHandler();
+	defaultHandlerMap["id_ack"] = new sim_mob::NullHandler();
+	defaultHandlerMap["new_client"] = new sim_mob::NewClientHandler();
+	defaultHandlerMap["ticked_client"] = new sim_mob::NullHandler();
+	defaultHandlerMap["reroute_request"] = new sim_mob::RerouteRequestHandler();
+	defaultHandlerMap["remote_log"] = new sim_mob::RemoteLogHandler();
 
 	//Help avoid common errors with old message types.
 	defaultHandlerMap["MULTICAST"] = new sim_mob::ObsoleteHandler();
@@ -77,24 +74,6 @@ void sim_mob::HandlerLookup::addHandlerOverride(const std::string& mType, const 
 }
 
 
-void sim_mob::AgentsInfoHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const
-{
-	//Ask the serializer for an AgentsInfo message.
-	AgentsInfoMessage aInfo = CommsimSerializer::parseAgentsInfo(messages, msgNumber);
-
-	//TODO: React
-}
-
-
-void sim_mob::AllLocationHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const
-{
-	//Ask the serializer for an AllLocations message.
-	AllLocationsMessage aInfo = CommsimSerializer::parseAllLocations(messages, msgNumber);
-
-	//TODO: React
-}
-
-
 void sim_mob::RemoteLogHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const
 {
 	//Ask the serializer for a RemoteLog message.
@@ -132,9 +111,6 @@ void sim_mob::RerouteRequestHandler::handle(boost::shared_ptr<ConnectionHandler>
 
 void sim_mob::NewClientHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const
 {
-	//Ask the serializer for a NewClient message.
-	NewClientMessage rmMsg = CommsimSerializer::parseNewClient(messages, msgNumber);
-
 	//Query this agent's ID; tell the Broker that we are expecting a reply.
 	sim_mob::WhoAreYouProtocol::QueryAgentAsync(handler, *broker);
 }

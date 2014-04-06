@@ -29,7 +29,7 @@ void sim_mob::ConnectionHandler::forwardReadyMessage(ClientHandler& newClient)
 	//Create it.
 	OngoingSerialization ongoing;
 	CommsimSerializer::serialize_begin(ongoing, boost::lexical_cast<std::string>(newClient.clientId));
-	CommsimSerializer::addGeneric(ongoing, CommsimSerializer::makeReady());
+	CommsimSerializer::addGeneric(ongoing, CommsimSerializer::makeIdAck());
 
 	BundleHeader hRes;
 	std::string msg;

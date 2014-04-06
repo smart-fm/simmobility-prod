@@ -51,16 +51,6 @@ class ObsoleteHandler : public Handler {
 	}
 };
 
-class AllLocationHandler : public Handler {
-public:
-	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
-};
-
-class AgentsInfoHandler : public Handler {
-public:
-	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
-};
-
 class RemoteLogHandler : public Handler {
 public:
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;

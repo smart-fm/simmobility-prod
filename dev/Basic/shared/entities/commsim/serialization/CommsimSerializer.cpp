@@ -78,6 +78,7 @@ void sim_mob::CommsimSerializer::serialize_begin(OngoingSerialization& ongoing, 
 {
 	ongoing.vHead.sendId = "0"; //SimMobility is always ID 0.
 	ongoing.vHead.destId = destAgId;
+	ongoing.vHead.msgLengths.clear();
 }
 
 bool sim_mob::CommsimSerializer::serialize_end(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res)
@@ -290,67 +291,25 @@ sim_mob::IdResponseMessage sim_mob::CommsimSerializer::parseIdResponse(const Mes
 }
 
 
-sim_mob::AgentsInfoMessage sim_mob::CommsimSerializer::parseAgentsInfo(const MessageConglomerate& msg, int msgNumber)
+sim_mob::RerouteRequestMessage sim_mob::CommsimSerializer::parseRerouteRequest(const MessageConglomerate& msg, int msgNumber)
 {
-	sim_mob::AgentsInfoMessage res(CommsimSerializer::parseMessageBase(msg, msgNumber));
+	sim_mob::RerouteRequestMessage res(CommsimSerializer::parseMessageBase(msg, msgNumber));
 
 	if (NEW_BUNDLES) {
 		throw std::runtime_error("parse() for NEW_BUNDLES not yet supported.");
 	} else {
 		const Json::Value& jsMsg = msg.getMessage(msgNumber);
 
-		//Add?
-		if (jsMsg.isMember("ADD")) {
-			if (!jsMsg["ADD"].isArray()) { throw std::runtime_error("AgentsInfo ADD should be an array."); }
-			const Json::Value& agents = jsMsg["ADD"];
-			for (unsigned int i=0; i<agents.size(); i++) {
-				res.addAgentIds.push_back(agents[i]["AGENT_ID"].asUInt());
-			}
+		if (!jsMsg.isMember("blacklisted")) {
+			throw std::runtime_error("Badly formatted RerouteRequest message.");
 		}
 
-		//Remove?
-		if (jsMsg.isMember("REMOVE")) {
-			if (!jsMsg["REMOVE"].isArray()) { throw std::runtime_error("AgentsInfo REMOVE should be an array."); }
-			const Json::Value& agents = jsMsg["REMOVE"];
-			for (unsigned int i=0; i<agents.size(); i++) {
-				res.remAgentIds.push_back(agents[i]["AGENT_ID"].asUInt());
-			}
-		}
-	}
-
-	return res;
-}
-
-
-
-sim_mob::AllLocationsMessage sim_mob::CommsimSerializer::parseAllLocations(const MessageConglomerate& msg, int msgNumber)
-{
-	sim_mob::AllLocationsMessage res(CommsimSerializer::parseMessageBase(msg, msgNumber));
-
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("parse() for NEW_BUNDLES not yet supported.");
-	} else {
-		const Json::Value& jsMsg = msg.getMessage(msgNumber);
-
-		if (!jsMsg.isMember("LOCATIONS")) { throw std::runtime_error("Badly formatted AllLocations message [1]."); }
-
-		//Parse each location into our map.
-		const Json::Value& locs = jsMsg["LOCATIONS"];
-		for(unsigned int i=0; i<locs.size(); i++) {
-			const Json::Value& agInf = locs[i];
-			if (!(agInf.isMember("ID") && agInf.isMember("x") && agInf.isMember("y"))) {
-				throw std::runtime_error("Badly formatted AllLocations message [2].");
-			}
-
-			//Retrieve per-agent data, add it.
-			unsigned int agId = agInf["ID"].asUInt();
-			double x = agInf["x"].asDouble();
-			double y = agInf["y"].asDouble();
-			res.agentLocations[agId] = DPoint(x,y);
-		}
+		//Save and return.
+		res.blacklistRegion = jsMsg["blacklisted"].asString();
 	}
 	return res;
 }
+
 
 
 sim_mob::OpaqueSendMessage sim_mob::CommsimSerializer::parseOpaqueSend(const MessageConglomerate& msg, int msgNumber)
@@ -362,15 +321,15 @@ sim_mob::OpaqueSendMessage sim_mob::CommsimSerializer::parseOpaqueSend(const Mes
 	} else {
 		const Json::Value& jsMsg = msg.getMessage(msgNumber);
 
-		if (!(jsMsg.isMember("FROM_ID") && jsMsg.isMember("TO_IDS") && jsMsg.isMember("BROADCAST") && jsMsg.isMember("DATA") && jsMsg["TO_IDS"].isArray())) {
+		if (!(jsMsg.isMember("from_id") && jsMsg.isMember("to_ids") && jsMsg.isMember("broadcast") && jsMsg.isMember("data") && jsMsg["to_ids"].isArray())) {
 			throw std::runtime_error("Badly formatted OPAQUE_SEND message.");
 		}
 
 		//Fairly simple.
-		res.fromId = jsMsg["FROM_ID"].asString();
-		res.broadcast = jsMsg["BROADCAST"].asBool();
-		res.data = jsMsg["DATA"].asString();
-		const Json::Value& toIds = jsMsg["TO_IDS"];
+		res.fromId = jsMsg["from_id"].asString();
+		res.broadcast = jsMsg["broadcast"].asBool();
+		res.data = jsMsg["data"].asString();
+		const Json::Value& toIds = jsMsg["to_ids"];
 		for (unsigned int i=0; i<toIds.size(); i++) {
 			res.toIds.push_back(toIds[i].asString());
 		}
@@ -393,14 +352,14 @@ sim_mob::OpaqueReceiveMessage sim_mob::CommsimSerializer::parseOpaqueReceive(con
 	} else {
 		const Json::Value& jsMsg = msg.getMessage(msgNumber);
 
-		if (!(jsMsg.isMember("FROM_ID") && jsMsg.isMember("TO_ID") && jsMsg.isMember("DATA"))) {
+		if (!(jsMsg.isMember("from_id") && jsMsg.isMember("to_id") && jsMsg.isMember("data"))) {
 			throw std::runtime_error("Badly formatted OPAQUE_RECEIVE message.");
 		}
 
 		//Save and return.
-		res.fromId = jsMsg["FROM_ID"].asString();
-		res.toId = jsMsg["TO_ID"].asString();
-		res.data = jsMsg["DATA"].asString();
+		res.fromId = jsMsg["from_id"].asString();
+		res.toId = jsMsg["to_id"].asString();
+		res.data = jsMsg["data"].asString();
 	}
 	return res;
 }
@@ -415,54 +374,16 @@ sim_mob::RemoteLogMessage sim_mob::CommsimSerializer::parseRemoteLog(const Messa
 	} else {
 		const Json::Value& jsMsg = msg.getMessage(msgNumber);
 
-		if (!jsMsg.isMember("log_message")) {
+		if (!jsMsg.isMember("log_msg")) {
 			throw std::runtime_error("Badly formatted RemoteLog message.");
 		}
 
 		//Save and return.
-		res.logMessage = jsMsg["log_message"].asString();
+		res.logMessage = jsMsg["log_msg"].asString();
 	}
 	return res;
 }
 
-
-sim_mob::RerouteRequestMessage sim_mob::CommsimSerializer::parseRerouteRequest(const MessageConglomerate& msg, int msgNumber)
-{
-	sim_mob::RerouteRequestMessage res(CommsimSerializer::parseMessageBase(msg, msgNumber));
-
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("parse() for NEW_BUNDLES not yet supported.");
-	} else {
-		const Json::Value& jsMsg = msg.getMessage(msgNumber);
-
-		if (!jsMsg.isMember("blacklist_region")) {
-			throw std::runtime_error("Badly formatted RerouteRequest message.");
-		}
-
-		//Save and return.
-		res.blacklistRegion = jsMsg["blacklist_region"].asString();
-	}
-	return res;
-}
-
-
-sim_mob::NewClientMessage sim_mob::CommsimSerializer::parseNewClient(const MessageConglomerate& msg, int msgNumber)
-{
-	sim_mob::NewClientMessage res(CommsimSerializer::parseMessageBase(msg, msgNumber));
-
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("parse() for NEW_BUNDLES not yet supported.");
-	} else {
-		return res;
-	}
-	return res;
-}
-
-
-/*void sim_mob::CommsimSerializer::addDefaultMessageProps(Json::Value& msg, const std::string& msgType)
-{
-	msg["msg_type"] = msgType;
-}*/
 
 
 std::string sim_mob::CommsimSerializer::makeIdRequest(const std::string& token)
@@ -482,27 +403,121 @@ std::string sim_mob::CommsimSerializer::makeIdRequest(const std::string& token)
 }
 
 
+std::string sim_mob::CommsimSerializer::makeIdAck()
+{
+	if (NEW_BUNDLES) {
+		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
+	} else {
+		//First make the single message.
+		Json::Value res;
+		res["msg_type"] = "id_ack";
+
+		//That's it.
+		return Json::FastWriter().write(res);
+	}
+}
 
 
-std::string sim_mob::CommsimSerializer::makeAgentsInfo(const std::vector<unsigned int>& addAgents, const std::vector<unsigned int>& remAgents)
+std::string sim_mob::CommsimSerializer::makeTickedSimMob(unsigned int tick, unsigned int elapsedMs)
+{
+	if (NEW_BUNDLES) {
+		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
+	} else {
+		//First make the single message.
+		Json::Value res;
+		res["msg_type"] = "ticked_simmob";
+		res["tick"] = tick;
+		res["elapsed"] = elapsedMs;
+
+		//That's it.
+		return Json::FastWriter().write(res);
+	}
+}
+
+
+
+std::string sim_mob::CommsimSerializer::makeLocation(int x, int y, const LatLngLocation& projected)
+{
+	if (NEW_BUNDLES) {
+		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
+	} else {
+		//First make the single message.
+		Json::Value res;
+		res["msg_type"] = "location";
+
+		//Custom properties
+		res["x"] = x;
+		res["y"] = y;
+		res["lat"] = projected.latitude;
+		res["lng"] = projected.longitude;
+
+		//That's it.
+		return Json::FastWriter().write(res);
+	}
+}
+
+
+
+std::string sim_mob::CommsimSerializer::makeRegionsAndPath(const std::vector<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path)
+{
+	if (NEW_BUNDLES) {
+		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
+	} else {
+		//First make the single message.
+		Json::Value res;
+		res["msg_type"] = "regions_and_path";
+
+		//Add the set of "all regions" by ID
+		{
+		Json::Value allRegionsObj;
+		for (std::vector<sim_mob::RoadRunnerRegion>::const_iterator it=all_regions.begin(); it!=all_regions.end(); it++) {
+			//When we send all regions, we actually have to send the entire object, since RoadRunner needs the Lat/Lng coords in order
+			// to do its own Region tracking.
+			Json::Value regionObj;
+			regionObj["id"] = boost::lexical_cast<string>(it->id);
+			regionObj["vertices"] = Json::Value();
+			for (std::vector<sim_mob::LatLngLocation>::const_iterator latlngIt=it->points.begin(); latlngIt!=it->points.end(); latlngIt++) {
+				Json::Value latLngObj;
+				latLngObj["lat"] = latlngIt->latitude;
+				latLngObj["lng"] = latlngIt->longitude;
+				regionObj["vertices"].append(latLngObj);
+			}
+			allRegionsObj.append(regionObj);
+		}
+		res["regions"] = allRegionsObj;
+		}
+
+		//Add the set of "path regions" by ID.
+		{
+		Json::Value pathRegionsObj;
+		for (std::vector<sim_mob::RoadRunnerRegion>::const_iterator it=region_path.begin(); it!=region_path.end(); it++) {
+			pathRegionsObj.append(boost::lexical_cast<string>(it->id));
+		}
+		res["path"] = pathRegionsObj;
+		}
+
+		//That's it.
+		return Json::FastWriter().write(res);
+	}
+}
+
+
+std::string sim_mob::CommsimSerializer::makeNewAgents(const std::vector<unsigned int>& addAgents, const std::vector<unsigned int>& remAgents)
 {
 	if (NEW_BUNDLES) {
 		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
 	} else {
 		Json::Value res;
-		res["msg_type"] = "AGENTS_INFO";
+		res["msg_type"] = "new_agents";
 
 		//Add all "ADD" agents.
-		Json::Value singleAgent;
 		for (std::vector<unsigned int>::const_iterator it=addAgents.begin(); it!=addAgents.end(); it++) {
-			singleAgent["AGENT_ID"] = *it;
-			res["ADD"].append(singleAgent);
+			res["add"].append(boost::lexical_cast<std::string>(*it));
 		}
 
 		//Add all "REMOVE" agents.
 		for (std::vector<unsigned int>::const_iterator it=remAgents.begin(); it!=remAgents.end(); it++) {
-			singleAgent["AGENT_ID"] = *it;
-			res["REMOVE"].append(singleAgent);
+			res["rem"].append(boost::lexical_cast<std::string>(*it));
 		}
 
 		//Now append it.
@@ -518,16 +533,15 @@ std::string sim_mob::CommsimSerializer::makeAllLocations(const std::map<unsigned
 		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
 	} else {
 		Json::Value res;
-		res["msg_type"] = "ALL_LOCATIONS_DATA";
-		res["SENDER_TYPE"] = "SIMMOBILITY"; //...but override this one.
+		res["msg_type"] = "all_locations";
 
 		//Add all "LOCATIONS"
 		Json::Value singleAgent;
 		for (std::map<unsigned int, DPoint>::const_iterator it=allLocations.begin(); it!=allLocations.end(); it++) {
-			singleAgent["ID"] = it->first;
+			singleAgent["id"] = it->first;
 			singleAgent["x"] = it->second.x;
 			singleAgent["y"] = it->second.y;
-			res["LOCATIONS"].append(singleAgent);
+			res["locations"].append(singleAgent);
 		}
 
 		//Now append it.
@@ -543,16 +557,16 @@ std::string sim_mob::CommsimSerializer::makeOpaqueSend(const std::string& fromId
 		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
 	} else {
 		Json::Value res;
-		res["msg_type"] = "OPAQUE_SEND";
+		res["msg_type"] = "opaque_send";
 
 		//Simple props.
-		res["FROM_ID"] = fromId;
-		res["BROADCAST"] = broadcast;
-		res["DATA"] = data;
+		res["from_id"] = fromId;
+		res["broadcast"] = broadcast;
+		res["data"] = data;
 
 		//Add all "TO_IDS"
 		for (std::vector<std::string>::const_iterator it=toIds.begin(); it!=toIds.end(); it++) {
-			res["TO_IDS"].append(*it);
+			res["to_ids"].append(*it);
 		}
 
 		//Now append it.
@@ -567,12 +581,12 @@ std::string sim_mob::CommsimSerializer::makeOpaqueReceive(const std::string& fro
 		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
 	} else {
 		Json::Value res;
-		res["msg_type"] = "OPAQUE_RECEIVE";
+		res["msg_type"] = "opaque_receive";
 
 		//Simple props.
-		res["FROM_ID"] = fromId;
-		res["TO_ID"] = toId;
-		res["DATA"] = data;
+		res["from_id"] = fromId;
+		res["to_id"] = toId;
+		res["data"] = data;
 
 		//Now append it.
 		return Json::FastWriter().write(res);
@@ -580,115 +594,6 @@ std::string sim_mob::CommsimSerializer::makeOpaqueReceive(const std::string& fro
 }
 
 
-
-std::string sim_mob::CommsimSerializer::makeReadyToReceive()
-{
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
-	} else {
-		//First make the single message.
-		Json::Value res;
-		res["msg_type"] = "READY_TO_RECEIVE";
-
-		//That's it.
-		return Json::FastWriter().write(res);
-	}
-}
-
-std::string sim_mob::CommsimSerializer::makeReady()
-{
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
-	} else {
-		//First make the single message.
-		Json::Value res;
-		res["msg_type"] = "READY";
-
-		//That's it.
-		return Json::FastWriter().write(res);
-	}
-}
-
-std::string sim_mob::CommsimSerializer::makeLocation(int x, int y, const LatLngLocation& projected)
-{
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
-	} else {
-		//First make the single message.
-		Json::Value res;
-		res["msg_type"] = "LOCATION_DATA";
-
-		//Custom properties
-		res["x"] = x;
-		res["y"] = y;
-		res["lat"] = projected.latitude;
-		res["lng"] = projected.longitude;
-
-		//That's it.
-		return Json::FastWriter().write(res);
-	}
-}
-
-std::string sim_mob::CommsimSerializer::makeRegionAndPath(const std::vector<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path)
-{
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
-	} else {
-		//First make the single message.
-		Json::Value res;
-		res["msg_type"] = "REGIONS_AND_PATH_DATA";
-
-		//Add the set of "all regions" by ID
-		{
-		Json::Value allRegionsObj;
-		for (std::vector<sim_mob::RoadRunnerRegion>::const_iterator it=all_regions.begin(); it!=all_regions.end(); it++) {
-			//When we send all regions, we actually have to send the entire object, since RoadRunner needs the Lat/Lng coords in order
-			// to do its own Region tracking.
-			Json::Value regionObj;
-			regionObj["id"] = boost::lexical_cast<string>(it->id);
-			regionObj["vertices"] = Json::Value();
-			for (std::vector<sim_mob::LatLngLocation>::const_iterator latlngIt=it->points.begin(); latlngIt!=it->points.end(); latlngIt++) {
-				Json::Value latLngObj;
-				latLngObj["latitude"] = latlngIt->latitude;
-				latLngObj["longitude"] = latlngIt->longitude;
-				regionObj["vertices"].append(latLngObj);
-			}
-			allRegionsObj.append(regionObj);
-		}
-		res["all_regions"] = allRegionsObj;
-		}
-
-		//Add the set of "path regions" by ID.
-		{
-		Json::Value pathRegionsObj;
-		for (std::vector<sim_mob::RoadRunnerRegion>::const_iterator it=region_path.begin(); it!=region_path.end(); it++) {
-			pathRegionsObj.append(boost::lexical_cast<string>(it->id));
-		}
-		res["region_path"] = pathRegionsObj;
-		}
-
-		//That's it.
-		return Json::FastWriter().write(res);
-	}
-}
-
-std::string sim_mob::CommsimSerializer::makeTimeData(unsigned int tick, unsigned int elapsedMs)
-{
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
-	} else {
-		//First make the single message.
-		Json::Value res;
-		res["msg_type"] = "TIME_DATA";
-
-		//Custom properties
-		res["tick"] = tick;
-		res["elapsed_ms"] = elapsedMs;
-
-		//That's it.
-		return Json::FastWriter().write(res);
-	}
-}
 
 
 void sim_mob::CommsimSerializer::addGeneric(OngoingSerialization& ongoing, const std::string& msg)

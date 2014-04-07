@@ -648,16 +648,19 @@ void sim_mob::Broker::waitAndAcceptConnections() {
 		//Add pending clients.
 		processClientRegistrationRequests();
 
-		//Sleep if we're not ready.
-		if (!checkAllBrokerBlockers()) {
-			if (EnableDebugOutput) {
-				Print() << " brokerCanTickForward->WAITING" << std::endl;
-			}
-
-			//NOTE: I am fairly sure this is an acceptable place to establish the lock.
-			boost::unique_lock<boost::mutex> lock(mutex_client_wait_list);
-			COND_VAR_CLIENT_REQUEST.wait(lock);
+		//If everything's reigstered, break out of the loop.
+		if (checkAllBrokerBlockers()) {
+			break;
 		}
+
+		//Else, sleep
+		if (EnableDebugOutput) {
+			Print() << " brokerCanTickForward->WAITING" << std::endl;
+		}
+
+		//NOTE: I am fairly sure this is an acceptable place to establish the lock.
+		boost::unique_lock<boost::mutex> lock(mutex_client_wait_list);
+		COND_VAR_CLIENT_REQUEST.wait(lock);
 	}
 }
 

@@ -26,6 +26,7 @@ void sim_mob::MessageConglomerate::addMessage(int offset, int length, const std:
 	if (!NEW_BUNDLES) { throw std::runtime_error("Error, attempting to construct v1 MessageConglomerate."); }
 	if (offsets_v1.empty() && msgStr.empty()) { throw std::runtime_error("Error; msgString must be non-empty for the first message."); }
 
+	//TODO: We need a validation phase that checks if "length" is >= msgStr.length(), since we access the raw data elsewhere.
 	offsets_v1.push_back(std::make_pair(offset, length));
 	if (!msgStr.empty()) {
 		messages_v1 = msgStr;
@@ -246,12 +247,40 @@ bool sim_mob::CommsimSerializer::parseJSON(const std::string& input, Json::Value
 
 sim_mob::MessageBase sim_mob::CommsimSerializer::parseMessageBase(const MessageConglomerate& msg, int msgNumber)
 {
-	sim_mob::MessageBase res;
-
 	if (NEW_BUNDLES) {
-		throw std::runtime_error("deserialize_single for NEW_BUNDLES not yet supported.");
+		//Retrieve all relevant information.
+		int offset = 0;
+		int length = 0;
+		msg.getMessage(msgNumber, offset, length);
+
+		//The binary format needs to deal with unsigned values. The JSON format needs signed.
+		const char* str = msg.getUnderlyingString().c_str();
+		const unsigned char* cstr = reinterpret_cast<const unsigned char*>(str);
+
+		//Check the first character to determine the type (binary/json).
+		if (cstr[offset] == 0xBB) {
+			throw std::runtime_error("Base (v1) message binary format not yet supported.");
+		} else if (cstr[offset] == '{') {
+			//TODO: We end up parsing the JSON message twice; this is inefficient.
+			Json::Value root;
+			Json::Reader reader;
+			if (!reader.parse(&str[offset], &str[offset+length], root, false)) {
+				throw std::runtime_error("Parsing JSON message base failed.");
+			}
+
+			//TODO: This is the same as the v0 format.
+			sim_mob::MessageBase res;
+			if (!root.isMember("msg_type")) {
+				throw std::runtime_error("Base message is missing required parameter 'msg_type'.");
+			}
+			res.msg_type = root["msg_type"].asString();
+			return res;
+		} else {
+			throw std::runtime_error("Unable to determine v1 message format (binary or JSON).");
+		}
 	} else {
 		const Json::Value& jsMsg = msg.getMessage(msgNumber);
+		sim_mob::MessageBase res;
 
 		//Common properties.
 		if (!jsMsg.isMember("msg_type")) {
@@ -259,8 +288,8 @@ sim_mob::MessageBase sim_mob::CommsimSerializer::parseMessageBase(const MessageC
 		}
 
 		res.msg_type = jsMsg["msg_type"].asString();
+		return res;
 	}
-	return res;
 }
 
 

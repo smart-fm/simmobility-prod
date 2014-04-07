@@ -73,7 +73,7 @@ private:
 	std::vector<Json::Value> messages_v0;
 
 	//v1 requires a bit more.
-	std::string messages_v1;
+	std::string messages_v1; ///<TODO: We treat this as a char* anyway, so maybe just represent it as a char*?
 	std::vector< std::pair<int, int> > offsets_v1; //<start, length>
 };
 

@@ -11,10 +11,10 @@ namespace sim_mob {
 //New base message class; contains everything a Message is guranteed to have. 
 //Does NOT support dynamic inheritance; never store a subclass using this class as a pointer.
 struct MessageBase {
-	//std::string sender_id;   ///<Who sent this message (from a communication point-of-view; see Multicast)
-	//std::string sender_type; ///<The "type" of this sender (to be removed).
-	std::string msg_type;    ///<The "type" of this message. Used to identify the subclass.
-	//std::string msg_cat;     ///<The "category" of this message (to be removed).
+	///The "type" of this message. Used to identify the subclass.
+	///TODO: We will eventually be using both integers and strings to define message types, so this
+	///      class will eventually be folded into a "message type" class.
+	std::string msg_type;
 };
 
 

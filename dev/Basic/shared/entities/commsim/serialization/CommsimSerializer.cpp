@@ -17,7 +17,9 @@ void sim_mob::MessageConglomerate::addMessage(const Json::Value& msg)
 {
 	if (NEW_BUNDLES) { throw std::runtime_error("Error, attempting to construct v0 MessageConglomerate."); }
 
-	messages_v0.push_back(msg);
+	messages_json.push_back(msg);
+	message_bases.push_back(MessageBase());
+	ParseJsonMessageBase(messages_json.back(), message_bases.back());
 }
 
 
@@ -26,30 +28,73 @@ void sim_mob::MessageConglomerate::addMessage(int offset, int length, const std:
 	if (!NEW_BUNDLES) { throw std::runtime_error("Error, attempting to construct v1 MessageConglomerate."); }
 	if (offsets_v1.empty() && msgStr.empty()) { throw std::runtime_error("Error; msgString must be non-empty for the first message."); }
 
-	//TODO: We need a validation phase that checks if "length" is >= msgStr.length(), since we access the raw data elsewhere.
-	offsets_v1.push_back(std::make_pair(offset, length));
+	//Save the message string, ONCE
 	if (!msgStr.empty()) {
+		if (!messages_v1.empty()) {
+			throw std::runtime_error("Can't overwrite the message string once set.");
+		}
 		messages_v1 = msgStr;
 	}
+
+	//Make sure our offset is not out of bounds.
+	if (offset<0 || offset+length>messages_v1.length()) {
+		throw std::runtime_error("Can't add message: total length exceeds length of message string.");
+	}
+
+	//Save the offset.
+	offsets_v1.push_back(std::make_pair(offset, length));
+
+	//Now try to parse the message type.
+	messages_json.push_back(Json::Value());
+	message_bases.push_back(MessageBase());
+
+	//Check the first character to determine the type (binary/json).
+	const char* raw = messages_v1.c_str();
+	if (static_cast<unsigned char>(raw[offset]) == 0xBB) {
+		throw std::runtime_error("Base (v1) message binary format not yet supported.");
+	} else if (static_cast<unsigned char>(raw[offset]) == '{') {
+		Json::Reader reader;
+		if (!reader.parse(&raw[offset], &raw[offset+length], messages_json.back(), false)) {
+			throw std::runtime_error("Parsing JSON message base failed.");
+		}
+
+		ParseJsonMessageBase(messages_json.back(), message_bases.back());
+	} else {
+		throw std::runtime_error("Unable to determine v1 message format (binary or JSON).");
+	}
 }
+
+
+void sim_mob::MessageConglomerate::ParseJsonMessageBase(const Json::Value& root, MessageBase& res)
+{
+	//Check the type string.
+	if (!root.isMember("msg_type")) {
+		throw std::runtime_error("Base message is missing required parameter 'msg_type'.");
+	}
+	res.msg_type = root["msg_type"].asString();
+}
+
 
 int sim_mob::MessageConglomerate::getCount() const
 {
 	if (NEW_BUNDLES) {
 		return offsets_v1.size();
 	} else {
-		return messages_v0.size();
+		return messages_json.size();
 	}
 }
 
-const Json::Value& sim_mob::MessageConglomerate::getMessage(int msgNumber) const
+MessageBase sim_mob::MessageConglomerate::getBaseMessage(int msgNumber) const
 {
-	if (NEW_BUNDLES) { throw std::runtime_error("Error, attempting to retrieve v0 MessageConglomerate."); }
-
-	return messages_v0.at(msgNumber);
+	return message_bases.at(msgNumber);
 }
 
-void sim_mob::MessageConglomerate::getMessage(int msgNumber, int& offset, int& length) const
+const Json::Value& sim_mob::MessageConglomerate::getJsonMessage(int msgNumber) const
+{
+	return messages_json.at(msgNumber);
+}
+
+void sim_mob::MessageConglomerate::getRawMessage(int msgNumber, int& offset, int& length) const
 {
 	if (!NEW_BUNDLES) { throw std::runtime_error("Error, attempting to retrieve v1 MessageConglomerate [1]."); }
 
@@ -245,63 +290,15 @@ bool sim_mob::CommsimSerializer::parseJSON(const std::string& input, Json::Value
 }
 
 
-sim_mob::MessageBase sim_mob::CommsimSerializer::parseMessageBase(const MessageConglomerate& msg, int msgNumber)
-{
-	if (NEW_BUNDLES) {
-		//Retrieve all relevant information.
-		int offset = 0;
-		int length = 0;
-		msg.getMessage(msgNumber, offset, length);
-
-		//The binary format needs to deal with unsigned values. The JSON format needs signed.
-		const char* str = msg.getUnderlyingString().c_str();
-		const unsigned char* cstr = reinterpret_cast<const unsigned char*>(str);
-
-		//Check the first character to determine the type (binary/json).
-		if (cstr[offset] == 0xBB) {
-			throw std::runtime_error("Base (v1) message binary format not yet supported.");
-		} else if (cstr[offset] == '{') {
-			//TODO: We end up parsing the JSON message twice; this is inefficient.
-			Json::Value root;
-			Json::Reader reader;
-			if (!reader.parse(&str[offset], &str[offset+length], root, false)) {
-				throw std::runtime_error("Parsing JSON message base failed.");
-			}
-
-			//TODO: This is the same as the v0 format.
-			sim_mob::MessageBase res;
-			if (!root.isMember("msg_type")) {
-				throw std::runtime_error("Base message is missing required parameter 'msg_type'.");
-			}
-			res.msg_type = root["msg_type"].asString();
-			return res;
-		} else {
-			throw std::runtime_error("Unable to determine v1 message format (binary or JSON).");
-		}
-	} else {
-		const Json::Value& jsMsg = msg.getMessage(msgNumber);
-		sim_mob::MessageBase res;
-
-		//Common properties.
-		if (!jsMsg.isMember("msg_type")) {
-			throw std::runtime_error("Base message is missing required parameter 'msg_type'.");
-		}
-
-		res.msg_type = jsMsg["msg_type"].asString();
-		return res;
-	}
-}
 
 
 sim_mob::IdResponseMessage sim_mob::CommsimSerializer::parseIdResponse(const MessageConglomerate& msg, int msgNumber)
 {
-	sim_mob::IdResponseMessage res(CommsimSerializer::parseMessageBase(msg, msgNumber));
+	sim_mob::IdResponseMessage res(msg.getBaseMessage(msgNumber));
 
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("parse() for NEW_BUNDLES not yet supported.");
-	} else {
-		const Json::Value& jsMsg = msg.getMessage(msgNumber);
-
+	//We are either parsing this as JSON, or as binary; version number doesn't matter in this case.
+	const Json::Value& jsMsg = msg.getJsonMessage(msgNumber);
+	if (!jsMsg.isNull()) {
 		//Required props.
 		if (!(jsMsg.isMember("token") && jsMsg.isMember("id") && jsMsg.isMember("type") && jsMsg.isMember("services") && jsMsg["services"].isArray())) {
 			throw std::runtime_error("Missing or malformed required properties.");
@@ -314,6 +311,8 @@ sim_mob::IdResponseMessage sim_mob::CommsimSerializer::parseIdResponse(const Mes
 		for (unsigned int i=0; i<jsMsg["services"].size(); i++) {
 			res.services.push_back(jsMsg["services"][i].asString());
 		}
+	} else {
+		throw std::runtime_error("parse() for binary NEW_BUNDLES not yet supported.");
 	}
 
 	return res;
@@ -322,19 +321,19 @@ sim_mob::IdResponseMessage sim_mob::CommsimSerializer::parseIdResponse(const Mes
 
 sim_mob::RerouteRequestMessage sim_mob::CommsimSerializer::parseRerouteRequest(const MessageConglomerate& msg, int msgNumber)
 {
-	sim_mob::RerouteRequestMessage res(CommsimSerializer::parseMessageBase(msg, msgNumber));
+	sim_mob::RerouteRequestMessage res(msg.getBaseMessage(msgNumber));
 
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("parse() for NEW_BUNDLES not yet supported.");
-	} else {
-		const Json::Value& jsMsg = msg.getMessage(msgNumber);
-
+	//We are either parsing this as JSON, or as binary; version number doesn't matter in this case.
+	const Json::Value& jsMsg = msg.getJsonMessage(msgNumber);
+	if (!jsMsg.isNull()) {
 		if (!jsMsg.isMember("blacklisted")) {
 			throw std::runtime_error("Badly formatted RerouteRequest message.");
 		}
 
 		//Save and return.
 		res.blacklistRegion = jsMsg["blacklisted"].asString();
+	} else {
+		throw std::runtime_error("parse() for binary NEW_BUNDLES not yet supported.");
 	}
 	return res;
 }
@@ -343,13 +342,11 @@ sim_mob::RerouteRequestMessage sim_mob::CommsimSerializer::parseRerouteRequest(c
 
 sim_mob::OpaqueSendMessage sim_mob::CommsimSerializer::parseOpaqueSend(const MessageConglomerate& msg, int msgNumber)
 {
-	sim_mob::OpaqueSendMessage res(CommsimSerializer::parseMessageBase(msg, msgNumber));
+	sim_mob::OpaqueSendMessage res(msg.getBaseMessage(msgNumber));
 
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("parse() for NEW_BUNDLES not yet supported.");
-	} else {
-		const Json::Value& jsMsg = msg.getMessage(msgNumber);
-
+	//We are either parsing this as JSON, or as binary; version number doesn't matter in this case.
+	const Json::Value& jsMsg = msg.getJsonMessage(msgNumber);
+	if (!jsMsg.isNull()) {
 		if (!(jsMsg.isMember("from_id") && jsMsg.isMember("to_ids") && jsMsg.isMember("broadcast") && jsMsg.isMember("data") && jsMsg["to_ids"].isArray())) {
 			throw std::runtime_error("Badly formatted OPAQUE_SEND message.");
 		}
@@ -367,6 +364,8 @@ sim_mob::OpaqueSendMessage sim_mob::CommsimSerializer::parseOpaqueSend(const Mes
 		if (res.broadcast && !res.toIds.empty()) {
 			throw std::runtime_error("Cannot call opaque_send with both \"broadcast\" as true and a non-empty toIds list.");
 		}
+	} else {
+		throw std::runtime_error("parse() for binary NEW_BUNDLES not yet supported.");
 	}
 	return res;
 }
@@ -374,13 +373,11 @@ sim_mob::OpaqueSendMessage sim_mob::CommsimSerializer::parseOpaqueSend(const Mes
 
 sim_mob::OpaqueReceiveMessage sim_mob::CommsimSerializer::parseOpaqueReceive(const MessageConglomerate& msg, int msgNumber)
 {
-	sim_mob::OpaqueReceiveMessage res(CommsimSerializer::parseMessageBase(msg, msgNumber));
+	sim_mob::OpaqueReceiveMessage res(msg.getBaseMessage(msgNumber));
 
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("parse() for NEW_BUNDLES not yet supported.");
-	} else {
-		const Json::Value& jsMsg = msg.getMessage(msgNumber);
-
+	//We are either parsing this as JSON, or as binary; version number doesn't matter in this case.
+	const Json::Value& jsMsg = msg.getJsonMessage(msgNumber);
+	if (!jsMsg.isNull()) {
 		if (!(jsMsg.isMember("from_id") && jsMsg.isMember("to_id") && jsMsg.isMember("data"))) {
 			throw std::runtime_error("Badly formatted OPAQUE_RECEIVE message.");
 		}
@@ -389,6 +386,8 @@ sim_mob::OpaqueReceiveMessage sim_mob::CommsimSerializer::parseOpaqueReceive(con
 		res.fromId = jsMsg["from_id"].asString();
 		res.toId = jsMsg["to_id"].asString();
 		res.data = jsMsg["data"].asString();
+	} else {
+		throw std::runtime_error("parse() for binary NEW_BUNDLES not yet supported.");
 	}
 	return res;
 }
@@ -396,19 +395,19 @@ sim_mob::OpaqueReceiveMessage sim_mob::CommsimSerializer::parseOpaqueReceive(con
 
 sim_mob::RemoteLogMessage sim_mob::CommsimSerializer::parseRemoteLog(const MessageConglomerate& msg, int msgNumber)
 {
-	sim_mob::RemoteLogMessage res(CommsimSerializer::parseMessageBase(msg, msgNumber));
+	sim_mob::RemoteLogMessage res(msg.getBaseMessage(msgNumber));
 
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("parse() for NEW_BUNDLES not yet supported.");
-	} else {
-		const Json::Value& jsMsg = msg.getMessage(msgNumber);
-
+	//We are either parsing this as JSON, or as binary; version number doesn't matter in this case.
+	const Json::Value& jsMsg = msg.getJsonMessage(msgNumber);
+	if (!jsMsg.isNull()) {
 		if (!jsMsg.isMember("log_msg")) {
 			throw std::runtime_error("Badly formatted RemoteLog message.");
 		}
 
 		//Save and return.
 		res.logMessage = jsMsg["log_msg"].asString();
+	} else {
+		throw std::runtime_error("parse() for binary NEW_BUNDLES not yet supported.");
 	}
 	return res;
 }

@@ -141,70 +141,66 @@ void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnn
 	//We have to introspect a little bit, in order to find our CLIENT_MESSAGES_DONE and WHOAMI messages.
 	bool res = false;
 	for (int i=0; i<conglom.getCount(); i++) {
-		if (NEW_BUNDLES) {
-			throw std::runtime_error("onMessageReceived() for NEW_BUNDLES not yet supported.");
-		} else {
-			const Json::Value& jsMsg = conglom.getMessage(i);
-			if (jsMsg.isMember("msg_type") && jsMsg["msg_type"] == "ticked_client") {
-				boost::unique_lock<boost::mutex> lock(mutex_clientDone);
-				{
-				boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
-				std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, ConnClientStatus>::iterator chkIt = clientDoneChecklist.find(cnnHandler);
-				if (chkIt==clientDoneChecklist.end()) {
-					throw std::runtime_error("Unexpected client/connection mapping.");
-				}
-				chkIt->second.done++;
-				} //mutex_client_done_chk unlocks
-
-				if (EnableDebugOutput) {
-					Print() << "connection [" <<&(*cnnHandler) << "] DONE\n";
-				}
-
-
-				COND_VAR_CLIENT_DONE.notify_one();
-			} else if (jsMsg.isMember("msg_type") && jsMsg["msg_type"] == "id_response") {
-				IdResponseMessage msg = CommsimSerializer::parseIdResponse(conglom, i);
-
-				//What type is this?
-				if (!(msg.type==Broker::ClientTypeAndroid || msg.type==Broker::ClientTypeNs3)) {
-					throw std::runtime_error("Client type is unknown; cannot re-assign.");
-				}
-
-				//Since we now have an "id_response" AND a valid ConnectionHandler, we can pend a registration request.
-				sim_mob::ClientRegistrationRequest candidate;
-				candidate.clientID = msg.id;
-				candidate.client_type = msg.type;
-				for (size_t i=0; i<msg.services.size(); i++) {
-					candidate.requiredServices.insert(Services::GetServiceType(msg.services[i]));
-				}
-
-				//Retrieve the connection associated with this token.
-				boost::shared_ptr<ConnectionHandler> connHandle;
-				{
-					boost::unique_lock<boost::mutex> lock(mutex_token_lookup);
-					std::map<std::string, boost::shared_ptr<sim_mob::ConnectionHandler> >::const_iterator connHan = tokenConnectionLookup.find(msg.token);
-					if (connHan == tokenConnectionLookup.end()) {
-						throw std::runtime_error("Unknown token; can't receive id_response.");
-					}
-					connHandle = connHan->second;
-				}
-				if (!connHandle) {
-					throw std::runtime_error("id_response received, but no clients are in the waiting list.");
-				}
-
-				//At this point we need to check the Connection's clientType and set it if it is UNKNOWN.
-				//If it is known, make sure it's the expected type.
-				if (connHandle->getClientType().empty()) {
-					connHandle->setClientType(candidate.client_type);
-				} else {
-					if (connHandle->getClientType() != candidate.client_type) {
-						throw std::runtime_error("ConnectionHandler received a message for a clientType it did not expect.");
-					}
-				}
-
-				//Now, wait on it.
-				insertClientWaitingList(candidate.client_type, candidate, connHandle);
+		MessageBase mb = conglom.getBaseMessage(i);
+		if (mb.msg_type == "ticked_client") {
+			boost::unique_lock<boost::mutex> lock(mutex_clientDone);
+			{
+			boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
+			std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, ConnClientStatus>::iterator chkIt = clientDoneChecklist.find(cnnHandler);
+			if (chkIt==clientDoneChecklist.end()) {
+				throw std::runtime_error("Unexpected client/connection mapping.");
 			}
+			chkIt->second.done++;
+			} //mutex_client_done_chk unlocks
+
+			if (EnableDebugOutput) {
+				Print() << "connection [" <<&(*cnnHandler) << "] DONE\n";
+			}
+
+
+			COND_VAR_CLIENT_DONE.notify_one();
+		} else if (mb.msg_type == "id_response") {
+			IdResponseMessage msg = CommsimSerializer::parseIdResponse(conglom, i);
+
+			//What type is this?
+			if (!(msg.type==Broker::ClientTypeAndroid || msg.type==Broker::ClientTypeNs3)) {
+				throw std::runtime_error("Client type is unknown; cannot re-assign.");
+			}
+
+			//Since we now have an "id_response" AND a valid ConnectionHandler, we can pend a registration request.
+			sim_mob::ClientRegistrationRequest candidate;
+			candidate.clientID = msg.id;
+			candidate.client_type = msg.type;
+			for (size_t i=0; i<msg.services.size(); i++) {
+				candidate.requiredServices.insert(Services::GetServiceType(msg.services[i]));
+			}
+
+			//Retrieve the connection associated with this token.
+			boost::shared_ptr<ConnectionHandler> connHandle;
+			{
+				boost::unique_lock<boost::mutex> lock(mutex_token_lookup);
+				std::map<std::string, boost::shared_ptr<sim_mob::ConnectionHandler> >::const_iterator connHan = tokenConnectionLookup.find(msg.token);
+				if (connHan == tokenConnectionLookup.end()) {
+					throw std::runtime_error("Unknown token; can't receive id_response.");
+				}
+				connHandle = connHan->second;
+			}
+			if (!connHandle) {
+				throw std::runtime_error("id_response received, but no clients are in the waiting list.");
+			}
+
+			//At this point we need to check the Connection's clientType and set it if it is UNKNOWN.
+			//If it is known, make sure it's the expected type.
+			if (connHandle->getClientType().empty()) {
+				connHandle->setClientType(candidate.client_type);
+			} else {
+				if (connHandle->getClientType() != candidate.client_type) {
+					throw std::runtime_error("ConnectionHandler received a message for a clientType it did not expect.");
+				}
+			}
+
+			//Now, wait on it.
+			insertClientWaitingList(candidate.client_type, candidate, connHandle);
 		}
 	}
 
@@ -430,28 +426,19 @@ void sim_mob::Broker::processIncomingData(timeslice now) {
 	while (receiveQueue.pop(msgTuple)) {
 		//Conglomerates contain whole swaths of messages themselves.
 		for (int i=0; i<msgTuple.conglom.getCount(); i++) {
-			if (NEW_BUNDLES) {
-				throw std::runtime_error("processIncoming() for NEW_BUNDLES not yet supported.");
+			MessageBase mb = msgTuple.conglom.getBaseMessage(i);
+
+			//Certain message types have already been handled.
+			if (mb.msg_type=="ticked_client" || mb.msg_type=="id_response") {
+				continue;
+			}
+
+			//Get the handler, let it parse its own expected message type.
+			const sim_mob::Handler* handler = handleLookup.getHandler(mb.msg_type);
+			if (handler) {
+				handler->handle(msgTuple.cnnHandler, msgTuple.conglom, i, this);
 			} else {
-				const Json::Value& jsMsg = msgTuple.conglom.getMessage(i);
-				if (!jsMsg.isMember("msg_type")) {
-					std::cout <<"Invalid message, no message_type\n";
-					return;
-				}
-
-				//Certain message types have already been handled.
-				std::string msgType = jsMsg["msg_type"].asString();
-				if (msgType=="ticked_client" || msgType=="id_response") {
-					continue;
-				}
-
-				//Get the handler, let it parse its own expected message type.
-				const sim_mob::Handler* handler = handleLookup.getHandler(msgType);
-				if (handler) {
-					handler->handle(msgTuple.cnnHandler, msgTuple.conglom, i, this);
-				} else {
-					std::cout <<"no handler for type \"" <<msgType << "\"\n";
-				}
+				std::cout <<"no handler for type \"" <<mb.msg_type << "\"\n";
 			}
 		}
 	}

@@ -627,7 +627,12 @@ std::string sim_mob::CommsimSerializer::makeOpaqueReceive(const std::string& fro
 void sim_mob::CommsimSerializer::addGeneric(OngoingSerialization& ongoing, const std::string& msg)
 {
 	//Just append, and hope it's formatted correctly.
-	ongoing.messages <<msg;
+	if (NEW_BUNDLES) {
+		ongoing.messages <<msg;
+	} else {
+		//We actually need to represent a JSON vector.
+		ongoing.messages <<(ongoing.messages.str().empty()?"":",") <<msg;
+	}
 
 	//Keep the header up-to-date.
 	ongoing.vHead.msgLengths.push_back(msg.size());

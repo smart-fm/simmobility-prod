@@ -2635,69 +2635,75 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 	const sim_mob::MutexStrategy& mtxStrat = ConfigManager::GetInstance().FullConfig().mutexStategy();
 	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& multinode_confluxes
 		= ConfigManager::GetInstanceRW().FullConfig().getConfluxNodes();
-	sim_mob::Conflux* conflux = nullptr;
 
-	//Make a temporary map of road nodes-to-road segments
+	//Make a temporary map of <multi node, set of road-segments directly connected to the multinode>
 	//TODO: This should be done automatically *before* it's needed.
 	std::map<const sim_mob::MultiNode*, std::set<const sim_mob::RoadSegment*> > roadSegmentsAt;
 	for (std::vector<sim_mob::Link*>::const_iterator it=rdnw.links.begin(); it!=rdnw.links.end(); it++) {
 		sim_mob::MultiNode* start = dynamic_cast<sim_mob::MultiNode*>((*it)->getStart());
 		sim_mob::MultiNode* end = dynamic_cast<sim_mob::MultiNode*>((*it)->getEnd());
 		if ((!start) || (!end)) { throw std::runtime_error("Link start/ends must be MultiNodes (in Conflux)."); }
-
 		roadSegmentsAt[start].insert((*it)->getSegments().front());
 		roadSegmentsAt[end].insert((*it)->getSegments().back());
 	}
 
 	for (vector<sim_mob::MultiNode*>::const_iterator i = rdnw.nodes.begin(); i != rdnw.nodes.end(); i++) {
 		// we create a conflux for each multinode
-		conflux = new sim_mob::Conflux(*i, mtxStrat);
-
-		std::map<const sim_mob::MultiNode*, std::set<const sim_mob::RoadSegment*> >::iterator segsAt = roadSegmentsAt.find(*i);
-		if (segsAt!=roadSegmentsAt.end()) {
-			for (std::set<const sim_mob::RoadSegment*>::iterator segmt=segsAt->second.begin(); segmt!=segsAt->second.end(); segmt++) {
-				sim_mob::Link* lnk = (*segmt)->getLink();
-				std::vector<sim_mob::RoadSegment*> upSegs;
-				std::vector<sim_mob::RoadSegment*> downSegs;
-
-				//If the Link in question *ends* at the Node we are considering for a Conflux.
-				if(lnk->getEnd() == (*i))
-				{
-					//NOTE: There will *only* be upstream segments in this case.
-					upSegs = lnk->getSegments();
-					conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
+		sim_mob::Conflux* conflux = new sim_mob::Conflux(*i, mtxStrat);
+		try {
+			std::set<const sim_mob::RoadSegment*>& segmentsAtNode = roadSegmentsAt.at(*i);
+			if (!segmentsAtNode.empty()) {
+				for (std::set<const sim_mob::RoadSegment*>::iterator segmtIt=segmentsAtNode.begin();
+						segmtIt!=segmentsAtNode.end(); segmtIt++) {
+					sim_mob::Link* lnk = (*segmtIt)->getLink();
+					std::vector<sim_mob::SegmentStats*> upSegStatsList;
+					std::vector<sim_mob::RoadSegment*> downSegs;
+					if (lnk->getStart() == (*i))
+					{
+						//lnk is downstream to the multinode and doesn't belong to this conflux
+						downSegs = lnk->getSegments();
+						conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
+						continue;
+					}
+					//else
+					//lnk *ends* at the multinode of this conflux.
+					//lnk is upstream to the multinode and belongs to this conflux
+					std::vector<sim_mob::RoadSegment*>& upSegs = lnk->getSegments();
+					//set conflux pointer to the segments and create SegmentStats for the segment
+					for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin();
+							segIt != upSegs.end(); segIt++)
+					{
+						sim_mob::RoadSegment* rdSeg = *segIt;
+						if(rdSeg->parentConflux == nullptr)
+						{
+							// assign only if not already assigned
+							rdSeg->parentConflux = conflux;
+							SegmentStats* segStats = new SegmentStats(rdSeg, rdSeg->getLaneZeroLength());
+							conflux->segmentAgents.insert(std::make_pair(rdSeg, segStats));
+							upSegStatsList.push_back(segStats);
+						}
+						else if(rdSeg->parentConflux != conflux)
+						{
+							debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for segment " << rdSeg->getStartEnd()<< std::endl;
+							throw std::runtime_error(debugMsgs.str());
+						}
+					}
+					conflux->upstreamSegStatsMap.insert(std::make_pair(lnk, upSegStatsList));
 					conflux->virtualQueuesMap.insert(std::make_pair(lnk, std::deque<sim_mob::Person*>()));
-				}
-				else if (lnk->getStart() == (*i))
-				{
-					//NOTE: There will *only* be downstream segments in this case.
-					downSegs = lnk->getSegments();
-					conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
-				}
-
-				// set conflux pointer to the segments and create SegmentStats for the segment
-				for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin();
-						segIt != upSegs.end(); segIt++)
-				{
-					sim_mob::RoadSegment* rdSeg = *segIt;
-					if(rdSeg->parentConflux == nullptr)
-					{
-						// assign only if not already assigned
-						rdSeg->parentConflux = conflux;
-						conflux->segmentAgents.insert(std::make_pair(rdSeg, new SegmentStats(rdSeg, rdSeg->getLaneZeroLength())));
-						multinode_confluxes.insert(std::make_pair(segsAt->first, conflux));
-					}
-					else if(rdSeg->parentConflux != conflux)
-					{
-						debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for segment " << rdSeg->getStartEnd()<< std::endl;
-						throw std::runtime_error(debugMsgs.str());
-					}
-				}
-			} // for
+				} // end for
+			} //end if
+		}
+		catch (const std::out_of_range& oor) {
+			debugMsgs << "Loader::ProcessConfluxes() : No segments were found at multinode: "
+					<< (*i)->getID() << "|location: " << (*i)->getLocation() << std::endl;
+			Print() << debugMsgs.str();
+			debugMsgs.str(std::string());
+			continue;
 		}
 		conflux->resetOutputBounds();
 		confluxes.insert(conflux);
-	}
+		multinode_confluxes.insert(std::make_pair(*i, conflux));
+	} // end for each multinode
 }
 
 sim_mob::BusStopFinder::BusStopFinder(const Node* src, const Node* dest)

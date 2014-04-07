@@ -267,6 +267,9 @@ public:
 	unsigned int& baseGranMS();
 	const unsigned int& baseGranMS() const;
 
+	///Base system granularity, in seconds. Each "tick" is this long.
+	const double& baseGranSecond() const;
+
 	///If true, we are running everything on one thread.
 	bool& singleThreaded();
 	const bool& singleThreaded() const;

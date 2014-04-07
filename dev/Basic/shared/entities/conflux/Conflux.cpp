@@ -339,8 +339,9 @@ void sim_mob::Conflux::initCandidateAgents() {
 			candidateAgents.insert(std::make_pair(currSegStatOnLnk, personClosestToIntersection));
 			if(!personClosestToIntersection) {
 				// this road segment is deserted. search the next (which is, technically, the previous).
-				const std::vector<sim_mob::SegmentStats*> segStatsList = i->second; // or upstreamSegStatsMap.at(lnk);
-				std::vector<sim_mob::SegmentStats*>::const_iterator segStatIt = std::find(segStatsList.begin(), segStatsList.end(), currSegStatOnLnk);
+				const std::vector<sim_mob::SegmentStats*>& segStatsList = i->second; // or upstreamSegStatsMap.at(lnk);
+				std::vector<sim_mob::SegmentStats*>::const_iterator segStatIt =
+						std::find(segStatsList.begin(), segStatsList.end(), currSegStatOnLnk);
 				currSegsOnUpLinks.erase(lnk);
 				if(segStatIt != segStatsList.begin()) {
 					segStatIt--;
@@ -377,7 +378,7 @@ void sim_mob::Conflux::resetPersonRemTimes() {
 	for(UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin(); upStrmSegMapIt!=upstreamSegStatsMap.end(); upStrmSegMapIt++) {
 		for(std::vector<sim_mob::SegmentStats*>::const_iterator segStatsIt=upStrmSegMapIt->second.begin(); segStatsIt!=upStrmSegMapIt->second.end(); segStatsIt++) {
 			segStats = *segStatsIt;
-			PersonList& personsInLaneInfinity = segStats->getAgents(segStats->laneInfinity);
+			PersonList& personsInLaneInfinity = segStats->getPersons(segStats->laneInfinity);
 			for(PersonList::iterator personIt=personsInLaneInfinity.begin(); personIt!=personsInLaneInfinity.end(); personIt++) {
 				if ((*personIt)->getLastUpdatedFrame() < currFrameNumber.frame()) {
 					//if the person is going to be moved for the first time in this tick
@@ -844,7 +845,7 @@ std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersons() {
 		for(SegmentStatsList::const_iterator rdSegIt=upstreamSegments.begin();
 				rdSegIt!=upstreamSegments.end(); rdSegIt++) {
 			segStats = (*rdSegIt);
-			tmpAgents = segStats->getAgents();
+			tmpAgents = segStats->getPersons();
 			allPersonsInCfx.insert(allPersonsInCfx.end(), tmpAgents.begin(), tmpAgents.end());
 		}
 	}
@@ -856,6 +857,19 @@ std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersons() {
 	}
 	allPersonsInCfx.insert(allPersonsInCfx.end(), activityPerformers.begin(), activityPerformers.end());
 	return allPersonsInCfx;
+}
+
+unsigned int sim_mob::Conflux::countPersons() {
+	unsigned int numPersons = 0;
+	for(UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin();
+				upStrmSegMapIt!=upstreamSegStatsMap.end(); upStrmSegMapIt++) {
+		const SegmentStatsList& upstreamSegments = upStrmSegMapIt->second;
+		for(SegmentStatsList::const_iterator statsIt=upstreamSegments.begin();
+				statsIt!=upstreamSegments.end(); statsIt++) {
+			numPersons = numPersons + (*statsIt)->getNumPersons();
+		}
+	}
+	return numPersons;
 }
 
 void sim_mob::Conflux::getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>& mergedPersonDeque) {
@@ -1029,9 +1043,10 @@ unsigned int sim_mob::Conflux::getNumRemainingInLaneInfinity() {
 	sim_mob::SegmentStats* segStats = nullptr;
 	for(UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin();
 			upStrmSegMapIt!=upstreamSegStatsMap.end(); upStrmSegMapIt++) {
-		for(SegmentStatsList::const_iterator rdSegIt=upStrmSegMapIt->second.begin();
-				rdSegIt!=upStrmSegMapIt->second.end(); rdSegIt++) {
-			segStats = (*rdSegIt);
+		const SegmentStatsList& segStatsList = upStrmSegMapIt->second;
+		for(SegmentStatsList::const_iterator statsIt=segStatsList.begin();
+				statsIt!=segStatsList.end(); statsIt++) {
+			segStats = (*statsIt);
 			count += segStats->numAgentsInLane(segStats->laneInfinity);
 		}
 	}

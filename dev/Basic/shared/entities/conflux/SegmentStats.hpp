@@ -56,15 +56,32 @@ public:
  * \author Harish Loganathan
  */
 class LaneStats {
+private:
+	typedef std::deque<sim_mob::Person*> PersonList;
+	unsigned int queueCount;
+	unsigned int initialQueueCount;
+	double positionOfLastUpdatedAgent;
+	const sim_mob::Lane* lane;
+	const bool laneInfinity;
+	double length;
+	unsigned int numPersons;
+
+	/**
+	 * laneAgentsCopy is a copy of laneAgents taken at the start of each tick solely for iterating the agents.
+	 * laneAgentsIt will iterate on laneAgentsCopy and stays intact. Any handover of agents to the next segment
+	 * is done by removing the agent from laneAgents and adding to laneAgents of the next segment. ~ Harish
+	 */
+	PersonList laneAgentsCopy;
+	PersonList::iterator laneAgentsIt;
 
 public:
 
-	std::deque<sim_mob::Person*> laneAgents;
+	PersonList laneAgents;
 
 	LaneStats(const sim_mob::Lane* laneInSegment, double length, bool isLaneInfinity = false) :
 		queueCount(0), initialQueueCount(0), laneParams(new LaneParams()),
 		positionOfLastUpdatedAgent(-1.0), lane(laneInSegment), length(length),
-		laneInfinity(isLaneInfinity) {}
+		laneInfinity(isLaneInfinity), numPersons(0) {}
 	~LaneStats() {
 		safe_delete_item(laneParams);
 	}
@@ -72,7 +89,6 @@ public:
 	void addPerson(sim_mob::Person* p);
 	void updateQueueStatus(sim_mob::Person* p);
 	void removePerson(sim_mob::Person* p, bool wasQueuing);
-	void clear();
 	sim_mob::Person* dequeue(bool isQueuingBfrUpdate);
 	sim_mob::Person* dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate);
 	unsigned int getQueuingAgentsCount() const;
@@ -120,27 +136,16 @@ public:
 		return length;
 	}
 
+	unsigned int getNumPersons() const {
+		return numPersons;
+	}
+
 	LaneParams* laneParams;
-
-private:
-	unsigned int queueCount;
-	unsigned int initialQueueCount;
-	double positionOfLastUpdatedAgent;
-	const sim_mob::Lane* lane;
-	const bool laneInfinity;
-	double length;
-
-	/**
-	 * laneAgentsCopy is a copy of laneAgents taken at the start of each tick solely for iterating the agents.
-	 * laneAgentsIt will iterate on laneAgentsCopy and stays intact. Any handover of agents to the next segment
-	 * is done by removing the agent from laneAgents and adding to laneAgents of the next segment. ~ Harish
-	 */
-	std::deque<sim_mob::Person*> laneAgentsCopy;
-	std::deque<sim_mob::Person*>::iterator laneAgentsIt;
 };
 
 /**
- * Keeps a lane wise count of moving and queuing vehicles in a road segment. Keeps a map of LaneStats corresponding
+ * Keeps a lane wise count of moving and queuing vehicles in a road segment.
+ * Keeps a map of LaneStats corresponding
  * to each lane in the road segment. Used by mid term supply.
  *
  * \author Harish Loganathan
@@ -148,6 +153,7 @@ private:
 class SegmentStats {
 
 protected:
+	typedef std::deque<sim_mob::Person*> PersonList;
 	typedef std::map<const sim_mob::Lane*, sim_mob::LaneStats* > LaneStatsMap;
 	const sim_mob::RoadSegment* roadSegment;
 	LaneStatsMap laneStatsMap;
@@ -160,29 +166,34 @@ protected:
 	double lastAcceptTime;
 	int numVehicleLanes;
 	unsigned int segFlow;
+	unsigned int numPersons;
 
 public:
 	SegmentStats(const sim_mob::RoadSegment* rdSeg, double length);
 	~SegmentStats();
 
-	enum VehicleType { car, bus, none };
+	enum VehicleType {
+		CAR, BUS, NONE
+	};
+
+	enum SegmentVehicleOrdering {
+		SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION,
+		SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION
+	};
+
+	SegmentVehicleOrdering orderBySetting;
+
 	//TODO: in all functions which gets lane as a parameter, we must check if the lane belongs to the road segment.
 	void addAgent(const sim_mob::Lane* lane, sim_mob::Person* p);
 	void removeAgent(const sim_mob::Lane* lane, sim_mob::Person* ag, bool wasQueuing);
 	sim_mob::Person* dequeue(const sim_mob::Lane* lane, bool isQueuingBfrUpdate);
 	sim_mob::Person* dequeue(const sim_mob::Person* person, const sim_mob::Lane* lane, bool isQueuingBfrUpdate);
 
-	std::deque<Person*>& getAgents(const sim_mob::Lane* lane);
-	std::deque<Person*> getAgents();
-
-	enum SEGMENT_VEHICLE_ORDER {
-		SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION,
-		SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION
-	};
-	SEGMENT_VEHICLE_ORDER orderBySetting;
+	std::deque<Person*>& getPersons(const sim_mob::Lane* lane);
+	std::deque<Person*> getPersons();
 
 	void updateLinkDrivingTimes(double drivingTimeToEndOfLink);
-	void topCMergeLanesInSegment(std::deque<sim_mob::Person*>& mergedPersonList);
+	void topCMergeLanesInSegment(PersonList& mergedPersonList);
 
 	const sim_mob::RoadSegment* getRoadSegment() const;
 	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane) const; //returns std::pair<queuingCount, movingCount>
@@ -203,7 +214,7 @@ public:
 	void resetPositionOfLastUpdatedAgentOnLanes();
 
 	sim_mob::LaneParams* getLaneParams(const Lane* lane) const;
-	double speed_density_function(bool hasVehicle, double segDensity);
+	double speedDensityFunction(bool hasVehicle, double segDensity);
 	void restoreLaneParams(const Lane* lane);
 	void updateLaneParams(const Lane* lane, double newOutputFlowRate);
 	void updateLaneParams(timeslice frameNumber);
@@ -227,6 +238,10 @@ public:
 
 	double getLength() const {
 		return length;
+	}
+
+	unsigned int getNumPersons() const {
+		return numPersons;
 	}
 
 	/**

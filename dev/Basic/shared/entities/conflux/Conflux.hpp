@@ -334,6 +334,12 @@ public:
 	std::deque<sim_mob::Person*> getAllPersons();
 
 	/**
+	 * counts the number of persons active in this conflux
+	 * @return number of persons in this conflux
+	 */
+	unsigned int countPersons();
+
+	/**
 	 * get an ordered list of all persons in this conflux
 	 * @param mergedPersonDeque output list that must contain the merged list of persons
 	 */

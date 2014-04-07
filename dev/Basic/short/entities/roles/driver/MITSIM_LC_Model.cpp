@@ -149,7 +149,7 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p,
         back = (i == 0) ? &p.nvLeftBack : &p.nvRightBack;
 
         if (adjacentLanes[i]) { //the left/right side exists
-            if (!fwd->exists()) { //no vehicle ahead on current lane
+            if (!fwd->exists()) { //no vehicle ahead on target lane
                 otherSpeed[i].lead = 5000;
                 otherDistance[i].lead = 5000;
             } else { //has vehicle ahead

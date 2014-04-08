@@ -177,7 +177,7 @@ bool sim_mob::CommsimSerializer::serialize_end_v0(const OngoingSerialization& on
 	//Build the header.
 	Json::Value pktHeader;
 	pktHeader["send_client"] = ongoing.vHead.sendId;
-	pktHeader["dest_client"] = ongoing.vHead.sendId;
+	pktHeader["dest_client"] = ongoing.vHead.destId;
 
 	//Turn the current data string into a Json array. (Inefficient, but that doesn't matter for v0)
 	std::string data = "[" + ongoing.messages.str() + "]";

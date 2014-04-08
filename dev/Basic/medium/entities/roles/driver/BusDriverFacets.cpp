@@ -50,7 +50,7 @@ void sim_mob::medium::BusDriverBehavior::frame_tick_output() {
 
 
 sim_mob::medium::BusDriverMovement::BusDriverMovement(sim_mob::Person* parentAgent):
-	DriverMovement(parentAgent) {}
+	DriverMovement(parentAgent), parentBusDriver(nullptr) {}
 
 sim_mob::medium::BusDriverMovement::~BusDriverMovement() {}
 

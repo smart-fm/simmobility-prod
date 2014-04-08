@@ -133,7 +133,7 @@ namespace sim_mob {
         const std::string DB_FIELD_DISTANCE_TO_PMS30 = "distance_pms30";
         const std::string DB_FIELD_DISTANCE_TO_CBD = "distance_cbd";
         const std::string DB_FIELD_DISTANCE_TO_MALL = "distance_mall";
-        const std::string DB_FIELD_DISTANCE_TO_JOB = "distance_job";
+        const std::string DB_FIELD_DISTANCE_TO_JOB = "accessibility_job";
         const std::string DB_FIELD_DISTANCE_TO_EXPRESS = "distance_express";
         const std::string DB_FIELD_MRT_200M = "mrt_200m";
         const std::string DB_FIELD_MRT_400M = "mrt_400m";

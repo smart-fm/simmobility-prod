@@ -61,7 +61,7 @@ private:
 	void checkAheadVehicles(Driver* parent, DriverUpdateParams& p);
 
 	/**
-	 * check whether ahead vehicles exists.
+	 * calculate new speed by current acceleration.
 	 * @param curSpeed is current velocity
 	 * @param acc is current acceleration
 	 * @param elapsedSeconds is elapsed time during current frame tick

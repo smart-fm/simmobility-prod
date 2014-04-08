@@ -12,7 +12,7 @@ namespace {
 //the minimum speed when approaching to incident
 const float APPROACHING_SPEED = 200;
 // the factor of how many meters each second
-const float convertFactor = 1000.0/3600.0;
+const float CONVERT_FACTOR_METER_PER_SEC = 1000.0/3600.0;
 }
 
 namespace sim_mob {
@@ -127,7 +127,7 @@ void sim_mob::IncidentPerformer::checkIncidentStatus(Driver* parentDriver, Drive
 	IncidentStatus::IncidentStatusType status = IncidentStatus::INCIDENT_CLEARANCE;
 	incidentStatus.setDistanceToIncident(0);
 
-	incidentStatus.setDefaultSpeedLimit(curSegment->maxSpeed*convertFactor);
+	incidentStatus.setDefaultSpeedLimit(curSegment->maxSpeed*CONVERT_FACTOR_METER_PER_SEC);
 
 	const std::map<centimeter_t, const RoadItem*> obstacles = curSegment->getObstacles();
 	std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;

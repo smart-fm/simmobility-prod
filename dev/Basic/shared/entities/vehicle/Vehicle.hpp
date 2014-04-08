@@ -66,7 +66,6 @@ public:
 public:
 	const double length;  ///<length of the vehicle
 	const double width;   ///<width of the vehicle
-	bool isQueuing; 	 ///<for mid-term use
 	FMODSchedule* schedule;
 
 	//Call once

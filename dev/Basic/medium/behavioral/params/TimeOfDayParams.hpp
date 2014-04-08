@@ -112,7 +112,6 @@ class StopTimeOfDayParams {
 public:
 	StopTimeOfDayParams(int stopType, int firstBound)
 	: stopType(stopType), firstBound(firstBound), numTimeWindows(48), todHigh(0.0), todLow(0.0) {
-		availability.reserve(48);
 		for(int i=1; i<=48; i++) {
 			availability.push_back(true);
 		}

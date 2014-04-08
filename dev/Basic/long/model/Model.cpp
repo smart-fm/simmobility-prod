@@ -28,13 +28,22 @@ namespace {
         }
         agents.clear();
     }
+    const std::string START_TIME = "Start Time (s)";
+    const std::string STOP_TIME = "Stop Time (s)";
+    const std::string MODEL_NAME = "Model Name";
 }
 
 Model::Model(const std::string& name, WorkGroup& workGroup)
 : name(name), workGroup(workGroup), running(false) {
+    addMetadata(MODEL_NAME, name);
+    addMetadata(START_TIME, "0");
+    addMetadata(STOP_TIME, "0");
 }
 
 Model::~Model() {
+    if (running){
+        stop();
+    }
     deleteAgents(agents);
 }
 
@@ -44,6 +53,7 @@ void Model::start() {
         startImpl();
         startWatch.stop();
         running = true;
+        addMetadata(START_TIME, startWatch.getTime());
         MessageBus::PublishEvent(LTEID_MODEL_STARTED, this,
                 MessageBus::EventArgsPtr(new EventArgs()));
     }
@@ -55,6 +65,7 @@ void Model::stop() {
         stopWatch.start();
         stopImpl();
         stopWatch.stop();
+        addMetadata(STOP_TIME, stopWatch.getTime());
         MessageBus::PublishEvent(LTEID_MODEL_STOPPED, this,
                 MessageBus::EventArgsPtr(new EventArgs()));
     }
@@ -74,4 +85,8 @@ double Model::getStopTime() const {
 
 const string& Model::getName() const {
     return name;
+}
+
+const Model::Metadata& Model::getMetadata() const{
+    return metadata;
 }

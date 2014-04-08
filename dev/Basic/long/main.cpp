@@ -16,7 +16,7 @@
 
 #include "GenConfig.h"
 //#include "tinyxml.h"
-
+#include <boost/format.hpp>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "workers/Worker.hpp"
@@ -26,7 +26,12 @@
 #include "model/HM_Model.hpp"
 #include "Common.hpp"
 #include "config/LT_Config.hpp"
-#include "core/EventsInjector.hpp"
+#include "core/DataManager.hpp"
+#include "core/AgentsLookup.hpp"
+
+#include "unit-tests/dao/DaoTests.hpp"
+#include "model/DeveloperModel.hpp"
+
 
 using std::cout;
 using std::endl;
@@ -49,23 +54,29 @@ timeval start_time;
 const int MAX_ITERATIONS = 1;
 const int TICK_STEP = 1;
 const int DAYS = 365;
-const int WORKERS = 1;
+const int WORKERS = 8;
 const int DATA_SIZE = 30;
-
+const std::string MODEL_LINE_FORMAT = "### %-30s : %-20s";
+//options
+const std::string OPTION_TESTS = "--tests";
 
 int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulationTime) {
     PrintOut("#################### LONG-TERM SIMULATION ####################" << endl);
     //Simulation Statistics
-    PrintOut("#Simulation Number  :" << simulationNumber << endl);
-    PrintOut("#Simulation Time (s):" << simulationTime.getTime() << endl);
+    PrintOut("#Simulation Number  : " << simulationNumber << endl);
+    PrintOut("#Simulation Time (s): " << simulationTime.getTime() << endl);
     //Models Statistics
     PrintOut(endl);
     PrintOut("#Models:" << endl);
     for (vector<Model*>::iterator itr = models.begin(); itr != models.end(); itr++) {
         Model* model = *itr;
-        PrintOut("### Model Name    : " << model->getName() << endl);
-        PrintOut("### Start Time (s): " << model->getStartTime()<< endl);
-        PrintOut("###  Stop Time (s): " << model->getStopTime() << endl);
+        const Model::Metadata& metadata = model->getMetadata();
+        for (Model::Metadata::const_iterator itMeta = metadata.begin();
+                itMeta != metadata.end(); itMeta++) {
+            boost::format fmtr = boost::format(MODEL_LINE_FORMAT);
+            fmtr % itMeta->getKey() % itMeta->getValue();
+            PrintOut(fmtr.str() << endl);
+        }
         PrintOut(endl);
     }
     PrintOut("##############################################################" << endl);
@@ -76,6 +87,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
     //Initiate configuration instance
     LT_ConfigSingleton::getInstance();
     PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
+    
     //configure time.
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     config.baseGranMS() = TICK_STEP;
@@ -85,29 +97,44 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
    
     //simulation time.
     StopWatch simulationWatch;
+    
+    //Starts clock.
+    simulationWatch.start();
+    
+    //Loads data and initialize singletons.
+    DataManager& dataManager = DataManagerSingleton::getInstance();
+    AgentsLookup& agentsLookup = AgentsLookupSingleton::getInstance();
+    //loads all necessary data
+    dataManager.load();
+    
     vector<Model*> models;
-    EventsInjector injector;
-    HM_Model* model = nullptr;
     {
-        simulationWatch.start();   
         WorkGroupManager wgMgr;
         wgMgr.setSingleThreadMode(config.singleThreaded());
         
         // -- Events injector work group.
+        WorkGroup* logsWorker = wgMgr.newWorkGroup(1, DAYS, TICK_STEP);
         WorkGroup* eventsWorker = wgMgr.newWorkGroup(1, DAYS, TICK_STEP);
         WorkGroup* hmWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
+        WorkGroup* devWorkers = wgMgr.newWorkGroup(1, DAYS, TICK_STEP);
         
         //init work groups.
         wgMgr.initAllGroups();
+        logsWorker->initWorkers(nullptr);
         hmWorkers->initWorkers(nullptr);
         eventsWorker->initWorkers(nullptr);
+        devWorkers->initWorkers(nullptr);
         
         //assign agents
-        eventsWorker->assignAWorker(&injector);
+        logsWorker->assignAWorker(&(agentsLookup.getLogger()));
+        eventsWorker->assignAWorker(&(agentsLookup.getEventsInjector()));
         //models 
-        model = new HM_Model(*hmWorkers);
-        models.push_back(model);
-        model->start();
+        models.push_back(new HM_Model(*hmWorkers));
+        models.push_back(new DeveloperModel(*devWorkers));
+        //start all models.
+        for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++) {
+            (*it)->start();
+        }
         
         //Start work groups and all threads.
         wgMgr.startAllWorkGroups();
@@ -122,10 +149,14 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
             config.mergeLogFiles()) {
             resLogFiles = wgMgr.retrieveOutFileNames();
         }
-        model->stop();
-        simulationWatch.stop();
+        
+        //stop all models.
+        for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++) {
+            (*it)->stop();
+        }
     }
-   
+    
+    simulationWatch.stop();
     printReport(simulationNumber, models, simulationWatch);
     //delete all models.
     while (!models.empty()) {
@@ -134,25 +165,43 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         safe_delete_item(modelToDelete);
     }
     models.clear();
-    
-    
+
+    //reset singletons and stop watch.
+    dataManager.reset();
+    agentsLookup.reset();    
 }
 
 int main(int ARGC, char* ARGV[]) {
     std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
     Print::Init("<stdout>");
-    //get start time of the simulation.
-    std::list<std::string> resLogFiles;
-    for (int i = 0; i < MAX_ITERATIONS; i++) {
-        PrintOut("Simulation #:  " << (i + 1) << endl);
-        performMain((i+1), resLogFiles);
+    bool runTests = false;
+    //process arguments.
+    std::vector<std::string>::iterator it;
+    for (it = args.begin(); it != args.end(); it++){
+        if (it->compare(OPTION_TESTS) == 0){
+            runTests = true;
+            continue;
+        }
     }
- 
-    //Concatenate output files?
-    if (!resLogFiles.empty()) {
-        resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
-        Utils::printAndDeleteLogFiles(resLogFiles);
+    
+    if (!runTests) {
+        //get start time of the simulation.
+        std::list<std::string> resLogFiles;
+        for (int i = 0; i < MAX_ITERATIONS; i++) {
+            PrintOut("Simulation #:  " << (i + 1) << endl);
+            performMain((i + 1), resLogFiles);
+        }
+
+        //Concatenate output files?
+        if (!resLogFiles.empty()) {
+            resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
+            Utils::printAndDeleteLogFiles(resLogFiles);
+        }
+        ConfigManager::GetInstanceRW().reset();
+    } else {
+        unit_tests::DaoTests tests;
+        tests.testAll();
     }
-    ConfigManager::GetInstanceRW().reset();
+    
     return 0;
 }

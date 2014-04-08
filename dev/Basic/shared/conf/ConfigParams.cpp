@@ -240,6 +240,11 @@ const unsigned int& sim_mob::ConfigParams::baseGranMS() const
 	return system.simulation.baseGranMS;
 }
 
+const double& sim_mob::ConfigParams::baseGranSecond() const
+{
+	return system.simulation.baseGranSecond;
+}
+
 bool& sim_mob::ConfigParams::singleThreaded()
 {
 	return system.singleThreaded;
@@ -419,23 +424,23 @@ unsigned int sim_mob::ConfigParams::signalTimeStepInMilliSeconds() const
 }
 
 bool sim_mob::ConfigParams::RunningMidSupply() const {
-	try {
-		const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
-		return (run_mode == "supply" || run_mode == "demand+supply");
-	}
-	catch (const std::out_of_range& oorx) {
-		throw std::runtime_error("generic property 'mid_term_run_mode' not found");
-	}
+    try {
+        const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
+        return (run_mode == "supply" || run_mode == "demand+supply");
+    } catch (std::exception &e) {
+        //if does not exists then returns false;
+        return false;
+    }
 }
 
 bool sim_mob::ConfigParams::RunningMidDemand() const {
-	try {
-		const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
-		return (run_mode == "demand" || run_mode == "demand+supply");
-	}
-	catch (const std::out_of_range& oorx) {
-		throw std::runtime_error("generic property 'mid_term_run_mode' not found");
-	}
+    try {
+        const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
+        return (run_mode == "demand" || run_mode == "demand+supply");
+    } catch (std::exception &e) {
+        //if property does not exists then returns false;
+        return false;
+    }
 }
 
 unsigned int sim_mob::ConfigParams::communicationTimeStepInMilliSeconds() const

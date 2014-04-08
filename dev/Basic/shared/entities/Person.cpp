@@ -38,6 +38,11 @@ typedef Entity::UpdateStatus UpdateStatus;
 
 
 namespace {
+	// default lowest age
+	const int DEFAULT_LOWEST_AGE = 20;
+	// default highest age
+	const int DEFAULT_HIGHEST_AGE = 60;
+
 Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 {
 	//Make sure we have something to work with
@@ -88,15 +93,15 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
 	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), remainingTimeThisTick(0.0),
-	requestedNextSegment(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
-	age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0), client_id(-1), resetParamsRequired(false)
+	requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
+	age(0), boardingTimeSecs(0), alightingTimeSecs(0), client_id(-1), resetParamsRequired(false)
 {
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
-	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegment(nullptr), canMoveToNextSegment(NONE),
+	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegStats(nullptr), canMoveToNextSegment(NONE),
 	  databaseID(tcs.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
-	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), BOARDING_TIME_SEC(0), ALIGTHING_TIME_SEC(0),
+	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
 	  client_id(-1)
 {
 	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
@@ -895,48 +900,39 @@ sim_mob::Role* sim_mob::Person::getNextRole() const {
 
 void sim_mob::Person::setPersonCharacteristics()
 {
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	const std::map<int, PersonCharacteristics>& personCharacteristics = config.personCharacteristicsParams.personCharacteristics;
+
+	int lowestAge = DEFAULT_LOWEST_AGE;
+	int highestAge = DEFAULT_HIGHEST_AGE;
+	// if no personCharacteristics item in the config file, introduce default lowestAge and highestAge
+	if (!personCharacteristics.empty()) {
+		lowestAge = config.personCharacteristicsParams.lowestAge;
+		highestAge = config.personCharacteristicsParams.highestAge;
+	}
+	const int defaultLowerSecs = config.personCharacteristicsParams.DEFAULT_LOWER_SECS;
+	const int defaultUpperSecs = config.personCharacteristicsParams.DEFAULT_UPPER_SECS;
 	boost::mt19937 gen(static_cast<unsigned int>(getId()*getId()));
-	boost::uniform_int<> ageRange(20, 60);
+	boost::uniform_int<> ageRange(lowestAge, highestAge);
 	boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAge(gen, ageRange);
 	age = (unsigned int)varAge();
-	if(age >= 20 && age < 30)
-	{
-		boost::uniform_int<> BoardingTime(3, 7);
-		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
-		BOARDING_TIME_SEC = varBoardingTime();
+	boost::uniform_int<> BoardingTime(defaultLowerSecs, defaultUpperSecs);
+	boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
+	boardingTimeSecs = varBoardingTime();
 
-		boost::uniform_int<> AlightingTime(3, 7);
-		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
-		ALIGTHING_TIME_SEC = varAlightingTime();
-	}
-	if(age >=30 && age < 40)
-	{
-		boost::uniform_int<> BoardingTime(4, 8);
-		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
-		BOARDING_TIME_SEC = varBoardingTime();
+	boost::uniform_int<> AlightingTime(defaultLowerSecs, defaultUpperSecs);
+	boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
+	alightingTimeSecs = varAlightingTime();
 
-		boost::uniform_int<> AlightingTime(4, 8);
-		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
-		ALIGTHING_TIME_SEC = varAlightingTime();
-	}
-	if(age >= 40 && age < 50)
-	{
-		boost::uniform_int<> BoardingTime(5, 9);
-		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
-		BOARDING_TIME_SEC = varBoardingTime();
+	for(std::map<int, PersonCharacteristics>::const_iterator iter=personCharacteristics.begin();iter != personCharacteristics.end();iter++) {
+		if(age >= iter->second.lowerAge && age < iter->second.upperAge) {
+			boost::uniform_int<> BoardingTime(iter->second.lowerSecs, iter->second.upperSecs);
+			boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
+			boardingTimeSecs = varBoardingTime();
 
-		boost::uniform_int<> AlightingTime(5, 9);
-		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
-		ALIGTHING_TIME_SEC = varAlightingTime();
-	}
-	if(age >= 50 && age <= 60)
-	{
-		boost::uniform_int<> BoardingTime(6, 10);
-		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
-		BOARDING_TIME_SEC = varBoardingTime();
-
-		boost::uniform_int<> AlightingTime(6, 10);
-		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
-		ALIGTHING_TIME_SEC = varAlightingTime();
+			boost::uniform_int<> AlightingTime(iter->second.lowerSecs, iter->second.upperSecs);
+			boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
+			alightingTimeSecs = varAlightingTime();
+		}
 	}
 }

@@ -100,7 +100,8 @@ public:
 	unsigned int getNumAgentsWithNoPath() {
 		return numAgentsWithNoPath;
 	}
-
+        
+        unsigned int getNumberOfWorkers() const;
 private:
 	void clear();
 	void interrupt();
@@ -117,8 +118,6 @@ private:
 	std::vector< std::vector<Entity*> > entToBeBredPerWorker;
 
 	void assignAWorkerConstraint(Entity* ag);
-
-	const sim_mob::RoadSegment* findStartingRoadSegment(Person* p);
 
 	Worker* locateWorker(unsigned int linkID);
 

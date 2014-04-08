@@ -14,6 +14,7 @@
 #include "metrics/Frame.hpp"
 #include "util/LangHelpers.hpp"
 #include "message/MessageHandler.hpp"
+#include "event/EventListener.hpp"
 //#include "entities/commsim/comm_support/AgentCommUtility.hpp"
 
 
@@ -33,7 +34,7 @@ class PartitionManager;
  * \author LIM Fung Chai
  * \author Xu Yan
  */
-class Entity : public messaging::MessageHandler {
+class Entity : public messaging::MessageHandler, public event::EventListener {
 //	 AgentCommUtility<std::string> comm;
 public:
 //	 AgentCommUtility<std::string> & GetComm(){

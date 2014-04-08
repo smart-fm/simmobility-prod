@@ -19,7 +19,7 @@ sim_mob::WorkerParams::Worker::Worker() : count(0), granularityMs(0)
 {}
 
 sim_mob::SimulationParams::SimulationParams() :
-	baseGranMS(0), totalRuntimeMS(0), totalWarmupMS(0), auraManagerImplementation(AuraManager::IMPL_RSTAR),
+	baseGranMS(0), baseGranSecond(0), totalRuntimeMS(0), totalWarmupMS(0), auraManagerImplementation(AuraManager::IMPL_RSTAR),
 	workGroupAssigmentStrategy(WorkGroup::ASSIGN_ROUNDROBIN), partitioningSolutionId(0), startingAutoAgentID(0),
 	mutexStategy(MtxStrat_Buffered), commSimEnabled(false), androidClientType(""),
     /*reacTime_distributionType1(0), reacTime_distributionType2(0), reacTime_mean1(0), reacTime_mean2(0),

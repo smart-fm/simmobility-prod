@@ -33,7 +33,7 @@ public:
 	sim_mob::medium::BusDriver* getParentDriver() const;
 
 protected:
-
+	sim_mob::medium::BusDriver* parentBusDriver;
 };
 
 class BusDriverMovement: public DriverMovement {
@@ -45,13 +45,14 @@ public:
 	virtual void frame_init();
 	virtual void frame_tick();
 	virtual void frame_tick_output();
-	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
+	void flowIntoNextLinkIfPossible(DriverUpdateParams& p);
 
 	sim_mob::medium::BusDriver* getParentDriver() const ;
 
 protected:
-	virtual Vehicle* initializePath(bool allocateVehicle);
+	virtual bool initializePath();
 
+	sim_mob::medium::BusDriver* parentBusDriver;
 };
 
 }

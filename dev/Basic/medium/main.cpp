@@ -137,7 +137,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//Config::BuiltInModels builtIn;
 	//fakeModels(builtIn);
 
-	//Load our user config file
+	//Load our user config file, which is a time costly function
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
 	std::cout<<"performMainMed: trip chain pool size "<< ConfigManager::GetInstance().FullConfig().getTripChains().size()<<std::endl;
 
@@ -275,7 +275,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			//  perform any output (and hence there will be no contention)
 			if (currTickPercent-lastTickPercent>9) {
 				lastTickPercent = currTickPercent;
-				cout <<currTickPercent <<"%" <<endl;
+//				cout <<currTickPercent <<"%" <<endl;
+				cout <<currTickPercent <<"%" << ", Agents:" << Agent::all_agents.size() <<endl;
 			}
 		}
 
@@ -392,6 +393,7 @@ bool performMainDemand(unsigned numThreads){
 	predayManager.loadZones(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
 	predayManager.loadPersons(db::MONGO_DB);
+	predayManager.loadZoneNodes(db::MONGO_DB);
 	predayManager.distributeAndProcessPersons(numThreads);
 	return true;
 }
@@ -431,6 +433,13 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		//Log::Ignore();
 		Warn::Ignore();
 		Print::Ignore();
+	}
+
+	try {
+		ConfigManager::GetInstance().FullConfig().system.genericProps.at("mid_term_run_mode");
+	}
+	catch (const std::out_of_range& oorx) {
+		throw std::runtime_error("missing mandatory property 'mid_term_run_mode'");
 	}
 
 	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply() && ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
@@ -545,7 +554,7 @@ int main(int ARGC, char* ARGV[])
 	gettimeofday(&simEndTime, nullptr);
 
 	Print() << "Done" << endl;
-	cout << "Total simulation time: "<< ProfileBuilder::diff_ms(simEndTime, simStartTime) << " ms." << endl;
+	cout << "Total simulation time: "<< (ProfileBuilder::diff_ms(simEndTime, simStartTime))/1000.0 << " seconds." << endl;
 
 	return returnVal;
 }

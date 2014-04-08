@@ -650,7 +650,7 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 	sim_mob::Person* person = dynamic_cast<sim_mob::Person*>(ag);
 	if(person) {
-		const sim_mob::RoadSegment* rdSeg = findStartingRoadSegment(person);
+		const sim_mob::RoadSegment* rdSeg = sim_mob::Conflux::constructPath(person);
 		if(rdSeg) {
 			rdSeg->getParentConflux()->addAgent(person,rdSeg);
 		}
@@ -660,67 +660,13 @@ void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 	}
 }
 
-const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* person) {
-	/*
-	 * TODO: This function must be re-written to get the starting segment without establishing the entire path.
-	 */
-	std::vector<sim_mob::TripChainItem*>& agTripChain = person->getTripChain();
-	const sim_mob::TripChainItem* firstItem = agTripChain.front();
-
-	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
-	std::string role = rf.GetTripChainMode(firstItem);
-
-	StreetDirectory& stdir = StreetDirectory::instance();
-
-	vector<WayPoint> path;
-	const sim_mob::RoadSegment* rdSeg = nullptr;
-
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		path = PathSetManager::getInstance()->getPathByPerson(person);
-	}
-	else{
-		if (role == "driver") {
-			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*firstSubTrip.fromLocation.node_), stdir.DrivingVertex(*firstSubTrip.toLocation.node_));
-		}
-		else if (role == "pedestrian") {
-			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-			path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*firstSubTrip.fromLocation.node_), stdir.WalkingVertex(*firstSubTrip.toLocation.node_));
-		}
-		else if (role == "busdriver") {
-			const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
-			vector<const RoadSegment*> pathRoadSeg = bustrip->getBusRouteInfo().getRoadSegments();
-			std::cout << "BusTrip path size = " << pathRoadSeg.size() << std::endl;
-			std::vector<const RoadSegment*>::iterator itor;
-			for(itor=pathRoadSeg.begin(); itor!=pathRoadSeg.end(); itor++){
-				path.push_back(WayPoint(*itor));
-			}
-		}
-	}
-	/*
-	 * path.size() > 0 is checked because SimMobility is not fully equipped to load all feasible paths in the entire Singapore network.
-	 * Sometimes, due to network issues, the shortest path algorithm may fail to return a path.
-	 * TODO: This condition check must be removed when the network issues are fixed. ~ Harish
-	 */
-
-	if(path.size() > 0) {
-		/* Drivers generated through xml input file, gives path as: O-Node, segment-list, D-node.
-		 * BusDriver code, and pathSet code, generates only segment-list. Therefore we traverse through
-		 * the path until we find the first road segment.
-		 */
-		person->setCurrPath(path);
-		for (vector<WayPoint>::iterator it = path.begin(); it != path.end(); it++) {
-			if (it->type_ == WayPoint::ROAD_SEGMENT) {
-					rdSeg = it->roadSegment_;
-					break;
-			}
-		}
-	}
-	return rdSeg;
-}
 
 void sim_mob::WorkGroup::findBoundaryConfluxes() {
 	for ( std::vector<Worker*>::iterator itw = workers.begin(); itw != workers.end(); itw++){
 		(*itw)->findBoundaryConfluxes();
 	}
+}
+
+unsigned int sim_mob::WorkGroup::getNumberOfWorkers() const {
+    return this->numWorkers;
 }

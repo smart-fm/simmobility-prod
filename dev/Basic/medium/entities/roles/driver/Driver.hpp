@@ -71,7 +71,6 @@ public:
 	const Lane* currLane;
 
 protected:
-	Vehicle* vehicle;
 	NodePoint origin;
 	NodePoint goal;
 

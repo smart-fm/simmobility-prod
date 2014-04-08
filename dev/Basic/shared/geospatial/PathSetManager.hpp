@@ -38,7 +38,19 @@ class Link_travel_time;
 class DatabaseLoader2;
 class K_ShortestPathImpl;
 class Link;
-
+inline double generateSinglePathLengthPT(std::vector<WayPoint*>& wp) // unit is meter
+{
+	double res=0;
+	for(int i=0;i<wp.size();++i)
+	{
+		WayPoint* w = wp[i];
+		if (w->type_ == WayPoint::ROAD_SEGMENT) {
+			const sim_mob::RoadSegment* seg = w->roadSegment_;
+			res += seg->length;
+		}
+	}
+	return res/100.0; //meter
+}
 enum TRIP_PURPOSE
 {
 	work = 1,
@@ -376,7 +388,6 @@ inline std::string makeWaypointsetString(std::vector<WayPoint>& wp);
 std::string getNumberFromAimsunId(std::string &aimsunid);
 std::vector<WayPoint*> convertWaypoint2Point(std::vector<WayPoint> wp);
 std::vector<WayPoint> convertWaypointP2Wp(std::vector<WayPoint*> wp);
-inline double generateSinglePathLength(std::vector<WayPoint*>& wp); // unit is meter
 //inline void generatePathSizeForPathSet(sim_mob::PathSet *ps);
 inline void generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCatch=true);
 inline std::map<const RoadSegment*,WayPoint> generateSegPathByWaypointPath(std::vector<WayPoint>& wp);

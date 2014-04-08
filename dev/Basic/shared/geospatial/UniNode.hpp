@@ -84,7 +84,7 @@ public:
 	const sim_mob::Lane* getOutgoingLane(const sim_mob::Lane& from) const;
 	std::vector<sim_mob::Lane*> getOutgoingLanes(Lane& from);
 	const std::map<const sim_mob::Lane*, sim_mob::Lane* > & getConnectors() const {return connectors;}
-	const std::map<const sim_mob::Lane*, UniLaneConnector > & getNewConnectors() const {return newConnectors;}
+	const std::map<const sim_mob::Lane*, UniLaneConnector > & getForwardLanes() const {return forwardLanes;}
 	///Helper method: Build the connectors vector dynamically by aligning a lane in the "from" Road Segment with one
 	/// in the "to" Road Segment.
 	///NOTE: The "from/to" laneID pairs will definitely be cleaned up later; for now I'm just trying
@@ -95,21 +95,17 @@ public:
 
 	//TODO: Temp:
 	void setConnectorAt(const sim_mob::Lane* key, sim_mob::Lane* value) { this->connectors[key] = value; }
-	void setNewConnectorAt(const sim_mob::Lane* key, boost::tuple<sim_mob::Lane*,sim_mob::Lane*,sim_mob::Lane*> values) {
-		this->newConnectors[key] = UniLaneConnector(values.get<0>(),values.get<1>(),values.get<2>());
+	void setForwardLanesAt(const sim_mob::Lane* key, boost::tuple<sim_mob::Lane*,sim_mob::Lane*,sim_mob::Lane*> values) {
+		this->forwardLanes[key] = UniLaneConnector(values.get<0>(),values.get<1>(),values.get<2>());
 		}
 
 
 protected:
-	//Helper, to keep our loop in order.
-	static void buildConnectorsFromAlignedLanes(UniNode* node, const RoadSegment* fromSeg, const RoadSegment* toSeg, unsigned int fromAlignLane, unsigned int toAlignLane);
-	static void buildNewConnectorsFromAlignedLanes(UniNode* node, const RoadSegment* fromSeg, const RoadSegment* toSeg, unsigned int fromAlignLane, unsigned int toAlignLane);
-
 	//Old set of lane connectors
 	std::map<const sim_mob::Lane*, sim_mob::Lane* > connectors;
 
 	//New set of lane connectors.
-	std::map<const Lane*, UniLaneConnector> newConnectors;
+	std::map<const Lane*, UniLaneConnector> forwardLanes;
 
 	///Bookkeeping: which RoadSegments meet at this Node?
 	//  NOTE: If the RoadSegments in secondPair are null; then this is a one-way UniNode.
@@ -119,6 +115,11 @@ protected:
 public:
 	std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> firstPair;
 	std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> secondPair;
+
+	//Helper, to keep our loop in order.
+	static void buildConnectorsFromAlignedLanes(UniNode* node, const RoadSegment* fromSeg, const RoadSegment* toSeg, unsigned int fromAlignLane, unsigned int toAlignLane);
+	static void buildForwardLanesFromAlignedLanes(UniNode* node, const RoadSegment* fromSeg, const RoadSegment* toSeg, unsigned int fromAlignLane, unsigned int toAlignLane);
+
 
 protected:
 	//Avoid iterating confusion

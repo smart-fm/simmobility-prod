@@ -37,7 +37,7 @@ void sim_mob::MessageConglomerate::addMessage(int offset, int length, const std:
 	}
 
 	//Make sure our offset is not out of bounds.
-	if (offset<0 || offset+length>messages_v1.length()) {
+	if (offset<0 || offset+length>static_cast<int>(messages_v1.length())) {
 		throw std::runtime_error("Can't add message: total length exceeds length of message string.");
 	}
 
@@ -192,7 +192,7 @@ bool sim_mob::CommsimSerializer::serialize_end_v0(const OngoingSerialization& on
 	Json::Value root;
 	root["header"] = pktHeader;
 	root["messages"] = dataArr;
-	res = Json::FastWriter().write(root);
+	res = JsonSingleLineWriter(!NEW_BUNDLES).write(root);
 
 	//Reflect changes to the bundle header.
 	hRes.sendIdLen = ongoing.vHead.sendId.size();
@@ -426,7 +426,7 @@ std::string sim_mob::CommsimSerializer::makeIdRequest(const std::string& token)
 		res["token"] = token;
 
 		//Now append it.
-		return Json::FastWriter().write(res);
+		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
 	}
 }
 
@@ -441,7 +441,7 @@ std::string sim_mob::CommsimSerializer::makeIdAck()
 		res["msg_type"] = "id_ack";
 
 		//That's it.
-		return Json::FastWriter().write(res);
+		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
 	}
 }
 
@@ -458,7 +458,7 @@ std::string sim_mob::CommsimSerializer::makeTickedSimMob(unsigned int tick, unsi
 		res["elapsed"] = elapsedMs;
 
 		//That's it.
-		return Json::FastWriter().write(res);
+		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
 	}
 }
 
@@ -480,7 +480,7 @@ std::string sim_mob::CommsimSerializer::makeLocation(int x, int y, const LatLngL
 		res["lng"] = projected.longitude;
 
 		//That's it.
-		return Json::FastWriter().write(res);
+		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
 	}
 }
 
@@ -525,7 +525,7 @@ std::string sim_mob::CommsimSerializer::makeRegionsAndPath(const std::vector<sim
 		}
 
 		//That's it.
-		return Json::FastWriter().write(res);
+		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
 	}
 }
 
@@ -549,7 +549,7 @@ std::string sim_mob::CommsimSerializer::makeNewAgents(const std::vector<unsigned
 		}
 
 		//Now append it.
-		return Json::FastWriter().write(res);
+		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
 	}
 }
 
@@ -573,7 +573,7 @@ std::string sim_mob::CommsimSerializer::makeAllLocations(const std::map<unsigned
 		}
 
 		//Now append it.
-		return Json::FastWriter().write(res);
+		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
 	}
 }
 
@@ -598,7 +598,7 @@ std::string sim_mob::CommsimSerializer::makeOpaqueSend(const std::string& fromId
 		}
 
 		//Now append it.
-		return Json::FastWriter().write(res);
+		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
 	}
 }
 
@@ -617,11 +617,9 @@ std::string sim_mob::CommsimSerializer::makeOpaqueReceive(const std::string& fro
 		res["data"] = data;
 
 		//Now append it.
-		return Json::FastWriter().write(res);
+		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
 	}
 }
-
-
 
 
 void sim_mob::CommsimSerializer::addGeneric(OngoingSerialization& ongoing, const std::string& msg)
@@ -638,5 +636,90 @@ void sim_mob::CommsimSerializer::addGeneric(OngoingSerialization& ongoing, const
 	ongoing.vHead.msgLengths.push_back(msg.size());
 }
 
+
+
+
+///////////////////////////////////
+// JsonSingleLineWriter methods.
+///////////////////////////////////
+
+
+sim_mob::JsonSingleLineWriter::JsonSingleLineWriter(bool appendNewline) : yamlCompatiblityEnabled_( false ), appendNewline(appendNewline)
+{
+}
+
+
+void sim_mob::JsonSingleLineWriter::enableYAMLCompatibility()
+{
+   yamlCompatiblityEnabled_ = true;
+}
+
+
+std::string sim_mob::JsonSingleLineWriter::write(const Json::Value &root)
+{
+   document_.str("");
+   writeValue( root );
+   if (appendNewline) {    //NOTE: This is the first major difference between JsonSingleLineWriter and FastWriter.
+	   document_ << "\n";
+   }
+   return document_.str(); //NOTE: This (using a stringstream instead of a string) is the second major difference.
+}
+
+
+void sim_mob::JsonSingleLineWriter::writeValue(const Json::Value &value)
+{
+   switch ( value.type() )
+   {
+   case Json::nullValue:
+      document_ << "null";
+      break;
+   case Json::intValue:
+      document_ << Json::valueToString( value.asInt() );
+      break;
+   case Json::uintValue:
+      document_ << Json::valueToString( value.asUInt() );
+      break;
+   case Json::realValue:
+      document_ << Json::valueToString( value.asDouble() );
+      break;
+   case Json::stringValue:
+      document_ << Json::valueToQuotedString( value.asCString() );
+      break;
+   case Json::booleanValue:
+      document_ << Json::valueToString( value.asBool() );
+      break;
+   case Json::arrayValue:
+      {
+         document_ << "[";
+         int size = value.size();
+         for ( int index =0; index < size; ++index )
+         {
+            if ( index > 0 )
+               document_ << ",";
+            writeValue( value[index] );
+         }
+         document_ << "]";
+      }
+      break;
+   case Json::objectValue:
+      {
+         Json::Value::Members members( value.getMemberNames() );
+         document_ << "{";
+         for ( Json::Value::Members::iterator it = members.begin();
+               it != members.end();
+               ++it )
+         {
+            const std::string &name = *it;
+            if ( it != members.begin() )
+               document_ << ",";
+            document_ << Json::valueToQuotedString( name.c_str() );
+            document_ << (yamlCompatiblityEnabled_ ? ": " : ":");
+            writeValue( value[name] );
+         }
+         document_ << "}";
+      }
+      break;
+   }
+}
 
 

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -24,6 +25,33 @@ struct WFD_Group{
 	int groupId;
 	unsigned int GO;
 	std::vector<unsigned int> members;
+};
+
+
+/**
+ * A variant of Json::FastWriter that does not append a trailing newline.
+ * NOTE: For the purpose of copyright, this class should be considered a
+ *       derivative work of Json::FastWriter, (c) 2007-2010 Baptiste Lepilleur,
+ *       and included under the terms of the MIT License (same as the JsonCpp project).
+ * NOTE: This class is also faster than the FastWriter, since it uses a stringstream to append objects
+ *       rather than simple strings.
+ */
+class JsonSingleLineWriter : public Json::Writer
+{
+public:
+	JsonSingleLineWriter(bool appendNewline);
+	virtual ~JsonSingleLineWriter(){}
+	void enableYAMLCompatibility();
+
+public: // overridden from Writer
+	virtual std::string write( const Json::Value &root);
+
+private:
+	void writeValue( const Json::Value &value );
+
+	std::stringstream document_;
+	bool yamlCompatiblityEnabled_;
+	bool appendNewline;
 };
 
 
@@ -121,6 +149,9 @@ private:
  *   serializing a series of Json messages to what is currently called a "packet" (a series of messages with a header).
  * The former set of functions are named as "parseX()" and "makeX()".
  * The latter set of functions are named "serialize()" and "deserialize()", with variants for when a single message is expeted.
+ *
+ * TODO: This class is almost entirely duplicated in our ns-3 module. We should extract it into a library and compile it in
+ *       statically to Sim Mobility/ns-3 (and put it in a public repository) once it's stable.
  */
 class CommsimSerializer {
 

@@ -13,7 +13,13 @@ namespace sim_mob {
 ///NOTE: There should ONLY be one bundle format (v1). This flag exists during the transitional phase from v0 to v1,
 ///      but you should expect that it will be deleted soon after v1 is shown to be stable. At that point, we might
 ///      have slightly different message formats, but the bundle format should NOT change. 
-const bool NEW_BUNDLES = false;
+const bool NEW_BUNDLES = true;
+
+///Whether to prefer binary messages in v1 bundles (only applies to serialization).
+///NOTE: Unlike NEW_BUNDLES, this flag will remain relevant after we switch to v1.
+///      There will eventually be more fine-grained control over individual message serialization
+///      (e.g., a way of "registering" serialization protocols), but for now we simply turn it "on" or "off".
+const bool PREFER_BINARY_MESSAGES = false;
 
 ///The size of a fixed length header.
 ///Fortunately, both v0 and v1 headers are 8 bytes.

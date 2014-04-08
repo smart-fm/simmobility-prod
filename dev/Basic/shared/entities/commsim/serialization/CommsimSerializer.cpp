@@ -312,7 +312,7 @@ sim_mob::IdResponseMessage sim_mob::CommsimSerializer::parseIdResponse(const Mes
 			res.services.push_back(jsMsg["services"][i].asString());
 		}
 	} else {
-		throw std::runtime_error("parse() for binary NEW_BUNDLES not yet supported.");
+		throw std::runtime_error("parse() for binary messages not yet supported.");
 	}
 
 	return res;
@@ -333,7 +333,7 @@ sim_mob::RerouteRequestMessage sim_mob::CommsimSerializer::parseRerouteRequest(c
 		//Save and return.
 		res.blacklistRegion = jsMsg["blacklisted"].asString();
 	} else {
-		throw std::runtime_error("parse() for binary NEW_BUNDLES not yet supported.");
+		throw std::runtime_error("parse() for binary messages not yet supported.");
 	}
 	return res;
 }
@@ -365,7 +365,7 @@ sim_mob::OpaqueSendMessage sim_mob::CommsimSerializer::parseOpaqueSend(const Mes
 			throw std::runtime_error("Cannot call opaque_send with both \"broadcast\" as true and a non-empty toIds list.");
 		}
 	} else {
-		throw std::runtime_error("parse() for binary NEW_BUNDLES not yet supported.");
+		throw std::runtime_error("parse() for binary messages not yet supported.");
 	}
 	return res;
 }
@@ -387,7 +387,7 @@ sim_mob::OpaqueReceiveMessage sim_mob::CommsimSerializer::parseOpaqueReceive(con
 		res.toId = jsMsg["to_id"].asString();
 		res.data = jsMsg["data"].asString();
 	} else {
-		throw std::runtime_error("parse() for binary NEW_BUNDLES not yet supported.");
+		throw std::runtime_error("parse() for binary messages not yet supported.");
 	}
 	return res;
 }
@@ -407,7 +407,7 @@ sim_mob::RemoteLogMessage sim_mob::CommsimSerializer::parseRemoteLog(const Messa
 		//Save and return.
 		res.logMessage = jsMsg["log_msg"].asString();
 	} else {
-		throw std::runtime_error("parse() for binary NEW_BUNDLES not yet supported.");
+		throw std::runtime_error("parse() for binary messages not yet supported.");
 	}
 	return res;
 }
@@ -416,8 +416,8 @@ sim_mob::RemoteLogMessage sim_mob::CommsimSerializer::parseRemoteLog(const Messa
 
 std::string sim_mob::CommsimSerializer::makeIdRequest(const std::string& token)
 {
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
+	if (PREFER_BINARY_MESSAGES) {
+		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
 		Json::Value res;
 		res["msg_type"] = "id_request";
@@ -433,8 +433,8 @@ std::string sim_mob::CommsimSerializer::makeIdRequest(const std::string& token)
 
 std::string sim_mob::CommsimSerializer::makeIdAck()
 {
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
+	if (PREFER_BINARY_MESSAGES) {
+		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
 		//First make the single message.
 		Json::Value res;
@@ -448,8 +448,8 @@ std::string sim_mob::CommsimSerializer::makeIdAck()
 
 std::string sim_mob::CommsimSerializer::makeTickedSimMob(unsigned int tick, unsigned int elapsedMs)
 {
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
+	if (PREFER_BINARY_MESSAGES) {
+		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
 		//First make the single message.
 		Json::Value res;
@@ -466,8 +466,8 @@ std::string sim_mob::CommsimSerializer::makeTickedSimMob(unsigned int tick, unsi
 
 std::string sim_mob::CommsimSerializer::makeLocation(int x, int y, const LatLngLocation& projected)
 {
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
+	if (PREFER_BINARY_MESSAGES) {
+		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
 		//First make the single message.
 		Json::Value res;
@@ -488,8 +488,8 @@ std::string sim_mob::CommsimSerializer::makeLocation(int x, int y, const LatLngL
 
 std::string sim_mob::CommsimSerializer::makeRegionsAndPath(const std::vector<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path)
 {
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
+	if (PREFER_BINARY_MESSAGES) {
+		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
 		//First make the single message.
 		Json::Value res;
@@ -532,8 +532,8 @@ std::string sim_mob::CommsimSerializer::makeRegionsAndPath(const std::vector<sim
 
 std::string sim_mob::CommsimSerializer::makeNewAgents(const std::vector<unsigned int>& addAgents, const std::vector<unsigned int>& remAgents)
 {
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
+	if (PREFER_BINARY_MESSAGES) {
+		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
 		Json::Value res;
 		res["msg_type"] = "new_agents";
@@ -557,8 +557,8 @@ std::string sim_mob::CommsimSerializer::makeNewAgents(const std::vector<unsigned
 
 std::string sim_mob::CommsimSerializer::makeAllLocations(const std::map<unsigned int, DPoint>& allLocations)
 {
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
+	if (PREFER_BINARY_MESSAGES) {
+		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
 		Json::Value res;
 		res["msg_type"] = "all_locations";
@@ -581,8 +581,8 @@ std::string sim_mob::CommsimSerializer::makeAllLocations(const std::map<unsigned
 
 std::string sim_mob::CommsimSerializer::makeOpaqueSend(const std::string& fromId, const std::vector<std::string>& toIds, bool broadcast, const std::string& data)
 {
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
+	if (PREFER_BINARY_MESSAGES) {
+		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
 		Json::Value res;
 		res["msg_type"] = "opaque_send";
@@ -605,8 +605,8 @@ std::string sim_mob::CommsimSerializer::makeOpaqueSend(const std::string& fromId
 
 std::string sim_mob::CommsimSerializer::makeOpaqueReceive(const std::string& fromId, const std::string& toId, const std::string& data)
 {
-	if (NEW_BUNDLES) {
-		throw std::runtime_error("addX() for NEW_BUNDLES not yet supported.");
+	if (PREFER_BINARY_MESSAGES) {
+		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
 		Json::Value res;
 		res["msg_type"] = "opaque_receive";

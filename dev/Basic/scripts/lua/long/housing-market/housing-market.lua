@@ -135,7 +135,7 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities)
                     (amenities.mrt_200m and 462.90 or 0) +
                     (amenities.mrt_400m and 274.60 or 0) +
                     (amenities.express_200m and -140.10 or 0) +                    
-                    (amenities.bus_200m and 62.43 or 0))
+                    (amenities.bus_200m and 0 or 62.43)) -- shall be the oposite (bus_gt200m) check documentation 
  end
     
     --print(string.format("HDB Price: %d, dist_job: %s, dist_cdb: %s, pms1KM: %s, dist_mall: %s, mrt_200m: %s, mrt_400m: %s, dist_express_200m: %s, bus_200m: %s"

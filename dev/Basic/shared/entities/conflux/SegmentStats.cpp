@@ -35,9 +35,9 @@ bool cmp_person_distToSegmentEnd::operator ()
 	return (x->distanceToEndOfSegment > y->distanceToEndOfSegment);
 }
 
-SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double length) :
+SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double length, uint8_t statNum) :
 	roadSegment(rdSeg), length(length), segDensity(0.0), segPedSpeed(0.0),
-	segFlow(0),	lastAcceptTime(0.0), numPersons(0),
+	segFlow(0),	lastAcceptTime(0.0), numPersons(0), positionInRoadSegment(statNum),
 	debugMsgs(std::stringstream::out), orderBySetting(SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION)
 {
 	segVehicleSpeed = getRoadSegment()->maxSpeed / 3.6 * 100; //converting from kmph to m/s

@@ -52,9 +52,9 @@ void initSegStatsPath(vector<sim_mob::WayPoint>& wpPath,
 			it != wpPath.end(); it++) {
 		if (it->type_ == WayPoint::ROAD_SEGMENT) {
 			const sim_mob::RoadSegment* rdSeg = it->roadSegment_;
-			const sim_mob::SegmentStats* segStats =
+			const vector<sim_mob::SegmentStats*>& statsInSegment =
 					rdSeg->getParentConflux()->findSegStats(rdSeg);
-			ssPath.push_back(segStats);
+			ssPath.insert(ssPath.end(), statsInSegment.begin(), statsInSegment.end());
 		}
 	}
 }
@@ -509,7 +509,7 @@ bool DriverMovement::moveInSegment(double distance) {
 	}
 
 	double endPos = pathMover.getPositionInSegment();
-	updateFlow(pathMover.getCurrSegStats()->getRoadSegment(), startPos, endPos);
+	updateFlow(pathMover.getCurrSegStats(), startPos, endPos);
 
 	return true;
 }
@@ -524,9 +524,10 @@ bool DriverMovement::advanceQueuingVehicle(sim_mob::medium::DriverUpdateParams& 
 
 	double output = getOutputCounter(currLane, pathMover.getCurrSegStats());
 	double outRate = getOutputFlowRate(currLane);
+
 	finalDistToSegEnd = initialTimeSpent + initialDistToSegEnd/(3.0*vehicleLength*outRate); //assuming vehicle length is in cm; vehicle length and outrate cannot be 0
 	if (output > 0 && finalDistToSegEnd < params.secondsInTick &&
-			currLane->getRoadSegment()->getParentConflux()->getPositionOfLastUpdatedAgentInLane(currLane) == -1)
+			pathMover.getCurrSegStats()->getPositionOfLastUpdatedAgentInLane(currLane) == -1)
 	{
 		res = moveToNextSegment(params);
 		finalTimeSpent = pathMover.getPositionInSegment();
@@ -705,10 +706,11 @@ void DriverMovement::setLastAccept(const Lane* lane, double lastAccept, const si
 	segStats->getLaneParams(lane)->setLastAccept(lastAccept);
 }
 
-void DriverMovement::updateFlow(const sim_mob::RoadSegment* rdSeg, double startPos, double endPos) {
-	double mid = rdSeg->getLaneZeroLength()/2.0;
+void DriverMovement::updateFlow(const sim_mob::SegmentStats* segStats, double startPos, double endPos) {
+	double mid = segStats->getLength()/2.0;
+	const sim_mob::RoadSegment* rdSeg = segStats->getRoadSegment();
 	if (startPos >= mid && mid >= endPos){
-		rdSeg->getParentConflux()->incrementSegmentFlow(rdSeg);
+		rdSeg->getParentConflux()->incrementSegmentFlow(rdSeg, segStats->getPositionInRoadSegment());
 	}
 }
 
@@ -891,17 +893,17 @@ double DriverMovement::getInitialQueueLength(const Lane* lane) {
 	return getParent()->getCurrSegStats()->getInitialQueueCount(lane) * vehicleLength;
 }
 
-void DriverMovement::insertIncident(const RoadSegment* rdSeg, double newFlowRate) {
-	const vector<Lane*> lanes = rdSeg->getLanes();
+void DriverMovement::insertIncident(sim_mob::SegmentStats* segStats, double newFlowRate) {
+	const vector<Lane*>& lanes = segStats->getRoadSegment()->getLanes();
 	for (vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++) {
-		rdSeg->getParentConflux()->updateLaneParams((*it), newFlowRate);
+		segStats->updateLaneParams((*it), newFlowRate);
 	}
 }
 
-void DriverMovement::removeIncident(const RoadSegment* rdSeg) {
-	const vector<Lane*> lanes = rdSeg->getLanes();
+void DriverMovement::removeIncident(sim_mob::SegmentStats* segStats) {
+	const vector<Lane*>& lanes = segStats->getRoadSegment()->getLanes();
 	for (vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++){
-		rdSeg->getParentConflux()->restoreLaneParams(*it);
+		segStats->restoreLaneParams(*it);
 	}
 }
 

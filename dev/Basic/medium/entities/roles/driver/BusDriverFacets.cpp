@@ -21,9 +21,9 @@ void initSegStatsPath(vector<const sim_mob::RoadSegment*>& rsPath,
 	for (vector<const sim_mob::RoadSegment*>::iterator it = rsPath.begin();
 			it != rsPath.end(); it++) {
 		const sim_mob::RoadSegment* rdSeg = *it;
-		const sim_mob::SegmentStats* segStats =
+		const vector<sim_mob::SegmentStats*>& statsInSegment =
 				rdSeg->getParentConflux()->findSegStats(rdSeg);
-		ssPath.push_back(segStats);
+		ssPath.insert(ssPath.end(), statsInSegment.begin(), statsInSegment.end());
 	}
 }
 }

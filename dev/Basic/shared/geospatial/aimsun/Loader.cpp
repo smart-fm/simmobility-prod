@@ -4,12 +4,13 @@
 
 #include "Loader.hpp"
 
-#include <iostream> // TODO: Remove this when debugging is done ~ Harish
-#include <set>
-#include <vector>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <map>
+#include <set>
 #include <stdexcept>
+#include <vector>
 
 //NOTE: CMake should put the correct -I flags in for SOCI; be aware that some distros hide it though.
 #include <soci.h>
@@ -87,7 +88,8 @@ using std::multimap;
 
 
 namespace {
-
+const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
+const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * PASSENGER_CAR_UNIT; // 5 times a car's length
 
 class DatabaseLoader : private boost::noncopyable {
 public:
@@ -1645,21 +1647,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 			CrossingLoader::GenerateACrossing(res, it->second, *i2->first, i2->second);
 		}
 	}
-//	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
-//		Node origin = (*it).second;
-//		for (vector<Section*>::iterator it_sec=origin.sectionsAtNode.begin(); it_sec!=origin.sectionsAtNode.end(); it_sec++) {
-//			sim_mob::RoadSegment ** it_seg = &((*it_sec)->generatedSegment);
-//			if(!(((*it_seg)->getSegmentID() == 100001005)||((*it_seg)->getSegmentID() == 100001004))) continue;
-//			for(std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>::iterator it_obs = (*it_seg)->obstacles.begin(); it_obs != (*it_seg)->obstacles.end(); it_obs++)
-//					{
-//						const sim_mob::Crossing * cr = dynamic_cast<const sim_mob::Crossing *>((*it_obs).second);
-//						if((cr))
-//						{
-//							std::cout << "SaveSimMobilityNetwork::Segment " << (*it_seg) << "  " << (*it_seg)->getSegmentID() << " has crossing = " << cr->getCrossingID() <<  "  " << cr << " BTW: obstacle size = " << (*it_seg)->obstacles.size() << std::endl;
-//						}
-//					}
-//		}
-//	}
+
 	//Prune lanes and figure out where the median is.
 	// TODO: This should eventually allow other lanes to be designated too.
 	LaneLoader::GenerateLinkLanes(res, nodes_, sections_);
@@ -2630,6 +2618,7 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
  */
 // TODO: Remove debug messages
 void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw) {
+	int numSplitSegments = 0;
 	std::stringstream debugMsgs(std::stringstream::out);
 	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
 	const sim_mob::MutexStrategy& mtxStrat = ConfigManager::GetInstance().FullConfig().mutexStategy();
@@ -2678,13 +2667,108 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 						{
 							// assign only if not already assigned
 							rdSeg->parentConflux = conflux;
-							SegmentStats* segStats = new SegmentStats(rdSeg, rdSeg->getLaneZeroLength());
-							conflux->segmentAgents.insert(std::make_pair(rdSeg, segStats));
-							upSegStatsList.push_back(segStats);
+							std::vector<double> splitSegmentLengths;
+							const std::map<centimeter_t, const RoadItem*>& obstacles = rdSeg->obstacles;
+							double lengthCoveredInSeg = 0, segStatLength;
+							double rdSegmentLength = rdSeg->getLaneZeroLength();
+							// if there are bus stops in the road segment, we must create multiple segment stats
+							// for this segment so that each bus stop is at the *end* of some segment stats
+							// NOTE: we may have to adjust the position of the stops so as to avoid short segments
+							// NOTE: std::map implements strict weak ordering which defaults to less<key_type>
+							// This is precisely the order in which we want to iterate the stops to create SegmentStats
+							for(std::map<centimeter_t, const RoadItem*>::const_iterator obsIt = obstacles.begin();
+									obsIt != obstacles.end(); obsIt++) {
+								const sim_mob::BusStop* busStop = dynamic_cast<const sim_mob::BusStop*>(obsIt->second);
+								if(busStop) {
+									double stopOffset = obsIt->first;
+									if(stopOffset <= 0) {
+										debugMsgs<<"error in stop offset data"
+												<<"|seg: "<<rdSeg->getStartEnd()
+												<<"|busstop: "<<busStop->getBusstopno_()
+												<<"|stopOffset: "<<stopOffset
+												<<"\n\tmanually pushing this stop to end of segment"
+												<<std::endl;
+										Print()<<debugMsgs.str();
+										debugMsgs.str(std::string());
+										splitSegmentLengths.push_back(rdSegmentLength);
+										lengthCoveredInSeg = rdSegmentLength;
+										break; //there *should* be no more bus stops in this segment. skipping other stops, if any
+									}
+									if(stopOffset < lengthCoveredInSeg) {
+										debugMsgs<<"bus stops are iterated in wrong order"
+												<<"|seg: "<<rdSeg->getStartEnd()
+												<<"|seg length: "<<rdSegmentLength
+												<<"|curr busstop offset: "<<obsIt->first
+												<<"|prev busstop offset: "<<lengthCoveredInSeg
+												<<"|busstop: " << busStop->getBusstopno_()
+												<<std::endl;
+										throw std::runtime_error(debugMsgs.str());
+									}
+									if(rdSegmentLength <= stopOffset) {
+										//this is probably due to error in data and needs manual fixing
+										segStatLength = rdSegmentLength - lengthCoveredInSeg;
+										lengthCoveredInSeg = rdSegmentLength;
+										splitSegmentLengths.push_back(segStatLength);
+										break; //there can be no more bus stops in this segment.
+									}
+									segStatLength = stopOffset - lengthCoveredInSeg;
+									lengthCoveredInSeg = stopOffset;
+									splitSegmentLengths.push_back(segStatLength);
+								}
+							}
+							if(!splitSegmentLengths.empty()) { // if there are stops in the segment
+								//another segment stats has to be created for the remaining length.
+								//adjust the length of the last segment stats if the remaining length is short
+								double remainingSegmentLength = rdSegmentLength - lengthCoveredInSeg;
+								if(remainingSegmentLength >= SHORT_SEGMENT_LENGTH_LIMIT) {
+									splitSegmentLengths.push_back(remainingSegmentLength);
+								}
+								else {
+									// if the remaining length creates a short segment, add this length to the last segment stats
+									remainingSegmentLength = splitSegmentLengths.back() + remainingSegmentLength;
+									splitSegmentLengths.pop_back();
+									splitSegmentLengths.push_back(remainingSegmentLength);
+								}
+
+								// similarly, if there are only 2 lengths in the list (1 bus stop)
+								// and if either of the first and second length is short,
+								// merge the lengths and avoid splitting
+								if(splitSegmentLengths.size() == 2
+										&& (splitSegmentLengths.front() < SHORT_SEGMENT_LENGTH_LIMIT
+												|| splitSegmentLengths.back() < SHORT_SEGMENT_LENGTH_LIMIT)) {
+									splitSegmentLengths.clear();
+									splitSegmentLengths.push_back(rdSegmentLength);
+								}
+								uint8_t statsNum = 1;
+								// stops are there in the segment. Create a SegmentStats object for each stop
+								for(std::vector<double>::iterator statLenIt = splitSegmentLengths.begin();
+										statLenIt != splitSegmentLengths.end(); statLenIt++) {
+									double statsLen = (*statLenIt);
+									SegmentStats* segStats = new SegmentStats(rdSeg, statsLen, statsNum);
+									conflux->segmentAgents[rdSeg].push_back(segStats);
+									upSegStatsList.push_back(segStats);
+									statsNum++;
+									Print() <<"SegStats created: "<<segStats
+											<<"|Segment: "<<rdSeg->getStartEnd()
+											<<"|conflux: "<<conflux->getMultiNode()->getID()
+											<<"|seg length: "<<rdSegmentLength
+											<<"|segstats length: "<<segStats->getLength()
+											<<std::endl;
+									numSplitSegments++;
+								}
+								Print() <<"~~~~~~~~~~~~~"<<std::endl;
+							}
+							else {
+								// no bus stop in segment. Create a single SegmentStats object for this segment
+								SegmentStats* segStats = new SegmentStats(rdSeg, rdSegmentLength);
+								conflux->segmentAgents[rdSeg].push_back(segStats);
+								upSegStatsList.push_back(segStats);
+							}
 						}
 						else if(rdSeg->parentConflux != conflux)
 						{
-							debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for segment " << rdSeg->getStartEnd()<< std::endl;
+							debugMsgs<<"\nProcessConfluxes\tparentConflux is being re-assigned for segment "
+									<<rdSeg->getStartEnd()<<std::endl;
 							throw std::runtime_error(debugMsgs.str());
 						}
 					}
@@ -2704,6 +2788,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 		confluxes.insert(conflux);
 		multinode_confluxes.insert(std::make_pair(*i, conflux));
 	} // end for each multinode
+	Print()<<"numSplitSegments: "<<numSplitSegments<<std::endl;
 }
 
 sim_mob::BusStopFinder::BusStopFinder(const Node* src, const Node* dest)

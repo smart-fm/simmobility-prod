@@ -180,11 +180,11 @@ public:
 	 * update flow of segment
 	 * \note should be changed to update the flow of segment stats
 	 *
-	 * @param rdSeg segment whose flow is to be updated
+	 * @param segStats segment stats whose flow is to be updated
 	 * @param startPos position of driver at the start of the tick
 	 * @param endPos final position of driver
 	 */
-	void updateFlow(const RoadSegment* rdSeg, double startPos, double endPos);
+	void updateFlow(const sim_mob::SegmentStats* segStats, double startPos, double endPos);
 
 	/**
 	 * constructs the path for this driver if required.
@@ -246,7 +246,7 @@ protected:
 	 * @param nextSegStats next segment stats
 	 * @param nextToNextSegStats second segment stats ahead from the current
 	 */
-	const sim_mob::Lane* getBestTargetLane(const SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats);
+	const sim_mob::Lane* getBestTargetLane(const sim_mob::SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats);
 
 	//Note: insert and remove incident functions should probably be in Confluxes. To be updated when actual incident functionality is implemented.
 	/**
@@ -255,14 +255,14 @@ protected:
 	 * @param rdSeg roadSegment to insert incident
 	 * @param newFlowRate new flow rate to be updated
 	 */
-	void insertIncident(const RoadSegment* rdSeg, double newFlowRate);
+	void insertIncident(sim_mob::SegmentStats* segStats, double newFlowRate);
 
 	/**
 	 * Removes a previously inserted incident by restoring the flow rate of each lane of a road segment to normal values
 	 *
-	 * @param rdSeg road segment to remove incident
+	 * @param segStats road segment stats to remove incident
 	 */
-	void removeIncident(const RoadSegment* rdSeg);
+	void removeIncident(sim_mob::SegmentStats* segStats);
 
 	/**
 	 * Updates travel time for this driver for the link which he has just exited from.

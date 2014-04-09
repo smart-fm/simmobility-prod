@@ -156,6 +156,7 @@ protected:
 	typedef std::deque<sim_mob::Person*> PersonList;
 	typedef std::map<const sim_mob::Lane*, sim_mob::LaneStats* > LaneStatsMap;
 	const sim_mob::RoadSegment* roadSegment;
+	uint8_t positionInRoadSegment; //segment can have multiple segment stats. This gives the position of this SegmentStats in segment.
 	LaneStatsMap laneStatsMap;
 	std::map<const sim_mob::Lane*, sim_mob::Person* > frontalAgents;
 	double length;
@@ -169,7 +170,7 @@ protected:
 	unsigned int numPersons;
 
 public:
-	SegmentStats(const sim_mob::RoadSegment* rdSeg, double length);
+	SegmentStats(const sim_mob::RoadSegment* rdSeg, double length, uint8_t statNum = 1);
 	~SegmentStats();
 
 	enum VehicleType {
@@ -242,6 +243,10 @@ public:
 
 	unsigned int getNumPersons() const {
 		return numPersons;
+	}
+
+	uint8_t getPositionInRoadSegment() const {
+		return positionInRoadSegment;
 	}
 
 	/**

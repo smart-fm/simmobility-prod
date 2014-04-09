@@ -51,7 +51,7 @@ private:
 	typedef std::vector<sim_mob::SegmentStats*> SegmentStatsList;
 	typedef std::map<sim_mob::Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
 	typedef std::map<sim_mob::Link*, PersonList> VirtualQueueMap;
-	typedef std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> SegmentStatsMap;
+	typedef std::map<const sim_mob::RoadSegment*, SegmentStatsList> SegmentStatsMap;
 
 	/**
 	 *  MultiNode (intersection) around which this conflux is constructed
@@ -90,7 +90,7 @@ private:
 	std::set<const sim_mob::RoadSegment*> downstreamSegments;
 
 	/**
-	 *  Map which stores the SegmentStats for all road segments on upstream links
+	 *  Map which stores the list of SegmentStats for all road segments on upstream links
 	 *  The Segment stats in-turn contain LaneStats which contain the persons.
 	 */
 	SegmentStatsMap segmentAgents;
@@ -255,17 +255,27 @@ public:
 	 */
 	void addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* rdSeg);
 
-	/**Searches upstream and downstream segments to get the segmentStats for the requested road segment*/
-	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg);
+	/**
+	 * Searches upstream segments to get the segmentStats for the requested road segment
+	 * @param rdSeg road segment corresponding to the stats to be found
+	 * @param statsNum position of the requested stats in the segment
+	 * @return segment stats
+	 */
+	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg, uint8_t statsNum);
+
+	/**
+	 * returns the list of segment stats corresponding to a road segment
+	 * @param rdSeg segment for which the stats list is required
+	 * @return constant list of segment stats corresponding to this segment
+	 */
+	const std::vector<sim_mob::SegmentStats*>& findSegStats(const sim_mob::RoadSegment* rdSeg);
 
 	/**
 	 * supply params related functions
 	 */
 	double getSegmentSpeed(SegmentStats* segStats, bool hasVehicle) const;
 	void resetPositionOfLastUpdatedAgentOnLanes();
-	void updateLaneParams(const Lane* lane, double newOutFlowRate);
-	void restoreLaneParams(const Lane* lane);
-	void incrementSegmentFlow(const RoadSegment* rdSeg);
+	void incrementSegmentFlow(const RoadSegment* rdSeg, uint8_t statsNum);
 	void resetSegmentFlows();
 
 	/** updates lane params for all lanes within the conflux */
@@ -311,8 +321,6 @@ public:
 	bool insertTravelTime2TmpTable(timeslice frameNumber,
 			std::map<const RoadSegment*, sim_mob::Conflux::rdSegTravelTimes>& rdSegTravelTimesMap);
 	//================ end of road segment travel time computation ========================
-
-	double getPositionOfLastUpdatedAgentInLane(const Lane* lane);
 
 	/**
 	 * returns the time to reach the end of the link from a road segment on that

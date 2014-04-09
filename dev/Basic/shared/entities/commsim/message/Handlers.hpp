@@ -51,17 +51,20 @@ class ObsoleteHandler : public Handler {
 	}
 };
 
+///A handler that informs us the Broker has made a mistake.
+class BrokerErrorHandler : public Handler {
+	virtual ~BrokerErrorHandler() {}
+	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const {
+		throw std::runtime_error("ERROR: Broker-specific message was passed on to the Handlers array (these messages must not be pended).");
+	}
+};
+
 class RemoteLogHandler : public Handler {
 public:
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
 };
 
 class RerouteRequestHandler : public Handler {
-public:
-	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
-};
-
-class NewClientHandler : public Handler {
 public:
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
 };

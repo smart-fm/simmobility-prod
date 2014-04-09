@@ -22,12 +22,14 @@
 sim_mob::HandlerLookup::HandlerLookup() 
 {
 	//Register all known handlers.
-	defaultHandlerMap["id_response"] = new sim_mob::NullHandler();
 	defaultHandlerMap["id_ack"] = new sim_mob::NullHandler();
-	defaultHandlerMap["new_client"] = new sim_mob::NewClientHandler();
-	defaultHandlerMap["ticked_client"] = new sim_mob::NullHandler();
 	defaultHandlerMap["reroute_request"] = new sim_mob::RerouteRequestHandler();
 	defaultHandlerMap["remote_log"] = new sim_mob::RemoteLogHandler();
+
+	//These should always be handled by the Broker
+	defaultHandlerMap["new_client"] = new sim_mob::BrokerErrorHandler();
+	defaultHandlerMap["ticked_client"] = new sim_mob::BrokerErrorHandler();
+	defaultHandlerMap["id_response"] = new sim_mob::BrokerErrorHandler();
 
 	//Help avoid common errors with old message types.
 	defaultHandlerMap["MULTICAST"] = new sim_mob::ObsoleteHandler();
@@ -107,12 +109,6 @@ void sim_mob::RerouteRequestHandler::handle(boost::shared_ptr<ConnectionHandler>
 	sim_mob::messaging::MessageBus::PublishEvent(sim_mob::event::EVT_CORE_COMMSIM_REROUTING_REQUEST,
 		agentHandle->agent, sim_mob::messaging::MessageBus::EventArgsPtr(new sim_mob::event::ReRouteEventArgs(rmMsg.blacklistRegion))
 	);
-}
-
-void sim_mob::NewClientHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const
-{
-	//Query this agent's ID; tell the Broker that we are expecting a reply.
-	sim_mob::WhoAreYouProtocol::QueryAgentAsync(handler, *broker);
 }
 
 

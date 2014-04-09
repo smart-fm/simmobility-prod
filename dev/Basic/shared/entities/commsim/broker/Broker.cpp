@@ -13,6 +13,7 @@
 #include "workers/Worker.hpp"
 
 #include "entities/commsim/connection/ConnectionHandler.hpp"
+#include "entities/commsim/connection/WhoAreYouProtocol.hpp"
 #include "entities/commsim/client/ClientHandler.hpp"
 
 #include "entities/commsim/wait/WaitForAndroidConnection.hpp"
@@ -141,8 +142,10 @@ void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnn
 				Print() << "connection [" <<&(*cnnHandler) << "] DONE\n";
 			}
 
-
 			COND_VAR_CLIENT_DONE.notify_one();
+		} else if (mb.msg_type == "new_client") {
+			//Send out an immediate message query; don't pend the outgoing message.
+			WhoAreYouProtocol::QueryAgentAsync(cnnHandler, *this);
 		} else if (mb.msg_type == "id_response") {
 			IdResponseMessage msg = CommsimSerializer::parseIdResponse(conglom, i);
 
@@ -413,7 +416,7 @@ void sim_mob::Broker::processIncomingData(timeslice now) {
 			MessageBase mb = msgTuple.conglom.getBaseMessage(i);
 
 			//Certain message types have already been handled.
-			if (mb.msg_type=="ticked_client" || mb.msg_type=="id_response") {
+			if (mb.msg_type=="ticked_client" || mb.msg_type=="id_response" || mb.msg_type=="new_client") {
 				continue;
 			}
 

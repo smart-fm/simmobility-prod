@@ -296,11 +296,7 @@ public:
 	sim_mob::MutexStrategy& mutexStategy();
 	const sim_mob::MutexStrategy& mutexStategy() const;
 	//Communication Simulator accessors and configurators
-	bool& commSimEnabled();
-	const bool& commSimEnabled() const;
-	const std::map<std::string, sim_mob::SimulationParams::CommsimElement> &getCommSimElements() const;
-	const std::string& getCommSimMode(std::string name)const;
-	bool commSimmEnabled(std::string &name);
+	bool commSimEnabled() const;
 
 	DailyTime& simStartTime();
 	const DailyTime& simStartTime() const;

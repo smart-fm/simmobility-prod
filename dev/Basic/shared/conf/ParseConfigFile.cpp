@@ -583,9 +583,14 @@ void sim_mob::ParseConfigFile::ProcessSystemNode(DOMElement* node)
 	ProcessSystemXmlSchemaFilesNode(GetSingleElementByName(node, "xsd_schema_files", true));
 	ProcessSystemGenericPropsNode(GetSingleElementByName(node, "generic_props"));
 
-	//Warn against using the old field name for xml_file.
+	//Warn against using the old network file name for xml_file.
 	if (GetSingleElementByName(node, "network_xml_file", false)) {
-		throw std::runtime_error("Using old parameter: \"network_xml_file\"; please change it to \"network_xml_file_input.\"");
+		throw std::runtime_error("Using old parameter: \"network_xml_file\"; please change it to \"network_xml_file_input\".");
+	}
+
+	//Warn against the old workgroup sizes field.
+	if (GetSingleElementByName(node, "workgroup_sizes", false)) {
+		throw std::runtime_error("Using old parameter: \"workgroup_sizes\"; please change review the new \"workers\" field.");
 	}
 }
 
@@ -893,7 +898,12 @@ void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* 
 	ProcessSystemLoadAgentsOrderNode(GetSingleElementByName(node, "load_agents"));
 	cfg.system.simulation.startingAutoAgentID = ProcessValueInteger2(GetSingleElementByName(node, "auto_id_start"), 0);
 	ProcessSystemMutexEnforcementNode(GetSingleElementByName(node, "mutex_enforcement"));
-	ProcessSystemCommunicationNode(GetSingleElementByName(node, "communication"));
+	ProcessSystemCommsimNode(GetSingleElementByName(node, "commsim"));
+
+	//Warn against the old communication format.
+	if (GetSingleElementByName(node, "communication", false)) {
+		throw std::runtime_error("Using old parameter: \"communication\"; please review the new \"XXX\" format.");
+	}
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemWorkersNode(xercesc::DOMElement* node)
@@ -992,6 +1002,10 @@ unsigned int sim_mob::ParseConfigFile::ProcessTimegranUnits(xercesc::DOMElement*
 	return ParseTimegranAsMs(GetNamedAttributeValue(node, "value"), GetNamedAttributeValue(node, "units"));
 }
 
+bool sim_mob::ParseConfigFile::ProcessValueBoolean(xercesc::DOMElement* node)
+{
+	return ParseBoolean(GetNamedAttributeValue(node, "value"));
+}
 
 int sim_mob::ParseConfigFile::ProcessValueInteger(xercesc::DOMElement* node)
 {
@@ -1048,20 +1062,18 @@ void sim_mob::ParseConfigFile::ProcessSystemMutexEnforcementNode(xercesc::DOMEle
 	cfg.system.simulation.mutexStategy = ParseMutexStrategyEnum(GetNamedAttributeValue(node, "strategy"), MtxStrat_Buffered);
 }
 
-void sim_mob::ParseConfigFile::ProcessSystemCommunicationNode(xercesc::DOMElement* node)
+void sim_mob::ParseConfigFile::ProcessSystemCommsimNode(xercesc::DOMElement* node)
 {
 	if (!node) { return; }
-	if(!(cfg.system.simulation.commSimEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled")))) {
-		return;
-	}
-	//We use the existing "element child" functions, it's significantly slower to use "getElementsByTagName()"
-	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
-		SimulationParams::CommsimElement element;
-		element.name = ParseString(item->getNodeName());
-		element.mode = ParseString(GetNamedAttributeValue(item, "mode"));
-		element.enabled = ParseBoolean(GetNamedAttributeValue(item, "enabled"));
-		cfg.system.simulation.commsimElements[element.name] = element;
-	}
+
+	//Enabled?
+	cfg.system.simulation.commsim.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+
+	//Minimum clients
+	cfg.system.simulation.commsim.minClients = ProcessValueInteger(GetSingleElementByName(node, "min_clients", true));
+
+	//Use ns-3 for routing?
+	cfg.system.simulation.commsim.useNs3 = ProcessValueBoolean(GetSingleElementByName(node, "use_ns3", true));
 }
 
 void sim_mob::ParseConfigFile::ProcessWorkerPersonNode(xercesc::DOMElement* node)

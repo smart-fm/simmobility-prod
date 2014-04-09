@@ -18,7 +18,6 @@
 #include "entities/commsim/message/Handlers.hpp"
 #include "entities/commsim/message/ThreadSafeQueue.hpp"
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
-#include "entities/commsim/wait/WaitForAgentRegistration.hpp"
 #include "entities/commsim/wait/WaitForAndroidConnection.hpp"
 #include "entities/commsim/wait/WaitForNS3Connection.hpp"
 #include "entities/commsim/connection/ConnectionServer.hpp"
@@ -106,7 +105,7 @@ public:
  */
 class Broker : public sim_mob::Agent, public sim_mob::BrokerBase {
 public:
-	explicit Broker(const MutexStrategy& mtxStrat, int id=-1, std::string commElement_ = "", std::string commMode_ = "");
+	explicit Broker(const MutexStrategy& mtxStrat, int id=-1);
 	virtual ~Broker();
 
 	//Known client types: android, ns-3, by ID string.
@@ -186,11 +185,6 @@ protected:
 	///Lookup for message handlers by type.
 	HandlerLookup handleLookup;
 
-	///the external communication entity that is using this broker as interface to from simmobility
-	std::string commElement; //"roadrunner", "stk",...etc
-	std::string commMode;    //android-only, android-ns3,...etc
-
-
 	///List of (Sim Mobility) Agents that have registered themselves with the Broker.
 	///THREADING: The "AgentInfo::done" parameter is accessed in parallel, as each Agent updates. Make sure to lock it with mutex_AgentDone
 	std::map<const Agent*, AgentInfo> registeredAgents;
@@ -238,9 +232,6 @@ protected:
 
 	WaitForAndroidConnection waitAndroidBlocker;
 	WaitForNS3Connection waitNs3Blocker;
-
-	///	container for classes who evaluate wait-for-connection criteria for simmobility agents
-	WaitForAgentRegistration waitAgentBlocker;
 
 	//various controlling mutexes and condition variables
 	boost::mutex mutex_clientList;

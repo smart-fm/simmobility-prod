@@ -207,7 +207,7 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 	//regionAndPathTracker.reset();
 
 	//Register for commsim messages, if applicable.
-	if (!commEventRegistered && ConfigManager::GetInstance().XmlConfig().system.simulation.commSimEnabled) {
+	if (!commEventRegistered && ConfigManager::GetInstance().XmlConfig().system.simulation.commsim.enabled) {
 		commEventRegistered = true;
 		messaging::MessageBus::SubscribeEvent(
 			sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,

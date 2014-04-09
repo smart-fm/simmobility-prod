@@ -291,26 +291,15 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	signalStatusWorkers->initWorkers(nullptr);
 	communicationWorkers->initWorkers(nullptr);
 
-	if(ConfigManager::GetInstance().FullConfig().commSimEnabled())
-	{
-		const std::map<std::string,sim_mob::SimulationParams::CommsimElement> & elements =
-				ConfigManager::GetInstance().FullConfig().getCommSimElements();
-		std::map<std::string,sim_mob::SimulationParams::CommsimElement>::const_iterator it = elements.begin();
-		for(; it != elements.end(); it++){
-			//todo: to be automated later,(if required at all)
-			if(!(it->second.enabled)) {
-				continue;
-			}
-			Broker *broker =  nullptr;
-			if(it->first == "roadrunner") {
-				broker = new sim_mob::Broker(MtxStrat_Locked, 0, it->second.name, it->second.mode);
-			} else if(it->first == "stk") {
-				broker = new sim_mob::Broker(MtxStrat_Locked, 0, it->second.name, it->second.mode);
-			}
-
-			Broker::SetSingleBroker(broker);
-			communicationWorkers->assignAWorker(broker);
-		}
+	//If commsim is enabled, start the Broker.
+	if(ConfigManager::GetInstance().FullConfig().commSimEnabled()) {
+		//NOTE: I am fairly sure that MtxStrat_Locked is the wrong mutex strategy. However, Broker doesn't
+		//      register any buffered properties (except x/y, which Agent registers), and it never updates these.
+		//      I am changing this back to buffered; if this runs smoothly for a while, then you can remove this comment. ~Seth
+		//NOTE: I am also changing the Agent ID; manually specifying it as 0 is dangerous.
+		Broker *broker =  new sim_mob::Broker(MtxStrat_Buffered);
+		Broker::SetSingleBroker(broker);
+		communicationWorkers->assignAWorker(broker);
 	}
 
 

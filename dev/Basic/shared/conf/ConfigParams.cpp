@@ -339,37 +339,20 @@ const sim_mob::MutexStrategy& sim_mob::ConfigParams::mutexStategy() const
 	return system.simulation.mutexStategy;
 }
 
-bool& sim_mob::ConfigParams::commSimEnabled()
+bool sim_mob::ConfigParams::commSimEnabled() const
 {
-	return system.simulation.commSimEnabled;
-}
-const bool& sim_mob::ConfigParams::commSimEnabled() const
-{
-	return system.simulation.commSimEnabled;
+	return system.simulation.commsim.enabled;
 }
 
-const std::map<std::string,sim_mob::SimulationParams::CommsimElement> &sim_mob::ConfigParams::getCommSimElements() const{
-	return system.simulation.commsimElements;
-}
 
-const std::string& sim_mob::ConfigParams::getCommSimMode(std::string name) const{
+/*const std::string& sim_mob::ConfigParams::getCommSimMode(std::string name) const{
 	if(system.simulation.commsimElements.find(name) != system.simulation.commsimElements.end()){
 		return system.simulation.commsimElements.at(name).mode;
 	}
 	std::ostringstream out("");
 	out << "Unknown Communication Simulator : " << name ;
 	throw std::runtime_error(out.str());
-}
-
-bool sim_mob::ConfigParams::commSimmEnabled(std::string &name) {
-	if(system.simulation.commsimElements.find(name) != system.simulation.commsimElements.end()){
-		return system.simulation.commsimElements[name].enabled;
-	}
-	std::ostringstream out("");
-	out << "Unknown Communication Simulator : " << name ;
-	throw std::runtime_error(out.str());
-}
-
+}*/
 
 DailyTime& sim_mob::ConfigParams::simStartTime()
 {

@@ -17,7 +17,6 @@
 
 #include "entities/commsim/wait/WaitForAndroidConnection.hpp"
 #include "entities/commsim/wait/WaitForNS3Connection.hpp"
-#include "entities/commsim/wait/WaitForAgentRegistration.hpp"
 
 #include "event/SystemEvents.hpp"
 #include "event/args/EventArgs.hpp"
@@ -30,13 +29,6 @@
 
 using namespace sim_mob;
 
-namespace {
-///Some control parameters.
-const unsigned int MIN_CLIENTS = 1; //minimum number of registered clients(not waiting list)
-const unsigned int MIN_AGENTS = 1;  //minimum number of registered agents
-} //End un-named namespace.
-
-
 BrokerBase* sim_mob::Broker::single_broker(nullptr);
 
 const std::string sim_mob::Broker::ClientTypeAndroid = "android";
@@ -45,8 +37,8 @@ const std::string sim_mob::Broker::ClientTypeNs3 = "ns-3";
 const unsigned int sim_mob::Broker::EventNewAndroidClient = 95000;
 
 
-sim_mob::Broker::Broker(const MutexStrategy& mtxStrat, int id, std::string commElement, std::string commMode) :
-		Agent(mtxStrat, id), commElement(commElement), commMode(commMode), numAgents(0), connection(*this)
+sim_mob::Broker::Broker(const MutexStrategy& mtxStrat, int id) :
+		Agent(mtxStrat, id), numAgents(0), connection(*this)
 {
 	//Various Initializations
 	configure();
@@ -94,22 +86,14 @@ void sim_mob::Broker::configure()
 	//registrationPublisher.registerEvent(comm::NS3_SIMULATOR);
 
 	//Dispatch differently depending on whether we are using "android-ns3" or "android-only"
-	std::string client_type = ConfigManager::GetInstance().FullConfig().getCommSimMode(commElement);
-	bool useNs3 = false;
-	if (client_type == "android-ns3") {
-		useNs3 = true;
-	} else if (client_type == "android-only") {
-		useNs3 = false;
-	} else { throw std::runtime_error("Unknown clientType in Broker."); }
-
+	bool useNs3 = ConfigManager::GetInstance().FullConfig().system.simulation.commsim.useNs3;
 
 	//Register handlers with "useNs3" flag. OpaqueReceive will throw an exception if it attempts to process a message and useNs3 is not set.
 	handleLookup.addHandlerOverride("opaque_send", new sim_mob::OpaqueSendHandler(useNs3));
 	handleLookup.addHandlerOverride("opaque_receive", new sim_mob::OpaqueReceiveHandler(useNs3));
 
 	//We always wait for MIN_CLIENTS Android emulators and MIN_CLIENTS Agents (and optionally, 1 ns-3 client).
-	waitAndroidBlocker.reset(MIN_CLIENTS);
-	waitAgentBlocker.reset(MIN_AGENTS);
+	waitAndroidBlocker.reset(ConfigManager::GetInstance().FullConfig().system.simulation.commsim.minClients);
 	waitNs3Blocker.reset(useNs3?1:0);
 }
 
@@ -495,9 +479,8 @@ void sim_mob::Broker::onAndroidClientRegister(sim_mob::event::EventId id, sim_mo
 {
 	boost::shared_ptr<ClientHandler>clientHandler = argums.client;
 
-	//if we are operating on android-ns3 set up, each android client registration should be brought to ns3's attention
-	//TODO: We should keep the "useNs3" flag instead of checking the config file every time.
-	if (ConfigManager::GetInstance().FullConfig().getCommSimMode(commElement) != "android-ns3") {
+	//If we are operating on android-ns3 set up, each android client registration should be brought to ns3's attention
+	if (!ConfigManager::GetInstance().FullConfig().system.simulation.commsim.useNs3) {
 		return;
 	}
 
@@ -627,7 +610,7 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 //returns true if you need to wait
 bool sim_mob::Broker::checkAllBrokerBlockers()
 {
-	bool pass = waitAgentBlocker.pass(*this) && waitAndroidBlocker.pass(*this) && waitNs3Blocker.pass(*this);
+	bool pass = waitAndroidBlocker.pass(*this) && waitNs3Blocker.pass(*this);
 	if (!pass && EnableDebugOutput) {
 		Print() <<"BrokerBlocker is causing simulator to wait.\n";
 	}

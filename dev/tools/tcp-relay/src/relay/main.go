@@ -138,9 +138,9 @@ func handle_connection(params *NetData, localconn Connection, firstTime bool, to
 		fmt.Println("Opening remote connection.")
 		go connect_and_distribute(params)
 	} else {
-		//Inject a "NEW_CLIENT" message here, which instructs the server to send a WHOAREYOU message.
+		//Inject a "new_client" message here, which instructs the server to send a WHOAREYOU message.
 		fmt.Println("New local connection on existing remote connection: " , totalConn) 
-		new_cli_msg := "      71{\"PACKET_HEADER\":{\"NOF_MESSAGES\":\"1\"},\"DATA\":[{\"MESSAGE_TYPE\":\"NEW_CLIENT\",\"SENDER\":\"0\",\"SENDER_TYPE\":\"RELAY\"}]}\n"
+		new_cli_msg := "\x01\x01\x01\x01\x00\x00\x00\x1E" + "00" + "\x00\x00\x19" + "{\"msg_type\":\"new_client\"}"  //v1 format
 		params.outgoing <- new_cli_msg
 	}
 

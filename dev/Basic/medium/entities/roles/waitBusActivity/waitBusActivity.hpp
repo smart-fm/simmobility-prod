@@ -13,12 +13,14 @@ namespace sim_mob
 
 class Agent;
 class Person;
+class BusStop;
 
 namespace medium
 {
 
 class WaitBusActivityBehavior;
 class WaitBusActivityMovement;
+
 
 /**
  * A medium-term WaitBusActivity.
@@ -38,12 +40,15 @@ public:
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() { throw std::runtime_error("getSubscriptionParams not implemented in WaitBusActivity."); }
 
 	void increaseWaitingTime(unsigned int ms);
+	void setStopSite(sim_mob::BusStop* stop);
 
 private:
 	friend class WaitBusActivityBehavior;
 	friend class WaitBusActivityMovement;
 
 	unsigned int waitingTimeAtBusStop;
+
+	BusStop* stopSite;
 };
 
 

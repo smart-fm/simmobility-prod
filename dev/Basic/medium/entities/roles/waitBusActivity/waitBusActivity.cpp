@@ -7,6 +7,7 @@
 #include "waitBusActivity.hpp"
 #include "waitBusActivityFacets.hpp"
 #include "entities/Person.hpp"
+#include "geospatial/BusStop.hpp"
 
 using std::vector;
 using namespace sim_mob;
@@ -18,7 +19,7 @@ namespace medium {
 sim_mob::medium::WaitBusActivity::WaitBusActivity(Agent* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::WaitBusActivityBehavior* behavior,
 		sim_mob::medium::WaitBusActivityMovement* movement) :
-		sim_mob::Role(behavior, movement, parent, "WaitBusActivity_"),waitingTimeAtBusStop(0){
+		sim_mob::Role(behavior, movement, parent, "WaitBusActivity_"),waitingTimeAtBusStop(0),stopSite(nullptr){
 
 }
 
@@ -36,6 +37,9 @@ void sim_mob::medium::WaitBusActivity::increaseWaitingTime(unsigned int ms){
 	waitingTimeAtBusStop += ms;
 }
 
+void sim_mob::medium::WaitBusActivity::setStopSite(sim_mob::BusStop* stop){
+	stopSite = stop;
+}
 
 }
 

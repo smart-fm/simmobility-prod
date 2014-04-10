@@ -6,8 +6,10 @@
  */
 
 #include "waitBusActivityFacets.hpp"
+#include "waitBusActivity.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "geospatial/BusStop.hpp"
 
 namespace sim_mob {
 
@@ -44,8 +46,8 @@ void WaitBusActivityBehavior::setParentWaitBusActivity(sim_mob::medium::WaitBusA
 }
 
 void WaitBusActivityMovement::frame_init(){
-
 	totalTimeToCompleteMS = 0;
+	sim_mob::SubTrip& subTrip = *(getParent()->currSubTrip);
 }
 
 void WaitBusActivityMovement::frame_tick()

@@ -82,7 +82,14 @@ namespace sim_mob {
              */
             void deleteBidsCounter(const BigSerial& unitId);
 
+            /**
+             * Picks a new market entry to bid.
+             * @return HousingMarket::Entry const pointer or nullptr. 
+             */
+            const HousingMarket::Entry* pickEntryToBid() const;
+
         private:
+            const HousingMarket::Entry* biddingEntry;
             volatile bool waitingForResponse;
             timeslice lastTime;
             bool bidOnCurrentDay;

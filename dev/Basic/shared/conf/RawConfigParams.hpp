@@ -134,7 +134,8 @@ public:
 		bool enabled;
 		bool useNs3;
 		int minClients;
-		Commsim() : enabled(false), useNs3(false), minClients(1) {}
+		int holdTick;
+		Commsim() : enabled(false), useNs3(false), minClients(1), holdTick(1) {}
 	};
 	Commsim commsim;
 

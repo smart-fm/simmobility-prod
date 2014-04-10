@@ -6,6 +6,8 @@
 #include "WaitForAndroidConnection.hpp"
 #include "entities/commsim/broker/Broker.hpp"
 
+#include "logging/Log.hpp"
+
 using namespace sim_mob;
 
 sim_mob::WaitForAndroidConnection::WaitForAndroidConnection() : BrokerBlocker(), numClients(0)
@@ -24,6 +26,7 @@ void sim_mob::WaitForAndroidConnection::reset(unsigned int numClients)
 
 bool sim_mob::WaitForAndroidConnection::calculateWaitStatus(BrokerBase& broker) const
 {
+	Print() <<"Clients connected: " <<broker.getAndroidClientList().size() <<" of " <<numClients <<"\n";
 	return broker.getAndroidClientList().size()>=numClients;
 }
 

@@ -620,7 +620,7 @@ bool sim_mob::Broker::checkAllBrokerBlockers()
 	return pass;
 }
 
-void sim_mob::Broker::waitAndAcceptConnections() {
+void sim_mob::Broker::waitAndAcceptConnections(uint32_t tick) {
 	//Wait for more clients if:
 	//  1- number of subscribers is too low
 	//  2-there is no client(emulator) waiting in the queue
@@ -634,7 +634,13 @@ void sim_mob::Broker::waitAndAcceptConnections() {
 		//Add pending clients.
 		processClientRegistrationRequests();
 
+		//If this is not the "hold" time tick, then continue.
+		if (tick != ConfigManager::GetInstance().FullConfig().system.simulation.commsim.holdTick) {
+			break;
+		}
+
 		//If everything's reigstered, break out of the loop.
+		Print() <<"Holding on all broker blockers...\n";
 		if (checkAllBrokerBlockers()) {
 			break;
 		}
@@ -733,7 +739,7 @@ Entity::UpdateStatus sim_mob::Broker::update(timeslice now)
 	//Step-2: Ensure that we have enough clients to process
 	//(in terms of client type (like ns3, android emulator, etc) and quantity(like enough number of android clients) ).
 	//Block the simulation here(if you have to)
-	waitAndAcceptConnections();
+	waitAndAcceptConnections(now.frame());
 
 	if (EnableDebugOutput) {
 		Print() << "===================== wait Done =======================================\n";

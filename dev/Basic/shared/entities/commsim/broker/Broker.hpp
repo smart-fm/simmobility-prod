@@ -346,7 +346,7 @@ protected:
 	/**
 	 * 	Wait for clients
 	 */
-	void waitAndAcceptConnections();
+	void waitAndAcceptConnections(uint32_t tick);
 
 	/**
 	 * 	wait for the registered agents to complete their tick

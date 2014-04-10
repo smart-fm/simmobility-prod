@@ -1072,6 +1072,9 @@ void sim_mob::ParseConfigFile::ProcessSystemCommsimNode(xercesc::DOMElement* nod
 	//Minimum clients
 	cfg.system.simulation.commsim.minClients = ProcessValueInteger(GetSingleElementByName(node, "min_clients", true));
 
+	//Hold tick
+	cfg.system.simulation.commsim.holdTick = ProcessValueInteger(GetSingleElementByName(node, "hold_tick", true));
+
 	//Use ns-3 for routing?
 	cfg.system.simulation.commsim.useNs3 = ProcessValueBoolean(GetSingleElementByName(node, "use_ns3", true));
 }

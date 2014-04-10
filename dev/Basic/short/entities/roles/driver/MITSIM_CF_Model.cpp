@@ -102,12 +102,8 @@ double CalcHeadway(double space, double speed, double elapsedSeconds, double max
 
 } //End anon namespace
 
-double speed;//if reaction time disable, speed is current velocity
-             //if reaction time enable, speed is perceivedFwdVelocity
-
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
-	speed = p.perceivedFwdVelocity/100;
 	distanceToNormalStop(p);
 	double acc = maxAcceleration;
 	double aA = calcSignalRate(p);
@@ -154,14 +150,14 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 		p.a_lead = nv.driver->fwdAccel/100;
 
 		double dt	=	p.elapsedSeconds;
-		double headway = CalcHeadway(p.space, speed, p.elapsedSeconds, maxAcceleration);
+		double headway = CalcHeadway(p.space, p.perceivedFwdVelocity/100, p.elapsedSeconds, maxAcceleration);
 //		std::cout<<"carFollowingRate: headway1: "<<headway<<std::endl;
 
 		//Emergency deceleration overrides the perceived distance; check for it.
 		{
 //			double emergSpace = p.perceivedDistToFwdCar/100;
 			double emergSpace = nv.distance/100;
-			double emergHeadway = CalcHeadway(emergSpace, speed, p.elapsedSeconds, maxAcceleration);
+			double emergHeadway = CalcHeadway(emergSpace, p.perceivedFwdVelocity/100, p.elapsedSeconds, maxAcceleration);
 			if (emergHeadway < hBufferLower) {
 				//We need to brake. Override.
 				p.space = emergSpace;
@@ -250,7 +246,7 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
 		else if(color == Signal::Amber)
 #endif
 		{
-			double maxSpeed = (speed>minSpeedYellow)?speed:minSpeedYellow;
+			double maxSpeed = (p.perceivedFwdVelocity/100>minSpeedYellow)?p.perceivedFwdVelocity/100:minSpeedYellow;
 			if(dis/maxSpeed > yellowStopHeadway)
 			{
 				double a = brakeToStop(p, dis);
@@ -309,7 +305,7 @@ double sim_mob::MITSIM_CF_Model::calcForwardRate(DriverUpdateParams& p)
 	if(!nv.exists())
 		return maxAcceleration;
 	double dis = nv.distance/100 + targetGapAccParm[0];
-	double dv = nv.driver->fwdVelocity.get()/100 - speed;
+	double dv = nv.driver->fwdVelocity.get()/100 - p.perceivedFwdVelocity/100;
 	double acc = targetGapAccParm[1] * pow(dis, targetGapAccParm[2]);
 
 	if (dv > 0) {
@@ -338,7 +334,7 @@ double sim_mob::MITSIM_CF_Model::calcBackwardRate(DriverUpdateParams& p)
 		return maxAcceleration;
 
 	double dis = nv.distance/100 + targetGapAccParm[0];
-	double dv = nv.driver->fwdVelocity.get()/100 - speed;
+	double dv = nv.driver->fwdVelocity.get()/100 - p.perceivedFwdVelocity/100;
 
 	double acc = targetGapAccParm[6] * pow(dis, targetGapAccParm[7]);
 
@@ -373,12 +369,12 @@ double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p, double dis)
 {
 	double DIS_EPSILON =	0.001;
 	if (dis > DIS_EPSILON) {
-		double u2 = speed*speed;
+		double u2 = (p.perceivedFwdVelocity/100)*(p.perceivedFwdVelocity/100);
 		double acc = - u2 / dis * 0.5;
 //		if (acc <= normalDeceleration)
 			return acc;
 		double dt = p.elapsedSeconds;
-		double vt = speed * dt;
+		double vt = p.perceivedFwdVelocity/100 * dt;
 		double a = dt * dt;
 		double b = 2.0 * vt - normalDeceleration * a;
 		double c = u2 + 2.0 * normalDeceleration * (dis - vt);
@@ -391,7 +387,7 @@ double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p, double dis)
 	else {
 
 		double dt = p.elapsedSeconds;
-		return (dt > 0.0) ? -speed / dt : maxDeceleration;
+		return (dt > 0.0) ? -(p.perceivedFwdVelocity/100) / dt : maxDeceleration;
 	}
 }
 
@@ -399,7 +395,7 @@ double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p, double dis)
 
 double sim_mob::MITSIM_CF_Model::breakToTargetSpeed(DriverUpdateParams& p)
 {
-	double v 			=	speed;
+	double v 			=	p.perceivedFwdVelocity/100;
 	double dt			=	p.elapsedSeconds;
 
 	//NOTE: This is the only use of epsilon(), so I just copied the value directly.
@@ -415,7 +411,7 @@ double sim_mob::MITSIM_CF_Model::breakToTargetSpeed(DriverUpdateParams& p)
 
 double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(DriverUpdateParams& p)
 {
-	double v 			=	speed;
+	double v 			=	p.perceivedFwdVelocity/100;
 	double dv			=	v-p.v_lead;
 	double epsilon_v	=	0.001;
 	double aNormalDec	=	normalDeceleration;
@@ -442,7 +438,7 @@ double sim_mob::MITSIM_CF_Model::accOfCarFollowing(DriverUpdateParams& p)
 {
 	const double density	=	1;		//represent the density of vehicles in front of the subject vehicle
 										//now we ignore it, assuming that it is 1.
-	double v				=	speed;
+	double v				=	p.perceivedFwdVelocity/100;
 	int i = (v > p.v_lead) ? 1 : 0;
 	double dv =(v > p.v_lead)?(v-p.v_lead):(p.v_lead - v);
 
@@ -455,7 +451,7 @@ double sim_mob::MITSIM_CF_Model::accOfCarFollowing(DriverUpdateParams& p)
 
 double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
-	double vn =	speed;
+	double vn =	p.perceivedFwdVelocity/100;
 	if (vn < targetSpeed) {
 		return (vn<maxLaneSpeed) ? maxAcceleration : 0;
 	} else if (vn > targetSpeed) {
@@ -480,9 +476,9 @@ void sim_mob::MITSIM_CF_Model::distanceToNormalStop(DriverUpdateParams& p)
 	double minSpeed = 0.1;
 	double minResponseDistance = 5;
 	double DIS_EPSILON = 0.001;
-	if (speed > minSpeed) {
+	if (p.perceivedFwdVelocity/100 > minSpeed) {
 		p.distanceToNormalStop = DIS_EPSILON -
-				0.5 * speed * speed / normalDeceleration;
+				0.5 * (p.perceivedFwdVelocity/100) * (p.perceivedFwdVelocity/100) / normalDeceleration;
 		if (p.distanceToNormalStop < minResponseDistance) {
 			p.distanceToNormalStop = minResponseDistance;
 		}

@@ -255,19 +255,6 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
     if (freeLanes.both()) {
         // avoid ossilation
         return p.lastDecision;
-
-        if (right && left) {
-            return (leftUtility > rightUtility) ? LCS_LEFT : LCS_RIGHT; //both side is available, choose the better one
-        }
-        if (right && !left) {
-            return LCS_LEFT;
-        }
-        if (!right && left) {
-            return LCS_RIGHT;
-        }
-        if (!right && !left) {
-            return LCS_SAME;
-        }
     }
 
     if (left || right) {

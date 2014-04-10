@@ -144,9 +144,13 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p,
     const Lane * adjacentLanes[2] = {p.leftLane, p.rightLane};
     const NearestVehicle * fwd;
     const NearestVehicle * back;
+    // get speed of forward vehicle of left lane, store in otherSpeed[0].lead
+    // speed of backward vehicle of left lane, store in otherSpeed[0].lag
+    //speed of forward vehicle of right lane, store in otherSpeed[1].lead
+    //speed of backward vehicle of right lane, store in otherSpeed[1].lag
     for (int i = 0; i < 2; i++) {
-        fwd = (i == 0) ? &p.nvLeftFwd : &p.nvRightFwd;
-        back = (i == 0) ? &p.nvLeftBack : &p.nvRightBack;
+        fwd = (i == 0) ? &p.nvLeftFwd : &p.nvRightFwd; // when i=0, fwd is left lane forward vehcile, when i=1, fwd is right lane forward vehicle
+        back = (i == 0) ? &p.nvLeftBack : &p.nvRightBack;// when i=0, back is left lane backward vehcile, when i=1, back is right lane backward vehicle
 
         if (adjacentLanes[i]) { //the left/right side exists
             if (!fwd->exists()) { //no vehicle ahead on target lane

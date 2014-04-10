@@ -210,7 +210,7 @@ function calculateExpectation(price, v, a, b, cost)
     local E = Math.E
     local rateOfBuyers = a - (b * price)
     local expectation = price 
-                        + (math.pow(E,-rateOfBuyers*(price-v)/price)-1)*price/rateOfBuyers 
+                        + (math.pow(E,-rateOfBuyers*(price-v)/price)-1 + rateOfBuyers)*price/rateOfBuyers 
                         + math.pow(E,-rateOfBuyers)*v 
                         - cost
     return expectation
@@ -230,11 +230,11 @@ end
 ]]
 function calulateUnitExpectations (unit, timeOnMarket, building, postcode, amenities)
     local expectations = {}
-    local hedonicPrice = calculateHedonicPrice(unit, building, postcode, amenities)
+    local hedonicPrice = calculateHedonicPrice(unit, building, postcode, amenities) * sqfToSqm(unit.floorArea)
     local expectation = hedonicPrice -- IMPORTANT : this should be the hedonic value
-    local price = 20 -- starting point for price search
+    local price = 1000 -- starting point for price search
     local a = 1.0 -- ratio of events expected by the seller
-    local b = 0.5 -- Importance of the price for seller.
+    local b = 0.005 -- Importance of the price for seller.
     local cost = 0.1 -- Cost of being in the market
     for i=1,timeOnMarket do
         entry = ExpectationEntry()
@@ -247,7 +247,8 @@ function calulateUnitExpectations (unit, timeOnMarket, building, postcode, ameni
            entry.expectation = 0
            entry.price = 0
         end
-        --print ("PRICE: " .. entry.price .. " EXPECTATION: " .. entry.expectation) 
+        --print ("Hedonic Price: " .. hedonicPrice) 
+        --print ("Hedonic Price: " .. hedonicPrice .. " PRICE: " .. entry.price .. " EXPECTATION: " .. entry.expectation) 
         expectation = entry.expectation;
         expectations[i] = entry
     end
@@ -274,9 +275,9 @@ end
 ]]
 function calculateSurplus (entry, unitBids)
     local maximumBids = 20
-    local a = 1.4
-    local b = 0.5
-    return (maximumBids-unitBids) * entry.askingPrice / ((a - b) * entry.askingPrice)
+    local a = 800000
+    local b = 0.3
+    return (maximumBids-unitBids) * entry.askingPrice / (a - b * entry.askingPrice)
 end
 
 --[[
@@ -301,11 +302,12 @@ function calculateWP (household, unit, tazStats, amenities)
     local b3 = -0.066
     local b4 = -0.050
     local hasCar = (CAR_CATEGORIES[household.vehicleCategoryId] and 1 or 0)
-    local x=  ((b1 * unit.floorArea * Math.ln(household.size))                  --  b1 * Area_Per_Unit  *ln(HouseHold_Size) + 
-           +(b2 * (household.income / household.size) * tazStats.hhAvgIncome)   --  b2 * HouseHold_Income / HouseHold_Size * Zone_Average_Income +
-           +(b3 * (amenities.distanceToCBD) * hasCar)                           --  b3 * Distance_to_CBD*(Dummie_if_car) +
-           +(b4 * (amenities.distanceToCBD) * (1-hasCar)))/1000                 --  b4 * Distance_to_CBD*(1-Dummie_if_car)
+    local x=  ((b1 * sqfToSqm(unit.floorArea) * Math.ln(household.size))                          --  b1 * Area_Per_Unit  *ln(HouseHold_Size) + 
+           +(b2 * ((household.income / 1000) / household.size) * (tazStats.hhAvgIncome / 1000))   --  b2 * HouseHold_Income / HouseHold_Size * Zone_Average_Income +
+           +(b3 * (amenities.distanceToCBD) * hasCar)                                             --  b3 * Distance_to_CBD*(Dummie_if_car) +
+           +(b4 * (amenities.distanceToCBD) * (1-hasCar))) *1000                                  --  b4 * Distance_to_CBD*(1-Dummie_if_car)
+    --print("WP: " .. x)
     --Area_Per_Unit, HouseHold_Size,HouseHold_Income,Distance_to_CBD, Zone_Average_Income, HasCar, WP
-    --print (unit.floorArea..",".. household.size .. "," .. household.income .. ","..amenities.distanceToCBD .. ","..tazStats.hhAvgIncome .. ",".. hasCar .."," .. x)
+    --print ("HH_ID: " .. household.id .."," .. unit.floorArea..",".. household.size .. "," .. household.income .. ","..amenities.distanceToCBD .. ","..tazStats.hhAvgIncome .. ",".. hasCar .."," .. x)
     return x
 end

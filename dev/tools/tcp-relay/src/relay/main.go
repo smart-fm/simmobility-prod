@@ -32,7 +32,7 @@ type NetData struct {
 	outgoing chan string
 
 	//Lines to be sent to clients (any/all).
-	incoming chan string
+	incoming chan []byte
 
 	//A list of pending client connections. These are clients who
 	//have connected, but who have not yet sent their ID.
@@ -60,7 +60,7 @@ func main() {
 		listenAddr : "192.168.0.102:6799",
 		remoteAddr : "192.168.0.102:6745",
 		outgoing : make(chan string),
-		incoming : make(chan string),
+		incoming : make(chan []byte),
 		pending_clients : make(chan Connection),
 		clients_by_id : make(map[string]Connection),
 		getRemote : make(chan bool),
@@ -159,42 +159,71 @@ func handle_connection(params *NetData, localconn Connection, firstTime bool, to
 //Receive a message from the server and push it to "incoming".
 //Should be FAST.
 func receive_remote(params *NetData) {
+	//Our buffer. Must be at least as long as the longest message
+	rec_buff := make([]byte, 20480+8)
+	rec_ind := 0
+
 	//Keep reading from the server, and pushing it to the client.
 	remote := get_remote(params)
 	for {
-		line,err := remote.read.ReadString('\n')
-		if err != nil { 
-			fmt.Println("remote read failed: %v", err)
-			os.Exit(2)
+		//Read the 8-byte header.
+		for rec_ind < 8 {
+			len,err := remote.read.Read(rec_buff[rec_ind:8])
+			rec_ind += len
+			if (err != nil) {
+				fmt.Println("remote read failed: %v", err)
+				os.Exit(2)
+			}
 		}
 
-		if params.debug_flag {
-			fmt.Print("Reading data from the server ###" , line , "###\n")
+		//Sanity check.
+		if (rec_ind>8) { fmt.Println("ERRR: read more than 8.") ; os.Exit(2) }
+
+		//Compute the remaining message length (header[4,5,6,7])
+		data_len := ((int(rec_buff[0])&0xFF)<<24) | ((int(rec_buff[1])&0xFF)<<16) | ((int(rec_buff[2])&0xFF)<<8) | (int(rec_buff[3])&0xFF)
+		data_len += rec_ind  //+8
+		if data_len > len(rec_buff) {
+			fmt.Println("ERRR: message exceeds max size.")
+			os.Exit(2) 
 		}
+
+		//Read it.
+		for rec_ind < data_len {
+			len,err := remote.read.Read(rec_buff[rec_ind:data_len])
+			rec_ind += len
+			if (err != nil) {
+				fmt.Println("remote read failed: %v", err)
+				os.Exit(2)
+			}
+		}
+
+		//Sanity check.
+		if (rec_ind>data_len) { fmt.Println("ERRR: read more than DATA.") ; os.Exit(2) }
+
+		if params.debug_flag {
+			fmt.Print("Reading data from the server ###" , rec_buff[0:rec_ind] , "###\n")
+		}
+
+		//Pass a copy of this buffer off to the client.
+		line := make([]byte, rec_ind)
+		copy(line, rec_buff[0:rec_ind])
 		params.incoming <- line
     }
 }
 
 //Pull lines from incoming and forward to the actual destination agent.
 func forward_to_client(params *NetData) {
-	//Easy matching: "DEST_AGENT":"123456789012"
-	destRegex := regexp.MustCompile("\"DEST_AGENT\" *: *\"([^\"]*)\"")
-
-	var line string
+	var line []byte
 	for {
 		line = <-params.incoming
 
-		//TEMP
-		matches := destRegex.FindStringSubmatch(line)
-		if matches == nil {
-			fmt.Println("forward to client failed -- no dest_id")
-			os.Exit(2)
-		}
+		//Retrieve the destination ID (sendIDLength in byte 2, destIDLength in byte 3, sendID starts after byte 8, and destID after sendID)
+		destIDStart := 8 + (int(line[1])&0xFF)
+		destIDLen := int(line[2])&0xFF
+		destId := string(line[destIDStart:destIDStart+destIDLen])
 
 		//Route correctly
-		destId := matches[1]
 		var destConn Connection
-
 		if destId == "0" {
 			//Else, just pull a pending client; this will only work for ONE message, but 
 			//that's all Sim Mobility expects.
@@ -213,7 +242,7 @@ func forward_to_client(params *NetData) {
 		if params.debug_flag {
 			fmt.Print("Writing to client with id [" , destId , "], data: ###" , line , "###\n")
 		}
-		_,err := destConn.write.WriteString(line)
+		_,err := destConn.write.Write(line)
 		if err != nil {
 			fmt.Println("local write failed: %v", err)
 			os.Exit(2)

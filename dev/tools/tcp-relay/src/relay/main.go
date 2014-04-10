@@ -8,7 +8,6 @@ import (
 	"sync"
 	"flag"
 	"bufio"
-	"regexp"
 )
 
 //Holds a connection, reader, and writer. Used for connected clients. Some params can be nil.
@@ -29,7 +28,7 @@ type NetData struct {
 	remoteAddr string
 
 	//Lines to be sent to the server.
-	outgoing chan string
+	outgoing chan []byte
 
 	//Lines to be sent to clients (any/all).
 	incoming chan []byte
@@ -59,7 +58,7 @@ func main() {
 	params := NetData{
 		listenAddr : "192.168.0.102:6799",
 		remoteAddr : "192.168.0.102:6745",
-		outgoing : make(chan string),
+		outgoing : make(chan []byte),
 		incoming : make(chan []byte),
 		pending_clients : make(chan Connection),
 		clients_by_id : make(map[string]Connection),
@@ -140,7 +139,7 @@ func handle_connection(params *NetData, localconn Connection, firstTime bool, to
 	} else {
 		//Inject a "new_client" message here, which instructs the server to send a WHOAREYOU message.
 		fmt.Println("New local connection on existing remote connection: " , totalConn) 
-		new_cli_msg := "\x01\x01\x01\x01\x00\x00\x00\x1E" + "00" + "\x00\x00\x19" + "{\"msg_type\":\"new_client\"}"  //v1 format
+		new_cli_msg := []byte("\x01\x01\x01\x01\x00\x00\x00\x1E" + "00" + "\x00\x00\x19" + "{\"msg_type\":\"new_client\"}")  //v1 format
 		params.outgoing <- new_cli_msg
 	}
 
@@ -156,57 +155,69 @@ func handle_connection(params *NetData, localconn Connection, firstTime bool, to
 }
 
 
+//Read a binary message of fixed length from the client/server. Returns the number of bytes read into rec_buff
+func read_bundle(reader *bufio.Reader, rec_buff []byte) int {
+	rec_ind := 0
+
+	//Read the 8-byte header.
+	for rec_ind < 8 {
+		len,err := reader.Read(rec_buff[rec_ind:8])
+		rec_ind += len
+		if (err != nil) {
+			fmt.Println("remote read failed: %v", err)
+			os.Exit(2)
+		}
+	}
+
+	//Sanity check.
+	if (rec_ind>8) { fmt.Println("ERRR: read more than 8.") ; os.Exit(2) }
+
+	//Compute the remaining message length (header[4,5,6,7])
+	data_len := ((int(rec_buff[4])&0xFF)<<24) | ((int(rec_buff[5])&0xFF)<<16) | ((int(rec_buff[6])&0xFF)<<8) | (int(rec_buff[7])&0xFF)
+	data_len += rec_ind  //+8
+	if data_len > len(rec_buff) {
+		fmt.Println("ERRR: message exceeds max size.")
+		os.Exit(2) 
+	}
+
+	//Read it.
+	for rec_ind < data_len {
+		len,err := reader.Read(rec_buff[rec_ind:data_len])
+		rec_ind += len
+		if (err != nil) {
+			fmt.Println("remote read failed: %v", err)
+			os.Exit(2)
+		}
+	}
+
+	//Sanity check.
+	if (rec_ind>data_len) { fmt.Println("ERRR: read more than DATA.") ; os.Exit(2) }
+
+	//Return the size
+	return rec_ind
+}
+
+
+
 //Receive a message from the server and push it to "incoming".
 //Should be FAST.
 func receive_remote(params *NetData) {
 	//Our buffer. Must be at least as long as the longest message
 	rec_buff := make([]byte, 20480+8)
-	rec_ind := 0
 
 	//Keep reading from the server, and pushing it to the client.
 	remote := get_remote(params)
 	for {
-		//Read the 8-byte header.
-		for rec_ind < 8 {
-			len,err := remote.read.Read(rec_buff[rec_ind:8])
-			rec_ind += len
-			if (err != nil) {
-				fmt.Println("remote read failed: %v", err)
-				os.Exit(2)
-			}
-		}
-
-		//Sanity check.
-		if (rec_ind>8) { fmt.Println("ERRR: read more than 8.") ; os.Exit(2) }
-
-		//Compute the remaining message length (header[4,5,6,7])
-		data_len := ((int(rec_buff[0])&0xFF)<<24) | ((int(rec_buff[1])&0xFF)<<16) | ((int(rec_buff[2])&0xFF)<<8) | (int(rec_buff[3])&0xFF)
-		data_len += rec_ind  //+8
-		if data_len > len(rec_buff) {
-			fmt.Println("ERRR: message exceeds max size.")
-			os.Exit(2) 
-		}
-
-		//Read it.
-		for rec_ind < data_len {
-			len,err := remote.read.Read(rec_buff[rec_ind:data_len])
-			rec_ind += len
-			if (err != nil) {
-				fmt.Println("remote read failed: %v", err)
-				os.Exit(2)
-			}
-		}
-
-		//Sanity check.
-		if (rec_ind>data_len) { fmt.Println("ERRR: read more than DATA.") ; os.Exit(2) }
+		//Read the next bundle, copy it.
+		len := read_bundle(remote.read, rec_buff)
+		line := make([]byte, len)
+		copy(line, rec_buff[0:len])
 
 		if params.debug_flag {
-			fmt.Print("Reading data from the server ###" , rec_buff[0:rec_ind] , "###\n")
+			fmt.Print("Reading data from the server ###" , line , "###\n")
 		}
 
-		//Pass a copy of this buffer off to the client.
-		line := make([]byte, rec_ind)
-		copy(line, rec_buff[0:rec_ind])
+		//Pass this bundle off to the client.
 		params.incoming <- line
     }
 }
@@ -253,14 +264,14 @@ func forward_to_client(params *NetData) {
 
 //Pull lines from outgoing and forward to the server
 func forward_to_server(params *NetData) {
-	var line string
+	var line []byte
 	remote := get_remote(params)
 	for {
 		line = <-params.outgoing
 		if params.debug_flag {
 			fmt.Print("Writing to server: ###" , line , "###\n")
 		}
-		_,err := remote.write.WriteString(line)
+		_,err := remote.write.Write(line)
 		if err != nil {
 			fmt.Println("remote write failed: %v", err)
 			os.Exit(2)
@@ -275,25 +286,20 @@ func forward_to_server(params *NetData) {
 //Also update the agent's ID on the first message.
 //Should be FAST.
 func receive_client(params *NetData, localconn Connection) {
-	//Easy matching: "SENDER":"123456789012"
-	sendRegex := regexp.MustCompile("\"SENDER\" *: *\"([^\"]*)\"")
+	//Our buffer. Must be at least as long as the longest message
+	rec_buff := make([]byte, 20480+8)
 
 	//The first line read is special.
-	line,err := localconn.read.ReadString('\n')
-	if err != nil { 
-		fmt.Println("FIRST local read failed: %v", err)
-		os.Exit(2)
-	}
+	len := read_bundle(localconn.read, rec_buff)
+	line := make([]byte, len)
+	copy(line, rec_buff[0:len])
 
-	//Extract the sender's ID.
-	matches := sendRegex.FindStringSubmatch(line)
-	if matches == nil {
-		fmt.Println("client receive failed -- no sender id")
-		os.Exit(2)
-	}
+	//Retrieve the sender ID (sendIDLength in byte 2, destIDLength in byte 3, sendID starts after byte 8, and destID after sendID)
+	sendIDStart := 8
+	sendIDLen := int(line[1])&0xFF
+	sendId := string(line[sendIDStart:sendIDStart+sendIDLen])
 
 	//Now add it.
-	sendId := matches[1]
 	params.clients_lock.Lock()
 	params.clients_by_id[sendId] = localconn
 	params.clients_lock.Unlock()
@@ -306,11 +312,10 @@ func receive_client(params *NetData, localconn Connection) {
 
 	//Now, just keep reading from the client, and pushing this information to the server.
 	for {
-		line,err = localconn.read.ReadString('\n')
-		if err != nil { 
-			fmt.Println("local read failed: %v", err)
-			os.Exit(2)
-		}
+		//Read, copy
+		len := read_bundle(localconn.read, rec_buff)
+		line := make([]byte, len)
+		copy(line, rec_buff[0:len])
 
 		if params.debug_flag {
 			fmt.Print("Reading from client with id [" , sendId , "], data: ###" , line , "###\n")

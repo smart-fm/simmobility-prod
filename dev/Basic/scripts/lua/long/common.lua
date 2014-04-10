@@ -73,3 +73,19 @@ function findMaxArg(func, x0, p1, p2, p3, p4, crit, maxIterations)
     until ((delta > crit and iters <= maxIterations) or not Math.finite(delta))
     return Math.finite(delta) and x0 or delta
 end
+
+--[[
+    Converts the given square meters value to square foot value.
+    @param sqmValue value in square meters.
+]]
+function sqmToSqf(sqmValue)
+    return sqmValue * 10.7639;
+end
+
+--[[
+    Converts the given square foot value to square meter value.
+    @param sqfValue value in square foot.
+]]
+function sqfToSqm(sqfValue)
+    return sqfValue / 10.7639;
+end

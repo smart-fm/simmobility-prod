@@ -120,6 +120,10 @@ void sim_mob::Conflux::updateUnsignalized() {
 	for(PersonList::iterator i = activityPerformersCopy.begin(); i != activityPerformersCopy.end(); i++) {
 		updateAgent(*i);
 	}
+
+	for(PersonList::iterator i = pedestrianPerformers.begin(); i != pedestrianPerformers.end(); i++) {
+		updateAgent(*i);
+	}
 }
 
 void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
@@ -639,6 +643,17 @@ bool sim_mob::Conflux::call_movement_frame_init(timeslice now, Person* person) {
 
 	person->clearCurrPath();	//this will be set again for the next sub-trip
 	return true;
+}
+
+void sim_mob::Conflux::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
+{
+	sim_mob::Agent::onEvent(eventId, ctxId, sender, args);
+
+	//role gets chance to handle event
+	if(eventId == EVENT_PEDESTRIAN_TRANSFER_REQUEST){
+		const sim_mob::Pedestrian_RequestEventArgs& request = dynamic_cast<const sim_mob::Pedestrian_RequestEventArgs&>(args);
+		pedestrianPerformers.push_back(request.pedestrian);
+	}
 }
 
 Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, Person* person) {

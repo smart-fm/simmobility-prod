@@ -25,6 +25,20 @@ namespace aimsun
 class Loader;
 }
 
+enum {
+	EVENT_PEDESTRIAN_TRANSFER_REQUEST = 5000000
+};
+
+/**
+ * Subclasses both EventArgs, This is to allow it to function as an Event callback parameter.
+ */
+class Pedestrian_RequestEventArgs : public sim_mob::event::EventArgs {
+public:
+	Pedestrian_RequestEventArgs(Person* inPerson):pedestrian(inPerson){;}
+	virtual ~Pedestrian_RequestEventArgs() {}
+	Person* pedestrian;
+};
+
 struct cmp_person_remainingTimeThisTick : public std::greater<Person*> {
   bool operator() (const Person* x, const Person* y) const;
 };
@@ -123,6 +137,9 @@ private:
 	/**list of persons performing activities within the vicinity of this conflux*/
 	PersonList activityPerformers;
 
+	/*list of persons with pedestrian role performing walking activities*/
+	PersonList pedestrianPerformers;
+
 	/**
 	 * function to call persons' updates if the MultiNode is signalized
 	 * \note this function is not implemented. Multinodes with signals are given
@@ -210,6 +227,11 @@ protected:
 	virtual bool frame_init(timeslice now) { throw std::runtime_error("frame_* methods are not required and are not implemented for Confluxes."); }
 	virtual Entity::UpdateStatus frame_tick(timeslice now) { throw std::runtime_error("frame_* are not required and are not implemented for Confluxes."); }
 	virtual void frame_output(timeslice now) { throw std::runtime_error("frame_* methods are not required and are not implemented for Confluxes."); }
+
+	/**
+	 * Inherited from Agent.
+	 */
+	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 
 public:
 	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1);

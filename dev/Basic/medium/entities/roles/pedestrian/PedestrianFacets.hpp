@@ -11,6 +11,8 @@
 #include "entities/Person.hpp"
 
 namespace sim_mob {
+
+class Conflux;
 namespace medium
 {
 
@@ -30,6 +32,7 @@ public:
 
 protected:
 	sim_mob::medium::Pedestrian* parentPedestrian;
+
 };
 
 class PedestrianMovement: public MovementFacet {
@@ -44,15 +47,21 @@ public:
 
 	void setParentPedestrian(sim_mob::medium::Pedestrian* parentPedestrian);
 
+protected:
+
+	/**
+	 * initialize the path at the beginning
+	 * @param path include a list of road segments
+	 * */
+	void initializePath(std::vector<const RoadSegment*>& path);
 
 protected:
 	sim_mob::medium::Pedestrian* parentPedestrian;
 	//record the current remaining time to the destination
 	int remainingTimeToComplete;
-	//record the total time from original location to destination location
-	int totalTimeToCompleteMS;
 	//pedestrian's walking speed
 	const float walkSpeed;
+	std::vector< std::pair<Conflux*, double> > trajectory;
 };
 
 }

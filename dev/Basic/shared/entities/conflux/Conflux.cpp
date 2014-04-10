@@ -586,6 +586,9 @@ sim_mob::SegmentStats* sim_mob::Conflux::findSegStats(const sim_mob::RoadSegment
 		return nullptr;
 	}
 	SegmentStatsList::iterator statsIt = statsList.begin();
+	if(statsNum == 1) {
+		return (*statsIt);
+	}
 	std::advance(statsIt, (statsNum-1));
 	return (*statsIt);
 }

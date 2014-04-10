@@ -8,6 +8,7 @@
 #include "entities/Person.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
+#include "geospatial/BusStop.hpp"
 
 namespace sim_mob {
 
@@ -151,11 +152,13 @@ public:
  * \author Harish Loganathan
  */
 class SegmentStats {
+	friend class sim_mob::aimsun::Loader;
 
 protected:
 	typedef std::deque<sim_mob::Person*> PersonList;
 	typedef std::map<const sim_mob::Lane*, sim_mob::LaneStats* > LaneStatsMap;
 	const sim_mob::RoadSegment* roadSegment;
+	const sim_mob::BusStop* busStop;
 	uint8_t positionInRoadSegment; //segment can have multiple segment stats. This gives the position of this SegmentStats in segment.
 	LaneStatsMap laneStatsMap;
 	std::map<const sim_mob::Lane*, sim_mob::Person* > frontalAgents;
@@ -170,7 +173,8 @@ protected:
 	unsigned int numPersons;
 
 public:
-	SegmentStats(const sim_mob::RoadSegment* rdSeg, double length, uint8_t statNum = 1);
+	SegmentStats(const sim_mob::RoadSegment* rdSeg, double length,
+			uint8_t statNum = 1, const BusStop* stop = nullptr);
 	~SegmentStats();
 
 	enum VehicleType {

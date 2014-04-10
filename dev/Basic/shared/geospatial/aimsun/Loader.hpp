@@ -25,6 +25,7 @@ class DynamicVector;
 class Link;
 class ProfileBuilder;
 class Conflux;
+class SegmentStats;
 class SinglePath;
 class PathSet;
 class ERP_Gantry_Zone;
@@ -119,7 +120,20 @@ public:
 	//Ugh
 	static void TMP_TrimAllLaneLines(sim_mob::RoadSegment* seg, const sim_mob::DynamicVector& cutLine, bool trimStart);
 
+	/**
+	 * constructs confluxes around each multinode
+	 * @param rdnw the road network
+	 */
 	static void ProcessConfluxes(const sim_mob::RoadNetwork& rdnw);
+
+	/**
+	 * creates a list of SegmentStats for a given segment depending on the stops
+	 * in the segment. The list splitSegmentStats will contain SegmentStats objects
+	 * containing bus stops (and quite possibly a last SegmentStats with no bus stop)
+	 * @param rdSeg the road segment for which stats must be created
+	 * @param splitSegmentStats vector of SegmentStats* to be filled up
+	 */
+	static void CreateSegmentStats(sim_mob::RoadSegment* rdSeg, std::vector<sim_mob::SegmentStats*>& splitSegmentStats);
 };
 
 }

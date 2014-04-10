@@ -43,10 +43,44 @@ namespace {
                 MessageBus::MessagePtr(new BidMessage(bid)));
     }
 }
+HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry (const HousingMarket::Entry* entry, const double wp) :
+entry(entry), wp(wp), tries(0)
+{
+}
 
+HouseholdBidderRole::CurrentBiddingEntry::~CurrentBiddingEntry() {
+    invalidate();
+}
+
+const HousingMarket::Entry* HouseholdBidderRole::CurrentBiddingEntry::getEntry() const {
+    return entry;
+}
+
+double HouseholdBidderRole::CurrentBiddingEntry::getWP() const {
+    return wp;
+}
+
+long int HouseholdBidderRole::CurrentBiddingEntry::getTries() const {
+    return tries;
+}
+
+void HouseholdBidderRole::CurrentBiddingEntry::incrementTries(int quantity) {
+    tries += quantity;
+}
+
+bool HouseholdBidderRole::CurrentBiddingEntry::isValid() const{
+    return (entry != nullptr);
+}
+
+void HouseholdBidderRole::CurrentBiddingEntry::invalidate(){
+    entry = nullptr;
+    tries = 0;
+    wp = 0;
+}
+                
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent)
 : LT_AgentRole(parent), waitingForResponse(false),
-lastTime(0, 0), bidOnCurrentDay(false), biddingEntry(nullptr) {
+lastTime(0, 0), bidOnCurrentDay(false) {
 }
 
 HouseholdBidderRole::~HouseholdBidderRole() {
@@ -79,26 +113,18 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type,
                 {
                     getParent()->addUnitId(msg.getBid().getUnitId());
                     setActive(false);
-                    biddingEntry = nullptr;
-                    deleteBidsCounter(msg.getBid().getUnitId());
+                    biddingEntry.invalidate();
                     Statistics::increment(Statistics::N_ACCEPTED_BIDS);
                     break;
                 }
                 case NOT_ACCEPTED:
                 {
-                    incrementBidsCounter(msg.getBid().getUnitId());
+                    biddingEntry.incrementTries();
                     break;
                 }
                 case BETTER_OFFER:
-                {
-                    biddingEntry = nullptr;
-                    deleteBidsCounter(msg.getBid().getUnitId());
-                    break;
-                }
                 case NOT_AVAILABLE:
                 {
-                    biddingEntry = nullptr;
-                    deleteBidsCounter(msg.getBid().getUnitId());
                     break;
                 }
                 default:break;
@@ -115,43 +141,42 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
     const Household* household = getParent()->getHousehold();
     const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
     const HM_Model* model = getParent()->getModel();
-
-    if (!biddingEntry) {
-        biddingEntry = pickEntryToBid();
-    }
+    
     // Following the new assumptions of the model each household will stick on the 
     // unit where he is bidding until he gets rejected for seller by NOT_AVAILABLE/BETTER_OFFER 
     // or the the surplus for the given unit is 0. This last means that the household
     // does not have more margin of negotiation then is better look for another unit.
-    if (biddingEntry) {
-        double surplus = luaModel.calculateSurplus(*biddingEntry,
-                getBidsCounter(biddingEntry->getUnitId()));
+    if (biddingEntry.isValid() || pickEntryToBid()) {
+        double surplus = luaModel.calculateSurplus(*(biddingEntry.getEntry()), 
+                biddingEntry.getTries());
         //If the surplus is 0 means the bidder has reached the maximum 
         //number of bids that he can do for the current entry.
         if (surplus > 0) {
-            const Unit* unit = model->getUnitById(biddingEntry->getUnitId());
-            const HM_Model::TazStats* stats = model->getTazStatsByUnitId(biddingEntry->getUnitId());
+            const HousingMarket::Entry* entry = biddingEntry.getEntry();
+            const Unit* unit = model->getUnitById(entry->getUnitId());
+            const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
             if (unit && stats) {
-                double wp = luaModel.calulateWP(*household, *unit, *stats);
-                double bidValue = wp - surplus;
-
-                if (biddingEntry->getOwner() && bidValue > 0.0f) {
-                    bid(biddingEntry->getOwner(), Bid(biddingEntry->getUnitId(),
-                            household->getId(), getParent(), bidValue, now, wp,
+                double bidValue = biddingEntry.getWP() - surplus;
+                if (entry->getOwner() && bidValue > 0.0f) {
+                    bid(entry->getOwner(), Bid(entry->getUnitId(),
+                            household->getId(), getParent(), bidValue, now, biddingEntry.getWP(),
                             surplus));
                     return true;
                 }
             }
         } else {
-            biddingEntry = nullptr;
+            biddingEntry.invalidate();
             return bidUnit(now); // try to bid again.
         }
     }
     return false;
 }
 
-const HousingMarket::Entry* HouseholdBidderRole::pickEntryToBid() const {
+bool HouseholdBidderRole::pickEntryToBid() {
+    const Household* household = getParent()->getHousehold();
     HousingMarket* market = getParent()->getMarket();
+    const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
+    const HM_Model* model = getParent()->getModel();
     //get available entries (for preferable zones if exists)
     HousingMarket::ConstEntryList entries;
     if (getParent()->getPreferableZones().empty()) {
@@ -159,49 +184,25 @@ const HousingMarket::Entry* HouseholdBidderRole::pickEntryToBid() const {
     } else {
         market->getAvailableEntries(getParent()->getPreferableZones(), entries);
     }
-    
+    const HousingMarket::Entry* maxEntry = nullptr;
+    double maxWP = 0; // holds the wp of the entry with maximum surplus.
     // choose the unit to bid with max surplus.
-    /*const HousingMarket::Entry* maxEntry = nullptr;
-    double maxSurplus = -1;
     for (HousingMarket::ConstEntryList::const_iterator itr = entries.begin();
             itr != entries.end(); itr++) {
         const HousingMarket::Entry* entry = *itr;
         if ((entry->getOwner() != getParent())) {
-            double surplus = luaModel.calculateSurplus(*entry,
-                    getBidsCounter(entry->getUnitId()));
-            if (surplus > maxSurplus) {
-                maxSurplus = surplus;
-                maxEntry = entry;
+            const Unit* unit = model->getUnitById(entry->getUnitId());
+            const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
+            if (unit && stats) {
+                double wp = luaModel.calulateWP(*household, *unit, *stats);
+                if (wp >= entry->getAskingPrice() && (wp - entry->getAskingPrice()) > maxWP) {
+                    maxWP = wp;
+                    maxEntry = entry;
+                }
             }
         }
-    }*/
-
-    if (!entries.empty()) {
-        int randomIndex = Utils::generateInt(0, (entries.size() - 1));
-        return entries.at(randomIndex);
     }
-    return nullptr;
-}
 
-int HouseholdBidderRole::getBidsCounter(const BigSerial& unitId) {
-    BidsCounterMap::iterator mapItr = bidsPerUnit.find(unitId);
-    if (mapItr != bidsPerUnit.end()) {
-        return mapItr->second;
-    } else {
-        bidsPerUnit.insert(BidCounterEntry(unitId, 1));
-        return 1;
-    }
-}
-
-void HouseholdBidderRole::incrementBidsCounter(const BigSerial& unitId) {
-    BidsCounterMap::iterator mapItr = bidsPerUnit.find(unitId);
-    if (mapItr != bidsPerUnit.end()) {
-        (mapItr->second)++;
-    } else {
-        bidsPerUnit.insert(BidCounterEntry(unitId, 1));
-    }
-}
-
-void HouseholdBidderRole::deleteBidsCounter(const BigSerial& unitId) {
-    bidsPerUnit.erase(unitId);
+    biddingEntry = CurrentBiddingEntry(maxEntry, maxWP);
+    return biddingEntry.isValid();
 }

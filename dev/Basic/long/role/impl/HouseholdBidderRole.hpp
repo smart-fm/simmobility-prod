@@ -26,14 +26,43 @@ namespace sim_mob {
          * Bidder role for household.
          * 
          * This role starts to go to the market and choose the unit 
-         * with maximum surplus for the bidder. After that the bidder 
-         * will bid the unit and will *WAIT* for the response.
+         * with maximum surplus (WP - asking price) for the bidder. 
+         * After that the bidder will bid the unit and will wait for the response.
          * 
-         * The bidder can only do a bid each day. 
-         * If he is waiting for a response he will 
-         * only able to do the next bid on the next day.
+         * The bidder can only do one bid each day and It sticks to the unit until
+         * gets rejected or reaches the a zero surplus.
          */
         class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent> {
+        private:
+
+            /**
+             * Simple struct to store the current unit which the bidder is trying to buy.
+             */
+            class CurrentBiddingEntry {
+            public:
+                CurrentBiddingEntry(const HousingMarket::Entry* biddingEntry = nullptr, const double wp = 0);
+                ~CurrentBiddingEntry();
+
+                /**
+                 * Getters & setters 
+                 */
+                const HousingMarket::Entry* getEntry() const;
+                double getWP() const;
+                long int getTries() const;
+                bool isValid() const;
+                
+                /**
+                 * Increments the tries variable with given quantity.
+                 * @param quantity to increment.
+                 */
+                void incrementTries(int quantity = 1);
+                void invalidate();
+            private:
+                const HousingMarket::Entry* entry;
+                double wp; // willingness to pay.
+                long int tries; // number of bids sent to the seller.
+                double lastSurplus; // value of the last surplus
+            };
         public:
             HouseholdBidderRole(HouseholdAgent* parent);
             virtual ~HouseholdBidderRole();
@@ -64,38 +93,17 @@ namespace sim_mob {
             bool bidUnit(timeslice now);
 
             /**
-             * Gets the bids counter for the given unit.
-             * @param unitId unit unique identifier.
-             * @return number of bids.
-             */
-            int getBidsCounter(const BigSerial& unitId);
-
-            /**
-             * Increments the bids counter for the given unit.
-             * @param unitId unit unique identifier.
-             */
-            void incrementBidsCounter(const BigSerial& unitId);
-
-            /**
-             * Deletes the counter for the given unit.
-             * @param unitId unit unique identifier.
-             */
-            void deleteBidsCounter(const BigSerial& unitId);
-
-            /**
              * Picks a new market entry to bid.
-             * @return HousingMarket::Entry const pointer or nullptr. 
+             * Attention this function updates the value on biddingEntry variable.
+             * @return true if a unit was picked false otherwise;
              */
-            const HousingMarket::Entry* pickEntryToBid() const;
+            bool pickEntryToBid();
 
         private:
-            const HousingMarket::Entry* biddingEntry;
             volatile bool waitingForResponse;
             timeslice lastTime;
             bool bidOnCurrentDay;
-            typedef boost::unordered_map<BigSerial, int> BidsCounterMap; // bids made per unit.  
-            typedef std::pair<BigSerial, int> BidCounterEntry;
-            BidsCounterMap bidsPerUnit;
+            CurrentBiddingEntry biddingEntry;
         };
     }
 }

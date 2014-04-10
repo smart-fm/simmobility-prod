@@ -277,9 +277,6 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
     return LCS_SAME;
 }
 
-int sim_mob::MITSIM_LC_Model::loadMLCKaziNosingModel(DriverUpdateParams &g) {
-    return 0;
-}
 
 double sim_mob::MITSIM_LC_Model::checkIfMandatory(DriverUpdateParams& p) {
     if (p.nextLaneIndex == p.currLaneIndex)

@@ -140,20 +140,20 @@ bool sim_mob::CommsimSerializer::serialize_end_v1(const OngoingSerialization& on
 	unsigned char vHead[varHeadSize];
 	size_t v_off = 0; //Current offset into vHead.
 
-	//Add message lengths.
-	for (std::vector<unsigned int>::const_iterator it=ongoing.vHead.msgLengths.begin(); it!=ongoing.vHead.msgLengths.end(); it++) {
-		vHead[v_off] = (unsigned char)(((*it)>>16)&0xFF);
-		vHead[v_off+1] = (unsigned char)(((*it)>>8)&0xFF);
-		vHead[v_off+2] = (unsigned char)(((*it))&0xFF);
-		v_off += 3; //Note to Java developers: do the incrementation after in C++; DON'T do ++ multiple times in one line.
-	}
-
 	//Add sender ID, destID
 	for (size_t i=0; i<ongoing.vHead.sendId.size(); i++) {
 		vHead[v_off++] = ongoing.vHead.sendId[i];
 	}
 	for (size_t i=0; i<ongoing.vHead.destId.size(); i++) {
 		vHead[v_off++] = ongoing.vHead.destId[i];
+	}
+
+	//Add message lengths.
+	for (std::vector<unsigned int>::const_iterator it=ongoing.vHead.msgLengths.begin(); it!=ongoing.vHead.msgLengths.end(); it++) {
+		vHead[v_off] = (unsigned char)(((*it)>>16)&0xFF);
+		vHead[v_off+1] = (unsigned char)(((*it)>>8)&0xFF);
+		vHead[v_off+2] = (unsigned char)(((*it))&0xFF);
+		v_off += 3; //Note to Java developers: do the incrementation after in C++; DON'T do ++ multiple times in one line.
 	}
 
 	//Sanity check.
@@ -247,13 +247,6 @@ bool sim_mob::CommsimSerializer::deserialize_v1(const BundleHeader& header, cons
 	VaryHeader vHead;
 	int i = 0; //Keep track of our first message offset
 
-	//A series of 3-byte message field lengths follows.
-	for (int msgId=0; msgId<header.messageCount; msgId++) {
-		int msgSize = (((unsigned char)msgStr[i])<<16) | (((unsigned char)msgStr[i+1])<<8) | ((unsigned char)msgStr[i+2]);
-		i += 3; //Note to Java developers: do the incrementation after in C++; DON'T do ++ multiple times in one line.
-		vHead.msgLengths.push_back(msgSize);
-	}
-
 	//Following this are the sendId and destId strings.
 	std::stringstream idStr;
 	for (int sz=0; sz<header.sendIdLen; sz++) {
@@ -266,6 +259,13 @@ bool sim_mob::CommsimSerializer::deserialize_v1(const BundleHeader& header, cons
 		idStr <<msgStr[i++];
 	}
 	vHead.destId = idStr.str();
+
+	//A series of 3-byte message field lengths follows.
+	for (int msgId=0; msgId<header.messageCount; msgId++) {
+		int msgSize = (((unsigned char)msgStr[i])<<16) | (((unsigned char)msgStr[i+1])<<8) | ((unsigned char)msgStr[i+2]);
+		i += 3; //Note to Java developers: do the incrementation after in C++; DON'T do ++ multiple times in one line.
+		vHead.msgLengths.push_back(msgSize);
+	}
 
 	//At this point, we have all the information we require. The only thing left to do is update the MessageConglomerate's cache of <offset,length> pairs for each message.
 	for (std::vector<unsigned int>::const_iterator it=vHead.msgLengths.begin(); it!=vHead.msgLengths.end(); it++) {

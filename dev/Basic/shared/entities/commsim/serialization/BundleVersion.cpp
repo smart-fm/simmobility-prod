@@ -33,9 +33,9 @@ std::string sim_mob::BundleParser::make_bundle_header_v1(const BundleHeader& hea
 	//TODO: We'll need a more streamlined approach for this eventually.
 	unsigned char res[8];
 	res[0] = 1;
-	res[1] = (unsigned char)header.messageCount;
-	res[2] = (unsigned char)header.sendIdLen;
-	res[3] = (unsigned char)header.destIdLen;
+	res[1] = (unsigned char)header.sendIdLen;
+	res[2] = (unsigned char)header.destIdLen;
+	res[3] = (unsigned char)header.messageCount;
 
 	res[4] = (unsigned char)((header.remLen>>24)&0xFF);
 	res[5] = (unsigned char)((header.remLen>>16)&0xFF);
@@ -51,9 +51,9 @@ sim_mob::BundleHeader sim_mob::BundleParser::read_bundle_header_v1(const std::st
 	if (((unsigned char)header[0]) != 1) { throw std::runtime_error("Invalid header version."); }
 
 	sim_mob::BundleHeader res;
-	res.messageCount = (unsigned char)header[1];
-	res.sendIdLen = (unsigned char)header[2];
-	res.destIdLen = (unsigned char)header[3];
+	res.sendIdLen = (unsigned char)header[1];
+	res.destIdLen = (unsigned char)header[2];
+	res.messageCount = (unsigned char)header[3];
 
 	//This might be overly verbose; I'm used to byte stream manipulation in Java.
 	res.remLen = (((unsigned char)header[4])<<24) | (((unsigned char)header[5])<<16) | (((unsigned char)header[6])<<8) | ((unsigned char)header[7]);

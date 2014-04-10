@@ -621,6 +621,9 @@ bool sim_mob::Broker::checkAllBrokerBlockers()
 }
 
 void sim_mob::Broker::waitAndAcceptConnections(uint32_t tick) {
+	//Update the user.
+	std::cout <<"Holding on all broker blockers...\n";
+
 	//Wait for more clients if:
 	//  1- number of subscribers is too low
 	//  2-there is no client(emulator) waiting in the queue
@@ -635,12 +638,11 @@ void sim_mob::Broker::waitAndAcceptConnections(uint32_t tick) {
 		processClientRegistrationRequests();
 
 		//If this is not the "hold" time tick, then continue.
-		if (tick != ConfigManager::GetInstance().FullConfig().system.simulation.commsim.holdTick) {
+		if (tick < ConfigManager::GetInstance().FullConfig().system.simulation.commsim.holdTick) {
 			break;
 		}
 
 		//If everything's reigstered, break out of the loop.
-		Print() <<"Holding on all broker blockers...\n";
 		if (checkAllBrokerBlockers()) {
 			break;
 		}

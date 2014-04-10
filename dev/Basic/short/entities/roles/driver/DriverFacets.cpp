@@ -376,7 +376,6 @@ void sim_mob::DriverMovement::frame_tick()
 					}
 				}
 			}
-
 			parent->getRegionSupportStruct().setNewRegionPath(regPath);
 			rrPathToSend.clear();
 		}

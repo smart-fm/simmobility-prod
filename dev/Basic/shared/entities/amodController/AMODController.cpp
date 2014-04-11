@@ -120,7 +120,7 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 {
 	frameTicks++;
 
-	if(frameTicks%2 == 0){
+	if(frameTicks%100 == 0){
 		updateMessagesInBlocking(now);
 	}
 	else if(frameTicks%2 == 1){

@@ -30,8 +30,8 @@ namespace {
     const int TIME_ON_MARKET = 30;
     const int TIME_INTERVAL = 7;
 
-    //bid_timestamp, seller_id, unit_id, price, expectation
-    const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%";
+    //bid_timestamp, seller_id, unit_id, hedonic_price, asking_price, expectation
+    const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%";
     //bid_timestamp, seller_id, bidder_id, unit_id, bidder wp, surplus, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
     const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%";
 
@@ -56,6 +56,7 @@ namespace {
         boost::format fmtr = boost::format(LOG_EXPECTATION) % now.ms()
                 % agent.getId()
                 % unitId
+                % exp.hedonicPrice
                 % exp.price
                 % exp.expectation;
         AgentsLookupSingleton::getInstance()

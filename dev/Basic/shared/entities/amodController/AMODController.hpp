@@ -14,6 +14,9 @@
 
 #include "AMODClient.hpp"
 #include "entities/Agent.hpp"
+#include "entities/fmodController/FMOD_Message.hpp"
+#include "entities/fmodController/ParkingCoordinator.hpp"
+#include "AMODMessage.hpp"
 
 namespace sim_mob {
 
@@ -47,6 +50,12 @@ public:
 	  * @return a pointer to AMODController .
 	  */
 	static AMODController* instance();
+	/**
+	  * update simulation status including link travel time and vehicles position to FMOD simulator in blocking mode.
+	  * @param now is current frame tick
+	  * @return void.
+	  */
+	void updateMessagesInBlocking(timeslice now);
 
 	/**
 	  * assign settings to controller
@@ -93,6 +102,9 @@ private:
 private:
 	static AMODController* pInstance;
 	static boost::asio::io_service ioService;
+
+	//when vehicle initialize and pack, it will store to this structure
+	FMOD::ParkingCoordinator parkingCoord;
 };
 
 } /* namespace AMOD */

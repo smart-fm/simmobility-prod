@@ -71,7 +71,28 @@ bool AMODController::connectAmodService()
 }
 void AMODController::handleVehicleInit(const std::string& msg)
 {
-	std::cout<<"msg"<<std::endl;
+	FMOD::MsgVehicleInit msgInit;
+	msgInit.createMessage(msg);
+
+	for(std::vector<FMOD::MsgVehicleInit::Supply>::iterator it=msgInit.vehicles.begin(); it!=msgInit.vehicles.end(); it++){
+
+		const StreetDirectory& stdir = StreetDirectory::instance();
+		Node* node = const_cast<Node*>( stdir.getNode( (*it).nodeId ) );
+		if(node != nullptr){
+			DailyTime start(0);
+			sim_mob::Trip* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", node, "node", node, "node");
+			sim_mob::SubTrip subTrip("", "Trip", 0, 1, DailyTime(), DailyTime(), node, "node", node, "node", "Car");
+			tc->addSubTrip(subTrip);
+			std::vector<sim_mob::TripChainItem*>  tcs;
+			tcs.push_back(tc);
+
+			sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
+			person->parentEntity = this;
+			person->client_id = (*it).vehicleId;
+
+			parkingCoord.enterTo(node, person);
+		}
+	}
 }
 void AMODController::registerController(int id, const MutexStrategy& mtxStrat)
 {
@@ -98,21 +119,71 @@ bool AMODController::frame_init(timeslice now)
 Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 {
 	frameTicks++;
-	unsigned int curTickMS = (frameTicks)*ConfigManager::GetInstance().FullConfig().baseGranMS();
 
-
-//	if(frameTicks%2 == 0){
+	if(frameTicks%2 == 0){
+		updateMessagesInBlocking(now);
+	}
+	else if(frameTicks%2 == 1){
 //		processMessagesInBlocking(now);
-//	}
-//	else if(frameTicks%2 == 1){
-//		updateMessagesInBlocking(now);
-//	}
-//
+	}
+
 //	dispatchPendingAgents(now);
 
 	return Entity::UpdateStatus::Continue;
-}
 
+}
+void AMODController::updateMessagesInBlocking(timeslice now)
+{
+	if(!isConnectAmodServer)
+		return;
+
+//	std::string message;
+//	FMOD::MessageList ret = collectVehStops();
+	//std::string msg = "message ID, 0, {"current_time":"08:00:00 01/31/2013", “link":[{"segment_id":"1", "travel_time":30},{"segment_id":"2", "travel_time":10}]}
+
+	AMODMsgLinkTravelTime ret;
+
+	AMODMsgLinkTravelTime::Link l1; l1.segmentId=10; l1.travelTime = 30.0;
+	AMODMsgLinkTravelTime::Link l2; l2.segmentId=20; l2.travelTime = 40.0;
+	AMODMsgLinkTravelTime::Link l3; l3.segmentId=30; l3.travelTime = 60.0;
+
+	std::string s=ret.buildToString();
+	std::cout<<"s: "<<s<<std::endl;
+		connectPoint->sendMessage(s);
+		connectPoint->flush();
+//		connectPoint->waitMessageInBlocking(message, waitingseconds);
+//		if(FMOD_Message::analyzeMessageID(message)!= FMOD_Message::MSG_ACK ){
+//			std::cout << "Fmod Controller not receive correct acknowledge message" << std::endl;
+//			return;
+//		}
+//	}
+//
+//	if(now.ms()%updatePosTime == 0){
+//		ret = collectVehPos();
+//		if(ret.size()>0){
+//			connectPoint->sendMessage(ret);
+//			connectPoint->flush();
+//			connectPoint->waitMessageInBlocking(message, waitingseconds);
+//			if(FMOD_Message::analyzeMessageID(message)!= FMOD_Message::MSG_ACK ){
+//				std::cout << "Fmod Controller not receive correct acknowledge message" << std::endl;
+//				return;
+//			}
+//		}
+//	}
+//
+//	if(now.ms()%updateTravelTime == 0){
+//		ret = collectLinkTravelTime();
+//		if(ret.size()>0){
+//			connectPoint->sendMessage(ret);
+//			connectPoint->flush();
+//			connectPoint->waitMessageInBlocking(message, waitingseconds);
+//			if(FMOD_Message::analyzeMessageID(message)!= FMOD_Message::MSG_ACK ){
+//				std::cout << "Fmod Controller not receive correct acknowledge message" << std::endl;
+//				return;
+//			}
+//		}
+//	}
+}
 void AMODController::frame_output(timeslice now)
 {
 

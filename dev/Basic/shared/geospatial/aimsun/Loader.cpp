@@ -2794,6 +2794,13 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 							rdSeg->parentConflux = conflux;
 							std::vector<sim_mob::SegmentStats*> splitSegmentStats;
 							CreateSegmentStats(rdSeg, splitSegmentStats);
+							if(splitSegmentStats.empty()) {
+								debugMsgs<<"no segment stats created for segment."
+										 <<"|segment: "<<rdSeg->getStartEnd()
+										 <<"|conflux: "<<conflux->multiNode
+										 <<std::endl;
+								throw std::runtime_error(debugMsgs.str());
+							}
 							std::vector<sim_mob::SegmentStats*>& rdSegSatsList = conflux->segmentAgents[rdSeg];
 							rdSegSatsList.insert(rdSegSatsList.end(), splitSegmentStats.begin(), splitSegmentStats.end());
 							upSegStatsList.insert(upSegStatsList.end(),splitSegmentStats.begin(), splitSegmentStats.end());

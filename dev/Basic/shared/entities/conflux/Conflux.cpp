@@ -245,7 +245,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 			}
 		}
 	}
-	else if((segBeforeUpdate != segAfterUpdate) /*if the person has moved to another segment*/
+	else if((segStatsBfrUpdt != segStatsAftrUpdt) /*if the person has moved to another segment*/
 			|| (laneBeforeUpdate == segStatsBfrUpdt->laneInfinity && laneBeforeUpdate != laneAfterUpdate) /* or if the person has moved out of lane infinity*/)
 	{
 		Person* dequeuedPerson = segStatsBfrUpdt->dequeue(person, laneBeforeUpdate, isQueuingBeforeUpdate);
@@ -275,7 +275,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 		}
 	}
 	//It's possible for some persons to start a new trip on the same segment where they ended the previous trip.
-	else if(segBeforeUpdate == segAfterUpdate && laneAfterUpdate == segStatsAftrUpdt->laneInfinity){
+	else if(segStatsBfrUpdt == segStatsAftrUpdt && laneAfterUpdate == segStatsAftrUpdt->laneInfinity){
 		Person* dequeuedPerson = segStatsBfrUpdt->dequeue(person, laneBeforeUpdate, isQueuingBeforeUpdate);
 		if(dequeuedPerson != person) {
 			segStatsBfrUpdt->printAgents();
@@ -582,7 +582,7 @@ sim_mob::SegmentStats* sim_mob::Conflux::findSegStats(const sim_mob::RoadSegment
 		return nullptr;
 	}
 	SegmentStatsList& statsList = segmentAgents.find(rdSeg)->second;
-	if(statsList.size() > statsNum) {
+	if(statsList.size() < statsNum) {
 		return nullptr;
 	}
 	SegmentStatsList::iterator statsIt = statsList.begin();

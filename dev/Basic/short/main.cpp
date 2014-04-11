@@ -64,6 +64,7 @@
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/fmodController/FMOD_Controller.hpp"
+#include "entities/amodController/AMODController.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Roundabout.hpp"
 #include "geospatial/Intersection.hpp"
@@ -361,6 +362,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	if(sim_mob::FMOD::FMOD_Controller::instanceExists()){
 		personWorkers->assignAWorker( sim_mob::FMOD::FMOD_Controller::instance() );
 	}
+	if(sim_mob::AMOD::AMODController::instanceExists()){
+			personWorkers->assignAWorker( sim_mob::AMOD::AMODController::instance() );
+		}
 
 	//..and Assign communication agent(currently a singleton
 

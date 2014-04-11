@@ -31,7 +31,10 @@ boost::asio::io_service AMODController::ioService;
 sim_mob::AMOD::AMODController::~AMODController() {
 	// TODO Auto-generated destructor stub
 }
-
+bool AMODController::instanceExists()
+{
+	return pInstance;
+}
 bool AMODController::connectAmodService()
 {
 	bool ret = connectPoint->connectToServer(ipAddress, port);
@@ -44,7 +47,7 @@ bool AMODController::connectAmodService()
 		sim_mob::FMOD::MsgInitialize request;
 		request.messageID_ = sim_mob::FMOD::FMOD_Message::MSG_INITIALIZE;
 		request.mapType = "xml";
-		request.mapFile = mapFile;
+		request.mapFile = "NetworkCopy_small_bugis.xml";//mapFile;
 		request.version = 1;
 		request.startTime = ConfigManager::GetInstance().FullConfig().simStartTime().toString();
 		std::string msg = request.buildToString();
@@ -146,6 +149,17 @@ void AMODController::updateMessagesInBlocking(timeslice now)
 	AMODMsgLinkTravelTime::Link l1; l1.segmentId=10; l1.travelTime = 30.0;
 	AMODMsgLinkTravelTime::Link l2; l2.segmentId=20; l2.travelTime = 40.0;
 	AMODMsgLinkTravelTime::Link l3; l3.segmentId=30; l3.travelTime = 60.0;
+
+	ret.links.push_back(l1);
+	ret.links.push_back(l2);
+	ret.links.push_back(l3);
+
+	unsigned int curTickMS = (frameTicks)*ConfigManager::GetInstance().FullConfig().baseGranMS();
+		DailyTime curr(curTickMS);
+		DailyTime base(ConfigManager::GetInstance().FullConfig().simStartTime());
+		DailyTime start(curr.getValue()+base.getValue());
+
+	ret.currentTime = start.toString();
 
 	std::string s=ret.buildToString();
 	std::cout<<"s: "<<s<<std::endl;

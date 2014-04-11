@@ -87,9 +87,18 @@ void MsgVehicleInit::createMessage(const std::string& msg)
 	for(int i=0; i<arrVeh.size(); i++)
 	{
 		Json::Value item = arrVeh[i];
+		int ii=item.size();
+		Json::Value::Members m= item.getMemberNames();
+		int jj=m.size();
+		for(int j=0;j<m.size();++j)
+		{
+			std::cout<<m[j]<<std::endl;
+		}
 		Supply suplier;
-		suplier.vehicleId = boost::lexical_cast<int>(item["vehicle_id"].asCString());
-		suplier.nodeId = boost::lexical_cast<int>(item["node_id"].asCString());
+		std::cout<<"vh id: "<<item["vehicle_id"].asInt()<<std::endl;
+		std::cout<<"vh id: "<<item["node_id"]<<std::endl;
+		suplier.vehicleId = item["vehicle_id"].asInt();
+		suplier.nodeId = item["node_id"].asInt();
 		vehicles.push_back(suplier);
 	}
 }

@@ -51,6 +51,11 @@ public:
 	  */
 	static AMODController* instance();
 	/**
+	      * check whether or not the instance already existed
+	      * @return true if existed .
+	      */
+	static bool instanceExists();
+	/**
 	  * update simulation status including link travel time and vehicles position to FMOD simulator in blocking mode.
 	  * @param now is current frame tick
 	  * @return void.

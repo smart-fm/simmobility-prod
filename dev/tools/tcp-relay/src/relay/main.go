@@ -214,7 +214,7 @@ func receive_remote(params *NetData) {
 		copy(line, rec_buff[0:len])
 
 		if params.debug_flag {
-			fmt.Print("Reading data from the server ###" , line , "###\n")
+			fmt.Print("Reading data from the server ###" , string(line) , "###\n")
 		}
 
 		//Pass this bundle off to the client.
@@ -251,7 +251,7 @@ func forward_to_client(params *NetData) {
 		}
 
 		if params.debug_flag {
-			fmt.Print("Writing to client with id [" , destId , "], data: ###" , line , "###\n")
+			fmt.Print("Writing to client with id [" , destId , "], data: ###" , string(line) , "###\n")
 		}
 		_,err := destConn.write.Write(line)
 		if err != nil {
@@ -269,7 +269,7 @@ func forward_to_server(params *NetData) {
 	for {
 		line = <-params.outgoing
 		if params.debug_flag {
-			fmt.Print("Writing to server: ###" , line , "###\n")
+			fmt.Print("Writing to server: ###" , string(line) , "###\n")
 		}
 		_,err := remote.write.Write(line)
 		if err != nil {
@@ -306,7 +306,7 @@ func receive_client(params *NetData, localconn Connection) {
 
 	//Forward this message.
 	if params.debug_flag {
-		fmt.Print("Reading (first time) from client with id [" , sendId , "], data: ###" , line , "###\n")
+		fmt.Print("Reading (first time) from client with id [" , sendId , "], data: ###" , string(line) , "###\n")
 	}
 	params.outgoing <- line
 
@@ -318,7 +318,7 @@ func receive_client(params *NetData, localconn Connection) {
 		copy(line, rec_buff[0:len])
 
 		if params.debug_flag {
-			fmt.Print("Reading from client with id [" , sendId , "], data: ###" , line , "###\n")
+			fmt.Print("Reading from client with id [" , sendId , "], data: ###" , string(line) , "###\n")
 		}
 		params.outgoing <- line
     }

@@ -621,13 +621,11 @@ bool sim_mob::Broker::checkAllBrokerBlockers()
 }
 
 void sim_mob::Broker::waitAndAcceptConnections(uint32_t tick) {
-	//Update the user.
-	std::cout <<"Holding on all broker blockers...\n";
-
 	//Wait for more clients if:
 	//  1- number of subscribers is too low
 	//  2-there is no client(emulator) waiting in the queue
 	//  3-this update function never started to process any data so far
+	bool notified = false;
 	for (;;) {
 		//boost::unique_lock<boost::mutex> lock(mutex_client_wait_list);
 
@@ -645,6 +643,9 @@ void sim_mob::Broker::waitAndAcceptConnections(uint32_t tick) {
 		//If everything's reigstered, break out of the loop.
 		if (checkAllBrokerBlockers()) {
 			break;
+		} else if (!notified) {
+			notified = true;
+			std::cout <<"Holding on all broker blockers...\n";
 		}
 
 		//Else, sleep

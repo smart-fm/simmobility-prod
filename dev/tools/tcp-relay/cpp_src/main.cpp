@@ -60,8 +60,14 @@ const std::string LOC_ADDR = "192.168.0.103";
 const unsigned int LOC_PORT = 6799;
 const unsigned int MAX_MSG_LENGTH = 30000;
 
+
 //Our endpoints, as a result.
 boost::asio::ip::tcp::endpoint client_ep(boost::asio::ip::address::from_string(LOC_ADDR), LOC_PORT);
+
+//Only 1 of each of these.
+boost::asio::io_service io_service;
+tcp::acceptor acceptor(io_service, client_ep);
+tcp::resolver resolver(io_service);
 
 //Our new client message.
 const char* NC_MSG =	"\x01\x01\x01\x01\x00\x00\x00\x1E"  //Static header
@@ -103,7 +109,6 @@ bool init_server();
 class ClientListener {
 public:
 	ClientListener() : socket(io_service) {
-		tcp::acceptor acceptor(io_service, client_ep);
 		acceptor.accept(socket);
 		socket.set_option(tcp::no_delay(true));
 		readClientThread = boost::thread(boost::bind(&ClientListener::readIncomingClient, this));
@@ -214,7 +219,6 @@ private:
 
 
 private:
-	boost::asio::io_service io_service;
 	tcp::socket socket;
 	boost::thread readClientThread;
 	char* readClientBuff;
@@ -228,7 +232,6 @@ private:
 class ServerListener {
 public:
 	ServerListener() : socket(io_service) {
-		tcp::resolver resolver(io_service);
 		tcp::resolver::query query(SM_HOST, SM_PORT);
 		tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
 
@@ -332,7 +335,6 @@ private:
 
 
 private:
-	boost::asio::io_service io_service;
 	tcp::socket socket;
 	boost::thread readServerThread;
 	char* readServerBuff;
@@ -377,6 +379,7 @@ int main(int argc, char* argv[])
 	for (;;) {
 		new ClientListener();
 	}
+
 	std::cout <<"Done\n";
 	return 0;
 }

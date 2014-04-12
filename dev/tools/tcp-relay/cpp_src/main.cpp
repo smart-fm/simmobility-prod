@@ -76,7 +76,8 @@ struct FullMsg {
 };
 
 //Actual server connection.
-ServerListener* server = 0;
+ServerListener* serverPRIVATE = 0;
+bool serverSTARTED = false; //Do we have a pending asyn_connect?
 boost::mutex serverLOCK;
 
 //Map of known clients.
@@ -90,6 +91,9 @@ boost::mutex    unknownLOCK;
 
 //Connect to the server if this is the first time. Returns true if this call forced the server to initialize.
 bool init_server();
+
+//Get the server (blocks)
+ServerListener* get_server();
 
 
 //Polls listening to a client. Spawns a new ClientListener on each successfull accept()
@@ -221,8 +225,20 @@ public:
 		tcp::resolver::query query(SM_HOST, SM_PORT);
 		tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
 
-		boost::asio::connect(socket, endpoint_iterator);
+		connected = false;
+		boost::asio::async_connect(socket, endpoint_iterator,
+			boost::bind(&ServerListener::handle_connect, this, boost::asio::placeholders::error)
+		);
+		//boost::asio::connect(socket, endpoint_iterator);
+	}
 
+
+  void handle_connect(const boost::system::error_code& error) {
+		if (error) { throw std::runtime_error("Error connecting to server."); }
+		{
+		boost::lock_guard<boost::mutex> lock(serverLOCK);
+		connected = true;
+		}
 		std::cout <<"Connected to Sim Mobility server.\n";
 
 		//Spawn our threads
@@ -232,6 +248,11 @@ public:
 
 	void push(const FullMsg& msg) {
 		readClientBuff.push(msg);
+	}
+
+	bool isConnected() {
+		boost::lock_guard<boost::mutex> lock(serverLOCK);
+		return connected;
 	}
 
 private:
@@ -326,6 +347,7 @@ private:
 	char* readServerBuff;
 	boost::thread readClientThread;
 	ThreadSafeQueue<FullMsg> readClientBuff;
+	bool connected;
 };
 
 
@@ -335,19 +357,30 @@ void ClientListener::sendToServer(const FullMsg& msg)
 		std::cout <<"Received message from client \"" <<clientID <<"\", to server, data: " <<std::string(msg.data, msg.len) <<"\n";
 	}
 
-	server->push(msg);
+	get_server()->push(msg);
 }
 
 
 bool init_server() 
 {
 	boost::lock_guard<boost::mutex> lock(serverLOCK);
-	if (!server) {
-		server = new ServerListener(); //TODO: This will delay waiting on the connection; we might want to use a future in the ServerListener's constructor to avoid this.
+	if (!serverSTARTED) {
+		serverSTARTED = true;
+		serverPRIVATE = new ServerListener(); //TODO: This will delay waiting on the connection; we might want to use a future in the ServerListener's constructor to avoid this.
 		return true;
 	}
 	return false;
 }
+
+ServerListener* get_server()
+{
+	for (;;) { //TODO: More busy-waiting here...
+		if (serverPRIVATE->isConnected()) {
+			return serverPRIVATE;
+		}
+	}
+}
+
 
 
 

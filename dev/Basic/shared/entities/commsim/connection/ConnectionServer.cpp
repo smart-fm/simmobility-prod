@@ -81,6 +81,9 @@ void sim_mob::ConnectionServer::handle_accept(const boost::system::error_code& e
 		WarnOut("Connection Refused" << std::endl);
 	}
 
+	//Turn off Nagle's algorithm; it's slow on small packets.
+	newSess->getSocket().set_option(boost::asio::ip::tcp::no_delay(true));
+
 	//Continue; accept the next connection.
 	creatSocketAndAccept();
 }

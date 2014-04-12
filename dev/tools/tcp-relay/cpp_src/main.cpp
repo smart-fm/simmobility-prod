@@ -26,24 +26,29 @@ template<class T>
 class ThreadSafeQueue {
 public:
 	///Push an item into the queue.
-	void push(const T& item) { boost::lock_guard<boost::mutex> lock(mutex);
+	void push(const T& item) {
+		{
+		boost::unique_lock<boost::mutex> lock(mutex);
 		messageList.push(item);
+		}
+		cond.notify_all();
 	}
 
 	///Pop an item off the queue and store it in res.
 	///Returns true if an item was retrieved, false otherwise.
-	bool pop(T& res) { boost::lock_guard<boost::mutex> lock(mutex);
-		if(!messageList.empty()) {
-			res = messageList.front();
-			messageList.pop();
-			return true;
+	void pop(T& res) {
+		boost::unique_lock<boost::mutex> lock(mutex);
+		while (messageList.empty()) {
+			cond.wait(lock);
 		}
-		return false;
+		res = messageList.front();
+		messageList.pop();
 	}
 
 private:
 	std::queue<T> messageList;
 	boost::mutex mutex;
+	boost::condition_variable cond;
 };
 
 //Log all messages?
@@ -54,6 +59,9 @@ const std::string SM_PORT = "6745";
 const std::string LOC_ADDR = "192.168.0.103";
 const unsigned int LOC_PORT = 6799;
 const unsigned int MAX_MSG_LENGTH = 30000;
+
+//Our endpoints, as a result.
+boost::asio::ip::tcp::endpoint client_ep(boost::asio::ip::address::from_string(LOC_ADDR), LOC_PORT);
 
 //Our new client message.
 const char* NC_MSG =	"\x01\x01\x01\x01\x00\x00\x00\x1E"  //Static header
@@ -76,9 +84,10 @@ struct FullMsg {
 };
 
 //Actual server connection.
-ServerListener* serverPRIVATE = 0;
-bool serverSTARTED = false; //Do we have a pending asyn_connect?
+ServerListener* server = 0;
+//bool serverSTARTED = false; //Do we have a pending asyn_connect?
 boost::mutex serverLOCK;
+//boost::condition_variable server_started_condition;
 
 //Map of known clients.
 std::map<std::string, ClientListener*> clients;
@@ -93,34 +102,16 @@ boost::mutex    unknownLOCK;
 bool init_server();
 
 //Get the server (blocks)
-ServerListener* get_server();
+//ServerListener* get_server();
 
 
 //Polls listening to a client. Spawns a new ClientListener on each successfull accept()
 class ClientListener {
 public:
 	ClientListener() : socket(io_service) {
-		boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string(LOC_ADDR), LOC_PORT);
-		tcp::acceptor acceptor(io_service, ep);
+		tcp::acceptor acceptor(io_service, client_ep);
 		acceptor.accept(socket);
-
-		std::cout <<"Client contacted relay.\n";
-		if (!init_server()) {
-			//Send a new_client messge.
-			FullMsg newClientMsg;
-			newClientMsg.data = new char[MAX_MSG_LENGTH]; //This will end up in the pool anyway.
-			newClientMsg.len = NC_LEN;
-			memcpy(newClientMsg.data, NC_MSG, NC_LEN); 
-			sendToServer(newClientMsg);
-		}
-
-		{
-		boost::lock_guard<boost::mutex> lock(unknownLOCK);
-		unknown.push_back(this);
-		}
-
 		readClientThread = boost::thread(boost::bind(&ClientListener::readIncomingClient, this));
-		readServerThread = boost::thread(boost::bind(&ClientListener::readIncomingServer, this));
 	}
 
 	void push(const FullMsg& msg) {
@@ -131,10 +122,31 @@ private:
 	void sendToServer(const FullMsg& msg); //We need ServerListener defined for this to work.
 
 	void readIncomingClient() {
+		//Some initialization.
+		std::cout <<"Client contacted relay.\n";
+
+		{
+		boost::unique_lock<boost::mutex> lock(unknownLOCK);
+		unknown.push_back(this);
+		}
+
+		if (!init_server()) {
+			//Send a new_client messge.
+			FullMsg newClientMsg;
+			newClientMsg.data = new char[MAX_MSG_LENGTH]; //This will end up in the pool anyway.
+			newClientMsg.len = NC_LEN;
+			memcpy(newClientMsg.data, NC_MSG, NC_LEN); 
+			sendToServer(newClientMsg);
+		}
+
+		//Start another thread for receiving.		
+		readServerThread = boost::thread(boost::bind(&ClientListener::readIncomingServer, this));
+
+		//Now read forever.
 		for(;;) {
 			//Get a buffer
 			{
-			boost::lock_guard<boost::mutex> lock(freeBuffersLOCK);
+			boost::unique_lock<boost::mutex> lock(freeBuffersLOCK);
 			if (!freeBuffers.empty()) {
 				readClientBuff = freeBuffers.back();
 				freeBuffers.pop_back();
@@ -165,7 +177,7 @@ private:
 				if (sendId.empty() || sendId=="0") { throw std::runtime_error("send_id from client is 0; this only happens for new_client, which clients themselves don't send."); }
 				clientID = sendId;
 
-				boost::lock_guard<boost::mutex> lock(clientsLOCK);
+				boost::unique_lock<boost::mutex> lock(clientsLOCK);
 				std::map<std::string, ClientListener*>::const_iterator it=clients.find(sendId);
 				if (it!=clients.end()) { throw std::runtime_error("Client with send_id already exists."); }
 				clients[sendId] = this;
@@ -183,8 +195,8 @@ private:
 	void readIncomingServer() {
 		FullMsg msg;
 		for(;;) {
-			//Read from the server buffer. (TODO: condition-variable this, or maybe in ThreadSafeQueue).
-			if (!readServerBuff.pop(msg)) { continue; }
+			//Read from the server buffer (blocking).
+			readServerBuff.pop(msg);
 
 			if (DebugLog) {
 				std::cout <<"Sent message to client \"" <<clientID <<"\", data: " <<std::string(msg.data, msg.len) <<"\n";
@@ -197,7 +209,7 @@ private:
 
 			//Return the buffer.
 			{
-			boost::lock_guard<boost::mutex> lock(freeBuffersLOCK);
+			boost::unique_lock<boost::mutex> lock(freeBuffersLOCK);
 			freeBuffers.push_back(msg.data);
 			}
 			msg.data = 0;
@@ -213,7 +225,7 @@ private:
 	char* readClientBuff;
 	boost::thread readServerThread;
 	ThreadSafeQueue<FullMsg> readServerBuff;
-	std::string clientID; //TODO: need to enable.
+	std::string clientID;
 };
 
 
@@ -225,20 +237,12 @@ public:
 		tcp::resolver::query query(SM_HOST, SM_PORT);
 		tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
 
-		connected = false;
+		/*connected = false;
 		boost::asio::async_connect(socket, endpoint_iterator,
 			boost::bind(&ServerListener::handle_connect, this, boost::asio::placeholders::error)
-		);
-		//boost::asio::connect(socket, endpoint_iterator);
-	}
+		);*/
+		boost::asio::connect(socket, endpoint_iterator);
 
-
-  void handle_connect(const boost::system::error_code& error) {
-		if (error) { throw std::runtime_error("Error connecting to server."); }
-		{
-		boost::lock_guard<boost::mutex> lock(serverLOCK);
-		connected = true;
-		}
 		std::cout <<"Connected to Sim Mobility server.\n";
 
 		//Spawn our threads
@@ -246,21 +250,35 @@ public:
 		readClientThread = boost::thread(boost::bind(&ServerListener::readIncomingClient, this));
 	}
 
+
+/*  void handle_connect(const boost::system::error_code& error) {
+		if (error) { throw std::runtime_error("Error connecting to server."); }
+		{
+		boost::unique_lock<boost::mutex> lock(serverLOCK);
+		connected = true;
+		}
+		server_started_condition.notify_all();
+		std::cout <<"Connected to Sim Mobility server.\n";
+
+		//Spawn our threads
+		readServerThread = boost::thread(boost::bind(&ServerListener::readIncomingServer, this));
+		readClientThread = boost::thread(boost::bind(&ServerListener::readIncomingClient, this));
+	}*/
+
 	void push(const FullMsg& msg) {
 		readClientBuff.push(msg);
 	}
 
-	bool isConnected() {
-		boost::lock_guard<boost::mutex> lock(serverLOCK);
+/*	bool isConnected() {
 		return connected;
-	}
+	}*/
 
 private:
 	void readIncomingServer() {
 		for (;;) {
 			//Get a buffer
 			{
-			boost::lock_guard<boost::mutex> lock(freeBuffersLOCK);
+			boost::unique_lock<boost::mutex> lock(freeBuffersLOCK);
 			if (!freeBuffers.empty()) {
 				readServerBuff = freeBuffers.back();
 				freeBuffers.pop_back();
@@ -290,12 +308,12 @@ private:
 			//A destination of 0 is only allowed with a single id_request message (we'll just trust the server/client).
 			ClientListener* destClient = 0;
 			if (destId=="0") {
-				boost::lock_guard<boost::mutex> lock(unknownLOCK);
+				boost::unique_lock<boost::mutex> lock(unknownLOCK);
 				if (unknown.empty()) { throw std::runtime_error("No clients are pending in the \"unknown\" array."); }
 				destClient = unknown.back();
 				unknown.pop_back();
 			} else {
-				boost::lock_guard<boost::mutex> lock(clientsLOCK);
+				boost::unique_lock<boost::mutex> lock(clientsLOCK);
 				std::map<std::string, ClientListener*>::const_iterator it=clients.find(destId);
 				if (it==clients.end()) { throw std::runtime_error("No client with this destination ID exists."); }
 				destClient = it->second;
@@ -317,8 +335,8 @@ private:
 	void readIncomingClient() {
 		FullMsg msg;
 		for(;;) {
-			//Read from the client buffer. (TODO: condition-variable this, or maybe in ThreadSafeQueue).
-			if (!readClientBuff.pop(msg)) { continue; }
+			//Read from the client buffer (blocking).
+			readClientBuff.pop(msg);
 
 			if (DebugLog) {
 				std::cout <<"Sent message to server, data: " <<std::string(msg.data, msg.len) <<"\n";
@@ -331,7 +349,7 @@ private:
 
 			//Return the buffer.
 			{
-			boost::lock_guard<boost::mutex> lock(freeBuffersLOCK);
+			boost::unique_lock<boost::mutex> lock(freeBuffersLOCK);
 			freeBuffers.push_back(msg.data);
 			}
 			msg.data = 0;
@@ -347,7 +365,7 @@ private:
 	char* readServerBuff;
 	boost::thread readClientThread;
 	ThreadSafeQueue<FullMsg> readClientBuff;
-	bool connected;
+	//bool connected;
 };
 
 
@@ -357,29 +375,29 @@ void ClientListener::sendToServer(const FullMsg& msg)
 		std::cout <<"Received message from client \"" <<clientID <<"\", to server, data: " <<std::string(msg.data, msg.len) <<"\n";
 	}
 
-	get_server()->push(msg);
+	server->push(msg);
 }
 
 
 bool init_server() 
 {
-	boost::lock_guard<boost::mutex> lock(serverLOCK);
-	if (!serverSTARTED) {
-		serverSTARTED = true;
-		serverPRIVATE = new ServerListener(); //TODO: This will delay waiting on the connection; we might want to use a future in the ServerListener's constructor to avoid this.
+	boost::unique_lock<boost::mutex> lock(serverLOCK);
+	if (!server) {
+//		serverSTARTED = true;
+		server = new ServerListener();
 		return true;
 	}
 	return false;
 }
 
-ServerListener* get_server()
+/*ServerListener* get_server()
 {
-	for (;;) { //TODO: More busy-waiting here...
-		if (serverPRIVATE->isConnected()) {
-			return serverPRIVATE;
-		}
+	boost::unique_lock<boost::mutex> lock(serverLOCK);
+	while (!serverPRIVATE->isConnected()) {
+		server_started_condition.wait(lock);
 	}
-}
+	return serverPRIVATE;
+}*/
 
 
 

@@ -85,9 +85,7 @@ struct FullMsg {
 
 //Actual server connection.
 ServerListener* server = 0;
-//bool serverSTARTED = false; //Do we have a pending asyn_connect?
 boost::mutex serverLOCK;
-//boost::condition_variable server_started_condition;
 
 //Map of known clients.
 std::map<std::string, ClientListener*> clients;
@@ -97,12 +95,8 @@ boost::mutex    clientsLOCK;
 std::vector<ClientListener*> unknown;
 boost::mutex    unknownLOCK;
 
-
 //Connect to the server if this is the first time. Returns true if this call forced the server to initialize.
 bool init_server();
-
-//Get the server (blocks)
-//ServerListener* get_server();
 
 
 //Polls listening to a client. Spawns a new ClientListener on each successfull accept()
@@ -111,6 +105,7 @@ public:
 	ClientListener() : socket(io_service) {
 		tcp::acceptor acceptor(io_service, client_ep);
 		acceptor.accept(socket);
+		socket.set_option(tcp::no_delay(true));
 		readClientThread = boost::thread(boost::bind(&ClientListener::readIncomingClient, this));
 	}
 
@@ -237,11 +232,8 @@ public:
 		tcp::resolver::query query(SM_HOST, SM_PORT);
 		tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
 
-		/*connected = false;
-		boost::asio::async_connect(socket, endpoint_iterator,
-			boost::bind(&ServerListener::handle_connect, this, boost::asio::placeholders::error)
-		);*/
 		boost::asio::connect(socket, endpoint_iterator);
+		socket.set_option(tcp::no_delay(true));
 
 		std::cout <<"Connected to Sim Mobility server.\n";
 
@@ -249,29 +241,10 @@ public:
 		readServerThread = boost::thread(boost::bind(&ServerListener::readIncomingServer, this));
 		readClientThread = boost::thread(boost::bind(&ServerListener::readIncomingClient, this));
 	}
-
-
-/*  void handle_connect(const boost::system::error_code& error) {
-		if (error) { throw std::runtime_error("Error connecting to server."); }
-		{
-		boost::unique_lock<boost::mutex> lock(serverLOCK);
-		connected = true;
-		}
-		server_started_condition.notify_all();
-		std::cout <<"Connected to Sim Mobility server.\n";
-
-		//Spawn our threads
-		readServerThread = boost::thread(boost::bind(&ServerListener::readIncomingServer, this));
-		readClientThread = boost::thread(boost::bind(&ServerListener::readIncomingClient, this));
-	}*/
 
 	void push(const FullMsg& msg) {
 		readClientBuff.push(msg);
 	}
-
-/*	bool isConnected() {
-		return connected;
-	}*/
 
 private:
 	void readIncomingServer() {
@@ -365,7 +338,6 @@ private:
 	char* readServerBuff;
 	boost::thread readClientThread;
 	ThreadSafeQueue<FullMsg> readClientBuff;
-	//bool connected;
 };
 
 
@@ -383,23 +355,11 @@ bool init_server()
 {
 	boost::unique_lock<boost::mutex> lock(serverLOCK);
 	if (!server) {
-//		serverSTARTED = true;
 		server = new ServerListener();
 		return true;
 	}
 	return false;
 }
-
-/*ServerListener* get_server()
-{
-	boost::unique_lock<boost::mutex> lock(serverLOCK);
-	while (!serverPRIVATE->isConnected()) {
-		server_started_condition.wait(lock);
-	}
-	return serverPRIVATE;
-}*/
-
-
 
 
 int main(int argc, char* argv[])

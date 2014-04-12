@@ -51,6 +51,7 @@ bool DebugLog = false;
 
 const std::string SM_HOST = "192.168.0.103";
 const std::string SM_PORT = "6745";
+const std::string LOC_ADDR = "192.168.0.103";
 const unsigned int LOC_PORT = 6799;
 const unsigned int MAX_MSG_LENGTH = 30000;
 
@@ -86,9 +87,11 @@ bool init_server();
 class ClientListener {
 public:
 	ClientListener() : socket(io_service) {
-		tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), LOC_PORT));
+		boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string(LOC_ADDR), LOC_PORT);
+		tcp::acceptor acceptor(io_service, ep);
 		acceptor.accept(socket);
 
+		std::cout <<"Client contacted relay.\n";
 		if (!init_server()) {
 			//Send a new_client messge.
 			std::string msg = 	"\x01\x01\x01\x01\x00\x00\x00\x1E"  //Static header

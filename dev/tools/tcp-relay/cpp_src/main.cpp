@@ -55,6 +55,15 @@ const std::string LOC_ADDR = "192.168.0.103";
 const unsigned int LOC_PORT = 6799;
 const unsigned int MAX_MSG_LENGTH = 30000;
 
+//Our new client message.
+const char* NC_MSG =	"\x01\x01\x01\x01\x00\x00\x00\x1E"  //Static header
+							"00" //Sender/Destination (0 only for this message and id_request)
+							"\x00\x00\x19" //Length of first (and only) message.
+							"{\"msg_type\":\"new_client\"}";  //The actual message
+const unsigned int NC_LEN = 38; //Easier this way.
+
+
+
 //Pool of byte* buffers, all of size MAX_MSG_LENGT. If empty, a new one is created.
 std::vector<char*> freeBuffers;
 boost::mutex    freeBuffersLOCK;
@@ -94,14 +103,10 @@ public:
 		std::cout <<"Client contacted relay.\n";
 		if (!init_server()) {
 			//Send a new_client messge.
-			std::string msg = 	"\x01\x01\x01\x01\x00\x00\x00\x1E"  //Static header
-										"00" //Sender/Destination (0 only for this message and id_request)
-										"\x00\x00\x19" //Length of first (and only) message.
-										"{\"msg_type\":\"new_client\"}";  //The actual message
 			FullMsg newClientMsg;
 			newClientMsg.data = new char[MAX_MSG_LENGTH]; //This will end up in the pool anyway.
-			newClientMsg.len = msg.size();
-			memcpy(newClientMsg.data, msg.data(), newClientMsg.len); 
+			newClientMsg.len = NC_LEN;
+			memcpy(newClientMsg.data, NC_MSG, NC_LEN); 
 			sendToServer(newClientMsg);
 		}
 

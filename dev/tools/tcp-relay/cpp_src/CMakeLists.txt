@@ -15,8 +15,7 @@ SET(CMAKE_VERBOSE_MAKEFILE ON)
 set (EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 #Flags for each configuration type
-SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
-SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
+SET(CMAKE_CXX_FLAGS  "-O2")
 
 
 #Force gcc to output single line errors. 

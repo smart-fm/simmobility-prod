@@ -1,7 +1,9 @@
 #include <cstdlib>
 #include <deque>
 #include <set>
+#include <list>
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <queue>
 #include <boost/bind.hpp>
@@ -30,6 +32,7 @@ const std::string SM_PORT = "6745";
 const std::string LOC_ADDR = "192.168.0.103";
 const unsigned int LOC_PORT = 6799;
 const unsigned int MAX_MSG_LENGTH = 30000;
+const unsigned int CONGLOM_UPPER_LIMIT = MAX_MSG_LENGTH * 36; //How much space the server allocates in its send buffer.
 
 
 //Our endpoints, as a result.
@@ -48,8 +51,6 @@ const char* NC_MSG =	"\x01\x01\x01\x01\x00\x00\x00\x1E"  //Static header
 							"\x00\x00\x19" //Length of first (and only) message.
 							"{\"msg_type\":\"new_client\"}";  //The actual message
 const unsigned int NC_LEN = 38; //Easier this way.
-
-
 
 //Actual server connection.
 ServerListener* server = 0;
@@ -72,10 +73,10 @@ public:
 		//acceptor.accept(socket);
 	}
 
-	void push(const std::string& msg) {
+	void push(const char* msg, unsigned int len) {
 		//Add the message.
 		bool alreadyWriting = !writeQueue.empty();
-		writeQueue.push(msg);
+		writeQueue.push(std::string(msg, len));
 
 		//"Wake" if this is the first new message in the queue.
 		if (!alreadyWriting) {
@@ -96,13 +97,12 @@ private:
 
 	void readIncomingClient() {
 		//Some initialization.
-		std::cout <<"Client contacted relay.\n";
-
 		unknown.push_back(this);
+		std::cout <<"Connected clients: " <<clients.size() <<" of " <<clients.size()+unknown.size() <<"\n";
 
 		if (!init_server()) {
 			//Send a new_client messge.
-			sendToServer(std::string(NC_MSG, NC_LEN));
+			sendToServer(NC_MSG, NC_LEN);
 		}
 
 		//Read a message.
@@ -139,11 +139,11 @@ private:
 			std::map<std::string, ClientListener*>::const_iterator it=clients.find(sendId);
 			if (it!=clients.end()) { throw std::runtime_error("Client with send_id already exists."); }
 			clients[sendId] = this;
-			std::cout <<"Connected clients: " <<clients.size() <<"\n";
+			std::cout <<"Connected clients: " <<clients.size() <<" of " <<clients.size()+unknown.size() <<"\n";
 		}
 
 		//Post it to the server (as a string copy).
-		sendToServer(std::string(readClientBuff, rem_len+8));
+		sendToServer(readClientBuff, rem_len+8);
 
 		//Now read a new header.
 		readHeader();
@@ -165,7 +165,7 @@ private:
       }
 	}
 
-	void sendToServer(const std::string& msg); //We need ServerListener defined for this to work.
+	void sendToServer(const char* msg, unsigned int len); //We need ServerListener defined for this to work.
 
 private:
 	tcp::socket socket;
@@ -182,13 +182,21 @@ private:
 class ServerListener {
 public:
 	ServerListener() : socket(io_service) {
+		toServerBuff = write_queue_1;
+		toServerLen = 0;
+		alreadyWriting = false;
 		boost::asio::async_connect(socket, endpoint_iterator, boost::bind(&ServerListener::handle_connect, this, boost::asio::placeholders::error));
 	}
 
-	void push(const std::string& msg) {
+	void push(const char* msg, unsigned int len) {
+		//Do we have enough room to add this?
+		if (toServerLen+len >= CONGLOM_UPPER_LIMIT) { throw std::runtime_error("Server buffer ran out of space."); }
+//		bool alreadyWriting = !outgoing.empty();
+
 		//Add the message.
-		bool alreadyWriting = !writeQueue.empty();
-		writeQueue.push(msg);
+//		outgoing.push(std::string(msg, len));
+		memcpy(&toServerBuff[toServerLen], msg, len); //sizeof(char) is 1, so just len is needed.
+		toServerLen += len;
 
 		//"Wake" if this is the first new message in the queue.
 		if (!alreadyWriting) {
@@ -207,17 +215,26 @@ private:
 
 	void writeFrontMessage() {
 		//TODO: Test writing "all currently available" messages in the queue (maybe use a stringstream, and pass the char* in directly?)
-		boost::asio::async_write(socket, boost::asio::buffer(writeQueue.front()), boost::bind(&ServerListener::handle_write, this, boost::asio::placeholders::error));
+		//currWriting = toWrite.str();
+		//toWrite.str("");
+		alreadyWriting = true;
+		boost::asio::async_write(socket, boost::asio::buffer(toServerBuff, toServerLen), boost::bind(&ServerListener::handle_write, this, boost::asio::placeholders::error));
+		toServerBuff = (toServerBuff==write_queue_1) ? write_queue_2 : write_queue_1;
+		toServerLen = 0;
 	}
 
 	void handle_write(const error_code& err) {
 		if (err) { throw std::runtime_error("Error writing to server."); }
 
 		//Remove this message; it's been written correctly.
-		writeQueue.pop();
+		//outgoing.pop();
+		//writeQueue.pop_front();
+		//writeQueue.erase(writeQueue.begin());
+//		writeQueue->clear();
 
 		//Is there anything else in the queue to write?
-      if (!writeQueue.empty()) {
+		alreadyWriting = false;
+      if (toServerLen>0) {
 			writeFrontMessage();
       }
 	}
@@ -253,6 +270,7 @@ private:
 		//A destination of 0 is only allowed with a single id_request message (we'll just trust the server/client).
 		ClientListener* destClient = 0;
 		if (destId=="0") {
+//std::cout <<"Unknown ID of 0 (size: " <<unknown.size() <<" ) with data: " <<std::string(readServerBuff, rem_len+8) <<"\n";
 			if (unknown.empty()) { throw std::runtime_error("No clients are pending in the \"unknown\" array."); }
 			destClient = unknown.back();
 			unknown.pop_back();
@@ -263,11 +281,10 @@ private:
 		}
 
 		//Post it to the client (as a string copy).
-		std::string msg = std::string(readServerBuff, rem_len+8);
 		if (DebugLog) {
-			std::cout <<"Received message from server, to client \"" <<destId <<"\", data: " <<msg <<"\n";
+			std::cout <<"Received message from server, to client \"" <<destId <<"\", data: " <<std::string(readServerBuff, rem_len+8) <<"\n";
 		}
-		destClient->push(msg);
+		destClient->push(readServerBuff, rem_len+8);
 
 		//Now read a new header.
 		readHeader();
@@ -277,17 +294,25 @@ private:
 	tcp::socket socket;
 	unsigned int rem_len;
 	char readServerBuff[MAX_MSG_LENGTH];
-	std::queue<std::string> writeQueue;
+
+//	std::string currWriting;
+//	std::stringstream toWrite;
+//	std::queue<std::string> outgoing;
+	char* toServerBuff; //Current write queue
+	unsigned int toServerLen; //Current "start offset" for the next item.
+	char write_queue_1[CONGLOM_UPPER_LIMIT];
+	char write_queue_2[CONGLOM_UPPER_LIMIT];
+	bool alreadyWriting;
 };
 
 
-void ClientListener::sendToServer(const std::string& msg) 
+void ClientListener::sendToServer(const char* msg, unsigned int len) 
 {
 	if (DebugLog) {
-		std::cout <<"Received message from client \"" <<clientID <<"\", to server, data: " <<msg <<"\n";
+		std::cout <<"Received message from client \"" <<clientID <<"\", to server, data: " <<std::string(msg, len) <<"\n";
 	}
 
-	server->push(msg);
+	server->push(msg, len);
 }
 
 
@@ -303,6 +328,9 @@ bool init_server()
 
 int main(int argc, char* argv[])
 {
+	//Pretty sure this is guaranteed.
+	if (sizeof(char) != 1) { throw std::runtime_error("sizeof(char) must be 1!"); }
+
 	//Parse args
 	if (argc==2 && std::string(argv[1])=="--debug") {
 		DebugLog = true;

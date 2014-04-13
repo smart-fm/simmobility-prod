@@ -93,6 +93,10 @@ public:
 		}
 	}
 
+	std::string getAddress() const {
+		return socket.remote_endpoint().address().to_string();
+	}
+
 private:
 	void handle_accept(const error_code& err) {
 		if (err) { throw std::runtime_error("Error handling accept, client."); }
@@ -298,7 +302,7 @@ private:
 
 		//Post it to the client (as a string copy).
 		if (DebugLog) {
-			std::cout <<"Received message from server, to client \"" <<destId <<"\", data: " <<std::string(readServerBuff, rem_len+8) <<"\n";
+			std::cout <<"Received message from server, to client \"" <<destId <<"\", (" <<destClient->getAddress() <<"), data: " <<std::string(readServerBuff, rem_len+8) <<"\n";
 		}
 		destClient->push(readServerBuff, rem_len+8);
 
@@ -317,7 +321,7 @@ private:
 void ClientListener::sendToServer(const char* msg, unsigned int len) 
 {
 	if (DebugLog) {
-		std::cout <<"Received message from client \"" <<clientID <<"\", to server, data: " <<std::string(msg, len) <<"\n";
+		std::cout <<"Received message from client \"" <<clientID <<"\", (" <<getAddress() <<"), to server, data: " <<std::string(msg, len) <<"\n";
 	}
 
 	server->push(msg, len);

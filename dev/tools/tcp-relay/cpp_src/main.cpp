@@ -52,13 +52,16 @@ const char* NC_MSG =	"\x01\x01\x01\x01\x00\x00\x00\x1E"  //Static header
 const unsigned int NC_LEN = 38; //Easier this way.
 
 //Actual server connection.
-ServerListener* server = 0;
+ServerListener* serverPRIME = 0;
+boost::mutex serverMUTEX;
 
 //Map of known clients.
 std::map<std::string, ClientListener*> clients;
+boost::mutex clientsMUTEX;
 
 //List of unknown clients.
 std::vector<ClientListener*> unknown;
+boost::mutex unknownMUTEX;
 
 //Connect to the server if this is the first time. Returns true if this call forced the server to initialize.
 bool init_server();
@@ -74,8 +77,12 @@ public:
 
 	void push(const char* msg, unsigned int len) {
 		//Add the message.
-		bool alreadyWriting = !writeQueue.empty();
-		writeQueue.push(std::string(msg, len));
+		bool alreadyWriting = false;
+		{
+		boost::lock_guard<boost::mutex> lock(outgoingMUTEX);
+		alreadyWriting = !writeQueue.empty();
+		writeQueue.push_back(std::string(msg, len));
+		}
 
 		//"Wake" if this is the first new message in the queue.
 		if (!alreadyWriting) {
@@ -96,10 +103,16 @@ private:
 
 	void readIncomingClient() {
 		//Some initialization.
+		{
+		boost::lock_guard<boost::mutex> lock(unknownMUTEX);
 		unknown.push_back(this);
-		std::cout <<"Connected clients: " <<clients.size() <<" of " <<clients.size()+unknown.size() <<"\n";
+		}
 
-		if (!init_server()) {
+		//std::cout <<"Connected clients: " <<clients.size() <<" of " <<clients.size()+unknown.size() <<"\n";
+
+		bool res = init_server();
+		server = serverPRIME;
+		if (!res) {
 			//Send a new_client messge.
 			sendToServer(NC_MSG, NC_LEN);
 		}
@@ -116,14 +129,14 @@ private:
 		if (err) { throw std::runtime_error("Error reading header, client."); }
 
 		//Deocde the remaining length.
-		rem_len = ((int(readClientBuff[4])&0xFF)<<24) | ((int(readClientBuff[5])&0xFF)<<16) | ((int(readClientBuff[6])&0xFF)<<8) | (int(readClientBuff[7])&0xFF);
+		unsigned int rem_len = ((int(readClientBuff[4])&0xFF)<<24) | ((int(readClientBuff[5])&0xFF)<<16) | ((int(readClientBuff[6])&0xFF)<<8) | (int(readClientBuff[7])&0xFF);
 		if (rem_len+8 >= MAX_MSG_LENGTH) { throw std::runtime_error("Client message is too long!"); }
 
 		//Now read the data section (into the same buffer).
-		boost::asio::async_read(socket, boost::asio::buffer((readClientBuff+8), rem_len), boost::bind(&ClientListener::handle_read_data, this, boost::asio::placeholders::error));
+		boost::asio::async_read(socket, boost::asio::buffer((readClientBuff+8), rem_len), boost::bind(&ClientListener::handle_read_data, this, rem_len, boost::asio::placeholders::error));
 	}
 
-	void handle_read_data(const error_code& err) {
+	void handle_read_data(unsigned int rem_len, const error_code& err) {
 		if (err) { throw std::runtime_error("Error reading data, client."); }
 
 		//Save the client ID globally if it's unknown.
@@ -135,10 +148,11 @@ private:
 			if (sendId.empty() || sendId=="0") { throw std::runtime_error("send_id from client is 0; this only happens for new_client, which clients themselves don't send."); }
 			clientID = sendId;
 
+			boost::lock_guard<boost::mutex> lock(clientsMUTEX);
 			std::map<std::string, ClientListener*>::const_iterator it=clients.find(sendId);
 			if (it!=clients.end()) { throw std::runtime_error("Client with send_id already exists."); }
 			clients[sendId] = this;
-			std::cout <<"Connected clients: " <<clients.size() <<" of " <<clients.size()+unknown.size() <<"\n";
+			//std::cout <<"Connected clients: " <<clients.size() <<" of " <<clients.size()+unknown.size() <<"\n";
 		}
 
 		//Post it to the server (as a string copy).
@@ -156,10 +170,15 @@ private:
 		if (err) { throw std::runtime_error("Error writing to client."); }
 
 		//Remove this message; it's been written correctly.
-		writeQueue.pop();
+		bool empty = false;
+		{
+		boost::lock_guard<boost::mutex> lock(outgoingMUTEX);
+		writeQueue.pop_front();
+		empty = writeQueue.empty();
+		}
 
 		//Is there anything else in the queue to write?
-      if (!writeQueue.empty()) {
+      if (!empty) {
 			writeFrontMessage();
       }
 	}
@@ -169,10 +188,12 @@ private:
 private:
 	tcp::socket socket;
 
-	char readClientBuff[MAX_MSG_LENGTH];
-	unsigned int rem_len;
+	ServerListener* server;
 
-	std::queue<std::string> writeQueue;
+	char readClientBuff[MAX_MSG_LENGTH];
+
+	std::list<std::string> writeQueue;
+	boost::mutex outgoingMUTEX;
 	std::string clientID;
 };
 
@@ -185,10 +206,14 @@ public:
 	}
 
 	void push(const char* msg, unsigned int len) {
-		bool alreadyWriting = !outgoing.empty();
+		bool alreadyWriting = false; 
+		{
+		boost::lock_guard<boost::mutex> lock(outgoingMUTEX);
+		alreadyWriting  = !outgoing.empty();
 
 		//Add the message.
-		outgoing.push(std::string(msg, len));
+		outgoing.push_back(std::string(msg, len));
+		}
 
 		//"Wake" if this is the first new message in the queue.
 		if (!alreadyWriting) {
@@ -213,10 +238,15 @@ private:
 		if (err) { throw std::runtime_error("Error writing to server."); }
 
 		//Remove this message; it's been written correctly.
-		outgoing.pop();
+		bool empty = false;
+		{
+		boost::lock_guard<boost::mutex> lock(outgoingMUTEX);
+		outgoing.pop_front();
+		empty = outgoing.empty();
+		}
 
 		//Is there anything else in the queue to write?
-      if (!outgoing.empty()) {
+      if (!empty) {
 			writeFrontMessage();
       }
 	}
@@ -234,14 +264,14 @@ private:
 		if (err) { throw std::runtime_error("Error reading header, server."); }
 
 		//Deocde the remaining length.
-		rem_len = ((int(readServerBuff[4])&0xFF)<<24) | ((int(readServerBuff[5])&0xFF)<<16) | ((int(readServerBuff[6])&0xFF)<<8) | (int(readServerBuff[7])&0xFF);
+		unsigned int rem_len = ((int(readServerBuff[4])&0xFF)<<24) | ((int(readServerBuff[5])&0xFF)<<16) | ((int(readServerBuff[6])&0xFF)<<8) | (int(readServerBuff[7])&0xFF);
 		if (rem_len+8 >= MAX_MSG_LENGTH) { throw std::runtime_error("Server message is too long!"); }
 
 		//Now read the data section (into the same buffer).
-		boost::asio::async_read(socket, boost::asio::buffer((readServerBuff+8), rem_len), boost::bind(&ServerListener::handle_read_data, this, boost::asio::placeholders::error));
+		boost::asio::async_read(socket, boost::asio::buffer((readServerBuff+8), rem_len), boost::bind(&ServerListener::handle_read_data, this, rem_len, boost::asio::placeholders::error));
 	}
 
-	void handle_read_data(const error_code& err) {
+	void handle_read_data(unsigned int rem_len, const error_code& err) {
 		if (err) { throw std::runtime_error("Error reading data, server."); }
 
 		//Retrieve the destination ID (sendIDLength in byte 2, destIDLength in byte 3, sendID starts after byte 8, and destID after sendID)
@@ -252,10 +282,12 @@ private:
 		//A destination of 0 is only allowed with a single id_request message (we'll just trust the server/client).
 		ClientListener* destClient = 0;
 		if (destId=="0") {
+			boost::lock_guard<boost::mutex> lock(unknownMUTEX);
 			if (unknown.empty()) { throw std::runtime_error("No clients are pending in the \"unknown\" array."); }
 			destClient = unknown.back();
 			unknown.pop_back();
 		} else {
+			boost::lock_guard<boost::mutex> lock(clientsMUTEX);
 			std::map<std::string, ClientListener*>::const_iterator it=clients.find(destId);
 			if (it==clients.end()) { throw std::runtime_error("No client with this destination ID exists."); }
 			destClient = it->second;
@@ -273,9 +305,9 @@ private:
 
 private:
 	tcp::socket socket;
-	unsigned int rem_len;
 	char readServerBuff[MAX_MSG_LENGTH];
-	std::queue<std::string> outgoing;
+	std::list<std::string> outgoing;
+	boost::mutex outgoingMUTEX;
 };
 
 
@@ -291,8 +323,9 @@ void ClientListener::sendToServer(const char* msg, unsigned int len)
 
 bool init_server() 
 {
-	if (!server) {
-		server = new ServerListener();
+	boost::lock_guard<boost::mutex> lock(serverMUTEX);
+	if (!serverPRIME) {
+		serverPRIME = new ServerListener();
 		return true;
 	}
 	return false;
@@ -314,6 +347,15 @@ int main(int argc, char* argv[])
 
 	//Start a new ClientListener.
 	new ClientListener();
+
+	//Additional threads here (+ the main one).
+	boost::thread t2(boost::bind(&boost::asio::io_service::run, &io_service));
+	boost::thread t3(boost::bind(&boost::asio::io_service::run, &io_service));
+	boost::thread t4(boost::bind(&boost::asio::io_service::run, &io_service));
+	boost::thread t5(boost::bind(&boost::asio::io_service::run, &io_service));
+	boost::thread t6(boost::bind(&boost::asio::io_service::run, &io_service));
+	boost::thread t7(boost::bind(&boost::asio::io_service::run, &io_service));
+	boost::thread t8(boost::bind(&boost::asio::io_service::run, &io_service));
 
 	//Perform all I/O
 	io_service.run();

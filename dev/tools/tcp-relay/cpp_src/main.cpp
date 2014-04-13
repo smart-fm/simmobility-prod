@@ -32,7 +32,6 @@ const std::string SM_PORT = "6745";
 const std::string LOC_ADDR = "192.168.0.103";
 const unsigned int LOC_PORT = 6799;
 const unsigned int MAX_MSG_LENGTH = 30000;
-const unsigned int CONGLOM_UPPER_LIMIT = MAX_MSG_LENGTH * 36; //How much space the server allocates in its send buffer.
 
 
 //Our endpoints, as a result.
@@ -182,21 +181,14 @@ private:
 class ServerListener {
 public:
 	ServerListener() : socket(io_service) {
-		toServerBuff = write_queue_1;
-		toServerLen = 0;
-		alreadyWriting = false;
 		boost::asio::async_connect(socket, endpoint_iterator, boost::bind(&ServerListener::handle_connect, this, boost::asio::placeholders::error));
 	}
 
 	void push(const char* msg, unsigned int len) {
-		//Do we have enough room to add this?
-		if (toServerLen+len >= CONGLOM_UPPER_LIMIT) { throw std::runtime_error("Server buffer ran out of space."); }
-//		bool alreadyWriting = !outgoing.empty();
+		bool alreadyWriting = !outgoing.empty();
 
 		//Add the message.
-//		outgoing.push(std::string(msg, len));
-		memcpy(&toServerBuff[toServerLen], msg, len); //sizeof(char) is 1, so just len is needed.
-		toServerLen += len;
+		outgoing.push(std::string(msg, len));
 
 		//"Wake" if this is the first new message in the queue.
 		if (!alreadyWriting) {
@@ -214,27 +206,17 @@ private:
 	}
 
 	void writeFrontMessage() {
-		//TODO: Test writing "all currently available" messages in the queue (maybe use a stringstream, and pass the char* in directly?)
-		//currWriting = toWrite.str();
-		//toWrite.str("");
-		alreadyWriting = true;
-		boost::asio::async_write(socket, boost::asio::buffer(toServerBuff, toServerLen), boost::bind(&ServerListener::handle_write, this, boost::asio::placeholders::error));
-		toServerBuff = (toServerBuff==write_queue_1) ? write_queue_2 : write_queue_1;
-		toServerLen = 0;
+		boost::asio::async_write(socket, boost::asio::buffer(outgoing.front()), boost::bind(&ServerListener::handle_write, this, boost::asio::placeholders::error));
 	}
 
 	void handle_write(const error_code& err) {
 		if (err) { throw std::runtime_error("Error writing to server."); }
 
 		//Remove this message; it's been written correctly.
-		//outgoing.pop();
-		//writeQueue.pop_front();
-		//writeQueue.erase(writeQueue.begin());
-//		writeQueue->clear();
+		outgoing.pop();
 
 		//Is there anything else in the queue to write?
-		alreadyWriting = false;
-      if (toServerLen>0) {
+      if (!outgoing.empty()) {
 			writeFrontMessage();
       }
 	}
@@ -270,7 +252,6 @@ private:
 		//A destination of 0 is only allowed with a single id_request message (we'll just trust the server/client).
 		ClientListener* destClient = 0;
 		if (destId=="0") {
-//std::cout <<"Unknown ID of 0 (size: " <<unknown.size() <<" ) with data: " <<std::string(readServerBuff, rem_len+8) <<"\n";
 			if (unknown.empty()) { throw std::runtime_error("No clients are pending in the \"unknown\" array."); }
 			destClient = unknown.back();
 			unknown.pop_back();
@@ -294,15 +275,7 @@ private:
 	tcp::socket socket;
 	unsigned int rem_len;
 	char readServerBuff[MAX_MSG_LENGTH];
-
-//	std::string currWriting;
-//	std::stringstream toWrite;
-//	std::queue<std::string> outgoing;
-	char* toServerBuff; //Current write queue
-	unsigned int toServerLen; //Current "start offset" for the next item.
-	char write_queue_1[CONGLOM_UPPER_LIMIT];
-	char write_queue_2[CONGLOM_UPPER_LIMIT];
-	bool alreadyWriting;
+	std::queue<std::string> outgoing;
 };
 
 

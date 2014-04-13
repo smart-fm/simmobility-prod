@@ -248,7 +248,17 @@ boost::shared_ptr<sim_mob::ClientHandler> sim_mob::Broker::getNs3ClientHandler()
 
 void sim_mob::Broker::insertClientList(const std::string& clientID, const std::string& cType, boost::shared_ptr<sim_mob::ClientHandler>& clientHandler)
 {
+	//Sanity check.
+	if (clientID=="0") {
+		throw std::runtime_error("Cannot add a client with ID 0.");
+	}
+
+	//Put it in the right place
 	if (cType==ClientTypeAndroid) {
+		ClientList::Type::const_iterator it = registeredAndroidClients.find(clientID);
+		if (it!=registeredAndroidClients.end()) {
+			throw std::runtime_error("Duplicate client ID requested.");
+		}
 		registeredAndroidClients[clientID] = clientHandler;
 	} else if (cType==ClientTypeNs3) {
 		if (!registeredNs3Clients.empty()) {

@@ -14,6 +14,8 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //  This is meant as a simple drop-in replacement for realy.go, since I'm not sure if Go is dropping messages (or if it's exhibiting bad performance).
 //  It requires two threads per client, and an additional two threads for the server.
+//  NOTE: This application will *always* break on exit; I don't bother cleaning up any resources.
+//        It should not otherwise leak or corrupt memory, however. Just expect a core dump at the end.
 ////////////////////////////////////////////////////////////////////////////////////////////////////// 
 
 
@@ -32,6 +34,7 @@ const std::string SM_PORT = "6745";
 const std::string LOC_ADDR = "192.168.0.103";
 const unsigned int LOC_PORT = 6799;
 const unsigned int MAX_MSG_LENGTH = 30000;
+const unsigned int NUM_THREADS = 1;
 
 
 //Our endpoints, as a result.
@@ -345,17 +348,19 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	if (DebugLog && NUM_THREADS>1) {
+		std::cout <<"Error: Debug output with >1 thread won't work (just add some mutexes).\n";
+		return 1;
+	}
+
 	//Start a new ClientListener.
+	std::cout <<"Listening for client connections.\n";
 	new ClientListener();
 
 	//Additional threads here (+ the main one).
-	boost::thread t2(boost::bind(&boost::asio::io_service::run, &io_service));
-	boost::thread t3(boost::bind(&boost::asio::io_service::run, &io_service));
-	boost::thread t4(boost::bind(&boost::asio::io_service::run, &io_service));
-	boost::thread t5(boost::bind(&boost::asio::io_service::run, &io_service));
-	boost::thread t6(boost::bind(&boost::asio::io_service::run, &io_service));
-	boost::thread t7(boost::bind(&boost::asio::io_service::run, &io_service));
-	boost::thread t8(boost::bind(&boost::asio::io_service::run, &io_service));
+	for (int i=1; i<NUM_THREADS; i++) {
+		new boost::thread(boost::bind(&boost::asio::io_service::run, &io_service)); //Leaks.
+	}
 
 	//Perform all I/O
 	io_service.run();

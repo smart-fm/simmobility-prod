@@ -4,6 +4,7 @@
 
 #include "CommsimSerializer.hpp"
 
+#include <sstream>
 #include <boost/lexical_cast.hpp>
 
 #include "geospatial/coord/CoordinateTransform.hpp"
@@ -11,6 +12,13 @@
 
 using namespace sim_mob;
 using std::string;
+
+namespace {
+
+//Copies of nonary messages.
+const std::string IdAckMsg ="{\"msg_type\":\"id_ack\"}";
+
+} //End un-named namespace
 
 
 void sim_mob::MessageConglomerate::addMessage(const Json::Value& msg)
@@ -419,14 +427,9 @@ std::string sim_mob::CommsimSerializer::makeIdRequest(const std::string& token)
 	if (PREFER_BINARY_MESSAGES) {
 		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
-		Json::Value res;
-		res["msg_type"] = "id_request";
-
-		//Add the token.
-		res["token"] = token;
-
-		//Now append it.
-		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
+		std::stringstream res;
+		res <<"{\"msg_type\":\"id_request\",\"token\":\"" <<token <<"\"}";
+		return res.str();
 	}
 }
 
@@ -436,12 +439,7 @@ std::string sim_mob::CommsimSerializer::makeIdAck()
 	if (PREFER_BINARY_MESSAGES) {
 		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
-		//First make the single message.
-		Json::Value res;
-		res["msg_type"] = "id_ack";
-
-		//That's it.
-		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
+		return IdAckMsg;
 	}
 }
 
@@ -451,14 +449,9 @@ std::string sim_mob::CommsimSerializer::makeTickedSimMob(unsigned int tick, unsi
 	if (PREFER_BINARY_MESSAGES) {
 		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
-		//First make the single message.
-		Json::Value res;
-		res["msg_type"] = "ticked_simmob";
-		res["tick"] = tick;
-		res["elapsed"] = elapsedMs;
-
-		//That's it.
-		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
+		std::stringstream res;
+		res <<"{\"msg_type\":\"ticked_simmob\",\"tick\":" <<tick <<",\"elapsed\":" <<elapsedMs <<"}";
+		return res.str();
 	}
 }
 
@@ -469,18 +462,10 @@ std::string sim_mob::CommsimSerializer::makeLocation(int x, int y, const LatLngL
 	if (PREFER_BINARY_MESSAGES) {
 		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
-		//First make the single message.
-		Json::Value res;
-		res["msg_type"] = "location";
-
-		//Custom properties
-		res["x"] = x;
-		res["y"] = y;
-		res["lat"] = projected.latitude;
-		res["lng"] = projected.longitude;
-
-		//That's it.
-		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
+		std::stringstream res;
+		res <<"{\"msg_type\":\"location\",\"x\":" <<x <<",\"y\":" <<y
+			<<",\"lat\":" <<projected.latitude <<",\"lng\":" <<projected.longitude <<"}";
+		return res.str();
 	}
 }
 
@@ -491,41 +476,30 @@ std::string sim_mob::CommsimSerializer::makeRegionsAndPath(const std::vector<sim
 	if (PREFER_BINARY_MESSAGES) {
 		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
-		//First make the single message.
-		Json::Value res;
-		res["msg_type"] = "regions_and_path";
+		std::stringstream res;
+		res <<"{\"msg_type\":\"regions_and_path\",\"regions\":[";
 
 		//Add the set of "all regions" by ID
-		{
-		Json::Value allRegionsObj;
 		for (std::vector<sim_mob::RoadRunnerRegion>::const_iterator it=all_regions.begin(); it!=all_regions.end(); it++) {
 			//When we send all regions, we actually have to send the entire object, since RoadRunner needs the Lat/Lng coords in order
 			// to do its own Region tracking.
-			Json::Value regionObj;
-			regionObj["id"] = boost::lexical_cast<string>(it->id);
-			regionObj["vertices"] = Json::Value();
+			res  <<"{\"id\":\"" <<it->id <<"\",\"vertices\":[";
 			for (std::vector<sim_mob::LatLngLocation>::const_iterator latlngIt=it->points.begin(); latlngIt!=it->points.end(); latlngIt++) {
-				Json::Value latLngObj;
-				latLngObj["lat"] = latlngIt->latitude;
-				latLngObj["lng"] = latlngIt->longitude;
-				regionObj["vertices"].append(latLngObj);
+				res <<"{\"lat\":" <<latlngIt->latitude <<",\"lng\":" <<latlngIt->longitude <<"}" <<((latlngIt+1)!=it->points.end()?",":"");
 			}
-			allRegionsObj.append(regionObj);
-		}
-		res["regions"] = allRegionsObj;
+			res <<"]}" <<((it+1)!=all_regions.end()?",":"");
 		}
 
+		res <<"],\"path\":[";
+
 		//Add the set of "path regions" by ID.
-		{
-		Json::Value pathRegionsObj;
 		for (std::vector<sim_mob::RoadRunnerRegion>::const_iterator it=region_path.begin(); it!=region_path.end(); it++) {
-			pathRegionsObj.append(boost::lexical_cast<string>(it->id));
-		}
-		res["path"] = pathRegionsObj;
+			res <<"\"" <<it->id <<"\"" <<((it+1)!=region_path.end()?",":"");
 		}
 
 		//That's it.
-		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
+		res <<"]}";
+		return res.str();
 	}
 }
 
@@ -535,21 +509,22 @@ std::string sim_mob::CommsimSerializer::makeNewAgents(const std::vector<unsigned
 	if (PREFER_BINARY_MESSAGES) {
 		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
-		Json::Value res;
-		res["msg_type"] = "new_agents";
+		std::stringstream res;
+		res <<"{\"msg_type\":\"new_agents\",\"add\":[";
 
 		//Add all "ADD" agents.
 		for (std::vector<unsigned int>::const_iterator it=addAgents.begin(); it!=addAgents.end(); it++) {
-			res["add"].append(boost::lexical_cast<std::string>(*it));
+			res <<"\"" <<*it <<"\"" <<((it+1)!=addAgents.end()?",":"");
 		}
 
 		//Add all "REMOVE" agents.
 		for (std::vector<unsigned int>::const_iterator it=remAgents.begin(); it!=remAgents.end(); it++) {
-			res["rem"].append(boost::lexical_cast<std::string>(*it));
+			res <<"\"" <<*it <<"\"" <<((it+1)!=remAgents.end()?",":"");
 		}
 
-		//Now append it.
-		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
+		//That's it.
+		res <<"]}";
+		return res.str();
 	}
 }
 
@@ -560,20 +535,19 @@ std::string sim_mob::CommsimSerializer::makeAllLocations(const std::map<unsigned
 	if (PREFER_BINARY_MESSAGES) {
 		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
-		Json::Value res;
-		res["msg_type"] = "all_locations";
+		std::stringstream res;
+		res <<"{\"msg_type\":\"all_locations\",\"locations\":[";
 
 		//Add all "LOCATIONS"
-		Json::Value singleAgent;
-		for (std::map<unsigned int, DPoint>::const_iterator it=allLocations.begin(); it!=allLocations.end(); it++) {
-			singleAgent["id"] = it->first;
-			singleAgent["x"] = it->second.x;
-			singleAgent["y"] = it->second.y;
-			res["locations"].append(singleAgent);
+		for (std::map<unsigned int, DPoint>::const_iterator it=allLocations.begin(); it!=allLocations.end();) {
+			res <<"{\"id\":\"" <<it->first <<"\",\"x\":" <<it->second.x <<",\"y\":" <<it->second.y <<"}";
+			it++;
+			res <<(it!=allLocations.end()?",":"");
 		}
 
-		//Now append it.
-		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
+		//That's it.
+		res <<"]}";
+		return res.str();
 	}
 }
 
@@ -584,21 +558,18 @@ std::string sim_mob::CommsimSerializer::makeOpaqueSend(const std::string& fromId
 	if (PREFER_BINARY_MESSAGES) {
 		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
-		Json::Value res;
-		res["msg_type"] = "opaque_send";
-
-		//Simple props.
-		res["from_id"] = fromId;
-		res["broadcast"] = broadcast;
-		res["data"] = data;
+		std::stringstream res;
+		res <<"{\"msg_type\":\"opaque_send\",\"from_id\":\"" <<fromId <<"\",\"broadcast\":" <<(broadcast?"true":"false")
+			<<"\",\"data\":\"" <<data <<"\",\"to_ids\":[";
 
 		//Add all "TO_IDS"
 		for (std::vector<std::string>::const_iterator it=toIds.begin(); it!=toIds.end(); it++) {
-			res["to_ids"].append(*it);
+			res <<"\"" <<*it <<"\"" <<((it+1)!=toIds.end()?",":"");
 		}
 
-		//Now append it.
-		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
+		//That's it.
+		res <<"]}";
+		return res.str();
 	}
 }
 
@@ -608,16 +579,9 @@ std::string sim_mob::CommsimSerializer::makeOpaqueReceive(const std::string& fro
 	if (PREFER_BINARY_MESSAGES) {
 		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
-		Json::Value res;
-		res["msg_type"] = "opaque_receive";
-
-		//Simple props.
-		res["from_id"] = fromId;
-		res["to_id"] = toId;
-		res["data"] = data;
-
-		//Now append it.
-		return JsonSingleLineWriter(!NEW_BUNDLES).write(res);
+		std::stringstream res;
+		res <<"{\"msg_type\":\"opaque_receive\",\"from_id\":\"" <<fromId <<"\",\"to_id\":\"" <<toId <<"\",\"data\":\"" <<data <<"\"}";
+		return res.str();
 	}
 }
 

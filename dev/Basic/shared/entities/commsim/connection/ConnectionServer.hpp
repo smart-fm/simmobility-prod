@@ -33,12 +33,15 @@ public:
 	ConnectionServer(BrokerBase& broker, unsigned short port = DEFAULT_SERVER_PORT);
 	~ConnectionServer();
 
-	void start();
-	void io_service_run();
+	void start(unsigned int numThreads);
+
+private:
+	//void io_service_run();
 	void handle_accept(const boost::system::error_code& e);
 
-	boost::thread io_service_thread; //thread to run the io_service
-	boost::asio::io_service io_service_;
+	//boost::thread io_service_thread; //thread to run the io_service
+	boost::thread_group threads; //Threads running the io_service.
+	boost::asio::io_service io_service;
 
 private:
 	///This function is called exactly once for every new incoming connection (session).

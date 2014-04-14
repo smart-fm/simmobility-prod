@@ -23,7 +23,7 @@ using namespace sim_mob;
 
 sim_mob::ConnectionServer::ConnectionServer(sim_mob::BrokerBase& broker, unsigned short port) :
 	broker(broker),
-	acceptor_(io_service_,boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
+	acceptor_(io_service,boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
 {
 }
 
@@ -31,14 +31,22 @@ sim_mob::ConnectionServer::~ConnectionServer()
 {
 	acceptor_.cancel();
 	acceptor_.close();
-	io_service_.stop();
-	io_service_thread.join();
+	io_service.stop();
+	threads.join_all();
 }
 
 
-void sim_mob::ConnectionServer::start()
+void sim_mob::ConnectionServer::start(unsigned int numThreads)
 {
-	io_service_thread = boost::thread(&ConnectionServer::io_service_run,this);
+	if (numThreads!=1) { throw std::runtime_error("ConnectionServer can only take 1 thread."); } //TODO: We can easily remove this later.
+
+	acceptor_.listen();
+	creatSocketAndAccept();
+
+	for(unsigned int i=0; i<numThreads; i++) {
+	  threads.create_thread(boost::bind(&boost::asio::io_service::run, &io_service));
+	}
+	//io_service_thread = boost::thread(&ConnectionServer::io_service_run,this);
 }
 
 
@@ -55,7 +63,7 @@ void sim_mob::ConnectionServer::creatSocketAndAccept()
 	std::cout << "Accepting..." <<std::endl; //NOTE: Always print this, even if output is disabled.
 
 	//Make and track a new session pointer.
-	newSess.reset(new sim_mob::Session(io_service_));
+	newSess.reset(new sim_mob::Session(io_service));
 	knownSessions.push_back(newSess);
 
 	//Accept the next connection.
@@ -65,12 +73,11 @@ void sim_mob::ConnectionServer::creatSocketAndAccept()
 	);
 }
 
-void sim_mob::ConnectionServer::io_service_run()
+/*void sim_mob::ConnectionServer::io_service_run()
 {
-	acceptor_.listen();
-	creatSocketAndAccept();
-	io_service_.run();
-}
+	io_service.run();
+}*/
+
 void sim_mob::ConnectionServer::handle_accept(const boost::system::error_code& e)
 {
 	if (!e) {

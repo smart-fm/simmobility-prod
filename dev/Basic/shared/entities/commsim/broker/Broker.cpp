@@ -747,7 +747,7 @@ Entity::UpdateStatus sim_mob::Broker::update(timeslice now)
 	//step-1 : Create/start the thread if this is the first frame.
 	//TODO: transfer this to frame_init
 	if (now.frame() == 0) {
-		connection.start(1);  //Not profiled; this only happens once.
+		connection.start(4);  //Not profiled; this only happens once.
 	}
 
 	if (EnableDebugOutput) {

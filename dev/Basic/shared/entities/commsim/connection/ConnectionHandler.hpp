@@ -97,6 +97,7 @@ private:
 
 	///What type of ClientHandlers can be multiplexed onto this connection. Empty = not yet defined (any type).
 	std::string supportedType;
+	mutable boost::mutex supportedTypeLOCK; //NOTE: Probably don't need to lock this, but it's cheap (and worth being extra-careful here).
 
 	///A token used to uniquely identify this ConnectionHandler.
 	std::string token;
@@ -116,6 +117,7 @@ private:
 
 	///The list of messages we are currently writing. front() is the message in progress.
 	std::list<std::string> writeQueue;
+	boost::mutex writeQueueLOCK;
 };
 
 }

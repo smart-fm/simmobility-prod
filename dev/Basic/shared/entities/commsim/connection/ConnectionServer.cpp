@@ -30,9 +30,6 @@ sim_mob::ConnectionServer::~ConnectionServer()
 
 void sim_mob::ConnectionServer::start(unsigned int numThreads)
 {
-	//TODO: We can easily remove this later.
-	if (numThreads!=1) { throw std::runtime_error("ConnectionServer can only take 1 thread."); }
-
 	//Pend the first client accept.
 	creatSocketAndAccept();
 
@@ -50,17 +47,19 @@ void sim_mob::ConnectionServer::creatSocketAndAccept()
 
 	//Make and track a new session pointer.
 	boost::shared_ptr<ConnectionHandler> conn(new ConnectionHandler(io_service, broker));
+	{
+	boost::lock_guard<boost::mutex> lock(knownConnectionsMUTEX);
 	knownConnections.push_back(conn);
+	}
 
 	//Accept the next connection.
-	acceptor.async_accept(knownConnections.back()->socket,
-		boost::bind(&ConnectionServer::handle_accept, this,
-		boost::asio::placeholders::error)
+	acceptor.async_accept(conn->socket,
+		boost::bind(&ConnectionServer::handle_accept, this, conn, boost::asio::placeholders::error)
 	);
 }
 
 
-void sim_mob::ConnectionServer::handle_accept(const boost::system::error_code& e)
+void sim_mob::ConnectionServer::handle_accept(boost::shared_ptr<ConnectionHandler> conn, const boost::system::error_code& e)
 {
 	if (e) {
 		std::cout<< "Failed to accept connection: " <<e.message() << std::endl;  //NOTE: Always print this, even if output is disabled.
@@ -71,13 +70,13 @@ void sim_mob::ConnectionServer::handle_accept(const boost::system::error_code& e
 	std::cout<< "Accepted a connection\n";  //NOTE: Always print this, even if output is disabled.
 
 	//Turn off Nagle's algorithm; it's slow on small packets.
-	knownConnections.back()->socket.set_option(boost::asio::ip::tcp::no_delay(true));
+	conn->socket.set_option(boost::asio::ip::tcp::no_delay(true));
 
 	//Start listening for the first client message.
-	knownConnections.back()->readHeader();
+	conn->readHeader();
 
 	//Inform the Broker that a new connection is available.
-	broker.onNewConnection(knownConnections.back());
+	broker.onNewConnection(conn);
 
 	//Continue; accept the next connection.
 	creatSocketAndAccept();

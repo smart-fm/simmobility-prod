@@ -82,8 +82,11 @@ void sim_mob::ConnectionHandler::writeMessage(std::string msg)
 {
 	//Add the message.
 	bool alreadyWriting = false;
+	{
+	boost::lock_guard<boost::mutex> lock(writeQueueLOCK);
 	alreadyWriting = !writeQueue.empty();
 	writeQueue.push_back(msg);
+	}
 
 	//"Wake" if this is the first new message in the queue.
 	if (!alreadyWriting) {
@@ -109,8 +112,12 @@ void sim_mob::ConnectionHandler::handle_write(const boost::system::error_code& e
 	}
 
 	//Remove this message; it's been written correctly.
+	bool empty = false;
+	{
+	boost::lock_guard<boost::mutex> lock(writeQueueLOCK);
 	writeQueue.pop_front();
-	bool empty = writeQueue.empty();
+	empty = writeQueue.empty();
+	}
 
 	//Is there anything else in the queue to write?
 	if (!empty) {
@@ -136,11 +143,13 @@ void ConnectionHandler::invalidate()
 
 std::string sim_mob::ConnectionHandler::getSupportedType() const
 {
+	boost::lock_guard<boost::mutex> lock(supportedTypeLOCK);
 	return supportedType;
 }
 
 void sim_mob::ConnectionHandler::setSupportedType(const std::string& type)
 {
+	boost::lock_guard<boost::mutex> lock(supportedTypeLOCK);
 	if (!this->supportedType.empty()) {
 		Warn() <<"Warning: Changing non-empty connection type (from,to) = (" <<supportedType <<"," <<supportedType <<")";
 	}

@@ -38,7 +38,7 @@ public:
 
 private:
 	//void io_service_run();
-	void handle_accept(const boost::system::error_code& e);
+	void handle_accept(boost::shared_ptr<ConnectionHandler> conn, const boost::system::error_code& e);
 
 private:
 	///This is used to loop accepting connections.
@@ -48,8 +48,8 @@ private:
 	const static unsigned int DEFAULT_SERVER_PORT = 6745;
 
 	//List of Sessions that this ConnectionServer knows about.
-	//The last element in this array is the Session we are currently connecting on.
 	std::vector< boost::shared_ptr<ConnectionHandler> > knownConnections;
+	boost::mutex knownConnectionsMUTEX;
 
 	//The io_service is used by Boost to multiplex all I/O operations. There should generally only be one of these.
 	boost::asio::io_service io_service;

@@ -16,7 +16,6 @@
 #include <boost/thread.hpp>
 #include <queue>
 
-#include <entities/commsim/connection/Session.hpp>
 
 namespace sim_mob {
 class BrokerBase;

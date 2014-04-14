@@ -68,10 +68,8 @@ public:
 	virtual ~BrokerBase() {}
 
 	//Used by: ConnectionHandler when a message has been received from the client.
-	virtual void onMessageReceived(boost::shared_ptr<ConnectionHandler>cnnHadler, const char* msg, unsigned int len) = 0;
-
-	//Used by the WhoAreYouProtocol when clients connect.
-	virtual void insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn) = 0;
+	virtual void onNewConnection(boost::shared_ptr<ConnectionHandler> cnnHandler) = 0;
+	virtual void onMessageReceived(boost::shared_ptr<ConnectionHandler> cnnHandler, const char* msg, unsigned int len) = 0;
 
 	//Used by ClientRegistration when a ClientHandler object has been created. Failing to save the ClientHandler here will lead to its destruction.
 	virtual void insertClientList(const std::string& clientID, const std::string& cType, boost::shared_ptr<sim_mob::ClientHandler>& clientHandler) = 0;
@@ -369,30 +367,23 @@ protected:
 	///Add a ClientRegistration request to the list of waiting Android or NS3 registrations, based on the clientType
 	void insertClientWaitingList(std::string clientType, ClientRegistrationRequest request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn);
 
+	/**
+	 * Save this connection in the tokenConnectionLookup.
+	 */
+	void saveConnByToken(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn);
+
 
 public:
 	///Register an Agent with the Broker. This will add it to the registeredAgents list.
 	///This function is called by the DriverCommFacet to inform the Broker that a valid Agent now exists.
 	virtual void registerEntity(sim_mob::Agent* agent);
 
+	///Callback function for when a new ConnectionHandler accepts its first incoming client connection.
+	virtual void onNewConnection(boost::shared_ptr<ConnectionHandler> cnnHandler);
+
 	///Callback function executed upon message arrival. Implements the BrokerBase interface.
 	///NOTE: msg *must* be copied; the pointer will be reused immediately after this function returns.
-	virtual void onMessageReceived(boost::shared_ptr<ConnectionHandler>cnnHadler, const char* msg, unsigned int len);
-
-	/**
-	 * When a new connection is registered (or a NEW_CLIENT message goes out), the
-	 *   ConnectionServer sends out a WHOAREYOU message, and then waits for a response.
-	 *   Since this response comes in asynchronously, the session pointer is
-	 *   pushed to the Broker using this function. It is then paired up with an Agent
-	 *   upon receiving a WHOAMI message through the normal channels.
-	 *   Implements the BrokerBase interface.
-	 * NOTE: For now, this pairing is arbitrary for agents on the same connector. You could
-	 *       To ensure that ONLY the agent who received the WHOAREYOU can respond, one
-	 *       might add a unique token PER AGENT to the WHOAREYOU message that is then relayed back
-	 *       in the WHOAMI (but at the moment this is not necessary. Currently the token is only unique per connection.
-	 * THREADING: This function is called directly by thread (via the WhoAreYouProtocol).
-	 */
-	virtual void insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn);
+	virtual void onMessageReceived(boost::shared_ptr<ConnectionHandler> cnnHandler, const char* msg, unsigned int len);
 
 	///Add a ClientHandler to the list of registered Android or NS3 clients, based on the clientType parameter.
 	///Implements the BrokerBase interface.

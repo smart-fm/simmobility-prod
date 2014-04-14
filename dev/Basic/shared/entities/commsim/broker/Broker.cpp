@@ -100,15 +100,18 @@ void sim_mob::Broker::configure()
 
 
 
-/**
- * the callback function called by connection handlers to ask
- * the Broker what to do when a message arrives(this method is to be called
- * after whoareyou, registration and connectionHandler creation....)
- * anyway, what is does is :extract messages from the input string
- * (remember that a message object carries a reference to its handler also(except for "CLIENT_MESSAGES_DONE" messages)
- *
- * NOTE: Be careful; this function can be called multiple times by different "threads". Make sure you are locking where required.
- */
+void sim_mob::Broker::onNewConnection(boost::shared_ptr<ConnectionHandler> cnnHandler)
+{
+	//Save this connection.
+	saveConnByToken(cnnHandler->getToken(), cnnHandler);
+
+	//Ask the client to identify itself.
+	WhoAreYouProtocol::QueryAgentAsync(cnnHandler);
+}
+
+
+
+//NOTE: Be careful; this function can be called multiple times by different "threads". Make sure you are locking where required.
 void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnnHandler, const char* msg, unsigned int len)
 {
 	//If the stream has closed, fail. (Otherwise, the simulation will freeze.)
@@ -146,7 +149,7 @@ void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnn
 			COND_VAR_CLIENT_DONE.notify_one();
 		} else if (mb.msg_type == "new_client") {
 			//Send out an immediate message query; don't pend the outgoing message.
-			WhoAreYouProtocol::QueryAgentAsync(cnnHandler, *this);
+			WhoAreYouProtocol::QueryAgentAsync(cnnHandler);
 		} else if (mb.msg_type == "id_response") {
 			IdResponseMessage msg = CommsimSerializer::parseIdResponse(conglom, i);
 
@@ -285,9 +288,12 @@ void sim_mob::Broker::insertClientList(const std::string& clientID, const std::s
 	}
 }
 
-void sim_mob::Broker::insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn)
+void sim_mob::Broker::saveConnByToken(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn)
 {
 	boost::unique_lock<boost::mutex> lock(mutex_token_lookup);
+	if (tokenConnectionLookup.find(token) != tokenConnectionLookup.end()) {
+		Warn() <<"Overwriting known connection; possible token duplication: " <<token <<"\n";
+	}
 	tokenConnectionLookup[token] = newConn;
 }
 

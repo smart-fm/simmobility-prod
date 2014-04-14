@@ -2,19 +2,11 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * ConnectionServer.cpp
- *
- *  Created on: May 29, 2013
- *      Author: vahid
- */
-
 #include "ConnectionServer.hpp"
 
 #include <boost/shared_ptr.hpp>
 #include <boost/bind.hpp>
 
-#include "entities/commsim/connection/Session.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "entities/commsim/connection/WhoAreYouProtocol.hpp"
 #include "logging/Log.hpp"
@@ -84,8 +76,8 @@ void sim_mob::ConnectionServer::handle_accept(const boost::system::error_code& e
 	//Start listening for the first client message.
 	knownConnections.back()->readHeader();
 
-	//Ask the client to identify itself (this will also save the ConnectionHandler in the Broker).
-	WhoAreYouProtocol::QueryAgentAsync(knownConnections.back(), broker);
+	//Inform the Broker that a new connection is available.
+	broker.onNewConnection(knownConnections.back());
 
 	//Continue; accept the next connection.
 	creatSocketAndAccept();

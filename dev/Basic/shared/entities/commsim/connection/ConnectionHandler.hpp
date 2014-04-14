@@ -15,7 +15,6 @@
 
 #include "logging/Log.hpp"
 #include "entities/commsim/serialization/BundleVersion.hpp"
-#include "entities/commsim/connection/Session.hpp"
 
 namespace sim_mob {
 class BrokerBase;
@@ -55,27 +54,11 @@ public:
 	///Post a message on this connection. (Does not require locking).
 	void postMessage(const BundleHeader& head, const std::string& str);
 
-
-
-	//Send a "READY" message to the given client.
-	//void forwardReadyMessage(ClientHandler& newClient);
-
-	//Send a message on behalf of the given client.
-	//void forwardMessage(const BundleHeader& head, const std::string& str);
-
+	///Check if this connection is valid and open.
 	bool isValid() const;
+
+	///Invalidate the connection (set valid to false).
 	void invalidate();
-
-	///Callback used by Session to indicate a message has been sent.
-	//void messageSentHandle(const boost::system::error_code &e);
-
-	///Callback used by Session to indicate a message has been received.
-	//void messageReceivedHandle(const boost::system::error_code& e);
-
-private:
-	//Helper: send a message, read a message.
-	//void sendMessage(const BundleHeader& head, const std::string& msg);
-	//void readMessage();
 
 protected:
 
@@ -118,6 +101,10 @@ private:
 	///A token used to uniquely identify this ConnectionHandler.
 	std::string token;
 
+	///Whether or not this connection is "valid". The Broker can set this flag, although setting it while
+	///  data is incoming or outgoing on the socket leads to undefined behavior.
+	bool valid;
+
 	///Saved so that we can post() things.
 	boost::asio::io_service& io_service;
 
@@ -129,34 +116,6 @@ private:
 
 	///The list of messages we are currently writing. front() is the message in progress.
 	std::list<std::string> writeQueue;
-
-
-
-	//session_ptr session;
-	//boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback;
-
-	bool valid;
-
-	//The current incoming/outgoing messages/headers. Boost wants these passed by reference.
-/*	BundleHeader outgoingHeader;
-	std::string outgoingMessage;
-	std::string incomingMessage;
-	BundleHeader incomingHeader;
-
-	//The following variables relate to the actual sending of data on this ConnectionHandler:
-	//These mutexes lock them, as they can arrive in a non-thread-safe manner.
-	boost::mutex async_write_mutex;
-	boost::mutex async_read_mutex;
-
-	//Lock async_write. If this flag is true, we can't call async_write, so outgoing messages are pended to an array.
-	bool isAsyncWrite;
-	std::list< std::pair<BundleHeader, std::string> > pendingMsg; //Messages pending to be sent out.
-
-	//Lock async_read. If this flag is true, we can't call async_read until the current operation completes.
-	bool isAsyncRead;
-	//long pendingReads; //How many "read" operations are pending.
-
-*/
 };
 
 }

@@ -9,15 +9,12 @@
 
 using namespace sim_mob;
 
-void sim_mob::WhoAreYouProtocol::QueryAgentAsync(boost::shared_ptr<sim_mob::ConnectionHandler> conn, BrokerBase& broker)
+void sim_mob::WhoAreYouProtocol::QueryAgentAsync(boost::shared_ptr<sim_mob::ConnectionHandler> conn)
 {
 	//We'll need to make a new ConnectionHandler if we don't have an existing one.
 	if (!conn) {
 		throw std::runtime_error("Cannot QueryAgentAsync() without an existing connection.");
 	}
-
-	//Inform the Broker that this connection is waiting on a WHOAMI response.
-	broker.insertIntoWaitingOnWHOAMI(conn->getToken(), conn);
 
 	OngoingSerialization ongoing;
 	CommsimSerializer::serialize_begin(ongoing, "0"); //Destination ID of zero is allowed ONLY for WHOAREYOU (since the client is unknown).

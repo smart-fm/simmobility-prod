@@ -23,29 +23,30 @@ using namespace sim_mob;
 
 sim_mob::ConnectionServer::ConnectionServer(sim_mob::BrokerBase& broker, unsigned short port) :
 	broker(broker),
-	acceptor_(io_service_,boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
+	acceptor(io_service,boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
 {
 }
 
 sim_mob::ConnectionServer::~ConnectionServer()
 {
-	acceptor_.cancel();
-	acceptor_.close();
-	io_service_.stop();
-	io_service_thread.join();
+	acceptor.cancel();
+	io_service.stop();
+	threads.join_all();
 }
 
 
-void sim_mob::ConnectionServer::start()
+void sim_mob::ConnectionServer::start(unsigned int numThreads)
 {
-	io_service_thread = boost::thread(&ConnectionServer::io_service_run,this);
-}
+	//TODO: We can easily remove this later.
+	if (numThreads!=1) { throw std::runtime_error("ConnectionServer can only take 1 thread."); }
 
+	//Pend the first client accept.
+	creatSocketAndAccept();
 
-void sim_mob::ConnectionServer::handleNewClient()
-{
-	boost::shared_ptr<ConnectionHandler> conn(new ConnectionHandler(newSess, broker));
-	WhoAreYouProtocol::QueryAgentAsync(conn, broker);
+	//Create several threads for the io_service to make use of.
+	for(unsigned int i=0; i<numThreads; i++) {
+	  threads.create_thread(boost::bind(&boost::asio::io_service::run, &io_service));
+	}
 }
 
 
@@ -55,31 +56,32 @@ void sim_mob::ConnectionServer::creatSocketAndAccept()
 	std::cout << "Accepting..." <<std::endl; //NOTE: Always print this, even if output is disabled.
 
 	//Make and track a new session pointer.
-	newSess.reset(new sim_mob::Session(io_service_));
-	knownSessions.push_back(newSess);
+	knownSessions.push_back(session_ptr(new sim_mob::Session(io_service)));
 
 	//Accept the next connection.
-	acceptor_.async_accept(newSess->getSocket(),
+	acceptor.async_accept(knownSessions.back()->getSocket(),
 		boost::bind(&ConnectionServer::handle_accept, this,
 		boost::asio::placeholders::error)
 	);
 }
 
-void sim_mob::ConnectionServer::io_service_run()
-{
-	acceptor_.listen();
-	creatSocketAndAccept();
-	io_service_.run();
-}
+
 void sim_mob::ConnectionServer::handle_accept(const boost::system::error_code& e)
 {
-	if (!e) {
-		std::cout<< "accepted a connection" << std::endl;  //NOTE: Always print this, even if output is disabled.
-		handleNewClient();
-	} else {
-		std::cout<< "refused a connection" << std::endl;  //NOTE: Always print this, even if output is disabled.
-		WarnOut("Connection Refused" << std::endl);
+	if (e) {
+		std::cout<< "Failed to accept connection: " <<e.message() << std::endl;  //NOTE: Always print this, even if output is disabled.
+		return;
 	}
+
+	//Otherwise, handle the new connection and then continue the cycle.
+	std::cout<< "Accepted a connection\n";  //NOTE: Always print this, even if output is disabled.
+
+	//Turn off Nagle's algorithm; it's slow on small packets.
+	knownSessions.back()->getSocket().set_option(boost::asio::ip::tcp::no_delay(true));
+
+	//Ask the client to identify itself (this will also save the ConnectionHandler in the Broker).
+	boost::shared_ptr<ConnectionHandler> conn(new ConnectionHandler(knownSessions.back(), broker));
+	WhoAreYouProtocol::QueryAgentAsync(conn, broker);
 
 	//Continue; accept the next connection.
 	creatSocketAndAccept();

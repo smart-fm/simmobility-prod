@@ -248,7 +248,17 @@ boost::shared_ptr<sim_mob::ClientHandler> sim_mob::Broker::getNs3ClientHandler()
 
 void sim_mob::Broker::insertClientList(const std::string& clientID, const std::string& cType, boost::shared_ptr<sim_mob::ClientHandler>& clientHandler)
 {
+	//Sanity check.
+	if (clientID=="0") {
+		throw std::runtime_error("Cannot add a client with ID 0.");
+	}
+
+	//Put it in the right place
 	if (cType==ClientTypeAndroid) {
+		ClientList::Type::const_iterator it = registeredAndroidClients.find(clientID);
+		if (it!=registeredAndroidClients.end()) {
+			throw std::runtime_error("Duplicate client ID requested.");
+		}
 		registeredAndroidClients[clientID] = clientHandler;
 	} else if (cType==ClientTypeNs3) {
 		if (!registeredNs3Clients.empty()) {
@@ -621,13 +631,11 @@ bool sim_mob::Broker::checkAllBrokerBlockers()
 }
 
 void sim_mob::Broker::waitAndAcceptConnections(uint32_t tick) {
-	//Update the user.
-	std::cout <<"Holding on all broker blockers...\n";
-
 	//Wait for more clients if:
 	//  1- number of subscribers is too low
 	//  2-there is no client(emulator) waiting in the queue
 	//  3-this update function never started to process any data so far
+	bool notified = false;
 	for (;;) {
 		//boost::unique_lock<boost::mutex> lock(mutex_client_wait_list);
 
@@ -645,6 +653,9 @@ void sim_mob::Broker::waitAndAcceptConnections(uint32_t tick) {
 		//If everything's reigstered, break out of the loop.
 		if (checkAllBrokerBlockers()) {
 			break;
+		} else if (!notified) {
+			notified = true;
+			std::cout <<"Holding on all broker blockers...\n";
 		}
 
 		//Else, sleep
@@ -729,7 +740,7 @@ Entity::UpdateStatus sim_mob::Broker::update(timeslice now)
 	//step-1 : Create/start the thread if this is the first frame.
 	//TODO: transfer this to frame_init
 	if (now.frame() == 0) {
-		connection.start();  //Not profiled; this only happens once.
+		connection.start(1);  //Not profiled; this only happens once.
 	}
 
 	if (EnableDebugOutput) {

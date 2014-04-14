@@ -29,6 +29,6 @@ void sim_mob::WhoAreYouProtocol::QueryAgentAsync(boost::shared_ptr<sim_mob::Conn
 
 	//At this point, we have a ConnectionHandler that can at least receive messages. So send the "WHOAREYOU" request.
 	//This will be received by the Broker, and added to the messageReceived() callback, which should then be filtered as expected.
-	conn->forwardMessage(hRes, msg);
+	conn->postMessage(hRes, msg);
 }
 

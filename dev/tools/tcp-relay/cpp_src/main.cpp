@@ -135,7 +135,7 @@ private:
 	void handle_read_header(const error_code& err) {
 		if (err) { throw std::runtime_error("Error reading header, client."); }
 
-		//Deocde the remaining length.
+		//Decode the remaining length.
 		unsigned int rem_len = ((int(readClientBuff[4])&0xFF)<<24) | ((int(readClientBuff[5])&0xFF)<<16) | ((int(readClientBuff[6])&0xFF)<<8) | (int(readClientBuff[7])&0xFF);
 		if (rem_len+8 >= MAX_MSG_LENGTH) { throw std::runtime_error("Client message is too long!"); }
 

@@ -12,6 +12,7 @@
 #include "ConnectionServer.hpp"
 
 #include <boost/shared_ptr.hpp>
+#include <boost/bind.hpp>
 
 #include "entities/commsim/connection/Session.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
@@ -56,10 +57,11 @@ void sim_mob::ConnectionServer::creatSocketAndAccept()
 	std::cout << "Accepting..." <<std::endl; //NOTE: Always print this, even if output is disabled.
 
 	//Make and track a new session pointer.
-	knownSessions.push_back(session_ptr(new sim_mob::Session(io_service)));
+	boost::shared_ptr<ConnectionHandler> conn(new ConnectionHandler(io_service, broker));
+	knownConnections.push_back(conn);
 
 	//Accept the next connection.
-	acceptor.async_accept(knownSessions.back()->getSocket(),
+	acceptor.async_accept(knownConnections.back()->socket,
 		boost::bind(&ConnectionServer::handle_accept, this,
 		boost::asio::placeholders::error)
 	);
@@ -77,11 +79,13 @@ void sim_mob::ConnectionServer::handle_accept(const boost::system::error_code& e
 	std::cout<< "Accepted a connection\n";  //NOTE: Always print this, even if output is disabled.
 
 	//Turn off Nagle's algorithm; it's slow on small packets.
-	knownSessions.back()->getSocket().set_option(boost::asio::ip::tcp::no_delay(true));
+	knownConnections.back()->socket.set_option(boost::asio::ip::tcp::no_delay(true));
+
+	//Start listening for the first client message.
+	knownConnections.back()->readHeader();
 
 	//Ask the client to identify itself (this will also save the ConnectionHandler in the Broker).
-	boost::shared_ptr<ConnectionHandler> conn(new ConnectionHandler(knownSessions.back(), broker));
-	WhoAreYouProtocol::QueryAgentAsync(conn, broker);
+	WhoAreYouProtocol::QueryAgentAsync(knownConnections.back(), broker);
 
 	//Continue; accept the next connection.
 	creatSocketAndAccept();

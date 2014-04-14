@@ -77,8 +77,16 @@ bool sim_mob::ClientRegistrationHandler::handle(BrokerBase& broker, sim_mob::Cli
 		sendAgentsInfo(broker.getRegisteredAgents(), clientEntry);
 	}
 
+	//Serialize a single "id_ack" message.
+	OngoingSerialization ongoing;
+	CommsimSerializer::serialize_begin(ongoing, boost::lexical_cast<std::string>(clientEntry->clientId));
+	CommsimSerializer::addGeneric(ongoing, CommsimSerializer::makeIdAck());
+	BundleHeader hRes;
+	std::string msg;
+	CommsimSerializer::serialize_end(ongoing, hRes, msg);
+
 	//Inform the client we are ready to proceed.
-	clientEntry->connHandle->forwardReadyMessage(*clientEntry);
+	clientEntry->connHandle->postMessage(hRes, msg);
 
 	return true;
 }
@@ -116,7 +124,7 @@ void sim_mob::ClientRegistrationHandler::sendAgentsInfo(const std::map<const Age
 	BundleHeader hRes;
 	std::string msg;
 	CommsimSerializer::serialize_end(ongoing, hRes, msg);
-	clientEntry->connHandle->forwardMessage(hRes, msg);
+	clientEntry->connHandle->postMessage(hRes, msg);
 }
 
 

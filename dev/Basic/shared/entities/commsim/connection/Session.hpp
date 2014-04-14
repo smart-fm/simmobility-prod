@@ -1,7 +1,7 @@
 //Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
-
+/*
 #pragma once
 
 #include <iomanip>
@@ -26,7 +26,7 @@ class ConnectionHandler;
 
 //Helper: Pointer to a session.
 typedef boost::shared_ptr<Session> session_ptr;
-
+*/
 
 /// The session class provides serialization primitives on top of a socket.
 /**
@@ -34,7 +34,7 @@ typedef boost::shared_ptr<Session> session_ptr;
  * 8-byte header containing the length of the serialized data in hexadecimal.
  * and then The serialized data.
  */
-class Session : public boost::enable_shared_from_this<Session>
+/*class Session : public boost::enable_shared_from_this<Session>
 {
 public:
 	/// Constructor.
@@ -87,3 +87,4 @@ private:
 };
 
 }
+*/

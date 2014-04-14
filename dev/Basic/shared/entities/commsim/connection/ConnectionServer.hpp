@@ -20,6 +20,7 @@
 
 namespace sim_mob {
 class BrokerBase;
+class ConnectionHandler;
 
 /**
  * This class serves two purposes: first, it spins waiting for new client connections on a given port
@@ -49,7 +50,7 @@ private:
 
 	//List of Sessions that this ConnectionServer knows about.
 	//The last element in this array is the Session we are currently connecting on.
-	std::vector<sim_mob::session_ptr> knownSessions;
+	std::vector< boost::shared_ptr<ConnectionHandler> > knownConnections;
 
 	//The io_service is used by Boost to multiplex all I/O operations. There should generally only be one of these.
 	boost::asio::io_service io_service;

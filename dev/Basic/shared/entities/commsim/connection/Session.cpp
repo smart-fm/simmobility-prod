@@ -2,7 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-#include "Session.hpp"
+/*#include "Session.hpp"
 
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 
@@ -108,3 +108,4 @@ void sim_mob::Session::handle_read_data(const boost::system::error_code& e, std:
 	handler->messageReceivedHandle(e);
 }
 
+*/

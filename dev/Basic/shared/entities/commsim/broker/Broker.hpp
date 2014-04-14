@@ -67,8 +67,8 @@ class BrokerBase {
 public:
 	virtual ~BrokerBase() {}
 
-	//Used by: TODO
-	virtual void onMessageReceived(boost::shared_ptr<ConnectionHandler>cnnHadler, const BundleHeader& header, std::string message) = 0;
+	//Used by: ConnectionHandler when a message has been received from the client.
+	virtual void onMessageReceived(boost::shared_ptr<ConnectionHandler>cnnHadler, const char* msg, unsigned int len) = 0;
 
 	//Used by the WhoAreYouProtocol when clients connect.
 	virtual void insertIntoWaitingOnWHOAMI(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn) = 0;
@@ -376,7 +376,8 @@ public:
 	virtual void registerEntity(sim_mob::Agent* agent);
 
 	///Callback function executed upon message arrival. Implements the BrokerBase interface.
-	virtual void onMessageReceived(boost::shared_ptr<ConnectionHandler>cnnHadler, const BundleHeader& header, std::string message);
+	///NOTE: msg *must* be copied; the pointer will be reused immediately after this function returns.
+	virtual void onMessageReceived(boost::shared_ptr<ConnectionHandler>cnnHadler, const char* msg, unsigned int len);
 
 	/**
 	 * When a new connection is registered (or a NEW_CLIENT message goes out), the

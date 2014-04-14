@@ -109,16 +109,17 @@ void sim_mob::Broker::configure()
  *
  * NOTE: Be careful; this function can be called multiple times by different "threads". Make sure you are locking where required.
  */
-void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnnHandler, const BundleHeader& header, std::string input)
+void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnnHandler, const char* msg, unsigned int len)
 {
 	//If the stream has closed, fail. (Otherwise, the simulation will freeze.)
-	if(input.empty()){
+	if(len==0){
 		throw std::runtime_error("Empty packet; canceling simulation.");
 	}
 
 	//Let the CommsimSerializer handle the heavy lifting.
+	BundleHeader header = BundleParser::read_bundle_header(std::string(msg, 8));
 	MessageConglomerate conglom;
-	if (!CommsimSerializer::deserialize(header, input, conglom)) {
+	if (!CommsimSerializer::deserialize(header, std::string(msg+8, len-8), conglom)) { //TODO: We could pass the pointer in here.
 		throw std::runtime_error("Broker couldn't parse packet.");
 	}
 
@@ -178,10 +179,10 @@ void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnn
 
 			//At this point we need to check the Connection's clientType and set it if it is UNKNOWN.
 			//If it is known, make sure it's the expected type.
-			if (connHandle->getClientType().empty()) {
-				connHandle->setClientType(candidate.client_type);
+			if (connHandle->getSupportedType().empty()) {
+				connHandle->setSupportedType(candidate.client_type);
 			} else {
-				if (connHandle->getClientType() != candidate.client_type) {
+				if (connHandle->getSupportedType() != candidate.client_type) {
 					throw std::runtime_error("ConnectionHandler received a message for a clientType it did not expect.");
 				}
 			}
@@ -611,7 +612,7 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 
 		//Forward to the given client.
 		//TODO: We can add per-client routing here.
-		conn->forwardMessage(header, message);
+		conn->postMessage(header, message);
 	}
 
 	//Clear the buffer for the next time tick.

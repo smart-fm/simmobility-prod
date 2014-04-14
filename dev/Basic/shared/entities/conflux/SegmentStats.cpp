@@ -35,12 +35,10 @@ bool cmp_person_distToSegmentEnd::operator ()
 	return (x->distanceToEndOfSegment > y->distanceToEndOfSegment);
 }
 
-SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double length,
-		uint8_t statNum, const BusStop* stop) :
-	roadSegment(rdSeg), length(length), segDensity(0.0), segPedSpeed(0.0),
-	segFlow(0),	lastAcceptTime(0.0), numPersons(0), positionInRoadSegment(statNum),
-	busStop(stop), debugMsgs(std::stringstream::out),
-	orderBySetting(SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION)
+SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double length)
+	: roadSegment(rdSeg), length(length), segDensity(0.0), segPedSpeed(0.0),
+	segFlow(0),	lastAcceptTime(0.0), numPersons(0), positionInRoadSegment(1),
+	debugMsgs(std::stringstream::out), orderBySetting(SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION)
 {
 	segVehicleSpeed = getRoadSegment()->maxSpeed / 3.6 * 100; //converting from kmph to m/s
 	numVehicleLanes = 0;
@@ -325,6 +323,15 @@ void SegmentStats::resetFrontalAgents() {
 	}
 }
 
+void SegmentStats::addBusStop(const sim_mob::BusStop* stop) {
+	if(stop) {
+		busStops.push_back(stop);
+	}
+	else {
+		throw std::runtime_error("addBusStop(): stop to be added is NULL");
+	}
+}
+
 sim_mob::Person* LaneStats::next() {
 	sim_mob::Person* person = nullptr;
 	if (laneAgentsIt != laneAgentsCopy.end()) {
@@ -344,9 +351,10 @@ unsigned int sim_mob::LaneStats::getMovingAgentsCount() const {
 		std::stringstream debugMsgs;
 		debugMsgs
 				<< "number of lane agents cannot be less than the number of queuing agents."
-				<< "\nlane" << getLane()->getLaneID() << "|queueCount: "
-				<< queueCount << "|laneAgents count: " << laneAgents.size()
-				<< "|moving: " << laneAgents.size() - queueCount << std::endl;
+				<< "\nlane" << getLane()->getLaneID()
+				<< "|queueCount: " << queueCount
+				<< "|laneAgents count: " << numPersons
+				<< std::endl;
 		throw std::runtime_error(debugMsgs.str());
 	}
 	return (numPersons - queueCount);
@@ -395,7 +403,7 @@ void sim_mob::LaneStats::updateQueueStatus(sim_mob::Person* p) {
 						<< "\nlane:" << lane->getLaneID() << "|Segment: "
 						<< lane->getRoadSegment()->getStartEnd() << "|Person: "
 						<< p->getId() << "\nQueuing: " << queueCount
-						<< "|Total: " << laneAgents.size() << std::endl;
+						<< "|Total: " << numPersons << std::endl;
 				Print() << debugMsgs.str();
 				throw std::runtime_error(debugMsgs.str());
 
@@ -408,6 +416,7 @@ void sim_mob::LaneStats::removePerson(sim_mob::Person* p, bool wasQueuing) {
 	PersonList::iterator pIt = std::find(laneAgents.begin(),laneAgents.end(), p);
 	if (pIt != laneAgents.end()) {
 		laneAgents.erase(pIt);
+		numPersons--; //record removal
 	}
 	if (wasQueuing && !laneInfinity) {
 		if (queueCount > 0) {
@@ -425,7 +434,6 @@ void sim_mob::LaneStats::removePerson(sim_mob::Person* p, bool wasQueuing) {
 			throw std::runtime_error(debugMsgs.str());
 		}
 	}
-	numPersons--; //record removal
 }
 
 sim_mob::Person* sim_mob::LaneStats::dequeue(bool isQueuingBfrUpdate) {
@@ -434,6 +442,7 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(bool isQueuingBfrUpdate) {
 	}
 	sim_mob::Person* p = laneAgents.front();
 	laneAgents.pop_front();
+	numPersons--; // record removal
 	if (!laneInfinity) {
 		if (isQueuingBfrUpdate) {
 			if (queueCount > 0) {
@@ -453,7 +462,6 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(bool isQueuingBfrUpdate) {
 			}
 		}
 	}
-	numPersons--; // record removal
 	return p;
 }
 
@@ -785,6 +793,7 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 			if ((*it) == person){
 				p = (*it);
 				it = laneAgents.erase(it); // erase returns the next iterator
+				numPersons--; //record removal
 				if (isQueuingBfrUpdate) {
 					if (queueCount > 0) {
 						// we have removed a queuing agent
@@ -802,7 +811,6 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 						throw std::runtime_error(debugMsgs.str());
 					}
 				}
-				numPersons--; //record removal
 				break; //exit loop
 			}
 		}

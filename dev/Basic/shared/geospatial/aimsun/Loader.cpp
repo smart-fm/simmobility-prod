@@ -2616,7 +2616,7 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 }
 
 void sim_mob::aimsun::Loader::CreateSegmentStats(sim_mob::RoadSegment* rdSeg,
-		std::vector<sim_mob::SegmentStats*>& splitSegmentStats) {
+		std::list<sim_mob::SegmentStats*>& splitSegmentStats) {
 	std::stringstream debugMsgs;
 	const std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>& obstacles = rdSeg->obstacles;
 	double lengthCoveredInSeg = 0, segStatLength;
@@ -2638,7 +2638,8 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(sim_mob::RoadSegment* rdSeg,
 						<<std::endl;
 				sim_mob::Print()<<debugMsgs.str();
 				debugMsgs.str(std::string());
-				sim_mob::SegmentStats* segStats = new sim_mob::SegmentStats(rdSeg, rdSegmentLength, statsNum, busStop);
+				sim_mob::SegmentStats* segStats = new sim_mob::SegmentStats(rdSeg, rdSegmentLength);
+				segStats->addBusStop(busStop);
 				splitSegmentStats.push_back(segStats);
 				lengthCoveredInSeg = rdSegmentLength;
 				break; //there *should* be no more bus stops in this segment. skipping other stops, if any
@@ -2657,13 +2658,15 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(sim_mob::RoadSegment* rdSeg,
 				//this is probably due to error in data and needs manual fixing
 				segStatLength = rdSegmentLength - lengthCoveredInSeg;
 				lengthCoveredInSeg = rdSegmentLength;
-				sim_mob::SegmentStats* segStats = new sim_mob::SegmentStats(rdSeg, segStatLength, statsNum, busStop);
+				sim_mob::SegmentStats* segStats = new sim_mob::SegmentStats(rdSeg, segStatLength);
+				segStats->addBusStop(busStop);
 				splitSegmentStats.push_back(segStats);
 				break; //there can be no more bus stops in this segment.
 			}
 			segStatLength = stopOffset - lengthCoveredInSeg;
 			lengthCoveredInSeg = stopOffset;
-			sim_mob::SegmentStats* segStats = new sim_mob::SegmentStats(rdSeg, segStatLength, statsNum, busStop);
+			sim_mob::SegmentStats* segStats = new sim_mob::SegmentStats(rdSeg, segStatLength);
+			segStats->addBusStop(busStop);
 			splitSegmentStats.push_back(segStats);
 			statsNum++;
 		}
@@ -2679,7 +2682,7 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(sim_mob::RoadSegment* rdSeg,
 			debugMsgs<<"Lengths of segment stats computed incorrectly\n";
 			debugMsgs<<"segmentLength: "<<rdSegmentLength<<"|stat lengths: ";
 			double totalStatsLength = 0;
-			for(std::vector<sim_mob::SegmentStats*>::iterator statsIt=splitSegmentStats.begin();
+			for(std::list<sim_mob::SegmentStats*>::iterator statsIt=splitSegmentStats.begin();
 					statsIt!=splitSegmentStats.end(); statsIt++){
 				debugMsgs<<(*statsIt)->length<<"|";
 				totalStatsLength = totalStatsLength + (*statsIt)->length;
@@ -2697,7 +2700,8 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(sim_mob::RoadSegment* rdSeg,
 			splitSegmentStats.back()->length = remainingSegmentLength;
 		}
 		else {
-			sim_mob::SegmentStats* segStats = new sim_mob::SegmentStats(rdSeg, remainingSegmentLength, statsNum);
+			// if the remaining length is long enough create a new SegmentStats
+			sim_mob::SegmentStats* segStats = new sim_mob::SegmentStats(rdSeg, remainingSegmentLength);
 			splitSegmentStats.push_back(segStats);
 		}
 
@@ -2705,16 +2709,53 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(sim_mob::RoadSegment* rdSeg,
 		// created segment stats is short, we will try to adjust the lengths to
 		// avoid short segments
 		if(splitSegmentStats.size() > 1) {
-			size_t iterLimit = splitSegmentStats.size() - 1;
-			for(size_t i=0; i<iterLimit; i++) {
-				if(splitSegmentStats.at(i)->length < SHORT_SEGMENT_LENGTH_LIMIT) {
-					if(splitSegmentStats.at(i+1)->length >= SHORT_SEGMENT_LENGTH_LIMIT) {
-						double lengthDiff = SHORT_SEGMENT_LENGTH_LIMIT - splitSegmentStats.at(i)->length;
-						splitSegmentStats.at(i)->length = SHORT_SEGMENT_LENGTH_LIMIT;
-						splitSegmentStats.at(i+1)->length = splitSegmentStats.at(i+1)->length - lengthDiff;
+			bool noMoreShortSegs = false;
+			while (!noMoreShortSegs && splitSegmentStats.size() > 1) {
+				noMoreShortSegs = true; //hopefully
+				std::list<sim_mob::SegmentStats*>::iterator statsIt=splitSegmentStats.begin();
+				while((*statsIt)!=(splitSegmentStats.back())) {
+					SegmentStats* currStats = *statsIt;
+					std::list<sim_mob::SegmentStats*>::iterator nxtStatsIt = statsIt; nxtStatsIt++; //get a copy and increment for next
+					SegmentStats* nextStats = *(nxtStatsIt);
+					if(currStats->length < SHORT_SEGMENT_LENGTH_LIMIT) {
+						noMoreShortSegs = false; //there is a short segment
+						if(nextStats->length >= SHORT_SEGMENT_LENGTH_LIMIT) {
+							double lengthDiff = SHORT_SEGMENT_LENGTH_LIMIT - currStats->length;
+							currStats->length = SHORT_SEGMENT_LENGTH_LIMIT;
+							nextStats->length = nextStats->length - lengthDiff;
+						}
+						else {
+							// we will merge i-th SegmentStats with i+1-th SegmentStats
+							// and add both bus stops to the merged SegmentStats
+							nextStats->length = currStats->length + nextStats->length;
+							for(std::vector<const sim_mob::BusStop*>::iterator stopIt=currStats->busStops.begin();
+									stopIt!=currStats->busStops.end(); stopIt++) {
+								nextStats->addBusStop(*stopIt);
+							}
+							statsIt = splitSegmentStats.erase(statsIt);
+							safe_delete_item(currStats);
+							continue;
+						}
 					}
-					//else - there is pretty much nothing we can do about the short segment
+					statsIt++;
 				}
+			}
+		}
+		if(splitSegmentStats.size() > 1) {
+			// the last segment stat is handled separately
+			std::list<sim_mob::SegmentStats*>::iterator statsIt = splitSegmentStats.end();
+			statsIt--;
+			SegmentStats* lastSegStats = *(statsIt);
+			statsIt--;
+			SegmentStats* lastButOneSegStats = *(statsIt);
+			if(lastSegStats->length < SHORT_SEGMENT_LENGTH_LIMIT) {
+				lastSegStats->length = lastButOneSegStats->length + lastSegStats->length;
+				for(std::vector<const sim_mob::BusStop*>::iterator stopIt=lastButOneSegStats->busStops.begin();
+						stopIt!=lastButOneSegStats->busStops.end(); stopIt++) {
+					lastSegStats->addBusStop(*stopIt);
+				}
+				splitSegmentStats.erase(statsIt);
+				safe_delete_item(lastButOneSegStats);
 			}
 		}
 	}
@@ -2724,13 +2765,17 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(sim_mob::RoadSegment* rdSeg,
 		splitSegmentStats.push_back(segStats);
 	}
 
+	//now set the ordering for the segment stats
 	if(splitSegmentStats.size() > 1) {
+		uint8_t statsNum = 1;
 		Print() <<"Segment: "<<rdSeg->getStartEnd()
 				<<"|length: "<<rdSegmentLength
 				<<"|num. segStats: "<<splitSegmentStats.size()
 				<<"|stats lengths: ";
-		for(std::vector<sim_mob::SegmentStats*>::iterator statsIt=splitSegmentStats.begin();
+		for(std::list<sim_mob::SegmentStats*>::iterator statsIt=splitSegmentStats.begin();
 				statsIt!=splitSegmentStats.end(); statsIt++){
+			(*statsIt)->positionInRoadSegment = statsNum;
+			statsNum++;
 			Print() <<(*statsIt)->length<<"|";
 		}
 		Print() << std::endl;
@@ -2792,7 +2837,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 						{
 							// assign only if not already assigned
 							rdSeg->parentConflux = conflux;
-							std::vector<sim_mob::SegmentStats*> splitSegmentStats;
+							std::list<sim_mob::SegmentStats*> splitSegmentStats;
 							CreateSegmentStats(rdSeg, splitSegmentStats);
 							if(splitSegmentStats.empty()) {
 								debugMsgs<<"no segment stats created for segment."

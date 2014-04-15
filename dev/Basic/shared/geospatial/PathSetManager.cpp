@@ -580,6 +580,11 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 		//
 		mys = "'"+mys+"'";
 		sim_mob::PathSet ps_;
+#if 1
+		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithId(
+						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+						ps_,mys);
+#else
 		if(!psDbLoader)
 		{
 			psDbLoader = new PathSetDBLoader(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
@@ -588,6 +593,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 				psDbLoader->sql,
 						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 						ps_,mys);
+#endif
 //		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithId(
 //				ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 //				ps_,mys);
@@ -602,8 +608,12 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 			{
 				ps_.subTrip = st;
 				std::map<std::string,sim_mob::SinglePath*> id_sp;
+#if 1
+				bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithId2(
+#else
 				bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(
 						psDbLoader->sql,
+#endif
 						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 						id_sp,
 						mys,

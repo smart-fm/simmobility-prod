@@ -34,8 +34,8 @@ class FMODSchedule;
 class Vehicle {
 public:
 //	Vehicle(int startLaneID);
-	Vehicle(double length, double width); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
-	Vehicle(int vehicleId, double length, double width); //Test
+	Vehicle(double lengthCM, double widthCM); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
+	Vehicle(int vehicleId, double lengthCM, double widthCM); //Test
 //	Vehicle();  //There is no wpPoint to initialize one Vehicle when crossing
 	Vehicle(const Vehicle& copy); ///<Copy constructor
 
@@ -76,8 +76,8 @@ public:
 	void resetLateralMovement();         ///<Put this car back in the center of the current lane.
 
 	/*needed by mid-term*/
-	double getPositionInSegment();
-	void setPositionInSegment(double newDist2end);
+	double getPositionInSegmentCM();
+	void setPositionInSegmentCM(double newDistToEndCM);
 	//unit cm, this is based on lane zero's polypoints
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -89,8 +89,8 @@ public:
 #endif
 
 public:
-	const double length;  ///<length of the vehicle
-	const double width;   ///<width of the vehicle
+	const double lengthCM;  ///<length(CM) of the vehicle
+	const double widthCM;   ///<width(CM) of the vehicle
 	bool isQueuing; 	 ///<for mid-term use
 	FMODSchedule* schedule;
 

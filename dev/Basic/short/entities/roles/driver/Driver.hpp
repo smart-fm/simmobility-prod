@@ -153,7 +153,7 @@ public:
 	const Vehicle* getVehicle() const { return vehicle; }
 
 	//This is probably ok.
-	const double getVehicleLength() const { return vehicle->length; }
+	const double getVehicleLengthCM() const { return vehicle->lengthCM; }
 
 private:
 	friend class DriverBehavior;

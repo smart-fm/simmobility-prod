@@ -123,8 +123,8 @@ public:
 #endif
 
 	/* needed by mid-term */
-	double getPositionInSegment();
-	void setPositionInSegment(double newDist2end);
+	double getPositionInSegmentCM();
+	void setPositionInSegmentCM(double newDistToEndCM);
 	void setStartPositionInSegment();
 	double getNextSegmentLength();
 	void advance_med(double fwdDistance);

@@ -921,14 +921,14 @@ DPoint sim_mob::GeneralPathMover::getPosition() const
 	return DPoint(movementVect.getX(), movementVect.getY());
 }
 
-double sim_mob::GeneralPathMover::getPositionInSegment()
+double sim_mob::GeneralPathMover::getPositionInSegmentCM()
 {
 	return distToEndSegment;
 }
 
-void sim_mob::GeneralPathMover::setPositionInSegment(double newDist2end)
+void sim_mob::GeneralPathMover::setPositionInSegmentCM(double newDistToEndCM)
 {
-	distToEndSegment = newDist2end;
+	distToEndSegment = newDistToEndCM;
 }
 
 void sim_mob::GeneralPathMover::setStartPositionInSegment()

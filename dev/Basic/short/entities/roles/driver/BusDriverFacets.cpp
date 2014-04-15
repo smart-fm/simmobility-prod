@@ -203,7 +203,7 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 	}
 	p.isAlreadyStart = parentBusDriver->isAleadyStarted;
 	if (!(hasNextSegment(true))) {
-		p.dis2stop = fwdDriverMovement.getAllRestRoadSegmentsLength() - fwdDriverMovement.getCurrDistAlongRoadSegment() - parentBusDriver->vehicle->length / 2- 300;
+		p.dis2stop = fwdDriverMovement.getAllRestRoadSegmentsLength() - fwdDriverMovement.getCurrDistAlongRoadSegment() - parentBusDriver->vehicle->lengthCM / 2- 300;
 		if (p.nvFwd.distance < p.dis2stop)
 			p.dis2stop = p.nvFwd.distance;
 		p.dis2stop /= 100;
@@ -253,7 +253,7 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 
 	parentBusDriver->vehicle->setTurningDirection(lcs);
 	double newLatVel;
-	newLatVel = lcModel->executeLaneChanging(p,fwdDriverMovement.getAllRestRoadSegmentsLength(), parentBusDriver->vehicle->length,parentBusDriver->vehicle->getTurningDirection(), MLC);
+	newLatVel = lcModel->executeLaneChanging(p,fwdDriverMovement.getAllRestRoadSegmentsLength(), parentBusDriver->vehicle->lengthCM,parentBusDriver->vehicle->getTurningDirection(), MLC);
 	parentBusDriver->vehicle->setLatVelocity(newLatVel * 10);
 	if (parentBusDriver->vehicle->getLatVelocity() > 0)
 		parentBusDriver->vehicle->setTurningDirection(LCS_LEFT);
@@ -272,7 +272,7 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 		LANE_CHANGE_SIDE lcs =mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
 		parentBusDriver->vehicle->setTurningDirection(lcs);
 		double newLatVel;
-		newLatVel = mitsim_lc_model->executeLaneChanging(p,fwdDriverMovement.getAllRestRoadSegmentsLength(), parentBusDriver->vehicle->length,parentBusDriver->vehicle->getTurningDirection(), MLC);
+		newLatVel = mitsim_lc_model->executeLaneChanging(p,fwdDriverMovement.getAllRestRoadSegmentsLength(), parentBusDriver->vehicle->lengthCM,parentBusDriver->vehicle->getTurningDirection(), MLC);
 		parentBusDriver->vehicle->setLatVelocity(newLatVel * 5);
 
 		// reduce speed
@@ -607,8 +607,8 @@ void sim_mob::BusDriverMovement::frame_tick_output() {
 			<<"\"xPos\":\""<<static_cast<int>(parentBusDriver->getPositionX())
 			<<"\",\"yPos\":\""<<static_cast<int>(parentBusDriver->getPositionY())
 			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
-			<<"\",\"length\":\""<<static_cast<int>(3*bus->length)
-			<<"\",\"width\":\""<<static_cast<int>(2*bus->width)
+			<<"\",\"length\":\""<<static_cast<int>(3*bus->lengthCM)
+			<<"\",\"width\":\""<<static_cast<int>(2*bus->widthCM)
 			<<"\",\"passengers\":\""<<passengerCount
 			<<"\",\"real_ArrivalTime\":\""<<(bus?parentBusDriver->real_ArrivalTime.get():0)
 			<<"\",\"DwellTime_ijk\":\""<<(bus?parentBusDriver->DwellTime_ijk.get():0)

@@ -344,7 +344,6 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& p) {
 		setOutputCounter(currLane, (getOutputCounter(currLane)-1)); // decrement from the currLane before updating it
 		currLane = nextLaneInNextSegment;
 		vehicle->actualMoveToNextSegmentAndUpdateDir_med();
-		//vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
 		vehicle->setPositionInSegment(nextRdSeg->getLaneZeroLength());
 		double linkExitTimeSec =  p.elapsedSeconds + (p.now.ms()/1000.0);
 		setLastAccept(currLane, linkExitTimeSec);
@@ -396,7 +395,6 @@ void DriverMovement::flowIntoNextLinkIfPossible(UpdateParams& up) {
 		setOutputCounter(currLane, (getOutputCounter(currLane)-1));
 		currLane = nextLaneInNextSegment;
 		vehicle->actualMoveToNextSegmentAndUpdateDir_med();
-		//vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
 		vehicle->setPositionInSegment(nextRdSeg->getLaneZeroLength());
 
 		double linkExitTimeSec =  p.elapsedSeconds + (p.now.ms()/1000.0);
@@ -737,7 +735,6 @@ void DriverMovement::setOrigin(DriverUpdateParams& p) {
 		//set position to start
 		if(vehicle->getCurrSegment())
 		{
-			//vehicle->setPositionInSegment(vehicle->getCurrLinkLaneZeroLength());
 			vehicle->setPositionInSegment(vehicle->getCurrSegment()->getLaneZeroLength());
 		}
 		currLane = nextLaneInNextSegment;

@@ -293,7 +293,7 @@ LoopDetector::check(Vehicle const & vehicle)
     // The vehicle (that is, its central position) is outside of the inner area, but within the
     // outer monitoring area.  If its length is longer than the outer area, then it would extends
     // into the inner area, and hence over the loop detector.
-    if (dotProduct - vehicle.length < innerLength_)
+    if (dotProduct - vehicle.lengthCM < innerLength_)
     {
         return true;
     }

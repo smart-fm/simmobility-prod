@@ -874,14 +874,14 @@ DPoint sim_mob::DriverPathMover::getPosition() const
 	return DPoint(movementVect.getX(), movementVect.getY());
 }
 
-double sim_mob::DriverPathMover::getPositionInSegment()
+double sim_mob::DriverPathMover::getPositionInSegmentCM()
 {
 	return distToEndSegment;
 }
 
-void sim_mob::DriverPathMover::setPositionInSegment(double newDist2end)
+void sim_mob::DriverPathMover::setPositionInSegmentCM(double newDistToEndCM)
 {
-	distToEndSegment = newDist2end;
+	distToEndSegment = newDistToEndCM;
 }
 
 void sim_mob::DriverPathMover::setStartPositionInSegment()

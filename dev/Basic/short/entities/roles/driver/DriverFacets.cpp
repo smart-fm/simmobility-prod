@@ -150,7 +150,7 @@ void sim_mob::DriverMovement::frame_init() {
 
 void sim_mob::DriverMovement::responseIncidentStatus(DriverUpdateParams& p, timeslice now) {
 	//slow down velocity when driver views the incident within the visibility distance
-	float incidentGap = parentDriver->vehicle->length;
+	float incidentGap = parentDriver->vehicle->lengthCM;
 	if(incidentStatus.getSlowdownVelocity()){
 		//calculate the distance to the nearest front vehicle, if no front vehicle exists, the distance is given to a enough large gap as 5 kilometers
 		float fwdCarDist = 5000;
@@ -158,9 +158,9 @@ void sim_mob::DriverMovement::responseIncidentStatus(DriverUpdateParams& p, time
 			DPoint dFwd = p.nvFwd.driver->getCurrPosition();
 			DPoint dCur = parentDriver->getCurrPosition();
 			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
-			fwdCarDist = movementVect.getMagnitude()-parentDriver->vehicle->length;
+			fwdCarDist = movementVect.getMagnitude()-parentDriver->vehicle->lengthCM;
 			if(fwdCarDist < 0) {
-				fwdCarDist = parentDriver->vehicle->length;
+				fwdCarDist = parentDriver->vehicle->lengthCM;
 			}
 		}
 
@@ -213,7 +213,7 @@ void sim_mob::DriverMovement::responseIncidentStatus(DriverUpdateParams& p, time
 		DPoint dFwd = p.nvFwd.driver->getCurrPosition();
 		DPoint dCur = parentDriver->getCurrPosition();
 		DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
-		double len = parentDriver->getVehicle()->length;
+		double len = parentDriver->getVehicle()->lengthCM;
 		double dist = movementVect.getMagnitude();
 		if( dist < len){
 			parentDriver->vehicle->setVelocity(0);
@@ -254,7 +254,7 @@ void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timesli
 			if( (now.ms() >= incidentObj->startTime) && (now.ms() < incidentObj->startTime+incidentObj->duration) && realDist<visibility){
 				incidentStatus.setDistanceToIncident(realDist);
 				replan = incidentStatus.insertIncident(incidentObj);
-				float incidentGap = parentDriver->vehicle->length*2;
+				float incidentGap = parentDriver->vehicle->lengthCM*2;
 				if(!incidentStatus.getChangedLane() && incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_OCCURANCE_LANE){
 					double prob = incidentStatus.getVisibilityDistance()>0 ? incidentStatus.getDistanceToIncident()/incidentStatus.getVisibilityDistance() : 0.0;
 					if(incidentStatus.getDistanceToIncident() < 2*incidentGap){
@@ -461,8 +461,8 @@ void sim_mob::DriverMovement::frame_tick_output() {
 			<<"\"xPos\":\""<<static_cast<int>(parentDriver->getCurrPosition().x)
 			<<"\",\"yPos\":\""<<static_cast<int>(parentDriver->getCurrPosition().y)
 			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
-			<<"\",\"length\":\""<<static_cast<int>(parentDriver->vehicle->length)
-			<<"\",\"width\":\""<<static_cast<int>(parentDriver->vehicle->width)
+			<<"\",\"length\":\""<<static_cast<int>(parentDriver->vehicle->lengthCM)
+			<<"\",\"width\":\""<<static_cast<int>(parentDriver->vehicle->widthCM)
 			<<"\",\"curr-segment\":\""<<(inLane?fwdDriverMovement.getCurrLane()->getRoadSegment():0x0)
 			<<"\",\"fwd-speed\":\""<<parentDriver->vehicle->getVelocity()
 			<<"\",\"fwd-accel\":\""<<parentDriver->vehicle->getAcceleration()
@@ -665,7 +665,7 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 
 	if (!(hasNextSegment(true))) // has seg in current link
 	{
-		p.dis2stop = fwdDriverMovement.getAllRestRoadSegmentsLength() - fwdDriverMovement.getCurrDistAlongRoadSegment() - parentDriver->vehicle->length / 2 - 300;
+		p.dis2stop = fwdDriverMovement.getAllRestRoadSegmentsLength() - fwdDriverMovement.getCurrDistAlongRoadSegment() - parentDriver->vehicle->lengthCM / 2 - 300;
 		if (p.nvFwd.distance < p.dis2stop)
 			p.dis2stop = p.nvFwd.distance;
 		p.dis2stop /= 100;
@@ -775,7 +775,7 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 
 	//Check if we should change lanes.
 	double newLatVel;
-	newLatVel = lcModel->executeLaneChanging(p, fwdDriverMovement.getAllRestRoadSegmentsLength(), parentDriver->vehicle->length,
+	newLatVel = lcModel->executeLaneChanging(p, fwdDriverMovement.getAllRestRoadSegmentsLength(), parentDriver->vehicle->lengthCM,
 			parentDriver->vehicle->getTurningDirection(), mode);
 
 	if(newLatVel>0 && p.nextLaneIndex>0){
@@ -1734,7 +1734,7 @@ void sim_mob::DriverMovement::check_and_set_min_car_dist(NearestVehicle& res, do
 	bool fwd=false;
 	if (distance>=0)
 		fwd = true;
-	distance = fabs(distance) - veh->length / 2 - other->getVehicleLength() / 2;
+	distance = fabs(distance) - veh->lengthCM / 2 - other->getVehicleLengthCM() / 2;
 	if ( parentDriver->isAleadyStarted )
 	{
 		if(fwd && distance <0)
@@ -1753,7 +1753,7 @@ void sim_mob::DriverMovement::check_and_set_min_car_dist2(NearestVehicle& res, d
 	bool fwd=false;
 	if (distance>=0)
 		fwd = true;
-	distance = fabs(distance) - other_veh->length / 2 - me->getVehicleLength() / 2;
+	distance = fabs(distance) - other_veh->lengthCM / 2 - me->getVehicleLengthCM() / 2;
 	if ( me->isAleadyStarted )
 	{
 		if(fwd && distance <0)
@@ -1768,7 +1768,7 @@ void sim_mob::DriverMovement::check_and_set_min_car_dist2(NearestVehicle& res, d
 void sim_mob::DriverMovement::check_and_set_min_nextlink_car_dist(NearestVehicle& res, double distance, const Vehicle* veh,
 		const Driver* other) {
 	//Subtract the size of the car from the distance between them
-	distance = fabs(distance) - other->getVehicleLength() / 2;
+	distance = fabs(distance) - other->getVehicleLengthCM() / 2;
 	if (distance <= res.distance) {
 		res.driver = other;
 		res.distance = distance;
@@ -2103,7 +2103,7 @@ void sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Pedest
 
 	//If the pedestrian is not behind us, then set our flag to true and update the minimum pedestrian distance.
 	if (angleDiff < 0.5236) { //30 degrees +/-
-		params.npedFwd.distance = std::min(params.npedFwd.distance, otherVect.getMagnitude() - parentDriver->vehicle->length / 2
+		params.npedFwd.distance = std::min(params.npedFwd.distance, otherVect.getMagnitude() - parentDriver->vehicle->lengthCM / 2
 				- 300);
 	}
 }
@@ -2496,7 +2496,7 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 		parentDriver->perceivedTrafficColor->delay(p.trafficColor);
 
 
-		p.trafficSignalStopDistance = fwdDriverMovement.getAllRestRoadSegmentsLength() - fwdDriverMovement.getCurrDistAlongRoadSegment() - parentDriver->vehicle->length / 2;
+		p.trafficSignalStopDistance = fwdDriverMovement.getAllRestRoadSegmentsLength() - fwdDriverMovement.getCurrDistAlongRoadSegment() - parentDriver->vehicle->lengthCM / 2;
 		parentDriver->perceivedDistToTrafficSignal->set_delay(parentDriver->reacTime);
 		if(parentDriver->perceivedDistToTrafficSignal->can_sense())
 		{

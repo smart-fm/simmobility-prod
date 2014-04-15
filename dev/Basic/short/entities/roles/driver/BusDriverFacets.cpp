@@ -198,12 +198,12 @@ vector<const BusStop*> sim_mob::BusDriverMovement::findBusStopInPath(const vecto
 
 double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 {
-	if ((parentBusDriver->getParams().now.ms() / 1000.0 - parentBusDriver->startTime > 10)&& (fwdDriverMovement.getCurrDistAlongRoadSegment() > 2000) && parentBusDriver->isAleadyStarted == false) {
+	if ((parentBusDriver->getParams().now.ms() / 1000.0 - parentBusDriver->startTime > 10)&& (fwdDriverMovement.getCurrDistAlongRoadSegmentCM() > 2000) && parentBusDriver->isAleadyStarted == false) {
 		parentBusDriver->isAleadyStarted = true;
 	}
 	p.isAlreadyStart = parentBusDriver->isAleadyStarted;
 	if (!(hasNextSegment(true))) {
-		p.dis2stop = fwdDriverMovement.getAllRestRoadSegmentsLength() - fwdDriverMovement.getCurrDistAlongRoadSegment() - parentBusDriver->vehicle->lengthCM / 2- 300;
+		p.dis2stop = fwdDriverMovement.getAllRestRoadSegmentsLengthCM() - fwdDriverMovement.getCurrDistAlongRoadSegmentCM() - parentBusDriver->vehicle->lengthCM / 2- 300;
 		if (p.nvFwd.distance < p.dis2stop)
 			p.dis2stop = p.nvFwd.distance;
 		p.dis2stop /= 100;
@@ -211,7 +211,7 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 		p.nextLaneIndex = std::min<int>(p.currLaneIndex,fwdDriverMovement.getNextSegment(true)->getLanes().size() - 1);
 		if (fwdDriverMovement.getNextSegment(true)->getLanes().at(p.nextLaneIndex)->is_pedestrian_lane()) {
 			p.nextLaneIndex--;
-			p.dis2stop = fwdDriverMovement.getCurrPolylineTotalDist() - fwdDriverMovement.getCurrDistAlongRoadSegment() + 1000;
+			p.dis2stop = fwdDriverMovement.getCurrPolylineTotalDistCM() - fwdDriverMovement.getCurrDistAlongRoadSegmentCM() + 1000;
 		} else
 			p.dis2stop = 1000;//defalut 1000m
 	}
@@ -253,7 +253,7 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 
 	parentBusDriver->vehicle->setTurningDirection(lcs);
 	double newLatVel;
-	newLatVel = lcModel->executeLaneChanging(p,fwdDriverMovement.getAllRestRoadSegmentsLength(), parentBusDriver->vehicle->lengthCM,parentBusDriver->vehicle->getTurningDirection(), MLC);
+	newLatVel = lcModel->executeLaneChanging(p,fwdDriverMovement.getAllRestRoadSegmentsLengthCM(), parentBusDriver->vehicle->lengthCM,parentBusDriver->vehicle->getTurningDirection(), MLC);
 	parentBusDriver->vehicle->setLatVelocity(newLatVel * 10);
 	if (parentBusDriver->vehicle->getLatVelocity() > 0)
 		parentBusDriver->vehicle->setTurningDirection(LCS_LEFT);
@@ -272,7 +272,7 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 		LANE_CHANGE_SIDE lcs =mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
 		parentBusDriver->vehicle->setTurningDirection(lcs);
 		double newLatVel;
-		newLatVel = mitsim_lc_model->executeLaneChanging(p,fwdDriverMovement.getAllRestRoadSegmentsLength(), parentBusDriver->vehicle->lengthCM,parentBusDriver->vehicle->getTurningDirection(), MLC);
+		newLatVel = mitsim_lc_model->executeLaneChanging(p,fwdDriverMovement.getAllRestRoadSegmentsLengthCM(), parentBusDriver->vehicle->lengthCM,parentBusDriver->vehicle->getTurningDirection(), MLC);
 		parentBusDriver->vehicle->setLatVelocity(newLatVel * 5);
 
 		// reduce speed
@@ -558,8 +558,8 @@ double sim_mob::BusDriverMovement::getDistanceToBusStopOfSegment(const RoadSegme
 					DynamicVector busToSegmentStartDistance(currentX, currentY,
 							rs->getStart()->location.getX(),
 							rs->getStart()->location.getY());
-					distance = fwdDriverMovement.getCurrentSegmentLength()
-							- fwdDriverMovement.getCurrDistAlongRoadSegment() + stopPoint;
+					distance = fwdDriverMovement.getCurrentSegmentLengthCM()
+							- fwdDriverMovement.getCurrDistAlongRoadSegmentCM() + stopPoint;
 
 				}
 			} // end of if isFound

@@ -144,23 +144,23 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
     
     // Following the new assumptions of the model each household will stick on the 
     // unit where he is bidding until he gets rejected for seller by NOT_AVAILABLE/BETTER_OFFER 
-    // or the the surplus for the given unit is 0. This last means that the household
+    // or the the speculation for the given unit is 0. This last means that the household
     // does not have more margin of negotiation then is better look for another unit.
     if (biddingEntry.isValid() || pickEntryToBid()) {
-        double surplus = luaModel.calculateSurplus(*(biddingEntry.getEntry()), 
+        double speculation = luaModel.calculateSurplus(*(biddingEntry.getEntry()), 
                 biddingEntry.getTries());
-        //If the surplus is 0 means the bidder has reached the maximum 
+        //If the speculation is 0 means the bidder has reached the maximum 
         //number of bids that he can do for the current entry.
-        if (surplus > 0) {
+        if (speculation > 0) {
             const HousingMarket::Entry* entry = biddingEntry.getEntry();
             const Unit* unit = model->getUnitById(entry->getUnitId());
             const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
             if (unit && stats) {
-                double bidValue = biddingEntry.getWP() - surplus;
+                double bidValue = biddingEntry.getWP() - speculation;
                 if (entry->getOwner() && bidValue > 0.0f) {
                     bid(entry->getOwner(), Bid(entry->getUnitId(),
                             household->getId(), getParent(), bidValue, now, biddingEntry.getWP(),
-                            surplus));
+                            speculation));
                     return true;
                 }
             }

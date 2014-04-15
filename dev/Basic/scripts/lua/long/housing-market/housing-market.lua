@@ -230,7 +230,8 @@ end
 ]]
 function calulateUnitExpectations (unit, timeOnMarket, building, postcode, amenities)
     local expectations = {}
-    local hedonicPrice = calculateHedonicPrice(unit, building, postcode, amenities) * sqfToSqm(unit.floorArea)
+    -- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
+    local hedonicPrice = (calculateHedonicPrice(unit, building, postcode, amenities) * sqfToSqm(unit.floorArea))/1000
     local expectation = hedonicPrice -- IMPORTANT : this should be the hedonic value
     local price = 1000 -- starting point for price search
     local a = 1.0 -- ratio of events expected by the seller

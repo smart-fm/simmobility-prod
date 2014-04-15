@@ -25,7 +25,12 @@ namespace sim_mob {
 class Services {
 public:
 	enum SIM_MOB_SERVICE {
+		//Request the bound Agent's location at each time tick.
+		//NOTE: This message type will be ignored for non-Android clients.
 		SIMMOB_SRV_LOCATION,
+
+		//Request all Agent locations at each time tick.
+		//NOTE: This message type will be ignored for non-ns-3 clients.
 		SIMMOB_SRV_ALL_LOCATIONS,
 
 		//Sim Mobility will provide the set of all regions and the Agent's current path with this service.
@@ -35,6 +40,7 @@ public:
 		//          set is never re-sent, and the Path set is re-sent only in the case of re-routing.
 		//NOTE: There is probably a more efficient way to do this, with the Agent requesting the Region/Path set only
 		//      when it needs it. For now, I am trying to do this within the "Services" framework we provide. ~Seth
+		//NOTE: This message type will be ignored for non-Android clients.
 		SIMMOB_SRV_REGIONS_AND_PATH
 	};
 

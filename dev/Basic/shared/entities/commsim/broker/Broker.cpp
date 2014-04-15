@@ -582,8 +582,13 @@ void sim_mob::Broker::processPublishers(timeslice now)
 				}
 			}
 		}
-		if (cHandler->regisAllLocations) {
-			insertSendBuffer(cHandler, allLocMsg);
+	}
+
+	//"All locations" only applies to the ns-3 client.
+	if (registeredNs3Clients.size() == 1) {
+		boost::shared_ptr<sim_mob::ClientHandler> ns3Handler = registeredNs3Clients.begin()->second;
+		if (ns3Handler->regisAllLocations) {
+			insertSendBuffer(ns3Handler, allLocMsg);
 		}
 	}
 }

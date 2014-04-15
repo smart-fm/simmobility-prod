@@ -30,9 +30,9 @@ namespace {
     const int TIME_ON_MARKET = 30;
     const int TIME_INTERVAL = 7;
 
-    //bid_timestamp, seller_id, unit_id, hedonic_price, asking_price, expectation
-    const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%";
-    //bid_timestamp, seller_id, bidder_id, unit_id, bidder wp, speculation, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
+    //bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, expectation
+    const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
+    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, speculation, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
     const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%";
 
     inline void printBid(const HouseholdAgent& agent, const Bid& bid,
@@ -51,9 +51,10 @@ namespace {
         //PrintOut(fmtr.str() << endl);
     }
 
-    inline void printExpectation(const timeslice& now, BigSerial unitId,
+    inline void printExpectation(const timeslice& now, int dayToApply, BigSerial unitId,
             const HouseholdAgent& agent, const ExpectationEntry& exp) {
         boost::format fmtr = boost::format(LOG_EXPECTATION) % now.ms()
+                % dayToApply
                 % agent.getId()
                 % unitId
                 % exp.hedonicPrice
@@ -280,7 +281,8 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit) {
     sellingUnitsMap.erase(unit.getId());
     sellingUnitsMap.insert(std::make_pair(unit.getId(), info));
     for (int i = 0; i < info.numExpectations; i++) {
-        printExpectation(currentTime, unit.getId(), *getParent(), info.expectations[i]);
+        int dayToApply =  currentTime.ms () + (i * info.interval);
+        printExpectation(currentTime, dayToApply, unit.getId(), *getParent(), info.expectations[i]);
     }
 }
 

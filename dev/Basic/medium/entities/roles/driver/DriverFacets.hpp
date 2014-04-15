@@ -66,6 +66,14 @@ public:
 	virtual void frame_tick();
 	virtual void frame_tick_output();
 
+	sim_mob::medium::Driver* getParentDriver() const {
+		return parentDriver;
+	}
+
+	void setParentDriver(sim_mob::medium::Driver* parentDriver) {
+		this->parentDriver = parentDriver;
+	}
+
 	/**
 	 * For moving into a new link after getting permission from the managing conflux
 	 */
@@ -89,6 +97,7 @@ public:
 	 * moves the driver forward along its path
 	 *
 	 * @param params driver update params for current tick
+	 * @return true if advance was successful; false otherwise
 	 */
 	bool advance(DriverUpdateParams& params);
 
@@ -96,7 +105,7 @@ public:
 	 * moves driver to the next segment
 	 *
 	 * @param params driver update params for current tick
-	 * @returns true if successfully moved to next segment; false otherwise
+	 * @return true if successfully moved to next segment; false otherwise
 	 */
 	bool moveToNextSegment(DriverUpdateParams& params);
 
@@ -105,6 +114,7 @@ public:
 	 *
 	 * @param params driver update params for current tick
 	 * @param nextSegStats next segment stats in path
+	 * @return true if driver can move into the next segment; false otherwise
 	 */
 	bool canGoToNextRdSeg(DriverUpdateParams& params, const sim_mob::SegmentStats* nextSegStats);
 
@@ -117,7 +127,7 @@ public:
 	 * move driver forward within the seg stats
 	 *
 	 * @param distance distance to move forward
-	 * @returns status of move (success = true, failure = false)
+	 * @return status of move (success = true, failure = false)
 	 */
 	bool moveInSegment(double distance);
 
@@ -125,7 +135,7 @@ public:
 	 * move driver forward in queue
 	 *
 	 * @param params driver update params for current tick
-	 * @returns status of move (success = true, failure = false)
+	 * @return status of move (success = true, failure = false)
 	 */
 	bool advanceQueuingVehicle(DriverUpdateParams& params);
 
@@ -133,7 +143,7 @@ public:
 	 * move driver forward in the moving part of seg stats
 	 *
 	 * @param params driver update params for current tick
-	 * @returns status of move (success = true, failure = false)
+	 * @return status of move (success = true, failure = false)
 	 */
 	bool advanceMovingVehicle(DriverUpdateParams& params);
 
@@ -142,7 +152,7 @@ public:
 	 * but the queue has dissipated within this tick
 	 *
 	 * @param params driver update params for current tick
-	 * @returns status of move (success = true, failure = false)
+	 * @return status of move (success = true, failure = false)
 	 */
 	bool advanceMovingVehicleWithInitialQ(DriverUpdateParams& params);
 
@@ -193,15 +203,12 @@ public:
 	 * @return true if the path has successfully been set; false otherwise.
 	 */
 	virtual bool initializePath();
+
+	/**
+	 * adds driver to his starting lane
+	 * @param params driver update params for current tick
+	 */
 	void setOrigin(DriverUpdateParams& params);
-
-	sim_mob::medium::Driver* getParentDriver() const {
-		return parentDriver;
-	}
-
-	void setParentDriver(sim_mob::medium::Driver* parentDriver) {
-		this->parentDriver = parentDriver;
-	}
 
 protected:
 	/**
@@ -218,6 +225,11 @@ protected:
 
 	mutable std::stringstream DebugStream;
 
+	/**
+	 * get the length of queue in lane at the start of current tick
+	 * @param lane the lane for which queue length is required
+	 * @return initial length of queue
+	 */
 	double getInitialQueueLength(const Lane* lane);
 
 	/**
@@ -225,6 +237,7 @@ protected:
 	 *
 	 * @param lane current lane
 	 * @param nextSegStats next segment stats
+	 * @return true if lane is connected to nextSegStats; false otherwise
 	 */
 	bool isConnectedToNextSeg(const Lane* lane, const SegmentStats* nextSegStats);
 
@@ -245,6 +258,7 @@ protected:
 	 *
 	 * @param nextSegStats next segment stats
 	 * @param nextToNextSegStats second segment stats ahead from the current
+	 * @return best lane in nextSegStats
 	 */
 	const sim_mob::Lane* getBestTargetLane(const sim_mob::SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats);
 

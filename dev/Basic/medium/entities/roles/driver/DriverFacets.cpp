@@ -475,7 +475,7 @@ bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& param
 	}
 
 	unsigned int total = nextSegStats->numMovingInSegment(true)
-						+ nextSegStats->numQueueingInSegment(true);
+						+ nextSegStats->numQueuingInSegment(true);
 
 	int vehLaneCount = nextSegStats->getNumVehicleLanes();
 	double max_allowed = (vehLaneCount * nextSegStats->getLength()/vehicleLength); //safe because vehicle length cannot be 0

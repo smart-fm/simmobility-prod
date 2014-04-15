@@ -343,7 +343,7 @@ void sim_mob::Conflux::initCandidateAgents() {
 		SegmentStats* currSegStatOnLnk = currSegsOnUpLinks.at(lnk);
 		while (currSegStatOnLnk) {
 			currSegStatOnLnk->resetFrontalAgents();
-			sim_mob::Person* personClosestToIntersection = currSegStatOnLnk->agentClosestToStopLineFromFrontalAgents();
+			sim_mob::Person* personClosestToIntersection = currSegStatOnLnk->personClosestToSegmentEnd();
 			candidateAgents.insert(std::make_pair(currSegStatOnLnk, personClosestToIntersection));
 			if(!personClosestToIntersection) {
 				// this road segment is deserted. search the next (which is, technically, the previous).
@@ -438,7 +438,7 @@ unsigned int sim_mob::Conflux::resetOutputBounds() {
 			//outputEstimate = segStats->computeExpectedOutputPerTick();
 			/** using ceil here, just to avoid short segments returning 0 as the total number of vehicles the road segment can hold i.e. when segment is shorter than a car**/
 			int num_emptySpaces = std::ceil(segStats->getRoadSegment()->getLaneZeroLength()*segStats->getRoadSegment()->getLanes().size()/PASSENGER_CAR_UNIT)
-					- segStats->numMovingInSegment(true) - segStats->numQueueingInSegment(true);
+					- segStats->numMovingInSegment(true) - segStats->numQueuingInSegment(true);
 			outputEstimate = (num_emptySpaces>=0)? num_emptySpaces:0;
 			/** we are decrementing the number of agents in lane infinity (of the first segment) to overcome problem [2] above**/
 			outputEstimate = outputEstimate - virtualQueuesMap.at(lnk).size() - segStats->numAgentsInLane(segStats->laneInfinity); // decrement num. of agents already in virtual queue
@@ -525,13 +525,13 @@ sim_mob::Person* sim_mob::Conflux::agentClosestToIntersection() {
 		candidateAgents.erase(personSegStat);
 		const SegmentStatsList& segStatsList = upstreamSegStatsMap.at(personSegStat->getRoadSegment()->getLink());
 		SegmentStatsList::const_iterator segStatsListIt = std::find(segStatsList.begin(), segStatsList.end(), personSegStat);
-		sim_mob::Person* nextPerson = (*segStatsListIt)->agentClosestToStopLineFromFrontalAgents();
+		sim_mob::Person* nextPerson = (*segStatsListIt)->personClosestToSegmentEnd();
 		while (!nextPerson && segStatsListIt != segStatsList.begin()) {
 			currSegsOnUpLinks.erase((*segStatsListIt)->getRoadSegment()->getLink());
 			segStatsListIt--;
 			currSegsOnUpLinks.insert(std::make_pair((*segStatsListIt)->getRoadSegment()->getLink(), *segStatsListIt)); // No agents in the entire link
 			(*segStatsListIt)->resetFrontalAgents();
-			nextPerson = (*segStatsListIt)->agentClosestToStopLineFromFrontalAgents();
+			nextPerson = (*segStatsListIt)->personClosestToSegmentEnd();
 		}
 		candidateAgents.insert(std::make_pair(*segStatsListIt, nextPerson));
 	}

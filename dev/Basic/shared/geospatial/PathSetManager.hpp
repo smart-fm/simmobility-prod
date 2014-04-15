@@ -24,6 +24,10 @@
 #include "RoadNetwork.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "soci.h"
+#include "soci-postgresql.h"
+
+//#include "geospatial/PathSet/DatabaseLoaderPS.hpp"
 
 namespace sim_mob
 {
@@ -31,13 +35,76 @@ class PathSet;
 class SinglePath;
 class ConfigParams;
 class Loader;
-class ERP_Gantry_Zone;
-class ERP_Section;
-class ERP_Surcharge;
-class Link_travel_time;
+//class ERP_Gantry_Zone;
+//class ERP_Section;
+//class ERP_Surcharge;
+//class Link_travel_time;
 class DatabaseLoader2;
 class K_ShortestPathImpl;
 class Link;
+class PathSetDBLoader
+{
+public:
+	PathSetDBLoader(std::string dbstr)
+	:sql(soci::postgresql,dbstr) {}
+	soci::session sql;
+};
+class ERP_Gantry_Zone
+{
+public:
+	ERP_Gantry_Zone() {}
+	ERP_Gantry_Zone(ERP_Gantry_Zone &src):Gantry_no(src.Gantry_no),Zone_Id(src.Zone_Id) {}
+	std::string Gantry_no;
+	std::string Zone_Id;
+};
+class ERP_Section
+{
+public:
+	ERP_Section() {}
+	ERP_Section(ERP_Section &src);
+	int section_id;
+	int ERP_Gantry_No;
+	std::string ERP_Gantry_No_str;
+	//
+	OpaqueProperty<int> originalSectionDB_ID;  // seg aim-sun id ,rs->originalDB_ID.setProps("aimsun-id", currSec->id);
+};
+class ERP_Surcharge
+{
+public:
+	ERP_Surcharge() {}
+	ERP_Surcharge(ERP_Surcharge& src):Gantry_No(src.Gantry_No),Start_Time(src.Start_Time),End_Time(src.End_Time),Rate(src.Rate),
+			Vehicle_Type_Id(src.Vehicle_Type_Id),Vehicle_Type_Desc(src.Vehicle_Type_Desc),Day(src.Day),
+			start_time_dt(sim_mob::DailyTime(src.Start_Time)),end_time_dt(sim_mob::DailyTime(src.End_Time)){}
+	std::string Gantry_No;
+	std::string Start_Time;
+	std::string End_Time;
+	sim_mob::DailyTime start_time_dt;
+	sim_mob::DailyTime end_time_dt;
+	double Rate;
+	int Vehicle_Type_Id;
+	std::string Vehicle_Type_Desc;
+	std::string Day;
+};
+
+class Link_travel_time
+{
+public:
+	Link_travel_time() {};
+	Link_travel_time(Link_travel_time& src);
+//	:gid(src.gid),link_id(src.link_id),
+//			start_time(src.start_time),end_time(src.end_time),
+//			start_time_dt(sim_mob::DailyTime(src.start_time)),end_time_dt(sim_mob::DailyTime(src.end_time)) {}
+//	int gid;
+	int link_id;
+	std::string start_time;
+	std::string end_time;
+	sim_mob::DailyTime start_time_dt;
+	sim_mob::DailyTime end_time_dt;
+	double travel_time;
+	//
+	OpaqueProperty<int> originalSectionDB_ID;
+
+};
 inline double generateSinglePathLengthPT(std::vector<WayPoint*>& wp) // unit is meter
 {
 	double res=0;
@@ -183,6 +250,8 @@ public:
 
 	void setScenarioName(std::string& name){ scenarioName = name; }
 
+	PathSetDBLoader *psDbLoader;
+
 private:
 	PathSetManager();
 
@@ -327,62 +396,7 @@ public:
 //	SinglePath* getShortestPathByExcludeSegment(RoadSegment* seg);
 };
 
-class ERP_Gantry_Zone
-{
-public:
-	ERP_Gantry_Zone() {}
-	ERP_Gantry_Zone(ERP_Gantry_Zone &src):Gantry_no(src.Gantry_no),Zone_Id(src.Zone_Id) {}
-	std::string Gantry_no;
-	std::string Zone_Id;
-};
-class ERP_Section
-{
-public:
-	ERP_Section() {}
-	ERP_Section(ERP_Section &src);
-	int section_id;
-	int ERP_Gantry_No;
-	std::string ERP_Gantry_No_str;
-	//
-	OpaqueProperty<int> originalSectionDB_ID;  // seg aim-sun id ,rs->originalDB_ID.setProps("aimsun-id", currSec->id);
-};
-class ERP_Surcharge
-{
-public:
-	ERP_Surcharge() {}
-	ERP_Surcharge(ERP_Surcharge& src):Gantry_No(src.Gantry_No),Start_Time(src.Start_Time),End_Time(src.End_Time),Rate(src.Rate),
-			Vehicle_Type_Id(src.Vehicle_Type_Id),Vehicle_Type_Desc(src.Vehicle_Type_Desc),Day(src.Day),
-			start_time_dt(sim_mob::DailyTime(src.Start_Time)),end_time_dt(sim_mob::DailyTime(src.End_Time)){}
-	std::string Gantry_No;
-	std::string Start_Time;
-	std::string End_Time;
-	sim_mob::DailyTime start_time_dt;
-	sim_mob::DailyTime end_time_dt;
-	double Rate;
-	int Vehicle_Type_Id;
-	std::string Vehicle_Type_Desc;
-	std::string Day;
-};
 
-class Link_travel_time
-{
-public:
-	Link_travel_time() {};
-	Link_travel_time(Link_travel_time& src);
-//	:gid(src.gid),link_id(src.link_id),
-//			start_time(src.start_time),end_time(src.end_time),
-//			start_time_dt(sim_mob::DailyTime(src.start_time)),end_time_dt(sim_mob::DailyTime(src.end_time)) {}
-//	int gid;
-	int link_id;
-	std::string start_time;
-	std::string end_time;
-	sim_mob::DailyTime start_time_dt;
-	sim_mob::DailyTime end_time_dt;
-	double travel_time;
-	//
-	OpaqueProperty<int> originalSectionDB_ID;
-
-};
 
 inline std::string makeWaypointsetString(std::vector<WayPoint>& wp);
 std::string getNumberFromAimsunId(std::string &aimsunid);

@@ -34,6 +34,12 @@
 
 namespace soci
 {
+class ERP_Section;
+class ERP_Surcharge;
+class ERP_Gantry_Zone;
+class Link_travel_time;
+class PathSet;
+class SinglePath;
 
 template<> struct type_conversion<sim_mob::aimsun::Node>
 {

@@ -24,6 +24,7 @@ using namespace sim_mob;
 PathSetManager *sim_mob::PathSetManager::instance_;
 
 sim_mob::PathSetManager::PathSetManager() {
+	psDbLoader=NULL;
 //	myloader = new sim_mob::DatabaseLoader2(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
 //	pathPool = std::map<std::string,SinglePath*>();
 	stdir = &StreetDirectory::instance();
@@ -579,9 +580,17 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 		//
 		mys = "'"+mys+"'";
 		sim_mob::PathSet ps_;
-		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithId(
-				ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-				ps_,mys);
+		if(!psDbLoader)
+		{
+			psDbLoader = new PathSetDBLoader(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
+		}
+		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
+				psDbLoader->sql,
+						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+						ps_,mys);
+//		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithId(
+//				ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+//				ps_,mys);
 		if(ps_.has_path == -1) //no path
 		{
 			return res;
@@ -593,7 +602,8 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 			{
 				ps_.subTrip = st;
 				std::map<std::string,sim_mob::SinglePath*> id_sp;
-				bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithId2(
+				bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(
+						psDbLoader->sql,
 						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 						id_sp,
 						mys,

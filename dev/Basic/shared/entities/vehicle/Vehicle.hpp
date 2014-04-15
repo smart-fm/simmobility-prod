@@ -31,6 +31,11 @@ class PackageUtils;
 class UnPackageUtils;
 class FMODSchedule;
 
+/**
+ * The Vehicle class has vehicle Id, position, forward velocity, lat velocity and acceleration parameters etc for Driver use
+ * Each Driver object has a vehicle to move in the network
+ **/
+
 class Vehicle {
 public:
 //	Vehicle(int startLaneID);

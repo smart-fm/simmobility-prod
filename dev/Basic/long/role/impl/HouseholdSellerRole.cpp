@@ -32,7 +32,7 @@ namespace {
 
     //bid_timestamp, seller_id, unit_id, hedonic_price, asking_price, expectation
     const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%";
-    //bid_timestamp, seller_id, bidder_id, unit_id, bidder wp, surplus, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
+    //bid_timestamp, seller_id, bidder_id, unit_id, bidder wp, speculation, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
     const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%";
 
     inline void printBid(const HouseholdAgent& agent, const Bid& bid,
@@ -42,7 +42,7 @@ namespace {
                 % bid.getBidderId()
                 % bid.getUnitId()
                 % bid.getWillingnessToPay()
-                % bid.getSurplus()
+                % bid.getSpeculation()
                 % bid.getValue()
                 % bidsCounter
                 % ((accepted) ? 1 : 0);

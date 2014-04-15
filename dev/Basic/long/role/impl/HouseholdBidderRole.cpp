@@ -147,7 +147,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
     // or the the speculation for the given unit is 0. This last means that the household
     // does not have more margin of negotiation then is better look for another unit.
     if (biddingEntry.isValid() || pickEntryToBid()) {
-        double speculation = luaModel.calculateSurplus(*(biddingEntry.getEntry()), 
+        double speculation = luaModel.calculateSpeculation(*(biddingEntry.getEntry()), 
                 biddingEntry.getTries());
         //If the speculation is 0 means the bidder has reached the maximum 
         //number of bids that he can do for the current entry.

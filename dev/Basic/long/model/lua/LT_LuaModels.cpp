@@ -230,8 +230,8 @@ double HM_LuaModel::calculateHedonicPrice(const Unit& unit) const {
     return INVALID_DOUBLE;
 }
 
-double HM_LuaModel::calculateSurplus(const HousingMarket::Entry& entry, int unitBids) const {
-    LuaRef funcRef = getGlobal(state.get(), "calculateSurplus");
+double HM_LuaModel::calculateSpeculation(const HousingMarket::Entry& entry, int unitBids) const {
+    LuaRef funcRef = getGlobal(state.get(), "calculateSpeculation");
     LuaRef retVal = funcRef(&entry, unitBids);
     if (retVal.isNumber()) {
         return retVal.cast<double>();

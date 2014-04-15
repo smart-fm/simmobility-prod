@@ -262,19 +262,13 @@ end
 ******************************************************************************]]
 
 --[[
-    Calculates the surplus for the given unit.
+    Calculates the speculation for the given unit.
     
-    surplus = pow(askingPrice, alpha + 1)/ (n_bids * zeta)
-
-    Where:
-         n_bids: Represents the number of attempts(bids) that the bidder already did to the specific unit. 
-         alpha: Represents the urgency of the household to get the unit. (Household parameter)
-         zeta: Represents the relation between quality and price of the unit. (Unit parameter)
     @param entry market entry.
     @param unitBids number of bids (attempts) to this unit.
     @return the surplus for the given unit.
 ]]
-function calculateSurplus (entry, unitBids)
+function calculateSpeculation (entry, unitBids)
     local maximumBids = 20
     local a = 800000
     local b = 0.3

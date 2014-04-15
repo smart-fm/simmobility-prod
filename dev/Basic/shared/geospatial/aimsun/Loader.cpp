@@ -2768,17 +2768,11 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(sim_mob::RoadSegment* rdSeg,
 	//now set the ordering for the segment stats
 	if(splitSegmentStats.size() > 1) {
 		uint8_t statsNum = 1;
-		Print() <<"Segment: "<<rdSeg->getStartEnd()
-				<<"|length: "<<rdSegmentLength
-				<<"|num. segStats: "<<splitSegmentStats.size()
-				<<"|stats lengths: ";
 		for(std::list<sim_mob::SegmentStats*>::iterator statsIt=splitSegmentStats.begin();
 				statsIt!=splitSegmentStats.end(); statsIt++){
 			(*statsIt)->positionInRoadSegment = statsNum;
 			statsNum++;
-			Print() <<(*statsIt)->length<<"|";
 		}
-		Print() << std::endl;
 	}
 }
 
@@ -2787,7 +2781,6 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(sim_mob::RoadSegment* rdSeg,
  */
 // TODO: Remove debug messages
 void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw) {
-	int numSplitSegments = 0;
 	std::stringstream debugMsgs(std::stringstream::out);
 	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
 	const sim_mob::MutexStrategy& mtxStrat = ConfigManager::GetInstance().FullConfig().mutexStategy();
@@ -2873,7 +2866,6 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 		confluxes.insert(conflux);
 		multinode_confluxes.insert(std::make_pair(*i, conflux));
 	} // end for each multinode
-	Print()<<"numSplitSegments: "<<numSplitSegments<<std::endl;
 }
 
 sim_mob::BusStopFinder::BusStopFinder(const Node* src, const Node* dest)

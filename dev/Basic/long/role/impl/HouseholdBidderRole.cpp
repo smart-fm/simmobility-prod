@@ -156,7 +156,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
             const Unit* unit = model->getUnitById(entry->getUnitId());
             const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
             if (unit && stats) {
-                double bidValue = biddingEntry.getWP() - (biddingEntry.getWP() - entry->getAskingPrice()) - surplus;
+                double bidValue = biddingEntry.getWP() - surplus;
                 if (entry->getOwner() && bidValue > 0.0f) {
                     bid(entry->getOwner(), Bid(entry->getUnitId(),
                             household->getId(), getParent(), bidValue, now, biddingEntry.getWP(),

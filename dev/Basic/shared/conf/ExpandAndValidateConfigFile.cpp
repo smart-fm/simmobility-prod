@@ -360,9 +360,9 @@ void sim_mob::ExpandAndValidateConfigFile::LoadFMOD_Controller()
 void sim_mob::ExpandAndValidateConfigFile::LoadAMOD_Controller()
 {
 	if (cfg.amod.enabled) {
-		sim_mob::AMOD::AMODController::registerController(-1, cfg.mutexStategy());
-		sim_mob::AMOD::AMODController::instance()->settings(cfg.amod.ipAddress, cfg.amod.port, cfg.amod.updateTravelMS, cfg.amod.mapfile, cfg.amod.blockingTimeSec);
-		sim_mob::AMOD::AMODController::instance()->connectAmodService();
+//		sim_mob::AMOD::AMODController::registerController(-1, cfg.mutexStategy());
+		sim_mob::AMOD::AMODController::instance();
+//		sim_mob::AMOD::AMODController::instance()->connectAmodService();
 	}
 }
 

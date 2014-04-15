@@ -12,11 +12,7 @@
 #ifndef AMODController_HPP_
 #define AMODController_HPP_
 
-#include "AMODClient.hpp"
 #include "entities/Agent.hpp"
-#include "entities/fmodController/FMOD_Message.hpp"
-#include "entities/fmodController/ParkingCoordinator.hpp"
-#include "AMODMessage.hpp"
 
 namespace sim_mob {
 
@@ -27,25 +23,6 @@ public:
 	virtual ~AMODController();
 
 	/**
-	  * connect to AMOD simulator
-	  * @return true if successfully .
-	  */
-	bool connectAmodService();
-
-	/**
-	  * register a singleton object to system
-	  * @param id is used to identify this object  .
-	  * @param mtxStrat is for thread safety protection
-	  * @return void .
-	  */
-	static void registerController(int id, const MutexStrategy& mtxStrat);
-	/**
-	  * handle vehicle initialization message when a initialization message is received from AMOD simulator
-	  * @param msg is concrete message content in JSON format
-	  * @return void.
-	  */
-	void handleVehicleInit(const std::string& msg);
-	/**
 	  * retrieve a singleton object
 	  * @return a pointer to AMODController .
 	  */
@@ -55,23 +32,6 @@ public:
 	      * @return true if existed .
 	      */
 	static bool instanceExists();
-	/**
-	  * update simulation status including link travel time and vehicles position to FMOD simulator in blocking mode.
-	  * @param now is current frame tick
-	  * @return void.
-	  */
-	void updateMessagesInBlocking(timeslice now);
-
-	/**
-	  * assign settings to controller
-	  * @param ipadress is IP address  .
-	  * @param port is IP port
-	  * @param updateTiming is the frequence of updating status to FMOD simulator
-	  * @param mapFile is the road network filename in simulation
-	  * @param blockingTime is waiting time in blocking mode
-	  * @return void .
-	  */
-	void settings(std::string ipadress, int port, int updateTiming, std::string mapFile, int blockingTime) { this->ipAddress=ipadress; this->port=port; this->updateTiming=updateTiming; this->mapFile=mapFile; this->waitingseconds=blockingTime;}
 protected:
 	//override from the class agent, provide initilization chance to sub class
 	virtual bool frame_init(timeslice now);
@@ -91,25 +51,25 @@ protected:
 private:
 	explicit AMODController(int id=-1,
 			const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id),
-																		connectPoint(new AMODClient(ioService)), frameTicks(0), waitingseconds(10){}
+																		 frameTicks(0){}
 private:
 	// keep all children agents to communicate with it
 	std::vector<Agent*> allChildren;
 	//identify whether or not communication is created
-	bool isConnectAmodServer;
-	AmodClientPtr connectPoint;
-	std::string ipAddress;
-	std::string mapFile;
-	int port;
-	int updateTiming;
+//	bool isConnectAmodServer;
+//	AmodClientPtr connectPoint;
+//	std::string ipAddress;
+//	std::string mapFile;
+//	int port;
+//	int updateTiming;
 	int frameTicks;
-	int waitingseconds;
+//	int waitingseconds;
 private:
 	static AMODController* pInstance;
-	static boost::asio::io_service ioService;
+//	static boost::asio::io_service ioService;
 
 	//when vehicle initialize and pack, it will store to this structure
-	FMOD::ParkingCoordinator parkingCoord;
+//	FMOD::ParkingCoordinator parkingCoord;
 };
 
 } /* namespace AMOD */

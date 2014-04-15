@@ -865,19 +865,33 @@ void sim_mob::Broker::waitForClientsDone()
 
 void sim_mob::Broker::cleanup()
 {
-	//clientDoneChecker.clear();
+	{
 	boost::unique_lock<boost::mutex> lock(mutex_client_done_chk);
 	std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, ConnClientStatus>::iterator chkIt = clientDoneChecklist.begin();
 	for (;chkIt!=clientDoneChecklist.end(); chkIt++) {
 		chkIt->second.done = 0;
 	}
+	}
 
-	return;
+	//Reset any "done" flags on the preRegisteredAgents array --they were done for the "last" time tick.
+	{
+	boost::unique_lock<boost::mutex> lock(mutex_pre_register_agents);
+	for (std::map<const Agent*, AgentInfo>::iterator it=preRegisterAgents.begin(); it!=preRegisterAgents.end(); it++) {
+		it->second.done = false;  //tosent is never set on preRegistered agents.
+	}
+	}
 
-	//note:this part is supposed to delete clientList entries for the dead agents
-	//But there is a complication on deleting connection handler
-	//there is a chance the sockets are deleted before a send ACK arrives
+	//Reset any "done flags on the registeredAgents array.
+	{
+	boost::unique_lock<boost::mutex> lock(mutex_agentDone);
+	for (std::map<const Agent*, AgentInfo>::iterator it=registeredAgents.begin(); it!=registeredAgents.end(); it++) {
+		it->second.done = false;
+	}
+	}
 
+	//NOTE: Earlier comments indicate a bug with closing any previously open connection handlers. In reality, there is no real
+	//      problem leaving them open and !valid, although perhaps with the ConnectionHandler cleanup it is now possible to just
+	//      float the ConnectionHandler shared pointer and let it clear itself.
 }
 
 void sim_mob::Broker::SetSingleBroker(BrokerBase* broker)

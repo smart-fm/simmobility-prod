@@ -147,9 +147,9 @@ public:
 	std::vector<sim_mob::Point2D>::const_iterator nextLaneZeroPolypoint;
 
 	//Movement along a single line
-	double distAlongPolyline;
+	double distAlongPolylineCM;
 	double distAlongSegment; //for mid-term use
-	double currPolylineLength() const;
+	double currPolylineLengthCM() const;
 
 	//Counter
 	//NOTE: This is always the same regardless of what lane you're in. In other words,

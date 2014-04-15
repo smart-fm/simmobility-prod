@@ -26,9 +26,6 @@ boost::shared_ptr<ClientHandler> sim_mob::ClientRegistrationHandler::makeClientH
 	//Subscribe to relevant services for each required service.
 	for (std::set<sim_mob::Services::SIM_MOB_SERVICE>::const_iterator it=request.requiredServices.begin(); it!=request.requiredServices.end(); it++) {
 		switch (*it) {
-//			case sim_mob::Services::SIMMOB_SRV_TIME:
-//				clientEntry->regisTime = true;
-//				break;
 			case sim_mob::Services::SIMMOB_SRV_LOCATION:
 				clientEntry->regisLocation = true;
 				break;
@@ -43,7 +40,6 @@ boost::shared_ptr<ClientHandler> sim_mob::ClientRegistrationHandler::makeClientH
 		}
 	}
 
-
 	//also, add the client entry to broker(for message handler purposes)
 	broker.insertClientList(request.clientID, (isNs3Client?Broker::ClientTypeNs3:Broker::ClientTypeAndroid), clientEntry);
 
@@ -57,12 +53,6 @@ boost::shared_ptr<ClientHandler> sim_mob::ClientRegistrationHandler::makeClientH
 
 bool sim_mob::ClientRegistrationHandler::handle(BrokerBase& broker, sim_mob::ClientRegistrationRequest& request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn, bool isNs3Client)
 {
-	//some checks to avoid calling this method unnecessarily
-	//TODO: It seems like this check is actually not mandatory; I'd like to remove it. ~Seth
-	//if (broker.getClientWaitingListSize()==0) {
-	//	return false;
-	//}
-
 	//Android clients require a free agent to associate with.
 	const Agent* agent = isNs3Client ? nullptr : findAFreeAgent(broker.getRegisteredAgents());
 	if (!isNs3Client && !agent) {

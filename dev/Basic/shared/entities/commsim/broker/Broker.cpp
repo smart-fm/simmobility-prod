@@ -500,30 +500,28 @@ void sim_mob::Broker::onAndroidClientRegister(sim_mob::event::EventId id, sim_mo
 	boost::shared_ptr<ClientHandler>clientHandler = argums.client;
 
 	//If we are operating on android-ns3 set up, each android client registration should be brought to ns3's attention
-	if (!ConfigManager::GetInstance().FullConfig().system.simulation.commsim.useNs3) {
-		return;
+	if (ConfigManager::GetInstance().FullConfig().system.simulation.commsim.useNs3) {
+		//note: based on the current implementation of
+		// the ns3 client registration handler, informing the
+		//statistics of android clients IS a part of ns3
+		//registration and configuration process. So the following implementation
+		//should be executed for those android clients who will join AFTER
+		//ns3's registration. So we check if the ns3 is already registered or not:
+		boost::shared_ptr<sim_mob::ClientHandler> nsHand = getNs3ClientHandler();
+		if (!nsHand) {
+			std::cout <<"ERROR: Android client registered without a known ns-3 handler (and one was expected).\n";
+			return;
+		}
+
+		//Create the AgentsInfo message.
+		std::vector<unsigned int> agentIds;
+		agentIds.push_back(clientHandler->agent->getId());
+		std::string message = CommsimSerializer::makeNewAgents(agentIds, std::vector<unsigned int>());
+
+
+		//Add it.
+		insertSendBuffer(nsHand, message);
 	}
-
-	//note: based on the current implementation of
-	// the ns3 client registration handler, informing the
-	//statistics of android clients IS a part of ns3
-	//registration and configuration process. So the following implementation
-	//should be executed for those android clients who will join AFTER
-	//ns3's registration. So we check if the ns3 is already registered or not:
-	boost::shared_ptr<sim_mob::ClientHandler> nsHand = getNs3ClientHandler();
-	if (!nsHand) {
-		std::cout <<"ERROR: Android client registered without a known ns-3 handler (and one was expected).\n";
-		return;
-	}
-
-	//Create the AgentsInfo message.
-	std::vector<unsigned int> agentIds;
-	agentIds.push_back(clientHandler->agent->getId());
-	std::string message = CommsimSerializer::makeNewAgents(agentIds, std::vector<unsigned int>());
-
-
-	//Add it.
-	insertSendBuffer(nsHand, message);
 
 	//Enable Region support if this client requested it.
 	if(clientHandler->getRequiredServices().find(sim_mob::Services::SIMMOB_SRV_REGIONS_AND_PATH) != clientHandler->getRequiredServices().end()){

@@ -20,7 +20,7 @@
 #include "message/MessageBus.hpp"
 #include "model/lua/LuaProvider.hpp"
 #include "model/HM_Model.hpp"
-#include "entities/commsim/message/base/Message.hpp"
+
 #include "core/AgentsLookup.hpp"
 #include "core/DataManager.hpp"
 

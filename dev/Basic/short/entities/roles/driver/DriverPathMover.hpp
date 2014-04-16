@@ -128,6 +128,22 @@ public:
 	void actualMoveToNextSegmentAndUpdateDir_med();
 	double currPolylineLengthCM() const;
 
+private:
+	//Helper functions
+	double advanceToNextPolyline(bool isFwd);
+	double advanceToNextRoadSegment();
+	const Lane* actualMoveToNextSegmentAndUpdateDir();
+	void generateNewPolylineArray(const RoadSegment* currSegment, std::vector<const RoadSegment*> path, std::vector<bool> areFwds);
+	void generateNewPolylineArray();
+	void calcNewLaneDistancesCM();
+	static double CalcSegmentLaneZeroDistCM(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);
+	static double CalcRestSegmentsLaneZeroDistCM(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);
+	static std::string centimeterToMeter(centimeter_t dist); //Helper to format cm as m for debug output.
+
+	//General throw function. There is probably a better way to do this.
+	void throwIf(bool conditional, const std::string& msg) const;
+
+
 public:
 	//List of RoadSegments we're moving to in order.
 	std::vector<const sim_mob::RoadSegment*> fullPath;
@@ -197,26 +213,9 @@ private:
 	const static std::string ErrorPathDoneActual;
 	const static std::string ErrorGeneralPathDone;
 
-	//Helper functions
-	double advanceToNextPolyline(bool isFwd);
-	double advanceToNextRoadSegment();
-	const Lane* actualMoveToNextSegmentAndUpdateDir();
-	void generateNewPolylineArray(const RoadSegment* currSegment, std::vector<const RoadSegment*> path, std::vector<bool> areFwds);
-	void generateNewPolylineArray();
-	void calcNewLaneDistancesCM();
-	static double CalcSegmentLaneZeroDistCM(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);
-	static double CalcRestSegmentsLaneZeroDistCM(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);
-	static std::string centimeterToMeter(centimeter_t dist); //Helper to format cm as m for debug output.
-
-	//General throw function. There is probably a better way to do this.
-	void throwIf(bool conditional, const std::string& msg) const;
-
-
 	//Serialization-related friends
 	friend class PackageUtils;
 	friend class UnPackageUtils;
-
-
 };
 
 

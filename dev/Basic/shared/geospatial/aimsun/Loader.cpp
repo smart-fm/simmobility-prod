@@ -109,6 +109,7 @@ public:
 	bool CreateTable(std::string& table_name);
 	bool InsertData2TravelTimeTmpTable(std::string& table_name,sim_mob::Link_travel_time& data);
 	bool InsertCSV2Table(std::string& table_name,std::string& csvFileName);
+	static bool InsertCSV2TableST(soci::session& sql,std::string& table_name,std::string& csvFileName);
 	bool TruncateTable(std::string& table_name);
 	bool ExcuString(std::string& str);
 	// save path set data
@@ -463,6 +464,19 @@ bool DatabaseLoader::InsertCSV2Table(std::string& table_name,std::string& csvFil
 	try {
 		sql_ << ("COPY " + table_name + " FROM '" + csvFileName + "' WITH DELIMITER AS ';'");
 		sql_.commit();
+		}
+		catch (soci::soci_error const & err)
+		{
+			std::cout<<"InsertCSV2Table: "<<err.what()<<std::endl;
+			return false;
+		}
+		return true;
+}
+bool DatabaseLoader::InsertCSV2TableST(soci::session& sql,std::string& table_name,std::string& csvFileName)
+{
+	try {
+		sql << ("COPY " + table_name + " FROM '" + csvFileName + "' WITH DELIMITER AS ';'");
+		sql.commit();
 		}
 		catch (soci::soci_error const & err)
 		{
@@ -2474,6 +2488,13 @@ bool sim_mob::aimsun::Loader::insertCSV2Table(const std::string& connectionStr,
 {
 	DatabaseLoader loader(connectionStr);
 	bool res = loader.InsertCSV2Table(table_name,csvFileName);
+	return res;
+}
+bool sim_mob::aimsun::Loader::insertCSV2TableST(soci::session& sql,
+		std::string& table_name,
+		std::string& csvFileName)
+{
+	bool res = DatabaseLoader::InsertCSV2TableST(sql,table_name,csvFileName);
 	return res;
 }
 bool sim_mob::aimsun::Loader::truncateTable(const std::string& connectionStr,

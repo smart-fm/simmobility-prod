@@ -15,6 +15,7 @@
 #include <cmath>
 #include <boost/algorithm/string.hpp>
 #include <boost/regex.hpp>
+#include "workers/Worker.hpp"
 
 using std::vector;
 using std::string;
@@ -24,6 +25,7 @@ using namespace sim_mob;
 PathSetManager *sim_mob::PathSetManager::instance_;
 
 sim_mob::PathSetManager::PathSetManager() {
+	sql = NULL;
 	psDbLoader=NULL;
 //	myloader = new sim_mob::DatabaseLoader2(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
 //	pathPool = std::map<std::string,SinglePath*>();
@@ -72,6 +74,11 @@ sim_mob::PathSetManager::PathSetManager() {
 	}
 	//
 	init();
+
+	if(!psDbLoader)
+	{
+		psDbLoader = new PathSetDBLoader(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
+	}
 }
 sim_mob::PathSetManager* sim_mob::PathSetManager::getInstance()
 {
@@ -360,7 +367,7 @@ bool sim_mob::PathSetManager::insertTravelTime2TmpTable(sim_mob::Link_travel_tim
 	  if(size>50000000)//50mb
 	  {
 		  csvFile.close();
-		  sim_mob::aimsun::Loader::insertCSV2Table(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+		  sim_mob::aimsun::Loader::insertCSV2TableST(psDbLoader->sql,
 		  			pathset_traveltime_tmp_table_name,csvFileName);
 		  csvFile.open(csvFileName.c_str(),std::ios::in | std::ios::trunc);
 	  }
@@ -548,6 +555,17 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 	const sim_mob::SubTrip *subTrip = &(*currSubTripIt);
 	std::string subTripId = subTrip->tripID;
 
+	Worker *worker = (Worker*)per->currWorkerProvider;
+	if(worker)
+	{
+		sql = &(worker->sql);
+	}
+	else
+	{
+		sql = &(psDbLoader->sql);
+	}
+
+
 	//
 	if(isUseCatch)
 	{
@@ -560,6 +578,7 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 		vector<WayPoint> res = generateBestPathChoice2(subTrip);
 		return res;
 	}
+	sql = NULL;
 }
 vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob::SubTrip* st)
 {
@@ -580,17 +599,17 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 		//
 		mys = "'"+mys+"'";
 		sim_mob::PathSet ps_;
-#if 1
+#if 0
 		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithId(
 						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 						ps_,mys);
 #else
-		if(!psDbLoader)
-		{
-			psDbLoader = new PathSetDBLoader(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
-		}
+//		if(!psDbLoader)
+//		{
+//			psDbLoader = new PathSetDBLoader(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
+//		}
 		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
-				psDbLoader->sql,
+						*sql,
 						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 						ps_,mys);
 #endif
@@ -608,11 +627,11 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 			{
 				ps_.subTrip = st;
 				std::map<std::string,sim_mob::SinglePath*> id_sp;
-#if 1
+#if 0
 				bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithId2(
 #else
 				bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(
-						psDbLoader->sql,
+						*sql,
 #endif
 						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 						id_sp,

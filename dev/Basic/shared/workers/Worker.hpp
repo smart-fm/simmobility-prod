@@ -15,6 +15,8 @@
 
 #include "event/args/EventArgs.hpp"
 //#include "event/EventListener.hpp"
+#include "soci.h"
+#include "soci-postgresql.h"
 
 namespace sim_mob {
 
@@ -224,6 +226,8 @@ private:
 	sim_mob::ProfileBuilder* profile;
 	//int thread_id;
 	//static int auto_matical_thread_id;
+public:
+	soci::session sql;
 };
 
 }

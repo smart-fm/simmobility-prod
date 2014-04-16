@@ -251,6 +251,7 @@ public:
 	void setScenarioName(std::string& name){ scenarioName = name; }
 
 	PathSetDBLoader *psDbLoader;
+	soci::session *sql;
 
 private:
 	PathSetManager();

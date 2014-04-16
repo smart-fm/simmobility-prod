@@ -712,7 +712,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 			// grant permission. But check whether the subsequent frame_tick can be called now.
 			person->canMoveToNextSegment = Person::GRANTED;
 
-			if(now.frame() > nxtConflux->getLastUpdatedFrame()) {
+			if((int)now.frame() > nxtConflux->getLastUpdatedFrame()) {
 				// nxtConflux is not processed for the current tick yet
 				if(nxtConflux->hasSpaceInVirtualQueue(nxtSegment->getLink())) {
 					person->setCurrSegStats(person->requestedNextSegStats);

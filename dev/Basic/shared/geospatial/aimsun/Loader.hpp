@@ -97,6 +97,9 @@ public:
 	static bool insertCSV2Table(const std::string& connectionStr,
 			std::string& table_name,
 			std::string& csvFileName);
+	static bool insertCSV2TableST(soci::session& sql,
+				std::string& table_name,
+				std::string& csvFileName);
 	static bool truncateTable(const std::string& connectionStr,
 				std::string& table_name);
 	static bool excuString(const std::string& connectionStr,

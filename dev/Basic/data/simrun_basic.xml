@@ -343,7 +343,7 @@
         <!-- Setting to "database" will load the road network from the database. By default we load from "xml". -->
         <!-- NOTE: This is fairly confusing; later we'll make it easier for different users to -->
         <!--       maintain their own configurations. -->
-        <network_source value="database"/>
+        <network_source value="xml"/>
         
         <!-- If loading from XML, which input file? Default (or blank string) will force private/SimMobilityInput.xml -->
         <!-- If Writing XML, which output file? Default (or blank string) don't write at all -->

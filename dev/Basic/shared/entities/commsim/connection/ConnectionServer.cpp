@@ -37,14 +37,14 @@ void sim_mob::ConnectionServer::start(unsigned int numThreads)
 	for(unsigned int i=0; i<numThreads; i++) {
 	  threads.create_thread(boost::bind(&boost::asio::io_service::run, &io_service));
 	}
+
+	//NOTE: Always print this, even if output is disabled.
+	std::cout << "Accepting clients on " <<numThreads <<" threads.\n";
 }
 
 
 void sim_mob::ConnectionServer::creatSocketAndAccept()
 {
-	// Start an accept operation for a new connection.
-	std::cout << "Accepting..." <<std::endl; //NOTE: Always print this, even if output is disabled.
-
 	//Make and track a new session pointer.
 	boost::shared_ptr<ConnectionHandler> conn(new ConnectionHandler(io_service, broker));
 	{
@@ -66,8 +66,8 @@ void sim_mob::ConnectionServer::handle_accept(boost::shared_ptr<ConnectionHandle
 		return;
 	}
 
-	//Otherwise, handle the new connection and then continue the cycle.
-	std::cout<< "Accepted a connection\n";  //NOTE: Always print this, even if output is disabled.
+	//NOTE: Always print this, even if output is disabled.
+	std::cout<< "Accepted a connection.\n";
 
 	//Turn off Nagle's algorithm; it's slow on small packets.
 	conn->socket.set_option(boost::asio::ip::tcp::no_delay(true));

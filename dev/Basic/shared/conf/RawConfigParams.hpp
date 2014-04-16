@@ -157,10 +157,11 @@ public:
 
 	struct Commsim {
 		bool enabled;
-		bool useNs3;
+		int numIoThreads;
 		int minClients;
 		int holdTick;
-		Commsim() : enabled(false), useNs3(false), minClients(1), holdTick(1) {}
+		bool useNs3;
+		Commsim() : enabled(false), numIoThreads(1), minClients(1), holdTick(1), useNs3(false) {}
 	};
 	Commsim commsim;
 

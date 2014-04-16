@@ -112,7 +112,7 @@ string ProfileBuilder::GetCurrentTime()
 	{
 	//The documentation claims that clock_gettime() is thread-safe
 	//boost::mutex::scoped_lock local_lock(profile_mutex);
-	res = clock_gettime(CLOCK_REALTIME, &timeres); //For epoch time.
+	res = clock_gettime(CLOCK_MONOTONIC, &timeres); //For epoch time.
 	//res = clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timeres); //For time since the process started
 	}
 

@@ -40,14 +40,7 @@ public:
 	  * @return a pointer to AMODController .
 	  */
 	static AMODController* instance();
-
-	/**
-	  * dispatch pending agents to system by its start time.
-	  * @param now is current frame tick
-	  * @return void.
-	  */
-	void dispatchAgent(Agent* data);
-
+	static void registerController(int id, const MutexStrategy& mtxStrat);
 	/// pu new amod vh to car park
 	/// id am vh id
 	/// nodeId node id ,virtual car park
@@ -55,6 +48,13 @@ public:
 
 	// return false ,if no vh in car park
 	bool getVhFromCarPark(std::string& carParkId,Person* vh);
+
+	// set predefined path
+	bool setPath2Vh(Person* vh,std::vector<WayPoint>& path);
+	// ad vh to main loop
+	bool dispatchVh(Person* vh);
+
+	void testOneVh();
 
 protected:
 	//override from the class agent, provide initilization chance to sub class
@@ -76,6 +76,7 @@ private:
 	explicit AMODController(int id=-1,
 			const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id),
 																		 frameTicks(0){}
+
 private:
 
 	/// key=node id, value= (key=vh id,value=vh)

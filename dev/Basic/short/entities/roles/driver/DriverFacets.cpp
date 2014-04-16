@@ -1420,32 +1420,39 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		vector<WayPoint> path;
 
 		Person* parentP = dynamic_cast<Person*> (parent);
-		sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
-		const StreetDirectory& stdir = StreetDirectory::instance();
 
-		if(parentP && parentP->schedules.size()==0){
-			// if use path set
-			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-				path = PathSetManager::getInstance()->getPathByPerson(getParent());
-			}
-			else
-			{
-				const StreetDirectory& stdir = StreetDirectory::instance();
-				path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
-			}
-
+		if(!parentP->amodPath.empty()){
+			path = parent->amodPath;
 		}
-		else {
-			std::vector<Node*>& routes = parentP->schedules.front().routes;
-			std::vector<Node*>::iterator first = routes.begin();
-			std::vector<Node*>::iterator second = first;
+		else
+		{
+			sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
+			const StreetDirectory& stdir = StreetDirectory::instance();
 
-			path.clear();
-			for(second++; first!=routes.end() && second!=routes.end(); first++, second++){
-				vector<WayPoint> subPath = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(**first), stdir.DrivingVertex(**second));
-				path.insert( path.end(), subPath.begin(), subPath.end());
+			if(parentP && parentP->schedules.size()==0){
+				// if use path set
+				if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+					path = PathSetManager::getInstance()->getPathByPerson(getParent());
+				}
+				else
+				{
+					const StreetDirectory& stdir = StreetDirectory::instance();
+					path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
+				}
+
 			}
-		}
+			else {
+				std::vector<Node*>& routes = parentP->schedules.front().routes;
+				std::vector<Node*>::iterator first = routes.begin();
+				std::vector<Node*>::iterator second = first;
+
+				path.clear();
+				for(second++; first!=routes.end() && second!=routes.end(); first++, second++){
+					vector<WayPoint> subPath = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(**first), stdir.DrivingVertex(**second));
+					path.insert( path.end(), subPath.begin(), subPath.end());
+				}
+			}
+		}//if amod path
 
 		//For now, empty paths aren't supported.
 		if (path.empty()) {
@@ -1490,8 +1497,6 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 	getParent()->setNextPathPlanned(true);
 	return res;
 }
-
-
 void sim_mob::DriverMovement::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
 {
 	//Skip if we're somehow not driving on a road.

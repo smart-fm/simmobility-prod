@@ -197,7 +197,10 @@ public:
     std::stringstream debugMsgs;
     int client_id;
 
+	// amod
     std::string amodId;
+	void setPath(std::vector<WayPoint>& path);
+	std::vector<WayPoint> amodPath;
 
     std::list<sim_mob::FMOD_Schedule> schedules;
 

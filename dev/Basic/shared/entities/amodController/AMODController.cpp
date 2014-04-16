@@ -76,7 +76,14 @@ void sim_mob::AMOD::AMODController::init()
 		}
 	}
 }
+void AMODController::registerController(int id, const MutexStrategy& mtxStrat)
+{
+	if(pInstance) {
+		delete pInstance;
+	}
 
+	pInstance = new AMODController(id, mtxStrat);
+}
 AMODController* AMODController::instance()
 {
 	if (!pInstance) {
@@ -94,7 +101,7 @@ bool AMODController::frame_init(timeslice now)
 Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 {
 	//TODO
-
+	return Entity::UpdateStatus::Continue;
 }
 void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 {
@@ -147,9 +154,17 @@ bool AMODController::getVhFromCarPark(std::string& carParkId,Person* vh)
 
 	return false;
 }
-void AMODController::dispatchAgent(Agent* data)
+bool AMODController::dispatchVh(Person* vh)
 {
-	this->currWorkerProvider->scheduleForBred(data);
+	this->currWorkerProvider->scheduleForBred(vh);
+}
+bool AMODController::setPath2Vh(Person* vh,std::vector<WayPoint>& path)
+{
+	vh->setPath(path);
+}
+void AMODController::testOneVh()
+{
+	std::string carParkId = "";
 }
 void AMODController::frame_output(timeslice now)
 {

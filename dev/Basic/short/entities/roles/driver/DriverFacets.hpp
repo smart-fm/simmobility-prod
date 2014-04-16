@@ -69,6 +69,7 @@ public:
 	void setParentDriver(Driver* parentDriver) {
 		this->parentDriver = parentDriver;
 	}
+public:
 
 protected:
 	Driver* parentDriver;

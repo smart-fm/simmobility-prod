@@ -97,7 +97,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegment(nullptr), canMoveToNextSegment(NONE),
 	  databaseID(tcs.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
 	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
-	  client_id(-1)
+	  client_id(-1),amodPath( std::vector<WayPoint>() )
 {
 	/*if (!ConfigManager::GetInstance().CMakeConfig().UsingConfluxes()) {
 		simplyModifyTripChain(tcs);
@@ -261,12 +261,16 @@ bool sim_mob::Person::frame_init(timeslice now)
 
 	//Now that the Role has been fully constructed, initialize it.
 	if((*currTripChainItem)) {
+//		currRole->Movement()->setPath();
 		currRole->Movement()->frame_init();
 	}
 
 	return true;
 }
-
+void sim_mob::Person::setPath(std::vector<WayPoint>& path)
+{
+	amodPath = path;
+}
 
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {

@@ -2615,8 +2615,11 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), config.getPT_bus_stops(), config.getBusStops_Map());
 }
 
-void sim_mob::aimsun::Loader::CreateSegmentStats(sim_mob::RoadSegment* rdSeg,
+void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdSeg,
 		std::list<sim_mob::SegmentStats*>& splitSegmentStats) {
+	if(!rdSeg) {
+		throw std::runtime_error("CreateSegmentStats(): RoadSegment passed was NULL");
+	}
 	std::stringstream debugMsgs;
 	const std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>& obstacles = rdSeg->obstacles;
 	double lengthCoveredInSeg = 0, segStatLength;

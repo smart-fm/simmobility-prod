@@ -133,7 +133,7 @@ public:
 	 * @param rdSeg the road segment for which stats must be created
 	 * @param splitSegmentStats vector of SegmentStats* to be filled up
 	 */
-	static void CreateSegmentStats(sim_mob::RoadSegment* rdSeg, std::list<sim_mob::SegmentStats*>& splitSegmentStats);
+	static void CreateSegmentStats(const sim_mob::RoadSegment* rdSeg, std::list<sim_mob::SegmentStats*>& splitSegmentStats);
 };
 
 }

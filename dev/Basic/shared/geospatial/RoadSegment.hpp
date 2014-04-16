@@ -147,7 +147,7 @@ public:
 
 public:
 	///Maximum speed of this road segment.
-	unsigned int maxSpeed;
+	double maxSpeed;
 	double capacity;
 
 	double getCapacityPerInterval() const;

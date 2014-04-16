@@ -17,6 +17,15 @@ namespace{
     const double INFINITESIMAL_DOUBLE = 0.000001;
     const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
     const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * PASSENGER_CAR_UNIT; // 5 times a car's length
+
+    /**
+     * converts the unit of speed from Km/h to cm/s
+     * @param speedInKmph spped in Km/h
+     * @return speed in cm/s
+     */
+    inline double convertKmphToCmps(double speedInKmph) {
+    	return (speedInKmph / 3.6 * 100);
+    }
 }
 
 namespace sim_mob {
@@ -40,7 +49,7 @@ SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double length)
 	segFlow(0),	lastAcceptTime(0.0), numPersons(0), positionInRoadSegment(1),
 	debugMsgs(std::stringstream::out), orderBySetting(SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION)
 {
-	segVehicleSpeed = getRoadSegment()->maxSpeed / 3.6 * 100; //converting from kmph to m/s
+	segVehicleSpeed = convertKmphToCmps(getRoadSegment()->maxSpeed);
 	numVehicleLanes = 0;
 
 	// initialize LaneAgents in the map
@@ -491,7 +500,7 @@ double sim_mob::SegmentStats::speedDensityFunction(double segDensity) const {
 
 	//double density = numVehicles / (getRoadSegment()->computeLaneZeroLength() / 100.0);
 	//maxSpeed according to AIMSUN
-	double freeFlowSpeed = getRoadSegment()->maxSpeed / 3.6 * 100; // Converting from Kmph to cm/s
+	double freeFlowSpeed = convertKmphToCmps(getRoadSegment()->maxSpeed); // Converting from Kmph to cm/s
 	//The following default values were suggested by Yang Lu.
 	double minSpeed = 0.3 * freeFlowSpeed; // 30% of free flow speed
 	double jamDensity = 0.2; //density during traffic jam in veh/meter

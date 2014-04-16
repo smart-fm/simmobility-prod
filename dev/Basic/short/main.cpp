@@ -362,9 +362,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	if(sim_mob::FMOD::FMOD_Controller::instanceExists()){
 		personWorkers->assignAWorker( sim_mob::FMOD::FMOD_Controller::instance() );
 	}
-	if(sim_mob::AMOD::AMODController::instanceExists()){
-			personWorkers->assignAWorker( sim_mob::AMOD::AMODController::instance() );
-		}
+	if(sim_mob::AMOD::AMODController::instance()){
+		personWorkers->assignAWorker( sim_mob::AMOD::AMODController::instance() );
+	}
 
 	//..and Assign communication agent(currently a singleton
 

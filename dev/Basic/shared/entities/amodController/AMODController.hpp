@@ -12,26 +12,50 @@
 #ifndef AMODController_HPP_
 #define AMODController_HPP_
 
+#include <boost/regex.hpp>
+
 #include "entities/Agent.hpp"
+#include "event/EventPublisher.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 
 namespace sim_mob {
 
 namespace AMOD {
+class AMODEventPublisher: public sim_mob::event::EventPublisher
+{
+public:
+	AMODEventPublisher() {}
+	~AMODEventPublisher(){}
+};
 
 class AMODController : public sim_mob::Agent{
 public:
 	virtual ~AMODController();
+
+	/// create segment ,node pool
+	void init();
 
 	/**
 	  * retrieve a singleton object
 	  * @return a pointer to AMODController .
 	  */
 	static AMODController* instance();
+
 	/**
-	      * check whether or not the instance already existed
-	      * @return true if existed .
-	      */
-	static bool instanceExists();
+	  * dispatch pending agents to system by its start time.
+	  * @param now is current frame tick
+	  * @return void.
+	  */
+	void dispatchAgent(Agent* data);
+
+	/// pu new amod vh to car park
+	/// id am vh id
+	/// nodeId node id ,virtual car park
+	void addNewVh2CarPark(std::string& id,std::string& nodeId);
+
+	// return false ,if no vh in car park
+	bool getVhFromCarPark(std::string& carParkId,Person* vh);
+
 protected:
 	//override from the class agent, provide initilization chance to sub class
 	virtual bool frame_init(timeslice now);
@@ -53,25 +77,43 @@ private:
 			const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id),
 																		 frameTicks(0){}
 private:
-	// keep all children agents to communicate with it
-	std::vector<Agent*> allChildren;
-	//identify whether or not communication is created
-//	bool isConnectAmodServer;
-//	AmodClientPtr connectPoint;
-//	std::string ipAddress;
-//	std::string mapFile;
-//	int port;
-//	int updateTiming;
+
+	/// key=node id, value= (key=vh id,value=vh)
+	typedef boost::unordered_map<std::string,boost::unordered_map<std::string,Person*> > AMODVirtualCarPark;
+	typedef boost::unordered_map<std::string,boost::unordered_map<std::string,Person*> >::iterator AMODVirtualCarParkItor;
+	AMODVirtualCarPark virtualCarPark;
+
 	int frameTicks;
-//	int waitingseconds;
+
 private:
 	static AMODController* pInstance;
-//	static boost::asio::io_service ioService;
 
-	//when vehicle initialize and pack, it will store to this structure
-//	FMOD::ParkingCoordinator parkingCoord;
+public:
+	std::map<std::string,sim_mob::RoadSegment*> segPool; // store all segs ,key= aimsun id ,value = seg
+	std::map<std::string,sim_mob::Node*> nodePool; // store all nodes ,key= aimsun id ,value = node
+	AMODEventPublisher eventPub;
+
 };
 
+
+inline std::string getNumberFromAimsunId(std::string &aimsunid)
+{
+	//"aimsun-id":"69324",
+	std::string number;
+	boost::regex expr (".*\"aimsun-id\":\"([0-9]+)\".*$");
+	boost::smatch matches;
+	if (boost::regex_match(aimsunid, matches, expr))
+	{
+		number  = std::string(matches[1].first, matches[1].second);
+//		Print()<<"getNumberFromAimsunId: "<<number<<std::endl;
+	}
+	else
+	{
+		Warn()<<"aimsun id not correct "+aimsunid<<std::endl;
+	}
+
+	return number;
+}
 } /* namespace AMOD */
 } /* namespace sim_mob */
 #endif /* AMODController_HPP_ */

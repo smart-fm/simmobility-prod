@@ -197,6 +197,8 @@ public:
     std::stringstream debugMsgs;
     int client_id;
 
+    std::string amodId;
+
     std::list<sim_mob::FMOD_Schedule> schedules;
 
 protected:

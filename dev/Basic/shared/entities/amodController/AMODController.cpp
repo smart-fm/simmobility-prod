@@ -20,6 +20,7 @@
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/UniNode.hpp"
+#include "entities/misc/TripChain.hpp"
 #include "workers/Worker.hpp"
 #include <utility>
 #include <stdexcept>
@@ -92,15 +93,28 @@ AMODController* AMODController::instance()
 
 	return pInstance;
 }
-
+AMODController::AMODController(int id,
+			const MutexStrategy& mtxStrat)
+: Agent(mtxStrat, id),frameTicks(0)
+{
+	init();
+}
 bool AMODController::frame_init(timeslice now)
 {
+	test=0;
 	return true;
 }
 
 Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 {
 	//TODO
+	if(test==0)
+	{
+		testOneVh();
+		test=1;
+	}
+
+	// return continue, make sure agent not remove from main loop
 	return Entity::UpdateStatus::Continue;
 }
 void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
@@ -110,14 +124,16 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 	if(node == NULL){ throw std::runtime_error("node not found"); }
 
 	// create person
-	DailyTime start(0); // DailyTime b("08:30:00");
+	DailyTime start = ConfigManager::GetInstance().FullConfig().simStartTime(); // DailyTime b("08:30:00");
 	sim_mob::Trip* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", node, "node", node, "node");
-	sim_mob::SubTrip subTrip("", "Trip", 0, 1, DailyTime(), DailyTime(), node, "node", node, "node", "Car");
+	sim_mob::SubTrip subTrip("", "Trip", 0, 1, start, DailyTime(), node, "node", node, "node", "Car");
 	tc->addSubTrip(subTrip);
 	std::vector<sim_mob::TripChainItem*>  tcs;
 	tcs.push_back(tc);
 
+	std::cout<<ConfigManager::GetInstance().FullConfig().simStartTime().getValue()<<std::endl;
 	sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
+	std::cout<<"starttime: "<<person->getStartTime()<<std::endl;
 	person->parentEntity = this;
 	person->amodId = id;
 
@@ -137,7 +153,7 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 		virtualCarPark.insert(std::make_pair(nodeId,cars));
 	}
 }
-bool AMODController::getVhFromCarPark(std::string& carParkId,Person* vh)
+bool AMODController::getVhFromCarPark(std::string& carParkId,Person** vh)
 {
 	AMODVirtualCarParkItor it = virtualCarPark.find(carParkId);
 	if(it==virtualCarPark.end()){ throw std::runtime_error("no this car park..."); }
@@ -146,7 +162,7 @@ bool AMODController::getVhFromCarPark(std::string& carParkId,Person* vh)
 	if(!cars.empty())
 	{
 		boost::unordered_map<std::string,Person*>::iterator firstCarIt = cars.begin();
-		vh = firstCarIt->second;
+		*vh = firstCarIt->second;
 		cars.erase(firstCarIt);
 
 		return true;
@@ -164,7 +180,46 @@ bool AMODController::setPath2Vh(Person* vh,std::vector<WayPoint>& path)
 }
 void AMODController::testOneVh()
 {
-	std::string carParkId = "";
+	std::string carParkId = "75780";
+	std::string vhId = "amod-1";
+	addNewVh2CarPark(vhId,carParkId);
+
+	Person* vh = NULL;
+	if(!getVhFromCarPark(carParkId,&vh))
+	{ throw std::runtime_error("no vh"); return; }
+
+	// modify trip
+	std::string destNodeId="61688";
+	Node *startNode = nodePool[carParkId];
+	Node *endNode = nodePool[destNodeId];
+	DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+ConfigManager::GetInstance().FullConfig().baseGranMS());;
+	sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", startNode, "node", endNode, "node");
+	SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), startNode, "node", endNode, "node", "Car");
+	((Trip*)tc)->addSubTrip(subTrip);
+
+	std::vector<sim_mob::TripChainItem*>  tcs;
+	tcs.push_back(tc);
+
+	vh->setTripChain(tcs);
+	std::cout<<"starttime: "<<vh->getStartTime()<<std::endl;
+
+	// make dummy path 9286 9264
+	RoadSegment *seg1 = segPool["9286"];
+	WayPoint wp1(seg1);
+	RoadSegment *seg2 = segPool["9264"];
+	WayPoint wp2(seg2);
+
+	std::vector<WayPoint> path;
+	path.push_back(wp1);
+	path.push_back(wp2);
+
+	vh->setPath(path);
+//	unsigned int curTickMS = (frameTicks)*ConfigManager::GetInstance().FullConfig().baseGranMS();
+//	vh->setStartTime(curTickMS);
+
+	dispatchVh(vh);
+
+
 }
 void AMODController::frame_output(timeslice now)
 {

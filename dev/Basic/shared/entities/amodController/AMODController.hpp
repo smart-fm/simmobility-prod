@@ -47,7 +47,7 @@ public:
 	void addNewVh2CarPark(std::string& id,std::string& nodeId);
 
 	// return false ,if no vh in car park
-	bool getVhFromCarPark(std::string& carParkId,Person* vh);
+	bool getVhFromCarPark(std::string& carParkId,Person** vh);
 
 	// set predefined path
 	bool setPath2Vh(Person* vh,std::vector<WayPoint>& path);
@@ -55,6 +55,7 @@ public:
 	bool dispatchVh(Person* vh);
 
 	void testOneVh();
+	int test;
 
 protected:
 	//override from the class agent, provide initilization chance to sub class
@@ -74,8 +75,7 @@ protected:
 
 private:
 	explicit AMODController(int id=-1,
-			const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id),
-																		 frameTicks(0){}
+			const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
 
 private:
 

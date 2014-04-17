@@ -114,7 +114,16 @@ public:
 
 	///Set this person's trip chain
 	void setTripChain(const std::vector<TripChainItem*>& tripChain) {
+		//delete old
+		for(int i=0;i<this->tripChain.size();++i)
+		{
+			delete this->tripChain[i];
+		}
+		this->tripChain.clear();
+
 		this->tripChain = tripChain;
+
+		initTripChain();
 	}
 
 	/*	const sim_mob::Link* getCurrLink() const;

@@ -609,8 +609,11 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 		parentAgent->initLinkTravelStats(parentDriver->vehicle->getCurrSegment()->getLink(), actualTime);
 	}
 
-	params.TEMP_lastKnownPolypoint = DPoint(parentDriver->vehicle->getCurrPolylineVector2().getEndX(),
+	if(!parentDriver->vehicle->isDone())
+	{
+		params.TEMP_lastKnownPolypoint = DPoint(parentDriver->vehicle->getCurrPolylineVector2().getEndX(),
 				parentDriver->vehicle->getCurrPolylineVector2().getEndY());
+	}
 
 	return true;
 }

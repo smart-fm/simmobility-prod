@@ -350,8 +350,8 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 
 	//Assign all BusStopAgents
-	std::cout << "BusStopAgent::all_BusstopAgents_.size(): " << BusStopAgent::AllBusStopAgentsCount() << std::endl;
-	BusStopAgent::AssignAllBusStopAgents(*personWorkers);
+//	std::cout << "BusStopAgent::all_BusstopAgents_.size(): " << BusStopAgent::AllBusStopAgentsCount() << std::endl;
+//	BusStopAgent::AssignAllBusStopAgents(*personWorkers);
 
 	//Assign all signals too
 	for (vector<Signal*>::iterator it = Signal::all_signals_.begin(); it != Signal::all_signals_.end(); it++) {

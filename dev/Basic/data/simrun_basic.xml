@@ -390,6 +390,10 @@
             <!-- Number of threads to create for processing the population in-->
             <!-- the preday demand simulator -->
             <property key="demand_threads" value="3"/>
+            
+            <!-- Used by SimTree. -->
+            <property key="simtree_pattern_file_1" value="shared/spatial_trees/simtree/density_pattern_sg_auto_study"/>
+            <property key="simtree_pattern_file_2" value="shared/spatial_trees/simtree/density_pattern_sg_20mins"/>
         </generic_props>
     </system>
 

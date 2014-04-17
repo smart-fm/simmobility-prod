@@ -310,6 +310,7 @@
             <!--  Commsim (communication) settings -->
             <commsim enabled="false"> <!-- If false, the Broker is never added, so no commsim activities take place. -->
                 <min_clients value="1"/> <!-- Sim Mobility will hold on time tick 1 until this many clients connect. -->
+                <io_threads value="2"/> <!-- The number of threads to use for boost's io_service (for reading from Android clients). -->
                 <hold_tick value="500"/> <!-- Which tick to enforce the "min_clients" restriction at. -->
                 <use_ns3 value="true"/>  <!-- Use ns-3 to route network traffice between agents? If not, opaque messages are dispatched immediately. -->
             </commsim>

@@ -17,16 +17,14 @@
 #include "entities/Agent.hpp"
 #include "event/EventPublisher.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "event/args/EventArgs.hpp"
+#include "AMODEvent.hpp"
 
 namespace sim_mob {
 
 namespace AMOD {
-class AMODEventPublisher: public sim_mob::event::EventPublisher
-{
-public:
-	AMODEventPublisher() {}
-	~AMODEventPublisher(){}
-};
+
+
 
 class AMODController : public sim_mob::Agent{
 public:
@@ -83,6 +81,8 @@ private:
 	typedef boost::unordered_map<std::string,boost::unordered_map<std::string,Person*> > AMODVirtualCarPark;
 	typedef boost::unordered_map<std::string,boost::unordered_map<std::string,Person*> >::iterator AMODVirtualCarParkItor;
 	AMODVirtualCarPark virtualCarPark;
+
+	boost::unordered_map<std::string,Person*> vhOnTheRoad;
 
 	int frameTicks;
 

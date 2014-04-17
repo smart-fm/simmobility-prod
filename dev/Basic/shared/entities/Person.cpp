@@ -217,7 +217,14 @@ void Person::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>
 		currRole->rerouteWithBlacklist(blacklisted);
 	}
 }
-
+void sim_mob::Person::handleEvent(sim_mob::event::EventId id,
+            sim_mob::event::Context ctxId,
+            sim_mob::event::EventPublisher* sender,
+            const AMOD::AMODEventArgs& args)
+{
+	AMOD::AMODEventPublisher* pub = (AMOD::AMODEventPublisher*) sender;
+	std::cout<<"person <"<<amodId<<"> get event <"<< args.obj.data<<"> from <"<<pub->id<<">"<<std::endl;
+}
 void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
 {
 	sim_mob::Agent::onEvent(eventId, ctxId, sender, args);

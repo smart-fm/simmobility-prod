@@ -114,6 +114,17 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		test=1;
 	}
 
+	if(now.frame()>150 & now.frame()<300)
+	{
+		Person *vh = vhOnTheRoad.begin()->second;
+		AMODObj obj;
+		AMODObjContainer obj1(obj);
+		char c[20]="\0";
+		sprintf(c,"xxx+%d",now.frame());
+		obj1.data = std::string(c);
+		eventPub.publish(1, vh, AMODEventArgs(obj1));
+	}
+
 	// return continue, make sure agent not remove from main loop
 	return Entity::UpdateStatus::Continue;
 }
@@ -204,20 +215,44 @@ void AMODController::testOneVh()
 	std::cout<<"starttime: "<<vh->getStartTime()<<std::endl;
 
 	// make dummy path 9286 9264
-	RoadSegment *seg1 = segPool["9286"];
-	WayPoint wp1(seg1);
-	RoadSegment *seg2 = segPool["9264"];
-	WayPoint wp2(seg2);
+//	RoadSegment *seg1 = segPool["9286"];
+//	WayPoint wp1(seg1);
+//	RoadSegment *seg2 = segPool["9264"];
+//	WayPoint wp2(seg2);
+
+	std::vector<std::string> segs;
+	segs.push_back("9282");
+	segs.push_back("34500");
+	segs.push_back("34514");
+	segs.push_back("34488");
+	segs.push_back("34400");
+	segs.push_back("34398");
+	segs.push_back("34378");
 
 	std::vector<WayPoint> path;
-	path.push_back(wp1);
-	path.push_back(wp2);
 
+	for(int i=0;i<segs.size();++i)
+	{
+		RoadSegment *seg = segPool[segs[i]];
+		WayPoint wp(seg);
+		path.push_back(wp);
+	}
+
+#if 1
 	vh->setPath(path);
+#endif
+
+
 //	unsigned int curTickMS = (frameTicks)*ConfigManager::GetInstance().FullConfig().baseGranMS();
 //	vh->setStartTime(curTickMS);
 
+	// event related
+	eventPub.registerEvent(1);
+	eventPub.subscribe(1, vh, &Person::handleEvent, vh);
+
 	dispatchVh(vh);
+
+	vhOnTheRoad.insert(std::make_pair(vh->amodId,vh));
 
 
 }

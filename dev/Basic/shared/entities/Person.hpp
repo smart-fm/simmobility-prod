@@ -14,6 +14,7 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/LangHelpers.hpp"
 #include "entities/fmodController/FMOD_Message.hpp"
+#include "entities/amodController/AMODEvent.hpp"
 
 namespace sim_mob
 {
@@ -56,6 +57,11 @@ public:
 
 	//Person objects are spatial in nature
 	virtual bool isNonspatial() { return false; }
+
+	void handleEvent(sim_mob::event::EventId id,
+            sim_mob::event::Context ctxId,
+            sim_mob::event::EventPublisher* sender,
+            const AMOD::AMODEventArgs& args);
 
 	///Reroute to the destination with the given set of blacklisted RoadSegments.
 	///If the Agent cannot complete this new route, it will fall back onto the old route.

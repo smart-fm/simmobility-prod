@@ -17,6 +17,7 @@ namespace{
     const double INFINITESIMAL_DOUBLE = 0.000001;
     const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
     const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * PASSENGER_CAR_UNIT; // 5 times a car's length
+    const double LARGE_OUTPUT_FLOW_RATE = 1000.0;
 
     /**
      * converts the unit of speed from Km/h to cm/s
@@ -44,10 +45,30 @@ bool cmp_person_distToSegmentEnd::operator ()
 	return (x->distanceToEndOfSegment > y->distanceToEndOfSegment);
 }
 
-SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double length)
-	: roadSegment(rdSeg), length(length), segDensity(0.0), segPedSpeed(0.0),
+/**
+ * The parameters - min density, jam density, alpha and beta -
+ * must be obtained for each road segment from an external source (XML/Database)
+ * Since we don't have this data, we have taken the average values from
+ * supply parameters of Singapore expressways.
+ *
+ * TODO: This must be changed when we have this information for each
+ * road segment in the network.
+ */
+SupplyParams::SupplyParams(const sim_mob::RoadSegment* rdSeg, double statsLength)
+	: freeFlowSpeed(convertKmphToCmps(rdSeg->maxSpeed)),
+	  minSpeed(0.3 * freeFlowSpeed), /*30% of free flow speed as suggested by Yang Lu*/
+	  jamDensity(0.2), /*density during traffic jam in veh/meter*/
+	  minDensity(0.0048), /*minimum traffic density in veh/meter*/
+	  capacity(rdSeg->getCapacity() / 3600.0), /*converting capacity to vehicles/hr to vehicles/s*/
+	  alpha(1.8),
+	  beta(1.9)
+{}
+
+SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double statslength)
+	: roadSegment(rdSeg), length(statslength), segDensity(0.0), segPedSpeed(0.0),
 	segFlow(0),	lastAcceptTime(0.0), numPersons(0), positionInRoadSegment(1),
-	debugMsgs(std::stringstream::out), orderBySetting(SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION)
+	debugMsgs(std::stringstream::out), supplyParams(rdSeg, statslength),
+	orderBySetting(SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION)
 {
 	segVehicleSpeed = convertKmphToCmps(getRoadSegment()->maxSpeed);
 	numVehicleLanes = 0;
@@ -56,7 +77,7 @@ SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double length)
 	std::vector<sim_mob::Lane*>::const_iterator lane = rdSeg->getLanes().begin();
 	while (lane != rdSeg->getLanes().end()) {
 		laneStatsMap.insert(std::make_pair(*lane, new sim_mob::LaneStats(*lane, length)));
-		laneStatsMap[*lane]->initLaneParams(segVehicleSpeed, segPedSpeed);
+		laneStatsMap[*lane]->initLaneParams(segVehicleSpeed, supplyParams.getCapacity());
 		if (!(*lane)->is_pedestrian_lane()) {
 			numVehicleLanes++;
 		}
@@ -68,7 +89,7 @@ SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double length)
 	 * TODO: Must check if we can have a bit pattern (Refer lane constructor) for laneInfinity.
 	 */
 	laneInfinity = new sim_mob::Lane(const_cast<sim_mob::RoadSegment*>(rdSeg), 9);
-	laneStatsMap.insert(std::make_pair(laneInfinity, new sim_mob::LaneStats(laneInfinity, length, true)));
+	laneStatsMap.insert(std::make_pair(laneInfinity, new sim_mob::LaneStats(laneInfinity, statslength, true)));
 }
 
 SegmentStats::~SegmentStats() {
@@ -232,55 +253,6 @@ unsigned int SegmentStats::numQueuingInSegment(bool hasVehicle) const {
 	return queuingCounts;
 }
 
-/* unused version based on remaining time at intersection
- sim_mob::Person* SegmentStats::agentClosestToStopLineFromFrontalAgents() {
- sim_mob::Person* person = nullptr;
- const sim_mob::Lane* personLane = nullptr;
- double maxRemainingTimeAtIntersection = std::numeric_limits<double>::min();
- double remainingTimeAtIntersection = 0.0;
- double timeToReachIntersection = 0.0;
- double remainingTimeThisTick = 0.0;
- double tickSize = ConfigParams::GetInstance().baseGranMS / 1000.0;
-
- std::map<const sim_mob::Lane*, sim_mob::Person* >::iterator i = frontalAgents.begin();
- while(i!=frontalAgents.end()) {
- if(i->second) {
- if (i->second->lastUpdatedFrame < roadSegment->getParentConflux()->currFrameNumber.frame()) {
- //if the person is moved for the first time in this tick
- remainingTimeThisTick = ConfigParams::GetInstance().baseGranMS / 1000.0;
- }
- else {
- remainingTimeThisTick = i->second->getRemainingTimeThisTick();
- }
-
- timeToReachIntersection = roadSegment->getParentConflux()->computeTimeToReachEndOfLink(roadSegment, i->second->distanceToEndOfSegment);
- remainingTimeAtIntersection =  - fmod(timeToReachIntersection - remainingTimeThisTick, tickSize); //Requires modulo computation because the person may take multiple ticks to reach the intersection.
- if(remainingTimeAtIntersection < 0) remainingTimeAtIntersection = remainingTimeAtIntersection + tickSize;
- if(maxRemainingTimeAtIntersection == remainingTimeAtIntersection) {
- // If current person and (*i) are at equal distance to the stop line, we 'toss a coin' and choose one of them
- bool coinTossResult = ((rand() / (double)RAND_MAX) < 0.5);
- if(coinTossResult) {
- personLane = i->first;
- person = i->second;
- }
- }
- else if (maxRemainingTimeAtIntersection < remainingTimeAtIntersection) {
- maxRemainingTimeAtIntersection = remainingTimeAtIntersection;
- personLane = i->first;
- person = i->second;
- person->remainingTimeAtIntersection = remainingTimeAtIntersection;
- }
- }
- i++;
- }
-
- if(person) { // frontalAgents could possibly be all nullptrs
- frontalAgents.erase(personLane);
- frontalAgents.insert(std::make_pair(personLane,laneStatsMap.at(personLane)->next()));
- }
- return person;
- }*/
-
 sim_mob::Person* SegmentStats::personClosestToSegmentEnd() {
 	sim_mob::Person* person = nullptr;
 	const sim_mob::Lane* personLane = nullptr;
@@ -440,18 +412,17 @@ void LaneStats::resetIterator() {
 	laneAgentsIt = laneAgentsCopy.begin();
 }
 
-void sim_mob::LaneStats::initLaneParams(double vehSpeed, double pedSpeed) {
-	int numLanes = lane->getRoadSegment()->getLanes().size();
+void sim_mob::LaneStats::initLaneParams(double vehSpeed, const double capacity) {
+	size_t numLanes = lane->getRoadSegment()->getLanes().size();
 	if (numLanes > 0) {
-		double orig = (lane->getRoadSegment()->capacity)
-				/ (numLanes*3600.0);
+		double orig = capacity/numLanes;
 		laneParams->setOrigOutputFlowRate(orig);
 	}
 	laneParams->outputFlowRate = laneParams->origOutputFlowRate;
 
 	// As per Yang Lu's suggestion for short segment correction
 	if(length < SHORT_SEGMENT_LENGTH_LIMIT){
-		laneParams->outputFlowRate = 1000.0; //some large number
+		laneParams->outputFlowRate = LARGE_OUTPUT_FLOW_RATE; //some large number
 	}
 
 	updateOutputCounter();
@@ -487,26 +458,14 @@ sim_mob::LaneParams* sim_mob::SegmentStats::getLaneParams(const Lane* lane) cons
 	return laneStatsMap.find(lane)->second->laneParams;
 }
 
-double sim_mob::SegmentStats::speedDensityFunction(double segDensity) const {
-	/**
-	 * TODO: The parameters - min density, jam density, alpha and beta - for each road segment
-	 * must be obtained from an external source (XML/Database)
-	 * Since we don't have this data, we have taken the average values from supply parameters of Singapore expressways.
-	 * This must be changed after we have this data for each road segment in the network.
-	 *
-	 * TODO: A params struct for these parameters is already defined in the RoadSegment class.
-	 * This struct is to be used when we have actual values for the parameters.
-	 */
-
-	//double density = numVehicles / (getRoadSegment()->computeLaneZeroLength() / 100.0);
+double sim_mob::SegmentStats::speedDensityFunction(const double segDensity) const {
 	//maxSpeed according to AIMSUN
-	double freeFlowSpeed = convertKmphToCmps(getRoadSegment()->maxSpeed); // Converting from Kmph to cm/s
-	//The following default values were suggested by Yang Lu.
-	double minSpeed = 0.3 * freeFlowSpeed; // 30% of free flow speed
-	double jamDensity = 0.2; //density during traffic jam in veh/meter
-	double alpha = 1.8; //Model parameter of speed density function
-	double beta = 1.9; //Model parameter of speed density function
-	double minDensity = 0.0048; // minimum traffic density in veh/meter
+	const double freeFlowSpeed = supplyParams.getFreeFlowSpeed();
+	const double minSpeed = supplyParams.getMinSpeed();
+	const double jamDensity = supplyParams.getJamDensity();
+	const double alpha = supplyParams.getAlpha();
+	const double beta = supplyParams.getBeta();
+	const double minDensity = supplyParams.getMinDensity();
 
 	double speed = 0.0;
 	//Speed-Density function same as in DynaMIT

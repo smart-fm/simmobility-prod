@@ -525,23 +525,25 @@ bool DriverMovement::advanceQueuingVehicle(sim_mob::medium::DriverUpdateParams& 
 	double output = getOutputCounter(currLane, pathMover.getCurrSegStats());
 	double outRate = getOutputFlowRate(currLane);
 
-	finalDistToSegEnd = initialTimeSpent + initialDistToSegEnd/(3.0*vehicleLength*outRate); //assuming vehicle length is in cm; vehicle length and outrate cannot be 0
-	if (output > 0 && finalDistToSegEnd < params.secondsInTick &&
+	//assuming vehicle length is in cm; vehicle length and outrate cannot be 0
+	finalTimeSpent = initialTimeSpent + initialDistToSegEnd/(vehicleLength*outRate); // there was a magic factor 3.0 in the denominator. I removed it because i did not understand why it was needed.~Harish
+
+	if (output > 0 && finalTimeSpent < params.secondsInTick &&
 			pathMover.getCurrSegStats()->getPositionOfLastUpdatedAgentInLane(currLane) == -1)
 	{
 		res = moveToNextSegment(params);
-		finalTimeSpent = pathMover.getPositionInSegment();
+		finalDistToSegEnd = pathMover.getPositionInSegment();
 	}
 	else
 	{
 		moveInQueue();
-		finalTimeSpent = pathMover.getPositionInSegment();
+		finalDistToSegEnd = pathMover.getPositionInSegment();
 		params.elapsedSeconds =  params.secondsInTick;
 	}
 	//unless it is handled previously;
 	//1. update current position of vehicle/driver with xf
 	//2. update current time, p.timeThisTick, with tf
-	pathMover.setPositionInSegment(finalTimeSpent);
+	pathMover.setPositionInSegment(finalDistToSegEnd);
 
 	return res;
 }

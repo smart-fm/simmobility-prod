@@ -2119,7 +2119,7 @@ void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& sr
 
 sim_mob::RoadSegment * createNewRoadSegment(sim_mob::Link* ln, size_t numExistingSegsInLink, unsigned long id)
 {
-	return new sim_mob::RoadSegment(ln, nullptr, ln->getLinkId()*100 +numExistingSegsInLink);
+	return new sim_mob::RoadSegment(ln, ln->getLinkId()*100 +numExistingSegsInLink);
 }
 
 

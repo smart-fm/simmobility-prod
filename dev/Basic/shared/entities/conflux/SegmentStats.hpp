@@ -20,6 +20,53 @@ struct cmp_person_distToSegmentEnd : public std::greater<Person*> {
 	bool operator() (const Person* x, const Person* y) const;
 };
 
+/*
+ * SupplyParams is the place holder for storing the parameters of the
+ * speed density function for this road segment.
+ * \author Harish Loganathan
+ */
+struct SupplyParams {
+public:
+	SupplyParams(const sim_mob::RoadSegment* rdSeg, double statsLength);
+
+	const double getAlpha() const {
+		return alpha;
+	}
+
+	const double getBeta() const {
+		return beta;
+	}
+
+	const double getCapacity() const {
+		return capacity;
+	}
+
+	const double getFreeFlowSpeed() const {
+		return freeFlowSpeed;
+	}
+
+	const double getJamDensity() const {
+		return jamDensity;
+	}
+
+	const double getMinDensity() const {
+		return minDensity;
+	}
+
+	const double getMinSpeed() const {
+		return minSpeed;
+	}
+
+private:
+	const double freeFlowSpeed;  ///<Maximum speed of the road segment
+	const double jamDensity;     ///<density during traffic jam in vehicles / m
+	const double minDensity;     ///<minimum traffic density in vehicles / m
+	const double minSpeed;       ///<minimum speed in the segment
+	const double capacity;       ///<segment capacity in vehicles/second
+	const double alpha;          ///<Model parameter of speed density function
+	const double beta;           ///<Model parameter of speed density function
+};
+
 /**
  * Data structure to store lane specific parameters for supply.
  *
@@ -145,9 +192,9 @@ public:
 	/**
 	 * initializes the parameters of lane
 	 * @param vehSpeed speed of vehicles in lane
-	 * @param pedSpeed speed of pedestrians in lane
+	 * @param capacity of the segment stats containing this lane stats (in vehicles/s)
 	 */
-	void initLaneParams(double vehSpeed, double pedSpeed);
+	void initLaneParams(double vehSpeed, double capacity);
 
 	/**
 	 * updates the output counter of lane
@@ -241,6 +288,8 @@ protected:
 	int numVehicleLanes;
 	unsigned int segFlow;
 	unsigned int numPersons;
+
+	sim_mob::SupplyParams supplyParams;
 
 	/**
 	 * adds a bus stop to the list of stops
@@ -423,7 +472,7 @@ public:
 	 * Computes the speed of vehicles in segment, given the density
 	 * @param segDensity the vehicle density of segment in vehicle/m
 	 */
-	double speedDensityFunction(double segDensity) const;
+	double speedDensityFunction(const double segDensity) const;
 
 	/**
 	 * restore the lane params of lane to original values

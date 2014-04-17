@@ -209,7 +209,7 @@ private:
 	 * @param wasActivityPerformer flag indicating whether the person was performing an activity at the start of the tick
 	 */
 	void killAgent(sim_mob::Person* person, sim_mob::SegmentStats* prevSegStats,
-			const sim_mob::Lane* prevLane, bool wasQueuing, bool wasActivityPerformer);
+			const sim_mob::Lane* prevLane, bool wasQueuing);
 
 	/**
 	 * Resets the remainingTime of persons who remain in

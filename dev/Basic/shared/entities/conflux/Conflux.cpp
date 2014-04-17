@@ -28,6 +28,10 @@
 #include "geospatial/PathSetManager.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "event/SystemEvents.hpp"
+#include "event/args/EventArgs.hpp"
+#include "message/MessageBus.hpp"
+#include "event/EventPublisher.hpp"
 #include "logging/Log.hpp"
 #include "util/Utils.hpp"
 #include "workers/Worker.hpp"
@@ -121,7 +125,8 @@ void sim_mob::Conflux::updateUnsignalized() {
 		updateAgent(*i);
 	}
 
-	for(PersonList::iterator i = pedestrianPerformers.begin(); i != pedestrianPerformers.end(); i++) {
+	PersonList pedestrianPerformersCopy = pedestrianPerformers;
+	for(PersonList::iterator i = pedestrianPerformersCopy.begin(); i != pedestrianPerformersCopy.end(); i++) {
 		updateAgent(*i);
 	}
 }
@@ -136,7 +141,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 	bool isQueuingBeforeUpdate = false;
 	sim_mob::SegmentStats* segStatsBfrUpdt = nullptr;
 
-	//To capture the state of the person after update
+	//To capture the state of the person after update b
 	const sim_mob::Role* roleAfterUpdate = nullptr;
 	const sim_mob::RoadSegment* segAfterUpdate = nullptr;
 	const sim_mob::Lane* laneAfterUpdate = nullptr;
@@ -175,8 +180,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 
 	if (res.status == UpdateStatus::RS_DONE) {
 		//This Person is done. Remove from simulation.
-		killAgent(person, segStatsBfrUpdt, laneBeforeUpdate, isQueuingBeforeUpdate,
-				(roleBeforeUpdate && roleBeforeUpdate->roleType == sim_mob::Role::RL_ACTIVITY));
+		killAgent(person, segStatsBfrUpdt, laneBeforeUpdate, isQueuingBeforeUpdate);
 		return;
 	} else if (res.status == UpdateStatus::RS_CONTINUE) {
 		// TODO: I think there will be nothing here. Have to make sure. ~ Harish
@@ -551,10 +555,17 @@ void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
 
 void sim_mob::Conflux::killAgent(sim_mob::Person* person,
 		sim_mob::SegmentStats* prevSegStats, const sim_mob::Lane* prevLane,
-		bool wasQueuing, bool wasActPerformer) {
-	if (wasActPerformer) {
+		bool wasQueuing) {
+	if (person->getRole() && person->getRole()->roleType==sim_mob::Role::RL_ACTIVITY) {
 		PersonList::iterator pIt = std::find(activityPerformers.begin(), activityPerformers.end(), person);
 		activityPerformers.erase(pIt);
+	}
+	else if (person->getRole() && person->getRole()->roleType==sim_mob::Role::RL_PEDESTRIAN) {
+		PersonList::iterator pIt = std::find(pedestrianPerformers.begin(), pedestrianPerformers.end(), person);
+		pedestrianPerformers.erase(pIt);
+		if(person->getNextLinkRequired()){
+			return;
+		}
 	}
 	else if (prevLane) {
 		prevSegStats->removeAgent(prevLane, person, wasQueuing);
@@ -719,6 +730,15 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 					}
 				}
 			}
+		}
+
+		if(person->getNextLinkRequired()){
+			Conflux* nextConflux = person->getNextLinkRequired()->getSegments().front()->getParentConflux();
+			messaging::MessageBus::PublishEvent(sim_mob::EVENT_PEDESTRIAN_TRANSFER_REQUEST, nextConflux,
+														messaging::MessageBus::EventArgsPtr(new sim_mob::Pedestrian_RequestEventArgs(person)));
+
+			person->setResetParamsRequired(true);
+			return UpdateStatus::Done;
 		}
 
 		if(person->requestedNextSegStats){

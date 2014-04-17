@@ -12,7 +12,7 @@
 
 namespace sim_mob {
 
-class Conflux;
+
 namespace medium
 {
 
@@ -47,6 +47,26 @@ public:
 
 	void setParentPedestrian(sim_mob::medium::Pedestrian* parentPedestrian);
 
+	/**
+	 * reset status when move to next link
+	 * */
+	void resetStatus();
+
+	/**
+	 * get next link when want to move to next link
+	 * */
+	Link* getNextLink(){
+		return nextLink;
+	}
+
+	/**
+	 * whether want to move to next link
+	 * */
+	bool moveToNextLink(){
+		return isMoveToNextLink;
+	}
+
+
 protected:
 
 	/**
@@ -58,10 +78,13 @@ protected:
 protected:
 	sim_mob::medium::Pedestrian* parentPedestrian;
 	//record the current remaining time to the destination
-	int remainingTimeToComplete;
+	float remainingTimeToComplete;
 	//pedestrian's walking speed
 	const float walkSpeed;
-	std::vector< std::pair<Conflux*, double> > trajectory;
+	float lastRemainingTime;
+	std::vector< std::pair<Link*, double> > trajectory;
+	bool isMoveToNextLink;
+	Link* nextLink;
 };
 
 }

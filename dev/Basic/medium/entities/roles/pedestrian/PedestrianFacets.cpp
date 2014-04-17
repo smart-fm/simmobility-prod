@@ -8,11 +8,7 @@
 #include "PedestrianFacets.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "entities/conflux/Conflux.hpp"
-#include "event/SystemEvents.hpp"
-#include "event/args/EventArgs.hpp"
-#include "message/MessageBus.hpp"
-#include "event/EventPublisher.hpp"
+
 
 namespace sim_mob {
 
@@ -30,7 +26,8 @@ PedestrianBehavior::~PedestrianBehavior()
 }
 
 PedestrianMovement::PedestrianMovement(sim_mob::Person* parentAgent):
-		MovementFacet(parentAgent), parentPedestrian(nullptr), remainingTimeToComplete(0), walkSpeed(200)
+		MovementFacet(parentAgent), parentPedestrian(nullptr), remainingTimeToComplete(0), walkSpeed(200), lastRemainingTime(0),
+		isMoveToNextLink(false), nextLink(nullptr)
 {
 
 }
@@ -53,23 +50,30 @@ void PedestrianMovement::frame_init(){
 	std::vector<const RoadSegment*> roadSegs;
 	initializePath(roadSegs);
 
-	Conflux* currentConflux = nullptr;
-	double currentTotalDistance = 0;
+	Link* currentLink = nullptr;
+	float currentTotalDistance = 0;
 	std::vector<const RoadSegment*>::iterator it=roadSegs.begin();
 	if(it!=roadSegs.end()){
-		currentConflux = (*it)->getParentConflux();
+		currentLink = (*it)->getLink();
+		currentTotalDistance = (*it)->getLengthOfSegment();
+		it++;
 	}
 
 	for(; it!=roadSegs.end(); it++){
-		if((*it)->getParentConflux()==currentConflux){
+		if((*it)->getLink()==currentLink){
 			currentTotalDistance += (*it)->getLengthOfSegment();
 		}
 		else{
-			double remainingTime = currentTotalDistance/walkSpeed;
-			trajectory.push_back((std::make_pair(currentConflux, remainingTime)));
-			currentConflux = (*it)->getParentConflux();
+			float remainingTime = currentTotalDistance/walkSpeed;
+			trajectory.push_back((std::make_pair(currentLink, remainingTime)));
+			currentLink = (*it)->getLink();
 			currentTotalDistance = (*it)->getLengthOfSegment();
 		}
+	}
+
+	if(!currentLink){
+		float remainingTime = currentTotalDistance/walkSpeed;
+		trajectory.push_back((std::make_pair(currentLink, remainingTime)));
 	}
 
 	if(trajectory.size()>0){
@@ -112,23 +116,34 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path)
 
 void PedestrianMovement::frame_tick()
 {
-	if(remainingTimeToComplete<=0){
+	unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
+
+	if(remainingTimeToComplete<=tickMS){
+		lastRemainingTime = tickMS-remainingTimeToComplete;
 		if(trajectory.size()==0){
 			getParent()->setToBeRemoved();
 		}
 		else{
-			Conflux* nextConflux = trajectory.front().first;
-			remainingTimeToComplete = trajectory.front().second;
+			isMoveToNextLink = true;
+			nextLink = trajectory.front().first;
+			remainingTimeToComplete = trajectory.front().second+lastRemainingTime;
 			trajectory.erase(trajectory.begin());
-			messaging::MessageBus::SubscribeEvent((event::EventId)sim_mob::EVENT_PEDESTRIAN_TRANSFER_REQUEST, this, nextConflux);
-			messaging::MessageBus::PublishEvent((event::EventId)sim_mob::EVENT_PEDESTRIAN_TRANSFER_REQUEST, nextConflux,
-														messaging::MessageBus::EventArgsPtr(new sim_mob::Pedestrian_RequestEventArgs(this->getParent())));
+			lastRemainingTime = 0;
+			getParent()->setNextLinkRequired(nextLink);
 		}
 	}
 	else {
-		unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
 		remainingTimeToComplete -= tickMS;
 	}
+}
+
+
+void PedestrianMovement::resetStatus(){
+	unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
+	remainingTimeToComplete -= tickMS;
+	isMoveToNextLink = false;
+	nextLink = nullptr;
+	getParent()->setNextLinkRequired(nextLink);
 }
 
 void PedestrianMovement::frame_tick_output(){

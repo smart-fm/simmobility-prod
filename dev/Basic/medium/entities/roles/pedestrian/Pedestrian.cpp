@@ -30,6 +30,14 @@ Role* sim_mob::medium::Pedestrian::clone(Person* parent) const {
 	return pedestrian;
 }
 
+void sim_mob::medium::Pedestrian::make_frame_tick_params(timeslice now) {
+	PedestrianMovement* movement = dynamic_cast<PedestrianMovement*>(this->Movement());
+	if(movement){
+		movement->resetStatus();
+	}
+}
+
+
 }
 }
 

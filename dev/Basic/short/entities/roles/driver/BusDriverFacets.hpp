@@ -80,8 +80,6 @@ public:
 	bool isBusLeavingBusStop();
 	bool isBusGngtoBreakDown();
 	double busAccelerating(DriverUpdateParams& p);
-	//mutable double lastTickDistanceToBusStop;
-
 
 	///here passenger initially chooses which bus lines to board upon reaching bus stop
 	///and board the bus when it approaches based on this initial choice

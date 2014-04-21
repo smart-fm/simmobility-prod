@@ -16,6 +16,7 @@
 #include "DriverUpdateParams.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "Driver.hpp"
+#include "DriverPathMover.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "geospatial/RoadItem.hpp"
 #include "entities/IncidentStatus.hpp"
@@ -51,11 +52,6 @@ protected:
 };
 
 class DriverMovement: public sim_mob::MovementFacet {
-//public:
-//	const static int distanceInFront = 3000;
-//	const static int distanceBehind = 500;
-//	const static int maxVisibleDis = 5000;
-
 public:
 	explicit DriverMovement(sim_mob::Person* parentAgent = nullptr);
 	virtual ~DriverMovement();
@@ -80,23 +76,28 @@ protected:
 	Driver* parentDriver;
 
 protected:
-	//Update models
+	// Update models
 	LaneChangeModel* lcModel;
 	CarFollowModel* cfModel;
 	IntersectionDrivingModel* intModel;
 
+public:
+	// DriverPathMover
+	DriverPathMover fwdDriverMovement;
 private:
 	//Sample stored data which takes reaction time into account.
-
 	int lastIndex;
 	double disToFwdVehicleLastFrame; //to find whether vehicle is going to crash in current frame.
-	                                     //so distance in last frame need to be remembered.
 
 public:
 	double maxLaneSpeed;
 	//for coordinate transform
 	void setParentBufferedData();			///<set next data to parent buffer data
-
+	//Call once
+	void initPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
+	void resetPath(std::vector<sim_mob::WayPoint> wp_path);
+	const sim_mob::RoadSegment* hasNextSegment(bool inSameLink) const;
+	DPoint& getPosition() const;
     /**
       * get nearest obstacle in perceptionDis
       * @param type is obstacle type, currently only two types are BusStop and Incident.
@@ -128,9 +129,6 @@ private:
 public:
 //	//TODO: This may be risky, as it exposes non-buffered properties to other vehicles.
 //	const Vehicle* getVehicle() const {return vehicle;}
-//
-//	//This is probably ok.
-//	const double getVehicleLength() const { return vehicle->length; }
 
 	void updateAdjacentLanes(DriverUpdateParams& p);
 	void updatePositionDuringLaneChange(DriverUpdateParams& p, LANE_CHANGE_SIDE relative);
@@ -145,7 +143,6 @@ protected:
 
 	sim_mob::Vehicle* initializePath(bool allocateVehicle);
 
-	//void resetPath2(bool mandatory=true, const std::vector<const sim_mob::RoadSegment*>& blacklisted = std::vector<const sim_mob::RoadSegment*>());
 	void setOrigin(DriverUpdateParams& p);
 
 	void checkIncidentStatus(DriverUpdateParams& p, timeslice now);
@@ -159,11 +156,9 @@ protected:
 
 	//Helper: for special strings
 	//NOTE: I am disabling special strings. ~Seth
-	//void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
-	//void initTripChainSpecialString(const std::string& value);
-
 	NearestVehicle & nearestVehicle(DriverUpdateParams& p);
 	void perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params);
+	double getAngle() const;  ///<For display purposes only.
 
 private:
 	bool AvoidCrashWhenLaneChanging(DriverUpdateParams& p);
@@ -181,9 +176,7 @@ private:
 
 	void updateNearbyAgents();
 	bool updateNearbyAgent(const sim_mob::Agent* other, const sim_mob::Driver* other_driver);
-//	void handleUpdateRequestDriverTo(const Driver* target, DriverUpdateParams& targetParams)//incomplete
 	void updateNearbyAgent(const sim_mob::Agent* other, const sim_mob::Pedestrian* pedestrian);
-	//void updateCurrLaneLength(DriverUpdateParams& p);
 	void updateDisToLaneEnd();
 
 	void saveCurrTrafficSignal();
@@ -194,6 +187,9 @@ private:
 
 	void findCrossing(DriverUpdateParams& p);
 
+	double getDistanceToSegmentEnd() const;
+	sim_mob::DynamicVector getCurrPolylineVector() const;
+	sim_mob::DynamicVector getCurrPolylineVector2() const;
 	bool processFMODSchedule(FMODSchedule* schedule, DriverUpdateParams& p);
 
 public:

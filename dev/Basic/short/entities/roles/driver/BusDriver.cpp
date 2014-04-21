@@ -71,11 +71,11 @@ Role* sim_mob::BusDriver::clone(Person* parent) const {
 }
 
 double sim_mob::BusDriver::getPositionX() const {
-	return vehicle ? vehicle->getX() : 0;
+	return currPos.x;
 }
 
 double sim_mob::BusDriver::getPositionY() const {
-	return vehicle ? vehicle->getY() : 0;
+	return currPos.y;
 }
 
 vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {

@@ -15,6 +15,19 @@ using namespace sim_mob;
 using std::vector;
 using std::endl;
 
+namespace {
+void initSegStatsPath(vector<const sim_mob::RoadSegment*>& rsPath,
+		vector<const sim_mob::SegmentStats*>& ssPath) {
+	for (vector<const sim_mob::RoadSegment*>::iterator it = rsPath.begin();
+			it != rsPath.end(); it++) {
+		const sim_mob::RoadSegment* rdSeg = *it;
+		const vector<sim_mob::SegmentStats*>& statsInSegment =
+				rdSeg->getParentConflux()->findSegStats(rdSeg);
+		ssPath.insert(ssPath.end(), statsInSegment.begin(), statsInSegment.end());
+	}
+}
+}
+
 namespace sim_mob {
 namespace medium {
 
@@ -41,14 +54,12 @@ sim_mob::medium::BusDriverMovement::BusDriverMovement(sim_mob::Person* parentAge
 
 sim_mob::medium::BusDriverMovement::~BusDriverMovement() {}
 
-}
-
 void sim_mob::medium::BusDriverMovement::frame_init() {
-
-	Vehicle* newVeh = initializePath(true);
-	if (newVeh) {
-		safe_delete_item(vehicle);
-		vehicle = newVeh;
+	bool pathInitialized = initializePath();
+	if (pathInitialized) {
+		Vehicle* newVeh = new Vehicle();
+		Vehicle* oldBus = parentBusDriver->getResource();
+		safe_delete_item(oldBus);
 		parentBusDriver->setResource(newVeh);
 	}
 }
@@ -58,23 +69,23 @@ void sim_mob::medium::BusDriverMovement::frame_tick() {
 }
 
 void sim_mob::medium::BusDriverMovement::frame_tick_output() {
-	parentBusDriver->getParams();
 	DriverUpdateParams &p = parentBusDriver->getParams();
 	//Skip?
-	if (vehicle->isDone() || ConfigManager::GetInstance().FullConfig().using_MPI || ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) {
+	if (pathMover.isPathCompleted() || ConfigManager::GetInstance().FullConfig().using_MPI || ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) {
 		return;
 	}
 
 	std::stringstream logout;
+	sim_mob::Person* person = getParent();
 	logout << "(\"BusDriver\""
-			<<","<<getParent()->getId()
+			<<","<<person->getId()
 			<<","<<parentBusDriver->getParams().now.frame()
 			<<",{"
-			<<"\"RoadSegment\":\""<< (getParent()->getCurrSegment()->getSegmentID())
-			<<"\",\"Lane\":\""<<(getParent()->getCurrLane()->getLaneID())
-			<<"\",\"UpNode\":\""<<(getParent()->getCurrSegment()->getStart()->getID())
-			<<"\",\"DistanceToEndSeg\":\""<<getParent()->distanceToEndOfSegment;
-	if (this->getParent()->isQueuing) {
+			<<"\"RoadSegment\":\""<< (person->getCurrSegStats()->getRoadSegment()->getSegmentID())
+			<<"\",\"Lane\":\""<<(person->getCurrLane()->getLaneID())
+			<<"\",\"UpNode\":\""<<(person->getCurrSegStats()->getRoadSegment()->getStart()->getID())
+			<<"\",\"DistanceToEndSeg\":\""<<person->distanceToEndOfSegment;
+	if (person->isQueuing) {
 			logout << "\",\"queuing\":\"" << "true";
 	} else {
 			logout << "\",\"queuing\":\"" << "false";
@@ -85,77 +96,71 @@ void sim_mob::medium::BusDriverMovement::frame_tick_output() {
 }
 
 
-void sim_mob::medium::BusDriverMovement::flowIntoNextLinkIfPossible(UpdateParams& p) {
+void sim_mob::medium::BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& p) {
 	Print()<<"BusDriver_movement flowIntoNextLinkIfPossible called"<<std::endl;
 	DriverMovement::flowIntoNextLinkIfPossible(p);
 }
 
-sim_mob::Vehicle* sim_mob::medium::BusDriverMovement::initializePath(bool allocateVehicle)
+bool sim_mob::medium::BusDriverMovement::initializePath()
 {
-	Vehicle* res = nullptr;
-	if ( !getParent()) {
+	sim_mob::Person* person = getParent();
+	if (!person) {
 		Print()<<"Person of BusDriverMovement is null" << std::endl;
-		return nullptr;
+		return false;
 	}
 
 	//Only initialize if the next path has not been planned for yet.
-	if(!getParent()->getNextPathPlanned()){
+	if(!person->getNextPathPlanned()){
 		//Save local copies of the parent's origin/destination nodes.
-		if( getParent()->originNode.type_ != WayPoint::INVALID){
-			parentBusDriver->origin.node = getParent()->originNode.node_;
+		if( person->originNode.type_ != WayPoint::INVALID){
+			parentBusDriver->origin.node = person->originNode.node_;
 			parentBusDriver->origin.point = parentBusDriver->origin.node->location;
 		}
-		if( getParent()->destNode.type_ != WayPoint::INVALID ){
-			parentBusDriver->goal.node = getParent()->destNode.node_;
+		if( person->destNode.type_ != WayPoint::INVALID ){
+			parentBusDriver->goal.node = person->destNode.node_;
 			parentBusDriver->goal.point = parentBusDriver->goal.node->location;
 		}
 
-		//Retrieve the path from origin to destination and save all RoadSegments in this path.
-		vector<WayPoint> path;
-
 		vector<const RoadSegment*> pathRoadSeg;
 
-		const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem));
-		if (!bustrip)
+		const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+		if (!bustrip) {
 			Print()<< "bustrip is null"<<std::endl;
-		if (bustrip&& (*(getParent()->currTripChainItem))->itemType== TripChainItem::IT_BUSTRIP) {
+		}
+		else if ((*(person->currTripChainItem))->itemType== TripChainItem::IT_BUSTRIP) {
 			pathRoadSeg = bustrip->getBusRouteInfo().getRoadSegments();
 			Print()<< "BusTrip path size = " << pathRoadSeg.size() << std::endl;
-			std::vector<const RoadSegment*>::iterator itor;
-			for(itor=pathRoadSeg.begin(); itor!=pathRoadSeg.end(); itor++){
-				path.push_back(WayPoint(*itor));
-			}
 		} else {
-			if ((*(getParent()->currTripChainItem))->itemType== TripChainItem::IT_TRIP)
-				Print()<< TripChainItem::IT_TRIP << " IT_TRIP\n";
-			if ((*(getParent()->currTripChainItem))->itemType== TripChainItem::IT_ACTIVITY)
+			if ((*(person->currTripChainItem))->itemType== TripChainItem::IT_TRIP) {
+				Print()<< "IT_TRIP\n";
+			}
+			if ((*(person->currTripChainItem))->itemType== TripChainItem::IT_ACTIVITY) {
 				Print()<< "IT_ACTIVITY\n";
-			if ((*(getParent()->currTripChainItem))->itemType== TripChainItem::IT_BUSTRIP)
-				Print()<< "IT_BUSTRIP\n";
-			std::cout<< "BusTrip path not initialized coz it is not a bustrip, (*(getParent()->currTripChainItem))->itemType = "<< (*(getParent()->currTripChainItem))->itemType<< std::endl;
+			}
+			Print() << "BusTrip path not initialized coz it is not a bustrip, (*(person->currTripChainItem))->itemType = "<< (*(person->currTripChainItem))->itemType<< std::endl;
 		}
 
 		//For now, empty paths aren't supported.
-		if (path.empty()) {
+		if (pathRoadSeg.empty()) {
 			throw std::runtime_error("Can't initializePath(); path is empty.");
 		}
-
-		//TODO: Start in lane 0?
-		int startlaneID = 0;
-
-		// Bus should be at least 1200 to be displayed on Visualizer
-		const double length = 400;
-		const double width = 200;
-
-		//A non-null vehicle means we are moving.
-		if (allocateVehicle) {
-			res = new Vehicle(path, startlaneID, length, width);
+		std::vector<const sim_mob::SegmentStats*> path;
+		initSegStatsPath(pathRoadSeg, path);
+		if(path.empty()) {
+			return false;
 		}
+		pathMover.setPath(path);
+		const sim_mob::SegmentStats* firstSegStat = path.front();
+		person->setCurrSegStats(firstSegStat);
+		person->setCurrLane(firstSegStat->laneInfinity);
+		person->distanceToEndOfSegment = firstSegStat->getLength();
 	}
 
 	//to indicate that the path to next activity is already planned
-	getParent()->setNextPathPlanned(true);
-	return res;
+	person->setNextPathPlanned(true);
+	return true;
+
+}
 
 }
 }

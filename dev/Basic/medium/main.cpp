@@ -137,7 +137,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//Config::BuiltInModels builtIn;
 	//fakeModels(builtIn);
 
-	//Load our user config file
+	//Load our user config file, which is a time costly function
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
 	std::cout<<"performMainMed: trip chain pool size "<< ConfigManager::GetInstance().FullConfig().getTripChains().size()<<std::endl;
 
@@ -275,7 +275,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			//  perform any output (and hence there will be no contention)
 			if (currTickPercent-lastTickPercent>9) {
 				lastTickPercent = currTickPercent;
-				cout <<currTickPercent <<"%" <<endl;
+//				cout <<currTickPercent <<"%" <<endl;
+				cout <<currTickPercent <<"%" << ", Agents:" << Agent::all_agents.size() <<endl;
 			}
 		}
 
@@ -551,7 +552,7 @@ int main(int ARGC, char* ARGV[])
 	gettimeofday(&simEndTime, nullptr);
 
 	Print() << "Done" << endl;
-	cout << "Total simulation time: "<< ProfileBuilder::diff_ms(simEndTime, simStartTime) << " ms." << endl;
+	cout << "Total simulation time: "<< (ProfileBuilder::diff_ms(simEndTime, simStartTime))/1000.0 << " seconds." << endl;
 
 	return returnVal;
 }

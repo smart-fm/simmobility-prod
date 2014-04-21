@@ -13,7 +13,10 @@
 #include "database/entity/Unit.hpp"
 #include "database/entity/Household.hpp"
 #include "database/entity/ExternalEvent.hpp"
+#include "database/entity/PostcodeAmenities.hpp"
+#include "database/entity/PotentialProject.hpp"
 #include "core/HousingMarket.hpp"
+#include "model/HM_Model.hpp"
 
 namespace sim_mob {
     namespace long_term {
@@ -89,11 +92,43 @@ namespace sim_mob {
              * 
              * @param household.
              * @param unit to calculate the wp.
+             * @param stats Taz statistics.
              * @return value of the willingness to pay of the given household 
              *         or sim_mob::long_term::INVALID_DOUBLE
              */
-            double calulateWP(const Household& hh, const Unit& unit) const;
+            double calulateWP(const Household& hh, const Unit& unit, 
+                const HM_Model::TazStats& stats) const;
 
+        private:
+
+            /**
+             * Inherited from LuaModel
+             */
+            void mapClasses();
+        };
+
+        /**
+         * Represents the Lua model to the Developer model.
+         */
+        class DeveloperLuaModel : public lua::LuaModel {
+        public:
+            DeveloperLuaModel();
+            virtual ~DeveloperLuaModel();
+
+            /**
+             * Calculates the future revenue with given potential unit for the 
+             * given Potential project.
+             * 
+             * Attention: given postcode can be the real postcode (if it is a redevelopment)
+             * or it can be the nearest postcode of the parcel.
+             *  
+             * @param unit to calculate the the future revenue.
+             * @param postcode amenities.
+             * @return value of the future revenue or long_term::INVALID_DOUBLE
+             */
+            double calulateUnitRevenue (const PotentialUnit& unit, 
+                const PostcodeAmenities& amenities) const;
+            
         private:
 
             /**
@@ -103,4 +138,3 @@ namespace sim_mob {
         };
     }
 }
-

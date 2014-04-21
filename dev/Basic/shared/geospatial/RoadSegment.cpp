@@ -231,6 +231,10 @@ void sim_mob::RoadSegment::setCapacity() {
 	capacity = lanes.size()*2000.0;
 }
 
+double sim_mob::RoadSegment::getCapacityPerInterval() const {
+	return capacity * ConfigManager::GetInstance().FullConfig().baseGranSecond() / 3600;
+}
+
 vector<Point2D> sim_mob::RoadSegment::makeLaneEdgeFromPolyline(Lane* refLane, bool edgeIsRight) const
 {
 	//Sanity check

@@ -9,8 +9,9 @@
 #include <vector>
 
 #include "conf/settings/DisableMPI.h"
-#include "entities/conflux/Conflux.hpp"
 #include "entities/Agent.hpp"
+#include "entities/conflux/Conflux.hpp"
+#include "entities/conflux/SegmentStats.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/LangHelpers.hpp"
 
@@ -180,14 +181,14 @@ public:
 		this->currPath.clear();
 	}
 
-    const sim_mob::RoadSegment* requestedNextSegment;  //Used by confluxes and movement facet of roles to move this person in the medium term
+    const sim_mob::SegmentStats* requestedNextSegStats;  //Used by confluxes and movement facet of roles to move this person in the medium term
 
     enum Permission //to be renamed later
-    	{
-    		NONE=0,
-    		GRANTED,
-    		DENIED
-    	};
+   	{
+   		NONE=0,
+   		GRANTED,
+   		DENIED
+   	};
     Permission canMoveToNextSegment;
 
     //Used for passing various debug data. Do not rely on this for anything long-term.
@@ -195,6 +196,26 @@ public:
 
     std::stringstream debugMsgs;
     int client_id;
+
+	const sim_mob::Lane* getCurrLane() const
+	{
+		return currLane;
+	}
+
+	void setCurrLane(const sim_mob::Lane* currLane)
+	{
+		this->currLane = currLane;
+	}
+
+	const sim_mob::SegmentStats* getCurrSegStats() const
+	{
+		return currSegStats;
+	}
+
+	void setCurrSegStats(const sim_mob::SegmentStats* currSegStats)
+	{
+		this->currSegStats = currSegStats;
+	}
 
 protected:
 	virtual bool frame_init(timeslice now);
@@ -237,6 +258,10 @@ private:
     // person's alighting time secs
     double alightingTimeSecs;
     std::vector<WayPoint> currPath;
+
+    // current lane and segment are needed for confluxes to track this person
+	const sim_mob::Lane* currLane;
+	const sim_mob::SegmentStats* currSegStats;
 
 public:
 	virtual void pack(PackageUtils& packageUtil) CHECK_MPI_THROW;

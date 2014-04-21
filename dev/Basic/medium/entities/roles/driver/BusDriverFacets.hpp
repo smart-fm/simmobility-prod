@@ -34,6 +34,9 @@ public:
 	}
 
 	void setParentBusDriver(sim_mob::medium::BusDriver* parentBusDriver) {
+		if(!parentBusDriver) {
+			throw std::runtime_error("parentBusDriver cannot be NULL");
+		}
 		this->parentBusDriver = parentBusDriver;
 	}
 
@@ -50,18 +53,21 @@ public:
 	virtual void frame_init();
 	virtual void frame_tick();
 	virtual void frame_tick_output();
-	virtual void flowIntoNextLinkIfPossible(UpdateParams& p);
+	void flowIntoNextLinkIfPossible(DriverUpdateParams& p);
 
 	sim_mob::medium::BusDriver* getParentBusDriver() const {
 		return parentBusDriver;
 	}
 
 	void setParentBusDriver(sim_mob::medium::BusDriver* parentBusDriver) {
+		if(!parentBusDriver) {
+			throw std::runtime_error("parentBusDriver cannot be NULL");
+		}
 		this->parentBusDriver = parentBusDriver;
 	}
 
 protected:
-	virtual Vehicle* initializePath(bool allocateVehicle);
+	virtual bool initializePath();
 
 	sim_mob::medium::BusDriver* parentBusDriver;
 };

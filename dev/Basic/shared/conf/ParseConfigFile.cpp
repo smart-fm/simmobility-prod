@@ -490,7 +490,7 @@ std::string ProcessValueString(xercesc::DOMElement* node)
 	return ParseString(GetNamedAttributeValue(node, "value"));
 }
 
-
+const double MILLISECONDS_IN_SECOND = 1000.0;
 } //End un-named namespace
 
 
@@ -577,8 +577,9 @@ void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
 	ProcessPersonCharacteristicsNode(GetSingleElementByName(rootNode, "personCharacteristics"));
 
 	//Agents all follow a template.
-	ProcessDriversNode(GetSingleElementByName(rootNode, "drivers"));
+
 	ProcessPedestriansNode(GetSingleElementByName(rootNode, "pedestrians"));
+	ProcessDriversNode(GetSingleElementByName(rootNode, "drivers"));
 	ProcessBusDriversNode(GetSingleElementByName(rootNode, "busdrivers"));
 	ProcessPassengersNode(GetSingleElementByName(rootNode, "passengers"));
 	ProcessSignalsNode(GetSingleElementByName(rootNode, "signals"));
@@ -962,6 +963,7 @@ void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* 
 {
 	//Several properties are set up as "x ms", or "x seconds", etc.
 	cfg.system.simulation.baseGranMS = ProcessTimegranUnits(GetSingleElementByName(node, "base_granularity", true));
+	cfg.system.simulation.baseGranSecond = cfg.system.simulation.baseGranMS / MILLISECONDS_IN_SECOND;
 	cfg.system.simulation.totalRuntimeMS = ProcessTimegranUnits(GetSingleElementByName(node, "total_runtime", true));
 	cfg.system.simulation.totalWarmupMS = ProcessTimegranUnits(GetSingleElementByName(node, "total_warmup"));
 

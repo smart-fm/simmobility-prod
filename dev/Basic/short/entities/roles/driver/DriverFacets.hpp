@@ -40,6 +40,9 @@ public:
 	}
 
 	void setParentDriver(Driver* parentDriver) {
+		if(!parentDriver) {
+			throw std::runtime_error("parentDriver cannot be NULL");
+		}
 		this->parentDriver = parentDriver;
 	}
 
@@ -63,6 +66,9 @@ public:
 	}
 
 	void setParentDriver(Driver* parentDriver) {
+		if(!parentDriver) {
+			throw std::runtime_error("parentDriver cannot be NULL");
+		}
 		this->parentDriver = parentDriver;
 	}
 

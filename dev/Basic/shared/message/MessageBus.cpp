@@ -494,6 +494,31 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
     }
 }
 
+void sim_mob::messaging::MessageBus::SendMessage(MessageHandler* destination,
+		Message::MessageType type, MessagePtr message) {
+	CheckThreadContext();
+	ThreadContext* context = GetThreadContext();
+	if (context) {
+		InternalMessage* internalMsg = dynamic_cast<InternalMessage*> (message.get());
+		InternalEventMessage* eventMsg = dynamic_cast<InternalEventMessage*> (message.get());
+		if (destination && destination->context == context) {
+			destination->HandleMessage(type, *(message.get()));
+			context->processedMessages++;
+		}
+		else if(eventMsg && eventMsg->GetContext() == context){
+			context->eventMessages++;
+            //if it is an event then we need to publish this event only in the
+			//current context
+			MessageHandler* target = dynamic_cast<MessageHandler*> (context->eventPublisher);
+			target->HandleMessage(type, *(message.get()));
+			context->processedMessages++;
+		}
+		else {
+			throw std::runtime_error("SendMessage() is called for sending messages outside the thread");
+		}
+	}
+}
+
 void MessageBus::SubscribeEvent(EventId id, EventListener* listener) {
     CheckThreadContext();
     if (listener) {

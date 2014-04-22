@@ -119,6 +119,18 @@ namespace sim_mob {
             static void PostMessage(MessageHandler* target, Message::MessageType type, MessagePtr message, bool processOnMainThread = false);
 
             /**
+             * Sends the message to destination synchronously within the current
+             * context. The message will be consumed by the target immediately.
+             * The message sent with this function can be received only by targets
+             * within the current context. The function does not put messages in
+             * queues for subsequent distribution and processing.
+             * @param target of the message.
+             * @param type of the message.
+             * @param message to send.
+             */
+            static void SendMessage(MessageHandler* target, Message::MessageType type, MessagePtr message);
+
+            /**
              * Subscribes to the given event. 
              * This listener will receive *all* notifications for this event.
              * @param id of the event.

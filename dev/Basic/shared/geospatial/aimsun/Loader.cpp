@@ -574,9 +574,9 @@ void DatabaseLoader::LoadCrossings(const std::string& storedProc)
 			continue;
 		}
 
-		//Convert meters to cm
-		it->xPos *= 100;
-		it->yPos *= 100;
+//		//Convert meters to cm
+//		it->xPos *= 100;
+//		it->yPos *= 100;
 
 		//Note: Make sure not to resize the Section vector after referencing its elements.
 		it->atSection = &sections_[it->TMP_AtSectionID];

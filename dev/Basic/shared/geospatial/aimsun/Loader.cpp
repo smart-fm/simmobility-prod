@@ -763,9 +763,9 @@ DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
     }
     soci::rowset<Signal> rows = (sql_.prepare <<"select * from " + storedProcedure);
     for (soci::rowset<Signal>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter) {
-        // Convert from meters to centimeters.
-        iter->xPos *= 100;
-        iter->yPos *= 100;
+//        // Convert from meters to centimeters.
+//        iter->xPos *= 100;
+//        iter->yPos *= 100;
         signals_.insert(std::make_pair(iter->id, *iter));
     }
 }

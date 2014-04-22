@@ -667,9 +667,9 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 			throw std::runtime_error("Invalid polyline section reference.");
 		}
 
-		//Convert meters to cm
-		it->xPos *= 100;
-		it->yPos *= 100;
+//		//Convert meters to cm
+//		it->xPos *= 100;
+//		it->yPos *= 100;
 
 		//Note: Make sure not to resize the Section map after referencing its elements.
 		it->section = &sections_[it->TMP_SectionId];

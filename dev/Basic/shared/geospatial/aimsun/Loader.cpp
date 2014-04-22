@@ -812,8 +812,10 @@ void DatabaseLoader::LoadBusStopSG(const std::string& storedProc)
 		busstop.stop_lon.erase(remove_if(busstop.stop_lon.begin(), busstop.stop_lon.end(), isspace),
 				busstop.stop_lon.end());
 
-		        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat) * 100;
-		        busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon) * 100;
+//		        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat) * 100;
+//		        busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon) * 100;
+        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat);
+        busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon);
 		        bustopSG_.insert(std::make_pair(busstop.bus_stop_no, busstop));
 		        //std :: cout.precision(15);
 		        //std :: cout << "Bus Stop ID is: "<< busstop.bus_stop_no <<"    "<< busstop.xPos << "     "<< busstop.yPos  <<std::endl;

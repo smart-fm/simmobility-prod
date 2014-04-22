@@ -498,9 +498,9 @@ void DatabaseLoader::LoadNodes(const std::string& storedProc)
 			throw std::runtime_error("Duplicate AIMSUN node.");
 		}
 
-		//Convert meters to cm
-		it->xPos *= 100;
-		it->yPos *= 100;
+//		//Convert meters to cm
+//		it->xPos *= 100;
+//		it->yPos *= 100;
 
 		nodes_[it->id] = *it;
 	}

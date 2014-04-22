@@ -522,8 +522,8 @@ void DatabaseLoader::LoadSections(const std::string& storedProc)
 			throw std::runtime_error("Invalid From or To node.");
 		}
 
-		//Convert meters to cm
-		it->length *= 100;
+//		//Convert meters to cm
+//		it->length *= 100;
 
 		//Note: Make sure not to resize the Node map after referencing its elements.
 		it->fromNode = &nodes_[it->TMP_FromNodeID];

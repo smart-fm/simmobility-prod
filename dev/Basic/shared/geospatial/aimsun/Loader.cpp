@@ -598,9 +598,9 @@ void DatabaseLoader::LoadLanes(const std::string& storedProc)
 			continue;
 		}
 
-		//Convert meters to cm
-		it->xPos *= 100;
-		it->yPos *= 100;
+//		//Convert meters to cm
+//		it->xPos *= 100;
+//		it->yPos *= 100;
 
 		//Exclude "crossing" types
 		if (it->laneType=="J" || it->laneType=="A4") {

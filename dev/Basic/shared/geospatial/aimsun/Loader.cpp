@@ -502,9 +502,9 @@ void DatabaseLoader::LoadNodes(const std::string& storedProc)
 			throw std::runtime_error("Duplicate AIMSUN node.");
 		}
 
-		//Convert meters to cm
-		it->xPos *= 100;
-		it->yPos *= 100;
+//		//Convert meters to cm
+//		it->xPos *= 100;
+//		it->yPos *= 100;
 
 		nodes_[it->id] = *it;
 	}
@@ -526,8 +526,8 @@ void DatabaseLoader::LoadSections(const std::string& storedProc)
 			throw std::runtime_error("Invalid From or To node.");
 		}
 
-		//Convert meters to cm
-		it->length *= 100;
+//		//Convert meters to cm
+//		it->length *= 100;
 
 		//Note: Make sure not to resize the Node map after referencing its elements.
 		it->fromNode = &nodes_[it->TMP_FromNodeID];
@@ -578,9 +578,9 @@ void DatabaseLoader::LoadCrossings(const std::string& storedProc)
 			continue;
 		}
 
-		//Convert meters to cm
-		it->xPos *= 100;
-		it->yPos *= 100;
+//		//Convert meters to cm
+//		it->xPos *= 100;
+//		it->yPos *= 100;
 
 		//Note: Make sure not to resize the Section vector after referencing its elements.
 		it->atSection = &sections_[it->TMP_AtSectionID];
@@ -602,9 +602,9 @@ void DatabaseLoader::LoadLanes(const std::string& storedProc)
 			continue;
 		}
 
-		//Convert meters to cm
-		it->xPos *= 100;
-		it->yPos *= 100;
+//		//Convert meters to cm
+//		it->xPos *= 100;
+//		it->yPos *= 100;
 
 		//Exclude "crossing" types
 		if (it->laneType=="J" || it->laneType=="A4") {
@@ -671,9 +671,9 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 			throw std::runtime_error("Invalid polyline section reference.");
 		}
 
-		//Convert meters to cm
-		it->xPos *= 100;
-		it->yPos *= 100;
+//		//Convert meters to cm
+//		it->xPos *= 100;
+//		it->yPos *= 100;
 
 		//Note: Make sure not to resize the Section map after referencing its elements.
 		it->section = &sections_[it->TMP_SectionId];
@@ -767,9 +767,9 @@ DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
     }
     soci::rowset<Signal> rows = (sql_.prepare <<"select * from " + storedProcedure);
     for (soci::rowset<Signal>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter) {
-        // Convert from meters to centimeters.
-        iter->xPos *= 100;
-        iter->yPos *= 100;
+//        // Convert from meters to centimeters.
+//        iter->xPos *= 100;
+//        iter->yPos *= 100;
         signals_.insert(std::make_pair(iter->id, *iter));
     }
 }
@@ -786,8 +786,8 @@ void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 	{
 		BusStop busstop = *iter;
 //		         Convert from meters to centimeters.
-		        busstop.xPos *= 100;
-		        busstop.yPos *= 100;
+//		        busstop.xPos *= 100;
+//		        busstop.yPos *= 100;
 	        busstop_.insert(std::make_pair(busstop.bus_stop_no, busstop));
 		        //std :: cout.precision(15);
 		        //std :: cout << "Bus Stop ID is: "<< busstop.bus_stop_no <<"    "<< busstop.xPos << "     "<< busstop.yPos  <<std::endl;
@@ -816,8 +816,10 @@ void DatabaseLoader::LoadBusStopSG(const std::string& storedProc)
 		busstop.stop_lon.erase(remove_if(busstop.stop_lon.begin(), busstop.stop_lon.end(), isspace),
 				busstop.stop_lon.end());
 
-		        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat) * 100;
-		        busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon) * 100;
+//		        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat) * 100;
+//		        busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon) * 100;
+        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat);
+        busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon);
 		        bustopSG_.insert(std::make_pair(busstop.bus_stop_no, busstop));
 		        //std :: cout.precision(15);
 		        //std :: cout << "Bus Stop ID is: "<< busstop.bus_stop_no <<"    "<< busstop.xPos << "     "<< busstop.yPos  <<std::endl;
@@ -966,10 +968,10 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 	vector<sim_mob::BoundarySegment*>::iterator it = boundary_segments.begin();
 	for (; it != boundary_segments.end(); it++)
 	{
-		int start_x = static_cast<int> ((*it)->start_node_x * 100 + 0.5);
-		int start_y = static_cast<int> ((*it)->start_node_y * 100 + 0.5);
-		int end_x = static_cast<int> ((*it)->end_node_x * 100 + 0.5);
-		int end_y = static_cast<int> ((*it)->end_node_y * 100 + 0.5);
+		int start_x = static_cast<int> ((*it)->start_node_x  + 0.5);
+		int start_y = static_cast<int> ((*it)->start_node_y  + 0.5);
+		int end_x = static_cast<int> ((*it)->end_node_x  + 0.5);
+		int end_y = static_cast<int> ((*it)->end_node_y  + 0.5);
 
 		//		int start_x = static_cast<int> ((*it)->start_node_x * 100 );
 		//		int start_y = static_cast<int> ((*it)->start_node_y * 100 );
@@ -1267,8 +1269,10 @@ bool FindBusLineWithLeastStops(Node* source, Node* destination, sim_mob::BusStop
 {
 	bool result = false;
 	//sim_mob::AuraManager::instance2();
-	Point2D pnt1(source->getXPosAsInt()-3500, source->getYPosAsInt()-3500);
-	Point2D pnt2(source->getXPosAsInt()+3500, source->getYPosAsInt()+3500);
+//	Point2D pnt1(source->getXPosAsInt()-3500, source->getYPosAsInt()-3500);
+//	Point2D pnt2(source->getXPosAsInt()+3500, source->getYPosAsInt()+3500);
+//	Point2D pnt1(source->xPos-35.00, source->yPos()-35.00);
+//	Point2D pnt2(source->xPos+35.00, source->yPos+35.00);
 	//std::vector<const sim_mob::Agent*> source_nearby_agents = sim_mob::AuraManager::instance2().agentsInRect(pnt1, pnt2, nullptr);
 
 	std::vector<sim_mob::BusStop*> source_stops;
@@ -1977,7 +1981,8 @@ void sim_mob::aimsun::Loader::FixupLanesAndCrossings(sim_mob::RoadNetwork& res)
 					sim_mob::Point2D medianProjection = LineLineIntersect(cross->nearLine.first, cross->nearLine.second, link->getStart()->location, link->getEnd()->location);
 					Point2D shift(medianProjection.getX()-nearLinemidPoint.getX(), medianProjection.getY()-nearLinemidPoint.getY());
 					///TODO this is needed temporarily due to a bug in which one intersection's crossings end up shifted across the map.
-					if(shift.getX() > 1000)
+//					if(shift.getX() > 1000)
+					if(shift.getX() > 10)
 						continue;
 
 					cross->nearLine.first = Point2D(cross->nearLine.first.getX()+shift.getX(), cross->nearLine.first.getY()+shift.getY());

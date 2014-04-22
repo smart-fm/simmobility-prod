@@ -28,18 +28,16 @@ class UnPackageUtils;
 
 
 /**
- * The GeneralPathMover allows a vehicle to move forward in a series of RoadSegments based entirely
+ * The DriverPathMover allows to move forward in a series of RoadSegments based entirely
  * on its forward movement "amount".
  *
- * \author Seth N. Hetu
- * \author Li Zhemin
- * \author Xu Yan
- * \author LIM Fung Chai
+ * \author Yao Jin
+
  */
-class GeneralPathMover {
+class DriverPathMover {
 public:
-	GeneralPathMover();
-	GeneralPathMover(const GeneralPathMover& copyFrom); ///<Copy constructor, used to make sure iterators work cleanly.
+	DriverPathMover();
+	DriverPathMover(const DriverPathMover& copyFrom); ///<Copy constructor, used to make sure iterators work cleanly.
 
 	///Set the path of RoadSegments contained in our path. These segments need not
 	/// necessarily be in the same Link.
@@ -83,29 +81,28 @@ public:
 	const sim_mob::Point2D& getCurrPolypoint() const;
 	const sim_mob::Point2D& getNextPolypoint() const;
 	const sim_mob::Point2D& getNextPolypointNew() const;
-	//bool isMovingForwardsOnCurrSegment() const;
-	double getCurrLinkReportedLength() const;
+	double getCurrLinkReportedLengthCM() const;
 
 	//Retrieve useful properties of the current polypoint
-	double getCurrDistAlongPolyline() const;
-	double getCurrPolylineTotalDist() const;
+	double getCurrDistAlongPolylineCM() const;
+	double getCurrPolylineTotalDistCM() const;
 
 	// segment length is based on lane's polypoints , be careful, it is not relate to segment's start ,end nodes
 	// unit cm
-	double getCurrentSegmentLength();
+	double getCurrentSegmentLengthCM();
 
 	//Retrieve the current distance moved in this road segment. Due to lane changing, etc., it
 	//  is entirely possible that this may appear longer than the actual RoadSegment.
 	//Note that this function does not attempt to subtract any distance moved beyond the
 	//  limit of the current polyline. (But it should be close; we try to normalize it).
 	//You will almost always want to use getCurrDistAlongPolyline() instead of this function.
-	double getCurrDistAlongRoadSegment() const;
+	double getCurrDistAlongRoadSegmentCM() const;
 
 	//Get what should be the total distance of the RoadSegment.
-	double getTotalRoadSegmentLength() const;
+	double getTotalRoadSegmentLengthCM() const;
 
 	//Get the length of rest road segments in current link, include current road segment
-	double getAllRestRoadSegmentsLength() const;
+	double getAllRestRoadSegmentsLengthCM() const;
 
 	//Retrieve our X/Y position based ONLY on forward movement (e.g., nothing with Lanes)
 	sim_mob::DPoint getPosition() const;
@@ -125,12 +122,28 @@ public:
 	/* needed by mid-term */
 	double getPositionInSegmentCM();
 	void setPositionInSegmentCM(double newDistToEndCM);
-	void setStartPositionInSegment();
-	double getNextSegmentLength();
+	void setStartPositionInSegmentCM();
+	double getNextSegmentLengthCM();
 	void advance_med(double fwdDistance);
 	void actualMoveToNextSegmentAndUpdateDir_med();
-//temp
-//private:
+	double currPolylineLengthCM() const;
+
+private:
+	//Helper functions
+	double advanceToNextPolyline(bool isFwd);
+	double advanceToNextRoadSegment();
+	const Lane* actualMoveToNextSegmentAndUpdateDir();
+	void generateNewPolylineArray(const RoadSegment* currSegment, std::vector<const RoadSegment*> path, std::vector<bool> areFwds);
+	void generateNewPolylineArray();
+	void calcNewLaneDistancesCM();
+	static double CalcSegmentLaneZeroDistCM(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);
+	static double CalcRestSegmentsLaneZeroDistCM(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);
+	static std::string centimeterToMeter(centimeter_t dist); //Helper to format cm as m for debug output.
+
+	//General throw function. There is probably a better way to do this.
+	void throwIf(bool conditional, const std::string& msg) const;
+
+
 public:
 	//List of RoadSegments we're moving to in order.
 	std::vector<const sim_mob::RoadSegment*> fullPath;
@@ -148,7 +161,6 @@ public:
 
 	//Movement along a single line
 	double distAlongPolylineCM;
-	double currPolylineLengthCM() const;
 
 	//Counter
 	//NOTE: This is always the same regardless of what lane you're in. In other words,
@@ -157,16 +169,16 @@ public:
 	//      for all previous Segments. This is important as it prevents obstacles from appearing in the wrong
 	//      places to different drivers.
 	//NOTE:  This does NOT include the distance moved in the current polyline.
-	double distMovedInCurrSegment;
+	double distMovedInCurrSegmentCM;
 
-	//And track the expected total distance.
-	double distOfThisSegment;
+	//And track the expected total distance(CM).
+	double distOfThisSegmentCM;
 
-	//length of rest road segments in current link, include current segment
-	double distOfRestSegments;
+	//length(CM) of rest road segments in current link, include current segment
+	double distOfRestSegmentsCM;
 
-	//distance to the end of the current segment. needed by mid-term
-	double distToEndSegment;
+	//distance(CM) to the end of the current segment. needed by mid-term
+	double distToEndSegmentCM;
 
 	//Intersection driving is different.
 	bool inIntersection;
@@ -185,7 +197,7 @@ public:
 	struct PathWithDirection{
 		std::vector<const RoadSegment*> path;
 		std::vector<bool> areFwds;
-	}pathWithDirection;
+	} pathWithDirection;
 
 private:
 	//Error messages for throw_if.
@@ -201,29 +213,10 @@ private:
 	const static std::string ErrorPathDoneActual;
 	const static std::string ErrorGeneralPathDone;
 
-	//Helper functions
-	double advanceToNextPolyline(bool isFwd);
-	double advanceToNextRoadSegment();
-	const Lane* actualMoveToNextSegmentAndUpdateDir();
-	void generateNewPolylineArray(const RoadSegment* currSegment, std::vector<const RoadSegment*> path, std::vector<bool> areFwds);
-	void generateNewPolylineArray();
-	void calcNewLaneDistances();
-	static double CalcSegmentLaneZeroDist(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);
-	static double CalcRestSegmentsLaneZeroDist(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);
-	static std::string Fmt_M(centimeter_t dist); //Helper to format cm as m for debug output.
-
-	//General throw function. There is probably a better way to do this.
-	void throwIf(bool conditional, const std::string& msg) const;
-
-
 	//Serialization-related friends
 	friend class PackageUtils;
 	friend class UnPackageUtils;
-
-
 };
 
 
 }
-
-

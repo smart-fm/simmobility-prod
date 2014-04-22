@@ -64,8 +64,7 @@ size_t getLaneIndex(const Lane* l) {
 //Initialize
 sim_mob::medium::Driver::Driver(Agent* parent, MutexStrategy mtxStrat, sim_mob::medium::DriverBehavior* behavior, sim_mob::medium::DriverMovement* movement) :
 	sim_mob::Role(behavior, movement, parent, "Driver_"),
-	currLane(nullptr)
-	/*, params(parent->getGenerator()),*/
+	currLane(nullptr), vehicle(nullptr)
 {}
 
 sim_mob::medium::Driver::~Driver() {}

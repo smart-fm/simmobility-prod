@@ -552,7 +552,7 @@ int main(int ARGC, char* ARGV[])
 	gettimeofday(&simEndTime, nullptr);
 
 	Print() << "Done" << endl;
-	cout << "Total simulation time: "<< ProfileBuilder::diff_ms(simEndTime, simStartTime) << " ms." << endl;
+	cout << "Total simulation time: "<< (ProfileBuilder::diff_ms(simEndTime, simStartTime))/1000.0 << " seconds." << endl;
 
 	return returnVal;
 }

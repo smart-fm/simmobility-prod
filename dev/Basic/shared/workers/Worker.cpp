@@ -30,7 +30,7 @@
 #include "util/LangHelpers.hpp"
 #include "message/MessageBus.hpp"
 
-#include "entities/commsim/Broker.hpp"
+#include "entities/commsim/broker/Broker.hpp"
 
 using std::set;
 using std::vector;

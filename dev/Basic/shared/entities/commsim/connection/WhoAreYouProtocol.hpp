@@ -15,30 +15,16 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
 
-#include <entities/commsim/client/base/ClientRegistration.hpp>
 
 namespace sim_mob {
-class Session;
-class ConnectionServer;
+class BrokerBase;
+class ConnectionHandler;
 
 class WhoAreYouProtocol
 {
 public:
-//	sim_mob::boost::shared_ptr<sim_mob::Session> sess__;
-	WhoAreYouProtocol(boost::shared_ptr<Session> &sess_, ConnectionServer &);
-	void start();
-	bool isDone();
-//	void getTypeAndID(std::string &input, std::string & out_type, std::string & out_ID);
-	sim_mob::ClientRegistrationRequest getSubscriptionRequest(std::string);
-	std::string response; //json string containing ID & type of the client
-private:
-	boost::shared_ptr<Session>  sess;
-	ConnectionServer &server;
-	bool registerSuccess;
-	std::map<unsigned int, boost::shared_ptr<Session> > clientRegistrationWaitingList;
-//	void startClientRegistration(boost::shared_ptr<Session> &sess);
-	void WhoAreYou_handler(const boost::system::error_code& e);
-	void WhoAreYou_response_handler(const boost::system::error_code& e);
+	//Begin the query process for agents. conn must be non-null, but you can re-use an existing conn if required.
+	static void QueryAgentAsync(boost::shared_ptr<sim_mob::ConnectionHandler> conn);
 };
 
-} /* namespace sim_mob */
+}

@@ -964,10 +964,10 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 	vector<sim_mob::BoundarySegment*>::iterator it = boundary_segments.begin();
 	for (; it != boundary_segments.end(); it++)
 	{
-		int start_x = static_cast<int> ((*it)->start_node_x * 100 + 0.5);
-		int start_y = static_cast<int> ((*it)->start_node_y * 100 + 0.5);
-		int end_x = static_cast<int> ((*it)->end_node_x * 100 + 0.5);
-		int end_y = static_cast<int> ((*it)->end_node_y * 100 + 0.5);
+		int start_x = static_cast<int> ((*it)->start_node_x  + 0.5);
+		int start_y = static_cast<int> ((*it)->start_node_y  + 0.5);
+		int end_x = static_cast<int> ((*it)->end_node_x  + 0.5);
+		int end_y = static_cast<int> ((*it)->end_node_y  + 0.5);
 
 		//		int start_x = static_cast<int> ((*it)->start_node_x * 100 );
 		//		int start_y = static_cast<int> ((*it)->start_node_y * 100 );

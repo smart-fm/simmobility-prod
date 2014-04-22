@@ -782,8 +782,8 @@ void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 	{
 		BusStop busstop = *iter;
 //		         Convert from meters to centimeters.
-		        busstop.xPos *= 100;
-		        busstop.yPos *= 100;
+//		        busstop.xPos *= 100;
+//		        busstop.yPos *= 100;
 	        busstop_.insert(std::make_pair(busstop.bus_stop_no, busstop));
 		        //std :: cout.precision(15);
 		        //std :: cout << "Bus Stop ID is: "<< busstop.bus_stop_no <<"    "<< busstop.xPos << "     "<< busstop.yPos  <<std::endl;

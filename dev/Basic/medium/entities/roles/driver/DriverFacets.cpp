@@ -14,6 +14,7 @@
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/conflux/Conflux.hpp"
+#include "entities/Vehicle.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
@@ -34,7 +35,7 @@
 
 #include "util/DebugFlags.hpp"
 using namespace sim_mob;
-
+using namespace sim_mob::medium;
 using std::max;
 using std::vector;
 using std::set;
@@ -65,6 +66,8 @@ void initSegStatsPath(vector<sim_mob::WayPoint>& wpPath,
 inline double converToSeconds(uint32_t timeInMs) {
 	return (timeInMs/1000.0);
 }
+
+const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
 }
 
 namespace sim_mob {
@@ -103,10 +106,10 @@ sim_mob::medium::DriverMovement::~DriverMovement() {}
 void sim_mob::medium::DriverMovement::frame_init() {
 	bool pathInitialized = initializePath();
 	if (pathInitialized) {
-		Vehicle* newVeh = new Vehicle();
-		Vehicle* oldVehicle = parentDriver->getResource();
+		Vehicle* newVeh = new Vehicle(Vehicle::CAR, PASSENGER_CAR_UNIT, 1.0);
+		Vehicle* oldVehicle = parentDriver->getVehicle();
 		safe_delete_item(oldVehicle);
-		parentDriver->setResource(newVeh);
+		parentDriver->setVehicle(newVeh);
 	}
 	else{
 		getParent()->setToBeRemoved();

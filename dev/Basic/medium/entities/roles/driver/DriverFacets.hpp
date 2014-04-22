@@ -7,7 +7,6 @@
 #include "Driver.hpp"
 #include "DriverUpdateParams.hpp"
 #include "entities/roles/RoleFacets.hpp"
-#include "entities/vehicle/Vehicle.hpp"
 #include "entities/conflux/SegmentStats.hpp"
 #include "MesoPathMover.hpp"
 

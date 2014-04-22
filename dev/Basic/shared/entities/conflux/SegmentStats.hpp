@@ -301,10 +301,6 @@ public:
 	SegmentStats(const sim_mob::RoadSegment* rdSeg, double length);
 	~SegmentStats();
 
-	enum VehicleType {
-		CAR, BUS, NONE
-	};
-
 	enum SegmentVehicleOrdering {
 		SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION,
 		SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION

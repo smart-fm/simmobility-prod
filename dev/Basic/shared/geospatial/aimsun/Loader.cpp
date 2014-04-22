@@ -1265,10 +1265,10 @@ bool FindBusLineWithLeastStops(Node* source, Node* destination, sim_mob::BusStop
 {
 	bool result = false;
 	//sim_mob::AuraManager::instance2();
-	Point2D pnt1(source->getXPosAsInt()-3500, source->getYPosAsInt()-3500);
-	Point2D pnt2(source->getXPosAsInt()+3500, source->getYPosAsInt()+3500);
-	Point2D pnt1(source->xPos-35.00, source->yPos()-35.00);
-	Point2D pnt2(source->xPos+35.00, source->yPos+35.00);
+//	Point2D pnt1(source->getXPosAsInt()-3500, source->getYPosAsInt()-3500);
+//	Point2D pnt2(source->getXPosAsInt()+3500, source->getYPosAsInt()+3500);
+//	Point2D pnt1(source->xPos-35.00, source->yPos()-35.00);
+//	Point2D pnt2(source->xPos+35.00, source->yPos+35.00);
 	//std::vector<const sim_mob::Agent*> source_nearby_agents = sim_mob::AuraManager::instance2().agentsInRect(pnt1, pnt2, nullptr);
 
 	std::vector<sim_mob::BusStop*> source_stops;

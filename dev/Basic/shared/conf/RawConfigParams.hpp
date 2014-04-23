@@ -137,6 +137,7 @@ public:
 	};
 
 	unsigned int baseGranMS;       ///<Base system granularity, in milliseconds. Each "tick" is this long.
+	double baseGranSecond;         ///<Base system granularity, in seconds. Each "tick" is this long.
 	unsigned int totalRuntimeMS;   ///<Total time (in milliseconds) to run the simulation for. (Includes "warmup" time.)
 	unsigned int totalWarmupMS;    ///<Total time (in milliseconds) considered "warmup".
 

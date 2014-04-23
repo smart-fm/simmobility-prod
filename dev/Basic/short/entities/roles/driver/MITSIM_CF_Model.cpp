@@ -60,7 +60,7 @@ const CarFollowParam CF_parameters[2] = {
 const double targetGapAccParm[] = {0.604, 0.385, 0.323, 0.0678, 0.217,
 		0.583, -0.596, -0.219, 0.0832, -0.170, 1.478, 0.131, 0.300};
 
-//Acceleration mode
+//Acceleration mode// CLA@04/2014 this enum can be deleted
 enum ACCEL_MODE {
 	AM_VEHICLE = 0,
 	AM_PEDESTRIAN = 1,
@@ -102,30 +102,88 @@ double CalcHeadway(double space, double speed, double elapsedSeconds, double max
 
 } //End anon namespace
 
+/*
+ *--------------------------------------------------------------------
+ * The acceleration model calculates the acceleration rate based on
+ * interaction with other vehicles. The function returns a the
+ * most restrictive acceleration (deceleration if negative) rate
+ * among the rates given by several constraints.
+ *--------------------------------------------------------------------
+ */
+
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
+	//initiate
 	distanceToNormalStop(p);
-	double acc = maxAcceleration;
-	double aA = calcSignalRate(p);
-	double aB = calcYieldingRate(p, targetSpeed, maxLaneSpeed);
-	double aC = waitExitLaneRate(p);
-	double aD = calcAdjacentRate(p);
-	double aE = calcBackwardRate(p);
-	double aF = calcForwardRate(p);
-	double aG = carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvFwd);
-	double aN = carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvFwdNextLink);
-	if(acc > aA) acc = aA;
-	if(acc > aB) acc = aB;
-	if(acc > aC) acc = aC;
+
+	// VARIABLE || FUNCTION ||				REGIME
+	//
+	double acc = maxAcceleration;			// MISSING! > has to be defined as a function (@CLA_04/14)
+	//double aB = calcMergingRate(p);		// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
+	double aC = calcSignalRate(p);			// near signal or incidents
+	double aD = calcYieldingRate(p, targetSpeed, maxLaneSpeed); // when yielding
+	double aE = waitExitLaneRate(p);		//
+	//double  aF = waitAllowedLaneRate(p);	// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
+	//double  aG = calcLaneDropRate(p);		// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
+	double aH1 = calcAdjacentRate(p);		// to reach adjacent gap
+	double aH2 = calcBackwardRate(p);		// to reach backward gap
+	double aH3 = calcForwardRate(p);		// to reach forward gap
+	// The target gap acceleration should be based on the target gap status and not on the min
+	// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
+	/*
+	if (status(STATUS_ADJACENT)) {
+	    double aH = calcAdjacentRate(p);	// to reach adjacent gap
+	  }
+	  else if (status(STATUS_BACKWARD)) {
+	    double aH = calcBackwardRate(p);	// to reach backward gap
+	  }
+	  else if (status(STATUS_FORWARD)) {
+		double aH = calcForwardRate(p);		// to reach forward gap
+	  } else {
+	    double aH = desiredSpeedRate(p); // FUNCTION desiredSpeedRate MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
+	  }
+	*/
+
+	// if (intersection){
+	// double aI = approachInter(p); // when approaching intersection to achieve the turn speed
+	// if(acc > aI) acc = aI;
+	// }
+	// FUNCTION approachInter MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
+
+	double aZ1 = carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvFwd);
+	double aZ2 = carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvFwdNextLink);
+
+	// Make decision
+	// Use the smallest
+	//	if(acc > aB) acc = aB;
 	if(acc > aD) acc = aD;
+	//if(acc > aF) acc = aF;
+	if(acc > aH1) acc = aH1;
+	if(acc > aH2) acc = aH2;
+	if(acc > aH3) acc = aH3;
+	//if(acc > aG) acc = aG;
+	if(acc > aC) acc = aC;
 	if(acc > aE) acc = aE;
-	if(acc > aF) acc = aF;
-	if(acc > aG) acc = aG;
-	if(acc > aN) acc = aN;
+	if(acc > aZ1) acc = aZ1;
+	if(acc > aZ2) acc = aZ2;
+
+	// SEVERAL CONDITONS MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
 
 	return acc;
 }
 
+/*
+ *--------------------------------------------------------------------
+ * Calculate acceleration rate by car-following constraint. This
+ * function may also be used in the lane changing algorithm to find
+ * the potential acceleration rate in neighbor lanes.
+ *
+ * CAUTION: The two vehicles concerned in this function may not
+ * necessarily be in the same lane or even the same segment.
+ *
+ * A modified GM model is used in this implementation.
+ *--------------------------------------------------------------------
+ */
 double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed,NearestVehicle& nv)
 {
 	p.space = p.perceivedDistToFwdCar/100;
@@ -364,7 +422,13 @@ double sim_mob::MITSIM_CF_Model::calcAdjacentRate(DriverUpdateParams& p)
 	acc += targetGapAccParm[12] / 0.824 ;
 	return acc;
 }
-
+/*
+ *-------------------------------------------------------------------
+ * This function returns the acceleration rate required to
+ * accelerate / decelerate from current speed to a full
+ * stop within a given distance.
+ *-------------------------------------------------------------------
+ */
 double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p, double dis)
 {
 	double DIS_EPSILON =	0.001;
@@ -392,8 +456,14 @@ double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p, double dis)
 }
 
 
-
-double sim_mob::MITSIM_CF_Model::breakToTargetSpeed(DriverUpdateParams& p)
+/*
+ *-------------------------------------------------------------------
+ * This function returns the acceleration rate required to
+ * accelerate / decelerate from current speed to a target
+ * speed within a given distance.
+ *-------------------------------------------------------------------
+ */
+double sim_mob::MITSIM_CF_Model::brakeToTargetSpeed(DriverUpdateParams& p)
 {
 	double v 			=	p.perceivedFwdVelocity/100;
 	double dt			=	p.elapsedSeconds;
@@ -422,7 +492,7 @@ double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(DriverUpdateParams& 
 	} else if (p.space > 0.01 ) {
 		a = p.a_lead - dv * dv / 2 / p.space;
 	} else {
-		a= breakToTargetSpeed(p);
+		a= brakeToTargetSpeed(p);
 	}
 //	if(a<maxDeceleration)
 //		return maxDeceleration;
@@ -467,7 +537,7 @@ double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(DriverUpdateParams& p, double
 	if(p.space > p.distanceToNormalStop ) {
 		return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);
 	} else {
-		return breakToTargetSpeed(p);
+		return brakeToTargetSpeed(p);
 	}
 }
 

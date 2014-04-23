@@ -38,26 +38,6 @@ class Loader;
 class LaneLoader;
 } //End aimsun namespace
 
-/*
- * SpeedDensityParams is the place holder for storing the parameters of the
- * speed density function for this road segment.
- * \author Harish
- */
-struct SupplyParams {
-	double freeFlowSpeed;  ///<Maximum speed of the road segment
-	double jamDensity;     ///<density during traffic jam in vehicles / m
-	double minDensity;     ///<minimum traffic density in vehicles / m
-	double minSpeed;       ///<minimum speed in the segment
-	double capacity;       ///<segment capacity in vehicles/second
-	double alpha;          ///<Model parameter of speed density function
-	double beta;           ///<Model parameter of speed density function
-
-
-	SupplyParams(double maxSpeed, double minSpeed, double maxDensity, double minDensity, double capacity, double a, double b)
-		: freeFlowSpeed(maxSpeed), jamDensity(maxDensity), minDensity(minDensity), minSpeed(minSpeed), capacity(capacity), alpha(a), beta(b)
-	{}
-};
-
 /**
  * Part of a Link with consistent lane numbering. RoadSegments are unidirectional.
  *
@@ -80,10 +60,10 @@ public:
 	std::string getStartEnd() const;
 
 public:
-	explicit RoadSegment(sim_mob::Link* parent=nullptr, const SupplyParams* sParams=nullptr, unsigned long id=-1) :
+	explicit RoadSegment(sim_mob::Link* parent=nullptr, unsigned long id=-1) :
 		Pavement(),
 		maxSpeed(0), capacity(0), busstop(nullptr), lanesLeftOfDivider(0), parentLink(parent),segmentID(id),
-		supplyParams(sParams), parentConflux(nullptr), laneZeroLength(-1.0)
+		parentConflux(nullptr), laneZeroLength(-1.0)
 	{}
 
 	const unsigned long  getSegmentID()const ;
@@ -147,7 +127,9 @@ public:
 
 public:
 	///Maximum speed of this road segment.
-	unsigned int maxSpeed;
+	double maxSpeed;
+
+	///Maximum number of vehicles that can pass through this segment per hour
 	double capacity;
 
 	double getCapacityPerInterval() const;
@@ -158,10 +140,6 @@ public:
 
 	//TODO: Added for xmlLoader
 	void setLanesLeftOfDivider(unsigned int val) { lanesLeftOfDivider = val; }
-
-	const sim_mob::SupplyParams* getSupplyParams() {
-		return supplyParams;
-	}
 
 	sim_mob::Conflux* getParentConflux() const {
 		return parentConflux;
@@ -180,6 +158,11 @@ public:
 	const double getLaneZeroLength() const{
 		return laneZeroLength;
 	}
+
+	double getCapacity() const {
+		return capacity;
+	}
+
 	/*void initLaneGroups() const;
 	 void groupLanes(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt, const std::vector<sim_mob::RoadSegment*>& segments, sim_mob::Node* start, sim_mob::Node* end) const;
 	 void matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS) const;*/
@@ -206,8 +189,6 @@ private:
 	mutable sim_mob::Conflux* parentConflux;
 
 	unsigned long segmentID;
-
-	const sim_mob::SupplyParams* supplyParams;
 
 	double laneZeroLength;
 

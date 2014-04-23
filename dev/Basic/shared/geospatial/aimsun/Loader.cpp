@@ -498,9 +498,9 @@ void DatabaseLoader::LoadNodes(const std::string& storedProc)
 			throw std::runtime_error("Duplicate AIMSUN node.");
 		}
 
-//		//Convert meters to cm
-//		it->xPos *= 100;
-//		it->yPos *= 100;
+		//Convert meters to cm
+		it->xPos *= 100;
+		it->yPos *= 100;
 
 		nodes_[it->id] = *it;
 	}
@@ -522,8 +522,8 @@ void DatabaseLoader::LoadSections(const std::string& storedProc)
 			throw std::runtime_error("Invalid From or To node.");
 		}
 
-//		//Convert meters to cm
-//		it->length *= 100;
+		//Convert meters to cm
+		it->length *= 100;
 
 		//Note: Make sure not to resize the Node map after referencing its elements.
 		it->fromNode = &nodes_[it->TMP_FromNodeID];
@@ -574,9 +574,9 @@ void DatabaseLoader::LoadCrossings(const std::string& storedProc)
 			continue;
 		}
 
-//		//Convert meters to cm
-//		it->xPos *= 100;
-//		it->yPos *= 100;
+		//Convert meters to cm
+		it->xPos *= 100;
+		it->yPos *= 100;
 
 		//Note: Make sure not to resize the Section vector after referencing its elements.
 		it->atSection = &sections_[it->TMP_AtSectionID];
@@ -598,9 +598,9 @@ void DatabaseLoader::LoadLanes(const std::string& storedProc)
 			continue;
 		}
 
-//		//Convert meters to cm
-//		it->xPos *= 100;
-//		it->yPos *= 100;
+		//Convert meters to cm
+		it->xPos *= 100;
+		it->yPos *= 100;
 
 		//Exclude "crossing" types
 		if (it->laneType=="J" || it->laneType=="A4") {
@@ -667,9 +667,9 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 			throw std::runtime_error("Invalid polyline section reference.");
 		}
 
-//		//Convert meters to cm
-//		it->xPos *= 100;
-//		it->yPos *= 100;
+		//Convert meters to cm
+		it->xPos *= 100;
+		it->yPos *= 100;
 
 		//Note: Make sure not to resize the Section map after referencing its elements.
 		it->section = &sections_[it->TMP_SectionId];
@@ -763,9 +763,9 @@ DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
     }
     soci::rowset<Signal> rows = (sql_.prepare <<"select * from " + storedProcedure);
     for (soci::rowset<Signal>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter) {
-//        // Convert from meters to centimeters.
-//        iter->xPos *= 100;
-//        iter->yPos *= 100;
+        // Convert from meters to centimeters.
+        iter->xPos *= 100;
+        iter->yPos *= 100;
         signals_.insert(std::make_pair(iter->id, *iter));
     }
 }
@@ -782,8 +782,8 @@ void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 	{
 		BusStop busstop = *iter;
 //		         Convert from meters to centimeters.
-//		        busstop.xPos *= 100;
-//		        busstop.yPos *= 100;
+		        busstop.xPos *= 100;
+		        busstop.yPos *= 100;
 	        busstop_.insert(std::make_pair(busstop.bus_stop_no, busstop));
 		        //std :: cout.precision(15);
 		        //std :: cout << "Bus Stop ID is: "<< busstop.bus_stop_no <<"    "<< busstop.xPos << "     "<< busstop.yPos  <<std::endl;
@@ -812,8 +812,8 @@ void DatabaseLoader::LoadBusStopSG(const std::string& storedProc)
 		busstop.stop_lon.erase(remove_if(busstop.stop_lon.begin(), busstop.stop_lon.end(), isspace),
 				busstop.stop_lon.end());
 
-//		        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat) * 100;
-//		        busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon) * 100;
+		        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat) * 100;
+		        busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon) * 100;
         busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat);
         busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon);
 		        bustopSG_.insert(std::make_pair(busstop.bus_stop_no, busstop));
@@ -964,10 +964,10 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 	vector<sim_mob::BoundarySegment*>::iterator it = boundary_segments.begin();
 	for (; it != boundary_segments.end(); it++)
 	{
-		int start_x = static_cast<int> ((*it)->start_node_x  + 0.5);
-		int start_y = static_cast<int> ((*it)->start_node_y  + 0.5);
-		int end_x = static_cast<int> ((*it)->end_node_x  + 0.5);
-		int end_y = static_cast<int> ((*it)->end_node_y  + 0.5);
+		int start_x = static_cast<int> ((*it)->start_node_x * 100 + 0.5);
+		int start_y = static_cast<int> ((*it)->start_node_y * 100 + 0.5);
+		int end_x = static_cast<int> ((*it)->end_node_x * 100 + 0.5);
+		int end_y = static_cast<int> ((*it)->end_node_y * 100 + 0.5);
 
 		//		int start_x = static_cast<int> ((*it)->start_node_x * 100 );
 		//		int start_y = static_cast<int> ((*it)->start_node_y * 100 );

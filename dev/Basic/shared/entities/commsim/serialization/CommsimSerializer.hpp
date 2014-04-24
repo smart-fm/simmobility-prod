@@ -192,6 +192,12 @@ public:
 	//Deserialize a "remote_log" message.
 	static RemoteLogMessage parseRemoteLog(const MessageConglomerate& msg, int msgNumber);
 
+	//Deserialize a "tcp_connect" message.
+	static TcpConnectMessage parseTcpConnect(const MessageConglomerate& msg, int msgNumber);
+
+	//Deserialize a "tcp_disconnect" message.
+	static TcpDisconnectMessage parseTcpDisconnect(const MessageConglomerate& msg, int msgNumber);
+
 
 
 //Serialization messages.

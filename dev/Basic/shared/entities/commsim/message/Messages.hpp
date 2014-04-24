@@ -65,9 +65,18 @@ struct RerouteRequestMessage : public sim_mob::MessageBase {
 	RerouteRequestMessage(const MessageBase& base) : MessageBase(base) {}
 };
 
-/*struct NewClientMessage : public sim_mob::MessageBase {
-	NewClientMessage(const MessageBase& base) : MessageBase(base) {}
-};*/
+struct TcpConnectMessage : public sim_mob::MessageBase {
+	std::string host; ///<The host address to connect to.
+	int port; ///<The port to connect over.
+	TcpConnectMessage(const MessageBase& base) : MessageBase(base) {}
+};
+
+struct TcpDisconnectMessage : public sim_mob::MessageBase {
+	std::string host; ///<The host address to disconnect from.
+	int port; ///<The port this connection was using.
+	TcpDisconnectMessage(const MessageBase& base) : MessageBase(base) {}
+};
+
 
 
 }

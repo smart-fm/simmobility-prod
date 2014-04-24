@@ -421,6 +421,47 @@ sim_mob::RemoteLogMessage sim_mob::CommsimSerializer::parseRemoteLog(const Messa
 }
 
 
+sim_mob::TcpConnectMessage sim_mob::CommsimSerializer::parseTcpConnect(const MessageConglomerate& msg, int msgNumber)
+{
+	sim_mob::TcpConnectMessage res(msg.getBaseMessage(msgNumber));
+
+	//We are either parsing this as JSON, or as binary; version number doesn't matter in this case.
+	const Json::Value& jsMsg = msg.getJsonMessage(msgNumber);
+	if (!jsMsg.isNull()) {
+		if (!(jsMsg.isMember("host") && jsMsg.isMember("port"))) {
+			throw std::runtime_error("Badly formatted TcpConnectMessage message.");
+		}
+
+		//Save and return.
+		res.host = jsMsg["host"].asString();
+		res.port = jsMsg["port"].asInt();
+	} else {
+		throw std::runtime_error("parse() for binary messages not yet supported.");
+	}
+	return res;
+}
+
+
+sim_mob::TcpDisconnectMessage sim_mob::CommsimSerializer::parseTcpDisconnect(const MessageConglomerate& msg, int msgNumber)
+{
+	sim_mob::TcpDisconnectMessage res(msg.getBaseMessage(msgNumber));
+
+	//We are either parsing this as JSON, or as binary; version number doesn't matter in this case.
+	const Json::Value& jsMsg = msg.getJsonMessage(msgNumber);
+	if (!jsMsg.isNull()) {
+		if (!(jsMsg.isMember("host") && jsMsg.isMember("port"))) {
+			throw std::runtime_error("Badly formatted TcpDisconnectMessage message.");
+		}
+
+		//Save and return.
+		res.host = jsMsg["host"].asString();
+		res.port = jsMsg["port"].asInt();
+	} else {
+		throw std::runtime_error("parse() for binary messages not yet supported.");
+	}
+	return res;
+}
+
 
 std::string sim_mob::CommsimSerializer::makeIdRequest(const std::string& token)
 {

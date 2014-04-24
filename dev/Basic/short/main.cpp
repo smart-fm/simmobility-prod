@@ -37,17 +37,14 @@
 #include "geospatial/Lane.hpp"
 #include "util/DailyTime.hpp"
 #include "util/StateSwitcher.hpp"
-#include "entities/signal/Signal.hpp"
-#include "entities/commsim/Broker.hpp"
-//temporary hardcode
-//#include "entities/commsim/Broker.hpp"
-#include "entities/commsim/broker/derived/RoadRunner.hpp"
-#include "entities/commsim/broker/derived/STK.hpp"
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/ParseConfigFile.hpp"
 #include "conf/ExpandAndValidateConfigFile.hpp"
+
+#include "entities/signal/Signal.hpp"
+#include "entities/commsim/broker/Broker.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"
 #include "entities/Person.hpp"
@@ -77,8 +74,6 @@
 #include "logging/Log.hpp"
 #include "util/Utils.hpp"
 
-
-//add by xuyan
 #include "partitions/PartitionManager.hpp"
 #include "partitions/ShortTermBoundaryProcessor.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
@@ -86,7 +81,6 @@
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
 #include <iostream>
-//#include <tinyxml.h>
 
 using std::cout;
 using std::endl;
@@ -301,41 +295,15 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	signalStatusWorkers->initWorkers(nullptr);
 	communicationWorkers->initWorkers(nullptr);
 
-	//TODO: We shouldn't add the Broker unless Communication is enabled in the config file.
-//	//..and Assign all communication agents(we have one ns3 communicator for now)
-//	communicationWorkers->assignAWorker(&(sim_mob::NS3_Communicator::GetInstance()));
-//	if(ConfigManager::GetInstance().FullConfig().commSimEnabled())
-//	{
-//		const std::string & name = ConfigManager::GetInstance().FullConfig().getAndroidClientType();
-//		Broker *androidBroker = new sim_mob::Broker(MtxStrat_Locked, 0);
-//		Broker::addExternalCommunicator(name, androidBroker);
-//		Print() << "main.cpp:: android broker[" << androidBroker << "] of type[" << name << "] retrieved" << std::endl;
-//		communicationWorkers->assignAWorker(androidBroker);
-//		androidBroker->enable();
-//	}
-
-	if(ConfigManager::GetInstance().FullConfig().commSimEnabled())
-	{
-		const std::map<std::string,sim_mob::SimulationParams::CommsimElement> & elements =
-				ConfigManager::GetInstance().FullConfig().getCommSimElements();
-		std::map<std::string,sim_mob::SimulationParams::CommsimElement>::const_iterator it = elements.begin();
-		for(; it != elements.end(); it++){
-			//todo: to be automated later,(if required at all)
-			if(!(it->second.enabled)) {
-				continue;
-			}
-			Broker *broker =  nullptr;
-			if(it->first == "roadrunner"){
-				broker = new sim_mob::Roadrunner_Broker(MtxStrat_Locked, 0);
-			}
-			else if(it->first == "stk"){
-				broker = new sim_mob::STK_Broker(MtxStrat_Locked, 0, it->second.name, it->second.mode);
-			}
-
-			Broker::addExternalCommunicator(it->first, broker);
-			communicationWorkers->assignAWorker(broker);
-			broker->enable();
-		}
+	//If commsim is enabled, start the Broker.
+	if(ConfigManager::GetInstance().FullConfig().commSimEnabled()) {
+		//NOTE: I am fairly sure that MtxStrat_Locked is the wrong mutex strategy. However, Broker doesn't
+		//      register any buffered properties (except x/y, which Agent registers), and it never updates these.
+		//      I am changing this back to buffered; if this runs smoothly for a while, then you can remove this comment. ~Seth
+		//NOTE: I am also changing the Agent ID; manually specifying it as 0 is dangerous.
+		Broker *broker =  new sim_mob::Broker(MtxStrat_Buffered);
+		Broker::SetSingleBroker(broker);
+		communicationWorkers->assignAWorker(broker);
 	}
 
 
@@ -552,8 +520,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		cout << "   Person Agents: " << numDriver << " (Driver)   "
 				<< numPedestrian << " (Pedestrian)   " << numPassenger << " (Passenger) " << (numPerson
 				- numDriver - numPedestrian) << " (Other)" << endl;
-//		cout << "Created: " << Agent::createdAgents << "\nDied: "<< Agent::diedAgents << "\nDied For Broker: "<< Broker::diedAgents
-//				<< "\nSubscribed For Broker: "<< Broker::subscribedAgents <<endl;
 	}
 
 	if (ConfigManager::GetInstance().FullConfig().numAgentsSkipped>0) {
@@ -564,9 +530,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		cout << "WARNING! There are still " << Agent::pending_agents.size()
 				<< " Agents waiting to be scheduled; next start time is: "
 				<< Agent::pending_agents.top()->getStartTime() << " ms\n";
-		/*if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			throw std::runtime_error("ERROR: pending_agents shouldn't be used if Dynamic Dispatch is disabled.");
-		}*/
 	}
 
 	//Save our output files if we are merging them later.

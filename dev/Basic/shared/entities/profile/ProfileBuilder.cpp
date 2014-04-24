@@ -52,6 +52,14 @@ ProfileBuilder::ProfileBuilder() :
 	WorkerEndLogItem("worker-update-end", "worker"),
 	AgentStartLogItem("agent-update-begin", "agent", "worker"),
 	AgentEndLogItem("agent-update-end", "agent", "worker"),
+	CommsimStartLogItem("commsim-update-begin", "broker", "worker"),
+	CommsimEndLogItem("commsim-update-end", "broker", "worker"),
+	CommsimLocalComputeStartLogItem("commsim-local-compute-begin", "broker", "worker"),
+	CommsimLocalComputeEndLogItem("commsim-local-compute-end", "broker", "worker"),
+	CommsimMixedComputeStartLogItem("commsim-mixed-compute-begin", "broker", "worker"),
+	CommsimMixedComputeEndLogItem("commsim-mixed-compute-end", "broker", "worker"),
+	CommsimAndroidComputeStartLogItem("commsim-android-compute-begin", "broker", "worker"),
+	CommsimAndroidComputeEndLogItem("commsim-android-compute-end", "broker", "worker"),
 	QueryStartLogItem("query-start", "agent", "worker"),
 	QueryEndLogItem("query-end", "agent", "worker")
 {
@@ -167,6 +175,74 @@ void ProfileBuilder::logAgentUpdateEnd(const Agent* ag, timeslice now)
 	AgentEndLogItem.identity.first = ag;
 	AgentEndLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
 	logGeneric(AgentEndLogItem);
+}
+
+void ProfileBuilder::logCommsimUpdateBegin(const Agent* ag, timeslice now)
+{
+	CommsimStartLogItem.currFrame = now.frame();
+	CommsimStartLogItem.identity.first = ag;
+	CommsimStartLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
+	logGeneric(CommsimStartLogItem);
+}
+
+void ProfileBuilder::logCommsimUpdateEnd(const Agent* ag, timeslice now)
+{
+	CommsimEndLogItem.currFrame = now.frame();
+	CommsimEndLogItem.identity.first = ag;
+	CommsimEndLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
+	logGeneric(CommsimEndLogItem);
+}
+
+void ProfileBuilder::logCommsimLocalComputeBegin(const Agent* ag, timeslice now, size_t numAgents)
+{
+	CommsimLocalComputeStartLogItem.currFrame = now.frame();
+	CommsimLocalComputeStartLogItem.identity.first = ag;
+	CommsimLocalComputeStartLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
+	CommsimLocalComputeStartLogItem.numAgents = numAgents;
+	logGeneric(CommsimLocalComputeStartLogItem);
+}
+
+void ProfileBuilder::logCommsimLocalComputeEnd(const Agent* ag, timeslice now, size_t numAgents)
+{
+	CommsimLocalComputeEndLogItem.currFrame = now.frame();
+	CommsimLocalComputeEndLogItem.identity.first = ag;
+	CommsimLocalComputeEndLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
+	CommsimLocalComputeEndLogItem.numAgents = numAgents;
+	logGeneric(CommsimLocalComputeEndLogItem);
+}
+
+void ProfileBuilder::logCommsimMixedComputeBegin(const Agent* ag, timeslice now, size_t numAgents)
+{
+	CommsimMixedComputeStartLogItem.currFrame = now.frame();
+	CommsimMixedComputeStartLogItem.identity.first = ag;
+	CommsimMixedComputeStartLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
+	CommsimMixedComputeStartLogItem.numAgents = numAgents;
+	logGeneric(CommsimMixedComputeStartLogItem);
+}
+
+void ProfileBuilder::logCommsimMixedComputeEnd(const Agent* ag, timeslice now, size_t numAgents)
+{
+	CommsimMixedComputeEndLogItem.currFrame = now.frame();
+	CommsimMixedComputeEndLogItem.identity.first = ag;
+	CommsimMixedComputeEndLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
+	CommsimMixedComputeEndLogItem.numAgents = numAgents;
+	logGeneric(CommsimMixedComputeEndLogItem);
+}
+
+void ProfileBuilder::logCommsimAndroidComputeBegin(const Agent* ag, timeslice now)
+{
+	CommsimAndroidComputeStartLogItem.currFrame = now.frame();
+	CommsimAndroidComputeStartLogItem.identity.first = ag;
+	CommsimAndroidComputeStartLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
+	logGeneric(CommsimAndroidComputeStartLogItem);
+}
+
+void ProfileBuilder::logCommsimAndroidComputeEnd(const Agent* ag, timeslice now)
+{
+	CommsimAndroidComputeEndLogItem.currFrame = now.frame();
+	CommsimAndroidComputeEndLogItem.identity.first = ag;
+	CommsimAndroidComputeEndLogItem.secondIdentity.first = (ag?ag->currWorkerProvider:nullptr);
+	logGeneric(CommsimAndroidComputeEndLogItem);
 }
 
 void ProfileBuilder::logQueryStart(const Agent* ag, timeslice now)

@@ -119,16 +119,25 @@ namespace sim_mob {
             static void PostMessage(MessageHandler* target, Message::MessageType type, MessagePtr message, bool processOnMainThread = false);
 
             /**
-             * Sends the message to destination synchronously within the current
-             * context. The message will be consumed by the target immediately.
-             * The message sent with this function can be received only by targets
-             * within the current context. The function does not put messages in
+             * A contextual message is a message which is meant to be received by
+             * MessageHandlers within the same thread context as the sender.
+             *
+             * This function sends a synchronous contextual message. The message
+             * will be consumed by the target immediately. The message sent with
+             * this function can be received only by targets within the same
+             * context as the caller. The function does not put messages in
              * queues for subsequent distribution and processing.
+             *
+             * \note this function should be called only when the sender is aware
+             * that all receivers are in the same thread context. Any attempt to
+             * send a message outside the thread context will simply fail and
+             * throw a runtime error.
+             *
              * @param target of the message.
              * @param type of the message.
              * @param message to send.
              */
-            static void SendMessage(MessageHandler* target, Message::MessageType type, MessagePtr message);
+            static void SendContextualMessage(MessageHandler* target, Message::MessageType type, MessagePtr message);
 
             /**
              * Subscribes to the given event. 

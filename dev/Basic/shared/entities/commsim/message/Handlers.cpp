@@ -25,6 +25,8 @@ sim_mob::HandlerLookup::HandlerLookup()
 	defaultHandlerMap["id_ack"] = new sim_mob::NullHandler();
 	defaultHandlerMap["reroute_request"] = new sim_mob::RerouteRequestHandler();
 	defaultHandlerMap["remote_log"] = new sim_mob::RemoteLogHandler();
+	defaultHandlerMap["tcp_connect"] = new sim_mob::TcpConnectHandler();
+	defaultHandlerMap["tcp_disconnect"] = new sim_mob::TcpDisconnectHandler();
 
 	//These should always be handled by the Broker
 	defaultHandlerMap["new_client"] = new sim_mob::BrokerErrorHandler();
@@ -110,6 +112,25 @@ void sim_mob::RerouteRequestHandler::handle(boost::shared_ptr<ConnectionHandler>
 		agentHandle->agent, sim_mob::messaging::MessageBus::EventArgsPtr(new sim_mob::event::ReRouteEventArgs(rmMsg.blacklistRegion))
 	);
 }
+
+
+void sim_mob::TcpConnectHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const
+{
+	//Ask the serializer for a TcpConnectMessage message.
+	TcpConnectMessage rmMsg = CommsimSerializer::parseTcpConnect(messages, msgNumber);
+
+	broker->cloudConnect(handler, rmMsg.host, rmMsg.port);
+}
+
+void sim_mob::TcpDisconnectHandler::handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const
+{
+	//Ask the serializer for a TcpConnectMessage message.
+	TcpConnectMessage rmMsg = CommsimSerializer::parseTcpConnect(messages, msgNumber);
+
+	broker->cloudDisconnect(handler, rmMsg.host, rmMsg.port);
+}
+
+
 
 
 

@@ -86,6 +86,10 @@ public:
 
 	//Called by the DriverCommFacet.
 	virtual void registerEntity(sim_mob::Agent* agent) = 0;
+
+	//Connect/disconnect cloud (Tcp) entities.
+	virtual void cloudConnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port) = 0;
+	virtual void cloudDisconnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port) = 0;
 };
 
 
@@ -154,6 +158,14 @@ protected:
 		ConnClientStatus() : total(0), done(0) {}
 	};
 
+	///TODO: Actually connect to the cloud, etc.
+	struct CloudConnection {};
+
+	///A list of cloud connections by ConnectionHandler.
+	struct CloudConnections {
+		std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, CloudConnection> conns;
+	};
+
 private:
 	///List of all known tokens and their associated ConnectionHandlers.
 	///This list is built over time, as new connections/Agents are added (ConnectionHandlers should never be removed).
@@ -197,8 +209,8 @@ protected:
 	///Manages all incoming/outgoing TCP connections. Creates a new ClientHandler for each one, and may multiplex ConnectionHandlers.
 	ConnectionServer connection;
 
-	///Broker's Publisher
-	//BrokerPublisher publisher;
+	///List of all known cloud connections, by id (where id= "host:port", and id functions as a "client Id" for OpaqueSend/Receive).
+	std::map<std::string, CloudConnections> cloudConnections;
 
 	//Publishes an event when a client is registered with the broker
 	ClientRegistrationPublisher registrationPublisher;
@@ -364,6 +376,7 @@ protected:
 	 */
 	void unRegisterEntity(sim_mob::Agent * agent);
 
+
 	///Add a ClientRegistration request to the list of waiting Android or NS3 registrations, based on the clientType
 	void insertClientWaitingList(std::string clientType, ClientRegistrationRequest request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn);
 
@@ -377,6 +390,12 @@ public:
 	///Register an Agent with the Broker. This will add it to the registeredAgents list.
 	///This function is called by the DriverCommFacet to inform the Broker that a valid Agent now exists.
 	virtual void registerEntity(sim_mob::Agent* agent);
+
+	///A client is requesting a connection to a given host, and will likely soon send/receive data.
+	virtual void cloudConnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port);
+
+	///A client is informing the Broker that it will no longer send/receive data to/from the given host.
+	virtual void cloudDisconnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port);
 
 	///Callback function for when a new ConnectionHandler accepts its first incoming client connection.
 	virtual void onNewConnection(boost::shared_ptr<ConnectionHandler> cnnHandler);

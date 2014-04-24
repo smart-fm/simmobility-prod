@@ -421,10 +421,30 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent* agent)
 		}
 	}
 	}
+}
+
+
+void sim_mob::Broker::cloudConnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port)
+{
+	//Give this connection a unique Id, "host:port"
+	std::string cloudId = host + ":" + boost::lexical_cast<std::string>(port);
+
+	//We only need 1 connection to the cloud, but for efficiency's sake we open 1 connection per Android connectionHandler.
+	//TODO
+
+
 
 }
 
-void sim_mob::Broker::processIncomingData(timeslice now) {
+void sim_mob::Broker::cloudDisconnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port)
+{
+	//Note: At the moment it is not necessary (or even beneficial) to close cloud connections. Leave this function
+	//      here as a no-op, since we may want to track open connections at some point.
+}
+
+
+void sim_mob::Broker::processIncomingData(timeslice now)
+{
 	//just pop off the message queue and click handle ;)
 	MessageElement msgTuple;
 	while (receiveQueue.pop(msgTuple)) {

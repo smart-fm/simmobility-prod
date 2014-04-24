@@ -69,6 +69,16 @@ public:
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
 };
 
+class TcpConnectHandler : public Handler {
+public:
+	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
+};
+
+class TcpDisconnectHandler : public Handler {
+public:
+	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
+};
+
 
 //OpaqueSend/Receive are more complex; we might move them later.
 class OpaqueSendHandler : public sim_mob::Handler {

@@ -15,6 +15,7 @@
 
 #include "entities/vehicle/Vehicle.hpp"
 #include "entities/models/CarFollowModel.hpp"
+#include "util/Math.hpp"
 #include "Driver.hpp"
 
 using std::numeric_limits;
@@ -431,11 +432,11 @@ double sim_mob::MITSIM_CF_Model::calcAdjacentRate(DriverUpdateParams& p)
  */
 double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p, double dis)
 {
-	double DIS_EPSILON =	0.001;
-	if (dis > DIS_EPSILON) {
+//	double DIS_EPSILON =	0.001;
+	if (dis > sim_mob::Math::DOUBLE_EPSILON) {
 		double u2 = (p.perceivedFwdVelocity/100)*(p.perceivedFwdVelocity/100);
 		double acc = - u2 / dis * 0.5;
-//		if (acc <= normalDeceleration)
+		if (acc <= normalDeceleration)
 			return acc;
 		double dt = p.elapsedSeconds;
 		double vt = p.perceivedFwdVelocity/100 * dt;

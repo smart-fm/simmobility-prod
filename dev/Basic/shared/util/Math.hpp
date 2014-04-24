@@ -18,6 +18,7 @@ namespace sim_mob {
     public:
         static const double E;
         static const double PI;
+        static const double DOUBLE_EPSILON;
     public:
         typedef double (*Function)(double x, 
                         const boost::tuple<double,double,double>& params);

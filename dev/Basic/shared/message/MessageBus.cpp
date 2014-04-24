@@ -494,15 +494,15 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
     }
 }
 
-void sim_mob::messaging::MessageBus::SendMessage(MessageHandler* destination,
+void sim_mob::messaging::MessageBus::SendContextualMessage(MessageHandler* destination,
 		Message::MessageType type, MessagePtr message) {
 	CheckThreadContext();
 	ThreadContext* context = GetThreadContext();
 	if (context) {
-		InternalMessage* internalMsg = dynamic_cast<InternalMessage*> (message.get());
 		InternalEventMessage* eventMsg = dynamic_cast<InternalEventMessage*> (message.get());
 		if (destination && destination->context == context) {
 			destination->HandleMessage(type, *(message.get()));
+			context->receivedMessages++;
 			context->processedMessages++;
 		}
 		else if(eventMsg && eventMsg->GetContext() == context){
@@ -511,6 +511,7 @@ void sim_mob::messaging::MessageBus::SendMessage(MessageHandler* destination,
 			//current context
 			MessageHandler* target = dynamic_cast<MessageHandler*> (context->eventPublisher);
 			target->HandleMessage(type, *(message.get()));
+			context->receivedMessages++;
 			context->processedMessages++;
 		}
 		else {

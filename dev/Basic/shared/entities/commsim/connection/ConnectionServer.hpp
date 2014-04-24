@@ -20,6 +20,7 @@
 namespace sim_mob {
 class BrokerBase;
 class ConnectionHandler;
+class CloudHandler;
 
 /**
  * This class serves two purposes: first, it spins waiting for new client connections on a given port
@@ -34,11 +35,16 @@ public:
 	ConnectionServer(BrokerBase& broker, unsigned short port = DEFAULT_SERVER_PORT);
 	~ConnectionServer();
 
+	//Starts the server's accept() loop.
 	void start(unsigned int numThreads);
 
+	//Specifically request a connection to the cloud. This will be handled asynchronously.
+	void connectToCloud(const std::string& host, int port);
+
 private:
-	//void io_service_run();
 	void handle_accept(boost::shared_ptr<ConnectionHandler> conn, const boost::system::error_code& e);
+
+	void handle_cloud_connect(boost::shared_ptr<CloudHandler> conn, const boost::system::error_code& e);
 
 private:
 	///This is used to loop accepting connections.
@@ -47,9 +53,13 @@ private:
 	//Our listen port (if you change this, you will also have to change the apps and the relay).
 	const static unsigned int DEFAULT_SERVER_PORT = 6745;
 
-	//List of Sessions that this ConnectionServer knows about.
+	//List of Connections that this ConnectionServer knows about.
 	std::vector< boost::shared_ptr<ConnectionHandler> > knownConnections;
 	boost::mutex knownConnectionsMUTEX;
+
+	//List of Cloud connections that this ConnectionServer knows about.
+	std::vector< boost::shared_ptr<CloudHandler> > knownCloudConnections;
+	boost::mutex knownCloudConnectionsMUTEX;
 
 	//The io_service is used by Boost to multiplex all I/O operations. There should generally only be one of these.
 	boost::asio::io_service io_service;

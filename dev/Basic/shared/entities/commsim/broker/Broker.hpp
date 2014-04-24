@@ -71,6 +71,9 @@ public:
 	virtual void onNewConnection(boost::shared_ptr<ConnectionHandler> cnnHandler) = 0;
 	virtual void onMessageReceived(boost::shared_ptr<ConnectionHandler> cnnHandler, const char* msg, unsigned int len) = 0;
 
+	//Used by: CloudConnectionHandler when a new cloud connection resolves.
+	virtual void onNewCloudConnection(boost::shared_ptr<CloudHandler> cnnHandler) = 0;
+
 	//Used by ClientRegistration when a ClientHandler object has been created. Failing to save the ClientHandler here will lead to its destruction.
 	virtual void insertClientList(const std::string& clientID, const std::string& cType, boost::shared_ptr<sim_mob::ClientHandler>& clientHandler) = 0;
 	virtual std::map<const Agent*, AgentInfo>& getRegisteredAgents() = 0;
@@ -399,6 +402,9 @@ public:
 
 	///Callback function for when a new ConnectionHandler accepts its first incoming client connection.
 	virtual void onNewConnection(boost::shared_ptr<ConnectionHandler> cnnHandler);
+
+	///Callback function for when a new CloudHandler is first successfully connected to the cloud server.
+	virtual void onNewCloudConnection(boost::shared_ptr<CloudHandler> cnnHandler);
 
 	///Callback function executed upon message arrival. Implements the BrokerBase interface.
 	///NOTE: msg *must* be copied; the pointer will be reused immediately after this function returns.

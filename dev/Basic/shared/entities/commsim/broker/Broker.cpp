@@ -110,6 +110,13 @@ void sim_mob::Broker::onNewConnection(boost::shared_ptr<ConnectionHandler> cnnHa
 }
 
 
+void sim_mob::Broker::onNewCloudConnection(boost::shared_ptr<CloudHandler> cnnHandler)
+{
+	throw std::runtime_error("TODO: wake up anything trying to send data; save the cloud handler.");
+
+}
+
+
 
 //NOTE: Be careful; this function can be called multiple times by different "threads". Make sure you are locking where required.
 void sim_mob::Broker::onMessageReceived(boost::shared_ptr<ConnectionHandler> cnnHandler, const char* msg, unsigned int len)

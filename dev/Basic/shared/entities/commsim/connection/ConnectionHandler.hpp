@@ -33,8 +33,6 @@ class ConnectionHandler: public boost::enable_shared_from_this<ConnectionHandler
 public:
 	friend class ConnectionServer;
 
-	//NOTE: Passing "callback" by value and then saving it by reference is a bad idea!
-	//      For now I've made both work by value; you may need to modify this. ~Seth
 	ConnectionHandler(boost::asio::io_service& io_service, BrokerBase& broker);
 
 	///Retrieve the type of ClientHandlers that can multiplex on this connection. If empty, any ClientHandler is allowed.

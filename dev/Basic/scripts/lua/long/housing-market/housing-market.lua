@@ -30,7 +30,7 @@ require "common"
         - storey (integer)                 : Number of storeys.
         - rent (real)                      : Montly rent.
 
-     Entry fields:
+    Entry fields:
         - unit (Unit)                      : Unit object.
         - hedonicPrice (real)              : Unit hedonic price.
         - askingPrice (real)               : Unit asking price.
@@ -232,25 +232,25 @@ function calulateUnitExpectations (unit, timeOnMarket, building, postcode, ameni
     local expectations = {}
     -- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
     local hedonicPrice = (calculateHedonicPrice(unit, building, postcode, amenities) * sqfToSqm(unit.floorArea))/1000
-    local expectation = hedonicPrice -- IMPORTANT : this should be the hedonic value
-    local price = 1000 -- starting point for price search
+    local targetPrice = hedonicPrice -- IMPORTANT : this should be the hedonic value
+    local askingPrice = 1000 -- starting point for price search
     local a = 1.0 -- ratio of events expected by the seller
     local b = 0.005 -- Importance of the price for seller.
     local cost = 0.1 -- Cost of being in the market
     for i=1,timeOnMarket do
         entry = ExpectationEntry()
         entry.hedonicPrice = hedonicPrice
-        entry.price = findMaxArg(calculateExpectation,
-                price, expectation, a, b, cost, 0.001, 10000)
-        entry.expectation = calculateExpectation(entry.price, expectation, a, b, cost);
-        if Math.nan(entry.expectation) or Math.nan(entry.price) then
+        entry.askingPrice = findMaxArg(calculateExpectation,
+                askingPrice, targetPrice, a, b, cost, 0.001, 10000)
+        entry.targetPrice = calculateExpectation(entry.askingPrice, targetPrice, a, b, cost);
+        if Math.nan(entry.targetPrice) or Math.nan(entry.askingPrice) then
            entry.hedonicPrice = 0
-           entry.expectation = 0
-           entry.price = 0
+           entry.targetPrice = 0
+           entry.askingPrice = 0
         end
         --print ("Hedonic Price: " .. hedonicPrice) 
         --print ("Hedonic Price: " .. hedonicPrice .. " PRICE: " .. entry.price .. " EXPECTATION: " .. entry.expectation) 
-        expectation = entry.expectation;
+        targetPrice = entry.targetPrice;
         expectations[i] = entry
     end
     return expectations

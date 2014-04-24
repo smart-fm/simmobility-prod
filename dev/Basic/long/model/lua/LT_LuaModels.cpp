@@ -174,8 +174,8 @@ void HM_LuaModel::mapClasses() {
             .beginClass <ExpectationEntry> ("ExpectationEntry")
             .addConstructor <void (*) (void) > ()
             .addData("hedonicPrice", &ExpectationEntry::hedonicPrice)
-            .addData("price", &ExpectationEntry::price)
-            .addData("expectation", &ExpectationEntry::expectation)
+            .addData("askingPrice", &ExpectationEntry::askingPrice)
+            .addData("targetPrice", &ExpectationEntry::targetPrice)
             .endClass();
     getGlobalNamespace(state.get())
             .beginClass <HousingMarket::Entry> ("UnitEntry")
@@ -212,8 +212,6 @@ void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket,
     if (retVal.isTable()) {
         for (int i = 1; i <= retVal.length(); i++) {
             ExpectationEntry entry = retVal[i].cast<ExpectationEntry>();
-            //entry.price = .price;
-            //entry.expectation = retVal[i].cast<ExpectationEntry>().expectation;
             outValues.push_back(entry);
         }
     }

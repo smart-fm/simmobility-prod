@@ -15,6 +15,7 @@
 #include <boost/regex.hpp>
 
 #include "entities/Agent.hpp"
+//#include "../short/entities/roles/driver/Driver.hpp"
 #include "event/EventPublisher.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "event/args/EventArgs.hpp"
@@ -23,8 +24,6 @@
 namespace sim_mob {
 
 namespace AMOD {
-
-
 
 class AMODController : public sim_mob::Agent{
 public:
@@ -55,7 +54,7 @@ public:
 	/// snode: start node
 	/// enode: end node
 	/// path: new path
-	void rerouteWithPath(Person* vh,std::vector<WayPoint>& path);
+	void rerouteWithPath(Person* vh,std::vector<sim_mob::WayPoint>& path);
 	void rerouteWithOriDest(Person* vh,Node* snode,Node* enode);
 	void testOneVh();
 	int test;

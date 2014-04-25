@@ -184,7 +184,10 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 }
 
 
-void sim_mob::Driver::onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
+void sim_mob::Driver::onParentEvent(event::EventId eventId,
+		sim_mob::event::Context ctxId,
+		event::EventPublisher* sender,
+		const event::EventArgs& args)
 {
 	if(eventId == sim_mob::FMOD::EVENT_DISPATCH_FMOD_SCHEDULES_REQUEST){
 		const sim_mob::FMOD_RequestEventArgs& request = dynamic_cast<const sim_mob::FMOD_RequestEventArgs&>(args);
@@ -192,6 +195,15 @@ void sim_mob::Driver::onParentEvent(event::EventId eventId, sim_mob::event::Cont
 		if(movement){
 			movement->assignNewFMODSchedule(request);
 		}
+	}
+
+	if(eventId == event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH)
+	{
+		AMOD::AMODEventPublisher* pub = (AMOD::AMODEventPublisher*) sender;
+		const AMOD::AMODRerouteEventArgs& rrArgs = MSG_CAST(AMOD::AMODRerouteEventArgs, args);
+		std::cout<<"driver get reroute event <"<< rrArgs.reRoutePath.size() <<"> from <"<<pub->id<<">"<<std::endl;
+
+		rerouteWithPath(rrArgs.reRoutePath);
 	}
 }
 
@@ -311,5 +323,12 @@ void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>
 	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
 	if (mov) {
 		mov->rerouteWithBlacklist(blacklisted);
+	}
+}
+void Driver::rerouteWithPath(const std::vector<sim_mob::WayPoint>& path)
+{
+	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
+	if (mov) {
+		mov->rerouteWithPath(path);
 	}
 }

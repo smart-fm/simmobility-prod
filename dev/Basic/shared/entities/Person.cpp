@@ -227,6 +227,13 @@ void sim_mob::Person::handleAMODEvent(sim_mob::event::EventId id,
 		AMOD::AMODEventPublisher* pub = (AMOD::AMODEventPublisher*) sender;
 		const AMOD::AMODRerouteEventArgs& rrArgs = MSG_CAST(AMOD::AMODRerouteEventArgs, args);
 		std::cout<<"person <"<<amodId<<"> get reroute event <"<< rrArgs.reRoutePath.size() <<"> from <"<<pub->id<<">"<<std::endl;
+
+//		Driver *driver = (Driver*)currRole;
+//		driver->rerouteWithPath(rrArgs.reRoutePath);
+	//role gets chance to handle event
+		if(currRole){
+			currRole->onParentEvent(id, ctxId, sender, args);
+		}
 	}
 }
 void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)

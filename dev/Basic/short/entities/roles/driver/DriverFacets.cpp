@@ -450,6 +450,11 @@ void sim_mob::DriverMovement::frame_tick()
 	//Print output for this frame.
 	disToFwdVehicleLastFrame = p2.nvFwd.distance;
 
+	if(!parentDriver->vehicle->isDone())
+	{
+		getParent()->setCurrSegment(parentDriver->vehicle->getCurrSegment());
+	}
+
 //	std::cout << "parentDriver->vehicle->getX():" << parentDriver->vehicle->getX() << std::endl;
 //	std::cout << "parentDriver->vehicle->getY():" << parentDriver->vehicle->getY() << std::endl;
 
@@ -1499,6 +1504,17 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 	//to indicate that the path to next activity is already planned
 	getParent()->setNextPathPlanned(true);
 	return res;
+}
+void sim_mob::DriverMovement::rerouteWithPath(const std::vector<sim_mob::WayPoint>& path)
+{
+	//Else, pre-pend the current segment, and reset the current driver.
+	//NOTE: This will put the current driver back onto the start of the current Segment, but since this is only
+	//      used in Road Runner, it doesn't matter right now.
+	//TODO: This *might* work if we save the current advance on the current segment and reset it.
+	vector<WayPoint> newpath = path;
+	vector<WayPoint>::iterator it = newpath.begin();
+	newpath.insert(it, WayPoint(parentDriver->vehicle->getCurrSegment()));
+	parentDriver->vehicle->resetPath(newpath);
 }
 void sim_mob::DriverMovement::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
 {

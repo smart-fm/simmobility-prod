@@ -132,6 +132,7 @@ public:
 
 	///Reroutes around a given blacklisted set of RoadSegments. See Role for documentation.
 	void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
+	void rerouteWithPath(const std::vector<sim_mob::WayPoint>& path);
 
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);

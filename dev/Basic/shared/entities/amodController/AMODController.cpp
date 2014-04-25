@@ -125,6 +125,19 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 
 //		sim_mob:
 //		eventPub.publish(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_, vh, AMODRerouteEventArgs(obj1));
+		std::vector<std::string> segs;
+		segs.push_back("34398");
+		segs.push_back("34378");
+
+		std::vector<WayPoint> path;
+
+		for(int i=0;i<segs.size();++i)
+		{
+			RoadSegment *seg = segPool[segs[i]];
+			WayPoint wp(seg);
+			path.push_back(wp);
+		}
+		rerouteWithPath(vh,path);
 	}
 
 	// return continue, make sure agent not remove from main loop
@@ -259,8 +272,8 @@ void AMODController::testOneVh()
 //	vh->setStartTime(curTickMS);
 
 	// event related
-	eventPub.registerEvent(1);
-	eventPub.subscribe(1, vh, &Person::handleAMODEvent, vh);
+	eventPub.registerEvent(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH);
+	eventPub.subscribe(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH, vh, &Person::handleAMODEvent, vh);
 
 	dispatchVh(vh);
 

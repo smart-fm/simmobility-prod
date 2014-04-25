@@ -45,7 +45,6 @@ sim_mob::PathSetManager::PathSetManager() {
 			{
 				string aimsun_id = (*seg_it)->originalDB_ID.getLogItem();
 				string seg_id = getNumberFromAimsunId(aimsun_id);
-//				Print()<<aimsun_id<<std::endl;
 				segPool.insert(std::make_pair(seg_id,*seg_it));
 				seg_pathSetNull.insert(std::make_pair(*seg_it,sp));
 			}
@@ -223,9 +222,8 @@ bool sim_mob::PathSetManager::generateAllPathSetWithTripChain2()
 	//
 	return res;
 }
-bool sim_mob::PathSetManager::generateAllPathSetWithTripChainPool(std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool)
+void sim_mob::PathSetManager::generateAllPathSetWithTripChainPool(std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool)
 {
-	bool res=false;
 	// 1. get from and to node
 	std::map<std::string, std::vector<sim_mob::TripChainItem*> >::iterator it;
 	for(it = tripChainPool->begin();it!=tripChainPool->end();++it)
@@ -1256,7 +1254,7 @@ bool sim_mob::PathSetManager::generateSinglePathByFromToNodes2(
 //		s->shortestWayPointpath = wp_path;
 //		s->id = fromId_toId;
 		s.pathSet = NULL;
-		s.length = sim_mob::generateSinglePathLength(s.shortestWayPointpath);
+		s.length = sim_mob::generateSinglePathLengthPT(s.shortestWayPointpath);
 		// file db object data
 //		s->from_node_id = fromNode->originalDB_ID.getLogItem();
 //		s->to_node_id = toNode->originalDB_ID.getLogItem();
@@ -1322,7 +1320,7 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::generateSinglePathByFromToNodes3
 		s->excludeSeg = exclude_seg;
 
 		s->pathSet = NULL;
-		s->length = sim_mob::generateSinglePathLength(s->shortestWayPointpath);
+		s->length = sim_mob::generateSinglePathLengthPT(s->shortestWayPointpath);
 
 		s->id = id;
 		s->scenario = scenarioName;
@@ -1377,7 +1375,7 @@ sim_mob::SinglePath* sim_mob::PathSetManager::generateShortestTravelTimePath(con
 //			s->excludeSeg = exclude_seg;
 
 			s->pathSet = NULL;
-			s->length = sim_mob::generateSinglePathLength(s->shortestWayPointpath);
+			s->length = sim_mob::generateSinglePathLengthPT(s->shortestWayPointpath);
 
 			s->id = id;
 			s->scenario = scenarioName;
@@ -1434,7 +1432,7 @@ sim_mob::SinglePath * sim_mob::PathSetManager::generateSinglePathByFromToNodes(c
 //		s->shortestWayPointpath = wp_path;
 //		s->id = fromId_toId;
 		s->pathSet = NULL;
-		s->length = sim_mob::generateSinglePathLength(s->shortestWayPointpath);
+		s->length = sim_mob::generateSinglePathLengthPT(s->shortestWayPointpath);
 		// file db object data
 //		s->from_node_id = fromNode->originalDB_ID.getLogItem();
 //		s->to_node_id = toNode->originalDB_ID.getLogItem();
@@ -1702,19 +1700,7 @@ std::vector<WayPoint> sim_mob::convertWaypointP2Wp(std::vector<WayPoint*> wp)
 	}
 	return res;
 }
-double sim_mob::generateSinglePathLength(std::vector<WayPoint*>& wp)
-{
-	double res=0;
-	for(int i=0;i<wp.size();++i)
-	{
-		WayPoint* w = wp[i];
-		if (w->type_ == WayPoint::ROAD_SEGMENT) {
-			const sim_mob::RoadSegment* seg = w->roadSegment_;
-			res += seg->length;
-		}
-	}
-	return res/100.0; //meter
-}
+
 void sim_mob::generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCatch)
 {
 	// Step 1: the length of each path in the path choice set
@@ -2594,7 +2580,7 @@ sim_mob::PathSet::PathSet(PathSet *ps) :
 //						Print()<<str<<std::endl;
 //	}
 }
-sim_mob::PathSet::PathSet(PathSet &ps) :
+sim_mob::PathSet::PathSet(const PathSet &ps) :
 //		fromNode(ps->fromNode),toNode(ps->toNode),
 		logsum(ps.logsum),oriPath(ps.oriPath),
 		subTrip(ps.subTrip),

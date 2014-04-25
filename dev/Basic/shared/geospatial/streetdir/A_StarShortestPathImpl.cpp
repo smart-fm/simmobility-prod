@@ -161,9 +161,9 @@ void sim_mob::A_StarShortestPathImpl::initDrivingNetworkNew(const vector<Link*>&
     }
 
     //Now add BusStops (this mutates the network slightly, by segmenting Edges where a BusStop is located).
-    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-    	procAddDrivingBusStops(drivingMap_, (*iter)->getSegments(), nodeLookup, drivingBusStopLookup_, drivingSegmentLookup_);
-    }
+//    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
+//    	procAddDrivingBusStops(drivingMap_, (*iter)->getSegments(), nodeLookup, drivingBusStopLookup_, drivingSegmentLookup_);
+//    }
 
     //Finally, add our "master" node vertices
     procAddStartNodesAndEdges(drivingMap_, nodeLookup, drivingNodeLookup_);

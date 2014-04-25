@@ -112,7 +112,7 @@ void sim_mob::Agent::SetIncrementIDStartValue(int startID,
 sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)),
 	mutexStrat(mtxStrat), call_frame_init(true),
 	originNode(), destNode(), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
-	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), lastUpdatedFrame(-1), currLink(nullptr), currLane(nullptr),
+	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), lastUpdatedFrame(-1), currLink(nullptr),
 	isQueuing(false), distanceToEndOfSegment(0.0), currLinkTravelStats(nullptr, 0.0), linkTravelStatsMap(mtxStrat),
 	rdSegTravelStatsMap(mtxStrat), currRdSegTravelStats(nullptr, 0.0),
 	toRemoved(false), nextPathPlanned(false), dynamic_seed(id), currTick(0,0), commEventRegistered(false)
@@ -207,7 +207,7 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 	//regionAndPathTracker.reset();
 
 	//Register for commsim messages, if applicable.
-	if (!commEventRegistered && ConfigManager::GetInstance().XmlConfig().system.simulation.commSimEnabled) {
+	if (!commEventRegistered && ConfigManager::GetInstance().XmlConfig().system.simulation.commsim.enabled) {
 		commEventRegistered = true;
 		messaging::MessageBus::SubscribeEvent(
 			sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
@@ -329,22 +329,11 @@ void sim_mob::Agent::clearToBeRemoved() {
 }
 
 const sim_mob::Link* sim_mob::Agent::getCurrLink() const {
-	return currSegment->getLink();
+	return currLink;
 }
+
 void sim_mob::Agent::setCurrLink(const sim_mob::Link* link) {
 	currLink = link;
-}
-const sim_mob::Lane* sim_mob::Agent::getCurrLane() const {
-	return currLane;
-}
-void sim_mob::Agent::setCurrLane(const sim_mob::Lane* lane) {
-	currLane = lane;
-}
-const sim_mob::RoadSegment* sim_mob::Agent::getCurrSegment() const {
-	return currSegment;
-}
-void sim_mob::Agent::setCurrSegment(const sim_mob::RoadSegment* rdSeg) {
-	currSegment = rdSeg;
 }
 
 void sim_mob::Agent::initLinkTravelStats(const Link* link, double entryTime) {

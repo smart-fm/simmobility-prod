@@ -69,6 +69,7 @@ private:
 	 */
 	inline float calculateSpeedbyAcceleration(float curSpeed, float acc, float elapsedSeconds);
 
+	friend class Driver;
 };
 
 } /* namespace sim_mob */

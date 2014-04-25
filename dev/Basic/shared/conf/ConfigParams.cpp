@@ -240,6 +240,11 @@ const unsigned int& sim_mob::ConfigParams::baseGranMS() const
 	return system.simulation.baseGranMS;
 }
 
+const double& sim_mob::ConfigParams::baseGranSecond() const
+{
+	return system.simulation.baseGranSecond;
+}
+
 bool& sim_mob::ConfigParams::singleThreaded()
 {
 	return system.singleThreaded;
@@ -343,37 +348,20 @@ const sim_mob::MutexStrategy& sim_mob::ConfigParams::mutexStategy() const
 	return system.simulation.mutexStategy;
 }
 
-bool& sim_mob::ConfigParams::commSimEnabled()
+bool sim_mob::ConfigParams::commSimEnabled() const
 {
-	return system.simulation.commSimEnabled;
-}
-const bool& sim_mob::ConfigParams::commSimEnabled() const
-{
-	return system.simulation.commSimEnabled;
+	return system.simulation.commsim.enabled;
 }
 
-const std::map<std::string,sim_mob::SimulationParams::CommsimElement> &sim_mob::ConfigParams::getCommSimElements() const{
-	return system.simulation.commsimElements;
-}
 
-const std::string& sim_mob::ConfigParams::getCommSimMode(std::string name) const{
+/*const std::string& sim_mob::ConfigParams::getCommSimMode(std::string name) const{
 	if(system.simulation.commsimElements.find(name) != system.simulation.commsimElements.end()){
 		return system.simulation.commsimElements.at(name).mode;
 	}
 	std::ostringstream out("");
 	out << "Unknown Communication Simulator : " << name ;
 	throw std::runtime_error(out.str());
-}
-
-bool sim_mob::ConfigParams::commSimmEnabled(std::string &name) {
-	if(system.simulation.commsimElements.find(name) != system.simulation.commsimElements.end()){
-		return system.simulation.commsimElements[name].enabled;
-	}
-	std::ostringstream out("");
-	out << "Unknown Communication Simulator : " << name ;
-	throw std::runtime_error(out.str());
-}
-
+}*/
 
 DailyTime& sim_mob::ConfigParams::simStartTime()
 {
@@ -419,13 +407,23 @@ unsigned int sim_mob::ConfigParams::signalTimeStepInMilliSeconds() const
 }
 
 bool sim_mob::ConfigParams::RunningMidSupply() const {
-	const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
-	return (run_mode == "supply" || run_mode == "demand+supply");
+    try {
+        const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
+        return (run_mode == "supply" || run_mode == "demand+supply");
+    } catch (std::exception &e) {
+        //if does not exists then returns false;
+        return false;
+    }
 }
 
 bool sim_mob::ConfigParams::RunningMidDemand() const {
-	const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
-	return (run_mode == "demand" || run_mode == "demand+supply");
+    try {
+        const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
+        return (run_mode == "demand" || run_mode == "demand+supply");
+    } catch (std::exception &e) {
+        //if property does not exists then returns false;
+        return false;
+    }
 }
 
 unsigned int sim_mob::ConfigParams::communicationTimeStepInMilliSeconds() const

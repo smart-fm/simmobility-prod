@@ -33,17 +33,17 @@ sim_mob::IncidentStatus& IncidentPerformer::getIncidentStatus(){
 
 void sim_mob::IncidentPerformer::responseIncidentStatus(Driver* parentDriver, DriverUpdateParams& p, timeslice now) {
 	//slow down velocity when driver views the incident within the visibility distance
-	float incidentGap = parentDriver->getVehicle()->length;
+	float incidentGap = parentDriver->getVehicle()->lengthCM;
 	if(incidentStatus.getSlowdownVelocity()){
 		//calculate the distance to the nearest front vehicle, if no front vehicle exists, the distance is given to a enough large gap as 5 kilometers
 		float fwdCarDist = 5000;
 		if( p.nvFwd.exists() ){
-			DPoint dFwd = p.nvFwd.driver->getVehicle()->getPosition();
-			DPoint dCur = parentDriver->getVehicle()->getPosition();
+			DPoint dFwd = p.nvFwd.driver->getCurrPosition();
+			DPoint dCur = parentDriver->getCurrPosition();
 			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
-			fwdCarDist = movementVect.getMagnitude()-parentDriver->getVehicle()->length;
+			fwdCarDist = movementVect.getMagnitude()-parentDriver->getVehicle()->lengthCM;
 			if(fwdCarDist < 0) {
-				fwdCarDist = parentDriver->getVehicle()->length;
+				fwdCarDist = parentDriver->getVehicle()->lengthCM;
 			}
 		}
 		//record speed limit for current vehicle
@@ -101,10 +101,10 @@ void sim_mob::IncidentPerformer::responseIncidentStatus(Driver* parentDriver, Dr
 void sim_mob::IncidentPerformer::checkAheadVehicles(Driver* parentDriver, DriverUpdateParams& p){
 
 	if(p.nvFwd.exists() ){//avoid cars stacking together
-		DPoint dFwd = p.nvFwd.driver->getVehicle()->getPosition();
-		DPoint dCur = parentDriver->getVehicle()->getPosition();
+		DPoint dFwd = p.nvFwd.driver->getCurrPosition();
+		DPoint dCur = parentDriver->getCurrPosition();
 		DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
-		double len = parentDriver->getVehicle()->length;
+		double len = parentDriver->getVehicle()->lengthCM;
 		double dist = movementVect.getMagnitude();
 		if( dist < len){
 			parentDriver->getVehicle()->setVelocity(0);
@@ -149,7 +149,7 @@ void sim_mob::IncidentPerformer::checkIncidentStatus(Driver* parentDriver, Drive
 			if( (now.ms() >= incidentObj->startTime) && (now.ms() < incidentObj->startTime+incidentObj->duration) && realDist<visibility){
 				incidentStatus.setDistanceToIncident(realDist);
 				replan = incidentStatus.insertIncident(incidentObj);
-				float incidentGap = parentDriver->getVehicle()->length;
+				float incidentGap = parentDriver->getVehicle()->lengthCM;
 				if(!incidentStatus.getChangedLane() && incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_OCCURANCE_LANE){
 					double prob = incidentStatus.getVisibilityDistance()>0 ? incidentStatus.getDistanceToIncident()/incidentStatus.getVisibilityDistance() : 0.0;
 					if(incidentStatus.getDistanceToIncident() < incidentGap){

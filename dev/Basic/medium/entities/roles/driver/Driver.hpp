@@ -9,8 +9,8 @@
 
 #include "conf/settings/DisableMPI.h"
 #include "entities/roles/Role.hpp"
+#include "entities/Vehicle.hpp"
 #include "geospatial/streetdir/WayPoint.hpp"
-#include "entities/vehicle/Vehicle.hpp"
 #include "util/DynamicVector.hpp"
 #include "DriverUpdateParams.hpp"
 #include "DriverFacets.hpp"
@@ -38,6 +38,7 @@ namespace medium
 
 class DriverBehavior;
 class DriverMovement;
+
 /**
  * Medium-term Driver.
  * \author Seth N. Hetu
@@ -65,14 +66,22 @@ public:
 	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
+	sim_mob::medium::Vehicle* getVehicle() const {
+		return vehicle;
+	}
+
+	void setVehicle(sim_mob::medium::Vehicle* vehicle) {
+		this->vehicle = vehicle;
+	}
+
 	//medium::DriverUpdateParams params;
 	//to be moved to a DriverUpdateParam later
 	const Lane* currLane;
 
 protected:
-	Vehicle* vehicle;
 	NodePoint origin;
 	NodePoint goal;
+	Vehicle* vehicle;
 
 	friend class DriverBehavior;
 	friend class DriverMovement;

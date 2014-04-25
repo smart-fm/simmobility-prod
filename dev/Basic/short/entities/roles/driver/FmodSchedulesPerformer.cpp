@@ -38,7 +38,7 @@ bool FmodSchedulesPerformer::performFmodSchedule(Driver* parentDriver, DriverUpd
 		bool isFound = false;
 		static int count = 0;
 		double dwellTime = 0;
-		double distance = parentDriver->getVehicle()->getDistanceToSegmentEnd();
+		double distance = parentDriver->distanceInFront;
 
 		//judge whether near to stopping node
 		if (distance < APPROACHING_DISTANCE) {

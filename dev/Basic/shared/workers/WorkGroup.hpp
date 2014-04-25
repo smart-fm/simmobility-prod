@@ -119,8 +119,6 @@ private:
 
 	void assignAWorkerConstraint(Entity* ag);
 
-	const sim_mob::RoadSegment* findStartingRoadSegment(Person* p);
-
 	Worker* locateWorker(unsigned int linkID);
 
 	// providing read only access to public for RegisteredWorkGroups. AuraManager requires this. - Harish

@@ -38,7 +38,19 @@ class Link_travel_time;
 class DatabaseLoader2;
 class K_ShortestPathImpl;
 class Link;
-
+inline double generateSinglePathLengthPT(std::vector<WayPoint*>& wp) // unit is meter
+{
+	double res=0;
+	for(int i=0;i<wp.size();++i)
+	{
+		WayPoint* w = wp[i];
+		if (w->type_ == WayPoint::ROAD_SEGMENT) {
+			const sim_mob::RoadSegment* seg = w->roadSegment_;
+			res += seg->length;
+		}
+	}
+	return res/100.0; //meter
+}
 enum TRIP_PURPOSE
 {
 	work = 1,
@@ -71,7 +83,7 @@ public:
 public:
 	bool generateAllPathSetWithTripChain();
 	bool generateAllPathSetWithTripChain2();
-	bool generateAllPathSetWithTripChainPool(std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool);
+	void generateAllPathSetWithTripChainPool(std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool);
 	void generatePaths2Node(const sim_mob::Node *toNode);
 //	sim_mob::SinglePath * generateSinglePathByFromToNodes(const sim_mob::Node *fromNode,
 //				   const sim_mob::Node *toNode);
@@ -279,7 +291,7 @@ public:
 	PathSet():has_path(0) {};
 	PathSet(const sim_mob::Node *fn,const sim_mob::Node *tn) : fromNode(fn),toNode(tn),logsum(0),has_path(0) {}
 	PathSet(PathSet *ps);
-	PathSet(PathSet &ps);
+	PathSet(const PathSet &ps);
 	~PathSet();
 	bool isInit;
 	bool hasBestChoice;
@@ -372,11 +384,14 @@ public:
 
 };
 
-inline std::string makeWaypointsetString(std::vector<WayPoint>& wp);
+std::string makeWaypointsetString(std::vector<WayPoint>& wp);
 std::string getNumberFromAimsunId(std::string &aimsunid);
 std::vector<WayPoint*> convertWaypoint2Point(std::vector<WayPoint> wp);
 std::vector<WayPoint> convertWaypointP2Wp(std::vector<WayPoint*> wp);
-inline double generateSinglePathLength(std::vector<WayPoint*>& wp); // unit is meter
+
+//TODO: This might have been pulled in from an older merge (might not be needed). ~Seth
+double generateSinglePathLength(std::vector<WayPoint*>& wp); // unit is meter
+
 //inline void generatePathSizeForPathSet(sim_mob::PathSet *ps);
 inline void generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCatch=true);
 inline std::map<const RoadSegment*,WayPoint> generateSegPathByWaypointPath(std::vector<WayPoint>& wp);
@@ -384,7 +399,7 @@ inline std::map<const RoadSegment*,WayPoint*> generateSegPathByWaypointPathP(std
 
 inline int calculateRightTurnNumberByWaypoints(std::map<const RoadSegment*,WayPoint>& segWp);
 inline size_t getLaneIndex2(const Lane* l);
-inline void calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::SinglePath *sp);
+void calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::SinglePath *sp);
 inline float gen_random_float(float min, float max)
 {
     boost::mt19937 rng;

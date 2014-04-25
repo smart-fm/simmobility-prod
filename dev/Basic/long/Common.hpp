@@ -86,6 +86,7 @@ namespace sim_mob {
         const std::string LT_DB_CONFIG_FILE = "../private/lt-db.ini";
         const std::string HM_LUA_DIR = "../scripts/lua/long/housing-market";
         const std::string EX_EV_LUA_DIR = "../scripts/lua/long/external-events";
+        const std::string DEV_LUA_DIR = "../scripts/lua/long/developer";
     }
 }
 

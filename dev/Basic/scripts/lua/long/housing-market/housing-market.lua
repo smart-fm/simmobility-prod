@@ -209,11 +209,17 @@ end
 function calculateExpectation(price, v, a, b, cost)
     local E = Math.E
     local rateOfBuyers = a - (b * price)
-    local expectation = price 
-                        + (math.pow(E,-rateOfBuyers*(price-v)/price)-1 + rateOfBuyers)*price/rateOfBuyers 
-                        + math.pow(E,-rateOfBuyers)*v 
-                        - cost
-    return expectation
+    --local expectation = price 
+    --                    + (math.pow(E,-rateOfBuyers*(price-v)/price)-1 + rateOfBuyers)*price/rateOfBuyers 
+    --                    + math.pow(E,-rateOfBuyers)*v 
+    --                    - cost
+    if (rateOfBuyers > 0) then
+        local expectation = price 
+                            + (math.pow(E,-rateOfBuyers*(price-v)/price)-1) * price/rateOfBuyers 
+                            - cost
+        return expectation
+    end
+    return v
 end
 
 
@@ -234,8 +240,8 @@ function calulateUnitExpectations (unit, timeOnMarket, building, postcode, ameni
     local hedonicPrice = (calculateHedonicPrice(unit, building, postcode, amenities) * sqfToSqm(unit.floorArea))/1000
     local targetPrice = hedonicPrice -- IMPORTANT : this should be the hedonic value
     local askingPrice = 1000 -- starting point for price search
-    local a = 1.0 -- ratio of events expected by the seller
-    local b = 0.005 -- Importance of the price for seller.
+    local a = 3000 -- ratio of events expected by the seller per (considering that the price is 0)
+    local b = 1 -- Importance of the price for seller.
     local cost = 0.1 -- Cost of being in the market
     for i=1,timeOnMarket do
         entry = ExpectationEntry()

@@ -58,7 +58,7 @@ public:
 	//Person objects are spatial in nature
 	virtual bool isNonspatial() { return false; }
 
-	void handleEvent(sim_mob::event::EventId id,
+	void handleAMODEvent(sim_mob::event::EventId id,
             sim_mob::event::Context ctxId,
             sim_mob::event::EventPublisher* sender,
             const AMOD::AMODEventArgs& args);

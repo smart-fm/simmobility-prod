@@ -52,6 +52,11 @@ public:
 	// ad vh to main loop
 	bool dispatchVh(Person* vh);
 
+	/// snode: start node
+	/// enode: end node
+	/// path: new path
+	void rerouteWithPath(Person* vh,std::vector<WayPoint>& path);
+	void rerouteWithOriDest(Person* vh,Node* snode,Node* enode);
 	void testOneVh();
 	int test;
 

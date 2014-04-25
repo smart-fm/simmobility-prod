@@ -40,6 +40,11 @@ enum CoreEvent {
 
 	//Called when the commsim Broker forwards a rerouting request. For now, this only comes in from an Android-emulated entity.
 	EVT_CORE_COMMSIM_REROUTING_REQUEST,
+
+	// amod reroute event with new path
+	EVT_AMOD_REROUTING_REQUEST_WITH_PATH,
+	// amod reroute event with only start node, end node, driver generate shortest path
+	EVT_AMOD_REROUTING_REQUEST_WITH_ORI_DEST
 };
 
 enum CoreContext {

@@ -9,6 +9,9 @@
 #define AMODEVENT_HPP_
 #include "event/args/EventArgs.hpp"
 #include "event/EventPublisher.hpp"
+#include "geospatial/Node.hpp"
+#include "geospatial/streetdir/WayPoint.hpp"
+#include <vector>
 namespace sim_mob {
 
 namespace AMOD {
@@ -30,19 +33,29 @@ public:
 	std::string data;
 };
 
-class AMODObjContainer {
+//class AMODObjContainer {
+//public:
+//	AMODObjContainer(AMODObj& obj);
+//	AMODObj& obj;
+//	int value;
+//	std::string data;
+//};
+class AMODEventArgs : public event::EventArgs
+{
 public:
-	AMODObjContainer(AMODObj& obj);
-	AMODObj& obj;
-	int value;
-	std::string data;
+	AMODEventArgs(){}
 };
-
-class AMODEventArgs : public event::EventArgs {
+class AMODRerouteEventArgs : public AMODEventArgs {
 public:
 
-	AMODEventArgs(AMODObjContainer& obj);
-	AMODObjContainer& obj;
+	AMODRerouteEventArgs(sim_mob::Node *s,sim_mob::Node *e,std::vector<sim_mob::WayPoint> rPath);
+	// if reRoutePath is empty, driver will generate shortest path base on reRouteStartNode and reRouteEndNode
+	// new path start node,
+	sim_mob::Node *reRouteStartNode;
+	// new path end node
+	sim_mob::Node *reRouteEndNode;
+	// if reRoutePath is not empty, drive reroute with the path
+	std::vector<sim_mob::WayPoint> reRoutePath;
 };
 
 

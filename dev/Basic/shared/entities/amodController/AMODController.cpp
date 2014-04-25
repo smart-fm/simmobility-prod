@@ -117,12 +117,14 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 	if(now.frame()>150 & now.frame()<300)
 	{
 		Person *vh = vhOnTheRoad.begin()->second;
-		AMODObj obj;
-		AMODObjContainer obj1(obj);
-		char c[20]="\0";
-		sprintf(c,"xxx+%d",now.frame());
-		obj1.data = std::string(c);
-		eventPub.publish(1, vh, AMODEventArgs(obj1));
+//		AMODObj obj;
+//		AMODObjContainer obj1(obj);
+//		char c[20]="\0";
+//		sprintf(c,"xxx+%d",now.frame());
+//		obj1.data = std::string(c);
+
+//		sim_mob:
+//		eventPub.publish(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_, vh, AMODRerouteEventArgs(obj1));
 	}
 
 	// return continue, make sure agent not remove from main loop
@@ -184,6 +186,16 @@ bool AMODController::getVhFromCarPark(std::string& carParkId,Person** vh)
 bool AMODController::dispatchVh(Person* vh)
 {
 	this->currWorkerProvider->scheduleForBred(vh);
+}
+void AMODController::rerouteWithPath(Person* vh,std::vector<WayPoint>& path)
+{
+	AMODRerouteEventArgs arg(NULL,NULL,path);
+	eventPub.publish(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH, vh, arg);
+}
+void AMODController::rerouteWithOriDest(Person* vh,Node* snode,Node* enode)
+{
+	AMODRerouteEventArgs arg(snode,enode,std::vector<WayPoint>());
+	eventPub.publish(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_ORI_DEST, vh, arg);
 }
 bool AMODController::setPath2Vh(Person* vh,std::vector<WayPoint>& path)
 {
@@ -248,7 +260,7 @@ void AMODController::testOneVh()
 
 	// event related
 	eventPub.registerEvent(1);
-	eventPub.subscribe(1, vh, &Person::handleEvent, vh);
+	eventPub.subscribe(1, vh, &Person::handleAMODEvent, vh);
 
 	dispatchVh(vh);
 

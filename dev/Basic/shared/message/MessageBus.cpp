@@ -494,6 +494,22 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
     }
 }
 
+void MessageBus::SendContextualMessage(MessageHandler* destination,
+		Message::MessageType type, MessagePtr message) {
+	CheckThreadContext();
+	ThreadContext* context = GetThreadContext();
+	if (context) {
+		if (destination && destination->context == context) {
+			destination->HandleMessage(type, *(message.get()));
+			context->receivedMessages++;
+			context->processedMessages++;
+		}
+		else {
+			throw std::runtime_error("SendMessage() is called for sending messages outside the thread");
+		}
+	}
+}
+
 void MessageBus::SubscribeEvent(EventId id, EventListener* listener) {
     CheckThreadContext();
     if (listener) {

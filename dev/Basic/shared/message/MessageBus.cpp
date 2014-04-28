@@ -499,18 +499,8 @@ void MessageBus::SendContextualMessage(MessageHandler* destination,
 	CheckThreadContext();
 	ThreadContext* context = GetThreadContext();
 	if (context) {
-		InternalEventMessage* eventMsg = dynamic_cast<InternalEventMessage*> (message.get());
 		if (destination && destination->context == context) {
 			destination->HandleMessage(type, *(message.get()));
-			context->receivedMessages++;
-			context->processedMessages++;
-		}
-		else if(eventMsg && eventMsg->GetContext() == context){
-			context->eventMessages++;
-            //if it is an event then we need to publish this event only in the
-			//current context
-			MessageHandler* target = dynamic_cast<MessageHandler*> (context->eventPublisher);
-			target->HandleMessage(type, *(message.get()));
 			context->receivedMessages++;
 			context->processedMessages++;
 		}

@@ -21,13 +21,13 @@ public:
 	virtual ~ParameterManager();
 
 public:
-   /** \brief Assign value from parameter server, with default.
+   /** \brief Assign value from parameter pool, with default.
 	*
 	* This method tries to retrieve the indicated parameter value from the
-	* parameter server, storing the result in param_val.  If the value
+	* parameter pool, storing the result in paramVal.  If the value
 	* cannot be retrieved from the server, default_val is used instead.
 	*
-	* \param param_name The key to be searched on the parameter server.
+	* \param paramName The key to be searched on the parameter server.
 	* \param[out] paramVal Storage for the retrieved value.
 	* \param defaultVal Value to use if the server doesn't contain this
 	* parameter.

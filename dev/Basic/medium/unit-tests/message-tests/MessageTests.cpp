@@ -96,7 +96,7 @@ public:
 				<< "|tick:" << testMsg->tick;
 			Print() << ss.str(); ss.str(string());
 			try {
-				MessageBus::SendContextualMessage(targetAg, MSG_1, MessageBus::MessagePtr(testMsg));
+				MessageBus::SendInstantaneousMessage(targetAg, MSG_1, MessageBus::MessagePtr(testMsg));
 			}
 			catch (const std::runtime_error& error) {
 				ss  << "\nSEND MSG_1 FROM Agent:" << id

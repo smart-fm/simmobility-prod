@@ -494,7 +494,7 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
     }
 }
 
-void MessageBus::SendContextualMessage(MessageHandler* destination,
+void MessageBus::SendInstantaneousMessage(MessageHandler* destination,
 		Message::MessageType type, MessagePtr message) {
 	CheckThreadContext();
 	ThreadContext* context = GetThreadContext();
@@ -505,7 +505,7 @@ void MessageBus::SendContextualMessage(MessageHandler* destination,
 			context->processedMessages++;
 		}
 		else {
-			throw std::runtime_error("SendContextualMessage() is called for sending messages outside thread context");
+			throw std::runtime_error("SendInstantaneousMessage() is called for sending messages outside thread context");
 		}
 	}
 }

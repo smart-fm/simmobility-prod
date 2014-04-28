@@ -8,6 +8,7 @@
 #pragma once
 
 #include "XmlRpcValue.h"
+#include "ParseParamFile.hpp"
 
 #include <string>
 
@@ -36,9 +37,9 @@ public:
 	template<typename T>
 	void param(const std::string& paramName, T& paramVal, const T& defaultVal) const
 	{
-		if (hasParam(param_name))
+		if (hasParam(paramName))
 		{
-		  if (getParam(param_name, paramVal))
+		  if (getParam(paramName, paramVal))
 		  {
 			return;
 		  }
@@ -157,7 +158,7 @@ private:
 	   *  \map key is xml Tag or Element "name"
 	   *  \map value is XmlRpcValue
 	   */
-	  std::map<string,XmlRpc::XmlRpcValue>::iterator ParameterPoolIterator;
+	  typedef std::map<string,XmlRpc::XmlRpcValue>::const_iterator ParameterPoolConIterator;
 	  std::map<string,XmlRpc::XmlRpcValue> parameterPool;
 };
 

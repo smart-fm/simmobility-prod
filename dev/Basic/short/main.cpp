@@ -76,6 +76,7 @@
 #include "network/ControlManager.hpp"
 #include "logging/Log.hpp"
 #include "util/Utils.hpp"
+#include "conf/params/ParameterManager.hpp"
 
 
 //add by xuyan
@@ -229,7 +230,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		std::cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
 		std::cout<<psMgr->size()<<std::endl;
 	}
-
+	ParameterManager paraMgr;
 //	//DriverComms are only allowed if the communicator is enabled.
 //	if (ConfigParams::GetInstance().commSimEnabled) {
 //		androidBroker.enable();

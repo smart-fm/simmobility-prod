@@ -6,12 +6,13 @@
  */
 
 #include "ParameterManager.hpp"
+#include <string>
 
 namespace sim_mob {
 
 ParameterManager::ParameterManager() {
 	// TODO Auto-generated constructor stub
-
+	ParseParamFile ppfile("data/driver_behavior_model/driver_param.xml");
 }
 
 ParameterManager::~ParameterManager() {
@@ -19,7 +20,7 @@ ParameterManager::~ParameterManager() {
 }
 bool ParameterManager::hasParam(const std::string& key) const
 {
-	ParameterPoolIterator it = parameterPool.find(key);
+	ParameterPoolConIterator it = parameterPool.find(key);
 	if(it != parameterPool.end())
 	{
 		return true;
@@ -51,7 +52,7 @@ bool ParameterManager::getParam(const std::string& key, double& d) const
 }
 bool ParameterManager::getParam(const std::string& key, XmlRpc::XmlRpcValue& v) const
 {
-	ParameterPoolIterator it = parameterPool.find(key);
+	ParameterPoolConIterator it = parameterPool.find(key);
 	if(it != parameterPool.end())
 	{
 		return true;

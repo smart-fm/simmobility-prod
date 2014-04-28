@@ -170,13 +170,18 @@ void sim_mob::OpaqueSendHandler::handle(boost::shared_ptr<ConnectionHandler> han
 		}
 	}
 
+
+	//We need to further synthesize the toIds field, removing any messages to cloud recipients.
+	//It's unlikely that we'll have messages to both Android agents and the cloud in the same OpaqueSend,
+	// but there's no reason not to support it.
+	broker->opaqueSendCloud(handler, sendMsg, useNs3);
+
+
 	//If there's no agents left, return.
 	if(sendMsg.toIds.empty()) {
 		return;
 	}
 
-
-	//postPendingMessages(*broker, *original_agent, receiveAgentIds, sendMsg);
 
 	//Behavior differs based on ns-3 (either dispatch messages now, or route them all through ns-3).
 	if (useNs3) {
@@ -187,14 +192,11 @@ void sim_mob::OpaqueSendHandler::handle(boost::shared_ptr<ConnectionHandler> han
 			throw std::runtime_error("Expected ns-3 client handler; returned null.");
 		}
 
-		//add two extra field to mark the agent ids(used in simmobility to identify agents)
-		//data["SENDING_AGENT"] = agent.getId();
-		//data["RECIPIENTS"] = receiveAgentIds;
+		//Serialize the message, send it.
 		std::string msg = CommsimSerializer::makeOpaqueSend(sendMsg.fromId, sendMsg.toIds, sendMsg.broadcast, sendMsg.data);
 		broker->insertSendBuffer(ns3Handle, msg);
 	} else {
-		//ClientList::Pair clientTypes;
-		//iterate through all registered clients
+		//Iterate through all registered clients
 		const ClientList::Type& allClients = broker->getAndroidClientList();
 		for (ClientList::Type::const_iterator clientIt=allClients.begin(); clientIt!=allClients.end(); clientIt++) {
 			//Get the agent associated to this client

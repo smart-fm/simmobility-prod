@@ -39,7 +39,8 @@ public:
 	void start(unsigned int numThreads);
 
 	//Specifically request a connection to the cloud. This will be handled asynchronously.
-	void connectToCloud(const std::string& host, int port);
+	//Returns the CloudHandler; NOTE that you cannot use this until handle_cloud_connect() informs you it is ready.
+	boost::shared_ptr<CloudHandler> connectToCloud(const std::string& host, int port);
 
 private:
 	void handle_accept(boost::shared_ptr<ConnectionHandler> conn, const boost::system::error_code& e);

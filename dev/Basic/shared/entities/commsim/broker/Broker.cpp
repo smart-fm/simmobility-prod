@@ -112,8 +112,12 @@ void sim_mob::Broker::onNewConnection(boost::shared_ptr<ConnectionHandler> cnnHa
 
 void sim_mob::Broker::onNewCloudConnection(boost::shared_ptr<CloudHandler> cnnHandler)
 {
-	throw std::runtime_error("TODO: wake up anything trying to send data; save the cloud handler.");
-
+	//Save it, signal.
+	{
+	boost::unique_lock<boost::mutex> lock(mutex_verified_cloud_connections);
+	verifiedCloudConnections.insert(cnnHandler);
+	}
+	COND_VAR_VERIFIED_CLOUD_CONNECTIONS.notify_all();
 }
 
 
@@ -437,16 +441,81 @@ void sim_mob::Broker::cloudConnect(boost::shared_ptr<ConnectionHandler> handler,
 	std::string cloudId = host + ":" + boost::lexical_cast<std::string>(port);
 
 	//We only need 1 connection to the cloud, but for efficiency's sake we open 1 connection per Android connectionHandler.
-	//TODO
-
-
-
+	boost::shared_ptr<CloudHandler> cloud = getCloudHandler(cloudId, handler);
+	if (!cloud) {
+		//We don't have a connection; open a new one.
+		boost::unique_lock<boost::mutex> lock(mutex_cloud_connections);
+		cloudConnections[cloudId][handler] = connection.connectToCloud(host, port);
+	}
 }
 
 void sim_mob::Broker::cloudDisconnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port)
 {
 	//Note: At the moment it is not necessary (or even beneficial) to close cloud connections. Leave this function
 	//      here as a no-op, since we may want to track open connections at some point.
+}
+
+
+void sim_mob::Broker::opaqueSendCloud(boost::shared_ptr<ConnectionHandler> handler, OpaqueSendMessage& msg, bool useNs3)
+{
+	//Copy the toIds list.
+	std::vector<std::string> temp(msg.toIds);
+	msg.toIds.clear();
+
+	//For each item in the toIds list.
+	for (std::vector<std::string>::const_iterator msgIt=temp.begin(); msgIt!=temp.end(); msgIt++) {
+		//At this point, we should have a valid cloudHandler.
+		boost::shared_ptr<CloudHandler> cloud = getCloudHandler(*msgIt, handler);
+		if (cloud) {
+			//Process it.
+			sendToCloud(cloud, msg, *msgIt, useNs3);
+		} else {
+			//Add it to the list of real clients.
+			msg.toIds.push_back(*msgIt);
+		}
+	}
+}
+
+void sim_mob::Broker::sendToCloud(boost::shared_ptr<CloudHandler> cloud, const OpaqueSendMessage& msg, const std::string& toId, bool useNs3)
+{
+	//Make a new message with the correct toIds set.
+	OpaqueSendMessage newMsg(msg);
+	newMsg.toIds.clear();
+	newMsg.toIds.push_back(toId);
+
+	//Now, wait for the client to connect.
+	{
+	boost::unique_lock<boost::mutex> lock(mutex_verified_cloud_connections);
+	while (verifiedCloudConnections.count(cloud)==0) {
+		COND_VAR_VERIFIED_CLOUD_CONNECTIONS.wait(lock);
+	}
+	}
+
+	//We now have a valid cloud connection. The following needs to happen:
+	//Step 1) Decode the actual message (using the base64/substitution method present in the client).
+	//        Note that this violates the "Opaque" principle, so we might need to add a tag describint the format.
+	//Step 2) Send the actual message to the cloud server, line by line.
+	//Step 3) Wait for a response from the server, line-by-line.
+	//Step 4) Either route the response through ns-3 (as an OpaqueReceive), or send the OpaqueReceive directly to the client.
+
+
+
+
+
+	throw std::runtime_error("TODO: Message send and receive.");
+}
+
+boost::shared_ptr<CloudHandler> sim_mob::Broker::getCloudHandler(const std::string& id, boost::shared_ptr<ConnectionHandler> conn)
+{
+	boost::unique_lock<boost::mutex> lock(mutex_cloud_connections);
+	std::map<std::string, CloudConnections>::const_iterator it=cloudConnections.find(id);
+	if (it!=cloudConnections.end()) {
+		CloudConnections::const_iterator it2=it->second.find(conn);
+		if (it2!=it->second.end()) {
+			return it2->second;
+		}
+	}
+	return boost::shared_ptr<CloudHandler>();
 }
 
 

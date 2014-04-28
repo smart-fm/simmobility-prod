@@ -34,10 +34,12 @@ namespace sim_mob {
 class Agent;
 struct AgentInfo;
 class Publisher;
+class CloudHandler;
 class ConnectionHandler;
 class ConnectionServer;
 class ClientHandler;
 class BrokerBlocker;
+class OpaqueSendMessage;
 
 
 namespace {
@@ -93,6 +95,9 @@ public:
 	//Connect/disconnect cloud (Tcp) entities.
 	virtual void cloudConnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port) = 0;
 	virtual void cloudDisconnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port) = 0;
+
+	//Called by the OpaqueSendHandler to remove any cloud IDs from the toIds array.
+	virtual void opaqueSendCloud(boost::shared_ptr<ConnectionHandler> handler, OpaqueSendMessage& msg, bool useNs3) = 0;
 };
 
 
@@ -161,13 +166,8 @@ protected:
 		ConnClientStatus() : total(0), done(0) {}
 	};
 
-	///TODO: Actually connect to the cloud, etc.
-	struct CloudConnection {};
-
 	///A list of cloud connections by ConnectionHandler.
-	struct CloudConnections {
-		std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, CloudConnection> conns;
-	};
+	typedef std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, boost::shared_ptr<CloudHandler> > CloudConnections;
 
 private:
 	///List of all known tokens and their associated ConnectionHandlers.
@@ -193,6 +193,17 @@ private:
 	std::map<const Agent*, AgentInfo> preRegisterAgents;
 	boost::mutex mutex_pre_register_agents; ///<Mutex for locking preRegisterAgents.
 
+	///List of all known cloud connections, by id (where id= "host:port", and id functions as a "client Id" for OpaqueSend/Receive).
+	///NOTE: We can't use our normal 1-tick delay method here, because most clients will "Send" directly after "Connect".
+	std::map<std::string, CloudConnections> cloudConnections;
+	boost::mutex mutex_cloud_connections; ///<Mutex for locking cloudConnections.
+
+	///Set of cloud connections that are known to have completed their connection.
+	///Check this set before sending data over a CloudConnection.
+	std::set< boost::shared_ptr<CloudHandler> > verifiedCloudConnections;
+	boost::mutex mutex_verified_cloud_connections; ///<Mutex for locking verifiedCloudConnections.
+	boost::condition_variable COND_VAR_VERIFIED_CLOUD_CONNECTIONS; ///<For signaling that the verified list has changed.
+
 
 protected:
 	///Lookup for message handlers by type.
@@ -208,12 +219,8 @@ protected:
 	///List of NS-3 clients that have completed registration with the Broker. (Note: There should only be zero or one).
 	ClientList::Type registeredNs3Clients;
 
-
 	///Manages all incoming/outgoing TCP connections. Creates a new ClientHandler for each one, and may multiplex ConnectionHandlers.
 	ConnectionServer connection;
-
-	///List of all known cloud connections, by id (where id= "host:port", and id functions as a "client Id" for OpaqueSend/Receive).
-	std::map<std::string, CloudConnections> cloudConnections;
 
 	//Publishes an event when a client is registered with the broker
 	ClientRegistrationPublisher registrationPublisher;
@@ -388,6 +395,16 @@ protected:
 	 */
 	void saveConnByToken(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn);
 
+	/**
+	 * Retrieve the cloud handler associated with this connection/ID
+	 */
+	boost::shared_ptr<CloudHandler> getCloudHandler(const std::string& id, boost::shared_ptr<ConnectionHandler> conn);
+
+	/**
+	 * Called internally to send a *single* item to the cloud.
+	 */
+	void sendToCloud(boost::shared_ptr<CloudHandler> cloud, const OpaqueSendMessage& msg, const std::string& toId, bool useNs3);
+
 
 public:
 	///Register an Agent with the Broker. This will add it to the registeredAgents list.
@@ -399,6 +416,9 @@ public:
 
 	///A client is informing the Broker that it will no longer send/receive data to/from the given host.
 	virtual void cloudDisconnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port);
+
+	///An OpaqueSendHandler is asking the Broker to remove all cloud messges from "msg.toIds" and process them itself.
+	virtual void opaqueSendCloud(boost::shared_ptr<ConnectionHandler> handler, OpaqueSendMessage& msg, bool useNs3);
 
 	///Callback function for when a new ConnectionHandler accepts its first incoming client connection.
 	virtual void onNewConnection(boost::shared_ptr<ConnectionHandler> cnnHandler);

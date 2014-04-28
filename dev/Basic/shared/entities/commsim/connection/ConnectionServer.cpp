@@ -41,7 +41,7 @@ void sim_mob::ConnectionServer::start(unsigned int numThreads)
 }
 
 
-void sim_mob::ConnectionServer::connectToCloud(const std::string& host, int port)
+boost::shared_ptr<CloudHandler> sim_mob::ConnectionServer::connectToCloud(const std::string& host, int port)
 {
 	//Make and track a new session pointer.
 	boost::shared_ptr<CloudHandler> conn(new CloudHandler(io_service, broker, host, port));
@@ -51,6 +51,7 @@ void sim_mob::ConnectionServer::connectToCloud(const std::string& host, int port
 	}
 
 	boost::asio::async_connect(conn->socket, conn->getResolvedIterator(), boost::bind(&ConnectionServer::handle_cloud_connect, this, conn, boost::asio::placeholders::error));
+	return conn;
 }
 
 

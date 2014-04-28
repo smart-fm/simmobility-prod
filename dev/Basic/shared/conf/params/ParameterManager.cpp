@@ -29,36 +29,34 @@ bool ParameterManager::hasParam(const std::string& key) const
 bool ParameterManager::getParam(const std::string& key, double& d) const
 {
 	XmlRpc::XmlRpcValue v;
-	if (!getXmlRpcValue(key, v))
-	  {
-	    return false;
-	  }
+	if (!getParam(key, v))
+	{
+		return false;
+	}
 
-	  if (v.getType() == XmlRpc::XmlRpcValue::TypeDouble)
-	  {
-	    double d = v;
+	if (v.getType() == XmlRpc::XmlRpcValue::TypeInt)
+	{
+		d = (int)v;
+	}
+	else if (v.getType() != XmlRpc::XmlRpcValue::TypeDouble)
+	{
+		return false;
+	}
+	else
+	{
+		d = v;
+	}
 
-	    if (fmod(d, 1.0) < 0.5)
-	    {
-	      d = floor(d);
-	    }
-	    else
-	    {
-	      d = ceil(d);
-	    }
-
-	    i = d;
-	  }
-	  else if (v.getType() != XmlRpc::XmlRpcValue::TypeInt)
-	  {
-	    return false;
-	  }
-	  else
-	  {
-	    i = v;
-	  }
-
-	  return true;
+	return true;
 }
-
+bool ParameterManager::getParam(const std::string& key, XmlRpc::XmlRpcValue& v) const
+{
+	ParameterPoolIterator it = parameterPool.find(key);
+	if(it != parameterPool.end())
+	{
+		return true;
+	}
+	v = it->second;
+	return false;
+}
 }//namespace sim_mob

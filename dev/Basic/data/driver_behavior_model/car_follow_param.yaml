@@ -1,0 +1,8 @@
+# car follow parameters file
+
+hBufferLower: 0.8
+
+CF_parameters:
+#    alpha   beta    gama    lambda  rho     stddev
+   - [0.0400, 0.7220, 0.2420, 0.6820, 0.6000, 0.8250  ]
+   - [-0.0418, 0.0000, 0.1510, 0.6840, 0.6800, 0.8020 ]

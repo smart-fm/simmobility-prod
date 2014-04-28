@@ -215,13 +215,9 @@ namespace sim_mob {
              * even is handled by the listeners right away without any delay.
              * Events published with this function can be received only by targets
              * within the same context as the sender (caller). The function does
-             * not put messages in queues for subsequent distribution and
+             * not put event messages in queues for subsequent distribution and
              * processing.
              *
-             * \note this function should be called only when the caller is aware
-             * that all listeners are within its own thread context. Any attempt
-             * to send a publish outside the thread context will simply fail and
-             * throw a runtime error.
              * @param id of the event.
              * @param ctx of the event.
              * @param args event data.

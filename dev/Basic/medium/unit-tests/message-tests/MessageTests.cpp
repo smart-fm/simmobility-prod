@@ -16,6 +16,7 @@
 #include <sstream>
 
 #include "entities/Agent.hpp"
+#include "event/EventPublisher.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
 #include "message/Message.hpp"
@@ -30,11 +31,13 @@ using std::map;
 using std::string;
 using std::vector;
 using namespace sim_mob;
+using namespace sim_mob::event;
 using namespace sim_mob::messaging;
 
 namespace {
 
 vector<Agent*> allAgents;
+Agent* eventPblshr = nullptr;
 
 enum TestEvent {
 	EVT_1 = 7001,
@@ -49,8 +52,8 @@ enum TestMsg {
 class TestMessage : public Message {
 public:
 	int data;
-	int tick;
-	TestMessage(int data, int tick) : data(data), tick(tick) {}
+	uint32_t tick;
+	TestMessage(int data, uint32_t tick) : data(data), tick(tick) {}
 };
 
 //Hack around an Agent's frame_* functions.
@@ -77,7 +80,7 @@ public:
 	IGNORE_AGENT_FRAME_FUNCTIONS
 };
 
-// Message sender agents
+// Message sender agent
 class MessageSndr : public NullAgent {
 public:
 	MessageSndr() {}
@@ -145,15 +148,13 @@ private:
 	std::stringstream ss;
 };
 
-void testSendContextualMessage() {
+void testSendInstantaneousMessage() {
 	WorkGroupManager wgm;
-
-	//Now create 10 workers which will run for 5 time ticks, doubling the src value each time.
 	WorkGroup* mainWG = wgm.newWorkGroup(2, 5);
 	wgm.initAllGroups();
 	mainWG->initWorkers(nullptr);
 
-	//Make a MultAgent for each item in the source vector.
+	//create agents
 	for (int i=0; i<3; i++) {
 		Agent* newAg = new MessageRcvr();
 		newAg->setStartTime(0);
@@ -173,12 +174,111 @@ void testSendContextualMessage() {
 	for (int i=0; i<5; i++) {
 		wgm.waitAllGroups();
 	}
+	allAgents.clear();
+}
+
+class TestEventArgs : public EventArgs{
+public:
+	TestEventArgs(int val, uint32_t tck) : value(val), tick(tck) {}
+    int value;
+    uint32_t tick;
+};
+
+class EventLstnr : public NullAgent {
+public:
+	EventLstnr() : subscribed(false) {}
+
+	virtual Entity::UpdateStatus update(timeslice now) {
+		if(!subscribed) {
+			MessageBus::SubscribeEvent(EVT_1, eventPblshr, this);
+			MessageBus::SubscribeEvent(EVT_2, eventPblshr, this);
+			subscribed = true;
+		}
+		return Entity::UpdateStatus::Continue;
+	}
+
+    virtual void onEvent(sim_mob::event::EventId id,
+            sim_mob::event::Context ctxId,
+            sim_mob::event::EventPublisher* sender,
+            const EventArgs& args) {
+    	const TestEventArgs& tstEvtArgs = dynamic_cast<const TestEventArgs&>(args);
+		switch(id) {
+		case EVT_1:
+			ss  << "\nRECV EVT_1 BY Agent:" << this->GetId()
+				<< " @ worker:" << currWorkerProvider
+				<< "|data:" << tstEvtArgs.value
+				<< "|tick:" << tstEvtArgs.tick;
+			Print() << ss.str(); ss.str(string());
+			break;
+		case EVT_2:
+			break;
+		default:
+			break;
+		}
+    }
+
+private:
+	std::stringstream ss;
+    bool subscribed;
+};
+
+//Event publisher agent
+class EventPblshr : public NullAgent {
+public:
+	EventPblshr() {}
+
+	virtual Entity::UpdateStatus update(timeslice now) {
+		TestEventArgs* tstEvtArgs = new TestEventArgs(Utils::generateInt(0,50), now.frame());
+		ss  << "\nPUBLISH EVT_1 FROM Agent:" << id
+			<< " @ worker:" << currWorkerProvider
+			<< "|data:" << tstEvtArgs->value
+			<< "|tick:" << tstEvtArgs->tick;
+		Print() << ss.str(); ss.str(string());
+		MessageBus::PublishInstantaneousEvent(EVT_1, this,
+			MessageBus::EventArgsPtr(tstEvtArgs));
+		return Entity::UpdateStatus::Continue;
+	}
+
+private:
+	std::stringstream ss;
+};
+
+void testInstantaneousEvent() {
+	WorkGroupManager wgm;
+	WorkGroup* mainWG = wgm.newWorkGroup(2, 5);
+	wgm.initAllGroups();
+	mainWG->initWorkers(nullptr);
+
+	const int numLstnrs = 5;
+	//create agents
+	eventPblshr = new EventPblshr();
+	eventPblshr->setStartTime(0);
+	mainWG->assignAWorker(eventPblshr);
+	Print() << "\nSender agent id: " << eventPblshr->GetId();
+
+	for (int i=0; i<numLstnrs; i++) {
+		Agent* newAg = new EventLstnr();
+		newAg->setStartTime(0);
+		mainWG->assignAWorker(newAg);
+		allAgents.push_back(newAg);
+		Print() << "\nListener agent id: " << newAg->GetId();
+	}
+
+	//Start work groups and all threads.
+	wgm.startAllWorkGroups();
+
+	//Agent update cycle
+	for (int i=0; i<5; i++) {
+		wgm.waitAllGroups();
+	}
+	allAgents.clear();
 }
 
 } //end anonymous namespace
 
 void unit_tests::MessageTests::testAll() {
-	testSendContextualMessage();
+	//testSendInstantaneousMessage();
+	testInstantaneousEvent();
 }
 
 

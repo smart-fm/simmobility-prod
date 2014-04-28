@@ -582,15 +582,10 @@ void sim_mob::messaging::MessageBus::PublishInstantaneousEvent(event::EventId id
 		event::Context ctx, EventArgsPtr args) {
 	CheckThreadContext();
 	ThreadContext* context = GetThreadContext();
-	if (context && ctx == context) {
-		InternalEventMessage eventMsg(id, ctx, args);
-		MessageHandler* target = dynamic_cast<MessageHandler*> (context->eventPublisher);
-		target->HandleMessage(MSGI_PUBLISH_EVENT, eventMsg);
+	if (context) {
+		context->eventPublisher->publish(id, ctx, *(args.get()));
 		context->eventMessages++;
 		context->processedMessages++;
-	}
-	else {
-		throw std::runtime_error("PublishInstantaneousEvent() is called for publishing events outside thread context");
 	}
 }
 

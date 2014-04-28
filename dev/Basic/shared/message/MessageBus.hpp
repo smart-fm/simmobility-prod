@@ -208,6 +208,15 @@ namespace sim_mob {
              */
             static void PublishEvent(event::EventId id, event::Context ctx, EventArgsPtr args);
 
+            /**
+             * Publishes an event within the given context synchronously. The
+             * even is handled by the listeners right away without any delay.
+             * @param id of the event.
+             * @param ctx of the event.
+             * @param args event data.
+             */
+            static void PublishInstantaneousEvent(event::EventId id, event::Context ctx, EventArgsPtr args);
+
         public:
             static const unsigned int MB_MIN_MSG_PRIORITY;
             static const unsigned int MB_MSG_START;

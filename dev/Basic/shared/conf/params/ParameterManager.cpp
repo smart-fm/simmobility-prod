@@ -17,7 +17,15 @@ ParameterManager::ParameterManager() {
 ParameterManager::~ParameterManager() {
 	// TODO Auto-generated destructor stub
 }
-
+bool ParameterManager::hasParam(const std::string& key) const
+{
+	ParameterPoolIterator it = parameterPool.find(key);
+	if(it != parameterPool.end())
+	{
+		return true;
+	}
+	return false;
+}
 bool ParameterManager::getParam(const std::string& key, double& d) const
 {
 	XmlRpc::XmlRpcValue v;

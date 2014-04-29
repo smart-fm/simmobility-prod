@@ -6,6 +6,7 @@
  */
 
 #include "ParseParamFile.hpp"
+#include "ParamData.hpp"
 #include <stdexcept>
 #include <iostream>
 
@@ -79,7 +80,7 @@ void ParseParamFile::parseElement(DOMElement* e)
 	   }
 	   cout<<"  value: "<<value<<endl;
 	   // save to parameter manager
-	   XmlRpc::XmlRpcValue v(value);
+	   ParamData v(value);
 	   paramMgr->setParam(name,v);
 	}
 	DOMNodeList*      children = e->getChildNodes();

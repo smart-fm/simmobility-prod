@@ -7,10 +7,12 @@
 
 #pragma once
 
-#include "XmlRpcValue.h"
+//#include "XmlRpcValue.h"
 #include "ParseParamFile.hpp"
+#include "ParamData.hpp"
 
 #include <string>
+#include <map>
 
 namespace sim_mob {
 
@@ -62,7 +64,7 @@ public:
 	   * \param v The value to be inserted.
 	   * \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	   */
-	  void setParam(const std::string& key, const XmlRpc::XmlRpcValue& v);
+	  void setParam(const std::string& key, const ParamData& v);
 	  /** \brief Set a string value on the parameter pool.
 	   *
 	   * \param key The key to be used in the parameter pool's dictionary
@@ -143,7 +145,7 @@ public:
 	   * \return true if the parameter value was retrieved, false otherwise
 	   * \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	   */
-	  bool getParam(const std::string& key, XmlRpc::XmlRpcValue& v) const;
+	  bool getParam(const std::string& key, ParamData& v) const;
 
 private:
 	  ParameterManager();
@@ -152,8 +154,8 @@ private:
 	   *  \map key is xml Tag or Element "name"
 	   *  \map value is XmlRpcValue
 	   */
-	  typedef std::map<string,XmlRpc::XmlRpcValue>::const_iterator ParameterPoolConIterator;
-	  std::map<string,XmlRpc::XmlRpcValue> parameterPool;
+	  typedef std::map<const string,const ParamData>::const_iterator ParameterPoolConIterator;
+	  std::map<const string,const ParamData> parameterPool;
 	  static ParameterManager *instance;
 };
 

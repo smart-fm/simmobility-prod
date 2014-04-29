@@ -6,7 +6,7 @@
  */
 
 #include "ParameterManager.hpp"
-#include <string>
+
 #include <stdexcept>
 
 
@@ -29,7 +29,7 @@ ParameterManager::ParameterManager() {
 ParameterManager::~ParameterManager() {
 	// TODO Auto-generated destructor stub
 }
-void ParameterManager::setParam(const std::string& key, const XmlRpc::XmlRpcValue& v)
+void ParameterManager::setParam(const std::string& key, const ParamData& v)
 {
 	ParameterPoolConIterator it = parameterPool.find(key);
 	if(it!=parameterPool.end())
@@ -41,22 +41,22 @@ void ParameterManager::setParam(const std::string& key, const XmlRpc::XmlRpcValu
 }
 void ParameterManager::setParam(const std::string& key, const std::string& s)
 {
-	XmlRpc::XmlRpcValue v(s);
+	ParamData v(s);
 	parameterPool.insert(std::make_pair(key,v));
 }
 void ParameterManager::setParam(const std::string& key, double d)
 {
-	XmlRpc::XmlRpcValue v(d);
+	ParamData v(d);
 	parameterPool.insert(std::make_pair(key,v));
 }
 void ParameterManager::setParam(const std::string& key, int i)
 {
-	XmlRpc::XmlRpcValue v(i);
+	ParamData v(i);
 	parameterPool.insert(std::make_pair(key,v));
 }
 void ParameterManager::setParam(const std::string& key, bool b)
 {
-	XmlRpc::XmlRpcValue v(b);
+	ParamData v(b);
 	parameterPool.insert(std::make_pair(key,v));
 }
 bool ParameterManager::hasParam(const std::string& key) const
@@ -70,28 +70,17 @@ bool ParameterManager::hasParam(const std::string& key) const
 }
 bool ParameterManager::getParam(const std::string& key, double& d) const
 {
-	XmlRpc::XmlRpcValue v;
+	ParamData v;
 	if (!getParam(key, v))
 	{
 		return false;
 	}
 
-	if (v.getType() == XmlRpc::XmlRpcValue::TypeInt)
-	{
-		d = (int)v;
-	}
-	else if (v.getType() != XmlRpc::XmlRpcValue::TypeDouble)
-	{
-		return false;
-	}
-	else
-	{
-		d = v;
-	}
+	d = v.toDouble();
 
 	return true;
 }
-bool ParameterManager::getParam(const std::string& key, XmlRpc::XmlRpcValue& v) const
+bool ParameterManager::getParam(const std::string& key, ParamData& v) const
 {
 	ParameterPoolConIterator it = parameterPool.find(key);
 	if(it != parameterPool.end())

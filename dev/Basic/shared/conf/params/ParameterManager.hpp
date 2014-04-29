@@ -18,7 +18,7 @@ using namespace std;
 
 class ParameterManager {
 public:
-	ParameterManager();
+	static ParameterManager* Instance();
 	virtual ~ParameterManager();
 
 public:
@@ -146,6 +146,7 @@ public:
 	  bool getParam(const std::string& key, XmlRpc::XmlRpcValue& v) const;
 
 private:
+	  ParameterManager();
 	  /**
 	   *  \brief store parameters
 	   *  \map key is xml Tag or Element "name"
@@ -153,6 +154,7 @@ private:
 	   */
 	  typedef std::map<string,XmlRpc::XmlRpcValue>::const_iterator ParameterPoolConIterator;
 	  std::map<string,XmlRpc::XmlRpcValue> parameterPool;
+	  static ParameterManager *instance;
 };
 
 }// namespace sim_mob

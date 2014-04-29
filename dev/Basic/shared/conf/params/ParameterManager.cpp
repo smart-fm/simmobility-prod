@@ -9,8 +9,18 @@
 #include <string>
 #include <stdexcept>
 
+
 namespace sim_mob {
 
+ParameterManager * ParameterManager::instance = NULL;
+ParameterManager *ParameterManager::Instance()
+{
+	if(!instance)
+	{
+		instance = new ParameterManager();
+	}
+	return instance;
+}
 ParameterManager::ParameterManager() {
 	// TODO Auto-generated constructor stub
 	ParseParamFile ppfile("data/driver_behavior_model/driver_param.xml",this);

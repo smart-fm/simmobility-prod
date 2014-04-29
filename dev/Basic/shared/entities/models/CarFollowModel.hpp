@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "conf/params/ParameterManager.hpp"
+
 namespace sim_mob {
 
 //Forward declaration
@@ -46,6 +48,7 @@ public:
 //MITSIM version of car following model
 class MITSIM_CF_Model : public CarFollowModel {
 public:
+	MITSIM_CF_Model();
 	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);
 
 private:

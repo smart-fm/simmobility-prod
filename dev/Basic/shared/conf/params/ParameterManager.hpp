@@ -62,42 +62,42 @@ public:
 	   * \param v The value to be inserted.
 	   * \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	   */
-	  void setParam(const std::string& key, const XmlRpc::XmlRpcValue& v) const;
+	  void setParam(const std::string& key, const XmlRpc::XmlRpcValue& v);
 	  /** \brief Set a string value on the parameter pool.
 	   *
 	   * \param key The key to be used in the parameter pool's dictionary
 	   * \param s The value to be inserted.
 	   * \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	   */
-	  void setParam(const std::string& key, const std::string& s) const;
+	  void setParam(const std::string& key, const std::string& s) ;
 	  /** \brief Set a string value on the parameter pool.
 	   *
 	   * \param key The key to be used in the parameter pool's dictionary
 	   * \param s The value to be inserted.
 	   * \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	   */
-	  void setParam(const std::string& key, const char* s) const;
+	  void setParam(const std::string& key, const char* s) ;
 	  /** \brief Set a double value on the parameter pool.
 	   *
 	   * \param key The key to be used in the parameter pool's dictionary
 	   * \param d The value to be inserted.
 	   * \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	   */
-	  void setParam(const std::string& key, double d) const;
+	  void setParam(const std::string& key, double d) ;
 	  /** \brief Set an integer value on the parameter pool.
 	   *
 	   * \param key The key to be used in the parameter pool's dictionary
 	   * \param i The value to be inserted.
 	   * \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	   */
-	  void setParam(const std::string& key, int i) const;
+	  void setParam(const std::string& key, int i) ;
 	  /** \brief Set a boolean value on the parameter pool.
 	   *
 	   * \param key The key to be used in the parameter pool's dictionary
 	   * \param b The value to be inserted.
 	   * \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	   */
-	  void setParam(const std::string& key, bool b) const;
+	  void setParam(const std::string& key, bool b) ;
 	/** \brief Get a double value from the parameter pool.
 	   *
 	   * If you want to provide a default value in case the key does not exist use param().

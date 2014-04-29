@@ -7,16 +7,27 @@
 
 #include "ParameterManager.hpp"
 #include <string>
+#include <stdexcept>
 
 namespace sim_mob {
 
 ParameterManager::ParameterManager() {
 	// TODO Auto-generated constructor stub
-	ParseParamFile ppfile("data/driver_behavior_model/driver_param.xml");
+	ParseParamFile ppfile("data/driver_behavior_model/driver_param.xml",this);
 }
 
 ParameterManager::~ParameterManager() {
 	// TODO Auto-generated destructor stub
+}
+void ParameterManager::setParam(const std::string& key, const XmlRpc::XmlRpcValue& v)
+{
+	ParameterPoolConIterator it = parameterPool.find(key);
+	if(it!=parameterPool.end())
+	{
+		std::string s= "param already exit: "+key;
+		throw std::runtime_error(s);
+	}
+	parameterPool.insert(std::make_pair(key,v));
 }
 bool ParameterManager::hasParam(const std::string& key) const
 {

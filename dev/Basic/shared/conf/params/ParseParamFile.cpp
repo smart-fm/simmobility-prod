@@ -20,7 +20,9 @@ std::string TranscodeString(const XMLCh* str) {
 	XMLString::release(&raw);
 	return res;
 }
-ParseParamFile::ParseParamFile(const std::string& paramFileName) {
+ParseParamFile::ParseParamFile(const std::string& paramFileName,ParameterManager* paramMgr)
+	:paramMgr(paramMgr)
+	{
 
 	cout<<"ParseParamFile: "<<paramFileName<<endl;
 	//Xerces initialization.
@@ -59,16 +61,26 @@ void ParseParamFile::parseElement(DOMElement* e)
 //	cout<<"parseElement: "<<TranscodeString(e->getTagName())<<endl;
 	if( XMLString::equals(e->getTagName(), XMLString::transcode("param") ) )
 	{
-	   // Already tested node as type element and of name "ApplicationSettings".
-	   // Read attributes of element "ApplicationSettings".
+	   // Read attributes of element "param".
 	   const XMLCh* xmlchName
 			 = e->getAttribute(XMLString::transcode("name"));
 	   string name = XMLString::transcode(xmlchName);
+	   if(name.empty())
+	   {
+		   throw std::runtime_error("name is empty");
+	   }
 	   cout<<"name: "<<name;
 	   const XMLCh* xmlchValue
 			 = e->getAttribute(XMLString::transcode("value"));
 	   string value = XMLString::transcode(xmlchValue);
+	   if(value.empty())
+	   {
+		   throw std::runtime_error("value is empty");
+	   }
 	   cout<<"  value: "<<value<<endl;
+	   // save to parameter manager
+	   XmlRpc::XmlRpcValue v(value);
+	   paramMgr->setParam(name,v);
 	}
 	DOMNodeList*      children = e->getChildNodes();
 
@@ -81,13 +93,11 @@ void ParseParamFile::parseElement(DOMElement* e)
 		if( currentNode->getNodeType() &&  // true is not NULL
 		 currentNode->getNodeType() == DOMNode::ELEMENT_NODE ) // is element
 		{
-		// Found node which is an Element. Re-cast node as element
-		DOMElement* currentElement
-					= dynamic_cast< xercesc::DOMElement* >( currentNode );
-		parseElement(currentElement);
-
+			// Found node which is an Element. Re-cast node as element
+			DOMElement* currentElement
+						= dynamic_cast< xercesc::DOMElement* >( currentNode );
+			parseElement(currentElement);
 		}
-
 	}
 }
 ParseParamFile::~ParseParamFile() {

@@ -15,55 +15,52 @@ namespace sim_mob {
 namespace medium {
 
 PassengerBehavior::PassengerBehavior(sim_mob::Person* parentAgent) :
-		BehaviorFacet(parentAgent), parentPassenger(nullptr)
-{
+		BehaviorFacet(parentAgent), parentPassenger(nullptr) {
 
 }
 
-PassengerBehavior::~PassengerBehavior()
-{
+PassengerBehavior::~PassengerBehavior() {
 
 }
 
-PassengerMovement::PassengerMovement(sim_mob::Person* parentAgent):
-		MovementFacet(parentAgent), parentPassenger(nullptr), totalTimeToCompleteMS(0)
-{
+PassengerMovement::PassengerMovement(sim_mob::Person* parentAgent) :
+		MovementFacet(parentAgent), parentPassenger(nullptr), totalTimeToCompleteMS(
+				0) {
 
 }
 
-PassengerMovement::~PassengerMovement()
-{
+PassengerMovement::~PassengerMovement() {
 
 }
 
-void PassengerMovement::setParentPassenger(sim_mob::medium::Passenger* parentPassenger){
+void PassengerMovement::setParentPassenger(
+		sim_mob::medium::Passenger* parentPassenger) {
 	this->parentPassenger = parentPassenger;
 }
 
-void PassengerBehavior::setParentPassenger(sim_mob::medium::Passenger* parentPassenger){
+void PassengerBehavior::setParentPassenger(
+		sim_mob::medium::Passenger* parentPassenger) {
 	this->parentPassenger = parentPassenger;
 }
 
-void PassengerMovement::frame_init(){
+void PassengerMovement::frame_init() {
 
 	totalTimeToCompleteMS = 0;
 }
 
-void PassengerMovement::frame_tick()
-{
-	unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
+void PassengerMovement::frame_tick() {
+	unsigned int tickMS =
+			ConfigManager::GetInstance().FullConfig().baseGranMS();
 	totalTimeToCompleteMS += tickMS;
 
-	if(parentPassenger->getAssociateDriver()==nullptr)
-	{
+	if (parentPassenger->getAssociateDriver() == nullptr) {
 		getParent()->setToBeRemoved();
 	}
 }
 
-void PassengerMovement::frame_tick_output(){
+void PassengerMovement::frame_tick_output() {
 
 }
-
 
 }
 

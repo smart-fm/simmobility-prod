@@ -11,8 +11,7 @@
 #include "entities/Person.hpp"
 
 namespace sim_mob {
-namespace medium
-{
+namespace medium {
 
 class Passenger;
 
@@ -26,6 +25,10 @@ public:
 	virtual void frame_tick() {;}
 	virtual void frame_tick_output() {;}
 
+	/**
+	 * set parent reference to passenger role.
+	 * @param parentPassenger is pointer to parent passenger role
+	 */
 	void setParentPassenger(sim_mob::medium::Passenger* parentPassenger);
 
 protected:
@@ -42,8 +45,11 @@ public:
 	virtual void frame_tick();
 	virtual void frame_tick_output();
 
+	/**
+	 * set parent reference to passenger role.
+	 * @param parentPassenger is pointer to parent passenger role
+	 */
 	void setParentPassenger(sim_mob::medium::Passenger* parentPassenger);
-
 
 protected:
 	sim_mob::medium::Passenger* parentPassenger;

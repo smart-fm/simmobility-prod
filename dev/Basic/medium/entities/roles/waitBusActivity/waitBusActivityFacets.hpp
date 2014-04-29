@@ -30,6 +30,10 @@ public:
 	virtual void frame_tick() {;}
 	virtual void frame_tick_output() {;}
 
+	/**
+	 * set parent reference to waiting activity role.
+	 * @param parentWaitBusActivity is pointer to parent waiting activity role
+	 */
 	void setParentWaitBusActivity(sim_mob::medium::WaitBusActivity* parentWaitBusActivity);
 
 protected:
@@ -46,8 +50,16 @@ public:
 	virtual void frame_tick();
 	virtual void frame_tick_output();
 
+	/**
+	 * set parent reference to waiting activity role.
+	 * @param parentWaitBusActivity is pointer to parent waiting activity role
+	 */
 	void setParentWaitBusActivity(sim_mob::medium::WaitBusActivity* parentWaitBusActivity);
-	void makeAboardingDecision();
+
+	/**
+	 * make a decision for boarding.
+	 */
+	void makeBoardingDecision();
 
 
 protected:

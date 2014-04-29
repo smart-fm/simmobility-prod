@@ -12,9 +12,7 @@
 
 namespace sim_mob {
 
-
-namespace medium
-{
+namespace medium {
 
 class Pedestrian;
 
@@ -24,10 +22,17 @@ public:
 	virtual ~PedestrianBehavior();
 
 	//Virtual overrides
-	virtual void frame_init() {}
-	virtual void frame_tick() {}
-	virtual void frame_tick_output() {}
+	virtual void frame_init() {
+	}
+	virtual void frame_tick() {
+	}
+	virtual void frame_tick_output() {
+	}
 
+	/**
+	 * set parent reference to pedestrian.
+	 * @param parentPedestrian is pointer to parent pedestrian
+	 */
 	void setParentPedestrian(sim_mob::medium::Pedestrian* parentPedestrian);
 
 protected:
@@ -45,6 +50,10 @@ public:
 	virtual void frame_tick();
 	virtual void frame_tick_output();
 
+	/**
+	 * set parent reference to pedestrian.
+	 * @param parentPedestrian is pointer to parent pedestrian
+	 */
 	void setParentPedestrian(sim_mob::medium::Pedestrian* parentPedestrian);
 
 	/**
@@ -55,17 +64,16 @@ public:
 	/**
 	 * get next link when want to move to next link
 	 * */
-	Link* getNextLink(){
+	Link* getNextLink() {
 		return nextLink;
 	}
 
 	/**
 	 * whether want to move to next link
 	 * */
-	bool moveToNextLink(){
+	bool moveToNextLink() {
 		return isMoveToNextLink;
 	}
-
 
 protected:
 
@@ -76,14 +84,18 @@ protected:
 	void initializePath(std::vector<const RoadSegment*>& path);
 
 protected:
+	//parent pedestrian
 	sim_mob::medium::Pedestrian* parentPedestrian;
 	//record the current remaining time to the destination
 	float remainingTimeToComplete;
 	//pedestrian's walking speed
 	const float walkSpeed;
 	float lastRemainingTime;
-	std::vector< std::pair<Link*, double> > trajectory;
+	//store the pair of link and route's distance
+	std::vector<std::pair<Link*, double> > trajectory;
+	//when want to move to next link, the value is true;
 	bool isMoveToNextLink;
+	//next link which he want to move to
 	Link* nextLink;
 };
 

@@ -29,6 +29,26 @@ void ParameterManager::setParam(const std::string& key, const XmlRpc::XmlRpcValu
 	}
 	parameterPool.insert(std::make_pair(key,v));
 }
+void ParameterManager::setParam(const std::string& key, const std::string& s)
+{
+	XmlRpc::XmlRpcValue v(s);
+	parameterPool.insert(std::make_pair(key,v));
+}
+void ParameterManager::setParam(const std::string& key, double d)
+{
+	XmlRpc::XmlRpcValue v(d);
+	parameterPool.insert(std::make_pair(key,v));
+}
+void ParameterManager::setParam(const std::string& key, int i)
+{
+	XmlRpc::XmlRpcValue v(i);
+	parameterPool.insert(std::make_pair(key,v));
+}
+void ParameterManager::setParam(const std::string& key, bool b)
+{
+	XmlRpc::XmlRpcValue v(b);
+	parameterPool.insert(std::make_pair(key,v));
+}
 bool ParameterManager::hasParam(const std::string& key) const
 {
 	ParameterPoolConIterator it = parameterPool.find(key);

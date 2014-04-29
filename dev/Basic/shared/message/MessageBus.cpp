@@ -585,7 +585,6 @@ void sim_mob::messaging::MessageBus::PublishInstantaneousEvent(event::EventId id
 	if (context) {
 		context->eventPublisher->publish(id, ctx, *(args.get()));
 		context->eventMessages++;
-		context->processedMessages++;
 	}
 }
 

@@ -15,6 +15,7 @@
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "entities/commsim/connection/WhoAreYouProtocol.hpp"
 #include "entities/commsim/client/ClientHandler.hpp"
+#include "entities/commsim/serialization/Base64Escape.hpp"
 
 #include "entities/commsim/wait/WaitForAndroidConnection.hpp"
 #include "entities/commsim/wait/WaitForNS3Connection.hpp"
@@ -483,6 +484,15 @@ void sim_mob::Broker::sendToCloud(boost::shared_ptr<CloudHandler> cloud, const O
 	newMsg.toIds.clear();
 	newMsg.toIds.push_back(toId);
 
+	//Before waiting for the cloud, decode the actual message, and split it at every newline.
+	if (msg.format != "base64escape") {
+		throw std::runtime_error("Unknown message format sending to cloud; can't decode.");
+	}
+	std::vector<std::string> msgLines;
+	Base64Escape::Decode(msgLines, msg.data, '\n');
+
+
+
 	//Now, wait for the client to connect.
 	{
 	boost::unique_lock<boost::mutex> lock(mutex_verified_cloud_connections);
@@ -491,9 +501,12 @@ void sim_mob::Broker::sendToCloud(boost::shared_ptr<CloudHandler> cloud, const O
 	}
 	}
 
-	//We now have a valid cloud connection. The following needs to happen:
+	//We now have a valid cloud connection.
+
+
+
 	//Step 1) Decode the actual message (using the base64/substitution method present in the client).
-	//        Note that this violates the "Opaque" principle, so we might need to add a tag describint the format.
+	//        Note that this violates the "Opaque" principle, so we might need to add a tag describing the format.
 	//Step 2) Send the actual message to the cloud server, line by line.
 	//Step 3) Wait for a response from the server, line-by-line.
 	//Step 4) Either route the response through ns-3 (as an OpaqueReceive), or send the OpaqueReceive directly to the client.

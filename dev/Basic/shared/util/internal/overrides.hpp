@@ -10,8 +10,13 @@
 namespace sim_mob {
 struct linkToLink; //forward declaration
 namespace xml {
+
+namespace {
 ///constant strings
 const std::string &itemElement = "<item>";//"<item>"
+} //End un-named namespace
+
+
 //////////////////////////////////////////////////////////////////////
 // get_id for const and non-const pointer types
 //////////////////////////////////////////////////////////////////////

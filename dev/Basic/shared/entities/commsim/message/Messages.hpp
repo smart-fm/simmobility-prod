@@ -20,6 +20,7 @@ namespace sim_mob {
 struct OpaqueSendMessage : public sim_mob::MessageBase {
 	std::string fromId; ///<The Agent sending this message.
 	std::vector<std::string> toIds; ///<The Agent(s) we are sending this message to.
+	std::string format; ///<The way we format the data string.
 	bool broadcast; ///<If true, Sim Mobility will overwrite "toIds" with the nearest Agents (using the Aura Manager).
 	std::string data; ///<The actual message data
 	OpaqueSendMessage(const MessageBase& base) : MessageBase(base) {}
@@ -31,6 +32,7 @@ struct OpaqueSendMessage : public sim_mob::MessageBase {
 struct OpaqueReceiveMessage : public sim_mob::MessageBase {
 	std::string fromId; ///<The Agent sending this message.
 	std::string toId; ///<The Agent we are sending this message to.
+	std::string format; ///<The way we format the data string.
 	std::string data; ///<The actual message data
 	OpaqueReceiveMessage(const MessageBase& base) : MessageBase(base) {}
 };

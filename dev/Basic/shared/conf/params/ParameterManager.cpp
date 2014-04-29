@@ -8,6 +8,7 @@
 #include "ParameterManager.hpp"
 
 #include <stdexcept>
+#include <iostream>
 
 
 namespace sim_mob {
@@ -31,7 +32,8 @@ ParameterManager::~ParameterManager() {
 }
 void ParameterManager::setParam(const std::string& modelName, const std::string& key, const ParamData& v)
 {
-	ParameterPoolConIterator it = parameterPool.find(modelName);
+	std::cout<<modelName<<" "<<key<<std::endl;
+	ParameterPoolIterator it = parameterPool.find(modelName);
 	if(it==parameterPool.end())
 	{
 		// new model
@@ -42,14 +44,26 @@ void ParameterManager::setParam(const std::string& modelName, const std::string&
 	else
 	{
 		ParameterNameValueMap nvMap = it->second;
-		ParameterNameValueMapConIterator itt = nvMap.find(key);
+//		std::cout<<"nvMap size bf: "<<nvMap.size()<<std::endl;
+		ParameterNameValueMapIterator itt = nvMap.find(key);
 		if(itt!=nvMap.end())
 		{
 			std::string s= "param already exit: "+key;
 			throw std::runtime_error(s);
 		}
+		//
+//		for(itt=nvMap.begin();itt!=nvMap.end();++itt)
+//		{
+//			std::cout<<"key: "<<itt->first<<std::endl;
+//		}
 		nvMap.insert(std::make_pair(key,v));
-		parameterPool.insert(std::make_pair(modelName,nvMap));
+
+//		std::cout<<"nvMap size: "<<nvMap.size()<<std::endl;
+		parameterPool[modelName]=nvMap;
+//		//
+//		ParameterPoolIterator ittt = parameterPool.find(modelName);
+//		ParameterNameValueMap nvMapt = ittt->second;
+//		std::cout<<"nvMapt size: "<<nvMapt.size()<<std::endl;
 	}
 
 }

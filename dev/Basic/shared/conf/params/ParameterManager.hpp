@@ -149,8 +149,10 @@ public:
 
 private:
 	  ParameterManager();
-	  typedef std::map<const string,const ParamData> ParameterNameValueMap;
-	  typedef std::map<const string,const ParamData>::const_iterator ParameterNameValueMapConIterator;
+	  typedef std::map< string, ParamData> ParameterNameValueMap;
+	  typedef std::map< string, ParamData>::iterator ParameterNameValueMapIterator;
+	  typedef std::map< string, ParamData>::const_iterator ParameterNameValueMapConIterator;
+	  typedef std::map< string,ParameterNameValueMap >::iterator ParameterPoolIterator;
 	  typedef std::map< string,ParameterNameValueMap >::const_iterator ParameterPoolConIterator;
 	  /**
 	   *  \brief store parameters

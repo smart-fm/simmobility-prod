@@ -28,6 +28,14 @@ public:
 	virtual ~CarFollowModel() {}
 
 	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed) = 0;  ///<Decide acceleration
+
+public:
+	double maxAcceleration;
+	double normalDeceleration;
+	double maxDeceleration;
+
+	double hBufferUpper;
+	double hBufferLower;
 };
 
 /**

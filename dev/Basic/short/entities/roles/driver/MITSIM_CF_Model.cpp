@@ -28,13 +28,13 @@ namespace {
 //boost::mt19937 gen;
 
 //Threshold defaults
-const double hBufferUpper			=	  1.6;	 ///< upper threshold of headway
-const double hBufferLower			=	  0.8;	 ///< lower threshold of headway
+//const double hBufferUpper			=	  1.6;	 ///< upper threshold of headway
+//const double hBufferLower			=	  0.8;	 ///< lower threshold of headway
 
 //Set default data for acceleration
-const double maxAcceleration = 5.0;   ///< 5m/s*s, might be tunable later
-const double normalDeceleration = -maxAcceleration*0.6;
-const double maxDeceleration = -maxAcceleration;
+//const double maxAcceleration = 5.0;   ///< 5m/s*s, might be tunable later
+//const double normalDeceleration = -maxAcceleration*0.6;
+//const double maxDeceleration = -maxAcceleration;
 
 //Simple conversion
 double feet2Unit(double feet) {
@@ -113,9 +113,17 @@ double CalcHeadway(double space, double speed, double elapsedSeconds, double max
  */
 sim_mob::MITSIM_CF_Model::MITSIM_CF_Model()
 {
-	CarFollowParam leadCarFollowParam;
-	ParameterManager::Instance()->param("general_driver_model","lead_alpha",leadCarFollowParam.alpha,0.0400);
-	std::cout<<"MITSIM_CF_Model: "<<leadCarFollowParam.alpha<<std::endl;
+//	CarFollowParam leadCarFollowParam;
+//	ParameterManager::Instance()->param("general_driver_model","lead_alpha",leadCarFollowParam.alpha,0.0400);
+//	std::cout<<"MITSIM_CF_Model: "<<leadCarFollowParam.alpha<<std::endl;
+
+	ParameterManager::Instance()->param("general_driver_model","maxAcceleration",maxAcceleration,5.01);
+	ParameterManager::Instance()->param("general_driver_model","normalDeceleration",normalDeceleration,-3.01);
+	ParameterManager::Instance()->param("general_driver_model","maxDeceleration",maxDeceleration,-5.01);
+
+	std::cout<<"MITSIM_CF_Model: maxAcceleration <"<<maxAcceleration<<">"<<std::endl;
+	std::cout<<"MITSIM_CF_Model: normalDeceleration <"<<normalDeceleration<<">"<<std::endl;
+	std::cout<<"MITSIM_CF_Model: maxDeceleration <"<<maxDeceleration<<">"<<std::endl;
 }
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {

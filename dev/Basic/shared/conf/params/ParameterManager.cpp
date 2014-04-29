@@ -29,49 +29,69 @@ ParameterManager::ParameterManager() {
 ParameterManager::~ParameterManager() {
 	// TODO Auto-generated destructor stub
 }
-void ParameterManager::setParam(const std::string& key, const ParamData& v)
+void ParameterManager::setParam(const std::string& modelName, const std::string& key, const ParamData& v)
 {
-	ParameterPoolConIterator it = parameterPool.find(key);
-	if(it!=parameterPool.end())
+	ParameterPoolConIterator it = parameterPool.find(modelName);
+	if(it==parameterPool.end())
 	{
-		std::string s= "param already exit: "+key;
-		throw std::runtime_error(s);
+		// new model
+		ParameterNameValueMap nvMap;
+		nvMap.insert(std::make_pair(key,v));
+		parameterPool.insert(std::make_pair(modelName,nvMap));
 	}
-	parameterPool.insert(std::make_pair(key,v));
+	else
+	{
+		ParameterNameValueMap nvMap = it->second;
+		ParameterNameValueMapConIterator itt = nvMap.find(key);
+		if(itt!=nvMap.end())
+		{
+			std::string s= "param already exit: "+key;
+			throw std::runtime_error(s);
+		}
+		nvMap.insert(std::make_pair(key,v));
+		parameterPool.insert(std::make_pair(modelName,nvMap));
+	}
+
 }
-void ParameterManager::setParam(const std::string& key, const std::string& s)
+void ParameterManager::setParam(const std::string& modelName, const std::string& key, const std::string& s)
 {
 	ParamData v(s);
-	parameterPool.insert(std::make_pair(key,v));
+	setParam(modelName,key,v);
 }
-void ParameterManager::setParam(const std::string& key, double d)
+void ParameterManager::setParam(const std::string& modelName, const std::string& key, double d)
 {
 	ParamData v(d);
-	parameterPool.insert(std::make_pair(key,v));
+	setParam(modelName,key,v);
 }
-void ParameterManager::setParam(const std::string& key, int i)
+void ParameterManager::setParam(const std::string& modelName, const std::string& key, int i)
 {
 	ParamData v(i);
-	parameterPool.insert(std::make_pair(key,v));
+	setParam(modelName,key,v);
 }
-void ParameterManager::setParam(const std::string& key, bool b)
+void ParameterManager::setParam(const std::string& modelName, const std::string& key, bool b)
 {
 	ParamData v(b);
-	parameterPool.insert(std::make_pair(key,v));
+	setParam(modelName,key,v);
 }
-bool ParameterManager::hasParam(const std::string& key) const
+bool ParameterManager::hasParam(const std::string& modelName, const std::string& key) const
 {
-	ParameterPoolConIterator it = parameterPool.find(key);
-	if(it != parameterPool.end())
+	ParameterPoolConIterator it = parameterPool.find(modelName);
+	if(it == parameterPool.end())
 	{
-		return true;
+		return false;
 	}
-	return false;
+	ParameterNameValueMap nvMap = it->second;
+	ParameterNameValueMapConIterator itt = nvMap.find(key);
+	if(itt==nvMap.end())
+	{
+		return false;
+	}
+	return true;
 }
-bool ParameterManager::getParam(const std::string& key, double& d) const
+bool ParameterManager::getParam(const std::string& modelName, const std::string& key, double& d) const
 {
 	ParamData v;
-	if (!getParam(key, v))
+	if (!getParam(modelName,key, v))
 	{
 		return false;
 	}
@@ -80,14 +100,20 @@ bool ParameterManager::getParam(const std::string& key, double& d) const
 
 	return true;
 }
-bool ParameterManager::getParam(const std::string& key, ParamData& v) const
+bool ParameterManager::getParam(const std::string& modelName, const std::string& key, ParamData& v) const
 {
-	ParameterPoolConIterator it = parameterPool.find(key);
-	if(it != parameterPool.end())
+	ParameterPoolConIterator it = parameterPool.find(modelName);
+	if(it == parameterPool.end())
 	{
-		return true;
+		return false;
 	}
-	v = it->second;
-	return false;
+	ParameterNameValueMap nvMap = it->second;
+	ParameterNameValueMapConIterator itt = nvMap.find(key);
+	if(itt == nvMap.end())
+	{
+		return false;
+	}
+	v = itt->second;
+	return true;
 }
 }//namespace sim_mob

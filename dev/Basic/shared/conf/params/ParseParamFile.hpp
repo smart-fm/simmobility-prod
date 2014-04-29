@@ -32,6 +32,8 @@ public:
 
 public:
 	ParameterManager* paramMgr;
+	std::string fileName;
+	std::string modelName;
 };
 
 } /* namespace sim_mob */

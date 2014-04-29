@@ -37,11 +37,11 @@ public:
 	* \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	*/
 	template<typename T>
-	void param(const std::string& paramName, T& paramVal, const T& defaultVal) const
+	void param(const std::string& modelName, const std::string& paramName, T& paramVal, const T& defaultVal) const
 	{
-		if (hasParam(paramName))
+		if (hasParam(modelName,paramName))
 		{
-		  if (getParam(paramName, paramVal))
+		  if (getParam(modelName,paramName, paramVal))
 		  {
 			return;
 		  }
@@ -56,7 +56,7 @@ public:
 	* \return true if the parameter exists, false otherwise
 	* \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	*/
-	bool hasParam(const std::string& key) const;
+	bool hasParam(const std::string& modelName, const std::string& key) const;
 
 	/** \brief Set an arbitrary XML/RPC value to the parameter pool.
 	   *
@@ -64,35 +64,35 @@ public:
 	   * \param v The value to be inserted.
 	   * \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	   */
-	  void setParam(const std::string& key, const ParamData& v);
+	  void setParam(const std::string& modelName, const std::string& key, const ParamData& v);
 	  /** \brief Set a string value on the parameter pool.
 	   *
 	   * \param key The key to be used in the parameter pool's dictionary
 	   * \param s The value to be inserted.
 	   * \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	   */
-	  void setParam(const std::string& key, const std::string& s) ;
+	  void setParam(const std::string& modelName, const std::string& key, const std::string& s) ;
 	  /** \brief Set a double value on the parameter pool.
 	   *
 	   * \param key The key to be used in the parameter pool's dictionary
 	   * \param d The value to be inserted.
 	   * \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	   */
-	  void setParam(const std::string& key, double d) ;
+	  void setParam(const std::string& modelName, const std::string& key, double d) ;
 	  /** \brief Set an integer value on the parameter pool.
 	   *
 	   * \param key The key to be used in the parameter pool's dictionary
 	   * \param i The value to be inserted.
 	   * \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	   */
-	  void setParam(const std::string& key, int i) ;
+	  void setParam(const std::string& modelName, const std::string& key, int i) ;
 	  /** \brief Set a boolean value on the parameter pool.
 	   *
 	   * \param key The key to be used in the parameter pool's dictionary
 	   * \param b The value to be inserted.
 	   * \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	   */
-	  void setParam(const std::string& key, bool b) ;
+	  void setParam(const std::string& modelName, const std::string& key, bool b) ;
 	/** \brief Get a double value from the parameter pool.
 	   *
 	   * If you want to provide a default value in case the key does not exist use param().
@@ -103,7 +103,7 @@ public:
 	   * \return true if the parameter value was retrieved, false otherwise
 	   * \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	   */
-	  bool getParam(const std::string& key, double& d) const;
+	  bool getParam(const std::string& modelName, const std::string& key, double& d) const;
 	/** \brief Get a string value from the parameter pool
 	*
 	* \param key The key to be used in the parameter pool's dictionary
@@ -112,7 +112,7 @@ public:
 	* \return true if the parameter value was retrieved, false otherwise
 	* \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	*/
-	bool getParam(const std::string& key, std::string& s) const;
+	bool getParam(const std::string& modelName, const std::string& key, std::string& s) const;
 	/** \brief Get an integer value from the parameter pool.
 	   *
 	   * If you want to provide a default value in case the key does not exist use param().
@@ -123,7 +123,7 @@ public:
 	   * \return true if the parameter value was retrieved, false otherwise
 	   * \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	   */
-	  bool getParam(const std::string& key, int& i) const;
+	  bool getParam(const std::string& modelName, const std::string& key, int& i) const;
 	  /** \brief Get a boolean value from the parameter pool.
 	   *
 	   * If you want to provide a default value in case the key does not exist use param().
@@ -134,7 +134,7 @@ public:
 	   * \return true if the parameter value was retrieved, false otherwise
 	   * \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	   */
-	  bool getParam(const std::string& key, bool& b) const;
+	  bool getParam(const std::string& modelName, const std::string& key, bool& b) const;
 	  /** \brief Get an arbitrary XML/RPC value from the parameter pool.
 	   *
 	   * If you want to provide a default value in case the key does not exist use param().
@@ -145,17 +145,21 @@ public:
 	   * \return true if the parameter value was retrieved, false otherwise
 	   * \throws InvalidNameException If the parameter key begins with a tilde, or is an otherwise invalid graph resource name
 	   */
-	  bool getParam(const std::string& key, ParamData& v) const;
+	  bool getParam(const std::string& modelName, const std::string& key, ParamData& v) const;
 
 private:
 	  ParameterManager();
+	  typedef std::map<const string,const ParamData> ParameterNameValueMap;
+	  typedef std::map<const string,const ParamData>::const_iterator ParameterNameValueMapConIterator;
+	  typedef std::map< string,ParameterNameValueMap >::const_iterator ParameterPoolConIterator;
 	  /**
 	   *  \brief store parameters
-	   *  \map key is xml Tag or Element "name"
-	   *  \map value is XmlRpcValue
+	   *  \map key is model name
+	   *  \map value is parameters belong to the model
+	   *  \sub map key is xml Tag or Element "name"
+	   *  \sub map value is XmlRpcValue
 	   */
-	  typedef std::map<const string,const ParamData>::const_iterator ParameterPoolConIterator;
-	  std::map<const string,const ParamData> parameterPool;
+	  std::map< string,ParameterNameValueMap > parameterPool;
 	  static ParameterManager *instance;
 };
 

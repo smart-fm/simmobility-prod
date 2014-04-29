@@ -22,7 +22,7 @@ std::string TranscodeString(const XMLCh* str) {
 	return res;
 }
 ParseParamFile::ParseParamFile(const std::string& paramFileName,ParameterManager* paramMgr)
-	:paramMgr(paramMgr)
+	:paramMgr(paramMgr),fileName(paramFileName)
 	{
 
 	cout<<"ParseParamFile: "<<paramFileName<<endl;
@@ -55,7 +55,24 @@ ParseParamFile::ParseParamFile(const std::string& paramFileName,ParameterManager
 	}
 
 	DOMElement* rootNode = parser.getDocument()->getDocumentElement();
-	parseElement(rootNode);
+	if( XMLString::equals(rootNode->getTagName(), XMLString::transcode("parameters") ) )
+	{
+		// get model name
+		const XMLCh* xmlchName
+			 = rootNode->getAttribute(XMLString::transcode("model_name"));
+		modelName = XMLString::transcode(xmlchName);
+		if(modelName.empty())
+		{
+		   throw std::runtime_error("model Name is empty");
+		}
+		cout<<"modelName: "<<modelName;
+		parseElement(rootNode);
+	}
+	else
+	{
+		string s = "not found tag parameters in file: "+fileName;
+		throw std::runtime_error(s);
+	}
 }
 void ParseParamFile::parseElement(DOMElement* e)
 {
@@ -81,7 +98,8 @@ void ParseParamFile::parseElement(DOMElement* e)
 	   cout<<"  value: "<<value<<endl;
 	   // save to parameter manager
 	   ParamData v(value);
-	   paramMgr->setParam(name,v);
+	   v.setParaFileName(fileName);
+	   paramMgr->setParam(modelName,name,v);
 	}
 	DOMNodeList*      children = e->getChildNodes();
 

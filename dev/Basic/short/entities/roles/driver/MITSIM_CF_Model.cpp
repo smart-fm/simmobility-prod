@@ -114,7 +114,7 @@ double CalcHeadway(double space, double speed, double elapsedSeconds, double max
 sim_mob::MITSIM_CF_Model::MITSIM_CF_Model()
 {
 	CarFollowParam leadCarFollowParam;
-	ParameterManager::Instance()->param("lead_alpha",leadCarFollowParam.alpha,0.0400);
+	ParameterManager::Instance()->param("general_driver_model","lead_alpha",leadCarFollowParam.alpha,0.0400);
 	std::cout<<"MITSIM_CF_Model: "<<leadCarFollowParam.alpha<<std::endl;
 }
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)

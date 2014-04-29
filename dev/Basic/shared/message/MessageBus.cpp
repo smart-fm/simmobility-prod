@@ -494,7 +494,7 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
     }
 }
 
-void MessageBus::SendContextualMessage(MessageHandler* destination,
+void MessageBus::SendInstantaneousMessage(MessageHandler* destination,
 		Message::MessageType type, MessagePtr message) {
 	CheckThreadContext();
 	ThreadContext* context = GetThreadContext();
@@ -505,7 +505,7 @@ void MessageBus::SendContextualMessage(MessageHandler* destination,
 			context->processedMessages++;
 		}
 		else {
-			throw std::runtime_error("SendMessage() is called for sending messages outside the thread");
+			throw std::runtime_error("SendInstantaneousMessage() is called for sending messages outside thread context");
 		}
 	}
 }
@@ -576,6 +576,16 @@ void MessageBus::PublishEvent(event::EventId id, event::Context ctx, EventArgsPt
     if (context) {
         PostMessage(nullptr, MSGI_PUBLISH_EVENT, MessagePtr(new InternalEventMessage(id, ctx, args)));
     }
+}
+
+void sim_mob::messaging::MessageBus::PublishInstantaneousEvent(event::EventId id,
+		event::Context ctx, EventArgsPtr args) {
+	CheckThreadContext();
+	ThreadContext* context = GetThreadContext();
+	if (context) {
+		context->eventPublisher->publish(id, ctx, *(args.get()));
+		context->eventMessages++;
+	}
 }
 
 MessageBus::MessageBus() : MessageHandler(0) {

@@ -33,6 +33,15 @@ public:
 
 	//Test actual object data from RoadRunner.
 	void test_Base64Escape_roadrunner_1();
+	void test_Base64Escape_roadrunner_2();
+	void test_Base64Escape_roadrunner_3();
+	void test_Base64Escape_roadrunner_4();
+	void test_Base64Escape_roadrunner_5();
+	void test_Base64Escape_roadrunner_6();
+	void test_Base64Escape_roadrunner_7();
+	void test_Base64Escape_roadrunner_8();
+	void test_Base64Escape_roadrunner_9();
+	void test_Base64Escape_roadrunner_10();
 
 private:
 #ifndef SIMMOB_DISABLE_MPI
@@ -47,6 +56,15 @@ private:
       CPPUNIT_TEST(test_Base64Escape_8);
       CPPUNIT_TEST(test_Base64Escape_9);
       CPPUNIT_TEST(test_Base64Escape_roadrunner_1);
+      CPPUNIT_TEST(test_Base64Escape_roadrunner_2);
+      CPPUNIT_TEST(test_Base64Escape_roadrunner_3);
+      CPPUNIT_TEST(test_Base64Escape_roadrunner_4);
+      CPPUNIT_TEST(test_Base64Escape_roadrunner_5);
+      CPPUNIT_TEST(test_Base64Escape_roadrunner_6);
+      CPPUNIT_TEST(test_Base64Escape_roadrunner_7);
+      CPPUNIT_TEST(test_Base64Escape_roadrunner_8);
+      CPPUNIT_TEST(test_Base64Escape_roadrunner_9);
+      CPPUNIT_TEST(test_Base64Escape_roadrunner_10);
     CPPUNIT_TEST_SUITE_END();
 #endif
 };

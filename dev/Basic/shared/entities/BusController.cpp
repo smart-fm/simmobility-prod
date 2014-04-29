@@ -588,9 +588,6 @@ Entity::UpdateStatus sim_mob::BusController::frame_tick(timeslice now)
 	nextTimeTickToStage += tickStep;
 	unsigned int nextTickMS = (nextTimeTickToStage+3)*ConfigManager::GetInstance().FullConfig().baseGranMS();
 
-	if(!pending_buses.empty()){
-		std::cout << "bus start time :" << pending_buses.top()->getStartTime() << std::endl;
-	}
 	//Stage any pending entities that will start during this time tick.
 	while (!pending_buses.empty() && pending_buses.top()->getStartTime() <= nextTickMS) {
 		///////////////////////////////////////////////////////////////////

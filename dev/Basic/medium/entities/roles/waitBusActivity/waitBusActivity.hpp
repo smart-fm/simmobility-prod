@@ -21,7 +21,7 @@ namespace medium
 class WaitBusActivityBehavior;
 class WaitBusActivityMovement;
 
-
+enum Decision{MAKE_DECISION_NORESULT, MAKE_DECISION_BOARDING};
 /**
  * A medium-term WaitBusActivity.
  * \author Seth N. Hetu
@@ -42,6 +42,9 @@ public:
 	void increaseWaitingTime(unsigned int ms);
 	void setStopSite(sim_mob::BusStop* stop);
 
+	void setMakeDecisionResult(Decision decision);
+	Decision getMakeDecisionResult();
+
 private:
 	friend class WaitBusActivityBehavior;
 	friend class WaitBusActivityMovement;
@@ -49,6 +52,7 @@ private:
 	unsigned int waitingTimeAtBusStop;
 
 	BusStop* stopSite;
+	Decision decisionResult;
 };
 
 

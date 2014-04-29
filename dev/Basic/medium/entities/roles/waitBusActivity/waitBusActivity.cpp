@@ -19,7 +19,8 @@ namespace medium {
 sim_mob::medium::WaitBusActivity::WaitBusActivity(Agent* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::WaitBusActivityBehavior* behavior,
 		sim_mob::medium::WaitBusActivityMovement* movement) :
-		sim_mob::Role(behavior, movement, parent, "WaitBusActivity_"),waitingTimeAtBusStop(0),stopSite(nullptr){
+		sim_mob::Role(behavior, movement, parent, "WaitBusActivity_"),
+		waitingTimeAtBusStop(0),stopSite(nullptr), decisionResult(MAKE_DECISION_NORESULT){
 
 }
 
@@ -31,6 +32,14 @@ Role* sim_mob::medium::WaitBusActivity::clone(Person* parent) const {
 	behavior->setParentWaitBusActivity(waitBusActivity);
 	movement->setParentWaitBusActivity(waitBusActivity);
 	return waitBusActivity;
+}
+
+void sim_mob::medium::WaitBusActivity::setMakeDecisionResult(Decision decision){
+	decisionResult = decision;
+}
+
+Decision sim_mob::medium::WaitBusActivity::getMakeDecisionResult(){
+	return decisionResult;
 }
 
 void sim_mob::medium::WaitBusActivity::increaseWaitingTime(unsigned int ms){

@@ -47,6 +47,7 @@ public:
 	virtual void frame_tick_output();
 
 	void setParentWaitBusActivity(sim_mob::medium::WaitBusActivity* parentWaitBusActivity);
+	void makeAboardingDecision();
 
 
 protected:

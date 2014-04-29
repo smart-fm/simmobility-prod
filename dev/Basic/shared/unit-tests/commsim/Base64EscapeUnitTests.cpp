@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <iostream>
 #include <boost/algorithm/string.hpp>
 
 #include "entities/commsim/serialization/Base64Escape.hpp"
@@ -27,9 +28,56 @@ struct DecodeTest {
 	}
 };
 
-void make_tests(std::vector<DecodeTest>& tests) {
+std::string esc(const std::string& src) {
+	std::stringstream res;
+	for (size_t i=0; i<src.size(); i++) {
+		unsigned int cI = ((unsigned int)src[i])&0xFF;
+		if (cI<32 || cI>125) {
+			res <<"{" <<cI <<"}";
+		} else {
+			res <<src[i];
+		}
+	}
+	return res.str();
+}
+
+
+//Test a single item.
+void test_item(const DecodeTest& test)
+{
+	std::vector<std::string> res;
+	Base64Escape::Decode(res, test.encoded, '\n');
+	if (res.size() != test.decoded.size()) {
+		std::cout <<"Decode result set mismatch; expected: " <<test.decoded.size() <<", actual: " <<res.size() <<"\n";
+		std::cout <<"...on string: " <<test.encoded <<"\n";
+		CPPUNIT_FAIL("Decoded result set size mismatch; see console.");
+	}
+
+	//Check each string.
+	for (size_t i=0; i<test.decoded.size(); i++) {
+		if (test.decoded[i] != res[i]) {
+			std::cout <<"Decoding item " <<i <<" failed to match; expected: \n" <<esc(test.decoded[i]) <<"\nactual: \n" <<esc(res[i]) <<"\n";
+			std::cout <<"...on string: " <<test.encoded <<"\n";
+			CPPUNIT_FAIL("Decoded string doesn't match; see console.");
+		}
+	}
+}
+
+
+} //End un-named namespace.
+
+
+void unit_tests::Base64EscapeUnitTests::setUp()
+{
+	//Init
+	Base64Escape::Init();
+}
+
+
+void unit_tests::Base64EscapeUnitTests::test_Base64Escape_1()
+{
 	//Wikipedia example.
-	tests.push_back(DecodeTest(
+	DecodeTest test(
 		"TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz"
 		"IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg"
 		"dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu"
@@ -38,57 +86,64 @@ void make_tests(std::vector<DecodeTest>& tests) {
 		"Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the "
 		"mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short "
 		"vehemence of any carnal pleasure."
-	));
-
-	//More: examples of actual messages, if possible.
-
-	//More: test escaping (even though we don't really use it much).
-
-	//More: test newlines, line splitting, the empty line at the end.
+	);
+	test_item(test);
 }
 
-
-void fail(const std::string& msg, const std::string& enc) {
-	std::string res = msg + enc;
-	CPPUNIT_FAIL(res.c_str());
-}
-
-void fail(const std::string& msg, const std::string& enc, size_t id) {
-	std::stringstream res;
-	res <<msg <<"(" <<id <<") " <<enc;
-	CPPUNIT_FAIL(res.str().c_str());
-}
-
-
-} //End un-named namespace.
-
-
-void unit_tests::Base64EscapeUnitTests::test_Base64Escape_normal_strings()
+void unit_tests::Base64EscapeUnitTests::test_Base64Escape_2()
 {
-	//Init
-	Base64Escape::Init();
-
-	//Create our set of test strings.
-	std::vector<DecodeTest> tests;
-	make_tests(tests);
-
-	//Now actually run these tests
-	std::vector<std::string> res;
-	for (std::vector<DecodeTest>::const_iterator it=tests.begin(); it!=tests.end(); it++) {
-		Base64Escape::Decode(res, it->encoded, '\n');
-		if (res.size() != it->decoded.size()) {
-			fail("Decoded result set size mismatch: ", it->encoded);
-		}
-
-		//Check each string.
-		for (size_t i=0; i<it->decoded.size(); i++) {
-			if (it->decoded[i] != res[i]) {
-				fail("Decoding doesn't match: ", it->encoded+"=>"+res[i]+":"+it->decoded[i], i);
-			}
-		}
-	}
+	DecodeTest test("", "");
+	test_item(test);
 }
 
+void unit_tests::Base64EscapeUnitTests::test_Base64Escape_3()
+{
+	DecodeTest test("YQ==", "a");
+	test_item(test);
+}
+
+void unit_tests::Base64EscapeUnitTests::test_Base64Escape_4()
+{
+	DecodeTest test("YWJjZGVm", "abcdef");
+	test_item(test);
+}
+
+void unit_tests::Base64EscapeUnitTests::test_Base64Escape_5()
+{
+	DecodeTest test("YWJjZGVmZw==", "abcdefg");
+	test_item(test);
+}
+
+void unit_tests::Base64EscapeUnitTests::test_Base64Escape_6()
+{
+	DecodeTest test("YWJjZGVmZ2g=", "abcdefgh");
+	test_item(test);
+}
+
+void unit_tests::Base64EscapeUnitTests::test_Base64Escape_7()
+{
+	DecodeTest test("YWJjZGVmZ2hp", "abcdefghi");
+	test_item(test);
+}
+
+void unit_tests::Base64EscapeUnitTests::test_Base64Escape_8()
+{
+	DecodeTest test("UQpFCkQ=", "Q\nE\nD");
+	test_item(test);
+}
+
+void unit_tests::Base64EscapeUnitTests::test_Base64Escape_9()
+{
+	DecodeTest test("UQpFCkQK", "Q\nE\nD\n");
+	test_item(test);
+}
+
+void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_1()
+{
+	DecodeTest test(
+		"rO0ABXNyAC1lZHUubWl0LmNzYWlsLmphc29uZ2FvLnJvYWRydW5uZXIuQWRob2NQYWNrZXQAAAAAAAAAygMAEkYAB2JlYXJpbmdJAAxkYXRhQWN0aXZpdHlKAAdleHBpcmVzSgAGaXNzdWVkRAADbGF0SQAGbGVuZ3RoRAADbG5nSgAFbm9uY2VGAAVzcGVlZEoACXRpbWVzdGFtcFoAD3RyaWdnZXJBbm5vdW5jZUkABHR5cGVMAAZkZXN0UlJ0ABJMamF2YS9sYW5nL1N0cmluZztMAAZyZWdpb25xAH4AAUwACXNpZ25hdHVyZXEAfgABTAAFc3JjUlJxAH4AAUwAC3Rva2VuU3RyaW5ncQB+AAFMAA10b2tlbnNPZmZlcmVkdAAPTGphdmEvdXRpbC9TZXQ7eHAAAAAAAAAAZAAAAAAAAAAAAAAAAAAAAAA/8BR64UeuFAAAAABAUlCj1wo9cQAAAAAAAAAAQg5mZgAAAUWvep3LAAAAAAB0AABwcHQACW15LXNvdXJjZXBzcgARamF2YS51dGlsLkhhc2hTZXS6RIWVlri3NAMAAHhwdwwAAAAEP0AAAAAAAAJ0AAV0aGVyZXQAAmhpeHg=", std::string("""\xac""""\xed""""\x00""""\x05""sr""\x00""-edu.mit.csail.jasongao.roadrunner.AdhocPacket""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\xca""""\x03""""\x00""""\x12""F""\x00""""\x07""bearingI""\x00""""\x0c""dataActivityJ""\x00""""\x07""expiresJ""\x00""""\x06""issuedD""\x00""""\x03""latI""\x00""""\x06""lengthD""\x00""""\x03""lngJ""\x00""""\x05""nonceF""\x00""""\x05""speedJ""\x00""""\x09""timestampZ""\x00""""\x0f""triggerAnnounceI""\x00""""\x04""typeL""\x00""""\x06""destRRt""\x00""""\x12""Ljava/lang/String;L""\x00""""\x06""regionq""\x00""""\x7e""""\x00""""\x01""L""\x00""""\x09""signatureq""\x00""""\x7e""""\x00""""\x01""L""\x00""""\x05""srcRRq""\x00""""\x7e""""\x00""""\x01""L""\x00""""\x0b""tokenStringq""\x00""""\x7e""""\x00""""\x01""L""\x00""""\x0d""tokensOfferedt""\x00""""\x0f""Ljava/util/Set;xp""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""d""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""?""\xf0""""\x14""z""\xe1""G""\xae""""\x14""""\x00""""\x00""""\x00""""\x00""@RP""\xa3""""\xd7""\n=q""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""B""\x0e""ff""\x00""""\x00""""\x01""E""\xaf""z""\x9d""""\xcb""""\x00""""\x00""""\x00""""\x00""""\x00""t""\x00""""\x00""ppt""\x00""""\x09""my-sourcepsr""\x00""""\x11""java.util.HashSet""\xba""D""\x85""""\x95""""\x96""""\xb8""""\xb7""4""\x03""""\x00""""\x00""xpw""\x0c""""\x00""""\x00""""\x00""""\x04""?@""\x00""""\x00""""\x00""""\x00""""\x00""""\x02""t""\x00""""\x05""theret""\x00""""\x02""hixx", 461));
+	test_item(test);
+}
 
 
 

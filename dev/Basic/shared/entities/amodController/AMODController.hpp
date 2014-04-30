@@ -13,6 +13,7 @@
 #define AMODController_HPP_
 
 #include <boost/regex.hpp>
+#include <map>
 
 #include "entities/Agent.hpp"
 //#include "../short/entities/roles/driver/Driver.hpp"
@@ -20,6 +21,8 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "event/args/EventArgs.hpp"
 #include "AMODEvent.hpp"
+#include "entities/conflux/Conflux.hpp"
+#include "geospatial/PathSetManager.hpp"
 
 namespace sim_mob {
 
@@ -100,6 +103,11 @@ public:
 	AMODEventPublisher eventPub;
 
 	StreetDirectory* stdir;
+	std::map<const RoadSegment*, Conflux::rdSegTravelTimes> RdSegTravelTimesMap;
+
+	void setRdSegTravelTimes(Person* ag, double rdSegExitTime);
+	void updateTravelTimeGraph();
+	bool insertTravelTime2TmpTable(timeslice frameNumber, std::map<const RoadSegment*, sim_mob::Conflux::rdSegTravelTimes>& rdSegTravelTimesMap);
 
 };
 

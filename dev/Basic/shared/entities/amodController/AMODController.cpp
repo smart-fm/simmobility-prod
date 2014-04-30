@@ -22,6 +22,7 @@
 #include "geospatial/UniNode.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "workers/Worker.hpp"
+#include "metrics/Frame.hpp"
 #include <utility>
 #include <stdexcept>
 
@@ -240,6 +241,58 @@ void AMODController::rerouteWithOriDest(Person* vh,Node* snode,Node* enode)
 bool AMODController::setPath2Vh(Person* vh,std::vector<WayPoint>& path)
 {
 	vh->setPath(path);
+}
+void AMODController::setRdSegTravelTimes(Person* ag, double rdSegExitTime) {
+
+	std::map<double, Person::rdSegTravelStats>::const_iterator it =
+			ag->getRdSegTravelStatsMap().find(rdSegExitTime);
+	if (it != ag->getRdSegTravelStatsMap().end()){
+		double travelTime = (it->first) - (it->second).rdSegEntryTime_;
+		std::map<const RoadSegment*, Conflux::rdSegTravelTimes>::iterator itTT = RdSegTravelTimesMap.find((it->second).rdSeg_);
+		if (itTT != RdSegTravelTimesMap.end())
+		{
+			itTT->second.agentCount_ = itTT->second.agentCount_ + 1;
+			itTT->second.rdSegTravelTime_ = itTT->second.rdSegTravelTime_ + travelTime;
+		}
+		else{
+			Conflux::rdSegTravelTimes tTimes(travelTime, 1);
+			RdSegTravelTimesMap.insert(std::make_pair(ag->getCurrSegment(), tTimes));
+		}
+	}
+}
+void AMODController::updateTravelTimeGraph()
+{
+	const unsigned int msPerFrame = ConfigManager::GetInstance().FullConfig().baseGranMS();
+	timeslice currTime = timeslice(currTick.frame(), currTick.frame()*msPerFrame);
+	insertTravelTime2TmpTable(currTime, RdSegTravelTimesMap);
+}
+bool AMODController::insertTravelTime2TmpTable(timeslice frameNumber, std::map<const RoadSegment*, sim_mob::Conflux::rdSegTravelTimes>& rdSegTravelTimesMap)
+{
+	bool res=false;
+	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+		//sim_mob::Link_travel_time& data
+		std::map<const RoadSegment*, sim_mob::Conflux::rdSegTravelTimes>::const_iterator it = rdSegTravelTimesMap.begin();
+		for (; it != rdSegTravelTimesMap.end(); it++){
+			Link_travel_time tt;
+			DailyTime simStart = ConfigManager::GetInstance().FullConfig().simStartTime();
+			std::string aimsun_id = (*it).first->originalDB_ID.getLogItem();
+			std::string seg_id = getNumberFromAimsunId(aimsun_id);
+			try {
+				tt.link_id = boost::lexical_cast<int>(seg_id);
+			} catch( boost::bad_lexical_cast const& ) {
+				Print() << "Error: seg_id string was not valid" << std::endl;
+				tt.link_id = -1;
+			}
+
+			tt.start_time = (simStart + sim_mob::DailyTime(frameNumber.ms())).toString();
+			double frameLength = ConfigManager::GetInstance().FullConfig().baseGranMS();
+			tt.end_time = (simStart + sim_mob::DailyTime(frameNumber.ms() + frameLength)).toString();
+			tt.travel_time = (*it).second.rdSegTravelTime_/(*it).second.agentCount_;
+
+			PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
+		}
+	}
+	return res;
 }
 void AMODController::testTravelTimePath()
 {

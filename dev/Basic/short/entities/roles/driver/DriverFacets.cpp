@@ -887,13 +887,30 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 	responseIncidentStatus(p, parentDriver->getParams().now);
 
 	double res = updatePositionOnLink(p);
-	if(parentDriver->vehicle->fwdMovement.isMoveToNextSegment)
+	if(parentDriver->vehicle->fwdMovement.isMoveToNextSegment && !parentDriver->vehicle->isDone())
 	{
 		std::cout<<"vh move to next segment"<<std::endl;
+
+		double linkExitTimeSec =  p.elapsedSeconds + (p.now.ms()/1000.0);
+		//set Link Travel time for previous link
+		const RoadSegment* prevSeg = parentDriver->vehicle->getPrevSegment(false);
+		if (prevSeg) {
+			// update road segment travel times
+			updateRdSegTravelTimes(prevSeg, linkExitTimeSec);
+		}
 	}
 	return res;
 }
-
+void sim_mob::DriverMovement::updateRdSegTravelTimes(const RoadSegment* prevSeg, double linkExitTimeSec){
+	//if prevSeg is already in travelStats, update it's rdSegTT and add to rdSegTravelStatsMap
+	if(prevSeg == getParent()->getRdSegTravelStats().rdSeg_){
+		getParent()->addToRdSegTravelStatsMap(getParent()->getRdSegTravelStats(), linkExitTimeSec); //in seconds
+//		prevSeg->getParentConflux()->setRdSegTravelTimes(getParent(), linkExitTimeSec);
+		AMOD::AMODController::instance()->setRdSegTravelTimes(getParent(), linkExitTimeSec);
+	}
+	//creating a new entry in agent's travelStats for the new road segment, with entry time
+	getParent()->initRdSegTravelStats(parentDriver->vehicle->getCurrSegment(), linkExitTimeSec);
+}
 void sim_mob::DriverMovement::assignNewFMODSchedule(const sim_mob::FMOD_RequestEventArgs& request)
 {
 	const std::list<FMOD_Schedule>& schedules = request.schedules;

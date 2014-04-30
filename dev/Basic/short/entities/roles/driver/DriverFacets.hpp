@@ -22,6 +22,7 @@
 #include "geospatial/Incident.hpp"
 #include "util/OneTimeFlag.hpp"
 #include "entities/fmodController/FMOD_Message.hpp"
+#include "entities/amodController/AMODController.hpp"
 namespace sim_mob {
 
 class DriverBehavior: public sim_mob::BehaviorFacet {
@@ -198,7 +199,7 @@ public:
 	void intersectionVelocityUpdate();
 
 	void assignNewFMODSchedule(const sim_mob::FMOD_RequestEventArgs& request);
-
+	void updateRdSegTravelTimes(const RoadSegment* prevSeg, double linkExitTimeSec);
 	//This always returns the lane we are moving towards; regardless of if we've passed the
 	//  halfway point or not.
 	LANE_CHANGE_SIDE getCurrLaneChangeDirection() const;

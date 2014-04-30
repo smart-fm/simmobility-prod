@@ -32,10 +32,10 @@ enum {
 /**
  * Subclasses both messages, This is to allow it to function as an message callback parameter.
  */
-class Pedestrian_RequestMessageArgs : public messaging::Message {
+class PedestrianRequestMessageArgs : public messaging::Message {
 public:
-	Pedestrian_RequestMessageArgs(Person* inPerson):pedestrian(inPerson){;}
-	virtual ~Pedestrian_RequestMessageArgs() {}
+	PedestrianRequestMessageArgs(Person* inPerson):pedestrian(inPerson){;}
+	virtual ~PedestrianRequestMessageArgs() {}
 	Person* pedestrian;
 };
 

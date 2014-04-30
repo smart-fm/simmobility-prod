@@ -50,7 +50,6 @@ sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mt
 	  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out),
 	  isBoundary(false), isMultipleReceiver(false)
 {
-	messaging::MessageBus::RegisterHandler(this);
 }
 
 
@@ -680,7 +679,7 @@ void sim_mob::Conflux::onEvent(event::EventId eventId, sim_mob::event::Context c
 void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
 	if(type == MSG_PEDESTRIAN_TRANSFER_REQUEST){
-		const Pedestrian_RequestMessageArgs& msg = MSG_CAST(Pedestrian_RequestMessageArgs, message);
+		const PedestrianRequestMessageArgs& msg = MSG_CAST(PedestrianRequestMessageArgs, message);
 		pedestrianPerformers.push_back(msg.pedestrian);
 	}
 }
@@ -753,7 +752,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 
 		if(person->getNextLinkRequired()){
 			Conflux* nextConflux = person->getNextLinkRequired()->getSegments().front()->getParentConflux();
-			messaging::MessageBus::PostMessage(nextConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST, messaging::MessageBus::MessagePtr(new Pedestrian_RequestMessageArgs(person)));
+			messaging::MessageBus::PostMessage(nextConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST, messaging::MessageBus::MessagePtr(new PedestrianRequestMessageArgs(person)));
 			person->setResetParamsRequired(true);
 			return UpdateStatus::Done;
 		}

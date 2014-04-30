@@ -21,7 +21,7 @@ namespace medium {
 
 class BusStopAgent: public sim_mob::Agent {
 public:
-	BusStopAgent(const MutexStrategy& mtxStrat, int id);
+	BusStopAgent(const MutexStrategy& mtxStrat, int id, const sim_mob::BusStop* stop);
 	virtual ~BusStopAgent();
 
 protected:
@@ -29,15 +29,15 @@ protected:
 	//Virtual overrides
 	virtual bool frame_init(timeslice now) {
 		throw std::runtime_error(
-				"frame_* methods are not required and are not implemented for Confluxes.");
+				"frame_* methods are not required and are not implemented for BusStopAgent.");
 	}
 	virtual Entity::UpdateStatus frame_tick(timeslice now) {
 		throw std::runtime_error(
-				"frame_* are not required and are not implemented for Confluxes.");
+				"frame_* are not required and are not implemented for BusStopAgent.");
 	}
 	virtual void frame_output(timeslice now) {
 		throw std::runtime_error(
-				"frame_* methods are not required and are not implemented for Confluxes.");
+				"frame_* methods are not required and are not implemented for BusStopAgent.");
 	}
 
 	/**
@@ -66,16 +66,10 @@ public:
 	void alightingPassengerToStop(sim_mob::Person* person);
 
 	/**
-	 * set associate bus stop to this agent.
-	 * @param bus stop is the associate to this agent
-	 */
-	void setAssociateBusStop(sim_mob::BusStop* stop);
-
-	/**
 	 * the getter of associate bus stop to this agent.
 	 * @return bus stop is the associate to this agent
 	 */
-	sim_mob::BusStop* getAssociateBusStop();
+	const sim_mob::BusStop* getAssociateBusStop() const;
 
 	/**
 	 * process the persons boarding
@@ -89,10 +83,10 @@ public:
 	void processPersonAlighting();
 
 private:
-	std::vector<sim_mob::Person*> waitingPersons;
-	std::vector<sim_mob::Person*> alightingPersons;
-	std::vector<sim_mob::medium::BusDriver*> parkingDrivers;
-	sim_mob::BusStop* busStop;
+	std::list<sim_mob::Person*> waitingPersons;
+	std::list<sim_mob::Person*> alightingPersons;
+	std::list<sim_mob::medium::BusDriver*> parkingDrivers;
+	const sim_mob::BusStop* busStop;
 
 };
 }

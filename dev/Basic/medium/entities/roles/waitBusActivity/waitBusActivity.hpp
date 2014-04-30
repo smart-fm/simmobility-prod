@@ -82,6 +82,8 @@ public:
 
 	/**
 	 * make a decision for boarding.
+	 *
+	 * @param driver is which just come to the bus stop
 	 */
 	void makeBoardingDecision(BusDriver* driver);
 
@@ -90,11 +92,11 @@ private:
 	friend class WaitBusActivityBehavior;
 	friend class WaitBusActivityMovement;
 
-	//record waiting time in the bus stop
+	/**record waiting time in the bus stop*/
 	unsigned int waitingTimeAtBusStop;
-	//pointer to waiting bus stop
+	/**pointer to waiting bus stop*/
 	BusStop* stopSite;
-	//decision result
+	/**decision result*/
 	Decision decisionResult;
 };
 }

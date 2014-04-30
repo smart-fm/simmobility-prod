@@ -68,7 +68,7 @@ void PedestrianMovement::frame_init() {
 		}
 	}
 
-	if (!currentLink) {
+	if (currentLink) {
 		float remainingTime = currentTotalDistance / walkSpeed;
 		trajectory.push_back((std::make_pair(currentLink, remainingTime)));
 	}
@@ -110,7 +110,7 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 }
 
 void PedestrianMovement::frame_tick() {
-	unsigned int tickMS =
+	float tickMS =
 			ConfigManager::GetInstance().FullConfig().baseGranMS();
 
 	if (remainingTimeToComplete <= tickMS) {
@@ -121,7 +121,7 @@ void PedestrianMovement::frame_tick() {
 			isMoveToNextLink = true;
 			nextLink = trajectory.front().first;
 			remainingTimeToComplete = trajectory.front().second
-					+ lastRemainingTime;
+					- lastRemainingTime;
 			trajectory.erase(trajectory.begin());
 			lastRemainingTime = 0;
 			getParent()->setNextLinkRequired(nextLink);

@@ -104,10 +104,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
 	  client_id(-1)
 {
-	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
-		computeDistanceForWalkTrips(tcs);
-	}
-	else if(!ConfigManager::GetInstance().FullConfig().RunningMidDemand()){
+	if (!ConfigManager::GetInstance().FullConfig().RunningMidSupply() && !ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
 		simplyModifyTripChain(tcs);
 	}
 
@@ -484,64 +481,6 @@ std::vector<sim_mob::SubTrip>::iterator sim_mob::Person::resetCurrSubTrip()
 	return trip->getSubTripsRW().begin();
 }
 
-void sim_mob::Person::computeDistanceForWalkTrips(std::vector<TripChainItem*>& tripChain)
-{
-	std::vector<TripChainItem*>::iterator tripChainItem;
-	for(tripChainItem = tripChain.begin(); tripChainItem != tripChain.end(); tripChainItem++ )
-	{
-		if((*tripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP )
-		{
-			std::vector<SubTrip>::iterator subtripIterators[2];
-			std::vector<sim_mob::SubTrip>& subtrip = (dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
-
-			subtripIterators[0] = subtripIterators[1] = subtrip.begin();
-			while(subtripIterators[1]!=subtrip.end() )
-			{
-				if((subtripIterators[1]->mode=="Walk"))
-				{
-					const StreetDirectory& stdir = StreetDirectory::instance();
-
-					StreetDirectory::VertexDesc source, destination;
-					vector<WayPoint> wp_path;
-					float distance = 0;
-					if(subtripIterators[1]->fromLocation.type_==WayPoint::NODE){
-						source = stdir.WalkingVertex(*subtripIterators[1]->fromLocation.node_);
-					}
-					else if(subtripIterators[1]->fromLocation.type_==WayPoint::BUS_STOP){
-						source = stdir.WalkingVertex(*subtripIterators[1]->fromLocation.busStop_);
-					}
-
-					if(subtripIterators[1]->toLocation.type_==WayPoint::NODE){
-						destination = stdir.WalkingVertex(*subtripIterators[1]->toLocation.node_);
-					}
-					else if(subtripIterators[1]->toLocation.type_==WayPoint::BUS_STOP){
-						destination = stdir.WalkingVertex(*subtripIterators[1]->toLocation.busStop_);
-					}
-
-					wp_path = stdir.SearchShortestWalkingPath(source, destination);
-					for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
-						if (it->type_ == WayPoint::ROAD_SEGMENT) {
-							distance += it->roadSegment_->getLengthOfSegment();
-						}
-					}
-
-					subtripIterators[1]->totalDistanceOD += distance;
-					if(subtripIterators[0]!=subtripIterators[1] && subtripIterators[0]->mode=="Walk"){
-						subtripIterators[0]->totalDistanceOD += distance;
-						subtripIterators[1] = subtrip.erase(subtripIterators[1]);
-					}
-					else {
-						subtripIterators[0] = subtripIterators[1]++;
-					}
-				}
-				else
-				{
-					subtripIterators[0] = subtripIterators[1]++;
-				}
-			}
-		}
-	}
-}
 
 void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripChain)
 {

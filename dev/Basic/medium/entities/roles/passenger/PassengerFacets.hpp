@@ -21,9 +21,9 @@ public:
 	virtual ~PassengerBehavior();
 
 	//Virtual overrides
-	virtual void frame_init() {;}
-	virtual void frame_tick() {;}
-	virtual void frame_tick_output() {;}
+	virtual void frame_init() {}
+	virtual void frame_tick() {}
+	virtual void frame_tick_output() {}
 
 	/**
 	 * set parent reference to passenger role.
@@ -53,7 +53,7 @@ public:
 
 protected:
 	sim_mob::medium::Passenger* parentPassenger;
-	int totalTimeToCompleteMS;
+	unsigned int totalTimeToCompleteMS;
 
 };
 

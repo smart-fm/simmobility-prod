@@ -26,9 +26,9 @@ public:
 	virtual ~WaitBusActivityBehavior();
 
 	//Virtual overrides
-	virtual void frame_init() {;}
-	virtual void frame_tick() {;}
-	virtual void frame_tick_output() {;}
+	virtual void frame_init() {}
+	virtual void frame_tick() {}
+	virtual void frame_tick_output() {}
 
 	/**
 	 * set parent reference to waiting activity role.
@@ -64,7 +64,7 @@ public:
 
 protected:
 	sim_mob::medium::WaitBusActivity* parentWaitBusActivity;
-	int totalTimeToCompleteMS;
+	unsigned int totalTimeToCompleteMS;
 
 };
 

@@ -84,18 +84,18 @@ protected:
 	void initializePath(std::vector<const RoadSegment*>& path);
 
 protected:
-	//parent pedestrian
+	/**parent pedestrian*/
 	sim_mob::medium::Pedestrian* parentPedestrian;
-	//record the current remaining time to the destination
+	/**record the current remaining time to the destination*/
 	float remainingTimeToComplete;
-	//pedestrian's walking speed
+	/**pedestrian's walking speed*/
 	const float walkSpeed;
 	float lastRemainingTime;
-	//store the pair of link and route's distance
-	std::vector<std::pair<Link*, double> > trajectory;
-	//when want to move to next link, the value is true;
+	/**store the pair of link and walking time*/
+	std::vector<std::pair<Link*, float> > trajectory;
+	/**when want to move to next link, the value is true*/
 	bool isMoveToNextLink;
-	//next link which he want to move to
+	/**next link which he want to move to*/
 	Link* nextLink;
 };
 

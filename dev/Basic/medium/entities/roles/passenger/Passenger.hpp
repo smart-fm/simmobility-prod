@@ -50,13 +50,13 @@ public:
 	 * the setter of associate driver.
 	 * @param driver is bus driver or taxi driver when get boarding
 	 */
-	void setAssociateDriver(Driver* driver);
+	void setAssociateDriver(const Driver* driver);
 
 	/**
 	 * the getter of associate driver.
 	 * @return associate driver
 	 */
-	Driver* getAssociateDriver();
+	const Driver* getAssociateDriver() const;
 
 	/**
 	 * the setter for decision made.
@@ -81,8 +81,8 @@ private:
 	friend class PassengerBehavior;
 	friend class PassengerMovement;
 
-	Driver* associateDriver;
-	//decision result
+	const Driver* associateDriver;
+	/**decision result*/
 	Decision decisionResult;
 };
 

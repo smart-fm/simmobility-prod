@@ -49,7 +49,9 @@ sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mt
 	  multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
 	  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out),
 	  isBoundary(false), isMultipleReceiver(false)
-{}
+{
+	messaging::MessageBus::SubscribeEvent(sim_mob::EVENT_PEDESTRIAN_TRANSFER_REQUEST, this);
+}
 
 
 sim_mob::Conflux::~Conflux()

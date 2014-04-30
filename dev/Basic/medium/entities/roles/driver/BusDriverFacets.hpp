@@ -29,6 +29,9 @@ public:
 	virtual void frame_tick();
 	virtual void frame_tick_output();
 
+	sim_mob::medium::BusDriver* getParentBusDriver() const {
+		return parentBusDriver;
+	}
 
 	void setParentBusDriver(sim_mob::medium::BusDriver* parentBusDriver) {
 		this->parentBusDriver = parentBusDriver;

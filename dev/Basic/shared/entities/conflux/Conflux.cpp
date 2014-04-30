@@ -50,7 +50,7 @@ sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mt
 	  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out),
 	  isBoundary(false), isMultipleReceiver(false)
 {
-	messaging::MessageBus::SubscribeEvent(sim_mob::EVENT_PEDESTRIAN_TRANSFER_REQUEST, this);
+	messaging::MessageBus::RegisterHandler(this);
 }
 
 
@@ -661,13 +661,16 @@ bool sim_mob::Conflux::call_movement_frame_init(timeslice now, Person* person) {
 void sim_mob::Conflux::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
 {
 	sim_mob::Agent::onEvent(eventId, ctxId, sender, args);
+}
 
-	//role gets chance to handle event
-	if(eventId == EVENT_PEDESTRIAN_TRANSFER_REQUEST){
-		const sim_mob::Pedestrian_RequestEventArgs& request = dynamic_cast<const sim_mob::Pedestrian_RequestEventArgs&>(args);
-		pedestrianPerformers.push_back(request.pedestrian);
+void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
+{
+	if(type == MSG_PEDESTRIAN_TRANSFER_REQUEST){
+		const Pedestrian_RequestMessageArgs& msg = MSG_CAST(Pedestrian_RequestMessageArgs, message);
+		pedestrianPerformers.push_back(msg.pedestrian);
 	}
 }
+
 
 Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, Person* person) {
 	Role* personRole = person->getRole();
@@ -736,9 +739,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 
 		if(person->getNextLinkRequired()){
 			Conflux* nextConflux = person->getNextLinkRequired()->getSegments().front()->getParentConflux();
-			messaging::MessageBus::PublishEvent(sim_mob::EVENT_PEDESTRIAN_TRANSFER_REQUEST, nextConflux,
-														messaging::MessageBus::EventArgsPtr(new sim_mob::Pedestrian_RequestEventArgs(person)));
-
+			messaging::MessageBus::PostMessage(nextConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST, messaging::MessageBus::MessagePtr(new Pedestrian_RequestMessageArgs(person)));
 			person->setResetParamsRequired(true);
 			return UpdateStatus::Done;
 		}

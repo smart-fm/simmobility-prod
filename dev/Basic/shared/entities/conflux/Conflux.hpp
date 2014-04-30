@@ -26,16 +26,16 @@ class Loader;
 }
 
 enum {
-	EVENT_PEDESTRIAN_TRANSFER_REQUEST = 5000000
+	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000
 };
 
 /**
- * Subclasses both EventArgs, This is to allow it to function as an Event callback parameter.
+ * Subclasses both messages, This is to allow it to function as an message callback parameter.
  */
-class Pedestrian_RequestEventArgs : public sim_mob::event::EventArgs {
+class Pedestrian_RequestMessageArgs : public messaging::Message {
 public:
-	Pedestrian_RequestEventArgs(Person* inPerson):pedestrian(inPerson){;}
-	virtual ~Pedestrian_RequestEventArgs() {}
+	Pedestrian_RequestMessageArgs(Person* inPerson):pedestrian(inPerson){;}
+	virtual ~Pedestrian_RequestMessageArgs() {}
 	Person* pedestrian;
 };
 
@@ -232,6 +232,11 @@ protected:
 	 * Inherited from Agent.
 	 */
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+
+	/**
+	 * Inherited from Agent.
+	 */
+	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 public:
 	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1);

@@ -8,12 +8,6 @@
 #include "entities/roles/Role.hpp"
 #include "waitBusActivityFacets.hpp"
 
-namespace {
-enum Decision {
-	MAKE_DECISION_NORESULT, MAKE_DECISION_BOARDING, MAKE_DECISION_ALIGHTING
-};
-}
-
 namespace sim_mob {
 
 class Agent;
@@ -25,6 +19,10 @@ namespace medium {
 class WaitBusActivityBehavior;
 class WaitBusActivityMovement;
 class BusDriver;
+
+enum Decision {
+	MAKE_DECISION_NORESULT, MAKE_DECISION_BOARDING, MAKE_DECISION_ALIGHTING
+};
 
 /**
  * A medium-term WaitBusActivity.

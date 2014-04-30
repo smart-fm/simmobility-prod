@@ -188,6 +188,10 @@ public:
 		std::vector<bool> areFwds;
 	}pathWithDirection;
 
+	/// false: moving on segment
+	/// true:  the moment move to next segment
+	bool isMoveToNextSegment;
+
 private:
 	//Error messages for throw_if.
 	//NOTE: We are keeping these as const-static because the simulation runtime keeps re-creating them

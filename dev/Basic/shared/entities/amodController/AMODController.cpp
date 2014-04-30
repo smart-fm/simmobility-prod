@@ -116,7 +116,10 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		test=1;
 	}
 
-//	if(now.frame()>150 & now.frame()<300)
+	if(now.frame()>150 & now.frame()<300)
+	{
+		testTravelTimePath();
+	}
 #if 0
 	if(test==1)
 	{
@@ -237,6 +240,29 @@ void AMODController::rerouteWithOriDest(Person* vh,Node* snode,Node* enode)
 bool AMODController::setPath2Vh(Person* vh,std::vector<WayPoint>& path)
 {
 	vh->setPath(path);
+}
+void AMODController::testTravelTimePath()
+{
+	std::string destNodeId="61688";
+	std::string carParkId = "75780";
+	Node *startNode = nodePool[carParkId];
+	Node *endNode = nodePool[destNodeId];
+
+	std::vector<const sim_mob::RoadSegment*> blacklist = std::vector<const sim_mob::RoadSegment*>();
+
+	std::vector<WayPoint> wp = stdir->SearchShortestDrivingTimePath(
+			stdir->DrivingTimeVertex(*startNode,sim_mob::Default),
+					stdir->DrivingTimeVertex(*endNode,sim_mob::Default),
+					blacklist,
+					sim_mob::Default);
+	for(int i=0;i<wp.size();++i)
+	{
+		if(wp[i].type_ == WayPoint::ROAD_SEGMENT )
+		{
+			const sim_mob::RoadSegment* rs = wp[i].roadSegment_;
+			std::cout<<"from node: "<<rs->getStart()->originalDB_ID.getLogItem()<<" to node: "<<rs->getEnd()->originalDB_ID.getLogItem()<<std::endl;
+		}
+	}
 }
 void AMODController::testOneVh()
 {

@@ -586,6 +586,7 @@ double sim_mob::GeneralPathMover::advanceToNextPolyline(bool isFwd)
 	}
 	else
 	{
+		isMoveToNextSegment = false;
 		if (Debug::Paths)
 		{
 			DebugStream << "\nOn new polyline (" << (currPolypoint - polypointsList.begin() + 1) << " of " << polypointsList.size() - 1 << ") of length: " << Fmt_M(currPolylineLength())
@@ -617,6 +618,7 @@ double sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 				DebugStream << "Now in Intersection. Distance from Node center: " << Fmt_M(dist((*currSegmentIt)->getEnd()->location, myPos)) << endl;
 			}
 			inIntersection = true;
+			isMoveToNextSegment = false;
 			return distAlongPolyline;
 		}
 	}
@@ -630,6 +632,8 @@ const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 {
 	throwIf(!isPathSet(), GeneralPathMover::ErrorPathNotSet);
 	throwIf(isDoneWithEntireRoute(), GeneralPathMover::ErrorPathDoneActual);
+
+	isMoveToNextSegment = true;
 
 	//Record
 	bool nextInNewLink = ((currSegmentIt + 1) != fullPath.end()) && ((*(currSegmentIt + 1))->getLink() != (*currSegmentIt)->getLink());

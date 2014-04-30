@@ -57,6 +57,7 @@ public:
 	void rerouteWithPath(Person* vh,std::vector<sim_mob::WayPoint>& path);
 	void rerouteWithOriDest(Person* vh,Node* snode,Node* enode);
 	void testOneVh();
+	void testTravelTimePath();
 	int test;
 
 protected:

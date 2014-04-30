@@ -155,7 +155,7 @@ public:
 
 //private:
 	//temp
-private:
+public:
 	//Trying a slightly more dynamic moving model.
 	int vehicle_id;
 	GeneralPathMover fwdMovement;

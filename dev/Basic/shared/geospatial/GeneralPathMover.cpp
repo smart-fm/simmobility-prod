@@ -52,7 +52,8 @@ const std::string sim_mob::GeneralPathMover::ErrorGeneralPathDone("Entire path i
 
 sim_mob::GeneralPathMover::GeneralPathMover() :
 	distAlongPolyline(0), /*currPolylineLength(0),*/
-	distMovedInCurrSegment(0), distOfThisSegment(0), distOfRestSegments(0), inIntersection(false), isMovingForwardsInLink(false), currLaneID(0), distToEndSegment(0.0)
+	distMovedInCurrSegment(0), distOfThisSegment(0), distOfRestSegments(0), inIntersection(false), isMovingForwardsInLink(false), currLaneID(0), distToEndSegment(0.0),
+	isMoveToNextSegment(false)
 {
 }
 
@@ -412,6 +413,8 @@ void sim_mob::GeneralPathMover::throwIf(bool conditional, const std::string& msg
 double sim_mob::GeneralPathMover::advance(double fwdDistance)
 {
 	throwIf(!isPathSet(), GeneralPathMover::ErrorPathNotSet);
+
+	isMoveToNextSegment = false;
 
 	//Taking precedence above everything else is the intersection model. If we are in an intersection,
 	//  simply update the total distance and return (let the user deal with it). Also udpate the

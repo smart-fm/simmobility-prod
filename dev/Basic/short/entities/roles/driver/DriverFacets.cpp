@@ -886,7 +886,12 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 	//response incident
 	responseIncidentStatus(p, parentDriver->getParams().now);
 
-	return updatePositionOnLink(p);
+	double res = updatePositionOnLink(p);
+	if(parentDriver->vehicle->fwdMovement.isMoveToNextSegment)
+	{
+		std::cout<<"vh move to next segment"<<std::endl;
+	}
+	return res;
 }
 
 void sim_mob::DriverMovement::assignNewFMODSchedule(const sim_mob::FMOD_RequestEventArgs& request)

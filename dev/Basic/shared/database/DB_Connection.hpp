@@ -24,7 +24,6 @@ namespace sim_mob {
             MONGO_DB
         };
 
-        /*
 
         /** 
          * Class that represents an Database connection.

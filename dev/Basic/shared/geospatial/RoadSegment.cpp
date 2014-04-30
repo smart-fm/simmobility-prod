@@ -37,13 +37,13 @@ void sim_mob::RoadSegment::setLanes(std::vector<sim_mob::Lane*> lanes)
 {
 	this->lanes = lanes;
 }
-unsigned int sim_mob::RoadSegment::getAdjustedLaneId(unsigned int laneId){
-					 unsigned int adjustedId  = lanes.size()-1 - laneId;
-	                 if (adjustedId > lanes.size() -1 || adjustedId < 0)
-	                 {
-	                	 adjustedId = 0;
-	                 }
-	                 return adjustedId;
+unsigned int sim_mob::RoadSegment::getAdjustedLaneId(unsigned int laneId)
+{
+	unsigned int adjustedId  = lanes.size()-1 - laneId;
+	if (adjustedId > lanes.size() -1) {
+		adjustedId = 0;
+	}
+	return adjustedId;
 }
 
 void sim_mob::RoadSegment::setParentLink(Link* parent)
@@ -232,7 +232,7 @@ void sim_mob::RoadSegment::setCapacity() {
 }
 
 double sim_mob::RoadSegment::getCapacityPerInterval() const {
-	return capacity * ConfigManager::GetInstance().FullConfig().baseGranMS() / 3600;
+	return capacity * ConfigManager::GetInstance().FullConfig().baseGranSecond() / 3600;
 }
 
 vector<Point2D> sim_mob::RoadSegment::makeLaneEdgeFromPolyline(Lane* refLane, bool edgeIsRight) const

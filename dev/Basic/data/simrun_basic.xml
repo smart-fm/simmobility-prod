@@ -308,16 +308,13 @@
             
             <!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
             <mutex_enforcement    strategy="buffered" />
-            
-            <!-- This element configures communication simulator. -->
-            <!-- it is possible to enable or disable the communication simulation capability -->
-            <!-- in general, or any of the communication simulation entities in particular. -->
-            <!-- Moreover, there can be custom configuration settings for each communication -->
-            <!-- simulation entities like 'mode' of operation. -->
-            <communication enabled="no">
-                <roadrunner mode="android-only" enabled="no"/> <!--currently: mode="android-only" and "android-ns3" -->
-                <stk mode="android-ns3" enabled="no"/> 
-            </communication>
+
+            <!--  Commsim (communication) settings -->
+            <commsim enabled="false"> <!-- If false, the Broker is never added, so no commsim activities take place. -->
+                <min_clients value="1"/> <!-- Sim Mobility will hold on time tick 1 until this many clients connect. -->
+                <hold_tick value="500"/> <!-- Which tick to enforce the "min_clients" restriction at. -->
+                <use_ns3 value="true"/>  <!-- Use ns-3 to route network traffice between agents? If not, opaque messages are dispatched immediately. -->
+            </commsim>
 
             <reacTime_distributionType1      value="1" /> <!-- 0 is normal distribution, 1 is log normal-->
             <reacTime_distributionType2      value="1" />

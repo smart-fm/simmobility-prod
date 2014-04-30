@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright Singapore-MIT Alliance for Research and Technology -->
+<!-- This file contains the parameters used by SIMMOBILITY -->
+
+<parameters model_name="general_driver_model">
+
+<acceleration>
+   <lead>
+        <param name="lead_alpha" value="1.6"/>
+   </lead>
+   <lag>
+        <param name="lag_alpha" value="1.6"/>
+   </lag>
+</acceleration>
+<lane_changing>
+   <GapAcceptParam>
+      <discretionary_lead>
+        <param name="discretionary_lead_alpha" value="1.6"/>
+      </discretionary_lead>
+   </GapAcceptParam>
+</lane_changing>
+
+<param name="maxAcceleration" value="5.0"/>
+<param name="normalDeceleration" value="-3.0"/>
+<param name="maxDeceleration" value="-5.0"/>
+
+
+
+</parameters>
+

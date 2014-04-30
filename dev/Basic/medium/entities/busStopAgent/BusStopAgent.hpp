@@ -13,7 +13,7 @@
 
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
-#include "../roles/driver/BusDriver.hpp"
+#include "entities/roles/driver/BusDriver.hpp"
 
 namespace sim_mob {
 

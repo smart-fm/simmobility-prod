@@ -6,7 +6,7 @@
 
 #include "entities/roles/Role.hpp"
 #include "PassengerFacets.hpp"
-#include "../waitBusActivity/waitBusActivity.hpp"
+#include "entities/roles/waitBusActivity/waitBusActivity.hpp"
 
 namespace sim_mob {
 

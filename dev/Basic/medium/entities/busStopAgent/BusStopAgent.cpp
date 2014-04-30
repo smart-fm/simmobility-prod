@@ -5,8 +5,8 @@
  *      Author: zhang
  */
 
-#include <entities/busStopAgent/BusStopAgent.hpp>
-#include <entities/roles/waitBusActivity/waitBusActivity.hpp>
+#include "BusStopAgent.hpp"
+#include "entities/roles/waitBusActivity/waitBusActivity.hpp"
 
 namespace sim_mob {
 

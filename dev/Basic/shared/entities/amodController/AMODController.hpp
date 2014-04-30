@@ -98,6 +98,8 @@ public:
 	std::map<std::string,sim_mob::Node*> nodePool; // store all nodes ,key= aimsun id ,value = node
 	AMODEventPublisher eventPub;
 
+	StreetDirectory* stdir;
+
 };
 
 

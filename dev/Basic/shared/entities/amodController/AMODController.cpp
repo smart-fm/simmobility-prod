@@ -38,6 +38,8 @@ sim_mob::AMOD::AMODController::~AMODController() {
 }
 void sim_mob::AMOD::AMODController::init()
 {
+	stdir = &StreetDirectory::instance();
+
 	const sim_mob::RoadNetwork* roadNetwork = &ConfigManager::GetInstance().FullConfig().getNetwork();
 	const std::vector<sim_mob::MultiNode*> multiNodesPool = roadNetwork->getNodes();
 	const std::set<sim_mob::UniNode*> uniNodesPool = roadNetwork->getUniNodes();
@@ -115,6 +117,7 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 	}
 
 //	if(now.frame()>150 & now.frame()<300)
+#if 0
 	if(test==1)
 	{
 		Person *vh = vhOnTheRoad.begin()->second;
@@ -159,6 +162,7 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 //		eventPub.publish(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_, vh, AMODRerouteEventArgs(obj1));
 
 	}
+#endif
 
 	// return continue, make sure agent not remove from main loop
 	return Entity::UpdateStatus::Continue;

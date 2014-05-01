@@ -13,6 +13,7 @@
 #include "workers/Worker.hpp"
 
 #include "entities/commsim/connection/ConnectionHandler.hpp"
+#include "entities/commsim/connection/CloudHandler.hpp"
 #include "entities/commsim/connection/WhoAreYouProtocol.hpp"
 #include "entities/commsim/client/ClientHandler.hpp"
 #include "entities/commsim/serialization/Base64Escape.hpp"
@@ -479,10 +480,15 @@ void sim_mob::Broker::opaqueSendCloud(boost::shared_ptr<ConnectionHandler> handl
 
 void sim_mob::Broker::sendToCloud(boost::shared_ptr<CloudHandler> cloud, const OpaqueSendMessage& msg, const std::string& toId, bool useNs3)
 {
-	//Make a new message with the correct toIds set.
-	OpaqueSendMessage newMsg(msg);
-	newMsg.toIds.clear();
-	newMsg.toIds.push_back(toId);
+	//Prepare a message for response.
+	MessageBase temp;
+	temp.msg_type = "opaque_receive";
+	OpaqueReceiveMessage newMsg(temp); //TODO: This is a hackish workaround.
+	newMsg.format = msg.format;
+
+	//Reverse the sender/receiver.
+	newMsg.fromId = toId;
+	newMsg.toId = msg.fromId;
 
 	//Before waiting for the cloud, decode the actual message, and split it at every newline.
 	if (msg.format != "base64escape") {
@@ -490,8 +496,6 @@ void sim_mob::Broker::sendToCloud(boost::shared_ptr<CloudHandler> cloud, const O
 	}
 	std::vector<std::string> msgLines;
 	Base64Escape::Decode(msgLines, msg.data, '\n');
-
-
 
 	//Now, wait for the client to connect.
 	{
@@ -501,21 +505,21 @@ void sim_mob::Broker::sendToCloud(boost::shared_ptr<CloudHandler> cloud, const O
 	}
 	}
 
-	//We now have a valid cloud connection.
+	//We now have a valid cloud connection and a set of messages to send. This must be done in a single transaction:
+	// [write,write,..,write] => [read,read,..,read]
+	//This will incur some delay due to false synchronization; however, it is by far the simplest solution. Recall that most
+	// RoadRunner agents will connect, send, and receive in the *same* update tick, so this approach is unfortunately necessary for now.
+	std::vector<std::string> resLines = cloud->writeLinesReadLines(msgLines);
 
+	//Re-encode the response using our base64-encoding.
+	newMsg.data = Base64Escape::Encode(resLines, '\n');
 
-
-	//Step 1) Decode the actual message (using the base64/substitution method present in the client).
-	//        Note that this violates the "Opaque" principle, so we might need to add a tag describing the format.
-	//Step 2) Send the actual message to the cloud server, line by line.
-	//Step 3) Wait for a response from the server, line-by-line.
-	//Step 4) Either route the response through ns-3 (as an OpaqueReceive), or send the OpaqueReceive directly to the client.
-
-
-
-
-
-	throw std::runtime_error("TODO: Message send and receive.");
+	//Now, either route this through ns-3 or send it directly to the client.
+	if (useNs3) {
+		throw std::runtime_error("Can't send cloud messages through ns-3; at the moment ns-3 is only configured for Wi-Fi.");
+	} else {
+		dynamic_cast<const OpaqueReceiveHandler*>(handleLookup.getHandler(newMsg.msg_type))->handleDirect(newMsg, this);
+	}
 }
 
 boost::shared_ptr<CloudHandler> sim_mob::Broker::getCloudHandler(const std::string& id, boost::shared_ptr<ConnectionHandler> conn)

@@ -98,6 +98,9 @@ public:
 
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
 
+	//Helper; also called by the Broker for Cloud messages.
+	void handleDirect(const OpaqueReceiveMessage& recMsg, BrokerBase* broker) const;
+
 private:
 	const bool useNs3;
 };

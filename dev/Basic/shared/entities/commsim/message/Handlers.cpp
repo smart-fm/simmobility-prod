@@ -228,7 +228,12 @@ void sim_mob::OpaqueReceiveHandler::handle(boost::shared_ptr<ConnectionHandler> 
 	}
 
 	OpaqueReceiveMessage recMsg = CommsimSerializer::parseOpaqueReceive(messages, msgNumber);
+	handleDirect(recMsg, broker);
+}
 
+
+void sim_mob::OpaqueReceiveHandler::handleDirect(const OpaqueReceiveMessage& recMsg, BrokerBase* broker) const
+{
 	//Get the client handler for this recipient.
 	boost::shared_ptr<sim_mob::ClientHandler> receiveAgentHandle;
 

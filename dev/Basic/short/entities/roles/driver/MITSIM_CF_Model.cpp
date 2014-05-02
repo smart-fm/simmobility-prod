@@ -12,7 +12,8 @@
 #include <boost/random.hpp>
 
 #include <limits>
-
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/trim.hpp>
 #include "entities/vehicle/Vehicle.hpp"
 #include "entities/models/CarFollowModel.hpp"
 #include "util/Math.hpp"
@@ -120,8 +121,10 @@ sim_mob::MITSIM_CF_Model::MITSIM_CF_Model()
 void sim_mob::MITSIM_CF_Model::initParam()
 {
 	// speed scaler
-	string speedScalerStr;
-	ParameterManager::Instance()->param(modelName,"speed_scaler",speedScalerStr,string(""));
+	string speedScalerStr,maxAccStr;
+	ParameterManager::Instance()->param(modelName,"speed_scaler",speedScalerStr,string("5 20 20"));
+	ParameterManager::Instance()->param(modelName,"max_acc_car1",maxAccStr,string("10.00  7.90  5.60  4.00  4.00"));
+	makeMaxAccIndex(speedScalerStr,maxAccStr);
 	// max acceleration
 	ParameterManager::Instance()->param(modelName,"maxAcceleration",maxAcceleration,5.01);
 	ParameterManager::Instance()->param(modelName,"normalDeceleration",normalDeceleration,-3.01);
@@ -131,7 +134,82 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	std::cout<<"MITSIM_CF_Model: normalDeceleration <"<<normalDeceleration<<">"<<std::endl;
 	std::cout<<"MITSIM_CF_Model: maxDeceleration <"<<maxDeceleration<<">"<<std::endl;
 }
+void sim_mob::MITSIM_CF_Model::makeMaxAccIndex(string& speedScalerStr,string& maxAccStr)
+{
+	// for example
+	// speedScalerStr "5 20 20" ft/sec
+	// maxAccStr      "10.00  7.90  5.60  4.00  4.00" ft/(s^2)
+	std::vector<std::string> speedScalerArrayStr;
+	boost::trim(speedScalerStr);
+	boost::split(speedScalerArrayStr, speedScalerStr, boost::is_any_of(" "),boost::token_compress_on);
+	std::vector<double> speedScalerArrayDouble;
+	for(int i=0;i<speedScalerArrayStr.size();++i)
+	{
+		double res;
+		try {
+				res = boost::lexical_cast<double>(speedScalerArrayStr[i].c_str());
+			}catch(boost::bad_lexical_cast&) {
+				std::string s = "can not covert <" +speedScalerStr+"> to double.";
+				throw std::runtime_error(s);
+			}
+		speedScalerArrayDouble.push_back(res);
+	}
+	//
+	boost::algorithm::trim(maxAccStr);
+	std::vector<std::string> maxAccArrayStr;
+	boost::split(maxAccArrayStr, maxAccStr, boost::is_any_of(" "),boost::token_compress_on);
+	std::vector<double> maxAccArrayDouble;
+	for(int i=0;i<maxAccArrayStr.size();++i)
+	{
+		double res;
+		try {
+				res = boost::lexical_cast<double>(maxAccArrayStr[i].c_str());
+			}catch(boost::bad_lexical_cast&) {
+				std::string s = "can not covert <" +maxAccStr+"> to double.";
+				throw std::runtime_error(s);
+			}
+		maxAccArrayDouble.push_back(res);
+	}
+	//
+	for(int speed=0;speed<200;++speed)
+	{
+		double maxAcc;
+		// Convert speed value to a table index.
+		int j = speed/speedScalerArrayDouble[1];
+		if(j>=(speedScalerArrayDouble[0]-1))
+		{
+			maxAcc = maxAccArrayDouble[speedScalerArrayDouble[0]-1];
+
+		}
+		else
+		{
+			maxAcc = maxAccArrayDouble[j];
+		}
+		maxAccIndex.insert(std::make_pair(speed, maxAcc ));
+
+		std::cout<<"speed: "<<speed<<" max acc: "<<maxAcc<<std::endl;
+	}
+}
 double sim_mob::MITSIM_CF_Model::getMaxAcceleration(sim_mob::DriverUpdateParams& p)
+{
+	if(!p.driver)
+	{
+		throw std::runtime_error("no driver");
+	}
+	// TODO: get grade
+
+	// TODO: get vehicle type
+
+	// convert speed to int
+	int speed  = (int)p.perceivedFwdVelocity/100;
+	if(speed <0) speed=0;
+	if(speed >200) speed=200;
+
+	double acc = maxAccIndex[speed];
+
+	return acc;
+}
+double sim_mob::MITSIM_CF_Model::maxTableAcc(double& speed,sim_mob::Vehicle::VEHICLE_TYPE& vhType)
 {
 
 }

@@ -26,7 +26,7 @@
 <param name="maxDeceleration" value="-5.0"/>
 
 <param name="speed_scaler" value="5 20 20"/>
-
+<param name="max_acc_car1" value="10.00  7.90  5.60  4.00  3.00"/>
 
 </parameters>
 

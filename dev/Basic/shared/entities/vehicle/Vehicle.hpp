@@ -38,6 +38,10 @@ class FMODSchedule;
 
 class Vehicle {
 public:
+	enum VEHICLE_TYPE{
+		CAR=1,
+		BUS=2
+	};
 //	Vehicle(int startLaneID);
 	Vehicle(double lengthCM, double widthCM); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
 	Vehicle(int vehicleId, double lengthCM, double widthCM); //Test

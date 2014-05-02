@@ -8,6 +8,8 @@
 #include "entities/roles/driver/Driver.hpp"
 
 #include <string>
+#include <set>
+#include <map>
 
 using namespace std;
 
@@ -65,7 +67,9 @@ class MITSIM_CF_Model : public CarFollowModel {
 public:
 	MITSIM_CF_Model();
 	void initParam();
+	void makeMaxAccIndex(string& speedScalerStr,string& maxAccStr);
 	double getMaxAcceleration(sim_mob::DriverUpdateParams& p);
+	double maxTableAcc(double& speed,sim_mob::Vehicle::VEHICLE_TYPE& vhType);
 	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);
 
 private:
@@ -83,6 +87,10 @@ private:
 	double accOfFreeFlowing(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);  ///<when upper threshold < headway, use this funcion
 	double accOfMixOfCFandFF(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed); 	///<mix of car following and free flowing
 	void distanceToNormalStop(sim_mob::DriverUpdateParams& p);
+
+private:
+	/// key=speed [0 100], value=max acc
+	map<int,double> maxAccIndex;
 };
 
 

@@ -165,7 +165,7 @@ private:
 	 * @param now current time slice
 	 * @param person person to move
 	 */
-	UpdateStatus perform_person_move(timeslice now, Person* person);
+	UpdateStatus movePerson(timeslice now, Person* person);
 
 	/**
 	 * calls frame_init of the movement facet for the person's role
@@ -173,7 +173,7 @@ private:
 	 * @param person person to initialize
 	 * @return true if the role corresponding to this subtrip has been constructed successfully; false otherwise
 	 */
-	bool call_movement_frame_init(timeslice now, Person* person);
+	bool callMovementFrameInit(timeslice now, Person* person);
 
 	/**
 	 * calls frame_tick of the movement facet for the person's role
@@ -181,14 +181,14 @@ private:
 	 * @param person person to tick
 	 * @return update status
 	 */
-	Entity::UpdateStatus call_movement_frame_tick(timeslice now, Person* person);
+	Entity::UpdateStatus callMovementFameTick(timeslice now, Person* person);
 
 	/**
 	 * calls frame_tick of the movement facet for the person's role
 	 * @param now current time slice
 	 * @param person person whose frame output is required
 	 */
-	void call_movement_frame_output(timeslice now, Person* person);
+	void callMovementFrameOutput(timeslice now, Person* person);
 
 	/** function to initialize candidate agents in each tick*/
 	void initCandidateAgents();

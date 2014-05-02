@@ -143,35 +143,6 @@ void sim_mob::medium::DriverMovement::frame_tick() {
 		return;
 	}
 
-	//======================================incident==========================================
-/*
-	// this needs to be moved to be changed to read from input xml later
-	const sim_mob::RoadSegment* nextRdSeg = nullptr;
-	if (hasNextSegment(true))
-		nextRdSeg = getNextSegment(true);
-
-	else if (hasNextSegment(false))
-		nextRdSeg = getNextSegment(false);
-
-	if (nextRdSeg){
-		if(nextRdSeg->getStart()->getID() == 84882){
-		std::cout << "adding incident "<<p.now.ms() << " "<< parent->getId()
-				<<" outputFlowRate: "<<getOutputFlowRate(parent->getCurrLane())<<std::endl;
-		if (getOutputFlowRate(nextRdSeg->getLanes()[0]) != 0 &&
-				nextRdSeg->getStart()->getID() == 84882 && p.now.ms() == 6000){
-			std::cout << "incident added." << p.now.ms() << std::endl;
-			insertIncident(nextRdSeg, 0);
-		}
-		}
-	}
-
-//	if (getCurrSegment()->getStart()->getID() == 103046 && p.now.ms() == 21000
-	//		and parent->getId() == 46){
-		//	std::cout << "incident removed." << std::endl;
-			//removeIncident(getCurrSegment());
-	//}
-*/
-	//=====================================incident==============================================
 	if(getParent()->canMoveToNextSegment == Person::GRANTED) {
 		flowIntoNextLinkIfPossible(params);
 	}
@@ -198,7 +169,9 @@ void sim_mob::medium::DriverMovement::frame_tick() {
 
 void sim_mob::medium::DriverMovement::frame_tick_output() {
 	const sim_mob::medium::DriverUpdateParams& params = parentDriver->getParams();
-	if (pathMover.isPathCompleted() || ConfigManager::GetInstance().FullConfig().using_MPI || ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) {
+	if (pathMover.isPathCompleted()
+			|| ConfigManager::GetInstance().FullConfig().using_MPI
+			|| ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) {
 		return;
 	}
 
@@ -393,7 +366,7 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 	return res;
 }
 
-void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params) {
+void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdateParams& params) {
 	//This function gets called for 2 cases.
 	//1. Driver is added to virtual queue
 	//2. Driver is in previous segment trying to add to the next

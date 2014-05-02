@@ -6,6 +6,7 @@
 
 #include "Driver.hpp"
 #include "BusDriverFacets.hpp"
+#include "entities/misc/BusTrip.hpp"
 
 /*
  * BusDriver.hpp
@@ -26,7 +27,9 @@ class BusDriverMovement;
 
 class BusDriver : public sim_mob::medium::Driver {
 public:
-	BusDriver(Agent* parent, MutexStrategy mtxStrat, sim_mob::medium::BusDriverBehavior* behavior = nullptr, sim_mob::medium::BusDriverMovement* movement = nullptr);
+	BusDriver(Agent* parent, MutexStrategy mtxStrat,
+			sim_mob::medium::BusDriverBehavior* behavior = nullptr,
+			sim_mob::medium::BusDriverMovement* movement = nullptr);
 	virtual ~BusDriver();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
@@ -39,8 +42,6 @@ protected:
 	friend class BusDriverBehavior;
 	friend class BusDriverMovement;
 };
-
-//#endif /* BUSDRIVER_HPP_ */
 
 }
 }

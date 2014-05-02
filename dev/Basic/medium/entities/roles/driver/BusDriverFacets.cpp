@@ -36,7 +36,7 @@ namespace sim_mob {
 namespace medium {
 
 sim_mob::medium::BusDriverBehavior::BusDriverBehavior(sim_mob::Person* parentAgent):
-	DriverBehavior(parentAgent) {}
+	DriverBehavior(parentAgent), parentBusDriver(nullptr) {}
 
 sim_mob::medium::BusDriverBehavior::~BusDriverBehavior() {}
 
@@ -69,11 +69,53 @@ void sim_mob::medium::BusDriverMovement::frame_init() {
 }
 
 void sim_mob::medium::BusDriverMovement::frame_tick() {
-	DriverMovement::frame_tick();
+	sim_mob::medium::DriverUpdateParams& params = parentDriver->getParams();
+	const sim_mob::SegmentStats* currSegStats = pathMover.getCurrSegStats();
+	if(currSegStats == getParent()->getCurrSegStats())
+	{
+		if (!pathMover.isPathCompleted() && currSegStats->laneInfinity)
+		{
+			//the vehicle will be in lane infinity before it starts starts. set origin will move it to the correct lane
+			if (getParent()->getCurrLane() == currSegStats->laneInfinity){
+				setOrigin(params);
+			}
+		} else {
+			Warn() <<"ERROR: Vehicle could not be created for driver; no route!" <<std::endl;
+		}
+	}
+
+	//Are we done already?
+	if (pathMover.isPathCompleted()) {
+		getParent()->setToBeRemoved();
+		return;
+	}
+
+	if(getParent()->canMoveToNextSegment == Person::GRANTED) {
+		flowIntoNextLinkIfPossible(params);
+	}
+	else if (getParent()->canMoveToNextSegment == Person::DENIED){
+		if(currLane) {
+			if(getParent()->isQueuing) {
+				moveInQueue();
+			}
+			else {
+				addToQueue(currLane); // adds to queue if not already in queue
+			}
+
+			params.elapsedSeconds = params.secondsInTick;
+			getParent()->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
+			setParentData(params);
+		}
+	}
+	//if vehicle is still in lane infinity, it shouldn't be advanced
+	if (currLane && getParent()->canMoveToNextSegment == Person::NONE) {
+		advance(params);
+		setParentData(params);
+	}
 }
 
 void sim_mob::medium::BusDriverMovement::frame_tick_output() {
-	DriverUpdateParams &p = parentBusDriver->getParams();
+	sim_mob::medium::DriverUpdateParams &p = parentBusDriver->getParams();
 	//Skip?
 	if (pathMover.isPathCompleted() || ConfigManager::GetInstance().FullConfig().using_MPI || ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) {
 		return;
@@ -98,13 +140,6 @@ void sim_mob::medium::BusDriverMovement::frame_tick_output() {
 	Print()<<logout.str();
 	LogOut(logout.str());
 }
-
-
-void sim_mob::medium::BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& p) {
-	Print()<<"BusDriver_movement flowIntoNextLinkIfPossible called"<<std::endl;
-	DriverMovement::flowIntoNextLinkIfPossible(p);
-}
-
 
 bool sim_mob::medium::BusDriverMovement::initializePath()
 {

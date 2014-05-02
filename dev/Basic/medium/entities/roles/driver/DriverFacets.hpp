@@ -83,6 +83,8 @@ public:
 
 	/**
 	 * For moving into a new link after getting permission from the managing conflux
+	 *
+	 * @param params driver update params for current tick
 	 */
 	void flowIntoNextLinkIfPossible(DriverUpdateParams& params);
 

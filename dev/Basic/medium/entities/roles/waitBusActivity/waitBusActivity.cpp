@@ -69,8 +69,8 @@ void sim_mob::medium::WaitBusActivity::makeBoardingDecision(BusDriver* driver) {
 		return;
 	}
 
-	std::vector<const sim_mob::BusStop*>::const_iterator itStop;
-	itStop = std::find(stopsVec->begin(), stopsVec->end(), destStop);
+	std::vector<const sim_mob::BusStop*>::const_iterator itStop = std::find(
+			stopsVec->begin(), stopsVec->end(), destStop);
 	if (itStop != stopsVec->end()) {
 		setDecisionResult(MAKE_DECISION_BOARDING);
 	}

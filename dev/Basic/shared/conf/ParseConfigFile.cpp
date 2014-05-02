@@ -575,6 +575,7 @@ void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
 	ProcessConstructsNode(GetSingleElementByName(rootNode,"constructs"));
 	ProcessBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes"));
 	ProcessPersonCharacteristicsNode(GetSingleElementByName(rootNode, "personCharacteristics"));
+	ProcessLongTermParamsNode( GetSingleElementByName(rootNode, "longTermParams"));
 
 	//Agents all follow a template.
 

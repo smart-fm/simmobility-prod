@@ -27,4 +27,4 @@ sim_mob::SimulationParams::SimulationParams() :
 {}
 
 
-
+sim_mob::LongTermParams::LongTermParams(): enabled(false), workers(0), days(0), tick_step(0), max_iterations(0) {}

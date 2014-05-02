@@ -33,6 +33,16 @@ struct FMOD_ControllerParams {
 	unsigned int blockingTimeSec;
 };
 
+//Represents the long-term developer model of the config file
+struct LongTermParams{
+	LongTermParams();
+	bool enabled;
+	unsigned int workers;
+	unsigned int days;
+	unsigned int tick_step;
+	unsigned int max_iterations;
+};
+
 ///represent the incident data section of the config file
 struct IncidentParams {
 	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
@@ -268,6 +278,9 @@ public:
 
 	///Settings for the FMOD controller.
 	FMOD_ControllerParams fmod;
+
+	///Settings for Long Term Parameters
+	LongTermParams ltParams;
 
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;

@@ -30,8 +30,8 @@ Bid::Bid(const Bid& source) : time(source.time) {
 }
 
 Bid::Bid()
-: unitId(INVALID_ID), bidderId(INVALID_ID), value(.0f), time(0,0), 
-        bidder(nullptr), willingnessToPay(0), speculation(0) {
+: unitId(INVALID_ID), bidderId(INVALID_ID), value(0.0), time(0,0), 
+        bidder(nullptr), willingnessToPay(0.0), speculation(0.0) {
 }
 
 Bid::~Bid() {

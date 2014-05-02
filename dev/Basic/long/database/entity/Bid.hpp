@@ -25,8 +25,8 @@ namespace sim_mob {
         class Bid {
         public:
             Bid(BigSerial id, BigSerial bidderId, LT_Agent* bidder, double value, 
-                    timeslice& time, double willingnessToPay = .0f, 
-                    double speculation = .0f);
+                    timeslice& time, double willingnessToPay = 0.0, 
+                    double speculation = 0.0);
             Bid(const Bid& source);
             virtual ~Bid();
 

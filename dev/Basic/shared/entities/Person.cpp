@@ -269,6 +269,23 @@ bool sim_mob::Person::frame_init(timeslice now)
 	return true;
 }
 
+void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
+{
+	Agent::onEvent(eventId, ctxId, sender, args);
+	if(currRole){
+		currRole->onParentEvent(eventId, ctxId, sender, args);
+	}
+}
+
+
+ void sim_mob::Person::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
+ {
+	 Agent::HandleMessage(type, message);
+	 if(currRole){
+		 currRole->HandleParentMessage(type, message);
+	 }
+ }
+
 
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {

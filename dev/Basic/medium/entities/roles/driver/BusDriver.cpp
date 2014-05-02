@@ -32,7 +32,6 @@ sim_mob::medium::BusDriver::~BusDriver() {
 }
 
 Role* sim_mob::medium::BusDriver::clone(Person* parent) const {
-
 	BusDriverBehavior* behavior = new BusDriverBehavior(parent);
 	BusDriverMovement* movement = new BusDriverMovement(parent);
 	BusDriver* busdriver = new BusDriver(parent, parent->getMutexStrategy(), behavior, movement);
@@ -40,6 +39,22 @@ Role* sim_mob::medium::BusDriver::clone(Person* parent) const {
 	movement->setParentBusDriver(busdriver);
 	movement->setParentDriver(busdriver);
 	return busdriver;
+}
+
+const std::vector<const sim_mob::BusStop*>* sim_mob::medium::BusDriver::getBusStopsVector() const {
+	const std::vector<const sim_mob::BusStop*>* stopsVec=nullptr;
+	sim_mob::Person* person = dynamic_cast<Person*>(parent);
+	if(!person){
+		return stopsVec;
+	}
+
+	const BusTrip* busTrip =dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+	if(!busTrip){
+		return stopsVec;
+	}
+	const BusRouteInfo& routeInfo = busTrip->getBusRouteInfo();
+	stopsVec = &(routeInfo.getBusStops());
+	return stopsVec;
 }
 
 std::vector<BufferedBase*> sim_mob::medium::BusDriver::getSubscriptionParams() {

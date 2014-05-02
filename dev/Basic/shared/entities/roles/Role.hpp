@@ -225,6 +225,24 @@ public:
 #endif
 
 
+	/**
+	 * event handler which provide a chance to handle event transfered from parent agent.
+	 * @param sender pointer for the event producer.
+	 * @param id event identifier.
+	 * @param args event arguments.
+	 */
+	virtual void onParentEvent(event::EventId eventId,
+			sim_mob::event::Context ctxId, event::EventPublisher* sender,
+			const event::EventArgs& args){}
+
+	/**
+	 * message handler which provide a chance to handle message transfered from parent agent.
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void HandleParentMessage(messaging::Message::MessageType type,
+			const messaging::Message& message){}
+
 };
 
 }

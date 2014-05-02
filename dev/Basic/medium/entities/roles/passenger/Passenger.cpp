@@ -54,8 +54,9 @@ void sim_mob::medium::Passenger::makeAlightingDecision(BusStop* nextStop) {
 	if (getParent()->destNode.type_ == WayPoint::BUS_STOP
 			&& getParent()->destNode.busStop_ == nextStop) {
 		setDecisionResult(MAKE_DECISION_ALIGHTING);
+		setAssociateDriver(nullptr);
 	} else {
-		setDecisionResult(MAKE_DECISION_BOARDING);
+		setDecisionResult(MAKE_DECISION_NORESULT);
 	}
 }
 }

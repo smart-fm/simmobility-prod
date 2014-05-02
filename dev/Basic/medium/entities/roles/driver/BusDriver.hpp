@@ -35,6 +35,13 @@ public:
 	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
+	/**
+	 * gets stops list from bus route
+	 * @return constant pointer to bus stops list
+	 *
+	 */
+	const std::vector<const sim_mob::BusStop*>* getBusStopsVector() const;
+
 protected:
 	friend class BusDriverBehavior;
 	friend class BusDriverMovement;

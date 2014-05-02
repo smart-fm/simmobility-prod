@@ -114,6 +114,18 @@ bool ParameterManager::getParam(const std::string& modelName, const std::string&
 
 	return true;
 }
+bool ParameterManager::getParam(const std::string& modelName, const std::string& key, std::string& s) const
+{
+	ParamData v;
+	if (!getParam(modelName,key, s))
+	{
+		return false;
+	}
+
+	s = v.toString();
+
+	return true;
+}
 bool ParameterManager::getParam(const std::string& modelName, const std::string& key, ParamData& v) const
 {
 	ParameterPoolConIterator it = parameterPool.find(modelName);

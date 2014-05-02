@@ -25,6 +25,7 @@
 <param name="normalDeceleration" value="-3.0"/>
 <param name="maxDeceleration" value="-5.0"/>
 
+<param name="speed_scaler" value="5 20 20"/>
 
 
 </parameters>

@@ -33,7 +33,7 @@ public:
 	virtual ~ParamData();
 
 public:
-	std::string toString();
+	std::string toString(){ return dataString; }
 	double toDouble();
 	int    toInt();
 	bool   toBool();

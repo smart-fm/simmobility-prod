@@ -22,8 +22,11 @@
 #include "entities/IncidentStatus.hpp"
 #include "geospatial/Incident.hpp"
 #include "util/OneTimeFlag.hpp"
+#include "entities/models/CarFollowModel.hpp"
 
 namespace sim_mob {
+
+class CarFollowModel;
 
 class DriverBehavior: public sim_mob::BehaviorFacet {
 public:

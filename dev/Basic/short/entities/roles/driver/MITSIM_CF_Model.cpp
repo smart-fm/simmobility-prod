@@ -20,6 +20,7 @@
 
 using std::numeric_limits;
 using namespace sim_mob;
+using namespace std;
 
 
 namespace {
@@ -113,13 +114,18 @@ double CalcHeadway(double space, double speed, double elapsedSeconds, double max
  */
 sim_mob::MITSIM_CF_Model::MITSIM_CF_Model()
 {
-//	CarFollowParam leadCarFollowParam;
-//	ParameterManager::Instance()->param("general_driver_model","lead_alpha",leadCarFollowParam.alpha,0.0400);
-//	std::cout<<"MITSIM_CF_Model: "<<leadCarFollowParam.alpha<<std::endl;
-
-	ParameterManager::Instance()->param("general_driver_model","maxAcceleration",maxAcceleration,5.01);
-	ParameterManager::Instance()->param("general_driver_model","normalDeceleration",normalDeceleration,-3.01);
-	ParameterManager::Instance()->param("general_driver_model","maxDeceleration",maxDeceleration,-5.01);
+	modelName = "general_driver_model";
+	initParam();
+}
+void sim_mob::MITSIM_CF_Model::initParam()
+{
+	// speed scaler
+	string speedScalerStr;
+	ParameterManager::Instance()->param(modelName,"speed_scaler",speedScalerStr,string(""));
+	// max acceleration
+	ParameterManager::Instance()->param(modelName,"maxAcceleration",maxAcceleration,5.01);
+	ParameterManager::Instance()->param(modelName,"normalDeceleration",normalDeceleration,-3.01);
+	ParameterManager::Instance()->param(modelName,"maxDeceleration",maxDeceleration,-5.01);
 
 	std::cout<<"MITSIM_CF_Model: maxAcceleration <"<<maxAcceleration<<">"<<std::endl;
 	std::cout<<"MITSIM_CF_Model: normalDeceleration <"<<normalDeceleration<<">"<<std::endl;

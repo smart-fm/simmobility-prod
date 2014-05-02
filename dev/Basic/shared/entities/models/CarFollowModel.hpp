@@ -5,12 +5,18 @@
 #pragma once
 
 #include "conf/params/ParameterManager.hpp"
+#include "entities/roles/driver/Driver.hpp"
+
+#include <string>
+
+using namespace std;
 
 namespace sim_mob {
 
 //Forward declaration
 class DriverUpdateParams;
 class NearestVehicle;
+class Driver;
 
 
 /*
@@ -30,6 +36,7 @@ public:
 	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed) = 0;  ///<Decide acceleration
 
 public:
+	string modelName;
 	double maxAcceleration;
 	double normalDeceleration;
 	double maxDeceleration;
@@ -57,6 +64,7 @@ public:
 class MITSIM_CF_Model : public CarFollowModel {
 public:
 	MITSIM_CF_Model();
+	void initParam();
 	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);
 
 private:

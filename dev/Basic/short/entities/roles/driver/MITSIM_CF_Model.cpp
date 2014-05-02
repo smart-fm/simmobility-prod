@@ -131,6 +131,10 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	std::cout<<"MITSIM_CF_Model: normalDeceleration <"<<normalDeceleration<<">"<<std::endl;
 	std::cout<<"MITSIM_CF_Model: maxDeceleration <"<<maxDeceleration<<">"<<std::endl;
 }
+double sim_mob::MITSIM_CF_Model::getMaxAcceleration(sim_mob::DriverUpdateParams& p)
+{
+
+}
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
 	//initiate

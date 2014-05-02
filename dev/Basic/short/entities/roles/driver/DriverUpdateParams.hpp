@@ -13,6 +13,7 @@
 #include <boost/random.hpp>
 #include "util/LangHelpers.hpp"
 #include "entities/signal/Signal.hpp"
+//#include "entities/roles/driver/Driver.hpp"
 
 namespace sim_mob
 {
@@ -144,6 +145,8 @@ struct DriverUpdateParams : public UpdateParams {
 	DPoint TEMP_lastKnownPolypoint;
 	bool justMovedIntoIntersection;
 	double overflowIntoIntersection;
+
+	Driver* driver;
 
 public:
 #ifndef SIMMOB_DISABLE_MPI

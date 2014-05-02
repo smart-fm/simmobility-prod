@@ -39,8 +39,8 @@ struct LongTermParams{
 	bool enabled;
 	unsigned int workers;
 	unsigned int days;
-	unsigned int tick_step;
-	unsigned int max_iterations;
+	unsigned int tickStep;
+	unsigned int maxIterations;
 };
 
 ///represent the incident data section of the config file

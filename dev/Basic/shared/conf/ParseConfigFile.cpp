@@ -885,8 +885,8 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 
 	//Now set the rest.
 	cfg.ltParams.days = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "days"), "value"), static_cast<unsigned int>(0));
-	cfg.ltParams.max_iterations = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "maxIterations"), "value"), static_cast<unsigned int>(0));
-	cfg.ltParams.tick_step = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "tickStep"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.maxIterations = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "maxIterations"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.tickStep = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "tickStep"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.workers = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "workers"), "value"), static_cast<unsigned int>(0));
 }
 

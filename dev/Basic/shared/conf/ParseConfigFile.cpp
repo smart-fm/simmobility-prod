@@ -874,6 +874,23 @@ void sim_mob::ParseConfigFile::ProcessConstructMongoCollectionsNode(xercesc::DOM
 }
 
 
+void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* node)
+{
+	if (!node) {
+		return;
+	}
+
+	//The longtermParams tag has an attribute
+	cfg.ltParams.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+
+	//Now set the rest.
+	cfg.ltParams.days = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "days"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.max_iterations = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "maxIterations"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.tick_step = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "tickStep"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.workers = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "workers"), "value"), static_cast<unsigned int>(0));
+}
+
+
 void sim_mob::ParseConfigFile::ProcessFMOD_Node(xercesc::DOMElement* node)
 {
 	if (!node) {

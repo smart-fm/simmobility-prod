@@ -91,6 +91,7 @@ private:
 private:
 	/// key=speed [0 100], value=max acc
 	map<int,double> maxAccIndex;
+	int maxAccUpBound;
 };
 
 

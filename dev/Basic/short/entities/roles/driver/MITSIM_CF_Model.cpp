@@ -171,7 +171,8 @@ void sim_mob::MITSIM_CF_Model::makeMaxAccIndex(string& speedScalerStr,string& ma
 		maxAccArrayDouble.push_back(res);
 	}
 	//
-	for(int speed=0;speed<200;++speed)
+	maxAccUpBound = speedScalerArrayDouble[1] * (speedScalerArrayDouble[0]-1);
+	for(int speed=0;speed<=maxAccUpBound;++speed)
 	{
 		double maxAcc;
 		// Convert speed value to a table index.
@@ -203,7 +204,7 @@ double sim_mob::MITSIM_CF_Model::getMaxAcceleration(sim_mob::DriverUpdateParams&
 	// convert speed to int
 	int speed  = (int)p.perceivedFwdVelocity/100;
 	if(speed <0) speed=0;
-	if(speed >200) speed=200;
+	if(speed >maxAccUpBound) speed=maxAccUpBound;
 
 	double acc = maxAccIndex[speed];
 

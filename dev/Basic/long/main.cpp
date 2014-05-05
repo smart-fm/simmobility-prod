@@ -29,7 +29,6 @@
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
 
-#include "unit-tests/dao/DaoTests.hpp"
 #include "model/DeveloperModel.hpp"
 
 
@@ -199,8 +198,8 @@ int main(int ARGC, char* ARGV[]) {
         }
         ConfigManager::GetInstanceRW().reset();
     } else {
-        unit_tests::DaoTests tests;
-        tests.testAll();
+/*        unit_tests::DaoTests tests;
+        tests.testAll();*/
     }
     
     return 0;

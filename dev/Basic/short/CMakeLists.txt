@@ -22,3 +22,10 @@ target_link_libraries (SimMobility_Short ${LibraryList})
 IF (${SIMMOB_AGENT_UPDATE_PROFILE} MATCHES "ON")
   target_link_libraries (SimMobility_Short "rt")
 ENDIF (${SIMMOB_AGENT_UPDATE_PROFILE} MATCHES "ON")
+
+#Build into a library if requested
+IF (${BUILD_LIBS} MATCHES "ON")
+  add_library(simmob_short SHARED  ${ShortTerm_CPP})
+  install(DIRECTORY ./ DESTINATION include/sim_mob_short FILES_MATCHING PATTERN "*.hpp")
+  INSTALL(TARGETS simmob_short RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+ENDIF()

@@ -185,6 +185,7 @@ int main(int ARGC, char* ARGV[]) {
 	DAYS = config.ltParams.days;
 	TICK_STEP = config.ltParams.tickStep;
 	WORKERS = config.ltParams.workers;
+	MAX_ITERATIONS = config.ltParams.maxIterations;
 
     std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
     Print::Init("<stdout>");

@@ -7,6 +7,7 @@
 
 #include "BusStopAgent.hpp"
 #include "entities/roles/waitBusActivity/waitBusActivity.hpp"
+#include "entities/MesoEventType.hpp"
 
 namespace sim_mob {
 
@@ -46,8 +47,20 @@ void BusStopAgent::alightingPassengerToStop(sim_mob::Person* person) {
 	alightingPersons.push_back(person);
 }
 
-const sim_mob::BusStop* BusStopAgent::getAssociateBusStop() const{
+const sim_mob::BusStop* BusStopAgent::getBusStop() const{
 	return busStop;
+}
+
+void BusStopAgent::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message) {
+
+	Agent::HandleMessage(type, message);
+
+	switch(type){
+	case MSG_DECISION_WAITINGPERSON_BOARDING:
+		const WaitingPeopleBoardingDecisionMessageArgs& msg = MSG_CAST(WaitingPeopleBoardingDecisionMessageArgs, message);
+		processWaitingPersonBoarding(msg.busDriver);
+		break;
+	}
 }
 
 void BusStopAgent::processWaitingPersonBoarding(
@@ -69,8 +82,13 @@ void BusStopAgent::processWaitingPersonBoarding(
 		sim_mob::medium::WaitBusActivity* waitingActivity =
 				dynamic_cast<sim_mob::medium::WaitBusActivity*>(curRole);
 		if(waitingActivity && waitingActivity->getDecisionResult()==MAKE_DECISION_BOARDING){
-			itPerson = waitingPersons.erase(itPerson);
-			//busDriver->assignNewPassenger(*itPerson);
+			if(busDriver->insertPassenger(*itPerson)){
+				itPerson = waitingPersons.erase(itPerson);
+			}
+			else {
+				waitingActivity->setDecisionResult(MAKE_DECISION_NORESULT);
+				itPerson++;
+			}
 		}
 		else {
 			itPerson++;

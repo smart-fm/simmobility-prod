@@ -23,6 +23,7 @@ namespace medium
 
 class BusDriverBehavior;
 class BusDriverMovement;
+class BusStopAgent;
 
 class BusDriver : public sim_mob::medium::Driver {
 public:
@@ -38,9 +39,35 @@ public:
 	/**
 	 * gets stops list from bus route
 	 * @return constant pointer to bus stops list
-	 *
 	 */
 	const std::vector<const sim_mob::BusStop*>* getBusStopsVector() const;
+
+	/**
+	 * insert a new passenger to bus driver when a passenger
+	 * decide to board on this bus
+	 *
+	 * @param passenger is the pointer to the person who will board on this bus
+	 *
+	 * @return boolean value, if boarding success, the value is true;
+	 * otherwise this value is false.
+	 */
+	bool insertPassenger(sim_mob::Person* passenger);
+
+	/**
+	 * alight passengers when those want to alight at next bus stop
+	 * @param bus stop agent is the agent which wrap bus stop and waiting people
+	 */
+	void alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent);
+
+	/**
+	 * enter the bus stop
+	 * @param bus stop agent is the agent which wrap bus stop and waiting people
+	 */
+	void enterBusStop(sim_mob::medium::BusStopAgent* busStopAgent);
+
+private:
+	/**passengers list*/
+	std::list<sim_mob::Person*> passengerList;
 
 protected:
 	friend class BusDriverBehavior;

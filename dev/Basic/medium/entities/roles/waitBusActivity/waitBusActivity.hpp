@@ -85,6 +85,14 @@ public:
 	 */
 	void makeBoardingDecision(BusDriver* driver);
 
+	/**
+	 * message handler which provide a chance to handle message transfered from parent agent.
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void HandleParentMessage(messaging::Message::MessageType type,
+			const messaging::Message& message);
+
 
 private:
 	friend class WaitBusActivityBehavior;

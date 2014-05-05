@@ -5,7 +5,8 @@
 #include "Passenger.hpp"
 #include "PassengerFacets.hpp"
 #include "entities/Person.hpp"
-#include "../driver/Driver.hpp"
+#include "entities/roles/driver/Driver.hpp"
+#include "entities/MesoEventType.hpp"
 
 using std::vector;
 using namespace sim_mob;
@@ -50,13 +51,24 @@ Decision sim_mob::medium::Passenger::getDecisionResult() {
 	return decisionResult;
 }
 
-void sim_mob::medium::Passenger::makeAlightingDecision(BusStop* nextStop) {
+void sim_mob::medium::Passenger::makeAlightingDecision(const sim_mob::BusStop* nextStop) {
 	if (getParent()->destNode.type_ == WayPoint::BUS_STOP
 			&& getParent()->destNode.busStop_ == nextStop) {
 		setDecisionResult(MAKE_DECISION_ALIGHTING);
 		setAssociateDriver(nullptr);
 	} else {
 		setDecisionResult(MAKE_DECISION_NORESULT);
+	}
+}
+
+void sim_mob::medium::Passenger::HandleParentMessage(messaging::Message::MessageType type,
+		const messaging::Message& message)
+{
+	switch(type){
+	case MSG_DECISION_PASSENGER_ALIGHTING:
+		const PassengerAlightingDecisionMessageArgs& msg = MSG_CAST(PassengerAlightingDecisionMessageArgs, message);
+		makeAlightingDecision(msg.nextStop);
+		break;
 	}
 }
 }

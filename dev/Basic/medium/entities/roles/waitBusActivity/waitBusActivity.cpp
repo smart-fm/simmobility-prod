@@ -75,5 +75,12 @@ void sim_mob::medium::WaitBusActivity::makeBoardingDecision(BusDriver* driver) {
 		setDecisionResult(MAKE_DECISION_BOARDING);
 	}
 }
+
+void sim_mob::medium::WaitBusActivity::HandleParentMessage(messaging::Message::MessageType type,
+		const messaging::Message& message)
+{
+
+}
+
 }
 }

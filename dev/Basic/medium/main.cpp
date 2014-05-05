@@ -34,6 +34,8 @@
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
+#include "entities/roles/waitBusActivity/waitBusActivity.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/RoadNetwork.hpp"
@@ -97,6 +99,9 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigManager::GetInstance().FullConfig().mutexStategy()));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, ConfigManager::GetInstance().FullConfig().mutexStategy()));
+	rf.registerRole("waitBusActivity", new sim_mob::medium::WaitBusActivity(nullptr, ConfigManager::GetInstance().FullConfig().mutexStategy()));
+	rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr, ConfigManager::GetInstance().FullConfig().mutexStategy()));
+	rf.registerRole("passenger", new sim_mob::medium::Passenger(nullptr, ConfigManager::GetInstance().FullConfig().mutexStategy()));
 
 	//Load our user config file, which is a time costly function
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);

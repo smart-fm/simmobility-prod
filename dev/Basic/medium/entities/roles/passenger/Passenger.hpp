@@ -74,8 +74,18 @@ public:
 
 	/**
 	 * make a decision for alighting.
+	 * @param nextStop is the next stop which bus will arrive at
 	 */
-	void makeAlightingDecision(BusStop* nextStop);
+	void makeAlightingDecision(const sim_mob::BusStop* nextStop);
+
+	/**
+	 * message handler which provide a chance to handle message transfered from parent agent.
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void HandleParentMessage(messaging::Message::MessageType type,
+			const messaging::Message& message);
+
 
 private:
 	friend class PassengerBehavior;

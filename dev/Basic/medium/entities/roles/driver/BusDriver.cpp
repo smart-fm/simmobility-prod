@@ -12,6 +12,9 @@
 
 #include "BusDriver.hpp"
 #include "entities/Person.hpp"
+#include "entities/busStopAgent/BusStopAgent.hpp"
+#include "entities/MesoEventType.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
 
 using namespace sim_mob;
 using std::max;
@@ -55,6 +58,42 @@ const std::vector<const sim_mob::BusStop*>* sim_mob::medium::BusDriver::getBusSt
 	const BusRouteInfo& routeInfo = busTrip->getBusRouteInfo();
 	stopsVec = &(routeInfo.getBusStops());
 	return stopsVec;
+}
+
+bool sim_mob::medium::BusDriver::insertPassenger(sim_mob::Person* passenger) {
+	passengerList.push_back(passenger);
+	return true;
+}
+
+void sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent){
+	std::list<sim_mob::Person*>::iterator itPassenger = passengerList.begin();
+	while (itPassenger != passengerList.end()) {
+
+		messaging::MessageBus::SendInstantaneousMessage((*itPassenger),
+				MSG_DECISION_PASSENGER_ALIGHTING,
+				messaging::MessageBus::MessagePtr(
+						new PassengerAlightingDecisionMessageArgs(
+								busStopAgent->getBusStop())));
+
+		sim_mob::medium::Passenger* passenger =
+				dynamic_cast<sim_mob::medium::Passenger*>((*itPassenger)->getRole());
+		if (passenger && passenger->getDecisionResult() == MAKE_DECISION_ALIGHTING) {
+			busStopAgent->alightingPassengerToStop(*itPassenger);
+			itPassenger = passengerList.erase(itPassenger);
+		} else {
+			itPassenger++;
+		}
+	}
+}
+
+void sim_mob::medium::BusDriver::enterBusStop(sim_mob::medium::BusStopAgent* busStopAgent) {
+
+	messaging::MessageBus::SendInstantaneousMessage(busStopAgent,
+			MSG_DECISION_WAITINGPERSON_BOARDING,
+			messaging::MessageBus::MessagePtr(
+					new WaitingPeopleBoardingDecisionMessageArgs(this)));
+
+	alightPassenger(busStopAgent);
 }
 
 std::vector<BufferedBase*> sim_mob::medium::BusDriver::getSubscriptionParams() {

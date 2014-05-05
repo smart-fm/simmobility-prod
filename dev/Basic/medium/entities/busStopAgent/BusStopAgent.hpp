@@ -46,6 +46,11 @@ protected:
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId,
 			event::EventPublisher* sender, const event::EventArgs& args);
 
+	/**
+	 * Inherited from MessageHandler.
+	 */
+	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+
 public:
 	/**
 	 * register a new waiting people.
@@ -69,7 +74,7 @@ public:
 	 * the getter of associate bus stop to this agent.
 	 * @return bus stop is the associate to this agent
 	 */
-	const sim_mob::BusStop* getAssociateBusStop() const;
+	const sim_mob::BusStop* getBusStop() const;
 
 	/**
 	 * process the persons boarding

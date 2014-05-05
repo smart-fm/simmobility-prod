@@ -11,43 +11,56 @@
 
 #pragma once
 
-#include <boost/thread/locks.hpp>
-#include <boost/thread/shared_mutex.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/foreach.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
-#include <boost/tuple/tuple.hpp>
-#include<queue>
+#include <queue>
 
-#include <entities/commsim/client/base/ClientRegistration.hpp>
-#include <entities/commsim/connection/Session.hpp>
+
 namespace sim_mob {
-class Broker;
+class BrokerBase;
+class ConnectionHandler;
 
+/**
+ * This class serves two purposes: first, it spins waiting for new client connections on a given port
+ *   (efficiently, using async_accept). Second, it contains our only io_service object and a thread pool
+ *   used to run() io_service tasks.
+ * Once a connection is accepted, a ConnectionHandler class is spun off to deal with the details of
+ *   reading and writing client information (also using async I/O), and the ConnectionServer proceeds to
+ *   wait for the next connection.
+ */
 class ConnectionServer {
 public:
-	ConnectionServer(sim_mob::Broker &broker_,unsigned short port = DEFAULT_SERVER_PORT);
+	ConnectionServer(BrokerBase& broker, unsigned short port = DEFAULT_SERVER_PORT);
 	~ConnectionServer();
 
-	void handleNewClient(boost::shared_ptr<sim_mob::Session> &sess);
-	void CreatSocketAndAccept();
-	void start();
-	void io_service_run();
-	void handle_accept(const boost::system::error_code& e, boost::shared_ptr<sim_mob::Session> &sess);
-	void RequestClientRegistration(const sim_mob::ClientRegistrationRequest& request);
-	void read_handler(const boost::system::error_code& e, std::string &data, boost::shared_ptr<sim_mob::Session>& sess);
-	void general_send_handler(const boost::system::error_code& e, boost::shared_ptr<sim_mob::Session>& sess);
+	void start(unsigned int numThreads);
 
-	boost::thread io_service_thread; //thread to run the io_service
-	boost::asio::io_service io_service_;
 private:
-	sim_mob::session_ptr new_sess;
+	//void io_service_run();
+	void handle_accept(boost::shared_ptr<ConnectionHandler> conn, const boost::system::error_code& e);
+
+private:
+	///This is used to loop accepting connections.
+	void creatSocketAndAccept();
+
+	//Our listen port (if you change this, you will also have to change the apps and the relay).
 	const static unsigned int DEFAULT_SERVER_PORT = 6745;
-	boost::asio::ip::tcp::acceptor acceptor_;
-	sim_mob::Broker &broker;
+
+	//List of Sessions that this ConnectionServer knows about.
+	std::vector< boost::shared_ptr<ConnectionHandler> > knownConnections;
+	boost::mutex knownConnectionsMUTEX;
+
+	//The io_service is used by Boost to multiplex all I/O operations. There should generally only be one of these.
+	boost::asio::io_service io_service;
+	boost::thread_group threads; //These provide "workers" for the io_service.
+
+	//The acceptor is used by this class to wait on incoming connections on a given port.
+	boost::asio::ip::tcp::acceptor acceptor;
+
+	//A reference back to the broker, for various callback-related tasks.
+	sim_mob::BrokerBase& broker;
 };
 
-} /* namespace sim_mob */
+}
+

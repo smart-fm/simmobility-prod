@@ -30,9 +30,9 @@ namespace {
     const int TIME_ON_MARKET = 30;
     const int TIME_INTERVAL = 7;
 
-    //bid_timestamp, seller_id, unit_id, price, expectation
-    const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%";
-    //bid_timestamp, seller_id, bidder_id, unit_id, bidder wp, surplus, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
+    //bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, target_price
+    const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
+    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, speculation, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
     const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%";
 
     inline void printBid(const HouseholdAgent& agent, const Bid& bid,
@@ -42,7 +42,7 @@ namespace {
                 % bid.getBidderId()
                 % bid.getUnitId()
                 % bid.getWillingnessToPay()
-                % bid.getSurplus()
+                % bid.getSpeculation()
                 % bid.getValue()
                 % bidsCounter
                 % ((accepted) ? 1 : 0);
@@ -51,13 +51,15 @@ namespace {
         //PrintOut(fmtr.str() << endl);
     }
 
-    inline void printExpectation(const timeslice& now, BigSerial unitId,
+    inline void printExpectation(const timeslice& now, int dayToApply, BigSerial unitId,
             const HouseholdAgent& agent, const ExpectationEntry& exp) {
         boost::format fmtr = boost::format(LOG_EXPECTATION) % now.ms()
+                % dayToApply
                 % agent.getId()
                 % unitId
-                % exp.price
-                % exp.expectation;
+                % exp.hedonicPrice
+                % exp.askingPrice
+                % exp.targetPrice;
         AgentsLookupSingleton::getInstance()
                 .getLogger().log(LoggerAgent::EXPECTATIONS, fmtr.str());
         //PrintOut(fmtr.str() << endl);
@@ -69,7 +71,7 @@ namespace {
      * @return true if accepts the bid or false otherwise.
      */
     inline bool decide(const Bid& bid, const ExpectationEntry& entry) {
-        return bid.getValue() > entry.expectation;
+        return bid.getValue() > entry.targetPrice;
     }
 
     /**
@@ -166,7 +168,7 @@ void HouseholdSellerRole::update(timeslice now) {
             if(getCurrentExpectation(unit->getId(), firstExpectation)){
                 market->addEntry(HousingMarket::Entry(getParent(), unit->getId(),
                         unit->getPostcodeId(), tazId, 
-                        firstExpectation.price, 
+                        firstExpectation.askingPrice, 
                         firstExpectation.hedonicPrice));
             }
             selling = true;
@@ -244,9 +246,9 @@ void HouseholdSellerRole::adjustNotSoldUnits() {
         if (unitEntry && unit) {
             ExpectationEntry entry;
             if (getCurrentExpectation(unitId, entry)
-                    && entry.price != unitEntry->getAskingPrice()) {
+                    && entry.askingPrice != unitEntry->getAskingPrice()) {
                 HousingMarket::Entry updatedEntry(*unitEntry);
-                updatedEntry.setAskingPrice(entry.price);
+                updatedEntry.setAskingPrice(entry.askingPrice);
                 market->updateEntry(updatedEntry);
             }
         }
@@ -279,7 +281,8 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit) {
     sellingUnitsMap.erase(unit.getId());
     sellingUnitsMap.insert(std::make_pair(unit.getId(), info));
     for (int i = 0; i < info.numExpectations; i++) {
-        printExpectation(currentTime, unit.getId(), *getParent(), info.expectations[i]);
+        int dayToApply =  currentTime.ms () + (i * info.interval);
+        printExpectation(currentTime, dayToApply, unit.getId(), *getParent(), info.expectations[i]);
     }
 }
 
@@ -291,10 +294,10 @@ bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId,
         unsigned int index = floor(abs(info.startedDay - currentTime.ms()) / info.interval);
         if (index < info.expectations.size()) {
             ExpectationEntry& expectation = info.expectations[index];
-            if (expectation.price > 0 && expectation.hedonicPrice > 0){
+            if (expectation.askingPrice > 0 && expectation.hedonicPrice > 0){
                 outEntry.hedonicPrice = expectation.hedonicPrice;
-                outEntry.expectation = expectation.expectation;
-                outEntry.price = expectation.price;
+                outEntry.targetPrice = expectation.targetPrice;
+                outEntry.askingPrice = expectation.askingPrice;
                 return true;
             }
         }

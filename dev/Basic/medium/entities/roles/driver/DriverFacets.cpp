@@ -90,6 +90,9 @@ void DriverBehavior::frame_tick_output() {
 	throw std::runtime_error("DriverBehavior::frame_tick_output is not implemented yet");
 }
 
+sim_mob::medium::Driver* sim_mob::medium::DriverBehavior::getParentDriver() {
+	return parentDriver;
+}
 
 sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	MovementFacet(parentAgent), parentDriver(nullptr), vehicleLength(400),
@@ -101,7 +104,9 @@ sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	}
 }
 
+
 sim_mob::medium::DriverMovement::~DriverMovement() {}
+
 
 void sim_mob::medium::DriverMovement::frame_init() {
 	bool pathInitialized = initializePath();

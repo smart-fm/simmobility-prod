@@ -71,39 +71,6 @@ using namespace sim_mob::medium;
 timeval start_time_med;
 
 namespace {
-
-/**
- * For now, the medium-term expects the following models to be available. We have to fake these,
- * otherwise the config file will fail to parse. Later, we will have separate config file
- * "model" sections for the short/medium term (most likely via a plugin architecture).
- */
-class Fake_CF_Model : public CarFollowModel {
-public:
-	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed) {
-		throw std::runtime_error("Fake CF_model used for medium term.");
-	}
-};
-class Fake_LC_Model : public LaneChangeModel {
-public:
-	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir) {
-		throw std::runtime_error("Fake LC_model used for medium term.");
-	}
-};
-class Fake_IntDriving_Model : public IntersectionDrivingModel {
-public:
-	virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) { throwIt(); }
-	virtual DPoint continueDriving(double amount) { throwIt(); return DPoint(); }
-	virtual bool isDone() { throwIt(); return false; }
-	virtual double getCurrentAngle() { throwIt(); return 0; }
-private:
-	void throwIt() { throw std::runtime_error("Fake LC_model used for medium term."); }
-};
-/*void fakeModels(Config::BuiltInModels& builtIn) {
-	builtIn.carFollowModels["mitsim"] = new Fake_CF_Model();
-	builtIn.laneChangeModels["mitsim"] = new Fake_LC_Model();
-	builtIn.intDrivingModels["linear"] = new Fake_IntDriving_Model();
-}*/
-
 const int DEFAULT_NUM_THREADS_DEMAND = 2; // default number of threads for demand
 } //End anon namespace
 
@@ -130,38 +97,28 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigManager::GetInstance().FullConfig().mutexStategy()));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, ConfigManager::GetInstance().FullConfig().mutexStategy()));
-	//rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr)); //Pedestrian is not implemented yet for medium term
-
-
-	//No built-in models available to the medium term (yet).
-	//Config::BuiltInModels builtIn;
-	//fakeModels(builtIn);
 
 	//Load our user config file, which is a time costly function
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
-	std::cout<<"performMainMed: trip chain pool size "<< ConfigManager::GetInstance().FullConfig().getTripChains().size()<<std::endl;
+	cout<<"performMainMed: trip chain pool size "<< ConfigManager::GetInstance().FullConfig().getTripChains().size()<<endl;
 
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		// init path set manager
 		time_t t = time(0);   // get time now
 		struct tm * now = localtime( & t );
-		std::cout<<"begin time:"<<std::endl;
-		std::cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
+		cout<<"begin time:"<<endl;
+		cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< endl;
 		PathSetManager* psMgr = PathSetManager::getInstance();
 		std::string name=configFileName;
 		psMgr->setScenarioName(name);
-//		psMgr->setTravleTimeTmpTableName(ConfigParams::GetInstance().travelTimeTmpTableName);
-//		psMgr->createTravelTimeTmpTable(psMgr->getTravleTimeTmpTableName());
-//		psMgr->getDataFromDB();
 		if(psMgr->isUseCatchMode())
 		{
 			psMgr->generateAllPathSetWithTripChain2();
 		}
-//		psMgr->saveDataToDB();
 		t = time(0);   // get time now
 		now = localtime( & t );
-		std::cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
-		std::cout<<psMgr->size()<<std::endl;
+		cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< endl;
+		cout<<psMgr->size()<<endl;
 	}
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
@@ -173,8 +130,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		partitionImpl.initBoundaryTrafficItems();
 	}
 #endif
-
-	//bool NoDynamicDispatch = config.DynamicDispatchDisabled();
 
 	PartitionManager* partMgr = nullptr;
 	if (!config.MPI_Disabled() && config.using_MPI) {
@@ -189,19 +144,15 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//WorkGroup* agentWorkers = wgMgr.newWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
 	//Mid-term is not using Aura Manager at the moment. Therefore setting it to nullptr
 	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(), config.totalRuntimeTicks, config.granPersonTicks, nullptr /*AuraManager is not used in mid-term*/, partMgr);
-	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize(), config.totalRuntimeTicks, config.granSignalsTicks);
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
 
 	//Initialize each work group individually
 	personWorkers->initWorkers(&entLoader);
-	signalStatusWorkers->initWorkers(nullptr);
-
 
 	personWorkers->assignConfluxToWorkers();
 //	personWorkers->findBoundaryConfluxes();
-
 
 	//Anything in all_agents is starting on time 0, and should be added now.
 	/* Loop detectors are just ignored for now. Later when Confluxes are made compatible with the short term,
@@ -215,15 +166,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		personWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
 	}
 
-	//Assign all signals too
-	for (vector<Signal*>::iterator it = Signal::all_signals_.begin(); it != Signal::all_signals_.end(); it++) {
-		signalStatusWorkers->assignAWorker(*it);
-	}
-
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
-
-	//Initialize the aura manager
-	AuraManager::instance().init(config.aura_manager_impl());
 
 	//Start work groups and all threads.
 	wgMgr.startAllWorkGroups();
@@ -231,9 +174,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//
 	if (!config.MPI_Disabled() && config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
-		partitionImpl.setEntityWorkGroup(personWorkers, signalStatusWorkers);
-
-		std::cout << "partition_solution_id in main function:" << partitionImpl.partition_config->partition_solution_id << std::endl;
+		partitionImpl.setEntityWorkGroup(personWorkers, nullptr);
+		cout << "partition_solution_id in main function:" << partitionImpl.partition_config->partition_solution_id << endl;
 	}
 
 	/////////////////////////////////////////////////////////////////
@@ -275,13 +217,14 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			//  perform any output (and hence there will be no contention)
 			if (currTickPercent-lastTickPercent>9) {
 				lastTickPercent = currTickPercent;
-//				cout <<currTickPercent <<"%" <<endl;
 				cout <<currTickPercent <<"%" << ", Agents:" << Agent::all_agents.size() <<endl;
 			}
 		}
 
 		//Agent-based cycle, steps 1,2,3,4 of 4
 		wgMgr.waitAllGroups();
+
+		BusController::CollectAndProcessAllRequests();
 
 		//Check if the warmup period has ended.
 		if (warmupDone) {
@@ -302,17 +245,11 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		PathSetManager::getInstance()->copyTravelTimeDataFromTmp2RealtimeTable();
 		PathSetManager::getInstance()->dropTravelTimeTmpTable();
 	}
-	std::cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
+	cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<endl;
 
-	cout << "Max Agents at any given time: " <<maxAgents <<std::endl;
-	cout << "Starting Agents: " << numStartAgents;
-	cout << ",     Pending: ";
-	/*if (NoDynamicDispatch) {
-		cout <<"<Disabled>";
-	} else {*/
-		cout <<numPendingAgents;
-	//}
-	cout << endl;
+	cout << "Max Agents at any given time: " <<maxAgents <<endl;
+	cout << "Starting Agents: " << numStartAgents
+			<< ",     Pending: " << numPendingAgents << endl;
 
 	if (Agent::all_agents.empty()) {
 		cout << "All Agents have left the simulation.\n";
@@ -354,7 +291,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}
 
 	if(personWorkers->getNumAgentsWithNoPath() > 0) {
-		cout << personWorkers->getNumAgentsWithNoPath() << " persons were not added to the simulation because they could not find a path." << std::endl;
+		cout << personWorkers->getNumAgentsWithNoPath() << " persons were not added to the simulation because they could not find a path." << endl;
 	}
 
 	//Save our output files if we are merging them later.
@@ -362,16 +299,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		resLogFiles = wgMgr.retrieveOutFileNames();
 	}
 
-	//NOTE: This dangerous behavior; the Worker will still be tracking the Agent!  ~Seth
-	//BusController::busctrller.currWorker = nullptr;// Update our Entity's pointer before ending main()
-
-	//This is the safer way to do it:
-	//BusController::busctrller.currWorker->migrateOut(BusController::busctrller);
-	//...but that method is private (and fails to do other important things, like removing managed properties).
-
-	//Instead, we will simply scope-out the WorkGroups, and they will migrate out all remaining Agents.
-	}  //End scope: WorkGroups. (Todo: should move this into its own function later)
-	//wgMgr.finalizeAllWorkGroups();
+	}  //End scope: WorkGroups.
 
 	//Test: At this point, it should be possible to delete all Signals and Agents.
 	clear_delete_vector(Signal::all_signals_);
@@ -444,11 +372,11 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		throw std::runtime_error("Mid-term run mode \"demand+supply\" is not supported yet. Please run demand and supply separately.");
 	}
 	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
-		Print() << "Mid-term run mode: supply" << std::endl;
+		Print() << "Mid-term run mode: supply" << endl;
 		return performMainSupply(configFileName, resLogFiles);
 	}
 	else if (ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
-		Print() << "Mid-term run mode: demand" << std::endl;
+		Print() << "Mid-term run mode: demand" << endl;
 		int numThreads = DEFAULT_NUM_THREADS_DEMAND;
 		try {
 			std::string numThreadsStr = ConfigManager::GetInstanceRW().FullConfig().system.genericProps.at("demand_threads");
@@ -460,7 +388,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		catch (const std::out_of_range& oorx) {
 			Print() << "generic property 'demand_threads' was not specified."
 					<< " Defaulting to " << numThreads << " threads."
-					<< std::endl;
+					<< endl;
 		}
 		return performMainDemand(numThreads);
 	}

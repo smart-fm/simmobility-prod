@@ -36,7 +36,7 @@ namespace sim_mob {
 namespace medium {
 
 sim_mob::medium::BusDriverBehavior::BusDriverBehavior(sim_mob::Person* parentAgent):
-	DriverBehavior(parentAgent), parentBusDriver(nullptr) {}
+	DriverBehavior(parentAgent) {}
 
 sim_mob::medium::BusDriverBehavior::~BusDriverBehavior() {}
 
@@ -104,6 +104,7 @@ void sim_mob::medium::BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdate
 	Print()<<"BusDriver_movement flowIntoNextLinkIfPossible called"<<std::endl;
 	DriverMovement::flowIntoNextLinkIfPossible(p);
 }
+
 
 bool sim_mob::medium::BusDriverMovement::initializePath()
 {

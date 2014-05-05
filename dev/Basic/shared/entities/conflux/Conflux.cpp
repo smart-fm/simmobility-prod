@@ -28,6 +28,10 @@
 #include "geospatial/PathSetManager.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "event/SystemEvents.hpp"
+#include "event/args/EventArgs.hpp"
+#include "message/MessageBus.hpp"
+#include "event/EventPublisher.hpp"
 #include "logging/Log.hpp"
 #include "util/Utils.hpp"
 #include "workers/Worker.hpp"
@@ -45,7 +49,9 @@ sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mt
 	  multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
 	  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out),
 	  isBoundary(false), isMultipleReceiver(false)
-{}
+{
+}
+
 
 sim_mob::Conflux::~Conflux()
 {
@@ -127,6 +133,11 @@ void sim_mob::Conflux::updateUnsignalized() {
 	for(PersonList::iterator i = activityPerformersCopy.begin(); i != activityPerformersCopy.end(); i++) {
 		updateAgent(*i);
 	}
+
+	PersonList pedestrianPerformersCopy = pedestrianList;
+	for(PersonList::iterator i = pedestrianPerformersCopy.begin(); i != pedestrianPerformersCopy.end(); i++) {
+		updateAgent(*i);
+	}
 }
 
 void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
@@ -139,7 +150,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 	bool isQueuingBeforeUpdate = false;
 	sim_mob::SegmentStats* segStatsBfrUpdt = nullptr;
 
-	//To capture the state of the person after update
+	//To capture the state of the person after update b
 	const sim_mob::Role* roleAfterUpdate = nullptr;
 	const sim_mob::RoadSegment* segAfterUpdate = nullptr;
 	const sim_mob::Lane* laneAfterUpdate = nullptr;
@@ -178,8 +189,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 
 	if (res.status == UpdateStatus::RS_DONE) {
 		//This Person is done. Remove from simulation.
-		killAgent(person, segStatsBfrUpdt, laneBeforeUpdate, isQueuingBeforeUpdate,
-				(roleBeforeUpdate && roleBeforeUpdate->roleType == sim_mob::Role::RL_ACTIVITY));
+		killAgent(person, segStatsBfrUpdt, laneBeforeUpdate, isQueuingBeforeUpdate);
 		return;
 	} else if (res.status == UpdateStatus::RS_CONTINUE) {
 		// TODO: I think there will be nothing here. Have to make sure. ~ Harish
@@ -554,10 +564,17 @@ void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
 
 void sim_mob::Conflux::killAgent(sim_mob::Person* person,
 		sim_mob::SegmentStats* prevSegStats, const sim_mob::Lane* prevLane,
-		bool wasQueuing, bool wasActPerformer) {
-	if (wasActPerformer) {
+		bool wasQueuing) {
+	if (person->getRole() && person->getRole()->roleType==sim_mob::Role::RL_ACTIVITY) {
 		PersonList::iterator pIt = std::find(activityPerformers.begin(), activityPerformers.end(), person);
 		activityPerformers.erase(pIt);
+	}
+	else if (person->getRole() && person->getRole()->roleType==sim_mob::Role::RL_PEDESTRIAN) {
+		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
+		pedestrianList.erase(pIt);
+		if(person->getNextLinkRequired()){
+			return;
+		}
 	}
 	else if (prevLane) {
 		prevSegStats->removeAgent(prevLane, person, wasQueuing);
@@ -654,6 +671,26 @@ bool sim_mob::Conflux::call_movement_frame_init(timeslice now, Person* person) {
 	return true;
 }
 
+void sim_mob::Conflux::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
+{
+	sim_mob::Agent::onEvent(eventId, ctxId, sender, args);
+}
+
+void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
+{
+	switch(type) {
+	case MSG_PEDESTRIAN_TRANSFER_REQUEST:
+	{
+		const PedestrianRequestMessageArgs& msg = MSG_CAST(PedestrianRequestMessageArgs, message);
+		pedestrianList.push_back(msg.pedestrian);
+		break;
+	}
+	default:
+		break;
+	}
+}
+
+
 Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, Person* person) {
 	Role* personRole = person->getRole();
 	if (person->isResetParamsRequired()) {
@@ -717,6 +754,13 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 					}
 				}
 			}
+		}
+
+		if(person->getNextLinkRequired()){
+			Conflux* nextConflux = person->getNextLinkRequired()->getSegments().front()->getParentConflux();
+			messaging::MessageBus::PostMessage(nextConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST, messaging::MessageBus::MessagePtr(new PedestrianRequestMessageArgs(person)));
+			person->setResetParamsRequired(true);
+			return UpdateStatus::Done;
 		}
 
 		if(person->requestedNextSegStats){
@@ -833,6 +877,7 @@ bool sim_mob::cmp_person_remainingTimeThisTick::operator ()
 	//We want greater remaining time in this tick to translate into a higher priority.
 	return (x->getRemainingTimeThisTick() > y->getRemainingTimeThisTick());
 }
+
 
 void sim_mob::sortPersons_DecreasingRemTime(std::deque<Person*>& personList) {
 	cmp_person_remainingTimeThisTick cmp_person_remainingTimeThisTick_obj;

@@ -32,13 +32,13 @@ sim_mob::medium::BusDriver::~BusDriver() {
 }
 
 Role* sim_mob::medium::BusDriver::clone(Person* parent) const {
-	//return new sim_mob::medium::BusDriver(parent, parent->getMutexStrategy());
 
 	BusDriverBehavior* behavior = new BusDriverBehavior(parent);
 	BusDriverMovement* movement = new BusDriverMovement(parent);
 	BusDriver* busdriver = new BusDriver(parent, parent->getMutexStrategy(), behavior, movement);
 	behavior->setParentBusDriver(busdriver);
 	movement->setParentBusDriver(busdriver);
+	movement->setParentDriver(busdriver);
 	return busdriver;
 }
 

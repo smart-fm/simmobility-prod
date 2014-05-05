@@ -25,8 +25,8 @@ namespace sim_mob {
         class Bid {
         public:
             Bid(BigSerial id, BigSerial bidderId, LT_Agent* bidder, double value, 
-                    timeslice& time, double willingnessToPay = .0f, 
-                    double surplus = .0f);
+                    timeslice& time, double willingnessToPay = 0.0, 
+                    double speculation = 0.0);
             Bid(const Bid& source);
             virtual ~Bid();
 
@@ -62,10 +62,10 @@ namespace sim_mob {
             double getValue() const;
             
             /**
-             * Gets the value of the surplus for the current unit.
-             * @return the value of the surplus.
+             * Gets the value of the speculation for the current unit.
+             * @return the value of the speculation.
              */
-            double getSurplus() const;
+            double getSpeculation() const;
             
             /**
              * Gets the value of the willingness to pay of the bidder to this unit.
@@ -101,7 +101,7 @@ namespace sim_mob {
             /**
              * Bidder information. 
              */ 
-            double surplus;
+            double speculation;
             double willingnessToPay;
         };
     }

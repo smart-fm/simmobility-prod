@@ -660,6 +660,7 @@ void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 	}
 }
 
+
 void sim_mob::WorkGroup::findBoundaryConfluxes() {
 	for ( std::vector<Worker*>::iterator itw = workers.begin(); itw != workers.end(); itw++){
 		(*itw)->findBoundaryConfluxes();

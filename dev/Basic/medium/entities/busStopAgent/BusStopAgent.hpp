@@ -53,22 +53,22 @@ protected:
 
 public:
 	/**
-	 * register a new waiting people.
-	 * @param person is new one who enter this bus stop
+	 * register a new waiting person.
+	 * @param person person who wants to enter this bus stop
 	 */
-	void registerNewWaitingPerson(sim_mob::Person* person);
+	void registerWaitingPerson(sim_mob::Person* person);
 
 	/**
 	 * remove a waiting people from this bus stop.
-	 * @param person is the one who will be removed from this bus stop
+	 * @param person person to be removed from this bus stop
 	 */
 	void removeWaitingPerson(sim_mob::Person* person);
 
 	/**
-	 * passenger alight to this bus stop.
-	 * @param person is the one who will alight to this bus stop
+	 * add person who is alighting at this stop
+	 * @param person person who is alighting at this bus stop
 	 */
-	void alightingPassengerToStop(sim_mob::Person* person);
+	void addAlightingPerson(sim_mob::Person* person);
 
 	/**
 	 * the getter of associate bus stop to this agent.
@@ -80,12 +80,7 @@ public:
 	 * process the persons boarding
 	 * @param Bus Driver is the associate driver which waiting people will board
 	 */
-	void processWaitingPersonBoarding(sim_mob::medium::BusDriver* busDriver);
-
-	/**
-	 * process the persons alighting
-	 */
-	void processPersonAlighting();
+	void boardWaitingPersons(sim_mob::medium::BusDriver* busDriver);
 
 private:
 	std::list<sim_mob::Person*> waitingPersons;

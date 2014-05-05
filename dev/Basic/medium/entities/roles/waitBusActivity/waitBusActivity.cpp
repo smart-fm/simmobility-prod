@@ -19,10 +19,9 @@ sim_mob::medium::WaitBusActivity::WaitBusActivity(Agent* parent,
 		MutexStrategy mtxStrat,
 		sim_mob::medium::WaitBusActivityBehavior* behavior,
 		sim_mob::medium::WaitBusActivityMovement* movement) :
-		sim_mob::Role(behavior, movement, parent, "WaitBusActivity_"), waitingTimeAtBusStop(
-				0), stopSite(nullptr), decisionResult(MAKE_DECISION_NORESULT) {
-
-}
+		sim_mob::Role(behavior, movement, parent, "WaitBusActivity_"),
+		waitingTime(0), stop(nullptr), decision(NO_DECISION)
+{}
 
 Role* sim_mob::medium::WaitBusActivity::clone(Person* parent) const {
 	WaitBusActivityBehavior* behavior = new WaitBusActivityBehavior(parent);
@@ -34,27 +33,28 @@ Role* sim_mob::medium::WaitBusActivity::clone(Person* parent) const {
 	return waitBusActivity;
 }
 
-void sim_mob::medium::WaitBusActivity::setDecisionResult(Decision decision) {
-	decisionResult = decision;
+void sim_mob::medium::WaitBusActivity::setDecision(
+		Decision decisionResult) {
+	decision = decisionResult;
 }
 
-Decision sim_mob::medium::WaitBusActivity::getDecisionResult() {
-	return decisionResult;
+Decision sim_mob::medium::WaitBusActivity::getDecision() {
+	return decision;
 }
 
-void sim_mob::medium::WaitBusActivity::increaseWaitingTime(unsigned int ms) {
-	waitingTimeAtBusStop += ms;
+void sim_mob::medium::WaitBusActivity::increaseWaitingTime(unsigned int incrementMs) {
+	waitingTime += incrementMs;
 }
 
-void sim_mob::medium::WaitBusActivity::setStopSite(sim_mob::BusStop* stop) {
-	stopSite = stop;
+void sim_mob::medium::WaitBusActivity::setStop(sim_mob::BusStop* busStop) {
+	stop = busStop;
 }
 
 void sim_mob::medium::WaitBusActivity::makeBoardingDecision(BusDriver* driver) {
 	const std::vector<const sim_mob::BusStop*>* stopsVec =
 			driver->getBusStopsVector();
 	if (!stopsVec) {
-		setDecisionResult(MAKE_DECISION_NORESULT);
+		setDecision(NO_DECISION);
 		return;
 	}
 
@@ -65,14 +65,14 @@ void sim_mob::medium::WaitBusActivity::makeBoardingDecision(BusDriver* driver) {
 	}
 
 	if (!destStop) {
-		setDecisionResult(MAKE_DECISION_NORESULT);
+		setDecision(NO_DECISION);
 		return;
 	}
 
 	std::vector<const sim_mob::BusStop*>::const_iterator itStop = std::find(
 			stopsVec->begin(), stopsVec->end(), destStop);
 	if (itStop != stopsVec->end()) {
-		setDecisionResult(MAKE_DECISION_BOARDING);
+		setDecision(BOARD_BUS);
 	}
 }
 

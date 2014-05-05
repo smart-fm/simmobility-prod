@@ -138,7 +138,7 @@ private:
 	PersonList activityPerformers;
 
 	/*list of persons with pedestrian role performing walking activities*/
-	PersonList pedestrianPerformers;
+	PersonList pedestrianList;
 
 	/**
 	 * function to call persons' updates if the MultiNode is signalized

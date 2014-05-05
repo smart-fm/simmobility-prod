@@ -77,8 +77,8 @@ void sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusStopAgent* 
 
 		sim_mob::medium::Passenger* passenger =
 				dynamic_cast<sim_mob::medium::Passenger*>((*itPassenger)->getRole());
-		if (passenger && passenger->getDecisionResult() == MAKE_DECISION_ALIGHTING) {
-			busStopAgent->alightingPassengerToStop(*itPassenger);
+		if (passenger && passenger->getDecision()==ALIGHT_BUS) {
+			busStopAgent->addAlightingPerson(*itPassenger);
 			itPassenger = passengerList.erase(itPassenger);
 		} else {
 			itPassenger++;

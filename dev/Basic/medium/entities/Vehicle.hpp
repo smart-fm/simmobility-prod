@@ -40,7 +40,6 @@ public:
 		return vehicleType;
 	}
 
-
 private:
 	/**length of the vehicle*/
 	const double length;

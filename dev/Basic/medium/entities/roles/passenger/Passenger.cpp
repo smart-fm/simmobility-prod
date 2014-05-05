@@ -19,7 +19,7 @@ sim_mob::medium::Passenger::Passenger(Agent* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::PassengerBehavior* behavior,
 		sim_mob::medium::PassengerMovement* movement) :
 		sim_mob::Role(behavior, movement, parent, "Passenger_"),
-		associateDriver(nullptr), decisionResult(MAKE_DECISION_NORESULT) {
+		driver(nullptr), decision(NO_DECISION) {
 
 }
 
@@ -34,30 +34,30 @@ Role* sim_mob::medium::Passenger::clone(Person* parent) const {
 	return passenger;
 }
 
-void sim_mob::medium::Passenger::setAssociateDriver(const Driver* driver) {
-	associateDriver = driver;
+void sim_mob::medium::Passenger::setDriver(const Driver* driver) {
+	driver = driver;
 }
 
-const sim_mob::medium::Driver* sim_mob::medium::Passenger::getAssociateDriver() const {
-	return associateDriver;
+const sim_mob::medium::Driver* sim_mob::medium::Passenger::getDriver() const {
+	return driver;
 }
 
-void sim_mob::medium::Passenger::setDecisionResult(
-		Decision decision) {
-	decisionResult = decision;
+void sim_mob::medium::Passenger::setDecision(
+		Decision decisionResult) {
+	decision = decisionResult;
 }
 
-Decision sim_mob::medium::Passenger::getDecisionResult() {
-	return decisionResult;
+Decision sim_mob::medium::Passenger::getDecision() {
+	return decision;
 }
 
 void sim_mob::medium::Passenger::makeAlightingDecision(const sim_mob::BusStop* nextStop) {
 	if (getParent()->destNode.type_ == WayPoint::BUS_STOP
 			&& getParent()->destNode.busStop_ == nextStop) {
-		setDecisionResult(MAKE_DECISION_ALIGHTING);
-		setAssociateDriver(nullptr);
+		setDecision(ALIGHT_BUS);
+		setDriver(nullptr);
 	} else {
-		setDecisionResult(MAKE_DECISION_NORESULT);
+		setDecision(BOARD_BUS);
 	}
 }
 

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "DriverFacets.hpp"
+#include "entities/misc/BusTrip.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "DriverUpdateParams.hpp"
 #include "BusDriver.hpp"
@@ -19,6 +20,30 @@ namespace medium
 {
 class BusDriver;
 
+/**
+ * Helper class to track the progress of the bus along its route
+ * \author Harish Loganathan
+ */
+class BusRouteTracker : public sim_mob::BusRouteInfo {
+public:
+	BusRouteTracker() {}
+	BusRouteTracker(const BusRouteInfo& routeInfo);
+
+	const BusStop* getNextStopIt() const;
+	void updateNextStop();
+
+private:
+	/**
+	 * iterator to the vector of bus stops representing the next stop for the
+	 * bus driver to (possibly) serve
+	 */
+	std::vector<const BusStop*>::iterator nextStopIt;
+};
+
+/**
+ * Behavior facet of BusDriver role
+ * \author Harish Loganathan
+ */
 class BusDriverBehavior: public DriverBehavior {
 public:
 	explicit BusDriverBehavior(sim_mob::Person* parentAgent = nullptr);
@@ -44,6 +69,10 @@ protected:
 	sim_mob::medium::BusDriver* parentBusDriver;
 };
 
+/**
+ * Movement facet of BusDriver role
+ * \author Harish Loganathan
+ */
 class BusDriverMovement: public DriverMovement {
 public:
 	explicit BusDriverMovement(sim_mob::Person* parentAgent = nullptr);
@@ -70,6 +99,9 @@ protected:
 
 	/**pointer to parent bus driver*/
 	sim_mob::medium::BusDriver* parentBusDriver;
+
+	/**list of bus stops for the bus line of this driver*/
+	BusRouteTracker routeTracker;
 };
 
 }

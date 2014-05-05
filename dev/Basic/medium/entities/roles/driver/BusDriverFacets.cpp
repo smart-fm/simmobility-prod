@@ -163,12 +163,13 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 
 		vector<const RoadSegment*> pathRoadSeg;
 
-		const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+		const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
 		if (!bustrip) {
 			Print()<< "bustrip is null"<<std::endl;
 		}
 		else if ((*(person->currTripChainItem))->itemType== TripChainItem::IT_BUSTRIP) {
-			pathRoadSeg = bustrip->getBusRouteInfo().getRoadSegments();
+			routeTracker = BusRouteTracker(bustrip->getBusRouteInfo());
+			pathRoadSeg = routeTracker.getRoadSegments();
 			Print()<< "BusTrip path size = " << pathRoadSeg.size() << std::endl;
 		} else {
 			if ((*(person->currTripChainItem))->itemType== TripChainItem::IT_TRIP) {
@@ -177,7 +178,7 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 			if ((*(person->currTripChainItem))->itemType== TripChainItem::IT_ACTIVITY) {
 				Print()<< "IT_ACTIVITY\n";
 			}
-			Print() << "BusTrip path not initialized coz it is not a bustrip, (*(person->currTripChainItem))->itemType = "<< (*(person->currTripChainItem))->itemType<< std::endl;
+			Print() << "BusTrip path not initialized coz it is not a bustrip, (*(person->currTripChainItem))->itemType = " << (*(person->currTripChainItem))->itemType << std::endl;
 		}
 
 		//For now, empty paths aren't supported.
@@ -202,5 +203,25 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 
 }
 
+BusRouteTracker::BusRouteTracker(const BusRouteInfo& routeInfo)
+: BusRouteInfo(routeInfo) {
+	nextStopIt = busStop_vec.begin();
+}
+
+const BusStop* BusRouteTracker::getNextStopIt() const {
+	if(nextStopIt==busStop_vec.end()) {
+		return nullptr;
+	}
+	return *(nextStopIt);
+}
+
+void BusRouteTracker::updateNextStop() {
+	if(nextStopIt==busStop_vec.end()) {
+		return;
+	}
+	nextStopIt++;
+}
+
 }
 }
+

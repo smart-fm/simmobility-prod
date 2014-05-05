@@ -70,7 +70,7 @@ public:
 	void addBusStop(const BusStop* aBusStop);
 	void addRoadSegment(const RoadSegment* aRoadSegment);
 
-private:
+protected:
 	std::string busRoute_id;
 	std::vector<const RoadSegment*> roadSegment_vec;
 	std::vector<const BusStop*> busStop_vec;

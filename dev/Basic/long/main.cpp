@@ -52,11 +52,6 @@ const string SIMMOB_VERSION = string(
 timeval start_time;
 
 //SIMOBILITY TEST PARAMS
-//NOTE: These values are overwritten in main()
-int MAX_ITERATIONS = 1;
-int TICK_STEP = 1;
-int DAYS = 365;
-int WORKERS = 8;
 const int DATA_SIZE = 30;
 const std::string MODEL_LINE_FORMAT = "### %-30s : %-20s";
 //options
@@ -90,10 +85,16 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
     LT_ConfigSingleton::getInstance();
     PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
     
-    //configure time.
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-    config.baseGranMS() = TICK_STEP;
-    config.totalRuntimeTicks = DAYS;
+
+    //Simmobility Test Params
+    unsigned int tickStep = config.ltParams.tickStep;
+    unsigned int days = config.ltParams.days;
+    unsigned int workers = config.ltParams.workers;
+
+    //configure time.
+    config.baseGranMS() = tickStep;
+    config.totalRuntimeTicks = days;
     config.defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
     config.singleThreaded() = false;
    
@@ -115,10 +116,10 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         wgMgr.setSingleThreadMode(config.singleThreaded());
         
         // -- Events injector work group.
-        WorkGroup* logsWorker = wgMgr.newWorkGroup(1, DAYS, TICK_STEP);
-        WorkGroup* eventsWorker = wgMgr.newWorkGroup(1, DAYS, TICK_STEP);
-        WorkGroup* hmWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
-        WorkGroup* devWorkers = wgMgr.newWorkGroup(1, DAYS, TICK_STEP);
+        WorkGroup* logsWorker = wgMgr.newWorkGroup(1, days, tickStep);
+        WorkGroup* eventsWorker = wgMgr.newWorkGroup(1, days, tickStep);
+        WorkGroup* hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep);
+        WorkGroup* devWorkers = wgMgr.newWorkGroup(1, days, tickStep);
         
         //init work groups.
         wgMgr.initAllGroups();
@@ -142,7 +143,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         wgMgr.startAllWorkGroups();
 
         PrintOut("Started all workgroups." << endl);
-        for (unsigned int currTick = 0; currTick < DAYS; currTick++) {
+        for (unsigned int currTick = 0; currTick < days; currTick++) {
             PrintOut("Day: " << currTick << endl);
             wgMgr.waitAllGroups();
         }
@@ -175,17 +176,12 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
 
 int main(int ARGC, char* ARGV[]) {
 
-	std::string configFileName = "data/simrun_basic.xml";
+	const std::string configFileName = "data/simrun_basic.xml";
 	//Parse the config file (this *does not* create anything, it just reads it.).
 	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
 
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-
-	DAYS = config.ltParams.days;
-	TICK_STEP = config.ltParams.tickStep;
-	WORKERS = config.ltParams.workers;
-	MAX_ITERATIONS = config.ltParams.maxIterations;
 
     std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
     Print::Init("<stdout>");
@@ -202,7 +198,7 @@ int main(int ARGC, char* ARGV[]) {
     if (!runTests) {
         //get start time of the simulation.
         std::list<std::string> resLogFiles;
-        for (int i = 0; i < MAX_ITERATIONS; i++) {
+        for (int i = 0; i < config.ltParams.maxIterations; i++) {
             PrintOut("Simulation #:  " << (i + 1) << endl);
             performMain((i + 1), resLogFiles);
         }

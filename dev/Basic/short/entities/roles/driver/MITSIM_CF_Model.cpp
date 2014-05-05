@@ -131,12 +131,12 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	makeMaxDecelerationIndex(Vehicle::CAR,speedScalerStr,decelerationStr);
 	// max acceleration
 //	ParameterManager::Instance()->param(modelName,"maxAcceleration",maxAcceleration,5.01);
-	ParameterManager::Instance()->param(modelName,"normalDeceleration",normalDeceleration,-3.01);
-	ParameterManager::Instance()->param(modelName,"maxDeceleration",maxDeceleration,-5.01);
+//	ParameterManager::Instance()->param(modelName,"normalDeceleration",normalDeceleration,-3.01);
+//	ParameterManager::Instance()->param(modelName,"maxDeceleration",maxDeceleration,-5.01);
 
 //	std::cout<<"MITSIM_CF_Model: maxAcceleration <"<<maxAcceleration<<">"<<std::endl;
-	std::cout<<"MITSIM_CF_Model: normalDeceleration <"<<normalDeceleration<<">"<<std::endl;
-	std::cout<<"MITSIM_CF_Model: maxDeceleration <"<<maxDeceleration<<">"<<std::endl;
+//	std::cout<<"MITSIM_CF_Model: normalDeceleration <"<<normalDeceleration<<">"<<std::endl;
+//	std::cout<<"MITSIM_CF_Model: maxDeceleration <"<<maxDeceleration<<">"<<std::endl;
 }
 void sim_mob::MITSIM_CF_Model::makeMaxAccIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& maxAccStr)
 {
@@ -384,7 +384,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	maxAcceleration    = getMaxAcceleration(p);
 	normalDeceleration = getNormalDeceleration(p);
 	maxDeceleration    = getMaxDeceleration(p);
-	double acc = maxAcceleration;			// MISSING! > has to be defined as a function (@CLA_04/14)
+	double acc = maxAcceleration;
 	//double aB = calcMergingRate(p);		// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
 	double aC = calcSignalRate(p);			// near signal or incidents
 	double aD = calcYieldingRate(p, targetSpeed, maxLaneSpeed); // when yielding

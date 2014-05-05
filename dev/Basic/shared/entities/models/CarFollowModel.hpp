@@ -68,9 +68,11 @@ public:
 	MITSIM_CF_Model();
 	void initParam();
 	void makeMaxAccIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& maxAccStr);
-	void makeDecelerationIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& decelerationStr);
+	void makeNormalDecelerationIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& decelerationStr);
+	void makeMaxDecelerationIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& decelerationStr);
 	double getMaxAcceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);
-	double getDeceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);
+	double getNormalDeceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);
+	double getMaxDeceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);
 	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);
 
 private:
@@ -95,8 +97,11 @@ private:
 	map< Vehicle::VEHICLE_TYPE,map<int,double> > maxAccIndex;
 	int maxAccUpBound;
 
-	map< Vehicle::VEHICLE_TYPE,map<int,double> > decelerationIndex;
-	int decelerationUpBound;
+	map< Vehicle::VEHICLE_TYPE,map<int,double> > normalDecelerationIndex;
+	int normalDecelerationUpBound;
+
+	map< Vehicle::VEHICLE_TYPE,map<int,double> > maxDecelerationIndex;
+	int maxDecelerationUpBound;
 };
 
 

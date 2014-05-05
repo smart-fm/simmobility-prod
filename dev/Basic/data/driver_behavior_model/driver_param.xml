@@ -29,5 +29,7 @@
 <param name="max_acc_car1" value="10.00  7.90  5.60  4.00  3.00"/>
 
 <param name="normal_deceleration_car1" value="7.8 	6.7 	4.7 	4.8 	4.9"/>
+
+<param name="max_deceleration_car1" value="16.0   14.5   13.0   11.0   10.0"/>
 </parameters>
 

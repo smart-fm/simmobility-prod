@@ -19,6 +19,7 @@
 #include <boost/format.hpp>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "conf/ParseConfigFile.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
@@ -51,10 +52,11 @@ const string SIMMOB_VERSION = string(
 timeval start_time;
 
 //SIMOBILITY TEST PARAMS
-const int MAX_ITERATIONS = 1;
-const int TICK_STEP = 1;
-const int DAYS = 365;
-const int WORKERS = 8;
+//NOTE: These values are overwritten in main()
+int MAX_ITERATIONS = 1;
+int TICK_STEP = 1;
+int DAYS = 365;
+int WORKERS = 8;
 const int DATA_SIZE = 30;
 const std::string MODEL_LINE_FORMAT = "### %-30s : %-20s";
 //options
@@ -172,6 +174,18 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
 }
 
 int main(int ARGC, char* ARGV[]) {
+
+	std::string configFileName = "data/simrun_basic.xml";
+	//Parse the config file (this *does not* create anything, it just reads it.).
+	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
+
+	//Save a handle to the shared definition of the configuration.
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+
+	DAYS = config.ltParams.days;
+	TICK_STEP = config.ltParams.tickStep;
+	WORKERS = config.ltParams.workers;
+
     std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
     Print::Init("<stdout>");
     bool runTests = false;

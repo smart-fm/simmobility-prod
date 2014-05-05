@@ -408,6 +408,14 @@
         <blocking_time_sec value="5"/>
     </fmodcontroller>
         
+    <!-- Long Term Configurations parameters -->
+    <longTermParams enabled ="false">
+    	<days value="365"/>
+    	<maxIterations value="1"/>
+    	<workers value="8"/>
+    	<tickStep value="1"/>
+    </longTermParams>     
+        
     <incidentsData enabled="yes">
         <incident id="0" visibility="4000" segment="40200" position="60" cap_factor="1.0" start_time="08:30:00" duration="00:32:00" length="1000" compliance="50" accessibility="50" > 
             <lane laneId="0" speedLimitFactor="0"/>

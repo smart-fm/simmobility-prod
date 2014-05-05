@@ -130,17 +130,17 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	ParameterManager::Instance()->param(modelName,"Max_deceleration_car1",decelerationStr,string("16.0   14.5   13.0   11.0   10.0"));
 	makeMaxDecelerationIndex(Vehicle::CAR,speedScalerStr,decelerationStr);
 	// max acceleration
-	ParameterManager::Instance()->param(modelName,"maxAcceleration",maxAcceleration,5.01);
+//	ParameterManager::Instance()->param(modelName,"maxAcceleration",maxAcceleration,5.01);
 	ParameterManager::Instance()->param(modelName,"normalDeceleration",normalDeceleration,-3.01);
 	ParameterManager::Instance()->param(modelName,"maxDeceleration",maxDeceleration,-5.01);
 
-	std::cout<<"MITSIM_CF_Model: maxAcceleration <"<<maxAcceleration<<">"<<std::endl;
+//	std::cout<<"MITSIM_CF_Model: maxAcceleration <"<<maxAcceleration<<">"<<std::endl;
 	std::cout<<"MITSIM_CF_Model: normalDeceleration <"<<normalDeceleration<<">"<<std::endl;
 	std::cout<<"MITSIM_CF_Model: maxDeceleration <"<<maxDeceleration<<">"<<std::endl;
 }
 void sim_mob::MITSIM_CF_Model::makeMaxAccIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& maxAccStr)
 {
-	std::cout<<"makeMaxAccIndex: vh type"<<vhType<<std::endl;
+	std::cout<<"makeMaxAccIndex: vh type "<<vhType<<std::endl;
 	// for example
 	// speedScalerStr "5 20 20" ft/sec
 	// maxAccStr      "10.00  7.90  5.60  4.00  4.00" ft/(s^2)
@@ -381,6 +381,9 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 
 	// VARIABLE || FUNCTION ||				REGIME
 	//
+	maxAcceleration    = getMaxAcceleration(p);
+	normalDeceleration = getNormalDeceleration(p);
+	maxDeceleration    = getMaxDeceleration(p);
 	double acc = maxAcceleration;			// MISSING! > has to be defined as a function (@CLA_04/14)
 	//double aB = calcMergingRate(p);		// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
 	double aC = calcSignalRate(p);			// near signal or incidents

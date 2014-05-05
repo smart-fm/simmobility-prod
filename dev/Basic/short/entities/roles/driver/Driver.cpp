@@ -135,6 +135,8 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	startTime = getParams().now.ms()/MILLISECS_CONVERT_UNIT;
 	isAleadyStarted = false;
 	currDistAlongRoadSegment = 0;
+
+	getParams().driver = this;
 }
 
 

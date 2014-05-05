@@ -731,7 +731,7 @@ double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p, double dis)
  * speed within a given distance.
  *-------------------------------------------------------------------
  */
-double sim_mob::MITSIM_CF_Model::brakeToTargetSpeed(DriverUpdateParams& p)
+double sim_mob::MITSIM_CF_Model::breakToTargetSpeed(DriverUpdateParams& p)
 {
 	double v 			=	p.perceivedFwdVelocity/100;
 	double dt			=	p.elapsedSeconds;
@@ -760,7 +760,7 @@ double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(DriverUpdateParams& 
 	} else if (p.space > 0.01 ) {
 		a = p.a_lead - dv * dv / 2 / p.space;
 	} else {
-		a= brakeToTargetSpeed(p);
+		a= breakToTargetSpeed(p);
 	}
 //	if(a<maxDeceleration)
 //		return maxDeceleration;
@@ -805,7 +805,7 @@ double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(DriverUpdateParams& p, double
 	if(p.space > p.distanceToNormalStop ) {
 		return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);
 	} else {
-		return brakeToTargetSpeed(p);
+		return breakToTargetSpeed(p);
 	}
 }
 

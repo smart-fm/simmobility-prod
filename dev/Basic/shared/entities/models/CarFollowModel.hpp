@@ -84,7 +84,7 @@ private:
 	double calcForwardRate(sim_mob::DriverUpdateParams& p);
 	double calcBackwardRate(sim_mob::DriverUpdateParams& p);
 	double calcAdjacentRate(sim_mob::DriverUpdateParams& p);
-	double brakeToTargetSpeed(sim_mob::DriverUpdateParams& p);  ///<return the acc to a target speed within a specific distance
+	double breakToTargetSpeed(sim_mob::DriverUpdateParams& p);  ///<return the acc to a target speed within a specific distance
 	double brakeToStop(DriverUpdateParams& p, double dis);
 	double accOfEmergencyDecelerating(sim_mob::DriverUpdateParams& p);  ///<when headway < lower threshold, use this function
 	double accOfCarFollowing(sim_mob::DriverUpdateParams& p);  ///<when lower threshold < headway < upper threshold, use this function

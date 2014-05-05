@@ -88,9 +88,9 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
     //Simmobility Test Params
-    unsigned int tickStep = config.ltParams.tickStep;
-    unsigned int days = config.ltParams.days;
-    unsigned int workers = config.ltParams.workers;
+    const unsigned int tickStep = config.ltParams.tickStep;
+    const unsigned int days = config.ltParams.days;
+    const unsigned int workers = config.ltParams.workers;
 
     //configure time.
     config.baseGranMS() = tickStep;
@@ -198,7 +198,8 @@ int main(int ARGC, char* ARGV[]) {
     if (!runTests) {
         //get start time of the simulation.
         std::list<std::string> resLogFiles;
-        for (int i = 0; i < config.ltParams.maxIterations; i++) {
+        const unsigned int maxIterations = config.ltParams.maxIterations;
+        for (int i = 0; i < maxIterations; i++) {
             PrintOut("Simulation #:  " << (i + 1) << endl);
             performMain((i + 1), resLogFiles);
         }

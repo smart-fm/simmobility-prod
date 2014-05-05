@@ -89,6 +89,12 @@ void sim_mob::BusController::buildSubscriptionList(vector<BufferedBase*>& subsLi
 	Agent::buildSubscriptionList(subsList);
 }
 
+void sim_mob::BusController::CollectAndProcessAllRequests()
+{
+	for (std::vector<BusController*>::iterator it=all_busctrllers_.begin(); it!=all_busctrllers_.end(); it++) {
+		(*it)->handleDriverRequest();
+	}
+}
 
 
 void sim_mob::BusController::addBus(Bus* bus)

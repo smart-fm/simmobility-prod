@@ -30,7 +30,7 @@
 #include "util/LangHelpers.hpp"
 #include "message/MessageBus.hpp"
 
-#include "entities/commsim/Broker.hpp"
+#include "entities/commsim/broker/Broker.hpp"
 
 using std::set;
 using std::vector;
@@ -596,20 +596,28 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 //      May want to dig into this a bit more. ~Seth
 void sim_mob::Worker::update_entities(timeslice currTime)
 {
-	unsigned int total = 0;
-	unsigned int infCount = 0;
-	unsigned int vqCount = 0;
 	//Confluxes require an additional set of updates.
 	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
-		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
-			vqCount += (*it)->resetOutputBounds();
-			total += (*it)->getAllPersons().size();
-			infCount += (*it)->getNumRemainingInLaneInfinity();
+		if(ConfigManager::GetInstance().FullConfig().OutputEnabled()) {
+			unsigned int total = 0;
+			unsigned int infCount = 0;
+			unsigned int vqCount = 0;
+			for (std::set<Conflux*>::iterator it = managedConfluxes.begin();
+					it != managedConfluxes.end(); it++) {
+				vqCount += (*it)->resetOutputBounds();
+				total += (*it)->countPersons();
+				infCount += (*it)->getNumRemainingInLaneInfinity();
+			}
+			if(managedConfluxes.size() > 0) {
+				Print() << "Worker::outputSupplyStats Time: "<< currTime.ms()
+					<< "\tnumInLanes: "<< (total - infCount - vqCount) << "\tnumInLaneInf: "<< infCount << "\tvqCount: " << vqCount << std::endl;
+			}
 		}
-
-		if(managedConfluxes.size() > 0){
-			Print() << "Worker::outputSupplyStats Time: "<< currTime.ms()
-				<< "\tnumInLanes: "<< (total - infCount - vqCount) << "\tnumInLaneInf: "<< infCount << "\tvqCount: " << vqCount << std::endl;
+		else {
+			for (std::set<Conflux*>::iterator it = managedConfluxes.begin();
+					it != managedConfluxes.end(); it++) {
+				(*it)->resetOutputBounds();
+			}
 		}
 
 		//All workers perform the same tasks for their set of managedConfluxes.

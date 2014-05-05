@@ -112,29 +112,27 @@ public:
 
 	///Reroute around a blacklisted set of RoadSegments. See Role's comments for more information.
 	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
-//
+	// for path-mover splitting purpose
+	void setCurrPosition(DPoint& currPosition);
+	const DPoint& getCurrPosition() const;
+
 public:
 	double startTime;
 	bool isAleadyStarted;
+	double currDistAlongRoadSegment;
+
 //Basic data
 protected:
-	//unsigned int currTimeMS;
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
+	// driver path-mover split purpose, we save the currPos in the Driver
+	DPoint currPos;
 	//This should be done through the Role class itself; for now, I'm just forcing
 	//  it so that we can get the mid-term working. ~Seth
 	virtual Vehicle* getResource() { return vehicle; }
 
-
-protected:
-	//Temporary variable which will be flushed each time tick. We save it
-	// here to avoid constantly allocating and clearing memory each time tick.
-//	DriverUpdateParams params;
-
 private:
 //	//Sample stored data which takes reaction time into account.
-//
-//	int lastIndex;
 	size_t reacTime;
 	FixedDelayed<double> *perceivedFwdVel;
 	FixedDelayed<double> *perceivedFwdAcc;
@@ -148,10 +146,6 @@ private:
 	NodePoint goal;    //first, assume that each vehicle moves towards a goal
 
 public:
-//	double maxLaneSpeed;
-//	//for coordinate transform
-//	void setParentBufferedData();			///<set next data to parent buffer data
-
 	Agent* getDriverParent(const Driver *self) { return self->parent; }
 
 public:
@@ -159,7 +153,7 @@ public:
 	const Vehicle* getVehicle() const { return vehicle; }
 
 	//This is probably ok.
-	const double getVehicleLength() const { return vehicle->length; }
+	const double getVehicleLengthCM() const { return vehicle->lengthCM; }
 
 private:
 	friend class DriverBehavior;

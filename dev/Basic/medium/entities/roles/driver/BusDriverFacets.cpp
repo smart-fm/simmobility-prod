@@ -7,6 +7,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/Person.hpp"
+#include "entities/Vehicle.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "logging/Log.hpp"
 
@@ -21,18 +22,21 @@ void initSegStatsPath(vector<const sim_mob::RoadSegment*>& rsPath,
 	for (vector<const sim_mob::RoadSegment*>::iterator it = rsPath.begin();
 			it != rsPath.end(); it++) {
 		const sim_mob::RoadSegment* rdSeg = *it;
-		const sim_mob::SegmentStats* segStats =
+		const vector<sim_mob::SegmentStats*>& statsInSegment =
 				rdSeg->getParentConflux()->findSegStats(rdSeg);
-		ssPath.push_back(segStats);
+		ssPath.insert(ssPath.end(), statsInSegment.begin(), statsInSegment.end());
 	}
 }
+
+const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
+const double BUS_LENGTH = 1200.0; // 3 times PASSENGER_CAR_UNIT
 }
 
 namespace sim_mob {
 namespace medium {
 
 sim_mob::medium::BusDriverBehavior::BusDriverBehavior(sim_mob::Person* parentAgent):
-	DriverBehavior(parentAgent), parentBusDriver(nullptr) {}
+	DriverBehavior(parentAgent) {}
 
 sim_mob::medium::BusDriverBehavior::~BusDriverBehavior() {}
 
@@ -57,10 +61,10 @@ sim_mob::medium::BusDriverMovement::~BusDriverMovement() {}
 void sim_mob::medium::BusDriverMovement::frame_init() {
 	bool pathInitialized = initializePath();
 	if (pathInitialized) {
-		Vehicle* newVeh = new Vehicle();
-		Vehicle* oldBus = parentBusDriver->getResource();
+		Vehicle* newVeh = new Vehicle(Vehicle::BUS, BUS_LENGTH, BUS_LENGTH/PASSENGER_CAR_UNIT);
+		Vehicle* oldBus = parentBusDriver->getVehicle();
 		safe_delete_item(oldBus);
-		parentBusDriver->setResource(newVeh);
+		parentBusDriver->setVehicle(newVeh);
 	}
 }
 
@@ -100,6 +104,7 @@ void sim_mob::medium::BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdate
 	Print()<<"BusDriver_movement flowIntoNextLinkIfPossible called"<<std::endl;
 	DriverMovement::flowIntoNextLinkIfPossible(p);
 }
+
 
 bool sim_mob::medium::BusDriverMovement::initializePath()
 {

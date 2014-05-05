@@ -277,7 +277,7 @@ LoopDetector::check(boost::unordered_set<Vehicle const *> & vehicles)
 bool
 LoopDetector::check(Vehicle const & vehicle)
 {
-    Vector2D<double> pos(vehicle.getX() - center_.getX(), vehicle.getY() - center_.getY());
+    Vector2D<double> pos(vehicle.getCurrPosition().x - center_.getX(), vehicle.getCurrPosition().y - center_.getY());
     // The dot product produces the projection onto the orientation vector.  If the projection
     // falls within the extents (ie, the width and length), then the vehicle is hovering over
     // the loop detector.
@@ -293,7 +293,7 @@ LoopDetector::check(Vehicle const & vehicle)
     // The vehicle (that is, its central position) is outside of the inner area, but within the
     // outer monitoring area.  If its length is longer than the outer area, then it would extends
     // into the inner area, and hence over the loop detector.
-    if (dotProduct - vehicle.length < innerLength_)
+    if (dotProduct - vehicle.lengthCM < innerLength_)
     {
         return true;
     }

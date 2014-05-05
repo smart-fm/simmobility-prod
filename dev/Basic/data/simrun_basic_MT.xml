@@ -39,7 +39,7 @@
             <database id="fm_local" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
-                <dbname value="SimMobility_DB"/>
+                <dbname value="SimMobility_DB_9apr14"/>
             </database>
 
             <database id="fm_local_lt" dbtype="postgres">
@@ -145,15 +145,24 @@
             <!-- Entire singapore network -->
             <proc_map id="singapore" format="aimsun">
                 <mapping name="node" procedure="get_node_sg()"/>
-                <mapping name="section" procedure="get_section_sg()"/>
+                <mapping name="section" procedure="get_section_sg2()"/>
                 <mapping name="crossing" procedure="get_pedestrian_crossing_bugis()"/>
                 <mapping name="lane" procedure="get_lanes_bugis()"/>
                 <mapping name="turning" procedure="get_lane_connector_bugis()"/>
                 <mapping name="polyline" procedure="get_section_polyline_sg2()"/>
                 <mapping name="tripchain" procedure="get_preday_scaled_car_tripchains()"/>
-                <mapping name="busstop" procedure="get_bus_stop()"/>
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases_bugis()"/>
+                <!-- These public-transit mappings tested with the whole Singapore network. -->
+                <!-- "pt_bus_dispatch_freq" store some bus dispatching schedules for buses -->
+                <!-- "pt_bus_routes" store some bus routes for buses -->
+                <!-- "pt_bus_stops" store some bus stops for buses -->
+                <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('saturday')"/>
+                <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
+                <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+                <!-- user either can choose mapping name "busstop" or "busstopSG" (not both) for their purpose -->
+                <mapping name="busstop" procedure=""/>
+                <mapping name="busstopSG" procedure="get_pt_stops_sg()"/>
             </proc_map>
                  
             <!-- entire Singapore network with HITS trip chains -->
@@ -307,15 +316,12 @@
             <!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
             <mutex_enforcement    strategy="buffered" />
             
-            <!-- This element configures communication simulator. -->
-            <!-- it is possible to enable or disable the communication simulation capability -->
-            <!-- in general, or any of the communication simulation entities in particular. -->
-            <!-- Moreover, there can be custom configuration settings for each communication -->
-            <!-- simulation entities like 'mode' of operation. -->
-            <communication enabled="no">
-                <roadrunner mode="android-only" enabled="no"/> <!--currently: mode="android-only" and "android-ns3" -->
-                <stk mode="android-ns3" enabled="no"/> 
-            </communication>
+            <!--  Commsim (communication) settings -->
+            <commsim enabled="false"> <!-- If false, the Broker is never added, so no commsim activities take place. -->
+                <min_clients value="1"/> <!-- Sim Mobility will hold on time tick 1 until this many clients connect. -->
+                <hold_tick value="500"/> <!-- Which tick to enforce the "min_clients" restriction at. -->
+                <use_ns3 value="true"/>  <!-- Use ns-3 to route network traffice between agents? If not, opaque messages are dispatched immediately. -->
+            </commsim>
 
             <reacTime_distributionType1      value="1" /> <!-- 0 is normal distribution, 1 is log normal-->
             <reacTime_distributionType2      value="1" />
@@ -323,6 +329,8 @@
             <reacTime_mean2      value="500" />
             <reacTime_standardDev1    value="100" />
             <reacTime_standardDev2    value="100" />
+            
+            <pathset_traveltime_save_table value="bugis_large_pathset"/>
         </simulation>
                 
         <!-- List of all Worker types and their properties. -->
@@ -358,7 +366,7 @@
         <!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
         <!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
         <!-- <network_database database="fm_local" credentials="fm_local" proc_map="bugis_small_custom"/-->
-        <network_database database="fm_local" credentials="harish_cred" proc_map="bugis_large"/>
+        <network_database database="fm_local" credentials="harish_cred" proc_map="singapore"/>
         
         <!-- Where to find our various schema files. -->
         <!-- Overrides xsi:schemaLocation in the files themselves. -->
@@ -4464,7 +4472,7 @@ Note: Empty blacklist file.
     <!-- With the above three procedures present and valid, enable buses with "<buscontroller time="0" />" in the <buscontrollers> -->
     <!-- To Disable Buses: user can simply comment the buscontroller in the <buscontrollers> -->
     <buscontrollers>
-       <!-- <buscontroller time="0" />--> 
+       <buscontroller time="0" />
     </buscontrollers>
     
 <!--<signals> -->

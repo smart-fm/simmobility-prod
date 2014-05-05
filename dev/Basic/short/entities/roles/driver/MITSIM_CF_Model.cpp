@@ -731,19 +731,33 @@ double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p, double dis)
  * speed within a given distance.
  *-------------------------------------------------------------------
  */
-double sim_mob::MITSIM_CF_Model::breakToTargetSpeed(DriverUpdateParams& p)
+double sim_mob::MITSIM_CF_Model::brakeToTargetSpeed(DriverUpdateParams& p,double s,double v)
 {
-	double v 			=	p.perceivedFwdVelocity/100;
+//	double v 			=	p.perceivedFwdVelocity/100;
 	double dt			=	p.elapsedSeconds;
 
-	//NOTE: This is the only use of epsilon(), so I just copied the value directly.
-	//      See LC_Model for how to declare a private temporary variable. ~Seth
-	if(p.space_star > numeric_limits<double>::epsilon()) {
-		return  ((p.v_lead + p.a_lead * dt ) * ( p.v_lead + p.a_lead * dt) - v * v) / 2 / p.space_star;
-	} else if ( dt <= 0 ) {
-		return maxAcceleration;
-	} else {
-		return ( p.v_lead + p.a_lead * dt - v ) / dt;
+//	//NOTE: This is the only use of epsilon(), so I just copied the value directly.
+//	//      See LC_Model for how to declare a private temporary variable. ~Seth
+//	if(p.space_star > sim_mob::Math::DOUBLE_EPSILON) {
+//		return  ((p.v_lead + p.a_lead * dt ) * ( p.v_lead + p.a_lead * dt) - v * v) / 2 / p.space_star;
+//	} else if ( dt <= 0 ) {
+//		return maxAcceleration;
+//	} else {
+//		return ( p.v_lead + p.a_lead * dt - v ) / dt;
+//	}
+
+	double currentSpeed_ 	=	p.perceivedFwdVelocity/100;
+	if (s > sim_mob::Math::DOUBLE_EPSILON) {
+		float v2 = v * v;
+		float u2 = currentSpeed_ * currentSpeed_;
+		float acc = (v2 - u2) / s * 0.5;
+
+		return acc;
+	}
+	else {
+	//	float dt = nextStepSize();
+//		if (dt <= 0.0) return maxAcceleration ;
+		return (v - currentSpeed_) / dt;
 	}
 }
 
@@ -760,7 +774,11 @@ double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(DriverUpdateParams& 
 	} else if (p.space > 0.01 ) {
 		a = p.a_lead - dv * dv / 2 / p.space;
 	} else {
-		a= breakToTargetSpeed(p);
+		double dt	=	p.elapsedSeconds;
+		//p.space_star	=	p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
+		double s = p.space_star;
+		double v = p.v_lead + p.a_lead * dt ;
+		a= brakeToTargetSpeed(p,s,v);
 	}
 //	if(a<maxDeceleration)
 //		return maxDeceleration;
@@ -805,7 +823,11 @@ double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(DriverUpdateParams& p, double
 	if(p.space > p.distanceToNormalStop ) {
 		return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);
 	} else {
-		return breakToTargetSpeed(p);
+		double dt	=	p.elapsedSeconds;
+		//p.space_star	=	p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
+		double s = p.space_star;
+		double v = p.v_lead + p.a_lead * dt ;
+		return brakeToTargetSpeed(p,s,v);
 	}
 }
 

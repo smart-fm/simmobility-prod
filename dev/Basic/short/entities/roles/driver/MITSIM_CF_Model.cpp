@@ -121,10 +121,12 @@ sim_mob::MITSIM_CF_Model::MITSIM_CF_Model()
 void sim_mob::MITSIM_CF_Model::initParam()
 {
 	// speed scaler
-	string speedScalerStr,maxAccStr;
+	string speedScalerStr,maxAccStr,decelerationStr;
 	ParameterManager::Instance()->param(modelName,"speed_scaler",speedScalerStr,string("5 20 20"));
 	ParameterManager::Instance()->param(modelName,"max_acc_car1",maxAccStr,string("10.00  7.90  5.60  4.00  4.00"));
-	makeMaxAccIndex(speedScalerStr,maxAccStr);
+	makeMaxAccIndex(Vehicle::CAR,speedScalerStr,maxAccStr);
+	ParameterManager::Instance()->param(modelName,"normal_deceleration_car1",decelerationStr,string("7.8 	6.7 	4.8 	4.8 	4.8"));
+	makeDecelerationIndex(Vehicle::CAR,speedScalerStr,decelerationStr);
 	// max acceleration
 	ParameterManager::Instance()->param(modelName,"maxAcceleration",maxAcceleration,5.01);
 	ParameterManager::Instance()->param(modelName,"normalDeceleration",normalDeceleration,-3.01);
@@ -134,8 +136,9 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	std::cout<<"MITSIM_CF_Model: normalDeceleration <"<<normalDeceleration<<">"<<std::endl;
 	std::cout<<"MITSIM_CF_Model: maxDeceleration <"<<maxDeceleration<<">"<<std::endl;
 }
-void sim_mob::MITSIM_CF_Model::makeMaxAccIndex(string& speedScalerStr,string& maxAccStr)
+void sim_mob::MITSIM_CF_Model::makeMaxAccIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& maxAccStr)
 {
+	std::cout<<"makeMaxAccIndex: vh type"<<vhType<<std::endl;
 	// for example
 	// speedScalerStr "5 20 20" ft/sec
 	// maxAccStr      "10.00  7.90  5.60  4.00  4.00" ft/(s^2)
@@ -172,6 +175,7 @@ void sim_mob::MITSIM_CF_Model::makeMaxAccIndex(string& speedScalerStr,string& ma
 	}
 	//
 	maxAccUpBound = speedScalerArrayDouble[1] * (speedScalerArrayDouble[0]-1);
+	map<int,double> maxAccIdx;
 	for(int speed=0;speed<=maxAccUpBound;++speed)
 	{
 		double maxAcc;
@@ -186,12 +190,73 @@ void sim_mob::MITSIM_CF_Model::makeMaxAccIndex(string& speedScalerStr,string& ma
 		{
 			maxAcc = maxAccArrayDouble[j];
 		}
-		maxAccIndex.insert(std::make_pair(speed, maxAcc ));
+		maxAccIdx.insert(std::make_pair(speed, maxAcc ));
 
 		std::cout<<"speed: "<<speed<<" max acc: "<<maxAcc<<std::endl;
 	}
+
+	maxAccIndex[vhType] = maxAccIdx;
 }
-double sim_mob::MITSIM_CF_Model::getMaxAcceleration(sim_mob::DriverUpdateParams& p)
+void sim_mob::MITSIM_CF_Model::makeDecelerationIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& decelerationStr)
+{
+	std::cout<<"makeDecelerationIndex: vh type"<<vhType<<std::endl;
+	std::vector<std::string> speedScalerArrayStr;
+	boost::trim(speedScalerStr);
+	boost::split(speedScalerArrayStr, speedScalerStr
+			, boost::is_any_of(" "),boost::token_compress_on);
+	std::vector<double> speedScalerArrayDouble;
+	for(int i=0;i<speedScalerArrayStr.size();++i)
+	{
+		double res;
+		try {
+				res = boost::lexical_cast<double>(speedScalerArrayStr[i].c_str());
+			}catch(boost::bad_lexical_cast&) {
+				std::string s = "can not covert <" +speedScalerStr+"> to double.";
+				throw std::runtime_error(s);
+			}
+		speedScalerArrayDouble.push_back(res);
+	}
+	//
+	boost::algorithm::trim(decelerationStr);
+	std::vector<std::string> maxAccArrayStr;
+	boost::split(maxAccArrayStr, decelerationStr, boost::is_any_of(" "),boost::token_compress_on);
+	std::vector<double> maxAccArrayDouble;
+	for(int i=0;i<maxAccArrayStr.size();++i)
+	{
+		double res;
+		try {
+				res = boost::lexical_cast<double>(maxAccArrayStr[i].c_str());
+			}catch(boost::bad_lexical_cast&) {
+				std::string s = "can not covert <" +decelerationStr+"> to double.";
+				throw std::runtime_error(s);
+			}
+		maxAccArrayDouble.push_back(res);
+	}
+	//
+	decelerationUpBound = speedScalerArrayDouble[1] * (speedScalerArrayDouble[0]-1);
+	map<int,double> decelerationIdx;
+	for(int speed=0;speed<=decelerationUpBound;++speed)
+	{
+		double decele;
+		// Convert speed value to a table index.
+		int j = speed/speedScalerArrayDouble[1];
+		if(j>=(speedScalerArrayDouble[0]-1))
+		{
+			decele = maxAccArrayDouble[speedScalerArrayDouble[0]-1];
+
+		}
+		else
+		{
+			decele = maxAccArrayDouble[j];
+		}
+		decelerationIdx.insert(std::make_pair(speed, decele ));
+
+		std::cout<<"speed: "<<speed<<" deceleration: "<<decele<<std::endl;
+	}
+
+	decelerationIndex[vhType] = decelerationIdx;
+}
+double sim_mob::MITSIM_CF_Model::getMaxAcceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType)
 {
 	if(!p.driver)
 	{
@@ -202,17 +267,32 @@ double sim_mob::MITSIM_CF_Model::getMaxAcceleration(sim_mob::DriverUpdateParams&
 	// TODO: get vehicle type
 
 	// convert speed to int
-	int speed  = (int)p.perceivedFwdVelocity/100;
+	int speed  = round(p.perceivedFwdVelocity/100);
 	if(speed <0) speed=0;
 	if(speed >maxAccUpBound) speed=maxAccUpBound;
 
-	double acc = maxAccIndex[speed];
+	double acc = maxAccIndex[vhType][speed];
 
 	return acc;
 }
-double sim_mob::MITSIM_CF_Model::maxTableAcc(double& speed,sim_mob::Vehicle::VEHICLE_TYPE& vhType)
+double sim_mob::MITSIM_CF_Model::getDeceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType)
 {
+	if(!p.driver)
+	{
+		throw std::runtime_error("no driver");
+	}
+	// TODO: get grade
 
+	// TODO: get vehicle type
+
+	// convert speed to int
+	int speed  = round(p.perceivedFwdVelocity/100);
+	if(speed <0) speed=0;
+	if(speed >decelerationUpBound) speed=decelerationUpBound;
+
+	double acc = decelerationIndex[vhType][speed];
+
+	return acc;
 }
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {

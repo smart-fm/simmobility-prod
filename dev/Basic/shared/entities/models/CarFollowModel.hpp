@@ -67,9 +67,10 @@ class MITSIM_CF_Model : public CarFollowModel {
 public:
 	MITSIM_CF_Model();
 	void initParam();
-	void makeMaxAccIndex(string& speedScalerStr,string& maxAccStr);
-	double getMaxAcceleration(sim_mob::DriverUpdateParams& p);
-	double maxTableAcc(double& speed,sim_mob::Vehicle::VEHICLE_TYPE& vhType);
+	void makeMaxAccIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& maxAccStr);
+	void makeDecelerationIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& decelerationStr);
+	double getMaxAcceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);
+	double getDeceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);
 	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);
 
 private:
@@ -89,9 +90,13 @@ private:
 	void distanceToNormalStop(sim_mob::DriverUpdateParams& p);
 
 private:
-	/// key=speed [0 100], value=max acc
-	map<int,double> maxAccIndex;
+	/// key=vehicle type
+	/// submap key=speed, value=max acc
+	map< Vehicle::VEHICLE_TYPE,map<int,double> > maxAccIndex;
 	int maxAccUpBound;
+
+	map< Vehicle::VEHICLE_TYPE,map<int,double> > decelerationIndex;
+	int decelerationUpBound;
 };
 
 

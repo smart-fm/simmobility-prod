@@ -123,20 +123,17 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	// speed scaler
 	string speedScalerStr,maxAccStr,decelerationStr;
 	ParameterManager::Instance()->param(modelName,"speed_scaler",speedScalerStr,string("5 20 20"));
+	// max acc
 	ParameterManager::Instance()->param(modelName,"max_acc_car1",maxAccStr,string("10.00  7.90  5.60  4.00  4.00"));
 	makeMaxAccIndex(Vehicle::CAR,speedScalerStr,maxAccStr);
+	// normal deceleration
 	ParameterManager::Instance()->param(modelName,"normal_deceleration_car1",decelerationStr,string("7.8 	6.7 	4.8 	4.8 	4.8"));
 	makeNormalDecelerationIndex(Vehicle::CAR,speedScalerStr,decelerationStr);
+	// max deceleration
 	ParameterManager::Instance()->param(modelName,"Max_deceleration_car1",decelerationStr,string("16.0   14.5   13.0   11.0   10.0"));
 	makeMaxDecelerationIndex(Vehicle::CAR,speedScalerStr,decelerationStr);
-	// max acceleration
-//	ParameterManager::Instance()->param(modelName,"maxAcceleration",maxAcceleration,5.01);
-//	ParameterManager::Instance()->param(modelName,"normalDeceleration",normalDeceleration,-3.01);
-//	ParameterManager::Instance()->param(modelName,"maxDeceleration",maxDeceleration,-5.01);
-
-//	std::cout<<"MITSIM_CF_Model: maxAcceleration <"<<maxAcceleration<<">"<<std::endl;
-//	std::cout<<"MITSIM_CF_Model: normalDeceleration <"<<normalDeceleration<<">"<<std::endl;
-//	std::cout<<"MITSIM_CF_Model: maxDeceleration <"<<maxDeceleration<<">"<<std::endl;
+	// acceleration grade factor
+	ParameterManager::Instance()->param(modelName,"acceleration_grade_factor",accGradeFactor,0.305);
 }
 void sim_mob::MITSIM_CF_Model::makeMaxAccIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& maxAccStr)
 {
@@ -323,18 +320,23 @@ double sim_mob::MITSIM_CF_Model::getMaxAcceleration(sim_mob::DriverUpdateParams&
 	{
 		throw std::runtime_error("no driver");
 	}
-	// TODO: get grade
-
-	// TODO: get vehicle type
+	// as no current road network data only has x,y value, no altitude
+	// grade always zero
+	int grade = 0;
 
 	// convert speed to int
 	int speed  = round(p.perceivedFwdVelocity/100);
 	if(speed <0) speed=0;
 	if(speed >maxAccUpBound) speed=maxAccUpBound;
 
-	double acc = maxAccIndex[vhType][speed];
+	double maxTableAcc = maxAccIndex[vhType][speed];
 
-	return acc;
+	// TODO: get random multiplier from data file and normal distribution
+	double betaAcc = 1.0;
+
+	double maxAcc = ( maxTableAcc - grade*accGradeFactor) * betaAcc;
+
+	return maxAcc;
 }
 double sim_mob::MITSIM_CF_Model::getNormalDeceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType)
 {

@@ -130,6 +130,8 @@ private:
 	//Serialization-related friends
 	friend class PackageUtils;
 	friend class UnPackageUtils;
+
+	VEHICLE_TYPE type_;
 };
 
 } // namespace sim_mob

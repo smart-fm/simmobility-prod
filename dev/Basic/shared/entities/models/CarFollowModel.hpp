@@ -40,6 +40,7 @@ public:
 public:
 	string modelName;
 	double maxAcceleration;
+	double accGradeFactor;
 	double normalDeceleration;
 	double maxDeceleration;
 

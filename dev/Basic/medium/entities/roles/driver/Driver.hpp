@@ -74,7 +74,6 @@ public:
 		this->vehicle = vehicle;
 	}
 
-	//medium::DriverUpdateParams params;
 	//to be moved to a DriverUpdateParam later
 	const Lane* currLane;
 

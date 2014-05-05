@@ -17,9 +17,9 @@ using std::vector;
 using std::endl;
 
 namespace {
-void initSegStatsPath(vector<const sim_mob::RoadSegment*>& rsPath,
+void initSegStatsPath(const vector<const sim_mob::RoadSegment*>& rsPath,
 		vector<const sim_mob::SegmentStats*>& ssPath) {
-	for (vector<const sim_mob::RoadSegment*>::iterator it = rsPath.begin();
+	for (vector<const sim_mob::RoadSegment*>::const_iterator it = rsPath.begin();
 			it != rsPath.end(); it++) {
 		const sim_mob::RoadSegment* rdSeg = *it;
 		const vector<sim_mob::SegmentStats*>& statsInSegment =
@@ -145,7 +145,7 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 {
 	sim_mob::Person* person = getParent();
 	if (!person) {
-		Print()<<"Person of BusDriverMovement is null" << std::endl;
+		Print()<<"Parent person of BusDriverMovement is NULL" << std::endl;
 		return false;
 	}
 
@@ -161,16 +161,13 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 			parentBusDriver->goal.point = parentBusDriver->goal.node->location;
 		}
 
-		vector<const RoadSegment*> pathRoadSeg;
-
 		const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
 		if (!bustrip) {
 			Print()<< "bustrip is null"<<std::endl;
 		}
 		else if ((*(person->currTripChainItem))->itemType== TripChainItem::IT_BUSTRIP) {
 			routeTracker = BusRouteTracker(bustrip->getBusRouteInfo());
-			pathRoadSeg = routeTracker.getRoadSegments();
-			Print()<< "BusTrip path size = " << pathRoadSeg.size() << std::endl;
+			Print()<< "BusTrip path size = " << routeTracker.getRoadSegments().size() << std::endl;
 		} else {
 			if ((*(person->currTripChainItem))->itemType== TripChainItem::IT_TRIP) {
 				Print()<< "IT_TRIP\n";
@@ -182,11 +179,11 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 		}
 
 		//For now, empty paths aren't supported.
-		if (pathRoadSeg.empty()) {
+		if (routeTracker.getRoadSegments().empty()) {
 			throw std::runtime_error("Can't initializePath(); path is empty.");
 		}
 		std::vector<const sim_mob::SegmentStats*> path;
-		initSegStatsPath(pathRoadSeg, path);
+		initSegStatsPath(routeTracker.getRoadSegments(), path);
 		if(path.empty()) {
 			return false;
 		}
@@ -203,12 +200,11 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 
 }
 
-BusRouteTracker::BusRouteTracker(const BusRouteInfo& routeInfo)
-: BusRouteInfo(routeInfo) {
+BusRouteTracker::BusRouteTracker(const BusRouteInfo& routeInfo) : BusRouteInfo(routeInfo) {
 	nextStopIt = busStop_vec.begin();
 }
 
-const BusStop* BusRouteTracker::getNextStopIt() const {
+const BusStop* BusRouteTracker::getNextStop() const {
 	if(nextStopIt==busStop_vec.end()) {
 		return nullptr;
 	}

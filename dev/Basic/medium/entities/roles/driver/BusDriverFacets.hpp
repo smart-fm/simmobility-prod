@@ -29,7 +29,15 @@ public:
 	BusRouteTracker() {}
 	BusRouteTracker(const BusRouteInfo& routeInfo);
 
-	const BusStop* getNextStopIt() const;
+	/**
+	 * gets the bus stop pointed by nextStopIt
+	 * @return the bus stop pointed by nextStopIt if nextStopIt points to a
+	 * valid stop; nullptr otherwise.
+	 */
+	const BusStop* getNextStop() const;
+	/**
+	 * increments the nextStopIt to point to the next stop along the route
+	 */
 	void updateNextStop();
 
 private:

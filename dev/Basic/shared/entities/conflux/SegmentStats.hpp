@@ -110,14 +110,26 @@ public:
  */
 class LaneStats {
 private:
+	//typedefs
 	typedef std::deque<sim_mob::Person*> PersonList;
+	/**number of persons queueing in lane*/
 	unsigned int queueCount;
+	/**number of queuing persons at the start of the current tick*/
 	unsigned int initialQueueCount;
+	/**position of the last updated person in lane*/
 	double positionOfLastUpdatedAgent;
+	/**geospatial lane corresponding to this lane stats*/
 	const sim_mob::Lane* lane;
+	/**virtual lane to hold newly starting persons*/
 	const bool laneInfinity;
+	/**length of the lane (corresponds to length of segment stats of this lane stats)*/
 	double length;
+	/**counter to track number of persons in this lane*/
 	unsigned int numPersons;
+	/**tracks the queueing length of this segment*/
+	double queueingLength;
+	/**tracks the moving length of this segment*/
+	double movingLength;
 
 	/*
 	 * laneAgentsCopy is a copy of laneAgents taken at the start of each tick
@@ -257,6 +269,7 @@ public:
 		return numPersons;
 	}
 
+	/**parameters for this lane*/
 	LaneParams* laneParams;
 };
 
@@ -271,26 +284,60 @@ class SegmentStats {
 	friend class sim_mob::aimsun::Loader;
 
 protected:
+	//typedefs
 	typedef std::deque<sim_mob::Person*> PersonList;
 	typedef std::map<const sim_mob::Lane*, sim_mob::LaneStats* > LaneStatsMap;
 	typedef std::vector<const sim_mob::BusStop*> BusStopList;
+
+	/**road segment which contains this SegmentStats*/
 	const sim_mob::RoadSegment* roadSegment;
+	/**
+	 * List of bus stops in this SegmentStats. One SegmentStats can have
+	 * multiple stops. This design allows us to handle the case where there are
+	 * different bus stops located close to each other. Allowing multiple stops
+	 * eliminates the need for splitting the segment into very short segments.
+	 */
 	BusStopList busStops;
-	uint8_t positionInRoadSegment; //segment can have multiple segment stats. This gives the position of this SegmentStats in segment.
+	/**
+	 * A segment can have multiple segment stats. This gives the position of this
+	 * SegmentStats in segment.
+	 */
+	uint8_t positionInRoadSegment;
+	/**
+	 * Map containing LaneStats for every lane of the segment.
+	 * This map includes lane infinity.
+	 */
 	LaneStatsMap laneStatsMap;
+	/**
+	 * A map which stores the unprocessed person who is closest to the end of
+	 * this SegmentStats for each lane in the seg stats. This is used for
+	 * selecting the next person to update.
+	 * TODO: remove this, if TopCMerge seems to work perfectly well.
+	 */
 	std::map<const sim_mob::Lane*, sim_mob::Person* > frontalAgents;
+	/**length of this SegmentStats in cm*/
 	double length;
-
-	double segVehicleSpeed; //speed of vehicles in segment for each frame
-	double segPedSpeed; //speed of pedestrians on this segment for each frame--not used at the moment
+	/**speed of vehicles in segment for each frame*/
+	double segVehicleSpeed;
+	/**speed of pedestrians on this segment for each frame--not used at the moment*/
+	double segPedSpeed;
+	/**vehicle density of this segment stats in PCU/cm*/
 	double segDensity;
-	double lastAcceptTime;
+	/**number of lanes in this SegmentStats which is meant for vehicles*/
 	int numVehicleLanes;
+	/**
+	 * counter which stores the number of vehicles which crossed the mid-point
+	 * of this segment stats in every tick
+	 */
 	unsigned int segFlow;
+	/**
+	 * counter which tracks the number of Persons currently on this SegmentStats
+	 */
 	unsigned int numPersons;
-
+	/**
+	 * structure to store parameters pertinent to supply
+	 */
 	sim_mob::SupplyParams supplyParams;
-
 	/**
 	 * adds a bus stop to the list of stops
 	 * @param stop bus stop to be added

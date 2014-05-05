@@ -66,7 +66,7 @@ SupplyParams::SupplyParams(const sim_mob::RoadSegment* rdSeg, double statsLength
 
 SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double statslength)
 	: roadSegment(rdSeg), length(statslength), segDensity(0.0), segPedSpeed(0.0),
-	segFlow(0),	lastAcceptTime(0.0), numPersons(0), positionInRoadSegment(1),
+	segFlow(0), numPersons(0), positionInRoadSegment(1),
 	debugMsgs(std::stringstream::out), supplyParams(rdSeg, statslength),
 	orderBySetting(SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION)
 {

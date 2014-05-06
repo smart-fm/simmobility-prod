@@ -19,6 +19,7 @@
 #include "database/dao/LandUseZoneDao.hpp"
 #include "database/dao/DevelopmentTypeTemplateDao.hpp"
 #include "database/dao/TemplateUnitTypeDao.hpp"
+#include "conf/ConfigParams.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -28,11 +29,14 @@ using std::runtime_error;
 using std::string;
 namespace {
     const string MODEL_NAME = "Developer Model";
-    const unsigned int TIME_INTERVAL = 30; //In days (7 - weekly, 30 - Montly)
 }
 
 DeveloperModel::DeveloperModel(WorkGroup& workGroup)
-: Model(MODEL_NAME, workGroup), timeInterval(TIME_INTERVAL) {
+: Model(MODEL_NAME, workGroup), timeInterval( 30 ){ //In days (7 - weekly, 30 - Montly)
+}
+
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevMod )
+: Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevMod ){
 }
 
 DeveloperModel::~DeveloperModel() {

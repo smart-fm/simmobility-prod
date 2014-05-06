@@ -45,6 +45,10 @@ sim_mob::Broker::Broker(const MutexStrategy& mtxStrat, int id) :
 {
 	//Various Initializations
 	configure();
+
+	//Note: This should only be done once, and never in parallel. This is *probably* safe to do here, but change it if you
+	//      switch to multiple Brokers.
+	Base64Escape::Init();
 }
 
 sim_mob::Broker::~Broker()

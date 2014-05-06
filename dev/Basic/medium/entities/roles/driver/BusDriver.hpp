@@ -72,13 +72,13 @@ private:
 	Shared<const BusStop*> visitedBusStop;
 	/**last visited bus stop sequence number*/
 	Shared<int> visitedBusStopSequenceNo;
-	/**real departure time set by BusController*/
+	/**real departure time set by bus controller*/
 	Shared<double> realDepartureTime;
-	/**real arrival time set by BusDriver*/
+	/**real arrival time set by bus driver*/
 	Shared<double> realArrivalTime;
-	/**current bus stop real Times*/
+	/**current bus stop real times including departure and arrival time*/
 	Shared<BusStop_RealTimes>* busStopRealTimes;
-	/** dwell time set by BusDriver*/
+	/** dwell time set by bus driver*/
 	Shared<double> dwellTime;
 	/**waiting time set by bus controller*/
 	Shared<double> waitingTime;

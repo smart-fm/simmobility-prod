@@ -33,7 +33,7 @@ namespace sim_mob {
             typedef boost::unordered_map<BigSerial,LandUseZone*> LandUseZoneMap;
         public:
             DeveloperModel(WorkGroup& workGroup);
-            DeveloperModel(WorkGroup& workGroup, unsigned int timeInterval );
+            DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel );
             virtual ~DeveloperModel();
             
             /**

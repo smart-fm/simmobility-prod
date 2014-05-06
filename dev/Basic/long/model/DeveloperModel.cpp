@@ -19,7 +19,6 @@
 #include "database/dao/LandUseZoneDao.hpp"
 #include "database/dao/DevelopmentTypeTemplateDao.hpp"
 #include "database/dao/TemplateUnitTypeDao.hpp"
-#include "conf/ConfigParams.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -35,8 +34,8 @@ DeveloperModel::DeveloperModel(WorkGroup& workGroup)
 : Model(MODEL_NAME, workGroup), timeInterval( 30 ){ //In days (7 - weekly, 30 - Montly)
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevMod )
-: Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevMod ){
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel )
+: Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ){
 }
 
 DeveloperModel::~DeveloperModel() {

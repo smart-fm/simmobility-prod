@@ -890,20 +890,26 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	cfg.ltParams.tickStep = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "tickStep"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.workers = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "workers"), "value"), static_cast<unsigned int>(0));
 
-	DOMElement* child = node->getFirstElementChild();
 
-	LongTermParams::DeveloperModel developerModel;
-	developerModel.enabled = ParseBoolean(GetNamedAttributeValue(child, "enabled"));
-	developerModel.timeInterval = ParseFloat(GetNamedAttributeValue(child, "timeInterval") );
-	cfg.ltParams.developerModel = developerModel;
+	for (DOMElement* child=node->getFirstElementChild(); child; child = child->getNextElementSibling())
+	{
+		if (TranscodeString(child->getNodeName()) == "developerModel" )
+		{
+			LongTermParams::DeveloperModel developerModel;
+			developerModel.enabled = ParseBoolean(GetNamedAttributeValue(child, "enabled"), false );
+			developerModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(child, "timeInterval"), "value"), static_cast<unsigned int>(0));
+			cfg.ltParams.developerModel = developerModel;
+		}
 
-	child=child->getNextElementSibling();
+		if (TranscodeString(child->getNodeName()) == "housingModel" )
+		{
+			LongTermParams::DeveloperModel developerModel;
+			developerModel.enabled = ParseBoolean(GetNamedAttributeValue(child, "enabled"), false );
+			developerModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(child, "timeInterval"), "value"), static_cast<unsigned int>(0));
+			cfg.ltParams.developerModel = developerModel;
+		}
 
-	LongTermParams::HousingModel housingModel;
-	housingModel.enabled = ParseBoolean(GetNamedAttributeValue(child, "enabled"));
-	housingModel.timeInterval = ParseFloat(GetNamedAttributeValue(child, "timeInterval") );
-	housingModel.timeOnMarket = ParseFloat(GetNamedAttributeValue(child, "timeOnMarket") );
-	cfg.ltParams.housingModel = housingModel;
+	}
 }
 
 

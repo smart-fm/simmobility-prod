@@ -414,6 +414,13 @@
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>
+    	<developerModel enabled="false">
+    		<timeInterval value="30"/>
+    	</developerModel>
+        <housingModel enabled="false"> 
+            <timeOnMarket value="30"/>
+            <timeInterval value="7"/>
+        </housingModel>
     </longTermParams>     
         
     <incidentsData enabled="yes">

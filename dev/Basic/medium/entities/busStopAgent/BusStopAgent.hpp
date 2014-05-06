@@ -82,6 +82,12 @@ public:
 	 */
 	void boardWaitingPersons(sim_mob::medium::BusDriver* busDriver);
 
+	/**
+	 * get the number of boarding people
+	 * @param Bus Driver is the associate driver which waiting people will board
+	 */
+	int getBoardingNum(sim_mob::medium::BusDriver* busDriver);
+
 private:
 	std::list<sim_mob::Person*> waitingPersons;
 	std::list<sim_mob::Person*> alightingPersons;

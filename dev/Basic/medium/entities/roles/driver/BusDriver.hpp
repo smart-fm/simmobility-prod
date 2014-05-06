@@ -56,8 +56,9 @@ public:
 	/**
 	 * alight passengers when those want to alight at next bus stop
 	 * @param bus stop agent is the agent which wrap bus stop and waiting people
+	 * @return the number of alighting people
 	 */
-	void alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent);
+	int alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent);
 
 	/**
 	 * enter the bus stop

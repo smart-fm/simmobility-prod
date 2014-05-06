@@ -15,6 +15,7 @@
 #include "entities/busStopAgent/BusStopAgent.hpp"
 #include "entities/MesoEventType.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
+#include "util/DwellTimeCalc.hpp"
 
 using namespace sim_mob;
 using std::max;
@@ -87,7 +88,8 @@ sim_mob::DriverRequestParams sim_mob::medium::BusDriver::getDriverRequestParams(
 	return res;
 }
 
-void sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent){
+int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent){
+	int numAlighting = 0;
 	std::list<sim_mob::Person*>::iterator itPassenger = passengerList.begin();
 	while (itPassenger != passengerList.end()) {
 
@@ -102,10 +104,12 @@ void sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusStopAgent* 
 		if (passenger && passenger->getDecision()==ALIGHT_BUS) {
 			busStopAgent->addAlightingPerson(*itPassenger);
 			itPassenger = passengerList.erase(itPassenger);
+			numAlighting++;
 		} else {
 			itPassenger++;
 		}
 	}
+	return numAlighting;
 }
 
 void sim_mob::medium::BusDriver::enterBusStop(sim_mob::medium::BusStopAgent* busStopAgent) {
@@ -115,7 +119,11 @@ void sim_mob::medium::BusDriver::enterBusStop(sim_mob::medium::BusStopAgent* bus
 			messaging::MessageBus::MessagePtr(
 					new WaitingPeopleBoardingDecisionMessageArgs(this)));
 
-	alightPassenger(busStopAgent);
+	int numAlighting = alightPassenger(busStopAgent);
+	int numBoarding = busStopAgent->getBoardingNum(this);
+	int totalNumber = numAlighting+numBoarding;
+
+	double dwellTime = sim_mob::dwellTimeCalculation(0,0,0,0,0,totalNumber);
 }
 
 std::vector<BufferedBase*> sim_mob::medium::BusDriver::getSubscriptionParams() {

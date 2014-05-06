@@ -97,5 +97,11 @@ void BusStopAgent::boardWaitingPersons(
 		}
 	}
 }
+
+int BusStopAgent::getBoardingNum(sim_mob::medium::BusDriver* busDriver){
+	int numBoarding = 0;
+	return numBoarding;
+}
+
 }
 }

@@ -7,12 +7,16 @@ include_directories("${PROJECT_SOURCE_DIR}/medium")
 #Find all cpp files in this directory
 FILE(GLOB_RECURSE MediumTerm_CPP *.cpp)
 
+#...except main.cpp
+FILE(GLOB_RECURSE MediumTerm_TEST "main.cpp")
+LIST(REMOVE_ITEM MediumTerm_CPP ${MediumTerm_TEST})
+
 #Remove the unit tests
 FILE(GLOB_RECURSE MediumTerm_TEST "unit-tests/*.cpp" "unit-tests/*.c")
 LIST(REMOVE_ITEM MediumTerm_CPP ${MediumTerm_TEST})
 
 #Create the medium-term simulator
-add_executable(SimMobility_Medium ${MediumTerm_CPP} $<TARGET_OBJECTS:SimMob_Shared>)
+add_executable(SimMobility_Medium ${MediumTerm_CPP} "main.cpp" $<TARGET_OBJECTS:SimMob_Shared>)
  
 #Link this executable.
 target_link_libraries (SimMobility_Medium ${LibraryList})

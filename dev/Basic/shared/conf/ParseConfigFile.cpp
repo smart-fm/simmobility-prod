@@ -889,6 +889,21 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	cfg.ltParams.maxIterations = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "maxIterations"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.tickStep = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "tickStep"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.workers = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "workers"), "value"), static_cast<unsigned int>(0));
+
+	DOMElement* child = node->getFirstElementChild();
+
+	LongTermParams::DeveloperModel developerModel;
+	developerModel.enabled = ParseBoolean(GetNamedAttributeValue(child, "enabled"));
+	developerModel.timeInterval = ParseFloat(GetNamedAttributeValue(child, "timeInterval") );
+	cfg.ltParams.developerModel = developerModel;
+
+	child=child->getNextElementSibling();
+
+	LongTermParams::HousingModel housingModel;
+	housingModel.enabled = ParseBoolean(GetNamedAttributeValue(child, "enabled"));
+	housingModel.timeInterval = ParseFloat(GetNamedAttributeValue(child, "timeInterval") );
+	housingModel.timeOnMarket = ParseFloat(GetNamedAttributeValue(child, "timeOnMarket") );
+	cfg.ltParams.housingModel = housingModel;
 }
 
 

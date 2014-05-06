@@ -41,6 +41,19 @@ struct LongTermParams{
 	unsigned int days;
 	unsigned int tickStep;
 	unsigned int maxIterations;
+
+	struct DeveloperModel{
+		DeveloperModel();
+		bool enabled;
+		unsigned int timeInterval;
+	};
+
+	struct HousingModel{
+		HousingModel();
+		bool enabled;
+		unsigned int timeInterval;
+		unsigned int timeOnMarket;
+	};
 };
 
 ///represent the incident data section of the config file

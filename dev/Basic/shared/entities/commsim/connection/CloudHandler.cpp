@@ -15,7 +15,7 @@ sim_mob::CloudHandler::CloudHandler(boost::asio::io_service& io_service, BrokerB
 	//Resolve the remote address.
 	boost::asio::ip::tcp::resolver resolver(io_service);
 	boost::asio::ip::tcp::resolver::query query(host, boost::lexical_cast<std::string>(port));
-	boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
+	resolvedIt = resolver.resolve(query);
 }
 
 

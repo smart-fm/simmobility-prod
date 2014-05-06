@@ -46,7 +46,7 @@ protected:
 	virtual bool frame_init(timeslice now) { return true; }
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
 	virtual void frame_output(timeslice now) {}
-	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList) {}
+	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
 	std::map<Lane const *, Shared<CountAndTimePair> *> data_;
 };

@@ -72,7 +72,7 @@ public:
 	void setLatVelocity(double value);   ///<Set the lateral velocity.
 	void setAcceleration(double value);  ///<Set the forward acceleration.
 	// for path-mover splitting purpose
-	void setCurrPosition(DPoint& currPosition);
+	void setCurrPosition(DPoint currPosition);
 	const DPoint& getCurrPosition() const;
 
 	void moveFwd_med(double amt);

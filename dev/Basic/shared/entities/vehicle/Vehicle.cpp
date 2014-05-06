@@ -117,7 +117,7 @@ void sim_mob::Vehicle::setAcceleration(double value) {
 	fwdAccel = value;
 }
 
-void sim_mob::Vehicle::setCurrPosition(DPoint& currPosition)
+void sim_mob::Vehicle::setCurrPosition(DPoint currPosition)
 {
 	throw_if_error();
 	currPos = currPosition;

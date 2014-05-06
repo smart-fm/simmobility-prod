@@ -774,7 +774,7 @@ const RoadSegment* sim_mob::DriverMovement::hasNextSegment(bool inSameLink) cons
 	return nullptr;
 }
 
-DPoint& sim_mob::DriverMovement::getPosition() const
+DPoint sim_mob::DriverMovement::getPosition() const
 {
 	//Temp
 	if (fwdDriverMovement.isInIntersection() && (parentDriver->vehicle->getPositionInIntersection().x == 0 || parentDriver->vehicle->getPositionInIntersection().y == 0)) {

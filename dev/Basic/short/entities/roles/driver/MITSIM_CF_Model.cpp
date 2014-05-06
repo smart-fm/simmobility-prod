@@ -17,6 +17,7 @@
 #include "entities/vehicle/Vehicle.hpp"
 #include "entities/models/CarFollowModel.hpp"
 #include "util/Math.hpp"
+#include "util/Utils.hpp"
 #include "Driver.hpp"
 
 using std::numeric_limits;
@@ -121,19 +122,42 @@ sim_mob::MITSIM_CF_Model::MITSIM_CF_Model()
 void sim_mob::MITSIM_CF_Model::initParam()
 {
 	// speed scaler
-	string speedScalerStr,maxAccStr,decelerationStr;
+	string speedScalerStr,maxAccStr,decelerationStr,maxAccScaleStr,normalDecScaleStr,maxDecScaleStr;
 	ParameterManager::Instance()->param(modelName,"speed_scaler",speedScalerStr,string("5 20 20"));
-	// max acc
+	// max acceleration
 	ParameterManager::Instance()->param(modelName,"max_acc_car1",maxAccStr,string("10.00  7.90  5.60  4.00  4.00"));
 	makeMaxAccIndex(Vehicle::CAR,speedScalerStr,maxAccStr);
+	ParameterManager::Instance()->param(modelName,"max_acceleration_scale",maxAccScaleStr,string("0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"));
+	makeScaleIdx(maxAccScaleStr,maxAccScale);
 	// normal deceleration
 	ParameterManager::Instance()->param(modelName,"normal_deceleration_car1",decelerationStr,string("7.8 	6.7 	4.8 	4.8 	4.8"));
 	makeNormalDecelerationIndex(Vehicle::CAR,speedScalerStr,decelerationStr);
+	ParameterManager::Instance()->param(modelName,"normal_deceleration_scale",normalDecScaleStr,string("0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"));
+	makeScaleIdx(maxAccScaleStr,normalDecelerationScale);
 	// max deceleration
 	ParameterManager::Instance()->param(modelName,"Max_deceleration_car1",decelerationStr,string("16.0   14.5   13.0   11.0   10.0"));
 	makeMaxDecelerationIndex(Vehicle::CAR,speedScalerStr,decelerationStr);
+	ParameterManager::Instance()->param(modelName,"max_deceleration_scale",maxDecScaleStr,string("0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"));
+	makeScaleIdx(maxDecScaleStr,maxDecelerationScale);
 	// acceleration grade factor
 	ParameterManager::Instance()->param(modelName,"acceleration_grade_factor",accGradeFactor,0.305);
+}
+void sim_mob::MITSIM_CF_Model::makeScaleIdx(string& s,vector<double>& c)
+{
+	std::vector<std::string> arrayStr;
+	boost::trim(s);
+	boost::split(arrayStr, s, boost::is_any_of(" "),boost::token_compress_on);
+	for(int i=0;i<arrayStr.size();++i)
+	{
+		double res;
+		try {
+				res = boost::lexical_cast<double>(arrayStr[i].c_str());
+			}catch(boost::bad_lexical_cast&) {
+				std::string s = "can not covert <" +s+"> to double.";
+				throw std::runtime_error(s);
+			}
+		c.push_back(res);
+	}
 }
 void sim_mob::MITSIM_CF_Model::makeMaxAccIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& maxAccStr)
 {
@@ -173,9 +197,9 @@ void sim_mob::MITSIM_CF_Model::makeMaxAccIndex(Vehicle::VEHICLE_TYPE vhType,stri
 		maxAccArrayDouble.push_back(res);
 	}
 	//
-	maxAccUpBound = speedScalerArrayDouble[1] * (speedScalerArrayDouble[0]-1);
+	maxAccUpperBound = speedScalerArrayDouble[1] * (speedScalerArrayDouble[0]-1);
 	map<int,double> maxAccIdx;
-	for(int speed=0;speed<=maxAccUpBound;++speed)
+	for(int speed=0;speed<=maxAccUpperBound;++speed)
 	{
 		double maxAcc;
 		// Convert speed value to a table index.
@@ -232,9 +256,9 @@ void sim_mob::MITSIM_CF_Model::makeNormalDecelerationIndex(Vehicle::VEHICLE_TYPE
 		maxAccArrayDouble.push_back(res);
 	}
 	//
-	normalDecelerationUpBound = speedScalerArrayDouble[1] * (speedScalerArrayDouble[0]-1);
+	normalDecelerationUpperBound = speedScalerArrayDouble[1] * (speedScalerArrayDouble[0]-1);
 	map<int,double> decelerationIdx;
-	for(int speed=0;speed<=normalDecelerationUpBound;++speed)
+	for(int speed=0;speed<=normalDecelerationUpperBound;++speed)
 	{
 		double decele;
 		// Convert speed value to a table index.
@@ -291,9 +315,9 @@ void sim_mob::MITSIM_CF_Model::makeMaxDecelerationIndex(Vehicle::VEHICLE_TYPE vh
 		maxAccArrayDouble.push_back(res);
 	}
 	//
-	maxDecelerationUpBound = speedScalerArrayDouble[1] * (speedScalerArrayDouble[0]-1);
+	maxDecelerationUpperBound = speedScalerArrayDouble[1] * (speedScalerArrayDouble[0]-1);
 	map<int,double> decelerationIdx;
-	for(int speed=0;speed<=maxDecelerationUpBound;++speed)
+	for(int speed=0;speed<=maxDecelerationUpperBound;++speed)
 	{
 		double decele;
 		// Convert speed value to a table index.
@@ -327,14 +351,13 @@ double sim_mob::MITSIM_CF_Model::getMaxAcceleration(sim_mob::DriverUpdateParams&
 	// convert speed to int
 	int speed  = round(p.perceivedFwdVelocity/100);
 	if(speed <0) speed=0;
-	if(speed >maxAccUpBound) speed=maxAccUpBound;
+	if(speed >maxAccUpperBound) speed=maxAccUpperBound;
 
 	double maxTableAcc = maxAccIndex[vhType][speed];
 
 	// TODO: get random multiplier from data file and normal distribution
-	double betaAcc = 1.0;
 
-	double maxAcc = ( maxTableAcc - grade*accGradeFactor) * betaAcc;
+	double maxAcc = ( maxTableAcc - grade*accGradeFactor) * getMaxAccScale();
 
 	return maxAcc;
 }
@@ -351,7 +374,7 @@ double sim_mob::MITSIM_CF_Model::getNormalDeceleration(sim_mob::DriverUpdatePara
 	// convert speed to int
 	int speed  = round(p.perceivedFwdVelocity/100);
 	if(speed <0) speed=0;
-	if(speed >normalDecelerationUpBound) speed=normalDecelerationUpBound;
+	if(speed >normalDecelerationUpperBound) speed=normalDecelerationUpperBound;
 
 	double acc = normalDecelerationIndex[vhType][speed];
 
@@ -363,18 +386,24 @@ double sim_mob::MITSIM_CF_Model::getMaxDeceleration(sim_mob::DriverUpdateParams&
 	{
 		throw std::runtime_error("no driver");
 	}
-	// TODO: get grade
 
 	// TODO: get vehicle type
 
 	// convert speed to int
 	int speed  = round(p.perceivedFwdVelocity/100);
 	if(speed <0) speed=0;
-	if(speed >maxDecelerationUpBound) speed=maxDecelerationUpBound;
+	if(speed >maxDecelerationUpperBound) speed=maxDecelerationUpperBound;
 
 	double acc = maxDecelerationIndex[vhType][speed];
 
 	return acc;
+}
+double sim_mob::MITSIM_CF_Model::getMaxAccScale()
+{
+	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
+	int scaleNo = Utils::generateInt(0,maxAccScale.size());
+	// return max acc scale,as maxAccScale() in MITSIM TS_Parameter.h
+	return maxAccScale[scaleNo];
 }
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {

@@ -10,6 +10,7 @@
 #include <string>
 #include <set>
 #include <map>
+#include <boost/random.hpp>
 
 using namespace std;
 
@@ -40,6 +41,7 @@ public:
 public:
 	string modelName;
 	double maxAcceleration;
+	/// grade factor
 	double accGradeFactor;
 	double normalDeceleration;
 	double maxDeceleration;
@@ -71,9 +73,16 @@ public:
 	void makeMaxAccIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& maxAccStr);
 	void makeNormalDecelerationIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& decelerationStr);
 	void makeMaxDecelerationIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& decelerationStr);
+	/** \brief create scale index base on string data ,like "0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"
+	 *  \param s data string
+	 *  \param c container to store data
+	 **/
+	void makeScaleIdx(string& s,vector<double>& c);
 	double getMaxAcceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);
 	double getNormalDeceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);
 	double getMaxDeceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);
+
+	double getMaxAccScale();
 	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);
 
 private:
@@ -103,13 +112,16 @@ private:
 	/// key=vehicle type
 	/// submap key=speed, value=max acc
 	map< Vehicle::VEHICLE_TYPE,map<int,double> > maxAccIndex;
-	int maxAccUpBound;
+	int maxAccUpperBound;
+	vector<double> maxAccScale;
 
 	map< Vehicle::VEHICLE_TYPE,map<int,double> > normalDecelerationIndex;
-	int normalDecelerationUpBound;
+	int normalDecelerationUpperBound;
+	vector<double> normalDecelerationScale;
 
 	map< Vehicle::VEHICLE_TYPE,map<int,double> > maxDecelerationIndex;
-	int maxDecelerationUpBound;
+	int maxDecelerationUpperBound;
+	vector<double> maxDecelerationScale;
 };
 
 

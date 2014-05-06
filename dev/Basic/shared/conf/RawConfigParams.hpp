@@ -46,14 +46,14 @@ struct LongTermParams{
 		DeveloperModel();
 		bool enabled;
 		unsigned int timeInterval;
-	};
+	} developerModel;
 
 	struct HousingModel{
 		HousingModel();
 		bool enabled;
 		unsigned int timeInterval;
 		unsigned int timeOnMarket;
-	};
+	} housingModel;
 };
 
 ///represent the incident data section of the config file

@@ -126,17 +126,20 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	ParameterManager::Instance()->param(modelName,"speed_scaler",speedScalerStr,string("5 20 20"));
 	// max acceleration
 	ParameterManager::Instance()->param(modelName,"max_acc_car1",maxAccStr,string("10.00  7.90  5.60  4.00  4.00"));
-	makeMaxAccIndex(Vehicle::CAR,speedScalerStr,maxAccStr);
+//	makeMaxAccIndex(Vehicle::CAR,speedScalerStr,maxAccStr);
+	makeSpeedIndex(Vehicle::CAR,speedScalerStr,maxAccStr,maxAccIndex,maxAccUpperBound);
 	ParameterManager::Instance()->param(modelName,"max_acceleration_scale",maxAccScaleStr,string("0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"));
 	makeScaleIdx(maxAccScaleStr,maxAccScale);
 	// normal deceleration
 	ParameterManager::Instance()->param(modelName,"normal_deceleration_car1",decelerationStr,string("7.8 	6.7 	4.8 	4.8 	4.8"));
-	makeNormalDecelerationIndex(Vehicle::CAR,speedScalerStr,decelerationStr);
+//	makeNormalDecelerationIndex(Vehicle::CAR,speedScalerStr,decelerationStr);
+	makeSpeedIndex(Vehicle::CAR,speedScalerStr,decelerationStr,normalDecelerationIndex,normalDecelerationUpperBound);
 	ParameterManager::Instance()->param(modelName,"normal_deceleration_scale",normalDecScaleStr,string("0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"));
 	makeScaleIdx(maxAccScaleStr,normalDecelerationScale);
 	// max deceleration
 	ParameterManager::Instance()->param(modelName,"Max_deceleration_car1",decelerationStr,string("16.0   14.5   13.0   11.0   10.0"));
-	makeMaxDecelerationIndex(Vehicle::CAR,speedScalerStr,decelerationStr);
+//	makeMaxDecelerationIndex(Vehicle::CAR,speedScalerStr,decelerationStr);
+	makeSpeedIndex(Vehicle::CAR,speedScalerStr,decelerationStr,maxDecelerationIndex,maxDecelerationUpperBound);
 	ParameterManager::Instance()->param(modelName,"max_deceleration_scale",maxDecScaleStr,string("0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"));
 	makeScaleIdx(maxDecScaleStr,maxDecelerationScale);
 	// acceleration grade factor
@@ -159,184 +162,70 @@ void sim_mob::MITSIM_CF_Model::makeScaleIdx(string& s,vector<double>& c)
 		c.push_back(res);
 	}
 }
-void sim_mob::MITSIM_CF_Model::makeMaxAccIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& maxAccStr)
+void sim_mob::MITSIM_CF_Model::makeSpeedIndex(Vehicle::VEHICLE_TYPE vhType,
+						string& speedScalerStr,
+						string& cstr,
+						map< Vehicle::VEHICLE_TYPE,map<int,double> >& idx,
+						int& upperBound)
 {
-	std::cout<<"makeMaxAccIndex: vh type "<<vhType<<std::endl;
+	std::cout<<"makeSpeedIndex: vh type "<<vhType<<std::endl;
 	// for example
 	// speedScalerStr "5 20 20" ft/sec
 	// maxAccStr      "10.00  7.90  5.60  4.00  4.00" ft/(s^2)
-	std::vector<std::string> speedScalerArrayStr;
+	std::vector<std::string> arrayStr;
 	boost::trim(speedScalerStr);
-	boost::split(speedScalerArrayStr, speedScalerStr, boost::is_any_of(" "),boost::token_compress_on);
+	boost::split(arrayStr, speedScalerStr, boost::is_any_of(" "),boost::token_compress_on);
 	std::vector<double> speedScalerArrayDouble;
-	for(int i=0;i<speedScalerArrayStr.size();++i)
+	for(int i=0;i<arrayStr.size();++i)
 	{
 		double res;
 		try {
-				res = boost::lexical_cast<double>(speedScalerArrayStr[i].c_str());
+				res = boost::lexical_cast<double>(arrayStr[i].c_str());
 			}catch(boost::bad_lexical_cast&) {
 				std::string s = "can not covert <" +speedScalerStr+"> to double.";
 				throw std::runtime_error(s);
 			}
-		speedScalerArrayDouble.push_back(res);
+			speedScalerArrayDouble.push_back(res);
 	}
+	arrayStr.clear();
 	//
-	boost::algorithm::trim(maxAccStr);
-	std::vector<std::string> maxAccArrayStr;
-	boost::split(maxAccArrayStr, maxAccStr, boost::is_any_of(" "),boost::token_compress_on);
-	std::vector<double> maxAccArrayDouble;
-	for(int i=0;i<maxAccArrayStr.size();++i)
+	boost::algorithm::trim(cstr);
+//	std::vector<std::string> maxAccArrayStr;
+	boost::split(arrayStr, cstr, boost::is_any_of(" "),boost::token_compress_on);
+	std::vector<double> cArrayDouble;
+	for(int i=0;i<arrayStr.size();++i)
 	{
 		double res;
 		try {
-				res = boost::lexical_cast<double>(maxAccArrayStr[i].c_str());
+				res = boost::lexical_cast<double>(arrayStr[i].c_str());
 			}catch(boost::bad_lexical_cast&) {
-				std::string s = "can not covert <" +maxAccStr+"> to double.";
+				std::string s = "can not covert <" +cstr+"> to double.";
 				throw std::runtime_error(s);
 			}
-		maxAccArrayDouble.push_back(res);
+			cArrayDouble.push_back(res);
 	}
 	//
-	maxAccUpperBound = speedScalerArrayDouble[1] * (speedScalerArrayDouble[0]-1);
-	map<int,double> maxAccIdx;
-	for(int speed=0;speed<=maxAccUpperBound;++speed)
+	upperBound = round(speedScalerArrayDouble[1] * (speedScalerArrayDouble[0]-1));
+	map<int,double> cIdx;
+	for(int speed=0;speed<=upperBound;++speed)
 	{
 		double maxAcc;
 		// Convert speed value to a table index.
 		int j = speed/speedScalerArrayDouble[1];
 		if(j>=(speedScalerArrayDouble[0]-1))
 		{
-			maxAcc = maxAccArrayDouble[speedScalerArrayDouble[0]-1];
-
+			maxAcc = cArrayDouble[speedScalerArrayDouble[0]-1];
 		}
 		else
 		{
-			maxAcc = maxAccArrayDouble[j];
+			maxAcc = cArrayDouble[j];
 		}
-		maxAccIdx.insert(std::make_pair(speed, maxAcc ));
+		cIdx.insert(std::make_pair(speed, maxAcc ));
 
-		std::cout<<"speed: "<<speed<<" max acc: "<<maxAcc<<std::endl;
+//		std::cout<<"speed: "<<speed<<" max acc: "<<maxAcc<<std::endl;
 	}
 
-	maxAccIndex[vhType] = maxAccIdx;
-}
-void sim_mob::MITSIM_CF_Model::makeNormalDecelerationIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& decelerationStr)
-{
-	std::cout<<"makeNormalDecelerationIndex: vh type"<<vhType<<std::endl;
-	std::vector<std::string> speedScalerArrayStr;
-	boost::trim(speedScalerStr);
-	boost::split(speedScalerArrayStr, speedScalerStr
-			, boost::is_any_of(" "),boost::token_compress_on);
-	std::vector<double> speedScalerArrayDouble;
-	for(int i=0;i<speedScalerArrayStr.size();++i)
-	{
-		double res;
-		try {
-				res = boost::lexical_cast<double>(speedScalerArrayStr[i].c_str());
-			}catch(boost::bad_lexical_cast&) {
-				std::string s = "can not covert <" +speedScalerStr+"> to double.";
-				throw std::runtime_error(s);
-			}
-		speedScalerArrayDouble.push_back(res);
-	}
-	//
-	boost::algorithm::trim(decelerationStr);
-	std::vector<std::string> maxAccArrayStr;
-	boost::split(maxAccArrayStr, decelerationStr, boost::is_any_of(" "),boost::token_compress_on);
-	std::vector<double> maxAccArrayDouble;
-	for(int i=0;i<maxAccArrayStr.size();++i)
-	{
-		double res;
-		try {
-				res = boost::lexical_cast<double>(maxAccArrayStr[i].c_str());
-			}catch(boost::bad_lexical_cast&) {
-				std::string s = "can not covert <" +decelerationStr+"> to double.";
-				throw std::runtime_error(s);
-			}
-		maxAccArrayDouble.push_back(res);
-	}
-	//
-	normalDecelerationUpperBound = speedScalerArrayDouble[1] * (speedScalerArrayDouble[0]-1);
-	map<int,double> decelerationIdx;
-	for(int speed=0;speed<=normalDecelerationUpperBound;++speed)
-	{
-		double decele;
-		// Convert speed value to a table index.
-		int j = speed/speedScalerArrayDouble[1];
-		if(j>=(speedScalerArrayDouble[0]-1))
-		{
-			decele = maxAccArrayDouble[speedScalerArrayDouble[0]-1];
-
-		}
-		else
-		{
-			decele = maxAccArrayDouble[j];
-		}
-		decelerationIdx.insert(std::make_pair(speed, decele ));
-
-		std::cout<<"speed: "<<speed<<" normal deceleration: "<<decele<<std::endl;
-	}
-
-	normalDecelerationIndex[vhType] = decelerationIdx;
-}
-void sim_mob::MITSIM_CF_Model::makeMaxDecelerationIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& decelerationStr)
-{
-	std::cout<<"makeMaxDecelerationIndex: vh type"<<vhType<<std::endl;
-	std::vector<std::string> speedScalerArrayStr;
-	boost::trim(speedScalerStr);
-	boost::split(speedScalerArrayStr, speedScalerStr
-			, boost::is_any_of(" "),boost::token_compress_on);
-	std::vector<double> speedScalerArrayDouble;
-	for(int i=0;i<speedScalerArrayStr.size();++i)
-	{
-		double res;
-		try {
-				res = boost::lexical_cast<double>(speedScalerArrayStr[i].c_str());
-			}catch(boost::bad_lexical_cast&) {
-				std::string s = "can not covert <" +speedScalerStr+"> to double.";
-				throw std::runtime_error(s);
-			}
-		speedScalerArrayDouble.push_back(res);
-	}
-	//
-	boost::algorithm::trim(decelerationStr);
-	std::vector<std::string> maxAccArrayStr;
-	boost::split(maxAccArrayStr, decelerationStr, boost::is_any_of(" "),boost::token_compress_on);
-	std::vector<double> maxAccArrayDouble;
-	for(int i=0;i<maxAccArrayStr.size();++i)
-	{
-		double res;
-		try {
-				res = boost::lexical_cast<double>(maxAccArrayStr[i].c_str());
-			}catch(boost::bad_lexical_cast&) {
-				std::string s = "can not covert <" +decelerationStr+"> to double.";
-				throw std::runtime_error(s);
-			}
-		maxAccArrayDouble.push_back(res);
-	}
-	//
-	maxDecelerationUpperBound = speedScalerArrayDouble[1] * (speedScalerArrayDouble[0]-1);
-	map<int,double> decelerationIdx;
-	for(int speed=0;speed<=maxDecelerationUpperBound;++speed)
-	{
-		double decele;
-		// Convert speed value to a table index.
-		int j = speed/speedScalerArrayDouble[1];
-		if(j>=(speedScalerArrayDouble[0]-1))
-		{
-			decele = maxAccArrayDouble[speedScalerArrayDouble[0]-1];
-
-		}
-		else
-		{
-			decele = maxAccArrayDouble[j];
-		}
-		decelerationIdx.insert(std::make_pair(speed, decele ));
-
-		std::cout<<"speed: "<<speed<<" max deceleration: "<<decele<<std::endl;
-	}
-
-	maxDecelerationIndex[vhType] = decelerationIdx;
+	idx[vhType] = cIdx;
 }
 double sim_mob::MITSIM_CF_Model::getMaxAcceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType)
 {

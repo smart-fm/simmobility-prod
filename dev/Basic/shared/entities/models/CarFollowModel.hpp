@@ -70,9 +70,13 @@ class MITSIM_CF_Model : public CarFollowModel {
 public:
 	MITSIM_CF_Model();
 	void initParam();
-	void makeMaxAccIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& maxAccStr);
-	void makeNormalDecelerationIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& decelerationStr);
-	void makeMaxDecelerationIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& decelerationStr);
+//	void makeMaxAccIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& maxAccStr);
+	void makeSpeedIndex(Vehicle::VEHICLE_TYPE vhType,
+						string& speedScalerStr,
+						string& maxAccStr,
+						map< Vehicle::VEHICLE_TYPE,map<int,double> >& idx,int& upperBound);
+//	void makeNormalDecelerationIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& decelerationStr);
+//	void makeMaxDecelerationIndex(Vehicle::VEHICLE_TYPE vhType,string& speedScalerStr,string& decelerationStr);
 	/** \brief create scale index base on string data ,like "0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"
 	 *  \param s data string
 	 *  \param c container to store data

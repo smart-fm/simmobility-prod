@@ -195,7 +195,10 @@ option(BUILD_SHORT "Build short-term simulator." ON)
 option(BUILD_MEDIUM "Build medium-term simulator." ON)
 
 #Option: build long term. Use the cmake gui to change this on a per-user basis.
-option(BUILD_LONG "Build long-term simulator." ON)   
+option(BUILD_LONG "Build long-term simulator." ON)
+
+#Option: build short/medium/long as libraries. Use the cmake gui to change this on a per-user basis.
+option(BUILD_LIBS "If true, builds the short, medium, and long-term code as libraries (to be installed in sim_mob_short,sim_mob_mid,sim_mob_long." OFF)   
 
 #Option: Run SimMobility to only produce an input XML file for itself
 option(SIMMOB_XML_WRITER "Sim Mobility will print the network as an XML file." OFF)
@@ -471,12 +474,6 @@ ENDIF()
 IF (UNITY_BUILD)
   enable_unity_build(SimMob_Shared SharedCode_CPP UnityExclude)
 ENDIF()
-
-
-  #FILE(GLOB_RECURSE Partial_XML_CPP "shared/geospatial/xmlLoader/implementation/*.cpp")
-  #LIST(REMOVE_ITEM SharedCode_CPP ${Partial_XML_CPP})
-#  FILE(GLOB_RECURSE Partial_XML_HPP "shared/geospatial/xmlLoader/implementation/*.hpp")
-#  LIST(REMOVE_ITEM SharedCode_HPP ${Partial_XML_HPP})
 
 #Build a shared object file for short-term, mid-term, long-term, and tests to use
 add_library(SimMob_Shared OBJECT ${SharedCode_CPP})

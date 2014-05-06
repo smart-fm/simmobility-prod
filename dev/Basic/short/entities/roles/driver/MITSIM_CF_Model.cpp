@@ -115,6 +115,7 @@ double CalcHeadway(double space, double speed, double elapsedSeconds, double max
  *--------------------------------------------------------------------
  */
 sim_mob::MITSIM_CF_Model::MITSIM_CF_Model()
+	:timeStep(0.0)
 {
 	modelName = "general_driver_model";
 	initParam();
@@ -269,9 +270,9 @@ double sim_mob::MITSIM_CF_Model::getNormalDeceleration(sim_mob::DriverUpdatePara
 
 	double normalDec = normalDecelerationIndex[vhType][speed];
 
-	double acc = ( normalDec - grade*accGradeFactor) * getNormalDecScale();
+	double dec = ( normalDec - grade*accGradeFactor) * getNormalDecScale();
 
-	return acc;
+	return dec;
 }
 double sim_mob::MITSIM_CF_Model::getMaxDeceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType)
 {
@@ -293,9 +294,9 @@ double sim_mob::MITSIM_CF_Model::getMaxDeceleration(sim_mob::DriverUpdateParams&
 
 	double maxDec = maxDecelerationIndex[vhType][speed];
 
-	double acc = ( maxDec - grade*accGradeFactor) * getMaxDecScale();
+	double dec = ( maxDec - grade*accGradeFactor) * getMaxDecScale();
 
-	return acc;
+	return dec;
 }
 double sim_mob::MITSIM_CF_Model::getMaxAccScale()
 {
@@ -324,10 +325,8 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	distanceToNormalStop(p);
 
 	// VARIABLE || FUNCTION ||				REGIME
-	//
-	maxAcceleration    = getMaxAcceleration(p);
-	normalDeceleration = getNormalDeceleration(p);
-	maxDeceleration    = getMaxDeceleration(p);
+	calcStateBasedVariables(p);
+
 	double acc = maxAcceleration;
 	//double aB = calcMergingRate(p);		// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
 	double aC = calcSignalRate(p);			// near signal or incidents
@@ -787,4 +786,25 @@ void sim_mob::MITSIM_CF_Model::distanceToNormalStop(DriverUpdateParams& p)
 	} else {
 		p.distanceToNormalStop = minResponseDistance;
 	}
+}
+void sim_mob::MITSIM_CF_Model::calcStateBasedVariables(DriverUpdateParams& p)
+{
+	double dt	=	p.elapsedSeconds;
+	timeStep -= dt;
+	/// if time step >0 ,no need update variables
+	if(timeStep>0) return;
+	// Acceleration rate for a vehicle (a function of vehicle type,
+	// facility type, segment grade, current speed).
+	maxAcceleration    = getMaxAcceleration(p);
+	// Deceleration rate for a vehicle (a function of vehicle type, and
+	// segment grade).
+	normalDeceleration = getNormalDeceleration(p);
+	// Maximum deceleration is function of speed and vehicle class
+	maxDeceleration    = getMaxDeceleration(p);
+
+	timeStep = calcNextStepSize();
+}
+double sim_mob::MITSIM_CF_Model::calcNextStepSize()
+{
+	return 0.2;
 }

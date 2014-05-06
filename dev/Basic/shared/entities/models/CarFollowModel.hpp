@@ -119,6 +119,16 @@ private:
 	double accOfFreeFlowing(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);  ///<when upper threshold < headway, use this funcion
 	double accOfMixOfCFandFF(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed); 	///<mix of car following and free flowing
 	void distanceToNormalStop(sim_mob::DriverUpdateParams& p);
+	/** \brief This function update the variables that depend only on the speed of
+	 *         the vehicle and type.
+	 *  \param p vehicle state value
+	 **/
+	void calcStateBasedVariables(DriverUpdateParams& p);
+	/** \brief calculate the step size of update state variables
+	 *         the vehicle and type.
+	 *  \return step size
+	 **/
+	double calcNextStepSize();
 
 private:
 	/// key=vehicle type
@@ -134,6 +144,9 @@ private:
 	map< Vehicle::VEHICLE_TYPE,map<int,double> > maxDecelerationIndex;
 	int maxDecelerationUpperBound;
 	vector<double> maxDecelerationScale;
+
+	/// time step to calculate state variables
+	double timeStep;
 };
 
 

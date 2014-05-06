@@ -636,18 +636,18 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 
 	//check incident status and decide whether or not do lane changing
 	LANE_CHANGE_MODE mode = DLC;
-	incidentPerformer.checkIncidentStatus(parentDriver, p, parentDriver->getParams().now);
-	if(incidentPerformer.getIncidentStatus().getChangedLane() && incidentPerformer.getIncidentStatus().getNextLaneIndex()>=0){
-		p.nextLaneIndex = incidentPerformer.getIncidentStatus().getNextLaneIndex();
-		parentDriver->vehicle->setTurningDirection(incidentPerformer.getIncidentStatus().getLaneSide());
-		mode = MLC;
-	}
-	else if( (incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode==MLC )
-			|| (incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && incidentPerformer.getIncidentStatus().getCurrentIncidentLength()>0)) {
-		p.nextLaneIndex = p.currLaneIndex;
-		parentDriver->vehicle->setTurningDirection(LCS_SAME);
-		mode = MLC;
-	}
+//	incidentPerformer.checkIncidentStatus(parentDriver, p, parentDriver->getParams().now);
+//	if(incidentPerformer.getIncidentStatus().getChangedLane() && incidentPerformer.getIncidentStatus().getNextLaneIndex()>=0){
+//		p.nextLaneIndex = incidentPerformer.getIncidentStatus().getNextLaneIndex();
+//		parentDriver->vehicle->setTurningDirection(incidentPerformer.getIncidentStatus().getLaneSide());
+//		mode = MLC;
+//	}
+//	else if( (incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode==MLC )
+//			|| (incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && incidentPerformer.getIncidentStatus().getCurrentIncidentLength()>0)) {
+//		p.nextLaneIndex = p.currLaneIndex;
+//		parentDriver->vehicle->setTurningDirection(LCS_SAME);
+//		mode = MLC;
+//	}
 
 	//Check if we should change lanes.
 	double newLatVel;
@@ -717,7 +717,7 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 	parentDriver->vehicle->setAcceleration(newFwdAcc * METER_TO_CENTIMETER_CONVERT_UNIT);
 
 	//response incident
-	incidentPerformer.responseIncidentStatus(parentDriver, p, parentDriver->getParams().now);
+//	incidentPerformer.responseIncidentStatus(parentDriver, p, parentDriver->getParams().now);
 
 	return updatePositionOnLink(p);
 }

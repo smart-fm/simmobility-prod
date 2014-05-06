@@ -24,10 +24,15 @@ using std::map;
 using std::string;
 using std::endl;
 
-sim_mob::medium::BusDriver::BusDriver(Agent* parent, MutexStrategy mtxStrat, sim_mob::medium::BusDriverBehavior* behavior, sim_mob::medium::BusDriverMovement* movement)
-: sim_mob::medium::Driver(parent, mtxStrat, behavior, movement) {
+sim_mob::medium::BusDriver::BusDriver(Agent* parent, MutexStrategy mtxStrat,
+		sim_mob::medium::BusDriverBehavior* behavior,
+		sim_mob::medium::BusDriverMovement* movement) :
+		sim_mob::medium::Driver(parent, mtxStrat, behavior, movement), requestMode(
+				mtxStrat, 0), visitedBusStop(mtxStrat, nullptr), visitedBusStopSequenceNo(
+				mtxStrat, 0), realDepartureTime(mtxStrat, 0.0), realArrivalTime(
+				mtxStrat, 0.0), dwellTime(mtxStrat, 0.0), visitedBusTripSequenceNo(
+				mtxStrat, 0), visitedBusLine(mtxStrat, "0"), waitingTime(mtxStrat, 0.0) {
 	// TODO Auto-generated constructor stub
-
 }
 
 sim_mob::medium::BusDriver::~BusDriver() {
@@ -63,6 +68,23 @@ const std::vector<const sim_mob::BusStop*>* sim_mob::medium::BusDriver::getBusSt
 bool sim_mob::medium::BusDriver::insertPassenger(sim_mob::Person* passenger) {
 	passengerList.push_back(passenger);
 	return true;
+}
+
+sim_mob::DriverRequestParams sim_mob::medium::BusDriver::getDriverRequestParams()
+{
+	sim_mob::DriverRequestParams res;
+
+	res.existedRequest_Mode = &requestMode;
+	res.lastVisited_Busline = &visitedBusLine;
+	res.lastVisited_BusTrip_SequenceNo = &visitedBusTripSequenceNo;
+	res.busstop_sequence_no = &visitedBusStopSequenceNo;
+	res.real_ArrivalTime = &realArrivalTime;
+	res.DwellTime_ijk = &dwellTime;
+	res.lastVisited_BusStop = &visitedBusStop;
+	res.last_busStopRealTimes = busStopRealTimes;
+	res.waiting_Time = &waitingTime;
+
+	return res;
 }
 
 void sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent){

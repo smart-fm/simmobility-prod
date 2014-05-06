@@ -6,7 +6,8 @@
 
 #include "Driver.hpp"
 #include "BusDriverFacets.hpp"
-
+#include "entities/vehicle/BusRoute.hpp"
+#include "entities/misc/BusTrip.hpp"
 /*
  * BusDriver.hpp
  *
@@ -19,8 +20,6 @@ namespace sim_mob {
 
 namespace medium
 {
-
-
 class BusDriverBehavior;
 class BusDriverMovement;
 class BusStopAgent;
@@ -35,6 +34,7 @@ public:
 	//Virtual overrides
 	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
+	virtual sim_mob::DriverRequestParams getDriverRequestParams();
 
 	/**
 	 * gets stops list from bus route
@@ -68,6 +68,26 @@ public:
 private:
 	/**passengers list*/
 	std::list<sim_mob::Person*> passengerList;
+	/**last visited bus stop*/
+	Shared<const BusStop*> visitedBusStop;
+	/**last visited bus stop sequence number*/
+	Shared<int> visitedBusStopSequenceNo;
+	/**real departure time set by BusController*/
+	Shared<double> realDepartureTime;
+	/**real arrival time set by BusDriver*/
+	Shared<double> realArrivalTime;
+	/**current bus stop real Times*/
+	Shared<BusStop_RealTimes>* busStopRealTimes;
+	/** dwell time set by BusDriver*/
+	Shared<double> dwellTime;
+	/**waiting time set by bus controller*/
+	Shared<double> waitingTime;
+	/**get bus line information*/
+	Shared<std::string> visitedBusLine;
+	/**sequence number for current bus trip*/
+	Shared<int> visitedBusTripSequenceNo;
+	/**request mode for holding strategy*/
+	Shared<int> requestMode;
 
 protected:
 	friend class BusDriverBehavior;

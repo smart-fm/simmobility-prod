@@ -51,13 +51,15 @@ const sim_mob::BusStop* BusStopAgent::getBusStop() const{
 	return busStop;
 }
 
-void BusStopAgent::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message) {
+void BusStopAgent::HandleMessage(messaging::Message::MessageType type,
+		const messaging::Message& message) {
 
 	Agent::HandleMessage(type, message);
 
-	switch(type){
+	switch (type) {
 	case MSG_DECISION_WAITINGPERSON_BOARDING:
-		const WaitingPeopleBoardingDecisionMessageArgs& msg = MSG_CAST(WaitingPeopleBoardingDecisionMessageArgs, message);
+		const WaitingPeopleBoardingDecisionMessageArgs& msg = MSG_CAST(
+				WaitingPeopleBoardingDecisionMessageArgs, message);
 		boardWaitingPersons(msg.busDriver);
 		break;
 	}

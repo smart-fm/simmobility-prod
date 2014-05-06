@@ -81,6 +81,5 @@ void sim_mob::medium::WaitBusActivity::HandleParentMessage(messaging::Message::M
 {
 
 }
-
 }
 }

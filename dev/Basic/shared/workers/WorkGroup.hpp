@@ -117,10 +117,6 @@ private:
 	std::vector< std::vector<Entity*> > entToBeRemovedPerWorker;
 	std::vector< std::vector<Entity*> > entToBeBredPerWorker;
 
-	void assignAWorkerConstraint(Entity* ag);
-
-	Worker* locateWorker(unsigned int linkID);
-
 	// providing read only access to public for RegisteredWorkGroups. AuraManager requires this. - Harish
 	static const std::vector<sim_mob::WorkGroup*> getRegisteredWorkGroups();
 

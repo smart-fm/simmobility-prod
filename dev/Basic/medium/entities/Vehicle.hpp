@@ -9,6 +9,7 @@
  */
 
 #pragma once
+#include "entities/vehicle/VehicleBase.hpp"
 
 namespace sim_mob {
 namespace medium {
@@ -16,37 +17,19 @@ namespace medium {
 /**
  * representation of mid-term vehicle
  */
-class Vehicle {
+class Vehicle : public sim_mob::VehicleBase {
 public:
-	enum VehicleType {
-		CAR,
-		BUS,
-		OTHER
-	};
-
-	Vehicle(const VehicleType vehType, const double length, const double pcu) :
-		vehicleType(vehType), length(length), PCU_Equivlent(pcu)
+	Vehicle(const VehicleType vehType, const double length, const double pcu)
+	: sim_mob::VehicleBase(vehType, length, 0), PCU_Equivlent(pcu)
 	{}
-
-	const double getLength() const {
-		return length;
-	}
 
 	const double getPcuEquivlent() const {
 		return PCU_Equivlent;
 	}
 
-	const VehicleType getVehicleType() const {
-		return vehicleType;
-	}
-
 private:
-	/**length of the vehicle*/
-	const double length;
 	/**number of Passenger Car Units equivalent to this vehicle*/
 	const double PCU_Equivlent;
-	/**type of vehicle*/
-	const VehicleType vehicleType;
 };
 } // end namespace medium
 } // end namespace sim_mob

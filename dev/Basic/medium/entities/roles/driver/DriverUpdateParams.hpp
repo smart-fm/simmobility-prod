@@ -4,14 +4,12 @@
 
 #pragma once
 
+#include <boost/random.hpp>
 #include "entities/UpdateParams.hpp"
 #include "geospatial/Lane.hpp"
-#include "util/DynamicVector.hpp"
-#include <boost/random.hpp>
-#include "util/LangHelpers.hpp"
-#include "entities/signal/Signal.hpp"
 #include "geospatial/Link.hpp"
-
+#include "util/DynamicVector.hpp"
+#include "util/LangHelpers.hpp"
 
 namespace sim_mob
 {
@@ -19,14 +17,14 @@ namespace sim_mob
 //Forward declarations
 class Lane;
 
-
 namespace medium
 {
 class Driver;
 
-///Simple struct to hold parameters which only exist for a single update tick.
-/// \author Melani
-///NOTE: Constructor is currently implemented in Driver.cpp. Feel free to shuffle this around if you like.
+/**
+ * Simple struct to hold parameters which only exist for a single update tick.
+ * \author Melani
+ */
 struct DriverUpdateParams : public UpdateParams {
 	DriverUpdateParams() : UpdateParams(), secondsInTick(0.0),
 			elapsedSeconds(0.0) {}
@@ -38,6 +36,5 @@ struct DriverUpdateParams : public UpdateParams {
 	double secondsInTick;	//tickSize
 	double elapsedSeconds;	//time elapsed in the current tick
 };
-
-
-}}
+}
+}

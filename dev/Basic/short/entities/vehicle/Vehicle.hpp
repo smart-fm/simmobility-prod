@@ -18,12 +18,12 @@
 #include <vector>
 
 #include "conf/settings/DisableMPI.h"
-
+#include "entities/vehicle/VehicleBase.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/GeneralPathMover.hpp"
+#include "geospatial/streetdir/WayPoint.hpp"
 #include "util/MovementVector.hpp"
 #include "util/DynamicVector.hpp"
-#include "geospatial/streetdir/WayPoint.hpp"
-#include "geospatial/GeneralPathMover.hpp"
-#include "geospatial/Lane.hpp"
 
 namespace sim_mob {
 
@@ -35,8 +35,7 @@ class FMODSchedule;
  * The Vehicle class has vehicle Id, position, forward velocity, lat velocity and acceleration parameters etc for Driver use
  * Each Driver object has a vehicle to move in the network
  **/
-
-class Vehicle {
+class Vehicle : public sim_mob::VehicleBase {
 public:
 //	Vehicle(int startLaneID);
 	Vehicle(double lengthCM, double widthCM); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
@@ -94,9 +93,6 @@ public:
 #endif
 
 public:
-	const double lengthCM;  ///<length(CM) of the vehicle
-	const double widthCM;   ///<width(CM) of the vehicle
-	bool isQueuing; 	 ///<for mid-term use
 	FMODSchedule* schedule;
 
 private:

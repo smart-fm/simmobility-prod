@@ -20,7 +20,7 @@
 #include <sstream>
 #include "entities/Agent.hpp"
 #include "metrics/Length.hpp"
-#include "entities/LoopDetectorEntity.hpp"
+#include "entities/Sensor.hpp"
 #include "SplitPlan.hpp"
 #include "Phase.hpp"
 #include "Cycle.hpp"
@@ -99,7 +99,6 @@ class Signal_SCATS: public sim_mob::Signal {
 	friend class sim_mob::xml::Signal_t_pimpl;
 //friend  void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal *signal);
 public:
-	void *tempLoop;
 	typedef std::vector<sim_mob::Phase>::iterator phases_iterator;
 
 	/*--------Initialization----------*/
@@ -120,9 +119,6 @@ public:
 //    void findIncomingLanes();
 //    void findSignalLinks();
 	void findSignalLinksAndCrossings();
-	LoopDetectorEntity const & loopDetector() const {
-		return *loopDetector_;
-	}
 
 	/**
 	 * --------Updation----------
@@ -155,7 +151,7 @@ public:
 	/*--------Degree of Saturation----------*/
 	double computeDS();
 	double computePhaseDS(int phaseId);
-	double LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,
+	double LaneDS(const Sensor::CountAndTimePair& ctPair,
 			double total_g);
 
 	/*--------Miscellaneous----------*/
@@ -208,6 +204,14 @@ public:
 	void printColors(double currCycleTimer);
 	std::vector<std::pair<sim_mob::Phase, double> > predictSignal(double t);
 
+	const Sensor* getLoopDetector() const {
+		return loopDetector_;
+	}
+
+	void setLoopDetector(Sensor* loopDetector) {
+		loopDetector_ = loopDetector;
+	}
+
 private:
 	bool isIntersection_;	//generated
 	///	this is the interval on which the signal's update is called
@@ -251,7 +255,7 @@ private:
 
 	friend class DatabaseLoader;
 protected:
-	LoopDetectorEntity* loopDetector_;
+	Sensor* loopDetector_;
 
 #ifndef SIMMOB_DISABLE_MPI
 public:

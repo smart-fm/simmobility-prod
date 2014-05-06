@@ -145,6 +145,7 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	makeScaleIdx(maxDecScaleStr,maxDecelerationScale);
 	// acceleration grade factor
 	ParameterManager::Instance()->param(modelName,"acceleration_grade_factor",accGradeFactor,0.305);
+	ParameterManager::Instance()->param(modelName,"tmp_all_grades",tmpGrade,0.0);
 }
 void sim_mob::MITSIM_CF_Model::makeScaleIdx(string& s,vector<double>& c)
 {
@@ -234,9 +235,6 @@ double sim_mob::MITSIM_CF_Model::getMaxAcceleration(sim_mob::DriverUpdateParams&
 	{
 		throw std::runtime_error("no driver");
 	}
-	// as no current road network data only has x,y value, no altitude
-	// grade always zero
-	int grade = 0;
 
 	// convert speed to int
 	int speed  = round(p.perceivedFwdVelocity/100);
@@ -247,7 +245,7 @@ double sim_mob::MITSIM_CF_Model::getMaxAcceleration(sim_mob::DriverUpdateParams&
 
 	// TODO: get random multiplier from data file and normal distribution
 
-	double maxAcc = ( maxTableAcc - grade*accGradeFactor) * getMaxAccScale();
+	double maxAcc = ( maxTableAcc - tmpGrade*accGradeFactor) * getMaxAccScale();
 
 	return maxAcc;
 }
@@ -257,11 +255,6 @@ double sim_mob::MITSIM_CF_Model::getNormalDeceleration(sim_mob::DriverUpdatePara
 	{
 		throw std::runtime_error("no driver");
 	}
-	// as no current road network data only has x,y value, no altitude
-	// grade always zero
-	int grade = 0;
-
-	// TODO: get vehicle type
 
 	// convert speed to int
 	int speed  = round(p.perceivedFwdVelocity/100);
@@ -270,7 +263,7 @@ double sim_mob::MITSIM_CF_Model::getNormalDeceleration(sim_mob::DriverUpdatePara
 
 	double normalDec = normalDecelerationIndex[vhType][speed];
 
-	double dec = ( normalDec - grade*accGradeFactor) * getNormalDecScale();
+	double dec = ( normalDec - tmpGrade*accGradeFactor) * getNormalDecScale();
 
 	return dec;
 }
@@ -281,12 +274,6 @@ double sim_mob::MITSIM_CF_Model::getMaxDeceleration(sim_mob::DriverUpdateParams&
 		throw std::runtime_error("no driver");
 	}
 
-	// as no current road network data only has x,y value, no altitude
-	// grade always zero
-	int grade = 0;
-
-	// TODO: get vehicle type
-
 	// convert speed to int
 	int speed  = round(p.perceivedFwdVelocity/100);
 	if(speed <0) speed=0;
@@ -294,7 +281,7 @@ double sim_mob::MITSIM_CF_Model::getMaxDeceleration(sim_mob::DriverUpdateParams&
 
 	double maxDec = maxDecelerationIndex[vhType][speed];
 
-	double dec = ( maxDec - grade*accGradeFactor) * getMaxDecScale();
+	double dec = ( maxDec - tmpGrade*accGradeFactor) * getMaxDecScale();
 
 	return dec;
 }

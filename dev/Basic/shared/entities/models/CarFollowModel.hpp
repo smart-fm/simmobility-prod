@@ -147,6 +147,9 @@ private:
 
 	/// time step to calculate state variables
 	double timeStep;
+
+	/// grade is the road slope
+	double tmpGrade;
 };
 
 

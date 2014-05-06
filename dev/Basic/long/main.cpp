@@ -91,6 +91,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
     const unsigned int tickStep = config.ltParams.tickStep;
     const unsigned int days = config.ltParams.days;
     const unsigned int workers = config.ltParams.workers;
+    const bool enableHousingMarket = config.ltParams.housingModel.enabled;
 
     //configure time.
     config.baseGranMS() = tickStep;
@@ -118,13 +119,11 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         // -- Events injector work group.
         WorkGroup* logsWorker = wgMgr.newWorkGroup(1, days, tickStep);
         WorkGroup* eventsWorker = wgMgr.newWorkGroup(1, days, tickStep);
-        WorkGroup* hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep);
         WorkGroup* devWorkers = wgMgr.newWorkGroup(1, days, tickStep);
         
         //init work groups.
         wgMgr.initAllGroups();
         logsWorker->initWorkers(nullptr);
-        hmWorkers->initWorkers(nullptr);
         eventsWorker->initWorkers(nullptr);
         devWorkers->initWorkers(nullptr);
         
@@ -132,8 +131,14 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         logsWorker->assignAWorker(&(agentsLookup.getLogger()));
         eventsWorker->assignAWorker(&(agentsLookup.getEventsInjector()));
         //models 
-        models.push_back(new HM_Model(*hmWorkers));
         models.push_back(new DeveloperModel(*devWorkers));
+
+        if( enableHousingMarket ){
+        	 WorkGroup* hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep);
+        	 hmWorkers->initWorkers(nullptr);
+        	 models.push_back(new HM_Model(*hmWorkers));
+        }
+
         //start all models.
         for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++) {
             (*it)->start();

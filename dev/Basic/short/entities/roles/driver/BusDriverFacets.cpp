@@ -91,14 +91,13 @@ Vehicle* sim_mob::BusDriverMovement::initializePath_bus(bool allocateVehicle) {
 			//TODO: Start in lane 0?
 			int startlaneID = 1;
 
-			BusDriver* v = dynamic_cast<BusDriver*>(this);
-			if (v && laneID != -1) {
+			if (this->getParentBusDriver() && laneID != -1) {
 				startlaneID = laneID; //need to check if lane valid
 				//parentP->laneID = -1;
 			}
 
 			// Bus should be at least 1200 to be displayed on Visualizer
-			const double length = dynamic_cast<BusDriver*>(this) ? 1200 : 400;
+			const double length = this->getParentBusDriver() ? 1200 : 400;
 			const double width = 200;
 
 			//A non-null vehicle means we are moving.

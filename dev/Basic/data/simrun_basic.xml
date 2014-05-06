@@ -406,22 +406,7 @@
         <map_file value="cityhall/cityhall.osm"/>
 
         <blocking_time_sec value="5"/>
-    </fmodcontroller>
-        
-    <!-- Long Term Configurations parameters -->
-    <longTermParams enabled ="false">
-    	<days value="365"/>
-    	<maxIterations value="1"/>
-    	<workers value="8"/>
-    	<tickStep value="1"/>
-    	<developerModel enabled="false">
-    		<timeInterval value="30"/>
-    	</developerModel>
-        <housingModel enabled="false"> 
-            <timeOnMarket value="30"/>
-            <timeInterval value="7"/>
-        </housingModel>
-    </longTermParams>     
+    </fmodcontroller>  
         
     <incidentsData enabled="yes">
         <incident id="0" visibility="4000" segment="40200" position="60" cap_factor="1.0" start_time="08:30:00" duration="00:32:00" length="1000" compliance="50" accessibility="50" > 
@@ -493,5 +478,21 @@
     <!-- will be created. -->
 <!--<signal xpos="37250760" ypos="14355120"/>
     </signals> -->
+              
+    <!-- Long Term Configurations parameters -->
+    <longTermParams enabled ="false">
+    	<days value="365"/>
+    	<maxIterations value="1"/>
+    	<workers value="8"/>
+    	<tickStep value="1"/>
+    	<developerModel enabled="false">
+    		<timeInterval value="30"/>
+    	</developerModel>
+        <housingModel enabled="false"> 
+            <timeOnMarket value="30"/>
+            <timeInterval value="7"/>
+        </housingModel>
+    </longTermParams>  
+    
 </config>
 

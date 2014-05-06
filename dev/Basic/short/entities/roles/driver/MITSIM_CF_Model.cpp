@@ -256,7 +256,9 @@ double sim_mob::MITSIM_CF_Model::getNormalDeceleration(sim_mob::DriverUpdatePara
 	{
 		throw std::runtime_error("no driver");
 	}
-	// TODO: get grade
+	// as no current road network data only has x,y value, no altitude
+	// grade always zero
+	int grade = 0;
 
 	// TODO: get vehicle type
 
@@ -265,7 +267,9 @@ double sim_mob::MITSIM_CF_Model::getNormalDeceleration(sim_mob::DriverUpdatePara
 	if(speed <0) speed=0;
 	if(speed >normalDecelerationUpperBound) speed=normalDecelerationUpperBound;
 
-	double acc = normalDecelerationIndex[vhType][speed];
+	double normalDec = normalDecelerationIndex[vhType][speed];
+
+	double acc = ( normalDec - grade*accGradeFactor) * getNormalDecScale();
 
 	return acc;
 }
@@ -276,6 +280,10 @@ double sim_mob::MITSIM_CF_Model::getMaxDeceleration(sim_mob::DriverUpdateParams&
 		throw std::runtime_error("no driver");
 	}
 
+	// as no current road network data only has x,y value, no altitude
+	// grade always zero
+	int grade = 0;
+
 	// TODO: get vehicle type
 
 	// convert speed to int
@@ -283,7 +291,9 @@ double sim_mob::MITSIM_CF_Model::getMaxDeceleration(sim_mob::DriverUpdateParams&
 	if(speed <0) speed=0;
 	if(speed >maxDecelerationUpperBound) speed=maxDecelerationUpperBound;
 
-	double acc = maxDecelerationIndex[vhType][speed];
+	double maxDec = maxDecelerationIndex[vhType][speed];
+
+	double acc = ( maxDec - grade*accGradeFactor) * getMaxDecScale();
 
 	return acc;
 }
@@ -293,6 +303,20 @@ double sim_mob::MITSIM_CF_Model::getMaxAccScale()
 	int scaleNo = Utils::generateInt(0,maxAccScale.size());
 	// return max acc scale,as maxAccScale() in MITSIM TS_Parameter.h
 	return maxAccScale[scaleNo];
+}
+double sim_mob::MITSIM_CF_Model::getNormalDecScale()
+{
+	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
+	int scaleNo = Utils::generateInt(0,normalDecelerationScale.size());
+	// return normal dec scale,as maxAccScale() in MITSIM TS_Parameter.h
+	return normalDecelerationScale[scaleNo];
+}
+double sim_mob::MITSIM_CF_Model::getMaxDecScale()
+{
+	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
+	int scaleNo = Utils::generateInt(0,maxDecelerationScale.size());
+	// return max dec scale,as maxAccScale() in MITSIM TS_Parameter.h
+	return maxDecelerationScale[scaleNo];
 }
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {

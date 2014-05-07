@@ -69,17 +69,7 @@ public:
 class MITSIM_CF_Model : public CarFollowModel {
 public:
 	MITSIM_CF_Model();
-	void initParam();
 	
-	double getMaxAcceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);
-	double getNormalDeceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);
-	double getMaxDeceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);
-	/** \brief get max acc scaler
-	 *  \return scaler value
-	 **/
-	double getMaxAccScale();
-	double getNormalDecScale();
-	double getMaxDecScale();
 	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);
 
 private:
@@ -114,30 +104,8 @@ private:
 	 *  \return step size
 	 **/
 	double calcNextStepSize();
-
 private:
-	/// key=vehicle type
-	/// submap key=speed, value=max acc
-	map< Vehicle::VEHICLE_TYPE,map<int,double> > maxAccIndex;
-	int maxAccUpperBound;
-	vector<double> maxAccScale;
-
-	map< Vehicle::VEHICLE_TYPE,map<int,double> > normalDecelerationIndex;
-	int normalDecelerationUpperBound;
-	vector<double> normalDecelerationScale;
-
-	map< Vehicle::VEHICLE_TYPE,map<int,double> > maxDecelerationIndex;
-	int maxDecelerationUpperBound;
-	vector<double> maxDecelerationScale;
-
-	/// time step to calculate state variables
-	double timeStep;
-
-	/// grade is the road slope
-	double tmpGrade;
-
-	double minSpeed;
-	double minResponseDistance;
+    double timeStep;
 };
 
 

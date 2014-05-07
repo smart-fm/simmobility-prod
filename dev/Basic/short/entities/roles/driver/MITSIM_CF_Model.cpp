@@ -127,25 +127,25 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	ParameterManager::Instance()->param(modelName,"speed_scaler",speedScalerStr,string("5 20 20"));
 	// max acceleration
 	ParameterManager::Instance()->param(modelName,"max_acc_car1",maxAccStr,string("10.00  7.90  5.60  4.00  4.00"));
-//	makeMaxAccIndex(Vehicle::CAR,speedScalerStr,maxAccStr);
 	makeSpeedIndex(Vehicle::CAR,speedScalerStr,maxAccStr,maxAccIndex,maxAccUpperBound);
 	ParameterManager::Instance()->param(modelName,"max_acceleration_scale",maxAccScaleStr,string("0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"));
 	makeScaleIdx(maxAccScaleStr,maxAccScale);
 	// normal deceleration
 	ParameterManager::Instance()->param(modelName,"normal_deceleration_car1",decelerationStr,string("7.8 	6.7 	4.8 	4.8 	4.8"));
-//	makeNormalDecelerationIndex(Vehicle::CAR,speedScalerStr,decelerationStr);
 	makeSpeedIndex(Vehicle::CAR,speedScalerStr,decelerationStr,normalDecelerationIndex,normalDecelerationUpperBound);
 	ParameterManager::Instance()->param(modelName,"normal_deceleration_scale",normalDecScaleStr,string("0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"));
 	makeScaleIdx(maxAccScaleStr,normalDecelerationScale);
 	// max deceleration
 	ParameterManager::Instance()->param(modelName,"Max_deceleration_car1",decelerationStr,string("16.0   14.5   13.0   11.0   10.0"));
-//	makeMaxDecelerationIndex(Vehicle::CAR,speedScalerStr,decelerationStr);
 	makeSpeedIndex(Vehicle::CAR,speedScalerStr,decelerationStr,maxDecelerationIndex,maxDecelerationUpperBound);
 	ParameterManager::Instance()->param(modelName,"max_deceleration_scale",maxDecScaleStr,string("0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"));
 	makeScaleIdx(maxDecScaleStr,maxDecelerationScale);
 	// acceleration grade factor
 	ParameterManager::Instance()->param(modelName,"acceleration_grade_factor",accGradeFactor,0.305);
 	ParameterManager::Instance()->param(modelName,"tmp_all_grades",tmpGrade,0.0);
+	// param for distanceToNormalStop()
+	ParameterManager::Instance()->param(modelName,"min_speed",minSpeed,0.1);
+	ParameterManager::Instance()->param(modelName,"min_response_distance",minResponseDistance,5.0);
 }
 void sim_mob::MITSIM_CF_Model::makeScaleIdx(string& s,vector<double>& c)
 {
@@ -309,7 +309,7 @@ double sim_mob::MITSIM_CF_Model::getMaxDecScale()
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
 	//initiate
-	distanceToNormalStop(p);
+//	distanceToNormalStop(p);
 
 	// VARIABLE || FUNCTION ||				REGIME
 	calcStateBasedVariables(p);
@@ -761,11 +761,11 @@ double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(DriverUpdateParams& p, double
 
 void sim_mob::MITSIM_CF_Model::distanceToNormalStop(DriverUpdateParams& p)
 {
-	double minSpeed = 0.1;
-	double minResponseDistance = 5;
-	double DIS_EPSILON = 0.001;
+//	double minSpeed = 0.1;
+//	double minResponseDistance = 5;
+//	double DIS_EPSILON = 0.001;
 	if (p.perceivedFwdVelocity/100 > minSpeed) {
-		p.distanceToNormalStop = DIS_EPSILON -
+		p.distanceToNormalStop = sim_mob::Math::DOUBLE_EPSILON -
 				0.5 * (p.perceivedFwdVelocity/100) * (p.perceivedFwdVelocity/100) / normalDeceleration;
 		if (p.distanceToNormalStop < minResponseDistance) {
 			p.distanceToNormalStop = minResponseDistance;
@@ -776,10 +776,13 @@ void sim_mob::MITSIM_CF_Model::distanceToNormalStop(DriverUpdateParams& p)
 }
 void sim_mob::MITSIM_CF_Model::calcStateBasedVariables(DriverUpdateParams& p)
 {
-	double dt	=	p.elapsedSeconds;
-	timeStep -= dt;
+//	double dt	=	p.elapsedSeconds;
+	timeStep -= p.elapsedSeconds;
 	/// if time step >0 ,no need update variables
 	if(timeStep>0) return;
+
+	distanceToNormalStop(p);
+
 	// Acceleration rate for a vehicle (a function of vehicle type,
 	// facility type, segment grade, current speed).
 	maxAcceleration    = getMaxAcceleration(p);

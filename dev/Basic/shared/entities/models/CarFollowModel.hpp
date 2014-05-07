@@ -150,6 +150,9 @@ private:
 
 	/// grade is the road slope
 	double tmpGrade;
+
+	double minSpeed;
+	double minResponseDistance;
 };
 
 

@@ -39,5 +39,9 @@
 
 <param name="tmp_all_grades" value="0"/>
 
+<param name="min_speed" value="0.1"/> #m/s
+
+<param name="min_response_distance" value="5.0"/>
+
 </parameters>
 

@@ -90,10 +90,10 @@ namespace sim_mob {
          * Structs
          */
         typedef struct ExpectationEntry_ {
-            ExpectationEntry_() : price(0), expectation(0), hedonicPrice(0){}
+            ExpectationEntry_() : askingPrice(0), targetPrice(0), hedonicPrice(0){}
             double hedonicPrice;
-            double price;
-            double expectation;
+            double askingPrice;
+            double targetPrice;//expectation of the seller.
         } ExpectationEntry;
     }
 }

@@ -114,6 +114,29 @@ namespace {
         }
     }
 
+    /**
+     * Converts the given string into a vector of doubles.<br> 
+     * Values shall be separated by whitespace.  
+     * <br>
+     *     e.g "16.0   14.5   13.0   11.0   10.0"<br>
+     * <br>
+     *  
+     * @param str to process.
+     * @param c
+     */
+    inline void strToVector(std::string& str, std::vector<double>& out) {
+        std::vector<std::string> arrayStr;
+        boost::trim(str);
+        boost::split(arrayStr, str, boost::is_any_of(" "),
+                boost::token_compress_on);
+        std::vector<std::string>::const_iterator itr;    
+        for (itr = arrayStr.begin(); itr != arrayStr.end(); itr++) {
+            const std::string& strVal = (*itr);
+            double res = Utils::cast<double>(strVal);
+            out.push_back(res);
+        }
+    }
+
 } //End anon namespace
 
 /*
@@ -158,19 +181,7 @@ void sim_mob::MITSIM_CF_Model::initParam() {
 }
 
 void sim_mob::MITSIM_CF_Model::makeScaleIdx(string& s, vector<double>& c) {
-    std::vector<std::string> arrayStr;
-    boost::trim(s);
-    boost::split(arrayStr, s, boost::is_any_of(" "), boost::token_compress_on);
-    for (size_t i = 0; i < arrayStr.size(); ++i) {
-        double res;
-        try {
-            res = boost::lexical_cast<double>(arrayStr[i].c_str());
-        } catch (boost::bad_lexical_cast&) {
-            std::string s = "can not covert <" + s + "> to double.";
-            throw std::runtime_error(s);
-        }
-        c.push_back(res);
-    }
+    strToVector(s, c);
 }
 
 void sim_mob::MITSIM_CF_Model::makeSpeedIndex(Vehicle::VEHICLE_TYPE vhType,
@@ -178,45 +189,23 @@ void sim_mob::MITSIM_CF_Model::makeSpeedIndex(Vehicle::VEHICLE_TYPE vhType,
         string& cstr,
         map< Vehicle::VEHICLE_TYPE, map<int, double> >& idx,
         int& upperBound) {
-    std::cout << "makeSpeedIndex: vh type " << vhType << std::endl;
+    
     // for example
     // speedScalerStr "5 20 20" ft/sec
     // maxAccStr      "10.00  7.90  5.60  4.00  4.00" ft/(s^2)
-    std::vector<std::string> arrayStr;
-    boost::trim(speedScalerStr);
-    boost::split(arrayStr, speedScalerStr, boost::is_any_of(" "), boost::token_compress_on);
+
+    //processes the speed scaler array.
     std::vector<double> speedScalerArrayDouble;
-    for (size_t i = 0; i < arrayStr.size(); ++i) {
-        double res;
-        try {
-            res = boost::lexical_cast<double>(arrayStr[i].c_str());
-        } catch (boost::bad_lexical_cast&) {
-            std::string s = "can not covert <" + speedScalerStr + "> to double.";
-            throw std::runtime_error(s);
-        }
-        speedScalerArrayDouble.push_back(res);
-    }
-    arrayStr.clear();
-    //
-    boost::algorithm::trim(cstr);
-    //	std::vector<std::string> maxAccArrayStr;
-    boost::split(arrayStr, cstr, boost::is_any_of(" "), boost::token_compress_on);
+    strToVector(speedScalerStr, speedScalerArrayDouble);
+
+    //processes max acceleration array.
     std::vector<double> cArrayDouble;
-    for (size_t i = 0; i < arrayStr.size(); ++i) {
-        double res;
-        try {
-            res = boost::lexical_cast<double>(arrayStr[i].c_str());
-        } catch (boost::bad_lexical_cast&) {
-            std::string s = "can not covert <" + cstr + "> to double.";
-            throw std::runtime_error(s);
-        }
-        cArrayDouble.push_back(res);
-    }
-    //
+    strToVector(cstr, cArrayDouble);
+
     upperBound = round(speedScalerArrayDouble[1] * (speedScalerArrayDouble[0] - 1));
     map<int, double> cIdx;
     for (int speed = 0; speed <= upperBound; ++speed) {
-        double maxAcc;
+        double maxAcc = 0.0;
         // Convert speed value to a table index.
         int j = speed / speedScalerArrayDouble[1];
         if (j >= (speedScalerArrayDouble[0] - 1)) {
@@ -225,10 +214,7 @@ void sim_mob::MITSIM_CF_Model::makeSpeedIndex(Vehicle::VEHICLE_TYPE vhType,
             maxAcc = cArrayDouble[j];
         }
         cIdx.insert(std::make_pair(speed, maxAcc));
-
-        //		std::cout<<"speed: "<<speed<<" max acc: "<<maxAcc<<std::endl;
     }
-
     idx[vhType] = cIdx;
 }
 

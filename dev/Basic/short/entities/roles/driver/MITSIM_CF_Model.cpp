@@ -551,19 +551,15 @@ double sim_mob::MITSIM_CF_Model::waitExitLaneRate(DriverUpdateParams& p) {
     return brakeToStop(p, dx);
 }
 
-double sim_mob::MITSIM_CF_Model::calcForwardRate(DriverUpdateParams& p) {
-    /*
-    if(p.turningDirection == LCS_SAME)
-            return maxAcceleration;
-    NearestVehicle& nv = (p.turningDirection == LCS_LEFT)?p.nvLeftFwd:p.nvRightFwd;
-     */
-
-    if (p.targetGap != TG_Left_Fwd || p.targetGap != TG_Right_Fwd)
+double sim_mob::MITSIM_CF_Model::calcForwardRate(DriverUpdateParams& p) {   
+    if (p.targetGap != TG_Left_Fwd || p.targetGap != TG_Right_Fwd){
         return maxAcceleration;
+    }
     NearestVehicle& nv = (p.targetGap == TG_Left_Fwd) ? p.nvLeftFwd : p.nvRightFwd;
 
-    if (!nv.exists())
+    if (!nv.exists()){
         return maxAcceleration;
+    }
     double dis = Utils::cmToMeter(nv.distance) + targetGapAccParm[0];
     double dv = Utils::cmToMeter(nv.driver->fwdVelocity.get()) - Utils::cmToMeter(p.perceivedFwdVelocity);
     double acc = targetGapAccParm[1] * pow(dis, targetGapAccParm[2]);

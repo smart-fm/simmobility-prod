@@ -480,15 +480,15 @@
     </signals> -->
               
     <!-- Long Term Configurations parameters -->
-    <longTermParams enabled ="false">
+    <longTermParams enabled ="true">
     	<days value="365"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>
-    	<developerModel enabled="false">
+    	<developerModel enabled="true">
     		<timeInterval value="30"/>
     	</developerModel>
-        <housingModel enabled="false"> 
+        <housingModel enabled="true"> 
             <timeOnMarket value="30"/>
             <timeInterval value="7"/>
         </housingModel>

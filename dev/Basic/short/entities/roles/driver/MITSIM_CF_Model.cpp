@@ -597,18 +597,20 @@ double sim_mob::MITSIM_CF_Model::calcBackwardRate(DriverUpdateParams& p) {
 }
 
 double sim_mob::MITSIM_CF_Model::calcAdjacentRate(DriverUpdateParams& p) {
-    if (p.nextLaneIndex == p.currLaneIndex)
+    if (p.nextLaneIndex == p.currLaneIndex){
         return maxAcceleration;
+    }
     NearestVehicle& av = (p.nextLaneIndex > p.currLaneIndex) ? p.nvLeftFwd : p.nvRightFwd;
     NearestVehicle& bv = (p.nextLaneIndex > p.currLaneIndex) ? p.nvLeftBack : p.nvRightBack;
-    if (!av.exists())
+    if (!av.exists()){
         return maxAcceleration;
-    if (!bv.exists())
+    }
+    if (!bv.exists()){
         return normalDeceleration;
+    }
     double position = Utils::cmToMeter(bv.distance);
     double gap = position + Utils::cmToMeter(av.distance);
     double acc = targetGapAccParm[11] * (targetGapAccParm[0] * gap - position);
-
     acc += targetGapAccParm[12] / 0.824;
     return acc;
 }

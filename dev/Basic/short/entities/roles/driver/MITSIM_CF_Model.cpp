@@ -700,29 +700,18 @@ double sim_mob::MITSIM_CF_Model::brakeToTargetSpeed(DriverUpdateParams& p, doubl
 }
 
 double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(DriverUpdateParams& p) {
-    double v = Utils::cmToMeter(p.perceivedFwdVelocity);
-    double dv = v - p.v_lead;
-    double epsilon_v = 0.001;
-    double aNormalDec = normalDeceleration;
-
-    double a;
+    const double dv = Utils::cmToMeter(p.perceivedFwdVelocity) - p.v_lead;
+    const double epsilon_v = 0.001;
+    double result = 0.0;
     if (dv < epsilon_v) {
-        a = p.a_lead + 0.25 * aNormalDec;
+        result = p.a_lead + 0.25 * normalDeceleration;
     } else if (p.space > 0.01) {
-        a = p.a_lead - dv * dv / 2 / p.space;
+        result = p.a_lead - dv * dv / 2 / p.space;
     } else {
-        double dt = p.elapsedSeconds;
-        //p.space_star	=	p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
-        double s = p.space_star;
-        double v = p.v_lead + p.a_lead * dt;
-        a = brakeToTargetSpeed(p, s, v);
+        double v = p.v_lead + p.a_lead * p.elapsedSeconds;
+        result = brakeToTargetSpeed(p, p.space_star, v);
     }
-    //	if(a<maxDeceleration)
-    //		return maxDeceleration;
-    //	else if(a>maxAcceleration)
-    //		return maxAcceleration;
-    //	else
-    return a;
+    return result;
 }
 
 double sim_mob::MITSIM_CF_Model::accOfCarFollowing(DriverUpdateParams& p) {

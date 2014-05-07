@@ -16,6 +16,8 @@
 #include <string>
 #include <utility>
 #include <sstream>
+#include <stdexcept>
+#include "boost/lexical_cast.hpp"
 
 namespace sim_mob {
 
@@ -105,6 +107,37 @@ namespace sim_mob {
          */
         template<typename T> static T cmToMeter(const T& cmValue){
             return (T)(cmValue/(T)100);
+        }
+        
+        /**
+         * Converts given string to defined type.
+         * This function throws exception in case of error during the conversion.
+         * @param value to convert.
+         * @return value in the defined type if the conversion is valid 
+         * otherwise an exception is thrown.
+         */
+        template<typename T> static T cast(const std::string& value) {
+            try {
+                return boost::lexical_cast<T>(value);
+            } catch (boost::bad_lexical_cast&) {
+                throw std::runtime_error("Cannot convert <" + value + ">");
+            }
+        }
+        
+        /**
+         * Converts given string to defined type.
+         * This function does not throws exception in the case of error during the conversion. 
+         * It returns the given errorValue instead.
+         * @param value to convert.
+         * @param errorValue value to return in the case of error.
+         * @return value in the defined type or the errorValue if conversion has failed.
+         */
+        template<typename T> static T cast(const std::string& value, const T& errorValue) {
+            try {
+                return boost::lexical_cast<T>(value);
+            } catch (boost::bad_lexical_cast&) {
+            }
+            return errorValue;
         }
     };
 

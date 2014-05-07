@@ -102,6 +102,17 @@ namespace {
             return 2 * space / (speed + speed + elapsedSeconds * maxAcceleration);
         }
     }
+    
+    /**
+     * Checks if the drivers is valid otherwise throws an exception.
+     * @param params to check.
+     * @throws std::runtime_error if driver is not valid.
+     */
+    inline void checkDriver(const sim_mob::DriverUpdateParams& params) {
+        if (!params.driver) {
+            throw std::runtime_error("no driver");
+        }
+    }
 
 } //End anon namespace
 
@@ -222,56 +233,40 @@ void sim_mob::MITSIM_CF_Model::makeSpeedIndex(Vehicle::VEHICLE_TYPE vhType,
 }
 
 double sim_mob::MITSIM_CF_Model::getMaxAcceleration(sim_mob::DriverUpdateParams& p, Vehicle::VEHICLE_TYPE vhType) {
-    if (!p.driver) {
-        throw std::runtime_error("no driver");
-    }
+    checkDriver(p);
 
-    // convert speed to int
+    // convert speed to int in meters
     int speed = round(Utils::cmToMeter(p.perceivedFwdVelocity));
-    if (speed < 0) speed = 0;
-    if (speed > maxAccUpperBound) speed = maxAccUpperBound;
-
-    double maxTableAcc = maxAccIndex[vhType][speed];
+    //Keep the speed value within the range 0 to maxAccUpperBound.
+    speed = Utils::clamp(speed, 0, maxAccUpperBound);
 
     // TODO: get random multiplier from data file and normal distribution
-
-    double maxAcc = (maxTableAcc - tmpGrade * accGradeFactor) * getMaxAccScale();
-
-    return maxAcc;
+    return (maxAccIndex[vhType][speed] - tmpGrade * accGradeFactor)
+            * getMaxAccScale();
 }
 
 double sim_mob::MITSIM_CF_Model::getNormalDeceleration(sim_mob::DriverUpdateParams& p, Vehicle::VEHICLE_TYPE vhType) {
-    if (!p.driver) {
-        throw std::runtime_error("no driver");
-    }
+    checkDriver(p);
 
-    // convert speed to int
+    // convert speed to int in meters
     int speed = round(Utils::cmToMeter(p.perceivedFwdVelocity));
-    if (speed < 0) speed = 0;
-    if (speed > normalDecelerationUpperBound) speed = normalDecelerationUpperBound;
+    //Keep the speed value within the range 0 to normalDecelerationUpperBound.
+    speed = Utils::clamp(speed, 0, normalDecelerationUpperBound);
 
-    double normalDec = normalDecelerationIndex[vhType][speed];
-
-    double dec = (normalDec - tmpGrade * accGradeFactor) * getNormalDecScale();
-
-    return dec;
+    return (normalDecelerationIndex[vhType][speed] - tmpGrade * accGradeFactor)
+            * getNormalDecScale();
 }
 
 double sim_mob::MITSIM_CF_Model::getMaxDeceleration(sim_mob::DriverUpdateParams& p, Vehicle::VEHICLE_TYPE vhType) {
-    if (!p.driver) {
-        throw std::runtime_error("no driver");
-    }
+    checkDriver(p);
 
-    // convert speed to int
+    // convert speed to int in meters
     int speed = round(Utils::cmToMeter(p.perceivedFwdVelocity));
-    if (speed < 0) speed = 0;
-    if (speed > maxDecelerationUpperBound) speed = maxDecelerationUpperBound;
+    //Keep the speed value within the range 0 to normalDecelerationUpperBound.
+    speed = Utils::clamp(speed, 0, maxDecelerationUpperBound);
 
-    double maxDec = maxDecelerationIndex[vhType][speed];
-
-    double dec = (maxDec - tmpGrade * accGradeFactor) * getMaxDecScale();
-
-    return dec;
+    return (maxDecelerationIndex[vhType][speed] - tmpGrade * accGradeFactor)
+            * getMaxDecScale();
 }
 
 double sim_mob::MITSIM_CF_Model::getMaxAccScale() {

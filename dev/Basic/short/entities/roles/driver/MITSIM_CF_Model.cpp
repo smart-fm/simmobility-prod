@@ -426,46 +426,36 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
  */
 double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed, NearestVehicle& nv) {
     p.space = Utils::cmToMeter(p.perceivedDistToFwdCar);
-
-    double res = 0;
-    //If we have no space left to move, immediately cut off acceleration.
-    //	if ( p.space < 2.0 && p.isAlreadyStart )
-    //		return maxDeceleration;
-    if (p.space < 2.0 && p.isAlreadyStart && p.isBeforIntersecton && Utils::cmToMeter(p.perceivedFwdVelocityOfFwdCar) < 1.0) {
+    double res = 0.0;
+    if (p.space < 2.0 && p.isAlreadyStart && p.isBeforIntersecton 
+            && Utils::cmToMeter(p.perceivedFwdVelocityOfFwdCar) < 1.0) {
         return maxDeceleration * 4.0;
     }
+    
     if (p.space > 0) {
         if (!nv.exists()) {
             return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);
         }
-        // when nv is left/right vh , can not use perceivedxxx!
-        //		p.v_lead = p.perceivedFwdVelocityOfFwdCar/100;
-        //		p.a_lead = p.perceivedAccelerationOfFwdCar/100;
-
         p.v_lead = Utils::cmToMeter(nv.driver->fwdVelocity.get());
         p.a_lead = Utils::cmToMeter(nv.driver->fwdAccel.get());
-
+        
         double dt = p.elapsedSeconds;
-        double headway = CalcHeadway(p.space, Utils::cmToMeter(p.perceivedFwdVelocity), p.elapsedSeconds, maxAcceleration);
-        //		std::cout<<"carFollowingRate: headway1: "<<headway<<std::endl;
-
+        double headway = CalcHeadway(p.space, Utils::cmToMeter(p.perceivedFwdVelocity), dt, maxAcceleration);
+        
         //Emergency deceleration overrides the perceived distance; check for it.
         {
-            //			double emergSpace = p.perceivedDistToFwdCar/100;
             double emergSpace = Utils::cmToMeter(nv.distance);
-            double emergHeadway = CalcHeadway(emergSpace, Utils::cmToMeter(p.perceivedFwdVelocity), p.elapsedSeconds, maxAcceleration);
+            double emergHeadway = CalcHeadway(emergSpace, Utils::cmToMeter(p.perceivedFwdVelocity), dt, maxAcceleration);
             if (emergHeadway < hBufferLower) {
                 //We need to brake. Override.
                 p.space = emergSpace;
                 headway = emergHeadway;
             }
         }
-
+        
         p.space_star = p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
-        //		std::cout<<"carFollowingRate: headway2: "<<headway<<std::endl;
         if (headway < hBufferLower) {
             res = accOfEmergencyDecelerating(p);
-            //			std::cout<<"carFollowingRate: EmergencyDecelerating: "<<res<<std::endl;
         }
         if (headway > hBufferUpper) {
             res = accOfMixOfCFandFF(p, targetSpeed, maxLaneSpeed);
@@ -473,15 +463,6 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
         if (headway <= hBufferUpper && headway >= hBufferLower) {
             res = accOfCarFollowing(p);
         }
-
-        //		if(p.isWaiting && p.dis2stop<5000 && res > 0)
-        //		{
-        //			res=res*(5000.0-p.dis2stop)/5000.0;
-        //			if(p.dis2stop<2000)
-        //			{
-        //				res=0;
-        //			}
-        //		}
     }
     return res;
 }

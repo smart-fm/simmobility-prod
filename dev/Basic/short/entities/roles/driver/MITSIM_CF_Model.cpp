@@ -681,9 +681,6 @@ double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p, double dis) 
  *-------------------------------------------------------------------
  */
 double sim_mob::MITSIM_CF_Model::brakeToTargetSpeed(DriverUpdateParams& p, double s, double v) {
-    //	double v 			=	p.perceivedFwdVelocity/100;
-    double dt = p.elapsedSeconds;
-
     //	//NOTE: This is the only use of epsilon(), so I just copied the value directly.
     //	//      See LC_Model for how to declare a private temporary variable. ~Seth
     //	if(p.space_star > sim_mob::Math::DOUBLE_EPSILON) {
@@ -693,19 +690,13 @@ double sim_mob::MITSIM_CF_Model::brakeToTargetSpeed(DriverUpdateParams& p, doubl
     //	} else {
     //		return ( p.v_lead + p.a_lead * dt - v ) / dt;
     //	}
-
-    double currentSpeed_ = Utils::cmToMeter(p.perceivedFwdVelocity);
+    double currentSpeed = Utils::cmToMeter(p.perceivedFwdVelocity);
     if (s > sim_mob::Math::DOUBLE_EPSILON) {
-        float v2 = v * v;
-        float u2 = currentSpeed_ * currentSpeed_;
-        float acc = (v2 - u2) / s * 0.5;
-
-        return acc;
-    } else {
-        //	float dt = nextStepSize();
-        //		if (dt <= 0.0) return maxAcceleration ;
-        return (v - currentSpeed_) / dt;
-    }
+        double v2 = v * v;
+        double u2 = currentSpeed * currentSpeed;
+        return (v2 - u2) / s * 0.5;
+    } 
+    return (v - currentSpeed) / p.elapsedSeconds;
 }
 
 double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(DriverUpdateParams& p) {

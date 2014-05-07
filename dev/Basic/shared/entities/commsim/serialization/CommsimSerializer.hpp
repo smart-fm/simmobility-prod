@@ -227,7 +227,7 @@ public:
 	static std::string makeOpaqueSend(const std::string& fromId, const std::vector<std::string>& toIds, bool broadcast, const std::string& data);
 
 	//Serialize "opaque_receive" to a string.
-	static std::string makeOpaqueReceive(const std::string& fromId, const std::string& toId, const std::string& data);
+	static std::string makeOpaqueReceive(const std::string& fromId, const std::string& toId, const std::string& format, const std::string& data);
 
 
 private:

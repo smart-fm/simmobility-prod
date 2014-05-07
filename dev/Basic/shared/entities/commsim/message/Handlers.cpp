@@ -16,6 +16,7 @@
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
 #include "message/MessageBus.hpp"
+#include "logging/Log.hpp"
 
 
 
@@ -212,7 +213,7 @@ void sim_mob::OpaqueSendHandler::handle(boost::shared_ptr<ConnectionHandler> han
 			//step-4: fabricate a message for each(core  is taken from the original message)
 			//actually, you don't need to modify any field in the original jsoncpp's Json::Value message.
 			//just add the recipients directly request to send
-			std::string msg = CommsimSerializer::makeOpaqueReceive(sendMsg.fromId, agentId, sendMsg.data);
+			std::string msg = CommsimSerializer::makeOpaqueReceive(sendMsg.fromId, agentId, sendMsg.format, sendMsg.data);
 			broker->insertSendBuffer(boost::shared_ptr<ClientHandler>(destClientHandlr), msg);
 		}
 	}
@@ -242,7 +243,7 @@ void sim_mob::OpaqueReceiveHandler::handleDirect(const OpaqueReceiveMessage& rec
 	for (ClientList::Type::const_iterator clientIt=all_clients.begin(); clientIt!=all_clients.end(); clientIt++) {
 		boost::shared_ptr<sim_mob::ClientHandler> clnHandler = clientIt->second;
 		//valid agent, matching ID
-		if (clnHandler->agent && boost::lexical_cast<std::string>(clnHandler->agent->getId()) == recMsg.toId) {
+		if (clnHandler->agent && clnHandler->clientId == recMsg.toId) {
 			receiveAgentHandle = clnHandler;
 			break;
 		}
@@ -250,7 +251,9 @@ void sim_mob::OpaqueReceiveHandler::handleDirect(const OpaqueReceiveMessage& rec
 
 	//insert into sending buffer
 	if (receiveAgentHandle && receiveAgentHandle->connHandle) {
-		broker->insertSendBuffer(receiveAgentHandle, CommsimSerializer::makeOpaqueReceive(recMsg.fromId, recMsg.toId, recMsg.data));
+		broker->insertSendBuffer(receiveAgentHandle, CommsimSerializer::makeOpaqueReceive(recMsg.fromId, recMsg.toId, recMsg.format, recMsg.data));
+	} else {
+		Warn() <<"Could not find a receive (cloud) handler for agent with ID: " <<recMsg.toId <<"\n";
 	}
 }
 

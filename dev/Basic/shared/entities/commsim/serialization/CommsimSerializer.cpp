@@ -617,13 +617,13 @@ std::string sim_mob::CommsimSerializer::makeOpaqueSend(const std::string& fromId
 }
 
 
-std::string sim_mob::CommsimSerializer::makeOpaqueReceive(const std::string& fromId, const std::string& toId, const std::string& data)
+std::string sim_mob::CommsimSerializer::makeOpaqueReceive(const std::string& fromId, const std::string& toId, const std::string& format, const std::string& data)
 {
 	if (PREFER_BINARY_MESSAGES) {
 		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
 		std::stringstream res;
-		res <<"{\"msg_type\":\"opaque_receive\",\"from_id\":\"" <<fromId <<"\",\"to_id\":\"" <<toId <<"\",\"data\":\"" <<data <<"\"}";
+		res <<"{\"msg_type\":\"opaque_receive\",\"from_id\":\"" <<fromId <<"\",\"to_id\":\"" <<toId <<"\",\"format\":\"" <<format <<"\",\"data\":\"" <<data <<"\"}";
 		return res.str();
 	}
 }

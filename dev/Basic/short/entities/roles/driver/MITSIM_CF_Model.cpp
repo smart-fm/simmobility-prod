@@ -730,14 +730,10 @@ double sim_mob::MITSIM_CF_Model::accOfCarFollowing(DriverUpdateParams& p) {
 
 double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed) {
     double vn = Utils::cmToMeter(p.perceivedFwdVelocity);
-    if (vn < targetSpeed) {
+    if (vn <= targetSpeed) {
         return (vn < maxLaneSpeed) ? maxAcceleration : 0;
-    } else if (vn > targetSpeed) {
-        return 0;
     }
-
-    //If equal:
-    return (vn < maxLaneSpeed) ? maxAcceleration : 0;
+    return 0;
 }
 
 double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed) {

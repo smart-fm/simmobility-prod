@@ -70,22 +70,7 @@ class MITSIM_CF_Model : public CarFollowModel {
 public:
 	MITSIM_CF_Model();
 	void initParam();
-	/** \brief make index base on speed scaler
-	 *  \param speedScalerStr speed scaler
-	 *  \param cstr index value
-	 *  \param idx  index container
-	 *  \param upperBound store upper bound of index
-	 **/
-	void makeSpeedIndex(Vehicle::VEHICLE_TYPE vhType,
-						string& speedScalerStr,
-						string& cstr,
-						map< Vehicle::VEHICLE_TYPE,map<int,double> >& idx,
-						int& upperBound);
-	/** \brief create scale index base on string data ,like "0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"
-	 *  \param s data string
-	 *  \param c container to store data
-	 **/
-	void makeScaleIdx(string& s,vector<double>& c);
+	
 	double getMaxAcceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);
 	double getNormalDeceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);
 	double getMaxDeceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);

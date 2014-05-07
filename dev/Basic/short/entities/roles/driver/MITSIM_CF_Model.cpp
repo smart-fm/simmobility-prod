@@ -136,6 +136,48 @@ namespace {
             out.push_back(res);
         }
     }
+    
+    /**
+     * Builds the speed map with by given accelerations and speed scaler. 
+     * @param vhType
+     * @param speedScalerStr speed scaler
+     * @param maxAccStr string value
+     * @param map to be filled.
+     * @param upperBound store upper bound of index
+     */
+    inline void buildSpeedMap(Vehicle::VEHICLE_TYPE vhType, 
+            std::string& speedScalerStr,
+            std::string& maxAccStr,
+            std::map< Vehicle::VEHICLE_TYPE, map<int, double> >& idx,
+            int& upperBound) {
+
+        // for example
+        // speedScalerStr "5 20 20" ft/sec
+        // maxAccStr      "10.00  7.90  5.60  4.00  4.00" ft/(s^2)
+
+        //processes the speed scaler array.
+        std::vector<double> speedScalerArrayDouble;
+        strToVector(speedScalerStr, speedScalerArrayDouble);
+
+        //processes max acceleration array.
+        std::vector<double> maxAccArray;
+        strToVector(maxAccStr, maxAccArray);
+
+        upperBound = round(speedScalerArrayDouble[1] * (speedScalerArrayDouble[0] - 1));
+        map<int, double> cIdx;
+        for (int speed = 0; speed <= upperBound; ++speed) {
+            double maxAcc = 0.0;
+            // Convert speed value to a table index.
+            int j = speed / speedScalerArrayDouble[1];
+            if (j >= (speedScalerArrayDouble[0] - 1)) {
+                maxAcc = maxAccArray[speedScalerArrayDouble[0] - 1];
+            } else {
+                maxAcc = maxAccArray[j];
+            }
+            cIdx.insert(std::make_pair(speed, maxAcc));
+        }
+        idx[vhType] = cIdx;
+    }
 
 } //End anon namespace
 
@@ -159,63 +201,25 @@ void sim_mob::MITSIM_CF_Model::initParam() {
     ParameterManager::Instance()->param(modelName, "speed_scaler", speedScalerStr, string("5 20 20"));
     // max acceleration
     ParameterManager::Instance()->param(modelName, "max_acc_car1", maxAccStr, string("10.00  7.90  5.60  4.00  4.00"));
-    makeSpeedIndex(Vehicle::CAR, speedScalerStr, maxAccStr, maxAccIndex, maxAccUpperBound);
+    buildSpeedMap(Vehicle::CAR, speedScalerStr, maxAccStr, maxAccIndex, maxAccUpperBound);
     ParameterManager::Instance()->param(modelName, "max_acceleration_scale", maxAccScaleStr, string("0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"));
-    makeScaleIdx(maxAccScaleStr, maxAccScale);
+    strToVector(maxAccScaleStr, maxAccScale);
     // normal deceleration
     ParameterManager::Instance()->param(modelName, "normal_deceleration_car1", decelerationStr, string("7.8 	6.7 	4.8 	4.8 	4.8"));
-    makeSpeedIndex(Vehicle::CAR, speedScalerStr, decelerationStr, normalDecelerationIndex, normalDecelerationUpperBound);
+    buildSpeedMap(Vehicle::CAR, speedScalerStr, decelerationStr, normalDecelerationIndex, normalDecelerationUpperBound);
     ParameterManager::Instance()->param(modelName, "normal_deceleration_scale", normalDecScaleStr, string("0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"));
-    makeScaleIdx(maxAccScaleStr, normalDecelerationScale);
+    strToVector(maxAccScaleStr, normalDecelerationScale);
     // max deceleration
     ParameterManager::Instance()->param(modelName, "Max_deceleration_car1", decelerationStr, string("16.0   14.5   13.0   11.0   10.0"));
-    makeSpeedIndex(Vehicle::CAR, speedScalerStr, decelerationStr, maxDecelerationIndex, maxDecelerationUpperBound);
+    buildSpeedMap(Vehicle::CAR, speedScalerStr, decelerationStr, maxDecelerationIndex, maxDecelerationUpperBound);
     ParameterManager::Instance()->param(modelName, "max_deceleration_scale", maxDecScaleStr, string("0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"));
-    makeScaleIdx(maxDecScaleStr, maxDecelerationScale);
+    strToVector(maxDecScaleStr, maxDecelerationScale);
     // acceleration grade factor
     ParameterManager::Instance()->param(modelName, "acceleration_grade_factor", accGradeFactor, 0.305);
     ParameterManager::Instance()->param(modelName, "tmp_all_grades", tmpGrade, 0.0);
     // param for distanceToNormalStop()
     ParameterManager::Instance()->param(modelName, "min_speed", minSpeed, 0.1);
     ParameterManager::Instance()->param(modelName, "min_response_distance", minResponseDistance, 5.0);
-}
-
-void sim_mob::MITSIM_CF_Model::makeScaleIdx(string& s, vector<double>& c) {
-    strToVector(s, c);
-}
-
-void sim_mob::MITSIM_CF_Model::makeSpeedIndex(Vehicle::VEHICLE_TYPE vhType,
-        string& speedScalerStr,
-        string& cstr,
-        map< Vehicle::VEHICLE_TYPE, map<int, double> >& idx,
-        int& upperBound) {
-    
-    // for example
-    // speedScalerStr "5 20 20" ft/sec
-    // maxAccStr      "10.00  7.90  5.60  4.00  4.00" ft/(s^2)
-
-    //processes the speed scaler array.
-    std::vector<double> speedScalerArrayDouble;
-    strToVector(speedScalerStr, speedScalerArrayDouble);
-
-    //processes max acceleration array.
-    std::vector<double> cArrayDouble;
-    strToVector(cstr, cArrayDouble);
-
-    upperBound = round(speedScalerArrayDouble[1] * (speedScalerArrayDouble[0] - 1));
-    map<int, double> cIdx;
-    for (int speed = 0; speed <= upperBound; ++speed) {
-        double maxAcc = 0.0;
-        // Convert speed value to a table index.
-        int j = speed / speedScalerArrayDouble[1];
-        if (j >= (speedScalerArrayDouble[0] - 1)) {
-            maxAcc = cArrayDouble[speedScalerArrayDouble[0] - 1];
-        } else {
-            maxAcc = cArrayDouble[j];
-        }
-        cIdx.insert(std::make_pair(speed, maxAcc));
-    }
-    idx[vhType] = cIdx;
 }
 
 double sim_mob::MITSIM_CF_Model::getMaxAcceleration(sim_mob::DriverUpdateParams& p, Vehicle::VEHICLE_TYPE vhType) {

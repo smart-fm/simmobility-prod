@@ -903,10 +903,12 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 
 		if (TranscodeString(child->getNodeName()) == "housingModel" )
 		{
-			LongTermParams::DeveloperModel developerModel;
-			developerModel.enabled = ParseBoolean(GetNamedAttributeValue(child, "enabled"), false );
-			developerModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(child, "timeInterval"), "value"), static_cast<unsigned int>(0));
-			cfg.ltParams.developerModel = developerModel;
+			LongTermParams::HousingModel housingModel;
+			housingModel.enabled = ParseBoolean(GetNamedAttributeValue(child, "enabled"), false);
+			housingModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(child, "timeInterval"), "value"), static_cast<unsigned int>(0));
+			housingModel.timeOnMarket = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(child, "timeOnMarket"), "value"), static_cast<unsigned int>(0));
+
+			cfg.ltParams.housingModel = housingModel;
 		}
 
 	}

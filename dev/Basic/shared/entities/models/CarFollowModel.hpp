@@ -103,7 +103,7 @@ private:
 	double accOfCarFollowing(sim_mob::DriverUpdateParams& p);  ///<when lower threshold < headway < upper threshold, use this function
 	double accOfFreeFlowing(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);  ///<when upper threshold < headway, use this funcion
 	double accOfMixOfCFandFF(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed); 	///<mix of car following and free flowing
-	void distanceToNormalStop(sim_mob::DriverUpdateParams& p);
+	double distanceToNormalStop(const sim_mob::DriverUpdateParams& p);
 	/** \brief This function update the variables that depend only on the speed of
 	 *         the vehicle and type.
 	 *  \param p vehicle state value

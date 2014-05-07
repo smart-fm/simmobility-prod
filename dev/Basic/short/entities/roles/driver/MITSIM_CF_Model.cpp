@@ -281,9 +281,7 @@ double sim_mob::MITSIM_CF_Model::getMaxDecScale() {
 }
 
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed) {
-    //initiate
-    //	distanceToNormalStop(p);
-
+    
     // VARIABLE || FUNCTION ||				REGIME
     calcStateBasedVariables(p);
 
@@ -702,29 +700,32 @@ double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(DriverUpdateParams& p, double
     }
 }
 
-void sim_mob::MITSIM_CF_Model::distanceToNormalStop(DriverUpdateParams& p) {
+double sim_mob::MITSIM_CF_Model::distanceToNormalStop(const DriverUpdateParams& p) {
     //	double minSpeed = 0.1;
     //	double minResponseDistance = 5;
     //	double DIS_EPSILON = 0.001;
+    double result = minResponseDistance;
     double fwdVelocityInMeters = Utils::cmToMeter(p.perceivedFwdVelocity);
     if (fwdVelocityInMeters > minSpeed) {
-        p.distanceToNormalStop = sim_mob::Math::DOUBLE_EPSILON -
+        result = sim_mob::Math::DOUBLE_EPSILON -
                 0.5 * (fwdVelocityInMeters) * (fwdVelocityInMeters) / normalDeceleration;
-        if (p.distanceToNormalStop < minResponseDistance) {
-            p.distanceToNormalStop = minResponseDistance;
+        if (result < minResponseDistance) {
+            result = minResponseDistance;
         }
-    } else {
-        p.distanceToNormalStop = minResponseDistance;
     }
+    return result;
 }
 
 void sim_mob::MITSIM_CF_Model::calcStateBasedVariables(DriverUpdateParams& p) {
-    //	double dt	=	p.elapsedSeconds;
+    
     timeStep -= p.elapsedSeconds;
-    /// if time step >0 ,no need update variables
-    if (timeStep > 0) return;
-
-    distanceToNormalStop(p);
+    
+    // if time step >0 ,no need update variables
+    if (timeStep > 0) {
+        return;
+    }
+    
+    p.distanceToNormalStop = distanceToNormalStop(p);
 
     // Acceleration rate for a vehicle (a function of vehicle type,
     // facility type, segment grade, current speed).

@@ -150,7 +150,7 @@ void sim_mob::MITSIM_CF_Model::makeScaleIdx(string& s, vector<double>& c) {
     std::vector<std::string> arrayStr;
     boost::trim(s);
     boost::split(arrayStr, s, boost::is_any_of(" "), boost::token_compress_on);
-    for (int i = 0; i < arrayStr.size(); ++i) {
+    for (size_t i = 0; i < arrayStr.size(); ++i) {
         double res;
         try {
             res = boost::lexical_cast<double>(arrayStr[i].c_str());
@@ -175,7 +175,7 @@ void sim_mob::MITSIM_CF_Model::makeSpeedIndex(Vehicle::VEHICLE_TYPE vhType,
     boost::trim(speedScalerStr);
     boost::split(arrayStr, speedScalerStr, boost::is_any_of(" "), boost::token_compress_on);
     std::vector<double> speedScalerArrayDouble;
-    for (int i = 0; i < arrayStr.size(); ++i) {
+    for (size_t i = 0; i < arrayStr.size(); ++i) {
         double res;
         try {
             res = boost::lexical_cast<double>(arrayStr[i].c_str());
@@ -191,7 +191,7 @@ void sim_mob::MITSIM_CF_Model::makeSpeedIndex(Vehicle::VEHICLE_TYPE vhType,
     //	std::vector<std::string> maxAccArrayStr;
     boost::split(arrayStr, cstr, boost::is_any_of(" "), boost::token_compress_on);
     std::vector<double> cArrayDouble;
-    for (int i = 0; i < arrayStr.size(); ++i) {
+    for (size_t i = 0; i < arrayStr.size(); ++i) {
         double res;
         try {
             res = boost::lexical_cast<double>(arrayStr[i].c_str());

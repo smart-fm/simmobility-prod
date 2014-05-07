@@ -296,7 +296,7 @@ LoopDetector::check(Vehicle const & vehicle)
     // The vehicle (that is, its central position) is outside of the inner area, but within the
     // outer monitoring area.  If its length is longer than the outer area, then it would extends
     // into the inner area, and hence over the loop detector.
-    if (dotProduct - vehicle.lengthCM < innerLength_)
+    if (dotProduct - vehicle.getLengthCm() < innerLength_)
     {
         return true;
     }
@@ -470,18 +470,17 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
         Lane const * lane = lanes[i];
         if (lane->is_pedestrian_lane())
         {
-//        	std::cout << "Bypassing a pedestrian lane\n";
             continue;
         }
 
         //Shared<CountAndTimePair> & pair = entity.data_[lane];
-        std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter = entity.data_.find(lane);
-        if (entity.data_.end() == iter)
+        std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter = entity.data.find(lane);
+        if (entity.data.end() == iter)
         {
             MutexStrategy const & mutexStrategy = ConfigManager::GetInstance().FullConfig().mutexStategy();
             Shared<CountAndTimePair> * pair = new Shared<CountAndTimePair>(mutexStrategy);
-            entity.data_.insert(std::make_pair(lane, pair));
-            iter = entity.data_.find(lane);
+            entity.data.insert(std::make_pair(lane, pair));
+            iter = entity.data.find(lane);
         }
         Shared<CountAndTimePair> * pair = iter->second;
 
@@ -524,7 +523,7 @@ LoopDetectorEntity::Impl::check(timeslice now)
         {
         	//Extract the current resource used by this Agent.
         	//TODO: Currently the only resource type is "Vehicle"
-        	const Vehicle * vehicle = person->getRole()->getResource();
+        	const Vehicle * vehicle = dynamic_cast<Vehicle*>(person->getRole()->getResource());
             if (vehicle) {
                 vehicles.insert(vehicle);
             }
@@ -576,13 +575,6 @@ LoopDetectorEntity::~LoopDetectorEntity()
 {
     if (pimpl_) {
         delete pimpl_;
-    }
-
-    std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter;
-    for (iter = data_.begin(); iter != data_.end(); ++iter)
-    {
-        Shared<CountAndTimePair> * pair = iter->second;
-        delete pair;
     }
 }
 

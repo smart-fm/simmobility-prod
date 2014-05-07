@@ -3,14 +3,24 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Sensor.hpp"
+#include "geospatial/Lane.hpp"
 
 namespace sim_mob {
+
+Sensor::~Sensor() {
+    std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter;
+    for (iter = data.begin(); iter != data.end(); ++iter)
+    {
+        Shared<CountAndTimePair> * pair = iter->second;
+        delete pair;
+    }
+}
 
 void
 Sensor::buildSubscriptionList(std::vector<BufferedBase*>& subsList)
 {
     std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter;
-    for (iter = data_.begin(); iter != data_.end(); ++iter)
+    for (iter = data.begin(); iter != data.end(); ++iter)
     {
         Shared<CountAndTimePair> * pair = iter->second;
         subsList.push_back(pair);
@@ -20,8 +30,8 @@ Sensor::buildSubscriptionList(std::vector<BufferedBase*>& subsList)
 Sensor::CountAndTimePair const &
 Sensor::getCountAndTimePair(Lane const & lane) const
 {
-    std::map<Lane const *, Shared<CountAndTimePair> *>::const_iterator iter = data_.find(&lane);
-    if (iter != data_.end())
+    std::map<Lane const *, Shared<CountAndTimePair> *>::const_iterator iter = data.find(&lane);
+    if (iter != data.end())
     {
         Shared<CountAndTimePair> const * pair = iter->second;
         return pair->get();

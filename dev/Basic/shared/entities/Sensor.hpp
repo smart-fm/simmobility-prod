@@ -8,32 +8,33 @@
 
 #include "buffering/Shared.hpp"
 #include "entities/Agent.hpp"
+#include "entities/UpdateParams.hpp"
+#include "metrics/Frame.hpp"
 
 namespace sim_mob {
 class Lane;
 
 /**
- * base class for a sensor.
- * Sensor can be a loop detector, camera or any other device which collects
+ * Base class for any sensor.
+ * A sensor can be a loop detector, camera or any other device which collects
  * information about traffic.
  *
  * \author Harish Loganathan
  */
 class Sensor : public Agent {
 public:
+    Sensor(MutexStrategy const & mutexStrategy) : Agent(mutexStrategy) {}
+    virtual ~Sensor();
+
     // Forward declaration.  Definition is below.
     struct CountAndTimePair;
 
-    Sensor(MutexStrategy const & mutexStrategy) : Agent(mutexStrategy) {}
-    virtual ~Sensor() {}
-
-public:
 	//Sensors are non-spatial in nature.
 	virtual bool isNonspatial() { return true; }
-    virtual void load(const std::map<std::string, std::string>& configProps) = 0;
 
     /**
      * Return the CountAndTimePair for the specified \c lane.
+     * @param lane constant reference to lane to get count from
      */
     CountAndTimePair const & getCountAndTimePair(Lane const & lane) const;
 
@@ -44,11 +45,12 @@ public:
 
 protected:
 	virtual bool frame_init(timeslice now) { return true; }
-	virtual Entity::UpdateStatus frame_tick(timeslice now);
+	virtual Entity::UpdateStatus frame_tick(timeslice now) { return UpdateStatus(UpdateStatus::RS_CONTINUE); }
 	virtual void frame_output(timeslice now) {}
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
-	std::map<Lane const *, Shared<CountAndTimePair> *> data_;
+	/** map to store lane-wise counts and time*/
+	std::map<Lane const *, Shared<CountAndTimePair> *> data;
 };
 
 struct Sensor::CountAndTimePair
@@ -60,17 +62,16 @@ struct Sensor::CountAndTimePair
     size_t vehicleCount;
 
     /**
-     * The total amount of time in milli-seconds during which no vehicle is hovering over the
-     * sensor during the cycle since the last call to reset().
+     * The total amount of time in milli-seconds during which no vehicle is
+     * hovering over the sensor during the cycle since the last call to reset().
      *
-     * Note that this is the "space-time" value, and not the "on-time" which is the total
-     * amount of time during which at least one vehicle is hovering over the sensor
+     * Note that this is the "space-time" value, and not the "on-time" which is
+     * the total amount of time during which at least one vehicle is hovering
+     * over the sensor
      */
     unsigned int spaceTimeInMilliSeconds;
 
-    /** \cond ignoreLoopDetectorEntityInnards -- Start of block to be ignored by doxygen.  */
     CountAndTimePair() : vehicleCount(0), spaceTimeInMilliSeconds(0) {}
-    /** \endcond ignoreLoopDetectorEntityInnards -- End of block to be ignored by doxygen.  */
 };
 
 }

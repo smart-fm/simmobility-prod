@@ -7,6 +7,8 @@
 #include "conf/settings/DisableMPI.h"
 
 #include <vector>
+#include <set>
+#include <boost/unordered_map.hpp>
 
 #include "buffering/Shared.hpp"
 #include "entities/Agent.hpp"
@@ -29,6 +31,7 @@ class BusStop;
 class BusStopAgent  : public sim_mob::Agent
 {
 public:
+	typedef boost::unordered_map<std::string, BusStopAgent *> BusStopAgentsMap;
 	BusStopAgent(BusStop const & busstop, const MutexStrategy& mtxStrat, int id=-1)
 		  : Agent(mtxStrat, id), busstop_(busstop) {};
 
@@ -38,6 +41,8 @@ public:
 	//Assign all bus stops to Workers in the given WorkGroup
 	static void AssignAllBusStopAgents(sim_mob::WorkGroup& wg);
 
+	///creates a bus stop agent corresponding to each bus stop
+	static void CreateBusStopAgents(const std::set<BusStop*>& stopsList, const MutexStrategy& mtxStrat);
 
 	///Initialize a new BusStopAgent with the given busstop and MutexStrategy.
 	static void RegisterNewBusStopAgent(BusStop& busstop, const MutexStrategy& mtxStrat);
@@ -89,7 +94,7 @@ public:
 	virtual bool isNonspatial();
 
 private:
-	static std::vector<BusStopAgent *> all_BusstopAgents_;
+	static BusStopAgentsMap all_BusstopAgents_;
 	// BusStop object reference
 	sim_mob::BusStop const & busstop_;
 	//currently is equal to busstopno_

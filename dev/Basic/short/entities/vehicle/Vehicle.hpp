@@ -37,10 +37,8 @@ class FMODSchedule;
  **/
 class Vehicle : public sim_mob::VehicleBase {
 public:
-//	Vehicle(int startLaneID);
-	Vehicle(double lengthCM, double widthCM); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
-	Vehicle(int vehicleId, double lengthCM, double widthCM); //Test
-//	Vehicle();  //There is no wpPoint to initialize one Vehicle when crossing
+	Vehicle(const VehicleType vehType, double lengthCM, double widthCM); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
+	Vehicle(const VehicleType vehType, int vehicleId, double lengthCM, double widthCM); //Test
 	Vehicle(const Vehicle& copy); ///<Copy constructor
 
 	//Enable polymorphism

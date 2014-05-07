@@ -22,6 +22,12 @@ public:
 	: vehicleType(vehType), lengthCM(length), widthCM(width)
 	{}
 
+	VehicleBase(const VehicleBase& copy)
+	: vehicleType(copy.vehicleType), lengthCM(copy.lengthCM), widthCM(copy.widthCM)
+	{}
+
+	virtual ~VehicleBase() {}
+
 	const double getLengthCm() const {
 		return lengthCM;
 	}

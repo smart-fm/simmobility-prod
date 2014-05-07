@@ -32,21 +32,15 @@ namespace sim_mob
  * objects, there will be frames during which both objects run.  Because the objects are managed
  * by different Worker objects, the order in which they run is not deterministic.  The vehicle
  * count and space-time values may be different if the order of the calls to the update() and
- * reset() methods is different.  From a modelling point of view, this difference will not be
+ * reset() methods is different.  From a modeling point of view, this difference will not be
  * significant.  However it does introduce some randomness into each simulation run.
  */
 class LoopDetectorEntity : public sim_mob::Sensor
 {
 public:
-    LoopDetectorEntity(MutexStrategy const & mutexStrategy) : Agent(mutexStrategy), pimpl_(0) {}
+    LoopDetectorEntity(MutexStrategy const & mutexStrategy) : Sensor(mutexStrategy), pimpl_(0) {}
     virtual ~LoopDetectorEntity();
 
-protected:
-	virtual bool frame_init(timeslice now) { return true; }
-	virtual Entity::UpdateStatus frame_tick(timeslice now);
-	virtual void frame_output(timeslice now) {}
-
-public:
 	//Loop detectors are non-spatial in nature.
 	virtual bool isNonspatial() { return true; }
 
@@ -58,7 +52,7 @@ public:
     /**
      * Called by the Signal object at the end of its cycle to reset all CountAndTimePair.
      */
-    void reset();
+    virtual void reset();
 
     /**
      * Called by the Signal object at the end of its cycle to reset the CountAndTimePair
@@ -67,6 +61,7 @@ public:
     void reset(Lane const & lane);
 
 protected:
+    virtual Entity::UpdateStatus frame_tick(timeslice now);
     class Impl;
     Impl* pimpl_;
     friend class Impl;

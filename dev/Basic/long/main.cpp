@@ -122,29 +122,35 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         // -- Events injector work group.
         WorkGroup* logsWorker = wgMgr.newWorkGroup(1, days, tickStep);
         WorkGroup* eventsWorker = wgMgr.newWorkGroup(1, days, tickStep);
-        
+        WorkGroup* hmWorkers;
+        WorkGroup* devWorkers;
 
+        if( enableHousingMarket )
+        	hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep);
+
+        if( enableDeveloperModel )
+        	devWorkers = wgMgr.newWorkGroup(1, days, tickStep);
+        
         //init work groups.
         wgMgr.initAllGroups();
         logsWorker->initWorkers(nullptr);
         eventsWorker->initWorkers(nullptr);
+
+        if( enableHousingMarket )
+        	hmWorkers->initWorkers(nullptr);
+
+        if( enableDeveloperModel )
+        	devWorkers->initWorkers(nullptr);
         
         //assign agents
         logsWorker->assignAWorker(&(agentsLookup.getLogger()));
         eventsWorker->assignAWorker(&(agentsLookup.getEventsInjector()));
 
-        if( enableHousingMarket ){
-        	 WorkGroup* hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep);
-        	 hmWorkers->initWorkers(nullptr);
+        if( enableHousingMarket )
         	 models.push_back(new HM_Model(*hmWorkers));
-        }
 
-        if( enableDeveloperModel ){
-        	WorkGroup* devWorkers = wgMgr.newWorkGroup(1, days, tickStep);
-        	devWorkers->initWorkers(nullptr);
+        if( enableDeveloperModel )
         	 models.push_back(new DeveloperModel(*devWorkers, timeIntervalDevModel ));
-        }
-
 
         //start all models.
         for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++) {

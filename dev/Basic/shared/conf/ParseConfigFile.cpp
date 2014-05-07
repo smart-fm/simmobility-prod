@@ -890,28 +890,18 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	cfg.ltParams.tickStep = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "tickStep"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.workers = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "workers"), "value"), static_cast<unsigned int>(0));
 
+	//DOMElement* childDevMod = GetSingleElementByName( node, "housingModel");
+	LongTermParams::DeveloperModel developerModel;
+	developerModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "developerModel"), "enabled"), false );
+	developerModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "developerModel"), "timeInterval"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.developerModel = developerModel;
 
-	for (DOMElement* child=node->getFirstElementChild(); child; child = child->getNextElementSibling())
-	{
-		if (TranscodeString(child->getNodeName()) == "developerModel" )
-		{
-			LongTermParams::DeveloperModel developerModel;
-			developerModel.enabled = ParseBoolean(GetNamedAttributeValue(child, "enabled"), false );
-			developerModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(child, "timeInterval"), "value"), static_cast<unsigned int>(0));
-			cfg.ltParams.developerModel = developerModel;
-		}
 
-		if (TranscodeString(child->getNodeName()) == "housingModel" )
-		{
-			LongTermParams::HousingModel housingModel;
-			housingModel.enabled = ParseBoolean(GetNamedAttributeValue(child, "enabled"), false);
-			housingModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(child, "timeInterval"), "value"), static_cast<unsigned int>(0));
-			housingModel.timeOnMarket = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(child, "timeOnMarket"), "value"), static_cast<unsigned int>(0));
-
-			cfg.ltParams.housingModel = housingModel;
-		}
-
-	}
+	LongTermParams::HousingModel housingModel;
+	housingModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "housingModel"), "enabled"), false);
+	housingModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeInterval"), "value"), static_cast<unsigned int>(0));
+	housingModel.timeOnMarket = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeOnMarket"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.housingModel = housingModel;
 }
 
 

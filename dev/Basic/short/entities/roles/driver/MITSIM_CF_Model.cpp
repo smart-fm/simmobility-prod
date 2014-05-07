@@ -740,11 +740,8 @@ double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(DriverUpdateParams& p, double
     if (p.space > p.distanceToNormalStop) {
         return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);
     } else {
-        double dt = p.elapsedSeconds;
-        //p.space_star	=	p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
-        double s = p.space_star;
-        double v = p.v_lead + p.a_lead * dt;
-        return brakeToTargetSpeed(p, s, v);
+        double v = p.v_lead + p.a_lead * p.elapsedSeconds;
+        return brakeToTargetSpeed(p, p.space_star, v);
     }
 }
 

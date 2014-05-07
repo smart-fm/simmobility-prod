@@ -545,10 +545,10 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p, double 
 
 double sim_mob::MITSIM_CF_Model::waitExitLaneRate(DriverUpdateParams& p) {
     double dx = Utils::cmToMeter(p.perceivedDistToFwdCar) - 5;
-    if (p.turningDirection == LCS_SAME || dx > p.distanceToNormalStop)
+    if (p.turningDirection == LCS_SAME || dx > p.distanceToNormalStop){
         return maxAcceleration;
-    else
-        return brakeToStop(p, dx);
+    }
+    return brakeToStop(p, dx);
 }
 
 double sim_mob::MITSIM_CF_Model::calcForwardRate(DriverUpdateParams& p) {

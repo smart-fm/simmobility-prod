@@ -149,11 +149,10 @@ void sim_mob::medium::BusDriver::enterBusStop(
 
 	if (requestMode.get() == Role::REQUEST_DECISION_TIME) {
 		requestMode.set(Role::REQUEST_NONE);
-		//final waiting time is maximum value between dwell time and holding time
-		if (waitingTimeAtbusStop < holdingTime.get()) {
+		if (waitingTimeAtbusStop < holdingTime.get()) {	//final waiting time is maximum value between dwelling time and holding time
 			waitingTimeAtbusStop = holdingTime.get();
-			holdingTime.set(0.0);
 		}
+		holdingTime.set(0.0);
 	}
 }
 

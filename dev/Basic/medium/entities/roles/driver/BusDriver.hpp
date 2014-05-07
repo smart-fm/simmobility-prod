@@ -73,6 +73,13 @@ public:
 	 */
 	void predictArrivalAtBusStop(double preArrivalTime, sim_mob::medium::BusStopAgent* busStopAgent);
 
+	/**
+	 * get current waiting time at bus stop
+	 */
+	double getWaitingTimeAtBusStop() {
+		return waitingTimeAtbusStop;
+	}
+
 private:
 	/**passengers list*/
 	std::list<sim_mob::Person*> passengerList;
@@ -86,7 +93,7 @@ private:
 	Shared<BusStop_RealTimes>* busStopRealTimes;
 	/** dwell time set by bus driver*/
 	Shared<double> dwellTime;
-	/**waiting time set by bus controller*/
+	/**holding time set by bus controller*/
 	Shared<double> holdingTime;
 	/**get bus line information*/
 	Shared<std::string> visitedBusLine;

@@ -23,7 +23,7 @@ std::vector<std::string> sim_mob::CloudHandler::writeLinesReadLines(const std::v
 {
 	{ //Wait for the write/read lock and claim it.
 	boost::unique_lock<boost::mutex> lock(mutex_is_write_read);
-	while (!isWriteRead) {
+	while (isWriteRead) {
 		COND_VAR_IS_WRITE_READ.wait(lock);
 	}
 	isWriteRead = true;
@@ -31,7 +31,8 @@ std::vector<std::string> sim_mob::CloudHandler::writeLinesReadLines(const std::v
 
 	//At the moment, we can only handle single-line writes. Multi-line is not much more difficult, but
 	// the policy of write/read interleaving has to be decided.
-	if (outgoing.size()!=1) {
+	bool specialCase = outgoing.size()==2 && outgoing.back().empty();
+	if (outgoing.size()!=1 && !specialCase) {
 		throw std::runtime_error("Can't handle multi-line cloud writes at the moment.");
 	}
 
@@ -53,9 +54,10 @@ std::vector<std::string> sim_mob::CloudHandler::writeLinesReadLines(const std::v
 		boost::asio::read_until(socket, buff, "\n");
 		std::istream is(&buff);
 		std::getline(is, res.back());
+		res.back().erase(res.back().find_last_not_of(" \n\r\t")+1);
 
 		//Done?
-		if (res.back() == "\n") {
+		if (res.back().empty()) {
 			break;
 		}
 	}

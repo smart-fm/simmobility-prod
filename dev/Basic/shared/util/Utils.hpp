@@ -97,6 +97,15 @@ namespace sim_mob {
          * @return value in meter.
          */
         static double toMeter(const double feet);
+        
+        /**
+         * Converts the given value (in centimeters) to meters.
+         * @param cmValue
+         * @return value in meters
+         */
+        template<typename T> static T cmToMeter(const T& cmValue){
+            return (T)(cmValue/(T)100);
+        }
     };
 
     /**

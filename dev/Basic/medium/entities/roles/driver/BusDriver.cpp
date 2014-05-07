@@ -6,7 +6,7 @@
  * BusDriver.cpp
  *
  *  Created on: May 6, 2013
- *      Author: zhang
+ *      Author: zhang huai peng
  *      		melani
  */
 
@@ -30,10 +30,11 @@ sim_mob::medium::BusDriver::BusDriver(Agent* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::BusDriverMovement* movement) :
 		sim_mob::medium::Driver(parent, mtxStrat, behavior, movement), requestMode(
 				mtxStrat, 0), visitedBusStop(mtxStrat, nullptr), visitedBusStopSequenceNo(
-				mtxStrat, 0), realDepartureTime(mtxStrat, 0.0), realArrivalTime(
-				mtxStrat, 0.0), dwellTime(mtxStrat, 0.0), visitedBusTripSequenceNo(
-				mtxStrat, 0), visitedBusLine(mtxStrat, "0"), waitingTime(mtxStrat, 0.0) {
-	// TODO Auto-generated constructor stub
+				mtxStrat, -1), arrivalTime(mtxStrat, 0.0), dwellTime(
+				mtxStrat, 0.0), visitedBusTripSequenceNo(mtxStrat, 0), visitedBusLine(
+				mtxStrat, "0"), holdingTime(mtxStrat, 0.0), waitingTimeAtbusStop(
+				0.0) {
+
 }
 
 sim_mob::medium::BusDriver::~BusDriver() {
@@ -79,11 +80,11 @@ sim_mob::DriverRequestParams sim_mob::medium::BusDriver::getDriverRequestParams(
 	res.lastVisited_Busline = &visitedBusLine;
 	res.lastVisited_BusTrip_SequenceNo = &visitedBusTripSequenceNo;
 	res.busstop_sequence_no = &visitedBusStopSequenceNo;
-	res.real_ArrivalTime = &realArrivalTime;
+	res.real_ArrivalTime = &arrivalTime;
 	res.DwellTime_ijk = &dwellTime;
 	res.lastVisited_BusStop = &visitedBusStop;
 	res.last_busStopRealTimes = busStopRealTimes;
-	res.waiting_Time = &waitingTime;
+	res.waiting_Time = &holdingTime;
 
 	return res;
 }
@@ -112,7 +113,28 @@ int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusStopAgent* b
 	return numAlighting;
 }
 
-void sim_mob::medium::BusDriver::enterBusStop(sim_mob::medium::BusStopAgent* busStopAgent) {
+void sim_mob::medium::BusDriver::predictArrivalAtBusStop(double preArrivalTime,
+		sim_mob::medium::BusStopAgent* busStopAgent) {
+	sim_mob::Person* person = dynamic_cast<Person*>(parent);
+	if (!person) {
+		return;
+	}
+
+	const BusTrip* busTrip =
+			dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+	if (busTrip) {
+		const Busline* busLine = busTrip->getBusline();
+		visitedBusLine.set(busLine->getBusLineID());
+		visitedBusTripSequenceNo.set(busTrip->getBusTripRun_SequenceNum());
+		requestMode.set(Role::REQUEST_DECISION_TIME);
+		visitedBusStop.set(busStopAgent->getBusStop());
+		visitedBusStopSequenceNo.set(visitedBusStopSequenceNo.get() + 1);
+		arrivalTime.set(preArrivalTime);
+	}
+}
+
+void sim_mob::medium::BusDriver::enterBusStop(
+		sim_mob::medium::BusStopAgent* busStopAgent) {
 
 	messaging::MessageBus::SendInstantaneousMessage(busStopAgent,
 			MSG_DECISION_WAITINGPERSON_BOARDING,
@@ -121,9 +143,18 @@ void sim_mob::medium::BusDriver::enterBusStop(sim_mob::medium::BusStopAgent* bus
 
 	int numAlighting = alightPassenger(busStopAgent);
 	int numBoarding = busStopAgent->getBoardingNum(this);
-	int totalNumber = numAlighting+numBoarding;
 
-	double dwellTime = sim_mob::dwellTimeCalculation(0,0,0,0,0,totalNumber);
+	int totalNumber = numAlighting + numBoarding;
+	waitingTimeAtbusStop = sim_mob::dwellTimeCalculation(totalNumber);
+
+	if (requestMode.get() == Role::REQUEST_DECISION_TIME) {
+		requestMode.set(Role::REQUEST_NONE);
+		//final waiting time is maximum value between dwell time and holding time
+		if (waitingTimeAtbusStop < holdingTime.get()) {
+			waitingTimeAtbusStop = holdingTime.get();
+			holdingTime.set(0.0);
+		}
+	}
 }
 
 std::vector<BufferedBase*> sim_mob::medium::BusDriver::getSubscriptionParams() {

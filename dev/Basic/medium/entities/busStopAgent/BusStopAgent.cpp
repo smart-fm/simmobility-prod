@@ -67,6 +67,7 @@ void BusStopAgent::HandleMessage(messaging::Message::MessageType type,
 
 void BusStopAgent::boardWaitingPersons(
 		sim_mob::medium::BusDriver* busDriver) {
+	int numBoarding = 0;
 	std::list<sim_mob::Person*>::iterator itPerson;
 	for (itPerson = waitingPersons.begin(); itPerson != waitingPersons.end();
 			itPerson++) {
@@ -86,6 +87,7 @@ void BusStopAgent::boardWaitingPersons(
 		if(waitingActivity && waitingActivity->getDecision()==BOARD_BUS){
 			if(busDriver->insertPassenger(*itPerson)){
 				itPerson = waitingPersons.erase(itPerson);
+				numBoarding++;
 			}
 			else {
 				waitingActivity->setDecision(NO_DECISION);
@@ -96,12 +98,24 @@ void BusStopAgent::boardWaitingPersons(
 			itPerson++;
 		}
 	}
+
+	std::map<sim_mob::medium::BusDriver*, int>::iterator it =
+			lastBoardingRecorder.find(busDriver);
+	if (it != lastBoardingRecorder.end()) {
+		it->second = numBoarding;
+	} else {
+		lastBoardingRecorder.insert(std::make_pair(busDriver, numBoarding));
+	}
 }
 
-int BusStopAgent::getBoardingNum(sim_mob::medium::BusDriver* busDriver){
+int BusStopAgent::getBoardingNum(sim_mob::medium::BusDriver* busDriver) {
 	int numBoarding = 0;
+	std::map<sim_mob::medium::BusDriver*, int>::iterator it =
+			lastBoardingRecorder.find(busDriver);
+	if (it != lastBoardingRecorder.end()) {
+		numBoarding = it->second;
+	}
 	return numBoarding;
 }
-
 }
 }

@@ -93,6 +93,8 @@ private:
 	std::list<sim_mob::Person*> alightingPersons;
 	std::list<sim_mob::medium::BusDriver*> parkingDrivers;
 	const sim_mob::BusStop* busStop;
+	/**record last boarding number for a given bus*/
+	std::map<sim_mob::medium::BusDriver*, int> lastBoardingRecorder;
 
 };
 }

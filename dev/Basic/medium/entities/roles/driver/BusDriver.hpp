@@ -66,6 +66,13 @@ public:
 	 */
 	void enterBusStop(sim_mob::medium::BusStopAgent* busStopAgent);
 
+	/**
+	 * predict arrival at next bus stop in next frame tick
+	 * @param preArrivalTime is predicted arrival time at next bus stop
+	 * @param bus stop agent is the agent which wrap next bus stop
+	 */
+	void predictArrivalAtBusStop(double preArrivalTime, sim_mob::medium::BusStopAgent* busStopAgent);
+
 private:
 	/**passengers list*/
 	std::list<sim_mob::Person*> passengerList;
@@ -73,22 +80,22 @@ private:
 	Shared<const BusStop*> visitedBusStop;
 	/**last visited bus stop sequence number*/
 	Shared<int> visitedBusStopSequenceNo;
-	/**real departure time set by bus controller*/
-	Shared<double> realDepartureTime;
 	/**real arrival time set by bus driver*/
-	Shared<double> realArrivalTime;
+	Shared<double> arrivalTime;
 	/**current bus stop real times including departure and arrival time*/
 	Shared<BusStop_RealTimes>* busStopRealTimes;
 	/** dwell time set by bus driver*/
 	Shared<double> dwellTime;
 	/**waiting time set by bus controller*/
-	Shared<double> waitingTime;
+	Shared<double> holdingTime;
 	/**get bus line information*/
 	Shared<std::string> visitedBusLine;
 	/**sequence number for current bus trip*/
 	Shared<int> visitedBusTripSequenceNo;
 	/**request mode for holding strategy*/
 	Shared<int> requestMode;
+	/**final waiting time at bus stop*/
+	double waitingTimeAtbusStop;
 
 protected:
 	friend class BusDriverBehavior;

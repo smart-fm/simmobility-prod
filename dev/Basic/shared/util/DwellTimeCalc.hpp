@@ -12,8 +12,8 @@ namespace sim_mob
  *
  * \refactor zhang huai peng
  */
-double dwellTimeCalculation(int A, int B, int deltaBay,
-		int deltaFull, int P_Front, int numOfPassengers) {
+double dwellTimeCalculation(int numOfPassengers, int A = 0, int B = 0,
+		int deltaBay = 0, int deltaFull = 0, int P_Front = 0) {
 
 	const double alpha1 = 2.1; //alighting passenger service time,assuming payment by smart card
 	const double alpha2 = 3.5; //boarding passenger service time,assuming alighting through rear door

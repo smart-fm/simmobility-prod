@@ -44,7 +44,7 @@ public:
 	static void AssignAllBusStopAgents(sim_mob::WorkGroup& wg);
 
 	///creates a bus stop agent corresponding to each bus stop
-	static void CreateBusStopAgents(const std::set<BusStop*>& stopsList, const MutexStrategy& mtxStrat);
+	static void createBusStopAgents(const std::set<BusStop*>& stopsList, const MutexStrategy& mtxStrat);
 
 	///Initialize a new BusStopAgent with the given busstop and MutexStrategy.
 	static void RegisterNewBusStopAgent(BusStop& busstop, const MutexStrategy& mtxStrat);

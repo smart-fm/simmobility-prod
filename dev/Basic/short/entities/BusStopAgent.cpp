@@ -45,8 +45,8 @@ bool sim_mob::BusStopAgent::HasBusStopAgents()
 	return !allBusstopAgents.empty();
 }
 
-void sim_mob::BusStopAgent::CreateBusStopAgents(const std::set<BusStop*>& stopsList, const MutexStrategy& mtxStrat) {
-	for(std::set<BusStop*>::iterator stopIt=stopsList.begin();
+void sim_mob::BusStopAgent::createBusStopAgents(const std::set<BusStop*>& stopsList, const MutexStrategy& mtxStrat) {
+	for(std::set<BusStop*>::const_iterator stopIt=stopsList.begin();
 			stopIt!=stopsList.end(); stopIt++) {
 		RegisterNewBusStopAgent(**stopIt, mtxStrat);
 	}
@@ -79,7 +79,6 @@ BusStopAgent* sim_mob::BusStopAgent::findBusStopAgentByBusStop(const BusStop* bu
 
 BusStopAgent* sim_mob::BusStopAgent::findBusStopAgentByBusStopNo(const std::string& busstopno)
 {
-	std::string stopNo = busstopno;
 	try {
 		return allBusstopAgents.at(busstopno);
 	}

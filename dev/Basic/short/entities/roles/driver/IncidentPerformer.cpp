@@ -33,10 +33,10 @@ sim_mob::IncidentStatus& IncidentPerformer::getIncidentStatus(){
 
 void sim_mob::IncidentPerformer::responseIncidentStatus(Driver* parentDriver, DriverUpdateParams& p, timeslice now) {
 	//slow down velocity when driver views the incident within the visibility distance
-	float incidentGap = parentDriver->getVehicle()->getLengthCm();
+	double incidentGap = parentDriver->getVehicle()->getLengthCm();
 	if(incidentStatus.getSlowdownVelocity()){
 		//calculate the distance to the nearest front vehicle, if no front vehicle exists, the distance is given to a enough large gap as 5 kilometers
-		float fwdCarDist = 5000;
+		double fwdCarDist = 5000;
 		if( p.nvFwd.exists() ){
 			DPoint dFwd = p.nvFwd.driver->getCurrPosition();
 			DPoint dCur = parentDriver->getCurrPosition();
@@ -54,7 +54,8 @@ void sim_mob::IncidentPerformer::responseIncidentStatus(Driver* parentDriver, Dr
 		float approachingSpeed = APPROACHING_SPEED;
 		float oldDistToStop = p.perceivedDistToFwdCar;
 		LANE_CHANGE_SIDE oldDirect = p.turningDirection;
-		p.perceivedDistToFwdCar = std::min(incidentStatus.getDistanceToIncident(), fwdCarDist);
+		double distToIncident = incidentStatus.getDistanceToIncident();
+		p.perceivedDistToFwdCar = std::min(distToIncident, fwdCarDist);
 		p.turningDirection = LCS_LEFT;
 		//retrieve speed limit decided by whether or not incident lane or adjacent lane
 		speedLimit = incidentStatus.getSpeedLimit(p.currLaneIndex);
@@ -149,7 +150,7 @@ void sim_mob::IncidentPerformer::checkIncidentStatus(Driver* parentDriver, Drive
 			if( (now.ms() >= incidentObj->startTime) && (now.ms() < incidentObj->startTime+incidentObj->duration) && realDist<visibility){
 				incidentStatus.setDistanceToIncident(realDist);
 				replan = incidentStatus.insertIncident(incidentObj);
-				float incidentGap = parentDriver->getVehicle()->getLengthCm();
+				double incidentGap = parentDriver->getVehicle()->getLengthCm();
 				if(!incidentStatus.getChangedLane() && incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_OCCURANCE_LANE){
 					double prob = incidentStatus.getVisibilityDistance()>0 ? incidentStatus.getDistanceToIncident()/incidentStatus.getVisibilityDistance() : 0.0;
 					if(incidentStatus.getDistanceToIncident() < incidentGap){

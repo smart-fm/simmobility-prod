@@ -76,7 +76,7 @@ vector<BufferedBase*> sim_mob::medium::Driver::getSubscriptionParams() {
 
 void sim_mob::medium::Driver::make_frame_tick_params(timeslice now)
 {
-	getParams().reset(now, *this);
+	getParams().reset(now);
 }
 
 Role* sim_mob::medium::Driver::clone(Person* parent) const
@@ -89,11 +89,11 @@ Role* sim_mob::medium::Driver::clone(Person* parent) const
 	return driver;
 }
 
-void sim_mob::medium::DriverUpdateParams::reset(timeslice now, const Driver& owner)
+void sim_mob::medium::DriverUpdateParams::reset(timeslice now)
 {
 	UpdateParams::reset(now);
 
-	secondsInTick = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
+	secondsInTick = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	elapsedSeconds = 0.0;
 }
 

@@ -68,6 +68,7 @@ inline double converToSeconds(uint32_t timeInMs) {
 }
 
 const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
+const double INFINITESIMAL_DOUBLE = 0.001;
 }
 
 namespace sim_mob {
@@ -96,8 +97,7 @@ sim_mob::medium::Driver* sim_mob::medium::DriverBehavior::getParentDriver() {
 
 sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	MovementFacet(parentAgent), parentDriver(nullptr), vehicleLength(400),
-	currLane(nullptr), laneInNextSegment(nullptr), isQueuing(false),
-	velocity(0)
+	currLane(nullptr), laneInNextSegment(nullptr), isQueuing(false)
 {
 	if(vehicleLength == 0) {
 		throw std::runtime_error("Driver cannot be initialized with a Vehicle of length = 0");
@@ -106,7 +106,6 @@ sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 
 
 sim_mob::medium::DriverMovement::~DriverMovement() {}
-
 
 void sim_mob::medium::DriverMovement::frame_init() {
 	bool pathInitialized = initializePath();
@@ -124,25 +123,24 @@ void sim_mob::medium::DriverMovement::frame_init() {
 void sim_mob::medium::DriverMovement::frame_tick() {
 	sim_mob::medium::DriverUpdateParams& params = parentDriver->getParams();
 	const sim_mob::SegmentStats* currSegStats = pathMover.getCurrSegStats();
-	if(currSegStats == getParent()->getCurrSegStats())
-	{
-		if (!pathMover.isPathCompleted() && currSegStats->laneInfinity)
-		{
-			//the vehicle will be in lane infinity before it starts starts. set origin will move it to the correct lane
-			if (getParent()->getCurrLane() == currSegStats->laneInfinity){
-				setOrigin(params);
-			}
-		} else {
-			Warn() <<"ERROR: Vehicle could not be created for driver; no route!" <<std::endl;
-		}
-	}
-
-	//Are we done already?
-	if (pathMover.isPathCompleted()) {
+	if(!currSegStats) {
+		//if currSegstats is NULL, either the driver did not find a path to his
+		//destination or his path is completed. Either way, we remove this
+		//person from the simulation.
 		getParent()->setToBeRemoved();
 		return;
 	}
-
+	else if (currSegStats == getParent()->getCurrSegStats())
+	{
+		//the vehicle will be in lane infinity before it starts.
+		//set origin will move it to the correct lane
+		if (getParent()->getCurrLane() == currSegStats->laneInfinity) {
+			setOrigin(params);
+		}
+	}
+	//canMoveToNextSegment is GRANTED/DENIED only when this driver had previously
+	//requested permission to move to the next segment. This request is made
+	//only when the driver has reached the end of the current link
 	if(getParent()->canMoveToNextSegment == Person::GRANTED) {
 		flowIntoNextLinkIfPossible(params);
 	}
@@ -160,7 +158,8 @@ void sim_mob::medium::DriverMovement::frame_tick() {
 			setParentData(params);
 		}
 	}
-	//if vehicle is still in lane infinity, it shouldn't be advanced
+	//if driver is still in lane infinity (currLane is null),
+	//he shouldn't be advanced
 	if (currLane && getParent()->canMoveToNextSegment == Person::NONE) {
 		advance(params);
 		setParentData(params);
@@ -506,8 +505,11 @@ bool DriverMovement::advanceQueuingVehicle(sim_mob::medium::DriverUpdateParams& 
 	double output = getOutputCounter(currLane, pathMover.getCurrSegStats());
 	double outRate = getOutputFlowRate(currLane);
 
-	//assuming vehicle length is in cm; vehicle length and outrate cannot be 0
-	finalTimeSpent = initialTimeSpent + initialDistToSegEnd/(vehicleLength*outRate); // there was a magic factor 3.0 in the denominator. I removed it because i did not understand why it was needed.~Harish
+	//The following line of code assumes vehicle length is in cm;
+	//vehicle length and outrate cannot be 0.
+	//There was a magic factor 3.0 in the denominator. It was removed because
+	//its purpose was not clear to anyone.~Harish
+	finalTimeSpent = initialTimeSpent + initialDistToSegEnd/(vehicleLength*outRate);
 
 	if (output > 0 && finalTimeSpent < params.secondsInTick &&
 			pathMover.getCurrSegStats()->getPositionOfLastUpdatedAgentInLane(currLane) == -1)
@@ -530,7 +532,6 @@ bool DriverMovement::advanceQueuingVehicle(sim_mob::medium::DriverUpdateParams& 
 }
 
 bool DriverMovement::advanceMovingVehicle(sim_mob::medium::DriverUpdateParams& params) {
-
 	bool res = false;
 	double initialTimeSpent = params.elapsedSeconds;
 	double initialDistToSegEnd = pathMover.getPositionInSegment();
@@ -541,15 +542,15 @@ bool DriverMovement::advanceMovingVehicle(sim_mob::medium::DriverUpdateParams& p
 		throw std::runtime_error("agent's current lane is not set!");
 	}
 
-	setVelocity();
+	const sim_mob::SegmentStats* currSegStats = pathMover.getCurrSegStats();
+	//We can infer that the path is not completed if this function is called.
+	//Therefore currSegStats cannot be NULL. It is safe to use it in this function.
+	double velocity = currSegStats->getSegSpeed(true);
+	double output = getOutputCounter(currLane, currSegStats);
 
-	double output = getOutputCounter(currLane, pathMover.getCurrSegStats());
-
-	//get current location
-	//before checking if the vehicle should be added to a queue, it's re-assigned to the best lane
+	// add driver to queue if required
 	double laneQueueLength = getQueueLength(currLane);
-	//if (laneQueueLength > vehicle->getCurrLinkLaneZeroLength() )
-	if (laneQueueLength >  currLane->getRoadSegment()->getLaneZeroLength())
+	if (laneQueueLength >  currSegStats->getLength())
 	{
 		addToQueue(currLane);
 		params.elapsedSeconds = params.secondsInTick;
@@ -605,29 +606,30 @@ bool DriverMovement::advanceMovingVehicle(sim_mob::medium::DriverUpdateParams& p
 }
 
 bool DriverMovement::advanceMovingVehicleWithInitialQ(sim_mob::medium::DriverUpdateParams& params) {
-
 	bool res = false;
 	double initialTimeSpent = params.elapsedSeconds;
 	double initialDistToSegEnd = pathMover.getPositionInSegment();
 	double finalTimeSpent = 0.0;
 	double finalDistToSegEnd = 0.0;
 
-	setVelocity();
-	double vu = velocity;
-
+	double velocity = pathMover.getCurrSegStats()->getSegSpeed(true);
 	double output = getOutputCounter(currLane, pathMover.getCurrSegStats());
 	double outRate = getOutputFlowRate(currLane);
 
-	double timeToDissipateQ = getInitialQueueLength(currLane)/(3.0*outRate*vehicleLength); //assuming vehicle length is in cm; vehicle length and outrate cannot be 0
-	double timeToReachEndSeg = initialTimeSpent + initialDistToSegEnd/vu;
-	finalDistToSegEnd = std::max(timeToDissipateQ, timeToReachEndSeg);
+	//The following line of code assumes vehicle length is in cm;
+	//vehicle length and outrate cannot be 0.
+	//There was a magic factor 3.0 in the denominator. It was removed because
+	//its purpose was not clear to anyone. ~Harish
+	double timeToDissipateQ = getInitialQueueLength(currLane)/(outRate*PASSENGER_CAR_UNIT);
+	double timeToReachEndSeg = initialTimeSpent + initialDistToSegEnd/velocity;
+	finalTimeSpent = std::max(timeToDissipateQ, timeToReachEndSeg);
 
-	if (finalDistToSegEnd < params.secondsInTick)
+	if (finalTimeSpent < params.secondsInTick)
 	{
 		if (output > 0)
 		{
 			pathMover.setPositionInSegment(0.0);
-			params.elapsedSeconds = finalDistToSegEnd;
+			params.elapsedSeconds = finalTimeSpent;
 			res = moveToNextSegment(params);
 		}
 		else
@@ -638,27 +640,24 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(sim_mob::medium::DriverUpd
 	}
 	else
 	{
-		if( fabs(finalDistToSegEnd-timeToReachEndSeg) < 0.001 && timeToReachEndSeg > params.secondsInTick)
+		if( fabs(finalTimeSpent-timeToReachEndSeg) < INFINITESIMAL_DOUBLE
+				&& timeToReachEndSeg > params.secondsInTick)
 		{
-			finalDistToSegEnd = params.secondsInTick;
-			finalTimeSpent = initialDistToSegEnd-vu*(finalDistToSegEnd-initialTimeSpent);
-			res = moveInSegment(initialDistToSegEnd - finalTimeSpent);
+			finalTimeSpent = params.secondsInTick;
+			finalDistToSegEnd = initialDistToSegEnd-velocity*(finalTimeSpent-initialTimeSpent);
+			res = moveInSegment(initialDistToSegEnd - finalDistToSegEnd);
 		}
 		else
 		{
-			finalTimeSpent = 0.0 ;
-			res = moveInSegment(initialDistToSegEnd - finalTimeSpent);
-			finalDistToSegEnd = params.secondsInTick;
+			finalDistToSegEnd = 0.0 ;
+			res = moveInSegment(initialDistToSegEnd - finalDistToSegEnd);
+			finalTimeSpent = params.secondsInTick;
 		}
 
-		pathMover.setPositionInSegment(finalTimeSpent);
-		params.elapsedSeconds = finalDistToSegEnd;
+		pathMover.setPositionInSegment(finalDistToSegEnd);
+		params.elapsedSeconds = finalTimeSpent;
 	}
 	return res;
-}
-
-void DriverMovement::setVelocity() {
-	velocity = pathMover.getCurrSegStats()->getSegSpeed(true);
 }
 
 int DriverMovement::getOutputCounter(const Lane* lane, const sim_mob::SegmentStats* segStats) {
@@ -698,10 +697,6 @@ void DriverMovement::updateFlow(const sim_mob::SegmentStats* segStats, double st
 }
 
 void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
-
-	//Vehicles start at rest
-	velocity = 0;
-
 	if(params.now.ms() < getParent()->getStartTime()) {
 		stepFwdInTime(params, (getParent()->getStartTime() - params.now.ms())/1000.0); //set time to start - to accommodate drivers starting during the frame
 	}
@@ -770,9 +765,9 @@ bool DriverMovement::isConnectedToNextSeg(const Lane* lane, const SegmentStats* 
 		}
 	}
 	else{
-		// if (lane->getRoadSegment()->getLink() == nxtRdSeg->getLink())
-		//handling uni-nodes - where lanes should be connected to the same outgoing segment
-		// at uninodes, we assume all lanes of the current segment are connected to all lanes of the next segment
+		//if (lane->getRoadSegment()->getLink() == nxtRdSeg->getLink()) we are
+		//crossing a uni-node. At uninodes, we assume all lanes of the current
+		//segment are connected to all lanes of the next segment
 		return true;
 	}
 	return false;
@@ -814,8 +809,10 @@ void DriverMovement::removeFromQueue() {
 	}
 }
 
-const sim_mob::Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats) {
-	//we have included getBastLG functionality here (get lane with minAllAgents)
+const sim_mob::Lane* DriverMovement::getBestTargetLane(
+		const SegmentStats* nextSegStats,
+		const SegmentStats* nextToNextSegStats) {
+	//we have included getBestLG functionality here (get lane with minAllAgents)
 	//before checking best lane
 	//1. Get queuing counts for all lanes of the next Segment
 	//2. Select the lane with the least queue length

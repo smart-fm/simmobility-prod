@@ -63,9 +63,7 @@ public:
 	explicit DriverMovement(sim_mob::Person* parentAgent = nullptr);
 	virtual ~DriverMovement();
 
-	/**
-	 * Virtual overrides
-	 */
+	//virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
 	virtual void frame_tick_output();
@@ -80,6 +78,21 @@ public:
 		}
 		this->parentDriver = parentDriver;
 	}
+
+
+protected:
+	/**
+	 * Pointer to the parent Driver role.
+	 */
+	sim_mob::medium::Driver* parentDriver;
+
+	MesoPathMover pathMover;
+	const Lane* currLane;
+	const Lane* laneInNextSegment;
+	bool isQueuing;
+	double vehicleLength;
+
+	mutable std::stringstream DebugStream;
 
 	/**
 	 * For moving into a new link after getting permission from the managing conflux
@@ -166,11 +179,6 @@ public:
 	bool advanceMovingVehicleWithInitialQ(DriverUpdateParams& params);
 
 	/**
-	 * sets the speed of the driver from the current seg stats
-	 */
-	void setVelocity();
-
-	/**
 	 * get the number of vehicles that can move out of a lane in this tick
 	 *
 	 * @param l lane in segment
@@ -196,9 +204,7 @@ public:
 	void setLastAccept(const Lane* lane, double lastAccept, const sim_mob::SegmentStats* segStats);
 
 	/**
-	 * update flow of segment
-	 * \note should be changed to update the flow of segment stats
-	 *
+	 * update flow of segment segStats
 	 * @param segStats segment stats whose flow is to be updated
 	 * @param startPos position of driver at the start of the tick
 	 * @param endPos final position of driver
@@ -218,21 +224,6 @@ public:
 	 * @param params driver update params for current tick
 	 */
 	void setOrigin(DriverUpdateParams& params);
-
-protected:
-	/**
-	 * Pointer to the parent Driver role.
-	 */
-	sim_mob::medium::Driver* parentDriver;
-
-	MesoPathMover pathMover;
-	const Lane* currLane;
-	const Lane* laneInNextSegment;
-	bool isQueuing;
-	double vehicleLength;
-	double velocity;
-
-	mutable std::stringstream DebugStream;
 
 	/**
 	 * get the length of queue in lane at the start of current tick

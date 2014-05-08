@@ -60,20 +60,23 @@ public:
 	BusRouteInfo(const BusRouteInfo& copyFrom); ///<Copy constructor
 	virtual ~BusRouteInfo() {}
 
+	const std::string& getBusRouteId() const {
+		return busRouteId;
+	}
 	const std::vector<const RoadSegment*>& getRoadSegments() const {
-		return roadSegment_vec;
+		return roadSegmentList;
 	}
 	const std::vector<const BusStop*>& getBusStops() const {
-		return busStop_vec;
+		return busStopList;
 	}
 
 	void addBusStop(const BusStop* aBusStop);
 	void addRoadSegment(const RoadSegment* aRoadSegment);
 
 protected:
-	std::string busRoute_id;
-	std::vector<const RoadSegment*> roadSegment_vec;
-	std::vector<const BusStop*> busStop_vec;
+	std::string busRouteId;
+	std::vector<const RoadSegment*> roadSegmentList;
+	std::vector<const BusStop*> busStopList;
 };
 
 /**

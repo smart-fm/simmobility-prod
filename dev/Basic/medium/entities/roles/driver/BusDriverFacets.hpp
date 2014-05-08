@@ -88,7 +88,6 @@ public:
 
 	//Virtual overrides
 	virtual void frame_init();
-	virtual void frame_tick();
 	virtual void frame_tick_output();
 
 	sim_mob::medium::BusDriver* getParentBusDriver() const {

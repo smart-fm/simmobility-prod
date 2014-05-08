@@ -28,16 +28,15 @@ protected:
 
 	//Virtual overrides
 	virtual bool frame_init(timeslice now) {
-		throw std::runtime_error(
-				"frame_* methods are not required and are not implemented for BusStopAgent.");
 	}
 	virtual Entity::UpdateStatus frame_tick(timeslice now) {
-		throw std::runtime_error(
-				"frame_* are not required and are not implemented for BusStopAgent.");
 	}
 	virtual void frame_output(timeslice now) {
-		throw std::runtime_error(
-				"frame_* methods are not required and are not implemented for BusStopAgent.");
+	}
+	virtual bool isNonspatial(){
+		return false;
+	}
+	virtual void load(const std::map<std::string, std::string>& configProps) {
 	}
 
 	/**

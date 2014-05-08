@@ -33,6 +33,7 @@ class PT_trip;
 class ProfileBuilder;
 class TripChainItem;
 class Broker;
+class SegmentStats;
 
 
 
@@ -202,6 +203,7 @@ public:
 	const std::set<sim_mob::Conflux*>& getConfluxes() const;
 
 	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes();
+	std::set<sim_mob::SegmentStats*>& getSegmentStats();
 
 private:
 	ConfigParams();
@@ -233,6 +235,7 @@ private:
 
 	//Confluxes in this network
 	std::set<sim_mob::Conflux*> confluxes;
+	std::set<sim_mob::SegmentStats*> segmentStats;
 	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*> multinode_confluxes; //map <MultiNode*, Conflux*>
 
 public:

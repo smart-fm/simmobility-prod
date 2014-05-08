@@ -2626,6 +2626,7 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdS
 	double lengthCoveredInSeg = 0, segStatLength;
 	double rdSegmentLength = rdSeg->getLaneZeroLength();
 	uint8_t statsNum = 1;
+	std::set<sim_mob::SegmentStats*>& segmentStats = ConfigManager::GetInstanceRW().FullConfig().getSegmentStats();
 	// NOTE: std::map implements strict weak ordering which defaults to less<key_type>
 	// This is precisely the order in which we want to iterate the stops to create SegmentStats
 	for(std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>::const_iterator obsIt = obstacles.begin();
@@ -2673,6 +2674,7 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdS
 			segStats->addBusStop(busStop);
 			splitSegmentStats.push_back(segStats);
 			statsNum++;
+			segmentStats.insert(segStats);
 		}
 	}
 

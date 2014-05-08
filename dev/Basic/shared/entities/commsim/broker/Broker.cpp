@@ -37,6 +37,11 @@ BrokerBase* sim_mob::Broker::single_broker(nullptr);
 const std::string sim_mob::Broker::ClientTypeAndroid = "android";
 const std::string sim_mob::Broker::ClientTypeNs3 = "ns-3";
 
+const std::string sim_mob::Broker::OpaqueFormatBase64Esc = "base64escape";
+
+const std::string sim_mob::Broker::OpaqueTechDsrc = "dsrc";
+const std::string sim_mob::Broker::OpaqueTechLte = "lte";
+
 const unsigned int sim_mob::Broker::EventNewAndroidClient = 95000;
 
 
@@ -462,44 +467,31 @@ void sim_mob::Broker::cloudDisconnect(boost::shared_ptr<ConnectionHandler> handl
 }
 
 
-void sim_mob::Broker::opaqueSendCloud(boost::shared_ptr<ConnectionHandler> handler, OpaqueSendMessage& msg, bool useNs3)
-{
-	//Copy the toIds list.
-	std::vector<std::string> temp(msg.toIds);
-	msg.toIds.clear();
-
-	//For each item in the toIds list.
-	for (std::vector<std::string>::const_iterator msgIt=temp.begin(); msgIt!=temp.end(); msgIt++) {
-		//At this point, we should have a valid cloudHandler.
-		boost::shared_ptr<CloudHandler> cloud = getCloudHandler(*msgIt, handler);
-		if (cloud) {
-			//Process it.
-			sendToCloud(cloud, msg, *msgIt, useNs3);
-		} else {
-			//Add it to the list of real clients.
-			msg.toIds.push_back(*msgIt);
-		}
-	}
-}
-
-void sim_mob::Broker::sendToCloud(boost::shared_ptr<CloudHandler> cloud, const OpaqueSendMessage& msg, const std::string& toId, bool useNs3)
+void sim_mob::Broker::sendToCloud(boost::shared_ptr<ConnectionHandler> conn, const std::string& cloudId, const OpaqueSendMessage& msg, bool useNs3)
 {
 	//Prepare a message for response.
 	MessageBase temp;
 	temp.msg_type = "opaque_receive";
 	OpaqueReceiveMessage newMsg(temp); //TODO: This is a hackish workaround.
 	newMsg.format = msg.format;
+	newMsg.tech = msg.tech;
 
 	//Reverse the sender/receiver.
-	newMsg.fromId = toId;
+	newMsg.fromId = cloudId;
 	newMsg.toId = msg.fromId;
 
 	//Before waiting for the cloud, decode the actual message, and split it at every newline.
-	if (msg.format != "base64escape") {
+	if (msg.format != OpaqueFormatBase64Esc) {
 		throw std::runtime_error("Unknown message format sending to cloud; can't decode.");
 	}
 	std::vector<std::string> msgLines;
 	Base64Escape::Decode(msgLines, msg.data, '\n');
+
+	//Get the cloud handler.
+	boost::shared_ptr<CloudHandler> cloud = getCloudHandler(cloudId, conn);
+	if (!cloud) {
+		throw std::runtime_error("Could not find cloud handler for given cloudId.");
+	}
 
 	//Now, wait for the client to connect.
 	{

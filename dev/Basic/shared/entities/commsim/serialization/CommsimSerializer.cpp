@@ -355,13 +355,14 @@ sim_mob::OpaqueSendMessage sim_mob::CommsimSerializer::parseOpaqueSend(const Mes
 	//We are either parsing this as JSON, or as binary; version number doesn't matter in this case.
 	const Json::Value& jsMsg = msg.getJsonMessage(msgNumber);
 	if (!jsMsg.isNull()) {
-		if (!(jsMsg.isMember("from_id") && jsMsg.isMember("to_ids") && jsMsg.isMember("broadcast") && jsMsg.isMember("data") && jsMsg.isMember("format") && jsMsg["to_ids"].isArray())) {
+		if (!(jsMsg.isMember("from_id") && jsMsg.isMember("to_ids") && jsMsg.isMember("broadcast") && jsMsg.isMember("data") && jsMsg.isMember("format") && jsMsg.isMember("tech") && jsMsg["to_ids"].isArray())) {
 			throw std::runtime_error("Badly formatted OPAQUE_SEND message.");
 		}
 
 		//Fairly simple.
 		res.fromId = jsMsg["from_id"].asString();
 		res.format = jsMsg["format"].asString();
+		res.tech = jsMsg["tech"].asString();
 		res.broadcast = jsMsg["broadcast"].asBool();
 		res.data = jsMsg["data"].asString();
 		const Json::Value& toIds = jsMsg["to_ids"];
@@ -387,7 +388,7 @@ sim_mob::OpaqueReceiveMessage sim_mob::CommsimSerializer::parseOpaqueReceive(con
 	//We are either parsing this as JSON, or as binary; version number doesn't matter in this case.
 	const Json::Value& jsMsg = msg.getJsonMessage(msgNumber);
 	if (!jsMsg.isNull()) {
-		if (!(jsMsg.isMember("from_id") && jsMsg.isMember("format") && jsMsg.isMember("to_id") && jsMsg.isMember("data"))) {
+		if (!(jsMsg.isMember("from_id") && jsMsg.isMember("format") && jsMsg.isMember("tech") && jsMsg.isMember("to_id") && jsMsg.isMember("data"))) {
 			throw std::runtime_error("Badly formatted OPAQUE_RECEIVE message.");
 		}
 
@@ -395,6 +396,7 @@ sim_mob::OpaqueReceiveMessage sim_mob::CommsimSerializer::parseOpaqueReceive(con
 		res.fromId = jsMsg["from_id"].asString();
 		res.toId = jsMsg["to_id"].asString();
 		res.format = jsMsg["format"].asString();
+		res.tech = jsMsg["tech"].asString();
 		res.data = jsMsg["data"].asString();
 	} else {
 		throw std::runtime_error("parse() for binary messages not yet supported.");
@@ -596,14 +598,14 @@ std::string sim_mob::CommsimSerializer::makeAllLocations(const std::map<unsigned
 
 
 
-std::string sim_mob::CommsimSerializer::makeOpaqueSend(const std::string& fromId, const std::vector<std::string>& toIds, bool broadcast, const std::string& data)
+std::string sim_mob::CommsimSerializer::makeOpaqueSend(const std::string& fromId, const std::vector<std::string>& toIds, const std::string& format, const std::string& tech, bool broadcast, const std::string& data)
 {
 	if (PREFER_BINARY_MESSAGES) {
 		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
 		std::stringstream res;
 		res <<"{\"msg_type\":\"opaque_send\",\"from_id\":\"" <<fromId <<"\",\"broadcast\":" <<(broadcast?"true":"false")
-			<<"\",\"data\":\"" <<data <<"\",\"to_ids\":[";
+			<<"\",\"format\":\"" <<format <<"\",\"tech\":\"" <<tech <<"\",\"data\":\"" <<data <<"\",\"to_ids\":[";
 
 		//Add all "TO_IDS"
 		for (std::vector<std::string>::const_iterator it=toIds.begin(); it!=toIds.end(); it++) {
@@ -617,13 +619,14 @@ std::string sim_mob::CommsimSerializer::makeOpaqueSend(const std::string& fromId
 }
 
 
-std::string sim_mob::CommsimSerializer::makeOpaqueReceive(const std::string& fromId, const std::string& toId, const std::string& format, const std::string& data)
+std::string sim_mob::CommsimSerializer::makeOpaqueReceive(const std::string& fromId, const std::string& toId, const std::string& format, const std::string& tech, const std::string& data)
 {
 	if (PREFER_BINARY_MESSAGES) {
 		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
 		std::stringstream res;
-		res <<"{\"msg_type\":\"opaque_receive\",\"from_id\":\"" <<fromId <<"\",\"to_id\":\"" <<toId <<"\",\"format\":\"" <<format <<"\",\"data\":\"" <<data <<"\"}";
+		res <<"{\"msg_type\":\"opaque_receive\",\"from_id\":\"" <<fromId <<"\",\"to_id\":\"" <<toId
+			<<"\",\"format\":\"" <<format <<"\",\"tech\":\"" <<tech <<"\",\"data\":\"" <<data <<"\"}";
 		return res.str();
 	}
 }

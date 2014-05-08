@@ -27,9 +27,7 @@ namespace sim_mob
 //Forward declarations
 class Lane;
 class Busline;
-class BusStopAgent;
 
-   //
 /**
  * Representation of a Bus Stop.
  * \author Skyler Seto
@@ -38,11 +36,19 @@ class BusStopAgent;
 class BusStop : public sim_mob::RoadItem {
 	friend class ::geo::BusStop_t_pimpl;
 public:
+	typedef std::set<BusStop*> BusStopSet;
 	///BusStops must be constructed with their stopPt, which must be the same
 	///  as the lane zero offset in their RoadSegment.
 	explicit BusStop() : RoadItem(), lane_location(0), busCapacityAsLength(0),
-		generatedBusStopAgent(nullptr), is_terminal(false), is_bay(false), xPos(0), yPos(0), has_shelter(false)
+	is_terminal(false), is_bay(false), xPos(0), yPos(0), has_shelter(false)
 	{}
+
+	///Adds a new bus stop to the Bus stop list
+	///@param busstop pointer to newly created bus stop
+	static void RegisterNewBusStop(BusStop* busstop);
+
+	///set of all bus stops in the network
+	static BusStopSet allBusstops;
 
 public:
 	///Which RoadItem and lane is this bus stop located at?
@@ -83,7 +89,6 @@ public:
 
 public:
     std::vector<Busline*> BusLines;///to store bus line info at each bus stop for passengers
-	BusStopAgent* generatedBusStopAgent;// pointer to the generated BusStopAgent
 	std::string busstopno_;
 		double xPos;
 		double yPos;

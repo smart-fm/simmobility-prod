@@ -71,9 +71,9 @@ void sim_mob::PassengerMovement::frame_init() {
 	//initialization
 //	WaitingTime = -1;
 	if(getParent()->originNode.type_== WayPoint::BUS_STOP && getParent()->destNode.type_== WayPoint::BUS_STOP) {
-		BusStopAgent* OriginBusstopAg = getParent()->originNode.busStop_->generatedBusStopAgent;
-		getParent()->xPos.force(OriginBusstopAg->getBusStop().xPos);// set xPos to WaitBusActivityRole
-		getParent()->yPos.force(OriginBusstopAg->getBusStop().yPos);// set yPos to WaitBusActivityRole
+		BusStopAgent* originBusstopAg = BusStopAgent::findBusStopAgentByBusStopNo(getParent()->originNode.busStop_->getBusstopno_());
+		getParent()->xPos.force(originBusstopAg->getBusStop().xPos);// set xPos to WaitBusActivityRole
+		getParent()->yPos.force(originBusstopAg->getBusStop().yPos);// set yPos to WaitBusActivityRole
 		originBusStop = const_cast<BusStop*>(getParent()->originNode.busStop_);
 		destBusStop = const_cast<BusStop*>(getParent()->destNode.busStop_);
 		timeOfStartTrip = getParent()->currTick.ms();

@@ -8,8 +8,8 @@
 #include "entities/AuraManager.hpp"
 #include "geospatial/BusStop.hpp"
 #include "workers/WorkGroup.hpp"
-#include "entities/roles/activityRole/WaitBusActivityRole.hpp"
-#include "entities/roles/activityRole/WaitBusActivityRoleFacets.hpp"
+#include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
+#include "entities/roles/waitBusActivityRole/WaitBusActivityRoleFacets.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
@@ -18,17 +18,18 @@ using namespace sim_mob;
 
 typedef Entity::UpdateStatus UpdateStatus;
 
-vector<BusStopAgent*> BusStopAgent::all_BusstopAgents_;
+BusStopAgent::BusStopAgentsMap BusStopAgent::allBusstopAgents;
 
 size_t sim_mob::BusStopAgent::AllBusStopAgentsCount()
 {
-	return all_BusstopAgents_.size();
+	return allBusstopAgents.size();
 }
 
 void sim_mob::BusStopAgent::AssignAllBusStopAgents(sim_mob::WorkGroup& wg)
 {
-	for (vector<BusStopAgent*>::iterator it=all_BusstopAgents_.begin(); it!=all_BusstopAgents_.end(); it++) {
-		wg.assignAWorker(*it);
+	for (BusStopAgentsMap::iterator it=allBusstopAgents.begin();
+			it!=allBusstopAgents.end(); it++) {
+		wg.assignAWorker(it->second);
 	}
 }
 
@@ -36,13 +37,19 @@ void sim_mob::BusStopAgent::RegisterNewBusStopAgent(BusStop& busstop, const Mute
 {
 	BusStopAgent* sig_ag = new BusStopAgent(busstop, mtxStrat);
 	sig_ag->setBusStopAgentNo(busstop.getBusstopno_());
-	busstop.generatedBusStopAgent = sig_ag;
-	all_BusstopAgents_.push_back(sig_ag);
+	allBusstopAgents[busstop.getBusstopno_()] = sig_ag;
 }
 
 bool sim_mob::BusStopAgent::HasBusStopAgents()
 {
-	return !all_BusstopAgents_.empty();
+	return !allBusstopAgents.empty();
+}
+
+void sim_mob::BusStopAgent::createBusStopAgents(const std::set<BusStop*>& stopsList, const MutexStrategy& mtxStrat) {
+	for(std::set<BusStop*>::const_iterator stopIt=stopsList.begin();
+			stopIt!=stopsList.end(); stopIt++) {
+		RegisterNewBusStopAgent(**stopIt, mtxStrat);
+	}
 }
 
 bool sim_mob::BusStopAgent::isNonspatial()
@@ -52,33 +59,32 @@ bool sim_mob::BusStopAgent::isNonspatial()
 
 void sim_mob::BusStopAgent::PlaceAllBusStopAgents(std::vector<sim_mob::Entity*>& agents_list)
 {
-	std::cout << "all_BusStopAgents size: " << all_BusstopAgents_.size() << std::endl;
+	std::cout << "all_BusStopAgents size: " << allBusstopAgents.size() << std::endl;
 	//Push every BusStopAgent on the list into the agents array as an active agent
-	for (vector<BusStopAgent*>::iterator it=all_BusstopAgents_.begin(); it!=all_BusstopAgents_.end(); it++) {
-		agents_list.push_back(*it);
+	for (BusStopAgentsMap::iterator it=allBusstopAgents.begin();
+			it!=allBusstopAgents.end(); it++) {
+		agents_list.push_back(it->second);
 	}
 }
 
 BusStopAgent* sim_mob::BusStopAgent::findBusStopAgentByBusStop(const BusStop* busstop)
 {
-	for (int i=0; i<all_BusstopAgents_.size(); i++) {
-		if(all_BusstopAgents_[i]->getBusStop().getBusstopno_() == busstop->getBusstopno_()) {
-			return all_BusstopAgents_[i];
-		}
+	try {
+		return allBusstopAgents.at(busstop->getBusstopno_());
 	}
-
-	return nullptr;
+	catch (const std::out_of_range& oor) {
+		return nullptr;
+	}
 }
 
 BusStopAgent* sim_mob::BusStopAgent::findBusStopAgentByBusStopNo(const std::string& busstopno)
 {
-	for (int i=0; i<all_BusstopAgents_.size(); i++) {
-		if(all_BusstopAgents_[i]->getBusStop().getBusstopno_() == busstopno) {
-			return all_BusstopAgents_[i];
-		}
+	try {
+		return allBusstopAgents.at(busstopno);
 	}
-
-	return nullptr;
+	catch (const std::out_of_range& oor) {
+		return nullptr;
+	}
 }
 
 void sim_mob::BusStopAgent::buildSubscriptionList(vector<BufferedBase*>& subsList)

@@ -21,6 +21,15 @@
 #include "entities/UpdateParams.hpp"
 #include "logging/Log.hpp"
 
+namespace {
+	// default bus length cm to be displayed on visualizer
+	const double DEFAULT_BUS_LENGTH_CM = 1200;
+	// default car length cm to be displayed on visualizer
+	const double DEFAULT_CAR_LENGTH_CM = 400;
+	// default vehicle width cm to be displayed on visualizer
+	const double DEFAULT_VEHICLE_WIDTH_CM = 200;
+}
+
 namespace sim_mob {
 BusDriverBehavior::BusDriverBehavior(sim_mob::Person* parentAgent):
 	DriverBehavior(parentAgent), parentBusDriver(nullptr) {}
@@ -91,15 +100,13 @@ Vehicle* sim_mob::BusDriverMovement::initializePath_bus(bool allocateVehicle) {
 			//TODO: Start in lane 0?
 			int startlaneID = 1;
 
-			BusDriver* v = dynamic_cast<BusDriver*>(this);
-			if (v && laneID != -1) {
+			if (this->getParentBusDriver() && laneID != -1) {
 				startlaneID = laneID; //need to check if lane valid
-				//parentP->laneID = -1;
 			}
 
-			// Bus should be at least 1200 to be displayed on Visualizer
-			const double length = dynamic_cast<BusDriver*>(this) ? 1200 : 400;
-			const double width = 200;
+			// Bus should be at least DEFAULT_BUS_LENGTH_CM to be displayed on Visualizer
+			const double length = this->getParentBusDriver() ? DEFAULT_BUS_LENGTH_CM : DEFAULT_CAR_LENGTH_CM;
+			const double width = DEFAULT_VEHICLE_WIDTH_CM;
 
 			//A non-null vehicle means we are moving.
 			if (allocateVehicle) {

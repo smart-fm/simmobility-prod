@@ -18,24 +18,30 @@ using std::vector;
 using namespace sim_mob;
 
 
-WorkGroupManager::~WorkGroupManager()
-{
-	// Distibute get all final messages before unregister the main thread.
-        messaging::MessageBus::DistributeMessages();
-        
-        //First, join and delete all WorkGroups
-	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
-		delete *it;
-	}
-        
-      
+WorkGroupManager::~WorkGroupManager() {
 
-	//Finally, delete all barriers.
-	safe_delete_item(frameTickBarr);
-	safe_delete_item(buffFlipBarr);
-	safe_delete_item(auraMgrBarr);
+    try {
+        // Distibute get all final messages before unregister the main thread.
+        messaging::MessageBus::DistributeMessages();
+    } catch (std::exception& ex) {
+        WarnOut("MessageBus - This call should be done using the registered main thread context.");
+    }
+    //First, join and delete all WorkGroups
+    for (vector<WorkGroup*>::iterator it = registeredWorkGroups.begin(); it != registeredWorkGroups.end(); it++) {
+        delete *it;
+    }
+
+    //Finally, delete all barriers.
+    safe_delete_item(frameTickBarr);
+    safe_delete_item(buffFlipBarr);
+    safe_delete_item(auraMgrBarr);
+
+    try {
         // UnRegisters the main thread for message bus.
         messaging::MessageBus::UnRegisterMainThread();
+    } catch (std::exception& ex) {
+        WarnOut("MessageBus - This call should be done using the registered main thread context.");
+    }
 }
 
 

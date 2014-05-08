@@ -18,17 +18,17 @@ using namespace sim_mob;
 
 typedef Entity::UpdateStatus UpdateStatus;
 
-BusStopAgent::BusStopAgentsMap BusStopAgent::all_BusstopAgents_;
+BusStopAgent::BusStopAgentsMap BusStopAgent::allBusstopAgents;
 
 size_t sim_mob::BusStopAgent::AllBusStopAgentsCount()
 {
-	return all_BusstopAgents_.size();
+	return allBusstopAgents.size();
 }
 
 void sim_mob::BusStopAgent::AssignAllBusStopAgents(sim_mob::WorkGroup& wg)
 {
-	for (BusStopAgentsMap::iterator it=all_BusstopAgents_.begin();
-			it!=all_BusstopAgents_.end(); it++) {
+	for (BusStopAgentsMap::iterator it=allBusstopAgents.begin();
+			it!=allBusstopAgents.end(); it++) {
 		wg.assignAWorker(it->second);
 	}
 }
@@ -37,12 +37,12 @@ void sim_mob::BusStopAgent::RegisterNewBusStopAgent(BusStop& busstop, const Mute
 {
 	BusStopAgent* sig_ag = new BusStopAgent(busstop, mtxStrat);
 	sig_ag->setBusStopAgentNo(busstop.getBusstopno_());
-	all_BusstopAgents_[busstop.getBusstopno_()] = sig_ag;
+	allBusstopAgents[busstop.getBusstopno_()] = sig_ag;
 }
 
 bool sim_mob::BusStopAgent::HasBusStopAgents()
 {
-	return !all_BusstopAgents_.empty();
+	return !allBusstopAgents.empty();
 }
 
 void sim_mob::BusStopAgent::CreateBusStopAgents(const std::set<BusStop*>& stopsList, const MutexStrategy& mtxStrat) {
@@ -59,10 +59,10 @@ bool sim_mob::BusStopAgent::isNonspatial()
 
 void sim_mob::BusStopAgent::PlaceAllBusStopAgents(std::vector<sim_mob::Entity*>& agents_list)
 {
-	std::cout << "all_BusStopAgents size: " << all_BusstopAgents_.size() << std::endl;
+	std::cout << "all_BusStopAgents size: " << allBusstopAgents.size() << std::endl;
 	//Push every BusStopAgent on the list into the agents array as an active agent
-	for (BusStopAgentsMap::iterator it=all_BusstopAgents_.begin();
-			it!=all_BusstopAgents_.end(); it++) {
+	for (BusStopAgentsMap::iterator it=allBusstopAgents.begin();
+			it!=allBusstopAgents.end(); it++) {
 		agents_list.push_back(it->second);
 	}
 }
@@ -70,7 +70,7 @@ void sim_mob::BusStopAgent::PlaceAllBusStopAgents(std::vector<sim_mob::Entity*>&
 BusStopAgent* sim_mob::BusStopAgent::findBusStopAgentByBusStop(const BusStop* busstop)
 {
 	try {
-		return all_BusstopAgents_.at(busstop->getBusstopno_());
+		return allBusstopAgents.at(busstop->getBusstopno_());
 	}
 	catch (const std::out_of_range& oor) {
 		return nullptr;
@@ -81,7 +81,7 @@ BusStopAgent* sim_mob::BusStopAgent::findBusStopAgentByBusStopNo(const std::stri
 {
 	std::string stopNo = busstopno;
 	try {
-		return all_BusstopAgents_.at(busstopno);
+		return allBusstopAgents.at(busstopno);
 	}
 	catch (const std::out_of_range& oor) {
 		return nullptr;

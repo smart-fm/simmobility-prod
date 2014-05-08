@@ -205,11 +205,11 @@ public:
 	std::vector<std::pair<sim_mob::Phase, double> > predictSignal(double t);
 
 	const Sensor* getLoopDetector() const {
-		return loopDetector_;
+		return loopDetectorAgent;
 	}
 
 	void setLoopDetector(Sensor* loopDetector) {
-		loopDetector_ = loopDetector;
+		loopDetectorAgent = loopDetector;
 	}
 
 private:
@@ -255,7 +255,7 @@ private:
 
 	friend class DatabaseLoader;
 protected:
-	Sensor* loopDetector_;
+	Sensor* loopDetectorAgent;
 
 #ifndef SIMMOB_DISABLE_MPI
 public:

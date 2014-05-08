@@ -46,7 +46,9 @@ public:
 	///Adds a new bus stop to the Bus stop list
 	///@param busstop pointer to newly created bus stop
 	static void RegisterNewBusStop(BusStop* busstop);
-	static BusStopSet all_Busstops_;
+
+	///set of all bus stops in the network
+	static BusStopSet allBusstops;
 
 public:
 	///Which RoadItem and lane is this bus stop located at?

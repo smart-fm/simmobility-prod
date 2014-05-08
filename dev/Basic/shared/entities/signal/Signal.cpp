@@ -187,7 +187,7 @@ sim_mob::Signal_SCATS::printColors(double currCycleTimer)
 
 /*Signal Constructor*/
 sim_mob::Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int id, signalType type_)
-  :  Signal(node,mtxStrat,id), loopDetector_(nullptr)
+  :  Signal(node,mtxStrat,id), loopDetectorAgent(nullptr)
 	/*, node_(node)*/
 {
 	setSignalType(type_);
@@ -398,7 +398,7 @@ double sim_mob::Signal_SCATS::computePhaseDS(int phaseId) {
 				if (lane->is_pedestrian_lane())
 					continue;
 				const Sensor::CountAndTimePair& ctPair =
-						loopDetector_->getCountAndTimePair(*lane);
+						loopDetectorAgent->getCountAndTimePair(*lane);
 				lane_DS = LaneDS(ctPair, total_g);
 				if (lane_DS > maxPhaseDS)
 					maxPhaseDS = lane_DS;
@@ -407,7 +407,7 @@ double sim_mob::Signal_SCATS::computePhaseDS(int phaseId) {
 	}
 
 	Phase_Density[phaseId] = maxPhaseDS;
-	loopDetector_->reset();
+	loopDetectorAgent->reset();
 	return Phase_Density[phaseId];
 }
 
@@ -429,7 +429,7 @@ double sim_mob::Signal_SCATS::LaneDS(const Sensor::CountAndTimePair& ctPair,doub
 }
 void sim_mob::Signal_SCATS::cycle_reset()
 {
-	loopDetector_->reset();//extra
+	loopDetectorAgent->reset();//extra
 	isNewCycle = false;
 	for(int i = 0; i < Phase_Density.size(); Phase_Density[i++] = 0);
 }
@@ -442,7 +442,7 @@ void sim_mob::Signal_SCATS::newCycleUpdate()
 	//	7-update offset
 //		offset_.update(cycle_.getnextCL());
 		cycle_reset();
-		loopDetector_->reset();//extra?
+		loopDetectorAgent->reset();//extra?
 		isNewCycle = false;
 }
 

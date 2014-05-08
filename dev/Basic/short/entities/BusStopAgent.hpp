@@ -31,7 +31,9 @@ class BusStop;
 class BusStopAgent  : public sim_mob::Agent
 {
 public:
+	//typedefs
 	typedef boost::unordered_map<std::string, BusStopAgent *> BusStopAgentsMap;
+
 	BusStopAgent(BusStop const & busstop, const MutexStrategy& mtxStrat, int id=-1)
 		  : Agent(mtxStrat, id), busstop_(busstop) {};
 
@@ -94,7 +96,8 @@ public:
 	virtual bool isNonspatial();
 
 private:
-	static BusStopAgentsMap all_BusstopAgents_;
+	///Map of <bus stop number, BusStopAgent*> for all bus stops in the network
+	static BusStopAgentsMap allBusstopAgents;
 	// BusStop object reference
 	sim_mob::BusStop const & busstop_;
 	//currently is equal to busstopno_

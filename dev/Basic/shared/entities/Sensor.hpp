@@ -26,15 +26,15 @@ public:
     Sensor(MutexStrategy const & mutexStrategy) : Agent(mutexStrategy) {}
     virtual ~Sensor();
 
-    // Forward declaration.  Definition is below.
+    // Forward declaration.  Definition below.
     struct CountAndTimePair;
 
-	//Sensors are non-spatial in nature.
-	virtual bool isNonspatial() { return true; }
+	virtual bool isNonspatial() { return true; } //Sensors are non-spatial in nature.
 
     /**
      * Return the CountAndTimePair for the specified \c lane.
      * @param lane constant reference to lane to get count from
+     * @returns constant reference to CountAndTimePair
      */
     CountAndTimePair const & getCountAndTimePair(Lane const & lane) const;
 
@@ -53,8 +53,12 @@ protected:
 	std::map<Lane const *, Shared<CountAndTimePair> *> data;
 };
 
+/**
+ * simple struct for vehicle count and time pair
+ */
 struct Sensor::CountAndTimePair
 {
+public:
     /**
      * The number of vehicles that has crossed the sensor
      * the last call to reset().

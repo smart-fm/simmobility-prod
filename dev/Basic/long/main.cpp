@@ -22,4 +22,3 @@ int main(int ARGC, char* ARGV[])
 {
 	return main_impl(ARGC, ARGV);
 }
-

@@ -1,16 +1,6 @@
-//Copyright (c) 2014 Singapore-MIT Alliance for Research and Technology
-//Licensed under the terms of the MIT License, as described in the file:
-//   license.txt   (http://opensource.org/licenses/MIT)
-
 /*
  * file main.cpp
  * Empty file for the (future) long-term simulation
- *
- * \note
- * This file contains everything except a main method, which is contained within main.cpp.
- * The function main_impl() has the exact same signature as main(), and serves the exact same purpose.
- * See the note in main.cpp if you have any questions.
- *
  * \author Pedro Gandola
  */
 
@@ -25,6 +15,7 @@
 #include <boost/format.hpp>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "conf/ParseConfigFile.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
@@ -35,6 +26,7 @@
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
 
+#include "unit-tests/dao/DaoTests.hpp"
 #include "model/DeveloperModel.hpp"
 
 
@@ -56,10 +48,6 @@ const string SIMMOB_VERSION = string(
 timeval start_time;
 
 //SIMOBILITY TEST PARAMS
-const int MAX_ITERATIONS = 1;
-const int TICK_STEP = 1;
-const int DAYS = 365;
-const int WORKERS = 8;
 const int DATA_SIZE = 30;
 const std::string MODEL_LINE_FORMAT = "### %-30s : %-20s";
 //options
@@ -93,10 +81,20 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
     LT_ConfigSingleton::getInstance();
     PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
     
-    //configure time.
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-    config.baseGranMS() = TICK_STEP;
-    config.totalRuntimeTicks = DAYS;
+
+    //Simmobility Test Params
+    const unsigned int tickStep = config.ltParams.tickStep;
+    const unsigned int days = config.ltParams.days;
+    const unsigned int workers = config.ltParams.workers;
+    const bool enableHousingMarket = config.ltParams.housingModel.enabled;
+
+    const bool enableDeveloperModel = config.ltParams.developerModel.enabled;
+    const unsigned int timeIntervalDevModel = config.ltParams.developerModel.timeInterval;
+
+    //configure time.
+    config.baseGranMS() = tickStep;
+    config.totalRuntimeTicks = days;
     config.defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
     config.singleThreaded() = false;
    
@@ -118,24 +116,38 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         wgMgr.setSingleThreadMode(config.singleThreaded());
         
         // -- Events injector work group.
-        WorkGroup* logsWorker = wgMgr.newWorkGroup(1, DAYS, TICK_STEP);
-        WorkGroup* eventsWorker = wgMgr.newWorkGroup(1, DAYS, TICK_STEP);
-        WorkGroup* hmWorkers = wgMgr.newWorkGroup(WORKERS, DAYS, TICK_STEP);
-        WorkGroup* devWorkers = wgMgr.newWorkGroup(1, DAYS, TICK_STEP);
+        WorkGroup* logsWorker = wgMgr.newWorkGroup(1, days, tickStep);
+        WorkGroup* eventsWorker = wgMgr.newWorkGroup(1, days, tickStep);
+        WorkGroup* hmWorkers;
+        WorkGroup* devWorkers;
+
+        if( enableHousingMarket )
+        	hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep);
+
+        if( enableDeveloperModel )
+        	devWorkers = wgMgr.newWorkGroup(1, days, tickStep);
         
         //init work groups.
         wgMgr.initAllGroups();
         logsWorker->initWorkers(nullptr);
-        hmWorkers->initWorkers(nullptr);
         eventsWorker->initWorkers(nullptr);
-        devWorkers->initWorkers(nullptr);
+
+        if( enableHousingMarket )
+        	hmWorkers->initWorkers(nullptr);
+
+        if( enableDeveloperModel )
+        	devWorkers->initWorkers(nullptr);
         
         //assign agents
         logsWorker->assignAWorker(&(agentsLookup.getLogger()));
         eventsWorker->assignAWorker(&(agentsLookup.getEventsInjector()));
-        //models 
-        models.push_back(new HM_Model(*hmWorkers));
-        models.push_back(new DeveloperModel(*devWorkers));
+
+        if( enableHousingMarket )
+        	 models.push_back(new HM_Model(*hmWorkers));
+
+        if( enableDeveloperModel )
+        	 models.push_back(new DeveloperModel(*devWorkers, timeIntervalDevModel ));
+
         //start all models.
         for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++) {
             (*it)->start();
@@ -145,7 +157,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         wgMgr.startAllWorkGroups();
 
         PrintOut("Started all workgroups." << endl);
-        for (unsigned int currTick = 0; currTick < DAYS; currTick++) {
+        for (unsigned int currTick = 0; currTick < days; currTick++) {
             PrintOut("Day: " << currTick << endl);
             wgMgr.waitAllGroups();
         }
@@ -177,6 +189,14 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
 }
 
 int main_impl(int ARGC, char* ARGV[]) {
+
+	const std::string configFileName = "data/simrun_basic.xml";
+	//Parse the config file (this *does not* create anything, it just reads it.).
+	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
+
+	//Save a handle to the shared definition of the configuration.
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+
     std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
     Print::Init("<stdout>");
     bool runTests = false;
@@ -192,7 +212,8 @@ int main_impl(int ARGC, char* ARGV[]) {
     if (!runTests) {
         //get start time of the simulation.
         std::list<std::string> resLogFiles;
-        for (int i = 0; i < MAX_ITERATIONS; i++) {
+        const unsigned int maxIterations = config.ltParams.maxIterations;
+        for (int i = 0; i < maxIterations; i++) {
             PrintOut("Simulation #:  " << (i + 1) << endl);
             performMain((i + 1), resLogFiles);
         }
@@ -204,8 +225,8 @@ int main_impl(int ARGC, char* ARGV[]) {
         }
         ConfigManager::GetInstanceRW().reset();
     } else {
-/*        unit_tests::DaoTests tests;
-        tests.testAll();*/
+    /*    unit_tests::DaoTests tests;
+        tests.testAll(); */
     }
     
     return 0;

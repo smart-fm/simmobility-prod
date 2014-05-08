@@ -14,8 +14,8 @@
 #include "entities/UpdateParams.hpp"
 
 #include "entities/roles/passenger/Passenger.hpp"
-#include "entities/roles/activityRole/WaitBusActivityRole.hpp"
-#include "entities/roles/activityRole/WaitBusActivityRoleFacets.hpp"
+#include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
+#include "entities/roles/waitBusActivityRole/WaitBusActivityRoleFacets.hpp"
 
 namespace sim_mob
 {

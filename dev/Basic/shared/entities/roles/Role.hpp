@@ -12,7 +12,7 @@
 
 #include "util/LangHelpers.hpp"
 #include "entities/Agent.hpp"
-#include "entities/vehicle/Vehicle.hpp"
+#include "entities/vehicle/VehicleBase.hpp"
 #include "entities/UpdateParams.hpp"
 #include "workers/Worker.hpp"
 #include "logging/Log.hpp"
@@ -136,8 +136,8 @@ public:
 		return sim_mob::DriverRequestParams();
 	}
 
-	Vehicle* getResource() { return currResource; }
-	void setResource(Vehicle* currResource) { this->currResource = currResource; }
+	VehicleBase* getResource() { return currResource; }
+	void setResource(VehicleBase* currResource) { this->currResource = currResource; }
 
 	Agent* getParent()
 	{
@@ -192,7 +192,7 @@ public:
 protected:
 	Agent* parent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
 
-	Vehicle* currResource; ///<Roles may hold "resources" for the current task. Expand later into multiple types.
+	VehicleBase* currResource; ///<Roles may hold "resources" for the current task. Expand later into multiple types.
 
 	BehaviorFacet* behaviorFacet;
 	MovementFacet* movementFacet;

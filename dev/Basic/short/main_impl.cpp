@@ -54,6 +54,7 @@
 #include "entities/TrafficWatch.hpp"
 #include "entities/Person.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/LoopDetectorEntity.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
@@ -201,6 +202,21 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//Load our user config file
 	std::cout << "Expanding our user config file." << std::endl;
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
+	BusStopAgent::createBusStopAgents(BusStop::allBusstops, mtx);
+    //Some random stuff with signals??
+    //TODO: Not quite sure how this is supposed to fit into the overall order of things. ~Seth
+    std::vector<Signal*>& all_signals = Signal::all_signals_;
+    for (size_t i=0; i<all_signals.size(); ++i) {
+    	Signal* signal = all_signals.at(i);
+    	Signal_SCATS* signalScats = dynamic_cast<Signal_SCATS*>(signal);
+    	if(signalScats) {
+    		LoopDetectorEntity* loopDetector = new LoopDetectorEntity(mtx);
+    		signalScats->setLoopDetector(loopDetector);
+    		loopDetector->init(*signal);
+    		Agent::all_agents.insert(loopDetector);
+    	}
+    }
+
 	std::cout << "finish to Load our user config file." << std::endl;
 
 	std::cout<<"performMain: trip chain pool size "<<

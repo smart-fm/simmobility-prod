@@ -13,6 +13,8 @@
 namespace sim_mob {
 namespace medium {
 
+class Driver;
+
 /**
  * Behaviour Facet class for mid-term Driver role
  *

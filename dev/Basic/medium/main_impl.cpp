@@ -2,17 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * file main_med.cpp
- * A first skeleton for mid-term module
- *
- * \note
- * This file contains everything except a main method, which is contained within main.cpp.
- * The function main_impl() has the exact same signature as main(), and serves the exact same purpose.
- * See the note in main.cpp if you have any questions.
- *
- * \author Vu Vinh An
- */
 #include <vector>
 #include <string>
 
@@ -78,15 +67,17 @@ timeval start_time_med;
 
 namespace {
 const int DEFAULT_NUM_THREADS_DEMAND = 2; // default number of threads for demand
-} //End anon namespace
+} //End anonymous namespace
 
 //Current software version.
-const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
+const string SIMMOB_VERSION =
+		string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
 
 /**
  * Main simulation loop for the supply simulator
  */
-bool performMainSupply(const std::string& configFileName, std::list<std::string>& resLogFiles) {
+bool performMainSupply(const std::string& configFileName,
+		std::list<std::string>& resLogFiles) {
 	ProfileBuilder* prof = nullptr;
 	if (ConfigManager::GetInstance().CMakeConfig().ProfileOn()) {
 		ProfileBuilder::InitLogFile("profile_trace.txt");
@@ -99,14 +90,18 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//Register our Role types.
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not ok.
+	const MutexStrategy& mtx = ConfigManager::GetInstance().FullConfig().mutexStategy();
 	RoleFactory& rf = ConfigManager::GetInstanceRW().FullConfig().getRoleFactoryRW();
-	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigManager::GetInstance().FullConfig().mutexStategy()));
+	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, mtx));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
-	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, ConfigManager::GetInstance().FullConfig().mutexStategy()));
+	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, mtx));
 
 	//Load our user config file, which is a time costly function
-	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
-	cout<<"performMainMed: trip chain pool size "<< ConfigManager::GetInstance().FullConfig().getTripChains().size()<<endl;
+	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(),
+			Agent::all_agents, Agent::pending_agents);
+	cout<<"performMainSupply: trip chain pool size "
+		<<ConfigManager::GetInstance().FullConfig().getTripChains().size()
+		<<endl;
 
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		// init path set manager
@@ -147,9 +142,10 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	wgMgr.setSingleThreadMode(config.singleThreaded());
 
 	//Work Group specifications
-	//WorkGroup* agentWorkers = wgMgr.newWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
 	//Mid-term is not using Aura Manager at the moment. Therefore setting it to nullptr
-	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(), config.totalRuntimeTicks, config.granPersonTicks, nullptr /*AuraManager is not used in mid-term*/, partMgr);
+	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(),
+			config.totalRuntimeTicks, config.granPersonTicks,
+			nullptr /*AuraManager is not used in mid-term*/, partMgr);
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
@@ -161,10 +157,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 //	personWorkers->findBoundaryConfluxes();
 
 	//Anything in all_agents is starting on time 0, and should be added now.
-	/* Loop detectors are just ignored for now. Later when Confluxes are made compatible with the short term,
-	 * they will be assigned a worker.
-	 */
-	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
+	for (std::set<Entity*>::iterator it = Agent::all_agents.begin();
+			it != Agent::all_agents.end(); it++) {
 		personWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
 	}
 
@@ -181,7 +175,9 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	if (!config.MPI_Disabled() && config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.setEntityWorkGroup(personWorkers, nullptr);
-		cout << "partition_solution_id in main function:" << partitionImpl.partition_config->partition_solution_id << endl;
+		cout<< "partition_solution_id in main function:"
+			<< partitionImpl.partition_config->partition_solution_id
+			<< endl;
 	}
 
 	/////////////////////////////////////////////////////////////////
@@ -213,7 +209,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 			std::stringstream msg;
 			msg << "Approximate Tick Boundary: " << currTick << ", ";
-			msg << (currTick * config.baseGranMS()) << " ms   [" <<currTickPercent <<"%]" << endl;
+			msg << (currTick * config.baseGranMS())
+				<< " ms   [" <<currTickPercent <<"%]" << endl;
 			if (!warmupDone) {
 				msg << "  Warmup; output ignored." << endl;
 			}
@@ -223,7 +220,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			//  perform any output (and hence there will be no contention)
 			if (currTickPercent-lastTickPercent>9) {
 				lastTickPercent = currTickPercent;
-				cout <<currTickPercent <<"%" << ", Agents:" << Agent::all_agents.size() <<endl;
+				cout<< currTickPercent <<"%"
+					<< ", Agents:" << Agent::all_agents.size() <<endl;
 			}
 		}
 
@@ -231,12 +229,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		wgMgr.waitAllGroups();
 
 		BusController::CollectAndProcessAllRequests();
-
-		//Check if the warmup period has ended.
-		if (warmupDone) {
-			//updateGUI(agents);
-			//saveStatistics(agents);
-		}
 	}
 
 	//Finalize partition manager
@@ -263,45 +255,51 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		size_t numPerson = 0;
 		size_t numDriver = 0;
 		size_t numPedestrian = 0;
-		for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
+		for (std::set<Entity*>::iterator it = Agent::all_agents.begin();
+				it != Agent::all_agents.end(); it++) {
 			Person* p = dynamic_cast<Person*> (*it);
 			if (p) {
 				numPerson++;
-				if(p->getRole())
-				if ( dynamic_cast<sim_mob::medium::Driver*>(p->getRole())) {
-					numDriver++;
-				}
-				if (p->getRole() && dynamic_cast<sim_mob::medium::Pedestrian*> (p->getRole())) {
-					numPedestrian++;
+				if(p->getRole()) {
+					if (dynamic_cast<sim_mob::medium::Driver*>(p->getRole())) {
+						numDriver++;
+					}
+					if (dynamic_cast<sim_mob::medium::Pedestrian*>(p->getRole())) {
+						numPedestrian++;
+					}
 				}
 			}
 		}
-		cout << "Remaining Agents: " << numPerson << " (Person)   "
-				<< (Agent::all_agents.size() - numPerson) << " (Other)" << endl;
-		cout << "   Person Agents: " << numDriver << " (Driver)   "
-				<< numPedestrian << " (Pedestrian)   " << (numPerson
-				- numDriver - numPedestrian) << " (Other)" << endl;
+		cout<< "Remaining Agents: " << numPerson << " (Person)   "
+			<< (Agent::all_agents.size() - numPerson) << " (Other)"
+			<< endl;
+		cout<< "   Person Agents: " << numDriver << " (Driver)   "
+			<< numPedestrian << " (Pedestrian)   "
+			<< (numPerson - numDriver - numPedestrian) << " (Other)"
+			<< endl;
 	}
 
 	if (ConfigManager::GetInstance().FullConfig().numAgentsSkipped>0) {
-		cout <<"Agents SKIPPED due to invalid route assignment: " <<ConfigManager::GetInstance().FullConfig().numAgentsSkipped <<endl;
+		cout<<"Agents SKIPPED due to invalid route assignment: "
+			<<ConfigManager::GetInstance().FullConfig().numAgentsSkipped
+			<<endl;
 	}
 
 	if (!Agent::pending_agents.empty()) {
-		cout << "WARNING! There are still " << Agent::pending_agents.size()
-				<< " Agents waiting to be scheduled; next start time is: "
-				<< Agent::pending_agents.top()->getStartTime() << " ms\n";
-		/*if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			throw std::runtime_error("ERROR: pending_agents shouldn't be used if Dynamic Dispatch is disabled.");
-		}*/
+		cout<< "WARNING! There are still " << Agent::pending_agents.size()
+			<< " Agents waiting to be scheduled; next start time is: "
+			<< Agent::pending_agents.top()->getStartTime() << " ms\n";
 	}
 
 	if(personWorkers->getNumAgentsWithNoPath() > 0) {
-		cout << personWorkers->getNumAgentsWithNoPath() << " persons were not added to the simulation because they could not find a path." << endl;
+		cout<< personWorkers->getNumAgentsWithNoPath()
+			<< " persons were not added to the simulation because they could not find a path."
+			<< endl;
 	}
 
 	//Save our output files if we are merging them later.
-	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && ConfigManager::GetInstance().FullConfig().mergeLogFiles()) {
+	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()
+			&& ConfigManager::GetInstance().FullConfig().mergeLogFiles()) {
 		resLogFiles = wgMgr.retrieveOutFileNames();
 	}
 
@@ -374,9 +372,11 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		throw std::runtime_error("missing mandatory property 'mid_term_run_mode'");
 	}
 
-	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply() && ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
+	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()
+			&& ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
 		throw std::runtime_error("Mid-term run mode \"demand+supply\" is not supported yet. Please run demand and supply separately.");
 	}
+
 	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
 		Print() << "Mid-term run mode: supply" << endl;
 		return performMainSupply(configFileName, resLogFiles);

@@ -56,12 +56,6 @@ public:
 	 */
 	void setParentWaitBusActivity(sim_mob::medium::WaitBusActivity* parentWaitBusActivity);
 
-	/**
-	 * make a decision for boarding.
-	 */
-	void makeBoardingDecision();
-
-
 protected:
 	sim_mob::medium::WaitBusActivity* parentWaitBusActivity;
 	unsigned int totalTimeToCompleteMS;

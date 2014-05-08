@@ -21,7 +21,7 @@ class WaitBusActivityMovement;
 class BusDriver;
 
 enum Decision {
-	MAKE_DECISION_NORESULT, MAKE_DECISION_BOARDING, MAKE_DECISION_ALIGHTING
+	NO_DECISION, BOARD_BUS, ALIGHT_BUS
 };
 
 /**
@@ -50,33 +50,16 @@ public:
 				"getSubscriptionParams not implemented in WaitBusActivity.");
 	}
 
+	Decision getDecision();
+	void setDecision(Decision decision);
+	void setStop(sim_mob::BusStop* busStop);
+
 	/**
 	 * increase waiting time every frame tick.
 	 *
-	 * @param ms is accumulation time
+	 * @param incrementMs is accumulation time in milli seconds
 	 */
-	void increaseWaitingTime(unsigned int ms);
-
-	/**
-	 * the setter for waiting bus stop.
-	 *
-	 * @param stop is waiting bus stop
-	 */
-	void setStopSite(sim_mob::BusStop* stop);
-
-	/**
-	 * the setter for decision made.
-	 *
-	 * @param decision is result made
-	 */
-	void setDecisionResult(Decision decision);
-
-	/**
-	 * the getter for decision made.
-	 *
-	 * @return decision result
-	 */
-	Decision getDecisionResult();
+	void increaseWaitingTime(unsigned int incrementMs);
 
 	/**
 	 * make a decision for boarding.
@@ -91,11 +74,11 @@ private:
 	friend class WaitBusActivityMovement;
 
 	/**record waiting time in the bus stop*/
-	unsigned int waitingTimeAtBusStop;
+	unsigned int waitingTime;
 	/**pointer to waiting bus stop*/
-	BusStop* stopSite;
+	BusStop* stop;
 	/**decision result*/
-	Decision decisionResult;
+	Decision decision;
 };
 }
 }

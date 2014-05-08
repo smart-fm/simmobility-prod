@@ -46,31 +46,11 @@ public:
 				"getSubscriptionParams not implemented in Passenger.");
 	}
 
-	/**
-	 * the setter of associate driver.
-	 * @param driver is bus driver or taxi driver when get boarding
-	 */
-	void setAssociateDriver(const Driver* driver);
+	void setDecision(Decision decision);
+	Decision getDecision();
 
-	/**
-	 * the getter of associate driver.
-	 * @return associate driver
-	 */
-	const Driver* getAssociateDriver() const;
-
-	/**
-	 * the setter for decision made.
-	 *
-	 * @param decision is result made
-	 */
-	void setDecisionResult(Decision decision);
-
-	/**
-	 * the getter for decision made.
-	 *
-	 * @return decision result
-	 */
-	Decision getDecisionResult();
+	void setDriver(const Driver* driver);
+	const Driver* getDriver() const;
 
 	/**
 	 * make a decision for alighting.
@@ -81,9 +61,11 @@ private:
 	friend class PassengerBehavior;
 	friend class PassengerMovement;
 
-	const Driver* associateDriver;
+	/** Driver who is driving the vehicle of this passenger*/
+	const Driver* driver;
+
 	/**decision result*/
-	Decision decisionResult;
+	Decision decision;
 };
 
 }

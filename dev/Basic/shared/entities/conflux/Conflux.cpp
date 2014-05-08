@@ -134,7 +134,7 @@ void sim_mob::Conflux::updateUnsignalized() {
 		updateAgent(*i);
 	}
 
-	PersonList pedestrianPerformersCopy = pedestrianPerformers;
+	PersonList pedestrianPerformersCopy = pedestrianList;
 	for(PersonList::iterator i = pedestrianPerformersCopy.begin(); i != pedestrianPerformersCopy.end(); i++) {
 		updateAgent(*i);
 	}
@@ -570,8 +570,8 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person,
 		activityPerformers.erase(pIt);
 	}
 	else if (person->getRole() && person->getRole()->roleType==sim_mob::Role::RL_PEDESTRIAN) {
-		PersonList::iterator pIt = std::find(pedestrianPerformers.begin(), pedestrianPerformers.end(), person);
-		pedestrianPerformers.erase(pIt);
+		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
+		pedestrianList.erase(pIt);
 		if(person->getNextLinkRequired()){
 			return;
 		}
@@ -678,9 +678,15 @@ void sim_mob::Conflux::onEvent(event::EventId eventId, sim_mob::event::Context c
 
 void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
-	if(type == MSG_PEDESTRIAN_TRANSFER_REQUEST){
+	switch(type) {
+	case MSG_PEDESTRIAN_TRANSFER_REQUEST:
+	{
 		const PedestrianRequestMessageArgs& msg = MSG_CAST(PedestrianRequestMessageArgs, message);
-		pedestrianPerformers.push_back(msg.pedestrian);
+		pedestrianList.push_back(msg.pedestrian);
+		break;
+	}
+	default:
+		break;
 	}
 }
 

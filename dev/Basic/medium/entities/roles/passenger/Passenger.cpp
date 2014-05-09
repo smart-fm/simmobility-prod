@@ -34,7 +34,7 @@ Role* sim_mob::medium::Passenger::clone(Person* parent) const {
 }
 
 void sim_mob::medium::Passenger::setDriver(const Driver* driver) {
-	driver = driver;
+	this->driver = driver;
 }
 
 const sim_mob::medium::Driver* sim_mob::medium::Passenger::getDriver() const {

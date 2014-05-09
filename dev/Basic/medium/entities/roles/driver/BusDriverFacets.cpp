@@ -28,7 +28,6 @@ void initSegStatsPath(const vector<const sim_mob::RoadSegment*>& rsPath,
 	}
 }
 
-const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
 const double BUS_LENGTH = 1200.0; // 3 times PASSENGER_CAR_UNIT
 }
 

@@ -20,16 +20,9 @@ namespace medium {
 class Vehicle : public sim_mob::VehicleBase {
 public:
 	Vehicle(const VehicleType vehType, const double length, const double pcu)
-	: sim_mob::VehicleBase(vehType, length, 0), PCU_Equivlent(pcu)
+	: sim_mob::VehicleBase(vehType, length, 0)
 	{}
 
-	const double getPcuEquivlent() const {
-		return PCU_Equivlent;
-	}
-
-private:
-	/**number of Passenger Car Units equivalent to this vehicle*/
-	const double PCU_Equivlent;
 };
 } // end namespace medium
 } // end namespace sim_mob

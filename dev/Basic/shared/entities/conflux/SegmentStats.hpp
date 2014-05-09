@@ -126,8 +126,8 @@ private:
 	double length;
 	/**counter to track number of persons in this lane*/
 	unsigned int numPersons;
-	/**tracks the queueing length of this segment*/
-	double queueingLength;
+	/**tracks the queuing length of this segment*/
+	double queueLength;
 	/**tracks the moving length of this segment*/
 	double movingLength;
 
@@ -146,7 +146,8 @@ public:
 	LaneStats(const sim_mob::Lane* laneInSegment, double length, bool isLaneInfinity = false) :
 		queueCount(0), initialQueueCount(0), laneParams(new LaneParams()),
 		positionOfLastUpdatedAgent(-1.0), lane(laneInSegment), length(length),
-		laneInfinity(isLaneInfinity), numPersons(0) {}
+		laneInfinity(isLaneInfinity), numPersons(0), queueLength(0),
+		movingLength(0) {}
 	~LaneStats() {
 		safe_delete_item(laneParams);
 	}

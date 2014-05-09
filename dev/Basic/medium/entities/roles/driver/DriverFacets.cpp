@@ -67,7 +67,6 @@ inline double converToSeconds(uint32_t timeInMs) {
 	return (timeInMs/1000.0);
 }
 
-const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
 const double INFINITESIMAL_DOUBLE = 0.001;
 }
 

@@ -22,8 +22,8 @@
 #include "conf/settings/DisableMPI.h"
 #include "entities/AuraManager.hpp"
 #include "entities/conflux/SegmentStats.hpp"
-
 #include "entities/misc/BusTrip.hpp"
+#include "entities/vehicle/VehicleBase.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
@@ -89,8 +89,7 @@ using std::multimap;
 
 
 namespace {
-const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
-const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * PASSENGER_CAR_UNIT; // 5 times a car's length
+const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
 
 class DatabaseLoader : private boost::noncopyable {
 public:

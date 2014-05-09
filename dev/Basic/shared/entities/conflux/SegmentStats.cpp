@@ -9,14 +9,15 @@
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "entities/vehicle/VehicleBase.hpp"
 #include "logging/Log.hpp"
+
 
 using std::string;
 
 namespace{
     const double INFINITESIMAL_DOUBLE = 0.000001;
-    const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
-    const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * PASSENGER_CAR_UNIT; // 5 times a car's length
+    const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
     const double LARGE_OUTPUT_FLOW_RATE = 1000.0;
 
     /**

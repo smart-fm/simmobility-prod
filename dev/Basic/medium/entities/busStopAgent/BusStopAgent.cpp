@@ -7,7 +7,7 @@
 
 #include "BusStopAgent.hpp"
 #include "entities/roles/waitBusActivity/waitBusActivity.hpp"
-#include "entities/MesoEventType.hpp"
+#include "message/MT_Message.hpp"
 
 namespace sim_mob {
 
@@ -49,6 +49,20 @@ void BusStopAgent::addAlightingPerson(sim_mob::Person* person) {
 
 const sim_mob::BusStop* BusStopAgent::getBusStop() const{
 	return busStop;
+}
+
+bool BusStopAgent::frame_init(timeslice now) {
+	try {
+		messaging::MessageBus::RegisterHandler(this);
+	} catch (const std::runtime_error& error) {
+		Print() << error.what() << std::endl;
+		return false;
+	}
+	return true;
+}
+
+Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now) {
+	return UpdateStatus::Continue;
 }
 
 void BusStopAgent::HandleMessage(messaging::Message::MessageType type,

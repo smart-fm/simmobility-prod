@@ -6,7 +6,7 @@
 #include "PassengerFacets.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/driver/Driver.hpp"
-#include "entities/MesoEventType.hpp"
+#include "message/MT_Message.hpp"
 
 using std::vector;
 using namespace sim_mob;

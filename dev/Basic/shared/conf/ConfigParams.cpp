@@ -506,9 +506,9 @@ std::set<sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxes()
 	return confluxes;
 }
 
-std::set<sim_mob::SegmentStats*>& sim_mob::ConfigParams::getSegmentStats()
+std::set<sim_mob::SegmentStats*>& sim_mob::ConfigParams::getSegmentStatsWithBusStops()
 {
-	return segmentStats;
+	return segmentStatsWithBusStops;
 }
 
 const std::set<sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxes() const

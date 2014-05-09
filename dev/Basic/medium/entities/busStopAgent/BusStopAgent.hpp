@@ -27,10 +27,8 @@ public:
 protected:
 
 	//Virtual overrides
-	virtual bool frame_init(timeslice now) {
-	}
-	virtual Entity::UpdateStatus frame_tick(timeslice now) {
-	}
+	virtual bool frame_init(timeslice now);
+	virtual Entity::UpdateStatus frame_tick(timeslice now);
 	virtual void frame_output(timeslice now) {
 	}
 	virtual bool isNonspatial(){

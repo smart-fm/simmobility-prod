@@ -115,7 +115,7 @@ private:
 	/**number of persons queueing in lane*/
 	unsigned int queueCount;
 	/**number of queuing persons at the start of the current tick*/
-	unsigned int initialQueueCount;
+	unsigned int initialQueueLength;
 	/**position of the last updated person in lane*/
 	double positionOfLastUpdatedAgent;
 	/**geospatial lane corresponding to this lane stats*/
@@ -129,7 +129,7 @@ private:
 	/**tracks the queuing length of this segment*/
 	double queueLength;
 	/**tracks the moving length of this segment*/
-	double movingLength;
+	double totalLength;
 
 	/*
 	 * laneAgentsCopy is a copy of laneAgents taken at the start of each tick
@@ -144,10 +144,10 @@ public:
 	PersonList laneAgents;
 
 	LaneStats(const sim_mob::Lane* laneInSegment, double length, bool isLaneInfinity = false) :
-		queueCount(0), initialQueueCount(0), laneParams(new LaneParams()),
+		queueCount(0), initialQueueLength(0), laneParams(new LaneParams()),
 		positionOfLastUpdatedAgent(-1.0), lane(laneInSegment), length(length),
 		laneInfinity(isLaneInfinity), numPersons(0), queueLength(0),
-		movingLength(0) {}
+		totalLength(0) {}
 	~LaneStats() {
 		safe_delete_item(laneParams);
 	}
@@ -238,12 +238,16 @@ public:
 	 */
 	void verifyOrdering();
 
-	unsigned int getInitialQueueCount() const {
-		return initialQueueCount;
+	double getTotalVehicleLength() const;
+	double getQueueLength() const;
+	double getMovingLength() const;
+
+	unsigned int getInitialQueueLength() const {
+		return initialQueueLength;
 	}
 
-	void setInitialQueueCount(unsigned int initialQueueCount) {
-		this->initialQueueCount = initialQueueCount;
+	void setInitialQueueLength(unsigned int initialQueueLength) {
+		this->initialQueueLength = initialQueueLength;
 	}
 
 	double getPositionOfLastUpdatedAgent() const {
@@ -380,7 +384,7 @@ public:
 	unsigned int getSegFlow();
 	void incrementSegFlow();
 	void resetSegFlow();
-	unsigned int getInitialQueueCount(const Lane* lane) const;
+	unsigned int getInitialQueueLength(const Lane* lane) const;
 
 	/**
 	 * adds person to lane in segment
@@ -438,6 +442,41 @@ public:
 	 * @return std::pair<queuingCount, movingCount>
 	 */
 	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane) const;
+
+	/**
+	 * gets the queue length of lane
+	 * @param lane the lane for which queue length is requested
+	 * @returns queue length of lane
+	 */
+	double getLaneQueueLength(const sim_mob::Lane* lane) const;
+
+	/**
+	 * gets the moving length of lane
+	 * @param lane the lane for which moving length is requested
+	 * @returns moving length of lane
+	 */
+	double getLaneMovingLength(const sim_mob::Lane* lane) const;
+
+	/**
+	 * Returns the sum of queuing lengths of all lanes in this seg stats.
+	 * This function considers only vehicle lanes
+	 * @returns total queuing length of this seg stats
+	 */
+	double getQueueLength() const;
+
+	/**
+	 * Returns the sum of moving lengths of all lanes in this seg stats
+	 * This function considers only vehicle lanes
+	 * @returns total moving length of this seg stats
+	 */
+	double getMovingLength() const;
+
+	/**
+	 * Returns the sum of lengths of vehicles in all lanes in this seg stats
+	 * This function considers only vehicle lanes
+	 * @return total length of vehicles in this seg stats
+	 */
+	double getTotalVehicleLength() const;
 
 	/**
 	 * returns the number of persons in lane

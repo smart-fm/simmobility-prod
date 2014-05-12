@@ -87,14 +87,24 @@ public:
 
 public:
 	//NOTE: Don't forget to call this from sub-classes!
-	explicit Role(sim_mob::Agent* parent = nullptr, std::string roleName = std::string(), Role::type roleType_ = RL_UNKNOWN) :
-		parent(parent), currResource(nullptr), name(roleName), roleType(roleType_), dynamic_seed(0)
+	explicit Role(sim_mob::Agent* parent = nullptr,
+			std::string roleName = std::string(),
+			Role::type roleType_ = RL_UNKNOWN) :
+		parent(parent), currResource(nullptr), name(roleName),
+		roleType(roleType_), behaviorFacet(nullptr), movementFacet(nullptr),
+		dynamic_seed(0)
 	{
 		//todo consider putting a runtime error for empty or zero length rolename
 	}
 
-	explicit Role(sim_mob::BehaviorFacet* behavior = nullptr, sim_mob::MovementFacet* movement = nullptr, sim_mob::Agent* parent = nullptr, std::string roleName = std::string(), Role::type roleType_ = RL_UNKNOWN) :
-		parent(parent), currResource(nullptr),name(roleName), roleType(roleType_), behaviorFacet(behavior), movementFacet(movement), dynamic_seed(0)
+	explicit Role(sim_mob::BehaviorFacet* behavior = nullptr,
+			sim_mob::MovementFacet* movement = nullptr,
+			sim_mob::Agent* parent = nullptr,
+			std::string roleName = std::string(),
+			Role::type roleType_ = RL_UNKNOWN) :
+		parent(parent), currResource(nullptr),name(roleName),
+		roleType(roleType_), behaviorFacet(behavior), movementFacet(movement),
+		dynamic_seed(0)
 	{
 		//todo consider putting a runtime error for empty or zero length rolename
 	}

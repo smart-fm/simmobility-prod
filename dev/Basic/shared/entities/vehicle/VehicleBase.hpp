@@ -26,13 +26,12 @@ public:
 	};
 
 	VehicleBase(const VehicleType vehType, const double length, const double width)
-	: vehicleType(vehType), lengthCM(length), widthCM(width),
-	  passengerCarUnits(lengthCM/PASSENGER_CAR_UNIT)
+	: vehicleType(vehType), lengthCM(length), widthCM(width)
 	{}
 
 	VehicleBase(const VehicleBase& copy)
 	: vehicleType(copy.vehicleType), lengthCM(copy.lengthCM),
-	  widthCM(copy.widthCM), passengerCarUnits(copy.passengerCarUnits)
+	  widthCM(copy.widthCM)
 	{}
 
 	virtual ~VehicleBase() {}
@@ -49,20 +48,11 @@ public:
 		return vehicleType;
 	}
 
-	const double getPassengerCarUnits() const {
-		return passengerCarUnits;
-	}
-
 protected:
 	/**length of the vehicle in cm*/
 	const double lengthCM;
 	/**width of the vehicle in cm*/
 	const double widthCM;
-	/**
-	 * number of Passenger Car Units equivalent to this vehicle
-	 * we assume 1 PCU = 400cm (following DynaMIT).
-	 */
-	const double passengerCarUnits;
 	/**type of vehicle*/
 	const VehicleType vehicleType;
 };

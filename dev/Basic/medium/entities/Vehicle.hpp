@@ -19,10 +19,21 @@ namespace medium {
  */
 class Vehicle : public sim_mob::VehicleBase {
 public:
-	Vehicle(const VehicleType vehType, const double length, const double pcu)
-	: sim_mob::VehicleBase(vehType, length, 0)
+	Vehicle(const VehicleType vehType, const double length)
+	: sim_mob::VehicleBase(vehType, length, 0),
+	  passengerCarUnits(length/PASSENGER_CAR_UNIT)
 	{}
 
+	const double getPassengerCarUnits() const {
+		return passengerCarUnits;
+	}
+
+private:
+	/**
+	 * number of Passenger Car Units equivalent to this vehicle
+	 * we assume 1 PCU = 400cm (following DynaMIT).
+	 */
+	const double passengerCarUnits;
 };
 } // end namespace medium
 } // end namespace sim_mob

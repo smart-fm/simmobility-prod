@@ -92,7 +92,6 @@ protected:
 	const Lane* currLane;
 	const Lane* laneInNextSegment;
 	bool isQueuing;
-	double vehicleLength;
 
 	mutable std::stringstream DebugStream;
 

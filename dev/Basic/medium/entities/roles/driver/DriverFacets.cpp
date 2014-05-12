@@ -95,13 +95,9 @@ sim_mob::medium::Driver* sim_mob::medium::DriverBehavior::getParentDriver() {
 }
 
 sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
-	MovementFacet(parentAgent), parentDriver(nullptr), vehicleLength(400),
-	currLane(nullptr), laneInNextSegment(nullptr), isQueuing(false)
-{
-	if(vehicleLength == 0) {
-		throw std::runtime_error("Driver cannot be initialized with a Vehicle of length = 0");
-	}
-}
+	MovementFacet(parentAgent), parentDriver(nullptr), currLane(nullptr),
+	laneInNextSegment(nullptr), isQueuing(false)
+{}
 
 
 sim_mob::medium::DriverMovement::~DriverMovement() {}
@@ -109,10 +105,10 @@ sim_mob::medium::DriverMovement::~DriverMovement() {}
 void sim_mob::medium::DriverMovement::frame_init() {
 	bool pathInitialized = initializePath();
 	if (pathInitialized) {
-		Vehicle* newVeh = new Vehicle(Vehicle::CAR, PASSENGER_CAR_UNIT, 1.0);
-		Vehicle* oldVehicle = parentDriver->getVehicle();
+		Vehicle* newVehicle = new Vehicle(Vehicle::CAR, PASSENGER_CAR_UNIT);
+		VehicleBase* oldVehicle = parentDriver->getResource();
 		safe_delete_item(oldVehicle);
-		parentDriver->setVehicle(newVeh);
+		parentDriver->setResource(newVehicle);
 	}
 	else{
 		getParent()->setToBeRemoved();
@@ -453,11 +449,8 @@ bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& param
 		return false;
 	}
 
-	unsigned int total = nextSegStats->numMovingInSegment(true)
-						+ nextSegStats->numQueuingInSegment(true);
-
-	int vehLaneCount = nextSegStats->getNumVehicleLanes();
-	double max_allowed = (vehLaneCount * nextSegStats->getLength()/vehicleLength); //safe because vehicle length cannot be 0
+	double total = nextSegStats->getTotalVehicleLength();
+	double max_allowed = nextSegStats->getNumVehicleLanes() * nextSegStats->getLength();
 	return (total < max_allowed);
 }
 
@@ -471,7 +464,8 @@ void DriverMovement::moveInQueue() {
 		pathMover.setPositionInSegment(0.0);
 	}
 	else {
-		pathMover.setPositionInSegment(positionOfLastUpdatedAgentInLane +  vehicleLength);
+		pathMover.setPositionInSegment(positionOfLastUpdatedAgentInLane
+				+ parentDriver->getResource()->getLengthCm());
 	}
 }
 
@@ -508,7 +502,7 @@ bool DriverMovement::advanceQueuingVehicle(sim_mob::medium::DriverUpdateParams& 
 	//vehicle length and outrate cannot be 0.
 	//There was a magic factor 3.0 in the denominator. It was removed because
 	//its purpose was not clear to anyone.~Harish
-	finalTimeSpent = initialTimeSpent + initialDistToSegEnd/(vehicleLength*outRate);
+	finalTimeSpent = initialTimeSpent + initialDistToSegEnd/(PASSENGER_CAR_UNIT*outRate);
 
 	if (output > 0 && finalTimeSpent < params.secondsInTick &&
 			pathMover.getCurrSegStats()->getPositionOfLastUpdatedAgentInLane(currLane) == -1)
@@ -523,8 +517,8 @@ bool DriverMovement::advanceQueuingVehicle(sim_mob::medium::DriverUpdateParams& 
 		params.elapsedSeconds =  params.secondsInTick;
 	}
 	//unless it is handled previously;
-	//1. update current position of vehicle/driver with xf
-	//2. update current time, p.timeThisTick, with tf
+	//1. update current position of vehicle/driver with finalDistToSegEnd
+	//2. update current time, p.elapsedSeconds, with finalTimeSpent
 	pathMover.setPositionInSegment(finalDistToSegEnd);
 
 	return res;
@@ -676,7 +670,7 @@ double DriverMovement::getAcceptRate(const Lane* lane, const sim_mob::SegmentSta
 }
 
 double DriverMovement::getQueueLength(const Lane* lane) {
-	return ((pathMover.getCurrSegStats()->getLaneAgentCounts(lane)).first) * (vehicleLength);
+	return pathMover.getCurrSegStats()->getLaneQueueLength(lane);
 }
 
 double DriverMovement::getLastAccept(const Lane* lane, const sim_mob::SegmentStats* segStats) {
@@ -869,7 +863,7 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(
 }
 
 double DriverMovement::getInitialQueueLength(const Lane* lane) {
-	return getParent()->getCurrSegStats()->getInitialQueueCount(lane) * vehicleLength;
+	return getParent()->getCurrSegStats()->getInitialQueueLength(lane);
 }
 
 void DriverMovement::insertIncident(sim_mob::SegmentStats* segStats, double newFlowRate) {

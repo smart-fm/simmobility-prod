@@ -60,10 +60,10 @@ sim_mob::medium::BusDriverMovement::~BusDriverMovement() {}
 void sim_mob::medium::BusDriverMovement::frame_init() {
 	bool pathInitialized = initializePath();
 	if (pathInitialized) {
-		Vehicle* newVeh = new Vehicle(Vehicle::BUS, BUS_LENGTH, BUS_LENGTH/PASSENGER_CAR_UNIT);
-		Vehicle* oldBus = parentBusDriver->getVehicle();
+		Vehicle* newVeh = new Vehicle(Vehicle::BUS, BUS_LENGTH);
+		VehicleBase* oldBus = parentBusDriver->getResource();
 		safe_delete_item(oldBus);
-		parentBusDriver->setVehicle(newVeh);
+		parentBusDriver->setResource(newVeh);
 	}
 }
 

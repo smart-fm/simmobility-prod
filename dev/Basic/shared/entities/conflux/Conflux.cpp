@@ -42,12 +42,29 @@ typedef Entity::UpdateStatus UpdateStatus;
 namespace{
     const double INFINITESIMAL_DOUBLE = 0.000001;
     const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
+
+    struct PersonStatus {
+    public:
+    	const sim_mob::Role* role;
+    	const sim_mob::RoadSegment* segment;
+    	const sim_mob::Lane* lane;
+    	bool isQueuing;
+    	sim_mob::SegmentStats* segStats;
+
+    	PersonStatus(sim_mob::Person* person) {
+    		role = person->getRole();
+    		segment = person->getCurrSegStats()->getRoadSegment();
+    		segStats = segment->getParentConflux()->findSegStats(segment, person->getCurrSegStats()->getPositionInRoadSegment()); //person->getCurrSegStats() cannot be used as it returns a const pointer
+    		lane = person->getCurrLane();
+    		isQueuing = person->isQueuing;
+    	}
+    };
 }
 
 sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id)
 	: Agent(mtxStrat, id),
 	  multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
-	  parentWorker(nullptr), currFrameNumber(0,0), debugMsgs(std::stringstream::out),
+	  parentWorker(nullptr), currFrame(0,0), debugMsgs(std::stringstream::out),
 	  isBoundary(false), isMultipleReceiver(false)
 {
 }
@@ -84,7 +101,7 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* person, const sim_mob::RoadSegm
 }
 
 UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
-	currFrameNumber = frameNumber;
+	currFrame = frameNumber;
 
 	resetPositionOfLastUpdatedAgentOnLanes();
 
@@ -144,130 +161,106 @@ void sim_mob::Conflux::updateUnsignalized() {
 }
 
 void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
-	//local declarations
-
-	//To preserve the state of the person before update
-	const sim_mob::Role* roleBeforeUpdate = nullptr;
-	const sim_mob::RoadSegment* segBeforeUpdate = nullptr;
-	const sim_mob::Lane* laneBeforeUpdate = nullptr;
-	bool isQueuingBeforeUpdate = false;
-	sim_mob::SegmentStats* segStatsBeforeUpdate = nullptr;
-
-	//To capture the state of the person after update
-	const sim_mob::Role* roleAfterUpdate = nullptr;
-	const sim_mob::RoadSegment* segAfterUpdate = nullptr;
-	const sim_mob::Lane* laneAfterUpdate = nullptr;
-	bool isQueuingAfterUpdate = false;
-	sim_mob::SegmentStats* segStatsAfterUpdate = nullptr;
-
-	if (person->getLastUpdatedFrame() < currFrameNumber.frame()) {
+	if (person->getLastUpdatedFrame() < currFrame.frame()) {
 		//if the person is being moved for the first time in this tick
-		person->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranSecond();
+		person->remainingTimeThisTick =
+				ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	}
 
-	person->currWorkerProvider = parentWorker; // Let the person know which worker is managing him... for logs to work.
-	roleBeforeUpdate = person->getRole();
-	segBeforeUpdate = person->getCurrSegStats()->getRoadSegment();
-	segStatsBeforeUpdate = segBeforeUpdate->getParentConflux()->findSegStats(segBeforeUpdate, person->getCurrSegStats()->getPositionInRoadSegment()); //person->getCurrSegStats() cannot be used as it returns a const pointer
-	laneBeforeUpdate = person->getCurrLane();
-	isQueuingBeforeUpdate = person->isQueuing;
+	// Let the person know which worker is (indirectly) managing him
+	person->currWorkerProvider = parentWorker;
 
+	//Capture info about person before update
+	PersonStatus beforeUpdate(person);
 
-	if(segBeforeUpdate && segBeforeUpdate->getParentConflux() != this) {
+	if(beforeUpdate.segment && beforeUpdate.segment->getParentConflux() != this) {
 		debugMsgs << "segBeforeUpdate not in the current conflux"
-				<<"|segBeforeUpdate's conflux: " << segBeforeUpdate->getParentConflux()->getMultiNode()->getID()
+				<<"|segBeforeUpdate's conflux: " << beforeUpdate.segment->getParentConflux()->getMultiNode()->getID()
 				<<"|this conflux: "<< this->getMultiNode()->getID()
 				<<"|person: "<< person->getId()
-				<<"|Frame: " << currFrameNumber.frame()
-				<<"|segBeforeUpdate_worker: "<< segBeforeUpdate->getParentConflux()->getParentWorker()
-				<<"|this_worker: "<< this->getParentWorker()
-				<<"|SegBeforeUpdate: "<< segBeforeUpdate->getStartEnd()
-				<<"|laneBeforeUpdate: " << (laneBeforeUpdate->getLaneID()?laneBeforeUpdate->getLaneID():999)
-				<<"|isQueuingBeforeUpdate:"<< (isQueuingBeforeUpdate? 1:0)
+				<<"|Frame: " << currFrame.frame()
+				<<"|segBeforeUpdate_worker: "<< beforeUpdate.segment->getParentConflux()->getParentWorker()
+				<<"|current worker: "<< this->getParentWorker()
+				<<"|SegBeforeUpdate: "<< beforeUpdate.segment->getStartEnd()
+				<<"|laneBeforeUpdate: " << (beforeUpdate.lane->getLaneID()?beforeUpdate.lane->getLaneID():999)
+				<<"|isQueuingBeforeUpdate:"<< (beforeUpdate.isQueuing? 1:0)
 				<< std::endl;
 		throw std::runtime_error(debugMsgs.str());
 	}
 
-	UpdateStatus res = movePerson(currFrameNumber, person);
+	UpdateStatus res = movePerson(currFrame, person);
 
 	if (res.status == UpdateStatus::RS_DONE) {
 		//This Person is done. Remove from simulation.
-		killAgent(person, segStatsBeforeUpdate, laneBeforeUpdate, isQueuingBeforeUpdate);
+		killAgent(person, beforeUpdate.segStats, beforeUpdate.lane, beforeUpdate.isQueuing);
 		return;
-	} else if (res.status == UpdateStatus::RS_CONTINUE) {
-		// TODO: I think there will be nothing here. Have to make sure. ~ Harish
-	} else {
-		throw std::runtime_error("Unknown/unexpected update() return status.");
 	}
 
-	roleAfterUpdate = person->getRole();
-	if(roleAfterUpdate->roleType == sim_mob::Role::RL_ACTIVITY) { // if role is ActivityPerformer after update
-		if (roleBeforeUpdate && roleBeforeUpdate->roleType == sim_mob::Role::RL_ACTIVITY) {
+	if(person->getRole()->roleType == sim_mob::Role::RL_ACTIVITY) { // if role is ActivityPerformer after update
+		if (beforeUpdate.role && beforeUpdate.role->roleType == sim_mob::Role::RL_ACTIVITY) {
 			// if the role was ActivityPerformer before the update as well, do nothing
 			// It is also possible that the person has changed from one activity to another. We do nothing even if this is the case.
 		}
 		else {
 			// else if the person currently in an activity and was in a Trip previously,
 			// remove this person from the network and add him to the activity performers list
-			if(laneBeforeUpdate) {
+			if(beforeUpdate.lane) {
 				// if the person was not in from a virtual queue, we dequeue him;
-				segStatsBeforeUpdate->dequeue(person, laneBeforeUpdate, isQueuingBeforeUpdate);
+				beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
 			}
 			activityPerformers.push_back(person);
 		}
 		return;
 	}
 	else { // if the person is in a Trip/SubTrip after update
-		if (roleBeforeUpdate && roleBeforeUpdate->roleType == sim_mob::Role::RL_ACTIVITY) {
+		if (beforeUpdate.role && beforeUpdate.role->roleType == sim_mob::Role::RL_ACTIVITY) {
 			// if the person has changed from an Activity to the current Trip/SubTrip during this tick,
 			// remove this person from the activityPerformers list
-			std::deque<Person*>::iterator pIt = std::find(activityPerformers.begin(), activityPerformers.end(), person);
+			std::deque<Person*>::iterator pIt =
+					std::find(activityPerformers.begin(), activityPerformers.end(), person);
 			activityPerformers.erase(pIt);
 		}
 	}
 
-	segAfterUpdate = person->getCurrSegStats()->getRoadSegment();
-	segStatsAfterUpdate = segAfterUpdate->getParentConflux()->findSegStats(segAfterUpdate, person->getCurrSegStats()->getPositionInRoadSegment()); //person->getCurrSegStats() cannot be used as it returns a const pointer
-	laneAfterUpdate = person->getCurrLane();
-	isQueuingAfterUpdate = person->isQueuing;
+	//capture info about the person after update
+	PersonStatus afterUpdate(person);
 
-
-	if (!laneBeforeUpdate) { //If the person was in virtual queue or was performing an activity
-		if(laneAfterUpdate) { //If the person has moved to another lane (possibly even to laneInfinity if he was performing activity) in some segment
-			segStatsAfterUpdate->addAgent(laneAfterUpdate, person);
+	if (!beforeUpdate.lane) { //If the person was in virtual queue or was performing an activity
+		if(afterUpdate.lane) { //If the person has moved to another lane (possibly even to laneInfinity if he was performing activity) in some segment
+			afterUpdate.segStats->addAgent(afterUpdate.lane, person);
 		}
 		else  {
-			if (segStatsBeforeUpdate != segStatsAfterUpdate) {
+			if (beforeUpdate.segStats != afterUpdate.segStats) {
 				// the person may have moved to another virtual queue
 				// - which is not possible if the virtual queues are processed
 				// after all conflux updates
 				debugMsgs
 						<< "Error: Person has moved from one virtual queue to another. "
 						<< "\n Person " << person->getId()
-						<< "|Frame: " << currFrameNumber.frame()
-						<< "|segBeforeUpdate: " << segBeforeUpdate->getStartEnd()
-						<< "|segStatsAfterUpdate: " << segAfterUpdate->getStartEnd();
+						<< "|Frame: " << currFrame.frame()
+						<< "|segBeforeUpdate: " << beforeUpdate.segment->getStartEnd()
+						<< "|segAfterUpdate: " << afterUpdate.segment->getStartEnd();
 				throw std::runtime_error(debugMsgs.str());
 			}
 			else {
 				/* This is typically the person who was not accepted by the next lane in the next segment.
 				 * We push this person back to the same virtual queue and let him update in the next tick.
 				 */
-				person->distanceToEndOfSegment = segAfterUpdate->getLaneZeroLength();
-				segAfterUpdate->getParentConflux()->pushBackOntoVirtualQueue(segAfterUpdate->getLink(), person);
+				person->distanceToEndOfSegment = afterUpdate.segment->getLaneZeroLength();
+				afterUpdate.segment->getParentConflux()->pushBackOntoVirtualQueue(afterUpdate.segment->getLink(), person);
 			}
 		}
 	}
-	else if((segStatsBeforeUpdate != segStatsAfterUpdate) /*if the person has moved to another segment*/
-			|| (laneBeforeUpdate == segStatsBeforeUpdate->laneInfinity && laneBeforeUpdate != laneAfterUpdate) /* or if the person has moved out of lane infinity*/)
+	else if((beforeUpdate.segStats != afterUpdate.segStats) /*if the person has moved to another segment*/
+			|| (beforeUpdate.lane == beforeUpdate.segStats->laneInfinity && beforeUpdate.lane != afterUpdate.lane) /* or if the person has moved out of lane infinity*/)
 	{
-		Person* dequeuedPerson = segStatsBeforeUpdate->dequeue(person, laneBeforeUpdate, isQueuingBeforeUpdate);
+		Person* dequeuedPerson = beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
 		if(dequeuedPerson != person) {
-			segStatsBeforeUpdate->printAgents();
+			beforeUpdate.segStats->printAgents();
 			debugMsgs << "Error: Person " << dequeuedPerson->getId() << " dequeued instead of Person " << person->getId()
-					<< "\n Person " << person->getId() << ": segment: " << segBeforeUpdate->getStartEnd()
-					<< "|lane: " << laneBeforeUpdate->getLaneID()
-					<< "|Frame: " << currFrameNumber.frame()
+					<< "\n Person " << person->getId() << ": segment: " << beforeUpdate.segment->getStartEnd()
+					<< "|lane: " << beforeUpdate.lane->getLaneID()
+					<< "|Frame: " << currFrame.frame()
 					<< "\n Person " << dequeuedPerson->getId() << ": "
 					<< "segment: " << dequeuedPerson->getCurrSegStats()->getRoadSegment()->getStartEnd()
 					<< "|lane: " << dequeuedPerson->getCurrLane()->getLaneID()
@@ -276,49 +269,35 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 			throw std::runtime_error(debugMsgs.str());
 		}
 
-		if(laneAfterUpdate) {
-			segStatsAfterUpdate->addAgent(laneAfterUpdate, person);
+		if(afterUpdate.lane) {
+			afterUpdate.segStats->addAgent(afterUpdate.lane, person);
 		}
 		else {
 			/* We wouldn't know which lane the person has to go to if the person
 			 * wants to enter a link which belongs to a conflux that is not yet
 			 * processed for this tick. We add this person to the virtual queue
 			 * for that link here */
-			person->distanceToEndOfSegment = segAfterUpdate->getLaneZeroLength();
-			segAfterUpdate->getParentConflux()->pushBackOntoVirtualQueue(segAfterUpdate->getLink(), person);
+			person->distanceToEndOfSegment = afterUpdate.segment->getLaneZeroLength();
+			afterUpdate.segment->getParentConflux()->pushBackOntoVirtualQueue(afterUpdate.segment->getLink(), person);
 		}
 	}
 	/*It's possible for some persons to start a new trip on the same segment
 	 * where they ended the previous trip. */
-	else if(segStatsBeforeUpdate == segStatsAfterUpdate && laneAfterUpdate == segStatsAfterUpdate->laneInfinity){
-		Person* dequeuedPerson = segStatsBeforeUpdate->dequeue(person, laneBeforeUpdate, isQueuingBeforeUpdate);
-		if(dequeuedPerson != person) {
-			segStatsBeforeUpdate->printAgents();
-			debugMsgs << "Error: Person " << dequeuedPerson->getId() << " dequeued instead of Person " << person->getId()
-					<< "\n Person " << person->getId()
-					<< ": segment: " << segBeforeUpdate->getStartEnd()
-					<< "|segStats: " << segStatsBeforeUpdate
-					<< "|lane: " << laneBeforeUpdate->getLaneID()
-					<< "|Frame: " << currFrameNumber.frame()
-					<< "\n Person " << dequeuedPerson->getId()
-					<< ": segment: " << dequeuedPerson->getCurrSegStats()->getRoadSegment()->getStartEnd()
-					<< "|segStats: " << dequeuedPerson->getCurrSegStats()
-					<< "|lane: " << dequeuedPerson->getCurrLane()->getLaneID()
-					<< "|Frame: " << dequeuedPerson->getLastUpdatedFrame();
-
-			throw std::runtime_error(debugMsgs.str());
-		}
+	else if(beforeUpdate.segStats == afterUpdate.segStats
+			&& afterUpdate.lane == afterUpdate.segStats->laneInfinity){
+		Person* dequeuedPerson =
+				beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
 		//adding the person to lane infinity for the new trip
-		segStatsAfterUpdate->addAgent(laneAfterUpdate, person);
+		afterUpdate.segStats->addAgent(afterUpdate.lane, person);
 	}
-	else if (isQueuingBeforeUpdate != isQueuingAfterUpdate) {
-		segStatsAfterUpdate->updateQueueStatus(laneAfterUpdate, person);
+	else if (beforeUpdate.isQueuing != afterUpdate.isQueuing) {
+		afterUpdate.segStats->updateQueueStatus(afterUpdate.lane, person);
 	}
 
 	// set the position of the last updated Person in his current lane (after update)
-	if (laneAfterUpdate && laneAfterUpdate != segStatsAfterUpdate->laneInfinity) {
+	if (afterUpdate.lane && afterUpdate.lane != afterUpdate.segStats->laneInfinity) {
 		//if the person did not end up in a VQ and his lane is not lane infinity of segAfterUpdate
-		segStatsAfterUpdate->setPositionOfLastUpdatedAgentInLane(person->distanceToEndOfSegment, laneAfterUpdate);
+		afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(person->distanceToEndOfSegment, afterUpdate.lane);
 	}
 }
 
@@ -403,7 +382,7 @@ void sim_mob::Conflux::resetPersonRemTimes() {
 			segStats = *segStatsIt;
 			PersonList& personsInLaneInfinity = segStats->getPersons(segStats->laneInfinity);
 			for(PersonList::iterator personIt=personsInLaneInfinity.begin(); personIt!=personsInLaneInfinity.end(); personIt++) {
-				if ((*personIt)->getLastUpdatedFrame() < currFrameNumber.frame()) {
+				if ((*personIt)->getLastUpdatedFrame() < currFrame.frame()) {
 					//if the person is going to be moved for the first time in this tick
 					(*personIt)->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 				}
@@ -416,7 +395,7 @@ void sim_mob::Conflux::resetPersonRemTimes() {
 		for(VirtualQueueMap::iterator vqIt=virtualQueuesMap.begin(); vqIt!=virtualQueuesMap.end();vqIt++) {
 			PersonList& personsInVQ = vqIt->second;
 			for(PersonList::iterator pIt= personsInVQ.begin(); pIt!=personsInVQ.end(); pIt++) {
-				if ((*pIt)->getLastUpdatedFrame() < currFrameNumber.frame()) {
+				if ((*pIt)->getLastUpdatedFrame() < currFrame.frame()) {
 					//if the person is going to be moved for the first time in this tick
 					(*pIt)->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 				}
@@ -702,7 +681,7 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 		personRole->make_frame_tick_params(now);
 		person->setResetParamsRequired(false);
 	}
-	person->setLastUpdatedFrame(currFrameNumber.frame());
+	person->setLastUpdatedFrame(currFrame.frame());
 
 	Entity::UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 

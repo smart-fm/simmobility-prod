@@ -668,7 +668,8 @@ bool SegmentStats::hasAgents() const {
 }
 
 bool SegmentStats::hasBusStop(const sim_mob::BusStop* busStop) const {
-	BusStopList::const_iterator stopIt = std::find(busStops.begin(), busStops.end(), busStop);
+	BusStopList::const_iterator stopIt =
+			std::find(busStops.begin(), busStops.end(), busStop);
 	return !(stopIt==busStops.end());
 }
 
@@ -676,8 +677,9 @@ double SegmentStats::getPositionOfLastUpdatedAgentInLane(const Lane* lane) const
 	return laneStatsMap.find(lane)->second->getPositionOfLastUpdatedAgent();
 }
 
-void SegmentStats::setPositionOfLastUpdatedAgentInLane(double positionOfLastUpdatedAgentInLane, const Lane* lane) {
-		laneStatsMap.find(lane)->second->setPositionOfLastUpdatedAgent(positionOfLastUpdatedAgentInLane);
+void SegmentStats::setPositionOfLastUpdatedAgentInLane(
+		double positionOfLastUpdatedAgentInLane, const Lane* lane) {
+	laneStatsMap.find(lane)->second->setPositionOfLastUpdatedAgent(positionOfLastUpdatedAgentInLane);
 }
 
 unsigned int sim_mob::SegmentStats::getInitialQueueLength(const Lane* lane) const {
@@ -791,8 +793,20 @@ void LaneStats::verifyOrdering() {
 }
 
 sim_mob::Person* SegmentStats::dequeue(const sim_mob::Person* person, const sim_mob::Lane* lane, bool isQueuingBfrUpdate) {
+	if(!person) {
+		return nullptr;
+	}
 	sim_mob::Person* dequeuedPerson =  laneStatsMap.find(lane)->second->dequeue(person, isQueuingBfrUpdate);
-	if(dequeuedPerson) { numPersons--; } // record removal from segment
+	if(dequeuedPerson) {
+		numPersons--; // record removal from segment
+	}
+	else {
+		printAgents();
+		debugMsgs << "Error: Person " << person->getId()
+				<< " was not found in lane " << lane->getLaneID()
+				<< std::endl;
+		throw std::runtime_error(debugMsgs.str());
+	}
 	return dequeuedPerson;
 }
 

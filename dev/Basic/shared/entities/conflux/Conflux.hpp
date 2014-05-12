@@ -132,7 +132,7 @@ private:
 	std::map<sim_mob::Link*, unsigned int> vqBounds;
 
 	/**holds the current frame number for which this conflux is being processed*/
-	timeslice currFrameNumber;
+	timeslice currFrame;
 
 	/**list of persons performing activities within the vicinity of this conflux*/
 	PersonList activityPerformers;

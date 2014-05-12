@@ -67,7 +67,7 @@ const std::vector<const sim_mob::BusStop*>* sim_mob::medium::BusDriver::getBusSt
 	return stopsVec;
 }
 
-bool sim_mob::medium::BusDriver::insertPassenger(sim_mob::Person* passenger) {
+bool sim_mob::medium::BusDriver::insertPassenger(sim_mob::medium::Passenger* passenger) {
 	passengerList.push_back(passenger);
 	return true;
 }
@@ -91,18 +91,15 @@ sim_mob::DriverRequestParams sim_mob::medium::BusDriver::getDriverRequestParams(
 
 int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent){
 	int numAlighting = 0;
-	std::list<sim_mob::Person*>::iterator itPassenger = passengerList.begin();
+	std::list<sim_mob::medium::Passenger*>::iterator itPassenger = passengerList.begin();
 	while (itPassenger != passengerList.end()) {
 
-		messaging::MessageBus::SendInstantaneousMessage((*itPassenger),
+		messaging::MessageBus::SendInstantaneousMessage((*itPassenger)->getParent(),
 				MSG_DECISION_PASSENGER_ALIGHTING,
 				messaging::MessageBus::MessagePtr(
-						new PassengerAlightingDecisionMessageArgs(
-								busStopAgent->getBusStop())));
+						new AlightingMessage(busStopAgent->getBusStop())));
 
-		sim_mob::medium::Passenger* passenger =
-				dynamic_cast<sim_mob::medium::Passenger*>((*itPassenger)->getRole());
-		if (passenger && passenger->getDecision()==ALIGHT_BUS) {
+		if ((*itPassenger)->getDecision() == ALIGHT_BUS) {
 			busStopAgent->addAlightingPerson(*itPassenger);
 			itPassenger = passengerList.erase(itPassenger);
 			numAlighting++;
@@ -138,8 +135,7 @@ void sim_mob::medium::BusDriver::enterBusStop(
 
 	messaging::MessageBus::SendInstantaneousMessage(busStopAgent,
 			MSG_DECISION_WAITINGPERSON_BOARDING,
-			messaging::MessageBus::MessagePtr(
-					new WaitingPeopleBoardingDecisionMessageArgs(this)));
+			messaging::MessageBus::MessagePtr(new BoardingMessage(this)));
 
 	int numAlighting = alightPassenger(busStopAgent);
 	int numBoarding = busStopAgent->getBoardingNum(this);

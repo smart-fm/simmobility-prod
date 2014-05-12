@@ -233,14 +233,12 @@ protected:
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
 	virtual void frame_output(timeslice now);
 
-	/**
-	 * Inherited from EventListener.
-	 */
+
+	//Inherited from EventListener.
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 
-	/**
-	 * Inherited from MessageHandler.
-	 */
+
+	//Inherited from MessageHandler.
 	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 

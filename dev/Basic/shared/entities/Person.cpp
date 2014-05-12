@@ -280,7 +280,6 @@ void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ct
 
  void sim_mob::Person::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
  {
-	 Agent::HandleMessage(type, message);
 	 if(currRole){
 		 currRole->HandleParentMessage(type, message);
 	 }

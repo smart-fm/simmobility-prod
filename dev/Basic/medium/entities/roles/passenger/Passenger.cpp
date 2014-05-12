@@ -64,11 +64,15 @@ void sim_mob::medium::Passenger::makeAlightingDecision(const sim_mob::BusStop* n
 void sim_mob::medium::Passenger::HandleParentMessage(messaging::Message::MessageType type,
 		const messaging::Message& message)
 {
-	switch(type){
-	case MSG_DECISION_PASSENGER_ALIGHTING:
-		const PassengerAlightingDecisionMessageArgs& msg = MSG_CAST(PassengerAlightingDecisionMessageArgs, message);
+	switch (type) {
+	case MSG_DECISION_PASSENGER_ALIGHTING: {
+		const AlightingMessage& msg = MSG_CAST(AlightingMessage, message);
 		makeAlightingDecision(msg.nextStop);
 		break;
+	}
+	default: {
+		break;
+	}
 	}
 }
 }

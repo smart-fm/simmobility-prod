@@ -31,20 +31,20 @@ void BusStopAgent::onEvent(event::EventId eventId,
 
 }
 
-void BusStopAgent::registerWaitingPerson(sim_mob::Person* person) {
-	waitingPersons.push_back(person);
+void BusStopAgent::registerWaitingPerson(sim_mob::medium::WaitBusActivity* waitingPerson) {
+	waitingPersons.push_back(waitingPerson);
 }
 
-void BusStopAgent::removeWaitingPerson(sim_mob::Person* person) {
-	std::list<sim_mob::Person*>::iterator itPerson;
-	itPerson = std::find(waitingPersons.begin(), waitingPersons.end(), person);
+void BusStopAgent::removeWaitingPerson(sim_mob::medium::WaitBusActivity* waitingPerson) {
+	std::list<sim_mob::medium::WaitBusActivity*>::iterator itPerson;
+	itPerson = std::find(waitingPersons.begin(), waitingPersons.end(), waitingPerson);
 	if(itPerson!=waitingPersons.end()){
 		waitingPersons.erase(itPerson);
 	}
 }
 
-void BusStopAgent::addAlightingPerson(sim_mob::Person* person) {
-	alightingPersons.push_back(person);
+void BusStopAgent::addAlightingPerson(sim_mob::medium::Passenger* passenger) {
+	alightingPersons.push_back(passenger);
 }
 
 const sim_mob::BusStop* BusStopAgent::getBusStop() const{
@@ -68,68 +68,46 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now) {
 void BusStopAgent::HandleMessage(messaging::Message::MessageType type,
 		const messaging::Message& message) {
 
-	Agent::HandleMessage(type, message);
-
 	switch (type) {
-	case MSG_DECISION_WAITINGPERSON_BOARDING:
-		const WaitingPeopleBoardingDecisionMessageArgs& msg = MSG_CAST(
-				WaitingPeopleBoardingDecisionMessageArgs, message);
+	case MSG_DECISION_WAITINGPERSON_BOARDING: {
+		const BoardingMessage& msg = MSG_CAST(BoardingMessage, message);
 		boardWaitingPersons(msg.busDriver);
 		break;
+	}
+	default: {
+		break;
+	}
 	}
 }
 
 void BusStopAgent::boardWaitingPersons(
 		sim_mob::medium::BusDriver* busDriver) {
 	int numBoarding = 0;
-	std::list<sim_mob::Person*>::iterator itPerson;
+	std::list<sim_mob::medium::WaitBusActivity*>::iterator itPerson;
 	for (itPerson = waitingPersons.begin(); itPerson != waitingPersons.end();
 			itPerson++) {
-		sim_mob::Role* curRole = (*itPerson)->getRole();
-		sim_mob::medium::WaitBusActivity* waitingActivity =
-				dynamic_cast<sim_mob::medium::WaitBusActivity*>(curRole);
-		if (waitingActivity) {
-			waitingActivity->makeBoardingDecision(busDriver);
-		}
+		(*itPerson)->makeBoardingDecision(busDriver);
 	}
 
 	itPerson = waitingPersons.begin();
 	while (itPerson != waitingPersons.end()) {
-		sim_mob::Role* curRole = (*itPerson)->getRole();
-		sim_mob::medium::WaitBusActivity* waitingActivity =
-				dynamic_cast<sim_mob::medium::WaitBusActivity*>(curRole);
-		if(waitingActivity && waitingActivity->getDecision()==BOARD_BUS){
-			if(busDriver->insertPassenger(*itPerson)){
-				itPerson = waitingPersons.erase(itPerson);
-				numBoarding++;
-			}
-			else {
-				waitingActivity->setDecision(NO_DECISION);
-				itPerson++;
-			}
-		}
-		else {
+		if ((*itPerson)->getDecision() == BOARD_BUS) {
+			itPerson = waitingPersons.erase(itPerson);
+			numBoarding++;
+		} else {
 			itPerson++;
 		}
 	}
 
-	std::map<sim_mob::medium::BusDriver*, int>::iterator it =
-			lastBoardingRecorder.find(busDriver);
-	if (it != lastBoardingRecorder.end()) {
-		it->second = numBoarding;
-	} else {
-		lastBoardingRecorder.insert(std::make_pair(busDriver, numBoarding));
-	}
+	lastBoardingRecorder[busDriver] = numBoarding;
 }
 
-int BusStopAgent::getBoardingNum(sim_mob::medium::BusDriver* busDriver) {
-	int numBoarding = 0;
-	std::map<sim_mob::medium::BusDriver*, int>::iterator it =
-			lastBoardingRecorder.find(busDriver);
-	if (it != lastBoardingRecorder.end()) {
-		numBoarding = it->second;
+int BusStopAgent::getBoardingNum(sim_mob::medium::BusDriver* busDriver) const {
+	try {
+		return lastBoardingRecorder.at(busDriver);
+	} catch (const std::out_of_range& oor) {
+		return 0;
 	}
-	return numBoarding;
 }
 }
 }

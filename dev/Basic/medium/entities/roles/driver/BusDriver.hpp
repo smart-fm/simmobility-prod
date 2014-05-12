@@ -8,6 +8,7 @@
 #include "BusDriverFacets.hpp"
 #include "entities/vehicle/BusRoute.hpp"
 #include "entities/misc/BusTrip.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
 /*
  * BusDriver.hpp
  *
@@ -51,7 +52,7 @@ public:
 	 * @return boolean value, if boarding success, the value is true;
 	 * otherwise this value is false.
 	 */
-	bool insertPassenger(sim_mob::Person* passenger);
+	bool insertPassenger(sim_mob::medium::Passenger* passenger);
 
 	/**
 	 * alight passengers when those want to alight at next bus stop
@@ -82,7 +83,7 @@ public:
 
 private:
 	/**passengers list*/
-	std::list<sim_mob::Person*> passengerList;
+	std::list<sim_mob::medium::Passenger*> passengerList;
 	/**last visited bus stop*/
 	Shared<const BusStop*> visitedBusStop;
 	/**last visited bus stop sequence number*/

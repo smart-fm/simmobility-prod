@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 /*
- * \file MesoEventType.hpp
+ * \file MT_Message.hpp
  *
  * \author Zhang huai Peng
  */
@@ -22,7 +22,7 @@ class BusStop;
 namespace medium {
 class BusDriver;
 
-enum {
+enum MakeDecisions{
 	MSG_DECISION_WAITINGPERSON_BOARDING = 6000000,
 	MSG_DECISION_PASSENGER_ALIGHTING = 6000001
 };
@@ -31,10 +31,10 @@ enum {
  * Subclass wraps a bus driver into message so as to make boarding decision.
  * This is to allow it to function as an message callback parameter.
  */
-class WaitingPeopleBoardingDecisionMessageArgs : public messaging::Message {
+class BoardingMessage : public messaging::Message {
 public:
-	WaitingPeopleBoardingDecisionMessageArgs(BusDriver* driver):busDriver(driver){;}
-	virtual ~WaitingPeopleBoardingDecisionMessageArgs() {}
+	BoardingMessage(BusDriver* driver):busDriver(driver){;}
+	virtual ~BoardingMessage() {}
 	BusDriver* busDriver;
 };
 
@@ -42,10 +42,10 @@ public:
  * Subclass wraps a bus stop into message so as to make alighting decision.
  * This is to allow it to function as an message callback parameter.
  */
-class PassengerAlightingDecisionMessageArgs : public messaging::Message {
+class AlightingMessage : public messaging::Message {
 public:
-	PassengerAlightingDecisionMessageArgs(const BusStop* stop):nextStop(stop){;}
-	virtual ~PassengerAlightingDecisionMessageArgs() {}
+	AlightingMessage(const BusStop* stop):nextStop(stop){;}
+	virtual ~AlightingMessage() {}
 	const BusStop* nextStop;
 };
 }

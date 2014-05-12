@@ -76,18 +76,20 @@ SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double statslength
 	numVehicleLanes = 0;
 
 	// initialize LaneAgents in the map
-	std::vector<sim_mob::Lane*>::const_iterator lane = rdSeg->getLanes().begin();
-	while (lane != rdSeg->getLanes().end()) {
-		laneStatsMap.insert(std::make_pair(*lane, new sim_mob::LaneStats(*lane, length)));
-		laneStatsMap[*lane]->initLaneParams(segVehicleSpeed, supplyParams.getCapacity());
-		if (!(*lane)->is_pedestrian_lane()) {
+	std::vector<sim_mob::Lane*>::const_iterator laneIt = rdSeg->getLanes().begin();
+	while (laneIt != rdSeg->getLanes().end()) {
+		laneStatsMap.insert(std::make_pair(*laneIt, new sim_mob::LaneStats(*laneIt, length)));
+		laneStatsMap[*laneIt]->initLaneParams(segVehicleSpeed, supplyParams.getCapacity());
+		if (!(*laneIt)->is_pedestrian_lane()) {
 			numVehicleLanes++;
+			outermostLane = *laneIt;
 		}
-		lane++;
+		laneIt++;
 	}
 
 	/*
 	 * Any lane with an id ending with 9 is laneInfinity of the road segment.
+	 * This lane is available only to the SegmentStats and not the parent RoadSegment.
 	 * TODO: Must check if we can have a bit pattern (Refer lane constructor) for laneInfinity.
 	 */
 	laneInfinity = new sim_mob::Lane(const_cast<sim_mob::RoadSegment*>(rdSeg), 9);
@@ -200,6 +202,10 @@ double SegmentStats::getLaneMovingLength(const sim_mob::Lane* lane) const {
 	return laneStatsMap.at(lane)->getMovingLength();
 }
 
+double SegmentStats::getLaneTotalVehicleLength(const sim_mob::Lane* lane) const {
+	return laneStatsMap.at(lane)->getTotalVehicleLength();
+}
+
 unsigned int SegmentStats::numAgentsInLane(const sim_mob::Lane* lane) const {
 	return laneStatsMap.at(lane)->getNumPersons();
 }
@@ -209,7 +215,8 @@ unsigned int SegmentStats::numMovingInSegment(bool hasVehicle) const {
 	const std::vector<sim_mob::Lane*>& segLanes = roadSegment->getLanes();
 	std::vector<sim_mob::Lane*>::const_iterator laneIt = segLanes.begin();
 	while (laneIt != segLanes.end()) {
-		if ((hasVehicle && !(*laneIt)->is_pedestrian_lane()) || (!hasVehicle && (*laneIt)->is_pedestrian_lane())) {
+		if ((hasVehicle && !(*laneIt)->is_pedestrian_lane())
+				|| (!hasVehicle && (*laneIt)->is_pedestrian_lane())) {
 			LaneStatsMap::const_iterator laneStatsIt = laneStatsMap.find(*laneIt);
 			if (laneStatsIt != laneStatsMap.end()) {
 				movingCounts = movingCounts + laneStatsIt->second->getMovingAgentsCount();
@@ -658,6 +665,11 @@ double sim_mob::SegmentStats::getSegSpeed(bool hasVehicle) const {
 
 bool SegmentStats::hasAgents() const {
 	return (numPersons > 0);
+}
+
+bool SegmentStats::hasBusStop(const sim_mob::BusStop* busStop) const {
+	BusStopList::const_iterator stopIt = std::find(busStops.begin(), busStops.end(), busStop);
+	return !(stopIt==busStops.end());
 }
 
 double SegmentStats::getPositionOfLastUpdatedAgentInLane(const Lane* lane) const{

@@ -197,7 +197,6 @@ protected:
 	 */
 	void setOutputCounter(const Lane* lane, int count, const sim_mob::SegmentStats* segStats);
 
-
 	double getOutputFlowRate(const Lane* lane);
 	double getAcceptRate(const Lane* lane, const sim_mob::SegmentStats* segStats);
 	double getQueueLength(const Lane* lane);
@@ -261,7 +260,7 @@ protected:
 	 * @param nextToNextSegStats second segment stats ahead from the current
 	 * @return best lane in nextSegStats
 	 */
-	const sim_mob::Lane* getBestTargetLane(const sim_mob::SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats);
+	virtual const sim_mob::Lane* getBestTargetLane(const sim_mob::SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats);
 
 	//Note: insert and remove incident functions should probably be in Confluxes. To be updated when actual incident functionality is implemented.
 	/**

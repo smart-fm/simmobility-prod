@@ -805,61 +805,49 @@ void DriverMovement::removeFromQueue() {
 const sim_mob::Lane* DriverMovement::getBestTargetLane(
 		const SegmentStats* nextSegStats,
 		const SegmentStats* nextToNextSegStats) {
-	//we have included getBestLG functionality here (get lane with minAllAgents)
-	//before checking best lane
-	//1. Get queuing counts for all lanes of the next Segment
-	//2. Select the lane with the least queue length
-	//3. Update nextLaneInNextLink and targetLaneIndex accordingly
 	if(!nextSegStats) {
 		return nullptr;
 	}
 
-	const sim_mob::Lane* minQueueLengthLane = nullptr;
-	unsigned int minQueueLength = std::numeric_limits<int>::max();
-	unsigned int minAllAgents = std::numeric_limits<int>::max();
-	unsigned int que = 0;
-	unsigned int total = 0;
-	int test_count = 0;
+	const sim_mob::Lane* minLane = nullptr;
+	double minQueueLength = std::numeric_limits<double>::max();
+	double minLength = std::numeric_limits<double>::max();
+	double que = 0.0;
+	double total = 0.0;
 
 	const std::vector<sim_mob::Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
 	vector<sim_mob::Lane* >::const_iterator lnIt = lanes.begin();
-	vector<sim_mob::Lane* > laneGroup;	//temporary container to save the connected lanes
 
 	//getBestLaneGroup logic
 	for (;lnIt != lanes.end(); ++lnIt){
 		if (!((*lnIt)->is_pedestrian_lane())){
-			if(nextToNextSegStats && !isConnectedToNextSeg(*lnIt, nextToNextSegStats))	{
+			const Lane* lane = *lnIt;
+			if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats))	{
 				continue;
 			}
-			laneGroup.push_back(*lnIt);
-			std::pair<unsigned int, unsigned int> counts = nextSegStats->getLaneAgentCounts(*lnIt); //<Q,M>
-			total = counts.first + counts.second;
-
-			if (minAllAgents > total){
-				minAllAgents = total;
-			}
-		}
-	}
-
-	//getBestLane logic
-	for (lnIt = laneGroup.begin(); lnIt != laneGroup.end(); lnIt++){
-		std::pair<unsigned int, unsigned int> counts = nextSegStats->getLaneAgentCounts(*lnIt); //<Q, M>
-		que = counts.first;
-		total = que + counts.second;
-		if (minAllAgents == total){
-			if (minQueueLength > que){
+			total = nextSegStats->getLaneTotalVehicleLength(lane);
+			que = nextSegStats->getLaneQueueLength(lane);
+			if (minLength > total){
+				//if total length of vehicles is less than current minLength
+				minLength = total;
 				minQueueLength = que;
-				minQueueLengthLane = *lnIt;
+				minLane = lane;
+			}
+			else if (minLength == total){
+				//if total length of vehicles is equal to current minLength
+				if (minQueueLength > que){
+					//and if the queue length is less than current minQueueLength
+					minQueueLength = que;
+					minLane = lane;
+				}
 			}
 		}
 	}
 
-	laneGroup.clear();
-
-	if(!minQueueLengthLane){
+	if(!minLane){
 		throw std::runtime_error("best target lane was not set!");
 	}
-	return minQueueLengthLane;
+	return minLane;
 }
 
 double DriverMovement::getInitialQueueLength(const Lane* lane) {

@@ -313,6 +313,14 @@ protected:
 	 * This map includes lane infinity.
 	 */
 	LaneStatsMap laneStatsMap;
+
+	/**
+	 * outermost lane in this segment stats.
+	 * This is a proper lane in the segment which is chosen by buses, taxis and
+	 * other vehicles (before moving into the virtual stopping lane) when they
+	 * have to stop in this segment stats.
+	 */
+	const Lane* outermostLane;
 	/**
 	 * A map which stores the unprocessed person who is closest to the end of
 	 * this SegmentStats for each lane in the seg stats. This is used for
@@ -378,6 +386,10 @@ public:
 
 	uint8_t getPositionInRoadSegment() const {
 		return positionInRoadSegment;
+	}
+
+	const Lane* getOutermostLane() const {
+		return outermostLane;
 	}
 
 	double getSegSpeed(bool hasVehicle) const;
@@ -458,6 +470,13 @@ public:
 	double getLaneMovingLength(const sim_mob::Lane* lane) const;
 
 	/**
+	 * Returns the total length of vehicles in lane.
+	 * @param lane the lane for which moving length is requested
+	 * @returns total length of vehicles in lane
+	 */
+	double getLaneTotalVehicleLength(const sim_mob::Lane* lane) const;
+
+	/**
 	 * Returns the sum of queuing lengths of all lanes in this seg stats.
 	 * This function considers only vehicle lanes
 	 * @returns total queuing length of this seg stats
@@ -508,6 +527,14 @@ public:
 	 * @return true if numPersons > 0; false otherwise
 	 */
 	bool hasAgents() const;
+
+	/**
+	 * checks if this Segment stats contains busStop in it
+	 * @param busStop the stop to find
+	 * @returns true if this segstats cotains busStop in its busStops list;
+	 * 			false otherwise
+	 */
+	bool hasBusStop(const sim_mob::BusStop* busStop) const;
 
 	/**
 	 * returns the number of agents moving in segment

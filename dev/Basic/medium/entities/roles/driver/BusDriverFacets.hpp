@@ -104,6 +104,10 @@ public:
 protected:
 	virtual bool initializePath();
 
+	virtual const sim_mob::Lane* getBestTargetLane(
+			const sim_mob::SegmentStats* nextSegStats,
+			const SegmentStats* nextToNextSegStats);
+
 	/**pointer to parent bus driver*/
 	sim_mob::medium::BusDriver* parentBusDriver;
 

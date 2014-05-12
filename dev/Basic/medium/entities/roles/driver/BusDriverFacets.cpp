@@ -155,6 +155,18 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 
 }
 
+const sim_mob::Lane* BusDriverMovement::getBestTargetLane(
+		const sim_mob::SegmentStats* nextSegStats,
+		const SegmentStats* nextToNextSegStats) {
+	const BusStop* nextStop = routeTracker.getNextStop();
+	if(nextStop && nextSegStats->hasBusStop(nextStop)) {
+		return nextSegStats->getOutermostLane();
+	}
+	else {
+		return DriverMovement::getBestTargetLane(nextSegStats, nextToNextSegStats);
+	}
+}
+
 BusRouteTracker::BusRouteTracker(const BusRouteInfo& routeInfo) : BusRouteInfo(routeInfo) {
 	nextStopIt = busStopList.begin();
 }
@@ -175,4 +187,3 @@ void BusRouteTracker::updateNextStop() {
 
 }
 }
-

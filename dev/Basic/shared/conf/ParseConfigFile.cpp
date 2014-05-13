@@ -1182,6 +1182,9 @@ void sim_mob::ParseConfigFile::ProcessSystemCommsimNode(xercesc::DOMElement* nod
 	//Enabled?
 	cfg.system.simulation.commsim.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 
+	//Number of threads assigned to the boost I/O service that reads from Android clients.
+	cfg.system.simulation.commsim.numIoThreads = ProcessValueInteger(GetSingleElementByName(node, "io_threads", true));
+
 	//Minimum clients
 	cfg.system.simulation.commsim.minClients = ProcessValueInteger(GetSingleElementByName(node, "min_clients", true));
 

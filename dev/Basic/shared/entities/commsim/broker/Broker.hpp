@@ -97,7 +97,8 @@ public:
 	virtual void cloudDisconnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port) = 0;
 
 	//Called by the OpaqueSendHandler to remove any cloud IDs from the toIds array.
-	virtual void opaqueSendCloud(boost::shared_ptr<ConnectionHandler> handler, OpaqueSendMessage& msg, bool useNs3) = 0;
+	//virtual void opaqueSendCloud(boost::shared_ptr<ConnectionHandler> handler, const OpaqueSendMessage& msg, bool useNs3) = 0;
+	virtual void sendToCloud(boost::shared_ptr<ConnectionHandler> conn, const std::string& cloudId, const OpaqueSendMessage& msg, bool useNs3) = 0;
 };
 
 
@@ -121,6 +122,13 @@ public:
 	//Known client types: android, ns-3, by ID string.
 	static const std::string ClientTypeAndroid;
 	static const std::string ClientTypeNs3;
+
+	//Known opaque message formats.
+	static const std::string OpaqueFormatBase64Esc;
+
+	//Known opaque message techs.
+	static const std::string OpaqueTechDsrc; ///<Used for android-to-android communication.
+	static const std::string OpaqueTechLte; ///<Used for android-to-cloud communication.
 
 protected:
 	//Event ID: new Android client added. (Couldn't find a good place to put this).
@@ -403,7 +411,7 @@ protected:
 	/**
 	 * Called internally to send a *single* item to the cloud.
 	 */
-	void sendToCloud(boost::shared_ptr<CloudHandler> cloud, const OpaqueSendMessage& msg, const std::string& toId, bool useNs3);
+	void sendToCloud(boost::shared_ptr<ConnectionHandler> conn, const std::string& cloudId, const OpaqueSendMessage& msg, bool useNs3);
 
 
 public:
@@ -417,8 +425,8 @@ public:
 	///A client is informing the Broker that it will no longer send/receive data to/from the given host.
 	virtual void cloudDisconnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port);
 
-	///An OpaqueSendHandler is asking the Broker to remove all cloud messges from "msg.toIds" and process them itself.
-	virtual void opaqueSendCloud(boost::shared_ptr<ConnectionHandler> handler, OpaqueSendMessage& msg, bool useNs3);
+	///An OpaqueSendHandler is asking the Broker to handle all cloud messages. The OpaqueHandler must then ignore these messages.
+	//virtual void opaqueSendCloud(boost::shared_ptr<ConnectionHandler> handler, const OpaqueSendMessage& msg, bool useNs3);
 
 	///Callback function for when a new ConnectionHandler accepts its first incoming client connection.
 	virtual void onNewConnection(boost::shared_ptr<ConnectionHandler> cnnHandler);

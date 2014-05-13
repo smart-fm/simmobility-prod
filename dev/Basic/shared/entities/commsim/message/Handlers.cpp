@@ -16,6 +16,7 @@
 #include "entities/commsim/serialization/CommsimSerializer.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
 #include "message/MessageBus.hpp"
+#include "logging/Log.hpp"
 
 
 
@@ -170,53 +171,59 @@ void sim_mob::OpaqueSendHandler::handle(boost::shared_ptr<ConnectionHandler> han
 		}
 	}
 
-
-	//We need to further synthesize the toIds field, removing any messages to cloud recipients.
-	//It's unlikely that we'll have messages to both Android agents and the cloud in the same OpaqueSend,
-	// but there's no reason not to support it.
-	broker->opaqueSendCloud(handler, sendMsg, useNs3);
-
-
 	//If there's no agents left, return.
 	if(sendMsg.toIds.empty()) {
 		return;
 	}
 
-
-	//Behavior differs based on ns-3 (either dispatch messages now, or route them all through ns-3).
-	if (useNs3) {
-		//step-5: insert messages into send buffer
-		//NOTE: This part only exists for ns-3+android.
-		boost::shared_ptr<sim_mob::ClientHandler> ns3Handle = broker->getNs3ClientHandler();
-		if (!ns3Handle) {
-			throw std::runtime_error("Expected ns-3 client handler; returned null.");
+	//Are we dealing with a message that should be sent to the cloud? If so, extract the cloud server's ID.
+	std::string cloudId;
+	if (sendMsg.tech == Broker::OpaqueTechLte) {
+		if (sendMsg.toIds.size()!=1) {
+			throw std::runtime_error("Attempting to send over LTE without a valid \"toId\" (or with multiple).");
 		}
-
-		//Serialize the message, send it.
-		std::string msg = CommsimSerializer::makeOpaqueSend(sendMsg.fromId, sendMsg.toIds, sendMsg.broadcast, sendMsg.data);
-		broker->insertSendBuffer(ns3Handle, msg);
-	} else {
-		//Iterate through all registered clients
-		const ClientList::Type& allClients = broker->getAndroidClientList();
-		for (ClientList::Type::const_iterator clientIt=allClients.begin(); clientIt!=allClients.end(); clientIt++) {
-			//Get the agent associated to this client
-			boost::shared_ptr<sim_mob::ClientHandler> destClientHandlr  = clientIt->second;
-			const sim_mob::Agent* agent = destClientHandlr->agent;
-			std::string agentId = boost::lexical_cast<std::string>(agent->getId());
-
-			//See if the agent associated with this handle is in our list of recipients.
-			if(std::find(sendMsg.toIds.begin(), sendMsg.toIds.end(), agentId) == sendMsg.toIds.end()) {
-				continue;
-			}
-
-			//step-4: fabricate a message for each(core  is taken from the original message)
-			//actually, you don't need to modify any field in the original jsoncpp's Json::Value message.
-			//just add the recipients directly request to send
-			std::string msg = CommsimSerializer::makeOpaqueReceive(sendMsg.fromId, agentId, sendMsg.data);
-			broker->insertSendBuffer(boost::shared_ptr<ClientHandler>(destClientHandlr), msg);
-		}
+		cloudId = sendMsg.toIds.front();
+	} else if (sendMsg.tech != Broker::OpaqueTechDsrc) {
+		throw std::runtime_error("Unknown communication \"tech\" in opaque message.");
 	}
 
+	//Send to the cloud?
+	if (!cloudId.empty()) {
+		broker->sendToCloud(handler, cloudId, sendMsg, useNs3);
+	} else {
+		//Behavior differs based on ns-3 (either dispatch messages now, or route them all through ns-3).
+		if (useNs3) {
+			//NOTE: This part only exists for ns-3+android.
+			boost::shared_ptr<sim_mob::ClientHandler> ns3Handle = broker->getNs3ClientHandler();
+			if (!ns3Handle) {
+				throw std::runtime_error("Expected ns-3 client handler; returned null.");
+			}
+
+			//Serialize the message, send it.
+			std::string msg = CommsimSerializer::makeOpaqueSend(sendMsg.fromId, sendMsg.toIds, sendMsg.format, sendMsg.tech, sendMsg.broadcast, sendMsg.data);
+			broker->insertSendBuffer(ns3Handle, msg);
+		} else {
+			//Iterate through all registered clients
+			const ClientList::Type& allClients = broker->getAndroidClientList();
+			for (ClientList::Type::const_iterator clientIt=allClients.begin(); clientIt!=allClients.end(); clientIt++) {
+				//Get the agent associated to this client
+				boost::shared_ptr<sim_mob::ClientHandler> destClientHandlr  = clientIt->second;
+				const sim_mob::Agent* agent = destClientHandlr->agent;
+				std::string agentId = boost::lexical_cast<std::string>(agent->getId());
+
+				//See if the agent associated with this handle is in our list of recipients.
+				if(std::find(sendMsg.toIds.begin(), sendMsg.toIds.end(), agentId) == sendMsg.toIds.end()) {
+					continue;
+				}
+
+				//step-4: fabricate a message for each(core  is taken from the original message)
+				//actually, you don't need to modify any field in the original jsoncpp's Json::Value message.
+				//just add the recipients directly request to send
+				std::string msg = CommsimSerializer::makeOpaqueReceive(sendMsg.fromId, agentId, sendMsg.format, sendMsg.tech, sendMsg.data);
+				broker->insertSendBuffer(boost::shared_ptr<ClientHandler>(destClientHandlr), msg);
+			}
+		}
+	}
 }
 
 
@@ -228,7 +235,12 @@ void sim_mob::OpaqueReceiveHandler::handle(boost::shared_ptr<ConnectionHandler> 
 	}
 
 	OpaqueReceiveMessage recMsg = CommsimSerializer::parseOpaqueReceive(messages, msgNumber);
+	handleDirect(recMsg, broker);
+}
 
+
+void sim_mob::OpaqueReceiveHandler::handleDirect(const OpaqueReceiveMessage& recMsg, BrokerBase* broker) const
+{
 	//Get the client handler for this recipient.
 	boost::shared_ptr<sim_mob::ClientHandler> receiveAgentHandle;
 
@@ -237,7 +249,7 @@ void sim_mob::OpaqueReceiveHandler::handle(boost::shared_ptr<ConnectionHandler> 
 	for (ClientList::Type::const_iterator clientIt=all_clients.begin(); clientIt!=all_clients.end(); clientIt++) {
 		boost::shared_ptr<sim_mob::ClientHandler> clnHandler = clientIt->second;
 		//valid agent, matching ID
-		if (clnHandler->agent && boost::lexical_cast<std::string>(clnHandler->agent->getId()) == recMsg.toId) {
+		if (clnHandler->agent && clnHandler->clientId == recMsg.toId) {
 			receiveAgentHandle = clnHandler;
 			break;
 		}
@@ -245,7 +257,9 @@ void sim_mob::OpaqueReceiveHandler::handle(boost::shared_ptr<ConnectionHandler> 
 
 	//insert into sending buffer
 	if (receiveAgentHandle && receiveAgentHandle->connHandle) {
-		broker->insertSendBuffer(receiveAgentHandle, CommsimSerializer::makeOpaqueReceive(recMsg.fromId, recMsg.toId, recMsg.data));
+		broker->insertSendBuffer(receiveAgentHandle, CommsimSerializer::makeOpaqueReceive(recMsg.fromId, recMsg.toId, recMsg.format, recMsg.tech, recMsg.data));
+	} else {
+		Warn() <<"Could not find a receive (cloud) handler for agent with ID: " <<recMsg.toId <<"\n";
 	}
 }
 

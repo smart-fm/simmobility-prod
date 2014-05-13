@@ -13,6 +13,7 @@
 #include "workers/Worker.hpp"
 
 #include "entities/commsim/connection/ConnectionHandler.hpp"
+#include "entities/commsim/connection/CloudHandler.hpp"
 #include "entities/commsim/connection/WhoAreYouProtocol.hpp"
 #include "entities/commsim/client/ClientHandler.hpp"
 #include "entities/commsim/serialization/Base64Escape.hpp"
@@ -36,6 +37,11 @@ BrokerBase* sim_mob::Broker::single_broker(nullptr);
 const std::string sim_mob::Broker::ClientTypeAndroid = "android";
 const std::string sim_mob::Broker::ClientTypeNs3 = "ns-3";
 
+const std::string sim_mob::Broker::OpaqueFormatBase64Esc = "base64escape";
+
+const std::string sim_mob::Broker::OpaqueTechDsrc = "dsrc";
+const std::string sim_mob::Broker::OpaqueTechLte = "lte";
+
 const unsigned int sim_mob::Broker::EventNewAndroidClient = 95000;
 
 
@@ -44,6 +50,10 @@ sim_mob::Broker::Broker(const MutexStrategy& mtxStrat, int id) :
 {
 	//Various Initializations
 	configure();
+
+	//Note: This should only be done once, and never in parallel. This is *probably* safe to do here, but change it if you
+	//      switch to multiple Brokers.
+	Base64Escape::Init();
 }
 
 sim_mob::Broker::~Broker()
@@ -457,41 +467,31 @@ void sim_mob::Broker::cloudDisconnect(boost::shared_ptr<ConnectionHandler> handl
 }
 
 
-void sim_mob::Broker::opaqueSendCloud(boost::shared_ptr<ConnectionHandler> handler, OpaqueSendMessage& msg, bool useNs3)
+void sim_mob::Broker::sendToCloud(boost::shared_ptr<ConnectionHandler> conn, const std::string& cloudId, const OpaqueSendMessage& msg, bool useNs3)
 {
-	//Copy the toIds list.
-	std::vector<std::string> temp(msg.toIds);
-	msg.toIds.clear();
+	//Prepare a message for response.
+	MessageBase temp;
+	temp.msg_type = "opaque_receive";
+	OpaqueReceiveMessage newMsg(temp); //TODO: This is a hackish workaround.
+	newMsg.format = msg.format;
+	newMsg.tech = msg.tech;
 
-	//For each item in the toIds list.
-	for (std::vector<std::string>::const_iterator msgIt=temp.begin(); msgIt!=temp.end(); msgIt++) {
-		//At this point, we should have a valid cloudHandler.
-		boost::shared_ptr<CloudHandler> cloud = getCloudHandler(*msgIt, handler);
-		if (cloud) {
-			//Process it.
-			sendToCloud(cloud, msg, *msgIt, useNs3);
-		} else {
-			//Add it to the list of real clients.
-			msg.toIds.push_back(*msgIt);
-		}
-	}
-}
-
-void sim_mob::Broker::sendToCloud(boost::shared_ptr<CloudHandler> cloud, const OpaqueSendMessage& msg, const std::string& toId, bool useNs3)
-{
-	//Make a new message with the correct toIds set.
-	OpaqueSendMessage newMsg(msg);
-	newMsg.toIds.clear();
-	newMsg.toIds.push_back(toId);
+	//Reverse the sender/receiver.
+	newMsg.fromId = cloudId;
+	newMsg.toId = msg.fromId;
 
 	//Before waiting for the cloud, decode the actual message, and split it at every newline.
-	if (msg.format != "base64escape") {
+	if (msg.format != OpaqueFormatBase64Esc) {
 		throw std::runtime_error("Unknown message format sending to cloud; can't decode.");
 	}
 	std::vector<std::string> msgLines;
 	Base64Escape::Decode(msgLines, msg.data, '\n');
 
-
+	//Get the cloud handler.
+	boost::shared_ptr<CloudHandler> cloud = getCloudHandler(cloudId, conn);
+	if (!cloud) {
+		throw std::runtime_error("Could not find cloud handler for given cloudId.");
+	}
 
 	//Now, wait for the client to connect.
 	{
@@ -501,21 +501,21 @@ void sim_mob::Broker::sendToCloud(boost::shared_ptr<CloudHandler> cloud, const O
 	}
 	}
 
-	//We now have a valid cloud connection.
+	//We now have a valid cloud connection and a set of messages to send. This must be done in a single transaction:
+	// [write,write,..,write] => [read,read,..,read]
+	//This will incur some delay due to false synchronization; however, it is by far the simplest solution. Recall that most
+	// RoadRunner agents will connect, send, and receive in the *same* update tick, so this approach is unfortunately necessary for now.
+	std::vector<std::string> resLines = cloud->writeLinesReadLines(msgLines);
 
+	//Re-encode the response using our base64-encoding.
+	newMsg.data = Base64Escape::Encode(resLines, '\n');
 
-
-	//Step 1) Decode the actual message (using the base64/substitution method present in the client).
-	//        Note that this violates the "Opaque" principle, so we might need to add a tag describing the format.
-	//Step 2) Send the actual message to the cloud server, line by line.
-	//Step 3) Wait for a response from the server, line-by-line.
-	//Step 4) Either route the response through ns-3 (as an OpaqueReceive), or send the OpaqueReceive directly to the client.
-
-
-
-
-
-	throw std::runtime_error("TODO: Message send and receive.");
+	//Now, either route this through ns-3 or send it directly to the client.
+	if (useNs3) {
+		throw std::runtime_error("Can't send cloud messages through ns-3; at the moment ns-3 is only configured for Wi-Fi.");
+	} else {
+		dynamic_cast<const OpaqueReceiveHandler*>(handleLookup.getHandler(newMsg.msg_type))->handleDirect(newMsg, this);
+	}
 }
 
 boost::shared_ptr<CloudHandler> sim_mob::Broker::getCloudHandler(const std::string& id, boost::shared_ptr<ConnectionHandler> conn)

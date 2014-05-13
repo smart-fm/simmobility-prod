@@ -109,9 +109,6 @@ void sim_mob::ConnectionServer::handle_cloud_connect(boost::shared_ptr<CloudHand
 	//Turn off Nagle's algorithm; it's slow on small packets.
 	conn->socket.set_option(boost::asio::ip::tcp::no_delay(true));
 
-	//Start listening for the first client message.
-	conn->readLine();
-
 	//Inform the Broker that a new connection is available.
 	broker.onNewCloudConnection(conn);
 

@@ -64,6 +64,21 @@ void test_item(const DecodeTest& test)
 }
 
 
+//Test a single item, reverse (encoding).
+void test_reverse(const DecodeTest& test)
+{
+	std::string res = Base64Escape::Encode(test.decoded, '\n');
+	if (res != test.encoded) {
+		std::cout <<"Encoding item failed to match; expected: \n" <<esc(test.encoded) <<"\nactual: \n" <<esc(res) <<"\n";
+		std::cout <<"For input:\n";
+		for (size_t i=0; i<test.decoded.size(); i++) {
+			std::cout <<"  " <<esc(test.decoded[i]) <<"\n";
+		}
+		CPPUNIT_FAIL("Encoded string doesn't match; see console.");
+	}
+}
+
+
 } //End un-named namespace.
 
 
@@ -88,54 +103,63 @@ void unit_tests::Base64EscapeUnitTests::test_Base64Escape_1()
 		"vehemence of any carnal pleasure."
 	);
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_2()
 {
 	DecodeTest test("", "");
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_3()
 {
 	DecodeTest test("YQ==", "a");
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_4()
 {
 	DecodeTest test("YWJjZGVm", "abcdef");
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_5()
 {
 	DecodeTest test("YWJjZGVmZw==", "abcdefg");
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_6()
 {
 	DecodeTest test("YWJjZGVmZ2g=", "abcdefgh");
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_7()
 {
 	DecodeTest test("YWJjZGVmZ2hp", "abcdefghi");
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_8()
 {
 	DecodeTest test("UQpFCkQ=", "Q\nE\nD");
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_9()
 {
 	DecodeTest test("UQpFCkQK", "Q\nE\nD\n");
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_1()
@@ -162,6 +186,7 @@ void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_1()
 		"""\xbd""""\x7f""""\xbc""""\x00""""\x00""""\x00""""\x00""""\x00""t""\x00""""\x00""ppt""\x00""""\x09""my-sourceppx", 400)
 	);
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_2()
@@ -188,6 +213,7 @@ void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_2()
 		"""\xc4""""\x00""""\x00""""\x00""""\x00""""\x00""t""\x00""""\x00""ppt""\x00""""\x09""my-sourceppx", 400)
 	);
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_3()
@@ -214,6 +240,7 @@ void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_3()
 		"""\x7f""""\xcb""""\x00""""\x00""""\x00""""\x00""""\x00""t""\x00""""\x00""ppt""\x00""""\x09""my-sourceppx", 400)
 	);
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_4()
@@ -240,6 +267,7 @@ void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_4()
 		"""\x00""t""\x00""""\x00""ppt""\x00""""\x09""my-sourceppx", 400)
 	);
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_5()
@@ -266,6 +294,7 @@ void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_5()
 		"""\x00""ppt""\x00""""\x09""my-sourceppx", 400)
 	);
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_6()
@@ -274,6 +303,7 @@ void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_6()
 		"rO0ABXNyAC1lZHUubWl0LmNzYWlsLmphc29uZ2FvLnJvYWRydW5uZXIuQWRob2NQYWNrZXQAAAAAAAAAygMAEkYAB2JlYXJpbmdJAAxkYXRhQWN0aXZpdHlKAAdleHBpcmVzSgAGaXNzdWVkRAADbGF0SQAGbGVuZ3RoRAADbG5nSgAFbm9uY2VGAAVzcGVlZEoACXRpbWVzdGFtcFoAD3RyaWdnZXJBbm5vdW5jZUkABHR5cGVMAAZkZXN0UlJ0ABJMamF2YS9sYW5nL1N0cmluZztMAAZyZWdpb25xAH4AAUwACXNpZ25hdHVyZXEAfgABTAAFc3JjUlJxAH4AAUwAC3Rva2VuU3RyaW5ncQB+AAFMAA10b2tlbnNPZmZlcmVkdAAPTGphdmEvdXRpbC9TZXQ7eHAAAAAAAAAAZAAAAAAAAAAAAAAAAAAAAAA/8BR64UeuFAAAAABAUlCj1wo9cQAAAAAAAAAAQg5mZgAAAUWvvX/SAAAAAAB0AABwcHQACW15LXNvdXJjZXBweA==", std::string("""\xac""""\xed""""\x00""""\x05""sr""\x00""-edu.mit.csail.jasongao.roadrunner.AdhocPacket""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\xca""""\x03""""\x00""""\x12""F""\x00""""\x07""bearingI""\x00""""\x0c""dataActivityJ""\x00""""\x07""expiresJ""\x00""""\x06""issuedD""\x00""""\x03""latI""\x00""""\x06""lengthD""\x00""""\x03""lngJ""\x00""""\x05""nonceF""\x00""""\x05""speedJ""\x00""""\x09""timestampZ""\x00""""\x0f""triggerAnnounceI""\x00""""\x04""typeL""\x00""""\x06""destRRt""\x00""""\x12""Ljava/lang/String;L""\x00""""\x06""regionq""\x00""""\x7e""""\x00""""\x01""L""\x00""""\x09""signatureq""\x00""""\x7e""""\x00""""\x01""L""\x00""""\x05""srcRRq""\x00""""\x7e""""\x00""""\x01""L""\x00""""\x0b""tokenStringq""\x00""""\x7e""""\x00""""\x01""L""\x00""""\x0d""tokensOfferedt""\x00""""\x0f""Ljava/util/Set;xp""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""d""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""?""\xf0""""\x14""z""\xe1""G""\xae""""\x14""""\x00""""\x00""""\x00""""\x00""@RP""\xa3""""\xd7""\n=q""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""B""\x0e""ff""\x00""""\x00""""\x01""E""\xaf""""\xbd""""\x7f""""\xd2""""\x00""""\x00""""\x00""""\x00""""\x00""t""\x00""""\x00""ppt""\x00""""\x09""my-sourceppx", 400)
 	);
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_7()
@@ -303,6 +333,7 @@ void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_7()
 		"\x00""""\x00""xpw""\x0c""""\x00""""\x00""""\x00""""\x02""?@""\x00""""\x00""""\x00""""\x00""""\x00""""\x00""xx", 448)
 	);
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_8()
@@ -333,6 +364,7 @@ void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_8()
 		"\x02""hixx", 453)
 	);
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_9()
@@ -363,6 +395,7 @@ void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_9()
 		"\x05""theret""\x00""""\x02""hixx", 461)
 	);
 	test_item(test);
+	test_reverse(test);
 }
 
 void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_10()
@@ -393,4 +426,5 @@ void unit_tests::Base64EscapeUnitTests::test_Base64Escape_roadrunner_10()
 		"\x05""theret""\x00""""\x02""hixx", 461)
 	);
 	test_item(test);
+	test_reverse(test);
 }

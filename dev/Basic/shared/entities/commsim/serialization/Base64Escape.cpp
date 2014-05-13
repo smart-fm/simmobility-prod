@@ -29,6 +29,64 @@ void sim_mob::Base64Escape::Init()
 }
 
 
+std::string sim_mob::Base64Escape::Encode(std::vector<std::string> data, char endline)
+{
+	if (RevLookup.empty()) {
+		throw std::runtime_error("Can't Base64Escape decode; the lookup was not initialized.");
+	}
+
+	std::stringstream res;
+	std::vector<unsigned int> inputBuff;
+	unsigned int outputBuff[] = {0,0,0,0};
+	int numEq = 0;
+	for (size_t i=0; i<data.size(); i++) {
+		//Make sure it ends with endline, unless it's the last line.
+		if (endline!='\0' && data[i][data[i].size()-1] != endline) {
+			if (i<data.size()-1) {
+				data[i] += endline;
+			}
+		}
+
+		//Now, add each character to our encoding stream.
+		for (std::string::const_iterator it=data[i].begin(); it!=data[i].end(); it++) {
+			inputBuff.push_back(*it);
+
+			//Is this the VERY LAST character? If so, add equals signs if we don't line up entirely.
+			if (i==data.size()-1 && (it+1)==data[i].end()) {
+				numEq = 3 - inputBuff.size();
+				for (int i=0; i<numEq; i++) {
+					inputBuff.push_back('\0'); //All zeroes.
+				}
+			}
+
+			//Do we have enough to generate an output quartet?
+			if (inputBuff.size()==3) {
+				outputBuff[0] = (inputBuff[0]>>2)&0x3F;
+				outputBuff[1] = ((inputBuff[0]&0x3)<<4) | ((inputBuff[1]>>4)&0xF);
+				outputBuff[2] = ((inputBuff[1]&0xF)<<2) | ((inputBuff[2]>>6)&0x3);
+				outputBuff[3] = inputBuff[2]&0x3F;
+				inputBuff.clear();
+
+				//Now append.
+				for (int j=0; j<4-numEq; j++) {
+					if (outputBuff[j]>=Alphabet.size()) {
+						throw std::runtime_error("Base64 internal error; exceeded size of alphabet.");
+					}
+					res <<Alphabet[outputBuff[j]];
+				}
+
+				//And the equals signs
+				for (int j=0; j<numEq; j++) {
+					res <<'=';
+				}
+			}
+		}
+	}
+
+	return res.str();
+}
+
+
 void sim_mob::Base64Escape::Decode(std::vector<std::string>& res, const std::string& data, char split)
 {
 	if (RevLookup.empty()) {

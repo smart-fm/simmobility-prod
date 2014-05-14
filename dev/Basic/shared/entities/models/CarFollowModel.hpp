@@ -99,8 +99,16 @@ public:
 
 private:
 	double carFollowingRate(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed,NearestVehicle& nv);
+	/** \brief this function calculates the acceleration rate when the car is stopped at a traffic light
+	 *  \param p driver's parameters
+	 *  \return acceleration rate
+	 **/
 	double calcSignalRate(sim_mob::DriverUpdateParams& p);
 	double calcYieldingRate(sim_mob::DriverUpdateParams& p,double targetSpeed, double maxLaneSpeed);
+	/** \brief this function calculates the acceleration rate before exiting a specific lane
+	 *  \param p driver's parameters
+	 *  \return acceleration rate
+	 **/
 	double waitExitLaneRate(sim_mob::DriverUpdateParams& p);
 	double calcForwardRate(sim_mob::DriverUpdateParams& p);
 	double calcBackwardRate(sim_mob::DriverUpdateParams& p);

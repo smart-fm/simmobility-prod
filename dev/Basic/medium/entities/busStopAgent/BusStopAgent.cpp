@@ -52,12 +52,7 @@ const sim_mob::BusStop* BusStopAgent::getBusStop() const{
 }
 
 bool BusStopAgent::frame_init(timeslice now) {
-	try {
-		messaging::MessageBus::RegisterHandler(this);
-	} catch (const std::runtime_error& error) {
-		Print() << error.what() << std::endl;
-		return false;
-	}
+	messaging::MessageBus::RegisterHandler(this);
 	return true;
 }
 

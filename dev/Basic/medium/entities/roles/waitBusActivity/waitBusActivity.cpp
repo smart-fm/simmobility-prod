@@ -6,6 +6,7 @@
 #include "waitBusActivityFacets.hpp"
 #include "entities/Person.hpp"
 #include "geospatial/BusStop.hpp"
+#include "entities/roles/driver/BusDriver.hpp"
 
 using std::vector;
 using namespace sim_mob;
@@ -50,8 +51,35 @@ void sim_mob::medium::WaitBusActivity::setStop(sim_mob::BusStop* busStop) {
 }
 
 void sim_mob::medium::WaitBusActivity::makeBoardingDecision(BusDriver* driver) {
+	const std::vector<const sim_mob::BusStop*>* stopsVec =
+			driver->getBusStopsVector();
+	if (!stopsVec) {
+		setDecision(NO_DECISION);
+		return;
+	}
 
+	const sim_mob::BusStop* destStop = nullptr;
+	if (getParent()->destNode.type_ == WayPoint::BUS_STOP
+			&& getParent()->destNode.busStop_) {
+		destStop = getParent()->destNode.busStop_;
+	}
+
+	if (!destStop) {
+		setDecision(NO_DECISION);
+		return;
+	}
+
+	std::vector<const sim_mob::BusStop*>::const_iterator itStop = std::find(
+			stopsVec->begin(), stopsVec->end(), destStop);
+	if (itStop != stopsVec->end()) {
+		setDecision(BOARD_BUS);
+	}
 }
 
+void sim_mob::medium::WaitBusActivity::HandleParentMessage(messaging::Message::MessageType type,
+		const messaging::Message& message)
+{
+
+}
 }
 }

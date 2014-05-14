@@ -408,7 +408,7 @@
         <blocking_time_sec value="5"/>
     </fmodcontroller>  
         
-    <incidentsData enabled="yes">
+    <incidentsData enabled="false">
         <incident id="0" visibility="4000" segment="40200" position="60" cap_factor="1.0" start_time="08:30:00" duration="00:32:00" length="1000" compliance="50" accessibility="50" > 
             <lane laneId="0" speedLimitFactor="0"/>
             <lane laneId="1" speedLimitFactor="0"/>

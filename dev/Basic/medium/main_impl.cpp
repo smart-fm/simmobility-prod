@@ -29,6 +29,9 @@
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
+#include "entities/roles/waitBusActivity/waitBusActivity.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
+#include "entities/busStopAgent/BusStopAgent.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/RoadNetwork.hpp"
@@ -95,7 +98,28 @@ bool performMainSupply(const std::string& configFileName,
 	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, mtx));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, mtx));
+	rf.registerRole("waitBusActivity",
+			new sim_mob::medium::WaitBusActivity(nullptr, mtx));
+	rf.registerRole("pedestrian",
+			new sim_mob::medium::Pedestrian(nullptr, mtx));
+	rf.registerRole("passenger", new sim_mob::medium::Passenger(nullptr, mtx));
 
+	//insert bus stop agent to segmentStats;
+	std::set<sim_mob::SegmentStats*>& segmentStats =
+			ConfigManager::GetInstanceRW().FullConfig().getSegmentStatsWithBusStops();
+	std::set<sim_mob::SegmentStats*>::iterator itSegStats;
+	std::vector<const sim_mob::BusStop*>::iterator itBusStop;
+	for (itSegStats = segmentStats.begin(); itSegStats != segmentStats.end();
+			itSegStats++) {
+		std::vector<const sim_mob::BusStop*>& busStops =
+				(*itSegStats)->getBusStops();
+		for (itBusStop = busStops.begin(); itBusStop != busStops.end();
+				itBusStop++) {
+			sim_mob::medium::BusStopAgent* busStopAgent =
+					new sim_mob::medium::BusStopAgent(mtx, -1, *itBusStop);
+			(*itSegStats)->addBusStopAgent(busStopAgent);
+		}
+	}
 	//Load our user config file, which is a time costly function
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(),
 			Agent::all_agents, Agent::pending_agents);

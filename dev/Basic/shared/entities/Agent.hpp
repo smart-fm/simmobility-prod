@@ -147,6 +147,11 @@ public:
 	 */
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 
+	/**
+	 * Inherited from MessageHandler.
+	 */
+	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+
 protected:
 	///TODO: Temporary; this allows a child class to reset "call_frame_init", but there is
 	///      probably a better way of doing it.

@@ -62,11 +62,21 @@ function numerical2Derivative(func, x0, p1, p2, p3, p4, crit)
 end
 
 function findMaxArg(func, x0, p1, p2, p3, p4, crit, maxIterations)
+    return findMaxArgConstrained(func, x0, p1, p2, p3, p4, crit, maxIterations, -math.huge, math.huge)
+end
+
+function findMaxArgConstrained(func, x0, p1, p2, p3, p4, crit, maxIterations, lowerLimit, highLimit)
     local x1 = 0
     local delta = 0
     local iters = 0
     repeat
         x1 = x0 - numerical1Derivative(func, x0, p1, p2, p3, p4, crit) / numerical2Derivative(func, x0, p1, p2, p3, p4, crit)
+        -- We are searching for a maximum within the range [lowerLimit, highLimit]
+        -- if x1 >  highLimit better we have a new maximum.
+        -- if x1 <  lowerLimit then we need to re-start with a value within the range [lowerLimit, highLimit]
+        if (x1 < lowerLimit) then
+           x1 = math.random(lowerLimit, highLimit)
+        end
         delta = math.abs(x1 - x0)
         x0 = x1
         iters=iters+1

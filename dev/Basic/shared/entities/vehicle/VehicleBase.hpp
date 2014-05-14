@@ -48,6 +48,14 @@ public:
 		return vehicleType;
 	}
 
+	bool isMoving() const {
+		return moving;
+	}
+
+	void setMoving(bool moving) {
+		this->moving = moving;
+	}
+
 protected:
 	/**length of the vehicle in cm*/
 	const double lengthCM;
@@ -55,6 +63,8 @@ protected:
 	const double widthCM;
 	/**type of vehicle*/
 	const VehicleType vehicleType;
+	/**flag to indicate moving status of vehicle*/
+	bool moving;
 };
 
 }// end namespace sim_mob

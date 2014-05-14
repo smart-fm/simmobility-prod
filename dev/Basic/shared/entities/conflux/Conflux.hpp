@@ -11,11 +11,11 @@
 #include "boost/thread/shared_mutex.hpp"
 
 namespace sim_mob {
-
+class MultiNode;
 class Person;
 class RoadSegment;
+class Role;
 class SegmentStats;
-class MultiNode;
 class Worker;
 
 
@@ -66,6 +66,20 @@ private:
 	typedef std::map<sim_mob::Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
 	typedef std::map<sim_mob::Link*, PersonList> VirtualQueueMap;
 	typedef std::map<const sim_mob::RoadSegment*, SegmentStatsList> SegmentStatsMap;
+
+	/**
+	 * helper to capture the status of a person before and after update
+	 */
+    struct PersonProps {
+    public:
+    	const sim_mob::Role* role;
+    	const sim_mob::RoadSegment* segment;
+    	const sim_mob::Lane* lane;
+    	bool isQueuing;
+    	sim_mob::SegmentStats* segStats;
+
+    	PersonProps(sim_mob::Person* person);
+    };
 
 	/**
 	 *  MultiNode (intersection) around which this conflux is constructed
@@ -221,6 +235,13 @@ private:
 	 * 2. Persons who got added to and remained virtual queue in the previous tick
 	 */
 	void resetPersonRemTimes();
+
+	/**
+	 * handles book keeping for the conflux based on changes in roles of person
+	 * @param beforeUpdate person properties before update
+	 * @param afterUpdate person properties after update
+	 */
+	void handleRoles(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person);
 
 protected:
 	//NOTE: New Agents use frame_* methods, but Conflux is fine just using update()

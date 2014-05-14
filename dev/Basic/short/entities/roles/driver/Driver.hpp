@@ -127,9 +127,6 @@ protected:
 	Vehicle* vehicle;
 	// driver path-mover split purpose, we save the currPos in the Driver
 	DPoint currPos;
-	//This should be done through the Role class itself; for now, I'm just forcing
-	//  it so that we can get the mid-term working. ~Seth
-	virtual Vehicle* getResource() { return vehicle; }
 
 private:
 //	//Sample stored data which takes reaction time into account.

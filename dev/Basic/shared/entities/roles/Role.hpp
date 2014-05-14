@@ -146,7 +146,7 @@ public:
 		return sim_mob::DriverRequestParams();
 	}
 
-	VehicleBase* getResource() { return currResource; }
+	VehicleBase* getResource() const { return currResource; }
 	void setResource(VehicleBase* currResource) { this->currResource = currResource; }
 
 	Agent* getParent()

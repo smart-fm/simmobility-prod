@@ -43,5 +43,9 @@
 
 <param name="min_response_distance" value="5.0"/>
 
+<param name="yellow_stop_headway" value="1.0"/>
+<param name="min_speed_yellow" value="2.2352"/>
+
+
 </parameters>
 

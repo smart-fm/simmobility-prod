@@ -145,6 +145,10 @@ private:
 	int maxDecelerationUpperBound;
 	vector<double> maxDecelerationScale;
 
+	// param of calcSignalRate()
+	double yellowStopHeadway;
+	double minSpeedYellow;
+
 	/// time step to calculate state variables
 	double timeStep;
 

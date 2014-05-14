@@ -146,6 +146,9 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	// param for distanceToNormalStop()
 	ParameterManager::Instance()->param(modelName,"min_speed",minSpeed,0.1);
 	ParameterManager::Instance()->param(modelName,"min_response_distance",minResponseDistance,5.0);
+	// param of calcSignalRate()
+	ParameterManager::Instance()->param(modelName,"yellow_stop_headway",yellowStopHeadway,1.0);
+	ParameterManager::Instance()->param(modelName,"min_speed_yellow",minSpeedYellow,2.2352);
 }
 void sim_mob::MITSIM_CF_Model::makeScaleIdx(string& s,vector<double>& c)
 {
@@ -448,8 +451,8 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
 {
 	double minacc = maxAcceleration;
-	double yellowStopHeadway = 1; //1 second
-	double minSpeedYellow = 2.2352;//5 mph = 2.2352 m / s
+//	double yellowStopHeadway = 1; //1 second
+//	double minSpeedYellow = 2.2352;//5 mph = 2.2352 m / s
 
 	sim_mob::TrafficColor color;
 

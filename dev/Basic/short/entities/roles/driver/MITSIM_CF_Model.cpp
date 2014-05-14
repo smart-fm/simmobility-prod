@@ -322,7 +322,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	double aC = calcSignalRate(p);			// near signal or incidents
 	double aD = calcYieldingRate(p, targetSpeed, maxLaneSpeed); // when yielding
 	double aE = waitExitLaneRate(p);		//
-	//double  aF = waitAllowedLaneRate(p);	// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
+	double  aF = waitAllowedLaneRate(p);	// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
 	//double  aG = calcLaneDropRate(p);		// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
 	double aH1 = calcAdjacentRate(p);		// to reach adjacent gap
 	double aH2 = calcBackwardRate(p);		// to reach backward gap
@@ -546,7 +546,15 @@ double sim_mob::MITSIM_CF_Model::waitExitLaneRate(DriverUpdateParams& p)
 	else
 		return brakeToStop(p, dx);
 }
-
+double sim_mob::MITSIM_CF_Model::waitAllowedLaneRate(sim_mob::DriverUpdateParams& p)
+{
+	if(p.dis2stop < p.distanceToNormalStop && !p.isTargetLane)
+	{
+		double acc = brakeToStop(p,p.distanceToNormalStop);
+		return acc;
+	}
+	return maxAcceleration;
+}
 double sim_mob::MITSIM_CF_Model::calcForwardRate(DriverUpdateParams& p)
 {
 	/*

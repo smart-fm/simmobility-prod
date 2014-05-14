@@ -590,6 +590,7 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom() == p.currLane) {
 						// current lane connect to next link
 						currentLaneConnectToNextLink = true;
+						p.isTargetLane = true;
 						p.nextLaneIndex = p.currLaneIndex;
 						break;
 					}
@@ -609,6 +610,7 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 //					}
 //					else
 
+					p.isTargetLane = false;
 					p.nextLaneIndex = targetLaneIndex;
 					//NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
 					MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);

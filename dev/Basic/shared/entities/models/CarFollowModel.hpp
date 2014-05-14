@@ -110,6 +110,12 @@ private:
 	 *  \return acceleration rate
 	 **/
 	double waitExitLaneRate(sim_mob::DriverUpdateParams& p);
+	/** \brief this function calculates the acceleration rate when
+	 *   current lane is incorrect and the distance is close to the an incurrent lane of the segment
+	 *  \param p driver's parameters
+	 *  \return acceleration rate
+	 **/
+	double waitAllowedLaneRate(sim_mob::DriverUpdateParams& p);
 	double calcForwardRate(sim_mob::DriverUpdateParams& p);
 	double calcBackwardRate(sim_mob::DriverUpdateParams& p);
 	double calcAdjacentRate(sim_mob::DriverUpdateParams& p);

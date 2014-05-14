@@ -33,7 +33,7 @@ enum MakeDecisions{
  */
 class BoardingMessage : public messaging::Message {
 public:
-	BoardingMessage(BusDriver* driver):busDriver(driver){;}
+	BoardingMessage(BusDriver* driver):busDriver(driver){}
 	virtual ~BoardingMessage() {}
 	BusDriver* busDriver;
 };
@@ -44,7 +44,7 @@ public:
  */
 class AlightingMessage : public messaging::Message {
 public:
-	AlightingMessage(const BusStop* stop):nextStop(stop){;}
+	AlightingMessage(const BusStop* stop):nextStop(stop){}
 	virtual ~AlightingMessage() {}
 	const BusStop* nextStop;
 };

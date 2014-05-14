@@ -27,19 +27,16 @@ using std::endl;
 
 sim_mob::medium::BusDriver::BusDriver(Agent* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::BusDriverBehavior* behavior,
-		sim_mob::medium::BusDriverMovement* movement) :
-		sim_mob::medium::Driver(parent, mtxStrat, behavior, movement), requestMode(
-				mtxStrat, 0), visitedBusStop(mtxStrat, nullptr), visitedBusStopSequenceNo(
-				mtxStrat, -1), arrivalTime(mtxStrat, 0.0), dwellTime(
-				mtxStrat, 0.0), visitedBusTripSequenceNo(mtxStrat, 0), visitedBusLine(
-				mtxStrat, "0"), holdingTime(mtxStrat, 0.0), waitingTimeAtbusStop(
-				0.0) {
+		sim_mob::medium::BusDriverMovement* movement)
+: sim_mob::medium::Driver(parent, mtxStrat, behavior, movement),
+  requestMode(mtxStrat, 0), visitedBusStop(mtxStrat, nullptr),
+  visitedBusStopSequenceNo(mtxStrat, -1), arrivalTime(mtxStrat, 0.0),
+  dwellTime(mtxStrat, 0.0), visitedBusTripSequenceNo(mtxStrat, 0),
+  visitedBusLine(mtxStrat, "0"), holdingTime(mtxStrat, 0.0),
+  waitingTimeAtbusStop(0.0)
+{}
 
-}
-
-sim_mob::medium::BusDriver::~BusDriver() {
-	// TODO Auto-generated destructor stub
-}
+sim_mob::medium::BusDriver::~BusDriver() {}
 
 Role* sim_mob::medium::BusDriver::clone(Person* parent) const {
 	BusDriverBehavior* behavior = new BusDriverBehavior(parent);

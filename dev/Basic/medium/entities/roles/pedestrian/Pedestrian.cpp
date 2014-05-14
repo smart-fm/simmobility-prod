@@ -16,8 +16,10 @@ namespace medium {
 sim_mob::medium::Pedestrian::Pedestrian(Agent* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::PedestrianBehavior* behavior,
 		sim_mob::medium::PedestrianMovement* movement) :
-		sim_mob::Role(behavior, movement, parent, "Pedestrian_") {
-}
+		sim_mob::Role(behavior, movement, parent, "Pedestrian_")
+{}
+
+sim_mob::medium::Pedestrian::~Pedestrian() {}
 
 Role* sim_mob::medium::Pedestrian::clone(Person* parent) const {
 	PedestrianBehavior* behavior = new PedestrianBehavior(parent);
@@ -29,13 +31,7 @@ Role* sim_mob::medium::Pedestrian::clone(Person* parent) const {
 	return pedestrian;
 }
 
-void sim_mob::medium::Pedestrian::make_frame_tick_params(timeslice now) {
-	PedestrianMovement* movement =
-			dynamic_cast<PedestrianMovement*>(this->Movement());
-	if (movement) {
-		movement->resetStatus();
-	}
-}
+void sim_mob::medium::Pedestrian::make_frame_tick_params(timeslice now) {}
 
 }
 }

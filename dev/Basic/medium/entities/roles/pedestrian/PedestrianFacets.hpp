@@ -56,25 +56,6 @@ public:
 	 */
 	void setParentPedestrian(sim_mob::medium::Pedestrian* parentPedestrian);
 
-	/**
-	 * reset status when move to next link
-	 * */
-	void resetStatus();
-
-	/**
-	 * get next link when want to move to next link
-	 * */
-	Link* getNextLink() {
-		return nextLink;
-	}
-
-	/**
-	 * whether want to move to next link
-	 * */
-	bool moveToNextLink() {
-		return isMoveToNextLink;
-	}
-
 protected:
 
 	/**
@@ -87,16 +68,11 @@ protected:
 	/**parent pedestrian*/
 	sim_mob::medium::Pedestrian* parentPedestrian;
 	/**record the current remaining time to the destination*/
-	float remainingTimeToComplete;
+	double remainingTimeToComplete;
 	/**pedestrian's walking speed*/
-	const float walkSpeed;
-	float lastRemainingTime;
+	const double walkSpeed;
 	/**store the pair of link and walking time*/
-	std::vector<std::pair<Link*, float> > trajectory;
-	/**when want to move to next link, the value is true*/
-	bool isMoveToNextLink;
-	/**next link which he want to move to*/
-	Link* nextLink;
+	std::vector<std::pair<Link*, double> > trajectory;
 };
 
 }

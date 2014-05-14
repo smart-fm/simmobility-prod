@@ -29,8 +29,7 @@ public:
 			sim_mob::medium::PedestrianBehavior* behavior = nullptr,
 			sim_mob::medium::PedestrianMovement* movement = nullptr);
 
-	virtual ~Pedestrian() {
-	}
+	virtual ~Pedestrian();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 

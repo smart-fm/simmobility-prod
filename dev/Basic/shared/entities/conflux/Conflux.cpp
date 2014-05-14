@@ -670,7 +670,7 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 	switch(type) {
 	case MSG_PEDESTRIAN_TRANSFER_REQUEST:
 	{
-		const PedestrianRequestMessageArgs& msg = MSG_CAST(PedestrianRequestMessageArgs, message);
+		const PedestrianTransferRequestMessage& msg = MSG_CAST(PedestrianTransferRequestMessage, message);
 		pedestrianList.push_back(msg.pedestrian);
 		break;
 	}
@@ -688,7 +688,7 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 	}
 	person->setLastUpdatedFrame(currFrame.frame());
 
-	Entity::UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
+	Entity::UpdateStatus retVal = UpdateStatus::Continue;
 
 	/*
 	 * The following loop guides the movement of the person by invoking the movement facet of the person's role one or more times
@@ -747,9 +747,10 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 
 		if(person->getNextLinkRequired()){
 			Conflux* nextConflux = person->getNextLinkRequired()->getSegments().front()->getParentConflux();
-			messaging::MessageBus::PostMessage(nextConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST, messaging::MessageBus::MessagePtr(new PedestrianRequestMessageArgs(person)));
-			person->setResetParamsRequired(true);
-			return UpdateStatus::Done;
+			messaging::MessageBus::PostMessage(nextConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST,
+					messaging::MessageBus::MessagePtr(new PedestrianTransferRequestMessage(person)));
+			person->setNextLinkRequired(nullptr);
+			return retVal;
 		}
 
 		if(person->requestedNextSegStats){

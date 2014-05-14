@@ -100,7 +100,17 @@ SegmentStats::~SegmentStats() {
 	for(LaneStatsMap::iterator i=laneStatsMap.begin(); i!=laneStatsMap.end(); i++) {
 		safe_delete_item(i->second);
 	}
+	for(AgentList::iterator i=busStopAgents.begin(); i!=busStopAgents.end(); i++){
+		safe_delete_item(*i);
+	}
 	safe_delete_item(laneInfinity);
+}
+
+void SegmentStats::updateBusStopAgents(timeslice now) {
+	for (AgentList::iterator i = busStopAgents.begin();
+			i != busStopAgents.end(); i++) {
+		(*i)->update(now);
+	}
 }
 
 void SegmentStats::addAgent(const sim_mob::Lane* lane, sim_mob::Person* p) {
@@ -119,6 +129,15 @@ void SegmentStats::updateQueueStatus(const sim_mob::Lane* lane, sim_mob::Person*
 
 std::deque<sim_mob::Person*>& SegmentStats::getPersons(const sim_mob::Lane* lane) {
 	return laneStatsMap.find(lane)->second->laneAgents;
+}
+
+std::vector<const sim_mob::BusStop*>& SegmentStats::getBusStops()
+{
+	return busStops;
+}
+
+void SegmentStats::addBusStopAgent(sim_mob::Agent* busStopAgent){
+	busStopAgents.push_back(busStopAgent);
 }
 
 std::deque<sim_mob::Person*> SegmentStats::getPersons() {

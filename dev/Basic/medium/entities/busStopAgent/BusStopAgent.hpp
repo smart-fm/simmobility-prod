@@ -14,6 +14,8 @@
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
+#include "entities/roles/waitBusActivity/waitBusActivity.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
 
 namespace sim_mob {
 
@@ -27,43 +29,42 @@ public:
 protected:
 
 	//Virtual overrides
-	virtual bool frame_init(timeslice now) {
-		throw std::runtime_error(
-				"frame_* methods are not required and are not implemented for BusStopAgent.");
-	}
-	virtual Entity::UpdateStatus frame_tick(timeslice now) {
-		throw std::runtime_error(
-				"frame_* are not required and are not implemented for BusStopAgent.");
-	}
+	virtual bool frame_init(timeslice now);
+	virtual Entity::UpdateStatus frame_tick(timeslice now);
 	virtual void frame_output(timeslice now) {
-		throw std::runtime_error(
-				"frame_* methods are not required and are not implemented for BusStopAgent.");
+	}
+	virtual bool isNonspatial(){
+		return false;
+	}
+	virtual void load(const std::map<std::string, std::string>& configProps) {
 	}
 
-	/**
-	 * Inherited from Agent.
-	 */
+
+	 //Inherited from Agent.
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId,
 			event::EventPublisher* sender, const event::EventArgs& args);
+
+	//Inherited from MessageHandler.
+	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 public:
 	/**
 	 * register a new waiting person.
 	 * @param person person who wants to enter this bus stop
 	 */
-	void registerWaitingPerson(sim_mob::Person* person);
+	void registerWaitingPerson(sim_mob::medium::WaitBusActivity* waitingActivity);
 
 	/**
 	 * remove a waiting people from this bus stop.
 	 * @param person person to be removed from this bus stop
 	 */
-	void removeWaitingPerson(sim_mob::Person* person);
+	void removeWaitingPerson(sim_mob::medium::WaitBusActivity* waitingActivity);
 
 	/**
 	 * add person who is alighting at this stop
 	 * @param person person who is alighting at this bus stop
 	 */
-	void addAlightingPerson(sim_mob::Person* person);
+	void addAlightingPerson(sim_mob::medium::Passenger* passenger);
 
 	/**
 	 * the getter of associate bus stop to this agent.
@@ -77,11 +78,19 @@ public:
 	 */
 	void boardWaitingPersons(sim_mob::medium::BusDriver* busDriver);
 
+	/**
+	 * get the number of boarding people
+	 * @param Bus Driver is the associate driver which waiting people will board
+	 */
+	int getBoardingNum(sim_mob::medium::BusDriver* busDriver) const;
+
 private:
-	std::list<sim_mob::Person*> waitingPersons;
-	std::list<sim_mob::Person*> alightingPersons;
+	std::list<sim_mob::medium::WaitBusActivity*> waitingPersons;
+	std::list<sim_mob::medium::Passenger*> alightingPersons;
 	std::list<sim_mob::medium::BusDriver*> parkingDrivers;
 	const sim_mob::BusStop* busStop;
+	/**record last boarding number for a given bus*/
+	std::map<sim_mob::medium::BusDriver*, int> lastBoardingRecorder;
 
 };
 }

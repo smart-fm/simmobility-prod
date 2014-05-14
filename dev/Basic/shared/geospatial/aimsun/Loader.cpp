@@ -2776,6 +2776,16 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdS
 			statsNum++;
 		}
 	}
+
+	std::set<sim_mob::SegmentStats*>& segmentStats =
+			ConfigManager::GetInstanceRW().FullConfig().getSegmentStatsWithBusStops();
+	for (std::list<sim_mob::SegmentStats*>::iterator statsIt =
+			splitSegmentStats.begin(); statsIt != splitSegmentStats.end();
+			statsIt++) {
+		if ((*statsIt)->getBusStops().size() > 0) {
+			segmentStats.insert(*statsIt);
+		}
+	}
 }
 
 /*

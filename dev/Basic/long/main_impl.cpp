@@ -190,14 +190,17 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
 
 int main_impl(int ARGC, char* ARGV[]) {
 
-	const std::string configFileName = "data/simrun_basic.xml";
-	//Parse the config file (this *does not* create anything, it just reads it.).
-	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
-
-	//Save a handle to the shared definition of the configuration.
-	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-
     std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
+    if(args.size() < 2){
+       throw std::runtime_error("\n\nIt is necessary to provide the configuration XML file.\n\n    Example: ./SimMobility_Long ../data/simrun_basic.xml\n\n");
+    }
+    const std::string configFileName = args[1];
+    //Parse the config file (this *does not* create anything, it just reads it.).
+    ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
+
+    //Save a handle to the shared definition of the configuration.
+    const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+
     Print::Init("<stdout>");
     bool runTests = false;
     //process arguments.
@@ -219,10 +222,10 @@ int main_impl(int ARGC, char* ARGV[]) {
         }
 
         //Concatenate output files?
-        if (!resLogFiles.empty()) {
+        /*if (!resLogFiles.empty()) {
             resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
             Utils::printAndDeleteLogFiles(resLogFiles);
-        }
+        }*/
         ConfigManager::GetInstanceRW().reset();
     } else {
     /*    unit_tests::DaoTests tests;

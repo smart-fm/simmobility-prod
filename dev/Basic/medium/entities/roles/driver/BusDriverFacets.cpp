@@ -6,10 +6,13 @@
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "entities/BusStopAgent.hpp"
 #include "entities/Person.hpp"
 #include "entities/Vehicle.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "logging/Log.hpp"
+#include "message/MessageBus.hpp"
+#include "message/MT_Message.hpp"
 
 using namespace sim_mob;
 
@@ -26,6 +29,13 @@ void initSegStatsPath(const vector<const sim_mob::RoadSegment*>& rsPath,
 				rdSeg->getParentConflux()->findSegStats(rdSeg);
 		ssPath.insert(ssPath.end(), statsInSegment.begin(), statsInSegment.end());
 	}
+}
+
+/**
+ * converts time from milli-seconds to seconds
+ */
+inline double converToSeconds(uint32_t timeInMs) {
+	return (timeInMs/1000.0);
 }
 
 const double BUS_LENGTH = 1200.0; // 3 times PASSENGER_CAR_UNIT
@@ -164,6 +174,21 @@ const sim_mob::Lane* BusDriverMovement::getBestTargetLane(
 	}
 	else {
 		return DriverMovement::getBestTargetLane(nextSegStats, nextToNextSegStats);
+	}
+}
+
+bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params) {
+	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
+	const BusStop* nextStop = routeTracker.getNextStop();
+	if(nextStop && currSegStat->hasBusStop(nextStop)) {
+		//send bus arrival message
+		BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(nextStop);
+		messaging::MessageBus::SendInstantaneousMessage(stopAg, BUS_ARRIVAL,
+				messaging::MessageBus::MessagePtr(new BusArrivalMessage(getParentBusDriver())));
+		return false;
+	}
+	else {
+		return DriverMovement::moveToNextSegment(params);
 	}
 }
 

@@ -16,6 +16,7 @@
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/waitBusActivity/waitBusActivity.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
+#include "geospatial/BusStop.hpp"
 
 namespace sim_mob {
 
@@ -23,31 +24,11 @@ namespace medium {
 
 class BusStopAgent: public sim_mob::Agent {
 public:
+	typedef boost::unordered_map<const BusStop*, BusStopAgent*> BusStopAgentsMap;
+
 	BusStopAgent(const MutexStrategy& mtxStrat, int id, const sim_mob::BusStop* stop);
 	virtual ~BusStopAgent();
 
-protected:
-
-	//Virtual overrides
-	virtual bool frame_init(timeslice now);
-	virtual Entity::UpdateStatus frame_tick(timeslice now);
-	virtual void frame_output(timeslice now) {
-	}
-	virtual bool isNonspatial(){
-		return false;
-	}
-	virtual void load(const std::map<std::string, std::string>& configProps) {
-	}
-
-
-	 //Inherited from Agent.
-	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId,
-			event::EventPublisher* sender, const event::EventArgs& args);
-
-	//Inherited from MessageHandler.
-	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
-
-public:
 	/**
 	 * register a new waiting person.
 	 * @param person person who wants to enter this bus stop
@@ -68,7 +49,7 @@ public:
 
 	/**
 	 * the getter of associate bus stop to this agent.
-	 * @return bus stop is the associate to this agent
+	 * @returns bus stop is the associate to this agent
 	 */
 	const sim_mob::BusStop* getBusStop() const;
 
@@ -81,13 +62,48 @@ public:
 	/**
 	 * get the number of boarding people
 	 * @param Bus Driver is the associate driver which waiting people will board
+	 * @returns number of boarding people
 	 */
 	int getBoardingNum(sim_mob::medium::BusDriver* busDriver) const;
 
+	/**
+	 * finds the BusStopAgent corresponding to a bus stop.
+	 * @param busstop stop under consideration
+	 * @returns pointer to bus stop agent corresponding to busstop
+	 */
+	static BusStopAgent* findBusStopAgentByBusStop(const BusStop* busstop);
+
+	/**
+	 * adds bus stop agent to the static allBusstopAgents
+	 */
+	static void registerBusStopAgent(BusStopAgent* busstopAgent);
+
+protected:
+
+	//Virtual overrides
+	virtual bool frame_init(timeslice now);
+	virtual Entity::UpdateStatus frame_tick(timeslice now);
+	virtual void frame_output(timeslice now) {
+	}
+	virtual bool isNonspatial(){
+		return false;
+	}
+	virtual void load(const std::map<std::string, std::string>& configProps) {
+	}
+
+	//Inherited from Agent.
+	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId,
+			event::EventPublisher* sender, const event::EventArgs& args);
+
+	//Inherited from MessageHandler.
+	virtual void HandleMessage(messaging::Message::MessageType type,
+			const messaging::Message& message);
+
 private:
+	static BusStopAgentsMap allBusstopAgents;
 	std::list<sim_mob::medium::WaitBusActivity*> waitingPersons;
 	std::list<sim_mob::medium::Passenger*> alightingPersons;
-	std::list<sim_mob::medium::BusDriver*> parkingDrivers;
+	std::list<sim_mob::medium::BusDriver*> servingDrivers;
 	const sim_mob::BusStop* busStop;
 	/**record last boarding number for a given bus*/
 	std::map<sim_mob::medium::BusDriver*, int> lastBoardingRecorder;

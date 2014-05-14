@@ -130,7 +130,7 @@ protected:
 	 * @param params driver update params for current tick
 	 * @return true if successfully moved to next segment; false otherwise
 	 */
-	bool moveToNextSegment(DriverUpdateParams& params);
+	virtual bool moveToNextSegment(DriverUpdateParams& params);
 
 	/**
 	 * checks whether the driver can move into the next segment in path

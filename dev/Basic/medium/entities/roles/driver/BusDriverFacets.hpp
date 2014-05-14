@@ -108,6 +108,15 @@ protected:
 			const sim_mob::SegmentStats* nextSegStats,
 			const SegmentStats* nextToNextSegStats);
 
+	/**
+	 * In addition to the functionality of the base Driver class, bus drivers
+	 * must check if they have to serve a stop at the end of this segment stats
+	 * before moving to the next segment stats
+	 * @param params driver update params for current tick
+	 * @return true if successfully moved to next segment; false otherwise
+	 */
+	virtual bool moveToNextSegment(DriverUpdateParams& params);
+
 	/**pointer to parent bus driver*/
 	sim_mob::medium::BusDriver* parentBusDriver;
 

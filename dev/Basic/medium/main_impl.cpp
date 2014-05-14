@@ -31,7 +31,7 @@
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/waitBusActivity/waitBusActivity.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
-#include "entities/busStopAgent/BusStopAgent.hpp"
+#include "entities/BusStopAgent.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/RoadNetwork.hpp"
@@ -118,6 +118,7 @@ bool performMainSupply(const std::string& configFileName,
 			sim_mob::medium::BusStopAgent* busStopAgent =
 					new sim_mob::medium::BusStopAgent(mtx, -1, *itBusStop);
 			(*itSegStats)->addBusStopAgent(busStopAgent);
+			BusStopAgent::registerBusStopAgent(busStopAgent);
 		}
 	}
 	//Load our user config file, which is a time costly function

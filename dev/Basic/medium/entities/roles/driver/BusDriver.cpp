@@ -12,7 +12,7 @@
 
 #include "BusDriver.hpp"
 #include "entities/Person.hpp"
-#include "entities/busStopAgent/BusStopAgent.hpp"
+#include "entities/BusStopAgent.hpp"
 #include "message/MT_Message.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "util/DwellTimeCalc.hpp"

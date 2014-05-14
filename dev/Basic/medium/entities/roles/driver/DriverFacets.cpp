@@ -12,14 +12,12 @@
 #include "conf/ConfigParams.hpp"
 #include "entities/Person.hpp"
 #include "entities/UpdateParams.hpp"
-#include "entities/misc/TripChain.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/Vehicle.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/Node.hpp"
-#include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Point2D.hpp"
@@ -288,9 +286,7 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 	bool res = false;
 	bool isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
 	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
-	const sim_mob::SegmentStats* nxtSegStat = nullptr;
-
-	nxtSegStat = pathMover.getNextSegStats(!isNewLinkNext);
+	const sim_mob::SegmentStats* nxtSegStat = pathMover.getNextSegStats(!isNewLinkNext);
 
 	if (!nxtSegStat) {
 		//vehicle is done
@@ -335,19 +331,19 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 		currLane = laneInNextSegment;
 		pathMover.advanceInPath();
 		pathMover.setPositionInSegment(nxtSegStat->getLength());
-		double linkExitTimeSec =  params.elapsedSeconds + (converToSeconds(params.now.ms()));
-		setLastAccept(currLane, linkExitTimeSec, nxtSegStat);
+		double segExitTimeSec =  params.elapsedSeconds + (converToSeconds(params.now.ms()));
+		setLastAccept(currLane, segExitTimeSec, nxtSegStat);
 
 		if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 			const sim_mob::SegmentStats* prevSegStats = pathMover.getPrevSegStats(true);	//previous segment is in the same link
 			if(prevSegStats){
 				// update road segment travel times
-				updateRdSegTravelTimes(prevSegStats, linkExitTimeSec);
+				updateRdSegTravelTimes(prevSegStats, segExitTimeSec);
 			}
 		}
 		res = advance(params);
 	}
-	else{
+	else {
 		if (isQueuing){
 			moveInQueue();
 		}

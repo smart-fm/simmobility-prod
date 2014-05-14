@@ -22,9 +22,10 @@ class BusStop;
 namespace medium {
 class BusDriver;
 
-enum MakeDecisions{
+enum PublicTransitMessage {
 	MSG_DECISION_WAITINGPERSON_BOARDING = 6000000,
-	MSG_DECISION_PASSENGER_ALIGHTING = 6000001
+	MSG_DECISION_PASSENGER_ALIGHTING,
+	BUS_ARRIVAL
 };
 
 /**
@@ -47,6 +48,13 @@ public:
 	AlightingMessage(const BusStop* stop):nextStop(stop){}
 	virtual ~AlightingMessage() {}
 	const BusStop* nextStop;
+};
+
+class BusArrivalMessage : public messaging::Message {
+public:
+	BusArrivalMessage(BusDriver* busDriver):busDriver(busDriver) {}
+	virtual ~BusArrivalMessage() {}
+	BusDriver* busDriver;
 };
 }
 }

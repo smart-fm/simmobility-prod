@@ -304,6 +304,10 @@ protected:
 	 * eliminates the need for splitting the segment into very short segments.
 	 */
 	BusStopList busStops;
+
+	/**BusStopAgents for bus stops in this segment stats*/
+	AgentList busStopAgents;
+
 	/**
 	 * A segment can have multiple segment stats. This gives the position of this
 	 * SegmentStats in segment.
@@ -330,8 +334,6 @@ protected:
 	 */
 	std::map<const sim_mob::Lane*, sim_mob::Person* > frontalAgents;
 
-	/**BusStopAgents for bus stops in this segment stats*/
-	AgentList busStopAgents;
 	/**length of this SegmentStats in cm*/
 	double length;
 	/**speed of vehicles in segment for each frame*/

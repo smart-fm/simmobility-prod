@@ -129,11 +129,6 @@ const DPoint& sim_mob::Vehicle::getCurrPosition() const
 	return currPos;
 }
 
-void sim_mob::Vehicle::moveFwd_med(double amt) {
-	throw_if_error();
-	fwdMovement.advance_med(amt);
-}
-
 void sim_mob::Vehicle::actualMoveToNextSegmentAndUpdateDir_med() {
 	throw_if_error();
 	fwdMovement.actualMoveToNextSegmentAndUpdateDir_med();

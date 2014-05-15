@@ -322,8 +322,8 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	double aC = calcSignalRate(p);			// near signal or incidents
 	double aD = calcYieldingRate(p, targetSpeed, maxLaneSpeed); // when yielding
 	double aE = waitExitLaneRate(p);		//
-	double  aF = waitAllowedLaneRate(p);	// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
-	//double  aG = calcLaneDropRate(p);		// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
+	double  aF = waitAllowedLaneRate(p);
+//	double  aG = calcLaneDropRate(p);		// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
 	double aH1 = calcAdjacentRate(p);		// to reach adjacent gap
 	double aH2 = calcBackwardRate(p);		// to reach backward gap
 	double aH3 = calcForwardRate(p);		// to reach forward gap

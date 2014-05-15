@@ -239,15 +239,15 @@ function calulateUnitExpectations (unit, timeOnMarket, building, postcode, ameni
     -- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
     local hedonicPrice = (calculateHedonicPrice(unit, building, postcode, amenities) * sqfToSqm(unit.floorArea))/1000
     local targetPrice = hedonicPrice -- IMPORTANT : this should be the hedonic value
-    local askingPrice = 1000 -- starting point for price search
-    local a = 3000 -- ratio of events expected by the seller per (considering that the price is 0)
+    local askingPrice = 1.19*hedonicPrice -- starting point for price search
+    local a = 1.2*hedonicPrice -- ratio of events expected by the seller per (considering that the price is 0)
     local b = 1 -- Importance of the price for seller.
     local cost = 0.1 -- Cost of being in the market
     for i=1,timeOnMarket do
         entry = ExpectationEntry()
         entry.hedonicPrice = hedonicPrice
-        entry.askingPrice = findMaxArg(calculateExpectation,
-                askingPrice, targetPrice, a, b, cost, 0.001, 10000)
+        entry.askingPrice = findMaxArgConstrained(calculateExpectation,
+                askingPrice, targetPrice, a, b, cost, 0.001, 10000, targetPrice, 1.2*targetPrice)
         entry.targetPrice = calculateExpectation(entry.askingPrice, targetPrice, a, b, cost);
         if Math.nan(entry.targetPrice) or Math.nan(entry.askingPrice) then
            entry.hedonicPrice = 0

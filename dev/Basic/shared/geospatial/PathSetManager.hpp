@@ -210,16 +210,16 @@ std::string toString(const T& value)
 
 class PathSetManager {
 public:
-//	static PathSetManager* getInstance();
-//	{
-////		static PathSetManager instance;
-////		return instance;
-//		if(!instance_)
-//		{
-//			instance_ = new PathSetManager();
-//		}
-//		return instance_;
-//	}
+	static PathSetManager* getInstance()
+	{
+//		static PathSetManager instance;
+//		return instance;
+		if(!instance_)
+		{
+			instance_ = new PathSetManager();
+		}
+		return instance_;
+	}
 //	virtual ~PathSetManager();
 	class Profiler {
 		///static variable shared among all profilers
@@ -379,6 +379,7 @@ public:
 
 public:
 	PathSetManager();
+	~PathSetManager();
 
 	const sim_mob::Node* getFromNodefromTripChainItems(std::vector<sim_mob::TripChainItem*> &tci);
 	const sim_mob::Node* getToNodefromTripChainItems(std::vector<sim_mob::TripChainItem*> &tci);
@@ -449,7 +450,8 @@ class SinglePath
 {
 public:
 	SinglePath() : purpose(work),utility(0.0),pathsize(0.0),travel_cost(0.0),
-	signal_number(0.0),right_turn_number(0.0),length(0.0),travle_time(0.0) {}
+	signal_number(0.0),right_turn_number(0.0),length(0.0),travle_time(0.0),highWayDistance(0.0),
+	isMinTravelTime(0),isMinDistance(0),isMinSignal(0),isMinRightTurn(0),isMaxHighWayUsage(0){}
 	SinglePath(SinglePath *source);
 	SinglePath(SinglePath &source);
 	SinglePath(SinglePath *source,const sim_mob::RoadSegment* seg);

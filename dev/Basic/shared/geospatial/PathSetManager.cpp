@@ -22,7 +22,7 @@ using std::string;
 
 using namespace sim_mob;
 
-//PathSetManager *sim_mob::PathSetManager::instance_;
+PathSetManager *sim_mob::PathSetManager::instance_;
 tm sim_mob::PathSetManager::Profiler::totalTime;
 PathSetParam *sim_mob::PathSetParam::instance_ = NULL;
 
@@ -376,7 +376,7 @@ sim_mob::Node* sim_mob::PathSetParam::getNodeByAimsunId(std::string id)
 }
 void sim_mob::PathSetParam::initParameters()
 {
-	isUseCatch=true;
+	isUseCatch=false;
 
 	bTTVOT = -0.01373;//-0.0108879;
 	bCommonFactor = 1.0;
@@ -396,6 +396,7 @@ void sim_mob::PathSetParam::initParameters()
 }
 sim_mob::PathSetParam::PathSetParam() {
 	roadNetwork = &ConfigManager::GetInstance().FullConfig().getNetwork();
+	initParameters();
 	multiNodesPool = roadNetwork->getNodes();
 	//	std::set<sim_mob::UniNode*> uniNodes = roadNetwork->getUniNodes();
 	uniNodesPool = roadNetwork->getUniNodes();
@@ -449,6 +450,7 @@ sim_mob::PathSetParam::PathSetParam() {
 sim_mob::PathSetManager::PathSetManager() {
 	sql = NULL;
 	psDbLoader=NULL;
+	pathSetParam = PathSetParam::getInstance();
 //	myloader = new sim_mob::DatabaseLoader2(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
 //	pathPool = std::map<std::string,SinglePath*>();
 	stdir = &StreetDirectory::instance();
@@ -458,49 +460,55 @@ sim_mob::PathSetManager::PathSetManager() {
 	multiNodesPool = roadNetwork->getNodes();
 //	std::set<sim_mob::UniNode*> uniNodes = roadNetwork->getUniNodes();
 	uniNodesPool = roadNetwork->getUniNodes();
-	Print()<<"PathSetManager: nodes amount "<<multiNodesPool.size() + uniNodesPool.size()<<std::endl;
-	Print()<<"PathSetManager: segments amount "<<roadNetwork->getLinks().size()<<std::endl;
-	// 1.2 get all segs
-	SinglePath *sp = NULL;
-	for(std::vector<sim_mob::Link *>::const_iterator it = roadNetwork->getLinks().begin(), it_end(roadNetwork->getLinks().end()); it != it_end ; it ++)
-	{
-		for(std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++)
-		{
-			if (!(*seg_it)->originalDB_ID.getLogItem().empty())
-			{
-				string aimsun_id = (*seg_it)->originalDB_ID.getLogItem();
-				string seg_id = getNumberFromAimsunId(aimsun_id);
-				segPool.insert(std::make_pair(seg_id,*seg_it));
-				seg_pathSetNull.insert(std::make_pair(*seg_it,sp));
-			}
-		}
-	}
-	//
-	for(int i=0;i<multiNodesPool.size();++i)
-	{
-		sim_mob::Node* n = multiNodesPool.at(i);
-		if (!n->originalDB_ID.getLogItem().empty())
-		{
-			std::string id = n->originalDB_ID.getLogItem();
-			nodePool.insert(std::make_pair(id,n));
-		}
-	}
-	for(std::set<sim_mob::UniNode*>::iterator it=uniNodesPool.begin(); it!=uniNodesPool.end(); ++it)
-	{
-		sim_mob::UniNode* n = (*it);
-		if (!n->originalDB_ID.getLogItem().empty())
-		{
-			std::string id = n->originalDB_ID.getLogItem();
-			nodePool.insert(std::make_pair(id,n));
-		}
-	}
+//	Print()<<"PathSetManager: nodes amount "<<multiNodesPool.size() + uniNodesPool.size()<<std::endl;
+//	Print()<<"PathSetManager: segments amount "<<roadNetwork->getLinks().size()<<std::endl;
+//	// 1.2 get all segs
+//	SinglePath *sp = NULL;
+//	for(std::vector<sim_mob::Link *>::const_iterator it = roadNetwork->getLinks().begin(), it_end(roadNetwork->getLinks().end()); it != it_end ; it ++)
+//	{
+//		for(std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++)
+//		{
+//			if (!(*seg_it)->originalDB_ID.getLogItem().empty())
+//			{
+//				string aimsun_id = (*seg_it)->originalDB_ID.getLogItem();
+//				string seg_id = getNumberFromAimsunId(aimsun_id);
+//				segPool.insert(std::make_pair(seg_id,*seg_it));
+//				seg_pathSetNull.insert(std::make_pair(*seg_it,sp));
+//			}
+//		}
+//	}
+//	//
+//	for(int i=0;i<multiNodesPool.size();++i)
+//	{
+//		sim_mob::Node* n = multiNodesPool.at(i);
+//		if (!n->originalDB_ID.getLogItem().empty())
+//		{
+//			std::string id = n->originalDB_ID.getLogItem();
+//			nodePool.insert(std::make_pair(id,n));
+//		}
+//	}
+//	for(std::set<sim_mob::UniNode*>::iterator it=uniNodesPool.begin(); it!=uniNodesPool.end(); ++it)
+//	{
+//		sim_mob::UniNode* n = (*it);
+//		if (!n->originalDB_ID.getLogItem().empty())
+//		{
+//			std::string id = n->originalDB_ID.getLogItem();
+//			nodePool.insert(std::make_pair(id,n));
+//		}
+//	}
 	//
 	init();
-
+	// thread pool
+	threadPool = new PathSetThreadPool(300);
+	threadPool->initializeThreads();
 	if(!psDbLoader)
 	{
 		psDbLoader = new PathSetDBLoader(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
 	}
+}
+sim_mob::PathSetManager::~PathSetManager()
+{
+	if(threadPool) delete threadPool;
 }
 //sim_mob::PathSetManager* sim_mob::PathSetManager::getInstance()
 //{
@@ -1015,18 +1023,20 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 
 
 	//
-	if(isUseCatch)
-	{
-		sim_mob::PathSet* ps = getPathSetByPersonIdAndSubTripId(personId,subTripId);
-		vector<WayPoint> res = generateBestPathChoice(per,ps);
+//	if(isUseCatch)
+//	{
+//		sim_mob::PathSet* ps = getPathSetByPersonIdAndSubTripId(personId,subTripId);
+//		vector<WayPoint> res = generateBestPathChoice(per,ps);
+//		return res;
+//	}
+//	else
+//	{
+//		vector<WayPoint> res = generateBestPathChoice2(subTrip);
+		vector<WayPoint> res = generateBestPathChoiceMT(subTrip);
+		sql = NULL;
 		return res;
-	}
-	else
-	{
-		vector<WayPoint> res = generateBestPathChoice2(subTrip);
-		return res;
-	}
-	sql = NULL;
+//	}
+
 }
 vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob::SubTrip* st)
 {
@@ -2654,9 +2664,127 @@ void sim_mob::generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCatch)
 	// Step 1: the length of each path in the path choice set
 	double minL = ps->oriPath->length;
 
-//	for(std::map<const sim_mob::RoadSegment*,sim_mob::SinglePath*>::iterator it=ps->pathSet.begin();
-//			it!=ps->pathSet.end();
-//			++it)
+	// find MIN_TRAVEL_TIME
+	double minTravelTime=99999999.0;
+	int idx = 0; // record which is min
+	for(int i = 0;i<ps->pathChoices.size();++i)
+	{
+		sim_mob::SinglePath* sp = ps->pathChoices[i];
+		if(i==0)
+		{
+			minTravelTime = sp->travle_time;
+			idx = 0;
+		}
+		else
+		{
+			if(sp->travle_time < minTravelTime)
+			{
+				minTravelTime = sp->travle_time;
+				idx = i;
+			}
+		}
+	}
+	if(!ps->pathChoices.empty())
+	{
+		ps->pathChoices[idx]->isMinTravelTime = 1;
+	}
+	// find MIN_DISTANCE
+	double minDistance=99999999.0;
+	idx = 0; // record which is min
+	for(int i = 0;i<ps->pathChoices.size();++i)
+	{
+		sim_mob::SinglePath* sp = ps->pathChoices[i];
+		if(i==0)
+		{
+			minDistance = sp->length;
+			idx = 0;
+		}
+		else
+		{
+			if(sp->length < minDistance)
+			{
+				minTravelTime = sp->length;
+				idx = i;
+			}
+		}
+	}
+	if(!ps->pathChoices.empty())
+	{
+		ps->pathChoices[idx]->isMinDistance = 1;
+	}
+	// find MIN_SIGNAL
+	int minSignal=99999999;
+	idx = 0; // record which is min
+	for(int i = 0;i<ps->pathChoices.size();++i)
+	{
+		sim_mob::SinglePath* sp = ps->pathChoices[i];
+		if(i==0)
+		{
+			minSignal = sp->signal_number;
+			idx = 0;
+		}
+		else
+		{
+			if(sp->signal_number < minSignal)
+			{
+				minSignal = sp->signal_number;
+				idx = i;
+			}
+		}
+	}
+	if(!ps->pathChoices.empty())
+	{
+		ps->pathChoices[idx]->isMinSignal = 1;
+	}
+	// find MIN_RIGHT_TURN
+	int minRightTurn=99999999;
+	idx = 0; // record which is min
+	for(int i = 0;i<ps->pathChoices.size();++i)
+	{
+		sim_mob::SinglePath* sp = ps->pathChoices[i];
+		if(i==0)
+		{
+			minRightTurn = sp->right_turn_number;
+			idx = 0;
+		}
+		else
+		{
+			if(sp->right_turn_number < minRightTurn)
+			{
+				minSignal = sp->right_turn_number;
+				idx = i;
+			}
+		}
+	}
+	if(!ps->pathChoices.empty())
+	{
+		ps->pathChoices[idx]->isMinRightTurn = 1;
+	}
+	// find MAX_HIGH_WAY_USAGE
+	double maxHighWayUsage=0.0;
+	idx = 0; // record which is min
+	for(int i = 0;i<ps->pathChoices.size();++i)
+	{
+		sim_mob::SinglePath* sp = ps->pathChoices[i];
+		if(i==0)
+		{
+			maxHighWayUsage = sp->highWayDistance / sp->length;
+			idx = 0;
+		}
+		else
+		{
+			if(sp->highWayDistance / sp->length > maxHighWayUsage)
+			{
+				maxHighWayUsage = sp->highWayDistance / sp->length;
+				idx = i;
+			}
+		}
+	}
+	if(!ps->pathChoices.empty())
+	{
+		ps->pathChoices[idx]->isMaxHighWayUsage = 1;
+	}
+	//
 	for(int i = 0;i<ps->pathChoices.size();++i)
 	{
 		//Set size = 0.
@@ -2699,7 +2827,7 @@ void sim_mob::generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCatch)
 //		{
 //			sim_mob::PathSetManager::getInstance()->storePath(sp);
 //		}
-	}
+	}// end for
 }
 //inline void sim_mob::generatePathSizeForPathSet(sim_mob::PathSet *ps)
 //{
@@ -3350,7 +3478,9 @@ sim_mob::SinglePath::SinglePath(SinglePath *source) :
 		utility(source->utility),pathsize(source->pathsize),travel_cost(source->travel_cost),
 		signal_number(source->signal_number),right_turn_number(source->right_turn_number),
 		length(source->length),travle_time(source->travle_time),
-		pathset_id(source->pathset_id)
+		pathset_id(source->pathset_id),highWayDistance(source->highWayDistance),
+		isMinTravelTime(source->isMinTravelTime),isMinDistance(source->isMinDistance),isMinSignal(source->isMinSignal),
+		isMinRightTurn(source->isMinRightTurn),isMaxHighWayUsage(source->isMaxHighWayUsage)
 {
 	isNeedSave2DB=false;
 
@@ -3400,7 +3530,9 @@ sim_mob::SinglePath::SinglePath(SinglePath& source) :
 		signal_number(source.signal_number),
 		right_turn_number(source.right_turn_number),
 		length(source.length),travle_time(source.travle_time),
-		pathset_id(source.pathset_id)
+		pathset_id(source.pathset_id),highWayDistance(source.highWayDistance),
+		isMinTravelTime(source.isMinTravelTime),isMinDistance(source.isMinDistance),isMinSignal(source.isMinSignal),
+		isMinRightTurn(source.isMinRightTurn),isMaxHighWayUsage(source.isMaxHighWayUsage)
 {
 	isNeedSave2DB=false;
 

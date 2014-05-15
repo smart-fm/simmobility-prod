@@ -1070,10 +1070,7 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 	const sim_mob::RoadSegment* rdSeg = nullptr;
 
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-//		path = PathSetManager::getInstance()->getPathByPerson(p);
-
-		Worker *worker = rdSeg->getParentConflux()->getParentWorker();
-		worker->getPathSetMgr()->getPathByPerson(p);
+		path = PathSetManager::getInstance()->getPathByPerson(p);
 	}
 	else{
 		if (role == "driver") {

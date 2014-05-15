@@ -24,6 +24,7 @@
 #include "RoadNetwork.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "geospatial/PathSet/PathSetThreadPool.h"
 #include "soci.h"
 #include "soci-postgresql.h"
 

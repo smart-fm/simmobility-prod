@@ -65,8 +65,8 @@ private:
 public:
 	// retrieve
 	void getDataFromDB();
-	void storeSinglePath(std::vector<sim_mob::SinglePath*>& spPool);
-	void storePathSet(std::map<std::string,sim_mob::PathSet* >& psPool);
+	void storeSinglePath(soci::session& sql,std::vector<sim_mob::SinglePath*>& spPool);
+	void storePathSet(soci::session& sql,std::map<std::string,sim_mob::PathSet* >& psPool);
 	void setTravleTimeTmpTableName(const std::string& value);
 	bool createTravelTimeTmpTable();
 	bool dropTravelTimeTmpTable();

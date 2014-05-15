@@ -77,7 +77,7 @@ void sim_mob::PathSetParam::getDataFromDB()
 //	data.link_id = 123;
 //	insertTravelTime2TmpTable(data);
 }
-void sim_mob::PathSetParam::storeSinglePath(std::vector<sim_mob::SinglePath*>& spPool)
+void sim_mob::PathSetParam::storeSinglePath(soci::session& sql,std::vector<sim_mob::SinglePath*>& spPool)
 {
 //	if(singlePath && singlePath->id.size()>1)
 //	{
@@ -85,8 +85,8 @@ void sim_mob::PathSetParam::storeSinglePath(std::vector<sim_mob::SinglePath*>& s
 		// store to db
 //		std::map<std::string,SinglePath*> tmp;
 //		tmp.insert(std::make_pair(singlePath->id,singlePath));
-	boost::mutex::scoped_lock local_lock(soci_mutex);
-	sim_mob::aimsun::Loader::SaveOneSinglePathData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),spPool);
+//	boost::mutex::scoped_lock local_lock(soci_mutex);
+	sim_mob::aimsun::Loader::SaveOneSinglePathDataST(sql,spPool);
 
 
 	// store in waypoint_singlepathPool
@@ -107,10 +107,10 @@ void sim_mob::PathSetParam::storeSinglePath(std::vector<sim_mob::SinglePath*>& s
 ////		throw std::runtime_error("storePath error");
 //	}
 }
-void sim_mob::PathSetParam::storePathSet(std::map<std::string,sim_mob::PathSet* >& psPool)
+void sim_mob::PathSetParam::storePathSet(soci::session& sql,std::map<std::string,sim_mob::PathSet* >& psPool)
 {
-	boost::mutex::scoped_lock local_lock(soci_mutex);
-	sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),psPool);
+//	boost::mutex::scoped_lock local_lock(soci_mutex);
+	sim_mob::aimsun::Loader::SaveOnePathSetDataST(sql,psPool);
 }
 bool sim_mob::PathSetParam::createTravelTimeTmpTable()
 {
@@ -499,7 +499,7 @@ sim_mob::PathSetManager::PathSetManager() {
 	//
 	init();
 	// thread pool
-	threadPool = new PathSetThreadPool(300);
+	threadPool = new PathSetThreadPool(60);
 	threadPool->initializeThreads();
 	if(!psDbLoader)
 	{
@@ -1392,8 +1392,8 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 			std::map<std::string,sim_mob::PathSet* > tmp;
 			tmp.insert(std::make_pair(fromId_toId,&ps_));
 //			sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),tmp);
-			pathSetParam->storePathSet(tmp);
-			pathSetParam->storeSinglePath(ps_.pathChoices);
+			pathSetParam->storePathSet(*sql,tmp);
+			pathSetParam->storeSinglePath(*sql,ps_.pathChoices);
 			//
 			// save pathset to loacl container
 //			PathSet *newPs = new PathSet(ps_);

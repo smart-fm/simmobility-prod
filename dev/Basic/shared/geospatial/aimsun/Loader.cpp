@@ -114,6 +114,7 @@ public:
 	bool ExcuString(std::string& str);
 	// save path set data
 	void InsertSinglePath2DB(std::vector<sim_mob::SinglePath*>& spPool);//(std::map<std::string,sim_mob::SinglePath*>& pathPool);
+	static bool InsertSinglePath2DBST(soci::session& sql,std::vector<sim_mob::SinglePath*>& spPool);
 	bool LoadSinglePathDBwithId2(
 				std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 				std::string& pathset_id,
@@ -128,6 +129,7 @@ public:
 	bool LoadOnePathSetDBwithId(std::string& pathset_id,sim_mob::PathSet& ps);
 	static bool LoadOnePathSetDBwithIdST(soci::session& sql,std::string& pathset_id,sim_mob::PathSet& ps);
 	void InsertPathSet2DB(std::map<std::string,sim_mob::PathSet* >& pathSetPool);
+	static bool InsertPathSet2DBST(soci::session& sql,std::map<std::string,sim_mob::PathSet* >& pathSetPool);
 
 #ifndef SIMMOB_DISABLE_MPI
 	void TransferBoundaryRoadSegment();
@@ -224,6 +226,18 @@ void DatabaseLoader::InsertSinglePath2DB(std::vector<sim_mob::SinglePath*>& spPo
 		if(sp->isNeedSave2DB)
 		{
 			sql_<<"insert into \"SinglePath\"(\"ID\", \"PATHSET_ID\",\"UTILITY\",\"PATHSIZE\",\"TRAVEL_COST\",\"SIGNAL_NUMBER\",\"RIGHT_TURN_NUMBER\",\"SCENARIO\",\"LENGTH\",\"TRAVEL_TIME\",\"HIGHWAY_DIS\",\"MIN_TRAVEL_TIME\",\"MIN_DISTANCE\",\"MIN_SIGNAL\",\"MIN_RIGHT_TURN\",\"MAX_HIGH_WAY_USAGE\") "
+					"values(:ID, :PATHSET_ID,:UTILITY,:PATHSIZE,:TRAVEL_COST,:SIGNAL_NUMBER,:RIGHT_TURN_NUMBER,:SCENARIO,:LENGTH,:TRAVEL_TIME,:HIGHWAY_DIS,:MIN_TRAVEL_TIME,:MIN_DISTANCE,:MIN_SIGNAL,:MIN_RIGHT_TURN,:MAX_HIGH_WAY_USAGE)", soci::use(*sp);
+		}
+	}
+}
+bool DatabaseLoader::InsertSinglePath2DBST(soci::session& sql,std::vector<sim_mob::SinglePath*>& spPool)
+{
+	for(int i=0;i<spPool.size();++i)
+	{
+		sim_mob::SinglePath* sp = spPool[i];//(*it).second;
+		if(sp->isNeedSave2DB)
+		{
+			sql<<"insert into \"SinglePath\"(\"ID\", \"PATHSET_ID\",\"UTILITY\",\"PATHSIZE\",\"TRAVEL_COST\",\"SIGNAL_NUMBER\",\"RIGHT_TURN_NUMBER\",\"SCENARIO\",\"LENGTH\",\"TRAVEL_TIME\",\"HIGHWAY_DIS\",\"MIN_TRAVEL_TIME\",\"MIN_DISTANCE\",\"MIN_SIGNAL\",\"MIN_RIGHT_TURN\",\"MAX_HIGH_WAY_USAGE\") "
 					"values(:ID, :PATHSET_ID,:UTILITY,:PATHSIZE,:TRAVEL_COST,:SIGNAL_NUMBER,:RIGHT_TURN_NUMBER,:SCENARIO,:LENGTH,:TRAVEL_TIME,:HIGHWAY_DIS,:MIN_TRAVEL_TIME,:MIN_DISTANCE,:MIN_SIGNAL,:MIN_RIGHT_TURN,:MAX_HIGH_WAY_USAGE)", soci::use(*sp);
 		}
 	}
@@ -366,7 +380,19 @@ void DatabaseLoader::InsertPathSet2DB(std::map<std::string,sim_mob::PathSet* >& 
 		}
 	}
 }
-
+bool DatabaseLoader::InsertPathSet2DBST(soci::session& sql,std::map<std::string,sim_mob::PathSet* >& pathSetPool)
+{
+	for(std::map<std::string,sim_mob::PathSet* >::iterator it=pathSetPool.begin();it!=pathSetPool.end();++it)
+	{
+		sim_mob::PathSet *ps = (*it).second;
+		if(ps->isNeedSave2DB)
+		{
+			sql<<"insert into \"PathSet\"(\"ID\", \"FROM_NODE_ID\", \"TO_NODE_ID\",\"SINGLEPATH_ID\",\"SCENARIO\",\"HAS_PATH\") "
+								   "values(:ID, :FROM_NODE_ID, :TO_NODE_ID,:SINGLEPATH_ID,:SCENARIO,:HAS_PATH)", soci::use(*ps);
+		}
+	}
+	return true;
+}
 //void DatabaseLoader::LoadPathPoolDB(std::vector<sim_mob::PathPoolDB>& pool)
 //{
 //	//Our SQL statement
@@ -2631,11 +2657,23 @@ void sim_mob::aimsun::Loader::SaveOneSinglePathData(const std::string& connectio
 	DatabaseLoader loader(connectionStr);
 	loader.InsertSinglePath2DB(pathPool);
 }
+bool sim_mob::aimsun::Loader::SaveOneSinglePathDataST(soci::session& sql,
+					std::vector<sim_mob::SinglePath*>& pathPool)
+{
+	bool res = DatabaseLoader::InsertSinglePath2DBST(sql,pathPool);
+	return res;
+}
 void sim_mob::aimsun::Loader::SaveOnePathSetData(const std::string& connectionStr,
 		std::map<std::string,sim_mob::PathSet* >& pathSetPool)
 {
 	DatabaseLoader loader(connectionStr);
 	loader.InsertPathSet2DB(pathSetPool);
+}
+bool sim_mob::aimsun::Loader::SaveOnePathSetDataST(soci::session& sql,
+				std::map<std::string,sim_mob::PathSet* >& pathSetPool)
+{
+	bool res = DatabaseLoader::InsertPathSet2DBST(sql,pathSetPool);
+	return res;
 }
 void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
 {

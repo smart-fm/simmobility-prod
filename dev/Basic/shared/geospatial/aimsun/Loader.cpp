@@ -113,7 +113,7 @@ public:
 	bool TruncateTable(std::string& table_name);
 	bool ExcuString(std::string& str);
 	// save path set data
-	void InsertSinglePath2DB(std::map<std::string,sim_mob::SinglePath*>& pathPool);
+	void InsertSinglePath2DB(std::vector<sim_mob::SinglePath*>& spPool);//(std::map<std::string,sim_mob::SinglePath*>& pathPool);
 	bool LoadSinglePathDBwithId2(
 				std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 				std::string& pathset_id,
@@ -215,15 +215,16 @@ bool polyline_sorter (const Polyline* const p1, const Polyline* const p2)
 {
 	return p1->distanceFromSrc < p2->distanceFromSrc;
 }
-void DatabaseLoader::InsertSinglePath2DB(std::map<std::string,sim_mob::SinglePath*>& pathPool)
+void DatabaseLoader::InsertSinglePath2DB(std::vector<sim_mob::SinglePath*>& spPool)
 {
-	for(std::map<std::string,sim_mob::SinglePath*>::iterator it=pathPool.begin();it!=pathPool.end();++it)
+//	for(std::map<std::string,sim_mob::SinglePath*>::iterator it=pathPool.begin();it!=pathPool.end();++it)
+	for(int i=0;i<spPool.size();++i)
 	{
-		sim_mob::SinglePath* sp = (*it).second;
+		sim_mob::SinglePath* sp = spPool[i];//(*it).second;
 		if(sp->isNeedSave2DB)
 		{
-			sql_<<"insert into \"SinglePath\"(\"ID\", \"PATHSET_ID\",\"UTILITY\",\"PATHSIZE\",\"TRAVEL_COST\",\"SIGNAL_NUMBER\",\"RIGHT_TURN_NUMBER\",\"SCENARIO\",\"LENGTH\",\"TRAVEL_TIME\") "
-					"values(:ID, :PATHSET_ID,:UTILITY,:PATHSIZE,:TRAVEL_COST,:SIGNAL_NUMBER,:RIGHT_TURN_NUMBER,:SCENARIO,:LENGTH,:TRAVEL_TIME)", soci::use(*sp);
+			sql_<<"insert into \"SinglePath\"(\"ID\", \"PATHSET_ID\",\"UTILITY\",\"PATHSIZE\",\"TRAVEL_COST\",\"SIGNAL_NUMBER\",\"RIGHT_TURN_NUMBER\",\"SCENARIO\",\"LENGTH\",\"TRAVEL_TIME\",\"HIGHWAY_DIS\",\"MIN_TRAVEL_TIME\",\"MIN_DISTANCE\",\"MIN_SIGNAL\",\"MIN_RIGHT_TURN\",\"MAX_HIGH_WAY_USAGE\") "
+					"values(:ID, :PATHSET_ID,:UTILITY,:PATHSIZE,:TRAVEL_COST,:SIGNAL_NUMBER,:RIGHT_TURN_NUMBER,:SCENARIO,:LENGTH,:TRAVEL_TIME,:HIGHWAY_DIS,:MIN_TRAVEL_TIME,:MIN_DISTANCE,:MIN_SIGNAL,:MIN_RIGHT_TURN,:MAX_HIGH_WAY_USAGE)", soci::use(*sp);
 		}
 	}
 }
@@ -2608,24 +2609,24 @@ bool sim_mob::aimsun::Loader::LoadPathSetDataWithId(const std::string& connectio
 //
 //	return res;
 }
-void sim_mob::aimsun::Loader::SavePathSetData(const std::string& connectionStr,
-		std::map<std::string,sim_mob::SinglePath*>& pathPool,
-		std::map<std::string,sim_mob::PathSet* >& pathSetPool)
-{
-	std::cout << "Attempting to connect to database (pathset)" << std::endl;
-	//Connection string will look something like this:
-	//"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
-	DatabaseLoader loader(connectionStr);
-//	for(std::map<std::string,sim_mob::SinglePath*>::iterator it=pathPool.begin();it!=pathPool.end();++it)
-//	{
-//		sim_mob::SinglePath* sp = (*it).second;
-//		sim_mob::SinglePathDB *data = sp->dbData;
-//	}
-	loader.InsertSinglePath2DB(pathPool);
-	loader.InsertPathSet2DB(pathSetPool);
-}
+//void sim_mob::aimsun::Loader::SavePathSetData(const std::string& connectionStr,
+//		std::map<std::string,sim_mob::SinglePath*>& pathPool,
+//		std::map<std::string,sim_mob::PathSet* >& pathSetPool)
+//{
+//	std::cout << "Attempting to connect to database (pathset)" << std::endl;
+//	//Connection string will look something like this:
+//	//"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
+//	DatabaseLoader loader(connectionStr);
+////	for(std::map<std::string,sim_mob::SinglePath*>::iterator it=pathPool.begin();it!=pathPool.end();++it)
+////	{
+////		sim_mob::SinglePath* sp = (*it).second;
+////		sim_mob::SinglePathDB *data = sp->dbData;
+////	}
+//	loader.InsertSinglePath2DB(pathPool);
+//	loader.InsertPathSet2DB(pathSetPool);
+//}
 void sim_mob::aimsun::Loader::SaveOneSinglePathData(const std::string& connectionStr,
-		std::map<std::string,sim_mob::SinglePath*>& pathPool)
+		std::vector<sim_mob::SinglePath*>& pathPool)
 {
 	DatabaseLoader loader(connectionStr);
 	loader.InsertSinglePath2DB(pathPool);

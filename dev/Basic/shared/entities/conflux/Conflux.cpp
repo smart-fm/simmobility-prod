@@ -1007,7 +1007,9 @@ bool sim_mob::Conflux::insertTravelTime2TmpTable(timeslice frameNumber, std::map
 			tt.end_time = (simStart + sim_mob::DailyTime(frameNumber.ms() + frameLength)).toString();
 			tt.travel_time = (*it).second.rdSegTravelTime_/(*it).second.agentCount_;
 
-			PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
+//			PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
+			Worker *worker = this->getParentWorker();
+			worker->getPathSetMgr()->insertTravelTime2TmpTable(tt);
 		}
 	}
 	return res;
@@ -1068,7 +1070,10 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 	const sim_mob::RoadSegment* rdSeg = nullptr;
 
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		path = PathSetManager::getInstance()->getPathByPerson(p);
+//		path = PathSetManager::getInstance()->getPathByPerson(p);
+
+		Worker *worker = rdSeg->getParentConflux()->getParentWorker();
+		worker->getPathSetMgr()->getPathByPerson(p);
 	}
 	else{
 		if (role == "driver") {

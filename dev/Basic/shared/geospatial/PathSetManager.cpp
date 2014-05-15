@@ -22,9 +22,430 @@ using std::string;
 
 using namespace sim_mob;
 
-PathSetManager *sim_mob::PathSetManager::instance_;
+//PathSetManager *sim_mob::PathSetManager::instance_;
 tm sim_mob::PathSetManager::Profiler::totalTime;
+PathSetParam *sim_mob::PathSetParam::instance_ = NULL;
 
+sim_mob::PathSetParam* sim_mob::PathSetParam::getInstance()
+{
+	if(!instance_)
+	{
+		instance_ = new PathSetParam();
+	}
+	return instance_;
+}
+sim_mob::RoadSegment* sim_mob::PathSetParam::getRoadSegmentByAimsunId(std::string id)
+{
+	std::map<std::string,sim_mob::RoadSegment*>::iterator it = segPool.find(id);
+	if(it != segPool.end())
+	{
+		sim_mob::RoadSegment* seg = (*it).second;
+		return seg;
+	}
+	return NULL;
+}
+void sim_mob::PathSetParam::getDataFromDB()
+{
+	setTravleTimeTmpTableName(ConfigManager::GetInstance().FullConfig().getTravelTimeTmpTableName());
+//	if(ERP_Surcharge_pool.empty())
+//	{
+		createTravelTimeTmpTable();
+		//	sim_mob::aimsun::Loader::LoadPathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),pathPool,waypoint_singlepathPool,pathSetPool);
+		sim_mob::aimsun::Loader::LoadERPData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+				ERP_Surcharge_pool,
+				ERP_Gantry_Zone_pool,
+				ERP_Section_pool);
+		sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+				Link_default_travel_time_pool);
+		bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+				pathset_traveltime_realtime_table_name,
+				Link_realtime_travel_time_pool);
+		if(!res) // no realtime travel time table
+		{
+			//create
+			if(!createTravelTimeRealtimeTable() )
+			{
+				throw std::runtime_error("can not create travel time table");
+			}
+		}
+//	}
+//	// test insert into tmp table
+//	sim_mob::Link_travel_time data;
+//	data.start_time = "00:00:00";
+//	data.end_time = "08:08:08";
+//	data.travel_time = 1.0;
+//	data.link_id = 123;
+//	insertTravelTime2TmpTable(data);
+}
+void sim_mob::PathSetParam::storeSinglePath(std::vector<sim_mob::SinglePath*>& spPool)
+{
+//	if(singlePath && singlePath->id.size()>1)
+//	{
+//		pathPool.insert(std::make_pair(singlePath->dbData->id,singlePath));
+		// store to db
+//		std::map<std::string,SinglePath*> tmp;
+//		tmp.insert(std::make_pair(singlePath->id,singlePath));
+	boost::mutex::scoped_lock local_lock(soci_mutex);
+	sim_mob::aimsun::Loader::SaveOneSinglePathData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),spPool);
+
+
+	// store in waypoint_singlepathPool
+		// do not computer waypoint_set here
+//		std::string id;
+//		for (vector<WayPoint>::iterator it = singlePath->shortestWayPointpath.begin(); it != singlePath->shortestWayPointpath.end(); it++) {
+//				if (it->type_ == WayPoint::ROAD_SEGMENT) {
+//					const sim_mob::RoadSegment* seg = it->roadSegment_;
+//					id += seg->originalDB_ID.getLogItem() + "_";
+//				}
+//		}
+		// waypoint_set = id
+//		waypoint_singlepathPool.insert(std::make_pair(singlePath->id,singlePath));
+//	}
+//	else
+//	{
+//		Print()<<"storePath: id wrong, ignore"<<std::endl;
+////		throw std::runtime_error("storePath error");
+//	}
+}
+void sim_mob::PathSetParam::storePathSet(std::map<std::string,sim_mob::PathSet* >& psPool)
+{
+	boost::mutex::scoped_lock local_lock(soci_mutex);
+	sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),psPool);
+}
+bool sim_mob::PathSetParam::createTravelTimeTmpTable()
+{
+	bool res=false;
+	dropTravelTimeTmpTable();
+	// create tmp table
+	std::string create_table_str = pathset_traveltime_tmp_table_name + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
+	res = sim_mob::aimsun::Loader::createTable(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),create_table_str);
+//	if(!res)
+//	{
+//		// create table failed
+//	}
+	return res;
+}
+bool sim_mob::PathSetParam::dropTravelTimeTmpTable()
+{
+	bool res=false;
+	//drop tmp table
+	std::string drop_table_str = "drop table \""+ pathset_traveltime_tmp_table_name +"\" ";
+	res = sim_mob::aimsun::Loader::excuString(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),drop_table_str);
+	return res;
+}
+bool sim_mob::PathSetParam::createTravelTimeRealtimeTable()
+{
+	bool res=false;
+	std::string create_table_str = pathset_traveltime_realtime_table_name + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
+	res = sim_mob::aimsun::Loader::createTable(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),create_table_str);
+	return res;
+}
+bool sim_mob::PathSetParam::insertTravelTimeCSV2TmpTable(std::ofstream& csvFile,std::string& csvFileName)
+{
+//	bool res=false;
+//	if(ConfigManager::GetInstance().FullConfig().PathSetMode()){
+//	 // get pointer to associated buffer object
+//	  std::filebuf* pbuf = csvFile.rdbuf();
+//
+//	  // get file size using buffer's members
+//	  std::size_t size = pbuf->pubseekoff (0,csvFile.end,csvFile.in);
+////	  Print()<<"file size: "<<size<<std::endl;
+//	  if(size>50000000)//50mb
+//	  {
+	boost::mutex::scoped_lock local_lock(soci_mutex);
+		  csvFile.close();
+		  bool res = sim_mob::aimsun::Loader::insertCSV2Table(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+		  			pathset_traveltime_tmp_table_name,csvFileName);
+		  csvFile.open(csvFileName.c_str(),std::ios::in | std::ios::trunc);
+//	  }
+//		csvFile<<data.link_id<<";"<<data.start_time<<";"<<data.end_time<<";"<<data.travel_time<<std::endl;
+//	}
+	return res;
+}
+bool sim_mob::PathSetParam::copyTravelTimeDataFromTmp2RealtimeTable(std::ofstream& csvFile,std::string& csvFileName)
+{
+	boost::mutex::scoped_lock local_lock(soci_mutex);
+	//0. copy csv to travel time table
+	csvFile.close();
+	Print()<<"table name: "<<pathset_traveltime_tmp_table_name<<std::endl;
+	sim_mob::aimsun::Loader::insertCSV2Table(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+			pathset_traveltime_tmp_table_name,csvFileName);
+	//1. truncate realtime table
+	bool res=false;
+	res = sim_mob::aimsun::Loader::truncateTable(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+			pathset_traveltime_realtime_table_name);
+	if(!res)
+		return res;
+	//2. insert into "max_link_realtime_travel_time" (select * from "link_default_travel_time");
+	std::string str = "insert into " + pathset_traveltime_realtime_table_name +
+			"(select * from " + pathset_traveltime_tmp_table_name +")";
+	res = sim_mob::aimsun::Loader::excuString(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),str);
+
+	return res;
+}
+void sim_mob::PathSetParam::setTravleTimeTmpTableName(const std::string& value)
+{
+//	time_t t = time(0);   // get time now
+//	struct tm * now = localtime( & t );
+//	Print()<<"begin time:"<<std::endl;
+//	Print()<<"setTravleTimeTmpTableName: "<<now->tm_mon<<" "<<now->tm_mday<<" "<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
+//	std::string m_str = sim_mob::toString<int>(now->tm_mon);
+	// pathset_traveltime_tmp_table_name
+//	pathset_traveltime_tmp_table_name = value+"_"+sim_mob::toString<int>(now->tm_mon+1)+"_"+
+//			sim_mob::toString<int>(now->tm_mday)+"_"+
+//			sim_mob::toString<int>(now->tm_hour)+"_"+
+//			sim_mob::toString<int>(now->tm_min)+"_"+
+//			sim_mob::toString<int>(now->tm_sec);
+	pathset_traveltime_tmp_table_name = value+"_"+"traveltime_tmp"; // each user only has fix tmp table name
+	Print()<<"setTravleTimeTmpTableName: "<<pathset_traveltime_tmp_table_name<<std::endl;
+	//pathset_traveltime_table_name
+	pathset_traveltime_realtime_table_name = value+"_travel_time";
+	//get current working directory
+//	char the_path[1024];
+//	getcwd(the_path, 1023);
+//	printf("current dir: %s \n",the_path);
+//	std::string currentPath(the_path);
+//	std::string currentPathTmp = currentPath + "/tmp_"+pathset_traveltime_tmp_table_name;
+//	std::string cmd = "mkdir -p "+currentPathTmp;
+//	if (system(cmd.c_str()) == 0) // create tmp folder ok
+//	{
+//		csvFileName = currentPathTmp+"/"+pathset_traveltime_tmp_table_name + ".csv";
+//	}
+//	else
+//	{
+//		csvFileName = currentPath+"/"+pathset_traveltime_tmp_table_name + ".csv";
+//	}
+//	csvFileName += boost::lexical_cast<string>(pthread_self());
+//	Print()<<"csvFileName: "<<csvFileName<<std::endl;
+//	csvFile.open(csvFileName.c_str());
+////	csvFile<<"test\n"<<std::endl;
+}
+double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::string id,sim_mob::DailyTime startTime,sim_mob::DailyTime endTime)
+{
+	//1. check realtime table
+	double res=0.0;
+	double totalTravelTime=0.0;
+	int count=0;
+	std::map<std::string,std::vector<sim_mob::Link_travel_time*> >::iterator it =
+			Link_realtime_travel_time_pool.find(id);
+	if(it!=Link_realtime_travel_time_pool.end())
+	{
+		std::vector<sim_mob::Link_travel_time*> e = (*it).second;
+		for(int i=0;i<e.size();++i)
+		{
+			sim_mob::Link_travel_time* l = e[i];
+			if( l->start_time_dt.isAfterEqual(startTime) && l->end_time_dt.isBeforeEqual(endTime) )
+			{
+				totalTravelTime += l->travel_time;
+				count++;
+			}
+		}
+		if(count!=0)
+		{
+			res = totalTravelTime/count;
+			return res;
+		}
+	}
+	//2. if no , check default
+//	double res=0.0;
+	it = Link_default_travel_time_pool.find(id);
+	if(it!=Link_default_travel_time_pool.end())
+	{
+		std::vector<sim_mob::Link_travel_time*> e = (*it).second;
+		for(int i=0;i<e.size();++i)
+		{
+			sim_mob::Link_travel_time* l = e[i];
+			//if( l->start_time_dt.isAfterEqual(startTime) && l->end_time_dt.isBeforeEqual(endTime) )
+			//{
+				totalTravelTime += l->travel_time;
+				count++;
+			//}
+		}
+		if(count != 0)
+		{
+			res = totalTravelTime/count;
+		}
+		return res;
+	}
+	else
+	{
+		std::string str = "getTravelTimeBySegId: no travel time for segment " + id;
+		Print()<<"error: "<<str<<std::endl;
+	}
+	return res;
+}
+double sim_mob::PathSetParam::getDefaultTravelTimeBySegId(std::string id)
+{
+	double res=0.0;
+	double totalTravelTime=0.0;
+	int count=0;
+	std::map<std::string,std::vector<sim_mob::Link_travel_time*> >::iterator it =
+			Link_default_travel_time_pool.find(id);
+	if(it!=Link_default_travel_time_pool.end())
+	{
+		std::vector<sim_mob::Link_travel_time*> e = (*it).second;
+		for(int i=0;i<e.size();++i)
+		{
+			sim_mob::Link_travel_time* l = e[i];
+			//if( l->start_time_dt.isAfterEqual(startTime) && l->end_time_dt.isBeforeEqual(endTime) )
+			//{
+				totalTravelTime += l->travel_time;
+				count++;
+			//}
+		}
+		if(count != 0)
+		{
+			res = totalTravelTime/count;
+		}
+		return res;
+	}
+	else
+	{
+		std::string str = "getDefaultTravelTimeBySegId: no default travel time for segment " + id;
+		Print()<<"error: "<<str<<std::endl;
+	}
+	return res;
+}
+double sim_mob::PathSetParam::getTravelTimeBySegId(std::string id,sim_mob::DailyTime startTime)
+{
+	//1. check realtime table
+	double res=0.0;
+	std::map<std::string,std::vector<sim_mob::Link_travel_time*> >::iterator it =
+			Link_realtime_travel_time_pool.find(id);
+	if(it!=Link_realtime_travel_time_pool.end())
+	{
+		std::vector<sim_mob::Link_travel_time*> e = (*it).second;
+		for(int i=0;i<e.size();++i)
+		{
+			sim_mob::Link_travel_time* l = e[i];
+			if( l->start_time_dt.isBeforeEqual(startTime) && l->end_time_dt.isAfter(startTime) )
+			{
+				res = l->travel_time;
+				return res;
+			}
+		}
+	}
+	//2. if no , check default
+//	double res=0.0;
+	it = Link_default_travel_time_pool.find(id);
+	if(it!=Link_default_travel_time_pool.end())
+	{
+		std::vector<sim_mob::Link_travel_time*> e = (*it).second;
+		for(int i=0;i<e.size();++i)
+		{
+			sim_mob::Link_travel_time* l = e[i];
+			if( l->start_time_dt.isBeforeEqual(startTime) && l->end_time_dt.isAfter(startTime) )
+			{
+				res = l->travel_time;
+				return res;
+			}
+		}
+	}
+	else
+	{
+		std::string str = "getTravelTimeBySegId: no travel time for segment " + id;
+		Print()<<"error: "<<str<<std::endl;
+	}
+	return res;
+}
+sim_mob::WayPoint* sim_mob::PathSetParam::getWayPointBySeg(const sim_mob::RoadSegment* seg)
+{
+	std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*>::iterator it = wpPool.find(seg);
+	if(it != wpPool.end() )
+	{
+		sim_mob::WayPoint* wp = (*it).second;
+		return wp;
+	}
+	else
+	{
+		// create new wp
+		sim_mob::WayPoint* wp_ = new sim_mob::WayPoint(seg);
+		wpPool.insert(std::make_pair(seg,wp_));
+		return wp_;
+	}
+}
+sim_mob::Node* sim_mob::PathSetParam::getNodeByAimsunId(std::string id)
+{
+	std::map<std::string,sim_mob::Node*>::iterator it = nodePool.find(id);
+	if(it != nodePool.end())
+	{
+		sim_mob::Node* node = (*it).second;
+		return node;
+	}
+	return NULL;
+}
+void sim_mob::PathSetParam::initParameters()
+{
+	isUseCatch=true;
+
+	bTTVOT = -0.01373;//-0.0108879;
+	bCommonFactor = 1.0;
+	bLength = 0.001025;//0.0;
+	bHighway = 0.00052;//0.0;
+	bCost = 0.0;
+	bSigInter = -0.13;//0.0;
+	bLeftTurns = 0.0;
+	bWork = 0.0;
+	bLeisure = 0.0;
+	highway_bias = 0.5;
+
+	minTravelTimeParam = 0.879;
+	minDistanceParam = 0.325;
+	minSignalParam = 0.256;
+	maxHighwayParam = 0.422;
+}
+sim_mob::PathSetParam::PathSetParam() {
+	roadNetwork = &ConfigManager::GetInstance().FullConfig().getNetwork();
+	multiNodesPool = roadNetwork->getNodes();
+	//	std::set<sim_mob::UniNode*> uniNodes = roadNetwork->getUniNodes();
+	uniNodesPool = roadNetwork->getUniNodes();
+//	if(segPool.empty() || wpPool.empty())
+//		{
+			for(std::vector<sim_mob::Link *>::const_iterator it = roadNetwork->getLinks().begin(), it_end(roadNetwork->getLinks().end()); it != it_end ; it ++)
+			{
+				for(std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++)
+				{
+					if (!(*seg_it)->originalDB_ID.getLogItem().empty())
+					{
+						string aimsun_id = (*seg_it)->originalDB_ID.getLogItem();
+						string seg_id = getNumberFromAimsunId(aimsun_id);
+		//				Print()<<aimsun_id<<std::endl;
+						segPool.insert(std::make_pair(seg_id,*seg_it));
+		//				seg_pathSetNull.insert(std::make_pair(*seg_it,sp));
+						WayPoint *wp = new WayPoint(*seg_it);
+						wpPool.insert(std::make_pair(*seg_it,wp));
+					}
+				}
+			}
+//		}
+		//
+//		if(nodePool.empty())
+//		{
+			for(int i=0;i<multiNodesPool.size();++i)
+			{
+				sim_mob::Node* n = multiNodesPool.at(i);
+				if (!n->originalDB_ID.getLogItem().empty())
+				{
+					std::string id = n->originalDB_ID.getLogItem();
+					nodePool.insert(std::make_pair(id,n));
+				}
+			}
+
+			for(std::set<sim_mob::UniNode*>::iterator it=uniNodesPool.begin(); it!=uniNodesPool.end(); ++it)
+			{
+				sim_mob::UniNode* n = (*it);
+				if (!n->originalDB_ID.getLogItem().empty())
+				{
+					std::string id = n->originalDB_ID.getLogItem();
+					nodePool.insert(std::make_pair(id,n));
+				}
+			}
+//		}
+		Print()<<"PathSetParam: nodes amount "<<multiNodesPool.size() + uniNodesPool.size()<<std::endl;
+		Print()<<"PathSetParam: segments amount "<<roadNetwork->getLinks().size()<<std::endl;
+
+		getDataFromDB();
+}
 sim_mob::PathSetManager::PathSetManager() {
 	sql = NULL;
 	psDbLoader=NULL;
@@ -81,23 +502,24 @@ sim_mob::PathSetManager::PathSetManager() {
 		psDbLoader = new PathSetDBLoader(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
 	}
 }
-sim_mob::PathSetManager* sim_mob::PathSetManager::getInstance()
-{
-	if(!instance_)
-	{
-		instance_ = new PathSetManager();
-	}
-	return instance_;
-}
+//sim_mob::PathSetManager* sim_mob::PathSetManager::getInstance()
+//{
+//	if(!instance_)
+//	{
+//		instance_ = new PathSetManager();
+//	}
+//	return instance_;
+//}
 
 //PathSetManager::~PathSetManager() {
 //	// TODO Auto-generated destructor stub
 //}
 void sim_mob::PathSetManager::init()
 {
-	getDataFromDB();
+//	getDataFromDB();
+	setCSVFileName();
 	initParameters();
-	kshortestImpl = new K_ShortestPathImpl();
+//	kshortestImpl = new K_ShortestPathImpl();
 }
 void sim_mob::PathSetManager::clearPools()
 {
@@ -254,9 +676,9 @@ void sim_mob::PathSetManager::storePath(sim_mob::SinglePath* singlePath)
 	{
 //		pathPool.insert(std::make_pair(singlePath->dbData->id,singlePath));
 		// store to db
-		std::map<std::string,SinglePath*> tmp;
-		tmp.insert(std::make_pair(singlePath->id,singlePath));
-		sim_mob::aimsun::Loader::SaveOneSinglePathData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),tmp);
+//		std::map<std::string,SinglePath*> tmp;
+//		tmp.insert(std::make_pair(singlePath->id,singlePath));
+//		sim_mob::aimsun::Loader::SaveOneSinglePathData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),tmp);
 
 	// store in waypoint_singlepathPool
 		// do not computer waypoint_set here
@@ -291,70 +713,95 @@ unsigned long sim_mob::PathSetManager::size()
 
 	return size;
 }
-void sim_mob::PathSetManager::setTravleTimeTmpTableName(const std::string& value)
+void sim_mob::PathSetManager::setCSVFileName()
 {
-	time_t t = time(0);   // get time now
-	struct tm * now = localtime( & t );
-	Print()<<"begin time:"<<std::endl;
-//	Print()<<"setTravleTimeTmpTableName: "<<now->tm_mon<<" "<<now->tm_mday<<" "<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
-//	std::string m_str = sim_mob::toString<int>(now->tm_mon);
-	// pathset_traveltime_tmp_table_name
-//	pathset_traveltime_tmp_table_name = value+"_"+sim_mob::toString<int>(now->tm_mon+1)+"_"+
-//			sim_mob::toString<int>(now->tm_mday)+"_"+
-//			sim_mob::toString<int>(now->tm_hour)+"_"+
-//			sim_mob::toString<int>(now->tm_min)+"_"+
-//			sim_mob::toString<int>(now->tm_sec);
-	pathset_traveltime_tmp_table_name = value+"_"+"traveltime_tmp"; // each user only has fix tmp table name
-	Print()<<"setTravleTimeTmpTableName: "<<pathset_traveltime_tmp_table_name<<std::endl;
-	//pathset_traveltime_table_name
-	pathset_traveltime_realtime_table_name = value+"_travel_time";
 	//get current working directory
 	char the_path[1024];
 	getcwd(the_path, 1023);
 	printf("current dir: %s \n",the_path);
 	std::string currentPath(the_path);
-	std::string currentPathTmp = currentPath + "/tmp_"+pathset_traveltime_tmp_table_name;
+	std::string currentPathTmp = currentPath + "/tmp_"+pathSetParam->pathset_traveltime_tmp_table_name;
 	std::string cmd = "mkdir -p "+currentPathTmp;
 	if (system(cmd.c_str()) == 0) // create tmp folder ok
 	{
-		csvFileName = currentPathTmp+"/"+pathset_traveltime_tmp_table_name + ".csv";
+		csvFileName = currentPathTmp+"/"+pathSetParam->pathset_traveltime_tmp_table_name + ".csv";
 	}
 	else
 	{
-		csvFileName = currentPath+"/"+pathset_traveltime_tmp_table_name + ".csv";
+		csvFileName = currentPath+"/"+pathSetParam->pathset_traveltime_tmp_table_name + ".csv";
 	}
+//	time_t t = time(0);   // get time now
+//	struct tm * now = localtime( & t );
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	csvFileName += boost::lexical_cast<string>(pthread_self()) +"_"+ boost::lexical_cast<string>(tv.tv_usec);
 	Print()<<"csvFileName: "<<csvFileName<<std::endl;
 	csvFile.open(csvFileName.c_str());
-//	csvFile<<"test\n"<<std::endl;
 }
-bool sim_mob::PathSetManager::createTravelTimeTmpTable()
-{
-	bool res=false;
-	dropTravelTimeTmpTable();
-	// create tmp table
-	std::string create_table_str = pathset_traveltime_tmp_table_name + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
-	res = sim_mob::aimsun::Loader::createTable(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),create_table_str);
-//	if(!res)
+//void sim_mob::PathSetManager::setTravleTimeTmpTableName(const std::string& value)
+//{
+//	time_t t = time(0);   // get time now
+//	struct tm * now = localtime( & t );
+//	Print()<<"begin time:"<<std::endl;
+////	Print()<<"setTravleTimeTmpTableName: "<<now->tm_mon<<" "<<now->tm_mday<<" "<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
+////	std::string m_str = sim_mob::toString<int>(now->tm_mon);
+//	// pathset_traveltime_tmp_table_name
+////	pathset_traveltime_tmp_table_name = value+"_"+sim_mob::toString<int>(now->tm_mon+1)+"_"+
+////			sim_mob::toString<int>(now->tm_mday)+"_"+
+////			sim_mob::toString<int>(now->tm_hour)+"_"+
+////			sim_mob::toString<int>(now->tm_min)+"_"+
+////			sim_mob::toString<int>(now->tm_sec);
+//	pathset_traveltime_tmp_table_name = value+"_"+"traveltime_tmp"; // each user only has fix tmp table name
+//	Print()<<"setTravleTimeTmpTableName: "<<pathset_traveltime_tmp_table_name<<std::endl;
+//	//pathset_traveltime_table_name
+//	pathset_traveltime_realtime_table_name = value+"_travel_time";
+//	//get current working directory
+//	char the_path[1024];
+//	getcwd(the_path, 1023);
+//	printf("current dir: %s \n",the_path);
+//	std::string currentPath(the_path);
+//	std::string currentPathTmp = currentPath + "/tmp_"+pathset_traveltime_tmp_table_name;
+//	std::string cmd = "mkdir -p "+currentPathTmp;
+//	if (system(cmd.c_str()) == 0) // create tmp folder ok
 //	{
-//		// create table failed
+//		csvFileName = currentPathTmp+"/"+pathset_traveltime_tmp_table_name + ".csv";
 //	}
-	return res;
-}
-bool sim_mob::PathSetManager::dropTravelTimeTmpTable()
-{
-	bool res=false;
-	//drop tmp table
-	std::string drop_table_str = "drop table \""+ pathset_traveltime_tmp_table_name +"\" ";
-	res = sim_mob::aimsun::Loader::excuString(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),drop_table_str);
-	return res;
-}
-bool sim_mob::PathSetManager::createTravelTimeRealtimeTable()
-{
-	bool res=false;
-	std::string create_table_str = pathset_traveltime_realtime_table_name + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
-	res = sim_mob::aimsun::Loader::createTable(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),create_table_str);
-	return res;
-}
+//	else
+//	{
+//		csvFileName = currentPath+"/"+pathset_traveltime_tmp_table_name + ".csv";
+//	}
+//	Print()<<"csvFileName: "<<csvFileName<<std::endl;
+//	csvFile.open(csvFileName.c_str());
+////	csvFile<<"test\n"<<std::endl;
+//}
+//bool sim_mob::PathSetManager::createTravelTimeTmpTable()
+//{
+//	bool res=false;
+//	dropTravelTimeTmpTable();
+//	// create tmp table
+//	std::string create_table_str = pathset_traveltime_tmp_table_name + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
+//	res = sim_mob::aimsun::Loader::createTable(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),create_table_str);
+////	if(!res)
+////	{
+////		// create table failed
+////	}
+//	return res;
+//}
+//bool sim_mob::PathSetManager::dropTravelTimeTmpTable()
+//{
+//	bool res=false;
+//	//drop tmp table
+//	std::string drop_table_str = "drop table \""+ pathset_traveltime_tmp_table_name +"\" ";
+//	res = sim_mob::aimsun::Loader::excuString(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),drop_table_str);
+//	return res;
+//}
+//bool sim_mob::PathSetManager::createTravelTimeRealtimeTable()
+//{
+//	bool res=false;
+//	std::string create_table_str = pathset_traveltime_realtime_table_name + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
+//	res = sim_mob::aimsun::Loader::createTable(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),create_table_str);
+//	return res;
+//}
 bool sim_mob::PathSetManager::insertTravelTime2TmpTable(sim_mob::Link_travel_time& data)
 {
 	bool res=false;
@@ -396,46 +843,46 @@ bool sim_mob::PathSetManager::copyTravelTimeDataFromTmp2RealtimeTable()
 
 	return res;
 }
-void sim_mob::PathSetManager::getDataFromDB()
-{
-	setTravleTimeTmpTableName(ConfigManager::GetInstance().FullConfig().getTravelTimeTmpTableName());
-	createTravelTimeTmpTable();
-//	sim_mob::aimsun::Loader::LoadPathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),pathPool,waypoint_singlepathPool,pathSetPool);
-	sim_mob::aimsun::Loader::LoadERPData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-			ERP_Surcharge_pool,
-			ERP_Gantry_Zone_pool,
-			ERP_Section_pool);
-	sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-			Link_default_travel_time_pool);
-	bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-			pathset_traveltime_realtime_table_name,
-			Link_realtime_travel_time_pool);
-	if(!res) // no realtime travel time table
-	{
-		//create
-		if(!createTravelTimeRealtimeTable() )
-		{
-			throw std::runtime_error("can not create travel time table");
-		}
-	}
-//	// test insert into tmp table
-//	sim_mob::Link_travel_time data;
-//	data.start_time = "00:00:00";
-//	data.end_time = "08:08:08";
-//	data.travel_time = 1.0;
-//	data.link_id = 123;
-//	insertTravelTime2TmpTable(data);
-}
-void sim_mob::PathSetManager::saveDataToDB()
-{
-//	for(std::map<std::string,sim_mob::SinglePath*>::iterator it=pathPool.begin();it!=pathPool.end();++it)
+//void sim_mob::PathSetManager::getDataFromDB()
+//{
+//	setTravleTimeTmpTableName(ConfigManager::GetInstance().FullConfig().getTravelTimeTmpTableName());
+//	createTravelTimeTmpTable();
+////	sim_mob::aimsun::Loader::LoadPathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),pathPool,waypoint_singlepathPool,pathSetPool);
+//	sim_mob::aimsun::Loader::LoadERPData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+//			ERP_Surcharge_pool,
+//			ERP_Gantry_Zone_pool,
+//			ERP_Section_pool);
+//	sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+//			Link_default_travel_time_pool);
+//	bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+//			pathset_traveltime_realtime_table_name,
+//			Link_realtime_travel_time_pool);
+//	if(!res) // no realtime travel time table
 //	{
-//		sim_mob::SinglePath* sp = (*it).second;
-//		sim_mob::SinglePathDB *data = sp->dbData;
+//		//create
+//		if(!createTravelTimeRealtimeTable() )
+//		{
+//			throw std::runtime_error("can not create travel time table");
+//		}
 //	}
-
-//	sim_mob::aimsun::Loader::SavePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),pathPool,pathSetPool);
-}
+////	// test insert into tmp table
+////	sim_mob::Link_travel_time data;
+////	data.start_time = "00:00:00";
+////	data.end_time = "08:08:08";
+////	data.travel_time = 1.0;
+////	data.link_id = 123;
+////	insertTravelTime2TmpTable(data);
+//}
+//void sim_mob::PathSetManager::saveDataToDB()
+//{
+////	for(std::map<std::string,sim_mob::SinglePath*>::iterator it=pathPool.begin();it!=pathPool.end();++it)
+////	{
+////		sim_mob::SinglePath* sp = (*it).second;
+////		sim_mob::SinglePathDB *data = sp->dbData;
+////	}
+//
+////	sim_mob::aimsun::Loader::SavePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),pathPool,pathSetPool);
+//}
 std::map<std::string,sim_mob::PathSet*> sim_mob::PathSetManager::generatePathSetByTripChainItemPool(std::vector<sim_mob::TripChainItem*> &tci)
 {
 	std::map<std::string,sim_mob::PathSet*> res;
@@ -783,6 +1230,423 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 
 	return res;
 }
+vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st)
+{
+	vector<WayPoint> res;
+	std::string subTripId = st->tripID;
+//	sim_mob::PathSet *ps = NULL;
+	if(st->mode == "Car") //only driver need path set
+	{
+		const sim_mob::Node* fromNode = st->fromLocation.node_;
+		const sim_mob::Node* toNode = st->toLocation.node_;
+		std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
+		std::string mys=fromId_toId;
+		//check catch
+		if(getFromTo_BestPath_fromPool(fromId_toId,res))
+		{
+			return res;
+		}
+		//
+		mys = "'"+mys+"'";
+		sim_mob::PathSet ps_;
+//		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithId(
+//				ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+//				ps_,mys);
+		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
+								*sql,
+								ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+								ps_,mys);
+		if(ps_.has_path == -1) //no path
+		{
+			return res;
+		}
+		if(hasPSinDB)
+		{
+			// init ps_
+			if(!ps_.isInit)
+			{
+				ps_.subTrip = st;
+				std::map<std::string,sim_mob::SinglePath*> id_sp;
+//				bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithId2(
+//						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+//						id_sp,
+//						mys,
+//						ps_.pathChoices);
+				bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(
+										*sql,
+										ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+										id_sp,
+										mys,
+										ps_.pathChoices);
+				if(hasSPinDB)
+				{
+					std::map<std::string,sim_mob::SinglePath*>::iterator it = id_sp.find(ps_.singlepath_id);
+					if(it!=id_sp.end())
+					{
+						ps_.oriPath = id_sp[ps_.singlepath_id];
+						bool r = getBestPathChoiceFromPathSet(ps_);
+						if(r)
+						{
+							res = sim_mob::convertWaypointP2Wp(ps_.bestWayPointpathP);
+							// delete ps,sp
+							for(int i=0;i<ps_.pathChoices.size();++i)
+							{
+								sim_mob::SinglePath* sp_ = ps_.pathChoices[i];
+								if(sp_)
+									delete sp_;
+							}
+							ps_.pathChoices.clear();
+							insertFromTo_BestPath_Pool(fromId_toId,res);
+							return res;
+						}
+						else
+							return res;
+					}
+					else
+					{
+						std::string str = "gBestPC2: oriPath not find,no path for this nodes pair ";
+						Print()<<str<<std::endl;
+						return res;
+					}
+				}// hasSPinDB
+			}
+		} // hasPSinDB
+		else
+		{
+			Print()<<"gBestPC2: create data for "<<fromId_toId<<std::endl;
+			// 1. generate shortest path with all segs
+			// 1.1 check StreetDirectory
+			if(!stdir || !roadNetwork)
+			{
+				throw std::runtime_error("StreetDirectory or RoadNetwork is null");
+			}
+			// 1.2 get all segs
+			// 1.3 generate shortest path with full segs
+		//	vector<WayPoint> wp_path;
+//			std::map<std::string,SinglePath*> wp_spPool;
+			ps_ = PathSet(fromNode,toNode);
+			ps_.id = fromId_toId;
+			ps_.from_node_id = fromNode->originalDB_ID.getLogItem();
+			ps_.to_node_id = toNode->originalDB_ID.getLogItem();
+			ps_.scenario = scenarioName;
+			ps_.subTrip = st;
+//			ps_.ERP_Gantry_Zone_pool = &ERP_Gantry_Zone_pool;
+//			ps_.ERP_Section_pool = &ERP_Section_pool;
+//			ps_.ERP_Surcharge_pool = &ERP_Surcharge_pool;
+			ps_.psMgr = this;
+//			sim_mob::SinglePath *s = generateSinglePathByFromToNodes3(fromNode,toNode,wp_spPool);
+//			if(!s)
+//			{
+//				// no path
+//				ps_ = PathSet(fromNode,toNode);
+//				ps_.has_path = -1;
+//				ps_.isNeedSave2DB = true;
+//				ps_.id = fromId_toId;
+//				ps_.from_node_id = fromNode->originalDB_ID.getLogItem();
+//				ps_.to_node_id = toNode->originalDB_ID.getLogItem();
+//				ps_.scenario = scenarioName;
+//				std::map<std::string,sim_mob::PathSet* > tmp;
+//				tmp.insert(std::make_pair(fromId_toId,&ps_));
+//				sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),tmp);
+//				return res;
+//			}
+//			//	Print()<<"generatePathSetByFromToNodes0"<<std::endl;
+//			//	// 1.31 check path pool
+//			//	std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
+//				// 1.4 create PathSet object
+//			ps_ = PathSet(fromNode,toNode);
+//			ps_.has_path = 1;
+//			ps_.subTrip = st;
+//			ps_.isNeedSave2DB = true;
+//			ps_.oriPath = s;
+//			ps_.id = fromId_toId;
+//			ps_.singlepath_id = s->id;
+//			s->pathset_id = ps_.id;
+//			s->pathSet = &ps_;
+//			s->travel_cost = getTravelCost2(s);
+//			s->travle_time = getTravelTime(s);
+//			ps_.pathChoices.push_back(s);
+
+			if(!generateAllPathChoicesMT(&ps_))
+			{
+				return res;
+			}
+
+			for(std::map<std::string,sim_mob::SinglePath*>::iterator it=ps_.SinglePathPool.begin();it!=ps_.SinglePathPool.end();++it)
+			{
+				sim_mob::SinglePath* sp = (*it).second;
+				ps_.pathChoices.push_back(sp);
+			}
+			sim_mob::generatePathSizeForPathSet2(&ps_);
+
+			std::map<std::string,sim_mob::PathSet* > tmp;
+			tmp.insert(std::make_pair(fromId_toId,&ps_));
+//			sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),tmp);
+			pathSetParam->storePathSet(tmp);
+			pathSetParam->storeSinglePath(ps_.pathChoices);
+			//
+			// save pathset to loacl container
+//			PathSet *newPs = new PathSet(ps_);
+//			ODPathSetPool.insert(std::make_pair(fromId_toId,newPs));
+
+			bool r = getBestPathChoiceFromPathSet(ps_);
+			// generate all node to current end node
+//				generatePathset2AllNode(toNode,st);
+			if(r)
+			{
+				res = sim_mob::convertWaypointP2Wp(ps_.bestWayPointpathP);
+				// delete ps,sp
+//				for(int i=0;i<ps_.pathChoices.size();++i)
+//				{
+//					sim_mob::SinglePath* sp_ = ps_.pathChoices[i];
+//					if(sp_)
+//						delete sp_;
+//					sp_ = NULL;
+//				}
+//				ps_.pathChoices.clear();
+//				ps_.SinglePathPool.clear();
+				// delete threadWord->s
+				return res;
+			}
+			else
+				return res;
+		}
+	} //end car
+	return res;
+}
+bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps)
+{
+	std::map<std::string,SinglePath*> pool;
+	sim_mob::SinglePath *s = generateSinglePathByFromToNodes3(ps->fromNode,ps->toNode,pool);
+	if(!s)
+	{
+		// no path
+//		ps_ = PathSet(fromNode,toNode);
+		ps->has_path = -1;
+		ps->isNeedSave2DB = true;
+//		ps->id = fromId_toId;
+////		ps->from_node_id = fromNode->originalDB_ID.getLogItem();
+////		ps_.to_node_id = toNode->originalDB_ID.getLogItem();
+//		ps_.scenario = scenarioName;
+		std::map<std::string,sim_mob::PathSet* > tmp;
+		tmp.insert(std::make_pair(ps->id,ps));
+		sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),tmp);
+		return false;
+	}
+	//	Print()<<"generatePathSetByFromToNodes0"<<std::endl;
+	//	// 1.31 check path pool
+	//	std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
+		// 1.4 create PathSet object
+//	ps_ = PathSet(fromNode,toNode);
+	ps->has_path = 1;
+//	ps->subTrip = st;
+	ps->isNeedSave2DB = true;
+	ps->oriPath = s;
+	std::string fromId_toId = ps->fromNode->originalDB_ID.getLogItem() +"_"+ ps->toNode->originalDB_ID.getLogItem();
+	ps->id = fromId_toId;
+	ps->singlepath_id = s->id;
+	s->pathset_id = ps->id;
+	s->pathSet = ps;
+	s->travel_cost = sim_mob::getTravelCost2(s);
+	s->travle_time = getTravelTime(s);
+//	ps->pathChoices.push_back(s);
+
+	threadPool->initWorkerIndex();
+
+	// shortest distance link elimination
+	sim_mob::Link *l = NULL;
+//	std::vector<threadArg*> threadArgPool;
+	std::vector<PathSetWorkerThread*> workPool;
+//	std::vector<pthread_t> threadPool;
+//	threadArg arg;
+	A_StarShortestPathImpl * impl = (A_StarShortestPathImpl*)stdir->getDistanceImpl();
+//	arg.graph = &impl->drivingMap_;
+	//stdir->DrivingVertex(*fromNode), stdir->DrivingVertex(*toNode)
+	StreetDirectory::VertexDesc from = impl->DrivingVertex(*ps->fromNode);
+	StreetDirectory::VertexDesc to = impl->DrivingVertex(*ps->toNode);
+	StreetDirectory::Vertex* fromV = &from.source;
+	StreetDirectory::Vertex* toV = &to.sink;
+	for(int i=0;i<ps->oriPath->shortestWayPointpath.size();++i)
+	{
+		WayPoint *w = ps->oriPath->shortestWayPointpath[i];
+		if (w->type_ == WayPoint::ROAD_SEGMENT && l != w->roadSegment_->getLink()) {
+			const sim_mob::RoadSegment* seg = w->roadSegment_;
+//			PathSetWorkerThread *work = new PathSetWorkerThread();
+			PathSetWorkerThread *work = threadPool->getWorker();
+			work->graph = &impl->drivingMap_;
+			work->segmentLookup = &impl->drivingSegmentLookup_;
+			work->fromVertex = fromV;
+			work->toVertex = toV;
+			work->fromNode = ps->fromNode;
+			work->toNode = ps->toNode;
+			work->excludeSeg = seg;
+//			work->s = NULL;
+			work->s->clear();
+			work->ps = ps;
+			threadPool->assignWork(work);
+			workPool.push_back(work);
+//			pthread_t thread1;
+//			threadArg *arg = new threadArg();
+//			arg->graph = &impl->drivingMap_;
+//			arg->segmentLookup = &impl->drivingSegmentLookup_;
+//			arg->fromVertex = fromV;
+//			arg->toVertex = toV;
+//			arg->fromNode = ps->fromNode;
+//			arg->toNode = ps->toNode;
+//			arg->excludeSeg = seg;
+////			arg.blacklist = &b;
+////			std::vector<WayPoint> r;
+////			arg1.result = &r;
+////			arg.s = NULL;
+//			threadArgPool.push_back(arg);
+//			int rc;
+//			rc = pthread_create(&thread1,NULL,threadbase_dispatcher,arg);
+//			if(rc)
+//			{
+//				std::cout<<"create thread failed"<<std::endl;
+//				break;
+//			}
+//			threadPool.push_back(thread1);
+
+//			break;
+//			pthread_join(thread1,NULL);
+
+		} //ROAD_SEGMENT
+	}
+	// shortest travel time link elimination
+	// travel time
+	l=NULL;
+	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir->getTravelTimeImpl();
+	from = sttpImpl->DrivingVertexNormalTime(*ps->fromNode);
+	to = sttpImpl->DrivingVertexNormalTime(*ps->toNode);
+	fromV = &from.source;
+	toV = &to.sink;
+	SinglePath *sinPathTravelTimeDefault = generateShortestTravelTimePath(ps->fromNode,ps->toNode,pool,sim_mob::Default);
+	if(sinPathTravelTimeDefault)
+	{
+		for(int i=0;i<sinPathTravelTimeDefault->shortestWayPointpath.size();++i)
+		{
+			WayPoint *w = sinPathTravelTimeDefault->shortestWayPointpath[i];
+			if (w->type_ == WayPoint::ROAD_SEGMENT && l != w->roadSegment_->getLink()) {
+				const sim_mob::RoadSegment* seg = w->roadSegment_;
+//				PathSetWorkerThread *work = new PathSetWorkerThread();
+				PathSetWorkerThread *work = threadPool->getWorker();
+				work->graph = &sttpImpl->drivingMap_Default;
+				work->segmentLookup = &sttpImpl->drivingSegmentLookup_Default_;
+				work->fromVertex = fromV;
+				work->toVertex = toV;
+				work->fromNode = ps->fromNode;
+				work->toNode = ps->toNode;
+				work->excludeSeg = seg;
+//				work->s = NULL;
+				work->s->clear();
+				work->ps = ps;
+				threadPool->assignWork(work);
+				workPool.push_back(work);
+			} //ROAD_SEGMENT
+		}//for
+	}//if sinPathTravelTimeDefault
+	// travel time highway bias
+	l=NULL;
+	SinglePath *sinPathHightwayBias = generateShortestTravelTimePath(ps->fromNode,ps->toNode,pool,sim_mob::HighwayBias_Distance);
+	from = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->fromNode);
+	to = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->toNode);
+	fromV = &from.source;
+	toV = &to.sink;
+	if(sinPathHightwayBias)
+	{
+		for(int i=0;i<sinPathHightwayBias->shortestWayPointpath.size();++i)
+		{
+			WayPoint *w = sinPathHightwayBias->shortestWayPointpath[i];
+			if (w->type_ == WayPoint::ROAD_SEGMENT && l != w->roadSegment_->getLink()) {
+				const sim_mob::RoadSegment* seg = w->roadSegment_;
+//				PathSetWorkerThread *work = new PathSetWorkerThread();
+				PathSetWorkerThread *work = threadPool->getWorker();
+				work->graph = &sttpImpl->drivingMap_HighwayBias_Distance;
+				work->segmentLookup = &sttpImpl->drivingSegmentLookup_HighwayBias_Distance_;
+				work->fromVertex = fromV;
+				work->toVertex = toV;
+				work->fromNode = ps->fromNode;
+				work->toNode = ps->toNode;
+				work->excludeSeg = seg;
+				work->s->clear();
+//				work->s = NULL;
+				work->ps = ps;
+				threadPool->assignWork(work);
+				workPool.push_back(work);
+			} //ROAD_SEGMENT
+		}//for
+	}//if sinPathTravelTimeDefault
+	// generate random path
+	for(int i=0;i<20;++i)
+	{
+		from = sttpImpl->DrivingVertexRandom(*ps->fromNode,i);
+		to = sttpImpl->DrivingVertexRandom(*ps->toNode,i);
+		fromV = &from.source;
+		toV = &to.sink;
+//		PathSetWorkerThread *work = new PathSetWorkerThread();
+		PathSetWorkerThread *work = threadPool->getWorker();
+		work->graph = &sttpImpl->drivingMap_Random_pool[i];
+		work->segmentLookup = &sttpImpl->drivingSegmentLookup_Random_pool[i];
+		work->fromVertex = fromV;
+		work->toVertex = toV;
+		work->fromNode = ps->fromNode;
+		work->toNode = ps->toNode;
+		work->excludeSeg = NULL;
+//		work->s = NULL;
+		work->s->clear();
+		work->ps = ps;
+		threadPool->assignWork(work);
+		workPool.push_back(work);
+	}
+	while(threadPool->incompleteWork > 0)
+	{
+//		std::cout<<"incompleteWork: "<<threadPool->incompleteWork<<std::endl;
+		usleep(0.01);
+	}
+	ps->SinglePathPool.insert(std::make_pair(ps->oriPath->id,ps->oriPath));
+	for(int i=0;i<workPool.size();++i)
+	{
+		if(workPool[i]->hasPath)
+		{
+			std::map<std::string,sim_mob::SinglePath*>::iterator it = ps->SinglePathPool.find(workPool[i]->s->id);
+			if(it==ps->SinglePathPool.end())
+			{
+				// this sp not store before
+//				std::cout<<"thread get path size: "<<workPool[i]->s->shortestWayPointpath.size()
+//						<<" "<<workPool[i]->s<<std::endl;
+				ps->SinglePathPool.insert(std::make_pair(workPool[i]->s->id,workPool[i]->s));
+//				workPool[i]->s = NULL;
+			}
+//			else
+//			{
+//				// already has same path stored,delete
+//				delete workPool[i]->s;
+//				workPool[i]->s = NULL;
+//			}
+		}
+//		else
+//		{
+//			std::cout<<"thread get path size: no"<<std::endl;
+//		}
+	}
+	return true;
+//	for(int i=0;i<threadPool.size();++i)
+//	{
+//		pthread_join(threadPool[i],NULL);
+//	}
+//	for(int i=0;i<threadArgPool.size();++i)
+//	{
+//		if(threadArgPool[i]->s)
+//		{
+//			std::cout<<"thread get path size: "<<threadArgPool[i]->s->shortestWayPointpath.size()<<std::endl;
+//		}
+//		else
+//		{
+//			std::cout<<"thread get path size: no"<<std::endl;
+//		}
+//	}
+}
 void sim_mob::PathSetManager::generatePathesByLinkElimination(std::vector<WayPoint*>& path,
 			std::map<std::string,SinglePath*>& wp_spPool,
 			sim_mob::PathSet& ps_,
@@ -991,7 +1855,7 @@ double sim_mob::PathSetManager::getUtilityBySinglePath(sim_mob::SinglePath* sp)
 	utility += sp->pathsize * bCommonFactor;
 	//3.0
 	//Obtain the travel distance l and the highway distance w of the path.
-	utility += sp->length * bLength + 0.0 * bHighway;
+	utility += sp->length * bLength + sp->highWayDistance * bHighway;
 	//4.0
 	//Obtain the travel cost c of the path.
 	utility += sp->travel_cost * bCost;
@@ -1002,6 +1866,29 @@ double sim_mob::PathSetManager::getUtilityBySinglePath(sim_mob::SinglePath* sp)
 	//Obtain the number of right turns f of the path.
 	utility += sp->right_turn_number * bLeftTurns;
 	//7.0
+	//min travel time param
+	if(sp->isMinTravelTime == 1)
+	{
+		utility += minTravelTimeParam;
+	}
+	//8.0
+	//min distance param
+	if(sp->isMinDistance == 1)
+	{
+		utility += minDistanceParam;
+	}
+	//9.0
+	//min signal param
+	if(sp->isMinSignal == 1)
+	{
+		utility += minSignalParam;
+	}
+	//10.0
+	//min highway param
+	if(sp->isMaxHighWayUsage == 1)
+	{
+		utility += maxHighwayParam;
+	}
 	//Obtain the trip purpose.
 	if(sp->purpose == sim_mob::work)
 	{
@@ -1148,18 +2035,23 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps)
 }
 void sim_mob::PathSetManager::initParameters()
 {
-	isUseCatch=false;
+	isUseCatch=pathSetParam->isUseCatch;
 
-	bTTVOT = -0.0108879;
-	bCommonFactor = 1.0;
-	bLength = 0.0;
-	bHighway = 0.0;
-	bCost = 0.0;
-	bSigInter = 0.0;
-	bLeftTurns = 0.0;
-	bWork = 0.0;
-	bLeisure = 0.0;
-	highway_bias = 0.5;
+	bTTVOT = pathSetParam->bTTVOT;//-0.0108879;
+	bCommonFactor = pathSetParam->bCommonFactor;
+	bLength = pathSetParam->bLength;//0.0;
+	bHighway = pathSetParam->bHighway;//0.0;
+	bCost = pathSetParam->bCost;
+	bSigInter = pathSetParam->bSigInter;//0.0;
+	bLeftTurns = pathSetParam->bLeftTurns;
+	bWork = pathSetParam->bWork;
+	bLeisure = pathSetParam->bLeisure;
+	highway_bias = pathSetParam->highway_bias;
+
+	minTravelTimeParam = pathSetParam->minTravelTimeParam;
+	minDistanceParam = pathSetParam->minDistanceParam;
+	minSignalParam = pathSetParam->minSignalParam;
+	maxHighwayParam = pathSetParam->maxHighwayParam;
 }
 sim_mob::PathSet* sim_mob::PathSetManager::getPathSetByPersonIdAndSubTripId(std::string personId,std::string subTripId)
 {
@@ -1569,7 +2461,7 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 					LoadSinglePathDBwithId(mys,ps->pathChoices);
 					//
 					// 2. get SinglePath
-					ps->oriPath = sim_mob::PathSetManager::getInstance()->getSinglePath(ps->singlepath_id);
+//					ps->oriPath = sim_mob::PathSetManager::getInstance()->getSinglePath(ps->singlepath_id);
 				//	oriPath = sim_mob::PathSetManager::getInstance()->getSinglePath2(this->fromNode,this->toNode,NULL);
 					if(!ps->oriPath)
 					{
@@ -1724,7 +2616,7 @@ std::vector<WayPoint*> sim_mob::convertWaypoint2Point(std::vector<WayPoint> wp)
 		if (wp[i].type_ == WayPoint::ROAD_SEGMENT) {
 			const sim_mob::RoadSegment* seg = wp[i].roadSegment_;
 			// find waypoint point from pool
-			WayPoint *wp_ = sim_mob::PathSetManager::getInstance()->getWayPointBySeg(seg);
+			WayPoint *wp_ = sim_mob::PathSetParam::getInstance()->getWayPointBySeg(seg);
 			res.push_back(wp_);
 		}
 	}
@@ -1744,7 +2636,19 @@ std::vector<WayPoint> sim_mob::convertWaypointP2Wp(std::vector<WayPoint*> wp)
 	}
 	return res;
 }
-
+//double sim_mob::generateSinglePathLength(std::vector<WayPoint*>& wp)
+//{
+//	double res=0;
+//	for(int i=0;i<wp.size();++i)
+//	{
+//		WayPoint* w = wp[i];
+//		if (w->type_ == WayPoint::ROAD_SEGMENT) {
+//			const sim_mob::RoadSegment* seg = w->roadSegment_;
+//			res += seg->length;
+//		}
+//	}
+//	return res/100.0; //meter
+//}
 void sim_mob::generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCatch)
 {
 	// Step 1: the length of each path in the path choice set
@@ -1791,10 +2695,10 @@ void sim_mob::generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCatch)
 		}
 		sp->pathsize = log(size);
 //		sp->dbData->pathsize = sp->pathSize;
-		if(isUseCatch)
-		{
-			sim_mob::PathSetManager::getInstance()->storePath(sp);
-		}
+//		if(isUseCatch)
+//		{
+//			sim_mob::PathSetManager::getInstance()->storePath(sp);
+//		}
 	}
 }
 //inline void sim_mob::generatePathSizeForPathSet(sim_mob::PathSet *ps)
@@ -2016,6 +2920,23 @@ inline void sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob:
 	sp->right_turn_number=res;
 	sp->signal_number=signalNumber;
 }
+//double sim_mob::calculateHighWayDistance(sim_mob::SinglePath *sp)
+//{
+//	double res=0;
+//	if(!sp) return 0.0;
+//	for(int i=0;i<sp->shortestWayPointpath.size();++i)
+//	{
+//		sim_mob::WayPoint* w = sp->shortestWayPointpath[i];
+//		if (w->type_ == WayPoint::ROAD_SEGMENT) {
+//			const sim_mob::RoadSegment* seg = w->roadSegment_;
+//			if(seg->maxSpeed >= 60)
+//			{
+//				res += seg->length;
+//			}
+//		}
+//	}
+//	return res/100.0; //meter
+//}
 //TODO:I think lane index should be a data member in the lane class
 size_t sim_mob::getLaneIndex2(const Lane* l) {
 	if (l) {
@@ -2136,42 +3057,42 @@ sim_mob::SinglePath* sim_mob::PathSetManager::getSinglePath(std::string id)
 	}
 	return NULL;
 }
-sim_mob::RoadSegment* sim_mob::PathSetManager::getRoadSegmentByAimsunId(std::string id)
-{
-	std::map<std::string,sim_mob::RoadSegment*>::iterator it = segPool.find(id);
-	if(it != segPool.end())
-	{
-		sim_mob::RoadSegment* seg = (*it).second;
-		return seg;
-	}
-	return NULL;
-}
-sim_mob::WayPoint* sim_mob::PathSetManager::getWayPointBySeg(const sim_mob::RoadSegment* seg)
-{
-	std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*>::iterator it = wpPool.find(seg);
-	if(it != wpPool.end() )
-	{
-		sim_mob::WayPoint* wp = (*it).second;
-		return wp;
-	}
-	else
-	{
-		// create new wp
-		sim_mob::WayPoint* wp_ = new sim_mob::WayPoint(seg);
-		wpPool.insert(std::make_pair(seg,wp_));
-		return wp_;
-	}
-}
-sim_mob::Node* sim_mob::PathSetManager::getNodeByAimsunId(std::string id)
-{
-	std::map<std::string,sim_mob::Node*>::iterator it = nodePool.find(id);
-	if(it != nodePool.end())
-	{
-		sim_mob::Node* node = (*it).second;
-		return node;
-	}
-	return NULL;
-}
+//sim_mob::RoadSegment* sim_mob::PathSetManager::getRoadSegmentByAimsunId(std::string id)
+//{
+//	std::map<std::string,sim_mob::RoadSegment*>::iterator it = segPool.find(id);
+//	if(it != segPool.end())
+//	{
+//		sim_mob::RoadSegment* seg = (*it).second;
+//		return seg;
+//	}
+//	return NULL;
+//}
+//sim_mob::WayPoint* sim_mob::PathSetManager::getWayPointBySeg(const sim_mob::RoadSegment* seg)
+//{
+//	std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*>::iterator it = wpPool.find(seg);
+//	if(it != wpPool.end() )
+//	{
+//		sim_mob::WayPoint* wp = (*it).second;
+//		return wp;
+//	}
+//	else
+//	{
+//		// create new wp
+//		sim_mob::WayPoint* wp_ = new sim_mob::WayPoint(seg);
+//		wpPool.insert(std::make_pair(seg,wp_));
+//		return wp_;
+//	}
+//}
+//sim_mob::Node* sim_mob::PathSetManager::getNodeByAimsunId(std::string id)
+//{
+//	std::map<std::string,sim_mob::Node*>::iterator it = nodePool.find(id);
+//	if(it != nodePool.end())
+//	{
+//		sim_mob::Node* node = (*it).second;
+//		return node;
+//	}
+//	return NULL;
+//}
 double sim_mob::PathSetManager::getTravelCost(sim_mob::SinglePath *sp)
 {
 	double res=0.0;
@@ -2206,7 +3127,7 @@ double sim_mob::PathSetManager::getTravelCost(sim_mob::SinglePath *sp)
 
 	return res;
 }
-double sim_mob::PathSetManager::getTravelCost2(sim_mob::SinglePath *sp)
+double sim_mob::getTravelCost2(sim_mob::SinglePath *sp)
 {
 	double res=0.0;
 	double ts=0.0;
@@ -2219,17 +3140,17 @@ double sim_mob::PathSetManager::getTravelCost2(sim_mob::SinglePath *sp)
 		const sim_mob::RoadSegment* seg = (*it1).first;
 		std::string seg_id = seg->originalDB_ID.getLogItem();
 //		Print()<<"getTravelCost: "<<seg_id<<std::endl;
-		std::map<std::string,sim_mob::ERP_Section*>::iterator it = ERP_Section_pool.find(seg_id);
+		std::map<std::string,sim_mob::ERP_Section*>::iterator it = sim_mob::PathSetParam::getInstance()->ERP_Section_pool.find(seg_id);
 		//get travel time to this segment
-		double t = getTravelTimeBySegId(seg_id,trip_startTime);
+		double t = sim_mob::PathSetParam::getInstance()->getTravelTimeBySegId(seg_id,trip_startTime);
 		ts += t;
 		trip_startTime = trip_startTime + sim_mob::DailyTime(ts*1000);
-		if(it!=ERP_Section_pool.end())
+		if(it!=sim_mob::PathSetParam::getInstance()->ERP_Section_pool.end())
 		{
 			sim_mob::ERP_Section* erp_section = (*it).second;
 			std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::iterator itt =
-					ERP_Surcharge_pool.find(erp_section->ERP_Gantry_No_str);
-			if(itt!=ERP_Surcharge_pool.end())
+					sim_mob::PathSetParam::getInstance()->ERP_Surcharge_pool.find(erp_section->ERP_Gantry_No_str);
+			if(itt!=sim_mob::PathSetParam::getInstance()->ERP_Surcharge_pool.end())
 			{
 				std::vector<sim_mob::ERP_Surcharge*> erp_surcharges = (*itt).second;
 				for(int i=0;i<erp_surcharges.size();++i)
@@ -2269,92 +3190,92 @@ double sim_mob::PathSetManager::getTravelTime(sim_mob::SinglePath *sp)
 	}
 	return ts;
 }
-double sim_mob::PathSetManager::getAverageTravelTimeBySegIdStartEndTime(std::string id,sim_mob::DailyTime startTime,sim_mob::DailyTime endTime)
-{
-	//1. check realtime table
-	double res=0.0;
-	double totalTravelTime=0.0;
-	int count=0;
-	std::map<std::string,std::vector<sim_mob::Link_travel_time*> >::iterator it =
-			Link_realtime_travel_time_pool.find(id);
-	if(it!=Link_realtime_travel_time_pool.end())
-	{
-		std::vector<sim_mob::Link_travel_time*> e = (*it).second;
-		for(int i=0;i<e.size();++i)
-		{
-			sim_mob::Link_travel_time* l = e[i];
-			if( l->start_time_dt.isAfterEqual(startTime) && l->end_time_dt.isBeforeEqual(endTime) )
-			{
-				totalTravelTime += l->travel_time;
-				count++;
-			}
-		}
-		if(count!=0)
-		{
-			res = totalTravelTime/count;
-			return res;
-		}
-	}
-	//2. if no , check default
+//double sim_mob::PathSetManager::getAverageTravelTimeBySegIdStartEndTime(std::string id,sim_mob::DailyTime startTime,sim_mob::DailyTime endTime)
+//{
+//	//1. check realtime table
 //	double res=0.0;
-	it = Link_default_travel_time_pool.find(id);
-	if(it!=Link_default_travel_time_pool.end())
-	{
-		std::vector<sim_mob::Link_travel_time*> e = (*it).second;
-		for(int i=0;i<e.size();++i)
-		{
-			sim_mob::Link_travel_time* l = e[i];
-			//if( l->start_time_dt.isAfterEqual(startTime) && l->end_time_dt.isBeforeEqual(endTime) )
-			//{
-				totalTravelTime += l->travel_time;
-				count++;
-			//}
-		}
-		if(count != 0)
-		{
-			res = totalTravelTime/count;
-		}
-		return res;
-	}
-	else
-	{
-		std::string str = "getTravelTimeBySegId: no travel time for segment " + id;
-		Print()<<"error: "<<str<<std::endl;
-	}
-	return res;
-}
-double sim_mob::PathSetManager::getDefaultTravelTimeBySegId(std::string id)
-{
-	double res=0.0;
-	double totalTravelTime=0.0;
-	int count=0;
-	std::map<std::string,std::vector<sim_mob::Link_travel_time*> >::iterator it =
-			Link_default_travel_time_pool.find(id);
-	if(it!=Link_default_travel_time_pool.end())
-	{
-		std::vector<sim_mob::Link_travel_time*> e = (*it).second;
-		for(int i=0;i<e.size();++i)
-		{
-			sim_mob::Link_travel_time* l = e[i];
-			//if( l->start_time_dt.isAfterEqual(startTime) && l->end_time_dt.isBeforeEqual(endTime) )
-			//{
-				totalTravelTime += l->travel_time;
-				count++;
-			//}
-		}
-		if(count != 0)
-		{
-			res = totalTravelTime/count;
-		}
-		return res;
-	}
-	else
-	{
-		std::string str = "getDefaultTravelTimeBySegId: no default travel time for segment " + id;
-		Print()<<"error: "<<str<<std::endl;
-	}
-	return res;
-}
+//	double totalTravelTime=0.0;
+//	int count=0;
+//	std::map<std::string,std::vector<sim_mob::Link_travel_time*> >::iterator it =
+//			Link_realtime_travel_time_pool.find(id);
+//	if(it!=Link_realtime_travel_time_pool.end())
+//	{
+//		std::vector<sim_mob::Link_travel_time*> e = (*it).second;
+//		for(int i=0;i<e.size();++i)
+//		{
+//			sim_mob::Link_travel_time* l = e[i];
+//			if( l->start_time_dt.isAfterEqual(startTime) && l->end_time_dt.isBeforeEqual(endTime) )
+//			{
+//				totalTravelTime += l->travel_time;
+//				count++;
+//			}
+//		}
+//		if(count!=0)
+//		{
+//			res = totalTravelTime/count;
+//			return res;
+//		}
+//	}
+//	//2. if no , check default
+////	double res=0.0;
+//	it = Link_default_travel_time_pool.find(id);
+//	if(it!=Link_default_travel_time_pool.end())
+//	{
+//		std::vector<sim_mob::Link_travel_time*> e = (*it).second;
+//		for(int i=0;i<e.size();++i)
+//		{
+//			sim_mob::Link_travel_time* l = e[i];
+//			//if( l->start_time_dt.isAfterEqual(startTime) && l->end_time_dt.isBeforeEqual(endTime) )
+//			//{
+//				totalTravelTime += l->travel_time;
+//				count++;
+//			//}
+//		}
+//		if(count != 0)
+//		{
+//			res = totalTravelTime/count;
+//		}
+//		return res;
+//	}
+//	else
+//	{
+//		std::string str = "getTravelTimeBySegId: no travel time for segment " + id;
+//		Print()<<"error: "<<str<<std::endl;
+//	}
+//	return res;
+//}
+//double sim_mob::PathSetManager::getDefaultTravelTimeBySegId(std::string id)
+//{
+//	double res=0.0;
+//	double totalTravelTime=0.0;
+//	int count=0;
+//	std::map<std::string,std::vector<sim_mob::Link_travel_time*> >::iterator it =
+//			Link_default_travel_time_pool.find(id);
+//	if(it!=Link_default_travel_time_pool.end())
+//	{
+//		std::vector<sim_mob::Link_travel_time*> e = (*it).second;
+//		for(int i=0;i<e.size();++i)
+//		{
+//			sim_mob::Link_travel_time* l = e[i];
+//			//if( l->start_time_dt.isAfterEqual(startTime) && l->end_time_dt.isBeforeEqual(endTime) )
+//			//{
+//				totalTravelTime += l->travel_time;
+//				count++;
+//			//}
+//		}
+//		if(count != 0)
+//		{
+//			res = totalTravelTime/count;
+//		}
+//		return res;
+//	}
+//	else
+//	{
+//		std::string str = "getDefaultTravelTimeBySegId: no default travel time for segment " + id;
+//		Print()<<"error: "<<str<<std::endl;
+//	}
+//	return res;
+//}
 double sim_mob::PathSetManager::getTravelTimeBySegId(std::string id,sim_mob::DailyTime startTime)
 {
 	//testing
@@ -2456,13 +3377,13 @@ sim_mob::SinglePath::SinglePath(SinglePath *source) :
 	//		Print()<<id<<std::endl;
 			if(id.size()>1)
 			{
-				sim_mob::RoadSegment* seg = sim_mob::PathSetManager::getInstance()->getRoadSegmentByAimsunId(id);
+				sim_mob::RoadSegment* seg = sim_mob::PathSetParam::getInstance()->getRoadSegmentByAimsunId(id);
 				if(!seg)
 				{
 					std::string str = "SinglePath: seg not find " + id;
 					Print()<<"error: "<<str<<std::endl;
 				}
-				sim_mob::WayPoint *w = sim_mob::PathSetManager::getInstance()->getWayPointBySeg(seg);
+				sim_mob::WayPoint *w = sim_mob::PathSetParam::getInstance()->getWayPointBySeg(seg);
 				this->shortestWayPointpath.push_back(w);
 				shortestSegPath.insert(std::make_pair(seg,w));
 			}
@@ -2499,13 +3420,13 @@ sim_mob::SinglePath::SinglePath(SinglePath& source) :
 //		Print()<<id<<std::endl;
 		if(id.size()>1)
 		{
-			sim_mob::RoadSegment* seg = sim_mob::PathSetManager::getInstance()->getRoadSegmentByAimsunId(id);
+			sim_mob::RoadSegment* seg = sim_mob::PathSetParam::getInstance()->getRoadSegmentByAimsunId(id);
 			if(!seg)
 			{
 				std::string str = "SinglePath: seg not find " + id;
 				Print()<<"error: "<<str<<std::endl;
 			}
-			sim_mob::WayPoint *w = sim_mob::PathSetManager::getInstance()->getWayPointBySeg(seg);
+			sim_mob::WayPoint *w = sim_mob::PathSetParam::getInstance()->getWayPointBySeg(seg);
 			this->shortestWayPointpath.push_back(w);
 			shortestSegPath.insert(std::make_pair(seg,w));
 		}
@@ -2519,13 +3440,37 @@ void sim_mob::SinglePath::init(std::vector<WayPoint>& wpPools)
 		if (wpPools[i].type_ == WayPoint::ROAD_SEGMENT) {
 			const sim_mob::RoadSegment* seg = wpPools[i].roadSegment_;
 			// find waypoint point from pool
-			WayPoint *wp_ = sim_mob::PathSetManager::getInstance()->getWayPointBySeg(seg);
+			WayPoint *wp_ = sim_mob::PathSetParam::getInstance()->getWayPointBySeg(seg);
 			//convertWaypoint2Point
 			this->shortestWayPointpath.push_back(wp_);
 			//generateSegPathByWaypointPathP
 			this->shortestSegPath.insert(std::make_pair(seg,wp_));
 		}
 	}
+}
+void sim_mob::SinglePath::clear()
+{
+	shortestWayPointpath.clear();
+	shortestSegPath.clear();
+	id="";
+	pathset_id="";
+	pathSet = NULL;
+	excludeSeg = NULL;
+	fromNode = NULL;
+	toNode = NULL;
+	utility = 0.0;
+	pathsize = 0.0;
+	travel_cost=0.0;
+	signal_number=0.0;
+	right_turn_number=0.0;
+	length=0.0;
+	travle_time=0.0;
+	highWayDistance=0.0;
+	isMinTravelTime=0;
+	isMinDistance=0;
+	isMinSignal=0;
+	isMinRightTurn=0;
+	isMaxHighWayUsage=0;
 }
 //sim_mob::SinglePath::SinglePath(sim_mob::SinglePathDB& dbData)
 //{
@@ -2644,8 +3589,8 @@ sim_mob::PathSet::PathSet(PathSet &ps) :
 	hasBestChoice = false;
 	// 1. get from to nodes
 	//	can get nodes later,when insert to personPathSetPool
-	this->fromNode = sim_mob::PathSetManager::getInstance()->getNodeByAimsunId(from_node_id);
-	this->toNode = sim_mob::PathSetManager::getInstance()->getNodeByAimsunId(to_node_id);
+	this->fromNode = sim_mob::PathSetParam::getInstance()->getNodeByAimsunId(from_node_id);
+	this->toNode = sim_mob::PathSetParam::getInstance()->getNodeByAimsunId(to_node_id);
 //	// get all relative singlepath
 //	std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
 //	std::string mys=fromId_toId;

@@ -140,14 +140,15 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//Load our user config file, which is a time costly function
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
 	std::cout<<"performMainMed: trip chain pool size "<< ConfigManager::GetInstance().FullConfig().getTripChains().size()<<std::endl;
-
+	PathSetManager* psMgr = NULL;
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		// init path set manager
+		psMgr = new PathSetManager();
 		time_t t = time(0);   // get time now
 		struct tm * now = localtime( & t );
 		std::cout<<"begin time:"<<std::endl;
 		std::cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
-		PathSetManager* psMgr = PathSetManager::getInstance();
+//		PathSetManager* psMgr = PathSetManager::getInstance();
 		std::string name=configFileName;
 		psMgr->setScenarioName(name);
 //		psMgr->setTravleTimeTmpTableName(ConfigParams::GetInstance().travelTimeTmpTableName);
@@ -299,8 +300,11 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 #endif
 
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		PathSetManager::getInstance()->copyTravelTimeDataFromTmp2RealtimeTable();
-		PathSetManager::getInstance()->dropTravelTimeTmpTable();
+		if(psMgr)
+		{
+			psMgr->copyTravelTimeDataFromTmp2RealtimeTable();
+			PathSetParam::getInstance()->dropTravelTimeTmpTable();
+		}
 	}
 	std::cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
 

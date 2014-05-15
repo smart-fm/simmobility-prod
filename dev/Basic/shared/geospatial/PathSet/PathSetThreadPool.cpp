@@ -27,7 +27,7 @@
 
 #include <stdlib.h>
 #include "PathSetThreadPool.h"
-#include "geospatial/streetdir/PublicTransportStreetDirectory.h"
+//#include "geospatial/streetdir/PublicTransportStreetDirectory.h"
 
 using namespace std;
 

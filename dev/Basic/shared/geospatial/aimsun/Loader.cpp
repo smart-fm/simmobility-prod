@@ -113,7 +113,7 @@ public:
 	bool TruncateTable(std::string& table_name);
 	bool ExcuString(std::string& str);
 	// save path set data
-	void InsertSinglePath2DB(std::map<std::string,sim_mob::SinglePath*>& pathPool);
+	void InsertSinglePath2DB(std::vector<sim_mob::SinglePath*>& spPool);//(std::map<std::string,sim_mob::SinglePath*>& pathPool);
 	bool LoadSinglePathDBwithId2(
 				std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 				std::string& pathset_id,
@@ -215,15 +215,16 @@ bool polyline_sorter (const Polyline* const p1, const Polyline* const p2)
 {
 	return p1->distanceFromSrc < p2->distanceFromSrc;
 }
-void DatabaseLoader::InsertSinglePath2DB(std::map<std::string,sim_mob::SinglePath*>& pathPool)
+void DatabaseLoader::InsertSinglePath2DB(std::vector<sim_mob::SinglePath*>& spPool)
 {
-	for(std::map<std::string,sim_mob::SinglePath*>::iterator it=pathPool.begin();it!=pathPool.end();++it)
+//	for(std::map<std::string,sim_mob::SinglePath*>::iterator it=pathPool.begin();it!=pathPool.end();++it)
+	for(int i=0;i<spPool.size();++i)
 	{
-		sim_mob::SinglePath* sp = (*it).second;
+		sim_mob::SinglePath* sp = spPool[i];//(*it).second;
 		if(sp->isNeedSave2DB)
 		{
-			sql_<<"insert into \"SinglePath\"(\"ID\", \"PATHSET_ID\",\"UTILITY\",\"PATHSIZE\",\"TRAVEL_COST\",\"SIGNAL_NUMBER\",\"RIGHT_TURN_NUMBER\",\"SCENARIO\",\"LENGTH\",\"TRAVEL_TIME\") "
-					"values(:ID, :PATHSET_ID,:UTILITY,:PATHSIZE,:TRAVEL_COST,:SIGNAL_NUMBER,:RIGHT_TURN_NUMBER,:SCENARIO,:LENGTH,:TRAVEL_TIME)", soci::use(*sp);
+			sql_<<"insert into \"SinglePath\"(\"ID\", \"PATHSET_ID\",\"UTILITY\",\"PATHSIZE\",\"TRAVEL_COST\",\"SIGNAL_NUMBER\",\"RIGHT_TURN_NUMBER\",\"SCENARIO\",\"LENGTH\",\"TRAVEL_TIME\",\"HIGHWAY_DIS\",\"MIN_TRAVEL_TIME\",\"MIN_DISTANCE\",\"MIN_SIGNAL\",\"MIN_RIGHT_TURN\",\"MAX_HIGH_WAY_USAGE\") "
+					"values(:ID, :PATHSET_ID,:UTILITY,:PATHSIZE,:TRAVEL_COST,:SIGNAL_NUMBER,:RIGHT_TURN_NUMBER,:SCENARIO,:LENGTH,:TRAVEL_TIME,:HIGHWAY_DIS,:MIN_TRAVEL_TIME,:MIN_DISTANCE,:MIN_SIGNAL,:MIN_RIGHT_TURN,:MAX_HIGH_WAY_USAGE)", soci::use(*sp);
 		}
 	}
 }
@@ -873,11 +874,11 @@ void DatabaseLoader::LoadBusStopSG(const std::string& storedProc)
 	{
 		BusStopSG busstop = *iter;
 //		         Convert from meters to centimeters.
-		busstop.bus_stop_no.erase(remove_if(busstop.bus_stop_no.begin(), busstop.bus_stop_no.end(), isspace),
+		busstop.bus_stop_no.erase(remove_if(busstop.bus_stop_no.begin(), busstop.bus_stop_no.end(), ::isspace),
 				busstop.bus_stop_no.end());
-		busstop.stop_lat.erase(remove_if(busstop.stop_lat.begin(), busstop.stop_lat.end(), isspace),
+		busstop.stop_lat.erase(remove_if(busstop.stop_lat.begin(), busstop.stop_lat.end(), ::isspace),
 				busstop.stop_lat.end());
-		busstop.stop_lon.erase(remove_if(busstop.stop_lon.begin(), busstop.stop_lon.end(), isspace),
+		busstop.stop_lon.erase(remove_if(busstop.stop_lon.begin(), busstop.stop_lon.end(), ::isspace),
 				busstop.stop_lon.end());
 
 		        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat) * 100;
@@ -903,9 +904,9 @@ void DatabaseLoader::LoadPTBusDispatchFreq(const std::string& storedProc, std::v
 	{
 		//sim_mob::PT_bus_dispatch_freq* pt_bus_freqTemp = new sim_mob::PT_bus_dispatch_freq(*iter);
 		sim_mob::PT_bus_dispatch_freq pt_bus_freqTemp = *iter;
-		pt_bus_freqTemp.route_id.erase(remove_if(pt_bus_freqTemp.route_id.begin(), pt_bus_freqTemp.route_id.end(), isspace),
+		pt_bus_freqTemp.route_id.erase(remove_if(pt_bus_freqTemp.route_id.begin(), pt_bus_freqTemp.route_id.end(), ::isspace),
 				pt_bus_freqTemp.route_id.end());
-		pt_bus_freqTemp.frequency_id.erase(remove_if(pt_bus_freqTemp.frequency_id.begin(), pt_bus_freqTemp.frequency_id.end(), isspace),
+		pt_bus_freqTemp.frequency_id.erase(remove_if(pt_bus_freqTemp.frequency_id.begin(), pt_bus_freqTemp.frequency_id.end(), ::isspace),
 				pt_bus_freqTemp.frequency_id.end());
 		pt_bus_dispatch_freq.push_back(pt_bus_freqTemp);
 		std::cout << pt_bus_freqTemp.frequency_id << " " << pt_bus_freqTemp.route_id << " " << pt_bus_freqTemp.headway_sec << " " << pt_bus_freqTemp.start_time.toString() << std::endl;
@@ -2608,24 +2609,24 @@ bool sim_mob::aimsun::Loader::LoadPathSetDataWithId(const std::string& connectio
 //
 //	return res;
 }
-void sim_mob::aimsun::Loader::SavePathSetData(const std::string& connectionStr,
-		std::map<std::string,sim_mob::SinglePath*>& pathPool,
-		std::map<std::string,sim_mob::PathSet* >& pathSetPool)
-{
-	std::cout << "Attempting to connect to database (pathset)" << std::endl;
-	//Connection string will look something like this:
-	//"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
-	DatabaseLoader loader(connectionStr);
-//	for(std::map<std::string,sim_mob::SinglePath*>::iterator it=pathPool.begin();it!=pathPool.end();++it)
-//	{
-//		sim_mob::SinglePath* sp = (*it).second;
-//		sim_mob::SinglePathDB *data = sp->dbData;
-//	}
-	loader.InsertSinglePath2DB(pathPool);
-	loader.InsertPathSet2DB(pathSetPool);
-}
+//void sim_mob::aimsun::Loader::SavePathSetData(const std::string& connectionStr,
+//		std::map<std::string,sim_mob::SinglePath*>& pathPool,
+//		std::map<std::string,sim_mob::PathSet* >& pathSetPool)
+//{
+//	std::cout << "Attempting to connect to database (pathset)" << std::endl;
+//	//Connection string will look something like this:
+//	//"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
+//	DatabaseLoader loader(connectionStr);
+////	for(std::map<std::string,sim_mob::SinglePath*>::iterator it=pathPool.begin();it!=pathPool.end();++it)
+////	{
+////		sim_mob::SinglePath* sp = (*it).second;
+////		sim_mob::SinglePathDB *data = sp->dbData;
+////	}
+//	loader.InsertSinglePath2DB(pathPool);
+//	loader.InsertPathSet2DB(pathSetPool);
+//}
 void sim_mob::aimsun::Loader::SaveOneSinglePathData(const std::string& connectionStr,
-		std::map<std::string,sim_mob::SinglePath*>& pathPool)
+		std::vector<sim_mob::SinglePath*>& pathPool)
 {
 	DatabaseLoader loader(connectionStr);
 	loader.InsertSinglePath2DB(pathPool);

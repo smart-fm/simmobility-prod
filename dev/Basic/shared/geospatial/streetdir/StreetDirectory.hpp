@@ -402,6 +402,9 @@ public:
      */
     const sim_mob::RoadSegment* getRoadSegment(const unsigned int id);
 
+    ShortestPathImpl* getDistanceImpl() { return spImpl_; }
+	ShortestPathImpl* getTravelTimeImpl() { return sttpImpl_; }
+
 private:
     //Helper: Find the point closest to the origin.
     static double GetShortestDistance(const Point2D& origin, const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4);

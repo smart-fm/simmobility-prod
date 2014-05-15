@@ -106,6 +106,12 @@ template<> struct type_conversion<sim_mob::SinglePath>
     	res.scenario = vals.get<std::string>("SCENARIO", "");
     	res.length = vals.get<double>("LENGTH",0);
     	res.travle_time = vals.get<double>("TRAVEL_TIME",0);
+    	res.highWayDistance = vals.get<double>("HIGHWAY_DIS",0);
+		res.isMinTravelTime = vals.get<int>("MIN_TRAVEL_TIME",0);
+		res.isMinDistance = vals.get<int>("MIN_DISTANCE",0);
+		res.isMinSignal = vals.get<int>("MIN_SIGNAL",0);
+		res.isMinRightTurn = vals.get<int>("MIN_RIGHT_TURN",0);
+		res.isMaxHighWayUsage = vals.get<int>("MAX_HIGH_WAY_USAGE",0);
     }
     static void to_base(const sim_mob::SinglePath& src, soci::values& vals, soci::indicator& ind)
     {
@@ -123,6 +129,12 @@ template<> struct type_conversion<sim_mob::SinglePath>
         vals.set("SCENARIO", src.scenario);
         vals.set("LENGTH", src.length);
         vals.set("TRAVEL_TIME", src.travle_time);
+        vals.set("HIGHWAY_DIS", src.highWayDistance);
+        vals.set("MIN_TRAVEL_TIME", src.isMinTravelTime);
+        vals.set("MIN_DISTANCE", src.isMinDistance);
+        vals.set("MIN_SIGNAL", src.isMinSignal);
+        vals.set("MIN_RIGHT_TURN", src.isMinRightTurn);
+        vals.set("MAX_HIGH_WAY_USAGE", src.isMaxHighWayUsage);
         ind = i_ok;
     }
 };

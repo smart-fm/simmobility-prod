@@ -17,6 +17,7 @@
 //#include "event/EventListener.hpp"
 #include "soci.h"
 #include "soci-postgresql.h"
+#include "geospatial/PathSetManager.hpp"
 
 namespace sim_mob {
 
@@ -128,6 +129,9 @@ public:
 
 	virtual std::ostream* getLogFile() const;
 
+	/// return current worker's path set manager
+	sim_mob::PathSetManager *getPathSetMgr();
+
 	virtual ProfileBuilder* getProfileBuilder() const;
 
 	void findBoundaryConfluxes();
@@ -228,6 +232,8 @@ private:
 	//static int auto_matical_thread_id;
 public:
 	soci::session sql;
+	/// each worker has its own path set manager
+	sim_mob::PathSetManager *pathSetMgr;
 };
 
 }

@@ -1007,7 +1007,9 @@ bool sim_mob::Conflux::insertTravelTime2TmpTable(timeslice frameNumber, std::map
 			tt.end_time = (simStart + sim_mob::DailyTime(frameNumber.ms() + frameLength)).toString();
 			tt.travel_time = (*it).second.rdSegTravelTime_/(*it).second.agentCount_;
 
-			PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
+//			PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
+			Worker *worker = this->getParentWorker();
+			worker->getPathSetMgr()->insertTravelTime2TmpTable(tt);
 		}
 	}
 	return res;

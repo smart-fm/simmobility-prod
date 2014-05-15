@@ -106,7 +106,7 @@ protected:
 
 	virtual const sim_mob::Lane* getBestTargetLane(
 			const sim_mob::SegmentStats* nextSegStats,
-			const SegmentStats* nextToNextSegStats);
+			const sim_mob::SegmentStats* nextToNextSegStats);
 
 	/**
 	 * In addition to the functionality of the base Driver class, bus drivers

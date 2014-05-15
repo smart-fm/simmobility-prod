@@ -38,7 +38,7 @@ inline double converToSeconds(uint32_t timeInMs) {
 	return (timeInMs/1000.0);
 }
 
-const double BUS_LENGTH = 1200.0; // 3 times PASSENGER_CAR_UNIT
+const double BUS_LENGTH = 3 * sim_mob::PASSENGER_CAR_UNIT; // 3 times PASSENGER_CAR_UNIT
 }
 
 namespace sim_mob {
@@ -134,13 +134,8 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 			routeTracker = BusRouteTracker(bustrip->getBusRouteInfo());
 			Print()<< "BusTrip path size = " << routeTracker.getRoadSegments().size() << std::endl;
 		} else {
-			if ((*(person->currTripChainItem))->itemType== TripChainItem::IT_TRIP) {
-				Print()<< "IT_TRIP\n";
-			}
-			if ((*(person->currTripChainItem))->itemType== TripChainItem::IT_ACTIVITY) {
-				Print()<< "IT_ACTIVITY\n";
-			}
-			Print() << "BusTrip path not initialized coz it is not a bustrip, (*(person->currTripChainItem))->itemType = " << (*(person->currTripChainItem))->itemType << std::endl;
+			Print() << "BusTrip path not initialized because it is not a bustrip, (*(person->currTripChainItem))->itemType = "
+					<< (*(person->currTripChainItem))->itemType << std::endl;
 		}
 
 		//For now, empty paths aren't supported.
@@ -183,8 +178,21 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params) {
 	if(nextStop && currSegStat->hasBusStop(nextStop)) {
 		//send bus arrival message
 		BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(nextStop);
-		messaging::MessageBus::SendInstantaneousMessage(stopAg, BUS_ARRIVAL,
-				messaging::MessageBus::MessagePtr(new BusArrivalMessage(getParentBusDriver())));
+		if(stopAg->canAccommodate(parentBusDriver->getResource()->getLengthCm())) {
+			messaging::MessageBus::SendInstantaneousMessage(stopAg, BUS_ARRIVAL,
+					messaging::MessageBus::MessagePtr(new BusDriverMessage(getParentBusDriver())));
+			parentBusDriver->getResource()->setMoving(false);
+		}
+		else {
+			if (isQueuing){
+				moveInQueue();
+			}
+			else {
+				addToQueue();
+			}
+			params.elapsedSeconds = params.secondsInTick;
+			getParent()->setRemainingTimeThisTick(0.0);
+		}
 		return false;
 	}
 	else {

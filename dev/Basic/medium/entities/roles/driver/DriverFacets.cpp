@@ -143,7 +143,7 @@ void sim_mob::medium::DriverMovement::frame_tick() {
 				moveInQueue();
 			}
 			else {
-				addToQueue(currLane); // adds to queue if not already in queue
+				addToQueue(); // adds to queue if not already in queue
 			}
 
 			params.elapsedSeconds = params.secondsInTick;
@@ -348,7 +348,7 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 			moveInQueue();
 		}
 		else{
-			addToQueue(currLane);
+			addToQueue();
 		}
 		params.elapsedSeconds = params.secondsInTick;
 		getParent()->setRemainingTimeThisTick(0.0);
@@ -406,7 +406,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 					moveInQueue();
 				}
 				else {
-					addToQueue(currLane); // adds to queue if not already in queue
+					addToQueue(); // adds to queue if not already in queue
 				}
 				getParent()->canMoveToNextSegment = Person::NONE; // so that advance() and setParentData() is called subsequently
 			}
@@ -541,7 +541,7 @@ bool DriverMovement::advanceMovingVehicle(sim_mob::medium::DriverUpdateParams& p
 	double laneQueueLength = getQueueLength(currLane);
 	if (laneQueueLength >  currSegStats->getLength())
 	{
-		addToQueue(currLane);
+		addToQueue();
 		params.elapsedSeconds = params.secondsInTick;
 	}
 	else if (laneQueueLength > 0)
@@ -550,7 +550,7 @@ bool DriverMovement::advanceMovingVehicle(sim_mob::medium::DriverUpdateParams& p
 
 		if (finalTimeSpent < params.secondsInTick)
 		{
-			addToQueue(currLane);
+			addToQueue();
 			params.elapsedSeconds = params.secondsInTick;
 		}
 		else
@@ -578,7 +578,7 @@ bool DriverMovement::advanceMovingVehicle(sim_mob::medium::DriverUpdateParams& p
 			}
 			else
 			{
-				addToQueue(currLane);
+				addToQueue();
 				params.elapsedSeconds = params.secondsInTick;
 			}
 		}
@@ -623,7 +623,7 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(sim_mob::medium::DriverUpd
 		}
 		else
 		{
-			addToQueue(currLane);
+			addToQueue();
 			params.elapsedSeconds = params.secondsInTick;
 		}
 	}
@@ -762,21 +762,21 @@ bool DriverMovement::isConnectedToNextSeg(const Lane* lane, const SegmentStats* 
 	return false;
 }
 
-void DriverMovement::addToQueue(const Lane* lane) {
+void DriverMovement::addToQueue() {
 	/* 1. set position to queue length in front
 	 * 2. set isQueuing = true
 	*/
 	Person* parentP = getParent();
 	if (parentP) {
 		if(!parentP->isQueuing) {
-			pathMover.setPositionInSegment(getQueueLength(lane));
+			pathMover.setPositionInSegment(getQueueLength(currLane));
 			isQueuing = true;
 			parentP->isQueuing = isQueuing;
 		}
 		else {
 			DebugStream << "addToQueue() was called for a driver who is already in queue. Person: " << parentP->getId()
-					<< "|RoadSegment: " << lane->getRoadSegment()->getStartEnd()
-					<< "|Lane: " << lane->getLaneID() << std::endl;
+					<< "|RoadSegment: " << currLane->getRoadSegment()->getStartEnd()
+					<< "|Lane: " << currLane->getLaneID() << std::endl;
 			throw std::runtime_error(DebugStream.str());
 		}
 	}

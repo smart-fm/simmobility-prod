@@ -400,6 +400,11 @@
             <!-- Number of threads to create for processing the population in-->
             <!-- the preday demand simulator -->
             <property key="demand_threads" value="3"/>
+            
+            <!-- Default number of buses that can be accommodated in a bus stop -->
+            <!-- This attribute must ideally come for each bus stop from the database -->
+            <!-- Since we currently do  not have this data, we use a generic property -->
+            <property key="buses_per_stop" value="2"/>
         </generic_props>
     </system>
 

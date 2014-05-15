@@ -54,20 +54,7 @@ public:
 	 * @return boolean value, if boarding success, the value is true;
 	 * otherwise this value is false.
 	 */
-	bool insertPassenger(sim_mob::medium::Passenger* passenger);
-
-	/**
-	 * alight passengers when those want to alight at next bus stop
-	 * @param bus stop agent is the agent which wrap bus stop and waiting people
-	 * @return the number of alighting people
-	 */
-	int alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent);
-
-	/**
-	 * enter the bus stop
-	 * @param bus stop agent is the agent which wrap bus stop and waiting people
-	 */
-	void enterBusStop(sim_mob::medium::BusStopAgent* busStopAgent);
+	bool addPassenger(sim_mob::medium::Passenger* passenger);
 
 	/**
 	 * predict arrival at next bus stop in next frame tick
@@ -107,9 +94,29 @@ private:
 	/**final waiting time at bus stop*/
 	double waitingTimeAtbusStop;
 
-protected:
+	/**
+	 * alight passengers when those want to alight at next bus stop
+	 * @param bus stop agent is the agent which wrap bus stop and waiting people
+	 * @return the number of alighting people
+	 */
+	int alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent);
+
+	/**
+	 * triggers boarding and alighting at a bus stop
+	 * @param busStopAgent agent managing the stop which is currently served
+	 */
+	void openBusDoors(sim_mob::medium::BusStopAgent* busStopAgent);
+
+	/**
+	 * triggers bus departure from a bus stop
+	 * @param busStopAgent agent managing the stop which is currently served
+	 */
+	void closeBusDoors(sim_mob::medium::BusStopAgent* busStopAgent);
+
 	friend class BusDriverBehavior;
 	friend class BusDriverMovement;
+
+
 };
 
 }

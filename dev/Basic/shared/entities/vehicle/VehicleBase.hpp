@@ -26,12 +26,12 @@ public:
 	};
 
 	VehicleBase(const VehicleType vehType, const double length, const double width)
-	: vehicleType(vehType), lengthCM(length), widthCM(width)
+	: vehicleType(vehType), lengthCM(length), widthCM(width), moving(true)
 	{}
 
 	VehicleBase(const VehicleBase& copy)
 	: vehicleType(copy.vehicleType), lengthCM(copy.lengthCM),
-	  widthCM(copy.widthCM)
+	  widthCM(copy.widthCM), moving(copy.moving)
 	{}
 
 	virtual ~VehicleBase() {}

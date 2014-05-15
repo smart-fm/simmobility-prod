@@ -246,7 +246,7 @@ protected:
 	 *
 	 * @param lane lane in which the driver is added to queue
 	 */
-	void addToQueue(const Lane* lane);
+	void addToQueue();
 
 	/**
 	 * remove driver from queue
@@ -260,7 +260,9 @@ protected:
 	 * @param nextToNextSegStats second segment stats ahead from the current
 	 * @return best lane in nextSegStats
 	 */
-	virtual const sim_mob::Lane* getBestTargetLane(const sim_mob::SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats);
+	virtual const sim_mob::Lane* getBestTargetLane(
+			const sim_mob::SegmentStats* nextSegStats,
+			const sim_mob::SegmentStats* nextToNextSegStats);
 
 	//Note: insert and remove incident functions should probably be in Confluxes. To be updated when actual incident functionality is implemented.
 	/**
@@ -284,7 +286,8 @@ protected:
 	 * @param prevSeg the last segment in the link from which the driver has just exited
 	 * @param linkExitTimeSec time at which the link was exited
 	 */
-	void updateLinkTravelTimes(const sim_mob::SegmentStats* prevSegStat, double linkExitTimeSec);
+	void updateLinkTravelTimes(const sim_mob::SegmentStats* prevSegStat,
+			double linkExitTimeSec);
 
 	/**
 	 * Updates travel time for this driver for the road segment which he has just exited from.
@@ -292,7 +295,8 @@ protected:
 	 * @param prevSeg the segment from which the driver has just exited
 	 * @param linkExitTimeSec time at which the segment was exited
 	 */
-	void updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat, double linkExitTimeSec);
+	void updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat,
+			double segmentExitTimeSec);
 };
 
 } /* namespace medium */

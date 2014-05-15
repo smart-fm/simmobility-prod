@@ -90,6 +90,7 @@ using std::multimap;
 
 namespace {
 const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
+const double BUS_LENGTH = 3 * sim_mob::PASSENGER_CAR_UNIT;
 
 class DatabaseLoader : private boost::noncopyable {
 public:
@@ -1842,7 +1843,21 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 
 void DatabaseLoader::createBusStopAgents()
 {
-	//int j = 0；
+	//get stop capacity from genericProps
+	int stopCapacityAsLength = 2;
+	try {
+		std::string busPerStopStr = sim_mob::ConfigManager::GetInstance().FullConfig().system.genericProps.at("buses_per_stop");
+		stopCapacityAsLength = std::atoi(busPerStopStr.c_str());
+		if(stopCapacityAsLength < 1) {
+			throw std::runtime_error("inadmissible value for buses per stop. Please check generic property 'buses_per_stop'");
+		}
+	}
+	catch (const std::out_of_range& oorx) {
+		sim_mob::Print() << "generic property 'buses_per_stop' was not specified."
+				<< " Defaulting to " << stopCapacityAsLength << " threads."
+				<< std::endl;
+	}
+
 	//Save all bus stops
 	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++) {
 		std::map<int,Section>::iterator findPtr = sections_.find(it->second.TMP_AtSectionID);
@@ -1854,6 +1869,7 @@ void DatabaseLoader::createBusStopAgents()
 		sim_mob::BusStop *busstop = new sim_mob::BusStop();
 		sim_mob::RoadSegment* parentSeg = sections_[it->second.TMP_AtSectionID].generatedSegment;
 		busstop->busstopno_ = it->second.bus_stop_no;
+		busstop->busCapacityAsLength = BUS_LENGTH * stopCapacityAsLength;
 		busstop->setParentSegment(parentSeg);
 
 		busstop->xPos = it->second.xPos;
@@ -1882,6 +1898,8 @@ void DatabaseLoader::createBusStopAgents()
 		sim_mob::BusStop *busstop = new sim_mob::BusStop();
 		sim_mob::RoadSegment* parentSeg = sections_[it->second.aimsun_section].generatedSegment;
 		busstop->busstopno_ = it->second.bus_stop_no;
+		busstop->busCapacityAsLength = BUS_LENGTH * stopCapacityAsLength;
+
 		busstop->setParentSegment(parentSeg);
 
 		busstop->xPos = it->second.xPos;

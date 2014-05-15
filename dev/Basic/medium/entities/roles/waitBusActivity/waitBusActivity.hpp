@@ -20,10 +20,6 @@ class WaitBusActivityBehavior;
 class WaitBusActivityMovement;
 class BusDriver;
 
-enum Decision {
-	NO_DECISION, BOARD_BUS, ALIGHT_BUS
-};
-
 /**
  * A medium-term WaitBusActivity.
  * \author Seth N. Hetu
@@ -50,8 +46,6 @@ public:
 				"getSubscriptionParams not implemented in WaitBusActivity.");
 	}
 
-	Decision getDecision();
-	void setDecision(Decision decision);
 	void setStop(sim_mob::BusStop* busStop);
 
 	/**
@@ -76,6 +70,13 @@ public:
 	virtual void HandleParentMessage(messaging::Message::MessageType type,
 			const messaging::Message& message);
 
+	bool canBoardBus() const {
+		return boardBus;
+	}
+
+	void setBoardBus(bool boardBus) {
+		this->boardBus = boardBus;
+	}
 
 private:
 	friend class WaitBusActivityBehavior;
@@ -85,8 +86,8 @@ private:
 	unsigned int waitingTime;
 	/**pointer to waiting bus stop*/
 	BusStop* stop;
-	/**decision result*/
-	Decision decision;
+	/**flag to indicate whether the waiting person has decided to board or not*/
+	bool boardBus;
 };
 }
 }

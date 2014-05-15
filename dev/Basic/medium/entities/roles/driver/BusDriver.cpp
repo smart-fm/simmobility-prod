@@ -64,7 +64,7 @@ const std::vector<const sim_mob::BusStop*>* sim_mob::medium::BusDriver::getBusSt
 	return stopsVec;
 }
 
-bool sim_mob::medium::BusDriver::insertPassenger(sim_mob::medium::Passenger* passenger) {
+bool sim_mob::medium::BusDriver::addPassenger(sim_mob::medium::Passenger* passenger) {
 	passengerList.push_back(passenger);
 	return true;
 }
@@ -92,11 +92,10 @@ int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusStopAgent* b
 	while (itPassenger != passengerList.end()) {
 
 		messaging::MessageBus::SendInstantaneousMessage((*itPassenger)->getParent(),
-				MSG_DECISION_PASSENGER_ALIGHTING,
-				messaging::MessageBus::MessagePtr(
-						new AlightingMessage(busStopAgent->getBusStop())));
+				ALIGHT_BUS,
+				messaging::MessageBus::MessagePtr(new BusStopMessage(busStopAgent->getBusStop())));
 
-		if ((*itPassenger)->getDecision() == ALIGHT_BUS) {
+		if ((*itPassenger)->canAlightBus()) {
 			busStopAgent->addAlightingPerson(*itPassenger);
 			itPassenger = passengerList.erase(itPassenger);
 			numAlighting++;
@@ -127,12 +126,12 @@ void sim_mob::medium::BusDriver::predictArrivalAtBusStop(double preArrivalTime,
 	}
 }
 
-void sim_mob::medium::BusDriver::enterBusStop(
+void sim_mob::medium::BusDriver::openBusDoors(
 		sim_mob::medium::BusStopAgent* busStopAgent) {
 
 	messaging::MessageBus::SendInstantaneousMessage(busStopAgent,
-			MSG_DECISION_WAITINGPERSON_BOARDING,
-			messaging::MessageBus::MessagePtr(new BoardingMessage(this)));
+			BOARD_BUS,
+			messaging::MessageBus::MessagePtr(new BusDriverMessage(this)));
 
 	int numAlighting = alightPassenger(busStopAgent);
 	int numBoarding = busStopAgent->getBoardingNum(this);
@@ -142,11 +141,15 @@ void sim_mob::medium::BusDriver::enterBusStop(
 
 	if (requestMode.get() == Role::REQUEST_DECISION_TIME) {
 		requestMode.set(Role::REQUEST_NONE);
-		if (waitingTimeAtbusStop < holdingTime.get()) {	//final waiting time is maximum value between dwelling time and holding time
-			waitingTimeAtbusStop = holdingTime.get();
-		}
+		//final waiting time is maximum value between dwelling time and holding time
+		waitingTimeAtbusStop = std::max(waitingTimeAtbusStop, holdingTime.get());
 		holdingTime.set(0.0);
 	}
+}
+
+void sim_mob::medium::BusDriver::closeBusDoors(
+		sim_mob::medium::BusStopAgent* busStopAgent) {
+
 }
 
 std::vector<BufferedBase*> sim_mob::medium::BusDriver::getSubscriptionParams() {
@@ -161,3 +164,5 @@ void sim_mob::medium::BusDriver::make_frame_tick_params(timeslice now)
 {
 	getParams().reset(now);
 }
+
+

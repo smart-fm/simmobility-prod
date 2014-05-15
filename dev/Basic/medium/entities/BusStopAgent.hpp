@@ -19,15 +19,21 @@
 #include "geospatial/BusStop.hpp"
 
 namespace sim_mob {
-
 namespace medium {
-
+/**
+ * Agent to manage activities at a bus stop
+ *
+ * \author Zhang Huai Peng
+ * \author Harish Loganathan
+ */
 class BusStopAgent: public sim_mob::Agent {
 public:
 	typedef boost::unordered_map<const BusStop*, BusStopAgent*> BusStopAgentsMap;
 
 	BusStopAgent(const MutexStrategy& mtxStrat, int id, const sim_mob::BusStop* stop);
 	virtual ~BusStopAgent();
+
+	const sim_mob::BusStop* getBusStop() const;
 
 	/**
 	 * register a new waiting person.
@@ -48,18 +54,6 @@ public:
 	void addAlightingPerson(sim_mob::medium::Passenger* passenger);
 
 	/**
-	 * the getter of associate bus stop to this agent.
-	 * @returns bus stop is the associate to this agent
-	 */
-	const sim_mob::BusStop* getBusStop() const;
-
-	/**
-	 * process the persons boarding
-	 * @param Bus Driver is the associate driver which waiting people will board
-	 */
-	void boardWaitingPersons(sim_mob::medium::BusDriver* busDriver);
-
-	/**
 	 * get the number of boarding people
 	 * @param Bus Driver is the associate driver which waiting people will board
 	 * @returns number of boarding people
@@ -78,8 +72,14 @@ public:
 	 */
 	static void registerBusStopAgent(BusStopAgent* busstopAgent);
 
-protected:
+	/**
+	 * checks whether the bus stop can accommodate a vehicle of a given length
+	 * @param length length of the vehicle
+	 * @returns true if vehicle can be accommodated; false otherwise
+	 */
+	bool canAccommodate(const double vehicleLength);
 
+protected:
 	//Virtual overrides
 	virtual bool frame_init(timeslice now);
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
@@ -99,6 +99,19 @@ protected:
 	virtual void HandleMessage(messaging::Message::MessageType type,
 			const messaging::Message& message);
 
+	/**
+	 * process the persons boarding
+	 * @param Bus Driver is the associate driver which waiting people will board
+	 */
+	void boardWaitingPersons(sim_mob::medium::BusDriver* busDriver);
+
+	/**
+	 * accepts an arriving driver
+	 * @param driver the driver of the bus to be accepted in the stop
+	 * @returns true if bus driver is accepted; false otherwise
+	 */
+	bool acceptBusDriver(BusDriver* driver);
+
 private:
 	static BusStopAgentsMap allBusstopAgents;
 	std::list<sim_mob::medium::WaitBusActivity*> waitingPersons;
@@ -107,6 +120,8 @@ private:
 	const sim_mob::BusStop* busStop;
 	/**record last boarding number for a given bus*/
 	std::map<sim_mob::medium::BusDriver*, int> lastBoardingRecorder;
+	/**available length in cm for incoming vehicles*/
+	double availableLength;
 
 };
 }

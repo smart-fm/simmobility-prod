@@ -238,7 +238,7 @@ bool sim_mob::Person::frame_init(timeslice now)
 	if (!currRole) {
 		//TODO: This UpdateStatus has a "prevParams" and "currParams" that should
 		//      (one would expect) be dealt with. Where does this happen?
-		UpdateStatus res =	checkTripChain(now.ms());
+		UpdateStatus res =	checkTripChain();
 
 		//Reset the start time (to the current time tick) so our dispatcher doesn't complain.
 		setStartTime(now.ms());
@@ -310,7 +310,7 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 	//      statement into the worker class, but I don't want to change too many things
 	//      about Agent/Person at once. ~Seth
 	if (isToBeRemoved()) {
-		retVal = checkTripChain(now.ms());
+		retVal = checkTripChain();
 
 		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
 		setStartTime(now.ms()+ConfigManager::GetInstance().FullConfig().baseGranMS());
@@ -440,7 +440,7 @@ bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 	return true;
 }
 
-UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
+UpdateStatus sim_mob::Person::checkTripChain() {
 	//some normal checks
 	if(tripChain.size() < 1) {
 		return UpdateStatus::Done;

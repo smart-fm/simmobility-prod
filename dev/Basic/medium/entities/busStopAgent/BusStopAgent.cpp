@@ -57,6 +57,28 @@ bool BusStopAgent::frame_init(timeslice now) {
 }
 
 Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now) {
+	std::list<sim_mob::medium::Passenger*>::iterator itPerson;
+	for (itPerson = alightingPersons.begin();
+			itPerson != alightingPersons.end(); itPerson++) {
+		Passenger* waitingPeople = *itPerson;
+		Agent* parent = waitingPeople->getParent();
+		Person* person = dynamic_cast<Person*>(parent);
+		if (person) {
+			person->checkTripChain();
+			Role* role = person->getRole();
+			if (role) {
+				if (role->roleType == Role::RL_WAITBUSACTITITY) {
+					WaitBusActivity* waitPerson =
+							dynamic_cast<WaitBusActivity*>(role);
+					if (waitPerson) {
+						registerWaitingPerson(waitPerson);
+					}
+				} else if (role->roleType == Role::RL_PEDESTRIAN) {
+					pedestrians.push_back(person);
+				}
+			}
+		}
+	}
 	return UpdateStatus::Continue;
 }
 
@@ -75,8 +97,7 @@ void BusStopAgent::HandleMessage(messaging::Message::MessageType type,
 	}
 }
 
-void BusStopAgent::boardWaitingPersons(
-		sim_mob::medium::BusDriver* busDriver) {
+void BusStopAgent::boardWaitingPersons(sim_mob::medium::BusDriver* busDriver) {
 	int numBoarding = 0;
 	std::list<sim_mob::medium::WaitBusActivity*>::iterator itPerson;
 	for (itPerson = waitingPersons.begin(); itPerson != waitingPersons.end();
@@ -87,8 +108,25 @@ void BusStopAgent::boardWaitingPersons(
 	itPerson = waitingPersons.begin();
 	while (itPerson != waitingPersons.end()) {
 		if ((*itPerson)->getDecision() == BOARD_BUS) {
-			itPerson = waitingPersons.erase(itPerson);
-			numBoarding++;
+			bool ret = false;
+			WaitBusActivity* waitingPeople = *itPerson;
+			Agent* parent = waitingPeople->getParent();
+			Person* person = dynamic_cast<Person*>(parent);
+			if (person) {
+				person->checkTripChain();
+				Role* curRole = person->getRole();
+				sim_mob::medium::Passenger* passenger =
+						dynamic_cast<sim_mob::medium::Passenger*>(curRole);
+				if (passenger && busDriver->insertPassenger(passenger)) {
+					ret = true;
+				}
+			}
+			if (ret) {
+				itPerson = waitingPersons.erase(itPerson);
+				numBoarding++;
+			} else {
+				itPerson++;
+			}
 		} else {
 			itPerson++;
 		}

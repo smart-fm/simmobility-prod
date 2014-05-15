@@ -638,7 +638,7 @@ bool sim_mob::Conflux::call_movement_frame_init(timeslice now, Person* person) {
 	if (!person->getRole()) {
 		//TODO: This UpdateStatus has a "prevParams" and "currParams" that should
 		//      (one would expect) be dealt with. Where does this happen?
-		UpdateStatus res =	person->checkTripChain(now.ms());
+		UpdateStatus res =	person->checkTripChain();
 
 		//Reset the start time (to the current time tick) so our dispatcher doesn't complain.
 		person->setStartTime(now.ms());
@@ -729,7 +729,7 @@ Entity::UpdateStatus sim_mob::Conflux::call_movement_frame_tick(timeslice now, P
 		}
 
 		if (person->isToBeRemoved()) {
-			retVal = person->checkTripChain(now.ms());
+			retVal = person->checkTripChain();
 			personRole = person->getRole();
 
 			//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.

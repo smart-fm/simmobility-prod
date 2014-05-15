@@ -88,6 +88,7 @@ private:
 	std::list<sim_mob::medium::WaitBusActivity*> waitingPersons;
 	std::list<sim_mob::medium::Passenger*> alightingPersons;
 	std::list<sim_mob::medium::BusDriver*> parkingDrivers;
+	std::list<sim_mob::Person*> pedestrians;
 	const sim_mob::BusStop* busStop;
 	/**record last boarding number for a given bus*/
 	std::map<sim_mob::medium::BusDriver*, int> lastBoardingRecorder;

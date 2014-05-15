@@ -545,7 +545,9 @@ std::string sim_mob::ParseConfigFile::ParseXmlFile(XercesDOMParser& parser, Erro
 	} catch (const DOMException& error) {
 		return TranscodeString(error.getMessage());
 	} catch (...) {
-		return "Unexpected Exception parsing config file.\n" ;
+		std::ostringstream out("");
+		out << "Unexpected Exception parsing config file: " << inFilePath.c_str() << std::endl;
+		return out.str() ;
 	}
 
 	//No error.
@@ -811,6 +813,10 @@ void sim_mob::ParseConfigFile::ProcessConstructCredentialsNode(xercesc::DOMEleme
 
 void sim_mob::ParseConfigFile::ProcessConstructExternalScriptsNode(xercesc::DOMElement* node)
 {
+	if(!node)
+	{
+		return;
+	}
 	std::string id = ParseString(GetNamedAttributeValue(node, "id"), "");
 	if(id.empty()) {
 		throw std::runtime_error("id cannot be empty. Check external_scripts node.");
@@ -850,6 +856,10 @@ void sim_mob::ParseConfigFile::ProcessConstructExternalScriptsNode(xercesc::DOME
 }
 
 void sim_mob::ParseConfigFile::ProcessConstructMongoCollectionsNode(xercesc::DOMElement* node) {
+	if(!node)
+	{
+		return;
+	}
 	MongoCollectionsMap mongoColls(ParseString(GetNamedAttributeValue(node, "id"), ""), ParseString(GetNamedAttributeValue(node, "db_name"), ""));
 	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
 		std::string name = TranscodeString(item->getNodeName());

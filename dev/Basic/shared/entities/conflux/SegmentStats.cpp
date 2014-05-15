@@ -606,6 +606,7 @@ std::string sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber){
 			<<"\",\"numVehicleLanes\":\""<< numVehicleLanes
 			<<"\",\"segment_length\":\""<< length
 			<<"\"})"<<std::endl;
+
 #else
 
 		msg <<"(\"segmentState\""

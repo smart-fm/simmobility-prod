@@ -881,7 +881,9 @@ void sim_mob::Conflux::getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>&
 	//basic test-case shows that this calculation is kind of costly.
 	for (UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin();
 			upStrmSegMapIt != upstreamSegStatsMap.end(); upStrmSegMapIt++) {
+
 		const SegmentStatsList& upstreamSegments = upStrmSegMapIt->second;
+		sumCapacity += (int)(ceil((*upstreamSegments.rbegin())->getRoadSegment()->getCapacityPerInterval()));
 		double totalTimeToSegEnd = 0;
 		std::deque<sim_mob::Person*> oneDeque;
 		for (SegmentStatsList::const_reverse_iterator rdSegIt = upstreamSegments.rbegin();

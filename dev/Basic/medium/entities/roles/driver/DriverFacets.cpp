@@ -237,7 +237,9 @@ bool sim_mob::medium::DriverMovement::initializePath() {
 		if(wp_path.empty()){
 			// if use path set
 			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+				PathSetManager::Profiler profiler(true);
 				wp_path = PathSetManager::getInstance()->getPathByPerson(person);
+				profiler.endProfiling(true);
 			}
 			else
 			{

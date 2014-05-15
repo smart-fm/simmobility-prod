@@ -146,6 +146,52 @@ public:
 //		return instance_;
 //	}
 //	virtual ~PathSetManager();
+	class Profiler {
+		///static variable shared among all profilers
+		static tm totalTime;
+		///stores start and end of profiling
+		tm * first, *second;
+	public:
+		///Constructor + start profiling if init is true
+		Profiler(bool init=false){
+			first = second = 0;
+			if(init){
+				startProfiling();
+			}
+		}
+
+		///like it suggests, store the start time of the profiling
+		void startProfiling(){
+			time_t t = time(0);   // get time now
+			first =  localtime( & t );
+		}
+
+		///save the ending time ...and .. if add==true add the value to the total time;
+		tm endProfiling(bool add=false){
+			if(!first){
+				throw std::runtime_error("Profiler Ended before Starting");
+			}
+			time_t t = time(0);   // get time now
+			second =  localtime( & t );
+			struct tm tmTemp;
+			tmTemp.tm_hour = second->tm_hour - first->tm_hour;
+			tmTemp.tm_min = second->tm_min - first->tm_min;
+			tmTemp.tm_sec = second->tm_sec - first->tm_sec;
+			if(add){
+				addToTotalTime(tmTemp);
+			}
+			return tmTemp;
+		}
+
+		///add the given time to the total time
+		void addToTotalTime(tm &value){
+			totalTime.tm_hour+=value.tm_hour;
+			totalTime.tm_min+=value.tm_min;
+			totalTime.tm_sec+=value.tm_sec;
+		}
+
+	};
+
 
 public:
 	bool generateAllPathSetWithTripChain();

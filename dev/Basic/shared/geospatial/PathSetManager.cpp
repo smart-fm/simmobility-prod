@@ -23,6 +23,7 @@ using std::string;
 using namespace sim_mob;
 
 PathSetManager *sim_mob::PathSetManager::instance_;
+tm sim_mob::PathSetManager::Profiler::totalTime;
 
 sim_mob::PathSetManager::PathSetManager() {
 	sql = NULL;
@@ -585,17 +586,20 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 	vector<WayPoint> res;
 	std::string subTripId = st->tripID;
 //	sim_mob::PathSet *ps = NULL;
-	if(st->mode == "Car") //only driver need path set
+	if(st->mode != "Car") //only driver need path set
 	{
-		const sim_mob::Node* fromNode = st->fromLocation.node_;
-		const sim_mob::Node* toNode = st->toLocation.node_;
-		std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
-		std::string mys=fromId_toId;
-		//check catch
-		if(getFromTo_BestPath_fromPool(fromId_toId,res))
-		{
-			return res;
-		}
+		return res;
+	}
+	//find the node id
+	const sim_mob::Node* fromNode = st->fromLocation.node_;
+	const sim_mob::Node* toNode = st->toLocation.node_;
+	std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
+	std::string mys=fromId_toId;
+	//check cache to save a trouble if the path already exists
+	if(getFromTo_BestPath_fromPool(fromId_toId,res))
+	{
+		return res;
+	}
 		//
 		mys = "'"+mys+"'";
 		sim_mob::PathSet ps_;
@@ -776,7 +780,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 				else
 					return res;
 		}
-	} //end car
+
 	return res;
 }
 void sim_mob::PathSetManager::generatePathesByLinkElimination(std::vector<WayPoint*>& path,
@@ -2353,6 +2357,9 @@ double sim_mob::PathSetManager::getDefaultTravelTimeBySegId(std::string id)
 }
 double sim_mob::PathSetManager::getTravelTimeBySegId(std::string id,sim_mob::DailyTime startTime)
 {
+	//testing
+	return 100.0;
+
 	//1. check realtime table
 	double res=0.0;
 	std::map<std::string,std::vector<sim_mob::Link_travel_time*> >::iterator it =

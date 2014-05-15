@@ -873,11 +873,11 @@ void DatabaseLoader::LoadBusStopSG(const std::string& storedProc)
 	{
 		BusStopSG busstop = *iter;
 //		         Convert from meters to centimeters.
-		busstop.bus_stop_no.erase(remove_if(busstop.bus_stop_no.begin(), busstop.bus_stop_no.end(), isspace),
+		busstop.bus_stop_no.erase(remove_if(busstop.bus_stop_no.begin(), busstop.bus_stop_no.end(), ::isspace),
 				busstop.bus_stop_no.end());
-		busstop.stop_lat.erase(remove_if(busstop.stop_lat.begin(), busstop.stop_lat.end(), isspace),
+		busstop.stop_lat.erase(remove_if(busstop.stop_lat.begin(), busstop.stop_lat.end(), ::isspace),
 				busstop.stop_lat.end());
-		busstop.stop_lon.erase(remove_if(busstop.stop_lon.begin(), busstop.stop_lon.end(), isspace),
+		busstop.stop_lon.erase(remove_if(busstop.stop_lon.begin(), busstop.stop_lon.end(), ::isspace),
 				busstop.stop_lon.end());
 
 		        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat) * 100;
@@ -903,9 +903,9 @@ void DatabaseLoader::LoadPTBusDispatchFreq(const std::string& storedProc, std::v
 	{
 		//sim_mob::PT_bus_dispatch_freq* pt_bus_freqTemp = new sim_mob::PT_bus_dispatch_freq(*iter);
 		sim_mob::PT_bus_dispatch_freq pt_bus_freqTemp = *iter;
-		pt_bus_freqTemp.route_id.erase(remove_if(pt_bus_freqTemp.route_id.begin(), pt_bus_freqTemp.route_id.end(), isspace),
+		pt_bus_freqTemp.route_id.erase(remove_if(pt_bus_freqTemp.route_id.begin(), pt_bus_freqTemp.route_id.end(), ::isspace),
 				pt_bus_freqTemp.route_id.end());
-		pt_bus_freqTemp.frequency_id.erase(remove_if(pt_bus_freqTemp.frequency_id.begin(), pt_bus_freqTemp.frequency_id.end(), isspace),
+		pt_bus_freqTemp.frequency_id.erase(remove_if(pt_bus_freqTemp.frequency_id.begin(), pt_bus_freqTemp.frequency_id.end(), ::isspace),
 				pt_bus_freqTemp.frequency_id.end());
 		pt_bus_dispatch_freq.push_back(pt_bus_freqTemp);
 		std::cout << pt_bus_freqTemp.frequency_id << " " << pt_bus_freqTemp.route_id << " " << pt_bus_freqTemp.headway_sec << " " << pt_bus_freqTemp.start_time.toString() << std::endl;

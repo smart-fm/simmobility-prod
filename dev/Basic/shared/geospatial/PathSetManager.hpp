@@ -190,6 +190,10 @@ public:
 			totalTime.tm_sec+=value.tm_sec;
 		}
 
+		static tm & getTotalTime(){
+			return totalTime;
+		}
+
 	};
 
 

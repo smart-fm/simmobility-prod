@@ -133,12 +133,12 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	// normal deceleration
 	ParameterManager::Instance()->param(modelName,"normal_deceleration_car1",decelerationStr,string("7.8 	6.7 	4.8 	4.8 	4.8"));
 	makeSpeedIndex(Vehicle::CAR,speedScalerStr,decelerationStr,normalDecelerationIndex,normalDecelerationUpperBound);
-	ParameterManager::Instance()->param(modelName,"normal_deceleration_scale",normalDecScaleStr,string("0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"));
+	ParameterManager::Instance()->param(modelName,"normal_deceleration_scale",normalDecScaleStr,string("1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0"));
 	makeScaleIdx(maxAccScaleStr,normalDecelerationScale);
 	// max deceleration
 	ParameterManager::Instance()->param(modelName,"Max_deceleration_car1",decelerationStr,string("16.0   14.5   13.0   11.0   10.0"));
 	makeSpeedIndex(Vehicle::CAR,speedScalerStr,decelerationStr,maxDecelerationIndex,maxDecelerationUpperBound);
-	ParameterManager::Instance()->param(modelName,"max_deceleration_scale",maxDecScaleStr,string("0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"));
+	ParameterManager::Instance()->param(modelName,"max_deceleration_scale",maxDecScaleStr,string("1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0"));
 	makeScaleIdx(maxDecScaleStr,maxDecelerationScale);
 	// acceleration grade factor
 	ParameterManager::Instance()->param(modelName,"acceleration_grade_factor",accGradeFactor,0.305);
@@ -149,6 +149,12 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	// param of calcSignalRate()
 	ParameterManager::Instance()->param(modelName,"yellow_stop_headway",yellowStopHeadway,1.0);
 	ParameterManager::Instance()->param(modelName,"min_speed_yellow",minSpeedYellow,2.2352);
+	// param of carFollowingRate()
+	ParameterManager::Instance()->param(modelName,"hbuffer_lower",hBufferLower,0.8);
+	string hBufferUpperStr;
+	ParameterManager::Instance()->param(modelName,"hbuffer_Upper",hBufferUpperStr,string("1.7498 2.2737 2.5871 2.8379 3.0633 3.2814 3.5068 3.7578 4.0718 4.5979"));
+	makeScaleIdx(hBufferUpperStr,hBufferUpperScale);
+	hBufferUpper = getBufferUppder();
 }
 void sim_mob::MITSIM_CF_Model::makeScaleIdx(string& s,vector<double>& c)
 {
@@ -291,23 +297,30 @@ double sim_mob::MITSIM_CF_Model::getMaxDeceleration(sim_mob::DriverUpdateParams&
 double sim_mob::MITSIM_CF_Model::getMaxAccScale()
 {
 	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
-	int scaleNo = Utils::generateInt(0,maxAccScale.size());
+	int scaleNo = Utils::generateInt(0,maxAccScale.size()-1);
 	// return max acc scale,as maxAccScale() in MITSIM TS_Parameter.h
 	return maxAccScale[scaleNo];
 }
 double sim_mob::MITSIM_CF_Model::getNormalDecScale()
 {
 	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
-	int scaleNo = Utils::generateInt(0,normalDecelerationScale.size());
+	int scaleNo = Utils::generateInt(0,normalDecelerationScale.size()-1);
 	// return normal dec scale,as maxAccScale() in MITSIM TS_Parameter.h
 	return normalDecelerationScale[scaleNo];
 }
 double sim_mob::MITSIM_CF_Model::getMaxDecScale()
 {
 	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
-	int scaleNo = Utils::generateInt(0,maxDecelerationScale.size());
+	int scaleNo = Utils::generateInt(0,maxDecelerationScale.size()-1);
 	// return max dec scale,as maxAccScale() in MITSIM TS_Parameter.h
 	return maxDecelerationScale[scaleNo];
+}
+double sim_mob::MITSIM_CF_Model::getBufferUppder()
+{
+	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
+	int scaleNo = Utils::generateInt(0,hBufferUpperScale.size()-1);
+	// return max acc scale,as maxAccScale() in MITSIM TS_Parameter.h
+	return hBufferUpperScale[scaleNo];
 }
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
@@ -428,6 +441,7 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 			res = accOfEmergencyDecelerating(p);
 //			std::cout<<"carFollowingRate: EmergencyDecelerating: "<<res<<std::endl;
 		}
+		hBufferUpper = getBufferUppder();
 		if(headway > hBufferUpper) {
 			res = accOfMixOfCFandFF(p, targetSpeed, maxLaneSpeed);
 		}

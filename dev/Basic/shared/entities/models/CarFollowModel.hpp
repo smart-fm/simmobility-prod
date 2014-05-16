@@ -46,9 +46,6 @@ public:
 	double accGradeFactor;
 	double normalDeceleration;
 	double maxDeceleration;
-
-	double hBufferUpper;
-	double hBufferLower;
 };
 
 /**
@@ -94,7 +91,13 @@ public:
 	 *  \return scaler value
 	 **/
 	double getMaxAccScale();
+	/** \brief normal deceleration scaler
+	 *  \return scaler value
+	 **/
 	double getNormalDecScale();
+	/** \brief max deceleration scaler
+	 *  \return scaler value
+	 **/
 	double getMaxDecScale();
 	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);
 
@@ -172,6 +175,15 @@ private:
 
 	double minSpeed;
 	double minResponseDistance;
+
+	// param of carFollowingRate()
+	double hBufferUpper;
+	vector<double> hBufferUpperScale;
+	/** \brief calculate hBufferUpper value uniform distribution
+	 *  \return hBufferUpper
+	 **/
+	double getBufferUppder();
+	double hBufferLower;
 };
 
 

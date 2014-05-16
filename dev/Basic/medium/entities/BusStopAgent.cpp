@@ -96,6 +96,14 @@ void BusStopAgent::HandleMessage(messaging::Message::MessageType type,
 		}
 		break;
 	}
+	case BUS_DEPARTURE: {
+		const BusDriverMessage& msg = MSG_CAST(BusDriverMessage, message);
+		bool busDriverRemoved = removeBusDriver(msg.busDriver);
+		if(!busDriverRemoved) {
+			throw std::runtime_error("BusDriver could not be found in bus stop");
+		}
+		break;
+	}
 	default: {
 		break;
 	}
@@ -131,9 +139,24 @@ bool BusStopAgent::acceptBusDriver(BusDriver* driver) {
 		if(availableLength >= vehicleLength) {
 			servingDrivers.push_back(driver);
 			availableLength=availableLength-vehicleLength;
+			parentSegmentStats->addBusDriverToStop(driver->getParent(), busStop);
 			return true;
 		}
-		parentSegmentStats->addBusDriverToStop(driver->getParent(), busStop);
+	}
+	return false;
+}
+
+bool BusStopAgent::removeBusDriver(BusDriver* driver) {
+	if(driver) {
+		double vehicleLength = driver->getResource()->getLengthCm();
+		std::list<sim_mob::medium::BusDriver*>::iterator driverIt =
+				std::find(servingDrivers.begin(), servingDrivers.end(), driver);
+		if(driverIt!=servingDrivers.end()) {
+			servingDrivers.erase(driverIt);
+			availableLength=availableLength+vehicleLength;
+			parentSegmentStats->removeBusDriverFromStop(driver->getParent(), busStop);
+			return true;
+		}
 	}
 	return false;
 }

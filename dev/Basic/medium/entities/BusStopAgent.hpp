@@ -116,6 +116,15 @@ protected:
 	 */
 	bool acceptBusDriver(BusDriver* driver);
 
+	/**
+	 * removes departing driver.
+	 * removes bus driver from the local servingDrivers list
+	 * removes the person with BusDriver role from the segment stats busDrivers list
+	 * @param driver the driver of the bus to be removed from the stop
+	 * @returns true if bus driver is removed; false otherwise
+	 */
+	bool removeBusDriver(BusDriver* driver);
+
 
 private:
 	static BusStopAgentsMap allBusstopAgents;

@@ -575,6 +575,7 @@ void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
 	ProcessConstructsNode(GetSingleElementByName(rootNode,"constructs"));
 	ProcessBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes"));
 	ProcessPersonCharacteristicsNode(GetSingleElementByName(rootNode, "personCharacteristics"));
+	ProcessLongTermParamsNode( GetSingleElementByName(rootNode, "longTermParams"));
 
 	//Agents all follow a template.
 
@@ -871,6 +872,35 @@ void sim_mob::ParseConfigFile::ProcessConstructMongoCollectionsNode(xercesc::DOM
 		mongoColls.collectionName[key] = val;
 	}
 	cfg.constructs.mongoCollectionsMap[mongoColls.getId()] = mongoColls;
+}
+
+
+void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* node)
+{
+	if (!node) {
+		return;
+	}
+
+	//The longtermParams tag has an attribute
+	cfg.ltParams.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+
+	//Now set the rest.
+	cfg.ltParams.days = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "days"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.maxIterations = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "maxIterations"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.tickStep = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "tickStep"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.workers = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "workers"), "value"), static_cast<unsigned int>(0));
+
+	LongTermParams::DeveloperModel developerModel;
+	developerModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "developerModel"), "enabled"), false );
+	developerModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "developerModel"), "timeInterval"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.developerModel = developerModel;
+
+
+	LongTermParams::HousingModel housingModel;
+	housingModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "housingModel"), "enabled"), false);
+	housingModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeInterval"), "value"), static_cast<unsigned int>(0));
+	housingModel.timeOnMarket = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeOnMarket"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.housingModel = housingModel;
 }
 
 

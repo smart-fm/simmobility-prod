@@ -4,40 +4,34 @@
 
 #pragma once
 
-#include "entities/UpdateParams.hpp"
-#include "geospatial/Lane.hpp"
-#include "util/DynamicVector.hpp"
 #include <boost/random.hpp>
-#include "util/LangHelpers.hpp"
-#include "entities/signal/Signal.hpp"
-#include "geospatial/Link.hpp"
-
+#include "entities/UpdateParams.hpp"
+#include "metrics/Frame.hpp"
 
 namespace sim_mob
 {
-
-//Forward declarations
-class Lane;
-
-
 namespace medium
 {
-class Driver;
-
-///Simple struct to hold parameters which only exist for a single update tick.
-/// \author Melani
-///NOTE: Constructor is currently implemented in Driver.cpp. Feel free to shuffle this around if you like.
+/**
+ * Simple struct to hold driver parameters which only exist for a single time tick.
+ * \author Melani
+ */
 struct DriverUpdateParams : public UpdateParams {
-	DriverUpdateParams() : UpdateParams(), secondsInTick(0.0),
-			elapsedSeconds(0.0) {}
-	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen), secondsInTick(0.0),
-			elapsedSeconds(0.0){}
+	DriverUpdateParams()
+	: UpdateParams(), secondsInTick(0.0), elapsedSeconds(0.0) {}
+	explicit DriverUpdateParams(boost::mt19937& gen)
+	: UpdateParams(gen), secondsInTick(0.0), elapsedSeconds(0.0){}
 
-	virtual void reset(timeslice now, const Driver& owner);
+	/**
+	 * resets this update params.
+	 * @param now current timeslice in which reset is called
+	 */
+	virtual void reset(timeslice now);
 
-	double secondsInTick;	//tickSize
-	double elapsedSeconds;	//time elapsed in the current tick
+	/**tickSize in seconds*/
+	double secondsInTick;
+	/**time elapsed in the current tick (in seconds)*/
+	double elapsedSeconds;
 };
-
-
-}}
+}
+}

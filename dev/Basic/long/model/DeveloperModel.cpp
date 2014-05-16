@@ -28,11 +28,14 @@ using std::runtime_error;
 using std::string;
 namespace {
     const string MODEL_NAME = "Developer Model";
-    const unsigned int TIME_INTERVAL = 30; //In days (7 - weekly, 30 - Montly)
 }
 
 DeveloperModel::DeveloperModel(WorkGroup& workGroup)
-: Model(MODEL_NAME, workGroup), timeInterval(TIME_INTERVAL) {
+: Model(MODEL_NAME, workGroup), timeInterval( 30 ){ //In days (7 - weekly, 30 - Montly)
+}
+
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel )
+: Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ){
 }
 
 DeveloperModel::~DeveloperModel() {

@@ -5,7 +5,8 @@
 #include "Passenger.hpp"
 #include "PassengerFacets.hpp"
 #include "entities/Person.hpp"
-#include "../driver/Driver.hpp"
+#include "entities/roles/driver/Driver.hpp"
+#include "message/MT_Message.hpp"
 
 using std::vector;
 using namespace sim_mob;
@@ -33,8 +34,8 @@ Role* sim_mob::medium::Passenger::clone(Person* parent) const {
 	return passenger;
 }
 
-void sim_mob::medium::Passenger::setDriver(const Driver* driver) {
-	driver = driver;
+void sim_mob::medium::Passenger::setDriver(const Driver* inDriver) {
+	driver = inDriver;
 }
 
 const sim_mob::medium::Driver* sim_mob::medium::Passenger::getDriver() const {
@@ -50,12 +51,28 @@ Decision sim_mob::medium::Passenger::getDecision() {
 	return decision;
 }
 
-void sim_mob::medium::Passenger::makeAlightingDecision(BusStop* nextStop) {
+void sim_mob::medium::Passenger::makeAlightingDecision(const sim_mob::BusStop* nextStop) {
 	if (getParent()->destNode.type_ == WayPoint::BUS_STOP
 			&& getParent()->destNode.busStop_ == nextStop) {
 		setDecision(ALIGHT_BUS);
+		setDriver(nullptr);
 	} else {
 		setDecision(BOARD_BUS);
+	}
+}
+
+void sim_mob::medium::Passenger::HandleParentMessage(messaging::Message::MessageType type,
+		const messaging::Message& message)
+{
+	switch (type) {
+	case MSG_DECISION_PASSENGER_ALIGHTING: {
+		const AlightingMessage& msg = MSG_CAST(AlightingMessage, message);
+		makeAlightingDecision(msg.nextStop);
+		break;
+	}
+	default: {
+		break;
+	}
 	}
 }
 }

@@ -59,8 +59,6 @@ public:
 protected:
 	sim_mob::medium::WaitBusActivity* parentWaitBusActivity;
 	unsigned int totalTimeToCompleteMS;
-
 };
-
 }
 }

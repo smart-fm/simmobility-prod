@@ -26,7 +26,7 @@
 #include "partitions/UnPackageUtils.hpp"
 #include "entities/AuraManager.hpp"
 #include "util/PassengerDistribution.hpp"
-#include "entities/roles/activityRole/WaitBusActivityRole.hpp"
+#include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
 
 using namespace sim_mob;
 using std::vector;

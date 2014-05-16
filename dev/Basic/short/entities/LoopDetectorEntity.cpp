@@ -6,20 +6,23 @@
 #include <boost/unordered_set.hpp>
 
 #include "LoopDetectorEntity.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/Link.hpp"
-#include "entities/signal/Signal.hpp"
-#include "AuraManager.hpp"
-#include "entities/Person.hpp"
-#include "entities/vehicle/Vehicle.hpp"
-#include "entities/roles/Role.hpp"
+
+#include "buffering/Vector2D.hpp"
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
-#include "buffering/Vector2D.hpp"
+#include "entities/AuraManager.hpp"
+#include "entities/Person.hpp"
+#include "entities/roles/Role.hpp"
+#include "entities/signal/Signal.hpp"
+#include "entities/vehicle/Vehicle.hpp"
+
+#include "geospatial/Node.hpp"
 #include "geospatial/Lane.hpp"
+#include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
+
 #include "logging/Log.hpp"
 
 using std::vector;
@@ -96,7 +99,7 @@ class LoopDetector : private boost::noncopyable
 {
 public:
     LoopDetector(Lane const * lane, centimeter_t innerLength, centimeter_t outerLength,
-                 Shared<LoopDetectorEntity::CountAndTimePair> & pair);
+                 Shared<Sensor::CountAndTimePair> & pair);
 
     // Check if any vehicle in the <vehicles> list is hovering over the loop detector.  If there
     // is no vehicle, then set <vehicle_> to 0 and increment the space-time attribute.  If a
@@ -122,7 +125,7 @@ private:
 
     unsigned int timeStepInMilliSeconds_;  // The loop detector entity runs at this rate.
     bool request_to_reset_; // See the comment in check().
-    Shared<LoopDetectorEntity::CountAndTimePair> & countAndTimePair_;
+    Shared<Sensor::CountAndTimePair> & countAndTimePair_;
     Vehicle const * vehicle_;  // Current vehicle, if any, that is hovering over the loop detector.
 
 private:
@@ -131,20 +134,20 @@ private:
 
     void incrementSpaceTime()
     {
-        LoopDetectorEntity::CountAndTimePair pair(countAndTimePair_);
+        Sensor::CountAndTimePair pair(countAndTimePair_);
         pair.spaceTimeInMilliSeconds += timeStepInMilliSeconds_;
         countAndTimePair_.set(pair);
     }
     void incrementVehicleCount()
     {
-        LoopDetectorEntity::CountAndTimePair pair(countAndTimePair_);
+        Sensor::CountAndTimePair pair(countAndTimePair_);
         ++pair.vehicleCount;
         countAndTimePair_.set(pair);
     }
 };
 
 LoopDetector::LoopDetector(Lane const * lane, centimeter_t innerLength, centimeter_t outerLength,
-                           Shared<LoopDetectorEntity::CountAndTimePair> & pair)
+                           Shared<Sensor::CountAndTimePair> & pair)
   : width_(lane->getWidth())
   , innerLength_(innerLength)
   , outerLength_(outerLength)
@@ -242,7 +245,7 @@ LoopDetector::check(boost::unordered_set<Vehicle const *> & vehicles)
     if (request_to_reset_)
     {
         request_to_reset_ = false;
-        countAndTimePair_.force(LoopDetectorEntity::CountAndTimePair());
+        countAndTimePair_.force(Sensor::CountAndTimePair());
         return false;
     }
 
@@ -293,7 +296,7 @@ LoopDetector::check(Vehicle const & vehicle)
     // The vehicle (that is, its central position) is outside of the inner area, but within the
     // outer monitoring area.  If its length is longer than the outer area, then it would extends
     // into the inner area, and hence over the loop detector.
-    if (dotProduct - vehicle.lengthCM < innerLength_)
+    if (dotProduct - vehicle.getLengthCm() < innerLength_)
     {
         return true;
     }
@@ -467,18 +470,17 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
         Lane const * lane = lanes[i];
         if (lane->is_pedestrian_lane())
         {
-//        	std::cout << "Bypassing a pedestrian lane\n";
             continue;
         }
 
         //Shared<CountAndTimePair> & pair = entity.data_[lane];
-        std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter = entity.data_.find(lane);
-        if (entity.data_.end() == iter)
+        std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter = entity.data.find(lane);
+        if (entity.data.end() == iter)
         {
             MutexStrategy const & mutexStrategy = ConfigManager::GetInstance().FullConfig().mutexStategy();
             Shared<CountAndTimePair> * pair = new Shared<CountAndTimePair>(mutexStrategy);
-            entity.data_.insert(std::make_pair(lane, pair));
-            iter = entity.data_.find(lane);
+            entity.data.insert(std::make_pair(lane, pair));
+            iter = entity.data.find(lane);
         }
         Shared<CountAndTimePair> * pair = iter->second;
 
@@ -521,7 +523,7 @@ LoopDetectorEntity::Impl::check(timeslice now)
         {
         	//Extract the current resource used by this Agent.
         	//TODO: Currently the only resource type is "Vehicle"
-        	const Vehicle * vehicle = person->getRole()->getResource();
+        	const Vehicle * vehicle = dynamic_cast<Vehicle*>(person->getRole()->getResource());
             if (vehicle) {
                 vehicles.insert(vehicle);
             }
@@ -532,21 +534,7 @@ LoopDetectorEntity::Impl::check(timeslice now)
     std::map<Lane const *, LoopDetector *>::const_iterator iter;
     for (iter = loopDetectors_.begin(); iter != loopDetectors_.end(); ++iter)
     {
-        LoopDetector * detector = iter->second;
-        if (detector->check(vehicles))
-        {
-#if 0
-        	bufferOut <<"vehicle " << detector->vehicle() << " is over loop-detector in lane "
-                   << lane << " in frame " << frameNumber << std::endl;
-#endif
-        }
-        else
-        {
-#if 0
-        	bufferOut <<"no vehicle is over loop-detector in lane " << lane
-                   << " in frame " << frameNumber << std::endl;
-#endif
-        }
+        iter->second->check(vehicles);
     }
 
     return true;
@@ -583,24 +571,10 @@ LoopDetectorEntity::Impl::reset(Lane const & lane)
 // LoopDetectorEntity
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-LoopDetectorEntity::LoopDetectorEntity(Signal const & signal, MutexStrategy const & mutexStrategy)
-  : Agent(mutexStrategy)
-  , node_(signal.getNode())
-  , pimpl_(0)
-{
-	tempLoopImpl = 0;
-}
-
 LoopDetectorEntity::~LoopDetectorEntity()
 {
-    if (pimpl_)
+    if (pimpl_) {
         delete pimpl_;
-
-    std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter;
-    for (iter = data_.begin(); iter != data_.end(); ++iter)
-    {
-        Shared<CountAndTimePair> * pair = iter->second;
-        delete pair;
     }
 }
 
@@ -608,21 +582,7 @@ void
 LoopDetectorEntity::init(Signal const & signal)
 {
     pimpl_ = new Impl(signal, *this);
-    tempLoopImpl = pimpl_;
-//    Print() << "Created loopdetectorEntityImpl[" << pimpl_ << "]" << std::endl;
 }
-
-/* virtual */ void
-LoopDetectorEntity::buildSubscriptionList(vector<BufferedBase*>& subsList)
-{
-    std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter;
-    for (iter = data_.begin(); iter != data_.end(); ++iter)
-    {
-        Shared<CountAndTimePair> * pair = iter->second;
-        subsList.push_back(pair);
-    }
-}
-
 
 Entity::UpdateStatus LoopDetectorEntity::frame_tick(timeslice now)
 {
@@ -631,25 +591,6 @@ Entity::UpdateStatus LoopDetectorEntity::frame_tick(timeslice now)
     }
     return UpdateStatus::Done;
 }
-
-
-void LoopDetectorEntity::frame_output(timeslice now)
-{
-	//Loop detector entity performs no real output
-#if 0
-	LogOut(bufferOut.str());
-	bufferOut.str("");
-#endif
-}
-
-
-/* virtual  UpdateStatus
-LoopDetectorEntity::update(timeslice now)
-{
-    if (pimpl_)
-        return pimpl_->check(now) ? UpdateStatus::Continue : UpdateStatus::Done;
-    return UpdateStatus::Done;
-}*/
 
 void
 LoopDetectorEntity::reset()
@@ -665,18 +606,4 @@ LoopDetectorEntity::reset(Lane const & lane)
         pimpl_->reset(lane);
 }
 
-LoopDetectorEntity::CountAndTimePair const &
-LoopDetectorEntity::getCountAndTimePair(Lane const & lane)
-const
-{
-    std::map<Lane const *, Shared<CountAndTimePair> *>::const_iterator iter = data_.find(&lane);
-    if (iter != data_.end())
-    {
-        Shared<CountAndTimePair> const * pair = iter->second;
-        return pair->get();
-    }
-    std::ostringstream stream;
-    stream << "LoopDetectorEntity::getCountAndTimePair() was called on invalid lane" << &lane;
-    throw std::runtime_error(stream.str());
-}
 }

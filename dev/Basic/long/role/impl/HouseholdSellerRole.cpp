@@ -19,6 +19,8 @@
 #include "message/LT_Message.hpp"
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::messaging;
@@ -27,9 +29,6 @@ using std::endl;
 using sim_mob::Math;
 
 namespace {
-    const int TIME_ON_MARKET = 30;
-    const int TIME_INTERVAL = 7;
-
     //bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, target_price
     const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
     //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, speculation, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
@@ -271,11 +270,15 @@ void HouseholdSellerRole::notifyWinnerBidders() {
 }
 
 void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit) {
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	unsigned int timeInterval = config.ltParams.housingModel.timeInterval;
+	unsigned int timeOnMarket = config.ltParams.housingModel.timeOnMarket;
+
     const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
     SellingUnitInfo info;
     info.startedDay = currentTime.ms();
-    info.interval = TIME_INTERVAL;
-    info.daysOnMarket = TIME_ON_MARKET;
+    info.interval = timeInterval;
+    info.daysOnMarket = timeOnMarket;
     info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
     luaModel.calulateUnitExpectations(unit, info.numExpectations, info.expectations);
     sellingUnitsMap.erase(unit.getId());

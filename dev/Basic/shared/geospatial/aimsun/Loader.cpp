@@ -72,7 +72,6 @@
 #include "entities/conflux/Conflux.hpp"
 #include "entities/Person.hpp"
 #include "entities/signal/Signal.hpp"
-#include "entities/BusStopAgent.hpp"
 
 #include "partitions/PartitionManager.hpp"
 #include "partitions/BoundarySegment.hpp"
@@ -1875,7 +1874,7 @@ void DatabaseLoader::createBusStopAgents()
 
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy());
+		sim_mob::BusStop::RegisterNewBusStop(busstop);
 	}
 
 	for(map<std::string,BusStopSG>::iterator it = bustopSG_.begin(); it != bustopSG_.end(); it++) {
@@ -1903,7 +1902,7 @@ void DatabaseLoader::createBusStopAgents()
 
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy());
+		sim_mob::BusStop::RegisterNewBusStop(busstop);
 	}
 }
 
@@ -2781,6 +2780,16 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdS
 				statsIt!=splitSegmentStats.end(); statsIt++){
 			(*statsIt)->positionInRoadSegment = statsNum;
 			statsNum++;
+		}
+	}
+
+	std::set<sim_mob::SegmentStats*>& segmentStats =
+			ConfigManager::GetInstanceRW().FullConfig().getSegmentStatsWithBusStops();
+	for (std::list<sim_mob::SegmentStats*>::iterator statsIt =
+			splitSegmentStats.begin(); statsIt != splitSegmentStats.end();
+			statsIt++) {
+		if ((*statsIt)->getBusStops().size() > 0) {
+			segmentStats.insert(*statsIt);
 		}
 	}
 }

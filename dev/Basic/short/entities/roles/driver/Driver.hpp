@@ -113,7 +113,7 @@ public:
 	///Reroute around a blacklisted set of RoadSegments. See Role's comments for more information.
 	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
 	// for path-mover splitting purpose
-	void setCurrPosition(DPoint& currPosition);
+	void setCurrPosition(DPoint currPosition);
 	const DPoint& getCurrPosition() const;
 
 public:

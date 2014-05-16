@@ -718,7 +718,7 @@ double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(DriverUpdateParams& 
 {
 	double v 			=	p.perceivedFwdVelocity/100;
 	double dv			=	v-p.v_lead;
-	double epsilon_v	=	0.001;
+	double epsilon_v	=	sim_mob::Math::DOUBLE_EPSILON;
 	double aNormalDec	=	normalDeceleration;
 
 	double a;
@@ -733,12 +733,7 @@ double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(DriverUpdateParams& 
 		double v = p.v_lead + p.a_lead * dt ;
 		a= brakeToTargetSpeed(p,s,v);
 	}
-//	if(a<maxDeceleration)
-//		return maxDeceleration;
-//	else if(a>maxAcceleration)
-//		return maxAcceleration;
-//	else
-		return a;
+	return min(normalDeceleration, a);
 }
 
 

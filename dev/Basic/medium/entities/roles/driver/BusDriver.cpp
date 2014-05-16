@@ -25,7 +25,7 @@ using std::map;
 using std::string;
 using std::endl;
 
-sim_mob::medium::BusDriver::BusDriver(Agent* parent, MutexStrategy mtxStrat,
+sim_mob::medium::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::BusDriverBehavior* behavior,
 		sim_mob::medium::BusDriverMovement* movement)
 : sim_mob::medium::Driver(parent, mtxStrat, behavior, movement),
@@ -128,9 +128,7 @@ void sim_mob::medium::BusDriver::predictArrivalAtBusStop(double preArrivalTime,
 
 void sim_mob::medium::BusDriver::openBusDoors(
 		sim_mob::medium::BusStopAgent* busStopAgent) {
-
-	messaging::MessageBus::SendInstantaneousMessage(busStopAgent,
-			BOARD_BUS,
+	messaging::MessageBus::SendInstantaneousMessage(busStopAgent, BOARD_BUS,
 			messaging::MessageBus::MessagePtr(new BusDriverMessage(this)));
 
 	int numAlighting = alightPassenger(busStopAgent);
@@ -145,11 +143,14 @@ void sim_mob::medium::BusDriver::openBusDoors(
 		waitingTimeAtbusStop = std::max(waitingTimeAtbusStop, holdingTime.get());
 		holdingTime.set(0.0);
 	}
+	currResource->setMoving(false);
 }
 
 void sim_mob::medium::BusDriver::closeBusDoors(
 		sim_mob::medium::BusStopAgent* busStopAgent) {
-
+	messaging::MessageBus::SendInstantaneousMessage(busStopAgent, BUS_DEPARTURE,
+			messaging::MessageBus::MessagePtr(new BusDriverMessage(this)));
+	currResource->setMoving(true);
 }
 
 std::vector<BufferedBase*> sim_mob::medium::BusDriver::getSubscriptionParams() {

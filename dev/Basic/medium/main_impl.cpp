@@ -111,13 +111,12 @@ bool performMainSupply(const std::string& configFileName,
 	std::vector<const sim_mob::BusStop*>::iterator itBusStop;
 	for (itSegStats = segmentStats.begin(); itSegStats != segmentStats.end();
 			itSegStats++) {
-		std::vector<const sim_mob::BusStop*>& busStops =
-				(*itSegStats)->getBusStops();
-		for (itBusStop = busStops.begin(); itBusStop != busStops.end();
-				itBusStop++) {
+		sim_mob::SegmentStats* stats = *itSegStats;
+		std::vector<const sim_mob::BusStop*>& busStops = stats->getBusStops();
+		for (itBusStop = busStops.begin(); itBusStop != busStops.end(); itBusStop++) {
 			sim_mob::medium::BusStopAgent* busStopAgent =
-					new sim_mob::medium::BusStopAgent(mtx, -1, *itBusStop);
-			(*itSegStats)->addBusStopAgent(busStopAgent);
+					new sim_mob::medium::BusStopAgent(mtx, -1, *itBusStop, stats);
+			stats->addBusStopAgent(busStopAgent);
 			BusStopAgent::registerBusStopAgent(busStopAgent);
 		}
 	}

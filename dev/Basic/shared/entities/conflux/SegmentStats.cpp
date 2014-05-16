@@ -140,6 +140,31 @@ void SegmentStats::addBusStopAgent(sim_mob::Agent* busStopAgent){
 	busStopAgents.push_back(busStopAgent);
 }
 
+void SegmentStats::addBusDriverToStop(sim_mob::Person* driver,
+		const sim_mob::BusStop* stop) {
+	if(stop && hasBusStop(stop)) {
+		busDrivers.at(stop).push_back(driver);
+	}
+}
+
+void SegmentStats::removeBusDriverFromStop(sim_mob::Person* driver,
+		const sim_mob::BusStop* stop) {
+	if(stop && hasBusStop(stop)) {
+		PersonList& driversAtStop = busDrivers.at(stop);
+		PersonList::iterator driverIt =
+				std::find(driversAtStop.begin(), driversAtStop.end(), driver);
+		if(driverIt!=driversAtStop.end()) {
+			driversAtStop.erase(driverIt);
+		}
+		else {
+			throw std::runtime_error("attempt to remove a bus driver who is not serving the stop");
+		}
+	}
+	else {
+		throw std::runtime_error("Bus stop not found in SegmentStats");
+	}
+}
+
 std::deque<sim_mob::Person*> SegmentStats::getPersons() {
 	PersonList segAgents;
 	for(std::vector<sim_mob::Lane*>::const_iterator lnIt=roadSegment->getLanes().begin();
@@ -206,6 +231,19 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList) {
 			mergedPersonList.insert(mergedPersonList.end(), iteratorLists[i], personsInLane.end());
 		}
 		i++;
+	}
+
+	//And let's not forget the bus drivers serving stops in this segment stats
+	//Bus drivers go in the front of the list, because bus stops are (virtually)
+	//located at the end of the segment
+	for(BusStopList::const_reverse_iterator stopIt=busStops.rbegin();
+			stopIt!=busStops.rend();stopIt++) {
+		const sim_mob::BusStop* stop = *stopIt;
+		PersonList& driversAtStop = busDrivers.at(stop);
+		for(PersonList::iterator pIt=driversAtStop.begin();
+				pIt!=driversAtStop.end(); pIt++) {
+			mergedPersonList.push_front(*pIt);
+		}
 	}
 }
 
@@ -368,6 +406,7 @@ void SegmentStats::resetFrontalAgents() {
 void SegmentStats::addBusStop(const sim_mob::BusStop* stop) {
 	if(stop) {
 		busStops.push_back(stop);
+		busDrivers[stop] = PersonList();
 	}
 	else {
 		throw std::runtime_error("addBusStop(): stop to be added is NULL");

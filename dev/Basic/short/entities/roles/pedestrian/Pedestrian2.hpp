@@ -70,7 +70,7 @@ struct PedestrianUpdateParams2 : public sim_mob::UpdateParams {
  */
 class Pedestrian2 : public sim_mob::Role , public UpdateWrapper<PedestrianUpdateParams2>{
 public:
-	Pedestrian2(Agent* parent, sim_mob::Pedestrian2Behavior* behavior = nullptr, sim_mob::Pedestrian2Movement* movement = nullptr, Role::type roleType_ = RL_PEDESTRIAN, std::string roleName = "pedestrian");
+	Pedestrian2(Person* parent, sim_mob::Pedestrian2Behavior* behavior = nullptr, sim_mob::Pedestrian2Movement* movement = nullptr, Role::type roleType_ = RL_PEDESTRIAN, std::string roleName = "pedestrian");
 	virtual ~Pedestrian2();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

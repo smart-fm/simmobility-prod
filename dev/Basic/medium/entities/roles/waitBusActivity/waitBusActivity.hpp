@@ -28,7 +28,7 @@ class BusDriver;
 class WaitBusActivity: public sim_mob::Role {
 public:
 
-	explicit WaitBusActivity(Agent* parent, MutexStrategy mtxStrat,
+	explicit WaitBusActivity(Person* parent, MutexStrategy mtxStrat,
 			sim_mob::medium::WaitBusActivityBehavior* behavior = nullptr,
 			sim_mob::medium::WaitBusActivityMovement* movement = nullptr);
 

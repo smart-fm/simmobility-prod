@@ -39,6 +39,7 @@ inline double converToSeconds(uint32_t timeInMs) {
 }
 
 const double BUS_LENGTH = 3 * sim_mob::PASSENGER_CAR_UNIT; // 3 times PASSENGER_CAR_UNIT
+const double INFINITESIMAL_DOUBLE = 0.0001;
 }
 
 namespace sim_mob {
@@ -74,6 +75,30 @@ void sim_mob::medium::BusDriverMovement::frame_init() {
 		VehicleBase* oldBus = parentBusDriver->getResource();
 		safe_delete_item(oldBus);
 		parentBusDriver->setResource(newVeh);
+	}
+}
+
+void BusDriverMovement::frame_tick() {
+	sim_mob::medium::DriverUpdateParams& params = parentBusDriver->getParams();
+	if(!parentBusDriver->getResource()->isMoving()) {
+		// isMoving()==false implies the bus is serving a stop
+		if (parentBusDriver->waitingTimeAtbusStop > params.secondsInTick) {
+			params.elapsedSeconds = params.secondsInTick;
+			parentBusDriver->waitingTimeAtbusStop -= params.secondsInTick;
+		}
+		else {
+			params.elapsedSeconds = parentBusDriver->waitingTimeAtbusStop;
+			parentBusDriver->waitingTimeAtbusStop = 0.0;
+			//the bus has expired its waiting time
+			//send bus departure message
+			const BusStop* stop = routeTracker.getNextStop();
+			BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(stop);
+			parentBusDriver->closeBusDoors(stopAg);
+			routeTracker.updateNextStop();
+		}
+	}
+	if(params.elapsedSeconds < params.secondsInTick) {
+		DriverMovement::moveToNextSegment(params);
 	}
 }
 
@@ -179,9 +204,12 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params) {
 		//send bus arrival message
 		BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(nextStop);
 		if(stopAg->canAccommodate(parentBusDriver->getResource()->getLengthCm())) {
+			if(isQueuing) {
+				removeFromQueue();
+			}
 			messaging::MessageBus::SendInstantaneousMessage(stopAg, BUS_ARRIVAL,
 					messaging::MessageBus::MessagePtr(new BusDriverMessage(getParentBusDriver())));
-			parentBusDriver->getResource()->setMoving(false);
+			parentBusDriver->openBusDoors(stopAg);
 		}
 		else {
 			if (isQueuing){

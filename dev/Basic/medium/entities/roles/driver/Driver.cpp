@@ -62,7 +62,7 @@ size_t getLaneIndex(const Lane* l) {
 } //end of anonymous namespace
 
 //Initialize
-sim_mob::medium::Driver::Driver(Agent* parent, MutexStrategy mtxStrat, sim_mob::medium::DriverBehavior* behavior, sim_mob::medium::DriverMovement* movement) :
+sim_mob::medium::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::medium::DriverBehavior* behavior, sim_mob::medium::DriverMovement* movement) :
 	sim_mob::Role(behavior, movement, parent, "Driver_"),
 	currLane(nullptr)
 {}

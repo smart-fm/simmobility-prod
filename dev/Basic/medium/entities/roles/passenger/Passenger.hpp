@@ -28,7 +28,7 @@ class Driver;
 class Passenger: public sim_mob::Role {
 public:
 
-	explicit Passenger(Agent* parent, MutexStrategy mtxStrat,
+	explicit Passenger(Person* parent, MutexStrategy mtxStrat,
 			sim_mob::medium::PassengerBehavior* behavior = nullptr,
 			sim_mob::medium::PassengerMovement* movement = nullptr);
 

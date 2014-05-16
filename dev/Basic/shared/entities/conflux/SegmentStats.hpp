@@ -294,6 +294,7 @@ protected:
 	typedef std::map<const sim_mob::Lane*, sim_mob::LaneStats* > LaneStatsMap;
 	typedef std::vector<const sim_mob::BusStop*> BusStopList;
 	typedef std::vector<sim_mob::Agent*> AgentList;
+	typedef std::map<const sim_mob::BusStop*, PersonList> StopBusDriversMap;
 
 	/**road segment which contains this SegmentStats*/
 	const sim_mob::RoadSegment* roadSegment;
@@ -307,6 +308,9 @@ protected:
 
 	/**BusStopAgents for bus stops in this segment stats*/
 	AgentList busStopAgents;
+
+	/**stop wise list of bus drivers currently serving the stop*/
+	StopBusDriversMap busDrivers;
 
 	/**
 	 * A segment can have multiple segment stats. This gives the position of this
@@ -416,6 +420,18 @@ public:
 	 * @param busStopAgent is a pointer to a bus stop agent
 	 */
 	void addBusStopAgent(sim_mob::Agent* busStopAgent);
+
+	/**
+	 * add bus driver to stop
+	 * @param driver the bus driver to be added
+	 */
+	void addBusDriverToStop(sim_mob::Person* driver, const sim_mob::BusStop* stop);
+
+	/**
+	 * remove bus driver from stop
+	 * @param driver the bus driver to be removed
+	 */
+	void removeBusDriverFromStop(sim_mob::Person* driver, const sim_mob::BusStop* stop);
 
 	/**
 	 * removes person from lane

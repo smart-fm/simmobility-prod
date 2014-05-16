@@ -11,7 +11,7 @@
 #include <boost/random.hpp>
 
 #include "util/LangHelpers.hpp"
-#include "entities/Agent.hpp"
+#include "entities/Person.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
 #include "entities/UpdateParams.hpp"
 #include "workers/Worker.hpp"
@@ -87,7 +87,7 @@ public:
 
 public:
 	//NOTE: Don't forget to call this from sub-classes!
-	explicit Role(sim_mob::Agent* parent = nullptr,
+	explicit Role(sim_mob::Person* parent = nullptr,
 			std::string roleName = std::string(),
 			Role::type roleType_ = RL_UNKNOWN) :
 		parent(parent), currResource(nullptr), name(roleName),
@@ -99,7 +99,7 @@ public:
 
 	explicit Role(sim_mob::BehaviorFacet* behavior = nullptr,
 			sim_mob::MovementFacet* movement = nullptr,
-			sim_mob::Agent* parent = nullptr,
+			sim_mob::Person* parent = nullptr,
 			std::string roleName = std::string(),
 			Role::type roleType_ = RL_UNKNOWN) :
 		parent(parent), currResource(nullptr),name(roleName),
@@ -149,13 +149,11 @@ public:
 	VehicleBase* getResource() const { return currResource; }
 	void setResource(VehicleBase* currResource) { this->currResource = currResource; }
 
-	Agent* getParent()
-	{
+	Person* getParent() {
 		return parent;
 	}
 
-	void setParent(Agent* parent)
-	{
+	void setParent(Person* parent) {
 		this->parent = parent;
 	}
 
@@ -200,7 +198,7 @@ public:
 	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted) {}
 
 protected:
-	Agent* parent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
+	Person* parent;
 
 	VehicleBase* currResource; ///<Roles may hold "resources" for the current task. Expand later into multiple types.
 

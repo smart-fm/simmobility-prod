@@ -65,7 +65,7 @@ inline double converToSeconds(uint32_t timeInMs) {
 	return (timeInMs/1000.0);
 }
 
-const double INFINITESIMAL_DOUBLE = 0.001;
+const double INFINITESIMAL_DOUBLE = 0.0001;
 }
 
 namespace sim_mob {

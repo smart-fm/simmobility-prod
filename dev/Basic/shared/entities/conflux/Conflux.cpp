@@ -121,25 +121,14 @@ void sim_mob::Conflux::updateSignalized() {
 }
 
 void sim_mob::Conflux::updateUnsignalized() {
-
-#define UsingTopCMergeInConflux
-#ifdef UsingTopCMergeInConflux
 	//merge vehicles on conflux
-	PersonList allPersonsInReverseOrder;
-	getAllPersonsUsingTopCMerge(allPersonsInReverseOrder);
+	PersonList orderedPersonsInLanes;
+	getAllPersonsUsingTopCMerge(orderedPersonsInLanes);
 
-	PersonList::iterator personIt = allPersonsInReverseOrder.begin();
-	for (; personIt != allPersonsInReverseOrder.end(); personIt++) {
+	PersonList::iterator personIt = orderedPersonsInLanes.begin();
+	for (; personIt != orderedPersonsInLanes.end(); personIt++) {
 		updateAgent(*personIt);
 	}
-#else
-	initCandidateAgents();
-	sim_mob::Person* person = agentClosestToIntersection();
-	while (person) {
-		updateAgent(person);
-		person = agentClosestToIntersection(); // get next Person to update
-	}
-#endif
 
 	// We may have to erase persons in activityPerformers & pedestrianList in
 	// updateAgent(). Therefore we need to iterate on a copy.
@@ -289,7 +278,7 @@ void sim_mob::Conflux::handleRoles(PersonProps& beforeUpdate,
 			//NOTE: the bus driver we remove here would have already been added
 			//to the BusStopAgent corresponding to the stop currently served by
 			//the bus driver.
-			afterUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
+			beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
 		}
 		else if(!beforeUpdate.role->getResource()->isMoving()
 					&& afterUpdate.role->getResource()->isMoving()) {

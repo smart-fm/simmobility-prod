@@ -138,7 +138,7 @@ double Pedestrian::collisionForce = 20;
 double Pedestrian::agentRadius = 0.5; //Shoulder width of a person is about 0.5 meter
 
 
-sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent),
+sim_mob::Pedestrian::Pedestrian(Person* parent) : Role(parent),
 	trafficSignal(nullptr), currCrossing(nullptr), cStartX(0), cStartY(0), cEndX(0), cEndY(0),
 	prevSeg(nullptr), isUsingGenPathMover(true), params(parent->getGenerator()), sigColor(sim_mob::Green),
 	startToCross(false), xVel(0), yVel(0), xCollisionVector(0), yCollisionVector(0),

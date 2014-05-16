@@ -15,7 +15,7 @@ namespace sim_mob {
 
 namespace medium {
 
-sim_mob::medium::Passenger::Passenger(Agent* parent, MutexStrategy mtxStrat,
+sim_mob::medium::Passenger::Passenger(Person* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::PassengerBehavior* behavior,
 		sim_mob::medium::PassengerMovement* movement) :
 		sim_mob::Role(behavior, movement, parent, "Passenger_"),

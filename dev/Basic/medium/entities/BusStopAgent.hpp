@@ -12,6 +12,7 @@
 #pragma once
 
 #include "entities/Agent.hpp"
+#include "entities/conflux/SegmentStats.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/waitBusActivity/waitBusActivity.hpp"
@@ -30,7 +31,8 @@ class BusStopAgent: public sim_mob::Agent {
 public:
 	typedef boost::unordered_map<const BusStop*, BusStopAgent*> BusStopAgentsMap;
 
-	BusStopAgent(const MutexStrategy& mtxStrat, int id, const sim_mob::BusStop* stop);
+	BusStopAgent(const MutexStrategy& mtxStrat, int id,
+			const sim_mob::BusStop* stop, SegmentStats* stats);
 	virtual ~BusStopAgent();
 
 	const sim_mob::BusStop* getBusStop() const;
@@ -106,18 +108,24 @@ protected:
 	void boardWaitingPersons(sim_mob::medium::BusDriver* busDriver);
 
 	/**
-	 * accepts an arriving driver
+	 * accepts an arriving driver.
+	 * Adds bus driver to the local servingDrivers list
+	 * Adds the person with the BusDriver role to the segment stats busDrivers list
 	 * @param driver the driver of the bus to be accepted in the stop
 	 * @returns true if bus driver is accepted; false otherwise
 	 */
 	bool acceptBusDriver(BusDriver* driver);
+
 
 private:
 	static BusStopAgentsMap allBusstopAgents;
 	std::list<sim_mob::medium::WaitBusActivity*> waitingPersons;
 	std::list<sim_mob::medium::Passenger*> alightingPersons;
 	std::list<sim_mob::medium::BusDriver*> servingDrivers;
+	/**bus stop managed by this agent*/
 	const sim_mob::BusStop* busStop;
+	/**segment stats containing this bus stop*/
+	SegmentStats* parentSegmentStats;
 	/**record last boarding number for a given bus*/
 	std::map<sim_mob::medium::BusDriver*, int> lastBoardingRecorder;
 	/**available length in cm for incoming vehicles*/

@@ -15,7 +15,7 @@ namespace sim_mob {
 
 namespace medium {
 
-sim_mob::medium::WaitBusActivity::WaitBusActivity(Agent* parent,
+sim_mob::medium::WaitBusActivity::WaitBusActivity(Person* parent,
 		MutexStrategy mtxStrat,
 		sim_mob::medium::WaitBusActivityBehavior* behavior,
 		sim_mob::medium::WaitBusActivityMovement* movement) :

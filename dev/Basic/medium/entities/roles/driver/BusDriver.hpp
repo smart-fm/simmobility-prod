@@ -27,7 +27,7 @@ class BusStopAgent;
 
 class BusDriver : public sim_mob::medium::Driver {
 public:
-	BusDriver(Agent* parent, MutexStrategy mtxStrat,
+	BusDriver(Person* parent, MutexStrategy mtxStrat,
 			sim_mob::medium::BusDriverBehavior* behavior = nullptr,
 			sim_mob::medium::BusDriverMovement* movement = nullptr);
 	virtual ~BusDriver();

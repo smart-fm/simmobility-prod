@@ -32,11 +32,11 @@ BusStopAgent* BusStopAgent::findBusStopAgentByBusStop(const BusStop* busstop)
 	}
 }
 
-BusStopAgent::BusStopAgent(const MutexStrategy& mtxStrat, int id, const BusStop* stop) :
-		Agent(mtxStrat, id), busStop(stop), availableLength(stop->getBusCapacityAsLength()) {
-	// TODO Auto-generated constructor stub
-
-}
+BusStopAgent::BusStopAgent(const MutexStrategy& mtxStrat, int id,
+		const BusStop* stop, SegmentStats* stats) :
+		Agent(mtxStrat, id), busStop(stop), parentSegmentStats(stats),
+		availableLength(stop->getBusCapacityAsLength())
+{}
 
 BusStopAgent::~BusStopAgent() {
 	// TODO Auto-generated destructor stub
@@ -133,6 +133,7 @@ bool BusStopAgent::acceptBusDriver(BusDriver* driver) {
 			availableLength=availableLength-vehicleLength;
 			return true;
 		}
+		parentSegmentStats->addBusDriverToStop(driver->getParent(), busStop);
 	}
 	return false;
 }

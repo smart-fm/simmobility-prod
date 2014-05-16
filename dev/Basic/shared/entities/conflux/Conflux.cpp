@@ -66,6 +66,8 @@ sim_mob::Conflux::~Conflux()
 	}
 	// clear activity performers
 	activityPerformers.clear();
+	//clear pedestrian list
+	pedestrianList.clear();
 }
 
 
@@ -138,6 +140,8 @@ void sim_mob::Conflux::updateUnsignalized() {
 	for(PersonList::iterator i = pedestrianPerformersCopy.begin(); i != pedestrianPerformersCopy.end(); i++) {
 		updateAgent(*i);
 	}
+
+	updateBusStopAgents();
 }
 
 void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
@@ -833,6 +837,19 @@ void sim_mob::Conflux::resetSegmentFlows() {
 		for(SegmentStatsList::const_iterator segIt = linkSegments.begin();
 				segIt != linkSegments.end(); segIt++) {
 			(*segIt)->resetSegFlow();
+		}
+	}
+}
+
+void sim_mob::Conflux::updateBusStopAgents()
+{
+	for (UpstreamSegmentStatsMap::iterator upStrmSegMapIt =
+			upstreamSegStatsMap.begin();
+			upStrmSegMapIt != upstreamSegStatsMap.end(); upStrmSegMapIt++) {
+		for (std::vector<sim_mob::SegmentStats*>::const_iterator segStatsIt =
+				upStrmSegMapIt->second.begin();
+				segStatsIt != upStrmSegMapIt->second.end(); segStatsIt++) {
+			(*segStatsIt)->updateBusStopAgents(currFrameNumber);
 		}
 	}
 }

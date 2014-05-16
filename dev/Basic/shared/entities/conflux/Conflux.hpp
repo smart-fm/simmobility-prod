@@ -168,6 +168,11 @@ private:
 	UpdateStatus perform_person_move(timeslice now, Person* person);
 
 	/**
+	 * calls frame_tick() for bus stop agent
+	 */
+	void updateBusStopAgents();
+
+	/**
 	 * calls frame_init of the movement facet for the person's role
 	 * @param now current time slice
 	 * @param person person to initialize
@@ -228,14 +233,11 @@ protected:
 	virtual Entity::UpdateStatus frame_tick(timeslice now) { throw std::runtime_error("frame_* are not required and are not implemented for Confluxes."); }
 	virtual void frame_output(timeslice now) { throw std::runtime_error("frame_* methods are not required and are not implemented for Confluxes."); }
 
-	/**
-	 * Inherited from Agent.
-	 */
+
+	//Inherited from Agent.
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 
-	/**
-	 * Inherited from Agent.
-	 */
+	//Inherited from Agent.
 	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 public:

@@ -116,7 +116,7 @@ bool performMainSupply(const std::string& configFileName,
 		for (itBusStop = busStops.begin(); itBusStop != busStops.end();
 				itBusStop++) {
 			sim_mob::medium::BusStopAgent* busStopAgent =
-					new sim_mob::medium::BusStopAgent(mtx, -1, *itBusStop);
+					new sim_mob::medium::BusStopAgent(mtx, -1, *itBusStop, *itSegStats);
 			(*itSegStats)->addBusStopAgent(busStopAgent);
 		}
 	}

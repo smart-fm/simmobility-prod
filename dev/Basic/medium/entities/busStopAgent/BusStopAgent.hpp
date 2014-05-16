@@ -23,7 +23,8 @@ namespace medium {
 
 class BusStopAgent: public sim_mob::Agent {
 public:
-	BusStopAgent(const MutexStrategy& mtxStrat, int id, const sim_mob::BusStop* stop);
+	BusStopAgent(const MutexStrategy& mtxStrat, int id,
+			const sim_mob::BusStop* stop, const sim_mob::SegmentStats* stat);
 	virtual ~BusStopAgent();
 
 protected:
@@ -90,6 +91,7 @@ private:
 	std::list<sim_mob::medium::BusDriver*> parkingDrivers;
 	std::list<sim_mob::Person*> pedestrians;
 	const sim_mob::BusStop* busStop;
+	const sim_mob::SegmentStats* segmentStat;
 	/**record last boarding number for a given bus*/
 	std::map<sim_mob::medium::BusDriver*, int> lastBoardingRecorder;
 

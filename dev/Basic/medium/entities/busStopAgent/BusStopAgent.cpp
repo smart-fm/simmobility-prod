@@ -13,8 +13,9 @@ namespace sim_mob {
 
 namespace medium {
 
-BusStopAgent::BusStopAgent(const MutexStrategy& mtxStrat, int id, const sim_mob::BusStop* stop) :
-		Agent(mtxStrat, id), busStop(stop) {
+BusStopAgent::BusStopAgent(const MutexStrategy& mtxStrat, int id,
+		const sim_mob::BusStop* stop, const sim_mob::SegmentStats* stat) :
+		Agent(mtxStrat, id), busStop(stop), segmentStat(stat) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -57,10 +58,11 @@ bool BusStopAgent::frame_init(timeslice now) {
 }
 
 Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now) {
-	std::list<sim_mob::medium::Passenger*>::iterator itPerson;
-	for (itPerson = alightingPersons.begin();
-			itPerson != alightingPersons.end(); itPerson++) {
-		Passenger* waitingPeople = *itPerson;
+	std::list<sim_mob::medium::Passenger*>::iterator itPerson =
+			alightingPersons.begin();
+	while (itPerson != alightingPersons.end()) {
+		bool ret = false;
+		sim_mob::medium::Passenger* waitingPeople = *itPerson;
 		Agent* parent = waitingPeople->getParent();
 		Person* person = dynamic_cast<Person*>(parent);
 		if (person) {
@@ -72,11 +74,24 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now) {
 							dynamic_cast<WaitBusActivity*>(role);
 					if (waitPerson) {
 						registerWaitingPerson(waitPerson);
+						ret = true;
 					}
 				} else if (role->roleType == Role::RL_PEDESTRIAN) {
-					pedestrians.push_back(person);
+					Conflux* conflux =
+							segmentStat->getRoadSegment()->getParentConflux();
+					messaging::MessageBus::PostMessage(conflux,
+							MSG_PEDESTRIAN_TRANSFER_REQUEST,
+							messaging::MessageBus::MessagePtr(
+									new PedestrianRequestMessageArgs(person)));
+					ret = true;
 				}
 			}
+		}
+
+		if (ret) {
+			itPerson = alightingPersons.erase(itPerson);
+		} else {
+			itPerson++;
 		}
 	}
 	return UpdateStatus::Continue;

@@ -57,8 +57,6 @@ const int DAYS = 365;
 const int WORKERS = 8;
 const int DATA_SIZE = 30;
 const std::string MODEL_LINE_FORMAT = "### %-30s : %-20s";
-//options
-const std::string OPTION_TESTS = "--tests";
 
 int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulationTime) {
     PrintOut("#################### LONG-TERM SIMULATION ####################" << endl);
@@ -172,36 +170,21 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
 }
 
 int main(int ARGC, char* ARGV[]) {
-    std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
-    Print::Init("<stdout>");
-    bool runTests = false;
-    //process arguments.
-    std::vector<std::string>::iterator it;
-    for (it = args.begin(); it != args.end(); it++){
-        if (it->compare(OPTION_TESTS) == 0){
-            runTests = true;
-            continue;
-        }
-    }
-    
-    if (!runTests) {
-        //get start time of the simulation.
-        std::list<std::string> resLogFiles;
-        for (int i = 0; i < MAX_ITERATIONS; i++) {
-            PrintOut("Simulation #:  " << (i + 1) << endl);
-            performMain((i + 1), resLogFiles);
-        }
 
-        //Concatenate output files?
-        if (!resLogFiles.empty()) {
-            resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
-            Utils::printAndDeleteLogFiles(resLogFiles);
-        }
-        ConfigManager::GetInstanceRW().reset();
-    } else {
-        unit_tests::DaoTests tests;
-        tests.testAll();
-    }
-    
-    return 0;
+	//get start time of the simulation.
+	std::list<std::string> resLogFiles;
+	for (int i = 0; i < MAX_ITERATIONS; i++) {
+		PrintOut("Simulation #:  " << (i + 1) << endl);
+		performMain((i + 1), resLogFiles);
+	}
+
+	//Concatenate output files?
+	if (!resLogFiles.empty()) {
+		resLogFiles.insert(resLogFiles.begin(),
+				ConfigManager::GetInstance().FullConfig().outNetworkFileName);
+		Utils::printAndDeleteLogFiles(resLogFiles);
+	}
+	ConfigManager::GetInstanceRW().reset();
+
+	return 0;
 }

@@ -8,9 +8,8 @@ include_directories("${PROJECT_SOURCE_DIR}/long")
 FILE(GLOB_RECURSE LongTerm_CPP *.cpp)
 
 #Remove the unit tests
-# TODO: Currently no long-term unit tests
-#FILE(GLOB_RECURSE LongTerm_TEST "unit-tests/*.cpp" "unit-tests/*.c")
-#LIST(REMOVE_ITEM LongTerm_CPP ${LongTerm_TEST})
+FILE(GLOB_RECURSE LongTerm_TEST "unit-tests/*.cpp" "unit-tests/*.hpp")
+LIST(REMOVE_ITEM LongTerm_CPP ${LongTerm_TEST})
 
 #Create the long-term simulator
 add_executable(SimMobility_Long ${LongTerm_CPP} $<TARGET_OBJECTS:SimMob_Shared>)

@@ -64,13 +64,13 @@ const CarFollowParam CF_parameters[2] = {
 const double targetGapAccParm[] = {0.604, 0.385, 0.323, 0.0678, 0.217,
 		0.583, -0.596, -0.219, 0.0832, -0.170, 1.478, 0.131, 0.300};
 
-//Acceleration mode// CLA@04/2014 this enum can be deleted
-enum ACCEL_MODE {
-	AM_VEHICLE = 0,
-	AM_PEDESTRIAN = 1,
-	AM_TRAFF_LIGHT = 2,
-	AM_NONE = 3
-};
+////Acceleration mode// CLA@04/2014 this enum can be deleted
+//enum ACCEL_MODE {
+//	AM_VEHICLE = 0,
+//	AM_PEDESTRIAN = 1,
+//	AM_TRAFF_LIGHT = 2,
+//	AM_NONE = 3
+//};
 
 double uRandom(boost::mt19937& gen)
 {

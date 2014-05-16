@@ -69,7 +69,7 @@ sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier*
     : logFile(logFile),sql(soci::postgresql,ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false)),
       frame_tick_barr(frame_tick), buff_flip_barr(buff_flip), aura_mgr_barr(aura_mgr), macro_tick_barr(macro_tick),
       endTick(endTick), tickStep(tickStep), parent(parent), entityRemovalList(entityRemovalList), entityBredList(entityBredList),
-      profile(nullptr)
+      profile(nullptr),pathSetMgr(nullptr)
 {
 	//Initialize our profile builder, if applicable.
 	if (ConfigManager::GetInstance().CMakeConfig().ProfileWorkerUpdates()) {

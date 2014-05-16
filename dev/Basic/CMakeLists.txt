@@ -188,6 +188,9 @@ ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 #Option: build tests. Use the cmake gui to change this on a per-user basis.
 option(BUILD_TESTS "Build unit tests." OFF)
 
+#Option: build tests for long term model. Use the cmake gui to change this on a per-user basis.
+option(BUILD_TESTS_LONG "Build unit tests." OFF)
+
 #Option: build short term. Use the cmake gui to change this on a per-user basis.
 option(BUILD_SHORT "Build short-term simulator." ON)
 
@@ -523,6 +526,11 @@ ENDIF (${BUILD_LONG} MATCHES "ON")
 IF (${BUILD_TESTS} MATCHES "ON")
 	add_subdirectory(shared/unit-tests)
 ENDIF (${BUILD_TESTS} MATCHES "ON")
+
+#Build tests for long term? 
+IF (${BUILD_TESTS_LONG} MATCHES "ON")
+	add_subdirectory(long/unit-tests)
+ENDIF (${BUILD_TESTS_LONG} MATCHES "ON")
 
 
 # Based on http://majewsky.wordpress.com/2010/08/14/tip-of-the-day-cmake-and-doxygen/

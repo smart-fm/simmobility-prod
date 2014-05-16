@@ -5,6 +5,7 @@
 #pragma once
 
 #include "conf/params/ParameterManager.hpp"
+#include "entities/vehicle/VehicleBase.hpp"
 #include "entities/roles/driver/Driver.hpp"
 
 #include <string>
@@ -76,19 +77,19 @@ public:
 	 *  \param idx  index container
 	 *  \param upperBound store upper bound of index
 	 **/
-	void makeSpeedIndex(Vehicle::VEHICLE_TYPE vhType,
+	void makeSpeedIndex(VehicleBase::VehicleType vhType,
 						string& speedScalerStr,
 						string& cstr,
-						map< Vehicle::VEHICLE_TYPE,map<int,double> >& idx,
+						map< VehicleBase::VehicleType,map<int,double> >& idx,
 						int& upperBound);
 	/** \brief create scale index base on string data ,like "0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"
 	 *  \param s data string
 	 *  \param c container to store data
 	 **/
 	void makeScaleIdx(string& s,vector<double>& c);
-	double getMaxAcceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);
-	double getNormalDeceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);
-	double getMaxDeceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType=Vehicle::CAR);
+	double getMaxAcceleration(sim_mob::DriverUpdateParams& p,VehicleBase::VehicleType vhType=VehicleBase::CAR);
+	double getNormalDeceleration(sim_mob::DriverUpdateParams& p,VehicleBase::VehicleType vhType=VehicleBase::CAR);
+	double getMaxDeceleration(sim_mob::DriverUpdateParams& p,VehicleBase::VehicleType vhType=VehicleBase::CAR);
 	/** \brief get max acc scaler
 	 *  \return scaler value
 	 **/
@@ -147,15 +148,15 @@ private:
 private:
 	/// key=vehicle type
 	/// submap key=speed, value=max acc
-	map< Vehicle::VEHICLE_TYPE,map<int,double> > maxAccIndex;
+	map< VehicleBase::VehicleType,map<int,double> > maxAccIndex;
 	int maxAccUpperBound;
 	vector<double> maxAccScale;
 
-	map< Vehicle::VEHICLE_TYPE,map<int,double> > normalDecelerationIndex;
+	map< VehicleBase::VehicleType,map<int,double> > normalDecelerationIndex;
 	int normalDecelerationUpperBound;
 	vector<double> normalDecelerationScale;
 
-	map< Vehicle::VEHICLE_TYPE,map<int,double> > maxDecelerationIndex;
+	map< VehicleBase::VehicleType,map<int,double> > maxDecelerationIndex;
 	int maxDecelerationUpperBound;
 	vector<double> maxDecelerationScale;
 

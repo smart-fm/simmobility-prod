@@ -167,10 +167,10 @@ void sim_mob::MITSIM_CF_Model::makeScaleIdx(string& s,vector<double>& c)
 		c.push_back(res);
 	}
 }
-void sim_mob::MITSIM_CF_Model::makeSpeedIndex(Vehicle::VEHICLE_TYPE vhType,
+void sim_mob::MITSIM_CF_Model::makeSpeedIndex(VehicleBase::VehicleType vhType,
 						string& speedScalerStr,
 						string& cstr,
-						map< Vehicle::VEHICLE_TYPE,map<int,double> >& idx,
+						map< VehicleBase::VehicleType,map<int,double> >& idx,
 						int& upperBound)
 {
 	std::cout<<"makeSpeedIndex: vh type "<<vhType<<std::endl;
@@ -232,7 +232,7 @@ void sim_mob::MITSIM_CF_Model::makeSpeedIndex(Vehicle::VEHICLE_TYPE vhType,
 
 	idx[vhType] = cIdx;
 }
-double sim_mob::MITSIM_CF_Model::getMaxAcceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType)
+double sim_mob::MITSIM_CF_Model::getMaxAcceleration(sim_mob::DriverUpdateParams& p,VehicleBase::VehicleType vhType)
 {
 	if(!p.driver)
 	{
@@ -252,7 +252,7 @@ double sim_mob::MITSIM_CF_Model::getMaxAcceleration(sim_mob::DriverUpdateParams&
 
 	return maxAcc;
 }
-double sim_mob::MITSIM_CF_Model::getNormalDeceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType)
+double sim_mob::MITSIM_CF_Model::getNormalDeceleration(sim_mob::DriverUpdateParams& p,VehicleBase::VehicleType vhType)
 {
 	if(!p.driver)
 	{
@@ -270,7 +270,7 @@ double sim_mob::MITSIM_CF_Model::getNormalDeceleration(sim_mob::DriverUpdatePara
 
 	return dec;
 }
-double sim_mob::MITSIM_CF_Model::getMaxDeceleration(sim_mob::DriverUpdateParams& p,Vehicle::VEHICLE_TYPE vhType)
+double sim_mob::MITSIM_CF_Model::getMaxDeceleration(sim_mob::DriverUpdateParams& p,VehicleBase::VehicleType vhType)
 {
 	if(!p.driver)
 	{

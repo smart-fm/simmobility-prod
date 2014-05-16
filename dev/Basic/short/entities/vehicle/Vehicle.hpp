@@ -91,8 +91,8 @@ public:
 #endif
 
 public:
-	const double lengthCM;  ///<length(CM) of the vehicle
-	const double widthCM;   ///<width(CM) of the vehicle
+//	const double lengthCM;  ///<length(CM) of the vehicle
+//	const double widthCM;   ///<width(CM) of the vehicle
 	bool isQueuing; 	 ///<for mid-term use
 	FMODSchedule* schedule;
 

@@ -44,22 +44,22 @@ double feet2Unit(double feet) {
 	return feet*0.158;
 }
 
-//Simple struct to hold Car Following model parameters
-struct CarFollowParam {
-	double alpha;
-	double beta;
-	double gama;
-	double lambda;
-	double rho;
-	double stddev;
-};
+////Simple struct to hold Car Following model parameters
+//struct CarFollowParam {
+//	double alpha;
+//	double beta;
+//	double gama;
+//	double lambda;
+//	double rho;
+//	double stddev;
+//};
 
-//Car following parameters for this model.
-const CarFollowParam CF_parameters[2] = {
-//    alpha   beta    gama    lambda  rho     stddev
-	{ 0.0400, 0.7220, 0.2420, 0.6820, 0.6000, 0.8250},
-	{-0.0418, 0.0000, 0.1510, 0.6840, 0.6800, 0.8020}
-};
+////Car following parameters for this model.
+//const CarFollowParam CF_parameters[2] = {
+////    alpha   beta    gama    lambda  rho     stddev
+//	{ 0.0400, 0.7220, 0.2420, 0.6820, 0.6000, 0.8250},
+//	{-0.0418, 0.0000, 0.1510, 0.6840, 0.6800, 0.8020}
+//};
 
 const double targetGapAccParm[] = {0.604, 0.385, 0.323, 0.0678, 0.217,
 		0.583, -0.596, -0.219, 0.0832, -0.170, 1.478, 0.131, 0.300};
@@ -155,6 +155,37 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	ParameterManager::Instance()->param(modelName,"hbuffer_Upper",hBufferUpperStr,string("1.7498 2.2737 2.5871 2.8379 3.0633 3.2814 3.5068 3.7578 4.0718 4.5979"));
 	makeScaleIdx(hBufferUpperStr,hBufferUpperScale);
 	hBufferUpper = getBufferUppder();
+	// Car following parameters
+	string cfParamStr;
+	ParameterManager::Instance()->param(modelName,"CF_parameters_1",cfParamStr,string("0.0400, 0.7220, 0.2420, 0.6820, 0.6000, 0.8250"));
+	makeCFParam(cfParamStr,CF_parameters[0]);
+	ParameterManager::Instance()->param(modelName,"CF_parameters_2",cfParamStr,string("-0.0418 0.0000 0.1510 0.6840 0.6800 0.8020"));
+	makeCFParam(cfParamStr,CF_parameters[1]);
+
+}
+void sim_mob::MITSIM_CF_Model::makeCFParam(string& s,CarFollowParam& cfParam)
+{
+	std::vector<std::string> arrayStr;
+	vector<double> c;
+	boost::trim(s);
+	boost::split(arrayStr, s, boost::is_any_of(" "),boost::token_compress_on);
+	for(int i=0;i<arrayStr.size();++i)
+	{
+		double res;
+		try {
+				res = boost::lexical_cast<double>(arrayStr[i].c_str());
+			}catch(boost::bad_lexical_cast&) {
+				std::string s = "can not covert <" +s+"> to double.";
+				throw std::runtime_error(s);
+			}
+			c.push_back(res);
+	}
+	cfParam.alpha  = c[0];
+	cfParam.beta   = c[1];
+	cfParam.gama   = c[2];
+	cfParam.lambda = c[3];
+	cfParam.rho    = c[4];
+	cfParam.stddev = c[5];
 }
 void sim_mob::MITSIM_CF_Model::makeScaleIdx(string& s,vector<double>& c)
 {

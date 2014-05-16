@@ -66,6 +66,16 @@ public:
 //MITSIM version of car following model
 class MITSIM_CF_Model : public CarFollowModel {
 public:
+	//Simple struct to hold Car Following model parameters
+	struct CarFollowParam {
+		double alpha;
+		double beta;
+		double gama;
+		double lambda;
+		double rho;
+		double stddev;
+	};
+
 	MITSIM_CF_Model();
 	void initParam();
 	/** \brief make index base on speed scaler
@@ -184,6 +194,14 @@ private:
 	 **/
 	double getBufferUppder();
 	double hBufferLower;
+
+	//Car following parameters
+	CarFollowParam CF_parameters[2];
+	/** \brief convert string to CarFollowParam
+	 *  \param s string data
+	 *  \param cfParam CarFollowParam to store converted double value
+	 **/
+	void makeCFParam(string& s,CarFollowParam& cfParam);
 };
 
 

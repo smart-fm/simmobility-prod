@@ -5,6 +5,7 @@
 /* 
  * File:   DaoTests.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * \author : Gishara Premarathne <gishara@smart.mit.edu>
  * 
  * Created on May 7, 2013, 5:22 PM
  */
@@ -34,6 +35,7 @@ namespace {
     const int ID_TO_GET = 1;
 }
 
+CPPUNIT_TEST_SUITE_REGISTRATION(unit_tests::DaoTests);
 template <typename T, typename K>
 void TestDao(unsigned int ids = 1) {
     PrintOut("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
@@ -56,10 +58,7 @@ void TestDao(unsigned int ids = 1) {
 
         std::vector<K> values;
         dao.getAll(values);
-        PrintOut("GetAll Size: " << values.size() << endl);
-        for (typename std::vector<K>::iterator it = values.begin(); it != values.end(); it++) {
-            PrintOut("Value: " << (*it) << endl);
-        }
+        CPPUNIT_ASSERT_MESSAGE("No values loaded", !values.empty());
     }
 }
 

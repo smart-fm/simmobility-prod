@@ -197,16 +197,6 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     if(BusController::HasBusControllers()) {
     	BusController::DispatchAllControllers(active_agents);
     }
-
-    //Some random stuff with signals??
-    //TODO: Not quite sure how this is supposed to fit into the overall order of things. ~Seth
-    std::vector<Signal*>& all_signals = Signal::all_signals_;
-    for (size_t i=0; i<all_signals.size(); ++i) {
-    	Signal* signal = all_signals.at(i);
-    	LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(dynamic_cast<Signal_SCATS*>(signal)->loopDetector());
-        loopDetector.init(*signal);
-        active_agents.insert(&loopDetector);
-    }
 }
 
 void sim_mob::ExpandAndValidateConfigFile::verifyIncidents()

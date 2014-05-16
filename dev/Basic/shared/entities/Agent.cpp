@@ -381,6 +381,10 @@ void sim_mob::Agent::onEvent(EventId eventId,
 	}
 }
 
+void sim_mob::Agent::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message){
+
+}
+
 void sim_mob::Agent::initRdSegTravelStats(const RoadSegment* rdSeg, double entryTime) {
 	currRdSegTravelStats.rdSeg_ = rdSeg;
 	currRdSegTravelStats.rdSegEntryTime_ = entryTime;

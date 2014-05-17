@@ -61,8 +61,8 @@ double feet2Unit(double feet) {
 //	{-0.0418, 0.0000, 0.1510, 0.6840, 0.6800, 0.8020}
 //};
 
-const double targetGapAccParm[] = {0.604, 0.385, 0.323, 0.0678, 0.217,
-		0.583, -0.596, -0.219, 0.0832, -0.170, 1.478, 0.131, 0.300};
+//const double targetGapAccParm[] = {0.604, 0.385, 0.323, 0.0678, 0.217,
+//		0.583, -0.596, -0.219, 0.0832, -0.170, 1.478, 0.131, 0.300};
 
 ////Acceleration mode// CLA@04/2014 this enum can be deleted
 //enum ACCEL_MODE {
@@ -161,7 +161,10 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	makeCFParam(cfParamStr,CF_parameters[0]);
 	ParameterManager::Instance()->param(modelName,"CF_parameters_2",cfParamStr,string("-0.0418 0.0000 0.1510 0.6840 0.6800 0.8020"));
 	makeCFParam(cfParamStr,CF_parameters[1]);
-
+	//
+	string targetGapAccParmStr;
+	ParameterManager::Instance()->param(modelName,"target_gap_acc_parm",targetGapAccParmStr,string("0.604, 0.385, 0.323, 0.0678, 0.217,0.583, -0.596, -0.219, 0.0832, -0.170, 1.478, 0.131, 0.300"));
+	makeScaleIdx(targetGapAccParmStr,targetGapAccParm);
 }
 void sim_mob::MITSIM_CF_Model::makeCFParam(string& s,CarFollowParam& cfParam)
 {

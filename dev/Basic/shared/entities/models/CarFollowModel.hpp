@@ -202,6 +202,9 @@ private:
 	 *  \param cfParam CarFollowParam to store converted double value
 	 **/
 	void makeCFParam(string& s,CarFollowParam& cfParam);
+
+	// target gap parameters
+	vector<double> targetGapAccParm;
 };
 
 

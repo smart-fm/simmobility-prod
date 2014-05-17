@@ -52,5 +52,7 @@
 #Car following parameters            alpha   beta    gama    lambda  rho     stddev
 <param name="CF_parameters_1" value="0.0400 0.7220 0.2420 0.6820 0.6000 0.8250"/>
 <param name="CF_parameters_2" value="-0.0418 0.0000 0.1510 0.6840 0.6800 0.8020"/>
+# calcBackwardRate() calcAdjacentRate() param
+<param name="target_gap_acc_parm" value="0.604, 0.385, 0.323, 0.0678, 0.217,0.583, -0.596, -0.219, 0.0832, -0.170, 1.478, 0.131, 0.300"/>
 </parameters>
 

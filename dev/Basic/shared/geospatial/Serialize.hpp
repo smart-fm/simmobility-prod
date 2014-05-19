@@ -394,7 +394,6 @@ void write_xml(XmlWriter& write, const sim_mob::ColorSequence &value) {
 	std::vector< std::pair<TrafficColor,int> >::const_iterator it(cd.begin()), it_end(cd.end());
 	for(; it != it_end; it++){
 		write.prop_begin("ColorDuration");
-		std::cout << ColorSequence::getTrafficLightColorString(it->first)<< std::endl;;
 		write.prop("TrafficColor", ColorSequence::getTrafficLightColorString(it->first));
 		write.prop("Duration", it->second);
 		write.prop_end();

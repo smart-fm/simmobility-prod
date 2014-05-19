@@ -935,7 +935,6 @@ void DatabaseLoader::LoadPTBusDispatchFreq(const std::string& storedProc, std::v
 		pt_bus_freqTemp.frequency_id.erase(remove_if(pt_bus_freqTemp.frequency_id.begin(), pt_bus_freqTemp.frequency_id.end(), ::isspace),
 				pt_bus_freqTemp.frequency_id.end());
 		pt_bus_dispatch_freq.push_back(pt_bus_freqTemp);
-		std::cout << pt_bus_freqTemp.frequency_id << " " << pt_bus_freqTemp.route_id << " " << pt_bus_freqTemp.headway_sec << " " << pt_bus_freqTemp.start_time.toString() << std::endl;
 	}
 }
 

@@ -126,7 +126,6 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 		PartitionManager::instance().partition_config->partition_solution_id = partId;
 		std::cout << "partition_solution_id in configuration:" <<partId << std::endl;
 	}
-
 	//Load from database or XML.
 	//TODO: This should be moved into its own class; we should NOT be doing loading in ExpandAndValidate()
 	//      (it is here now to maintain compatibility with the old order or loading things).
@@ -135,10 +134,8 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//TEMP: Test network output via boost.
 	//todo: enable/disble through cinfig
 	BoostSaveXML(cfg.networkXmlOutputFile(), cfg.getNetworkRW());
-
 	//Detect sidewalks in the middle of the road.
 	WarnMidroadSidewalks();
-
  	//Generate lanes, before StreetDirectory::init()
  	RoadNetwork::ForceGenerateAllLaneEdgePolylines(cfg.getNetworkRW());
 

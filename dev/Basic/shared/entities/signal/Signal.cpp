@@ -594,12 +594,6 @@ TrafficColor sim_mob::Signal_SCATS::getDriverLight(Lane const & fromLane, Lane c
 	sim_mob::links_map &linkMap = currPhase.getlinksMap();
 	sim_mob::Phase::links_map_equal_range range = currPhase.getLinkTos(fromLink);
 	sim_mob::Phase::links_map_const_iterator iter;
-//	if(range.first == range.second){
-//		Print() << "From Link [" << fromLink << "] is not in the linksMap(range is empty)\nAvailable maps:" << std::endl;
-//		for(iter = linkMap.begin(); iter != linkMap.end() ; iter++ ){
-//			Print() << "Link-Link [" << iter->first << " , " << iter->second.LinkTo << "]" << std::endl;
-//		}
-//	}
 	for(iter = range.first; iter != range.second ; iter++ )
 	{
 		if((*iter).second.LinkTo == toLink){
@@ -610,12 +604,9 @@ TrafficColor sim_mob::Signal_SCATS::getDriverLight(Lane const & fromLane, Lane c
 	//if the link is not listed in the current phase throw an error (alternatively, just return red)
 	if(iter == range.second)
 	{
-//		std::ostringstream out ("");
-//		Print() << "Unknown link map[" <<  fromLink << "," << toLink << "] out of [" <<linkMap.size() << "] recoreds" << std::endl;
-//		throw std::runtime_error(out.str());
+		//either through an error or return res-your choice
 		return sim_mob::Red;
 	}
-//	Print() << "Retrurning the Color" << std::endl;
 	return (*iter).second.currColor;
 }
 /*checks current phase for the current color of the crossing(if the crossing found),

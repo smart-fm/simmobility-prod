@@ -121,9 +121,8 @@ struct DriverUpdateParams : public UpdateParams {
 	NearestVehicle nvRightFwd2;
 	NearestVehicle nvRightBack2;
 	// used to check vh when do acceleration merging
-	NearestVehicle nvFwdMajorRD; // nearest forward vh on major road, so subject vh is on minor road
-	NearestVehicle nvBackMajorRD;// nearest backward vh on major road, so subject vh is on minor road
-	NearestVehicle nvFwdMinorRD;// nearest forward vh on minor road, so subject vh is on major road
+	NearestVehicle nvOutgoingFreeway; // first vh on outgoing freeway segment,used when subject vh on ramp
+	NearestVehicle nvCominginFreeway;// last vh on comingin freeway,used when subject vh on ramp
 
 	NearestPedestrian npedFwd;
 

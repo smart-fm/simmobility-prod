@@ -168,6 +168,13 @@ private:
 	map<std::string, vector<const sim_mob::RoadSegment*> > route_RoadSegments;
 
 	map<Section*, sim_mob::RoadSegment*> sec_seg_;
+
+	///to store simmobility segment type table data, key = segment aimsun id,value=type
+	///segment type 1:freeway 2:ramp 3:urban road
+	map<std::string,int> segmentTypeMap;
+	///to store simmobility node type table data, key = ndoe aimsun id,value=type
+	///node type 1:urban intersection with signal 2:urban intersection w/o signal 3:priority merge 4:non-priority merge
+	map<std::string,int> nodeTypeMap;
 private:
 	void LoadNodes(const std::string& storedProc);
 	void LoadSections(const std::string& storedProc);
@@ -176,6 +183,9 @@ private:
 	void LoadTurnings(const std::string& storedProc);
 	void LoadPolylines(const std::string& storedProc);
 	void LoadTrafficSignals(const std::string& storedProc);
+
+	void loadSegmentTypeTable(const std::string& storedProc);
+	void loadNodeTypeTable(const std::string& storedProc);
 
 public:
 	void LoadTripchains(const std::string& storedProc);
@@ -485,8 +495,8 @@ void DatabaseLoader::LoadERP_Gantry_Zone(std::map<std::string,sim_mob::ERP_Gantr
 	for (soci::rowset<sim_mob::ERP_Gantry_Zone>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		sim_mob::ERP_Gantry_Zone *s = new sim_mob::ERP_Gantry_Zone(*it);
 		erp_gantry_zone_pool.insert(std::make_pair(s->Gantry_no,s));
-//		std::cout<<"LoadERP_Section: "<<s->Gantry_no<<" "<<s->Zone_Id<<std::endl;
 	}
+//		std::cout<<"LoadERP_Section: "<<s->Gantry_no<<" "<<s->Zone_Id<<std::endl;
 }
 
 void DatabaseLoader::LoadNodes(const std::string& storedProc)
@@ -508,7 +518,20 @@ void DatabaseLoader::LoadNodes(const std::string& storedProc)
 		nodes_[it->id] = *it;
 	}
 }
-
+void DatabaseLoader::loadSegmentTypeTable(const std::string& storedProc)
+{
+	soci::rowset<sim_mob::SegmentType> rs = (sql_.prepare <<"select * from " + storedProc);
+	for (soci::rowset<sim_mob::SegmentType>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+		segmentTypeMap.insert(std::make_pair(it->id,it->type));
+	}
+}
+void DatabaseLoader::loadNodeTypeTable(const std::string& storedProc)
+{
+	soci::rowset<sim_mob::NodeType> rs = (sql_.prepare <<"select * from " + storedProc);
+	for (soci::rowset<sim_mob::NodeType>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+		nodeTypeMap.insert(std::make_pair(it->id,it->type));
+	}
+}
 
 void DatabaseLoader::LoadSections(const std::string& storedProc)
 {
@@ -1000,6 +1023,9 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
 	LoadBusStopSG(getStoredProcedure(storedProcs, "busstopSG", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
+
+	loadSegmentTypeTable(getStoredProcedure(storedProcs, "segment_type"));
+	loadNodeTypeTable(getStoredProcedure(storedProcs, "node_type"));
 
 	//add by xuyan
 	//load in boundary segments (not finished!)

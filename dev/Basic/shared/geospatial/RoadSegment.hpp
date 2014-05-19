@@ -37,7 +37,6 @@ namespace aimsun
 class Loader;
 class LaneLoader;
 } //End aimsun namespace
-
 /**
  * Part of a Link with consistent lane numbering. RoadSegments are unidirectional.
  *

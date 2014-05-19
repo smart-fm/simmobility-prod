@@ -228,8 +228,8 @@ void sim_mob::MITSIM_CF_Model::makeSpeedIndex(VehicleBase::VehicleType vhType,
 		try {
 				res = boost::lexical_cast<double>(arrayStr[i].c_str());
 			}catch(boost::bad_lexical_cast&) {
-				std::string s = "can not covert <" +speedScalerStr+"> to double.";
-				throw std::runtime_error(s);
+				std::string str = "can not covert <" +speedScalerStr+"> to double.";
+				throw std::runtime_error(str);
 			}
 			speedScalerArrayDouble.push_back(res);
 	}
@@ -245,8 +245,8 @@ void sim_mob::MITSIM_CF_Model::makeSpeedIndex(VehicleBase::VehicleType vhType,
 		try {
 				res = boost::lexical_cast<double>(arrayStr[i].c_str());
 			}catch(boost::bad_lexical_cast&) {
-				std::string s = "can not covert <" +cstr+"> to double.";
-				throw std::runtime_error(s);
+				std::string str = "can not covert <" +cstr+"> to double.";
+				throw std::runtime_error(str);
 			}
 			cArrayDouble.push_back(res);
 	}

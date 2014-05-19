@@ -454,7 +454,7 @@ Note: Empty blacklist file.
 <!-- Random seed: 0 -->
 <!-- Num agents: 4000 -->
     <drivers>
-        <driver originPos="37275892, 14304551" destPos="37308483, 14315037" time="4500015"/>
+        <!--<driver originPos="37275892, 14304551" destPos="37308483, 14315037" time="4500015"/>
         <driver originPos="37283599, 14393370" destPos="37137798, 14334895" time="2215104"/>
         <driver originPos="37228235, 14399761" destPos="37300924, 14346211" time="2249467"/>
         <driver originPos="37232503, 14369823" destPos="37312586, 14421775" time="2219731"/>
@@ -4453,7 +4453,7 @@ Note: Empty blacklist file.
         <driver originPos="37250674, 14409559" destPos="37308413, 14306751" time="5016831"/>
         <driver originPos="37275559, 14333268" destPos="37239009, 14293890" time="4414697"/>
         <driver originPos="37262150, 14386897" destPos="37307295, 14310038" time="4931164"/>
-        <driver originPos="37261496, 14346008" destPos="37201403, 14313578" time="4345230"/>
+        <driver originPos="37261496, 14346008" destPos="37201403, 14313578" time="4345230"/>-->
     </drivers>
     
     <pedestrians> 

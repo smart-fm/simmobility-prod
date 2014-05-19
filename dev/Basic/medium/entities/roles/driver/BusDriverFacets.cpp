@@ -98,7 +98,26 @@ void BusDriverMovement::frame_tick() {
 		}
 	}
 	if(params.elapsedSeconds < params.secondsInTick) {
-		DriverMovement::moveToNextSegment(params);
+		DriverMovement::frame_tick();
+	}
+	std::stringstream logout;
+	sim_mob::Person* person = getParent();
+	if(person->getCurrSegStats()) {
+		logout << "(\"BusDriver\""
+				<<","<<person->getId()
+				<<","<<parentBusDriver->getParams().now.frame()
+				<<",{"
+				<<"\"RoadSegment\":\""<< (person->getCurrSegStats()->getRoadSegment()->getSegmentID())
+				<<"\",\"Lane\":\""<<(person->getCurrLane()->getLaneID())
+				<<"\",\"UpNode\":\""<<(person->getCurrSegStats()->getRoadSegment()->getStart()->getID())
+				<<"\",\"DistanceToEndSeg\":\""<<person->distanceToEndOfSegment;
+		if (person->isQueuing) {
+				logout << "\",\"queuing\":\"" << "true";
+		} else {
+				logout << "\",\"queuing\":\"" << "false";
+		}
+		logout << "\"})" << std::endl;
+		Print()<<logout.str();
 	}
 }
 

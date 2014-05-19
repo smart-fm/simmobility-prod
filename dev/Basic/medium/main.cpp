@@ -380,8 +380,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//Test: At this point, it should be possible to delete all Signals and Agents.
 	clear_delete_vector(Signal::all_signals_);
 	clear_delete_vector(Agent::all_agents);
-	tm & pathSetGenerationTotalTime = PathSetManager::Profiler::getTotalTime();
-	cout << "Path seth generation took " << pathSetGenerationTotalTime.tm_hour << ":" << pathSetGenerationTotalTime.tm_min << ":" << pathSetGenerationTotalTime.tm_sec << std::endl;
+	unsigned int pathSetGenerationTotalTime = PathSetManager::Profiler::getTotalTime();
+	cout << "Path seth generation took " << pathSetGenerationTotalTime << " seconds" <<  std::endl;
 	cout << "Simulation complete; closing worker threads." << endl;
 
 	//Delete our profile pointer (if it exists)
@@ -556,6 +556,7 @@ int main(int ARGC, char* ARGV[])
 	timeval simEndTime;
 	gettimeofday(&simEndTime, nullptr);
 
+	sim_mob::Print() << "Total Pathset Calculation Time : "  << sim_mob::PathSetManager::Profiler::getTotalTime() << endl;;
 	Print() << "Done" << endl;
 	cout << "Total simulation time: "<< (ProfileBuilder::diff_ms(simEndTime, simStartTime))/1000.0 << " seconds." << endl;
 

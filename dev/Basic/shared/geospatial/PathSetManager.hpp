@@ -223,52 +223,44 @@ public:
 //	virtual ~PathSetManager();
 	class Profiler {
 		///static variable shared among all profilers
-		static tm totalTime;
+
+		///total time measured by all profilers
+		static uint32_t totalTime;
+		///total number of profilers
+		static int totalProfilers;
+		///mutex to protect access to static objects
+		static boost::mutex mutex_;
 		///stores start and end of profiling
-		tm * first, *second;
+		uint32_t  start, stop;
+		///the profiling object id
+		int myId;
+		///is the profiling object started profiling?
+		bool started;
+		///converts the local time to an unsigned int value
+		static unsigned int tmToUInt(tm);
+		///converts the  unsigned int to a local time value
+		static tm uIntToTm(unsigned int);
 	public:
 		///Constructor + start profiling if init is true
-		Profiler(bool init=false){
-			first = second = 0;
-			if(init){
-				startProfiling();
-			}
-		}
+		Profiler(bool init=false);
 
 		///like it suggests, store the start time of the profiling
-		void startProfiling(){
-			time_t t = time(0);   // get time now
-			first =  localtime( & t );
-		}
+		void startProfiling();
 
 		///save the ending time ...and .. if add==true add the value to the total time;
-		tm endProfiling(bool add=false){
-			if(!first){
-				throw std::runtime_error("Profiler Ended before Starting");
-			}
-			time_t t = time(0);   // get time now
-			second =  localtime( & t );
-			struct tm tmTemp;
-			tmTemp.tm_hour = second->tm_hour - first->tm_hour;
-			tmTemp.tm_min = second->tm_min - first->tm_min;
-			tmTemp.tm_sec = second->tm_sec - first->tm_sec;
-			if(add){
-				addToTotalTime(tmTemp);
-			}
-			return tmTemp;
-		}
+		uint32_t endProfiling(bool add=false);
 
 		///add the given time to the total time
-		void addToTotalTime(tm &value){
-			totalTime.tm_hour+=value.tm_hour;
-			totalTime.tm_min+=value.tm_min;
-			totalTime.tm_sec+=value.tm_sec;
-		}
+		void addToTotalTime(uint32_t);
 
-		static tm & getTotalTime(){
-			return totalTime;
-		}
+		static unsigned int & getTotalTime();
+		static void printTime(struct tm *tm, struct timeval & tv, std::string id);
 
+		uint32_t
+		stampstart();
+
+		uint32_t
+		stampstop();
 	};
 
 

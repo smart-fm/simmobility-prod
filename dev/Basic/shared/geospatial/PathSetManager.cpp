@@ -12,10 +12,12 @@
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
+#include "workers/Worker.hpp"
+
 #include <cmath>
 #include <boost/algorithm/string.hpp>
 #include <boost/regex.hpp>
-#include "workers/Worker.hpp"
+#include <boost/thread/mutex.hpp>
 
 using std::vector;
 using std::string;
@@ -23,7 +25,10 @@ using std::string;
 using namespace sim_mob;
 
 PathSetManager *sim_mob::PathSetManager::instance_;
-tm sim_mob::PathSetManager::Profiler::totalTime;
+uint32_t sim_mob::PathSetManager::Profiler::totalTime = 0;
+int sim_mob::PathSetManager::Profiler::totalProfilers = 0;
+boost::mutex sim_mob::PathSetManager::Profiler::mutex_;
+
 PathSetParam *sim_mob::PathSetParam::instance_ = NULL;
 
 sim_mob::PathSetParam* sim_mob::PathSetParam::getInstance()
@@ -579,6 +584,109 @@ bool sim_mob::PathSetManager::LoadSinglePathDBwithId(
 			waypoint_singlepathPool,pathset_id,spPool);
 	return res;
 }
+
+///converts the local time to an unsigned int value
+unsigned int sim_mob::PathSetManager::Profiler::tmToUInt(tm value){
+	return value.tm_hour*3600 + value.tm_min*60 + value.tm_sec;
+}
+///converts the  unsigned int to a local time value
+tm sim_mob::PathSetManager::Profiler::uIntToTm(unsigned int value){
+	tm output;
+	output.tm_hour = value/3600;
+	output.tm_min = (value - (output.tm_hour*3600)) / 60;
+	output.tm_sec = (value - (output.tm_hour*3600 + output.tm_min*60)) ;
+	return output;
+}
+
+	///Constructor + start profiling if init is true
+sim_mob::PathSetManager::Profiler::Profiler(bool init){
+//		first = second = 0;
+	started = false;
+		{
+			boost::unique_lock<boost::mutex> lock(mutex_);
+			myId = totalProfilers ++;
+		}
+		if(init){
+			startProfiling();
+		}
+	}
+
+	///like it suggests, store the start time of the profiling
+	void sim_mob::PathSetManager::Profiler::startProfiling(){
+		started = true;
+		stampstart();
+	}
+
+	///save the ending time ...and .. if add==true add the value to the total time;
+	uint32_t sim_mob::PathSetManager::Profiler::endProfiling(bool add){
+		if(!started){
+			throw std::runtime_error("Profiler Ended before Starting");
+		}
+		stampstop();
+		uint32_t elapsed = stop - start;
+		Print() << myId << " profiler elapsed " << elapsed << " ms" << std::endl;;
+		if(add){
+			addToTotalTime(elapsed);
+		}
+		return elapsed;
+	}
+
+	///add the given time to the total time
+	void sim_mob::PathSetManager::Profiler::addToTotalTime(uint32_t value){
+		boost::unique_lock<boost::mutex> lock(mutex_);
+		Print() << "Profiler " << myId << " Adding " << value << " seconds to total time " << std::endl;
+		totalTime+=value;
+	}
+
+	unsigned int & sim_mob::PathSetManager::Profiler::getTotalTime(){
+		boost::unique_lock<boost::mutex> lock(mutex_);
+		return totalTime;
+	}
+
+	void sim_mob::PathSetManager::Profiler::printTime(struct tm *tm, struct timeval & tv, std::string id){
+
+		printf("%s\t  %d:%02d:%02d:%d \n",id.c_str(), tm->tm_hour,
+		       tm->tm_min, tm->tm_sec, tv.tv_usec);
+	}
+
+	uint32_t
+	sim_mob::PathSetManager::Profiler::stampstart()
+	{
+		struct timeval  tv;
+		struct timezone tz;
+		struct tm      *tm;
+
+		gettimeofday(&tv, &tz);
+		tm = localtime(&tv.tv_sec);
+
+		start = tm->tm_hour * 3600 * 1000 + tm->tm_min * 60 * 1000 +
+			tm->tm_sec * 1000 + tv.tv_usec / 1000;
+		std::ostringstream out("");
+		printTime(tm, tv, "TIMESTAMP-START");
+		return (start);
+
+	}
+
+	uint32_t
+	sim_mob::PathSetManager::Profiler::stampstop()
+	{
+
+		struct timeval  tv;
+		struct timezone tz;
+		struct tm      *tm;
+
+		gettimeofday(&tv, &tz);
+		tm = localtime(&tv.tv_sec);
+
+		stop = tm->tm_hour * 3600 * 1000 + tm->tm_min * 60 * 1000 +
+			tm->tm_sec * 1000 + tv.tv_usec / 1000;
+
+		printf("TIMESTAMP-END\t  %d:%02d:%02d:%d (~%d ms) \n", tm->tm_hour,
+		       tm->tm_min, tm->tm_sec, tv.tv_usec,stop);
+
+		return (stop);
+	}
+
 bool sim_mob::PathSetManager::generateAllPathSetWithTripChain()
 {
 	const std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool =
@@ -1005,6 +1113,7 @@ bool sim_mob::PathSetManager::getFromTo_BestPath_fromPool(std::string id, std::v
 }
 vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 {
+	Profiler profiler(true);
 	// get person id and current subtrip id
 	std::string personId = per->getDatabaseId();
 	std::vector<sim_mob::SubTrip>::const_iterator currSubTripIt = per->currSubTrip;
@@ -1034,6 +1143,9 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 //		vector<WayPoint> res = generateBestPathChoice2(subTrip);
 		vector<WayPoint> res = generateBestPathChoiceMT(subTrip);
 		sql = NULL;
+
+		profiler.endProfiling(true);
+		Print() << "Total profiling time :" << profiler.getTotalTime() << std::endl;
 		return res;
 //	}
 

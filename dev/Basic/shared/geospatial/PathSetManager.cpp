@@ -12,6 +12,7 @@
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
+#include "geospatial/PathSet/PathSetThreadPool.h"
 #include "workers/Worker.hpp"
 
 #include <cmath>
@@ -25,9 +26,9 @@ using std::string;
 using namespace sim_mob;
 
 PathSetManager *sim_mob::PathSetManager::instance_;
-uint32_t sim_mob::PathSetManager::Profiler::totalTime = 0;
+//uint32_t sim_mob::PathSetManager::Profiler::totalTime = 0;
 int sim_mob::PathSetManager::Profiler::totalProfilers = 0;
-boost::mutex sim_mob::PathSetManager::Profiler::mutex_;
+//boost::mutex sim_mob::PathSetManager::Profiler::mutex_;
 
 PathSetParam *sim_mob::PathSetParam::instance_ = NULL;
 
@@ -586,18 +587,51 @@ bool sim_mob::PathSetManager::LoadSinglePathDBwithId(
 }
 
 ///Constructor + start profiling if init is true
-sim_mob::PathSetManager::Profiler::Profiler(bool init, std::string id_){
-//		first = second = 0;
+sim_mob::PathSetManager::Profiler::Profiler(bool init, std::string id_, std::string path){
+	reset();
+	start = stop = totalTime = 0;
 	started = false;
-		{
-			boost::unique_lock<boost::mutex> lock(mutex_);
-			index = totalProfilers ++;
-		}
-		id = id_;
-		if(init){
-			startProfiling();
+	output.clear();
+	outputSize = 0;
+	{
+		boost::unique_lock<boost::mutex> lock(mutex_);
+		index = totalProfilers ++;
+	}
+	id = id_;
+	if(path.size()){
+		InitLogFile(path);
+	}
+	if(init){
+		startProfiling();
+	}
+}
+sim_mob::PathSetManager::Profiler::~Profiler(){
+	if(LogFile.is_open()){
+		boost::unique_lock<boost::mutex> lock(mutexOutput);
+		if (!(LogFile.is_open() && LogFile.good())) {
+			LogFile << output;
+			LogFile.flush();
+			LogFile.close();
 		}
 	}
+}
+
+void sim_mob::PathSetManager::Profiler::InitLogFile(const string& path)
+{
+	LogFile.open(path.c_str());
+	if (LogFile.fail()) {
+		throw std::runtime_error("Couldn't open Profile Builder log file.");
+	}
+}
+
+///whoami
+std::string sim_mob::PathSetManager::Profiler::getId(){
+	return id;
+}
+///whoami
+int sim_mob::PathSetManager::Profiler::getIndex(){
+	return index;
+}
 
 	///like it suggests, store the start time of the profiling
 	void sim_mob::PathSetManager::Profiler::startProfiling(){
@@ -606,28 +640,45 @@ sim_mob::PathSetManager::Profiler::Profiler(bool init, std::string id_){
 	}
 
 	///save the ending time ...and .. if add==true add the value to the total time;
-	uint32_t sim_mob::PathSetManager::Profiler::endProfiling(bool add){
+	uint32_t sim_mob::PathSetManager::Profiler::endProfiling(){
 		if(!started){
 			throw std::runtime_error("Profiler Ended before Starting");
 		}
 		stampstop();
 		uint32_t elapsed = stop - start;
 		Print() << "[" << index << ":" << id << "] profiler elapsed " << elapsed << " ms" << std::endl;;
-		if(add){
-			addToTotalTime(elapsed);
-		}
 		return elapsed;
 	}
 
 	///add the given time to the total time
 	void sim_mob::PathSetManager::Profiler::addToTotalTime(uint32_t value){
-		boost::unique_lock<boost::mutex> lock(mutex_);
+		boost::unique_lock<boost::mutex> lock(mutexTotalTime);
 		Print() << "Profiler "  << "[" << index << ":" << id << "] Adding " << value << " seconds to total time " << std::endl;
 		totalTime+=value;
 	}
+	std::ostringstream & sim_mob::PathSetManager::Profiler::outPut(){
+		boost::unique_lock<boost::mutex> lock(mutexOutput);
+		return output;
+	}
 
+	void sim_mob::PathSetManager::Profiler::addOutPut(std::ostringstream & s){
+		boost::unique_lock<boost::mutex> lock(mutexOutput);
+		outputSize+=s.str().size();
+		output << s;
+		if(outputSize > 1000000){
+			if (!(LogFile.is_open() && LogFile.good())) {
+				LogFile << output;
+				LogFile.flush();
+				output.str("");
+				outputSize = 0;
+			}
+			else{
+				Warn() << "pathset profiler log ignored" << std::endl;
+			}
+		}
+	}
 	unsigned int & sim_mob::PathSetManager::Profiler::getTotalTime(){
-		boost::unique_lock<boost::mutex> lock(mutex_);
+		boost::unique_lock<boost::mutex> lock(mutexTotalTime);
 		return totalTime;
 	}
 
@@ -674,7 +725,17 @@ sim_mob::PathSetManager::Profiler::Profiler(bool init, std::string id_){
 
 		return (stop);
 	}
-
+	void sim_mob::PathSetManager::Profiler::reset(){
+		start = stop = totalTime = 0;
+		started = false;
+		output.clear();
+		id = "";
+		{
+			boost::unique_lock<boost::mutex> lock(mutex_);
+			index = totalProfilers ++;
+		}
+		//index
+	}
 bool sim_mob::PathSetManager::generateAllPathSetWithTripChain()
 {
 	const std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool =
@@ -1103,7 +1164,7 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 {
 	std::ostringstream id("");
 	id << per << "-" << per->currWorkerProvider;
-	Profiler profiler(true, id.str());
+	Profiler profiler(true, id.str(),"path_set_profiler.txt");
 	// get person id and current subtrip id
 	std::string personId = per->getDatabaseId();
 	std::vector<sim_mob::SubTrip>::const_iterator currSubTripIt = per->currSubTrip;
@@ -1131,14 +1192,14 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 //	else
 //	{
 //		vector<WayPoint> res = generateBestPathChoice2(subTrip);
-		vector<WayPoint> res = generateBestPathChoiceMT(subTrip);
+		vector<WayPoint> res = generateBestPathChoiceMT(subTrip, profiler);
 		sql = NULL;
-
-		profiler.endProfiling(true);
-		Print() << "Total profiling time :" << profiler.getTotalTime() << std::endl;
+		std::ostringstream out("");
+		out << "Total profiling time(ms) for person " << id.str() << " :" << profiler.endProfiling() << std::endl;
+		profiler.addOutPut(out) ;
+		Print() << out.str();
 		return res;
 //	}
-
 }
 vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob::SubTrip* st)
 {
@@ -1342,11 +1403,12 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 
 	return res;
 }
-vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st)
+vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler)
 {
 	vector<WayPoint> res;
 	std::string subTripId = st->tripID;
 //	sim_mob::PathSet *ps = NULL;
+	std::ostringstream out("");
 	if(st->mode == "Car") //only driver need path set
 	{
 		const sim_mob::Node* fromNode = st->fromLocation.node_;
@@ -1354,20 +1416,34 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 		std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
 		std::string mys=fromId_toId;
 		//check catch
+		sim_mob::PathSetManager::Profiler getFromTo_BestPath_fromPool_Profiler(true);
 		if(getFromTo_BestPath_fromPool(fromId_toId,res))
 		{
+
+			out << "getFromTo_BestPath_fromPool:true:" << getFromTo_BestPath_fromPool_Profiler.endProfiling() << std::endl;
+			personProfiler.addOutPut(out);
 			return res;
 		}
+		out.str("");
+		out  << "getFromTo_BestPath_fromPool:false:" << getFromTo_BestPath_fromPool_Profiler.endProfiling() << std::endl;
+		personProfiler.addOutPut(out);
 		//
 		mys = "'"+mys+"'";
 		sim_mob::PathSet ps_;
 //		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithId(
 //				ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 //				ps_,mys);
+		Profiler hasPSinDB_Profiler(true);
 		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
 								*sql,
 								ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 								ps_,mys);
+		//time taken to find out if there is a path set in DB
+
+		out.str("");
+		out << "hasPSinDB:" << (hasPSinDB ? "true" : "false" ) << ":" << hasPSinDB_Profiler.endProfiling() << std::endl;
+		personProfiler.addOutPut(out);
+
 		if(ps_.has_path == -1) //no path
 		{
 			return res;
@@ -1384,19 +1460,27 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 //						id_sp,
 //						mys,
 //						ps_.pathChoices);
+				Profiler hasSPinDB_Profiler(true);
 				bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(
 										*sql,
 										ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 										id_sp,
 										mys,
 										ps_.pathChoices);
+
+				out.str("");
+				out << "hasSPinDB:" << (hasSPinDB ? "true" : "false" ) << ":" << hasSPinDB_Profiler.endProfiling() << std::endl;
+				personProfiler.addOutPut(out);
+
 				if(hasSPinDB)
 				{
+					bool r = false;
+					Profiler getBestPathChoiceFromPathSetProfiler(true);
 					std::map<std::string,sim_mob::SinglePath*>::iterator it = id_sp.find(ps_.singlepath_id);
 					if(it!=id_sp.end())
 					{
 						ps_.oriPath = id_sp[ps_.singlepath_id];
-						bool r = getBestPathChoiceFromPathSet(ps_);
+						r = getBestPathChoiceFromPathSet(ps_);
 						if(r)
 						{
 							res = sim_mob::convertWaypointP2Wp(ps_.bestWayPointpathP);
@@ -1409,17 +1493,22 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 							}
 							ps_.pathChoices.clear();
 							insertFromTo_BestPath_Pool(fromId_toId,res);
-							return res;
+//							return res;
 						}
-						else
+//						else
 							return res;
 					}
 					else
 					{
 						std::string str = "gBestPC2: oriPath not find,no path for this nodes pair ";
 						Print()<<str<<std::endl;
-						return res;
+//						return res;
 					}
+
+					out.str("");
+					out << "getBestPathChoiceFromPathSetProfiler:" << (r ? "true" : "false" ) << ":" << getBestPathChoiceFromPathSetProfiler.endProfiling() << std::endl;
+					personProfiler.addOutPut(out);
+					return res;
 				}// hasSPinDB
 			}
 		} // hasPSinDB
@@ -1479,28 +1568,44 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 //			s->travle_time = getTravelTime(s);
 //			ps_.pathChoices.push_back(s);
 
-			if(!generateAllPathChoicesMT(&ps_))
+			personProfiler.addOutPut(out);
+
+			if(!generateAllPathChoicesMT(&ps_, personProfiler))
 			{
+				out.str("");
+				out << "generateAllPathChoicesMT:false" << std::endl;
+				personProfiler.addOutPut(out);
 				return res;
 			}
+			out.str("");
+			out << "generateAllPathChoicesMT:true" << std::endl;
+			personProfiler.addOutPut(out);
 
 			for(std::map<std::string,sim_mob::SinglePath*>::iterator it=ps_.SinglePathPool.begin();it!=ps_.SinglePathPool.end();++it)
 			{
 				sim_mob::SinglePath* sp = (*it).second;
 				ps_.pathChoices.push_back(sp);
 			}
+			sim_mob::PathSetManager::Profiler generatePathSizeForPathSet2_Profiler(true);
 			sim_mob::generatePathSizeForPathSet2(&ps_);
+			out.str("");
+			out << "GENERATE_PATH_SIZE_FOR_PATH_SET:" << generatePathSizeForPathSet2_Profiler.endProfiling() << std::endl;
+			personProfiler.addOutPut(out);
 
 			std::map<std::string,sim_mob::PathSet* > tmp;
 			tmp.insert(std::make_pair(fromId_toId,&ps_));
 //			sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),tmp);
+			sim_mob::PathSetManager::Profiler storePaths_Profiler(true);
 			pathSetParam->storePathSet(*sql,tmp);
 			pathSetParam->storeSinglePath(*sql,ps_.pathChoices);
+			out.str("");
+			out << "STORE_PATH:" << storePaths_Profiler.endProfiling() << std::endl;
+			personProfiler.addOutPut(out);
 			//
 			// save pathset to loacl container
 //			PathSet *newPs = new PathSet(ps_);
 //			ODPathSetPool.insert(std::make_pair(fromId_toId,newPs));
-
+			sim_mob::PathSetManager::Profiler getBestPathChoiceFromPathSet_Profiler(true);
 			bool r = getBestPathChoiceFromPathSet(ps_);
 			// generate all node to current end node
 //				generatePathset2AllNode(toNode,st);
@@ -1518,17 +1623,22 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 //				ps_.pathChoices.clear();
 //				ps_.SinglePathPool.clear();
 				// delete threadWord->s
-				return res;
+//				return res;
 			}
-			else
-				return res;
+//			else
+			out.str("");
+			out << "GET_BEST_PATH_CHOICE_FROM_PATHSET:" << (r? "true" : "false") << ":" << 	getBestPathChoiceFromPathSet_Profiler.endProfiling() << std::endl;
+			personProfiler.addOutPut(out);
+			return res;
 		}
 	} //end car
 	return res;
 }
-bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps)
+bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & personProfiler)
 {
+	std::ostringstream out("");
 	std::map<std::string,SinglePath*> pool;
+	Profiler generateSinglePathByFromToNodes3_Profiler(true);
 	sim_mob::SinglePath *s = generateSinglePathByFromToNodes3(ps->fromNode,ps->toNode,pool);
 	if(!s)
 	{
@@ -1543,8 +1653,15 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps)
 		std::map<std::string,sim_mob::PathSet* > tmp;
 		tmp.insert(std::make_pair(ps->id,ps));
 		sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),tmp);
+		out.str("");
+		out << "generateSinglePathByFromToNodes3:false" << generateSinglePathByFromToNodes3_Profiler.endProfiling()  << std::endl;
+		personProfiler.addOutPut(out);
 		return false;
 	}
+	out.str("");
+	out << "generateSinglePathByFromToNodes3:true" << generateSinglePathByFromToNodes3_Profiler.endProfiling() << std::endl;
+	personProfiler.addOutPut(out);
+
 	//	Print()<<"generatePathSetByFromToNodes0"<<std::endl;
 	//	// 1.31 check path pool
 	//	std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
@@ -1559,13 +1676,23 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps)
 	ps->singlepath_id = s->id;
 	s->pathset_id = ps->id;
 	s->pathSet = ps;
+	Profiler getTravelCost2_Profiler(true);
 	s->travel_cost = sim_mob::getTravelCost2(s);
+	out.str("");
+	out << "TRAVEL_TIME_COST:" << getTravelCost2_Profiler.endProfiling() << std::endl;
+	personProfiler.addOutPut(out);
+	Profiler getTravelTime_Profiler(true);
 	s->travle_time = getTravelTime(s);
+	out.str("");
+	out << "TRAVEL_TIME:" << getTravelTime_Profiler.endProfiling() << std::endl;
+	personProfiler.addOutPut(out);
 //	ps->pathChoices.push_back(s);
 
 	threadPool->initWorkerIndex();
 
-	// shortest distance link elimination
+	// SHORTEST DISTANCE LINK ELIMINATION
+	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
+	Profiler shortestDistanceLinkElimination_Profiler;
 	sim_mob::Link *l = NULL;
 //	std::vector<threadArg*> threadArgPool;
 	std::vector<PathSetWorkerThread*> workPool;
@@ -1585,6 +1712,9 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps)
 			const sim_mob::RoadSegment* seg = w->roadSegment_;
 //			PathSetWorkerThread *work = new PathSetWorkerThread();
 			PathSetWorkerThread *work = threadPool->getWorker();
+			//introducing the profiling time accumulator
+			//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
+			work->parentProfiler = &shortestDistanceLinkElimination_Profiler;
 			work->graph = &impl->drivingMap_;
 			work->segmentLookup = &impl->drivingSegmentLookup_;
 			work->fromVertex = fromV;
@@ -1625,8 +1755,11 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps)
 
 		} //ROAD_SEGMENT
 	}
+
 	// shortest travel time link elimination
 	// travel time
+	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
+	Profiler shortestTravelTimeLinkElimination_Profiler;
 	l=NULL;
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir->getTravelTimeImpl();
 	from = sttpImpl->DrivingVertexNormalTime(*ps->fromNode);
@@ -1643,6 +1776,9 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps)
 				const sim_mob::RoadSegment* seg = w->roadSegment_;
 //				PathSetWorkerThread *work = new PathSetWorkerThread();
 				PathSetWorkerThread *work = threadPool->getWorker();
+				//introducing the profiling time accumulator
+				//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
+				work->parentProfiler = &shortestTravelTimeLinkElimination_Profiler;
 				work->graph = &sttpImpl->drivingMap_Default;
 				work->segmentLookup = &sttpImpl->drivingSegmentLookup_Default_;
 				work->fromVertex = fromV;
@@ -1658,7 +1794,10 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps)
 			} //ROAD_SEGMENT
 		}//for
 	}//if sinPathTravelTimeDefault
-	// travel time highway bias
+
+	// TRAVEL TIME HIGHWAY BIAS
+	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
+	Profiler shortestTravelTimeLinkEliminationHighwayBias_Profiler;
 	l=NULL;
 	SinglePath *sinPathHightwayBias = generateShortestTravelTimePath(ps->fromNode,ps->toNode,pool,sim_mob::HighwayBias_Distance);
 	from = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->fromNode);
@@ -1674,6 +1813,9 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps)
 				const sim_mob::RoadSegment* seg = w->roadSegment_;
 //				PathSetWorkerThread *work = new PathSetWorkerThread();
 				PathSetWorkerThread *work = threadPool->getWorker();
+				//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
+				//introducing the profiling time accumulator
+				work->parentProfiler = &shortestTravelTimeLinkEliminationHighwayBias_Profiler;
 				work->graph = &sttpImpl->drivingMap_HighwayBias_Distance;
 				work->segmentLookup = &sttpImpl->drivingSegmentLookup_HighwayBias_Distance_;
 				work->fromVertex = fromV;
@@ -1689,7 +1831,9 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps)
 			} //ROAD_SEGMENT
 		}//for
 	}//if sinPathTravelTimeDefault
+
 	// generate random path
+	Profiler randomPath_Profiler;
 	for(int i=0;i<20;++i)
 	{
 		from = sttpImpl->DrivingVertexRandom(*ps->fromNode,i);
@@ -1698,6 +1842,9 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps)
 		toV = &to.sink;
 //		PathSetWorkerThread *work = new PathSetWorkerThread();
 		PathSetWorkerThread *work = threadPool->getWorker();
+		//introducing the profiling time accumulator
+		//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
+		work->parentProfiler = &randomPath_Profiler;
 		work->graph = &sttpImpl->drivingMap_Random_pool[i];
 		work->segmentLookup = &sttpImpl->drivingSegmentLookup_Random_pool[i];
 		work->fromVertex = fromV;
@@ -1711,11 +1858,19 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps)
 		threadPool->assignWork(work);
 		workPool.push_back(work);
 	}
+
 	while(threadPool->incompleteWork > 0)
 	{
 //		std::cout<<"incompleteWork: "<<threadPool->incompleteWork<<std::endl;
 		usleep(0.01);
 	}
+	//now that all the threads have concluded, get the total times
+	out.str("");
+	out << "SHORTEST_DISTANCE_LE:" << shortestDistanceLinkElimination_Profiler.getTotalTime() << std::endl;
+	out << "SHORTEST_TRAVEL_TIME_LE:" << shortestTravelTimeLinkElimination_Profiler.getTotalTime() << std::endl;
+	out << "SHORTEST_TRAVEL_TIME_LE_HIGHWAY_BIAS:" << shortestTravelTimeLinkEliminationHighwayBias_Profiler.getTotalTime() << std::endl;
+	out << "RANDOM_PATH:" << randomPath_Profiler.getTotalTime() << std::endl;
+	personProfiler.addOutPut(out);
 	ps->SinglePathPool.insert(std::make_pair(ps->oriPath->id,ps->oriPath));
 	for(int i=0;i<workPool.size();++i)
 	{

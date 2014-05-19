@@ -30,9 +30,10 @@
 #include <semaphore.h>
 #include <iostream>
 #include <vector>
+#include "geospatial/PathSetManager.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 //#include "geospatial/streetdir/PublicTransportStreetDirectory.h"
-#include "geospatial/PathSetManager.hpp"
+
 
 using namespace std;
 namespace sim_mob
@@ -62,6 +63,7 @@ public:
 	SinglePath *s;
 	PathSet *ps;
 	bool hasPath;
+	sim_mob::PathSetManager::Profiler *parentProfiler;
 };
 
 //class PublicTransportPathSetWorkerThread : public PathSetWorkerThread{

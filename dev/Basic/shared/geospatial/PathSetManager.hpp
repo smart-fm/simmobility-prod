@@ -24,7 +24,7 @@
 #include "RoadNetwork.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "geospatial/PathSet/PathSetThreadPool.h"
+
 #include "soci.h"
 #include "soci-postgresql.h"
 
@@ -225,11 +225,13 @@ public:
 		///static variable shared among all profilers
 
 		///total time measured by all profilers
-		static uint32_t totalTime;
+		uint32_t totalTime;
 		///total number of profilers
 		static int totalProfilers;
-		///mutex to protect access to static objects
-		static boost::mutex mutex_;
+		///mutex to protect access by multiple threads
+		boost::mutex mutex_;//for index
+		boost::mutex mutexTotalTime;//for total time
+		boost::mutex mutexOutput;//for output stream
 		///stores start and end of profiling
 		uint32_t  start, stop;
 		///the profiling object id
@@ -237,20 +239,39 @@ public:
 		std::string id;
 		///is the profiling object started profiling?
 		bool started;
+		///print output
+		std::ostringstream output;
+		///for efficiency
+		int outputSize;
+		///logger
+		std::ofstream LogFile;
+
 	public:
 		///Constructor + start profiling if init is true
-		Profiler(bool init=false, std::string id_ = "");
+		Profiler(bool init=false, std::string id_ = "", std::string logger = "");
+		~Profiler();
+		///initialize the logger that profiler writes to
+		void InitLogFile(const std::string& path);
+
+		///whoami
+		std::string getId();
+		int getIndex();
 
 		///like it suggests, store the start time of the profiling
 		void startProfiling();
 
 		///save the ending time ...and .. if add==true add the value to the total time;
-		uint32_t endProfiling(bool add=false);
+		uint32_t endProfiling();
 
 		///add the given time to the total time
 		void addToTotalTime(uint32_t);
 
-		static unsigned int & getTotalTime();
+		///getoutput
+		std::ostringstream & outPut();
+		///add efficiently to output variable. write to log file occasionally
+		void addOutPut(std::ostringstream & s);
+
+		unsigned int & getTotalTime();
 		static void printTime(struct tm *tm, struct timeval & tv, std::string id);
 
 		uint32_t
@@ -258,6 +279,8 @@ public:
 
 		uint32_t
 		stampstop();
+
+		void reset();
 	};
 
 
@@ -302,8 +325,8 @@ public:
 	std::vector<WayPoint> generateBestPathChoice(sim_mob::Person* per,
 			sim_mob::PathSet* ps,bool isReGenerate=false);
 	std::vector<WayPoint> generateBestPathChoice2(const sim_mob::SubTrip* st);
-	std::vector<WayPoint> generateBestPathChoiceMT(const sim_mob::SubTrip* st);
-	bool generateAllPathChoicesMT(PathSet* ps);
+	std::vector<WayPoint> generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler);
+	bool generateAllPathChoicesMT(PathSet* ps, Profiler & personProfiler);
 	void generateTravelTimeSinglePathes(const sim_mob::Node *fromNode,
 			   const sim_mob::Node *toNode,
 			   std::map<std::string,SinglePath*>& wp_spPool,

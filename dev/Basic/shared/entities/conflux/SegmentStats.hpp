@@ -280,6 +280,7 @@ protected:
 	uint8_t positionInRoadSegment; //segment can have multiple segment stats. This gives the position of this SegmentStats in segment.
 	LaneStatsMap laneStatsMap;
 	std::map<const sim_mob::Lane*, sim_mob::Person* > frontalAgents;
+
 	AgentList  busStopAgents;
 	double length;
 

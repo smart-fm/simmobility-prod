@@ -106,6 +106,19 @@ void BusStopAgent::HandleMessage(messaging::Message::MessageType type,
 		boardWaitingPersons(msg.busDriver);
 		break;
 	}
+	case MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP: {
+		const ArriavalAtStopMessage& msg = MSG_CAST(ArriavalAtStopMessage,
+				message);
+		Person* person = msg.waitingPerson;
+		Role* role = person->getRole();
+		if (role) {
+			WaitBusActivity* waitPerson = dynamic_cast<WaitBusActivity*>(role);
+			if (waitPerson) {
+				registerWaitingPerson(waitPerson);
+			}
+		}
+		break;
+	}
 	default: {
 		break;
 	}

@@ -26,7 +26,8 @@ class Loader;
 }
 
 enum {
-	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000
+	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000,
+	MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP = 5000001
 };
 
 /**
@@ -37,6 +38,17 @@ public:
 	PedestrianRequestMessageArgs(Person* inPerson):pedestrian(inPerson){;}
 	virtual ~PedestrianRequestMessageArgs() {}
 	Person* pedestrian;
+};
+
+/**
+ * Subclass wraps a bus stop into message so as to make alighting decision.
+ * This is to allow it to function as an message callback parameter.
+ */
+class ArriavalAtStopMessage : public messaging::Message {
+public:
+	ArriavalAtStopMessage(Person* person):waitingPerson(person){;}
+	virtual ~ArriavalAtStopMessage() {}
+	Person* waitingPerson;
 };
 
 struct cmp_person_remainingTimeThisTick : public std::greater<Person*> {
@@ -171,6 +183,12 @@ private:
 	 * calls frame_tick() for bus stop agent
 	 */
 	void updateBusStopAgents();
+
+	/**
+	 * assign a waiting person to bus stop agent
+	 * @param person is with the role "waiting bus activity"
+	 */
+	void assignPersonToBusStopAgent(Person* person);
 
 	/**
 	 * calls frame_init of the movement facet for the person's role

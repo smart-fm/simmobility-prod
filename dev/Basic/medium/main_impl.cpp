@@ -37,6 +37,7 @@
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/Lane.hpp"
 #include "logging/Log.hpp"
 #include "util/DailyTime.hpp"
@@ -109,6 +110,7 @@ bool performMainSupply(const std::string& configFileName,
 			ConfigManager::GetInstanceRW().FullConfig().getSegmentStatsWithBusStops();
 	std::set<sim_mob::SegmentStats*>::iterator itSegStats;
 	std::vector<const sim_mob::BusStop*>::iterator itBusStop;
+	StreetDirectory& strDirectory= StreetDirectory::instance();
 	for (itSegStats = segmentStats.begin(); itSegStats != segmentStats.end();
 			itSegStats++) {
 		std::vector<const sim_mob::BusStop*>& busStops =
@@ -118,6 +120,7 @@ bool performMainSupply(const std::string& configFileName,
 			sim_mob::medium::BusStopAgent* busStopAgent =
 					new sim_mob::medium::BusStopAgent(mtx, -1, *itBusStop, *itSegStats);
 			(*itSegStats)->addBusStopAgent(busStopAgent);
+			strDirectory.registerStopAgent(*itBusStop, busStopAgent);
 		}
 	}
 	//Load our user config file, which is a time costly function

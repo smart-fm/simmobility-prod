@@ -72,17 +72,35 @@ sim_mob::Conflux::~Conflux()
 
 
 void sim_mob::Conflux::addAgent(sim_mob::Person* person, const sim_mob::RoadSegment* rdSeg) {
-	/*
-	 * Persons start at a node (for now).
-	 * we will always add the Person to the road segment in "lane infinity".
-	 */
-	SegmentStatsList& statsList = segmentAgents.find(rdSeg)->second;
-	sim_mob::SegmentStats* rdSegStats = statsList.front(); // we will start the person at the first segment stats of the segment
-	person->setCurrSegStats(rdSegStats);
-	person->setCurrLane(rdSegStats->laneInfinity);
-	person->distanceToEndOfSegment = rdSegStats->getLength();
-	person->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranSecond();
-	rdSegStats->addAgent(rdSegStats->laneInfinity, person);
+
+	Role* role = person->getRole();
+	if(!role){
+		UpdateStatus res = person->checkTripChain();
+		if(res.status==UpdateStatus::RS_CONTINUE){
+			return;
+		}
+		role = person->getRole();
+	}
+
+	if(role->roleType==Role::RL_DRIVER){
+		/*
+		 * Persons start at a node (for now).
+		 * we will always add the Person to the road segment in "lane infinity".
+		 */
+		SegmentStatsList& statsList = segmentAgents.find(rdSeg)->second;
+		sim_mob::SegmentStats* rdSegStats = statsList.front(); // we will start the person at the first segment stats of the segment
+		person->setCurrSegStats(rdSegStats);
+		person->setCurrLane(rdSegStats->laneInfinity);
+		person->distanceToEndOfSegment = rdSegStats->getLength();
+		person->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranSecond();
+		rdSegStats->addAgent(rdSegStats->laneInfinity, person);
+	}
+	else if(role->roleType==Role::RL_PEDESTRIAN){
+		pedestrianList.push_back(person);
+	}
+	else if(role->roleType==Role::RL_WAITBUSACTITITY){
+		assignPersonToBusStopAgent(person);
+	}
 }
 
 UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
@@ -850,6 +868,30 @@ void sim_mob::Conflux::updateBusStopAgents()
 				upStrmSegMapIt->second.begin();
 				segStatsIt != upStrmSegMapIt->second.end(); segStatsIt++) {
 			(*segStatsIt)->updateBusStopAgents(currFrameNumber);
+		}
+	}
+}
+
+void sim_mob::Conflux::assignPersonToBusStopAgent(Person* person)
+{
+	Role* role = person->getRole();
+	if (role && role->roleType == Role::RL_WAITBUSACTITITY) {
+		const BusStop* stop = nullptr;
+		if (person->originNode.type_ == WayPoint::BUS_STOP) {
+			stop = person->originNode.busStop_;
+		}
+
+		if (!stop) {
+			return;
+		}
+
+		const StreetDirectory& strDirectory = StreetDirectory::instance();
+		Agent* busStopAgent = strDirectory.findBusStopAgentByBusStop(stop);
+		if (busStopAgent) {
+			messaging::MessageBus::PostMessage(busStopAgent,
+					MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP,
+					messaging::MessageBus::MessagePtr(
+							new ArriavalAtStopMessage(person)));
 		}
 	}
 }

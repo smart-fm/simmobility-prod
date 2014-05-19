@@ -34,7 +34,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/signal/Signal.hpp"
-
+#include "entities/Agent.hpp"
 #include "entities/TrafficWatch.hpp"
 #include "A_StarShortestPathImpl.hpp"
 #include "AStarShortestTravelTimePathImpl.hpp"
@@ -299,6 +299,21 @@ const sim_mob::RoadSegment* sim_mob::StreetDirectory::getRoadSegment(const unsig
 	}
 
 	return pimpl_->getRoadSegment(id);
+}
+
+Agent* sim_mob::StreetDirectory::findBusStopAgentByBusStop(const BusStop* busStop) const
+{
+	try {
+		return allBusStopAgents.at(busStop);
+	}
+	catch (const std::out_of_range& err) {
+		return nullptr;
+	}
+}
+
+void sim_mob::StreetDirectory::registerStopAgent(const BusStop* busStop, Agent* busStopAgent)
+{
+	allBusStopAgents[busStop] = busStopAgent;
 }
 
 double sim_mob::StreetDirectory::GetShortestDistance(const Point2D& origin, const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4)

@@ -108,6 +108,7 @@ struct DriverUpdateParams : public UpdateParams {
 	//Nearest vehicles' distances are initialized to threshold values.
 	bool isAlreadyStart;
 	bool isBeforIntersecton;
+	// used to check vh opposite intersection
 	NearestVehicle nvFwdNextLink;
 	NearestVehicle nvFwd;
 	NearestVehicle nvBack;
@@ -119,6 +120,10 @@ struct DriverUpdateParams : public UpdateParams {
 	NearestVehicle nvLeftBack2;
 	NearestVehicle nvRightFwd2;
 	NearestVehicle nvRightBack2;
+	// used to check vh when do acceleration merging
+	NearestVehicle nvFwdMajorRD; // nearest forward vh on major road, so subject vh is on minor road
+	NearestVehicle nvBackMajorRD;// nearest backward vh on major road, so subject vh is on minor road
+	NearestVehicle nvFwdMinorRD;// nearest forward vh on minor road, so subject vh is on major road
 
 	NearestPedestrian npedFwd;
 

@@ -585,27 +585,15 @@ bool sim_mob::PathSetManager::LoadSinglePathDBwithId(
 	return res;
 }
 
-///converts the local time to an unsigned int value
-unsigned int sim_mob::PathSetManager::Profiler::tmToUInt(tm value){
-	return value.tm_hour*3600 + value.tm_min*60 + value.tm_sec;
-}
-///converts the  unsigned int to a local time value
-tm sim_mob::PathSetManager::Profiler::uIntToTm(unsigned int value){
-	tm output;
-	output.tm_hour = value/3600;
-	output.tm_min = (value - (output.tm_hour*3600)) / 60;
-	output.tm_sec = (value - (output.tm_hour*3600 + output.tm_min*60)) ;
-	return output;
-}
-
-	///Constructor + start profiling if init is true
-sim_mob::PathSetManager::Profiler::Profiler(bool init){
+///Constructor + start profiling if init is true
+sim_mob::PathSetManager::Profiler::Profiler(bool init, std::string id_){
 //		first = second = 0;
 	started = false;
 		{
 			boost::unique_lock<boost::mutex> lock(mutex_);
-			myId = totalProfilers ++;
+			index = totalProfilers ++;
 		}
+		id = id_;
 		if(init){
 			startProfiling();
 		}
@@ -624,7 +612,7 @@ sim_mob::PathSetManager::Profiler::Profiler(bool init){
 		}
 		stampstop();
 		uint32_t elapsed = stop - start;
-		Print() << myId << " profiler elapsed " << elapsed << " ms" << std::endl;;
+		Print() << "[" << index << ":" << id << "] profiler elapsed " << elapsed << " ms" << std::endl;;
 		if(add){
 			addToTotalTime(elapsed);
 		}
@@ -634,7 +622,7 @@ sim_mob::PathSetManager::Profiler::Profiler(bool init){
 	///add the given time to the total time
 	void sim_mob::PathSetManager::Profiler::addToTotalTime(uint32_t value){
 		boost::unique_lock<boost::mutex> lock(mutex_);
-		Print() << "Profiler " << myId << " Adding " << value << " seconds to total time " << std::endl;
+		Print() << "Profiler "  << "[" << index << ":" << id << "] Adding " << value << " seconds to total time " << std::endl;
 		totalTime+=value;
 	}
 
@@ -1113,7 +1101,9 @@ bool sim_mob::PathSetManager::getFromTo_BestPath_fromPool(std::string id, std::v
 }
 vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 {
-	Profiler profiler(true);
+	std::ostringstream id("");
+	id << per << "-" << per->currWorkerProvider;
+	Profiler profiler(true, id.str());
 	// get person id and current subtrip id
 	std::string personId = per->getDatabaseId();
 	std::vector<sim_mob::SubTrip>::const_iterator currSubTripIt = per->currSubTrip;

@@ -233,16 +233,13 @@ public:
 		///stores start and end of profiling
 		uint32_t  start, stop;
 		///the profiling object id
-		int myId;
+		int index;
+		std::string id;
 		///is the profiling object started profiling?
 		bool started;
-		///converts the local time to an unsigned int value
-		static unsigned int tmToUInt(tm);
-		///converts the  unsigned int to a local time value
-		static tm uIntToTm(unsigned int);
 	public:
 		///Constructor + start profiling if init is true
-		Profiler(bool init=false);
+		Profiler(bool init=false, std::string id_ = "");
 
 		///like it suggests, store the start time of the profiling
 		void startProfiling();

@@ -281,11 +281,14 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit) {
     info.daysOnMarket = timeOnMarket;
     info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
     luaModel.calulateUnitExpectations(unit, info.numExpectations, info.expectations);
-    sellingUnitsMap.erase(unit.getId());
-    sellingUnitsMap.insert(std::make_pair(unit.getId(), info));
-    for (int i = 0; i < info.numExpectations; i++) {
-        int dayToApply =  currentTime.ms () + (i * info.interval);
-        printExpectation(currentTime, dayToApply, unit.getId(), *getParent(), info.expectations[i]);
+    //number of expectations should match 
+    if (info.expectations.size() == info.numExpectations) {
+        sellingUnitsMap.erase(unit.getId());
+        sellingUnitsMap.insert(std::make_pair(unit.getId(), info));
+        for (int i = 0; i < info.numExpectations; i++) {
+            int dayToApply = currentTime.ms() + (i * info.interval);
+            printExpectation(currentTime, dayToApply, unit.getId(), *getParent(), info.expectations[i]);
+        }
     }
 }
 

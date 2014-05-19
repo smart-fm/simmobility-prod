@@ -159,6 +159,8 @@ private:
 	double calcNextStepSize();
 
 private:
+	// split delimiter in xml param file
+	string splitDelimiter;
 	/// key=vehicle type
 	/// submap key=speed, value=max acc
 	map< VehicleBase::VehicleType,map<int,double> > maxAccIndex;

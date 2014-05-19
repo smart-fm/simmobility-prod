@@ -29,7 +29,8 @@ class BusDriver : public sim_mob::medium::Driver {
 public:
 	BusDriver(Person* parent, MutexStrategy mtxStrat,
 			sim_mob::medium::BusDriverBehavior* behavior = nullptr,
-			sim_mob::medium::BusDriverMovement* movement = nullptr);
+			sim_mob::medium::BusDriverMovement* movement = nullptr,
+			std::string roleName = std::string());
 	virtual ~BusDriver();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

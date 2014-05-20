@@ -10,7 +10,7 @@ include_directories(${CPPUNIT_INCLUDE_DIR})
 LIST(APPEND UnitTestLibs ${CPPUNIT_LIBRARY})
 
 #Find all source files in unit test
-FILE(GLOB_RECURSE LongTerm_TEST "main.cpp" "unit-tests/*.cpp""unit-tests/*.hpp")
+FILE(GLOB_RECURSE LongTerm_TEST "main.cpp" "unit-tests/*.cpp" "unit-tests/*.hpp")
 
 #Find all cpp files in this directory
 FILE(GLOB_RECURSE LongTerm_CPP ../*.cpp)

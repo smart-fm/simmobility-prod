@@ -119,6 +119,17 @@ private:
 	 *  \return acceleration rate
 	 */
 	double calcMergingRate(sim_mob::DriverUpdateParams& p);
+	/**
+	 *  /brief Check if this driver considers the gap from an incoming vehciel
+	 *   to be an acceptable gap for merging or crossing.
+	 *
+	 *   It depends on the speed of the coming vehicle and this driver's
+	 *   behavior parameters (see headwayBuffer() in <omodels.C>). The
+	 *
+	 *  \param vh the object vehicle
+	 *  \return returns true if the gap is acceptable, or false otherwise.
+	 */
+	bool isGapAcceptable(sim_mob::DriverUpdateParams& p,NearestVehicle& vh);
 	/** \brief this function calculates the acceleration rate when the car is stopped at a traffic light
 	 *  \param p driver's parameters
 	 *  \return acceleration rate
@@ -202,6 +213,17 @@ private:
 	 **/
 	double getBufferUppder();
 	double hBufferLower;
+	/**
+	 * /brief Find a headway buffer for a vehicle.  This is a behavior parameter
+	 *        that describe how aggressive for a driver to accept a headway
+	 *        gap in lane changing, merging, and car-following.  The value
+	* return by this function will be added to the minimum headway gaps
+	* for the population, which are constants provided in parameter
+	* file.
+	*
+	* The returned value is in seconds.
+	 **/
+	double headwayBuffer();
 
 	//Car following parameters
 	CarFollowParam CF_parameters[2];

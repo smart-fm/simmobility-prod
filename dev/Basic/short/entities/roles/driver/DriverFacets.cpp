@@ -1800,27 +1800,32 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 		// 1.0 check other driver's segment's end node
 		if(fwdDriverMovement.getCurrSegment()->getEnd() == otherRoadSegment->getEnd()) // other vh on commingin freeway
 		{
-			// 2.0 check current link's end node type
-			if(fwdDriverMovement.getCurrLink()->getEnd()->type == sim_mob::PriorityMergeNode &&
-					fwdDriverMovement.getCurrSegment()->type == sim_mob::LINK_TYPE_RAMP)
+			size_t targetLaneIndex = params.nextLaneIndex; // target lane
+			size_t otherVhLaneIndex = getLaneIndex(other_lane); // other vh's lane
+			if (targetLaneIndex == otherVhLaneIndex)
 			{
-				// subject drive distance to priority merge node
-				double currSL = fwdDriverMovement.getCurrentSegmentLengthCM();
-				double disMIS = fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
-				double dis = currSL - disMIS;
-				// other drive distance to priority merge node
-				double otherDis = otherRoadSegment->length - other_driver->currDistAlongRoadSegment;
-				// calculate distance of two vh
-				double distance = dis - otherDis;
-				if(distance>=0)
+				// 2.0 check current link's end node type
+				if(fwdDriverMovement.getCurrLink()->getEnd()->type == sim_mob::PriorityMergeNode &&
+						fwdDriverMovement.getCurrSegment()->type == sim_mob::LINK_TYPE_RAMP)
 				{
-					check_and_set_min_nextlink_car_dist(params.nvLeadFreeway, distance, parentDriver->vehicle, other_driver);
-				}
-				else
-				{
-					check_and_set_min_nextlink_car_dist(params.nvLagFreeway, -distance, parentDriver->vehicle, other_driver);
-				}
-			}// end rampseg
+					// subject drive distance to priority merge node
+					double currSL = fwdDriverMovement.getCurrentSegmentLengthCM();
+					double disMIS = fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
+					double dis = currSL - disMIS;
+					// other drive distance to priority merge node
+					double otherDis = otherRoadSegment->length - other_driver->currDistAlongRoadSegment;
+					// calculate distance of two vh
+					double distance = dis - otherDis;
+					if(distance>=0)
+					{
+						check_and_set_min_nextlink_car_dist(params.nvLeadFreeway, distance, parentDriver->vehicle, other_driver);
+					}
+					else
+					{
+						check_and_set_min_nextlink_car_dist(params.nvLagFreeway, -distance, parentDriver->vehicle, other_driver);
+					}
+				}// end LINK_TYPE_RAMP
+			} // end if laneindex
 		} // end node =
 
 		if(fwdDriverMovement.getCurrSegment()->getEnd() == otherRoadSegment->getStart()) // other vh on outgoing freeway

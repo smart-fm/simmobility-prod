@@ -194,7 +194,7 @@
       <!--      <xs:element name="parentLink" type="xs:string" minOccurs="1" maxOccurs="1"/>-->
       <xs:element name="startingNode" type="xs:unsignedInt" />
       <xs:element name="endingNode" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="maxSpeed" type="xs:short"/>
+      <xs:element name="maxSpeed" type="xs:double"/>
       <xs:element name="Length" type="xs:unsignedInt"/>
       <xs:element name="Width" type="xs:unsignedInt"/>
       <xs:element name="originalDB_ID" type="xs:string" minOccurs="0" maxOccurs="1"/>
@@ -332,7 +332,7 @@
           <xs:element name="firstPair" type="geo:temp_Segmetair_t" minOccurs="0" />
           <xs:element name="secondPair" type="geo:temp_Segmetair_t" minOccurs="0" />
           <xs:element name="Connectors" type="geo:connectors_t"/>
-          <xs:element name="new_Connectors" type="geo:new_connectors_t"/>
+          <xs:element name="new_Connectors" type="geo:new_connectors_t" minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

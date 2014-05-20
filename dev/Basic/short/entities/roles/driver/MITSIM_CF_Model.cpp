@@ -357,6 +357,10 @@ double sim_mob::MITSIM_CF_Model::getBufferUppder()
 	// return max acc scale,as maxAccScale() in MITSIM TS_Parameter.h
 	return hBufferUpperScale[scaleNo];
 }
+double sim_mob::MITSIM_CF_Model::headwayBuffer()
+{
+	return Utils::generateFloat(hBufferLower,hBufferUpper);
+}
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
 	//initiate
@@ -498,16 +502,97 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 
 double sim_mob::MITSIM_CF_Model::calcMergingRate(sim_mob::DriverUpdateParams& p)
 {
+	double acc=maxAcceleration;
 	// TS_Vehicles from freeways and on ramps have different
 	// priority.  Seperate procedures are applied. (MITSIM TS_CFModels.cc)
 	//  if (lane_->linkType() == LINK_TYPE_FREEWAY) {
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
-	if(driverMvt->fwdDriverMovement.getCurrSegment()->type == sim_mob::LINK_TYPE_FREEWAY)
+	if(driverMvt->fwdDriverMovement.getCurrSegment()->type == sim_mob::LINK_TYPE_FREEWAY) // current on freeway
 	{
-
+		if(p.nvLeadFreeway.exists() ) // has lead vh on next link
+		{
+			double headway = headwayBuffer(); //TODO: headway is correct?
+			if(p.nvLeadFreeway.distance/100.0 < headway)
+			{
+				// MITSIM TS_CFModels.cc
+				// acc = first->accRate_ + brakeToTargetSpeed(distance_, first->currentSpeed_);
+				acc = p.nvLeadFreeway.driver->fwdAccel + brakeToTargetSpeed(p,p.nvLeadFreeway.distance/100.0, p.nvLeadFreeway.driver->fwdVelocity);
+			}
+		}
 	}
-	//	first = vehicleAheadInTypedLanes(LINK_TYPE_FREEWAY);
+	else if(driverMvt->fwdDriverMovement.getCurrSegment()->type == sim_mob::LINK_TYPE_RAMP) // on ramp
+	{
+		if(p.nvLagFreeway.exists()) // has lag vh on freeway
+		{
+			// MITSIM TS_CFModels.cc
+			//if (second->distance_ < distance_ ||
+		    //       second->currentSpeed_ > currentSpeed_ + maxAcceleration_ ||
+			//     !theRandomizer->brandom(theParameter->aggresiveRampMergeProb()))
 
+			if (!isGapAcceptable(p,p.nvLagFreeway)) {
+
+			  // The gap is not acceptable. Prepare to stop.
+
+			  return brakeToStop(p,p.dis2stop);
+			}
+		}
+		else
+		{
+			if(p.nvLeadFreeway.exists()) // find the lead vh in the next link
+			{
+				// lead exists, brake to target speed
+				acc = brakeToTargetSpeed(p,p.nvLeadFreeway.distance/100.0, p.nvLeadFreeway.driver->fwdVelocity);
+			}
+		}
+	}
+
+	return acc;
+}
+bool sim_mob::MITSIM_CF_Model::isGapAcceptable(sim_mob::DriverUpdateParams& p,NearestVehicle& vh)
+{
+	float accn = maxAcceleration;
+	float speedm = vh.driver->fwdVelocity/100.0; //coming->currentSpeed_;
+	// get object vh's max acceleration
+	DriverMovement *driverMvt = (DriverMovement*)vh.driver->Movement();
+	float accm = driverMvt->cfModel->maxAcceleration;//coming->maxAcceleration();
+	float speedn;
+	double dt = p.elapsedSeconds;
+
+	double distance = p.dis2stop; // distance to end of the link
+	double currentSpeed = p.driver->fwdVelocity/100.0; // subject vh current speed m/s
+
+	if(distance > sim_mob::Math::DOUBLE_EPSILON)
+	{
+		// maximum speed can be reached at the end of the lane.
+
+		speedn = currentSpeed * currentSpeed +
+		  2.0 * accn * distance;
+		speedn = (speedn > sim_mob::Math::DOUBLE_EPSILON) ? sqrt(speedn) : 0.0;
+
+		// shortest time required to arrive at the end of the lane
+
+		dt = (speedn - currentSpeed) / accn;
+	}
+	else {
+		speedn = currentSpeed;
+		dt=0;
+	}
+
+	// Max distance traveled by vehicle m in time dt
+
+	float dism = speedm * dt + 0.5 * accm * dt * dt;
+	float gap_mn = vh.distance/100.0;
+
+	// Speed at the pridicted position
+
+	speedm += accm * dt;
+	float sd = (speedm - speedn) * headwayBuffer();
+	float threshold = (sd > 0.0) ? sd : 0.0;
+
+	// check if the gap is acceptable
+
+	if ((gap_mn > threshold)) return true;
+	else return 0;
 }
 double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
 {

@@ -85,7 +85,7 @@ public:
 protected:
 	Driver* parentDriver;
 
-protected:
+public:
 	// Update models
 	LaneChangeModel* lcModel;
 	CarFollowModel* cfModel;

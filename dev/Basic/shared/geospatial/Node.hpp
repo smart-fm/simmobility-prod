@@ -53,7 +53,16 @@ class Node {
 		//For Now, I will keep working in this way until we find a better solution-vahid
 friend class ::geo::Node_t_pimpl;
 public:
+	enum NodeType
+	{
+		Uknown  = 0,
+		UrBanISSignal = 1, //urban intersection with signal
+		UrBanISNoSignal = 2,//urban intersection w/o signal
+		PriorityMergeNode = 3,//priority merge
+		NonPriorityMergeNode = 4 //non-priority merge
+	};
 	unsigned int nodeId;//read from DB
+	NodeType type;
 public:
 	virtual ~Node() {} //A virtual destructor allows dynamic casting
 
@@ -75,7 +84,7 @@ public:
 
 
 //protected:
-    explicit Node(int x=0, int y=0, unsigned int nodeId_=0) : nodeId(nodeId_), location(x, y) {}
+    explicit Node(int x=0, int y=0, unsigned int nodeId_=0) : nodeId(nodeId_), location(x, y),type(Uknown) {}
 
 //private:
 //    sim_mob::Link* linkLoc;

@@ -1796,6 +1796,8 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 				}
 			}
 		}
+		// for CF acceleration merge
+		// 1.0 check current link's end node type
 	} // end of in different link
 	return true;
 }

@@ -50,6 +50,14 @@ public:
 	///Create a RoadSegment as part of a given Link.
 	//explicit RoadSegment(sim_mob::Link* paren=nullptr);
 
+	enum SegmentType
+	{
+		Uknown  = 0,
+		Freeway = 1,
+		Ramp    = 2,
+		UrbanRoad = 3
+	};
+
 	//TODO: Some of these are only used by the geo* classes; need to re-think.
 	void setParentLink(sim_mob::Link* parent);
 	void setID(unsigned long id) { this->segmentID = id; }
@@ -62,7 +70,7 @@ public:
 	explicit RoadSegment(sim_mob::Link* parent=nullptr, unsigned long id=-1) :
 		Pavement(),
 		maxSpeed(0), capacity(0), busstop(nullptr), lanesLeftOfDivider(0), parentLink(parent),segmentID(id),
-		parentConflux(nullptr), laneZeroLength(-1.0)
+		parentConflux(nullptr), laneZeroLength(-1.0),type(Uknown)
 	{}
 
 	const unsigned long  getSegmentID()const ;
@@ -165,7 +173,7 @@ public:
 	/*void initLaneGroups() const;
 	 void groupLanes(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt, const std::vector<sim_mob::RoadSegment*>& segments, sim_mob::Node* start, sim_mob::Node* end) const;
 	 void matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS) const;*/
-
+	SegmentType type;
 private:
 	///Collection of lanes. All road segments must have at least one lane.
 	std::vector<sim_mob::Lane*> lanes;

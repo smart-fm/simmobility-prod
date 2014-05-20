@@ -97,6 +97,12 @@ public:
 	explicit DatabaseLoader(string const & connectionString);
 
 	void LoadBasicAimsunObjects(map<string, string> const & storedProcedures);
+	/**
+	 *  /brief load segment type, node type
+	 *  /param storedProcs get db procedure name
+	 *  /param rn road network object
+	 */
+	void loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
 //	// load path set data
 //	void LoadSinglePathDB(std::map<std::string,sim_mob::SinglePath*>& pool,
 //			std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool);
@@ -168,13 +174,6 @@ private:
 	map<std::string, vector<const sim_mob::RoadSegment*> > route_RoadSegments;
 
 	map<Section*, sim_mob::RoadSegment*> sec_seg_;
-
-	///to store simmobility segment type table data, key = segment aimsun id,value=type
-	///segment type 1:freeway 2:ramp 3:urban road
-	map<std::string,int> segmentTypeMap;
-	///to store simmobility node type table data, key = ndoe aimsun id,value=type
-	///node type 1:urban intersection with signal 2:urban intersection w/o signal 3:priority merge 4:non-priority merge
-	map<std::string,int> nodeTypeMap;
 private:
 	void LoadNodes(const std::string& storedProc);
 	void LoadSections(const std::string& storedProc);
@@ -184,8 +183,8 @@ private:
 	void LoadPolylines(const std::string& storedProc);
 	void LoadTrafficSignals(const std::string& storedProc);
 
-	void loadSegmentTypeTable(const std::string& storedProc);
-	void loadNodeTypeTable(const std::string& storedProc);
+	void loadSegmentTypeTable(const std::string& storedProc,std::map<string,int>& segTypeMap);
+	void loadNodeTypeTable(const std::string& storedProc,std::map<string,int>& nodeTypeMap);
 
 public:
 	void LoadTripchains(const std::string& storedProc);
@@ -518,18 +517,31 @@ void DatabaseLoader::LoadNodes(const std::string& storedProc)
 		nodes_[it->id] = *it;
 	}
 }
-void DatabaseLoader::loadSegmentTypeTable(const std::string& storedProc)
+void DatabaseLoader::loadSegmentTypeTable(const std::string& storedProc,std::map<string,int>& segTypeMap)
 {
-	soci::rowset<sim_mob::SegmentType> rs = (sql_.prepare <<"select * from " + storedProc);
-	for (soci::rowset<sim_mob::SegmentType>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-		segmentTypeMap.insert(std::make_pair(it->id,it->type));
+	try
+	{
+		soci::rowset<sim_mob::SegmentType> rs = (sql_.prepare <<"select * from " + storedProc);
+		for (soci::rowset<sim_mob::SegmentType>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+			segTypeMap.insert(std::make_pair(it->id,it->type));
+		}
+	}
+	catch (soci::soci_error const & err)
+	{
+		std::cout<<"loadSegmentTypeTable: "<<err.what()<<std::endl;
 	}
 }
-void DatabaseLoader::loadNodeTypeTable(const std::string& storedProc)
+void DatabaseLoader::loadNodeTypeTable(const std::string& storedProc,std::map<string,int>& nodeTypeMap)
 {
-	soci::rowset<sim_mob::NodeType> rs = (sql_.prepare <<"select * from " + storedProc);
-	for (soci::rowset<sim_mob::NodeType>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-		nodeTypeMap.insert(std::make_pair(it->id,it->type));
+	try{
+		soci::rowset<sim_mob::NodeType> rs = (sql_.prepare <<"select * from " + storedProc);
+		for (soci::rowset<sim_mob::NodeType>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+			nodeTypeMap.insert(std::make_pair(it->id,it->type));
+		}
+	}
+	catch (soci::soci_error const & err)
+	{
+		std::cout<<"loadNodeTypeTable: "<<err.what()<<std::endl;
 	}
 }
 
@@ -1024,8 +1036,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadBusStopSG(getStoredProcedure(storedProcs, "busstopSG", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
 
-	loadSegmentTypeTable(getStoredProcedure(storedProcs, "segment_type"));
-	loadNodeTypeTable(getStoredProcedure(storedProcs, "node_type"));
+
 
 	//add by xuyan
 	//load in boundary segments (not finished!)
@@ -1037,7 +1048,11 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 #endif
 
 }
-
+void DatabaseLoader::loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)
+{
+	loadSegmentTypeTable(getStoredProcedure(storedProcs, "segment_type"),rn.segmentTypeMap);
+	loadNodeTypeTable(getStoredProcedure(storedProcs, "node_type"),rn.nodeTypeMap);
+}
 
 
 //Compute the distance from the source node of the polyline to a
@@ -1638,6 +1653,11 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
 		sim_mob::aimsun::Loader::ProcessGeneralNode(res, it->second);
 		it->second.generatedNode->originalDB_ID.setProps("aimsun-id", it->first);
+
+		// set node type
+		std::string idStr = boost::lexical_cast<string>(it->first);
+		sim_mob::Node::NodeType nt = (sim_mob::Node::NodeType)res.getNodeType(idStr);
+		it->second.generatedNode->type = nt;
 	}
 	//Next, Links and RoadSegments. See comments for our approach.
 	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
@@ -2215,6 +2235,11 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		sim_mob::RoadSegment* rs = currSec->generatedSegment;
 		rs->originalDB_ID.setProps("aimsun-id", currSec->id);
 
+		// set segment type
+		std::string idStr = boost::lexical_cast<string>(currSec->id);
+		sim_mob::RoadSegment::SegmentType st = (sim_mob::RoadSegment::SegmentType)res.getSegmentType(idStr);
+		rs->type = st;
+
 		//Start/end need to be added properly
 		rs->start = currSec->fromNode->generatedNode;
 		rs->end = currSec->toNode->generatedNode;
@@ -2581,6 +2606,9 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	//Step One: Load
 	loader.LoadBasicAimsunObjects(storedProcs);
 
+	// load segment type data, node type data
+	loader.loadObjectType(storedProcs,rn);
+
 	//Step 1.1: Load "new style" objects, which don't require any post-processing.
 	loader.LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false), config.getBusSchedule());
 
@@ -2644,6 +2672,8 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), config.getPT_bus_dispatch_freq());
 	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), config.getPT_bus_routes(), config.getRoadSegments_Map());
 	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), config.getPT_bus_stops(), config.getBusStops_Map());
+
+
 }
 
 void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdSeg,

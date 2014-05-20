@@ -57,7 +57,8 @@ struct SupplyParams {
 		: freeFlowSpeed(maxSpeed), jamDensity(maxDensity), minDensity(minDensity), minSpeed(minSpeed), capacity(capacity), alpha(a), beta(b)
 	{}
 };
-
+//declaration
+std::string getNumberFromAimsunId(std::string &aimsunid);
 /**
  * Part of a Link with consistent lane numbering. RoadSegments are unidirectional.
  *

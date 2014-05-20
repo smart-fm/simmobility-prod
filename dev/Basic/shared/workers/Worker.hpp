@@ -17,7 +17,6 @@
 //#include "event/EventListener.hpp"
 #include "soci.h"
 #include "soci-postgresql.h"
-#include "geospatial/PathSetManager.hpp"
 
 namespace sim_mob {
 
@@ -27,6 +26,7 @@ class ControlManager;
 class WorkGroup;
 class Conflux;
 class Entity;
+class PathSetManager;
 
 //subclassed Eventpublisher coz its destructor is pure virtual
 class UpdatePublisher: public sim_mob::event::EventPublisher  {

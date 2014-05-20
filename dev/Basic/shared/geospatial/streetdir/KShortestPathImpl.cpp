@@ -7,7 +7,7 @@
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
-
+#include "geospatial/PathSetManager.hpp"
 
 using namespace sim_mob;
 

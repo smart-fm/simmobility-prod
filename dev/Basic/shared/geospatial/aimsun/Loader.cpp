@@ -39,6 +39,7 @@
 #include "geospatial/aimsun/CrossingLoader.hpp"
 #include "geospatial/aimsun/LaneLoader.hpp"
 #include "geospatial/aimsun/SOCI_Converters.hpp"
+#include "geospatial/PathSetManager.hpp"
 
 #include "logging/Log.hpp"
 #include "util/OutputUtil.hpp"

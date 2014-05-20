@@ -40,6 +40,7 @@
 #include "geospatial/UniNode.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
+#include "geospatial/PathSetManager.hpp"
 #include "logging/Log.hpp"
 #include "util/DailyTime.hpp"
 #include "util/LangHelpers.hpp"

@@ -256,6 +256,7 @@ public:
 		///whoami
 		std::string getId();
 		int getIndex();
+		bool isStarted();
 
 		///like it suggests, store the start time of the profiling
 		void startProfiling();
@@ -269,7 +270,9 @@ public:
 		///getoutput
 		std::ostringstream & outPut();
 		///add efficiently to output variable. write to log file occasionally
-		void addOutPut(std::ostringstream & s);
+		void addOutPut(std::ostringstream & s, bool flush = false);
+		///flush the log streams into the file
+		void flushLog();
 
 		unsigned int & getTotalTime();
 		static void printTime(struct tm *tm, struct timeval & tv, std::string id);
@@ -283,7 +286,7 @@ public:
 		void reset();
 	};
 
-
+	static Profiler profiler;
 public:
 	bool generateAllPathSetWithTripChain();
 	bool generateAllPathSetWithTripChain2();

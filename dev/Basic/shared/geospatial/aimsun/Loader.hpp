@@ -10,7 +10,7 @@
 #include <map>
 #include <iostream>
 #include "geospatial/PathSet/PathSetDB.hpp"
-#include "geospatial/PathSetManager.hpp"
+//#include "geospatial/PathSetManager.hpp"
 #include "soci.h"
 #include "soci-postgresql.h"
 

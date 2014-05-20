@@ -888,7 +888,7 @@ void sim_mob::Conflux::assignPersonToBusStopAgent(Person* person)
 		const StreetDirectory& strDirectory = StreetDirectory::instance();
 		Agent* busStopAgent = strDirectory.findBusStopAgentByBusStop(stop);
 		if (busStopAgent) {
-			messaging::MessageBus::PostMessage(busStopAgent,
+			messaging::MessageBus::SendInstantaneousMessage(busStopAgent,
 					MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP,
 					messaging::MessageBus::MessagePtr(
 							new ArriavalAtStopMessage(person)));

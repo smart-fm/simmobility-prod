@@ -113,6 +113,12 @@ public:
 
 private:
 	double carFollowingRate(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed,NearestVehicle& nv);
+	/**
+	 *  /brief Calculate the acceleration rate by merging constraint.
+	 *  \param p driver's parameters
+	 *  \return acceleration rate
+	 */
+	double calcMergingRate(sim_mob::DriverUpdateParams& p);
 	/** \brief this function calculates the acceleration rate when the car is stopped at a traffic light
 	 *  \param p driver's parameters
 	 *  \return acceleration rate

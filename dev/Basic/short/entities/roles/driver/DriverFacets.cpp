@@ -1797,7 +1797,50 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 			}
 		}
 		// for CF acceleration merge
-		// 1.0 check current link's end node type
+		// 1.0 check other driver's segment's end node
+		if(fwdDriverMovement.getCurrSegment()->getEnd() == otherRoadSegment->getEnd()) // other vh on commingin freeway
+		{
+			// 2.0 check current link's end node type
+			if(fwdDriverMovement.getCurrLink()->getEnd()->type == sim_mob::PriorityMergeNode &&
+					fwdDriverMovement.getCurrSegment()->type == sim_mob::LINK_TYPE_RAMP)
+			{
+				// subject drive distance to priority merge node
+				double currSL = fwdDriverMovement.getCurrentSegmentLengthCM();
+				double disMIS = fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
+				double dis = currSL - disMIS;
+				// other drive distance to priority merge node
+				double otherDis = otherRoadSegment->length - other_driver->currDistAlongRoadSegment;
+				// calculate distance of two vh
+				double distance = dis - otherDis;
+				if(distance>=0)
+				{
+					check_and_set_min_nextlink_car_dist(params.nvLeadFreeway, distance, parentDriver->vehicle, other_driver);
+				}
+				else
+				{
+					check_and_set_min_nextlink_car_dist(params.nvLagFreeway, -distance, parentDriver->vehicle, other_driver);
+				}
+			}// end rampseg
+		} // end node =
+
+		if(fwdDriverMovement.getCurrSegment()->getEnd() == otherRoadSegment->getStart()) // other vh on outgoing freeway
+		{
+			// 3.0 check current link's end node type
+			if(fwdDriverMovement.getCurrLink()->getEnd()->type == sim_mob::PriorityMergeNode &&  // toward priority merget node
+					(fwdDriverMovement.getCurrSegment()->type == sim_mob::LINK_TYPE_RAMP ||      // either on ramp or freeway
+							fwdDriverMovement.getCurrSegment()->type == sim_mob::LINK_TYPE_FREEWAY ))
+			{
+				// subject drive distance to priority merge node
+				double currSL = fwdDriverMovement.getCurrentSegmentLengthCM();
+				double disMIS = fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
+				double dis = currSL - disMIS;
+				// other drive distance moved on outgoing freeway
+				double otherDis = other_driver->currDistAlongRoadSegment;
+				// calculate distance of two vh
+				double distance = dis + otherDis;
+				check_and_set_min_nextlink_car_dist(params.nvLeadFreeway, distance, parentDriver->vehicle, other_driver);
+			}// end rampseg
+		}
 	} // end of in different link
 	return true;
 }
@@ -1883,6 +1926,10 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 	//
 	params.nvFwdNextLink.driver=NULL;
 	params.nvFwdNextLink.distance = 50000;
+	params.nvLeadFreeway.driver=NULL;
+	params.nvLeadFreeway.distance = 50000;
+	params.nvLagFreeway.driver=NULL;
+	params.nvLagFreeway.distance = 50000;
 	params.nvFwd.driver=NULL;
 	params.nvFwd.distance = 50000;
 
@@ -1973,6 +2020,11 @@ NearestVehicle & sim_mob::DriverMovement::nearestVehicle(DriverUpdateParams& p)
 		currentDis = p.nvFwdNextLink.distance;
 		p.isBeforIntersecton = true;
 		return p.nvFwdNextLink;
+	}
+	else if( p.nvLeadFreeway.exists() ) // vh on freeway
+	{
+		currentDis = p.nvLeadFreeway.distance;
+		return p.nvLeadFreeway;
 	}
 	if(leftDis<currentDis)
 	{

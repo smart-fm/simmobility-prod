@@ -1656,7 +1656,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 
 		// set node type
 		std::string idStr = boost::lexical_cast<string>(it->first);
-		sim_mob::Node::NodeType nt = (sim_mob::Node::NodeType)res.getNodeType(idStr);
+		sim_mob::SimNodeType nt = (sim_mob::SimNodeType)res.getNodeType(idStr);
 		it->second.generatedNode->type = nt;
 	}
 	//Next, Links and RoadSegments. See comments for our approach.
@@ -2237,7 +2237,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 
 		// set segment type
 		std::string idStr = boost::lexical_cast<string>(currSec->id);
-		sim_mob::RoadSegment::SegmentType st = (sim_mob::RoadSegment::SegmentType)res.getSegmentType(idStr);
+		sim_mob::SimSegmentType st = (sim_mob::SimSegmentType)res.getSegmentType(idStr);
 		rs->type = st;
 
 		//Start/end need to be added properly

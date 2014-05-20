@@ -366,7 +366,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	calcStateBasedVariables(p);
 
 	double acc = maxAcceleration;
-	//double aB = calcMergingRate(p);		// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
+	double aB = calcMergingRate(p);
 	double aC = calcSignalRate(p);			// near signal or incidents
 	double aD = calcYieldingRate(p, targetSpeed, maxLaneSpeed); // when yielding
 	double aE = waitExitLaneRate(p);		//
@@ -496,7 +496,19 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 	return res;
 }
 
+double sim_mob::MITSIM_CF_Model::calcMergingRate(sim_mob::DriverUpdateParams& p)
+{
+	// TS_Vehicles from freeways and on ramps have different
+	// priority.  Seperate procedures are applied. (MITSIM TS_CFModels.cc)
+	//  if (lane_->linkType() == LINK_TYPE_FREEWAY) {
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	if(driverMvt->fwdDriverMovement.getCurrSegment()->type == sim_mob::LINK_TYPE_FREEWAY)
+	{
 
+	}
+	//	first = vehicleAheadInTypedLanes(LINK_TYPE_FREEWAY);
+
+}
 double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
 {
 	double minacc = maxAcceleration;

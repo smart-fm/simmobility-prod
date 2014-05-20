@@ -9,7 +9,7 @@ configure_file (
 include_directories("unit-tests")
 
 #Find all source files in unit test
-FILE(GLOB_RECURSE LongTerm_TEST "main.cpp" "unit-tests/*.cpp" "unit-tests/*.hpp")
+FILE(GLOB_RECURSE LongTerm_TEST "*.cpp" "*.hpp")
 
 #Add all unit tests in addition to all source files.
 add_executable(SM_UnitTests_Long ${LongTerm_TEST} $<TARGET_OBJECTS:SimMob_Shared> $<TARGET_OBJECTS:SimMob_Long>)

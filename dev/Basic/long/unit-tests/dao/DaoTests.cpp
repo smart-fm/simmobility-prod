@@ -31,13 +31,14 @@ using namespace unit_tests;
 using std::cout;
 using std::endl;
 
-namespace {
-    const int ID_TO_GET = 1;
-}
-
 CPPUNIT_TEST_SUITE_REGISTRATION(unit_tests::DaoTests);
+
+namespace {
+const int ID_TO_GET = 1;
+
 template <typename T, typename K>
-void TestDao(unsigned int ids = 1) {
+void TestDao(unsigned int ids = 1)
+{
     PrintOut("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
     DB_Config config(LT_DB_CONFIG_FILE);
     config.load();
@@ -62,7 +63,11 @@ void TestDao(unsigned int ids = 1) {
     }
 }
 
-void DaoTests::testAll() {
+} //End un-named namespace
+
+
+void DaoTests::testAll()
+{
     TestDao<HouseholdDao, Household>();
     TestDao<BuildingDao, Building>();
     TestDao<UnitDao, Unit>();

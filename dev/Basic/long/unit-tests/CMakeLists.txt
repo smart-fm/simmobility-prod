@@ -1,3 +1,10 @@
+#Re-generating this is necessary to get the latest define ("SIMMOB_USE_TEST_GUI").  
+#It appears to be harmless... perhaps there's a better way to do it?
+configure_file (
+  "${PROJECT_SOURCE_DIR}/shared/GenConfig.h.in"
+  "${PROJECT_SOURCE_DIR}/shared/GenConfig.h"
+)
+
 #Include the "unit-tests" directory  
 include_directories("unit-tests")
 

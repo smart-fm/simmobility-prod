@@ -622,14 +622,9 @@ void sim_mob::Broker::onAndroidClientRegister(sim_mob::event::EventId id, sim_mo
 			return;
 		}
 
-		//Create the AgentsInfo message.
-		std::vector<unsigned int> agentIds;
-		agentIds.push_back(clientHandler->agent->getId());
-		std::string message = CommsimSerializer::makeNewAgents(agentIds, std::vector<unsigned int>());
-
-
-		//Add it.
-		insertSendBuffer(nsHand, message);
+		//Pend this information for later.
+		boost::unique_lock<boost::mutex> lock(mutex_new_agents_message);
+		new_agents_message.push_back(clientHandler->agent->getId());
 	}
 
 	//Enable Region support if this client requested it.
@@ -696,6 +691,20 @@ void sim_mob::Broker::processPublishers(timeslice now)
 		boost::shared_ptr<sim_mob::ClientHandler> ns3Handler = registeredNs3Clients.begin()->second;
 		if (ns3Handler->regisAllLocations) {
 			insertSendBuffer(ns3Handler, allLocMsg);
+		}
+
+		//Create a single "new agents" message, if appropriate.
+		std::string newAgentsMessage;
+		{
+		boost::unique_lock<boost::mutex> lock(mutex_new_agents_message);
+		if (!new_agents_message.empty()) {
+			newAgentsMessage = CommsimSerializer::makeNewAgents(new_agents_message, std::vector<unsigned int>());
+			new_agents_message.clear();
+		}
+		}
+		if (!newAgentsMessage.empty()) {
+			//Add it.
+			insertSendBuffer(ns3Handler, newAgentsMessage);
 		}
 	}
 }

@@ -176,6 +176,11 @@ bool sim_mob::CommsimSerializer::serialize_end_v1(const OngoingSerialization& on
 	hRes.messageCount = ongoing.vHead.msgLengths.size();
 	hRes.remLen = res.size();
 
+	//It's possible to have too many messages.
+	if (hRes.messageCount>255) {
+		throw std::runtime_error("Can't serialize more than 255 messages in one bundle.");
+	}
+
 	return true;
 }
 

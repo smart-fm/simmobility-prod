@@ -253,6 +253,10 @@ protected:
 	std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, ConnClientStatus> clientDoneChecklist;
 	boost::mutex mutex_client_done_chk;
 
+	///New agents to be sent this time tick (we need to multiplex them to avoid overwhelming the message count).
+	std::vector<unsigned int> new_agents_message;
+	boost::mutex mutex_new_agents_message;
+
 	//Broker singleton.
 	//TODO: This is not really a singleton; we set/get it in various places. But we need a way of communicating the Broker to the
 	//      Agents. For now, this is fine --we only need to clean this up once/if we have multiple Brokers in the system at once.

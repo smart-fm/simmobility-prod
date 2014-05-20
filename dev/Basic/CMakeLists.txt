@@ -396,6 +396,40 @@ find_package(MongoClient REQUIRED)
 include_directories(${MONGOCLIENT_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${MONGOCLIENT_LIBRARY} -lcrypto -lssl)
 
+#Find CppUnit and QxCppUnit if we are building unit tests.
+SET(UnitTestLibs "")
+IF (${BUILD_TESTS} MATCHES "ON" OR ${BUILD_TESTS_LONG} MATCHES "ON")
+  #Find CPP Unit
+  find_package(CppUnit REQUIRED)
+  include_directories(${CPPUNIT_INCLUDE_DIR})
+  LIST(APPEND UnitTestLibs ${CPPUNIT_LIBRARY})
+
+  #Find QxCppUnit and Qt, both of which are optional.
+  find_package(QxCppUnit)
+  FIND_PACKAGE(Qt4 4.0.0 COMPONENTS QtCore QtGui)
+
+  #For our Windows/OSX users (where QxRunner is not-so-supported), allow the 
+  #  tests to be build with pure CppUnit if either QxCppUnit or Qt4 are not found.
+  IF (QXCPPUNIT_FOUND AND QT4_FOUND)
+    SET(SIMMOB_USE_TEST_GUI ON)
+  ELSE ()
+    MESSAGE("Missing Qt4 or QxCppUnit: Unit Tests will be built in console mode.")
+    SET(SIMMOB_USE_TEST_GUI OFF)
+  ENDIF (QXCPPUNIT_FOUND AND QT4_FOUND)
+
+  #Include/Library definitions for the GUI
+  IF (SIMMOB_USE_TEST_GUI)
+    #Include QxCppUnit
+    include_directories(${QXCPPUNIT_INCLUDE_DIR})
+    LIST(APPEND UnitTestLibs ${QXCPPUNIT_LIBRARIES})
+
+    #Qt is picky about how it's #included
+    INCLUDE(${QT_USE_FILE})
+    ADD_DEFINITIONS(${QT_DEFINITIONS})
+    LIST(APPEND UnitTestLibs ${QT_LIBRARIES})
+  ENDIF (SIMMOB_USE_TEST_GUI)
+ENDIF ()
+
 #Optionally find: MPI
 IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   #Find boost-mpi
@@ -518,19 +552,14 @@ IF (${BUILD_MEDIUM} MATCHES "ON")
 ENDIF (${BUILD_MEDIUM} MATCHES "ON")
 
 #Build the Long term?
-IF (${BUILD_LONG} MATCHES "ON")
+IF (${BUILD_LONG} MATCHES "ON" OR ${BUILD_TESTS_LONG} MATCHES "ON")
 	add_subdirectory(long)
-ENDIF (${BUILD_LONG} MATCHES "ON")
+ENDIF ()
 
 #Build tests? 
 IF (${BUILD_TESTS} MATCHES "ON")
 	add_subdirectory(shared/unit-tests)
 ENDIF (${BUILD_TESTS} MATCHES "ON")
-
-#Build tests for long term? 
-IF (${BUILD_TESTS_LONG} MATCHES "ON")
-	add_subdirectory(long/unit-tests)
-ENDIF (${BUILD_TESTS_LONG} MATCHES "ON")
 
 
 # Based on http://majewsky.wordpress.com/2010/08/14/tip-of-the-day-cmake-and-doxygen/

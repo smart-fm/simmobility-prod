@@ -14,7 +14,7 @@
 using std::vector;
 using namespace sim_mob;
 
-sim_mob::WaitBusActivityRoleImpl::WaitBusActivityRoleImpl(Agent* parent, sim_mob::WaitBusActivityRoleBehavior* behavior, sim_mob::WaitBusActivityRoleMovement* movement) :
+sim_mob::WaitBusActivityRoleImpl::WaitBusActivityRoleImpl(Person* parent, sim_mob::WaitBusActivityRoleBehavior* behavior, sim_mob::WaitBusActivityRoleMovement* movement) :
 		WaitBusActivityRole(parent, behavior, movement)
 {
 }

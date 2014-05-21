@@ -65,9 +65,7 @@ public:
 	explicit DriverMovement(sim_mob::Person* parentAgent = nullptr);
 	virtual ~DriverMovement();
 
-	/**
-	 * Virtual overrides
-	 */
+	//virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
 	virtual void frame_tick_output();
@@ -83,8 +81,24 @@ public:
 		this->parentDriver = parentDriver;
 	}
 
+
+protected:
+	/**
+	 * Pointer to the parent Driver role.
+	 */
+	sim_mob::medium::Driver* parentDriver;
+
+	MesoPathMover pathMover;
+	const Lane* currLane;
+	const Lane* laneInNextSegment;
+	bool isQueuing;
+
+	mutable std::stringstream DebugStream;
+
 	/**
 	 * For moving into a new link after getting permission from the managing conflux
+	 *
+	 * @param params driver update params for current tick
 	 */
 	void flowIntoNextLinkIfPossible(DriverUpdateParams& params);
 
@@ -116,7 +130,7 @@ public:
 	 * @param params driver update params for current tick
 	 * @return true if successfully moved to next segment; false otherwise
 	 */
-	bool moveToNextSegment(DriverUpdateParams& params);
+	virtual bool moveToNextSegment(DriverUpdateParams& params);
 
 	/**
 	 * checks whether the driver can move into the next segment in path
@@ -166,11 +180,6 @@ public:
 	bool advanceMovingVehicleWithInitialQ(DriverUpdateParams& params);
 
 	/**
-	 * sets the speed of the driver from the current seg stats
-	 */
-	void setVelocity();
-
-	/**
 	 * get the number of vehicles that can move out of a lane in this tick
 	 *
 	 * @param l lane in segment
@@ -188,7 +197,6 @@ public:
 	 */
 	void setOutputCounter(const Lane* lane, int count, const sim_mob::SegmentStats* segStats);
 
-
 	double getOutputFlowRate(const Lane* lane);
 	double getAcceptRate(const Lane* lane, const sim_mob::SegmentStats* segStats);
 	double getQueueLength(const Lane* lane);
@@ -196,9 +204,7 @@ public:
 	void setLastAccept(const Lane* lane, double lastAccept, const sim_mob::SegmentStats* segStats);
 
 	/**
-	 * update flow of segment
-	 * \note should be changed to update the flow of segment stats
-	 *
+	 * update flow of segment segStats
 	 * @param segStats segment stats whose flow is to be updated
 	 * @param startPos position of driver at the start of the tick
 	 * @param endPos final position of driver
@@ -218,21 +224,6 @@ public:
 	 * @param params driver update params for current tick
 	 */
 	void setOrigin(DriverUpdateParams& params);
-
-protected:
-	/**
-	 * Pointer to the parent Driver role.
-	 */
-	sim_mob::medium::Driver* parentDriver;
-
-	MesoPathMover pathMover;
-	const Lane* currLane;
-	const Lane* laneInNextSegment;
-	bool isQueuing;
-	double vehicleLength;
-	double velocity;
-
-	mutable std::stringstream DebugStream;
 
 	/**
 	 * get the length of queue in lane at the start of current tick
@@ -255,7 +246,7 @@ protected:
 	 *
 	 * @param lane lane in which the driver is added to queue
 	 */
-	void addToQueue(const Lane* lane);
+	void addToQueue();
 
 	/**
 	 * remove driver from queue
@@ -269,7 +260,9 @@ protected:
 	 * @param nextToNextSegStats second segment stats ahead from the current
 	 * @return best lane in nextSegStats
 	 */
-	const sim_mob::Lane* getBestTargetLane(const sim_mob::SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats);
+	virtual const sim_mob::Lane* getBestTargetLane(
+			const sim_mob::SegmentStats* nextSegStats,
+			const sim_mob::SegmentStats* nextToNextSegStats);
 
 	//Note: insert and remove incident functions should probably be in Confluxes. To be updated when actual incident functionality is implemented.
 	/**
@@ -293,7 +286,8 @@ protected:
 	 * @param prevSeg the last segment in the link from which the driver has just exited
 	 * @param linkExitTimeSec time at which the link was exited
 	 */
-	void updateLinkTravelTimes(const sim_mob::SegmentStats* prevSegStat, double linkExitTimeSec);
+	void updateLinkTravelTimes(const sim_mob::SegmentStats* prevSegStat,
+			double linkExitTimeSec);
 
 	/**
 	 * Updates travel time for this driver for the road segment which he has just exited from.
@@ -301,7 +295,8 @@ protected:
 	 * @param prevSeg the segment from which the driver has just exited
 	 * @param linkExitTimeSec time at which the segment was exited
 	 */
-	void updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat, double linkExitTimeSec);
+	void updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat,
+			double segmentExitTimeSec);
 };
 
 } /* namespace medium */

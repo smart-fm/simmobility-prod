@@ -31,7 +31,7 @@
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/waitBusActivity/waitBusActivity.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
-#include "entities/busStopAgent/BusStopAgent.hpp"
+#include "entities/BusStopAgent.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/RoadNetwork.hpp"
@@ -113,14 +113,19 @@ bool performMainSupply(const std::string& configFileName,
 	StreetDirectory& strDirectory= StreetDirectory::instance();
 	for (itSegStats = segmentStats.begin(); itSegStats != segmentStats.end();
 			itSegStats++) {
-		std::vector<const sim_mob::BusStop*>& busStops =
-				(*itSegStats)->getBusStops();
-		for (itBusStop = busStops.begin(); itBusStop != busStops.end();
-				itBusStop++) {
+		sim_mob::SegmentStats* stats = *itSegStats;
+		std::vector<const sim_mob::BusStop*>& busStops = stats->getBusStops();
+		for (itBusStop = busStops.begin(); itBusStop != busStops.end(); itBusStop++) {
 			sim_mob::medium::BusStopAgent* busStopAgent =
+<<<<<<< HEAD
 					new sim_mob::medium::BusStopAgent(mtx, -1, *itBusStop, *itSegStats);
 			(*itSegStats)->addBusStopAgent(busStopAgent);
 			strDirectory.registerStopAgent(*itBusStop, busStopAgent);
+=======
+					new sim_mob::medium::BusStopAgent(mtx, -1, *itBusStop, stats);
+			stats->addBusStopAgent(busStopAgent);
+			BusStopAgent::registerBusStopAgent(busStopAgent);
+>>>>>>> mid-ftr-buses
 		}
 	}
 	//Load our user config file, which is a time costly function

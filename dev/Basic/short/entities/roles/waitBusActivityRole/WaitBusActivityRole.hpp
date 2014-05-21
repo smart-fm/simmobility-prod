@@ -52,7 +52,7 @@ struct WaitBusActivityRoleUpdateParams : public sim_mob::UpdateParams {
 
 class WaitBusActivityRole : public sim_mob::Role , public UpdateWrapper<WaitBusActivityRoleUpdateParams>{
 public:
-	WaitBusActivityRole(Agent* parent, sim_mob::WaitBusActivityRoleBehavior* behavior = nullptr, sim_mob::WaitBusActivityRoleMovement* movement = nullptr, Role::type roleType_ = RL_WAITBUSACTITITY, std::string roleName = "waitBusActivityRole");
+	WaitBusActivityRole(Person* parent, sim_mob::WaitBusActivityRoleBehavior* behavior = nullptr, sim_mob::WaitBusActivityRoleMovement* movement = nullptr, Role::type roleType_ = RL_WAITBUSACTITITY, std::string roleName = "waitBusActivityRole");
 	virtual ~WaitBusActivityRole();
 	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();

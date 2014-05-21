@@ -29,6 +29,7 @@ class RoadSegment;
 class Link;
 class Crossing;
 class Agent;
+class Person;
 class Signal;
 
 namespace aimsun {
@@ -266,5 +267,7 @@ sim_mob::DPoint get_distarg(const sim_mob::Point2D& item);
 template <>
 sim_mob::DPoint get_distarg(const sim_mob::Agent& item);
 
+template <>
+sim_mob::DPoint get_distarg(const sim_mob::Person& item);
 }
 

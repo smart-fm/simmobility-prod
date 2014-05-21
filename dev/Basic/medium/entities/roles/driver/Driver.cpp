@@ -62,16 +62,18 @@ size_t getLaneIndex(const Lane* l) {
 } //end of anonymous namespace
 
 //Initialize
-sim_mob::medium::Driver::Driver(Agent* parent, MutexStrategy mtxStrat, sim_mob::medium::DriverBehavior* behavior, sim_mob::medium::DriverMovement* movement) :
-	sim_mob::Role(behavior, movement, parent, "Driver_"),
-	currLane(nullptr), vehicle(nullptr)
+sim_mob::medium::Driver::Driver(Person* parent, MutexStrategy mtxStrat,
+		sim_mob::medium::DriverBehavior* behavior,
+		sim_mob::medium::DriverMovement* movement,
+		std::string roleName) :
+	sim_mob::Role(behavior, movement, parent, roleName),
+	currLane(nullptr)
 {}
 
 sim_mob::medium::Driver::~Driver() {}
 
 vector<BufferedBase*> sim_mob::medium::Driver::getSubscriptionParams() {
-	vector<BufferedBase*> res;
-	return res;
+	return vector<BufferedBase*>();
 }
 
 void sim_mob::medium::Driver::make_frame_tick_params(timeslice now)
@@ -83,7 +85,7 @@ Role* sim_mob::medium::Driver::clone(Person* parent) const
 {
 	DriverBehavior* behavior = new DriverBehavior(parent);
 	DriverMovement* movement = new DriverMovement(parent);
-	Driver* driver = new Driver(parent, parent->getMutexStrategy(), behavior, movement);
+	Driver* driver = new Driver(parent, parent->getMutexStrategy(), behavior, movement, "Driver_");
 	behavior->setParentDriver(driver);
 	movement->setParentDriver(driver);
 	return driver;

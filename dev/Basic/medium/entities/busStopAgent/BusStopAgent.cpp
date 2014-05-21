@@ -13,11 +13,27 @@ namespace sim_mob {
 
 namespace medium {
 
+BusStopAgent::BusStopAgentsMap BusStopAgent::allBusstopAgents;
+
+void BusStopAgent::registerBusStopAgent(BusStopAgent* busstopAgent)
+{
+	allBusstopAgents[busstopAgent->getBusStop()] = busstopAgent;
+}
+
+BusStopAgent* BusStopAgent::findBusStopAgentByBusStop(const BusStop* busstop)
+{
+	try {
+		return allBusstopAgents.at(busstop);
+	}
+	catch (const std::out_of_range& oor) {
+		return nullptr;
+	}
+}
+
 BusStopAgent::BusStopAgent(const MutexStrategy& mtxStrat, int id,
 		const sim_mob::BusStop* stop, const sim_mob::SegmentStats* stat) :
-		Agent(mtxStrat, id), busStop(stop), segmentStat(stat) {
-	// TODO Auto-generated constructor stub
-
+		Agent(mtxStrat, id), busStop(stop), parentSegmentStats(stat),
+		availableLength(stop->getBusCapacityAsLength()){
 }
 
 BusStopAgent::~BusStopAgent() {
@@ -78,11 +94,11 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now) {
 					}
 				} else if (role->roleType == Role::RL_PEDESTRIAN) {
 					Conflux* conflux =
-							segmentStat->getRoadSegment()->getParentConflux();
+							parentSegmentStats->getRoadSegment()->getParentConflux();
 					messaging::MessageBus::PostMessage(conflux,
 							MSG_PEDESTRIAN_TRANSFER_REQUEST,
 							messaging::MessageBus::MessagePtr(
-									new PedestrianRequestMessageArgs(person)));
+									new PedestrianTransferRequestMessage(person)));
 					ret = true;
 				}
 			}
@@ -101,9 +117,25 @@ void BusStopAgent::HandleMessage(messaging::Message::MessageType type,
 		const messaging::Message& message) {
 
 	switch (type) {
-	case MSG_DECISION_WAITINGPERSON_BOARDING: {
-		const BoardingMessage& msg = MSG_CAST(BoardingMessage, message);
+	case BOARD_BUS: {
+		const BusDriverMessage& msg = MSG_CAST(BusDriverMessage, message);
 		boardWaitingPersons(msg.busDriver);
+		break;
+	}
+	case BUS_ARRIVAL: {
+		const BusDriverMessage& msg = MSG_CAST(BusDriverMessage, message);
+		bool busDriverAccepted = acceptBusDriver(msg.busDriver);
+		if(!busDriverAccepted) {
+			throw std::runtime_error("BusDriver could not be accepted by the bus stop");
+		}
+		break;
+	}
+	case BUS_DEPARTURE: {
+		const BusDriverMessage& msg = MSG_CAST(BusDriverMessage, message);
+		bool busDriverRemoved = removeBusDriver(msg.busDriver);
+		if(!busDriverRemoved) {
+			throw std::runtime_error("BusDriver could not be found in bus stop");
+		}
 		break;
 	}
 	case MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP: {
@@ -135,7 +167,7 @@ void BusStopAgent::boardWaitingPersons(sim_mob::medium::BusDriver* busDriver) {
 
 	itPerson = waitingPersons.begin();
 	while (itPerson != waitingPersons.end()) {
-		if ((*itPerson)->getDecision() == BOARD_BUS) {
+		if ((*itPerson)->canBoardBus()) {
 			bool ret = false;
 			WaitBusActivity* waitingPeople = *itPerson;
 			Agent* parent = waitingPeople->getParent();
@@ -145,7 +177,7 @@ void BusStopAgent::boardWaitingPersons(sim_mob::medium::BusDriver* busDriver) {
 				Role* curRole = person->getRole();
 				sim_mob::medium::Passenger* passenger =
 						dynamic_cast<sim_mob::medium::Passenger*>(curRole);
-				if (passenger && busDriver->insertPassenger(passenger)) {
+				if (passenger && busDriver->addPassenger(passenger)){
 					ret = true;
 				}
 			}
@@ -161,6 +193,38 @@ void BusStopAgent::boardWaitingPersons(sim_mob::medium::BusDriver* busDriver) {
 	}
 
 	lastBoardingRecorder[busDriver] = numBoarding;
+}
+
+bool BusStopAgent::acceptBusDriver(BusDriver* driver) {
+	if(driver) {
+		double vehicleLength = driver->getResource()->getLengthCm();
+		if(availableLength >= vehicleLength) {
+			servingDrivers.push_back(driver);
+			availableLength=availableLength-vehicleLength;
+			parentSegmentStats->addBusDriverToStop(driver->getParent(), busStop);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool BusStopAgent::removeBusDriver(BusDriver* driver) {
+	if(driver) {
+		double vehicleLength = driver->getResource()->getLengthCm();
+		std::list<sim_mob::medium::BusDriver*>::iterator driverIt =
+				std::find(servingDrivers.begin(), servingDrivers.end(), driver);
+		if(driverIt!=servingDrivers.end()) {
+			servingDrivers.erase(driverIt);
+			availableLength=availableLength+vehicleLength;
+			parentSegmentStats->removeBusDriverFromStop(driver->getParent(), busStop);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool BusStopAgent::canAccommodate(const double vehicleLength) {
+	return (availableLength >= vehicleLength);
 }
 
 int BusStopAgent::getBoardingNum(sim_mob::medium::BusDriver* busDriver) const {

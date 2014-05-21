@@ -90,6 +90,12 @@ public:
     // find Person's NextRole
     bool findPersonNextRole();
 
+    /**
+     * insert a waiting activity before bus travel
+     * @param tripChain is the reference to current trip chain
+     */
+    void insertWaitingActivityToTrip(std::vector<TripChainItem*>& tripChain);
+
     // update nextTripChainItem, used only for NextRole
 	bool updateNextTripChainItem();
 	// update nextSubTrip, used only for NextRole

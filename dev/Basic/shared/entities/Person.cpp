@@ -104,7 +104,10 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
 	  client_id(-1), nextLinkRequired(nullptr)
 {
-	if (!ConfigManager::GetInstance().FullConfig().RunningMidSupply() && !ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
+	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
+		insertWaitingActivityToTrip(tcs);
+	}
+	else if(!ConfigManager::GetInstance().FullConfig().RunningMidDemand()){
 		simplyModifyTripChain(tcs);
 	}
 
@@ -495,6 +498,37 @@ std::vector<sim_mob::SubTrip>::iterator sim_mob::Person::resetCurrSubTrip()
 		throw std::runtime_error("non sim_mob::Trip cannot have subtrips");
 	}
 	return trip->getSubTripsRW().begin();
+}
+
+void sim_mob::Person::insertWaitingActivityToTrip(
+		std::vector<TripChainItem*>& tripChain) {
+	std::vector<TripChainItem*>::iterator tripChainItem;
+	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end();
+			tripChainItem++) {
+		if ((*tripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) {
+			std::vector<SubTrip>::iterator itSubTrip[2];
+			std::vector<sim_mob::SubTrip>& subTrips =
+					(dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
+
+			itSubTrip[0] = itSubTrip[1] = subTrips.begin();
+			while (itSubTrip[1] != subTrips.end()) {
+				if (itSubTrip[1]->mode == "BusTravel"
+						&& itSubTrip[0]->mode != "WaitingBusActivity") {
+					sim_mob::SubTrip subTrip;
+					subTrip.itemType = TripChainItem::getItemType(
+							"WaitingBusActivity");
+					subTrip.fromLocation = itSubTrip[1]->fromLocation;
+					subTrip.fromLocationType = itSubTrip[1]->fromLocationType;
+					subTrip.toLocation = itSubTrip[1]->toLocation;
+					subTrip.toLocationType = itSubTrip[1]->toLocationType;
+					subTrip.mode = "WaitingBusActivity";
+					itSubTrip[0] = subTrips.insert(itSubTrip[1], subTrip);
+				}
+
+				itSubTrip[0] = itSubTrip[1]++;
+			}
+		}
+	}
 }
 
 

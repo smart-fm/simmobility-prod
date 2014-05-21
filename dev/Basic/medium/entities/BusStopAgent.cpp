@@ -9,6 +9,8 @@
 #include "entities/roles/waitBusActivity/waitBusActivity.hpp"
 #include "message/MT_Message.hpp"
 
+using namespace sim_mob;
+using namespace sim_mob::medium;
 namespace sim_mob {
 
 namespace medium {
@@ -31,10 +33,10 @@ BusStopAgent* BusStopAgent::findBusStopAgentByBusStop(const BusStop* busstop)
 }
 
 BusStopAgent::BusStopAgent(const MutexStrategy& mtxStrat, int id,
-		const sim_mob::BusStop* stop, const sim_mob::SegmentStats* stat) :
-		Agent(mtxStrat, id), busStop(stop), parentSegmentStats(stat),
-		availableLength(stop->getBusCapacityAsLength()){
-}
+		const BusStop* stop, SegmentStats* stats) :
+		Agent(mtxStrat, id), busStop(stop), parentSegmentStats(stats),
+		availableLength(stop->getBusCapacityAsLength())
+{}
 
 BusStopAgent::~BusStopAgent() {
 	// TODO Auto-generated destructor stub

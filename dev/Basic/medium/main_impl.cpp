@@ -117,15 +117,10 @@ bool performMainSupply(const std::string& configFileName,
 		std::vector<const sim_mob::BusStop*>& busStops = stats->getBusStops();
 		for (itBusStop = busStops.begin(); itBusStop != busStops.end(); itBusStop++) {
 			sim_mob::medium::BusStopAgent* busStopAgent =
-<<<<<<< HEAD
 					new sim_mob::medium::BusStopAgent(mtx, -1, *itBusStop, *itSegStats);
 			(*itSegStats)->addBusStopAgent(busStopAgent);
 			strDirectory.registerStopAgent(*itBusStop, busStopAgent);
-=======
-					new sim_mob::medium::BusStopAgent(mtx, -1, *itBusStop, stats);
-			stats->addBusStopAgent(busStopAgent);
 			BusStopAgent::registerBusStopAgent(busStopAgent);
->>>>>>> mid-ftr-buses
 		}
 	}
 	//Load our user config file, which is a time costly function

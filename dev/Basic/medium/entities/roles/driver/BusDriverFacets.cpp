@@ -219,6 +219,27 @@ const sim_mob::Lane* BusDriverMovement::getBestTargetLane(
 bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params) {
 	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
 	const BusStop* nextStop = routeTracker.getNextStop();
+
+	const sim_mob::RoadSegment* rs = currSegStat->getRoadSegment();
+	const std::map<centimeter_t, const RoadItem*> & obstacles = rs->obstacles;
+	for (std::map<centimeter_t, const RoadItem*>::const_iterator o_it =
+			obstacles.begin(); o_it != obstacles.end(); o_it++) {
+		RoadItem* item = const_cast<RoadItem*>(o_it->second);
+		BusStop *busStop = dynamic_cast<BusStop *>(item);
+		int stopPoint = o_it->first;
+
+		if (busStop) {
+			const std::vector<const sim_mob::BusStop*>* stopsVec =
+					this->getParentBusDriver()->getBusStopsVector();
+
+			std::vector<const sim_mob::BusStop*>::const_iterator itStop = std::find(
+					stopsVec->begin(), stopsVec->end(), busStop);
+			if (itStop != stopsVec->end()) {
+				int ii=0;
+			}
+		}
+	}
+
 	if(nextStop && currSegStat->hasBusStop(nextStop)) {
 		//send bus arrival message
 		BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(nextStop);

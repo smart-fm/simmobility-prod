@@ -522,6 +522,10 @@ double sim_mob::DriverPathMover::advance(const RoadSegment* currSegment, vector<
 
 double sim_mob::DriverPathMover::advanceToNextPolyline(bool isFwd)
 {
+	if (nextPolypoint == polypointsList.end())
+	{
+		return advanceToNextRoadSegment();
+	}
 	//An error if we're still at the end of this polyline
 	throwIf(nextPolypoint == polypointsList.end(), DriverPathMover::ErrorPolylineCantAdvance);
 
@@ -573,15 +577,27 @@ double sim_mob::DriverPathMover::advanceToNextRoadSegment()
 	// Note that distAlongPolyline should still be valid.
 	if (currSegmentIt + 1 != fullPath.end())
 	{
-		if ((*currSegmentIt)->getLink() != (*(currSegmentIt + 1))->getLink())
+		if ((*currSegmentIt)->getLink() != (*(currSegmentIt + 1))->getLink()) // next segment in diff link
 		{
-			Point2D myPos(getPosition().x, getPosition().y);
-			if (Debug::Paths)
+			if((*currSegmentIt)->originalDB_ID.getLogItem().find("9506") != std::string::npos)
 			{
-				DebugStream << "Now in Intersection. Distance from Node center: " << centimeterToMeter(dist((*currSegmentIt)->getEnd()->location, myPos)) << endl;
+				std::cout<<"find seg 9506"<<std::endl;
 			}
-			inIntersection = true;
-			return distAlongPolylineCM;
+			if((*currSegmentIt)->getEnd()->type == sim_mob::PRIORITY_MERGE_NODE ||
+					(*currSegmentIt)->getEnd()->type == sim_mob::NON_PRIORITY_MERGE_NODE )// it cross priority merge node or non priority merge node
+			{
+				inIntersection = false;
+			}
+			else
+			{
+				Point2D myPos(getPosition().x, getPosition().y);
+				if (Debug::Paths)
+				{
+					DebugStream << "Now in Intersection. Distance from Node center: " << centimeterToMeter(dist((*currSegmentIt)->getEnd()->location, myPos)) << endl;
+				}
+				inIntersection = true;
+				return distAlongPolylineCM;
+			}
 		}
 	}
 

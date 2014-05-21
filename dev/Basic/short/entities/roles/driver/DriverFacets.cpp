@@ -1804,8 +1804,8 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 			size_t otherVhLaneIndex = getLaneIndex(other_lane); // other vh's lane
 			if (targetLaneIndex == otherVhLaneIndex)
 			{
-				// 2.0 check current link's end node type
-				if(fwdDriverMovement.getCurrLink()->getEnd()->type == sim_mob::PriorityMergeNode &&
+				// 2.0 check current link's end node type and current segment type
+				if(fwdDriverMovement.getCurrLink()->getEnd()->type == sim_mob::PRIORITY_MERGE_NODE &&
 						fwdDriverMovement.getCurrSegment()->type == sim_mob::LINK_TYPE_RAMP)
 				{
 					// subject drive distance to priority merge node
@@ -1831,7 +1831,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 		if(fwdDriverMovement.getCurrSegment()->getEnd() == otherRoadSegment->getStart()) // other vh on outgoing freeway
 		{
 			// 3.0 check current link's end node type
-			if(fwdDriverMovement.getCurrLink()->getEnd()->type == sim_mob::PriorityMergeNode &&  // toward priority merget node
+			if(fwdDriverMovement.getCurrLink()->getEnd()->type == sim_mob::PRIORITY_MERGE_NODE &&  // toward priority merget node
 					(fwdDriverMovement.getCurrSegment()->type == sim_mob::LINK_TYPE_RAMP ||      // either on ramp or freeway
 							fwdDriverMovement.getCurrSegment()->type == sim_mob::LINK_TYPE_FREEWAY ))
 			{

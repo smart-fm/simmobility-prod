@@ -1656,6 +1656,10 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 
 		// set node type
 		std::string idStr = boost::lexical_cast<string>(it->first);
+		if(idStr.find("101320") != std::string::npos)
+		{
+			std::cout<<"find node 101320"<<std::endl;
+		}
 		sim_mob::SimNodeType nt = (sim_mob::SimNodeType)res.getNodeType(idStr);
 		it->second.generatedNode->type = nt;
 	}
@@ -2590,6 +2594,12 @@ void sim_mob::aimsun::Loader::SaveOnePathSetData(const std::string& connectionSt
 {
 	DatabaseLoader loader(connectionStr);
 	loader.InsertPathSet2DB(pathSetPool);
+}
+void sim_mob::aimsun::Loader::loadSegNodeType(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn)
+{
+	DatabaseLoader loader(connectionStr);
+	// load segment type data, node type data
+	loader.loadObjectType(storedProcs,rn);
 }
 void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
 {

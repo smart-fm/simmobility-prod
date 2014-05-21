@@ -217,9 +217,9 @@ private:
 	 * /brief Find a headway buffer for a vehicle.  This is a behavior parameter
 	 *        that describe how aggressive for a driver to accept a headway
 	 *        gap in lane changing, merging, and car-following.  The value
-	* return by this function will be added to the minimum headway gaps
-	* for the population, which are constants provided in parameter
-	* file.
+	*         return by this function will be added to the minimum headway gaps
+	*         for the population, which are constants provided in parameter
+	*         file.
 	*
 	* The returned value is in seconds.
 	 **/

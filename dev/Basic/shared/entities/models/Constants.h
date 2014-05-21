@@ -1,0 +1,323 @@
+//-*-c++-*------------------------------------------------------------
+// FILE: Constants.h
+// AUTH: Qi Yang
+// DATE: Fri Oct 20 22:52:55 1995
+// WARNING:: Do NOT modify this file.  If you want to add or change
+//           something, please ask me first.
+//--------------------------------------------------------------------
+
+#ifndef CONSTANTS_HEADER
+#define CONSTANTS_HEADER
+
+typedef unsigned int UINT;
+
+
+/*------------------------------------------------------------------------
+ * When a variable has a value less than this value, it is treated
+ * as zero.
+ */
+
+const double SPEED_EPSILON = 1.0E-3; /* meter/sec */
+const double ACC_EPSILON   = 1.0E-3; /* meter/sec2 */
+const double DIS_EPSILON   = 1.0E-0; /* meter */
+const double TIME_EPSILON  = 1.0E-2; /* second */
+
+
+/*--------------------------------------------------------------------
+ *  IDs for controller types
+ */
+
+const UINT CONTROLLER_UNSIGNALIZED	= 0; // enumeration start
+const UINT CONTROLLER_PRETIMED		= 1;
+const UINT CONTROLLER_ACTIVATED		= 2;
+const UINT CONTROLLER_GENERIC		= 20; // (Angus)
+
+//Algorithms for Ramp meters
+const  UINT CONTROLLER_RESPONSIVE_LOCAL   = 3;      //Alinea
+const  UINT CONTROLLER_RESPONSIVE_AREA    = 4;      // Matlab program
+const  UINT CONTROLLER_RESPONSIVE_BILEVEL = 5;      // Area + Local
+const  UINT CONTROLLER_RESPONSIVE_FLOW    = 6;      // BP/B CA/T design
+const  UINT CONTROLLER_RESPONSIVE_BOTTLENECK   = 7;  // METAlinea
+const  UINT CONTROLLER_RESPONSIVE_ENHANCEDBOTTLENECK   = 8;  // METAlinea with variable bottleneck
+
+//Algorithms urban street signals (all responsive)
+const  UINT CONTROLLER_WEBSTER     = 10;
+const  UINT CONTROLLER_SMITH       = 11;
+const  UINT CONTROLLER_DELAYMIN    = 12;
+const  UINT CONTROLLER_BILEVELDELAYMIN   = 13;     // enumeration end
+
+/*--------------------------------------------------------------------
+ * IDs for control devices and events
+ */
+
+const UINT CTRL_LINKWIDE	= 0x00000100; // 256
+
+const UINT CTRL_SIGNAL_TYPE	= 0x000000FF; // mask the last 8 bits
+const UINT CTRL_SIGNALS		= 0x0000000F; // mask the last 4 bits
+
+const UINT CTRL_TS		= 0x00000001; // 1 enumeration start
+const UINT CTRL_PS		= 0x00000002; // 2
+const UINT CTRL_VSLS		= 0x00000003; // 3
+const UINT CTRL_VMS		= 0x00000004; // 4
+const UINT CTRL_LUS		= 0x0000000A; // 10
+const UINT CTRL_RAMPMETER	= 0x0000000C; // 12
+const UINT CTRL_TOLLBOOTH	= 0x00000010; // 16
+
+const UINT CTRL_BUSSTOP 	= 0x00000020; // 32  margaret: bus stops
+
+const UINT CTRL_INCIDENT	= 0x00000040; // 64 enumeration end
+
+
+/*--------------------------------------------------------------------
+ * Status IDs for traffic signals
+ */
+
+const UINT SIGNAL_BITS		= 4; // UINT = 32 bits
+const UINT MAX_NUM_OF_IN_LINKS	= 6; // it could be upto 8
+const UINT MAX_NUM_OF_OUT_LINKS	= 6; // it could be upto 8
+
+const UINT SIGNAL_STATE		= 0x0000000F;
+
+const UINT SIGNAL_COLOR		= 0x00000003; // mask the last 2 bits
+const UINT SIGNAL_BLANK		= 0x00000000; // enumeration start
+const UINT SIGNAL_RED		= 0x00000001;
+const UINT SIGNAL_YELLOW	= 0x00000002;
+const UINT SIGNAL_GREEN		= 0x00000003; // enumeration start
+
+const UINT SIGNAL_USAGE		= 0x0000000C; // sum
+
+// Signals at intersection
+
+const UINT SIGNAL_ARROW		= 0x00000004; // the 3rd bit
+const UINT SIGNAL_FLASHING	= 0x00000008; // the 4th bit
+
+// Lane use signals
+
+const UINT SIGNAL_RIGHT		= 0x00000010; // right arrow
+const UINT SIGNAL_LEFT		= 0x00000020; // left arrow
+
+/*--------------------------------------------------------------------
+ * Message IDs for static and variable message signs.
+ */
+
+const UINT SIGN_ERROR		= 0xFFFFFFFF;
+
+const UINT SIGN_TYPE		= 0xF0000000;
+
+// The lowest 16 bits (the lowest 4 hex digits) is used to specify the
+// subject the given message concerns (e.g. the id of a link, a vehicle
+// type)
+
+const UINT SIGN_PREFIX		= 0xFFFF0000;
+const UINT SIGN_SUFFIX		= 0x0000FFFF;
+
+#define SignPrefix(s)		((s) & 0xFFFF0000)
+#define SignSuffix(s)		((s) & 0x0000FFFF)
+
+// Actions: apply to the lane changes related both rule and path
+
+const UINT SIGN_LANE_USE_LANES	= 0x00F00000; // number of lanes
+const UINT SIGN_LANE_USE_DIR	= 0x03000000; // direction (sum)
+const UINT SIGN_LANE_USE_DIR_R	= 0x01000000; // right
+const UINT SIGN_LANE_USE_DIR_L	= 0x02000000; // left
+
+#define SignLaneUseNumLanes(s) (((s) & 0x00F00000) >> 20)
+
+// If this bit is set, the vehicles that DO NOT MEET the chooser
+// condition apply the specified action.  If this bit is set, the
+// vehicles MEET the chooser condition apply the action.
+
+const UINT SIGN_NEGATIVE	= 0x04000000; // reverse chooser
+
+// If this bit is set, all vehicles meet the condition will comply
+// regardless their compliance attribute
+
+const UINT SIGN_MANDATORY	= 0x08000000;
+
+// Following sign constants should use only the highest 4 bits (the
+// highest 1 hex digit) for sign type and the lowest 16 low bits (the
+// lowest 4 hex digit) for information of choosing vehicles.
+
+// Chooser: Lane use related to rules
+
+const UINT SIGN_LANE_USE_RULE	= 0x10000000;
+const UINT SIGN_LANE_USE_CLASS	= 0x0000000F; // vehicle class (sum)
+const UINT SIGN_LANE_USE_GROUP	= 0x0000FFF0; // vehicle group (sum)
+
+// Chooser: Lane use related to paths
+
+const UINT SIGN_LANE_USE_PATH	= 0x20000000;
+const UINT SIGN_LANE_USE_DEPTH	= 0x000F0000; // max links to search
+
+#define SignLaneUseNumLinks(s)	(((s) & 0x000F0000) >> 16)
+
+// Route guidance
+
+const UINT SIGN_PATH		= 0x30000000;
+const UINT SIGN_PATH_DN_INDEX   = 0x0F000000; // which dn link
+const UINT SIGN_PATH_COMPLY     = 0x00F00000; // compliance rate
+const UINT SIGN_PATH_DEPTH	= 0x000F0000; // max links to search
+
+#define SignPathDnIndex(s)	(((s) & 0x0F000000) >> 24)
+#define SignPATHComply(s)	(((s) & 0x00F00000) >> 20)
+#define SignPathNumLinks(s)	(((s) & 0x000F0000) >> 16)
+
+// Message for calling route switch model
+
+const UINT SIGN_ENROUTE		    = 0x40000000;
+const UINT SIGN_ENROUTE_CLASS	= 0x0F000000;
+const UINT SIGN_ENROUTE_COMPLY	= 0x00F00000;
+const UINT SIGN_ENROUTE_TIMETAG	= 0x000FFFFF;
+
+#define SignEnrouteClass(s)	    (((s) & 0x0F000000) >> 24)
+#define SignEnrouteComply(s)	(((s) & 0x00F00000) >> 20)
+#define SignEnrouteTimeTag(s)	((s) & 0x000FFFFF)
+
+
+/*--------------------------------------------------------------------
+ * Severity and state of incident
+ */
+
+const UINT INCI_SEVERITY	= 0x0000000F; // mask the last 4 bits
+const UINT INCI_IGNORED		= 0x00000000; // enumeration start
+const UINT INCI_MINOR		= 0x00000001;
+const UINT INCI_MAJOR		= 0x00000002; // enumeration end
+
+const UINT INCI_STATE		= 0x00000070; // 112 sum
+const UINT INCI_ACTIVE		= 0x00000010; // 16
+const UINT INCI_KNOWN		= 0x00000020; // 32
+const UINT INCI_REMOVED		= 0x00000040; // 64
+const UINT INCI_STOP            = 0x00000100; // 256
+
+/*--------------------------------------------------------------------
+ * Surveillance sensors.  These data should be consistent with
+ * headings written into output file by TS_FileManager, TS_Network;
+ * data saved, sent, and received by TC_Sensor or its inherited
+ * classes.
+ */
+
+const UINT SENSOR_LINKWIDE	   = 0x00000100;
+const UINT SENSOR_DEVICE_TYPE  = 0x000000FF; // NOT used at this time
+const UINT SENSOR_FOR_EQUIPPED_BUS = 0x00000010; //IEM(Jul2)
+
+/* Data to be reported periodically
+ */
+
+const UINT SENSOR_AGGREGATE    = 0x0000000F;
+const UINT SENSOR_ACOUNT       = 0x00000001;
+const UINT SENSOR_ASPEED       = 0x00000002;
+const UINT SENSOR_AOCCUPANCY   = 0x00000004;
+#define SENSOR_ACODE(c) (SENSOR_AGGREGATE & (c))
+
+/* Data to be reported immediately
+ */
+
+const UINT SENSOR_INDIVIDUAL   = 0x0000FFF0;
+const UINT SENSOR_IID	       = 0x00000010;
+const UINT SENSOR_ITYPE	       = 0x00000020;
+const UINT SENSOR_IDEP         = 0x00000040;
+const UINT SENSOR_IORI	       = 0x00000080;
+const UINT SENSOR_IDES	       = 0x00000100;
+const UINT SENSOR_IPATH	       = 0x00000200;
+const UINT SENSOR_IHEIGHT      = 0x00000400;
+const UINT SENSOR_ISPEED       = 0x00000800;
+#define SENSOR_ICODE(c) ((SENSOR_INDIVIDUAL & (c)) >> 4)
+
+const UINT SENSOR_SNAPSHOT     = 0x0FFF0000;
+const UINT SENSOR_SID	       = 0x00010000;
+const UINT SENSOR_STYPE	       = 0x00020000;
+const UINT SENSOR_SHEIGHT      = 0x00400000;
+const UINT SENSOR_SSPEED       = 0x00800000;
+const UINT SENSOR_SLANE        = 0x01000000;
+const UINT SENSOR_SPOSITION    = 0x02000000;
+#define SENSOR_SCODE(c) ((SENSOR_SNAPSHOT & (c)) >> 16)
+
+/*--------------------------------------------------------------------
+ * State IDs for sensor devices
+ */
+
+const UINT SENSOR_ACTIVATED             = 0x0001;
+const UINT SENSOR_BROKEN                = 0x0002;
+const UINT SENSOR_DISABLED              = 0x0004;
+
+const UINT SENSOR_INC_FLAG              = 0x0010; // 1=declarable
+const UINT SENSOR_INC_DCR_PERSIST_COUNT = 0x0F00; // consecutive count
+const UINT SENSOR_INC_DCR_PERSIST_ONE   = 0x0100;
+const UINT SENSOR_INC_CLR_PERSIST_COUNT = 0xF000; // consecutive count
+const UINT SENSOR_INC_CLR_PERSIST_ONE   = 0x1000;
+
+#define IncDcrPersistCount(f) (((f) & SENSOR_INC_DCR_PERSIST_COUNT) >> 8)
+#define IncClrPersistCount(f) (((f) & SENSOR_INC_CLR_PERSIST_COUNT) >> 12)
+
+/*--------------------------------------------------------------------
+ * These constants are used to mask the vehicle types in terms of
+ * acceleration/deceleration profile, lane use privilege, and
+ * information availability, etc.
+ */
+
+const UINT VEHICLE_CLASS	= 0x0000000F; // 15
+const UINT VEHICLE_GROUP	= 0x0000FFF0;
+
+const UINT VEHICLE_LANE_USE	= 0x000007F0; // 2032 sum
+
+const UINT VEHICLE_SMALL	= 0x00000010; // 16
+const UINT VEHICLE_LOW		= 0x00000020; // 32
+
+const UINT VEHICLE_ETC		= 0x00000040; // 64
+const UINT VEHICLE_HOV		= 0x00000080; // 128
+const UINT VEHICLE_COMMERCIAL	= 0x00000100; // 256   // Dan - eligible for bus lane
+const UINT VEHICLE_BUS_RAPID  	= 0x00000200; // 512   // Dan - bus rapid transit bus
+const UINT VEHICLE_EMERGENCY	= 0x00000400; // 1024  // Dan - not used (4/9/02)
+
+const UINT VEHICLE_GUIDED	= 0x00000800; // 2048
+const UINT VEHICLE_FIXEDPATH    = 0x00001000; // 4096
+const UINT VEHICLE_PROBE	= 0x00002000; // 8192
+const UINT VEHICLE_CELLULAR	= 0x00004000; // 16384
+
+
+/*--------------------------------------------------------------------
+ * These constants are used with variable 'status' to mask
+ * the vehicle status.
+ */
+
+const UINT STATUS_RIGHT_OK		= 0x00000001;
+const UINT STATUS_CURRENT_OK		= 0x00000002;
+const UINT STATUS_LEFT_OK		= 0x00000004;
+
+const UINT STATUS_CHANGING		= 0x00000018; // 24 sum
+const UINT STATUS_RIGHT			= 0x00000008;
+const UINT STATUS_LEFT			= 0x00000010;
+
+const UINT STATUS_MANDATORY		= 0x00000020; // 32
+
+const UINT STATUS_REGIME		= 0x00000180; // sum 384
+const UINT STATUS_REGIME_FREEFLOWING	= 0x00000000;
+const UINT STATUS_REGIME_CARFOLLOWING	= 0x00000080; // 128
+const UINT STATUS_REGIME_EMERGENCY	= 0x00000100; // 256
+
+const UINT STATUS_ALREADY_PAID          = 0x00000200; // 512 tomer for toll plaza
+
+const UINT STATUS_STOPPED		= 0x00000400; // 1024
+const UINT STATUS_LANE_CHANGED		= 0x00000800; // 2048
+
+const UINT STATUS_BUS_SLOWING           = 0x00001000; // Dan, 4096
+const UINT STATUS_BUS_DEPARTING         = 0x00002000; // Dan, 8192
+
+const UINT STATUS_FORWARD               = 0x00010000; // tomer
+const UINT STATUS_BACKWARD              = 0x00020000; // tomer
+const UINT STATUS_ADJACENT              = 0x00040000; // tomer
+const UINT STATUS_TARGET_GAP            = 0x00070000; // tomer sum
+/*------------------------------------------------------------------------
+ * These constants are used to represent the current state of network
+ * objects.
+ */
+
+const UINT STATE_MOE_SELECTED	= 0x00000100;
+
+const UINT STATE_MULTI_SELECTED	= 0x00000010;
+
+const UINT STATE_VISIBLE	= 0x00001000;
+const UINT STATE_SELECTED	= 0x00002000;
+const UINT STATE_MARKED		= 0x00008000;
+
+#endif

@@ -1180,7 +1180,7 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 	std::ostringstream id("");
 	id << per << "-" << per->currWorkerProvider;
 	Profiler personProfiler(true, id.str());
-	out << "Profiling person " << id << std::endl;
+	out << "Profiling person " << id.str() << std::endl;
 	personProfiler.addOutPut(out);
 	// get person id and current subtrip id
 	std::string personId = per->getDatabaseId();
@@ -1213,6 +1213,7 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 		sql = NULL;
 
 		uint32_t elapsed = personProfiler.endProfiling();
+		out.str("");
 		out << "Total profiling time(ms) for person " << id.str() << " :" <<  elapsed << std::endl;
 		out << "------------------------------------------------------------------------------------" << std::endl;
 //		Print() << out.str();
@@ -1684,13 +1685,13 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 		tmp.insert(std::make_pair(ps->id,ps));
 		sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),tmp);
 		out.str("");
-		out << "generateSinglePathByFromToNodes3:false" << generateSinglePathByFromToNodes3_Profiler.endProfiling()  << std::endl;
+		out << "generateSinglePathByFromToNodes3:false:" << generateSinglePathByFromToNodes3_Profiler.endProfiling()  << std::endl;
 		//Print() << "Adding dump: " << out.str() << std::endl;
 		personProfiler.addOutPut(out);
 		return false;
 	}
 	out.str("");
-	out << "generateSinglePathByFromToNodes3:true" << generateSinglePathByFromToNodes3_Profiler.endProfiling() << std::endl;
+	out << "generateSinglePathByFromToNodes3:true:" << generateSinglePathByFromToNodes3_Profiler.endProfiling() << std::endl;
 	//Print() << "Adding dump: " << out.str() << std::endl;
 	personProfiler.addOutPut(out);
 
@@ -1726,7 +1727,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 
 	// SHORTEST DISTANCE LINK ELIMINATION
 	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
-	Profiler shortestDistanceLinkElimination_Profiler;
+	Profiler shortestDistanceLinkElimination_Profiler(true);//start the profiler
 	sim_mob::Link *l = NULL;
 //	std::vector<threadArg*> threadArgPool;
 	std::vector<PathSetWorkerThread*> workPool;
@@ -1748,7 +1749,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 			PathSetWorkerThread *work = threadPool->getWorker();
 			//introducing the profiling time accumulator
 			//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
-			work->parentProfiler = &shortestDistanceLinkElimination_Profiler;
+//			work->parentProfiler = &shortestDistanceLinkElimination_Profiler;
 			work->graph = &impl->drivingMap_;
 			work->segmentLookup = &impl->drivingSegmentLookup_;
 			work->fromVertex = fromV;
@@ -1790,10 +1791,17 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 		} //ROAD_SEGMENT
 	}
 
+	while(threadPool->incompleteWork > 0)
+	{
+//		std::cout<<"incompleteWork: "<<threadPool->incompleteWork<<std::endl;
+		usleep(0.01);
+	}
+	//kep your own ending time
+	shortestDistanceLinkElimination_Profiler.addToTotalTime(shortestDistanceLinkElimination_Profiler.endProfiling());
 	// shortest travel time link elimination
 	// travel time
 	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
-	Profiler shortestTravelTimeLinkElimination_Profiler;
+	Profiler shortestTravelTimeLinkElimination_Profiler(true);
 	l=NULL;
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir->getTravelTimeImpl();
 	from = sttpImpl->DrivingVertexNormalTime(*ps->fromNode);
@@ -1812,7 +1820,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 				PathSetWorkerThread *work = threadPool->getWorker();
 				//introducing the profiling time accumulator
 				//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
-				work->parentProfiler = &shortestTravelTimeLinkElimination_Profiler;
+//				work->parentProfiler = &shortestTravelTimeLinkElimination_Profiler;
 				work->graph = &sttpImpl->drivingMap_Default;
 				work->segmentLookup = &sttpImpl->drivingSegmentLookup_Default_;
 				work->fromVertex = fromV;
@@ -1829,9 +1837,15 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 		}//for
 	}//if sinPathTravelTimeDefault
 
+	while(threadPool->incompleteWork > 0)
+	{
+//		std::cout<<"incompleteWork: "<<threadPool->incompleteWork<<std::endl;
+		usleep(0.01);
+	}
+	shortestTravelTimeLinkElimination_Profiler.addToTotalTime(shortestTravelTimeLinkElimination_Profiler.endProfiling());
 	// TRAVEL TIME HIGHWAY BIAS
 	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
-	Profiler shortestTravelTimeLinkEliminationHighwayBias_Profiler;
+	Profiler shortestTravelTimeLinkEliminationHighwayBias_Profiler(true);
 	l=NULL;
 	SinglePath *sinPathHightwayBias = generateShortestTravelTimePath(ps->fromNode,ps->toNode,pool,sim_mob::HighwayBias_Distance);
 	from = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->fromNode);
@@ -1849,7 +1863,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 				PathSetWorkerThread *work = threadPool->getWorker();
 				//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
 				//introducing the profiling time accumulator
-				work->parentProfiler = &shortestTravelTimeLinkEliminationHighwayBias_Profiler;
+//				work->parentProfiler = &shortestTravelTimeLinkEliminationHighwayBias_Profiler;
 				work->graph = &sttpImpl->drivingMap_HighwayBias_Distance;
 				work->segmentLookup = &sttpImpl->drivingSegmentLookup_HighwayBias_Distance_;
 				work->fromVertex = fromV;
@@ -1866,8 +1880,14 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 		}//for
 	}//if sinPathTravelTimeDefault
 
+	while(threadPool->incompleteWork > 0)
+	{
+//		std::cout<<"incompleteWork: "<<threadPool->incompleteWork<<std::endl;
+		usleep(0.01);
+	}
+	shortestTravelTimeLinkEliminationHighwayBias_Profiler.addToTotalTime(shortestTravelTimeLinkEliminationHighwayBias_Profiler.endProfiling());
 	// generate random path
-	Profiler randomPath_Profiler;
+	Profiler randomPath_Profiler(true);
 	for(int i=0;i<20;++i)
 	{
 		from = sttpImpl->DrivingVertexRandom(*ps->fromNode,i);
@@ -1878,7 +1898,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 		PathSetWorkerThread *work = threadPool->getWorker();
 		//introducing the profiling time accumulator
 		//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
-		work->parentProfiler = &randomPath_Profiler;
+//		work->parentProfiler = &randomPath_Profiler;
 		work->graph = &sttpImpl->drivingMap_Random_pool[i];
 		work->segmentLookup = &sttpImpl->drivingSegmentLookup_Random_pool[i];
 		work->fromVertex = fromV;
@@ -1898,6 +1918,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 //		std::cout<<"incompleteWork: "<<threadPool->incompleteWork<<std::endl;
 		usleep(0.01);
 	}
+	randomPath_Profiler.addToTotalTime(randomPath_Profiler.endProfiling());
 	//now that all the threads have concluded, get the total times
 	out.str("");
 	out << "SHORTEST_DISTANCE_LE:" << shortestDistanceLinkElimination_Profiler.getTotalTime() << std::endl;

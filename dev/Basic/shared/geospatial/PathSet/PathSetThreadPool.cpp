@@ -38,6 +38,7 @@ sim_mob::PathSetWorkerThread::PathSetWorkerThread()
 {
 	s = new sim_mob::SinglePath();
 	hasPath = false;
+	parentProfiler = nullptr;
 }
 sim_mob::PathSetWorkerThread::~PathSetWorkerThread()
 {
@@ -401,9 +402,9 @@ void *sim_mob::PathSetThreadPool::threadExecute(void *param)
         {
                 if(worker)
                 {
-                	PathSetManager::Profiler profiler(true);
+//                	PathSetManager::Profiler profiler(true);
                     worker->executeThis();
-                    worker->parentProfiler->addToTotalTime(profiler.endProfiling());
+//                    worker->parentProfiler->addToTotalTime(profiler.endProfiling());
                         //cout << "worker[" << worker->id << "]\tdelete address: [" << worker << "]" << endl;
 //                        delete worker;
 //                        worker = NULL;

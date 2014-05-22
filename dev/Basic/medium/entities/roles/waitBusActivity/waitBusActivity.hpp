@@ -30,7 +30,9 @@ public:
 
 	explicit WaitBusActivity(Person* parent, MutexStrategy mtxStrat,
 			sim_mob::medium::WaitBusActivityBehavior* behavior = nullptr,
-			sim_mob::medium::WaitBusActivityMovement* movement = nullptr);
+			sim_mob::medium::WaitBusActivityMovement* movement = nullptr,
+			std::string roleName = std::string("WaitBusActivity_"),
+			Role::type roleType = Role::RL_WAITBUSACTITITY);
 
 	virtual ~WaitBusActivity() {
 	}

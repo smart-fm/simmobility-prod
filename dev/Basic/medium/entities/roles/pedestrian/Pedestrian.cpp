@@ -15,8 +15,9 @@ namespace medium {
 
 sim_mob::medium::Pedestrian::Pedestrian(Person* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::PedestrianBehavior* behavior,
-		sim_mob::medium::PedestrianMovement* movement) :
-		sim_mob::Role(behavior, movement, parent, "Pedestrian_")
+		sim_mob::medium::PedestrianMovement* movement,
+		std::string roleName, Role::type roleType) :
+		sim_mob::Role(behavior, movement, parent, roleName, roleType )
 {}
 
 sim_mob::medium::Pedestrian::~Pedestrian() {}

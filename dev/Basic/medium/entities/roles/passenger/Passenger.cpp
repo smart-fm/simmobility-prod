@@ -17,8 +17,9 @@ namespace medium {
 
 sim_mob::medium::Passenger::Passenger(Person* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::PassengerBehavior* behavior,
-		sim_mob::medium::PassengerMovement* movement) :
-		sim_mob::Role(behavior, movement, parent, "Passenger_"),
+		sim_mob::medium::PassengerMovement* movement,
+		std::string roleName, Role::type roleType) :
+		sim_mob::Role(behavior, movement, parent, roleName, roleType),
 		driver(nullptr), alightBus(false) {
 
 }

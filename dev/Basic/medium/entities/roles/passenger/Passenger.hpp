@@ -30,7 +30,9 @@ public:
 
 	explicit Passenger(Person* parent, MutexStrategy mtxStrat,
 			sim_mob::medium::PassengerBehavior* behavior = nullptr,
-			sim_mob::medium::PassengerMovement* movement = nullptr);
+			sim_mob::medium::PassengerMovement* movement = nullptr,
+			std::string roleName = std::string("Passenger_"),
+			Role::type roleType = Role::RL_PASSENGER);
 
 	virtual ~Passenger() {
 	}

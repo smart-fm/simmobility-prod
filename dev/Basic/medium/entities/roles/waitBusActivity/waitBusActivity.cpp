@@ -18,8 +18,9 @@ namespace medium {
 sim_mob::medium::WaitBusActivity::WaitBusActivity(Person* parent,
 		MutexStrategy mtxStrat,
 		sim_mob::medium::WaitBusActivityBehavior* behavior,
-		sim_mob::medium::WaitBusActivityMovement* movement) :
-		sim_mob::Role(behavior, movement, parent, "WaitBusActivity_"),
+		sim_mob::medium::WaitBusActivityMovement* movement,
+		std::string roleName, Role::type roleType) :
+		sim_mob::Role(behavior, movement, parent, roleName, roleType),
 		waitingTime(0), stop(nullptr), boardBus(false)
 {}
 

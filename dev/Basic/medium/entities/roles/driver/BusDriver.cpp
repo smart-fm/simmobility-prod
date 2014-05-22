@@ -28,8 +28,8 @@ using std::endl;
 sim_mob::medium::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::BusDriverBehavior* behavior,
 		sim_mob::medium::BusDriverMovement* movement,
-		std::string roleName)
-: sim_mob::medium::Driver(parent, mtxStrat, behavior, movement, roleName),
+		std::string roleName, Role::type roleType)
+: sim_mob::medium::Driver(parent, mtxStrat, behavior, movement, roleName, roleType),
   requestMode(mtxStrat, 0), visitedBusStop(mtxStrat, nullptr),
   visitedBusStopSequenceNo(mtxStrat, -1), arrivalTime(mtxStrat, 0.0),
   dwellTime(mtxStrat, 0.0), visitedBusTripSequenceNo(mtxStrat, 0),

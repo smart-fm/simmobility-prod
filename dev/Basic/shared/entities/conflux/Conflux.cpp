@@ -94,7 +94,7 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* person, const sim_mob::RoadSegm
 		role = person->getRole();
 	}
 
-	if(role->getRoleName()=="Driver_" || role->getRoleName()=="BusDriver_"){
+	if(role->roleType==Role::RL_DRIVER || role->roleType==Role::RL_BUSDRIVER){
 		/*
 		 * Persons start at a node (for now).
 		 * we will always add the Person to the road segment in "lane infinity".
@@ -107,10 +107,10 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* person, const sim_mob::RoadSegm
 		person->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 		rdSegStats->addAgent(rdSegStats->laneInfinity, person);
 	}
-	else if(role->getRoleName()=="Pedestrian_"){
+	else if(role->roleType==Role::RL_PEDESTRIAN){
 		pedestrianList.push_back(person);
 	}
-	else if(role->getRoleName()=="WaitBusActivity_"){
+	else if(role->roleType==Role::RL_WAITBUSACTITITY){
 		assignPersonToBusStopAgent(person);
 	}
 }

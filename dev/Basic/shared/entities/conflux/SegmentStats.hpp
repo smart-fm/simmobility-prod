@@ -274,11 +274,13 @@ protected:
 	typedef std::deque<sim_mob::Person*> PersonList;
 	typedef std::map<const sim_mob::Lane*, sim_mob::LaneStats* > LaneStatsMap;
 	typedef std::vector<const sim_mob::BusStop*> BusStopList;
+	typedef std::vector<sim_mob::Agent*> AgentList;
 	const sim_mob::RoadSegment* roadSegment;
 	BusStopList busStops;
 	uint8_t positionInRoadSegment; //segment can have multiple segment stats. This gives the position of this SegmentStats in segment.
 	LaneStatsMap laneStatsMap;
 	std::map<const sim_mob::Lane*, sim_mob::Person* > frontalAgents;
+	AgentList  busStopAgents;
 	double length;
 
 	double segVehicleSpeed; //speed of vehicles in segment for each frame
@@ -342,6 +344,12 @@ public:
 	void addAgent(const sim_mob::Lane* lane, sim_mob::Person* person);
 
 	/**
+	 * adds bus stop agent
+	 * @param busStopAgent is a pointer to a bus stop agent
+	 */
+	void addBusStopAgent(sim_mob::Agent* busStopAgent);
+
+	/**
 	 * removes person from lane
 	 * @param lane the lane to remove the person from
 	 * @param person the person to remove
@@ -364,6 +372,17 @@ public:
 	 * @return reference to the list of persons in lane
 	 */
 	std::deque<Person*>& getPersons(const sim_mob::Lane* lane);
+
+	/**
+	 * returns a reference to the list of bus stops
+	 * @return reference to the list of bus stops
+	 */
+	std::vector<const sim_mob::BusStop*>& getBusStops();
+
+	/**
+	 * update bus stop agent so as to perform further tasks
+	 */
+	void updateBusStopAgents(timeslice now);
 
 	/**
 	 * get a list of all persons in the segment stats
@@ -524,5 +543,7 @@ public:
 
 	std::stringstream debugMsgs; // handy to throw meaningful error messages
 };
+
+typedef boost::shared_ptr<SegmentStats> SegmentStatsPtr;
 
 }

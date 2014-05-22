@@ -94,7 +94,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
 	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), remainingTimeThisTick(0.0),
 	requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
-	age(0), boardingTimeSecs(0), alightingTimeSecs(0), client_id(-1), resetParamsRequired(false)
+	age(0), boardingTimeSecs(0), alightingTimeSecs(0), client_id(-1), resetParamsRequired(false), nextLinkRequired(nullptr)
 {
 }
 
@@ -102,11 +102,12 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegStats(nullptr), canMoveToNextSegment(NONE),
 	  databaseID(tcs.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
 	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
-	  client_id(-1)
+	  client_id(-1), nextLinkRequired(nullptr)
 {
 	if (!ConfigManager::GetInstance().FullConfig().RunningMidSupply() && !ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
 		simplyModifyTripChain(tcs);
 	}
+
 	initTripChain();
 }
 
@@ -267,6 +268,22 @@ bool sim_mob::Person::frame_init(timeslice now)
 
 	return true;
 }
+
+void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
+{
+	Agent::onEvent(eventId, ctxId, sender, args);
+	if(currRole){
+		currRole->onParentEvent(eventId, ctxId, sender, args);
+	}
+}
+
+
+ void sim_mob::Person::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
+ {
+	 if(currRole){
+		 currRole->HandleParentMessage(type, message);
+	 }
+ }
 
 
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
@@ -479,6 +496,7 @@ std::vector<sim_mob::SubTrip>::iterator sim_mob::Person::resetCurrSubTrip()
 	}
 	return trip->getSubTripsRW().begin();
 }
+
 
 void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripChain)
 {

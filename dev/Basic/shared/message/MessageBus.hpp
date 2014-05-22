@@ -119,6 +119,29 @@ namespace sim_mob {
             static void PostMessage(MessageHandler* target, Message::MessageType type, MessagePtr message, bool processOnMainThread = false);
 
             /**
+             * An instantaneous message is a message which is meant to be received
+             * by MessageHandlers instantaneously (without any delay). This is
+             * of course possible only when the sender and the receiver are
+             * within the same thread context.
+             *
+             * This function sends an instantaneous contextual message. The message
+             * will be consumed by the receiver immediately. The message sent with
+             * this function can be received only by targets within the same
+             * context as the sender (caller). The function does not put messages in
+             * queues for subsequent distribution and processing.
+             *
+             * \note this function should be called only when the sender is aware
+             * that all receivers are in the same thread context. Any attempt to
+             * send a message outside the thread context will simply fail and
+             * throw a runtime error.
+             *
+             * @param target of the message.
+             * @param type of the message.
+             * @param message to send.
+             */
+            static void SendInstantaneousMessage(MessageHandler* target, Message::MessageType type, MessagePtr message);
+
+            /**
              * Subscribes to the given event. 
              * This listener will receive *all* notifications for this event.
              * @param id of the event.
@@ -186,6 +209,20 @@ namespace sim_mob {
              * @param args event data.
              */
             static void PublishEvent(event::EventId id, event::Context ctx, EventArgsPtr args);
+
+            /**
+             * Publishes an event within the given context synchronously. The
+             * even is handled by the listeners right away without any delay.
+             * Events published with this function can be received only by targets
+             * within the same context as the sender (caller). The function does
+             * not put event messages in queues for subsequent distribution and
+             * processing.
+             *
+             * @param id of the event.
+             * @param ctx of the event.
+             * @param args event data.
+             */
+            static void PublishInstantaneousEvent(event::EventId id, event::Context ctx, EventArgsPtr args);
 
         public:
             static const unsigned int MB_MIN_MSG_PRIORITY;

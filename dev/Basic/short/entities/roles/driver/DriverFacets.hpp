@@ -22,6 +22,8 @@
 #include "entities/IncidentStatus.hpp"
 #include "geospatial/Incident.hpp"
 #include "util/OneTimeFlag.hpp"
+#include "IncidentPerformer.hpp"
+#include "FmodSchedulesPerformer.hpp"
 
 namespace sim_mob {
 
@@ -72,6 +74,11 @@ public:
 		this->parentDriver = parentDriver;
 	}
 
+	CarFollowModel* getCarFollowModel() {
+		return cfModel;
+	}
+
+
 protected:
 	Driver* parentDriver;
 
@@ -97,7 +104,7 @@ public:
 	void initPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
 	void resetPath(std::vector<sim_mob::WayPoint> wp_path);
 	const sim_mob::RoadSegment* hasNextSegment(bool inSameLink) const;
-	DPoint& getPosition() const;
+	DPoint getPosition() const;
     /**
       * get nearest obstacle in perceptionDis
       * @param type is obstacle type, currently only two types are BusStop and Incident.
@@ -145,10 +152,6 @@ protected:
 
 	void setOrigin(DriverUpdateParams& p);
 
-	void checkIncidentStatus(DriverUpdateParams& p, timeslice now);
-
-	void responseIncidentStatus(DriverUpdateParams& p, timeslice now);
-
 	///Set the internal rrRegions array from the current path.
 	///This effectively converts a list of RoadSegments into a (much smaller) list of Regions.
 	///This will trigger communication with the client.
@@ -184,13 +187,13 @@ private:
 	void setTrafficSignalParams(DriverUpdateParams& p);
 	void intersectionDriving(DriverUpdateParams& p);
 
-
 	void findCrossing(DriverUpdateParams& p);
+
 
 	double getDistanceToSegmentEnd() const;
 	sim_mob::DynamicVector getCurrPolylineVector() const;
 	sim_mob::DynamicVector getCurrPolylineVector2() const;
-	bool processFMODSchedule(FMODSchedule* schedule, DriverUpdateParams& p);
+
 
 public:
 	double targetSpeed;			//the speed which the vehicle is going to achieve
@@ -212,13 +215,16 @@ private:
 	//For generating a debugging trace
 	mutable std::stringstream DebugStream;
 
-	//incident response plan
-	sim_mob::IncidentStatus incidentStatus;
-
 	//Have we sent the list of all regions at least once?
 	OneTimeFlag sentAllRegions;
 
 	//The most recently-set path, which will be sent to RoadRunner.
 	std::vector<const sim_mob::RoadSegment*> rrPathToSend;
+
+	//perform incident response
+	IncidentPerformer incidentPerformer;
+
+	//perform fmod tasks
+	FmodSchedulesPerformer fmodPerformer;
 };
 }

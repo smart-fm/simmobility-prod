@@ -25,6 +25,20 @@ namespace aimsun
 class Loader;
 }
 
+enum {
+	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000
+};
+
+/**
+ * Subclasses both messages, This is to allow it to function as an message callback parameter.
+ */
+class PedestrianRequestMessageArgs : public messaging::Message {
+public:
+	PedestrianRequestMessageArgs(Person* inPerson):pedestrian(inPerson){;}
+	virtual ~PedestrianRequestMessageArgs() {}
+	Person* pedestrian;
+};
+
 struct cmp_person_remainingTimeThisTick : public std::greater<Person*> {
   bool operator() (const Person* x, const Person* y) const;
 };
@@ -123,6 +137,9 @@ private:
 	/**list of persons performing activities within the vicinity of this conflux*/
 	PersonList activityPerformers;
 
+	/*list of persons with pedestrian role performing walking activities*/
+	PersonList pedestrianList;
+
 	/**
 	 * function to call persons' updates if the MultiNode is signalized
 	 * \note this function is not implemented. Multinodes with signals are given
@@ -192,7 +209,7 @@ private:
 	 * @param wasActivityPerformer flag indicating whether the person was performing an activity at the start of the tick
 	 */
 	void killAgent(sim_mob::Person* person, sim_mob::SegmentStats* prevSegStats,
-			const sim_mob::Lane* prevLane, bool wasQueuing, bool wasActivityPerformer);
+			const sim_mob::Lane* prevLane, bool wasQueuing);
 
 	/**
 	 * Resets the remainingTime of persons who remain in
@@ -210,6 +227,16 @@ protected:
 	virtual bool frame_init(timeslice now) { throw std::runtime_error("frame_* methods are not required and are not implemented for Confluxes."); }
 	virtual Entity::UpdateStatus frame_tick(timeslice now) { throw std::runtime_error("frame_* are not required and are not implemented for Confluxes."); }
 	virtual void frame_output(timeslice now) { throw std::runtime_error("frame_* methods are not required and are not implemented for Confluxes."); }
+
+	/**
+	 * Inherited from Agent.
+	 */
+	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+
+	/**
+	 * Inherited from Agent.
+	 */
+	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 public:
 	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1);
@@ -274,6 +301,7 @@ public:
 	 * supply params related functions
 	 */
 	double getSegmentSpeed(SegmentStats* segStats, bool hasVehicle) const;
+
 	void resetPositionOfLastUpdatedAgentOnLanes();
 	void incrementSegmentFlow(const RoadSegment* rdSeg, uint8_t statsNum);
 	void resetSegmentFlows();
@@ -382,6 +410,7 @@ public:
 	 * @return constant pointer to the starting segment of the person's constructed path
 	 */
 	static const sim_mob::RoadSegment* constructPath(Person* person);
+
 
 	bool isBoundary; //A conflux that receives person from at least one conflux that belongs to another worker
 	bool isMultipleReceiver; //A conflux that receives persons from confluxes that belong to multiple other workers

@@ -18,7 +18,7 @@ using std::vector;
 using std::set;
 using std::string;
 
-
+BusStop::BusStopSet BusStop::allBusstops;
 
 double sim_mob::BusStop::EstimateStopPoint(double xPos, double yPos, const sim_mob::RoadSegment* rs)
 {
@@ -29,4 +29,9 @@ double sim_mob::BusStop::EstimateStopPoint(double xPos, double yPos, const sim_m
 	double b = BusStopDistfromEnd.getMagnitude();
 	double c = SegmentLength.getMagnitude();
 	return (-b*b + a*a + c*c)/(2.0*c);
+}
+
+void sim_mob::BusStop::RegisterNewBusStop(BusStop* busstop) {
+	if(!busstop) { return; }
+	allBusstops.insert(busstop);
 }

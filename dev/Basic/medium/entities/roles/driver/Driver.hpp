@@ -85,6 +85,7 @@ protected:
 
 	friend class DriverBehavior;
 	friend class DriverMovement;
+
 };
 
 

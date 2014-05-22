@@ -217,10 +217,30 @@ public:
 		this->currSegStats = currSegStats;
 	}
 
+	const Link* getNextLinkRequired() const
+	{
+		return nextLinkRequired;
+	}
+
+	void setNextLinkRequired(Link* nextLink)
+	{
+		nextLinkRequired = nextLink;
+	}
+
+
 protected:
 	virtual bool frame_init(timeslice now);
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
 	virtual void frame_output(timeslice now);
+
+
+	//Inherited from EventListener.
+	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+
+
+	//Inherited from MessageHandler.
+	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+
 
 private:
 	//to indicate that Role's updateParams has to be reset.
@@ -262,6 +282,8 @@ private:
     // current lane and segment are needed for confluxes to track this person
 	const sim_mob::Lane* currLane;
 	const sim_mob::SegmentStats* currSegStats;
+
+	const sim_mob::Link* nextLinkRequired;
 
 public:
 	virtual void pack(PackageUtils& packageUtil) CHECK_MPI_THROW;

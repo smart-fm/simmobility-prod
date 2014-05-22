@@ -13,6 +13,8 @@
 namespace sim_mob {
 namespace medium {
 
+class Driver;
+
 /**
  * Behaviour Facet class for mid-term Driver role
  *
@@ -41,6 +43,8 @@ public:
 		}
 		this->parentDriver = parentDriver;
 	}
+
+	sim_mob::medium::Driver* getParentDriver();
 
 protected:
 	/**

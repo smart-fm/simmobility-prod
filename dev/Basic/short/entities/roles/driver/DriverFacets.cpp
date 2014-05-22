@@ -65,8 +65,6 @@ string PrintLCS(LANE_CHANGE_SIDE s) {
 	return "LCS_SAME";
 }
 
-//the minimum speed when approaching to incident
-const float APPROACHING_SPEED = 200;
 
 //used in lane changing, find the start index and end index of polyline in the target lane
 size_t updateStartEndIndex(const std::vector<sim_mob::Point2D>* const currLanePolyLine, double currLaneOffset,
@@ -160,144 +158,6 @@ void sim_mob::DriverMovement::frame_init() {
 		setOrigin(parentDriver->getParams());
 	} else {
 		Warn() << "ERROR: Vehicle[short] could not be created for driver; no route!" <<std::endl ;
-	}
-}
-
-void sim_mob::DriverMovement::responseIncidentStatus(DriverUpdateParams& p, timeslice now) {
-	//slow down velocity when driver views the incident within the visibility distance
-	float incidentGap = parentDriver->vehicle->lengthCM;
-	if(incidentStatus.getSlowdownVelocity()){
-		//calculate the distance to the nearest front vehicle, if no front vehicle exists, the distance is given to a enough large gap as 5 kilometers
-		float fwdCarDist = 5000;
-		if( p.nvFwd.exists() ){
-			DPoint dFwd = p.nvFwd.driver->getCurrPosition();
-			DPoint dCur = parentDriver->getCurrPosition();
-			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
-			fwdCarDist = movementVect.getMagnitude()-parentDriver->vehicle->lengthCM;
-			if(fwdCarDist < 0) {
-				fwdCarDist = parentDriver->vehicle->lengthCM;
-			}
-		}
-
-		//record speed limit for current vehicle
-		float speedLimit = 0;
-		//record current speed
-		float newSpeed = 0;
-		//record approaching speed when it is near to incident position
-		float approachingSpeed = APPROACHING_SPEED;
-		float oldDistToStop = p.perceivedDistToFwdCar;
-		LANE_CHANGE_SIDE oldDirect = p.turningDirection;
-		p.perceivedDistToFwdCar = std::min(incidentStatus.getDistanceToIncident(), fwdCarDist);
-		p.turningDirection = LCS_LEFT;
-
-		//retrieve speed limit decided by whether or not incident lane or adjacent lane
-		speedLimit = incidentStatus.getSpeedLimit(p.currLaneIndex);
-		if(speedLimit==0 && incidentStatus.getDistanceToIncident()>incidentGap)
-			speedLimit = approachingSpeed;
-
-		// recalculate acceleration and velocity when incident happen
-		float newFwdAcc = 0;
-		if(parentDriver->vehicle->getVelocity() > speedLimit){
-			newFwdAcc = cfModel->makeAcceleratingDecision(p, speedLimit, maxLaneSpeed);
-			newSpeed = parentDriver->vehicle->getVelocity()+newFwdAcc*p.elapsedSeconds*METER_TO_CENTIMETER_CONVERT_UNIT;
-			if(newSpeed < speedLimit){
-				newFwdAcc = 0;
-				newSpeed = speedLimit;
-			}
-		}
-		else {
-			newFwdAcc = 0;
-			newSpeed = speedLimit;
-		}
-
-		//update current velocity so as to response the speed limit defined in incident lane.
-		parentDriver->vehicle->setVelocity(newSpeed);
-		p.perceivedDistToFwdCar = oldDistToStop;
-		p.turningDirection = oldDirect;
-	}
-
-	//stop cars when it already is near the incident location
-	if(incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_OCCURANCE_LANE ){
-		if(incidentStatus.getSpeedLimit(p.currLaneIndex)==0 && incidentStatus.getDistanceToIncident()<incidentGap) {
-			parentDriver->vehicle->setVelocity(0);
-			parentDriver->vehicle->setAcceleration(0);
-		}
-	}
-
-	if(p.nvFwd.exists() ){//avoid cars stacking together
-		DPoint dFwd = p.nvFwd.driver->getCurrPosition();
-		DPoint dCur = parentDriver->getCurrPosition();
-		DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
-		double len = parentDriver->getVehicle()->lengthCM;
-		double dist = movementVect.getMagnitude();
-		if( dist < len){
-			parentDriver->vehicle->setVelocity(0);
-			parentDriver->vehicle->setAcceleration(0);
-		}
-	}
-}
-
-void sim_mob::DriverMovement::checkIncidentStatus(DriverUpdateParams& p, timeslice now) {
-
-	const RoadSegment* curSegment = fwdDriverMovement.getCurrSegment();
-	const Lane* curLane = fwdDriverMovement.getCurrLane();
-	int curLaneIndex = curLane->getLaneID() - curSegment->getLanes().at(0)->getLaneID();
-	if(curLaneIndex<0){
-		return;
-	}
-
-	int nextLaneIndex = curLaneIndex;
-	LANE_CHANGE_SIDE laneSide = LCS_SAME;
-	IncidentStatus::IncidentStatusType status = IncidentStatus::INCIDENT_CLEARANCE;
-	incidentStatus.setDistanceToIncident(0);
-	const float convertFactor = KILOMETER_TO_METER_CONVERT_UNIT/HOUR_TO_SEC_CONVERT_UNIT;
-	incidentStatus.setDefaultSpeedLimit(curSegment->maxSpeed*convertFactor);
-
-	const std::map<centimeter_t, const RoadItem*> obstacles = curSegment->getObstacles();
-	std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
-	double realDist = 0;
-	bool replan = false;
-	const RoadItem* roadItem = getRoadItemByDistance(sim_mob::INCIDENT, realDist);
-	if(roadItem) {//retrieve front incident obstacle
-		const Incident* incidentObj = dynamic_cast<const Incident*>( roadItem );
-
-		if(incidentObj){
-			float visibility = incidentObj->visibilityDistance;
-			incidentStatus.setVisibilityDistance(visibility);
-			incidentStatus.setCurrentLaneIndex(curLaneIndex);
-
-			if( (now.ms() >= incidentObj->startTime) && (now.ms() < incidentObj->startTime+incidentObj->duration) && realDist<visibility){
-				incidentStatus.setDistanceToIncident(realDist);
-				replan = incidentStatus.insertIncident(incidentObj);
-				float incidentGap = parentDriver->vehicle->lengthCM*2;
-				if(!incidentStatus.getChangedLane() && incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_OCCURANCE_LANE){
-					double prob = incidentStatus.getVisibilityDistance()>0 ? incidentStatus.getDistanceToIncident()/incidentStatus.getVisibilityDistance() : 0.0;
-					if(incidentStatus.getDistanceToIncident() < 2*incidentGap){
-						incidentStatus.setChangedLane(true);
-					}
-					else {
-						if(prob < incidentStatus.getRandomValue()) {
-							incidentStatus.setChangedLane(true);
-						}
-					}
-				}
-			}
-			else if( now.ms()>incidentObj->startTime+incidentObj->duration ){// if incident duration is over, the incident obstacle will be removed
-				replan = incidentStatus.removeIncident(incidentObj);
-			}
-		}
-	}
-	else {//if vehicle is going beyond this incident obstacle, this one will be removed
-		for(obsIt=obstacles.begin(); obsIt!=obstacles.end(); obsIt++){
-			const Incident* inc = dynamic_cast<const Incident*>( (*obsIt).second );
-			if(inc){
-				replan = incidentStatus.removeIncident(inc);
-			}
-		}
-	}
-
-	if(replan){//update decision status for incident.
-		incidentStatus.checkIsCleared();
 	}
 }
 
@@ -433,8 +293,9 @@ void sim_mob::DriverMovement::frame_tick()
 	//Print output for this frame.
 	disToFwdVehicleLastFrame = p2.nvFwd.distance;
 	parentDriver->currDistAlongRoadSegment = fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
-	parentDriver->setCurrPosition(getPosition());
-	parentDriver->vehicle->setCurrPosition(getPosition());
+	DPoint position = getPosition();
+	parentDriver->setCurrPosition(position);
+	parentDriver->vehicle->setCurrPosition(position);
 }
 
 void sim_mob::DriverMovement::frame_tick_output() {
@@ -475,12 +336,12 @@ void sim_mob::DriverMovement::frame_tick_output() {
 			<<"\"xPos\":\""<<static_cast<int>(parentDriver->getCurrPosition().x)
 			<<"\",\"yPos\":\""<<static_cast<int>(parentDriver->getCurrPosition().y)
 			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
-			<<"\",\"length\":\""<<static_cast<int>(parentDriver->vehicle->lengthCM)
-			<<"\",\"width\":\""<<static_cast<int>(parentDriver->vehicle->widthCM)
+			<<"\",\"length\":\""<<static_cast<int>(parentDriver->vehicle->getLengthCm())
+			<<"\",\"width\":\""<<static_cast<int>(parentDriver->vehicle->getWidthCm())
 			<<"\",\"curr-segment\":\""<<(inLane?fwdDriverMovement.getCurrLane()->getRoadSegment():0x0)
 			<<"\",\"fwd-speed\":\""<<parentDriver->vehicle->getVelocity()
 			<<"\",\"fwd-accel\":\""<<parentDriver->vehicle->getAcceleration()
-			<<"\",\"mandatory\":\""<<incidentStatus.getChangedLane()
+			<<"\",\"mandatory\":\""<<incidentPerformer.getIncidentStatus().getChangedLane()
 			<<addLine.str()
 			<<"\"})"<<std::endl);
 }
@@ -679,7 +540,7 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 
 	if (!(hasNextSegment(true))) // has seg in current link
 	{
-		p.dis2stop = fwdDriverMovement.getAllRestRoadSegmentsLengthCM() - fwdDriverMovement.getCurrDistAlongRoadSegmentCM() - parentDriver->vehicle->lengthCM / 2 - 300;
+		p.dis2stop = fwdDriverMovement.getAllRestRoadSegmentsLengthCM() - fwdDriverMovement.getCurrDistAlongRoadSegmentCM() - parentDriver->vehicle->getLengthCm() / 2 - 300;
 		if (p.nvFwd.distance < p.dis2stop)
 			p.dis2stop = p.nvFwd.distance;
 		p.dis2stop /= METER_TO_CENTIMETER_CONVERT_UNIT;
@@ -763,9 +624,8 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 		}
 	}
 
-	FMODSchedule* schedule = parentDriver->vehicle->schedule;
-	if(processFMODSchedule(schedule, p)){
-		parentDriver->vehicle->setAcceleration(-5000);
+	if(fmodPerformer.performFmodSchedule(parentDriver, p)){
+		parentDriver->vehicle->setAcceleration(0);
 		parentDriver->vehicle->setVelocity(0);
 		p.currSpeed = parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT_UNIT;
 		return updatePositionOnLink(p);
@@ -774,14 +634,14 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 
 	//check incident status and decide whether or not do lane changing
 	LANE_CHANGE_MODE mode = DLC;
-	checkIncidentStatus(p, parentDriver->getParams().now);
-	if(incidentStatus.getChangedLane() && incidentStatus.getNextLaneIndex()>=0){
-		p.nextLaneIndex = incidentStatus.getNextLaneIndex();
-		parentDriver->vehicle->setTurningDirection(incidentStatus.getLaneSide());
+	incidentPerformer.checkIncidentStatus(parentDriver, p, parentDriver->getParams().now);
+	if(incidentPerformer.getIncidentStatus().getChangedLane() && incidentPerformer.getIncidentStatus().getNextLaneIndex()>=0){
+		p.nextLaneIndex = incidentPerformer.getIncidentStatus().getNextLaneIndex();
+		parentDriver->vehicle->setTurningDirection(incidentPerformer.getIncidentStatus().getLaneSide());
 		mode = MLC;
 	}
-	else if( (incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode==MLC )
-			|| (incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && incidentStatus.getCurrentIncidentLength()>0)) {
+	else if( (incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode==MLC )
+			|| (incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && incidentPerformer.getIncidentStatus().getCurrentIncidentLength()>0)) {
 		p.nextLaneIndex = p.currLaneIndex;
 		parentDriver->vehicle->setTurningDirection(LCS_SAME);
 		mode = MLC;
@@ -789,7 +649,7 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 
 	//Check if we should change lanes.
 	double newLatVel;
-	newLatVel = lcModel->executeLaneChanging(p, fwdDriverMovement.getAllRestRoadSegmentsLengthCM(), parentDriver->vehicle->lengthCM,
+	newLatVel = lcModel->executeLaneChanging(p, fwdDriverMovement.getAllRestRoadSegmentsLengthCM(), parentDriver->vehicle->getLengthCm(),
 			parentDriver->vehicle->getTurningDirection(), mode);
 
 	if(newLatVel>0 && p.nextLaneIndex>0){
@@ -810,9 +670,9 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 		parentDriver->vehicle->setTurningDirection(LCS_RIGHT);
 	else{
 		parentDriver->vehicle->setTurningDirection(LCS_SAME);
-		if(p.currLaneIndex == incidentStatus.getNextLaneIndex() && incidentStatus.getCurrentStatus() == IncidentStatus::INCIDENT_OCCURANCE_LANE){
-			incidentStatus.setCurrentStatus(IncidentStatus::INCIDENT_ADJACENT_LANE);
-			incidentStatus.setChangedLane(false);
+		if(p.currLaneIndex == incidentPerformer.getIncidentStatus().getNextLaneIndex() && incidentPerformer.getIncidentStatus().getCurrentStatus() == IncidentStatus::INCIDENT_OCCURANCE_LANE){
+			incidentPerformer.getIncidentStatus().setCurrentStatus(IncidentStatus::INCIDENT_ADJACENT_LANE);
+			incidentPerformer.getIncidentStatus().setChangedLane(false);
 		}
 	}
 
@@ -855,10 +715,11 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 	parentDriver->vehicle->setAcceleration(newFwdAcc * METER_TO_CENTIMETER_CONVERT_UNIT);
 
 	//response incident
-	responseIncidentStatus(p, parentDriver->getParams().now);
+	incidentPerformer.responseIncidentStatus(parentDriver, p, parentDriver->getParams().now);
 
 	return updatePositionOnLink(p);
 }
+
 
 double sim_mob::DriverMovement::getDistanceToSegmentEnd() const
 {
@@ -866,120 +727,6 @@ double sim_mob::DriverMovement::getDistanceToSegmentEnd() const
 			fwdDriverMovement.getCurrSegment()->getEnd()->location.getX(),
 			fwdDriverMovement.getCurrSegment()->getEnd()->location.getY());
 	return dis.getMagnitude();
-}
-
-bool sim_mob::DriverMovement::processFMODSchedule(FMODSchedule* schedule, DriverUpdateParams& p)
-{
-	bool ret = false;
-	if(schedule) // check whether need stop here
-	{
-		const RoadSegment* currSegment = fwdDriverMovement.getCurrSegment();
-		const Node* stop = currSegment->getEnd();
-		bool isFound = false;
-		static int count = 0;
-		double dwellTime = 0;
-		double distance = getDistanceToSegmentEnd();
-
-		if( stop->getID() == 75956 ){
-			std::cout << "distance is : " << distance << std::endl;
-		}
-
-		//judge whether near to stopping node
-		if( distance<500 ){
-
-			for(int i = 0; i<schedule->stopSchdules.size(); i++){
-
-				FMODSchedule::STOP& stopSchedule = schedule->stopSchdules[i];
-
-				if( stopSchedule.stopId==stop->getID()){
-
-					isFound = true;
-					dwellTime = stopSchedule.dwellTime;
-
-					//arrive at scheduling node
-					if(dwellTime==0){
-
-						parentDriver->stop_event_type.set(1);
-						parentDriver->stop_event_scheduleid.set(stopSchedule.scheduleId);
-						parentDriver->stop_event_nodeid.set(stop->getID());
-
-						int passengersnum = stopSchedule.alightingPassengers.size()+stopSchedule.boardingPassengers.size();
-						dwellTime = stopSchedule.dwellTime = dwellTimeCalculation(3, 3, 0, 0,0, passengersnum);
-
-						//boarding and alighting
-						const RoadSegment* seg = fwdDriverMovement.getCurrSegment();
-						const Node* node = seg->getEnd();
-						const Agent* parentAgent = (parentDriver?parentDriver->getParent():nullptr);
-					 	vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((node->getLocation().getX() - 3500),(node->getLocation().getY() - 3500)),Point2D((node->getLocation().getX() + 3500),(node->getLocation().getY() + 3500)), parentAgent);
-					 	for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
-					 	{
-					 		//passenger boarding
-							vector<int>& boardingpeople = stopSchedule.boardingPassengers;
-							if( std::find(boardingpeople.begin(), boardingpeople.end(), (*it)->getId() ) != boardingpeople.end() )
-							{
-								const Person* p = dynamic_cast<const Person*>( (*it) );
-								Passenger* passenger = p ? dynamic_cast<Passenger*>(p->getRole()) : nullptr;
-
-								if (!passenger) {
-								  continue;
-								}
-
-								schedule->insidePassengers.push_back( p );
-								PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
-								if(passenger_movement) {
-									passenger_movement->PassengerBoardBus_Choice( this->getParentDriver() );
-									passenger_movement->alightingMS = 1;
-								}
-					 	 	}
-					 	}
-
-						//alighting
-						vector<int>& alightingpeople = stopSchedule.alightingPassengers;
-						for( vector<int>::iterator it=alightingpeople.begin(); it!=alightingpeople.end(); it++ )
-						{
-							vector<const Person*>::iterator itPerson=schedule->insidePassengers.begin();
-							while(itPerson!=schedule->insidePassengers.end()){
-								if((*it) == (int)(*itPerson)->getId() ){
-									Passenger* passenger = dynamic_cast<Passenger*>((*itPerson)->getRole());
-									if (!passenger)
-										continue;
-
-									PassengerMovement* passenger_movement = dynamic_cast<PassengerMovement*> (passenger->Movement());
-									if(passenger_movement) {
-										passenger_movement->PassengerAlightBus(this->getParentDriver());
-										passenger_movement->alightingMS = 1;
-									}
-
-									itPerson = schedule->insidePassengers.erase(itPerson);
-								}
-								else{
-									itPerson++;
-								}
-							}
-						}
-
-						//update shared parameters to record boarding and alighting person
-						parentDriver->stop_event_lastAlightingPassengers.set( stopSchedule.alightingPassengers );
-						parentDriver->stop_event_lastBoardingPassengers.set( stopSchedule.boardingPassengers );
-					}
-
-					// stopping at scheduling node
-					dwellTime -= p.elapsedSeconds;
-					schedule->stopSchdules[i].dwellTime = dwellTime;
-
-					//depature from this node
-					if(dwellTime < 0 ){
-						parentDriver->stop_event_type.set(0);
-					}
-				}
-			}
-		}
-
-		if(isFound && dwellTime>0.0){
-			ret = true;
-		}
-	}
-	return ret;
 }
 
 
@@ -1028,7 +775,7 @@ const RoadSegment* sim_mob::DriverMovement::hasNextSegment(bool inSameLink) cons
 	return nullptr;
 }
 
-DPoint& sim_mob::DriverMovement::getPosition() const
+DPoint sim_mob::DriverMovement::getPosition() const
 {
 	//Temp
 	if (fwdDriverMovement.isInIntersection() && (parentDriver->vehicle->getPositionInIntersection().x == 0 || parentDriver->vehicle->getPositionInIntersection().y == 0)) {
@@ -1524,7 +1271,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 
 		//A non-null vehicle means we are moving.
 		if (allocateVehicle) {
-			res = new Vehicle(length, width);
+			res = new Vehicle(VehicleBase::CAR, length, width);
 			initPath(path, startLaneId);
 		}
 
@@ -1674,8 +1421,8 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 		fwdDistance = 0;
 	}
 
-	if(incidentStatus.getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && incidentStatus.getCurrentIncidentLength()>0){
-		incidentStatus.reduceIncidentLength(fwdDistance);
+	if(incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && incidentPerformer.getIncidentStatus().getCurrentIncidentLength()>0){
+		incidentPerformer.getIncidentStatus().reduceIncidentLength(fwdDistance);
 	}
 
 
@@ -1748,7 +1495,7 @@ void sim_mob::DriverMovement::check_and_set_min_car_dist(NearestVehicle& res, do
 	bool fwd=false;
 	if (distance>=0)
 		fwd = true;
-	distance = fabs(distance) - veh->lengthCM / 2 - other->getVehicleLengthCM() / 2;
+	distance = fabs(distance) - veh->getLengthCm() / 2 - other->getVehicleLengthCM() / 2;
 	if ( parentDriver->isAleadyStarted )
 	{
 		if(fwd && distance <0)
@@ -1767,7 +1514,7 @@ void sim_mob::DriverMovement::check_and_set_min_car_dist2(NearestVehicle& res, d
 	bool fwd=false;
 	if (distance>=0)
 		fwd = true;
-	distance = fabs(distance) - other_veh->lengthCM / 2 - me->getVehicleLengthCM() / 2;
+	distance = fabs(distance) - other_veh->getLengthCm() / 2 - me->getVehicleLengthCM() / 2;
 	if ( me->isAleadyStarted )
 	{
 		if(fwd && distance <0)
@@ -2081,7 +1828,7 @@ void sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Pedest
 
 	//If the pedestrian is not behind us, then set our flag to true and update the minimum pedestrian distance.
 	if (angleDiff < 0.5236) { //30 degrees +/-
-		params.npedFwd.distance = std::min(params.npedFwd.distance, otherVect.getMagnitude() - parentDriver->vehicle->lengthCM / 2
+		params.npedFwd.distance = std::min(params.npedFwd.distance, otherVect.getMagnitude() - parentDriver->vehicle->getLengthCm() / 2
 				- 300);
 	}
 }
@@ -2468,7 +2215,7 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 		parentDriver->perceivedTrafficColor->delay(p.trafficColor);
 
 
-		p.trafficSignalStopDistance = fwdDriverMovement.getAllRestRoadSegmentsLengthCM() - fwdDriverMovement.getCurrDistAlongRoadSegmentCM() - parentDriver->vehicle->lengthCM / 2;
+		p.trafficSignalStopDistance = fwdDriverMovement.getAllRestRoadSegmentsLengthCM() - fwdDriverMovement.getCurrDistAlongRoadSegmentCM() - parentDriver->vehicle->getLengthCm() / 2;
 		parentDriver->perceivedDistToTrafficSignal->set_delay(parentDriver->reacTime);
 		if(parentDriver->perceivedDistToTrafficSignal->can_sense())
 		{

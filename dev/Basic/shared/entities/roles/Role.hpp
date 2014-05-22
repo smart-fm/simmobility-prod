@@ -12,7 +12,7 @@
 
 #include "util/LangHelpers.hpp"
 #include "entities/Agent.hpp"
-#include "entities/vehicle/Vehicle.hpp"
+#include "entities/vehicle/VehicleBase.hpp"
 #include "entities/UpdateParams.hpp"
 #include "workers/Worker.hpp"
 #include "logging/Log.hpp"
@@ -136,8 +136,8 @@ public:
 		return sim_mob::DriverRequestParams();
 	}
 
-	Vehicle* getResource() { return currResource; }
-	void setResource(Vehicle* currResource) { this->currResource = currResource; }
+	VehicleBase* getResource() { return currResource; }
+	void setResource(VehicleBase* currResource) { this->currResource = currResource; }
 
 	Agent* getParent()
 	{
@@ -192,7 +192,7 @@ public:
 protected:
 	Agent* parent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
 
-	Vehicle* currResource; ///<Roles may hold "resources" for the current task. Expand later into multiple types.
+	VehicleBase* currResource; ///<Roles may hold "resources" for the current task. Expand later into multiple types.
 
 	BehaviorFacet* behaviorFacet;
 	MovementFacet* movementFacet;
@@ -224,6 +224,24 @@ public:
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil) = 0;
 #endif
 
+
+	/**
+	 * event handler which provide a chance to handle event transfered from parent agent.
+	 * @param sender pointer for the event producer.
+	 * @param id event identifier.
+	 * @param args event arguments.
+	 */
+	virtual void onParentEvent(event::EventId eventId,
+			sim_mob::event::Context ctxId, event::EventPublisher* sender,
+			const event::EventArgs& args){}
+
+	/**
+	 * message handler which provide a chance to handle message transfered from parent agent.
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void HandleParentMessage(messaging::Message::MessageType type,
+			const messaging::Message& message){}
 
 };
 

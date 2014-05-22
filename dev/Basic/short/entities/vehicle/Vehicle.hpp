@@ -18,12 +18,12 @@
 #include <vector>
 
 #include "conf/settings/DisableMPI.h"
-
+#include "entities/vehicle/VehicleBase.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/GeneralPathMover.hpp"
+#include "geospatial/streetdir/WayPoint.hpp"
 #include "util/MovementVector.hpp"
 #include "util/DynamicVector.hpp"
-#include "geospatial/streetdir/WayPoint.hpp"
-#include "geospatial/GeneralPathMover.hpp"
-#include "geospatial/Lane.hpp"
 
 namespace sim_mob {
 
@@ -35,13 +35,10 @@ class FMODSchedule;
  * The Vehicle class has vehicle Id, position, forward velocity, lat velocity and acceleration parameters etc for Driver use
  * Each Driver object has a vehicle to move in the network
  **/
-
-class Vehicle {
+class Vehicle : public sim_mob::VehicleBase {
 public:
-//	Vehicle(int startLaneID);
-	Vehicle(double lengthCM, double widthCM); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
-	Vehicle(int vehicleId, double lengthCM, double widthCM); //Test
-//	Vehicle();  //There is no wpPoint to initialize one Vehicle when crossing
+	Vehicle(const VehicleType vehType, double lengthCM, double widthCM); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
+	Vehicle(const VehicleType vehType, int vehicleId, double lengthCM, double widthCM); //Test
 	Vehicle(const Vehicle& copy); ///<Copy constructor
 
 	//Enable polymorphism
@@ -72,10 +69,9 @@ public:
 	void setLatVelocity(double value);   ///<Set the lateral velocity.
 	void setAcceleration(double value);  ///<Set the forward acceleration.
 	// for path-mover splitting purpose
-	void setCurrPosition(DPoint& currPosition);
+	void setCurrPosition(DPoint currPosition);
 	const DPoint& getCurrPosition() const;
 
-	void moveFwd_med(double amt);
 	void actualMoveToNextSegmentAndUpdateDir_med();		//~melani for mid-term
 	void moveLat(double amt);            ///<Move this car laterally. NOTE: This will _add_ the amt to the current value.
 	void resetLateralMovement();         ///<Put this car back in the center of the current lane.
@@ -94,9 +90,6 @@ public:
 #endif
 
 public:
-	const double lengthCM;  ///<length(CM) of the vehicle
-	const double widthCM;   ///<width(CM) of the vehicle
-	bool isQueuing; 	 ///<for mid-term use
 	FMODSchedule* schedule;
 
 private:

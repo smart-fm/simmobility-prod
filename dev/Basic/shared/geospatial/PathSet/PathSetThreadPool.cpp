@@ -402,9 +402,12 @@ void *sim_mob::PathSetThreadPool::threadExecute(void *param)
         {
                 if(worker)
                 {
-//                	PathSetManager::Profiler profiler(true);
+                	PathSetManager::Profiler profiler(true);
                     worker->executeThis();
-//                    worker->parentProfiler->addToTotalTime(profiler.endProfiling());
+                    profiler.endProfiling();
+                    if(worker->parentProfiler){
+                        worker->parentProfiler->addToTotalTime(profiler.getTotalTime());
+                    }
                         //cout << "worker[" << worker->id << "]\tdelete address: [" << worker << "]" << endl;
 //                        delete worker;
 //                        worker = NULL;

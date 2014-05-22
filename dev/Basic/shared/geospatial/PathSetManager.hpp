@@ -209,6 +209,9 @@ std::string toString(const T& value)
 
 
 class PathSetManager {
+	///option to wait for each group of pathset generation to complete before starting another group
+	///for all 'link eliminations' and 'random perturbation'
+	bool serialPathSetGroup;
 public:
 	static PathSetManager* getInstance()
 	{
@@ -248,7 +251,7 @@ public:
 
 	public:
 		///Constructor + start profiling if init is true
-		Profiler(bool init=false, std::string id_ = "", std::string logger = "");
+		Profiler(bool init=false, std::string id_ = "", std::string logger = "", bool serialPathSetGroup_ = false);
 		~Profiler();
 		///initialize the logger that profiler writes to
 		void InitLogFile(const std::string& path);
@@ -262,7 +265,7 @@ public:
 		void startProfiling();
 
 		///save the ending time ...and .. if add==true add the value to the total time;
-		uint32_t endProfiling();
+		uint32_t endProfiling(bool addToTotalTime = false);
 
 		///add the given time to the total time
 		void addToTotalTime(uint32_t);

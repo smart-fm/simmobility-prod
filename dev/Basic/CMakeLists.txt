@@ -234,6 +234,7 @@ option(SIMMOB_INTERACTIVE_MODE "Force Sim Mobility to synchronize interactively 
 
 #Option: use path set mode flag
 option(SIMMOB_PATHSET_MODE "Use path set when generate path for driver" OFF)
+option(SIMMOB_SERIAL_PATHSET_GROUP_MODE "wait for each group of pathset generation to complete before starting another group" OFF)
 
 #Force gcc to output single line errors. 
 # This makes it easier for Eclipse to parse and understand each error.

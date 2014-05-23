@@ -243,16 +243,17 @@ function calulateUnitExpectations (unit, timeOnMarket, building, postcode, ameni
         local targetPrice = hedonicPrice -- IMPORTANT : this should be the hedonic value
         local a = 0 -- ratio of events expected by the seller per (considering that the price is 0)
         local b = 1 -- Importance of the price for seller.
-        local cost = 0.0 -- Cost of being in the market
-        local x0 = 0 -- starting point for price search  
+       	local cost = 0.0 -- Cost of being in the market
+       	local x0 = 0 -- starting point for price search
+        local crit = 0.0001 -- criteria
+        local maxIterations = 20 --number of iterations 
         for i=1,timeOnMarket do
             a = 1.2 * targetPrice
             x0 = 1.19 * targetPrice     
             entry = ExpectationEntry()
             entry.hedonicPrice = hedonicPrice
-            entry.askingPrice = findMaxArgConstrained(calculateExpectation,
-                  x0, targetPrice, a, b, cost, 0.0001, 20, targetPrice, 1.2 * targetPrice)
-            entry.targetPrice = calculateExpectation(entry.askingPrice, targetPrice, a, b, cost);
+            entry.askingPrice = findMaxArgConstrained(calculateExpectation, x0, targetPrice, a, b, cost, crit, maxIterations, targetPrice, 1.2 * targetPrice )
+            entry.targetPrice = calculateExpectation(entry.askingPrice, targetPrice, a, b, cost );
             targetPrice = entry.targetPrice;
             expectations[i] = entry
         end

@@ -39,14 +39,9 @@ public:
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
-	virtual void make_frame_tick_params(timeslice now) {
-		throw std::runtime_error(
-				"make_frame_tick_params not implemented in WaitBusActivity.");
-	}
-	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() {
-		throw std::runtime_error(
-				"getSubscriptionParams not implemented in WaitBusActivity.");
-	}
+	virtual void make_frame_tick_params(timeslice now) {}
+
+	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	void setStop(sim_mob::BusStop* busStop);
 

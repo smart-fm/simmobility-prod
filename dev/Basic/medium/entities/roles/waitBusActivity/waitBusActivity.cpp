@@ -73,5 +73,9 @@ void sim_mob::medium::WaitBusActivity::HandleParentMessage(messaging::Message::M
 {
 
 }
+
+std::vector<BufferedBase*> sim_mob::medium::WaitBusActivity::getSubscriptionParams() {
+	return vector<BufferedBase*>();
+}
 }
 }

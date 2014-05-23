@@ -510,7 +510,8 @@ void sim_mob::Person::insertWaitingActivityToTrip(
 			std::vector<sim_mob::SubTrip>& subTrips =
 					(dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
 
-			itSubTrip[0] = itSubTrip[1] = subTrips.begin();
+			itSubTrip[1] = subTrips.begin();
+			itSubTrip[0] = subTrips.begin();
 			while (itSubTrip[1] != subTrips.end()) {
 				if (itSubTrip[1]->mode == "BusTravel"
 						&& itSubTrip[0]->mode != "WaitingBusActivity") {
@@ -522,10 +523,11 @@ void sim_mob::Person::insertWaitingActivityToTrip(
 					subTrip.toLocation = itSubTrip[1]->toLocation;
 					subTrip.toLocationType = itSubTrip[1]->toLocationType;
 					subTrip.mode = "WaitingBusActivity";
-					itSubTrip[0] = subTrips.insert(itSubTrip[1], subTrip);
+					itSubTrip[1] = subTrips.insert(itSubTrip[1], subTrip);
 				}
 
-				itSubTrip[0] = itSubTrip[1]++;
+				itSubTrip[0] = itSubTrip[1];
+				itSubTrip[1]++;
 			}
 		}
 	}

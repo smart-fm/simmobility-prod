@@ -1174,6 +1174,11 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 				path.push_back(WayPoint(*itor));
 			}
 		}
+		else if( role == "waitBusActivity" ){
+			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
+			const BusStop* stop = firstSubTrip.fromLocation.busStop_;
+			rdSeg = stop->getParentSegment();
+		}
 	}
 
 	if(path.size() > 0) {

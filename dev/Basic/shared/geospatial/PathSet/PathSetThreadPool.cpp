@@ -402,7 +402,7 @@ void *sim_mob::PathSetThreadPool::threadExecute(void *param)
         {
                 if(worker)
                 {
-                	PathSetManager::Profiler profiler(true);
+                	Profiler profiler(true);
                     worker->executeThis();
                     profiler.endProfiling();
                     if(worker->parentProfiler){

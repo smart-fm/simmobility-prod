@@ -24,6 +24,7 @@
 #include "RoadNetwork.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "util/Profiler.hpp"
 
 #include "soci.h"
 #include "soci-postgresql.h"
@@ -224,72 +225,9 @@ public:
 		return instance_;
 	}
 //	virtual ~PathSetManager();
-	class Profiler {
-		///static variable shared among all profilers
 
-		///total time measured by all profilers
-		uint32_t totalTime;
-		///total number of profilers
-		static int totalProfilers;
-		///mutex to protect access by multiple threads
-		boost::mutex mutex_;//for index
-		boost::mutex mutexTotalTime;//for total time
-		boost::mutex mutexOutput;//for output stream
-		///stores start and end of profiling
-		uint32_t  start, stop;
-		///the profiling object id
-		int index;
-		std::string id;
-		///is the profiling object started profiling?
-		bool started;
-		///print output
-		std::ostringstream output;
-		///for efficiency
-		int outputSize;
-		///logger
-		std::ofstream LogFile;
 
-	public:
-		///Constructor + start profiling if init is true
-		Profiler(bool init=false, std::string id_ = "", std::string logger = "", bool serialPathSetGroup_ = false);
-		~Profiler();
-		///initialize the logger that profiler writes to
-		void InitLogFile(const std::string& path);
-
-		///whoami
-		std::string getId();
-		int getIndex();
-		bool isStarted();
-
-		///like it suggests, store the start time of the profiling
-		void startProfiling();
-
-		///save the ending time ...and .. if add==true add the value to the total time;
-		uint32_t endProfiling(bool addToTotalTime = false);
-
-		///add the given time to the total time
-		void addToTotalTime(uint32_t);
-
-		///getoutput
-		std::ostringstream & outPut();
-		///add efficiently to output variable. write to log file occasionally
-		void addOutPut(std::ostringstream & s, bool flush = false);
-		///flush the log streams into the file
-		void flushLog();
-
-		unsigned int & getTotalTime();
-		static void printTime(struct tm *tm, struct timeval & tv, std::string id);
-
-		uint32_t
-		stampstart();
-
-		uint32_t
-		stampstop();
-
-		void reset();
-	};
-
-	static Profiler profiler;
+	static sim_mob::Profiler profiler;
 public:
 	bool generateAllPathSetWithTripChain();
 	bool generateAllPathSetWithTripChain2();

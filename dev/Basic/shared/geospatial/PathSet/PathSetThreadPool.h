@@ -64,7 +64,7 @@ public:
 	PathSet *ps;
 	bool hasPath;
 	///used by local profilers to report to the profiler in higher level.
-	sim_mob::PathSetManager::Profiler *parentProfiler;
+	sim_mob::Profiler *parentProfiler;
 };
 
 //class PublicTransportPathSetWorkerThread : public PathSetWorkerThread{

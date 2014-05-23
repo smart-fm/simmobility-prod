@@ -219,7 +219,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 //		psMgr->setTravleTimeTmpTableName(ConfigParams::GetInstance().travelTimeTmpTableName);
 //		psMgr->createTravelTimeTmpTable(psMgr->getTravleTimeTmpTableName());
 //		psMgr->getDataFromDB();
-		if(psMgr->isUseCatchMode())
+		if(psMgr->isUseCacheMode())
 		{
 			psMgr->generateAllPathSetWithTripChain2();
 		}

@@ -383,7 +383,7 @@ sim_mob::Node* sim_mob::PathSetParam::getNodeByAimsunId(std::string id)
 }
 void sim_mob::PathSetParam::initParameters()
 {
-	isUseCatch=false;
+	isUseCache=false;
 
 	bTTVOT = -0.01373;//-0.0108879;
 	bCommonFactor = 1.0;
@@ -1205,7 +1205,7 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 
 
 	//
-//	if(isUseCatch)
+//	if(isUseCache)
 //	{
 //		sim_mob::PathSet* ps = getPathSetByPersonIdAndSubTripId(personId,subTripId);
 //		vector<WayPoint> res = generateBestPathChoice(per,ps);
@@ -2377,7 +2377,7 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps)
 }
 void sim_mob::PathSetManager::initParameters()
 {
-	isUseCatch=pathSetParam->isUseCatch;
+	isUseCache=pathSetParam->isUseCache;
 
 	bTTVOT = pathSetParam->bTTVOT;//-0.0108879;
 	bCommonFactor = pathSetParam->bCommonFactor;
@@ -2731,7 +2731,7 @@ sim_mob::SinglePath * sim_mob::PathSetManager::generateSinglePathByFromToNodes(c
 sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const sim_mob::Node *fromNode,
 														   const sim_mob::Node *toNode,
 														   const sim_mob::SubTrip* st,
-														   bool isUseCatch)
+														   bool isUseCache)
 {
 	// 0. check pathSetPool already calculate before with this pair
 	std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
@@ -2744,7 +2744,7 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 
 	PathSet *ps = NULL;
 	// check cache first
-	if(isUseCatch)
+	if(isUseCache)
 	{
 		ps = getPathSetByFromToNodeAimsunId(fromId_toId);
 		if(ps)
@@ -2756,7 +2756,7 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 	{
 		clearPools();
 	}
-	if(!isUseCatch)
+	if(!isUseCache)
 	{
 //		sim_mob::PathSet ps_;
 //		bool hasPSinDB = sim_mob::aimsun::Loader::LoadPathSetDBwithId(
@@ -2892,7 +2892,7 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 //	std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
 //	Print()<<"generatePathSetByFromToNodes4"<<std::endl;
 	sim_mob::generatePathSizeForPathSet2(ps);
-	if(isUseCatch)
+	if(isUseCache)
 	{
 		pathSetPool.insert(std::make_pair(fromId_toId,ps));
 	}
@@ -2991,7 +2991,7 @@ std::vector<WayPoint> sim_mob::convertWaypointP2Wp(std::vector<WayPoint*> wp)
 //	}
 //	return res/100.0; //meter
 //}
-void sim_mob::generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCatch)
+void sim_mob::generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCache)
 {
 	// Step 1: the length of each path in the path choice set
 	double minL = ps->oriPath->length;
@@ -3155,7 +3155,7 @@ void sim_mob::generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCatch)
 		}
 		sp->pathsize = log(size);
 //		sp->dbData->pathsize = sp->pathSize;
-//		if(isUseCatch)
+//		if(isUseCache)
 //		{
 //			sim_mob::PathSetManager::getInstance()->storePath(sp);
 //		}

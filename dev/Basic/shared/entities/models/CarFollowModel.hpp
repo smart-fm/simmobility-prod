@@ -257,7 +257,9 @@ private:
 
 	/// update step size , dec,acc,uniform speed,stopped vh
 	std::vector<double> updateStepSize;
+	std::vector<double> perceptionSize;
 	double nextStepSize;
+	double nextPerceptionSize;
 	/// param of normal distributions
 	struct UpdateStepSizeParam
 	{
@@ -265,6 +267,7 @@ private:
 		double stdev;
 		double lower;
 		double upper;
+		double percep; // percentage of total reaction time
 	};
 	/// deceleration update size
 	UpdateStepSizeParam decUpdateStepSize;

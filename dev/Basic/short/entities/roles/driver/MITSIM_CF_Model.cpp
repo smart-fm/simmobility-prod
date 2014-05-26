@@ -169,16 +169,16 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	//UPDATE STEP SIZE (REACTION TIME RELATED)
 	string updateStepSizeStr;
 	// dec
-	ParameterManager::Instance()->param(modelName,"dec_update_step_size",updateStepSizeStr,string("0.5     0.0     0.5     0.5"));
+	ParameterManager::Instance()->param(modelName,"dec_update_step_size",updateStepSizeStr,string("0.5     0.0     0.5     0.5 0.5"));
 	makeUpdateSizeParam(updateStepSizeStr,decUpdateStepSize);
 	// acc
-	ParameterManager::Instance()->param(modelName,"acc_update_step_size",updateStepSizeStr,string("1.0     0.0     1.0     1.0"));
+	ParameterManager::Instance()->param(modelName,"acc_update_step_size",updateStepSizeStr,string("1.0     0.0     1.0     1.0 0.5"));
 	makeUpdateSizeParam(updateStepSizeStr,accUpdateStepSize);
 	// uniform speed
-	ParameterManager::Instance()->param(modelName,"uniform_speed_update_step_size",updateStepSizeStr,string("1.0     0.0     1.0     1.0"));
+	ParameterManager::Instance()->param(modelName,"uniform_speed_update_step_size",updateStepSizeStr,string("1.0     0.0     1.0     1.0 0.5"));
 	makeUpdateSizeParam(updateStepSizeStr,uniformSpeedUpdateStepSize);
 	// stopped vehicle
-	ParameterManager::Instance()->param(modelName,"stopped_vehicle_update_step_size",updateStepSizeStr,string("0.5     0.0     0.5     0.5"));
+	ParameterManager::Instance()->param(modelName,"stopped_vehicle_update_step_size",updateStepSizeStr,string("0.5     0.0     0.5     0.5 0.5"));
 	makeUpdateSizeParam(updateStepSizeStr,stoppedUpdateStepSize);
 	boost::random_device seed_gen;
 	long int r = seed_gen();
@@ -230,6 +230,7 @@ void sim_mob::MITSIM_CF_Model::makeUpdateSizeParam(string& s,UpdateStepSizeParam
 	sParam.stdev  = c[1];
 	sParam.lower  = c[2];
 	sParam.upper  = c[3];
+	sParam.percep = c[4];
 }
 void sim_mob::MITSIM_CF_Model::makeScaleIdx(string& s,vector<double>& c)
 {
@@ -988,12 +989,16 @@ void sim_mob::MITSIM_CF_Model::calcUpdateStepSizes()
 {
 	// dec
 	updateStepSize[0] = makeNormalDist(decUpdateStepSize);
+	perceptionSize[0] = updateStepSize[0] * decUpdateStepSize.percep;
 	// acc
 	updateStepSize[1] = makeNormalDist(accUpdateStepSize);
+	perceptionSize[1] = updateStepSize[1] * decUpdateStepSize.percep;
 	// uniform Speed
 	updateStepSize[2] = makeNormalDist(uniformSpeedUpdateStepSize);
+	perceptionSize[2] = updateStepSize[2] * decUpdateStepSize.percep;
 	// stopped vehicle
 	updateStepSize[3] = makeNormalDist(stoppedUpdateStepSize);
+	perceptionSize[3] = updateStepSize[3] * decUpdateStepSize.percep;
 }
 double sim_mob::MITSIM_CF_Model::makeNormalDist(UpdateStepSizeParam& sp)
 {
@@ -1017,5 +1022,6 @@ double sim_mob::MITSIM_CF_Model::calcNextStepSize(DriverUpdateParams& p)
 	else if (currentSpeed_ > sim_mob::Math::DOUBLE_EPSILON) i = 2;
 	else i = 3;
 	nextStepSize = updateStepSize[i];
+	nextPerceptionSize = perceptionSize[i];
 	return nextStepSize;
 }

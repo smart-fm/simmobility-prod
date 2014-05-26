@@ -249,6 +249,29 @@ private:
 
 	// target gap parameters
 	vector<double> targetGapAccParm;
+
+	/// update step size
+	/// param of normal distributions
+	struct UpdateStepSizeParam
+	{
+		double mean;
+		double stdev;
+		double lower;
+		double upper;
+	};
+	/// deceleration update size
+	UpdateStepSizeParam decUpdateStepSize;
+	/// acceleration update size
+	UpdateStepSizeParam accUpdateStepSize;
+	/// uniform Speed update size
+	UpdateStepSizeParam uniformSpeedUpdateStepSize;
+	/// stopped vehicle update size
+	UpdateStepSizeParam stoppedUpdateStepSize;
+	/** \brief convert string to CarFollowParam
+	 *  \param s string data
+	 *  \param cfParam CarFollowParam to store converted double value
+	 **/
+	void makeUpdateSizeParam(string& s,UpdateStepSizeParam& sParam);
 };
 
 

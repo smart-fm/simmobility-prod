@@ -84,6 +84,9 @@ ThreadPool::~ThreadPool() {
  * a notification is generated. The user can act accordingly when ALL threads have concluded their jobs.(i purposefully used
  * the term 'conclude' rather that 'join' as the threads simply running io_service not the input tasks. Input tasks are executed
  * by the io_services running within the threads.
+ * Important Note:
+ * Regardless of how many batches used and how many times wait(0 is called,  wait() MUST be called before calling the destructor. otherwisem there will be unhandled exceptions waiting for you.
+ * Most probably, this is temporary and fixes will be added. Until then, use this class with caution.
  */
 namespace batched {
 class ThreadPool :public sim_mob::ThreadPool{

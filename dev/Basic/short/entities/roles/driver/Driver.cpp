@@ -110,17 +110,22 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
 	,stop_event_nodeid(mtxStrat, -1)
 {
-	//This is something of a quick fix; if there is no parent, then that means the
-	//  reaction times haven't been initialized yet and will crash. ~Seth
-	if (parent) {
-		ReactionTimeDist* r1 = ConfigManager::GetInstance().FullConfig().reactDist1;
-		ReactionTimeDist* r2 = ConfigManager::GetInstance().FullConfig().reactDist2;
-		if (r1 && r2) {
-			reacTime = r1->getReactionTime() + r2->getReactionTime();
-			reacTime = 0;
-		} else {
-			throw std::runtime_error("Reaction time distributions have not been initialized yet.");
-		}
+//	//This is something of a quick fix; if there is no parent, then that means the
+//	//  reaction times haven't been initialized yet and will crash. ~Seth
+//	if (parent) {
+//		ReactionTimeDist* r1 = ConfigManager::GetInstance().FullConfig().reactDist1;
+//		ReactionTimeDist* r2 = ConfigManager::GetInstance().FullConfig().reactDist2;
+//		if (r1 && r2) {
+//			reacTime = r1->getReactionTime() + r2->getReactionTime();
+//			//reacTime = 0;
+//		} else {
+//			throw std::runtime_error("Reaction time distributions have not been initialized yet.");
+//		}
+//	}
+
+	if(movement)
+	{
+		reacTime = movement->cfModel->nextPerceptionSize * 100; // seconds to ms
 	}
 
 	perceivedFwdVel = new FixedDelayed<double>(reacTime,true);
@@ -316,4 +321,14 @@ void Driver::setCurrPosition(DPoint& currPosition)
 const DPoint& Driver::getCurrPosition() const
 {
 	return currPos;
+}
+void Driver::resetReacTime(double t)
+{
+	perceivedFwdVel->set_delay(t);
+	perceivedFwdAcc->set_delay(t);
+	perceivedVelOfFwdCar->set_delay(t);
+	perceivedAccOfFwdCar->set_delay(t);
+	perceivedDistToFwdCar->set_delay(t);
+	perceivedDistToTrafficSignal->set_delay(t);
+	perceivedTrafficColor->set_delay(t);
 }

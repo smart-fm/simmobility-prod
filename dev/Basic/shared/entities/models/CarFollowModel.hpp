@@ -47,6 +47,9 @@ public:
 	double accGradeFactor;
 	double normalDeceleration;
 	double maxDeceleration;
+
+	double nextStepSize;
+	double nextPerceptionSize;
 };
 
 /**
@@ -194,7 +197,7 @@ private:
 	 **/
 	void calcUpdateStepSizes();
 
-private:
+public:
 	// split delimiter in xml param file
 	string splitDelimiter;
 	/// key=vehicle type
@@ -258,8 +261,7 @@ private:
 	/// update step size , dec,acc,uniform speed,stopped vh
 	std::vector<double> updateStepSize;
 	std::vector<double> perceptionSize;
-	double nextStepSize;
-	double nextPerceptionSize;
+
 	/// param of normal distributions
 	struct UpdateStepSizeParam
 	{

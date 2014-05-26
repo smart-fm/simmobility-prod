@@ -184,6 +184,10 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	long int r = seed_gen();
 	updateSizeRm = boost::mt19937(r);
 	calcUpdateStepSizes();
+
+	// init step size , i=3 stopped vehicle
+	nextStepSize = updateStepSize[3];
+	nextPerceptionSize = perceptionSize[3];
 }
 void sim_mob::MITSIM_CF_Model::makeCFParam(string& s,CarFollowParam& cfParam)
 {
@@ -988,17 +992,17 @@ void sim_mob::MITSIM_CF_Model::calcStateBasedVariables(DriverUpdateParams& p)
 void sim_mob::MITSIM_CF_Model::calcUpdateStepSizes()
 {
 	// dec
-	updateStepSize[0] = makeNormalDist(decUpdateStepSize);
-	perceptionSize[0] = updateStepSize[0] * decUpdateStepSize.percep;
+	updateStepSize.push_back(makeNormalDist(decUpdateStepSize));
+	perceptionSize.push_back( updateStepSize[0] * decUpdateStepSize.percep );
 	// acc
-	updateStepSize[1] = makeNormalDist(accUpdateStepSize);
-	perceptionSize[1] = updateStepSize[1] * decUpdateStepSize.percep;
+	updateStepSize.push_back( makeNormalDist(accUpdateStepSize) );
+	perceptionSize.push_back( updateStepSize[1] * decUpdateStepSize.percep );
 	// uniform Speed
-	updateStepSize[2] = makeNormalDist(uniformSpeedUpdateStepSize);
-	perceptionSize[2] = updateStepSize[2] * decUpdateStepSize.percep;
+	updateStepSize.push_back( makeNormalDist(uniformSpeedUpdateStepSize) );
+	perceptionSize.push_back( updateStepSize[2] * decUpdateStepSize.percep );
 	// stopped vehicle
-	updateStepSize[3] = makeNormalDist(stoppedUpdateStepSize);
-	perceptionSize[3] = updateStepSize[3] * decUpdateStepSize.percep;
+	updateStepSize.push_back( makeNormalDist(stoppedUpdateStepSize) );
+	perceptionSize.push_back( updateStepSize[3] * decUpdateStepSize.percep );
 }
 double sim_mob::MITSIM_CF_Model::makeNormalDist(UpdateStepSizeParam& sp)
 {
@@ -1006,7 +1010,7 @@ double sim_mob::MITSIM_CF_Model::makeNormalDist(UpdateStepSizeParam& sp)
 	boost::variate_generator< boost::mt19937, boost::normal_distribution<double> >
 	dice(updateSizeRm, nor);
 	double v= dice();
-	//TODO need find truncated log distribution
+	//TODO need use truncated log distribution
 	if(v<sp.lower) return sp.lower;
 	if(v>sp.upper) return sp.upper;
 	return v;

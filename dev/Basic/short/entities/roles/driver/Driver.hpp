@@ -146,6 +146,13 @@ private:
 	NodePoint goal;    //first, assume that each vehicle moves towards a goal
 
 public:
+	/**
+	 * /brief reset reaction time
+	 * /param t time in ms
+	 */
+	void resetReacTime(double t);
+
+public:
 	Agent* getDriverParent(const Driver *self) { return self->parent; }
 
 public:

@@ -57,7 +57,10 @@ private:
 	};
 
 public:
-	Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::medium::DriverBehavior* behavior = nullptr, sim_mob::medium::DriverMovement* movement = nullptr);
+	Driver(Person* parent, MutexStrategy mtxStrat,
+			sim_mob::medium::DriverBehavior* behavior = nullptr,
+			sim_mob::medium::DriverMovement* movement = nullptr,
+			std::string roleName = std::string());
 	virtual ~Driver();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

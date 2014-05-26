@@ -27,8 +27,9 @@ using std::endl;
 
 sim_mob::medium::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::BusDriverBehavior* behavior,
-		sim_mob::medium::BusDriverMovement* movement)
-: sim_mob::medium::Driver(parent, mtxStrat, behavior, movement),
+		sim_mob::medium::BusDriverMovement* movement,
+		std::string roleName)
+: sim_mob::medium::Driver(parent, mtxStrat, behavior, movement, roleName),
   requestMode(mtxStrat, 0), visitedBusStop(mtxStrat, nullptr),
   visitedBusStopSequenceNo(mtxStrat, -1), arrivalTime(mtxStrat, 0.0),
   dwellTime(mtxStrat, 0.0), visitedBusTripSequenceNo(mtxStrat, 0),
@@ -41,7 +42,7 @@ sim_mob::medium::BusDriver::~BusDriver() {}
 Role* sim_mob::medium::BusDriver::clone(Person* parent) const {
 	BusDriverBehavior* behavior = new BusDriverBehavior(parent);
 	BusDriverMovement* movement = new BusDriverMovement(parent);
-	BusDriver* busdriver = new BusDriver(parent, parent->getMutexStrategy(), behavior, movement);
+	BusDriver* busdriver = new BusDriver(parent, parent->getMutexStrategy(), behavior, movement, "BusDriver_");
 	behavior->setParentBusDriver(busdriver);
 	movement->setParentBusDriver(busdriver);
 	movement->setParentDriver(busdriver);
@@ -72,17 +73,6 @@ bool sim_mob::medium::BusDriver::addPassenger(sim_mob::medium::Passenger* passen
 sim_mob::DriverRequestParams sim_mob::medium::BusDriver::getDriverRequestParams()
 {
 	sim_mob::DriverRequestParams res;
-
-	res.existedRequest_Mode = &requestMode;
-	res.lastVisited_Busline = &visitedBusLine;
-	res.lastVisited_BusTrip_SequenceNo = &visitedBusTripSequenceNo;
-	res.busstop_sequence_no = &visitedBusStopSequenceNo;
-	res.real_ArrivalTime = &arrivalTime;
-	res.DwellTime_ijk = &dwellTime;
-	res.lastVisited_BusStop = &visitedBusStop;
-	res.last_busStopRealTimes = busStopRealTimes;
-	res.waiting_Time = &holdingTime;
-
 	return res;
 }
 
@@ -154,15 +144,10 @@ void sim_mob::medium::BusDriver::closeBusDoors(
 }
 
 std::vector<BufferedBase*> sim_mob::medium::BusDriver::getSubscriptionParams() {
-	vector<BufferedBase*> res;
-	//res.push_back(&(currLane_));
-	//res.push_back(&(currLaneOffset_));
-	//res.push_back(&(currLaneLength_));
-	return res;
+	return vector<BufferedBase*>();
 }
 
-void sim_mob::medium::BusDriver::make_frame_tick_params(timeslice now)
-{
+void sim_mob::medium::BusDriver::make_frame_tick_params(timeslice now) {
 	getParams().reset(now);
 }
 

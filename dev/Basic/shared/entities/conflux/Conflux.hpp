@@ -78,7 +78,7 @@ private:
     	bool isQueuing;
     	sim_mob::SegmentStats* segStats;
 
-    	PersonProps(sim_mob::Person* person);
+    	PersonProps(const sim_mob::Person* person);
     };
 
 	/**

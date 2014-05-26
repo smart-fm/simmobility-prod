@@ -317,6 +317,7 @@ protected:
 	 * SegmentStats in segment.
 	 */
 	uint8_t positionInRoadSegment;
+
 	/**
 	 * Map containing LaneStats for every lane of the segment.
 	 * This map includes lane infinity.
@@ -330,6 +331,7 @@ protected:
 	 * have to stop in this segment stats.
 	 */
 	const Lane* outermostLane;
+
 	/**
 	 * A map which stores the unprocessed person who is closest to the end of
 	 * this SegmentStats for each lane in the seg stats. This is used for
@@ -340,9 +342,9 @@ protected:
 
 	/**length of this SegmentStats in cm*/
 	double length;
-	/**speed of vehicles in segment for each frame*/
+	/**speed of vehicles in segment for each frame in cm/s*/
 	double segVehicleSpeed;
-	/**speed of pedestrians on this segment for each frame--not used at the moment*/
+	/**speed of pedestrians on this segment for each frame in cm/s --not used at the moment*/
 	double segPedSpeed;
 	/**vehicle density of this segment stats in PCU/cm*/
 	double segDensity;

@@ -66,7 +66,7 @@ sim_mob::Conflux::~Conflux()
 	activityPerformers.clear();
 }
 
-sim_mob::Conflux::PersonProps::PersonProps(sim_mob::Person* person) {
+sim_mob::Conflux::PersonProps::PersonProps(const sim_mob::Person* person) {
 	role = person->getRole();
 	lane = person->getCurrLane();
 	isQueuing = person->isQueuing;

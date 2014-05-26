@@ -65,6 +65,7 @@ inline double converToSeconds(uint32_t timeInMs) {
 	return (timeInMs/1000.0);
 }
 
+/**an infinitesimal double to avoid rounding issues*/
 const double INFINITESIMAL_DOUBLE = 0.0001;
 }
 

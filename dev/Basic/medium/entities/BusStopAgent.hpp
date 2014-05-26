@@ -29,7 +29,7 @@ namespace medium {
  */
 class BusStopAgent: public sim_mob::Agent {
 public:
-	typedef boost::unordered_map<const BusStop*, BusStopAgent*> BusStopAgentsMap;
+	typedef boost::unordered_map<const BusStop*, BusStopAgent*> BusStopAgentsMap; // there can be a lot of bus stops in the road network. unordered_map is faster.
 
 	BusStopAgent(const MutexStrategy& mtxStrat, int id,
 			const sim_mob::BusStop* stop, SegmentStats* stats);

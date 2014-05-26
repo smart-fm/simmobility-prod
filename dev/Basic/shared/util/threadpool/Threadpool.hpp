@@ -78,8 +78,9 @@ ThreadPool::~ThreadPool() {
  */
 
 /**
- * second version of threadpool is used only for special cases where user insists to complete different batches of tasks
- * serially using the same thread pool. In such a case, user expects the thread pool to notify the user when all the threads
+ * second version of threadpool is used ONLY for SPECIAL cases where user insists to complete different batches of tasks
+ * serially using the same thread pool. For example, each group of tasks needs a separate profiling, so a series of thread groups need to be executed serially.
+ *  In such a case, user expects the thread pool to notify the user when all the threads
  * are over. This is simply done by invoking the origina tasks along with a condition variable. As soon as a thread concludes,
  * a notification is generated. The user can act accordingly when ALL threads have concluded their jobs.(i purposefully used
  * the term 'conclude' rather that 'join' as the threads simply running io_service not the input tasks. Input tasks are executed

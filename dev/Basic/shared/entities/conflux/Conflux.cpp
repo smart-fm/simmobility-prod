@@ -192,7 +192,10 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 
 	//perform person's role related handling
 	//activity role specific handling
-	if(afterUpdate.role->roleType == sim_mob::Role::RL_ACTIVITY) {
+	if( afterUpdate.role->roleType == sim_mob::Role::RL_PEDESTRIAN ) {
+		return;
+	}
+	else if(afterUpdate.role->roleType == sim_mob::Role::RL_ACTIVITY) {
 		// if role is ActivityPerformer after update
 		if (beforeUpdate.role && beforeUpdate.role->roleType == sim_mob::Role::RL_ACTIVITY) {
 			// if the role was ActivityPerformer before the update as well, do
@@ -569,7 +572,9 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person,
 	}
 	else if (person->getRole() && person->getRole()->roleType==sim_mob::Role::RL_PEDESTRIAN) {
 		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
-		pedestrianList.erase(pIt);
+		if(pIt!=pedestrianList.end()){
+			pedestrianList.erase(pIt);
+		}
 		if(person->getNextLinkRequired()){
 			return;
 		}
@@ -729,6 +734,10 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 		if (person->isToBeRemoved()) {
 			retVal = person->checkTripChain();
 			personRole = person->getRole();
+			if (personRole && retVal.status == UpdateStatus::RS_DONE
+					&& personRole->roleType == Role::RL_PEDESTRIAN) {
+				return retVal;
+			}
 
 			//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
 			person->setStartTime(now.ms());
@@ -758,8 +767,7 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 			Conflux* nextConflux = person->getNextLinkRequired()->getSegments().front()->getParentConflux();
 			messaging::MessageBus::PostMessage(nextConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST,
 					messaging::MessageBus::MessagePtr(new PedestrianTransferRequestMessage(person)));
-			person->setNextLinkRequired(nullptr);
-			return retVal;
+			return UpdateStatus::Done;
 		}
 
 		if(person->requestedNextSegStats){
@@ -1162,7 +1170,7 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 		}
 		else if (role == "pedestrian") {
 			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-			path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*firstSubTrip.fromLocation.node_), stdir.WalkingVertex(*firstSubTrip.toLocation.node_));
+			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*firstSubTrip.fromLocation.node_), stdir.DrivingVertex(*firstSubTrip.toLocation.node_));
 		}
 		else if (role == "busdriver") {
 			//throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");

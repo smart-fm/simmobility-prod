@@ -28,6 +28,7 @@ void initSegStatsPath(const vector<const sim_mob::RoadSegment*>& rsPath,
 		const vector<sim_mob::SegmentStats*>& statsInSegment =
 				rdSeg->getParentConflux()->findSegStats(rdSeg);
 		ssPath.insert(ssPath.end(), statsInSegment.begin(), statsInSegment.end());
+		std::cout << "road segment id is : " << rdSeg->getSegmentAimsunId() << std::endl;
 	}
 }
 

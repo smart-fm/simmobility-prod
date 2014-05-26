@@ -32,6 +32,10 @@ Role* sim_mob::medium::Pedestrian::clone(Person* parent) const {
 	return pedestrian;
 }
 
+std::vector<BufferedBase*> sim_mob::medium::Pedestrian::getSubscriptionParams() {
+	return vector<BufferedBase*>();
+}
+
 void sim_mob::medium::Pedestrian::make_frame_tick_params(timeslice now) {}
 
 }

@@ -37,10 +37,7 @@ public:
 
 	virtual void make_frame_tick_params(timeslice now);
 
-	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() {
-		throw std::runtime_error(
-				"getSubscriptionParams not implemented in Pedestrian.");
-	}
+	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 private:
 	friend class PedestrainBehavior;

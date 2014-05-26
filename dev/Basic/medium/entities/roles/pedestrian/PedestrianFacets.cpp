@@ -83,19 +83,19 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 	StreetDirectory::VertexDesc source, destination;
 	std::vector<WayPoint> wayPoints;
 	if (subTrip.fromLocation.type_ == WayPoint::NODE) {
-		source = streetDirectory.WalkingVertex(*subTrip.fromLocation.node_);
+		source = streetDirectory.DrivingVertex(*subTrip.fromLocation.node_);
 	} else if (subTrip.fromLocation.type_ == WayPoint::BUS_STOP) {
-		source = streetDirectory.WalkingVertex(*subTrip.fromLocation.busStop_);
+		source = streetDirectory.DrivingVertex(*subTrip.fromLocation.busStop_);
 	}
 
 	if (subTrip.toLocation.type_ == WayPoint::NODE) {
-		destination = streetDirectory.WalkingVertex(*subTrip.toLocation.node_);
+		destination = streetDirectory.DrivingVertex(*subTrip.toLocation.node_);
 	} else if (subTrip.toLocation.type_ == WayPoint::BUS_STOP) {
-		destination = streetDirectory.WalkingVertex(
+		destination = streetDirectory.DrivingVertex(
 				*subTrip.toLocation.busStop_);
 	}
 
-	wayPoints = streetDirectory.SearchShortestWalkingPath(source, destination);
+	wayPoints = streetDirectory.SearchShortestDrivingPath(source, destination);
 	for (std::vector<WayPoint>::iterator it = wayPoints.begin();
 			it != wayPoints.end(); it++) {
 		if (it->type_ == WayPoint::ROAD_SEGMENT) {
@@ -109,6 +109,7 @@ void PedestrianMovement::frame_tick() {
 	if (remainingTimeToComplete <= tickMS) {
 		double lastRemainingTime = tickMS - remainingTimeToComplete;
 		if (trajectory.size() == 0) {
+			getParent()->setNextLinkRequired(nullptr);
 			getParent()->setToBeRemoved();
 		}
 		else {

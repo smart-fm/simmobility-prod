@@ -1,5 +1,7 @@
+#pragma once
 #include <boost/thread/thread.hpp>
 #include <boost/asio.hpp>
+#include <boost/thread/mutex.hpp>
 namespace sim_mob {
 /**
  * An implementation of threadpool using boost features: asio and threadgroup
@@ -13,12 +15,14 @@ namespace sim_mob {
  * a group of threads run io_service.run() simultaneously.
  * multithreaded tasks are assigned to the pool using io_service.post() which will manage assignment of tasks to the threads.
  * or
- *
- *
  */
 class ThreadPool {
 public:
 	ThreadPool(std::size_t);
+	/**
+	 * posts a jpb to the tread pool
+	 * @param f if the function bound to its arguments using methods like boost::bind
+	 */
 	template<class F>
 	void enqueue(F f);
 	~ThreadPool();
@@ -82,50 +86,64 @@ ThreadPool::~ThreadPool() {
  * by the io_services running within the threads.
  */
 namespace batched {
-class ThreadPool {
+class ThreadPool :public sim_mob::ThreadPool{
 public:
 	ThreadPool(std::size_t);
+	/**
+	 * posts a jpb to the tread pool
+	 * @param f if the function bound to its arguments using methods like boost::bind
+	 */
 	template<class F>
 	void enqueue(F f);
+	/**
+	 * called by user wherever he wants to pause and wait for completion of tasks supplied to the trhead pool so far.
+	 */
+	void wait();
+private:
+	boost::mutex mutex_;
+	boost::condition_variable cond;
+	///number of taks posted to the thread pool
+	size_t nTasks;
+	/**
+	 * wrapper class that run the assigned function(through enqueue) and then notifies that the thread has concluded its currently assigned job
+	 * @param f is the assigned tasks inputted to this method using a tuple.
+	 * Note: In the above parameter,number of members in the tuple is always 1. Theoretically, it is not necessary to use a tuple. apparently boost can work this way only.
+	 */
 	template<class F>
 	void wrapper(boost::tuple<F> f);
-	~ThreadPool();
-private:
-	// the io_service we are wrapping
-	boost::asio::io_service io_service;
-	boost::shared_ptr<boost::asio::io_service::work> work;
-	boost::thread_group threads;
 };
 
 // the constructor just launches some amount of workers
-ThreadPool::ThreadPool(size_t nThreads) :
-		io_service(), work(new boost::asio::io_service::work(io_service)) {
-	for (std::size_t i = 0; i < nThreads; ++i) {
-		threads.create_thread(
-				boost::bind(&boost::asio::io_service::run, &io_service));
-	}
+ThreadPool::ThreadPool(size_t nThreads) :sim_mob::ThreadPool(nThreads){
 }
 // add new work item to the pool
 template<class F>
 void ThreadPool::enqueue(F f) {
+	{
+		boost::unique_lock<boost::mutex> lock(mutex_);
+		nTasks ++;
+	}
 	void (ThreadPool::*ff)(boost::tuple<F>) = &ThreadPool::wrapper<F>;
 	io_service.post(boost::bind(ff, this, boost::make_tuple(f))); //using a tuple seems to be the only practical way. it is mentioned in boost examples.
 }
 
 template<class F>
 void ThreadPool::wrapper(boost::tuple<F> f) {
-	std::cout << "Calling a Wrapper" << std::endl;
-	boost::get<0>(f)();
-	std::cout << "Wrapped up" << std::endl;
+	boost::get<0>(f)();//this is the task (function and its argument) that has to be executed by a thread
+	{
+		boost::unique_lock<boost::mutex> lock(mutex_);
+		nTasks --;
+		cond.notify_one();
+	}
 }
 
-// the destructor joins all threads
-ThreadPool::~ThreadPool() {
-	//kill the work so that io_service can be stopped
-	work.reset();
-	//stop after all your jobs are done(all your threads joined)
-	io_service.run();
+void ThreadPool::wait(){
+	boost::unique_lock<boost::mutex> lock(mutex_);
+	while(nTasks){
+		cond.wait(lock);
+	}
 }
-}
-}
+
+}//namespace batched
+}//namespace sim_mob
 

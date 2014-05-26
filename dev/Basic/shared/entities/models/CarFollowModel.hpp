@@ -185,9 +185,14 @@ private:
 	void calcStateBasedVariables(DriverUpdateParams& p);
 	/** \brief calculate the step size of update state variables
 	 *         the vehicle and type.
+	 *  \param p vehicle state value
 	 *  \return step size
 	 **/
-	double calcNextStepSize();
+	double calcNextStepSize(DriverUpdateParams& p);
+	/** \brief Calculate the step sizes for making car-following decisions, load only when init
+	 *
+	 **/
+	void calcUpdateStepSizes();
 
 private:
 	// split delimiter in xml param file
@@ -250,7 +255,9 @@ private:
 	// target gap parameters
 	vector<double> targetGapAccParm;
 
-	/// update step size
+	/// update step size , dec,acc,uniform speed,stopped vh
+	std::vector<double> updateStepSize;
+	double nextStepSize;
 	/// param of normal distributions
 	struct UpdateStepSizeParam
 	{
@@ -272,6 +279,8 @@ private:
 	 *  \param cfParam CarFollowParam to store converted double value
 	 **/
 	void makeUpdateSizeParam(string& s,UpdateStepSizeParam& sParam);
+	boost::mt19937 updateSizeRm;
+	double makeNormalDist(UpdateStepSizeParam& sp);
 };
 
 

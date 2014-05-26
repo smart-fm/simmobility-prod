@@ -10,7 +10,7 @@
  */
 
 #include <boost/random.hpp>
-
+#include <boost/nondet_random.hpp>
 #include <limits>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/trim.hpp>
@@ -180,7 +180,10 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	// stopped vehicle
 	ParameterManager::Instance()->param(modelName,"stopped_vehicle_update_step_size",updateStepSizeStr,string("0.5     0.0     0.5     0.5"));
 	makeUpdateSizeParam(updateStepSizeStr,stoppedUpdateStepSize);
-
+	boost::random_device seed_gen;
+	long int r = seed_gen();
+	updateSizeRm = boost::mt19937(r);
+	calcUpdateStepSizes();
 }
 void sim_mob::MITSIM_CF_Model::makeCFParam(string& s,CarFollowParam& cfParam)
 {
@@ -460,7 +463,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 
 	p.lastAcc = acc;
 
-	cftimer = calcNextStepSize();
+	cftimer = calcNextStepSize(p);
 
 	return acc;
 }
@@ -981,7 +984,38 @@ void sim_mob::MITSIM_CF_Model::calcStateBasedVariables(DriverUpdateParams& p)
 	// Maximum deceleration is function of speed and vehicle class
 	maxDeceleration    = getMaxDeceleration(p);
 }
-double sim_mob::MITSIM_CF_Model::calcNextStepSize()
+void sim_mob::MITSIM_CF_Model::calcUpdateStepSizes()
 {
-	return 0.2;
+	// dec
+	updateStepSize[0] = makeNormalDist(decUpdateStepSize);
+	// acc
+	updateStepSize[1] = makeNormalDist(accUpdateStepSize);
+	// uniform Speed
+	updateStepSize[2] = makeNormalDist(uniformSpeedUpdateStepSize);
+	// stopped vehicle
+	updateStepSize[3] = makeNormalDist(stoppedUpdateStepSize);
+}
+double sim_mob::MITSIM_CF_Model::makeNormalDist(UpdateStepSizeParam& sp)
+{
+	boost::normal_distribution<double> nor(sp.mean,sp.stdev);
+	boost::variate_generator< boost::mt19937, boost::normal_distribution<double> >
+	dice(updateSizeRm, nor);
+	double v= dice();
+	//TODO need find truncated log distribution
+	if(v<sp.lower) return sp.lower;
+	if(v>sp.upper) return sp.upper;
+	return v;
+}
+double sim_mob::MITSIM_CF_Model::calcNextStepSize(DriverUpdateParams& p)
+{
+	double accRate_ = p.driver->fwdAccel/100.0;
+	double currentSpeed_ = p.driver->fwdVelocity/100.0;
+
+	int i;
+	if (accRate_ < -sim_mob::Math::DOUBLE_EPSILON) i = 0;
+	else if (accRate_ > sim_mob::Math::DOUBLE_EPSILON) i = 1;
+	else if (currentSpeed_ > sim_mob::Math::DOUBLE_EPSILON) i = 2;
+	else i = 3;
+	nextStepSize = updateStepSize[i];
+	return nextStepSize;
 }

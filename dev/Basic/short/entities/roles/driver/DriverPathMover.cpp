@@ -579,10 +579,10 @@ double sim_mob::DriverPathMover::advanceToNextRoadSegment()
 	{
 		if ((*currSegmentIt)->getLink() != (*(currSegmentIt + 1))->getLink()) // next segment in diff link
 		{
-			if((*currSegmentIt)->originalDB_ID.getLogItem().find("9506") != std::string::npos)
-			{
-				std::cout<<"find seg 9506"<<std::endl;
-			}
+//			if((*currSegmentIt)->originalDB_ID.getLogItem().find("9506") != std::string::npos)
+//			{
+//				std::cout<<"find seg 9506"<<std::endl;
+//			}
 			if((*currSegmentIt)->getEnd()->type == sim_mob::PRIORITY_MERGE_NODE ||
 					(*currSegmentIt)->getEnd()->type == sim_mob::NON_PRIORITY_MERGE_NODE )// it cross priority merge node or non priority merge node
 			{

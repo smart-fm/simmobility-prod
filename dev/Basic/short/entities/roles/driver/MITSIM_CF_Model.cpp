@@ -410,7 +410,10 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 {
 	cftimer -= p.elapsedSeconds;
 	/// if time cftimer >0 , return last calculated acc
-	if(cftimer > sim_mob::Math::DOUBLE_EPSILON) return p.lastAcc;
+	if(cftimer > sim_mob::Math::DOUBLE_EPSILON)
+	{
+		return p.lastAcc;
+	}
 
 	// VARIABLE || FUNCTION ||				REGIME
 	calcStateBasedVariables(p);
@@ -1027,5 +1030,6 @@ double sim_mob::MITSIM_CF_Model::calcNextStepSize(DriverUpdateParams& p)
 	else i = 3;
 	nextStepSize = updateStepSize[i];
 	nextPerceptionSize = perceptionSize[i];
+	p.driver->resetReacTime(nextPerceptionSize*100);
 	return nextStepSize;
 }

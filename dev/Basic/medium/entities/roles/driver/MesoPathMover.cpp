@@ -7,31 +7,29 @@
 #include <algorithm>
 #include "geospatial/RoadSegment.hpp"
 
-void sim_mob::medium::MesoPathMover::setPath(
-		const std::vector<const sim_mob::SegmentStats*>& segStatPath) {
+void sim_mob::medium::MesoPathMover::setPath(const std::vector<const sim_mob::SegmentStats*>& segStatPath) {
 	if(segStatPath.empty()) {
 		throw std::runtime_error("cannot assign an empty path to MesoPathMover");
 	}
-	path.insert(path.begin(), segStatPath.begin(), segStatPath.end());
+	path = segStatPath;
 	currSegStatIt = path.begin();
 }
 
-void sim_mob::medium::MesoPathMover::resetPath(
-		const std::vector<const sim_mob::SegmentStats*>& segStatPath) {
+void sim_mob::medium::MesoPathMover::resetPath(const std::vector<const sim_mob::SegmentStats*>& segStatPath) {
 	if(segStatPath.empty()) {
 		throw std::runtime_error("cannot assign an empty path to MesoPathMover");
 	}
 	if(!path.empty() && (currSegStatIt != path.end())) {
 		const sim_mob::SegmentStats* currSegStat = *currSegStatIt;
 		path.clear();
-		path.insert(path.begin(), segStatPath.begin(), segStatPath.end());
+		path = segStatPath;
 		currSegStatIt = std::find(path.begin(), path.end(), currSegStat);
 		if(currSegStatIt == path.end()) {
 			throw std::runtime_error("MesoPathMover::resetPath() - new path does not contain current segment");
 		}
 	}
 	else {
-		path.insert(path.begin(), segStatPath.begin(), segStatPath.end());
+		path = segStatPath;
 		currSegStatIt = path.begin();
 	}
 }
@@ -43,8 +41,7 @@ const sim_mob::SegmentStats* sim_mob::medium::MesoPathMover::getCurrSegStats() c
 	return (*currSegStatIt);
 }
 
-const sim_mob::SegmentStats* sim_mob::medium::MesoPathMover::getNextSegStats(
-		bool inSameLink) const {
+const sim_mob::SegmentStats* sim_mob::medium::MesoPathMover::getNextSegStats(bool inSameLink) const {
 	if(currSegStatIt == path.end())
 	{
 		return nullptr;

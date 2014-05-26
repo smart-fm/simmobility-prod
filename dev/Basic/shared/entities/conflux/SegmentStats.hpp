@@ -666,7 +666,12 @@ public:
 	/**
 	 * prints all agents in this segment
 	 */
-	void printAgents();
+	void printAgents() const;
+
+	/**
+	 * prints all stops in this segment stats
+	 */
+	void printBusStops() const;
 
 	/**
 	 * laneInfinity is an augmented lane in the roadSegment. laneInfinity will be used only by confluxes and related objects for now.

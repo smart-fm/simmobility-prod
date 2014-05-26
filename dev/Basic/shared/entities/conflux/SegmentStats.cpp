@@ -68,9 +68,8 @@ SupplyParams::SupplyParams(const sim_mob::RoadSegment* rdSeg, double statsLength
 
 SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double statslength)
 	: roadSegment(rdSeg), length(statslength), segDensity(0.0), segPedSpeed(0.0),
-	segFlow(0), numPersons(0), positionInRoadSegment(1),
-	debugMsgs(std::stringstream::out), supplyParams(rdSeg, statslength),
-	orderBySetting(SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION)
+	segFlow(0), numPersons(0), positionInRoadSegment(1), supplyParams(rdSeg, statslength),
+	orderBySetting(SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION), debugMsgs(std::stringstream::out)
 {
 	segVehicleSpeed = convertKmphToCmps(getRoadSegment()->maxSpeed);
 	numVehicleLanes = 0;
@@ -797,15 +796,31 @@ void SegmentStats::updateLinkDrivingTimes(double drivingTimeToEndOfLink) {
 	}
 }
 
-void SegmentStats::printAgents() {
-	Print() << "\nSegment: " << roadSegment->getStartEnd() << "|length "
-			<< roadSegment->getLaneZeroLength() << std::endl;
+void SegmentStats::printAgents() const {
+	Print() << "\nSegment: " << roadSegment->getStartEnd()
+			<< "|stats#: " << positionInRoadSegment
+			<< "|length " << length
+			<< std::endl;
 	for (LaneStatsMap::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
 		(*i).second->printAgents();
 	}
 	for (LaneStatsMap::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
 		(*i).second->printAgents(true);
 	}
+}
+
+void SegmentStats::printBusStops() const {
+	std::stringstream printStream;
+	printStream << "\nSegment: " << roadSegment->getStartEnd()
+			<< "|stats#: " << positionInRoadSegment
+			<< "|length: " << length
+			<< "|numStops: " << busStops.size();
+	if(!busStops.empty()) {
+		for(BusStopList::const_iterator it=busStops.begin(); it!=busStops.end(); it++) {
+			printStream << "\n" << (*it)->getBusstopno_();
+		}
+	}
+	Print() << printStream.str() << std::endl;
 }
 
 void LaneStats::printAgents(bool copy) const {

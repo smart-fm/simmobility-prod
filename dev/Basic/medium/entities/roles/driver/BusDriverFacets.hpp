@@ -26,7 +26,7 @@ class BusDriver;
  */
 class BusRouteTracker : public sim_mob::BusRouteInfo {
 public:
-	BusRouteTracker() {}
+	BusRouteTracker() : BusRouteInfo("") {}
 	BusRouteTracker(const BusRouteInfo& routeInfo);
 
 	/**

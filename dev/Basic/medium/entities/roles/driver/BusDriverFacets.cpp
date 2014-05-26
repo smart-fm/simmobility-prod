@@ -38,8 +38,11 @@ inline double converToSeconds(uint32_t timeInMs) {
 	return (timeInMs/1000.0);
 }
 
+/**
+ * length of a bus is hard coded to 3 times the PCU for now.
+ * TODO: this must be made configurable.
+ */
 const double BUS_LENGTH = 3 * sim_mob::PASSENGER_CAR_UNIT; // 3 times PASSENGER_CAR_UNIT
-const double INFINITESIMAL_DOUBLE = 0.0001;
 }
 
 namespace sim_mob {
@@ -218,7 +221,9 @@ const sim_mob::Lane* BusDriverMovement::getBestTargetLane(
 
 bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params) {
 	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
+	currSegStat->printBusStops();
 	const BusStop* nextStop = routeTracker.getNextStop();
+	Print() << "BusDriver's next stop: " << nextStop->getBusstopno_() << std::endl;
 	if(nextStop && currSegStat->hasBusStop(nextStop)) {
 		//send bus arrival message
 		BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(nextStop);
@@ -243,6 +248,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params) {
 		return false;
 	}
 	else {
+		Print() << "currSegStat does not contain the next stop" << std::endl;
 		return DriverMovement::moveToNextSegment(params);
 	}
 }

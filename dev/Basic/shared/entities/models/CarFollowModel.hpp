@@ -110,6 +110,19 @@ public:
 	 *  \return scaler value
 	 **/
 	double getMaxDecScale();
+	/**
+		* The Car-Following model calculates the acceleration rate based on
+		* interaction with other vehicles.  The function returns a the
+		* most restrictive acceleration (deceleration if negative) rate
+		* among the rates given by several constraints.
+		*
+		* This function updates accRate_ at the end.
+
+		* Car following algorithm is evaluated every CFStepSize seconds,
+		* or whenever some special event has set cfTimer of this vehicle
+		* to 0. After each evaluation, we set the countdown clock cfTimer
+		* back to nextStepSize().
+	 **/
 	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);
 
 private:
@@ -197,8 +210,8 @@ private:
 	double yellowStopHeadway;
 	double minSpeedYellow;
 
-	/// time step to calculate state variables
-	double timeStep;
+	/// decision timer (second)
+	double cftimer;
 
 	/// grade is the road slope
 	double tmpGrade;

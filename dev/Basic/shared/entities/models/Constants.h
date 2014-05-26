@@ -11,7 +11,7 @@
 
 typedef unsigned int UINT;
 
-
+namespace sim_mob {
 /*------------------------------------------------------------------------
  * When a variable has a value less than this value, it is treated
  * as zero.
@@ -320,4 +320,5 @@ const UINT STATE_VISIBLE	= 0x00001000;
 const UINT STATE_SELECTED	= 0x00002000;
 const UINT STATE_MARKED		= 0x00008000;
 
+}// end sim_mob
 #endif

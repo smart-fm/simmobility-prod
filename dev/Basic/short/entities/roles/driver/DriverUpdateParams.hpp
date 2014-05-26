@@ -156,6 +156,10 @@ struct DriverUpdateParams : public UpdateParams {
 	/// assign in driverfact
 	bool isTargetLane;
 
+	/// record last calculated acceleration
+	/// dont reset
+	double lastAcc;
+
 public:
 #ifndef SIMMOB_DISABLE_MPI
 	static void pack(PackageUtils& package, const DriverUpdateParams* params);

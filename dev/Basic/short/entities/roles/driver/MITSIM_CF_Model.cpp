@@ -115,7 +115,7 @@ double CalcHeadway(double space, double speed, double elapsedSeconds, double max
  *--------------------------------------------------------------------
  */
 sim_mob::MITSIM_CF_Model::MITSIM_CF_Model()
-	:timeStep(0.0)
+	:cftimer(0.0)
 {
 	modelName = "general_driver_model";
 	splitDelimiter = " ,";
@@ -363,8 +363,9 @@ double sim_mob::MITSIM_CF_Model::headwayBuffer()
 }
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
-	//initiate
-//	distanceToNormalStop(p);
+	cftimer -= p.elapsedSeconds;
+	/// if time cftimer >0 , return last calculated acc
+	if(cftimer > sim_mob::Math::DOUBLE_EPSILON) return p.lastAcc;
 
 	// VARIABLE || FUNCTION ||				REGIME
 	calcStateBasedVariables(p);
@@ -419,6 +420,10 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	if(acc > aZ2) acc = aZ2;
 
 	// SEVERAL CONDITONS MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
+
+	p.lastAcc = acc;
+
+	cftimer = calcNextStepSize();
 
 	return acc;
 }
@@ -928,11 +933,6 @@ void sim_mob::MITSIM_CF_Model::distanceToNormalStop(DriverUpdateParams& p)
 }
 void sim_mob::MITSIM_CF_Model::calcStateBasedVariables(DriverUpdateParams& p)
 {
-//	double dt	=	p.elapsedSeconds;
-	timeStep -= p.elapsedSeconds;
-	/// if time step >0 ,no need update variables
-	if(timeStep>0) return;
-
 	distanceToNormalStop(p);
 
 	// Acceleration rate for a vehicle (a function of vehicle type,
@@ -943,8 +943,6 @@ void sim_mob::MITSIM_CF_Model::calcStateBasedVariables(DriverUpdateParams& p)
 	normalDeceleration = getNormalDeceleration(p);
 	// Maximum deceleration is function of speed and vehicle class
 	maxDeceleration    = getMaxDeceleration(p);
-
-	timeStep = calcNextStepSize();
 }
 double sim_mob::MITSIM_CF_Model::calcNextStepSize()
 {

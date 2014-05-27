@@ -43,16 +43,16 @@ namespace {
         double stddev;
     };
 
-    /**
-     * Simple struct to hold mandatory lane changing parameters
-     */
-    struct MandLaneChgParam {
-        double feet_lowbound;
-        double feet_delta;
-        double lane_coeff;
-        double congest_coeff;
-        double lane_mintime;
-    };
+//    /**
+//     * Simple struct to hold mandatory lane changing parameters
+//     */
+//    struct MandLaneChgParam {
+//        double feet_lowbound;
+//        double feet_delta;
+//        double lane_coeff;
+//        double congest_coeff;
+//        double lane_mintime;
+//    };
 
     struct AntiGap {
         double gap;
@@ -67,13 +67,13 @@ namespace {
         { 1.00, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073} //Mandatory,lag
     };
 
-    const MandLaneChgParam MLC_PARAMETERS = {
-        1320.0, //feet, lower bound
-        5280.0, //feet, delta
-        0.5, //coef for number of lanes
-        1.0, //coef for congestion level
-        1.0 //minimum time in lane
-    };
+//    const MandLaneChgParam MLC_PARAMETERS = {
+//        1320.0, //feet, lower bound
+//        5280.0, //feet, delta
+//        0.5, //coef for number of lanes
+//        1.0, //coef for congestion level
+//        1.0 //minimum time in lane
+//    };
 
     const double LC_GAP_MODELS[][9] = {
         //	    scale  alpha   lambda   beta0   beta1   beta2   beta3   beta4   stddev
@@ -545,7 +545,30 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p,
         tg[1] = TG_Right_Fwd;
     }
 }
-
+sim_mob::MITSIM_LC_Model::MITSIM_LC_Model()
+{
+	modelName = "general_driver_model";
+	splitDelimiter = " ,";
+	initParam();
+}
+void sim_mob::MITSIM_LC_Model::initParam()
+{
+	std::string str;
+	// MLC_PARAMETERS
+	ParameterManager::Instance()->param(modelName,"MLC_PARAMETERS",str,string("1320.0  5280.0 0.5 1.0  1.0"));
+	makeMCLParam(str);
+	//
+}
+void sim_mob::MITSIM_LC_Model::makeMCLParam(std::string& str)
+{
+	std::vector<double> array;
+	sim_mob::Utils::convertStringToArray(str,array);
+	MLC_PARAMETERS.feet_lowbound = array[0];
+	MLC_PARAMETERS.feet_delta = array[1];
+	MLC_PARAMETERS.lane_coeff = array[2];
+	MLC_PARAMETERS.congest_coeff = array[3];
+	MLC_PARAMETERS.lane_mintime = array[4];
+}
 /*
  * In MITSIMLab, vehicle change lane in 1 time step.
  * While in sim mobility, vehicle approach the target lane in limited speed.

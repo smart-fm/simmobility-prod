@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
-
+#include "conf/params/ParameterManager.hpp"
 #include "geospatial/Lane.hpp"
 
 namespace sim_mob {
@@ -54,6 +54,22 @@ class MITSIM_LC_Model : public LaneChangeModel {
 public:
 	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode);
 
+    /**
+     * Simple struct to hold mandatory lane changing parameters
+     */
+    struct MandLaneChgParam {
+        double feet_lowbound;
+        double feet_delta;
+        double lane_coeff;
+        double congest_coeff;
+        double lane_mintime;
+    };
+
+	MITSIM_LC_Model();
+	/**
+	 *  /brief get parameters from external xml file
+	 */
+	void initParam();
 	///Use Kazi LC Gap Model to calculate the critical gap
 	///\param type 0=leading 1=lag + 2=mandatory (mask) //TODO: ARGHHHHHHH magic numbers....
 	///\param dis from critical pos
@@ -72,6 +88,19 @@ public:
 	virtual sim_mob::LANE_CHANGE_SIDE makeCourtesyMerging(sim_mob::DriverUpdateParams& p);
 	virtual sim_mob::LANE_CHANGE_SIDE makeForcedMerging(sim_mob::DriverUpdateParams& p);
 	virtual void chooseTargetGap(sim_mob::DriverUpdateParams& p,std::vector<TARGET_GAP>& tg);
+
+public:
+	/// model name in xml file tag "parameters"
+	string modelName;
+	// split delimiter in xml param file
+	string splitDelimiter;
+
+	MandLaneChgParam MLC_PARAMETERS;
+	/**
+	 *  /brief extract mcl paramteter from string, like "1320.0  5280.0 0.5 1.0  1.0"
+	 *  /param text string
+	 */
+	void makeMCLParam(std::string& str);
 
 };
 

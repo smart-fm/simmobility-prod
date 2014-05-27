@@ -139,6 +139,13 @@ namespace sim_mob {
             }
             return errorValue;
         }
+
+        /**
+         *  convert text string to double array
+         *  @param str text string like "1 2 3" or "1,2,3"
+         *  @array store extracted numbers from text
+         */
+        static void convertStringToArray(std::string& str,std::vector<double>& array);
     };
 
     /**

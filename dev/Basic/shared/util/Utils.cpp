@@ -113,7 +113,25 @@ double Utils::toFeet(const double meter) {
 double Utils::toMeter(const double feet) {
     return (feet * 0.3048);
 }
-
+void Utils::convertStringToArray(std::string& str,std::vector<double>& array)
+{
+	std::string splitDelimiter = " ,";
+	std::vector<std::string> arrayStr;
+//	vector<double> c;
+	boost::trim(str);
+	boost::split(arrayStr, str, boost::is_any_of(splitDelimiter),boost::token_compress_on);
+	for(int i=0;i<arrayStr.size();++i)
+	{
+		double res;
+		try {
+				res = boost::lexical_cast<double>(arrayStr[i].c_str());
+			}catch(boost::bad_lexical_cast&) {
+				std::string str = "can not covert <" +str+"> to double.";
+				throw std::runtime_error(str);
+			}
+			array.push_back(res);
+	}
+}
 StopWatch::StopWatch() : now(0), end(0), running(false) {
 }
 

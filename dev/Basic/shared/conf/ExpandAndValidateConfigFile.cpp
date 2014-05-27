@@ -151,8 +151,21 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     }
 
  	//Initialize the street directory.
-    StreetDirectory::instance().init(cfg.getNetwork(), true);
-    std::cout << "Street Directory initialized" <<std::endl;
+	StreetDirectory::instance().init(cfg.getNetwork(), true);
+	std::cout << "Street Directory initialized" << std::endl;
+//	{
+//		std::ifstream OD_File;
+//		OD_File.open("~/Downloads/ODs_oldmap.txt");
+//		std::string line;
+//		if (OD_File.is_open()) {
+//			while (std::getline(OD_File, line)) {
+//				std::cout << line << '\n';
+//			}
+//			OD_File.close();
+//		}
+//
+//	}
+//	exit(0);
 
     //Process Confluxes if required
     if(cfg.RunningMidSupply()) {

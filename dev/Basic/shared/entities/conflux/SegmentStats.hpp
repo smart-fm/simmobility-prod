@@ -396,6 +396,10 @@ public:
 		return numPersons;
 	}
 
+	size_t getNumStops() const {
+		return busStops.size();
+	}
+
 	uint8_t getPositionInRoadSegment() const {
 		return positionInRoadSegment;
 	}

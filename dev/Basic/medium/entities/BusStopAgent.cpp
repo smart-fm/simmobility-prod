@@ -24,30 +24,24 @@ void BusStopAgent::registerBusStopAgent(BusStopAgent* busstopAgent)
 
 BusStopAgent* BusStopAgent::findBusStopAgentByBusStop(const BusStop* busstop)
 {
-	try {
+	try
+	{
 		return allBusstopAgents.at(busstop);
 	}
-	catch (const std::out_of_range& oor) {
+	catch (const std::out_of_range& oor)
+	{
 		return nullptr;
 	}
 }
 
-BusStopAgent::BusStopAgent(const MutexStrategy& mtxStrat, int id,
-		const BusStop* stop, SegmentStats* stats) :
-		Agent(mtxStrat, id), busStop(stop), parentSegmentStats(stats),
-		availableLength(stop->getBusCapacityAsLength())
-{}
+BusStopAgent::BusStopAgent(const MutexStrategy& mtxStrat, int id, const BusStop* stop, SegmentStats* stats)
+: Agent(mtxStrat, id), busStop(stop), parentSegmentStats(stats), availableLength(stop->getBusCapacityAsLength()) {}
 
-BusStopAgent::~BusStopAgent() {
-	// TODO Auto-generated destructor stub
-}
+BusStopAgent::~BusStopAgent() {}
 
-void BusStopAgent::onEvent(event::EventId eventId,
-		event::Context ctxId, event::EventPublisher* sender,
-		const event::EventArgs& args) {
-
+void BusStopAgent::onEvent(event::EventId eventId, event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
+{
 	Agent::onEvent(eventId, ctxId, sender, args);
-
 }
 
 void BusStopAgent::registerWaitingPerson(WaitBusActivity* waitingPerson) {
@@ -57,7 +51,7 @@ void BusStopAgent::registerWaitingPerson(WaitBusActivity* waitingPerson) {
 void BusStopAgent::removeWaitingPerson(WaitBusActivity* waitingPerson) {
 	std::list<WaitBusActivity*>::iterator itPerson;
 	itPerson = std::find(waitingPersons.begin(), waitingPersons.end(), waitingPerson);
-	if(itPerson!=waitingPersons.end()){
+	if(itPerson!=waitingPersons.end()) {
 		waitingPersons.erase(itPerson);
 	}
 }

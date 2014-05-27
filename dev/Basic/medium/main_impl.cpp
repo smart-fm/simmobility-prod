@@ -68,21 +68,22 @@ using namespace sim_mob::medium;
 //Start time of program
 timeval start_time_med;
 
-namespace {
+namespace
+{
 const int DEFAULT_NUM_THREADS_DEMAND = 2; // default number of threads for demand
 } //End anonymous namespace
 
 //Current software version.
-const string SIMMOB_VERSION =
-		string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
+const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
 
 /**
  * Main simulation loop for the supply simulator
  */
-bool performMainSupply(const std::string& configFileName,
-		std::list<std::string>& resLogFiles) {
+bool performMainSupply(const std::string& configFileName, std::list<std::string>& resLogFiles)
+{
 	ProfileBuilder* prof = nullptr;
-	if (ConfigManager::GetInstance().CMakeConfig().ProfileOn()) {
+	if (ConfigManager::GetInstance().CMakeConfig().ProfileOn())
+	{
 		ProfileBuilder::InitLogFile("profile_trace.txt");
 		prof = new ProfileBuilder();
 	}
@@ -98,36 +99,33 @@ bool performMainSupply(const std::string& configFileName,
 	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, mtx));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, mtx));
-	rf.registerRole("waitBusActivity",
-			new sim_mob::medium::WaitBusActivity(nullptr, mtx));
-	rf.registerRole("pedestrian",
-			new sim_mob::medium::Pedestrian(nullptr, mtx));
+	rf.registerRole("waitBusActivity", new sim_mob::medium::WaitBusActivity(nullptr, mtx));
+	rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr, mtx));
 	rf.registerRole("passenger", new sim_mob::medium::Passenger(nullptr, mtx));
 
 	//insert bus stop agent to segmentStats;
-	std::set<sim_mob::SegmentStats*>& segmentStats =
-			ConfigManager::GetInstanceRW().FullConfig().getSegmentStatsWithBusStops();
+	std::set<sim_mob::SegmentStats*>& segmentStatsWithStops = ConfigManager::GetInstanceRW().FullConfig().getSegmentStatsWithBusStops();
 	std::set<sim_mob::SegmentStats*>::iterator itSegStats;
 	std::vector<const sim_mob::BusStop*>::iterator itBusStop;
-	for (itSegStats = segmentStats.begin(); itSegStats != segmentStats.end();
-			itSegStats++) {
+	for (itSegStats = segmentStatsWithStops.begin(); itSegStats != segmentStatsWithStops.end(); itSegStats++)
+	{
 		sim_mob::SegmentStats* stats = *itSegStats;
 		std::vector<const sim_mob::BusStop*>& busStops = stats->getBusStops();
-		for (itBusStop = busStops.begin(); itBusStop != busStops.end(); itBusStop++) {
-			sim_mob::medium::BusStopAgent* busStopAgent =
-					new sim_mob::medium::BusStopAgent(mtx, -1, *itBusStop, stats);
+		for (itBusStop = busStops.begin(); itBusStop != busStops.end(); itBusStop++)
+		{
+			sim_mob::medium::BusStopAgent* busStopAgent = new sim_mob::medium::BusStopAgent(mtx, -1, *itBusStop, stats);
 			stats->addBusStopAgent(busStopAgent);
 			BusStopAgent::registerBusStopAgent(busStopAgent);
 		}
 	}
 	//Load our user config file, which is a time costly function
-	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(),
-			Agent::all_agents, Agent::pending_agents);
+	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
 	cout<<"performMainSupply: trip chain pool size "
 		<<ConfigManager::GetInstance().FullConfig().getTripChains().size()
 		<<endl;
 
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+	if (ConfigManager::GetInstance().FullConfig().PathSetMode())
+	{
 		// init path set manager
 		time_t t = time(0);   // get time now
 		struct tm * now = localtime( & t );
@@ -150,14 +148,16 @@ bool performMainSupply(const std::string& configFileName,
 
 	//Start boundaries
 #ifndef SIMMOB_DISABLE_MPI
-	if (config.using_MPI) {
+	if (config.using_MPI)
+	{
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.initBoundaryTrafficItems();
 	}
 #endif
 
 	PartitionManager* partMgr = nullptr;
-	if (!config.MPI_Disabled() && config.using_MPI) {
+	if (!config.MPI_Disabled() && config.using_MPI)
+	{
 		partMgr = &PartitionManager::instance();
 	}
 
@@ -178,15 +178,16 @@ bool performMainSupply(const std::string& configFileName,
 	personWorkers->initWorkers(&entLoader);
 
 	personWorkers->assignConfluxToWorkers();
-//	personWorkers->findBoundaryConfluxes();
+	//personWorkers->findBoundaryConfluxes();
 
 	//Anything in all_agents is starting on time 0, and should be added now.
-	for (std::set<Entity*>::iterator it = Agent::all_agents.begin();
-			it != Agent::all_agents.end(); it++) {
+	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++)
+	{
 		personWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
 	}
 
-	if(BusController::HasBusControllers()){
+	if(BusController::HasBusControllers())
+	{
 		personWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
 	}
 
@@ -196,7 +197,8 @@ bool performMainSupply(const std::string& configFileName,
 	wgMgr.startAllWorkGroups();
 
 	//
-	if (!config.MPI_Disabled() && config.using_MPI) {
+	if (!config.MPI_Disabled() && config.using_MPI)
+	{
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.setEntityWorkGroup(personWorkers, nullptr);
 		cout<< "partition_solution_id in main function:"
@@ -219,7 +221,8 @@ bool performMainSupply(const std::string& configFileName,
 	int loop_start_offset = ProfileBuilder::diff_ms(loop_start_time, start_time_med);
 
 	int lastTickPercent = 0; //So we have some idea how much time is left.
-	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++) {
+	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++)
+	{
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
 
@@ -230,19 +233,24 @@ bool performMainSupply(const std::string& configFileName,
 		maxAgents = std::max(maxAgents, Agent::all_agents.size());
 
 		//Output
-		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
+		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
+		{
 			std::stringstream msg;
 			msg << "Approximate Tick Boundary: " << currTick << ", ";
 			msg << (currTick * config.baseGranMS())
 				<< " ms   [" <<currTickPercent <<"%]" << endl;
-			if (!warmupDone) {
+			if (!warmupDone)
+			{
 				msg << "  Warmup; output ignored." << endl;
 			}
 			PrintOut(msg.str());
-		} else {
+		}
+		else
+		{
 			//We don't need to lock this output if general output is disabled, since Agents won't
 			//  perform any output (and hence there will be no contention)
-			if (currTickPercent-lastTickPercent>9) {
+			if (currTickPercent-lastTickPercent>9)
+			{
 				lastTickPercent = currTickPercent;
 				cout<< currTickPercent <<"%"
 					<< ", Agents:" << Agent::all_agents.size() <<endl;
@@ -257,38 +265,46 @@ bool performMainSupply(const std::string& configFileName,
 
 	//Finalize partition manager
 #ifndef SIMMOB_DISABLE_MPI
-	if (config.using_MPI) {
+	if (config.using_MPI)
+	{
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.stopMPIEnvironment();
 	}
 #endif
 
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+	if (ConfigManager::GetInstance().FullConfig().PathSetMode())
+	{
 		PathSetManager::getInstance()->copyTravelTimeDataFromTmp2RealtimeTable();
 		PathSetManager::getInstance()->dropTravelTimeTmpTable();
 	}
 	cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<endl;
-
 	cout << "Max Agents at any given time: " <<maxAgents <<endl;
 	cout << "Starting Agents: " << numStartAgents
 			<< ",     Pending: " << numPendingAgents << endl;
 
-	if (Agent::all_agents.empty()) {
+	if (Agent::all_agents.empty())
+	{
 		cout << "All Agents have left the simulation.\n";
-	} else {
+	}
+	else
+	{
 		size_t numPerson = 0;
 		size_t numDriver = 0;
 		size_t numPedestrian = 0;
-		for (std::set<Entity*>::iterator it = Agent::all_agents.begin();
-				it != Agent::all_agents.end(); it++) {
-			Person* p = dynamic_cast<Person*> (*it);
-			if (p) {
+		for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++)
+		{
+			Person* person = dynamic_cast<Person*> (*it);
+			if (person)
+			{
 				numPerson++;
-				if(p->getRole()) {
-					if (dynamic_cast<sim_mob::medium::Driver*>(p->getRole())) {
+				if(person->getRole())
+				{
+					if (dynamic_cast<sim_mob::medium::Driver*>(person->getRole()))
+					{
 						numDriver++;
 					}
-					if (dynamic_cast<sim_mob::medium::Pedestrian*>(p->getRole())) {
+					if (dynamic_cast<sim_mob::medium::Pedestrian*>(person->getRole()))
+					{
 						numPedestrian++;
 					}
 				}
@@ -303,19 +319,22 @@ bool performMainSupply(const std::string& configFileName,
 			<< endl;
 	}
 
-	if (ConfigManager::GetInstance().FullConfig().numAgentsSkipped>0) {
+	if (ConfigManager::GetInstance().FullConfig().numAgentsSkipped>0)
+	{
 		cout<<"Agents SKIPPED due to invalid route assignment: "
 			<<ConfigManager::GetInstance().FullConfig().numAgentsSkipped
 			<<endl;
 	}
 
-	if (!Agent::pending_agents.empty()) {
+	if (!Agent::pending_agents.empty())
+	{
 		cout<< "WARNING! There are still " << Agent::pending_agents.size()
 			<< " Agents waiting to be scheduled; next start time is: "
 			<< Agent::pending_agents.top()->getStartTime() << " ms\n";
 	}
 
-	if(personWorkers->getNumAgentsWithNoPath() > 0) {
+	if(personWorkers->getNumAgentsWithNoPath() > 0)
+	{
 		cout<< personWorkers->getNumAgentsWithNoPath()
 			<< " persons were not added to the simulation because they could not find a path."
 			<< endl;
@@ -323,7 +342,8 @@ bool performMainSupply(const std::string& configFileName,
 
 	//Save our output files if we are merging them later.
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()
-			&& ConfigManager::GetInstance().FullConfig().mergeLogFiles()) {
+			&& ConfigManager::GetInstance().FullConfig().mergeLogFiles())
+	{
 		resLogFiles = wgMgr.retrieveOutFileNames();
 	}
 
@@ -342,7 +362,8 @@ bool performMainSupply(const std::string& configFileName,
 /**
  * Simulation loop for the demand simulator
  */
-bool performMainDemand(unsigned numThreads){
+bool performMainDemand(unsigned numThreads)
+{
 	PredayManager predayManager;
 	predayManager.loadZones(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
@@ -369,7 +390,8 @@ bool performMainDemand(unsigned numThreads){
  *
  * This function is separate from main() to allow for easy scoping of WorkGroup objects.
  */
-bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles) {
+bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles)
+{
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
 
 	//Parse the config file (this *does not* create anything, it just reads it.).
@@ -379,50 +401,62 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
 	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
 	//      has been loaded or not. The new Config class makes this much clearer.
-	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
+	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
+	{
 		//Log::Init("out.txt");
 		Warn::Init("warn.log");
 		Print::Init("<stdout>");
-	} else {
+	}
+	else
+	{
 		//Log::Ignore();
 		Warn::Ignore();
 		Print::Ignore();
 	}
 
-	try {
+	try
+	{
 		ConfigManager::GetInstance().FullConfig().system.genericProps.at("mid_term_run_mode");
 	}
-	catch (const std::out_of_range& oorx) {
+	catch (const std::out_of_range& oorx)
+	{
 		throw std::runtime_error("missing mandatory property 'mid_term_run_mode'");
 	}
 
 	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()
-			&& ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
+			&& ConfigManager::GetInstance().FullConfig().RunningMidDemand())
+	{
 		throw std::runtime_error("Mid-term run mode \"demand+supply\" is not supported yet. Please run demand and supply separately.");
 	}
 
-	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
+	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply())
+	{
 		Print() << "Mid-term run mode: supply" << endl;
 		return performMainSupply(configFileName, resLogFiles);
 	}
-	else if (ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
+	else if (ConfigManager::GetInstance().FullConfig().RunningMidDemand())
+	{
 		Print() << "Mid-term run mode: demand" << endl;
 		int numThreads = DEFAULT_NUM_THREADS_DEMAND;
-		try {
+		try
+		{
 			std::string numThreadsStr = ConfigManager::GetInstanceRW().FullConfig().system.genericProps.at("demand_threads");
 			numThreads = std::atoi(numThreadsStr.c_str());
-			if(numThreads < 1) {
+			if(numThreads < 1)
+			{
 				throw std::runtime_error("inadmissible number of threads specified. Please check generic property 'demand_threads'");
 			}
 		}
-		catch (const std::out_of_range& oorx) {
+		catch (const std::out_of_range& oorx)
+		{
 			Print() << "generic property 'demand_threads' was not specified."
 					<< " Defaulting to " << numThreads << " threads."
 					<< endl;
 		}
 		return performMainDemand(numThreads);
 	}
-	else {
+	else
+	{
 		throw std::runtime_error("Invalid Mid-term run mode. Admissible values are \"demand\" and \"supply\"");
 	}
 }
@@ -440,7 +474,8 @@ int main_impl(int ARGC, char* ARGV[])
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	config.using_MPI = false;
 #ifndef SIMMOB_DISABLE_MPI
-	if (args.size() > 2 && args[2]=="mpi") {
+	if (args.size() > 2 && args[2]=="mpi")
+	{
 		config.using_MPI = true;
 	}
 #endif
@@ -471,20 +506,15 @@ int main_impl(int ARGC, char* ARGV[])
 	//      command line, or through Eclipse's "Run Configurations" dialog.
 	std::string configFileName = "data/config.xml";
 
-	if (args.size() > 1) {
+	if (args.size() > 1)
+	{
 		configFileName = args[1];
-	} else {
+	}
+	else
+	{
 		Print() << "No config file specified; using default." << endl;
 	}
 	Print() << "Using config file: " << configFileName << endl;
-
-	//Argument 2: Log file
-	/*string logFileName = args.size()>2 ? args[2] : "out.txt";
-	if (ConfigParams::GetInstance().OutputEnabled()) {
-		if (!Logger::log_init(logFileName)) {
-			Print() <<"Failed to initialized log file: \"" <<logFileName <<"\"" <<", defaulting to cout." <<endl;
-		}
-	}*/
 
 	//This should be moved later, but we'll likely need to manage random numbers
 	//ourselves anyway, to make simulations as repeatable as possible.
@@ -501,7 +531,8 @@ int main_impl(int ARGC, char* ARGV[])
 	int returnVal = performMainMed(configFileName, resLogFiles) ? 0 : 1;
 
 	//Concatenate output files?
-	if (!resLogFiles.empty()) {
+	if (!resLogFiles.empty())
+	{
 		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
 		Utils::printAndDeleteLogFiles(resLogFiles);
 	}

@@ -103,6 +103,12 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr, mtx));
 	rf.registerRole("passenger", new sim_mob::medium::Passenger(nullptr, mtx));
 
+	//Load our user config file, which is a time costly function
+	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
+	cout<<"performMainSupply: trip chain pool size "
+		<<ConfigManager::GetInstance().FullConfig().getTripChains().size()
+		<<endl;
+
 	//insert bus stop agent to segmentStats;
 	std::set<sim_mob::SegmentStats*>& segmentStatsWithStops = ConfigManager::GetInstanceRW().FullConfig().getSegmentStatsWithBusStops();
 	std::set<sim_mob::SegmentStats*>::iterator itSegStats;
@@ -118,11 +124,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			BusStopAgent::registerBusStopAgent(busStopAgent);
 		}
 	}
-	//Load our user config file, which is a time costly function
-	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
-	cout<<"performMainSupply: trip chain pool size "
-		<<ConfigManager::GetInstance().FullConfig().getTripChains().size()
-		<<endl;
 
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode())
 	{

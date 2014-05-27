@@ -2801,7 +2801,7 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdS
 	for(std::list<sim_mob::SegmentStats*>::iterator statsIt=splitSegmentStats.begin(); statsIt!=splitSegmentStats.end(); statsIt++) {
 		SegmentStats* stats = *statsIt;
 		//number the segment stats
-		stats->positionInRoadSegment = statsNum;
+		stats->statsNumberInSegment = statsNum;
 		statsNum++;
 
 		//add to segmentStatsWithStops if there is a bus stop in stats

@@ -64,18 +64,7 @@ const BusStop* BusStopAgent::getBusStop() const{
 	return busStop;
 }
 
-bool BusStopAgent::frame_init(timeslice now) {
-	messaging::MessageBus::RegisterHandler(this);
-	return true;
-}
-
-Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now) {
-	return UpdateStatus::Continue;
-}
-
-void BusStopAgent::HandleMessage(messaging::Message::MessageType type,
-		const messaging::Message& message) {
-
+void BusStopAgent::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message) {
 	switch (type) {
 	case BOARD_BUS: {
 		const BusDriverMessage& msg = MSG_CAST(BusDriverMessage, message);

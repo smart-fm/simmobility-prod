@@ -259,7 +259,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			std::stringstream errorStrm;
 			errorStrm << "BusStopAgent not found for stop: " << nextStop->getBusstopno_()
 					<< "|SegmentStats: " << currSegStat
-					<< "|position: " << currSegStat->getPositionInRoadSegment()
+					<< "|position: " << currSegStat->getStatsNumberInSegment()
 					<< "|num. stops: " << currSegStat->getNumStops()
 					<< std::endl;
 			throw std::runtime_error(errorStrm.str());
@@ -272,13 +272,15 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		return DriverMovement::moveToNextSegment(params);
 	}
 }
+
 BusRouteTracker::BusRouteTracker(const BusRouteInfo& routeInfo)
 : BusRouteInfo(routeInfo), nextStopIt(busStopList.begin()) {}
 
 BusRouteTracker::BusRouteTracker(const BusRouteTracker& copySource)
 : BusRouteInfo(copySource), nextStopIt(busStopList.begin()) {}
 
-BusRouteTracker& BusRouteTracker::operator=(const BusRouteTracker& rhsTracker) {
+BusRouteTracker& BusRouteTracker::operator=(const BusRouteTracker& rhsTracker)
+{
 	busRouteId = rhsTracker.busRouteId;
 	roadSegmentList = rhsTracker.roadSegmentList;
 	busStopList = rhsTracker.busStopList;
@@ -287,18 +289,15 @@ BusRouteTracker& BusRouteTracker::operator=(const BusRouteTracker& rhsTracker) {
 	return *this;
 }
 
-const BusStop* BusRouteTracker::getNextStop() const {
-	if(nextStopIt==busStopList.end()) {
-		return nullptr;
-	}
+const BusStop* BusRouteTracker::getNextStop() const
+{
+	if(nextStopIt==busStopList.end()) { return nullptr;	}
 	return *nextStopIt;
 }
 
-void BusRouteTracker::updateNextStop() {
-	if(nextStopIt==busStopList.end()) {
-		return;
-	}
-	Print() << "updateNextStop" << std::endl;
+void BusRouteTracker::updateNextStop()
+{
+	if(nextStopIt==busStopList.end()) { return;	}
 	nextStopIt++;
 }
 

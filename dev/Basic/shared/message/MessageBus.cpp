@@ -505,7 +505,9 @@ void MessageBus::SendInstantaneousMessage(MessageHandler* destination,
 			context->processedMessages++;
 		}
 		else {
-			throw std::runtime_error("SendInstantaneousMessage() is called for sending messages outside thread context");
+			Print() << "destination->context: " << destination->context << std::endl;
+			Print() << "current context: " << context << std::endl;
+			throw std::runtime_error("SendInstantaneousMessage() cannot send messages outside thread context");
 		}
 	}
 }

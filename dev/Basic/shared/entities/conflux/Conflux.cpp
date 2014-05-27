@@ -45,10 +45,8 @@ namespace{
 }
 
 sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id)
-	: Agent(mtxStrat, id),
-	  multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
-	  parentWorker(nullptr), currFrame(0,0), debugMsgs(std::stringstream::out),
-	  isBoundary(false), isMultipleReceiver(false)
+: Agent(mtxStrat, id), multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
+parentWorker(nullptr), currFrame(0,0), debugMsgs(std::stringstream::out), isBoundary(false), isMultipleReceiver(false)
 {}
 
 sim_mob::Conflux::~Conflux()
@@ -73,7 +71,7 @@ sim_mob::Conflux::PersonProps::PersonProps(const sim_mob::Person* person) {
 	const sim_mob::SegmentStats* currSegStats = person->getCurrSegStats();
 	if(currSegStats) {
 		segment = currSegStats->getRoadSegment();
-		segStats = segment->getParentConflux()->findSegStats(segment, currSegStats->getPositionInRoadSegment()); //person->getCurrSegStats() cannot be used as it returns a const pointer
+		segStats = segment->getParentConflux()->findSegStats(segment, currSegStats->getStatsNumberInSegment()); //person->getCurrSegStats() cannot be used as it returns a const pointer
 	}
 	else {
 		segment = nullptr;
@@ -95,11 +93,30 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* person, const sim_mob::RoadSegm
 	rdSegStats->addAgent(rdSegStats->laneInfinity, person);
 }
 
+bool sim_mob::Conflux::frame_init(timeslice now)
+{
+	messaging::MessageBus::RegisterHandler(this);
+	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin();
+				upstreamIt != upstreamSegStatsMap.end(); upstreamIt++)
+	{
+		const SegmentStatsList& linkSegments = upstreamIt->second;
+		for(SegmentStatsList::const_iterator segIt = linkSegments.begin();
+				segIt != linkSegments.end(); segIt++)
+		{
+			(*segIt)->initializeBusStops();
+		}
+	}
+	return true;
+}
+
 UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
+	if(!isInitialized()) {
+		frame_init(frameNumber);
+		setInitialized(true);
+	}
+
 	currFrame = frameNumber;
-
 	resetPositionOfLastUpdatedAgentOnLanes();
-
 	//reset the remaining times of persons in lane infinity and VQ if required.
 	resetPersonRemTimes();
 
@@ -723,7 +740,7 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 				}
 				else if((*person->currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) {
 					if (callMovementFrameInit(now, person)){
-						person->setCallFrameInit(false);
+						person->setInitialized(true);
 					}
 					else{
 						return UpdateStatus::Done;
@@ -819,14 +836,14 @@ UpdateStatus sim_mob::Conflux::movePerson(timeslice now, Person* person)
 	// We give the Agent the benefit of the doubt here and simply call frame_init().
 	// This allows them to override the start_time if it seems appropriate (e.g., if they
 	// are swapping trip chains). If frame_init() returns false, immediately exit.
-	if (person->isCallFrameInit()) {
-		//Call frame_init() and exit early if requested to.
+	if (!person->isInitialized()) {
+		//Call frame_init() and exit early if required.
 		if (!callMovementFrameInit(now, person)) {
 			return UpdateStatus::Done;
 		}
 
 		//Set call_frame_init to false here; you can only reset frame_init() in frame_tick()
-		person->setCallFrameInit(false); //Only initialize once.
+		person->setInitialized(true); //Only initialize once.
 	}
 
 	//Perform the main update tick

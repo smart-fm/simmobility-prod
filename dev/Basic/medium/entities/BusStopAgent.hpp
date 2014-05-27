@@ -83,10 +83,9 @@ public:
 
 protected:
 	//Virtual overrides
-	virtual bool frame_init(timeslice now);
-	virtual Entity::UpdateStatus frame_tick(timeslice now);
-	virtual void frame_output(timeslice now) {
-	}
+	virtual bool frame_init(timeslice now) { throw std::runtime_error("frame_init() is not required and is not implemented for BusStopAgent."); }
+	virtual Entity::UpdateStatus frame_tick(timeslice now) { throw std::runtime_error("frame_tick() is not required and are not implemented for BusStopAgent."); }
+	virtual void frame_output(timeslice now) { throw std::runtime_error("frame_output() is not required and is not implemented for BusStopAgent."); }
 	virtual bool isNonspatial(){
 		return false;
 	}

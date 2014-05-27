@@ -527,7 +527,6 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 				confluxIt != (*workerIt)->managedConfluxes.end(); confluxIt++) {
 			// begin managing properties of the conflux
 			(*workerIt)->beginManaging((*confluxIt)->getSubscriptionList());
-			messaging::MessageBus::RegisterHandler(*confluxIt);
 		}
 		std::cout
 				<< "Worker "<< (*workerIt)

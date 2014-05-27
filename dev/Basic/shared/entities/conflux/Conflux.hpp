@@ -244,10 +244,20 @@ private:
 	void handleRoles(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person);
 
 protected:
-	//NOTE: New Agents use frame_* methods, but Conflux is fine just using update()
-	virtual bool frame_init(timeslice now) { throw std::runtime_error("frame_* methods are not required and are not implemented for Confluxes."); }
-	virtual Entity::UpdateStatus frame_tick(timeslice now) { throw std::runtime_error("frame_* are not required and are not implemented for Confluxes."); }
-	virtual void frame_output(timeslice now) { throw std::runtime_error("frame_* methods are not required and are not implemented for Confluxes."); }
+	/**
+	 * Function to initialize the conflux before its first update.
+	 * frame_init() of the Agent is overridden to register the conflux as a
+	 * message handler. This function is also ideal for registering message
+	 * handlers of all the bus stops which (permanently)  belong to segment
+	 * stats of this conflux.
+	 *
+	 * @param now the frame number in which the function is called
+	 * @return true if initialization was successful; false otherwise.
+	 */
+	virtual bool frame_init(timeslice now);
+
+	virtual Entity::UpdateStatus frame_tick(timeslice now) { throw std::runtime_error("frame_tick() is not required and are not implemented for Confluxes."); }
+	virtual void frame_output(timeslice now) { throw std::runtime_error("frame_output methods are not required and are not implemented for Confluxes."); }
 
 	/**
 	 * Inherited from Agent.

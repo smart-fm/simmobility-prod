@@ -12,6 +12,7 @@
 #include "entities/roles/Role.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
 #include "logging/Log.hpp"
+#include "message/MessageBus.hpp"
 
 
 using std::string;
@@ -68,7 +69,7 @@ SupplyParams::SupplyParams(const sim_mob::RoadSegment* rdSeg, double statsLength
 
 SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double statslength)
 	: roadSegment(rdSeg), length(statslength), segDensity(0.0), segPedSpeed(0.0),
-	segFlow(0), numPersons(0), positionInRoadSegment(1), supplyParams(rdSeg, statslength),
+	segFlow(0), numPersons(0), statsNumberInSegment(1), supplyParams(rdSeg, statslength),
 	orderBySetting(SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION), debugMsgs(std::stringstream::out)
 {
 	segVehicleSpeed = convertKmphToCmps(getRoadSegment()->maxSpeed);
@@ -105,13 +106,6 @@ SegmentStats::~SegmentStats() {
 	safe_delete_item(laneInfinity);
 }
 
-void SegmentStats::updateBusStopAgents(timeslice now) {
-	for (AgentList::iterator i = busStopAgents.begin();
-			i != busStopAgents.end(); i++) {
-		(*i)->update(now);
-	}
-}
-
 void SegmentStats::addAgent(const sim_mob::Lane* lane, sim_mob::Person* p) {
 	laneStatsMap.find(lane)->second->addPerson(p);
 	numPersons++; //record addition to segment
@@ -137,6 +131,18 @@ std::vector<const sim_mob::BusStop*>& SegmentStats::getBusStops()
 
 void SegmentStats::addBusStopAgent(sim_mob::Agent* busStopAgent){
 	busStopAgents.push_back(busStopAgent);
+}
+
+void SegmentStats::initializeBusStops() {
+	for(AgentList::iterator stopAgIt=busStopAgents.begin(); stopAgIt!=busStopAgents.end(); stopAgIt++)
+	{
+		Agent* stopAgent = *stopAgIt;
+		if(!stopAgent->isInitialized())
+		{
+			messaging::MessageBus::RegisterHandler(stopAgent);
+			stopAgent->setInitialized(true);
+		}
+	}
 }
 
 void SegmentStats::addBusDriverToStop(sim_mob::Person* driver,
@@ -235,12 +241,10 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList) {
 	//And let's not forget the bus drivers serving stops in this segment stats
 	//Bus drivers go in the front of the list, because bus stops are (virtually)
 	//located at the end of the segment
-	for(BusStopList::const_reverse_iterator stopIt=busStops.rbegin();
-			stopIt!=busStops.rend();stopIt++) {
+	for(BusStopList::const_reverse_iterator stopIt=busStops.rbegin(); stopIt!=busStops.rend(); stopIt++) {
 		const sim_mob::BusStop* stop = *stopIt;
 		PersonList& driversAtStop = busDrivers.at(stop);
-		for(PersonList::iterator pIt=driversAtStop.begin();
-				pIt!=driversAtStop.end(); pIt++) {
+		for(PersonList::iterator pIt=driversAtStop.begin(); pIt!=driversAtStop.end(); pIt++) {
 			mergedPersonList.push_front(*pIt);
 		}
 	}
@@ -798,7 +802,7 @@ void SegmentStats::updateLinkDrivingTimes(double drivingTimeToEndOfLink) {
 
 void SegmentStats::printAgents() const {
 	Print() << "\nSegment: " << roadSegment->getStartEnd()
-			<< "|stats#: " << positionInRoadSegment
+			<< "|stats#: " << statsNumberInSegment
 			<< "|length " << length
 			<< std::endl;
 	for (LaneStatsMap::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++) {
@@ -812,7 +816,7 @@ void SegmentStats::printAgents() const {
 void SegmentStats::printBusStops() const {
 	std::stringstream printStream;
 	printStream << "\nSegment: " << roadSegment->getStartEnd()
-			<< "|stats#: " << positionInRoadSegment
+			<< "|stats#: " << statsNumberInSegment
 			<< "|length: " << length
 			<< "|numStops: " << busStops.size();
 	if(!busStops.empty()) {

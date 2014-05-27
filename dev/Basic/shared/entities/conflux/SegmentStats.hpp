@@ -316,7 +316,7 @@ protected:
 	 * A segment can have multiple segment stats. This gives the position of this
 	 * SegmentStats in segment.
 	 */
-	uint8_t positionInRoadSegment;
+	uint8_t statsNumberInSegment;
 
 	/**
 	 * Map containing LaneStats for every lane of the segment.
@@ -400,8 +400,8 @@ public:
 		return busStops.size();
 	}
 
-	uint8_t getPositionInRoadSegment() const {
-		return positionInRoadSegment;
+	uint8_t getStatsNumberInSegment() const {
+		return statsNumberInSegment;
 	}
 
 	const Lane* getOutermostLane() const {
@@ -426,6 +426,13 @@ public:
 	 * @param busStopAgent is a pointer to a bus stop agent
 	 */
 	void addBusStopAgent(sim_mob::Agent* busStopAgent);
+
+	/**
+	 * Initializes all the bus stops in this segment stats.
+	 * The bus stop agents corresponding to the stops in this segment stats are
+	 * registered with the message bus in this function.
+	 */
+	void initializeBusStops();
 
 	/**
 	 * add bus driver to stop
@@ -468,11 +475,6 @@ public:
 	 * @return reference to the list of bus stops
 	 */
 	std::vector<const sim_mob::BusStop*>& getBusStops();
-
-	/**
-	 * update bus stop agent so as to perform further tasks
-	 */
-	void updateBusStopAgents(timeslice now);
 
 	/**
 	 * get a list of all persons in the segment stats

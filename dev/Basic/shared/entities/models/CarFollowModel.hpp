@@ -50,6 +50,8 @@ public:
 
 	double nextStepSize;
 	double nextPerceptionSize;
+
+	double getNextStepSize() { return nextStepSize; }
 };
 
 /**

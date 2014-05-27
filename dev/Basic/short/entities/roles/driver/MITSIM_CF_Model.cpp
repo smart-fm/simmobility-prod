@@ -511,7 +511,8 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 		p.v_lead = nv.driver->fwdVelocity/100;
 		p.a_lead = nv.driver->fwdAccel/100;
 
-		double dt	=	p.elapsedSeconds;
+//		double dt	=	p.elapsedSeconds;
+		double dt = getNextStepSize();
 		double headway = CalcHeadway(p.space, p.perceivedFwdVelocity/100, p.elapsedSeconds, maxAcceleration);
 //		std::cout<<"carFollowingRate: headway1: "<<headway<<std::endl;
 
@@ -609,7 +610,8 @@ bool sim_mob::MITSIM_CF_Model::isGapAcceptable(sim_mob::DriverUpdateParams& p,Ne
 	DriverMovement *driverMvt = (DriverMovement*)vh.driver->Movement();
 	float accm = driverMvt->cfModel->maxAcceleration;//coming->maxAcceleration();
 	float speedn;
-	double dt = p.elapsedSeconds;
+//	double dt = p.elapsedSeconds;
+	double dt = getNextStepSize();
 
 	double distance = p.dis2stop; // distance to end of the link
 	double currentSpeed = p.driver->fwdVelocity/100.0; // subject vh current speed m/s
@@ -843,7 +845,8 @@ double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p, double dis)
 		double acc = - u2 / dis * 0.5;
 		if (acc <= normalDeceleration)
 			return acc;
-		double dt = p.elapsedSeconds;
+//		double dt = p.elapsedSeconds;
+		double dt = getNextStepSize();
 		double vt = p.perceivedFwdVelocity/100 * dt;
 		double a = dt * dt;
 		double b = 2.0 * vt - normalDeceleration * a;
@@ -856,7 +859,8 @@ double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p, double dis)
 	}
 	else {
 
-		double dt = p.elapsedSeconds;
+//		double dt = p.elapsedSeconds;
+		double dt = getNextStepSize();
 		return (dt > 0.0) ? -(p.perceivedFwdVelocity/100) / dt : maxDeceleration;
 	}
 }
@@ -872,7 +876,8 @@ double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p, double dis)
 double sim_mob::MITSIM_CF_Model::brakeToTargetSpeed(DriverUpdateParams& p,double s,double v)
 {
 //	double v 			=	p.perceivedFwdVelocity/100;
-	double dt			=	p.elapsedSeconds;
+//	double dt			=	p.elapsedSeconds;
+	double dt = getNextStepSize();
 
 //	//NOTE: This is the only use of epsilon(), so I just copied the value directly.
 //	//      See LC_Model for how to declare a private temporary variable. ~Seth
@@ -912,7 +917,8 @@ double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(DriverUpdateParams& 
 	} else if (p.space > 0.01 ) {
 		a = p.a_lead - dv * dv / 2 / p.space;
 	} else {
-		double dt	=	p.elapsedSeconds;
+//		double dt	=	p.elapsedSeconds;
+		double dt = getNextStepSize();
 		//p.space_star	=	p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
 		double s = p.space_star;
 		double v = p.v_lead + p.a_lead * dt ;
@@ -956,7 +962,8 @@ double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(DriverUpdateParams& p, double
 	if(p.space > p.distanceToNormalStop ) {
 		return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);
 	} else {
-		double dt	=	p.elapsedSeconds;
+//		double dt	=	p.elapsedSeconds;
+		double dt = getNextStepSize();
 		//p.space_star	=	p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
 		double s = p.space_star;
 		double v = p.v_lead + p.a_lead * dt ;

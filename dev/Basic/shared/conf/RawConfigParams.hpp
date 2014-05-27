@@ -33,6 +33,29 @@ struct FMOD_ControllerParams {
 	unsigned int blockingTimeSec;
 };
 
+//Represents the long-term developer model of the config file
+struct LongTermParams{
+	LongTermParams();
+	bool enabled;
+	unsigned int workers;
+	unsigned int days;
+	unsigned int tickStep;
+	unsigned int maxIterations;
+
+	struct DeveloperModel{
+		DeveloperModel();
+		bool enabled;
+		unsigned int timeInterval;
+	} developerModel;
+
+	struct HousingModel{
+		HousingModel();
+		bool enabled;
+		unsigned int timeInterval;
+		unsigned int timeOnMarket;
+	} housingModel;
+};
+
 ///represent the incident data section of the config file
 struct IncidentParams {
 	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
@@ -155,18 +178,28 @@ public:
 
 	sim_mob::MutexStrategy mutexStategy; ///<Locking strategy for Shared<> properties.
 
-	bool commSimEnabled;  ///<Is our communication simulator enabled?
-	//bool androidClientEnabled; ///<Is the Android client for our communication simulator enabled?
-	std::string androidClientType; // what version of android communication is specified?
+	struct Commsim {
+		bool enabled;
+		bool useNs3;
+		int minClients;
+		int holdTick;
+		Commsim() : enabled(false), useNs3(false), minClients(1), holdTick(1) {}
+	};
+	Commsim commsim;
 
-	struct CommsimElement {
+
+	//bool commSimEnabled;  ///<Is our communication simulator enabled?
+	//bool androidClientEnabled; ///<Is the Android client for our communication simulator enabled?
+	//std::string androidClientType; // what version of android communication is specified?
+
+	/*struct CommsimElement {
 		std::string name;
 		std::string mode;
 		bool enabled;
 		CommsimElement(): name(""),mode(""),enabled(false){
 		}
 	};
-	std::map<std::string,CommsimElement> commsimElements;
+	std::map<std::string,CommsimElement> commsimElements;*/
 
 	//Reaction time parameters.
 	//TODO: This should be one of the first areas we clean up.
@@ -258,6 +291,9 @@ public:
 
 	///Settings for the FMOD controller.
 	FMOD_ControllerParams fmod;
+
+	///Settings for Long Term Parameters
+	LongTermParams ltParams;
 
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;

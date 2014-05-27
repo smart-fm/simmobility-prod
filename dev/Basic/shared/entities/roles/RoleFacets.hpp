@@ -107,7 +107,7 @@ public:
 	explicit MovementFacet(sim_mob::Person* parentAgent=nullptr) : Facet(parentAgent) { }
 	virtual ~MovementFacet() {}
 
-	virtual bool updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Driver* other_driver) {};
+	virtual bool updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Driver* other_driver) { return false; };
 	virtual void updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Pedestrian* pedestrian) {};
 
 public:

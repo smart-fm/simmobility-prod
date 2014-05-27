@@ -586,7 +586,6 @@ void FMOD_Controller::handleScheduleMessage(const std::string& msg)
 
 	sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", startNode, "node", endNode, "node");
 	SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), startNode, "node", endNode, "node", "Car");
-	subTrip.schedule = schedule;
 	((Trip*)tc)->addSubTrip(subTrip);
 
 	std::vector<sim_mob::TripChainItem*>  tcs;

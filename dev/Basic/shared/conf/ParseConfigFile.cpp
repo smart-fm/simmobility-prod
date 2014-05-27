@@ -577,6 +577,7 @@ void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
 	ProcessConstructsNode(GetSingleElementByName(rootNode,"constructs"));
 	ProcessBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes"));
 	ProcessPersonCharacteristicsNode(GetSingleElementByName(rootNode, "personCharacteristics"));
+	ProcessLongTermParamsNode( GetSingleElementByName(rootNode, "longTermParams"));
 
 	//Agents all follow a template.
 
@@ -602,9 +603,14 @@ void sim_mob::ParseConfigFile::ProcessSystemNode(DOMElement* node)
 	ProcessSystemXmlSchemaFilesNode(GetSingleElementByName(node, "xsd_schema_files", true));
 	ProcessSystemGenericPropsNode(GetSingleElementByName(node, "generic_props"));
 
-	//Warn against using the old field name for xml_file.
+	//Warn against using the old network file name for xml_file.
 	if (GetSingleElementByName(node, "network_xml_file", false)) {
-		throw std::runtime_error("Using old parameter: \"network_xml_file\"; please change it to \"network_xml_file_input.\"");
+		throw std::runtime_error("Using old parameter: \"network_xml_file\"; please change it to \"network_xml_file_input\".");
+	}
+
+	//Warn against the old workgroup sizes field.
+	if (GetSingleElementByName(node, "workgroup_sizes", false)) {
+		throw std::runtime_error("Using old parameter: \"workgroup_sizes\"; please change review the new \"workers\" field.");
 	}
 }
 
@@ -879,6 +885,35 @@ void sim_mob::ParseConfigFile::ProcessConstructMongoCollectionsNode(xercesc::DOM
 }
 
 
+void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* node)
+{
+	if (!node) {
+		return;
+	}
+
+	//The longtermParams tag has an attribute
+	cfg.ltParams.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+
+	//Now set the rest.
+	cfg.ltParams.days = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "days"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.maxIterations = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "maxIterations"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.tickStep = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "tickStep"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.workers = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "workers"), "value"), static_cast<unsigned int>(0));
+
+	LongTermParams::DeveloperModel developerModel;
+	developerModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "developerModel"), "enabled"), false );
+	developerModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "developerModel"), "timeInterval"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.developerModel = developerModel;
+
+
+	LongTermParams::HousingModel housingModel;
+	housingModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "housingModel"), "enabled"), false);
+	housingModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeInterval"), "value"), static_cast<unsigned int>(0));
+	housingModel.timeOnMarket = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeOnMarket"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.housingModel = housingModel;
+}
+
+
 void sim_mob::ParseConfigFile::ProcessFMOD_Node(xercesc::DOMElement* node)
 {
 	if (!node) {
@@ -886,14 +921,14 @@ void sim_mob::ParseConfigFile::ProcessFMOD_Node(xercesc::DOMElement* node)
 	}
 
 	//The fmod tag has an attribute
-	cfg.fmod.enabled = ParseBoolean(GetNamedAttributeValue(node, "switch"), false);
+	cfg.fmod.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 
 	//Now set the rest.
-	cfg.fmod.ipAddress = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "ipaddress"), "value"), "");
+	cfg.fmod.ipAddress = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "ip_address"), "value"), "");
 	cfg.fmod.port = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "port"), "value"), static_cast<unsigned int>(0));
-	cfg.fmod.updateTimeMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "updateTimeMS"), "value"), static_cast<unsigned int>(0));
-	cfg.fmod.mapfile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "mapfile"), "value"), "");
-	cfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blockingTimeSec"), "value"), static_cast<unsigned int>(0));
+	cfg.fmod.updateTimeMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "update_time_ms"), "value"), static_cast<unsigned int>(0));
+	cfg.fmod.mapfile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "map_file"), "value"), "");
+	cfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blocking_time_sec"), "value"), static_cast<unsigned int>(0));
 }
 
 
@@ -1016,7 +1051,12 @@ void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* 
 	ProcessSystemLoadAgentsOrderNode(GetSingleElementByName(node, "load_agents"));
 	cfg.system.simulation.startingAutoAgentID = ProcessValueInteger2(GetSingleElementByName(node, "auto_id_start"), 0);
 	ProcessSystemMutexEnforcementNode(GetSingleElementByName(node, "mutex_enforcement"));
-	ProcessSystemCommunicationNode(GetSingleElementByName(node, "communication"));
+	ProcessSystemCommsimNode(GetSingleElementByName(node, "commsim"));
+
+	//Warn against the old communication format.
+	if (GetSingleElementByName(node, "communication", false)) {
+		throw std::runtime_error("Using old parameter: \"communication\"; please review the new \"XXX\" format.");
+	}
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemWorkersNode(xercesc::DOMElement* node)
@@ -1115,6 +1155,10 @@ unsigned int sim_mob::ParseConfigFile::ProcessTimegranUnits(xercesc::DOMElement*
 	return ParseTimegranAsMs(GetNamedAttributeValue(node, "value"), GetNamedAttributeValue(node, "units"));
 }
 
+bool sim_mob::ParseConfigFile::ProcessValueBoolean(xercesc::DOMElement* node)
+{
+	return ParseBoolean(GetNamedAttributeValue(node, "value"));
+}
 
 int sim_mob::ParseConfigFile::ProcessValueInteger(xercesc::DOMElement* node)
 {
@@ -1171,20 +1215,21 @@ void sim_mob::ParseConfigFile::ProcessSystemMutexEnforcementNode(xercesc::DOMEle
 	cfg.system.simulation.mutexStategy = ParseMutexStrategyEnum(GetNamedAttributeValue(node, "strategy"), MtxStrat_Buffered);
 }
 
-void sim_mob::ParseConfigFile::ProcessSystemCommunicationNode(xercesc::DOMElement* node)
+void sim_mob::ParseConfigFile::ProcessSystemCommsimNode(xercesc::DOMElement* node)
 {
 	if (!node) { return; }
-	if(!(cfg.system.simulation.commSimEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled")))) {
-		return;
-	}
-	//We use the existing "element child" functions, it's significantly slower to use "getElementsByTagName()"
-	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
-		SimulationParams::CommsimElement element;
-		element.name = ParseString(item->getNodeName());
-		element.mode = ParseString(GetNamedAttributeValue(item, "mode"));
-		element.enabled = ParseBoolean(GetNamedAttributeValue(item, "enabled"));
-		cfg.system.simulation.commsimElements[element.name] = element;
-	}
+
+	//Enabled?
+	cfg.system.simulation.commsim.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+
+	//Minimum clients
+	cfg.system.simulation.commsim.minClients = ProcessValueInteger(GetSingleElementByName(node, "min_clients", true));
+
+	//Hold tick
+	cfg.system.simulation.commsim.holdTick = ProcessValueInteger(GetSingleElementByName(node, "hold_tick", true));
+
+	//Use ns-3 for routing?
+	cfg.system.simulation.commsim.useNs3 = ProcessValueBoolean(GetSingleElementByName(node, "use_ns3", true));
 }
 
 void sim_mob::ParseConfigFile::ProcessWorkerPersonNode(xercesc::DOMElement* node)

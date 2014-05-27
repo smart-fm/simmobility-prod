@@ -34,6 +34,9 @@ public:
 	}
 
 	void setParentBusDriver(sim_mob::medium::BusDriver* parentBusDriver) {
+		if(!parentBusDriver) {
+			throw std::runtime_error("parentBusDriver cannot be NULL");
+		}
 		this->parentBusDriver = parentBusDriver;
 	}
 
@@ -57,6 +60,9 @@ public:
 	}
 
 	void setParentBusDriver(sim_mob::medium::BusDriver* parentBusDriver) {
+		if(!parentBusDriver) {
+			throw std::runtime_error("parentBusDriver cannot be NULL");
+		}
 		this->parentBusDriver = parentBusDriver;
 	}
 

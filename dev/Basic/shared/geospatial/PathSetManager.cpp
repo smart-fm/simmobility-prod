@@ -578,9 +578,8 @@ bool sim_mob::PathSetManager::generateAllPathSetWithTripChain2()
 	}
 	return res;
 }
-bool sim_mob::PathSetManager::generateAllPathSetWithTripChainPool(std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool)
+void sim_mob::PathSetManager::generateAllPathSetWithTripChainPool(std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool)
 {
-	bool res=false;
 	// 1. get from and to node
 	std::map<std::string, std::vector<sim_mob::TripChainItem*> >::iterator it;
 	for(it = tripChainPool->begin();it!=tripChainPool->end();++it)
@@ -2031,7 +2030,7 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::generateSinglePathByFromToNodes3
 		if(exclude_seg)
 		{
 			Print()<<"gSPByFTNodes3: no path for nodes["<<fromNode->originalDB_ID.getLogItem()<< "] and [" <<
-				toNode->originalDB_ID.getLogItem()<< " and ex seg["
+				toNode->originalDB_ID.getLogItem()<< " and ex seg[" <<
 				exclude_seg->originalDB_ID.getLogItem()<< "]" << std::endl;
 		}
 		else
@@ -3498,7 +3497,7 @@ sim_mob::PathSet::PathSet(PathSet *ps) :
 //						Print()<<str<<std::endl;
 //	}
 }
-sim_mob::PathSet::PathSet(PathSet &ps) :
+sim_mob::PathSet::PathSet(const PathSet &ps) :
 //		fromNode(ps->fromNode),toNode(ps->toNode),
 		logsum(ps.logsum),oriPath(ps.oriPath),
 		subTrip(ps.subTrip),

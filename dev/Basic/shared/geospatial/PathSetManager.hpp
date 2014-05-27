@@ -231,7 +231,7 @@ public:
 public:
 	bool generateAllPathSetWithTripChain();
 	bool generateAllPathSetWithTripChain2();
-	bool generateAllPathSetWithTripChainPool(std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool);
+	void generateAllPathSetWithTripChainPool(std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool);
 	void generatePaths2Node(const sim_mob::Node *toNode);
 //	sim_mob::SinglePath * generateSinglePathByFromToNodes(const sim_mob::Node *fromNode,
 //				   const sim_mob::Node *toNode);
@@ -251,7 +251,8 @@ public:
 	int generateSinglePathByFromToNodes_(
 			   const sim_mob::Node *fromNode,
 			   const sim_mob::Node *toNode,
-			   std::map<std::string,SinglePath*>& wp_spPool);
+			   std::map<std::string,SinglePath*>& wp_spPool,
+			   const sim_mob::RoadSegment* exclude_seg);
 
 	sim_mob::SinglePath* generateShortestTravelTimePath(const sim_mob::Node *fromNode,
 			   const sim_mob::Node *toNode,
@@ -469,7 +470,7 @@ public:
 	PathSet():has_path(0) {};
 	PathSet(const sim_mob::Node *fn,const sim_mob::Node *tn) : fromNode(fn),toNode(tn),logsum(0),has_path(0) {}
 	PathSet(PathSet *ps);
-	PathSet(PathSet &ps);
+	PathSet(const PathSet &ps);
 	~PathSet();
 	bool isInit;
 	bool hasBestChoice;
@@ -551,6 +552,7 @@ inline double calculateHighWayDistance(sim_mob::SinglePath *sp)
 	}
 	return res/100.0; //meter
 }
+
 inline float gen_random_float(float min, float max)
 {
     boost::mt19937 rng;

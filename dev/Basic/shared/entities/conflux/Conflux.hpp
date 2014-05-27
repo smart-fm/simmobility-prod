@@ -25,6 +25,20 @@ namespace aimsun
 class Loader;
 }
 
+enum {
+	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000
+};
+
+/**
+ * Subclasses both messages, This is to allow it to function as an message callback parameter.
+ */
+class PedestrianRequestMessageArgs : public messaging::Message {
+public:
+	PedestrianRequestMessageArgs(Person* inPerson):pedestrian(inPerson){;}
+	virtual ~PedestrianRequestMessageArgs() {}
+	Person* pedestrian;
+};
+
 struct cmp_person_remainingTimeThisTick : public std::greater<Person*> {
   bool operator() (const Person* x, const Person* y) const;
 };
@@ -51,7 +65,7 @@ private:
 	typedef std::vector<sim_mob::SegmentStats*> SegmentStatsList;
 	typedef std::map<sim_mob::Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
 	typedef std::map<sim_mob::Link*, PersonList> VirtualQueueMap;
-	typedef std::map<const sim_mob::RoadSegment*, sim_mob::SegmentStats*> SegmentStatsMap;
+	typedef std::map<const sim_mob::RoadSegment*, SegmentStatsList> SegmentStatsMap;
 
 	/**
 	 *  MultiNode (intersection) around which this conflux is constructed
@@ -90,7 +104,7 @@ private:
 	std::set<const sim_mob::RoadSegment*> downstreamSegments;
 
 	/**
-	 *  Map which stores the SegmentStats for all road segments on upstream links
+	 *  Map which stores the list of SegmentStats for all road segments on upstream links
 	 *  The Segment stats in-turn contain LaneStats which contain the persons.
 	 */
 	SegmentStatsMap segmentAgents;
@@ -122,6 +136,9 @@ private:
 
 	/**list of persons performing activities within the vicinity of this conflux*/
 	PersonList activityPerformers;
+
+	/*list of persons with pedestrian role performing walking activities*/
+	PersonList pedestrianList;
 
 	/**
 	 * function to call persons' updates if the MultiNode is signalized
@@ -192,7 +209,7 @@ private:
 	 * @param wasActivityPerformer flag indicating whether the person was performing an activity at the start of the tick
 	 */
 	void killAgent(sim_mob::Person* person, sim_mob::SegmentStats* prevSegStats,
-			const sim_mob::Lane* prevLane, bool wasQueuing, bool wasActivityPerformer);
+			const sim_mob::Lane* prevLane, bool wasQueuing);
 
 	/**
 	 * Resets the remainingTime of persons who remain in
@@ -210,6 +227,16 @@ protected:
 	virtual bool frame_init(timeslice now) { throw std::runtime_error("frame_* methods are not required and are not implemented for Confluxes."); }
 	virtual Entity::UpdateStatus frame_tick(timeslice now) { throw std::runtime_error("frame_* are not required and are not implemented for Confluxes."); }
 	virtual void frame_output(timeslice now) { throw std::runtime_error("frame_* methods are not required and are not implemented for Confluxes."); }
+
+	/**
+	 * Inherited from Agent.
+	 */
+	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+
+	/**
+	 * Inherited from Agent.
+	 */
+	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 public:
 	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1);
@@ -255,17 +282,28 @@ public:
 	 */
 	void addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* rdSeg);
 
-	/**Searches upstream and downstream segments to get the segmentStats for the requested road segment*/
-	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg);
+	/**
+	 * Searches upstream segments to get the segmentStats for the requested road segment
+	 * @param rdSeg road segment corresponding to the stats to be found
+	 * @param statsNum position of the requested stats in the segment
+	 * @return segment stats
+	 */
+	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg, uint8_t statsNum);
+
+	/**
+	 * returns the list of segment stats corresponding to a road segment
+	 * @param rdSeg segment for which the stats list is required
+	 * @return constant list of segment stats corresponding to this segment
+	 */
+	const std::vector<sim_mob::SegmentStats*>& findSegStats(const sim_mob::RoadSegment* rdSeg);
 
 	/**
 	 * supply params related functions
 	 */
 	double getSegmentSpeed(SegmentStats* segStats, bool hasVehicle) const;
+
 	void resetPositionOfLastUpdatedAgentOnLanes();
-	void updateLaneParams(const Lane* lane, double newOutFlowRate);
-	void restoreLaneParams(const Lane* lane);
-	void incrementSegmentFlow(const RoadSegment* rdSeg);
+	void incrementSegmentFlow(const RoadSegment* rdSeg, uint8_t statsNum);
 	void resetSegmentFlows();
 
 	/** updates lane params for all lanes within the conflux */
@@ -311,8 +349,6 @@ public:
 	bool insertTravelTime2TmpTable(timeslice frameNumber,
 			std::map<const RoadSegment*, sim_mob::Conflux::rdSegTravelTimes>& rdSegTravelTimesMap);
 	//================ end of road segment travel time computation ========================
-
-	double getPositionOfLastUpdatedAgentInLane(const Lane* lane);
 
 	/**
 	 * returns the time to reach the end of the link from a road segment on that
@@ -374,6 +410,7 @@ public:
 	 * @return constant pointer to the starting segment of the person's constructed path
 	 */
 	static const sim_mob::RoadSegment* constructPath(Person* person);
+
 
 	bool isBoundary; //A conflux that receives person from at least one conflux that belongs to another worker
 	bool isMultipleReceiver; //A conflux that receives persons from confluxes that belong to multiple other workers

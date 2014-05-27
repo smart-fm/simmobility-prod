@@ -26,9 +26,11 @@ struct PathLength
 struct PathLengthComparator
 {
 bool operator()(const PathLength& first, const PathLength& second) const {
-        if(first.length < second.length)
-        	return true;
-    }
+	if(first.length < second.length) {
+		return true;
+	}
+	return false;
+}
 };
 class K_ShortestPathImpl {
 public:

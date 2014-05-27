@@ -62,8 +62,8 @@ void sim_mob::PassengerMovement::setParentBufferedData()
 {
 	if(parentPassenger->busdriver.get()!=nullptr)
 	{
-		parent->xPos.set(parentPassenger->busdriver.get()->getVehicle()->getPosition().x);
-		parent->yPos.set(parentPassenger->busdriver.get()->getVehicle()->getPosition().y);
+		parent->xPos.set(parentPassenger->busdriver.get()->getCurrPosition().x);
+		parent->yPos.set(parentPassenger->busdriver.get()->getCurrPosition().y);
 	}
 }
 
@@ -71,9 +71,9 @@ void sim_mob::PassengerMovement::frame_init() {
 	//initialization
 //	WaitingTime = -1;
 	if(getParent()->originNode.type_== WayPoint::BUS_STOP && getParent()->destNode.type_== WayPoint::BUS_STOP) {
-		BusStopAgent* OriginBusstopAg = getParent()->originNode.busStop_->generatedBusStopAgent;
-		getParent()->xPos.force(OriginBusstopAg->getBusStop().xPos);// set xPos to WaitBusActivityRole
-		getParent()->yPos.force(OriginBusstopAg->getBusStop().yPos);// set yPos to WaitBusActivityRole
+		BusStopAgent* originBusstopAg = BusStopAgent::findBusStopAgentByBusStopNo(getParent()->originNode.busStop_->getBusstopno_());
+		getParent()->xPos.force(originBusstopAg->getBusStop().xPos);// set xPos to WaitBusActivityRole
+		getParent()->yPos.force(originBusstopAg->getBusStop().yPos);// set yPos to WaitBusActivityRole
 		originBusStop = const_cast<BusStop*>(getParent()->originNode.busStop_);
 		destBusStop = const_cast<BusStop*>(getParent()->destNode.busStop_);
 		timeOfStartTrip = getParent()->currTick.ms();
@@ -243,10 +243,10 @@ bool sim_mob::PassengerMovement::PassengerAlightBus(Driver* driver)
 		parentPassenger->busdriver.set(nullptr);//passenger should store the bus driver
 		parentPassenger->BoardedBus.set(false);//to indicate passenger has boarded bus
 		parentPassenger->AlightedBus.set(true);//to indicate whether passenger has alighted bus
-		parent->xPos.set(driver->getVehicle()->getPosition().x);
-		parent->yPos.set(driver->getVehicle()->getPosition().y);
-		displayX = driver->getVehicle()->getPosition().x;
-		displayY = driver->getVehicle()->getPosition().y;
+		parent->xPos.set(driver->getCurrPosition().x);
+		parent->yPos.set(driver->getCurrPosition().y);
+		displayX = driver->getCurrPosition().x;
+		displayY = driver->getCurrPosition().y;
 	}
 
      return false;

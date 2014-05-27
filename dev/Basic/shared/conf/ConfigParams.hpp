@@ -33,6 +33,7 @@ class PT_trip;
 class ProfileBuilder;
 class TripChainItem;
 class Broker;
+class SegmentStats;
 
 
 
@@ -81,17 +82,6 @@ public:
 		std::set<unsigned int> manualAgentIDs;
 	};
 
-	/*enum ClientType {
-		UNKNOWN = 0,
-		ANDROID_EMULATOR = 1,
-		NS3_SIMULATOR = 2,
-		//add your client type here
-	};*/
-
-	/*enum NetworkSource {
-		NETSRC_XML,
-		NETSRC_DATABASE,
-	};*/
 
 	unsigned int totalRuntimeTicks;   ///<Number of ticks to run the simulation for. (Includes "warmup" ticks.)
 	unsigned int totalWarmupTicks;    ///<Number of ticks considered "warmup".
@@ -213,6 +203,7 @@ public:
 	const std::set<sim_mob::Conflux*>& getConfluxes() const;
 
 	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes();
+	std::set<sim_mob::SegmentStats*>& getSegmentStatsWithBusStops();
 
 private:
 	ConfigParams();
@@ -244,6 +235,7 @@ private:
 
 	//Confluxes in this network
 	std::set<sim_mob::Conflux*> confluxes;
+	std::set<sim_mob::SegmentStats*> segmentStatsWithBusStops;
 	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*> multinode_confluxes; //map <MultiNode*, Conflux*>
 
 public:
@@ -315,11 +307,7 @@ public:
 	sim_mob::MutexStrategy& mutexStategy();
 	const sim_mob::MutexStrategy& mutexStategy() const;
 	//Communication Simulator accessors and configurators
-	bool& commSimEnabled();
-	const bool& commSimEnabled() const;
-	const std::map<std::string, sim_mob::SimulationParams::CommsimElement> &getCommSimElements() const;
-	const std::string& getCommSimMode(std::string name)const;
-	bool commSimmEnabled(std::string &name);
+	bool commSimEnabled() const;
 
 	DailyTime& simStartTime();
 	const DailyTime& simStartTime() const;

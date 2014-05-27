@@ -123,8 +123,8 @@ public:
 #endif
 
 	/* needed by mid-term */
-	double getPositionInSegment();
-	void setPositionInSegment(double newDist2end);
+	double getPositionInSegmentCM();
+	void setPositionInSegmentCM(double newDistToEndCM);
 	void setStartPositionInSegment();
 	double getNextSegmentLength();
 	void advance_med(double fwdDistance);
@@ -147,8 +147,8 @@ public:
 	std::vector<sim_mob::Point2D>::const_iterator nextLaneZeroPolypoint;
 
 	//Movement along a single line
-	double distAlongPolyline;
-	double currPolylineLength() const;
+	double distAlongPolylineCM;
+	double currPolylineLengthCM() const;
 
 	//Counter
 	//NOTE: This is always the same regardless of what lane you're in. In other words,

@@ -174,8 +174,8 @@ void HM_LuaModel::mapClasses() {
             .beginClass <ExpectationEntry> ("ExpectationEntry")
             .addConstructor <void (*) (void) > ()
             .addData("hedonicPrice", &ExpectationEntry::hedonicPrice)
-            .addData("price", &ExpectationEntry::price)
-            .addData("expectation", &ExpectationEntry::expectation)
+            .addData("askingPrice", &ExpectationEntry::askingPrice)
+            .addData("targetPrice", &ExpectationEntry::targetPrice)
             .endClass();
     getGlobalNamespace(state.get())
             .beginClass <HousingMarket::Entry> ("UnitEntry")
@@ -210,10 +210,9 @@ void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket,
     LuaRef retVal = funcRef(&unit, timeOnMarket, getBuilding(unit.getBuildingId()),
             getPostcode(pcId), getAmenities(pcId));
     if (retVal.isTable()) {
-        for (int i = 1; i <= retVal.length(); i++) {
+        // Reverse the expectations (HM requirement).
+        for (int i = retVal.length(); i >= 1; i--) {
             ExpectationEntry entry = retVal[i].cast<ExpectationEntry>();
-            //entry.price = .price;
-            //entry.expectation = retVal[i].cast<ExpectationEntry>().expectation;
             outValues.push_back(entry);
         }
     }
@@ -230,8 +229,8 @@ double HM_LuaModel::calculateHedonicPrice(const Unit& unit) const {
     return INVALID_DOUBLE;
 }
 
-double HM_LuaModel::calculateSurplus(const HousingMarket::Entry& entry, int unitBids) const {
-    LuaRef funcRef = getGlobal(state.get(), "calculateSurplus");
+double HM_LuaModel::calculateSpeculation(const HousingMarket::Entry& entry, int unitBids) const {
+    LuaRef funcRef = getGlobal(state.get(), "calculateSpeculation");
     LuaRef retVal = funcRef(&entry, unitBids);
     if (retVal.isNumber()) {
         return retVal.cast<double>();

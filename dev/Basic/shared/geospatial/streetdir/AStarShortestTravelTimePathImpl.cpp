@@ -1861,7 +1861,7 @@ vector<WayPoint> sim_mob::A_StarShortestTravelTimePathImpl::GetShortestDrivingPa
 		}
 		else
 		{
-			std::cout<<"A_StarShortestTravelTimePathImpl: unknown time range"<<std::endl;
+			throw std::runtime_error("A_StarShortestTravelTimePathImpl: unknown time range");
 		}
 //		return searchShortestPath(drivingMap_, fromV, toV);
 	} else {
@@ -1908,7 +1908,7 @@ vector<WayPoint> sim_mob::A_StarShortestTravelTimePathImpl::GetShortestDrivingPa
 		}
 		else
 		{
-			std::cout<<"A_StarShortestTravelTimePathImpl: unknown time range2"<<std::endl;
+			throw std::runtime_error("A_StarShortestTravelTimePathImpl: unknown time range2");
 		}
 //		return searchShortestPathWithBlacklist(drivingMap_, fromV, toV, blacklistV);
 	}

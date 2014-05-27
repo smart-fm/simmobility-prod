@@ -995,17 +995,29 @@ void sim_mob::MITSIM_CF_Model::calcStateBasedVariables(DriverUpdateParams& p)
 void sim_mob::MITSIM_CF_Model::calcUpdateStepSizes()
 {
 	// dec
-	updateStepSize.push_back(makeNormalDist(decUpdateStepSize));
-	perceptionSize.push_back( updateStepSize[0] * decUpdateStepSize.percep );
+	double totalReactionTime = makeNormalDist(decUpdateStepSize);
+	double perceptionTime = totalReactionTime * decUpdateStepSize.percep; // perception time  = reaction time * percentage
+	double engagementTime = totalReactionTime * (1-decUpdateStepSize.percep);
+	updateStepSize.push_back(perceptionTime);
+	perceptionSize.push_back( engagementTime  );
 	// acc
-	updateStepSize.push_back( makeNormalDist(accUpdateStepSize) );
-	perceptionSize.push_back( updateStepSize[1] * decUpdateStepSize.percep );
+	totalReactionTime = makeNormalDist(accUpdateStepSize);
+	perceptionTime = totalReactionTime * accUpdateStepSize.percep; // perception time  = reaction time * percentage
+	engagementTime = totalReactionTime * (1-accUpdateStepSize.percep);
+	updateStepSize.push_back( perceptionTime );
+	perceptionSize.push_back( engagementTime );
 	// uniform Speed
-	updateStepSize.push_back( makeNormalDist(uniformSpeedUpdateStepSize) );
-	perceptionSize.push_back( updateStepSize[2] * decUpdateStepSize.percep );
+	totalReactionTime = makeNormalDist(uniformSpeedUpdateStepSize);
+	perceptionTime = totalReactionTime * uniformSpeedUpdateStepSize.percep; // perception time  = reaction time * percentage
+	engagementTime = totalReactionTime * (1-uniformSpeedUpdateStepSize.percep);
+	updateStepSize.push_back( perceptionTime );
+	perceptionSize.push_back( engagementTime );
 	// stopped vehicle
-	updateStepSize.push_back( makeNormalDist(stoppedUpdateStepSize) );
-	perceptionSize.push_back( updateStepSize[3] * decUpdateStepSize.percep );
+	totalReactionTime = makeNormalDist(stoppedUpdateStepSize);
+	perceptionTime = totalReactionTime * stoppedUpdateStepSize.percep; // perception time  = reaction time * percentage
+	engagementTime = totalReactionTime * (1-stoppedUpdateStepSize.percep);
+	updateStepSize.push_back( perceptionTime );
+	perceptionSize.push_back( engagementTime );
 }
 double sim_mob::MITSIM_CF_Model::makeNormalDist(UpdateStepSizeParam& sp)
 {

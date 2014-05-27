@@ -247,6 +247,12 @@ public:
 			   const sim_mob::Node *toNode,
 			   std::map<std::string,SinglePath*>& wp_spPool,
 			   const sim_mob::RoadSegment* exclude_seg=NULL);
+
+	int generateSinglePathByFromToNodes_(
+			   const sim_mob::Node *fromNode,
+			   const sim_mob::Node *toNode,
+			   std::map<std::string,SinglePath*>& wp_spPool);
+
 	sim_mob::SinglePath* generateShortestTravelTimePath(const sim_mob::Node *fromNode,
 			   const sim_mob::Node *toNode,
 			   std::map<std::string,SinglePath*>& wp_spPool,

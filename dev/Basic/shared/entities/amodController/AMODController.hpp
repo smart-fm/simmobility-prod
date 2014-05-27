@@ -23,8 +23,10 @@
 #include "AMODEvent.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "geospatial/PathSetManager.hpp"
+#include "entities/Person.hpp"
 
 namespace sim_mob {
+class Person;
 
 namespace AMOD {
 
@@ -47,6 +49,7 @@ public:
 	void addNewVh2CarPark(std::string& id,std::string& nodeId);
 
 	// return false ,if no vh in car park
+
 	bool getVhFromCarPark(std::string& carParkId,Person** vh);
 
 	// set predefined path
@@ -59,10 +62,20 @@ public:
 	/// path: new path
 	void rerouteWithPath(Person* vh,std::vector<sim_mob::WayPoint>& path);
 	void rerouteWithOriDest(Person* vh,Node* snode,Node* enode);
+
+	void parkVhAfterTrip(Person* vh,std::string& nodeId);
+
 	void testOneVh();
+	void testSecondVh();
 	void testTravelTimePath();
 	int test;
 
+	void handleAMODEvent(sim_mob::event::EventId id,
+	            sim_mob::event::Context ctxId,
+	            sim_mob::event::EventPublisher* sender,
+	            const AMOD::AMODEventArgs& args);
+
+	void handleVHArrive(Person* vh);
 protected:
 	//override from the class agent, provide initilization chance to sub class
 	virtual bool frame_init(timeslice now);

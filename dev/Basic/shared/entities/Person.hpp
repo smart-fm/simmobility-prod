@@ -26,6 +26,7 @@ class PartitionManager;
 class PackageUtils;
 class UnPackageUtils;
 class UpdateParams;
+class AMODController;
 
 
 
@@ -218,6 +219,9 @@ public:
 	std::vector<WayPoint> amodPath;
 
     std::list<sim_mob::FMOD_Schedule> schedules;
+
+    AMOD::AMODEventPublisher eventPub;
+//    AMODController* amodCtrl;
 
 protected:
 	virtual bool frame_init(timeslice now);

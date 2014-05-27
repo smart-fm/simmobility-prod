@@ -13,13 +13,14 @@
 #include <boost/thread.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/asio.hpp>
-#include "entities/Person.hpp"
+
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/UniNode.hpp"
+#include "geospatial/PathSetManager.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "workers/Worker.hpp"
 #include "metrics/Frame.hpp"
@@ -53,7 +54,7 @@ void sim_mob::AMOD::AMODController::init()
 			{
 				string aimsunId = (*seg_it)->originalDB_ID.getLogItem();
 				string segId = getNumberFromAimsunId(aimsunId);
-//				Print()<<aimsun_id<<std::endl;
+				//				Print()<<aimsun_id<<std::endl;
 				segPool.insert(std::make_pair(segId,*seg_it));
 			}
 		}
@@ -97,7 +98,7 @@ AMODController* AMODController::instance()
 	return pInstance;
 }
 AMODController::AMODController(int id,
-			const MutexStrategy& mtxStrat)
+		const MutexStrategy& mtxStrat)
 : Agent(mtxStrat, id),frameTicks(0)
 {
 	init();
@@ -113,7 +114,8 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 	//TODO
 	if(test==0)
 	{
-		testOneVh();
+//		testOneVh();
+		testSecondVh();
 		test=1;
 	}
 
@@ -127,9 +129,9 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		Person *vh = vhOnTheRoad.begin()->second;
 		if(vh->getRole())
 		{
-//			Driver *driver = (Driver*)vh->getRole();
+			//			Driver *driver = (Driver*)vh->getRole();
 
-//			std::string segid = vh->getRole()->getVehicle()->getCurrSegment()->originalDB_ID.getLogItem();
+			//			std::string segid = vh->getRole()->getVehicle()->getCurrSegment()->originalDB_ID.getLogItem();
 
 			if(vh->getCurrSegment())
 			{
@@ -156,14 +158,14 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 			}
 		}
 
-//		AMODObj obj;
-//		AMODObjContainer obj1(obj);
-//		char c[20]="\0";
-//		sprintf(c,"xxx+%d",now.frame());
-//		obj1.data = std::string(c);
+		//		AMODObj obj;
+		//		AMODObjContainer obj1(obj);
+		//		char c[20]="\0";
+		//		sprintf(c,"xxx+%d",now.frame());
+		//		obj1.data = std::string(c);
 
-//		sim_mob:
-//		eventPub.publish(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_, vh, AMODRerouteEventArgs(obj1));
+		//		sim_mob:
+		//		eventPub.publish(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_, vh, AMODRerouteEventArgs(obj1));
 
 	}
 #endif
@@ -186,7 +188,7 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 	tcs.push_back(tc);
 
 	std::cout<<ConfigManager::GetInstance().FullConfig().simStartTime().getValue()<<std::endl;
-	sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
+	sim_mob::Person* person = new sim_mob::Person("AMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
 	std::cout<<"starttime: "<<person->getStartTime()<<std::endl;
 	person->parentEntity = this;
 	person->amodId = id;
@@ -196,17 +198,50 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 	if(it!=virtualCarPark.end())
 	{
 		// access this car park before
+		std::cout << "Existing car park" << std::endl;
 		boost::unordered_map<std::string,Person*> cars = it->second;
+		std::cout << "Before Insertion. Cars Size: " << cars.size() << std::endl;
 		cars.insert(std::make_pair(id,person));
-		virtualCarPark.insert(std::make_pair(nodeId,cars));
+		std::cout << "Inserted. Cars Size: " << cars.size() << std::endl;
+
+		boost::unordered_map<std::string,Person*>::iterator local_it;
+		std::cout << "Cars in Car Park : \n";
+		for ( local_it = cars.begin(); local_it!= cars.end(); ++local_it ) {
+			std::cout << " " << local_it->first << ":" << local_it->second << std::endl;
+		}
+		std::cout << "-----\n";
+
+		it->second = cars;
 	}
 	else
 	{
+		std::cout << "New car park" << std::endl;
 		boost::unordered_map<std::string,Person*> cars = boost::unordered_map<std::string,Person*>();
 		cars.insert(std::make_pair(id,person));
 		virtualCarPark.insert(std::make_pair(nodeId,cars));
+		std::cout << "Inserted. Cars Size: " << cars.size() << std::endl;
 	}
 }
+
+void AMODController::parkVhAfterTrip(Person* vh,std::string& endNodeId)
+{
+	// find node
+		Node* node = nodePool[endNodeId];
+		if(node == NULL){ throw std::runtime_error("node not found");
+		}
+
+		// add to virtual car park
+		AMODVirtualCarParkItor it = virtualCarPark.find(endNodeId);
+		if(it!=virtualCarPark.end())
+			{ throw std::runtime_error("no vh"); return; }
+		else
+		{
+			boost::unordered_map<std::string,Person*> cars = boost::unordered_map<std::string,Person*>();
+			cars.insert(std::make_pair(vh->amodId,vh));
+			virtualCarPark.insert(std::make_pair(endNodeId,cars));
+		}
+}
+
 bool AMODController::getVhFromCarPark(std::string& carParkId,Person** vh)
 {
 	AMODVirtualCarParkItor it = virtualCarPark.find(carParkId);
@@ -218,7 +253,8 @@ bool AMODController::getVhFromCarPark(std::string& carParkId,Person** vh)
 		boost::unordered_map<std::string,Person*>::iterator firstCarIt = cars.begin();
 		*vh = firstCarIt->second;
 		cars.erase(firstCarIt);
-
+		it->second = cars;
+		std::cout << "Cars size: " << cars.size() << std::endl;
 		return true;
 	}
 
@@ -227,6 +263,10 @@ bool AMODController::getVhFromCarPark(std::string& carParkId,Person** vh)
 bool AMODController::dispatchVh(Person* vh)
 {
 	this->currWorkerProvider->scheduleForBred(vh);
+}
+void AMODController::handleVHArrive(Person* vh)
+{
+
 }
 void AMODController::rerouteWithPath(Person* vh,std::vector<sim_mob::WayPoint>& path)
 {
@@ -256,7 +296,7 @@ void AMODController::setRdSegTravelTimes(Person* ag, double rdSegExitTime) {
 		}
 		else{
 			Conflux::rdSegTravelTimes tTimes(travelTime, 1);
-			RdSegTravelTimesMap.insert(std::make_pair(ag->getCurrSegment(), tTimes));
+//			RdSegTravelTimesMap.insert(std::make_pair(ag->getCurrSegment(), tTimes));
 		}
 	}
 }
@@ -305,9 +345,9 @@ void AMODController::testTravelTimePath()
 
 	std::vector<WayPoint> wp = stdir->SearchShortestDrivingTimePath(
 			stdir->DrivingTimeVertex(*startNode,sim_mob::Default),
-					stdir->DrivingTimeVertex(*endNode,sim_mob::Default),
-					blacklist,
-					sim_mob::Default);
+			stdir->DrivingTimeVertex(*endNode,sim_mob::Default),
+			blacklist,
+			sim_mob::Default);
 	for(int i=0;i<wp.size();++i)
 	{
 		if(wp[i].type_ == WayPoint::ROAD_SEGMENT )
@@ -343,10 +383,10 @@ void AMODController::testOneVh()
 	std::cout<<"starttime: "<<vh->getStartTime()<<std::endl;
 
 	// make dummy path 9286 9264
-//	RoadSegment *seg1 = segPool["9286"];
-//	WayPoint wp1(seg1);
-//	RoadSegment *seg2 = segPool["9264"];
-//	WayPoint wp2(seg2);
+	//	RoadSegment *seg1 = segPool["9286"];
+	//	WayPoint wp1(seg1);
+	//	RoadSegment *seg2 = segPool["9264"];
+	//	WayPoint wp2(seg2);
 
 	std::vector<std::string> segs;
 	segs.push_back("9282");
@@ -370,27 +410,119 @@ void AMODController::testOneVh()
 	vh->setPath(path);
 #endif
 
+//	parkVhAfterTrip(vhId,destNodeId);
 
-//	unsigned int curTickMS = (frameTicks)*ConfigManager::GetInstance().FullConfig().baseGranMS();
-//	vh->setStartTime(curTickMS);
+	//	unsigned int curTickMS = (frameTicks)*ConfigManager::GetInstance().FullConfig().baseGranMS();
+	//	vh->setStartTime(curTickMS);
 
 	// event related
 	eventPub.registerEvent(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH);
 	eventPub.subscribe(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH, vh, &Person::handleAMODEvent, vh);
 
+	vh->eventPub.registerEvent(sim_mob::event::EVT_AMOD_ARRIVING_TO_DEST);
+	vh->eventPub.subscribe(sim_mob::event::EVT_AMOD_ARRIVING_TO_DEST, this, &AMODController::handleAMODEvent, this);
+
 	dispatchVh(vh);
 
 	vhOnTheRoad.insert(std::make_pair(vh->amodId,vh));
-
-
 }
+
+void AMODController::handleAMODEvent(sim_mob::event::EventId id,
+	            sim_mob::event::Context ctxId,
+	            sim_mob::event::EventPublisher* sender,
+	            const AMOD::AMODEventArgs& args)
+{
+	if(id == event::EVT_AMOD_ARRIVING_TO_DEST)
+		{
+		//TODO
+		}
+}
+void AMODController::testSecondVh()
+{
+	std::string carParkId = "61688";
+	//std::string carParkIds [] = { "61688", "75780" };
+
+	int vhsInCarPark = 5;
+
+	std::vector<Person*> vhs;
+	for(int i = 0; i<vhsInCarPark; ++i)
+	{
+		std::string vhId = "amod-";
+		string uId;          // string which will contain the result
+		ostringstream convert;   // stream used for the conversion
+		convert << i;      // insert the textual representation of 'Number' in the characters in the stream
+		uId = convert.str(); // set 'Result' to the contents of the stream
+		vhId += uId;
+
+		std::cout << vhId << std::endl;
+		addNewVh2CarPark(vhId,carParkId);
+	}
+
+	//std::string vehId = vhId;
+
+	const sim_mob::RoadSegment* exclude_seg;
+	std::vector<const sim_mob::RoadSegment*> blacklist;
+
+	for (int i=0; i<vhsInCarPark; ++i) {
+
+		Person* vh = NULL;
+
+		if(!getVhFromCarPark(carParkId,&vh))
+		{ throw std::runtime_error("no vh"); return; }
+
+		// modify trip
+		std::cout << vh->amodId << std::endl;
+		std::string destNodeId="48718";
+
+		Node *startNode = nodePool[carParkId];
+		Node *endNode = nodePool[destNodeId];
+
+		DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+ConfigManager::GetInstance().FullConfig().baseGranMS());;
+		sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", startNode, "node", endNode, "node");
+		SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), startNode, "node", endNode, "node", "Car");
+		((Trip*)tc)->addSubTrip(subTrip);
+
+		std::vector<sim_mob::TripChainItem*>  tcs;
+		tcs.push_back(tc);
+
+		vh->setTripChain(tcs);
+		std::cout<<"starttime: "<<vh->getStartTime()<<std::endl;
+
+		vhs.push_back(vh);
+
+		//--------------------------------------------------------------------------------------------------
+
+		if(exclude_seg)
+		{
+			blacklist.push_back(exclude_seg);
+		}
+		std::vector<WayPoint> wp = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*startNode), stdir->DrivingVertex(*endNode),blacklist);
+
+		std::vector<WayPoint> path;
+
+#if 1
+		vh->setPath(path);
+#endif
+
+		//	unsigned int curTickMS = (frameTicks)*ConfigManager::GetInstance().FullConfig().baseGranMS();
+		//	vh->setStartTime(curTickMS);
+
+		// event related
+		eventPub.registerEvent(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH);
+		eventPub.subscribe(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH, vh, &Person::handleAMODEvent, vh);
+
+		dispatchVh(vh);
+
+		vhOnTheRoad.insert(std::make_pair(vh->amodId,vh));
+
+		//parkVhAfterTrip(vh, destNodeId);
+	}
+}
+
 void AMODController::frame_output(timeslice now)
 {
 
 }
-
-
-
 
 } /* namespace AMOD */
 } /* namespace sim_mob */

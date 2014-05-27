@@ -107,6 +107,7 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
 	,stop_event_nodeid(mtxStrat, -1)
 {
+	currResource = vehicle;
 	//This is something of a quick fix; if there is no parent, then that means the
 	//  reaction times haven't been initialized yet and will crash. ~Seth
 	if (parent) {

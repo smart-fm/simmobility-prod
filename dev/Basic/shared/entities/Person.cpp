@@ -23,6 +23,7 @@
 #include "entities/misc/TripChain.hpp"
 #include "workers/Worker.hpp"
 #include "geospatial/aimsun/Loader.hpp"
+#include "entities/amodController/AMODController.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -304,6 +305,10 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 	if (!isToBeRemoved()) {
 		currRole->Movement()->frame_tick();
 	}
+	else
+	{
+
+	}
 
 	//If we're "done", try checking to see if we have any more items in our Trip Chain.
 	// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
@@ -338,6 +343,15 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 		}
 	}
 
+	// check if arrive dest
+//	Driver *d = (Driver *)currRole;
+//	if(d->vehicle->isDone())
+	if(currRole->getResource() && currRole->getResource()->isDone())
+	{
+		sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
+		a->handleVHArrive(this);
+	}
+//	eventPub.publish(sim_mob::event::EVT_AMOD_ARRIVING_TO_DEST, a, arg);
 	return retVal;
 }
 

@@ -319,7 +319,7 @@ public:
 	 * @param statsNum position of the requested stats in the segment
 	 * @return segment stats
 	 */
-	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg, uint8_t statsNum);
+	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg, uint16_t statsNum);
 
 	/**
 	 * returns the list of segment stats corresponding to a road segment
@@ -334,7 +334,7 @@ public:
 	double getSegmentSpeed(SegmentStats* segStats, bool hasVehicle) const;
 
 	void resetPositionOfLastUpdatedAgentOnLanes();
-	void incrementSegmentFlow(const RoadSegment* rdSeg, uint8_t statsNum);
+	void incrementSegmentFlow(const RoadSegment* rdSeg, uint16_t statsNum);
 	void resetSegmentFlows();
 
 	/** updates lane params for all lanes within the conflux */

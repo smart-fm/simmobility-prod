@@ -587,7 +587,7 @@ void sim_mob::Conflux::resetPositionOfLastUpdatedAgentOnLanes() {
 	}
 }
 
-sim_mob::SegmentStats* sim_mob::Conflux::findSegStats(const sim_mob::RoadSegment* rdSeg, uint8_t statsNum) {
+sim_mob::SegmentStats* sim_mob::Conflux::findSegStats(const sim_mob::RoadSegment* rdSeg, uint16_t statsNum) {
 	if(!rdSeg || statsNum == 0) {
 		return nullptr;
 	}
@@ -815,7 +815,7 @@ void sim_mob::Conflux::resetLinkTravelTimes(timeslice frameNumber) {
 	LinkTravelTimesMap.clear();
 }
 
-void sim_mob::Conflux::incrementSegmentFlow(const RoadSegment* rdSeg, uint8_t statsNum) {
+void sim_mob::Conflux::incrementSegmentFlow(const RoadSegment* rdSeg, uint16_t statsNum) {
 	sim_mob::SegmentStats* segStats = findSegStats(rdSeg, statsNum);
 	segStats->incrementSegFlow();
 }

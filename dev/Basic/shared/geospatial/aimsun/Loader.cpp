@@ -2796,7 +2796,7 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdS
 		splitSegmentStats.push_back(segStats);
 	}
 
-	uint8_t statsNum = 1;
+	uint16_t statsNum = 1;
 	std::set<sim_mob::SegmentStats*>& segmentStatsWithStops = ConfigManager::GetInstanceRW().FullConfig().getSegmentStatsWithBusStops();
 	for(std::list<sim_mob::SegmentStats*>::iterator statsIt=splitSegmentStats.begin(); statsIt!=splitSegmentStats.end(); statsIt++) {
 		SegmentStats* stats = *statsIt;

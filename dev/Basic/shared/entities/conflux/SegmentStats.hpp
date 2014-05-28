@@ -316,7 +316,7 @@ protected:
 	 * A segment can have multiple segment stats. This gives the position of this
 	 * SegmentStats in segment.
 	 */
-	uint8_t statsNumberInSegment;
+	uint16_t statsNumberInSegment;
 
 	/**
 	 * Map containing LaneStats for every lane of the segment.
@@ -400,7 +400,7 @@ public:
 		return busStops.size();
 	}
 
-	uint8_t getStatsNumberInSegment() const {
+	uint16_t getStatsNumberInSegment() const {
 		return statsNumberInSegment;
 	}
 

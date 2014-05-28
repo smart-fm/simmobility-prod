@@ -75,17 +75,17 @@ namespace {
 //        1.0 //minimum time in lane
 //    };
 
-    const double LC_GAP_MODELS[][9] = {
-        //	    scale  alpha   lambda   beta0   beta1   beta2   beta3   beta4   stddev
-        {1.00, 0.0, 0.000, 0.508, 0.000, 0.000, -0.420, 0.000, 0.488},
-        {1.00, 0.0, 0.000, 2.020, 0.000, 0.000, 0.153, 0.188, 0.526},
-        {1.00, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859},
-        {1.00, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073},
-        {0.60, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859}, //for test, courtesy merging
-        {0.60, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073}, //for test, courtesy merging
-        {0.20, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859}, //for test,forced merging
-        {0.20, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073}
-    }; //for test, forced merging
+//    const double LC_GAP_MODELS[][9] = {
+//        //	    scale  alpha   lambda   beta0   beta1   beta2   beta3   beta4   stddev
+//        {1.00, 0.0, 0.000, 0.508, 0.000, 0.000, -0.420, 0.000, 0.488},
+//        {1.00, 0.0, 0.000, 2.020, 0.000, 0.000, 0.153, 0.188, 0.526},
+//        {1.00, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859},
+//        {1.00, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073},
+//        {0.60, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859}, //for test, courtesy merging
+//        {0.60, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073}, //for test, courtesy merging
+//        {0.20, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859}, //for test,forced merging
+//        {0.20, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073}
+//    }; //for test, forced merging
 
     const double GAP_PARAM[][6] = {
         //const	   dis2gap  gap-size  gap-vel   dummy  vn
@@ -109,8 +109,11 @@ namespace {
 
 double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p,
         int type, double dis, double spd, double dv) {
-    const double *a = LC_GAP_MODELS[type];
-    const double *b = LC_GAP_MODELS[type] + 3; //beta0
+//    const double *a = LC_GAP_MODELS[type];
+	std::vector<double> a = LC_GAP_MODELS[type];
+//    const double *b = LC_GAP_MODELS[type] + 3; //beta0
+	//                    beta0            beta1                  beta2                    beta3                        beta4
+	double b[] = {LC_GAP_MODELS[type][3], LC_GAP_MODELS[type][4], LC_GAP_MODELS[type][5], LC_GAP_MODELS[type][6], LC_GAP_MODELS[type][7]};
     double rem_dist_impact = (type < 3) ?
             0.0 : (1.0 - 1.0 / (1 + exp(a[2] * dis)));
     double dvNegative = (dv < 0) ? dv : 0.0;
@@ -557,7 +560,26 @@ void sim_mob::MITSIM_LC_Model::initParam()
 	// MLC_PARAMETERS
 	ParameterManager::Instance()->param(modelName,"MLC_PARAMETERS",str,string("1320.0  5280.0 0.5 1.0  1.0"));
 	makeMCLParam(str);
-	//
+	// LC_GAP_MODELS
+	std::vector< std::string > strArray;
+	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_0",str,string("1.00,   0.0,   0.000,  0.508,  0.000,  0.000,  -0.420, 0.000,   0.488"));
+	strArray.push_back(str);
+	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_1",str,string("1.00, 0.0, 0.000, 2.020, 0.000, 0.000, 0.153, 0.188, 0.526"));
+	strArray.push_back(str);
+	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_2",str,string("1.00, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859"));
+	strArray.push_back(str);
+	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_3",str,string("1.00, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"));
+	strArray.push_back(str);
+	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_4",str,string("0.60, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859"));
+	strArray.push_back(str);
+	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_5",str,string("0.60, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"));
+	strArray.push_back(str);
+	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_6",str,string("0.20, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859"));
+	strArray.push_back(str);
+	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_7",str,string("0.20, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"));
+	strArray.push_back(str);
+
+	makeCtriticalGapParam(strArray);
 }
 void sim_mob::MITSIM_LC_Model::makeMCLParam(std::string& str)
 {
@@ -568,6 +590,15 @@ void sim_mob::MITSIM_LC_Model::makeMCLParam(std::string& str)
 	MLC_PARAMETERS.lane_coeff = array[2];
 	MLC_PARAMETERS.congest_coeff = array[3];
 	MLC_PARAMETERS.lane_mintime = array[4];
+}
+void sim_mob::MITSIM_LC_Model::makeCtriticalGapParam(std::vector< std::string >& strMatrix)
+{
+	for(int i=0;i<strMatrix.size();++i)
+	{
+		std::vector<double> array;
+		sim_mob::Utils::convertStringToArray(strMatrix[i],array);
+		LC_GAP_MODELS.push_back(array);
+	}
 }
 /*
  * In MITSIMLab, vehicle change lane in 1 time step.

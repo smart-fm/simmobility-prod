@@ -70,5 +70,16 @@
 
 #                                 lower bound(ft)   delta(ft)    coef for number of lanes    coef for congestion level   minimum time in lane
 <param name="MLC_PARAMETERS" value="1320.0              5280.0         0.5                         1.0                             1.0"/>
+
+# lcCriticalGap() param 
+#                       	    scale  alpha   lambda   beta0   beta1   beta2   beta3   beta4   stddev
+<param name="LC_GAP_MODELS_0" value="1.00,   0.0,   0.000,  0.508,  0.000,  0.000,  -0.420, 0.000,   0.488"/>
+<param name="LC_GAP_MODELS_1" value="1.00, 0.0, 0.000, 2.020, 0.000, 0.000, 0.153, 0.188, 0.526"/>
+<param name="LC_GAP_MODELS_2" value="1.00, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859"/>
+<param name="LC_GAP_MODELS_3" value="1.00, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"/>
+<param name="LC_GAP_MODELS_4" value="0.60, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859"/>
+<param name="LC_GAP_MODELS_5" value="0.60, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"/>
+<param name="LC_GAP_MODELS_6" value="0.20, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859"/>
+<param name="LC_GAP_MODELS_7" value="0.20, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"/>
 </parameters>
 

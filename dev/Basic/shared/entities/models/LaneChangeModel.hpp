@@ -102,6 +102,14 @@ public:
 	 */
 	void makeMCLParam(std::string& str);
 
+	// critical gap param
+	std::vector< std::vector<double> > LC_GAP_MODELS;
+	/**
+	 *  /brief make double matrix
+	 *  /strMatrix string matrix
+	 */
+	void makeCtriticalGapParam(std::vector< std::string >& strMatrix);
+
 };
 
 

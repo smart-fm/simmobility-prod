@@ -59,13 +59,13 @@ namespace {
         double critial_gap;
     };
 
-    const GapAcceptParam GA_PARAMETERS[4] = {
-        // scale alpha lambda beta0  beta1  beta2  beta3  beta4  stddev
-        { 1.00, 0.0, 0.000, 0.508, 0.000, 0.000, -0.420, 0.000, 0.488}, //Discretionary,lead
-        { 1.00, 0.0, 0.000, 2.020, 0.000, 0.000, 0.153, 0.188, 0.526}, //Discretionary,lag
-        { 1.00, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859}, //Mandatory,lead
-        { 1.00, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073} //Mandatory,lag
-    };
+//    const GapAcceptParam GA_PARAMETERS[4] = {
+//        // scale alpha lambda beta0  beta1  beta2  beta3  beta4  stddev
+//        { 1.00, 0.0, 0.000, 0.508, 0.000, 0.000, -0.420, 0.000, 0.488}, //Discretionary,lead
+//        { 1.00, 0.0, 0.000, 2.020, 0.000, 0.000, 0.153, 0.188, 0.526}, //Discretionary,lag
+//        { 1.00, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859}, //Mandatory,lead
+//        { 1.00, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073} //Mandatory,lag
+//    };
 
 //    const MandLaneChgParam MLC_PARAMETERS = {
 //        1320.0, //feet, lower bound

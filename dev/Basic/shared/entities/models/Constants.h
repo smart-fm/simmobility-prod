@@ -12,6 +12,67 @@
 typedef unsigned int UINT;
 
 namespace sim_mob {
+const float MAX_ACCELERATION		= +10.0; // meter/sec2
+const float MAX_DECELERATION		= -10.0; // meter/sec2
+const float CF_CRITICAL_TIMER_RATIO	= 0.5;
+
+const unsigned int FLAG_ESCAPE		      = 0x00000003;	// sum
+const unsigned int FLAG_ESCAPE_RIGHT      = 0x00000001;
+const unsigned int FLAG_ESCAPE_LEFT	      = 0x00000002;
+
+const unsigned int FLAG_AVOID		      = 0x0000000C;	// sum
+const unsigned int FLAG_AVOID_RIGHT       = 0x00000004;
+const unsigned int FLAG_AVOID_LEFT	      = 0x00000008;
+
+const unsigned int FLAG_BLOCK	          = 0x00000030;	// sum
+const unsigned int FLAG_BLOCK_RIGHT       = 0x00000010;
+const unsigned int FLAG_BLOCK_LEFT	      = 0x00000020;
+
+const unsigned int FLAG_PREV_LC           = 0x00000300;	// sum
+const unsigned int FLAG_PREV_LC_RIGHT     = 0x00000100;
+const unsigned int FLAG_PREV_LC_LEFT      = 0x00000200;
+
+const unsigned int FLAG_NOSING_FEASIBLE   = 0x00000400;
+
+const unsigned int FLAG_YIELDING          = 0x00003000;	// sum
+const unsigned int FLAG_YIELDING_RIGHT    = 0x00001000;
+const unsigned int FLAG_YIELDING_LEFT     = 0x00002000;
+
+const unsigned int FLAG_NOSING            = 0x0000C000;	// sum
+const unsigned int FLAG_NOSING_RIGHT      = 0x00004000;
+const unsigned int FLAG_NOSING_LEFT       = 0x00008000;
+
+const unsigned int FLAG_MERGING           = 0x00010000;
+const unsigned int FLAG_STUCK_AT_END      = 0x00020000;
+
+const unsigned int FLAG_LC_FAILED         = 0x000C0000;	// sum
+const unsigned int FLAG_LC_FAILED_LEAD    = 0x00040000;
+const unsigned int FLAG_LC_FAILED_LAG     = 0x00080000;
+
+const unsigned int FLAG_VMS_LANE_USE_BITS = 0x06F00000;	// sum
+const unsigned int FLAG_VMS_LANE_USE_DIR  = 0x06000000;	// sum
+const unsigned int FLAG_VMS_LANE_USE_RIGHT= 0x02000000;
+const unsigned int FLAG_VMS_LANE_USE_LEFT = 0x04000000;
+const unsigned int FLAG_VMS_LANE_USE_PIVOT= 0x00F00000;	// pivot index
+
+// These macros are used to get and set lane use pivot index
+
+#define VmsLaneUsePivotToIndex(p) (((p) & 0x000F0000) >> 16)
+#define VmsLaneUseIndexToPivot(n) ((n) << 16)
+
+const unsigned int FLAG_PROCESSED         = 0x10000000;
+const unsigned int FLAG_IN_HOME           = 0x20000000;
+const unsigned int FLAG_SHINE             = 0x40000000;	// for trace
+const unsigned int FLAG_DESIRED_SPEED     = 0x80000000; // assigned in trace
+
+// Tracking number of vehicles to yield
+
+const unsigned YIELD_TYPE_CONNECTION	= 0x10000000;
+const unsigned YIELD_TYPE_ESCAPE		= 0x20000000;
+const unsigned YIELD_COUNTER	        = 0x0000000F;
+const unsigned YIELD_REASON             = 0xF0000000;
+#define YieldSignatureToLaneIndex(c)	(((c) & 0x0FFFFFF0) >> 4)
+#define LaneIndexToYieldSignature(c)	(((c) & 0x0FFFFFF0) << 4)
 /*------------------------------------------------------------------------
  * When a variable has a value less than this value, it is treated
  * as zero.

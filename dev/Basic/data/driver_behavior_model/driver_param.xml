@@ -3,9 +3,9 @@
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
 <!-- This file contains the parameters used by SIMMOBILITY -->
 
-#car following model parameters
-
 <parameters model_name="general_driver_model">
+
+#car following model parameters
 
 <acceleration>
    <lead>

@@ -105,11 +105,18 @@ public:
 	// critical gap param
 	std::vector< std::vector<double> > LC_GAP_MODELS;
 	/**
-	 *  /brief make double matrix
+	 *  /brief make double matrix, store the matrix to LC_GAP_MODELS
 	 *  /strMatrix string matrix
 	 */
 	void makeCtriticalGapParam(std::vector< std::string >& strMatrix);
 
+	// choose target gap param
+	std::vector< std::vector<double> > GAP_PARAM;
+	/**
+	 *  /brief make double matrix, store the matrix to GAP_PARAM
+	 *  /strMatrix string matrix
+	 */
+	void makeTargetGapPram(std::vector< std::string >& strMatrix);
 };
 
 

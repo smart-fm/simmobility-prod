@@ -81,5 +81,11 @@
 <param name="LC_GAP_MODELS_5" value="0.60, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"/>
 <param name="LC_GAP_MODELS_6" value="0.20, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859"/>
 <param name="LC_GAP_MODELS_7" value="0.20, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"/>
+
+# chooseTargetGap() param
+#                               const	   dis2gap  gap-size  gap-vel   dummy  vn
+<param name="GAP_PARAM_0" value="-1.23, -0.482, 0.224, -0.0179, 2.10, 0.239"/>   #back
+<param name="GAP_PARAM_1" value="0.00,   0.00,  0.224, -0.0179, 2.10, 0.000"/>   #adj
+<param name="GAP_PARAM_2" value="-0.772, -0.482, 0.224, -0.0179, 2.10, 0.675"/>   #fwd
 </parameters>
 

@@ -87,12 +87,12 @@ namespace {
 //        {0.20, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073}
 //    }; //for test, forced merging
 
-    const double GAP_PARAM[][6] = {
-        //const	   dis2gap  gap-size  gap-vel   dummy  vn
-        {-1.23, -0.482, 0.224, -0.0179, 2.10, 0.239}, //back
-        {0.00, 0.00, 0.224, -0.0179, 2.10, 0.000}, //adj
-        {-0.772, -0.482, 0.224, -0.0179, 2.10, 0.675}
-    }; //fwd
+//    const double GAP_PARAM[][6] = {
+//        //const	   dis2gap  gap-size  gap-vel   dummy  vn
+//        {-1.23, -0.482, 0.224, -0.0179, 2.10, 0.239}, //back
+//        {0.00, 0.00, 0.224, -0.0179, 2.10, 0.000}, //adj
+//        {-0.772, -0.482, 0.224, -0.0179, 2.10, 0.675}
+//    }; //fwd
 
     //Helper struct
 
@@ -578,8 +578,16 @@ void sim_mob::MITSIM_LC_Model::initParam()
 	strArray.push_back(str);
 	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_7",str,string("0.20, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"));
 	strArray.push_back(str);
-
 	makeCtriticalGapParam(strArray);
+	// GAP_PARAM
+	strArray.clear();
+	ParameterManager::Instance()->param(modelName,"GAP_PARAM_0",str,string("-1.23, -0.482, 0.224, -0.0179, 2.10, 0.239"));
+	strArray.push_back(str);
+	ParameterManager::Instance()->param(modelName,"GAP_PARAM_1",str,string("0.00,   0.00,  0.224, -0.0179, 2.10, 0.000"));
+	strArray.push_back(str);
+	ParameterManager::Instance()->param(modelName,"GAP_PARAM_2",str,string("-0.772, -0.482, 0.224, -0.0179, 2.10, 0.675"));
+	strArray.push_back(str);
+	makeTargetGapPram(strArray);
 }
 void sim_mob::MITSIM_LC_Model::makeMCLParam(std::string& str)
 {
@@ -598,6 +606,15 @@ void sim_mob::MITSIM_LC_Model::makeCtriticalGapParam(std::vector< std::string >&
 		std::vector<double> array;
 		sim_mob::Utils::convertStringToArray(strMatrix[i],array);
 		LC_GAP_MODELS.push_back(array);
+	}
+}
+void sim_mob::MITSIM_LC_Model::makeTargetGapPram(std::vector< std::string >& strMatrix)
+{
+	for(int i=0;i<strMatrix.size();++i)
+	{
+		std::vector<double> array;
+		sim_mob::Utils::convertStringToArray(strMatrix[i],array);
+		GAP_PARAM.push_back(array);
 	}
 }
 /*

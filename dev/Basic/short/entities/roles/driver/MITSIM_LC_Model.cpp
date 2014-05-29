@@ -617,6 +617,10 @@ void sim_mob::MITSIM_LC_Model::makeTargetGapPram(std::vector< std::string >& str
 		GAP_PARAM.push_back(array);
 	}
 }
+LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision()
+{
+
+}
 /*
  * In MITSIMLab, vehicle change lane in 1 time step.
  * While in sim mobility, vehicle approach the target lane in limited speed.

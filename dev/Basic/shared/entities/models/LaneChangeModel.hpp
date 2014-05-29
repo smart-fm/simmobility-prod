@@ -91,6 +91,25 @@ public:
 	virtual void chooseTargetGap(sim_mob::DriverUpdateParams& p,std::vector<TARGET_GAP>& tg);
 
 public:
+	/**
+	 *--------------------------------------------------------------------
+	 * This is the lane changing model.
+	 *
+	 * This function sets bits 4-7 of the variable 'status'.
+	 *
+	 * The fourth and fifth bit indicate current lane change status,
+	 * and the bits should be masked by:
+	 *
+	 *  8=STATUS_RIGHT
+	 * 16=STATUS_LEFT
+	 * 24=STATUS_CHANGING
+	 *
+	 * This function is invoked when the countdown clock cfTimer is 0.
+	 * It returns a non-zero value if the vehicle needs a lane change,
+	 * and 0 otherwise.
+	 *--------------------------------------------------------------------
+	 **/
+	LANE_CHANGE_SIDE makeLaneChangingDecision();
 	/// model name in xml file tag "parameters"
 	string modelName;
 	// split delimiter in xml param file

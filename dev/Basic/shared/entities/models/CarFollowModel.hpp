@@ -6,7 +6,7 @@
 
 #include "conf/params/ParameterManager.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
-#include "entities/roles/driver/Driver.hpp"
+#include "../short/entities/roles/driver/Driver.hpp"
 #include "Constants.h"
 
 #include <string>

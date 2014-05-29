@@ -25,12 +25,11 @@ class PedestrianMovement;
 class Pedestrian: public sim_mob::Role {
 public:
 
-	explicit Pedestrian(Agent* parent, MutexStrategy mtxStrat,
+	explicit Pedestrian(Person* parent, MutexStrategy mtxStrat,
 			sim_mob::medium::PedestrianBehavior* behavior = nullptr,
 			sim_mob::medium::PedestrianMovement* movement = nullptr);
 
-	virtual ~Pedestrian() {
-	}
+	virtual ~Pedestrian();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 

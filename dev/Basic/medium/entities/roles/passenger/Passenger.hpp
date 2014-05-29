@@ -28,7 +28,7 @@ class Driver;
 class Passenger: public sim_mob::Role {
 public:
 
-	explicit Passenger(Agent* parent, MutexStrategy mtxStrat,
+	explicit Passenger(Person* parent, MutexStrategy mtxStrat,
 			sim_mob::medium::PassengerBehavior* behavior = nullptr,
 			sim_mob::medium::PassengerMovement* movement = nullptr);
 
@@ -45,9 +45,6 @@ public:
 		throw std::runtime_error(
 				"getSubscriptionParams not implemented in Passenger.");
 	}
-
-	void setDecision(Decision decision);
-	Decision getDecision();
 
 	void setDriver(const Driver* driver);
 	const Driver* getDriver() const;
@@ -66,6 +63,13 @@ public:
 	virtual void HandleParentMessage(messaging::Message::MessageType type,
 			const messaging::Message& message);
 
+	bool canAlightBus() const {
+		return alightBus;
+	}
+
+	void setAlightBus(bool alightBus) {
+		this->alightBus = alightBus;
+	}
 
 private:
 	friend class PassengerBehavior;
@@ -74,8 +78,8 @@ private:
 	/** Driver who is driving the vehicle of this passenger*/
 	const Driver* driver;
 
-	/**decision result*/
-	Decision decision;
+	/**flag to indicate whether the passenger has decided to alight the bus*/
+	bool alightBus;
 };
 
 }

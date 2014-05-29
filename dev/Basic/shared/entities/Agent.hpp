@@ -308,7 +308,7 @@ private:
 	///Should this agent call frame_init()?
 	///NOTE: This only applies to the Agent; a Person, for example, may call frame_init()
 	///      on its Roles from its own frame_tick() method.
-	bool call_frame_init;
+	bool initialized;
 
     //Unknown until runtime
     std::map<std::string, std::string> configProperties;
@@ -334,12 +334,12 @@ public:
 	int getOwnRandomNumber();
 
 
-	bool isCallFrameInit() const {
-		return call_frame_init;
+	bool isInitialized() const {
+		return initialized;
 	}
 
-	void setCallFrameInit(bool callFrameInit) {
-		call_frame_init = callFrameInit;
+	void setInitialized(bool init) {
+		initialized = init;
 	}
 
 	long getLastUpdatedFrame();

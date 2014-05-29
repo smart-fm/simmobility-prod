@@ -1369,13 +1369,11 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 		threadPool->assignWork(work);
 		workPool.push_back(work);
 	}
-
-	if(serialPathSetGroup){
-		while(threadPool->incompleteWork > 0)
-		{
-			//		std::cout<<"incompleteWork: "<<threadPool->incompleteWork<<std::endl;
-			usleep(0.01);
-		}
+	//this MUST wait
+	while(threadPool->incompleteWork > 0)
+	{
+		//		std::cout<<"incompleteWork: "<<threadPool->incompleteWork<<std::endl;
+		usleep(0.01);
 	}
 	randomPath_Profiler.addToTotalTime(randomPath_Profiler.endProfiling());
 	//now that all the threads have concluded, get the total times

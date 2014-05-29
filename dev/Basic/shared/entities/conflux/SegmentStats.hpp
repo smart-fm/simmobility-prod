@@ -110,14 +110,26 @@ public:
  */
 class LaneStats {
 private:
+	//typedefs
 	typedef std::deque<sim_mob::Person*> PersonList;
+	/**number of persons queueing in lane*/
 	unsigned int queueCount;
-	unsigned int initialQueueCount;
+	/**number of queuing persons at the start of the current tick*/
+	unsigned int initialQueueLength;
+	/**position of the last updated person in lane*/
 	double positionOfLastUpdatedAgent;
+	/**geospatial lane corresponding to this lane stats*/
 	const sim_mob::Lane* lane;
+	/**virtual lane to hold newly starting persons*/
 	const bool laneInfinity;
+	/**length of the lane (corresponds to length of segment stats of this lane stats)*/
 	double length;
+	/**counter to track number of persons in this lane*/
 	unsigned int numPersons;
+	/**tracks the queuing length of this segment*/
+	double queueLength;
+	/**tracks the moving length of this segment*/
+	double totalLength;
 
 	/*
 	 * laneAgentsCopy is a copy of laneAgents taken at the start of each tick
@@ -132,9 +144,10 @@ public:
 	PersonList laneAgents;
 
 	LaneStats(const sim_mob::Lane* laneInSegment, double length, bool isLaneInfinity = false) :
-		queueCount(0), initialQueueCount(0), laneParams(new LaneParams()),
+		queueCount(0), initialQueueLength(0), laneParams(new LaneParams()),
 		positionOfLastUpdatedAgent(-1.0), lane(laneInSegment), length(length),
-		laneInfinity(isLaneInfinity), numPersons(0) {}
+		laneInfinity(isLaneInfinity), numPersons(0), queueLength(0),
+		totalLength(0) {}
 	~LaneStats() {
 		safe_delete_item(laneParams);
 	}
@@ -225,12 +238,16 @@ public:
 	 */
 	void verifyOrdering();
 
-	unsigned int getInitialQueueCount() const {
-		return initialQueueCount;
+	double getTotalVehicleLength() const;
+	double getQueueLength() const;
+	double getMovingLength() const;
+
+	unsigned int getInitialQueueLength() const {
+		return initialQueueLength;
 	}
 
-	void setInitialQueueCount(unsigned int initialQueueCount) {
-		this->initialQueueCount = initialQueueCount;
+	void setInitialQueueLength(unsigned int initialQueueLength) {
+		this->initialQueueLength = initialQueueLength;
 	}
 
 	double getPositionOfLastUpdatedAgent() const {
@@ -257,6 +274,7 @@ public:
 		return numPersons;
 	}
 
+	/**parameters for this lane*/
 	LaneParams* laneParams;
 };
 
@@ -271,28 +289,80 @@ class SegmentStats {
 	friend class sim_mob::aimsun::Loader;
 
 protected:
+	//typedefs
 	typedef std::deque<sim_mob::Person*> PersonList;
 	typedef std::map<const sim_mob::Lane*, sim_mob::LaneStats* > LaneStatsMap;
 	typedef std::vector<const sim_mob::BusStop*> BusStopList;
 	typedef std::vector<sim_mob::Agent*> AgentList;
+	typedef std::map<const sim_mob::BusStop*, PersonList> StopBusDriversMap;
+
+	/**road segment which contains this SegmentStats*/
 	const sim_mob::RoadSegment* roadSegment;
+	/**
+	 * List of bus stops in this SegmentStats. One SegmentStats can have
+	 * multiple stops. This design allows us to handle the case where there are
+	 * different bus stops located close to each other. Allowing multiple stops
+	 * eliminates the need for splitting the segment into very short segments.
+	 */
 	BusStopList busStops;
-	uint8_t positionInRoadSegment; //segment can have multiple segment stats. This gives the position of this SegmentStats in segment.
+
+	/**BusStopAgents for bus stops in this segment stats*/
+	AgentList busStopAgents;
+
+	/**stop wise list of bus drivers currently serving the stop*/
+	StopBusDriversMap busDrivers;
+
+	/**
+	 * A segment can have multiple segment stats. This gives the position of this
+	 * SegmentStats in segment.
+	 */
+	uint16_t statsNumberInSegment;
+
+	/**
+	 * Map containing LaneStats for every lane of the segment.
+	 * This map includes lane infinity.
+	 */
 	LaneStatsMap laneStatsMap;
+
+	/**
+	 * outermost lane in this segment stats.
+	 * This is a proper lane in the segment which is chosen by buses, taxis and
+	 * other vehicles (before moving into the virtual stopping lane) when they
+	 * have to stop in this segment stats.
+	 */
+	const Lane* outermostLane;
+
+	/**
+	 * A map which stores the unprocessed person who is closest to the end of
+	 * this SegmentStats for each lane in the seg stats. This is used for
+	 * selecting the next person to update.
+	 * TODO: remove this, if TopCMerge seems to work perfectly well.
+	 */
 	std::map<const sim_mob::Lane*, sim_mob::Person* > frontalAgents;
-	AgentList  busStopAgents;
+
+	/**length of this SegmentStats in cm*/
 	double length;
-
-	double segVehicleSpeed; //speed of vehicles in segment for each frame
-	double segPedSpeed; //speed of pedestrians on this segment for each frame--not used at the moment
+	/**speed of vehicles in segment for each frame in cm/s*/
+	double segVehicleSpeed;
+	/**speed of pedestrians on this segment for each frame in cm/s --not used at the moment*/
+	double segPedSpeed;
+	/**vehicle density of this segment stats in PCU/cm*/
 	double segDensity;
-	double lastAcceptTime;
+	/**number of lanes in this SegmentStats which is meant for vehicles*/
 	int numVehicleLanes;
+	/**
+	 * counter which stores the number of vehicles which crossed the mid-point
+	 * of this segment stats in every tick
+	 */
 	unsigned int segFlow;
+	/**
+	 * counter which tracks the number of Persons currently on this SegmentStats
+	 */
 	unsigned int numPersons;
-
+	/**
+	 * structure to store parameters pertinent to supply
+	 */
 	sim_mob::SupplyParams supplyParams;
-
 	/**
 	 * adds a bus stop to the list of stops
 	 * @param stop bus stop to be added
@@ -326,15 +396,23 @@ public:
 		return numPersons;
 	}
 
-	uint8_t getPositionInRoadSegment() const {
-		return positionInRoadSegment;
+	size_t getNumStops() const {
+		return busStops.size();
+	}
+
+	uint16_t getStatsNumberInSegment() const {
+		return statsNumberInSegment;
+	}
+
+	const Lane* getOutermostLane() const {
+		return outermostLane;
 	}
 
 	double getSegSpeed(bool hasVehicle) const;
 	unsigned int getSegFlow();
 	void incrementSegFlow();
 	void resetSegFlow();
-	unsigned int getInitialQueueCount(const Lane* lane) const;
+	unsigned int getInitialQueueLength(const Lane* lane) const;
 
 	/**
 	 * adds person to lane in segment
@@ -348,6 +426,25 @@ public:
 	 * @param busStopAgent is a pointer to a bus stop agent
 	 */
 	void addBusStopAgent(sim_mob::Agent* busStopAgent);
+
+	/**
+	 * Initializes all the bus stops in this segment stats.
+	 * The bus stop agents corresponding to the stops in this segment stats are
+	 * registered with the message bus in this function.
+	 */
+	void initializeBusStops();
+
+	/**
+	 * add bus driver to stop
+	 * @param driver the bus driver to be added
+	 */
+	void addBusDriverToStop(sim_mob::Person* driver, const sim_mob::BusStop* stop);
+
+	/**
+	 * remove bus driver from stop
+	 * @param driver the bus driver to be removed
+	 */
+	void removeBusDriverFromStop(sim_mob::Person* driver, const sim_mob::BusStop* stop);
 
 	/**
 	 * removes person from lane
@@ -380,11 +477,6 @@ public:
 	std::vector<const sim_mob::BusStop*>& getBusStops();
 
 	/**
-	 * update bus stop agent so as to perform further tasks
-	 */
-	void updateBusStopAgents(timeslice now);
-
-	/**
 	 * get a list of all persons in the segment stats
 	 * @return list of all persons in the segment stats
 	 */
@@ -409,6 +501,48 @@ public:
 	 * @return std::pair<queuingCount, movingCount>
 	 */
 	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane) const;
+
+	/**
+	 * gets the queue length of lane
+	 * @param lane the lane for which queue length is requested
+	 * @returns queue length of lane
+	 */
+	double getLaneQueueLength(const sim_mob::Lane* lane) const;
+
+	/**
+	 * gets the moving length of lane
+	 * @param lane the lane for which moving length is requested
+	 * @returns moving length of lane
+	 */
+	double getLaneMovingLength(const sim_mob::Lane* lane) const;
+
+	/**
+	 * Returns the total length of vehicles in lane.
+	 * @param lane the lane for which moving length is requested
+	 * @returns total length of vehicles in lane
+	 */
+	double getLaneTotalVehicleLength(const sim_mob::Lane* lane) const;
+
+	/**
+	 * Returns the sum of queuing lengths of all lanes in this seg stats.
+	 * This function considers only vehicle lanes
+	 * @returns total queuing length of this seg stats
+	 */
+	double getQueueLength() const;
+
+	/**
+	 * Returns the sum of moving lengths of all lanes in this seg stats
+	 * This function considers only vehicle lanes
+	 * @returns total moving length of this seg stats
+	 */
+	double getMovingLength() const;
+
+	/**
+	 * Returns the sum of lengths of vehicles in all lanes in this seg stats
+	 * This function considers only vehicle lanes
+	 * @return total length of vehicles in this seg stats
+	 */
+	double getTotalVehicleLength() const;
 
 	/**
 	 * returns the number of persons in lane
@@ -439,7 +573,15 @@ public:
 	 * checks if the segment stats has persons
 	 * @return true if numPersons > 0; false otherwise
 	 */
-	bool hasAgents() const;
+	bool hasPersons() const;
+
+	/**
+	 * checks if this Segment stats contains busStop in it
+	 * @param busStop the stop to find
+	 * @returns true if this segstats cotains busStop in its busStops list;
+	 * 			false otherwise
+	 */
+	bool hasBusStop(const sim_mob::BusStop* busStop) const;
 
 	/**
 	 * returns the number of agents moving in segment
@@ -530,7 +672,12 @@ public:
 	/**
 	 * prints all agents in this segment
 	 */
-	void printAgents();
+	void printAgents() const;
+
+	/**
+	 * prints all stops in this segment stats
+	 */
+	void printBusStops() const;
 
 	/**
 	 * laneInfinity is an augmented lane in the roadSegment. laneInfinity will be used only by confluxes and related objects for now.

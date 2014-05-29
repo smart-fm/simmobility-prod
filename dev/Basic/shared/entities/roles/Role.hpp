@@ -11,7 +11,7 @@
 #include <boost/random.hpp>
 
 #include "util/LangHelpers.hpp"
-#include "entities/Agent.hpp"
+#include "entities/Person.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
 #include "entities/UpdateParams.hpp"
 #include "workers/Worker.hpp"
@@ -87,14 +87,24 @@ public:
 
 public:
 	//NOTE: Don't forget to call this from sub-classes!
-	explicit Role(sim_mob::Agent* parent = nullptr, std::string roleName = std::string(), Role::type roleType_ = RL_UNKNOWN) :
-		parent(parent), currResource(nullptr), name(roleName), roleType(roleType_), dynamic_seed(0)
+	explicit Role(sim_mob::Person* parent = nullptr,
+			std::string roleName = std::string(),
+			Role::type roleType_ = RL_UNKNOWN) :
+		parent(parent), currResource(nullptr), name(roleName),
+		roleType(roleType_), behaviorFacet(nullptr), movementFacet(nullptr),
+		dynamic_seed(0)
 	{
 		//todo consider putting a runtime error for empty or zero length rolename
 	}
 
-	explicit Role(sim_mob::BehaviorFacet* behavior = nullptr, sim_mob::MovementFacet* movement = nullptr, sim_mob::Agent* parent = nullptr, std::string roleName = std::string(), Role::type roleType_ = RL_UNKNOWN) :
-		parent(parent), currResource(nullptr),name(roleName), roleType(roleType_), behaviorFacet(behavior), movementFacet(movement), dynamic_seed(0)
+	explicit Role(sim_mob::BehaviorFacet* behavior = nullptr,
+			sim_mob::MovementFacet* movement = nullptr,
+			sim_mob::Person* parent = nullptr,
+			std::string roleName = std::string(),
+			Role::type roleType_ = RL_UNKNOWN) :
+		parent(parent), currResource(nullptr),name(roleName),
+		roleType(roleType_), behaviorFacet(behavior), movementFacet(movement),
+		dynamic_seed(0)
 	{
 		//todo consider putting a runtime error for empty or zero length rolename
 	}
@@ -136,16 +146,14 @@ public:
 		return sim_mob::DriverRequestParams();
 	}
 
-	VehicleBase* getResource() { return currResource; }
+	VehicleBase* getResource() const { return currResource; }
 	void setResource(VehicleBase* currResource) { this->currResource = currResource; }
 
-	Agent* getParent()
-	{
+	Person* getParent() {
 		return parent;
 	}
 
-	void setParent(Agent* parent)
-	{
+	void setParent(Person* parent) {
 		this->parent = parent;
 	}
 
@@ -190,7 +198,7 @@ public:
 	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted) {}
 
 protected:
-	Agent* parent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
+	Person* parent;
 
 	VehicleBase* currResource; ///<Roles may hold "resources" for the current task. Expand later into multiple types.
 

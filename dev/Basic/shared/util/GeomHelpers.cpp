@@ -598,3 +598,9 @@ sim_mob::DPoint sim_mob::get_distarg(const sim_mob::Agent& item)
 	return sim_mob::DPoint(item.xPos.get(), item.yPos.get());
 }
 
+template <>
+sim_mob::DPoint sim_mob::get_distarg(const sim_mob::Person& item)
+{
+	return sim_mob::DPoint(item.xPos.get(), item.yPos.get());
+}
+

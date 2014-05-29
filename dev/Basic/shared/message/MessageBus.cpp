@@ -499,13 +499,33 @@ void MessageBus::SendInstantaneousMessage(MessageHandler* destination,
 	CheckThreadContext();
 	ThreadContext* context = GetThreadContext();
 	if (context) {
+		Print() << "destination->context: " << destination->context << std::endl;
+		Print() << "current context: " << context << std::endl;
 		if (destination && destination->context == context) {
 			destination->HandleMessage(type, *(message.get()));
 			context->receivedMessages++;
 			context->processedMessages++;
 		}
 		else {
-			throw std::runtime_error("SendInstantaneousMessage() is called for sending messages outside thread context");
+			throw std::runtime_error("SendInstantaneousMessage() cannot send messages outside thread context");
+		}
+	}
+}
+
+void sim_mob::messaging::MessageBus::SendMessage(MessageHandler* destination,
+		Message::MessageType type, MessagePtr message, bool processOnMainThread)
+{
+	CheckThreadContext();
+	ThreadContext* context = GetThreadContext();
+	if (context)
+	{
+		if (destination && destination->context == context)
+		{
+			SendInstantaneousMessage(destination, type, message);
+		}
+		else
+		{
+			PostMessage(destination, type, message, processOnMainThread);
 		}
 	}
 }
@@ -686,3 +706,4 @@ namespace {
         PrintOut(endl);
     }
 }
+

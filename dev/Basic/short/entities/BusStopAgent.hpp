@@ -55,10 +55,10 @@ public:
 	///Place all BusStopAgents on to the all_agents list. This does *not* add them to Worker threads
 	static void PlaceAllBusStopAgents(std::vector<sim_mob::Entity*>& agents_list);
 
-	//find one BusStopAgent by BusStop
+	///find one BusStopAgent by BusStop
 	static BusStopAgent* findBusStopAgentByBusStop(const BusStop* busstop);
 
-	//find one BusStopAgent by busstop_
+	///find one BusStopAgent by busstop_
 	static BusStopAgent* findBusStopAgentByBusStopNo(const std::string& busstopno);
 
 	///get the basic BusStop

@@ -220,7 +220,7 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 	//This allows them to override the start_time if it seems appropriate (e.g., if they
 	// are swapping trip chains). If frame_init() returns false, immediately exit.
 	bool calledFrameInit = false;
-	if (initialized) {
+	if (!initialized) {
 		//Call frame_init() and exit early if requested to.
 		if (!frame_init(now)) {
 			return UpdateStatus::Done;

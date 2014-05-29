@@ -230,15 +230,17 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	{
 		//send bus arrival message
 		BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(nextStop);
-		if(stopAg) {
+		if(stopAg)
+		{
+			Print() << "Bus driver wroker: " << parent->currWorkerProvider
+					<< "|bus stop agent worker: " << currSegStat->getRoadSegment()->getParentConflux()->currWorkerProvider
+					<< std::endl;
 			if(stopAg->canAccommodate(parentBusDriver->getResource()->getLengthCm()))
 			{
 				if(isQueuing)
 				{
 					removeFromQueue();
 				}
-				messaging::MessageBus::SendInstantaneousMessage(stopAg, BUS_ARRIVAL,
-						messaging::MessageBus::MessagePtr(new BusDriverMessage(getParentBusDriver())));
 				parentBusDriver->openBusDoors(stopAg);
 			}
 			else
@@ -255,7 +257,8 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				getParent()->setRemainingTimeThisTick(0.0);
 			}
 		}
-		else {
+		else
+		{
 			std::stringstream errorStrm;
 			errorStrm << "BusStopAgent not found for stop: " << nextStop->getBusstopno_()
 					<< "|SegmentStats: " << currSegStat
@@ -268,7 +271,6 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	}
 	else
 	{
-		Print() << "currSegStat does not contain the next stop" << std::endl;
 		return DriverMovement::moveToNextSegment(params);
 	}
 }

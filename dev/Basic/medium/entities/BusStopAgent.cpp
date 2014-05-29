@@ -66,17 +66,13 @@ const BusStop* BusStopAgent::getBusStop() const{
 
 void BusStopAgent::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message) {
 	switch (type) {
-	case BOARD_BUS: {
-		const BusDriverMessage& msg = MSG_CAST(BusDriverMessage, message);
-		boardWaitingPersons(msg.busDriver);
-		break;
-	}
 	case BUS_ARRIVAL: {
 		const BusDriverMessage& msg = MSG_CAST(BusDriverMessage, message);
 		bool busDriverAccepted = acceptBusDriver(msg.busDriver);
 		if(!busDriverAccepted) {
 			throw std::runtime_error("BusDriver could not be accepted by the bus stop");
 		}
+		boardWaitingPersons(msg.busDriver);
 		break;
 	}
 	case BUS_DEPARTURE: {
@@ -93,8 +89,23 @@ void BusStopAgent::HandleMessage(messaging::Message::MessageType type, const mes
 	}
 }
 
+bool BusStopAgent::handleBusArrival(BusDriver* busDriver)
+{
+	if(busDriver && acceptBusDriver(busDriver))
+	{
+		boardWaitingPersons(busDriver);
+		return true;
+	}
+	return false;
+}
+
+bool BusStopAgent::handleBusDeparture(BusDriver* busDriver)
+{
+	return removeBusDriver(busDriver);
+}
+
 void BusStopAgent::boardWaitingPersons(BusDriver* busDriver) {
-	int numBoarding = 0;
+	unsigned int numBoarding = 0;
 	std::list<WaitBusActivity*>::iterator itPerson;
 	for (itPerson = waitingPersons.begin(); itPerson != waitingPersons.end();
 			itPerson++) {
@@ -148,7 +159,7 @@ bool BusStopAgent::canAccommodate(const double vehicleLength) {
 	return (availableLength >= vehicleLength);
 }
 
-int BusStopAgent::getBoardingNum(BusDriver* busDriver) const {
+unsigned int BusStopAgent::getBoardingNum(BusDriver* busDriver) const {
 	try {
 		return lastBoardingRecorder.at(busDriver);
 	}

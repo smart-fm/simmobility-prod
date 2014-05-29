@@ -573,7 +573,7 @@ public:
 	 * checks if the segment stats has persons
 	 * @return true if numPersons > 0; false otherwise
 	 */
-	bool hasAgents() const;
+	bool hasPersons() const;
 
 	/**
 	 * checks if this Segment stats contains busStop in it

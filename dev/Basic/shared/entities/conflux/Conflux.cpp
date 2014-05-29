@@ -82,7 +82,7 @@ sim_mob::Conflux::PersonProps::PersonProps(const sim_mob::Person* person) {
 void sim_mob::Conflux::addAgent(sim_mob::Person* person, const sim_mob::RoadSegment* rdSeg) {
 	/*
 	 * Persons start at a node (for now).
-	 * we will always add the Person to the road segment in "lane infinity".
+	 * we will always add the Person to the corresponding segment stats in "lane infinity".
 	 */
 	SegmentStatsList& statsList = segmentAgents.find(rdSeg)->second;
 	sim_mob::SegmentStats* rdSegStats = statsList.front(); // we will start the person at the first segment stats of the segment
@@ -96,12 +96,10 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* person, const sim_mob::RoadSegm
 bool sim_mob::Conflux::frame_init(timeslice now)
 {
 	messaging::MessageBus::RegisterHandler(this);
-	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin();
-				upstreamIt != upstreamSegStatsMap.end(); upstreamIt++)
+	for(UpstreamSegmentStatsMap::iterator upstreamIt=upstreamSegStatsMap.begin(); upstreamIt!=upstreamSegStatsMap.end(); upstreamIt++)
 	{
 		const SegmentStatsList& linkSegments = upstreamIt->second;
-		for(SegmentStatsList::const_iterator segIt = linkSegments.begin();
-				segIt != linkSegments.end(); segIt++)
+		for(SegmentStatsList::const_iterator segIt=linkSegments.begin(); segIt!=linkSegments.end(); segIt++)
 		{
 			(*segIt)->initializeBusStops();
 		}

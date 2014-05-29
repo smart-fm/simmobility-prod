@@ -100,7 +100,7 @@ private:
 	 * @param bus stop agent is the agent which wrap bus stop and waiting people
 	 * @return the number of alighting people
 	 */
-	int alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent);
+	unsigned int alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent);
 
 	/**
 	 * triggers boarding and alighting at a bus stop

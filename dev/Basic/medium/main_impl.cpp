@@ -78,6 +78,9 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 
 /**
  * Main simulation loop for the supply simulator
+ * @param configFileName name of the input config xml file
+ * @param resLogFiles name of the output log file
+ * @return true if the function finishes execution normally
  */
 bool performMainSupply(const std::string& configFileName, std::list<std::string>& resLogFiles)
 {

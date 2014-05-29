@@ -76,13 +76,11 @@ sim_mob::DriverRequestParams sim_mob::medium::BusDriver::getDriverRequestParams(
 	return res;
 }
 
-int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent){
-	int numAlighting = 0;
+unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent){
+	unsigned int numAlighting = 0;
 	std::list<sim_mob::medium::Passenger*>::iterator itPassenger = passengerList.begin();
 	while (itPassenger != passengerList.end()) {
-
-		messaging::MessageBus::SendInstantaneousMessage((*itPassenger)->getParent(),
-				ALIGHT_BUS,
+		messaging::MessageBus::SendInstantaneousMessage((*itPassenger)->getParent(), ALIGHT_BUS,
 				messaging::MessageBus::MessagePtr(new BusStopMessage(busStopAgent->getBusStop())));
 
 		if ((*itPassenger)->canAlightBus()) {
@@ -116,15 +114,29 @@ void sim_mob::medium::BusDriver::predictArrivalAtBusStop(double preArrivalTime,
 	}
 }
 
-void sim_mob::medium::BusDriver::openBusDoors(
-		sim_mob::medium::BusStopAgent* busStopAgent) {
-	messaging::MessageBus::SendInstantaneousMessage(busStopAgent, BOARD_BUS,
-			messaging::MessageBus::MessagePtr(new BusDriverMessage(this)));
+void sim_mob::medium::BusDriver::openBusDoors(sim_mob::medium::BusStopAgent* busStopAgent) {
+	if(!busStopAgent)
+	{
+		throw std::runtime_error("openBusDoors(): NusStopAgent is NULL");
+	}
 
-	int numAlighting = alightPassenger(busStopAgent);
-	int numBoarding = busStopAgent->getBoardingNum(this);
+	/* handling bus arrival should ideally take place by sending an instantaneous
+	 * message, but it is not guaranteed that the bus driver and the bus stop agent
+	 * will be in the same thread context. If the bus driver happens to be in the
+	 * virtual queue, he would be processed from the main thread while the bus stop
+	 * agent's thread context will point to the thread corresponding to the worker of
+	 * its conflux. We therefore call the handleBusArrival() function directly.
+	 * This is thread safe because if the bus driver is processed from the workers,
+	 * all bus drivers who will call this function will be in the same worker (thread context)
+	 * and hence no race condition will occur. If the bus driver is processed from the
+	 * main thread, exactly one bus driver can be processed at a time and no other
+	 * agent in the simulation will be updating at the same time.
+	 */
+	busStopAgent->handleBusArrival(this);
+	unsigned int numAlighting = alightPassenger(busStopAgent);
+	unsigned int numBoarding = busStopAgent->getBoardingNum(this);
 
-	int totalNumber = numAlighting + numBoarding;
+	unsigned int totalNumber = numAlighting + numBoarding;
 	waitingTimeAtbusStop = sim_mob::dwellTimeCalculation(totalNumber);
 
 	if (requestMode.get() == Role::REQUEST_DECISION_TIME) {
@@ -136,10 +148,25 @@ void sim_mob::medium::BusDriver::openBusDoors(
 	currResource->setMoving(false);
 }
 
-void sim_mob::medium::BusDriver::closeBusDoors(
-		sim_mob::medium::BusStopAgent* busStopAgent) {
-	messaging::MessageBus::SendInstantaneousMessage(busStopAgent, BUS_DEPARTURE,
-			messaging::MessageBus::MessagePtr(new BusDriverMessage(this)));
+void sim_mob::medium::BusDriver::closeBusDoors(sim_mob::medium::BusStopAgent* busStopAgent) {
+	if(!busStopAgent)
+	{
+		throw std::runtime_error("openBusDoors(): NusStopAgent is NULL");
+	}
+
+	/* handling bus departure should ideally take place by sending an instantaneous
+	 * message, but it is not guaranteed that the bus driver and the bus stop agent
+	 * will be in the same thread context. If the bus driver happens to be in a
+	 * virtual queue, he would be processed from the main thread while the bus stop
+	 * agent's thread context will point to the thread corresponding to the worker of
+	 * its conflux. We therefore call the handleBusDeparture() function directly.
+	 * This is thread safe because if the bus driver is processed from the workers,
+	 * all bus drivers who will call this function will be in the same worker (thread context)
+	 * and hence no race condition will occur. If the bus driver is processed from the
+	 * main thread, exactly one bus driver can be processed at a time and no other
+	 * agent in the simulation will be updating at the same time.
+	 */
+	busStopAgent->handleBusDeparture(this);
 	currResource->setMoving(true);
 }
 

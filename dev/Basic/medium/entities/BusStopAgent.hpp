@@ -60,7 +60,7 @@ public:
 	 * @param Bus Driver is the associate driver which waiting people will board
 	 * @returns number of boarding people
 	 */
-	int getBoardingNum(sim_mob::medium::BusDriver* busDriver) const;
+	unsigned int getBoardingNum(sim_mob::medium::BusDriver* busDriver) const;
 
 	/**
 	 * finds the BusStopAgent corresponding to a bus stop.
@@ -80,6 +80,20 @@ public:
 	 * @returns true if vehicle can be accommodated; false otherwise
 	 */
 	bool canAccommodate(const double vehicleLength);
+
+	/**
+	 * accepts the incoming bus driver and co-ordinates the boarding activity
+	 * @param busDriver the driver of the arriving bus
+	 * @return true if bus driver is accepted. false otherwise.
+	 */
+	bool handleBusArrival(BusDriver* busDriver);
+
+	/**
+	 * removes bus driver from the local servingDrivers list
+	 * @param busDriver the driver of the departing bus
+	 * @return true if busDriver was removed correctly; false otherwise.
+	 */
+	bool handleBusDeparture(BusDriver* busDriver);
 
 protected:
 	//Virtual overrides
@@ -135,7 +149,7 @@ private:
 	/**segment stats containing this bus stop*/
 	SegmentStats* parentSegmentStats;
 	/**record last boarding number for a given bus*/
-	std::map<sim_mob::medium::BusDriver*, int> lastBoardingRecorder;
+	std::map<sim_mob::medium::BusDriver*, unsigned int> lastBoardingRecorder;
 	/**available length in cm for incoming vehicles*/
 	double availableLength;
 

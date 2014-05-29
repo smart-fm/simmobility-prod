@@ -34,6 +34,10 @@ Role* sim_mob::medium::Passenger::clone(Person* parent) const {
 	return passenger;
 }
 
+std::vector<BufferedBase*> sim_mob::medium::Passenger::getSubscriptionParams() {
+	return vector<BufferedBase*>();
+}
+
 void sim_mob::medium::Passenger::setDriver(const Driver* driver) {
 	this->driver = driver;
 }

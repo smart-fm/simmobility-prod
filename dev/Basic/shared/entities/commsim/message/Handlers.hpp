@@ -40,12 +40,14 @@ private:
 ///A handler that does nothing.
 class NullHandler : public Handler {
 	virtual ~NullHandler() {}
+	///Called by the Broker when a message of this type is encountered to handle it.
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const {}
 };
 
 ///A handler that throws an exception
 class ObsoleteHandler : public Handler {
 	virtual ~ObsoleteHandler() {}
+	///Called by the Broker when a message of this type is encountered to handle it.
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const {
 		throw std::runtime_error("MULTICAST/UNICAST messages are obsolete (or, encountered another obsolete message type). Use OPAQUE_SEND and OPAQUE_RECEIVE instead.");
 	}
@@ -54,6 +56,7 @@ class ObsoleteHandler : public Handler {
 ///A handler that informs us the Broker has made a mistake.
 class BrokerErrorHandler : public Handler {
 	virtual ~BrokerErrorHandler() {}
+	///Called by the Broker when a message of this type is encountered to handle it.
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const {
 		throw std::runtime_error("ERROR: Broker-specific message was passed on to the Handlers array (these messages must not be pended).");
 	}

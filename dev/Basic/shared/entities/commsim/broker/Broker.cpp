@@ -735,9 +735,7 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 		//Getting the string is easy:
 		BundleHeader header;
 		std::string message;
-		if (!CommsimSerializer::serialize_end(it->second, header, message)) {
-			throw std::runtime_error("Broker: Could not finalize serialization.");
-		}
+		CommsimSerializer::serialize_end(it->second, header, message);
 
 		//Forward to the given client.
 		//TODO: We can add per-client routing here.

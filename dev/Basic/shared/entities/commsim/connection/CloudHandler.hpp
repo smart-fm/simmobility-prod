@@ -47,6 +47,8 @@ protected:
 public:
 	/**
 	 * Write several lines of data to the cloud server and then read a response. This is a synchronous operation.
+	 * \param outgoing The lines to be sent to the cloud.
+	 * \returns The lines that were received from the server after the outgoing array was written.
 	 */
 	std::vector<std::string> writeLinesReadLines(const std::vector<std::string>& outgoing);
 

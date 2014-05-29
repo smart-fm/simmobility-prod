@@ -35,11 +35,15 @@ public:
 	ConnectionServer(BrokerBase& broker, unsigned short port = DEFAULT_SERVER_PORT);
 	~ConnectionServer();
 
-	//Starts the server's accept() loop.
+	///Starts the server's accept() loop.
+	///\param numThreads The number of threads to assign to the accept() loop.
 	void start(unsigned int numThreads);
 
-	//Specifically request a connection to the cloud. This will be handled asynchronously.
-	//Returns the CloudHandler; NOTE that you cannot use this until handle_cloud_connect() informs you it is ready.
+	///Specifically request a connection to the cloud. This will be handled asynchronously.
+	///Returns the CloudHandler; NOTE that you cannot use this until handle_cloud_connect() informs you it is ready.
+	///\param host The host address of this cloud server (e.g., 127.0.0.1).
+	///\param port The port to connect on (e.g., 50000)
+	///\returns A CloudHandler representing this connection.
 	boost::shared_ptr<CloudHandler> connectToCloud(const std::string& host, int port);
 
 private:

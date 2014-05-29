@@ -38,25 +38,30 @@ protected:
 	ConnectionHandler(boost::asio::io_service& io_service, BrokerBase& broker);
 
 public:
-
-	///Retrieve the type of ClientHandlers that can multiplex on this connection. If empty, any ClientHandler is allowed.
-	///If non-empty, only matching types can be multiplexed.
+	///Retrieve the type of ClientHandlers that can multiplex on this connection.
 	///NOTE: Clients with the same type are interchangeable; any "new_client" request will dispatch to an *arbitrary*
 	///      type upon receiving an "id_request". Current types are "android" and "ns-3".
+	///\returns the type supported by this ConnectionHandler. If empty, any ClientHandler is allowed.
+	///         If non-empty, only matching types can be multiplexed.
 	std::string getSupportedType() const;
 
 	///Set the ClientHandler type supported by this ConnectionHandler. (NOTE: The first "id_response" message sets this, currently.)
+	///\param type The type of ClientHandler that can multiplex on this connection.
 	void setSupportedType(const std::string& type);
 
 	///Retrieve this ConnectionHandler's token, which is used to uniquely identify this ConnectionHandler.
 	///  This is used to properly match the "id_response" to the "id_request" sent for it.
-	///NOTE: Currently, this is just the address of the ConnectionHandler, in string form (e.g., 0xEF0609...).
+	///\returns The identifying token for this ConnecitonHandler.
+	///         NOTE: Currently, this is just the address of the ConnectionHandler, in string form (e.g., 0xEF0609...).
 	std::string getToken() const;
 
 	///Post a message on this connection. (Does not require locking).
+	///\param head The BundleHeader for this message.
+	///\param data The (serialized) data string for this message.
 	void postMessage(const BundleHeader& head, const std::string& str);
 
 	///Check if this connection is valid and open.
+	///\returns true if this connection is in a usable state.
 	bool isValid() const;
 
 	///Invalidate the connection (set valid to false).

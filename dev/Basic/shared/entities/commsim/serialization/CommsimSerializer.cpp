@@ -135,13 +135,17 @@ void sim_mob::CommsimSerializer::serialize_begin(OngoingSerialization& ongoing, 
 	ongoing.vHead.msgLengths.clear();
 }
 
-bool sim_mob::CommsimSerializer::serialize_end(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res)
+void sim_mob::CommsimSerializer::serialize_end(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res)
 {
-	return NEW_BUNDLES ? serialize_end_v1(ongoing, hRes, res) : serialize_end_v0(ongoing, hRes, res);
+	if (NEW_BUNDLES) {
+		serialize_end_v1(ongoing, hRes, res);
+	} else {
+		serialize_end_v0(ongoing, hRes, res);
+	}
 }
 
 
-bool sim_mob::CommsimSerializer::serialize_end_v1(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res)
+void sim_mob::CommsimSerializer::serialize_end_v1(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res)
 {
 	//Precalculate the varying header length.
 	const size_t varHeadSize = ongoing.vHead.msgLengths.size()*3 + ongoing.vHead.sendId.size() + ongoing.vHead.destId.size();
@@ -180,12 +184,10 @@ bool sim_mob::CommsimSerializer::serialize_end_v1(const OngoingSerialization& on
 	if (hRes.messageCount>255) {
 		throw std::runtime_error("Can't serialize more than 255 messages in one bundle.");
 	}
-
-	return true;
 }
 
 
-bool sim_mob::CommsimSerializer::serialize_end_v0(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res)
+void sim_mob::CommsimSerializer::serialize_end_v0(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res)
 {
 	//Build the result string.
 	std::stringstream resStr;
@@ -204,8 +206,6 @@ bool sim_mob::CommsimSerializer::serialize_end_v0(const OngoingSerialization& on
 	hRes.destIdLen = ongoing.vHead.destId.size();
 	hRes.messageCount = ongoing.vHead.msgLengths.size();
 	hRes.remLen = res.size();
-
-	return true;
 }
 
 
@@ -280,20 +280,6 @@ bool sim_mob::CommsimSerializer::deserialize_v1(const BundleHeader& header, cons
 
 	return true;
 }
-
-
-
-bool sim_mob::CommsimSerializer::parseJSON(const std::string& input, Json::Value &output)
-{
-	Json::Reader reader;
-	bool parsedSuccess = reader.parse(input, output, false);
-	if (!parsedSuccess) {
-		std::cout <<"parseJSON() failed.\n";
-		return false;
-	}
-	return true;
-}
-
 
 
 

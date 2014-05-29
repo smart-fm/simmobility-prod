@@ -563,6 +563,7 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 
 	// check current lane has connector to next link
 	p.isMLC = false;
+	p.unsetStatus(STATUS_LEFT_OK); p.unsetStatus(STATUS_RIGHT_OK);
 	if(p.dis2stop<distanceCheckToChangeLane) // <150m need check above, ready to change lane
 	{
 		p.isMLC = true;
@@ -573,6 +574,23 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 		{
 			// get lane connector
 			const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(fwdDriverMovement.getCurrSegment());
+
+			// check lef,right lanes connect to next target segment
+			for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++)
+			{
+				if ( (*it)->getLaneTo()->getRoadSegment() == nextSegment ) // this lc connect to target segment
+				{
+					int laneIdx = getLaneIndex((*it)->getLaneFrom());
+					if(laneIdx > p.currLaneIndex)
+					{
+						p.setStatus(STATUS_LEFT_OK);
+					}
+					else if(laneIdx < p.currLaneIndex)
+					{
+						p.setStatus(STATUS_RIGHT_OK);
+					}
+				}
+			}
 
 			if (lcs.size()>0)
 			{

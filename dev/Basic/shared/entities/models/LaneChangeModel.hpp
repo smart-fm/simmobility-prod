@@ -5,6 +5,7 @@
 #pragma once
 #include "conf/params/ParameterManager.hpp"
 #include "geospatial/Lane.hpp"
+#include "entities/models/Constants.h"
 
 namespace sim_mob {
 

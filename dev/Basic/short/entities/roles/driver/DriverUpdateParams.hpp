@@ -93,6 +93,7 @@ public:
 		currLane = rhs.currLane;
 		currLaneIndex = rhs.currLaneIndex;
 		nextLaneIndex = rhs.nextLaneIndex;
+		status = rhs.status;
 
 		return *this;
 	}

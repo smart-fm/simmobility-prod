@@ -18,6 +18,7 @@
 #include "Driver.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "util/Utils.hpp"
+#include "util/Math.hpp"
 
 using std::numeric_limits;
 using namespace sim_mob;
@@ -617,9 +618,17 @@ void sim_mob::MITSIM_LC_Model::makeTargetGapPram(std::vector< std::string >& str
 		GAP_PARAM.push_back(array);
 	}
 }
-LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision()
+LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdateParams& p)
 {
+	if(p.cftimer > sim_mob::Math::DOUBLE_EPSILON)
+	{
+		return p.lastDecision;
+	}
 
+	LANE_CHANGE_SIDE change = LCS_SAME;		// direction to change
+
+
+	return change;
 }
 /*
  * In MITSIMLab, vehicle change lane in 1 time step.

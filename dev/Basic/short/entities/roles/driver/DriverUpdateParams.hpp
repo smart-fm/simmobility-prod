@@ -104,6 +104,8 @@ public:
 	TARGET_GAP targetGap;
 	bool isMLC;
 	LANE_CHANGE_MODE lastChangeMode;
+	/// record last lane change decision
+	/// both lc model and driverfacet can set this value
 	LANE_CHANGE_SIDE lastDecision;
 
 	//Nearest vehicles in the current lane, and left/right (including fwd/back for each).
@@ -195,6 +197,7 @@ public:
 	}
 
 	/// decision timer (second)
+	/// count down in DriverMovement
 	double cftimer;
 
 public:

@@ -109,7 +109,7 @@ public:
 	 * and 0 otherwise.
 	 *--------------------------------------------------------------------
 	 **/
-	LANE_CHANGE_SIDE makeLaneChangingDecision();
+	LANE_CHANGE_SIDE makeLaneChangingDecision(DriverUpdateParams& p);
 	/// model name in xml file tag "parameters"
 	string modelName;
 	// split delimiter in xml param file

@@ -42,13 +42,6 @@ class BrokerBlocker;
 class OpaqueSendMessage;
 
 
-namespace {
-//TEMPORARY: I just need an easy way to disable output for now. This is *not* the ideal solution.
-const bool EnableDebugOutput = false;
-} //End unnamed namespace
-
-
-
 ///A typedef-container for our ClientList container type.
 struct ClientList {
 	typedef std::map< std::string , boost::shared_ptr<sim_mob::ClientHandler> > Type;
@@ -471,7 +464,8 @@ public:
 	virtual boost::shared_ptr<sim_mob::ClientHandler> getNs3ClientHandler() const;
 
 public:
-	//TODO: Not sustainable, but works for now.
+	///Singleton methods for specifying the Broker. Note that multiple Brokers will be supported eventually,
+	///  so this is not sustainable in the long run.
 	static void SetSingleBroker(BrokerBase* broker);
 	static BrokerBase* GetSingleBroker();
 

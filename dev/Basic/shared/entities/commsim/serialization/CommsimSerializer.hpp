@@ -28,31 +28,6 @@ struct WFD_Group{
 };
 
 
-/**
- * A variant of Json::FastWriter that does not append a trailing newline.
- * NOTE: For the purpose of copyright, this class should be considered a
- *       derivative work of Json::FastWriter, (c) 2007-2010 Baptiste Lepilleur,
- *       and included under the terms of the MIT License (same as the JsonCpp project).
- * NOTE: This class is also faster than the FastWriter, since it uses a stringstream to append objects
- *       rather than simple strings.
- */
-class JsonSingleLineWriter : public Json::Writer
-{
-public:
-	JsonSingleLineWriter(bool appendNewline);
-	virtual ~JsonSingleLineWriter(){}
-	void enableYAMLCompatibility();
-
-public: // overridden from Writer
-	virtual std::string write( const Json::Value &root);
-
-private:
-	void writeValue( const Json::Value &value );
-
-	std::stringstream document_;
-	bool yamlCompatiblityEnabled_;
-	bool appendNewline;
-};
 
 
 /**

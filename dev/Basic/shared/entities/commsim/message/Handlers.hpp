@@ -61,21 +61,26 @@ class BrokerErrorHandler : public Handler {
 
 class RemoteLogHandler : public Handler {
 public:
+	///Called by the Broker when a message of this type is encountered to handle it.
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
 };
 
 class RerouteRequestHandler : public Handler {
 public:
+	///Called by the Broker when a message of this type is encountered to handle it.
+	///This handler will instruct the Driver model to reroute the given Agent around a blacklisted Region.
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
 };
 
 class TcpConnectHandler : public Handler {
 public:
+	///Called by the Broker when a message of this type is encountered to handle it.
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
 };
 
 class TcpDisconnectHandler : public Handler {
 public:
+	///Called by the Broker when a message of this type is encountered to handle it.
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
 };
 
@@ -85,6 +90,7 @@ class OpaqueSendHandler : public sim_mob::Handler {
 public:
 	OpaqueSendHandler(bool useNs3) : useNs3(useNs3) {}
 
+	///Called by the Broker when a message of this type is encountered to handle it.
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
 
 private:
@@ -96,9 +102,10 @@ class OpaqueReceiveHandler : public sim_mob::Handler {
 public:
 	OpaqueReceiveHandler(bool useNs3) : useNs3(useNs3) {}
 
+	///Called by the Broker when a message of this type is encountered to handle it.
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
 
-	//Helper; also called by the Broker for Cloud messages.
+	///Helper; handle this message directly. Also caled by the Broker for Cloud messages.
 	void handleDirect(const OpaqueReceiveMessage& recMsg, BrokerBase* broker) const;
 
 private:

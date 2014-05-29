@@ -187,25 +187,17 @@ bool sim_mob::CommsimSerializer::serialize_end_v1(const OngoingSerialization& on
 
 bool sim_mob::CommsimSerializer::serialize_end_v0(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res)
 {
-	//Build the header.
-	Json::Value pktHeader;
-	pktHeader["send_client"] = ongoing.vHead.sendId;
-	pktHeader["dest_client"] = ongoing.vHead.destId;
-
-	//Turn the current data string into a Json array. (Inefficient, but that doesn't matter for v0)
-	std::string data = "[" + ongoing.messages.str() + "]";
-	Json::Value dataArr;
-	Json::Reader reader;
-	if (!(reader.parse(data, dataArr, false) && dataArr.isArray())) {
-		std::cout <<"ERROR: data section cannot be represented as array\n";
-		return false;
-	}
-
-	//Combine.
-	Json::Value root;
-	root["header"] = pktHeader;
-	root["messages"] = dataArr;
-	res = JsonSingleLineWriter(!NEW_BUNDLES).write(root);
+	//Build the result string.
+	std::stringstream resStr;
+	resStr <<"{"
+		<<"\"header\":{"
+		<<"\"send_client\":\"" <<ongoing.vHead.sendId <<"\","
+		<<"\"dest_client\":\"" <<ongoing.vHead.destId <<"\""
+		<<"},"
+		<<"\"messages\":["
+		<<ongoing.messages.str()
+		<<"]}";
+	res = resStr.str();
 
 	//Reflect changes to the bundle header.
 	hRes.sendIdLen = ongoing.vHead.sendId.size();
@@ -649,92 +641,6 @@ void sim_mob::CommsimSerializer::addGeneric(OngoingSerialization& ongoing, const
 
 	//Keep the header up-to-date.
 	ongoing.vHead.msgLengths.push_back(msg.size());
-}
-
-
-
-
-///////////////////////////////////
-// JsonSingleLineWriter methods.
-///////////////////////////////////
-
-
-sim_mob::JsonSingleLineWriter::JsonSingleLineWriter(bool appendNewline) : yamlCompatiblityEnabled_( false ), appendNewline(appendNewline)
-{
-}
-
-
-void sim_mob::JsonSingleLineWriter::enableYAMLCompatibility()
-{
-   yamlCompatiblityEnabled_ = true;
-}
-
-
-std::string sim_mob::JsonSingleLineWriter::write(const Json::Value &root)
-{
-   document_.str("");
-   writeValue( root );
-   if (appendNewline) {    //NOTE: This is the first major difference between JsonSingleLineWriter and FastWriter.
-	   document_ << "\n";
-   }
-   return document_.str(); //NOTE: This (using a stringstream instead of a string) is the second major difference.
-}
-
-
-void sim_mob::JsonSingleLineWriter::writeValue(const Json::Value &value)
-{
-   switch ( value.type() )
-   {
-   case Json::nullValue:
-      document_ << "null";
-      break;
-   case Json::intValue:
-      document_ << Json::valueToString( value.asInt() );
-      break;
-   case Json::uintValue:
-      document_ << Json::valueToString( value.asUInt() );
-      break;
-   case Json::realValue:
-      document_ << Json::valueToString( value.asDouble() );
-      break;
-   case Json::stringValue:
-      document_ << Json::valueToQuotedString( value.asCString() );
-      break;
-   case Json::booleanValue:
-      document_ << Json::valueToString( value.asBool() );
-      break;
-   case Json::arrayValue:
-      {
-         document_ << "[";
-         int size = value.size();
-         for ( int index =0; index < size; ++index )
-         {
-            if ( index > 0 )
-               document_ << ",";
-            writeValue( value[index] );
-         }
-         document_ << "]";
-      }
-      break;
-   case Json::objectValue:
-      {
-         Json::Value::Members members( value.getMemberNames() );
-         document_ << "{";
-         for ( Json::Value::Members::iterator it = members.begin();
-               it != members.end();
-               ++it )
-         {
-            const std::string &name = *it;
-            if ( it != members.begin() )
-               document_ << ",";
-            document_ << Json::valueToQuotedString( name.c_str() );
-            document_ << (yamlCompatiblityEnabled_ ? ": " : ":");
-            writeValue( value[name] );
-         }
-         document_ << "}";
-      }
-      break;
-   }
 }
 
 

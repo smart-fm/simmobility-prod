@@ -29,6 +29,11 @@
 
 #include "geospatial/RoadRunnerRegion.hpp"
 
+namespace {
+//TEMPORARY: I just need an easy way to disable output for now. This is *not* the ideal solution.
+const bool EnableDebugOutput = false;
+} //End unnamed namespace
+
 
 using namespace sim_mob;
 
@@ -659,9 +664,6 @@ void sim_mob::Broker::processPublishers(timeslice now)
 		}
 
 		//Publish whatever this agent requests.
-		/*if (cHandler->regisTime) {
-			insertSendBuffer(cHandler, timeMsg);
-		}*/
 		if (cHandler->regisLocation) {
 			//Attempt to reverse-project the Agent's (x,y) location into Lat/Lng, if such a projection is possible.
 			LatLngLocation loc;

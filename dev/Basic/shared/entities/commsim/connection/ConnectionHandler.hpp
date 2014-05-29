@@ -30,10 +30,14 @@ class ConnectionServer;
  * This class is tightly controlled by the ConnectionServer, hence, it shares friendship with that class.
  */
 class ConnectionHandler: public boost::enable_shared_from_this<ConnectionHandler> {
-public:
+protected:
 	friend class ConnectionServer;
 
+	///Create a new ConnectionHandler which coordinates input between the io_service and the broker.
+	///Typically only created by the ConnectionServer.
 	ConnectionHandler(boost::asio::io_service& io_service, BrokerBase& broker);
+
+public:
 
 	///Retrieve the type of ClientHandlers that can multiplex on this connection. If empty, any ClientHandler is allowed.
 	///If non-empty, only matching types can be multiplexed.

@@ -18,6 +18,8 @@ class BrokerBase;
 class Handler {
 public:
 	virtual ~Handler() {}
+
+	///Called by the Broker when a message of this type is encountered to handle it.
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const = 0;
 };
 

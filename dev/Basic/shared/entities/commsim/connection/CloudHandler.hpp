@@ -28,14 +28,26 @@ class ConnectionServer;
  *  on a transaction of Broker->write(lines)->read(lines)->Broker.
  */
 class CloudHandler: public boost::enable_shared_from_this<CloudHandler> {
-public:
+protected:
 	friend class ConnectionServer;
 
+	/**
+	 * Create a new CloudHandler, which will multiplex on the given io_service, call back to the given broker,
+	 *   and connect to the given host:port. NOTE: In practice, you will usually call ConnectionServer::connectToCloud()
+	 *   to safely create a new CloudHandler.
+	 */
 	CloudHandler(boost::asio::io_service& io_service, BrokerBase& broker, const std::string& host, int port);
 
+	/**
+	 * Retrieve the iterator to the host:port that this CloudHandler was created with. This can then be used
+	 *   to begin or continue asynchronous i/o. NOTE: This function is typically only used by the ConnectionServer.
+	 */
 	boost::asio::ip::tcp::resolver::iterator getResolvedIterator() const;
 
-	//Called by the Broker to send some data and read the response.
+public:
+	/**
+	 * Write several lines of data to the cloud server and then read a response. This is a synchronous operation.
+	 */
 	std::vector<std::string> writeLinesReadLines(const std::vector<std::string>& outgoing);
 
 protected:

@@ -625,6 +625,11 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 		return p.lastDecision;
 	}
 
+	if(p.perceivedFwdVelocity/100 < sim_mob::Math::DOUBLE_EPSILON)
+	{
+		return p.lastDecision;
+	}
+
 	LANE_CHANGE_SIDE change = LCS_SAME;		// direction to change
 
 

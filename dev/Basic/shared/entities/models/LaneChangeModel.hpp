@@ -34,6 +34,20 @@ public:
 	///to execute the lane changing, meanwhile, check if crash will happen and avoid it
 	///Return new lateral velocity, or <0 to keep the velocity at its previous value.
 	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode) = 0;
+
+	/**
+	 *  /brief this function checks for bad events that will override the lookahead,like incident
+	 *  /param vehicle info
+	 *  /return true only if has events
+	 */
+	virtual bool checkIfLookAheadEvents(DriverUpdateParams& p) = 0;
+	/**
+	 *  /brief this function determines the lane changing that a lookahead vehicle
+	 *          will try if it is constrained by an event.
+	 *  /param vehicle info
+	 *  /return turn direction
+	 */
+	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p) = 0;
 };
 
 
@@ -110,6 +124,10 @@ public:
 	 *--------------------------------------------------------------------
 	 **/
 	LANE_CHANGE_SIDE makeLaneChangingDecision(DriverUpdateParams& p);
+	// TODO: add incident code
+	virtual bool checkIfLookAheadEvents(DriverUpdateParams& p) { return false; }
+	// TODO: add incident code
+	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p) { return LCS_SAME; }
 	/// model name in xml file tag "parameters"
 	string modelName;
 	// split delimiter in xml param file

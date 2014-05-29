@@ -5,6 +5,7 @@
 /* 
  * File:   DaoTests.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * \author : Gishara Premarathne <gishara@smart.mit.edu>
  * 
  * Created on May 7, 2013, 5:22 PM
  */
@@ -30,12 +31,14 @@ using namespace unit_tests;
 using std::cout;
 using std::endl;
 
+CPPUNIT_TEST_SUITE_REGISTRATION(unit_tests::DaoTests);
+
 namespace {
-    const int ID_TO_GET = 1;
-}
+const int ID_TO_GET = 1;
 
 template <typename T, typename K>
-void TestDao(unsigned int ids = 1) {
+void TestDao(unsigned int ids = 1)
+{
     PrintOut("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
     DB_Config config(LT_DB_CONFIG_FILE);
     config.load();
@@ -56,14 +59,15 @@ void TestDao(unsigned int ids = 1) {
 
         std::vector<K> values;
         dao.getAll(values);
-        PrintOut("GetAll Size: " << values.size() << endl);
-        for (typename std::vector<K>::iterator it = values.begin(); it != values.end(); it++) {
-            PrintOut("Value: " << (*it) << endl);
-        }
+        CPPUNIT_ASSERT_MESSAGE("No values loaded", !values.empty());
     }
 }
 
-void DaoTests::testAll() {
+} //End un-named namespace
+
+
+void DaoTests::testAll()
+{
     TestDao<HouseholdDao, Household>();
     TestDao<BuildingDao, Building>();
     TestDao<UnitDao, Unit>();

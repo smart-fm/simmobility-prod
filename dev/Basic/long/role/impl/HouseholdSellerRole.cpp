@@ -31,10 +31,10 @@ using sim_mob::Math;
 namespace {
     //bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, target_price
     const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
-    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, speculation, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
-    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%";
+    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, speculation, asking_price, target_price, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
+    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%";
 
-    inline void printBid(const HouseholdAgent& agent, const Bid& bid,
+    inline void printBid(const HouseholdAgent& agent, const Bid& bid, const ExpectationEntry& entry,
             unsigned int bidsCounter, bool accepted) {
         boost::format fmtr = boost::format(LOG_BID) % bid.getTime().ms()
                 % agent.getId()
@@ -42,6 +42,8 @@ namespace {
                 % bid.getUnitId()
                 % bid.getWillingnessToPay()
                 % bid.getSpeculation()
+                % entry.askingPrice
+                % entry.targetPrice
                 % bid.getValue()
                 % bidsCounter
                 % ((accepted) ? 1 : 0);
@@ -81,11 +83,12 @@ namespace {
      * @param bidsCounter received bids until now in the current day.
      */
     inline void replyBid(const HouseholdAgent& agent, const Bid& bid,
-            const BidResponse& response, unsigned int bidsCounter) {
+            const ExpectationEntry& entry, const BidResponse& response, 
+            unsigned int bidsCounter) {
         MessageBus::PostMessage(bid.getBidder(), LTMID_BID_RSP,
                 MessageBus::MessagePtr(new BidMessage(bid, response)));
         //print bid.
-        printBid(agent, bid, bidsCounter, (response == ACCEPTED));
+        printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
     }
 
     /**
@@ -206,22 +209,22 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type,
                         // it is necessary to notify the old max bidder
                         // that his bid was not accepted.
                         //reply to sender.
-                        replyBid(*getParent(), *maxBidOfDay, BETTER_OFFER,
+                        replyBid(*getParent(), *maxBidOfDay, entry, BETTER_OFFER,
                                 dailyBidCounter);
                         maxBidsOfDay.erase(unitId);
                         //update the new bid and bidder.
                         maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
                     } else {
-                        replyBid(*getParent(), msg.getBid(), BETTER_OFFER,
+                        replyBid(*getParent(), msg.getBid(), entry, BETTER_OFFER,
                                 dailyBidCounter);
                     }
                 } else {
-                    replyBid(*getParent(), msg.getBid(), NOT_ACCEPTED,
+                    replyBid(*getParent(), msg.getBid(), entry, NOT_ACCEPTED,
                             dailyBidCounter);
                 }
             } else {
                 // Sellers is not the owner of the unit or unit is not available.
-                replyBid(*getParent(), msg.getBid(), NOT_AVAILABLE,
+                replyBid(*getParent(), msg.getBid(), entry, NOT_AVAILABLE,
                         0);
             }
             Statistics::increment(Statistics::N_BIDS);
@@ -259,7 +262,9 @@ void HouseholdSellerRole::notifyWinnerBidders() {
     for (Bids::iterator itr = maxBidsOfDay.begin(); itr != maxBidsOfDay.end();
             itr++) {
         Bid& maxBidOfDay = itr->second;
-        replyBid(*getParent(), maxBidOfDay, ACCEPTED,
+        ExpectationEntry entry;
+        getCurrentExpectation(maxBidOfDay.getUnitId(), entry);
+        replyBid(*getParent(), maxBidOfDay, entry, ACCEPTED,
                 getCounter(dailyBids, maxBidOfDay.getUnitId()));
         market->removeEntry(maxBidOfDay.getUnitId());
         getParent()->removeUnitId(maxBidOfDay.getUnitId());
@@ -281,11 +286,15 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit) {
     info.daysOnMarket = timeOnMarket;
     info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
     luaModel.calulateUnitExpectations(unit, info.numExpectations, info.expectations);
-    sellingUnitsMap.erase(unit.getId());
-    sellingUnitsMap.insert(std::make_pair(unit.getId(), info));
-    for (int i = 0; i < info.numExpectations; i++) {
-        int dayToApply =  currentTime.ms () + (i * info.interval);
-        printExpectation(currentTime, dayToApply, unit.getId(), *getParent(), info.expectations[i]);
+    //number of expectations should match 
+    if (info.expectations.size() == info.numExpectations) {
+        sellingUnitsMap.erase(unit.getId());
+        sellingUnitsMap.insert(std::make_pair(unit.getId(), info));
+        //just revert the expectations order.
+        for (int i = 0; i < info.expectations.size() ; i++) {
+            int dayToApply = currentTime.ms() + (i * info.interval);
+            printExpectation(currentTime, dayToApply, unit.getId(), *getParent(), info.expectations[i]);
+        }
     }
 }
 
@@ -294,7 +303,8 @@ bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId,
     UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
     if (it != sellingUnitsMap.end()) {
         SellingUnitInfo& info = it->second;
-        unsigned int index = floor(abs(info.startedDay - currentTime.ms()) / info.interval);
+        //expectations are start on last element to the first.
+        unsigned int index = ((unsigned int)(floor(abs(info.startedDay - currentTime.ms()) / info.interval))) % info.expectations.size();
         if (index < info.expectations.size()) {
             ExpectationEntry& expectation = info.expectations[index];
             if (expectation.askingPrice > 0 && expectation.hedonicPrice > 0){

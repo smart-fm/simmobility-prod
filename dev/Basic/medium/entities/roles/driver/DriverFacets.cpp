@@ -65,6 +65,7 @@ inline double converToSeconds(uint32_t timeInMs) {
 	return (timeInMs/1000.0);
 }
 
+/**an infinitesimal double to avoid rounding issues*/
 const double INFINITESIMAL_DOUBLE = 0.0001;
 }
 
@@ -681,7 +682,7 @@ void DriverMovement::updateFlow(const sim_mob::SegmentStats* segStats, double st
 	double mid = segStats->getLength()/2.0;
 	const sim_mob::RoadSegment* rdSeg = segStats->getRoadSegment();
 	if (startPos >= mid && mid >= endPos){
-		rdSeg->getParentConflux()->incrementSegmentFlow(rdSeg, segStats->getPositionInRoadSegment());
+		rdSeg->getParentConflux()->incrementSegmentFlow(rdSeg, segStats->getStatsNumberInSegment());
 	}
 }
 

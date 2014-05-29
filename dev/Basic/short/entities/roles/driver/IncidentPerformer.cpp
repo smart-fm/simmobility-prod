@@ -116,7 +116,12 @@ void sim_mob::IncidentPerformer::checkAheadVehicles(Driver* parentDriver, Driver
 
 void sim_mob::IncidentPerformer::checkIncidentStatus(Driver* parentDriver, DriverUpdateParams& p, timeslice now) {
 
-	const RoadSegment* curSegment = parentDriver->getVehicle()->getCurrSegment();
+	const RoadSegment* curSegment = nullptr;
+	try {
+		curSegment = parentDriver->getVehicle()->getCurrSegment();
+	} catch (std::runtime_error& error) {
+		return;
+	}
 	const Lane* curLane = parentDriver->getVehicle()->getCurrLane();
 	int curLaneIndex = curLane->getLaneID() - curSegment->getLanes().at(0)->getLaneID();
 	if(curLaneIndex<0){

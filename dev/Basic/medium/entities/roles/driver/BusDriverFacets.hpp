@@ -26,8 +26,25 @@ class BusDriver;
  */
 class BusRouteTracker : public sim_mob::BusRouteInfo {
 public:
-	BusRouteTracker() {}
+	BusRouteTracker() : BusRouteInfo("") {}
 	BusRouteTracker(const BusRouteInfo& routeInfo);
+	BusRouteTracker(const BusRouteTracker& routeTracker);
+
+	/**
+	 * Operator overload for assignment.
+	 * \note:
+	 * Foo x(y);      // is copy-construction
+	 * Foo x = y;     // is semantically assignment, but the compiler elides the assignment and does copy-construction, equivalent to the above
+	 * Foo x; x = y;  // is default-construction followed by assignment, different (and possibly less efficient) than the above
+	 *
+	 * This is assignment overload is required because we do something similar
+	 * the third case for BusRouteTracker. The default assignment operator does
+	 * a member wise assignment. Since this class has a vector and an iterator to
+	 * its the vector as its members, the assignment of the iterator done by the
+	 * default assignment operator is incorrect (invalid). This assignment is
+	 * handled explicitly by this function.
+	 */
+	BusRouteTracker& operator=(const BusRouteTracker& rhsTracker);
 
 	/**
 	 * gets the bus stop pointed by nextStopIt

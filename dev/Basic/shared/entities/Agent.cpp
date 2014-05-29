@@ -110,7 +110,7 @@ void sim_mob::Agent::SetIncrementIDStartValue(int startID,
 }
 
 sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)),
-	mutexStrat(mtxStrat), call_frame_init(true),
+	mutexStrat(mtxStrat), initialized(false),
 	originNode(), destNode(), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), lastUpdatedFrame(-1), currLink(nullptr),
 	isQueuing(false), distanceToEndOfSegment(0.0), currLinkTravelStats(nullptr, 0.0), linkTravelStatsMap(mtxStrat),
@@ -146,7 +146,7 @@ sim_mob::Agent::~Agent() {
 }
 
 void sim_mob::Agent::resetFrameInit() {
-	call_frame_init = true;
+	initialized = false;
 }
 
 void sim_mob::Agent::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
@@ -220,14 +220,14 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 	//This allows them to override the start_time if it seems appropriate (e.g., if they
 	// are swapping trip chains). If frame_init() returns false, immediately exit.
 	bool calledFrameInit = false;
-	if (call_frame_init) {
+	if (!initialized) {
 		//Call frame_init() and exit early if requested to.
 		if (!frame_init(now)) {
 			return UpdateStatus::Done;
 		}
 
 		//Set call_frame_init to false here; you can only reset frame_init() in frame_tick()
-		call_frame_init = false; //Only initialize once.
+		initialized = true; //Only initialize once.
 		calledFrameInit = true;
 	}
 

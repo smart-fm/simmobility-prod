@@ -316,7 +316,8 @@ protected:
 	 * A segment can have multiple segment stats. This gives the position of this
 	 * SegmentStats in segment.
 	 */
-	uint8_t positionInRoadSegment;
+	uint16_t statsNumberInSegment;
+
 	/**
 	 * Map containing LaneStats for every lane of the segment.
 	 * This map includes lane infinity.
@@ -330,6 +331,7 @@ protected:
 	 * have to stop in this segment stats.
 	 */
 	const Lane* outermostLane;
+
 	/**
 	 * A map which stores the unprocessed person who is closest to the end of
 	 * this SegmentStats for each lane in the seg stats. This is used for
@@ -340,9 +342,9 @@ protected:
 
 	/**length of this SegmentStats in cm*/
 	double length;
-	/**speed of vehicles in segment for each frame*/
+	/**speed of vehicles in segment for each frame in cm/s*/
 	double segVehicleSpeed;
-	/**speed of pedestrians on this segment for each frame--not used at the moment*/
+	/**speed of pedestrians on this segment for each frame in cm/s --not used at the moment*/
 	double segPedSpeed;
 	/**vehicle density of this segment stats in PCU/cm*/
 	double segDensity;
@@ -394,8 +396,12 @@ public:
 		return numPersons;
 	}
 
-	uint8_t getPositionInRoadSegment() const {
-		return positionInRoadSegment;
+	size_t getNumStops() const {
+		return busStops.size();
+	}
+
+	uint16_t getStatsNumberInSegment() const {
+		return statsNumberInSegment;
 	}
 
 	const Lane* getOutermostLane() const {
@@ -420,6 +426,13 @@ public:
 	 * @param busStopAgent is a pointer to a bus stop agent
 	 */
 	void addBusStopAgent(sim_mob::Agent* busStopAgent);
+
+	/**
+	 * Initializes all the bus stops in this segment stats.
+	 * The bus stop agents corresponding to the stops in this segment stats are
+	 * registered with the message bus in this function.
+	 */
+	void initializeBusStops();
 
 	/**
 	 * add bus driver to stop
@@ -565,7 +578,7 @@ public:
 	 * checks if the segment stats has persons
 	 * @return true if numPersons > 0; false otherwise
 	 */
-	bool hasAgents() const;
+	bool hasPersons() const;
 
 	/**
 	 * checks if this Segment stats contains busStop in it
@@ -664,7 +677,12 @@ public:
 	/**
 	 * prints all agents in this segment
 	 */
-	void printAgents();
+	void printAgents() const;
+
+	/**
+	 * prints all stops in this segment stats
+	 */
+	void printBusStops() const;
 
 	/**
 	 * laneInfinity is an augmented lane in the roadSegment. laneInfinity will be used only by confluxes and related objects for now.

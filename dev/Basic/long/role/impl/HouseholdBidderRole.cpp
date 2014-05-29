@@ -43,8 +43,8 @@ namespace {
                 MessageBus::MessagePtr(new BidMessage(bid)));
     }
 }
-HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry (const HousingMarket::Entry* entry, const double wp) :
-entry(entry), wp(wp), tries(0)
+HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry (const BigSerial unitId, const double wp) :
+unitId(unitId), wp(wp), tries(0)
 {
 }
 
@@ -52,8 +52,8 @@ HouseholdBidderRole::CurrentBiddingEntry::~CurrentBiddingEntry() {
     invalidate();
 }
 
-const HousingMarket::Entry* HouseholdBidderRole::CurrentBiddingEntry::getEntry() const {
-    return entry;
+BigSerial HouseholdBidderRole::CurrentBiddingEntry::getUnitId() const {
+    return unitId;
 }
 
 double HouseholdBidderRole::CurrentBiddingEntry::getWP() const {
@@ -69,11 +69,11 @@ void HouseholdBidderRole::CurrentBiddingEntry::incrementTries(int quantity) {
 }
 
 bool HouseholdBidderRole::CurrentBiddingEntry::isValid() const{
-    return (entry != nullptr);
+    return (unitId != INVALID_ID);
 }
 
 void HouseholdBidderRole::CurrentBiddingEntry::invalidate(){
-    entry = nullptr;
+    unitId = INVALID_ID;
     tries = 0;
     wp = 0;
 }
@@ -123,8 +123,12 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type,
                     break;
                 }
                 case BETTER_OFFER:
+                {
+                    break;
+                }
                 case NOT_AVAILABLE:
                 {
+                    biddingEntry.invalidate();
                     break;
                 }
                 default:break;
@@ -138,6 +142,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type,
 }
 
 bool HouseholdBidderRole::bidUnit(timeslice now) {
+    HousingMarket* market = getParent()->getMarket();
     const Household* household = getParent()->getHousehold();
     const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
     const HM_Model* model = getParent()->getModel();
@@ -146,13 +151,21 @@ bool HouseholdBidderRole::bidUnit(timeslice now) {
     // unit where he is bidding until he gets rejected for seller by NOT_AVAILABLE/BETTER_OFFER 
     // or the the speculation for the given unit is 0. This last means that the household
     // does not have more margin of negotiation then is better look for another unit.
-    if (biddingEntry.isValid() || pickEntryToBid()) {
-        double speculation = luaModel.calculateSpeculation(*(biddingEntry.getEntry()), 
+    const HousingMarket::Entry* entry = market->getEntryById(biddingEntry.getUnitId());
+    if (!entry || !biddingEntry.isValid()){
+        //if unit is not available or entry is not valid then
+        //just pick another unit to bid.
+        if(pickEntryToBid()){
+            entry = market->getEntryById(biddingEntry.getUnitId());
+        }   
+    }
+    
+    if (entry && biddingEntry.isValid()) {
+        double speculation = luaModel.calculateSpeculation(*entry,
                 biddingEntry.getTries());
         //If the speculation is 0 means the bidder has reached the maximum 
         //number of bids that he can do for the current entry.
         if (speculation > 0) {
-            const HousingMarket::Entry* entry = biddingEntry.getEntry();
             const Unit* unit = model->getUnitById(entry->getUnitId());
             const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
             if (unit && stats) {
@@ -202,7 +215,6 @@ bool HouseholdBidderRole::pickEntryToBid() {
             }
         }
     }
-
-    biddingEntry = CurrentBiddingEntry(maxEntry, maxWP);
+    biddingEntry = CurrentBiddingEntry((maxEntry) ? maxEntry->getUnitId() : INVALID_ID, maxWP);
     return biddingEntry.isValid();
 }

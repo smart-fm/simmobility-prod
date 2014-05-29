@@ -38,8 +38,11 @@ inline double converToSeconds(uint32_t timeInMs) {
 	return (timeInMs/1000.0);
 }
 
+/**
+ * length of a bus is hard coded to 3 times the PCU for now.
+ * TODO: this must be made configurable.
+ */
 const double BUS_LENGTH = 3 * sim_mob::PASSENGER_CAR_UNIT; // 3 times PASSENGER_CAR_UNIT
-const double INFINITESIMAL_DOUBLE = 0.0001;
 }
 
 namespace sim_mob {
@@ -174,9 +177,10 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 		if (!bustrip) {
 			Print()<< "bustrip is null"<<std::endl;
 		}
-		else if ((*(person->currTripChainItem))->itemType== TripChainItem::IT_BUSTRIP) {
-			routeTracker = BusRouteTracker(bustrip->getBusRouteInfo());
+		else if ((*(person->currTripChainItem))->itemType == TripChainItem::IT_BUSTRIP) {
+			routeTracker = BusRouteTracker(bustrip->getBusRouteInfo()); //Calls the constructor and the assignment operator overload defined in this class. Copy-constructor is not called.
 			Print()<< "BusTrip path size = " << routeTracker.getRoadSegments().size() << std::endl;
+			Print()<< "BusTrip stop list size: " << routeTracker.getBusStops().size() << std::endl;
 		} else {
 			Print() << "BusTrip path not initialized because it is not a bustrip, (*(person->currTripChainItem))->itemType = "
 					<< (*(person->currTripChainItem))->itemType << std::endl;
@@ -218,8 +222,10 @@ const sim_mob::Lane* BusDriverMovement::getBestTargetLane(
 	}
 }
 
-bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params) {
+bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
+{
 	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
+	currSegStat->printBusStops();
 	const BusStop* nextStop = routeTracker.getNextStop();
 
 	const sim_mob::RoadSegment* rs = currSegStat->getRoadSegment();
@@ -242,49 +248,81 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params) {
 		}
 	}
 
-	if(nextStop && currSegStat->hasBusStop(nextStop)) {
+	Print() << "BusDriver's next stop: " << nextStop->getBusstopno_() << std::endl;
+	if(nextStop && currSegStat->hasBusStop(nextStop))
+	{
 		//send bus arrival message
 		BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(nextStop);
-		if(stopAg->canAccommodate(parentBusDriver->getResource()->getLengthCm())) {
-			if(isQueuing) {
-				removeFromQueue();
+		if(stopAg)
+		{
+			Print() << "Bus driver wroker: " << parent->currWorkerProvider
+					<< "|bus stop agent worker: " << currSegStat->getRoadSegment()->getParentConflux()->currWorkerProvider
+					<< std::endl;
+			if(stopAg->canAccommodate(parentBusDriver->getResource()->getLengthCm()))
+			{
+				if(isQueuing)
+				{
+					removeFromQueue();
+				}
+				parentBusDriver->openBusDoors(stopAg);
 			}
-			messaging::MessageBus::SendInstantaneousMessage(stopAg, BUS_ARRIVAL,
-					messaging::MessageBus::MessagePtr(new BusDriverMessage(getParentBusDriver())));
-			parentBusDriver->openBusDoors(stopAg);
+			else
+			{
+				if (isQueuing)
+				{
+					moveInQueue();
+				}
+				else
+				{
+					addToQueue();
+				}
+				params.elapsedSeconds = params.secondsInTick;
+				getParent()->setRemainingTimeThisTick(0.0);
+			}
 		}
-		else {
-			if (isQueuing){
-				moveInQueue();
-			}
-			else {
-				addToQueue();
-			}
-			params.elapsedSeconds = params.secondsInTick;
-			getParent()->setRemainingTimeThisTick(0.0);
+		else
+		{
+			std::stringstream errorStrm;
+			errorStrm << "BusStopAgent not found for stop: " << nextStop->getBusstopno_()
+					<< "|SegmentStats: " << currSegStat
+					<< "|position: " << currSegStat->getStatsNumberInSegment()
+					<< "|num. stops: " << currSegStat->getNumStops()
+					<< std::endl;
+			throw std::runtime_error(errorStrm.str());
 		}
 		return false;
 	}
-	else {
+	else
+	{
 		return DriverMovement::moveToNextSegment(params);
 	}
 }
 
-BusRouteTracker::BusRouteTracker(const BusRouteInfo& routeInfo) : BusRouteInfo(routeInfo) {
+BusRouteTracker::BusRouteTracker(const BusRouteInfo& routeInfo)
+: BusRouteInfo(routeInfo), nextStopIt(busStopList.begin()) {}
+
+BusRouteTracker::BusRouteTracker(const BusRouteTracker& copySource)
+: BusRouteInfo(copySource), nextStopIt(busStopList.begin()) {}
+
+BusRouteTracker& BusRouteTracker::operator=(const BusRouteTracker& rhsTracker)
+{
+	busRouteId = rhsTracker.busRouteId;
+	roadSegmentList = rhsTracker.roadSegmentList;
+	busStopList = rhsTracker.busStopList;
 	nextStopIt = busStopList.begin();
+	std::advance(nextStopIt, (rhsTracker.nextStopIt - rhsTracker.busStopList.begin()));
+	return *this;
 }
 
-const BusStop* BusRouteTracker::getNextStop() const {
-	if(nextStopIt==busStopList.end()) {
-		return nullptr;
-	}
-	return *(nextStopIt);
+const BusStop* BusRouteTracker::getNextStop() const
+{
+	if(nextStopIt==busStopList.end()) { return nullptr;	}
+	return *nextStopIt;
 }
 
-void BusRouteTracker::updateNextStop() {
-	if(nextStopIt==busStopList.end()) {
-		return;
-	}
+void BusRouteTracker::updateNextStop()
+{
+	if(nextStopIt==busStopList.end()) { return;	}
 	nextStopIt++;
 }
 

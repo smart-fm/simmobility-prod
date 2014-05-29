@@ -4,3 +4,16 @@
 
 #include "DriverUpdateParams.hpp"
 
+namespace sim_mob
+{
+
+void DriverUpdateParams::setStatus(unsigned int s)
+{
+	status |= s;
+}
+void DriverUpdateParams::unsetStatus(unsigned int s)
+{
+	status &= ~s;
+}
+
+}

@@ -21,20 +21,20 @@ using std::vector;
 sim_mob::Vehicle::Vehicle(const VehicleType vehType, double lengthCM, double widthCM) :
 	VehicleBase(vehType,lengthCM,widthCM), vehicleId(0), latMovement(0),
 	fwdVelocity(0), latVelocity(0), fwdAccel(0), errorState(false),
-	turningDirection(LCS_SAME), schedule(nullptr),status(0)
+	turningDirection(LCS_SAME), schedule(nullptr)
 {}
 
 sim_mob::Vehicle::Vehicle(const VehicleType vehType, int vehicleId, double lengthCM, double widthCM) :
 		VehicleBase(vehType,lengthCM,widthCM), vehicleId(vehicleId),
 		latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0),
-		errorState(false), turningDirection(LCS_SAME), schedule(nullptr),status(0)
+		errorState(false), turningDirection(LCS_SAME), schedule(nullptr)
 {}
 
 sim_mob::Vehicle::Vehicle(const Vehicle& copyFrom) :
 	VehicleBase(copyFrom), vehicleId(copyFrom.vehicleId), latMovement(copyFrom.latMovement),
 	fwdVelocity(copyFrom.fwdVelocity), latVelocity(copyFrom.latVelocity), fwdAccel(copyFrom.fwdAccel),
 	posInIntersection(copyFrom.posInIntersection), errorState(copyFrom.errorState),
-	turningDirection(LCS_SAME), schedule(copyFrom.schedule),status(copyFrom.status) {
+	turningDirection(LCS_SAME), schedule(copyFrom.schedule) {
 }
 
 void sim_mob::Vehicle::setPositionInIntersection(double x, double y) {
@@ -168,14 +168,7 @@ bool sim_mob::Vehicle::isDone() const {
 	bool done = (fwdMovement.isDoneWithEntireRoute());
 	return done;
 }
-void sim_mob::Vehicle::setStatus(unsigned int s)
-{
-	status |= s;
-}
-void sim_mob::Vehicle::unsetStatus(unsigned int s)
-{
-	status &= ~s;
-}
+
 #ifndef SIMMOB_DISABLE_MPI
 
 #endif

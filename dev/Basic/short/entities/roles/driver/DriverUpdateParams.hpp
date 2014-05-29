@@ -55,9 +55,10 @@ struct NearestPedestrian {
 /// \author Li Zhemin
 /// \author Seth N. Hetu
 ///NOTE: Constructor is currently implemented in Driver.cpp. Feel free to shuffle this around if you like.
-struct DriverUpdateParams : public UpdateParams {
-	DriverUpdateParams() : UpdateParams() {}
-	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen) ,nextLaneIndex(0),isTargetLane(true){}
+class DriverUpdateParams : public UpdateParams {
+public:
+	DriverUpdateParams() : UpdateParams() ,status(0){}
+	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen) ,nextLaneIndex(0),isTargetLane(true),status(0){}
 
 	virtual void reset(timeslice now, const Driver& owner);
 
@@ -159,6 +160,24 @@ struct DriverUpdateParams : public UpdateParams {
 	/// record last calculated acceleration
 	/// dont reset
 	double lastAcc;
+
+	/**
+	 *  /brief add one kind of status to the vh
+	 *  /param new state
+	 */
+	void setStatus(unsigned int s);
+	/**
+	 *  /brief get status of the vh
+	 *  /return state
+	 */
+	unsigned int getStatus() { return status; }
+	/**
+	 *  /brief remove the status from the vh
+	 *  /return state
+	 */
+	void unsetStatus(unsigned int s);
+
+	unsigned int status;	// current status indicator
 
 public:
 #ifndef SIMMOB_DISABLE_MPI

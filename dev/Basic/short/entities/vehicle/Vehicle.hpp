@@ -51,21 +51,7 @@ public:
 	bool isDone() const; ///<Are we fully done with our path?
 	bool hasPath() const; ///<Do we have a path to move on?
 
-	/**
-	 *  /brief add one kind of status to the vh
-	 *  /param new state
-	 */
-	void setStatus(unsigned int s);
-	/**
-	 *  /brief get status of the vh
-	 *  /return state
-	 */
-	unsigned int getStatus() { return status; }
-	/**
-	 *  /brief remove the status from the vh
-	 *  /return state
-	 */
-	void unsetStatus(unsigned int s);
+
 
 	//Special
 	LANE_CHANGE_SIDE getTurningDirection() const;
@@ -113,7 +99,6 @@ public:
 	FMODSchedule* schedule;
 
 private:
-	unsigned int status;	// current status indicator
 	//Trying a slightly more dynamic moving model.
 	int vehicleId;
 	GeneralPathMover fwdMovement;

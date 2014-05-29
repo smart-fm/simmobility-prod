@@ -194,6 +194,9 @@ public:
 	flags &= ~s;
 	}
 
+	/// decision timer (second)
+	double cftimer;
+
 public:
 #ifndef SIMMOB_DISABLE_MPI
 	static void pack(PackageUtils& package, const DriverUpdateParams* params);

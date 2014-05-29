@@ -52,6 +52,15 @@ public:
 	double nextPerceptionSize;
 
 	double getNextStepSize() { return nextStepSize; }
+	/// update step size , dec,acc,uniform speed,stopped vh
+	std::vector<double> updateStepSize;
+	std::vector<double> perceptionSize;
+	/** \brief calculate the step size of update state variables
+	 *         the vehicle and type.
+	 *  \param p vehicle state value
+	 *  \return step size
+	 **/
+	double calcNextStepSize(DriverUpdateParams& p);
 };
 
 /**
@@ -188,12 +197,7 @@ private:
 	 *  \param p vehicle state value
 	 **/
 	void calcStateBasedVariables(DriverUpdateParams& p);
-	/** \brief calculate the step size of update state variables
-	 *         the vehicle and type.
-	 *  \param p vehicle state value
-	 *  \return step size
-	 **/
-	double calcNextStepSize(DriverUpdateParams& p);
+
 	/** \brief Calculate the step sizes for making car-following decisions, load only when init
 	 *
 	 **/
@@ -220,8 +224,8 @@ public:
 	double yellowStopHeadway;
 	double minSpeedYellow;
 
-	/// decision timer (second)
-	double cftimer;
+//	/// decision timer (second)
+//	double cftimer;
 
 	/// grade is the road slope
 	double tmpGrade;
@@ -260,9 +264,7 @@ public:
 	// target gap parameters
 	vector<double> targetGapAccParm;
 
-	/// update step size , dec,acc,uniform speed,stopped vh
-	std::vector<double> updateStepSize;
-	std::vector<double> perceptionSize;
+
 
 	/// param of normal distributions
 	struct UpdateStepSizeParam

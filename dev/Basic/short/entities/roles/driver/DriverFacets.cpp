@@ -417,7 +417,12 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 	// Note that a vehicle may leave an intersection during intersectionDriving(), so the conditional check is necessary.
 	// Note that there is no need to chain this back to intersectionDriving.
 	if (!(fwdDriverMovement.isInIntersection())) {
+		params.cftimer -= params.elapsedSeconds;
 		params.overflowIntoIntersection = linkDriving(params);
+		if(params.cftimer < 0)
+		{
+			params.cftimer = cfModel->calcNextStepSize(params);
+		}
 		//Did our last move forward bring us into an intersection?
 		if (fwdDriverMovement.isInIntersection()) {
 			params.justMovedIntoIntersection = true;

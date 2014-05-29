@@ -115,7 +115,7 @@ double CalcHeadway(double space, double speed, double elapsedSeconds, double max
  *--------------------------------------------------------------------
  */
 sim_mob::MITSIM_CF_Model::MITSIM_CF_Model()
-	:cftimer(0.0)
+//	:cftimer(0.0)
 {
 	modelName = "general_driver_model";
 	splitDelimiter = " ,";
@@ -408,9 +408,9 @@ double sim_mob::MITSIM_CF_Model::headwayBuffer()
 }
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
-	cftimer -= p.elapsedSeconds;
+//	cftimer -= p.elapsedSeconds;
 	/// if time cftimer >0 , return last calculated acc
-	if(cftimer > sim_mob::Math::DOUBLE_EPSILON)
+	if(p.cftimer > sim_mob::Math::DOUBLE_EPSILON)
 	{
 		return p.lastAcc;
 	}
@@ -471,7 +471,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 
 	p.lastAcc = acc;
 
-	cftimer = calcNextStepSize(p);
+//	p.cftimer = calcNextStepSize(p);
 
 	return acc;
 }
@@ -1037,7 +1037,7 @@ double sim_mob::MITSIM_CF_Model::makeNormalDist(UpdateStepSizeParam& sp)
 	if(v>sp.upper) return sp.upper;
 	return v;
 }
-double sim_mob::MITSIM_CF_Model::calcNextStepSize(DriverUpdateParams& p)
+double sim_mob::CarFollowModel::calcNextStepSize(DriverUpdateParams& p)
 {
 	double accRate_ = p.driver->fwdAccel/100.0;
 	double currentSpeed_ = p.driver->fwdVelocity/100.0;

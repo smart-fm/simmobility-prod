@@ -179,6 +179,20 @@ public:
 	void unsetStatus(unsigned int s);
 
 	unsigned int status;	// current status indicator
+	unsigned int flags;	// additional indicator for internal use
+
+	void toggleFlag(unsigned int flag) {
+	flags ^= flag;
+	}
+	unsigned int flag(unsigned int mask = 0xFFFFFFFF) {
+	return (flags & mask);
+	}
+	void setFlag(unsigned int s) {
+	flags |= s;
+	}
+	void unsetFlag(unsigned int s) {
+	flags &= ~s;
+	}
 
 public:
 #ifndef SIMMOB_DISABLE_MPI

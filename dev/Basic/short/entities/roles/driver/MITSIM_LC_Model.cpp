@@ -632,8 +632,57 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 
 	LANE_CHANGE_SIDE change = LCS_SAME;		// direction to change
 
+	// check lanes connect to next segment
+	checkConnectLanes(p);
 
+	if (checkIfLookAheadEvents(p))
+	{
+		change = checkMandatoryEventLC(p);
+	}
+	else
+	{
+
+	}
 	return change;
+}
+void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)
+{
+	// reset status
+	p.unsetStatus(STATUS_LEFT_OK); p.unsetStatus(STATUS_RIGHT_OK); p.unsetStatus(STATUS_CURRENT_OK);
+	// check current lane has connector to next link
+//	if(p.dis2stop<distanceCheckToChangeLane) // <150m need check above, ready to change lane
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	const RoadSegment* nextSegment = driverMvt->fwdDriverMovement.getNextSegment(false);
+	const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (driverMvt->fwdDriverMovement.getCurrSegment()->getEnd());
+	if(currEndNode)
+	{
+		// get lane connector
+		const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(driverMvt->fwdDriverMovement.getCurrSegment());
+
+		// check lef,right lanes connect to next target segment
+		for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++)
+		{
+			if ( (*it)->getLaneTo()->getRoadSegment() == nextSegment ) // this lc connect to target segment
+			{
+				int laneIdx = getLaneIndex((*it)->getLaneFrom());
+				// lane index 0 start from most left lane of the segment
+				// so lower number in the left, higher number in the right
+				if(laneIdx > p.currLaneIndex)
+				{
+					p.setStatus(STATUS_LEFT_OK);
+				}
+				else if(laneIdx < p.currLaneIndex)
+				{
+					p.setStatus(STATUS_RIGHT_OK);
+				}
+				else if(laneIdx == p.currLaneIndex)
+				{
+					p.setStatus(STATUS_CURRENT_OK);
+				}
+			}// end if = nextsegment
+		}//end for
+	}// end if node
+
 }
 /*
  * In MITSIMLab, vehicle change lane in 1 time step.

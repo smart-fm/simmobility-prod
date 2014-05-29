@@ -128,6 +128,13 @@ public:
 	virtual bool checkIfLookAheadEvents(DriverUpdateParams& p) { return false; }
 	// TODO: add incident code
 	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p) { return LCS_SAME; }
+
+	/**
+	 *  /brief check lanes connect to next segment,set/unset status STATUS_LEFT_OK,STATUS_RIGHT_OK,STATUS_CURRENT_OK
+	 *  /param p vehicle info
+	 */
+	void checkConnectLanes(DriverUpdateParams& p);
+
 	/// model name in xml file tag "parameters"
 	string modelName;
 	// split delimiter in xml param file

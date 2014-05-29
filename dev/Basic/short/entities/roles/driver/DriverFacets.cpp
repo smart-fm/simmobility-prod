@@ -564,98 +564,98 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 			p.dis2stop = DEFAULT_DIS_TO_STOP;//defalut 1000m
 	}
 
-	// check current lane has connector to next link
-	p.isMLC = false;
-	p.unsetStatus(STATUS_LEFT_OK); p.unsetStatus(STATUS_RIGHT_OK);
-	if(p.dis2stop<distanceCheckToChangeLane) // <150m need check above, ready to change lane
-	{
-		p.isMLC = true;
-////		const RoadSegment* currentSegment = vehicle->getCurrSegment();
-		const RoadSegment* nextSegment = fwdDriverMovement.getNextSegment(false);
-		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (fwdDriverMovement.getCurrSegment()->getEnd());
-		if(currEndNode)
-		{
-			// get lane connector
-			const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(fwdDriverMovement.getCurrSegment());
-
-			// check lef,right lanes connect to next target segment
-			for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++)
-			{
-				if ( (*it)->getLaneTo()->getRoadSegment() == nextSegment ) // this lc connect to target segment
-				{
-					int laneIdx = getLaneIndex((*it)->getLaneFrom());
-					if(laneIdx > p.currLaneIndex)
-					{
-						p.setStatus(STATUS_LEFT_OK);
-					}
-					else if(laneIdx < p.currLaneIndex)
-					{
-						p.setStatus(STATUS_RIGHT_OK);
-					}
-				}
-			}
-
-			if (lcs.size()>0)
-			{
-				//
-				if(p.currLane->is_pedestrian_lane()) {
-					//if can different DEBUG or RELEASE mode, that will be perfect, but now comment it out, so that does nor affect performance.
-					//I remember the message is not critical
-					WarnOut("drive on pedestrian lane");
-				}
-				bool currentLaneConnectToNextLink = false;
-				int targetLaneIndex=p.currLaneIndex;
-				std::map<int,vector<int> > indexes;
-				std::set<int> noData;
-
-				for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
-					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom() == p.currLane) {
-						// current lane connect to next link
-						currentLaneConnectToNextLink = true;
-						p.isTargetLane = true;
-						p.nextLaneIndex = p.currLaneIndex;
-						break;
-					}
-					//find target lane with same index, use this lane
-					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment)
-					{
-						targetLaneIndex = getLaneIndex((*it)->getLaneFrom());
-					}
-				}
-				if( currentLaneConnectToNextLink == false ) // wow! we need change lane
-				{
-					//check target lane first
-//					if(targetLaneIndex == -1) // no target lane?
+//	// check current lane has connector to next link
+//	p.isMLC = false;
+//	p.unsetStatus(STATUS_LEFT_OK); p.unsetStatus(STATUS_RIGHT_OK);
+//	if(p.dis2stop<distanceCheckToChangeLane) // <150m need check above, ready to change lane
+//	{
+//		p.isMLC = true;
+//////		const RoadSegment* currentSegment = vehicle->getCurrSegment();
+//		const RoadSegment* nextSegment = fwdDriverMovement.getNextSegment(false);
+//		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (fwdDriverMovement.getCurrSegment()->getEnd());
+//		if(currEndNode)
+//		{
+//			// get lane connector
+//			const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(fwdDriverMovement.getCurrSegment());
+//
+//			// check lef,right lanes connect to next target segment
+//			for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++)
+//			{
+//				if ( (*it)->getLaneTo()->getRoadSegment() == nextSegment ) // this lc connect to target segment
+//				{
+//					int laneIdx = getLaneIndex((*it)->getLaneFrom());
+//					if(laneIdx > p.currLaneIndex)
 //					{
-//						p.nextLaneIndex = p.currLaneIndex;
-////						std::cout<<"Driver::linkDriving: can't find target lane!"<<std::endl;
+//						p.setStatus(STATUS_LEFT_OK);
 //					}
-//					else
-
-					p.isTargetLane = false;
-					p.nextLaneIndex = targetLaneIndex;
-					//NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
-					MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
-					if (mitsim_lc_model) {
-						LANE_CHANGE_SIDE lcs = LCS_SAME;
+//					else if(laneIdx < p.currLaneIndex)
+//					{
+//						p.setStatus(STATUS_RIGHT_OK);
+//					}
+//				}
+//			}
+//
+//			if (lcs.size()>0)
+//			{
+//				//
+//				if(p.currLane->is_pedestrian_lane()) {
+//					//if can different DEBUG or RELEASE mode, that will be perfect, but now comment it out, so that does nor affect performance.
+//					//I remember the message is not critical
+//					WarnOut("drive on pedestrian lane");
+//				}
+//				bool currentLaneConnectToNextLink = false;
+//				int targetLaneIndex=p.currLaneIndex;
+//				std::map<int,vector<int> > indexes;
+//				std::set<int> noData;
+//
+//				for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
+//					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom() == p.currLane) {
+//						// current lane connect to next link
+//						currentLaneConnectToNextLink = true;
+//						p.isTargetLane = true;
+//						p.nextLaneIndex = p.currLaneIndex;
+//						break;
+//					}
+//					//find target lane with same index, use this lane
+//					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment)
+//					{
+//						targetLaneIndex = getLaneIndex((*it)->getLaneFrom());
+//					}
+//				}
+//				if( currentLaneConnectToNextLink == false ) // wow! we need change lane
+//				{
+//					//check target lane first
+////					if(targetLaneIndex == -1) // no target lane?
+////					{
+////						p.nextLaneIndex = p.currLaneIndex;
+//////						std::cout<<"Driver::linkDriving: can't find target lane!"<<std::endl;
+////					}
+////					else
+//
+//					p.isTargetLane = false;
+//					p.nextLaneIndex = targetLaneIndex;
+//					//NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
+//					MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
+//					if (mitsim_lc_model) {
+//						LANE_CHANGE_SIDE lcs = LCS_SAME;
+////						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
 //						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
-						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
-						parentDriver->vehicle->setTurningDirection(lcs);
-						p.isMLC = true;
-					} else {
-						throw std::runtime_error("TODO: BusDrivers currently require the MITSIM lc model.");
-					}
-				}
-			} // end of if (!lcs)
-		}
-	}
+//						parentDriver->vehicle->setTurningDirection(lcs);
+//						p.isMLC = true;
+//					} else {
+//						throw std::runtime_error("TODO: BusDrivers currently require the MITSIM lc model.");
+//					}
+//				}
+//			} // end of if (!lcs)
+//		}
+//	}
 
-	if(fmodPerformer.performFmodSchedule(parentDriver, p)){
-		parentDriver->vehicle->setAcceleration(0);
-		parentDriver->vehicle->setVelocity(0);
-		p.currSpeed = parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT_UNIT;
-		return updatePositionOnLink(p);
-	}
+//	if(fmodPerformer.performFmodSchedule(parentDriver, p)){
+//		parentDriver->vehicle->setAcceleration(0);
+//		parentDriver->vehicle->setVelocity(0);
+//		p.currSpeed = parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT_UNIT;
+//		return updatePositionOnLink(p);
+//	}
 
 
 	//check incident status and decide whether or not do lane changing

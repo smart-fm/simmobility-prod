@@ -729,20 +729,26 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 				std::cout << "from stop: " << it->tmp_fromLocationNodeID << " to stop: " << it->tmp_toLocationNodeID << std::endl;
 			}
 			//check nodes
-			if(nodes_.count(it->tmp_fromLocationNodeID)==0) {
-				std::cout<< "Invalid trip chain fromNode reference."<<std::endl;
-				//throw std::runtime_error("Invalid trip chain fromNode reference.");
-				continue;
-			}
-			if(nodes_.count(it->tmp_toLocationNodeID)==0) {
-				std::cout<< "Invalid trip chain toNode reference."<<std::endl;
-				//throw std::runtime_error("Invalid trip chain toNode reference.");
-				continue;
+			if (it->fromLocationType == sim_mob::TripChainItem::LT_NODE) {
+				if (nodes_.count(it->tmp_fromLocationNodeID) == 0) {
+					std::cout << "Invalid trip chain fromNode reference."<< std::endl;
+					//throw std::runtime_error("Invalid trip chain fromNode reference.");
+					continue;
+				} else {
+					it->fromLocation = &nodes_[it->tmp_fromLocationNodeID];
+				}
 			}
 
-			//Note: Make sure not to resize the Node map after referencing its elements.
-			it->fromLocation = &nodes_[it->tmp_fromLocationNodeID];
-			it->toLocation = &nodes_[it->tmp_toLocationNodeID];
+			if (it->toLocationType == sim_mob::TripChainItem::LT_NODE) {
+				if (nodes_.count(it->tmp_toLocationNodeID) == 0) {
+					std::cout << "Invalid trip chain toNode reference."<< std::endl;
+					//throw std::runtime_error("Invalid trip chain toNode reference.");
+					continue;
+				} else {
+					it->toLocation = &nodes_[it->tmp_toLocationNodeID];
+				}
+			}
+
 		} else if(it->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
 			//Set end time and location.
 			it->endTime = sim_mob::DailyTime(it->tmp_endTime);
@@ -1245,7 +1251,7 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	tripToSave->setPersonID(tcItem.personID);
 	tripToSave->itemType = tcItem.itemType;
 	tripToSave->sequenceNumber = tcItem.sequenceNumber;
-	if(tcItem.fromLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP) {
+	if(tcItem.tripfromLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP) {
 		std::string fromStop_no = boost::lexical_cast<std::string>(tcItem.tmp_fromLocationNodeID);
 		sim_mob::BusStop* fromBusStop = config.getBusStopNo_BusStops()[fromStop_no];
 		if(fromBusStop) {
@@ -1256,7 +1262,7 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	} else {
 		tripToSave->fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
 	}
-	tripToSave->fromLocationType = tcItem.fromLocationType;
+	tripToSave->fromLocationType = tcItem.tripfromLocationType;
 	tripToSave->startTime = tcItem.startTime;
 	return tripToSave;
 }

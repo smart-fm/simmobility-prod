@@ -195,6 +195,9 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person) {
 	if( afterUpdate.role->roleType == sim_mob::Role::RL_PEDESTRIAN ) {
 		return;
 	}
+	else if(afterUpdate.role->roleType == sim_mob::Role::RL_WAITBUSACTITITY) {
+		return;
+	}
 	else if(afterUpdate.role->roleType == sim_mob::Role::RL_ACTIVITY) {
 		// if role is ActivityPerformer after update
 		if (beforeUpdate.role && beforeUpdate.role->roleType == sim_mob::Role::RL_ACTIVITY) {
@@ -738,6 +741,15 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 					&& personRole->roleType == Role::RL_PEDESTRIAN) {
 				return retVal;
 			}
+			else if(personRole && retVal.status==UpdateStatus::RS_CONTINUE
+					&& personRole->roleType==Role::RL_WAITBUSACTITITY) {
+				assignPersonToBusStopAgent(person);
+				PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
+				if(pIt!=pedestrianList.end()){
+					pedestrianList.erase(pIt);
+				}
+				return retVal;
+			}
 
 			//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
 			person->setStartTime(now.ms());
@@ -1155,7 +1167,7 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 	std::string role = rf.GetTripChainMode(firstItem);
 
-	StreetDirectory& stdir = StreetDirectory::instance();
+	StreetDirectory& streetDirectory = StreetDirectory::instance();
 
 	std::vector<WayPoint> path;
 	const sim_mob::RoadSegment* rdSeg = nullptr;
@@ -1166,11 +1178,28 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 	else{
 		if (role == "driver") {
 			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*firstSubTrip.fromLocation.node_), stdir.DrivingVertex(*firstSubTrip.toLocation.node_));
+			path = streetDirectory.SearchShortestDrivingPath(streetDirectory.DrivingVertex(*firstSubTrip.fromLocation.node_), streetDirectory.DrivingVertex(*firstSubTrip.toLocation.node_));
 		}
 		else if (role == "pedestrian") {
-			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*firstSubTrip.fromLocation.node_), stdir.DrivingVertex(*firstSubTrip.toLocation.node_));
+			StreetDirectory::VertexDesc source, destination;
+			const sim_mob::SubTrip firstSubTrip =
+					dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
+			if (firstSubTrip.fromLocation.type_ == WayPoint::NODE) {
+				source = streetDirectory.DrivingVertex(
+						*firstSubTrip.fromLocation.node_);
+			} else if (firstSubTrip.fromLocation.type_ == WayPoint::BUS_STOP) {
+				const Node* node = firstSubTrip.fromLocation.busStop_->getParentSegment()->getEnd();
+				source = streetDirectory.DrivingVertex(*node);
+			}
+
+			if (firstSubTrip.toLocation.type_ == WayPoint::NODE) {
+				destination = streetDirectory.DrivingVertex(
+						*firstSubTrip.toLocation.node_);
+			} else if (firstSubTrip.toLocation.type_ == WayPoint::BUS_STOP) {
+				const Node* node = firstSubTrip.toLocation.busStop_->getParentSegment()->getEnd();
+				destination = streetDirectory.DrivingVertex(*node);
+			}
+			path = streetDirectory.SearchShortestDrivingPath(source, destination);
 		}
 		else if (role == "busdriver") {
 			//throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");

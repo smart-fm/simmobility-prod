@@ -40,6 +40,11 @@ public:
 	 */
 	void updateNextStop();
 
+	/**
+	 * print bus route information
+	 */
+	void printBusRoue();
+
 private:
 	/**
 	 * iterator to the vector of bus stops representing the next stop for the

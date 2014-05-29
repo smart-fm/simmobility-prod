@@ -28,7 +28,6 @@ void initSegStatsPath(const vector<const sim_mob::RoadSegment*>& rsPath,
 		const vector<sim_mob::SegmentStats*>& statsInSegment =
 				rdSeg->getParentConflux()->findSegStats(rdSeg);
 		ssPath.insert(ssPath.end(), statsInSegment.begin(), statsInSegment.end());
-		std::cout << "road segment id is : " << rdSeg->getSegmentAimsunId() << std::endl;
 	}
 }
 
@@ -197,6 +196,8 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 		person->setCurrSegStats(firstSegStat);
 		person->setCurrLane(firstSegStat->laneInfinity);
 		person->distanceToEndOfSegment = firstSegStat->getLength();
+
+		routeTracker.printBusRoue();
 	}
 
 	//to indicate that the path to next activity is already planned
@@ -287,5 +288,21 @@ void BusRouteTracker::updateNextStop() {
 	nextStopIt++;
 }
 
+void BusRouteTracker::printBusRoue(){
+	const vector<const sim_mob::RoadSegment*>& rsPath = getRoadSegments();
+	std::cout<< "bus line is : "<< this->busRouteId << std::endl;
+	std::cout<< "segments' size of bus trip is "<< rsPath.size() << std::endl;
+	for (vector<const sim_mob::RoadSegment*>::const_iterator it = rsPath.begin();
+			it != rsPath.end(); it++) {
+		const sim_mob::RoadSegment* rdSeg = *it;
+		std::cout<< rdSeg->getSegmentAimsunId() << std::endl;
+	}
+	const vector<const sim_mob::BusStop*>& stops = this->getBusStops();
+	std::cout<< "stops' size of bus trip is "<< stops.size() << std::endl;
+	for (vector<const sim_mob::BusStop*>::const_iterator it = stops.begin();
+			it != stops.end(); it++) {
+		std::cout<< (*it)->busstopno_ << std::endl;
+	}
+}
 }
 }

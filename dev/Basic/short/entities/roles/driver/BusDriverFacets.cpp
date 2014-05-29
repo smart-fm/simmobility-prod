@@ -743,7 +743,7 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 			boardingNum = bus->getBusCapacity();// cut
 		}
 		for(j = 0; j < boardingNum; j++) {// extract person characteristics and calculate the corresponding boarding frames
-			Person* p = dynamic_cast<Person*>(boarding_waitBusActivities[BoardingNumPos[j]]->getParent());
+			Person* p = boarding_waitBusActivities[BoardingNumPos[j]]->getParent();
 			if(p) {
 				boardingMS += (p->getBoardingCharacteristics()*1000);// multiplied by 1000 to transfer to ms
 				accumulatedBoardingMS += (p->getBoardingCharacteristics()*1000);// multiplied by 1000 to transfer to ms

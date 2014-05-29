@@ -9,7 +9,7 @@
 #include <iostream>
 #include <limits>
 
-#include "entities/Agent.hpp"
+#include "entities/Person.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/aimsun/Lane.hpp"
 #include "geospatial/aimsun/Node.hpp"
@@ -594,6 +594,12 @@ sim_mob::DPoint sim_mob::get_distarg(const sim_mob::Point2D& item)
 
 template <>
 sim_mob::DPoint sim_mob::get_distarg(const sim_mob::Agent& item)
+{
+	return sim_mob::DPoint(item.xPos.get(), item.yPos.get());
+}
+
+template <>
+sim_mob::DPoint sim_mob::get_distarg(const sim_mob::Person& item)
 {
 	return sim_mob::DPoint(item.xPos.get(), item.yPos.get());
 }

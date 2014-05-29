@@ -320,9 +320,9 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 		//we have to make adjustments so that it waits for exact amount of time
 		if(currTripChainItem != tripChain.end()) {
 			if((*currTripChainItem)) {// if currTripChain not end and has value, call frame_init and switching roles
-				if(isCallFrameInit()) {
+				if(!isInitialized()) {
 					currRole->Movement()->frame_init();
-					setCallFrameInit(false);// set to be false so later no need to frame_init later
+					setInitialized(true);// set to be false so later no need to frame_init later
 				}
 			}
 			if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {

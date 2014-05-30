@@ -553,6 +553,9 @@ sim_mob::MITSIM_LC_Model::MITSIM_LC_Model()
 {
 	modelName = "general_driver_model";
 	splitDelimiter = " ,";
+
+	lcTimeTag = 0;
+
 	initParam();
 }
 void sim_mob::MITSIM_LC_Model::initParam()
@@ -589,6 +592,10 @@ void sim_mob::MITSIM_LC_Model::initParam()
 	ParameterManager::Instance()->param(modelName,"GAP_PARAM_2",str,string("-0.772, -0.482, 0.224, -0.0179, 2.10, 0.675"));
 	strArray.push_back(str);
 	makeTargetGapPram(strArray);
+	// min speed
+	ParameterManager::Instance()->param(modelName,"min_speed",minSpeed,0.1);
+	// minimum time in lane
+	ParameterManager::Instance()->param(modelName,"minimum_time_in_lane",mlcMinTimeInLane, 1.0);
 }
 void sim_mob::MITSIM_LC_Model::makeMCLParam(std::string& str)
 {
@@ -620,30 +627,63 @@ void sim_mob::MITSIM_LC_Model::makeTargetGapPram(std::vector< std::string >& str
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdateParams& p)
 {
+	// if in the middle of lc , shall not reach here
 	if(p.cftimer > sim_mob::Math::DOUBLE_EPSILON)
 	{
-		return p.lastDecision;
+		return LCS_SAME;
 	}
 
-	if(p.perceivedFwdVelocity/100 < sim_mob::Math::DOUBLE_EPSILON)
+	if(p.perceivedFwdVelocity/100 < minSpeed)
 	{
-		return p.lastDecision;
+		return LCS_SAME;
+	}
+
+	if (timeSinceTagged(p) < mlcMinTimeInLane)
+	{
+		return LCS_SAME;
 	}
 
 	LANE_CHANGE_SIDE change = LCS_SAME;		// direction to change
 
-	// check lanes connect to next segment
-	checkConnectLanes(p);
-
-	if (checkIfLookAheadEvents(p))
-	{
-		change = checkMandatoryEventLC(p);
+	if (!path(p)) {
+		//TODO handle re-route
 	}
 	else
 	{
+		// check lanes connect to next segment
+		checkConnectLanes(p);
 
+		if (checkIfLookAheadEvents(p))
+		{
+			change = checkMandatoryEventLC(p);
+		}
+		else
+		{
+
+		}
 	}
 	return change;
+}
+double sim_mob::MITSIM_LC_Model::timeSinceTagged(DriverUpdateParams& p)
+{
+	double currentTime = p.now.ms();
+	double t = currentTime = lcTimeTag;
+	return t;
+}
+bool sim_mob::MITSIM_LC_Model::path(DriverUpdateParams& p)
+{
+	// as current vehicle always has path
+	return true;
+}
+bool sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
+{
+	// TODO: check event ,like incident
+	return false;
+}
+LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdateParams& p)
+{
+	// TODO: handle event ,like incident
+	return LCS_SAME;
 }
 void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)
 {

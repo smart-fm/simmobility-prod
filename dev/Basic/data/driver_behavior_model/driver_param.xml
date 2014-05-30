@@ -87,5 +87,14 @@
 <param name="GAP_PARAM_0" value="-1.23, -0.482, 0.224, -0.0179, 2.10, 0.239"/>   #back
 <param name="GAP_PARAM_1" value="0.00,   0.00,  0.224, -0.0179, 2.10, 0.000"/>   #adj
 <param name="GAP_PARAM_2" value="-0.772, -0.482, 0.224, -0.0179, 2.10, 0.675"/>   #fwd
+
+# minimum speed to consider for a moving vehicle m/s
+<param name="min_speed" value="0.1"/>
+
+# Probability of starting a mandatory lane change or stay in correct
+# lane
+
+#LC Mandatory Probability Model
+<param name="minimum_time_in_lane" value="1.0"/>
 </parameters>
 

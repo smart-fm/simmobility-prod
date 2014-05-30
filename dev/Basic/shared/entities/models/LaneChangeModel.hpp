@@ -124,10 +124,16 @@ public:
 	 *--------------------------------------------------------------------
 	 **/
 	LANE_CHANGE_SIDE makeLaneChangingDecision(DriverUpdateParams& p);
+	/**
+	 *  /brief check if has path
+	 *  /param p vehicle info
+	 *  /return true if has path, false if not
+	 */
+	bool path(DriverUpdateParams& p);
 	// TODO: add incident code
-	virtual bool checkIfLookAheadEvents(DriverUpdateParams& p) { return false; }
+	virtual bool checkIfLookAheadEvents(DriverUpdateParams& p);
 	// TODO: add incident code
-	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p) { return LCS_SAME; }
+	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p);
 
 	/**
 	 *  /brief check lanes connect to next segment,set/unset status STATUS_LEFT_OK,STATUS_RIGHT_OK,STATUS_CURRENT_OK
@@ -141,6 +147,11 @@ public:
 	string splitDelimiter;
 
 	MandLaneChgParam MLC_PARAMETERS;
+
+	double minSpeed; // minimum speed to consider for a moving vehicle
+	double mlcMinTimeInLane;  // minimum time in lane , seconds
+	double lcTimeTag;		// time changed lane , ms
+	double timeSinceTagged(DriverUpdateParams& p);
 	/**
 	 *  /brief extract mcl paramteter from string, like "1320.0  5280.0 0.5 1.0  1.0"
 	 *  /param text string

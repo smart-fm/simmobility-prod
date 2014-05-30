@@ -81,52 +81,5 @@ public:
 ////	PublicTransportStreetDirectory::publicTransportGraphEdge* ptGraphEdge;
 //};
 
-/*
-ThreadPool class manages all the ThreadPool related activities. This includes keeping track of idle threads and ynchronizations between all threads.
-*/
-class PathSetThreadPool{
-public:
-	PathSetThreadPool();
-	PathSetThreadPool(int maxThreadsTemp);
-    virtual ~PathSetThreadPool();
-
-        void destroyPool(int maxPollSecs = 2);
-
-    bool assignWork(PathSetWorkerThread *worker);
-    bool fetchWork(PathSetWorkerThread **worker);
-
-        void initializeThreads();
-
-    static void *threadExecute(void *param);
-
-    PathSetWorkerThread* getWorker();
-    void initWorkerIndex();
-
-    static pthread_mutex_t mutexSync;
-    static pthread_mutex_t mutexWorkCompletion;
-
-
-public:
-    int maxThreads;
-
-    pthread_cond_t  condCrit;
-    sem_t availableWork;
-    sem_t availableThreads;
-
-    //WorkerThread ** workerQueue;
-    vector<PathSetWorkerThread *> workerQueue;
-
-    int topIndex;
-    int bottomIndex;
-
-    int incompleteWork;
-
-
-    int queueSize;
-
-    std::vector<PathSetWorkerThread*> workerPool;
-    int workerIndex;
-
-};
 }
 #endif /* PATHSETTHREADPOOL_H_ */

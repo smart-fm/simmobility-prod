@@ -270,10 +270,9 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
 	currSegStat->printBusStops();
 	const BusStop* nextStop = routeTracker.getNextStop();
-	Print() << "BusDriver's next stop: " << nextStop->getBusstopno_() << std::endl;
 	if(nextStop && currSegStat->hasBusStop(nextStop))
 	{
-		//send bus arrival message
+		Print() << "BusDriver's next stop: " << nextStop->getBusstopno_() << std::endl;
 		BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(nextStop);
 		if(stopAg)
 		{

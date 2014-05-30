@@ -125,6 +125,15 @@ public:
 	 **/
 	LANE_CHANGE_SIDE makeLaneChangingDecision(DriverUpdateParams& p);
 	/**
+	 *  /brief this function gives the LC direction when the driver is
+	 *         constrained by the lookahead
+	 *  /param p vehicle info
+	 *  /return turn direction
+	 */
+
+	std::vector<double> mlcParams;
+	LANE_CHANGE_SIDE checkForLookAheadLC(DriverUpdateParams& p);
+	/**
 	 *  /brief check if has path
 	 *  /param p vehicle info
 	 *  /return true if has path, false if not
@@ -149,9 +158,17 @@ public:
 	MandLaneChgParam MLC_PARAMETERS;
 
 	double minSpeed; // minimum speed to consider for a moving vehicle
-	double mlcMinTimeInLane;  // minimum time in lane , seconds
+//	double mlcMinTimeInLane;  // minimum time in lane , seconds
 	double lcTimeTag;		// time changed lane , ms
 	double timeSinceTagged(DriverUpdateParams& p);
+
+	double lookAheadDistance;
+
+	/**
+	 *  /brief mlc distance for lookahead vehicles
+	 *  /return lookahead distance
+	 */
+	double mlcDistance();
 	/**
 	 *  /brief extract mcl paramteter from string, like "1320.0  5280.0 0.5 1.0  1.0"
 	 *  /param text string

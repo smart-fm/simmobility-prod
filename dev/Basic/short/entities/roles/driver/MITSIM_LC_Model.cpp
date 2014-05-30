@@ -594,8 +594,11 @@ void sim_mob::MITSIM_LC_Model::initParam()
 	makeTargetGapPram(strArray);
 	// min speed
 	ParameterManager::Instance()->param(modelName,"min_speed",minSpeed,0.1);
-	// minimum time in lane
-	ParameterManager::Instance()->param(modelName,"minimum_time_in_lane",mlcMinTimeInLane, 1.0);
+	// LC Mandatory Probability Model
+	ParameterManager::Instance()->param(modelName,"mlc_params",str,string("132.0  528.0   0.5  1.0 1.0"));
+
+	// driver look ahead distancd
+	lookAheadDistance = mlcDistance();
 }
 void sim_mob::MITSIM_LC_Model::makeMCLParam(std::string& str)
 {
@@ -606,6 +609,7 @@ void sim_mob::MITSIM_LC_Model::makeMCLParam(std::string& str)
 	MLC_PARAMETERS.lane_coeff = array[2];
 	MLC_PARAMETERS.congest_coeff = array[3];
 	MLC_PARAMETERS.lane_mintime = array[4];
+
 }
 void sim_mob::MITSIM_LC_Model::makeCtriticalGapParam(std::vector< std::string >& strMatrix)
 {
@@ -625,6 +629,17 @@ void sim_mob::MITSIM_LC_Model::makeTargetGapPram(std::vector< std::string >& str
 		GAP_PARAM.push_back(array);
 	}
 }
+LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParams& p)
+{
+
+}
+double sim_mob::MITSIM_LC_Model::mlcDistance()
+{
+	double n = Utils::generateFloat(0,1.0);
+//	float dis = mlcParams[0] + n*(mlcParams_[1] - mlcParams_[0]);
+	double dis = MLC_PARAMETERS.feet_lowbound + n*(MLC_PARAMETERS.feet_delta - MLC_PARAMETERS.feet_lowbound);
+	return dis;
+}
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdateParams& p)
 {
 	// if in the middle of lc , shall not reach here
@@ -638,7 +653,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 		return LCS_SAME;
 	}
 
-	if (timeSinceTagged(p) < mlcMinTimeInLane)
+	if (timeSinceTagged(p) < MLC_PARAMETERS.lane_mintime)
 	{
 		return LCS_SAME;
 	}
@@ -659,8 +674,18 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 		}
 		else
 		{
-
+			change = checkForLookAheadLC(p);
 		}
+	}
+
+	if (change == LCS_LEFT) {		// to left
+		p.unsetStatus(STATUS_CHANGING);
+		p.setStatus(STATUS_LEFT);
+	} else if (change == LCS_RIGHT) {	// to right
+		p.unsetStatus(STATUS_CHANGING);
+		p.setStatus(STATUS_RIGHT);
+	} else {
+		p.unsetStatus(STATUS_CHANGING);
 	}
 	return change;
 }

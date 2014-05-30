@@ -68,6 +68,17 @@
 
 #lane change model parameters
 
+
+
+#LC Mandatory Probability Model
+
+#[LC Mandatory Probability Model] = {
+#	1320.0	# feet, lower bound 
+#        5280.0	# feet, delta    
+#	   0.5	# coef for number of lanes
+#	   1.0	# coef for congestion level
+#	   1.0	# minimum time in lane
+#}
 #                                 lower bound(ft)   delta(ft)    coef for number of lanes    coef for congestion level   minimum time in lane
 <param name="MLC_PARAMETERS" value="1320.0              5280.0         0.5                         1.0                             1.0"/>
 
@@ -91,10 +102,6 @@
 # minimum speed to consider for a moving vehicle m/s
 <param name="min_speed" value="0.1"/>
 
-# Probability of starting a mandatory lane change or stay in correct
-# lane
 
-#LC Mandatory Probability Model
-<param name="minimum_time_in_lane" value="1.0"/>
 </parameters>
 

@@ -43,7 +43,6 @@ class Link_travel_time;
 class DatabaseLoader2;
 class K_ShortestPathImpl;
 class Link;
-class PathSetThreadPool;
 namespace batched {
 class ThreadPool;
 }
@@ -356,7 +355,6 @@ public:
 private:
 	static PathSetManager *instance_;
 	StreetDirectory* stdir;
-	PathSetThreadPool *threadPool;
 	const sim_mob::RoadNetwork* roadNetwork;
 	std::vector<sim_mob::MultiNode*> multiNodesPool; //store all multi nodes in the map
 	std::set<sim_mob::UniNode*> uniNodesPool; // store all uni nodes

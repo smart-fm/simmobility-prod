@@ -1206,8 +1206,6 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 	out << "TRAVEL_TIME:" << getTravelTime_Profiler.endProfiling() << std::endl;
 	personProfiler.addOutPut(out);
 
-//	threadPool->initWorkerIndex();
-
 	// SHORTEST DISTANCE LINK ELIMINATION
 	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
 	Profiler shortestDistanceLinkElimination_Profiler(true);//start the profiler
@@ -1223,7 +1221,6 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 		WayPoint *w = ps->oriPath->shortestWayPointpath[i];
 		if (w->type_ == WayPoint::ROAD_SEGMENT && l != w->roadSegment_->getLink()) {
 			const sim_mob::RoadSegment* seg = w->roadSegment_;
-//			PathSetWorkerThread *work = threadPool->getWorker();
 			PathSetWorkerThread * work = new PathSetWorkerThread();
 			//introducing the profiling time accumulator
 			//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
@@ -1240,18 +1237,13 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 //			work->s = NULL;
 			work->s->clear();
 			work->ps = ps;
-//			threadPool->assignWork(work);
 			threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
 			workPool.push_back(work);
 		} //ROAD_SEGMENT
 	}
 
 	if(serialPathSetGroup){
-		while(threadPool->incompleteWork > 0)
-		{
-			//		std::cout<<"incompleteWork: "<<threadPool->incompleteWork<<std::endl;
-			usleep(0.01);
-		}
+		threadpool_->wait();
 	}
 	//kep your own ending time
 	shortestDistanceLinkElimination_Profiler.addToTotalTime(shortestDistanceLinkElimination_Profiler.endProfiling());
@@ -1274,7 +1266,6 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 			if (w->type_ == WayPoint::ROAD_SEGMENT && l != w->roadSegment_->getLink()) {
 				const sim_mob::RoadSegment* seg = w->roadSegment_;
 				PathSetWorkerThread *work = new PathSetWorkerThread();
-//				PathSetWorkerThread *work = threadPool->getWorker();
 				//introducing the profiling time accumulator
 				//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
 				if(serialPathSetGroup){
@@ -1291,18 +1282,13 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 				work->s->clear();
 				work->ps = ps;
 				threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
-//				threadPool->assignWork(work);
 				workPool.push_back(work);
 			} //ROAD_SEGMENT
 		}//for
 	}//if sinPathTravelTimeDefault
 
 	if(serialPathSetGroup){
-		while(threadPool->incompleteWork > 0)
-		{
-			//		std::cout<<"incompleteWork: "<<threadPool->incompleteWork<<std::endl;
-			usleep(0.01);
-		}
+		threadpool_->wait();
 	}
 	shortestTravelTimeLinkElimination_Profiler.addToTotalTime(shortestTravelTimeLinkElimination_Profiler.endProfiling());
 	// TRAVEL TIME HIGHWAY BIAS
@@ -1322,7 +1308,6 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 			if (w->type_ == WayPoint::ROAD_SEGMENT && l != w->roadSegment_->getLink()) {
 				const sim_mob::RoadSegment* seg = w->roadSegment_;
 				PathSetWorkerThread *work = new PathSetWorkerThread();
-//				PathSetWorkerThread *work = threadPool->getWorker();
 				//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
 				//introducing the profiling time accumulator
 				if(serialPathSetGroup){
@@ -1338,18 +1323,13 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 				work->s->clear();
 //				work->s = NULL;
 				work->ps = ps;
-//				threadPool->assignWork(work);
 				threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
 				workPool.push_back(work);
 			} //ROAD_SEGMENT
 		}//for
 	}//if sinPathTravelTimeDefault
 	if(serialPathSetGroup){
-		while(threadPool->incompleteWork > 0)
-		{
-			//		std::cout<<"incompleteWork: "<<threadPool->incompleteWork<<std::endl;
-			usleep(0.01);
-		}
+		threadpool_->wait();
 	}
 	shortestTravelTimeLinkEliminationHighwayBias_Profiler.addToTotalTime(shortestTravelTimeLinkEliminationHighwayBias_Profiler.endProfiling());
 	// generate random path
@@ -1361,7 +1341,6 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 		fromV = &from.source;
 		toV = &to.sink;
 		PathSetWorkerThread *work = new PathSetWorkerThread();
-//		PathSetWorkerThread *work = threadPool->getWorker();
 		//introducing the profiling time accumulator
 		//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
 		if(serialPathSetGroup){
@@ -1378,16 +1357,9 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 		work->s->clear();
 		work->ps = ps;
 		threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
-//		threadPool->assignWork(work);
 		workPool.push_back(work);
 	}
-//	//this MUST wait
-//	while(threadPool->incompleteWork > 0)
-//	{
-//		//		std::cout<<"incompleteWork: "<<threadPool->incompleteWork<<std::endl;
-//		usleep(0.01);
-//	}
-	Print()<< "WAITING FOR THREAPOOL TO END" << std::endl;
+	//WAITING FOR THREAPOOL TO END HERE
 	threadpool_->wait();
 	randomPath_Profiler.addToTotalTime(randomPath_Profiler.endProfiling());
 	//now that all the threads have concluded, get the total times
@@ -1396,7 +1368,6 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 	out << "SHORTEST_TRAVEL_TIME_LE:" << shortestTravelTimeLinkElimination_Profiler.getTotalTime() << std::endl;
 	out << "SHORTEST_TRAVEL_TIME_LE_HIGHWAY_BIAS:" << shortestTravelTimeLinkEliminationHighwayBias_Profiler.getTotalTime() << std::endl;
 	out << "RANDOM_PATH:" << randomPath_Profiler.getTotalTime() << std::endl;
-	//Print() << "Adding dump: " << out.str() << std::endl;
 	personProfiler.addOutPut(out);
 	ps->SinglePathPool.insert(std::make_pair(ps->oriPath->id,ps->oriPath));
 	for(int i=0;i<workPool.size();++i)
@@ -1407,39 +1378,11 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 			if(it==ps->SinglePathPool.end())
 			{
 				// this sp not store before
-//				std::cout<<"thread get path size: "<<workPool[i]->s->shortestWayPointpath.size()
-//						<<" "<<workPool[i]->s<<std::endl;
 				ps->SinglePathPool.insert(std::make_pair(workPool[i]->s->id,workPool[i]->s));
-//				workPool[i]->s = NULL;
 			}
-//			else
-//			{
-//				// already has same path stored,delete
-//				delete workPool[i]->s;
-//				workPool[i]->s = NULL;
-//			}
 		}
-//		else
-//		{
-//			std::cout<<"thread get path size: no"<<std::endl;
-//		}
 	}
 	return true;
-//	for(int i=0;i<threadPool.size();++i)
-//	{
-//		pthread_join(threadPool[i],NULL);
-//	}
-//	for(int i=0;i<threadArgPool.size();++i)
-//	{
-//		if(threadArgPool[i]->s)
-//		{
-//			std::cout<<"thread get path size: "<<threadArgPool[i]->s->shortestWayPointpath.size()<<std::endl;
-//		}
-//		else
-//		{
-//			std::cout<<"thread get path size: no"<<std::endl;
-//		}
-//	}
 }
 void sim_mob::PathSetManager::generatePathesByLinkElimination(std::vector<WayPoint*>& path,
 			std::map<std::string,SinglePath*>& wp_spPool,

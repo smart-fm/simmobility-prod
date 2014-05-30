@@ -26,8 +26,9 @@ public:
 	template<class F>
 	void enqueue(F f);
 	~ThreadPool();
-private:
+protected:
 	boost::asio::io_service io_service;
+private:
 	boost::shared_ptr<boost::asio::io_service::work> work;
 	boost::thread_group threads;
 };
@@ -107,7 +108,7 @@ private:
 	boost::mutex mutex_;
 	boost::condition_variable cond;
 	///number of taks posted to the thread pool
-	size_t nTasks;
+	int nTasks;
 	/**
 	 * wrapper class that run the assigned function(through enqueue) and then notifies that the thread has concluded its currently assigned job
 	 * @param f is the assigned tasks inputted to this method using a tuple.
@@ -118,7 +119,7 @@ private:
 };
 
 // the constructor just launches some amount of workers
-ThreadPool::ThreadPool(size_t nThreads) :sim_mob::ThreadPool(nThreads){
+ThreadPool::ThreadPool(size_t nThreads) :sim_mob::ThreadPool(nThreads),nTasks(0){
 }
 // add new work item to the pool
 template<class F>

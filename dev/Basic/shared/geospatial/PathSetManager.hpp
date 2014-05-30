@@ -25,7 +25,6 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "util/Profiler.hpp"
-
 #include "soci.h"
 #include "soci-postgresql.h"
 
@@ -45,7 +44,9 @@ class DatabaseLoader2;
 class K_ShortestPathImpl;
 class Link;
 class PathSetThreadPool;
-
+namespace batched {
+class ThreadPool;
+}
 class PathSetDBLoader
 {
 public:
@@ -228,6 +229,7 @@ public:
 
 
 	static sim_mob::Profiler profiler;
+	sim_mob::batched::ThreadPool *threadpool_;
 public:
 	bool generateAllPathSetWithTripChain();
 	bool generateAllPathSetWithTripChain2();

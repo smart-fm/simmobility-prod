@@ -37,7 +37,6 @@ BusStopAgent* BusStopAgent::findBusStopAgentByBusStop(const BusStop* busstop)
 BusStopAgent::BusStopAgent(const MutexStrategy& mtxStrat, int id, const BusStop* stop, SegmentStats* stats)
 : Agent(mtxStrat, id), busStop(stop), parentSegmentStats(stats), availableLength(stop->getBusCapacityAsLength())
 {
-	int ii=0;
 }
 
 
@@ -83,23 +82,29 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now) {
 		Agent* parent = waitingPeople->getParent();
 		Person* person = dynamic_cast<Person*>(parent);
 		if (person) {
-			person->checkTripChain();
+			UpdateStatus val = person->checkTripChain();
 			Role* role = person->getRole();
 			if (role) {
-				if (role->roleType == Role::RL_WAITBUSACTITITY) {
+				if (role->roleType == Role::RL_WAITBUSACTITITY
+						&& val.status == UpdateStatus::RS_CONTINUE) {
 					WaitBusActivity* waitPerson =
 							dynamic_cast<WaitBusActivity*>(role);
 					if (waitPerson) {
 						registerWaitingPerson(waitPerson);
 						ret = true;
 					}
-				} else if (role->roleType == Role::RL_PEDESTRIAN) {
+				} else if (role->roleType == Role::RL_PEDESTRIAN
+						&& val.status == UpdateStatus::RS_CONTINUE) {
 					Conflux* conflux =
 							parentSegmentStats->getRoadSegment()->getParentConflux();
 					messaging::MessageBus::PostMessage(conflux,
 							MSG_PEDESTRIAN_TRANSFER_REQUEST,
 							messaging::MessageBus::MessagePtr(
-									new PedestrianTransferRequestMessage(person)));
+									new PedestrianTransferRequestMessage(
+											person)));
+					ret = true;
+				} else if (role->roleType == Role::RL_PASSENGER
+						&& val.status == UpdateStatus::RS_DONE) {
 					ret = true;
 				}
 			}

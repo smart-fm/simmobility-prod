@@ -1251,7 +1251,7 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	tripToSave->setPersonID(tcItem.personID);
 	tripToSave->itemType = tcItem.itemType;
 	tripToSave->sequenceNumber = tcItem.sequenceNumber;
-	if(tcItem.tripfromLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP) {
+	if(tcItem.fromLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP) {
 		std::string fromStop_no = boost::lexical_cast<std::string>(tcItem.tmp_fromLocationNodeID);
 		sim_mob::BusStop* fromBusStop = config.getBusStopNo_BusStops()[fromStop_no];
 		if(fromBusStop) {
@@ -1262,7 +1262,7 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	} else {
 		tripToSave->fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
 	}
-	tripToSave->fromLocationType = tcItem.tripfromLocationType;
+	tripToSave->fromLocationType = tcItem.fromLocationType;
 	tripToSave->startTime = tcItem.startTime;
 	return tripToSave;
 }

@@ -1139,7 +1139,75 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 
 	return res;
 }
+void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,std::set<sim_mob::Lane*>& lanePool)
+{
+	/*
+	 if (!(hasNextSegment(true))) // has seg in current link
+	{
+		p.dis2stop = fwdDriverMovement.getAllRestRoadSegmentsLengthCM() - fwdDriverMovement.getCurrDistAlongRoadSegmentCM() - parentDriver->vehicle->getLengthCm() / 2 - 300;
+		if (p.nvFwd.distance < p.dis2stop)
+			p.dis2stop = p.nvFwd.distance;
+		p.dis2stop /= METER_TO_CENTIMETER_CONVERT_UNIT;
+	}
+	else
+	{
+		p.nextLaneIndex = std::min<int>(p.currLaneIndex, fwdDriverMovement.getNextSegment(true)->getLanes().size() - 1);
+		if(fwdDriverMovement.getNextSegment(true)->getLanes().at(p.nextLaneIndex)->is_pedestrian_lane())
+		{
+			p.nextLaneIndex--;
+			p.dis2stop = fwdDriverMovement.getCurrPolylineTotalDistCM() - fwdDriverMovement.getCurrDistAlongRoadSegmentCM() + DEFAULT_DIS_TO_STOP;
+			p.dis2stop /= METER_TO_CENTIMETER_CONVERT_UNIT;
+		}
+		else
+			p.dis2stop = DEFAULT_DIS_TO_STOP;//defalut 1000m
+	}
 
+	 */
+	std::vector<const sim_mob::RoadSegment*>::iterator currentSegIt = fwdDriverMovement.currSegmentIt;
+	currentSegIt++; // next segment
+	std::vector<const sim_mob::RoadSegment*>::iterator currentSegItEnd = fwdDriverMovement.fullPath.end();
+
+	const sim_mob::RoadSegment* currentSeg = fwdDriverMovement.getCurrSegment();
+	const std::vector<sim_mob::Lane*> lanes = currentSeg->getLanes();
+
+	//check each lanes of current segment
+	for(int i=0;i<lanes.size();++i)
+	{
+		sim_mob::Lane* l = lanes[i];
+		//lane index
+		size_t landIdx = i;
+		if(l->is_pedestrian_lane()) // pass pedestrian lane
+		{
+			continue;
+		}
+
+		for(;currentSegIt != currentSegItEnd;++currentSegIt)
+		{
+			// already reach end of path
+			if(currentSegIt == currentSegItEnd){
+				break;
+			}
+
+			const RoadSegment* rs = *currentSegIt;
+			if (!rs) {
+				break;
+			}
+			//check if segment end node is intersection
+			const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (rs->getEnd());
+			if(currEndNode)
+			{
+				// if is intersection
+			}
+			else
+			{
+				// uni node
+				if(rs->getLanes())
+			}
+		}//end of currentSegIt
+	}
+
+
+}
 
 bool sim_mob::DriverMovement::isPedestrianOnTargetCrossing() const {
 	if ((!trafficSignal)||(!(fwdDriverMovement.getNextSegment(true)))) {

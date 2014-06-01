@@ -631,7 +631,33 @@ void sim_mob::MITSIM_LC_Model::makeTargetGapPram(std::vector< std::string >& str
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParams& p)
 {
+	LANE_CHANGE_SIDE change = LCS_SAME;
 
+	// if already in changing lane
+	if ( p.flag(FLAG_ESCAPE) )
+	{
+		if (p.flag(FLAG_ESCAPE_LEFT)) {
+		  change = LCS_LEFT;
+		}
+		if (p.flag(FLAG_ESCAPE_RIGHT)) {
+		  change = LCS_RIGHT;
+		}
+		p.setStatus(STATUS_MANDATORY);
+		return change;
+	}
+
+	// get distance to end of current segment
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	float x=driverMvt->fwdDriverMovement.getDisToCurrSegEnd();
+
+	// if current segment has enough distance to do lc , keep current lane
+	if ( x>=lookAheadDistance )
+	{
+	    return change;
+	}
+
+	// find lanes connect to target segment in lookahead distance
+	driverMvt->fwdDriverMovement.getNextSegment(true);
 }
 double sim_mob::MITSIM_LC_Model::mlcDistance()
 {

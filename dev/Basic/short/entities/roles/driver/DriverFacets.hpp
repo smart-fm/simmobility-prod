@@ -116,6 +116,12 @@ public:
       * @return true if inserting successfully .
       */
 	const sim_mob::RoadItem* getRoadItemByDistance(sim_mob::RoadItemType type,double &dis, double perceptionDis=20000,bool isInSameLink=true);
+	/**
+	 *  /brief get lanes connect to segment at look ahead distance
+	 *  /param distance look ahead distance from current position
+	 *  /param lanePool store found lanes
+	 */
+	void getLanesConnectToLookAheadDis(double distance,std::set<sim_mob::Lane*>& lanePool);
 
 private:
 	void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);

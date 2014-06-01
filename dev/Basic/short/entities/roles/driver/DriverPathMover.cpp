@@ -791,7 +791,11 @@ double sim_mob::DriverPathMover::getCurrDistAlongRoadSegmentCM() const
 	//Add this to the distance moved so far.
 	return distMovedInCurrSegmentCM + distAlongPolylineCM;
 }
-
+double sim_mob::DriverPathMover::getDisToCurrSegEnd()
+{
+	double d = getCurrPolylineTotalDistCM() - getCurrDistAlongRoadSegmentCM();
+	return d;
+}
 double sim_mob::DriverPathMover::getTotalRoadSegmentLengthCM() const
 {
 	throwIf(!isPathSet(), DriverPathMover::ErrorPathNotSet);

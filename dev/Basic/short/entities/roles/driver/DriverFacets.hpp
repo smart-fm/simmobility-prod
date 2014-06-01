@@ -122,6 +122,7 @@ public:
 	 *  /param lanePool store found lanes
 	 */
 	void getLanesConnectToLookAheadDis(double distance,std::set<sim_mob::Lane*>& lanePool);
+	bool laneConnectToSegment(sim_mob::Lane* lane,const sim_mob::RoadSegment* rs);
 
 private:
 	void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);

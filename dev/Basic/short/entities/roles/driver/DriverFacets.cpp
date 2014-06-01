@@ -1171,8 +1171,10 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,std:
 	const std::vector<sim_mob::Lane*> lanes = currentSeg->getLanes();
 
 	//check each lanes of current segment
+	std::vector<sim_mob::Lane*> connectedLanes;
 	for(int i=0;i<lanes.size();++i)
 	{
+		double x = fwdDriverMovement.getDisToCurrSegEnd()/100.0;
 		sim_mob::Lane* l = lanes[i];
 		//lane index
 		size_t landIdx = i;
@@ -1183,32 +1185,92 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,std:
 
 		for(;currentSegIt != currentSegItEnd;++currentSegIt)
 		{
+
+			bool isLaneOK = true;
 			// already reach end of path
 			if(currentSegIt == currentSegItEnd){
 				break;
 			}
 
 			const RoadSegment* rs = *currentSegIt;
+			x += rs->getLengthOfSegment()/100.0;
 			if (!rs) {
 				break;
 			}
-			//check if segment end node is intersection
-			const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (rs->getEnd());
-			if(currEndNode)
+
+			// find last segment
+			if(rs != fwdDriverMovement.fullPath[0])
 			{
-				// if is intersection
+				std::vector<const sim_mob::RoadSegment*>::iterator it = currentSegIt -1;
+				const RoadSegment* lastSeg = *it;
+				if(lastSeg->getLanes().size() < landIdx)// target segment lane size smaller than index
+				{
+					isLaneOK = false;
+				}
+				else
+				{
+					sim_mob::Lane* lane= lastSeg->getLanes().at(landIdx);
+					isLaneOK = laneConnectToSegment(lane,rs);
+				}
 			}
 			else
 			{
-				// uni node
-				if(rs->getLanes())
+				isLaneOK = laneConnectToSegment(l,rs);
+			}
+
+
+			if(!isLaneOK){
+				break;
+			}
+			// l can connect to next segment
+			if(x > distance)
+			{
+				connectedLanes.push_back(l);
 			}
 		}//end of currentSegIt
-	}
+	}//end for lanes
 
 
 }
+bool sim_mob::DriverMovement::laneConnectToSegment(sim_mob::Lane* lane,const sim_mob::RoadSegment* rs)
+{
+	bool isLaneOK = true;
+	size_t landIdx = getLaneIndex(lane);
+	//check if segment end node is intersection
+	const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (rs->getEnd());
+	if(currEndNode)
+	{
+		// if is intersection
+		// get lane connector
+		const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(fwdDriverMovement.getCurrSegment());
 
+		if (lcs.size()>0)
+		{
+			for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
+				if ((*it)->getLaneTo()->getRoadSegment() == rs && (*it)->getLaneFrom() == lane) {
+					// current lane connect to next link
+					isLaneOK = true;
+					break;
+				}
+			}//end for
+		}
+		else
+		{
+			isLaneOK = false;
+		}
+	}
+	else
+	{
+		// uni node
+		// TODO use uni node lane connector to check if lane connect to next segment
+		if(rs->getLanes().size() < landIdx)
+		{
+			isLaneOK = false;
+		}
+	}
+
+	return isLaneOK;
+}
 bool sim_mob::DriverMovement::isPedestrianOnTargetCrossing() const {
 	if ((!trafficSignal)||(!(fwdDriverMovement.getNextSegment(true)))) {
 		return false;

@@ -554,8 +554,6 @@ sim_mob::MITSIM_LC_Model::MITSIM_LC_Model()
 	modelName = "general_driver_model";
 	splitDelimiter = " ,";
 
-	lcTimeTag = 0;
-
 	initParam();
 }
 void sim_mob::MITSIM_LC_Model::initParam()
@@ -1247,7 +1245,73 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 			p.cftimer = CF_CRITICAL_TIMER_RATIO * p.nextStepSize;
 			// Now I am going to nose in provided it is feasible and the
 		    // lag vehicle is willing to yield
-		}
+			bool bve = !bv->exists();
+			Driver* bvd = const_cast<Driver*>(bv->driver);
+			DriverUpdateParams& bvp = bvd->getParams();
+			bool bvy = bvp.willYield(escape?YIELD_TYPE_ESCAPE:YIELD_TYPE_CONNECTION);
+			if (checkNosingFeasibility(p,av, bv, p.dis2stop) &&
+					(bve|| bvy) ) {
+
+			p.setFlag(FLAG_NOSING_FEASIBLE);
+
+			// Nosing is feasible
+
+			if (bv->exists()) {
+
+			  // There is a lag vehicle in the target lane
+
+//			  bv->yieldVehicle_ = this;
+			  bvd->yieldVehicle = p.driver;
+			  if (!(bvd->isBus() && bvp.getStatus(STATUS_STOPPED))) {
+				bvp.cftimer = std::min<double>(p.cftimer, bvp.cftimer);
+			  }
+
+			  if (!bvp.flag(FLAG_YIELDING)) {
+				bvp.yieldTime = p.now.ms();
+			  }
+			  if (p.getStatus(STATUS_LEFT)) {
+				p.setFlag(FLAG_NOSING_LEFT);
+				bvp.setFlag(FLAG_YIELDING_RIGHT);
+			  } else {
+				p.setFlag(FLAG_NOSING_RIGHT);
+				bvp.setFlag(FLAG_YIELDING_LEFT);
+			  }//end of STATUS_LEFT
+
+			}//end if  bv->exists()
+			else {
+
+			  // No lag vehicle in the target lane
+
+			  if (p.getStatus(STATUS_LEFT)) {
+				p.setFlag(FLAG_NOSING_LEFT);
+			  } else {
+				p.setFlag(FLAG_NOSING_RIGHT);
+			  }
+			}//end of else bv->exists()
+
+			// Check if the minimum gaps are available.
+
+			if (bheadway > lcMinGap(lctype + 1) &&
+				aheadway > lcMinGap(lctype)) {
+//			  goto execution;
+				executionLC(changeMode);
+			}
+
+		  }//end of if checkNosingFeasibility
+		  else
+		  {
+			  p.unsetFlag(FLAG_NOSING_FEASIBLE);
+
+				// Nosing is not feasible, but maintain the nosing state
+
+				if (p.getStatus(STATUS_LEFT)) {
+				  p.setFlag(FLAG_NOSING_LEFT);
+				} else {
+				  p.setFlag(FLAG_NOSING_RIGHT);
+				}
+		  }// end else if checkNosingFeasibility
+		}//if nosing
+		return 0.0;
 
 	}//end of p.flag(FLAG_LC_FAILED)
 
@@ -1340,7 +1404,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 		} //end of bus
 		else if (bvp.flag(FLAG_NOSING) ||
 				(bvp.flag(FLAG_YIELDING) &&
-//				bv->yieldVehicle_ != this &&
+				bv->driver->yieldVehicle != p.driver &&
 				bv->distance < 2.0 * lcMinGap(3) )) {
 
 			// The lag vehicle is nosing or yielding to another vehicle or
@@ -1410,7 +1474,7 @@ double sim_mob::MITSIM_LC_Model::executionLC(LANE_CHANGE_SIDE& change)
 double sim_mob::MITSIM_LC_Model::timeSinceTagged(DriverUpdateParams& p)
 {
 	double currentTime = p.now.ms();
-	double t = currentTime = lcTimeTag;
+	double t = currentTime = p.lcTimeTag;
 	return t;
 }
 bool sim_mob::MITSIM_LC_Model::path(DriverUpdateParams& p)

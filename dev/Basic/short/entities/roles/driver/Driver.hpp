@@ -86,6 +86,7 @@ public:
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 	virtual std::vector<sim_mob::BufferedBase*> getDriverInternalParams();
 	void handleUpdateRequest(MovementFacet* mFacet);
+	bool isBus();
 //Buffered data
 public:
 	Shared<const Lane*> currLane_;
@@ -120,6 +121,9 @@ public:
 	double startTime;
 	bool isAleadyStarted;
 	double currDistAlongRoadSegment;
+
+	// me is doing yielding, and yieldVehicle is doing nosing
+	Driver* yieldVehicle;
 
 //Basic data
 protected:

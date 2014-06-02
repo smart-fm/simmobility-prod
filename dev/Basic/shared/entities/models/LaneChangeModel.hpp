@@ -188,7 +188,7 @@ public:
 
 	double minSpeed; // minimum speed to consider for a moving vehicle
 //	double mlcMinTimeInLane;  // minimum time in lane , seconds
-	double lcTimeTag;		// time changed lane , ms
+//	double lcTimeTag;		// time changed lane , ms
 	double timeSinceTagged(DriverUpdateParams& p);
 
 	double lookAheadDistance;

@@ -22,5 +22,9 @@ const RoadSegment* DriverUpdateParams::nextLink()
 	DriverMovement *driverMvt = (DriverMovement*)driver->Movement();
 	return driverMvt->fwdDriverMovement.getNextSegment(false);
 }
-
+bool DriverUpdateParams::willYield(unsigned int reason)
+{
+	//TODO willYield
+	return true;
+}
 }

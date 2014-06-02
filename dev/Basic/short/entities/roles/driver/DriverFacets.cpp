@@ -2536,6 +2536,21 @@ void sim_mob::DriverMovement::updatePositionDuringLaneChange(DriverUpdateParams&
 			parentDriver->vehicle->resetLateralMovement();
 			p.lastDecision = LCS_SAME;
 			parentDriver->vehicle->moveLat((halfLaneWidth - remainder) * (actual == LCS_LEFT ? -1 : 1));
+
+			// complete lane change
+			p.unsetFlag(FLAG_PREV_LC);	// clean bits
+			if (p.getStatus(STATUS_LEFT)) {
+				p.unsetFlag(FLAG_PREV_LC_LEFT);
+			} else {
+				p.unsetFlag(FLAG_PREV_LC_RIGHT);
+			}
+			p.unsetStatus(STATUS_CHANGING);
+			p.unsetStatus(STATUS_MANDATORY); // Angus
+			p.unsetFlag(FLAG_NOSING | FLAG_YIELDING | FLAG_LC_FAILED);
+			p.unsetFlag(FLAG_VMS_LANE_USE_BITS | FLAG_ESCAPE | FLAG_AVOID);
+			p.unsetFlag(FLAG_STUCK_AT_END | FLAG_NOSING_FEASIBLE);
+			p.unsetStatus(STATUS_TARGET_GAP);
+
 		}
 	} else {
 		//Moving "in".

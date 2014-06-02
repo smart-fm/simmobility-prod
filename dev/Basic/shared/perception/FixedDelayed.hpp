@@ -299,12 +299,12 @@ template <typename T>
 void sim_mob::FixedDelayed<T>::set_delay(uint32_t currDelayMS)
 {
 	//Check
-	if (currDelayMS > maxDelayMS) {
-		std::stringstream msg;
-		msg <<"FixedDelayed: Can't set delay to (" <<currDelayMS <<") since it is greater than the maximum ("
-				<<maxDelayMS <<") specified in the constructor.";
-		throw std::runtime_error(msg.str().c_str());
-	}
+//	if (currDelayMS > maxDelayMS) {
+//		std::stringstream msg;
+//		msg <<"FixedDelayed: Can't set delay to (" <<currDelayMS <<") since it is greater than the maximum ("
+//				<<maxDelayMS <<") specified in the constructor.";
+//		throw std::runtime_error(msg.str().c_str());
+//	}
 
 	//We ignore delay updates if the max delay is zero.
 	if (zero_delay()) {

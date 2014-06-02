@@ -146,6 +146,9 @@ namespace sim_mob {
          *  @array store extracted numbers from text
          */
         static void convertStringToArray(std::string& str,std::vector<double>& array);
+
+        static double urandom();
+        static int brandom(double p);
     };
 
     /**

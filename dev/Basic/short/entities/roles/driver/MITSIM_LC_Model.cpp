@@ -604,6 +604,21 @@ void sim_mob::MITSIM_LC_Model::initParam()
 	ParameterManager::Instance()->param(modelName,"lane_utility_model",str,
 			string("3.9443 -0.3213  -1.1683  -1.1683 0.0 0.0633 -1.0 0.0058 -0.2664 -0.0088 -3.3754 10 19 -2.3400 -4.5084 -2.8257 -1.2597 -0.7239 -0.3269"));
 	makeLanetilityParams(str);
+
+	// critical gap param
+	ParameterManager::Instance()->param(modelName,"critical_gaps_param",str,
+				string("0.5 -0.231  -2.700  1.112	  0.5   0.000 0.2  0.742   6.0"));
+	makeCriticalGapParams(str);
+
+	// nosing param
+	ParameterManager::Instance()->param(modelName,"nosing_param",str,
+				string("1.0 0.5  0.6  0.1	  0.2   1.0 300.0  180.0   600.0 40.0"));
+	makeNosingParams(str);
+
+	// kazi nosing param
+	ParameterManager::Instance()->param(modelName,"kazi_nosing_param",str,
+					string("-3.159  0.313  -0.027  2.050  0.028  0.6"));
+	makekaziNosingParams(str);
 }
 void sim_mob::MITSIM_LC_Model::makeMCLParam(std::string& str)
 {
@@ -637,6 +652,19 @@ void sim_mob::MITSIM_LC_Model::makeTargetGapPram(std::vector< std::string >& str
 void sim_mob::MITSIM_LC_Model::makeLanetilityParams(std::string& str)
 {
 	sim_mob::Utils::convertStringToArray(str,laneUtilityParams);
+}
+void sim_mob::MITSIM_LC_Model::makeNosingParams(string& str)
+{
+	sim_mob::Utils::convertStringToArray(str,nosingParams);
+	lcMaxNosingDis = nosingParams[8];
+}
+void sim_mob::MITSIM_LC_Model::makekaziNosingParams(string& str)
+{
+	sim_mob::Utils::convertStringToArray(str,kaziNosingParams);
+}
+void sim_mob::MITSIM_LC_Model::makeCriticalGapParams(std::string& str)
+{
+	sim_mob::Utils::convertStringToArray(str,criticalGapParams);
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParams& p)
 {
@@ -998,6 +1026,32 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadCurrent(DriverUpdateParams& p
 
 	return exp(u) ;
 }
+double sim_mob::MITSIM_LC_Model::lcCriticalGap(sim_mob::DriverUpdateParams& p, int type,double dv)
+{
+	vector<double> a = criticalGapParams;
+
+	float dvNegative = (dv < 0) ? dv : 0.0;
+	float dvPositive = (dv > 0) ? dv : 0.0;
+
+	float gap =0.0;
+
+	float maxdiff = a[8];
+
+	switch (type){
+	case 0: {     // lead gap
+		gap = a[0] + a[1] * dvNegative +a[2] * dvPositive + Utils::generateFloat(0, a[3]);
+		break;
+		}
+	case 1: {     // lag gap
+		gap = a[4] + a[5]  * dvNegative + a[6] * std::min<double>(dvPositive, maxdiff) + Utils::generateFloat(0, a[7]);
+		break;
+		}
+	}
+
+	float cri_gap  = exp(gap);
+
+	return cri_gap ;
+}
 double sim_mob::MITSIM_LC_Model::mlcDistance()
 {
 	double n = Utils::generateFloat(0,1.0);
@@ -1053,6 +1107,158 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 		p.unsetStatus(STATUS_CHANGING);
 	}
 	return change;
+}
+double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
+{
+	LANE_CHANGE_SIDE changeMode = LCS_SAME;
+
+	if (p.getStatus(STATUS_LEFT)) {
+		changeMode = LCS_LEFT;
+	} else if (p.getStatus(STATUS_RIGHT)) {
+		changeMode = LCS_RIGHT;
+	} else {
+		return 0.0;			// No request for lane change
+	}
+
+	const NearestVehicle * av; // leader vh
+	const NearestVehicle * bv; // follower vh
+
+	if(changeMode == LCS_LEFT)
+	{
+		av = &p.nvLeftFwd;
+		bv = &p.nvLeftBack;
+	}
+	else
+	{
+		av = &p.nvRightFwd;
+		bv = &p.nvRightBack;
+	}
+
+//	//LEADING VEHICLE IN TARGET LANE (must be in same segment).
+//	if(av->exists())
+//	{
+//		// get fwd vh segment
+//		DriverMovement *fwdDriverMvt = (DriverMovement*)av->driver->Movement();
+//		const RoadSegment* fwdRs = fwdDriverMvt->fwdDriverMovement.getCurrSegment();
+//		// get current segment
+//		DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+//		const RoadSegment* rs = driverMvt->fwdDriverMovement.getCurrSegment();
+//
+//		if(fwdRs != rs)
+//		{
+//
+//		}
+//	}
+
+	// LEADING HEADWAY
+	float aheadway;		// leading headway
+	if (av->exists()) {
+		aheadway = av->distance;
+	} else {
+		aheadway = Math::FLT_INF;
+	}
+
+	 // LAG HEADWAY
+
+	float bheadway;		// lag headway
+	if (bv->exists()) {
+		bheadway = bv->distance;
+	} else {
+		bheadway = Math::FLT_INF;
+	}
+
+	// Is the lane change is triggered by special events
+	int escape = p.flag(FLAG_ESCAPE);
+
+	int lctype;
+	if ( p.getStatus(STATUS_MANDATORY) &&
+	   ( !p.getStatus(STATUS_CURRENT_OK) ) ) {
+		lctype = 2;		// wrong lane and concerned
+	} else if (escape) {
+		lctype = 2;		// special event
+	} else {
+		lctype = 0;		// discretionary
+	}
+
+	if (bv->exists() && bheadway < lcCriticalGap(p,1, bv->driver->fwdVelocity/100.0 - p.currSpeed )) {
+		p.setFlag(FLAG_LC_FAILED_LAG); // lag gap
+	}
+	else if (av && aheadway < lcCriticalGap(p,0, av->driver->fwdVelocity/100.0 - p.currSpeed)) {
+		p.setFlag(FLAG_LC_FAILED_LEAD); // lead gap
+	}
+
+	// CHECK IF THE GAPS ARE ACCEPTABLE
+	if (p.flag(FLAG_LC_FAILED)) {
+
+		//TODO special cases
+		//wrong lane?
+//		int nlanes = lane_->isWrongLane(this);
+		int nlanes = 0;
+
+		// The gaps are not acceptable and this guy is in mandatory
+		// state.  Check if this vehicle is nosing or becomes aggressive
+		// and decide to nose in.
+
+		int nosing = p.flag(FLAG_NOSING);
+		if (!nosing && p.dis2stop < lcMaxNosingDis) {
+			float gap = aheadway + bheadway ;
+			float dv = av->exists() ? av->driver->fwdVelocity/100.0 - p.currSpeed : 0 ;
+
+			float pmf;
+
+			if ( p.getStatus(STATUS_CURRENT_OK) && p.nextLink() ) {
+				    // current lane connects to next link on path
+
+				float longer_dis = p.dis2stop + p.nextLink()->length/100.0;
+				pmf = lcNosingProb(longer_dis, dv, gap, nlanes) ;
+				// remaining distance for forced merging is the length remaining
+				// in the current link plus at least the length of the first
+				// segment of the next link
+				}
+				else {
+				// current lane does not connect to next link on path
+
+				pmf = lcNosingProb(p.dis2stop, dv, gap, nlanes) ;
+				// forced merging must be performed in current link
+				}
+				//  end Revised model
+
+				nosing = Utils::brandom(pmf);
+
+		}// if maxNosingDis
+
+	}//end of p.flag(FLAG_LC_FAILED)
+
+	executionLC(changeMode);
+//	// execution:
+//	if (changeMode != LCS_SAME) {
+//		const int lane_shift_velocity = 350; //TODO: What is our lane changing velocity? Just entering this for now...
+//		return changeMode == LCS_LEFT ? lane_shift_velocity : -lane_shift_velocity;
+//	}
+}
+float MITSIM_LC_Model::lcNosingProb(float dis, float lead_rel_spd, float gap,int num)
+{
+  if (num < 0) num = - num;
+  else if (num == 0) num = 1;
+
+  std::vector<double> b = kaziNosingParams;
+  float rel_spd = (lead_rel_spd > 0) ? 0 : lead_rel_spd ;
+  float rm_dist_impact = 10 - 10 / (1.0 + exp(b[2] * dis)) ;
+  if (gap > 100.0) {			// 100 meters
+	gap = 100.0 ;
+  }
+  float u = b[0] + b[1] * rel_spd + b[3] * rm_dist_impact + b[4] * gap +
+	b[5] * (num - 1);
+  float p = 1.0 / (1 + exp(-u)) ;
+  return p ;
+}
+double sim_mob::MITSIM_LC_Model::executionLC(LANE_CHANGE_SIDE& change)
+{
+	if (change != LCS_SAME) {
+		const int lane_shift_velocity = 350; //TODO: What is our lane changing velocity? Just entering this for now...
+		return change == LCS_LEFT ? lane_shift_velocity : -lane_shift_velocity;
+	}
+	return 0.0;
 }
 double sim_mob::MITSIM_LC_Model::timeSinceTagged(DriverUpdateParams& p)
 {

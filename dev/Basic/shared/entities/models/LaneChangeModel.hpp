@@ -124,6 +124,8 @@ public:
 	 *--------------------------------------------------------------------
 	 **/
 	LANE_CHANGE_SIDE makeLaneChangingDecision(DriverUpdateParams& p);
+	double executeLaneChanging(DriverUpdateParams& p);
+	double executionLC(LANE_CHANGE_SIDE& change);
 	/**
 	 *  /brief this function gives the LC direction when the driver is
 	 *         constrained by the lookahead
@@ -146,6 +148,15 @@ public:
 	double lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance);
 	double lcUtilityLookAheadRight(DriverUpdateParams& p,int n, float LCdistance);
 	double lcUtilityLookAheadCurrent(DriverUpdateParams& p,int n, float LCdistance);
+	double lcCriticalGap(sim_mob::DriverUpdateParams& p, int type,double dv);
+	vector<double> criticalGapParams;
+	void makeCriticalGapParams(std::string& str);
+	vector<double> nosingParams;
+	double lcMaxNosingDis;
+	void makeNosingParams(string& str);
+	float lcNosingProb(float dis, float lead_rel_spd, float gap,int num);
+	vector<double> kaziNosingParams;
+	void makekaziNosingParams(string& str);
 
 	vector<double> laneUtilityParams;
 	void makeLanetilityParams(std::string& str);

@@ -3,6 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "DriverUpdateParams.hpp"
+#include "../short/entities/roles/driver/DriverFacets.hpp"
 
 namespace sim_mob
 {
@@ -14,6 +15,12 @@ void DriverUpdateParams::setStatus(unsigned int s)
 void DriverUpdateParams::unsetStatus(unsigned int s)
 {
 	status &= ~s;
+}
+
+const RoadSegment* DriverUpdateParams::nextLink()
+{
+	DriverMovement *driverMvt = (DriverMovement*)driver->Movement();
+	return driverMvt->fwdDriverMovement.getNextSegment(false);
 }
 
 }

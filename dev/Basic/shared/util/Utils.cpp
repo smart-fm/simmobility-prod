@@ -118,12 +118,22 @@ void Utils::convertStringToArray(std::string& str,std::vector<double>& array)
 	std::string splitDelimiter = " ,";
 	std::vector<std::string> arrayStr;
 //	vector<double> c;
+
+	// remove
+	char chars[] = "#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ()-";
+	for (unsigned int i = 0; i < strlen(chars); ++i)
+	{
+		str.erase (std::remove(str.begin(), str.end(), chars[i]), str.end());
+	}
 	boost::trim(str);
 	boost::split(arrayStr, str, boost::is_any_of(splitDelimiter),boost::token_compress_on);
 	for(int i=0;i<arrayStr.size();++i)
 	{
 		double res;
 		try {
+#if 1
+			std::cout<<"<"<<arrayStr[i]<<">"<<std::endl;
+#endif
 				res = boost::lexical_cast<double>(arrayStr[i].c_str());
 			}catch(boost::bad_lexical_cast&) {
 				std::string str = "can not covert <" +str+"> to double.";
@@ -131,6 +141,15 @@ void Utils::convertStringToArray(std::string& str,std::vector<double>& array)
 			}
 			array.push_back(res);
 	}
+}
+double Utils::urandom()
+{
+	return generateFloat(0,1);
+}
+int Utils::brandom(double prob)
+{
+	if (urandom() < prob) return (1);
+		   else return 0;
 }
 StopWatch::StopWatch() : now(0), end(0), running(false) {
 }

@@ -9,6 +9,7 @@
 #include "entities/UpdateParams.hpp"
 #include "entities/models/LaneChangeModel.hpp"
 #include "geospatial/Lane.hpp"
+#include "geospatial/RoadSegment.hpp"
 #include "util/DynamicVector.hpp"
 #include <boost/random.hpp>
 #include "util/LangHelpers.hpp"
@@ -175,6 +176,9 @@ public:
 	 *  /return state
 	 */
 	unsigned int getStatus() { return status; }
+	unsigned int getStatus(unsigned int mask) {
+		return (status & mask);
+	}
 	/**
 	 *  /brief remove the status from the vh
 	 *  /return state
@@ -200,6 +204,8 @@ public:
 	/// decision timer (second)
 	/// count down in DriverMovement
 	double cftimer;
+
+	const RoadSegment* nextLink();
 
 public:
 #ifndef SIMMOB_DISABLE_MPI

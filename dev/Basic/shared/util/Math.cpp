@@ -20,6 +20,7 @@ typedef double (*InternalFunction)(Math::Function func, double x,
 const double Math::E(2.71828182845904523536);
 const double Math::PI(3.1415926535897932385);
 const double Math::DOUBLE_EPSILON = std::numeric_limits<double>::epsilon();
+const double Math::FLT_INF = std::numeric_limits<double>::max();
 
 namespace {
 

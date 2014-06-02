@@ -18,7 +18,17 @@ MT_Config::~MT_Config() {
 	// TODO Auto-generated destructor stub
 }
 
-void MT_Config::processElement(xercesc::DOMElement* node)
+MT_Config* MT_Config::instance(nullptr);
+
+const MT_Config& MT_Config::GetInstance()
+{
+	if (!instance) {
+		instance = new MT_Config();
+	}
+	return *instance;
+}
+
+void MT_Config::processElement(xercesc::DOMElement* node,  const std::string& name)
 {
 
 }

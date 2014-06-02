@@ -16,13 +16,17 @@ public:
 	MT_Config();
 	virtual ~MT_Config();
 
+	static const MT_Config& GetInstance();
+
 protected:
 	/**
 	 * process each node included in xml file.
+	 * @param name is node's name
 	 * @param node is a element inside xml file
 	 */
-	virtual void processElement(xercesc::DOMElement* node);
-
+	virtual void processElement(xercesc::DOMElement* node, const std::string& name);
+private:
+	static MT_Config* instance;
 };
 }
 }

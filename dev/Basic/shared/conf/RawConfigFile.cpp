@@ -35,12 +35,18 @@ bool RawConfigFile::parseConfigFile(const std::string& configFileName) {
 void RawConfigFile::parseXmlAndProcess()
 {
 	DOMElement* rootNode = parser.getDocument()->getDocumentElement();
-	if (TranscodeString(rootNode->getTagName()) != "config") {
-		throw std::runtime_error("xml parse error: root node must be \"config\"");
+	if (!rootNode || TranscodeString(rootNode->getTagName()) != "config") {
+		throw std::runtime_error(
+				"xml parse error: root node must be \"config\"");
 	}
 
 	//Now just parse the document recursively.
-	processElement(rootNode);
+	XMLSize_t count = rootNode->getChildElementCount();
+	DOMElement* node = rootNode->getFirstElementChild();
+	while(node){
+		processElement(node, TranscodeString(rootNode->getTagName()));
+		DOMElement* node = rootNode->getNextElementSibling();
+	}
 }
 
 }

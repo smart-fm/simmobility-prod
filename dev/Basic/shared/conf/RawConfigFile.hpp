@@ -26,9 +26,9 @@ public:
 	RawConfigFile();
 	virtual ~RawConfigFile();
 	/**
-	 * 	Parse a xml config file
-	 * 	@param configFileName is the filename of configuration
-	 *  @return true if success otherwise false
+	 * Parse a xml config file
+	 * @param configFileName is the filename of configuration
+	 * @return true if success otherwise false
 	 */
 	bool parseConfigFile(const std::string& configFileName);
 
@@ -40,9 +40,9 @@ protected:
 
 	/**
 	 * process each node included in xml file. this method should be override by its children
-	 * @param node is a element inside xml file
+	 * @param root is a element inside xml file
 	 */
-	virtual void processElement(xercesc::DOMElement* node) = 0;
+	virtual void processElement(xercesc::DOMElement* node, const std::string& name) = 0;
 
 private:
 	xercesc::XercesDOMParser parser;

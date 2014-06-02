@@ -46,6 +46,7 @@
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
+#include "config/MT_Config.hpp"
 
 
 //If you want to force a header file to compile, you can put it here temporarily:

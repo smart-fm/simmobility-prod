@@ -145,6 +145,7 @@ public:
 	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p);
 	double lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance);
 	double lcUtilityLookAheadRight(DriverUpdateParams& p,int n, float LCdistance);
+	double lcUtilityLookAheadCurrent(DriverUpdateParams& p,int n, float LCdistance);
 
 	vector<double> laneUtilityParams;
 	void makeLanetilityParams(std::string& str);

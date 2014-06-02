@@ -785,7 +785,190 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams& p,in
 }
 double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams& p,int n, float LCdistance)
 {
+	vector<double> a = laneUtilityParams;
 
+	double vld, mlc, density, spacing;
+
+	//density = plane->density();
+	// TODO calculate lane density
+	density = 0;
+	float heavy_neighbor = 0.0;
+	if(p.nvRightFwd.exists()) // front left bumper leader
+	{
+		double leftFwdVel = p.nvRightFwd.driver->fwdVelocity.get();
+		double currentSpeed = p.perceivedFwdVelocity / 100.0;
+		vld = std::min<double>(leftFwdVel,currentSpeed);
+
+		if(p.nvRightFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
+		{
+			heavy_neighbor = a[7];
+			spacing = p.nvRightFwd.distance;
+		}
+	}
+	else
+	{
+		vld = vld = p.desiredSpeed;
+		spacing = p.dis2stop; // MITSIM distance()
+	}
+
+	if(p.nvRightBack.exists())// back left bumper leader
+	{
+		if(p.nvRightBack.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
+		{
+			heavy_neighbor = a[7];
+		}
+	}
+
+	float right_most = 0.0;
+
+	// right hand driving
+	// check if current lane is most right lane, which lane idx is 0
+	if(getLaneIndex(p.currLane) == 0  || (getLaneIndex(p.currLane) == 1 && p.currLane->getRoadSegment()->getLanes().at(0)->is_pedestrian_lane()) )
+	{
+		right_most = 0.0;
+	}
+	else
+	{
+		right_most = a[2];
+	}
+
+	switch (n) {
+	  case 0:
+		{
+		  mlc = 0;
+		  break;
+		}
+	  case 1:
+		{
+		  mlc = a[12] * pow(p.dis2stop/1000.0, a[17]) + a[15];  // why divide 1000
+		  break;
+		}
+	  case 2:
+		{
+		  mlc = a[13] * pow(p.dis2stop/1000.0, a[17]) + a[15] + a[16];
+		  break;
+		}
+	  default:
+		{
+		  mlc = (a[13]+a[14]*(n-2)) * pow(p.dis2stop/1000, a[17]) +a[15] + a[16] * (n-1);
+		}
+		break;
+	  }
+
+	//TODO: check bus stop ahead
+	// MITSIM TS_LCModels.cc Dan: If vehicle ahead is a bus and there is a bus stop ahead
+	  // in the lane, set busAheadDummy to 1 for disincentive to be
+	  // applied in the utility.
+	int busAheadDummy = 0;
+	if(p.nvRightFwd.exists())
+	{
+		if(p.nvRightFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)
+		{
+			busAheadDummy = 1;
+		}
+	}
+
+	double u = a[1] + a[4] * vld + a[8] * spacing +a[6] * density + mlc + heavy_neighbor + right_most + a[5] * busAheadDummy;
+
+	return exp(u) ;
+}
+double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadCurrent(DriverUpdateParams& p,int n, float LCdistance)
+{
+	vector<double> a = laneUtilityParams;
+
+	double vld, mlc, density, spacing;
+
+	//density = plane->density();
+	// TODO calculate lane density
+	density = 0;
+	float heavy_neighbor = 0.0;
+	if(p.nvFwd.exists()) // front left bumper leader
+	{
+		double leftFwdVel = p.nvFwd.driver->fwdVelocity.get();
+		double currentSpeed = p.perceivedFwdVelocity / 100.0;
+		vld = std::min<double>(leftFwdVel,currentSpeed);
+
+		if(p.nvRightFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
+		{
+			heavy_neighbor = a[7];
+			spacing = p.nvRightFwd.distance;
+		}
+	}
+	else
+	{
+		vld = vld = p.desiredSpeed;
+		spacing = p.dis2stop; // MITSIM distance()
+	}
+
+	if(p.nvRightBack.exists())// back left bumper leader
+	{
+		if(p.nvRightBack.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
+		{
+			heavy_neighbor = a[7];
+		}
+	}
+
+	float right_most = 0.0;
+
+	// right hand driving
+	// check if current lane is most right lane, which lane idx is 0
+	if(getLaneIndex(p.currLane) == 0  || (getLaneIndex(p.currLane) == 1 && p.currLane->getRoadSegment()->getLanes().at(0)->is_pedestrian_lane()) )
+	{
+		right_most = 0.0;
+	}
+	else
+	{
+		right_most = a[2];
+	}
+
+	switch (n) {
+	  case 0:
+		{
+		  mlc = 0;
+		  break;
+		}
+	  case 1:
+		{
+		  mlc = a[12] * pow(p.dis2stop/1000.0, a[17]) + a[15];  // why divide 1000
+		  break;
+		}
+	  case 2:
+		{
+		  mlc = a[13] * pow(p.dis2stop/1000.0, a[17]) + a[15] + a[16];
+		  break;
+		}
+	  default:
+		{
+		  mlc = (a[13]+a[14]*(n-2)) * pow(p.dis2stop/1000, a[17]) +a[15] + a[16] * (n-1);
+		}
+		break;
+	  }
+
+	float tailgate_dummy = 0;
+//	TS_Vehicle* behind = this->vehicleBehind() ;
+	if (p.nvBack.exists()) {
+		double gap_behind = p.nvBack.distance;
+		//TODO: calculate segment density
+	    float dens = 0.0;//tsSegment()->density();
+	    tailgate_dummy = (gap_behind <= a[10] && dens <= a[11])? a[9] : 0;
+	   }
+
+	//TODO: check bus stop ahead
+	// MITSIM TS_LCModels.cc Dan: If vehicle ahead is a bus and there is a bus stop ahead
+	  // in the lane, set busAheadDummy to 1 for disincentive to be
+	  // applied in the utility.
+	int busAheadDummy = 0;
+	if(p.nvRightFwd.exists())
+	{
+		if(p.nvRightFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)
+		{
+			busAheadDummy = 1;
+		}
+	}
+
+	double u = a[0]+ a[4] * vld + a[8] * spacing + a[6] * density + mlc + heavy_neighbor + right_most + tailgate_dummy + a[5] * busAheadDummy;
+
+	return exp(u) ;
 }
 double sim_mob::MITSIM_LC_Model::mlcDistance()
 {

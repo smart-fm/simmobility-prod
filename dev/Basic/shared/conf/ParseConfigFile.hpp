@@ -13,6 +13,21 @@
 #include "conf/RawConfigParams.hpp" //For EntityTemplate.
 #include "util/DailyTime.hpp"
 
+using namespace sim_mob;
+using namespace xercesc;
+namespace sim_mob{
+	std::string TranscodeString(const XMLCh* str);
+	DOMElement* NodeToElement(DOMNode* node) ;
+	std::vector<DOMElement*> GetElementsByName(DOMElement* node, const std::string& key, bool required=false);
+	DOMElement* GetSingleElementByName(DOMElement* node, const std::string& key, bool required=false);
+	DOMAttr* GetNamedAttribute(DOMElement* node, const std::string& key, bool required=false) ;
+	const XMLCh* GetAttributeValue(const DOMAttr* attr) ;
+	const XMLCh* GetNamedAttributeValue(DOMElement* node, const std::string& key, bool required=false) ;
+	bool ParseBoolean(const XMLCh* srcX, bool* defValue) ;
+	int ParseInteger(const XMLCh* srcX, int* defValue) ;
+	float ParseFloat(const XMLCh* srcX, float* defValue);
+	unsigned int ParseUnsignedInt(const XMLCh* srcX, unsigned int* defValue);
+}
 
 namespace sim_mob {
 

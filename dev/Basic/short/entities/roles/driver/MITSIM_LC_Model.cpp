@@ -1317,7 +1317,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 
 
 
-	executionLC(changeMode);
+	return executionLC(changeMode);
 //	// execution:
 //	if (changeMode != LCS_SAME) {
 //		const int lane_shift_velocity = 350; //TODO: What is our lane changing velocity? Just entering this for now...

@@ -49,9 +49,13 @@ public:
 	///Create a bundle header (v0 or v1, depending on whether NEW_BUNDLES has been set).
 	///For v0, "header" only needs to contain remLen.
 	///For v1, "header" should be valid. remLen should be set to the length of the remaining variable-length header and message data.
+	///\param header The header we are serializing.
+	///\returns the serialized header, in v0 or v1 format.
 	static std::string make_bundle_header(const BundleHeader& header);
 
 	///Read a bundle header (v0 or v1, depending on whether NEW_BUNDLES has been set).
+	///\param header The serialized header, in v0 or v1 format.
+	///\returns The deserialized header.
 	static BundleHeader read_bundle_header(const std::string& header);
 
 private:

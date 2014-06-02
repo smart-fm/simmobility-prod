@@ -28,31 +28,6 @@ struct WFD_Group{
 };
 
 
-/**
- * A variant of Json::FastWriter that does not append a trailing newline.
- * NOTE: For the purpose of copyright, this class should be considered a
- *       derivative work of Json::FastWriter, (c) 2007-2010 Baptiste Lepilleur,
- *       and included under the terms of the MIT License (same as the JsonCpp project).
- * NOTE: This class is also faster than the FastWriter, since it uses a stringstream to append objects
- *       rather than simple strings.
- */
-class JsonSingleLineWriter : public Json::Writer
-{
-public:
-	JsonSingleLineWriter(bool appendNewline);
-	virtual ~JsonSingleLineWriter(){}
-	void enableYAMLCompatibility();
-
-public: // overridden from Writer
-	virtual std::string write( const Json::Value &root);
-
-private:
-	void writeValue( const Json::Value &value );
-
-	std::stringstream document_;
-	bool yamlCompatiblityEnabled_;
-	bool appendNewline;
-};
 
 
 /**
@@ -69,27 +44,38 @@ class MessageConglomerate {
 public:
 	///Used to build; v0
 	///Make sure you do not call this function after saving any retrieved references
+	///param msg The message to add to this conglomerate.
 	void addMessage(const Json::Value& msg);
 
 	///Used to build; v1
-	///"msgStr" must not be empty for the very first message.
 	///Make sure you do not call this function after saving any retrieved references
+	///\param offset The offset into the message string (starting from zero) of the message being added.
+	///\param length The length (from the offset) of the message being added.
+	///\param msgStr The full text of the message. Must not be empty for the very first message.
 	void addMessage(int offset, int length, const std::string& msgStr="");
 
 	///Get message count (both versions)
 	int getCount() const;
 
 	///Retrieves the MessageBase for a given message number. Works for v0 and v1. Used for easily extracting the type.
+	///\param msgNumber The number (from 0) of the message being retrieved.
+	///\returns the message representing this message number, as a MessageBase.
 	MessageBase getBaseMessage(int msgNumber) const;
 
-	///Retrieves a Json::Value representing this message. For v0, this is always valid.
-	///For v1, this is null if a binary mesage.
+	///Retrieves a Json::Value representing this message.
+	///\param msgNumber The number (from 0) of the message being retrieved.
+	///\param returns The message as a JsonValue. For v0, this is always valid. For v1, this is null if a binary mesage.
 	const Json::Value& getJsonMessage(int msgNumber) const;
 
 	///Used to retrieve; v1. Fails on v0. (Use this+underlying string to parse binary messages).
+	///\param msgNumber The number (from 0) of the message being retrieved.
+	///\param offset Return parameter: The offset where this message begins.
+	///\param length Return parameter: The length (from the offset) of this message.
 	void getRawMessage(int msgNumber, int& offset, int& length) const;
 
 	///Retrieve the underlying message string; v1
+	///\returns the entire message string (all messages, end-to-end). Use in conjunction with offset+length
+	///         to pick out a specific message.
 	const std::string& getUnderlyingString() const;
 
 	///Set the sender's ID
@@ -158,70 +144,85 @@ class CommsimSerializer {
 //Combining/Separating multiple messages via OngoingSerializations or MessageConglomerates.
 public:
 	///Begin serialization of a series of messages. Call this once, followed by several calls to makeX(), followed by serialize_end().
+	///\param ongoing The current OngoingSerialization object (created with the default constructor).
+	///\param destAgId The ID of the client receiving this message bundle.
 	///TODO: We can improve efficiency by taking in the total message count, senderID, and destID, and partially building the varying header here.
 	///      We would need to add dummy characters for the message lengths, and then overwrite them later during serialize_end().
 	static void serialize_begin(OngoingSerialization& ongoing, const std::string& destAgId);
 
 	///Finish serialization of a series of messages. See serialize_begin() for usage.
-	static bool serialize_end(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res);
+	///\param ongoing The current OngoingSerialization object.
+	///\param hRes Output parameter that stores the resulting BundleHeader.
+	///\param res Output parameter that stores the resulting data section of the message.
+	static void serialize_end(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res);
 
-	//Deserialize a string containing a PACKET_HEADER and a DATA section into a vecot of JSON objects
-	// representing the data section only. The PACKET_HEADER is dealt with internally.
+	///Deserialize a string containing a PACKET_HEADER and a DATA section into a vecot of JSON objects
+	/// representing the data section only. The PACKET_HEADER is dealt with internally.
+	///\param header The header for this bundle of messages.
+	///\param msgStr The data string for this bundle of messages.
+	///\param res Output parameter containing the messages deserialized.
+	///\returns true if res contains valid data; false if the deserialize operation fails.
 	static bool deserialize(const BundleHeader& header, const std::string& msgStr, MessageConglomerate& res);
 
-	//Turn a string into a Json::Value object. NOTE: This is only used in one very specific case.
-	static bool parseJSON(const std::string& input, Json::Value &output);
-
-	//Append an already serialized string to an OngoingSerialization.
+	///Append an already serialized string to an OngoingSerialization. Typically, one calls "makeX()" and then
+	///  passes that result into this function.
+	///\param ongoing The current serialization-in-progress.
+	///\param msg The serialized string we are appending to this message.
 	static void addGeneric(OngoingSerialization& ongoing, const std::string& msg);
 
 //Parsing functions.
 public:
-	//Deserialize an "id_response" message.
+	///Deserialize an "id_response" message.
 	static IdResponseMessage parseIdResponse(const MessageConglomerate& msg, int msgNumber);
 
-	//Deserialize a "reroute_request" message.
+	///Deserialize a "reroute_request" message.
 	static RerouteRequestMessage parseRerouteRequest(const MessageConglomerate& msg, int msgNumber);
 
-	//Deserialize an "opaque_send" message.
+	///Deserialize an "opaque_send" message.
 	static OpaqueSendMessage parseOpaqueSend(const MessageConglomerate& msg, int msgNumber);
 
-	//Deserialize an "opaque_receive" message.
+	///Deserialize an "opaque_receive" message.
 	static OpaqueReceiveMessage parseOpaqueReceive(const MessageConglomerate& msg, int msgNumber);
 
-	//Deserialize a "remote_log" message.
+	///Deserialize a "remote_log" message.
 	static RemoteLogMessage parseRemoteLog(const MessageConglomerate& msg, int msgNumber);
+
+	///Deserialize a "tcp_connect" message.
+	static TcpConnectMessage parseTcpConnect(const MessageConglomerate& msg, int msgNumber);
+
+	///Deserialize a "tcp_disconnect" message.
+	static TcpDisconnectMessage parseTcpDisconnect(const MessageConglomerate& msg, int msgNumber);
 
 
 
 //Serialization messages.
 public:
-	//Serialize "id_request" to string.
+	///Serialize "id_request" to string.
 	static std::string makeIdRequest(const std::string& token);
 
-	//Serialize "id_ack" to a string.
+	///Serialize "id_ack" to a string.
 	static std::string makeIdAck();
 
-	//Serialize "ticked_simmob" to a string.
+	///Serialize "ticked_simmob" to a string.
 	static std::string makeTickedSimMob(unsigned int tick, unsigned int elapsedMs);
 
-	//Serialize "location" to a string.
+	///Serialize "location" to a string.
 	static std::string makeLocation(int x, int y, const LatLngLocation& projected);
 
-	//Serialize "regions_and_path" to a string.
+	///Serialize "regions_and_path" to a string.
 	static std::string makeRegionsAndPath(const std::vector<sim_mob::RoadRunnerRegion>& all_regions, const std::vector<sim_mob::RoadRunnerRegion>& region_path);
 
-	//Serialize "new_agents" to a string.
+	///Serialize "new_agents" to a string.
 	static std::string makeNewAgents(const std::vector<unsigned int>& addAgents, const std::vector<unsigned int>& remAgents);
 
-	//Serialize "all_locations" to a string.
+	///Serialize "all_locations" to a string.
 	static std::string makeAllLocations(const std::map<unsigned int, DPoint>& allLocations);
 
-	//Serialize "opaque_send" to a string.
-	static std::string makeOpaqueSend(const std::string& fromId, const std::vector<std::string>& toIds, bool broadcast, const std::string& data);
+	///Serialize "opaque_send" to a string.
+	static std::string makeOpaqueSend(const std::string& fromId, const std::vector<std::string>& toIds, const std::string& format, const std::string& tech, bool broadcast, const std::string& data);
 
-	//Serialize "opaque_receive" to a string.
-	static std::string makeOpaqueReceive(const std::string& fromId, const std::string& toId, const std::string& data);
+	///Serialize "opaque_receive" to a string.
+	static std::string makeOpaqueReceive(const std::string& fromId, const std::string& toId, const std::string& format, const std::string& tech, const std::string& data);
 
 
 private:
@@ -232,10 +233,10 @@ private:
 	static bool deserialize_v1(const BundleHeader& header, const std::string& msgStr, MessageConglomerate& res);
 
 	///Helper: serialize v0
-	static bool serialize_end_v0(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res);
+	static void serialize_end_v0(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res);
 
 	///Helper: serialize v1
-	static bool serialize_end_v1(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res);
+	static void serialize_end_v1(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res);
 };
 
 

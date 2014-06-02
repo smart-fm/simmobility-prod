@@ -20,13 +20,16 @@ template<class T>
 class ThreadSafeQueue {
 public:
 	///Push an item into the queue.
+	///\param item The item to add to the queue.
 	void push(const T& item);
 
 	///Pop an item off the queue and store it in res.
-	///Returns true if an item was retrieved, false otherwise.
+	///\param res The item that was removed from the queue.
+	///\returns true if an item was retrieved, false otherwise.
 	bool pop(T& res);
 
 	///Returns the size of the queue
+	///\returns the size of the queue.
 	int size() const;
 
 	///Remove all items in the queue (used for testing)

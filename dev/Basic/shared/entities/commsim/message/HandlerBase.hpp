@@ -18,6 +18,14 @@ class BrokerBase;
 class Handler {
 public:
 	virtual ~Handler() {}
+
+	/**
+	 * Called by the Broker when a message of this type is encountered to handle it.
+	 * \param handler The ConnectionHandler which sent the message that triggered this callback.
+	 * \param messages The current bundle of (all) messages.
+	 * \param msgNumber The id number (from 0) of the message which triggered this callback.
+	 * \param broker The Broker that processed the message that triggered this callback.
+	 */
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const = 0;
 };
 

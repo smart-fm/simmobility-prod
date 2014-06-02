@@ -92,11 +92,39 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* person, const sim_mob::RoadSegm
 		role = person->getRole();
 	}
 
-	if(role->roleType==Role::RL_DRIVER || role->roleType==Role::RL_BUSDRIVER){
+	switch(role->roleType){
+	case Role::RL_DRIVER:
+	case Role::RL_BUSDRIVER:
+	{
 		/*
 		 * Persons start at a node (for now).
 		 * we will always add the Person to the corresponding segment stats in "lane infinity".
 		 */
+		SegmentStatsMap::iterator it = segmentAgents.find(rdSeg);
+		if(it!=segmentAgents.end()){
+			SegmentStatsList& statsList = it->second;
+			sim_mob::SegmentStats* rdSegStats = statsList.front(); // we will start the person at the first segment stats of the segment
+			person->setCurrSegStats(rdSegStats);
+			person->setCurrLane(rdSegStats->laneInfinity);
+			person->distanceToEndOfSegment = rdSegStats->getLength();
+			person->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranSecond();
+			rdSegStats->addAgent(rdSegStats->laneInfinity, person);
+		}
+		break;
+	}
+	case Role::RL_PEDESTRIAN:
+	{
+		pedestrianList.push_back(person);
+		break;
+	}
+	case Role::RL_WAITBUSACTITITY:
+	{
+		assignPersonToBusStopAgent(person);
+		break;
+	}
+	}
+
+	/*if(role->roleType==Role::RL_DRIVER || role->roleType==Role::RL_BUSDRIVER){
 		SegmentStatsList& statsList = segmentAgents.find(rdSeg)->second;
 		sim_mob::SegmentStats* rdSegStats = statsList.front(); // we will start the person at the first segment stats of the segment
 		person->setCurrSegStats(rdSegStats);
@@ -110,7 +138,7 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* person, const sim_mob::RoadSegm
 	}
 	else if(role->roleType==Role::RL_WAITBUSACTITITY){
 		assignPersonToBusStopAgent(person);
-	}
+	}*/
 }
 
 bool sim_mob::Conflux::frame_init(timeslice now)

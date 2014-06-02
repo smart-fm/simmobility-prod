@@ -212,13 +212,58 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 
 const sim_mob::Lane* BusDriverMovement::getBestTargetLane(
 		const sim_mob::SegmentStats* nextSegStats,
-		const SegmentStats* nextToNextSegStats) {
+		const SegmentStats* nextToNextSegStats)
+{
+	if(!nextSegStats) { return nullptr; }
 	const BusStop* nextStop = routeTracker.getNextStop();
-	if(nextStop && nextSegStats->hasBusStop(nextStop)) {
+	/* Even if there is a bus lane in the next segment stats, the bus can choose
+	 * not to enter it if it does not have to serve the stop in the next segment
+	 * stats. So, lane selection is purely based on whether the next stop is in
+	 * the next seg stats.
+	 */
+	if(nextStop && nextSegStats->hasBusStop(nextStop))
+	{
 		return nextSegStats->getOutermostLane();
 	}
-	else {
-		return DriverMovement::getBestTargetLane(nextSegStats, nextToNextSegStats);
+	else
+	{
+		const sim_mob::Lane* minLane = nullptr;
+		double minQueueLength = std::numeric_limits<double>::max();
+		double minLength = std::numeric_limits<double>::max();
+		double que = 0.0;
+		double total = 0.0;
+
+		const std::vector<sim_mob::Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
+		for (vector<sim_mob::Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
+		{
+			if (!((*lnIt)->is_pedestrian_lane()))
+			{
+				const Lane* lane = *lnIt;
+				if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats)) { continue; }
+				total = nextSegStats->getLaneTotalVehicleLength(lane);
+				que = nextSegStats->getLaneQueueLength(lane);
+				if (minLength > total)
+				{
+					//if total length of vehicles is less than current minLength
+					minLength = total;
+					minQueueLength = que;
+					minLane = lane;
+				}
+				else if (minLength == total)
+				{
+					//if total length of vehicles is equal to current minLength
+					if (minQueueLength > que)
+					{
+						//and if the queue length is less than current minQueueLength
+						minQueueLength = que;
+						minLane = lane;
+					}
+				}
+			}
+		}
+
+		if(!minLane) { throw std::runtime_error("best target lane was not set!"); }
+		return minLane;
 	}
 }
 
@@ -227,6 +272,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
 	currSegStat->printBusStops();
 	const BusStop* nextStop = routeTracker.getNextStop();
+<<<<<<< .merge_file_SOZ6f4
 
 	const sim_mob::RoadSegment* rs = currSegStat->getRoadSegment();
 	const std::map<centimeter_t, const RoadItem*> & obstacles = rs->obstacles;
@@ -251,9 +297,11 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	if(nextStop){
 		Print() << "BusDriver's next stop: " << nextStop->getBusstopno_() << std::endl;
 	}
+=======
+>>>>>>> .merge_file_CPEI10
 	if(nextStop && currSegStat->hasBusStop(nextStop))
 	{
-		//send bus arrival message
+		Print() << "BusDriver's next stop: " << nextStop->getBusstopno_() << std::endl;
 		BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(nextStop);
 		if(stopAg)
 		{

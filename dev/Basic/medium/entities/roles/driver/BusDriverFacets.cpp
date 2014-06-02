@@ -114,11 +114,12 @@ void BusDriverMovement::frame_tick() {
 				<<"\",\"Lane\":\""<<(person->getCurrLane()->getLaneID())
 				<<"\",\"UpNode\":\""<<(person->getCurrSegStats()->getRoadSegment()->getStart()->getID())
 				<<"\",\"DistanceToEndSeg\":\""<<person->distanceToEndOfSegment;
-		if (person->isQueuing) {
-				logout << "\",\"queuing\":\"" << "true";
-		} else {
-				logout << "\",\"queuing\":\"" << "false";
-		}
+
+		if(parentBusDriver->getResource()->isMoving()) { logout << "\",\"ServingStop\":\"" << "false"; }
+		else { logout << "\",\"ServingStop\":\"" << "true"; }
+
+		if (person->isQueuing) { logout << "\",\"queuing\":\"" << "true"; }
+		else { logout << "\",\"queuing\":\"" << "false";}
 		logout << "\"})" << std::endl;
 		Print()<<logout.str();
 	}
@@ -143,11 +144,10 @@ void sim_mob::medium::BusDriverMovement::frame_tick_output() {
 			<<"\",\"Lane\":\""<<(person->getCurrLane()->getLaneID())
 			<<"\",\"UpNode\":\""<<(person->getCurrSegStats()->getRoadSegment()->getStart()->getID())
 			<<"\",\"DistanceToEndSeg\":\""<<person->distanceToEndOfSegment;
-	if (person->isQueuing) {
-			logout << "\",\"queuing\":\"" << "true";
-	} else {
-			logout << "\",\"queuing\":\"" << "false";
-	}
+	if(parentBusDriver->getResource()->isMoving()) { logout << "\",\"ServingStop\":\"" << "false"; }
+	else { logout << "\",\"ServingStop\":\"" << "true"; }
+	if (person->isQueuing) { logout << "\",\"queuing\":\"" << "true"; }
+	else { logout << "\",\"queuing\":\"" << "false";}
 	logout << "\"})" << std::endl;
 	Print()<<logout.str();
 	LogOut(logout.str());
@@ -201,7 +201,7 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 		person->setCurrLane(firstSegStat->laneInfinity);
 		person->distanceToEndOfSegment = firstSegStat->getLength();
 
-		routeTracker.printBusRoue();
+		routeTracker.printBusRoute();
 	}
 
 	//to indicate that the path to next activity is already planned
@@ -257,9 +257,6 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(nextStop);
 		if(stopAg)
 		{
-			Print() << "Bus driver wroker: " << parent->currWorkerProvider
-					<< "|bus stop agent worker: " << currSegStat->getRoadSegment()->getParentConflux()->currWorkerProvider
-					<< std::endl;
 			if(stopAg->canAccommodate(parentBusDriver->getResource()->getLengthCm()))
 			{
 				if(isQueuing)
@@ -328,20 +325,20 @@ void BusRouteTracker::updateNextStop()
 	nextStopIt++;
 }
 
-void BusRouteTracker::printBusRoue(){
+void BusRouteTracker::printBusRoute(){
 	const vector<const sim_mob::RoadSegment*>& rsPath = getRoadSegments();
-	std::cout<< "bus line is : "<< this->busRouteId << std::endl;
-	std::cout<< "segments' size of bus trip is "<< rsPath.size() << std::endl;
-	for (vector<const sim_mob::RoadSegment*>::const_iterator it = rsPath.begin();
-			it != rsPath.end(); it++) {
+	Print()<< "bus line is : "<< this->busRouteId << std::endl;
+	Print()<< "segments' size of bus trip is "<< rsPath.size() << std::endl;
+	for (vector<const sim_mob::RoadSegment*>::const_iterator it = rsPath.begin(); it != rsPath.end(); it++)
+	{
 		const sim_mob::RoadSegment* rdSeg = *it;
-		std::cout<< rdSeg->getSegmentAimsunId() << std::endl;
+		Print()<< rdSeg->getSegmentAimsunId() << std::endl;
 	}
 	const vector<const sim_mob::BusStop*>& stops = this->getBusStops();
-	std::cout<< "stops' size of bus trip is "<< stops.size() << std::endl;
-	for (vector<const sim_mob::BusStop*>::const_iterator it = stops.begin();
-			it != stops.end(); it++) {
-		std::cout<< (*it)->busstopno_ << std::endl;
+	Print()<< "stops' size of bus trip is "<< stops.size() << std::endl;
+	for (vector<const sim_mob::BusStop*>::const_iterator it = stops.begin(); it != stops.end(); it++)
+	{
+		Print()<< (*it)->busstopno_ << std::endl;
 	}
 }
 }

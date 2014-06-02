@@ -60,7 +60,7 @@ public:
 	/**
 	 * print bus route information
 	 */
-	void printBusRoue();
+	void printBusRoute();
 
 private:
 	/**

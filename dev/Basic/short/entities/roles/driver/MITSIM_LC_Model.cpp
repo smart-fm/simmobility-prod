@@ -700,8 +700,36 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 		{
 			eur = lcUtilityLookAheadRight(p, nRight, lcDistance);
 		}
+		if(p.currLane == connectedLanes[i])
+		{
+			euc = lcUtilityLookAheadCurrent(p, nRight, lcDistance);
+		}
 	}
 
+	double sum = eul + eur ;
+	if(sum > 0)
+	{
+
+	}
+	else
+	{
+		return LCS_SAME;
+	}
+
+	sum += euc;
+
+	boost::uniform_int<> zero_to_max(0, RAND_MAX);
+	double rnd = (double) (zero_to_max(p.gen) % 1000) / 1000;
+
+	float probOfCurrentLane = euc / sum;
+	float probOfCL_LL = probOfCurrentLane + eul / sum;
+	if (rnd < probOfCurrentLane) change = LCS_SAME ;
+	else if (rnd < probOfCL_LL) change = LCS_LEFT ;
+	else change = LCS_RIGHT ;
+
+
+
+	return change;
 }
 double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance)
 {

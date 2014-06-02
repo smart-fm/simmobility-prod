@@ -46,7 +46,12 @@ enum LANE_CHANGE_SIDE {
 	LCS_SAME = 0,
 	LCS_RIGHT = 1
 };
-
+enum LANE_CHANGE_MODE {	//as a mask
+	DLC = 0,
+	MLC = 2,
+	MLC_C = 4,
+	MLC_F = 6
+};
 enum TARGET_GAP {
 	TG_Same = 0,
 	TG_Left_Fwd = -3,

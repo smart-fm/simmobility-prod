@@ -42,16 +42,16 @@ public:
 
 public:
 	string modelName;
-	double maxAcceleration;
+//	double maxAcceleration;
 	/// grade factor
 	double accGradeFactor;
-	double normalDeceleration;
-	double maxDeceleration;
+//	double normalDeceleration;
+//	double maxDeceleration;
 
-	double nextStepSize;
+//	double nextStepSize;
 	double nextPerceptionSize;
 
-	double getNextStepSize() { return nextStepSize; }
+//	double getNextStepSize() { return nextStepSize; }
 	/// update step size , dec,acc,uniform speed,stopped vh
 	std::vector<double> updateStepSize;
 	std::vector<double> perceptionSize;
@@ -91,8 +91,8 @@ public:
 		double stddev;
 	};
 
-	MITSIM_CF_Model();
-	void initParam();
+	MITSIM_CF_Model(sim_mob::DriverUpdateParams& p);
+	void initParam(sim_mob::DriverUpdateParams& p);
 	/** \brief make index base on speed scaler
 	 *  \param speedScalerStr speed scaler
 	 *  \param cstr index value

@@ -114,14 +114,14 @@ double CalcHeadway(double space, double speed, double elapsedSeconds, double max
  * among the rates given by several constraints.
  *--------------------------------------------------------------------
  */
-sim_mob::MITSIM_CF_Model::MITSIM_CF_Model()
+sim_mob::MITSIM_CF_Model::MITSIM_CF_Model(sim_mob::DriverUpdateParams& p)
 //	:cftimer(0.0)
 {
 	modelName = "general_driver_model";
 	splitDelimiter = " ,";
-	initParam();
+	initParam(p);
 }
-void sim_mob::MITSIM_CF_Model::initParam()
+void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p)
 {
 	// speed scaler
 	string speedScalerStr,maxAccStr,decelerationStr,maxAccScaleStr,normalDecScaleStr,maxDecScaleStr;
@@ -186,7 +186,7 @@ void sim_mob::MITSIM_CF_Model::initParam()
 	calcUpdateStepSizes();
 
 	// init step size , i=3 stopped vehicle
-	nextStepSize = updateStepSize[3];
+	p.nextStepSize = updateStepSize[3];
 	nextPerceptionSize = perceptionSize[3];
 }
 void sim_mob::MITSIM_CF_Model::makeCFParam(string& s,CarFollowParam& cfParam)
@@ -418,7 +418,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	// VARIABLE || FUNCTION ||				REGIME
 	calcStateBasedVariables(p);
 
-	double acc = maxAcceleration;
+	double acc = p.maxAcceleration;
 	double aB = calcMergingRate(p);
 	double aC = calcSignalRate(p);			// near signal or incidents
 	double aD = calcYieldingRate(p, targetSpeed, maxLaneSpeed); // when yielding
@@ -498,7 +498,7 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 //		return maxDeceleration;
 	if(p.space<2.0 && p.isAlreadyStart && p.isBeforIntersecton && p.perceivedFwdVelocityOfFwdCar/100 < 1.0)
 	{
-		return maxDeceleration*4.0;
+		return p.maxDeceleration*4.0;
 	}
 	if(p.space > 0) {
 		if(!nv.exists()) {
@@ -512,15 +512,15 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 		p.a_lead = nv.driver->fwdAccel/100;
 
 //		double dt	=	p.elapsedSeconds;
-		double dt = getNextStepSize();
-		double headway = CalcHeadway(p.space, p.perceivedFwdVelocity/100, p.elapsedSeconds, maxAcceleration);
+		double dt = p.nextStepSize;
+		double headway = CalcHeadway(p.space, p.perceivedFwdVelocity/100, p.elapsedSeconds, p.maxAcceleration);
 //		std::cout<<"carFollowingRate: headway1: "<<headway<<std::endl;
 
 		//Emergency deceleration overrides the perceived distance; check for it.
 		{
 //			double emergSpace = p.perceivedDistToFwdCar/100;
 			double emergSpace = nv.distance/100;
-			double emergHeadway = CalcHeadway(emergSpace, p.perceivedFwdVelocity/100, p.elapsedSeconds, maxAcceleration);
+			double emergHeadway = CalcHeadway(emergSpace, p.perceivedFwdVelocity/100, p.elapsedSeconds, p.maxAcceleration);
 			if (emergHeadway < hBufferLower) {
 				//We need to brake. Override.
 				p.space = emergSpace;
@@ -556,7 +556,7 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 
 double sim_mob::MITSIM_CF_Model::calcMergingRate(sim_mob::DriverUpdateParams& p)
 {
-	double acc=maxAcceleration;
+	double acc=p.maxAcceleration;
 	// TS_Vehicles from freeways and on ramps have different
 	// priority.  Seperate procedures are applied. (MITSIM TS_CFModels.cc)
 	//  if (lane_->linkType() == LINK_TYPE_FREEWAY) {
@@ -604,14 +604,16 @@ double sim_mob::MITSIM_CF_Model::calcMergingRate(sim_mob::DriverUpdateParams& p)
 }
 bool sim_mob::MITSIM_CF_Model::isGapAcceptable(sim_mob::DriverUpdateParams& p,NearestVehicle& vh)
 {
-	float accn = maxAcceleration;
+	float accn = p.maxAcceleration;
 	float speedm = vh.driver->fwdVelocity/100.0; //coming->currentSpeed_;
 	// get object vh's max acceleration
-	DriverMovement *driverMvt = (DriverMovement*)vh.driver->Movement();
-	float accm = driverMvt->cfModel->maxAcceleration;//coming->maxAcceleration();
+//	DriverMovement *driverMvt = (DriverMovement*)vh.driver->Movement();
+	Driver* d = const_cast<Driver*>(vh.driver);
+	DriverUpdateParams& dp = d->getParams();
+	float accm = dp.maxAcceleration;//coming->maxAcceleration();
 	float speedn;
 //	double dt = p.elapsedSeconds;
-	double dt = getNextStepSize();
+	double dt = p.nextStepSize;
 
 	double distance = p.dis2stop; // distance to end of the link
 	double currentSpeed = p.driver->fwdVelocity/100.0; // subject vh current speed m/s
@@ -651,7 +653,7 @@ bool sim_mob::MITSIM_CF_Model::isGapAcceptable(sim_mob::DriverUpdateParams& p,Ne
 }
 double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
 {
-	double minacc = maxAcceleration;
+	double minacc = p.maxAcceleration;
 //	double yellowStopHeadway = 1; //1 second
 //	double minSpeedYellow = 2.2352;//5 mph = 2.2352 m / s
 
@@ -717,7 +719,7 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
 		else if(color == Signal::Green)
 #endif
 		{
-			minacc = maxAcceleration;
+			minacc = p.maxAcceleration;
 		}
 
 #endif
@@ -736,14 +738,14 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p, double 
 	{
 		return carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvRightFwd);
 	}
-	return maxAcceleration;
+	return p.maxAcceleration;
 }
 
 double sim_mob::MITSIM_CF_Model::waitExitLaneRate(DriverUpdateParams& p)
 {
 	double dx = p.perceivedDistToFwdCar/100-5;
 	if(p.turningDirection == LCS_SAME || dx > p.distanceToNormalStop)
-		return maxAcceleration;
+		return p.maxAcceleration;
 	else
 		return brakeToStop(p, dx);
 }
@@ -754,7 +756,7 @@ double sim_mob::MITSIM_CF_Model::waitAllowedLaneRate(sim_mob::DriverUpdateParams
 		double acc = brakeToStop(p,p.distanceToNormalStop);
 		return acc;
 	}
-	return maxAcceleration;
+	return p.maxAcceleration;
 }
 double sim_mob::MITSIM_CF_Model::calcForwardRate(DriverUpdateParams& p)
 {
@@ -765,11 +767,11 @@ double sim_mob::MITSIM_CF_Model::calcForwardRate(DriverUpdateParams& p)
 	*/
 
 	if(p.targetGap != TG_Left_Fwd || p.targetGap!= TG_Right_Fwd)
-		return maxAcceleration;
+		return p.maxAcceleration;
 	NearestVehicle& nv = (p.targetGap == TG_Left_Fwd)?p.nvLeftFwd:p.nvRightFwd;
 
 	if(!nv.exists())
-		return maxAcceleration;
+		return p.maxAcceleration;
 	double dis = nv.distance/100 + targetGapAccParm[0];
 	double dv = nv.driver->fwdVelocity.get()/100 - p.perceivedFwdVelocity/100;
 	double acc = targetGapAccParm[1] * pow(dis, targetGapAccParm[2]);
@@ -793,11 +795,11 @@ double sim_mob::MITSIM_CF_Model::calcBackwardRate(DriverUpdateParams& p)
 	*/
 
 	if(p.targetGap != TG_Left_Back || p.targetGap!= TG_Right_Back)
-		return maxAcceleration;
+		return p.maxAcceleration;
 	NearestVehicle& nv = (p.targetGap == TG_Left_Back)?p.nvLeftBack:p.nvRightBack;
 
 	if(!nv.exists())
-		return maxAcceleration;
+		return p.maxAcceleration;
 
 	double dis = nv.distance/100 + targetGapAccParm[0];
 	double dv = nv.driver->fwdVelocity.get()/100 - p.perceivedFwdVelocity/100;
@@ -816,13 +818,13 @@ double sim_mob::MITSIM_CF_Model::calcBackwardRate(DriverUpdateParams& p)
 double sim_mob::MITSIM_CF_Model::calcAdjacentRate(DriverUpdateParams& p)
 {
 	if(p.nextLaneIndex == p.currLaneIndex)
-		return maxAcceleration;
+		return p.maxAcceleration;
 	NearestVehicle& av = (p.nextLaneIndex > p.currLaneIndex)?p.nvLeftFwd:p.nvRightFwd;
 	NearestVehicle& bv = (p.nextLaneIndex > p.currLaneIndex)?p.nvLeftBack:p.nvRightBack;
 	if(!av.exists())
-		return maxAcceleration;
+		return p.maxAcceleration;
 	if(!bv.exists())
-		return normalDeceleration;
+		return p.normalDeceleration;
 	double gap = bv.distance/100 + av.distance/100;
 	double position = bv.distance/100;
 	double acc = targetGapAccParm[11] * (targetGapAccParm[0] * gap - position);
@@ -843,14 +845,14 @@ double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p, double dis)
 	if (dis > sim_mob::Math::DOUBLE_EPSILON) {
 		double u2 = (p.perceivedFwdVelocity/100)*(p.perceivedFwdVelocity/100);
 		double acc = - u2 / dis * 0.5;
-		if (acc <= normalDeceleration)
+		if (acc <= p.normalDeceleration)
 			return acc;
 //		double dt = p.elapsedSeconds;
-		double dt = getNextStepSize();
+		double dt = p.nextStepSize;
 		double vt = p.perceivedFwdVelocity/100 * dt;
 		double a = dt * dt;
-		double b = 2.0 * vt - normalDeceleration * a;
-		double c = u2 + 2.0 * normalDeceleration * (dis - vt);
+		double b = 2.0 * vt - p.normalDeceleration * a;
+		double c = u2 + 2.0 * p.normalDeceleration * (dis - vt);
 		double d = b * b - 4.0 * a * c;
 
 		if (d < 0 || a <= 0.0) return acc;
@@ -860,8 +862,8 @@ double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p, double dis)
 	else {
 
 //		double dt = p.elapsedSeconds;
-		double dt = getNextStepSize();
-		return (dt > 0.0) ? -(p.perceivedFwdVelocity/100) / dt : maxDeceleration;
+		double dt = p.nextStepSize;
+		return (dt > 0.0) ? -(p.perceivedFwdVelocity/100) / dt : p.maxDeceleration;
 	}
 }
 
@@ -877,7 +879,7 @@ double sim_mob::MITSIM_CF_Model::brakeToTargetSpeed(DriverUpdateParams& p,double
 {
 //	double v 			=	p.perceivedFwdVelocity/100;
 //	double dt			=	p.elapsedSeconds;
-	double dt = getNextStepSize();
+	double dt = p.nextStepSize;
 
 //	//NOTE: This is the only use of epsilon(), so I just copied the value directly.
 //	//      See LC_Model for how to declare a private temporary variable. ~Seth
@@ -898,7 +900,7 @@ double sim_mob::MITSIM_CF_Model::brakeToTargetSpeed(DriverUpdateParams& p,double
 		return acc;
 	}
 	else {
-	//	float dt = nextStepSize();
+	//	float dt = nextStepSize;
 //		if (dt <= 0.0) return maxAcceleration ;
 		return (v - currentSpeed_) / dt;
 	}
@@ -909,7 +911,7 @@ double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(DriverUpdateParams& 
 	double v 			=	p.perceivedFwdVelocity/100;
 	double dv			=	v-p.v_lead;
 	double epsilon_v	=	sim_mob::Math::DOUBLE_EPSILON;
-	double aNormalDec	=	normalDeceleration;
+	double aNormalDec	=	p.normalDeceleration;
 
 	double a;
 	if( dv < epsilon_v ) {
@@ -918,13 +920,13 @@ double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(DriverUpdateParams& 
 		a = p.a_lead - dv * dv / 2 / p.space;
 	} else {
 //		double dt	=	p.elapsedSeconds;
-		double dt = getNextStepSize();
+		double dt = p.nextStepSize;
 		//p.space_star	=	p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
 		double s = p.space_star;
 		double v = p.v_lead + p.a_lead * dt ;
 		a= brakeToTargetSpeed(p,s,v);
 	}
-	return min(normalDeceleration, a);
+	return min(p.normalDeceleration, a);
 }
 
 
@@ -948,13 +950,13 @@ double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(DriverUpdateParams& p, double 
 {
 	double vn =	p.perceivedFwdVelocity/100;
 	if (vn < targetSpeed) {
-		return (vn<maxLaneSpeed) ? maxAcceleration : 0;
+		return (vn<maxLaneSpeed) ? p.maxAcceleration : 0;
 	} else if (vn > targetSpeed) {
 		return 0;
 	}
 
 	//If equal:
-	return (vn<maxLaneSpeed) ? maxAcceleration: 0;
+	return (vn<maxLaneSpeed) ? p.maxAcceleration: 0;
 }
 
 double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
@@ -963,7 +965,7 @@ double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(DriverUpdateParams& p, double
 		return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);
 	} else {
 //		double dt	=	p.elapsedSeconds;
-		double dt = getNextStepSize();
+		double dt = p.nextStepSize;
 		//p.space_star	=	p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
 		double s = p.space_star;
 		double v = p.v_lead + p.a_lead * dt ;
@@ -978,7 +980,7 @@ void sim_mob::MITSIM_CF_Model::distanceToNormalStop(DriverUpdateParams& p)
 //	double DIS_EPSILON = 0.001;
 	if (p.perceivedFwdVelocity/100 > minSpeed) {
 		p.distanceToNormalStop = sim_mob::Math::DOUBLE_EPSILON -
-				0.5 * (p.perceivedFwdVelocity/100) * (p.perceivedFwdVelocity/100) / normalDeceleration;
+				0.5 * (p.perceivedFwdVelocity/100) * (p.perceivedFwdVelocity/100) / p.normalDeceleration;
 		if (p.distanceToNormalStop < minResponseDistance) {
 			p.distanceToNormalStop = minResponseDistance;
 		}
@@ -992,12 +994,12 @@ void sim_mob::MITSIM_CF_Model::calcStateBasedVariables(DriverUpdateParams& p)
 
 	// Acceleration rate for a vehicle (a function of vehicle type,
 	// facility type, segment grade, current speed).
-	maxAcceleration    = getMaxAcceleration(p);
+	p.maxAcceleration    = getMaxAcceleration(p);
 	// Deceleration rate for a vehicle (a function of vehicle type, and
 	// segment grade).
-	normalDeceleration = getNormalDeceleration(p);
+	p.normalDeceleration = getNormalDeceleration(p);
 	// Maximum deceleration is function of speed and vehicle class
-	maxDeceleration    = getMaxDeceleration(p);
+	p.maxDeceleration    = getMaxDeceleration(p);
 }
 void sim_mob::MITSIM_CF_Model::calcUpdateStepSizes()
 {
@@ -1047,8 +1049,8 @@ double sim_mob::CarFollowModel::calcNextStepSize(DriverUpdateParams& p)
 	else if (accRate_ > sim_mob::Math::DOUBLE_EPSILON) i = 1;
 	else if (currentSpeed_ > sim_mob::Math::DOUBLE_EPSILON) i = 2;
 	else i = 3;
-	nextStepSize = updateStepSize[i];
+	p.nextStepSize = updateStepSize[i];
 	nextPerceptionSize = perceptionSize[i];
 	p.driver->resetReacTime(nextPerceptionSize*100);
-	return nextStepSize;
+	return p.nextStepSize;
 }

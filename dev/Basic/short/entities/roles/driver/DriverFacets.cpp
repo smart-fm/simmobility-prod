@@ -127,9 +127,10 @@ sim_mob::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	//vehicle = nullptr;
 	lastIndex = -1;
 
+	DriverUpdateParams& p2 = parentDriver->getParams();
 	//Initialize our models. These should be swapable later.
 	lcModel = new MITSIM_LC_Model();
-	cfModel = new MITSIM_CF_Model();
+	cfModel = new MITSIM_CF_Model(p2);
 	intModel = new SimpleIntDrivingModel();
 
 	//Some one-time flags and other related defaults.

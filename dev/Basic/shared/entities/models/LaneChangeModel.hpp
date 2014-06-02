@@ -6,18 +6,20 @@
 #include "conf/params/ParameterManager.hpp"
 #include "geospatial/Lane.hpp"
 #include "entities/models/Constants.h"
+#include "entities/roles/driver/DriverUpdateParams.hpp"
 
 namespace sim_mob {
 
 //Forward declaration
 class DriverUpdateParams;
+class NearestVehicle;
 
-enum LANE_CHANGE_MODE {	//as a mask
-	DLC = 0,
-	MLC = 2,
-	MLC_C = 4,
-	MLC_F = 6
-};
+//enum LANE_CHANGE_MODE {	//as a mask
+//	DLC = 0,
+//	MLC = 2,
+//	MLC_C = 4,
+//	MLC_F = 6
+//};
 
 /*
  * \file LaneChangeModel.hpp
@@ -157,6 +159,15 @@ public:
 	float lcNosingProb(float dis, float lead_rel_spd, float gap,int num);
 	vector<double> kaziNosingParams;
 	void makekaziNosingParams(string& str);
+	float lcProdNoseRejProb;	// used in sampling nosing prob
+	double CF_CRITICAL_TIMER_RATIO;
+	// Returns 1 if the vehicle can nose in or 0 otherwise
+	int checkNosingFeasibility(DriverUpdateParams& p,const NearestVehicle * av,const NearestVehicle * bv,double dis2stop);
+	double lcMaxStuckTime;
+	double lcMinGap(int type);
+	float lcNosingConstStateTime() { return nosingParams[0]; }
+	vector<double> lcYieldingProb;
+	void makelcYieldingProb(string& str);
 
 	vector<double> laneUtilityParams;
 	void makeLanetilityParams(std::string& str);

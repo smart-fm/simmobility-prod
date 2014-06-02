@@ -152,5 +152,14 @@
 # LC Kazi Nosing Model
 <param name="kazi_nosing_param" value="-3.159  0.313  -0.027  2.050  0.028  0.6"/>
 
+<param name="CF_CRITICAL_TIMER_RATIO" value="0.5"/>
+
+#LC Yielding Model] = {	# currently yields to nosing vehicle only
+<param name="LC_Yielding_Model" value="
+   0.80	# previously not yielding
+   1.00	# previously yielding
+"/>
+
+
 </parameters>
 

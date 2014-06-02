@@ -204,8 +204,14 @@ public:
 	/// decision timer (second)
 	/// count down in DriverMovement
 	double cftimer;
+	double nextStepSize;
+	double getNextStepSize() { return nextStepSize; }
 
 	const RoadSegment* nextLink();
+
+	double maxAcceleration;
+	double normalDeceleration;
+	double maxDeceleration;
 
 public:
 #ifndef SIMMOB_DISABLE_MPI

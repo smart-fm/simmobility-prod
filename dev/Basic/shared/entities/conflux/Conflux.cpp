@@ -123,22 +123,6 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* person, const sim_mob::RoadSegm
 		break;
 	}
 	}
-
-	/*if(role->roleType==Role::RL_DRIVER || role->roleType==Role::RL_BUSDRIVER){
-		SegmentStatsList& statsList = segmentAgents.find(rdSeg)->second;
-		sim_mob::SegmentStats* rdSegStats = statsList.front(); // we will start the person at the first segment stats of the segment
-		person->setCurrSegStats(rdSegStats);
-		person->setCurrLane(rdSegStats->laneInfinity);
-		person->distanceToEndOfSegment = rdSegStats->getLength();
-		person->remainingTimeThisTick = ConfigManager::GetInstance().FullConfig().baseGranSecond();
-		rdSegStats->addAgent(rdSegStats->laneInfinity, person);
-	}
-	else if(role->roleType==Role::RL_PEDESTRIAN){
-		pedestrianList.push_back(person);
-	}
-	else if(role->roleType==Role::RL_WAITBUSACTITITY){
-		assignPersonToBusStopAgent(person);
-	}*/
 }
 
 bool sim_mob::Conflux::frame_init(timeslice now)

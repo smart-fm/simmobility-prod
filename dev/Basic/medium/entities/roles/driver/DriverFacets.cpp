@@ -806,11 +806,9 @@ void DriverMovement::removeFromQueue() {
 
 const sim_mob::Lane* DriverMovement::getBestTargetLane(
 		const SegmentStats* nextSegStats,
-		const SegmentStats* nextToNextSegStats) {
-	if(!nextSegStats) {
-		return nullptr;
-	}
-
+		const SegmentStats* nextToNextSegStats)
+{
+	if(!nextSegStats) { return nullptr; }
 	const sim_mob::Lane* minLane = nullptr;
 	double minQueueLength = std::numeric_limits<double>::max();
 	double minLength = std::numeric_limits<double>::max();
@@ -818,26 +816,26 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(
 	double total = 0.0;
 
 	const std::vector<sim_mob::Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
-	vector<sim_mob::Lane* >::const_iterator lnIt = lanes.begin();
-
-	//getBestLaneGroup logic
-	for (;lnIt != lanes.end(); ++lnIt){
-		if (!((*lnIt)->is_pedestrian_lane())){
-			const Lane* lane = *lnIt;
-			if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats))	{
-				continue;
-			}
+	for (vector<sim_mob::Lane* >::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
+	{
+		const Lane* lane = *lnIt;
+		if (!lane->is_pedestrian_lane() && !lane->is_whole_day_bus_lane())
+		{
+			if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats)) {	continue; }
 			total = nextSegStats->getLaneTotalVehicleLength(lane);
 			que = nextSegStats->getLaneQueueLength(lane);
-			if (minLength > total){
+			if (minLength > total)
+			{
 				//if total length of vehicles is less than current minLength
 				minLength = total;
 				minQueueLength = que;
 				minLane = lane;
 			}
-			else if (minLength == total){
+			else if (minLength == total)
+			{
 				//if total length of vehicles is equal to current minLength
-				if (minQueueLength > que){
+				if (minQueueLength > que)
+				{
 					//and if the queue length is less than current minQueueLength
 					minQueueLength = que;
 					minLane = lane;
@@ -846,9 +844,7 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(
 		}
 	}
 
-	if(!minLane){
-		throw std::runtime_error("best target lane was not set!");
-	}
+	if(!minLane) { throw std::runtime_error("best target lane was not set!"); }
 	return minLane;
 }
 

@@ -102,6 +102,26 @@
 # minimum speed to consider for a moving vehicle m/s
 <param name="min_speed" value="0.1"/>
 
-
+#Lane Utility Model
+<param name="lane_utility_model" value="
+	 3.9443		# current lane constant
+	-0.3213		# right lane constant
+	-1.1683		# right most lane dummy
+	 0.0		# currently unused
+	 0.0633		# front vehicle speed (all lanes)
+        -1.0   	        # bus following dummy
+         0.0058		# front vehicle spacing
+	-0.2664		# heavy neighbor in lane
+        -0.0088		# density in lane	
+        -3.3754		# tailgate
+    	 10     	# gap behind threshold for tailgate dummy (meters)
+	 19         	# density threshold for tailgate dummy	
+	-2.3400		# one lane change required
+	-4.5084		# two lane changes required
+	-2.8257		# each additional lane change required
+	-1.2597		# next exit, one lane change required
+	-0.7239		# next exit, each additional lane changes required
+        -0.3269  	# distance to exit"
+/> 
 </parameters>
 

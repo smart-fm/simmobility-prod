@@ -121,7 +121,7 @@ public:
 	 *  /param distance look ahead distance from current position
 	 *  /param lanePool store found lanes
 	 */
-	void getLanesConnectToLookAheadDis(double distance,std::set<sim_mob::Lane*>& lanePool);
+	void getLanesConnectToLookAheadDis(double distance,std::vector<sim_mob::Lane*>& lanePool);
 	bool laneConnectToSegment(sim_mob::Lane* lane,const sim_mob::RoadSegment* rs);
 
 private:

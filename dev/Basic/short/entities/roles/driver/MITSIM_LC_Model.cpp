@@ -599,6 +599,11 @@ void sim_mob::MITSIM_LC_Model::initParam()
 
 	// driver look ahead distancd
 	lookAheadDistance = mlcDistance();
+
+	// lane Utility Params
+	ParameterManager::Instance()->param(modelName,"lane_utility_model",str,
+			string("3.9443 -0.3213  -1.1683  -1.1683 0.0 0.0633 -1.0 0.0058 -0.2664 -0.0088 -3.3754 10 19 -2.3400 -4.5084 -2.8257 -1.2597 -0.7239 -0.3269"));
+	makeLanetilityParams(str);
 }
 void sim_mob::MITSIM_LC_Model::makeMCLParam(std::string& str)
 {
@@ -629,6 +634,10 @@ void sim_mob::MITSIM_LC_Model::makeTargetGapPram(std::vector< std::string >& str
 		GAP_PARAM.push_back(array);
 	}
 }
+void sim_mob::MITSIM_LC_Model::makeLanetilityParams(std::string& str)
+{
+	sim_mob::Utils::convertStringToArray(str,laneUtilityParams);
+}
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParams& p)
 {
 	LANE_CHANGE_SIDE change = LCS_SAME;
@@ -658,6 +667,125 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 
 	// find lanes connect to target segment in lookahead distance
 	driverMvt->fwdDriverMovement.getNextSegment(true);
+	std::vector<sim_mob::Lane*> connectedLanes;
+	driverMvt->getLanesConnectToLookAheadDis(lookAheadDistance,connectedLanes);
+
+	int nRight = 100; // number of lane changes required for the current lane.
+	int nLeft = 100; // number of lane changes required for the current lane.
+	int nCurrent = 100; // number of lane changes required for the current lane.
+
+
+	for (int i = 0; i < connectedLanes.size(); i++) {
+
+	 int numlcRight  = abs (getLaneIndex(connectedLanes[i]) -  (p.currLaneIndex+1)) ;
+	 int numlcLeft  = abs (getLaneIndex(connectedLanes[i]) -  (p.currLaneIndex-1)) ;
+	 int numlcCurrent  = abs (getLaneIndex(connectedLanes[i]) -  p.currLaneIndex) ;
+
+	 nRight =  std::min<int>(nRight, numlcRight);
+	 nLeft =  std::min<int>(nLeft, numlcLeft);
+	 nCurrent =  std::min<int>(nCurrent, numlcCurrent);
+
+	}
+
+	double eul = 0.0, eur = 0.0, euc = 1.0 ;
+	double lcDistance = p.dis2stop;
+
+	for(int i=0;i<connectedLanes.size();i++)
+	{
+		if(p.leftLane == connectedLanes[i])
+		{
+			eul = lcUtilityLookAheadLeft(p, nLeft, lcDistance);
+		}
+		if(p.rightLane == connectedLanes[i])
+		{
+			eur = lcUtilityLookAheadRight(p, nRight, lcDistance);
+		}
+	}
+
+}
+double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance)
+{
+	vector<double> a = laneUtilityParams;
+
+	double vld, mlc, density, spacing;
+
+	//density = plane->density();
+	// TODO calculate lane density
+	density = 0;
+	float heavy_neighbor = 0.0;
+	if(p.nvLeftFwd.exists()) // front left bumper leader
+	{
+		double leftFwdVel = p.nvLeftFwd.driver->fwdVelocity.get();
+		double currentSpeed = p.perceivedFwdVelocity / 100.0;
+		vld = std::min<double>(leftFwdVel,currentSpeed);
+
+		if(p.nvLeftFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
+		{
+			heavy_neighbor = a[7];
+			spacing = p.nvLeftFwd.distance;
+		}
+	}
+	else
+	{
+		vld = vld = p.desiredSpeed;
+		spacing = p.dis2stop; // MITSIM distance()
+	}
+
+	if(p.nvLeftBack.exists())// back left bumper leader
+	{
+		if(p.nvLeftBack.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
+		{
+			heavy_neighbor = a[7];
+		}
+	}
+
+	float left_most = 0.0;
+
+	// right hand driving,so left_most = 0
+
+	switch (n) {
+	  case 0:
+	    {
+	      mlc = 0;
+	      break;
+	    }
+	  case 1:
+	    {
+	      mlc = a[12] * pow(p.dis2stop/1000.0, a[17]) + a[15];  // why divide 1000
+	      break;
+	    }
+	  case 2:
+	    {
+	      mlc = a[13] * pow(p.dis2stop/1000.0, a[17]) + a[15] + a[16];
+	      break;
+	    }
+	  default:
+	    {
+	      mlc = (a[13]+a[14]*(n-2)) * pow(p.dis2stop/1000, a[17]) +a[15] + a[16] * (n-1);
+	    }
+	    break;
+	  }
+
+	//TODO: check bus stop ahead
+	// MITSIM TS_LCModels.cc Dan: If vehicle ahead is a bus and there is a bus stop ahead
+	  // in the lane, set busAheadDummy to 1 for disincentive to be
+	  // applied in the utility.
+	int busAheadDummy = 0;
+	if(p.nvLeftFwd.exists())
+	{
+		if(p.nvLeftFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)
+		{
+			busAheadDummy = 1;
+		}
+	}
+
+	double u = a[4] * vld + a[8] * spacing + a[6] * density + mlc + heavy_neighbor + left_most + a[5] * busAheadDummy;
+
+	return exp(u) ;
+}
+double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams& p,int n, float LCdistance)
+{
+
 }
 double sim_mob::MITSIM_LC_Model::mlcDistance()
 {

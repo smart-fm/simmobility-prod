@@ -1139,7 +1139,7 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(sim_mob:
 
 	return res;
 }
-void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,std::set<sim_mob::Lane*>& lanePool)
+void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,std::vector<sim_mob::Lane*>& lanePool)
 {
 	/*
 	 if (!(hasNextSegment(true))) // has seg in current link
@@ -1414,6 +1414,7 @@ void sim_mob::DriverMovement::syncCurrLaneCachedInfo(DriverUpdateParams& p) {
 	//Finally, update target/max speed to match the new Lane's rules.
 	maxLaneSpeed = fwdDriverMovement.getCurrSegment()->maxSpeed / KILOMETER_PER_HOUR_TO_METER_PER_SEC; //slow down
 	targetSpeed = maxLaneSpeed;
+	p.desiredSpeed = targetSpeed;
 }
 
 //currently it just chooses the first lane from the targetLane
@@ -1728,6 +1729,8 @@ void sim_mob::DriverMovement::setOrigin(DriverUpdateParams& p) {
 	//Set the max speed and target speed.
 	maxLaneSpeed = fwdDriverMovement.getCurrSegment()->maxSpeed / KILOMETER_PER_HOUR_TO_METER_PER_SEC;
 	targetSpeed = maxLaneSpeed;
+
+	p.desiredSpeed = targetSpeed;
 
 	//Set our current and target lanes.
 	p.currLane = fwdDriverMovement.getCurrLane();

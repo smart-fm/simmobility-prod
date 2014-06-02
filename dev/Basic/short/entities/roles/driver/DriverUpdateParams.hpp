@@ -71,6 +71,7 @@ public:
 	const Lane* rightLane2;
 
 	double currSpeed;
+	double desiredSpeed;
 
 	double currLaneOffset;
 	double currLaneLength;

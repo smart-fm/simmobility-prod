@@ -143,6 +143,12 @@ public:
 	virtual bool checkIfLookAheadEvents(DriverUpdateParams& p);
 	// TODO: add incident code
 	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p);
+	double lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance);
+	double lcUtilityLookAheadRight(DriverUpdateParams& p,int n, float LCdistance);
+
+	vector<double> laneUtilityParams;
+	void makeLanetilityParams(std::string& str);
+
 
 	/**
 	 *  /brief check lanes connect to next segment,set/unset status STATUS_LEFT_OK,STATUS_RIGHT_OK,STATUS_CURRENT_OK

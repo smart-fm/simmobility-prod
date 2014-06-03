@@ -82,11 +82,11 @@ public:
         double lane_mintime;
     };
 
-	MITSIM_LC_Model();
+	MITSIM_LC_Model(DriverUpdateParams& p);
 	/**
 	 *  /brief get parameters from external xml file
 	 */
-	void initParam();
+	void initParam(DriverUpdateParams& p);
 	///Use Kazi LC Gap Model to calculate the critical gap
 	///\param type 0=leading 1=lag + 2=mandatory (mask) //TODO: ARGHHHHHHH magic numbers....
 	///\param dis from critical pos
@@ -153,9 +153,9 @@ public:
 	double lcCriticalGap(sim_mob::DriverUpdateParams& p, int type,double dv);
 	vector<double> criticalGapParams;
 	void makeCriticalGapParams(std::string& str);
-	vector<double> nosingParams;
+//	vector<double> nosingParams;
 	double lcMaxNosingDis;
-	void makeNosingParams(string& str);
+	void makeNosingParams(DriverUpdateParams& p,string& str);
 	float lcNosingProb(float dis, float lead_rel_spd, float gap,int num);
 	vector<double> kaziNosingParams;
 	void makekaziNosingParams(string& str);
@@ -165,7 +165,7 @@ public:
 	int checkNosingFeasibility(DriverUpdateParams& p,const NearestVehicle * av,const NearestVehicle * bv,double dis2stop);
 	double lcMaxStuckTime;
 	double lcMinGap(int type);
-	float lcNosingConstStateTime() { return nosingParams[0]; }
+	float lcNosingConstStateTime;
 	vector<double> lcYieldingProb;
 	void makelcYieldingProb(string& str);
 

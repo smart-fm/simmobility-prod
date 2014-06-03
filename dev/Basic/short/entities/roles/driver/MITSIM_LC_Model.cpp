@@ -549,14 +549,14 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p,
         tg[1] = TG_Right_Fwd;
     }
 }
-sim_mob::MITSIM_LC_Model::MITSIM_LC_Model()
+sim_mob::MITSIM_LC_Model::MITSIM_LC_Model(DriverUpdateParams& p)
 {
 	modelName = "general_driver_model";
 	splitDelimiter = " ,";
 
-	initParam();
+	initParam(p);
 }
-void sim_mob::MITSIM_LC_Model::initParam()
+void sim_mob::MITSIM_LC_Model::initParam(DriverUpdateParams& p)
 {
 	std::string str;
 	// MLC_PARAMETERS
@@ -611,7 +611,7 @@ void sim_mob::MITSIM_LC_Model::initParam()
 	// nosing param
 	ParameterManager::Instance()->param(modelName,"nosing_param",str,
 				string("1.0 0.5  0.6  0.1	  0.2   1.0 300.0  180.0   600.0 40.0"));
-	makeNosingParams(str);
+	makeNosingParams(p,str);
 
 	// kazi nosing param
 	ParameterManager::Instance()->param(modelName,"kazi_nosing_param",str,
@@ -657,11 +657,13 @@ void sim_mob::MITSIM_LC_Model::makeLanetilityParams(std::string& str)
 {
 	sim_mob::Utils::convertStringToArray(str,laneUtilityParams);
 }
-void sim_mob::MITSIM_LC_Model::makeNosingParams(string& str)
+void sim_mob::MITSIM_LC_Model::makeNosingParams(DriverUpdateParams& p,string& str)
 {
-	sim_mob::Utils::convertStringToArray(str,nosingParams);
-	lcMaxNosingDis = nosingParams[8];
-	lcMaxStuckTime = nosingParams[7];
+	sim_mob::Utils::convertStringToArray(str,p.nosingParams);
+	lcMaxNosingDis = p.nosingParams[8];
+	lcMaxStuckTime = p.nosingParams[7];
+	lcNosingConstStateTime = p.nosingParams[0];
+	p.lcMaxNosingTime = p.nosingParams[6];
 }
 void sim_mob::MITSIM_LC_Model::makekaziNosingParams(string& str)
 {
@@ -1267,7 +1269,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 			  }
 
 			  if (!bvp.flag(FLAG_YIELDING)) {
-				bvp.yieldTime = p.now.ms();
+				bvp.yieldTime = p.now;
 			  }
 			  if (p.getStatus(STATUS_LEFT)) {
 				p.setFlag(FLAG_NOSING_LEFT);
@@ -1364,7 +1366,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 		  // Acceleration rate in order to be slower than the leader
 
 		  upper = (av->driver->fwdVelocity.get()/100.0 - p.currSpeed) /
-			lcNosingConstStateTime() +
+			lcNosingConstStateTime +
 			av->driver->fwdAccel.get()/100.0;
 
 		  if (upper < p.maxDeceleration) {
@@ -1391,7 +1393,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 			// harder than its normal deceleration rate
 
 			lower = (bv->driver->fwdVelocity/100.0- p.currSpeed) /
-					lcNosingConstStateTime() +
+					lcNosingConstStateTime +
 					p.normalDeceleration;
 
 			if (lower > p.maxAcceleration) {	// I am will to acc hard
@@ -1424,7 +1426,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 			// harder than its normal deceleration rate
 
 			lower = (bv->driver->fwdVelocity/100.0 - p.currSpeed) /
-					lcNosingConstStateTime() +
+					lcNosingConstStateTime +
 					p.normalDeceleration;
 
 			if (lower > p.maxAcceleration) {	// I am will to acc hard

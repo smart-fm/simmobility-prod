@@ -730,15 +730,25 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
 
 double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
-	if(p.turningDirection == LCS_LEFT)
-	{
-		return carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvLeftFwd);
-	}
-	else if(p.turningDirection == LCS_RIGHT)
-	{
-		return carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvRightFwd);
-	}
-	return p.maxAcceleration;
+	if (p.flag(FLAG_YIELDING)) {
+		// Make sure a vehicle will not yield infinitely.
+		uint32_t dt_sec = (p.now.ms() - p.yieldTime.ms())/1000;
+		if( dt_sec > p.lcMaxNosingTime)
+		{
+
+		}
+	}//end if flag(FLAG_YIELDING)
+
+
+//	if(p.turningDirection == LCS_LEFT)
+//	{
+//		return carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvLeftFwd);
+//	}
+//	else if(p.turningDirection == LCS_RIGHT)
+//	{
+//		return carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvRightFwd);
+//	}
+//	return p.maxAcceleration;
 }
 
 double sim_mob::MITSIM_CF_Model::waitExitLaneRate(DriverUpdateParams& p)

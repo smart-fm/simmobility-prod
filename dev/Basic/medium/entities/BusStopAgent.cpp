@@ -227,8 +227,7 @@ bool BusStopAgent::acceptBusDriver(BusDriver* driver) {
 bool BusStopAgent::removeBusDriver(BusDriver* driver) {
 	if(driver) {
 		double vehicleLength = driver->getResource()->getLengthCm();
-		std::list<sim_mob::medium::BusDriver*>::iterator driverIt =
-				std::find(servingDrivers.begin(), servingDrivers.end(), driver);
+		std::list<sim_mob::medium::BusDriver*>::iterator driverIt = std::find(servingDrivers.begin(), servingDrivers.end(), driver);
 		if(driverIt!=servingDrivers.end()) {
 			servingDrivers.erase(driverIt);
 			availableLength=availableLength+vehicleLength;

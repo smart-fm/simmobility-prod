@@ -11,6 +11,7 @@
 #include "conf/ConfigParams.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
+#include "geospatial/Link.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
 
@@ -110,9 +111,10 @@ SegmentStats::~SegmentStats()
 	safe_delete_item(laneInfinity);
 }
 
-void SegmentStats::updateBusStopAgents(timeslice now) {
-	for (AgentList::iterator i = busStopAgents.begin();
-			i != busStopAgents.end(); i++) {
+void SegmentStats::updateBusStopAgents(timeslice now)
+{
+	for (AgentList::iterator i = busStopAgents.begin(); i != busStopAgents.end(); i++)
+	{
 		(*i)->update(now);
 	}
 }
@@ -217,6 +219,12 @@ std::deque<sim_mob::Person*> SegmentStats::getPersons()
 	PersonList& lnAgents = laneStatsMap.find(laneInfinity)->second->laneAgents;
 	segAgents.insert(segAgents.end(), lnAgents.begin(), lnAgents.end());
 
+	for (BusStopList::const_reverse_iterator stopIt = busStops.rbegin(); stopIt != busStops.rend(); stopIt++)
+	{
+		const sim_mob::BusStop* stop = *stopIt;
+		PersonList& driversAtStop = busDrivers.at(stop);
+		segAgents.insert(segAgents.end(), driversAtStop.begin(), driversAtStop.end());
+	}
 	return segAgents;
 }
 
@@ -249,7 +257,6 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 					dequeIndex = i;
 					minPerson = (*(iteratorLists[i]));
 					minDistance = minPerson->distanceToEndOfSegment;
-
 				}
 			}
 			//order by time
@@ -673,6 +680,10 @@ void sim_mob::LaneStats::removePerson(sim_mob::Person* p, bool wasQueuing)
 			totalLength = totalLength - vehicle->getLengthCm();
 		}
 	}
+	else
+	{
+		throw std::runtime_error("LaneStats::removePerson(): Attempt to remove non-existent person in Lane");
+	}
 	if (wasQueuing && !laneInfinity)
 	{
 		if (queueCount > 0)
@@ -987,7 +998,7 @@ void SegmentStats::updateLinkDrivingTimes(double drivingTimeToEndOfLink)
 
 void SegmentStats::printAgents() const
 {
-	Print() << "\nSegment: " << roadSegment->getStartEnd() << "|stats#: " << statsNumberInSegment << "|length " << length << std::endl;
+	Print() << "\nSegment: " << roadSegment->getSegmentAimsunId() << "|stats#: " << statsNumberInSegment << "|length " << length << std::endl;
 	for (LaneStatsMap::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++)
 	{
 		(*i).second->printAgents();
@@ -996,12 +1007,29 @@ void SegmentStats::printAgents() const
 	{
 		(*i).second->printAgents(true);
 	}
+	std::stringstream debugMsgs;
+	for (BusStopList::const_reverse_iterator stopIt = busStops.rbegin(); stopIt != busStops.rend(); stopIt++)
+	{
+		const sim_mob::BusStop* stop = *stopIt;
+		debugMsgs << "Stop: " << stop->getBusstopno_();
+		const PersonList& driversAtStop = busDrivers.at(stop);
+		for (PersonList::const_iterator pIt = driversAtStop.begin(); pIt != driversAtStop.end(); pIt++)
+		{
+			debugMsgs << "|" << (*pIt)->getId();
+		}
+		debugMsgs << std::endl;
+	}
+	Print() << debugMsgs.str();
 }
 
 void SegmentStats::printBusStops() const
 {
 	std::stringstream printStream;
-	printStream << "Segment: " << roadSegment->getStartEnd() << "|stats#: " << statsNumberInSegment << "|length: " << length << "|numStops: " << busStops.size()
+	printStream << "Segment: " << roadSegment->getSegmentAimsunId()
+			<< "|link: " << roadSegment->getLink()->getLinkId()
+			<< "|stats#: " << statsNumberInSegment
+			<< "|length: " << length
+			<< "|numStops: " << busStops.size()
 			<< "|stops: ";
 	if (!busStops.empty())
 	{
@@ -1018,7 +1046,7 @@ void LaneStats::printAgents(bool copy) const
 	std::stringstream debugMsgs;
 	if (!copy)
 	{
-		debugMsgs << "Segment:" << lane->getRoadSegment()->getStartEnd() << "|Lane: " << lane->getLaneID();
+		debugMsgs << "Lane: " << lane->getLaneID();
 		for (PersonList::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++)
 		{
 			debugMsgs << "|" << (*i)->getId();
@@ -1026,7 +1054,7 @@ void LaneStats::printAgents(bool copy) const
 	}
 	else
 	{
-		debugMsgs << "Segment:" << lane->getRoadSegment()->getStartEnd() << "|LaneCopy: " << lane->getLaneID();
+		debugMsgs << "LaneCopy: " << lane->getLaneID();
 		for (PersonList::const_iterator i = laneAgentsCopy.begin(); i != laneAgentsCopy.end(); i++)
 		{
 			debugMsgs << "|" << (*i)->getId();

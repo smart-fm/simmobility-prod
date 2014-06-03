@@ -848,7 +848,7 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(
 }
 
 double DriverMovement::getInitialQueueLength(const Lane* lane) {
-	return getParent()->getCurrSegStats()->getInitialQueueLength(lane);
+	return pathMover.getCurrSegStats()->getInitialQueueLength(lane);
 }
 
 void DriverMovement::insertIncident(sim_mob::SegmentStats* segStats, double newFlowRate) {

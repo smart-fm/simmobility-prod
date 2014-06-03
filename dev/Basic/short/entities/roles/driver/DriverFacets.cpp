@@ -732,6 +732,8 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 	//Call our model
 
 
+	p.targetSpeed = targetSpeed;
+	p.maxLaneSpeed = maxLaneSpeed;
 	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
 	if(abs(parentDriver->vehicle->getTurningDirection() != LCS_SAME) && newFwdAcc>0 && parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT_UNIT>10)
 	{

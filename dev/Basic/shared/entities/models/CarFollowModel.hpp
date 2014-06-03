@@ -164,6 +164,11 @@ private:
 	 **/
 	double calcSignalRate(sim_mob::DriverUpdateParams& p);
 	double calcYieldingRate(sim_mob::DriverUpdateParams& p,double targetSpeed, double maxLaneSpeed);
+	/*
+	 *  /brief Calculate the maximum acceleration rate subject to the the gap from the leading vehicle.
+	 *
+	 */
+	double calcCreateGapRate(DriverUpdateParams& p,NearestVehicle& vh,float gap);
 	/** \brief this function calculates the acceleration rate before exiting a specific lane
 	 *  \param p driver's parameters
 	 *  \return acceleration rate

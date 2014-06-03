@@ -164,7 +164,7 @@ public:
 	// Returns 1 if the vehicle can nose in or 0 otherwise
 	int checkNosingFeasibility(DriverUpdateParams& p,const NearestVehicle * av,const NearestVehicle * bv,double dis2stop);
 	double lcMaxStuckTime;
-	double lcMinGap(int type);
+//	double lcMinGap(int type);
 	float lcNosingConstStateTime;
 	vector<double> lcYieldingProb;
 	void makelcYieldingProb(string& str);
@@ -204,13 +204,13 @@ public:
 	 */
 	void makeMCLParam(std::string& str);
 
-	// critical gap param
-	std::vector< std::vector<double> > LC_GAP_MODELS;
+//	// critical gap param
+//	std::vector< std::vector<double> > LC_GAP_MODELS;
 	/**
 	 *  /brief make double matrix, store the matrix to LC_GAP_MODELS
 	 *  /strMatrix string matrix
 	 */
-	void makeCtriticalGapParam(std::vector< std::string >& strMatrix);
+	void makeCtriticalGapParam(DriverUpdateParams& p,std::vector< std::string >& strMatrix);
 
 	// choose target gap param
 	std::vector< std::vector<double> > GAP_PARAM;

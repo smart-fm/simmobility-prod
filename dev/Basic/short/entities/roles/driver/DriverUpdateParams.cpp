@@ -27,4 +27,10 @@ bool DriverUpdateParams::willYield(unsigned int reason)
 	//TODO willYield
 	return true;
 }
+double DriverUpdateParams::lcMinGap(int type)
+{
+	std::vector<double> b = LC_GAP_MODELS[type];
+	return b[2] * b[0];
+}
+
 }

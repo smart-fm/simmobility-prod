@@ -218,6 +218,13 @@ public:
 	double lcTimeTag;		// time changed lane , ms
 	vector<double> nosingParams;
 	double lcMaxNosingTime;
+
+	double targetSpeed;
+	double maxLaneSpeed;
+
+	// critical gap param
+	std::vector< std::vector<double> > LC_GAP_MODELS;
+	double lcMinGap(int type);
 public:
 #ifndef SIMMOB_DISABLE_MPI
 	static void pack(PackageUtils& package, const DriverUpdateParams* params);

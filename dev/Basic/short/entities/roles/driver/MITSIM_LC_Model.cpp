@@ -111,10 +111,10 @@ namespace {
 double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p,
         int type, double dis, double spd, double dv) {
 //    const double *a = LC_GAP_MODELS[type];
-	std::vector<double> a = LC_GAP_MODELS[type];
+	std::vector<double> a = p.LC_GAP_MODELS[type];
 //    const double *b = LC_GAP_MODELS[type] + 3; //beta0
 	//                    beta0            beta1                  beta2                    beta3                        beta4
-	double b[] = {LC_GAP_MODELS[type][3], LC_GAP_MODELS[type][4], LC_GAP_MODELS[type][5], LC_GAP_MODELS[type][6], LC_GAP_MODELS[type][7]};
+	double b[] = {p.LC_GAP_MODELS[type][3], p.LC_GAP_MODELS[type][4], p.LC_GAP_MODELS[type][5], p.LC_GAP_MODELS[type][6], p.LC_GAP_MODELS[type][7]};
     double rem_dist_impact = (type < 3) ?
             0.0 : (1.0 - 1.0 / (1 + exp(a[2] * dis)));
     double dvNegative = (dv < 0) ? dv : 0.0;
@@ -580,7 +580,7 @@ void sim_mob::MITSIM_LC_Model::initParam(DriverUpdateParams& p)
 	strArray.push_back(str);
 	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_7",str,string("0.20, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"));
 	strArray.push_back(str);
-	makeCtriticalGapParam(strArray);
+	makeCtriticalGapParam(p,strArray);
 	// GAP_PARAM
 	strArray.clear();
 	ParameterManager::Instance()->param(modelName,"GAP_PARAM_0",str,string("-1.23, -0.482, 0.224, -0.0179, 2.10, 0.239"));
@@ -635,13 +635,13 @@ void sim_mob::MITSIM_LC_Model::makeMCLParam(std::string& str)
 	MLC_PARAMETERS.lane_mintime = array[4];
 
 }
-void sim_mob::MITSIM_LC_Model::makeCtriticalGapParam(std::vector< std::string >& strMatrix)
+void sim_mob::MITSIM_LC_Model::makeCtriticalGapParam(DriverUpdateParams& p,std::vector< std::string >& strMatrix)
 {
 	for(int i=0;i<strMatrix.size();++i)
 	{
 		std::vector<double> array;
 		sim_mob::Utils::convertStringToArray(strMatrix[i],array);
-		LC_GAP_MODELS.push_back(array);
+		p.LC_GAP_MODELS.push_back(array);
 	}
 }
 void sim_mob::MITSIM_LC_Model::makeTargetGapPram(std::vector< std::string >& strMatrix)
@@ -1293,8 +1293,8 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 
 			// Check if the minimum gaps are available.
 
-			if (bheadway > lcMinGap(lctype + 1) &&
-				aheadway > lcMinGap(lctype)) {
+			if (bheadway > p.lcMinGap(lctype + 1) &&
+				aheadway > p.lcMinGap(lctype)) {
 //			  goto execution;
 				executionLC(changeMode);
 			}
@@ -1355,7 +1355,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 		Driver *avDriver = const_cast<Driver*>(av->driver);
 		DriverUpdateParams& avp = avDriver->getParams();
 		if ((avp.flag(FLAG_NOSING) || avp.flag(FLAG_YIELDING)) &&
-			av->distance < 2.0 * lcMinGap(2)) {
+			av->distance < 2.0 * p.lcMinGap(2)) {
 
 		  // The lead vehicle is yeilding or nosing
 		  return 0;		// To avoid dead lock
@@ -1407,7 +1407,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 		else if (bvp.flag(FLAG_NOSING) ||
 				(bvp.flag(FLAG_YIELDING) &&
 				bv->driver->yieldVehicle != p.driver &&
-				bv->distance < 2.0 * lcMinGap(3) )) {
+				bv->distance < 2.0 * p.lcMinGap(3) )) {
 
 			// The lag vehicle is nosing or yielding to another vehicle or
 			// not willing to yield
@@ -1444,11 +1444,11 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 	if (lower > upper) return 0;
 		else return 1;
 }
-double MITSIM_LC_Model::lcMinGap(int type)
-{
-	std::vector<double> b = LC_GAP_MODELS[type];
-	return b[2] * b[0];
-}
+//double MITSIM_LC_Model::lcMinGap(int type)
+//{
+//	std::vector<double> b = LC_GAP_MODELS[type];
+//	return b[2] * b[0];
+//}
 float MITSIM_LC_Model::lcNosingProb(float dis, float lead_rel_spd, float gap,int num)
 {
   if (num < 0) num = - num;

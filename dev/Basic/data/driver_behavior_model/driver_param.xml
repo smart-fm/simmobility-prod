@@ -77,8 +77,14 @@
 #	   1.0	# coef for congestion level
 #	   1.0	# minimum time in lane
 #}
-#                                 lower bound(ft)   delta(ft)    coef for number of lanes    coef for congestion level   minimum time in lane
-<param name="MLC_PARAMETERS" value="1320.0              5280.0         0.5                         1.0                             1.0"/>
+#                                              
+<param name="MLC_PARAMETERS" value="
+					1320.0         #lower bound(ft) 
+					5280.0         #delta(ft)
+					0.5            #coef for number of lanes
+					1.0            #coef for congestion level
+					1.0 	       #minimum time in lane
+"/>
 
 # lcCriticalGap() param 
 #                       	    scale  alpha   lambda   beta0   beta1   beta2   beta3   beta4   stddev

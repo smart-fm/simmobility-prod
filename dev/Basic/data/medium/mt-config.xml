@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright Singapore-MIT Alliance for Research and Technology -->
+
+<config>
+		<!-- this parameters are used to calculate dwelling time-->
+        <dwellingTimeParameters>
+            <parameters value="1.0, 1.0, 1.0, 0.0, 0.0"/>
+         </dwellingTimeParameters>  
+</config>
+

@@ -19,14 +19,26 @@ RawConfigFile::~RawConfigFile() {
 }
 
 bool RawConfigFile::parseConfigFile(const std::string& configFileName) {
+
 	parser.setValidationScheme(XercesDOMParser::Val_Always);
 	parser.setDoNamespaces(true);
 
 	try {
 		parser.parse(configFileName.c_str());
+	} catch (const XMLException& error) {
+		std::cout<<TranscodeString(error.getMessage())<<std::endl;
+		return false;
+	} catch (const DOMException& error) {
+		std::cout<<TranscodeString(error.getMessage())<<std::endl;
+		return false;
+	} catch (const SAXException& error) {
+		std::cout<<TranscodeString(error.getMessage())<<std::endl;
+		return false;
 	} catch (...) {
 		return false;
 	}
+
+	parseXmlAndProcess();
 
 	return true;
 }
@@ -34,18 +46,18 @@ bool RawConfigFile::parseConfigFile(const std::string& configFileName) {
 
 void RawConfigFile::parseXmlAndProcess()
 {
-	DOMElement* rootNode = parser.getDocument()->getDocumentElement();
-	if (!rootNode || TranscodeString(rootNode->getTagName()) != "config") {
+	DOMDocument* doc = parser.getDocument();
+	DOMElement* rootNode = !doc ? nullptr :doc->getDocumentElement();
+	if (!rootNode || TranscodeString(rootNode->getTagName())!="config") {
 		throw std::runtime_error(
 				"xml parse error: root node must be \"config\"");
 	}
 
 	//Now just parse the document recursively.
-	XMLSize_t count = rootNode->getChildElementCount();
 	DOMElement* node = rootNode->getFirstElementChild();
 	while(node){
-		processElement(node, TranscodeString(rootNode->getTagName()));
-		DOMElement* node = rootNode->getNextElementSibling();
+		processElement(node, TranscodeString(node->getTagName()));
+		node = node->getNextElementSibling();
 	}
 }
 

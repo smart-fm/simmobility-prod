@@ -20,7 +20,7 @@ MT_Config::~MT_Config() {
 
 MT_Config* MT_Config::instance(nullptr);
 
-const MT_Config& MT_Config::GetInstance()
+MT_Config& MT_Config::GetInstance()
 {
 	if (!instance) {
 		instance = new MT_Config();

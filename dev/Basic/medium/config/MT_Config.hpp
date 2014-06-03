@@ -11,12 +11,13 @@
 #include "conf/RawConfigFile.hpp"
 namespace sim_mob {
 namespace medium {
+const std::string MT_CONFIG_FILE = "data/medium/mt-config.xml";
 class MT_Config : public RawConfigFile {
 public:
 	MT_Config();
 	virtual ~MT_Config();
 
-	static const MT_Config& GetInstance();
+	static MT_Config& GetInstance();
 
 protected:
 	/**

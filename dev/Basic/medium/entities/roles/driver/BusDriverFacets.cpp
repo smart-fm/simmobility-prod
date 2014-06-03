@@ -213,14 +213,56 @@ const sim_mob::Lane* BusDriverMovement::getBestTargetLane(
 		const sim_mob::SegmentStats* nextSegStats,
 		const SegmentStats* nextToNextSegStats)
 {
+	if(!nextSegStats) { return nullptr; }
 	const BusStop* nextStop = routeTracker.getNextStop();
+	/* Even if there is a bus lane in the next segment stats, the bus can choose
+	 * not to enter it if it does not have to serve the stop in the next segment
+	 * stats. So, lane selection is purely based on whether the next stop is in
+	 * the next seg stats.
+	 */
 	if(nextStop && nextSegStats->hasBusStop(nextStop))
 	{
 		return nextSegStats->getOutermostLane();
 	}
 	else
 	{
-		return DriverMovement::getBestTargetLane(nextSegStats, nextToNextSegStats);
+		const sim_mob::Lane* minLane = nullptr;
+		double minQueueLength = std::numeric_limits<double>::max();
+		double minLength = std::numeric_limits<double>::max();
+		double que = 0.0;
+		double total = 0.0;
+
+		const std::vector<sim_mob::Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
+		for (vector<sim_mob::Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
+		{
+			if (!((*lnIt)->is_pedestrian_lane()))
+			{
+				const Lane* lane = *lnIt;
+				if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats)) { continue; }
+				total = nextSegStats->getLaneTotalVehicleLength(lane);
+				que = nextSegStats->getLaneQueueLength(lane);
+				if (minLength > total)
+				{
+					//if total length of vehicles is less than current minLength
+					minLength = total;
+					minQueueLength = que;
+					minLane = lane;
+				}
+				else if (minLength == total)
+				{
+					//if total length of vehicles is equal to current minLength
+					if (minQueueLength > que)
+					{
+						//and if the queue length is less than current minQueueLength
+						minQueueLength = que;
+						minLane = lane;
+					}
+				}
+			}
+		}
+
+		if(!minLane) { throw std::runtime_error("best target lane was not set!"); }
+		return minLane;
 	}
 }
 
@@ -230,7 +272,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	const BusStop* nextStop = routeTracker.getNextStop();
 	if(nextStop && currSegStat->hasBusStop(nextStop))
 	{
-		//send bus arrival message
+		Print() << "BusDriver's next stop: " << nextStop->getBusstopno_() << std::endl;
 		BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(nextStop);
 		if(stopAg)
 		{

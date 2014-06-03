@@ -115,8 +115,8 @@ void DriverBehavior::frame_tick_output() {
 	throw std::runtime_error("DriverBehavior::frame_tick_output is not implemented yet");
 }
 
-sim_mob::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
-	MovementFacet(parentAgent), parentDriver(nullptr)
+sim_mob::DriverMovement::DriverMovement(sim_mob::Person* parentAgent,Driver* parentDriver):
+	MovementFacet(parentAgent), parentDriver(parentDriver)
 {
 	if (Debug::Drivers) {
 		DebugStream <<"Driver starting: ";
@@ -127,17 +127,26 @@ sim_mob::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	//vehicle = nullptr;
 	lastIndex = -1;
 
+
+
+	//Some one-time flags and other related defaults.
+	nextLaneInNextLink = nullptr;
+	disToFwdVehicleLastFrame = parentDriver->maxVisibleDis;
+}
+void sim_mob::DriverMovement::init()
+{
+	if(!parentDriver)
+	{
+		Warn() << "ERROR: no parentDriver, cannot init driver models" <<std::endl ;
+	}
 	DriverUpdateParams& p2 = parentDriver->getParams();
 	//Initialize our models. These should be swapable later.
 	lcModel = new MITSIM_LC_Model(p2);
 	cfModel = new MITSIM_CF_Model(p2);
 	intModel = new SimpleIntDrivingModel();
 
-	//Some one-time flags and other related defaults.
-	nextLaneInNextLink = nullptr;
-	disToFwdVehicleLastFrame = parentDriver->maxVisibleDis;
+	parentDriver->initReactionTime();
 }
-
 sim_mob::DriverMovement::~DriverMovement()
 {
 	//Our movement models.

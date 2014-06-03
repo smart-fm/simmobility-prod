@@ -77,6 +77,7 @@ public:
 	const static int maxVisibleDis = 5000;
 
 	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior = nullptr, sim_mob::DriverMovement* movement = nullptr, Role::type roleType_ = RL_DRIVER, std::string roleName_ = "driver");
+	void initReactionTime();
 	virtual ~Driver();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

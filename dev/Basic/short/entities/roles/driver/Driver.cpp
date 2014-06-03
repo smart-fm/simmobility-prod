@@ -123,6 +123,31 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 //		}
 //	}
 
+
+//	if(movement)
+//	{
+//		reacTime = movement->cfModel->nextPerceptionSize * 100; // seconds to ms
+//	}
+//
+//	perceivedFwdVel = new FixedDelayed<double>(reacTime,true);
+//	perceivedFwdAcc = new FixedDelayed<double>(reacTime,true);
+//	perceivedVelOfFwdCar = new FixedDelayed<double>(reacTime,true);
+//	perceivedAccOfFwdCar = new FixedDelayed<double>(reacTime,true);
+//	perceivedDistToFwdCar = new FixedDelayed<double>(reacTime,true);
+//	perceivedDistToTrafficSignal = new FixedDelayed<double>(reacTime,true);
+//	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
+
+	// record start time
+	startTime = getParams().now.ms()/MILLISECS_CONVERT_UNIT;
+	isAleadyStarted = false;
+	currDistAlongRoadSegment = 0;
+
+	getParams().driver = this;
+}
+
+void sim_mob::Driver::initReactionTime()
+{
+	DriverMovement* movement = (DriverMovement* ) movementFacet;
 	if(movement)
 	{
 		reacTime = movement->cfModel->nextPerceptionSize * 100; // seconds to ms
@@ -136,15 +161,7 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	perceivedDistToTrafficSignal = new FixedDelayed<double>(reacTime,true);
 	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
 
-	// record start time
-	startTime = getParams().now.ms()/MILLISECS_CONVERT_UNIT;
-	isAleadyStarted = false;
-	currDistAlongRoadSegment = 0;
-
-	getParams().driver = this;
 }
-
-
 Role* sim_mob::Driver::clone(Person* parent) const
 {
 	DriverBehavior* behavior = new DriverBehavior(parent);
@@ -152,6 +169,7 @@ Role* sim_mob::Driver::clone(Person* parent) const
 	Driver* driver = new Driver(parent, parent->getMutexStrategy(), behavior, movement);
 	behavior->setParentDriver(driver);
 	movement->setParentDriver(driver);
+	movement->init();
 	return driver;
 }
 

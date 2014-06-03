@@ -58,9 +58,9 @@ protected:
 
 class DriverMovement: public sim_mob::MovementFacet {
 public:
-	explicit DriverMovement(sim_mob::Person* parentAgent = nullptr);
+	explicit DriverMovement(sim_mob::Person* parentAgent = nullptr,Driver* parentDriver=nullptr);
 	virtual ~DriverMovement();
-
+	virtual void init();
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();

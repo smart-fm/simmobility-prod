@@ -32,13 +32,13 @@ class RoadSegment;
 
 
 //Which lane "side", left, right, or both?
-struct LaneSide {
-	bool left;
-	bool right;
-	bool both() const { return left && right; }
-	bool leftOnly() const { return left && !right; }
-	bool rightOnly() const { return right && !left; }
-};
+//struct LaneSide {
+//	bool left;
+//	bool right;
+//	bool both() const { return left && right; }
+//	bool leftOnly() const { return left && !right; }
+//	bool rightOnly() const { return right && !left; }
+//};
 
 ////Which lane should we change to? Includes "none".
 //enum LANE_CHANGE_SIDE {

@@ -272,7 +272,6 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	const BusStop* nextStop = routeTracker.getNextStop();
 	if(nextStop && currSegStat->hasBusStop(nextStop))
 	{
-		Print() << "BusDriver's next stop: " << nextStop->getBusstopno_() << std::endl;
 		BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(nextStop);
 		if(stopAg)
 		{

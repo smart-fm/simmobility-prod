@@ -4,8 +4,12 @@
 
 <config>
 		<!-- this parameters are used to calculate dwelling time-->
-        <dwellingTimeParameters>
-            <parameters value="1.0, 1.0, 1.0, 0.0, 0.0"/>
-         </dwellingTimeParameters>  
+        <dwelling_time_parameters>
+            <parameters value="1, 1, 1, 0, 0"/>
+         </dwelling_time_parameters>  
+         <!-- pedestrian walking speed and unit is cm/s (approximately 5 km/h)-->
+         <pedestrian_walk_speed>
+         	<parameters value="135">
+         </pedestrian_walk_speed>
 </config>
 

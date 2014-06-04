@@ -12,12 +12,16 @@
 namespace sim_mob {
 namespace medium {
 const std::string MT_CONFIG_FILE = "data/medium/mt-config.xml";
+const unsigned int NUM_PARAMS_DWELLTIME = 5;
 class MT_Config : public RawConfigFile {
 public:
 	MT_Config();
 	virtual ~MT_Config();
 
 	static MT_Config& GetInstance();
+
+	const std::vector<int>& getParamsDwellingTime() const;
+	const std::vector<double>& getParamsWalkSpeed() const;
 
 protected:
 	/**
@@ -28,6 +32,10 @@ protected:
 	virtual void processElement(xercesc::DOMElement* node, const std::string& name);
 private:
 	static MT_Config* instance;
+	//store parameters for dwelling time calculation
+	std::vector<int> paramsDwellingTime;
+	//store parameters for pedestrian walking speed
+	std::vector<double> paramsWalkSpeed;
 };
 }
 }

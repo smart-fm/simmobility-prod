@@ -16,6 +16,7 @@
 #include "message/MT_Message.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "util/DwellTimeCalc.hpp"
+#include "config/MT_Config.hpp"
 
 using namespace sim_mob;
 using std::max;
@@ -137,7 +138,20 @@ void sim_mob::medium::BusDriver::openBusDoors(sim_mob::medium::BusStopAgent* bus
 	unsigned int numBoarding = busStopAgent->getBoardingNum(this);
 
 	unsigned int totalNumber = numAlighting + numBoarding;
-	waitingTimeAtbusStop = sim_mob::dwellTimeCalculation(totalNumber);
+	if(totalNumber==0){
+		waitingTimeAtbusStop = 0.0;
+	}
+	else {
+		const std::vector<int>& paramsDwellTime =
+				MT_Config::GetInstance().getParamsDwellingTime();
+		if (paramsDwellTime.size() == NUM_PARAMS_DWELLTIME) {
+			waitingTimeAtbusStop = sim_mob::dwellTimeCalculation(totalNumber,
+					paramsDwellTime[0], paramsDwellTime[1], paramsDwellTime[2],
+					paramsDwellTime[3], paramsDwellTime[4]);
+		} else {
+			waitingTimeAtbusStop = sim_mob::dwellTimeCalculation(totalNumber);
+		}
+	}
 
 	if (requestMode.get() == Role::REQUEST_DECISION_TIME) {
 		requestMode.set(Role::REQUEST_NONE);

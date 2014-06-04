@@ -26,7 +26,12 @@ PedestrianBehavior::~PedestrianBehavior() {
 
 PedestrianMovement::PedestrianMovement(sim_mob::Person* parentAgent) :
 		MovementFacet(parentAgent), parentPedestrian(nullptr),
-		remainingTimeToComplete(0), walkSpeed(PEDESTRIAN_WALK_SPEED) {}
+		remainingTimeToComplete(0), walkSpeed(PEDESTRIAN_WALK_SPEED) {
+}
+PedestrianMovement::PedestrianMovement(sim_mob::Person* parentAgent,double speed) :
+		MovementFacet(parentAgent), parentPedestrian(nullptr),
+		remainingTimeToComplete(0), walkSpeed(speed) {
+}
 
 PedestrianMovement::~PedestrianMovement() {}
 

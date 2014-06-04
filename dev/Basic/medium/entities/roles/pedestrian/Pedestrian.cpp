@@ -5,6 +5,7 @@
 #include "Pedestrian.hpp"
 #include "PedestrianFacets.hpp"
 #include "entities/Person.hpp"
+#include "config/MT_Config.hpp"
 
 using std::vector;
 using namespace sim_mob;
@@ -24,7 +25,14 @@ sim_mob::medium::Pedestrian::~Pedestrian() {}
 
 Role* sim_mob::medium::Pedestrian::clone(Person* parent) const {
 	PedestrianBehavior* behavior = new PedestrianBehavior(parent);
-	PedestrianMovement* movement = new PedestrianMovement(parent);
+	PedestrianMovement* movement = nullptr;
+	const vector<double> paramsWalkSpeed = MT_Config::GetInstance().getParamsWalkSpeed();
+	if(paramsWalkSpeed.size()>0){
+		movement = new PedestrianMovement(parent, paramsWalkSpeed[0]);
+	}
+	else {
+		movement = new PedestrianMovement(parent);
+	}
 	Pedestrian* pedestrian = new Pedestrian(parent, parent->getMutexStrategy(),
 			behavior, movement);
 	behavior->setParentPedestrian(pedestrian);

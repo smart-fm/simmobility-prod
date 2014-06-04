@@ -26,6 +26,7 @@ namespace sim_mob{
 	bool ParseBoolean(const XMLCh* srcX, bool* defValue) ;
 	int ParseInteger(const XMLCh* srcX, int* defValue) ;
 	float ParseFloat(const XMLCh* srcX, float* defValue);
+	std::string ParseString(const XMLCh* src, std::string defValue);
 	unsigned int ParseUnsignedInt(const XMLCh* srcX, unsigned int* defValue);
 }
 

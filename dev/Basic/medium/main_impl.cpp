@@ -119,7 +119,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	std::set<sim_mob::SegmentStats*>::iterator itSegStats;
 	std::vector<const sim_mob::BusStop*>::iterator itBusStop;
 	StreetDirectory& strDirectory= StreetDirectory::instance();
-	Print() << "rdSeg,splitSeg,stopno" << std::endl;
 	for (itSegStats = segmentStatsWithStops.begin(); itSegStats != segmentStatsWithStops.end(); itSegStats++)
 	{
 		sim_mob::SegmentStats* stats = *itSegStats;
@@ -131,7 +130,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			stats->addBusStopAgent(busStopAgent);
 			BusStopAgent::registerBusStopAgent(busStopAgent);
 			strDirectory.registerStopAgent(stop, busStopAgent);
-			Print() << stats->getRoadSegment()->getSegmentID() << "," << stats->getStatsNumberInSegment() << "," << stop->getBusstopno_() << std::endl;
 		}
 	}
 

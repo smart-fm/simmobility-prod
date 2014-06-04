@@ -670,6 +670,8 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 
 	//check incident status and decide whether or not do lane changing
 	LANE_CHANGE_MODE mode = DLC;
+	LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
+	parentDriver->vehicle->setTurningDirection(lcs);
 //	incidentPerformer.checkIncidentStatus(parentDriver, p, parentDriver->getParams().now);
 //	if(incidentPerformer.getIncidentStatus().getChangedLane() && incidentPerformer.getIncidentStatus().getNextLaneIndex()>=0){
 //		p.nextLaneIndex = incidentPerformer.getIncidentStatus().getNextLaneIndex();

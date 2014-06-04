@@ -33,6 +33,7 @@ public:
 	//Allow propagation of delete
 	virtual ~LaneChangeModel() {}
 
+	virtual LANE_CHANGE_SIDE makeLaneChangingDecision(DriverUpdateParams& p) = 0;
 	///to execute the lane changing, meanwhile, check if crash will happen and avoid it
 	///Return new lateral velocity, or <0 to keep the velocity at its previous value.
 	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode) = 0;

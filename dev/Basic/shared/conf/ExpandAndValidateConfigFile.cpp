@@ -30,6 +30,7 @@
 #include "partitions/PartitionManager.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/Utils.hpp"
+#include "util/Profiler.hpp"
 #include "workers/WorkGroup.hpp"
 
 using namespace sim_mob;
@@ -150,30 +151,18 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     	std::cout << "XML input for SimMobility Created....\n";
     }
 
+    sim_mob::Profiler stDir(true);
  	//Initialize the street directory.
 	StreetDirectory::instance().init(cfg.getNetwork(), true);
-	std::cout << "Street Directory initialized" << std::endl;
-//	{
-//		std::ifstream OD_File;
-//		OD_File.open("~/Downloads/ODs_oldmap.txt");
-//		std::string line;
-//		if (OD_File.is_open()) {
-//			while (std::getline(OD_File, line)) {
-//				std::cout << line << '\n';
-//			}
-//			OD_File.close();
-//		}
-//
-//	}
-//	exit(0);
-
+	std::cout << "Street Directory initialized in : " << stDir.endProfiling() <<  " Milliseconds " << std::endl;
+	sim_mob::Profiler confl(true);
     //Process Confluxes if required
     if(cfg.RunningMidSupply()) {
 		size_t sizeBefore = cfg.getConfluxes().size();
 		sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
 		std::cout <<"Confluxes size before(" <<sizeBefore <<") and after(" <<cfg.getConfluxes().size() <<")\n";
     }
-
+    std::cout << "Confluex processed in : " << confl.endProfiling() <<  " Milliseconds " << std::endl;
     //Maintain unique/non-colliding IDs.
     ConfigParams::AgentConstraints constraints;
     constraints.startingAutoAgentID = cfg.system.simulation.startingAutoAgentID;

@@ -167,9 +167,6 @@ class Link_travel_time
 public:
 	Link_travel_time() {};
 	Link_travel_time(Link_travel_time& src);
-//	:gid(src.gid),link_id(src.link_id),
-//			start_time(src.start_time),end_time(src.end_time),
-//			start_time_dt(sim_mob::DailyTime(src.start_time)),end_time_dt(sim_mob::DailyTime(src.end_time)) {}
 //	int gid;
 	int link_id;
 	std::string start_time;
@@ -181,7 +178,9 @@ public:
 	OpaqueProperty<int> originalSectionDB_ID;
 
 };
-inline double generateSinglePathLengthPT(std::vector<WayPoint*>& wp) // unit is meter
+
+/// length of a path with segments in meter
+inline double generateSinglePathLengthPT(std::vector<WayPoint*>& wp)
 {
 	double res=0;
 	for(int i=0;i<wp.size();++i)

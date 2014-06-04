@@ -12,6 +12,30 @@
 typedef unsigned int UINT;
 
 namespace sim_mob {
+
+//Which lane should we change to? Includes "none".
+enum LANE_CHANGE_SIDE {
+	LCS_LEFT = -1,
+	LCS_SAME = 0,
+	LCS_RIGHT = 1
+};
+
+enum LANE_CHANGE_MODE {	//as a mask
+	DLC = 0,
+	MLC = 2,
+	MLC_C = 4,
+	MLC_F = 6
+};
+enum TARGET_GAP {
+	TG_Same = 0,
+	TG_Left_Fwd = -3,
+	TG_Left_Back = -1,
+	TG_Left_Adj = -2,
+	TG_Right_Fwd = 3,
+	TG_Right_Back = 1,
+	TG_Right_Adj  = 2
+};
+
 const float MAX_ACCELERATION		= +10.0; // meter/sec2
 const float MAX_DECELERATION		= -10.0; // meter/sec2
 const float CF_CRITICAL_TIMER_RATIO	= 0.5;

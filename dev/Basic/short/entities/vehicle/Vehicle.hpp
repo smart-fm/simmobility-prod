@@ -19,6 +19,7 @@
 
 #include "conf/settings/DisableMPI.h"
 #include "entities/vehicle/VehicleBase.hpp"
+#include "entities/models/Constants.h"
 #include "geospatial/Lane.hpp"
 #include "geospatial/GeneralPathMover.hpp"
 #include "geospatial/streetdir/WayPoint.hpp"

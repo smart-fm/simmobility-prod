@@ -37,7 +37,7 @@ public:
 	///to execute the lane changing, meanwhile, check if crash will happen and avoid it
 	///Return new lateral velocity, or <0 to keep the velocity at its previous value.
 	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode) = 0;
-
+	virtual double executeLaneChanging(DriverUpdateParams& p)=0;
 	/**
 	 *  /brief this function checks for bad events that will override the lookahead,like incident
 	 *  /param vehicle info

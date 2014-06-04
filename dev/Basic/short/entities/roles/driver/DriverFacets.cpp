@@ -687,8 +687,9 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 
 	//Check if we should change lanes.
 	double newLatVel;
-	newLatVel = lcModel->executeLaneChanging(p, fwdDriverMovement.getAllRestRoadSegmentsLengthCM(), parentDriver->vehicle->getLengthCm(),
-			parentDriver->vehicle->getTurningDirection(), mode);
+//	newLatVel = lcModel->executeLaneChanging(p, fwdDriverMovement.getAllRestRoadSegmentsLengthCM(), parentDriver->vehicle->getLengthCm(),
+//			parentDriver->vehicle->getTurningDirection(), mode);
+	newLatVel = lcModel->executeLaneChanging(p);
 
 	if(newLatVel>0 && p.nextLaneIndex>0){
 		const RoadSegment* curSegment = fwdDriverMovement.getCurrSegment();

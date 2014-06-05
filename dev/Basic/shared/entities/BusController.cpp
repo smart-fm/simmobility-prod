@@ -248,10 +248,6 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 					segments = itSeg->second;
 					break;
 				}
-				std::cout << "itSeg->route_id: " << itSeg->first << std::endl;
-				std::cout << "curr->route_id: " << curr->route_id << std::endl;
-				std::cout << "itSeg->route_id: " << itSeg->first << std::endl;
-				std::cout << "current.size(): " << itSeg->second.size() << "" << std::endl;
 			}
 
 			stops = vector<const BusStop*>();
@@ -264,8 +260,6 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 					stops = itStop->second;
 					break;
 				}
-				std::cout << "itStop->route_id: " << itStop->first << std::endl;
-				std::cout << "current.size(): " << itStop->second.size() << "" << std::endl;
 			}
 
 			//Our algorithm expects empty vectors in some cases.

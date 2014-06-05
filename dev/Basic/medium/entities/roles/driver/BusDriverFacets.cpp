@@ -261,7 +261,39 @@ const sim_mob::Lane* BusDriverMovement::getBestTargetLane(
 			}
 		}
 
-		if(!minLane) { throw std::runtime_error("best target lane was not set!"); }
+		if(!minLane)
+		{
+			//throw std::runtime_error("best target lane was not set!");
+			//TODO: if minLane is null, there is probably no lane connection from any lane in next segment stats to
+			// the lanes in the nextToNextSegmentStats. The code in this block is a hack to avoid errors due to this reason.
+			//This code must be removed and an error must be thrown here in future.
+			for (vector<sim_mob::Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
+			{
+				if (!((*lnIt)->is_pedestrian_lane()))
+				{
+					const Lane* lane = *lnIt;
+					total = nextSegStats->getLaneTotalVehicleLength(lane);
+					que = nextSegStats->getLaneQueueLength(lane);
+					if (minLength > total)
+					{
+						//if total length of vehicles is less than current minLength
+						minLength = total;
+						minQueueLength = que;
+						minLane = lane;
+					}
+					else if (minLength == total)
+					{
+						//if total length of vehicles is equal to current minLength
+						if (minQueueLength > que)
+						{
+							//and if the queue length is less than current minQueueLength
+							minQueueLength = que;
+							minLane = lane;
+						}
+					}
+				}
+			}
+		}
 		return minLane;
 	}
 }

@@ -408,7 +408,7 @@ bool DatabaseLoader::InsertPathSet2DBST(soci::session& sql,std::map<std::string,
 void DatabaseLoader::Loadlink_default_travel_time(std::map<std::string,
 		std::vector<sim_mob::Link_travel_time*> >& pool)
 {
-	soci::rowset<sim_mob::Link_travel_time> rs = (sql_.prepare <<"select \"link_id\",to_char(\"start_time\",'HH24:MI:SS') AS start_time,to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\" from \"link_default_travel_time\" ");
+	soci::rowset<sim_mob::Link_travel_time> rs = (sql_.prepare <<"select \"link_id\",to_char(\"start_time\",'HH24:MI:SS') AS start_time,to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\" from \"link_default_travel_time_corrected_he_v2\" ");
 	for (soci::rowset<sim_mob::Link_travel_time>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		sim_mob::Link_travel_time *s = new sim_mob::Link_travel_time(*it);
 //		std::cout<<"Link_travel_time: "<<s->start_time<<std::endl;

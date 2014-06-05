@@ -58,8 +58,9 @@ struct NearestPedestrian {
 ///NOTE: Constructor is currently implemented in Driver.cpp. Feel free to shuffle this around if you like.
 class DriverUpdateParams : public UpdateParams {
 public:
-	DriverUpdateParams() : UpdateParams() ,status(0),yieldTime(0,0),lcTimeTag(0){}
-	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen) ,nextLaneIndex(0),isTargetLane(true),status(0),yieldTime(0,0),lcTimeTag(0){}
+	DriverUpdateParams() : UpdateParams() ,status(0),yieldTime(0,0),lcTimeTag(0),speedOnSign(0){}
+	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen) ,nextLaneIndex(0),isTargetLane(true),
+			status(0),yieldTime(0,0),lcTimeTag(0),speedOnSign(0){}
 
 	virtual void reset(timeslice now, const Driver& owner);
 
@@ -225,6 +226,8 @@ public:
 	// critical gap param
 	std::vector< std::vector<double> > LC_GAP_MODELS;
 	double lcMinGap(int type);
+
+	double speedOnSign;
 public:
 #ifndef SIMMOB_DISABLE_MPI
 	static void pack(PackageUtils& package, const DriverUpdateParams* params);

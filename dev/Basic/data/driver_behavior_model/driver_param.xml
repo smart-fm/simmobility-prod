@@ -38,6 +38,7 @@
 <param name="max_acceleration_scale" value="0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"/>
 <param name="max_deceleration_scale" value="1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0"/>
 <param name="normal_deceleration_scale" value="1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0"/>
+<param name="speed_limit_add_on" value="-0.1911 -0.0708 -0.0082 0.0397 0.0810 0.1248 0.1661 0.2180 0.2745 0.3657"/>
 
 <param name="tmp_all_grades" value="0"/>
 
@@ -45,6 +46,9 @@
 
 <param name="yellow_stop_headway" value="1.0"/>
 <param name="min_speed_yellow" value="2.2352"/>
+
+# speed factor
+<param name="speed_factor" value="2.2352"/>
 
 <param name="hbuffer_lower" value="2.2352"/>
 <param name="hbuffer_Upper" value="1.7498 2.2737 2.5871 2.8379 3.0633 3.2814 3.5068 3.7578 4.0718 4.5979"/>

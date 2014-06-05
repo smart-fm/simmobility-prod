@@ -136,6 +136,10 @@ void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p)
 	makeSpeedIndex(Vehicle::CAR,speedScalerStr,decelerationStr,normalDecelerationIndex,normalDecelerationUpperBound);
 	ParameterManager::Instance()->param(modelName,"normal_deceleration_scale",normalDecScaleStr,string("1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0"));
 	makeScaleIdx(maxAccScaleStr,normalDecelerationScale);
+	// speed limit add on
+	string str;
+	ParameterManager::Instance()->param(modelName,"speed_limit_add_on",str,string("-0.1911 -0.0708 -0.0082 0.0397 0.0810 0.1248 0.1661 0.2180 0.2745 0.3657"));
+	makeScaleIdx(str,speedLimitAddon);
 	// max deceleration
 	ParameterManager::Instance()->param(modelName,"Max_deceleration_car1",decelerationStr,string("16.0   14.5   13.0   11.0   10.0"));
 	makeSpeedIndex(Vehicle::CAR,speedScalerStr,decelerationStr,maxDecelerationIndex,maxDecelerationUpperBound);
@@ -171,6 +175,8 @@ void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p)
 	// dec
 	ParameterManager::Instance()->param(modelName,"dec_update_step_size",updateStepSizeStr,string("0.5     0.0     0.5     0.5 0.5"));
 	makeUpdateSizeParam(updateStepSizeStr,decUpdateStepSize);
+	//speed factor
+	ParameterManager::Instance()->param(modelName,"speed_factor",speedFactor,1.0);
 	// acc
 	ParameterManager::Instance()->param(modelName,"acc_update_step_size",updateStepSizeStr,string("1.0     0.0     1.0     1.0 0.5"));
 	makeUpdateSizeParam(updateStepSizeStr,accUpdateStepSize);
@@ -395,6 +401,12 @@ double sim_mob::MITSIM_CF_Model::getMaxDecScale()
 	// return max dec scale,as maxAccScale() in MITSIM TS_Parameter.h
 	return maxDecelerationScale[scaleNo];
 }
+double sim_mob::MITSIM_CF_Model::getSpeedLimitAddon()
+{
+	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
+	int scaleNo = Utils::generateInt(0,speedLimitAddon.size()-1);
+	return speedLimitAddon[scaleNo];
+}
 double sim_mob::MITSIM_CF_Model::getBufferUppder()
 {
 	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
@@ -406,6 +418,7 @@ double sim_mob::MITSIM_CF_Model::headwayBuffer()
 {
 	return Utils::generateFloat(hBufferLower,hBufferUpper);
 }
+
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
 //	cftimer -= p.elapsedSeconds;
@@ -418,10 +431,12 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	// VARIABLE || FUNCTION ||				REGIME
 	calcStateBasedVariables(p);
 
+	p.targetSpeed = calcDesiredSpeed(p);
+
 	double acc = p.maxAcceleration;
 	double aB = calcMergingRate(p);
 	double aC = calcSignalRate(p);			// near signal or incidents
-	double aD = calcYieldingRate(p, targetSpeed, maxLaneSpeed); // when yielding
+	double aD = calcYieldingRate(p); // when yielding
 	double aE = waitExitLaneRate(p);		//
 	double  aF = waitAllowedLaneRate(p);
 //	double  aG = calcLaneDropRate(p);		// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
@@ -450,8 +465,8 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	// }
 	// FUNCTION approachInter MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
 
-	double aZ1 = carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvFwd);
-	double aZ2 = carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvFwdNextLink);
+	double aZ1 = carFollowingRate(p,p.nvFwd);
+	double aZ2 = carFollowingRate(p,p.nvFwdNextLink);
 
 	// Make decision
 	// Use the smallest
@@ -488,7 +503,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
  * A modified GM model is used in this implementation.
  *--------------------------------------------------------------------
  */
-double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed,NearestVehicle& nv)
+double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,NearestVehicle& nv)
 {
 	p.space = p.perceivedDistToFwdCar/100;
 
@@ -502,7 +517,7 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 	}
 	if(p.space > 0) {
 		if(!nv.exists()) {
-			return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);
+			return accOfFreeFlowing(p, p.targetSpeed, p.maxLaneSpeed);
 		}
 		// when nv is left/right vh , can not use perceivedxxx!
 //		p.v_lead = p.perceivedFwdVelocityOfFwdCar/100;
@@ -536,7 +551,7 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 		}
 		hBufferUpper = getBufferUppder();
 		if(headway > hBufferUpper) {
-			res = accOfMixOfCFandFF(p, targetSpeed, maxLaneSpeed);
+			res = accOfMixOfCFandFF(p, p.targetSpeed, p.maxLaneSpeed);
 		}
 		if(headway <= hBufferUpper && headway >= hBufferLower) {
 			res = accOfCarFollowing(p);
@@ -728,7 +743,7 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
 	return minacc;
 }
 
-double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
+double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p)
 {
 	float acc;
 
@@ -773,7 +788,7 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p, double 
 			  p.nvRightFwd.driver == p.driver->yieldVehicle  && // the right fwd vh is nosing
 			  rightFwdVhFlag // right fwd vh nosing
 			 ) {
-			  	  acc = carFollowingRate(p,targetSpeed,maxLaneSpeed,p.nvRightFwd);
+			  	  acc = carFollowingRate(p,p.nvRightFwd);
 					if (acc < p.normalDeceleration) {
 					  acc = p.normalDeceleration;
 					} else if (acc > 0) {
@@ -786,7 +801,7 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p, double 
 			  (p.nvLeftFwd.exists()) && // left lane has fwd vh
 			  p.nvLeftFwd.driver == p.driver->yieldVehicle &&  // the left fwd vh is nosing
 			  leftFwdVhFlag) {
-			  	  	  	  acc = carFollowingRate(p,targetSpeed,maxLaneSpeed,p.nvLeftFwd);
+			  	  	  	  acc = carFollowingRate(p,p.nvLeftFwd);
 			  					if (acc < p.normalDeceleration) {
 			  					  acc = p.normalDeceleration;
 			  					} else if (acc > 0) {
@@ -890,6 +905,20 @@ double sim_mob::MITSIM_CF_Model::waitAllowedLaneRate(sim_mob::DriverUpdateParams
 		return acc;
 	}
 	return p.maxAcceleration;
+}
+double sim_mob::MITSIM_CF_Model::calcDesiredSpeed(sim_mob::DriverUpdateParams& p)
+{
+	double signedSpeed;
+	if (p.speedOnSign) {
+		signedSpeed = p.speedOnSign;
+	  } else {
+		signedSpeed = p.maxLaneSpeed;
+	  }
+
+	  float desired = speedFactor * signedSpeed;
+	  desired = desired * (1+getSpeedLimitAddon());
+
+	  double desiredSpeed = std::min<double>(desired, p.maxLaneSpeed);
 }
 double sim_mob::MITSIM_CF_Model::calcForwardRate(DriverUpdateParams& p)
 {

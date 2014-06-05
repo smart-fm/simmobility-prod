@@ -39,7 +39,6 @@ public:
 	virtual ~CarFollowModel() {}
 
 	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed) = 0;  ///<Decide acceleration
-
 public:
 	string modelName;
 //	double maxAcceleration;
@@ -140,7 +139,7 @@ public:
 	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);
 
 private:
-	double carFollowingRate(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed,NearestVehicle& nv);
+	double carFollowingRate(sim_mob::DriverUpdateParams& p,NearestVehicle& nv);
 	/**
 	 *  /brief Calculate the acceleration rate by merging constraint.
 	 *  \param p driver's parameters
@@ -163,7 +162,7 @@ private:
 	 *  \return acceleration rate
 	 **/
 	double calcSignalRate(sim_mob::DriverUpdateParams& p);
-	double calcYieldingRate(sim_mob::DriverUpdateParams& p,double targetSpeed, double maxLaneSpeed);
+	double calcYieldingRate(sim_mob::DriverUpdateParams& p);
 	/*
 	 *  /brief Calculate the maximum acceleration rate subject to the the gap from the leading vehicle.
 	 *
@@ -181,6 +180,7 @@ private:
 	 **/
 	double waitAllowedLaneRate(sim_mob::DriverUpdateParams& p);
 	double calcForwardRate(sim_mob::DriverUpdateParams& p);
+	double calcDesiredSpeed(sim_mob::DriverUpdateParams& p);
 	double calcBackwardRate(sim_mob::DriverUpdateParams& p);
 	double calcAdjacentRate(sim_mob::DriverUpdateParams& p);
 
@@ -220,6 +220,10 @@ public:
 	map< VehicleBase::VehicleType,map<int,double> > normalDecelerationIndex;
 	int normalDecelerationUpperBound;
 	vector<double> normalDecelerationScale;
+
+	double speedFactor;
+	vector<double> speedLimitAddon;
+	double getSpeedLimitAddon();
 
 	map< VehicleBase::VehicleType,map<int,double> > maxDecelerationIndex;
 	int maxDecelerationUpperBound;

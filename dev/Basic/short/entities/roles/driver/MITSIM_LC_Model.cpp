@@ -314,27 +314,27 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(Dri
     }
 }
 
-LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::executeNGSIMModel(DriverUpdateParams& p) {
-    bool isCourtesy = false; //if courtesy merging
-    bool isForced = false; // if forced merging
-    int direction = p.nextLaneIndex - p.currLaneIndex;
-    LANE_CHANGE_SIDE lcs = direction > 0 ? LCS_LEFT : LCS_RIGHT;
-
-    //check if courtesy merging
-    isCourtesy = ifCourtesyMerging(p);
-    if (isCourtesy) {
-        lcs = makeCourtesyMerging(p);
-        return lcs;
-    } else {
-        //check if forced merging
-        isForced = ifForcedMerging(p);
-        if (isForced) {
-            lcs = makeForcedMerging(p);
-            return lcs;
-        }
-    }
-    return LCS_SAME;
-}
+//LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::executeNGSIMModel(DriverUpdateParams& p) {
+//    bool isCourtesy = false; //if courtesy merging
+//    bool isForced = false; // if forced merging
+//    int direction = p.nextLaneIndex - p.currLaneIndex;
+//    LANE_CHANGE_SIDE lcs = direction > 0 ? LCS_LEFT : LCS_RIGHT;
+//
+//    //check if courtesy merging
+//    isCourtesy = ifCourtesyMerging(p);
+//    if (isCourtesy) {
+//        lcs = makeCourtesyMerging(p);
+//        return lcs;
+//    } else {
+//        //check if forced merging
+//        isForced = ifForcedMerging(p);
+//        if (isForced) {
+//            lcs = makeForcedMerging(p);
+//            return lcs;
+//        }
+//    }
+//    return LCS_SAME;
+//}
 
 bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
     //[0:left,1:right]
@@ -408,14 +408,14 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
     return courtesy;
 }
 
-bool sim_mob::MITSIM_LC_Model::ifForcedMerging(DriverUpdateParams& p) {
-    boost::uniform_int<> zero_to_max(0, RAND_MAX);
-    double randNum = (double) (zero_to_max(p.gen) % 1000) / 1000;
-    if (randNum < 1 / (1 + exp(4.27 + 1.25 - 5.43))) {
-        return true;
-    }
-    return false;
-}
+//bool sim_mob::MITSIM_LC_Model::ifForcedMerging(DriverUpdateParams& p) {
+//    boost::uniform_int<> zero_to_max(0, RAND_MAX);
+//    double randNum = (double) (zero_to_max(p.gen) % 1000) / 1000;
+//    if (randNum < 1 / (1 + exp(4.27 + 1.25 - 5.43))) {
+//        return true;
+//    }
+//    return false;
+//}
 
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeCourtesyMerging(DriverUpdateParams& p) {
     LaneSide freeLanes = gapAcceptance(p, MLC_C);

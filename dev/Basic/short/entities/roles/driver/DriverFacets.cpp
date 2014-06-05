@@ -579,6 +579,14 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 	LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
 	parentDriver->vehicle->setTurningDirection(lcs);
 
+	 if (p.getStatus() & STATUS_CHANGING) {
+		    lcModel->executeLaneChanging(p);
+
+		if ( p.flag(FLAG_LC_FAILED) ) {
+		    lcModel->chooseTargetGap(p);
+		}
+	  }
+
 	//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
 	//if making lane changing, adjacent car need to be taken into account.
 	NearestVehicle & nv = nearestVehicle(p);

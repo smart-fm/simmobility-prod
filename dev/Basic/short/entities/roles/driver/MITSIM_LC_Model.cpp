@@ -479,7 +479,10 @@ size_t getLaneIndex(const Lane* l) {
     }
     return -1; //NOTE: This might not do what you expect! ~Seth
 }
-
+void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
+{
+	//TODO
+}
 void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p, 
         std::vector<TARGET_GAP>& tg) {
     const Lane * lane[2] = {p.leftLane, p.rightLane};

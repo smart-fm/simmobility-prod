@@ -38,6 +38,7 @@ public:
 	///Return new lateral velocity, or <0 to keep the velocity at its previous value.
 	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode) = 0;
 	virtual double executeLaneChanging(DriverUpdateParams& p)=0;
+	virtual void chooseTargetGap(DriverUpdateParams& p)=0;
 	/**
 	 *  /brief this function checks for bad events that will override the lookahead,like incident
 	 *  /param vehicle info
@@ -106,6 +107,7 @@ public:
 	virtual sim_mob::LANE_CHANGE_SIDE makeCourtesyMerging(sim_mob::DriverUpdateParams& p);
 	virtual sim_mob::LANE_CHANGE_SIDE makeForcedMerging(sim_mob::DriverUpdateParams& p);
 	virtual void chooseTargetGap(sim_mob::DriverUpdateParams& p,std::vector<TARGET_GAP>& tg);
+	virtual void chooseTargetGap(DriverUpdateParams& p);
 
 public:
 	/**

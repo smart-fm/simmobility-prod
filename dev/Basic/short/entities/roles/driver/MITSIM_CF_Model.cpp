@@ -469,24 +469,24 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	double aE = waitExitLaneRate(p); //
 	double aF = waitAllowedLaneRate(p);
 //	double  aG = calcLaneDropRate(p);		// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
-	double aH1 = calcAdjacentRate(p); // to reach adjacent gap
-	double aH2 = calcBackwardRate(p); // to reach backward gap
-	double aH3 = calcForwardRate(p); // to reach forward gap
+//	double aH1 = calcAdjacentRate(p); // to reach adjacent gap
+//	double aH2 = calcBackwardRate(p); // to reach backward gap
+//	double aH3 = calcForwardRate(p); // to reach forward gap
 	// The target gap acceleration should be based on the target gap status and not on the min
 	// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
-	/*
-	 if (status(STATUS_ADJACENT)) {
-	 double aH = calcAdjacentRate(p);	// to reach adjacent gap
+	double aH;
+	 if (p.getStatus(STATUS_ADJACENT)) {
+	  aH = calcAdjacentRate(p);	// to reach adjacent gap
 	 }
-	 else if (status(STATUS_BACKWARD)) {
-	 double aH = calcBackwardRate(p);	// to reach backward gap
+	 else if (p.getStatus(STATUS_BACKWARD)) {
+	  aH = calcBackwardRate(p);	// to reach backward gap
 	 }
-	 else if (status(STATUS_FORWARD)) {
-	 double aH = calcForwardRate(p);		// to reach forward gap
+	 else if (p.getStatus(STATUS_FORWARD)) {
+	  aH = calcForwardRate(p);		// to reach forward gap
 	 } else {
-	 double aH = desiredSpeedRate(p); // FUNCTION desiredSpeedRate MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
+		  aH = calcDesiredSpeed(p); // FUNCTION desiredSpeedRate MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
 	 }
-	 */
+
 
 	// if (intersection){
 	// double aI = approachInter(p); // when approaching intersection to achieve the turn speed
@@ -502,12 +502,14 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	if (acc > aD)
 		acc = aD;
 	//if(acc > aF) acc = aF;
-	if (acc > aH1)
-		acc = aH1;
-	if (acc > aH2)
-		acc = aH2;
-	if (acc > aH3)
-		acc = aH3;
+	if (acc > aH)
+		acc = aH;
+//	if (acc > aH1)
+//		acc = aH1;
+//	if (acc > aH2)
+//		acc = aH2;
+//	if (acc > aH3)
+//		acc = aH3;
 	//if(acc > aG) acc = aG;
 	if (acc > aC)
 		acc = aC;

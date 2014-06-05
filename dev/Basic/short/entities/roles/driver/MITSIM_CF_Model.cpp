@@ -431,7 +431,7 @@ double sim_mob::MITSIM_CF_Model::getMaxDecScale() {
 }
 double sim_mob::MITSIM_CF_Model::getSpeedLimitAddon() {
 	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
-	int scaleNo = Utils::generateInt(0, speedLimitAddon.size() - 1);
+	int scaleNo = Utils::generateInt(1, speedLimitAddon.size() - 1);
 	double res = Utils::generateFloat(speedLimitAddon[scaleNo-1],speedLimitAddon[scaleNo]);
 	return res;//speedLimitAddon[scaleNo];
 }
@@ -520,6 +520,15 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 
 //	p.cftimer = calcNextStepSize(p);
 
+	// if in emergency regime , reduce cftimer
+	p.cftimer = calcNextStepSize(p);
+	if (p.getStatus(STATUS_REGIME_EMERGENCY) ) {
+		p.cftimer = p.getNextStepSize()* CF_CRITICAL_TIMER_RATIO;
+	}
+	else {
+		p.cftimer = p.getNextStepSize();
+	}
+
 	return acc;
 }
 
@@ -582,6 +591,7 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 //		std::cout<<"carFollowingRate: headway2: "<<headway<<std::endl;
 		if (headway < hBufferLower) {
 			res = accOfEmergencyDecelerating(p);
+			p.setStatus(STATUS_REGIME_EMERGENCY);
 //			std::cout<<"carFollowingRate: EmergencyDecelerating: "<<res<<std::endl;
 		}
 		hBufferUpper = getBufferUppder();
@@ -1188,6 +1198,9 @@ void sim_mob::MITSIM_CF_Model::calcStateBasedVariables(DriverUpdateParams& p) {
 	p.normalDeceleration = getNormalDeceleration(p);
 	// Maximum deceleration is function of speed and vehicle class
 	p.maxDeceleration = getMaxDeceleration(p);
+
+	// unsetStatus;
+	p.unsetStatus(STATUS_REGIME);
 }
 void sim_mob::MITSIM_CF_Model::calcUpdateStepSizes() {
 	// dec

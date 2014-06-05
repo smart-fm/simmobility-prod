@@ -433,7 +433,7 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 		if(params.cftimer < 0)
 		{
 			calcVehicleStates(params);
-			params.cftimer = cfModel->calcNextStepSize(params);
+//			params.cftimer = cfModel->calcNextStepSize(params);
 		}
 		params.overflowIntoIntersection = move(params);
 		//Did our last move forward bring us into an intersection?

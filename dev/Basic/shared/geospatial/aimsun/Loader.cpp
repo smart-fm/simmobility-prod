@@ -16,7 +16,7 @@
 #include <soci.h>
 #include <soci-postgresql.h>
 #include <boost/multi_index_container.hpp>
-
+#include "boost/algorithm/string.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/settings/DisableMPI.h"
@@ -890,7 +890,11 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 		sim_mob::PT_bus_stops pt_bus_stopsTemp = *iter;
 		pt_bus_stops.push_back(pt_bus_stopsTemp);
 //		std::cout << pt_bus_stopsTemp.route_id << " " << pt_bus_stopsTemp.busstop_no << " " << pt_bus_stopsTemp.busstop_sequence_no << std::endl;
-		sim_mob::BusStop* bs = config.getBusStopNo_BusStops()[pt_bus_stopsTemp.busstop_no];
+
+		string str = pt_bus_stopsTemp.busstop_no;
+		boost::trim_right(str);
+		unsigned int no = boost::lexical_cast<unsigned int>(str);
+		sim_mob::BusStop* bs = sim_mob::BusStop::findBusStop(no);
 		if(bs) {
 			routeID_busStops[iter->route_id].push_back(bs);
 //			std::cout << "iter->route_id: " << iter->route_id << "    BusStop to busstop map  " << bs->getBusstopno_() << "" << std::endl;
@@ -1891,7 +1895,8 @@ void DatabaseLoader::createBusStopAgents()
 
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		sim_mob::BusStop::RegisterNewBusStop(busstop);
+		unsigned int no = boost::lexical_cast<unsigned int>(busstop->busstopno_);
+		sim_mob::BusStop::RegisterNewBusStop(no, busstop);
 	}
 
 	for(map<std::string,BusStopSG>::iterator it = bustopSG_.begin(); it != bustopSG_.end(); it++) {
@@ -1921,7 +1926,8 @@ void DatabaseLoader::createBusStopAgents()
 
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		sim_mob::BusStop::RegisterNewBusStop(busstop);
+		unsigned int no = boost::lexical_cast<unsigned int>(busstop->busstopno_);
+		sim_mob::BusStop::RegisterNewBusStop(no, busstop);
 	}
 }
 

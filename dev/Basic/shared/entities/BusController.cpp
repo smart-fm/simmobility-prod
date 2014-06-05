@@ -15,6 +15,7 @@
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/LangHelpers.hpp"
+#include "boost/algorithm/string.hpp"
 
 using std::vector;
 using std::string;
@@ -237,10 +238,38 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 			map<string, vector<const RoadSegment*> >::const_iterator segmentsIt = config.getRoadSegments_Map().find(curr->route_id);
 			map<string, vector<const BusStop*> >::const_iterator stopsIt = config.getBusStops_Map().find(curr->route_id);
 
+			vector<const RoadSegment*> segments = vector<const RoadSegment*>();
+			const std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments = config.getRoadSegments_Map();
+			map<string, vector<const RoadSegment*> >::const_iterator itSeg = routeID_roadSegments.begin();
+			for(; itSeg!=routeID_roadSegments.end(); itSeg++){
+				string str = itSeg->first;
+				boost::trim_right(str);
+				if(curr->route_id==str){
+					segments = itSeg->second;
+					break;
+				}
+				std::cout << "itSeg->route_id: " << itSeg->first << std::endl;
+				std::cout << "curr->route_id: " << curr->route_id << std::endl;
+				std::cout << "itSeg->route_id: " << itSeg->first << std::endl;
+				std::cout << "current.size(): " << itSeg->second.size() << "" << std::endl;
+			}
+
+			stops = vector<const BusStop*>();
+			const std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops = config.getBusStops_Map();
+			map<string, vector<const BusStop*> >::const_iterator itStop = routeID_busStops.begin();
+			for(; itStop!=routeID_busStops.end(); itStop++){
+				string str = itStop->first;
+				boost::trim_right(str);
+				if(curr->route_id==str){
+					stops = itStop->second;
+					break;
+				}
+				std::cout << "itStop->route_id: " << itStop->first << std::endl;
+				std::cout << "current.size(): " << itStop->second.size() << "" << std::endl;
+			}
+
 			//Our algorithm expects empty vectors in some cases.
 			//TODO: Clean this up! Logic for dealing with null cases should go here, not in the subroutine.
-			vector<const RoadSegment*> segments = (segmentsIt==config.getRoadSegments_Map().end()) ? vector<const RoadSegment*>() : segmentsIt->second;
-			stops = (stopsIt==config.getBusStops_Map().end()) ? vector<const BusStop*>() : stopsIt->second;
 			if(busstop_busline_registered) // for each busline, only push once
 			{
 			  for(int k=0;k<stops.size();k++)//to store the bus line info at each bus stop

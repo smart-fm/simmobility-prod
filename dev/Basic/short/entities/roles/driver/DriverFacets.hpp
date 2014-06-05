@@ -156,6 +156,15 @@ public:
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
 	virtual double linkDriving(DriverUpdateParams& p);
+	/*
+	 *  /brief do lane change and car follow
+	 */
+	void calcVehicleStates(DriverUpdateParams& p);
+	/*
+	 *  /brief Calculate new location and speed after an iteration based on its
+	 * 	       current location, speed and acceleration.
+	 */
+	double move(DriverUpdateParams& p);
 	virtual double linkDrivingNew(DriverUpdateParams& p);
 	virtual double dwellTimeCalculation(int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
 
@@ -220,7 +229,7 @@ public:
 	// I'm sure we can do this in a less confusion fashion later.
 	LANE_CHANGE_SIDE getCurrLaneSideRelativeToCenter() const;
 
-private:
+public:
 	//The current traffic signal in our Segment. May be null.
 	const Signal* trafficSignal;
 

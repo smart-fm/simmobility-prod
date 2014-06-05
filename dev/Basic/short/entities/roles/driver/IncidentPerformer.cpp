@@ -31,7 +31,8 @@ sim_mob::IncidentStatus& IncidentPerformer::getIncidentStatus(){
 	return incidentStatus;
 }
 
-void sim_mob::IncidentPerformer::responseIncidentStatus(Driver* parentDriver, DriverUpdateParams& p, timeslice now) {
+void sim_mob::IncidentPerformer::responseIncidentStatus( DriverUpdateParams& p, timeslice now) {
+	Driver* parentDriver = p.driver;
 	//slow down velocity when driver views the incident within the visibility distance
 	double incidentGap = parentDriver->getVehicle()->getLengthCm();
 	if(incidentStatus.getSlowdownVelocity()){
@@ -96,11 +97,12 @@ void sim_mob::IncidentPerformer::responseIncidentStatus(Driver* parentDriver, Dr
 		}
 	}
 
-	checkAheadVehicles(parentDriver, p);
+	checkAheadVehicles(p);
 }
 
-void sim_mob::IncidentPerformer::checkAheadVehicles(Driver* parentDriver, DriverUpdateParams& p){
+void sim_mob::IncidentPerformer::checkAheadVehicles( DriverUpdateParams& p){
 
+	Driver* parentDriver = p.driver;
 	if(p.nvFwd.exists() ){//avoid cars stacking together
 		DPoint dFwd = p.nvFwd.driver->getCurrPosition();
 		DPoint dCur = parentDriver->getCurrPosition();
@@ -114,10 +116,14 @@ void sim_mob::IncidentPerformer::checkAheadVehicles(Driver* parentDriver, Driver
 	}
 }
 
-void sim_mob::IncidentPerformer::checkIncidentStatus(Driver* parentDriver, DriverUpdateParams& p, timeslice now) {
+void sim_mob::IncidentPerformer::checkIncidentStatus(DriverUpdateParams& p, timeslice now) {
 
-	const RoadSegment* curSegment = parentDriver->getVehicle()->getCurrSegment();
-	const Lane* curLane = parentDriver->getVehicle()->getCurrLane();
+	Driver* parentDriver = p.driver;
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+//	const RoadSegment* curSegment = parentDriver->getVehicle()->getCurrSegment();
+	const RoadSegment* curSegment = driverMvt->fwdDriverMovement.getCurrSegment();
+//	const Lane* curLane = parentDriver->getVehicle()->getCurrLane();
+	const Lane* curLane = driverMvt->fwdDriverMovement.getCurrLane();
 	int curLaneIndex = curLane->getLaneID() - curSegment->getLanes().at(0)->getLaneID();
 	if(curLaneIndex<0){
 		return;

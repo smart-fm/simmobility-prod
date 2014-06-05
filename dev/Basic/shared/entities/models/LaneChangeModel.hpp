@@ -220,6 +220,7 @@ public:
 	 *  /strMatrix string matrix
 	 */
 	void makeTargetGapPram(std::vector< std::string >& strMatrix);
+
 };
 
 

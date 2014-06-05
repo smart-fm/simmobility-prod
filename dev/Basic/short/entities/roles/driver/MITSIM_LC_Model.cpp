@@ -19,6 +19,7 @@
 #include "geospatial/LaneConnector.hpp"
 #include "util/Utils.hpp"
 #include "util/Math.hpp"
+#include "IncidentPerformer.hpp"
 
 using std::numeric_limits;
 using namespace sim_mob;
@@ -1487,12 +1488,34 @@ bool sim_mob::MITSIM_LC_Model::path(DriverUpdateParams& p)
 bool sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
 {
 	// TODO: check event ,like incident
+
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	driverMvt->incidentPerformer.checkIncidentStatus(p, p.driver->getParams().now);
+
+	if(driverMvt->incidentPerformer.getIncidentStatus().getChangedLane())
+	{
+		return true;
+	}
+
 	return false;
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdateParams& p)
 {
+	LANE_CHANGE_SIDE lcs = LCS_SAME;
 	// TODO: handle event ,like incident
-	return LCS_SAME;
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	if(driverMvt->incidentPerformer.getIncidentStatus().getChangedLane() &&
+			driverMvt->incidentPerformer.getIncidentStatus().getNextLaneIndex()>=0){
+				//p.nextLaneIndex = p.incidentPerformer.getIncidentStatus().getNextLaneIndex();
+				lcs =driverMvt->incidentPerformer.getIncidentStatus().getLaneSide();
+			}
+//			else if( (p.incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode==MLC )
+//					|| (p.incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && p.incidentPerformer.getIncidentStatus().getCurrentIncidentLength()>0)) {
+//				p.nextLaneIndex = p.currLaneIndex;
+////				parentDriver->vehicle->setTurningDirection(LCS_SAME);
+//				lcs
+//			}
+	return lcs;
 }
 void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)
 {

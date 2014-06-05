@@ -14,6 +14,7 @@
 #include <boost/random.hpp>
 #include "util/LangHelpers.hpp"
 #include "entities/signal/Signal.hpp"
+//#include "IncidentPerformer.hpp"
 //#include "entities/roles/driver/Driver.hpp"
 
 namespace sim_mob
@@ -22,6 +23,7 @@ namespace sim_mob
 //Forward declarations
 class Lane;
 class Driver;
+class IncidentPerformer;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -223,11 +225,16 @@ public:
 	double targetSpeed;
 	double maxLaneSpeed;
 
+	/// fwd acc from car follow model m/s^2
+	double newFwdAcc;
 	// critical gap param
 	std::vector< std::vector<double> > LC_GAP_MODELS;
 	double lcMinGap(int type);
 
 	double speedOnSign;
+
+//	//perform incident response
+//	IncidentPerformer incidentPerformer;
 public:
 #ifndef SIMMOB_DISABLE_MPI
 	static void pack(PackageUtils& package, const DriverUpdateParams* params);

@@ -26,7 +26,7 @@
 #include "geospatial/PathSetManager.hpp"
 #include "geospatial/RoadRunnerRegion.hpp"
 #include "network/CommunicationDataManager.hpp"
-
+#include "IncidentPerformer.hpp"
 #include "boost/bind.hpp"
 
 using namespace sim_mob;
@@ -546,6 +546,23 @@ bool sim_mob::DriverMovement::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
 		return true;
 	return false;
 }
+void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
+{
+
+}
+double sim_mob::DriverMovement::move(DriverUpdateParams& p)
+{
+	double newLatVel;
+	// check if in the middle of lane change, so make lateral movement
+	newLatVel = lcModel->executeLaneChanging(p);
+
+	double acc = p.newFwdAcc;
+	//Update our chosen acceleration; update our position on the link.
+	parentDriver->vehicle->setAcceleration(acc * METER_TO_CENTIMETER_CONVERT_UNIT);
+
+	return updatePositionOnLink(p);
+
+}
 double sim_mob::DriverMovement::linkDrivingNew(DriverUpdateParams& p) {
 
 if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->startTime > 10) &&  (fwdDriverMovement.getCurrDistAlongRoadSegmentCM()>2000) && (parentDriver->isAleadyStarted == false))
@@ -709,7 +726,8 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 		parentDriver->vehicle->setTurningDirection(LCS_RIGHT);
 	else{
 		parentDriver->vehicle->setTurningDirection(LCS_SAME);
-		if(p.currLaneIndex == incidentPerformer.getIncidentStatus().getNextLaneIndex() && incidentPerformer.getIncidentStatus().getCurrentStatus() == IncidentStatus::INCIDENT_OCCURANCE_LANE){
+		if(p.currLaneIndex == incidentPerformer.getIncidentStatus().getNextLaneIndex() &&
+				incidentPerformer.getIncidentStatus().getCurrentStatus() == IncidentStatus::INCIDENT_OCCURANCE_LANE){
 			incidentPerformer.getIncidentStatus().setCurrentStatus(IncidentStatus::INCIDENT_ADJACENT_LANE);
 			incidentPerformer.getIncidentStatus().setChangedLane(false);
 		}
@@ -886,18 +904,18 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 
 	//check incident status and decide whether or not do lane changing
 	LANE_CHANGE_MODE mode = DLC;
-//	incidentPerformer.checkIncidentStatus(parentDriver, p, parentDriver->getParams().now);
-//	if(incidentPerformer.getIncidentStatus().getChangedLane() && incidentPerformer.getIncidentStatus().getNextLaneIndex()>=0){
-//		p.nextLaneIndex = incidentPerformer.getIncidentStatus().getNextLaneIndex();
-//		parentDriver->vehicle->setTurningDirection(incidentPerformer.getIncidentStatus().getLaneSide());
-//		mode = MLC;
-//	}
-//	else if( (incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode==MLC )
-//			|| (incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && incidentPerformer.getIncidentStatus().getCurrentIncidentLength()>0)) {
-//		p.nextLaneIndex = p.currLaneIndex;
-//		parentDriver->vehicle->setTurningDirection(LCS_SAME);
-//		mode = MLC;
-//	}
+	incidentPerformer.checkIncidentStatus(p, parentDriver->getParams().now);
+	if(incidentPerformer.getIncidentStatus().getChangedLane() && incidentPerformer.getIncidentStatus().getNextLaneIndex()>=0){
+		p.nextLaneIndex = incidentPerformer.getIncidentStatus().getNextLaneIndex();
+		parentDriver->vehicle->setTurningDirection(incidentPerformer.getIncidentStatus().getLaneSide());
+		mode = MLC;
+	}
+	else if( (incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode==MLC )
+			|| (incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && incidentPerformer.getIncidentStatus().getCurrentIncidentLength()>0)) {
+		p.nextLaneIndex = p.currLaneIndex;
+		parentDriver->vehicle->setTurningDirection(LCS_SAME);
+		mode = MLC;
+	}
 
 	//Check if we should change lanes.
 	double newLatVel;
@@ -1806,7 +1824,8 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 		fwdDistance = 0;
 	}
 
-	if(incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && incidentPerformer.getIncidentStatus().getCurrentIncidentLength()>0){
+	if(incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE &&
+			incidentPerformer.getIncidentStatus().getCurrentIncidentLength()>0){
 		incidentPerformer.getIncidentStatus().reduceIncidentLength(fwdDistance);
 	}
 

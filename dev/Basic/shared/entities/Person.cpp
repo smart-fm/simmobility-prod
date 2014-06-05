@@ -46,7 +46,7 @@ namespace {
 Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 {
 	//Make sure we have something to work with
-	if (!(ag.originNode .node_&& ag.destNode.node_)) {
+	if (!(ag.originNode.node_&& ag.destNode.node_)) {
 		std::stringstream msg;
 		msg <<"Can't make a pseudo-trip for an Agent with no origin and destination nodes: " <<ag.originNode.node_ <<" , " <<ag.destNode.node_;
 		throw std::runtime_error(msg.str().c_str());
@@ -188,8 +188,16 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		}
 
 		//Otherwise, make a trip chain for this Person.
-		this->originNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true) );
-		this->destNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destIt->second), true) );
+		Node * O = ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true);
+		Node * D = ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destIt->second), true);
+
+		if(!O || !D){
+			Print() << "Nodes Located for (" << origIt->second << ") and (" << destIt->second << ") :(" << O << "," << D << ")" << std::endl;
+			return;
+			//todo throw error. not throwing is only for debugging
+		}
+		this->originNode = WayPoint( O );
+		this->destNode = WayPoint( D );
 
 		//Make sure they have a mode specified for this trip
 		it = configProps.find("#mode");

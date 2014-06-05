@@ -138,13 +138,6 @@ void generateOD(
 					Print() << err.str() << std::endl;
 				}
 				continue;
-
-			}
-			else{
-				Print() << "--StreetDirectory::Location for node id " << pair_ui[0] << ": (" << origin->getLocation().getX() << "," << origin->getLocation().getY() << ")" << std::endl;
-
-				Print() << "--StreetDirectory::Location for node id " << pair_ui[1] << ": (" << destination->getLocation().getX() << "," << destination->getLocation().getY() << ")" << std::endl;
-
 			}
 
 			out << "<driver originPos=\"" << origin->getLocation().getX()
@@ -218,7 +211,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
  	//Initialize the street directory.
 	StreetDirectory::instance().init(cfg.getNetwork(), true);
 	std::cout << "Street Directory initialized in : " << stDir.endProfiling() <<  " Milliseconds " << std::endl;
-	generateOD("/home/vahid/OD.txt", "/home/vahid/Downloads/ODs.xml");
+//	generateOD("/home/vahid/OD.txt", "/home/vahid/Downloads/ODs.xml");
 	sim_mob::Profiler confl(true);
     //Process Confluxes if required
     if(cfg.RunningMidSupply()) {
@@ -490,17 +483,6 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		std::stringstream msg;
 		msg <<"Unexpected agent type: " <<roleName;
 		throw std::runtime_error(msg.str().c_str());
-	}
-	//debug
-	int nodes[8]= {42960,105594,42792,89424,44520,57026,77062,68432};
-	for( int i = 0; i < 8; i++){
-		const Node * node = sim_mob::StreetDirectory::instance().getNode(nodes[i]);
-		if(node){
-			Print() << "StreetDirectory::Location for node id " << nodes[i] << ": (" << node->getLocation().getX() << "," << node->getLocation().getY() << ")" << std::endl;
-		}
-		else{
-			Print() << "No record for node " << nodes[i] << std::endl;
-		}
 	}
 	//Loop through all agents of this type.
 	for (std::vector<EntityTemplate>::const_iterator it=xmlItems.begin(); it!=xmlItems.end(); it++) {

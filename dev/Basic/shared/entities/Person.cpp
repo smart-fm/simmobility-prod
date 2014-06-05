@@ -192,9 +192,9 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		Node * D = ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destIt->second), true);
 
 		if(!O || !D){
-			Print() << "Nodes Located for (" << origIt->second << ") and (" << destIt->second << ") :(" << O << "," << D << ")" << std::endl;
-			return;
-			//todo throw error. not throwing is only for debugging
+			std::ostringstream out("");
+			out << "Nodes Located for (" << origIt->second << ") and (" << destIt->second << ") :(" << O << "," << D << ")" << std::endl;
+			throw std::runtime_error(out.str());
 		}
 		this->originNode = WayPoint( O );
 		this->destNode = WayPoint( D );

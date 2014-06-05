@@ -429,11 +429,13 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 	if (!(fwdDriverMovement.isInIntersection())) {
 		params.cftimer -= params.elapsedSeconds;
 //		params.overflowIntoIntersection = linkDriving(params);
-		params.overflowIntoIntersection = linkDrivingNew(params);
+//		params.overflowIntoIntersection = linkDrivingNew(params);
 		if(params.cftimer < 0)
 		{
+			calcVehicleStates(params);
 			params.cftimer = cfModel->calcNextStepSize(params);
 		}
+		params.overflowIntoIntersection = move(params);
 		//Did our last move forward bring us into an intersection?
 		if (fwdDriverMovement.isInIntersection()) {
 			params.justMovedIntoIntersection = true;
@@ -548,7 +550,62 @@ bool sim_mob::DriverMovement::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
 }
 void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 {
+	if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->startTime > 10) &&  (fwdDriverMovement.getCurrDistAlongRoadSegmentCM()>2000) && (parentDriver->isAleadyStarted == false))
+	{
+	parentDriver->isAleadyStarted = true;
+	}
+	p.isAlreadyStart = parentDriver->isAleadyStarted;
 
+	if (!(hasNextSegment(true))) // has seg in current link
+	{
+		p.dis2stop = fwdDriverMovement.getAllRestRoadSegmentsLengthCM() - fwdDriverMovement.getCurrDistAlongRoadSegmentCM() - parentDriver->vehicle->getLengthCm() / 2 - 300;
+		if (p.nvFwd.distance < p.dis2stop)
+			p.dis2stop = p.nvFwd.distance;
+		p.dis2stop /= METER_TO_CENTIMETER_CONVERT_UNIT;
+	}
+	else
+	{
+		p.nextLaneIndex = std::min<int>(p.currLaneIndex, fwdDriverMovement.getNextSegment(true)->getLanes().size() - 1);
+		if(fwdDriverMovement.getNextSegment(true)->getLanes().at(p.nextLaneIndex)->is_pedestrian_lane())
+		{
+//			p.nextLaneIndex--;
+			p.dis2stop = fwdDriverMovement.getCurrPolylineTotalDistCM() - fwdDriverMovement.getCurrDistAlongRoadSegmentCM() + DEFAULT_DIS_TO_STOP;
+			p.dis2stop /= METER_TO_CENTIMETER_CONVERT_UNIT;
+		}
+		else
+			p.dis2stop = DEFAULT_DIS_TO_STOP;//defalut 1000m
+	}
+
+	LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
+	parentDriver->vehicle->setTurningDirection(lcs);
+
+	//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
+	//if making lane changing, adjacent car need to be taken into account.
+	NearestVehicle & nv = nearestVehicle(p);
+
+	if ( parentDriver->isAleadyStarted == false )
+	{
+		if(nv.distance<=0)
+		{
+			if(nv.driver->parent->getId() > getParent()->getId())
+			{
+				nv = NearestVehicle();
+			}
+		}
+	}
+
+
+	perceivedDataProcess(nv, p);
+
+	//Convert back to m/s
+	//TODO: Is this always m/s? We should rename the variable then...
+	p.currSpeed = parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT_UNIT;
+	//Call our model
+
+
+	p.targetSpeed = targetSpeed;
+	p.maxLaneSpeed = maxLaneSpeed;
+	p.newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
 }
 double sim_mob::DriverMovement::move(DriverUpdateParams& p)
 {

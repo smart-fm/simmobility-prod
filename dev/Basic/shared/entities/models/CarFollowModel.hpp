@@ -299,6 +299,9 @@ public:
 	void makeUpdateSizeParam(string& s,UpdateStepSizeParam& sParam);
 	boost::mt19937 updateSizeRm;
 	double makeNormalDist(UpdateStepSizeParam& sp);
+
+	double visibilityDistance;
+	double visibility() { return visibilityDistance; }
 };
 
 

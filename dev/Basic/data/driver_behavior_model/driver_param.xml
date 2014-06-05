@@ -50,6 +50,9 @@
 # speed factor
 <param name="speed_factor" value="2.2352"/>
 
+# visibility distance for car follow (meter)
+<param name="visibility_distance" value="10"/>
+
 <param name="hbuffer_lower" value="2.2352"/>
 <param name="hbuffer_Upper" value="1.7498 2.2737 2.5871 2.8379 3.0633 3.2814 3.5068 3.7578 4.0718 4.5979"/>
 

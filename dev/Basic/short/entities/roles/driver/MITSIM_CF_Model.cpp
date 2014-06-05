@@ -227,6 +227,10 @@ void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p) {
 	// init step size , i=3 stopped vehicle
 	p.nextStepSize = updateStepSize[3];
 	nextPerceptionSize = perceptionSize[3];
+
+	// visibility
+	ParameterManager::Instance()->param(modelName, "visibility_distance",
+			visibilityDistance, 10.0);
 }
 void sim_mob::MITSIM_CF_Model::makeCFParam(string& s, CarFollowParam& cfParam) {
 	std::vector<std::string> arrayStr;
@@ -518,7 +522,25 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 
 	p.lastAcc = acc;
 
-//	p.cftimer = calcNextStepSize(p);
+	// if brake ,alerm follower
+	if (acc < -ACC_EPSILON) {
+
+		// I am braking, alert the vehicle behind if it is close
+
+	//	TS_Vehicle *back = findFrontBumperFollower(lane_);
+		if (p.nvBack.exists() )
+		{
+			Driver* bvd = const_cast<Driver*>(p.nvBack.driver);
+			DriverUpdateParams& bvp = bvd->getParams();
+			if( p.nvBack.distance < visibility() &&
+					!(bvd->isBus() && bvp.getStatus(STATUS_STOPPED))) {
+						  float alert = CF_CRITICAL_TIMER_RATIO * updateStepSize[0];
+						  bvp.cftimer = std::min<double>(alert,bvp.cftimer);
+					//	  back->cfTimer_ = Min(alert, back->cfTimer_);
+						}
+		}
+	}
+
 
 	// if in emergency regime , reduce cftimer
 	p.cftimer = calcNextStepSize(p);

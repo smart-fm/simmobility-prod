@@ -478,6 +478,7 @@ public:
 
 	/**
 	 * update bus stop agent so as to perform further tasks
+	 * @param now is current time.
 	 */
 	void updateBusStopAgents(timeslice now);
 

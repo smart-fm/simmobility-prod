@@ -207,8 +207,7 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 		{
 			bool ret = false;
 			WaitBusActivity* waitingPeople = *itPerson;
-			Agent* parent = waitingPeople->getParent();
-			Person* person = dynamic_cast<Person*>(parent);
+			Person* person = waitingPeople->getParent();
 			if (person)
 			{
 				person->checkTripChain();

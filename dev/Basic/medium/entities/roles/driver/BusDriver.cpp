@@ -81,8 +81,9 @@ unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusSto
 	unsigned int numAlighting = 0;
 	std::list<sim_mob::medium::Passenger*>::iterator itPassenger = passengerList.begin();
 	while (itPassenger != passengerList.end()) {
-		messaging::MessageBus::SendInstantaneousMessage((*itPassenger)->getParent(), ALIGHT_BUS,
-				messaging::MessageBus::MessagePtr(new BusStopMessage(busStopAgent->getBusStop())));
+		//messaging::MessageBus::SendInstantaneousMessage((*itPassenger)->getParent(), ALIGHT_BUS,
+		//		messaging::MessageBus::MessagePtr(new BusStopMessage(busStopAgent->getBusStop())));
+		(*itPassenger)->makeAlightingDecision(busStopAgent->getBusStop());
 
 		if ((*itPassenger)->canAlightBus()) {
 			busStopAgent->addAlightingPerson(*itPassenger);

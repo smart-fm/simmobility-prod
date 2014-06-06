@@ -235,7 +235,7 @@
 
             <plaintext-credential id="harish_cred">
                 <username value="postgres"/>
-                <password value="5M_S1mM0bility"/>
+                <password value="secret"/>
             </plaintext-credential>
         </credentials>
     

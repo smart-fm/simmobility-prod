@@ -32,9 +32,9 @@ protected:
 	virtual void processElement(xercesc::DOMElement* node, const std::string& name);
 private:
 	static MT_Config* instance;
-	//store parameters for dwelling time calculation
+	/**store parameters for dwelling time calculation*/
 	std::vector<int> paramsDwellingTime;
-	//store parameters for pedestrian walking speed
+	/**store parameters for pedestrian walking speed*/
 	std::vector<double> paramsWalkSpeed;
 };
 }

@@ -16,6 +16,8 @@
 #include <map>
 #include <stdexcept>
 #include <vector>
+#include <boost/tokenizer.hpp>
+#include <boost/foreach.hpp>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/Person.hpp"
@@ -37,6 +39,8 @@
 #include "workers/Worker.hpp"
 
 using namespace sim_mob;
+using namespace std;
+using namespace boost;
 typedef Entity::UpdateStatus UpdateStatus;
 
 namespace{
@@ -104,6 +108,9 @@ bool sim_mob::Conflux::frame_init(timeslice now)
 			(*segIt)->initializeBusStops();
 		}
 	}
+	/**************test code insert incident *********************/
+
+	/*************************************************************/
 	return true;
 }
 
@@ -1166,3 +1173,33 @@ void sim_mob::Conflux::removeIncident(sim_mob::SegmentStats* segStats) {
 		segStats->restoreLaneParams(*it);
 	}
 }
+
+bool sim_mob::insertIncidentS(const std::string fileName){
+
+	ifstream in(fileName.c_str());
+	if (!in.is_open()){
+		ostringstream out("");
+		out << "File " << fileName << " not found";
+		throw runtime_error(out.str());
+		//return false;
+	}
+	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::instance();
+	typedef tokenizer< escaped_list_separator<char> > Tokenizer;
+	vector< string > record;
+	string line;
+
+	while (getline(in,line))
+	{
+		Tokenizer record(line);
+		unsigned int sectionId = lexical_cast<unsigned int>(*(record.begin()));//first element
+		double newFlowRate = lexical_cast<double>(*(record.end()));//second element
+		const sim_mob::RoadSegment* rs = stDir.getRoadSegment(sectionId);
+		const std::vector<sim_mob::SegmentStats*>& stats = rs->getParentConflux()->findSegStats(rs);
+		sim_mob::SegmentStats* ss;
+		BOOST_FOREACH(ss,stats){
+			sim_mob::Conflux::insertIncident(ss,newFlowRate);
+		}
+	}
+	return true;
+}
+

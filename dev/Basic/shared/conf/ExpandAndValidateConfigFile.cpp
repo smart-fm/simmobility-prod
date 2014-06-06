@@ -8,7 +8,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
-
 #include "conf/settings/DisableMPI.h"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"

@@ -5,8 +5,7 @@
  *      Author: Max
  */
 
-#ifndef PATHSETMANAGER_H_
-#define PATHSETMANAGER_H_
+#pragma once
 
 #include <vector>
 #include <map>
@@ -27,8 +26,6 @@
 #include "util/Profiler.hpp"
 #include "soci.h"
 #include "soci-postgresql.h"
-
-//#include "geospatial/PathSet/DatabaseLoaderPS.hpp"
 
 namespace sim_mob
 {
@@ -223,7 +220,6 @@ public:
 		}
 		return instance_;
 	}
-//	virtual ~PathSetManager();
 
 
 	static sim_mob::Profiler profiler;
@@ -233,8 +229,6 @@ public:
 	bool generateAllPathSetWithTripChain2();
 	void generateAllPathSetWithTripChainPool(std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool);
 	void generatePaths2Node(const sim_mob::Node *toNode);
-//	sim_mob::SinglePath * generateSinglePathByFromToNodes(const sim_mob::Node *fromNode,
-//				   const sim_mob::Node *toNode);
 	sim_mob::SinglePath * generateSinglePathByFromToNodes(const sim_mob::Node *fromNode,
 			   const sim_mob::Node *toNode,const sim_mob::RoadSegment* exclude_seg=NULL);
 	bool generateSinglePathByFromToNodes2(
@@ -264,7 +258,6 @@ public:
 			const sim_mob::Node *toNode,
 			const sim_mob::SubTrip* st,
 			bool isUseCache=true);
-//	std::string makeWaypointsetString(std::vector<WayPoint>& wp);
 	bool LoadSinglePathDBwithId(
 			std::string& pathset_id,
 			std::vector<sim_mob::SinglePath*>& spPool);
@@ -299,43 +292,22 @@ public:
 	std::vector<WayPoint> getPathByPerson(sim_mob::Person* per); // person has person id and current subtrip id
 	sim_mob::PathSet* getPathSetByPersonIdAndSubTripId(std::string personId,std::string subTripId);
 	sim_mob::PathSet* getPathSetByFromToNodeAimsunId(std::string id);
-//	bool getWayPointPath(std::string id,sim_mob::SinglePath** s);
 	bool getSinglePathById(std::string &id,sim_mob::SinglePath** s);
 	bool getWayPointPath2(std::vector<WayPoint> &wp,sim_mob::SinglePath** s);
 	sim_mob::SinglePath* getSinglePath(std::string id);
-//	sim_mob::SinglePath* getSinglePath2(const sim_mob::Node *fromNode,
-//			   const sim_mob::Node *toNode,
-//			   const sim_mob::RoadSegment *seg);
-//	sim_mob::RoadSegment* getRoadSegmentByAimsunId(std::string id);
-//	sim_mob::WayPoint* getWayPointBySeg(const sim_mob::RoadSegment* seg);
-//	sim_mob::Node* getNodeByAimsunId(std::string id);
-//	sim_mob::DatabaseLoader2* getDBLoader() { return myloader; };
 	std::map<const sim_mob::RoadSegment*,SinglePath*> getseg_pathSetNull() { return seg_pathSetNull; }
 	double getTravelCost(sim_mob::SinglePath *sp);
-//	double getTravelCost2(sim_mob::SinglePath *sp);
 	double getTravelTime(sim_mob::SinglePath *sp);
 	double getTravelTimeBySegId(std::string id,sim_mob::DailyTime startTime);
-//	double getAverageTravelTimeBySegIdStartEndTime(std::string id,sim_mob::DailyTime startTime,sim_mob::DailyTime endTime);
-//	double getDefaultTravelTimeBySegId(std::string id);
-//	double getHighwayBias() { return highway_bias; }
 	// store
 	void storePersonIdPathSets(std::string personId,std::map<std::string,sim_mob::PathSet*> subTripId_pathSet);
 	void storePath(sim_mob::SinglePath* singlePath);
 	unsigned long size();
 	std::string& getTravleTimeTmpTableName() { return pathset_traveltime_tmp_table_name; }
 	std::string& getTravleTimeRealtimeTableName() { return pathset_traveltime_realtime_table_name; }
-//	void setTravleTimeTmpTableName(const std::string& value);
 	void setCSVFileName();
-//	bool createTravelTimeTmpTable();
-//	bool dropTravelTimeTmpTable();
-//	bool createTravelTimeRealtimeTable();
 	bool insertTravelTime2TmpTable(sim_mob::Link_travel_time& data);
 	bool copyTravelTimeDataFromTmp2RealtimeTable();
-	// retrieve
-//	void getDataFromDB();
-	// save
-//	void saveDataToDB();
-
 	void init();
 	void clearPools();
 
@@ -363,12 +335,9 @@ private:
 	std::map<std::string,sim_mob::RoadSegment*> segPool; // store all segs ,key= aimsun id ,value = seg
 	std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*> wpPool; // key=seg , value=wp point
 	std::map<std::string,sim_mob::Node*> nodePool; // store all nodes ,key= aimsun id ,value = node
-//	std::map<std::string,SinglePath*> pathPool;  // store all possible path key= fromNodeAimsunId_toNodeAimsunId_excludeSegmentAimsunId
-												 // value is path , excludeSegmentAimsunId maybe null, so key = fromNodeAimsunId_toNodeAimsunId
 	std::map<std::string,SinglePath*> waypoint_singlepathPool; // key is waypoints' Segment1AimsunId_Segment2AimsunId_Segment2AimsunId....
 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 // value is SinglePath
 	std::map<const sim_mob::RoadSegment*,SinglePath*> seg_pathSetNull;
-//	std::map<std::string, sim_mob::PathSet* > personPathSetPool;    //map<personID,pathset>
 	// use sbutrip id as key, b/c each trip as least as one subtrip
 	std::map<std::string, std::map<std::string,sim_mob::PathSet*> > personPathSetPool;    //map<personID,map<subTripId,pathset> >
 	//
@@ -405,7 +374,6 @@ private:
 	double minSignalParam;
 	double maxHighwayParam;
 
-//	sim_mob::DatabaseLoader2 *myloader;
 	bool isUseCache;
 	std::string pathset_traveltime_realtime_table_name; // table store travel time ,used to calculate pathset size
 	std::string pathset_traveltime_tmp_table_name; // table store travel time generated by runtime, use for next simulation
@@ -423,11 +391,8 @@ public:
 	SinglePath(SinglePath *source,const sim_mob::RoadSegment* seg);
 	void init(std::vector<WayPoint>& wpPools);
 	void clear();
-//	~SinglePath();
-//	SinglePath(sim_mob::SinglePathDB& dbData);
 	std::vector<WayPoint*> shortestWayPointpath;
 	std::map<const RoadSegment*,WayPoint*> shortestSegPath;
-//	std::map<const RoadSegment*,WayPoint> shortestSegPath;
 	PathSet *pathSet; // parent
 	const sim_mob::RoadSegment* excludeSeg; // can be null
 	const sim_mob::Node *fromNode;
@@ -441,19 +406,12 @@ public:
 	int isMinRightTurn;
 	int isMaxHighWayUsage;
 
-//	std::string id; // key= fromNodeAimsunId_toNodeAimsunId_excludeSegmentAimsunId,
-	                // excludeSegmentAimsunId maybe null, so key = fromNodeAimsunId_toNodeAimsunId
 //	sim_mob::SinglePathDB *dbData;
 	bool isNeedSave2DB;
 	std::string id;   //id: seg1id_seg2id_seg3id
-//	std::string exclude_seg_id;
 	std::string pathset_id;
-//	std::string waypointset; //seg path aimsun id: seg1id_seg2id_seg3id
-//	std::string from_node_id;
-//	std::string to_node_id;
 	double utility;
 	double pathsize;
-//	double travel_distance;
 	double travel_cost;
 	int signal_number;
 	int right_turn_number;
@@ -473,38 +431,26 @@ public:
 	~PathSet();
 	bool isInit;
 	bool hasBestChoice;
-//	PathSet(sim_mob::PathSetDB& dbData);
 	std::vector<WayPoint*> bestWayPointpathP;  //best choice
 	const sim_mob::Node *fromNode;
 	const sim_mob::Node *toNode;
 	std::string personId; //person id
 	std::string tripId; // trip item id
-//	std::vector<WayPoint> oriShortestWayPointPath;
-//	std::vector<const RoadSegment*> oriShortestSegPath;
 	SinglePath* oriPath;  // shortest path with all segments
-	//value=path , key=exclude segment
-	// how generate pathSet from dbData? from oriPath get oriShortestWayPointPath -> oriShortestSegPath -> build key fromnodeid_tonodeid_segid
-	// -> get SinglePath from pathPool
-//	std::map<const sim_mob::RoadSegment*,sim_mob::SinglePath*> pathSet;
 	std::vector<sim_mob::SinglePath*> pathChoices;
 	std::map<std::string,sim_mob::SinglePath*> SinglePathPool;
-//	sim_mob::PathSetDB* dbData;
 	bool isNeedSave2DB;
 	double logsum;
 	const sim_mob::SubTrip* subTrip; // pathset use info of subtrip to generate all things
 	std::string id;
 	std::string from_node_id;
 	std::string to_node_id;
-//	std::string person_id;
-//	std::string trip_id;
 	std::string singlepath_id;
 	std::string scenario;
 	int has_path;
 public:
 	PathSetManager *psMgr;
 
-//public:
-//	SinglePath* getShortestPathByExcludeSegment(RoadSegment* seg);
 };
 
 
@@ -526,7 +472,6 @@ inline double generateSinglePathLength(std::vector<WayPoint*>& wp) // unit is me
 	}
 	return res/100.0; //meter
 }
-//inline void generatePathSizeForPathSet(sim_mob::PathSet *ps);
 inline void generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCache=true);
 inline std::map<const RoadSegment*,WayPoint> generateSegPathByWaypointPath(std::vector<WayPoint>& wp);
 inline std::map<const RoadSegment*,WayPoint*> generateSegPathByWaypointPathP(std::vector<WayPoint*>& wp);
@@ -569,4 +514,3 @@ inline void myReplace(std::string& str, const std::string& oldStr, const std::st
   }
 }
 }
-#endif /* PATHSETMANAGER_H_ */

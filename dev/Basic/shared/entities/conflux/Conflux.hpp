@@ -10,6 +10,7 @@
 #include "entities/signal/Signal.hpp"
 #include "boost/thread/shared_mutex.hpp"
 
+
 namespace sim_mob {
 class MultiNode;
 class Person;
@@ -18,10 +19,6 @@ class Role;
 class SegmentStats;
 class Worker;
 
-/**
- * Insert incident from a file of sectionID,newFlowRate pairs read from a given file
-*/
-bool insertIncidentS(const std::string fileName);
 namespace aimsun
 {
 //Forward declaration
@@ -29,7 +26,8 @@ class Loader;
 }
 
 enum {
-	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000
+	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000,
+	MSG_INSERT_INCIDENT = 5000001,
 };
 
 /**
@@ -229,6 +227,34 @@ private:
 			const sim_mob::Lane* prevLane, bool wasQueuing);
 
 	/**
+bool sim_mob::insertIncidentS(const std::string fileName){
+
+	ifstream in(fileName.c_str());
+	if (!in.is_open()){
+		ostringstream out("");
+		out << "File " << fileName << " not found";
+		throw runtime_error(out.str());
+		//return false;
+	}
+	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::instance();
+	typedef tokenizer< escaped_list_separator<char> > Tokenizer;
+	vector< string > record;
+	string line;
+
+	while (getline(in,line))
+	{
+		Tokenizer record(line);
+		unsigned int sectionId = lexical_cast<unsigned int>(*(record.begin()));//first element
+		double newFlowRate = lexical_cast<double>(*(record.end()));//second element
+		const sim_mob::RoadSegment* rs = stDir.getRoadSegment(sectionId);
+		const std::vector<sim_mob::SegmentStats*>& stats = rs->getParentConflux()->findSegStats(rs);
+		sim_mob::SegmentStats* ss;
+		BOOST_FOREACH(ss,stats){
+			sim_mob::Conflux::insertIncident(ss,newFlowRate);
+		}
+	}
+	return true;
+}
 	 * Resets the remainingTime of persons who remain in
 	 * lane infinities and virtual queues across ticks
 	 * Note: This may include
@@ -451,7 +477,9 @@ public:
 	 * @param rdSeg roadSegment to insert incident
 	 * @param newFlowRate new flow rate to be updated
 	 */
-	static void insertIncident(sim_mob::SegmentStats* segStats, double newFlowRate);
+	static void insertIncident(sim_mob::SegmentStats* segStats, const double & newFlowRate);
+	///Same as above. Just, single road segment can have 'multiple' SegmentStats
+	static void insertIncident(const std::vector<sim_mob::SegmentStats*>  &segStats, const double & newFlowRate);
 
 	/**
 	 * Removes a previously inserted incident by restoring the flow rate of each lane of a road segment to normal values

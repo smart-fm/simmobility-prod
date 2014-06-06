@@ -37,6 +37,7 @@
 #include "logging/Log.hpp"
 #include "util/Utils.hpp"
 #include "workers/Worker.hpp"
+#include "incident/IncidentManager.hpp"
 
 using namespace sim_mob;
 using namespace std;
@@ -119,6 +120,7 @@ UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 		frame_init(frameNumber);
 		setInitialized(true);
 	}
+
 
 	currFrame = frameNumber;
 	resetPositionOfLastUpdatedAgentOnLanes();
@@ -683,6 +685,13 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 		pedestrianList.push_back(msg.pedestrian);
 		break;
 	}
+	case MSG_INSERT_INCIDENT:
+	{
+		const InsertIncident & msg = MSG_CAST(InsertIncident, message);
+		//change the flow rate of the segment
+		sim_mob::Conflux::insertIncident(msg.stats,msg.newFlowRate);
+		//tell
+	}
 	default:
 		break;
 	}
@@ -1160,10 +1169,17 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 }
 
 
-void sim_mob::Conflux::insertIncident(sim_mob::SegmentStats* segStats, double newFlowRate) {
+void sim_mob::Conflux::insertIncident(sim_mob::SegmentStats* segStats, const double & newFlowRate) {
 	const std::vector<Lane*>& lanes = segStats->getRoadSegment()->getLanes();
 	for (std::vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++) {
 		segStats->updateLaneParams((*it), newFlowRate);
+	}
+}
+
+
+void sim_mob::Conflux::insertIncident(const std::vector<sim_mob::SegmentStats*> &segStats, const double & newFlowRate) {
+	BOOST_FOREACH(sim_mob::SegmentStats* stat,segStats){
+		insertIncident(stat,newFlowRate);
 	}
 }
 
@@ -1172,34 +1188,5 @@ void sim_mob::Conflux::removeIncident(sim_mob::SegmentStats* segStats) {
 	for (std::vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++){
 		segStats->restoreLaneParams(*it);
 	}
-}
-
-bool sim_mob::insertIncidentS(const std::string fileName){
-
-	ifstream in(fileName.c_str());
-	if (!in.is_open()){
-		ostringstream out("");
-		out << "File " << fileName << " not found";
-		throw runtime_error(out.str());
-		//return false;
-	}
-	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::instance();
-	typedef tokenizer< escaped_list_separator<char> > Tokenizer;
-	vector< string > record;
-	string line;
-
-	while (getline(in,line))
-	{
-		Tokenizer record(line);
-		unsigned int sectionId = lexical_cast<unsigned int>(*(record.begin()));//first element
-		double newFlowRate = lexical_cast<double>(*(record.end()));//second element
-		const sim_mob::RoadSegment* rs = stDir.getRoadSegment(sectionId);
-		const std::vector<sim_mob::SegmentStats*>& stats = rs->getParentConflux()->findSegStats(rs);
-		sim_mob::SegmentStats* ss;
-		BOOST_FOREACH(ss,stats){
-			sim_mob::Conflux::insertIncident(ss,newFlowRate);
-		}
-	}
-	return true;
 }
 

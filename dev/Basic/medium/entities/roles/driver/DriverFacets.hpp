@@ -264,22 +264,6 @@ protected:
 			const sim_mob::SegmentStats* nextSegStats,
 			const sim_mob::SegmentStats* nextToNextSegStats);
 
-	//Note: insert and remove incident functions should probably be in Confluxes. To be updated when actual incident functionality is implemented.
-	/**
-	 * Inserts an Incident by updating the flow rate for all lanes of a road segment to a new value.
-	 *
-	 * @param rdSeg roadSegment to insert incident
-	 * @param newFlowRate new flow rate to be updated
-	 */
-	void insertIncident(sim_mob::SegmentStats* segStats, double newFlowRate);
-
-	/**
-	 * Removes a previously inserted incident by restoring the flow rate of each lane of a road segment to normal values
-	 *
-	 * @param segStats road segment stats to remove incident
-	 */
-	void removeIncident(sim_mob::SegmentStats* segStats);
-
 	/**
 	 * Updates travel time for this driver for the link which he has just exited from.
 	 *

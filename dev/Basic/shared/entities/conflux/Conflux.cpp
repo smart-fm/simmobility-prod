@@ -1151,3 +1151,18 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 	}
 	return rdSeg;
 }
+
+
+void sim_mob::Conflux::insertIncident(sim_mob::SegmentStats* segStats, double newFlowRate) {
+	const std::vector<Lane*>& lanes = segStats->getRoadSegment()->getLanes();
+	for (std::vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++) {
+		segStats->updateLaneParams((*it), newFlowRate);
+	}
+}
+
+void sim_mob::Conflux::removeIncident(sim_mob::SegmentStats* segStats) {
+	const std::vector<Lane*>& lanes = segStats->getRoadSegment()->getLanes();
+	for (std::vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++){
+		segStats->restoreLaneParams(*it);
+	}
+}

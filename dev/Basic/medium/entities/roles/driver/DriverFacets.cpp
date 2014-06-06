@@ -852,20 +852,6 @@ double DriverMovement::getInitialQueueLength(const Lane* lane) {
 	return getParent()->getCurrSegStats()->getInitialQueueLength(lane);
 }
 
-void DriverMovement::insertIncident(sim_mob::SegmentStats* segStats, double newFlowRate) {
-	const vector<Lane*>& lanes = segStats->getRoadSegment()->getLanes();
-	for (vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++) {
-		segStats->updateLaneParams((*it), newFlowRate);
-	}
-}
-
-void DriverMovement::removeIncident(sim_mob::SegmentStats* segStats) {
-	const vector<Lane*>& lanes = segStats->getRoadSegment()->getLanes();
-	for (vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++){
-		segStats->restoreLaneParams(*it);
-	}
-}
-
 void DriverMovement::updateLinkTravelTimes(const sim_mob::SegmentStats* prevSegStat, double linkExitTimeSec){
 	const RoadSegment* prevSeg= prevSegStat->getRoadSegment();
 	const Link* prevLink = prevSeg->getLink();

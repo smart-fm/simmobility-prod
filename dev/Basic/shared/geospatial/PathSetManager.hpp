@@ -282,6 +282,8 @@ public:
 	void setScenarioName(std::string& name){ scenarioName = name; }
 	void insertFromTo_BestPath_Pool(std::string& id ,std::vector<WayPoint>& value);
 	bool getFromTo_BestPath_fromPool(std::string id, std::vector<WayPoint>& value);
+	void cacheODbySegment(const sim_mob::Person*,const sim_mob::Node * from, const sim_mob::Node* to,std::vector<WayPoint> &);
+	const boost::tuple <const sim_mob::Person*, const sim_mob::Node*,const sim_mob::Node*> getODbySegment(const sim_mob::RoadSegment* segment) const;
 	PathSetDBLoader *psDbLoader;
 	soci::session *sql;
 
@@ -310,6 +312,8 @@ private:
 	//
 	std::map<std::string ,std::vector<WayPoint> > fromto_bestPath;
 	std::map<std::string ,std::vector<WayPoint> >::iterator fromto_bestPath_it;
+	///a cache to help answer this question: a given road segment is within which path(s)
+	std::map<const sim_mob::RoadSegment*, boost::tuple<const sim_mob::Person*,const sim_mob::Node*,const sim_mob::Node*> > pathSegments; //<segments,OD>
 	std::string csvFileName;
 	std::ofstream csvFile;
 	//

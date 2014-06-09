@@ -87,9 +87,12 @@ public:
 			messaging::MessageBus::PostMessage(rs->getParentConflux(), MSG_INSERT_INCIDENT,
 								messaging::MessageBus::MessagePtr(new InsertIncident(stats, element.second.get<1>())));
 			//Identify the to-be-affected Drivers (at present, only the active agents are considered)
-			//todo
+			//contact the path set manager(via your own method). he should already have the paths in its cache
+//			identifyAffectedDrivers();
 		}
 	}
+
+
 
 	bool frame_init(timeslice now){
 		if(fileName.size()){

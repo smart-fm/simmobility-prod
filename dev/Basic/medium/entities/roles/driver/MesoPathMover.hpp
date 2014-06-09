@@ -24,6 +24,7 @@ public:
 	 * @param path the path to be set
 	 */
 	void setPath(const std::vector<const sim_mob::SegmentStats*>& path);
+	const std::vector<const sim_mob::SegmentStats*> & getPath()const;
 
 	/**
 	 * resets the path. used when the path changes enroute.

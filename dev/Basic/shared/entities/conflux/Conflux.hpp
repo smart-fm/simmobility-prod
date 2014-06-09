@@ -40,6 +40,18 @@ public:
 	Person* pedestrian;
 };
 
+/**
+ * Subclasses message, This is to allow it to function as an message callback parameter.
+ */
+class InsertIncidentMessage : public messaging::Message {
+public:
+	InsertIncidentMessage(const std::vector<sim_mob::SegmentStats*>& stats, double newFlowRate);
+	virtual ~InsertIncidentMessage();
+	const std::vector<sim_mob::SegmentStats*>& stats;
+	double newFlowRate;
+};
+
+
 struct cmp_person_remainingTimeThisTick : public std::greater<Person*> {
   bool operator() (const Person* x, const Person* y) const;
 };

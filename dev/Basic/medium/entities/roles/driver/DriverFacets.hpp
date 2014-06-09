@@ -81,6 +81,10 @@ public:
 		this->parentDriver = parentDriver;
 	}
 
+	const MesoPathMover & getMesoPathMover() const{
+		return pathMover;
+	}
+
 
 protected:
 	/**

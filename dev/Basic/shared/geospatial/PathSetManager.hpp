@@ -199,10 +199,9 @@ std::string toString(const T& value)
 ///a cache structure. used in pathsetmanager
 struct personOD{
 	const sim_mob::Person* per;
-	const sim_mob::Node* from;
-	const sim_mob::Node*to;
-	personOD(const sim_mob::Person* per,const sim_mob::Node* from,const sim_mob::Node*to) :
-		per(per),from(from),to(to)
+	const sim_mob::SubTrip *subtrip;//find the OD in here.
+	personOD(const sim_mob::Person* per,const sim_mob::SubTrip *subtrip):
+		per(per),subtrip(subtrip)
 	{}
 };
 
@@ -295,7 +294,7 @@ public:
 	void setScenarioName(std::string& name){ scenarioName = name; }
 	void insertFromTo_BestPath_Pool(std::string& id ,std::vector<WayPoint>& value);
 	bool getFromTo_BestPath_fromPool(std::string id, std::vector<WayPoint>& value);
-	void cacheODbySegment(const sim_mob::Person*,const sim_mob::Node * from, const sim_mob::Node* to,std::vector<WayPoint> &);
+	void cacheODbySegment(const sim_mob::Person*,const SubTrip *,std::vector<WayPoint> &);
 	const std::pair<RPOD::const_iterator,RPOD::const_iterator > getODbySegment(const sim_mob::RoadSegment* segment) const;
 	PathSetDBLoader *psDbLoader;
 	soci::session *sql;

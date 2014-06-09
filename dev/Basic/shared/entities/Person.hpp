@@ -108,7 +108,7 @@ public:
 			0);
 
 	///get this person's trip chain
-	std::vector<TripChainItem*>& getTripChain() {
+	const std::vector<TripChainItem*>& getTripChain() const {
 		return tripChain;
 	}
 

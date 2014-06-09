@@ -581,9 +581,9 @@ bool sim_mob::PathSetManager::getFromTo_BestPath_fromPool(std::string id, std::v
 	return true;
 }
 
-void sim_mob::PathSetManager::cacheODbySegment(const sim_mob::Person* per, const sim_mob::Node * from, const sim_mob::Node* to, std::vector<WayPoint> & wps){
+void sim_mob::PathSetManager::cacheODbySegment(const sim_mob::Person* per, const sim_mob::SubTrip * subTrip, std::vector<WayPoint> & wps){
 	BOOST_FOREACH(WayPoint wp, wps){
-		pathSegments.insert(std::make_pair(wp.roadSegment_, personOD(per, from, to)));
+		pathSegments.insert(std::make_pair(wp.roadSegment_, personOD(per, subTrip)));
 	}
 }
 
@@ -622,7 +622,7 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 	}
 
 		vector<WayPoint> res = generateBestPathChoiceMT(subTrip, profiler);
-		cacheODbySegment(per, subTrip->fromLocation.node_, subTrip->toLocation.node_, res);
+		cacheODbySegment(per, subTrip, res);
 		sql = NULL;
 
 		uint32_t elapsed = personProfiler.endProfiling();

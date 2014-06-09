@@ -25,6 +25,7 @@
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
+//#include "entities/IncidentManager.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/PathSetManager.hpp"
@@ -37,7 +38,6 @@
 #include "logging/Log.hpp"
 #include "util/Utils.hpp"
 #include "workers/Worker.hpp"
-#include "incident/IncidentManager.hpp"
 
 using namespace sim_mob;
 using namespace std;
@@ -687,7 +687,7 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 	}
 	case MSG_INSERT_INCIDENT:
 	{
-		const InsertIncident & msg = MSG_CAST(InsertIncident, message);
+		const InsertIncidentMessage & msg = MSG_CAST(InsertIncidentMessage, message);
 		//change the flow rate of the segment
 		sim_mob::Conflux::insertIncident(msg.stats,msg.newFlowRate);
 		//tell
@@ -1117,7 +1117,7 @@ unsigned int sim_mob::Conflux::getNumRemainingInLaneInfinity() {
 }
 
 const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
-	std::vector<sim_mob::TripChainItem*> agTripChain = p->getTripChain();
+	const std::vector<sim_mob::TripChainItem*> & agTripChain = p->getTripChain();
 	const sim_mob::TripChainItem* firstItem = agTripChain.front();
 
 	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
@@ -1190,3 +1190,5 @@ void sim_mob::Conflux::removeIncident(sim_mob::SegmentStats* segStats) {
 	}
 }
 
+sim_mob::InsertIncidentMessage::InsertIncidentMessage(const std::vector<sim_mob::SegmentStats*>& stats, double newFlowRate):stats(stats), newFlowRate(newFlowRate){;}
+sim_mob::InsertIncidentMessage::~InsertIncidentMessage() {}

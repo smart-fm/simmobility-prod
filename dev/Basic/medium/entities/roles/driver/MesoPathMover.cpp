@@ -15,6 +15,10 @@ void sim_mob::medium::MesoPathMover::setPath(const std::vector<const sim_mob::Se
 	currSegStatIt = path.begin();
 }
 
+const std::vector<const sim_mob::SegmentStats*> & sim_mob::medium::MesoPathMover::getPath() const{
+	return path;
+}
+
 void sim_mob::medium::MesoPathMover::resetPath(const std::vector<const sim_mob::SegmentStats*>& segStatPath) {
 	if(segStatPath.empty()) {
 		throw std::runtime_error("cannot assign an empty path to MesoPathMover");

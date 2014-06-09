@@ -1,3 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright SMART: Singapore-MIT Alliance for Research and Technology -->
+<!-- This file contains the driving behavior parameters used by SIMMOBILITY
+	 Created on: 2014-05-01
+     Authors: Zhiyong Weng & Carlos Lima Azevedo
+ -->
+
+<parameters model_name="general_driver_model">
+
+<!-- A. ACCELERATION MODELS -->
+<!-- A.1. CAR FOLLOWING PARAMETERS 
+	The following parameters describe the boundaries of the car following
+	regime. The following vehicle is in a car following regime
+	(i.e. accelerates according to the car following models described below)
+	when the time headway between the lead and following vehicles is
+	between the CF Upper and Lower headway thresholds. 
+	The Min Response Distance is the minimum space headway between the
+	lead and following vehicles for which the following vehicle must apply some
+	acceleration (or deceleration). -->
+	<param name="min_response_distance" value="5.0"/>
+	
+	<!-- The SimMobility car-following model describes the
+	acceleration of the following vehicle in a car following regime:
+	
+	Acceleration = alpha * (v ^ beta / dx ^ gamma) * (k ^ rho) * (dv ^ lambda) + N(0, stddev^2)
+	
+	where v = speed of the following vehicle, dx = distance gap between
+	the lead and following vehicles, and dv = speed difference between
+	the lead and following vehicles. -->
+
+	<!-- Car following parameters			alpha	beta	gama	lambda	rho		stddev -->
+	<param name="CF_parameters_1" value="	0.0400	0.7220	0.2420	0.6820	0.6000	0.8250"/>
+	<param name="CF_parameters_2" value="	-0.0418	0.0000	0.1510	0.6840	0.6800	0.8020"/>
+	
+<!-- A.2. TARGET GAP ACCELERATION PARAMETERS
+	The target gap acceleration model is the acceleration that a vehicle executes
+	to reach an acceptable gap for lane change. It is specified separately for the 
+	backward, forward and adjacent gaps:
+	
+	accFWDGap = [2] * (Desired position FWD) ^ [3] * exp( [4] * DeltaV+ ) * exp( [5] * DeltaV-) + N(0,[6]²)
+	accBCKGap = [7] * (Desired position BCK) ^ [8] * exp( [9] * DeltaV+ ) * exp( [10] * DeltaV-) + N(0,[11]²)
+	accFWDGap = [12] * (Desired position ADJ) + N(0,[13]²)
+	
+	The desired position is given by:
+	Desired position FWD = LeadHeadway + leadlenght + [1] * FWDgap
+	Desired position BCK = LagHeadway + length + laglength + ( 1- [1] ) * BCKgap
 	Desired position ADJ =  [1] * ADJgap + length - LagHeadway
 							[1]	[2]	[3]	[4]	[5]	[6]	[7]	[8]	[9]	[10]	[11]	[12]	[13] -->
 	<param name="target_gap_acc_parm" value="	0.604	0.385	0.323	0.0678	0.217	0.583	-0.596	-0.219	0.0832	0.170	1.478	0.131	0.300"/>

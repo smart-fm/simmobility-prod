@@ -462,7 +462,6 @@ public:
 	/*unused*/
 
 	PathSet(PathSet *ps);
-
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -491,9 +490,7 @@ inline double generateSinglePathLength(std::vector<WayPoint*>& wp) // unit is me
 }
 
 inline void generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCache=true);
-
 inline std::map<const RoadSegment*,WayPoint*> generateSegPathByWaypointPathP(std::vector<WayPoint*>& wp);
-
 inline size_t getLaneIndex2(const Lane* l);
 
 inline void calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::SinglePath *sp);

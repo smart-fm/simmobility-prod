@@ -735,6 +735,15 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 
 	for(int i=0;i<connectedLanes.size();i++)
 	{
+		if ((isReadyForNextDLC(2) || nCurrent ) &&
+			  (plane = lane_->left()) &&
+			  (!flag(FLAG_VMS_LANE_USE_RIGHT) ||
+			   plane->localIndex() > VmsLaneUsePivotToIndex(flag())) &&
+			  (rules & LANE_CHANGE_LEFT ||
+			   !attr(ATTR_GLC_RULE_COMPLY)) &&
+			   tlane->isThereBadEventAhead(this) >= 0) {
+
+		}
 		if(p.leftLane == connectedLanes[i])
 		{
 			eul = lcUtilityLookAheadLeft(p, nLeft, lcDistance);
@@ -1125,8 +1134,12 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 }
 double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 {
+	// 1. unset FLAG_LC_FAILED, check whether can do lc
+	p.unsetFlag(FLAG_LC_FAILED);
+
 	LANE_CHANGE_SIDE changeMode = LCS_SAME;
 
+	// 2.0 check decision
 	if (p.getStatus(STATUS_LEFT)) {
 		changeMode = LCS_LEFT;
 	} else if (p.getStatus(STATUS_RIGHT)) {
@@ -1135,6 +1148,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 		return 0.0;			// No request for lane change
 	}
 
+	// 3.0 get lead,lag vh
 	const NearestVehicle * av; // leader vh
 	const NearestVehicle * bv; // follower vh
 
@@ -1165,6 +1179,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 //		}
 //	}
 
+	// 4.0 get lead,lag vh distance
 	// LEADING HEADWAY
 	float aheadway;		// leading headway
 	if (av->exists()) {
@@ -1182,6 +1197,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 		bheadway = Math::FLT_INF;
 	}
 
+	// 5.0 check if lc decision from events
 	// Is the lane change is triggered by special events
 	int escape = p.flag(FLAG_ESCAPE);
 
@@ -1195,14 +1211,30 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 		lctype = 0;		// discretionary
 	}
 
+	// 6.0 check if lead,lag gap ok
 	if (bv->exists() && bheadway < lcCriticalGap(p,1, bv->driver->fwdVelocity/100.0 - p.currSpeed )) {
 		p.setFlag(FLAG_LC_FAILED_LAG); // lag gap
 	}
-	else if (av && aheadway < lcCriticalGap(p,0, av->driver->fwdVelocity/100.0 - p.currSpeed)) {
+	else if (av->exists() && aheadway < lcCriticalGap(p,0, av->driver->fwdVelocity/100.0 - p.currSpeed)) {
 		p.setFlag(FLAG_LC_FAILED_LEAD); // lead gap
 	}
 
-	// CHECK IF THE GAPS ARE ACCEPTABLE
+	// 7.0 if gap ok, then doing lane change
+	if( !p.flag(FLAG_LC_FAILED) )
+	{
+		//set status to "doing lc"
+		if(changeMode==LCS_LEFT)
+		{
+			p.setStatus(STATUS_LC_LEFT);
+		}
+		else
+		{
+			p.setStatus(STATUS_LC_RIGHT);
+		}
+//			return executionLC(changeMode);
+	}
+
+	// 8.0 CHECK IF THE GAPS ARE not ACCEPTABLE,then do nosing
 	if (p.flag(FLAG_LC_FAILED)) {
 
 		//TODO special cases
@@ -1322,8 +1354,20 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 	}//end of p.flag(FLAG_LC_FAILED)
 
 
+//	//TODO new status
+//	if(changeMode==LCS_LEFT)
+//	{
+//		p.setStatus(STATUS_LC_LEFT);
+//	}
+//	else
+//	{
+//		p.setStatus(STATUS_LC_RIGHT);
+//	}
+//
+//	return executionLC(changeMode);
 
-	return executionLC(changeMode);
+
+
 //	// execution:
 //	if (changeMode != LCS_SAME) {
 //		const int lane_shift_velocity = 350; //TODO: What is our lane changing velocity? Just entering this for now...
@@ -1469,10 +1513,10 @@ float MITSIM_LC_Model::lcNosingProb(float dis, float lead_rel_spd, float gap,int
   float p = 1.0 / (1 + exp(-u)) ;
   return p ;
 }
-double sim_mob::MITSIM_LC_Model::executionLC(LANE_CHANGE_SIDE& change)
+double sim_mob::MITSIM_LC_Model::executeLaterVel(LANE_CHANGE_SIDE& change)
 {
 	if (change != LCS_SAME) {
-		const int lane_shift_velocity = 350; //TODO: What is our lane changing velocity? Just entering this for now...
+		const int lane_shift_velocity = 3.50; //TODO: What is our lane changing velocity? Just entering this for now...
 		return change == LCS_LEFT ? lane_shift_velocity : -lane_shift_velocity;
 	}
 	return 0.0;
@@ -1491,6 +1535,10 @@ bool sim_mob::MITSIM_LC_Model::path(DriverUpdateParams& p)
 bool sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
 {
 	// TODO: check event ,like incident
+
+
+	p.setFlag(FLAG_ESCAPE);
+
 
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
 	driverMvt->incidentPerformer.checkIncidentStatus(p, p.driver->getParams().now);

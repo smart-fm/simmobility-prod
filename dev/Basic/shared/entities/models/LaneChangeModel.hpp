@@ -39,6 +39,7 @@ public:
 	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode) = 0;
 	virtual double executeLaneChanging(DriverUpdateParams& p)=0;
 	virtual void chooseTargetGap(DriverUpdateParams& p)=0;
+	virtual double executeLaterVel(LANE_CHANGE_SIDE& lcs)=0;
 	/**
 	 *  /brief this function checks for bad events that will override the lookahead,like incident
 	 *  /param vehicle info
@@ -130,7 +131,11 @@ public:
 	 **/
 	LANE_CHANGE_SIDE makeLaneChangingDecision(DriverUpdateParams& p);
 	double executeLaneChanging(DriverUpdateParams& p);
-	double executionLC(LANE_CHANGE_SIDE& change);
+//	double executionLC(LANE_CHANGE_SIDE& change);
+	/**
+	 *  /return lateral velocity (m/s)
+	 */
+	virtual double executeLaterVel(LANE_CHANGE_SIDE& change);
 	/**
 	 *  /brief this function gives the LC direction when the driver is
 	 *         constrained by the lookahead

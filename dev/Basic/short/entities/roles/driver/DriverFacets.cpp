@@ -432,9 +432,11 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 //		params.overflowIntoIntersection = linkDrivingNew(params);
 		if(params.cftimer < 0)
 		{
+			// make lc decision and check if can do lc
 			calcVehicleStates(params);
 //			params.cftimer = cfModel->calcNextStepSize(params);
 		}
+		// perform lc ,if status is STATUS_LC_CHANGING
 		params.overflowIntoIntersection = move(params);
 		//Did our last move forward bring us into an intersection?
 		if (fwdDriverMovement.isInIntersection()) {
@@ -576,16 +578,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 			p.dis2stop = DEFAULT_DIS_TO_STOP;//defalut 1000m
 	}
 
-	LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
-	parentDriver->vehicle->setTurningDirection(lcs);
 
-	 if (p.getStatus() & STATUS_CHANGING) {
-		    lcModel->executeLaneChanging(p);
-
-		if ( p.flag(FLAG_LC_FAILED) ) {
-		    lcModel->chooseTargetGap(p);
-		}
-	  }
 
 	//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
 	//if making lane changing, adjacent car need to be taken into account.
@@ -605,6 +598,18 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 
 	perceivedDataProcess(nv, p);
 
+	// make lc decision
+	LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
+//	parentDriver->vehicle->setTurningDirection(lcs);
+
+		 if (p.getStatus() & STATUS_CHANGING) {
+			    lcModel->executeLaneChanging(p);
+
+			if ( p.flag(FLAG_LC_FAILED) ) {
+			    lcModel->chooseTargetGap(p);
+			}
+		  }
+
 	//Convert back to m/s
 	//TODO: Is this always m/s? We should rename the variable then...
 	p.currSpeed = parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT_UNIT;
@@ -617,9 +622,27 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 }
 double sim_mob::DriverMovement::move(DriverUpdateParams& p)
 {
-	double newLatVel;
-	// check if in the middle of lane change, so make lateral movement
-	newLatVel = lcModel->executeLaneChanging(p);
+	double newLatVel = 0.0; // m/s
+	if( p.getStatus(STATUS_LC_RIGHT) )
+	{
+		newLatVel = lcModel->executeLaterVel(LCS_RIGHT);
+	}
+	else if( p.getStatus(STATUS_LC_LEFT) )
+	{
+		newLatVel = lcModel->executeLaterVel(LCS_LEFT);
+	}
+	else
+	{
+		//seems no lc happen
+		newLatVel = 0.0;
+	}
+	parentDriver->vehicle->setTurningDirection(lcs);
+	parentDriver->vehicle->setLatVelocity(newLatVel * METER_TO_CENTIMETER_CONVERT_UNIT);
+
+//	// check if in the middle of lane change, so make lateral movement
+//	newLatVel = lcModel->executeLaneChanging(p);
+
+	//TODO check set lat vel?
 
 	double acc = p.newFwdAcc;
 	//Update our chosen acceleration; update our position on the link.
@@ -2643,6 +2666,7 @@ void sim_mob::DriverMovement::updatePositionDuringLaneChange(DriverUpdateParams&
 				p.unsetFlag(FLAG_PREV_LC_RIGHT);
 			}
 			p.unsetStatus(STATUS_CHANGING);
+			p.unsetStatus(STATUS_lc_CHANGING);
 			p.unsetStatus(STATUS_MANDATORY); // Angus
 			p.unsetFlag(FLAG_NOSING | FLAG_YIELDING | FLAG_LC_FAILED);
 			p.unsetFlag(FLAG_VMS_LANE_USE_BITS | FLAG_ESCAPE | FLAG_AVOID);

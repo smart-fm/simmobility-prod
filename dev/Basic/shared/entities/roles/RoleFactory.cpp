@@ -82,6 +82,10 @@ string sim_mob::RoleFactory::GetTripChainMode(const sim_mob::TripChainItem* curr
 		{
 			return "passenger";
 		}
+		else if(trip->getSubTrips().front().mode=="WaitingBusActivity")
+		{
+			return "waitBusActivity";
+		}
 		else {
 			throw std::runtime_error("Unknown Trip subclass.");
 		}
@@ -109,6 +113,9 @@ string sim_mob::RoleFactory::GetSubTripMode(const sim_mob::SubTrip &subTrip)
 		if (subTrip.mode=="Walk")   return "pedestrian";
 		if (subTrip.mode=="Bus")    return "busdriver";
 		if (subTrip.mode=="BusTravel")    return "passenger";
+		if(subTrip.mode=="WaitingBusActivity"){
+			return "waitBusActivity";
+		}
 		//std::cout << " throwing error\n";
 		throw std::runtime_error("Unknown SubTrip mode.");
 }
@@ -130,6 +137,9 @@ const std::string sim_mob::RoleFactory::GetTripChainItemMode(const sim_mob::Trip
 		return "busdriver";
 	if (roleName == "Activity")
 		return "activityRole";
+	if (roleName == "WaitingBusActivity") {
+		return "waitBusActivity";
+	}
 
 	std::ostringstream out;
 	out << "Unknown SubTrip mode : \"" << roleName <<"\"";

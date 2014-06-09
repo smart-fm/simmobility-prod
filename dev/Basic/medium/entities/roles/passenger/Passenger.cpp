@@ -17,8 +17,9 @@ namespace medium {
 
 sim_mob::medium::Passenger::Passenger(Person* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::PassengerBehavior* behavior,
-		sim_mob::medium::PassengerMovement* movement) :
-		sim_mob::Role(behavior, movement, parent, "Passenger_"),
+		sim_mob::medium::PassengerMovement* movement,
+		std::string roleName, Role::type roleType) :
+		sim_mob::Role(behavior, movement, parent, roleName, roleType),
 		driver(nullptr), alightBus(false) {
 
 }
@@ -31,6 +32,10 @@ Role* sim_mob::medium::Passenger::clone(Person* parent) const {
 	behavior->setParentPassenger(passenger);
 	movement->setParentPassenger(passenger);
 	return passenger;
+}
+
+std::vector<BufferedBase*> sim_mob::medium::Passenger::getSubscriptionParams() {
+	return vector<BufferedBase*>();
 }
 
 void sim_mob::medium::Passenger::setDriver(const Driver* driver) {

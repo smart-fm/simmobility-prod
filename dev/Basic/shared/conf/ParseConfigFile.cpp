@@ -21,11 +21,10 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
-using namespace sim_mob;
-using namespace xercesc;
 
 
-namespace {
+
+namespace sim_mob{
 //Helper: turn a Xerces error message into a string.
 std::string TranscodeString(const XMLCh* str) {
 	char* raw = XMLString::transcode(str);
@@ -44,7 +43,7 @@ DOMElement* NodeToElement(DOMNode* node) {
 }
 
 //Helper: retrieve child elements without leaking memory
-std::vector<DOMElement*> GetElementsByName(DOMElement* node, const std::string& key, bool required=false) {
+std::vector<DOMElement*> GetElementsByName(DOMElement* node, const std::string& key, bool required) {
 	XMLCh* keyX = XMLString::transcode(key.c_str());
 	DOMNodeList* res = node->getElementsByTagName(keyX);
 	XMLString::release(&keyX);
@@ -62,7 +61,7 @@ std::vector<DOMElement*> GetElementsByName(DOMElement* node, const std::string& 
 }
 
 //Helper: retrieve a single element; optionally required.
-DOMElement* GetSingleElementByName(DOMElement* node, const std::string& key, bool required=false) {
+DOMElement* GetSingleElementByName(DOMElement* node, const std::string& key, bool required) {
 	XMLCh* keyX = XMLString::transcode(key.c_str());
 	DOMNodeList* res = node->getElementsByTagName(keyX);
 	XMLString::release(&keyX);
@@ -80,7 +79,7 @@ DOMElement* GetSingleElementByName(DOMElement* node, const std::string& key, boo
 }
 
 //Helper: retrieve an attribute
-DOMAttr* GetNamedAttribute(DOMElement* node, const std::string& key, bool required=false) {
+DOMAttr* GetNamedAttribute(DOMElement* node, const std::string& key, bool required) {
 	if (!node) {
 		return nullptr;
 	}
@@ -116,7 +115,7 @@ const XMLCh* GetAttributeValue(const DOMAttr* attr) {
 
 
 //Helper: Combined
-const XMLCh* GetNamedAttributeValue(DOMElement* node, const std::string& key, bool required=false) {
+const XMLCh* GetNamedAttributeValue(DOMElement* node, const std::string& key, bool required) {
 	return GetAttributeValue(GetNamedAttribute(node, key, required));
 }
 

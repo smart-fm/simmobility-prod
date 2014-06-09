@@ -5,6 +5,7 @@
 #include "Pedestrian.hpp"
 #include "PedestrianFacets.hpp"
 #include "entities/Person.hpp"
+#include "config/MT_Config.hpp"
 
 using std::vector;
 using namespace sim_mob;
@@ -15,20 +16,26 @@ namespace medium {
 
 sim_mob::medium::Pedestrian::Pedestrian(Person* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::PedestrianBehavior* behavior,
-		sim_mob::medium::PedestrianMovement* movement) :
-		sim_mob::Role(behavior, movement, parent, "Pedestrian_")
+		sim_mob::medium::PedestrianMovement* movement,
+		std::string roleName, Role::type roleType) :
+		sim_mob::Role(behavior, movement, parent, roleName, roleType )
 {}
 
 sim_mob::medium::Pedestrian::~Pedestrian() {}
 
 Role* sim_mob::medium::Pedestrian::clone(Person* parent) const {
+	const vector<double> paramsWalkSpeed = MT_Config::GetInstance().getParamsWalkSpeed();
 	PedestrianBehavior* behavior = new PedestrianBehavior(parent);
-	PedestrianMovement* movement = new PedestrianMovement(parent);
+	PedestrianMovement* movement = new PedestrianMovement(parent, paramsWalkSpeed[0]);
 	Pedestrian* pedestrian = new Pedestrian(parent, parent->getMutexStrategy(),
 			behavior, movement);
 	behavior->setParentPedestrian(pedestrian);
 	movement->setParentPedestrian(pedestrian);
 	return pedestrian;
+}
+
+std::vector<BufferedBase*> sim_mob::medium::Pedestrian::getSubscriptionParams() {
+	return vector<BufferedBase*>();
 }
 
 void sim_mob::medium::Pedestrian::make_frame_tick_params(timeslice now) {}

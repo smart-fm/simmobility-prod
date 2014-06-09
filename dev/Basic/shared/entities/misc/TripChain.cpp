@@ -144,6 +144,8 @@ TripChainItem::ItemType sim_mob::TripChainItem::getItemType(std::string itemType
 		return IT_BUSTRIP;
 	}else if(itemType == "FMOD" ) {
 		return IT_FMODSIM;
+	} else if(itemType == "WaitingBusActivity"){
+		return IT_WAITBUSACTIVITY;
 	} else {
 		throw std::runtime_error("Unknown trip chain item type.");
 	}

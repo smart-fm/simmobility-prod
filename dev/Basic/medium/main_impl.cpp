@@ -37,6 +37,7 @@
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/Lane.hpp"
 #include "logging/Log.hpp"
 #include "util/DailyTime.hpp"
@@ -45,6 +46,7 @@
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
+#include "config/MT_Config.hpp"
 
 
 //If you want to force a header file to compile, you can put it here temporarily:
@@ -116,15 +118,18 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	std::set<sim_mob::SegmentStats*>& segmentStatsWithStops = ConfigManager::GetInstanceRW().FullConfig().getSegmentStatsWithBusStops();
 	std::set<sim_mob::SegmentStats*>::iterator itSegStats;
 	std::vector<const sim_mob::BusStop*>::iterator itBusStop;
+	StreetDirectory& strDirectory= StreetDirectory::instance();
 	for (itSegStats = segmentStatsWithStops.begin(); itSegStats != segmentStatsWithStops.end(); itSegStats++)
 	{
 		sim_mob::SegmentStats* stats = *itSegStats;
 		std::vector<const sim_mob::BusStop*>& busStops = stats->getBusStops();
 		for (itBusStop = busStops.begin(); itBusStop != busStops.end(); itBusStop++)
 		{
-			sim_mob::medium::BusStopAgent* busStopAgent = new sim_mob::medium::BusStopAgent(mtx, -1, *itBusStop, stats);
+			const sim_mob::BusStop* stop = *itBusStop;
+			sim_mob::medium::BusStopAgent* busStopAgent = new sim_mob::medium::BusStopAgent(mtx, -1, stop, stats);
 			stats->addBusStopAgent(busStopAgent);
 			BusStopAgent::registerBusStopAgent(busStopAgent);
+			strDirectory.registerStopAgent(stop, busStopAgent);
 		}
 	}
 
@@ -400,6 +405,9 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 
 	//Parse the config file (this *does not* create anything, it just reads it.).
 	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
+
+	//load configuration file for all kinds of parameters
+	MT_Config::GetInstance().parseConfigFile(MT_CONFIG_FILE);
 
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.

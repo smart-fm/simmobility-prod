@@ -59,7 +59,7 @@ public:
 	 * in the xml reader too.
 	 */
 	enum ItemType {
-		IT_TRIP, IT_ACTIVITY, IT_BUSTRIP, IT_FMODSIM
+		IT_TRIP, IT_ACTIVITY, IT_BUSTRIP, IT_FMODSIM, IT_WAITBUSACTIVITY
 	};
 
 

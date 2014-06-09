@@ -26,7 +26,8 @@ class Loader;
 }
 
 enum {
-	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000
+	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000,
+	MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP = 5000001
 };
 
 /**
@@ -37,6 +38,17 @@ public:
 	PedestrianTransferRequestMessage(Person* inPerson):pedestrian(inPerson){;}
 	virtual ~PedestrianTransferRequestMessage() {}
 	Person* pedestrian;
+};
+
+/**
+ * Subclass wraps a bus stop into message so as to make alighting decision.
+ * This is to allow it to function as an message callback parameter.
+ */
+class ArriavalAtStopMessage : public messaging::Message {
+public:
+	ArriavalAtStopMessage(Person* person):waitingPerson(person){;}
+	virtual ~ArriavalAtStopMessage() {}
+	Person* waitingPerson;
 };
 
 struct cmp_person_remainingTimeThisTick : public std::greater<Person*> {
@@ -182,6 +194,17 @@ private:
 	UpdateStatus movePerson(timeslice now, Person* person);
 
 	/**
+	 * calls frame_tick() for bus stop agent
+	 */
+	void updateBusStopAgents();
+
+	/**
+	 * assign a waiting person to bus stop agent
+	 * @param person is with the role "waiting bus activity"
+	 */
+	void assignPersonToBusStopAgent(Person* person);
+
+	/**
 	 * calls frame_init of the movement facet for the person's role
 	 * @param now current time slice
 	 * @param person person to initialize
@@ -259,14 +282,11 @@ protected:
 	virtual Entity::UpdateStatus frame_tick(timeslice now) { throw std::runtime_error("frame_tick() is not required and are not implemented for Confluxes."); }
 	virtual void frame_output(timeslice now) { throw std::runtime_error("frame_output methods are not required and are not implemented for Confluxes."); }
 
-	/**
-	 * Inherited from Agent.
-	 */
+
+	//Inherited from Agent.
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 
-	/**
-	 * Inherited from Agent.
-	 */
+	//Inherited from Agent.
 	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 public:

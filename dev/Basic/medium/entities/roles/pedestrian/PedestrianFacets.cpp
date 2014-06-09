@@ -9,9 +9,6 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
-namespace {
-	const double PEDESTRIAN_WALK_SPEED = 135; //cm/s (approximately 5 km/h)
-}
 namespace sim_mob {
 namespace medium {
 
@@ -24,9 +21,10 @@ PedestrianBehavior::~PedestrianBehavior() {
 
 }
 
-PedestrianMovement::PedestrianMovement(sim_mob::Person* parentAgent) :
+PedestrianMovement::PedestrianMovement(sim_mob::Person* parentAgent,double speed) :
 		MovementFacet(parentAgent), parentPedestrian(nullptr),
-		remainingTimeToComplete(0), walkSpeed(PEDESTRIAN_WALK_SPEED) {}
+		remainingTimeToComplete(0), walkSpeed(speed) {
+}
 
 PedestrianMovement::~PedestrianMovement() {}
 
@@ -83,19 +81,20 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 	StreetDirectory::VertexDesc source, destination;
 	std::vector<WayPoint> wayPoints;
 	if (subTrip.fromLocation.type_ == WayPoint::NODE) {
-		source = streetDirectory.WalkingVertex(*subTrip.fromLocation.node_);
+		source = streetDirectory.DrivingVertex(*subTrip.fromLocation.node_);
 	} else if (subTrip.fromLocation.type_ == WayPoint::BUS_STOP) {
-		source = streetDirectory.WalkingVertex(*subTrip.fromLocation.busStop_);
+		const Node* node = subTrip.fromLocation.busStop_->getParentSegment()->getEnd();
+		source = streetDirectory.DrivingVertex(*node);
 	}
 
 	if (subTrip.toLocation.type_ == WayPoint::NODE) {
-		destination = streetDirectory.WalkingVertex(*subTrip.toLocation.node_);
+		destination = streetDirectory.DrivingVertex(*subTrip.toLocation.node_);
 	} else if (subTrip.toLocation.type_ == WayPoint::BUS_STOP) {
-		destination = streetDirectory.WalkingVertex(
-				*subTrip.toLocation.busStop_);
+		const Node* node = subTrip.toLocation.busStop_->getParentSegment()->getEnd();
+		destination = streetDirectory.DrivingVertex(*node);
 	}
 
-	wayPoints = streetDirectory.SearchShortestWalkingPath(source, destination);
+	wayPoints = streetDirectory.SearchShortestDrivingPath(source, destination);
 	for (std::vector<WayPoint>::iterator it = wayPoints.begin();
 			it != wayPoints.end(); it++) {
 		if (it->type_ == WayPoint::ROAD_SEGMENT) {
@@ -105,10 +104,11 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 }
 
 void PedestrianMovement::frame_tick() {
-	double tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
-	if (remainingTimeToComplete <= tickMS) {
-		double lastRemainingTime = tickMS - remainingTimeToComplete;
+	double tickSec = ConfigManager::GetInstance().FullConfig().baseGranSecond();
+	if (remainingTimeToComplete <= tickSec) {
+		double lastRemainingTime = tickSec - remainingTimeToComplete;
 		if (trajectory.size() == 0) {
+			getParent()->setNextLinkRequired(nullptr);
 			getParent()->setToBeRemoved();
 		}
 		else {
@@ -120,7 +120,7 @@ void PedestrianMovement::frame_tick() {
 		}
 	}
 	else {
-		remainingTimeToComplete -= tickMS;
+		remainingTimeToComplete -= tickSec;
 	}
 }
 

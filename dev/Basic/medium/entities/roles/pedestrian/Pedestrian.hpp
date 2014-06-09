@@ -27,7 +27,9 @@ public:
 
 	explicit Pedestrian(Person* parent, MutexStrategy mtxStrat,
 			sim_mob::medium::PedestrianBehavior* behavior = nullptr,
-			sim_mob::medium::PedestrianMovement* movement = nullptr);
+			sim_mob::medium::PedestrianMovement* movement = nullptr,
+			std::string roleName = std::string("Pedestrian_"),
+			Role::type roleType = Role::RL_PEDESTRIAN);
 
 	virtual ~Pedestrian();
 
@@ -35,10 +37,7 @@ public:
 
 	virtual void make_frame_tick_params(timeslice now);
 
-	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() {
-		throw std::runtime_error(
-				"getSubscriptionParams not implemented in Pedestrian.");
-	}
+	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 private:
 	friend class PedestrainBehavior;

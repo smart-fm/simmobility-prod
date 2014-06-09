@@ -196,6 +196,19 @@ std::string toString(const T& value)
     return oss.str();
 }
 
+///a cache structure. used in pathsetmanager
+struct personOD{
+	const sim_mob::Person* per;
+	const sim_mob::Node* from;
+	const sim_mob::Node*to;
+	personOD(const sim_mob::Person* per,const sim_mob::Node* from,const sim_mob::Node*to) :
+		per(per),from(from),to(to)
+	{}
+};
+
+/// Roadsegment-Person-O-D
+typedef std::multimap<const sim_mob::RoadSegment*, personOD > RPOD ;// Roadsegment-Person-O-D  :)
+
 class PathSetManager {
 	///option to wait for each group of pathset generation to complete before starting another group
 	///for all 'link eliminations' and 'random perturbation'
@@ -283,7 +296,7 @@ public:
 	void insertFromTo_BestPath_Pool(std::string& id ,std::vector<WayPoint>& value);
 	bool getFromTo_BestPath_fromPool(std::string id, std::vector<WayPoint>& value);
 	void cacheODbySegment(const sim_mob::Person*,const sim_mob::Node * from, const sim_mob::Node* to,std::vector<WayPoint> &);
-	const boost::tuple <const sim_mob::Person*, const sim_mob::Node*,const sim_mob::Node*> getODbySegment(const sim_mob::RoadSegment* segment) const;
+	const std::pair<RPOD::const_iterator,RPOD::const_iterator > getODbySegment(const sim_mob::RoadSegment* segment) const;
 	PathSetDBLoader *psDbLoader;
 	soci::session *sql;
 
@@ -312,8 +325,11 @@ private:
 	//
 	std::map<std::string ,std::vector<WayPoint> > fromto_bestPath;
 	std::map<std::string ,std::vector<WayPoint> >::iterator fromto_bestPath_it;
+
 	///a cache to help answer this question: a given road segment is within which path(s)
-	std::map<const sim_mob::RoadSegment*, boost::tuple<const sim_mob::Person*,const sim_mob::Node*,const sim_mob::Node*> > pathSegments; //<segments,OD>
+	RPOD pathSegments;
+
+
 	std::string csvFileName;
 	std::ofstream csvFile;
 	//

@@ -88,11 +88,13 @@ public:
 								messaging::MessageBus::MessagePtr(new InsertIncident(stats, element.second.get<1>())));
 			//Identify the to-be-affected Drivers (at present, only the active agents are considered)
 			//contact the path set manager(via your own method). he should already have the paths in its cache
-//			identifyAffectedDrivers();
+			identifyAffectedDrivers(rs);
 		}
 	}
 
-
+	void identifyAffectedDrivers(const sim_mob::RoadSegment * rs){
+		sim_mob::PathSetManager::getInstance()->getODbySegment(rs);
+	}
 
 	bool frame_init(timeslice now){
 		if(fileName.size()){

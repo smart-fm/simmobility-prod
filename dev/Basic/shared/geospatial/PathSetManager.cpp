@@ -583,16 +583,13 @@ bool sim_mob::PathSetManager::getFromTo_BestPath_fromPool(std::string id, std::v
 
 void sim_mob::PathSetManager::cacheODbySegment(const sim_mob::Person* per, const sim_mob::Node * from, const sim_mob::Node* to, std::vector<WayPoint> & wps){
 	BOOST_FOREACH(WayPoint wp, wps){
-		pathSegments[wp.roadSegment_] = boost::make_tuple(per, from, to);
+		pathSegments.insert(std::make_pair(wp.roadSegment_, personOD(per, from, to)));
 	}
 }
 
-const boost::tuple <const sim_mob::Person*, const sim_mob::Node*,const sim_mob::Node*> sim_mob::PathSetManager::getODbySegment(const sim_mob::RoadSegment* segment) const{
-	std::map<const sim_mob::RoadSegment*, boost::tuple <const sim_mob::Person*, const sim_mob::Node*,const sim_mob::Node*> > ::const_iterator it (pathSegments.find(segment));
-	if (it == pathSegments.end()){
-		return boost::tuple <const sim_mob::Person*, const sim_mob::Node*,const sim_mob::Node*>(nullptr, nullptr,nullptr);
-	}
-	return it->second;
+const std::pair <RPOD::const_iterator,RPOD::const_iterator > sim_mob::PathSetManager::getODbySegment(const sim_mob::RoadSegment* segment) const{
+	const std::pair <RPOD::const_iterator,RPOD::const_iterator > range = pathSegments.equal_range(segment);
+	return range;
 }
 
 vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)

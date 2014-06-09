@@ -39,25 +39,31 @@ void sim_mob::IncidentManager::readFromFile(std::string fileName){
 }
 
 void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
-	TickIncidents res = incidents.equal_range(tick);
-	if(res.first == res.second){
+	TickIncidents currIncidents = incidents.equal_range(tick);
+	if(currIncidents.first == currIncidents.second){
 		//no incidents for this tick
 		return;
 	}
 	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::instance();
-	std::pair<uint32_t,Incident> element;
-	BOOST_FOREACH(element, res){
+	std::pair<uint32_t,Incident> incident;
+	BOOST_FOREACH(incident, currIncidents){
 		//get the conflux
-		const sim_mob::RoadSegment* rs = stDir.getRoadSegment(element.second.get<0>());
+		const sim_mob::RoadSegment* rs = stDir.getRoadSegment(incident.second.get<0>());
 		const std::vector<sim_mob::SegmentStats*>& stats = rs->getParentConflux()->findSegStats(rs);
 		//send a message to conflux to change its flow rate for the next tick
 		messaging::MessageBus::PostMessage(rs->getParentConflux(), MSG_INSERT_INCIDENT,
-							messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, element.second.get<1>())));
+							messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, incident.second.get<1>())));
 		//Identify the to-be-affected Drivers (at present, only the active agents are considered)
 		//contact the path set manager(via your own method). he should already have the paths in its cache
 		std::vector <const sim_mob::Person*> persons;
 		identifyAffectedDrivers(rs,persons);
 		//Now send message/publish
+		BOOST_FOREACH(const sim_mob::Person * person, persons) {
+			//send the same message as you snet for conflux, no need of devising a new message type
+			messaging::MessageBus::PostMessage(const_cast<sim_mob::Person *>(person), MSG_INSERT_INCIDENT,
+								messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, incident.second.get<1>())));
+
+		}
 	}
 }
 
@@ -95,7 +101,6 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 			//person passed, or currently on the target path. So, not interested in this person
 			continue;
 		}
-
 
 		for(itSS = path.begin(); (*itSS) != curSS ; itSS++){
 			if(targetRS == (*itSS)->getRoadSegment()){

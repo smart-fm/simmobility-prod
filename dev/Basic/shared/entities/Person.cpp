@@ -241,6 +241,7 @@ void Person::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>
 
 bool sim_mob::Person::frame_init(timeslice now)
 {
+	messaging::MessageBus::RegisterHandler(this);
 	currTick = now;
 	//Agents may be created with a null Role and a valid trip chain
 	if (!currRole) {

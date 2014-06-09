@@ -42,7 +42,6 @@ protected:
 
 class PedestrianMovement: public MovementFacet {
 public:
-	explicit PedestrianMovement(sim_mob::Person* parentAgent = nullptr);
 	explicit PedestrianMovement(sim_mob::Person* parentAgent, double speed);
 	virtual ~PedestrianMovement();
 

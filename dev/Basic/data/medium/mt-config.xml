@@ -5,6 +5,7 @@
 <config>
 		<!-- this parameters are used to calculate dwelling time-->
         <dwelling_time_parameters>
+        	<!--parameters : A, B, deltaBay, deltaFull, P_Front-->
             <parameters value="1, 1, 1, 0, 0"/>
          </dwelling_time_parameters>  
          <!-- pedestrian walking speed and unit is cm/s (approximately 5 km/h)-->

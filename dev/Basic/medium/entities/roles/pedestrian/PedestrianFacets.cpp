@@ -9,9 +9,6 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
-namespace {
-	const double PEDESTRIAN_WALK_SPEED = 135; //cm/s (approximately 5 km/h)
-}
 namespace sim_mob {
 namespace medium {
 
@@ -24,10 +21,6 @@ PedestrianBehavior::~PedestrianBehavior() {
 
 }
 
-PedestrianMovement::PedestrianMovement(sim_mob::Person* parentAgent) :
-		MovementFacet(parentAgent), parentPedestrian(nullptr),
-		remainingTimeToComplete(0), walkSpeed(PEDESTRIAN_WALK_SPEED) {
-}
 PedestrianMovement::PedestrianMovement(sim_mob::Person* parentAgent,double speed) :
 		MovementFacet(parentAgent), parentPedestrian(nullptr),
 		remainingTimeToComplete(0), walkSpeed(speed) {

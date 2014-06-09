@@ -54,11 +54,7 @@ void RawConfigFile::parseXmlAndProcess()
 	}
 
 	//Now just parse the document recursively.
-	DOMElement* node = rootNode->getFirstElementChild();
-	while(node){
-		processElement(node, TranscodeString(node->getTagName()));
-		node = node->getNextElementSibling();
-	}
+	processElement(rootNode);
 }
 
 }

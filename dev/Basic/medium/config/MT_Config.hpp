@@ -26,10 +26,22 @@ public:
 protected:
 	/**
 	 * process each node included in xml file.
-	 * @param name is node's name
-	 * @param node is a element inside xml file
+	 * @param root is a root node inside xml file
 	 */
-	virtual void processElement(xercesc::DOMElement* node, const std::string& name);
+	virtual void processElement(xercesc::DOMElement* root);
+private:
+	/**
+	 * process each node included in xml file.
+	 * @param node is a root node inside xml file
+	 */
+	void processDwellTimeElement(xercesc::DOMElement* node);
+
+	/**
+	 * process each node included in xml file.
+	 * @param node is a root node inside xml file
+	 */
+	void processWalkSpeedElement(xercesc::DOMElement* node);
+
 private:
 	static MT_Config* instance;
 	/**store parameters for dwelling time calculation*/

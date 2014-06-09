@@ -42,7 +42,7 @@ protected:
 	 * process each node included in xml file. this method should be override by its children
 	 * @param node is a element inside xml file
 	 */
-	virtual void processElement(xercesc::DOMElement* node, const std::string& name) = 0;
+	virtual void processElement(xercesc::DOMElement* node) = 0;
 
 private:
 	xercesc::XercesDOMParser parser;

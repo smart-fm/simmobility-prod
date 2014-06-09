@@ -81,8 +81,12 @@ unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusSto
 	unsigned int numAlighting = 0;
 	std::list<sim_mob::medium::Passenger*>::iterator itPassenger = passengerList.begin();
 	while (itPassenger != passengerList.end()) {
-		//messaging::MessageBus::SendInstantaneousMessage((*itPassenger)->getParent(), ALIGHT_BUS,
-		//		messaging::MessageBus::MessagePtr(new BusStopMessage(busStopAgent->getBusStop())));
+
+		/*the passengers will be always together with bus driver, so
+		 * bus driver and passengers will always in the same conflux and
+		 * in the same thread. so that it is safety for bus driver directly
+		 * to invoke decision method of  inside passengers
+		 */
 		(*itPassenger)->makeAlightingDecision(busStopAgent->getBusStop());
 
 		if ((*itPassenger)->canAlightBus()) {

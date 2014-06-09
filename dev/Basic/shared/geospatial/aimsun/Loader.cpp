@@ -889,7 +889,6 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 	{
 		sim_mob::PT_bus_stops pt_bus_stopsTemp = *iter;
 		pt_bus_stops.push_back(pt_bus_stopsTemp);
-//		std::cout << pt_bus_stopsTemp.route_id << " " << pt_bus_stopsTemp.busstop_no << " " << pt_bus_stopsTemp.busstop_sequence_no << std::endl;
 
 		string str = pt_bus_stopsTemp.busstop_no;
 		boost::trim_right(str);
@@ -897,11 +896,8 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 		sim_mob::BusStop* bs = sim_mob::BusStop::findBusStop(no);
 		if(bs) {
 			routeID_busStops[iter->route_id].push_back(bs);
-//			std::cout << "iter->route_id: " << iter->route_id << "    BusStop to busstop map  " << bs->getBusstopno_() << "" << std::endl;
-//			std::cout << "current routeID_busStops[iter->route_id].size(): " << routeID_busStops[iter->route_id].size() << "" << std::endl;
 		}
 	}
-//	std::cout << "routeID_busStops.size(): " << routeID_busStops.size() << "" << std::endl;
 }
 
 void DatabaseLoader::LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule)

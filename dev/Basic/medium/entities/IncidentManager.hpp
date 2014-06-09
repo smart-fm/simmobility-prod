@@ -41,10 +41,14 @@ public:
 	 */
 	void insertTickIncidents(uint32_t tick);
 
-	//step-1: find those who used the target rs in their path
-	//step-2: for each person, iterate through the path(meso path for now) to see if the agent's current segment is before, on or after the target path.
-	//step-3: if agent's current segment is before the target path, then inform him.
-	void identifyAffectedDrivers(const sim_mob::RoadSegment * rs);
+	/**
+	 *	step-1: find those who used the target rs in their path
+	 *	step-2: for each person, iterate through the path(meso path for now) to see if the agent's current segment is before, on or after the target path.
+	 *	step-3: if agent's current segment is before the target path, then inform him.
+	 * \param in targetRS the target road segment that is having an incident
+	 * \param out filteredPersons persons to be notified of the incident in the target roadsegment
+	 */
+	void identifyAffectedDrivers(const sim_mob::RoadSegment * targetRS,std::vector <const sim_mob::Person*> filteredPersons);
 
 	bool frame_init(timeslice now);
 

@@ -55,30 +55,60 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 							messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, element.second.get<1>())));
 		//Identify the to-be-affected Drivers (at present, only the active agents are considered)
 		//contact the path set manager(via your own method). he should already have the paths in its cache
-		identifyAffectedDrivers(rs);
+		std::vector <const sim_mob::Person*> persons;
+		identifyAffectedDrivers(rs,persons);
+		//Now send message/publish
 	}
 }
 
 //step-1: find those who used the target rs in their path
 //step-2: for each person, iterate through the path(meso path for now) to see if the agent's current segment is before, on or after the target path.
 //step-3: if agent's current segment is before the target path, then inform him.
-void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegment * rs){
-
-	//make life easy, create a final list of eligible persons
-	std::vector <const sim_mob::Person*> persons;
+void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegment * targetRS, std::vector <const sim_mob::Person*> filteredPersons){
 
 	//step-1: find those who used the target rs in their path
-	const std::pair <RPOD::const_iterator,RPOD::const_iterator > range(sim_mob::PathSetManager::getInstance()->getODbySegment(rs));
-	//At this stage, we have information about persons who had the given segment in their path
-	//No filter out those who have already passed the given segment
+	const std::pair <RPOD::const_iterator,RPOD::const_iterator > range(sim_mob::PathSetManager::getInstance()->getODbySegment(targetRS));
+
 	for(RPOD::const_iterator it(range.first); it != range.second; it++){
-		//get the persons subtrip see if the current trip is...blah blah blah
-		//target(aka Mr. sim_mob::Person) :
 		const sim_mob::Person *per = it->second.per;
 		//get his,meso, path...//todo: you need to dynamic_cast!
 		const sim_mob::medium::DriverMovement *dm = dynamic_cast<sim_mob::medium::DriverMovement*>(per->getRole()->Movement());
 		const std::vector<const sim_mob::SegmentStats*> path = dm->getMesoPathMover().getPath();
+		const sim_mob::SegmentStats* curSS = dm->getMesoPathMover().getCurrSegStats();
+		//In the following steps, we try to select only those who are before the current segment
+		//todo, increase the criteria , add some min distance restriction
+		std::vector<const sim_mob::SegmentStats*>::const_iterator itSS;//segStat iterator
+		//a.is the incident before driver's current segment?
+		bool res = false;
+		for(itSS = path.begin(); (*itSS) != curSS ; itSS++){
+			if(targetRS == (*itSS)->getRoadSegment()){
+				res = true;
+				break;
+			}
+		}
+		//for (*itSS) == curSS , same check:
+		if(itSS != path.end() && (targetRS == (*itSS)->getRoadSegment())){
+			res = true;
+		}
 
+		if(res){
+			//person passed, or currently on the target path. So, not interested in this person
+			continue;
+		}
+
+
+		for(itSS = path.begin(); (*itSS) != curSS ; itSS++){
+			if(targetRS == (*itSS)->getRoadSegment()){
+				res = true;
+				break;
+			}
+		}
+		if(!res){
+			//can't be! this means we have been serching for a target road segment that is not in the path!
+			throw std::runtime_error("searching for a roadsegment which was not in the path!");
+		}
+		//this person willbe informed
+		filteredPersons.push_back(per);
 	}//RPOD
 }
 

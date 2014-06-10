@@ -874,5 +874,21 @@ void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSeg
 	getParent()->initRdSegTravelStats(pathMover.getCurrSegStats()->getRoadSegment(), segStatExitTimeSec);
 }
 
+void DriverMovement::rerout(const sim_mob::RoadSegment* targetRS, double newFlowRate){
+	const std::vector<const sim_mob::SegmentStats*> & path = getMesoPathMover().getPath();
+}
+
+void DriverMovement::HandleMessage(messaging::Message::MessageType type,
+		const messaging::Message& message){
+	throw std::runtime_error("Reaching the medium::DriverMovement::HandleMessage");
+	switch (type){
+	case MSG_INSERT_INCIDENT:{
+		const InsertIncidentMessage &msg = MSG_CAST(InsertIncidentMessage,message);
+		rerout((*msg.stats.begin())->getRoadSegment(), msg.newFlowRate);
+		break;
+	}
+	}
+}
+
 } /* namespace medium */
 } /* namespace sim_mob */

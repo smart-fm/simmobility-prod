@@ -5,6 +5,9 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/PathSetManager.hpp"
 #include "message/MessageBus.hpp"
+//may needed when you move definition to cpp
+//#include <boost/random.hpp>
+//#include <boost/random/normal_distribution.hpp>
 
 #include <boost/tokenizer.hpp>
 
@@ -61,7 +64,7 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 		//inform the drivers
 		BOOST_FOREACH(const sim_mob::Person * person, persons) {
 			//send the same type of message
-			messaging::MessageBus::PostMessage(const_cast<sim_mob::Person *>(person), MSG_INSERT_INCIDENT,
+			messaging::MessageBus::PostMessage(const_cast<MovementFacet*>(person->getRole()->Movement()), MSG_INSERT_INCIDENT,
 								messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, incident.second.get<1>())));
 
 		}
@@ -70,8 +73,18 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 
 //step-1: find those who used the target rs in their path
 //step-2: for each person, iterate through the path(meso path for now) to see if the agent's current segment is before, on or after the target path.
-//step-3: if agent's current segment is before the target path, then inform him.
-void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegment * targetRS, std::vector <const sim_mob::Person*> filteredPersons){
+//step-3: if agent's current segment is before the target path, then inform him(if the probability function allows that).
+void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegment * targetRS,
+		std::vector <const sim_mob::Person*> filteredPersons){
+
+	//normal distribution
+	  boost::mt19937 rng; // I don't seed it on purpouse (it's not relevant)
+
+	  boost::normal_distribution<> nd(0.0, 1.0);
+
+	  boost::variate_generator<boost::mt19937&,
+	                           boost::normal_distribution<> > var_nor(rng, nd);
+
 
 	//step-1: find those who used the target rs in their path
 	const std::pair <RPOD::const_iterator,RPOD::const_iterator > range(sim_mob::PathSetManager::getInstance()->getODbySegment(targetRS));
@@ -113,8 +126,18 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 			//can't be! this means we have been serching for a target road segment that is not in the path!
 			throw std::runtime_error("searching for a roadsegment which was not in the path!");
 		}
-		//this person willbe informed
-		filteredPersons.push_back(per);
+
+		//probability function(for now, just behave like tossing a coin
+		//todo, move to a method, probably inside a person
+		if(var_nor() > 0){
+			//this person willbe informed
+			filteredPersons.push_back(per);
+			Print() << "Person" << per->getId() << " selected" << std::endl;
+		}
+		else
+		{
+			Print() << "Person" << per->getId() << " discarded" << std::endl;
+		}
 	}//RPOD
 }
 

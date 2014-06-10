@@ -285,6 +285,20 @@ protected:
 	 */
 	void updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat,
 			double segmentExitTimeSec);
+	/**
+	 * initiate changing the path
+	 * \param in targetRS reroute based on the given troublesome roadsegmen
+	 * \param newFlowRate new flow rate supplied to lanes
+	 */
+	void rerout(const sim_mob::RoadSegment* targetRS, double newFlowRate);
+	/**
+	 * message handler which provide a chance to handle message transfered from parent agent.
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void HandleMessage(messaging::Message::MessageType type,
+			const messaging::Message& message);
+
 };
 
 } /* namespace medium */

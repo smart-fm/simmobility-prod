@@ -874,8 +874,49 @@ void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSeg
 	getParent()->initRdSegTravelStats(pathMover.getCurrSegStats()->getRoadSegment(), segStatExitTimeSec);
 }
 
-void DriverMovement::rerout(const sim_mob::RoadSegment* targetRS, double newFlowRate){
+int DriverMovement::findReroutingPoints(const std::vector<sim_mob::SegmentStats*>& stats, std::vector<const sim_mob::Node*> & intersections, centimeter_t & distance) const{
 	const std::vector<const sim_mob::SegmentStats*> & path = getMesoPathMover().getPath();
+
+	//find an iterator to the incident point
+	std::vector<const sim_mob::SegmentStats*>::const_iterator endIt = std::find(path.begin(), path.end(), *(stats.begin()));
+	if(endIt == path.end()){
+		throw std::runtime_error("Incidnt is not on this path!");
+	}
+
+	//find an iterator to the beginning point of your search to the incident point
+	std::vector<const sim_mob::SegmentStats*>::const_iterator startIt = std::find(path.begin(), path.end(), getMesoPathMover().getCurrSegStats());
+
+	//count the number of links as you iterate/traverse through the path. the count will be the number of intersections on your way.
+	const sim_mob::Link * currLink = (*startIt)->getRoadSegment()->getLink();
+	int res = 0;
+	for(startIt++ ; startIt <= endIt; startIt++)
+	{
+		if(currLink != (*startIt)->getRoadSegment()->getLink()){
+			//new link->new intersection->new point of re-routing
+			intersections.push_back(currLink->getEnd());
+			++res;
+			currLink = (*startIt)->getRoadSegment()->getLink();
+		}
+	}
+	return res;
+}
+void DriverMovement::rerout(const InsertIncidentMessage &msg){
+//	PathSetManager::getInstance()->getPathByPerson()
+	//step-1 can I rerout? if yes, what are my points of rerout?
+		//criterion-1 at least 1 intersection from where the agent is, to the troubled roadsegment
+	std::vector<const sim_mob::Node*> intersections = std::vector<const sim_mob::Node*>();
+	centimeter_t distance = 0;
+	int numReRoute = findReroutingPoints(msg.stats,intersections, distance);
+	if(!numReRoute){
+		return;
+	}
+	//step-2 do I 'want' to reroute? yes you do, for now
+	if(!wantReRoute()){
+		return;
+	}
+
+	//step-3:get a new path
+
 }
 
 void DriverMovement::HandleMessage(messaging::Message::MessageType type,
@@ -884,7 +925,7 @@ void DriverMovement::HandleMessage(messaging::Message::MessageType type,
 	switch (type){
 	case MSG_INSERT_INCIDENT:{
 		const InsertIncidentMessage &msg = MSG_CAST(InsertIncidentMessage,message);
-		rerout((*msg.stats.begin())->getRoadSegment(), msg.newFlowRate);
+		rerout(msg);
 		break;
 	}
 	}

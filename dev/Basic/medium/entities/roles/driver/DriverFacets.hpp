@@ -286,11 +286,20 @@ protected:
 	void updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat,
 			double segmentExitTimeSec);
 	/**
+	 * get number of intersections from the agent's location to incident location
+	 * \param in stats incident roadsegemnt stats
+	 * \param intersections out list of intersections
+	 * \param distance out travel distance between agent and incident locations
+	 * return the number of intersections
+	 */
+	int findReroutingPoints(const std::vector<sim_mob::SegmentStats*>& stats, std::vector<const sim_mob::Node*> & intersections, centimeter_t & distance) const;
+	bool wantReRoute(){return true;};//placeholder
+	/**
 	 * initiate changing the path
-	 * \param in targetRS reroute based on the given troublesome roadsegmen
+	 * \param in msg incident information(roadsegment and flow rate)
 	 * \param newFlowRate new flow rate supplied to lanes
 	 */
-	void rerout(const sim_mob::RoadSegment* targetRS, double newFlowRate);
+	void rerout(const InsertIncidentMessage &msg);
 	/**
 	 * message handler which provide a chance to handle message transfered from parent agent.
 	 * @param type of the message.

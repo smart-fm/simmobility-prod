@@ -39,6 +39,7 @@ void sim_mob::IncidentManager::readFromFile(std::string fileName){
 }
 
 void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
+	/*find the incidents in this tick*/
 	TickIncidents currIncidents = incidents.equal_range(tick);
 	if(currIncidents.first == currIncidents.second){
 		//no incidents for this tick
@@ -46,20 +47,20 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 	}
 	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::instance();
 	std::pair<uint32_t,Incident> incident;
+	/*inserting and informing*/
 	BOOST_FOREACH(incident, currIncidents){
 		//get the conflux
 		const sim_mob::RoadSegment* rs = stDir.getRoadSegment(incident.second.get<0>());
 		const std::vector<sim_mob::SegmentStats*>& stats = rs->getParentConflux()->findSegStats(rs);
-		//send a message to conflux to change its flow rate for the next tick
+		//send a message to conflux
 		messaging::MessageBus::PostMessage(rs->getParentConflux(), MSG_INSERT_INCIDENT,
 							messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, incident.second.get<1>())));
-		//Identify the to-be-affected Drivers (at present, only the active agents are considered)
-		//contact the path set manager(via your own method). he should already have the paths in its cache
+		//find affected Drivers (only active agents for now)
 		std::vector <const sim_mob::Person*> persons;
 		identifyAffectedDrivers(rs,persons);
-		//Now send message/publish
+		//inform the drivers
 		BOOST_FOREACH(const sim_mob::Person * person, persons) {
-			//send the same message as you snet for conflux, no need of devising a new message type
+			//send the same type of message
 			messaging::MessageBus::PostMessage(const_cast<sim_mob::Person *>(person), MSG_INSERT_INCIDENT,
 								messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, incident.second.get<1>())));
 

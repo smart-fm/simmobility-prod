@@ -35,7 +35,8 @@ public:
 	 */
 	void readFromFile(std::string fileName);
 	/**
-	 * insert incidents into a conflux starting in a given tick
+	 * insert incidents into simulation starting in a given tick.
+	 * This can be done via defining a new flow rate to the lanes of the given segment.
 	 * since it using the message bus, it will be available in the next tick
 	 * \param tick starting tick
 	 */

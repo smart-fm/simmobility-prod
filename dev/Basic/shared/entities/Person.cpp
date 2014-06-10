@@ -23,6 +23,7 @@
 #include "entities/misc/TripChain.hpp"
 #include "workers/Worker.hpp"
 #include "geospatial/aimsun/Loader.hpp"
+#include "message/MessageBus.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -274,7 +275,6 @@ bool sim_mob::Person::frame_init(timeslice now)
 	if((*currTripChainItem)) {
 		currRole->Movement()->frame_init();
 	}
-
 	return true;
 }
 

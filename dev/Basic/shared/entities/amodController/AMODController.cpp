@@ -26,6 +26,7 @@
 #include "metrics/Frame.hpp"
 #include <utility>
 #include <stdexcept>
+#include <string>
 
 using namespace std;
 
@@ -111,10 +112,12 @@ bool AMODController::frame_init(timeslice now)
 
 Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 {
+
 	//TODO
+
 	if(test==0)
 	{
-//		testOneVh();
+		//		testOneVh();
 		testSecondVh();
 		test=1;
 	}
@@ -177,6 +180,7 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 {
 	// find node
 	Node* node = nodePool[nodeId];
+
 	if(node == NULL){ throw std::runtime_error("node not found"); }
 
 	// create person
@@ -223,25 +227,6 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 	}
 }
 
-void AMODController::parkVhAfterTrip(Person* vh,std::string& endNodeId)
-{
-	// find node
-		Node* node = nodePool[endNodeId];
-		if(node == NULL){ throw std::runtime_error("node not found");
-		}
-
-		// add to virtual car park
-		AMODVirtualCarParkItor it = virtualCarPark.find(endNodeId);
-		if(it!=virtualCarPark.end())
-			{ throw std::runtime_error("no vh"); return; }
-		else
-		{
-			boost::unordered_map<std::string,Person*> cars = boost::unordered_map<std::string,Person*>();
-			cars.insert(std::make_pair(vh->amodId,vh));
-			virtualCarPark.insert(std::make_pair(endNodeId,cars));
-		}
-}
-
 bool AMODController::getVhFromCarPark(std::string& carParkId,Person** vh)
 {
 	AMODVirtualCarParkItor it = virtualCarPark.find(carParkId);
@@ -266,8 +251,51 @@ bool AMODController::dispatchVh(Person* vh)
 }
 void AMODController::handleVHArrive(Person* vh)
 {
+	std::cout << "handleVHArrive function " << std::endl;
 
+	WayPoint w = vh->amodPath.back();
+	const RoadSegment *rs = w.roadSegment_;
+	const Node *enode = rs->getEnd();
+
+	std::string idNode = enode->originalDB_ID.getLogItem();// "aimsun-id":"123456"
+	std::cout << "NodeId before: " << idNode << std::endl;
+
+	char chars[] = "aimsun-id:,\"";
+	for (unsigned int i = 0; i < strlen(chars); ++i)
+	{
+		idNode.erase (std::remove(idNode.begin(), idNode.end(), chars[i]), idNode.end());
+	}
+	std::cout << "NodeId after: " << idNode << std::endl;
+
+	std::string vhID = vh->amodId;
+	AMODVirtualCarParkItor it = virtualCarPark.find(idNode);
+		if(it!=virtualCarPark.end())
+		{
+			// access this car park if it already exists
+			boost::unordered_map<std::string,Person*> cars = it->second;
+			std::cout << "Dest carPark. Before Insertion. Cars Size: " << cars.size() << std::endl;
+			cars.insert(std::make_pair(vhID,vh));
+			std::cout << "Dest carPark. Inserted. Cars Size: " << cars.size() << std::endl;
+
+			boost::unordered_map<std::string,Person*>::iterator local_it;
+					std::cout << "Cars in Car Park : \n";
+					for ( local_it = cars.begin(); local_it!= cars.end(); ++local_it ) {
+						std::cout << " " << local_it->first << ":" << local_it->second << std::endl;
+					}
+					std::cout << "-----\n";
+
+			it->second = cars;
+		}
+		else
+		{
+			std::cout << "Dest carPark. New car park" << std::endl;
+			boost::unordered_map<std::string,Person*> cars = boost::unordered_map<std::string,Person*>();
+			cars.insert(std::make_pair(vhID,vh));
+			virtualCarPark.insert(std::make_pair(idNode,cars));
+			std::cout << "Dest carPark. Inserted. Cars Size: " << cars.size() << std::endl;
+		}
 }
+
 void AMODController::rerouteWithPath(Person* vh,std::vector<sim_mob::WayPoint>& path)
 {
 	AMODRerouteEventArgs arg(NULL,NULL,path);
@@ -286,6 +314,10 @@ void AMODController::setRdSegTravelTimes(Person* ag, double rdSegExitTime) {
 
 	std::map<double, Person::rdSegTravelStats>::const_iterator it =
 			ag->getRdSegTravelStatsMap().find(rdSegExitTime);
+
+	ofstream out_TT;
+	out_TT.open("/home/km/workspace/simmobility2/dev/Basic/out_TT.txt", fstream::out | fstream::app);
+
 	if (it != ag->getRdSegTravelStatsMap().end()){
 		double travelTime = (it->first) - (it->second).rdSegEntryTime_;
 		std::map<const RoadSegment*, Conflux::rdSegTravelTimes>::iterator itTT = RdSegTravelTimesMap.find((it->second).rdSeg_);
@@ -296,9 +328,23 @@ void AMODController::setRdSegTravelTimes(Person* ag, double rdSegExitTime) {
 		}
 		else{
 			Conflux::rdSegTravelTimes tTimes(travelTime, 1);
-//			RdSegTravelTimesMap.insert(std::make_pair(ag->getCurrSegment(), tTimes));
+			RdSegTravelTimesMap.insert(std::make_pair(ag->getCurrSegment(), tTimes));
+		}
+
+		WayPoint w = ag->amodPath.back();
+		const RoadSegment *rs = w.roadSegment_;
+		std::string segmentID = rs->originalDB_ID.getLogItem();
+
+		std::cout << "Segment ID: "<< segmentID << " ,Segment travel time: " << rdSegExitTime << std::endl;
+
+		if (out_TT.is_open()) {
+		out_TT << "Segment ID: " << segmentID << "Segment travel time: " << rdSegExitTime << std::endl;
+		}
+		else{
+			cout << "Unable to open file\n";
 		}
 	}
+	out_TT.close();
 }
 void AMODController::updateTravelTimeGraph()
 {
@@ -410,7 +456,7 @@ void AMODController::testOneVh()
 	vh->setPath(path);
 #endif
 
-//	parkVhAfterTrip(vhId,destNodeId);
+	//	parkVhAfterTrip(vhId,destNodeId);
 
 	//	unsigned int curTickMS = (frameTicks)*ConfigManager::GetInstance().FullConfig().baseGranMS();
 	//	vh->setStartTime(curTickMS);
@@ -428,14 +474,15 @@ void AMODController::testOneVh()
 }
 
 void AMODController::handleAMODEvent(sim_mob::event::EventId id,
-	            sim_mob::event::Context ctxId,
-	            sim_mob::event::EventPublisher* sender,
-	            const AMOD::AMODEventArgs& args)
+		sim_mob::event::Context ctxId,
+		sim_mob::event::EventPublisher* sender,
+		const AMOD::AMODEventArgs& args)
 {
 	if(id == event::EVT_AMOD_ARRIVING_TO_DEST)
-		{
+	{
 		//TODO
-		}
+
+	}
 }
 void AMODController::testSecondVh()
 {
@@ -515,7 +562,6 @@ void AMODController::testSecondVh()
 
 		vhOnTheRoad.insert(std::make_pair(vh->amodId,vh));
 
-		//parkVhAfterTrip(vh, destNodeId);
 	}
 }
 

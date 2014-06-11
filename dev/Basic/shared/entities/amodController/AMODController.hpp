@@ -63,7 +63,7 @@ public:
 	void rerouteWithPath(Person* vh,std::vector<sim_mob::WayPoint>& path);
 	void rerouteWithOriDest(Person* vh,Node* snode,Node* enode);
 
-	void parkVhAfterTrip(Person* vh,std::string& nodeId);
+	//void parkVhAfterTrip(Person* vh,std::string& nodeId);
 
 	void testOneVh();
 	void testSecondVh();

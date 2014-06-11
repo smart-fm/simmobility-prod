@@ -455,14 +455,18 @@ void sim_mob::DriverMovement::frame_tick()
 		getParent()->setCurrSegment(parentDriver->vehicle->getCurrSegment());
 	}
 
-//	std::cout << "parentDriver->vehicle->getX():" << parentDriver->vehicle->getX() << std::endl;
-//	std::cout << "parentDriver->vehicle->getY():" << parentDriver->vehicle->getY() << std::endl;
+	//
+	//sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
+	//a->handleVHPosition(this);
 
-//	this->parent->xPos_Sim = static_cast<int>(parentDriver->vehicle->getX());
-//	this->parent->yPos_Sim = static_cast<int>(parentDriver->vehicle->getY());
+	std::cout << "AMOD_ID: " <<  getParent()->amodId << " ParentDriver->vehicle->getX():" << parentDriver->vehicle->getX() << std::endl;
+	std::cout << "AMOD_ID: " << getParent()->amodId << " ParentDriver->vehicle->getY():" << parentDriver->vehicle->getY() << std::endl;
 
-//	std::cout << "ID:" << this->parent->getId() << ",this->parent->xPos_Sim:" << this->parent->xPos_Sim << std::endl;
-//	std::cout << "this->parent->yPos_Sim:" << this->parent->yPos_Sim << std::endl;
+	//this->parent->xPos_Sim = static_cast<int>(parentDriver->vehicle->getX());
+	//this->parent->yPos_Sim = static_cast<int>(parentDriver->vehicle->getY());
+
+	//std::cout << "ID:" << this->parent->getId() << ",this->parent->xPos_Sim:" << this->parent->xPos_Sim << std::endl;
+	//std::cout << "this->parent->yPos_Sim:" << this->parent->yPos_Sim << std::endl;
 }
 
 void sim_mob::DriverMovement::frame_tick_output() {
@@ -1482,6 +1486,14 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 					path.insert( path.end(), subPath.begin(), subPath.end());
 				}
 			}
+			for(int i=0;i<path.size();++i)
+			{
+				if(path[i].type_ == WayPoint::ROAD_SEGMENT)
+				{
+					parent->amodPath.push_back(path[i]);
+				}
+			}
+
 		}//if amod path
 
 		//For now, empty paths aren't supported.

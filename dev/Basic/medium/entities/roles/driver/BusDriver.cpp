@@ -26,6 +26,13 @@ using std::map;
 using std::string;
 using std::endl;
 
+namespace
+{
+//number of dwell time parameter expected.
+//TODO: remove this constant and restructure the dwell time parameters elegantly
+const unsigned int NUM_PARAMS_DWELLTIME = 5;
+}
+
 sim_mob::medium::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::BusDriverBehavior* behavior,
 		sim_mob::medium::BusDriverMovement* movement,
@@ -147,14 +154,14 @@ void sim_mob::medium::BusDriver::openBusDoors(sim_mob::medium::BusStopAgent* bus
 		waitingTimeAtbusStop = 0.0;
 	}
 	else {
-		const std::vector<int>& paramsDwellTime =
-				MT_Config::GetInstance().getParamsDwellingTime();
-		if (paramsDwellTime.size() == NUM_PARAMS_DWELLTIME) {
-			waitingTimeAtbusStop = sim_mob::dwellTimeCalculation(totalNumber,
-					paramsDwellTime[0], paramsDwellTime[1], paramsDwellTime[2],
-					paramsDwellTime[3], paramsDwellTime[4]);
+		const std::vector<int>& dwellTimeParams =
+				MT_Config::GetInstance().getDwellTimeParams();
+		if (dwellTimeParams.size() == NUM_PARAMS_DWELLTIME) {
+			waitingTimeAtbusStop = sim_mob::calculateDwellTime(totalNumber,
+					dwellTimeParams[0], dwellTimeParams[1], dwellTimeParams[2],
+					dwellTimeParams[3], dwellTimeParams[4]);
 		} else {
-			waitingTimeAtbusStop = sim_mob::dwellTimeCalculation(totalNumber);
+			waitingTimeAtbusStop = sim_mob::calculateDwellTime(totalNumber);
 		}
 	}
 

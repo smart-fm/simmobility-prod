@@ -8,48 +8,60 @@
  */
 
 #pragma once
+#include <vector>
+#include <xercesc/dom/DOMElement.hpp>
+
 #include "conf/RawConfigFile.hpp"
-namespace sim_mob {
-namespace medium {
-const std::string MT_CONFIG_FILE = "data/medium/mt-config.xml";
-const unsigned int NUM_PARAMS_DWELLTIME = 5;
-class MT_Config : public RawConfigFile {
+
+namespace sim_mob
+{
+namespace medium
+{
+
+class MT_Config: public RawConfigFile
+{
 public:
 	MT_Config();
 	virtual ~MT_Config();
 
 	static MT_Config& GetInstance();
 
-	const std::vector<int>& getParamsDwellingTime() const;
-	const std::vector<double>& getParamsWalkSpeed() const;
+	double getPedestrianWalkSpeed() const
+	{
+		return pedestrianWalkSpeed;
+	}
+
+	const std::vector<int>& getDwellTimeParams() const
+	{
+		return dwellTimeParams;
+	}
 
 protected:
 	/**
-	 * process each node included in xml file.
-	 * @param root is a root node inside xml file
+	 * processes a node included in xml file.
+	 * @param root root node inside xml file
 	 */
 	virtual void processElement(xercesc::DOMElement* root);
+
 private:
 	/**
-	 * process each node included in xml file.
-	 * @param node is a root node inside xml file
+	 * processes dwell time element included in xml file.
+	 * @param node node corresponding to the dwell time element inside xml file
 	 */
 	void processDwellTimeElement(xercesc::DOMElement* node);
 
 	/**
-	 * process each node included in xml file.
-	 * @param node is a root node inside xml file
+	 * processes pedestrian walk speed included in xml file.
+	 * @param node node corresponding to pedestrian walk speed element inside xml file
 	 */
 	void processWalkSpeedElement(xercesc::DOMElement* node);
 
-private:
 	static MT_Config* instance;
 	/**store parameters for dwelling time calculation*/
-	std::vector<int> paramsDwellingTime;
+	std::vector<int> dwellTimeParams;
 	/**store parameters for pedestrian walking speed*/
-	std::vector<double> paramsWalkSpeed;
+	double pedestrianWalkSpeed;
 };
 }
 }
-
 

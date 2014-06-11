@@ -5,7 +5,9 @@
  *      Author: zhang
  */
 
-#include <conf/RawConfigFile.hpp>
+#include "conf/RawConfigFile.hpp"
+#include "util/XmlParseHelper.hpp"
+
 using namespace sim_mob;
 using namespace xercesc;
 namespace sim_mob {

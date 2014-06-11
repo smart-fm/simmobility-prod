@@ -73,6 +73,7 @@ timeval start_time_med;
 namespace
 {
 const int DEFAULT_NUM_THREADS_DEMAND = 2; // default number of threads for demand
+const std::string MT_CONFIG_FILE = "data/medium/mt-config.xml";
 } //End anonymous namespace
 
 //Current software version.

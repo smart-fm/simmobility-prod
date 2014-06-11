@@ -3,37 +3,39 @@
 #include <vector>
 #include <stdint.h>
 
-
 #include "message/Message.hpp"
 #include "entities/Agent.hpp"
+#include "util/Profiler.hpp"
+
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 
-
 namespace sim_mob {
-
-
 /**
  * A class designed to manage the incidents.
  * It can read the load the incidents for preday/test planning as well as en-route incidents
  */
-class IncidentManager : sim_mob::Agent {
+class IncidentManager : public sim_mob::Agent {
 	typedef boost::tuples::tuple<unsigned int, double, uint32_t> Incident; //<sectionId, flowrate, start_tick>
 	std::multimap<uint32_t,Incident> incidents;
 	typedef std::pair<std::multimap<uint32_t,Incident>::iterator, std::multimap<uint32_t,Incident>::iterator> TickIncidents;
-	std::string fileName;
+	std::string inputFile;
+	static IncidentManager * instance;
 public:
+	//debug
+	static sim_mob::Profiler profiler;
+	IncidentManager(const std::string inputFile = "");
 	/**
 	 * Set the source file name
-	 * \param fileName_ the file containing the incident information
+	 * \param inputFile_ the file containing the incident information
 	 */
-	void setFileSource(const std::string fileName_);
+	void setSourceFile(const std::string inputFile_);
 
 	/**
 	 * read the incidents from a file
 	 */
-	void readFromFile(std::string fileName);
+	void readFromFile(std::string inputFile);
 	/**
 	 * insert incidents into simulation starting in a given tick.
 	 * This can be done via defining a new flow rate to the lanes of the given segment.
@@ -49,15 +51,15 @@ public:
 	 * \param in targetRS the target road segment that is having an incident
 	 * \param out filteredPersons persons to be notified of the incident in the target roadsegment
 	 */
-	void identifyAffectedDrivers(const sim_mob::RoadSegment * targetRS,std::vector <const sim_mob::Person*> filteredPersons);
+	void identifyAffectedDrivers(const sim_mob::RoadSegment * targetRS,std::vector <const sim_mob::Person*> & filteredPersons);
 
 	bool frame_init(timeslice now);
 
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
-
-
-
-
+	virtual void frame_output(timeslice now){}
+	bool isNonspatial();
+	void load(const std::map<std::string, std::string>& configProps){}
+	static sim_mob::IncidentManager * getInstance();
 };
 
 }

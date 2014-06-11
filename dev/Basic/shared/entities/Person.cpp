@@ -297,6 +297,8 @@ void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ct
 
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {
+	//DEBUG
+	Print() << "person in [" << this->xPos << "," << this->yPos << "]" << std::endl;
 	currTick = now;
 	//TODO: Here is where it gets risky.
 	if (resetParamsRequired) {

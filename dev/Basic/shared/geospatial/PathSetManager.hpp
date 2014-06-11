@@ -255,7 +255,7 @@ public:
 	double getUtilityBySinglePath(sim_mob::SinglePath* sp);
 	std::vector<WayPoint> generateBestPathChoice2(const sim_mob::SubTrip* st);
 	std::vector<WayPoint> generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler);
-	void generateBestPathChoiceMT(const sim_mob::SubTrip* st, std::vector<WayPoint> &);
+	bool generateBestPathChoiceMT(const sim_mob::Person * per, const sim_mob::SubTrip* st, std::vector<WayPoint> &);
 	bool generateAllPathChoicesMT(PathSet* ps, Profiler & personProfiler);
 	void generateTravelTimeSinglePathes(const sim_mob::Node *fromNode,
 			   const sim_mob::Node *toNode,

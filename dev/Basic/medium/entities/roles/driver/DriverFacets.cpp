@@ -23,6 +23,7 @@
 #include "geospatial/Point2D.hpp"
 #include "geospatial/PathSetManager.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "message/MessageBus.hpp"
 
 #include "logging/Log.hpp"
 
@@ -98,13 +99,17 @@ sim_mob::medium::Driver* sim_mob::medium::DriverBehavior::getParentDriver() {
 sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	MovementFacet(parentAgent), parentDriver(nullptr), currLane(nullptr),
 	laneInNextSegment(nullptr), isQueuing(false)
-{}
+{
+	messaging::MessageBus::RegisterHandler(this);
+	}
 
 
 sim_mob::medium::DriverMovement::~DriverMovement() {}
 
 void sim_mob::medium::DriverMovement::frame_init() {
 	bool pathInitialized = initializePath();
+	//debug
+	pathMover.printPath(pathMover.getPath());
 	if (pathInitialized) {
 		Vehicle* newVehicle = new Vehicle(Vehicle::CAR, PASSENGER_CAR_UNIT);
 		VehicleBase* oldVehicle = parentDriver->getResource();
@@ -119,6 +124,11 @@ void sim_mob::medium::DriverMovement::frame_init() {
 void sim_mob::medium::DriverMovement::frame_tick() {
 	sim_mob::medium::DriverUpdateParams& params = parentDriver->getParams();
 	const sim_mob::SegmentStats* currSegStats = pathMover.getCurrSegStats();
+	//debug
+	if(sectionId != currSegStats->getRoadSegment()->getSegmentAimsunId()){
+		sectionId = currSegStats->getRoadSegment()->getSegmentAimsunId();
+		Print() << "frame:" <<  params.now.frame() << ",segment:" << sectionId << std::endl;
+	}
 	if(!currSegStats) {
 		//if currSegstats is NULL, either the driver did not find a path to his
 		//destination or his path is completed. Either way, we remove this
@@ -900,6 +910,13 @@ int DriverMovement::findReroutingPoints(const std::vector<sim_mob::SegmentStats*
 			currLink = (*startIt)->getRoadSegment()->getLink();
 		}
 	}
+	//debug
+	Print() << "There are " << res << " point of reroute for Person:" << std::endl;
+	BOOST_FOREACH(const sim_mob::Node* node,  intersections){
+		Print() << node->getID() << std::endl;
+	}
+	Print() << std::endl;
+	//debug...
 	return res;
 }
 void DriverMovement::rerout(const InsertIncidentMessage &msg){
@@ -920,23 +937,33 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 	//step-3:get a new path
 
 	std::vector<std::vector<WayPoint> > wps ;
+	wps.push_back(std::vector<WayPoint>());//add a place for new paths one-by-one
+	bool push = false;
 	BOOST_FOREACH(const sim_mob::Node* origin, intersections) {
 		//get a 'copy' of the person's current subtrip
 		SubTrip subTrip = *(getParent()->currSubTrip);
 		// change the origin
 		subTrip.fromLocation.node_ = origin;
 		// get a new path
-		wps.push_back(std::vector<WayPoint>());
-		sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(&subTrip, wps[wps.size() -1]);
+		if(push){//was the last one used?
+			wps.push_back(std::vector<WayPoint>());
+		}
+		push = sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(getParent(), &subTrip, wps[wps.size() -1]);
 	}
+	//some check: if the only place created for the first time is still empty
+	if(wps.size() == 1 && wps[0].empty()){
+		wps.clear();
+	}
+
+	Print() << wps.size() << " New paths created " << std::endl;
 }
 
 void DriverMovement::HandleMessage(messaging::Message::MessageType type,
 		const messaging::Message& message){
-	throw std::runtime_error("Reaching the medium::DriverMovement::HandleMessage");
 	switch (type){
 	case MSG_INSERT_INCIDENT:{
 		const InsertIncidentMessage &msg = MSG_CAST(InsertIncidentMessage,message);
+		Print() << "Agent Received MSG_INSERT_INCIDENT" << std::endl;
 		rerout(msg);
 		break;
 	}

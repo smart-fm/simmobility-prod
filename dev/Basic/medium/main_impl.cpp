@@ -18,6 +18,7 @@
 #include "conf/ParseConfigFile.hpp"
 #include "conf/ExpandAndValidateConfigFile.hpp"
 #include "database/DB_Connection.hpp"
+#include "entities/IncidentManager.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/Agent.hpp"
 #include "entities/BusController.hpp"
@@ -195,7 +196,13 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	if(BusController::HasBusControllers())
 	{
 		personWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
+
 	}
+	//incident
+	//	personWorkers->assignAWorker(&(IncidentManager::getInstance()));
+	personWorkers->assignAWorker(IncidentManager::getInstance());
+//	personWorkers->assignAWorker(new IncidentManager());
+	IncidentManager::getInstance()->readFromFile("/home/vahid/incidents.csv"); //todo remove hard coding
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
@@ -249,7 +256,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			{
 				msg << "  Warmup; output ignored." << endl;
 			}
-			PrintOut(msg.str());
+//			PrintOut(msg.str());
 		}
 		else
 		{

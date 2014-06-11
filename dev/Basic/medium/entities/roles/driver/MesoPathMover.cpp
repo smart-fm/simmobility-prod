@@ -136,3 +136,16 @@ void sim_mob::medium::MesoPathMover::moveFwdInSegStats(double fwdDisplacement) {
 	//Just to make sure it is so...
 	distToSegmentEnd = std::max(distToSegmentEnd, 0.0);
 }
+
+
+void sim_mob::medium::MesoPathMover::printPath(const Path &path){
+	std::ostringstream out("");
+	unsigned int id;
+	for(Path::const_iterator it = path.begin(); it != path.end(); it++){
+		if(id != (*it)->getRoadSegment()->getSegmentAimsunId()){
+			id = (*it)->getRoadSegment()->getSegmentAimsunId();
+			out << id << "," ;
+		}
+	}
+	Print() << out.str() << std::endl;
+}

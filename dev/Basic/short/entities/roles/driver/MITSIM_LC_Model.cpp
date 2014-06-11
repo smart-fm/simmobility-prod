@@ -1222,15 +1222,16 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 	// 7.0 if gap ok, then doing lane change
 	if( !p.flag(FLAG_LC_FAILED) )
 	{
-		//set status to "doing lc"
-		if(changeMode==LCS_LEFT)
-		{
-			p.setStatus(STATUS_LC_LEFT);
-		}
-		else
-		{
-			p.setStatus(STATUS_LC_RIGHT);
-		}
+		p.setStatusDoingLC(changeMode);
+//		//set status to "doing lc"
+//		if(changeMode==LCS_LEFT)
+//		{
+//			p.setStatus(STATUS_LC_LEFT);
+//		}
+//		else
+//		{
+//			p.setStatus(STATUS_LC_RIGHT);
+//		}
 //			return executionLC(changeMode);
 	}
 
@@ -1332,7 +1333,8 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 			if (bheadway > p.lcMinGap(lctype + 1) &&
 				aheadway > p.lcMinGap(lctype)) {
 //			  goto execution;
-				executionLC(changeMode);
+				//executionLC(changeMode);
+				p.setStatusDoingLC(changeMode);
 			}
 
 		  }//end of if checkNosingFeasibility

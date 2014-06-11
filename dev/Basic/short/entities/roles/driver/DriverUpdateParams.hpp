@@ -14,6 +14,7 @@
 #include <boost/random.hpp>
 #include "util/LangHelpers.hpp"
 #include "entities/signal/Signal.hpp"
+#include "entities/models/Constants.h"
 //#include "IncidentPerformer.hpp"
 //#include "entities/roles/driver/Driver.hpp"
 
@@ -174,6 +175,10 @@ public:
 	 *  /param new state
 	 */
 	void setStatus(unsigned int s);
+	/*
+	 *  /brief set status to "performing lane change"
+	 */
+	void setStatusDoingLC(LANE_CHANGE_SIDE& lcs);
 	/**
 	 *  /brief get status of the vh
 	 *  /return state

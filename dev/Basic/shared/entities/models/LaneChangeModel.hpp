@@ -130,6 +130,11 @@ public:
 	 *--------------------------------------------------------------------
 	 **/
 	LANE_CHANGE_SIDE makeLaneChangingDecision(DriverUpdateParams& p);
+	/**
+	 *  /brief this function check if can perform lane change(set status STATUS_LC_RIGHT,STATUS_LC_LEFT)
+	 *         if can not, check if can do nosing
+	 *         this function not return lateral velocity, it is conduct in executeLaterVel()
+	 */
 	double executeLaneChanging(DriverUpdateParams& p);
 //	double executionLC(LANE_CHANGE_SIDE& change);
 	/**

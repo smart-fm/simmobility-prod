@@ -623,19 +623,23 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 double sim_mob::DriverMovement::move(DriverUpdateParams& p)
 {
 	double newLatVel = 0.0; // m/s
+	LANE_CHANGE_SIDE lcs;
 	if( p.getStatus(STATUS_LC_RIGHT) )
 	{
-		newLatVel = lcModel->executeLaterVel(LCS_RIGHT);
+		lcs = LCS_RIGHT;
 	}
 	else if( p.getStatus(STATUS_LC_LEFT) )
 	{
-		newLatVel = lcModel->executeLaterVel(LCS_LEFT);
+		lcs = LCS_LEFT;
 	}
 	else
 	{
 		//seems no lc happen
-		newLatVel = 0.0;
+		lcs = LCS_SAME;
 	}
+
+	newLatVel = lcModel->executeLaterVel(lcs);
+
 	parentDriver->vehicle->setTurningDirection(lcs);
 	parentDriver->vehicle->setLatVelocity(newLatVel * METER_TO_CENTIMETER_CONVERT_UNIT);
 
@@ -2666,7 +2670,8 @@ void sim_mob::DriverMovement::updatePositionDuringLaneChange(DriverUpdateParams&
 				p.unsetFlag(FLAG_PREV_LC_RIGHT);
 			}
 			p.unsetStatus(STATUS_CHANGING);
-			p.unsetStatus(STATUS_lc_CHANGING);
+			// lane change complete, unset the "performing lane change" status
+			p.unsetStatus(STATUS_LC_CHANGING);
 			p.unsetStatus(STATUS_MANDATORY); // Angus
 			p.unsetFlag(FLAG_NOSING | FLAG_YIELDING | FLAG_LC_FAILED);
 			p.unsetFlag(FLAG_VMS_LANE_USE_BITS | FLAG_ESCAPE | FLAG_AVOID);

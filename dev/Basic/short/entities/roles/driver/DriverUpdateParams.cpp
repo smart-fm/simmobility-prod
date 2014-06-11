@@ -12,6 +12,19 @@ void DriverUpdateParams::setStatus(unsigned int s)
 {
 	status |= s;
 }
+void DriverUpdateParams::setStatusDoingLC(LANE_CHANGE_SIDE& lcs)
+{
+	if(lcs == LCS_RIGHT)
+	{
+		setStatus(STATUS_LC_RIGHT);
+	}
+	else if(lcs == LCS_LEFT)
+	{
+		setStatus(STATUS_LC_LEFT);
+	}
+
+	// else do nothing
+}
 void DriverUpdateParams::unsetStatus(unsigned int s)
 {
 	status &= ~s;

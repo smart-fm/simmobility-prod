@@ -791,7 +791,7 @@ int sim_mob::MITSIM_LC_Model::isReadyForNextDLC(DriverUpdateParams& p,int mode)
 	  if (p.flag(FLAG_PREV_LC_RIGHT) && // same direction
 		  sec > getDlcMinTimeInLaneSameDir()) {
 		return 1;
-	  } else if (sec > getDlcMinTimeInLaneDiffDir) {
+	  } else if (sec > getDlcMinTimeInLaneDiffDir()) {
 		return 1;
 	  } else {
 		return 0;
@@ -802,7 +802,7 @@ int sim_mob::MITSIM_LC_Model::isReadyForNextDLC(DriverUpdateParams& p,int mode)
 	  if (p.flag(FLAG_PREV_LC_LEFT) && // same direction
 		  sec > getDlcMinTimeInLaneSameDir()) {
 		return 1;
-	  } else if (sec > getDlcMinTimeInLaneDiffDir) {
+	  } else if (sec > getDlcMinTimeInLaneDiffDir()) {
 		return 1;
 	  } else {
 		return 0;

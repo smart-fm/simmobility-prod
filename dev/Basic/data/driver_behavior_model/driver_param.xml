@@ -173,6 +173,27 @@
    1.00	# previously yielding
 "/>
 
+# PARAMETER FOR DISCRETIONARY LANE CHANGE
 
+#[LC Discretionary Lane Change Model] = { # Do not change the order
+#	5.00	#  0 Step size for update lane speed
+#	0.50	#  1 Prob of DLC given not DLC in last step
+#	0.90	#  2 Prob of DLC given DLC in last step
+#	0.80	#  3 Impatient lowerbound
+#	1.00	#  4 Impatient upperbound
+#	0.85	#  5 Slower lead threshold
+#	0.10 	#  6 Speed threshold
+#	0.85	#  7 Acceleration threshold
+#     300.00	#  8 Speed ahead looking distancs
+#        3.00	#  9 Minimum time in lane (same direction)
+#       10.00	# 10 Minimum time in lane (different direction)
+#       10.00	# 11 Maximum speed difference between neighbor lanes (mph)
+#}
+
+#                                                                           Minimum time in lane (same direction) seconds
+<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir" value="3.00"/>
+
+#                                                 Minimum time in lane (different direction) seconds
+<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir" value="10.00"/>
 </parameters>
 

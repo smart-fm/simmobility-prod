@@ -627,6 +627,11 @@ void sim_mob::MITSIM_LC_Model::initParam(DriverUpdateParams& p)
 
 	//LC Yielding Model
 	ParameterManager::Instance()->param(modelName,"LC_Yielding_Model",str,string("0.80 1.0"));
+
+	//minTimeInLaneSameDir
+	ParameterManager::Instance()->param(modelName,"LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir",minTimeInLaneSameDir,3.0);
+	//minTimeInLaneDiffDir
+	ParameterManager::Instance()->param(modelName,"LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir",minTimeInLaneDiffDir,10.0);
 }
 void sim_mob::MITSIM_LC_Model::makeMCLParam(std::string& str)
 {
@@ -718,6 +723,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	int nCurrent = 100; // number of lane changes required for the current lane.
 
 
+	// computer number of lane changes to right,left,current
 	for (int i = 0; i < connectedLanes.size(); i++) {
 
 	 int numlcRight  = abs (getLaneIndex(connectedLanes[i]) -  (p.currLaneIndex+1)) ;
@@ -735,20 +741,12 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 
 	for(int i=0;i<connectedLanes.size();i++)
 	{
-		if ((isReadyForNextDLC(2) || nCurrent ) &&
-			  (plane = lane_->left()) &&
-			  (!flag(FLAG_VMS_LANE_USE_RIGHT) ||
-			   plane->localIndex() > VmsLaneUsePivotToIndex(flag())) &&
-			  (rules & LANE_CHANGE_LEFT ||
-			   !attr(ATTR_GLC_RULE_COMPLY)) &&
-			   tlane->isThereBadEventAhead(this) >= 0) {
 
-		}
-		if(p.leftLane == connectedLanes[i])
+		if(isReadyForNextDLC(p,2) && p.leftLane == connectedLanes[i])
 		{
 			eul = lcUtilityLookAheadLeft(p, nLeft, lcDistance);
 		}
-		if(p.rightLane == connectedLanes[i])
+		if(isReadyForNextDLC(p,1) && p.rightLane == connectedLanes[i])
 		{
 			eur = lcUtilityLookAheadRight(p, nRight, lcDistance);
 		}
@@ -782,6 +780,36 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 
 
 	return change;
+}
+int sim_mob::MITSIM_LC_Model::isReadyForNextDLC(DriverUpdateParams& p,int mode)
+{
+  float sec = timeSinceTagged(p);
+
+  switch(mode) {
+  case 1:			// request a change to the right
+	{
+	  if (p.flag(FLAG_PREV_LC_RIGHT) && // same direction
+		  sec > getDlcMinTimeInLaneSameDir()) {
+		return 1;
+	  } else if (sec > getDlcMinTimeInLaneDiffDir) {
+		return 1;
+	  } else {
+		return 0;
+	  }
+	}
+  case 2:			// request a change to the left
+	{
+	  if (p.flag(FLAG_PREV_LC_LEFT) && // same direction
+		  sec > getDlcMinTimeInLaneSameDir()) {
+		return 1;
+	  } else if (sec > getDlcMinTimeInLaneDiffDir) {
+		return 1;
+	  } else {
+		return 0;
+	  }
+	}
+  }
+  return sec > getDlcMinTimeInLaneSameDir();
 }
 double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance)
 {
@@ -1526,7 +1554,7 @@ double sim_mob::MITSIM_LC_Model::executeLaterVel(LANE_CHANGE_SIDE& change)
 double sim_mob::MITSIM_LC_Model::timeSinceTagged(DriverUpdateParams& p)
 {
 	double currentTime = p.now.ms();
-	double t = currentTime = p.lcTimeTag;
+	double t = (currentTime - p.lcTimeTag) / 1000.0;// convert ms to s
 	return t;
 }
 bool sim_mob::MITSIM_LC_Model::path(DriverUpdateParams& p)

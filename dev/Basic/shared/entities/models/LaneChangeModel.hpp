@@ -136,6 +136,12 @@ public:
 	 *         this function not return lateral velocity, it is conduct in executeLaterVel()
 	 */
 	double executeLaneChanging(DriverUpdateParams& p);
+	int isReadyForNextDLC(DriverUpdateParams& p,int mode);
+
+	double minTimeInLaneSameDir;
+	double getDlcMinTimeInLaneSameDir() { return minTimeInLaneSameDir; }
+	double minTimeInLaneDiffDir;
+	double getDlcMinTimeInLaneDiffDir() { return minTimeInLaneDiffDir; }
 //	double executionLC(LANE_CHANGE_SIDE& change);
 	/**
 	 *  /return lateral velocity (m/s)

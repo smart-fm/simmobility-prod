@@ -129,14 +129,18 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 
 		//probability function(for now, just behave like tossing a coin
 		//todo, move to a method, probably inside a person
-		if(var_nor() > 0){
-			//this person willbe informed
+		bool dist = true; //use normal distribution to select only 'some' of the drivers
+		if (dist) {
+			if (var_nor() > 0) {
+				//this person willbe informed
+				filteredPersons.push_back(per);
+				Print() << "Person" << per->getId() << " selected" << std::endl;
+			} else {
+				Print() << "Person" << per->getId() << " discarded"
+						<< std::endl;
+			}
+		} else {
 			filteredPersons.push_back(per);
-			Print() << "Person" << per->getId() << " selected" << std::endl;
-		}
-		else
-		{
-			Print() << "Person" << per->getId() << " discarded" << std::endl;
 		}
 	}//RPOD
 }

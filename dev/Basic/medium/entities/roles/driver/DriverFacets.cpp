@@ -32,6 +32,8 @@
 #include "partitions/ParitionDebugOutput.hpp"
 
 #include "util/DebugFlags.hpp"
+
+#include "boost/foreach.hpp"
 using namespace sim_mob;
 using namespace sim_mob::medium;
 using std::max;
@@ -901,7 +903,6 @@ int DriverMovement::findReroutingPoints(const std::vector<sim_mob::SegmentStats*
 	return res;
 }
 void DriverMovement::rerout(const InsertIncidentMessage &msg){
-//	PathSetManager::getInstance()->getPathByPerson()
 	//step-1 can I rerout? if yes, what are my points of rerout?
 		//criterion-1 at least 1 intersection from where the agent is, to the troubled roadsegment
 	std::vector<const sim_mob::Node*> intersections = std::vector<const sim_mob::Node*>();
@@ -910,6 +911,7 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 	if(!numReRoute){
 		return;
 	}
+
 	//step-2 do I 'want' to reroute? yes you do, for now
 	if(!wantReRoute()){
 		return;
@@ -917,6 +919,16 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 
 	//step-3:get a new path
 
+	std::vector<std::vector<WayPoint> > wps ;
+	BOOST_FOREACH(const sim_mob::Node* origin, intersections) {
+		//get a 'copy' of the person's current subtrip
+		SubTrip subTrip = *(getParent()->currSubTrip);
+		// change the origin
+		subTrip.fromLocation.node_ = origin;
+		// get a new path
+		wps.push_back(std::vector<WayPoint>());
+		sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(&subTrip, wps[wps.size() -1]);
+	}
 }
 
 void DriverMovement::HandleMessage(messaging::Message::MessageType type,

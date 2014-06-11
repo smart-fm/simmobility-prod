@@ -5,14 +5,11 @@
 #include "ParseConfigFile.hpp"
 
 #include <sstream>
-
-#include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <xercesc/dom/DOM.hpp>
-#include <xercesc/sax/HandlerBase.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
 
 #include "conf/RawConfigParams.hpp"
 #include "conf/ConfigManager.hpp"
@@ -21,7 +18,7 @@
 #include "util/GeomHelpers.hpp"
 #include "util/XmlParseHelper.hpp"
 
-namespace sim_mob{
+namespace {
 SystemParams::NetworkSource ParseNetSourceEnum(const XMLCh* srcX, SystemParams::NetworkSource* defValue) {
 	if (srcX) {
 		std::string src = TranscodeString(srcX);
@@ -176,66 +173,12 @@ const double MILLISECONDS_IN_SECOND = 1000.0;
 } //End un-named namespace
 
 
-sim_mob::ParseConfigFile::ParseConfigFile(const std::string& configFileName, RawConfigParams& result) : cfg(result), inFilePath(configFileName)
+sim_mob::ParseConfigFile::ParseConfigFile(const std::string& configFileName, RawConfigParams& result) : cfg(result), ParseConfigXmlBase(configFileName)
 {
-	ParseXmlAndProcess();
+	parseXmlAndProcess();
 }
 
-void sim_mob::ParseConfigFile::ParseXmlAndProcess()
-{
-	//NOTE: I think the order of destruction matters (parser must be listed last). ~Seth
-	InitXerces();
-	HandlerBase handBase;
-	XercesDOMParser parser;
-
-	//Attempt to parse it.
-	std::string errorMsg = ParseXmlFile(parser, dynamic_cast<ErrorHandler&>(handBase));
-
-	//If there's an error, throw it as an exception.
-	if (!errorMsg.empty()) {
-		throw std::runtime_error(errorMsg.c_str());
-	}
-
-	//Now process it.
-	ProcessXmlFile(parser);
-}
-
-void sim_mob::ParseConfigFile::InitXerces()
-{
-	//Xerces initialization.
-	try {
-		XMLPlatformUtils::Initialize();
-	} catch (const XMLException& error) {
-		throw std::runtime_error(TranscodeString(error.getMessage()).c_str());
-	}
-}
-
-std::string sim_mob::ParseConfigFile::ParseXmlFile(XercesDOMParser& parser, ErrorHandler& errorHandler)
-{
-	//Build a parser, set relevant properties on it.
-	parser.setValidationScheme(XercesDOMParser::Val_Always);
-	parser.setDoNamespaces(true); //This is optional.
-
-	//Set an error handler.
-	parser.setErrorHandler(&errorHandler);
-
-	//Attempt to parse the XML file.
-	try {
-		parser.parse(inFilePath.c_str());
-	} catch (const XMLException& error) {
-		return TranscodeString(error.getMessage());
-	} catch (const DOMException& error) {
-		return TranscodeString(error.getMessage());
-	} catch (...) {
-		return "Unexpected Exception parsing config file.\n" ;
-	}
-
-	//No error.
-	return "";
-}
-
-
-void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
+void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 {
 	//Verify that the root node is "config"
 	DOMElement* rootNode = parser.getDocument()->getDocumentElement();

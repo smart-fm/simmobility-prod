@@ -2,14 +2,65 @@
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
 
 <config>
-		<!-- these parameters are used to calculate dwell time of buses at bus stops-->
-		<!-- these parameters will be organized in a better way after finding the meaning of these numbers -->
-        <dwelling_time_parameters>
-        	<!--parameters : A, B, deltaBay, deltaFull, P_Front-->
-            <parameters value="1, 1, 1, 0, 0"/>
-         </dwelling_time_parameters>  
+		<!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
+		<!-- Admissible values are "none", "demand", "supply" and "demand+supply". --> 
+		<mid_term_run_mode value="supply"/>
+        
+        <!-- config specific to supply simulator -->    		
+		<supply>
+        		<!-- these parameters are used to calculate dwell time of buses at bus stops-->
+        		<!-- these parameters will be organized in a better way after finding the meaning of these numbers -->
+        		<dwelling_time_parameters>
+                		<!--parameters : A, B, deltaBay, deltaFull, P_Front-->
+                		<parameters value="1, 1, 1, 0, 0"/>
+        		</dwelling_time_parameters>  
          
-         <!-- pedestrian walking speed in cm/s (approximately 5 km/h)-->
-         <pedestrian_walk_speed value="135"/>
+        		<!-- pedestrian walking speed in cm/s (approximately 5 km/h)-->
+        		<pedestrian_walk_speed value="135"/>
+		</supply>
+		
+		<!-- config specific to preday simulator -->
+        <preday>
+                <!-- Number of threads to create for processing the population in-->
+                <!-- the preday demand simulator -->
+                <threads value="3"/>
+                
+                <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+                        <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
+                        <script name="dp" file="dp.lua"/> <!-- Day Pattern -->
+                        <script name="ntw" file="ntw.lua"/> <!-- Number Of Tours Work -->
+                        <script name="nte" file="nte.lua"/> <!-- Number Of Tours Education -->
+                        <script name="nts" file="nts.lua"/> <!--Number Of Tours Shopping -->
+                        <script name="nto" file="nto.lua"/> <!--Number Of Tours Others -->
+                        <script name="uw" file="uw.lua"/> <!--Attend Usual Work -->
+                        <script name="tmw" file="tmw.lua"/> <!--Tour Mode Work -->
+                        <script name="tme" file="tme.lua"/> <!--Tour Mode Education -->
+                        <script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->
+                        <script name="tmds" file="tmds.lua"/> <!--Tour Mode/Destination Shopping -->
+                        <script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->
+                        <script name="tws" file="tws.lua"/> <!--Work Based Sub-Tours -->
+                        <script name="ttdw" file="ttdw.lua"/> <!--Tour Time Of Day Work -->
+                        <script name="ttdo" file="ttdo.lua"/> <!--Tour Time Of Day Others -->
+                        <script name="ttde" file="ttde.lua"/> <!--Tour Time Of Day Education -->
+                        <script name="isg" file="isg.lua"/> <!--Intermediate Stop Generation -->
+                        <script name="imd" file="imd.lua"/> <!--Intermediate Stop Mode/Destination -->
+                        <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->
+                </model_scripts>
+                
+                <!-- Names of MongoDB database and collections -->
+                <mongo_collections db_name="mydb">
+                        <mongo_collection name="population" collection="hits_population"/>
+                        <mongo_collection name="tcost_bus" collection="tcost_bus"/>
+                        <mongo_collection name="tcost_car" collection="tcost_car"/>
+                        <mongo_collection name="AMCosts" collection="AMCosts"/>
+                        <mongo_collection name="OPCosts" collection="OPCosts"/>
+                        <mongo_collection name="PMCosts" collection="PMCosts"/>
+                        <mongo_collection name="Zone" collection="Zone"/>
+                        <mongo_collection name="zone_node" collection="zone_aimsunnode_mapping"/>
+                        <mongo_collection name="Output_DayPattern" collection="person_tours_cpp_11_3"/>
+                        <mongo_collection name="Output_Tour" collection="tours_cpp_11_3"/>
+                        <mongo_collection name="Output_Activity" collection="activity_cpp_11_3"/>
+                </mongo_collections>
+        </preday>
 </config>
 

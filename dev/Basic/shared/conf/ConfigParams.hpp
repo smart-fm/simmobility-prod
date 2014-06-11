@@ -238,6 +238,15 @@ private:
 	std::set<sim_mob::SegmentStats*> segmentStatsWithBusStops;
 	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*> multinode_confluxes; //map <MultiNode*, Conflux*>
 
+	enum MidTermRunMode
+	{
+		NONE,
+		SUPPLY,
+		PREDAY
+	};
+
+	MidTermRunMode midTermRunMode;
+
 public:
 	/////////////////////////////////////////////////////////////////////////////////////
 	//These are helper functions, to make compatibility between old/new parsing easier.

@@ -47,6 +47,7 @@
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
 #include "config/MT_Config.hpp"
+#include "config/ParseMidTermConfigFile.hpp"
 
 
 //If you want to force a header file to compile, you can put it here temporarily:
@@ -407,8 +408,8 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	//Parse the config file (this *does not* create anything, it just reads it.).
 	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
 
-	//load configuration file for all kinds of parameters
-	MT_Config::GetInstance().parseConfigFile(MT_CONFIG_FILE);
+	//load configuration file for mid-term
+	ParseMidTermConfigFile parseMT_Cfg(MT_CONFIG_FILE, MT_Config::GetInstance());
 
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.

@@ -11,9 +11,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/tss.hpp>
 
-#include "conf/ConfigManager.hpp"
-#include "conf/ConfigParams.hpp"
-#include "conf/RawConfigParams.hpp"
+#include "config/MT_Config.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -30,8 +28,7 @@ namespace {
     void ensureContext() {
         if (!threadContext.get()) {
         	try {
-				std::string externalScriptsId = ConfigManager::GetInstance().FullConfig().system.genericProps.at("external_scripts");
-				ExternalScriptsMap extScripts = ConfigManager::GetInstance().FullConfig().constructs.externalScriptsMap.at(externalScriptsId);
+				const ModelScriptsMap& extScripts = MT_Config::GetInstance().getModelScriptsMap();
 				ModelContext* modelCtx = new ModelContext();
 				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("logit"));
 				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("dp"));

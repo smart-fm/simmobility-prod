@@ -12,7 +12,12 @@ namespace sim_mob
 {
 namespace medium
 {
-MT_Config::MT_Config() : pedestrianWalkSpeed(0) {}
+
+ModelScriptsMap::ModelScriptsMap(const std::string& scriptFilesPath, const std::string& scriptsLang) : path(scriptFilesPath), scriptLanguage(scriptsLang) {}
+
+MongoCollectionsMap::MongoCollectionsMap(const std::string& dbName) : dbName(dbName) {}
+
+MT_Config::MT_Config() : pedestrianWalkSpeed(0), numPredayThreads(0) {}
 
 MT_Config::~MT_Config() {}
 

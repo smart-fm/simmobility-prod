@@ -18,10 +18,16 @@
 using namespace sim_mob;
 using namespace xercesc;
 
-namespace sim_mob {
-ParseConfigXmlBase::ParseConfigXmlBase(const std::string& configFileName) : inFilePath(configFileName) {}
+namespace sim_mob
+{
+ParseConfigXmlBase::ParseConfigXmlBase(const std::string& configFileName) :
+		inFilePath(configFileName)
+{
+}
 
-ParseConfigXmlBase::~ParseConfigXmlBase() {}
+ParseConfigXmlBase::~ParseConfigXmlBase()
+{
+}
 
 void sim_mob::ParseConfigXmlBase::parseXmlAndProcess()
 {
@@ -34,7 +40,8 @@ void sim_mob::ParseConfigXmlBase::parseXmlAndProcess()
 	std::string errorMsg = parseXmlFile(parser, dynamic_cast<ErrorHandler&>(handBase));
 
 	//If there's an error, throw it as an exception.
-	if (!errorMsg.empty()) {
+	if (!errorMsg.empty())
+	{
 		throw std::runtime_error(errorMsg.c_str());
 	}
 
@@ -45,9 +52,11 @@ void sim_mob::ParseConfigXmlBase::parseXmlAndProcess()
 void ParseConfigXmlBase::initXerces()
 {
 	//Xerces initialization.
-	try {
+	try
+	{
 		XMLPlatformUtils::Initialize();
-	} catch (const XMLException& error) {
+	} catch (const XMLException& error)
+	{
 		throw std::runtime_error(TranscodeString(error.getMessage()).c_str());
 	}
 }
@@ -62,14 +71,18 @@ std::string ParseConfigXmlBase::parseXmlFile(XercesDOMParser& parser, ErrorHandl
 	parser.setErrorHandler(&errorHandler);
 
 	//Attempt to parse the XML file.
-	try {
+	try
+	{
 		parser.parse(inFilePath.c_str());
-	} catch (const XMLException& error) {
+	} catch (const XMLException& error)
+	{
 		return TranscodeString(error.getMessage());
-	} catch (const DOMException& error) {
+	} catch (const DOMException& error)
+	{
 		return TranscodeString(error.getMessage());
-	} catch (...) {
-		return "Unexpected Exception parsing config file.\n" ;
+	} catch (...)
+	{
+		return "Unexpected Exception parsing config file.\n";
 	}
 
 	//No error.

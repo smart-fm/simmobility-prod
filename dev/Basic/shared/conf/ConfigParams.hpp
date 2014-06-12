@@ -286,6 +286,7 @@ public:
 	///Whether configuration has been set to run mid-term supply or demand. Used for runtime checks
 	bool RunningMidSupply() const;
 	bool RunningMidDemand() const;
+	void setMidTermRunMode(const std::string& runMode);
 
 	///If loading the network from an XML file, which file? Empty=private/SimMobilityInput.xml
 	std::string& networkXmlInputFile();

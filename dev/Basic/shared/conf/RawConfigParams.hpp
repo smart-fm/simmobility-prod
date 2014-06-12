@@ -130,9 +130,6 @@ public:
 	std::map<std::string, Database> databases;
 	std::map<std::string, StoredProcedureMap> procedureMaps;
 	std::map<std::string, Credential> credentials;
-	std::map<std::string, ExternalScriptsMap> externalScriptsMap;
-	std::map<std::string, MongoCollectionsMap> mongoCollectionsMap;
-
 };
 
 

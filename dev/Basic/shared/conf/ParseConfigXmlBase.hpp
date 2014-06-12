@@ -13,7 +13,8 @@
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/sax/ErrorHandler.hpp>
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 /**
  * Base class for xml config parsers
@@ -40,15 +41,28 @@ protected:
 	 */
 	void parseXmlAndProcess();
 
+	/**
+	 * Perform per-process parser initialization
+	 */
 	void initXerces();
 
+	/**
+	 * parse xml file
+	 * @param parser the parser to parse the xml
+	 * @param errorHandler error handler in case of errors
+	 * @return empty string in case of no errors; the error message other wise
+	 */
 	std::string parseXmlFile(xercesc::XercesDOMParser& parser, xercesc::ErrorHandler& errorHandler);
 
+	/**
+	 * pure virtual function to override in derived classes.
+	 * code for processing the respective xml must be written in this function in the derived classes
+	 * @param parser reference to parser after parsing the xml
+	 */
 	virtual void processXmlFile(xercesc::XercesDOMParser& parser) = 0;
 
 	/**The path of the file we are loading our configuration from.*/
 	std::string inFilePath;
 };
 }
-
 

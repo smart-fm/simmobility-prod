@@ -413,6 +413,23 @@ bool sim_mob::ConfigParams::RunningMidDemand() const {
 	return (midTermRunMode == ConfigParams::PREDAY);
 }
 
+void sim_mob::ConfigParams::setMidTermRunMode(const std::string& runMode)
+{
+	if(runMode.empty()) { return; }
+	if(runMode == "supply")
+	{
+		midTermRunMode = ConfigParams::SUPPLY;
+	}
+	else if (runMode == "preday")
+	{
+		midTermRunMode = ConfigParams::PREDAY;
+	}
+	else
+	{
+		throw std::runtime_error("inadmissible value for mid_term_run_mode. Must be either 'supply' or 'preday'");
+	}
+}
+
 unsigned int sim_mob::ConfigParams::communicationTimeStepInMilliSeconds() const
 {
 	return system.workers.communication.granularityMs;

@@ -332,8 +332,6 @@ void sim_mob::ParseConfigFile::ProcessConstructsNode(xercesc::DOMElement* node)
 	ProcessConstructDatabasesNode(GetSingleElementByName(node, "databases"));
 	ProcessConstructDbProcGroupsNode(GetSingleElementByName(node, "db_proc_groups"));
 	ProcessConstructCredentialsNode(GetSingleElementByName(node, "credentials"));
-	ProcessConstructExternalScriptsNode(GetSingleElementByName(node, "external_scripts"));
-	ProcessConstructMongoCollectionsNode(GetSingleElementByName(node, "mongo_collections"));
 }
 
 
@@ -439,66 +437,6 @@ void sim_mob::ParseConfigFile::ProcessConstructCredentialsNode(xercesc::DOMEleme
 		cfg.constructs.credentials[cred.getId()] = cred;
 	}
 }
-
-void sim_mob::ParseConfigFile::ProcessConstructExternalScriptsNode(xercesc::DOMElement* node)
-{
-	std::string id = ParseString(GetNamedAttributeValue(node, "id"), "");
-	if(id.empty()) {
-		throw std::runtime_error("id cannot be empty. Check external_scripts node.");
-	}
-
-	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
-	if(format.empty() || format != "lua") {
-		throw std::runtime_error("Unsupported script format");
-	}
-
-	std::string scriptsDirectoryPath = ParseString(GetNamedAttributeValue(node, "path"), "");
-	if (scriptsDirectoryPath.empty()) {
-		throw std::runtime_error("path to scripts is not provided");
-	}
-	if((*scriptsDirectoryPath.rbegin()) != '/') {
-		//add a / to the end of the path string if it is not already there
-		scriptsDirectoryPath.push_back('/');
-	}
-	ExternalScriptsMap sm(id, scriptsDirectoryPath , format);
-	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
-		std::string name = TranscodeString(item->getNodeName());
-		if (name!="script") {
-			Warn() <<"Invalid db_proc_groups child node.\n";
-			continue;
-		}
-
-		std::string key = ParseString(GetNamedAttributeValue(item, "name"), "");
-		std::string val = ParseString(GetNamedAttributeValue(item, "file"), "");
-		if (key.empty() || val.empty()) {
-			Warn() <<"Invalid script; missing \"name\" or \"file\".\n";
-			continue;
-		}
-
-		sm.scriptFileName[key] = val;
-	}
-	cfg.constructs.externalScriptsMap[sm.getId()] = sm;
-}
-
-void sim_mob::ParseConfigFile::ProcessConstructMongoCollectionsNode(xercesc::DOMElement* node) {
-	MongoCollectionsMap mongoColls(ParseString(GetNamedAttributeValue(node, "id"), ""), ParseString(GetNamedAttributeValue(node, "db_name"), ""));
-	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
-		std::string name = TranscodeString(item->getNodeName());
-		if (name!="mongo_collection") {
-				Warn() <<"Invalid db_proc_groups child node.\n";
-				continue;
-		}
-		std::string key = ParseString(GetNamedAttributeValue(item, "name"), "");
-		std::string val = ParseString(GetNamedAttributeValue(item, "collection"), "");
-		if (key.empty() || val.empty()) {
-			Warn() <<"Invalid mongo_collection; missing \"name\" or \"collection\".\n";
-			continue;
-		}
-		mongoColls.collectionName[key] = val;
-	}
-	cfg.constructs.mongoCollectionsMap[mongoColls.getId()] = mongoColls;
-}
-
 
 void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* node)
 {

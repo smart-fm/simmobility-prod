@@ -3,17 +3,17 @@
 
 <config>
 		<!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
-		<!-- Admissible values are "none", "demand", "supply" and "demand+supply". --> 
+		<!-- Admissible values are "preday" and "supply". --> 
 		<mid_term_run_mode value="supply"/>
         
         <!-- config specific to supply simulator -->    		
 		<supply>
         		<!-- these parameters are used to calculate dwell time of buses at bus stops-->
         		<!-- these parameters will be organized in a better way after finding the meaning of these numbers -->
-        		<dwelling_time_parameters>
+        		<dwell_time_parameters>
                 		<!--parameters : A, B, deltaBay, deltaFull, P_Front-->
                 		<parameters value="1, 1, 1, 0, 0"/>
-        		</dwelling_time_parameters>  
+        		</dwell_time_parameters>  
          
         		<!-- pedestrian walking speed in cm/s (approximately 5 km/h)-->
         		<pedestrian_walk_speed value="135"/>

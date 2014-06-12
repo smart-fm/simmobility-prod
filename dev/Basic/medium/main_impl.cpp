@@ -40,6 +40,7 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/Lane.hpp"
 #include "logging/Log.hpp"
+#include "partitions/PartitionManager.hpp"
 #include "util/DailyTime.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Utils.hpp"
@@ -47,13 +48,12 @@
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
 #include "config/MT_Config.hpp"
+#include "config/ParseMidTermConfigFile.hpp"
+
 
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
-
-//add by xuyan
-#include "partitions/PartitionManager.hpp"
 
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if output is disabled.
@@ -72,7 +72,6 @@ timeval start_time_med;
 
 namespace
 {
-const int DEFAULT_NUM_THREADS_DEMAND = 2; // default number of threads for demand
 const std::string MT_CONFIG_FILE = "data/medium/mt-config.xml";
 } //End anonymous namespace
 
@@ -407,8 +406,8 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	//Parse the config file (this *does not* create anything, it just reads it.).
 	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
 
-	//load configuration file for all kinds of parameters
-	MT_Config::GetInstance().parseConfigFile(MT_CONFIG_FILE);
+	//load configuration file for mid-term
+	ParseMidTermConfigFile parseMT_Cfg(MT_CONFIG_FILE, MT_Config::GetInstance(), ConfigManager::GetInstanceRW().FullConfig());
 
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
@@ -427,21 +426,6 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		Print::Ignore();
 	}
 
-	try
-	{
-		ConfigManager::GetInstance().FullConfig().system.genericProps.at("mid_term_run_mode");
-	}
-	catch (const std::out_of_range& oorx)
-	{
-		throw std::runtime_error("missing mandatory property 'mid_term_run_mode'");
-	}
-
-	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()
-			&& ConfigManager::GetInstance().FullConfig().RunningMidDemand())
-	{
-		throw std::runtime_error("Mid-term run mode \"demand+supply\" is not supported yet. Please run demand and supply separately.");
-	}
-
 	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply())
 	{
 		Print() << "Mid-term run mode: supply" << endl;
@@ -450,23 +434,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	else if (ConfigManager::GetInstance().FullConfig().RunningMidDemand())
 	{
 		Print() << "Mid-term run mode: demand" << endl;
-		int numThreads = DEFAULT_NUM_THREADS_DEMAND;
-		try
-		{
-			std::string numThreadsStr = ConfigManager::GetInstanceRW().FullConfig().system.genericProps.at("demand_threads");
-			numThreads = std::atoi(numThreadsStr.c_str());
-			if(numThreads < 1)
-			{
-				throw std::runtime_error("inadmissible number of threads specified. Please check generic property 'demand_threads'");
-			}
-		}
-		catch (const std::out_of_range& oorx)
-		{
-			Print() << "generic property 'demand_threads' was not specified."
-					<< " Defaulting to " << numThreads << " threads."
-					<< endl;
-		}
-		return performMainDemand(numThreads);
+		return performMainDemand(MT_Config::GetInstance().getNumPredayThreads());
 	}
 	else
 	{

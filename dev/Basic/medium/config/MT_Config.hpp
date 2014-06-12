@@ -8,17 +8,36 @@
  */
 
 #pragma once
+#include <string>
+#include <map>
 #include <vector>
-#include <xercesc/dom/DOMElement.hpp>
 
-#include "conf/RawConfigFile.hpp"
-
+#include "util/ProtectedCopyable.hpp"
 namespace sim_mob
 {
 namespace medium
 {
 
-class MT_Config: public RawConfigFile
+class ModelScriptsMap
+{
+public:
+	ModelScriptsMap(const std::string& scriptFilesPath = "", const std::string& scriptsLang = "");
+
+	std::string path;
+	std::string scriptLanguage;
+	std::map<std::string, std::string> scriptFileName; //key=>value
+};
+
+class MongoCollectionsMap
+{
+public:
+	MongoCollectionsMap(const std::string& dbName = "");
+
+	std::string dbName;
+	std::map<std::string, std::string> collectionName; //key=>value
+};
+
+class MT_Config : private sim_mob::ProtectedCopyable
 {
 public:
 	MT_Config();
@@ -31,36 +50,58 @@ public:
 		return pedestrianWalkSpeed;
 	}
 
-	const std::vector<int>& getDwellTimeParams() const
+	std::vector<int>& getDwellTimeParams()
 	{
 		return dwellTimeParams;
 	}
 
-protected:
-	/**
-	 * processes a node included in xml file.
-	 * @param root root node inside xml file
-	 */
-	virtual void processElement(xercesc::DOMElement* root);
+	void setPedestrianWalkSpeed(double pedestrianWalkSpeed)
+	{
+		this->pedestrianWalkSpeed = pedestrianWalkSpeed;
+	}
+
+	unsigned getNumPredayThreads() const
+	{
+		return numPredayThreads;
+	}
+
+	void setNumPredayThreads(unsigned numPredayThreads)
+	{
+		this->numPredayThreads = numPredayThreads;
+	}
+
+	const ModelScriptsMap& getModelScriptsMap() const
+	{
+		return modelScriptsMap;
+	}
+
+	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap)
+	{
+		this->modelScriptsMap = modelScriptsMap;
+	}
+
+	const MongoCollectionsMap& getMongoCollectionsMap() const
+	{
+		return mongoCollectionsMap;
+	}
+
+	void setMongoCollectionsMap(const MongoCollectionsMap& mongoCollectionsMap)
+	{
+		this->mongoCollectionsMap = mongoCollectionsMap;
+	}
 
 private:
-	/**
-	 * processes dwell time element included in xml file.
-	 * @param node node corresponding to the dwell time element inside xml file
-	 */
-	void processDwellTimeElement(xercesc::DOMElement* node);
-
-	/**
-	 * processes pedestrian walk speed included in xml file.
-	 * @param node node corresponding to pedestrian walk speed element inside xml file
-	 */
-	void processWalkSpeedElement(xercesc::DOMElement* node);
-
 	static MT_Config* instance;
 	/**store parameters for dwelling time calculation*/
 	std::vector<int> dwellTimeParams;
 	/**store parameters for pedestrian walking speed*/
 	double pedestrianWalkSpeed;
+	/**num of threads to run for preday*/
+	unsigned numPredayThreads;
+	/**container for lua scripts*/
+	ModelScriptsMap modelScriptsMap;
+	/**container for mongo collections*/
+	MongoCollectionsMap mongoCollectionsMap;
 };
 }
 }

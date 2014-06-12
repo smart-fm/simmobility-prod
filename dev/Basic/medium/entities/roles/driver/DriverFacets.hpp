@@ -289,15 +289,16 @@ protected:
 			double segmentExitTimeSec);
 	/**
 	 * get number of intersections from the agent's location to incident location
-	 * \param in stats incident roadsegemnt stats
-	 * \param intersections out list of intersections
-	 * \param distance out travel distance between agent and incident locations
+	 * \param in list of stats in the incident roadsegemnt
+	 * \param intersections out list of intersections suggested as re-routing points
+	 * \param remaining lists of segstats from the original path which are remaining to reach to each of the suggested re-routing point
 	 * return the number of intersections
 	 */
-	int findReroutingPoints(const std::vector<sim_mob::SegmentStats*>& stats, std::vector<const sim_mob::Node*> & intersections, centimeter_t & distance) const;
+	int findReroutingPoints(const std::vector<sim_mob::SegmentStats*>& stats, std::vector<const sim_mob::Node*> & intersections,
+			std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > & remaining) const;
 	bool wantReRoute(){return true;};//placeholder
 	/**
-	 * initiate changing the path
+	 * Changes the Travel Path based on the incident information
 	 * \param in msg incident information(roadsegment and flow rate)
 	 * \param newFlowRate new flow rate supplied to lanes
 	 */

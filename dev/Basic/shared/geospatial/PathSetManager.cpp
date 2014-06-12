@@ -804,7 +804,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 //if not found in cache, check DB
 //if not found in DB, generate all 4 types of path
 //choose the best path using utility function
-bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::Person * per, const sim_mob::SubTrip* st, std::vector<WayPoint> & wp){
+std::vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::Person * per, const sim_mob::SubTrip* st){
 	//you may need to double check your database connection
 	Worker *worker = (Worker*)per->currWorkerProvider;
 	if(worker)
@@ -817,12 +817,9 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::Person * p
 	}
 	Profiler profiler;
 	//call the default method
-	wp = generateBestPathChoiceMT(st, profiler);
-	if(wp.empty()){
-		return false;
-	}
-	return true;
+	return generateBestPathChoiceMT(st, profiler);
 }
+
 vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler)
 {
 	vector<WayPoint> res;

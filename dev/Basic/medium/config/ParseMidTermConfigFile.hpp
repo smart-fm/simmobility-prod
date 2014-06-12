@@ -2,12 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * ParseMidTermConfigFile.hpp
- *
- *  Created on: Jun 11, 2014
- *      Author: smart-fm
- */
 #pragma once
 
 #include <boost/noncopyable.hpp>

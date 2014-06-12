@@ -17,7 +17,12 @@ ModelScriptsMap::ModelScriptsMap(const std::string& scriptFilesPath, const std::
 
 MongoCollectionsMap::MongoCollectionsMap(const std::string& dbName) : dbName(dbName) {}
 
-MT_Config::MT_Config() : pedestrianWalkSpeed(0), numPredayThreads(0) {}
+PredayCalibrationParams::PredayCalibrationParams() :
+	iterationLimit(0), tolerance(0), pertubationStepSizeConst(0), pertubationStepSizeExponent(0),
+	stepSizeConst(0), stepSizeExponent(0)
+{}
+
+MT_Config::MT_Config() : pedestrianWalkSpeed(0), numPredayThreads(0), predayCalibrationMode(false), configSealed(false) {}
 
 MT_Config::~MT_Config() {}
 

@@ -41,6 +41,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 	{
 		processPredayNode(GetSingleElementByName(rootNode, "preday", true));
 	}
+	mtCfg.sealConfig(); //no more updation in mtConfig
 }
 
 void ParseMidTermConfigFile::processMidTermRunMode(xercesc::DOMElement* node)
@@ -59,6 +60,7 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 	processThreadsNode(GetSingleElementByName(node, "threads", true));
 	processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 	processMongoCollectionsNode(GetSingleElementByName(node, "mongo_collections", true));
+	processCalibrationNode(GetSingleElementByName(node, "calibration", true));
 }
 
 void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)
@@ -131,7 +133,7 @@ void ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
 			continue;
 		}
 
-		scriptsMap.scriptFileName[key] = val;
+		scriptsMap.addScriptFileName(key, val);
 	}
 	mtCfg.setModelScriptsMap(scriptsMap);
 }
@@ -154,9 +156,42 @@ void ParseMidTermConfigFile::processMongoCollectionsNode(xercesc::DOMElement* no
 			Warn() << "Invalid mongo_collection; missing \"name\" or \"collection\".\n";
 			continue;
 		}
-		mongoColls.collectionName[key] = val;
+		mongoColls.addCollectionName(key, val);
 	}
 	mtCfg.setMongoCollectionsMap(mongoColls);
 }
 
+void sim_mob::ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement* node)
+{
+	bool calibrationMode = ParseBoolean(GetNamedAttributeValue(node, "enabled", true));
+	mtCfg.setPredayCalibrationMode(calibrationMode);
+	if(calibrationMode)
+	{
+		PredayCalibrationParams predayCalibrationParams;
+		//get name of csv listing variables to calibrate
+		DOMElement* variablesNode = GetSingleElementByName(node, "variables", true);
+		predayCalibrationParams.setCalibrationVariablesFile(ParseString(GetNamedAttributeValue(variablesNode, "file"), ""));
+
+		DOMElement* spsaNode = GetSingleElementByName(node, "spsa", true);
+		DOMElement* childNode = nullptr;
+
+		childNode = GetSingleElementByName(spsaNode, "iterations", true);
+		predayCalibrationParams.setIterationLimit(ParseUnsignedInt(GetNamedAttributeValue(node, "value", true)));
+
+		childNode = GetSingleElementByName(spsaNode, "tolerence", true);
+		predayCalibrationParams.setTolerance(ParseUnsignedInt(GetNamedAttributeValue(node, "value", true)));
+
+		childNode = GetSingleElementByName(spsaNode, "pertubation_step_size", true);
+		predayCalibrationParams.setPertubationStepSizeConst(ParseUnsignedInt(GetNamedAttributeValue(node, "c", true)));
+		predayCalibrationParams.setPertubationStepSizeExponent(ParseUnsignedInt(GetNamedAttributeValue(node, "gamma", true)));
+
+		childNode = GetSingleElementByName(spsaNode, "step_size", true);
+		predayCalibrationParams.setStepSizeConst(ParseUnsignedInt(GetNamedAttributeValue(node, "a", true)));
+		predayCalibrationParams.setStepSizeExponent(ParseUnsignedInt(GetNamedAttributeValue(node, "alpha", true)));
+	}
+	//else just return.
 }
+
+}
+
+

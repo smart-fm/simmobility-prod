@@ -29,25 +29,26 @@ namespace {
         if (!threadContext.get()) {
         	try {
 				const ModelScriptsMap& extScripts = MT_Config::GetInstance().getModelScriptsMap();
+				const std::string& scriptsPath = extScripts.getPath();
 				ModelContext* modelCtx = new ModelContext();
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("logit"));
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("dp"));
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("ntw"));
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("nte"));
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("nts"));
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("nto"));
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("uw"));
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("tme"));
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("tmw"));
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("tmdw"));
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("tmds"));
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("tmdo"));
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("ttdw"));
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("ttde"));
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("ttdo"));
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("isg"));
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("imd"));
-				modelCtx->predayModel.loadFile(extScripts.path + extScripts.scriptFileName.at("itd"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dp"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("ntw"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("nte"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("nts"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("nto"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("uw"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tme"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmw"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmdw"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmds"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmdo"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("ttdw"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("ttde"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("ttdo"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("isg"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("imd"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("itd"));
 				modelCtx->predayModel.initialize();
 				threadContext.reset(modelCtx);
         	}

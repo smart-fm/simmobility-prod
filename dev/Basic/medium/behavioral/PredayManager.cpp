@@ -101,7 +101,7 @@ void sim_mob::medium::PredayManager::loadPersons(BackendType dbType) {
 	}
 	case MONGO_DB:
 	{
-		std::string populationCollectionName = MT_Config::GetInstance().getMongoCollectionsMap().collectionName.at("population");
+		std::string populationCollectionName = MT_Config::GetInstance().getMongoCollectionsMap().getCollectionName("population");
 		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 		std::string emptyString;
 		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
@@ -125,7 +125,7 @@ void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType) {
 		}
 		case MONGO_DB:
 		{
-			std::string zoneCollectionName = MT_Config::GetInstance().getMongoCollectionsMap().collectionName.at("Zone");
+			std::string zoneCollectionName = MT_Config::GetInstance().getMongoCollectionsMap().getCollectionName("Zone");
 			Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 			std::string emptyString;
 			db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
@@ -153,7 +153,7 @@ void sim_mob::medium::PredayManager::loadZoneNodes(db::BackendType dbType) {
 		}
 		case MONGO_DB:
 		{
-			std::string zoneNodeCollectionName = MT_Config::GetInstance().getMongoCollectionsMap().collectionName.at("zone_node");
+			std::string zoneNodeCollectionName = MT_Config::GetInstance().getMongoCollectionsMap().getCollectionName("zone_node");
 			Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 			std::string emptyString;
 			db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
@@ -179,9 +179,9 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
 	case MONGO_DB:
 	{
 		const MongoCollectionsMap& mongoColl = MT_Config::GetInstance().getMongoCollectionsMap();
-		std::string amCostsCollName = mongoColl.collectionName.at("AMCosts");
-		std::string pmCostsCollName = mongoColl.collectionName.at("PMCosts");
-		std::string opCostsCollName = mongoColl.collectionName.at("OPCosts");
+		std::string amCostsCollName = mongoColl.getCollectionName("AMCosts");
+		std::string pmCostsCollName = mongoColl.getCollectionName("PMCosts");
+		std::string opCostsCollName = mongoColl.getCollectionName("OPCosts");
 		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 		std::string emptyString;
 		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
@@ -263,7 +263,8 @@ void sim_mob::medium::PredayManager::processPersons(
 	const MongoCollectionsMap& mongoColl = MT_Config::GetInstance().getMongoCollectionsMap();
 	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 	std::string emptyString;
-	for(std::map<std::string, std::string>::const_iterator i=mongoColl.collectionName.begin(); i!=mongoColl.collectionName.end(); i++) {
+	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
+	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
 		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
 		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
 	}

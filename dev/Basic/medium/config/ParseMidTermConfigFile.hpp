@@ -46,7 +46,7 @@ private:
 
 	/**
 	 * processes the preday element in config file
-	 *  @param node node corresponding to the preday element in xml file
+	 * @param node node corresponding to the preday element in xml file
 	 */
 	void processPredayNode(xercesc::DOMElement* node);
 
@@ -79,6 +79,12 @@ private:
 	 * @param node node corresponding to mongo_collections element inside xml file
 	 */
 	void processMongoCollectionsNode(xercesc::DOMElement* node);
+
+	/**
+	 * processes calibration element in config xml
+	 * @param node node corresponding to calibration element inside xml file
+	 */
+	void processCalibrationNode(xercesc::DOMElement* node);
 
 	/**The config we are currently loading*/
 	MT_Config& mtCfg;

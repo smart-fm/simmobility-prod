@@ -195,5 +195,22 @@
 
 #                                                 Minimum time in lane (different direction) seconds
 <param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir" value="10.00"/>
+
+#[Target Gap Model] = {
+#	-0.837	 	# forward gap constant
+#	 0.913		# backward gap constant
+#	 0.816		# effective gap length
+#	-1.218		# relative gap speed
+#	-2.393		# distance to gap 
+#        -1.662		# front vehicle dummy
+#}
+<param name="Target_Gap_Model" value="
+	-0.837	 	# forward gap constant
+	 0.913		# backward gap constant
+	 0.816		# effective gap length
+	-1.218		# relative gap speed
+	-2.393		# distance to gap 
+        -1.662		# front vehicle dummy
+"/>
 </parameters>
 

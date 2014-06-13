@@ -228,7 +228,12 @@ std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
 void sim_mob::Driver::handleUpdateRequest(MovementFacet* mFacet){
 	mFacet->updateNearbyAgent(this->getParent(),this);
 }
-double sim_mob::Driver::gapDistance(Driver* front)
+const double sim_mob::Driver::getFwdVelocityM()
+{
+	double d= fwdVelocity.get() / 100.0;
+	return d;
+}
+double sim_mob::Driver::gapDistance(const Driver* front)
 {
 	double headway;
 	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());

@@ -98,7 +98,7 @@ public:
 
 	//need to store these values in the double buffer, because it is needed by other drivers.
 	Shared<double> latMovement;
-	double getFwdVelocityM() { return fwdVelocity.get() / 100.0; }
+	const double getFwdVelocityM();
 	/*
 	 *  /brief Find the distance from front vehicle.
 	 *        CAUTION: TS_Vehicles "front" and this vehicle may not be in the same
@@ -106,7 +106,7 @@ public:
 	 * to be in either the same segment or in a downstream NEIGHBOR
 	 * segment.
 	 */
-	double gapDistance(Driver* front);
+	double gapDistance(const Driver* front);
 	Shared<double> fwdVelocity;
 	Shared<double> latVelocity;
 	Shared<double> fwdAccel;

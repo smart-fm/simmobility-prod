@@ -544,16 +544,19 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 //	    d1 = av->gapDistance();
 		d1 = aav->distance - av->distance - av->driver->getVehicleLengthM(); // get gap length of av and aav
 //	    s1 = av->currentSpeed() - av-> vehicleAhead()->currentSpeed();
-		s1 = av->driver->fwdVelocity/100.0 - aav->driver->getFwdVelocityM(); // speed diff of av and aav
+		Driver *aavDriver = const_cast<Driver*>(aav->driver);
+		s1 = av->driver->fwdVelocity/100.0 - aavDriver->getFwdVelocityM(); // speed diff of av and aav
 	  } else {
 	    d1 = av->distance;
 	    s1 = 0;
 //	    if (av->nextLane_) {
 //	      d1 = d1 + av->nextLane_->length();
 //	    }
+	  }// end of aav->exists()
 
 //	  dis2gap = this->gapDistance(av)+ av->length();
 	    dis2gap  = av->distance;
+
 
 //	  if (!front) {
 	if(!front->exists()) {
@@ -564,29 +567,51 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	else {
 //	    dis2front = this->gapDistance(front) + front->length();
 		dis2front = front->distance;
+		Driver *avDriver = const_cast<Driver*>(av->driver);
+		Driver *frontDriver = const_cast<Driver*>(front->driver);
 	    if (dis2gap > dis2front)
 	    {
 //	    	effectiveGap = (-1) * (front->gapDistance(av) + av->length() + front->length());
-	    	effectiveGap = (-1) * (front->distance + av->driver->getVehicleLengthM() + front->driver->getVehicleLengthM());
+	    	effectiveGap = (-1) * (frontDriver->gapDistance(avDriver) + av->driver->getVehicleLengthM() + front->driver->getVehicleLengthM());
 	    	remainderGap = d1;
-	    	gapSpeed = av->driver->getFwdVelocityM() - front->driver->getFwdVelocityM();
-	    }
+	    	gapSpeed = avDriver->getFwdVelocityM() - frontDriver->getFwdVelocityM();
+	    } // end if dis2gap > dis2front
 	    else {
-	    	d2 = av->gapDistance(front);
-	      if (d1 >= d2) {
-		effectiveGap =  d2;
-		remainderGap = d1-d2;
-		gapSpeed = av->currentSpeed() - front->currentSpeed();
-	      }
-	      else {
-		effectiveGap =  d1;
-		remainderGap = 0;
-		gapSpeed = s1;
-	      }
-	    }
-	  }
+//	    	d2 = av->gapDistance(front);
+	    	d2 = avDriver->gapDistance(frontDriver);
+	    	if (d1 >= d2) {
+				effectiveGap =  d2;
+				remainderGap = d1-d2;
+//				gapSpeed = av->currentSpeed() - front->currentSpeed();
+				gapSpeed = avDriver->getFwdVelocityM() - frontDriver->getFwdVelocityM();
+	    	} // end if d1 >= d2
+	    	else {
+				effectiveGap =  d1;
+				remainderGap = 0;
+				gapSpeed = s1;
+	    	}// end else d1 >= d2
+	    }//end else dis2gap > dis2front
+	  }// end else front exist
 
 	  double eufwd = gapExpOfUtility(1, effectiveGap, dis2gap, gapSpeed, remainderGap);
+}
+double sim_mob::MITSIM_LC_Model::gapExpOfUtility(int n, float effGap, float gSpeed, float gapDis, float remDis)
+{
+
+
+  std::vector<double> a = targetGapParams;
+
+  double u = a[2] * effGap + a[3] * gSpeed + a[4] * gapDis;
+
+  if (remDis > 0.1) {
+	u += a[5];
+  }
+
+  if (n == 1) u += a[0];
+  else if (n==2) u += a[1];
+
+
+  return exp(u) ;
 }
 void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p, 
         std::vector<TARGET_GAP>& tg) {
@@ -737,6 +762,11 @@ void sim_mob::MITSIM_LC_Model::initParam(DriverUpdateParams& p)
 	ParameterManager::Instance()->param(modelName,"LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir",minTimeInLaneSameDir,3.0);
 	//minTimeInLaneDiffDir
 	ParameterManager::Instance()->param(modelName,"LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir",minTimeInLaneDiffDir,10.0);
+
+	//Target Gap Model
+	ParameterManager::Instance()->param(modelName,"Target_Gap_Model",str,
+						string("-0.837   0.913  0.816  -1.218  -2.393  -1.662"));
+	sim_mob::Utils::convertStringToArray(str,targetGapParams);
 }
 void sim_mob::MITSIM_LC_Model::makeMCLParam(std::string& str)
 {

@@ -108,6 +108,10 @@ public:
 	virtual sim_mob::LANE_CHANGE_SIDE makeCourtesyMerging(sim_mob::DriverUpdateParams& p);
 	virtual sim_mob::LANE_CHANGE_SIDE makeForcedMerging(sim_mob::DriverUpdateParams& p);
 	virtual void chooseTargetGap(sim_mob::DriverUpdateParams& p,std::vector<TARGET_GAP>& tg);
+	/*
+	 *  /brief when left,right gap is not possible, choose adjacent,forward,backward gap
+	 *         set the status to STATUS_ADJACENT,STATUS_FORWARD,STATUS_BACKWARD
+	 */
 	virtual void chooseTargetGap(DriverUpdateParams& p);
 
 public:

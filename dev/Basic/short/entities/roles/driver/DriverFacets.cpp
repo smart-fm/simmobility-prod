@@ -606,7 +606,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 
 
 	if (p.getStatus() & STATUS_CHANGING) {
-		// if need change lane, check left,right gap
+		// if need change lane, check left,right gap to do lane change or to do nosing
 		lcModel->executeLaneChanging(p);
 
 		// if left,right gap not ok, choose ADJACENT ,BACKWARD, FORWARD gap

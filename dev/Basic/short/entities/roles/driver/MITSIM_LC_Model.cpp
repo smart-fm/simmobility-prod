@@ -481,7 +481,21 @@ size_t getLaneIndex(const Lane* l) {
 }
 void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 {
-	//TODO
+	// 1.0 SET/UNSET choose adjacent,forward,backward STATUS
+	p.unsetStatus(STATUS_TARGET_GAP);
+
+	// 2.0 if doing nosing ,just return
+	if (p.flag(FLAG_NOSING) || p.flag(FLAG_NOSING_FEASIBLE) || p.flag(FLAG_STUCK_AT_END)) return;
+
+	// 3.0 check lane change decision direction
+	LANE_CHANGE_SIDE changeMode = LCS_SAME;
+	if (p.getStatus(STATUS_LEFT)) {
+		changeMode = LCS_LEFT;
+	} else if (p.getStatus(STATUS_RIGHT)) {
+		changeMode = LCS_RIGHT;
+	} else {
+		return ;			// No request for lane change,just return
+	}
 }
 void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p, 
         std::vector<TARGET_GAP>& tg) {

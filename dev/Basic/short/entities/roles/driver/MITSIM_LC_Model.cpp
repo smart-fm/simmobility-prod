@@ -496,6 +496,97 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	} else {
 		return ;			// No request for lane change,just return
 	}
+
+	// TODO: need check incident of current lane? MITSIM has "if (isInIncidentArea(plane)) return;"
+
+	// 4.0 get lead,lag vh
+	// FRONT, LEAD AND LAG VEHICLES (do not have to be in same segment)
+	// TODO: check aura mgr function inn driverfacets
+	const NearestVehicle * av = NULL; // side leader vh
+	const NearestVehicle * bv = NULL; // side follower vh
+	const NearestVehicle * front = &p.nvFwd;
+	const NearestVehicle * aav = NULL; //side forward of forward vh
+	const NearestVehicle * bbv = NULL; //side backward of backward vh
+	if(changeMode == LCS_LEFT) {
+		av = &p.nvLeftFwd;
+		bv = &p.nvLeftBack;
+		aav = &p.nvLeftFwd2;
+		bbv = &p.nvLeftBack2;
+	}
+	else {
+		av = &p.nvRightFwd;
+		bv = &p.nvRightBack;
+		aav = &p.nvRightFwd2;
+		bbv = &p.nvRightBack2;
+	}
+
+	// 5.0 easy set
+	// if no left/right ahead vehicle, just use adjacent gap
+	if (!av->exists()) {
+	    p.setStatus(STATUS_ADJACENT);
+	    return;
+	}
+	if (!bv->exists()) {
+		p.setStatus(STATUS_ADJACENT);
+		return;
+	}
+
+	// 6.0 calculate FORWARD GAP utility value
+	float dis2gap = 0.0;
+	float effectiveGap = 0.0;
+	float remainderGap = 0.0;
+	float gapSpeed = 0.0;
+	float dis2front = 0.0;
+
+	float d1, s1, d2, d3;
+//	  if ( av->vehicleAhead() ) {
+	if(aav->exists()) { // if has forward of forward vh
+//	    d1 = av->gapDistance();
+		d1 = aav->distance - av->distance - av->driver->getVehicleLengthM(); // get gap length of av and aav
+//	    s1 = av->currentSpeed() - av-> vehicleAhead()->currentSpeed();
+		s1 = av->driver->fwdVelocity/100.0 - aav->driver->getFwdVelocityM(); // speed diff of av and aav
+	  } else {
+	    d1 = av->distance;
+	    s1 = 0;
+//	    if (av->nextLane_) {
+//	      d1 = d1 + av->nextLane_->length();
+//	    }
+
+//	  dis2gap = this->gapDistance(av)+ av->length();
+	    dis2gap  = av->distance;
+
+//	  if (!front) {
+	if(!front->exists()) {
+		effectiveGap = d1;
+		remainderGap = 0;
+		gapSpeed = s1;
+	} // end if front
+	else {
+//	    dis2front = this->gapDistance(front) + front->length();
+		dis2front = front->distance;
+	    if (dis2gap > dis2front)
+	    {
+//	    	effectiveGap = (-1) * (front->gapDistance(av) + av->length() + front->length());
+	    	effectiveGap = (-1) * (front->distance + av->driver->getVehicleLengthM() + front->driver->getVehicleLengthM());
+	    	remainderGap = d1;
+	    	gapSpeed = av->driver->getFwdVelocityM() - front->driver->getFwdVelocityM();
+	    }
+	    else {
+	    	d2 = av->gapDistance(front);
+	      if (d1 >= d2) {
+		effectiveGap =  d2;
+		remainderGap = d1-d2;
+		gapSpeed = av->currentSpeed() - front->currentSpeed();
+	      }
+	      else {
+		effectiveGap =  d1;
+		remainderGap = 0;
+		gapSpeed = s1;
+	      }
+	    }
+	  }
+
+	  double eufwd = gapExpOfUtility(1, effectiveGap, dis2gap, gapSpeed, remainderGap);
 }
 void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p, 
         std::vector<TARGET_GAP>& tg) {

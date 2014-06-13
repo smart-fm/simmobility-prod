@@ -228,6 +228,31 @@ std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
 void sim_mob::Driver::handleUpdateRequest(MovementFacet* mFacet){
 	mFacet->updateNearbyAgent(this->getParent(),this);
 }
+double sim_mob::Driver::gapDistance(Driver* front)
+{
+	double headway;
+	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
+	if (front) {			/* vehicle ahead */
+		DriverMovement* frontMov = dynamic_cast<DriverMovement*>(front->Movement());
+//	    if (lane_->segment() == front->segment())
+		if(mov->fwdDriverMovement.getCurrSegment() == frontMov->fwdDriverMovement.getCurrSegment())
+		{				/* same segment */
+//			headway = distance_ - front->distance_ - front->length();
+			headway = mov->fwdDriverMovement.getDisToCurrSegEnd() - frontMov->fwdDriverMovement.getDisToCurrSegEnd() - front->getVehicleLengthM();
+		}
+		else {				/* different segment */
+//			headway = distance_ + (front->lane_->length() -
+//									   front->distance_ -
+//									   front->length());
+			headway = mov->fwdDriverMovement.getDisToCurrSegEnd() + frontMov->fwdDriverMovement.getCurrDistAlongPolylineCM() - front->getVehicleLengthM();
+			  }
+	} else			/* no vehicle ahead. */
+		  {
+			headway = Math::FLT_INF;
+		  }
+
+	 return headway;
+}
 bool sim_mob::Driver::isBus()
 {
 	return getVehicle()->getVehicleType() == VehicleBase::BUS;

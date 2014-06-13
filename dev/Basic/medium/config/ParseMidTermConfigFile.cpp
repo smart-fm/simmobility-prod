@@ -57,7 +57,17 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 
 void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 {
-	processThreadsNode(GetSingleElementByName(node, "threads", true));
+	DOMElement* childNode = nullptr;
+	childNode = GetSingleElementByName(node, "run_mode", true);
+	mtCfg.setPredayRunMode(ParseString(GetNamedAttributeValue(childNode, "value", true), "simulation"));
+
+	childNode = GetSingleElementByName(node, "threads", true);
+	mtCfg.setNumPredayThreads(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true), DEFAULT_NUM_THREADS_DEMAND));
+	childNode = GetSingleElementByName(node, "output_tripchains", true);
+	mtCfg.setOutputTripchains(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
+	childNode = GetSingleElementByName(node, "console_output", true);
+	mtCfg.setConsoleOutput(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
+
 	processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 	processMongoCollectionsNode(GetSingleElementByName(node, "mongo_collections", true));
 	processCalibrationNode(GetSingleElementByName(node, "calibration", true));
@@ -90,11 +100,6 @@ void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)
 void ParseMidTermConfigFile::processWalkSpeedElement(xercesc::DOMElement* node)
 {
 	mtCfg.setPedestrianWalkSpeed(ParseFloat(GetNamedAttributeValue(node, "value", true), nullptr));
-}
-
-void ParseMidTermConfigFile::processThreadsNode(xercesc::DOMElement* node)
-{
-	mtCfg.setNumPredayThreads(ParseUnsignedInt(GetNamedAttributeValue(node, "value", true), DEFAULT_NUM_THREADS_DEMAND));
 }
 
 void ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
@@ -163,9 +168,7 @@ void ParseMidTermConfigFile::processMongoCollectionsNode(xercesc::DOMElement* no
 
 void sim_mob::ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement* node)
 {
-	bool calibrationMode = ParseBoolean(GetNamedAttributeValue(node, "enabled", true));
-	mtCfg.setPredayCalibrationMode(calibrationMode);
-	if(calibrationMode)
+	if(mtCfg.runningPredayCalibration())
 	{
 		PredayCalibrationParams predayCalibrationParams;
 		//get name of csv listing variables to calibrate

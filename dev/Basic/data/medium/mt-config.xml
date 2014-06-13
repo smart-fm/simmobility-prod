@@ -21,9 +21,15 @@
 		
 		<!-- config specific to preday simulator -->
         <preday>
+                <!-- Control variable to run simulation, calibration or logsum computation. Admissible values are "simulation", "calibration" and "logsum" -->
+                <run_mode value="logsum"/>
                 <!-- Number of threads to create for processing the population in-->
                 <!-- the preday demand simulator -->
-                <threads value="3"/>
+                <threads value="6"/>
+                <!-- outputs the preday predictions as trip chains in if enabled -->
+                <output_tripchains enabled="false"/>
+                <!-- prints person ids and tour details in console for each person if enabled -->
+                <console_output enabled="true"/>
                 
                 <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
                         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
@@ -62,7 +68,7 @@
                         <mongo_collection name="Output_Activity" collection="activity_cpp_11_3"/>
                 </mongo_collections>
                 
-                <calibration enabled="true">
+                <calibration enabled="false">
                 		<!-- variables to calibrate -->
                 		<!-- expected csv format: variable_name,lua_file_name,initial_value,lower_limit,upper_limit -->
                         <variables file="data/medium/preday_calibration_variables.csv"/>

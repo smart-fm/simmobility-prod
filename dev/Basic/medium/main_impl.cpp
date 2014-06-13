@@ -377,7 +377,10 @@ bool performMainDemand(unsigned numThreads)
 	predayManager.loadZones(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
 	predayManager.loadPersons(db::MONGO_DB);
-	predayManager.loadZoneNodes(db::MONGO_DB);
+	if(MT_Config::GetInstance().isOutputTripchains())
+	{
+		predayManager.loadZoneNodes(db::MONGO_DB);
+	}
 	predayManager.distributeAndProcessPersons(numThreads);
 	return true;
 }

@@ -278,6 +278,21 @@ int sim_mob::medium::PredayLuaModel::predictTourMode(PersonParams& personParams,
 	}
 }
 
+void sim_mob::medium::PredayLuaModel::computeTourModeDestinationLogsum(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const
+{
+	LuaRef computeLogsumTMDW = getGlobal(state.get(), "compute_logsum_tmdw");
+	LuaRef workLogSum = computeLogsumTMDW(&personParams, &tourModeDestinationParams);
+	personParams.setWorkLogSum(workLogSum.cast<double>());
+
+	LuaRef computeLogsumTMDS = getGlobal(state.get(), "compute_logsum_tmds");
+	LuaRef shopLogSum = computeLogsumTMDS(&personParams, &tourModeDestinationParams);
+	personParams.setShopLogSum(shopLogSum.cast<double>());
+
+	LuaRef computeLogsumTMDO = getGlobal(state.get(), "compute_logsum_tmdo");
+	LuaRef otherLogSum = computeLogsumTMDO(&personParams, &tourModeDestinationParams);
+	personParams.setOtherLogSum(otherLogSum.cast<double>());
+}
+
 int sim_mob::medium::PredayLuaModel::predictTourModeDestination(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const {
 	switch (tourModeDestinationParams.getTourPurpose()) {
 	case WORK:

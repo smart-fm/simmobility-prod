@@ -517,7 +517,7 @@ local function computeUtilities(params)
 			beta_missingincome_work * (work[i] * missingincome) + 
 			beta_missingincome_edu * (edu[i] * missingincome) + 
 			beta_missingincome_shop * (shop[i] * missingincome) + 
-			beta_missingincome_others * (others[i] * missingincome) + 
+			beta_missingincome_others * (other[i] * missingincome) + 
 			beta_workathome_work * (work[i] * workathome) +
 			beta_workathome_edu * (edu[i] * workathome) +
 			beta_workathome_shop * (shop[i] * workathome) +

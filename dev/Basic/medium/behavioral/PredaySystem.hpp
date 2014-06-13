@@ -23,7 +23,7 @@ namespace medium {
 
 /**
  * Class for pre-day behavioral system of models.
- * Invokes behavior models in a sequence as specified by the system of models.
+ * Invokes behavior models in a sequence as specified by the system of models for 1 person.
  * Handles dependencies between models.
  * The models specified by modelers in an external scripting language are invoked via this class.
  *
@@ -211,11 +211,6 @@ private:
     boost::unordered_map<std::string, db::MongoDao*> mongoDao;
 
     /**
-     * Data access objects to write trip chains
-     */
-    TripChainSqlDao& tripChainDao;
-
-    /**
      * used for logging messages
      */
     std::stringstream logStream;
@@ -224,8 +219,7 @@ public:
 	PredaySystem(PersonParams& personParams,
 			const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 			const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
-			const boost::unordered_map<std::string, db::MongoDao*>& mongoDao,
-			TripChainSqlDao& tripChainDao);
+			const boost::unordered_map<std::string, db::MongoDao*>& mongoDao);
 	virtual ~PredaySystem();
 
 	/**
@@ -239,9 +233,25 @@ public:
 	void outputPredictionsToMongo();
 
 	/**
+	 * Invokes tour mode-destination models for computing logsums
+	 * Updates the logsums in personParams
+	 */
+	void computeLogsums();
+
+	/**
+	 * Writes the logsums to mongo
+	 */
+	void outputLogsumsToMongo();
+
+	/**
 	 * Converts predictions to Trip chains and writes them off to PostGreSQL
 	 */
-	void outputTripChainsToPostgreSQL(ZoneNodeMap& zoneNodeMap);
+	void outputTripChainsToPostgreSQL(ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao);
+
+	/**
+	 * Prints logs for person in console
+	 */
+	void printLogs();
 };
 
 } // end namespace medium

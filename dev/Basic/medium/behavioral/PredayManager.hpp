@@ -75,6 +75,18 @@ private:
 	 */
 	void processPersons(PersonList::iterator first, PersonList::iterator last);
 
+	/**
+	 * Threaded logsum computation
+	 * Loops through all elements in personList within the specified range and
+	 * invokes logsum computations for each of them.
+	 *
+	 * @param first personList iterator corresponding to the first person to be
+	 * 				processed
+	 * @param last personList iterator corresponding to the person after the
+	 * 				last person to be processed
+	 */
+	void computeLogsums(PersonList::iterator first, PersonList::iterator last);
+
 	PersonList personList;
 
     /**

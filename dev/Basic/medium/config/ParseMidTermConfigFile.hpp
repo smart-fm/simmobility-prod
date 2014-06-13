@@ -63,12 +63,6 @@ private:
 	void processWalkSpeedElement(xercesc::DOMElement* node);
 
 	/**
-	 * processes threads element under preday element in config xml
-	 * @param node node corresponding to threads element inside xml file
-	 */
-	void processThreadsNode(xercesc::DOMElement* node);
-
-	/**
 	 * processes model scripts element in config xml
 	 * @param node node corresponding to model_scripts element inside xml file
 	 */

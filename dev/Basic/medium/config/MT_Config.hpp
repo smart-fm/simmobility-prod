@@ -232,19 +232,6 @@ public:
 		}
 	}
 
-	bool isPredayCalibrationMode() const
-	{
-		return predayCalibrationMode;
-	}
-
-	void setPredayCalibrationMode(bool predayCalibrationMode)
-	{
-		if(!configSealed)
-		{
-			this->predayCalibrationMode = predayCalibrationMode;
-		}
-	}
-
 	void sealConfig()
 	{
 		configSealed = true;
@@ -263,6 +250,49 @@ public:
 		}
 	}
 
+	bool isOutputTripchains() const
+	{
+		return outputTripchains;
+	}
+
+	void setOutputTripchains(bool outputTripchains)
+	{
+		if(!configSealed)
+		{
+			this->outputTripchains = outputTripchains;
+		}
+	}
+
+	bool isConsoleOutput() const
+	{
+		return consoleOutput;
+	}
+
+	void setConsoleOutput(bool consoleOutput)
+	{
+		if(!configSealed)
+		{
+			this->consoleOutput = consoleOutput;
+		}
+	}
+
+	bool runningPredaySimulation()
+	{
+		return (predayRunMode == MT_Config::SIMULATION);
+	}
+
+	bool runningPredayCalibration()
+	{
+		return (predayRunMode == MT_Config::CALIBRATION);
+	}
+
+	bool runningPredayLogsumComputation()
+	{
+		return (predayRunMode == MT_Config::LOGSUM_COMPUTATION);
+	}
+
+	void setPredayRunMode(const std::string runMode);
+
 private:
 	static MT_Config* instance;
 
@@ -272,14 +302,21 @@ private:
 	std::vector<int> dwellTimeParams;
 	/**store parameters for pedestrian walking speed*/
 	double pedestrianWalkSpeed;
+
+	/**control variable for running preday simulation/logsum computation*/
+	enum PredayRunMode { NONE, SIMULATION, CALIBRATION, LOGSUM_COMPUTATION };
+	PredayRunMode predayRunMode;
+
 	/**num of threads to run for preday*/
 	unsigned numPredayThreads;
+	/**flag to indicate whether tripchains need to be output to postgresql db*/
+	bool outputTripchains;
+	/**flag to indicate whether console output is required*/
+	bool consoleOutput;
 	/**container for lua scripts*/
 	ModelScriptsMap modelScriptsMap;
 	/**container for mongo collections*/
 	MongoCollectionsMap mongoCollectionsMap;
-	/**flag to indicate whether calibration is enabled*/
-	bool predayCalibrationMode;
 	/**Preday calibration parameters*/
 	PredayCalibrationParams predayCalibrationParams;
 };

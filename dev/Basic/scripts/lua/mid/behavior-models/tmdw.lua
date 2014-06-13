@@ -356,3 +356,9 @@ function choose_tmdw(params,dbparams)
 	local probability = calculate_probability("mnl", choice, utility, availability, scale)
 	return make_final_choice(probability)
 end
+
+function compute_logsum_tmdw(params,dbparams)
+	computeUtilities(params,dbparams) 
+	computeAvailabilities(params,dbparams)
+	return compute_mnl_logsum(utility, availability)
+end

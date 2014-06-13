@@ -114,11 +114,10 @@ namespace {
 PredaySystem::PredaySystem(PersonParams& personParams,
 		const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 		const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
-		const boost::unordered_map<std::string, db::MongoDao*>& mongoDao,
-		TripChainSqlDao& tripChainDao)
+		const boost::unordered_map<std::string, db::MongoDao*>& mongoDao)
 : personParams(personParams), zoneMap(zoneMap), zoneIdLookup(zoneIdLookup),
   amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap),
-  mongoDao(mongoDao), tripChainDao(tripChainDao), logStream(std::stringstream::out)
+  mongoDao(mongoDao), logStream(std::stringstream::out)
 {}
 
 PredaySystem::~PredaySystem()
@@ -1099,8 +1098,6 @@ void PredaySystem::planDay() {
 		personParams.blockTime(tour->getStartTime(), tour->getEndTime());
 		logStream << "Tour|start time: " << tour->getStartTime() << "|end time: " << tour->getEndTime() << std::endl;
 	}
-
-	Print() << logStream.str();
 }
 
 void sim_mob::medium::PredaySystem::insertDayPattern()
@@ -1188,6 +1185,17 @@ long sim_mob::medium::PredaySystem::getRandomNodeInZone(std::vector<long>& nodes
 	return *it;
 }
 
+void sim_mob::medium::PredaySystem::computeLogsums()
+{
+	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
+	PredayLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, tmdParams);
+	logStream << "Person: " << personParams.getPersonId()
+			<< "|updated logsums- work: " << personParams.getWorkLogSum()
+			<< ", shop: " << personParams.getShopLogSum()
+			<< ", other: " << personParams.getOtherLogSum()
+			<<std::endl;
+}
+
 void sim_mob::medium::PredaySystem::outputPredictionsToMongo() {
 	insertDayPattern();
 	int tourNum=0;
@@ -1204,7 +1212,18 @@ void sim_mob::medium::PredaySystem::outputPredictionsToMongo() {
 	}
 }
 
-void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(ZoneNodeMap& zoneNodeMap) {
+void sim_mob::medium::PredaySystem::outputLogsumsToMongo()
+{
+	BSONObj query = BSON("_id" << personParams.getPersonId());
+	BSONObj updateObj = BSON(
+			"worklogsum"<< personParams.getWorkLogSum() <<
+			"shoplogsum" << personParams.getShopLogSum() <<
+			"otherlogsum" << personParams.getOtherLogSum()
+			);
+	mongoDao["population"]->update(query, updateObj);
+}
+
+void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao) {
 	size_t numTours = tours.size();
 	if (numTours == 0) {
 		return;
@@ -1319,4 +1338,9 @@ void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(ZoneNodeMap& zo
 			tcIt!=tripChain.end();tcIt++) {
 		tripChainDao.insert(*tcIt);
 	}
+}
+
+void sim_mob::medium::PredaySystem::printLogs()
+{
+	Print() << logStream.str();
 }

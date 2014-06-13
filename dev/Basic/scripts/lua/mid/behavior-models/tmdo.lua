@@ -355,3 +355,9 @@ function choose_tmdo(params,dbparams)
 	return make_final_choice(probability)
 end
 
+function compute_logsum_tmdo(params,dbparams)
+	computeUtilities(params,dbparams) 
+	computeAvailabilities(params,dbparams)
+	return compute_mnl_logsum(utility, availability)
+end
+

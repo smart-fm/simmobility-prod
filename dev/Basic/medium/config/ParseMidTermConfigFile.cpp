@@ -176,18 +176,20 @@ void sim_mob::ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement
 		DOMElement* childNode = nullptr;
 
 		childNode = GetSingleElementByName(spsaNode, "iterations", true);
-		predayCalibrationParams.setIterationLimit(ParseUnsignedInt(GetNamedAttributeValue(node, "value", true)));
+		predayCalibrationParams.setIterationLimit(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true)));
 
 		childNode = GetSingleElementByName(spsaNode, "tolerence", true);
-		predayCalibrationParams.setTolerance(ParseUnsignedInt(GetNamedAttributeValue(node, "value", true)));
+		predayCalibrationParams.setTolerance(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true)));
 
 		childNode = GetSingleElementByName(spsaNode, "pertubation_step_size", true);
-		predayCalibrationParams.setPertubationStepSizeConst(ParseUnsignedInt(GetNamedAttributeValue(node, "c", true)));
-		predayCalibrationParams.setPertubationStepSizeExponent(ParseUnsignedInt(GetNamedAttributeValue(node, "gamma", true)));
+		predayCalibrationParams.setPertubationStepSizeConst(ParseUnsignedInt(GetNamedAttributeValue(childNode, "c", true)));
+		predayCalibrationParams.setPertubationStepSizeExponent(ParseUnsignedInt(GetNamedAttributeValue(childNode, "gamma", true)));
 
 		childNode = GetSingleElementByName(spsaNode, "step_size", true);
-		predayCalibrationParams.setStepSizeConst(ParseUnsignedInt(GetNamedAttributeValue(node, "a", true)));
-		predayCalibrationParams.setStepSizeExponent(ParseUnsignedInt(GetNamedAttributeValue(node, "alpha", true)));
+		predayCalibrationParams.setStepSizeConst(ParseUnsignedInt(GetNamedAttributeValue(childNode, "a", true)));
+		predayCalibrationParams.setStepSizeExponent(ParseUnsignedInt(GetNamedAttributeValue(childNode, "alpha", true)));
+
+		mtCfg.setPredayCalibrationParams(predayCalibrationParams);
 	}
 	//else just return.
 }

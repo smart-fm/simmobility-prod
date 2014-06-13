@@ -552,6 +552,8 @@ bool sim_mob::DriverMovement::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
 }
 void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 {
+	// TODO: if STATUS_LC_CHANGING ,means "perform lane changing",just return
+
 	if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->startTime > 10) &&  (fwdDriverMovement.getCurrDistAlongRoadSegmentCM()>2000) && (parentDriver->isAleadyStarted == false))
 	{
 	parentDriver->isAleadyStarted = true;
@@ -602,13 +604,16 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 	LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
 //	parentDriver->vehicle->setTurningDirection(lcs);
 
-		 if (p.getStatus() & STATUS_CHANGING) {
-			    lcModel->executeLaneChanging(p);
 
-			if ( p.flag(FLAG_LC_FAILED) ) {
-			    lcModel->chooseTargetGap(p);
-			}
-		  }
+	if (p.getStatus() & STATUS_CHANGING) {
+		// if need change lane, check left,right gap
+		lcModel->executeLaneChanging(p);
+
+		// if left,right gap not ok, choose ADJACENT ,BACKWARD, FORWARD gap
+		if ( p.flag(FLAG_LC_FAILED) ) {
+			lcModel->chooseTargetGap(p);
+		}
+	}//end if STATUS_CHANGING
 
 	//Convert back to m/s
 	//TODO: Is this always m/s? We should rename the variable then...

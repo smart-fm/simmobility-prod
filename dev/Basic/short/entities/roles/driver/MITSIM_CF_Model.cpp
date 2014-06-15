@@ -1030,11 +1030,22 @@ double sim_mob::MITSIM_CF_Model::calcCreateGapRate(DriverUpdateParams& p,
 	return p.driver->fwdAccel + 2.0 * (dx - dv * dt) / (dt * dt);
 }
 double sim_mob::MITSIM_CF_Model::waitExitLaneRate(DriverUpdateParams& p) {
-	double dx = p.perceivedDistToFwdCar / 100 - 5;
-	if (p.turningDirection == LCS_SAME || dx > p.distanceToNormalStop)
-		return p.maxAcceleration;
+	double dx = p.dis2stop- 5;
+
+	if(!p.getStatus(STATUS_CURRENT_OK) && dx < p.distanceToNormalStop)
+	{
+		return brakeToStop(p,dx);
+	}
 	else
-		return brakeToStop(p, dx);
+	{
+		return p.maxAcceleration;
+	}
+
+//	double dx = p.perceivedDistToFwdCar / 100 - 5;
+//	if (p.turningDirection == LCS_SAME || dx > p.distanceToNormalStop)
+//		return p.maxAcceleration;
+//	else
+//		return brakeToStop(p, dx);
 }
 double sim_mob::MITSIM_CF_Model::waitAllowedLaneRate(
 		sim_mob::DriverUpdateParams& p) {

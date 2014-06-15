@@ -238,6 +238,8 @@ public:
 
 	double speedOnSign;
 
+	std::vector<double> targetGapParams;
+
 //	//perform incident response
 //	IncidentPerformer incidentPerformer;
 public:

@@ -619,7 +619,7 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	    }//end else dis2gap > dis2front
 	  }// end else front exist
 
-	double eufwd = gapExpOfUtility(1, effectiveGap, dis2gap, gapSpeed, remainderGap);
+	double eufwd = gapExpOfUtility(p,1, effectiveGap, dis2gap, gapSpeed, remainderGap);
 
 	// 7.0 ADJACENT GAP
 
@@ -655,7 +655,7 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	}//end else front not exist
 
 
-	double euadj = gapExpOfUtility(3, effectiveGap, dis2gap, gapSpeed, remainderGap);
+	double euadj = gapExpOfUtility(p,3, effectiveGap, dis2gap, gapSpeed, remainderGap);
 
 	  // 8.0 BACKWARD GAP
 
@@ -695,7 +695,7 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	gapSpeed = s1;
 
 
-	double eubck = gapExpOfUtility(2, effectiveGap, dis2gap, gapSpeed, remainderGap);
+	double eubck = gapExpOfUtility(p,2, effectiveGap, dis2gap, gapSpeed, remainderGap);
 
 	double sum = eufwd + eubck + euadj ;
 //	double rnd = theRandomizer->urandom() ;
@@ -706,11 +706,11 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 
 	return;
 }
-double sim_mob::MITSIM_LC_Model::gapExpOfUtility(int n, float effGap, float gSpeed, float gapDis, float remDis)
+double sim_mob::MITSIM_LC_Model::gapExpOfUtility(DriverUpdateParams& p,int n, float effGap, float gSpeed, float gapDis, float remDis)
 {
 
 
-  std::vector<double> a = targetGapParams;
+  std::vector<double> a = p.targetGapParams;
 
   double u = a[2] * effGap + a[3] * gSpeed + a[4] * gapDis;
 
@@ -877,7 +877,7 @@ void sim_mob::MITSIM_LC_Model::initParam(DriverUpdateParams& p)
 	//Target Gap Model
 	ParameterManager::Instance()->param(modelName,"Target_Gap_Model",str,
 						string("-0.837   0.913  0.816  -1.218  -2.393  -1.662"));
-	sim_mob::Utils::convertStringToArray(str,targetGapParams);
+	sim_mob::Utils::convertStringToArray(str,p.targetGapParams);
 }
 void sim_mob::MITSIM_LC_Model::makeMCLParam(std::string& str)
 {

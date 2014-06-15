@@ -113,8 +113,8 @@ public:
 	 *         set the status to STATUS_ADJACENT,STATUS_FORWARD,STATUS_BACKWARD
 	 */
 	virtual void chooseTargetGap(DriverUpdateParams& p);
-	double gapExpOfUtility(int n, float effGap, float gSpeed, float gapDis, float remDis);
-	vector<double> targetGapParams;
+	double gapExpOfUtility(DriverUpdateParams& p,int n, float effGap, float gSpeed, float gapDis, float remDis);
+//	vector<double> targetGapParams;
 
 public:
 	/**

@@ -145,9 +145,13 @@ void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p) {
 	// speed limit add on
 	string str;
 	ParameterManager::Instance()->param(modelName, "speed_limit_add_on", str,
-			string(
-					"-0.1911 -0.0708 -0.0082 0.0397 0.0810 0.1248 0.1661 0.2180 0.2745 0.3657"));
+			string("-0.1911 -0.0708 -0.0082 0.0397 0.0810 0.1248 0.1661 0.2180 0.2745 0.3657"));
 	makeScaleIdx(str, speedLimitAddon);
+
+	// acc add on
+	ParameterManager::Instance()->param(modelName, "Car_following_acceleration_add_on", str,
+				string("-1.3564 -0.8547 -0.5562 -0.3178 -0.1036 0.1036 0.3178 0.5562 0.8547 1.3564"));
+	sim_mob::Utils::convertStringToArray(str,accAddon);
 	// max deceleration
 	ParameterManager::Instance()->param(modelName, "Max_deceleration_car1",
 			decelerationStr, string("16.0   14.5   13.0   11.0   10.0"));
@@ -442,6 +446,12 @@ double sim_mob::MITSIM_CF_Model::getSpeedLimitAddon() {
 	double res = Utils::generateFloat(speedLimitAddon[scaleNo-1],speedLimitAddon[scaleNo]);
 	return res;//speedLimitAddon[scaleNo];
 }
+double sim_mob::MITSIM_CF_Model::getAccAddon()
+{
+	int scaleNo = Utils::generateInt(1, accAddon.size() - 1);
+	double res = Utils::generateFloat(accAddon[scaleNo-1],accAddon[scaleNo]);
+	return res;//speedLimitAddon[scaleNo];
+}
 double sim_mob::MITSIM_CF_Model::getBufferUppder() {
 	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
 	int scaleNo = Utils::generateInt(1, hBufferUpperScale.size() - 1);
@@ -461,6 +471,12 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		return p.lastAcc;
 	}
 
+//	// check if "performing lane change"
+//	if(p.getStatus(STATUS_LC_CHANGING))
+//	{
+//		// return
+//	}
+
 	// VARIABLE || FUNCTION ||				REGIME
 	calcStateBasedVariables(p);
 
@@ -478,7 +494,9 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 //	double aH3 = calcForwardRate(p); // to reach forward gap
 	// The target gap acceleration should be based on the target gap status and not on the min
 	// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
-	double aH;
+	double aH = p.maxAcceleration;
+	if(!p.getStatus(STATUS_LC_CHANGING)) // not in middle of performing lane change
+	{
 	 if (p.getStatus(STATUS_ADJACENT)) {
 	  aH = calcAdjacentRate(p);	// to reach adjacent gap
 	 }
@@ -490,6 +508,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	 } else {
 		  aH = calcDesiredSpeed(p); // FUNCTION desiredSpeedRate MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
 	 }
+	}
 
 
 	// if (intersection){
@@ -1043,22 +1062,60 @@ double sim_mob::MITSIM_CF_Model::calcBackwardRate(DriverUpdateParams& p) {
 }
 
 double sim_mob::MITSIM_CF_Model::calcAdjacentRate(DriverUpdateParams& p) {
-	if (p.nextLaneIndex == p.currLaneIndex)
-		return p.maxAcceleration;
-	NearestVehicle& av =
-			(p.nextLaneIndex > p.currLaneIndex) ? p.nvLeftFwd : p.nvRightFwd;
-	NearestVehicle& bv =
-			(p.nextLaneIndex > p.currLaneIndex) ? p.nvLeftBack : p.nvRightBack;
-	if (!av.exists())
-		return p.maxAcceleration;
-	if (!bv.exists())
-		return p.normalDeceleration;
-	double gap = bv.distance / 100 + av.distance / 100;
-	double position = bv.distance / 100;
-	double acc = targetGapAccParm[11] * (targetGapAccParm[0] * gap - position);
 
-	acc += targetGapAccParm[12] / 0.824;
-	return acc;
+	const NearestVehicle * av = NULL; // side leader vh
+	const NearestVehicle * bv = NULL; // side follower vh
+
+	  if (p.getStatus(STATUS_LEFT)) {
+		  av = &p.nvLeftFwd;
+		  bv = &p.nvLeftBack;
+	  } else if (p.getStatus(STATUS_RIGHT)) {
+		  av = &p.nvRightFwd;
+		  bv = &p.nvRightBack;
+	  } else {
+//		return MAX_ACCELERATION;			// No request for lane change
+		  return p.maxAcceleration;
+	  }
+
+//	 float *a = theParameter->targetGapParams();
+	  std::vector<double> a = p.targetGapParams;
+
+//	 TS_Vehicle* av = findFrontBumperLeader(plane);
+	 if (!av->exists()) return p.maxAcceleration;
+
+//	 TS_Vehicle* bv = findFrontBumperFollower(plane);
+	 if (!bv->exists()) return p.maxAcceleration;
+
+	 Driver *avDriver = const_cast<Driver*>(av->driver);
+	 Driver *bvDriver = const_cast<Driver*>(bv->driver);
+
+//	 float gap = bv->gapDistance(av);
+//	 float position = bv->gapDistance(this)+ length();
+//	 float acc = a[11] * (a[0] * gap - position);
+
+	 float gap = bvDriver->gapDistance(avDriver);
+	 float position = bvDriver->gapDistance(p.driver)+ p.driver->getVehicleLengthM();
+	 float acc = a[11] * (a[0] * gap - position);
+
+//	  acc += theParameter->cfAccAddOn(driverGroup.cfAccAddOn) * a[12] / 0.824 ;
+	 acc += getAccAddon() * a[12] / 0.824 ;
+	 return acc;
+//	if (p.nextLaneIndex == p.currLaneIndex)
+//		return p.maxAcceleration;
+//	NearestVehicle& av =
+//			(p.nextLaneIndex > p.currLaneIndex) ? p.nvLeftFwd : p.nvRightFwd;
+//	NearestVehicle& bv =
+//			(p.nextLaneIndex > p.currLaneIndex) ? p.nvLeftBack : p.nvRightBack;
+//	if (!av.exists())
+//		return p.maxAcceleration;
+//	if (!bv.exists())
+//		return p.normalDeceleration;
+//	double gap = bv.distance / 100 + av.distance / 100;
+//	double position = bv.distance / 100;
+//	double acc = targetGapAccParm[11] * (targetGapAccParm[0] * gap - position);
+//
+//	acc += targetGapAccParm[12] / 0.824;
+//	return acc;
 }
 /*
  *-------------------------------------------------------------------

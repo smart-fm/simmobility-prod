@@ -224,6 +224,8 @@ public:
 	double speedFactor;
 	vector<double> speedLimitAddon;
 	double getSpeedLimitAddon();
+	vector<double> accAddon;
+	double getAccAddon();
 
 	map< VehicleBase::VehicleType,map<int,double> > maxDecelerationIndex;
 	int maxDecelerationUpperBound;

@@ -38,6 +38,8 @@
 <param name="max_acceleration_scale" value="0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"/>
 <param name="max_deceleration_scale" value="1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0"/>
 <param name="normal_deceleration_scale" value="1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0"/>
+#Car-following acceleration add on
+<param name="Car_following_acceleration_add_on" value="-1.3564 -0.8547 -0.5562 -0.3178 -0.1036 0.1036 0.3178 0.5562 0.8547 1.3564"/>
 <param name="speed_limit_add_on" value="-0.1911 -0.0708 -0.0082 0.0397 0.0810 0.1248 0.1661 0.2180 0.2745 0.3657"/>
 
 <param name="tmp_all_grades" value="0"/>
@@ -174,5 +176,28 @@
 "/>
 
 
+#[Target Gap Model] = {
+#	-0.837	 	# forward gap constant
+#	 0.913		# backward gap constant
+#	 0.816		# effective gap length
+#	-1.218		# relative gap speed
+#	-2.393		# distance to gap 
+#        -1.662		# front vehicle dummy
+#}
+<param name="Target_Gap_Model" value="
+	-0.837	 	# forward gap constant
+	 0.913		# backward gap constant
+	 0.816		# effective gap length
+	-1.218		# relative gap speed
+	-2.393		# distance to gap 
+        -1.662		# front vehicle dummy
+	1.0		
+	1.0
+	1.0
+	1.0		
+	1.0
+	1.0
+	1.0
+"/>
 </parameters>
 

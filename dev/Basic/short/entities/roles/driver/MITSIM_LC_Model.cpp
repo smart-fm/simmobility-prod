@@ -531,6 +531,14 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 		return;
 	}
 
+	Driver *avDriver = const_cast<Driver*>(av->driver);
+	Driver *bvDriver = const_cast<Driver*>(bv->driver);
+	Driver *frontDriver = NULL;
+	if(front->exists())
+	{
+		frontDriver = const_cast<Driver*>(front->driver);
+	}
+
 	// 6.0 calculate FORWARD GAP utility value
 	float dis2gap = 0.0;
 	float effectiveGap = 0.0;
@@ -567,8 +575,8 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	else {
 //	    dis2front = this->gapDistance(front) + front->length();
 		dis2front = front->distance;
-		Driver *avDriver = const_cast<Driver*>(av->driver);
-		Driver *frontDriver = const_cast<Driver*>(front->driver);
+//		Driver *avDriver = const_cast<Driver*>(av->driver);
+//		Driver *frontDriver = const_cast<Driver*>(front->driver);
 	    if (dis2gap > dis2front)
 	    {
 //	    	effectiveGap = (-1) * (front->gapDistance(av) + av->length() + front->length());
@@ -593,7 +601,43 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	    }//end else dis2gap > dis2front
 	  }// end else front exist
 
-	  double eufwd = gapExpOfUtility(1, effectiveGap, dis2gap, gapSpeed, remainderGap);
+	double eufwd = gapExpOfUtility(1, effectiveGap, dis2gap, gapSpeed, remainderGap);
+
+	// 7.0 ADJACENT GAP
+
+//	d1 = bv->gapDistance();
+	// adjacent gap length
+	d1 = av->distance + bv->distance;
+//	s1 = bv->currentSpeed() - av->currentSpeed();
+	s1 = bvDriver->getFwdVelocityM() - avDriver->getFwdVelocityM();
+
+	dis2gap = 0;
+
+//	if (!front) {
+	if(!front->exists()) {
+	  effectiveGap = d1;
+	  remainderGap = 0;
+	  gapSpeed = s1;
+	} //end if front not exist
+	else {
+//		d2 = bv->gapDistance(front);
+		d2 = bvDriver->gapDistance(frontDriver);
+		if (d1 > dis2front)
+		{
+			effectiveGap = d2;
+			remainderGap = d1-d2;
+//			gapSpeed = bv->currentSpeed() - front->currentSpeed();
+			gapSpeed = bvDriver->getFwdVelocityM() - frontDriver->getFwdVelocityM();
+		}// end if d1 > dis2front
+		else {
+			effectiveGap =  d1;
+			remainderGap = 0;
+			gapSpeed = s1;
+		}// end if else d1 > dis2front
+	}//end else front not exist
+
+
+	double euadj = gapExpOfUtility(3, effectiveGap, dis2gap, gapSpeed, remainderGap);
 }
 double sim_mob::MITSIM_LC_Model::gapExpOfUtility(int n, float effGap, float gSpeed, float gapDis, float remDis)
 {

@@ -1003,31 +1003,81 @@ double sim_mob::MITSIM_CF_Model::calcDesiredSpeed(
 	return desiredSpeed;
 }
 double sim_mob::MITSIM_CF_Model::calcForwardRate(DriverUpdateParams& p) {
-	/*
-	 if(p.turningDirection == LCS_SAME)
-	 return maxAcceleration;
-	 NearestVehicle& nv = (p.turningDirection == LCS_LEFT)?p.nvLeftFwd:p.nvRightFwd;
-	 */
+//	TS_Lane *plane;
 
-	if (p.targetGap != TG_Left_Fwd || p.targetGap != TG_Right_Fwd)
-		return p.maxAcceleration;
-	NearestVehicle& nv =
-			(p.targetGap == TG_Left_Fwd) ? p.nvLeftFwd : p.nvRightFwd;
+//	  if (status(STATUS_LEFT)) {
+//		plane = lane_->left();
+//	  } else if (status(STATUS_RIGHT)) {
+//		plane = lane_->right();
+//	  } else {
+//		return MAX_ACCELERATION;	       	// No request for lane change
+//	  }
+//
+//	  float *a = theParameter->targetGapParams();
+	const NearestVehicle * av = NULL; // side leader vh
 
-	if (!nv.exists())
-		return p.maxAcceleration;
-	double dis = nv.distance / 100 + targetGapAccParm[0];
-	double dv = nv.driver->fwdVelocity.get() / 100
-			- p.perceivedFwdVelocity / 100;
-	double acc = targetGapAccParm[1] * pow(dis, targetGapAccParm[2]);
-
-	if (dv > 0) {
-		acc *= pow(dv, targetGapAccParm[3]);
-	} else if (dv < 0) {
-		acc *= pow(-dv, targetGapAccParm[4]);
+	if (p.getStatus(STATUS_LEFT)) {
+	  av = &p.nvLeftFwd;
+	} else if (p.getStatus(STATUS_RIGHT)) {
+	  av = &p.nvRightFwd;
+	} else {
+	//		return MAX_ACCELERATION;			// No request for lane change
+	  return p.maxAcceleration;
 	}
-	acc += targetGapAccParm[5] / 0.824;
-	return acc;
+
+//	 float *a = theParameter->targetGapParams();
+	std::vector<double> a = targetGapAccParm;
+
+//	    TS_Vehicle* av = findFrontBumperLeader(plane);
+	double dis;
+	double dv;
+	if(av->exists())
+	{
+		dis = av->distance + a[0];
+		Driver *avDriver = const_cast<Driver*>(av->driver);
+		dv = avDriver->getFwdVelocityM() - p.driver->getFwdVelocityM();
+	}
+	else
+	{
+		dis = av->distance + a[0];
+		dv = 0 - p.driver->getFwdVelocityM();
+	}
+
+	  float acc = a[1] * pow(dis, a[2]);
+
+	  if (dv > 0) {
+	    acc *= pow(dv, a[3]);
+	  } else if (dv < 0) {
+	    acc *= pow (-dv, a[4]);
+	  }
+//	  acc += theParameter->cfAccAddOn(driverGroup.cfAccAddOn) * a[5] /0.824 ;
+	  acc += getAccAddon() * a[5] /0.824 ;
+	  return acc;
+//	/*
+//	 if(p.turningDirection == LCS_SAME)
+//	 return maxAcceleration;
+//	 NearestVehicle& nv = (p.turningDirection == LCS_LEFT)?p.nvLeftFwd:p.nvRightFwd;
+//	 */
+//
+//	if (p.targetGap != TG_Left_Fwd || p.targetGap != TG_Right_Fwd)
+//		return p.maxAcceleration;
+//	NearestVehicle& nv =
+//			(p.targetGap == TG_Left_Fwd) ? p.nvLeftFwd : p.nvRightFwd;
+//
+//	if (!nv.exists())
+//		return p.maxAcceleration;
+//	double dis = nv.distance / 100 + targetGapAccParm[0];
+//	double dv = nv.driver->fwdVelocity.get() / 100
+//			- p.perceivedFwdVelocity / 100;
+//	double acc = targetGapAccParm[1] * pow(dis, targetGapAccParm[2]);
+//
+//	if (dv > 0) {
+//		acc *= pow(dv, targetGapAccParm[3]);
+//	} else if (dv < 0) {
+//		acc *= pow(-dv, targetGapAccParm[4]);
+//	}
+//	acc += targetGapAccParm[5] / 0.824;
+//	return acc;
 }
 
 double sim_mob::MITSIM_CF_Model::calcBackwardRate(DriverUpdateParams& p) {
@@ -1052,7 +1102,7 @@ double sim_mob::MITSIM_CF_Model::calcBackwardRate(DriverUpdateParams& p) {
 	  return p.maxAcceleration;
 	}
 //	float *a = theParameter->targetGapParams();
-	std::vector<double> a = p.targetGapParams;
+	std::vector<double> a = targetGapAccParm;
 
 	//	 TS_Vehicle* bv = findFrontBumperFollower(plane);
 	double dis;
@@ -1130,7 +1180,7 @@ double sim_mob::MITSIM_CF_Model::calcAdjacentRate(DriverUpdateParams& p) {
 	  }
 
 //	 float *a = theParameter->targetGapParams();
-	  std::vector<double> a = p.targetGapParams;
+	  std::vector<double> a = targetGapAccParm;
 
 //	 TS_Vehicle* av = findFrontBumperLeader(plane);
 	 if (!av->exists()) return p.maxAcceleration;

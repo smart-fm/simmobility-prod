@@ -140,6 +140,7 @@ public:
 
 private:
 	double carFollowingRate(sim_mob::DriverUpdateParams& p,NearestVehicle& nv);
+	double calcCarFollowingRate(DriverUpdateParams& p);
 	/**
 	 *  /brief Calculate the acceleration rate by merging constraint.
 	 *  \param p driver's parameters

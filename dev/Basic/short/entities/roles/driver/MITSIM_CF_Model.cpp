@@ -593,6 +593,9 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
  */
 double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 		NearestVehicle& nv) {
+	// unset status
+	p.unsetStatus(STATUS_REGIME_EMERGENCY);
+
 	p.space = p.perceivedDistToFwdCar / 100;
 
 	double res = 0;
@@ -660,7 +663,11 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 	}
 	return res;
 }
-
+double sim_mob::MITSIM_CF_Model::calcCarFollowingRate(DriverUpdateParams& p)
+{
+//	status_ &= ~(STATUS_REGIME);
+	p.unsetStatus(STATUS_REGIME);
+}
 double sim_mob::MITSIM_CF_Model::calcMergingRate(
 		sim_mob::DriverUpdateParams& p) {
 	double acc = p.maxAcceleration;

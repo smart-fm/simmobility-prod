@@ -71,27 +71,27 @@ double feet2Unit(double feet) {
 //	AM_NONE = 3
 //};
 
-double uRandom(boost::mt19937& gen) {
-	boost::uniform_int<> dist(0, RAND_MAX);
-	long int seed_ = dist(gen);
-
-	const long int M = 2147483647; // M = modulus (2^31)
-	const long int A = 48271; // A = multiplier (was 16807)
-	const long int Q = M / A;
-	const long int R = M % A;
-	seed_ = A * (seed_ % Q) - R * (seed_ / Q);
-	seed_ = (seed_ > 0) ? (seed_) : (seed_ + M);
-	return (double) seed_ / (double) M;
-}
-
-double nRandom(boost::mt19937& gen, double mean, double stddev) {
-	double r1 = uRandom(gen), r2 = uRandom(gen);
-	double r = -2.0 * log(r1);
-	if (r > 0.0)
-		return (mean + stddev * sqrt(r) * sin(2 * 3.1415926 * r2));
-	else
-		return (mean);
-}
+//double uRandom(boost::mt19937& gen) {
+//	boost::uniform_int<> dist(0, RAND_MAX);
+//	long int seed_ = dist(gen);
+//
+//	const long int M = 2147483647; // M = modulus (2^31)
+//	const long int A = 48271; // A = multiplier (was 16807)
+//	const long int Q = M / A;
+//	const long int R = M % A;
+//	seed_ = A * (seed_ % Q) - R * (seed_ / Q);
+//	seed_ = (seed_ > 0) ? (seed_) : (seed_ + M);
+//	return (double) seed_ / (double) M;
+//}
+//
+//double nRandom(boost::mt19937& gen, double mean, double stddev) {
+//	double r1 = uRandom(gen), r2 = uRandom(gen);
+//	double r = -2.0 * log(r1);
+//	if (r > 0.0)
+//		return (mean + stddev * sqrt(r) * sin(2 * 3.1415926 * r2));
+//	else
+//		return (mean);
+//}
 
 double CalcHeadway(double space, double speed, double elapsedSeconds,
 		double maxAcceleration) {
@@ -1168,7 +1168,8 @@ double sim_mob::MITSIM_CF_Model::accOfCarFollowing(DriverUpdateParams& p) {
 			/ pow(p.nvFwd.distance / 100, CF_parameters[i].gama);
 	res *= pow(dv, CF_parameters[i].lambda)
 			* pow(density, CF_parameters[i].rho);
-	res += feet2Unit(nRandom(p.gen, 0, CF_parameters[i].stddev));
+//	res += feet2Unit(nRandom(p.gen, 0, CF_parameters[i].stddev));
+	res += feet2Unit(Utils::nRandom(0, CF_parameters[i].stddev));
 
 	return res;
 }

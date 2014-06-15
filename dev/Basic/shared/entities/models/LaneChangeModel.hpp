@@ -45,7 +45,7 @@ public:
 	 *  /param vehicle info
 	 *  /return true only if has events
 	 */
-	virtual bool checkIfLookAheadEvents(DriverUpdateParams& p) = 0;
+	virtual int checkIfLookAheadEvents(DriverUpdateParams& p) = 0;
 	/**
 	 *  /brief this function determines the lane changing that a lookahead vehicle
 	 *          will try if it is constrained by an event.
@@ -169,7 +169,22 @@ public:
 	 */
 	bool path(DriverUpdateParams& p);
 	// TODO: add incident code
-	virtual bool checkIfLookAheadEvents(DriverUpdateParams& p);
+	virtual int checkIfLookAheadEvents(DriverUpdateParams& p);
+
+	/**
+	 * 	/brief set dis2stop
+	 * 	 -1 = bad event and requires a mandatory lane change
+	 * 	  0 = nothing serious
+	 * 	  1 = bad event and requires a discretionary lane change
+	 */
+	int isThereBadEventAhead(DriverUpdateParams& p);
+
+	/**
+	 *  /brief check lane drop,set dis2stop
+	 *   0 = nothing serious
+	 * 	 -1 = requires a mandatory lane change
+	 */
+	int isThereLaneDrop(DriverUpdateParams& p);
 	// TODO: add incident code
 	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p);
 	double lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance);

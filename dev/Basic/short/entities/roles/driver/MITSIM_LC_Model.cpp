@@ -1076,7 +1076,7 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams& p,in
 		if(p.nvLeftFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
 		{
 			heavy_neighbor = a[7];
-			spacing = p.nvLeftFwd.distance;
+			spacing = p.nvLeftFwd.distance/100.0;
 		}
 	}
 	else
@@ -1156,7 +1156,7 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams& p,i
 		if(p.nvRightFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
 		{
 			heavy_neighbor = a[7];
-			spacing = p.nvRightFwd.distance;
+			spacing = p.nvRightFwd.distance/100.0;
 		}
 	}
 	else
@@ -1245,7 +1245,7 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadCurrent(DriverUpdateParams& p
 		if(p.nvRightFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
 		{
 			heavy_neighbor = a[7];
-			spacing = p.nvRightFwd.distance;
+			spacing = p.nvRightFwd.distance/100.0;
 		}
 	}
 	else
@@ -1301,7 +1301,7 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadCurrent(DriverUpdateParams& p
 	float tailgate_dummy = 0;
 //	TS_Vehicle* behind = this->vehicleBehind() ;
 	if (p.nvBack.exists()) {
-		double gap_behind = p.nvBack.distance;
+		double gap_behind = p.nvBack.distance/100.0;
 		//TODO: calculate segment density
 	    float dens = 0.0;//tsSegment()->density();
 	    tailgate_dummy = (gap_behind <= a[10] && dens <= a[11])? a[9] : 0;
@@ -1698,7 +1698,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 		  }
 		} else if (av->driver->fwdVelocity/100.0 < Math::DOUBLE_EPSILON &&
 				   p.dis2stop > p.distanceToNormalStop &&
-				   p.nvFwd.distance > p.distanceToNormalStop) {
+				   p.nvFwd.distance/100.0 > p.distanceToNormalStop) {
 		  return 0;
 		}//end if FLAG_LC_FAILED_LEAD
 	}//end if av
@@ -1808,23 +1808,101 @@ bool sim_mob::MITSIM_LC_Model::path(DriverUpdateParams& p)
 	// as current vehicle always has path
 	return true;
 }
-bool sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
+int sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
 {
 	// TODO: check event ,like incident
 
+	p.unsetFlag(FLAG_ESCAPE | FLAG_AVOID);
+	p.unsetStatus(STATUS_MANDATORY);
+	// 1.0 check incident
+	int bad = isThereBadEventAhead(p);
 
-	p.setFlag(FLAG_ESCAPE);
+	// 1.1 check lane drop
+	if(bad >=0)
+	{
+		// no incident,but need check lane drop
+		bad = isThereLaneDrop();
+	}
 
+	// 1.2 check lane connect to next segment
 
+	// 2.0 set flag
+	if (bad < 0) {
+		p.setFlag(FLAG_ESCAPE);
+	} else if (bad > 0) {
+		p.setFlag(FLAG_AVOID);
+	}
+//	} else {
+//		dis2stop_ = distanceFromDownNode();
+//		vis_ = link()->length();
+//	}
+
+	// 3.0 if has incident, set STATUS_MANDATORY
+	 if ( bad < 0 && p.dis2stop < lookAheadDistance ) {
+//	    setMandatoryStatusTag();
+		p.setStatus(STATUS_MANDATORY);
+	 }
+
+	 return p.status(STATUS_MANDATORY);
+}
+int sim_mob::MITSIM_LC_Model::isThereBadEventAhead(DriverUpdateParams& p)
+{
+	// TODO set dis2stop
+	// only mandatory lane change or no change
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
 	driverMvt->incidentPerformer.checkIncidentStatus(p, p.driver->getParams().now);
 
 	if(driverMvt->incidentPerformer.getIncidentStatus().getChangedLane())
 	{
-		return true;
+		return -1; //mandatory lane change
 	}
 
-	return false;
+	return 0;
+}
+int sim_mob::MITSIM_LC_Model::isThereLaneDrop(DriverUpdateParams& p)
+{
+	// TODO use lane connector
+	// but now use lane index
+
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	if (!(driverMvt->hasNextSegment(true))) // not has next segment in current link,means current on last segment of the link
+	{
+		p.dis2stop = driverMvt->fwdDriverMovement.getAllRestRoadSegmentsLengthCM() -
+				driverMvt->fwdDriverMovement.getCurrDistAlongRoadSegmentCM() - driverMvt->parentDriver->vehicle->getLengthCm() / 2;
+		if (p.nvFwd.distance < p.dis2stop)
+			p.dis2stop = p.nvFwd.distance;
+		p.dis2stop /= 100.0; // convert to meter
+	}
+	else {
+		//has next segment of current link
+		// check current lane is most left lane and next segment lane size smaller than current lane index
+		// means has lane merge, need lane change
+		size_t currentSegmentLaneSize = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes().size();
+		if(driverMvt->fwdDriverMovement.getCurrSegment()->getLanes().at(currentSegmentLaneSize)->is_pedestrian_lane())
+		{
+			// current segment has ped lane
+			currentSegmentLaneSize--;
+		}
+		if(p.currLaneIndex == currentSegmentLaneSize)
+		{
+			// we are on most left lane
+			// check next segment lane size
+			size_t nextSegmentLaneSize = driverMvt->fwdDriverMovement.getNextSegment(true)->getLanes().size();
+			if(driverMvt->fwdDriverMovement.getNextSegment(true)->getLanes().at(nextSegmentLaneSize)->is_pedestrian_lane())
+			{
+				// next segment has ped lane
+				nextSegmentLaneSize--;
+			}
+			if(nextSegmentLaneSize > p.currLaneIndex)
+			{
+				p.dis2stop = driverMvt->fwdDriverMovement.getCurrPolylineTotalDistCM() -
+						driverMvt->fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
+				p.dis2stop /= 100.0;
+				return -1;
+			}
+		}
+	}// end else
+	return 0;
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdateParams& p)
 {

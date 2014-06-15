@@ -139,6 +139,7 @@ const  UINT CONTROLLER_SMITH       = 11;
 const  UINT CONTROLLER_DELAYMIN    = 12;
 const  UINT CONTROLLER_BILEVELDELAYMIN   = 13;     // enumeration end
 
+const double DEFAULT_DIS_TO_STOP = 1000;
 /*--------------------------------------------------------------------
  * IDs for control devices and events
  */

@@ -185,6 +185,14 @@ public:
 	 * 	 -1 = requires a mandatory lane change
 	 */
 	int isThereLaneDrop(DriverUpdateParams& p);
+
+	/**
+	 *  /brief check if lane connect to next segment,set dis2stop
+	 *   0 = nothing serious
+	 * 	 -1 = requires a mandatory lane change
+	 */
+	int isLaneConnectToNextSegment(DriverUpdateParams& p);
+
 	// TODO: add incident code
 	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p);
 	double lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance);

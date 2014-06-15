@@ -1814,22 +1814,30 @@ int sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
 
 	p.unsetFlag(FLAG_ESCAPE | FLAG_AVOID);
 	p.unsetStatus(STATUS_MANDATORY);
+	p.dis2stop = DEFAULT_DIS_TO_STOP;
+
+	bool needMLC = false;
+	bool needDLC = false;
 	// 1.0 check incident
-	int bad = isThereBadEventAhead(p);
+	int res = isThereBadEventAhead(p);
+	if(res == -1) needMLC = true;
+	if(res == 1) needDLC = true;
 
 	// 1.1 check lane drop
-	if(bad >=0)
-	{
-		// no incident,but need check lane drop
-		bad = isThereLaneDrop();
-	}
+	// no incident,but need check lane drop
+	res = isThereLaneDrop(p);
+	if(res == -1) needMLC = true;
+	if(res == 1) needDLC = true;
 
 	// 1.2 check lane connect to next segment
+	res = isLaneConnectToNextSegment(p);
+	if(res == -1) needMLC = true;
+	if(res == 1) needDLC = true;
 
 	// 2.0 set flag
-	if (bad < 0) {
+	if (needMLC) {
 		p.setFlag(FLAG_ESCAPE);
-	} else if (bad > 0) {
+	} else if (needDLC) {
 		p.setFlag(FLAG_AVOID);
 	}
 //	} else {
@@ -1837,17 +1845,18 @@ int sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
 //		vis_ = link()->length();
 //	}
 
-	// 3.0 if has incident, set STATUS_MANDATORY
-	 if ( bad < 0 && p.dis2stop < lookAheadDistance ) {
+	// 3.0 if has mld require and not enough headway, set STATUS_MANDATORY
+	 if ( needMLC  && p.dis2stop < lookAheadDistance ) {
 //	    setMandatoryStatusTag();
 		p.setStatus(STATUS_MANDATORY);
 	 }
 
-	 return p.status(STATUS_MANDATORY);
+	 return p.getStatus(STATUS_MANDATORY);
 }
 int sim_mob::MITSIM_LC_Model::isThereBadEventAhead(DriverUpdateParams& p)
 {
 	// TODO set dis2stop
+
 	// only mandatory lane change or no change
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
 	driverMvt->incidentPerformer.checkIncidentStatus(p, p.driver->getParams().now);
@@ -1867,11 +1876,13 @@ int sim_mob::MITSIM_LC_Model::isThereLaneDrop(DriverUpdateParams& p)
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
 	if (!(driverMvt->hasNextSegment(true))) // not has next segment in current link,means current on last segment of the link
 	{
-		p.dis2stop = driverMvt->fwdDriverMovement.getAllRestRoadSegmentsLengthCM() -
+		double d = driverMvt->fwdDriverMovement.getAllRestRoadSegmentsLengthCM() -
 				driverMvt->fwdDriverMovement.getCurrDistAlongRoadSegmentCM() - driverMvt->parentDriver->vehicle->getLengthCm() / 2;
-		if (p.nvFwd.distance < p.dis2stop)
-			p.dis2stop = p.nvFwd.distance;
-		p.dis2stop /= 100.0; // convert to meter
+		d /= 100.0;
+//		if (p.nvFwd.distance < p.dis2stop)
+//			p.dis2stop = p.nvFwd.distance;
+		if(d<p.dis2stop)
+			p.dis2stop = d;
 	}
 	else {
 		//has next segment of current link
@@ -1895,13 +1906,70 @@ int sim_mob::MITSIM_LC_Model::isThereLaneDrop(DriverUpdateParams& p)
 			}
 			if(nextSegmentLaneSize > p.currLaneIndex)
 			{
-				p.dis2stop = driverMvt->fwdDriverMovement.getCurrPolylineTotalDistCM() -
-						driverMvt->fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
-				p.dis2stop /= 100.0;
+				double d = (driverMvt->fwdDriverMovement.getCurrPolylineTotalDistCM() -
+						driverMvt->fwdDriverMovement.getCurrDistAlongRoadSegmentCM() )/100.0;
+				if(d<p.dis2stop)
+				{
+					p.dis2stop = d;
+				}
 				return -1;
 			}
 		}
 	}// end else
+	return 0;
+}
+int sim_mob::MITSIM_LC_Model::isLaneConnectToNextSegment(DriverUpdateParams& p)
+{
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	const RoadSegment* nextSegment = driverMvt->fwdDriverMovement.getNextSegment(false);
+	const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (driverMvt->fwdDriverMovement.getCurrSegment()->getEnd());
+	if(currEndNode)
+	{
+		// get lane connector
+		const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(driverMvt->fwdDriverMovement.getCurrSegment());
+
+		// check lef,right lanes connect to next target segment
+		for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++)
+		{
+			if ( (*it)->getLaneTo()->getRoadSegment() == nextSegment ) // this lc connect to target segment
+			{
+				int laneIdx = getLaneIndex((*it)->getLaneFrom());
+				if(laneIdx > p.currLaneIndex)
+				{
+					p.setStatus(STATUS_LEFT_OK);
+				}
+				else if(laneIdx < p.currLaneIndex)
+				{
+					p.setStatus(STATUS_RIGHT_OK);
+				}
+			}//end if
+		}//end for
+
+		if (lcs.size()>0)
+		{
+					//
+			if(p.currLane->is_pedestrian_lane()) {
+				//if can different DEBUG or RELEASE mode, that will be perfect, but now comment it out, so that does nor affect performance.
+				//I remember the message is not critical
+				WarnOut("drive on pedestrian lane");
+				double d = driverMvt->fwdDriverMovement.getDisToCurrSegEndM();
+				if(d<p.dis2stop)
+					p.dis2stop = d;
+				return -1;
+			}
+			std::map<int,vector<int> > indexes;
+			std::set<int> noData;
+
+			for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
+				if ((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom() == p.currLane) {
+							// current lane connect to next link
+							return 0; // no need lc
+					}
+			}// end for
+			// wow! we need change lane
+			return -1;
+		} // end of if (!lcs)
+	}//end if(currEndNode)
 	return 0;
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdateParams& p)

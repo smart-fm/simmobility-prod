@@ -82,7 +82,7 @@ public:
 	}
 
 
-protected:
+public:
 	Driver* parentDriver;
 
 public:

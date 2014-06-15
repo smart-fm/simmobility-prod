@@ -137,7 +137,7 @@ public:
 	Driver* yieldVehicle;
 
 //Basic data
-protected:
+public:
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
 	// driver path-mover split purpose, we save the currPos in the Driver

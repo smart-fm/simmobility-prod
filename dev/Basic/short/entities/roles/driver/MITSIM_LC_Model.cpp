@@ -532,11 +532,18 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	}
 
 	Driver *avDriver = const_cast<Driver*>(av->driver);
+	DriverMovement *avDriverMvt = (DriverMovement*)avDriver->Movement();
 	Driver *bvDriver = const_cast<Driver*>(bv->driver);
+	DriverMovement *bvDriverMvt = (DriverMovement*)bvDriver->Movement();
 	Driver *frontDriver = NULL;
 	if(front->exists())
 	{
 		frontDriver = const_cast<Driver*>(front->driver);
+	}
+	Driver *bbvDriver = NULL;
+	if(bbv->exists())
+	{
+		bbvDriver = const_cast<Driver*>(front->driver);
 	}
 
 	// 6.0 calculate FORWARD GAP utility value
@@ -555,8 +562,19 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 		Driver *aavDriver = const_cast<Driver*>(aav->driver);
 		s1 = av->driver->fwdVelocity/100.0 - aavDriver->getFwdVelocityM(); // speed diff of av and aav
 	  } else {
-	    d1 = av->distance;
-	    s1 = 0;
+//		  d1 = av->distance();
+		  // get side ahead vh distance to end of link
+		  // tmp solution distance to next segment ,if next seg exist
+		  // TODO: meaning of av->distance()
+		  if(avDriverMvt->fwdDriverMovement.getNextSegment(true))
+		  {
+			  d1 = avDriverMvt->fwdDriverMovement.getDisToCurrSegEndM() + avDriverMvt->fwdDriverMovement.getNextSegment(true)->length/100.0;
+		  }
+		  else {
+			  d1 = avDriverMvt->fwdDriverMovement.getDisToCurrSegEndM();
+		  }
+
+		  s1 = 0;
 //	    if (av->nextLane_) {
 //	      d1 = d1 + av->nextLane_->length();
 //	    }
@@ -638,6 +656,55 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 
 
 	double euadj = gapExpOfUtility(3, effectiveGap, dis2gap, gapSpeed, remainderGap);
+
+	  // 8.0 BACKWARD GAP
+
+//	  if ( TS_Vehicle* bv2 = bv->vehicleBehind() ) {
+	if(bbv->exists()) {
+//	    d1 = bv2->gapDistance();
+		d1 = bbv->distance - bv->distance - bv->driver->getVehicleLengthM(); // get gap length of bv and bbv
+//	    s1 = bv2->currentSpeed() - bv->currentSpeed();
+		s1 = bbvDriver->getFwdVelocityM() - bvDriver->getFwdVelocityM();
+	} else {
+
+	    s1 = 0;
+//	    d1 = bv->lane()->length() - bv->distance();
+	    // get side back vh distance to start of link
+	    // tmp solution distance to move along segment ,if next seg exist
+	    // TODO: meaning of d1 = bv->lane()->length() - bv->distance();
+	    d1 = bvDriverMvt->fwdDriverMovement.getCurrDistAlongPolylineM();
+
+	    // TODO: why use upstream lanes length
+//	    int i, n = bv->lane_->nUpLanes();//pointers to upstream lanes
+//	    if (n > 0) {
+//	      d2 = FLT_INF;
+//	      for (i = 0; i < n; i ++) {
+//		if (d3 = bv->lane_->upLane(i)->length() < d2) {
+//		  d2 = d3;
+//		}
+//	      }
+//	      d1 = d1 +d2;
+//	    }
+	  }//end else
+
+//	  dis2gap = bvDriver->gapDistance(this)+ this->length();
+	dis2gap = bv->distance;
+
+	effectiveGap = d1;
+	remainderGap = 0;
+	gapSpeed = s1;
+
+
+	double eubck = gapExpOfUtility(2, effectiveGap, dis2gap, gapSpeed, remainderGap);
+
+	double sum = eufwd + eubck + euadj ;
+//	double rnd = theRandomizer->urandom() ;
+	double rnd = Utils::uRandom();
+	if (rnd < euadj / sum) p.setStatus(STATUS_ADJACENT);
+	else if (rnd < (euadj + eubck) / sum) p.setStatus(STATUS_BACKWARD);
+	else p.setStatus(STATUS_FORWARD);
+
+	return;
 }
 double sim_mob::MITSIM_LC_Model::gapExpOfUtility(int n, float effGap, float gSpeed, float gapDis, float remDis)
 {

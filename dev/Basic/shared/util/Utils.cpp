@@ -52,6 +52,29 @@ int Utils::generateInt(int min, int max) {
     return gen();
 }
 
+double Utils::uRandom() {
+//	initRandomProvider(floatProvider);
+//	boost::uniform_int<> dist(0, RAND_MAX);
+//	long int seed_ = dist(floatProvider.get());
+	long int seed_ = Utils::generateInt(0,RAND_MAX);
+
+	const long int M = 2147483647; // M = modulus (2^31)
+	const long int A = 48271; // A = multiplier (was 16807)
+	const long int Q = M / A;
+	const long int R = M % A;
+	seed_ = A * (seed_ % Q) - R * (seed_ / Q);
+	seed_ = (seed_ > 0) ? (seed_) : (seed_ + M);
+	return (double) seed_ / (double) M;
+}
+
+double Utils::nRandom(double mean, double stddev) {
+	double r1 = uRandom(), r2 = uRandom();
+	double r = -2.0 * log(r1);
+	if (r > 0.0)
+		return (mean + stddev * sqrt(r) * sin(2 * 3.1415926 * r2));
+	else
+		return (mean);
+}
 
 std::vector<std::string> Utils::parseArgs(int argc, char* argv[])
 {

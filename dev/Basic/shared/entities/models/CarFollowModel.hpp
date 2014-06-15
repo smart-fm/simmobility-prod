@@ -142,6 +142,20 @@ private:
 	double carFollowingRate(sim_mob::DriverUpdateParams& p,NearestVehicle& nv);
 	double calcCarFollowingRate(DriverUpdateParams& p);
 	/**
+	 *  /brief Check if the vehicle is in merging area
+	 */
+	int isInMergingArea(DriverUpdateParams& p);
+	vector<double> mergingParams;
+	double upMergingArea() { return mergingParams[0]; }
+	double dnMergingArea() { return mergingParams[1]; }
+	int nVehiclesAllowedInMergingArea() {
+		return (int) mergingParams[2];
+	  }
+	float aggresiveRampMergeProb() {
+		return mergingParams[3];
+	  }
+
+	/**
 	 *  /brief Calculate the acceleration rate by merging constraint.
 	 *  \param p driver's parameters
 	 *  \return acceleration rate

@@ -192,5 +192,20 @@
 	-2.393		# distance to gap 
         -1.662		# front vehicle dummy
 "/>
+
+# MERGING
+
+#[Merging Model] = {
+#	100	# feet, upstream area
+#	200	# feet, downstream area
+#	8	# number of vehicles allowed
+#	0.2     # probability of aggresive merge from ramp
+#}
+<param name="Merging_Model" value="
+	10	# meter upstream area
+	20	# meter downstream area
+	8	# number of vehicles allowed
+	0.2     # probability of aggresive merge from ramp
+"/>
 </parameters>
 

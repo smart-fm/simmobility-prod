@@ -235,6 +235,12 @@ void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p) {
 	// visibility
 	ParameterManager::Instance()->param(modelName, "visibility_distance",
 			visibilityDistance, 10.0);
+
+	// merge model
+	ParameterManager::Instance()->param(modelName,
+				"Merging_Model", str,
+				string("10 20 8 0.2"));
+	sim_mob::Utils::convertStringToArray(str,accAddon);
 }
 void sim_mob::MITSIM_CF_Model::makeCFParam(string& s, CarFollowParam& cfParam) {
 	std::vector<std::string> arrayStr;
@@ -516,8 +522,9 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	// if(acc > aI) acc = aI;
 	// }
 	// FUNCTION approachInter MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
-	double aZ1 = carFollowingRate(p, p.nvFwd);
-	double aZ2 = carFollowingRate(p, p.nvFwdNextLink);
+//	double aZ1 = carFollowingRate(p, p.nvFwd);
+//	double aZ2 = carFollowingRate(p, p.nvFwdNextLink);
+	double aZ = calcCarFollowingRate(p);
 
 	// Make decision
 	// Use the smallest
@@ -538,10 +545,12 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		acc = aC;
 	if (acc > aE)
 		acc = aE;
-	if (acc > aZ1)
-		acc = aZ1;
-	if (acc > aZ2)
-		acc = aZ2;
+	if (acc > aZ)
+		acc = aZ;
+//	if (acc > aZ1)
+//		acc = aZ1;
+//	if (acc > aZ2)
+//		acc = aZ2;
 
 	// SEVERAL CONDITONS MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
 
@@ -666,7 +675,51 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 double sim_mob::MITSIM_CF_Model::calcCarFollowingRate(DriverUpdateParams& p)
 {
 //	status_ &= ~(STATUS_REGIME);
-	p.unsetStatus(STATUS_REGIME);
+ // need unset STATUS_REGIME?
+	double acc;
+	if(isInMergingArea(p))
+	{
+
+	}
+	// as isInMergingArea() not function now
+//	else /
+	{
+		double aZ1 = carFollowingRate(p, p.nvFwd);
+		double aZ2 = carFollowingRate(p, p.nvFwdNextLink);
+		if(aZ1<aZ2) {
+			acc = aZ1;
+		}
+		else {
+			acc = aZ2;
+		}
+	}
+
+	return acc;
+
+}
+int sim_mob::MITSIM_CF_Model::isInMergingArea(DriverUpdateParams& p)
+{
+	//TODO: uninode lane connector has issue
+	// check buildForwardLanesFromAlignedLanes(), each lane connector to next segment's left,center,right lane
+	// it is impossible to find merging area, which has lane merge area
+
+	return 0;
+// not use FLAG_MERGING as in MITSIM, it maybe used to fix certain bug
+
+	// check current lane connect to two lane and vehicle is in the lower part of the merging area
+
+//	DriverMovement *driverMvt = (DriverMovement*) p.driver->Movement();
+//	if(driverMvt->fwdDriverMovement.getDisToCurrSegEndM() < dnMergingArea())
+//	{
+//		const UniNode* currEndNode = dynamic_cast<const UniNode*> (driverMvt->fwdDriverMovement.getCurrSegment()->getEnd());
+//		if(currEndNode)
+//		{
+//
+//		}
+//	}
+
+
+
 }
 double sim_mob::MITSIM_CF_Model::calcMergingRate(
 		sim_mob::DriverUpdateParams& p) {

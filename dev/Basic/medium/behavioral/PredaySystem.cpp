@@ -1215,11 +1215,11 @@ void sim_mob::medium::PredaySystem::outputPredictionsToMongo() {
 void sim_mob::medium::PredaySystem::outputLogsumsToMongo()
 {
 	BSONObj query = BSON("_id" << personParams.getPersonId());
-	BSONObj updateObj = BSON(
+	BSONObj updateObj = BSON("$set" << BSON(
 			"worklogsum"<< personParams.getWorkLogSum() <<
 			"shoplogsum" << personParams.getShopLogSum() <<
 			"otherlogsum" << personParams.getOtherLogSum()
-			);
+			));
 	mongoDao["population"]->update(query, updateObj);
 }
 

@@ -1815,6 +1815,14 @@ int sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
 	p.unsetFlag(FLAG_ESCAPE | FLAG_AVOID);
 	p.unsetStatus(STATUS_MANDATORY);
 	p.dis2stop = DEFAULT_DIS_TO_STOP;
+	// set default target lanes
+	p.targetLanes.clear();
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
+	for(int i=0;i<lanes.size();++i)
+	{
+		p.targetLanes.insert(lanes[i]);
+	}
 
 	bool needMLC = false;
 	bool needDLC = false;
@@ -1829,12 +1837,14 @@ int sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
 	res = isThereLaneDrop(p,laneDropTargetLanes);
 	if(res == -1) needMLC = true;
 	if(res == 1) needDLC = true;
+	p.addTargetLanes(laneDropTargetLanes);
 
 	// 1.2 check lane connect to next segment
 	set<const Lane*> laneConnectorTargetLanes;
 	res = isLaneConnectToNextSegment(p,laneConnectorTargetLanes);
 	if(res == -1) needMLC = true;
 	if(res == 1) needDLC = true;
+	p.addTargetLanes(laneConnectorTargetLanes);
 
 	// 2.0 set flag
 	if (needMLC) {
@@ -1991,6 +2001,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdatePar
 {
 	LANE_CHANGE_SIDE lcs = LCS_SAME;
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+
 	// 1.0 check if has incident
 	if( driverMvt->incidentPerformer.getIncidentStatus().getChangedLane() )
 	{
@@ -2008,9 +2019,87 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdatePar
 	// 2.0 if FLAG_ESCAPE(need do mlc) and current lane not ok, count left/right lc times to drive on good lane
 	if(p.flag(FLAG_ESCAPE) )//no need check STATUS_CURRENT_OK, as if FLAG_ESCAPE ,current lane confirm not ok
 	{
-		// find left lane ok?
-	}
+		// 2.1 find current lane index
+		size_t currentLaneIdx = p.currLaneIndex;
+		// number of lane changes to an open lane
+		int nl = -1;		// left side
+		int nr = -1;		// right side
+		// use p.targetLanes
+		set<const Lane*>::iterator it;
+		for(it=p.targetLanes.begin();it!=p.targetLanes.end();++it)
+		{
+			//2.2 lane index
+			const Lane* l = *it;
+			size_t targetLaneIdx = getLaneIndex(l);
+			if(targetLaneIdx>currentLaneIdx)
+			{
+				// target lane is in left of current lane
+				int numberlc = targetLaneIdx - currentLaneIdx;
+				if(numberlc < nl || nl<0) {
+					nl = numberlc;
+				}
+			}
+			else if(targetLaneIdx < currentLaneIdx)
+			{
+				// target lane in right
+				int numberlc = currentLaneIdx - targetLaneIdx;
+				if(numberlc < nr || nr <0) {
+					nr = numberlc;
+				}
+			}
+			else
+			{
+				// target lane == current lane,shall not happen
+				WarnOut("target lane == current lane");
+			}
+		}//end for
 
+		// 2.3 set FLAG_ESCAPE_LEFT or FLAG_ESCAPE_RIGHT
+		// 2.3.1 There is an open left lane and no open right lane or the
+		//       open left lane is closer.
+		if(nl>0 && nr == -1)
+		{
+			if (p.flag(FLAG_ESCAPE)) {
+				p.setFlag(FLAG_ESCAPE_LEFT);
+			}
+			else if (p.flag(FLAG_AVOID)) {
+				p.setFlag(FLAG_AVOID_LEFT);
+			}
+			return LCS_LEFT;
+		}
+		// 2.3.2 There is an open right lane and no open left lane or the
+		//       open right lane is closer.
+		if(nr>0 && nl == -1)
+		{
+			if (p.flag(FLAG_ESCAPE) ){
+				p.setFlag(FLAG_ESCAPE_RIGHT);
+			}
+			else if (p.flag(FLAG_AVOID)) {
+				p.setFlag(FLAG_AVOID_RIGHT);
+			}
+			return LCS_RIGHT;
+		}
+		// 2.3.3 There is open lane on both side. Choose one randomly.
+		if (Utils::brandom(0.5)) {
+			if (p.flag(FLAG_ESCAPE)) {
+				p.setFlag(FLAG_ESCAPE_LEFT);
+			}
+			else if (p.flag(FLAG_AVOID)){
+				p.setFlag(FLAG_AVOID_LEFT);
+			}
+				return LCS_LEFT;
+		} else {
+				if (p.flag(FLAG_ESCAPE)) {
+					p.setFlag(FLAG_ESCAPE_RIGHT);
+				}
+				else if (p.flag(FLAG_AVOID)) {
+					p.setFlag(FLAG_AVOID_RIGHT);
+				}
+				return LCS_RIGHT;
+		}//end if Utils::brandom(0.5)
+	}//end if p.flag(FLAG_ESCAPE)
+
+	// 3.0 discretionary lane change
 }
 void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)
 {

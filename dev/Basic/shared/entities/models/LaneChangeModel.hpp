@@ -198,6 +198,16 @@ public:
 	// TODO: add incident code
 	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p);
 	double lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance);
+	double LCUtilityLeft(DriverUpdateParams& p);
+
+	/**
+	 *  /brief find number of lane changes to end of the link
+	 *   -n = number of lane changes to right required
+	 *	 0  = this lane is fine
+	 *	 +n = number of lane changes to left requied
+	 */
+	int isWrongLane(DriverUpdateParams& p,const Lane* lane);
+
 	double lcUtilityLookAheadRight(DriverUpdateParams& p,int n, float LCdistance);
 	double lcUtilityLookAheadCurrent(DriverUpdateParams& p,int n, float LCdistance);
 	double lcCriticalGap(sim_mob::DriverUpdateParams& p, int type,double dv);

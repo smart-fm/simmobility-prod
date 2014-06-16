@@ -1057,6 +1057,14 @@ int sim_mob::MITSIM_LC_Model::isReadyForNextDLC(DriverUpdateParams& p,int mode)
   }
   return sec > getDlcMinTimeInLaneSameDir();
 }
+int sim_mob::MITSIM_LC_Model::isWrongLane(DriverUpdateParams& p,const Lane* lane)
+{
+
+}
+double sim_mob::MITSIM_LC_Model::LCUtilityLeft(DriverUpdateParams& p)
+{
+	vector<double> a = laneUtilityParams;
+}
 double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance)
 {
 	vector<double> a = laneUtilityParams;
@@ -2100,6 +2108,11 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdatePar
 	}//end if p.flag(FLAG_ESCAPE)
 
 	// 3.0 discretionary lane change
+	double eul = 0.0, eur = 0.0, euc = 1.0 ;
+	if (isReadyForNextDLC(p,2))
+	{
+		eul = LCUtilityLeft(plane);
+	}
 }
 void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)
 {

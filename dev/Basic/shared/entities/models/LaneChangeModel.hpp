@@ -181,17 +181,19 @@ public:
 
 	/**
 	 *  /brief check lane drop,set dis2stop
+	 *  /targetLanes target lanes, if require mlc or dlc
+	 *  /return
 	 *   0 = nothing serious
 	 * 	 -1 = requires a mandatory lane change
 	 */
-	int isThereLaneDrop(DriverUpdateParams& p);
+	int isThereLaneDrop(DriverUpdateParams& p,set<const Lane*>& targetLanes);
 
 	/**
 	 *  /brief check if lane connect to next segment,set dis2stop
 	 *   0 = nothing serious
 	 * 	 -1 = requires a mandatory lane change
 	 */
-	int isLaneConnectToNextSegment(DriverUpdateParams& p);
+	int isLaneConnectToNextSegment(DriverUpdateParams& p,set<const Lane*>& targetLanes);
 
 	// TODO: add incident code
 	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p);

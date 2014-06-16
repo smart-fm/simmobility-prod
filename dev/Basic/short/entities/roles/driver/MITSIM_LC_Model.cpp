@@ -1825,12 +1825,14 @@ int sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
 
 	// 1.1 check lane drop
 	// no incident,but need check lane drop
-	res = isThereLaneDrop(p);
+	set<const Lane*> laneDropTargetLanes;
+	res = isThereLaneDrop(p,laneDropTargetLanes);
 	if(res == -1) needMLC = true;
 	if(res == 1) needDLC = true;
 
 	// 1.2 check lane connect to next segment
-	res = isLaneConnectToNextSegment(p);
+	set<const Lane*> laneConnectorTargetLanes;
+	res = isLaneConnectToNextSegment(p,laneConnectorTargetLanes);
 	if(res == -1) needMLC = true;
 	if(res == 1) needDLC = true;
 
@@ -1863,12 +1865,13 @@ int sim_mob::MITSIM_LC_Model::isThereBadEventAhead(DriverUpdateParams& p)
 
 	if(driverMvt->incidentPerformer.getIncidentStatus().getChangedLane())
 	{
+		//HP: pls set p.dis2stop , it is distance to the incident.
 		return -1; //mandatory lane change
 	}
 
 	return 0;
 }
-int sim_mob::MITSIM_LC_Model::isThereLaneDrop(DriverUpdateParams& p)
+int sim_mob::MITSIM_LC_Model::isThereLaneDrop(DriverUpdateParams& p,set<const Lane*>& targetLanes)
 {
 	// TODO use lane connector
 	// but now use lane index
@@ -1904,7 +1907,7 @@ int sim_mob::MITSIM_LC_Model::isThereLaneDrop(DriverUpdateParams& p)
 				// next segment has ped lane
 				nextSegmentLaneSize--;
 			}
-			if(nextSegmentLaneSize > p.currLaneIndex)
+			if(nextSegmentLaneSize > p.currLaneIndex)//has lane merge
 			{
 				double d = (driverMvt->fwdDriverMovement.getCurrPolylineTotalDistCM() -
 						driverMvt->fwdDriverMovement.getCurrDistAlongRoadSegmentCM() )/100.0;
@@ -1912,14 +1915,21 @@ int sim_mob::MITSIM_LC_Model::isThereLaneDrop(DriverUpdateParams& p)
 				{
 					p.dis2stop = d;
 				}
+				// fill targetLanes
+				for(int i=1;i<nextSegmentLaneSize;++i)
+				{
+					const Lane* l = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes().at(i);
+					targetLanes.insert(l);
+				}
 				return -1;
 			}
 		}
 	}// end else
 	return 0;
 }
-int sim_mob::MITSIM_LC_Model::isLaneConnectToNextSegment(DriverUpdateParams& p)
+int sim_mob::MITSIM_LC_Model::isLaneConnectToNextSegment(DriverUpdateParams& p,set<const Lane*>& targetLanes)
 {
+	int res=-1;
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
 	const RoadSegment* nextSegment = driverMvt->fwdDriverMovement.getNextSegment(false);
 	const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (driverMvt->fwdDriverMovement.getCurrSegment()->getEnd());
@@ -1961,34 +1971,46 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextSegment(DriverUpdateParams& p)
 			std::set<int> noData;
 
 			for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
-				if ((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom() == p.currLane) {
-							// current lane connect to next link
-							return 0; // no need lc
+				if ((*it)->getLaneTo()->getRoadSegment() == nextSegment ) {
+					// add lane to targetLanes
+					const Lane* l = (*it)->getLaneFrom();
+					targetLanes.insert(l);
+					if( (*it)->getLaneFrom() == p.currLane )
+					{
+						// current lane connect to next link
+						// no need lc
+						res = 0;
 					}
+				}
 			}// end for
-			// wow! we need change lane
-			return -1;
 		} // end of if (!lcs)
 	}//end if(currEndNode)
-	return 0;
+	return res;
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdateParams& p)
 {
 	LANE_CHANGE_SIDE lcs = LCS_SAME;
-	// TODO: handle event ,like incident
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
-	if(driverMvt->incidentPerformer.getIncidentStatus().getChangedLane() &&
-			driverMvt->incidentPerformer.getIncidentStatus().getNextLaneIndex()>=0){
-				//p.nextLaneIndex = p.incidentPerformer.getIncidentStatus().getNextLaneIndex();
-				lcs =driverMvt->incidentPerformer.getIncidentStatus().getLaneSide();
-			}
-//			else if( (p.incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode==MLC )
-//					|| (p.incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && p.incidentPerformer.getIncidentStatus().getCurrentIncidentLength()>0)) {
-//				p.nextLaneIndex = p.currLaneIndex;
-////				parentDriver->vehicle->setTurningDirection(LCS_SAME);
-//				lcs
-//			}
-	return lcs;
+	// 1.0 check if has incident
+	if( driverMvt->incidentPerformer.getIncidentStatus().getChangedLane() )
+	{
+		//p.nextLaneIndex = p.incidentPerformer.getIncidentStatus().getNextLaneIndex();
+		lcs =driverMvt->incidentPerformer.getIncidentStatus().getLaneSide();
+		if(lcs == LCS_LEFT) {
+			p.setFlag(FLAG_ESCAPE_LEFT);
+		}
+		else if (lcs == LCS_RIGHT){
+			p.setFlag(FLAG_ESCAPE_RIGHT);
+		}
+		return lcs;
+	}
+
+	// 2.0 if FLAG_ESCAPE(need do mlc) and current lane not ok, count left/right lc times to drive on good lane
+	if(p.flag(FLAG_ESCAPE) )//no need check STATUS_CURRENT_OK, as if FLAG_ESCAPE ,current lane confirm not ok
+	{
+		// find left lane ok?
+	}
+
 }
 void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)
 {

@@ -240,6 +240,13 @@ public:
 
 	std::vector<double> targetGapParams;
 
+	/**
+	 *  /brief add target lanes
+	 */
+	void addTargetLanes(set<const Lane*> tl);
+	/// lanes,which are ok to change to
+	set<const Lane*> targetLanes;
+
 //	//perform incident response
 //	IncidentPerformer incidentPerformer;
 public:

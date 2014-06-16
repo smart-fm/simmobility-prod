@@ -87,6 +87,10 @@ public:
 		return pathMover;
 	}
 
+	MesoPathMover & getMesoPathMover() {
+		return pathMover;
+	}
+
 
 protected:
 	/**
@@ -294,8 +298,7 @@ protected:
 	 * \param remaining lists of segstats from the original path which are remaining to reach to each of the suggested re-routing point
 	 * return the number of intersections
 	 */
-	int findReroutingPoints(const std::vector<sim_mob::SegmentStats*>& stats, std::vector<const sim_mob::Node*> & intersections,
-			std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > & remaining) const;
+	int findReroutingPoints(const std::vector<sim_mob::SegmentStats*>& stats,std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > & remaining) const;
 	bool wantReRoute(){return true;};//placeholder
 	/**
 	 * Changes the Travel Path based on the incident information

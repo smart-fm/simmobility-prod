@@ -804,7 +804,8 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 //if not found in cache, check DB
 //if not found in DB, generate all 4 types of path
 //choose the best path using utility function
-std::vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::Person * per, const sim_mob::SubTrip* st){
+std::vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::Person * per, const sim_mob::SubTrip* st,
+		const sim_mob::RoadSegment* exclude_seg, bool isUseCache, bool isUseDB){
 	//you may need to double check your database connection
 	Worker *worker = (Worker*)per->currWorkerProvider;
 	if(worker)
@@ -817,36 +818,42 @@ std::vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const si
 	}
 	Profiler profiler;
 	//call the default method
-	return generateBestPathChoiceMT(st, profiler);
+	return generateBestPathChoiceMT(st, profiler, exclude_seg, isUseCache, isUseDB);
 }
 
-vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler)
+vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler, const sim_mob::RoadSegment* exclude_seg, bool isUseCache, bool isUseDB)
 {
 	vector<WayPoint> res;
 	std::string subTripId = st->tripID;
 	std::ostringstream out("");
-	if(st->mode == "Car") //only driver need path set
+	if(st->mode != "Car") //only driver need path set
 	{
-		const sim_mob::Node* fromNode = st->fromLocation.node_;
-		const sim_mob::Node* toNode = st->toLocation.node_;
-		std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
-		std::string mys=fromId_toId;
-		//check cache
-		sim_mob::Profiler CBP_Profiler(true);
+		return res;
+	}
+	const sim_mob::Node* fromNode = st->fromLocation.node_;
+	const sim_mob::Node* toNode = st->toLocation.node_;
+	std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
+	std::string mys=fromId_toId;
+	//check cache
+	sim_mob::Profiler CBP_Profiler(true);
+	if(isUseCache){
 		if(getCachedBestPath(fromId_toId,res))
 		{
 			out << "getCachedBestPath:true:" << CBP_Profiler.endProfiling() << std::endl;
 			personProfiler.addOutPut(out);
 			return res;
 		}
+	}
+	bool hasPSinDB = false;
+	sim_mob::PathSet ps_;
+	if(isUseDB){
 		out.str("");
 		out  << "getCachedBestPath:false:" << CBP_Profiler.endProfiling() << std::endl;
 		personProfiler.addOutPut(out);
 		//
 		mys = "'"+mys+"'";
-		sim_mob::PathSet ps_;
 		Profiler PSDB_Profiler(true);
-		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
+		hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
 								*sql,
 								ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 								ps_,mys);
@@ -915,7 +922,8 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 				}// hasSPinDB
 			}
 		} // hasPSinDB
-		else
+	}//isUseDB
+	if(!isUseDB || !hasPSinDB)
 		{
 			Print()<<"gBestPC2: create data for "<<fromId_toId<<std::endl;
 			// 1. generate shortest path with all segs
@@ -937,7 +945,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 			out << "generateAllPathChoicesMT:start" << std::endl;
 			personProfiler.addOutPut(out);
 
-			if(!generateAllPathChoicesMT(&ps_, personProfiler))
+			if(!generateAllPathChoicesMT(&ps_, personProfiler,exclude_seg))
 			{
 				out.str("");
 				out << "generateAllPathChoicesMT:false" << std::endl;
@@ -982,10 +990,9 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 			personProfiler.addOutPut(out);
 			return res;
 		}
-	} //end car
 	return res;
 }
-bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & personProfiler)
+bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & personProfiler, const sim_mob::RoadSegment* exclude_seg)
 {
 
 	/**
@@ -1000,7 +1007,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 	std::ostringstream out("");
 	std::map<std::string,SinglePath*> pool;
 	Profiler GENSPFT3_Profiler(true);
-	sim_mob::SinglePath *s = generateSinglePathByFromToNodes3(ps->fromNode,ps->toNode,pool);
+	sim_mob::SinglePath *s = generateSinglePathByFromToNodes3(ps->fromNode,ps->toNode,pool,exclude_seg);
 	if(!s)
 	{
 		// no path
@@ -1080,9 +1087,9 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 	}
 	//kep your own ending time
 	SDLE_Profiler.addToTotalTime(SDLE_Profiler.endProfiling());
-	// shortest travel time link elimination
-	// travel time
-	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
+
+
+	// SHORTEST TRAVEL TIME LINK ELIMINATION
 	Profiler STTLE_Profiler(true);
 	l=NULL;
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir->getTravelTimeImpl();
@@ -1124,6 +1131,8 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 		threadpool_->wait();
 	}
 	STTLE_Profiler.addToTotalTime(STTLE_Profiler.endProfiling());
+
+
 	// TRAVEL TIME HIGHWAY BIAS
 	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
 	Profiler STTLEH_Profiler(true);
@@ -1202,7 +1211,10 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 	out << "SHORTEST_TRAVEL_TIME_LE_HIGHWAY_BIAS:" << STTLEH_Profiler.getTotalTime() << std::endl;
 	out << "RANDOM_PATH:" << randomPath_Profiler.getTotalTime() << std::endl;
 	personProfiler.addOutPut(out);
+	//record
+	//a.record the shortest path with all segments
 	ps->SinglePathPool.insert(std::make_pair(ps->oriPath->id,ps->oriPath));
+	//b.record the rest of paths
 	for(int i=0;i<workPool.size();++i)
 	{
 		if(workPool[i]->hasPath)
@@ -1458,7 +1470,11 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps)
 		ps.bestWayPointpathP = ps.oriPath->shortestWayPointpath;
 		return true;
 	}
-	// step 1.For each path i in the path choice set PathSet(O, D):
+	// step 1.1 : For each path i in the path choice:
+	//1. set PathSet(O, D)
+	//2. travle_time
+	//3. utility
+	//step 1.2 : accumulate the logsum
 	ps.logsum = 0.0;
 	for(int i=0;i<ps.pathChoices.size();++i)
 	{
@@ -1471,7 +1487,10 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps)
 			ps.logsum += exp(sp->utility);
 		}
 	}
-	// step 2:
+	// step 2: find the best waypoint path :
+		// calculate a probability using path's utility and pathset's logsum,
+		// compare the resultwith a  random number to decide whether pick the current path as the best path or not
+		//if not, just chose the shortest path as the best path
 	double upperProb=0;
 	// 2.1 Draw a random number X between 0.0 and 1.0 for agent A.
 	//double x = sim_mob::gen_random_float(0,1);

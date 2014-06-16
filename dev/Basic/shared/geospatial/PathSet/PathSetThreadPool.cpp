@@ -22,6 +22,12 @@ sim_mob::PathSetWorkerThread::~PathSetWorkerThread()
 	if(s) delete s; s=NULL;
 }
 
+//1.Create Blacklist
+//2.clear the shortestWayPointpath
+//3.Populate a vector<WayPoint> with a blacklist involved
+//or
+//3.Populate a vector<WayPoint> without blacklist involvement
+//4.populate a singlepath instance
 void sim_mob::PathSetWorkerThread::executeThis() {
 
 	//Convert the blacklist into a list of blocked Vertices.
@@ -53,8 +59,7 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 					sim_mob::A_StarShortestTravelTimePathImpl::distance_heuristic_graph(
 							graph, *toVertex),
 					boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(
-							sim_mob::A_StarShortestTravelTimePathImpl::astar_goal_visitor(
-									*toVertex)));
+							sim_mob::A_StarShortestTravelTimePathImpl::astar_goal_visitor(*toVertex)));
 		} catch (sim_mob::A_StarShortestTravelTimePathImpl::found_goal& goal) {
 			//Build backwards.
 			for (StreetDirectory::Vertex v = *toVertex;; v = p[v]) {
@@ -110,8 +115,7 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 					sim_mob::A_StarShortestPathImpl::distance_heuristic_filtered(
 							&filtered, *toVertex),
 					boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(
-							sim_mob::A_StarShortestPathImpl::astar_goal_visitor(
-									*toVertex)));
+							sim_mob::A_StarShortestPathImpl::astar_goal_visitor(*toVertex)));
 		} catch (sim_mob::A_StarShortestPathImpl::found_goal& goal) {
 			//Build backwards.
 			for (StreetDirectory::Vertex v = *toVertex;; v = p[v]) {
@@ -147,6 +151,9 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		}				//catch
 
 	}				//else
+
+
+
 	if (wp.empty()) {
 		hasPath = false;
 	} else {

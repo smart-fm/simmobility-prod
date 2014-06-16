@@ -44,8 +44,9 @@ void sim_mob::IncidentManager::readFromFile(std::string inputFile){
 		double newFlowRate = boost::lexical_cast<double>(*(++it));//second element
 		uint32_t tick =  boost::lexical_cast<uint32_t>(*(++it));//second element
 		incidents.insert(std::make_pair(tick,Incident(sectionId,newFlowRate,tick)));
+		Print() << "Storing Incident " << sectionId << "," << newFlowRate << "," << tick <<std::endl;
 	}
-	Print() << incidents.size() << " incident recorded" << std::endl;
+	Print() << incidents.size() << " incident Stored" << std::endl;
 	in.close();
 }
 
@@ -106,7 +107,7 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 		int OY = it->second.subtrip->fromLocation.node_->location.getY();
 		int DX = it->second.subtrip->toLocation.node_->location.getX();
 		int DY = it->second.subtrip->toLocation.node_->location.getY();
-		Print() << "Road Segment[" << it->first->getSegmentAimsunId() << "] is on  Person[" <<  it->second.per << "]'s path with OD[(" << OX << "," << OY << ")--(" << DX << "," << DY << ")]" << std::endl;
+		Print() << "Incident Road Segment[" << it->first->getSegmentAimsunId() << "] is on  Person[" <<  it->second.per << "]'s path with OD[(" << OX << "," << OY << ")--(" << DX << "," << DY << ")]" << std::endl;
 	}
 	//debug...
 

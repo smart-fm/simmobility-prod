@@ -98,7 +98,7 @@ public:
 
 	//need to store these values in the double buffer, because it is needed by other drivers.
 	Shared<double> latMovement;
-	const double getFwdVelocityM();
+	const double getFwdVelocityM() const;
 	/*
 	 *  /brief Find the distance from front vehicle.
 	 *        CAUTION: TS_Vehicles "front" and this vehicle may not be in the same

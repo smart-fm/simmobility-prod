@@ -228,7 +228,7 @@ std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
 void sim_mob::Driver::handleUpdateRequest(MovementFacet* mFacet){
 	mFacet->updateNearbyAgent(this->getParent(),this);
 }
-const double sim_mob::Driver::getFwdVelocityM()
+const double sim_mob::Driver::getFwdVelocityM() const
 {
 	double d= fwdVelocity.get() / 100.0;
 	return d;

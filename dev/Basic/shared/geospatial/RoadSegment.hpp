@@ -106,7 +106,7 @@ public:
 	}
 
 
-	size_t getLanesSize(bool isIncludePedestrianLane=false);
+	size_t getLanesSize(bool isIncludePedestrianLane=false) const;
 	///Return the Lane at a given ID, or null if that Lane ID is out of bounds.
 	const sim_mob::Lane* getLane(int laneID) const;
 

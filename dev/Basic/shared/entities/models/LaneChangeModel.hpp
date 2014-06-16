@@ -202,6 +202,7 @@ public:
 
 	/**
 	 *  /brief find number of lane changes to end of the link
+	 *         current simmobility most right lane always connector to last segment of link
 	 *   -n = number of lane changes to right required
 	 *	 0  = this lane is fine
 	 *	 +n = number of lane changes to left requied

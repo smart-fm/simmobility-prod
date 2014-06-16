@@ -163,7 +163,7 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p,
                 otherDistance[i].lead = 5000;
             } else { //has vehicle ahead
                 otherSpeed[i].lead = fwd->driver->fwdVelocity.get();
-                otherDistance[i].lead = fwd->distance;
+                otherDistance[i].lead = fwd->distance/100.0;
             }
             //check otherDistance[i].lead if <= 0 return
 
@@ -172,7 +172,7 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p,
                 otherDistance[i].lag = 5000;
             } else { //has vehicle behind, check the gap
                 otherSpeed[i].lag = back->driver->fwdVelocity.get();
-                otherDistance[i].lag = back->distance;
+                otherDistance[i].lag = back->distance/100.0;
             }
         } else { // no left/right side exists
             otherSpeed[i].lead = 0;
@@ -357,7 +357,7 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
                 otherAcc[i].lead = 5000;
             } else { //has vehicle ahead
                 otherSpeed[i].lead = fwd->driver->fwdVelocity.get();
-                otherDistance[i].lead = fwd->distance;
+                otherDistance[i].lead = fwd->distance/100.0;
                 otherAcc[i].lead = fwd->driver->fwdAccel.get();
             }
 
@@ -367,7 +367,7 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
                 otherAcc[i].lag = 5000;
             } else { //has vehicle behind, check the gap
                 otherSpeed[i].lag = back->driver->fwdVelocity.get();
-                otherDistance[i].lag = back->distance;
+                otherDistance[i].lag = back->distance/100.0;
                 otherAcc[i].lag = back->driver->fwdAccel.get();
             }
         } else { // no left/right side exists
@@ -557,12 +557,12 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 //	  if ( av->vehicleAhead() ) {
 	if(aav->exists()) { // if has forward of forward vh
 //	    d1 = av->gapDistance();
-		d1 = aav->distance - av->distance - av->driver->getVehicleLengthM(); // get gap length of av and aav
+		d1 = aav->distance/100.0 - av->distance/100.0 - av->driver->getVehicleLengthM(); // get gap length of av and aav
 //	    s1 = av->currentSpeed() - av-> vehicleAhead()->currentSpeed();
 		Driver *aavDriver = const_cast<Driver*>(aav->driver);
 		s1 = av->driver->fwdVelocity/100.0 - aavDriver->getFwdVelocityM(); // speed diff of av and aav
 	  } else {
-//		  d1 = av->distance();
+//		  d1 = av->distance/100.0();
 		  // get side ahead vh distance to end of link
 		  // tmp solution distance to next segment ,if next seg exist
 		  // TODO: meaning of av->distance()
@@ -581,7 +581,7 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	  }// end of aav->exists()
 
 //	  dis2gap = this->gapDistance(av)+ av->length();
-	    dis2gap  = av->distance;
+	    dis2gap  = av->distance/100.0;
 
 
 //	  if (!front) {
@@ -592,7 +592,7 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	} // end if front
 	else {
 //	    dis2front = this->gapDistance(front) + front->length();
-		dis2front = front->distance;
+		dis2front = front->distance/100.0;
 //		Driver *avDriver = const_cast<Driver*>(av->driver);
 //		Driver *frontDriver = const_cast<Driver*>(front->driver);
 	    if (dis2gap > dis2front)
@@ -625,7 +625,7 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 
 //	d1 = bv->gapDistance();
 	// adjacent gap length
-	d1 = av->distance + bv->distance;
+	d1 = av->distance/100.0 + bv->distance/100.0;
 //	s1 = bv->currentSpeed() - av->currentSpeed();
 	s1 = bvDriver->getFwdVelocityM() - avDriver->getFwdVelocityM();
 
@@ -662,7 +662,7 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 //	  if ( TS_Vehicle* bv2 = bv->vehicleBehind() ) {
 	if(bbv->exists()) {
 //	    d1 = bv2->gapDistance();
-		d1 = bbv->distance - bv->distance - bv->driver->getVehicleLengthM(); // get gap length of bv and bbv
+		d1 = bbv->distance/100.0 - bv->distance/100.0 - bv->driver->getVehicleLengthM(); // get gap length of bv and bbv
 //	    s1 = bv2->currentSpeed() - bv->currentSpeed();
 		s1 = bbvDriver->getFwdVelocityM() - bvDriver->getFwdVelocityM();
 	} else {
@@ -688,7 +688,7 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	  }//end else
 
 //	  dis2gap = bvDriver->gapDistance(this)+ this->length();
-	dis2gap = bv->distance;
+	dis2gap = bv->distance/100.0;
 
 	effectiveGap = d1;
 	remainderGap = 0;
@@ -1059,11 +1059,63 @@ int sim_mob::MITSIM_LC_Model::isReadyForNextDLC(DriverUpdateParams& p,int mode)
 }
 int sim_mob::MITSIM_LC_Model::isWrongLane(DriverUpdateParams& p,const Lane* lane)
 {
+	// by right shall use lane connector
+	// as in the link, can use lane index
 
+	int res = 0;
+
+	// 1.0 get lane index
+	size_t laneIdx = getLaneIndex(lane);
+	// 2.0 get lane's segment's link
+	RoadSegment* segment = lane->getRoadSegment();
+
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	std::vector<const sim_mob::RoadSegment*>::iterator currentSegIt = driverMvt->fwdDriverMovement.currSegmentIt;
+	std::vector<const sim_mob::RoadSegment*>::iterator currentSegItEnd = driverMvt->fwdDriverMovement.fullPath.end();
+
+	for(;currentSegIt != currentSegItEnd;++currentSegIt)
+	{
+		const RoadSegment* rs = *currentSegIt;
+		if(segment->getLink() == rs->getLink()) {
+			// same link
+			size_t segLaneSize = rs->getLanesSize(false);
+			if(segLaneSize < laneIdx)
+			{
+				// need right lane change
+				int n = segLaneSize - laneIdx;
+				if(n<res) res = n;
+			}
+		}// end if segment->getLink()
+	}// end for
+
+	return res;
 }
 double sim_mob::MITSIM_LC_Model::LCUtilityLeft(DriverUpdateParams& p)
 {
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	// 1.0 lane utility parameters
 	vector<double> a = laneUtilityParams;
+	// 2.0 LEADING AND LAG VEHICLES
+	const NearestVehicle * av = &p.nvFwd; // leader vh
+	const NearestVehicle * bv = &p.nvBack; // follower vh
+	// 3.0 count number of lane change to the end of link
+	double vld, mlc, density, spacing;
+	int n = abs(isWrongLane(p,p.currLane));
+	// TODO calculate lane density
+	density = 0;
+	float heavy_neighbor = 0.0;
+	if (av->exists()) {
+	      spacing = av->distance/100.0;
+	      vld = std::min<double>(p.desiredSpeed, av->driver->getFwdVelocityM()) ;
+	      heavy_neighbor = (av->driver->getVehicle()->getVehicleType() != VehicleBase::BUS) ? 0.0 : a[7];
+	}
+	else {
+	      vld = p.desiredSpeed;
+	      spacing = p.dis2stop;
+//		if (nextLane_) {
+//		  spacing += nextLane_->length();
+//		}
+	}//end if av->exists()
 }
 double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance)
 {
@@ -1465,7 +1517,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 	// LEADING HEADWAY
 	float aheadway;		// leading headway
 	if (av->exists()) {
-		aheadway = av->distance;
+		aheadway = av->distance/100.0;
 	} else {
 		aheadway = Math::FLT_INF;
 	}
@@ -1474,7 +1526,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 
 	float bheadway;		// lag headway
 	if (bv->exists()) {
-		bheadway = bv->distance;
+		bheadway = bv->distance/100.0;
 	} else {
 		bheadway = Math::FLT_INF;
 	}
@@ -1687,7 +1739,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 		Driver *avDriver = const_cast<Driver*>(av->driver);
 		DriverUpdateParams& avp = avDriver->getParams();
 		if ((avp.flag(FLAG_NOSING) || avp.flag(FLAG_YIELDING)) &&
-			av->distance < 2.0 * p.lcMinGap(2)) {
+			av->distance/100.0 < 2.0 * p.lcMinGap(2)) {
 
 		  // The lead vehicle is yeilding or nosing
 		  return 0;		// To avoid dead lock
@@ -1739,7 +1791,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 		else if (bvp.flag(FLAG_NOSING) ||
 				(bvp.flag(FLAG_YIELDING) &&
 				bv->driver->yieldVehicle != p.driver &&
-				bv->distance < 2.0 * p.lcMinGap(3) )) {
+				bv->distance/100.0 < 2.0 * p.lcMinGap(3) )) {
 
 			// The lag vehicle is nosing or yielding to another vehicle or
 			// not willing to yield
@@ -2111,7 +2163,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdatePar
 	double eul = 0.0, eur = 0.0, euc = 1.0 ;
 	if (isReadyForNextDLC(p,2))
 	{
-		eul = LCUtilityLeft(plane);
+		eul = LCUtilityLeft(p);
 	}
 }
 void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)

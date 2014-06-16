@@ -44,14 +44,14 @@ public:
 /**
  * Message to transfer bus arrival time at bus stop
  */
-class BusArrivalMessage: public messaging::Message {
+class BusArrivalTimeMessage: public messaging::Message {
 public:
-	BusArrivalMessage(const std::string& stopNo, const std::string& line,
+	BusArrivalTimeMessage(const std::string& stopNo, const std::string& line,
 			const std::string& trip, const std::string& arrival, unsigned int sequence) :
 			busStopNo(stopNo), busLine(line), busTrip(trip), arrivalTime(
 					arrival), sequenceNo(sequence) {
 	}
-	virtual ~BusArrivalMessage() {
+	virtual ~BusArrivalTimeMessage() {
 	}
 	std::string busStopNo;
 	std::string busLine;

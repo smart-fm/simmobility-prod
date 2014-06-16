@@ -331,6 +331,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			<< endl;
 	}
 
+	MT_Statistics::GetInstance()->PrintStatistics();
+
 	if (ConfigManager::GetInstance().FullConfig().numAgentsSkipped>0)
 	{
 		cout<<"Agents SKIPPED due to invalid route assignment: "

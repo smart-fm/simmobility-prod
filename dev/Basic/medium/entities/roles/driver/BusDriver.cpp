@@ -125,7 +125,7 @@ void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, co
 		unsigned int sequenceNo = busTrip->getBusTripRun_SequenceNum();
 
 		messaging::MessageBus::PostMessage(MT_Statistics::GetInstance(), STORE_BUS_ARRIVAL,
-				messaging::MessageBus::MessagePtr(new BusArrivalMessage(stopNo, busLineId, tripId, current, sequenceNo)));
+				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(stopNo, busLineId, tripId, current, sequenceNo)));
 	}
 }
 

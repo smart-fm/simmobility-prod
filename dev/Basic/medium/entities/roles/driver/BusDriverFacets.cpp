@@ -38,6 +38,13 @@ inline double converToSeconds(uint32_t timeInMs) {
 }
 
 /**
+ * converts time from  seconds to milli-seconds
+ */
+inline unsigned int converToMilliseconds(double timeInMs) {
+	return (timeInMs*1000.0);
+}
+
+/**
  * length of a bus is hard coded to 3 times the PCU for now.
  * TODO: this must be made configurable.
  */
@@ -313,7 +320,8 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				{
 					removeFromQueue();
 				}
-				DailyTime current(params.now.ms()+params.elapsedSeconds*1000);
+				DailyTime startTm = ConfigManager::GetInstance().FullConfig().simStartTime();
+				DailyTime current(params.now.ms()+converToMilliseconds(params.elapsedSeconds)+startTm.getValue());
 				parentBusDriver->openBusDoors(current.toString(), stopAg);
 			}
 			else

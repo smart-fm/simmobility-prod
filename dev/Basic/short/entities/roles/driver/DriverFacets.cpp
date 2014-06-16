@@ -1470,33 +1470,34 @@ void sim_mob::DriverMovement::updateAdjacentLanes(DriverUpdateParams& p) {
 	p.leftLane2 = nullptr;
 	p.rightLane2 = nullptr;
 
-	if (!p.currLane) {
-		return; //Can't do anything without a lane to reference.
-	}
+	const size_t numLanes = p.currLane->getRoadSegment()->getLanes().size();
+		if (!p.currLane || numLanes == 1) {
+			return; //Can't do anything without a lane to reference.
+		}
 
-	if (p.currLaneIndex > 0) {
-		const Lane* temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex - 1);
-		if(!temp->is_pedestrian_lane())
-			p.rightLane = temp;
-	}
-	if (p.currLaneIndex > 1) {
-		const Lane* temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex - 2);
-		if(!temp->is_pedestrian_lane())
-			p.rightLane2 = temp;
-	}
+		if (p.currLaneIndex > 0) {
+			const Lane* temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex - 1);
+			if(!temp->is_pedestrian_lane())
+				p.rightLane = temp;
+		}
+		if (p.currLaneIndex > 1) {
+			const Lane* temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex - 2);
+			if(!temp->is_pedestrian_lane())
+				p.rightLane2 = temp;
+		}
 
-	if (p.currLaneIndex < p.currLane->getRoadSegment()->getLanes().size() - 1) {
-		const Lane* temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex + 1);
-		if(!temp->is_pedestrian_lane())
-			p.leftLane = temp;
-	}
+		if (p.currLaneIndex < numLanes - 1) {
+			const Lane* temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex + 1);
+			if(!temp->is_pedestrian_lane())
+				p.leftLane = temp;
+		}
 
-	if (p.currLaneIndex < p.currLane->getRoadSegment()->getLanes().size() - 2) {
-		const Lane* temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex + 2);
-		if(!temp->is_pedestrian_lane())
-			p.leftLane2 = temp;
+		if (p.currLaneIndex < numLanes - 2) {
+			const Lane* temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex + 2);
+			if(!temp->is_pedestrian_lane())
+				p.leftLane2 = temp;
+		}
 	}
-}
 
 //General update information for whenever a Segment may have changed.
 void sim_mob::DriverMovement::syncCurrLaneCachedInfo(DriverUpdateParams& p) {

@@ -26,7 +26,9 @@ enum PublicTransitMessage {
 	BOARD_BUS = 6000000,
 	ALIGHT_BUS,
 	BUS_ARRIVAL,
-	BUS_DEPARTURE
+	BUS_DEPARTURE,
+	STORE_BUS_ARRIVAL,
+	STORE_PERSON_WAITING
 };
 
 /**
@@ -37,6 +39,41 @@ public:
 	BusStopMessage(const BusStop* stop):nextStop(stop){}
 	virtual ~BusStopMessage() {}
 	const BusStop* nextStop;
+};
+
+/**
+ * Message to transfer bus arrival time at bus stop
+ */
+class BusArrivalMessage: public messaging::Message {
+public:
+	BusArrivalMessage(const std::string& stopNo, const std::string& line,
+			const std::string& trip, const std::string& arrival, unsigned int sequence) :
+			busStopNo(stopNo), busLine(line), busTrip(trip), arrivalTime(
+					arrival), sequenceNo(sequence) {
+	}
+	virtual ~BusArrivalMessage() {
+	}
+	std::string busStopNo;
+	std::string busLine;
+	std::string busTrip;
+	std::string arrivalTime;
+	unsigned int sequenceNo;
+};
+
+/**
+ * Message to transfer person waiting time at bus stop
+ */
+class PersonWaitingTimeMessage: public messaging::Message {
+public:
+	PersonWaitingTimeMessage(const std::string& stopNo,
+			const std::string& personId, std::string& waitingTime) :
+			busStopNo(stopNo), personId(personId), waitingTime(waitingTime) {
+	}
+	virtual ~PersonWaitingTimeMessage() {
+	}
+	std::string busStopNo;
+	std::string personId;
+	std::string waitingTime;
 };
 
 /**

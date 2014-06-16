@@ -14,6 +14,7 @@
 #include "entities/Person.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "message/MT_Message.hpp"
+#include "entities/MT_Statistics.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "util/DwellTimeCalc.hpp"
 #include "config/MT_Config.hpp"
@@ -107,6 +108,27 @@ unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusSto
 	return numAlighting;
 }
 
+void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, const sim_mob::BusStop* stop)
+{
+	sim_mob::Person* person = parent;
+	if (!person) {
+		return;
+	}
+
+	const BusTrip* busTrip =
+			dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+	if (busTrip) {
+		const Busline* busLine = busTrip->getBusline();
+		std::string stopNo = stop->getBusstopno_();
+		std::string tripId = busTrip->tripID;
+		std::string busLineId = busLine->getBusLineID();
+		unsigned int sequenceNo = busTrip->getBusTripRun_SequenceNum();
+
+		messaging::MessageBus::PostMessage(MT_Statistics::GetInstance(), STORE_BUS_ARRIVAL,
+				messaging::MessageBus::MessagePtr(new BusArrivalMessage(stopNo, busLineId, tripId, current, sequenceNo)));
+	}
+}
+
 void sim_mob::medium::BusDriver::predictArrivalAtBusStop(double preArrivalTime,
 		sim_mob::medium::BusStopAgent* busStopAgent) {
 	sim_mob::Person* person = dynamic_cast<Person*>(parent);
@@ -127,11 +149,13 @@ void sim_mob::medium::BusDriver::predictArrivalAtBusStop(double preArrivalTime,
 	}
 }
 
-void sim_mob::medium::BusDriver::openBusDoors(sim_mob::medium::BusStopAgent* busStopAgent) {
+void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mob::medium::BusStopAgent* busStopAgent) {
 	if(!busStopAgent)
 	{
 		throw std::runtime_error("openBusDoors(): NusStopAgent is NULL");
 	}
+
+	storeArrivalTime(current, busStopAgent->getBusStop());
 
 	/* handling bus arrival should ideally take place by sending an instantaneous
 	 * message, but it is not guaranteed that the bus driver and the bus stop agent

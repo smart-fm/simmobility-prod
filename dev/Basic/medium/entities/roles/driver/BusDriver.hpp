@@ -59,6 +59,15 @@ public:
 	bool addPassenger(sim_mob::medium::Passenger* passenger);
 
 	/**
+	 * store the arrival time at bus stop
+	 *
+	 * @param current is current time represented in string
+	 * @param stop is which currently bus driver arrive at
+	 *
+	 */
+	void storeArrivalTime(const std::string& current, const sim_mob::BusStop* stop);
+
+	/**
 	 * predict arrival at next bus stop in next frame tick
 	 * @param preArrivalTime is predicted arrival time at next bus stop
 	 * @param bus stop agent is the agent which wrap next bus stop
@@ -106,8 +115,9 @@ private:
 	/**
 	 * triggers boarding and alighting at a bus stop
 	 * @param busStopAgent agent managing the stop which is currently served
+	 * @param current is current time represented in string
 	 */
-	void openBusDoors(sim_mob::medium::BusStopAgent* busStopAgent);
+	void openBusDoors(const std::string& current, sim_mob::medium::BusStopAgent* busStopAgent);
 
 	/**
 	 * triggers bus departure from a bus stop

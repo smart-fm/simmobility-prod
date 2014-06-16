@@ -313,7 +313,8 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				{
 					removeFromQueue();
 				}
-				parentBusDriver->openBusDoors(stopAg);
+				DailyTime current(params.now.ms()+params.elapsedSeconds*1000);
+				parentBusDriver->openBusDoors(current.toString(), stopAg);
 			}
 			else
 			{

@@ -32,6 +32,7 @@
 #include "entities/roles/waitBusActivity/waitBusActivity.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/MT_Statistics.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/RoadNetwork.hpp"
@@ -182,6 +183,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
+
+	messaging::MessageBus::RegisterHandler(MT_Statistics::GetInstance());
 
 	//Initialize each work group individually
 	personWorkers->initWorkers(&entLoader);

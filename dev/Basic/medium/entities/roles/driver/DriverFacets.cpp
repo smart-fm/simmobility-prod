@@ -894,95 +894,117 @@ void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSeg
 
 int DriverMovement::findReroutingPoints(const std::vector<sim_mob::SegmentStats*>& stats, std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >& remaining) const{
 
-	const std::vector<const sim_mob::SegmentStats*> & path = getMesoPathMover().getPath();
-	//A.For some reason you will know soon, We need an iterator pointing to the last segstat(in the path) before the incident 'link' starts
-	// to do that:
-	//1-find the starting node of the incident link
-	//2-find an iterator to the path, pointing to the incident segstat,
-	//3-move this iterator backwards until you reach to the above mentioned point(the segstat's end node is equal to incident link's start node)
+	//some variables and iterators before the Actual Operation
+	const std::vector<const sim_mob::SegmentStats*> & path = getMesoPathMover().getPath(); //driver's current path
+	std::vector<const sim_mob::SegmentStats*>::const_iterator startIt = std::find(path.begin(), path.end(), getMesoPathMover().getCurrSegStats());//iterator to driver's current location
+	std::vector<const sim_mob::SegmentStats*>::const_iterator endIt = std::find(path.begin(), path.end(), *(stats.begin()));//iterator to incident segstat
+	std::vector<const sim_mob::SegmentStats*> rem;//stats remaining from the current location to the re-routing point
+	const sim_mob::Link * linkB4Incident = 0; //the link before the incidental link starts(will be used for further filtering the re-routing options)
 
-	//1.
-	std::vector<const sim_mob::SegmentStats*>::const_iterator endIt = std::find(path.begin(), path.end(), *(stats.begin()));
-	const sim_mob::Link *incidentLink = (*(stats.begin()))->getRoadSegment()->getLink();
-	const sim_mob::Link * currlnk = pathMover.getCurrSegStats()->getRoadSegment()->getLink();
-	//debug
-	std::vector<const sim_mob::SegmentStats*>::const_iterator stit = std::find(path.begin(), path.end(), pathMover.getCurrSegStats());
-	//link iteration
-	while(currlnk != incidentLink){
-		Print() <<"current link, start: " <<  currlnk->getStart()->getID() << "->[";
-		BOOST_FOREACH(RoadSegment *rs , currlnk->getSegments()){
-			Print() << rs->getSegmentAimsunId() << ",";
-		}
-		Print() << "]->" <<  currlnk->getEnd()->getID() << " : end" << std::endl;
-		while(currlnk == (*stit)->getRoadSegment()->getLink()) {
-			Print() << ".";
-			stit ++ ;
-		}
-		Print() << "\n";
-		currlnk = (*stit)->getRoadSegment()->getLink();
-	}
-	Print() << std::endl;
-	//incident link
-	Print() <<"incident link, start: " <<  currlnk->getStart()->getID() << "->[";
-	BOOST_FOREACH(RoadSegment *rs , currlnk->getSegments()){
-		Print() << rs->getSegmentAimsunId() << ",";
-	}
-	Print() << "]->" <<  currlnk->getEnd()->getID() << " : end" << std::endl;
-	//debug...
-
-	Print() <<"\nIncident, LEN:" <<  incidentLink->getEnd()->getID() << ","
-			<< " SEN:" << (*(stats.begin()))->getRoadSegment()->getEnd()->getID() << ","
-			<< " S:" << (*(stats.begin()))->getRoadSegment()->getSegmentAimsunId() << ","
-			<< " SSN:" << (*(stats.begin()))->getRoadSegment()->getStart()->getID() << ","
-			<< " LSN:" << incidentLink->getStart()->getID() <<  std::endl;
-
-	//3. Switch to Rear Gear
-	currlnk = 0;
-	while(currlnk != incidentLink){
-		endIt--;
-		if(!(*endIt))
-		{
-			break;
-		}
-		Print() <<"stat SEN:" << (*endIt)->getRoadSegment()->getEnd()->getID() << ","
-				<< " S:" << (*endIt)->getRoadSegment()->getSegmentAimsunId() << ","
-				<< " SSN:" << (*endIt)->getRoadSegment()->getStart()->getID() << std::endl;
-		currlnk = (*endIt)->getRoadSegment()->getLink();
-		Print() << (*endIt)->getRoadSegment()->getSegmentAimsunId() << ",";
-		currlnk = (*endIt)->getRoadSegment()->getLink();
-	}
-//	Print() << " Rear Gear end" << std::endl;
-	//at this pint, endIt is pointing to the last segstat before the incident 'link'
-
-	//B.find an iterator to your current location
-	std::vector<const sim_mob::SegmentStats*>::const_iterator startIt = std::find(path.begin(), path.end(), getMesoPathMover().getCurrSegStats());
-
-	//C.As you move from your current location towards the incident, store the intersections on your way + the segstats you travrsed until you reach that intersection.
-	//these intersections are your initial candidates re-routing points.
-	int res = 0;//number of re-routing candidates
-	std::vector<const sim_mob::SegmentStats*> rem;
-	for(const sim_mob::Link * currLink = (*startIt)->getRoadSegment()->getLink() ;startIt <= endIt; startIt++)
+	//Actual Operation : As you move from your current location towards the incident, store the intersections on your way + the segstats you travrsed until you reach that intersection.
+	for(const sim_mob::Link * currLink = 0/*(*startIt)->getRoadSegment()->getLink()*/ ;startIt < endIt; startIt++)
 	{
+//		Print() << "Analyzing link[" <<
 		//record the remaining segstats (including the current segstat)
 		rem.push_back(*startIt);
+		//check if the increment to segstat iterator caused the link change:
 		if(currLink != (*startIt)->getRoadSegment()->getLink()){
+			//update the current iteration link
+			currLink = (*startIt)->getRoadSegment()->getLink();
 			//record the intersections
 			remaining[currLink->getEnd()] = rem;//no need to clear rem!
-			//increment the number  of intersections
-			++res;
-			currLink = (*startIt)->getRoadSegment()->getLink();
+			Print() << "Candidate Node " << currLink->getEnd()->getID() << std::endl;
+			linkB4Incident = currLink;
 		}
 		//record the waypoints leading to the re-routing point
 	}
+	Print() << "Candidates:\n" << std::endl;
+	std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > item1;
+	BOOST_FOREACH(item1,  remaining){
+		Print() << item1.first->getID() << std::endl;
+	}
+	/*A SMALL HACK:
+	 * The Drivers will continue their original path until they reach the selected re-routing point and continue with their new path.
+	 * Now the question is: what is changing from the old path to the new path require a Uturn? this question is arised because:
+	 * 1- There are places in the city where UTurn is not allowed
+	 * 2- Simmobility doesn't support Uturn yet.
+	 * So, Uturns must be avoided.
+	 * How?
+	 * Such a Uturn is likely to happen only if the driver chooses the the 'last' rerouting chance. right?
+	 * So we leverage the current simmobility's Uturn disability :
+	 * while asking the pathset manager to generate the best path from the above mentioned rerouting point(multinode),
+	 * we actually replace that multinode with the node just before reaching this multinode.
+	 * example : Suppose the link's nodes from start to end are: 0, 1, 2 ,3 ,4 and 4 is the rerouting point. it is possible to new path starts from 4, 3, 2, 1 ... which is a case of Uturn.
+	 * So,instead of choosing 4, we choose 3 as the rerouting point and ask the path-set manager to give us a new path from 3 to destination(of course we exclude the incident link also).
+	 * Simmobility's graph doesn't support Uturn, so it will not give us a path that requires a Uturn from 4 to 3,2,1,...
+	 */
+	//find the previous node
+	const Node * prevNode = nullptr;
+	BOOST_FOREACH(const RoadSegment *rs, linkB4Incident->getSegments()){
+		prevNode = rs->getStart();
+	}
+	if(remaining.find(prevNode) == remaining.end()){
+
+	}
+	//find the last items of the output container. they need to be updated
+	const Node * lastNode = linkB4Incident->getEnd();
+	std::vector<const sim_mob::SegmentStats*> /*&*/ lastSegStats = remaining[lastNode];
+	//remove the segstat after the lastNode
+	std::vector<const sim_mob::SegmentStats*>::iterator it = lastSegStats.begin();
 	//debug
-	Print() << "There are " << res << " point of reroute for Person:" << std::endl;
-	std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > item;
-	BOOST_FOREACH(item,  remaining){
-		Print() << item.first->getID() << std::endl;
+	Print() << "last Node " << lastNode->getID() << " with path [" ;
+	const RoadSegment *rss = (*it)->getRoadSegment();
+	Print() << (*it)->getRoadSegment()->getSegmentAimsunId() << ",";
+	while (it!= lastSegStats.end()){
+		if (rss != (*it)->getRoadSegment()){
+			Print() << (*it)->getRoadSegment()->getSegmentAimsunId() << ",";
+			rss = (*it)->getRoadSegment();
+		}
+		it++;
+	}
+	Print() << "] replaced with :\n";
+	//debug
+	int i = 0;
+	for(it = lastSegStats.begin(); (*it)->getRoadSegment()->getEnd() != lastNode ;it++, i++);
+	lastSegStats.erase(it, it + (lastSegStats.size() - i));
+	//update the output container with both updated key and updated element
+//	std::swap(remaining[prevNode], lastSegStats);
+	remaining[lastNode].clear();
+	remaining.erase(lastNode);
+	remaining[prevNode] = lastSegStats;
+	//debug
+	it = remaining[prevNode].begin();
+	Print() << "-node " << prevNode->getID() << " with path[";
+	Print() << (*it)->getRoadSegment()->getSegmentAimsunId() << ",";
+	while (it!= remaining[prevNode].end()){
+		if (rss != (*it)->getRoadSegment()){
+			Print() << (*it)->getRoadSegment()->getSegmentAimsunId() << ",";
+			rss = (*it)->getRoadSegment();
+		}
+		it++;
+	}
+	Print() << "]\n";
+	it = lastSegStats.begin();
+	//debug...
+	//end of hack
+	//debug
+	Print() << "There are " << remaining.size() << " candidate point of reroute for Person(including no path):" << std::endl;
+	std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > item2;
+	BOOST_FOREACH(item2,  remaining){
+		Print() << item2.first->getID() << std::endl;
 	}
 	Print() << std::endl;
+	Print() << "the last link before the incident link : " <<  linkB4Incident->getStart()->getID() << "," << linkB4Incident->getEnd()->getID() << std::endl;
 	//debug...
-	return res;
+	std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >::iterator noPathIt = remaining.begin();
+	while (noPathIt != remaining.end()) {
+	   if (!(noPathIt->second.size()))
+	      remaining.erase(noPathIt++);
+	   else
+		   noPathIt++;
+	}
+
+	return remaining.size();
 }
 
 //step-1: can I rerout? if yes, what are my points of rerout?
@@ -1015,7 +1037,7 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 		subTrip.fromLocation.node_ = statPair.first;
 		const sim_mob::RoadSegment *excludeRS = (*msg.stats.begin())->getRoadSegment();
 		//	record the new paths using the updated subtrip. (including no paths)
-		Print() << "Generating a new path with section " << excludeRS->getSegmentAimsunId() << std::endl;
+		Print() << "Generating a new path without section " << excludeRS->getSegmentAimsunId() << std::endl;
 		wps[statPair.first] = sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(getParent(), &subTrip, excludeRS, false, false );
 	}
 	Print() << wps.size() << " New paths created (including no path) " << std::endl;
@@ -1037,7 +1059,7 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 	//test give it the last new path for now
 	getMesoPathMover().setPath(deTourOptions.rbegin()->second);
 	//debug
-	Print() << "New Path set : " ;
+	Print() << "New Path set from node [" << deTourOptions.rbegin()->first->getID() << "]" << std::endl;
 	unsigned int id = 0;
 	BOOST_FOREACH(const sim_mob::SegmentStats* stat, getMesoPathMover().getPath())
 	{

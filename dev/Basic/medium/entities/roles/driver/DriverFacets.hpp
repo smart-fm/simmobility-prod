@@ -306,6 +306,10 @@ protected:
 	 * \param newFlowRate new flow rate supplied to lanes
 	 */
 	void rerout(const InsertIncidentMessage &msg);
+	///tries to remove the uturn if any
+	bool UTurnFree(std::vector<WayPoint> oldPath, std::vector<const sim_mob::SegmentStats*> newPath);
+	//checks if there is a uturn
+	bool hasUTurn(std::vector<WayPoint> oldPath, std::vector<const sim_mob::SegmentStats*> newPath);
 	/**
 	 * message handler which provide a chance to handle message transfered from parent agent.
 	 * @param type of the message.

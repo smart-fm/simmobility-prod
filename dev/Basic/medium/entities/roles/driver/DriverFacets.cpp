@@ -1007,9 +1007,22 @@ int DriverMovement::findReroutingPoints(const std::vector<sim_mob::SegmentStats*
 	return remaining.size();
 }
 
+bool DriverMovement::hasUTurn(std::vector<WayPoint> oldPath, std::vector<const sim_mob::SegmentStats*> newPath){
+
+}
+bool DriverMovement::UTurnFree(std::vector<WayPoint> oldPath, std::vector<const sim_mob::SegmentStats*> newPath){
+	if(!hasUTurn(oldPath,newPath)){
+		return true;
+	}
+	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
+	//if no path, return false, if path found, return true
+	//todo: First, we need to make modifications to pathset manager to blacklist more than one segment
+}
+
 //step-1: can I rerout? if yes, what are my points of rerout?
 //step-2: do I 'want' to reroute?
 //step-3: get a new path from each candidate re-routing points
+//step-3.5: filter out UTurns as the current provisions do not support UTurns
 //step-4: there still is some way to get to the new path's starting point. prepend it to the new paths
 void DriverMovement::rerout(const InsertIncidentMessage &msg){
 	/*step-1 can I re-rout? if yes, what are my points of re-rout?*/
@@ -1026,7 +1039,7 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 	}
 
 	/*step-3:get a new path*/
-	std::map<const sim_mob::Node* , std::vector<WayPoint> > wps ; //new path from the re-routing point
+	std::map<const sim_mob::Node* , std::vector<WayPoint> > wps ; //stores new path from the re-routing point
 	int cnt = 0;
 	typedef std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >	NodeStatPair ; //for 'deTourOptions' container
 	BOOST_FOREACH(NodeStatPair statPair, deTourOptions)
@@ -1042,14 +1055,31 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 	}
 	Print() << wps.size() << " New paths created (including no path) " << std::endl;
 
+	//step-3.5: filter out Uturns
+	//here is how we detect UTurns: if
+	//-S1 is the 'last' segment of the old path with O1 and D1 as the start and end node respectively,
+	//S2 is the 'first' segment of the new path with O2 and D2 as the start and end node respectively,
+	//if the following condition holds, we have a UTurn:
+	// (O1==D2) && (D2 == O1)  make sense?
+	//note: it would be efficient if we do this in the above loop but since this part is subject to removal/Modification after UTurn is provided, we keep it separate
+
+
 	/*step-4: prepend. Note: it is more efficient to do this within the above loop but code reading will become more tough*/
+	//4.a: check if there is no path from the rerouting point, just discard it.
+	//4.b: if there is a UTurn Situation, discard the rerouting option
 	typedef std::pair<const sim_mob::Node* , std::vector<WayPoint> > NodeWpPair;
 	BOOST_FOREACH(NodeWpPair wpPair, wps)
 	{
 
-		//if you want to do anything with no path cases, here is your cance
+		//4.a
 		if(!wpPair.second.size()){
-			continue;//no thanks, I'll just pass
+			deTourOptions.erase(wpPair.first);
+			continue;
+		}
+		//4.b
+		if(!UTurnFree(wpPair.second,deTourOptions[wpPair.first])){
+			deTourOptions.erase(wpPair.first);
+			continue;
 		}
 		//convert the new path waypoints to segstats and append them to the remaining path(remaining path: remaining segstats from the original path to the rer-outing point)
 		initSegStatsPath(wpPair.second,deTourOptions[wpPair.first]);

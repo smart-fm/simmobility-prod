@@ -8,6 +8,7 @@
 #include "BusStopAgent.hpp"
 #include "entities/roles/waitBusActivity/waitBusActivity.hpp"
 #include "message/MT_Message.hpp"
+#include "entities/MT_Statistics.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -126,6 +127,15 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 			itPerson++;
 		}
 	}
+
+	std::list<sim_mob::medium::WaitBusActivity*>::iterator itWaitingPeople = waitingPersons.begin();
+	while (itWaitingPeople != waitingPersons.end())
+	{
+		Person* person = (*itWaitingPeople)->getParent();
+		person->update(now);
+		itWaitingPeople++;
+	}
+
 	return UpdateStatus::Continue;
 }
 
@@ -191,6 +201,23 @@ bool BusStopAgent::handleBusDeparture(BusDriver* busDriver)
 	return removeBusDriver(busDriver);
 }
 
+void BusStopAgent::storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingActivity){
+
+	if(!waitingActivity){
+		return;
+	}
+
+	Person* person = waitingActivity->getParent();
+
+	unsigned int waitingTime = waitingActivity->getWaitingTime();
+	DailyTime waitingDailyTime(waitingTime);
+	std::string stopId = busStop->getBusstopno_();
+	std::string personId = boost::lexical_cast<std::string>((person->GetId()));
+	std::string waitingTmInStr = waitingDailyTime.toString();
+	messaging::MessageBus::PostMessage(MT_Statistics::GetInstance(), STORE_PERSON_WAITING,
+			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(stopId, personId, waitingTmInStr)));
+}
+
 void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 {
 	unsigned int numBoarding = 0;
@@ -208,6 +235,7 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 			bool ret = false;
 			WaitBusActivity* waitingPeople = *itPerson;
 			Person* person = waitingPeople->getParent();
+			storeWaitingTime(waitingPeople);
 			if (person)
 			{
 				person->checkTripChain();

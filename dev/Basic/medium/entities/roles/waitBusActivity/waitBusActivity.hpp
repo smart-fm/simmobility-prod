@@ -25,7 +25,7 @@ class BusDriver;
  * \author Seth N. Hetu
  * \author zhang huai peng
  */
-class WaitBusActivity: public sim_mob::Role {
+class WaitBusActivity: public sim_mob::Role, public UpdateWrapper<UpdateParams> {
 public:
 
 	explicit WaitBusActivity(Person* parent, MutexStrategy mtxStrat,
@@ -39,7 +39,7 @@ public:
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
-	virtual void make_frame_tick_params(timeslice now) {}
+	virtual void make_frame_tick_params(timeslice now);
 
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
@@ -73,6 +73,14 @@ public:
 
 	void setBoardBus(bool boardBus) {
 		this->boardBus = boardBus;
+	}
+
+	void setWaitingTime(unsigned int time){
+		waitingTime = time;
+	}
+
+	const unsigned int getWaitingTime() const {
+		return waitingTime;
 	}
 
 private:

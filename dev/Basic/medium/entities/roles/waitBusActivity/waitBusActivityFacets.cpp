@@ -47,13 +47,20 @@ void WaitBusActivityBehavior::setParentWaitBusActivity(sim_mob::medium::WaitBusA
 
 void WaitBusActivityMovement::frame_init(){
 	totalTimeToCompleteMS = 0;
-	sim_mob::SubTrip& subTrip = *(getParent()->currSubTrip);
+	if(parentWaitBusActivity){
+		UpdateParams& params = parentWaitBusActivity->getParams();
+		Person* person = parentWaitBusActivity->getParent();
+		person->setStartTime(params.now.ms());
+	}
 }
 
 void WaitBusActivityMovement::frame_tick()
 {
 	unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
 	totalTimeToCompleteMS += tickMS;
+	if(parentWaitBusActivity){
+		parentWaitBusActivity->setWaitingTime(totalTimeToCompleteMS);
+	}
 }
 
 void WaitBusActivityMovement::frame_tick_output(){

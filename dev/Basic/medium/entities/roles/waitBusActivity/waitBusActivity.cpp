@@ -38,6 +38,11 @@ void sim_mob::medium::WaitBusActivity::increaseWaitingTime(unsigned int incremen
 	waitingTime += incrementMs;
 }
 
+void sim_mob::medium::WaitBusActivity::make_frame_tick_params(timeslice now)
+{
+	getParams().reset(now);
+}
+
 void sim_mob::medium::WaitBusActivity::setStop(sim_mob::BusStop* busStop) {
 	stop = busStop;
 }

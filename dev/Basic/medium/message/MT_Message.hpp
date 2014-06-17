@@ -66,7 +66,7 @@ public:
 class PersonWaitingTimeMessage: public messaging::Message {
 public:
 	PersonWaitingTimeMessage(const std::string& stopNo,
-			const std::string& personId, std::string& waitingTime) :
+			const std::string& personId, const std::string& waitingTime) :
 			busStopNo(stopNo), personId(personId), waitingTime(waitingTime) {
 	}
 	virtual ~PersonWaitingTimeMessage() {

@@ -96,6 +96,12 @@ public:
 	 */
 	bool handleBusDeparture(BusDriver* busDriver);
 
+	/**
+	 * store waiting time
+	 * @param waitingActivity is pointer to the waiting people
+	 */
+	void storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingActivity);
+
 protected:
 	//Virtual overrides
 	virtual bool frame_init(timeslice now); ;

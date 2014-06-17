@@ -23,6 +23,10 @@ public:
 	void setWaitingTime(const std::string& personId, const std::string& waitingTime){
 		waitingTimeList[personId] = waitingTime;
 	}
+
+	const std::map<std::string, std::string>& getWaitingTimeList() const{
+		return waitingTimeList;
+	}
 private:
 	std::map<std::string, std::string> waitingTimeList;
 };

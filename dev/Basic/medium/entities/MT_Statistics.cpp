@@ -95,18 +95,37 @@ void MT_Statistics::PrintStatistics()
 			busJourneyTime.begin();
 	for (; it != busJourneyTime.end(); it++) {
 		journeyTimeStats* stat = it->second;
-		Print() << "At bus stop " << it->first << std::endl;
+		std::string stopNo = it->first;
+		Print() << "Bus arrival time at bus stop " << stopNo << std::endl;
 		std::vector<busArrivalTimeStats>& busArrivalTm =
 				stat->getArrivalTime();
 		std::vector<busArrivalTimeStats>::iterator itArrivalTm =
 				busArrivalTm.begin();
 		//std::sort(busArrivalTm.begin(), busArrivalTm.end());
 		while (itArrivalTm != busArrivalTm.end()) {
+			Print() << stopNo << "\t";
 			Print() << itArrivalTm->busLine << "\t";
 			Print() << itArrivalTm->tripId << "\t";
 			Print() << itArrivalTm->arrivalTime << "\t";
 			Print() << std::endl;
 			itArrivalTm++;
+		}
+	}
+
+	waittingTimeStats* stat = nullptr;
+	std::map<std::string, waittingTimeStats*>::iterator itWaitingPeople = personWaitingTime.begin();
+	for(; itWaitingPeople!=personWaitingTime.end(); itWaitingPeople++){
+		stat = itWaitingPeople->second;
+		std::string stopNo = itWaitingPeople->first;
+		Print() << "people waiting time at bus stop " <<  stopNo << std::endl;
+		const std::map<std::string, std::string>& waitingTimeList = stat->getWaitingTimeList();
+		std::map<std::string, std::string>::const_iterator itWaitingTime=waitingTimeList.begin();
+		while(itWaitingTime!=waitingTimeList.end()){
+			Print() << stopNo << "\t";
+			Print() << itWaitingTime->first << "\t";
+			Print() << itWaitingTime->second << "\t";
+			Print() << std::endl;
+			itWaitingTime++;
 		}
 	}
 }

@@ -459,8 +459,8 @@ void sim_mob::DriverMovement::frame_tick()
 	//sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
 	//a->handleVHPosition(this);
 
-	std::cout << "AMOD_ID: " <<  getParent()->amodId << " ParentDriver->vehicle->getX():" << parentDriver->vehicle->getX() << std::endl;
-	std::cout << "AMOD_ID: " << getParent()->amodId << " ParentDriver->vehicle->getY():" << parentDriver->vehicle->getY() << std::endl;
+	//std::cout << "AMOD_ID: " <<  getParent()->amodId << " ParentDriver->vehicle->getX():" << parentDriver->vehicle->getX() << std::endl;
+	//std::cout << "AMOD_ID: " << getParent()->amodId << " ParentDriver->vehicle->getY():" << parentDriver->vehicle->getY() << std::endl;
 
 	//this->parent->xPos_Sim = static_cast<int>(parentDriver->vehicle->getX());
 	//this->parent->yPos_Sim = static_cast<int>(parentDriver->vehicle->getY());

@@ -168,7 +168,6 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		s->highWayDistance = sim_mob::calculateHighWayDistance(s);
 		s->fromNode = fromNode;
 		s->toNode = toNode;
-		s->excludeSeg = excludeSeg;
 		s->pathset_id = ps->id;
 		s->length = sim_mob::generateSinglePathLength(s->shortestWayPointpath);
 		s->id = id;

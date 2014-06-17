@@ -824,7 +824,6 @@ std::vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const si
 vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler, const sim_mob::RoadSegment* exclude_seg, bool isUseCache, bool isUseDB)
 {
 	vector<WayPoint> res;
-	std::string subTripId = st->tripID;
 	std::ostringstream out("");
 	if(st->mode != "Car") //only driver need path set
 	{
@@ -834,6 +833,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 	const sim_mob::Node* toNode = st->toLocation.node_;
 	std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
 	std::string mys=fromId_toId;
+	sim_mob::PathSet ps_;
 	//check cache
 	sim_mob::Profiler CBP_Profiler(true);
 	if(isUseCache){
@@ -845,7 +845,6 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 		}
 	}
 	bool hasPSinDB = false;
-	sim_mob::PathSet ps_;
 	if(isUseDB){
 		out.str("");
 		out  << "getCachedBestPath:false:" << CBP_Profiler.endProfiling() << std::endl;
@@ -992,6 +991,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 		}
 	return res;
 }
+
 bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & personProfiler, const sim_mob::RoadSegment* exclude_seg)
 {
 
@@ -1245,7 +1245,6 @@ void sim_mob::PathSetManager::generatePathesByLinkElimination(std::vector<WayPoi
 			{
 				continue;
 			}
-			sinPath->excludeSeg = seg;
 			sinPath->pathSet = &ps_; // set parent
 			sinPath->travel_cost = getTravelCost2(sinPath);
 			sinPath->travle_time = getTravelTime(sinPath);
@@ -1271,7 +1270,6 @@ void sim_mob::PathSetManager::generatePathesByTravelTimeLinkElimination(std::vec
 			{
 				continue;
 			}
-			sinPath->excludeSeg = seg;
 			sinPath->pathSet = &ps_; // set parent
 			sinPath->travel_cost = getTravelCost2(sinPath);
 			sinPath->travle_time = getTravelTime(sinPath);
@@ -1589,7 +1587,6 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::generateSinglePathByFromToNodes3
 		sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(s);
 		s->fromNode = fromNode;
 		s->toNode = toNode;
-		s->excludeSeg = exclude_seg;
 		s->pathSet = NULL;
 		s->length = sim_mob::generateSinglePathLengthPT(s->shortestWayPointpath);
 		s->id = id;
@@ -1689,7 +1686,6 @@ sim_mob::SinglePath * sim_mob::PathSetManager::generateSinglePathByFromToNodes(c
 		sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(s);
 		s->fromNode = fromNode;
 		s->toNode = toNode;
-		s->excludeSeg = exclude_seg;
 		s->pathSet = NULL;
 		s->length = sim_mob::generateSinglePathLengthPT(s->shortestWayPointpath);
 		s->id = id;
@@ -1795,7 +1791,6 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 			{
 				continue;
 			}
-			sinPath->excludeSeg = seg;
 			sinPath->pathSet = ps; // set parent
 			sinPath->travel_cost = getTravelCost2(sinPath);
 			sinPath->travle_time = getTravelTime(sinPath);
@@ -2329,7 +2324,6 @@ void sim_mob::SinglePath::clear()
 	id="";
 	pathset_id="";
 	pathSet = NULL;
-	excludeSeg = NULL;
 	fromNode = NULL;
 	toNode = NULL;
 	utility = 0.0;
@@ -2664,7 +2658,6 @@ bool sim_mob::PathSetManager::generateSinglePathByFromToNodes2(
 		sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(&s);
 		s.fromNode = fromNode;
 		s.toNode = toNode;
-		s.excludeSeg = exclude_seg;
 		s.pathSet = NULL;
 		s.length = sim_mob::generateSinglePathLengthPT(s.shortestWayPointpath);
 		// file db object data
@@ -2836,11 +2829,9 @@ sim_mob::SinglePath::SinglePath(SinglePath *source,const sim_mob::RoadSegment* s
 {
 	isNeedSave2DB=false;
 	purpose = sim_mob::work;
-	this->excludeSeg = seg;
 }
 
 sim_mob::SinglePath::SinglePath(SinglePath *source) :
-		excludeSeg(source->excludeSeg),
 		pathSet(source->pathSet),fromNode(source->fromNode),
 		toNode(source->toNode),purpose(source->purpose),
 		utility(source->utility),pathsize(source->pathsize),travel_cost(source->travel_cost),

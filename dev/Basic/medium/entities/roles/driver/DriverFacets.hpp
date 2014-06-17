@@ -307,9 +307,9 @@ protected:
 	 */
 	void rerout(const InsertIncidentMessage &msg);
 	///tries to remove the uturn if any
-	bool UTurnFree(std::vector<WayPoint> oldPath, std::vector<const sim_mob::SegmentStats*> newPath);
+	bool UTurnFree(std::vector<WayPoint> & oldPath, std::vector<const sim_mob::SegmentStats*> & newPath, sim_mob::SubTrip & subTrip, std::vector<const sim_mob::RoadSegment*> & excludeRS);
 	//checks if there is a uturn
-	bool hasUTurn(std::vector<WayPoint> oldPath, std::vector<const sim_mob::SegmentStats*> newPath);
+	bool hasUTurn(std::vector<WayPoint> & oldPath, std::vector<const sim_mob::SegmentStats*> & newPath);
 	/**
 	 * message handler which provide a chance to handle message transfered from parent agent.
 	 * @param type of the message.

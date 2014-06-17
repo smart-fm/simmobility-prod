@@ -110,7 +110,7 @@ protected:
 public:
 	//debug
 	///print path by aimsun section id
-	static void printPath(const MesoPathMover::Path &path);
+	static void printPath(const MesoPathMover::Path &path, const Node *node = 0);
 };
 }
 }

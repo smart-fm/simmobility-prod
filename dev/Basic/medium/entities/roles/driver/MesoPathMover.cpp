@@ -138,9 +138,12 @@ void sim_mob::medium::MesoPathMover::moveFwdInSegStats(double fwdDisplacement) {
 }
 
 
-void sim_mob::medium::MesoPathMover::printPath(const Path &path){
+void sim_mob::medium::MesoPathMover::printPath(const Path &path, const Node *node){
 	std::ostringstream out("");
 	unsigned int id = 0;
+	if(node){
+		out << node->getID() << ": " ;
+	}
 	for(Path::const_iterator it = path.begin(); it != path.end(); it++){
 		if(id != (*it)->getRoadSegment()->getSegmentAimsunId()){
 			id = (*it)->getRoadSegment()->getSegmentAimsunId();

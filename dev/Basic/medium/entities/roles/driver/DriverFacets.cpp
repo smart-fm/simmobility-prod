@@ -1048,9 +1048,9 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 		SubTrip subTrip = *(getParent()->currSubTrip);
 		// change the origin
 		subTrip.fromLocation.node_ = statPair.first;
-		const sim_mob::RoadSegment *excludeRS = (*msg.stats.begin())->getRoadSegment();
+		std::vector<const sim_mob::RoadSegment*> excludeRS(1,(*msg.stats.begin())->getRoadSegment());
 		//	record the new paths using the updated subtrip. (including no paths)
-		Print() << "Generating a new path without section " << excludeRS->getSegmentAimsunId() << std::endl;
+		Print() << "Generating a new path without section " << (*excludeRS.end())->getSegmentAimsunId() << std::endl;
 		wps[statPair.first] = sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(getParent(), &subTrip, excludeRS, false, false );
 	}
 	Print() << wps.size() << " New paths created (including no path) " << std::endl;

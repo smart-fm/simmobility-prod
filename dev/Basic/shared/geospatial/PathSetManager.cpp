@@ -620,7 +620,6 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 	{
 		sql = &(psDbLoader->sql);
 	}
-
 		vector<WayPoint> res = generateBestPathChoiceMT(subTrip, profiler);
 		cacheODbySegment(per, subTrip, res);
 		sql = NULL;
@@ -805,7 +804,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 //if not found in DB, generate all 4 types of path
 //choose the best path using utility function
 std::vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::Person * per, const sim_mob::SubTrip* st,
-		const sim_mob::RoadSegment* exclude_seg, bool isUseCache, bool isUseDB){
+		const std::vector<const sim_mob::RoadSegment*> & exclude_seg, bool isUseCache, bool isUseDB){
 	//you may need to double check your database connection
 	Worker *worker = (Worker*)per->currWorkerProvider;
 	if(worker)
@@ -821,7 +820,7 @@ std::vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const si
 	return generateBestPathChoiceMT(st, profiler, exclude_seg, isUseCache, isUseDB);
 }
 
-vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler, const sim_mob::RoadSegment* exclude_seg, bool isUseCache, bool isUseDB)
+vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler, const std::vector<const sim_mob::RoadSegment*> & exclude_seg , bool isUseCache, bool isUseDB)
 {
 	vector<WayPoint> res;
 	std::ostringstream out("");
@@ -992,7 +991,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 	return res;
 }
 
-bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & personProfiler, const sim_mob::RoadSegment* exclude_seg)
+bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & personProfiler, const std::vector<const sim_mob::RoadSegment*> & exclude_seg)
 {
 
 	/**
@@ -1239,7 +1238,8 @@ void sim_mob::PathSetManager::generatePathesByLinkElimination(std::vector<WayPoi
 	{
 		WayPoint *w = path[i];
 		if (w->type_ == WayPoint::ROAD_SEGMENT) {
-			const sim_mob::RoadSegment* seg = w->roadSegment_;
+			std::vector<const sim_mob::RoadSegment*> seg ;
+			seg.push_back(w->roadSegment_);
 			SinglePath *sinPath = generateSinglePathByFromToNodes3(fromNode,toNode,wp_spPool,seg);
 			if(!sinPath)
 			{
@@ -1542,7 +1542,7 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::generateSinglePathByFromToNodes3
 		   const sim_mob::Node *fromNode,
 		   const sim_mob::Node *toNode,
 		   std::map<std::string,SinglePath*>& wp_spPool,
-		   const sim_mob::RoadSegment* exclude_seg)
+		   const std::vector<const sim_mob::RoadSegment*> & exclude_seg)
 {
 	/**
 	 * step-1: find the shortest driving path between the given OD
@@ -1552,19 +1552,25 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::generateSinglePathByFromToNodes3
 	 */
 	sim_mob::SinglePath *s=NULL;
 	std::vector<const sim_mob::RoadSegment*> blacklist;
-	if(exclude_seg)
+	if(exclude_seg.size())
 	{
-		blacklist.push_back(exclude_seg);
+		const sim_mob::RoadSegment* rs;
+		BOOST_FOREACH(rs, exclude_seg){
+			blacklist.push_back(rs);
+		}
 	}
 	std::vector<WayPoint> wp = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*fromNode), stdir->DrivingVertex(*toNode),blacklist);
 	if(wp.size()==0)
 	{
 		// no path
-		if(exclude_seg)
+		if(exclude_seg.size())
 		{
+			const sim_mob::RoadSegment* rs;
+			BOOST_FOREACH(rs, exclude_seg){
 			Print()<<"gSPByFTNodes3: no path for nodes["<<fromNode->originalDB_ID.getLogItem()<< "] and [" <<
 				toNode->originalDB_ID.getLogItem()<< " and ex seg[" <<
-				exclude_seg->originalDB_ID.getLogItem()<< "]" << std::endl;
+				rs->originalDB_ID.getLogItem()<< "]" << std::endl;
+			}
 		}
 		else
 		{

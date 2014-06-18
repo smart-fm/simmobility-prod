@@ -205,6 +205,7 @@ private:
 	 *  \param v velocity (m/s)
 	 *  \return acceleration (m/s^2)
 	 **/
+	double desiredSpeedRate(sim_mob::DriverUpdateParams& p);
 	double brakeToTargetSpeed(sim_mob::DriverUpdateParams& p,double s,double v);
 	double brakeToStop(DriverUpdateParams& p, double dis);
 	double accOfEmergencyDecelerating(sim_mob::DriverUpdateParams& p);  ///<when headway < lower threshold, use this function

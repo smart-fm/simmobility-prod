@@ -1502,7 +1502,8 @@ void sim_mob::DriverMovement::updateAdjacentLanes(DriverUpdateParams& p) {
 	p.leftLane2 = nullptr;
 	p.rightLane2 = nullptr;
 
-	if (!p.currLane) {
+	const size_t numLanes = p.currLane->getRoadSegment()->getLanes().size();
+	if (!p.currLane || numLanes == 1) {
 		return; //Can't do anything without a lane to reference.
 	}
 
@@ -1517,13 +1518,13 @@ void sim_mob::DriverMovement::updateAdjacentLanes(DriverUpdateParams& p) {
 			p.rightLane2 = temp;
 	}
 
-	if (p.currLaneIndex < p.currLane->getRoadSegment()->getLanes().size() - 1) {
+	if (p.currLaneIndex < numLanes - 1) {
 		const Lane* temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex + 1);
 		if(!temp->is_pedestrian_lane())
 			p.leftLane = temp;
 	}
 
-	if (p.currLaneIndex < p.currLane->getRoadSegment()->getLanes().size() - 2) {
+	if (p.currLaneIndex < numLanes - 2) {
 		const Lane* temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex + 2);
 		if(!temp->is_pedestrian_lane())
 			p.leftLane2 = temp;
@@ -1935,11 +1936,12 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 
 	//when v_lead and a_lead is 0, space is not negative, the Car Following will generate an acceleration based on free flowing model
 	//this causes problem, so i manually set acceleration and velocity to 0
-	if (parentDriver->vehicle->getVelocity() < 0 ||(p.space<1&&p.v_lead==0&&p.a_lead==0)) {
+	// NOTE: Not necessary with new Mitsim driving behavior model
+	/*if (parentDriver->vehicle->getVelocity() < 0 ||(p.space<1&&p.v_lead==0&&p.a_lead==0)) {
 		//Set to 0 forward velocity, no acceleration.
 		parentDriver->vehicle->setVelocity(0.0);
 		parentDriver->vehicle->setAcceleration(0);
-	}
+	}*/
 
 	//Move the vehicle forward.
 	double res = 0.0;
@@ -2597,7 +2599,10 @@ void sim_mob::DriverMovement::updatePositionDuringLaneChange(DriverUpdateParams&
 	double halfLaneWidth = p.currLane->getWidth() / 2.0;
 
 	//The direction we are attempting to change lanes in
-	LANE_CHANGE_SIDE actual = parentDriver->vehicle->getTurningDirection();
+	// CLA temporary fix: Shutting down lane change, for reaction time testing
+	//LANE_CHANGE_SIDE actual = parentDriver->vehicle->getTurningDirection();
+	LANE_CHANGE_SIDE actual = LCS_SAME;
+	// End of temporary fix
 	//LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
 	if (actual == LCS_SAME && relative == LCS_SAME) {
 		if (Debug::Drivers) {

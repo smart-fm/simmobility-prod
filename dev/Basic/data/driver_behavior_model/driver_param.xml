@@ -7,205 +7,244 @@
 
 <parameters model_name="general_driver_model">
 
-<acceleration>
-   <lead>
-        <param name="lead_alpha" value="1.6"/>
-   </lead>
-   <lag>
-        <param name="lag_alpha" value="1.6"/>
-   </lag>
-</acceleration>
-<lane_changing>
-   <GapAcceptParam>
-      <discretionary_lead>
-        <param name="discretionary_lead_alpha" value="1.6"/>
-      </discretionary_lead>
-   </GapAcceptParam>
-</lane_changing>
+<!-- A. ACCELERATION MODELS -->
+<!-- A.1. CAR FOLLOWING PARAMETERS 
+	The following parameters describe the boundaries of the car following
+	regime. The following vehicle is in a car following regime
+	(i.e. accelerates according to the car following models described below)
+	when the time headway between the lead and following vehicles is
+	between the CF Upper and Lower headway thresholds. 
+	The Min Response Distance is the minimum space headway between the
+	lead and following vehicles for which the following vehicle must apply some
+	acceleration (or deceleration). -->
+	<param name="min_response_distance" value="5.0"/>
+	
+	<!-- The SimMobility car-following model describes the
+	acceleration of the following vehicle in a car following regime:
+	
+	Acceleration = alpha * (v ^ beta / dx ^ gamma) * (k ^ rho) * (dv ^ lambda) + N(0, stddev^2)
+	
+	where v = speed of the following vehicle, dx = distance gap between
+	the lead and following vehicles, and dv = speed difference between
+	the lead and following vehicles. -->
 
-<!--param name="maxAcceleration" value="5.0"/-->
-<param name="normalDeceleration" value="-3.0"/>
-<param name="maxDeceleration" value="-5.0"/>
+	<!-- Car following parameters			alpha	beta	gama	lambda	rho		stddev -->
+	<param name="CF_parameters_1" value="	0.0400	0.7220	0.2420	0.6820	0.6000	0.8250"/>
+	<param name="CF_parameters_2" value="	-0.0418	0.0000	0.1510	0.6840	0.6800	0.8020"/>
+	
+<!-- A.2. TARGET GAP ACCELERATION PARAMETERS
+	The target gap acceleration model is the acceleration that a vehicle executes
+	to reach an acceptable gap for lane change. It is specified separately for the 
+	backward, forward and adjacent gaps:
+	
+	accFWDGap = [2] * (Desired position FWD) ^ [3] * exp( [4] * DeltaV+ ) * exp( [5] * DeltaV-) + N(0,[6]²)
+	accBCKGap = [7] * (Desired position BCK) ^ [8] * exp( [9] * DeltaV+ ) * exp( [10] * DeltaV-) + N(0,[11]²)
+	accFWDGap = [12] * (Desired position ADJ) + N(0,[13]²)
+	
+	The desired position is given by:
+	Desired position FWD = LeadHeadway + leadlenght + [1] * FWDgap
+	Desired position BCK = LagHeadway + length + laglength + ( 1- [1] ) * BCKgap
+	Desired position ADJ =  [1] * ADJgap + length - LagHeadway
+							[1]	[2]	[3]	[4]	[5]	[6]	[7]	[8]	[9]	[10]	[11]	[12]	[13] -->
+	<param name="target_gap_acc_parm" value="	0.604	0.385	0.323	0.0678	0.217	0.583	-0.596	-0.219	0.0832	0.170	1.478	0.131	0.300"/>
+	
+<!--A.3. ACCELERATION THRESHOLDS
+	Following are the acceleration and deceleration characteristics
+	of the vehicle classes named earlier in the file
+	In determining the acceleration thresholds of a vehicle based on
+	grade and speed, 
+	acc = acc (based on speed and vehicle type, from the main tables below) - grade factor * grade
+	-->
+	<!--MAIN TABLES (m/s2)
+		Each column represents the following speed bins (m/s) defined in "speed_scaler" bellow
+		Each row represents a vehicle class
 
-<param name="speed_scaler" value="5 6 6"/>
-<param name="acceleration_grade_factor" value="0.305"/>
-<param name="max_acc_car1" value="3.048  2.4  1.7  1.21  0.9"/>
+		NOTE: The code needs to be changed to accept a variable number of vehicle classes -->	 
+	<!-- Maximum acceleration -->
+	<param name="max_acc_car1"		value="5.00 	5.00	5.00	5.00	5.00"/>
+	<!-- Normal deceleration -->
+	<param name="normal_deceleration_car1"	value="2.40 	2.00 	1.41 	1.44 	1.47"/>
+	<!-- Maximum deceleration -->
+	<param name="max_deceleration_car1"	value="4.80 	4.35	3.90	3.30	3.00"/>
+	<!-- VARIATION TABLES (factor)-->
+	<!-- Each column represents the following population percentile
+							 0.05 0.15 0.25 0.35 0.45 0.55 0.65 0.75 0.85 0.95 -->
+	<param name="max_acceleration_scale"    value=	"1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00"/>
+	<param name="normal_deceleration_scale" value=	"1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00"/>
+	<param name="max_deceleration_scale"    value=	"1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00"/>							 	
 
-<param name="normal_deceleration_car1" value="2.4 	2 	1.41 	1.44 	1.47"/>
+	<!-- GENERAL FACTORS for TRESHOLDS (factor)-->
+	<!-- number of bins | first bin | bin size 
+	Example: "5 10 5" is equal to [0-10,10-15,15-20,20-25,25-]-->	
+	<param name="speed_scaler" value="5 10 5"/>
+	<!-- Grade factor -->
+	<param name="acceleration_grade_factor" value="1"/><!--0.305-->
+	<!-- Default grade (m/m) -->
+	<param name="tmp_all_grades" value="0"/>
 
-<param name="max_deceleration_car1" value="4.8   4.35   3.9   3.3   3.0"/>
-
-<param name="max_acceleration_scale" value="0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"/>
-<param name="max_deceleration_scale" value="1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0"/>
-<param name="normal_deceleration_scale" value="1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0"/>
-#Car-following acceleration add on
-<param name="Car_following_acceleration_add_on" value="-1.3564 -0.8547 -0.5562 -0.3178 -0.1036 0.1036 0.3178 0.5562 0.8547 1.3564"/>
-<param name="speed_limit_add_on" value="-0.1911 -0.0708 -0.0082 0.0397 0.0810 0.1248 0.1661 0.2180 0.2745 0.3657"/>
-
-<param name="tmp_all_grades" value="0"/>
-
-<param name="min_response_distance" value="5.0"/>
-
-<param name="yellow_stop_headway" value="1.0"/>
-<param name="min_speed_yellow" value="2.2352"/>
-
-# speed factor
-<param name="speed_factor" value="2.2352"/>
-
-# visibility distance for car follow (meter)
-<param name="visibility_distance" value="10"/>
-
-<param name="hbuffer_lower" value="2.2352"/>
-<param name="hbuffer_Upper" value="1.7498 2.2737 2.5871 2.8379 3.0633 3.2814 3.5068 3.7578 4.0718 4.5979"/>
-
-#Car following parameters            alpha   beta    gama    lambda  rho     stddev
-<param name="CF_parameters_1" value="0.0400 0.7220 0.2420 0.6820 0.6000 0.8250"/>
-<param name="CF_parameters_2" value="-0.0418 0.0000 0.1510 0.6840 0.6800 0.8020"/>
-# calcBackwardRate() calcAdjacentRate() param
-<param name="target_gap_acc_parm" value="0.604, 0.385, 0.323, 0.0678, 0.217,0.583, -0.596, -0.219, 0.0832, -0.170, 1.478, 0.131, 0.300"/>
-
-# UPDATE STEP SIZE (REACTION TIME RELATED)
-# normal distributions (seconds)
-#                                              	     mean   stdev   lower   upper perception(percentage)
-<param name="dec_update_step_size"             value="0.5     0.0     0.5     0.5    0.5"/>
-<param name="acc_update_step_size"             value="1.0     0.0     1.0     1.0    0.5"/>
-<param name="uniform_speed_update_step_size"   value="1.0     0.0     1.0     1.0    0.5"/>
-<param name="stopped_vehicle_update_step_size" value="0.5     0.0     0.5     0.5    0.5"/>
-
-
-#lane change model parameters
-
-
-
-#LC Mandatory Probability Model
-
-#[LC Mandatory Probability Model] = {
-#	1320.0	# feet, lower bound 
-#        5280.0	# feet, delta    
-#	   0.5	# coef for number of lanes
-#	   1.0	# coef for congestion level
-#	   1.0	# minimum time in lane
-#}
-#                                              
-<param name="MLC_PARAMETERS" value="
-					1320.0         #lower bound(ft) 
-					5280.0         #delta(ft)
-					0.5            #coef for number of lanes
-					1.0            #coef for congestion level
-					1.0 	       #minimum time in lane
-"/>
-
-# lcCriticalGap() param 
-#                       	    scale  alpha   lambda   beta0   beta1   beta2   beta3   beta4   stddev
-<param name="LC_GAP_MODELS_0" value="1.00,   0.0,   0.000,  0.508,  0.000,  0.000,  -0.420, 0.000,   0.488"/>
-<param name="LC_GAP_MODELS_1" value="1.00, 0.0, 0.000, 2.020, 0.000, 0.000, 0.153, 0.188, 0.526"/>
-<param name="LC_GAP_MODELS_2" value="1.00, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859"/>
-<param name="LC_GAP_MODELS_3" value="1.00, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"/>
-<param name="LC_GAP_MODELS_4" value="0.60, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859"/>
-<param name="LC_GAP_MODELS_5" value="0.60, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"/>
-<param name="LC_GAP_MODELS_6" value="0.20, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859"/>
-<param name="LC_GAP_MODELS_7" value="0.20, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"/>
-
-# chooseTargetGap() param
-#                               const	   dis2gap  gap-size  gap-vel   dummy  vn
-<param name="GAP_PARAM_0" value="-1.23, -0.482, 0.224, -0.0179, 2.10, 0.239"/>   #back
-<param name="GAP_PARAM_1" value="0.00,   0.00,  0.224, -0.0179, 2.10, 0.000"/>   #adj
-<param name="GAP_PARAM_2" value="-0.772, -0.482, 0.224, -0.0179, 2.10, 0.675"/>   #fwd
-
-# minimum speed to consider for a moving vehicle m/s
-<param name="min_speed" value="0.1"/>
-
-#Lane Utility Model
-<param name="lane_utility_model" value="
-	 3.9443		# current lane constant
-	-0.3213		# right lane constant
-	-1.1683		# right most lane dummy
-	 0.0		# currently unused
-	 0.0633		# front vehicle speed (all lanes)
-        -1.0   	        # bus following dummy
-         0.0058		# front vehicle spacing
-	-0.2664		# heavy neighbor in lane
-        -0.0088		# density in lane	
-        -3.3754		# tailgate
-    	 10     	# gap behind threshold for tailgate dummy (meters)
-	 19         	# density threshold for tailgate dummy	
-	-2.3400		# one lane change required
-	-4.5084		# two lane changes required
-	-2.8257		# each additional lane change required
-	-1.2597		# next exit, one lane change required
-	-0.7239		# next exit, each additional lane changes required
-        -0.3269  	# distance to exit
-"/> 
-
-# Critical Gaps
-<param name="critical_gaps_param" value="
-	0.5 		# lead gap - constant
-	 -0.231		# lead gap - negative speed difference
-	 -2.700		# lead gap - positive speed difference
-	  1.112		# lead gap - standard deviation
-	  0.5 		# lag gap - constant
-          0.000  	# lag gap - negative speed difference
-         0.2 		# lag gap - positive speed difference
-	  0.742		# lag gap - standard deviation
-          6.0		# max speed difference
-"/>
-
-# LC Nosing Model
-<param name="nosing_param" value="
-	   1.0	# time horizon (second) for constant acc
-	   0.5	# constant
-	   0.6	# coef for number of lanes
-	   0.1	# coef for time (in minutes) since tagged
-	   0.2	# max prob one on ramp lane drop, incident, red LUS, etc
-           1.0  # max prob two in connection to next link
-         300.0	# max yielding time (seconds)
-	 180.0	# max stuck time (seconds)
-         600.0  # max distance for nosing	
-          40.0  # min distance for nosing
-"/>
-
-# LC Kazi Nosing Model
-<param name="kazi_nosing_param" value="-3.159  0.313  -0.027  2.050  0.028  0.6"/>
-
-<param name="CF_CRITICAL_TIMER_RATIO" value="0.5"/>
-
-#LC Yielding Model] = {	# currently yields to nosing vehicle only
-<param name="LC_Yielding_Model" value="
-   0.80	# previously not yielding
-   1.00	# previously yielding
-"/>
+<!-- B. HEADWAY THRESHOLDS	-->
+	<!-- A headway buffer is found for each vehicle and is a behavioral
+	parameter that describes the aggressiveness of a driver for accepting
+	a headway gap in lane changing, merging, and car-following. Some
+	value between the lower and upper bound will be added to the minimum
+	headway gaps for the population, which are constants also provided in -->
+	<param name="hbuffer_lower" value="2.2352"/>
+	<!-- Variation (factor)-->
+	<!-- Each column represents the following population percentile
+	 					0.05	0.15	0.25	0.35	0.45	0.55	0.65	0.75	0.85	0.95 -->
+	<param name="hbuffer_Upper" value="	1.7498	2.2737	2.5871	2.8379	3.0633	3.2814	3.5068	3.7578	4.0718	4.5979"/>
 
 
-#[Target Gap Model] = {
-#	-0.837	 	# forward gap constant
-#	 0.913		# backward gap constant
-#	 0.816		# effective gap length
-#	-1.218		# relative gap speed
-#	-2.393		# distance to gap 
-#        -1.662		# front vehicle dummy
-#}
-<param name="Target_Gap_Model" value="
-	-0.837	 	# forward gap constant
-	 0.913		# backward gap constant
-	 0.816		# effective gap length
-	-1.218		# relative gap speed
-	-2.393		# distance to gap 
-        -1.662		# front vehicle dummy
-"/>
+<!-- C. TRAFFIC LIGHT RESPONSE -->
+	<param name="yellow_stop_headway" value="1.0"/>
+	<param name="min_speed_yellow" value="2.2352"/>
 
-# MERGING
+<!-- D. UPDATE STEP SIZE (REACTION TIME RELATED)
+	Driver behavior (e.g. responses to stimuli) is updated periodically
+	during simulation depending on the state of the vehicle (i.e.
+	depending on whether the vehicle is decelerating, accelerating,
+	traveling at uniform speed, or is stopped). At each call of the function
+	updateStepSize (i.e. at the end of each decision instant) a new update state size is
 
-#[Merging Model] = {
-#	100	# feet, upstream area
-#	200	# feet, downstream area
-#	8	# number of vehicles allowed
-#	0.2     # probability of aggresive merge from ramp
-#}
-<param name="Merging_Model" value="
-	10	# meter upstream area
-	20	# meter downstream area
-	8	# number of vehicles allowed
-	0.2     # probability of aggresive merge from ramp
-"/>
+	drawn from a truncated log-normal (normal?) distribution (seconds):
+	step sizes are as follows:
+                                              	     		mean   stdev   lower   upper perception(percentage) -->
+	<param name="dec_update_step_size"             value=	"0.5     0.0     0.5     0.5    0.5"/>
+	<param name="acc_update_step_size"             value=	"1.0     0.0     1.0     1.0    0.5"/>
+	<param name="uniform_speed_update_step_size"   value=	"1.0     0.0     1.0     1.0    0.5"/>
+	<param name="stopped_vehicle_update_step_size" value=	"0.5     0.0     0.5     0.5    0.5"/>
+
+<!-- F. DESIRED SPEED
+	The desired speed constrained by the posted speed limit is defined by
+	Vdesired = speed_factor * Vsign * ( 1 + Vvar) -->
+	<param name="speed_factor" value="2.2352"/>
+	<!-- Vvar is read from the table bellow -->
+	<!-- Each column represents the following population percentile
+		 					0.05 	0.15	0.25	0.35	0.45	0.55	0.65	0.75	0.85	0.95 -->
+	<param name="speed_limit_add_on" value="	-0.1911	-0.0708	-0.0082	0.0397	0.0810	0.1248	0.1661	0.2180	0.2745	0.3657"/>
+
+<!-- G. VISIBILITY
+	NOTE (Carlos): The structure of the visibility is not a mature one -> Needs work
+	The visibility_distance parameter is used in the car follow model to reduce the follower reaction time 
+	when subject vehicle brakes (in meter) -->
+	<param name="visibility_distance" value="10"/>
+
+<!-- H. LANE CHANGE MODEL PARAMETERS -->
+
+<!-- H.1. LC Mandatory Probability Model
+	The probability of starting a mandatory lane change or staying in the
+	current lane model requires that the vehicle distance from the downstream node
+	(or lane drop)  be greater than a distance 'lower bound'. The probability that
+
+	a vehicle will change to the appropriate lane is given by:
+	Prob = exp (-dis*dis/(delta^2))
+	dis = (Xn - Xo) - 'lower bound'
+	where	Xn = distance from vehicle to downstream node (or lane drop) 
+		Xo = distance of a critical location (e.g. final exit warning)
+		delta = delta1 * [1.0 + alpha1*number of lanes +
+
+		alpha2*(segment density/jam density)]
+	A vehicle must remain in a lane for a minimum of "minimum time in lane" seconds before
+	considering another lane chane.-->                                   
+	<param name="MLC_PARAMETERS" value="
+						1320.0         #lower bound(ft) 
+						5280.0         #delta(ft)
+						0.5            #coef for number of lanes
+						1.0            #coef for congestion level
+						1.0 	       #minimum time in lane
+	"/>
+
+<!-- H.2 Lane utility Model
+	This model describes drivers’ choice of lane they would want to travel in. A driver
+	chooses one of up to three alternatives: to stay in the current lane ( CL ) or to target
+	changing either to the right lane ( RL ) or to the left lane ( LL ) -->
+	<param name="lane_utility_model" value="
+		 3.9443		# current lane constant
+		-0.3213		# right lane constant
+		-1.1683		# right most lane dummy
+		 0.0		# currently unused
+		 0.0633		# front vehicle speed (all lanes)
+		-1.0   	        # bus following dummy
+		 0.0058		# front vehicle spacing
+		-0.2664		# heavy neighbor in lane
+		-0.0088		# density in lane	
+		-3.3754		# tailgate
+	    	 10     	# gap behind threshold for tailgate dummy (meters)
+		 19         	# density threshold for tailgate dummy	
+		-2.3400		# one lane change required
+		-4.5084		# two lane changes required
+		-2.8257		# each additional lane change required
+		-1.2597		# next exit, one lane change required
+
+		-0.7239		# next exit, each additional lane changes required
+		-0.3269  	# distance to exit
+	"/> 
+
+<!--  I. GAP MODEL PARAMETERS -->
+<!--  I.1 CRITICAL GAP MODEL PARAMETERS
+	Once a driver has decided to change lanes, he/she will examine
+	adjacent gaps and deem them acceptable or unacceptable for merging.
+	Below are parameters to describe driver (critical) gap acceptance
+						scale  alpha   lambda   beta0   beta1   beta2   beta3   beta4   stddev-->
+	<param name="LC_GAP_MODELS_0" value=	"1.00,  0.0,	0.000,	0.508,	0.000,	0.000,	-0.420,	0.000,	0.488"/>
+	<param name="LC_GAP_MODELS_1" value=	"1.00,	0.0,	0.000,	2.020,	0.000,	0.000,	0.153,	0.188,	0.526"/>
+	<param name="LC_GAP_MODELS_2" value=	"1.00,	0.0,	0.000,	0.384,	0.000,	0.000,	0.000,	0.000,	0.859"/>
+	<param name="LC_GAP_MODELS_3" value=	"1.00,	0.0,	0.000,	0.587,	0.000,	0.000,	0.048,	0.356,	1.073"/>
+	<param name="LC_GAP_MODELS_4" value=	"0.60,	0.0,	0.000,	0.384,	0.000,	0.000,	0.000,	0.000,	0.859"/>
+	<param name="LC_GAP_MODELS_5" value=	"0.60,	0.0,	0.000,	0.587,	0.000,	0.000,	0.048,	0.356,	1.073"/>
+	<param name="LC_GAP_MODELS_6" value=	"0.20,	0.0,	0.000,	0.384,	0.000,	0.000,	0.000,	0.000,	0.859"/>
+	<param name="LC_GAP_MODELS_7" value=	"0.20,	0.0,	0.000,	0.587,	0.000,	0.000,	0.048,	0.356,	1.073"/>
+
+	<param name="critical_gaps_param" value="
+
+		0.5 		# lead gap - constant
+		 -0.231		# lead gap - negative speed difference
+		 -2.700		# lead gap - positive speed difference
+		  1.112		# lead gap - standard deviation
+
+		  0.5 		# lag gap - constant
+		  0.000  	# lag gap - negative speed difference
+		 0.2 		# lag gap - positive speed difference
+		  0.742		# lag gap - standard deviation
+		  6.0		# max speed difference
+
+	"/>
+
+<!--  I.2 GAP UTILITY MODEL PARAMETERS
+						const	   dis2gap	gap-size	gap-vel		dummy	vn-->
+	<param name="GAP_PARAM_0" value=	"-1.23,		-0.482,	0.224,		-0.0179,	2.10,	0.239"/>   #back
+	<param name="GAP_PARAM_1" value=	"0.00,		0.00,	0.224,		-0.0179,	2.10,	0.000"/>   #adj
+	<param name="GAP_PARAM_2" value=	"-0.772,	-0.482,	0.224,		-0.0179,	2.10,	0.675"/>   #fwd
+
+<!--  J. NOSING AND YIELDING MODEL PARAMETERS -->
+<!--  J.1. NOSING AND YIELDING THRESHOLDS -->
+	<param name="nosing_param" value="
+		   1.0	# time horizon (second) for constant acc
+		   0.5	# constant
+		   0.6	# coef for number of lanes
+		   0.1	# coef for time (in minutes) since tagged
+		   0.2	# max prob one on ramp lane drop, incident, red LUS, etc
+		   1.0  # max prob two in connection to next link
+		 300.0	# max yielding time (seconds)
+		 180.0	# max stuck time (seconds)
+		 600.0  # max distance for nosing	
+		  40.0  # min distance for nosing
+	"/>
+
+<!-- J.2. NOSING MODEL PARAMETERS -->
+	<param name="kazi_nosing_param" value="-3.159  0.313  -0.027  2.050  0.028  0.6"/>
+
+	<param name="CF_CRITICAL_TIMER_RATIO" value="0.5"/>
+
+<!-- J.2. YIELDING MODEL PARAMETERS 
+	currently yields to nosing vehicle only-->
+	<param name="LC_Yielding_Model" value="
+	   0.80	# previously not yielding
+	   1.00	# previously yielding
+	"/>
+
+<!-- K. OTHERS -->
+<!-- minimum speed to consider for a moving vehicle m/s-->
+	<param name="min_speed" value="0.1"/>
+
 </parameters>
-

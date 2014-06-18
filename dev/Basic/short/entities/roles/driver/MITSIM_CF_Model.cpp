@@ -512,7 +512,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	 else if (p.getStatus(STATUS_FORWARD)) {
 	  aH = calcForwardRate(p);		// to reach forward gap
 	 } else {
-		  aH = calcDesiredSpeed(p); // FUNCTION desiredSpeedRate MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
+		  aH = desiredSpeedRate(p);
 	 }
 	}
 
@@ -1325,6 +1325,29 @@ double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p,
 		return (dt > 0.0) ?
 				-(p.perceivedFwdVelocity / 100) / dt : p.maxDeceleration;
 	}
+}
+
+/*
+ *-------------------------------------------------------------------
+ * Returns the acceleration rate constrained by the desired speed.
+ * CLA 18/06/2014
+ *-------------------------------------------------------------------
+ */
+double sim_mob::MITSIM_CF_Model::desiredSpeedRate(DriverUpdateParams& p)
+{
+  float maxspd = p.targetSpeed;
+  double epsilon_v = sim_mob::Math::DOUBLE_EPSILON;
+  // Check if close to desired speed
+  if (p.perceivedFwdVelocity < maxspd - epsilon_v) {
+	// Use maximum acceleration
+	return p.maxAcceleration;
+  } else if (p.perceivedFwdVelocity > maxspd + epsilon_v) {
+	// Decelerate
+	return p.normalDeceleration;
+  } else {
+	// Keep current speed
+	return 0.0;
+  }
 }
 
 /*

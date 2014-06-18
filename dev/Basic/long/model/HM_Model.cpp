@@ -18,8 +18,8 @@
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
 #include "util/HelperFunctions.hpp"
-
-
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -117,6 +117,26 @@ void HM_Model::startImpl() {
         loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
         //Load units
         loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
+
+
+        ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+       //Simmobility Test Params
+       const int numHouseholds = config.ltParams.housingModel.numberOfHouseholds;
+       const int numUnits = config.ltParams.housingModel.numberOfUnits;
+
+       int displayUnits = numUnits == -1? units.size(): numUnits;
+       int displayHouseholds = numHouseholds == -1? households.size(): numHouseholds;
+
+       PrintOut("Number of units: " <<  units.size() << ". Units Used: " << displayUnits << std::endl );
+       PrintOut("Number of households: " << households.size() << ". Households used: " << displayHouseholds << std::endl );
+
+       if( numUnits != -1 && numUnits < units.size() )
+    	   units.resize( numUnits );
+
+       if( numHouseholds != -1 && numHouseholds < households.size() )
+    	   households.resize( numHouseholds );
+
     }
 
     workGroup.assignAWorker(&market);

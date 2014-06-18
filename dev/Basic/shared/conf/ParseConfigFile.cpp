@@ -463,6 +463,8 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	housingModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "housingModel"), "enabled"), false);
 	housingModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeInterval"), "value"), static_cast<unsigned int>(0));
 	housingModel.timeOnMarket = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeOnMarket"), "value"), static_cast<unsigned int>(0));
+	housingModel.numberOfHouseholds = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "numberOfHouseholds"), "value"), static_cast<unsigned int>(0));
+	housingModel.numberOfUnits = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "numberOfUnits"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.housingModel = housingModel;
 }
 

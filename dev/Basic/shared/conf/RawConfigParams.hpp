@@ -53,6 +53,8 @@ struct LongTermParams{
 		bool enabled;
 		unsigned int timeInterval;
 		unsigned int timeOnMarket;
+		int numberOfUnits;
+		int numberOfHouseholds;
 	} housingModel;
 };
 

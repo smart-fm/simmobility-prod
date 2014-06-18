@@ -11,12 +11,93 @@
 
 #pragma once
 #include <boost/unordered_map.hpp>
+#include <vector>
+#include "behavioral/PredaySystem.hpp"
 #include "params/PersonParams.hpp"
 #include "params/ZoneCostParams.hpp"
 #include "database/DB_Connection.hpp"
 
 namespace sim_mob {
 namespace medium {
+
+/**
+ * structure to hold a calibration variable and its pertinent details.
+ */
+struct CalibrationVariable
+{
+public:
+	CalibrationVariable() : variableName(std::string()), scriptFileName(std::string()), initialValue(0), currentValue(0), lowerLimit(0), upperLimit(0)
+	{}
+
+	const double getInitialValue() const
+	{
+		return initialValue;
+	}
+
+	const double getLowerLimit() const
+	{
+		return lowerLimit;
+	}
+
+	const std::string& getScriptFileName() const
+	{
+		return scriptFileName;
+	}
+
+	const double getUpperLimit() const
+	{
+		return upperLimit;
+	}
+
+	const std::string& getVariableName() const
+	{
+		return variableName;
+	}
+
+	void setInitialValue(double initialValue)
+	{
+		this->initialValue = initialValue;
+	}
+
+	void setLowerLimit(double lowerLimit)
+	{
+		this->lowerLimit = lowerLimit;
+	}
+
+	void setScriptFileName(const std::string& scriptFileName)
+	{
+		this->scriptFileName = scriptFileName;
+	}
+
+	void setUpperLimit(double upperLimit)
+	{
+		this->upperLimit = upperLimit;
+	}
+
+	void setVariableName(const std::string& variableName)
+	{
+		this->variableName = variableName;
+	}
+
+	double getCurrentValue() const
+	{
+		return currentValue;
+	}
+
+	void setCurrentValue(double currentValue)
+	{
+		this->currentValue = currentValue;
+	}
+
+private:
+	std::string variableName;
+	std::string scriptFileName;
+	double initialValue;
+	double currentValue;
+	double lowerLimit;
+	double upperLimit;
+};
+
 class PredayManager {
 public:
 
@@ -52,10 +133,15 @@ public:
 
 	/**
 	 * Distributes persons to different threads and starts the threads which process the persons
-	 *
-	 * @param numWorkers number of threads to create for processing the person list
 	 */
-	void distributeAndProcessPersons(unsigned numWorkers = 1);
+	void distributeAndProcessPersons();
+
+	/**
+	 * preday calibration function
+	 * Runs the spsa calibration algorithm
+	 * TODO: implement w-spsa when weight matrix is ready
+	 */
+	void calibratePreday();
 
 private:
 	typedef std::vector<PersonParams*> PersonList;
@@ -64,7 +150,7 @@ private:
 	typedef boost::unordered_map<int, std::vector<long> > ZoneNodeMap;
 
 	/**
-	 * Threaded function loop.
+	 * Threaded function loop for simulation.
 	 * Loops through all elements in personList within the specified range and
 	 * invokes the Preday system of models for each of them.
 	 *
@@ -74,6 +160,18 @@ private:
 	 * 				last person to be processed
 	 */
 	void processPersons(PersonList::iterator first, PersonList::iterator last);
+
+	/**
+	 * Threaded function loop for calibration.
+	 * Loops through all elements in personList within the specified range and
+	 * invokes the Preday system of models for each of them.
+	 *
+	 * @param first personList iterator corresponding to the first person to be
+	 * 				processed
+	 * @param last personList iterator corresponding to the person after the
+	 * 				last person to be processed
+	 */
+	void processPersonsForCalibration(PersonList::iterator first, PersonList::iterator last);
 
 	/**
 	 * Threaded logsum computation
@@ -86,6 +184,30 @@ private:
 	 * 				last person to be processed
 	 */
 	void computeLogsums(PersonList::iterator first, PersonList::iterator last);
+
+	/**
+	 * loads csv containing calibration variables for preday
+	 */
+	void loadCalibrationVariables();
+
+	/**
+	 * computes gradients using SPSA technique
+	 *
+	 * @param randomVector symmetric random vector of +1s and -1s
+	 * @param perturbationStepSize perturbation step size
+	 */
+	void computeGradientsUsingSPSA(const std::vector<short>& randomVector, double perturbationStepSize, std::vector<double>& gradientVector);
+
+	/**
+	 * objective function for preday calibration
+	 * @return the value of the sum of (simulated statisctic - Observed statistic)^2 for all statistics
+	 */
+	double computeSumOfDifferenceSquared();
+
+	/**
+	 * runs preday and computes the value for objective function
+	 */
+	double computeObjectiveFunction(const std::vector<CalibrationVariable>& calibrationVariableList);
 
 	PersonList personList;
 
@@ -105,6 +227,11 @@ private:
     CostMap pmCostMap;
     CostMap opCostMap;
 
+    /**
+     * list of values computed for objective function
+     * objectiveFunctionValue[i] is the objective function value for iteration i
+     */
+    std::vector<double> objectiveFunctionValues;
 };
 } //end namespace medium
 } //end namespace sim_mob

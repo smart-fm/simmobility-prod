@@ -371,17 +371,17 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 /**
  * Simulation loop for the demand simulator
  */
-bool performMainDemand(unsigned numThreads)
+bool performMainDemand()
 {
 	PredayManager predayManager;
 	predayManager.loadZones(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
 	predayManager.loadPersons(db::MONGO_DB);
-	if(MT_Config::GetInstance().isOutputTripchains())
+	if(MT_Config::getInstance().isOutputTripchains())
 	{
 		predayManager.loadZoneNodes(db::MONGO_DB);
 	}
-	predayManager.distributeAndProcessPersons(numThreads);
+	predayManager.distributeAndProcessPersons();
 	return true;
 }
 
@@ -410,7 +410,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
 
 	//load configuration file for mid-term
-	ParseMidTermConfigFile parseMT_Cfg(MT_CONFIG_FILE, MT_Config::GetInstance(), ConfigManager::GetInstanceRW().FullConfig());
+	ParseMidTermConfigFile parseMT_Cfg(MT_CONFIG_FILE, MT_Config::getInstance(), ConfigManager::GetInstanceRW().FullConfig());
 
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
@@ -437,7 +437,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	else if (ConfigManager::GetInstance().FullConfig().RunningMidDemand())
 	{
 		Print() << "Mid-term run mode: demand" << endl;
-		return performMainDemand(MT_Config::GetInstance().getNumPredayThreads());
+		return performMainDemand();
 	}
 	else
 	{

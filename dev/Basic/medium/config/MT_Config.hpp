@@ -86,6 +86,26 @@ class PredayCalibrationParams
 public:
 	PredayCalibrationParams();
 
+	double getAlgorithmCoefficient1() const
+	{
+		return algorithmCoefficient1;
+	}
+
+	void setAlgorithmCoefficient1(double algorithmCoefficient1)
+	{
+		this->algorithmCoefficient1 = algorithmCoefficient1;
+	}
+
+	double getAlgorithmCoefficient2() const
+	{
+		return algorithmCoefficient2;
+	}
+
+	void setAlgorithmCoefficient2(double algorithmCoefficient2)
+	{
+		this->algorithmCoefficient2 = algorithmCoefficient2;
+	}
+
 	const std::string& getCalibrationVariablesFile() const
 	{
 		return calibrationVariablesFile;
@@ -94,6 +114,26 @@ public:
 	void setCalibrationVariablesFile(const std::string& calibrationVariablesFile)
 	{
 		this->calibrationVariablesFile = calibrationVariablesFile;
+	}
+
+	double getInitialGradientStepSize() const
+	{
+		return initialGradientStepSize;
+	}
+
+	void setInitialGradientStepSize(double initialGradientStepSize)
+	{
+		this->initialGradientStepSize = initialGradientStepSize;
+	}
+
+	double getInitialStepSize() const
+	{
+		return initialStepSize;
+	}
+
+	void setInitialStepSize(double initialStepSize)
+	{
+		this->initialStepSize = initialStepSize;
 	}
 
 	unsigned getIterationLimit() const
@@ -106,44 +146,14 @@ public:
 		this->iterationLimit = iterationLimit;
 	}
 
-	double getPertubationStepSizeConst() const
+	double getStabilityConstant() const
 	{
-		return pertubationStepSizeConst;
+		return stabilityConstant;
 	}
 
-	void setPertubationStepSizeConst(double pertubationStepSizeConst)
+	void setStabilityConstant(double stabilityConstant)
 	{
-		this->pertubationStepSizeConst = pertubationStepSizeConst;
-	}
-
-	double getPertubationStepSizeExponent() const
-	{
-		return pertubationStepSizeExponent;
-	}
-
-	void setPertubationStepSizeExponent(double pertubationStepSizeExponent)
-	{
-		this->pertubationStepSizeExponent = pertubationStepSizeExponent;
-	}
-
-	double getStepSizeConst() const
-	{
-		return stepSizeConst;
-	}
-
-	void setStepSizeConst(double stepSizeConst)
-	{
-		this->stepSizeConst = stepSizeConst;
-	}
-
-	double getStepSizeExponent() const
-	{
-		return stepSizeExponent;
-	}
-
-	void setStepSizeExponent(double stepSizeExponent)
-	{
-		this->stepSizeExponent = stepSizeExponent;
+		this->stabilityConstant = stabilityConstant;
 	}
 
 	double getTolerance() const
@@ -161,10 +171,11 @@ private:
 	std::string calibrationVariablesFile;
 	unsigned iterationLimit;
 	double tolerance;
-	double pertubationStepSizeConst;
-	double pertubationStepSizeExponent;
-	double stepSizeConst;
-	double stepSizeExponent;
+	double initialGradientStepSize;
+	double algorithmCoefficient2;
+	double initialStepSize;
+	double stabilityConstant;
+	double algorithmCoefficient1;
 };
 
 class MT_Config : private sim_mob::ProtectedCopyable
@@ -173,7 +184,7 @@ public:
 	MT_Config();
 	virtual ~MT_Config();
 
-	static MT_Config& GetInstance();
+	static MT_Config& getInstance();
 
 	double getPedestrianWalkSpeed() const
 	{

@@ -28,7 +28,7 @@ namespace {
     void ensureContext() {
         if (!threadContext.get()) {
         	try {
-				const ModelScriptsMap& extScripts = MT_Config::GetInstance().getModelScriptsMap();
+				const ModelScriptsMap& extScripts = MT_Config::getInstance().getModelScriptsMap();
 				const std::string& scriptsPath = extScripts.getPath();
 				ModelContext* modelCtx = new ModelContext();
 				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("logit"));

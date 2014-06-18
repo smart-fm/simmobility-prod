@@ -74,13 +74,13 @@
                         <variables file="data/medium/preday_calibration_variables.csv"/>
                         <spsa>
                         		<!-- max number of iterations that spsa must run for -->
-                                <iterations value="10"/>
+                                <iterations value="500"/>
                                 <!-- termination condition for spsa is (F(X_k+1) - F(X_k) <= tolerance ) where F(X) is the objective function -->
-                                <tolerence value="1"/>
-                                <!-- pertubation step size for iteration k is given by c_k = c / ((1+k)^gamma) -->
-                                <pertubation_step_size c="1" gamma="1"/>
+                                <tolerence value="0.000001"/>
+                                <!-- perturbation step size for iteration k is given by c_k = c / ((1+k)^gamma) -->
+                                <gradient_step_size initial_value="0.1" algorithm_coefficient2="0.101"/>
                                 <!-- step size for iteration k is given by a_k = a / ((1+k)^alpha) -->
-                                <step_size a="1" alpha="1"/>
+                                <step_size initial_value="0.16" stability_constant="100" algorithm_coefficient1="0.602"/>
                         </spsa>
                 </calibration>
         </preday>

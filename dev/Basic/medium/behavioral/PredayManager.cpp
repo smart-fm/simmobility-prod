@@ -13,7 +13,12 @@
 
 #include <algorithm>
 #include <boost/thread.hpp>
-#include "behavioral/PredaySystem.hpp"
+#include <boost/lexical_cast.hpp>
+#include <cmath>
+#include <cstdlib>
+#include <ctime>
+#include <string>
+#include <sstream>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
@@ -24,11 +29,165 @@
 #include "database/PopulationMongoDao.hpp"
 #include "database/TripChainSqlDao.hpp"
 #include "database/ZoneCostMongoDao.hpp"
+#include "util/CSVReader.hpp"
 #include "util/LangHelpers.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::db;
 using namespace sim_mob::medium;
+
+namespace
+{
+//Header strings used in CSV file for calibration variables
+const std::string VARIABLE_NAME_CSV_HEADER = "variable_name";
+const std::string LUA_FILE_NAME_CSV_HEADER = "lua_file_name";
+const std::string INITIAL_VALUE_CSV_HEADER = "initial_value";
+const std::string LOWER_LIMIT_CSV_HEADER = "lower_limit";
+const std::string UPPER_LIMIT_CSV_HEADER = "upper_limit";
+
+/** vector of variables to be calibrated. used only in calibration mode of Preday*/
+std::vector<CalibrationVariable> calibrationVariablesList;
+size_t numVariablesCalibrated;
+
+/**
+ * Helper class for symmetric random vector of +1/-1
+ * An element of the vector can be either +1 or -1 with probability 1/2 (symmetric)
+ * The elements of the vector are independent and identically distributed (IID)
+ * The size of the vector is the number of calibrated variables
+ *
+ */
+struct RandomSymmetricPlusMinusVector
+{
+public:
+	RandomSymmetricPlusMinusVector(size_t dimension) : dimension(dimension)
+	{
+		//set the seed
+		srand(time(0));
+	}
+
+	/**
+	 * populates randomVector by Bernouli's process
+	 * each element is +1 or -1 with probability 0.5
+	 */
+	void init()
+	{
+		randomVector.clear();
+		for(size_t i=0; i < dimension; i++)
+		{
+			if((rand() % 2) == 0){ randomVector.push_back(1); }
+			else { randomVector.push_back(-1); }
+		}
+	}
+
+	/**
+	 * gets a new random vector on every call
+	 * the vector is a random composition of either +1 or -1
+	 */
+	const std::vector<short>& get()
+	{
+		init();
+		return randomVector;
+	}
+
+private:
+	/**the of the random vector*/
+	size_t dimension;
+	/**symmetrical random vector of 1s and -1s*/
+	std::vector<short> randomVector;
+};
+
+/**Mongo daos for calibration*/
+boost::unordered_map<std::string, db::MongoDao*> mongoDao;
+
+/**
+ * helper function to compute Anti gradient
+ * @param gradientVector the gradient vector
+ * @param outAntiGradientVector the anti-gradient vector to populate
+ */
+void computeAntiGradientVector(const std::vector<double>& gradientVector, std::vector<double>& outAntiGradientVector)
+{
+	if(gradientVector.size() != calibrationVariablesList.size())
+	{
+		throw std::runtime_error("gradientVector.size() != calibrationVariablesList.size()");
+	}
+	outAntiGradientVector.clear();
+	double gradient = 0;
+	double antiGradient = 0;
+	size_t variableIdx = 0;
+	for(std::vector<double>::const_iterator gradIt=gradientVector.begin(); gradIt!=gradientVector.end(); gradIt++, variableIdx++)
+	{
+		gradient = *gradIt;
+		const CalibrationVariable& calVar = calibrationVariablesList[variableIdx];
+		if((gradient > 0 && calVar.getLowerLimit() == calVar.getCurrentValue()) ||
+				(gradient < 0 && calVar.getUpperLimit() == calVar.getCurrentValue()))
+		{
+			antiGradient = 0;
+		}
+		else
+		{
+			antiGradient = -gradient;
+		}
+		outAntiGradientVector.push_back(antiGradient);
+	}
+}
+
+/**
+ * helper function to multiply a scalar and a vector
+ */
+template<typename V>
+void multiplyScalarWithVector(double scalarLhs, const std::vector<V>& vectorRhs, std::vector<double>& output)
+{
+	for(std::vector<V>::iterator vIt=vectorRhs.begin(); vIt!=vectorRhs.end(); vIt++)
+	{
+		double result = (*vIt) * scalarLhs;
+		output.push_back(result);
+	}
+}
+
+void updateVariablesByAddition(std::vector<CalibrationVariable>& calVarList, const std::vector<double>& rhs)
+{
+	if(calVarList.size() != rhs.size()) { throw std::runtime_error("cannot add vectors of different sizes"); }
+	size_t vectorSize = calVarList.size();
+	for(size_t i=0; i<vectorSize; i++)
+	{
+		CalibrationVariable& calVar = calVarList[i];
+		calVar.setCurrentValue(calVar.getCurrentValue()+rhs[i]);
+	}
+}
+
+void updateVariablesBySubtraction(std::vector<CalibrationVariable>& calVarList, const std::vector<double>& rhs)
+{
+	if(calVarList.size() != rhs.size()) { throw std::runtime_error("cannot subtract vectors of different sizes"); }
+	size_t vectorSize = calVarList.size();
+	for(size_t i=0; i<vectorSize; i++)
+	{
+		CalibrationVariable& calVar = calVarList[i];
+		calVar.setCurrentValue(calVar.getCurrentValue()-rhs[i]);
+	}
+}
+
+void updateVariablesInLuaFiles(const std::string& scriptFilesPath, const std::vector<CalibrationVariable>& calVarList)
+{
+	std::stringstream cmdStream;
+	int result = 0;
+	for (std::vector<CalibrationVariable>::const_iterator calVarIt = calVarList.begin(); calVarIt != calVarList.end(); calVarIt++)
+	{
+		const CalibrationVariable& calVar = *calVarIt;
+		const std::string origFileName(scriptFilesPath + calVar.getScriptFileName());
+		const std::string tmpFileName(origFileName + ".tmp");
+		cmdStream.str(std::string());
+		cmdStream << "sed -e 's/local " << calVar.getVariableName() << ".*=.*[0-9]/local " << calVar.getVariableName() << "= " << calVar.getCurrentValue()
+				<< "/g' " << origFileName << " > " << tmpFileName;
+		result = std::system(cmdStream.str().c_str());
+		result = std::rename(tmpFileName.c_str(), origFileName.c_str());
+		if (result != 0)
+		{
+			throw std::runtime_error("Renaming failed");
+		}
+	}
+
+}
+} //end anonymous namespace
 
 sim_mob::medium::PredayManager::~PredayManager() {
 	Print() << "Clearing Person List" << std::endl;
@@ -101,7 +260,7 @@ void sim_mob::medium::PredayManager::loadPersons(BackendType dbType) {
 	}
 	case MONGO_DB:
 	{
-		std::string populationCollectionName = MT_Config::GetInstance().getMongoCollectionsMap().getCollectionName("population");
+		std::string populationCollectionName = MT_Config::getInstance().getMongoCollectionsMap().getCollectionName("population");
 		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 		std::string emptyString;
 		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
@@ -125,7 +284,7 @@ void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType) {
 		}
 		case MONGO_DB:
 		{
-			std::string zoneCollectionName = MT_Config::GetInstance().getMongoCollectionsMap().getCollectionName("Zone");
+			std::string zoneCollectionName = MT_Config::getInstance().getMongoCollectionsMap().getCollectionName("Zone");
 			Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 			std::string emptyString;
 			db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
@@ -153,7 +312,7 @@ void sim_mob::medium::PredayManager::loadZoneNodes(db::BackendType dbType) {
 		}
 		case MONGO_DB:
 		{
-			std::string zoneNodeCollectionName = MT_Config::GetInstance().getMongoCollectionsMap().getCollectionName("zone_node");
+			std::string zoneNodeCollectionName = MT_Config::getInstance().getMongoCollectionsMap().getCollectionName("zone_node");
 			Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 			std::string emptyString;
 			db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
@@ -178,7 +337,7 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
 	}
 	case MONGO_DB:
 	{
-		const MongoCollectionsMap& mongoColl = MT_Config::GetInstance().getMongoCollectionsMap();
+		const MongoCollectionsMap& mongoColl = MT_Config::getInstance().getMongoCollectionsMap();
 		std::string amCostsCollName = mongoColl.getCollectionName("AMCosts");
 		std::string pmCostsCollName = mongoColl.getCollectionName("PMCosts");
 		std::string opCostsCollName = mongoColl.getCollectionName("OPCosts");
@@ -217,9 +376,10 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
 	}
 }
 
-void sim_mob::medium::PredayManager::distributeAndProcessPersons(unsigned numWorkers) {
+void sim_mob::medium::PredayManager::distributeAndProcessPersons() {
 	boost::thread_group threadGroup;
-	MT_Config& mtConfig = MT_Config::GetInstance();
+	MT_Config& mtConfig = MT_Config::getInstance();
+	unsigned numWorkers = mtConfig.getNumPredayThreads();
 	if(numWorkers == 1) { // if single threaded execution was requested
 		if(mtConfig.runningPredaySimulation()) {
 			processPersons(personList.begin(), personList.end());
@@ -266,10 +426,148 @@ void sim_mob::medium::PredayManager::distributeAndProcessPersons(unsigned numWor
 
 }
 
+void sim_mob::medium::PredayManager::calibratePreday()
+{
+	MT_Config& mtConfig = MT_Config::getInstance();
+	if(!mtConfig.runningPredayCalibration()) { return; }
+
+	boost::thread_group threadGroup;
+	unsigned numWorkers = mtConfig.getNumPredayThreads();
+	loadCalibrationVariables();
+
+	MT_Config& mtConfig = MT_Config::getInstance();
+	const PredayCalibrationParams& predayParams = mtConfig.getPredayCalibrationParams();
+	unsigned iterationLimit = predayParams.getIterationLimit();
+	bool consoleOutput = mtConfig.isConsoleOutput();
+	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
+	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+	std::string emptyString;
+	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
+	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
+		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
+	}
+
+	RandomSymmetricPlusMinusVector randomVector(calibrationVariablesList.size());
+	double perturbationStepSize = 0, stepSize = 0;
+
+	objectiveFunctionValues.clear();
+	//iteration 0
+	computeObjectiveFunction(calibrationVariablesList);
+
+	for(unsigned k=1; k<=iterationLimit; k++)
+	{
+		// iteration k
+		// 1. compute perturbation step size
+		perturbationStepSize = predayParams.getPerturbationStepSizeConst() / std::pow((1+k), predayParams.getPerturbationStepSizeExponent());
+
+		// 2. compute gradients using SPSA technique
+		std::vector<double> gradientVector;
+		computeGradientsUsingSPSA(randomVector.get(), perturbationStepSize, gradientVector);
+
+		// 3. compute projected anti-gradient vector
+		std::vector<double> antiGradientVector;
+		computeAntiGradientVector(gradientVector, antiGradientVector);
+
+		// 4. compute step size
+		stepSize = predayParams.getStepSizeConstNr() / std::pow((1+k+predayParams.getStepSizeConstDr()), predayParams.getStepSizeExponent());
+
+		// 5. update the variables being calibrated and compute objective function
+		std::vector<double> scaledAntiGradientVector;
+		multiplyScalarWithVector(stepSize, antiGradientVector, scaledAntiGradientVector);
+		updateVariablesByAddition(calibrationVariablesList, scaledAntiGradientVector);
+		double objFn = computeObjectiveFunction(calibrationVariablesList);
+		objectiveFunctionValues.push_back(objFn);
+
+		// 6. check termination. At this point there would be atleast k+1 elements in objectiveFunctionValues
+		if(std::abs(objectiveFunctionValues[k] - objectiveFunctionValues[k-1]) <= predayParams.getTolerance())
+		{
+			//converged!
+			break;
+		}
+	}
+
+	// destroy Dao objects
+	for(boost::unordered_map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
+		safe_delete_item(i->second);
+	}
+	mongoDao.clear();
+
+}
+
+void sim_mob::medium::PredayManager::loadCalibrationVariables()
+{
+	CSV_Reader variablesReader(MT_Config::getInstance().getPredayCalibrationParams().getCalibrationVariablesFile(), true);
+	boost::unordered_map<std::string, std::string> variableRow;
+	variablesReader.getNextRow(variableRow, false);
+	while (!variableRow.empty())
+	{
+		try
+		{
+			CalibrationVariable calibrationVariable;
+			calibrationVariable.setVariableName(variableRow.at(VARIABLE_NAME_CSV_HEADER));
+			calibrationVariable.setScriptFileName(variableRow.at(LUA_FILE_NAME_CSV_HEADER));
+			calibrationVariable.setInitialValue(boost::lexical_cast<double>(variableRow.at(INITIAL_VALUE_CSV_HEADER)));
+			calibrationVariable.setCurrentValue(boost::lexical_cast<double>(variableRow.at(INITIAL_VALUE_CSV_HEADER)));
+			calibrationVariable.setLowerLimit(boost::lexical_cast<double>(variableRow.at(LOWER_LIMIT_CSV_HEADER)));
+			calibrationVariable.setUpperLimit(boost::lexical_cast<double>(variableRow.at(UPPER_LIMIT_CSV_HEADER)));
+			calibrationVariablesList.push_back(calibrationVariable);
+		}
+		catch(const std::out_of_range& oor)
+		{
+			throw std::runtime_error("Header mis-match while reading calibration variables csv");
+		}
+		catch(boost::bad_lexical_cast const&)
+		{
+			throw std::runtime_error("Invalid value found in calibration variables csv");
+		}
+
+		variableRow.clear();
+		variablesReader.getNextRow(variableRow, false);
+	}
+}
+
+void sim_mob::medium::PredayManager::processPersonsForCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt)
+{
+	MT_Config& mtConfig = MT_Config::getInstance();
+	bool consoleOutput = mtConfig.isConsoleOutput();
+	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
+		predaySystem.planDay();
+		//TODO: Write code for computing statistics here. Keep in mind, this is threaded function
+		if(consoleOutput) { predaySystem.printLogs(); }
+	}
+	objectiveFunctionValues.push_back(computeSumOfDifferenceSquared());
+}
+
+void sim_mob::medium::PredayManager::computeGradientsUsingSPSA(const std::vector<short>& randomVector, double perturbationStepSize,
+		std::vector<double>& gradientVector)
+{
+	size_t numVariables = calibrationVariablesList.size();
+	if(randomVector.size() != calibrationVariablesList.size()) {throw std::runtime_error("size mis-match between calibrationVariablesList and randomVector"); }
+	std::vector<double> scaledRandomVector;
+	multiplyScalarWithVector(perturbationStepSize, randomVector, scaledRandomVector);
+	std::vector<CalibrationVariable> localCopyCalVarList = calibrationVariablesList;
+	updateVariablesByAddition(localCopyCalVarList, scaledRandomVector);
+	double objFnPlus = computeObjectiveFunction(localCopyCalVarList);
+	localCopyCalVarList.clear();
+	localCopyCalVarList = calibrationVariablesList;
+	updateVariablesBySubtraction(localCopyCalVarList, scaledRandomVector);
+	double objFnMinus = computeObjectiveFunction(localCopyCalVarList);
+
+	gradientVector.clear();
+	double varGradient = 0;
+	for(size_t i=0; i<numVariables; i++)
+	{
+		varGradient = (objFnPlus - objFnMinus)/(2*scaledRandomVector[i]);
+		gradientVector.push_back(varGradient);
+	}
+}
+
 void sim_mob::medium::PredayManager::processPersons(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt)
 {
 	boost::unordered_map<std::string, db::MongoDao*> mongoDao;
-	const MT_Config& mtConfig = MT_Config::GetInstance();
+	const MT_Config& mtConfig = MT_Config::getInstance();
 	bool outputTripchains = mtConfig.isOutputTripchains();
 	bool consoleOutput = mtConfig.isConsoleOutput();
 	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
@@ -318,7 +616,7 @@ void sim_mob::medium::PredayManager::processPersons(PersonList::iterator firstPe
 void sim_mob::medium::PredayManager::computeLogsums(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt)
 {
 	boost::unordered_map<std::string, db::MongoDao*> mongoDao;
-	const MT_Config& mtConfig = MT_Config::GetInstance();
+	const MT_Config& mtConfig = MT_Config::getInstance();
 	bool consoleOutput = mtConfig.isConsoleOutput();
 	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
 	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
@@ -342,4 +640,14 @@ void sim_mob::medium::PredayManager::computeLogsums(PersonList::iterator firstPe
 		safe_delete_item(i->second);
 	}
 	mongoDao.clear();
+}
+
+double sim_mob::medium::PredayManager::computeSumOfDifferenceSquared()
+{
+}
+
+double sim_mob::medium::PredayManager::computeObjectiveFunction(const std::vector<CalibrationVariable>& calVarList)
+{
+	updateVariablesInLuaFiles(MT_Config::getInstance().getModelScriptsMap().getPath(), calVarList);
+	//......
 }

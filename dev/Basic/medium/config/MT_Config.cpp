@@ -20,8 +20,8 @@ ModelScriptsMap::ModelScriptsMap(const std::string& scriptFilesPath, const std::
 MongoCollectionsMap::MongoCollectionsMap(const std::string& dbName) : dbName(dbName) {}
 
 PredayCalibrationParams::PredayCalibrationParams() :
-	iterationLimit(0), tolerance(0), pertubationStepSizeConst(0), pertubationStepSizeExponent(0),
-	stepSizeConst(0), stepSizeExponent(0)
+	iterationLimit(0), tolerance(0), initialGradientStepSize(0), algorithmCoefficient2(0),
+	initialStepSize(0), stabilityConstant(0), algorithmCoefficient1(0)
 {}
 
 MT_Config::MT_Config() :
@@ -33,7 +33,7 @@ MT_Config::~MT_Config() {}
 
 MT_Config* MT_Config::instance(nullptr);
 
-MT_Config& MT_Config::GetInstance()
+MT_Config& MT_Config::getInstance()
 {
 	if (!instance)
 	{

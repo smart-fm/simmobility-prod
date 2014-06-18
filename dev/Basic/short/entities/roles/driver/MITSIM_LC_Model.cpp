@@ -1936,6 +1936,7 @@ int sim_mob::MITSIM_LC_Model::isThereBadEventAhead(DriverUpdateParams& p)
 	if(driverMvt->incidentPerformer.getIncidentStatus().getChangedLane())
 	{
 		//HP: pls set p.dis2stop , it is distance to the incident.
+		p.dis2stop = driverMvt->incidentPerformer.getIncidentStatus().getDistanceToIncident()
 		return -1; //mandatory lane change
 	}
 

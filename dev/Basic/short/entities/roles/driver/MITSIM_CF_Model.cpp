@@ -428,21 +428,21 @@ double sim_mob::MITSIM_CF_Model::getMaxDeceleration(
 double sim_mob::MITSIM_CF_Model::getMaxAccScale() {
 	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
 	int scaleNo = Utils::generateInt(1, maxAccScale.size() - 1);
-	double res = Utils::generateFloat(speedLimitAddon[scaleNo-1],speedLimitAddon[scaleNo]);
+	double res = Utils::generateFloat(maxAccScale[scaleNo-1],maxAccScale[scaleNo]);
 	// return max acc scale,as maxAccScale() in MITSIM TS_Parameter.h
 	return res;//maxAccScale[scaleNo];
 }
 double sim_mob::MITSIM_CF_Model::getNormalDecScale() {
 	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
 	int scaleNo = Utils::generateInt(1, normalDecelerationScale.size() - 1);
-	double res = Utils::generateFloat(speedLimitAddon[scaleNo-1],speedLimitAddon[scaleNo]);
+	double res = Utils::generateFloat(normalDecelerationScale[scaleNo-1],normalDecelerationScale[scaleNo]);
 	// return normal dec scale,as maxAccScale() in MITSIM TS_Parameter.h
 	return res;//normalDecelerationScale[scaleNo];
 }
 double sim_mob::MITSIM_CF_Model::getMaxDecScale() {
 	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
 	int scaleNo = Utils::generateInt(1, maxDecelerationScale.size() - 1);
-	double res = Utils::generateFloat(speedLimitAddon[scaleNo-1],speedLimitAddon[scaleNo]);
+	double res = Utils::generateFloat(normalDecelerationScale[scaleNo-1],normalDecelerationScale[scaleNo]);
 	// return max dec scale,as maxAccScale() in MITSIM TS_Parameter.h
 	return res;//maxDecelerationScale[scaleNo];
 }
@@ -456,12 +456,12 @@ double sim_mob::MITSIM_CF_Model::getAccAddon()
 {
 	int scaleNo = Utils::generateInt(1, accAddon.size() - 1);
 	double res = Utils::generateFloat(accAddon[scaleNo-1],accAddon[scaleNo]);
-	return res;//speedLimitAddon[scaleNo];
+	return res;//accAddon[scaleNo];
 }
 double sim_mob::MITSIM_CF_Model::getBufferUppder() {
 	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
 	int scaleNo = Utils::generateInt(1, hBufferUpperScale.size() - 1);
-	double res = Utils::generateFloat(speedLimitAddon[scaleNo-1],speedLimitAddon[scaleNo]);
+	double res = Utils::generateFloat(hBufferUpperScale[scaleNo-1],hBufferUpperScale[scaleNo]);
 	// return max acc scale,as maxAccScale() in MITSIM TS_Parameter.h
 	return res;
 }
@@ -1337,7 +1337,6 @@ double sim_mob::MITSIM_CF_Model::desiredSpeedRate(DriverUpdateParams& p)
 {
   float maxspd = p.targetSpeed;
   double epsilon_v = sim_mob::Math::DOUBLE_EPSILON;
-  // Check if close to desired speed
   if (p.perceivedFwdVelocity < maxspd - epsilon_v) {
 	// Use maximum acceleration
 	return p.maxAcceleration;
@@ -1345,7 +1344,7 @@ double sim_mob::MITSIM_CF_Model::desiredSpeedRate(DriverUpdateParams& p)
 	// Decelerate
 	return p.normalDeceleration;
   } else {
-	// Keep current speed
+	// Keep current speed.
 	return 0.0;
   }
 }

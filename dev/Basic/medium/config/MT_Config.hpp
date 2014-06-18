@@ -75,6 +75,26 @@ public:
 		return modelScriptsMap;
 	}
 
+	const std::string& getFilenameOfJourneyStats() const
+	{
+		return filenameOfJourneyStats;
+	}
+
+	const std::string& getFilenameOfWaitingStats() const
+	{
+		return filenameOfWaitingStats;
+	}
+
+	void setFilenameOfJourneyStats(const std::string& str)
+	{
+		filenameOfJourneyStats = str;
+	}
+
+	void setFilenameOfWaitingStats(const std::string& str)
+	{
+		filenameOfWaitingStats = str;
+	}
+
 	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap)
 	{
 		this->modelScriptsMap = modelScriptsMap;
@@ -102,6 +122,10 @@ private:
 	ModelScriptsMap modelScriptsMap;
 	/**container for mongo collections*/
 	MongoCollectionsMap mongoCollectionsMap;
+	/**the filename of storing journey statistics */
+	std::string filenameOfJourneyStats;
+	/**the filename of storing waiting time statistics*/
+	std::string filenameOfWaitingStats;
 };
 }
 }

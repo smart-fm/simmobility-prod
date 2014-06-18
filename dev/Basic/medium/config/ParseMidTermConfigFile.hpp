@@ -80,6 +80,12 @@ private:
 	 */
 	void processMongoCollectionsNode(xercesc::DOMElement* node);
 
+	/**
+	 * processes statistics output file element in config xml
+	 * @param node node corresponding to statistics output file element inside xml file
+	 */
+	void processStatisticsOutputNode(xercesc::DOMElement* node);
+
 	/**The config we are currently loading*/
 	MT_Config& mtCfg;
 

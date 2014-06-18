@@ -7,6 +7,9 @@
 
 #include "entities/MT_Statistics.hpp"
 #include "algorithm"
+#include "config/MT_Config.hpp"
+#include "iostream"
+#include "fstream"
 
 namespace sim_mob {
 namespace medium {
@@ -91,41 +94,107 @@ void MT_Statistics::HandleMessage(Message::MessageType type,
 
 void MT_Statistics::PrintStatistics()
 {
+	Print()
+			<< "###################      MT_Statistics      ####################"
+			<< std::endl;
+	Print() << "\n" << std::endl;
 	std::map<std::string, journeyTimeStats*>::iterator it =
 			busJourneyTime.begin();
 	for (; it != busJourneyTime.end(); it++) {
 		journeyTimeStats* stat = it->second;
 		std::string stopNo = it->first;
 		Print() << "Bus arrival time at bus stop " << stopNo << std::endl;
-		std::vector<busArrivalTimeStats>& busArrivalTm =
-				stat->getArrivalTime();
+		std::vector<busArrivalTimeStats>& busArrivalTm = stat->getArrivalTime();
 		std::vector<busArrivalTimeStats>::iterator itArrivalTm =
 				busArrivalTm.begin();
 		//std::sort(busArrivalTm.begin(), busArrivalTm.end());
 		while (itArrivalTm != busArrivalTm.end()) {
-			Print() << stopNo << "\t";
-			Print() << itArrivalTm->busLine << "\t";
-			Print() << itArrivalTm->tripId << "\t";
-			Print() << itArrivalTm->arrivalTime << "\t";
+			Print() << "Stop: " << stopNo << "\t\t";
+			Print() << "Line: " << itArrivalTm->busLine << "\t";
+			Print() << "Trip: " << std::setfill('0') << std::setw(3)
+					<< itArrivalTm->tripId << "\t";
+			Print() << "Arriving: " << itArrivalTm->arrivalTime
+					<< "\t";
 			Print() << std::endl;
 			itArrivalTm++;
 		}
 	}
 
 	waittingTimeStats* stat = nullptr;
-	std::map<std::string, waittingTimeStats*>::iterator itWaitingPeople = personWaitingTime.begin();
-	for(; itWaitingPeople!=personWaitingTime.end(); itWaitingPeople++){
+	std::map<std::string, waittingTimeStats*>::iterator itWaitingPeople =
+			personWaitingTime.begin();
+	for (; itWaitingPeople != personWaitingTime.end(); itWaitingPeople++) {
 		stat = itWaitingPeople->second;
 		std::string stopNo = itWaitingPeople->first;
-		Print() << "people waiting time at bus stop " <<  stopNo << std::endl;
-		const std::map<std::string, std::string>& waitingTimeList = stat->getWaitingTimeList();
-		std::map<std::string, std::string>::const_iterator itWaitingTime=waitingTimeList.begin();
-		while(itWaitingTime!=waitingTimeList.end()){
-			Print() << stopNo << "\t";
-			Print() << itWaitingTime->first << "\t";
-			Print() << itWaitingTime->second << "\t";
+		Print() << "people waiting time at bus stop " << stopNo << std::endl;
+		const std::map<std::string, std::string>& waitingTimeList =
+				stat->getWaitingTimeList();
+		std::map<std::string, std::string>::const_iterator itWaitingTime =
+				waitingTimeList.begin();
+		while (itWaitingTime != waitingTimeList.end()) {
+			Print() << "Stop: " << stopNo << "\t\t";
+			Print() << "Id: " << std::setfill('0') << std::setw(5)
+					<< itWaitingTime->first << "\t";
+			Print() << "Waiting: " << itWaitingTime->second
+					<< "\t";
 			Print() << std::endl;
 			itWaitingTime++;
+		}
+	}
+
+	Print() << "#######################################################"
+			<< std::endl;
+	Print() << "\n" << std::endl;
+
+	StoreStatistics();
+}
+
+void MT_Statistics::StoreStatistics()
+{
+	std::string filenameOfJourneyStats = MT_Config::GetInstance().getFilenameOfJourneyStats();
+	if(filenameOfJourneyStats.size()>0){
+		std::ofstream outputFile(filenameOfJourneyStats.c_str());
+		if(outputFile.is_open()){
+			std::map<std::string, journeyTimeStats*>::iterator it =
+					busJourneyTime.begin();
+			for (; it != busJourneyTime.end(); it++) {
+				journeyTimeStats* stat = it->second;
+				std::string stopNo = it->first;
+				std::vector<busArrivalTimeStats>& busArrivalTm = stat->getArrivalTime();
+				std::vector<busArrivalTimeStats>::iterator itArrivalTm =
+						busArrivalTm.begin();
+				while (itArrivalTm != busArrivalTm.end()) {
+					outputFile << stopNo << ",";
+					outputFile << itArrivalTm->busLine << ",";
+					outputFile << itArrivalTm->tripId << ",";
+					outputFile << itArrivalTm->arrivalTime	<< std::endl;
+					itArrivalTm++;
+				}
+			}
+		}
+	}
+
+	std::string filenameOfWaitingStats = MT_Config::GetInstance().getFilenameOfWaitingStats();
+	if(filenameOfWaitingStats.size()>0){
+		std::ofstream outputFile(filenameOfWaitingStats.c_str());
+		if(outputFile.is_open()){
+			waittingTimeStats* stat = nullptr;
+			std::map<std::string, waittingTimeStats*>::iterator itWaitingPeople =
+					personWaitingTime.begin();
+			for (; itWaitingPeople != personWaitingTime.end(); itWaitingPeople++) {
+				stat = itWaitingPeople->second;
+				std::string stopNo = itWaitingPeople->first;
+				const std::map<std::string, std::string>& waitingTimeList =
+						stat->getWaitingTimeList();
+				std::map<std::string, std::string>::const_iterator itWaitingTime =
+						waitingTimeList.begin();
+				while (itWaitingTime != waitingTimeList.end()) {
+					outputFile << stopNo << ",";
+					outputFile << itWaitingTime->first << ",";
+					outputFile << itWaitingTime->second << std::endl;
+					itWaitingTime++;
+				}
+			}
 		}
 	}
 }

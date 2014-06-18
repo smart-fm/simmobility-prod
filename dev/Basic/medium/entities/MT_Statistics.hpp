@@ -63,6 +63,11 @@ public:
      * print out statistics information
      */
     void PrintStatistics();
+
+    /**
+     * store the statistics to file
+     */
+    void StoreStatistics();
 private:
     /**store stop to stop journey time. bus stop No. is key */
     std::map<std::string, journeyTimeStats*> busJourneyTime;

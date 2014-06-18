@@ -17,7 +17,14 @@
          
         		<!-- pedestrian walking speed in cm/s (approximately 5 km/h)-->
         		<pedestrian_walk_speed value="135"/>
-		</supply>
+        		
+        		<!-- these parameters are used to assign filename for the storage of statistics -->   
+        		<!-- if the value is empty, no output file is generated, otherwise store to csv file -->     
+        		<statistics_output_paramemters>                              
+        			<journey_time_csv_file_output value="journey.csv"/>
+        			<waiting_time_csv_file_output value="waiting.csv"/>
+        		</statistics_output_paramemters>  
+		</supply>                                      
 		
 		<!-- config specific to preday simulator -->
         <preday>

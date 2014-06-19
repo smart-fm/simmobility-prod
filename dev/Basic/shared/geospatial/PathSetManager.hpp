@@ -294,7 +294,7 @@ public:
 
 	void setScenarioName(std::string& name){ scenarioName = name; }
 	void insertFromTo_BestPath_Pool(std::string& id ,std::vector<WayPoint>& value);
-	bool getCachedBestPath(std::string id, std::vector<WayPoint>& value);
+	bool getCachedBestPath(std::string id, std::vector<WayPoint>* value);
 	void cacheODbySegment(const sim_mob::Person*,const SubTrip *,std::vector<WayPoint> &);
 	const std::pair<RPOD::const_iterator,RPOD::const_iterator > getODbySegment(const sim_mob::RoadSegment* segment) const;
 	PathSetDBLoader *psDbLoader;

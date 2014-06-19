@@ -647,7 +647,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 	const sim_mob::Node* fromNode = st->fromLocation.node_;
 	const sim_mob::Node* toNode = st->toLocation.node_;
 	std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
-	std::string mys=fromId_toId;
+	std::string pathSetID=fromId_toId;
 	//check cache to save a trouble if the path already exists
 	vector<WayPoint> *cachedResult;
 	if(getCachedBestPath(fromId_toId,cachedResult))
@@ -655,17 +655,17 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 		return *cachedResult;
 	}
 		//
-		mys = "'"+mys+"'";
+		pathSetID = "'"+pathSetID+"'";
 		sim_mob::PathSet ps_;
 #if 0
 		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithId(
 						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-						ps_,mys);
+						ps_,pathSetID);
 #else
 		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
 						*sql,
 						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-						ps_,mys);
+						ps_,pathSetID);
 #endif
 		if(ps_.has_path == -1) //no path
 		{
@@ -686,7 +686,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 #endif
 						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 						id_sp,
-						mys,
+						pathSetID,
 						ps_.pathChoices);
 				if(hasSPinDB)
 				{
@@ -832,7 +832,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 	const sim_mob::Node* fromNode = st->fromLocation.node_;
 	const sim_mob::Node* toNode = st->toLocation.node_;
 	std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
-	std::string mys=fromId_toId;
+	std::string pathSetID = fromId_toId;
 	sim_mob::PathSet ps_;
 	//check cache
 	sim_mob::Profiler CBP_Profiler(true);
@@ -853,12 +853,12 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 		out  << "getCachedBestPath:false:" << CBP_Profiler.endProfiling() << std::endl;
 		personProfiler.addOutPut(out);
 		//
-		mys = "'"+mys+"'";
+		pathSetID = "'"+pathSetID+"'";
 		Profiler PSDB_Profiler(true);
 		hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
 								*sql,
 								ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-								ps_,mys);
+								ps_,pathSetID);
 		//time taken to find out if there is a path set in DB
 		out.str("");
 		out << "hasPSinDB:" << (hasPSinDB ? "true" : "false" ) << ":" << PSDB_Profiler.endProfiling() << std::endl;
@@ -880,7 +880,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 										*sql,
 										ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 										id_sp,
-										mys,
+										pathSetID,
 										ps_.pathChoices);
 
 				out.str("");
@@ -1712,8 +1712,8 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 	// 0. check pathSetPool already calculate before with this pair
 	std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
 	// 0.1 no data in memory, so check db
-	std::string mys=fromId_toId;
-	mys = "'"+mys+"'";
+	std::string pathSetID=fromId_toId;
+	pathSetID = "'"+pathSetID+"'";
 	PathSet *ps = NULL;
 	// check cache first
 	if(isUseCache)
@@ -1734,7 +1734,7 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 	else
 	{
 		bool res = sim_mob::aimsun::Loader::LoadPathSetDBwithId(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-				pathSetPool,mys);
+				pathSetPool,pathSetID);
 		if(res)
 		{
 			ps = getPathSetByFromToNodeAimsunId(fromId_toId);
@@ -1745,7 +1745,7 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 				{
 				// get all relative singlepath
 					std::vector<sim_mob::SinglePath*> allChoices;
-					LoadSinglePathDBwithId(mys,ps->pathChoices);
+					LoadSinglePathDBwithId(pathSetID,ps->pathChoices);
 					// 2. get SinglePath
 					if(!ps->oriPath)
 					{

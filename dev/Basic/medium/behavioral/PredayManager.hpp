@@ -199,12 +199,6 @@ private:
 	void computeGradientsUsingSPSA(const std::vector<short>& randomVector, double perturbationStepSize, std::vector<double>& gradientVector);
 
 	/**
-	 * objective function for preday calibration
-	 * @return the value of the sum of (simulated statisctic - Observed statistic)^2 for all statistics
-	 */
-	double computeSumOfDifferenceSquared();
-
-	/**
 	 * runs preday and computes the value for objective function
 	 */
 	double computeObjectiveFunction(const std::vector<CalibrationVariable>& calibrationVariableList);

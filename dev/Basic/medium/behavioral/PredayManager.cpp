@@ -185,8 +185,20 @@ void updateVariablesInLuaFiles(const std::string& scriptFilesPath, const std::ve
 			throw std::runtime_error("Renaming failed");
 		}
 	}
-
 }
+
+double computeSumOfDifferenceSquared(const std::vector<double>& observed, const std::vector<double>& simulated)
+{
+	if(observed.size() != simulated.size()) { throw std::runtime_error("size mis-match between observed and simulated values");	}
+	double objFnVal = 0;
+	size_t numStats = observed.size();
+	for(size_t i=0; i<numStats; i++)
+	{
+		objFnVal = objFnVal + std::pow((simulated[i]-observed[i]), 2);
+	}
+	return objFnVal;
+}
+
 } //end anonymous namespace
 
 sim_mob::medium::PredayManager::~PredayManager() {
@@ -459,7 +471,7 @@ void sim_mob::medium::PredayManager::calibratePreday()
 	{
 		// iteration k
 		// 1. compute perturbation step size
-		perturbationStepSize = predayParams.getPerturbationStepSizeConst() / std::pow((1+k), predayParams.getPerturbationStepSizeExponent());
+		perturbationStepSize = predayParams.getInitialGradientStepSize() / std::pow((1+k), predayParams.getAlgorithmCoefficient2());
 
 		// 2. compute gradients using SPSA technique
 		std::vector<double> gradientVector;
@@ -470,7 +482,7 @@ void sim_mob::medium::PredayManager::calibratePreday()
 		computeAntiGradientVector(gradientVector, antiGradientVector);
 
 		// 4. compute step size
-		stepSize = predayParams.getStepSizeConstNr() / std::pow((1+k+predayParams.getStepSizeConstDr()), predayParams.getStepSizeExponent());
+		stepSize = predayParams.getInitialStepSize() / std::pow((1+k+predayParams.getStabilityConstant()), predayParams.getAlgorithmCoefficient1());
 
 		// 5. update the variables being calibrated and compute objective function
 		std::vector<double> scaledAntiGradientVector;
@@ -640,10 +652,6 @@ void sim_mob::medium::PredayManager::computeLogsums(PersonList::iterator firstPe
 		safe_delete_item(i->second);
 	}
 	mongoDao.clear();
-}
-
-double sim_mob::medium::PredayManager::computeSumOfDifferenceSquared()
-{
 }
 
 double sim_mob::medium::PredayManager::computeObjectiveFunction(const std::vector<CalibrationVariable>& calVarList)

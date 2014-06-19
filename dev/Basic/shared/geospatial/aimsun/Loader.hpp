@@ -78,7 +78,8 @@ public:
 	static bool LoadSinglePathDBwithIdST(soci::session& sql,const std::string& connectionStr,
 					std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 					std::string& pathset_id,
-					std::vector<sim_mob::SinglePath*>& spPool);
+					std::vector<sim_mob::SinglePath*>& spPool,
+					const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
 	static bool LoadPathSetDBwithId(const std::string& connectionStr,
 			std::map<std::string,sim_mob::PathSet* >& pool,
 			std::string& pathset_id);

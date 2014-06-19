@@ -956,12 +956,12 @@ bool DriverMovement::hasUTurn(std::vector<WayPoint> & newPath, std::vector<const
  return false;
 }
 
-bool DriverMovement::UTurnFree(std::vector<WayPoint> & newPath, std::vector<const sim_mob::SegmentStats*> & oldPath , sim_mob::SubTrip &subTrip, std::vector<const sim_mob::RoadSegment*> & excludeRS){
+bool DriverMovement::UTurnFree(std::vector<WayPoint> & newPath, std::vector<const sim_mob::SegmentStats*> & oldPath , sim_mob::SubTrip &subTrip, std::set<const sim_mob::RoadSegment*> & excludeRS){
 	if(!hasUTurn(newPath, oldPath)){
 		return true;
 	}
 	//exclude/blacklist the UTurn segment on the new path(first segment)
-	excludeRS.push_back((*newPath.begin()).roadSegment_);
+	excludeRS.insert((*newPath.begin()).roadSegment_);
 	//create a path using updated black list
 	//and then try again
 	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
@@ -996,6 +996,7 @@ void printWPpath(std::vector<WayPoint> &wps , const sim_mob::Node* startingNode 
 //step-4: there still is some way to get to the new path's starting point. prepend it to the new paths
 //setp-5: setpath: assign the assembled path to pathmover
 void DriverMovement::rerout(const InsertIncidentMessage &msg){
+	Print() << "rerouting" << std::endl;
 	/*step-1 can I re-rout? if yes, what are my points of re-rout?*/
 		//criterion-1 at least 1 intersection from where the agent is, to the troubled roadsegment
 	std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > deTourOptions;
@@ -1013,7 +1014,8 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 	std::map<const sim_mob::Node* , std::vector<WayPoint> > newPaths ; //stores new paths starting from the re-routing points
 	int cnt = 0;
 	typedef std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >	NodeStatPair ; //for 'deTourOptions' container
-	std::vector<const sim_mob::RoadSegment*> excludeRS = std::vector<const sim_mob::RoadSegment*>(1,(*msg.stats.begin())->getRoadSegment());
+	std::set<const sim_mob::RoadSegment*> excludeRS = std::set<const sim_mob::RoadSegment*>();
+	excludeRS.insert((*msg.stats.begin())->getRoadSegment());
 	//	get a 'copy' of the person's current subtrip
 	SubTrip subTrip = *(getParent()->currSubTrip);
 
@@ -1051,18 +1053,19 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 		//4.c convert the new path waypoints to segstats and append them to the remaining path(remaining path: remaining segstats from the original path to the rer-outing point)
 		initSegStatsPath(newPath.second,deTourOptions[newPath.first]);
 //		//debug
-//		Print() << "final Path:" << std::endl;
-//		MesoPathMover::printPath(deTourOptions[newPath.first], newPath.first);
+		Print() << "Detour Option:" << std::endl;
+		MesoPathMover::printPath(deTourOptions[newPath.first], newPath.first);
 //		//debug...
 	}
 	//is there any place drivers can re-route or not?
 	if(!deTourOptions.size()){
-		Warn() << "No Detour For incident at " << (*msg.stats.begin())->getRoadSegment()->getSegmentAimsunId() << std::endl;
+		Print() << "No Detour For incident at " << (*msg.stats.begin())->getRoadSegment()->getSegmentAimsunId() << std::endl;
 		return;
 	}
 
 	//step-5: now you may set the path using 'deTourOptions' container
 	//todo, put a distribution function here. For testing now, give it the last new path for now
+	Print() << "final Path:" << deTourOptions.rbegin()->first->getID() << std::endl;
 	getMesoPathMover().setPath(deTourOptions.rbegin()->second);
 }
 

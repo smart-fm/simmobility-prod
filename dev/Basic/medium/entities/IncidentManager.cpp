@@ -119,6 +119,7 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 		}
 
 		if(res){
+			Print() << "Passerd" <<std::endl;
 			//person passed, or currently on the target path. So, not interested in this person
 			continue;
 		}

@@ -15,7 +15,7 @@
 //NOTE: CMake should put the correct -I flags in for SOCI; be aware that some distros hide it though.
 #include <soci.h>
 #include <soci-postgresql.h>
-#include <boost/multi_index_container.hpp>
+#include <boost/foreach.hpp>
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -126,7 +126,8 @@ public:
 	static bool LoadSinglePathDBwithIdST(soci::session& sql,
 					std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 					std::string& pathset_id,
-					std::vector<sim_mob::SinglePath*>& spPool);
+					std::vector<sim_mob::SinglePath*>& spPool,
+					const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
 	bool LoadPathSetDBwithId(
 			std::map<std::string,sim_mob::PathSet* >& pool,
 			std::string& pathset_id);
@@ -278,13 +279,37 @@ bool DatabaseLoader::LoadSinglePathDBwithId2(
 bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 				std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 				std::string& pathset_id,
-				std::vector<sim_mob::SinglePath*>& spPool)
+				std::vector<sim_mob::SinglePath*>& spPool,
+				const std::set<const sim_mob::RoadSegment *> & excludedRS)
 {
 	//Our SQL statement
 	//	std::cout<<"LoadSinglePathDBwithId: "<<pathset_id<<std::endl;
 	//	std:string s = "'\"aimsun-id\":\"54204\",_\"aimsun-id\":\"59032\",'";
 	//	std::cout<<"LoadSinglePathDBwithId: "<<s<<std::endl;
-		soci::rowset<sim_mob::SinglePath> rs = (sql.prepare <<"select * from \"SinglePath\" where \"PATHSET_ID\" =" + pathset_id);
+	std::stringstream excludeCriterion("");
+	std::stringstream sourceQuery("");
+	std::stringstream selectQuery("");
+	if(excludedRS.size()){
+		BOOST_FOREACH(const sim_mob::RoadSegment* rs , excludedRS){
+			excludeCriterion << "(\"ID\" not like '%" << rs->getSegmentAimsunId() << "%')or";
+		}
+		excludeCriterion.str().replace(excludeCriterion.str().size() - 2 -1, 2, "  ");
+		sourceQuery << "with  source as (select \"ID\" from \"SinglePath\" where " << excludeCriterion;
+		//debug
+		std::cout << "excludeCriterion'" << excludeCriterion.str() << "'" << std::endl;
+		std::cout << "sourceQuery'" << sourceQuery.str() << "'" << std::endl;
+		//debug...
+	}
+	if(sourceQuery.str().size()){
+		selectQuery << sourceQuery << " select * from \"SinglePath\" where \"PATHSET_ID\" =" + pathset_id << " and \"ID\" in (select * from source)";
+	}
+	else{
+		selectQuery << " select * from \"SinglePath\" where \"PATHSET_ID\" =" + pathset_id ;
+	}
+	//debug
+	std::cout << "selectQuery'"  << selectQuery.str() << "'" << std::endl;
+//		soci::rowset<sim_mob::SinglePath> rs = (sql.prepare <<"select * from \"SinglePath\" where \"PATHSET_ID\" =" + pathset_id);
+	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare << selectQuery.str());
 		int i=0;
 		for (soci::rowset<sim_mob::SinglePath>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 			sim_mob::SinglePath *s = new sim_mob::SinglePath(*it);
@@ -2592,10 +2617,11 @@ bool sim_mob::aimsun::Loader::LoadSinglePathDBwithId2(const std::string& connect
 bool sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(soci::session& sql,const std::string& connectionStr,
 			std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 			std::string& pathset_id,
-			std::vector<sim_mob::SinglePath*>& spPool)
+			std::vector<sim_mob::SinglePath*>& spPool,
+			const std::set<const sim_mob::RoadSegment *> & excludedRS)
 {
 //	DatabaseLoader loader(connectionStr);
-	bool res = DatabaseLoader::LoadSinglePathDBwithIdST(sql,waypoint_singlepathPool,pathset_id,spPool);
+	bool res = DatabaseLoader::LoadSinglePathDBwithIdST(sql,waypoint_singlepathPool,pathset_id,spPool,excludedRS);
 	return res;
 }
 bool sim_mob::aimsun::Loader::LoadPathSetDBwithId(const std::string& connectionStr,

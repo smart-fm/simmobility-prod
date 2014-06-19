@@ -805,7 +805,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 //if not found in DB, generate all 4 types of path
 //choose the best path using utility function
 std::vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::Person * per, const sim_mob::SubTrip* st,
-		const std::vector<const sim_mob::RoadSegment*> & exclude_seg, bool isUseCache, bool isUseDB){
+		const std::set<const sim_mob::RoadSegment*> & exclude_seg, bool isUseCache, bool isUseDB){
 	//you may need to double check your database connection
 	Worker *worker = (Worker*)per->currWorkerProvider;
 	if(worker)
@@ -821,7 +821,7 @@ std::vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const si
 	return generateBestPathChoiceMT(st, profiler, exclude_seg, isUseCache, isUseDB);
 }
 
-vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler, const std::vector<const sim_mob::RoadSegment*> & exclude_seg , bool isUseCache, bool isUseDB)
+vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler, const std::set<const sim_mob::RoadSegment*> & exclude_seg , bool isUseCache, bool isUseDB)
 {
 	vector<WayPoint> res;
 	std::ostringstream out("");
@@ -855,6 +855,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 		//
 		pathSetID = "'"+pathSetID+"'";
 		Profiler PSDB_Profiler(true);
+
 		hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
 								*sql,
 								ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
@@ -881,7 +882,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 										ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 										id_sp,
 										pathSetID,
-										ps_.pathChoices);
+										ps_.pathChoices, exclude_seg);
 
 				out.str("");
 				out << "hasSPinDB:" << (hasSPinDB ? "true" : "false" ) << ":" << SP_Profiler.endProfiling() << std::endl;
@@ -995,7 +996,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 	return res;
 }
 
-bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & personProfiler, const std::vector<const sim_mob::RoadSegment*> & exclude_seg)
+bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & personProfiler, const std::set<const sim_mob::RoadSegment*> & exclude_seg)
 {
 
 	/**
@@ -1242,8 +1243,8 @@ void sim_mob::PathSetManager::generatePathesByLinkElimination(std::vector<WayPoi
 	{
 		WayPoint *w = path[i];
 		if (w->type_ == WayPoint::ROAD_SEGMENT) {
-			std::vector<const sim_mob::RoadSegment*> seg ;
-			seg.push_back(w->roadSegment_);
+			std::set<const sim_mob::RoadSegment*> seg ;
+			seg.insert(w->roadSegment_);
 			SinglePath *sinPath = generateSinglePathByFromToNodes3(fromNode,toNode,wp_spPool,seg);
 			if(!sinPath)
 			{
@@ -1546,7 +1547,7 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::generateSinglePathByFromToNodes3
 		   const sim_mob::Node *fromNode,
 		   const sim_mob::Node *toNode,
 		   std::map<std::string,SinglePath*>& wp_spPool,
-		   const std::vector<const sim_mob::RoadSegment*> & exclude_seg)
+		   const std::set<const sim_mob::RoadSegment*> & exclude_seg)
 {
 	/**
 	 * step-1: find the shortest driving path between the given OD
@@ -2350,7 +2351,7 @@ void sim_mob::SinglePath::clear()
 	isMinRightTurn=0;
 	isMaxHighWayUsage=0;
 }
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 sim_mob::PathSet::~PathSet()
 {
 	fromNode = NULL;

@@ -900,24 +900,20 @@ int DriverMovement::findReroutingPoints(const std::vector<sim_mob::SegmentStats*
 	std::vector<const sim_mob::SegmentStats*>::const_iterator endIt = std::find(path.begin(), path.end(), *(stats.begin()));//iterator to incident segstat
 	std::vector<const sim_mob::SegmentStats*> rem;//stats remaining from the current location to the re-routing point
 	//Actual Operation : As you move from your current location towards the incident, store the intersections on your way + the segstats you travrsed until you reach that intersection.
-	//debug
-	Print() << "Original Path:" << std::endl;
-	MesoPathMover::printPath(path);
-	Print() << "iterating segstats starting from " << (*startIt)->getRoadSegment()->getSegmentAimsunId() << std::endl;
-	//debug...
+//	//debug
+//	Print() << "Original Path:" << std::endl;
+//	MesoPathMover::printPath(path);
+//	//debug...
 	for(const sim_mob::Link * currLink = (*startIt)->getRoadSegment()->getLink() ;startIt <= endIt; startIt++)
 	{
-		Print() << (*startIt)->getRoadSegment()->getSegmentAimsunId() << ",";
 		//record the remaining segstats
 		rem.push_back(*startIt);
 		//link changed?
 		if(currLink != (*startIt)->getRoadSegment()->getLink()){
 			//record
-			Print() << "\ncandidate:" << std::endl;
 			remaining[currLink->getEnd()] = rem;//no need to clear rem!
 			//last segment lies in the next link, remove it
 			remaining[currLink->getEnd()].pop_back();
-			MesoPathMover::printPath(remaining[currLink->getEnd()], currLink->getEnd());
 			//update the current iteration link
 			currLink = (*startIt)->getRoadSegment()->getLink();
 		}
@@ -930,14 +926,14 @@ int DriverMovement::findReroutingPoints(const std::vector<sim_mob::SegmentStats*
 	   else
 		   noPathIt++;
 	}
-	Print() << "-------------------------------------------\n"
-			"Candidates with their remaining path after filtering the no paths:\n" << std::endl;
-	std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > item1;
-	BOOST_FOREACH(item1,  remaining){
-		MesoPathMover::printPath(item1.second, item1.first);
-	}
-
-	Print() << "There are " << remaining.size() << " candidate point of reroute for Person(excluding no path):" << std::endl;
+//	Print() << "-------------------------------------------\n"
+//			"Candidates with their remaining path after filtering the no paths:\n" << std::endl;
+//	std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > item1;
+//	BOOST_FOREACH(item1,  remaining){
+//		MesoPathMover::printPath(item1.second, item1.first);
+//	}
+//
+//	Print() << "There are " << remaining.size() << " candidate point of reroute for Person(excluding no path):" << std::endl;
 	return remaining.size();
 }
 
@@ -954,23 +950,16 @@ bool DriverMovement::hasUTurn(std::vector<WayPoint> & newPath, std::vector<const
  const sim_mob::Node *O_old = (*oldPath.rbegin())->getRoadSegment()->getStart();//using .begin() or .end() makes no difference
  const sim_mob::Node *D_old = (*oldPath.rbegin())->getRoadSegment()->getEnd();
 
- Print() << "UTURN checking segment " << O_old->getID() << "->" << (*oldPath.rbegin())->getRoadSegment()->getSegmentAimsunId() << "<-" << D_old->getID() << "  and  "
-		 << O_new->getID() << "->" << newPath.begin()->roadSegment_->getSegmentAimsunId() << "<-" << D_new->getID()  ;
-
  if((O_old == D_new) && (D_old == O_new)){
-	 Print() << "  ==> YES" << std::endl;
 	 return true;
  }
- Print() << "  ==> NO" << std::endl;
  return false;
 }
 
 bool DriverMovement::UTurnFree(std::vector<WayPoint> & newPath, std::vector<const sim_mob::SegmentStats*> & oldPath , sim_mob::SubTrip &subTrip, std::vector<const sim_mob::RoadSegment*> & excludeRS){
 	if(!hasUTurn(newPath, oldPath)){
-		Print() << "There is no UTurn at all " << std::endl;
 		return true;
 	}
-	Print() << "We have a UTurn" << std::endl;
 	//exclude/blacklist the UTurn segment on the new path(first segment)
 	excludeRS.push_back((*newPath.begin()).roadSegment_);
 	//create a path using updated black list
@@ -986,9 +975,6 @@ bool DriverMovement::UTurnFree(std::vector<WayPoint> & newPath, std::vector<cons
 	if(hasUTurn(newPath, oldPath)){
 		throw std::runtime_error("UTurn detected where the corresponding segment involved in the UTurn is already excluded");
 	}
-
-	Print() << "UTurn Removed" << std::endl;
-
 	return true;
 }
 
@@ -1036,11 +1022,8 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 		// change the origin
 		subTrip.fromLocation.node_ = statPair.first;
 		//	record the new paths using the updated subtrip. (including no paths)
-		Print() << "Generating a new path from " << statPair.first->getID() << " without section " << (*excludeRS.begin())->getSegmentAimsunId() << std::endl;
 		newPaths[statPair.first] = sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(getParent(), &subTrip, excludeRS, false, false );
-		printWPpath(newPaths[statPair.first], statPair.first);
 	}
-	Print() << newPaths.size() << " New paths created (including no new path) " << std::endl;
 
 	/*step-4: prepend. Note: it is more efficient to do this within the above loop but code reading will become more tough*/
 	//4.a: check if there is no path from the rerouting point, just discard it.
@@ -1052,7 +1035,7 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 
 		//4.a
 		if(!newPath.second.size()){
-			Print() << "No path on re-routing candidate node " << newPath.first->getID() << std::endl;
+			Warn() << "No path on Detour Candidate node " << newPath.first->getID() << std::endl;
 			deTourOptions.erase(newPath.first);
 			continue;
 		}
@@ -1060,48 +1043,27 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 		// change the origin (just like in the previous loop
 		subTrip.fromLocation.node_ = newPath.first;
 		if(!UTurnFree(newPath.second,deTourOptions[newPath.first], subTrip, excludeRS)){
-			Print() << "---------\nNo path without a UTrn on re-routing candidate node " << newPath.first->getID() << std::endl;
+			Warn() << "No path without a UTrn on Detour Candidate node " << newPath.first->getID() << std::endl;
 			printWPpath(newPath.second, newPath.first);
-			Print() << "---------" << std::endl;
 			deTourOptions.erase(newPath.first);
 			continue;
 		}
-		//debug
-		Print() << newPath.first << " : joining paths [" ;
-		MesoPathMover::printPath(deTourOptions[newPath.first]);
-		Print() << "] and [" ;
-		printWPpath(newPath.second);
-		Print() << "]" << std::endl;
-		//debug...
 		//4.c convert the new path waypoints to segstats and append them to the remaining path(remaining path: remaining segstats from the original path to the rer-outing point)
 		initSegStatsPath(newPath.second,deTourOptions[newPath.first]);
-		//debug
-		Print() << "final Path:" << std::endl;
-		MesoPathMover::printPath(deTourOptions[newPath.first], newPath.first);
-		//debug...
+//		//debug
+//		Print() << "final Path:" << std::endl;
+//		MesoPathMover::printPath(deTourOptions[newPath.first], newPath.first);
+//		//debug...
 	}
 	//is there any place drivers can re-route or not?
 	if(!deTourOptions.size()){
-		Print() << "There is no suitable re-routing candidate" << std::endl;
+		Warn() << "No Detour For incident at " << (*msg.stats.begin())->getRoadSegment()->getSegmentAimsunId() << std::endl;
 		return;
 	}
 
 	//step-5: now you may set the path using 'deTourOptions' container
 	//todo, put a distribution function here. For testing now, give it the last new path for now
 	getMesoPathMover().setPath(deTourOptions.rbegin()->second);
-
-	//debug
-	Print() << "New Path set from node [" << deTourOptions.rbegin()->first->getID() << "]" << std::endl;
-	unsigned int id = 0;
-	BOOST_FOREACH(const sim_mob::SegmentStats* stat, getMesoPathMover().getPath())
-	{
-		if(id == stat->getRoadSegment()->getSegmentAimsunId()) {
-			continue;
-		}
-		id = stat->getRoadSegment()->getSegmentAimsunId();
-		Print() << id << "," ;
-	}
-	Print() << std::endl;
 }
 
 void DriverMovement::HandleMessage(messaging::Message::MessageType type,
@@ -1109,7 +1071,6 @@ void DriverMovement::HandleMessage(messaging::Message::MessageType type,
 	switch (type){
 	case MSG_INSERT_INCIDENT:{
 		const InsertIncidentMessage &msg = MSG_CAST(InsertIncidentMessage,message);
-		Print() << "Agent Received MSG_INSERT_INCIDENT" << std::endl;
 		rerout(msg);
 		break;
 	}

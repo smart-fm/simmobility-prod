@@ -44,9 +44,7 @@ void sim_mob::IncidentManager::readFromFile(std::string inputFile){
 		double newFlowRate = boost::lexical_cast<double>(*(++it));//second element
 		uint32_t tick =  boost::lexical_cast<uint32_t>(*(++it));//second element
 		incidents.insert(std::make_pair(tick,Incident(sectionId,newFlowRate,tick)));
-		Print() << "Storing Incident " << sectionId << "," << newFlowRate << "," << tick <<std::endl;
 	}
-	Print() << incidents.size() << " incident Stored" << std::endl;
 	in.close();
 }
 
@@ -57,29 +55,26 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 		//no incidents for this tick
 		return;
 	}
-	Print() << "Tick:" << tick << " Incident Occuring" << std::endl;
 	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::instance();
 	std::pair<uint32_t,Incident> incident;
 	/*inserting and informing*/
 	BOOST_FOREACH(incident, currIncidents){
 		//get the conflux
 		const sim_mob::RoadSegment* rs = stDir.getRoadSegment(incident.second.get<0>());
+
 		const std::vector<sim_mob::SegmentStats*>& stats = rs->getParentConflux()->findSegStats(rs);
 		//send a message to conflux
 		messaging::MessageBus::PostMessage(rs->getParentConflux(), MSG_INSERT_INCIDENT,
 							messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, incident.second.get<1>())));
-		Print() << "Conflux Notified" << std::endl;
 		//find affected Drivers (only active agents for now)
 		std::vector <const sim_mob::Person*> persons;
 		identifyAffectedDrivers(rs,persons);
-		Print() << persons.size() << " persons are going to be affected by this incident" << std::endl;
+		Print() << " INCIDENT  segment:"<< rs->getSegmentAimsunId() << " affected:" << std::endl;
 		//inform the drivers
 		BOOST_FOREACH(const sim_mob::Person * person, persons) {
 			//send the same type of message
 			messaging::MessageBus::PostMessage(const_cast<MovementFacet*>(person->getRole()->Movement()), MSG_INSERT_INCIDENT,
 								messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, incident.second.get<1>())));
-			Print() << "Person 's movement Notified" << std::endl;
-
 		}
 	}
 }
@@ -101,16 +96,6 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 
 	//step-1: find those who used the target rs in their path
 	const std::pair <RPOD::const_iterator,RPOD::const_iterator > range(sim_mob::PathSetManager::getInstance()->getODbySegment(targetRS));
-	//debug
-	for(RPOD::const_iterator it(range.first); it != range.second; it++){
-		int OX = it->second.subtrip->fromLocation.node_->location.getX();
-		int OY = it->second.subtrip->fromLocation.node_->location.getY();
-		int DX = it->second.subtrip->toLocation.node_->location.getX();
-		int DY = it->second.subtrip->toLocation.node_->location.getY();
-		Print() << "Incident Road Segment[" << it->first->getSegmentAimsunId() << "] is on  Person[" <<  it->second.per << "]'s path with OD[(" << OX << "," << OY << ")--(" << DX << "," << DY << ")]" << std::endl;
-	}
-	//debug...
-
 	for(RPOD::const_iterator it(range.first); it != range.second; it++){
 		const sim_mob::Person *per = it->second.per;
 		//get his,meso, path...//todo: you need to dynamic_cast!
@@ -125,7 +110,6 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 		for(itSS = path.begin(); (*itSS) != curSS ; itSS++){
 			if(targetRS == (*itSS)->getRoadSegment()){
 				res = true;
-				Print() << "We Arrived at the incident segment " << (*itSS)->getRoadSegment()->getSegmentAimsunId() << "," << (*itSS)->getRoadSegment()->getSegmentID() << std::endl;
 				break;
 			}
 		}
@@ -157,11 +141,7 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 			if (var_nor() > 0) {
 				//this person willbe informed
 				filteredPersons.push_back(per);
-				Print() << "Person [" << per->getId() << "] selected" << std::endl;
-			} else {
-				Print() << "Person" << per->getId() << " discarded"
-						<< std::endl;
-			}
+			} else {}
 		} else {
 			filteredPersons.push_back(per);
 		}
@@ -169,14 +149,10 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 }
 
 bool sim_mob::IncidentManager::frame_init(timeslice now){
-	Print() << "Incident Agent frame_init" << std::endl;
 	return true;
 }
 
 sim_mob::Entity::UpdateStatus sim_mob::IncidentManager::frame_tick(timeslice now){
-	//debug
-//	return UpdateStatus::Continue;
-//	Print() << "Incident Agent is ticking" << std::endl;
 	insertTickIncidents(now.frame());
 	return UpdateStatus::Continue;
 }

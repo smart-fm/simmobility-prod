@@ -37,6 +37,9 @@ inline void initRandomProvider(boost::thread_specific_ptr<boost::mt19937>& provi
 }
 
 float Utils::generateFloat(float min, float max) {
+	if (min == max){
+		return min;
+	}
     initRandomProvider(floatProvider);
     boost::uniform_real<float> distribution(min, max);
     boost::variate_generator<boost::mt19937&, boost::uniform_real<float> > 

@@ -69,7 +69,7 @@
 	<!-- VARIATION TABLES (factor)-->
 	<!-- Each column represents the following population percentile
 							 0.05 0.15 0.25 0.35 0.45 0.55 0.65 0.75 0.85 0.95 -->
-	<param name="max_acceleration_scale"    value=	"1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00"/>
+	<param name="max_acceleration_scale"    value=	"1.0001 1.0002 1.0003 1.0004 1.0005 1.0006 1.0007 1.0008 1.0009 1.0010"/>
 	<param name="normal_deceleration_scale" value=	"1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00"/>
 	<param name="max_deceleration_scale"    value=	"1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00"/>							 	
 

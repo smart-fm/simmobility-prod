@@ -1337,10 +1337,10 @@ double sim_mob::MITSIM_CF_Model::desiredSpeedRate(DriverUpdateParams& p)
 {
   float maxspd = p.targetSpeed;
   double epsilon_v = sim_mob::Math::DOUBLE_EPSILON;
-  if (p.perceivedFwdVelocity < maxspd - epsilon_v) {
+  if (p.perceivedFwdVelocity /100 < maxspd - epsilon_v) {
 	// Use maximum acceleration
 	return p.maxAcceleration;
-  } else if (p.perceivedFwdVelocity > maxspd + epsilon_v) {
+  } else if (p.perceivedFwdVelocity /100 > maxspd + epsilon_v) {
 	// Decelerate
 	return p.normalDeceleration;
   } else {

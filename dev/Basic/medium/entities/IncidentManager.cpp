@@ -81,7 +81,7 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 		//find affected Drivers (only active agents for now)
 		std::vector <const sim_mob::Person*> persons;
 		identifyAffectedDrivers(rs,persons);
-		Print() << " INCIDENT  segment:"<< rs->getSegmentAimsunId() << " affected:" << std::endl;
+		Print() << " INCIDENT  segment:"<< rs->getSegmentAimsunId() << " affected:" << persons.size() << std::endl;
 		//inform the drivers
 		BOOST_FOREACH(const sim_mob::Person * person, persons) {
 			//send the same type of message
@@ -96,7 +96,10 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 //step-3: if agent's current segment is before the target path, then inform him(if the probability function allows that).
 void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegment * targetRS,
 		std::vector <const sim_mob::Person*> & filteredPersons){
-
+	int affected = 0;
+	int ignored = 0;
+	int reacting = 0;
+	int ignorant = 0;
 	//step-1: find those who used the target rs in their path
 	const std::pair <RPOD::const_iterator,RPOD::const_iterator > range(sim_mob::PathSetManager::getInstance()->getODbySegment(targetRS));
 	for(RPOD::const_iterator it(range.first); it != range.second; it++){
@@ -113,16 +116,19 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 		for(itSS = path.begin(); (*itSS) != curSS ; itSS++){
 			if(targetRS == (*itSS)->getRoadSegment()){
 				res = true;
+				Print() << "This incident is happening on a segments 'before' this driver" << std::endl;
 				break;
 			}
 		}
 		//Same check for case (*itSS) == curSS i.e you are currently 'on' the incident segment
 		if(itSS != path.end() && (targetRS == (*itSS)->getRoadSegment())){
+			Print() << "This incident is happening on the driver's current segment" << std::endl;
 			res = true;
 		}
 
 		if(res){
-			Print() << "Passerd" <<std::endl;
+			ignored++;
+			Print() << "ignoring this driver" <<std::endl;
 			//person passed, or currently on the target path. So, not interested in this person
 			continue;
 		}
@@ -137,11 +143,20 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 			//can't be! this means we have been searching for a target road segment that is not in the path!
 			throw std::runtime_error("searching for a roadsegment which was not in the path!");
 		}
+		affected ++;
 		//should react to incident or not?
 		if(shouldDriverReact(per)){
 			filteredPersons.push_back(per);
+			reacting ++;
+		}
+		else{
+			ignorant ++;
 		}
 	}//RPOD
+	Print() << "On the path Drivers: " << affected << std::endl;
+	Print() << "ignored Drivers: " << ignored << std::endl;
+	Print() << "Racting Drivers: " << reacting << std::endl;
+	Print() << "Ignoring Drivers : " << ignorant << std::endl;
 }
 
 //probability function(for now, just behave like tossing a coin

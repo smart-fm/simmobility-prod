@@ -570,7 +570,7 @@ void sim_mob::PathSetManager::insertFromTo_BestPath_Pool(std::string& id ,vector
 }
 
 //todo: replacing bool and std::vector<WayPoint>& can save a copy
-bool sim_mob::PathSetManager::getCachedBestPath(std::string id, std::vector<WayPoint> value)
+bool sim_mob::PathSetManager::getCachedBestPath(std::string id, std::vector<WayPoint> &value)
 {
 	std::map<std::string ,std::vector<WayPoint> >::iterator it = fromto_bestPath.find(id);
 	if(it == fromto_bestPath.end())
@@ -588,6 +588,7 @@ void sim_mob::PathSetManager::cacheODbySegment(const sim_mob::Person* per, const
 }
 
 const std::pair <RPOD::const_iterator,RPOD::const_iterator > sim_mob::PathSetManager::getODbySegment(const sim_mob::RoadSegment* segment) const{
+	Print() << "pathSegments cache size =" <<  pathSegments.size() << std::endl;
 	const std::pair <RPOD::const_iterator,RPOD::const_iterator > range = pathSegments.equal_range(segment);
 	return range;
 }
@@ -890,6 +891,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 
 				if(hasSPinDB)
 				{
+					Print() << "DB hit" << std::endl;
 					bool r = false;
 					Profiler BPC_Profiler(true);
 					std::map<std::string,sim_mob::SinglePath*>::iterator it = id_sp.find(ps_.singlepath_id);
@@ -923,6 +925,10 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 					personProfiler.addOutPut(out);
 					return res;
 				}// hasSPinDB
+				else
+				{
+					Print() << "DB Miss" << std::endl;
+				}
 			}
 		} // hasPSinDB
 	}//isUseDB

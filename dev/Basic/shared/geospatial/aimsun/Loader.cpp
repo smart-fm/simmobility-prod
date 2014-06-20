@@ -291,23 +291,26 @@ bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 	std::stringstream selectQuery("");
 	if(excludedRS.size()){
 		BOOST_FOREACH(const sim_mob::RoadSegment* rs , excludedRS){
+//			std::cout << rs << std::endl;
 			excludeCriterion << "(\"ID\" not like '%" << rs->getSegmentAimsunId() << "%')or";
 		}
-		excludeCriterion.str().replace(excludeCriterion.str().size() - 2 -1, 2, "  ");
-		sourceQuery << "with  source as (select \"ID\" from \"SinglePath\" where " << excludeCriterion;
-		//debug
-		std::cout << "excludeCriterion'" << excludeCriterion.str() << "'" << std::endl;
-		std::cout << "sourceQuery'" << sourceQuery.str() << "'" << std::endl;
-		//debug...
+//		std::cout << "excludeCriterion[" << excludeCriterion.str() << "]" << std::endl;
+		std::string excludeCriterionStr(excludeCriterion.str().replace(excludeCriterion.str().size() - 2 , 2, "  "));
+		std::cout << "After deOrification excludeCriterion[" << excludeCriterionStr << "]" << std::endl;
+		sourceQuery << "with  source as (select \"ID\" from \"SinglePath\" where " << excludeCriterionStr << ")";
+//		//debug
+//		std::cout << "excludeCriterion[" << excludeCriterion.str() << "]" << std::endl;
+//		std::cout << "sourceQuery[" << sourceQuery.str() << "]" << std::endl;
+//		//debug...
 	}
 	if(sourceQuery.str().size()){
-		selectQuery << sourceQuery << " select * from \"SinglePath\" where \"PATHSET_ID\" =" + pathset_id << " and \"ID\" in (select * from source)";
+		selectQuery << sourceQuery.str() << " select * from \"SinglePath\" where \"PATHSET_ID\" =" + pathset_id << " and \"ID\" in (select * from source)";
 	}
 	else{
 		selectQuery << " select * from \"SinglePath\" where \"PATHSET_ID\" =" + pathset_id ;
 	}
-	//debug
-	std::cout << "selectQuery'"  << selectQuery.str() << "'" << std::endl;
+//	//debug
+//	std::cout << "selectQuery["  << selectQuery.str() << "]" << std::endl;
 //		soci::rowset<sim_mob::SinglePath> rs = (sql.prepare <<"select * from \"SinglePath\" where \"PATHSET_ID\" =" + pathset_id);
 	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare << selectQuery.str());
 		int i=0;

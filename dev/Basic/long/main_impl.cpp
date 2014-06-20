@@ -61,11 +61,12 @@ int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulat
     //Models Statistics
     PrintOut(endl);
     PrintOut("#Models:" << endl);
+
     for (vector<Model*>::iterator itr = models.begin(); itr != models.end(); itr++) {
         Model* model = *itr;
         const Model::Metadata& metadata = model->getMetadata();
-        for (Model::Metadata::const_iterator itMeta = metadata.begin();
-                itMeta != metadata.end(); itMeta++) {
+
+        for (Model::Metadata::const_iterator itMeta = metadata.begin(); itMeta != metadata.end(); itMeta++) {
             boost::format fmtr = boost::format(MODEL_LINE_FORMAT);
             fmtr % itMeta->getKey() % itMeta->getValue();
             PrintOut(fmtr.str() << endl);
@@ -157,13 +158,20 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         wgMgr.startAllWorkGroups();
 
         PrintOut("Started all workgroups." << endl);
-        for (unsigned int currTick = 0; currTick < days; currTick++) {
-            PrintOut("Day: " << currTick << endl);
+        PrintOut("Day of Simulation: " << std::endl);
+        for (unsigned int currTick = 0; currTick < days; currTick++)
+        {
+            PrintOut( currTick << " " );
             wgMgr.waitAllGroups();
+
+            if( currTick % 20 == 19 )
+            	PrintOut(endl);
         }
+        PrintOut( endl );
+
         //Save our output files if we are merging them later.
-        if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && 
-            config.mergeLogFiles()) {
+        if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && config.mergeLogFiles())
+        {
             resLogFiles = wgMgr.retrieveOutFileNames();
         }
         

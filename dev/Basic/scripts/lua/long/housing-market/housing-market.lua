@@ -277,7 +277,7 @@ function calculateSpeculation (entry, unitBids)
     local maximumBids = 20
     local a = 800000
     local b = 0.3
-    return (maximumBids-unitBids) * entry.askingPrice / (a - b * entry.askingPrice)
+    return (maximumBids-unitBids) * entry.askingPrice / (a - b * entry.askingPrice) * 1000
 end
 
 --[[

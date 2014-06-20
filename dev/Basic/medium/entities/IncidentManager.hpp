@@ -24,12 +24,24 @@ namespace sim_mob {
  * A class designed to manage the incidents.
  * It can read the load the incidents for preday/test planning as well as en-route incidents
  */
+
+namespace {
+//todo put this in the utils(and code style!)
+boost::mt19937 myOwngen;
+
+int roll_dice(int l,int r) {
+    boost::uniform_int<> dist(l,r);
+    boost::variate_generator<boost::mt19937&, boost::uniform_int<> > dice(myOwngen, dist);
+    return dice();
+}
+}
+
 class IncidentManager : public sim_mob::Agent {
 	typedef boost::tuples::tuple<unsigned int, double, uint32_t> Incident; //<sectionId, flowrate, start_tick>
 	std::multimap<uint32_t,Incident> incidents;
 	typedef std::pair<std::multimap<uint32_t,Incident>::iterator, std::multimap<uint32_t,Incident>::iterator> TickIncidents;
 	std::string inputFile;
-	boost::shared_ptr<boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > > distribution;
+
 	static IncidentManager * instance;
 public:
 	//debug

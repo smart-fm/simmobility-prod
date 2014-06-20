@@ -33,6 +33,7 @@
 #include "partitions/ParitionDebugOutput.hpp"
 
 #include "util/DebugFlags.hpp"
+#include "util/Utils.hpp"
 
 #include "boost/foreach.hpp"
 using namespace sim_mob;
@@ -990,6 +991,14 @@ void printWPpath(std::vector<WayPoint> &wps , const sim_mob::Node* startingNode 
 
 	Print() << out.str();
 }
+//todo put this in the utils(and code style!)
+boost::mt19937 myOwngen;
+int roll_die(int l,int r) {
+    boost::uniform_int<> dist(l,r);
+    boost::variate_generator<boost::mt19937&, boost::uniform_int<> > die(myOwngen, dist);
+    return die();
+}
+
 //step-1: can I rerout? if yes, what are my points of rerout?
 //step-2: do I 'want' to reroute?
 //step-3: get a new path from each candidate re-routing points
@@ -1012,7 +1021,6 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 
 	/*step-3:get a new path*/
 	std::map<const sim_mob::Node* , std::vector<WayPoint> > newPaths ; //stores new paths starting from the re-routing points
-	int cnt = 0;
 	typedef std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >	DetourOption ; //for 'deTourOptions' container
 	std::set<const sim_mob::RoadSegment*> excludeRS = std::set<const sim_mob::RoadSegment*>();
 	excludeRS.insert((*msg.stats.begin())->getRoadSegment());
@@ -1067,8 +1075,15 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 
 	//step-5: now you may set the path using 'deTourOptions' container
 	//todo, put a distribution function here. For testing now, give it the last new path for now
-	Print() << "final Path:" << deTourOptions.rbegin()->first->getID() << std::endl;
-	getMesoPathMover().setPath(deTourOptions.rbegin()->second);
+//	Print() << "final Path:" << deTourOptions.rbegin()->first->getID() << std::endl;
+
+	std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >::iterator it(deTourOptions.begin());
+
+	int cnt = roll_die(0,deTourOptions.size() - 1);
+
+	while(cnt){ it++; --cnt;}
+	getMesoPathMover().setPath(it->second);
+	Print() << "Detour option chosen:" << it->first->getID() << std::endl;
 }
 
 void DriverMovement::HandleMessage(messaging::Message::MessageType type,

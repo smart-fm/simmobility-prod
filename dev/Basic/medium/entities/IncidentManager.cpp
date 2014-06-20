@@ -11,21 +11,10 @@
 //#include <boost/random/normal_distribution.hpp>
 #include <boost/tokenizer.hpp>
 
-
-boost::shared_ptr<boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > > initDistribution(){
-
-	//normal distribution
-	boost::mt19937 rng; // I don't seed it on purpouse (it's not relevant)
-	boost::normal_distribution<> nd(0.0, 1.0);
-	boost::shared_ptr<boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > > distributionPtr;
-	distributionPtr.reset(new boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > (rng, nd));
-	return distributionPtr;
-}
-
 sim_mob::IncidentManager * sim_mob::IncidentManager::instance = 0;
 sim_mob::Profiler sim_mob::IncidentManager::profiler;
 sim_mob::IncidentManager::IncidentManager(const std::string inputFile) :
-		Agent(ConfigManager::GetInstance().FullConfig().mutexStategy()),inputFile(inputFile),distribution(initDistribution())
+		Agent(ConfigManager::GetInstance().FullConfig().mutexStategy()),inputFile(inputFile)/*,distribution(Utils::initDistribution(std::pair<float,float>(0.0, 1.0)))*/
 {}
 
 void sim_mob::IncidentManager::setSourceFile(const std::string inputFile_){
@@ -163,7 +152,7 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 void sim_mob::IncidentManager::findReactingDrivers(std::vector<const sim_mob::Person*> & res) {
 	std::vector<const sim_mob::Person*>::iterator it(res.begin());
 	for ( ; it != res.end(); ) {
-	  if ((*distribution)() > 0) {
+	  if (roll_dice(0,1)) {
 	    it = res.erase(it);
 	  } else {
 	    ++it;
@@ -173,7 +162,7 @@ void sim_mob::IncidentManager::findReactingDrivers(std::vector<const sim_mob::Pe
 
 //probability function(for now, just behave like tossing a coin
 bool sim_mob::IncidentManager::shouldDriverReact(const sim_mob::Person* per){
-	return ((*distribution)() > 0);
+	return roll_dice(0,1);
 }
 
 bool sim_mob::IncidentManager::frame_init(timeslice now){

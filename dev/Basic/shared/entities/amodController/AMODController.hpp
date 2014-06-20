@@ -24,6 +24,8 @@
 #include "entities/conflux/Conflux.hpp"
 #include "geospatial/PathSetManager.hpp"
 #include "entities/Person.hpp"
+#include <string>
+#include <fstream>
 
 namespace sim_mob {
 class Person;
@@ -38,42 +40,50 @@ public:
 	void init();
 
 	/**
-	  * retrieve a singleton object
-	  * @return a pointer to AMODController .
-	  */
+	 * retrieve a singleton object
+	 * @return a pointer to AMODController .
+	 */
 	static AMODController* instance();
 	static void registerController(int id, const MutexStrategy& mtxStrat);
 	/// pu new amod vh to car park
 	/// id am vh id
 	/// nodeId node id ,virtual car park
+	void readDemandFile(std::ifstream& myFile, std::vector<std::string>& origin, std::vector<std::string>& destination);
+	//read the demand from the txt file and outputs two vectors
+	//@param origin - vector of strings, origin of the trip
+	//@param destination - vector if strings, destination
 	void addNewVh2CarPark(std::string& id,std::string& nodeId);
-
 	// return false ,if no vh in car park
 
+	typedef std::pair< double , std::string > distPair;
+	bool distPairComparator ( const distPair& l, const distPair& r){ return l.first < r.first; }
+	bool findNearestFreeVehicle(std::string originId, std::map<std::string, sim_mob::Node* > &nodePool, std::string &carParkId, Person**vh);
+	// For finding the nearest free vehicle
 	bool getVhFromCarPark(std::string& carParkId,Person** vh);
-
+	//removes vehicle from the carpark
+	void mergeWayPoints(const std::vector<sim_mob::WayPoint>& carparkToOrigin, const std::vector<sim_mob::WayPoint> &originToDestination, std::vector<sim_mob::WayPoint>& mergedWP);
+	//mergeWayPoints ->merge waypoints carpark-origin and origin-destination
 	// set predefined path
 	bool setPath2Vh(Person* vh,std::vector<WayPoint>& path);
 	// ad vh to main loop
 	bool dispatchVh(Person* vh);
 
+	void rerouteWithPath(Person* vh,std::vector<sim_mob::WayPoint>& path);
+	void rerouteWithOriDest(Person* vh,Node* snode,Node* enode);
 	/// snode: start node
 	/// enode: end node
 	/// path: new path
-	void rerouteWithPath(Person* vh,std::vector<sim_mob::WayPoint>& path);
-	void rerouteWithOriDest(Person* vh,Node* snode,Node* enode);
 
-	//void parkVhAfterTrip(Person* vh,std::string& nodeId);
-
-	void testOneVh();
-	void testSecondVh();
+	//void testOneVh();
+    void testSecondVh();
+	void testVh();
 	void testTravelTimePath();
 	int test;
 
 	void handleAMODEvent(sim_mob::event::EventId id,
-	            sim_mob::event::Context ctxId,
-	            sim_mob::event::EventPublisher* sender,
-	            const AMOD::AMODEventArgs& args);
+			sim_mob::event::Context ctxId,
+			sim_mob::event::EventPublisher* sender,
+			const AMOD::AMODEventArgs& args);
 
 	void handleVHArrive(Person* vh);
 protected:
@@ -89,8 +99,8 @@ protected:
 	//Signals are non-spatial in nature.
 	virtual bool isNonspatial() { return true; }
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList){}
-//	override from the class agent, provide a chance to clear up a child pointer when it will be deleted from system
-//	virtual void unregisteredChild(Entity* child);
+	//	override from the class agent, provide a chance to clear up a child pointer when it will be deleted from system
+	//	virtual void unregisteredChild(Entity* child);
 
 private:
 	explicit AMODController(int id=-1,
@@ -122,6 +132,10 @@ public:
 	void updateTravelTimeGraph();
 	bool insertTravelTime2TmpTable(timeslice frameNumber, std::map<const RoadSegment*, sim_mob::Conflux::rdSegTravelTimes>& rdSegTravelTimesMap);
 
+	struct amod_passenger{
+		std::string &passengerId; std::string &originNode; std::string &destNode;
+		double &timeToPickUp; double waitingTime; double timeToBeAtDest;
+	};
 };
 
 
@@ -134,7 +148,7 @@ inline std::string getNumberFromAimsunId(std::string &aimsunid)
 	if (boost::regex_match(aimsunid, matches, expr))
 	{
 		number  = std::string(matches[1].first, matches[1].second);
-//		Print()<<"getNumberFromAimsunId: "<<number<<std::endl;
+		//		Print()<<"getNumberFromAimsunId: "<<number<<std::endl;
 	}
 	else
 	{

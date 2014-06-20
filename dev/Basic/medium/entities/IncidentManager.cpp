@@ -10,10 +10,22 @@
 //#include <boost/random.hpp>
 //#include <boost/random/normal_distribution.hpp>
 #include <boost/tokenizer.hpp>
+
+
+boost::shared_ptr<boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > > initDistribution(){
+
+	//normal distribution
+	boost::mt19937 rng; // I don't seed it on purpouse (it's not relevant)
+	boost::normal_distribution<> nd(0.0, 1.0);
+	boost::shared_ptr<boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > > distributionPtr;
+	distributionPtr.reset(new boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > (rng, nd));
+	return distributionPtr;
+}
+
 sim_mob::IncidentManager * sim_mob::IncidentManager::instance = 0;
 sim_mob::Profiler sim_mob::IncidentManager::profiler;
 sim_mob::IncidentManager::IncidentManager(const std::string inputFile) :
-		Agent(ConfigManager::GetInstance().FullConfig().mutexStategy()),inputFile(inputFile)
+		Agent(ConfigManager::GetInstance().FullConfig().mutexStategy()),inputFile(inputFile),distribution(initDistribution())
 {}
 
 void sim_mob::IncidentManager::setSourceFile(const std::string inputFile_){
@@ -85,15 +97,6 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegment * targetRS,
 		std::vector <const sim_mob::Person*> & filteredPersons){
 
-	//normal distribution
-	  boost::mt19937 rng; // I don't seed it on purpouse (it's not relevant)
-
-	  boost::normal_distribution<> nd(0.0, 1.0);
-
-	  boost::variate_generator<boost::mt19937&,
-	                           boost::normal_distribution<> > var_nor(rng, nd);
-
-
 	//step-1: find those who used the target rs in their path
 	const std::pair <RPOD::const_iterator,RPOD::const_iterator > range(sim_mob::PathSetManager::getInstance()->getODbySegment(targetRS));
 	for(RPOD::const_iterator it(range.first); it != range.second; it++){
@@ -134,19 +137,28 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 			//can't be! this means we have been searching for a target road segment that is not in the path!
 			throw std::runtime_error("searching for a roadsegment which was not in the path!");
 		}
-
-		//probability function(for now, just behave like tossing a coin
-		//todo, move to a method, probably inside a person
-		bool dist = true; //use normal distribution to select only 'some' of the drivers
-		if (dist) {
-			if (var_nor() > 0) {
-				//this person willbe informed
-				filteredPersons.push_back(per);
-			} else {}
-		} else {
+		//should react to incident or not?
+		if(shouldDriverReact(per)){
 			filteredPersons.push_back(per);
 		}
 	}//RPOD
+}
+
+//probability function(for now, just behave like tossing a coin
+void sim_mob::IncidentManager::findReactingDrivers(std::vector<const sim_mob::Person*> & res) {
+	std::vector<const sim_mob::Person*>::iterator it(res.begin());
+	for ( ; it != res.end(); ) {
+	  if ((*distribution)() > 0) {
+	    it = res.erase(it);
+	  } else {
+	    ++it;
+	  }
+	}
+}
+
+//probability function(for now, just behave like tossing a coin
+bool sim_mob::IncidentManager::shouldDriverReact(const sim_mob::Person* per){
+	return ((*distribution)() > 0);
 }
 
 bool sim_mob::IncidentManager::frame_init(timeslice now){

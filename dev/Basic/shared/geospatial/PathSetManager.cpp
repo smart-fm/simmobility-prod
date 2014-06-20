@@ -570,14 +570,14 @@ void sim_mob::PathSetManager::insertFromTo_BestPath_Pool(std::string& id ,vector
 }
 
 //todo: replacing bool and std::vector<WayPoint>& can save a copy
-bool sim_mob::PathSetManager::getCachedBestPath(std::string id, std::vector<WayPoint>* value)
+bool sim_mob::PathSetManager::getCachedBestPath(std::string id, std::vector<WayPoint> value)
 {
 	std::map<std::string ,std::vector<WayPoint> >::iterator it = fromto_bestPath.find(id);
 	if(it == fromto_bestPath.end())
 	{
 		return false;
 	}
-	value = &((*it).second);
+	value = (*it).second;
 	return true;
 }
 
@@ -649,10 +649,10 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 	std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
 	std::string pathSetID=fromId_toId;
 	//check cache to save a trouble if the path already exists
-	vector<WayPoint> *cachedResult;
+	vector<WayPoint> cachedResult;
 	if(getCachedBestPath(fromId_toId,cachedResult))
 	{
-		return *cachedResult;
+		return cachedResult;
 	}
 		//
 		pathSetID = "'"+pathSetID+"'";
@@ -839,12 +839,12 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 	//Note: Due to current structure of cache, we cannot find a cached path with excluded segments
 	//todo implement a cache that can let you if the cached path has excluded some segments
 	if(isUseCache && exclude_seg.empty()){
-		vector<WayPoint> *cachedResult;
+		vector<WayPoint> cachedResult;
 		if(getCachedBestPath(fromId_toId,cachedResult))
 		{
 			out << "getCachedBestPath:true:" << CBP_Profiler.endProfiling() << std::endl;
 			personProfiler.addOutPut(out);
-			return *cachedResult;
+			return cachedResult;
 		}
 	}
 	bool hasPSinDB = false;

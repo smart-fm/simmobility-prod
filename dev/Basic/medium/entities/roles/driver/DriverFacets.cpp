@@ -1013,26 +1013,28 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 	/*step-3:get a new path*/
 	std::map<const sim_mob::Node* , std::vector<WayPoint> > newPaths ; //stores new paths starting from the re-routing points
 	int cnt = 0;
-	typedef std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >	NodeStatPair ; //for 'deTourOptions' container
+	typedef std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >	DetourOption ; //for 'deTourOptions' container
 	std::set<const sim_mob::RoadSegment*> excludeRS = std::set<const sim_mob::RoadSegment*>();
 	excludeRS.insert((*msg.stats.begin())->getRoadSegment());
 	//	get a 'copy' of the person's current subtrip
 	SubTrip subTrip = *(getParent()->currSubTrip);
 
-	BOOST_FOREACH(NodeStatPair statPair, deTourOptions)
+	BOOST_FOREACH(DetourOption detourNode, deTourOptions)
 	{
 		// change the origin
-		subTrip.fromLocation.node_ = statPair.first;
+		subTrip.fromLocation.node_ = detourNode.first;
 		//	record the new paths using the updated subtrip. (including no paths)
-		newPaths[statPair.first] = sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(getParent(), &subTrip, excludeRS, false, false );
+		bool useCache = false;
+		bool useDB = true;
+		newPaths[detourNode.first] = sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(getParent(), &subTrip, excludeRS, useCache, useDB );
 	}
 
 	/*step-4: prepend. Note: it is more efficient to do this within the above loop but code reading will become more tough*/
 	//4.a: check if there is no path from the rerouting point, just discard it.
 	//4.b: filter out Uturns.
 	//4.c convert waypoint to segstat and prepend remaining oldpath to the new path
-	typedef std::pair<const sim_mob::Node* , std::vector<WayPoint> > NodeWpPair;
-	BOOST_FOREACH(NodeWpPair newPath, newPaths)
+	typedef std::pair<const sim_mob::Node* , std::vector<WayPoint> > NewPath;
+	BOOST_FOREACH(NewPath newPath, newPaths)
 	{
 
 		//4.a

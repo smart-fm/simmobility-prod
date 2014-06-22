@@ -12,6 +12,37 @@ void DriverUpdateParams::setStatus(unsigned int s)
 {
 	status |= s;
 }
+void DriverUpdateParams::setStatusDoingLC(LANE_CHANGE_SIDE& lcs)
+{
+	if(lcs == LCS_RIGHT)
+	{
+		setStatus(STATUS_LC_RIGHT);
+	}
+	else if(lcs == LCS_LEFT)
+	{
+		setStatus(STATUS_LC_LEFT);
+	}
+
+	// else do nothing
+}
+void DriverUpdateParams::addTargetLanes(set<const Lane*> tl)
+{
+	set<const Lane*> newTargetLanes;
+	set<const Lane*>::iterator it;
+
+	// find Lane* in both tl and targetLanes
+	for(it=tl.begin();it!=tl.end();++it)
+	{
+		const Lane* l = *it;
+		set<const Lane*>::iterator itFind = targetLanes.find(l);
+		if(itFind != targetLanes.end())
+		{
+			newTargetLanes.insert(l);
+		}
+	}
+
+	targetLanes = newTargetLanes;
+}
 void DriverUpdateParams::unsetStatus(unsigned int s)
 {
 	status &= ~s;

@@ -82,7 +82,7 @@ public:
 	}
 
 
-protected:
+public:
 	Driver* parentDriver;
 
 public:
@@ -149,6 +149,8 @@ public:
 
 	void updateAdjacentLanes(DriverUpdateParams& p);
 	void updatePositionDuringLaneChange(DriverUpdateParams& p, LANE_CHANGE_SIDE relative);
+
+	void updatePosDuringLaneChange(DriverUpdateParams& p);
 
 	///Reroutes around a given blacklisted set of RoadSegments. See Role for documentation.
 	void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);

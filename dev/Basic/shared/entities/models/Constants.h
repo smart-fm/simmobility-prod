@@ -139,6 +139,7 @@ const  UINT CONTROLLER_SMITH       = 11;
 const  UINT CONTROLLER_DELAYMIN    = 12;
 const  UINT CONTROLLER_BILEVELDELAYMIN   = 13;     // enumeration end
 
+const double DEFAULT_DIS_TO_STOP = 1000;
 /*--------------------------------------------------------------------
  * IDs for control devices and events
  */
@@ -377,9 +378,15 @@ const UINT STATUS_RIGHT_OK		= 0x00000001;
 const UINT STATUS_CURRENT_OK		= 0x00000002;
 const UINT STATUS_LEFT_OK		= 0x00000004;
 
+// choose target lane
 const UINT STATUS_CHANGING		= 0x00000018; // 24 sum
 const UINT STATUS_RIGHT			= 0x00000008;
 const UINT STATUS_LEFT			= 0x00000010;
+
+// doing lane change
+const UINT STATUS_LC_CHANGING		= 0x00300000; // 3 sum
+const UINT STATUS_LC_RIGHT			= 0x00100000;
+const UINT STATUS_LC_LEFT			= 0x00200000;
 
 const UINT STATUS_MANDATORY		= 0x00000020; // 32
 

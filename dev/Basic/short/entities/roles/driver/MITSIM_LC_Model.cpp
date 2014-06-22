@@ -163,7 +163,7 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p,
                 otherDistance[i].lead = 5000;
             } else { //has vehicle ahead
                 otherSpeed[i].lead = fwd->driver->fwdVelocity.get();
-                otherDistance[i].lead = fwd->distance;
+                otherDistance[i].lead = fwd->distance/100.0;
             }
             //check otherDistance[i].lead if <= 0 return
 
@@ -172,7 +172,7 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p,
                 otherDistance[i].lag = 5000;
             } else { //has vehicle behind, check the gap
                 otherSpeed[i].lag = back->driver->fwdVelocity.get();
-                otherDistance[i].lag = back->distance;
+                otherDistance[i].lag = back->distance/100.0;
             }
         } else { // no left/right side exists
             otherSpeed[i].lead = 0;
@@ -357,7 +357,7 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
                 otherAcc[i].lead = 5000;
             } else { //has vehicle ahead
                 otherSpeed[i].lead = fwd->driver->fwdVelocity.get();
-                otherDistance[i].lead = fwd->distance;
+                otherDistance[i].lead = fwd->distance/100.0;
                 otherAcc[i].lead = fwd->driver->fwdAccel.get();
             }
 
@@ -367,7 +367,7 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
                 otherAcc[i].lag = 5000;
             } else { //has vehicle behind, check the gap
                 otherSpeed[i].lag = back->driver->fwdVelocity.get();
-                otherDistance[i].lag = back->distance;
+                otherDistance[i].lag = back->distance/100.0;
                 otherAcc[i].lag = back->driver->fwdAccel.get();
             }
         } else { // no left/right side exists
@@ -481,7 +481,248 @@ size_t getLaneIndex(const Lane* l) {
 }
 void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 {
-	//TODO
+	// 1.0 SET/UNSET choose adjacent,forward,backward STATUS
+	p.unsetStatus(STATUS_TARGET_GAP);
+
+	// 2.0 if doing nosing ,just return
+	if (p.flag(FLAG_NOSING) || p.flag(FLAG_NOSING_FEASIBLE) || p.flag(FLAG_STUCK_AT_END)) return;
+
+	// 3.0 check lane change decision direction
+	LANE_CHANGE_SIDE changeMode = LCS_SAME;
+	if (p.getStatus(STATUS_LEFT)) {
+		changeMode = LCS_LEFT;
+	} else if (p.getStatus(STATUS_RIGHT)) {
+		changeMode = LCS_RIGHT;
+	} else {
+		return ;			// No request for lane change,just return
+	}
+
+	// TODO: need check incident of current lane? MITSIM has "if (isInIncidentArea(plane)) return;"
+
+	// 4.0 get lead,lag vh
+	// FRONT, LEAD AND LAG VEHICLES (do not have to be in same segment)
+	// TODO: check aura mgr function inn driverfacets
+	const NearestVehicle * av = NULL; // side leader vh
+	const NearestVehicle * bv = NULL; // side follower vh
+	const NearestVehicle * front = &p.nvFwd;
+	const NearestVehicle * aav = NULL; //side forward of forward vh
+	const NearestVehicle * bbv = NULL; //side backward of backward vh
+	if(changeMode == LCS_LEFT) {
+		av = &p.nvLeftFwd;
+		bv = &p.nvLeftBack;
+		aav = &p.nvLeftFwd2;
+		bbv = &p.nvLeftBack2;
+	}
+	else {
+		av = &p.nvRightFwd;
+		bv = &p.nvRightBack;
+		aav = &p.nvRightFwd2;
+		bbv = &p.nvRightBack2;
+	}
+
+	// 5.0 easy set
+	// if no left/right ahead vehicle, just use adjacent gap
+	if (!av->exists()) {
+	    p.setStatus(STATUS_ADJACENT);
+	    return;
+	}
+	if (!bv->exists()) {
+		p.setStatus(STATUS_ADJACENT);
+		return;
+	}
+
+	Driver *avDriver = const_cast<Driver*>(av->driver);
+	DriverMovement *avDriverMvt = (DriverMovement*)avDriver->Movement();
+	Driver *bvDriver = const_cast<Driver*>(bv->driver);
+	DriverMovement *bvDriverMvt = (DriverMovement*)bvDriver->Movement();
+	Driver *frontDriver = NULL;
+	if(front->exists())
+	{
+		frontDriver = const_cast<Driver*>(front->driver);
+	}
+	Driver *bbvDriver = NULL;
+	if(bbv->exists())
+	{
+		bbvDriver = const_cast<Driver*>(front->driver);
+	}
+
+	// 6.0 calculate FORWARD GAP utility value
+	float dis2gap = 0.0;
+	float effectiveGap = 0.0;
+	float remainderGap = 0.0;
+	float gapSpeed = 0.0;
+	float dis2front = 0.0;
+
+	float d1, s1, d2, d3;
+//	  if ( av->vehicleAhead() ) {
+	if(aav->exists()) { // if has forward of forward vh
+//	    d1 = av->gapDistance();
+		d1 = aav->distance/100.0 - av->distance/100.0 - av->driver->getVehicleLengthM(); // get gap length of av and aav
+//	    s1 = av->currentSpeed() - av-> vehicleAhead()->currentSpeed();
+		Driver *aavDriver = const_cast<Driver*>(aav->driver);
+		s1 = av->driver->fwdVelocity/100.0 - aavDriver->getFwdVelocityM(); // speed diff of av and aav
+	  } else {
+//		  d1 = av->distance/100.0();
+		  // get side ahead vh distance to end of link
+		  // tmp solution distance to next segment ,if next seg exist
+		  // TODO: meaning of av->distance()
+		  if(avDriverMvt->fwdDriverMovement.getNextSegment(true))
+		  {
+			  d1 = avDriverMvt->fwdDriverMovement.getDisToCurrSegEndM() + avDriverMvt->fwdDriverMovement.getNextSegment(true)->length/100.0;
+		  }
+		  else {
+			  d1 = avDriverMvt->fwdDriverMovement.getDisToCurrSegEndM();
+		  }
+
+		  s1 = 0;
+//	    if (av->nextLane_) {
+//	      d1 = d1 + av->nextLane_->length();
+//	    }
+	  }// end of aav->exists()
+
+//	  dis2gap = this->gapDistance(av)+ av->length();
+	    dis2gap  = av->distance/100.0;
+
+
+//	  if (!front) {
+	if(!front->exists()) {
+		effectiveGap = d1;
+		remainderGap = 0;
+		gapSpeed = s1;
+	} // end if front
+	else {
+//	    dis2front = this->gapDistance(front) + front->length();
+		dis2front = front->distance/100.0;
+//		Driver *avDriver = const_cast<Driver*>(av->driver);
+//		Driver *frontDriver = const_cast<Driver*>(front->driver);
+	    if (dis2gap > dis2front)
+	    {
+//	    	effectiveGap = (-1) * (front->gapDistance(av) + av->length() + front->length());
+	    	effectiveGap = (-1) * (frontDriver->gapDistance(avDriver) + av->driver->getVehicleLengthM() + front->driver->getVehicleLengthM());
+	    	remainderGap = d1;
+	    	gapSpeed = avDriver->getFwdVelocityM() - frontDriver->getFwdVelocityM();
+	    } // end if dis2gap > dis2front
+	    else {
+//	    	d2 = av->gapDistance(front);
+	    	d2 = avDriver->gapDistance(frontDriver);
+	    	if (d1 >= d2) {
+				effectiveGap =  d2;
+				remainderGap = d1-d2;
+//				gapSpeed = av->currentSpeed() - front->currentSpeed();
+				gapSpeed = avDriver->getFwdVelocityM() - frontDriver->getFwdVelocityM();
+	    	} // end if d1 >= d2
+	    	else {
+				effectiveGap =  d1;
+				remainderGap = 0;
+				gapSpeed = s1;
+	    	}// end else d1 >= d2
+	    }//end else dis2gap > dis2front
+	  }// end else front exist
+
+	double eufwd = gapExpOfUtility(p,1, effectiveGap, dis2gap, gapSpeed, remainderGap);
+
+	// 7.0 ADJACENT GAP
+
+//	d1 = bv->gapDistance();
+	// adjacent gap length
+	d1 = av->distance/100.0 + bv->distance/100.0;
+//	s1 = bv->currentSpeed() - av->currentSpeed();
+	s1 = bvDriver->getFwdVelocityM() - avDriver->getFwdVelocityM();
+
+	dis2gap = 0;
+
+//	if (!front) {
+	if(!front->exists()) {
+	  effectiveGap = d1;
+	  remainderGap = 0;
+	  gapSpeed = s1;
+	} //end if front not exist
+	else {
+//		d2 = bv->gapDistance(front);
+		d2 = bvDriver->gapDistance(frontDriver);
+		if (d1 > dis2front)
+		{
+			effectiveGap = d2;
+			remainderGap = d1-d2;
+//			gapSpeed = bv->currentSpeed() - front->currentSpeed();
+			gapSpeed = bvDriver->getFwdVelocityM() - frontDriver->getFwdVelocityM();
+		}// end if d1 > dis2front
+		else {
+			effectiveGap =  d1;
+			remainderGap = 0;
+			gapSpeed = s1;
+		}// end if else d1 > dis2front
+	}//end else front not exist
+
+
+	double euadj = gapExpOfUtility(p,3, effectiveGap, dis2gap, gapSpeed, remainderGap);
+
+	  // 8.0 BACKWARD GAP
+
+//	  if ( TS_Vehicle* bv2 = bv->vehicleBehind() ) {
+	if(bbv->exists()) {
+//	    d1 = bv2->gapDistance();
+		d1 = bbv->distance/100.0 - bv->distance/100.0 - bv->driver->getVehicleLengthM(); // get gap length of bv and bbv
+//	    s1 = bv2->currentSpeed() - bv->currentSpeed();
+		s1 = bbvDriver->getFwdVelocityM() - bvDriver->getFwdVelocityM();
+	} else {
+
+	    s1 = 0;
+//	    d1 = bv->lane()->length() - bv->distance();
+	    // get side back vh distance to start of link
+	    // tmp solution distance to move along segment ,if next seg exist
+	    // TODO: meaning of d1 = bv->lane()->length() - bv->distance();
+	    d1 = bvDriverMvt->fwdDriverMovement.getCurrDistAlongPolylineM();
+
+	    // TODO: why use upstream lanes length
+//	    int i, n = bv->lane_->nUpLanes();//pointers to upstream lanes
+//	    if (n > 0) {
+//	      d2 = FLT_INF;
+//	      for (i = 0; i < n; i ++) {
+//		if (d3 = bv->lane_->upLane(i)->length() < d2) {
+//		  d2 = d3;
+//		}
+//	      }
+//	      d1 = d1 +d2;
+//	    }
+	  }//end else
+
+//	  dis2gap = bvDriver->gapDistance(this)+ this->length();
+	dis2gap = bv->distance/100.0;
+
+	effectiveGap = d1;
+	remainderGap = 0;
+	gapSpeed = s1;
+
+
+	double eubck = gapExpOfUtility(p,2, effectiveGap, dis2gap, gapSpeed, remainderGap);
+
+	double sum = eufwd + eubck + euadj ;
+//	double rnd = theRandomizer->urandom() ;
+	double rnd = Utils::uRandom();
+	if (rnd < euadj / sum) p.setStatus(STATUS_ADJACENT);
+	else if (rnd < (euadj + eubck) / sum) p.setStatus(STATUS_BACKWARD);
+	else p.setStatus(STATUS_FORWARD);
+
+	return;
+}
+double sim_mob::MITSIM_LC_Model::gapExpOfUtility(DriverUpdateParams& p,int n, float effGap, float gSpeed, float gapDis, float remDis)
+{
+
+
+  std::vector<double> a = p.targetGapParams;
+
+  double u = a[2] * effGap + a[3] * gSpeed + a[4] * gapDis;
+
+  if (remDis > 0.1) {
+	u += a[5];
+  }
+
+  if (n == 1) u += a[0];
+  else if (n==2) u += a[1];
+
+
+  return exp(u) ;
 }
 void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p, 
         std::vector<TARGET_GAP>& tg) {
@@ -627,6 +868,16 @@ void sim_mob::MITSIM_LC_Model::initParam(DriverUpdateParams& p)
 
 	//LC Yielding Model
 	ParameterManager::Instance()->param(modelName,"LC_Yielding_Model",str,string("0.80 1.0"));
+
+	//minTimeInLaneSameDir
+	ParameterManager::Instance()->param(modelName,"LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir",minTimeInLaneSameDir,3.0);
+	//minTimeInLaneDiffDir
+	ParameterManager::Instance()->param(modelName,"LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir",minTimeInLaneDiffDir,10.0);
+
+	//Target Gap Model
+	ParameterManager::Instance()->param(modelName,"Target_Gap_Model",str,
+						string("-0.837   0.913  0.816  -1.218  -2.393  -1.662"));
+	sim_mob::Utils::convertStringToArray(str,p.targetGapParams);
 }
 void sim_mob::MITSIM_LC_Model::makeMCLParam(std::string& str)
 {
@@ -718,6 +969,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	int nCurrent = 100; // number of lane changes required for the current lane.
 
 
+	// computer number of lane changes to right,left,current
 	for (int i = 0; i < connectedLanes.size(); i++) {
 
 	 int numlcRight  = abs (getLaneIndex(connectedLanes[i]) -  (p.currLaneIndex+1)) ;
@@ -735,11 +987,12 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 
 	for(int i=0;i<connectedLanes.size();i++)
 	{
-		if(p.leftLane == connectedLanes[i])
+
+		if(isReadyForNextDLC(p,2) && p.leftLane == connectedLanes[i])
 		{
 			eul = lcUtilityLookAheadLeft(p, nLeft, lcDistance);
 		}
-		if(p.rightLane == connectedLanes[i])
+		if(isReadyForNextDLC(p,1) && p.rightLane == connectedLanes[i])
 		{
 			eur = lcUtilityLookAheadRight(p, nRight, lcDistance);
 		}
@@ -774,6 +1027,96 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 
 	return change;
 }
+int sim_mob::MITSIM_LC_Model::isReadyForNextDLC(DriverUpdateParams& p,int mode)
+{
+  float sec = timeSinceTagged(p);
+
+  switch(mode) {
+  case 1:			// request a change to the right
+	{
+	  if (p.flag(FLAG_PREV_LC_RIGHT) && // same direction
+		  sec > getDlcMinTimeInLaneSameDir()) {
+		return 1;
+	  } else if (sec > getDlcMinTimeInLaneDiffDir()) {
+		return 1;
+	  } else {
+		return 0;
+	  }
+	}
+  case 2:			// request a change to the left
+	{
+	  if (p.flag(FLAG_PREV_LC_LEFT) && // same direction
+		  sec > getDlcMinTimeInLaneSameDir()) {
+		return 1;
+	  } else if (sec > getDlcMinTimeInLaneDiffDir()) {
+		return 1;
+	  } else {
+		return 0;
+	  }
+	}
+  }
+  return sec > getDlcMinTimeInLaneSameDir();
+}
+int sim_mob::MITSIM_LC_Model::isWrongLane(DriverUpdateParams& p,const Lane* lane)
+{
+	// by right shall use lane connector
+	// as in the link, can use lane index
+
+	int res = 0;
+
+	// 1.0 get lane index
+	size_t laneIdx = getLaneIndex(lane);
+	// 2.0 get lane's segment's link
+	RoadSegment* segment = lane->getRoadSegment();
+
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	std::vector<const sim_mob::RoadSegment*>::iterator currentSegIt = driverMvt->fwdDriverMovement.currSegmentIt;
+	std::vector<const sim_mob::RoadSegment*>::iterator currentSegItEnd = driverMvt->fwdDriverMovement.fullPath.end();
+
+	for(;currentSegIt != currentSegItEnd;++currentSegIt)
+	{
+		const RoadSegment* rs = *currentSegIt;
+		if(segment->getLink() == rs->getLink()) {
+			// same link
+			size_t segLaneSize = rs->getLanesSize(false);
+			if(segLaneSize < laneIdx)
+			{
+				// need right lane change
+				int n = segLaneSize - laneIdx;
+				if(n<res) res = n;
+			}
+		}// end if segment->getLink()
+	}// end for
+
+	return res;
+}
+double sim_mob::MITSIM_LC_Model::LCUtilityLeft(DriverUpdateParams& p)
+{
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	// 1.0 lane utility parameters
+	vector<double> a = laneUtilityParams;
+	// 2.0 LEADING AND LAG VEHICLES
+	const NearestVehicle * av = &p.nvFwd; // leader vh
+	const NearestVehicle * bv = &p.nvBack; // follower vh
+	// 3.0 count number of lane change to the end of link
+	double vld, mlc, density, spacing;
+	int n = abs(isWrongLane(p,p.currLane));
+	// TODO calculate lane density
+	density = 0;
+	float heavy_neighbor = 0.0;
+	if (av->exists()) {
+	      spacing = av->distance/100.0;
+	      vld = std::min<double>(p.desiredSpeed, av->driver->getFwdVelocityM()) ;
+	      heavy_neighbor = (av->driver->getVehicle()->getVehicleType() != VehicleBase::BUS) ? 0.0 : a[7];
+	}
+	else {
+	      vld = p.desiredSpeed;
+	      spacing = p.dis2stop;
+//		if (nextLane_) {
+//		  spacing += nextLane_->length();
+//		}
+	}//end if av->exists()
+}
 double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance)
 {
 	vector<double> a = laneUtilityParams;
@@ -793,7 +1136,7 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams& p,in
 		if(p.nvLeftFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
 		{
 			heavy_neighbor = a[7];
-			spacing = p.nvLeftFwd.distance;
+			spacing = p.nvLeftFwd.distance/100.0;
 		}
 	}
 	else
@@ -873,7 +1216,7 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams& p,i
 		if(p.nvRightFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
 		{
 			heavy_neighbor = a[7];
-			spacing = p.nvRightFwd.distance;
+			spacing = p.nvRightFwd.distance/100.0;
 		}
 	}
 	else
@@ -962,7 +1305,7 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadCurrent(DriverUpdateParams& p
 		if(p.nvRightFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
 		{
 			heavy_neighbor = a[7];
-			spacing = p.nvRightFwd.distance;
+			spacing = p.nvRightFwd.distance/100.0;
 		}
 	}
 	else
@@ -1018,7 +1361,7 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadCurrent(DriverUpdateParams& p
 	float tailgate_dummy = 0;
 //	TS_Vehicle* behind = this->vehicleBehind() ;
 	if (p.nvBack.exists()) {
-		double gap_behind = p.nvBack.distance;
+		double gap_behind = p.nvBack.distance/100.0;
 		//TODO: calculate segment density
 	    float dens = 0.0;//tsSegment()->density();
 	    tailgate_dummy = (gap_behind <= a[10] && dens <= a[11])? a[9] : 0;
@@ -1125,8 +1468,12 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 }
 double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 {
+	// 1. unset FLAG_LC_FAILED, check whether can do lc
+	p.unsetFlag(FLAG_LC_FAILED);
+
 	LANE_CHANGE_SIDE changeMode = LCS_SAME;
 
+	// 2.0 check decision
 	if (p.getStatus(STATUS_LEFT)) {
 		changeMode = LCS_LEFT;
 	} else if (p.getStatus(STATUS_RIGHT)) {
@@ -1135,6 +1482,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 		return 0.0;			// No request for lane change
 	}
 
+	// 3.0 get lead,lag vh
 	const NearestVehicle * av; // leader vh
 	const NearestVehicle * bv; // follower vh
 
@@ -1165,10 +1513,11 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 //		}
 //	}
 
+	// 4.0 get lead,lag vh distance
 	// LEADING HEADWAY
 	float aheadway;		// leading headway
 	if (av->exists()) {
-		aheadway = av->distance;
+		aheadway = av->distance/100.0;
 	} else {
 		aheadway = Math::FLT_INF;
 	}
@@ -1177,11 +1526,12 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 
 	float bheadway;		// lag headway
 	if (bv->exists()) {
-		bheadway = bv->distance;
+		bheadway = bv->distance/100.0;
 	} else {
 		bheadway = Math::FLT_INF;
 	}
 
+	// 5.0 check if lc decision from events
 	// Is the lane change is triggered by special events
 	int escape = p.flag(FLAG_ESCAPE);
 
@@ -1195,14 +1545,31 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 		lctype = 0;		// discretionary
 	}
 
+	// 6.0 check if lead,lag gap ok
 	if (bv->exists() && bheadway < lcCriticalGap(p,1, bv->driver->fwdVelocity/100.0 - p.currSpeed )) {
 		p.setFlag(FLAG_LC_FAILED_LAG); // lag gap
 	}
-	else if (av && aheadway < lcCriticalGap(p,0, av->driver->fwdVelocity/100.0 - p.currSpeed)) {
+	else if (av->exists() && aheadway < lcCriticalGap(p,0, av->driver->fwdVelocity/100.0 - p.currSpeed)) {
 		p.setFlag(FLAG_LC_FAILED_LEAD); // lead gap
 	}
 
-	// CHECK IF THE GAPS ARE ACCEPTABLE
+	// 7.0 if gap ok, then doing lane change
+	if( !p.flag(FLAG_LC_FAILED) )
+	{
+		p.setStatusDoingLC(changeMode);
+//		//set status to "doing lc"
+//		if(changeMode==LCS_LEFT)
+//		{
+//			p.setStatus(STATUS_LC_LEFT);
+//		}
+//		else
+//		{
+//			p.setStatus(STATUS_LC_RIGHT);
+//		}
+//			return executionLC(changeMode);
+	}
+
+	// 8.0 CHECK IF THE GAPS ARE not ACCEPTABLE,then do nosing
 	if (p.flag(FLAG_LC_FAILED)) {
 
 		//TODO special cases
@@ -1300,7 +1667,8 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 			if (bheadway > p.lcMinGap(lctype + 1) &&
 				aheadway > p.lcMinGap(lctype)) {
 //			  goto execution;
-				executionLC(changeMode);
+				//executionLC(changeMode);
+				p.setStatusDoingLC(changeMode);
 			}
 
 		  }//end of if checkNosingFeasibility
@@ -1322,8 +1690,20 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 	}//end of p.flag(FLAG_LC_FAILED)
 
 
+//	//TODO new status
+//	if(changeMode==LCS_LEFT)
+//	{
+//		p.setStatus(STATUS_LC_LEFT);
+//	}
+//	else
+//	{
+//		p.setStatus(STATUS_LC_RIGHT);
+//	}
+//
+//	return executionLC(changeMode);
 
-	return executionLC(changeMode);
+
+
 //	// execution:
 //	if (changeMode != LCS_SAME) {
 //		const int lane_shift_velocity = 350; //TODO: What is our lane changing velocity? Just entering this for now...
@@ -1359,7 +1739,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 		Driver *avDriver = const_cast<Driver*>(av->driver);
 		DriverUpdateParams& avp = avDriver->getParams();
 		if ((avp.flag(FLAG_NOSING) || avp.flag(FLAG_YIELDING)) &&
-			av->distance < 2.0 * p.lcMinGap(2)) {
+			av->distance/100.0 < 2.0 * p.lcMinGap(2)) {
 
 		  // The lead vehicle is yeilding or nosing
 		  return 0;		// To avoid dead lock
@@ -1378,7 +1758,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 		  }
 		} else if (av->driver->fwdVelocity/100.0 < Math::DOUBLE_EPSILON &&
 				   p.dis2stop > p.distanceToNormalStop &&
-				   p.nvFwd.distance > p.distanceToNormalStop) {
+				   p.nvFwd.distance/100.0 > p.distanceToNormalStop) {
 		  return 0;
 		}//end if FLAG_LC_FAILED_LEAD
 	}//end if av
@@ -1411,7 +1791,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 		else if (bvp.flag(FLAG_NOSING) ||
 				(bvp.flag(FLAG_YIELDING) &&
 				bv->driver->yieldVehicle != p.driver &&
-				bv->distance < 2.0 * p.lcMinGap(3) )) {
+				bv->distance/100.0 < 2.0 * p.lcMinGap(3) )) {
 
 			// The lag vehicle is nosing or yielding to another vehicle or
 			// not willing to yield
@@ -1469,10 +1849,10 @@ float MITSIM_LC_Model::lcNosingProb(float dis, float lead_rel_spd, float gap,int
   float p = 1.0 / (1 + exp(-u)) ;
   return p ;
 }
-double sim_mob::MITSIM_LC_Model::executionLC(LANE_CHANGE_SIDE& change)
+double sim_mob::MITSIM_LC_Model::executeLaterVel(LANE_CHANGE_SIDE& change)
 {
 	if (change != LCS_SAME) {
-		const int lane_shift_velocity = 350; //TODO: What is our lane changing velocity? Just entering this for now...
+		const int lane_shift_velocity = 3.50; //TODO: What is our lane changing velocity? Just entering this for now...
 		return change == LCS_LEFT ? lane_shift_velocity : -lane_shift_velocity;
 	}
 	return 0.0;
@@ -1480,7 +1860,7 @@ double sim_mob::MITSIM_LC_Model::executionLC(LANE_CHANGE_SIDE& change)
 double sim_mob::MITSIM_LC_Model::timeSinceTagged(DriverUpdateParams& p)
 {
 	double currentTime = p.now.ms();
-	double t = currentTime = p.lcTimeTag;
+	double t = (currentTime - p.lcTimeTag) / 1000.0;// convert ms to s
 	return t;
 }
 bool sim_mob::MITSIM_LC_Model::path(DriverUpdateParams& p)
@@ -1488,37 +1868,303 @@ bool sim_mob::MITSIM_LC_Model::path(DriverUpdateParams& p)
 	// as current vehicle always has path
 	return true;
 }
-bool sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
+int sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
 {
 	// TODO: check event ,like incident
 
+	p.unsetFlag(FLAG_ESCAPE | FLAG_AVOID);
+	p.unsetStatus(STATUS_MANDATORY);
+	p.dis2stop = DEFAULT_DIS_TO_STOP;
+	// set default target lanes
+	p.targetLanes.clear();
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
+	for(int i=0;i<lanes.size();++i)
+	{
+		p.targetLanes.insert(lanes[i]);
+	}
+
+	bool needMLC = false;
+	bool needDLC = false;
+	// 1.0 check incident
+	int res = isThereBadEventAhead(p);
+	if(res == -1) needMLC = true;
+	if(res == 1) needDLC = true;
+
+	// 1.1 check lane drop
+	// no incident,but need check lane drop
+	set<const Lane*> laneDropTargetLanes;
+	res = isThereLaneDrop(p,laneDropTargetLanes);
+	if(res == -1) needMLC = true;
+	if(res == 1) needDLC = true;
+	p.addTargetLanes(laneDropTargetLanes);
+
+	// 1.2 check lane connect to next segment
+	set<const Lane*> laneConnectorTargetLanes;
+	res = isLaneConnectToNextSegment(p,laneConnectorTargetLanes);
+	if(res == -1) needMLC = true;
+	if(res == 1) needDLC = true;
+	p.addTargetLanes(laneConnectorTargetLanes);
+
+	// 2.0 set flag
+	if (needMLC) {
+		p.setFlag(FLAG_ESCAPE);
+	} else if (needDLC) {
+		p.setFlag(FLAG_AVOID);
+	}
+//	} else {
+//		dis2stop_ = distanceFromDownNode();
+//		vis_ = link()->length();
+//	}
+
+	// 3.0 if has mld require and not enough headway, set STATUS_MANDATORY
+	 if ( needMLC  && p.dis2stop < lookAheadDistance ) {
+//	    setMandatoryStatusTag();
+		p.setStatus(STATUS_MANDATORY);
+	 }
+
+	 return p.getStatus(STATUS_MANDATORY);
+}
+int sim_mob::MITSIM_LC_Model::isThereBadEventAhead(DriverUpdateParams& p)
+{
+	// TODO set dis2stop
+
+	// only mandatory lane change or no change
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
 	driverMvt->incidentPerformer.checkIncidentStatus(p, p.driver->getParams().now);
 
 	if(driverMvt->incidentPerformer.getIncidentStatus().getChangedLane())
 	{
-		return true;
+		//HP: pls set p.dis2stop , it is distance to the incident.
+		return -1; //mandatory lane change
 	}
 
-	return false;
+	return 0;
+}
+int sim_mob::MITSIM_LC_Model::isThereLaneDrop(DriverUpdateParams& p,set<const Lane*>& targetLanes)
+{
+	// TODO use lane connector
+	// but now use lane index
+
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	if (!(driverMvt->hasNextSegment(true))) // not has next segment in current link,means current on last segment of the link
+	{
+		double d = driverMvt->fwdDriverMovement.getAllRestRoadSegmentsLengthCM() -
+				driverMvt->fwdDriverMovement.getCurrDistAlongRoadSegmentCM() - driverMvt->parentDriver->vehicle->getLengthCm() / 2;
+		d /= 100.0;
+//		if (p.nvFwd.distance < p.dis2stop)
+//			p.dis2stop = p.nvFwd.distance;
+		if(d<p.dis2stop)
+			p.dis2stop = d;
+	}
+	else {
+		//has next segment of current link
+		// check current lane is most left lane and next segment lane size smaller than current lane index
+		// means has lane merge, need lane change
+		size_t currentSegmentLaneSize = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes().size();
+		if(driverMvt->fwdDriverMovement.getCurrSegment()->getLanes().at(currentSegmentLaneSize)->is_pedestrian_lane())
+		{
+			// current segment has ped lane
+			currentSegmentLaneSize--;
+		}
+		if(p.currLaneIndex == currentSegmentLaneSize)
+		{
+			// we are on most left lane
+			// check next segment lane size
+			size_t nextSegmentLaneSize = driverMvt->fwdDriverMovement.getNextSegment(true)->getLanes().size();
+			if(driverMvt->fwdDriverMovement.getNextSegment(true)->getLanes().at(nextSegmentLaneSize)->is_pedestrian_lane())
+			{
+				// next segment has ped lane
+				nextSegmentLaneSize--;
+			}
+			if(nextSegmentLaneSize > p.currLaneIndex)//has lane merge
+			{
+				double d = (driverMvt->fwdDriverMovement.getCurrPolylineTotalDistCM() -
+						driverMvt->fwdDriverMovement.getCurrDistAlongRoadSegmentCM() )/100.0;
+				if(d<p.dis2stop)
+				{
+					p.dis2stop = d;
+				}
+				// fill targetLanes
+				for(int i=1;i<nextSegmentLaneSize;++i)
+				{
+					const Lane* l = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes().at(i);
+					targetLanes.insert(l);
+				}
+				return -1;
+			}
+		}
+	}// end else
+	return 0;
+}
+int sim_mob::MITSIM_LC_Model::isLaneConnectToNextSegment(DriverUpdateParams& p,set<const Lane*>& targetLanes)
+{
+	int res=-1;
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	const RoadSegment* nextSegment = driverMvt->fwdDriverMovement.getNextSegment(false);
+	const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (driverMvt->fwdDriverMovement.getCurrSegment()->getEnd());
+	if(currEndNode)
+	{
+		// get lane connector
+		const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(driverMvt->fwdDriverMovement.getCurrSegment());
+
+		// check lef,right lanes connect to next target segment
+		for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++)
+		{
+			if ( (*it)->getLaneTo()->getRoadSegment() == nextSegment ) // this lc connect to target segment
+			{
+				int laneIdx = getLaneIndex((*it)->getLaneFrom());
+				if(laneIdx > p.currLaneIndex)
+				{
+					p.setStatus(STATUS_LEFT_OK);
+				}
+				else if(laneIdx < p.currLaneIndex)
+				{
+					p.setStatus(STATUS_RIGHT_OK);
+				}
+			}//end if
+		}//end for
+
+		if (lcs.size()>0)
+		{
+					//
+			if(p.currLane->is_pedestrian_lane()) {
+				//if can different DEBUG or RELEASE mode, that will be perfect, but now comment it out, so that does nor affect performance.
+				//I remember the message is not critical
+				WarnOut("drive on pedestrian lane");
+				double d = driverMvt->fwdDriverMovement.getDisToCurrSegEndM();
+				if(d<p.dis2stop)
+					p.dis2stop = d;
+				return -1;
+			}
+			std::map<int,vector<int> > indexes;
+			std::set<int> noData;
+
+			for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
+				if ((*it)->getLaneTo()->getRoadSegment() == nextSegment ) {
+					// add lane to targetLanes
+					const Lane* l = (*it)->getLaneFrom();
+					targetLanes.insert(l);
+					if( (*it)->getLaneFrom() == p.currLane )
+					{
+						// current lane connect to next link
+						// no need lc
+						res = 0;
+					}
+				}
+			}// end for
+		} // end of if (!lcs)
+	}//end if(currEndNode)
+	return res;
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdateParams& p)
 {
 	LANE_CHANGE_SIDE lcs = LCS_SAME;
-	// TODO: handle event ,like incident
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
-	if(driverMvt->incidentPerformer.getIncidentStatus().getChangedLane() &&
-			driverMvt->incidentPerformer.getIncidentStatus().getNextLaneIndex()>=0){
-				//p.nextLaneIndex = p.incidentPerformer.getIncidentStatus().getNextLaneIndex();
-				lcs =driverMvt->incidentPerformer.getIncidentStatus().getLaneSide();
+
+	// 1.0 check if has incident
+	if( driverMvt->incidentPerformer.getIncidentStatus().getChangedLane() )
+	{
+		//p.nextLaneIndex = p.incidentPerformer.getIncidentStatus().getNextLaneIndex();
+		lcs =driverMvt->incidentPerformer.getIncidentStatus().getLaneSide();
+		if(lcs == LCS_LEFT) {
+			p.setFlag(FLAG_ESCAPE_LEFT);
+		}
+		else if (lcs == LCS_RIGHT){
+			p.setFlag(FLAG_ESCAPE_RIGHT);
+		}
+		return lcs;
+	}
+
+	// 2.0 if FLAG_ESCAPE(need do mlc) and current lane not ok, count left/right lc times to drive on good lane
+	if(p.flag(FLAG_ESCAPE) )//no need check STATUS_CURRENT_OK, as if FLAG_ESCAPE ,current lane confirm not ok
+	{
+		// 2.1 find current lane index
+		size_t currentLaneIdx = p.currLaneIndex;
+		// number of lane changes to an open lane
+		int nl = -1;		// left side
+		int nr = -1;		// right side
+		// use p.targetLanes
+		set<const Lane*>::iterator it;
+		for(it=p.targetLanes.begin();it!=p.targetLanes.end();++it)
+		{
+			//2.2 lane index
+			const Lane* l = *it;
+			size_t targetLaneIdx = getLaneIndex(l);
+			if(targetLaneIdx>currentLaneIdx)
+			{
+				// target lane is in left of current lane
+				int numberlc = targetLaneIdx - currentLaneIdx;
+				if(numberlc < nl || nl<0) {
+					nl = numberlc;
+				}
 			}
-//			else if( (p.incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode==MLC )
-//					|| (p.incidentPerformer.getIncidentStatus().getCurrentStatus()==IncidentStatus::INCIDENT_CLEARANCE && p.incidentPerformer.getIncidentStatus().getCurrentIncidentLength()>0)) {
-//				p.nextLaneIndex = p.currLaneIndex;
-////				parentDriver->vehicle->setTurningDirection(LCS_SAME);
-//				lcs
-//			}
-	return lcs;
+			else if(targetLaneIdx < currentLaneIdx)
+			{
+				// target lane in right
+				int numberlc = currentLaneIdx - targetLaneIdx;
+				if(numberlc < nr || nr <0) {
+					nr = numberlc;
+				}
+			}
+			else
+			{
+				// target lane == current lane,shall not happen
+				WarnOut("target lane == current lane");
+			}
+		}//end for
+
+		// 2.3 set FLAG_ESCAPE_LEFT or FLAG_ESCAPE_RIGHT
+		// 2.3.1 There is an open left lane and no open right lane or the
+		//       open left lane is closer.
+		if(nl>0 && nr == -1)
+		{
+			if (p.flag(FLAG_ESCAPE)) {
+				p.setFlag(FLAG_ESCAPE_LEFT);
+			}
+			else if (p.flag(FLAG_AVOID)) {
+				p.setFlag(FLAG_AVOID_LEFT);
+			}
+			return LCS_LEFT;
+		}
+		// 2.3.2 There is an open right lane and no open left lane or the
+		//       open right lane is closer.
+		if(nr>0 && nl == -1)
+		{
+			if (p.flag(FLAG_ESCAPE) ){
+				p.setFlag(FLAG_ESCAPE_RIGHT);
+			}
+			else if (p.flag(FLAG_AVOID)) {
+				p.setFlag(FLAG_AVOID_RIGHT);
+			}
+			return LCS_RIGHT;
+		}
+		// 2.3.3 There is open lane on both side. Choose one randomly.
+		if (Utils::brandom(0.5)) {
+			if (p.flag(FLAG_ESCAPE)) {
+				p.setFlag(FLAG_ESCAPE_LEFT);
+			}
+			else if (p.flag(FLAG_AVOID)){
+				p.setFlag(FLAG_AVOID_LEFT);
+			}
+				return LCS_LEFT;
+		} else {
+				if (p.flag(FLAG_ESCAPE)) {
+					p.setFlag(FLAG_ESCAPE_RIGHT);
+				}
+				else if (p.flag(FLAG_AVOID)) {
+					p.setFlag(FLAG_AVOID_RIGHT);
+				}
+				return LCS_RIGHT;
+		}//end if Utils::brandom(0.5)
+	}//end if p.flag(FLAG_ESCAPE)
+
+	// 3.0 discretionary lane change
+	double eul = 0.0, eur = 0.0, euc = 1.0 ;
+	if (isReadyForNextDLC(p,2))
+	{
+		eul = LCUtilityLeft(p);
+	}
 }
 void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)
 {

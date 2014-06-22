@@ -32,6 +32,9 @@ namespace sim_mob {
          */
         static float generateFloat(float min, float max);
 
+        static double uRandom();
+        static double nRandom(double mean, double stddev);
+
         /**
          * Generates a new integer value.
          * @param min limit.

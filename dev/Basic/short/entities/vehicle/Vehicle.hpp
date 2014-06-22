@@ -98,6 +98,7 @@ public:
 //	const double widthCM;   ///<width(CM) of the vehicle
 	bool isQueuing; 	 ///<for mid-term use
 	FMODSchedule* schedule;
+	double stoppedtimecounter;
 
 private:
 	//Trying a slightly more dynamic moving model.
@@ -108,7 +109,6 @@ private:
 	double latVelocity;
 	double fwdAccel;
 	LANE_CHANGE_SIDE turningDirection;
-
 	//Override for when we're in an intersection.
 	DPoint posInIntersection;
 	// driver path-mover split purpose, we save the currPos in the Vehicle

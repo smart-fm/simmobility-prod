@@ -21,6 +21,7 @@
 #include "entities/models/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
 #include "DriverFacets.hpp"
+#include "util/Math.hpp"
 
 
 namespace sim_mob
@@ -97,6 +98,15 @@ public:
 
 	//need to store these values in the double buffer, because it is needed by other drivers.
 	Shared<double> latMovement;
+	const double getFwdVelocityM() const;
+	/*
+	 *  /brief Find the distance from front vehicle.
+	 *        CAUTION: TS_Vehicles "front" and this vehicle may not be in the same
+	 * lane (could be in the left or right neighbor lane), but they have
+	 * to be in either the same segment or in a downstream NEIGHBOR
+	 * segment.
+	 */
+	double gapDistance(const Driver* front);
 	Shared<double> fwdVelocity;
 	Shared<double> latVelocity;
 	Shared<double> fwdAccel;
@@ -127,7 +137,7 @@ public:
 	Driver* yieldVehicle;
 
 //Basic data
-protected:
+public:
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
 	// driver path-mover split purpose, we save the currPos in the Driver
@@ -166,6 +176,7 @@ public:
 
 	//This is probably ok.
 	const double getVehicleLengthCM() const { return vehicle->getLengthCm(); }
+	const double getVehicleLengthM() const { return getVehicleLengthCM()/100.0; }
 
 private:
 	friend class DriverBehavior;

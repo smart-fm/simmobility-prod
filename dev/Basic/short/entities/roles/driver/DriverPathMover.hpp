@@ -85,6 +85,7 @@ public:
 
 	//Retrieve useful properties of the current polypoint
 	double getCurrDistAlongPolylineCM() const;
+	double getCurrDistAlongPolylineM() { return getCurrDistAlongPolylineCM()/100.0; }
 	double getCurrPolylineTotalDistCM() const;
 
 	// segment length is based on lane's polypoints , be careful, it is not relate to segment's start ,end nodes
@@ -200,6 +201,7 @@ public:
 	} pathWithDirection;
 
 	double getDisToCurrSegEnd();
+	double getDisToCurrSegEndM() { return getDisToCurrSegEnd()/100.0; }
 private:
 	//Error messages for throw_if.
 	//NOTE: We are keeping these as const-static because the simulation runtime keeps re-creating them

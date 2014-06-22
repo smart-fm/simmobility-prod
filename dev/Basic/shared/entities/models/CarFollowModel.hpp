@@ -140,6 +140,21 @@ public:
 
 private:
 	double carFollowingRate(sim_mob::DriverUpdateParams& p,NearestVehicle& nv);
+	double calcCarFollowingRate(DriverUpdateParams& p);
+	/**
+	 *  /brief Check if the vehicle is in merging area
+	 */
+	int isInMergingArea(DriverUpdateParams& p);
+	vector<double> mergingParams;
+	double upMergingArea() { return mergingParams[0]; }
+	double dnMergingArea() { return mergingParams[1]; }
+	int nVehiclesAllowedInMergingArea() {
+		return (int) mergingParams[2];
+	  }
+	float aggresiveRampMergeProb() {
+		return mergingParams[3];
+	  }
+
 	/**
 	 *  /brief Calculate the acceleration rate by merging constraint.
 	 *  \param p driver's parameters
@@ -190,6 +205,7 @@ private:
 	 *  \param v velocity (m/s)
 	 *  \return acceleration (m/s^2)
 	 **/
+	double desiredSpeedRate(sim_mob::DriverUpdateParams& p);
 	double brakeToTargetSpeed(sim_mob::DriverUpdateParams& p,double s,double v);
 	double brakeToStop(DriverUpdateParams& p, double dis);
 	double accOfEmergencyDecelerating(sim_mob::DriverUpdateParams& p);  ///<when headway < lower threshold, use this function
@@ -224,6 +240,8 @@ public:
 	double speedFactor;
 	vector<double> speedLimitAddon;
 	double getSpeedLimitAddon();
+	vector<double> accAddon;
+	double getAccAddon();
 
 	map< VehicleBase::VehicleType,map<int,double> > maxDecelerationIndex;
 	int maxDecelerationUpperBound;

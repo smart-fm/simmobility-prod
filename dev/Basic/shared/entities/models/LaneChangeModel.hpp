@@ -39,12 +39,13 @@ public:
 	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode) = 0;
 	virtual double executeLaneChanging(DriverUpdateParams& p)=0;
 	virtual void chooseTargetGap(DriverUpdateParams& p)=0;
+	virtual double executeLaterVel(LANE_CHANGE_SIDE& lcs)=0;
 	/**
 	 *  /brief this function checks for bad events that will override the lookahead,like incident
 	 *  /param vehicle info
 	 *  /return true only if has events
 	 */
-	virtual bool checkIfLookAheadEvents(DriverUpdateParams& p) = 0;
+	virtual int checkIfLookAheadEvents(DriverUpdateParams& p) = 0;
 	/**
 	 *  /brief this function determines the lane changing that a lookahead vehicle
 	 *          will try if it is constrained by an event.
@@ -107,7 +108,13 @@ public:
 	virtual sim_mob::LANE_CHANGE_SIDE makeCourtesyMerging(sim_mob::DriverUpdateParams& p);
 	virtual sim_mob::LANE_CHANGE_SIDE makeForcedMerging(sim_mob::DriverUpdateParams& p);
 	virtual void chooseTargetGap(sim_mob::DriverUpdateParams& p,std::vector<TARGET_GAP>& tg);
+	/*
+	 *  /brief when left,right gap is not possible, choose adjacent,forward,backward gap
+	 *         set the status to STATUS_ADJACENT,STATUS_FORWARD,STATUS_BACKWARD
+	 */
 	virtual void chooseTargetGap(DriverUpdateParams& p);
+	double gapExpOfUtility(DriverUpdateParams& p,int n, float effGap, float gSpeed, float gapDis, float remDis);
+//	vector<double> targetGapParams;
 
 public:
 	/**
@@ -129,8 +136,23 @@ public:
 	 *--------------------------------------------------------------------
 	 **/
 	LANE_CHANGE_SIDE makeLaneChangingDecision(DriverUpdateParams& p);
+	/**
+	 *  /brief this function check if can perform lane change(set status STATUS_LC_RIGHT,STATUS_LC_LEFT)
+	 *         if can not, check if can do nosing
+	 *         this function not return lateral velocity, it is conduct in executeLaterVel()
+	 */
 	double executeLaneChanging(DriverUpdateParams& p);
-	double executionLC(LANE_CHANGE_SIDE& change);
+	int isReadyForNextDLC(DriverUpdateParams& p,int mode);
+
+	double minTimeInLaneSameDir;
+	double getDlcMinTimeInLaneSameDir() { return minTimeInLaneSameDir; }
+	double minTimeInLaneDiffDir;
+	double getDlcMinTimeInLaneDiffDir() { return minTimeInLaneDiffDir; }
+//	double executionLC(LANE_CHANGE_SIDE& change);
+	/**
+	 *  /return lateral velocity (m/s)
+	 */
+	virtual double executeLaterVel(LANE_CHANGE_SIDE& change);
 	/**
 	 *  /brief this function gives the LC direction when the driver is
 	 *         constrained by the lookahead
@@ -147,10 +169,46 @@ public:
 	 */
 	bool path(DriverUpdateParams& p);
 	// TODO: add incident code
-	virtual bool checkIfLookAheadEvents(DriverUpdateParams& p);
+	virtual int checkIfLookAheadEvents(DriverUpdateParams& p);
+
+	/**
+	 * 	/brief set dis2stop
+	 * 	 -1 = bad event and requires a mandatory lane change
+	 * 	  0 = nothing serious
+	 * 	  1 = bad event and requires a discretionary lane change
+	 */
+	int isThereBadEventAhead(DriverUpdateParams& p);
+
+	/**
+	 *  /brief check lane drop,set dis2stop
+	 *  /targetLanes target lanes, if require mlc or dlc
+	 *  /return
+	 *   0 = nothing serious
+	 * 	 -1 = requires a mandatory lane change
+	 */
+	int isThereLaneDrop(DriverUpdateParams& p,set<const Lane*>& targetLanes);
+
+	/**
+	 *  /brief check if lane connect to next segment,set dis2stop
+	 *   0 = nothing serious
+	 * 	 -1 = requires a mandatory lane change
+	 */
+	int isLaneConnectToNextSegment(DriverUpdateParams& p,set<const Lane*>& targetLanes);
+
 	// TODO: add incident code
 	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p);
 	double lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance);
+	double LCUtilityLeft(DriverUpdateParams& p);
+
+	/**
+	 *  /brief find number of lane changes to end of the link
+	 *         current simmobility most right lane always connector to last segment of link
+	 *   -n = number of lane changes to right required
+	 *	 0  = this lane is fine
+	 *	 +n = number of lane changes to left requied
+	 */
+	int isWrongLane(DriverUpdateParams& p,const Lane* lane);
+
 	double lcUtilityLookAheadRight(DriverUpdateParams& p,int n, float LCdistance);
 	double lcUtilityLookAheadCurrent(DriverUpdateParams& p,int n, float LCdistance);
 	double lcCriticalGap(sim_mob::DriverUpdateParams& p, int type,double dv);

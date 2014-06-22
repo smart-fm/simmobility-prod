@@ -432,9 +432,11 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 //		params.overflowIntoIntersection = linkDrivingNew(params);
 		if(params.cftimer < 0)
 		{
+			// make lc decision and check if can do lc
 			calcVehicleStates(params);
 //			params.cftimer = cfModel->calcNextStepSize(params);
 		}
+		// perform lc ,if status is STATUS_LC_CHANGING
 		params.overflowIntoIntersection = move(params);
 		//Did our last move forward bring us into an intersection?
 		if (fwdDriverMovement.isInIntersection()) {
@@ -550,6 +552,8 @@ bool sim_mob::DriverMovement::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
 }
 void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 {
+	// TODO: if STATUS_LC_CHANGING ,means "perform lane changing",just return
+
 	if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->startTime > 10) &&  (fwdDriverMovement.getCurrDistAlongRoadSegmentCM()>2000) && (parentDriver->isAleadyStarted == false))
 	{
 	parentDriver->isAleadyStarted = true;
@@ -576,16 +580,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 			p.dis2stop = DEFAULT_DIS_TO_STOP;//defalut 1000m
 	}
 
-	LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
-	parentDriver->vehicle->setTurningDirection(lcs);
 
-	 if (p.getStatus() & STATUS_CHANGING) {
-		    lcModel->executeLaneChanging(p);
-
-		if ( p.flag(FLAG_LC_FAILED) ) {
-		    lcModel->chooseTargetGap(p);
-		}
-	  }
 
 	//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
 	//if making lane changing, adjacent car need to be taken into account.
@@ -605,6 +600,21 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 
 	perceivedDataProcess(nv, p);
 
+	// make lc decision
+	LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
+//	parentDriver->vehicle->setTurningDirection(lcs);
+
+
+	if (p.getStatus() & STATUS_CHANGING) {
+		// if need change lane, check left,right gap to do lane change or to do nosing
+		lcModel->executeLaneChanging(p);
+
+		// if left,right gap not ok, choose ADJACENT ,BACKWARD, FORWARD gap
+		if ( p.flag(FLAG_LC_FAILED) ) {
+			lcModel->chooseTargetGap(p);
+		}
+	}//end if STATUS_CHANGING
+
 	//Convert back to m/s
 	//TODO: Is this always m/s? We should rename the variable then...
 	p.currSpeed = parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT_UNIT;
@@ -617,11 +627,66 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 }
 double sim_mob::DriverMovement::move(DriverUpdateParams& p)
 {
-	double newLatVel;
-	// check if in the middle of lane change, so make lateral movement
-	newLatVel = lcModel->executeLaneChanging(p);
+	double newLatVel = 0.0; // m/s
+	LANE_CHANGE_SIDE lcs;
+	if( p.getStatus(STATUS_LC_RIGHT) )
+	{
+		lcs = LCS_RIGHT;
+	}
+	else if( p.getStatus(STATUS_LC_LEFT) )
+	{
+		lcs = LCS_LEFT;
+	}
+	else
+	{
+		//seems no lc happen
+		lcs = LCS_SAME;
+	}
+
+	newLatVel = lcModel->executeLaterVel(lcs);
+
+	parentDriver->vehicle->setTurningDirection(lcs);
+	parentDriver->vehicle->setLatVelocity(newLatVel * METER_TO_CENTIMETER_CONVERT_UNIT);
+
+//	// check if in the middle of lane change, so make lateral movement
+//	newLatVel = lcModel->executeLaneChanging(p);
+
+	//TODO check set lat vel?
 
 	double acc = p.newFwdAcc;
+
+	    if (parentDriver->parent->GetId()==0 & parentDriver->getParams().now.frame()>=200 & parentDriver->vehicle->stoppedtimecounter <= 100)
+	    {
+
+	        if (parentDriver->vehicle->getVelocity() > 1.5)
+	        {
+
+	            parentDriver->vehicle->stoppedtimecounter =0;
+
+	            acc = -3;
+	        }
+	        else if ( parentDriver->vehicle->getVelocity() <= 1.5)
+	        {
+
+	            parentDriver->vehicle->stoppedtimecounter +=1;
+
+	            acc=0;
+	        }
+	    }
+	    if (parentDriver->parent->GetId()==1)
+	    {
+	    	p.nvFwd;
+	    }
+
+	    //Test for Car 1
+
+
+	//double acc = p.newFwdAcc;
+
+
+
+
+
 	//Update our chosen acceleration; update our position on the link.
 	parentDriver->vehicle->setAcceleration(acc * METER_TO_CENTIMETER_CONVERT_UNIT);
 
@@ -1039,8 +1104,16 @@ if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->
 	p.currSpeed = parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT_UNIT;
 	//Call our model
 
+	if(parent->getId() == 0 && parentDriver->getParams().now.frame()>=200 && parentDriver->getParams().now.frame()<=300) {
+
+		newFwdAcc = -3;
+	}
+
+	else {
 
 	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
+
+	}
 	if(abs(parentDriver->vehicle->getTurningDirection() != LCS_SAME) && newFwdAcc>0 && parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT_UNIT>10)
 	{
 		newFwdAcc = 0;
@@ -1498,7 +1571,6 @@ void sim_mob::DriverMovement::updateAdjacentLanes(DriverUpdateParams& p) {
 				p.leftLane2 = temp;
 		}
 	}
-
 //General update information for whenever a Segment may have changed.
 void sim_mob::DriverMovement::syncCurrLaneCachedInfo(DriverUpdateParams& p) {
 	//The lane may have changed; reset the current lane index.
@@ -1904,11 +1976,12 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 
 	//when v_lead and a_lead is 0, space is not negative, the Car Following will generate an acceleration based on free flowing model
 	//this causes problem, so i manually set acceleration and velocity to 0
-	if (parentDriver->vehicle->getVelocity() < 0 ||(p.space<1&&p.v_lead==0&&p.a_lead==0)) {
+	// NOTE: Not necessary with new Mitsim driving behavior model
+	//if (parentDriver->vehicle->getVelocity() < 0 ||(p.space<1&&p.v_lead==0&&p.a_lead==0)) {
 		//Set to 0 forward velocity, no acceleration.
-		parentDriver->vehicle->setVelocity(0.0);
-		parentDriver->vehicle->setAcceleration(0);
-	}
+		//parentDriver->vehicle->setVelocity(0.0);
+		//parentDriver->vehicle->setAcceleration(0);
+	//}
 
 	//Move the vehicle forward.
 	double res = 0.0;
@@ -2518,7 +2591,10 @@ NearestVehicle & sim_mob::DriverMovement::nearestVehicle(DriverUpdateParams& p)
 	}
 //	if (p.nvFwd.exists())
 //		std::cout<<"nearestVehicle: forward"<<std::endl;
+	else
+	{
 	return p.nvFwd;
+	}
 }
 
 void sim_mob::DriverMovement::intersectionVelocityUpdate() {
@@ -2566,7 +2642,10 @@ void sim_mob::DriverMovement::updatePositionDuringLaneChange(DriverUpdateParams&
 	double halfLaneWidth = p.currLane->getWidth() / 2.0;
 
 	//The direction we are attempting to change lanes in
-	LANE_CHANGE_SIDE actual = parentDriver->vehicle->getTurningDirection();
+	// CLA temporary fix: Shutting down lane change, for reaction time testing
+	//LANE_CHANGE_SIDE actual = parentDriver->vehicle->getTurningDirection();
+	LANE_CHANGE_SIDE actual = LCS_SAME;
+	// End of temporary fix
 	//LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
 	if (actual == LCS_SAME && relative == LCS_SAME) {
 		if (Debug::Drivers) {
@@ -2644,6 +2723,8 @@ void sim_mob::DriverMovement::updatePositionDuringLaneChange(DriverUpdateParams&
 				p.unsetFlag(FLAG_PREV_LC_RIGHT);
 			}
 			p.unsetStatus(STATUS_CHANGING);
+			// lane change complete, unset the "performing lane change" status
+			p.unsetStatus(STATUS_LC_CHANGING);
 			p.unsetStatus(STATUS_MANDATORY); // Angus
 			p.unsetFlag(FLAG_NOSING | FLAG_YIELDING | FLAG_LC_FAILED);
 			p.unsetFlag(FLAG_VMS_LANE_USE_BITS | FLAG_ESCAPE | FLAG_AVOID);

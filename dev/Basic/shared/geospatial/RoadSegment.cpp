@@ -58,7 +58,7 @@ const sim_mob::Lane* sim_mob::RoadSegment::getLane(int laneID) const
 	}
 	return lanes[laneID];
 }
-size_t sim_mob::RoadSegment::getLanesSize(bool isIncludePedestrianLane)
+size_t sim_mob::RoadSegment::getLanesSize(bool isIncludePedestrianLane) const
 {
 	if(isIncludePedestrianLane)
 	{

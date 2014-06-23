@@ -609,8 +609,8 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 				infCount += (*it)->getNumRemainingInLaneInfinity();
 			}
 			if(managedConfluxes.size() > 0) {
-//				Print() << "Worker::outputSupplyStats Time: "<< currTime.ms()
-//					<< "\tnumInLanes: "<< (total - infCount - vqCount) << "\tnumInLaneInf: "<< infCount << "\tvqCount: " << vqCount << std::endl;
+				Print() << "Worker::outputSupplyStats Time: "<< currTime.ms()
+					<< "\tnumInLanes: "<< (total - infCount - vqCount) << "\tnumInLaneInf: "<< infCount << "\tvqCount: " << vqCount << std::endl;
 			}
 		}
 		else {

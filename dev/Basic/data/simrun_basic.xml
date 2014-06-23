@@ -449,6 +449,7 @@
             <timeInterval value="7"/>
             <numberOfHouseholds value="-1"/>
 	        <numberOfUnits	value="-1"/>
+	        <numberOfVacantUnits value="181317"/>
         </housingModel>
     </longTermParams>  
     

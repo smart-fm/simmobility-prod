@@ -55,6 +55,7 @@ struct LongTermParams{
 		unsigned int timeOnMarket;
 		int numberOfUnits;
 		int numberOfHouseholds;
+		int numberOfVacantUnits;
 	} housingModel;
 };
 

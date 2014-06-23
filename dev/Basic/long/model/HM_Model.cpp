@@ -106,6 +106,9 @@ const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const 
 }
 
 void HM_Model::startImpl() {
+
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
     // Loads necessary data from database.
     DB_Config dbConfig(LT_DB_CONFIG_FILE);
     dbConfig.load();
@@ -117,9 +120,6 @@ void HM_Model::startImpl() {
         loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
         //Load units
         loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
-
-
-        ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
        //Simmobility Test Params
        const int numHouseholds = config.ltParams.housingModel.numberOfHouseholds;
@@ -155,6 +155,8 @@ void HM_Model::startImpl() {
 
     boost::unordered_map<BigSerial, BigSerial> assignedUnits;
 
+    int homelessHousehold = 0;
+
     // Assign households to the units.
     for (HouseholdList::const_iterator it = households.begin();
             it != households.end(); it++) {
@@ -166,6 +168,11 @@ void HM_Model::startImpl() {
             hhAgent->addUnitId(unit->getId());
             assignedUnits.insert(std::make_pair(unit->getId(), unit->getId()));
         }
+        else
+        {
+        	homelessHousehold++;
+        }
+
         BigSerial tazId = getUnitTazId(household->getUnitId());
         if (tazId != INVALID_ID){
             const HM_Model::TazStats* tazStats = 
@@ -186,6 +193,26 @@ void HM_Model::startImpl() {
         workGroup.assignAWorker(hhAgent);
     }
 
+    PrintOut("There are " << homelessHousehold << " homeless households" << std::endl );
+
+    const int numVacantUnits = config.ltParams.housingModel.numberOfVacantUnits;
+
+    for(int n = 0, m = 0; n < numVacantUnits; )
+    {
+		for (UnitList::const_iterator it = units.begin() + m; it != units.end(); it++)
+		{
+			//this unit is a vacancy
+			if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
+			{
+				units.erase( units.begin() + m );
+				n++;
+				break;
+			}
+
+			m++;
+		}
+    }
+
     unsigned int vacancies = 0;
     //assign vacancies to fake seller
     for (UnitList::const_iterator it = units.begin(); it != units.end(); it++) {
@@ -195,6 +222,9 @@ void HM_Model::startImpl() {
             vacancies++;
         }
     }
+
+    PrintOut("Initial Vacancies: " << vacancies << std::endl );
+
     addMetadata("Initial Units", units.size());
     addMetadata("Initial Households", households.size());
     addMetadata("Initial Vacancies", vacancies);

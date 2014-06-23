@@ -72,6 +72,7 @@
                 		<!-- variables to calibrate -->
                 		<!-- expected csv format: variable_name,lua_file_name,initial_value,lower_limit,upper_limit -->
                         <variables file="data/medium/preday_calibration_variables.csv"/>
+                        <observed_statistics file="data/medium/preday_observed_HITS08_statistics.csv"/>
                         <spsa>
                         		<!-- max number of iterations that spsa must run for -->
                                 <iterations value="500"/>

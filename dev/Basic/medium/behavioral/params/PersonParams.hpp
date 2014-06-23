@@ -301,6 +301,16 @@ public:
 		this->studentTypeId = studentTypeId;
 	}
 
+	double getHouseholdFactor() const
+	{
+		return householdFactor;
+	}
+
+	void setHouseholdFactor(double householdFactor)
+	{
+		this->householdFactor = householdFactor;
+	}
+
 private:
 	void initTimeWindows();
 
@@ -326,6 +336,7 @@ private:
 	int hhOnlyWorkers;
 	int hhNumUnder4;
 	int hasUnder15;
+	double householdFactor;
 
 	double workLogSum;
 	double eduLogSum;

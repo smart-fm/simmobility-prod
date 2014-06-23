@@ -4,12 +4,18 @@
 
 #pragma once
 #include <cstdlib>
+#include <string>
 #include <vector>
 
 namespace sim_mob
 {
 namespace medium
 {
+/**
+ * class to track the statistics needed for calibration
+ *
+ * \author Harish Loganathan
+ */
 class CalibrationStatistics
 {
 private:
@@ -19,24 +25,35 @@ private:
 	 * Spoken semantics apply.
 	 * e.g. numPersonsWithTourCount[3] is the number of persons who have 3 tours.
 	 */
-	std::vector<unsigned> numPersonsWithTourCount;
+	std::vector<double> numPersonsWithTourCount;
 
 	/**
-	 * vector to track the number of persons making different number of stops
+	 * vector to track the number of tours with different number of stops
 	 * Spoken semantics apply.
-	 * e.g. numPersonsWithStopCount[5] is the number of persons who make 5 stops all together
+	 * e.g. numToursWithStopCount[3] is the number of tours with 3 stops
+	 *      numToursWithStopCount[4] is the number of tours with 4+ stops
 	 */
-	std::vector<unsigned> numPersonsWithStopCount;
+	std::vector<double> numToursWithStopCount;
 
 	/**
-	 * mode share statistics
+	 * mode share statistics for trips
 	 * Lookup:
 	 * -- 0 for public bus; 1 for MRT/LRT; 2 for private bus; 3 for drive1;
-	 * -- 4 for shared2; 5 for shared3+; 6 for motor; 7 for walk; 8 for taxi
+	 * -- 4 for car passenger; 5 for motor; 6 for taxi
 	 *
-	 * e.g. numTripsWithMode[5] is the number of trips with shared 2 as mode
+	 * e.g. numTripsWithMode[5] is the number of trips with motor
 	 */
-	std::vector<unsigned> numTripsWithMode;
+	std::vector<double> numTripsWithMode;
+
+	/**
+	 * mode share statistics for tours
+	 * Lookup:
+	 * -- 0 for public bus; 1 for MRT/LRT; 2 for private bus; 3 for drive1;
+	 * -- 4 for car passenger; 5 for motor; 6 for taxi
+	 *
+	 * e.g. numToursWithMode[5] is the number of tours with motor bike as its primary mode
+	 */
+	std::vector<double> numToursWithMode;
 
 	/**
 	 * trip distance statistics
@@ -46,49 +63,78 @@ private:
 	 *
 	 * e.g. numTripsWithDistance[1] is the number of trips with travel distance in range [5,10)
 	 */
-	std::vector<unsigned> numTripsWithDistance;
+	std::vector<double> numTripsWithDistance;
 
 public:
 	CalibrationStatistics();
+	CalibrationStatistics(const std::string& observedValuesCSV_FileName);
 	virtual ~CalibrationStatistics();
+
+	/**
+	 * resets all vectors in this class
+	 */
+	void reset();
 
 	/**
 	 * concatenates all statistics into outStatistics
 	 * @param outStatistics vector to be populated with all statistics
 	 */
-	void getAllStatistics(std::vector<unsigned>& outStatistics);
+	void getAllStatistics(std::vector<double>& outStatistics);
 
 	/**
-	 * adds 1 to the current number of persons with 'numTours' tours
+	 * adds to the current number of persons with 'numTours' tours
 	 * @param numTours number of tours to add to
+	 * @param toAdd the number to add to corresponding statistic
 	 * @return true if addition was successful; false otherwise
 	 */
-	bool addPersonToTourCountStats(size_t numTours);
+	bool addToTourCountStats(size_t numTours, double toAdd);
 
 	/**
-	 * adds 1 to the current number of persons with 'numStops' stops
+	 * adds to the current number of tours with 'numStops' stops
 	 * @param numStops number of stops to add to
+	 * @param toAdd the number to add to corresponding statistic
 	 * @return true if addition was successful; false otherwise
 	 */
-	bool addPersonToStopCountStats(size_t numStops);
+	bool addToStopCountStats(size_t numStops, double toAdd);
 
 	/**
-	 * adds 1 to the current number of trips with 'mode' as mode.
+	 * adds to the current number of trips with 'mode' as mode.
 	 * Expected modes: [1,9] as used by the preday models
 	 * -- 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
 	 * -- 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
 	 *
-	 * @param mode the mode in [0,8] to add to
+	 * @param mode the mode in [1,9] to add to
+	 * @param toAdd the number to add to corresponding statistic
 	 * @return true if addition was successful; false otherwise
 	 */
-	bool addTripToModeShareStats(size_t mode);
+	bool addToTripModeShareStats(int mode, double toAdd);
 
 	/**
-	 * adds 1 to the current number of trips with 'mode' as mode.
-	 * @param mode the mode to add to
+	 * adds to the current number of tours with 'mode' as primary mode.
+	 * Expected modes: [1,9] as used by the preday models
+	 * -- 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
+	 * -- 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
+	 *
+	 * @param mode the mode in [1,9] to add to
+	 * @param toAdd the number to add to corresponding statistic
 	 * @return true if addition was successful; false otherwise
 	 */
-	bool addTripToTravelDistanceStats(double distance);
+	bool addToTourModeShareStats(int mode, double toAdd);
+
+	/**
+	 * adds to the current number of trips with 'mode' as mode.
+	 * @param mode the mode to add to
+	 * @param toAdd the number to add to corresponding statistic
+	 * @return true if addition was successful; false otherwise
+	 */
+	bool addToTravelDistanceStats(double distance, double toAdd);
+
+	/**
+	 * Adds corresponding values in all vectors of rightOperand to this
+	 * @param rightOperand the right operand of addition (*this* is left)
+	 * @return
+	 */
+	CalibrationStatistics& operator+(const CalibrationStatistics& rightOperand);
 };
 }
 }

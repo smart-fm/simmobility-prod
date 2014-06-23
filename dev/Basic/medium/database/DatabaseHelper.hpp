@@ -119,6 +119,7 @@ namespace medium {
 	 */
 	const std::string MONGO_FIELD_ID = "_id";
 	const std::string MONGO_FIELD_HOUSEHOLD_ID = "hhid";
+	const std::string MONGO_FIELD_HH_FACTOR = "hhfactor";
 	const std::string MONGO_FIELD_INCOME_ID = "income_id";
 	const std::string MONGO_FIELD_PERSON_TYPE_ID = "person_type_id";
 	const std::string MONGO_FIELD_AGE_CATEGORY_ID = "age_id";

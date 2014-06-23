@@ -7,6 +7,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <string>
+#include "behavioral/CalibrationStatistics.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/XmlParseHelper.hpp"
 
@@ -171,9 +172,14 @@ void sim_mob::ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement
 	if(mtCfg.runningPredayCalibration())
 	{
 		PredayCalibrationParams predayCalibrationParams;
+
 		//get name of csv listing variables to calibrate
 		DOMElement* variablesNode = GetSingleElementByName(node, "variables", true);
 		predayCalibrationParams.setCalibrationVariablesFile(ParseString(GetNamedAttributeValue(variablesNode, "file"), ""));
+
+		//get name of csv listing observed statistics
+		DOMElement* observedStatsNode = GetSingleElementByName(node, "observed_statistics", true);
+		predayCalibrationParams.setObservedStatisticsFile(ParseString(GetNamedAttributeValue(observedStatsNode, "file"), ""));
 
 		DOMElement* spsaNode = GetSingleElementByName(node, "spsa", true);
 		DOMElement* childNode = nullptr;

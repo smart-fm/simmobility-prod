@@ -137,7 +137,7 @@ void computeAntiGradientVector(const std::vector<double>& gradientVector, std::v
 template<typename V>
 void multiplyScalarWithVector(double scalarLhs, const std::vector<V>& vectorRhs, std::vector<double>& output)
 {
-	for(std::vector<V>::iterator vIt=vectorRhs.begin(); vIt!=vectorRhs.end(); vIt++)
+	for(typename std::vector<V>::const_iterator vIt=vectorRhs.begin(); vIt!=vectorRhs.end(); vIt++)
 	{
 		double result = (*vIt) * scalarLhs;
 		output.push_back(result);
@@ -187,6 +187,9 @@ void updateVariablesInLuaFiles(const std::string& scriptFilesPath, const std::ve
 	}
 }
 
+//initialize once and use multiple times
+std::vector<double> observedHITS_Stats;
+
 double computeSumOfDifferenceSquared(const std::vector<double>& observed, const std::vector<double>& simulated)
 {
 	if(observed.size() != simulated.size()) { throw std::runtime_error("size mis-match between observed and simulated values");	}
@@ -199,7 +202,20 @@ double computeSumOfDifferenceSquared(const std::vector<double>& observed, const 
 	return objFnVal;
 }
 
+void aggregateStatistics(const std::vector<CalibrationStatistics>& calStatsVect, CalibrationStatistics& aggregate)
+{
+	for(std::vector<CalibrationStatistics>::const_iterator csIt=calStatsVect.begin();
+			csIt!=calStatsVect.end(); csIt++)
+	{
+		aggregate = aggregate + (*csIt);
+	}
+}
+
 } //end anonymous namespace
+
+sim_mob::medium::PredayManager::PredayManager()
+{
+}
 
 sim_mob::medium::PredayManager::~PredayManager() {
 	Print() << "Clearing Person List" << std::endl;
@@ -399,6 +415,9 @@ void sim_mob::medium::PredayManager::distributeAndProcessPersons() {
 		else if(mtConfig.runningPredayLogsumComputation()) {
 			computeLogsums(personList.begin(), personList.end());
 		}
+		else if(mtConfig.runningPredayCalibration()) {
+			processPersonsForCalibration(personList.begin(), personList.end(), simulatedStatsVector[0]);
+		}
 	}
 	else {
 		PersonList::size_type numPersons = personList.size();
@@ -424,6 +443,10 @@ void sim_mob::medium::PredayManager::distributeAndProcessPersons() {
 			else if(mtConfig.runningPredayLogsumComputation()) {
 				threadGroup.create_thread( boost::bind(&PredayManager::computeLogsums, this, first, last) );
 			}
+			else if(mtConfig.runningPredayCalibration()) {
+				threadGroup.create_thread( boost::bind(&PredayManager::processPersonsForCalibration, this, first, last, simulatedStatsVector[i-1]) );
+			}
+
 			first = last;
 			if(i+1 == numWorkers) {
 				// if the next iteration is the last take all remaining persons
@@ -447,8 +470,12 @@ void sim_mob::medium::PredayManager::calibratePreday()
 	unsigned numWorkers = mtConfig.getNumPredayThreads();
 	loadCalibrationVariables();
 
-	MT_Config& mtConfig = MT_Config::getInstance();
 	const PredayCalibrationParams& predayParams = mtConfig.getPredayCalibrationParams();
+	{
+		CalibrationStatistics observedStats(predayParams.getObservedStatisticsFile());
+		observedStats.getAllStatistics(observedHITS_Stats); // store a local copy for future use
+	} //scope out observedStats
+	simulatedStatsVector = std::vector<CalibrationStatistics>(mtConfig.getNumPredayThreads());
 	unsigned iterationLimit = predayParams.getIterationLimit();
 	bool consoleOutput = mtConfig.isConsoleOutput();
 	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
@@ -482,7 +509,7 @@ void sim_mob::medium::PredayManager::calibratePreday()
 		computeAntiGradientVector(gradientVector, antiGradientVector);
 
 		// 4. compute step size
-		stepSize = predayParams.getInitialStepSize() / std::pow((1+k+predayParams.getStabilityConstant()), predayParams.getAlgorithmCoefficient1());
+		stepSize = predayParams.getInitialStepSize() / std::pow((predayParams.getInitialStepSize()+k+predayParams.getStabilityConstant()), predayParams.getAlgorithmCoefficient1());
 
 		// 5. update the variables being calibrated and compute objective function
 		std::vector<double> scaledAntiGradientVector;
@@ -539,17 +566,16 @@ void sim_mob::medium::PredayManager::loadCalibrationVariables()
 	}
 }
 
-void sim_mob::medium::PredayManager::processPersonsForCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt)
+void sim_mob::medium::PredayManager::processPersonsForCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, CalibrationStatistics& simStats)
 {
 	MT_Config& mtConfig = MT_Config::getInstance();
 	bool consoleOutput = mtConfig.isConsoleOutput();
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
 		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
 		predaySystem.planDay();
-		//TODO: Write code for computing statistics here. Keep in mind, this is threaded function
+		predaySystem.updateStatistics(simStats);
 		if(consoleOutput) { predaySystem.printLogs(); }
 	}
-	objectiveFunctionValues.push_back(computeSumOfDifferenceSquared());
 }
 
 void sim_mob::medium::PredayManager::computeGradientsUsingSPSA(const std::vector<short>& randomVector, double perturbationStepSize,
@@ -657,5 +683,11 @@ void sim_mob::medium::PredayManager::computeLogsums(PersonList::iterator firstPe
 double sim_mob::medium::PredayManager::computeObjectiveFunction(const std::vector<CalibrationVariable>& calVarList)
 {
 	updateVariablesInLuaFiles(MT_Config::getInstance().getModelScriptsMap().getPath(), calVarList);
-	//......
+	std::for_each(simulatedStatsVector.begin(), simulatedStatsVector.end(), std::mem_fun_ref(&CalibrationStatistics::reset));
+	distributeAndProcessPersons();
+	std::vector<double> simulatedHITS_Stats;
+	CalibrationStatistics simulatedStats;
+	aggregateStatistics(simulatedStatsVector, simulatedStats);
+	simulatedStats.getAllStatistics(simulatedHITS_Stats);
+	return computeSumOfDifferenceSquared(observedHITS_Stats, simulatedHITS_Stats);
 }

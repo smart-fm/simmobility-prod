@@ -13,6 +13,7 @@
 #include <boost/unordered_map.hpp>
 #include <vector>
 #include "behavioral/PredaySystem.hpp"
+#include "CalibrationStatistics.hpp"
 #include "params/PersonParams.hpp"
 #include "params/ZoneCostParams.hpp"
 #include "database/DB_Connection.hpp"
@@ -101,6 +102,7 @@ private:
 class PredayManager {
 public:
 
+	PredayManager();
 	virtual ~PredayManager();
 
 	/**
@@ -170,8 +172,9 @@ private:
 	 * 				processed
 	 * @param last personList iterator corresponding to the person after the
 	 * 				last person to be processed
+	 * @param simStats the object to collect statistics into
 	 */
-	void processPersonsForCalibration(PersonList::iterator first, PersonList::iterator last);
+	void processPersonsForCalibration(PersonList::iterator first, PersonList::iterator last, CalibrationStatistics& simStats);
 
 	/**
 	 * Threaded logsum computation
@@ -226,6 +229,12 @@ private:
      * objectiveFunctionValue[i] is the objective function value for iteration i
      */
     std::vector<double> objectiveFunctionValues;
+
+    /**
+     * Calibration statistics collector for each thread
+     * simulatedStats[4] is the statistics from the 5th thread which pr
+     */
+    std::vector<CalibrationStatistics> simulatedStatsVector;
 };
 } //end namespace medium
 } //end namespace sim_mob

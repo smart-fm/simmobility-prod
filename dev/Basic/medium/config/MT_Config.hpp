@@ -11,8 +11,8 @@
 #include <string>
 #include <map>
 #include <vector>
-
 #include "util/ProtectedCopyable.hpp"
+
 namespace sim_mob
 {
 namespace medium
@@ -166,6 +166,16 @@ public:
 		this->tolerance = tolerance;
 	}
 
+	const std::string& getObservedStatisticsFile() const
+	{
+		return observedStatisticsFile;
+	}
+
+	void setObservedStatisticsFile(const std::string& observedStatisticsFile)
+	{
+		this->observedStatisticsFile = observedStatisticsFile;
+	}
+
 private:
 	/**path and file name of csv containing variables to calibrate*/
 	std::string calibrationVariablesFile;
@@ -176,6 +186,7 @@ private:
 	double initialStepSize;
 	double stabilityConstant;
 	double algorithmCoefficient1;
+	std::string observedStatisticsFile;
 };
 
 class MT_Config : private sim_mob::ProtectedCopyable

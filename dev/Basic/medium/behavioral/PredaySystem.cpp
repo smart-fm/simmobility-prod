@@ -495,8 +495,8 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 		throw std::runtime_error("predictStopTimeOfDay()::nullptr was passed for stop");
 	}
 	StopTimeOfDayParams stodParams(stop->getStopTypeID(), isBeforePrimary);
-	double origin = stop->getStopLocation();
-	double destination = personParams.getHomeLocation();
+	int origin = stop->getStopLocation();
+	int destination = personParams.getHomeLocation();
 
 	if(origin != destination) {
 		BSONObj bsonObjTT = BSON("origin" << origin << "destination" << destination);
@@ -1343,4 +1343,30 @@ void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(ZoneNodeMap& zo
 void sim_mob::medium::PredaySystem::printLogs()
 {
 	Print() << logStream.str();
+}
+
+void sim_mob::medium::PredaySystem::updateStatistics(CalibrationStatistics& statsCollector) const
+{
+	double householdFactor = personParams.getHouseholdFactor();
+	statsCollector.addToTourCountStats(tours.size(), householdFactor);
+	for(TourList::const_iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++)
+	{
+		const Tour* tour = (*tourIt);
+		statsCollector.addToStopCountStats(tour->stops.size(), householdFactor);
+		statsCollector.addToTourModeShareStats(tour->getTourMode(), householdFactor);
+		const StopList& stops = tour->stops;
+		int origin = personParams.getHomeLocation();
+		int destination = 0;
+		for(StopList::const_iterator stopIt=stops.begin(); stopIt!=stops.end(); stopIt++)
+		{
+			const Stop* stop = (*stopIt);
+			statsCollector.addToTripModeShareStats(stop->getStopMode(), householdFactor);
+			destination = stop->getStopLocation();
+			statsCollector.addToTravelDistanceStats(opCostMap.at(origin).at(destination)->getDistance(), householdFactor);
+			origin = destination;
+		}
+		//There is still one more trip from last stop to home
+		destination = personParams.getHomeLocation();
+		statsCollector.addToTravelDistanceStats(opCostMap.at(origin).at(destination)->getDistance(), householdFactor);
+	}
 }

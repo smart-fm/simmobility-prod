@@ -12,6 +12,7 @@
 #include <boost/unordered_map.hpp>
 
 #include "behavioral/lua/PredayLuaProvider.hpp"
+#include "CalibrationStatistics.hpp"
 #include "params/PersonParams.hpp"
 #include "PredayClasses.hpp"
 #include "database/PopulationSqlDao.hpp"
@@ -252,6 +253,12 @@ public:
 	 * Prints logs for person in console
 	 */
 	void printLogs();
+
+	/**
+	 * updates statsCollector with the stats for this person
+	 * @param statsCollector statistics collector to be updated
+	 */
+	void updateStatistics(CalibrationStatistics& statsCollector) const;
 };
 
 } // end namespace medium

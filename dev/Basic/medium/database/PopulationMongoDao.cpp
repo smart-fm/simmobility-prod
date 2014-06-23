@@ -46,6 +46,7 @@ void PopulationMongoDao::fromRow(mongo::BSONObj document, PersonParams& outParam
    	outParam.setEduLogSum(document.getField(MONGO_FIELD_EDU_LOGSUM).Number());
    	outParam.setShopLogSum(document.getField(MONGO_FIELD_SHOP_LOGSUM).Number());
    	outParam.setOtherLogSum(document.getField(MONGO_FIELD_OTHER_LOGSUM).Number());
+   	outParam.setHouseholdFactor(document.getField(MONGO_FIELD_HH_FACTOR).Number());
 }
 
 

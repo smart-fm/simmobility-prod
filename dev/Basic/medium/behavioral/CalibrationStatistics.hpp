@@ -36,7 +36,7 @@ private:
 	std::vector<double> numToursWithStopCount;
 
 	/**
-	 * mode share statistics for trips
+	 * mode share count for trips
 	 * Lookup:
 	 * -- 0 for public bus; 1 for MRT/LRT; 2 for private bus; 3 for drive1;
 	 * -- 4 for car passenger; 5 for motor; 6 for taxi
@@ -56,6 +56,26 @@ private:
 	std::vector<double> numToursWithMode;
 
 	/**
+	 * mode share percentage for trips
+	 * Lookup:
+	 * -- 0 for public bus; 1 for MRT/LRT; 2 for private bus; 3 for drive1;
+	 * -- 4 for car passenger; 5 for motor; 6 for taxi
+	 *
+	 * e.g. tripPctWithMode[5] is the number of trips with motor
+	 */
+	std::vector<double> tripPctWithMode;
+
+	/**
+	 * mode share percentage for tours
+	 * Lookup:
+	 * -- 0 for public bus; 1 for MRT/LRT; 2 for private bus; 3 for drive1;
+	 * -- 4 for car passenger; 5 for motor; 6 for taxi
+	 *
+	 * e.g. tourPctWithMode[5] is the number of tours with motor bike as its primary mode
+	 */
+	std::vector<double> tourPctWithMode;
+
+	/**
 	 * trip distance statistics
 	 * Lookup:
 	 * -- 0 [0,5) km; 1 [5,10) km; 2 [10,15) km; 3 [15,20) km; 4 [20,25) km; 5 [25,30) km;
@@ -64,6 +84,40 @@ private:
 	 * e.g. numTripsWithDistance[1] is the number of trips with travel distance in range [5,10)
 	 */
 	std::vector<double> numTripsWithDistance;
+
+	/**total number of trips*/
+	double totalTrips;
+
+	/**total number of tours*/
+	double totalTours;
+
+	/**flag to indicate if the collected statistics are observed or simulated */
+	bool isSimulated;
+
+	/**
+	 * sets percentage of trips with 'mode' as mode.
+	 * Lookup:
+	 * -- 0 for public bus; 1 for MRT/LRT; 2 for private bus; 3 for drive1;
+	 * -- 4 for car passenger; 5 for motor; 6 for taxi
+	 *
+	 * @param mode the mode in [0,6] to set
+	 * @param toAdd the number to add to corresponding statistic
+	 * @return true if addition was successful; false otherwise
+	 */
+	bool setTripModeSharePct(size_t mode, double toAdd);
+
+	/**
+	 * sets percentage of tours with 'mode' as primary mode.
+	 * Expected modes: [1,9] as used by the preday models
+	 * Lookup:
+	 * -- 0 for public bus; 1 for MRT/LRT; 2 for private bus; 3 for drive1;
+	 * -- 4 for car passenger; 5 for motor; 6 for taxi
+	 *
+	 * @param mode the mode in [0,6] to set
+	 * @param toAdd the number to add to corresponding statistic
+	 * @return true if addition was successful; false otherwise
+	 */
+	bool setTourModeSharePct(size_t mode, double toAdd);
 
 public:
 	CalibrationStatistics();

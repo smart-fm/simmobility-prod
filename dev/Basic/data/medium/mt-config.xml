@@ -72,8 +72,11 @@
                 		<!-- variables to calibrate -->
                 		<!-- expected csv format: variable_name,lua_file_name,initial_value,lower_limit,upper_limit -->
                         <variables file="data/medium/preday_calibration_variables.csv"/>
+                        <!--csv providing the observed values for the statistics to compute-->
                         <observed_statistics file="data/medium/preday_observed_HITS08_statistics.csv"/>
-                        <spsa>
+                        <!-- which calibration technique to use: SPSA/WSPSA -->
+                        <calibration_technique value="WSPSA"/>
+                        <SPSA>
                         		<!-- max number of iterations that spsa must run for -->
                                 <iterations value="500"/>
                                 <!-- termination condition for spsa is (F(X_k+1) - F(X_k) <= tolerance ) where F(X) is the objective function -->
@@ -82,7 +85,19 @@
                                 <gradient_step_size initial_value="0.1" algorithm_coefficient2="0.101"/>
                                 <!-- step size for iteration k is given by a_k = a / ((1+k)^alpha) -->
                                 <step_size initial_value="0.16" stability_constant="100" algorithm_coefficient1="0.602"/>
-                        </spsa>
+                        </SPSA>
+                        <WSPSA>
+                        		<!-- max number of iterations that spsa must run for -->
+                                <iterations value="500"/>
+                                <!-- termination condition for spsa is (F(X_k+1) - F(X_k) <= tolerance ) where F(X) is the objective function -->
+                                <tolerence value="0.000001"/>
+                                <!-- perturbation step size for iteration k is given by c_k = c / ((1+k)^gamma) -->
+                                <gradient_step_size initial_value="0.1" algorithm_coefficient2="0.101"/>
+                                <!-- step size for iteration k is given by a_k = a / ((1+k)^alpha) -->
+                                <step_size initial_value="0.16" stability_constant="100" algorithm_coefficient1="0.602"/>
+                                <!-- csv containing the weight matrix-->
+                                <weight_matrix file="data/medium/preday_calibration_weight_matrix.csv"/>
+                        </WSPSA>
                 </calibration>
         </preday>
 </config>

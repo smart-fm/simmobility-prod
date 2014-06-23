@@ -14,6 +14,7 @@
 #include <vector>
 #include "behavioral/PredaySystem.hpp"
 #include "CalibrationStatistics.hpp"
+#include "config/MT_Config.hpp"
 #include "params/PersonParams.hpp"
 #include "params/ZoneCostParams.hpp"
 #include "database/DB_Connection.hpp"
@@ -194,17 +195,41 @@ private:
 	void loadCalibrationVariables();
 
 	/**
-	 * computes gradients using SPSA technique
+	 * loads csv containing the weight matrix
+	 */
+	void loadWeightMatrix();
+
+	/**
+	 * computes gradient vector
 	 *
 	 * @param randomVector symmetric random vector of +1s and -1s
-	 * @param perturbationStepSize perturbation step size
+	 * @param initialGradientStepSize initial gradient step size
+	 * @param gradientVector output vector to be populated
 	 */
-	void computeGradientsUsingSPSA(const std::vector<short>& randomVector, double perturbationStepSize, std::vector<double>& gradientVector);
+	void computeGradient(const std::vector<short>& randomVector, double initialGradientStepSize, std::vector<double>& gradientVector);
+
+	/**
+	 * computes gradient vector accomodating weights
+	 *
+	 * @param randomVector symmetric random vector of +1s and -1s
+	 * @param initialGradientStepSize initial gradient step size
+	 * @param gradientVector output vector to be populated
+	 */
+	void computeWeightedGradient(const std::vector<short>& randomVector, double initialGradientStepSize, std::vector<double>& gradientVector);
 
 	/**
 	 * runs preday and computes the value for objective function
+	 * @param calibrationVariableList values of calibration variables to use in simulation
+	 * @param useWeights flag to indicate whether to use the weight matrix or not
 	 */
 	double computeObjectiveFunction(const std::vector<CalibrationVariable>& calibrationVariableList);
+
+	/**
+	 * runs preday and computes the value for objective function
+	 * @param calibrationVariableList values of calibration variables to use in simulation
+	 * @param simulatedHITS_Stats output list to populate
+	 */
+	void computeObservationsVector(const std::vector<CalibrationVariable>& calVarList, std::vector<double> simulatedHITS_Stats);
 
 	PersonList personList;
 
@@ -232,9 +257,12 @@ private:
 
     /**
      * Calibration statistics collector for each thread
-     * simulatedStats[4] is the statistics from the 5th thread which pr
+     * simulatedStats[4] is the statistics from the 5th thread
      */
     std::vector<CalibrationStatistics> simulatedStatsVector;
+
+    const MT_Config& mtConfig;
+
 };
 } //end namespace medium
 } //end namespace sim_mob

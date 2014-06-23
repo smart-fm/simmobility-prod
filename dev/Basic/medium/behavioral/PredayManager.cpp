@@ -14,6 +14,8 @@
 #include <algorithm>
 #include <boost/thread.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/io.hpp>
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
@@ -23,7 +25,6 @@
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
 #include "conf/RawConfigParams.hpp"
-#include "config/MT_Config.hpp"
 #include "database/DB_Config.hpp"
 #include "database/PopulationSqlDao.hpp"
 #include "database/PopulationMongoDao.hpp"
@@ -35,7 +36,7 @@
 using namespace sim_mob;
 using namespace sim_mob::db;
 using namespace sim_mob::medium;
-
+using namespace boost::numeric::ublas;
 namespace
 {
 //Header strings used in CSV file for calibration variables
@@ -48,6 +49,14 @@ const std::string UPPER_LIMIT_CSV_HEADER = "upper_limit";
 /** vector of variables to be calibrated. used only in calibration mode of Preday*/
 std::vector<CalibrationVariable> calibrationVariablesList;
 size_t numVariablesCalibrated;
+
+/**Mongo daos for calibration*/
+boost::unordered_map<std::string, db::MongoDao*> mongoDao;
+
+//initialize once and use multiple times
+std::vector<double> observedHITS_Stats;
+
+matrix<double> weightMatrix;
 
 /**
  * Helper class for symmetric random vector of +1/-1
@@ -95,9 +104,6 @@ private:
 	/**symmetrical random vector of 1s and -1s*/
 	std::vector<short> randomVector;
 };
-
-/**Mongo daos for calibration*/
-boost::unordered_map<std::string, db::MongoDao*> mongoDao;
 
 /**
  * helper function to compute Anti gradient
@@ -187,9 +193,6 @@ void updateVariablesInLuaFiles(const std::string& scriptFilesPath, const std::ve
 	}
 }
 
-//initialize once and use multiple times
-std::vector<double> observedHITS_Stats;
-
 double computeSumOfDifferenceSquared(const std::vector<double>& observed, const std::vector<double>& simulated)
 {
 	if(observed.size() != simulated.size()) { throw std::runtime_error("size mis-match between observed and simulated values");	}
@@ -213,7 +216,7 @@ void aggregateStatistics(const std::vector<CalibrationStatistics>& calStatsVect,
 
 } //end anonymous namespace
 
-sim_mob::medium::PredayManager::PredayManager()
+sim_mob::medium::PredayManager::PredayManager() : mtConfig(MT_Config::getInstance())
 {
 }
 
@@ -288,7 +291,7 @@ void sim_mob::medium::PredayManager::loadPersons(BackendType dbType) {
 	}
 	case MONGO_DB:
 	{
-		std::string populationCollectionName = MT_Config::getInstance().getMongoCollectionsMap().getCollectionName("population");
+		std::string populationCollectionName = mtConfig.getMongoCollectionsMap().getCollectionName("population");
 		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 		std::string emptyString;
 		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
@@ -312,7 +315,7 @@ void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType) {
 		}
 		case MONGO_DB:
 		{
-			std::string zoneCollectionName = MT_Config::getInstance().getMongoCollectionsMap().getCollectionName("Zone");
+			std::string zoneCollectionName = mtConfig.getMongoCollectionsMap().getCollectionName("Zone");
 			Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 			std::string emptyString;
 			db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
@@ -340,7 +343,7 @@ void sim_mob::medium::PredayManager::loadZoneNodes(db::BackendType dbType) {
 		}
 		case MONGO_DB:
 		{
-			std::string zoneNodeCollectionName = MT_Config::getInstance().getMongoCollectionsMap().getCollectionName("zone_node");
+			std::string zoneNodeCollectionName = mtConfig.getMongoCollectionsMap().getCollectionName("zone_node");
 			Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 			std::string emptyString;
 			db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
@@ -365,7 +368,7 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
 	}
 	case MONGO_DB:
 	{
-		const MongoCollectionsMap& mongoColl = MT_Config::getInstance().getMongoCollectionsMap();
+		const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
 		std::string amCostsCollName = mongoColl.getCollectionName("AMCosts");
 		std::string pmCostsCollName = mongoColl.getCollectionName("PMCosts");
 		std::string opCostsCollName = mongoColl.getCollectionName("OPCosts");
@@ -406,7 +409,6 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
 
 void sim_mob::medium::PredayManager::distributeAndProcessPersons() {
 	boost::thread_group threadGroup;
-	MT_Config& mtConfig = MT_Config::getInstance();
 	unsigned numWorkers = mtConfig.getNumPredayThreads();
 	if(numWorkers == 1) { // if single threaded execution was requested
 		if(mtConfig.runningPredaySimulation()) {
@@ -463,7 +465,6 @@ void sim_mob::medium::PredayManager::distributeAndProcessPersons() {
 
 void sim_mob::medium::PredayManager::calibratePreday()
 {
-	MT_Config& mtConfig = MT_Config::getInstance();
 	if(!mtConfig.runningPredayCalibration()) { return; }
 
 	boost::thread_group threadGroup;
@@ -475,6 +476,9 @@ void sim_mob::medium::PredayManager::calibratePreday()
 		CalibrationStatistics observedStats(predayParams.getObservedStatisticsFile());
 		observedStats.getAllStatistics(observedHITS_Stats); // store a local copy for future use
 	} //scope out observedStats
+
+	loadWeightMatrix();
+
 	simulatedStatsVector = std::vector<CalibrationStatistics>(mtConfig.getNumPredayThreads());
 	unsigned iterationLimit = predayParams.getIterationLimit();
 	bool consoleOutput = mtConfig.isConsoleOutput();
@@ -488,7 +492,7 @@ void sim_mob::medium::PredayManager::calibratePreday()
 	}
 
 	RandomSymmetricPlusMinusVector randomVector(calibrationVariablesList.size());
-	double perturbationStepSize = 0, stepSize = 0;
+	double initialGradientStepSize = 0, stepSize = 0;
 
 	objectiveFunctionValues.clear();
 	//iteration 0
@@ -498,11 +502,19 @@ void sim_mob::medium::PredayManager::calibratePreday()
 	{
 		// iteration k
 		// 1. compute perturbation step size
-		perturbationStepSize = predayParams.getInitialGradientStepSize() / std::pow((1+k), predayParams.getAlgorithmCoefficient2());
+		initialGradientStepSize = predayParams.getInitialGradientStepSize() / std::pow((1+k), predayParams.getAlgorithmCoefficient2());
 
 		// 2. compute gradients using SPSA technique
 		std::vector<double> gradientVector;
-		computeGradientsUsingSPSA(randomVector.get(), perturbationStepSize, gradientVector);
+		if(mtConfig.runningWSPSA())
+		{
+			computeWeightedGradient(randomVector.get(), initialGradientStepSize, gradientVector);
+		}
+		else
+		{
+			computeGradient(randomVector.get(), initialGradientStepSize, gradientVector);
+		}
+
 
 		// 3. compute projected anti-gradient vector
 		std::vector<double> antiGradientVector;
@@ -536,7 +548,7 @@ void sim_mob::medium::PredayManager::calibratePreday()
 
 void sim_mob::medium::PredayManager::loadCalibrationVariables()
 {
-	CSV_Reader variablesReader(MT_Config::getInstance().getPredayCalibrationParams().getCalibrationVariablesFile(), true);
+	CSV_Reader variablesReader(mtConfig.getPredayCalibrationParams().getCalibrationVariablesFile(), true);
 	boost::unordered_map<std::string, std::string> variableRow;
 	variablesReader.getNextRow(variableRow, false);
 	while (!variableRow.empty())
@@ -566,9 +578,41 @@ void sim_mob::medium::PredayManager::loadCalibrationVariables()
 	}
 }
 
+void sim_mob::medium::PredayManager::loadWeightMatrix()
+{
+	CSV_Reader matrixReader(mtConfig.getWSPSA_CalibrationParams().getWeightMatrixFile(), true);
+	size_t numVariables = calibrationVariablesList.size();
+	size_t numStatistics = observedHITS_Stats.size();
+	weightMatrix = matrix<double>(numStatistics, numVariables);
+	std::vector<std::string> matrixRow;
+	matrixReader.getNextRow(matrixRow);
+	size_t row=0, col=0;
+	while(!matrixRow.empty())
+	{
+		std::vector<std::string>::iterator strIt=matrixRow.begin();
+		strIt++; //first element is the name of the observation
+		for(; strIt!=matrixRow.end(); strIt++)
+		{
+			try
+			{
+				weightMatrix(row,col) = boost::lexical_cast<double>(*strIt);
+			}
+			catch(boost::bad_lexical_cast const& badCastEx)
+			{
+				throw std::runtime_error("Invalid value found in weight matrix csv");
+			}
+			catch(bad_index const& badIdxEx)
+			{
+				throw std::runtime_error("weight matrix csv has incorrect number of elements");
+			}
+			col++;
+		}
+		row++;
+	}
+}
+
 void sim_mob::medium::PredayManager::processPersonsForCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, CalibrationStatistics& simStats)
 {
-	MT_Config& mtConfig = MT_Config::getInstance();
 	bool consoleOutput = mtConfig.isConsoleOutput();
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
 		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
@@ -578,17 +622,16 @@ void sim_mob::medium::PredayManager::processPersonsForCalibration(PersonList::it
 	}
 }
 
-void sim_mob::medium::PredayManager::computeGradientsUsingSPSA(const std::vector<short>& randomVector, double perturbationStepSize,
+void sim_mob::medium::PredayManager::computeGradient(const std::vector<short>& randomVector, double initialGradientStepSize,
 		std::vector<double>& gradientVector)
 {
 	size_t numVariables = calibrationVariablesList.size();
 	if(randomVector.size() != calibrationVariablesList.size()) {throw std::runtime_error("size mis-match between calibrationVariablesList and randomVector"); }
 	std::vector<double> scaledRandomVector;
-	multiplyScalarWithVector(perturbationStepSize, randomVector, scaledRandomVector);
+	multiplyScalarWithVector(initialGradientStepSize, randomVector, scaledRandomVector);
 	std::vector<CalibrationVariable> localCopyCalVarList = calibrationVariablesList;
 	updateVariablesByAddition(localCopyCalVarList, scaledRandomVector);
 	double objFnPlus = computeObjectiveFunction(localCopyCalVarList);
-	localCopyCalVarList.clear();
 	localCopyCalVarList = calibrationVariablesList;
 	updateVariablesBySubtraction(localCopyCalVarList, scaledRandomVector);
 	double objFnMinus = computeObjectiveFunction(localCopyCalVarList);
@@ -602,10 +645,48 @@ void sim_mob::medium::PredayManager::computeGradientsUsingSPSA(const std::vector
 	}
 }
 
+void sim_mob::medium::PredayManager::computeWeightedGradient(const std::vector<short>& randomVector, double initialGradientStepSize,
+		std::vector<double>& gradientVector)
+{
+	size_t numVariables = calibrationVariablesList.size();
+	size_t numStatistics = observedHITS_Stats.size();
+
+	if(randomVector.size() != calibrationVariablesList.size()) {throw std::runtime_error("size mis-match between calibrationVariablesList and randomVector"); }
+
+	std::vector<double> scaledRandomVector;
+	multiplyScalarWithVector(initialGradientStepSize, randomVector, scaledRandomVector);
+
+	std::vector<double> simStatisticsPlus, simStatisticsMinus;
+
+	std::vector<CalibrationVariable> localCopyCalVarList = calibrationVariablesList;
+	updateVariablesByAddition(localCopyCalVarList, scaledRandomVector);
+	computeObservationsVector(localCopyCalVarList, simStatisticsPlus);
+	if(observedHITS_Stats.size() != simStatisticsPlus.size()) { throw std::runtime_error("size mis-match between observed and simulated values");	}
+
+	localCopyCalVarList = calibrationVariablesList;
+	updateVariablesBySubtraction(localCopyCalVarList, scaledRandomVector);
+	computeObservationsVector(localCopyCalVarList, simStatisticsMinus);
+	if(observedHITS_Stats.size() != simStatisticsMinus.size()) { throw std::runtime_error("size mis-match between observed and simulated values");	}
+
+	gradientVector.clear();
+	double gradient = 0, squaredDifferencePlus = 0, squaredDifferenceMinus = 0;
+	for(size_t j=0; j<numVariables; j++)
+	{
+		gradient = 0;
+		for(size_t i=0; i<numStatistics; i++)
+		{
+			squaredDifferencePlus = std::pow((simStatisticsPlus[i]-observedHITS_Stats[i]), 2);
+			squaredDifferenceMinus = std::pow((simStatisticsMinus[i]-observedHITS_Stats[i]), 2);
+			gradient = gradient + (weightMatrix(i,j) * (squaredDifferencePlus - squaredDifferenceMinus));
+		}
+		gradient = gradient / (2*scaledRandomVector[j]);
+		gradientVector.push_back(gradient);
+	}
+}
+
 void sim_mob::medium::PredayManager::processPersons(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt)
 {
 	boost::unordered_map<std::string, db::MongoDao*> mongoDao;
-	const MT_Config& mtConfig = MT_Config::getInstance();
 	bool outputTripchains = mtConfig.isOutputTripchains();
 	bool consoleOutput = mtConfig.isConsoleOutput();
 	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
@@ -654,7 +735,6 @@ void sim_mob::medium::PredayManager::processPersons(PersonList::iterator firstPe
 void sim_mob::medium::PredayManager::computeLogsums(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt)
 {
 	boost::unordered_map<std::string, db::MongoDao*> mongoDao;
-	const MT_Config& mtConfig = MT_Config::getInstance();
 	bool consoleOutput = mtConfig.isConsoleOutput();
 	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
 	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
@@ -682,12 +762,18 @@ void sim_mob::medium::PredayManager::computeLogsums(PersonList::iterator firstPe
 
 double sim_mob::medium::PredayManager::computeObjectiveFunction(const std::vector<CalibrationVariable>& calVarList)
 {
-	updateVariablesInLuaFiles(MT_Config::getInstance().getModelScriptsMap().getPath(), calVarList);
+	std::vector<double> simulatedHITS_Stats;
+	computeObservationsVector(calVarList, simulatedHITS_Stats);
+	return computeSumOfDifferenceSquared(observedHITS_Stats, simulatedHITS_Stats);
+}
+
+void sim_mob::medium::PredayManager::computeObservationsVector(const std::vector<CalibrationVariable>& calVarList, std::vector<double> simulatedHITS_Stats)
+{
+	updateVariablesInLuaFiles(mtConfig.getModelScriptsMap().getPath(), calVarList);
 	std::for_each(simulatedStatsVector.begin(), simulatedStatsVector.end(), std::mem_fun_ref(&CalibrationStatistics::reset));
 	distributeAndProcessPersons();
-	std::vector<double> simulatedHITS_Stats;
+	simulatedHITS_Stats.clear();
 	CalibrationStatistics simulatedStats;
 	aggregateStatistics(simulatedStatsVector, simulatedStats);
 	simulatedStats.getAllStatistics(simulatedHITS_Stats);
-	return computeSumOfDifferenceSquared(observedHITS_Stats, simulatedHITS_Stats);
 }

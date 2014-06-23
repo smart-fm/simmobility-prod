@@ -8,6 +8,7 @@
 #include "MT_Config.hpp"
 
 #include <stdexcept>
+#include <boost/algorithm/string.hpp>
 #include "util/LangHelpers.hpp"
 
 namespace sim_mob
@@ -26,7 +27,7 @@ PredayCalibrationParams::PredayCalibrationParams() :
 
 MT_Config::MT_Config() :
 		pedestrianWalkSpeed(0), numPredayThreads(0), configSealed(false), outputTripchains(false),
-consoleOutput(false), predayRunMode(MT_Config::NONE)
+consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA)
 {}
 
 MT_Config::~MT_Config() {}
@@ -53,6 +54,27 @@ void MT_Config::setPredayRunMode(const std::string runMode)
 	}
 }
 
+void MT_Config::setCalibrationMethodology(const std::string calibrationMethod)
+{
+	if(!configSealed)
+	{
+		std::string method = boost::to_upper_copy(calibrationMethod);
+		if(method == "WSPSA") { calibrationMethodology = MT_Config::WSPSA; }
+		else if(method == "SPSA") { calibrationMethodology = MT_Config::SPSA; }
+	}
+}
+
+void MT_Config::setWSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams)
+{
+	if(!configSealed)
+	{
+		if(runningWSPSA() && predayCalibrationParams.getWeightMatrixFile().empty())
+		{
+			throw std::runtime_error("weight matrix is not provided for WSPSA");
+		}
+		this->wspsaCalibrationParams = predayCalibrationParams;
+	}
+}
 
 }
 }

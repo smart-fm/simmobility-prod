@@ -171,35 +171,64 @@ void sim_mob::ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement
 {
 	if(mtCfg.runningPredayCalibration())
 	{
-		PredayCalibrationParams predayCalibrationParams;
+		PredayCalibrationParams spsaCalibrationParams;
+		PredayCalibrationParams wspsaCalibrationParams;
 
 		//get name of csv listing variables to calibrate
 		DOMElement* variablesNode = GetSingleElementByName(node, "variables", true);
-		predayCalibrationParams.setCalibrationVariablesFile(ParseString(GetNamedAttributeValue(variablesNode, "file"), ""));
+		spsaCalibrationParams.setCalibrationVariablesFile(ParseString(GetNamedAttributeValue(variablesNode, "file"), ""));
+		wspsaCalibrationParams.setCalibrationVariablesFile(ParseString(GetNamedAttributeValue(variablesNode, "file"), ""));
 
 		//get name of csv listing observed statistics
 		DOMElement* observedStatsNode = GetSingleElementByName(node, "observed_statistics", true);
-		predayCalibrationParams.setObservedStatisticsFile(ParseString(GetNamedAttributeValue(observedStatsNode, "file"), ""));
+		spsaCalibrationParams.setObservedStatisticsFile(ParseString(GetNamedAttributeValue(observedStatsNode, "file"), ""));
+		wspsaCalibrationParams.setObservedStatisticsFile(ParseString(GetNamedAttributeValue(observedStatsNode, "file"), ""));
 
+		DOMElement* calibrationMethod = GetSingleElementByName(node, "calibration_technique", true);
+		mtCfg.setCalibrationMethodology(ParseString(GetNamedAttributeValue(observedStatsNode, "value"), "WSPSA"));
+
+		/**parse SPSA node*/
 		DOMElement* spsaNode = GetSingleElementByName(node, "spsa", true);
 		DOMElement* childNode = nullptr;
 
 		childNode = GetSingleElementByName(spsaNode, "iterations", true);
-		predayCalibrationParams.setIterationLimit(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true)));
+		spsaCalibrationParams.setIterationLimit(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true)));
 
 		childNode = GetSingleElementByName(spsaNode, "tolerence", true);
-		predayCalibrationParams.setTolerance(ParseFloat(GetNamedAttributeValue(childNode, "value", true)));
+		spsaCalibrationParams.setTolerance(ParseFloat(GetNamedAttributeValue(childNode, "value", true)));
 
 		childNode = GetSingleElementByName(spsaNode, "gradient_step_size", true);
-		predayCalibrationParams.setInitialGradientStepSize(ParseFloat(GetNamedAttributeValue(childNode, "initial_value", true)));
-		predayCalibrationParams.setAlgorithmCoefficient2(ParseFloat(GetNamedAttributeValue(childNode, "algorithm_coefficient2", true)));
+		spsaCalibrationParams.setInitialGradientStepSize(ParseFloat(GetNamedAttributeValue(childNode, "initial_value", true)));
+		spsaCalibrationParams.setAlgorithmCoefficient2(ParseFloat(GetNamedAttributeValue(childNode, "algorithm_coefficient2", true)));
 
 		childNode = GetSingleElementByName(spsaNode, "step_size", true);
-		predayCalibrationParams.setStabilityConstant(ParseFloat(GetNamedAttributeValue(childNode, "stability_constant", true)));
-		predayCalibrationParams.setInitialStepSize(ParseFloat(GetNamedAttributeValue(childNode, "initial_value", true)));
-		predayCalibrationParams.setAlgorithmCoefficient1(ParseFloat(GetNamedAttributeValue(childNode, "algorithm_coefficient1", true)));
+		spsaCalibrationParams.setStabilityConstant(ParseFloat(GetNamedAttributeValue(childNode, "stability_constant", true)));
+		spsaCalibrationParams.setInitialStepSize(ParseFloat(GetNamedAttributeValue(childNode, "initial_value", true)));
+		spsaCalibrationParams.setAlgorithmCoefficient1(ParseFloat(GetNamedAttributeValue(childNode, "algorithm_coefficient1", true)));
 
-		mtCfg.setPredayCalibrationParams(predayCalibrationParams);
+		/**process W-SPSA node*/
+		DOMElement* wspsaNode = GetSingleElementByName(node, "wspsa", true);
+
+		childNode = GetSingleElementByName(wspsaNode, "iterations", true);
+		wspsaCalibrationParams.setIterationLimit(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true)));
+
+		childNode = GetSingleElementByName(wspsaNode, "tolerence", true);
+		wspsaCalibrationParams.setTolerance(ParseFloat(GetNamedAttributeValue(childNode, "value", true)));
+
+		childNode = GetSingleElementByName(wspsaNode, "gradient_step_size", true);
+		wspsaCalibrationParams.setInitialGradientStepSize(ParseFloat(GetNamedAttributeValue(childNode, "initial_value", true)));
+		wspsaCalibrationParams.setAlgorithmCoefficient2(ParseFloat(GetNamedAttributeValue(childNode, "algorithm_coefficient2", true)));
+
+		childNode = GetSingleElementByName(wspsaNode, "step_size", true);
+		wspsaCalibrationParams.setStabilityConstant(ParseFloat(GetNamedAttributeValue(childNode, "stability_constant", true)));
+		wspsaCalibrationParams.setInitialStepSize(ParseFloat(GetNamedAttributeValue(childNode, "initial_value", true)));
+		wspsaCalibrationParams.setAlgorithmCoefficient1(ParseFloat(GetNamedAttributeValue(childNode, "algorithm_coefficient1", true)));
+
+		childNode = GetSingleElementByName(wspsaNode, "weight_matrix", true);
+		wspsaCalibrationParams.setWeightMatrixFile(ParseString(GetNamedAttributeValue(observedStatsNode, "file"), ""));
+
+		mtCfg.setSPSA_CalibrationParams(spsaCalibrationParams);
+		mtCfg.setWSPSA_CalibrationParams(wspsaCalibrationParams);
 	}
 	//else just return.
 }

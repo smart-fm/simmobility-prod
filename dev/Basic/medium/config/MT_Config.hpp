@@ -176,6 +176,16 @@ public:
 		this->observedStatisticsFile = observedStatisticsFile;
 	}
 
+	const std::string& getWeightMatrixFile() const
+	{
+		return weightMatrixFile;
+	}
+
+	void setWeightMatrixFile(const std::string& weightMatrixFile)
+	{
+		this->weightMatrixFile = weightMatrixFile;
+	}
+
 private:
 	/**path and file name of csv containing variables to calibrate*/
 	std::string calibrationVariablesFile;
@@ -187,6 +197,7 @@ private:
 	double stabilityConstant;
 	double algorithmCoefficient1;
 	std::string observedStatisticsFile;
+	std::string weightMatrixFile;
 };
 
 class MT_Config : private sim_mob::ProtectedCopyable
@@ -261,16 +272,29 @@ public:
 
 	const PredayCalibrationParams& getPredayCalibrationParams() const
 	{
-		return predayCalibrationParams;
+		if(runningWSPSA()) { return wspsaCalibrationParams; }
+		return spsaCalibrationParams;
 	}
 
-	void setPredayCalibrationParams(const PredayCalibrationParams& predayCalibrationParams)
+	const PredayCalibrationParams& getSPSA_CalibrationParams() const
+	{
+		return spsaCalibrationParams;
+	}
+
+	void setSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams)
 	{
 		if(!configSealed)
 		{
-			this->predayCalibrationParams = predayCalibrationParams;
+			this->spsaCalibrationParams = predayCalibrationParams;
 		}
 	}
+
+	const PredayCalibrationParams& getWSPSA_CalibrationParams() const
+	{
+		return wspsaCalibrationParams;
+	}
+
+	void setWSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams);
 
 	bool isOutputTripchains() const
 	{
@@ -298,22 +322,34 @@ public:
 		}
 	}
 
-	bool runningPredaySimulation()
+	bool runningPredaySimulation() const
 	{
 		return (predayRunMode == MT_Config::SIMULATION);
 	}
 
-	bool runningPredayCalibration()
+	bool runningPredayCalibration() const
 	{
 		return (predayRunMode == MT_Config::CALIBRATION);
 	}
 
-	bool runningPredayLogsumComputation()
+	bool runningPredayLogsumComputation() const
 	{
 		return (predayRunMode == MT_Config::LOGSUM_COMPUTATION);
 	}
 
 	void setPredayRunMode(const std::string runMode);
+
+	bool runningSPSA() const
+	{
+		return (calibrationMethodology == MT_Config::SPSA);
+	}
+
+	bool runningWSPSA() const
+	{
+		return (calibrationMethodology == MT_Config::WSPSA);
+	}
+
+	void setCalibrationMethodology(const std::string calibrationMethod);
 
 private:
 	static MT_Config* instance;
@@ -339,8 +375,12 @@ private:
 	ModelScriptsMap modelScriptsMap;
 	/**container for mongo collections*/
 	MongoCollectionsMap mongoCollectionsMap;
+
 	/**Preday calibration parameters*/
-	PredayCalibrationParams predayCalibrationParams;
+	enum CalibrationMethodology { SPSA, WSPSA };
+	CalibrationMethodology calibrationMethodology;
+	PredayCalibrationParams spsaCalibrationParams;
+	PredayCalibrationParams wspsaCalibrationParams;
 };
 }
 }

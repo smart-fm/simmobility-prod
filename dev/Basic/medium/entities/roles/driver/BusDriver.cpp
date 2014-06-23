@@ -16,6 +16,7 @@
 #include "message/MT_Message.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "util/DwellTimeCalc.hpp"
+#include "config/MT_Config.hpp"
 
 using namespace sim_mob;
 using std::max;
@@ -25,11 +26,18 @@ using std::map;
 using std::string;
 using std::endl;
 
+namespace
+{
+//number of dwell time parameter expected.
+//TODO: remove this constant and restructure the dwell time parameters elegantly
+const unsigned int NUM_PARAMS_DWELLTIME = 5;
+}
+
 sim_mob::medium::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::BusDriverBehavior* behavior,
 		sim_mob::medium::BusDriverMovement* movement,
-		std::string roleName)
-: sim_mob::medium::Driver(parent, mtxStrat, behavior, movement, roleName),
+		std::string roleName, Role::type roleType)
+: sim_mob::medium::Driver(parent, mtxStrat, behavior, movement, roleName, roleType),
   requestMode(mtxStrat, 0), visitedBusStop(mtxStrat, nullptr),
   visitedBusStopSequenceNo(mtxStrat, -1), arrivalTime(mtxStrat, 0.0),
   dwellTime(mtxStrat, 0.0), visitedBusTripSequenceNo(mtxStrat, 0),
@@ -80,8 +88,13 @@ unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusSto
 	unsigned int numAlighting = 0;
 	std::list<sim_mob::medium::Passenger*>::iterator itPassenger = passengerList.begin();
 	while (itPassenger != passengerList.end()) {
-		messaging::MessageBus::SendInstantaneousMessage((*itPassenger)->getParent(), ALIGHT_BUS,
-				messaging::MessageBus::MessagePtr(new BusStopMessage(busStopAgent->getBusStop())));
+
+		/*the passengers will be always together with bus driver, so
+		 * bus driver and passengers will always in the same conflux and
+		 * in the same thread. so that it is safety for bus driver directly
+		 * to invoke decision method of  inside passengers
+		 */
+		(*itPassenger)->makeAlightingDecision(busStopAgent->getBusStop());
 
 		if ((*itPassenger)->canAlightBus()) {
 			busStopAgent->addAlightingPerson(*itPassenger);
@@ -137,7 +150,20 @@ void sim_mob::medium::BusDriver::openBusDoors(sim_mob::medium::BusStopAgent* bus
 	unsigned int numBoarding = busStopAgent->getBoardingNum(this);
 
 	unsigned int totalNumber = numAlighting + numBoarding;
-	waitingTimeAtbusStop = sim_mob::dwellTimeCalculation(totalNumber);
+	if(totalNumber==0){
+		waitingTimeAtbusStop = 0.0;
+	}
+	else {
+		const std::vector<int>& dwellTimeParams =
+				MT_Config::GetInstance().getDwellTimeParams();
+		if (dwellTimeParams.size() == NUM_PARAMS_DWELLTIME) {
+			waitingTimeAtbusStop = sim_mob::calculateDwellTime(totalNumber,
+					dwellTimeParams[0], dwellTimeParams[1], dwellTimeParams[2],
+					dwellTimeParams[3], dwellTimeParams[4]);
+		} else {
+			waitingTimeAtbusStop = sim_mob::calculateDwellTime(totalNumber);
+		}
+	}
 
 	if (requestMode.get() == Role::REQUEST_DECISION_TIME) {
 		requestMode.set(Role::REQUEST_NONE);

@@ -30,21 +30,17 @@ public:
 
 	explicit Passenger(Person* parent, MutexStrategy mtxStrat,
 			sim_mob::medium::PassengerBehavior* behavior = nullptr,
-			sim_mob::medium::PassengerMovement* movement = nullptr);
+			sim_mob::medium::PassengerMovement* movement = nullptr,
+			std::string roleName = std::string("Passenger_"),
+			Role::type roleType = Role::RL_PASSENGER);
 
 	virtual ~Passenger() {
 	}
 
 	//Virtual overrides
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
-	virtual void make_frame_tick_params(timeslice now) {
-		throw std::runtime_error(
-				"make_frame_tick_params not implemented in Passenger.");
-	}
-	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() {
-		throw std::runtime_error(
-				"getSubscriptionParams not implemented in Passenger.");
-	}
+	virtual void make_frame_tick_params(timeslice now) {}
+	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	void setDriver(const Driver* driver);
 	const Driver* getDriver() const;

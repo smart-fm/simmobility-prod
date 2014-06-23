@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <stdexcept>
+#include <map>
 
 #include "conf/settings/DisableMPI.h"
 #include "geospatial/RoadItem.hpp"
@@ -36,7 +37,7 @@ class Busline;
 class BusStop : public sim_mob::RoadItem {
 	friend class ::geo::BusStop_t_pimpl;
 public:
-	typedef std::set<BusStop*> BusStopSet;
+	typedef std::map<unsigned int, BusStop*> BusStopSet;
 	///BusStops must be constructed with their stopPt, which must be the same
 	///  as the lane zero offset in their RoadSegment.
 	explicit BusStop() : RoadItem(), lane_location(0), busCapacityAsLength(0),
@@ -45,7 +46,8 @@ public:
 
 	///Adds a new bus stop to the Bus stop list
 	///@param busstop pointer to newly created bus stop
-	static void RegisterNewBusStop(BusStop* busstop);
+	static void RegisterNewBusStop(unsigned int no, BusStop* busstop);
+	static BusStop* findBusStop(unsigned int no);
 
 	///set of all bus stops in the network
 	static BusStopSet allBusstops;

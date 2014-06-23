@@ -477,6 +477,12 @@ public:
 	std::vector<const sim_mob::BusStop*>& getBusStops();
 
 	/**
+	 * update bus stop agent so as to perform further tasks
+	 * @param now is current time.
+	 */
+	void updateBusStopAgents(timeslice now);
+
+	/**
 	 * get a list of all persons in the segment stats
 	 * @return list of all persons in the segment stats
 	 */

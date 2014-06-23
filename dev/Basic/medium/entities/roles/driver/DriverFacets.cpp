@@ -868,7 +868,7 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(
 }
 
 double DriverMovement::getInitialQueueLength(const Lane* lane) {
-	return getParent()->getCurrSegStats()->getInitialQueueLength(lane);
+	return pathMover.getCurrSegStats()->getInitialQueueLength(lane);
 }
 
 void DriverMovement::updateLinkTravelTimes(const sim_mob::SegmentStats* prevSegStat, double linkExitTimeSec){

@@ -603,8 +603,7 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 			unsigned int total = 0;
 			unsigned int infCount = 0;
 			unsigned int vqCount = 0;
-			for (std::set<Conflux*>::iterator it = managedConfluxes.begin();
-					it != managedConfluxes.end(); it++) {
+			for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
 				vqCount += (*it)->resetOutputBounds();
 				total += (*it)->countPersons();
 				infCount += (*it)->getNumRemainingInLaneInfinity();
@@ -615,8 +614,7 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 			}
 		}
 		else {
-			for (std::set<Conflux*>::iterator it = managedConfluxes.begin();
-					it != managedConfluxes.end(); it++) {
+			for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
 				(*it)->resetOutputBounds();
 			}
 		}

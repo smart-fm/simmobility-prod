@@ -10,14 +10,14 @@
 #include <xercesc/dom/DOMNode.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
 
+#include "conf/ParseConfigXmlBase.hpp"
 #include "conf/RawConfigParams.hpp" //For EntityTemplate.
 #include "util/DailyTime.hpp"
 
+using namespace sim_mob;
+using namespace xercesc;
 
 namespace sim_mob {
-
-//class RawConfigParams;
-
 
 /**
  * Class used to parse a config file into a RawConfigParams object.
@@ -29,21 +29,15 @@ namespace sim_mob {
  * This class is actually USED by the old config format (simpleconf). Don't delete it if you are cleaning
  * up the remains of the new config format (which doesn't work at the moment). ~Seth
  */
-class ParseConfigFile : private boost::noncopyable {
+class ParseConfigFile : public ParseConfigXmlBase, private boost::noncopyable {
 public:
 	///Parse a config file into RawConfigParams, performing all XML parsing and some trivial semantic processing.
 	ParseConfigFile(const std::string& configFileName, RawConfigParams& result);
 
-protected:
-	///Does all the work.
-	void ParseXmlAndProcess();
-
 private:
-	//These functions are called by ParseXmlAndProcess()
-	void InitXerces();
-	std::string ParseXmlFile(xercesc::XercesDOMParser& parser, xercesc::ErrorHandler& errorHandler); //Returns "" or an error message.
-	void ProcessXmlFile(xercesc::XercesDOMParser& parser);
+	virtual void processXmlFile(xercesc::XercesDOMParser& parser);
 
+	//These functions are called by parseXmlAndProcess()
 	//Process through recursive descent.
 	void ProcessSystemNode(xercesc::DOMElement* node);
 	//void ProcessGeometryNode(xercesc::DOMElement* node);
@@ -64,8 +58,6 @@ private:
 	void ProcessConstructDatabasesNode(xercesc::DOMElement* node);
 	void ProcessConstructDbProcGroupsNode(xercesc::DOMElement* node);
 	void ProcessConstructCredentialsNode(xercesc::DOMElement* node);
-	void ProcessConstructExternalScriptsNode(xercesc::DOMElement* node);
-	void ProcessConstructMongoCollectionsNode(xercesc::DOMElement* node);
 
 	//Descend through System
 	void ProcessSystemSimulationNode(xercesc::DOMElement* node);
@@ -104,9 +96,6 @@ private:
 
 
 private:
-	//The path of the file we are loading our exact configuration from.
-	std::string inFilePath;
-
 	//The config file we are currently loading
 	RawConfigParams& cfg;
 };

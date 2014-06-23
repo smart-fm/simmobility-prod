@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/unordered_map.hpp>
 #include <boost/utility.hpp>
 
 #include "geospatial/Point2D.hpp"
@@ -30,6 +31,7 @@ class MultiNode;
 class BusStop;
 class Crossing;
 class Signal;
+class Agent;
 
 
 
@@ -404,6 +406,21 @@ public:
 
     ShortestPathImpl* getDistanceImpl() { return spImpl_; }
 	ShortestPathImpl* getTravelTimeImpl() { return sttpImpl_; }
+	/**
+	 * find one BusStopAgent by BusStop
+	 * @param busStop is a pointer to a given bus stop
+	 * return a pointer to bus stop agent if found, otherwise return null
+	 */
+	Agent* findBusStopAgentByBusStop(const BusStop* busStop) const;
+
+	/**
+	 * initialize a map item from bus stop agent to bus stop
+	 * @param busStop is a pointer to a given bus stop
+	 * @param busStopAgent is a pointer to bus stop agent
+	 * return void
+	 */
+	void registerStopAgent(const BusStop* busStop, Agent* busStopAgent);
+
 
 private:
     //Helper: Find the point closest to the origin.
@@ -440,6 +457,9 @@ private:
 	///A lookup of all Links by their start/end Nodes
 	///key is <start, end>
     std::map< std::pair<const sim_mob::Node*, const sim_mob::Node*>, sim_mob::Link*> links_by_node;
+
+	///Map of <bus stop*, BusStopAgent*> for all bus stops in the network
+    boost::unordered_map<const sim_mob::BusStop*, Agent*> allBusStopAgents;
 
 };
 

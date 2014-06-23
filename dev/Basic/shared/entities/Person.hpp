@@ -90,13 +90,19 @@ public:
     // find Person's NextRole
     bool findPersonNextRole();
 
+    /**
+     * insert a waiting activity before bus travel
+     * @param tripChain is the reference to current trip chain
+     */
+    void insertWaitingActivityToTrip(std::vector<TripChainItem*>& tripChain);
+
     // update nextTripChainItem, used only for NextRole
 	bool updateNextTripChainItem();
 	// update nextSubTrip, used only for NextRole
 	bool updateNextSubTrip();
     ///Check if any role changing is required.
     /// "nextValidTimeMS" is the next valid time tick, which may be the same at this time tick.
-    Entity::UpdateStatus checkTripChain(uint32_t currTimeMS);
+    Entity::UpdateStatus checkTripChain();
     bool changeRoleRequired(sim_mob::Role & currRole,sim_mob::SubTrip &currSubTrip)const;//todo depricate later
     bool changeRoleRequired_Trip /*sim_mob::Trip &trip*/
 	() const;
@@ -226,6 +232,8 @@ public:
 	{
 		nextLinkRequired = nextLink;
 	}
+
+	void advanceToNextRole();
 
 
 protected:

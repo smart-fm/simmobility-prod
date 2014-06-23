@@ -120,7 +120,6 @@ void sim_mob::IncidentPerformer::checkIncidentStatus(Driver* parentDriver, Drive
 	try {
 		curSegment = parentDriver->getVehicle()->getCurrSegment();
 	} catch (std::runtime_error& error) {
-		std::cout<<error.what()<<std::endl;
 		return;
 	}
 	const Lane* curLane = parentDriver->getVehicle()->getCurrLane();

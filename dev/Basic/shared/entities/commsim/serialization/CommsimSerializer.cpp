@@ -135,13 +135,17 @@ void sim_mob::CommsimSerializer::serialize_begin(OngoingSerialization& ongoing, 
 	ongoing.vHead.msgLengths.clear();
 }
 
-bool sim_mob::CommsimSerializer::serialize_end(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res)
+void sim_mob::CommsimSerializer::serialize_end(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res)
 {
-	return NEW_BUNDLES ? serialize_end_v1(ongoing, hRes, res) : serialize_end_v0(ongoing, hRes, res);
+	if (NEW_BUNDLES) {
+		serialize_end_v1(ongoing, hRes, res);
+	} else {
+		serialize_end_v0(ongoing, hRes, res);
+	}
 }
 
 
-bool sim_mob::CommsimSerializer::serialize_end_v1(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res)
+void sim_mob::CommsimSerializer::serialize_end_v1(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res)
 {
 	//Precalculate the varying header length.
 	const size_t varHeadSize = ongoing.vHead.msgLengths.size()*3 + ongoing.vHead.sendId.size() + ongoing.vHead.destId.size();
@@ -176,39 +180,32 @@ bool sim_mob::CommsimSerializer::serialize_end_v1(const OngoingSerialization& on
 	hRes.messageCount = ongoing.vHead.msgLengths.size();
 	hRes.remLen = res.size();
 
-	return true;
+	//It's possible to have too many messages.
+	if (hRes.messageCount>255) {
+		throw std::runtime_error("Can't serialize more than 255 messages in one bundle.");
+	}
 }
 
 
-bool sim_mob::CommsimSerializer::serialize_end_v0(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res)
+void sim_mob::CommsimSerializer::serialize_end_v0(const OngoingSerialization& ongoing, BundleHeader& hRes, std::string& res)
 {
-	//Build the header.
-	Json::Value pktHeader;
-	pktHeader["send_client"] = ongoing.vHead.sendId;
-	pktHeader["dest_client"] = ongoing.vHead.destId;
-
-	//Turn the current data string into a Json array. (Inefficient, but that doesn't matter for v0)
-	std::string data = "[" + ongoing.messages.str() + "]";
-	Json::Value dataArr;
-	Json::Reader reader;
-	if (!(reader.parse(data, dataArr, false) && dataArr.isArray())) {
-		std::cout <<"ERROR: data section cannot be represented as array\n";
-		return false;
-	}
-
-	//Combine.
-	Json::Value root;
-	root["header"] = pktHeader;
-	root["messages"] = dataArr;
-	res = JsonSingleLineWriter(!NEW_BUNDLES).write(root);
+	//Build the result string.
+	std::stringstream resStr;
+	resStr <<"{"
+		<<"\"header\":{"
+		<<"\"send_client\":\"" <<ongoing.vHead.sendId <<"\","
+		<<"\"dest_client\":\"" <<ongoing.vHead.destId <<"\""
+		<<"},"
+		<<"\"messages\":["
+		<<ongoing.messages.str()
+		<<"]}";
+	res = resStr.str();
 
 	//Reflect changes to the bundle header.
 	hRes.sendIdLen = ongoing.vHead.sendId.size();
 	hRes.destIdLen = ongoing.vHead.destId.size();
 	hRes.messageCount = ongoing.vHead.msgLengths.size();
 	hRes.remLen = res.size();
-
-	return true;
 }
 
 
@@ -286,20 +283,6 @@ bool sim_mob::CommsimSerializer::deserialize_v1(const BundleHeader& header, cons
 
 
 
-bool sim_mob::CommsimSerializer::parseJSON(const std::string& input, Json::Value &output)
-{
-	Json::Reader reader;
-	bool parsedSuccess = reader.parse(input, output, false);
-	if (!parsedSuccess) {
-		std::cout <<"parseJSON() failed.\n";
-		return false;
-	}
-	return true;
-}
-
-
-
-
 sim_mob::IdResponseMessage sim_mob::CommsimSerializer::parseIdResponse(const MessageConglomerate& msg, int msgNumber)
 {
 	sim_mob::IdResponseMessage res(msg.getBaseMessage(msgNumber));
@@ -355,12 +338,14 @@ sim_mob::OpaqueSendMessage sim_mob::CommsimSerializer::parseOpaqueSend(const Mes
 	//We are either parsing this as JSON, or as binary; version number doesn't matter in this case.
 	const Json::Value& jsMsg = msg.getJsonMessage(msgNumber);
 	if (!jsMsg.isNull()) {
-		if (!(jsMsg.isMember("from_id") && jsMsg.isMember("to_ids") && jsMsg.isMember("broadcast") && jsMsg.isMember("data") && jsMsg["to_ids"].isArray())) {
+		if (!(jsMsg.isMember("from_id") && jsMsg.isMember("to_ids") && jsMsg.isMember("broadcast") && jsMsg.isMember("data") && jsMsg.isMember("format") && jsMsg.isMember("tech") && jsMsg["to_ids"].isArray())) {
 			throw std::runtime_error("Badly formatted OPAQUE_SEND message.");
 		}
 
 		//Fairly simple.
 		res.fromId = jsMsg["from_id"].asString();
+		res.format = jsMsg["format"].asString();
+		res.tech = jsMsg["tech"].asString();
 		res.broadcast = jsMsg["broadcast"].asBool();
 		res.data = jsMsg["data"].asString();
 		const Json::Value& toIds = jsMsg["to_ids"];
@@ -386,13 +371,15 @@ sim_mob::OpaqueReceiveMessage sim_mob::CommsimSerializer::parseOpaqueReceive(con
 	//We are either parsing this as JSON, or as binary; version number doesn't matter in this case.
 	const Json::Value& jsMsg = msg.getJsonMessage(msgNumber);
 	if (!jsMsg.isNull()) {
-		if (!(jsMsg.isMember("from_id") && jsMsg.isMember("to_id") && jsMsg.isMember("data"))) {
+		if (!(jsMsg.isMember("from_id") && jsMsg.isMember("format") && jsMsg.isMember("tech") && jsMsg.isMember("to_id") && jsMsg.isMember("data"))) {
 			throw std::runtime_error("Badly formatted OPAQUE_RECEIVE message.");
 		}
 
 		//Save and return.
 		res.fromId = jsMsg["from_id"].asString();
 		res.toId = jsMsg["to_id"].asString();
+		res.format = jsMsg["format"].asString();
+		res.tech = jsMsg["tech"].asString();
 		res.data = jsMsg["data"].asString();
 	} else {
 		throw std::runtime_error("parse() for binary messages not yet supported.");
@@ -420,6 +407,47 @@ sim_mob::RemoteLogMessage sim_mob::CommsimSerializer::parseRemoteLog(const Messa
 	return res;
 }
 
+
+sim_mob::TcpConnectMessage sim_mob::CommsimSerializer::parseTcpConnect(const MessageConglomerate& msg, int msgNumber)
+{
+	sim_mob::TcpConnectMessage res(msg.getBaseMessage(msgNumber));
+
+	//We are either parsing this as JSON, or as binary; version number doesn't matter in this case.
+	const Json::Value& jsMsg = msg.getJsonMessage(msgNumber);
+	if (!jsMsg.isNull()) {
+		if (!(jsMsg.isMember("host") && jsMsg.isMember("port"))) {
+			throw std::runtime_error("Badly formatted TcpConnectMessage message.");
+		}
+
+		//Save and return.
+		res.host = jsMsg["host"].asString();
+		res.port = jsMsg["port"].asInt();
+	} else {
+		throw std::runtime_error("parse() for binary messages not yet supported.");
+	}
+	return res;
+}
+
+
+sim_mob::TcpDisconnectMessage sim_mob::CommsimSerializer::parseTcpDisconnect(const MessageConglomerate& msg, int msgNumber)
+{
+	sim_mob::TcpDisconnectMessage res(msg.getBaseMessage(msgNumber));
+
+	//We are either parsing this as JSON, or as binary; version number doesn't matter in this case.
+	const Json::Value& jsMsg = msg.getJsonMessage(msgNumber);
+	if (!jsMsg.isNull()) {
+		if (!(jsMsg.isMember("host") && jsMsg.isMember("port"))) {
+			throw std::runtime_error("Badly formatted TcpDisconnectMessage message.");
+		}
+
+		//Save and return.
+		res.host = jsMsg["host"].asString();
+		res.port = jsMsg["port"].asInt();
+	} else {
+		throw std::runtime_error("parse() for binary messages not yet supported.");
+	}
+	return res;
+}
 
 
 std::string sim_mob::CommsimSerializer::makeIdRequest(const std::string& token)
@@ -553,14 +581,14 @@ std::string sim_mob::CommsimSerializer::makeAllLocations(const std::map<unsigned
 
 
 
-std::string sim_mob::CommsimSerializer::makeOpaqueSend(const std::string& fromId, const std::vector<std::string>& toIds, bool broadcast, const std::string& data)
+std::string sim_mob::CommsimSerializer::makeOpaqueSend(const std::string& fromId, const std::vector<std::string>& toIds, const std::string& format, const std::string& tech, bool broadcast, const std::string& data)
 {
 	if (PREFER_BINARY_MESSAGES) {
 		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
 		std::stringstream res;
 		res <<"{\"msg_type\":\"opaque_send\",\"from_id\":\"" <<fromId <<"\",\"broadcast\":" <<(broadcast?"true":"false")
-			<<"\",\"data\":\"" <<data <<"\",\"to_ids\":[";
+			<<"\",\"format\":\"" <<format <<"\",\"tech\":\"" <<tech <<"\",\"data\":\"" <<data <<"\",\"to_ids\":[";
 
 		//Add all "TO_IDS"
 		for (std::vector<std::string>::const_iterator it=toIds.begin(); it!=toIds.end(); it++) {
@@ -574,13 +602,14 @@ std::string sim_mob::CommsimSerializer::makeOpaqueSend(const std::string& fromId
 }
 
 
-std::string sim_mob::CommsimSerializer::makeOpaqueReceive(const std::string& fromId, const std::string& toId, const std::string& data)
+std::string sim_mob::CommsimSerializer::makeOpaqueReceive(const std::string& fromId, const std::string& toId, const std::string& format, const std::string& tech, const std::string& data)
 {
 	if (PREFER_BINARY_MESSAGES) {
 		throw std::runtime_error("addX() binary format not yet supported.");
 	} else {
 		std::stringstream res;
-		res <<"{\"msg_type\":\"opaque_receive\",\"from_id\":\"" <<fromId <<"\",\"to_id\":\"" <<toId <<"\",\"data\":\"" <<data <<"\"}";
+		res <<"{\"msg_type\":\"opaque_receive\",\"from_id\":\"" <<fromId <<"\",\"to_id\":\"" <<toId
+			<<"\",\"format\":\"" <<format <<"\",\"tech\":\"" <<tech <<"\",\"data\":\"" <<data <<"\"}";
 		return res.str();
 	}
 }
@@ -598,92 +627,6 @@ void sim_mob::CommsimSerializer::addGeneric(OngoingSerialization& ongoing, const
 
 	//Keep the header up-to-date.
 	ongoing.vHead.msgLengths.push_back(msg.size());
-}
-
-
-
-
-///////////////////////////////////
-// JsonSingleLineWriter methods.
-///////////////////////////////////
-
-
-sim_mob::JsonSingleLineWriter::JsonSingleLineWriter(bool appendNewline) : yamlCompatiblityEnabled_( false ), appendNewline(appendNewline)
-{
-}
-
-
-void sim_mob::JsonSingleLineWriter::enableYAMLCompatibility()
-{
-   yamlCompatiblityEnabled_ = true;
-}
-
-
-std::string sim_mob::JsonSingleLineWriter::write(const Json::Value &root)
-{
-   document_.str("");
-   writeValue( root );
-   if (appendNewline) {    //NOTE: This is the first major difference between JsonSingleLineWriter and FastWriter.
-	   document_ << "\n";
-   }
-   return document_.str(); //NOTE: This (using a stringstream instead of a string) is the second major difference.
-}
-
-
-void sim_mob::JsonSingleLineWriter::writeValue(const Json::Value &value)
-{
-   switch ( value.type() )
-   {
-   case Json::nullValue:
-      document_ << "null";
-      break;
-   case Json::intValue:
-      document_ << Json::valueToString( value.asInt() );
-      break;
-   case Json::uintValue:
-      document_ << Json::valueToString( value.asUInt() );
-      break;
-   case Json::realValue:
-      document_ << Json::valueToString( value.asDouble() );
-      break;
-   case Json::stringValue:
-      document_ << Json::valueToQuotedString( value.asCString() );
-      break;
-   case Json::booleanValue:
-      document_ << Json::valueToString( value.asBool() );
-      break;
-   case Json::arrayValue:
-      {
-         document_ << "[";
-         int size = value.size();
-         for ( int index =0; index < size; ++index )
-         {
-            if ( index > 0 )
-               document_ << ",";
-            writeValue( value[index] );
-         }
-         document_ << "]";
-      }
-      break;
-   case Json::objectValue:
-      {
-         Json::Value::Members members( value.getMemberNames() );
-         document_ << "{";
-         for ( Json::Value::Members::iterator it = members.begin();
-               it != members.end();
-               ++it )
-         {
-            const std::string &name = *it;
-            if ( it != members.begin() )
-               document_ << ",";
-            document_ << Json::valueToQuotedString( name.c_str() );
-            document_ << (yamlCompatiblityEnabled_ ? ": " : ":");
-            writeValue( value[name] );
-         }
-         document_ << "}";
-      }
-      break;
-   }
 }
 
 

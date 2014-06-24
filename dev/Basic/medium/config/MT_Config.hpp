@@ -235,6 +235,8 @@ public:
 	void setCalibrationMethodology(const std::string calibrationMethod);
 	const std::string& getCalibrationOutputFile() const;
 	void setCalibrationOutputFile(const std::string& calibrationOutputFile);
+	unsigned getLogsumComputationFrequency() const;
+	void setLogsumComputationFrequency(unsigned logsumComputationFrequency);
 
 private:
 	MT_Config();
@@ -268,6 +270,7 @@ private:
 	PredayCalibrationParams spsaCalibrationParams;
 	PredayCalibrationParams wspsaCalibrationParams;
 	std::string calibrationOutputFile;
+	unsigned logsumComputationFrequency;
 };
 }
 }

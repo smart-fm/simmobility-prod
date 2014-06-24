@@ -11,6 +11,7 @@
 
 #pragma once
 #include <boost/unordered_map.hpp>
+#include <boost/function.hpp>
 #include <ostream>
 #include <sstream>
 #include <vector>
@@ -153,6 +154,7 @@ private:
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
 	typedef boost::unordered_map<int, std::vector<long> > ZoneNodeMap;
+	typedef void (PredayManager::*threadedFnPtr)(PersonList::iterator, PersonList::iterator, size_t);
 
 	/**
 	 * Threaded function loop for simulation.
@@ -167,6 +169,11 @@ private:
 	void processPersons(PersonList::iterator first, PersonList::iterator last);
 
 	/**
+	 * Distributes persons to different threads and starts the threads which process the persons for calibration
+	 */
+	void distributeAndProcessForCalibration(threadedFnPtr fnPtr);
+
+	/**
 	 * Threaded function loop for calibration.
 	 * Loops through all elements in personList within the specified range and
 	 * invokes the Preday system of models for each of them.
@@ -177,7 +184,7 @@ private:
 	 * 				last person to be processed
 	 * @param simStats the object to collect statistics into
 	 */
-	void processPersonsForCalibration(PersonList::iterator first, PersonList::iterator last, CalibrationStatistics& simStats);
+	void processPersonsForCalibration(PersonList::iterator first, PersonList::iterator last, size_t threadNum);
 
 	/**
 	 * Threaded logsum computation
@@ -190,6 +197,24 @@ private:
 	 * 				last person to be processed
 	 */
 	void computeLogsums(PersonList::iterator first, PersonList::iterator last);
+
+	/**
+	 * Threaded logsum computation for calibration
+	 * Loops through all elements in personList within the specified range and
+	 * invokes logsum computations for each of them.
+	 * This function does not update new logsums in mongodb. Updates only in memory.
+	 *
+	 * @param first personList iterator corresponding to the first person to be
+	 * 				processed
+	 * @param last personList iterator corresponding to the person after the
+	 * 				last person to be processed
+	 */
+	void computeLogsumsForCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, size_t threadNum);
+
+	/**
+	 * updates logsums in mongodb
+	 */
+	void outputLogsumsToMongoAfterCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, size_t threadNum);
 
 	/**
 	 * loads csv containing calibration variables for preday

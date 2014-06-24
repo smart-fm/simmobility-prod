@@ -187,6 +187,9 @@ void sim_mob::ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement
 		DOMElement* calibrationMethod = GetSingleElementByName(node, "calibration_technique", true);
 		mtCfg.setCalibrationMethodology(ParseString(GetNamedAttributeValue(observedStatsNode, "value"), "WSPSA"));
 
+		DOMElement* logsumFrequencyNode = GetSingleElementByName(node, "logsum_computation_frequency", true);
+		mtCfg.setLogsumComputationFrequency(ParseUnsignedInt(GetNamedAttributeValue(logsumFrequencyNode, "value", true)));
+
 		/**parse SPSA node*/
 		DOMElement* spsaNode = GetSingleElementByName(node, "spsa", true);
 		DOMElement* childNode = nullptr;
@@ -231,7 +234,7 @@ void sim_mob::ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement
 		mtCfg.setWSPSA_CalibrationParams(wspsaCalibrationParams);
 
 		DOMElement* outputNode = GetSingleElementByName(node, "output", true);
-		mtCfg.setCalibrationOutputFile(ParseString(GetNamedAttributeValue(observedStatsNode, "file"), "out.txt"));
+		mtCfg.setCalibrationOutputFile(ParseString(GetNamedAttributeValue(outputNode, "file"), "out.txt"));
 	}
 	//else just return.
 }

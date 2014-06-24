@@ -229,6 +229,19 @@ void MT_Config::setWSPSA_CalibrationParams(const PredayCalibrationParams& preday
 	}
 }
 
+unsigned MT_Config::getLogsumComputationFrequency() const
+{
+	return logsumComputationFrequency;
+}
+
+void MT_Config::setLogsumComputationFrequency(unsigned logsumComputationFrequency)
+{
+	if(!configSealed)
+	{
+		this->logsumComputationFrequency = logsumComputationFrequency;
+	}
+}
+
 }
 }
 

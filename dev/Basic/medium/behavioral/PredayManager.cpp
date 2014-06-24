@@ -24,12 +24,14 @@
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
 #include "conf/RawConfigParams.hpp"
+#include "database/dao/MongoDao.hpp"
 #include "database/DB_Config.hpp"
 #include "database/PopulationSqlDao.hpp"
 #include "database/PopulationMongoDao.hpp"
 #include "database/TripChainSqlDao.hpp"
 #include "database/ZoneCostMongoDao.hpp"
 #include "logging/NullableOutputStream.hpp"
+#include "mongo/client/dbclient.h"
 #include "util/CSVReader.hpp"
 #include "util/LangHelpers.hpp"
 
@@ -37,6 +39,7 @@ using namespace sim_mob;
 using namespace sim_mob::db;
 using namespace sim_mob::medium;
 using namespace boost::numeric::ublas;
+using namespace mongo;
 
 namespace
 {
@@ -473,9 +476,6 @@ void sim_mob::medium::PredayManager::distributeAndProcessPersons() {
 		else if(mtConfig.runningPredayLogsumComputation()) {
 			computeLogsums(personList.begin(), personList.end());
 		}
-		else if(mtConfig.runningPredayCalibration()) {
-			processPersonsForCalibration(personList.begin(), personList.end(), simulatedStatsVector[0]);
-		}
 	}
 	else {
 		PersonList::size_type numPersons = personList.size();
@@ -501,9 +501,6 @@ void sim_mob::medium::PredayManager::distributeAndProcessPersons() {
 			else if(mtConfig.runningPredayLogsumComputation()) {
 				threadGroup.create_thread( boost::bind(&PredayManager::computeLogsums, this, first, last) );
 			}
-			else if(mtConfig.runningPredayCalibration()) {
-				threadGroup.create_thread( boost::bind(&PredayManager::processPersonsForCalibration, this, first, last, simulatedStatsVector[i-1]) );
-			}
 
 			first = last;
 			if(i+1 == numWorkers) {
@@ -516,7 +513,46 @@ void sim_mob::medium::PredayManager::distributeAndProcessPersons() {
 		}
 		threadGroup.join_all();
 	}
+}
 
+void sim_mob::medium::PredayManager::distributeAndProcessForCalibration(threadedFnPtr fnPtr)
+{
+	boost::thread_group threadGroup;
+	size_t numWorkers = mtConfig.getNumPredayThreads();
+	if(numWorkers == 1) { // if single threaded execution was requested
+		(this->*fnPtr)(personList.begin(), personList.end(), 0);
+	}
+	else {
+		size_t numPersons = personList.size();
+		size_t numPersonsPerThread = numPersons / numWorkers;
+		PersonList::iterator first = personList.begin();
+		PersonList::iterator last = personList.begin()+numPersonsPerThread;
+		Print() << "numPersons:" << numPersons << "|numWorkers:" << numWorkers
+				<< "|numPersonsPerThread:" << numPersonsPerThread << std::endl;
+
+		/*
+		 * Passing different iterators on the same list into the threaded
+		 * function. So each thread will iterate mutually exclusive and
+		 * exhaustive set of persons from the population.
+		 *
+		 * Note that each thread will iterate the same personList with different
+		 * start and end iterators. It is therefore important that none of the
+		 * threads change the personList.
+		 */
+		for(size_t i = 1; i<=numWorkers; i++) {
+			threadGroup.create_thread( boost::bind(fnPtr, this, first, last, i-1) );
+
+			first = last;
+			if(i+1 == numWorkers) {
+				// if the next iteration is the last take all remaining persons
+				last = personList.end();
+			}
+			else {
+				last = last + numPersonsPerThread;
+			}
+		}
+		threadGroup.join_all();
+	}
 }
 
 void sim_mob::medium::PredayManager::calibratePreday()
@@ -526,7 +562,8 @@ void sim_mob::medium::PredayManager::calibratePreday()
 
 	/* initialize log file and log header line*/
 	logFile = new std::ofstream(mtConfig.getCalibrationOutputFile().c_str());
-	{
+
+	{ //begin new scope
 		logStream << "iteration#,obj_fn_value,norm_of_gradient";
 
 		/* load variables to calibrate */
@@ -589,39 +626,48 @@ void sim_mob::medium::PredayManager::calibratePreday()
 		// 1. compute perturbation step size
 		initialGradientStepSize = predayParams.getInitialGradientStepSize() / std::pow((1+k), predayParams.getAlgorithmCoefficient2());
 
-		// 2. compute gradients using SPSA technique
+		// 2. compute logsums if required
+		if((k%mtConfig.getLogsumComputationFrequency()) == 0)
+		{
+			distributeAndProcessForCalibration(&PredayManager::computeLogsumsForCalibration);
+		}
+
+		// 3. compute gradients using SPSA technique
 		std::vector<double> gradientVector;
 		if(mtConfig.runningWSPSA()) { computeWeightedGradient(randomVector.get(), initialGradientStepSize, gradientVector); }
 		else { computeGradient(randomVector.get(), initialGradientStepSize, gradientVector); }
 		computeAntiGradient(gradientVector); // checks limits and negates gradient
 
-		// 3. compute norm of the gradient (root of sum of squares of gradients)
+		// 4. compute norm of the gradient (root of sum of squares of gradients)
 		for(std::vector<double>::const_iterator gradIt=gradientVector.begin(); gradIt!=gradientVector.end(); gradIt++)
 		{
 			normOfGradient = normOfGradient + std::pow((*gradIt), 2);
 		}
 		normOfGradient = std::sqrt(normOfGradient);
 
-		// 4. compute step size
+		// 5. compute step size
 		stepSize = predayParams.getInitialStepSize() / std::pow((predayParams.getInitialStepSize()+k+predayParams.getStabilityConstant()), predayParams.getAlgorithmCoefficient1());
 
-		// 5. update the variables being calibrated and compute objective function
+		// 6. update the variables being calibrated and compute objective function
 		updateVariablesByAddition(calibrationVariablesList, gradientVector, stepSize);
 		objFn = computeObjectiveFunction(calibrationVariablesList, simulatedHITS_Stats);
 		objectiveFunctionValues.push_back(objFn);
 
-		// 6. log current iteration parameters and stats
+		// 7. log current iteration parameters and stats
 		logStream << k << "," << objFn << "," << normOfGradient;
 		streamVector(calibrationVariablesList, logStream);
 		streamVector(simulatedHITS_Stats, logStream);
 		log();
 
-		// 7. check termination. At this point there would be atleast k+1 elements in objectiveFunctionValues
+		// 8. check termination. At this point there would be atleast k+1 elements in objectiveFunctionValues
 		if(std::abs(objectiveFunctionValues[k] - objectiveFunctionValues[k-1]) <= predayParams.getTolerance())
 		{
 			break; //converged!
 		}
 	}
+
+	// write the latest logsums to mongodb
+	distributeAndProcessForCalibration(&PredayManager::outputLogsumsToMongoAfterCalibration);
 
 	// destroy Dao objects
 	for(boost::unordered_map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
@@ -697,8 +743,9 @@ void sim_mob::medium::PredayManager::loadWeightMatrix()
 	}
 }
 
-void sim_mob::medium::PredayManager::processPersonsForCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, CalibrationStatistics& simStats)
+void sim_mob::medium::PredayManager::processPersonsForCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, size_t threadNum)
 {
+	CalibrationStatistics& simStats = simulatedStatsVector[threadNum];
 	bool consoleOutput = mtConfig.isConsoleOutput();
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++)
 	{
@@ -820,6 +867,32 @@ void sim_mob::medium::PredayManager::processPersons(PersonList::iterator firstPe
 	mongoDao.clear();
 }
 
+void sim_mob::medium::PredayManager::computeLogsumsForCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, size_t threadNum)
+{
+	bool consoleOutput = mtConfig.isConsoleOutput();
+	// loop through all persons within the range and plan their day
+	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
+		predaySystem.computeLogsums();
+		if(consoleOutput) { predaySystem.printLogs(); }
+	}
+}
+
+void sim_mob::medium::PredayManager::outputLogsumsToMongoAfterCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, size_t threadNum)
+{
+	for(PersonList::const_iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++)
+	{
+		const PersonParams* personParams = (*i);
+		BSONObj query = BSON("_id" << personParams->getPersonId());
+		BSONObj updateObj = BSON("$set" << BSON(
+				"worklogsum"<< personParams->getWorkLogSum() <<
+				"shoplogsum" << personParams->getShopLogSum() <<
+				"otherlogsum" << personParams->getOtherLogSum()
+				));
+		mongoDao["population"]->update(query, updateObj);
+	}
+}
+
 void sim_mob::medium::PredayManager::computeLogsums(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt)
 {
 	boost::unordered_map<std::string, db::MongoDao*> mongoDao;
@@ -858,7 +931,7 @@ void sim_mob::medium::PredayManager::computeObservationsVector(const std::vector
 {
 	updateVariablesInLuaFiles(mtConfig.getModelScriptsMap().getPath(), calVarList);
 	std::for_each(simulatedStatsVector.begin(), simulatedStatsVector.end(), std::mem_fun_ref(&CalibrationStatistics::reset));
-	distributeAndProcessPersons();
+	distributeAndProcessForCalibration(&PredayManager::processPersonsForCalibration);
 	simulatedHITS_Stats.clear();
 	CalibrationStatistics simulatedStats;
 	aggregateStatistics(simulatedStatsVector, simulatedStats);

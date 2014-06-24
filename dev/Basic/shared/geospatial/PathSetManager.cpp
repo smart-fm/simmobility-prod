@@ -821,7 +821,8 @@ std::vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const si
 	//call the default method
 	return generateBestPathChoiceMT(st, profiler, exclude_seg, isUseCache, isUseDB);
 }
-
+const std::string pathSetTableName = "PathSet";
+const std::string singlePathTableName = "SinglePath";
 vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler, const std::set<const sim_mob::RoadSegment*> & exclude_seg , bool isUseCache, bool isUseDB)
 {
 	vector<WayPoint> res;
@@ -860,7 +861,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 		hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
 								*sql,
 								ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-								ps_,pathSetID);
+								ps_,pathSetID, pathSetTableName);
 		//time taken to find out if there is a path set in DB
 		out.str("");
 		out << "hasPSinDB:" << (hasPSinDB ? "true" : "false" ) << ":" << PSDB_Profiler.endProfiling() << std::endl;
@@ -883,7 +884,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 										ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 										id_sp,
 										pathSetID,
-										ps_.pathChoices, exclude_seg);
+										ps_.pathChoices, singlePathTableName, exclude_seg);
 
 				out.str("");
 				out << "hasSPinDB:" << (hasSPinDB ? "true" : "false" ) << ":" << SP_Profiler.endProfiling() << std::endl;

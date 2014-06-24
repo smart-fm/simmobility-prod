@@ -78,7 +78,7 @@ public:
 	static bool LoadSinglePathDBwithIdST(soci::session& sql,const std::string& connectionStr,
 					std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 					std::string& pathset_id,
-					std::vector<sim_mob::SinglePath*>& spPool,
+					std::vector<sim_mob::SinglePath*>& spPool,const std::string singlePathTableName = "SinglePath",
 					const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
 	static bool LoadPathSetDBwithId(const std::string& connectionStr,
 			std::map<std::string,sim_mob::PathSet* >& pool,
@@ -88,7 +88,7 @@ public:
 				std::string& pathset_id);
 	static bool LoadOnePathSetDBwithIdST(soci::session& sql,const std::string& connectionStr,
 				sim_mob::PathSet& ps,
-					std::string& pathset_id);
+					std::string& pathset_id, const std::string tableName = "PathSet");
 	static void LoadERPData(const std::string& connectionStr,
 			std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > &erp_surcharge_pool,
 			std::map<std::string,sim_mob::ERP_Gantry_Zone*>& erp_gantry_zone_pool,

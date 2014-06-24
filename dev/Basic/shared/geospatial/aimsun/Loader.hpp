@@ -78,7 +78,7 @@ public:
 	static bool LoadSinglePathDBwithIdST(soci::session& sql,const std::string& connectionStr,
 					std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 					std::string& pathset_id,
-					std::vector<sim_mob::SinglePath*>& spPool,const std::string singlePathTableName = "SinglePath",
+					std::vector<sim_mob::SinglePath*>& spPool,const std::string singlePathTableName,
 					const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
 	static bool LoadPathSetDBwithId(const std::string& connectionStr,
 			std::map<std::string,sim_mob::PathSet* >& pool,
@@ -88,7 +88,7 @@ public:
 				std::string& pathset_id);
 	static bool LoadOnePathSetDBwithIdST(soci::session& sql,const std::string& connectionStr,
 				sim_mob::PathSet& ps,
-					std::string& pathset_id, const std::string tableName = "PathSet");
+					std::string& pathset_id, const std::string tableName);
 	static void LoadERPData(const std::string& connectionStr,
 			std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > &erp_surcharge_pool,
 			std::map<std::string,sim_mob::ERP_Gantry_Zone*>& erp_gantry_zone_pool,
@@ -116,11 +116,11 @@ public:
 	static void SaveOnePathSetData(const std::string& connectionStr,
 			std::map<std::string,sim_mob::PathSet* >& pathSetPool);
 	static bool SaveOnePathSetDataST(soci::session& sql,
-				std::map<std::string,sim_mob::PathSet* >& pathSetPool);
+				std::map<std::string,sim_mob::PathSet* >& pathSetPool,const std::string pathSetTableName);
 	static void SaveOneSinglePathData(const std::string& connectionStr,
 				std::vector<sim_mob::SinglePath*>& pathPool);
 	static bool SaveOneSinglePathDataST(soci::session& sql,
-					std::vector<sim_mob::SinglePath*>& pathPool);
+					std::vector<sim_mob::SinglePath*>& pathPool,const std::string singlePathTableName);
 	///For partial network loading.
 	static std::map<std::string, std::vector<sim_mob::TripChainItem*> > LoadTripChainsFromNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs);
 

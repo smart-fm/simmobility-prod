@@ -31,6 +31,9 @@ PathSetManager *sim_mob::PathSetManager::instance_;
 sim_mob::Profiler sim_mob::PathSetManager::profiler(false, "main_profiler","path_set_profiler.txt");
 
 PathSetParam *sim_mob::PathSetParam::instance_ = NULL;
+//todo to be configurable somehow
+const std::string pathSetTableName = "PathSet";
+const std::string singlePathTableName = "SinglePath_Scaled_HITS_distinctODs";
 
 sim_mob::PathSetParam* sim_mob::PathSetParam::getInstance()
 {
@@ -80,13 +83,13 @@ void sim_mob::PathSetParam::getDataFromDB()
 //	data.link_id = 123;
 //	insertTravelTime2TmpTable(data);
 }
-void sim_mob::PathSetParam::storeSinglePath(soci::session& sql,std::vector<sim_mob::SinglePath*>& spPool)
+void sim_mob::PathSetParam::storeSinglePath(soci::session& sql,std::vector<sim_mob::SinglePath*>& spPool,const std::string singlePathTableName)
 {
-	sim_mob::aimsun::Loader::SaveOneSinglePathDataST(sql,spPool);
+	sim_mob::aimsun::Loader::SaveOneSinglePathDataST(sql,spPool,singlePathTableName);
 }
-void sim_mob::PathSetParam::storePathSet(soci::session& sql,std::map<std::string,sim_mob::PathSet* >& psPool)
+void sim_mob::PathSetParam::storePathSet(soci::session& sql,std::map<std::string,sim_mob::PathSet* >& psPool,const std::string pathSetTableName)
 {
-	sim_mob::aimsun::Loader::SaveOnePathSetDataST(sql,psPool);
+	sim_mob::aimsun::Loader::SaveOnePathSetDataST(sql,psPool,pathSetTableName);
 }
 bool sim_mob::PathSetParam::createTravelTimeTmpTable()
 {
@@ -666,7 +669,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
 						*sql,
 						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-						ps_,pathSetID);
+						ps_,pathSetID, pathSetTableName);
 #endif
 		if(ps_.has_path == -1) //no path
 		{
@@ -688,7 +691,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 						id_sp,
 						pathSetID,
-						ps_.pathChoices);
+						ps_.pathChoices,singlePathTableName);
 				if(hasSPinDB)
 				{
 					std::map<std::string,sim_mob::SinglePath*>::iterator it = id_sp.find(ps_.singlepath_id);
@@ -821,8 +824,7 @@ std::vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const si
 	//call the default method
 	return generateBestPathChoiceMT(st, profiler, exclude_seg, isUseCache, isUseDB);
 }
-const std::string pathSetTableName = "PathSet";
-const std::string singlePathTableName = "SinglePath";
+
 vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler, const std::set<const sim_mob::RoadSegment*> & exclude_seg , bool isUseCache, bool isUseDB)
 {
 	vector<WayPoint> res;
@@ -928,7 +930,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 				}// hasSPinDB
 				else
 				{
-					Print() << "DB Miss" << std::endl;
+					Print() << "DB Miss    for " << std::endl;
 				}
 			}
 		} // hasPSinDB
@@ -980,8 +982,10 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 			std::map<std::string,sim_mob::PathSet* > tmp;
 			tmp.insert(std::make_pair(fromId_toId,&ps_));
 			sim_mob::Profiler STRP_Profiler(true);
-			pathSetParam->storePathSet(*sql,tmp);
-			pathSetParam->storeSinglePath(*sql,ps_.pathChoices);
+//			const std::string pathSetTableName = "PathSet";
+//			const std::string singlePathTableName = "SinglePath_Scaled_HITS_distinctODs";
+			pathSetParam->storePathSet(*sql,tmp,pathSetTableName);
+			pathSetParam->storeSinglePath(*sql,ps_.pathChoices,singlePathTableName);
 			out.str("");
 			out << "STORE_PATH:" << STRP_Profiler.endProfiling() << std::endl;
 			personProfiler.addOutPut(out);
@@ -1000,6 +1004,9 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 			personProfiler.addOutPut(out);
 			return res;
 		}
+	else{
+		Print() << "Didn't (re)generate pathset(isUseDB:" << isUseDB << ", hasPSinDB:"<< hasPSinDB << ")" << std::endl;
+	}
 	return res;
 }
 

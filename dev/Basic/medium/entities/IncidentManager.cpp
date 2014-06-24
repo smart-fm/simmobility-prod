@@ -28,7 +28,7 @@ void sim_mob::IncidentManager::readFromFile(std::string inputFile){
 	std::ifstream in(inputFile.c_str());
 	if (!in.is_open()){
 		std::ostringstream out("");
-		out << "File " << inputFile << " not found";
+		out << "Incident File " << inputFile << " not found";
 //		throw std::runtime_error(out.str());
 		//debug
 		return;
@@ -45,6 +45,7 @@ void sim_mob::IncidentManager::readFromFile(std::string inputFile){
 		double newFlowRate = boost::lexical_cast<double>(*(++it));//second element
 		uint32_t tick =  boost::lexical_cast<uint32_t>(*(++it));//second element
 		incidents.insert(std::make_pair(tick,Incident(sectionId,newFlowRate,tick)));
+		Print() << "Incident inserted for tick:" <<tick << " sectionId:" << sectionId << std::endl;
 	}
 	in.close();
 }

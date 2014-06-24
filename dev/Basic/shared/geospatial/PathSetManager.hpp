@@ -63,8 +63,8 @@ public:
 	sim_mob::RoadSegment* getRoadSegmentByAimsunId(std::string id);
 	// retrieve
 	void getDataFromDB();
-	void storeSinglePath(soci::session& sql,std::vector<sim_mob::SinglePath*>& spPool);
-	void storePathSet(soci::session& sql,std::map<std::string,sim_mob::PathSet* >& psPool);
+	void storeSinglePath(soci::session& sql,std::vector<sim_mob::SinglePath*>& spPool,const std::string singlePathTableName);
+	void storePathSet(soci::session& sql,std::map<std::string,sim_mob::PathSet* >& psPool,const std::string pathSetTableName);
 	void setTravleTimeTmpTableName(const std::string& value);
 	bool createTravelTimeTmpTable();
 	bool dropTravelTimeTmpTable();

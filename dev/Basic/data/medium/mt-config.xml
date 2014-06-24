@@ -98,6 +98,9 @@
                                 <!-- csv containing the weight matrix-->
                                 <weight_matrix file="data/medium/preday_calibration_weight_matrix.csv"/>
                         </WSPSA>
+                        
+                        <!-- output file to track the statistics and parameters for every iteration of calibration -->
+                        <output file="preday_calibration_out.csv"/>
                 </calibration>
         </preday>
 </config>

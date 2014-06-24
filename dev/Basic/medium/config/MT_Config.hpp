@@ -203,155 +203,41 @@ private:
 class MT_Config : private sim_mob::ProtectedCopyable
 {
 public:
-	MT_Config();
 	virtual ~MT_Config();
 
 	static MT_Config& getInstance();
 
-	double getPedestrianWalkSpeed() const
-	{
-		return pedestrianWalkSpeed;
-	}
-
-	std::vector<int>& getDwellTimeParams()
-	{
-		return dwellTimeParams;
-	}
-
-	void setPedestrianWalkSpeed(double pedestrianWalkSpeed)
-	{
-		if(!configSealed)
-		{
-			this->pedestrianWalkSpeed = pedestrianWalkSpeed;
-		}
-	}
-
-	unsigned getNumPredayThreads() const
-	{
-		return numPredayThreads;
-	}
-
-	void setNumPredayThreads(unsigned numPredayThreads)
-	{
-		if(!configSealed)
-		{
-			this->numPredayThreads = numPredayThreads;
-		}
-	}
-
-	const ModelScriptsMap& getModelScriptsMap() const
-	{
-		return modelScriptsMap;
-	}
-
-	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap)
-	{
-		if(!configSealed)
-		{
-			this->modelScriptsMap = modelScriptsMap;
-		}
-	}
-
-	const MongoCollectionsMap& getMongoCollectionsMap() const
-	{
-		return mongoCollectionsMap;
-	}
-
-	void setMongoCollectionsMap(const MongoCollectionsMap& mongoCollectionsMap)
-	{
-		if(!configSealed)
-		{
-			this->mongoCollectionsMap = mongoCollectionsMap;
-		}
-	}
-
-	void sealConfig()
-	{
-		configSealed = true;
-	}
-
-	const PredayCalibrationParams& getPredayCalibrationParams() const
-	{
-		if(runningWSPSA()) { return wspsaCalibrationParams; }
-		return spsaCalibrationParams;
-	}
-
-	const PredayCalibrationParams& getSPSA_CalibrationParams() const
-	{
-		return spsaCalibrationParams;
-	}
-
-	void setSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams)
-	{
-		if(!configSealed)
-		{
-			this->spsaCalibrationParams = predayCalibrationParams;
-		}
-	}
-
-	const PredayCalibrationParams& getWSPSA_CalibrationParams() const
-	{
-		return wspsaCalibrationParams;
-	}
-
+	double getPedestrianWalkSpeed() const;
+	std::vector<int>& getDwellTimeParams();
+	void setPedestrianWalkSpeed(double pedestrianWalkSpeed);
+	unsigned getNumPredayThreads() const;
+	void setNumPredayThreads(unsigned numPredayThreads);
+	const ModelScriptsMap& getModelScriptsMap() const;
+	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap);
+	const MongoCollectionsMap& getMongoCollectionsMap() const;
+	void setMongoCollectionsMap(const MongoCollectionsMap& mongoCollectionsMap);
+	void sealConfig();
+	const PredayCalibrationParams& getPredayCalibrationParams() const;
+	const PredayCalibrationParams& getSPSA_CalibrationParams() const;
+	void setSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams);
+	const PredayCalibrationParams& getWSPSA_CalibrationParams() const;
 	void setWSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams);
-
-	bool isOutputTripchains() const
-	{
-		return outputTripchains;
-	}
-
-	void setOutputTripchains(bool outputTripchains)
-	{
-		if(!configSealed)
-		{
-			this->outputTripchains = outputTripchains;
-		}
-	}
-
-	bool isConsoleOutput() const
-	{
-		return consoleOutput;
-	}
-
-	void setConsoleOutput(bool consoleOutput)
-	{
-		if(!configSealed)
-		{
-			this->consoleOutput = consoleOutput;
-		}
-	}
-
-	bool runningPredaySimulation() const
-	{
-		return (predayRunMode == MT_Config::SIMULATION);
-	}
-
-	bool runningPredayCalibration() const
-	{
-		return (predayRunMode == MT_Config::CALIBRATION);
-	}
-
-	bool runningPredayLogsumComputation() const
-	{
-		return (predayRunMode == MT_Config::LOGSUM_COMPUTATION);
-	}
-
+	bool isOutputTripchains() const;
+	void setOutputTripchains(bool outputTripchains);
+	bool isConsoleOutput() const;
+	void setConsoleOutput(bool consoleOutput);
+	bool runningPredaySimulation() const;
+	bool runningPredayCalibration() const;
+	bool runningPredayLogsumComputation() const;
 	void setPredayRunMode(const std::string runMode);
-
-	bool runningSPSA() const
-	{
-		return (calibrationMethodology == MT_Config::SPSA);
-	}
-
-	bool runningWSPSA() const
-	{
-		return (calibrationMethodology == MT_Config::WSPSA);
-	}
-
+	bool runningSPSA() const;
+	bool runningWSPSA() const;
 	void setCalibrationMethodology(const std::string calibrationMethod);
+	const std::string& getCalibrationOutputFile() const;
+	void setCalibrationOutputFile(const std::string& calibrationOutputFile);
 
 private:
+	MT_Config();
 	static MT_Config* instance;
 
 	/**protection for changes after config is loaded*/
@@ -381,6 +267,7 @@ private:
 	CalibrationMethodology calibrationMethodology;
 	PredayCalibrationParams spsaCalibrationParams;
 	PredayCalibrationParams wspsaCalibrationParams;
+	std::string calibrationOutputFile;
 };
 }
 }

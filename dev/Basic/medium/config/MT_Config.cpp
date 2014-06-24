@@ -30,7 +30,10 @@ MT_Config::MT_Config() :
 consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA)
 {}
 
-MT_Config::~MT_Config() {}
+MT_Config::~MT_Config()
+{
+	safe_delete_item(instance);
+}
 
 MT_Config* MT_Config::instance(nullptr);
 
@@ -51,6 +54,156 @@ void MT_Config::setPredayRunMode(const std::string runMode)
 		else if(runMode == "logsum") { predayRunMode = MT_Config::LOGSUM_COMPUTATION; }
 		else if(runMode == "calibration") { predayRunMode = MT_Config::CALIBRATION; }
 		else { throw std::runtime_error("Inadmissible value for preday run_mode"); }
+	}
+}
+
+double MT_Config::getPedestrianWalkSpeed() const
+{
+	return pedestrianWalkSpeed;
+}
+
+std::vector<int>& MT_Config::getDwellTimeParams()
+{
+	return dwellTimeParams;
+}
+
+void MT_Config::setPedestrianWalkSpeed(double pedestrianWalkSpeed)
+{
+	if(!configSealed)
+	{
+		this->pedestrianWalkSpeed = pedestrianWalkSpeed;
+	}
+}
+
+unsigned MT_Config::getNumPredayThreads() const
+{
+	return numPredayThreads;
+}
+
+void MT_Config::setNumPredayThreads(unsigned numPredayThreads)
+{
+	if(!configSealed)
+	{
+		this->numPredayThreads = numPredayThreads;
+	}
+}
+
+const ModelScriptsMap& MT_Config::getModelScriptsMap() const
+{
+	return modelScriptsMap;
+}
+
+void MT_Config::setModelScriptsMap(const ModelScriptsMap& modelScriptsMap)
+{
+	if(!configSealed)
+	{
+		this->modelScriptsMap = modelScriptsMap;
+	}
+}
+
+const MongoCollectionsMap& MT_Config::getMongoCollectionsMap() const
+{
+	return mongoCollectionsMap;
+}
+
+void MT_Config::setMongoCollectionsMap(const MongoCollectionsMap& mongoCollectionsMap)
+{
+	if(!configSealed)
+	{
+		this->mongoCollectionsMap = mongoCollectionsMap;
+	}
+}
+
+void MT_Config::sealConfig()
+{
+	configSealed = true;
+}
+
+const PredayCalibrationParams& MT_Config::getPredayCalibrationParams() const
+{
+	if(runningWSPSA()) { return wspsaCalibrationParams; }
+	return spsaCalibrationParams;
+}
+
+const PredayCalibrationParams& MT_Config::getSPSA_CalibrationParams() const
+{
+	return spsaCalibrationParams;
+}
+
+void MT_Config::setSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams)
+{
+	if(!configSealed)
+	{
+		this->spsaCalibrationParams = predayCalibrationParams;
+	}
+}
+
+const PredayCalibrationParams& MT_Config::getWSPSA_CalibrationParams() const
+{
+	return wspsaCalibrationParams;
+}
+
+bool MT_Config::isOutputTripchains() const
+{
+	return outputTripchains;
+}
+
+void MT_Config::setOutputTripchains(bool outputTripchains)
+{
+	if(!configSealed)
+	{
+		this->outputTripchains = outputTripchains;
+	}
+}
+
+bool MT_Config::isConsoleOutput() const
+{
+	return consoleOutput;
+}
+
+void MT_Config::setConsoleOutput(bool consoleOutput)
+{
+	if(!configSealed)
+	{
+		this->consoleOutput = consoleOutput;
+	}
+}
+
+bool MT_Config::runningPredaySimulation() const
+{
+	return (predayRunMode == MT_Config::SIMULATION);
+}
+
+bool MT_Config::runningPredayCalibration() const
+{
+	return (predayRunMode == MT_Config::CALIBRATION);
+}
+
+bool MT_Config::runningPredayLogsumComputation() const
+{
+	return (predayRunMode == MT_Config::LOGSUM_COMPUTATION);
+}
+
+bool MT_Config::runningSPSA() const
+{
+	return (calibrationMethodology == MT_Config::SPSA);
+}
+
+bool MT_Config::runningWSPSA() const
+{
+	return (calibrationMethodology == MT_Config::WSPSA);
+}
+
+const std::string& MT_Config::getCalibrationOutputFile() const
+{
+	return calibrationOutputFile;
+}
+
+void MT_Config::setCalibrationOutputFile(const std::string& calibrationOutputFile)
+{
+	if(!configSealed)
+	{
+		this->calibrationOutputFile = calibrationOutputFile;
 	}
 }
 

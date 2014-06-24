@@ -229,6 +229,9 @@ void sim_mob::ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement
 
 		mtCfg.setSPSA_CalibrationParams(spsaCalibrationParams);
 		mtCfg.setWSPSA_CalibrationParams(wspsaCalibrationParams);
+
+		DOMElement* outputNode = GetSingleElementByName(node, "output", true);
+		mtCfg.setCalibrationOutputFile(ParseString(GetNamedAttributeValue(observedStatsNode, "file"), "out.txt"));
 	}
 	//else just return.
 }

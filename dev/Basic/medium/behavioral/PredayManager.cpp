@@ -109,37 +109,36 @@ private:
 /**
  * helper function to compute Anti gradient
  * @param gradientVector the gradient vector
- * @param outAntiGradientVector the anti-gradient vector to populate
  */
-void computeAntiGradientVector(const std::vector<double>& gradientVector, std::vector<double>& outAntiGradientVector)
+void computeAntiGradient(std::vector<double>& gradientVector)
 {
 	if(gradientVector.size() != calibrationVariablesList.size())
 	{
 		throw std::runtime_error("gradientVector.size() != calibrationVariablesList.size()");
 	}
-	outAntiGradientVector.clear();
-	double gradient = 0;
 	double antiGradient = 0;
 	size_t variableIdx = 0;
-	for(std::vector<double>::const_iterator gradIt=gradientVector.begin(); gradIt!=gradientVector.end(); gradIt++, variableIdx++)
+	for(std::vector<double>::iterator gradIt=gradientVector.begin(); gradIt!=gradientVector.end(); gradIt++, variableIdx++)
 	{
-		gradient = *gradIt;
+		double& gradient = *gradIt;
 		const CalibrationVariable& calVar = calibrationVariablesList[variableIdx];
 		if((gradient > 0 && calVar.getLowerLimit() == calVar.getCurrentValue()) ||
 				(gradient < 0 && calVar.getUpperLimit() == calVar.getCurrentValue()))
 		{
-			antiGradient = 0;
+			gradient = 0;
 		}
 		else
 		{
-			antiGradient = -gradient;
+			gradient = -gradient;
 		}
-		outAntiGradientVector.push_back(antiGradient);
 	}
 }
 
 /**
  * helper function to multiply a scalar and a vector
+ * @param scalarLhs the scalar
+ * @param vectorRhs the vector
+ * @param output output vector to populate with scaled values
  */
 template<typename V>
 void multiplyScalarWithVector(double scalarLhs, const std::vector<V>& vectorRhs, std::vector<double>& output)
@@ -151,6 +150,12 @@ void multiplyScalarWithVector(double scalarLhs, const std::vector<V>& vectorRhs,
 	}
 }
 
+/**
+ * updates the current values of variables by adding gradients
+ * @param calVarList variable list
+ * @param gradientVector the gradient vector
+ * @param scale the scaling factor for gradients
+ */
 template<typename V>
 void updateVariablesByAddition(std::vector<CalibrationVariable>& calVarList, const std::vector<V>& gradientVector, double scale=1)
 {
@@ -163,6 +168,12 @@ void updateVariablesByAddition(std::vector<CalibrationVariable>& calVarList, con
 	}
 }
 
+/**
+ * updates the current values of variables by subtracting gradients
+ * @param calVarList variable list
+ * @param gradientVector the gradient vector
+ * @param scale the scaling factor for gradients
+ */
 template<typename V>
 void updateVariablesBySubtraction(std::vector<CalibrationVariable>& calVarList, const std::vector<V>& gradientVector, double scale=1)
 {
@@ -175,6 +186,12 @@ void updateVariablesBySubtraction(std::vector<CalibrationVariable>& calVarList, 
 	}
 }
 
+/**
+ * updates the values of parameters in lua file
+ * \note this function executes std::system() to call sed script
+ * @param scriptFilesPath path to scripts
+ * @param calVarList list of variables to calibrate
+ */
 void updateVariablesInLuaFiles(const std::string& scriptFilesPath, const std::vector<CalibrationVariable>& calVarList)
 {
 	std::stringstream cmdStream;
@@ -196,6 +213,11 @@ void updateVariablesInLuaFiles(const std::string& scriptFilesPath, const std::ve
 	}
 }
 
+/**
+ * computes sum of difference squared of simulated and observed vectors
+ * @param observed observed values
+ * @param simulated simulated values
+ */
 double computeSumOfDifferenceSquared(const std::vector<double>& observed, const std::vector<double>& simulated)
 {
 	if(observed.size() != simulated.size()) { throw std::runtime_error("size mis-match between observed and simulated values");	}
@@ -208,6 +230,11 @@ double computeSumOfDifferenceSquared(const std::vector<double>& observed, const 
 	return objFnVal;
 }
 
+/**
+ * adds up CalibrationStatistics vector
+ * @param calStatsVect input vector
+ * @param aggregate reference to output of addition
+ */
 void aggregateStatistics(const std::vector<CalibrationStatistics>& calStatsVect, CalibrationStatistics& aggregate)
 {
 	for(std::vector<CalibrationStatistics>::const_iterator csIt=calStatsVect.begin();
@@ -229,6 +256,11 @@ std::ostream& operator <<(std::ostream& os, const CalibrationVariable& calVar)
 	return os;
 }
 
+/**
+ * streams the elements of vector into stringstream as comma seperated values
+ * @param vectorToLog input vector
+ * @param logStream stringstream to write to
+ */
 template<typename V>
 void streamVector(const std::vector<V>& vectorToLog, std::stringstream& logStream)
 {
@@ -561,33 +593,30 @@ void sim_mob::medium::PredayManager::calibratePreday()
 		std::vector<double> gradientVector;
 		if(mtConfig.runningWSPSA()) { computeWeightedGradient(randomVector.get(), initialGradientStepSize, gradientVector); }
 		else { computeGradient(randomVector.get(), initialGradientStepSize, gradientVector); }
+		computeAntiGradient(gradientVector); // checks limits and negates gradient
 
-		// 3. compute projected anti-gradient vector
-		std::vector<double> antiGradientVector;
-		computeAntiGradientVector(gradientVector, antiGradientVector);
-
-		// 4. compute norm of the gradient (root of sum of squares of gradients)
-		for(std::vector<double>::const_iterator gradIt=antiGradientVector.begin(); gradIt!=antiGradientVector.end(); gradIt++)
+		// 3. compute norm of the gradient (root of sum of squares of gradients)
+		for(std::vector<double>::const_iterator gradIt=gradientVector.begin(); gradIt!=gradientVector.end(); gradIt++)
 		{
 			normOfGradient = normOfGradient + std::pow((*gradIt), 2);
 		}
 		normOfGradient = std::sqrt(normOfGradient);
 
-		// 5. compute step size
+		// 4. compute step size
 		stepSize = predayParams.getInitialStepSize() / std::pow((predayParams.getInitialStepSize()+k+predayParams.getStabilityConstant()), predayParams.getAlgorithmCoefficient1());
 
-		// 6. update the variables being calibrated and compute objective function
-		updateVariablesByAddition(calibrationVariablesList, antiGradientVector, stepSize);
+		// 5. update the variables being calibrated and compute objective function
+		updateVariablesByAddition(calibrationVariablesList, gradientVector, stepSize);
 		objFn = computeObjectiveFunction(calibrationVariablesList, simulatedHITS_Stats);
 		objectiveFunctionValues.push_back(objFn);
 
-		// 7. log current iteration parameters and stats
+		// 6. log current iteration parameters and stats
 		logStream << k << "," << objFn << "," << normOfGradient;
 		streamVector(calibrationVariablesList, logStream);
 		streamVector(simulatedHITS_Stats, logStream);
 		log();
 
-		// 8. check termination. At this point there would be atleast k+1 elements in objectiveFunctionValues
+		// 7. check termination. At this point there would be atleast k+1 elements in objectiveFunctionValues
 		if(std::abs(objectiveFunctionValues[k] - objectiveFunctionValues[k-1]) <= predayParams.getTolerance())
 		{
 			break; //converged!

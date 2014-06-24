@@ -11,6 +11,8 @@
 
 #pragma once
 #include <boost/unordered_map.hpp>
+#include <ostream>
+#include <sstream>
 #include <vector>
 #include "behavioral/PredaySystem.hpp"
 #include "CalibrationStatistics.hpp"
@@ -220,9 +222,9 @@ private:
 	/**
 	 * runs preday and computes the value for objective function
 	 * @param calibrationVariableList values of calibration variables to use in simulation
-	 * @param useWeights flag to indicate whether to use the weight matrix or not
+	 * @param simulatedHITS_Stats output list to populate simulated stats
 	 */
-	double computeObjectiveFunction(const std::vector<CalibrationVariable>& calibrationVariableList);
+	double computeObjectiveFunction(const std::vector<CalibrationVariable>& calibrationVariableList, std::vector<double>& simulatedHITS_Stats);
 
 	/**
 	 * runs preday and computes the value for objective function
@@ -230,6 +232,11 @@ private:
 	 * @param simulatedHITS_Stats output list to populate
 	 */
 	void computeObservationsVector(const std::vector<CalibrationVariable>& calVarList, std::vector<double> simulatedHITS_Stats);
+
+	/**
+	 * logs logStream into file
+	 */
+	void log();
 
 	PersonList personList;
 
@@ -262,6 +269,10 @@ private:
     std::vector<CalibrationStatistics> simulatedStatsVector;
 
     const MT_Config& mtConfig;
+
+    std::ostream* logFile;
+
+    std::stringstream logStream;
 
 };
 } //end namespace medium

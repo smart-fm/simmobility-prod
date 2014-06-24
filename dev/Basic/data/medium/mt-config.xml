@@ -29,7 +29,7 @@
                 <!-- outputs the preday predictions as trip chains in if enabled -->
                 <output_tripchains enabled="false"/>
                 <!-- prints person ids and tour details in console for each person if enabled -->
-                <console_output enabled="true"/>
+                <console_output enabled="false"/>
                 
                 <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
                         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->

@@ -20,7 +20,6 @@
 #include <cstdlib>
 #include <ctime>
 #include <string>
-#include <sstream>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
@@ -30,6 +29,7 @@
 #include "database/PopulationMongoDao.hpp"
 #include "database/TripChainSqlDao.hpp"
 #include "database/ZoneCostMongoDao.hpp"
+#include "logging/NullableOutputStream.hpp"
 #include "util/CSVReader.hpp"
 #include "util/LangHelpers.hpp"
 
@@ -37,6 +37,7 @@ using namespace sim_mob;
 using namespace sim_mob::db;
 using namespace sim_mob::medium;
 using namespace boost::numeric::ublas;
+
 namespace
 {
 //Header strings used in CSV file for calibration variables
@@ -150,25 +151,27 @@ void multiplyScalarWithVector(double scalarLhs, const std::vector<V>& vectorRhs,
 	}
 }
 
-void updateVariablesByAddition(std::vector<CalibrationVariable>& calVarList, const std::vector<double>& rhs)
+template<typename V>
+void updateVariablesByAddition(std::vector<CalibrationVariable>& calVarList, const std::vector<V>& gradientVector, double scale=1)
 {
-	if(calVarList.size() != rhs.size()) { throw std::runtime_error("cannot add vectors of different sizes"); }
-	size_t vectorSize = calVarList.size();
-	for(size_t i=0; i<vectorSize; i++)
+	if(calVarList.size() != gradientVector.size()) { throw std::runtime_error("cannot add vectors of different sizes"); }
+	size_t i=0;
+	for(std::vector<CalibrationVariable>::iterator calVarIt=calVarList.begin(); calVarIt!=calVarList.end(); calVarIt++, i++)
 	{
-		CalibrationVariable& calVar = calVarList[i];
-		calVar.setCurrentValue(calVar.getCurrentValue()+rhs[i]);
+		CalibrationVariable& calVar = (*calVarIt);
+		calVar.setCurrentValue(calVar.getCurrentValue() + (scale*gradientVector[i]));
 	}
 }
 
-void updateVariablesBySubtraction(std::vector<CalibrationVariable>& calVarList, const std::vector<double>& rhs)
+template<typename V>
+void updateVariablesBySubtraction(std::vector<CalibrationVariable>& calVarList, const std::vector<V>& gradientVector, double scale=1)
 {
-	if(calVarList.size() != rhs.size()) { throw std::runtime_error("cannot subtract vectors of different sizes"); }
-	size_t vectorSize = calVarList.size();
-	for(size_t i=0; i<vectorSize; i++)
+	if(calVarList.size() != gradientVector.size()) { throw std::runtime_error("cannot subtract vectors of different sizes"); }
+	size_t i=0;
+	for(std::vector<CalibrationVariable>::iterator calVarIt=calVarList.begin(); calVarIt!=calVarList.end(); calVarIt++, i++)
 	{
-		CalibrationVariable& calVar = calVarList[i];
-		calVar.setCurrentValue(calVar.getCurrentValue()-rhs[i]);
+		CalibrationVariable& calVar = (*calVarIt);
+		calVar.setCurrentValue(calVar.getCurrentValue() - (scale*gradientVector[i]));
 	}
 }
 
@@ -214,9 +217,30 @@ void aggregateStatistics(const std::vector<CalibrationStatistics>& calStatsVect,
 	}
 }
 
+/**
+ * operatoer overload to simplify logging to file
+ * @param os the lhs of the operator
+ * @param calVar the rhs of the operator
+ * @return a reference to os after adding calVar to it
+ */
+std::ostream& operator <<(std::ostream& os, const CalibrationVariable& calVar)
+{
+	os << calVar.getCurrentValue();
+	return os;
+}
+
+template<typename V>
+void streamVector(const std::vector<V>& vectorToLog, std::stringstream& logStream)
+{
+	for(typename std::vector<V>::const_iterator vIt=vectorToLog.begin(); vIt!=vectorToLog.end(); vIt++)
+	{
+		logStream << "," << *vIt;
+	}
+}
+
 } //end anonymous namespace
 
-sim_mob::medium::PredayManager::PredayManager() : mtConfig(MT_Config::getInstance())
+sim_mob::medium::PredayManager::PredayManager() : mtConfig(MT_Config::getInstance()), logFile(nullptr)
 {
 }
 
@@ -466,22 +490,42 @@ void sim_mob::medium::PredayManager::distributeAndProcessPersons() {
 void sim_mob::medium::PredayManager::calibratePreday()
 {
 	if(!mtConfig.runningPredayCalibration()) { return; }
-
-	boost::thread_group threadGroup;
-	unsigned numWorkers = mtConfig.getNumPredayThreads();
-	loadCalibrationVariables();
-
 	const PredayCalibrationParams& predayParams = mtConfig.getPredayCalibrationParams();
+
+	/* initialize log file and log header line*/
+	logFile = new std::ofstream(mtConfig.getCalibrationOutputFile().c_str());
 	{
-		CalibrationStatistics observedStats(predayParams.getObservedStatisticsFile());
+		logStream << "iteration#,obj_fn_value,norm_of_gradient";
+
+		/* load variables to calibrate */
+		loadCalibrationVariables();
+
+		/* load observed values for statistics to be computed by simulation */
+		CSV_Reader statsReader(predayParams.getObservedStatisticsFile(), true);
+		streamVector(statsReader.getHeaderList(), logStream);
+		log();
+		boost::unordered_map<std::string, std::string> observedValuesMap;
+		statsReader.getNextRow(observedValuesMap, false);
+		if (observedValuesMap.empty())
+		{
+			throw std::runtime_error("No data found for observed values of calibration statistics");
+		}
+		CalibrationStatistics observedStats(observedValuesMap);
 		observedStats.getAllStatistics(observedHITS_Stats); // store a local copy for future use
-	} //scope out observedStats
 
-	loadWeightMatrix();
+		logStream << "observed,N/A,N/A";
+		streamVector(calibrationVariablesList, logStream);
+		streamVector(observedHITS_Stats, logStream);
+		log();
+	} //scope out unnecessary objects
 
+	/* load weight matrix if required */
+	if(mtConfig.runningWSPSA()) { loadWeightMatrix(); }
+
+	/*initializations*/
 	simulatedStatsVector = std::vector<CalibrationStatistics>(mtConfig.getNumPredayThreads());
 	unsigned iterationLimit = predayParams.getIterationLimit();
-	bool consoleOutput = mtConfig.isConsoleOutput();
+
 	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
 	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 	std::string emptyString;
@@ -491,50 +535,62 @@ void sim_mob::medium::PredayManager::calibratePreday()
 		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
 
+	/* start calibrating */
 	RandomSymmetricPlusMinusVector randomVector(calibrationVariablesList.size());
-	double initialGradientStepSize = 0, stepSize = 0;
-
+	double initialGradientStepSize = 0, stepSize = 0, normOfGradient = 0;
 	objectiveFunctionValues.clear();
-	//iteration 0
-	computeObjectiveFunction(calibrationVariablesList);
+
+	// iteration 0
+	std::vector<double> simulatedHITS_Stats;
+	double objFn = computeObjectiveFunction(calibrationVariablesList, simulatedHITS_Stats);
+	objectiveFunctionValues.push_back(objFn);
+	logStream << 0 << "," << objFn << ",N/A";
+	streamVector(calibrationVariablesList, logStream);
+	streamVector(simulatedHITS_Stats, logStream);
+	log();
 
 	for(unsigned k=1; k<=iterationLimit; k++)
 	{
 		// iteration k
+		simulatedHITS_Stats.clear();
+
 		// 1. compute perturbation step size
 		initialGradientStepSize = predayParams.getInitialGradientStepSize() / std::pow((1+k), predayParams.getAlgorithmCoefficient2());
 
 		// 2. compute gradients using SPSA technique
 		std::vector<double> gradientVector;
-		if(mtConfig.runningWSPSA())
-		{
-			computeWeightedGradient(randomVector.get(), initialGradientStepSize, gradientVector);
-		}
-		else
-		{
-			computeGradient(randomVector.get(), initialGradientStepSize, gradientVector);
-		}
-
+		if(mtConfig.runningWSPSA()) { computeWeightedGradient(randomVector.get(), initialGradientStepSize, gradientVector); }
+		else { computeGradient(randomVector.get(), initialGradientStepSize, gradientVector); }
 
 		// 3. compute projected anti-gradient vector
 		std::vector<double> antiGradientVector;
 		computeAntiGradientVector(gradientVector, antiGradientVector);
 
-		// 4. compute step size
+		// 4. compute norm of the gradient (root of sum of squares of gradients)
+		for(std::vector<double>::const_iterator gradIt=antiGradientVector.begin(); gradIt!=antiGradientVector.end(); gradIt++)
+		{
+			normOfGradient = normOfGradient + std::pow((*gradIt), 2);
+		}
+		normOfGradient = std::sqrt(normOfGradient);
+
+		// 5. compute step size
 		stepSize = predayParams.getInitialStepSize() / std::pow((predayParams.getInitialStepSize()+k+predayParams.getStabilityConstant()), predayParams.getAlgorithmCoefficient1());
 
-		// 5. update the variables being calibrated and compute objective function
-		std::vector<double> scaledAntiGradientVector;
-		multiplyScalarWithVector(stepSize, antiGradientVector, scaledAntiGradientVector);
-		updateVariablesByAddition(calibrationVariablesList, scaledAntiGradientVector);
-		double objFn = computeObjectiveFunction(calibrationVariablesList);
+		// 6. update the variables being calibrated and compute objective function
+		updateVariablesByAddition(calibrationVariablesList, antiGradientVector, stepSize);
+		objFn = computeObjectiveFunction(calibrationVariablesList, simulatedHITS_Stats);
 		objectiveFunctionValues.push_back(objFn);
 
-		// 6. check termination. At this point there would be atleast k+1 elements in objectiveFunctionValues
+		// 7. log current iteration parameters and stats
+		logStream << k << "," << objFn << "," << normOfGradient;
+		streamVector(calibrationVariablesList, logStream);
+		streamVector(simulatedHITS_Stats, logStream);
+		log();
+
+		// 8. check termination. At this point there would be atleast k+1 elements in objectiveFunctionValues
 		if(std::abs(objectiveFunctionValues[k] - objectiveFunctionValues[k-1]) <= predayParams.getTolerance())
 		{
-			//converged!
-			break;
+			break; //converged!
 		}
 	}
 
@@ -543,12 +599,13 @@ void sim_mob::medium::PredayManager::calibratePreday()
 		safe_delete_item(i->second);
 	}
 	mongoDao.clear();
-
+	safe_delete_item(logFile);
 }
 
 void sim_mob::medium::PredayManager::loadCalibrationVariables()
 {
 	CSV_Reader variablesReader(mtConfig.getPredayCalibrationParams().getCalibrationVariablesFile(), true);
+	streamVector(variablesReader.getHeaderList(), logStream);
 	boost::unordered_map<std::string, std::string> variableRow;
 	variablesReader.getNextRow(variableRow, false);
 	while (!variableRow.empty())
@@ -614,7 +671,8 @@ void sim_mob::medium::PredayManager::loadWeightMatrix()
 void sim_mob::medium::PredayManager::processPersonsForCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, CalibrationStatistics& simStats)
 {
 	bool consoleOutput = mtConfig.isConsoleOutput();
-	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
+	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++)
+	{
 		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
 		predaySystem.planDay();
 		predaySystem.updateStatistics(simStats);
@@ -631,10 +689,11 @@ void sim_mob::medium::PredayManager::computeGradient(const std::vector<short>& r
 	multiplyScalarWithVector(initialGradientStepSize, randomVector, scaledRandomVector);
 	std::vector<CalibrationVariable> localCopyCalVarList = calibrationVariablesList;
 	updateVariablesByAddition(localCopyCalVarList, scaledRandomVector);
-	double objFnPlus = computeObjectiveFunction(localCopyCalVarList);
+	std::vector<double> simulatedHITS_Stats;
+	double objFnPlus = computeObjectiveFunction(localCopyCalVarList, simulatedHITS_Stats);
 	localCopyCalVarList = calibrationVariablesList;
 	updateVariablesBySubtraction(localCopyCalVarList, scaledRandomVector);
-	double objFnMinus = computeObjectiveFunction(localCopyCalVarList);
+	double objFnMinus = computeObjectiveFunction(localCopyCalVarList, simulatedHITS_Stats);
 
 	gradientVector.clear();
 	double varGradient = 0;
@@ -760,9 +819,8 @@ void sim_mob::medium::PredayManager::computeLogsums(PersonList::iterator firstPe
 	mongoDao.clear();
 }
 
-double sim_mob::medium::PredayManager::computeObjectiveFunction(const std::vector<CalibrationVariable>& calVarList)
+double sim_mob::medium::PredayManager::computeObjectiveFunction(const std::vector<CalibrationVariable>& calVarList, std::vector<double>& simulatedHITS_Stats)
 {
-	std::vector<double> simulatedHITS_Stats;
 	computeObservationsVector(calVarList, simulatedHITS_Stats);
 	return computeSumOfDifferenceSquared(observedHITS_Stats, simulatedHITS_Stats);
 }
@@ -776,4 +834,11 @@ void sim_mob::medium::PredayManager::computeObservationsVector(const std::vector
 	CalibrationStatistics simulatedStats;
 	aggregateStatistics(simulatedStatsVector, simulatedStats);
 	simulatedStats.getAllStatistics(simulatedHITS_Stats);
+}
+
+void sim_mob::medium::PredayManager::log()
+{
+	logStream << "\n";
+	NullableOutputStream(logFile) << logStream.str();
+	logStream.str(std::string());
 }

@@ -373,15 +373,23 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
  */
 bool performMainDemand()
 {
+	const MT_Config& mtConfig = MT_Config::getInstance();
 	PredayManager predayManager;
 	predayManager.loadZones(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
 	predayManager.loadPersons(db::MONGO_DB);
-	if(MT_Config::getInstance().isOutputTripchains())
+	if(mtConfig.isOutputTripchains())
 	{
 		predayManager.loadZoneNodes(db::MONGO_DB);
 	}
-	predayManager.distributeAndProcessPersons();
+	if(mtConfig.runningPredayCalibration())
+	{
+		predayManager.calibratePreday();
+	}
+	else
+	{
+		predayManager.distributeAndProcessPersons();
+	}
 	return true;
 }
 

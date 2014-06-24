@@ -3,6 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
+#include <boost/unordered_map.hpp>
 #include <cstdlib>
 #include <string>
 #include <vector>
@@ -121,7 +122,7 @@ private:
 
 public:
 	CalibrationStatistics();
-	CalibrationStatistics(const std::string& observedValuesCSV_FileName);
+	CalibrationStatistics(const boost::unordered_map<std::string, std::string>& observedValuesCSV_FileName);
 	virtual ~CalibrationStatistics();
 
 	/**
@@ -185,6 +186,7 @@ public:
 
 	/**
 	 * Adds corresponding values in all vectors of rightOperand to this
+	 * if both operands have simulated statistics
 	 * @param rightOperand the right operand of addition (*this* is left)
 	 * @return
 	 */

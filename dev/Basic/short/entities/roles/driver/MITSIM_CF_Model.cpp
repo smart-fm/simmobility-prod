@@ -474,6 +474,9 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 //	cftimer -= p.elapsedSeconds;
 	/// if time cftimer >0 , return last calculated acc
 	if (p.cftimer > sim_mob::Math::DOUBLE_EPSILON) {
+		if(p.lastAcc > 10){
+			int i = 0;
+		}
 		return p.lastAcc;
 	}
 
@@ -585,6 +588,9 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		p.cftimer = p.getNextStepSize();
 	}
 
+	if(acc > 10){
+		int i = 0;
+	}
 	return acc;
 }
 
@@ -684,6 +690,9 @@ double sim_mob::MITSIM_CF_Model::calcCarFollowingRate(DriverUpdateParams& p)
 	// as isInMergingArea() not function now
 //	else /
 	{
+		if(p.now.frame()>244 && p.now.frame()< 250 && p.driver->getParent()->GetId()==1){
+			int ii =0;
+		}
 		double aZ1 = carFollowingRate(p, p.nvFwd);
 		double aZ2 = carFollowingRate(p, p.nvFwdNextLink);
 		if(aZ1<aZ2) {

@@ -64,11 +64,11 @@ std::vector<Agent const *> RStarAuraManager::nearbyAgents(Point2D const & positi
 	// <distanceBehind> may extend beyond the stretch marked out by <p1> and <p2>.
 	adjust(p1, p2, position, distanceInFront, distanceBehind);
 
-        if(p1.getX() < 0 || p2.getX() < 0)
+       /* if(p1.getX() < 0 || p2.getX() < 0)
         {
             std::vector<Agent const *> empty;
             return empty;
-        }
+        }*/
 
 
 	// Calculate the search rectangle.  We use a quick and accurate method.  However the

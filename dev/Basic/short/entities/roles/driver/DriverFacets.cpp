@@ -625,69 +625,71 @@ p.targetSpeed = targetSpeed;
 p.maxLaneSpeed = maxLaneSpeed;
 p.newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
 }
-double sim_mob::DriverMovement::move(DriverUpdateParams& p)
-{
-double newLatVel = 0.0; // m/s
-LANE_CHANGE_SIDE lcs;
-std::cout<<p.getStatus()<<endl;
-if( p.getStatus(STATUS_LC_RIGHT) )
-{
-lcs = LCS_RIGHT;
-}
-else if( p.getStatus(STATUS_LC_LEFT) )
-{
-lcs = LCS_LEFT;
-}
-else
-{
+double sim_mob::DriverMovement::move(DriverUpdateParams& p) {
+	double newLatVel = 0.0; // m/s
+	LANE_CHANGE_SIDE lcs;
+	std::cout << p.getStatus() << endl;
+	if (p.getStatus(STATUS_LC_RIGHT)) {
+		lcs = LCS_RIGHT;
+	} else if (p.getStatus(STATUS_LC_LEFT)) {
+		lcs = LCS_LEFT;
+	} else {
 //seems no lc happen
-lcs = LCS_SAME;
-}
+		lcs = LCS_SAME;
+	}
 
-newLatVel = lcModel->executeLaterVel(lcs);
+	newLatVel = lcModel->executeLaterVel(lcs);
 
-parentDriver->vehicle->setTurningDirection(lcs);
-parentDriver->vehicle->setLatVelocity(newLatVel * METER_TO_CENTIMETER_CONVERT_UNIT);
+	parentDriver->vehicle->setTurningDirection(lcs);
+	parentDriver->vehicle->setLatVelocity(
+			newLatVel * METER_TO_CENTIMETER_CONVERT_UNIT);
 
 // // check if in the middle of lane change, so make lateral movement
 // newLatVel = lcModel->executeLaneChanging(p);
 
 //TODO check set lat vel?
+	double acc = p.newFwdAcc;
 
-double acc = p.newFwdAcc;
+	if (parentDriver->parent->GetId()==66508 && parentDriver->getParams().now.frame()>=200 && parentDriver->getParams().now.frame()<=300)
+	{acc = -3;}
 //Update our chosen acceleration; update our position on the link.
-parentDriver->vehicle->setAcceleration(acc * METER_TO_CENTIMETER_CONVERT_UNIT);
+	parentDriver->vehicle->setAcceleration(
+			acc * METER_TO_CENTIMETER_CONVERT_UNIT);
 
-return updatePositionOnLink(p);
+	return updatePositionOnLink(p);
 
 }
 double sim_mob::DriverMovement::linkDrivingNew(DriverUpdateParams& p) {
 
-if ( (parentDriver->getParams().now.ms()/MILLISECS_CONVERT_UNIT - parentDriver->startTime > 10) && (fwdDriverMovement.getCurrDistAlongRoadSegmentCM()>2000) && (parentDriver->isAleadyStarted == false))
-{
-parentDriver->isAleadyStarted = true;
-}
-p.isAlreadyStart = parentDriver->isAleadyStarted;
+	if ((parentDriver->getParams().now.ms() / MILLISECS_CONVERT_UNIT
+			- parentDriver->startTime > 10)
+			&& (fwdDriverMovement.getCurrDistAlongRoadSegmentCM() > 2000)
+			&& (parentDriver->isAleadyStarted == false)) {
+		parentDriver->isAleadyStarted = true;
+	}
+	p.isAlreadyStart = parentDriver->isAleadyStarted;
 
-if (!(hasNextSegment(true))) // has seg in current link
-{
-p.dis2stop = fwdDriverMovement.getAllRestRoadSegmentsLengthCM() - fwdDriverMovement.getCurrDistAlongRoadSegmentCM() - parentDriver->vehicle->getLengthCm() / 2 - 300;
-if (p.nvFwd.distance < p.dis2stop)
-p.dis2stop = p.nvFwd.distance;
-p.dis2stop /= METER_TO_CENTIMETER_CONVERT_UNIT;
-}
-else
-{
-p.nextLaneIndex = std::min<int>(p.currLaneIndex, fwdDriverMovement.getNextSegment(true)->getLanes().size() - 1);
-if(fwdDriverMovement.getNextSegment(true)->getLanes().at(p.nextLaneIndex)->is_pedestrian_lane())
-{
-p.nextLaneIndex--;
-p.dis2stop = fwdDriverMovement.getCurrPolylineTotalDistCM() - fwdDriverMovement.getCurrDistAlongRoadSegmentCM() + DEFAULT_DIS_TO_STOP;
-p.dis2stop /= METER_TO_CENTIMETER_CONVERT_UNIT;
-}
-else
-p.dis2stop = DEFAULT_DIS_TO_STOP;//defalut 1000m
-}
+	if (!(hasNextSegment(true))) // has seg in current link
+	{
+		p.dis2stop = fwdDriverMovement.getAllRestRoadSegmentsLengthCM()
+				- fwdDriverMovement.getCurrDistAlongRoadSegmentCM()
+				- parentDriver->vehicle->getLengthCm() / 2 - 300;
+		if (p.nvFwd.distance < p.dis2stop)
+			p.dis2stop = p.nvFwd.distance;
+		p.dis2stop /= METER_TO_CENTIMETER_CONVERT_UNIT;
+	} else {
+		p.nextLaneIndex = std::min<int>(p.currLaneIndex,
+				fwdDriverMovement.getNextSegment(true)->getLanes().size() - 1);
+		if (fwdDriverMovement.getNextSegment(true)->getLanes().at(
+				p.nextLaneIndex)->is_pedestrian_lane()) {
+			p.nextLaneIndex--;
+			p.dis2stop = fwdDriverMovement.getCurrPolylineTotalDistCM()
+					- fwdDriverMovement.getCurrDistAlongRoadSegmentCM()
+					+ DEFAULT_DIS_TO_STOP;
+			p.dis2stop /= METER_TO_CENTIMETER_CONVERT_UNIT;
+		} else
+			p.dis2stop = DEFAULT_DIS_TO_STOP; //defalut 1000m
+	}
 
 // // check current lane has connector to next link
 // p.isMLC = false;
@@ -1919,6 +1921,9 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 // Please re-enable if you think this is expected behavior. ~Seth
 double fwdDistance = parentDriver->vehicle->getVelocity() * p.elapsedSeconds + 0.5 * parentDriver->vehicle->getAcceleration()
 * p.elapsedSeconds * p.elapsedSeconds;
+if(fwdDistance > 10){
+	int i = 0;
+}
 if (fwdDistance < 0) {
 fwdDistance = 0;
 }
@@ -1946,25 +1951,25 @@ parentDriver->vehicle->setAcceleration(0);
 
 //Move the vehicle forward.
 double res = 0.0;
-try {
+//try {
 res = fwdDriverMovement.advance(fwdDistance);
 if(!(fwdDriverMovement.isInIntersection()))
 {
 double d = fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
 double c=0;
 }
-} catch (std::exception& ex) {
-if (Debug::Drivers) {
-if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
-DebugStream << ">>>Exception: " << ex.what() << endl;
-PrintOut(DebugStream.str());
-}
-}
-
-std::stringstream msg;
-msg << "Error moving vehicle forward for Agent ID: " << getParent()->getId() << "," << this->parentDriver->getCurrPosition().x << "," << this->parentDriver->getCurrPosition().y << "\n" << ex.what();
-throw std::runtime_error(msg.str().c_str());
-}
+//} catch (std::exception& ex) {
+//if (Debug::Drivers) {
+//if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
+//DebugStream << ">>>Exception: " << ex.what() << endl;
+//PrintOut(DebugStream.str());
+//}
+//}
+//
+//std::stringstream msg;
+//msg << "Error moving vehicle forward for Agent ID: " << getParent()->getId() << "," << this->parentDriver->getCurrPosition().x << "," << this->parentDriver->getCurrPosition().y << "\n" << ex.what();
+//throw std::runtime_error(msg.str().c_str());
+//}
 
 //Retrieve what direction we're moving in, since it will "flip" if we cross the relative X axis.
 LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();

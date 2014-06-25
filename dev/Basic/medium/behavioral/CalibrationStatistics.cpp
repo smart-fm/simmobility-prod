@@ -5,9 +5,11 @@
 #include "CalibrationStatistics.hpp"
 
 #include <algorithm>
-#include <functional>
-#include <stdexcept>
 #include <boost/lexical_cast.hpp>
+#include <functional>
+#include <sstream>
+#include <stdexcept>
+#include "logging/Log.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -85,6 +87,7 @@ size_t getModeIdx(int mode)
 	}
 	return modeIdx;
 }
+
 /**
  * computes mode share percentages
  * @param countVector input vector with individual counts
@@ -287,6 +290,50 @@ CalibrationStatistics& sim_mob::medium::CalibrationStatistics::operator+(const C
 
 		std::transform(numTripsWithDistance.begin(), numTripsWithDistance.end(),
 				rightOperand.numTripsWithDistance.begin(), numTripsWithDistance.begin(), std::plus<double>());
+
+		totalTours = totalTours + rightOperand.totalTours;
+		totalTrips = totalTrips + rightOperand.totalTrips;
 	}
 	return *this;  // Return a reference to myself.
+}
+
+void sim_mob::medium::CalibrationStatistics::prettyPrint()
+{
+	std::stringstream ss;
+	ss << "numPersonsWithTourCount - ";
+	for(size_t i=0; i<SIZE_NUM_TOURS_STATS; i++)
+	{
+		ss << "\t" << i << ":" << numPersonsWithTourCount[i];
+	}
+	ss << std::endl;
+
+	ss << "numToursWithStopCount - ";
+	for(size_t i=0; i<SIZE_NUM_STOPS_STATS; i++)
+	{
+		ss << "\t" << i << ":" << numToursWithStopCount[i];
+	}
+	ss << std::endl;
+
+	ss << "numTripsWithDistance - ";
+	for(size_t i=0; i<SIZE_TRAVEL_DISTANCE_STATS; i++)
+	{
+		ss << "\t" << i << ":" << numTripsWithDistance[i];
+	}
+	ss << std::endl;
+
+	ss << "numToursWithMode - ";
+	for(size_t i=0; i<SIZE_MODE_SHARE_STATS; i++)
+	{
+		ss << "\t" << i << ":" << numToursWithMode[i];
+	}
+	ss << std::endl;
+
+	ss << "numTripsWithMode - ";
+	for(size_t i=0; i<SIZE_MODE_SHARE_STATS; i++)
+	{
+		ss << "\t" << i << ":" << numTripsWithMode[i];
+	}
+	ss << std::endl;
+
+	Print() << ss.str();
 }

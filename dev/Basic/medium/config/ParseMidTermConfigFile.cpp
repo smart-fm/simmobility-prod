@@ -181,17 +181,18 @@ void sim_mob::ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement
 
 		//get name of csv listing observed statistics
 		DOMElement* observedStatsNode = GetSingleElementByName(node, "observed_statistics", true);
-		spsaCalibrationParams.setObservedStatisticsFile(ParseString(GetNamedAttributeValue(observedStatsNode, "file"), ""));
-		wspsaCalibrationParams.setObservedStatisticsFile(ParseString(GetNamedAttributeValue(observedStatsNode, "file"), ""));
+		std::string observedStatsFile = ParseString(GetNamedAttributeValue(observedStatsNode, "file"), "");
+		spsaCalibrationParams.setObservedStatisticsFile(observedStatsFile);
+		wspsaCalibrationParams.setObservedStatisticsFile(observedStatsFile);
 
 		DOMElement* calibrationMethod = GetSingleElementByName(node, "calibration_technique", true);
-		mtCfg.setCalibrationMethodology(ParseString(GetNamedAttributeValue(observedStatsNode, "value"), "WSPSA"));
+		mtCfg.setCalibrationMethodology(ParseString(GetNamedAttributeValue(calibrationMethod, "value"), "WSPSA"));
 
 		DOMElement* logsumFrequencyNode = GetSingleElementByName(node, "logsum_computation_frequency", true);
 		mtCfg.setLogsumComputationFrequency(ParseUnsignedInt(GetNamedAttributeValue(logsumFrequencyNode, "value", true)));
 
 		/**parse SPSA node*/
-		DOMElement* spsaNode = GetSingleElementByName(node, "spsa", true);
+		DOMElement* spsaNode = GetSingleElementByName(node, "SPSA", true);
 		DOMElement* childNode = nullptr;
 
 		childNode = GetSingleElementByName(spsaNode, "iterations", true);
@@ -210,7 +211,7 @@ void sim_mob::ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement
 		spsaCalibrationParams.setAlgorithmCoefficient1(ParseFloat(GetNamedAttributeValue(childNode, "algorithm_coefficient1", true)));
 
 		/**process W-SPSA node*/
-		DOMElement* wspsaNode = GetSingleElementByName(node, "wspsa", true);
+		DOMElement* wspsaNode = GetSingleElementByName(node, "WSPSA", true);
 
 		childNode = GetSingleElementByName(wspsaNode, "iterations", true);
 		wspsaCalibrationParams.setIterationLimit(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true)));
@@ -228,7 +229,7 @@ void sim_mob::ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement
 		wspsaCalibrationParams.setAlgorithmCoefficient1(ParseFloat(GetNamedAttributeValue(childNode, "algorithm_coefficient1", true)));
 
 		childNode = GetSingleElementByName(wspsaNode, "weight_matrix", true);
-		wspsaCalibrationParams.setWeightMatrixFile(ParseString(GetNamedAttributeValue(observedStatsNode, "file"), ""));
+		wspsaCalibrationParams.setWeightMatrixFile(ParseString(GetNamedAttributeValue(childNode, "file"), ""));
 
 		mtCfg.setSPSA_CalibrationParams(spsaCalibrationParams);
 		mtCfg.setWSPSA_CalibrationParams(wspsaCalibrationParams);

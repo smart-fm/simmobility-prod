@@ -31,6 +31,7 @@
 #include "database/TripChainSqlDao.hpp"
 #include "database/ZoneCostMongoDao.hpp"
 #include "logging/NullableOutputStream.hpp"
+#include "logging/Log.hpp"
 #include "mongo/client/dbclient.h"
 #include "util/CSVReader.hpp"
 #include "util/LangHelpers.hpp"
@@ -568,6 +569,10 @@ void sim_mob::medium::PredayManager::calibratePreday()
 
 		/* load variables to calibrate */
 		loadCalibrationVariables();
+		for(std::vector<CalibrationVariable>::const_iterator calVarIt=calibrationVariablesList.begin(); calVarIt!=calibrationVariablesList.end(); calVarIt++)
+		{
+			logStream << "," << (*calVarIt).getVariableName();
+		}
 
 		/* load observed values for statistics to be computed by simulation */
 		CSV_Reader statsReader(predayParams.getObservedStatisticsFile(), true);
@@ -680,7 +685,6 @@ void sim_mob::medium::PredayManager::calibratePreday()
 void sim_mob::medium::PredayManager::loadCalibrationVariables()
 {
 	CSV_Reader variablesReader(mtConfig.getPredayCalibrationParams().getCalibrationVariablesFile(), true);
-	streamVector(variablesReader.getHeaderList(), logStream);
 	boost::unordered_map<std::string, std::string> variableRow;
 	variablesReader.getNextRow(variableRow, false);
 	while (!variableRow.empty())
@@ -740,6 +744,9 @@ void sim_mob::medium::PredayManager::loadWeightMatrix()
 			col++;
 		}
 		row++;
+		col = 0;
+		matrixRow.clear();
+		matrixReader.getNextRow(matrixRow);
 	}
 }
 
@@ -927,7 +934,7 @@ double sim_mob::medium::PredayManager::computeObjectiveFunction(const std::vecto
 	return computeSumOfDifferenceSquared(observedHITS_Stats, simulatedHITS_Stats);
 }
 
-void sim_mob::medium::PredayManager::computeObservationsVector(const std::vector<CalibrationVariable>& calVarList, std::vector<double> simulatedHITS_Stats)
+void sim_mob::medium::PredayManager::computeObservationsVector(const std::vector<CalibrationVariable>& calVarList, std::vector<double>& simulatedHITS_Stats)
 {
 	updateVariablesInLuaFiles(mtConfig.getModelScriptsMap().getPath(), calVarList);
 	std::for_each(simulatedStatsVector.begin(), simulatedStatsVector.end(), std::mem_fun_ref(&CalibrationStatistics::reset));

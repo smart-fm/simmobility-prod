@@ -50,8 +50,6 @@
 #include "config/MT_Config.hpp"
 #include "config/ParseMidTermConfigFile.hpp"
 
-#include "unit-tests/CalibrationTests.hpp"
-
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
 
@@ -384,10 +382,12 @@ bool performMainDemand()
 	}
 	if(mtConfig.runningPredayCalibration())
 	{
+		Print() << "Preday mode: calibration" << std::endl;
 		predayManager.calibratePreday();
 	}
 	else
 	{
+		Print() << "Preday mode: " << (mtConfig.runningPredaySimulation()? "simulation":"logsum computation")  << std::endl;
 		predayManager.distributeAndProcessPersons();
 	}
 	return true;
@@ -444,7 +444,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	}
 	else if (ConfigManager::GetInstance().FullConfig().RunningMidDemand())
 	{
-		Print() << "Mid-term run mode: demand" << endl;
+		Print() << "Mid-term run mode: preday" << endl;
 		return performMainDemand();
 	}
 	else

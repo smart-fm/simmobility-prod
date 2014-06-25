@@ -256,7 +256,7 @@ private:
 	 * @param calibrationVariableList values of calibration variables to use in simulation
 	 * @param simulatedHITS_Stats output list to populate
 	 */
-	void computeObservationsVector(const std::vector<CalibrationVariable>& calVarList, std::vector<double> simulatedHITS_Stats);
+	void computeObservationsVector(const std::vector<CalibrationVariable>& calVarList, std::vector<double>& simulatedHITS_Stats);
 
 	/**
 	 * logs logStream into file

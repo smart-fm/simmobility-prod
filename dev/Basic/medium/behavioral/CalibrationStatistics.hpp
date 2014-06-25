@@ -191,6 +191,9 @@ public:
 	 * @return
 	 */
 	CalibrationStatistics& operator+(const CalibrationStatistics& rightOperand);
+
+	/** pretty prints this object */
+	void prettyPrint();
 };
 }
 }

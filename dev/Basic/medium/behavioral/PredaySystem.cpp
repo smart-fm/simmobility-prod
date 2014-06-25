@@ -1360,7 +1360,10 @@ void sim_mob::medium::PredaySystem::updateStatistics(CalibrationStatistics& stat
 		for(StopList::const_iterator stopIt=stops.begin(); stopIt!=stops.end(); stopIt++)
 		{
 			const Stop* stop = (*stopIt);
-			statsCollector.addToTripModeShareStats(stop->getStopMode(), householdFactor);
+			if(!stop->isPrimaryActivity())
+			{
+				statsCollector.addToTripModeShareStats(stop->getStopMode(), householdFactor);
+			}
 			destination = stop->getStopLocation();
 			statsCollector.addToTravelDistanceStats(opCostMap.at(origin).at(destination)->getDistance(), householdFactor);
 			origin = destination;

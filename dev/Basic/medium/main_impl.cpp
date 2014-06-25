@@ -50,7 +50,7 @@
 #include "config/MT_Config.hpp"
 #include "config/ParseMidTermConfigFile.hpp"
 
-
+#include "unit-tests/CalibrationTests.hpp"
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"

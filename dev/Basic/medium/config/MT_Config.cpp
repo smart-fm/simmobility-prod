@@ -27,7 +27,7 @@ PredayCalibrationParams::PredayCalibrationParams() :
 
 MT_Config::MT_Config() :
 		pedestrianWalkSpeed(0), numPredayThreads(0), configSealed(false), outputTripchains(false),
-consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA)
+consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA), logsumComputationFrequency(0)
 {}
 
 MT_Config::~MT_Config()

@@ -52,17 +52,28 @@ public:
 	// populateCarParks - add vehicles to the carParks which are at nodes
 	// @param carparkIds - vector of strings of node ids where vehicles will be parked at the beginning of simulation
 	// @param number ofVhAtCarpark - integer, number of vehicles at each carpark at the beginning of simulation
-	void readDemandFile(std::ifstream& myFile, std::vector<std::string>& time, std::vector<std::string>& origin, std::vector<std::string>& destination);
+	void readDemandFile(int current_time, std::vector<std::string>& origin, std::vector<std::string>& destination);
 	//read the demand from the txt file and outputs two vectors
 	//@param origin - vector of strings, origin of the trip
 	//@param destination - vector if strings, destination
+	//@param current_time - int, current time of the simulation
+	//@param k - int, stores current number of line which has been read from the file
 	void addNewVh2CarPark(std::string& id,std::string& nodeId);
 	// return false ,if no vh in car park
 
+	// For finding the nearest free vehicle
 	typedef std::pair< double , std::string > distPair;
 	bool distPairComparator ( const distPair& l, const distPair& r){ return l.first < r.first; }
 	bool findNearestFreeVehicle(std::string originId, std::map<std::string, sim_mob::Node* > &nodePool, std::string &carParkId, Person**vh);
-	// For finding the nearest free vehicle
+	void findAllFreeVhs();
+
+	// Calculates the remaining travel time
+	double calculateTravelTime(std::vector < sim_mob::WayPoint > &wPs );
+
+	// Finds remaining way points
+	void findRemainingWayPoints(Person *vh, std::vector < sim_mob::WayPoint > &remainingWPs);
+
+
 	bool getVhFromCarPark(std::string& carParkId,Person** vh);
 	//removes vehicle from the carpark
 	void mergeWayPoints(const std::vector<sim_mob::WayPoint>& carparkToOrigin, const std::vector<sim_mob::WayPoint> &originToDestination, std::vector<sim_mob::WayPoint>& mergedWP);
@@ -82,7 +93,7 @@ public:
     void testSecondVh();
 	void testVh();
 	void testTravelTimePath();
-	void assignVhs();
+	void assignVhs(std::vector<std::string>& origin, std::vector<std::string>& destination);
 	int test;
 
 	void handleAMODEvent(sim_mob::event::EventId id,
@@ -141,6 +152,9 @@ public:
 		std::string &passengerId; std::string &originNode; std::string &destNode;
 		double &timeToPickUp; double waitingTime; double timeToBeAtDest;
 	};
+
+	std::ifstream myFile; // ("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/About10.txt");
+	std::string lastReadLine;
 };
 
 

@@ -893,7 +893,7 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 	double res = updatePositionOnLink(p);
 	if(parentDriver->vehicle->fwdMovement.isMoveToNextSegment && !parentDriver->vehicle->isDone())
 	{
-		std::cout<<"vh move to next segment"<<std::endl;
+		//std::cout<<"vh move to next segment"<<std::endl;
 
 		double linkExitTimeSec =  p.elapsedSeconds + (p.now.ms()/1000.0);
 		//set Link Travel time for previous link
@@ -1532,6 +1532,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		//A non-null vehicle means we are moving.
 		if (allocateVehicle) {
 			res = new Vehicle(path, startLaneId, length, width);
+			parent->amodVehicle = res;
 		}
 	}
 

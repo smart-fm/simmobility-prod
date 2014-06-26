@@ -16,6 +16,9 @@
 #include "entities/fmodController/FMOD_Message.hpp"
 #include "entities/amodController/AMODEvent.hpp"
 
+#include "entities/vehicle/Vehicle.hpp"
+
+
 namespace sim_mob
 {
 
@@ -189,6 +192,7 @@ public:
 		return currPath;
 	}
 
+
 	void setCurrPath(const std::vector<WayPoint>& currPath) {
 		this->currPath = currPath;
 	}
@@ -217,6 +221,7 @@ public:
     std::string amodId;
 	void setPath(std::vector<WayPoint>& path);
 	std::vector<WayPoint> amodPath;
+	sim_mob::Vehicle* amodVehicle;
 
     std::list<sim_mob::FMOD_Schedule> schedules;
 
@@ -269,7 +274,7 @@ private:
     double boardingTimeSecs;
     // person's alighting time secs
     double alightingTimeSecs;
-    std::vector<WayPoint> currPath;
+    std::vector<WayPoint> currPath; //what is this?
 
 public:
 	virtual void pack(PackageUtils& packageUtil) CHECK_MPI_THROW;

@@ -60,6 +60,11 @@ public:
 	void makeBoardingDecision(BusDriver* driver);
 
 	/**
+	 * increase failed boarding times
+	 */
+	void increaseFailedBoardingTimes();
+
+	/**
 	 * message handler which provide a chance to handle message transfered from parent agent.
 	 * @param type of the message.
 	 * @param message data received.
@@ -83,6 +88,14 @@ public:
 		return waitingTime;
 	}
 
+	void setFailedBoardingTimes(unsigned int times){
+		failedBoardingTimes = times;
+	}
+
+	const unsigned int getFailedBoardingTimes() const {
+		return failedBoardingTimes;
+	}
+
 private:
 	friend class WaitBusActivityBehavior;
 	friend class WaitBusActivityMovement;
@@ -93,6 +106,8 @@ private:
 	BusStop* stop;
 	/**flag to indicate whether the waiting person has decided to board or not*/
 	bool boardBus;
+	/**failed boarding times*/
+	unsigned int failedBoardingTimes;
 };
 }
 }

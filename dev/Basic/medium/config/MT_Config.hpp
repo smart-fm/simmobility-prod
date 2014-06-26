@@ -110,6 +110,16 @@ public:
 		this->mongoCollectionsMap = mongoCollectionsMap;
 	}
 
+	const unsigned int getBusCapcacity() const
+	{
+		return busCapcacity;
+	}
+
+	void setBusCapcacity(const unsigned int busCapcacity)
+	{
+		this->busCapcacity = busCapcacity;
+	}
+
 private:
 	static MT_Config* instance;
 	/**store parameters for dwelling time calculation*/
@@ -126,6 +136,8 @@ private:
 	std::string filenameOfJourneyStats;
 	/**the filename of storing waiting time statistics*/
 	std::string filenameOfWaitingStats;
+	/**default capacity for bus*/
+	unsigned int busCapcacity;
 };
 }
 }

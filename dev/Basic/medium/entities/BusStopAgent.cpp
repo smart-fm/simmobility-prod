@@ -8,7 +8,7 @@
 #include "BusStopAgent.hpp"
 #include "entities/roles/waitBusActivity/waitBusActivity.hpp"
 #include "message/MT_Message.hpp"
-#include "entities/MT_Statistics.hpp"
+#include "entities/PT_Statistics.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -214,50 +214,49 @@ void BusStopAgent::storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingAct
 	std::string stopId = busStop->getBusstopno_();
 	std::string personId = boost::lexical_cast<std::string>((person->GetId()));
 	std::string waitingTmInStr = waitingDailyTime.toString();
-	messaging::MessageBus::PostMessage(MT_Statistics::GetInstance(), STORE_PERSON_WAITING,
-			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(stopId, personId, waitingTmInStr)));
+	unsigned int failedBoardingTime = waitingActivity->getFailedBoardingTimes();
+	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(), STORE_PERSON_WAITING,
+			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(stopId, personId, waitingTmInStr, failedBoardingTime)));
 }
 
 void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 {
 	unsigned int numBoarding = 0;
 	std::list<WaitBusActivity*>::iterator itPerson;
-	for (itPerson = waitingPersons.begin(); itPerson != waitingPersons.end(); itPerson++)
-	{
+	for (itPerson = waitingPersons.begin(); itPerson != waitingPersons.end();
+			itPerson++) {
 		(*itPerson)->makeBoardingDecision(busDriver);
 	}
 
 	itPerson = waitingPersons.begin();
-	while (itPerson != waitingPersons.end())
-	{
-		if ((*itPerson)->canBoardBus())
-		{
+	while (itPerson != waitingPersons.end()) {
+		if ((*itPerson)->canBoardBus()) {
 			bool ret = false;
 			WaitBusActivity* waitingPeople = *itPerson;
-			Person* person = waitingPeople->getParent();
-			storeWaitingTime(waitingPeople);
-			if (person)
-			{
-				person->checkTripChain();
-				Role* curRole = person->getRole();
-				sim_mob::medium::Passenger* passenger = dynamic_cast<sim_mob::medium::Passenger*>(curRole);
-				if (passenger && busDriver->addPassenger(passenger))
-				{
-					ret = true;
+			if (!busDriver->checkIsFull()) {
+				Person* person = waitingPeople->getParent();
+				storeWaitingTime(waitingPeople);
+				if (person) {
+					person->checkTripChain();
+					Role* curRole = person->getRole();
+					sim_mob::medium::Passenger* passenger =
+							dynamic_cast<sim_mob::medium::Passenger*>(curRole);
+					if (passenger && busDriver->addPassenger(passenger)) {
+						ret = true;
+					}
 				}
+			} else {
+				waitingPeople->increaseFailedBoardingTimes();
 			}
-			if (ret)
-			{
+
+			if (ret) {
 				itPerson = waitingPersons.erase(itPerson);
 				numBoarding++;
-			}
-			else
-			{
+			} else {
+				(*itPerson)->setBoardBus(false);
 				itPerson++;
 			}
-		}
-		else
-		{
+		} else {
 			itPerson++;
 		}
 	}

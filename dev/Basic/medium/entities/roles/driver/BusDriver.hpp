@@ -14,7 +14,6 @@
  *
  *  Created on: May 6, 2013
  *      Author: zhang huai peng
- *      		melani
  */
 
 namespace sim_mob {
@@ -66,6 +65,12 @@ public:
 	 *
 	 */
 	void storeArrivalTime(const std::string& current, const sim_mob::BusStop* stop);
+
+	/**
+	 * change whether bus is full already
+	 *  @return boolean value, if bus is full, return true, otherwise false
+	 */
+	bool checkIsFull();
 
 	/**
 	 * predict arrival at next bus stop in next frame tick

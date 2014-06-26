@@ -14,7 +14,7 @@
 #include "entities/Person.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "message/MT_Message.hpp"
-#include "entities/MT_Statistics.hpp"
+#include "entities/PT_Statistics.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "util/DwellTimeCalc.hpp"
 #include "config/MT_Config.hpp"
@@ -85,6 +85,15 @@ sim_mob::DriverRequestParams sim_mob::medium::BusDriver::getDriverRequestParams(
 	return res;
 }
 
+bool  sim_mob::medium::BusDriver::checkIsFull()
+{
+	if (passengerList.size() < MT_Config::GetInstance().getBusCapcacity()) {
+		return false;
+	} else {
+		return true;
+	}
+}
+
 unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent){
 	unsigned int numAlighting = 0;
 	std::list<sim_mob::medium::Passenger*>::iterator itPassenger = passengerList.begin();
@@ -124,7 +133,7 @@ void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, co
 		std::string busLineId = busLine->getBusLineID();
 		unsigned int sequenceNo = busTrip->getBusTripRun_SequenceNum();
 
-		messaging::MessageBus::PostMessage(MT_Statistics::GetInstance(), STORE_BUS_ARRIVAL,
+		messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(), STORE_BUS_ARRIVAL,
 				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(stopNo, busLineId, tripId, current, sequenceNo)));
 	}
 }

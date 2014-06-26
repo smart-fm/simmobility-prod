@@ -57,6 +57,13 @@ private:
 	void processDwellTimeElement(xercesc::DOMElement* node);
 
 	/**
+	 * processes default capacity bust included in xml file.
+	 * @param node node corresponding to the bus capacity element inside xml file
+	 */
+	void processBusCapactiyElement(xercesc::DOMElement* node);
+
+
+	/**
 	 * processes pedestrian walk speed included in xml file.
 	 * @param node node corresponding to pedestrian walk speed element inside xml file
 	 */

@@ -18,25 +18,34 @@ namespace sim_mob {
 namespace medium {
 using namespace messaging;
 
+struct personWaitingInfo{
+	std::string waitingTime;
+	unsigned int failedBoardingTime;
+};
+
 class waittingTimeStats{
 public:
-	void setWaitingTime(const std::string& personId, const std::string& waitingTime){
-		waitingTimeList[personId] = waitingTime;
+	void setWaitingTime(const std::string& personId, const std::string& waitingTime, unsigned int failedBoardingTimes){
+		if(waitingTimeList.find(personId)==waitingTimeList.end()){
+			waitingTimeList.insert(std::make_pair(personId, personWaitingInfo() ));
+		}
+		waitingTimeList[personId].waitingTime = waitingTime;
+		waitingTimeList[personId].failedBoardingTime = failedBoardingTimes;
 	}
 
-	const std::map<std::string, std::string>& getWaitingTimeList() const{
+	const std::map<std::string, personWaitingInfo>& getWaitingTimeList() const {
 		return waitingTimeList;
 	}
 private:
-	std::map<std::string, std::string> waitingTimeList;
+	std::map<std::string, personWaitingInfo> waitingTimeList;
 };
 
-struct busArrivalTimeStats {
+struct busArrivalTime {
 	std::string busLine;
 	std::string tripId;
 	unsigned int sequenceNo;
 	std::string arrivalTime;
-	bool operator<(const busArrivalTimeStats& rhs) const;
+	bool operator<(const busArrivalTime& rhs) const;
 };
 
 class journeyTimeStats {
@@ -44,18 +53,18 @@ public:
 	void setArrivalTime(const std::string& busLine, const std::string& tripId,
 			unsigned int sequenceNo, const std::string& arrivalTime);
 
-	std::vector<busArrivalTimeStats>& getArrivalTime(){
+	const std::vector<busArrivalTime>& getArrivalTime() const{
 		return busArrivalTimeList;
 	}
 private:
-	std::vector<busArrivalTimeStats> busArrivalTimeList;
+	std::vector<busArrivalTime> busArrivalTimeList;
 };
 
-class MT_Statistics : public messaging::MessageHandler {
+class PT_Statistics : public messaging::MessageHandler {
 public:
-	MT_Statistics();
-	virtual ~MT_Statistics();
-	static MT_Statistics* GetInstance();
+	PT_Statistics();
+	virtual ~PT_Statistics();
+	static PT_Statistics* GetInstance();
 
     virtual void HandleMessage(Message::MessageType type, const Message& message);
 
@@ -73,7 +82,7 @@ private:
     std::map<std::string, journeyTimeStats*> busJourneyTime;
     /**store waiting time at bus stop. bus stop No. is key*/
     std::map<std::string, waittingTimeStats*> personWaitingTime;
-    static MT_Statistics* instance;
+    static PT_Statistics* instance;
  };
 
 }

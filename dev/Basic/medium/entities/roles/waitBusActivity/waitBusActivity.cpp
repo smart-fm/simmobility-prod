@@ -21,7 +21,7 @@ sim_mob::medium::WaitBusActivity::WaitBusActivity(Person* parent,
 		sim_mob::medium::WaitBusActivityMovement* movement,
 		std::string roleName, Role::type roleType) :
 		sim_mob::Role(behavior, movement, parent, roleName, roleType),
-		waitingTime(0), stop(nullptr), boardBus(false)
+		waitingTime(0), stop(nullptr), boardBus(false), failedBoardingTimes(0)
 {}
 
 Role* sim_mob::medium::WaitBusActivity::clone(Person* parent) const {
@@ -45,6 +45,11 @@ void sim_mob::medium::WaitBusActivity::make_frame_tick_params(timeslice now)
 
 void sim_mob::medium::WaitBusActivity::setStop(sim_mob::BusStop* busStop) {
 	stop = busStop;
+}
+
+void sim_mob::medium::WaitBusActivity::increaseFailedBoardingTimes()
+{
+	failedBoardingTimes++;
 }
 
 void sim_mob::medium::WaitBusActivity::makeBoardingDecision(BusDriver* driver) {

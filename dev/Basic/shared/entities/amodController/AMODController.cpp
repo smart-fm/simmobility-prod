@@ -29,6 +29,8 @@
 #include <string>
 #include <fstream>
 #include <algorithm>
+#include "entities/vehicle/Vehicle.hpp"
+#include "entities/roles/Role.hpp"
 
 using namespace std;
 
@@ -123,6 +125,22 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		testVh();
 		test=1;
 	}
+
+	if (now.frame() > 20) {
+		if (vhOnTheRoad.size() > 0) {
+			Person *vh = vhOnTheRoad.begin()->second;
+			std::string segid = vh->getCurrSegment()->originalDB_ID.getLogItem();
+			std::cout << segid << std::endl;
+
+			std::vector<WayPoint> currPath;
+			currPath = vh->getCurrPath();
+			std::cout << "Curr path size" << currPath.size() << std::endl;
+
+			std::vector < sim_mob::WayPoint > remainingWPs;
+			findRemainingWayPoints(vh, remainingWPs);
+		}
+	}
+
 #if 0
 	if(now.frame()>150 & now.frame()<300)
 	{
@@ -263,6 +281,12 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 		//	std::cout << "Inserted. Cars Size: " << cars.size() << std::endl;
 	}
 }
+
+
+
+
+
+
 //finds the nearest free vehicle and returns the carParkId where the vehicle was found and a pointer to the vehicle
 bool AMODController::findNearestFreeVehicle(std::string originId, std::map<std::string, sim_mob::Node* > &nodePool, std::string &carParkId, Person **vh) {
 	// get the origin node
@@ -417,6 +441,9 @@ void AMODController::handleVHArrive(Person* vh)
 		virtualCarPark.insert(std::make_pair(idNode,cars));
 		std::cout << "Dest carPark. Inserted. Cars Size: " << cars.size() << std::endl;
 	}
+
+	//remove vehicle from on the road
+	vhOnTheRoad.erase(vh->amodId);
 }
 
 void AMODController::rerouteWithPath(Person* vh,std::vector<sim_mob::WayPoint>& path)
@@ -655,7 +682,7 @@ void AMODController::testVh()
 	copy(carParkIds.begin(), carParkIds.end(), ostream_iterator<string>(cout, " "));
 	std::cout << endl << "---------------" << std::endl;
 
-	int vhsInTheSystem = 200;
+	int vhsInTheSystem = 20;
 
 	int k = 0;
 	std::vector<Person*> vhs;
@@ -685,7 +712,7 @@ void AMODController::testVh()
 	//reading the file
 	std::vector<string> origin;
 	std::vector<string> destination;
-	ifstream myFile ("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/About100.txt");
+	ifstream myFile ("/home/haroldsoh/Development/simmobility/dataFiles/About10.txt");
 	std::cout << "Reading the demand file... " << std::endl;
 
 	readDemandFile(myFile, origin, destination);
@@ -743,6 +770,13 @@ void AMODController::testVh()
 		//Merge two sets of way points
 		std::vector<WayPoint> mergedWP;
 		mergeWayPoints(wp1, wp2, mergedWP);
+
+		std::cout << "Traveltime wp1: " << calculateTravelTime(wp1) << std::endl;
+		std::cout << "Traveltime wp2: " << calculateTravelTime(wp2) << std::endl;
+		std::cout << "Traveltime mwp: " << calculateTravelTime(mergedWP) << std::endl;
+
+
+
 
 		std::cout << "Waypoint 1 :\n";
 		for (int j=0; j<wp1.size(); j++) {
@@ -832,6 +866,63 @@ void AMODController::testVh()
 
 
 }
+
+
+double AMODController::calculateTravelTime(std::vector < sim_mob::WayPoint > &wPs ) {
+	// loop through all way points, get time for each segment and add to total
+	double travelTime = 0;
+	std::vector < sim_mob::WayPoint >::iterator wPIter;
+	for (wPIter = wPs.begin(); wPIter != wPs.end(); wPIter++) {
+			// get segment and get travel time
+		if ((*wPIter).type_ == WayPoint::ROAD_SEGMENT) {
+			const RoadSegment *rs = (*wPIter).roadSegment_;
+			std::map<const RoadSegment*, Conflux::rdSegTravelTimes>::iterator it = RdSegTravelTimesMap.find(rs);
+			if (it!=RdSegTravelTimesMap.end()) {
+				std::cout << "Warning: no segment found!" << std::endl;
+			}
+			else {
+				//problem at initial stages, road segment times give nonsensical times
+				//to check with Simmob team
+				if ((it->second).agentCount_ <= 1) {
+					//never been traversed (hypothesis) - To check with Simmob team
+					//units for below are unknown and needs to be verified.
+					//assumptions getLengthOfSegment() returns in cm
+					//			  maxSpeed is km/h - assumes car travels at maximum allowed speed if possible
+					travelTime += rs->getLengthOfSegment()/(rs->maxSpeed*27.778);
+					std::cout << "Segment Length: " << rs->getLengthOfSegment() << std::endl;
+					std::cout << "Max Speed: " << rs->maxSpeed << std::endl;
+
+				} else {
+					travelTime += (it->second).rdSegTravelTime_;
+				}
+			}
+		}
+	}
+	return travelTime;
+}
+
+void AMODController::findRemainingWayPoints(Person *vh, std::vector < sim_mob::WayPoint > &remainingWPs) {
+
+	//first, we get the iterators from the amodVehicle Pointer.
+	std::vector<const sim_mob::RoadSegment*>::iterator pathItr = vh->amodVehicle->getPathIterator();
+	std::vector<const sim_mob::RoadSegment*>::iterator pathItrCopy = pathItr;
+	std::vector<const sim_mob::RoadSegment*>::iterator pathEnd = vh->amodVehicle->getPathIteratorEnd();
+
+	//loop through the segments remaining and add it to the Waypoint vector
+	std::cout << "Segments remaining:" << std::endl;
+	while (pathItrCopy != pathEnd) {
+		std::cout << (*pathItrCopy)->getSegmentID() << std::endl;
+		sim_mob::WayPoint wp;
+		wp.type_ = WayPoint::ROAD_SEGMENT;
+		wp.roadSegment_ = (*pathItrCopy);
+		remainingWPs.push_back(wp);
+		pathItrCopy++;
+	}
+	std::cout << "Segments remaining end" << std::endl;
+
+	return;
+}
+
 
 void AMODController::frame_output(timeslice now)
 {

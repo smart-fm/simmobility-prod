@@ -55,10 +55,18 @@ public:
 	void addNewVh2CarPark(std::string& id,std::string& nodeId);
 	// return false ,if no vh in car park
 
+	// For finding the nearest free vehicle
 	typedef std::pair< double , std::string > distPair;
 	bool distPairComparator ( const distPair& l, const distPair& r){ return l.first < r.first; }
 	bool findNearestFreeVehicle(std::string originId, std::map<std::string, sim_mob::Node* > &nodePool, std::string &carParkId, Person**vh);
-	// For finding the nearest free vehicle
+
+	// Calculates the remaining travel time
+	double calculateTravelTime(std::vector < sim_mob::WayPoint > &wPs );
+
+	// Finds remaining way points
+	void findRemainingWayPoints(Person *vh, std::vector < sim_mob::WayPoint > &remainingWPs);
+
+
 	bool getVhFromCarPark(std::string& carParkId,Person** vh);
 	//removes vehicle from the carpark
 	void mergeWayPoints(const std::vector<sim_mob::WayPoint>& carparkToOrigin, const std::vector<sim_mob::WayPoint> &originToDestination, std::vector<sim_mob::WayPoint>& mergedWP);

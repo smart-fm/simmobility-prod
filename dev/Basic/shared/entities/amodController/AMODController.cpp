@@ -114,14 +114,29 @@ bool AMODController::frame_init(timeslice now)
 
 Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 {
-
-	//TODO
+	//std::cout<< "Time:" << now.ms() << std::endl;
 
 	if(test==0)
 	{
 		//testSecondVh();
-		testVh();
+		//inserting vehicles to virtual carParks at the nodes
+		populateCarParks();
 		test=1;
+	}
+	if(test==1)
+	{
+		//reading the file of time, destination and origin
+		std::vector<string> time;
+		std::vector<string> origin;
+		std::vector<string> destination;
+		ifstream myFile ("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/About10.txt");
+		std::cout << "Reading the demand file... " << std::endl;
+		readDemandFile(myFile, time, origin, destination);
+		cout << "Origin after reading the file: "<<endl;
+		copy(origin.begin(), origin.end(), ostream_iterator<string>(cout, " "));
+
+		testVh();
+		test=2;
 	}
 #if 0
 	if(now.frame()>150 & now.frame()<300)
@@ -179,9 +194,53 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 	return Entity::UpdateStatus::Continue;
 }
 
-void AMODController::readDemandFile(std::ifstream& myFile, vector<string>& origin, vector<string>& destination)
+void AMODController::populateCarParks()
+{
+	//carpark population
+	std::vector<string> carParkIds;
+	carParkIds.push_back("61688");
+	carParkIds.push_back("66508");
+	carParkIds.push_back("83620");
+	carParkIds.push_back("45666");
+	carParkIds.push_back("65298");
+
+	std::cout << "CarparkIds: " << std::endl;
+	copy(carParkIds.begin(), carParkIds.end(), ostream_iterator<string>(cout, " "));
+	std::cout << endl << "---------------" << std::endl;
+
+	int numberOfVhsAtNode = 2;
+
+	int k = 0;
+	std::vector<Person*> vhs;
+	//while (!carParkIds.empty())
+	for(int j = 0; j<carParkIds.size(); j++)
+	{
+		for(int i = 0; i<numberOfVhsAtNode; i++)
+		{
+			std::string vhId = "amod-";
+			string uId;          // string which will contain the result
+			ostringstream convert;   // stream used for the conversion
+			convert << k;      // insert the textual representation of 'Number' in the characters in the stream
+			k++;
+			uId = convert.str(); // set 'Result' to the contents of the stream
+			vhId += uId;
+			std::cout << vhId << std::endl;
+
+			std::string carParkId = carParkIds[j];
+			std::cout << "Inserting to the caprark: " << carParkId << std::endl;
+			addNewVh2CarPark(vhId,carParkId);
+		}
+		//carParkIds.pop_back();
+		//std::cout << "Cars inserted. Left carparkIds: " << std::endl;
+		//copy(carParkIds.begin(), carParkIds.end(), ostream_iterator<string>(cout, " "));
+		//std::cout << endl << "---------------" << std::endl;
+	}
+}
+
+void AMODController::readDemandFile(std::ifstream& myFile, vector<string>& timeD, vector<string>& origin, vector<string>& destination)
 {
 	string line;
+	string time_;
 	string origin_;
 	string destination_;
 	//ifstream myfile; //("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/About10.txt");
@@ -190,7 +249,8 @@ void AMODController::readDemandFile(std::ifstream& myFile, vector<string>& origi
 		while (getline (myFile,line) )
 		{
 			//cout << line << '\n';
-			myFile >> origin_ >> destination_;
+			myFile >> time_ >> origin_ >> destination_;
+			timeD.push_back(time_);
 			origin.push_back(origin_);
 			destination.push_back(destination_);
 		}
@@ -239,28 +299,28 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 	if(it!=virtualCarPark.end())
 	{
 		// access this car park before
-		//std::cout << "Existing car park" << std::endl;
+		std::cout << "Existing car park" << std::endl;
 		boost::unordered_map<std::string,Person*> cars = it->second;
-		//std::cout << "Before Insertion. Cars Size: " << cars.size() << std::endl;
+		std::cout << "Before Insertion. Cars Size: " << cars.size() << std::endl;
 		cars.insert(std::make_pair(id,person));
-		//std::cout << "Inserted. Cars Size: " << cars.size() << std::endl;
+		std::cout << "Inserted. Cars Size: " << cars.size() << std::endl;
 
 		boost::unordered_map<std::string,Person*>::iterator local_it;
-		//std::cout << "Cars in Car Park : \n";
+		std::cout << "Cars in Car Park : \n";
 		for ( local_it = cars.begin(); local_it!= cars.end(); ++local_it ) {
 			std::cout << " " << local_it->first << ":" << local_it->second << std::endl;
 		}
-		//	std::cout << "-----\n";
+		std::cout << "-----\n";
 
 		it->second = cars;
 	}
 	else
 	{
-		//std::cout << "New car park" << std::endl;
+		std::cout << "New car park" << std::endl;
 		boost::unordered_map<std::string,Person*> cars = boost::unordered_map<std::string,Person*>();
 		cars.insert(std::make_pair(id,person));
 		virtualCarPark.insert(std::make_pair(nodeId,cars));
-		//	std::cout << "Inserted. Cars Size: " << cars.size() << std::endl;
+		std::cout << "Inserted. Cars Size: " << cars.size() << std::endl;
 	}
 }
 //finds the nearest free vehicle and returns the carParkId where the vehicle was found and a pointer to the vehicle
@@ -350,22 +410,6 @@ void AMODController::mergeWayPoints(const std::vector<sim_mob::WayPoint>& carpar
 	//mergedWP.insert( mergedWP.end(), carparkToOrigin.begin(), carparkToOrigin.end() );
 	//mergedWP.insert( mergedWP.end(), originToDestination.begin(), originToDestination.end() );
 
-
-
-
-
-	//std::string wp;
-//	std::string wp2;
-	//for (int i =0; i<carparkToOrigin.end(); i++)
-	//{
-		//wp = carparkToOrigin[i];
-		//mergedWP.push_back(wp);
-	//}
-	//for (int i =0; i<originToDestination.end(); i++)
-	//{
-	//	wp2 = originToDestination[i];
-		//mergedWP.push_back(wp2);
-//	}
 }
 
 bool AMODController::dispatchVh(Person* vh)
@@ -411,9 +455,10 @@ void AMODController::handleVHArrive(Person* vh)
 	}
 	else
 	{
-		std::cout << "Dest carPark. New car park" << std::endl;
+		std::cout << "Carpark at the destination node. New car park" << std::endl;
 		boost::unordered_map<std::string,Person*> cars = boost::unordered_map<std::string,Person*>();
 		cars.insert(std::make_pair(vhID,vh));
+		std::cout << "After make_pair" << std::endl;
 		virtualCarPark.insert(std::make_pair(idNode,cars));
 		std::cout << "Dest carPark. Inserted. Cars Size: " << cars.size() << std::endl;
 	}
@@ -543,16 +588,16 @@ void AMODController::testSecondVh()
 {
 	std::vector<string> carParkIds;
 	carParkIds.push_back("61688");
-	carParkIds.push_back("66508");
-	carParkIds.push_back("83620");
-	carParkIds.push_back("45666");
-	carParkIds.push_back("65298");
+	//carParkIds.push_back("66508");
+	//carParkIds.push_back("83620");
+	//carParkIds.push_back("45666");
+	//carParkIds.push_back("65298");
 
 	std::cout << "CarparkIds: " << std::endl;
 	copy(carParkIds.begin(), carParkIds.end(), ostream_iterator<string>(cout, " "));
 	std::cout << endl << "---------------" << std::endl;
 
-	int vhsInTheSystem = 2;
+	int vhsInTheSystem = 1;
 
 	int k = 0;
 	std::vector<Person*> vhs;
@@ -595,7 +640,7 @@ void AMODController::testSecondVh()
 
 			// modify trip
 			std::cout << vh->amodId << std::endl;
-			std::string destNodeId="48718";
+			std::string destNodeId="83620";
 
 			Node *startNode = nodePool[originNodeId];
 			Node *endNode = nodePool[destNodeId];
@@ -643,52 +688,14 @@ void AMODController::testSecondVh()
 
 void AMODController::testVh()
 {
-	//carpark population
-	std::vector<string> carParkIds;
-	carParkIds.push_back("61688");
-	carParkIds.push_back("66508");
-	carParkIds.push_back("83620");
-	carParkIds.push_back("45666");
-	carParkIds.push_back("65298");
-
-	std::cout << "CarparkIds: " << std::endl;
-	copy(carParkIds.begin(), carParkIds.end(), ostream_iterator<string>(cout, " "));
-	std::cout << endl << "---------------" << std::endl;
-
-	int vhsInTheSystem = 200;
-
-	int k = 0;
-	std::vector<Person*> vhs;
-	//while (!carParkIds.empty())
-	for(int j = 0; j<carParkIds.size(); j++)
-	{
-		for(int i = 0; i<vhsInTheSystem; ++i)
-		{
-			std::string vhId = "amod-";
-			string uId;          // string which will contain the result
-			ostringstream convert;   // stream used for the conversion
-			convert << k;      // insert the textual representation of 'Number' in the characters in the stream
-			k++;
-			uId = convert.str(); // set 'Result' to the contents of the stream
-			vhId += uId;
-			std::cout << vhId << std::endl;
-
-			std::string carParkId = carParkIds[j];
-			addNewVh2CarPark(vhId,carParkId);
-		}
-		//carParkIds.pop_back();
-		std::cout << "Cars inserted. Left carparkIds: " << std::endl;
-		copy(carParkIds.begin(), carParkIds.end(), ostream_iterator<string>(cout, " "));
-		std::cout << endl << "---------------" << std::endl;
-	}
-
 	//reading the file
+	std::vector<string> timeD;
 	std::vector<string> origin;
 	std::vector<string> destination;
 	ifstream myFile ("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/About100.txt");
 	std::cout << "Reading the demand file... " << std::endl;
 
-	readDemandFile(myFile, origin, destination);
+	readDemandFile(myFile, timeD, origin, destination);
 
 	cout << "Origin after reading the file: "<<endl;
 	copy(origin.begin(), origin.end(), ostream_iterator<string>(cout, " "));
@@ -707,7 +714,7 @@ void AMODController::testVh()
 			break;
 		}
 		std::cout << vh << std::endl;
-		std::cout << "Found: " << vh->amodId << " in " << carParkId << std::endl;
+		std::cout << "Found: " << vh->amodId << " in carpark " << carParkId << std::endl;
 
 		//Get the cark park and origin and destination nodes
 		Node *carParkNode = nodePool[carParkId];
@@ -776,55 +783,55 @@ void AMODController::testVh()
 
 
 
-//
-//		DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+ConfigManager::GetInstance().FullConfig().baseGranMS());;
-//		sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", startNode, "node", endNode, "node");
-//		SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), startNode, "node", endNode, "node", "Car");
-//		((Trip*)tc)->addSubTrip(subTrip);
-//
-//		std::vector<sim_mob::TripChainItem*>  tcs;
-//		tcs.push_back(tc);
-//		vh->setTripChain(tcs);
-//		std::cout<<"starttime: "<<vh->getStartTime()<<std::endl;
-//		//vhs.push_back(vh);
-//
-//		const sim_mob::RoadSegment* exclude_seg;
-//		std::vector<const sim_mob::RoadSegment*> blacklist;
-//		if(exclude_seg)
-//		{
-//			blacklist.push_back(exclude_seg);
-//		}
-//		std::vector<WayPoint> wp1 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*startNode), stdir->DrivingVertex(*endNode),blacklist);
-//
-//		//Find shortest path from the origin node to the destination
-//		Node *startNode2 = nodePool[originNodeId];
-//		Node *endNode2 = nodePool[destNodeId];
-////
-////		sim_mob::TripChainItem* tc2 = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", startNode2, "node", endNode2, "node");
-////		SubTrip subTrip2("-1", "Trip", 0, -1, start, DailyTime(), startNode2, "node", endNode2, "node", "Car");
-////		((Trip*)tc2)->addSubTrip(subTrip2);
-////
-////		std::vector<sim_mob::TripChainItem*>  tcs2;
-////		tcs2.push_back(tc2);
-//		//vh->setTripChain(tcs2);
-//		std::cout<<"starttime: "<<vh->getStartTime()<<std::endl;
-//		//vhs.push_back(vh);
-//
-//		if(exclude_seg)
-//		{
-//			blacklist.push_back(exclude_seg);
-//		}
-//		std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*startNode), stdir->DrivingVertex(*endNode),blacklist);
-//
-//		//Merge two sets of way points
-//		std::vector<WayPoint> mergedWP;
-//		mergeWayPoints(wp1, wp2, mergedWP);
-//
-//		//set path
-//		vh->setPath(mergedWP);
-//
-//		//	unsigned int curTickMS = (frameTicks)*ConfigManager::GetInstance().FullConfig().baseGranMS();
-//		//	vh->setStartTime(curTickMS);
+		//
+		//		DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+ConfigManager::GetInstance().FullConfig().baseGranMS());;
+		//		sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", startNode, "node", endNode, "node");
+		//		SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), startNode, "node", endNode, "node", "Car");
+		//		((Trip*)tc)->addSubTrip(subTrip);
+		//
+		//		std::vector<sim_mob::TripChainItem*>  tcs;
+		//		tcs.push_back(tc);
+		//		vh->setTripChain(tcs);
+		//		std::cout<<"starttime: "<<vh->getStartTime()<<std::endl;
+		//		//vhs.push_back(vh);
+		//
+		//		const sim_mob::RoadSegment* exclude_seg;
+		//		std::vector<const sim_mob::RoadSegment*> blacklist;
+		//		if(exclude_seg)
+		//		{
+		//			blacklist.push_back(exclude_seg);
+		//		}
+		//		std::vector<WayPoint> wp1 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*startNode), stdir->DrivingVertex(*endNode),blacklist);
+		//
+		//		//Find shortest path from the origin node to the destination
+		//		Node *startNode2 = nodePool[originNodeId];
+		//		Node *endNode2 = nodePool[destNodeId];
+		////
+		////		sim_mob::TripChainItem* tc2 = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", startNode2, "node", endNode2, "node");
+		////		SubTrip subTrip2("-1", "Trip", 0, -1, start, DailyTime(), startNode2, "node", endNode2, "node", "Car");
+		////		((Trip*)tc2)->addSubTrip(subTrip2);
+		////
+		////		std::vector<sim_mob::TripChainItem*>  tcs2;
+		////		tcs2.push_back(tc2);
+		//		//vh->setTripChain(tcs2);
+		//		std::cout<<"starttime: "<<vh->getStartTime()<<std::endl;
+		//		//vhs.push_back(vh);
+		//
+		//		if(exclude_seg)
+		//		{
+		//			blacklist.push_back(exclude_seg);
+		//		}
+		//		std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*startNode), stdir->DrivingVertex(*endNode),blacklist);
+		//
+		//		//Merge two sets of way points
+		//		std::vector<WayPoint> mergedWP;
+		//		mergeWayPoints(wp1, wp2, mergedWP);
+		//
+		//		//set path
+		//		vh->setPath(mergedWP);
+		//
+		//		//	unsigned int curTickMS = (frameTicks)*ConfigManager::GetInstance().FullConfig().baseGranMS();
+		//		//	vh->setStartTime(curTickMS);
 
 
 

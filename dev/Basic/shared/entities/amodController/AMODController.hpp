@@ -48,7 +48,11 @@ public:
 	/// pu new amod vh to car park
 	/// id am vh id
 	/// nodeId node id ,virtual car park
-	void readDemandFile(std::ifstream& myFile, std::vector<std::string>& origin, std::vector<std::string>& destination);
+	void populateCarParks();
+	// populateCarParks - add vehicles to the carParks which are at nodes
+	// @param carparkIds - vector of strings of node ids where vehicles will be parked at the beginning of simulation
+	// @param number ofVhAtCarpark - integer, number of vehicles at each carpark at the beginning of simulation
+	void readDemandFile(std::ifstream& myFile, std::vector<std::string>& time, std::vector<std::string>& origin, std::vector<std::string>& destination);
 	//read the demand from the txt file and outputs two vectors
 	//@param origin - vector of strings, origin of the trip
 	//@param destination - vector if strings, destination
@@ -78,6 +82,7 @@ public:
     void testSecondVh();
 	void testVh();
 	void testTravelTimePath();
+	void assignVhs();
 	int test;
 
 	void handleAMODEvent(sim_mob::event::EventId id,

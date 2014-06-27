@@ -124,8 +124,9 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 	{
 		//testSecondVh();
 		//inserting vehicles to virtual carParks at the nodes
-		populateCarParks();
-		myFile.open("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/About10.txt");
+		populateCarParks(20);
+		//myFile.open("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/About10.txt");
+		myFile.open("/home/haroldsoh/Development/simmobility/dataFiles/About10.txt");
 		lastReadLine = "";
 		test=1;
 	}
@@ -139,6 +140,9 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		std::vector<string> destination;
 		std::cout << "Reading the demand file... " << std::endl;
 		readDemandFile(current_time, origin, destination);
+
+		assignVhs(origin, destination);
+
 		//cout << "Origin after reading the file: "<<endl;
 		//copy(origin.begin(), origin.end(), ostream_iterator<string>(cout, " "));
 
@@ -202,10 +206,10 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 	return Entity::UpdateStatus::Continue;
 }
 
-void AMODController::populateCarParks()
+void AMODController::populateCarParks(int numberOfVhsAtNode = 10)
 {
 	//carpark population
-	std::vector<string> carParkIds;
+	std::vector<std::string> carParkIds;
 	carParkIds.push_back("61688");
 	carParkIds.push_back("66508");
 	carParkIds.push_back("83620");
@@ -215,8 +219,6 @@ void AMODController::populateCarParks()
 	std::cout << "CarparkIds: " << std::endl;
 	copy(carParkIds.begin(), carParkIds.end(), ostream_iterator<string>(cout, " "));
 	std::cout << endl << "---------------" << std::endl;
-
-	int numberOfVhsAtNode = 2;
 
 	int k = 0;
 	std::vector<Person*> vhs;
@@ -237,6 +239,7 @@ void AMODController::populateCarParks()
 			std::string carParkId = carParkIds[j];
 			std::cout << "Inserting to the caprark: " << carParkId << std::endl;
 			addNewVh2CarPark(vhId,carParkId);
+
 		}
 		//carParkIds.pop_back();
 		//std::cout << "Cars inserted. Left carparkIds: " << std::endl;
@@ -357,14 +360,87 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 		virtualCarPark.insert(std::make_pair(nodeId,cars));
 		std::cout << "Inserted. Cars Size: " << cars.size() << std::endl;
 	}
+
+	//insert this car into the global map of all cars in car parks
+	vhInCarPark.insert( std::make_pair(id, person) );
+	allAMODCars.insert( std::make_pair(id, person) ); //add this car to the global map of all AMOD cars (for bookkeeping)
+	person->currStatus = Person::IN_CAR_PARK;
 }
 
 
-void AMODController::findAllFreeVhs()
-{
-	//TODO
+//void AMODController::findAllFreeVhs()
+//{
+//	//TODO
+//}
+//
+
+bool AMODController::getBestFreeVehicle(std::string originId, sim_mob::Person **vh, std::string &carParkId, std::vector < sim_mob::WayPoint > &leastCostPath, double &bestTravelCost) {
+
+	// initialize our vars
+	AMODVirtualCarParkItor iter;
+	AMODVirtualCarParkItor bestCarParkIter;
+	*vh = NULL;
+	bool freeCarFound = false;
+	bestTravelCost = -1;
+	bestCarParkIter = virtualCarPark.begin();
+
+	//find the closest car park
+	std::vector < std::vector < sim_mob::WayPoint > > carParksToOriginWaypoints;
+	for (iter=virtualCarPark.begin(); iter != virtualCarPark.end(); iter++) {
+		boost::unordered_map<std::string,Person*> cars = iter->second;
+		if (!cars.empty()) {
+			//this car park has cars, find distance to node
+			double travelCost;
+			vector < sim_mob::WayPoint > wps;
+			travelCost = getTravelTimePath(iter->first , originId, wps);
+
+			//if the travel cost is less than the best (or no car found yet), assign new best
+			if ((travelCost < bestTravelCost) || (!freeCarFound)) {
+				bestTravelCost = travelCost;
+				bestCarParkIter = iter;
+				leastCostPath = wps;
+				freeCarFound = true;
+			}
+		} else {
+			//this car park is empty
+			continue;
+		}
+	}
+
+	// grab a vehicle from the car park, set the carParkId, way points and return
+	if (freeCarFound) {
+		carParkId = bestCarParkIter->first;
+		boost::unordered_map<std::string,Person*> cars = bestCarParkIter->second;
+		boost::unordered_map<std::string,Person*>::iterator firstCarIt = cars.begin();
+		*vh = firstCarIt->second;
+	}
+	return freeCarFound;
 }
 
+double AMODController::getTravelTimePath(std::string startNodeId, std::string endNodeId, vector < sim_mob::WayPoint > &leastCostPath) {
+
+	sim_mob::Node* startNode;
+	sim_mob::Node* endNode;
+	startNode = nodePool[startNodeId];
+	endNode = nodePool[endNodeId];
+
+	std::vector<const sim_mob::RoadSegment*> blacklist = std::vector<const sim_mob::RoadSegment*>();
+
+	std::vector<WayPoint> wp = stdir->SearchShortestDrivingTimePath(
+			stdir->DrivingTimeVertex(*startNode,sim_mob::Default),
+			stdir->DrivingTimeVertex(*endNode,sim_mob::Default),
+			blacklist,
+			sim_mob::Default);
+	for(int i=0;i<wp.size();++i)
+	{
+		if(wp[i].type_ == WayPoint::ROAD_SEGMENT )
+		{
+			leastCostPath.push_back(wp[i]);
+		}
+	}
+
+	return calculateTravelTime( leastCostPath ); //return the travel cost of the path
+}
 
 
 //finds the nearest free vehicle and returns the carParkId where the vehicle was found and a pointer to the vehicle
@@ -426,11 +502,37 @@ bool AMODController::getVhFromCarPark(std::string& carParkId,Person** vh)
 		cars.erase(firstCarIt);
 		it->second = cars;
 		std::cout << "Cars size: " << cars.size() << std::endl;
+		vhInCarPark.erase( (*vh)->amodId );
+		(*vh)->currStatus = Person::ON_THE_ROAD;
 		return true;
 	}
 
 	return false;
 }
+
+bool AMODController::removeVhFromCarPark(std::string& carParkId,Person** vh)
+{
+	AMODVirtualCarParkItor it = virtualCarPark.find(carParkId);
+	if(it==virtualCarPark.end()){
+
+		//throw std::runtime_error("no this car park...");
+		return false;
+	}
+
+	boost::unordered_map<std::string,Person*> cars = it->second;
+	if(!it->second.empty())
+	{
+		cars.erase((*vh)->amodId);
+		//it->second.erase((*vh)->amodId);
+		it->second = cars;
+		vhInCarPark.erase( (*vh)->amodId );
+		(*vh)->currStatus = Person::ON_THE_ROAD;
+		return true;
+	}
+
+	return false;
+}
+
 
 void AMODController::mergeWayPoints(const std::vector<sim_mob::WayPoint>& carparkToOrigin, const std::vector<sim_mob::WayPoint> &originToDestination, std::vector<sim_mob::WayPoint>& mergedWP)
 {
@@ -509,6 +611,8 @@ void AMODController::handleVHArrive(Person* vh)
 
 	//remove vehicle from on the road
 	vhOnTheRoad.erase(vh->amodId);
+	vhInCarPark.insert( std::make_pair(vhID, vh) );
+	vh->currStatus = Person::IN_CAR_PARK;
 }
 
 void AMODController::rerouteWithPath(Person* vh,std::vector<sim_mob::WayPoint>& path)
@@ -618,6 +722,9 @@ void AMODController::testTravelTimePath()
 		}
 	}
 }
+
+
+
 
 void AMODController::handleAMODEvent(sim_mob::event::EventId id,
 		sim_mob::event::Context ctxId,
@@ -823,6 +930,7 @@ void AMODController::testVh()
 		// dispatch vehicle
 		dispatchVh(vh);
 		vhOnTheRoad.insert(std::make_pair(vh->amodId,vh));
+
 	}
 }
 
@@ -836,17 +944,29 @@ void AMODController::assignVhs(std::vector<std::string>& origin, std::vector<std
 		std::string carParkId;
 		Person* vh;
 
-		findAllFreeVhs();
+		//findAllFreeVhs();
 
 		std::cout << "Finding nearest vehicle for : " << originNodeId << std::endl;
-		if (!findNearestFreeVehicle(originNodeId, nodePool, carParkId, &vh))
+
+		std::vector < sim_mob::WayPoint > leastCostPath;
+		double bestTravelCost;
+
+		if (!getBestFreeVehicle(originNodeId, &vh, carParkId, leastCostPath, bestTravelCost))
 		{
-			std::cout << "No car found!" << std::endl;
-			throw std::runtime_error("no more vehicles remaining. Throwing exception.");
+			std::cout << "No free car found!" << std::endl;
+			//throw std::runtime_error("no more vehicles remaining. Throwing exception.");
 			break;
+		} else {
+			//remove the vehicle from the car park and dispatch
+			if (!removeVhFromCarPark(carParkId, &vh)) {
+				std::cout << "Error! Cannot remove car from car park!" << std::endl;
+			}
 		}
 		std::cout << vh << std::endl;
 		std::cout << "Found: " << vh->amodId << " in carpark " << carParkId << std::endl;
+
+		//print out least cost path
+
 
 		//Get the cark park and origin and destination nodes
 		Node *carParkNode = nodePool[carParkId];
@@ -913,6 +1033,7 @@ void AMODController::assignVhs(std::vector<std::string>& origin, std::vector<std
 		// dispatch vehicle
 		dispatchVh(vh);
 		vhOnTheRoad.insert(std::make_pair(vh->amodId,vh));
+
 	}
 }
 

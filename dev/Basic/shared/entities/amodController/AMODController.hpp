@@ -48,7 +48,7 @@ public:
 	/// pu new amod vh to car park
 	/// id am vh id
 	/// nodeId node id ,virtual car park
-	void populateCarParks();
+	void populateCarParks(int numberOfVhsAtNode);
 	// populateCarParks - add vehicles to the carParks which are at nodes
 	// @param carparkIds - vector of strings of node ids where vehicles will be parked at the beginning of simulation
 	// @param number ofVhAtCarpark - integer, number of vehicles at each carpark at the beginning of simulation
@@ -67,6 +67,10 @@ public:
 	bool findNearestFreeVehicle(std::string originId, std::map<std::string, sim_mob::Node* > &nodePool, std::string &carParkId, Person**vh);
 	void findAllFreeVhs();
 
+	// For finding "best" free vehicle
+	bool getBestFreeVehicle(std::string originId, sim_mob::Person **vh, std::string &carParkId, std::vector < sim_mob::WayPoint > &leastCostPath, double &bestTravelCost);
+	double getTravelTimePath(std::string startNodeId, std::string endNodeId, std::vector < sim_mob::WayPoint > &leastCostPath);
+
 	// Calculates the remaining travel time
 	double calculateTravelTime(std::vector < sim_mob::WayPoint > &wPs );
 
@@ -75,6 +79,7 @@ public:
 
 
 	bool getVhFromCarPark(std::string& carParkId,Person** vh);
+	bool removeVhFromCarPark(std::string& carParkId,Person** vh); //removes a specific vehicle from the car park
 	//removes vehicle from the carpark
 	void mergeWayPoints(const std::vector<sim_mob::WayPoint>& carparkToOrigin, const std::vector<sim_mob::WayPoint> &originToDestination, std::vector<sim_mob::WayPoint>& mergedWP);
 	//mergeWayPoints ->merge waypoints carpark-origin and origin-destination
@@ -130,6 +135,10 @@ private:
 	AMODVirtualCarPark virtualCarPark;
 
 	boost::unordered_map<std::string,Person*> vhOnTheRoad;
+	boost::unordered_map<std::string,Person*> vhInCarPark;
+	boost::unordered_map<std::string,Person*> allAMODCars;
+
+
 
 	int frameTicks;
 
@@ -148,6 +157,8 @@ public:
 	void updateTravelTimeGraph();
 	bool insertTravelTime2TmpTable(timeslice frameNumber, std::map<const RoadSegment*, sim_mob::Conflux::rdSegTravelTimes>& rdSegTravelTimesMap);
 
+
+
 	struct amod_passenger{
 		std::string &passengerId; std::string &originNode; std::string &destNode;
 		double &timeToPickUp; double waitingTime; double timeToBeAtDest;
@@ -155,6 +166,8 @@ public:
 
 	std::ifstream myFile; // ("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/About10.txt");
 	std::string lastReadLine;
+
+
 };
 
 

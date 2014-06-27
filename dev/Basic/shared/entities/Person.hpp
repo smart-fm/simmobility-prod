@@ -226,6 +226,15 @@ public:
     std::list<sim_mob::FMOD_Schedule> schedules;
 
     AMOD::AMODEventPublisher eventPub;
+
+    enum Status {
+    	IN_CAR_PARK = 0,
+    	ON_THE_ROAD
+    };
+
+    Status currStatus;
+
+
 //    AMODController* amodCtrl;
 
 protected:

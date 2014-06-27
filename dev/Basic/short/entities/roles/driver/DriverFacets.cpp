@@ -650,7 +650,7 @@ double sim_mob::DriverMovement::move(DriverUpdateParams& p) {
 //TODO check set lat vel?
 	double acc = p.newFwdAcc;
 
-	if (parentDriver->parent->GetId()==66508 && parentDriver->getParams().now.frame()>=200 && parentDriver->getParams().now.frame()<=300)
+	if (parentDriver->parent->GetId()==0 && parentDriver->getParams().now.frame()>=200 && parentDriver->getParams().now.frame()<=300)
 	{acc = -3;}
 //Update our chosen acceleration; update our position on the link.
 	parentDriver->vehicle->setAcceleration(
@@ -2449,6 +2449,10 @@ if (!other) {
 continue;
 }
 
+if(!other->getRole()){
+	continue;
+}
+
 // other->getRole()->handleUpdateRequest();
 //Perform a different action depending on whether or not this is a Pedestrian/Driver/etc.
 /*Note:
@@ -2781,25 +2785,25 @@ color = trafficSignal->getDriverLight(*p.currLane, *nextLaneInNextLink);
 // color = trafficSignal->getDriverLight(*p.currLane).forward;
 color = sim_mob::Green;
 }
-switch (color) {
-case sim_mob::Red:
+		switch (color) {
+		case sim_mob::Red:
 
 // std::cout<< "Driver is getting Red light \n";
-p.trafficColor = color;
-break;
-case sim_mob::Amber:
-case sim_mob::Green:
+			p.trafficColor = color;
+			break;
+		case sim_mob::Amber:
+		case sim_mob::Green:
 
 // std::cout<< "Driver is getting Green or Amber light \n";
-if (!isPedestrianOnTargetCrossing())
-p.trafficColor = color;
-else
-p.trafficColor = sim_mob::Red;
-break;
-default:
-Warn() <<"Unknown signal color[" << color << "]\n";
-break;
-}
+			if (!isPedestrianOnTargetCrossing())
+				p.trafficColor = color;
+			else
+				p.trafficColor = sim_mob::Red;
+			break;
+		default:
+			Warn() << "Unknown signal color[" << color << "]\n";
+			break;
+		}
 
 parentDriver->perceivedTrafficColor->set_delay(parentDriver->reacTime);
 if(parentDriver->perceivedTrafficColor->can_sense())
@@ -2813,14 +2817,19 @@ parentDriver->perceivedTrafficColor->delay(p.trafficColor);
 
 
 p.trafficSignalStopDistance = fwdDriverMovement.getAllRestRoadSegmentsLengthCM() - fwdDriverMovement.getCurrDistAlongRoadSegmentCM() - parentDriver->vehicle->getLengthCm() / 2;
+Print() << "calc : " << fwdDriverMovement.getAllRestRoadSegmentsLengthCM() << "-" <<  fwdDriverMovement.getCurrDistAlongRoadSegmentCM() << " - " << parentDriver->vehicle->getLengthCm() << "/ 2" << std::endl;
 parentDriver->perceivedDistToTrafficSignal->set_delay(parentDriver->reacTime);
-if(parentDriver->perceivedDistToTrafficSignal->can_sense())
-{
-p.perceivedDistToTrafficSignal = parentDriver->perceivedDistToTrafficSignal->sense();
-}
-else
-p.perceivedDistToTrafficSignal = p.trafficSignalStopDistance;
-parentDriver->perceivedDistToTrafficSignal->delay(p.trafficSignalStopDistance);
-}
+		if (parentDriver->perceivedDistToTrafficSignal->can_sense()) {
+			p.perceivedDistToTrafficSignal = parentDriver->perceivedDistToTrafficSignal->sense();
+		} else
+		{
+			p.perceivedDistToTrafficSignal = p.trafficSignalStopDistance;
+		}
+		parentDriver->perceivedDistToTrafficSignal->delay(p.trafficSignalStopDistance);
+	}
+
+Print() << "p.trafficSignalStopDistance : " <<  p.trafficSignalStopDistance << std::endl;
+Print() << "p.perceivedDistToTrafficSignal : " << p.perceivedDistToTrafficSignal << std::endl;
+Print() << "parentDriver->perceivedDistToTrafficSignal : " << (parentDriver->perceivedDistToTrafficSignal->can_sense() ? parentDriver->perceivedDistToTrafficSignal->sense() : -1) << std::endl;
 }
 }

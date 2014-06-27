@@ -707,8 +707,8 @@ void sim_mob::ParseConfigFile::ProcessConstructsNode(xercesc::DOMElement* node)
 	ProcessConstructDatabasesNode(GetSingleElementByName(node, "databases"));
 	ProcessConstructDbProcGroupsNode(GetSingleElementByName(node, "db_proc_groups"));
 	ProcessConstructCredentialsNode(GetSingleElementByName(node, "credentials"));
-	ProcessConstructExternalScriptsNode(GetSingleElementByName(node, "external_scripts"));
-	ProcessConstructMongoCollectionsNode(GetSingleElementByName(node, "mongo_collections"));
+	//ProcessConstructExternalScriptsNode(GetSingleElementByName(node, "external_scripts"));
+	//ProcessConstructMongoCollectionsNode(GetSingleElementByName(node, "mongo_collections"));
 }
 
 

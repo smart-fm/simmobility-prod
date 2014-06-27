@@ -65,7 +65,7 @@ public:
 	typedef std::pair< double , std::string > distPair;
 	bool distPairComparator ( const distPair& l, const distPair& r){ return l.first < r.first; }
 	bool findNearestFreeVehicle(std::string originId, std::map<std::string, sim_mob::Node* > &nodePool, std::string &carParkId, Person**vh);
-	void findAllFreeVhs();
+	void findAllFreeVhs(std::vector<std::string> carParkIdsWithVhs);
 
 	// Calculates the remaining travel time
 	double calculateTravelTime(std::vector < sim_mob::WayPoint > &wPs );
@@ -94,6 +94,7 @@ public:
 	void testVh();
 	void testTravelTimePath();
 	void assignVhs(std::vector<std::string>& origin, std::vector<std::string>& destination);
+	//void assignVhs();
 	int test;
 
 	void handleAMODEvent(sim_mob::event::EventId id,

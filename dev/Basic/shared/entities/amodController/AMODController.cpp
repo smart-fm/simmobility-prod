@@ -33,6 +33,7 @@
 #include "entities/roles/Role.hpp"
 #include <limits>
 #include <sstream>
+#include <unordered_map>
 
 using namespace std;
 
@@ -138,12 +139,14 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		std::vector<string> origin;
 		std::vector<string> destination;
 		std::cout << "Reading the demand file... " << std::endl;
-		readDemandFile(current_time, origin, destination);
-		//cout << "Origin after reading the file: "<<endl;
-		//copy(origin.begin(), origin.end(), ostream_iterator<string>(cout, " "));
+		//readDemandFile(current_time, origin, destination);
+
+
+		assignVhs(origin, destination);
+		myFile.close();
 
 		//testVh();
-		//test=2;
+		test=1;
 	}
 
 #if 0
@@ -360,7 +363,7 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 }
 
 
-void AMODController::findAllFreeVhs()
+void AMODController::findAllFreeVhs(std::vector<std::string> carParkIdsWithVhs)
 {
 	//TODO
 }
@@ -826,33 +829,115 @@ void AMODController::testVh()
 	}
 }
 
-
+//-----------------------------------------------------------------------------
+//assignVhs
+//-----------------------------------------------------------------------------
 void AMODController::assignVhs(std::vector<std::string>& origin, std::vector<std::string>& destination)
 {
+	std::cout << "Origin inside assignVhs(): " << std::endl;
+	copy(origin.begin(), origin.end(), ostream_iterator<string>(cout, " "));
+	std::cout << endl << "---------------" << std::endl;
+
 	for (int i =0; i<origin.size() ; i++) //
 	{
 		std::string originNodeId = origin[i];
+		std::cout << "originNodeId: " << originNodeId << std::endl;
 		std::string destNodeId = destination[i];
 		std::string carParkId;
-		Person* vh;
+		std::vector<std::string> carParkIds;
 
-		findAllFreeVhs();
 
-		std::cout << "Finding nearest vehicle for : " << originNodeId << std::endl;
-		if (!findNearestFreeVehicle(originNodeId, nodePool, carParkId, &vh))
+		//	findAllFreeVhs(carParkIds);
+	}
+
+	//-------------------------------------------------------------------------
+	// Finding the vh which is currently in use with the shortest travel time to origin given the origin
+	//First algorithm looks for all vhs which are in service (for(; it != vhOnTheRoad.end(); ++it))
+	//for each vh -> retrieves second position from unordered_map and amodId
+	//findRemaining waypoints to the current destination
+	//calculates travel time for the remaining trip to the current destination
+
+	std::vector<WayPoint> remainingWP;
+	std::vector<WayPoint> DestToOriginWP;
+	std::vector<WayPoint> CurrentPosToOriginWP;
+	std::vector<vector<WayPoint> > vectorWPs;
+	string amodIdInService;
+	std::vector<string> vhsInUse;
+	Person* vhInService;
+	vector<Person*> vhsInService;
+	std::vector<double> TTVhsInUse;
+
+	for (const auto& item: vhOnTheRoad)
+	{
+		//std::cout << " " << item->first << ":" << item->second;
+		//std::cout << std::endl;
+	}
+
+	std::cout << "test vhOnTheRoad: " << std::endl;
+	boost::unordered_map<std::string, Person*>::iterator it = vhOnTheRoad.begin();
+	for(; it != vhOnTheRoad.end(); ++it)
+	{
+		std::cout << "vhOnTheRoad.begin()->second : " << vhOnTheRoad.begin()->second;
+		std::cout << vhOnTheRoad[it->second->amodId]<<std::endl;
+		vhInService = vhOnTheRoad[it->second];
+		amodIdInService = vhOnTheRoad[it->second->amodId];
+		std::cout << "amodIdInService: " << amodIdInService << std::endl;
+		//find remaining waypoint in current trip
+		findRemainingWayPoints(vhInService, remainingWP);
+		//calculate shortest travel time from current dest to origin
+
+		//merge waypoints (remainingWP + fromDesttoOrigin
+		mergeWayPoints(remainingWP, DestToOriginWP, CurrentPosToOriginWP);
+	}
+	//calculate travel time for each pair of waypoint and collect them in TTVhsInUse vector
+	TTVhsInUse.push_back(calculateTravelTime(CurrentPosToOriginWP));
+	//vector of amodId for each travel time from vector TTVhsInUse
+	vhsInUse.push_back(amodIdInService);
+	//vector of Person* vhInUse
+	vhsInService.push_back(vhInService);
+	//vector of waypoints
+	vectorWPs.push_back(CurrentPosToOriginWP);
+
+	double stt_vhInUse; //stt_vhInUse - double, the shortest TT to the origin for a vh in use
+	//stt_vhInUse = std::min_element( TTVhsInUse.begin(), TTVhsInUse.end());
+	string amodIdInUse;
+	Person* vhInUse;
+	std::vector<WayPoint> currPosToOrVhInUse;
+	int lo = 0;
+	for (int i = 1;i < TTVhsInUse.size();i++)
+	{
+		if(TTVhsInUse[i] < TTVhsInUse[lo])
 		{
-			std::cout << "No car found!" << std::endl;
-			throw std::runtime_error("no more vehicles remaining. Throwing exception.");
-			break;
+			lo = i;
 		}
-		std::cout << vh << std::endl;
-		std::cout << "Found: " << vh->amodId << " in carpark " << carParkId << std::endl;
+	}
+	//given the position in the vector TTVhsInUse, find Person* vhInUse, double stt_vhInUse and string amodIdInUse
+	stt_vhInUse = TTVhsInUse[lo];
+	amodIdInUse = vhsInUse[lo];
+	vhInUse = vhsInService[lo];
+	currPosToOrVhInUse = vectorWPs[lo];
 
-		//Get the cark park and origin and destination nodes
+	//print to the console
+	std::cout << "stt_vhInUse: " << stt_vhInUse << std::endl;
+	std::cout << "amodIdInService: " << amodIdInUse << std::endl;
+
+	//---------------------------------------------------------------------------------
+	//given the stt_freeVh - find which vh can arrive first to the origin (the fastest free or the fastest in use
+	double stt_freeVh;
+	Person* vhFree;
+	double stt;
+	Person* vhAssigned;
+	stt = std::numeric_limits< double >::min(); //min(stt_freeVh, stt_vhInUse);
+	if (stt==stt_freeVh)
+	{//if the shortest driving time path is for free vehicle
+		vhAssigned = vhFree;
+
+		std::string originNodeId; //will be given
+		std::string destNodeId; //will be given
+		std::string carParkId; //will be given
 		Node *carParkNode = nodePool[carParkId];
 		Node *originNode = nodePool[originNodeId];
 		Node *destNode = nodePool[destNodeId];
-
 		// create trip chain
 		DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+ConfigManager::GetInstance().FullConfig().baseGranMS());;
 		sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", carParkNode, "node", destNode, "node");
@@ -862,7 +947,7 @@ void AMODController::assignVhs(std::vector<std::string>& origin, std::vector<std
 		std::vector<sim_mob::TripChainItem*>  tcs;
 		tcs.push_back(tc);
 
-		vh->setTripChain(tcs); //add trip chain
+		vhAssigned->setTripChain(tcs); //add trip chain
 
 		// set route for vehicle
 
@@ -872,48 +957,41 @@ void AMODController::assignVhs(std::vector<std::string>& origin, std::vector<std
 		{
 			blacklist.push_back(exclude_seg);
 		}
+		//if provided then remove this part
 		std::vector<WayPoint> wp1 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*carParkNode), stdir->DrivingVertex(*originNode),blacklist);
-		std::cout<<"starttime: "<<vh->getStartTime()<<std::endl;
+		std::cout<<"starttime: "<<vhAssigned->getStartTime()<<std::endl;
 
 		// find route from origin to destination
 		std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*originNode), stdir->DrivingVertex(*destNode),blacklist);
+		//shortest travel time from origin to destination -wp2
 
-		//Merge two sets of way points
-		std::vector<WayPoint> mergedWP;
+		//merge wayPoints
+		vector<WayPoint> mergedWP;
 		mergeWayPoints(wp1, wp2, mergedWP);
 
-		std::cout << "Traveltime wp1: " << calculateTravelTime(wp1) << std::endl;
-		std::cout << "Traveltime wp2: " << calculateTravelTime(wp2) << std::endl;
-		std::cout << "Traveltime mwp: " << calculateTravelTime(mergedWP) << std::endl;
-
-		std::cout << "Waypoint 1 :\n";
-		for (int j=0; j<wp1.size(); j++) {
-			std::cout << wp1[j].roadSegment_->getSegmentID() << std::endl;
-		}
-		std::cout << "End Waypint 1\n";
-
-		std::cout << "Waypoint 2 :\n";
-		for (int j=0; j<wp2.size(); j++) {
-			std::cout << wp2[j].roadSegment_->getSegmentID() << std::endl;
-		}
-		std::cout << "End Waypint 2\n";
-
 		//set path
-		//std::vector<WayPoint> path;
-		vh->setPath(mergedWP);
-		std::cout << "Waypoint list :\n";
-		for (int j=0; j<mergedWP.size(); j++) {
-			std::cout << mergedWP[j].roadSegment_->getSegmentID() << std::endl;
-		}
-		std::cout << "End Waypint list\n";
+		vhAssigned->setPath(mergedWP);
 		// set event
 		eventPub.registerEvent(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH);
-		eventPub.subscribe(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH, vh, &Person::handleAMODEvent, vh);
+		eventPub.subscribe(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH, vhAssigned, &Person::handleAMODEvent, vhAssigned);
 
 		// dispatch vehicle
-		dispatchVh(vh);
-		vhOnTheRoad.insert(std::make_pair(vh->amodId,vh));
+		dispatchVh(vhAssigned);
+		vhOnTheRoad.insert(std::make_pair(vhAssigned->amodId,vhAssigned));
+
+	}else
+	{
+		vhAssigned = vhInUse;
+		//given origin and destination calculate sttp ->vector<WayPoint> wp2
+		vector<WayPoint> wp2;
+
+		//merge wayPoints
+		vector<WayPoint> mergedWP;
+		mergeWayPoints(currPosToOrVhInUse, wp2, mergedWP);
+		//reroute with path
+		rerouteWithPath(vhAssigned, mergedWP);
 	}
+
 }
 
 void AMODController::frame_output(timeslice now)

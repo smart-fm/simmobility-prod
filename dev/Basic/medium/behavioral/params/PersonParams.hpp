@@ -241,26 +241,6 @@ public:
 		this->hhOnlyWorkers = hhOnlyWorkers;
 	}
 
-	/**
-	 * get the availability for a time window for tour
-	 */
-	int getTimeWindowAvailability(int timeWnd) const;
-
-	/**
-	 * set availability of times in timeWnd to 0
-	 *
-	 * @param timeWnd "<startTime>,<endTime>" to block
-	 */
-	void blockTime(std::string& timeWnd);
-
-	/**
-	 * overload function to set availability of times in timeWnd to 0
-	 *
-	 * @param startTime start time
-	 * @param endTime end time
-	 */
-	void blockTime(double startTime, double endTime);
-
 	double getEduLogSum() const {
 		return eduLogSum;
 	}
@@ -311,9 +291,30 @@ public:
 		this->householdFactor = householdFactor;
 	}
 
-private:
+	/** makes all time windows to available*/
 	void initTimeWindows();
 
+	/**
+	 * get the availability for a time window for tour
+	 */
+	int getTimeWindowAvailability(int timeWnd) const;
+
+	/**
+	 * set availability of times in timeWnd to 0
+	 *
+	 * @param timeWnd "<startTime>,<endTime>" to block
+	 */
+	void blockTime(std::string& timeWnd);
+
+	/**
+	 * overload function to set availability of times in timeWnd to 0
+	 *
+	 * @param startTime start time
+	 * @param endTime end time
+	 */
+	void blockTime(double startTime, double endTime);
+
+private:
 	std::string personId;
 	int personTypeId;
 	int ageId;

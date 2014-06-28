@@ -2,27 +2,27 @@
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
 
 <config>
-		<!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
-		<!-- Admissible values are "preday" and "supply". --> 
-		<mid_term_run_mode value="preday"/>
+        <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
+        <!-- Admissible values are "preday" and "supply". --> 
+        <mid_term_run_mode value="preday"/>
         
-        <!-- config specific to supply simulator -->    		
-		<supply>
-        		<!-- these parameters are used to calculate dwell time of buses at bus stops-->
-        		<!-- these parameters will be organized in a better way after finding the meaning of these numbers -->
-        		<dwell_time_parameters>
-                		<!--parameters : A, B, deltaBay, deltaFull, P_Front-->
-                		<parameters value="1, 1, 1, 0, 0"/>
-        		</dwell_time_parameters>  
+        <!-- config specific to supply simulator -->            
+        <supply>
+                <!-- these parameters are used to calculate dwell time of buses at bus stops-->
+                <!-- these parameters will be organized in a better way after finding the meaning of these numbers -->
+                <dwell_time_parameters>
+                        <!--parameters : A, B, deltaBay, deltaFull, P_Front-->
+                        <parameters value="1, 1, 1, 0, 0"/>
+                </dwell_time_parameters>  
          
-        		<!-- pedestrian walking speed in cm/s (approximately 5 km/h)-->
-        		<pedestrian_walk_speed value="135"/>
-		</supply>
-		
-		<!-- config specific to preday simulator -->
+                <!-- pedestrian walking speed in cm/s (approximately 5 km/h)-->
+                <pedestrian_walk_speed value="135"/>
+        </supply>
+        
+        <!-- config specific to preday simulator -->
         <preday>
                 <!-- Control variable to run simulation, calibration or logsum computation. Admissible values are "simulation", "calibration" and "logsum" -->
-                <run_mode value="logsum"/>
+                <run_mode value="calibration"/>
                 <!-- Number of threads to create for processing the population in-->
                 <!-- the preday demand simulator -->
                 <threads value="6"/>
@@ -68,9 +68,9 @@
                         <mongo_collection name="Output_Activity" collection="activity_cpp_11_3"/>
                 </mongo_collections>
                 
-                <calibration enabled="false">
-                		<!-- variables to calibrate -->
-                		<!-- expected csv format: variable_name,lua_file_name,initial_value,lower_limit,upper_limit -->
+                <calibration enabled="true">
+                        <!-- variables to calibrate -->
+                        <!-- expected csv format: variable_name,lua_file_name,initial_value,lower_limit,upper_limit -->
                         <variables file="data/medium/preday_calibration_variables.csv"/>
                         <!--csv providing the observed values for the statistics to compute-->
                         <observed_statistics file="data/medium/preday_observed_HITS08_statistics.csv"/>
@@ -79,7 +79,7 @@
                         <!-- logsums will be recomputed every x iterations if value is set to x -->
                         <logsum_computation_frequency value="5"/>
                         <SPSA>
-                        		<!-- max number of iterations that spsa must run for -->
+                                <!-- max number of iterations that spsa must run for -->
                                 <iterations value="500"/>
                                 <!-- termination condition for spsa is (F(X_k+1) - F(X_k) <= tolerance ) where F(X) is the objective function -->
                                 <tolerence value="0.000001"/>
@@ -89,8 +89,8 @@
                                 <step_size initial_value="0.16" stability_constant="100" algorithm_coefficient1="0.602"/>
                         </SPSA>
                         <WSPSA>
-                        		<!-- max number of iterations that spsa must run for -->
-                                <iterations value="500"/>
+                                <!-- max number of iterations that spsa must run for -->
+                                <iterations value="20"/>
                                 <!-- termination condition for spsa is (F(X_k+1) - F(X_k) <= tolerance ) where F(X) is the objective function -->
                                 <tolerence value="0.000001"/>
                                 <!-- perturbation step size for iteration k is given by c_k = c / ((1+k)^gamma) -->

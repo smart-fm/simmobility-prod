@@ -1042,6 +1042,7 @@ void PredaySystem::constructTours() {
 }
 
 void PredaySystem::planDay() {
+	personParams.initTimeWindows();
 	logStream << std::endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
 	//Predict day pattern
 	logStream << "Person: " << personParams.getPersonId() << "| home: " << personParams.getHomeLocation() << std:: endl;
@@ -1365,11 +1366,13 @@ void sim_mob::medium::PredaySystem::updateStatistics(CalibrationStatistics& stat
 				statsCollector.addToTripModeShareStats(stop->getStopMode(), householdFactor);
 			}
 			destination = stop->getStopLocation();
-			statsCollector.addToTravelDistanceStats(opCostMap.at(origin).at(destination)->getDistance(), householdFactor);
+			if(origin != destination) { statsCollector.addToTravelDistanceStats(opCostMap.at(origin).at(destination)->getDistance(), householdFactor); }
+			else { statsCollector.addToTravelDistanceStats(0, householdFactor); }
 			origin = destination;
 		}
 		//There is still one more trip from last stop to home
 		destination = personParams.getHomeLocation();
-		statsCollector.addToTravelDistanceStats(opCostMap.at(origin).at(destination)->getDistance(), householdFactor);
+		if(origin != destination) { statsCollector.addToTravelDistanceStats(opCostMap.at(origin).at(destination)->getDistance(), householdFactor); }
+		else { statsCollector.addToTravelDistanceStats(0, householdFactor); }
 	}
 }

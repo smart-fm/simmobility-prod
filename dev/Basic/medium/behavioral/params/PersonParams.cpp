@@ -27,6 +27,10 @@ sim_mob::medium::PersonParams::~PersonParams() {
 }
 
 void PersonParams::initTimeWindows() {
+	if(!timeWindowAvailability.empty())
+	{
+		for(boost::unordered_map<int, TimeWindowAvailability*>::iterator i=timeWindowAvailability.begin(); i!=timeWindowAvailability.end(); i++) { delete i->second; }
+	}
 	int index = 1;
 	for (double i=1; i<=48; i++) {
 		for (double j=i; j<=48; j++) {

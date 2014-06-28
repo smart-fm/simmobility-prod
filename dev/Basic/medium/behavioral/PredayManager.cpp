@@ -12,13 +12,17 @@
 #include "PredayManager.hpp"
 
 #include <algorithm>
+#include <boost/algorithm/string/trim.hpp>
 #include <boost/thread.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
+#include <cerrno>
 #include <cmath>
+#include <cstdio>
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
 #include <string>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -55,13 +59,13 @@ const std::string UPPER_LIMIT_CSV_HEADER = "upper_limit";
 std::vector<CalibrationVariable> calibrationVariablesList;
 size_t numVariablesCalibrated;
 
-/**Mongo daos for calibration*/
-boost::unordered_map<std::string, db::MongoDao*> mongoDao;
-
 //initialize once and use multiple times
 std::vector<double> observedHITS_Stats;
 
 matrix<double> weightMatrix;
+
+/**keep a file wise list of variables to calibrate*/
+boost::unordered_map<std::string, std::vector<std::string> > variablesInFileMap;
 
 /**
  * Helper class for symmetric random vector of +1/-1
@@ -190,29 +194,123 @@ void updateVariablesBySubtraction(std::vector<CalibrationVariable>& calVarList, 
 	}
 }
 
+void constructVariablesInFileMap(const std::vector<CalibrationVariable>& calVarList)
+{
+	for(std::vector<CalibrationVariable>::const_iterator calVarIt = calVarList.begin(); calVarIt != calVarList.end(); calVarIt++)
+	{
+		const CalibrationVariable& calVar = *calVarIt;
+		variablesInFileMap[calVar.getScriptFileName()].push_back(calVar.getVariableName());
+	}
+}
+
 /**
  * updates the values of parameters in lua file
- * \note this function executes std::system() to call sed script
+ * \note this function executes std::system() to call sed script if command processor is available
  * @param scriptFilesPath path to scripts
  * @param calVarList list of variables to calibrate
  */
 void updateVariablesInLuaFiles(const std::string& scriptFilesPath, const std::vector<CalibrationVariable>& calVarList)
 {
-	std::stringstream cmdStream;
 	int result = 0;
-	for (std::vector<CalibrationVariable>::const_iterator calVarIt = calVarList.begin(); calVarIt != calVarList.end(); calVarIt++)
+	if(std::system(nullptr)) // If command processor is available, we can simply use sed to search and replace in files
 	{
-		const CalibrationVariable& calVar = *calVarIt;
-		const std::string origFileName(scriptFilesPath + calVar.getScriptFileName());
-		const std::string tmpFileName(origFileName + ".tmp");
-		cmdStream.str(std::string());
-		cmdStream << "sed -e 's/local " << calVar.getVariableName() << ".*=.*[0-9]/local " << calVar.getVariableName() << "= " << calVar.getCurrentValue()
-				<< "/g' " << origFileName << " > " << tmpFileName;
-		result = std::system(cmdStream.str().c_str());
-		result = std::rename(tmpFileName.c_str(), origFileName.c_str());
-		if (result != 0)
+		std::stringstream cmdStream;
+		for (std::vector<CalibrationVariable>::const_iterator calVarIt = calVarList.begin(); calVarIt != calVarList.end(); calVarIt++)
 		{
-			throw std::runtime_error("Renaming failed");
+			const CalibrationVariable& calVar = *calVarIt;
+			const std::string origFileName(scriptFilesPath + calVar.getScriptFileName());
+			const std::string tmpFileName(origFileName + ".tmp");
+			cmdStream.str(std::string());
+			cmdStream << "sed -e 's/local " << calVar.getVariableName() << ".*=.*[0-9]/local " << calVar.getVariableName() << " = " << calVar.getCurrentValue()
+					<< "/g' " << origFileName << " > " << tmpFileName;
+			result = std::system(cmdStream.str().c_str());
+			result = std::rename(tmpFileName.c_str(), origFileName.c_str());
+		    if(result)
+		    {
+				std::stringstream err;
+				err << "Renaming failed for file " << origFileName << ": error - " << std::strerror(errno) << std::endl;
+				throw std::runtime_error(err.str());
+		    }
+		}
+	}
+	else // we need to do it the hard way
+	{
+		// construct variable value map
+		boost::unordered_map<std::string, double> variableValueMap;
+		for (std::vector<CalibrationVariable>::const_iterator calVarIt = calVarList.begin(); calVarIt != calVarList.end(); calVarIt++)
+		{
+			const CalibrationVariable& calVar = *calVarIt;
+			variableValueMap[calVar.getVariableName()] = calVar.getCurrentValue();
+		}
+
+		//iterate all lua files to check for variables to change
+		for(boost::unordered_map<std::string, std::vector<std::string> >::iterator i=variablesInFileMap.begin();
+				i!=variablesInFileMap.end(); i++)
+		{
+			const std::string origFileName(scriptFilesPath + i->first);
+			const std::string tmpFileName(origFileName + ".tmp");
+
+			//open the lua file
+			ifstream in(origFileName.c_str());
+		    if(!in.is_open())
+		    {
+		    	std::stringstream err;
+		    	err << "Could not open file: " << origFileName;
+		        throw std::runtime_error(err.str());
+		    }
+
+		    //open the tmp output file
+		    ofstream out(tmpFileName.c_str());
+
+		    //loop through each line and search for patterns. update new value if pattern is matched
+		    std::string line;
+		    std::string assignmentLhs;
+		    while( std::getline(in,line) )
+		    {
+		    	size_t pos;
+		    	pos = line.find("local ");
+		    	if(pos == std::string::npos) { out << line << "\n"; continue; } // quickly skip irrelevant lines
+
+		    	const std::vector<std::string>& varNames = i->second;
+		    	bool updated = false;
+		    	for(std::vector<std::string>::const_iterator strIt=varNames.begin(); strIt!=varNames.end(); strIt++)
+		    	{
+		    		const std::string& varName = *strIt;
+		    		pos = line.find("local " + varName);
+		    		if(pos != std::string::npos) //found
+		    		{
+				    	pos = line.find("=");
+				    	if(pos != std::string::npos)
+				    	{
+				    		std::stringstream updatedLine;
+				    		updatedLine << line.substr(0, pos) << "= " << variableValueMap.at(varName);
+				    		out << updatedLine.str() << "\n";
+				    		updated = true;
+				    		break; //there can only be one variable declaration in one line in lua
+				    	}
+		    		}
+		    	}
+		    	if(!updated) { out << line << "\n"; }
+		    }
+
+		    in.close();
+		    out.close();
+		    // delete the original file
+		    result = std::remove(origFileName.c_str());
+		    if(result)
+		    {
+				std::stringstream err;
+				err << "File deletion failed for file " << origFileName << ": error - " << std::strerror(errno) << std::endl;
+				throw std::runtime_error(err.str());
+		    }
+		    // rename tmp file to original file name
+		    result = std::rename(tmpFileName.c_str(), origFileName.c_str());
+		    if(result)
+		    {
+				std::stringstream err;
+				err << "Renaming failed for file " << origFileName << ": error - " << std::strerror(errno) << std::endl;
+				throw std::runtime_error(err.str());
+		    }
 		}
 	}
 }
@@ -258,6 +356,31 @@ std::ostream& operator <<(std::ostream& os, const CalibrationVariable& calVar)
 {
 	os << calVar.getCurrentValue();
 	return os;
+}
+
+void printParameters(const std::vector<CalibrationVariable>& calVarList, const std::string& simType)
+{
+	std::stringstream ss;
+	ss << "Values for " << simType << std::endl;
+	for(std::vector<CalibrationVariable>::const_iterator i=calVarList.begin(); i!=calVarList.end(); i++)
+	{
+		const CalibrationVariable& calVar = *i;
+		ss << calVar.getScriptFileName() << " - " << calVar.getVariableName() << " = " <<  calVar.getCurrentValue() << std::endl;
+	}
+	Print() << ss.str();
+}
+
+template<typename V>
+void printVector(const std::string vecName, const std::vector<V>& vec)
+{
+	std::stringstream ss;
+	ss << vecName << " - [";
+	for(typename std::vector<V>::const_iterator vIt=vec.begin(); vIt!=vec.end(); vIt++)
+	{
+		ss << "\t" << (*vIt);
+	}
+	ss << "]" << std::endl;
+	Print() << ss.str();
 }
 
 /**
@@ -573,6 +696,7 @@ void sim_mob::medium::PredayManager::calibratePreday()
 		{
 			logStream << "," << (*calVarIt).getVariableName();
 		}
+		constructVariablesInFileMap(calibrationVariablesList);
 
 		/* load observed values for statistics to be computed by simulation */
 		CSV_Reader statsReader(predayParams.getObservedStatisticsFile(), true);
@@ -600,15 +724,6 @@ void sim_mob::medium::PredayManager::calibratePreday()
 	simulatedStatsVector = std::vector<CalibrationStatistics>(mtConfig.getNumPredayThreads());
 	unsigned iterationLimit = predayParams.getIterationLimit();
 
-	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
-	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
-	std::string emptyString;
-	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
-	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
-		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
-		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
-	}
-
 	/* start calibrating */
 	RandomSymmetricPlusMinusVector randomVector(calibrationVariablesList.size());
 	double initialGradientStepSize = 0, stepSize = 0, normOfGradient = 0;
@@ -616,6 +731,8 @@ void sim_mob::medium::PredayManager::calibratePreday()
 
 	// iteration 0
 	std::vector<double> simulatedHITS_Stats;
+	Print() << "~~~~~ iteration " << 0 << " ~~~~~" << std::endl;
+	printParameters(calibrationVariablesList, "iteration");
 	double objFn = computeObjectiveFunction(calibrationVariablesList, simulatedHITS_Stats);
 	objectiveFunctionValues.push_back(objFn);
 	logStream << 0 << "," << objFn << ",N/A";
@@ -626,10 +743,12 @@ void sim_mob::medium::PredayManager::calibratePreday()
 	for(unsigned k=1; k<=iterationLimit; k++)
 	{
 		// iteration k
+		Print() << "~~~~~ iteration " << k << " ~~~~~" << std::endl;
 		simulatedHITS_Stats.clear();
 
 		// 1. compute perturbation step size
 		initialGradientStepSize = predayParams.getInitialGradientStepSize() / std::pow((1+k), predayParams.getAlgorithmCoefficient2());
+		Print() << "initialGradientStepSize = " << initialGradientStepSize <<std::endl;
 
 		// 2. compute logsums if required
 		if((k%mtConfig.getLogsumComputationFrequency()) == 0)
@@ -642,6 +761,7 @@ void sim_mob::medium::PredayManager::calibratePreday()
 		if(mtConfig.runningWSPSA()) { computeWeightedGradient(randomVector.get(), initialGradientStepSize, gradientVector); }
 		else { computeGradient(randomVector.get(), initialGradientStepSize, gradientVector); }
 		computeAntiGradient(gradientVector); // checks limits and negates gradient
+		printVector("gradient vector", gradientVector);
 
 		// 4. compute norm of the gradient (root of sum of squares of gradients)
 		for(std::vector<double>::const_iterator gradIt=gradientVector.begin(); gradIt!=gradientVector.end(); gradIt++)
@@ -649,9 +769,11 @@ void sim_mob::medium::PredayManager::calibratePreday()
 			normOfGradient = normOfGradient + std::pow((*gradIt), 2);
 		}
 		normOfGradient = std::sqrt(normOfGradient);
+		printVector("norm of gradient vector", gradientVector);
 
 		// 5. compute step size
 		stepSize = predayParams.getInitialStepSize() / std::pow((predayParams.getInitialStepSize()+k+predayParams.getStabilityConstant()), predayParams.getAlgorithmCoefficient1());
+		Print() << "stepSize = " << stepSize <<std::endl;
 
 		// 6. update the variables being calibrated and compute objective function
 		updateVariablesByAddition(calibrationVariablesList, gradientVector, stepSize);
@@ -674,11 +796,6 @@ void sim_mob::medium::PredayManager::calibratePreday()
 	// write the latest logsums to mongodb
 	distributeAndProcessForCalibration(&PredayManager::outputLogsumsToMongoAfterCalibration);
 
-	// destroy Dao objects
-	for(boost::unordered_map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
-		safe_delete_item(i->second);
-	}
-	mongoDao.clear();
 	safe_delete_item(logFile);
 }
 
@@ -754,6 +871,17 @@ void sim_mob::medium::PredayManager::processPersonsForCalibration(PersonList::it
 {
 	CalibrationStatistics& simStats = simulatedStatsVector[threadNum];
 	bool consoleOutput = mtConfig.isConsoleOutput();
+
+	boost::unordered_map<std::string, db::MongoDao*> mongoDao;
+	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
+	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+	std::string emptyString;
+	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
+	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
+		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
+	}
+
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++)
 	{
 		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
@@ -761,6 +889,12 @@ void sim_mob::medium::PredayManager::processPersonsForCalibration(PersonList::it
 		predaySystem.updateStatistics(simStats);
 		if(consoleOutput) { predaySystem.printLogs(); }
 	}
+
+	// destroy Dao objects
+	for(boost::unordered_map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
+		safe_delete_item(i->second);
+	}
+	mongoDao.clear();
 }
 
 void sim_mob::medium::PredayManager::computeGradient(const std::vector<short>& randomVector, double initialGradientStepSize,
@@ -877,16 +1011,43 @@ void sim_mob::medium::PredayManager::processPersons(PersonList::iterator firstPe
 void sim_mob::medium::PredayManager::computeLogsumsForCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, size_t threadNum)
 {
 	bool consoleOutput = mtConfig.isConsoleOutput();
+
+	boost::unordered_map<std::string, db::MongoDao*> mongoDao;
+	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
+	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+	std::string emptyString;
+	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
+	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
+		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
+	}
+
 	// loop through all persons within the range and plan their day
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
 		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
 		predaySystem.computeLogsums();
 		if(consoleOutput) { predaySystem.printLogs(); }
 	}
+
+	// destroy Dao objects
+	for(boost::unordered_map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
+		safe_delete_item(i->second);
+	}
+	mongoDao.clear();
 }
 
 void sim_mob::medium::PredayManager::outputLogsumsToMongoAfterCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, size_t threadNum)
 {
+	boost::unordered_map<std::string, db::MongoDao*> mongoDao;
+	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
+	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+	std::string emptyString;
+	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
+	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
+		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
+	}
+
 	for(PersonList::const_iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++)
 	{
 		const PersonParams* personParams = (*i);
@@ -898,6 +1059,12 @@ void sim_mob::medium::PredayManager::outputLogsumsToMongoAfterCalibration(Person
 				));
 		mongoDao["population"]->update(query, updateObj);
 	}
+
+	// destroy Dao objects
+	for(boost::unordered_map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
+		safe_delete_item(i->second);
+	}
+	mongoDao.clear();
 }
 
 void sim_mob::medium::PredayManager::computeLogsums(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt)

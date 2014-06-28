@@ -1510,19 +1510,19 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps)
 		//if not, just chose the shortest path as the best path
 	double upperProb=0;
 	// 2.1 Draw a random number X between 0.0 and 1.0 for agent A.
-	//double x = sim_mob::gen_random_float(0,1);
+	double x = sim_mob::gen_random_float(0,1);
 	//Below is a temporary hack. commenting the line above and replacing with
 	//next temporarily for the 8-July-2012 ~melani
-	double x = -0.1;
+//	double x = -0.1;
 	// 2.2 For each path i in the path choice set PathSet(O, D):
 	for(int i=0;i<ps.pathChoices.size();++i)
 	{
 		SinglePath* sp = ps.pathChoices[i];
 		if(sp)
 		{
-			double prob = sp->utility/(ps.logsum+0.00001);
+			double prob = exp(sp->utility)/(ps.logsum);
 			upperProb += prob;
-			if (x<upperProb)
+			if (x <= upperProb)
 			{
 				// 2.3 agent A chooses path i from the path choice set.
 				ps.bestWayPointpathP = sp->shortestWayPointpath;

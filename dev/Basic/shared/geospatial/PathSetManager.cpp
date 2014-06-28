@@ -32,7 +32,7 @@ sim_mob::Profiler sim_mob::PathSetManager::profiler(false, "main_profiler","path
 
 PathSetParam *sim_mob::PathSetParam::instance_ = NULL;
 //todo to be configurable somehow
-const std::string pathSetTableName = "PathSet";
+const std::string pathSetTableName = "PathSet_Scaled_HITS_distinctODs";
 const std::string singlePathTableName = "SinglePath_Scaled_HITS_distinctODs";
 
 sim_mob::PathSetParam* sim_mob::PathSetParam::getInstance()
@@ -350,8 +350,9 @@ sim_mob::PathSetManager::PathSetManager() {
 	{
 		psDbLoader = new PathSetDBLoader(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
 	}
-
-	serialPathSetGroup = ConfigManager::GetInstance().FullConfig().PathSetGenerationMode();
+//debug
+//	serialPathSetGroup = ConfigManager::GetInstance().FullConfig().PathSetGenerationMode();
+	serialPathSetGroup = true;
 	threadpool_ = new sim_mob::batched::ThreadPool(50);
 }
 
@@ -718,7 +719,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 					}
 					else
 					{
-						std::string str = "gBestPC2: oriPath not find,no path for this nodes pair ";
+						std::string str = "gBestPC2: oriPath(shortest path) for "  + ps_.id + " not found in single path";
 						Print()<<str<<std::endl;
 						return res;
 					}
@@ -900,7 +901,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 					std::map<std::string,sim_mob::SinglePath*>::iterator it = id_sp.find(ps_.singlepath_id);
 					if(it!=id_sp.end())
 					{
-						ps_.oriPath = id_sp[ps_.singlepath_id];
+						ps_.oriPath = id_sp[ps_.singlepath_id]; //todo ps_.oriPath = (*it)->second
 						r = getBestPathChoiceFromPathSet(ps_);
 						if(r)
 						{
@@ -919,25 +920,26 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 					}
 					else
 					{
-						std::string str = "gBestPC2: oriPath not find,no path for this nodes pair ";
+						std::string str = "SP: oriPath(shortest path) for "  + ps_.id + " not found in single path, setting DBhit to false";
+						hasPSinDB = false;
 						Print()<<str<<std::endl;
 					}
 
 					out.str("");
 					out << "BPC_Profiler:" << (r ? "true" : "false" ) << ":" << BPC_Profiler.endProfiling() << std::endl;
 					personProfiler.addOutPut(out);
-					return res;
+//					return res;
 				}// hasSPinDB
 				else
 				{
-					Print() << "DB Miss    for " << std::endl;
+					Print() << "DB Miss for " << ps_.id << " in SinglePath, Pathset says otherwise!" << std::endl;
 				}
 			}
 		} // hasPSinDB
 	}//isUseDB
 	if(!isUseDB || !hasPSinDB)
 		{
-			Print()<<"gBestPC2: create data for "<<fromId_toId<<std::endl;
+			Print()<<"generate All PathChoices for "<<fromId_toId<<std::endl;
 			// 1. generate shortest path with all segs
 			// 1.1 check StreetDirectory
 			if(!stdir || !roadNetwork)
@@ -1101,6 +1103,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 	}
 
 	if(serialPathSetGroup){
+		Print() << "waiting for SHORTEST DISTANCE LINK ELIMINATION" << std::endl;
 		threadpool_->wait();
 	}
 	//kep your own ending time
@@ -1146,6 +1149,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 	}//if sinPathTravelTimeDefault
 
 	if(serialPathSetGroup){
+		Print() << "waiting for SHORTEST TRAVEL TIME LINK ELIMINATION" << std::endl;
 		threadpool_->wait();
 	}
 	STTLE_Profiler.addToTotalTime(STTLE_Profiler.endProfiling());
@@ -1189,6 +1193,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & p
 		}//for
 	}//if sinPathTravelTimeDefault
 	if(serialPathSetGroup){
+		Print() << "waiting for TRAVEL TIME HIGHWAY BIAS" << std::endl;
 		threadpool_->wait();
 	}
 	STTLEH_Profiler.addToTotalTime(STTLEH_Profiler.endProfiling());
@@ -1764,7 +1769,7 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 					// 2. get SinglePath
 					if(!ps->oriPath)
 					{
-						std::string str = "PathSet: oriPath not find,no path for this nodes pair ";
+						std::string str = "PathSet: oriPath not find,no path for this nodes pair " + (ps ? ps->id : " unknown");
 										Print()<<str<<std::endl;
 					}
 					ps->isInit = true;
@@ -2189,7 +2194,9 @@ double sim_mob::getTravelCost2(sim_mob::SinglePath *sp)
 {
 	double res=0.0;
 	double ts=0.0;
-	if(!sp) Print()<<"gTC: sp is empty"<<std::endl;
+	if(!sp) {
+		Print()<<"gTC: sp is empty"<<std::endl;
+	}
 //	std::map<const RoadSegment*,WayPoint> shortestSegPath = generateSegPathByWaypointPath(sp->shortestWayPointpath);
 	sim_mob::DailyTime trip_startTime = sp->pathSet->subTrip->startTime;
 	for(std::map<const RoadSegment*,WayPoint*>::iterator it1 = sp->shortestSegPath.begin();

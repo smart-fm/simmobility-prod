@@ -106,19 +106,19 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 		for(itSS = path.begin(); (*itSS) != curSS ; itSS++){
 			if(targetRS == (*itSS)->getRoadSegment()){
 				res = true;
-				Print() << "This incident is happening on a segments 'before' this driver" << std::endl;
+//				Print() << "This incident is happening on a segments 'before' this driver" << std::endl;
 				break;
 			}
 		}
 		//Same check for case (*itSS) == curSS i.e you are currently 'on' the incident segment
 		if(itSS != path.end() && (targetRS == (*itSS)->getRoadSegment())){
-			Print() << "This incident is happening on the driver's current segment" << std::endl;
+//			Print() << "This incident is happening on the driver's current segment" << std::endl;
 			res = true;
 		}
 
 		if(res){
 			ignored++;
-			Print() << "ignoring this driver" <<std::endl;
+//			Print() << "ignoring this driver" <<std::endl;
 			//person passed, or currently on the target path. So, not interested in this person
 			continue;
 		}

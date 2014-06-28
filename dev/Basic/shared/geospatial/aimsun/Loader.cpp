@@ -283,50 +283,43 @@ bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 				std::vector<sim_mob::SinglePath*>& spPool,const std::string singlePathTableName,
 				const std::set<const sim_mob::RoadSegment *> & excludedRS)
 {
-	//Our SQL statement
-	//	std::cout<<"LoadSinglePathDBwithId: "<<pathset_id<<std::endl;
-	//	std:string s = "'\"aimsun-id\":\"54204\",_\"aimsun-id\":\"59032\",'";
-	//	std::cout<<"LoadSinglePathDBwithId: "<<s<<std::endl;
-	std::stringstream excludeCriterion("");
-	std::stringstream sourceQuery("");
 	std::stringstream selectQuery("");
+	std::string excludesStr;
+	std::string excludeTable;
+	//if there are segments to be excluded
 	if(excludedRS.size()){
+		//insert the excluded segment ids in an empty, temporary database table
+		sql << "delete from exclusion; ";
+		excludeTable = "insert into exclusion(sectionid) values";
+		std::stringstream out("");
 		BOOST_FOREACH(const sim_mob::RoadSegment* rs , excludedRS){
-//			std::cout << rs << std::endl;
-			excludeCriterion << "(\"ID\" not like '%" << rs->getSegmentAimsunId() << "%')or";
+			out << "('%" << rs->getSegmentAimsunId() << "%'),";
 		}
-//		std::cout << "excludeCriterion[" << excludeCriterion.str() << "]" << std::endl;
-		std::string excludeCriterionStr(excludeCriterion.str().replace(excludeCriterion.str().size() - 2 , 2, "  "));
-		std::cout << "After deOrification excludeCriterion[" << excludeCriterionStr << "]" << std::endl;
-		sourceQuery << "with  source as (select \"ID\" from \"" << singlePathTableName << "\" where " << excludeCriterionStr << ")";
-//		//debug
-//		std::cout << "excludeCriterion[" << excludeCriterion.str() << "]" << std::endl;
-//		std::cout << "sourceQuery[" << sourceQuery.str() << "]" << std::endl;
-//		//debug...
-	}
-	if(sourceQuery.str().size()){
-		selectQuery << sourceQuery.str() << " select * from \"" << singlePathTableName << "\" where \"PATHSET_ID\" =" + pathset_id << " and \"ID\" in (select * from source)";
+		excludesStr = out.str().replace(out.str().size() - 1 , 1, ";");//remove the last comma
+		excludeTable.append(excludesStr);
+		//create a query that select all the pathsets (with the given pathset id) and then left join it with the temporary table
+		//for now this is the fastest way to exclude the paths which containe the excluded segments
+		sql << excludeTable;
+		sql.commit();
+		selectQuery << "select * from \"" << singlePathTableName << "\" "
+					<< " left join exclusion on (\"" << singlePathTableName << "\".\"ID\" like  exclusion.sectionid) "
+					<< " where \"PATHSET_ID\" =" + pathset_id;
 	}
 	else{
-		selectQuery << " select * from \"" << singlePathTableName << "\" where \"PATHSET_ID\" =" + pathset_id ;
+		selectQuery << "select * from \"" << singlePathTableName << "\" where \"PATHSET_ID\" =" + pathset_id ;
 	}
+
 //	//debug
-//	std::cout << "selectQuery["  << selectQuery.str() << "]" << std::endl;
-//		soci::rowset<sim_mob::SinglePath> rs = (sql.prepare <<"select * from \"SinglePath\" where \"PATHSET_ID\" =" + pathset_id);
+	//std::cout << "selectQuery for excluded sections["  << selectQuery.str() << "]" << excludedRS.size() << std::endl;
 	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare << selectQuery.str());
 	if(rs.begin() == rs.end()){
-		std::cout << "selectQuery[" << selectQuery.str() << "] has no results" << std::endl;
+		std::cout << "the above selectQuery has no results" << std::endl;
 	}
 		int i=0;
 		for (soci::rowset<sim_mob::SinglePath>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 			sim_mob::SinglePath *s = new sim_mob::SinglePath(*it);
-	//		pool.insert(std::make_pair(s->dbData->id,s));
-	//		std::cout<<"LSPDBwithId: waypointset size "<<s->id.size()<<std::endl;
 			waypoint_singlepathPool.insert(std::make_pair(s->id,s));
-			//
 			spPool.push_back(s);
-	//		SinglePathDBPool.push_back(&*it);
-	//		std::cout<<"LoadSinglePathDB:  "<<i<<std::endl;
 			i++;
 		}
 		if (i==0)

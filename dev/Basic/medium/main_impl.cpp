@@ -207,7 +207,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//	personWorkers->assignAWorker(&(IncidentManager::getInstance()));
 	personWorkers->assignAWorker(IncidentManager::getInstance());
 //	personWorkers->assignAWorker(new IncidentManager());
-	IncidentManager::getInstance()->readFromFile("/home/vahid/incidents.csv"); //todo remove hard coding
+	IncidentManager::getInstance()->readFromFile("private/incidents.csv"); //todo remove hard coding
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 

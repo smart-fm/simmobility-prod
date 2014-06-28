@@ -109,8 +109,9 @@ sim_mob::medium::DriverMovement::~DriverMovement() {}
 
 void sim_mob::medium::DriverMovement::frame_init() {
 	bool pathInitialized = initializePath();
-	//debug
-	pathMover.printPath(pathMover.getPath());
+//	//debug
+//	pathMover.printPath(pathMover.getPath());
+//	//debug
 	if (pathInitialized) {
 		Vehicle* newVehicle = new Vehicle(Vehicle::CAR, PASSENGER_CAR_UNIT);
 		VehicleBase* oldVehicle = parentDriver->getResource();
@@ -1063,8 +1064,8 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 		//4.c convert the new path waypoints to segstats and append them to the remaining path(remaining path: remaining segstats from the original path to the rer-outing point)
 		initSegStatsPath(newPath.second,deTourOptions[newPath.first]);
 //		//debug
-		Print() << "Detour Option:" << std::endl;
-		MesoPathMover::printPath(deTourOptions[newPath.first], newPath.first);
+//		Print() << "Detour Option:" << std::endl;
+//		MesoPathMover::printPath(deTourOptions[newPath.first], newPath.first);
 //		//debug...
 	}
 	//is there any place drivers can re-route or not?
@@ -1083,7 +1084,11 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 
 	while(cnt){ it++; --cnt;}
 	getMesoPathMover().setPath(it->second);
-	Print() << "Detour option chosen:" << it->first->getID() << std::endl;
+	Print() << "----------------------------------\nOriginal path:" << std::endl;
+	getMesoPathMover().printPath(getMesoPathMover().getPath());
+	Print() << "Detour option chosen:" << it->first << std::endl;
+	getMesoPathMover().printPath(it->second);
+	Print() << "----------------------------------" << std::endl;
 }
 
 void DriverMovement::HandleMessage(messaging::Message::MessageType type,

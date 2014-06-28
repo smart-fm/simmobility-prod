@@ -623,7 +623,9 @@ p.currSpeed = parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT
 
 p.targetSpeed = targetSpeed;
 p.maxLaneSpeed = maxLaneSpeed;
+
 p.newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
+
 }
 double sim_mob::DriverMovement::move(DriverUpdateParams& p) {
 	double newLatVel = 0.0; // m/s
@@ -652,6 +654,7 @@ double sim_mob::DriverMovement::move(DriverUpdateParams& p) {
 
 	if (parentDriver->parent->GetId()==0 && parentDriver->getParams().now.frame()>=200 && parentDriver->getParams().now.frame()<=300)
 	{acc = -3;}
+
 //Update our chosen acceleration; update our position on the link.
 	parentDriver->vehicle->setAcceleration(
 			acc * METER_TO_CENTIMETER_CONVERT_UNIT);

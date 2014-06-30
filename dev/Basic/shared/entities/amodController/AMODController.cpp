@@ -126,7 +126,8 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		//inserting vehicles to virtual carParks at the nodes
 		populateCarParks(5);
 		//myFile.open("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/About10.txt");
-		myFile.open("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/inputfile.txt");
+		//myFile.open("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/inputfile.txt");
+		myFile.open("/home/haroldsoh/Development/simmobility/dataFiles/inputfile1.txt");
 		lastReadLine = "";
 		test=1;
 	}
@@ -396,8 +397,8 @@ bool AMODController::getBestFreeVehicle(std::string originId, sim_mob::Person **
 			vector < sim_mob::WayPoint > wps;
 			travelCost = getTravelTimePath(iter->first , originId, wps);
 
-			std::cout << "Free Vehicle Travel: " << wps.size() << " : " << std::endl;
-			std::cout << "Free Vehicle Cost: " << travelCost << " : " << std::endl;
+			//std::cout << "Free Vehicle Travel: " << wps.size() << " : " << std::endl;
+			//std::cout << "Free Vehicle Cost: " << travelCost << " : " << std::endl;
 
 
 			//if the travel cost is less than the best (or no car found yet), assign new best
@@ -578,6 +579,7 @@ void AMODController::handleVHArrive(Person* vh)
 	WayPoint w = vh->amodPath.back();
 	const RoadSegment *rs = w.roadSegment_;
 	const Node *enode = rs->getEnd();
+	Node *pnode = (Node *) rs->getEnd();
 
 	std::string idNode = enode->originalDB_ID.getLogItem();// "aimsun-id":"123456"
 	std::cout << "NodeId before: " << idNode << std::endl;
@@ -592,6 +594,16 @@ void AMODController::handleVHArrive(Person* vh)
 	std::string vhID = vh->amodId;
 	//addNewVh2CarPark(vhID,idNode);
 	//delete vh;
+
+	//assign trip chain
+	DailyTime start = ConfigManager::GetInstance().FullConfig().simStartTime(); // DailyTime b("08:30:00");
+	sim_mob::Trip* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", pnode, "node", pnode, "node");
+	sim_mob::SubTrip subTrip("", "Trip", 0, 1, start, DailyTime(), pnode, "node", pnode, "node", "Car");
+	tc->addSubTrip(subTrip);
+	std::vector<sim_mob::TripChainItem*>  tcs;
+	tcs.push_back(tc);
+	vh->setTripChain(tcs); //add trip chain
+
 
 
 	AMODVirtualCarParkItor it = virtualCarPark.find(idNode);
@@ -623,8 +635,9 @@ void AMODController::handleVHArrive(Person* vh)
 	}
 
 	//remove vehicle from on the road
-	vhOnTheRoad.erase(vh->amodId);
 	vhInCarPark.insert( std::make_pair(vhID, vh) );
+	vhOnTheRoad.erase(vh->amodId);
+
 	vh->currStatus = Person::IN_CAR_PARK;
 }
 
@@ -771,8 +784,8 @@ double AMODController::calculateTravelTime(std::vector < sim_mob::WayPoint > &wP
 					//assumptions getLengthOfSegment() returns in cm
 					//			  maxSpeed is km/h - assumes car travels at maximum allowed speed if possible
 					travelTime += rs->getLengthOfSegment()/(rs->maxSpeed*27.778);
-					std::cout << "Segment Length: " << rs->getLengthOfSegment() << std::endl;
-					std::cout << "Max Speed: " << rs->maxSpeed << std::endl;
+					//std::cout << "Segment Length: " << rs->getLengthOfSegment() << std::endl;
+					//std::cout << "Max Speed: " << rs->maxSpeed << std::endl;
 
 				//} else {
 				//	travelTime += (it->second).rdSegTravelTime_;
@@ -796,16 +809,16 @@ void AMODController::findRemainingWayPoints(Person *vh, std::vector < sim_mob::W
 	}
 
 	//loop through the segments remaining and add it to the Waypoint vector
-	std::cout << "Segments remaining:" << std::endl;
+	//std::cout << "Segments remaining:" << std::endl;
 	while (pathItrCopy != pathEnd) {
-		std::cout << (*pathItrCopy)->getSegmentID() << std::endl;
+		//std::cout << (*pathItrCopy)->getSegmentID() << std::endl;
 		sim_mob::WayPoint wp;
 		wp.type_ = WayPoint::ROAD_SEGMENT;
 		wp.roadSegment_ = (*pathItrCopy);
 		remainingWPs.push_back(wp);
 		pathItrCopy++;
 	}
-	std::cout << "Segments remaining end" << std::endl;
+	//std::cout << "Segments remaining end" << std::endl;
 
 	return;
 }
@@ -819,7 +832,7 @@ void AMODController::assignVhs(std::vector<std::string>& origin, std::vector<std
 	std::cout << "Origin inside assignVhs(): " << std::endl;
 	copy(origin.begin(), origin.end(), ostream_iterator<string>(cout, " "));
 	std::cout << endl << "---------------" << std::endl;
-
+	std::vector < Person * > justDispatched;
 	for (int i =0; i<origin.size() ; i++) //
 	{//loop through OD pairs
 		std::string originNodeId = origin[i];
@@ -866,7 +879,7 @@ void AMODController::assignVhs(std::vector<std::string>& origin, std::vector<std
 		vector<Person*> vhsInService;
 		std::vector<double> TTVhsInUse;
 
-		std::cout << "test vhOnTheRoad: " << std::endl;
+
 		boost::unordered_map<std::string, Person*>::iterator it = vhOnTheRoad.begin();
 
 		bool inUseVehFound = false;
@@ -874,10 +887,11 @@ void AMODController::assignVhs(std::vector<std::string>& origin, std::vector<std
 		Person *bestInUseVeh = NULL;
 		std::vector < WayPoint > bestVehInUsePath;
 
+
 		for(; it != vhOnTheRoad.end(); ++it)
 		{
-			std::cout << "vhOnTheRoad.begin()->second : " << vhOnTheRoad.begin()->second;
-			std::cout << it->first<<std::endl;
+			//std::cout << "vhOnTheRoad.begin()->second : " << vhOnTheRoad.begin()->second;
+			//std::cout << it->first<<std::endl;
 
 			//vhInService = vhOnTheRoad[it->second];
 			amodIdInService = it->first;
@@ -1005,7 +1019,7 @@ void AMODController::assignVhs(std::vector<std::string>& origin, std::vector<std
 			std::vector<sim_mob::TripChainItem*>  tcs;
 			tcs.push_back(tc);
 			//vhAssigned->clearTripChain();
-			//vhAssigned->setTripChain(tcs); //add trip chain
+			vhAssigned->setTripChain(tcs); //add trip chain
 
 			// set route for vehicle
 
@@ -1042,7 +1056,8 @@ void AMODController::assignVhs(std::vector<std::string>& origin, std::vector<std
 
 			// dispatch vehicle
 			dispatchVh(vhAssigned);
-			vhOnTheRoad.insert(std::make_pair(vhAssigned->amodId,vhAssigned));
+			justDispatched.push_back(vhAssigned);
+
 		} else {
 			//assign best vehicle in use
 			vhAssigned = bestInUseVeh;
@@ -1070,6 +1085,12 @@ void AMODController::assignVhs(std::vector<std::string>& origin, std::vector<std
 			rerouteWithPath(vhAssigned, mergedWP);
 		}
 	}
+
+	//add just dispatched vehicles to the road
+	for (int i=0; i<justDispatched.size(); i++) {
+		vhOnTheRoad.insert(std::make_pair(justDispatched[i]->amodId,justDispatched[i]));
+	}
+
 }
 
 void AMODController::frame_output(timeslice now)

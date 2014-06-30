@@ -12,7 +12,7 @@
         		<!-- these parameters will be organized in a better way after finding the meaning of these numbers -->
         		<dwell_time_parameters>
                 		<!--parameters : A, B, deltaBay, deltaFull, P_Front-->
-                		<parameters value="1, 1, 1, 0, 0"/>
+                		<parameters value="1, 1, 0, 0, 0"/>
         		</dwell_time_parameters>  
          
         		<!-- pedestrian walking speed in cm/s (approximately 5 km/h)-->
@@ -24,8 +24,9 @@
         		<!-- these parameters are used to assign filename for the storage of statistics -->   
         		<!-- if the value is empty, no output file is generated, otherwise store to csv file -->     
         		<statistics_output_paramemters>                              
-        			<journey_time_csv_file_output value="journey.csv"/>
-        			<waiting_time_csv_file_output value="waiting.csv"/>
+        			<journey_time_csv_file_output value="journeytime.csv"/>
+        			<waiting_time_csv_file_output value="waitingtime.csv"/>
+        			<waiting_amount_csv_file_output value="waitingamount.csv"/>
         		</statistics_output_paramemters>  
 		</supply>                                      
 		

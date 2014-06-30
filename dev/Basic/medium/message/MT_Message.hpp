@@ -28,7 +28,8 @@ enum PublicTransitMessage {
 	BUS_ARRIVAL,
 	BUS_DEPARTURE,
 	STORE_BUS_ARRIVAL,
-	STORE_PERSON_WAITING
+	STORE_PERSON_WAITING,
+	STRORE_WAITING_NUM
 };
 
 /**
@@ -47,9 +48,10 @@ public:
 class BusArrivalTimeMessage: public messaging::Message {
 public:
 	BusArrivalTimeMessage(const std::string& stopNo, const std::string& line,
-			const std::string& trip, const std::string& arrival, unsigned int sequence) :
+			const std::string& trip, const std::string& arrival,
+			const std::string& dwellTime, unsigned int sequence) :
 			busStopNo(stopNo), busLine(line), busTrip(trip), arrivalTime(
-					arrival), sequenceNo(sequence) {
+					arrival), dwellTime(dwellTime), sequenceNo(sequence) {
 	}
 	virtual ~BusArrivalTimeMessage() {
 	}
@@ -57,7 +59,20 @@ public:
 	std::string busLine;
 	std::string busTrip;
 	std::string arrivalTime;
+	std::string dwellTime;
 	unsigned int sequenceNo;
+};
+
+class WaitingNumMessage: public messaging::Message {
+public:
+	WaitingNumMessage(const std::string& stopNo, const std::string& timeSlice, unsigned int waitingNum) :
+			busStopNo(stopNo), timeSlice(timeSlice), waitingNum(waitingNum) {
+	}
+	virtual ~WaitingNumMessage() {
+	}
+	std::string timeSlice;
+	std::string busStopNo;
+	unsigned int waitingNum;
 };
 
 /**

@@ -75,24 +75,34 @@ public:
 		return modelScriptsMap;
 	}
 
-	const std::string& getFilenameOfJourneyStats() const
+	const std::string& getFilenameOfJourneyTimeStats() const
 	{
-		return filenameOfJourneyStats;
+		return filenameOfJourneyTimeStats;
 	}
 
-	const std::string& getFilenameOfWaitingStats() const
+	const std::string& getFilenameOfWaitingTimeStats() const
 	{
-		return filenameOfWaitingStats;
+		return filenameOfWaitingTimeStats;
 	}
 
-	void setFilenameOfJourneyStats(const std::string& str)
+	void setFilenameOfJourneyTimeStats(const std::string& str)
 	{
-		filenameOfJourneyStats = str;
+		filenameOfJourneyTimeStats = str;
 	}
 
-	void setFilenameOfWaitingStats(const std::string& str)
+	void setFilenameOfWaitingTimeStats(const std::string& str)
 	{
-		filenameOfWaitingStats = str;
+		filenameOfWaitingTimeStats = str;
+	}
+
+	const std::string& getFilenameOfWaitingAmountStats() const
+	{
+		return filenameOfWaitingAmountStats;
+	}
+
+	void setFilenameOfWaitingAmountStats(const std::string& str)
+	{
+		filenameOfWaitingAmountStats = str;
 	}
 
 	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap)
@@ -133,9 +143,11 @@ private:
 	/**container for mongo collections*/
 	MongoCollectionsMap mongoCollectionsMap;
 	/**the filename of storing journey statistics */
-	std::string filenameOfJourneyStats;
+	std::string filenameOfJourneyTimeStats;
 	/**the filename of storing waiting time statistics*/
-	std::string filenameOfWaitingStats;
+	std::string filenameOfWaitingTimeStats;
+	/**the filename of storing waiting amount statistics*/
+	std::string filenameOfWaitingAmountStats;
 	/**default capacity for bus*/
 	unsigned int busCapcacity;
 };

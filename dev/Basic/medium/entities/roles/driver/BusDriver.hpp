@@ -64,7 +64,7 @@ public:
 	 * @param stop is which currently bus driver arrive at
 	 *
 	 */
-	void storeArrivalTime(const std::string& current, const sim_mob::BusStop* stop);
+	void storeArrivalTime(const std::string& current, const std::string& waitTime, const sim_mob::BusStop* stop);
 
 	/**
 	 * change whether bus is full already
@@ -109,6 +109,8 @@ private:
 	Shared<int> requestMode;
 	/**final waiting time at bus stop*/
 	double waitingTimeAtbusStop;
+	/**record whether or not open the door*/
+	bool isOpenDoor;
 
 	/**
 	 * alight passengers when those want to alight at next bus stop

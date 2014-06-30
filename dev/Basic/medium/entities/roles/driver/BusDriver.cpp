@@ -32,6 +32,13 @@ namespace
 //number of dwell time parameter expected.
 //TODO: remove this constant and restructure the dwell time parameters elegantly
 const unsigned int NUM_PARAMS_DWELLTIME = 5;
+
+/**
+ * converts time from  seconds to milli-seconds
+ */
+inline unsigned int converToMilliseconds(double timeInMs) {
+	return (timeInMs*1000.0);
+}
 }
 
 sim_mob::medium::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat,
@@ -43,7 +50,7 @@ sim_mob::medium::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat,
   visitedBusStopSequenceNo(mtxStrat, -1), arrivalTime(mtxStrat, 0.0),
   dwellTime(mtxStrat, 0.0), visitedBusTripSequenceNo(mtxStrat, 0),
   visitedBusLine(mtxStrat, "0"), holdingTime(mtxStrat, 0.0),
-  waitingTimeAtbusStop(0.0)
+  waitingTimeAtbusStop(0.0), isOpenDoor(false)
 {}
 
 sim_mob::medium::BusDriver::~BusDriver() {}
@@ -117,7 +124,7 @@ unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusSto
 	return numAlighting;
 }
 
-void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, const sim_mob::BusStop* stop)
+void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, const std::string& waitTime, const sim_mob::BusStop* stop)
 {
 	sim_mob::Person* person = parent;
 	if (!person) {
@@ -134,7 +141,7 @@ void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, co
 		unsigned int sequenceNo = busTrip->getBusTripRun_SequenceNum();
 
 		messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(), STORE_BUS_ARRIVAL,
-				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(stopNo, busLineId, tripId, current, sequenceNo)));
+				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(stopNo, busLineId, tripId, current, waitTime, sequenceNo)));
 	}
 }
 
@@ -164,7 +171,9 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 		throw std::runtime_error("openBusDoors(): NusStopAgent is NULL");
 	}
 
-	storeArrivalTime(current, busStopAgent->getBusStop());
+	if(isOpenDoor){
+		return;
+	}
 
 	/* handling bus arrival should ideally take place by sending an instantaneous
 	 * message, but it is not guaranteed that the bus driver and the bus stop agent
@@ -197,6 +206,9 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 			waitingTimeAtbusStop = sim_mob::calculateDwellTime(totalNumber);
 		}
 	}
+
+	DailyTime dwellTime( converToMilliseconds(waitingTimeAtbusStop) );
+	storeArrivalTime(current, dwellTime.toString(), busStopAgent->getBusStop());
 
 	if (requestMode.get() == Role::REQUEST_DECISION_TIME) {
 		requestMode.set(Role::REQUEST_NONE);

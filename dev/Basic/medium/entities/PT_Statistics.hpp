@@ -45,19 +45,25 @@ struct busArrivalTime {
 	std::string tripId;
 	unsigned int sequenceNo;
 	std::string arrivalTime;
+	std::string dwellTime;
 	bool operator<(const busArrivalTime& rhs) const;
 };
 
 class journeyTimeStats {
 public:
 	void setArrivalTime(const std::string& busLine, const std::string& tripId,
-			unsigned int sequenceNo, const std::string& arrivalTime);
+			unsigned int sequenceNo, const std::string& arrivalTime, const std::string& dwellTime);
 
 	const std::vector<busArrivalTime>& getArrivalTime() const{
 		return busArrivalTimeList;
 	}
 private:
 	std::vector<busArrivalTime> busArrivalTimeList;
+};
+
+struct waitingAmountStats {
+	std::string timeSlice;
+	std::string waitingAmount;
 };
 
 class PT_Statistics : public messaging::MessageHandler {
@@ -82,6 +88,8 @@ private:
     std::map<std::string, journeyTimeStats*> busJourneyTime;
     /**store waiting time at bus stop. bus stop No. is key*/
     std::map<std::string, waittingTimeStats*> personWaitingTime;
+    /**store waiting number at each bus stop */
+    std::map<std::string, std::vector<waitingAmountStats> > waitingNums;
     static PT_Statistics* instance;
  };
 

@@ -63,7 +63,7 @@ void PT_Statistics::HandleMessage(Message::MessageType type,
 
 		if (stat) {
 			stat->setArrivalTime(msg.busLine, msg.busTrip, msg.sequenceNo,
-					msg.arrivalTime);
+					msg.arrivalTime, msg.dwellTime);
 		}
 
 		break;
@@ -86,6 +86,21 @@ void PT_Statistics::HandleMessage(Message::MessageType type,
 		}
 
 		break;
+	}
+	case STRORE_WAITING_NUM: {
+		const WaitingNumMessage& msg = MSG_CAST(WaitingNumMessage,
+				message);
+
+		std::map<std::string, std::vector<waitingAmountStats> >::iterator it =
+				waitingNums.find(msg.busStopNo);
+		if (it==waitingNums.end()) {
+			waitingNums[msg.busStopNo] = std::vector<waitingAmountStats>();
+		}
+
+		waitingAmountStats stat;
+		stat.timeSlice = msg.timeSlice;
+		stat.waitingAmount = msg.waitingNum;
+		waitingNums[msg.busStopNo].push_back(stat);
 	}
 	default:
 		break;
@@ -114,6 +129,7 @@ void PT_Statistics::PrintStatistics() {
 			Print() << "Trip: " << std::setfill('0') << std::setw(3)
 					<< itArrivalTm->tripId << "\t";
 			Print() << "Arriving: " << itArrivalTm->arrivalTime << "\t";
+			Print() << "dwelling: " << itArrivalTm->dwellTime << "\t";
 			Print() << std::endl;
 			itArrivalTm++;
 		}
@@ -142,6 +158,24 @@ void PT_Statistics::PrintStatistics() {
 		}
 	}
 
+	std::map<std::string, std::vector<waitingAmountStats> >::iterator itWaitingNum =
+			waitingNums.begin();
+	for (; itWaitingNum != waitingNums.end(); itWaitingNum++) {
+		std::vector<waitingAmountStats>& stat = itWaitingNum->second;
+		std::string stopNo = itWaitingNum->first;
+		Print() << "people waiting number at bus stop " << stopNo << std::endl;
+		std::vector<waitingAmountStats>::iterator it=stat.begin();
+		while (it != stat.end()) {
+			Print() << "Stop: " << stopNo << "\t\t";
+			Print() << "TimeSlice: " << std::setfill('0') << std::setw(5)
+					<< (*it).timeSlice << "\t";
+			Print() << "WaitingNum: " << std::setfill('0') << std::setw(5)
+					<< (*it).waitingAmount << "\t";
+			Print() << std::endl;
+			it++;
+		}
+	}
+
 	Print() << "#######################################################"
 			<< std::endl;
 	Print() << "\n" << std::endl;
@@ -151,7 +185,7 @@ void PT_Statistics::PrintStatistics() {
 
 void PT_Statistics::StoreStatistics() {
 	std::string filenameOfJourneyStats =
-			MT_Config::GetInstance().getFilenameOfJourneyStats();
+			MT_Config::GetInstance().getFilenameOfJourneyTimeStats();
 	if (filenameOfJourneyStats.size() > 0) {
 		std::ofstream outputFile(filenameOfJourneyStats.c_str());
 		if (outputFile.is_open()) {
@@ -177,7 +211,7 @@ void PT_Statistics::StoreStatistics() {
 	}
 
 	std::string filenameOfWaitingStats =
-			MT_Config::GetInstance().getFilenameOfWaitingStats();
+			MT_Config::GetInstance().getFilenameOfWaitingTimeStats();
 	if (filenameOfWaitingStats.size() > 0) {
 		std::ofstream outputFile(filenameOfWaitingStats.c_str());
 		if (outputFile.is_open()) {
@@ -195,25 +229,50 @@ void PT_Statistics::StoreStatistics() {
 				while (itWaitingTime != waitingTimeList.end()) {
 					outputFile << stopNo << ",";
 					outputFile << itWaitingTime->first << ",";
-					outputFile << itWaitingTime->second.waitingTime << ",";
+					/*outputFile << itWaitingTime->second.waitingTime << ",";
 					outputFile << itWaitingTime->second.failedBoardingTime
-							<< std::endl;
+							<< std::endl;*/
+					outputFile << itWaitingTime->second.waitingTime << std::endl;
 					itWaitingTime++;
 				}
 			}
 			outputFile.close();
 		}
 	}
+
+	std::string filenameOfWaitingAmount =
+			MT_Config::GetInstance().getFilenameOfWaitingAmountStats();
+	if (filenameOfWaitingAmount.size() > 0) {
+		std::ofstream outputFile(filenameOfWaitingAmount.c_str());
+		if (outputFile.is_open()) {
+			std::map<std::string, std::vector<waitingAmountStats> >::iterator itWaitingNum =
+					waitingNums.begin();
+			for (; itWaitingNum != waitingNums.end(); itWaitingNum++) {
+				std::vector<waitingAmountStats>& stat = itWaitingNum->second;
+				std::string stopNo = itWaitingNum->first;
+				Print() << "people waiting number at bus stop " << stopNo
+						<< std::endl;
+				std::vector<waitingAmountStats>::iterator it = stat.begin();
+				while (it != stat.end()) {
+					outputFile << stopNo << ",";
+					outputFile << (*it).timeSlice << ",";
+					outputFile << (*it).waitingAmount << std::endl;
+					it++;
+				}
+			}
+		}
+	}
 }
 
 void journeyTimeStats::setArrivalTime(const std::string& busLine,
 		const std::string& tripId, unsigned int sequenceNo,
-		const std::string& arrivalTime) {
+		const std::string& arrivalTime, const std::string& dwellTime) {
 	busArrivalTime stat;
 	stat.busLine = busLine;
 	stat.tripId = tripId;
 	stat.sequenceNo = sequenceNo;
 	stat.arrivalTime = arrivalTime;
+	stat.dwellTime = dwellTime;
 	busArrivalTimeList.push_back(stat);
 }
 

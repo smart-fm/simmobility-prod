@@ -1116,6 +1116,50 @@ double sim_mob::MITSIM_LC_Model::LCUtilityLeft(DriverUpdateParams& p)
 //		  spacing += nextLane_->length();
 //		}
 	}//end if av->exists()
+
+	float left_most = 0.0;
+
+	if(bv->exists())
+	{
+		heavy_neighbor = (bv->driver->getVehicle()->getVehicleType() != VehicleBase::BUS) ? heavy_neighbor : a[7];
+	}
+
+	switch (n) {
+	  case 0:
+		{
+		  mlc = 0;
+		  break;
+		}
+	  case 1:
+		{
+		  mlc = a[12] * pow(p.dis2stop/1000.0, a[17]) + a[15];  // why divide 1000
+		  break;
+		}
+	  case 2:
+		{
+		  mlc = a[13] * pow(p.dis2stop/1000.0, a[17]) + a[15] + a[16];
+		  break;
+		}
+	  default:
+		{
+		  mlc = (a[13]+a[14]*(n-2)) * pow(p.dis2stop/1000, a[17]) +a[15] + a[16] * (n-1);
+		}
+		break;
+	  }
+
+	int busAheadDummy = 0;
+	if(p.nvLeftFwd.exists())
+	{
+		if(p.nvLeftFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)
+		{
+			busAheadDummy = 1;
+		}
+	}
+
+	double u = a[4] * vld + a[8] * spacing + a[6] * density + mlc + heavy_neighbor + left_most + a[5] * busAheadDummy;
+
+	return exp(u) ;
+
 }
 double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance)
 {

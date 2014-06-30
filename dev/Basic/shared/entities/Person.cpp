@@ -288,8 +288,19 @@ bool sim_mob::Person::frame_init(timeslice now)
 }
 void sim_mob::Person::setPath(std::vector<WayPoint>& path)
 {
+	if (path.size() == 0) {
+		std::cout << "Warning! Path size is zero!" << std::endl;
+	}
+
 	amodPath = path;
 }
+
+void sim_mob::Person::invalidateAMODVehicle(void) {
+	std::cout << "Invalidating: " << amodId << std::endl;
+	std::cout << "An error has occured with this vehicle." << std::endl;
+	sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
+	a->handleVHError(this);
+};
 
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {

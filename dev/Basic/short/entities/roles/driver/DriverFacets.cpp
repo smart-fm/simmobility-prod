@@ -141,6 +141,8 @@ sim_mob::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 sim_mob::DriverMovement::~DriverMovement()
 {
 	//Our movement models.
+	//parent->amodVehicle = NULL;
+	parent->invalidateAMODVehicle();
 	safe_delete_item(lcModel);
 	safe_delete_item(cfModel);
 	safe_delete_item(intModel);
@@ -152,6 +154,7 @@ void sim_mob::DriverMovement::frame_init() {
 	if (newVeh) {
 		safe_delete_item(parentDriver->vehicle);
 		parentDriver->vehicle = newVeh;
+		//parent->amodVehicle = newVeh;
 	}
 
 	//Set some properties about the current path, such as the current polyline, etc.

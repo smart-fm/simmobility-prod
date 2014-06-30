@@ -75,8 +75,9 @@ public:
 	double calculateTravelTime(std::vector < sim_mob::WayPoint > &wPs );
 
 	// Finds remaining way points
-	void findRemainingWayPoints(Person *vh, std::vector < sim_mob::WayPoint > &remainingWPs);
-
+	bool findRemainingWayPoints(Person *vh, std::vector < sim_mob::WayPoint > &remainingWPs);
+	void precomputeAllPairsShortestPaths(void);
+	std::vector < WayPoint > getShortestPath(std::string origNodeID, std::string destNodeID);
 
 	bool getVhFromCarPark(std::string& carParkId,Person** vh);
 	bool removeVhFromCarPark(std::string& carParkId,Person** vh); //removes a specific vehicle from the car park
@@ -99,6 +100,7 @@ public:
 	void testVh();
 	void testTravelTimePath();
 	void assignVhs(std::vector<std::string>& origin, std::vector<std::string>& destination);
+	void assignVhsFast(std::vector<std::string>& origin, std::vector<std::string>& destination, int currTime);
 	//void assignVhs();
 	int test;
 
@@ -108,6 +110,7 @@ public:
 			const AMOD::AMODEventArgs& args);
 
 	void handleVHArrive(Person* vh);
+	void handleVHError(Person *vh);
 protected:
 	//override from the class agent, provide initilization chance to sub class
 	virtual bool frame_init(timeslice now);
@@ -138,10 +141,22 @@ private:
 	boost::unordered_map<std::string,Person*> vhOnTheRoad;
 	boost::unordered_map<std::string,Person*> vhInCarPark;
 	boost::unordered_map<std::string,Person*> allAMODCars;
+	struct AmodTrip {
+		std::string origin;
+		std::string destination;
+		int time;
+	};
+	boost::unordered_map<Person*, AmodTrip  > vhTripMap;
+	typedef boost::unordered_map< Person*, AmodTrip >::iterator TripMapIterator;
 
-
-
+	std::list < AmodTrip > serviceBuffer;
+	typedef std::list< AmodTrip >::iterator ServiceIterator;
+	int nFreeCars;
 	int frameTicks;
+
+
+	//shortest paths
+	boost::unordered_map<std::string, std::vector <WayPoint> > shortestPaths;
 
 private:
 	static AMODController* pInstance;

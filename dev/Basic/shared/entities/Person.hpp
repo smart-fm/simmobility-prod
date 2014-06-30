@@ -237,7 +237,7 @@ public:
     };
 
     Status currStatus;
-
+    void invalidateAMODVehicle(void);
 
 //    AMODController* amodCtrl;
 

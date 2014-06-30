@@ -200,6 +200,7 @@ public:
 	double lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance);
 	double LCUtilityLeft(DriverUpdateParams& p);
 	double LCUtilityRight(DriverUpdateParams& p);
+	double LCUtilityCurrent(DriverUpdateParams& p);
 
 	/**
 	 *  /brief find number of lane changes to end of the link

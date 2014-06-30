@@ -136,6 +136,10 @@ public:
 		initTripChain();
 	}
 
+	void clearTripChain() {
+		this->tripChain.clear();
+	}
+
 	/*	const sim_mob::Link* getCurrLink() const;
 	 void setCurrLink(sim_mob::Link* link);*/
 	int laneID;
@@ -226,6 +230,15 @@ public:
     std::list<sim_mob::FMOD_Schedule> schedules;
 
     AMOD::AMODEventPublisher eventPub;
+
+    enum Status {
+    	IN_CAR_PARK = 0,
+    	ON_THE_ROAD
+    };
+
+    Status currStatus;
+
+
 //    AMODController* amodCtrl;
 
 protected:

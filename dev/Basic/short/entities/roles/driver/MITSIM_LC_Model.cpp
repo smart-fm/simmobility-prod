@@ -1090,14 +1090,95 @@ int sim_mob::MITSIM_LC_Model::isWrongLane(DriverUpdateParams& p,const Lane* lane
 
 	return res;
 }
+double sim_mob::MITSIM_LC_Model::LCUtilityRight(DriverUpdateParams& p)
+{
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	// 1.0 lane utility parameters
+	vector<double> a = laneUtilityParams;
+	// 2.0 LEADING AND LAG VEHICLES
+	const NearestVehicle * av = &p.nvRightFwd; // right leader vh
+	const NearestVehicle * bv = &p.nvRightBack; // right follower vh
+	// 3.0 count number of lane change to the end of link
+	double vld, mlc, density, spacing;
+	int n = abs(isWrongLane(p,p.currLane));
+	// TODO calculate lane density
+	density = 0;
+	float heavy_neighbor = 0.0;
+	if (av->exists()) {
+		  vld = std::min<double>(p.desiredSpeed, av->driver->getFwdVelocityM()) ;
+		  heavy_neighbor = (av->driver->getVehicle()->getVehicleType() != VehicleBase::BUS) ? 0.0 : a[7];
+		  spacing = av->distance/100.0;
+	}
+	else {
+	      vld = p.desiredSpeed;
+	      spacing = p.dis2stop;
+	}
+
+	if(bv->exists())
+	{
+		heavy_neighbor = (bv->driver->getVehicle()->getVehicleType() != VehicleBase::BUS) ? heavy_neighbor : a[7];
+	}
+
+	float right_most = 0.0;
+	// right hand driving
+	// check if current lane is most right lane, which lane idx is 0
+	if(getLaneIndex(p.currLane) == 0  || (getLaneIndex(p.currLane) == 1 && p.currLane->getRoadSegment()->getLanes().at(0)->is_pedestrian_lane()) )
+	{
+		right_most = 0.0;
+	}
+	else
+	{
+		right_most = a[2];
+	}
+
+	switch (n) {
+	  case 0:
+		{
+		  mlc = 0;
+		  break;
+		}
+	  case 1:
+		{
+		  mlc = a[12] * pow(p.dis2stop/1000.0, a[17]) + a[15];  // why divide 1000
+		  break;
+		}
+	  case 2:
+		{
+		  mlc = a[13] * pow(p.dis2stop/1000.0, a[17]) + a[15] + a[16];
+		  break;
+		}
+	  default:
+		{
+		  mlc = (a[13]+a[14]*(n-2)) * pow(p.dis2stop/1000, a[17]) +a[15] + a[16] * (n-1);
+		}
+		break;
+	  }
+
+	//TODO: check bus stop ahead
+	// MITSIM TS_LCModels.cc Dan: If vehicle ahead is a bus and there is a bus stop ahead
+	  // in the lane, set busAheadDummy to 1 for disincentive to be
+	  // applied in the utility.
+	int busAheadDummy = 0;
+	if(p.nvRightFwd.exists())
+	{
+		if(p.nvRightFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)
+		{
+			busAheadDummy = 1;
+		}
+	}
+
+	double u = a[1] + a[4] * vld + a[8] * spacing +a[6] * density + mlc + heavy_neighbor + right_most + a[5] * busAheadDummy;
+
+	return exp(u) ;
+}
 double sim_mob::MITSIM_LC_Model::LCUtilityLeft(DriverUpdateParams& p)
 {
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
 	// 1.0 lane utility parameters
 	vector<double> a = laneUtilityParams;
 	// 2.0 LEADING AND LAG VEHICLES
-	const NearestVehicle * av = &p.nvFwd; // leader vh
-	const NearestVehicle * bv = &p.nvBack; // follower vh
+	const NearestVehicle * av = &p.nvLeftFwd; // left leader vh
+	const NearestVehicle * bv = &p.nvLeftBack; // left follower vh
 	// 3.0 count number of lane change to the end of link
 	double vld, mlc, density, spacing;
 	int n = abs(isWrongLane(p,p.currLane));
@@ -2208,6 +2289,11 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdatePar
 	if (isReadyForNextDLC(p,2))
 	{
 		eul = LCUtilityLeft(p);
+	}
+
+	if (isReadyForNextDLC(p,1))
+	{
+		eul = LCUtilityRight(p);
 	}
 }
 void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)

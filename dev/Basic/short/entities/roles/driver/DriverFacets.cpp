@@ -147,6 +147,10 @@ void sim_mob::DriverMovement::init() {
 	}
 	DriverUpdateParams& p2 = parentDriver->getParams();
 	p2.parentId = getParent()->getId();
+	if(p2.parentId == 8)
+	{
+		int i=0;
+	}
 //Initialize our models. These should be swapable later.
 	lcModel = new MITSIM_LC_Model(p2);
 	cfModel = new MITSIM_CF_Model(p2);
@@ -453,6 +457,9 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 //Next, handle driving on links.
 // Note that a vehicle may leave an intersection during intersectionDriving(), so the conditional check is necessary.
 // Note that there is no need to chain this back to intersectionDriving.
+	if(params.parentId == 8){
+			int i = 0;
+		}
 	if (!(fwdDriverMovement.isInIntersection())) {
 		params.cftimer -= params.elapsedSeconds;
 // params.overflowIntoIntersection = linkDriving(params);

@@ -114,7 +114,7 @@ namespace {
 PredaySystem::PredaySystem(PersonParams& personParams,
 		const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 		const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
-		const boost::unordered_map<std::string, db::MongoDao*>& mongoDao)
+		const std::map<std::string, db::MongoDao*>& mongoDao)
 : personParams(personParams), zoneMap(zoneMap), zoneIdLookup(zoneIdLookup),
   amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap),
   mongoDao(mongoDao), logStream(std::stringstream::out)

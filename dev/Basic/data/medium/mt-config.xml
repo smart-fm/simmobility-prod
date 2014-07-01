@@ -75,12 +75,12 @@
                         <!--csv providing the observed values for the statistics to compute-->
                         <observed_statistics file="data/medium/preday_observed_HITS08_statistics.csv"/>
                         <!-- which calibration technique to use: SPSA/WSPSA -->
-                        <calibration_technique value="WSPSA"/>
+                        <calibration_technique value="SPSA"/>
                         <!-- logsums will be recomputed every x iterations if value is set to x -->
                         <logsum_computation_frequency value="5"/>
                         <SPSA>
                                 <!-- max number of iterations that spsa must run for -->
-                                <iterations value="500"/>
+                                <iterations value="20"/>
                                 <!-- termination condition for spsa is (F(X_k+1) - F(X_k) <= tolerance ) where F(X) is the objective function -->
                                 <tolerence value="0.000001"/>
                                 <!-- perturbation step size for iteration k is given by c_k = c / ((1+k)^gamma) -->

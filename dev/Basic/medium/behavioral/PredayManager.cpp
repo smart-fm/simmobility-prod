@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
+#include <map>
 #include <string>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -66,6 +67,8 @@ matrix<double> weightMatrix;
 
 /**keep a file wise list of variables to calibrate*/
 boost::unordered_map<std::string, std::vector<std::string> > variablesInFileMap;
+
+std::vector< std::map<std::string, db::MongoDao*> > mongoDaoStore;
 
 /**
  * Helper class for symmetric random vector of +1/-1
@@ -113,6 +116,38 @@ private:
 	/**symmetrical random vector of 1s and -1s*/
 	std::vector<short> randomVector;
 };
+
+void createMongoDaoStore(size_t numMaps, const MongoCollectionsMap& mongoColl)
+{
+	if(numMaps == 0) { return; }
+	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+	std::string emptyString;
+	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
+	db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+	for(size_t i=0; i<numMaps; i++)
+	{
+		std::map<std::string, db::MongoDao*> mongoDao;
+		for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++)
+		{
+			mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
+		}
+		mongoDaoStore.push_back(mongoDao);
+	}
+}
+
+void destroyMongoDaoStore()
+{
+	for(std::vector< std::map<std::string, db::MongoDao*> >::iterator storeIt=mongoDaoStore.begin(); storeIt!=mongoDaoStore.end(); storeIt++)
+	{
+		std::map<std::string, db::MongoDao*>& mongoDaoMap = (*storeIt);
+		// destroy Dao objects
+		for(std::map<std::string, db::MongoDao*>::iterator i=mongoDaoMap.begin(); i!=mongoDaoMap.end(); i++) {
+			safe_delete_item(i->second);
+		}
+		mongoDaoMap.clear();
+	}
+	mongoDaoStore.clear();
+}
 
 /**
  * helper function to compute Anti gradient
@@ -729,10 +764,12 @@ void sim_mob::medium::PredayManager::calibratePreday()
 	double initialGradientStepSize = 0, stepSize = 0, normOfGradient = 0;
 	objectiveFunctionValues.clear();
 
+	//create a store for data access objects for mongodb to be used by each thread
+	createMongoDaoStore(mtConfig.getNumPredayThreads(), mtConfig.getMongoCollectionsMap());
+
 	// iteration 0
 	std::vector<double> simulatedHITS_Stats;
 	Print() << "~~~~~ iteration " << 0 << " ~~~~~" << std::endl;
-	printParameters(calibrationVariablesList, "iteration");
 	double objFn = computeObjectiveFunction(calibrationVariablesList, simulatedHITS_Stats);
 	objectiveFunctionValues.push_back(objFn);
 	logStream << 0 << "," << objFn << ",N/A";
@@ -769,7 +806,7 @@ void sim_mob::medium::PredayManager::calibratePreday()
 			normOfGradient = normOfGradient + std::pow((*gradIt), 2);
 		}
 		normOfGradient = std::sqrt(normOfGradient);
-		printVector("norm of gradient vector", gradientVector);
+		Print() << "norm of gradient vector: " << normOfGradient << std::endl;
 
 		// 5. compute step size
 		stepSize = predayParams.getInitialStepSize() / std::pow((predayParams.getInitialStepSize()+k+predayParams.getStabilityConstant()), predayParams.getAlgorithmCoefficient1());
@@ -796,6 +833,7 @@ void sim_mob::medium::PredayManager::calibratePreday()
 	// write the latest logsums to mongodb
 	distributeAndProcessForCalibration(&PredayManager::outputLogsumsToMongoAfterCalibration);
 
+	destroyMongoDaoStore();
 	safe_delete_item(logFile);
 }
 
@@ -869,18 +907,10 @@ void sim_mob::medium::PredayManager::loadWeightMatrix()
 
 void sim_mob::medium::PredayManager::processPersonsForCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, size_t threadNum)
 {
-	CalibrationStatistics& simStats = simulatedStatsVector[threadNum];
+	CalibrationStatistics& simStats = simulatedStatsVector.at(threadNum);
 	bool consoleOutput = mtConfig.isConsoleOutput();
 
-	boost::unordered_map<std::string, db::MongoDao*> mongoDao;
-	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
-	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
-	std::string emptyString;
-	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
-	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
-		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
-		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
-	}
+	const std::map<std::string, db::MongoDao*>& mongoDao = mongoDaoStore.at(threadNum);
 
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++)
 	{
@@ -889,12 +919,6 @@ void sim_mob::medium::PredayManager::processPersonsForCalibration(PersonList::it
 		predaySystem.updateStatistics(simStats);
 		if(consoleOutput) { predaySystem.printLogs(); }
 	}
-
-	// destroy Dao objects
-	for(boost::unordered_map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
-		safe_delete_item(i->second);
-	}
-	mongoDao.clear();
 }
 
 void sim_mob::medium::PredayManager::computeGradient(const std::vector<short>& randomVector, double initialGradientStepSize,
@@ -962,15 +986,15 @@ void sim_mob::medium::PredayManager::computeWeightedGradient(const std::vector<s
 
 void sim_mob::medium::PredayManager::processPersons(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt)
 {
-	boost::unordered_map<std::string, db::MongoDao*> mongoDao;
+	std::map<std::string, db::MongoDao*> mongoDao;
 	bool outputTripchains = mtConfig.isOutputTripchains();
 	bool consoleOutput = mtConfig.isConsoleOutput();
 	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
 	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 	std::string emptyString;
 	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
+	db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
 	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
-		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
 		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
 
@@ -979,10 +1003,10 @@ void sim_mob::medium::PredayManager::processPersons(PersonList::iterator firstPe
 	Credential credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
 	std::string username = credentials.getUsername();
 	std::string password = credentials.getPassword(false);
-	DB_Config dbConfig(database.host, database.port, database.dbName, username, password);
+	DB_Config dbConfigPGSQL(database.host, database.port, database.dbName, username, password);
 
 	// Connect to database and load data.
-	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+	DB_Connection conn(sim_mob::db::POSTGRES, dbConfigPGSQL);
 	if(outputTripchains)
 	{
 		conn.connect();
@@ -996,13 +1020,13 @@ void sim_mob::medium::PredayManager::processPersons(PersonList::iterator firstPe
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
 		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
 		predaySystem.planDay();
-		predaySystem.outputPredictionsToMongo();
-		if(outputTripchains) { predaySystem.outputTripChainsToPostgreSQL(zoneNodeMap, tcDao); }
+		// predaySystem.outputPredictionsToMongo();
+		// if(outputTripchains) { predaySystem.outputTripChainsToPostgreSQL(zoneNodeMap, tcDao); }
 		if(consoleOutput) { predaySystem.printLogs(); }
 	}
 
 	// destroy Dao objects
-	for(boost::unordered_map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
+	for(std::map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
 		safe_delete_item(i->second);
 	}
 	mongoDao.clear();
@@ -1012,15 +1036,7 @@ void sim_mob::medium::PredayManager::computeLogsumsForCalibration(PersonList::it
 {
 	bool consoleOutput = mtConfig.isConsoleOutput();
 
-	boost::unordered_map<std::string, db::MongoDao*> mongoDao;
-	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
-	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
-	std::string emptyString;
-	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
-	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
-		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
-		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
-	}
+	const std::map<std::string, db::MongoDao*>& mongoDao = mongoDaoStore.at(threadNum);
 
 	// loop through all persons within the range and plan their day
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
@@ -1028,25 +1044,11 @@ void sim_mob::medium::PredayManager::computeLogsumsForCalibration(PersonList::it
 		predaySystem.computeLogsums();
 		if(consoleOutput) { predaySystem.printLogs(); }
 	}
-
-	// destroy Dao objects
-	for(boost::unordered_map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
-		safe_delete_item(i->second);
-	}
-	mongoDao.clear();
 }
 
 void sim_mob::medium::PredayManager::outputLogsumsToMongoAfterCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, size_t threadNum)
 {
-	boost::unordered_map<std::string, db::MongoDao*> mongoDao;
-	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
-	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
-	std::string emptyString;
-	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
-	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
-		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
-		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
-	}
+	const std::map<std::string, db::MongoDao*>& mongoDao = mongoDaoStore.at(threadNum);
 
 	for(PersonList::const_iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++)
 	{
@@ -1057,26 +1059,20 @@ void sim_mob::medium::PredayManager::outputLogsumsToMongoAfterCalibration(Person
 				"shoplogsum" << personParams->getShopLogSum() <<
 				"otherlogsum" << personParams->getOtherLogSum()
 				));
-		mongoDao["population"]->update(query, updateObj);
+		mongoDao.at("population")->update(query, updateObj);
 	}
-
-	// destroy Dao objects
-	for(boost::unordered_map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
-		safe_delete_item(i->second);
-	}
-	mongoDao.clear();
 }
 
 void sim_mob::medium::PredayManager::computeLogsums(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt)
 {
-	boost::unordered_map<std::string, db::MongoDao*> mongoDao;
+	std::map<std::string, db::MongoDao*> mongoDao;
 	bool consoleOutput = mtConfig.isConsoleOutput();
 	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
 	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 	std::string emptyString;
 	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
+	db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
 	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
-		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
 		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
 
@@ -1089,7 +1085,7 @@ void sim_mob::medium::PredayManager::computeLogsums(PersonList::iterator firstPe
 	}
 
 	// destroy Dao objects
-	for(boost::unordered_map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
+	for(std::map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
 		safe_delete_item(i->second);
 	}
 	mongoDao.clear();

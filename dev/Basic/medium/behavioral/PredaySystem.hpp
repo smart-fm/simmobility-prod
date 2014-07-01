@@ -10,7 +10,7 @@
 
 #pragma once
 #include <boost/unordered_map.hpp>
-
+#include <map>
 #include "behavioral/lua/PredayLuaProvider.hpp"
 #include "CalibrationStatistics.hpp"
 #include "params/PersonParams.hpp"
@@ -209,7 +209,7 @@ private:
     /**
      * Data access objects for mongo
      */
-    boost::unordered_map<std::string, db::MongoDao*> mongoDao;
+    std::map<std::string, db::MongoDao*> mongoDao;
 
     /**
      * used for logging messages
@@ -220,7 +220,7 @@ public:
 	PredaySystem(PersonParams& personParams,
 			const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 			const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
-			const boost::unordered_map<std::string, db::MongoDao*>& mongoDao);
+			const std::map<std::string, db::MongoDao*>& mongoDao);
 	virtual ~PredaySystem();
 
 	/**

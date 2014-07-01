@@ -778,6 +778,7 @@ void sim_mob::medium::PredayManager::calibratePreday()
 	// iteration 0
 	std::vector<double> simulatedHITS_Stats;
 	Print() << "~~~~~ iteration " << 0 << " ~~~~~" << std::endl;
+	printParameters(calibrationVariablesList, "iteration");
 	double objFn = computeObjectiveFunction(calibrationVariablesList, simulatedHITS_Stats);
 	objectiveFunctionValues.push_back(objFn);
 	logStream << 0 << "," << objFn << ",N/A";
@@ -822,6 +823,7 @@ void sim_mob::medium::PredayManager::calibratePreday()
 
 		// 6. update the variables being calibrated and compute objective function
 		updateVariablesByAddition(calibrationVariablesList, gradientVector, stepSize);
+		printParameters(calibrationVariablesList, "iteration");
 		objFn = computeObjectiveFunction(calibrationVariablesList, simulatedHITS_Stats);
 		objectiveFunctionValues.push_back(objFn);
 
@@ -940,6 +942,7 @@ void sim_mob::medium::PredayManager::computeGradient(const std::vector<short>& r
 	updateVariablesByAddition(localCopyCalVarList, scaledRandomVector);
 	std::vector<double> simulatedHITS_Stats;
 	double objFnPlus = computeObjectiveFunction(localCopyCalVarList, simulatedHITS_Stats);
+
 	localCopyCalVarList = calibrationVariablesList;
 	updateVariablesBySubtraction(localCopyCalVarList, scaledRandomVector);
 	double objFnMinus = computeObjectiveFunction(localCopyCalVarList, simulatedHITS_Stats);
@@ -1114,6 +1117,7 @@ void sim_mob::medium::PredayManager::computeObservationsVector(const std::vector
 	CalibrationStatistics simulatedStats;
 	aggregateStatistics(simulatedStatsVector, simulatedStats);
 	simulatedStats.getAllStatistics(simulatedHITS_Stats);
+	printVector("simulatedStats", simulatedHITS_Stats);
 }
 
 void sim_mob::medium::PredayManager::log()

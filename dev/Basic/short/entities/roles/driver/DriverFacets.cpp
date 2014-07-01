@@ -658,6 +658,17 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 	p.newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed,
 			maxLaneSpeed);
 
+	if (parentDriver->parent->GetId() == 0
+			&& parentDriver->getParams().now.frame() >= 200
+			&& parentDriver->getParams().now.frame() <= 275) {
+		p.newFwdAcc = -3;
+	}
+	if (parentDriver->parent->GetId() == 0
+			&& parentDriver->getParams().now.frame() > 275
+			&& parentDriver->getParams().now.frame() <= 375) {
+		p.newFwdAcc = 0;
+	}
+
 }
 double sim_mob::DriverMovement::move(DriverUpdateParams& p) {
 	double newLatVel = 0.0; // m/s
@@ -684,16 +695,7 @@ double sim_mob::DriverMovement::move(DriverUpdateParams& p) {
 //TODO check set lat vel?
 	double acc = p.newFwdAcc;
 
-	if (parentDriver->parent->GetId() == 0
-			&& parentDriver->getParams().now.frame() >= 200
-			&& parentDriver->getParams().now.frame() <= 275) {
-		acc = -3;
-	}
-	if (parentDriver->parent->GetId() == 0
-			&& parentDriver->getParams().now.frame() > 275
-			&& parentDriver->getParams().now.frame() <= 375) {
-		acc = 0;
-	}
+
 //Update our chosen acceleration; update our position on the link.
 	parentDriver->vehicle->setAcceleration(
 			acc * METER_TO_CENTIMETER_CONVERT_UNIT);
@@ -2018,10 +2020,11 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 			* p.elapsedSeconds;
 
 //Increase the vehicle's velocity based on its acceleration.
-	parentDriver->vehicle->setVelocity(
-			parentDriver->vehicle->getVelocity()
-					+ parentDriver->vehicle->getAcceleration()
-							* p.elapsedSeconds);
+	double vel = parentDriver->vehicle->getVelocity()
+							+ parentDriver->vehicle->getAcceleration()
+									* p.elapsedSeconds;
+	if(vel<0) vel = 0;
+	parentDriver->vehicle->setVelocity(vel);
 
 //when v_lead and a_lead is 0, space is not negative, the Car Following will generate an acceleration based on free flowing model
 //this causes problem, so i manually set acceleration and velocity to 0

@@ -254,6 +254,8 @@ public:
 
 	int parentId;
 
+	double FFAccParamsBeta;
+
 //	//perform incident response
 //	IncidentPerformer incidentPerformer;
 public:

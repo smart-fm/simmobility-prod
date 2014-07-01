@@ -241,6 +241,11 @@ void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p) {
 				"Merging_Model", str,
 				string("10 20 8 0.2"));
 	sim_mob::Utils::convertStringToArray(str,accAddon);
+
+	//FF Acc Params
+	ParameterManager::Instance()->param(modelName,
+					"FF_Acc_Params_b2", p.FFAccParamsBeta,
+					0.3091);
 }
 void sim_mob::MITSIM_CF_Model::makeCFParam(string& s, CarFollowParam& cfParam) {
 	std::vector<std::string> arrayStr;
@@ -519,7 +524,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	 }
 	}
 
-	if(p.now.frame() > 600 && p.parentId == 3){
+	if(p.now.frame() > 500 && p.parentId == 1){
 			int i = 0;
 		}
 
@@ -1458,7 +1463,9 @@ double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(DriverUpdateParams& p,
 	if (vn < targetSpeed) {
 		return (vn < maxLaneSpeed) ? p.maxAcceleration : 0;
 	} else if (vn > targetSpeed) {
-		return 0;
+//		return 0;
+		double acc = p.FFAccParamsBeta * (targetSpeed-vn);
+		return acc;
 	}
 
 	//If equal:

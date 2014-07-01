@@ -208,8 +208,8 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		populateCarParks(50);
 		//myFile.open("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/About10.txt");
 		//myFile.open("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/inputfile.txt");
-		//myFile.open("/home/haroldsoh/Development/simmobility/dataFiles/bugis360k.txt");
-		myFile.open("/home/haroldsoh/Development/simmobility/dataFiles/singapore100000.txt");
+		myFile.open("/home/haroldsoh/Development/simmobility/dataFiles/bugisLarge10000.txt");
+		//myFile.open("/home/haroldsoh/Development/simmobility/dataFiles/singapore100000.txt");
 		lastReadLine = "";
 		test=1;
 	}
@@ -291,7 +291,7 @@ void AMODController::populateCarParks(int numberOfVhsAtNode = 10)
 {
 	//carpark population
 	std::vector<std::string> carParkIds;
-	ifstream carParkFile("/home/haroldsoh/Development/simmobility/dataFiles/singaporeCarParks100.txt");
+	ifstream carParkFile("/home/haroldsoh/Development/simmobility/dataFiles/bugisCarParks20.txt");
 	while(!carParkFile.eof())
 	{
 		std::string line;
@@ -416,9 +416,10 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 	std::vector<sim_mob::TripChainItem*>  tcs;
 	tcs.push_back(tc);
 
-	std::cout<<ConfigManager::GetInstance().FullConfig().simStartTime().getValue()<<std::endl;
+	//std::cout<<ConfigManager::GetInstance().FullConfig().simStartTime().getValue()<<std::endl;
 	sim_mob::Person* person = new sim_mob::Person("AMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
-	std::cout<<"starttime: "<<person->getStartTime()<<std::endl;
+	//person->setTripChain(tcs);
+	//std::cout<<"starttime: "<<person->getStartTime()<<std::endl;
 	person->parentEntity = this;
 	person->amodId = id;
 
@@ -492,7 +493,13 @@ bool AMODController::getBestFreeVehicle(std::string originId, sim_mob::Person **
 
 			//if the travel cost is less than the best (or no car found yet), assign new best
 			if (wps.size() > 0) { //make sure it is a valid road segment path
-				if ((travelCost < bestTravelCost) || (!freeCarFound)) {
+				if (freeCarFound) {
+					if (travelCost < bestTravelCost) {
+						bestTravelCost = travelCost;
+						bestCarParkIter = iter;
+						leastCostPath = wps;
+					}
+				} else {
 					bestTravelCost = travelCost;
 					bestCarParkIter = iter;
 					leastCostPath = wps;
@@ -626,6 +633,9 @@ bool AMODController::removeVhFromCarPark(std::string& carParkId,Person** vh)
 	boost::unordered_map<std::string,Person*> cars = it->second;
 	if(!it->second.empty())
 	{
+		if (cars.find((*vh)->amodId) == cars.end()) {
+			return false;
+		}
 		cars.erase((*vh)->amodId);
 		//it->second.erase((*vh)->amodId);
 		it->second = cars;
@@ -673,7 +683,7 @@ void AMODController::handleVHError(Person *vh)
 {
 	std::cout << vh->amodId << " suffered an error!" << std::endl;
 	vhOnTheRoad.erase(vh->amodId);
-
+	nFreeCars--;
 	//find the name of the node where the car is supposed to go. We teleport it there
 	TripMapIterator iter = vhTripMap.find(vh);
 	if (iter == vhTripMap.end()) {
@@ -776,7 +786,7 @@ void AMODController::setRdSegTravelTimes(Person* ag, double rdSegExitTime) {
 			ag->getRdSegTravelStatsMap().find(rdSegExitTime);
 
 	ofstream out_TT;
-	out_TT.open("/home/km/workspace/simmobility2/dev/Basic/out_TT.txt", fstream::out | fstream::app);
+	out_TT.open("out_TT.txt", fstream::out | fstream::app);
 
 	if (it != ag->getRdSegTravelStatsMap().end()){
 		double travelTime = (it->first) - (it->second).rdSegEntryTime_;
@@ -1257,9 +1267,9 @@ void AMODController::assignVhs(std::vector<std::string>& origin, std::vector<std
 
 void AMODController::assignVhsFast(std::vector<std::string>& origin, std::vector<std::string>& destination, int currTime)
 {
-	std::cout << "Origin inside assignVhs(): " << std::endl;
-	copy(origin.begin(), origin.end(), ostream_iterator<string>(cout, " "));
-	std::cout << endl << "---------------" << std::endl;
+	//std::cout << "Origin inside assignVhs(): " << std::endl;
+	//copy(origin.begin(), origin.end(), ostream_iterator<string>(cout, " "));
+	//std::cout << endl << "---------------" << std::endl;
 	std::vector < Person * > justDispatched;
 
 
@@ -1281,8 +1291,9 @@ void AMODController::assignVhsFast(std::vector<std::string>& origin, std::vector
 
 	// work through list using available free cars
 	ServiceIterator itr =serviceBuffer.begin();
+	int localnFreeCars = nFreeCars;
 	while (true) {
-		if (nFreeCars == 0) break;
+		if (localnFreeCars <= 0) break; //buffer to prevent getting a car which hasn't been inserted completely
 		if (serviceBuffer.size() == 0) break;
 		if (itr == serviceBuffer.end()) break;
 
@@ -1307,11 +1318,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& origin, std::vector
 			itr++;
 			continue;
 			//throw std::runtime_error("no more vehicles remaining. Throwing exception.");
-		} else {
-			std::cout << vhAssigned << std::endl;
-			//std::cout << "Found: " << vhAssigned->amodId << " in carpark " << carParkId << std::endl;
 		}
-
 		Node *carParkNode = nodePool[carParkId];
 		// get route for vehicle
 		vector<WayPoint> mergedWP;
@@ -1341,6 +1348,8 @@ void AMODController::assignVhsFast(std::vector<std::string>& origin, std::vector
 		//remove the vehicle from the car park
 		if (!removeVhFromCarPark(carParkId, &vhAssigned)) {
 			std::cout << "Error! Cannot remove car from car park!" << std::endl;
+			itr++;
+			continue;
 		}
 
 		// create trip chain

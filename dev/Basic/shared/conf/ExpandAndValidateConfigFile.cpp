@@ -103,7 +103,7 @@ sim_mob::ExpandAndValidateConfigFile::ExpandAndValidateConfigFile(ConfigParams& 
 ///@param input aimsun nide id
 ///@param output output file
 void generateOD(
-		const std::string input = "/home/vahid/Downloads/OD_oldmap_new.txt", const std::string output = "/home/vahid/Downloads/ODs.xml", bool stopOnError = false) {
+		const std::string input = "/home/vahid/Downloads/OD_oldmap_new.txt", const std::string output = "/home/vahid/Downloads/ODs.xml", bool stopOnError = false, bool exitAtEnd = true) {
 	//find location of ODs and generate xml dirver ODs
 	int cnt = 0;
 	std::ifstream in;
@@ -114,7 +114,7 @@ void generateOD(
 	if (in.is_open()) {
 		while (std::getline(in, line)) {
 			std::vector<std::string> pair_s;
-			boost::split(pair_s, line, boost::is_any_of("\t\n"));
+			boost::split(pair_s, line, boost::is_any_of("\t, "));
 			if(pair_s[1].size() - 1 == '\n'){
 				pair_s[1].erase(pair_s[1].size() - 1); //omit carriage return
 			}
@@ -128,7 +128,7 @@ void generateOD(
 			const sim_mob::Node *destination = StreetDirectory::instance().getNode(pair_ui[1]);
 			if (!origin || !destination) {
 				std::ostringstream err("");
-				err << "either origin[" /*<< origin << ","*/ << pair_ui[0] << "] or destination["
+				err << "generateOD: either origin[" /*<< origin << ","*/ << pair_ui[0] << "] or destination["
 						<< destination << /*","	<< pair_ui[1] <<*/ "] are null. original input :" << pair_s[0] << " " << pair_s[1] << std::endl;
 				if(stopOnError){
 					throw std::runtime_error(err.str());
@@ -142,13 +142,17 @@ void generateOD(
 			out << "<driver originPos=\"" << origin->getLocation().getX()
 					<< "," << origin->getLocation().getY() << "\" destPos=\""
 					<< destination->getLocation().getX() << ","
-					<< destination->getLocation().getY() << "\" time=\"0\"/>"
-					<< "   <!--(" << pair_s[0] << "," << pair_s[1] << ") -->"
+					<< destination->getLocation().getY() << "\""
+					<< " od=\"(" << pair_s[0] << "," << pair_s[1] << ")\""
+					<< " time=\"0\"/>"
 					<< std::endl;
 		}
 		in.close();
 	} else {
 		Print() << "File " << input << " not found" << std::endl;
+	}
+	if(exitAtEnd){
+		exit(0);
 	}
 }
 
@@ -210,15 +214,14 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
  	//Initialize the street directory.
 	StreetDirectory::instance().init(cfg.getNetwork(), true);
 	std::cout << "Street Directory initialized in : " << stDir.endProfiling() <<  " Milliseconds " << std::endl;
-//	generateOD("/home/vahid/OD.txt", "/home/vahid/Downloads/ODs.xml");
-	sim_mob::Profiler confl(true);
+	//TODO: put its option in config xml
+	//generateOD("/home/fm-simmobility/vahid/OD.txt", "/home/fm-simmobility/vahid/ODs.xml");
     //Process Confluxes if required
     if(cfg.RunningMidSupply()) {
 		size_t sizeBefore = cfg.getConfluxes().size();
 		sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
 		std::cout <<"Confluxes size before(" <<sizeBefore <<") and after(" <<cfg.getConfluxes().size() <<")\n";
     }
-    std::cout << "Confluex processed in : " << confl.endProfiling() <<  " Milliseconds " << std::endl;
     //Maintain unique/non-colliding IDs.
     ConfigParams::AgentConstraints constraints;
     constraints.startingAutoAgentID = cfg.system.simulation.startingAutoAgentID;

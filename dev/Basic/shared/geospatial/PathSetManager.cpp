@@ -597,6 +597,19 @@ const std::pair <RPOD::const_iterator,RPOD::const_iterator > sim_mob::PathSetMan
 	return range;
 }
 
+void sim_mob::printWPpath(std::vector<WayPoint> &wps , const sim_mob::Node* startingNode ){
+	std::ostringstream out("wp path--");
+	if(startingNode){
+		out << startingNode->getID() << ":";
+	}
+	BOOST_FOREACH(WayPoint wp, wps){
+		out << wp.roadSegment_->getSegmentAimsunId() << ",";
+	}
+	out << std::endl;
+
+	Print() << out.str();
+}
+
 vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 {
 	std::ostringstream out("");
@@ -626,6 +639,8 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 		sql = &(psDbLoader->sql);
 	}
 		vector<WayPoint> res = generateBestPathChoiceMT(subTrip, profiler);
+		Print() << "Path chosen for this person: " << std::endl;
+		printWPpath(res);
 		cacheODbySegment(per, subTrip, res);
 		sql = NULL;
 

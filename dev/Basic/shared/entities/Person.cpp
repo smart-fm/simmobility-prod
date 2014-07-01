@@ -117,7 +117,15 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 
 void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();
-	setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
+	//TODO: Check if short term is okay with this approach of checking agent source
+	if(getAgentSrc() == "XML_TripChain")
+	{
+		setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
+	}
+	else
+	{
+		setStartTime((*currTripChainItem)->startTime.getValue());
+	}
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM)
 	{
 		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW()).begin();

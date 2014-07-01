@@ -50,7 +50,7 @@ public:
 	:sql(soci::postgresql,dbstr) {}
 	soci::session sql;
 };
-
+void printWPpath(std::vector<WayPoint> &wps , const sim_mob::Node* startingNode = 0);
 class PathSetParam {
 private:
 	PathSetParam();

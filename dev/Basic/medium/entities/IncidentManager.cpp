@@ -57,26 +57,35 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 		//no incidents for this tick
 		return;
 	}
+
 	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::instance();
 	std::pair<uint32_t,Incident> incident;
 	/*inserting and informing*/
-	BOOST_FOREACH(incident, currIncidents){
+	for(std::multimap<uint32_t,Incident>::iterator incident = currIncidents.first; incident != currIncidents.second; incident++){
+//	BOOST_FOREACH(incident, currIncidents){
 		//get the conflux
-		const sim_mob::RoadSegment* rs = stDir.getRoadSegment(incident.second.get<0>());
+		const sim_mob::RoadSegment* rs = stDir.getRoadSegment(incident->second.get<0>());
 
 		const std::vector<sim_mob::SegmentStats*>& stats = rs->getParentConflux()->findSegStats(rs);
-		//send a message to conflux
+		//send a message to conflux to insert an incident to itseld
 		messaging::MessageBus::PostMessage(rs->getParentConflux(), MSG_INSERT_INCIDENT,
-							messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, incident.second.get<1>())));
-		//find affected Drivers (only active agents for now)
+							messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, incident->second.get<1>())));
 		std::vector <const sim_mob::Person*> persons;
 		identifyAffectedDrivers(rs,persons);
 		Print() << " INCIDENT  segment:"<< rs->getSegmentAimsunId() << " affected:" << persons.size() << std::endl;
-		//inform the drivers
+//		/**
+//		 * DEBUG
+//		 */
+//		return;//dont inform any driver, let them go into incident section
+//		/**
+//		 * DEBUG...
+//		 */
+		//find affected Drivers (only active agents for now)
+		//inform the drivers about the incident
 		BOOST_FOREACH(const sim_mob::Person * person, persons) {
 			//send the same type of message
 			messaging::MessageBus::PostMessage(const_cast<MovementFacet*>(person->getRole()->Movement()), MSG_INSERT_INCIDENT,
-								messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, incident.second.get<1>())));
+								messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, incident->second.get<1>())));
 		}
 	}
 }
@@ -143,10 +152,10 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 			ignorant ++;
 		}
 	}//RPOD
-	Print() << "On the path Drivers: " << affected << std::endl;
-	Print() << "ignored Drivers: " << ignored << std::endl;
-	Print() << "Racting Drivers: " << reacting << std::endl;
-	Print() << "Ignoring Drivers : " << ignorant << std::endl;
+	Print() << "Number of Affected Driver's Paths: " << affected << std::endl;
+	Print() << "Number of Affected Drivers: " << affected - ignored << std::endl;
+	Print() << "Number of Drivers Reacting to Incident: " << reacting << std::endl;
+	Print() << "Number of Drivers Ignoring the incident : " << ignorant << std::endl;
 }
 
 //probability function(for now, just behave like tossing a coin

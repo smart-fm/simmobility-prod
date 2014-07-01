@@ -741,15 +741,15 @@ void sim_mob::LaneStats::updateOutputCounter()
 {
 	double tick_size = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	int tmp = int(laneParams->outputFlowRate * tick_size);
-	laneParams->fraction += laneParams->outputFlowRate * tick_size - float(tmp);
+	laneParams->fraction += laneParams->outputFlowRate * tick_size - tmp;
 	if (laneParams->fraction >= 1.0)
 	{
 		laneParams->fraction -= 1.0;
-		laneParams->outputCounter = float(tmp) + 1.0;
+		laneParams->outputCounter = tmp + 1;
 	}
 	else
 	{
-		laneParams->outputCounter = float(tmp);
+		laneParams->outputCounter = tmp;
 	}
 }
 

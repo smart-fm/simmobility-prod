@@ -129,7 +129,7 @@ void sim_mob::medium::DriverMovement::frame_tick() {
 	//debug
 	if(sectionId != currSegStats->getRoadSegment()->getSegmentAimsunId()){
 		sectionId = currSegStats->getRoadSegment()->getSegmentAimsunId();
-		Print() << "frame:" <<  params.now.frame() << ",segment:" << sectionId << std::endl;
+//		Print() << "frame:" <<  params.now.frame() << ",segment:" << sectionId << std::endl;
 	}
 	if(!currSegStats) {
 		//if currSegstats is NULL, either the driver did not find a path to his
@@ -331,7 +331,7 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 	//this will space out the drivers on the same lane, by seperating them by the time taken for the previous car to move a car's length
 	//Commenting out the delay from accept rate as per Yang Lu's suggestion (we only use this delay in setOrigin)
 	double departTime = getLastAccept(laneInNextSegment, nxtSegStat)
-			/* + getAcceptRate(laneInNextSegment, nxtSegStat)*/; //in seconds
+			 /*+ getAcceptRate(laneInNextSegment, nxtSegStat)*/; //in seconds
 
 	//skip acceptance capacity if there's no queue - this is done in DynaMIT
 	//commenting out - the delay from acceptRate is removed as per Yang Lu's suggestion
@@ -388,7 +388,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 
 	//this will space out the drivers on the same lane, by seperating them by the time taken for the previous car to move a car's length
 	//Commenting out the delay from accept rate as per Yang Lu's suggestion (we use this delay only in setOrigin)
-	double departTime = getLastAccept(laneInNextSegment, nextSegStats)/* + getAcceptRate(laneInNextSegment, nextSegStats)*/; //in seconds
+	double departTime = getLastAccept(laneInNextSegment, nextSegStats) /*+ getAcceptRate(laneInNextSegment, nextSegStats)*/; //in seconds
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (converToSeconds(params.now.ms()))); //in seconds
 
@@ -556,7 +556,9 @@ bool DriverMovement::advanceMovingVehicle(sim_mob::medium::DriverUpdateParams& p
 	//Therefore currSegStats cannot be NULL. It is safe to use it in this function.
 	double velocity = currSegStats->getSegSpeed(true);
 	double output = getOutputCounter(currLane, currSegStats);
-
+	if(output <= 0){
+		Print() << "Tick: " << params.now.frame() << "  : OutputCounter is <=0 " << std::endl;
+	}
 	// add driver to queue if required
 	double laneQueueLength = getQueueLength(currLane);
 	if (laneQueueLength >  currSegStats->getLength())
@@ -980,18 +982,6 @@ bool DriverMovement::UTurnFree(std::vector<WayPoint> & newPath, std::vector<cons
 	return true;
 }
 
-void printWPpath(std::vector<WayPoint> &wps , const sim_mob::Node* startingNode = 0){
-	std::ostringstream out("wp path--");
-	if(startingNode){
-		out << startingNode->getID() << ":";
-	}
-	BOOST_FOREACH(WayPoint wp, wps){
-		out << wp.roadSegment_->getSegmentAimsunId() << ",";
-	}
-	out << std::endl;
-
-	Print() << out.str();
-}
 //todo put this in the utils(and code style!)
 boost::mt19937 myOwngen;
 int roll_die(int l,int r) {
@@ -1057,7 +1047,7 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 		subTrip.fromLocation.node_ = newPath.first;
 		if(!UTurnFree(newPath.second,deTourOptions[newPath.first], subTrip, excludeRS)){
 			Warn() << "No path without a UTrn on Detour Candidate node " << newPath.first->getID() << std::endl;
-			printWPpath(newPath.second, newPath.first);
+			sim_mob::printWPpath(newPath.second, newPath.first);
 			deTourOptions.erase(newPath.first);
 			continue;
 		}
@@ -1081,12 +1071,12 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 	std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >::iterator it(deTourOptions.begin());
 
 	int cnt = roll_die(0,deTourOptions.size() - 1);
-
+	int dbgIndx = cnt;
 	while(cnt){ it++; --cnt;}
 	getMesoPathMover().setPath(it->second);
 	Print() << "----------------------------------\nOriginal path:" << std::endl;
 	getMesoPathMover().printPath(getMesoPathMover().getPath());
-	Print() << "Detour option chosen:" << it->first << std::endl;
+	Print() << "Detour option chosen[" << dbgIndx << "] : " << it->first << std::endl;
 	getMesoPathMover().printPath(it->second);
 	Print() << "----------------------------------" << std::endl;
 }

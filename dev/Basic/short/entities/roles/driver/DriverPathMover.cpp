@@ -835,7 +835,7 @@ double sim_mob::DriverPathMover::getCurrentSegmentLengthCM()
 
 	return dis;
 }
-double sim_mob::DriverPathMover::getDistToLinkEnd()
+double sim_mob::DriverPathMover::getDistToLinkEndM()
 {
 	double res = getDisToCurrSegEndM();
 	if(currSegmentIt == fullPath.end()) {
@@ -849,7 +849,7 @@ double sim_mob::DriverPathMover::getDistToLinkEnd()
 		const vector<Point2D>& polyLine = const_cast<RoadSegment*> (*it)->getLanes()[0]->getPolyline();
 		for (vector<Point2D>::const_iterator it2 = polyLine.begin(); (it2 + 1) != polyLine.end(); it2++)
 		{
-			res += dist(it2->getX(), it2->getY(), (it2 + 1)->getX(), (it2 + 1)->getY());
+			res += dist(it2->getX(), it2->getY(), (it2 + 1)->getX(), (it2 + 1)->getY()) / 100.0;
 		}
 
 		//Break if the next Segment isn't in this link.

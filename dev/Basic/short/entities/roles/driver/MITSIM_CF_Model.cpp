@@ -1043,7 +1043,7 @@ double sim_mob::MITSIM_CF_Model::waitExitLaneRate(DriverUpdateParams& p) {
 	// dis2stop is distance to fwd vh or distance to end node
 
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
-	double dx = driverMvt->fwdDriverMovement.getDistToLinkEnd();
+	double dx = driverMvt->fwdDriverMovement.getDistToLinkEndM() - 5.0;
 
 	if(!p.getStatus(STATUS_CURRENT_OK) && dx < p.distanceToNormalStop)
 	{

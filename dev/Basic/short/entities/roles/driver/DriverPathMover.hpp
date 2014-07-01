@@ -92,7 +92,7 @@ public:
 	// unit cm
 	double getCurrentSegmentLengthCM();
 
-	double getDistToLinkEnd();
+	double getDistToLinkEndM();
 
 	//Retrieve the current distance moved in this road segment. Due to lane changing, etc., it
 	//  is entirely possible that this may appear longer than the actual RoadSegment.

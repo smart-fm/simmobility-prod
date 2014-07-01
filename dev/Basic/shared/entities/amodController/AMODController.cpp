@@ -126,8 +126,8 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		//inserting vehicles to virtual carParks at the nodes
 		populateCarParks(5);
 		//myFile.open("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/About10.txt");
-		//myFile.open("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/inputfile.txt");
-		myFile.open("/home/haroldsoh/Development/simmobility/dataFiles/inputfile1.txt");
+		myFile.open("/home/km/dataFiles/inputfile.txt");
+		//myFile.open("/home/haroldsoh/Development/simmobility/dataFiles/inputfile1.txt");
 		lastReadLine = "";
 		test=1;
 	}

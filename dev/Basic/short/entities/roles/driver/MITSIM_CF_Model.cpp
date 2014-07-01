@@ -519,6 +519,9 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	 }
 	}
 
+	if(p.now.frame() > 600 && p.parentId == 3){
+			int i = 0;
+		}
 
 	// if (intersection){
 	// double aI = approachInter(p); // when approaching intersection to achieve the turn speed
@@ -598,7 +601,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		p.cftimer = p.getNextStepSize();
 	}
 
-	if(acc > 10){
+	if(p.now.frame() > 600 && p.parentId == 3){
 		int i = 0;
 	}
 	return acc;

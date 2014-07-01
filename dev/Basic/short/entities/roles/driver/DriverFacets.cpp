@@ -146,6 +146,7 @@ void sim_mob::DriverMovement::init() {
 				<< std::endl;
 	}
 	DriverUpdateParams& p2 = parentDriver->getParams();
+	p2.parentId = getParent()->getId();
 //Initialize our models. These should be swapable later.
 	lcModel = new MITSIM_LC_Model(p2);
 	cfModel = new MITSIM_CF_Model(p2);

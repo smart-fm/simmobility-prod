@@ -252,6 +252,8 @@ public:
 
 	void buildDebugInfo();
 
+	int parentId;
+
 //	//perform incident response
 //	IncidentPerformer incidentPerformer;
 public:

@@ -150,7 +150,7 @@ void sim_mob::Driver::initReactionTime()
 	DriverMovement* movement = (DriverMovement* ) movementFacet;
 	if(movement)
 	{
-		reacTime = movement->cfModel->nextPerceptionSize * 100; // seconds to ms
+		reacTime = movement->cfModel->nextPerceptionSize * 1000; // seconds to ms
 	}
 
 	perceivedFwdVel = new FixedDelayed<double>(reacTime,true);

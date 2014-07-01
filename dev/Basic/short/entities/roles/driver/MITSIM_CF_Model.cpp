@@ -491,7 +491,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 
 	p.targetSpeed = calcDesiredSpeed(p);
 
-	double acc = p.maxAcceleration;
+	double acc = p.maxAcceleration; p.accSelect = "max";
 	double aB = calcMergingRate(p);
 	double aC = calcSignalRate(p); // near signal or incidents
 	double aD = calcYieldingRate(p); // when yielding
@@ -532,11 +532,17 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	// Make decision
 	// Use the smallest
 	//	if(acc > aB) acc = aB;
+
 	if (acc > aD)
+	{
 		acc = aD;
+		p.accSelect = "aD";
+	}
 	//if(acc > aF) acc = aF;
-	if (acc > aH)
+	if (acc > aH) {
 		acc = aH;
+		p.accSelect = "aH";
+	}
 //	if (acc > aH1)
 //		acc = aH1;
 //	if (acc > aH2)
@@ -544,12 +550,16 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 //	if (acc > aH3)
 //		acc = aH3;
 	//if(acc > aG) acc = aG;
-	if (acc > aC)
+	if (acc > aC) {
 		acc = aC;
+		p.accSelect = "aC";
+	}
 //	if (acc > aE)
 //		acc = aE;
-	if (acc > aZ)
+	if (acc > aZ) {
 		acc = aZ;
+		p.accSelect = "aZ";
+	}
 //	if (acc > aZ1)
 //		acc = aZ1;
 //	if (acc > aZ2)

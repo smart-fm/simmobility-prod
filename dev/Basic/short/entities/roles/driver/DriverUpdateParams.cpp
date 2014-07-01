@@ -25,6 +25,17 @@ void DriverUpdateParams::setStatusDoingLC(LANE_CHANGE_SIDE& lcs)
 
 	// else do nothing
 }
+void DriverUpdateParams::buildDebugInfo()
+{
+	std::stringstream s;
+	double ct=cftimer;
+	if(abs(cftimer)<0.001)
+		ct=0;
+	s<<ct<<":"<<newFwdAcc<<":"<<accSelect;
+	debugInfo = s.str();
+
+	std::cout<<debugInfo<<std::endl;
+}
 void DriverUpdateParams::addTargetLanes(set<const Lane*> tl)
 {
 	set<const Lane*> newTargetLanes;

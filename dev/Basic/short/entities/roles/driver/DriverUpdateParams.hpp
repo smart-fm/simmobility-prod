@@ -247,6 +247,11 @@ public:
 	/// lanes,which are ok to change to
 	set<const Lane*> targetLanes;
 
+	std::string accSelect;
+	std::string debugInfo;
+
+	void buildDebugInfo();
+
 //	//perform incident response
 //	IncidentPerformer incidentPerformer;
 public:

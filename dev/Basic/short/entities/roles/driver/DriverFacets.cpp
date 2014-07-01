@@ -367,7 +367,20 @@ void sim_mob::DriverMovement::frame_tick_output() {
 	}
 
 	LogOut(
-			"(\"Driver\"" <<","<<p.now.frame() <<","<<getParent()->getId() <<",{" <<"\"xPos\":\""<<static_cast<int>(parentDriver->getCurrPosition().x) <<"\",\"yPos\":\""<<static_cast<int>(parentDriver->getCurrPosition().y) <<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI)) <<"\",\"length\":\""<<static_cast<int>(parentDriver->vehicle->getLengthCm()) <<"\",\"width\":\""<<static_cast<int>(parentDriver->vehicle->getWidthCm()) <<"\",\"curr-segment\":\""<<(inLane?fwdDriverMovement.getCurrLane()->getRoadSegment():0x0) <<"\",\"fwd-speed\":\""<<parentDriver->vehicle->getVelocity() <<"\",\"fwd-accel\":\""<<parentDriver->vehicle->getAcceleration() <<"\",\"mandatory\":\""<<incidentPerformer.getIncidentStatus().getChangedLane() <<addLine.str() <<"\"})"<<std::endl);
+			"(\"Driver\"" <<","<<
+			p.now.frame() <<","<<
+			getParent()->getId() <<",{" <<
+			"\"xPos\":\""<<static_cast<int>(parentDriver->getCurrPosition().x) <<
+			"\",\"yPos\":\""<<static_cast<int>(parentDriver->getCurrPosition().y) <<
+			"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI)) <<
+			"\",\"length\":\""<<static_cast<int>(parentDriver->vehicle->getLengthCm()) <<
+			"\",\"width\":\""<<static_cast<int>(parentDriver->vehicle->getWidthCm()) <<
+			"\",\"curr-segment\":\""<<(inLane?fwdDriverMovement.getCurrLane()->getRoadSegment():0x0) <<
+			"\",\"fwd-speed\":\""<<parentDriver->vehicle->getVelocity() <<
+			"\",\"fwd-accel\":\""<<parentDriver->vehicle->getAcceleration() <<
+			"\",\"info\":\""<<p.debugInfo <<
+			"\",\"mandatory\":\""<<incidentPerformer.getIncidentStatus().getChangedLane() <<addLine.str() <<
+			"\"})"<<std::endl);
 }
 
 bool sim_mob::DriverMovement::update_sensors(timeslice now) {
@@ -488,7 +501,7 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 				getCurrPolylineVector2().getEndX(),
 				getCurrPolylineVector2().getEndY());
 	}
-
+	params.buildDebugInfo();
 	return true;
 }
 

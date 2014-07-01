@@ -652,9 +652,10 @@ double sim_mob::DriverMovement::move(DriverUpdateParams& p) {
 //TODO check set lat vel?
 	double acc = p.newFwdAcc;
 
-	if (parentDriver->parent->GetId()==0 && parentDriver->getParams().now.frame()>=200 && parentDriver->getParams().now.frame()<=300)
+	if (parentDriver->parent->GetId()==0 && parentDriver->getParams().now.frame()>=200 && parentDriver->getParams().now.frame()<=275)
 	{acc = -3;}
-
+	if (parentDriver->parent->GetId()==0 && parentDriver->getParams().now.frame()>275 && parentDriver->getParams().now.frame()<=375)
+	{acc = 0;}
 //Update our chosen acceleration; update our position on the link.
 	parentDriver->vehicle->setAcceleration(
 			acc * METER_TO_CENTIMETER_CONVERT_UNIT);

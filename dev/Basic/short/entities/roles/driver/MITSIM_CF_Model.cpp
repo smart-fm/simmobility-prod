@@ -1039,7 +1039,11 @@ double sim_mob::MITSIM_CF_Model::calcCreateGapRate(DriverUpdateParams& p,
 	return p.driver->fwdAccel + 2.0 * (dx - dv * dt) / (dt * dt);
 }
 double sim_mob::MITSIM_CF_Model::waitExitLaneRate(DriverUpdateParams& p) {
-	double dx = p.dis2stop- 5;
+//	double dx = p.dis2stop- 5;
+	// dis2stop is distance to fwd vh or distance to end node
+
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	double dx = driverMvt->fwdDriverMovement.getDistToLinkEnd();
 
 	if(!p.getStatus(STATUS_CURRENT_OK) && dx < p.distanceToNormalStop)
 	{

@@ -1962,7 +1962,7 @@ int sim_mob::MITSIM_LC_Model::isThereLaneDrop(DriverUpdateParams& p,set<const La
 		// check current lane is most left lane and next segment lane size smaller than current lane index
 		// means has lane merge, need lane change
 		size_t currentSegmentLaneSize = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes().size();
-		if(driverMvt->fwdDriverMovement.getCurrSegment()->getLanes().at(currentSegmentLaneSize)->is_pedestrian_lane())
+		if(driverMvt->fwdDriverMovement.getCurrSegment()->getLanes().at(currentSegmentLaneSize-1)->is_pedestrian_lane())
 		{
 			// current segment has ped lane
 			currentSegmentLaneSize--;
@@ -1972,7 +1972,7 @@ int sim_mob::MITSIM_LC_Model::isThereLaneDrop(DriverUpdateParams& p,set<const La
 			// we are on most left lane
 			// check next segment lane size
 			size_t nextSegmentLaneSize = driverMvt->fwdDriverMovement.getNextSegment(true)->getLanes().size();
-			if(driverMvt->fwdDriverMovement.getNextSegment(true)->getLanes().at(nextSegmentLaneSize)->is_pedestrian_lane())
+			if(driverMvt->fwdDriverMovement.getNextSegment(true)->getLanes().at(nextSegmentLaneSize-1)->is_pedestrian_lane())
 			{
 				// next segment has ped lane
 				nextSegmentLaneSize--;

@@ -835,7 +835,32 @@ double sim_mob::DriverPathMover::getCurrentSegmentLengthCM()
 
 	return dis;
 }
+double sim_mob::DriverPathMover::getDistToLinkEnd()
+{
+	double res = getDisToCurrSegEndM();
+	if(currSegmentIt == fullPath.end()) {
+		return res;
+	}
+	std::vector<const sim_mob::RoadSegment*>::iterator start = currSegmentIt+1;
+	std::vector<const sim_mob::RoadSegment*>::iterator end =fullPath.end();
+	for (vector<const RoadSegment*>::const_iterator it = start; it != end; it++)
+	{
+		//Add all polylines in this Segment
+		const vector<Point2D>& polyLine = const_cast<RoadSegment*> (*it)->getLanes()[0]->getPolyline();
+		for (vector<Point2D>::const_iterator it2 = polyLine.begin(); (it2 + 1) != polyLine.end(); it2++)
+		{
+			res += dist(it2->getX(), it2->getY(), (it2 + 1)->getX(), (it2 + 1)->getY());
+		}
 
+		//Break if the next Segment isn't in this link.
+		if ((it + 1 == end) || ((*it)->getLink() != (*(it + 1))->getLink()))
+		{
+			break;
+		}
+	}
+
+	return res;
+}
 void sim_mob::DriverPathMover::shiftToNewPolyline(bool moveLeft)
 {
 

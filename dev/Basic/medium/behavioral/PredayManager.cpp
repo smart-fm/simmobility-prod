@@ -204,10 +204,14 @@ void updateVariablesByAddition(std::vector<CalibrationVariable>& calVarList, con
 {
 	if(calVarList.size() != gradientVector.size()) { throw std::runtime_error("cannot add vectors of different sizes"); }
 	size_t i=0;
+	double newVal = 0;
 	for(std::vector<CalibrationVariable>::iterator calVarIt=calVarList.begin(); calVarIt!=calVarList.end(); calVarIt++, i++)
 	{
 		CalibrationVariable& calVar = (*calVarIt);
-		calVar.setCurrentValue(calVar.getCurrentValue() + (scale*gradientVector[i]));
+		newVal = calVar.getCurrentValue() - (scale*gradientVector[i]);
+		if(newVal > calVar.getUpperLimit()) {calVar.setCurrentValue(calVar.getUpperLimit());}
+		else if(newVal < calVar.getLowerLimit()) {calVar.setCurrentValue(calVar.getLowerLimit());}
+		else { calVar.setCurrentValue(newVal); }
 	}
 }
 
@@ -222,10 +226,14 @@ void updateVariablesBySubtraction(std::vector<CalibrationVariable>& calVarList, 
 {
 	if(calVarList.size() != gradientVector.size()) { throw std::runtime_error("cannot subtract vectors of different sizes"); }
 	size_t i=0;
+	double newVal = 0;
 	for(std::vector<CalibrationVariable>::iterator calVarIt=calVarList.begin(); calVarIt!=calVarList.end(); calVarIt++, i++)
 	{
 		CalibrationVariable& calVar = (*calVarIt);
-		calVar.setCurrentValue(calVar.getCurrentValue() - (scale*gradientVector[i]));
+		newVal = calVar.getCurrentValue() - (scale*gradientVector[i]);
+		if(newVal < calVar.getLowerLimit()) {calVar.setCurrentValue(calVar.getLowerLimit());}
+		else if(newVal > calVar.getUpperLimit()) {calVar.setCurrentValue(calVar.getUpperLimit());}
+		else { calVar.setCurrentValue(newVal); }
 	}
 }
 

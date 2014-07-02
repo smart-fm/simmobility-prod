@@ -144,8 +144,6 @@ public:
 
 	/**
 	 * preday calibration function
-	 * Runs the spsa calibration algorithm
-	 * TODO: implement w-spsa when weight matrix is ready
 	 */
 	void calibratePreday();
 

@@ -420,7 +420,7 @@ void printVector(const std::string vecName, const std::vector<V>& vec)
 	ss << vecName << " - [";
 	for(typename std::vector<V>::const_iterator vIt=vec.begin(); vIt!=vec.end(); vIt++)
 	{
-		ss << "\t" << (*vIt);
+		ss << "," << (*vIt);
 	}
 	ss << "]" << std::endl;
 	Print() << ss.str();
@@ -1122,7 +1122,7 @@ void sim_mob::medium::PredayManager::computeObservationsVector(const std::vector
 
 void sim_mob::medium::PredayManager::log()
 {
-	logStream << "\n";
-	NullableOutputStream(logFile) << logStream.str();
+	logStream << std::endl;
+	NullableOutputStream(logFile) << logStream.str() << std::flush;
 	logStream.str(std::string());
 }

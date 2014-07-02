@@ -146,7 +146,7 @@ public:
 	//  it so that we can get the mid-term working. ~Seth
 	virtual Vehicle* getResource() { return vehicle; }
 
-private:
+public:
 //	//Sample stored data which takes reaction time into account.
 	size_t reacTime;
 	FixedDelayed<double> *perceivedFwdVel;

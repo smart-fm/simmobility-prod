@@ -534,7 +534,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	 }
 	}
 
-	if(p.now.frame() > 189 && p.parentId == 9){
+	if(p.now.frame() > 738 && p.parentId == 66509){
 			int i = 0;
 		}
 
@@ -904,6 +904,16 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p) {
 				if(color == Signal::Red)
 #endif
 				{
+					if(p.parentId == 66508)
+					{
+						int i=0;
+						Print() << "p.perceivedDistToTrafficSignal : "
+								<< p.perceivedDistToTrafficSignal << std::endl;
+//						Print() << "parentDriver->perceivedDistToTrafficSignal : "
+//								<< (p.driver->perceivedDistToTrafficSignal->can_sense() ?
+//										p.driver->perceivedDistToTrafficSignal->sense() : -1)
+//								<< std::endl;
+					}
 			double a = brakeToStop(p, dis);
 			if (a < minacc)
 				minacc = a;
@@ -1436,6 +1446,7 @@ double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(
 	double v = p.perceivedFwdVelocity / 100;
 	double dv = v - p.v_lead;
 	double epsilon_v = sim_mob::Math::DOUBLE_EPSILON;
+	if(v<epsilon_v) return 0;
 	double aNormalDec = p.normalDeceleration;
 
 	double a;
@@ -1474,15 +1485,16 @@ double sim_mob::MITSIM_CF_Model::accOfCarFollowing(DriverUpdateParams& p) {
 double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(DriverUpdateParams& p,
 		double targetSpeed, double maxLaneSpeed) {
 	double vn = p.perceivedFwdVelocity / 100;
-	if (vn < targetSpeed) {
-		return (vn < maxLaneSpeed) ? (p.maxAcceleration+getAccAddon()) : 0;
-	} else if (vn > targetSpeed) {
-		//feet2Unit(Utils::nRandom(0, CF_parameters[i].stddev));
-		double acc = p.FFAccParamsBeta * (targetSpeed-vn) + getDeclAddon();
+	if (vn < targetSpeed - minSpeed) {
+		double acc = p.FFAccParamsBeta * (targetSpeed-vn); //+ getAccAddon();
 		return acc;
+	} else if (vn > targetSpeed + minSpeed) {
+		//feet2Unit(Utils::nRandom(0, CF_parameters[i].stddev));
+//		double acc = p.FFAccParamsBeta * (targetSpeed-vn) + getDeclAddon();
+		return p.normalDeceleration;
 	}
 	//If equal:
-	return (vn < maxLaneSpeed) ? p.maxAcceleration : 0;
+	return 0;
 }
 
 double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(DriverUpdateParams& p,

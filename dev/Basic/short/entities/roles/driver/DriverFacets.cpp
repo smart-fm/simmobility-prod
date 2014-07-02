@@ -2994,13 +2994,13 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 				p.trafficSignalStopDistance);
 	}
 
-	Print() << "p.trafficSignalStopDistance : " << p.trafficSignalStopDistance
-			<< std::endl;
-	Print() << "p.perceivedDistToTrafficSignal : "
-			<< p.perceivedDistToTrafficSignal << std::endl;
-	Print() << "parentDriver->perceivedDistToTrafficSignal : "
-			<< (parentDriver->perceivedDistToTrafficSignal->can_sense() ?
-					parentDriver->perceivedDistToTrafficSignal->sense() : -1)
-			<< std::endl;
+//	Print() << "p.trafficSignalStopDistance : " << p.trafficSignalStopDistance
+//			<< std::endl;
+//	Print() << "p.perceivedDistToTrafficSignal : "
+//			<< p.perceivedDistToTrafficSignal << std::endl;
+//	Print() << "parentDriver->perceivedDistToTrafficSignal : "
+//			<< (parentDriver->perceivedDistToTrafficSignal->can_sense() ?
+//					parentDriver->perceivedDistToTrafficSignal->sense() : -1)
+//			<< std::endl;
 }
 }

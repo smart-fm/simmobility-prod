@@ -141,13 +141,13 @@ sim_mob::medium::CalibrationStatistics::CalibrationStatistics(const boost::unord
 		addToStopCountStats(4, boost::lexical_cast<double>(observedValuesMap.at(NUM_4PLUS_STOPS)));
 
 		addToTravelDistanceStats(0, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_0_5_KM)));
-		addToTravelDistanceStats(1, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_5_10_KM)));
-		addToTravelDistanceStats(2, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_10_15_KM)));
-		addToTravelDistanceStats(3, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_15_20_KM)));
-		addToTravelDistanceStats(4, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_20_25_KM)));
-		addToTravelDistanceStats(5, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_25_30_KM)));
-		addToTravelDistanceStats(6, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_30_40_KM)));
-		addToTravelDistanceStats(7, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_40PLUS_KM)));
+		addToTravelDistanceStats(5, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_5_10_KM)));
+		addToTravelDistanceStats(10, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_10_15_KM)));
+		addToTravelDistanceStats(15, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_15_20_KM)));
+		addToTravelDistanceStats(20, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_20_25_KM)));
+		addToTravelDistanceStats(25, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_25_30_KM)));
+		addToTravelDistanceStats(30, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_30_40_KM)));
+		addToTravelDistanceStats(40, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_40PLUS_KM)));
 
 		setTourModeSharePct(0, boost::lexical_cast<double>(observedValuesMap.at(MODE_BUS_TOUR)));
 		setTourModeSharePct(1, boost::lexical_cast<double>(observedValuesMap.at(MODE_MRT_TOUR)));
@@ -195,6 +195,7 @@ void sim_mob::medium::CalibrationStatistics::getAllStatistics(std::vector<double
 
 	outStatistics.insert(outStatistics.end(), numPersonsWithTourCount.begin(), numPersonsWithTourCount.end());
 	outStatistics.insert(outStatistics.end(), numToursWithStopCount.begin(), numToursWithStopCount.end());
+	outStatistics.insert(outStatistics.end(), numTripsWithDistance.begin(), numTripsWithDistance.end());
 	if(isSimulated)
 	{
 		computePctVector(numToursWithMode, totalTours, tourPctWithMode);
@@ -207,7 +208,6 @@ void sim_mob::medium::CalibrationStatistics::getAllStatistics(std::vector<double
 		outStatistics.insert(outStatistics.end(), tourPctWithMode.begin(), tourPctWithMode.end());
 		outStatistics.insert(outStatistics.end(), tripPctWithMode.begin(), tripPctWithMode.end());
 	}
-	outStatistics.insert(outStatistics.end(), numTripsWithDistance.begin(), numTripsWithDistance.end());
 }
 
 bool sim_mob::medium::CalibrationStatistics::addToTourCountStats(size_t numTours, double toAdd)

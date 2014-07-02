@@ -109,9 +109,15 @@ void BusDriverMovement::frame_tick() {
 	if(params.elapsedSeconds < params.secondsInTick) {
 		DriverMovement::frame_tick();
 	}
+	else
+	{
+		//currLane = nullptr;
+		pathMover.setPositionInSegment(0);
+		setParentData(params);
+	}
 	std::stringstream logout;
 	sim_mob::Person* person = getParent();
-	if(person->getCurrSegStats()) {
+	if(person->getCurrSegStats() && person->getCurrLane()) {
 		logout << "(BusDriver"
 				<<","<<person->getId()
 				<<","<<parentBusDriver->getParams().now.frame()
@@ -323,6 +329,17 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				DailyTime startTm = ConfigManager::GetInstance().FullConfig().simStartTime();
 				DailyTime current(params.now.ms()+converToMilliseconds(params.elapsedSeconds)+startTm.getValue());
 				parentBusDriver->openBusDoors(current.toString(), stopAg);
+				double remainingTime = params.secondsInTick - params.elapsedSeconds;
+				if(parentBusDriver->waitingTimeAtbusStop > remainingTime) {
+					parentBusDriver->waitingTimeAtbusStop -= remainingTime;
+					params.elapsedSeconds = params.secondsInTick;
+				}
+				else {
+					params.elapsedSeconds += parentBusDriver->waitingTimeAtbusStop;
+					parentBusDriver->waitingTimeAtbusStop = 0;
+					parentBusDriver->closeBusDoors(stopAg);
+					routeTracker.updateNextStop();
+				}
 			}
 			else
 			{

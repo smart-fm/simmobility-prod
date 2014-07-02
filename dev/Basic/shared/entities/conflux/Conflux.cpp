@@ -67,7 +67,16 @@ sim_mob::Conflux::~Conflux()
 }
 
 sim_mob::Conflux::PersonProps::PersonProps(const sim_mob::Person* person) {
-	role = person->getRole();
+	sim_mob::Role* role = person->getRole();
+	isMoving = true;
+	roleType = 0;
+	if(role ){
+		if(role->getResource()){
+			isMoving = role->getResource()->isMoving();
+		}
+		roleType = role->roleType;
+	}
+
 	lane = person->getCurrLane();
 	isQueuing = person->isQueuing;
 	const sim_mob::SegmentStats* currSegStats = person->getCurrSegStats();
@@ -224,18 +233,18 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person)
 
 	//perform person's role related handling
 	//activity role specific handling
-	if (afterUpdate.role->roleType == sim_mob::Role::RL_PEDESTRIAN)
+	if (afterUpdate.roleType == sim_mob::Role::RL_PEDESTRIAN)
 	{
 		return;
 	}
-	else if (afterUpdate.role->roleType == sim_mob::Role::RL_WAITBUSACTITITY)
+	else if (afterUpdate.roleType == sim_mob::Role::RL_WAITBUSACTITITY)
 	{
 		return;
 	}
-	else if (afterUpdate.role->roleType == sim_mob::Role::RL_ACTIVITY)
+	else if (afterUpdate.roleType == sim_mob::Role::RL_ACTIVITY)
 	{
 		// if role is ActivityPerformer after update
-		if (beforeUpdate.role && beforeUpdate.role->roleType == sim_mob::Role::RL_ACTIVITY)
+		if (beforeUpdate.roleType == sim_mob::Role::RL_ACTIVITY)
 		{
 			// if the role was ActivityPerformer before the update as well, do
 			// nothing. It is also possible that the person has changed from
@@ -257,7 +266,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person)
 	}
 	else
 	{ // if the person is in a Trip/SubTrip after update
-		if (beforeUpdate.role && beforeUpdate.role->roleType == sim_mob::Role::RL_ACTIVITY)
+		if (beforeUpdate.roleType == sim_mob::Role::RL_ACTIVITY)
 		{
 			// if the person has changed from an Activity to the current Trip/SubTrip during this tick,
 			// remove this person from the activityPerformers list
@@ -266,10 +275,10 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person)
 		}
 	}
 	//BusDriver role specific handling
-	if (afterUpdate.role->roleType == sim_mob::Role::RL_BUSDRIVER)
+	if (afterUpdate.roleType == sim_mob::Role::RL_BUSDRIVER)
 	{
 		// if role is bus driver
-		if (beforeUpdate.role->getResource()->isMoving() && !afterUpdate.role->getResource()->isMoving())
+		if (beforeUpdate.isMoving && !afterUpdate.isMoving)
 		{
 			//if the vehicle stopped moving during the latest update (which
 			//indicates that the bus is serving a stop) we remove the bus from
@@ -280,7 +289,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person)
 			beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
 			return;
 		}
-		else if (!beforeUpdate.role->getResource()->isMoving() && afterUpdate.role->getResource()->isMoving())
+		else if (!beforeUpdate.isMoving && afterUpdate.isMoving)
 		{
 			//if the vehicle has started moving during the latest update (which
 			//indicates that the bus has finished serving a stop and is getting
@@ -289,8 +298,10 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person)
 			//NOTE: the bus driver we add here would have already been removed
 			//from the BusStopAgent corresponding to the stop served by the
 			//bus driver.
-			afterUpdate.segStats->addAgent(afterUpdate.lane, person);
-			return;
+			if(afterUpdate.lane){
+				afterUpdate.segStats->addAgent(afterUpdate.lane, person);
+				return;
+			}
 		}
 	}
 

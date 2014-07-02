@@ -87,20 +87,20 @@ void PT_Statistics::HandleMessage(Message::MessageType type,
 
 		break;
 	}
-	case STRORE_WAITING_NUM: {
-		const WaitingNumMessage& msg = MSG_CAST(WaitingNumMessage,
+	case STRORE_WAITING_AMOUNT: {
+		const WaitingAmountMessage& msg = MSG_CAST(WaitingAmountMessage,
 				message);
 
 		std::map<std::string, std::vector<waitingAmountStats> >::iterator it =
-				waitingNums.find(msg.busStopNo);
-		if (it==waitingNums.end()) {
-			waitingNums[msg.busStopNo] = std::vector<waitingAmountStats>();
+				waitingAmounts.find(msg.busStopNo);
+		if (it==waitingAmounts.end()) {
+			waitingAmounts[msg.busStopNo] = std::vector<waitingAmountStats>();
 		}
 
 		waitingAmountStats stat;
 		stat.timeSlice = msg.timeSlice;
-		stat.waitingAmount = msg.waitingNum;
-		waitingNums[msg.busStopNo].push_back(stat);
+		stat.waitingAmount = boost::lexical_cast<std::string>(msg.waitingNum);
+		waitingAmounts[msg.busStopNo].push_back(stat);
 	}
 	default:
 		break;
@@ -148,7 +148,7 @@ void PT_Statistics::PrintStatistics() {
 				waitingTimeList.begin();
 		while (itWaitingTime != waitingTimeList.end()) {
 			Print() << "Stop: " << stopNo << "\t\t";
-			Print() << "Id: " << std::setfill('0') << std::setw(5)
+			Print() << "Person: " << std::setfill('0') << std::setw(5)
 					<< itWaitingTime->first << "\t";
 			Print() << "Waiting: " << itWaitingTime->second.waitingTime << "\t";
 			Print() << "FailedBoarding: "
@@ -159,8 +159,8 @@ void PT_Statistics::PrintStatistics() {
 	}
 
 	std::map<std::string, std::vector<waitingAmountStats> >::iterator itWaitingNum =
-			waitingNums.begin();
-	for (; itWaitingNum != waitingNums.end(); itWaitingNum++) {
+			waitingAmounts.begin();
+	for (; itWaitingNum != waitingAmounts.end(); itWaitingNum++) {
 		std::vector<waitingAmountStats>& stat = itWaitingNum->second;
 		std::string stopNo = itWaitingNum->first;
 		Print() << "people waiting number at bus stop " << stopNo << std::endl;
@@ -169,7 +169,7 @@ void PT_Statistics::PrintStatistics() {
 			Print() << "Stop: " << stopNo << "\t\t";
 			Print() << "TimeSlice: " << std::setfill('0') << std::setw(5)
 					<< (*it).timeSlice << "\t";
-			Print() << "WaitingNum: " << std::setfill('0') << std::setw(5)
+			Print() << "WaitingAmount: " << std::setfill('0') << std::setw(5)
 					<< (*it).waitingAmount << "\t";
 			Print() << std::endl;
 			it++;
@@ -202,7 +202,8 @@ void PT_Statistics::StoreStatistics() {
 					outputFile << stopNo << ",";
 					outputFile << itArrivalTm->busLine << ",";
 					outputFile << itArrivalTm->tripId << ",";
-					outputFile << itArrivalTm->arrivalTime << std::endl;
+					outputFile << itArrivalTm->arrivalTime << ",";
+					outputFile << itArrivalTm->dwellTime << std::endl;
 					itArrivalTm++;
 				}
 			}
@@ -229,10 +230,9 @@ void PT_Statistics::StoreStatistics() {
 				while (itWaitingTime != waitingTimeList.end()) {
 					outputFile << stopNo << ",";
 					outputFile << itWaitingTime->first << ",";
-					/*outputFile << itWaitingTime->second.waitingTime << ",";
+					outputFile << itWaitingTime->second.waitingTime << ",";
 					outputFile << itWaitingTime->second.failedBoardingTime
-							<< std::endl;*/
-					outputFile << itWaitingTime->second.waitingTime << std::endl;
+							<< std::endl;
 					itWaitingTime++;
 				}
 			}
@@ -246,12 +246,10 @@ void PT_Statistics::StoreStatistics() {
 		std::ofstream outputFile(filenameOfWaitingAmount.c_str());
 		if (outputFile.is_open()) {
 			std::map<std::string, std::vector<waitingAmountStats> >::iterator itWaitingNum =
-					waitingNums.begin();
-			for (; itWaitingNum != waitingNums.end(); itWaitingNum++) {
+					waitingAmounts.begin();
+			for (; itWaitingNum != waitingAmounts.end(); itWaitingNum++) {
 				std::vector<waitingAmountStats>& stat = itWaitingNum->second;
 				std::string stopNo = itWaitingNum->first;
-				Print() << "people waiting number at bus stop " << stopNo
-						<< std::endl;
 				std::vector<waitingAmountStats>::iterator it = stat.begin();
 				while (it != stat.end()) {
 					outputFile << stopNo << ",";

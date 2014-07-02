@@ -230,6 +230,19 @@ std::deque<sim_mob::Person*> SegmentStats::getPersons()
 
 void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 {
+	//And let's not forget the bus drivers serving stops in this segment stats
+	//Bus drivers go in the front of the list, because bus stops are (virtually)
+	//located at the end of the segment
+	for (BusStopList::const_reverse_iterator stopIt = busStops.rbegin(); stopIt != busStops.rend(); stopIt++)
+	{
+		const sim_mob::BusStop* stop = *stopIt;
+		PersonList& driversAtStop = busDrivers.at(stop);
+		for (PersonList::iterator pIt = driversAtStop.begin(); pIt != driversAtStop.end(); pIt++)
+		{
+			mergedPersonList.push_front(*pIt);
+		}
+	}
+
 	int capacity = (int) (ceil(roadSegment->getCapacityPerInterval()));
 	std::vector<PersonList::iterator> iteratorLists;
 
@@ -295,18 +308,6 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 		i++;
 	}
 
-	//And let's not forget the bus drivers serving stops in this segment stats
-	//Bus drivers go in the front of the list, because bus stops are (virtually)
-	//located at the end of the segment
-	for (BusStopList::const_reverse_iterator stopIt = busStops.rbegin(); stopIt != busStops.rend(); stopIt++)
-	{
-		const sim_mob::BusStop* stop = *stopIt;
-		PersonList& driversAtStop = busDrivers.at(stop);
-		for (PersonList::iterator pIt = driversAtStop.begin(); pIt != driversAtStop.end(); pIt++)
-		{
-			mergedPersonList.push_front(*pIt);
-		}
-	}
 }
 
 std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const sim_mob::Lane* lane) const
@@ -1095,7 +1096,7 @@ sim_mob::Person* SegmentStats::dequeue(const sim_mob::Person* person, const sim_
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt == laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		return nullptr;
 	}
 	sim_mob::Person* dequeuedPerson = laneIt->second->dequeue(person, isQueuingBfrUpdate);
 	if (dequeuedPerson)
@@ -1106,7 +1107,6 @@ sim_mob::Person* SegmentStats::dequeue(const sim_mob::Person* person, const sim_
 	{
 		printAgents();
 		debugMsgs << "Error: Person " << person->getId() << " was not found in lane " << lane->getLaneID() << std::endl;
-		throw std::runtime_error(debugMsgs.str());
 	}
 	return dequeuedPerson;
 }
@@ -1118,7 +1118,7 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 	{
 		std::stringstream debugMsgs;
 		debugMsgs << "Trying to dequeue Person " << person->getId() << " from empty lane." << std::endl;
-		throw std::runtime_error(debugMsgs.str());
+		return nullptr;
 	}
 	sim_mob::Person* p = nullptr;
 	if (person == laneAgents.front())

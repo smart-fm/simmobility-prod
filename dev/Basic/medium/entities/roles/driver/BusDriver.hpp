@@ -109,8 +109,6 @@ private:
 	Shared<int> requestMode;
 	/**final waiting time at bus stop*/
 	double waitingTimeAtbusStop;
-	/**record whether or not open the door*/
-	bool isOpenDoor;
 
 	/**
 	 * alight passengers when those want to alight at next bus stop

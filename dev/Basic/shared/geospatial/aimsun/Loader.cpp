@@ -300,20 +300,22 @@ bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 		//create a query that select all the pathsets (with the given pathset id) and then left join it with the temporary table
 		//for now this is the fastest way to exclude the paths which containe the excluded segments
 		sql << excludeTable;
+		std::cout << excludeTable << std::endl;
 		sql.commit();
 		selectQuery << "select * from \"" << singlePathTableName << "\" "
 					<< " left join exclusion on (\"" << singlePathTableName << "\".\"ID\" like  exclusion.sectionid) "
-					<< " where \"PATHSET_ID\" =" + pathset_id;
+					<< " where \"PATHSET_ID\" =" + pathset_id << " and exclusion.sectionid is null";
+		std::cout << selectQuery.str() << std::endl;
 	}
 	else{
 		selectQuery << "select * from \"" << singlePathTableName << "\" where \"PATHSET_ID\" =" + pathset_id ;
 	}
-
+	std::cout << excludeTable << std::endl;
 //	//debug
 	//std::cout << "selectQuery for excluded sections["  << selectQuery.str() << "]" << excludedRS.size() << std::endl;
 	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare << selectQuery.str());
 	if(rs.begin() == rs.end()){
-		std::cout << "the above selectQuery has no results" << std::endl;
+		std::cout << "the above selectQuery has no results" << (excludedRS.size() ? "ex" : "") << std::endl;
 	}
 		int i=0;
 		for (soci::rowset<sim_mob::SinglePath>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {

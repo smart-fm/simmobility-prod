@@ -556,9 +556,9 @@ bool DriverMovement::advanceMovingVehicle(sim_mob::medium::DriverUpdateParams& p
 	//Therefore currSegStats cannot be NULL. It is safe to use it in this function.
 	double velocity = currSegStats->getSegSpeed(true);
 	double output = getOutputCounter(currLane, currSegStats);
-	if(output <= 0){
-		Print() << "Tick: " << params.now.frame() << "  : OutputCounter is <=0 " << std::endl;
-	}
+//	if(output <= 0){
+//		Print() << "Tick: " << params.now.frame() << "  : OutputCounter is <=0 " << std::endl;
+//	}
 	// add driver to queue if required
 	double laneQueueLength = getQueueLength(currLane);
 	if (laneQueueLength >  currSegStats->getLength())
@@ -1009,12 +1009,12 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 	if(!wantReRoute()){
 		return;
 	}
-
+	Print() << numReRoute << "Rerouting Points were identified" << std::endl;
 	/*step-3:get a new path*/
 	std::map<const sim_mob::Node* , std::vector<WayPoint> > newPaths ; //stores new paths starting from the re-routing points
 	typedef std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >	DetourOption ; //for 'deTourOptions' container
 	std::set<const sim_mob::RoadSegment*> excludeRS = std::set<const sim_mob::RoadSegment*>();
-	excludeRS.insert((*msg.stats.begin())->getRoadSegment());
+	excludeRS.insert((*msg.stats.begin())->getRoadSegment());//all stats in the container refer to the same rs.
 	//	get a 'copy' of the person's current subtrip
 	SubTrip subTrip = *(getParent()->currSubTrip);
 
@@ -1073,12 +1073,14 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 	int cnt = roll_die(0,deTourOptions.size() - 1);
 	int dbgIndx = cnt;
 	while(cnt){ it++; --cnt;}
-	getMesoPathMover().setPath(it->second);
+	//debug
 	Print() << "----------------------------------\nOriginal path:" << std::endl;
 	getMesoPathMover().printPath(getMesoPathMover().getPath());
 	Print() << "Detour option chosen[" << dbgIndx << "] : " << it->first << std::endl;
 	getMesoPathMover().printPath(it->second);
 	Print() << "----------------------------------" << std::endl;
+	//debug...
+	getMesoPathMover().setPath(it->second);
 }
 
 void DriverMovement::HandleMessage(messaging::Message::MessageType type,

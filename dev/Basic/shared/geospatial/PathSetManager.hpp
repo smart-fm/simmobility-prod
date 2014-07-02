@@ -254,8 +254,8 @@ public:
 	bool isUseCacheMode() { return isUseCache; }
 	double getUtilityBySinglePath(sim_mob::SinglePath* sp);
 	std::vector<WayPoint> generateBestPathChoice2(const sim_mob::SubTrip* st);
-	std::vector<WayPoint> generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler, const std::set<const sim_mob::RoadSegment*> & exclude_seg=std::set<const sim_mob::RoadSegment*>(), bool isUseCache = true, bool isUseDB = true);
-	std::vector<WayPoint> generateBestPathChoiceMT(const sim_mob::Person * per, const sim_mob::SubTrip* st, const std::set<const sim_mob::RoadSegment*> & exclude_seg=std::set<const sim_mob::RoadSegment*>(), bool isUseCache = true, bool isUseDB = true);
+	std::vector<WayPoint> generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler, const std::set<const sim_mob::RoadSegment*> & exclude_seg=std::set<const sim_mob::RoadSegment*>(), bool isUseCache = false, bool isUseDB = true);
+	std::vector<WayPoint> generateBestPathChoiceMT(const sim_mob::Person * per, const sim_mob::SubTrip* st, const std::set<const sim_mob::RoadSegment*> & exclude_seg=std::set<const sim_mob::RoadSegment*>(), bool isUseCache = false, bool isUseDB = true);
 	bool generateAllPathChoicesMT(PathSet* ps, Profiler & personProfiler, const std::set<const sim_mob::RoadSegment*> & exclude_seg=std::set<const sim_mob::RoadSegment*>());
 	void generateTravelTimeSinglePathes(const sim_mob::Node *fromNode,
 			   const sim_mob::Node *toNode,

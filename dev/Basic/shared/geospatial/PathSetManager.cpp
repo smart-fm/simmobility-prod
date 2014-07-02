@@ -32,8 +32,12 @@ sim_mob::Profiler sim_mob::PathSetManager::profiler(false, "main_profiler","path
 
 PathSetParam *sim_mob::PathSetParam::instance_ = NULL;
 //todo to be configurable somehow
-const std::string pathSetTableName = "PathSet_Scaled_HITS_distinctODs";
-const std::string singlePathTableName = "SinglePath_Scaled_HITS_distinctODs";
+//const std::string pathSetTableName = "PathSet_Scaled_HITS_distinctODs";
+//const std::string singlePathTableName = "SinglePath_Scaled_HITS_distinctODs";
+
+
+const std::string pathSetTableName = "PathSet_SH_V";
+const std::string singlePathTableName = "SinglePath_SH_V";
 
 sim_mob::PathSetParam* sim_mob::PathSetParam::getInstance()
 {
@@ -838,7 +842,7 @@ std::vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const si
 	}
 	Profiler profiler;
 	//call the default method
-	return generateBestPathChoiceMT(st, profiler, exclude_seg, isUseCache, isUseDB);
+	return generateBestPathChoiceMT(st, profiler, exclude_seg, false, isUseDB);
 }
 
 vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler, const std::set<const sim_mob::RoadSegment*> & exclude_seg , bool isUseCache, bool isUseDB)

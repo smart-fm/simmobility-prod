@@ -146,7 +146,7 @@ void Utils::convertStringToArray(std::string& str,std::vector<double>& array)
 //	vector<double> c;
 
 	// remove
-	char chars[] = "#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ()-,;";
+	char chars[] = "#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ(),;";
 	for (unsigned int i = 0; i < strlen(chars); ++i)
 	{
 		str.erase (std::remove(str.begin(), str.end(), chars[i]), str.end());

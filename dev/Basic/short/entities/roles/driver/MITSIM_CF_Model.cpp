@@ -152,9 +152,13 @@ void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p) {
 	ParameterManager::Instance()->param(modelName, "Car_following_acceleration_add_on", str,
 				string("-1.3564 -0.8547 -0.5562 -0.3178 -0.1036 0.1036 0.3178 0.5562 0.8547 1.3564"));
 	sim_mob::Utils::convertStringToArray(str,accAddon);
+	// decl add on
+	ParameterManager::Instance()->param(modelName, "Car_following_deceleration_add_on", str,
+					string("-1.3187 -0.8309 -0.5407 -0.3089 -0.1007 0.1007 0.3089 0.5407 0.8309 1.3187"));
+	sim_mob::Utils::convertStringToArray(str,declAddon);
 	// max deceleration
-	ParameterManager::Instance()->param(modelName, "Max_deceleration_car1",
-			decelerationStr, string("16.0   14.5   13.0   11.0   10.0"));
+	ParameterManager::Instance()->param(modelName, "max_deceleration_car1",
+			decelerationStr, string("-16.0   -14.5   -13.0   -11.0   -9.0"));
 	makeSpeedIndex(Vehicle::CAR, speedScalerStr, decelerationStr,
 			maxDecelerationIndex, maxDecelerationUpperBound);
 	ParameterManager::Instance()->param(modelName, "max_deceleration_scale",
@@ -237,10 +241,10 @@ void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p) {
 			visibilityDistance, 10.0);
 
 	// merge model
-	ParameterManager::Instance()->param(modelName,
-				"Merging_Model", str,
-				string("10 20 8 0.2"));
-	sim_mob::Utils::convertStringToArray(str,accAddon);
+//	ParameterManager::Instance()->param(modelName,
+//				"Merging_Model", str,
+//				string("10 20 8 0.2"));
+//	sim_mob::Utils::convertStringToArray(str,accAddon);
 
 	//FF Acc Params
 	ParameterManager::Instance()->param(modelName,
@@ -463,6 +467,12 @@ double sim_mob::MITSIM_CF_Model::getAccAddon()
 	double res = Utils::generateFloat(accAddon[scaleNo-1],accAddon[scaleNo]);
 	return res;//accAddon[scaleNo];
 }
+double sim_mob::MITSIM_CF_Model::getDeclAddon()
+{
+	int scaleNo = Utils::generateInt(1, declAddon.size() - 1);
+	double res = Utils::generateFloat(declAddon[scaleNo-1],declAddon[scaleNo]);
+	return res;
+}
 double sim_mob::MITSIM_CF_Model::getBufferUppder() {
 	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
 	int scaleNo = Utils::generateInt(1, hBufferUpperScale.size() - 1);
@@ -524,7 +534,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	 }
 	}
 
-	if(p.now.frame() > 500 && p.parentId == 1){
+	if(p.now.frame() > 189 && p.parentId == 9){
 			int i = 0;
 		}
 
@@ -639,7 +649,8 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 			&& p.perceivedFwdVelocityOfFwdCar / 100 < 1.0) {
 		return p.maxDeceleration * 4.0;
 	}
-	if (p.space > 0) {
+//	if (p.space > 0.1)
+	{
 		if (!nv.exists()) {
 			return accOfFreeFlowing(p, p.targetSpeed, p.maxLaneSpeed);
 		}
@@ -694,6 +705,9 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 //			}
 //		}
 	}
+//	else {
+//		res = p.maxDeceleration;
+//	}
 	return res;
 }
 double sim_mob::MITSIM_CF_Model::calcCarFollowingRate(DriverUpdateParams& p)
@@ -1461,13 +1475,12 @@ double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(DriverUpdateParams& p,
 		double targetSpeed, double maxLaneSpeed) {
 	double vn = p.perceivedFwdVelocity / 100;
 	if (vn < targetSpeed) {
-		return (vn < maxLaneSpeed) ? p.maxAcceleration : 0;
+		return (vn < maxLaneSpeed) ? (p.maxAcceleration+getAccAddon()) : 0;
 	} else if (vn > targetSpeed) {
-//		return 0;
-		double acc = p.FFAccParamsBeta * (targetSpeed-vn);
+		//feet2Unit(Utils::nRandom(0, CF_parameters[i].stddev));
+		double acc = p.FFAccParamsBeta * (targetSpeed-vn) + getDeclAddon();
 		return acc;
 	}
-
 	//If equal:
 	return (vn < maxLaneSpeed) ? p.maxAcceleration : 0;
 }

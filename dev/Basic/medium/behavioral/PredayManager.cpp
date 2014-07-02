@@ -1031,8 +1031,8 @@ void sim_mob::medium::PredayManager::processPersons(PersonList::iterator firstPe
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
 		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
 		predaySystem.planDay();
-		// predaySystem.outputPredictionsToMongo();
-		// if(outputTripchains) { predaySystem.outputTripChainsToPostgreSQL(zoneNodeMap, tcDao); }
+		predaySystem.outputPredictionsToMongo();
+		if(outputTripchains) { predaySystem.outputTripChainsToPostgreSQL(zoneNodeMap, tcDao); }
 		if(consoleOutput) { predaySystem.printLogs(); }
 	}
 

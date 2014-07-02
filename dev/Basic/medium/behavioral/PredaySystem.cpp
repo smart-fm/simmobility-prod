@@ -1353,7 +1353,7 @@ void sim_mob::medium::PredaySystem::updateStatistics(CalibrationStatistics& stat
 	for(TourList::const_iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++)
 	{
 		const Tour* tour = (*tourIt);
-		statsCollector.addToStopCountStats(tour->stops.size(), householdFactor);
+		statsCollector.addToStopCountStats(tour->stops.size()-1, householdFactor);
 		statsCollector.addToTourModeShareStats(tour->getTourMode(), householdFactor);
 		const StopList& stops = tour->stops;
 		int origin = personParams.getHomeLocation();

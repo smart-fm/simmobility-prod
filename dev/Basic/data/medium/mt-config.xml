@@ -19,7 +19,7 @@
         		<pedestrian_walk_speed value="135"/>
         		
         		<!-- default capacity value -->
-        		<bus_default_capacity value="70"/>
+        		<bus_default_capacity value="80"/>
         		
         		<!-- these parameters are used to assign filename for the storage of statistics -->   
         		<!-- if the value is empty, no output file is generated, otherwise store to csv file -->     

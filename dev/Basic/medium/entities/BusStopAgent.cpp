@@ -136,6 +136,7 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 		itWaitingPeople++;
 	}
 
+
 	return UpdateStatus::Continue;
 }
 

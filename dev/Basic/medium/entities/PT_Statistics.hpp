@@ -89,7 +89,7 @@ private:
     /**store waiting time at bus stop. bus stop No. is key*/
     std::map<std::string, waittingTimeStats*> personWaitingTime;
     /**store waiting number at each bus stop */
-    std::map<std::string, std::vector<waitingAmountStats> > waitingNums;
+    std::map<std::string, std::vector<waitingAmountStats> > waitingAmounts;
     static PT_Statistics* instance;
  };
 

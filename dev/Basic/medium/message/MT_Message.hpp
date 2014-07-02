@@ -29,7 +29,7 @@ enum PublicTransitMessage {
 	BUS_DEPARTURE,
 	STORE_BUS_ARRIVAL,
 	STORE_PERSON_WAITING,
-	STRORE_WAITING_NUM
+	STRORE_WAITING_AMOUNT
 };
 
 /**
@@ -63,12 +63,12 @@ public:
 	unsigned int sequenceNo;
 };
 
-class WaitingNumMessage: public messaging::Message {
+class WaitingAmountMessage: public messaging::Message {
 public:
-	WaitingNumMessage(const std::string& stopNo, const std::string& timeSlice, unsigned int waitingNum) :
+	WaitingAmountMessage(const std::string& stopNo, const std::string& timeSlice, unsigned int waitingNum) :
 			busStopNo(stopNo), timeSlice(timeSlice), waitingNum(waitingNum) {
 	}
-	virtual ~WaitingNumMessage() {
+	virtual ~WaitingAmountMessage() {
 	}
 	std::string timeSlice;
 	std::string busStopNo;

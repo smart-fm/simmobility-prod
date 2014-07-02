@@ -17,6 +17,7 @@
 #include "entities/PT_Statistics.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "util/DwellTimeCalc.hpp"
+#include "util/Utils.hpp"
 #include "config/MT_Config.hpp"
 
 using namespace sim_mob;
@@ -50,7 +51,7 @@ sim_mob::medium::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat,
   visitedBusStopSequenceNo(mtxStrat, -1), arrivalTime(mtxStrat, 0.0),
   dwellTime(mtxStrat, 0.0), visitedBusTripSequenceNo(mtxStrat, 0),
   visitedBusLine(mtxStrat, "0"), holdingTime(mtxStrat, 0.0),
-  waitingTimeAtbusStop(0.0), isOpenDoor(false)
+  waitingTimeAtbusStop(0.0)
 {}
 
 sim_mob::medium::BusDriver::~BusDriver() {}
@@ -171,10 +172,6 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 		throw std::runtime_error("openBusDoors(): NusStopAgent is NULL");
 	}
 
-	if(isOpenDoor){
-		return;
-	}
-
 	/* handling bus arrival should ideally take place by sending an instantaneous
 	 * message, but it is not guaranteed that the bus driver and the bus stop agent
 	 * will be in the same thread context. If the bus driver happens to be in the
@@ -192,7 +189,7 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 	unsigned int numBoarding = busStopAgent->getBoardingNum(this);
 
 	unsigned int totalNumber = numAlighting + numBoarding;
-	if(totalNumber==0){
+	/*if(totalNumber==0){
 		waitingTimeAtbusStop = 0.0;
 	}
 	else {
@@ -205,6 +202,14 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 		} else {
 			waitingTimeAtbusStop = sim_mob::calculateDwellTime(totalNumber);
 		}
+	}*/
+
+	if(waitingTimeAtbusStop==0.0){
+		float secondPer = 2.5;
+		float fixTime = Utils::generateFloat(2,10);
+		int boardNum = std::max(numAlighting, numBoarding);
+		waitingTimeAtbusStop = fixTime+boardNum*secondPer;
+		waitingTimeAtbusStop = 22.0;
 	}
 
 	DailyTime dwellTime( converToMilliseconds(waitingTimeAtbusStop) );

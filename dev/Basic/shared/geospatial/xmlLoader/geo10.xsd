@@ -134,21 +134,7 @@
     </xs:sequence>
   </xs:complexType>
   
-  <xs:complexType name="new_connector_t">
-    <xs:sequence>
-      <xs:element name="laneFrom" type="xs:unsignedLong" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="laneTo_Left" type="xs:unsignedLong" minOccurs="0" maxOccurs="1"/>      
-      <xs:element name="laneTo_Center" type="xs:unsignedLong" minOccurs="0" maxOccurs="1"/>
-      <xs:element name="laneTo_Right" type="xs:unsignedLong" minOccurs="0" maxOccurs="1"/>
-    </xs:sequence>
-  </xs:complexType>
-  
-    <xs:complexType name="new_connectors_t">
-    <xs:sequence>
-      <xs:element name="new_connector" type="geo:new_connector_t" minOccurs="0" maxOccurs="unbounded"/>
-    </xs:sequence>
-  </xs:complexType>
-
+ 
   <xs:complexType name="Multi_Connector_t">
     <xs:sequence>
       <xs:element name="RoadSegment" type="xs:unsignedLong" minOccurs="1" maxOccurs="1"/>
@@ -194,7 +180,7 @@
       <!--      <xs:element name="parentLink" type="xs:string" minOccurs="1" maxOccurs="1"/>-->
       <xs:element name="startingNode" type="xs:unsignedInt" />
       <xs:element name="endingNode" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="maxSpeed" type="xs:short"/>
+      <xs:element name="maxSpeed" type="xs:double"/>
       <xs:element name="Length" type="xs:unsignedInt"/>
       <xs:element name="Width" type="xs:unsignedInt"/>
       <xs:element name="originalDB_ID" type="xs:string" minOccurs="0" maxOccurs="1"/>
@@ -332,7 +318,6 @@
           <xs:element name="firstPair" type="geo:temp_Segmetair_t" minOccurs="0" />
           <xs:element name="secondPair" type="geo:temp_Segmetair_t" minOccurs="0" />
           <xs:element name="Connectors" type="geo:connectors_t"/>
-          <xs:element name="new_Connectors" type="geo:new_connectors_t"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

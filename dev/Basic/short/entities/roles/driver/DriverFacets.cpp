@@ -653,6 +653,31 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 //
 //	perceivedDataProcess(nv, p);
 
+	if (parentDriver->perceivedVelOfFwdCar->can_sense()
+			&& parentDriver->perceivedAccOfFwdCar->can_sense()
+			&& parentDriver->perceivedDistToFwdCar->can_sense()) {
+		p.perceivedFwdVelocityOfFwdCar =
+				parentDriver->perceivedVelOfFwdCar->sense();
+		p.perceivedAccelerationOfFwdCar =
+				parentDriver->perceivedAccOfFwdCar->sense();
+		p.perceivedDistToFwdCar =
+				parentDriver->perceivedDistToFwdCar->sense();
+		if(p.parentId == 1 && p.now.frame()>385)
+		{
+			int i=0;
+			parentDriver->perceivedDistToFwdCar->printHistory();
+		}
+	} else {
+		NearestVehicle & nv = nearestVehicle(p);
+		p.perceivedFwdVelocityOfFwdCar =
+				nv.driver ? nv.driver->fwdVelocity.get() : 0;
+		p.perceivedLatVelocityOfFwdCar =
+				nv.driver ? nv.driver->latVelocity.get() : 0;
+		p.perceivedAccelerationOfFwdCar =
+				nv.driver ? nv.driver->fwdAccel.get() : 0;
+		p.perceivedDistToFwdCar = nv.distance;
+	}
+
 // make lc decision
 	LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
 // parentDriver->vehicle->setTurningDirection(lcs);
@@ -2659,39 +2684,39 @@ void sim_mob::DriverMovement::perceivedDataProcess(NearestVehicle & nv,
 
 			return;
 		}
-//Change perception delay
-		//why need reset delay time?
-//		parentDriver->perceivedDistToFwdCar->set_delay(parentDriver->reacTime);
-//		parentDriver->perceivedVelOfFwdCar->set_delay(parentDriver->reacTime);
-//		parentDriver->perceivedAccOfFwdCar->set_delay(parentDriver->reacTime);
-
-//Now sense.
-		if (parentDriver->perceivedVelOfFwdCar->can_sense()
-				&& parentDriver->perceivedAccOfFwdCar->can_sense()
-				&& parentDriver->perceivedDistToFwdCar->can_sense()) {
-			params.perceivedFwdVelocityOfFwdCar =
-					parentDriver->perceivedVelOfFwdCar->sense();
-			params.perceivedAccelerationOfFwdCar =
-					parentDriver->perceivedAccOfFwdCar->sense();
-			params.perceivedDistToFwdCar =
-					parentDriver->perceivedDistToFwdCar->sense();
-			if(params.parentId == 1 && params.now.frame()>385)
-			{
-				int i=0;
-				parentDriver->perceivedDistToFwdCar->printHistory();
-			}
-// std::cout<<"perceivedDataProcess: perceivedFwdVelocityOfFwdCar: vel,acc,dis:"<<params.perceivedFwdVelocityOfFwdCar
-// <<" "<<params.perceivedAccelerationOfFwdCar<<" "<<
-// params.perceivedDistToFwdCar<<std::endl;
-		} else {
-			params.perceivedFwdVelocityOfFwdCar =
-					nv.driver ? nv.driver->fwdVelocity.get() : 0;
-			params.perceivedLatVelocityOfFwdCar =
-					nv.driver ? nv.driver->latVelocity.get() : 0;
-			params.perceivedAccelerationOfFwdCar =
-					nv.driver ? nv.driver->fwdAccel.get() : 0;
-			params.perceivedDistToFwdCar = nv.distance;
-		}
+////Change perception delay
+//		//why need reset delay time?
+////		parentDriver->perceivedDistToFwdCar->set_delay(parentDriver->reacTime);
+////		parentDriver->perceivedVelOfFwdCar->set_delay(parentDriver->reacTime);
+////		parentDriver->perceivedAccOfFwdCar->set_delay(parentDriver->reacTime);
+//
+////Now sense.
+//		if (parentDriver->perceivedVelOfFwdCar->can_sense()
+//				&& parentDriver->perceivedAccOfFwdCar->can_sense()
+//				&& parentDriver->perceivedDistToFwdCar->can_sense()) {
+//			params.perceivedFwdVelocityOfFwdCar =
+//					parentDriver->perceivedVelOfFwdCar->sense();
+//			params.perceivedAccelerationOfFwdCar =
+//					parentDriver->perceivedAccOfFwdCar->sense();
+//			params.perceivedDistToFwdCar =
+//					parentDriver->perceivedDistToFwdCar->sense();
+//			if(params.parentId == 1 && params.now.frame()>385)
+//			{
+//				int i=0;
+//				parentDriver->perceivedDistToFwdCar->printHistory();
+//			}
+//// std::cout<<"perceivedDataProcess: perceivedFwdVelocityOfFwdCar: vel,acc,dis:"<<params.perceivedFwdVelocityOfFwdCar
+//// <<" "<<params.perceivedAccelerationOfFwdCar<<" "<<
+//// params.perceivedDistToFwdCar<<std::endl;
+//		} else {
+//			params.perceivedFwdVelocityOfFwdCar =
+//					nv.driver ? nv.driver->fwdVelocity.get() : 0;
+//			params.perceivedLatVelocityOfFwdCar =
+//					nv.driver ? nv.driver->latVelocity.get() : 0;
+//			params.perceivedAccelerationOfFwdCar =
+//					nv.driver ? nv.driver->fwdAccel.get() : 0;
+//			params.perceivedDistToFwdCar = nv.distance;
+//		}
 		parentDriver->perceivedDistToFwdCar->delay(nv.distance);
 		parentDriver->perceivedVelOfFwdCar->delay(nv.driver->fwdVelocity.get());
 		parentDriver->perceivedAccOfFwdCar->delay(nv.driver->fwdAccel.get());

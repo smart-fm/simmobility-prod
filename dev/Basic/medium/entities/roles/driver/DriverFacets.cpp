@@ -758,29 +758,44 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
 	}
 }
 
-bool DriverMovement::isConnectedToNextSeg(const Lane* lane, const SegmentStats* nxtSegStat) {
-	if(!nxtSegStat) {
-		throw std::runtime_error("DriverMovement::isConnectedToNextSeg() - nxtSegStat is not available!");
+
+bool DriverMovement::isConnectedToNextSeg(const Lane* lane, const sim_mob::RoadSegment *nxtRdSeg) const{
+	if(!nxtRdSeg) {
+		throw std::runtime_error("DriverMovement::isConnectedToNextSeg() - Road Segment is not available!");
 	}
 
-	const sim_mob::RoadSegment* nxtRdSeg = nxtSegStat->getRoadSegment();
 	if (nxtRdSeg->getLink() != lane->getRoadSegment()->getLink()){
-		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (lane->getRoadSegment()->getEnd());
-		if (currEndNode) {
-			const set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(lane->getRoadSegment());
-			for (set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
-				if ((*it)->getLaneTo()->getRoadSegment() == nxtRdSeg && (*it)->getLaneFrom() == lane) {
-					return true;
-				}
-			}
-		}
-	}
-	else{
 		//if (lane->getRoadSegment()->getLink() == nxtRdSeg->getLink()) we are
 		//crossing a uni-node. At uninodes, we assume all lanes of the current
 		//segment are connected to all lanes of the next segment
 		return true;
 	}
+
+	const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (lane->getRoadSegment()->getEnd());
+	if (!currEndNode) {
+		return false;
+	}
+
+	const set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(lane->getRoadSegment());
+
+	for (set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
+		if ((*it)->getLaneTo()->getRoadSegment() == nxtRdSeg && (*it)->getLaneFrom() == lane) {
+				return true;
+		}
+	}
+	return false;
+}
+
+bool DriverMovement::isConnectedToNextSeg(const sim_mob::RoadSegment *srcRdSeg, const sim_mob::RoadSegment *nxtRdSeg) const{
+	if(!nxtRdSeg || srcRdSeg) {
+		throw std::runtime_error("DriverMovement::getConnectionsToNextSeg() - one or both of the Road Segments are not available!");
+	}
+	BOOST_FOREACH(const sim_mob::Lane *ln, srcRdSeg->getLanes() ){
+		if(isConnectedToNextSeg(ln,nxtRdSeg)){
+			return true;
+		}
+	}
+
 	return false;
 }
 
@@ -835,27 +850,29 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(
 	for (vector<sim_mob::Lane* >::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
 	{
 		const Lane* lane = *lnIt;
-		if (!lane->is_pedestrian_lane() && !lane->is_whole_day_bus_lane())
+		if (!(!lane->is_pedestrian_lane() && !lane->is_whole_day_bus_lane())){
+			continue;
+		}
+		if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())) {
+			continue;
+		}
+		total = nextSegStats->getLaneTotalVehicleLength(lane);
+		que = nextSegStats->getLaneQueueLength(lane);
+		if (minLength > total)
 		{
-			if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats)) {	continue; }
-			total = nextSegStats->getLaneTotalVehicleLength(lane);
-			que = nextSegStats->getLaneQueueLength(lane);
-			if (minLength > total)
+			//if total length of vehicles is less than current minLength
+			minLength = total;
+			minQueueLength = que;
+			minLane = lane;
+		}
+		else if (minLength == total)
+		{
+			//if total length of vehicles is equal to current minLength
+			if (minQueueLength > que)
 			{
-				//if total length of vehicles is less than current minLength
-				minLength = total;
+				//and if the queue length is less than current minQueueLength
 				minQueueLength = que;
 				minLane = lane;
-			}
-			else if (minLength == total)
-			{
-				//if total length of vehicles is equal to current minLength
-				if (minQueueLength > que)
-				{
-					//and if the queue length is less than current minQueueLength
-					minQueueLength = que;
-					minLane = lane;
-				}
 			}
 		}
 	}
@@ -962,6 +979,7 @@ bool DriverMovement::hasUTurn(std::vector<WayPoint> & newPath, std::vector<const
 }
 
 bool DriverMovement::UTurnFree(std::vector<WayPoint> & newPath, std::vector<const sim_mob::SegmentStats*> & oldPath , sim_mob::SubTrip &subTrip, std::set<const sim_mob::RoadSegment*> & excludeRS){
+	Print()<< "UTurn detected" << std::endl;
 	if(!hasUTurn(newPath, oldPath)){
 		return true;
 	}
@@ -971,16 +989,37 @@ bool DriverMovement::UTurnFree(std::vector<WayPoint> & newPath, std::vector<cons
 	//and then try again
 	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
 	//if no path, return false, if path found, return true
-	newPath = sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(getParent(), &subTrip, excludeRS, false, false );
+	newPath = sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(getParent(), &subTrip, excludeRS, true, false );
 	//try again
 	if(!newPath.size()){
+		Print()<< "No other path can avoid a Uturn, suggest to discard " << std::endl;
 		return false;//wasn't successful, so return false
 	}
 
 	if(hasUTurn(newPath, oldPath)){
 		throw std::runtime_error("UTurn detected where the corresponding segment involved in the UTurn is already excluded");
 	}
+	Print()<< "New Path generated to avoid a UTurn" << std::endl;
 	return true;
+}
+
+bool DriverMovement::canJoinPaths(std::vector<WayPoint> & newPath, std::vector<const sim_mob::SegmentStats*> & oldPath
+		, sim_mob::SubTrip &subTrip, std::set<const sim_mob::RoadSegment*> & excludeRS){
+
+	 const sim_mob::RoadSegment *from = (*oldPath.rbegin())->getRoadSegment();//using .begin() or .end() makes no difference
+	 const sim_mob::RoadSegment *to = newPath.begin()->roadSegment_;
+	 if(isConnectedToNextSeg(from,to))
+	 {
+		 return true;
+	 }
+	//exclude/blacklist the UTurn segment on the new path(first segment)
+	excludeRS.insert((*newPath.begin()).roadSegment_);
+	//create a path using updated black list
+	//and then try again
+	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
+	//if no path, return false, if path found, return true
+	newPath = sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(getParent(), &subTrip, excludeRS, true, false );
+	return isConnectedToNextSeg(from,to);
 }
 
 //todo put this in the utils(and code style!)

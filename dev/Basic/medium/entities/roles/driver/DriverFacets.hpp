@@ -243,13 +243,22 @@ protected:
 	double getInitialQueueLength(const Lane* lane);
 
 	/**
-	 * checks if lane is connected to the next segment stats
+	 * checks if lane is connected to the next segment
 	 *
 	 * @param lane current lane
-	 * @param nextSegStats next segment stats
+	 * @param nxtRdSeg next road segment
 	 * @return true if lane is connected to nextSegStats; false otherwise
 	 */
-	bool isConnectedToNextSeg(const Lane* lane, const SegmentStats* nextSegStats);
+	bool isConnectedToNextSeg(const Lane* lane, const sim_mob::RoadSegment *nxtRdSeg) const;
+
+	/**
+	 * checks if 'any' lane is connected to the next segment
+	 *
+	 * @param srcRdSeg Road Segment
+	 * @param nxtRdSeg next road segment
+	 * @return true if lane is connected to next Segment; false otherwise
+	 */
+	bool isConnectedToNextSeg(const sim_mob::RoadSegment *srcRdSeg, const sim_mob::RoadSegment *nxtRdSeg) const;
 
 	/**
 	 * add driver to queue
@@ -308,6 +317,9 @@ protected:
 	void rerout(const InsertIncidentMessage &msg);
 	///tries to remove the uturn if any
 	bool UTurnFree(std::vector<WayPoint> & oldPath, std::vector<const sim_mob::SegmentStats*> & newPath, sim_mob::SubTrip & subTrip, std::set<const sim_mob::RoadSegment*> & excludeRS);
+	///checks to see if it is possible to join an old path to a new one
+	///it even tries to create a second new path  it the check fails once
+	bool canJoinPaths(std::vector<WayPoint> & oldPath, std::vector<const sim_mob::SegmentStats*> & newPath, sim_mob::SubTrip & subTrip, std::set<const sim_mob::RoadSegment*> & excludeRS);
 	//checks if there is a uturn
 	bool hasUTurn(std::vector<WayPoint> & oldPath, std::vector<const sim_mob::SegmentStats*> & newPath);
 	/**

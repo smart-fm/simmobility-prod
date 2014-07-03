@@ -62,6 +62,7 @@ size_t numVariablesCalibrated;
 
 //initialize once and use multiple times
 std::vector<double> observedHITS_Stats;
+std::vector<double> statsScale;
 
 matrix<double> weightMatrix;
 
@@ -116,6 +117,33 @@ private:
 	/**symmetrical random vector of 1s and -1s*/
 	std::vector<short> randomVector;
 };
+
+void populateScalesVector(const std::vector<std::string>& scalesVector)
+{
+	size_t numStats = observedHITS_Stats.size();
+	if(scalesVector.empty())
+	{
+		statsScale = std::vector<double>(numStats, 1); // initialize the vector with 1 as scale for all stats
+	}
+	else
+	{
+		if(scalesVector.size() != numStats)
+		{
+			throw std::runtime_error("scale not provided for all statistics. Check observed statistics CSV file");
+		}
+		try
+		{
+			for(std::vector<std::string>::const_iterator sclIt=scalesVector.begin(); sclIt!=scalesVector.end(); sclIt++)
+			{
+				statsScale.push_back(boost::lexical_cast<double>(*sclIt));
+			}
+		}
+		catch(boost::bad_lexical_cast const& badCast)
+		{
+			throw std::runtime_error("observed statistics file has non-numeric values for scale");
+		}
+	}
+}
 
 void createMongoDaoStore(size_t numMaps, const MongoCollectionsMap& mongoColl)
 {
@@ -366,11 +394,12 @@ void updateVariablesInLuaFiles(const std::string& scriptFilesPath, const std::ve
 double computeSumOfDifferenceSquared(const std::vector<double>& observed, const std::vector<double>& simulated)
 {
 	if(observed.size() != simulated.size()) { throw std::runtime_error("size mis-match between observed and simulated values");	}
-	double objFnVal = 0;
+	double objFnVal = 0, scaledDiff = 0;
 	size_t numStats = observed.size();
 	for(size_t i=0; i<numStats; i++)
 	{
-		objFnVal = objFnVal + std::pow((simulated[i]-observed[i]), 2);
+		scaledDiff = statsScale[i] * (simulated[i]-observed[i]);
+		objFnVal = objFnVal + std::pow(scaledDiff, 2);
 	}
 	return objFnVal;
 }
@@ -754,6 +783,10 @@ void sim_mob::medium::PredayManager::calibratePreday()
 		CalibrationStatistics observedStats(observedValuesMap);
 		observedStats.getAllStatistics(observedHITS_Stats); // store a local copy for future use
 
+		std::vector<std::string> scalesVector;
+		statsReader.getNextRow(scalesVector);
+		populateScalesVector(scalesVector);
+
 		logStream << "observed,N/A,N/A";
 		streamVector(calibrationVariablesList, logStream);
 		streamVector(observedHITS_Stats, logStream);
@@ -980,14 +1013,16 @@ void sim_mob::medium::PredayManager::computeWeightedGradient(const std::vector<s
 	if(observedHITS_Stats.size() != simStatisticsMinus.size()) { throw std::runtime_error("size mis-match between observed and simulated values");	}
 
 	gradientVector.clear();
-	double gradient = 0, squaredDifferencePlus = 0, squaredDifferenceMinus = 0;
+	double gradient = 0, squaredDifferencePlus = 0, squaredDifferenceMinus = 0, scaledDiff = 0;
 	for(size_t j=0; j<numVariables; j++)
 	{
 		gradient = 0;
 		for(size_t i=0; i<numStatistics; i++)
 		{
-			squaredDifferencePlus = std::pow((simStatisticsPlus[i]-observedHITS_Stats[i]), 2);
-			squaredDifferenceMinus = std::pow((simStatisticsMinus[i]-observedHITS_Stats[i]), 2);
+			scaledDiff = statsScale[i] * (simStatisticsPlus[i]-observedHITS_Stats[i]);
+			squaredDifferencePlus = std::pow(scaledDiff, 2);
+			scaledDiff = statsScale[i] * (simStatisticsMinus[i]-observedHITS_Stats[i]);
+			squaredDifferenceMinus = std::pow(scaledDiff, 2);
 			gradient = gradient + (weightMatrix(i,j) * (squaredDifferencePlus - squaredDifferenceMinus));
 		}
 		gradient = gradient / (2*scaledRandomVector[j]);

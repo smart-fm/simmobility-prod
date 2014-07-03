@@ -15,6 +15,8 @@
 #include "geospatial/PathSet/PathSetThreadPool.h"
 #include "util/threadpool/Threadpool.hpp"
 #include "workers/Worker.hpp"
+#include "message/MessageBus.hpp"
+//#include "entities/incident/IncidentManager.hpp"
 
 #include <cmath>
 #include <boost/algorithm/string.hpp>
@@ -341,6 +343,7 @@ sim_mob::PathSetParam::PathSetParam() {
 }
 
 sim_mob::PathSetManager::PathSetManager() {
+	messaging::MessageBus::RegisterHandler(this);
 	sql = NULL;
 	psDbLoader=NULL;
 	pathSetParam = PathSetParam::getInstance();
@@ -358,6 +361,9 @@ sim_mob::PathSetManager::PathSetManager() {
 //	serialPathSetGroup = ConfigManager::GetInstance().FullConfig().PathSetGenerationMode();
 	serialPathSetGroup = true;
 	threadpool_ = new sim_mob::batched::ThreadPool(50);
+}
+void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message){
+
 }
 
 sim_mob::PathSetManager::~PathSetManager()
@@ -601,6 +607,25 @@ const std::pair <RPOD::const_iterator,RPOD::const_iterator > sim_mob::PathSetMan
 	return range;
 }
 
+
+void sim_mob::PathSetManager::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message){
+	switch(type) {
+	case MSG_INSERT_INCIDENT:
+	{
+		Print() << "Pathset Manager MSG_INSERT_INCIDENT" << std::endl;
+		const InsertIncidentMessage & msg = MSG_CAST(InsertIncidentMessage, message);
+		currIncidents.insert((*(msg.stats.begin()))->getRoadSegment());
+		break;
+	}
+	default:
+		break;
+	}
+
+}
+std::set<const sim_mob::RoadSegment*> &sim_mob::PathSetManager::getIncidents(){
+	return currIncidents;
+}
+
 void sim_mob::printWPpath(std::vector<WayPoint> &wps , const sim_mob::Node* startingNode ){
 	std::ostringstream out("wp path--");
 	if(startingNode){
@@ -683,13 +708,20 @@ std::vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const si
 }
 
 vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler,
-		const std::set<const sim_mob::RoadSegment*> & exclude_seg , bool isUseCache, bool isUseDB)
+		const std::set<const sim_mob::RoadSegment*> & exclude_seg_ , bool isUseCache, bool isUseDB)
 {
 	vector<WayPoint> res;
 	if(st->mode != "Car") //only driver need path set
 	{
 		return res;
 	}
+	//combine the excluded segments
+	std::set<const sim_mob::RoadSegment*> exclude_seg(exclude_seg_);
+	if(!currIncidents.empty() && !exclude_seg.empty())
+	{
+		exclude_seg.insert(currIncidents.begin(), currIncidents.end());
+	}
+
 	const sim_mob::Node* fromNode = st->fromLocation.node_;
 	const sim_mob::Node* toNode = st->toLocation.node_;
 	std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
@@ -1454,6 +1486,7 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps,
 	//2. travle_time
 	//3. utility
 	//step 1.2 : accumulate the logsum
+	double maxTravelTime = std::numeric_limits<double>::max();
 	ps.logsum = 0.0;
 	for(int i=0;i<ps.pathChoices.size();++i)
 	{
@@ -1465,7 +1498,7 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps,
 			//debug for now
 			tempIsInclude = sp->includesRoadSegment(exclude_seg);
 			if(tempIsInclude){
-				sp->travle_time = 1000000000;//some large value like inifinity
+				sp->travle_time = maxTravelTime;//some large value like infinity
 			}
 			sp->utility = getUtilityBySinglePath(sp);
 			ps.logsum += exp(sp->utility);

@@ -24,6 +24,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "util/Profiler.hpp"
+#include "message/MessageHandler.hpp"
 #include "soci.h"
 #include "soci-postgresql.h"
 
@@ -208,7 +209,7 @@ struct personOD{
 /// Roadsegment-Person-O-D
 typedef std::multimap<const sim_mob::RoadSegment*, personOD > RPOD ;// Roadsegment-Person-O-D  :)
 
-class PathSetManager {
+class PathSetManager  : public messaging::MessageHandler{
 	///option to wait for each group of pathset generation to complete before starting another group
 	///for all 'link eliminations' and 'random perturbation'
 	bool serialPathSetGroup;
@@ -297,6 +298,9 @@ public:
 	bool getCachedBestPath(std::string id, std::vector<WayPoint> & value);
 	void cacheODbySegment(const sim_mob::Person*,const SubTrip *,std::vector<WayPoint> &);
 	const std::pair<RPOD::const_iterator,RPOD::const_iterator > getODbySegment(const sim_mob::RoadSegment* segment) const;
+	void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+	std::set<const sim_mob::RoadSegment*> currIncidents;
+	std::set<const sim_mob::RoadSegment*> &getIncidents();
 	PathSetDBLoader *psDbLoader;
 	soci::session *sql;
 

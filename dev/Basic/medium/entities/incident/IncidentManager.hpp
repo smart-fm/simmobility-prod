@@ -12,14 +12,7 @@
 #include <boost/lexical_cast.hpp>
 
 namespace sim_mob {
-//
-//struct Distribution
-//{
-//		//normal distribution
-//	boost::mt19937 rng; // I don't seed it on purpouse (it's not relevant)
-//	boost::normal_distribution<> nd(0.0, 1.0);
-//	boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > gen(rng, nd);
-//};
+
 /**
  * A class designed to manage the incidents.
  * It can read the load the incidents for preday/test planning as well as en-route incidents
@@ -40,6 +33,8 @@ class IncidentManager : public sim_mob::Agent {
 	typedef boost::tuples::tuple<unsigned int, double, uint32_t> Incident; //<sectionId, flowrate, start_tick>
 	std::multimap<uint32_t,Incident> incidents;
 	typedef std::pair<std::multimap<uint32_t,Incident>::iterator, std::multimap<uint32_t,Incident>::iterator> TickIncidents;
+//	boost::shared_mutex
+	static std::map<const sim_mob::RoadSegment*, double> currIncidents; //<incident RS, flowrate>
 	std::string inputFile;
 
 	static IncidentManager * instance;
@@ -64,6 +59,11 @@ public:
 	 * \param tick starting tick
 	 */
 	void insertTickIncidents(uint32_t tick);
+	/**
+	 * get Incidents currently inserted to simulation
+	 *
+	 */
+	static std::map<const sim_mob::RoadSegment*, double> & getCurrIncidents();
 
 	/**
 	 *	step-1: find those who used the target rs in their path

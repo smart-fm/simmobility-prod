@@ -18,7 +18,7 @@
 #include "conf/ParseConfigFile.hpp"
 #include "conf/ExpandAndValidateConfigFile.hpp"
 #include "database/DB_Connection.hpp"
-#include "entities/IncidentManager.hpp"
+#include "entities/incident/IncidentManager.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/Agent.hpp"
 #include "entities/BusController.hpp"

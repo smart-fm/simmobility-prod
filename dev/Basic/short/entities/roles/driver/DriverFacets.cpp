@@ -142,7 +142,7 @@ sim_mob::DriverMovement::~DriverMovement()
 {
 	//Our movement models.
 	//parent->amodVehicle = NULL;
-	parent->invalidateAMODVehicle();
+	//parent->invalidateAMODVehicle();
 	safe_delete_item(lcModel);
 	safe_delete_item(cfModel);
 	safe_delete_item(intModel);
@@ -894,6 +894,7 @@ if ( (parentDriver->getParams().now.ms()/1000.0 - parentDriver->startTime > 10) 
 	responseIncidentStatus(p, parentDriver->getParams().now);
 
 	double res = updatePositionOnLink(p);
+
 	if(parentDriver->vehicle->fwdMovement.isMoveToNextSegment && !parentDriver->vehicle->isDone())
 	{
 		//std::cout<<"vh move to next segment"<<std::endl;

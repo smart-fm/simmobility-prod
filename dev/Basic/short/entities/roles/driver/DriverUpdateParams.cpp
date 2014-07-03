@@ -37,7 +37,8 @@ void DriverUpdateParams::buildDebugInfo()
 	double dis = perceivedDistToFwdCar / 100.0;
 	char disChar[20] = "\0";
 	sprintf(disChar,"%03.1f",dis);
-	s<<ct<<":"<<newFwdAccChar<<":"<<accSelect<<":"<<nvFwd.exists()<<":"<<disChar;
+	s<<ct<<":"<<newFwdAccChar<<":"<<accSelect<<":"<<nvFwd.exists()<<":"<<disChar<<":"<<perceivedTrafficColor<<":"
+			<<perceivedDistToTrafficSignal/100.0;
 	debugInfo = s.str();
 
 	std::cout<<debugInfo<<std::endl;

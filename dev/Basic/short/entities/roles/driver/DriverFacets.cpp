@@ -678,6 +678,22 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 		p.perceivedDistToFwdCar = nv.distance;
 	}
 
+	if(p.parentId == 66508 && p.now.frame()>800)
+	{
+		int i=0;
+		parentDriver->perceivedTrafficColor->printHistory();
+		parentDriver->perceivedDistToTrafficSignal->printHistory();
+	}
+	if (parentDriver->perceivedTrafficColor->can_sense()) {
+				p.perceivedTrafficColor =
+						parentDriver->perceivedTrafficColor->sense();
+	}
+
+	if (parentDriver->perceivedDistToTrafficSignal->can_sense()) {
+				p.perceivedDistToTrafficSignal =
+						parentDriver->perceivedDistToTrafficSignal->sense();
+	}
+
 // make lc decision
 	LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
 // parentDriver->vehicle->setTurningDirection(lcs);
@@ -3022,12 +3038,10 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 			break;
 		}
 
-		parentDriver->perceivedTrafficColor->set_delay(parentDriver->reacTime);
-		if (parentDriver->perceivedTrafficColor->can_sense()) {
-			p.perceivedTrafficColor =
-					parentDriver->perceivedTrafficColor->sense();
-		} else
+
+		if (!parentDriver->perceivedTrafficColor->can_sense()) {
 			p.perceivedTrafficColor = color;
+		}
 
 		parentDriver->perceivedTrafficColor->delay(p.trafficColor);
 
@@ -3035,16 +3049,12 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 				fwdDriverMovement.getAllRestRoadSegmentsLengthCM()
 						- fwdDriverMovement.getCurrDistAlongRoadSegmentCM()
 						- parentDriver->vehicle->getLengthCm() / 2;
-		Print() << "calc : "
-				<< fwdDriverMovement.getAllRestRoadSegmentsLengthCM() << "-"
-				<< fwdDriverMovement.getCurrDistAlongRoadSegmentCM() << " - "
-				<< parentDriver->vehicle->getLengthCm() << "/ 2" << std::endl;
-		parentDriver->perceivedDistToTrafficSignal->set_delay(
-				parentDriver->reacTime);
-		if (parentDriver->perceivedDistToTrafficSignal->can_sense()) {
-			p.perceivedDistToTrafficSignal =
-					parentDriver->perceivedDistToTrafficSignal->sense();
-		} else {
+//		Print() << "calc : "
+//				<< fwdDriverMovement.getAllRestRoadSegmentsLengthCM() << "-"
+//				<< fwdDriverMovement.getCurrDistAlongRoadSegmentCM() << " - "
+//				<< parentDriver->vehicle->getLengthCm() << "/ 2" << std::endl;
+
+		if (!parentDriver->perceivedDistToTrafficSignal->can_sense()) {
 			p.perceivedDistToTrafficSignal = p.trafficSignalStopDistance;
 		}
 		parentDriver->perceivedDistToTrafficSignal->delay(

@@ -286,18 +286,18 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	perceivedLatVelocity = 0;
 
 	trafficColor = sim_mob::Green;
-	perceivedTrafficColor = sim_mob::Green;
+//	perceivedTrafficColor = sim_mob::Green;
 
-	trafficSignalStopDistance = Driver::maxVisibleDis;
+//	trafficSignalStopDistance = Driver::maxVisibleDis;
 	elapsedSeconds = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
 
 	perceivedFwdVelocityOfFwdCar = 0;
 	perceivedLatVelocityOfFwdCar = 0;
 	perceivedAccelerationOfFwdCar = 0;
 //	perceivedDistToFwdCar = Driver::maxVisibleDis; // no need reset
-	perceivedDistToTrafficSignal = Driver::maxVisibleDis;
+//	perceivedDistToTrafficSignal = Driver::maxVisibleDis;
 
-	perceivedTrafficColor  = sim_mob::Green;
+//	perceivedTrafficColor  = sim_mob::Green;
 
 	//Lateral velocity of lane changing.
 	laneChangingVelocity = 100;

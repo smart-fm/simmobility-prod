@@ -143,6 +143,9 @@ private:
 	//Helper function: is there no chance of delay, ever? (I.e., is the max delay zero?)
 	bool zero_delay() const;
 
+public:
+	void printHistory();
+
 private:
 	//Internal class to store an item and its observed time.
 	struct HistItem {
@@ -164,6 +167,8 @@ private:
 	    }
 	#endif
 	};
+
+
 
 private:
 	//The list of history items
@@ -228,8 +233,16 @@ bool sim_mob::FixedDelayed<T>::zero_delay() const
 	return maxDelayMS==0;
 }
 
-
-
+template <typename T>
+void sim_mob::FixedDelayed<T>::printHistory()
+{
+	std::cout<<std::endl;
+	for (typename std::list<HistItem>::iterator it=history.begin(); it!=history.end(); it++) {
+		HistItem h = it;
+		std::cout<<"printHistory: "<<h.observedTime<<" "<<h.item<<std::endl;
+	}
+	std::cout<<std::endl;
+}
 template <typename T>
 bool sim_mob::FixedDelayed<T>::del_history_front()
 {

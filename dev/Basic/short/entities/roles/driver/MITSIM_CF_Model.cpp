@@ -534,8 +534,12 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	 }
 	}
 
-	if(p.now.frame() > 738 && p.parentId == 66509){
+	if(p.now.frame() > 300 ){
 			int i = 0;
+			if(p.perceivedDistToFwdCar/100.0 < 0.1)
+			{
+				int ii = 0;
+			}
 		}
 
 	// if (intersection){
@@ -640,6 +644,11 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 	p.unsetStatus(STATUS_REGIME_EMERGENCY);
 
 	p.space = p.perceivedDistToFwdCar / 100;
+
+	if(p.parentId == 1 && p.space < 6)
+	{
+		int i=0;
+	}
 
 	double res = 0;
 	//If we have no space left to move, immediately cut off acceleration.
@@ -1594,6 +1603,6 @@ double sim_mob::CarFollowModel::calcNextStepSize(DriverUpdateParams& p) {
 		i = 3;
 	p.nextStepSize = updateStepSize[i];
 	nextPerceptionSize = perceptionSize[i];
-	p.driver->resetReacTime(nextPerceptionSize * 100);
+	p.driver->resetReacTime(nextPerceptionSize * 1000);
 	return p.nextStepSize;
 }

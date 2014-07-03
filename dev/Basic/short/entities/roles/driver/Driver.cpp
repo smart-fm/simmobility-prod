@@ -294,7 +294,7 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	perceivedFwdVelocityOfFwdCar = 0;
 	perceivedLatVelocityOfFwdCar = 0;
 	perceivedAccelerationOfFwdCar = 0;
-	perceivedDistToFwdCar = Driver::maxVisibleDis;
+//	perceivedDistToFwdCar = Driver::maxVisibleDis; // no need reset
 	perceivedDistToTrafficSignal = Driver::maxVisibleDis;
 
 	perceivedTrafficColor  = sim_mob::Green;

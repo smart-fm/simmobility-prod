@@ -107,9 +107,6 @@ LANE_CHANGE_SIDE sim_mob::Vehicle::getTurningDirection() const{
 
 void sim_mob::Vehicle::setVelocity(double value) {
 	throw_if_error();
-	if(value > 1000){
-		int i=0;
-	}
 	fwdVelocity = value;
 }
 

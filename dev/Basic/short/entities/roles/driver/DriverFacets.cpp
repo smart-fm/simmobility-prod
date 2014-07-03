@@ -2097,10 +2097,10 @@ void sim_mob::DriverMovement::check_and_set_min_car_dist(NearestVehicle& res,
 		fwd = true;
 	distance = fabs(distance) - veh->getLengthCm() / 2
 			- other->getVehicleLengthCM() / 2;
-	if (parentDriver->isAleadyStarted) {
-		if (fwd && distance < 0)
-			distance = 0.1;
-	}
+//	if (parentDriver->isAleadyStarted) {
+//		if (fwd && distance < 0)
+//			distance = 0.1;
+//	}
 	if (distance <= res.distance) {
 		res.driver = other;
 		res.distance = distance;
@@ -2115,10 +2115,10 @@ void sim_mob::DriverMovement::check_and_set_min_car_dist2(NearestVehicle& res,
 		fwd = true;
 	distance = fabs(distance) - other_veh->getLengthCm() / 2
 			- me->getVehicleLengthCM() / 2;
-	if (me->isAleadyStarted) {
-		if (fwd && distance < 0)
-			distance = 0.1;
-	}
+//	if (me->isAleadyStarted) {
+//		if (fwd && distance < 0)
+//			distance = 0.1;
+//	}
 	if (distance <= res.distance) {
 		res.driver = me;
 		res.distance = distance;
@@ -2206,20 +2206,28 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 		return false;
 
 // int other_offset = other_driver->currLaneOffset_.get();
-	int other_offset = other_driver->currDistAlongRoadSegment;
+	double other_offset = other_driver->currDistAlongRoadSegment;
 
 //If the vehicle is in the same Road segment
 	if (fwdDriverMovement.getCurrSegment() == otherRoadSegment) {
 //Set distance equal to the _forward_ distance between these two vehicles.
 // int distance = other_offset - params.currLaneOffset;
-		int distance = other_offset
+		double distance = other_offset
 				- fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
+		if(params.parentId == 1)
+		{
+			int i=0;
+		}
 		if (distance == 0)
 			return false;
 		bool fwd = distance >= 0;
 
 //Set different variables depending on where the car is.
 		if (other_lane == params.currLane) { //the vehicle is on the current lane
+			if(params.now.frame()>300 && distance/100.0 > -0.1 && distance/100.0 < 0.1)
+					{
+						int i=0;
+					}
 			check_and_set_min_car_dist((fwd ? params.nvFwd : params.nvBack),
 					distance, parentDriver->vehicle, other_driver);
 		} else if (other_lane == params.leftLane) { //the vehicle is on the left lane
@@ -2638,9 +2646,10 @@ void sim_mob::DriverMovement::perceivedDataProcess(NearestVehicle & nv,
 			return;
 		}
 //Change perception delay
-		parentDriver->perceivedDistToFwdCar->set_delay(parentDriver->reacTime);
-		parentDriver->perceivedVelOfFwdCar->set_delay(parentDriver->reacTime);
-		parentDriver->perceivedAccOfFwdCar->set_delay(parentDriver->reacTime);
+		//why need reset delay time?
+//		parentDriver->perceivedDistToFwdCar->set_delay(parentDriver->reacTime);
+//		parentDriver->perceivedVelOfFwdCar->set_delay(parentDriver->reacTime);
+//		parentDriver->perceivedAccOfFwdCar->set_delay(parentDriver->reacTime);
 
 //Now sense.
 		if (parentDriver->perceivedVelOfFwdCar->can_sense()
@@ -2652,6 +2661,11 @@ void sim_mob::DriverMovement::perceivedDataProcess(NearestVehicle & nv,
 					parentDriver->perceivedAccOfFwdCar->sense();
 			params.perceivedDistToFwdCar =
 					parentDriver->perceivedDistToFwdCar->sense();
+			if(params.parentId == 1 && params.now.frame()>385)
+			{
+				int i=0;
+				parentDriver->perceivedDistToFwdCar->printHistory();
+			}
 // std::cout<<"perceivedDataProcess: perceivedFwdVelocityOfFwdCar: vel,acc,dis:"<<params.perceivedFwdVelocityOfFwdCar
 // <<" "<<params.perceivedAccelerationOfFwdCar<<" "<<
 // params.perceivedDistToFwdCar<<std::endl;
@@ -2667,6 +2681,10 @@ void sim_mob::DriverMovement::perceivedDataProcess(NearestVehicle & nv,
 		parentDriver->perceivedDistToFwdCar->delay(nv.distance);
 		parentDriver->perceivedVelOfFwdCar->delay(nv.driver->fwdVelocity.get());
 		parentDriver->perceivedAccOfFwdCar->delay(nv.driver->fwdAccel.get());
+	}
+	else
+	{
+		params.perceivedDistToFwdCar = Driver::maxVisibleDis;
 	}
 
 }

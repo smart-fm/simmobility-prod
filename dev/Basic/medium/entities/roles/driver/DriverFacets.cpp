@@ -864,8 +864,8 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(
 		std::ostringstream out("");
 		out << "best target lane was not set!" << "\nCurrent Segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getSegmentAimsunId() <<
 				" =>" << nextSegStats->getRoadSegment()->getSegmentAimsunId() <<
-				" =>" <<  nextToNextSegStats->getRoadSegment()->getSegmentAimsunId() << std::endl;
-
+				" =>" <<  nextToNextSegStats->getRoadSegment()->getSegmentAimsunId() << "\nCurrent Path" << std::endl;
+				MesoPathMover::printPath(pathMover.getPath());
 		throw std::runtime_error(out.str()); }
 	return minLane;
 }
@@ -930,14 +930,15 @@ int DriverMovement::findReroutingPoints(const std::vector<sim_mob::SegmentStats*
 	   else
 		   noPathIt++;
 	}
-//	Print() << "-------------------------------------------\n"
-//			"Candidates with their remaining path after filtering the no paths:\n" << std::endl;
-//	std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > item1;
-//	BOOST_FOREACH(item1,  remaining){
-//		MesoPathMover::printPath(item1.second, item1.first);
-//	}
-//
-//	Print() << "There are " << remaining.size() << " candidate point of reroute for Person(excluding no path):" << std::endl;
+	Print() << "-------------------------------------------\n" <<
+			"Candidates with their remaining path after filtering the no paths:" << std::endl;
+	std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > item1;
+	BOOST_FOREACH(item1,  remaining){
+		Print() << "Remaining path to detour point : ";
+		MesoPathMover::printPath(item1.second, item1.first);
+	}
+	Print() << "\n-------------------------------------------" << std::endl;
+	Print() << "There are " << remaining.size() << " candidate point of reroute for Person(excluding no path):" << std::endl;
 	return remaining.size();
 }
 

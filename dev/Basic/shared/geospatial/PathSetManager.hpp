@@ -272,7 +272,7 @@ public:
 				const sim_mob::Node* fromNode,
 				const sim_mob::Node* toNode,
 				sim_mob::TimeRange tr);
-	bool getBestPathChoiceFromPathSet(sim_mob::PathSet& ps);
+	bool getBestPathChoiceFromPathSet(sim_mob::PathSet& ps, const std::set<const sim_mob::RoadSegment *> & exclude_seg =  std::set<const sim_mob::RoadSegment *>());
 	void initParameters();
 	// get
 	std::vector<WayPoint> getPathByPerson(sim_mob::Person* per); // person has person id and current subtrip id
@@ -429,6 +429,9 @@ public:
 
 	SinglePath(SinglePath *source);
 	SinglePath(SinglePath *source,const sim_mob::RoadSegment* seg);
+	///does this SinglePath include the any of given RoadSegment(s)
+	bool includesRoadSegment(const sim_mob::RoadSegment* seg);
+	bool includesRoadSegment(const std::set<const sim_mob::RoadSegment*> &segs);
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class PathSet

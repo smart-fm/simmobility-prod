@@ -645,10 +645,10 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 
 	p.space = p.perceivedDistToFwdCar / 100;
 
-	if(p.parentId == 1 && p.space < 6)
-	{
-		int i=0;
-	}
+//	if(p.parentId == 1 && p.space < 6)
+//	{
+//		int i=0;
+//	}
 
 	double res = 0;
 	//If we have no space left to move, immediately cut off acceleration.

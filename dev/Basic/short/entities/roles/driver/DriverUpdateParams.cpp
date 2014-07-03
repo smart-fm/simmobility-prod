@@ -31,7 +31,13 @@ void DriverUpdateParams::buildDebugInfo()
 	double ct=cftimer;
 	if(abs(cftimer)<0.001)
 		ct=0;
-	s<<ct<<":"<<newFwdAcc<<":"<<accSelect<<":"<<nvFwd.exists()<<":"<<perceivedDistToFwdCar / 100.0;
+	char newFwdAccChar[20] = "\0";
+	sprintf(newFwdAccChar,"%03.1f",newFwdAcc);
+
+	double dis = perceivedDistToFwdCar / 100.0;
+	char disChar[20] = "\0";
+	sprintf(disChar,"%03.1f",dis);
+	s<<ct<<":"<<newFwdAccChar<<":"<<accSelect<<":"<<nvFwd.exists()<<":"<<disChar;
 	debugInfo = s.str();
 
 	std::cout<<debugInfo<<std::endl;

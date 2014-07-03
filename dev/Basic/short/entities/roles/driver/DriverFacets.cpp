@@ -412,6 +412,20 @@ bool sim_mob::DriverMovement::update_sensors(timeslice now) {
 
 	updateNearbyAgents();
 
+	//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
+	//if making lane changing, adjacent car need to be taken into account.
+	NearestVehicle & nv = nearestVehicle(params);
+
+	if (parentDriver->isAleadyStarted == false) {
+		if (nv.distance <= 0) {
+			if (nv.driver->parent->getId() > getParent()->getId()) {
+				nv = NearestVehicle();
+			}
+		}
+	}
+
+	perceivedDataProcess(nv, params);
+
 	return true;
 }
 
@@ -625,19 +639,19 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 			p.dis2stop = DEFAULT_DIS_TO_STOP; //defalut 1000m
 	}
 
-//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
-//if making lane changing, adjacent car need to be taken into account.
-	NearestVehicle & nv = nearestVehicle(p);
-
-	if (parentDriver->isAleadyStarted == false) {
-		if (nv.distance <= 0) {
-			if (nv.driver->parent->getId() > getParent()->getId()) {
-				nv = NearestVehicle();
-			}
-		}
-	}
-
-	perceivedDataProcess(nv, p);
+////get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
+////if making lane changing, adjacent car need to be taken into account.
+//	NearestVehicle & nv = nearestVehicle(p);
+//
+//	if (parentDriver->isAleadyStarted == false) {
+//		if (nv.distance <= 0) {
+//			if (nv.driver->parent->getId() > getParent()->getId()) {
+//				nv = NearestVehicle();
+//			}
+//		}
+//	}
+//
+//	perceivedDataProcess(nv, p);
 
 // make lc decision
 	LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
@@ -2214,10 +2228,10 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 // int distance = other_offset - params.currLaneOffset;
 		double distance = other_offset
 				- fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
-		if(params.parentId == 1)
-		{
-			int i=0;
-		}
+//		if(params.parentId == 1)
+//		{
+//			int i=0;
+//		}
 		if (distance == 0)
 			return false;
 		bool fwd = distance >= 0;

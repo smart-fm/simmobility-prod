@@ -238,8 +238,7 @@ void sim_mob::FixedDelayed<T>::printHistory()
 {
 	std::cout<<std::endl;
 	for (typename std::list<HistItem>::iterator it=history.begin(); it!=history.end(); it++) {
-		HistItem h = it;
-		std::cout<<"printHistory: "<<h.observedTime<<" "<<h.item<<std::endl;
+		std::cout<<"printHistory: "<<it->observedTime<<" "<<it->item<<std::endl;
 	}
 	std::cout<<std::endl;
 }

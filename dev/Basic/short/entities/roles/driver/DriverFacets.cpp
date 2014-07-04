@@ -678,7 +678,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 		p.perceivedDistToFwdCar = nv.distance;
 	}
 
-	if(p.parentId == 66508 && p.now.frame()>800)
+	if(p.parentId == 66508 && p.now.frame()>1300)
 	{
 		int i=0;
 		parentDriver->perceivedTrafficColor->printHistory();
@@ -3002,9 +3002,16 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 // "(" << p.currLane->getRoadSegment()->getLink()->roadName << ")" <<
 // " To "<< nextLaneInNextLink <<
 // "(" << nextLaneInNextLink->getRoadSegment()->getLink()->roadName << ")" << std::endl;
-
+			if(p.parentId == 66508 && p.now.frame()>1300)
+					{
+						int i=1;
+					}
 			color = trafficSignal->getDriverLight(*p.currLane,
 					*nextLaneInNextLink);
+//			std::stringstream out("");
+//			out << "Driver light for segment[" <<p.now.frame()<<"]"<<" ["<<
+//			(*p.currLane).getRoadSegment() << "," << (*nextLaneInNextLink).getRoadSegment() << "] " << color << std::endl;
+//			Print() << out.str();
 
 // std::cout << "The driver light is " << color << std::endl;
 		} else {
@@ -3038,6 +3045,10 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 			break;
 		}
 
+		if(p.parentId == 66508 && p.now.frame()>1306)
+		{
+			int i=1;
+		}
 
 		if (!parentDriver->perceivedTrafficColor->can_sense()) {
 			p.perceivedTrafficColor = color;

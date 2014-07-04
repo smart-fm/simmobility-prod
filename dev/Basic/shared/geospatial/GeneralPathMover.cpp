@@ -455,7 +455,7 @@ double sim_mob::GeneralPathMover::advance(double fwdDistance)
 
 		//Subtract distance moved thus far
 		distAlongPolyline -= currPolylineLength();
-		std::cout << "distAlongPolyline: " << distAlongPolyline << std::endl;
+		//std::cout << "distAlongPolyline: " << distAlongPolyline << std::endl;
 
 		//Advance pointers, etc.
 		res = advanceToNextPolyline(true);

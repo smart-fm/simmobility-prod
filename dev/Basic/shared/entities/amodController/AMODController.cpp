@@ -1292,7 +1292,8 @@ void AMODController::assignVhsFast(std::vector<std::string>& origin, std::vector
 		if (!freeVehFound)
 		{
 			//std::cout << "No free car found!" << std::endl;
-			itr++;
+			//itr++;
+			itr = serviceBuffer.erase(itr);
 			continue;
 			//throw std::runtime_error("no more vehicles remaining. Throwing exception.");
 		}

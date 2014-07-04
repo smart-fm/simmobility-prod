@@ -34,12 +34,12 @@ sim_mob::Profiler sim_mob::PathSetManager::profiler(false, "main_profiler","path
 
 PathSetParam *sim_mob::PathSetParam::instance_ = NULL;
 //todo to be configurable somehow
-//const std::string pathSetTableName = "PathSet_Scaled_HITS_distinctODs";
-//const std::string singlePathTableName = "SinglePath_Scaled_HITS_distinctODs";
+const std::string pathSetTableName = "PathSet_Scaled_HITS_distinctODs";
+const std::string singlePathTableName = "SinglePath_Scaled_HITS_distinctODs";
 
 
-const std::string pathSetTableName = "PathSet_SH_V";
-const std::string singlePathTableName = "SinglePath_SH_V";
+//const std::string pathSetTableName = "PathSet_SH_V";
+//const std::string singlePathTableName = "SinglePath_SH_V";
 
 sim_mob::PathSetParam* sim_mob::PathSetParam::getInstance()
 {
@@ -343,7 +343,6 @@ sim_mob::PathSetParam::PathSetParam() {
 }
 
 sim_mob::PathSetManager::PathSetManager() {
-	messaging::MessageBus::RegisterHandler(this);
 	sql = NULL;
 	psDbLoader=NULL;
 	pathSetParam = PathSetParam::getInstance();
@@ -608,22 +607,14 @@ const std::pair <RPOD::const_iterator,RPOD::const_iterator > sim_mob::PathSetMan
 }
 
 
-void sim_mob::PathSetManager::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message){
-	switch(type) {
-	case MSG_INSERT_INCIDENT:
-	{
-		Print() << "Pathset Manager MSG_INSERT_INCIDENT" << std::endl;
-		const InsertIncidentMessage & msg = MSG_CAST(InsertIncidentMessage, message);
-		currIncidents.insert((*(msg.stats.begin()))->getRoadSegment());
-		break;
-	}
-	default:
-		break;
-	}
-
-}
 std::set<const sim_mob::RoadSegment*> &sim_mob::PathSetManager::getIncidents(){
+	boost::unique_lock<boost::shared_mutex> lock(mutexIncident);
 	return currIncidents;
+}
+
+void sim_mob::PathSetManager::inserIncidentList(const sim_mob::RoadSegment* rs) {
+	boost::unique_lock<boost::shared_mutex> lock(mutexIncident);
+	currIncidents.insert(rs);
 }
 
 void sim_mob::printWPpath(std::vector<WayPoint> &wps , const sim_mob::Node* startingNode ){
@@ -744,6 +735,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 								*sql,
 								ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 								ps_,pathSetID, pathSetTableName);
+		Print()<< "hasPSinDB:" << hasPSinDB << std::endl;
 		//time taken to find out if there is a path set in DB
 		if(ps_.has_path == -1) //no path
 		{
@@ -762,7 +754,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 										id_sp,
 										pathSetID,
 										ps_.pathChoices, singlePathTableName, exclude_seg);
-
+				Print()<< "hasSPinDB:" << hasSPinDB << std::endl;
 				if(hasSPinDB)
 				{
 					Print() << "DB hit" << std::endl;
@@ -807,10 +799,11 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 				}
 			}
 		} // hasPSinDB
+
 	}//isUseDB
-	if(!isUseDB || !hasPSinDB)
+	if(!hasPSinDB)
 		{
-			Print()<<"generate All PathChoices for "<<fromId_toId<<std::endl;
+			Print()<<"generate All PathChoices for "<<fromId_toId << std::endl;
 			// 1. generate shortest path with all segs
 			// 1.1 check StreetDirectory
 			if(!stdir || !roadNetwork)
@@ -1486,24 +1479,35 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps,
 	//2. travle_time
 	//3. utility
 	//step 1.2 : accumulate the logsum
+	std::stringstream out("");
+	std::vector<double> temp1;
+	std::vector<double> temp2;
+	std::vector<double> temp3;
 	double maxTravelTime = std::numeric_limits<double>::max();
 	ps.logsum = 0.0;
 	for(int i=0;i<ps.pathChoices.size();++i)
 	{
 		SinglePath* sp = ps.pathChoices[i];
-		if(sp)
+		if(sp && !sp->includesRoadSegment(exclude_seg))
 		{
 			sp->pathSet = &ps;
 			sp->travle_time = getTravelTime(sp);
 			//debug for now
-			tempIsInclude = sp->includesRoadSegment(exclude_seg);
-			if(tempIsInclude){
+			bool included = sp->includesRoadSegment(exclude_seg);
+			if (!exclude_seg.empty() && included ) {
 				sp->travle_time = maxTravelTime;//some large value like infinity
 			}
+			else if(!exclude_seg.empty() && !included){
+			}
+			//---------------------------------------------
 			sp->utility = getUtilityBySinglePath(sp);
 			ps.logsum += exp(sp->utility);
+			temp1.push_back(sp->utility);
+			temp2.push_back(exp(sp->utility));
+			out << "+(" << sp->utility << "," << exp(sp->utility) << ")";
 		}
 	}
+//	Print() << "ps.pathChoices.size():" << ps.pathChoices.size() << "     \n" << out.str() << "=> logsum = " << ps.logsum << std::endl;
 	// step 2: find the best waypoint path :
 		// calculate a probability using path's utility and pathset's logsum,
 		// compare the resultwith a  random number to decide whether pick the current path as the best path or not
@@ -1515,23 +1519,57 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps,
 	//next temporarily for the 8-July-2012 ~melani
 //	double x = -0.1;
 	// 2.2 For each path i in the path choice set PathSet(O, D):
-	std::stringstream out("");
+//	out.str("");
 	for(int i=0;i<ps.pathChoices.size();++i)
 	{
 		SinglePath* sp = ps.pathChoices[i];
-		if(sp)
+		if(sp && !sp->includesRoadSegment(exclude_seg))
 		{
 			double prob = exp(sp->utility)/(ps.logsum);
-			out << sp->pathset_id << ": probability:  " << prob << " = " << sp->utility << " / " << ps.logsum;
+//			out << sp->pathset_id << ": probability:  " << prob << " = " << sp->utility << " / " << ps.logsum;
+			temp3.push_back(prob);
 			upperProb += prob;
 			if (x <= upperProb)
 			{
 				// 2.3 agent A chooses path i from the path choice set.
 				ps.bestWayPointpathP = sp->shortestWayPointpath;
+				Print() << "Best Path returning true" << std::endl;
+				//debug for now
+				bool included = sp->includesRoadSegment(exclude_seg);
+				if (!exclude_seg.empty() && included ) {
+					Print() << "WARNING, RETURNING A PATH CONTAINING THE EXCLUDED SEGMENT(S):\n excluded:"
+							<< std::endl;
+					BOOST_FOREACH(const sim_mob::RoadSegment* seg, exclude_seg) {
+						Print() << seg->getSegmentAimsunId() << ",";
+					}
+					Print() << std::endl;
+					for (int i = 0; i < sp->shortestWayPointpath.size(); ++i) {
+						WayPoint *w = sp->shortestWayPointpath[i];
+						if (w->type_ == WayPoint::ROAD_SEGMENT) {
+							Print() << w->roadSegment_->getSegmentAimsunId() << ",";
+						}
+					}
+					Print() << std::endl;
+
+				}
+				//debug...
+
 				return true;
 			}
-			out << "  not good: " << x << "! <= " <<  upperProb << std::endl;
+//			out << "  not good: " << x << "! <= " <<  upperProb << std::endl;
 		}
+	}
+	std::vector<double>::iterator it1(temp1.begin());
+	std::vector<double>::iterator it2(temp2.begin());
+	std::vector<double>::iterator it3(temp3.begin());
+	for(;it1 != temp1.end(); it1++){
+		std::cout << *it1 << std::endl;
+	}
+	for(;it2 != temp2.end(); it2++){
+		std::cout << *it2 << std::endl;
+	}
+	for(;it3 != temp3.end();  it3++){
+		std::cout << *it3 << std::endl;
 	}
 	//the last step resorts to selecting and returning oripath.
 	//oriPath is the shortest path ususally generatd from a graph with not exclusion(free flow)
@@ -1541,7 +1579,7 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps,
 		//so at least one of the paths resulted from link elimination should be selected by now.
 		//if not, either throw an error, or return false(just like what I did now) or obtain path fom graph 'providing the exclusions'
 		//throw std::runtime_error("Could not find a path NOT containing the excluded segments");
-		Print() << "oriPathEmpty, other paths dont seem to have anything as best: \n" << out.str() << std::endl;
+		Print() << "NO BEST PATH. oriPathEmpty, other paths dont seem to have anything as best: \n" << out.str() << std::endl;
 		return false;
 	}
 	// have to has a path

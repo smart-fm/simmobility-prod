@@ -305,14 +305,12 @@ bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 		selectQuery << "select * from \"" << singlePathTableName << "\" "
 					<< " left join exclusion on (\"" << singlePathTableName << "\".\"ID\" like  exclusion.sectionid) "
 					<< " where \"PATHSET_ID\" =" + pathset_id << " and exclusion.sectionid is null";
-		std::cout << selectQuery.str() << std::endl;
+//		std::cout << selectQuery.str() << std::endl;
 	}
 	else{
 		selectQuery << "select * from \"" << singlePathTableName << "\" where \"PATHSET_ID\" =" + pathset_id ;
 	}
-	std::cout << excludeTable << std::endl;
-//	//debug
-	//std::cout << "selectQuery for excluded sections["  << selectQuery.str() << "]" << excludedRS.size() << std::endl;
+//	std::cout << excludeTable << std::endl;
 	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare << selectQuery.str());
 	if(rs.begin() == rs.end()){
 		std::cout << "the above selectQuery has no results" << (excludedRS.size() ? "ex" : "") << std::endl;
@@ -336,7 +334,8 @@ bool DatabaseLoader::LoadPathSetDBwithId(
 		std::string& pathset_id)
 {
 	//Our SQL statement
-	soci::rowset<sim_mob::PathSet> rs = (sql_.prepare <<"select * from \"PathSet\" where \"ID\" = " + pathset_id);
+	std::string query = "select * from \"PathSet\" where \"ID\" = " + pathset_id;
+	soci::rowset<sim_mob::PathSet> rs = (sql_.prepare << query/*"select * from \"PathSet\" where \"ID\" = " + pathset_id*/);
 	int i=0;
 	for (soci::rowset<sim_mob::PathSet>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//
@@ -349,7 +348,7 @@ bool DatabaseLoader::LoadPathSetDBwithId(
 	}
 	if(i==0)
 	{
-		std::cout<<"LPSetDBwithId: "<<pathset_id<<" no data in db"<<std::endl;
+		std::cout<<"LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
 		return false;
 	}
 	else
@@ -360,7 +359,8 @@ bool DatabaseLoader::LoadPathSetDBwithId(
 bool DatabaseLoader::LoadOnePathSetDBwithId(std::string& pathset_id,sim_mob::PathSet& ps)
 {
 	//Our SQL statement
-	soci::rowset<sim_mob::PathSet> rs = (sql_.prepare <<"select * from \"PathSet\" where \"ID\" = " + pathset_id);
+	std::string query = "select * from \"PathSet\" where \"ID\" = " + pathset_id;
+	soci::rowset<sim_mob::PathSet> rs = (sql_.prepare << query/*"select * from \"PathSet\" where \"ID\" = " + pathset_id*/);
 	int i=0;
 	for (soci::rowset<sim_mob::PathSet>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//
@@ -370,7 +370,7 @@ bool DatabaseLoader::LoadOnePathSetDBwithId(std::string& pathset_id,sim_mob::Pat
 	}
 	if(i==0)
 	{
-		std::cout<<"LPSetDBwithId: "<<pathset_id<<" no data in db"<<std::endl;
+		std::cout<<"LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
 		return false;
 	}
 	else
@@ -381,7 +381,8 @@ bool DatabaseLoader::LoadOnePathSetDBwithId(std::string& pathset_id,sim_mob::Pat
 bool DatabaseLoader::LoadOnePathSetDBwithIdST(soci::session& sql,std::string& pathset_id,sim_mob::PathSet& ps, const std::string tableName)
 {
 	//Our SQL statement
-	soci::rowset<sim_mob::PathSet> rs = (sql.prepare <<"select * from \"" + tableName + "\" where \"ID\" = " + pathset_id);
+	std::string query = "select * from \"" + tableName + "\" where \"ID\" = " + pathset_id;
+	soci::rowset<sim_mob::PathSet> rs = (sql.prepare << query/*"select * from \"" + tableName + "\" where \"ID\" = " + pathset_id*/);
 	int i=0;
 	for (soci::rowset<sim_mob::PathSet>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//
@@ -391,7 +392,7 @@ bool DatabaseLoader::LoadOnePathSetDBwithIdST(soci::session& sql,std::string& pa
 	}
 	if(i==0)
 	{
-		std::cout<<"LPSetDBwithId: "<<pathset_id<<" no data in db"<<std::endl;
+		std::cout<<"LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
 		return false;
 	}
 	else

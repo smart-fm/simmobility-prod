@@ -209,7 +209,7 @@ struct personOD{
 /// Roadsegment-Person-O-D
 typedef std::multimap<const sim_mob::RoadSegment*, personOD > RPOD ;// Roadsegment-Person-O-D  :)
 
-class PathSetManager  : public messaging::MessageHandler{
+class PathSetManager {
 	///option to wait for each group of pathset generation to complete before starting another group
 	///for all 'link eliminations' and 'random perturbation'
 	bool serialPathSetGroup;
@@ -299,8 +299,13 @@ public:
 	void cacheODbySegment(const sim_mob::Person*,const SubTrip *,std::vector<WayPoint> &);
 	const std::pair<RPOD::const_iterator,RPOD::const_iterator > getODbySegment(const sim_mob::RoadSegment* segment) const;
 	void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+	//list of incident currently happening in the system.(incident manager has the original copy
 	std::set<const sim_mob::RoadSegment*> currIncidents;
+	///protect access to incidents list
+	boost::shared_mutex mutexIncident;
 	std::set<const sim_mob::RoadSegment*> &getIncidents();
+	///insert into incident list
+	void inserIncidentList(const sim_mob::RoadSegment*);
 	PathSetDBLoader *psDbLoader;
 	soci::session *sql;
 

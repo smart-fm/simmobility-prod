@@ -765,29 +765,28 @@ bool DriverMovement::isConnectedToNextSeg(const Lane* lane, const sim_mob::RoadS
 	}
 
 	if (nxtRdSeg->getLink() != lane->getRoadSegment()->getLink()){
+		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (lane->getRoadSegment()->getEnd());
+		if (currEndNode) {
+			const set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(lane->getRoadSegment());
+			for (set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
+				if ((*it)->getLaneTo()->getRoadSegment() == nxtRdSeg && (*it)->getLaneFrom() == lane) {
+					return true;
+				}
+			}
+		}
+	}
+	else{
 		//if (lane->getRoadSegment()->getLink() == nxtRdSeg->getLink()) we are
 		//crossing a uni-node. At uninodes, we assume all lanes of the current
 		//segment are connected to all lanes of the next segment
 		return true;
 	}
 
-	const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (lane->getRoadSegment()->getEnd());
-	if (!currEndNode) {
-		return false;
-	}
-
-	const set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(lane->getRoadSegment());
-
-	for (set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
-		if ((*it)->getLaneTo()->getRoadSegment() == nxtRdSeg && (*it)->getLaneFrom() == lane) {
-				return true;
-		}
-	}
 	return false;
 }
 
 bool DriverMovement::isConnectedToNextSeg(const sim_mob::RoadSegment *srcRdSeg, const sim_mob::RoadSegment *nxtRdSeg) const{
-	if(!nxtRdSeg || srcRdSeg) {
+	if(!nxtRdSeg || !srcRdSeg) {
 		throw std::runtime_error("DriverMovement::getConnectionsToNextSeg() - one or both of the Road Segments are not available!");
 	}
 	BOOST_FOREACH(const sim_mob::Lane *ln, srcRdSeg->getLanes() ){
@@ -850,39 +849,39 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(
 	for (vector<sim_mob::Lane* >::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
 	{
 		const Lane* lane = *lnIt;
-		if (!(!lane->is_pedestrian_lane() && !lane->is_whole_day_bus_lane())){
-			continue;
-		}
-		if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())) {
-			continue;
-		}
-		total = nextSegStats->getLaneTotalVehicleLength(lane);
-		que = nextSegStats->getLaneQueueLength(lane);
-		if (minLength > total)
+		if (!lane->is_pedestrian_lane() && !lane->is_whole_day_bus_lane())
 		{
-			//if total length of vehicles is less than current minLength
-			minLength = total;
-			minQueueLength = que;
-			minLane = lane;
-		}
-		else if (minLength == total)
-		{
-			//if total length of vehicles is equal to current minLength
-			if (minQueueLength > que)
+			if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())) {	continue; }
+			total = nextSegStats->getLaneTotalVehicleLength(lane);
+			que = nextSegStats->getLaneQueueLength(lane);
+			if (minLength > total)
 			{
-				//and if the queue length is less than current minQueueLength
+				//if total length of vehicles is less than current minLength
+				minLength = total;
 				minQueueLength = que;
 				minLane = lane;
+			}
+			else if (minLength == total)
+			{
+				//if total length of vehicles is equal to current minLength
+				if (minQueueLength > que)
+				{
+					//and if the queue length is less than current minQueueLength
+					minQueueLength = que;
+					minLane = lane;
+				}
 			}
 		}
 	}
 
 	if(!minLane) {
+		Print() << "\nCurrent Path" << pathMover.getPath().size() << std::endl;
+		MesoPathMover::printPath(pathMover.getPath());
+
 		std::ostringstream out("");
 		out << "best target lane was not set!" << "\nCurrent Segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getSegmentAimsunId() <<
 				" =>" << nextSegStats->getRoadSegment()->getSegmentAimsunId() <<
-				" =>" <<  nextToNextSegStats->getRoadSegment()->getSegmentAimsunId() << "\nCurrent Path" << std::endl;
-				MesoPathMover::printPath(pathMover.getPath());
+				" =>" <<  nextToNextSegStats->getRoadSegment()->getSegmentAimsunId()  << std::endl;
 		throw std::runtime_error(out.str()); }
 	return minLane;
 }
@@ -913,7 +912,8 @@ void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSeg
 	getParent()->initRdSegTravelStats(pathMover.getCurrSegStats()->getRoadSegment(), segStatExitTimeSec);
 }
 
-int DriverMovement::findReroutingPoints(const std::vector<sim_mob::SegmentStats*>& stats, std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >& remaining) const{
+int DriverMovement::findReroutingPoints(const std::vector<sim_mob::SegmentStats*>& stats,
+		std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >& remaining) const{
 
 	//some variables and iterators before the Actual Operation
 	const std::vector<const sim_mob::SegmentStats*> & path = getMesoPathMover().getPath(); //driver's current path
@@ -1012,14 +1012,21 @@ bool DriverMovement::canJoinPaths(std::vector<WayPoint> & newPath, std::vector<c
 	 {
 		 return true;
 	 }
-	//exclude/blacklist the UTurn segment on the new path(first segment)
+	 //now try to find another path
+	 Print() << "Trying to join paths:" << std::endl;
+	MesoPathMover::printPath(oldPath);
+	printWPpath(newPath);
+
+	//exclude/blacklist the segment on the new path(first segment)
 	excludeRS.insert((*newPath.begin()).roadSegment_);
 	//create a path using updated black list
 	//and then try again
 	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
 	//if no path, return false, if path found, return true
-	newPath = sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(getParent(), &subTrip, excludeRS, true, false );
-	return isConnectedToNextSeg(from,to);
+	newPath = sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(getParent(), &subTrip, excludeRS, false, true );
+	to = newPath.begin()->roadSegment_;
+	bool res = isConnectedToNextSeg(from,to);
+	return res;
 }
 
 //todo put this in the utils(and code style!)
@@ -1039,7 +1046,8 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 	Print() << "rerouting" << std::endl;
 	/*step-1 can I re-rout? if yes, what are my points of re-rout?*/
 		//criterion-1 at least 1 intersection from where the agent is, to the troubled roadsegment
-	std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > deTourOptions;
+	std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > deTourOptions ;
+	deTourOptions.clear(); // :)
 	int numReRoute = findReroutingPoints(msg.stats, deTourOptions);
 	if(!numReRoute){
 		return;
@@ -1077,7 +1085,7 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 	{
 
 		//4.a
-		if(!newPath.second.size()){
+		if(newPath.second.empty()){
 			Warn() << "No path on Detour Candidate node " << newPath.first->getID() << std::endl;
 			deTourOptions.erase(newPath.first);
 			continue;
@@ -1085,14 +1093,26 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 		//4.b
 		// change the origin (just like in the previous loop
 		subTrip.fromLocation.node_ = newPath.first;
-		if(!UTurnFree(newPath.second,deTourOptions[newPath.first], subTrip, excludeRS)){
-			Warn() << "No path without a UTrn on Detour Candidate node " << newPath.first->getID() << std::endl;
+//		if(!UTurnFree(newPath.second,deTourOptions[newPath.first], subTrip, excludeRS))
+//			Warn() << "No path without a UTrn on Detour Candidate node " << newPath.first->getID() << std::endl;
+		bool canJoin = canJoinPaths(newPath.second,deTourOptions[newPath.first], subTrip, excludeRS);
+		if(!canJoin)
+		{
+			Print() << "could not join the old and new paths, discarding" << std::endl;
 			sim_mob::printWPpath(newPath.second, newPath.first);
 			deTourOptions.erase(newPath.first);
 			continue;
 		}
+		else{
+			Print() << "Paths can Join" << std::endl;
+		}
+
+		Print()<< "Combining old and new paths:" << std::endl;
+		MesoPathMover::printPath(deTourOptions[newPath.first], newPath.first);
+		printWPpath(newPath.second, newPath.first);
 		//4.c convert the new path waypoints to segstats and append them to the remaining path(remaining path: remaining segstats from the original path to the rer-outing point)
 		initSegStatsPath(newPath.second,deTourOptions[newPath.first]);
+
 //		//debug
 //		Print() << "Detour Option:" << std::endl;
 //		MesoPathMover::printPath(deTourOptions[newPath.first], newPath.first);
@@ -1114,7 +1134,8 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 	int dbgIndx = cnt;
 	while(cnt){ it++; --cnt;}
 	//debug
-	Print() << "----------------------------------\nOriginal path:" << std::endl;
+	Print() << "----------------------------------\n"
+			"Original path:" << std::endl;
 	getMesoPathMover().printPath(getMesoPathMover().getPath());
 	Print() << "Detour option chosen[" << dbgIndx << "] : " << it->first << std::endl;
 	getMesoPathMover().printPath(it->second);
@@ -1128,7 +1149,7 @@ void DriverMovement::HandleMessage(messaging::Message::MessageType type,
 	switch (type){
 	case MSG_INSERT_INCIDENT:{
 		const InsertIncidentMessage &msg = MSG_CAST(InsertIncidentMessage,message);
-		rerout(msg);
+//		rerout(msg);
 		break;
 	}
 	}

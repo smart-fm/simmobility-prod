@@ -64,9 +64,8 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 
 	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::instance();
 	std::pair<uint32_t,Incident> incident;
-	/*inserting and informing*/
+	/*inserting and informing: 1-Conflux 2-pathsetmanager 3-person*/
 	for(std::multimap<uint32_t,Incident>::iterator incident = tickIncident.first; incident != tickIncident.second; incident++){
-//	BOOST_FOREACH(incident, tickIncident){
 		//get the conflux
 		const sim_mob::RoadSegment* rs = stDir.getRoadSegment(incident->second.get<0>());
 
@@ -74,9 +73,7 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 		//send a message to conflux to insert an incident to itseld
 		messaging::MessageBus::PostMessage(rs->getParentConflux(), MSG_INSERT_INCIDENT,
 							messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, incident->second.get<1>())));
-
-		messaging::MessageBus::PostMessage(sim_mob::PathSetManager::getInstance(), MSG_INSERT_INCIDENT,
-							messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, incident->second.get<1>())));
+		sim_mob::PathSetManager::getInstance()->inserIncidentList((*stats.begin())->getRoadSegment());
 		std::vector <const sim_mob::Person*> persons;
 		identifyAffectedDrivers(rs,persons);
 		Print() << " INCIDENT  segment:"<< rs->getSegmentAimsunId() << " affected:" << persons.size() << std::endl;

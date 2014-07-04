@@ -52,7 +52,7 @@ public:
 	// populateCarParks - add vehicles to the carParks which are at nodes
 	// @param carparkIds - vector of strings of node ids where vehicles will be parked at the beginning of simulation
 	// @param number ofVhAtCarpark - integer, number of vehicles at each carpark at the beginning of simulation
-	void readDemandFile(int current_time, std::vector<std::string>& origin, std::vector<std::string>& destination);
+	void readDemandFile(std::vector<std::string>& tripID, int current_time, std::vector<std::string>& origin, std::vector<std::string>& destination);
 	//read the demand from the txt file and outputs two vectors
 	//@param origin - vector of strings, origin of the trip
 	//@param destination - vector if strings, destination
@@ -75,8 +75,9 @@ public:
 	double calculateTravelTime(std::vector < sim_mob::WayPoint > &wPs );
 
 	// Finds remaining way points
-	void findRemainingWayPoints(Person *vh, std::vector < sim_mob::WayPoint > &remainingWPs);
-
+	bool findRemainingWayPoints(Person *vh, std::vector < sim_mob::WayPoint > &remainingWPs);
+	void precomputeAllPairsShortestPaths(void);
+	std::vector < WayPoint > getShortestPath(std::string origNodeID, std::string destNodeID);
 
 	bool getVhFromCarPark(std::string& carParkId,Person** vh);
 	bool removeVhFromCarPark(std::string& carParkId,Person** vh); //removes a specific vehicle from the car park
@@ -99,7 +100,8 @@ public:
 	void testVh();
 	void testTravelTimePath();
 	void assignVhs(std::vector<std::string>& origin, std::vector<std::string>& destination);
-	//void assignVhs();
+	void assignVhsFast(std::vector<std::string>& tripID, std::vector<std::string>& origin, std::vector<std::string>& destination, int currTime);
+
 	int test;
 
 	void handleAMODEvent(sim_mob::event::EventId id,
@@ -108,6 +110,7 @@ public:
 			const AMOD::AMODEventArgs& args);
 
 	void handleVHArrive(Person* vh);
+	void handleVHError(Person *vh);
 protected:
 	//override from the class agent, provide initilization chance to sub class
 	virtual bool frame_init(timeslice now);
@@ -138,10 +141,23 @@ private:
 	boost::unordered_map<std::string,Person*> vhOnTheRoad;
 	boost::unordered_map<std::string,Person*> vhInCarPark;
 	boost::unordered_map<std::string,Person*> allAMODCars;
+	struct AmodTrip {
+		std::string tripID;
+		std::string origin;
+		std::string destination;
+		int time;
+	};
+	boost::unordered_map<Person*, AmodTrip  > vhTripMap;
+	typedef boost::unordered_map< Person*, AmodTrip >::iterator TripMapIterator;
 
-
-
+	std::list < AmodTrip > serviceBuffer;
+	typedef std::list< AmodTrip >::iterator ServiceIterator;
+	int nFreeCars;
 	int frameTicks;
+
+
+	//shortest paths
+	boost::unordered_map<std::string, std::vector <WayPoint> > shortestPaths;
 
 private:
 	static AMODController* pInstance;
@@ -166,6 +182,7 @@ public:
 	};
 
 	std::ifstream myFile; // ("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/About10.txt");
+	std::ofstream demandDiary;
 	std::string lastReadLine;
 
 
@@ -185,7 +202,7 @@ inline std::string getNumberFromAimsunId(std::string &aimsunid)
 	}
 	else
 	{
-		Warn()<<"aimsun id not correct "+aimsunid<<std::endl;
+		Warn()<<"aimsun id not correct "+aimsunid << std::endl;
 	}
 
 	return number;

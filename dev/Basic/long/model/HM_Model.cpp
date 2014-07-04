@@ -35,8 +35,7 @@ namespace {
     const BigSerial FAKE_IDS_START = 9999900;
 }
 
-HM_Model::TazStats::TazStats(BigSerial tazId) : tazId(tazId), 
-        hhNum(0), hhTotalIncome(0) {
+HM_Model::TazStats::TazStats(BigSerial tazId) : tazId(tazId), hhNum(0), hhTotalIncome(0) {
 }
 
 HM_Model::TazStats::~TazStats() {
@@ -63,8 +62,7 @@ double HM_Model::TazStats::getHH_AvgIncome() const {
     return hhTotalIncome / static_cast<double> ((hhNum == 0) ? 1 : hhNum);
 }
 
-HM_Model::HM_Model(WorkGroup& workGroup)
-: Model(MODEL_NAME, workGroup) {
+HM_Model::HM_Model(WorkGroup& workGroup): Model(MODEL_NAME, workGroup) {
 }
 
 HM_Model::~HM_Model() {
@@ -83,8 +81,7 @@ BigSerial HM_Model::getUnitTazId(BigSerial unitId) const {
     const Unit* unit = getUnitById(unitId);
     BigSerial tazId = INVALID_ID;
     if (unit) {
-        tazId = DataManagerSingleton::getInstance()
-                .getPostcodeTazId(unit->getPostcodeId());
+        tazId = DataManagerSingleton::getInstance().getPostcodeTazId(unit->getPostcodeId());
     }
     return tazId;
 }
@@ -145,8 +142,7 @@ void HM_Model::startImpl() {
     //create fake seller agents to sell vacant units.
     std::vector<HouseholdAgent*> fakeSellers;
     for (int i = 0; i < numberOfFakeSellers; i++) {
-        HouseholdAgent* fakeSeller = new HouseholdAgent((FAKE_IDS_START + i),
-                this, nullptr, &market, true);
+        HouseholdAgent* fakeSeller = new HouseholdAgent((FAKE_IDS_START + i), this, nullptr, &market, true);
         AgentsLookupSingleton::getInstance().addHousehold(fakeSeller);
         agents.push_back(fakeSeller);
         workGroup.assignAWorker(fakeSeller);
@@ -158,11 +154,9 @@ void HM_Model::startImpl() {
     int homelessHousehold = 0;
 
     // Assign households to the units.
-    for (HouseholdList::const_iterator it = households.begin();
-            it != households.end(); it++) {
+    for (HouseholdList::const_iterator it = households.begin(); it != households.end(); it++) {
         const Household* household = *it;
-        HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,
-                household, &market);
+        HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this, household, &market);
         const Unit* unit = getUnitById(household->getUnitId());
         if (unit) {
             hhAgent->addUnitId(unit->getId());
@@ -175,8 +169,7 @@ void HM_Model::startImpl() {
 
         BigSerial tazId = getUnitTazId(household->getUnitId());
         if (tazId != INVALID_ID){
-            const HM_Model::TazStats* tazStats = 
-                getTazStatsByUnitId(household->getUnitId());
+            const HM_Model::TazStats* tazStats = getTazStatsByUnitId(household->getUnitId());
             if (!tazStats){
                 tazStats = new TazStats(tazId);
                 stats.insert(std::make_pair(tazId, const_cast<HM_Model::TazStats*>(tazStats)));
@@ -197,6 +190,7 @@ void HM_Model::startImpl() {
 
     const int numVacantUnits = config.ltParams.housingModel.numberOfVacantUnits;
 
+    //Delete vacant units set by config file.
     for(int n = 0, m = 0; n < numVacantUnits; )
     {
 		for (UnitList::const_iterator it = units.begin() + m; it != units.end(); it++)

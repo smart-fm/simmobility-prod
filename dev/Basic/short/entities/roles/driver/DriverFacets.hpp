@@ -100,7 +100,7 @@ private:
 	double disToFwdVehicleLastFrame; //to find whether vehicle is going to crash in current frame.
 
 public:
-	double maxLaneSpeed;
+//	double maxLaneSpeed;
 	//for coordinate transform
 	void setParentBufferedData();			///<set next data to parent buffer data
 	//Call once
@@ -149,6 +149,11 @@ public:
 
 	void updateAdjacentLanes(DriverUpdateParams& p);
 	void updatePositionDuringLaneChange(DriverUpdateParams& p, LANE_CHANGE_SIDE relative);
+	void updateLateralMovement(DriverUpdateParams& p);
+	/**
+	 *   @brief sync data after lane changing movement completed
+	 */
+	void syncInfoLateralMove(DriverUpdateParams& p);
 
 	void updatePosDuringLaneChange(DriverUpdateParams& p);
 

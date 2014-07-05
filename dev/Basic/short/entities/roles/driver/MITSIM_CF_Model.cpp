@@ -504,7 +504,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	// VARIABLE || FUNCTION ||				REGIME
 	calcStateBasedVariables(p);
 
-	p.targetSpeed = calcDesiredSpeed(p);
+	p.desiredSpeed = calcDesiredSpeed(p);
 
 	double acc = p.maxAcceleration; p.accSelect = "max";
 	double aB = calcMergingRate(p);
@@ -661,7 +661,7 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 //	if (p.space > 0.1)
 	{
 		if (!nv.exists()) {
-			return accOfFreeFlowing(p, p.targetSpeed, p.maxLaneSpeed);
+			return accOfFreeFlowing(p, p.desiredSpeed, p.maxLaneSpeed);
 		}
 		// when nv is left/right vh , can not use perceivedxxx!
 //		p.v_lead = p.perceivedFwdVelocityOfFwdCar/100;
@@ -699,7 +699,7 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 		}
 		hBufferUpper = getBufferUppder();
 		if (headway > hBufferUpper) {
-			res = accOfMixOfCFandFF(p, p.targetSpeed, p.maxLaneSpeed);
+			res = accOfMixOfCFandFF(p, p.desiredSpeed, p.maxLaneSpeed);
 		}
 		if (headway <= hBufferUpper && headway >= hBufferLower) {
 			res = accOfCarFollowing(p);
@@ -1399,7 +1399,7 @@ double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p,
  */
 double sim_mob::MITSIM_CF_Model::desiredSpeedRate(DriverUpdateParams& p)
 {
-  float maxspd = p.targetSpeed;
+  float maxspd = p.maxLaneSpeed;
   double epsilon_v = sim_mob::Math::DOUBLE_EPSILON;
   if (p.perceivedFwdVelocity /100 < maxspd - epsilon_v) {
 	// Use maximum acceleration

@@ -678,7 +678,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 		p.perceivedDistToFwdCar = nv.distance;
 	}
 
-	if(p.parentId == 66508 && p.now.frame()>1300)
+	if(p.parentId == 66508 && p.now.frame()>1280)
 	{
 		int i=0;
 		parentDriver->perceivedTrafficColor->printHistory();
@@ -714,11 +714,11 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 			/ METER_TO_CENTIMETER_CONVERT_UNIT;
 //Call our model
 
-	p.targetSpeed = targetSpeed;
-	p.maxLaneSpeed = maxLaneSpeed;
+//	p.targetSpeed = targetSpeed;
+//	p.maxLaneSpeed = maxLaneSpeed;
 
-	p.newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed,
-			maxLaneSpeed);
+	p.newFwdAcc = cfModel->makeAcceleratingDecision(p, p.desiredSpeed,
+			p.maxLaneSpeed);
 
 	if (parentDriver->parent->GetId() == 0
 			&& parentDriver->getParams().now.frame() >= 200
@@ -746,6 +746,8 @@ double sim_mob::DriverMovement::move(DriverUpdateParams& p) {
 	}
 
 	newLatVel = lcModel->executeLaterVel(lcs);
+
+	p.newLatVelM = newLatVel;
 
 	parentDriver->vehicle->setTurningDirection(lcs);
 	parentDriver->vehicle->setLatVelocity(
@@ -966,9 +968,9 @@ double sim_mob::DriverMovement::linkDrivingNew(DriverUpdateParams& p) {
 			/ METER_TO_CENTIMETER_CONVERT_UNIT;
 //Call our model
 
-	p.targetSpeed = targetSpeed;
-	p.maxLaneSpeed = maxLaneSpeed;
-	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
+//	p.targetSpeed = targetSpeed;
+//	p.maxLaneSpeed = maxLaneSpeed;
+	newFwdAcc = cfModel->makeAcceleratingDecision(p, p.desiredSpeed, p.maxLaneSpeed);
 	if (abs(parentDriver->vehicle->getTurningDirection() != LCS_SAME)
 			&& newFwdAcc > 0
 			&& parentDriver->vehicle->getVelocity()
@@ -1198,7 +1200,7 @@ double sim_mob::DriverMovement::linkDriving(DriverUpdateParams& p) {
 			/ METER_TO_CENTIMETER_CONVERT_UNIT;
 //Call our model
 
-	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
+	newFwdAcc = cfModel->makeAcceleratingDecision(p, p.desiredSpeed, p.maxLaneSpeed);
 	if (abs(parentDriver->vehicle->getTurningDirection() != LCS_SAME)
 			&& newFwdAcc > 0
 			&& parentDriver->vehicle->getVelocity()
@@ -1667,9 +1669,9 @@ void sim_mob::DriverMovement::syncCurrLaneCachedInfo(DriverUpdateParams& p) {
 	p.currLaneLength = fwdDriverMovement.getTotalRoadSegmentLengthCM();
 
 //Finally, update target/max speed to match the new Lane's rules.
-	maxLaneSpeed = fwdDriverMovement.getCurrSegment()->maxSpeed
+	p.maxLaneSpeed = fwdDriverMovement.getCurrSegment()->maxSpeed
 			/ KILOMETER_PER_HOUR_TO_METER_PER_SEC; //slow down
-	targetSpeed = maxLaneSpeed;
+	targetSpeed = p.maxLaneSpeed;
 	p.desiredSpeed = targetSpeed;
 }
 
@@ -1994,9 +1996,9 @@ void sim_mob::DriverMovement::rerouteWithBlacklist(
 
 void sim_mob::DriverMovement::setOrigin(DriverUpdateParams& p) {
 //Set the max speed and target speed.
-	maxLaneSpeed = fwdDriverMovement.getCurrSegment()->maxSpeed
+	p.maxLaneSpeed = fwdDriverMovement.getCurrSegment()->maxSpeed
 			/ KILOMETER_PER_HOUR_TO_METER_PER_SEC;
-	targetSpeed = maxLaneSpeed;
+	targetSpeed = p.maxLaneSpeed;
 
 	p.desiredSpeed = targetSpeed;
 
@@ -2133,8 +2135,9 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 
 //Lateral movement
 	if (!(fwdDriverMovement.isInIntersection())) {
-		parentDriver->vehicle->moveLat(latDistance);
-		updatePositionDuringLaneChange(p, relative);
+//		parentDriver->vehicle->moveLat(latDistance);
+//		updatePositionDuringLaneChange(p, relative);
+		updateLateralMovement(p);
 	}
 
 //Update our offset in the current lane.
@@ -2834,7 +2837,98 @@ LANE_CHANGE_SIDE sim_mob::DriverMovement::getCurrLaneSideRelativeToCenter() cons
 	}
 	return LCS_SAME;
 }
+void sim_mob::DriverMovement::updateLateralMovement(DriverUpdateParams& p)
+{
+	// TODO check if STATUS_LC_CHANGING
 
+	// 1.0 get lateral speed
+	double lateralSpeedM = p.newLatVelM;
+
+	// 1.1 calculate lateral movement distance of current tick
+	double lateralMoveDisTickM = lateralSpeedM * p.elapsedSeconds;
+
+	// 1.2 update vehicle's latMovement
+	parentDriver->vehicle->moveLat(lateralMoveDisTickM * 100);
+
+	// 2.0 check if lane changing operation completed
+	double lateralMovementCM = parentDriver->vehicle->getLateralMovement();
+	lateralMovementCM = abs(lateralMovementCM);
+
+	double halfLaneWidthCM = p.currLane->getWidth() / 2.0;
+	if(lateralMovementCM > halfLaneWidthCM)
+	{
+		//    move beyond of mid line of the lane
+		//    means vh moved to target lane
+		//2.1 Update Lanes, polylines, RoadSegments, etc.
+		syncInfoLateralMove(p);
+
+		if (p.currLane->is_pedestrian_lane()) {
+		//Flush debug output (we are debugging this error).
+						if (Debug::Drivers) {
+							if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
+								DebugStream << ">>>Exception: Moved to sidewalk."
+										<< endl;
+								PrintOut(DebugStream.str());
+							}
+						}
+
+						std::stringstream msg;
+						msg << "Error: Car has moved onto sidewalk. Agent ID: "
+								<< getParent()->getId();
+						throw std::runtime_error(msg.str().c_str());
+		}
+
+		parentDriver->vehicle->resetLateralMovement();
+
+		// complete lane change
+		p.unsetFlag(FLAG_PREV_LC); // clean bits
+		if (p.getStatus(STATUS_LEFT)) {
+			p.unsetFlag(FLAG_PREV_LC_LEFT);
+		} else {
+			p.unsetFlag(FLAG_PREV_LC_RIGHT);
+		}
+		p.unsetStatus(STATUS_CHANGING);
+	// lane change complete, unset the "performing lane change" status
+		p.unsetStatus(STATUS_LC_CHANGING);
+		p.unsetStatus(STATUS_MANDATORY); // Angus
+		p.unsetFlag(FLAG_NOSING | FLAG_YIELDING | FLAG_LC_FAILED);
+		p.unsetFlag(FLAG_VMS_LANE_USE_BITS | FLAG_ESCAPE | FLAG_AVOID);
+		p.unsetFlag(FLAG_STUCK_AT_END | FLAG_NOSING_FEASIBLE);
+		p.unsetStatus(STATUS_TARGET_GAP);
+	}
+}
+void sim_mob::DriverMovement::syncInfoLateralMove(DriverUpdateParams& p)
+{
+	if (p.getStatus(STATUS_LC_RIGHT)) {
+		p.currLane = p.leftLane;
+	} else if (p.getStatus(STATUS_LC_LEFT)) {
+		p.currLane = p.rightLane;
+	} else {
+		std::stringstream msg;
+		msg << "syncInfoLateralMove (" << getParent()->getId()
+							<< ") is attempting to change lane when no lc decision made";
+		throw std::runtime_error(msg.str().c_str());
+	}
+
+	//The lane may have changed; reset the current lane index.
+	p.currLaneIndex = getLaneIndex(p.currLane);
+
+	//Update which lanes are adjacent.
+	updateAdjacentLanes(p);
+
+	//Update the length of the current road segment.
+	p.currLaneLength = fwdDriverMovement.getTotalRoadSegmentLengthCM();
+
+	//update max speed of Lane's rules.
+	p.maxLaneSpeed = fwdDriverMovement.getCurrSegment()->maxSpeed
+				/ KILOMETER_PER_HOUR_TO_METER_PER_SEC;
+	//	targetSpeed = maxLaneSpeed;
+	//	p.desiredSpeed = targetSpeed;
+
+	// update lane polyline data;
+	// is it necessary? as when calculate lateral position only use lane zero polyline and current lane index
+	fwdDriverMovement.moveToNewPolyline(p.currLaneIndex);
+}
 //TODO: I think all lane changing occurs after 150m. Double-check please. ~Seth
 void sim_mob::DriverMovement::updatePositionDuringLaneChange(
 		DriverUpdateParams& p, LANE_CHANGE_SIDE relative) {

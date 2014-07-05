@@ -243,7 +243,7 @@ double sim_mob::BusDriverMovement::linkDriving(DriverUpdateParams& p)
 	//and if its left has lane, merge to left lane
 	p.currSpeed = parentBusDriver->vehicle->getVelocity() / 100;
 	double newFwdAcc = 0;
-	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
+	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, p.maxLaneSpeed);
 	if (abs(parentBusDriver->vehicle->getTurningDirection() != LCS_SAME) && newFwdAcc > 0&& parentBusDriver->vehicle->getVelocity() / 100 > 10) {
 		newFwdAcc = 0;
 	}
@@ -417,7 +417,7 @@ double sim_mob::BusDriverMovement::busAccelerating(DriverUpdateParams& p) {
 	p.currSpeed = parentBusDriver->vehicle->getVelocity() / 100;
 
 	//Call our model
-	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
+	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, p.maxLaneSpeed);
 
 	return newFwdAcc;
 	//Update our chosen acceleration; update our position on the link.

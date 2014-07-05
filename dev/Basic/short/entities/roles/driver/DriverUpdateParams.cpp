@@ -34,11 +34,19 @@ void DriverUpdateParams::buildDebugInfo()
 	char newFwdAccChar[20] = "\0";
 	sprintf(newFwdAccChar,"%03.1f",newFwdAcc);
 
+	size_t currLaneIdx = currLaneIndex;
+	if(currLaneIdx<0.1) currLaneIdx = 0;
+
 	double dis = perceivedDistToFwdCar / 100.0;
 	char disChar[20] = "\0";
 	sprintf(disChar,"%03.1f",dis);
-	s<<ct<<":"<<newFwdAccChar<<":"<<accSelect<<":"<<nvFwd.exists()<<":"<<disChar<<":"<<perceivedTrafficColor<<":"
-			<<perceivedDistToTrafficSignal/100.0;
+	s<<ct<<":"<<newFwdAccChar
+			<<":"<<accSelect
+			<<":"<<nvFwd.exists()
+			<<":"<<disChar
+	<<":"<<currLaneIndex;
+//			<<":"<<perceivedTrafficColor
+//			<<":"<<perceivedDistToTrafficSignal/100.0;
 	debugInfo = s.str();
 
 	std::cout<<debugInfo<<std::endl;

@@ -71,7 +71,7 @@ void sim_mob::IncidentPerformer::responseIncidentStatus( DriverUpdateParams& p, 
 			if(!driverMovement){
 				return;
 			}
-			newFwdAcc = driverMovement->getCarFollowModel()->makeAcceleratingDecision(p, speedLimit, driverMovement->maxLaneSpeed);
+			newFwdAcc = driverMovement->getCarFollowModel()->makeAcceleratingDecision(p, speedLimit, p.desiredSpeed);
 			newSpeed = calculateSpeedbyAcceleration(parentDriver->getVehicle()->getVelocity(), newFwdAcc, p.elapsedSeconds);
 			if(newSpeed < speedLimit){
 				newFwdAcc = 0;

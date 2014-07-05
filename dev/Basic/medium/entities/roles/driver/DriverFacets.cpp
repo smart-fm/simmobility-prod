@@ -1137,7 +1137,7 @@ void DriverMovement::rerout(const InsertIncidentMessage &msg){
 	Print() << "----------------------------------\n"
 			"Original path:" << std::endl;
 	getMesoPathMover().printPath(getMesoPathMover().getPath());
-	Print() << "Detour option chosen[" << dbgIndx << "] : " << it->first << std::endl;
+	Print() << "Detour option chosen[" << dbgIndx << "] : " << it->first->getID() << std::endl;
 	getMesoPathMover().printPath(it->second);
 	Print() << "----------------------------------" << std::endl;
 	//debug...
@@ -1149,7 +1149,7 @@ void DriverMovement::HandleMessage(messaging::Message::MessageType type,
 	switch (type){
 	case MSG_INSERT_INCIDENT:{
 		const InsertIncidentMessage &msg = MSG_CAST(InsertIncidentMessage,message);
-//		rerout(msg);
+		rerout(msg);
 		break;
 	}
 	}

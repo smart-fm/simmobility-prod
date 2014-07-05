@@ -40,14 +40,16 @@ void sim_mob::IncidentManager::readFromFile(std::string inputFile){
 	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::instance();
 	typedef boost::tokenizer< boost::escaped_list_separator<char> > Tokenizer;
 	std::string line;
-
+	std::vector< std::string > vec;
 	while (getline(in,line))
 	{
 		Tokenizer record(line);
 		Tokenizer::iterator it = record.begin();
-		unsigned int sectionId = boost::lexical_cast<unsigned int>(*(it));//first element
-		double newFlowRate = boost::lexical_cast<double>(*(++it));//second element
-		uint32_t tick =  boost::lexical_cast<uint32_t>(*(++it));//second element
+		vec.clear();
+		vec.assign(record.begin(),record.end());
+		unsigned int sectionId = boost::lexical_cast<unsigned int>(vec[0]);//first element
+		double newFlowRate = boost::lexical_cast<double>(vec[1]);//second element
+		uint32_t tick =  boost::lexical_cast<uint32_t>(vec[2]);//second element
 		incidents.insert(std::make_pair(tick,Incident(sectionId,newFlowRate,tick)));
 		Print() << "Incident inserted for tick:" <<tick << " sectionId:" << sectionId << std::endl;
 	}

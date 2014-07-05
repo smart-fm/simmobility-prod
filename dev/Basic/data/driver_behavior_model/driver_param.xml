@@ -57,7 +57,8 @@
 	<param name="FF_Acc_Params_b2" value="0.3091"/>
 	<param name="FF_Acc_Params_stddev" value="1.134"/>
 #Car-following acceleration add on
-	<param name="Car_following_acceleration_add_on" value="-1.3564 -0.8547 -0.5562 -0.3178 -0.1036 0.1036 0.3178 0.5562 0.8547 1.3564"/>
+	<!--param name="Car_following_acceleration_add_on" value="-1.3564 -0.8547 -0.5562 -0.3178 -0.1036 0.1036 0.3178 0.5562 0.8547 1.3564"/-->
+	<param name="Car_following_acceleration_add_on" value="0 0 0 0 0 0 0 0 0 0"/>
 	<param name="Car_following_deceleration_add_on" value="-1.3187 -0.8309 -0.5407 -0.3089 -0.1007 0.1007 0.3089 0.5407 0.8309 1.3187"/>
 	
 <!-- A.2. TARGET GAP ACCELERATION PARAMETERS
@@ -91,9 +92,9 @@
 	<!-- Maximum acceleration -->
 	<param name="max_acc_car1"		value="5.00 	5.00	5.00	5.00	5.00"/>
 	<!-- Normal deceleration -->
-	<param name="normal_deceleration_car1"	value="-2.40 	-2.00 	-1.41 	-1.44 	-1.47"/>
+	<param name="normal_deceleration_car1"	value="-1 	-1.00 	-1.00 	-1.00 	-1.00"/>
 	<!-- Maximum deceleration -->
-	<param name="max_deceleration_car1"	value="-4.80 	-4.35	-3.90	-3.30	-3.00"/>
+	<param name="max_deceleration_car1"	value="-3.00 	-3.00	-3.00	-3.00	-3.00"/>
 	<!-- VARIATION TABLES (factor)-->
 	<!-- Each column represents the following population percentile
 							 0.05 0.15 0.25 0.35 0.45 0.55 0.65 0.75 0.85 0.95 -->
@@ -138,10 +139,10 @@
 	drawn from a truncated log-normal (normal?) distribution (seconds):
 	step sizes are as follows:
                                               	     		mean   stdev   lower   upper perception(percentage) -->
-	<param name="dec_update_step_size"             value=	"1.0     0.0     1.0     1.0    0.0"/>
-	<param name="acc_update_step_size"             value=	"1.0     0.0     1.0     1.0    0.0"/>
-	<param name="uniform_speed_update_step_size"   value=	"1.0     0.0     1.0     1.0    0.0"/>
-	<param name="stopped_vehicle_update_step_size" value=	"1.0     0.0     1.0     1.0    0.0"/>
+	<param name="dec_update_step_size"             value=	"1     0.0     1     1    0.5"/>
+	<param name="acc_update_step_size"             value=	"1     0.0     1     1    0.5"/>
+	<param name="uniform_speed_update_step_size"   value=	"1     0.0     1     1    0.5"/>
+	<param name="stopped_vehicle_update_step_size" value=	"1     0.0     1     1    0.5"/>
 
 	<!--param name="dec_update_step_size"             value=	"1.0     0.0     1.0     1.0    0.5"/>
 	<param name="acc_update_step_size"             value=	"1.0     0.0     1.0     1.0    0.5"/>
@@ -155,7 +156,8 @@
 	<!-- Vvar is read from the table bellow -->
 	<!-- Each column represents the following population percentile
 		 					0.05 	0.15	0.25	0.35	0.45	0.55	0.65	0.75	0.85	0.95 -->
-	<param name="speed_limit_add_on" value="	-0.1911	-0.0708	-0.0082	0.0397	0.0810	0.1248	0.1661	0.2180	0.2745	0.3657"/>
+	<!-- param name="speed_limit_add_on" value="	-0.1911	-0.0708	-0.0082	0.0397	0.0810	0.1248	0.1661	0.2180	0.2745	0.3657"/-->
+	<param name="speed_limit_add_on" value="	0	0	0	0	0	0	0	0	0	0"/>
 
 <!-- G. VISIBILITY
 	NOTE (Carlos): The structure of the visibility is not a mature one -> Needs work

@@ -1495,7 +1495,7 @@ double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(DriverUpdateParams& p,
 		double targetSpeed, double maxLaneSpeed) {
 	double vn = p.perceivedFwdVelocity / 100;
 	if (vn < targetSpeed - minSpeed) {
-		double acc = p.FFAccParamsBeta * (targetSpeed-vn); //+ getAccAddon();
+		double acc = p.FFAccParamsBeta * (targetSpeed-vn)+getAccAddon();
 		return acc;
 	} else if (vn > targetSpeed + minSpeed) {
 		//feet2Unit(Utils::nRandom(0, CF_parameters[i].stddev));

@@ -346,6 +346,7 @@ sim_mob::PathSetManager::PathSetManager() {
 	sql = NULL;
 	psDbLoader=NULL;
 	pathSetParam = PathSetParam::getInstance();
+	Link_default_travel_time_pool = pathSetParam->Link_default_travel_time_pool;//I have no access to travel time, so I put this here. -vahid
 	stdir = &StreetDirectory::instance();
 	roadNetwork = &ConfigManager::GetInstance().FullConfig().getNetwork();
 	multiNodesPool = roadNetwork->getNodes();
@@ -1480,9 +1481,9 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps,
 	//3. utility
 	//step 1.2 : accumulate the logsum
 	std::stringstream out("");
-	std::vector<double> temp1;
-	std::vector<double> temp2;
-	std::vector<double> temp3;
+	std::vector<double> tempUtil;
+	std::vector<double> tempExpUtil;
+	std::vector<double> tempProb;
 	double maxTravelTime = std::numeric_limits<double>::max();
 	ps.logsum = 0.0;
 	for(int i=0;i<ps.pathChoices.size();++i)
@@ -1502,8 +1503,8 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps,
 			//---------------------------------------------
 			sp->utility = getUtilityBySinglePath(sp);
 			ps.logsum += exp(sp->utility);
-			temp1.push_back(sp->utility);
-			temp2.push_back(exp(sp->utility));
+			tempUtil.push_back(sp->utility);
+			tempExpUtil.push_back(exp(sp->utility));
 			out << "+(" << sp->utility << "," << exp(sp->utility) << ")";
 		}
 	}
@@ -1527,13 +1528,13 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps,
 		{
 			double prob = exp(sp->utility)/(ps.logsum);
 //			out << sp->pathset_id << ": probability:  " << prob << " = " << sp->utility << " / " << ps.logsum;
-			temp3.push_back(prob);
+			tempProb.push_back(prob);
 			upperProb += prob;
 			if (x <= upperProb)
 			{
 				// 2.3 agent A chooses path i from the path choice set.
 				ps.bestWayPointpathP = sp->shortestWayPointpath;
-				Print() << "Best Path returning true" << std::endl;
+				Print() << "Best Path returning true iteration:" << i << " x:" << x << " upperProb:" << upperProb << " prob: " << prob << "  exp(sp->utility): " <<  exp(sp->utility)<< " ps.logsum :" << ps.logsum << std::endl;
 				//debug for now
 				bool included = sp->includesRoadSegment(exclude_seg);
 				if (!exclude_seg.empty() && included ) {
@@ -1552,6 +1553,27 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps,
 					Print() << std::endl;
 
 				}
+				Print() << "..................................................................."<< std::endl;
+
+				std::vector<double>::iterator it1(tempUtil.begin());
+				std::vector<double>::iterator it2(tempExpUtil.begin());
+				std::vector<double>::iterator it3(tempProb.begin());
+				Print() << "Utility : ";
+				for(;it1 != tempUtil.end(); it1++){
+					std::cout << *it1 << "," ;
+				}
+				Print() << std::endl;
+				Print() << "exp(utility): ";
+				for(;it2 != tempExpUtil.end(); it2++){
+					std::cout << *it2 << "," ;
+				}
+				Print() << std::endl;
+				Print() << "Prob :";
+				for(;it3 != tempProb.end();  it3++){
+					std::cout << *it3 << ",";
+				}
+				Print() << std::endl;
+				Print() << "..................................................................."<< std::endl;
 				//debug...
 
 				return true;
@@ -1559,18 +1581,23 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps,
 //			out << "  not good: " << x << "! <= " <<  upperProb << std::endl;
 		}
 	}
-	std::vector<double>::iterator it1(temp1.begin());
-	std::vector<double>::iterator it2(temp2.begin());
-	std::vector<double>::iterator it3(temp3.begin());
-	for(;it1 != temp1.end(); it1++){
-		std::cout << *it1 << std::endl;
+	Print() << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<< std::endl;
+	std::vector<double>::iterator it1(tempUtil.begin());
+	std::vector<double>::iterator it2(tempExpUtil.begin());
+	std::vector<double>::iterator it3(tempProb.begin());
+	for(;it1 != tempUtil.end(); it1++){
+		std::cout << *it1 << ",";
 	}
-	for(;it2 != temp2.end(); it2++){
-		std::cout << *it2 << std::endl;
+	Print() << std::endl;
+	for(;it2 != tempExpUtil.end(); it2++){
+		std::cout << *it2 << ",";
 	}
-	for(;it3 != temp3.end();  it3++){
-		std::cout << *it3 << std::endl;
+	Print() << std::endl;
+	for(;it3 != tempProb.end();  it3++){
+		std::cout << *it3 << ",";
 	}
+	Print() << std::endl;
+	Print() << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<< std::endl;
 	//the last step resorts to selecting and returning oripath.
 	//oriPath is the shortest path ususally generatd from a graph with not exclusion(free flow)
 	// there is a good chance the excluded segment is in it. in that case, you cannot return it as a valid path-vahid
@@ -2286,38 +2313,39 @@ double sim_mob::PathSetManager::getTravelTime(sim_mob::SinglePath *sp)
 	sim_mob::DailyTime startTime = sp->pathSet->subTrip->startTime;
 	for(int i=0;i<sp->shortestWayPointpath.size();++i)
 	{
-		WayPoint *w = sp->shortestWayPointpath[i];
-		if (w->type_ == WayPoint::ROAD_SEGMENT) {
-			const sim_mob::RoadSegment* seg = w->roadSegment_;
-			std::string seg_id = seg->originalDB_ID.getLogItem();
+		if(sp->shortestWayPointpath[i]->type_ == WayPoint::ROAD_SEGMENT){
+			std::string seg_id = sp->shortestWayPointpath[i]->roadSegment_->originalDB_ID.getLogItem();
 			double t = getTravelTimeBySegId(seg_id,startTime);
 			ts += t;
 			startTime = startTime + sim_mob::DailyTime(ts*1000);
+
 		}
 	}
 	return ts;
 }
 double sim_mob::PathSetManager::getTravelTimeBySegId(std::string id,sim_mob::DailyTime startTime)
 {
-	//testing
-	return 100.0;
-	//1. check realtime table
+//	//testing
+//	return 100.0; //this was made by xuyan -vahid
+//	//1. check realtime table
+//	double res=0.0;
+//	std::map<std::string,std::vector<sim_mob::Link_travel_time*> >::iterator it =
+//			Link_realtime_travel_time_pool.find(id);
+//	if(it!=Link_realtime_travel_time_pool.end())
+//	{
+//		std::vector<sim_mob::Link_travel_time*> e = (*it).second;
+//		for(int i=0;i<e.size();++i)
+//		{
+//			sim_mob::Link_travel_time* l = e[i];
+//			if( l->start_time_dt.isBeforeEqual(startTime) && l->end_time_dt.isAfter(startTime) )
+//			{
+//				res = l->travel_time;
+//				return res;
+//			}
+//		}
+//	}
+	std::map<std::string,std::vector<sim_mob::Link_travel_time*> >::iterator it;
 	double res=0.0;
-	std::map<std::string,std::vector<sim_mob::Link_travel_time*> >::iterator it =
-			Link_realtime_travel_time_pool.find(id);
-	if(it!=Link_realtime_travel_time_pool.end())
-	{
-		std::vector<sim_mob::Link_travel_time*> e = (*it).second;
-		for(int i=0;i<e.size();++i)
-		{
-			sim_mob::Link_travel_time* l = e[i];
-			if( l->start_time_dt.isBeforeEqual(startTime) && l->end_time_dt.isAfter(startTime) )
-			{
-				res = l->travel_time;
-				return res;
-			}
-		}
-	}
 	//2. if no , check default
 	it = Link_default_travel_time_pool.find(id);
 	if(it!=Link_default_travel_time_pool.end())
@@ -2335,8 +2363,8 @@ double sim_mob::PathSetManager::getTravelTimeBySegId(std::string id,sim_mob::Dai
 	}
 	else
 	{
-		std::string str = "PathSetManager::getTravelTimeBySegId=> no travel time for segment " + id;
-		Print()<<"error: "<<str<<std::endl;
+		std::string str = "PathSetManager::getTravelTimeBySegId=> no travel time for segment " + id + "  ";
+		Print()<< "error: " << str << Link_default_travel_time_pool.size() << std::endl;
 	}
 	return res;
 }

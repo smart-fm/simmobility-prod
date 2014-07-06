@@ -735,7 +735,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 double sim_mob::DriverMovement::move(DriverUpdateParams& p) {
 	double newLatVel = 0.0; // m/s
 	LANE_CHANGE_SIDE lcs;
-	std::cout << p.getStatus() << endl;
+//	std::cout << p.getStatus() << endl;
 	if (p.getStatus(STATUS_LC_RIGHT)) {
 		lcs = LCS_RIGHT;
 	} else if (p.getStatus(STATUS_LC_LEFT)) {
@@ -746,6 +746,11 @@ double sim_mob::DriverMovement::move(DriverUpdateParams& p) {
 	}
 
 	newLatVel = lcModel->executeLaterVel(lcs);
+
+	if(abs(newLatVel) != 0 && p.now.frame()>46)
+	{
+		int i=0;
+	}
 
 	p.newLatVelM = newLatVel;
 
@@ -2079,9 +2084,9 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 		incidentPerformer.getIncidentStatus().reduceIncidentLength(fwdDistance);
 	}
 
-//double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds;
-	double latDistance = parentDriver->vehicle->getLatVelocity()
-			* p.elapsedSeconds;
+////double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds;
+//	double latDistance = parentDriver->vehicle->getLatVelocity()
+//			* p.elapsedSeconds;
 
 //Increase the vehicle's velocity based on its acceleration.
 	double vel = parentDriver->vehicle->getVelocity()
@@ -2121,7 +2126,7 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 //}
 
 //Retrieve what direction we're moving in, since it will "flip" if we cross the relative X axis.
-	LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
+//	LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
 //after forwarding, adjacent lanes might be changed
 	updateAdjacentLanes(p);
 //there is no left lane when turning left
@@ -2129,8 +2134,9 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 	if ((parentDriver->vehicle->getTurningDirection() == LCS_LEFT && !p.leftLane)
 			|| (parentDriver->vehicle->getTurningDirection() == LCS_RIGHT
 					&& !p.rightLane)) {
-		latDistance = 0;
+//		latDistance = 0;
 		parentDriver->vehicle->setLatVelocity(0);
+		p.newLatVelM = 0.0;
 	}
 
 //Lateral movement
@@ -2882,6 +2888,7 @@ void sim_mob::DriverMovement::updateLateralMovement(DriverUpdateParams& p)
 
 		// complete lane change
 		p.unsetFlag(FLAG_PREV_LC); // clean bits
+		//what is it?
 		if (p.getStatus(STATUS_LEFT)) {
 			p.unsetFlag(FLAG_PREV_LC_LEFT);
 		} else {
@@ -2900,9 +2907,9 @@ void sim_mob::DriverMovement::updateLateralMovement(DriverUpdateParams& p)
 void sim_mob::DriverMovement::syncInfoLateralMove(DriverUpdateParams& p)
 {
 	if (p.getStatus(STATUS_LC_RIGHT)) {
-		p.currLane = p.leftLane;
-	} else if (p.getStatus(STATUS_LC_LEFT)) {
 		p.currLane = p.rightLane;
+	} else if (p.getStatus(STATUS_LC_LEFT)) {
+		p.currLane = p.leftLane;
 	} else {
 		std::stringstream msg;
 		msg << "syncInfoLateralMove (" << getParent()->getId()

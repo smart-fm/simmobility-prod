@@ -185,7 +185,7 @@
 						5280.0         #delta(ft)
 						0.5            #coef for number of lanes
 						1.0            #coef for congestion level
-						1.0 	       #minimum time in lane
+						5.0 	       #minimum time in lane, second
 	"/>
 
 <!-- H.2 Lane utility Model

@@ -918,8 +918,8 @@ DPoint sim_mob::DriverPathMover::getPosition() const
 	DynamicVector movementVect(currPolypoint->getX(), currPolypoint->getY(), nextPolypoint->getX(), nextPolypoint->getY());
 	movementVect.scaleVectTo(getCurrDistAlongPolylineCM()).translateVect();
 	return DPoint(movementVect.getX(), movementVect.getY());
-}
 
+}
 double sim_mob::DriverPathMover::getPositionInSegmentCM()
 {
 	return distToEndSegmentCM;

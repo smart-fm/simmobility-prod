@@ -478,7 +478,7 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 		params.cftimer -= params.elapsedSeconds;
 // params.overflowIntoIntersection = linkDriving(params);
 // params.overflowIntoIntersection = linkDrivingNew(params);
-		if (params.cftimer < 0) {
+		if (params.cftimer <= 0) {
 // make lc decision and check if can do lc
 			calcVehicleStates(params);
 // params.cftimer = cfModel->calcNextStepSize(params);
@@ -617,28 +617,28 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 	}
 	p.isAlreadyStart = parentDriver->isAleadyStarted;
 
-	// calculate distance to end of link
-	if (!(hasNextSegment(true))) // has seg in current link
-	{
-		p.dis2stop = fwdDriverMovement.getAllRestRoadSegmentsLengthCM()
-				- fwdDriverMovement.getCurrDistAlongRoadSegmentCM()
-				- parentDriver->vehicle->getLengthCm() / 2 - 300;
-//		if (p.nvFwd.distance < p.dis2stop)
-//			p.dis2stop = p.nvFwd.distance;
-		p.dis2stop /= METER_TO_CENTIMETER_CONVERT_UNIT;
-	} else {
-		p.nextLaneIndex = std::min<int>(p.currLaneIndex,
-				fwdDriverMovement.getNextSegment(true)->getLanes().size() - 1);
-		if (fwdDriverMovement.getNextSegment(true)->getLanes().at(
-				p.nextLaneIndex)->is_pedestrian_lane()) {
-// p.nextLaneIndex--;
-			p.dis2stop = fwdDriverMovement.getCurrPolylineTotalDistCM()
-					- fwdDriverMovement.getCurrDistAlongRoadSegmentCM()
-					+ DEFAULT_DIS_TO_STOP;
-			p.dis2stop /= METER_TO_CENTIMETER_CONVERT_UNIT;
-		} else
-			p.dis2stop = DEFAULT_DIS_TO_STOP; //defalut 1000m
-	}
+//	// calculate distance to end of link  ==> move to isLaneConnectToNextSegment()
+//	if (!(hasNextSegment(true))) // has seg in current link
+//	{
+//		p.dis2stop = fwdDriverMovement.getAllRestRoadSegmentsLengthCM()
+//				- fwdDriverMovement.getCurrDistAlongRoadSegmentCM()
+//				- parentDriver->vehicle->getLengthCm() / 2 - 300;
+////		if (p.nvFwd.distance < p.dis2stop)
+////			p.dis2stop = p.nvFwd.distance;
+//		p.dis2stop /= METER_TO_CENTIMETER_CONVERT_UNIT;
+//	} else {
+//		p.nextLaneIndex = std::min<int>(p.currLaneIndex,
+//				fwdDriverMovement.getNextSegment(true)->getLanes().size() - 1);
+//		if (fwdDriverMovement.getNextSegment(true)->getLanes().at(
+//				p.nextLaneIndex)->is_pedestrian_lane()) {
+//// p.nextLaneIndex--;
+//			p.dis2stop = fwdDriverMovement.getCurrPolylineTotalDistCM()
+//					- fwdDriverMovement.getCurrDistAlongRoadSegmentCM()
+//					+ DEFAULT_DIS_TO_STOP;
+//			p.dis2stop /= METER_TO_CENTIMETER_CONVERT_UNIT;
+//		} else
+//			p.dis2stop = DEFAULT_DIS_TO_STOP; //defalut 1000m
+//	}
 
 ////get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
 ////if making lane changing, adjacent car need to be taken into account.

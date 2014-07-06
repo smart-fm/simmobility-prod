@@ -2087,7 +2087,7 @@ int sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
 
 	p.unsetFlag(FLAG_ESCAPE | FLAG_AVOID);
 	p.unsetStatus(STATUS_MANDATORY);
-	p.dis2stop = DEFAULT_DIS_TO_STOP;
+	p.dis2stop = DEFAULT_DIS_TO_STOP;//?
 	// set default target lanes
 	p.targetLanes.clear();
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
@@ -2232,7 +2232,7 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 		// get next segment(in next link)
 		const RoadSegment* nextSegment = driverMvt->fwdDriverMovement.getNextSegment(false);
 		if(!nextSegment){
-			//seems on last segment of the path
+			//seems on next segment of the path
 			p.setStatus(STATUS_LEFT_OK); p.setStatus(STATUS_RIGHT_OK); p.setStatus(STATUS_CURRENT_OK);
 
 			const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
@@ -2241,6 +2241,7 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 					targetLanes.insert(lanes[i]);
 				}
 			}// end of for
+			res = 0; // no need lane change
 		}//end if(!nextSegment)
 		// get lane connector
 		const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(driverMvt->fwdDriverMovement.getCurrSegment());

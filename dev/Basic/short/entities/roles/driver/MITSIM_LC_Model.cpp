@@ -2157,7 +2157,7 @@ int sim_mob::MITSIM_LC_Model::isThereBadEventAhead(DriverUpdateParams& p)
 
 	return 0;
 }
-int sim_mob::MITSIM_LC_Model::isThereLaneDropInLink(DriverUpdateParams& p,set<const Lane*>& targetLanes)
+int sim_mob::MITSIM_LC_Model::isThereLaneDrop(DriverUpdateParams& p,set<const Lane*>& targetLanes)
 {
 	// TODO use lane connector
 	// but now use lane index
@@ -2480,6 +2480,13 @@ void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)
 			}//end for
 		}// end else
 	}// end if node
+	else {
+		// segment's end node is uninode
+		// assume every lane can connect to next segment
+		// It lane drop, it will set the status in isThereLaneDrop()
+		// TODO use uninode lane connector
+		p.setStatus(STATUS_LEFT_OK); p.setStatus(STATUS_RIGHT_OK); p.setStatus(STATUS_CURRENT_OK);
+	}
 
 }
 /*

@@ -172,7 +172,6 @@ protected:
 	 * 	       current location, speed and acceleration.
 	 */
 	double move(DriverUpdateParams& p);
-	virtual double linkDrivingNew(DriverUpdateParams& p);
 	virtual double dwellTimeCalculation(int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
 
 	sim_mob::Vehicle* initializePath(bool allocateVehicle);

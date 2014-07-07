@@ -30,7 +30,7 @@ void PopulationMongoDao::fromRow(mongo::BSONObj document, PersonParams& outParam
    	outParam.setWorksAtHome(document.getField(MONGO_FIELD_WORK_AT_HOME).Int());
    	outParam.setHasDrivingLicence(document.getField(MONGO_FIELD_DRIVER_LICENCE).Int());
   	outParam.setStudentTypeId(document.getField(MONGO_FIELD_STUDENT_TYPE_ID).Int());
-  	outParam.setIsUniversityStudent(outParam.getStudentTypeId() == 6);
+  	outParam.setIsUniversityStudent(document.getField(MONGO_FIELD_UNIVERSITY_STUDENT).Int());
    	outParam.setIsFemale(document.getField(MONGO_FIELD_FEMALE).Int());
    	outParam.setHomeLocation(document.getField(MONGO_FIELD_HOME_MTZ).Int());
    	outParam.setFixedWorkLocation(document.getField(MONGO_FIELD_WORK_MTZ).Int());

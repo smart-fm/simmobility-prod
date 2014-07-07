@@ -126,6 +126,7 @@ namespace medium {
 	const std::string MONGO_FIELD_WORK_AT_HOME = "work_from_home_dummy";
 	const std::string MONGO_FIELD_DRIVER_LICENCE = "has_driving_license";
 	const std::string MONGO_FIELD_STUDENT_TYPE_ID = "student_type_id";
+	const std::string MONGO_FIELD_UNIVERSITY_STUDENT = "universitystudent";
 	const std::string MONGO_FIELD_FEMALE = "female_dummy";
 	const std::string MONGO_FIELD_HOME_MTZ = "home_mtz";
 	const std::string MONGO_FIELD_WORK_MTZ = "fix_work_location_mtz";

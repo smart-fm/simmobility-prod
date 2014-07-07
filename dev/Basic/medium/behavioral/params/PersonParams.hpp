@@ -78,10 +78,6 @@ public:
 		return incomeId;
 	}
 
-	int getMissingIncome() const {
-		return (incomeId >= 13);
-	}
-
 	void setIncomeId(int income_id) {
 		this->incomeId = income_id;
 	}
@@ -291,6 +287,26 @@ public:
 		this->householdFactor = householdFactor;
 	}
 
+	int getMissingIncome() const
+	{
+		return missingIncome;
+	}
+
+	void setMissingIncome(int missingIncome)
+	{
+		this->missingIncome = missingIncome;
+	}
+
+	int getCarOwn() const
+	{
+		return carOwn;
+	}
+
+	void setCarOwn(int carOwn)
+	{
+		this->carOwn = carOwn;
+	}
+
 	/** makes all time windows to available*/
 	void initTimeWindows();
 
@@ -322,7 +338,9 @@ private:
 	int studentTypeId;
 	int isFemale;
 	int incomeId;
+	int missingIncome;
 	int worksAtHome;
+	int carOwn;
 	int carOwnNormal;
 	int carOwnOffpeak;
 	int motorOwn;

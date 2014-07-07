@@ -25,6 +25,7 @@ sim_mob::medium::PopulationMongoDao::~PopulationMongoDao()
 void PopulationMongoDao::fromRow(mongo::BSONObj document, PersonParams& outParam) {
   	outParam.setPersonId(document.getField(MONGO_FIELD_ID).String());
    	outParam.setIncomeId(document.getField(MONGO_FIELD_INCOME_ID).Int());
+   	outParam.setMissingIncome(document.getField(MONGO_FIELD_MISSING_INCOME).Int());
    	outParam.setPersonTypeId(document.getField(MONGO_FIELD_PERSON_TYPE_ID).Int());
    	outParam.setAgeId(document.getField(MONGO_FIELD_AGE_CATEGORY_ID).Int());
    	outParam.setWorksAtHome(document.getField(MONGO_FIELD_WORK_AT_HOME).Int());
@@ -39,6 +40,7 @@ void PopulationMongoDao::fromRow(mongo::BSONObj document, PersonParams& outParam
   	outParam.setHH_OnlyWorkers(document.getField(MONGO_FIELD_HH_ONLY_WORKERS).Int());
    	outParam.setHH_NumUnder4(document.getField(MONGO_FIELD_HH_NUM_UNDER_4).Int());
    	outParam.setHH_HasUnder15(document.getField(MONGO_FIELD_HH_UNDER_15).Int());
+   	outParam.setCarOwn(document.getField(MONGO_FIELD_CAR_OWN).Int());
    	outParam.setCarOwnNormal(document.getField(MONGO_FIELD_CAR_OWN_NORMAL).Int());
    	outParam.setCarOwnOffpeak(document.getField(MONGO_FIELD_CAR_OWN_OFFPEAK).Int());
    	outParam.setMotorOwn(document.getField(MONGO_FIELD_MOTOR_OWN).Int());

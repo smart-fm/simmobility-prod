@@ -34,6 +34,25 @@ namespace AMOD {
 
 class AMODController : public sim_mob::Agent{
 public:
+	struct AmodTrip {
+		std::string tripID;
+		std::string origin;
+		std::string destination;
+		std::string assignedAmodId;
+
+		int requestTime;
+		int dispatchTime;
+		int pickUpTime;
+		int arrivalTime;
+
+		double tripDistanceInM;
+
+		int pickUpSegment; //segment right after the pick up node (to check whether we have passed the pick up point)
+		bool pickedUp;
+	};
+
+
+public:
 	virtual ~AMODController();
 
 	/// create segment ,node pool
@@ -95,7 +114,9 @@ public:
 	/// enode: end node
 	/// path: new path
 
-	void saveVehStat(int currTime);
+	void saveVehStat(void);
+	void saveTripStat(AmodTrip &a);
+
 	//void testOneVh();
     void testSecondVh();
 	void testVh();
@@ -112,6 +133,11 @@ public:
 
 	void handleVHArrive(Person* vh);
 	void handleVHError(Person *vh);
+	void checkForPickups(void); //checks for pickups and sets the time in vhTripMap.
+
+
+
+
 protected:
 	//override from the class agent, provide initilization chance to sub class
 	virtual bool frame_init(timeslice now);
@@ -142,12 +168,7 @@ private:
 	boost::unordered_map<std::string,Person*> vhOnTheRoad;
 	boost::unordered_map<std::string,Person*> vhInCarPark;
 	boost::unordered_map<std::string,Person*> allAMODCars;
-	struct AmodTrip {
-		std::string tripID;
-		std::string origin;
-		std::string destination;
-		int time;
-	};
+
 	boost::unordered_map<Person*, AmodTrip  > vhTripMap;
 	typedef boost::unordered_map< Person*, AmodTrip >::iterator TripMapIterator;
 
@@ -155,7 +176,7 @@ private:
 	typedef std::list< AmodTrip >::iterator ServiceIterator;
 	int nFreeCars;
 	int frameTicks;
-
+	int currTime;
 
 	//shortest paths
 	boost::unordered_map<std::string, std::vector <WayPoint> > shortestPaths;
@@ -185,8 +206,8 @@ public:
 	std::ifstream myFile; // ("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/About10.txt");
 	std::ofstream out_demandStat;
 	std::ofstream out_vhsStat;
+	std::ofstream out_tripStat;
 	std::string lastReadLine;
-
 
 	boost::mutex mtx_;
 

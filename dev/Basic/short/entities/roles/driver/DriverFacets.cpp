@@ -386,6 +386,11 @@ void sim_mob::DriverMovement::frame_tick_output() {
 			"\",\"info\":\""<<p.debugInfo <<
 			"\",\"mandatory\":\""<<incidentPerformer.getIncidentStatus().getChangedLane() <<addLine.str() <<
 			"\"})"<<std::endl);
+
+//	if(p.parentId==1)
+//	{
+//		std::cout<<parentDriver->vehicle->getVelocity()<<std::endl;
+//	}
 }
 
 bool sim_mob::DriverMovement::update_sensors(timeslice now) {
@@ -666,7 +671,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 		if(p.parentId == 1 && p.now.frame()>385)
 		{
 			int i=0;
-			parentDriver->perceivedDistToFwdCar->printHistory();
+//			parentDriver->perceivedDistToFwdCar->printHistory();
 		}
 	} else {
 		NearestVehicle & nv = nearestVehicle(p);
@@ -682,8 +687,8 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 	if(p.parentId == 66508 && p.now.frame()>1280)
 	{
 		int i=0;
-		parentDriver->perceivedTrafficColor->printHistory();
-		parentDriver->perceivedDistToTrafficSignal->printHistory();
+//		parentDriver->perceivedTrafficColor->printHistory();
+//		parentDriver->perceivedDistToTrafficSignal->printHistory();
 	}
 	if (parentDriver->perceivedTrafficColor->can_sense()) {
 				p.perceivedTrafficColor =
@@ -2542,16 +2547,16 @@ NearestVehicle & sim_mob::DriverMovement::nearestVehicle(
 	p.isBeforIntersecton = false;
 	if (p.nvLeftFwd.exists()) {
 		leftDis = p.nvLeftFwd.distance;
-		std::cout << leftDis << std::endl;
+//		std::cout << leftDis << std::endl;
 	}
 	if (p.nvRightFwd.exists()) {
 		rightDis = p.nvRightFwd.distance;
-		std::cout << leftDis << std::endl;
+//		std::cout << leftDis << std::endl;
 	}
 
 	if (p.nvFwd.exists()) {
 		currentDis = p.nvFwd.distance;
-		std::cout << currentDis << std::endl;
+//		std::cout << currentDis << std::endl;
 	} else if (p.nvFwdNextLink.exists() && p.turningDirection == LCS_SAME) {
 		currentDis = p.nvFwdNextLink.distance;
 		p.isBeforIntersecton = true;

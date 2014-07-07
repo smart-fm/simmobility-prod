@@ -58,7 +58,7 @@ void DriverUpdateParams::buildDebugInfo()
 //			<<":"<<perceivedDistToTrafficSignal/100.0;
 	debugInfo = s.str();
 
-	std::cout<<debugInfo<<std::endl;
+//	std::cout<<debugInfo<<std::endl;
 }
 void DriverUpdateParams::addTargetLanes(set<const Lane*> tl)
 {

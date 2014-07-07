@@ -1577,8 +1577,9 @@ void sim_mob::MITSIM_CF_Model::calcUpdateStepSizes() {
 	perceptionSize.push_back(perceptionTime);
 }
 double sim_mob::MITSIM_CF_Model::makeNormalDist(UpdateStepSizeParam& sp) {
-	boost::normal_distribution<double> nor(sp.mean, sp.stdev);
-	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > dice(
+//	boost::normal_distribution<double> nor(sp.mean, sp.stdev);
+	boost::lognormal_distribution<double> nor(sp.mean, sp.stdev);
+	boost::variate_generator<boost::mt19937, boost::lognormal_distribution<double> > dice(
 			updateSizeRm, nor);
 	double v = dice();
 	//TODO need use truncated log distribution

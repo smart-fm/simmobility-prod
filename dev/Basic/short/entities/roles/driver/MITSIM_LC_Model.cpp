@@ -2163,6 +2163,7 @@ int sim_mob::MITSIM_LC_Model::isThereBadEventAhead(DriverUpdateParams& p)
 }
 int sim_mob::MITSIM_LC_Model::isThereLaneDrop(DriverUpdateParams& p,set<const Lane*>& targetLanes)
 {
+	std::string str = "isThereLaneDrop";
 	// TODO use lane connector
 	// but now use lane index
 
@@ -2189,16 +2190,20 @@ int sim_mob::MITSIM_LC_Model::isThereLaneDrop(DriverUpdateParams& p,set<const La
 	else {
 		//has next segment of current link
 		// check current lane is most left lane and next segment lane size smaller than current lane index
-		// means has lane merge, need lane change
+		// means has lane drop, need lane change
 		size_t currentSegmentLaneSize = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes().size();
-		if(driverMvt->fwdDriverMovement.getCurrSegment()->getLanes().at(currentSegmentLaneSize-1)->is_pedestrian_lane())
-		{
-			// current segment has ped lane
+		if(driverMvt->fwdDriverMovement.getCurrSegment()->getLanes().at(currentSegmentLaneSize-1)->is_pedestrian_lane()) {
+			// last lane of current segment is ped lane
+			currentSegmentLaneSize--;
+		}
+		if(driverMvt->fwdDriverMovement.getCurrSegment()->getLanes().at(0)->is_pedestrian_lane()) {
+			// first lane of current segment is ped lane
 			currentSegmentLaneSize--;
 		}
 		if(p.currLaneIndex == currentSegmentLaneSize)
 		{
-			// we are on most left lane
+			// we are on most left lane of current segment
+			p.setStatus(STATUS_LEFT_SIDE,STATUS_NOT_OK,str);
 			// check next segment lane size
 			size_t nextSegmentLaneSize = driverMvt->fwdDriverMovement.getNextSegment(true)->getLanes().size();
 			if(driverMvt->fwdDriverMovement.getNextSegment(true)->getLanes().at(nextSegmentLaneSize-1)->is_pedestrian_lane())
@@ -2206,8 +2211,16 @@ int sim_mob::MITSIM_LC_Model::isThereLaneDrop(DriverUpdateParams& p,set<const La
 				// next segment has ped lane
 				nextSegmentLaneSize--;
 			}
-			if(nextSegmentLaneSize > p.currLaneIndex)//has lane merge
+			if(driverMvt->fwdDriverMovement.getNextSegment(true)->getLanes().at(0)->is_pedestrian_lane())
 			{
+				// next segment has ped lane
+				nextSegmentLaneSize--;
+			}
+			if(nextSegmentLaneSize > p.currLaneIndex)//has lane drop
+			{
+				//of course, current lane is not ok
+				p.setStatus(STATUS_CURRENT_LANE,STATUS_NOT_OK,str);
+
 				double d = (driverMvt->fwdDriverMovement.getCurrPolylineTotalDistCM() -
 						driverMvt->fwdDriverMovement.getCurrDistAlongRoadSegmentCM() )/100.0;
 				if(d<p.dis2stop)
@@ -2467,7 +2480,9 @@ void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)
 			if(p.rightLane && !p.rightLane->is_pedestrian_lane()) {
 				p.setStatus(STATUS_RIGHT_SIDE,STATUS_OK,str);
 			}
-			p.setStatus(STATUS_CURRENT_LANE,STATUS_OK,str);
+			if(p.currLane && !p.currLane->is_pedestrian_lane()) {
+				p.setStatus(STATUS_CURRENT_LANE,STATUS_OK,str);
+			}
 		}
 		else {
 			// get lane connector
@@ -2500,12 +2515,14 @@ void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)
 		// for lane drop, it will set the status in isThereLaneDrop()
 		// TODO use uninode lane connector
 		if(p.leftLane && !p.leftLane->is_pedestrian_lane()) {
-						p.setStatus(STATUS_LEFT_SIDE,STATUS_OK,str);
+			p.setStatus(STATUS_LEFT_SIDE,STATUS_OK,str);
 		}
 		if(p.rightLane && !p.rightLane->is_pedestrian_lane()) {
 			p.setStatus(STATUS_RIGHT_SIDE,STATUS_OK,str);
 		}
-		p.setStatus(STATUS_CURRENT_LANE,STATUS_OK,str);
+		if(p.currLane && !p.currLane->is_pedestrian_lane()) {
+			p.setStatus(STATUS_CURRENT_LANE,STATUS_OK,str);
+		}
 	}
 
 }

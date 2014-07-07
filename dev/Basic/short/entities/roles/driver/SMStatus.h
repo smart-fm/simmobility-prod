@@ -18,9 +18,9 @@ using namespace std;
 namespace sim_mob {
 
 enum StatusValue {
-	STATUS_NOT_OK = -1,
+	STATUS_NO = -1,
 	STATUS_UNKNOWN = 0,
-	STATUS_OK = 1
+	STATUS_YES = 1
 };
 //enum StatusType {
 //	STATUS_LEFT_LANE,

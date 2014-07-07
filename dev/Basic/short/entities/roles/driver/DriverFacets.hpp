@@ -148,7 +148,6 @@ public:
 //	const Vehicle* getVehicle() const {return vehicle;}
 
 	void updateAdjacentLanes(DriverUpdateParams& p);
-	void updatePositionDuringLaneChange(DriverUpdateParams& p, LANE_CHANGE_SIDE relative);
 	void updateLateralMovement(DriverUpdateParams& p);
 	/**
 	 *   @brief sync data after lane changing movement completed
@@ -162,7 +161,6 @@ public:
 
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
-	virtual double linkDriving(DriverUpdateParams& p);
 	/*
 	 *  /brief do lane change and car follow
 	 */

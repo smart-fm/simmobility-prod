@@ -30,12 +30,17 @@ SMStatus::~SMStatus() {
 void SMStatusManager::setStatus(string name,StatusValue v,string whoSet) {
 	map<string,SMStatus>::iterator it = statusMap.find(name);
 	if(it != statusMap.end()) {
-		// only when current status is unknown, set new status
-		if(it->second.status != STATUS_UNKNOWN) {
+		// when new value is STATUS_UNKNOWN, set status
+		// when new value is STATUS_NO, set status
+		// when new value is STATUS_YES, check current value if is STATUS_NO
+		if(it->second.status == STATUS_NO || v == STATUS_UNKNOWN) {
 			it->second.status = v;
 			it->second.recordInfo = whoSet;
 		}
-		else {
+		else if(v == STATUS_YES && it->second.status != STATUS_NO){
+			it->second.status = v;
+			it->second.recordInfo = whoSet;
+		} else {
 			return;
 		}
 	}

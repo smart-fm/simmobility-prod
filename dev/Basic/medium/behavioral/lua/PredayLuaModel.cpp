@@ -41,7 +41,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("student_dummy", &PersonParams::isStudent)
 				.addProperty("worker_dummy", &PersonParams::isWorker)
 				.addProperty("income_id", &PersonParams::getIncomeId)
-				.addProperty("missingincome", &PersonParams::getMissingIncome)
+				.addProperty("missing_income", &PersonParams::getMissingIncome)
 				.addProperty("work_at_home_dummy", &PersonParams::getWorksAtHome)
 				.addProperty("car_own", &PersonParams::getCarOwn)
 				.addProperty("car_own_normal", &PersonParams::getCarOwnNormal)

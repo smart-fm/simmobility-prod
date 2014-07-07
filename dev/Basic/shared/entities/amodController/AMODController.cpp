@@ -44,6 +44,13 @@ AMODController* AMODController::pInstance = nullptr;
 
 sim_mob::AMOD::AMODController::~AMODController() {
 	// TODO Auto-generated destructor stub
+	//close open files if necessary
+	if (out_demandStat.is_open() )
+		out_demandStat.close();
+
+	if (out_vhsStat.is_open())
+		out_vhsStat.close();
+
 }
 void sim_mob::AMOD::AMODController::init()
 {
@@ -204,9 +211,9 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 	{
 
 		populateCarParks(2);
-		myFile.open("/home/km/dataFiles/readDemandFile/bugisSmall_withID.txt");
-		out_demandStat.open("/home/km/dataFiles/outputFiles/out_demandStat.txt");
-		out_vhsStat.open("/home/km/dataFiles/outputFiles/out_vhsStat.txt");
+		myFile.open("bugisSmall_withID.txt");
+		out_demandStat.open("out_demandStat.txt");
+		out_vhsStat.open("out_vhsStat.txt");
 		//myFile.open("/home/haroldsoh/Development/simmobility/dataFiles/inputfile1.txt");
 		lastReadLine = "";
 
@@ -227,15 +234,15 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 	if(test==1)
 	{
 
-		boost::unordered_map<std::string,Person*>::iterator itr;
-		for (itr = vhOnTheRoad.begin(); itr != vhOnTheRoad.end(); itr++) {
-			std::string amodId = itr->first;
-			Person *vh = itr->second;
-			if (vh->amodVehicle != NULL) {
-				//	std::cout << amodId << " segment: " << vh->amodVehicle->getCurrSegment()->getSegmentID() << std::endl;
-				//	std::cout << amodId << " lane: " << vh->amodVehicle->getCurrLane()->getLaneID() << std::endl;
-			}
-		}
+//		boost::unordered_map<std::string,Person*>::iterator itr;
+//		for (itr = vhOnTheRoad.begin(); itr != vhOnTheRoad.end(); itr++) {
+//			std::string amodId = itr->first;
+//			Person *vh = itr->second;
+//			if (vh->amodVehicle != NULL) {
+//				//	std::cout << amodId << " segment: " << vh->amodVehicle->getCurrSegment()->getSegmentID() << std::endl;
+//				//	std::cout << amodId << " lane: " << vh->amodVehicle->getCurrLane()->getLaneID() << std::endl;
+//			}
+//		}
 
 
 		//reading the file of time, destination and origin
@@ -247,10 +254,10 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		std::cout << "Reading the demand file... " << std::endl;
 
 		readDemandFile(tripID, current_time, origin, destination);
-
 		saveVehStat(current_time);
 
 		//assignVhs(origin, destination);
+
 		assignVhsFast(tripID, origin, destination, current_time);
 		test = 1;
 
@@ -269,7 +276,7 @@ void AMODController::populateCarParks(int numberOfVhsAtNode = 10)
 {
 	//carpark population
 	std::vector<std::string> carParkIds;
-	ifstream carParkFile("/home/km/dataFiles/populateCarParks/bugisSmall.txt");
+	ifstream carParkFile("bugisSmallCarParks.txt");
 	while(!carParkFile.eof())
 	{
 		std::string line;
@@ -401,7 +408,7 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 	//std::cout<<"starttime: "<<person->getStartTime()<<std::endl;
 	person->parentEntity = this;
 	person->amodId = id;
-
+	person->amodVehicle = NULL;
 	// add to virtual car park
 	AMODVirtualCarParkItor it = virtualCarPark.find(nodeId);
 	if(it!=virtualCarPark.end())
@@ -966,36 +973,51 @@ bool AMODController::findRemainingWayPoints(Person *vh, std::vector < sim_mob::W
 
 void AMODController::saveVehStat(int currTime)
 {
-	boost::unordered_map<std::string, Person*>::iterator it = vhOnTheRoad.begin();
+	if (!out_vhsStat.is_open())
+		return;
+
+	boost::unordered_map<std::string, Person*>::iterator it;
 	Person* vh;
-	Person* vh_cp;
-	for(; it != vhOnTheRoad.end(); ++it)
+	for(it = allAMODCars.begin(); it != allAMODCars.end(); ++it)
 	{
 		vh = it->second;
 		string amodId;
 		amodId = it->first;
 		//const RoadSegment* rs = vh->amodVehicle->getCurrSegment();
-		if (vh->amodVehicle == NULL) continue;
-		vh->amodVehicle->getX();
-		vh->amodVehicle->getY();
-		vh->amodVehicle->getCurrSegment();
 
+		if (vh->currStatus == Person::ON_THE_ROAD) {
+			try {
+				//checks to make sure this is ok.
+				if (vh->isToBeRemoved()) continue;
+				if (vh->amodVehicle == NULL) continue;
+				if (!vh->amodVehicle->hasPath()) continue;
+				if (vh->amodVehicle->isDone()) continue;
 
-		out_vhsStat << vh->amodId << " " << currTime << " " << vh->amodVehicle->getX() << " " << vh->amodVehicle->getY() << " " << vh->amodVehicle->getCurrSegment() << " onRoad " << " NA" << " NA" << "\n";
-	}
-	AMODVirtualCarParkItor iter = virtualCarPark.begin();
-	for(; iter != virtualCarPark.end(); iter++){
-		boost::unordered_map<std::string,Person*> cars = iter->second;
-		string nodeId = iter->first;
-		cout << "nodeId in vehStat: " << nodeId << endl;
-		if (!cars.empty()) {
-			boost::unordered_map<std::string,Person*>::iterator local_it;
-			//cout << "local_it: first: " << local_it->first;
-			for ( local_it = cars.begin(); local_it!= cars.end(); ++local_it ) {
-				out_vhsStat << local_it->first << " " << currTime << " " << "NA " << " NA" << " NA " << "NA " << nodeId << " inCarpark" << "\n";
+				vh->amodVehicle->getX();
+				vh->amodVehicle->getY();
+			} catch (const std::runtime_error& e) {
+				//just  continue for now. (Bad programming form. to fix with simmob team).
+				continue;
 			}
+			//vh->amodVehicle->getCurrSegment();
+			//out_vhsStat << vh->amodId << " " << currTime << " " << vh->amodVehicle->getX() << " " << vh->amodVehicle->getY() << " " << vh->amodVehicle->getCurrSegment() << " onRoad " << " NA" << " NA" << "\n";
+
 		}
 	}
+
+	//	AMODVirtualCarParkItor iter = virtualCarPark.begin();
+//	for(; iter != virtualCarPark.end(); iter++){
+//		boost::unordered_map<std::string,Person*> cars = iter->second;
+//		string nodeId = iter->first;
+//		cout << "nodeId in vehStat: " << nodeId << endl;
+//		if (!cars.empty()) {
+//			boost::unordered_map<std::string,Person*>::iterator local_it;
+//			//cout << "local_it: first: " << local_it->first;
+//			for ( local_it = cars.begin(); local_it!= cars.end(); ++local_it ) {
+//				out_vhsStat << local_it->first << " " << currTime << " " << "NA " << " NA" << " NA " << "NA " << nodeId << " inCarpark" << "\n";
+//			}
+//		}
+//	}
 }
 
 
@@ -1277,7 +1299,7 @@ void AMODController::assignVhs(std::vector<std::string>& origin, std::vector<std
 
 void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector<std::string>& origin, std::vector<std::string>& destination, int currTime)
 {
-	if (out_demandStat.is_open()&& out_vhsStat.is_open()) {
+	if (out_demandStat.is_open()) {
 		std::vector < Person * > justDispatched;
 
 
@@ -1307,9 +1329,8 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 		// work through list using available free cars
 		ServiceIterator itr =serviceBuffer.begin();
-
 		while (true) {
-			if (nFreeCars <= 0) break; //buffer to prevent getting a car which hasn't been inserted completely
+			if (nFreeCars <= 0) break; //check if the number of free cars is non-zero
 			if (serviceBuffer.size() == 0) break;
 			if (itr == serviceBuffer.end()) break;
 
@@ -1383,9 +1404,9 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			//vhAssigned->clearTripChain();
 			vhAssigned->setTripChain(tcs); //add trip chain
 
-			std::cout << "Assigned Path: ";
+			std::cout << "Assigned Path: Start";
 			for (int i=0; i<mergedWP.size(); i++) {
-				std::cout << mergedWP[i].roadSegment_->originalDB_ID.getLogItem() << " -> ";
+				std::cout << " -> " << mergedWP[i].roadSegment_->originalDB_ID.getLogItem();
 			}
 			std::cout << std::endl;
 

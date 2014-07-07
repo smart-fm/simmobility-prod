@@ -141,7 +141,7 @@ sim_mob::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 sim_mob::DriverMovement::~DriverMovement()
 {
 	//Our movement models.
-	//parent->amodVehicle = NULL;
+	parent->amodVehicle = NULL;
 	//parent->invalidateAMODVehicle();
 	safe_delete_item(lcModel);
 	safe_delete_item(cfModel);

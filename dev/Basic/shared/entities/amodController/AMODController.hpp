@@ -188,6 +188,8 @@ public:
 	std::string lastReadLine;
 
 
+	boost::mutex mtx_;
+
 };
 
 

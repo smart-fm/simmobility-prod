@@ -89,7 +89,7 @@ std::vector<std::string> Utils::parseArgs(int argc, char* argv[])
 }
 
 
-void Utils::printAndDeleteLogFiles(const std::list<std::string>& logFileNames)
+void Utils::printAndDeleteLogFiles(const std::list<std::string>& logFileNames,std::string outputFileName)
 {
 	//This can take some time.
 	StopWatch sw;
@@ -97,7 +97,8 @@ void Utils::printAndDeleteLogFiles(const std::list<std::string>& logFileNames)
 	std::cout <<"Merging output files, this can take several minutes...\n";
 
 	//One-by-one.
-	std::ofstream out("out.txt", std::ios::trunc|std::ios::binary);
+//	std::ofstream out("abc.txt", std::ios::trunc|std::ios::binary);
+	std::ofstream out(outputFileName.c_str(), std::ios::trunc|std::ios::binary);
 	if (!out.good()) { throw std::runtime_error("Error: Can't write to file."); }
 	for (std::list<std::string>::const_iterator it=logFileNames.begin(); it!=logFileNames.end(); it++) {
 		std::cout <<"  Merging: " <<*it <<std::endl;

@@ -317,7 +317,7 @@ void sim_mob::MITSIM_CF_Model::makeSpeedIndex(VehicleBase::VehicleType vhType,
 		string& speedScalerStr, string& cstr,
 		map<VehicleBase::VehicleType, map<int, double> >& idx,
 		int& upperBound) {
-	std::cout << "makeSpeedIndex: vh type " << vhType << std::endl;
+//	std::cout << "makeSpeedIndex: vh type " << vhType << std::endl;
 	// for example
 	// speedScalerStr "5 20 20" ft/sec
 	// maxAccStr      "10.00  7.90  5.60  4.00  4.00" ft/(s^2)

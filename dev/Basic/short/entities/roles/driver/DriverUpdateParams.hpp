@@ -260,7 +260,8 @@ public:
 	double newLatVelM; //meter/sec
 
 	SMStatusManager statusMgr;
-	void setStatus(string& name,StatusValue& v,string& whoSet);
+	void setStatus(string name,StatusValue v,string whoSet);
+	StatusValue getStatus(string name);
 
 //	//perform incident response
 //	IncidentPerformer incidentPerformer;

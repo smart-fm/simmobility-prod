@@ -15,9 +15,11 @@ void DriverUpdateParams::setStatus(unsigned int s)
 {
 	status |= s;
 }
-void DriverUpdateParams::setStatus(string& name,StatusValue& v,string& whoSet)
-{
+void DriverUpdateParams::setStatus(string name,StatusValue v,string whoSet) {
 	statusMgr.setStatus(name,v,whoSet);
+}
+StatusValue DriverUpdateParams::getStatus(string name) {
+	return statusMgr.getStatus(name);
 }
 void DriverUpdateParams::setStatusDoingLC(LANE_CHANGE_SIDE& lcs)
 {

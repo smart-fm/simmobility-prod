@@ -18,9 +18,9 @@ using namespace std;
 namespace sim_mob {
 
 enum StatusValue {
-	SV_NOT_OK = -1,
-	SV_UNKNOWN = 0,
-	SV_OK = 1
+	STATUS_NOT_OK = -1,
+	STATUS_UNKNOWN = 0,
+	STATUS_OK = 1
 };
 //enum StatusType {
 //	STATUS_LEFT_LANE,
@@ -32,7 +32,7 @@ enum StatusValue {
 class SMStatus {
 public:
 	SMStatus();
-	SMStatus(SMStatus& source);
+	SMStatus(const SMStatus& source);
 	virtual ~SMStatus();
 
 public:
@@ -48,7 +48,8 @@ public:
 	SMStatusManager() {}
 	virtual ~SMStatusManager() {}
 public:
-	void setStatus(string& name,StatusValue v,string& whoSet);
+	void setStatus(string name,StatusValue v,string whoSet);
+	StatusValue getStatus(string name);
 
 private:
 	/// key = status name, value = SMStatus

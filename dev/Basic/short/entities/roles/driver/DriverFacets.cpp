@@ -726,15 +726,9 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 	p.newFwdAcc = cfModel->makeAcceleratingDecision(p, p.desiredSpeed,
 			p.maxLaneSpeed);
 
-	if (parentDriver->parent->GetId() == 0
-			&& parentDriver->getParams().now.frame() >= 200
-			&& parentDriver->getParams().now.frame() <= 275) {
+	if (parentDriver->parent->GetId() == 888
+			&& parentDriver->getParams().now.frame() >= 20) {
 		p.newFwdAcc = -3;
-	}
-	if (parentDriver->parent->GetId() == 0
-			&& parentDriver->getParams().now.frame() > 275
-			&& parentDriver->getParams().now.frame() <= 375) {
-		p.newFwdAcc = 0;
 	}
 
 }

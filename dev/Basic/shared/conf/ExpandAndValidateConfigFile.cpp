@@ -471,6 +471,8 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		//  must deal with it here.
 		//TODO: At the moment, manual IDs don't work. We can easily re-add them if required.
 		int manualID = -1;
+		if(it->angentId != 0)
+			manualID = it->angentId;
 		//map<string, string>::iterator propIt = props.find("id");
 		/*if (propIt != props.end()) {
 			//Convert the ID to an integer.

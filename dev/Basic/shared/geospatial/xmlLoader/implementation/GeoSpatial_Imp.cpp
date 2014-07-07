@@ -62,6 +62,7 @@ void ProcessMultiNodeConnectors(const helper::Bookkeeping& book,sim_mob::MultiNo
 			connectors.insert(lc);
 		}
 
+//		if(node->originalDB_ID.getLogItem()==)
 		//Save it to the RoadSegment
 		sim_mob::RoadSegment* rs = book.getSegment(it->first);
 		node->setConnectorAt(rs, connectors);

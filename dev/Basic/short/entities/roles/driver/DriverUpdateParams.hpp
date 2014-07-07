@@ -152,7 +152,7 @@ public:
 
 
 	//Related to our lane changing model.
-	double dis2stop;
+	double dis2stop;//meter
 	bool isWaiting;
 
 	//Handles state information

@@ -868,9 +868,9 @@ void sim_mob::MITSIM_LC_Model::initParam(DriverUpdateParams& p)
 	ParameterManager::Instance()->param(modelName,"LC_Yielding_Model",str,string("0.80 1.0"));
 
 	//minTimeInLaneSameDir
-	ParameterManager::Instance()->param(modelName,"LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir",minTimeInLaneSameDir,3.0);
+	ParameterManager::Instance()->param(modelName,"LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir",minTimeInLaneSameDir,2.0);
 	//minTimeInLaneDiffDir
-	ParameterManager::Instance()->param(modelName,"LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir",minTimeInLaneDiffDir,10.0);
+	ParameterManager::Instance()->param(modelName,"LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir",minTimeInLaneDiffDir,2.0);
 
 	//Target Gap Model
 	ParameterManager::Instance()->param(modelName,"Target_Gap_Model",str,
@@ -936,7 +936,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 
 	// get distance to end of current segment
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
-	float x=driverMvt->fwdDriverMovement.getDisToCurrSegEnd();
+	float x=driverMvt->fwdDriverMovement.getDisToCurrSegEndM();
 
 	// if current segment has enough distance to do lc , keep current lane
 	if ( x>=lookAheadDistance )
@@ -971,14 +971,19 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	// computer number of lane changes to right,left,current
 	for (int i = 0; i < connectedLanes.size(); i++) {
 
-	 int numlcRight  = abs (getLaneIndex(connectedLanes[i]) -  (p.currLaneIndex+1)) ;
-	 int numlcLeft  = abs (getLaneIndex(connectedLanes[i]) -  (p.currLaneIndex-1)) ;
-	 int numlcCurrent  = abs (getLaneIndex(connectedLanes[i]) -  p.currLaneIndex) ;
+		int l1 = abs(getLaneIndex(connectedLanes[i]));
+		int l2 = p.currLaneIndex;
+		int numlcRight  = l1 -  (l2+1) ;
+		int numlcLeft  = l1 -  (l2-1) ;
+		int numlcCurrent  = l1 -  l2;
 
 	 nRight =  std::min<int>(nRight, numlcRight);
 	 nLeft =  std::min<int>(nLeft, numlcLeft);
 	 nCurrent =  std::min<int>(nCurrent, numlcCurrent);
 
+	 if(nRight<0) nRight=0;
+	 if(nLeft<0) nLeft=0;
+	 if(nCurrent<0) nCurrent=0;
 	}
 
 	double eul = 0.0, eur = 0.0, euc = 1.0 ;
@@ -986,12 +991,16 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 
 	for(int i=0;i<connectedLanes.size();i++)
 	{
-
-		if(isReadyForNextDLC(p,2) && p.leftLane == connectedLanes[i])
+		size_t goodLaneIdx = getLaneIndex(connectedLanes[i]);
+//		if(isReadyForNextDLC(p,2) && p.leftLane == connectedLanes[i])
+		int res = isReadyForNextDLC(p,2);
+		if(res && goodLaneIdx > p.currLaneIndex)
 		{
 			eul = lcUtilityLookAheadLeft(p, nLeft, lcDistance);
 		}
-		if(isReadyForNextDLC(p,1) && p.rightLane == connectedLanes[i])
+//		if(isReadyForNextDLC(p,1) && p.rightLane == connectedLanes[i])
+		res = isReadyForNextDLC(p,1);
+		if(res && goodLaneIdx < p.currLaneIndex)
 		{
 			eur = lcUtilityLookAheadRight(p, nRight, lcDistance);
 		}
@@ -1638,10 +1647,15 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 		}
 	}//end getStatus()
 
-	if(p.perceivedFwdVelocity/100 < minSpeed)
+	if(p.parentId != 888 && p.now.frame()>100)
 	{
-		return LCS_SAME;
+		int i=0;
 	}
+
+//	if(p.perceivedFwdVelocity/100 < minSpeed)
+//	{
+//		return LCS_SAME;
+//	}
 
 	if (timeSinceTagged(p) < MLC_PARAMETERS.lane_mintime)
 	{
@@ -1649,6 +1663,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 	}
 
 	LANE_CHANGE_SIDE change = LCS_SAME;		// direction to change
+
 
 	if (!path(p)) {
 		//TODO handle re-route
@@ -2200,41 +2215,53 @@ int sim_mob::MITSIM_LC_Model::isThereLaneDrop(DriverUpdateParams& p,set<const La
 			// first lane of current segment is ped lane
 			currentSegmentLaneSize--;
 		}
-		if(p.currLaneIndex == currentSegmentLaneSize)
+		// check next segment lane size
+		size_t nextSegmentLaneSize = driverMvt->fwdDriverMovement.getNextSegment(true)->getLanes().size();
+		if(driverMvt->fwdDriverMovement.getNextSegment(true)->getLanes().at(nextSegmentLaneSize-1)->is_pedestrian_lane())
 		{
-			// we are on most left lane of current segment
-			p.setStatus(STATUS_LEFT_SIDE_OK,STATUS_NO,str);
-			// check next segment lane size
-			size_t nextSegmentLaneSize = driverMvt->fwdDriverMovement.getNextSegment(true)->getLanes().size();
-			if(driverMvt->fwdDriverMovement.getNextSegment(true)->getLanes().at(nextSegmentLaneSize-1)->is_pedestrian_lane())
+			// next segment has ped lane
+			nextSegmentLaneSize--;
+		}
+		if(driverMvt->fwdDriverMovement.getNextSegment(true)->getLanes().at(0)->is_pedestrian_lane())
+		{
+			// next segment has ped lane
+			nextSegmentLaneSize--;
+		}
+//		if(p.currLaneIndex == currentSegmentLaneSize)
+		if(nextSegmentLaneSize < currentSegmentLaneSize )
+		{
+			// seems current segment's most left lane has lane drop
+			double d = (driverMvt->fwdDriverMovement.getCurrPolylineTotalDistCM() -
+					driverMvt->fwdDriverMovement.getCurrDistAlongRoadSegmentCM() )/100.0;
+			if(d<p.dis2stop)
 			{
-				// next segment has ped lane
-				nextSegmentLaneSize--;
+				p.dis2stop = d;
 			}
-			if(driverMvt->fwdDriverMovement.getNextSegment(true)->getLanes().at(0)->is_pedestrian_lane())
+			// fill targetLanes
+			for(int i=0;i<nextSegmentLaneSize;++i)
 			{
-				// next segment has ped lane
-				nextSegmentLaneSize--;
+				const Lane* l = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes().at(i);
+				if(!l->is_pedestrian_lane())
+					targetLanes.insert(l);
 			}
+
 			if(nextSegmentLaneSize > p.currLaneIndex)//has lane drop
 			{
+				// we are on most left lane of current segment
+				p.setStatus(STATUS_LEFT_SIDE_OK,STATUS_NO,str);
 				//of course, current lane is not ok
 				p.setStatus(STATUS_CURRENT_LANE_OK,STATUS_NO,str);
-
-				double d = (driverMvt->fwdDriverMovement.getCurrPolylineTotalDistCM() -
-						driverMvt->fwdDriverMovement.getCurrDistAlongRoadSegmentCM() )/100.0;
-				if(d<p.dis2stop)
-				{
-					p.dis2stop = d;
-				}
-				// fill targetLanes
-				for(int i=1;i<nextSegmentLaneSize;++i)
-				{
-					const Lane* l = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes().at(i);
-					targetLanes.insert(l);
-				}
 				return -1;
 			}
+		}
+		else {
+			//all lanes ok,fill targetLanes
+			const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
+			for(int i=0;i<lanes.size();++i) {
+				if(!lanes[i]->is_pedestrian_lane()) {
+					targetLanes.insert(lanes[i]);
+				}
+			}// end of for
 		}
 	}// end else
 	return 0;
@@ -2244,6 +2271,10 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 	std::string str = "isLaneConnectToNextLink";
 	int res=-1;
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	double dis = driverMvt->fwdDriverMovement.getAllRestRoadSegmentsLengthCM()
+					- driverMvt->fwdDriverMovement.getCurrDistAlongRoadSegmentCM()
+					- driverMvt->parentDriver->vehicle->getLengthCm() / 2 - 200;
+	p.dis2stop = dis/100.0;
 	const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (driverMvt->fwdDriverMovement.getCurrSegment()->getEnd());
 	if(currEndNode)
 	{
@@ -2334,6 +2365,12 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 	}//end if(currEndNode)
 	else {
 		// not on last segment of the link
+		const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
+		for(int i=0;i<lanes.size();++i) {
+			if(!lanes[i]->is_pedestrian_lane()) {
+				targetLanes.insert(lanes[i]);
+			}
+		}// end of for
 		res = 0;
 	}
 	return res;

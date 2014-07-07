@@ -183,8 +183,8 @@
 	A vehicle must remain in a lane for a minimum of "minimum time in lane" seconds before
 	considering another lane chane.-->                                   
 	<param name="MLC_PARAMETERS" value="
-						1320.0         #lower bound(ft) 
-						5280.0         #delta(ft)
+						100.0         #lower bound(ft) 
+						200.0         #delta(ft)
 						0.5            #coef for number of lanes
 						1.0            #coef for congestion level
 						1.0 	       #minimum time in lane
@@ -282,5 +282,8 @@
 <!-- K. OTHERS -->
 <!-- minimum speed to consider for a moving vehicle m/s-->
 	<param name="min_speed" value="0.1"/>
+                                                                                   #sec
+	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir" value="2"/>
+	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir" value="2"/>
 
 </parameters>

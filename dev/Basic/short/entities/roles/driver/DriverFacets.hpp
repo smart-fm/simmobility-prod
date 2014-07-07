@@ -122,6 +122,9 @@ public:
 	 *  /param lanePool store found lanes
 	 */
 	void getLanesConnectToLookAheadDis(double distance,std::vector<sim_mob::Lane*>& lanePool);
+
+	/// check lane connect to rs
+	/// lanes' segment shall connect ro rs
 	bool laneConnectToSegment(sim_mob::Lane* lane,const sim_mob::RoadSegment* rs);
 
 private:

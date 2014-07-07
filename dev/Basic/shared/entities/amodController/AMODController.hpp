@@ -95,6 +95,7 @@ public:
 	/// enode: end node
 	/// path: new path
 
+	void saveVehStat(int currTime);
 	//void testOneVh();
     void testSecondVh();
 	void testVh();
@@ -182,7 +183,8 @@ public:
 	};
 
 	std::ifstream myFile; // ("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/About10.txt");
-	std::ofstream demandDiary;
+	std::ofstream out_demandStat;
+	std::ofstream out_vhsStat;
 	std::string lastReadLine;
 
 

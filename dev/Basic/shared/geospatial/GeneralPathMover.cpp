@@ -318,7 +318,7 @@ void sim_mob::GeneralPathMover::generateNewPolylineArray(const RoadSegment* curr
 
 	//Simple; just make sure to take the forward direction into account.
 	//TODO: Take the current lane into account.
-	polypointsList = (*currSegmentIt)->getLanes().at(currLaneID)->getPolyline();
+	polypointsList = (*currSegmentIt)->getLanes().at(1)->getPolyline();
 
 	//Check
 	throwIf(polypointsList.size() < 2, GeneralPathMover::ErrorPolylineLength);
@@ -455,6 +455,7 @@ double sim_mob::GeneralPathMover::advance(double fwdDistance)
 
 		//Subtract distance moved thus far
 		distAlongPolyline -= currPolylineLength();
+		std::cout << "distAlongPolyline: " << distAlongPolyline << std::endl;
 
 		//Advance pointers, etc.
 		res = advanceToNextPolyline(true);

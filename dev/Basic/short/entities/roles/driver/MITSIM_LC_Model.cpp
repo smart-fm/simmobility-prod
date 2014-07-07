@@ -1655,6 +1655,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 	}
 	else
 	{
+		p.setStatus(STATUS_LEFT_OK); p.setStatus(STATUS_RIGHT_OK); p.setStatus(STATUS_CURRENT_OK);
 		// check lanes connect to next segment
 		checkConnectLanes(p);
 
@@ -2229,10 +2230,11 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 	const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (driverMvt->fwdDriverMovement.getCurrSegment()->getEnd());
 	if(currEndNode)
 	{
+		// current segment's end node is multi node, so it is last segment of the link
 		// get next segment(in next link)
 		const RoadSegment* nextSegment = driverMvt->fwdDriverMovement.getNextSegment(false);
 		if(!nextSegment){
-			//seems on next segment of the path
+			//seems current on last segment of the path
 			p.setStatus(STATUS_LEFT_OK); p.setStatus(STATUS_RIGHT_OK); p.setStatus(STATUS_CURRENT_OK);
 
 			const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
@@ -2243,58 +2245,64 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 			}// end of for
 			res = 0; // no need lane change
 		}//end if(!nextSegment)
-		// get lane connector
-		const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(driverMvt->fwdDriverMovement.getCurrSegment());
+		else {
+			// next segment on diff link
+			// get lane connector
+			const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(driverMvt->fwdDriverMovement.getCurrSegment());
 
-		// check lef,right lanes connect to next target segment
-		for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++)
-		{
-			if ( (*it)->getLaneTo()->getRoadSegment() == nextSegment ) // this lc connect to target segment
+			// check left,right lanes connect to next target segment
+			for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++)
 			{
-				int laneIdx = getLaneIndex((*it)->getLaneFrom());
-				if(laneIdx > p.currLaneIndex)
+				if ( (*it)->getLaneTo()->getRoadSegment() == nextSegment ) // this lc connect to target segment
 				{
-					p.setStatus(STATUS_LEFT_OK);
-				}
-				else if(laneIdx < p.currLaneIndex)
-				{
-					p.setStatus(STATUS_RIGHT_OK);
-				}
-				else {
-					p.setStatus(STATUS_CURRENT_OK);
-				}
-			}//end if
-		}//end for
-
-		if (lcs.size()>0)
-		{
-					//
-			if(p.currLane->is_pedestrian_lane()) {
-				//if can different DEBUG or RELEASE mode, that will be perfect, but now comment it out, so that does nor affect performance.
-				//I remember the message is not critical
-				WarnOut("drive on pedestrian lane");
-				double d = driverMvt->fwdDriverMovement.getDisToCurrSegEndM();
-				if(d<p.dis2stop)
-					p.dis2stop = d;
-				return -1;
-			}
-			std::map<int,vector<int> > indexes;
-			std::set<int> noData;
-
-			for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
-				if ((*it)->getLaneTo()->getRoadSegment() == nextSegment ) {
-					// add lane to targetLanes
-					const Lane* l = (*it)->getLaneFrom();
-					targetLanes.insert(l);
-					if( (*it)->getLaneFrom() == p.currLane )
+					int laneIdx = getLaneIndex((*it)->getLaneFrom());
+					if(laneIdx > p.currLaneIndex)
 					{
-						// current lane connect to next link
-						// no need lc
-						res = 0;
+						p.setStatus(STATUS_LEFT_OK);
 					}
+					else if(laneIdx < p.currLaneIndex)
+					{
+						p.setStatus(STATUS_RIGHT_OK);
+					}
+					else {
+						p.setStatus(STATUS_CURRENT_OK);
+					}
+				}//end if
+			}//end for
+
+			if (lcs.size()>0)
+			{
+						//
+				if(p.currLane->is_pedestrian_lane()) {
+					//if can different DEBUG or RELEASE mode, that will be perfect, but now comment it out, so that does nor affect performance.
+					//I remember the message is not critical
+					WarnOut("drive on pedestrian lane");
+					double d = driverMvt->fwdDriverMovement.getDisToCurrSegEndM();
+					if(d<p.dis2stop)
+						p.dis2stop = d;
+					return -1;
 				}
-			}// end for
-		} // end of if (!lcs)
+				std::map<int,vector<int> > indexes;
+				std::set<int> noData;
+
+				for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
+					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment ) {
+						// add lane to targetLanes
+						const Lane* l = (*it)->getLaneFrom();
+						targetLanes.insert(l);
+						if( (*it)->getLaneFrom() == p.currLane )
+						{
+							// current lane connect to next link
+							// no need lc
+							res = 0;
+						}
+					}
+				}// end for
+			} // end of if (!lcs)
+			else {
+				throw std::runtime_error("isLaneConnectToNextLink: error, no lane connect in multi node");
+			}
+		}// end of else
 	}//end if(currEndNode)
 	else {
 		// not on last segment of the link

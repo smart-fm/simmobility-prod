@@ -44,6 +44,10 @@ enum TARGET_GAP {
 	TG_Right_Adj  = 2
 };
 
+#define STATUS_LEFT_LANE "STATUS_LEFT_LANE"
+#define STATUS_RIGHT_LANE "STATUS_RIGHT_LANE"
+#define STATUS_CURRENT_LANE "STATUS_CURRENT_LANE"
+
 const float MAX_ACCELERATION		= +10.0; // meter/sec2
 const float MAX_DECELERATION		= -10.0; // meter/sec2
 const float CF_CRITICAL_TIMER_RATIO	= 0.5;

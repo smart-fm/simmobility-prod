@@ -7,10 +7,17 @@
 
 namespace sim_mob
 {
+DriverUpdateParams::DriverUpdateParams()
+: UpdateParams() ,status(0),yieldTime(0,0),lcTimeTag(0),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0) {
 
+}
 void DriverUpdateParams::setStatus(unsigned int s)
 {
 	status |= s;
+}
+void DriverUpdateParams::setStatus(string& name,StatusValue& v,string& whoSet)
+{
+	statusMgr.setStatus(name,v,whoSet);
 }
 void DriverUpdateParams::setStatusDoingLC(LANE_CHANGE_SIDE& lcs)
 {

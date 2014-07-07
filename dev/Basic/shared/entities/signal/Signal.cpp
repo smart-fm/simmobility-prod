@@ -483,8 +483,13 @@ void sim_mob::Signal_SCATS::buffer_output(timeslice now, std::string newLine)
 	output << "\"currPhase\": \"" << getPhases()[currPhaseID].getName() << "\"," << newLine;
 	output << "\"phases\":" << newLine << "[";
 
+	if(now.frame()>1300)
+	{
+		int i=0;
+	}
 	for(int i =0; i < getPhases().size(); i++)
 	{
+//		std::cout<<"outputPhaseTrafficLight: "<<now.frame()<<std::endl;
 		output << getPhases()[i].outputPhaseTrafficLight(newLine);
 		if((i + 1) < getPhases().size()) output << ",";
 	}
@@ -595,6 +600,14 @@ TrafficColor sim_mob::Signal_SCATS::getDriverLight(Lane const & fromLane, Lane c
 //			Print() << "Link-Link [" << iter->first << " , " << iter->second.LinkTo << "]" << std::endl;
 //		}
 //	}
+	sim_mob::Phase::links_map_const_iterator it2;
+	int i=0;
+	for(it2 = range.first; it2 != range.second ; it2++ )
+	{
+		std::cout<<"range: "<<i<<std::endl;
+		i++;
+	}
+
 	for(iter = range.first; iter != range.second ; iter++ )
 	{
 		if((*iter).second.LinkTo == toLink){

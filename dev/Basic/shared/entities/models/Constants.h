@@ -44,15 +44,20 @@ enum TARGET_GAP {
 	TG_Right_Adj  = 2
 };
 
+// left side of current lane
+#define STATUS_LEFT_SIDE "STATUS_LEFT_SIDE"
+#define STATUS_RIGHT_SIDE "STATUS_RIGHT_SIDE"
+#define STATUS_CURRENT_LANE "STATUS_CURRENT_LANE"
+
 const float MAX_ACCELERATION		= +10.0; // meter/sec2
 const float MAX_DECELERATION		= -10.0; // meter/sec2
 const float CF_CRITICAL_TIMER_RATIO	= 0.5;
 
-const unsigned int FLAG_ESCAPE		      = 0x00000003;	// sum
+const unsigned int FLAG_ESCAPE		      = 0x00000003;	// sum  //mandatory lc
 const unsigned int FLAG_ESCAPE_RIGHT      = 0x00000001;
 const unsigned int FLAG_ESCAPE_LEFT	      = 0x00000002;
 
-const unsigned int FLAG_AVOID		      = 0x0000000C;	// sum
+const unsigned int FLAG_AVOID		      = 0x0000000C;	// sum  //discretionary lc
 const unsigned int FLAG_AVOID_RIGHT       = 0x00000004;
 const unsigned int FLAG_AVOID_LEFT	      = 0x00000008;
 

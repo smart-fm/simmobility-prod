@@ -7,10 +7,19 @@
 
 namespace sim_mob
 {
+DriverUpdateParams::DriverUpdateParams()
+: UpdateParams() ,status(0),yieldTime(0,0),lcTimeTag(0),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0) {
 
+}
 void DriverUpdateParams::setStatus(unsigned int s)
 {
 	status |= s;
+}
+void DriverUpdateParams::setStatus(string name,StatusValue v,string whoSet) {
+	statusMgr.setStatus(name,v,whoSet);
+}
+StatusValue DriverUpdateParams::getStatus(string name) {
+	return statusMgr.getStatus(name);
 }
 void DriverUpdateParams::setStatusDoingLC(LANE_CHANGE_SIDE& lcs)
 {
@@ -34,11 +43,19 @@ void DriverUpdateParams::buildDebugInfo()
 	char newFwdAccChar[20] = "\0";
 	sprintf(newFwdAccChar,"%03.1f",newFwdAcc);
 
+	size_t currLaneIdx = currLaneIndex;
+	if(currLaneIdx<0.1) currLaneIdx = 0;
+
 	double dis = perceivedDistToFwdCar / 100.0;
 	char disChar[20] = "\0";
 	sprintf(disChar,"%03.1f",dis);
-	s<<ct<<":"<<newFwdAccChar<<":"<<accSelect<<":"<<nvFwd.exists()<<":"<<disChar<<":"<<perceivedTrafficColor<<":"
-			<<perceivedDistToTrafficSignal/100.0;
+	s<<ct<<":"<<newFwdAccChar
+			<<":"<<accSelect
+			<<":"<<nvFwd.exists()
+			<<":"<<disChar
+	<<":"<<currLaneIndex;
+//			<<":"<<perceivedTrafficColor
+//			<<":"<<perceivedDistToTrafficSignal/100.0;
 	debugInfo = s.str();
 
 	std::cout<<debugInfo<<std::endl;

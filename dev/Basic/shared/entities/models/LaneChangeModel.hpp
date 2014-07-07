@@ -82,7 +82,7 @@ public:
         double feet_delta;
         double lane_coeff;
         double congest_coeff;
-        double lane_mintime;
+        double lane_mintime; // sec
     };
 
 	MITSIM_LC_Model(DriverUpdateParams& p);
@@ -181,6 +181,7 @@ public:
 
 	/**
 	 *  /brief check lane drop,set dis2stop
+	 *         only check segments in current link,means find lanes of curr segments connect to next segment
 	 *  /targetLanes target lanes, if require mlc or dlc
 	 *  /return
 	 *   0 = nothing serious
@@ -189,16 +190,18 @@ public:
 	int isThereLaneDrop(DriverUpdateParams& p,set<const Lane*>& targetLanes);
 
 	/**
-	 *  /brief check if lane connect to next segment,set dis2stop
+	 *  /brief check if lane connect to next link,set dis2stop
 	 *   0 = nothing serious
 	 * 	 -1 = requires a mandatory lane change
 	 */
-	int isLaneConnectToNextSegment(DriverUpdateParams& p,set<const Lane*>& targetLanes);
+	int isLaneConnectToNextLink(DriverUpdateParams& p,set<const Lane*>& targetLanes);
 
 	// TODO: add incident code
 	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p);
 	double lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance);
 	double LCUtilityLeft(DriverUpdateParams& p);
+	double LCUtilityRight(DriverUpdateParams& p);
+	double LCUtilityCurrent(DriverUpdateParams& p);
 
 	/**
 	 *  /brief find number of lane changes to end of the link

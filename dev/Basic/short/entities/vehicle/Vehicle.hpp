@@ -104,7 +104,7 @@ private:
 	//Trying a slightly more dynamic moving model.
 	int vehicleId;
 	GeneralPathMover fwdMovement;
-	double latMovement;
+	double latMovement; // latMovement not equal to lateral position
 	double fwdVelocity;
 	double latVelocity;
 	double fwdAccel;

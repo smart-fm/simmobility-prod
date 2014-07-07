@@ -15,6 +15,7 @@
 #include "util/LangHelpers.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/models/Constants.h"
+#include "entities/roles/driver/SMStatus.h"
 //#include "IncidentPerformer.hpp"
 //#include "entities/roles/driver/Driver.hpp"
 
@@ -61,9 +62,9 @@ struct NearestPedestrian {
 ///NOTE: Constructor is currently implemented in Driver.cpp. Feel free to shuffle this around if you like.
 class DriverUpdateParams : public UpdateParams {
 public:
-	DriverUpdateParams() : UpdateParams() ,status(0),yieldTime(0,0),lcTimeTag(0),speedOnSign(0),newFwdAcc(0),cftimer(0.0){}
+	DriverUpdateParams();// : UpdateParams() ,status(0),yieldTime(0,0),lcTimeTag(0),speedOnSign(0),newFwdAcc(0),cftimer(0.0){}
 	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen) ,nextLaneIndex(0),isTargetLane(true),
-			status(0),yieldTime(0,0),lcTimeTag(0),speedOnSign(0),newFwdAcc(0),cftimer(0.0){}
+			status(0),yieldTime(0,0),lcTimeTag(0),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0){}
 
 	virtual void reset(timeslice now, const Driver& owner);
 
@@ -227,7 +228,7 @@ public:
 	vector<double> nosingParams;
 	double lcMaxNosingTime;
 
-	double targetSpeed;
+//	double targetSpeed; // duplicated with desiredSpeed
 	double maxLaneSpeed;
 
 	/// fwd acc from car follow model m/s^2
@@ -255,6 +256,12 @@ public:
 	int parentId;
 
 	double FFAccParamsBeta;
+
+	double newLatVelM; //meter/sec
+
+	SMStatusManager statusMgr;
+	void setStatus(string name,StatusValue v,string whoSet);
+	StatusValue getStatus(string name);
 
 //	//perform incident response
 //	IncidentPerformer incidentPerformer;

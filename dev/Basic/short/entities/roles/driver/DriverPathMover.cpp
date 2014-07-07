@@ -891,6 +891,7 @@ void sim_mob::DriverPathMover::moveToNewPolyline(int newLaneID)
 	currLaneID = newLaneID;
 
 	//Update our polyline array
+	// here assume all polylines has same number of polypoint
 	generateNewPolylineArray(getCurrSegment(), pathWithDirection.path, pathWithDirection.areFwds);
 	if (distTraveled > 0)
 	{
@@ -917,8 +918,8 @@ DPoint sim_mob::DriverPathMover::getPosition() const
 	DynamicVector movementVect(currPolypoint->getX(), currPolypoint->getY(), nextPolypoint->getX(), nextPolypoint->getY());
 	movementVect.scaleVectTo(getCurrDistAlongPolylineCM()).translateVect();
 	return DPoint(movementVect.getX(), movementVect.getY());
-}
 
+}
 double sim_mob::DriverPathMover::getPositionInSegmentCM()
 {
 	return distToEndSegmentCM;

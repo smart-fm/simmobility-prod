@@ -101,6 +101,7 @@ const Lane* sim_mob::UniNode::getForwardDrivingLane(const sim_mob::Lane& from) c
 	} else if (lc.right && !lc.left) {
 		return lc.right;
 	}
+	//return lc.center;
 	return nullptr;
 }
 

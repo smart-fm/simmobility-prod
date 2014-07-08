@@ -124,6 +124,7 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 		profile = new ProfileBuilder();
 		//profile->logAgentCreated(*this);
 	}*/
+	errorFlag = false;
 }
 
 sim_mob::Agent::~Agent() {
@@ -283,6 +284,7 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
 			msg <<"\n  " <<ex.what();
 			LogOut(msg.str() <<std::endl);
 		}
+		setErrorFlag();
 		setToBeRemoved();
 	}
 #endif

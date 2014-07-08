@@ -127,6 +127,11 @@ void sim_mob::Person::initTripChain(){
 }
 
 sim_mob::Person::~Person() {
+
+	//handle destruction by alerting AMODController
+	sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
+	a->handleVHDestruction(this);
+
 	safe_delete_item(prevRole);
 	safe_delete_item(currRole);
 	safe_delete_item(nextRole);
@@ -299,7 +304,7 @@ void sim_mob::Person::invalidateAMODVehicle(void) {
 	std::cout << "Invalidating: " << amodId << std::endl;
 	std::cout << "An error has occured with this vehicle." << std::endl;
 	sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
-	a->handleVHError(this);
+	//a->handleVHError(this);
 };
 
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)

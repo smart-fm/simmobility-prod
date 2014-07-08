@@ -142,7 +142,7 @@ sim_mob::DriverMovement::~DriverMovement()
 {
 	//Our movement models.
 	parent->amodVehicle = NULL;
-	//parent->invalidateAMODVehicle();
+
 	safe_delete_item(lcModel);
 	safe_delete_item(cfModel);
 	safe_delete_item(intModel);
@@ -482,7 +482,10 @@ void sim_mob::DriverMovement::frame_tick_output() {
 		return;
 	}
 
-	double baseAngle = parentDriver->vehicle->isInIntersection() ? intModel->getCurrentAngle() : parentDriver->vehicle->getAngle();
+	//Original simmobility code throws an error! "Impossible to retrieve a vector's angle if it has never had a size
+	//double baseAngle = parentDriver->vehicle->isInIntersection() ? intModel->getCurrentAngle() : parentDriver->vehicle->getAngle();
+	double baseAngle = parentDriver->vehicle->getAngle(); //changed to this
+
 
 	//Inform the GUI if interactive mode is active.
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {

@@ -46,7 +46,7 @@ public:
 		int arrivalTime;
 
 		double tripDistanceInM;
-
+		bool tripError; //true if the trip ended in an errro (vehicle was destroyed before arriving)
 		int pickUpSegment; //segment right after the pick up node (to check whether we have passed the pick up point)
 		bool pickedUp;
 	};
@@ -132,7 +132,7 @@ public:
 			const AMOD::AMODEventArgs& args);
 
 	void handleVHArrive(Person* vh);
-	void handleVHError(Person *vh);
+	void handleVHDestruction(Person *vh);
 	void checkForPickups(void); //checks for pickups and sets the time in vhTripMap.
 
 

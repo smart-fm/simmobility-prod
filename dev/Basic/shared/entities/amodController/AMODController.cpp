@@ -216,8 +216,8 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 	if(test==0)
 	{
 
-		populateCarParks(2);
-		myFile.open("bugisSmall_withID.txt");
+		populateCarParks(50);
+		myFile.open("bugisLarge10000.txt");
 		out_demandStat.open("out_demandStat.txt");
 		out_vhsStat.open("out_vhsStat.txt");
 		out_tripStat.open("out_tripStat.txt");
@@ -284,18 +284,14 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		std::cout << "Reading the demand file... " << std::endl;
 
 		readDemandFile(tripID, current_time, origin, destination);
+		mtx_.lock();
 		saveVehStat();
-
+		mtx_.unlock();
 		//assignVhs(origin, destination);
 		assignVhsFast(tripID, origin, destination, current_time);
 		checkForPickups();
 
 		test = 1;
-
-		if (now.ms()==119900){
-			out_demandStat.close();
-			out_vhsStat.close();
-		}
 	}
 	// return continue, make sure agent not remove from main loop
 	return Entity::UpdateStatus::Continue;
@@ -307,7 +303,7 @@ void AMODController::populateCarParks(int numberOfVhsAtNode = 10)
 {
 	//carpark population
 	std::vector<std::string> carParkIds;
-	ifstream carParkFile("bugisSmallCarParks.txt");
+	ifstream carParkFile("bugisLargeCarParks20.txt");
 	while(!carParkFile.eof())
 	{
 		std::string line;
@@ -435,6 +431,12 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 
 	//std::cout<<ConfigManager::GetInstance().FullConfig().simStartTime().getValue()<<std::endl;
 	sim_mob::Person* person = new sim_mob::Person("AMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
+	if (!person) {
+		std::cout << "Cannot create person!" << std::endl;
+		std::cout << std::endl;
+		return;
+	}
+
 	//person->setTripChain(tcs);
 	//std::cout<<"starttime: "<<person->getStartTime()<<std::endl;
 	person->parentEntity = this;
@@ -704,20 +706,37 @@ bool AMODController::dispatchVh(Person* vh)
 }
 
 
-void AMODController::handleVHError(Person *vh)
+void AMODController::handleVHDestruction(Person *vh)
 {
+	//if a vehicle gets destroyed by Simmobility, we have to make sure we're not still assuming it exists.
+	std::string amodId = vh->amodId;
 	std::cout << vh->amodId << " suffered an error!" << std::endl;
-	vhOnTheRoad.erase(vh->amodId);
-	nFreeCars--;
-	//find the name of the node where the car is supposed to go. We teleport it there
-	TripMapIterator iter = vhTripMap.find(vh);
-	if (iter == vhTripMap.end()) {
-		std::cout << "ERROR! This should never happen!" << std::endl;
-	}
-	//add it to the car park there
-	string idNode =iter->second.destination;
 
-	addNewVh2CarPark(vh->amodId, idNode);
+	boost::unordered_map<std::string,Person*>::iterator itr;
+	itr = allAMODCars.find(amodId);
+	if (itr == allAMODCars.end()) {
+		std::cout << "Something very wrong happened here." << std::endl;
+		return;
+	} else {
+		if (itr->second == vh) {
+			//the vehicle is still in the AMODController, we have to remove it and reinsert it into a location
+			AmodTrip atrip = vhTripMap[vh];
+			atrip.arrivalTime = currTime;
+			atrip.tripError = true;
+			saveTripStat(atrip);
+			allAMODCars.erase(vh->amodId);
+			vhOnTheRoad.erase(vh->amodId);
+
+			addNewVh2CarPark(vh->amodId, atrip.destination);
+
+			vhTripMap.erase(vh);
+		} else {
+			//all is good, do nothing for now
+			//TODO if necessary.
+		}
+
+	}
+
 
 }
 
@@ -751,8 +770,13 @@ void AMODController::handleVHArrive(Person* vh)
 	std::string vhID = vh->amodId;
 	vh->amodVehicle = NULL;
 
+	//mtx_.lock();
+	allAMODCars.erase(vh->amodId);
 	addNewVh2CarPark(vhID,idNode);
+	//mtx_.unlock();
+
 	vhOnTheRoad.erase(vh->amodId);
+
 
 	/*
 	bool reCreation = true;
@@ -1028,7 +1052,7 @@ void AMODController::saveTripStat(AmodTrip &a) {
 				<< a.destination << " " << a.assignedAmodId << " "
 				<< a.requestTime << " " << a.dispatchTime << " "
 				<< a.pickUpTime << " " << a.arrivalTime << " "
-				<< a.tripDistanceInM
+				<< a.tripDistanceInM << " " << a.tripError
 				<< std::endl;
 	}
 
@@ -1101,6 +1125,23 @@ void AMODController::saveVehStat(void)
 		}
 		else {
 			//in a car park
+			if (!vh) {
+				std::cout << "Vehicle in Car Park is NULL! This should never happen." << std::endl;
+				std::cout << std::endl;
+				continue;
+
+			}
+			if (vh->isToBeRemoved()) {
+				std::cout << amodId << " in Car Park is set to be removed! This should never happen." << std::endl;
+				std::cout << std::endl;
+				continue;
+			}
+
+			//std::cout << "amodId: " << amodId << std::endl;
+			//std::cout << "vh amodId: " << vh->amodId << std::endl;
+			//std::cout << "vh parkingNode: " << vh->parkingNode << std::endl;
+
+
 			out_vhsStat << vh->amodId << " " << currTime << " "
 					<< -1 << " " << -1 << " "
 					<< 0 << " " << -1 << " "
@@ -1528,10 +1569,11 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			atrip.dispatchTime = currTime;
 			atrip.pickUpTime = -1;
 			atrip.arrivalTime = -1;
-
+			atrip.tripError = false;
 			if (carParkNode == originNode) {
 				atrip.pickedUp = true;
 				atrip.pickUpSegment = mergedWP[0].roadSegment_->getSegmentID();
+				atrip.pickUpTime = atrip.dispatchTime;
 			} else {
 				atrip.pickedUp = false;
 				atrip.pickUpSegment = wp2[0].roadSegment_->getSegmentID();

@@ -38,6 +38,7 @@ public:
 		std::string tripID;
 		std::string origin;
 		std::string destination;
+		std::string carParkId;
 		std::string assignedAmodId;
 
 		int requestTime;

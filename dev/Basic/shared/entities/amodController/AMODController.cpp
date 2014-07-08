@@ -272,7 +272,7 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 
 		if (out_tripStat.is_open()) {
 		out_tripStat << "TripID" << " " << "Origin" << " "
-				<< "Destination" << " " << "AssignedAMODID" << " "
+				<< "Destination" << " " << "CarPark" << " "<< "AssignedAMODID" << " "
 				<< "RequestTime" << " " << "DispatchTime" << " "
 				<< "PickUpTime" << " " << "ArrivalTime" << " "
 				<< "TripDistance"
@@ -1080,7 +1080,8 @@ void AMODController::saveTripStat(AmodTrip &a) {
 
 		//save data to file
 		out_tripStat << a.tripID << " " << a.origin << " "
-				<< a.destination << " " << a.assignedAmodId << " "
+				<< a.destination << " " << a.carParkId << " "
+				<< a.assignedAmodId << " "
 				<< a.requestTime << " " << a.dispatchTime << " "
 				<< a.pickUpTime << " " << a.arrivalTime << " "
 				<< a.tripDistanceInM << " " << a.tripError
@@ -1613,8 +1614,28 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			bool freeVehFound = getBestFreeVehicle(originNodeId, &vhAssigned, carParkId, leastCostPath, bestFreeVehTravelCost);
 			if (!freeVehFound)
 			{
-				out_demandStat << tripId << " " << originNodeId << " " << destNodeId << " " << reqTime << " rejected " << "no_path_from_carpark_to_origin\n";
-				itr = serviceBuffer.erase(itr);
+				if (carParkId == originNodeId) {
+					itr++;
+					continue;
+				} else {
+					bool carParkFound = false;
+					AMODVirtualCarParkItor iter;
+					for (iter=virtualCarPark.begin(); iter != virtualCarPark.end(); iter++) {
+						std::vector<WayPoint> wpTest = getShortestPath(iter->first,originNodeId);
+						if (wpTest.size() > 0) {
+							carParkFound = true;
+							break;
+						}
+					}
+					if (carParkFound) {
+						itr++;
+					} else {
+						//this will never be serviceable
+						out_demandStat << tripId << " " << originNodeId << " " << destNodeId << " " << reqTime << " rejected " << "no_path_from_carpark_to_origin "
+								<< carParkId << std::endl;
+						itr = serviceBuffer.erase(itr);
+					}
+				}
 				//itr++;
 				continue;
 				//throw std::runtime_error("no more vehicles remaining. Throwing exception.");
@@ -1630,10 +1651,10 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 			//check to see if there is a route from the destination back to the carpark
 			//if not, then this is a problem since we cannot get back into the network
-
 			std::vector<WayPoint> wp3 = getShortestPath(destNodeId, carParkId);
 			if (wp3.size() == 0) {
-				out_demandStat << tripId << " " << originNodeId << " " << destNodeId << " " << reqTime << " rejected " << "no_path_from_destination_to_carpark\n";
+				out_demandStat << tripId << " " << originNodeId << " " << destNodeId << " " << reqTime << " rejected " << "no_path_from_destination_to_carpark "
+						<< carParkId << std::endl;
 				itr = serviceBuffer.erase(itr);
 				//itr++;
 				continue;
@@ -1693,6 +1714,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			//----------------------------------------------------------------------------------------
 			//create a trip map to keep track of vehicles
 			AmodTrip atrip = *itr;
+			atrip.carParkId = carParkId;
 			atrip.assignedAmodId = vhAssigned->amodId;
 			atrip.dispatchTime = currTime;
 			atrip.pickUpTime = -1;

@@ -573,7 +573,11 @@ bool AMODController::getBestFreeVehicle(std::string originId, sim_mob::Person **
 		carParkId = bestCarParkIter->first;
 		boost::unordered_map<std::string,Person*> cars = bestCarParkIter->second;
 		boost::unordered_map<std::string,Person*>::iterator firstCarIt = cars.begin();
-		*vh = firstCarIt->second;
+		if (firstCarIt == cars.end()) {
+			freeCarFound = false;
+		} else {
+			*vh = firstCarIt->second;
+		}
 	}
 	return freeCarFound;
 }

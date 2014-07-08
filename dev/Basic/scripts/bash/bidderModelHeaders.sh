@@ -14,7 +14,7 @@ else
 		echo " "
 	elif [ $1 == "bids" ]; then
 		echo "Adding headers to the bids output file"
-		sed -i '1 i \bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, speculation, asking_price, target_price, bid_value, bids_counter (daily), status(0 - REJECTED 1- ACCEPTED)' $2
+		sed -i '1 i \bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp (total-price), speculation (discount), asking_uprice (per sqft), floor area (sqft), type_id, target_uprice (per sqft), bid_value (total-price), bids_counter (daily), status(1 = ACCEPTED)' $2
 		echo " "
 	else
 		echo "Unknown usage. Run \"./bidderModelHeaders.sh\" for sample usage help."

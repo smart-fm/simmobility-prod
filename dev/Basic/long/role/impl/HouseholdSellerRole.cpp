@@ -31,22 +31,29 @@ using sim_mob::Math;
 namespace {
     //bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, target_price
     const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
-    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, speculation, asking_price, target_price, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
-    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%";
+    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, speculation, asking_price, floor_area, type_id, target_price, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
+    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%";
 
     inline void printBid(const HouseholdAgent& agent, const Bid& bid, const ExpectationEntry& entry, unsigned int bidsCounter, bool accepted)
     {
+    	const HM_Model* model = agent.getModel();
+    	const Unit* unit  = model->getUnitById(bid.getUnitId());
+        double floor_area = unit->getFloorArea();
+        BigSerial type_id = unit->getTypeId();
+
         boost::format fmtr = boost::format(LOG_BID) % bid.getTime().ms()
-                % agent.getId()
-                % bid.getBidderId()
-                % bid.getUnitId()
-                % bid.getWillingnessToPay()
-                % bid.getSpeculation()
-                % entry.askingPrice
-                % entry.targetPrice
-                % bid.getValue()
-                % bidsCounter
-                % ((accepted) ? 1 : 0);
+													% agent.getId()
+													% bid.getBidderId()
+													% bid.getUnitId()
+													% bid.getWillingnessToPay()
+													% bid.getSpeculation()
+													% entry.askingPrice
+													% floor_area
+													% type_id
+													% entry.targetPrice
+													% bid.getValue()
+													% bidsCounter
+													% ((accepted) ? 1 : 0);
 
         AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, fmtr.str());
         //PrintOut(fmtr.str() << endl);
@@ -136,6 +143,7 @@ HouseholdSellerRole::SellingUnitInfo::SellingUnitInfo() :startedDay(0), interval
 
 HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent): LT_AgentRole(parent), currentTime(0, 0), hasUnitsToSale(true), selling(false)
 {
+
 }
 
 HouseholdSellerRole::~HouseholdSellerRole() {

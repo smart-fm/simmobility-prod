@@ -240,6 +240,7 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		if (out_vhsStat.is_open()) {
 			out_vhsStat << "vehId " << "time "
 					<< "posX " << "posY "
+					<< "Velocity " << "Acceleration "
 					<< "onRoad " << "segmentId "
 					<< "inCarpark " << "nodeId"
 					<< std::endl;
@@ -284,9 +285,11 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		std::cout << "Reading the demand file... " << std::endl;
 
 		readDemandFile(tripID, current_time, origin, destination);
-		mtx_.lock();
-		saveVehStat();
-		mtx_.unlock();
+		//mtx_.lock();
+		if (currTime % 10000 == 0) {
+			saveVehStat();
+		}
+		//mtx_.unlock();
 		//assignVhs(origin, destination);
 		assignVhsFast(tripID, origin, destination, current_time);
 		checkForPickups();
@@ -1113,6 +1116,8 @@ void AMODController::saveVehStat(void)
 
 				out_vhsStat << vh->amodId << " " << currTime << " "
 						<< (int) vh->amodVehicle->getX() << " " << (int) vh->amodVehicle->getY() << " "
+						<< std::fixed << std::setprecision(5)
+						<< vh->amodVehicle->getVelocity()/100 << " " << vh->amodVehicle->getAcceleration()/100 << " "
 						<< 1 << " " << vh->amodVehicle->getCurrSegment()->getSegmentAimsunId() << " "
 						<< 0 << " " << "0"
 						<< std::endl;
@@ -1144,6 +1149,7 @@ void AMODController::saveVehStat(void)
 
 			out_vhsStat << vh->amodId << " " << currTime << " "
 					<< -1 << " " << -1 << " "
+					<< 0.0 << " " << 0.0 << " "
 					<< 0 << " " << -1 << " "
 					<< 1 << " " << vh->parkingNode
 					<< std::endl;

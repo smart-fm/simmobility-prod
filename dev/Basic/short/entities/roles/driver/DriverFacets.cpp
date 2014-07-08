@@ -729,6 +729,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 	if (parentDriver->parent->GetId() == 888
 			&& parentDriver->getParams().now.frame() >= 20) {
 		p.newFwdAcc = -3;
+		p.unsetStatus(STATUS_CHANGING);
 	}
 
 }

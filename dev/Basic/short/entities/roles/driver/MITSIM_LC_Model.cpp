@@ -989,31 +989,41 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	double eul = 0.0, eur = 0.0, euc = 1.0 ;
 	double lcDistance = p.dis2stop;
 
-	for(int i=0;i<connectedLanes.size();i++)
-	{
-		size_t goodLaneIdx = getLaneIndex(connectedLanes[i]);
-//		if(isReadyForNextDLC(p,2) && p.leftLane == connectedLanes[i])
-		int res = isReadyForNextDLC(p,2);
-		if(res && goodLaneIdx > p.currLaneIndex)
-		{
-			eul = lcUtilityLookAheadLeft(p, nLeft, lcDistance);
-		}
-//		if(isReadyForNextDLC(p,1) && p.rightLane == connectedLanes[i])
-		res = isReadyForNextDLC(p,1);
-		if(res && goodLaneIdx < p.currLaneIndex)
-		{
-			eur = lcUtilityLookAheadRight(p, nRight, lcDistance);
-		}
-		if(p.currLane == connectedLanes[i])
-		{
-			euc = lcUtilityLookAheadCurrent(p, nRight, lcDistance);
-		}
+	int res = isReadyForNextDLC(p,2);
+	if( (res || nCurrent>0) && p.leftLane ) {
+		eul = lcUtilityLookAheadLeft(p, nLeft, lcDistance);
 	}
+
+	res = isReadyForNextDLC(p,1);
+	if( (res || nCurrent>0) && p.leftLane ) {
+		eur = lcUtilityLookAheadRight(p, nRight, lcDistance);
+	}
+
+//	for(int i=0;i<connectedLanes.size();i++)
+//	{
+//		size_t goodLaneIdx = getLaneIndex(connectedLanes[i]);
+////		if(isReadyForNextDLC(p,2) && p.leftLane == connectedLanes[i])
+//		int res = isReadyForNextDLC(p,2);
+//		if(res && goodLaneIdx > p.currLaneIndex)
+//		{
+//			eul = lcUtilityLookAheadLeft(p, nLeft, lcDistance);
+//		}
+////		if(isReadyForNextDLC(p,1) && p.rightLane == connectedLanes[i])
+//		res = isReadyForNextDLC(p,1);
+//		if(res && goodLaneIdx < p.currLaneIndex)
+//		{
+//			eur = lcUtilityLookAheadRight(p, nRight, lcDistance);
+//		}
+//		if(p.currLane == connectedLanes[i])
+//		{
+//			euc = lcUtilityLookAheadCurrent(p, nRight, lcDistance);
+//		}
+//	}
 
 	double sum = eul + eur ;
 	if(sum > 0)
 	{
-
+		euc = lcUtilityLookAheadCurrent(p, nCurrent, lcDistance);
 	}
 	else
 	{
@@ -1174,7 +1184,7 @@ double sim_mob::MITSIM_LC_Model::LCUtilityCurrent(DriverUpdateParams& p)
 		}
 	}
 
-	double u = a[0] + a[4] * vld + a[8] * spacing +a[6] * density + mlc + heavy_neighbor + right_most + a[5] * busAheadDummy;
+	double u = a[0] + a[4] * vld + a[6] * spacing + a[8] * density + mlc + heavy_neighbor + right_most + a[5] * busAheadDummy;
 
 	return exp(u) ;
 }
@@ -1255,7 +1265,7 @@ double sim_mob::MITSIM_LC_Model::LCUtilityRight(DriverUpdateParams& p)
 		}
 	}
 
-	double u = a[1] + a[4] * vld + a[8] * spacing +a[6] * density + mlc + heavy_neighbor + right_most + a[5] * busAheadDummy;
+	double u = a[1] + a[4] * vld + a[6] * spacing + a[8] * density + mlc + heavy_neighbor + right_most + a[5] * busAheadDummy;
 
 	return exp(u) ;
 }
@@ -1325,7 +1335,7 @@ double sim_mob::MITSIM_LC_Model::LCUtilityLeft(DriverUpdateParams& p)
 		}
 	}
 
-	double u = a[4] * vld + a[8] * spacing + a[6] * density + mlc + heavy_neighbor + left_most + a[5] * busAheadDummy;
+	double u = a[4] * vld + a[6] * spacing + a[8] * density + mlc + heavy_neighbor + left_most + a[5] * busAheadDummy;
 
 	return exp(u) ;
 
@@ -1406,9 +1416,9 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams& p,in
 		}
 	}
 
-	double u = a[4] * vld + a[8] * spacing + a[6] * density + mlc + heavy_neighbor + left_most + a[5] * busAheadDummy;
-
-	return exp(u) ;
+	double u = a[4] * vld + a[6] * spacing + a[8] * density + mlc + heavy_neighbor + left_most + a[5] * busAheadDummy;
+	double res = exp(u);
+	return  res;
 }
 double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams& p,int n, float LCdistance)
 {
@@ -1495,9 +1505,9 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams& p,i
 		}
 	}
 
-	double u = a[1] + a[4] * vld + a[8] * spacing +a[6] * density + mlc + heavy_neighbor + right_most + a[5] * busAheadDummy;
-
-	return exp(u) ;
+	double u = a[1] + a[4] * vld + a[6] * spacing +a[8] * density + mlc + heavy_neighbor + right_most + a[5] * busAheadDummy;
+	double res = exp(u);
+	return  res;
 }
 double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadCurrent(DriverUpdateParams& p,int n, float LCdistance)
 {
@@ -1593,9 +1603,10 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadCurrent(DriverUpdateParams& p
 		}
 	}
 
-	double u = a[0]+ a[4] * vld + a[8] * spacing + a[6] * density + mlc + heavy_neighbor + right_most + tailgate_dummy + a[5] * busAheadDummy;
+	double u = a[0]+ a[4] * vld + a[6] * spacing + a[8] * density + mlc + heavy_neighbor + right_most + tailgate_dummy + a[5] * busAheadDummy;
 
-	return exp(u) ;
+	double res = exp(u) ;
+	return res;
 }
 double sim_mob::MITSIM_LC_Model::lcCriticalGap(sim_mob::DriverUpdateParams& p, int type,double dv)
 {
@@ -1647,7 +1658,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 		}
 	}//end getStatus()
 
-	if(p.parentId != 888 && p.now.frame()>100)
+	if(p.parentId == 889 && p.now.frame()>60)
 	{
 		int i=0;
 	}

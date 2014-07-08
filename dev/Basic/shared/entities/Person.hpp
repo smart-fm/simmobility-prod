@@ -239,6 +239,10 @@ public:
     Status currStatus;
     void invalidateAMODVehicle(void);
 
+    int stuckCount;
+    double prevx;
+    double prevy;
+
 //    AMODController* amodCtrl;
 
 protected:

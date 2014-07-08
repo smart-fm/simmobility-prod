@@ -49,6 +49,8 @@ public:
 		bool tripError; //true if the trip ended in an errro (vehicle was destroyed before arriving)
 		int pickUpSegment; //segment right after the pick up node (to check whether we have passed the pick up point)
 		bool pickedUp;
+		int finalSegment;
+		int stuckCount;
 	};
 
 
@@ -134,7 +136,8 @@ public:
 	void handleVHArrive(Person* vh);
 	void handleVHDestruction(Person *vh);
 	void checkForPickups(void); //checks for pickups and sets the time in vhTripMap.
-
+	void checkForArrivals(void); //check for arrived vehicles
+	void checkForStuckVehicles(void); //check for Stuck vehicles (not sure why simmobility makes the vehicles get stuck from time to time)
 
 
 
@@ -213,7 +216,8 @@ public:
 	int nCarsPerCarPark;
 	int vehStatOutputModulus;
 	boost::mutex mtx_;
-
+	std::time_t startRunTime;
+	std::time_t endRunTime;
 };
 
 

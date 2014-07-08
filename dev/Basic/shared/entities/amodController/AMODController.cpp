@@ -33,6 +33,7 @@
 #include "entities/roles/Role.hpp"
 #include <limits>
 #include <sstream>
+#include <ctime>
 
 using namespace std;
 
@@ -212,9 +213,11 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 	//std::cout<< "Time:" << now.ms() << std::endl;
 	int current_time = now.ms();
 	currTime = current_time;
-
+	std::cout.unsetf(ios::hex);
 	if(test==0)
 	{
+		startRunTime = std::time(NULL);
+
 		//load in configuration file
 		ifstream amodConfigFile("amodConfig.cfg");
 		std::string demandFileName;
@@ -310,8 +313,15 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		//mtx_.unlock();
 		//assignVhs(origin, destination);
 		assignVhsFast(tripID, origin, destination, current_time);
-		checkForPickups();
 
+		//check for pickups and arrivels
+		checkForPickups();
+		//checkForArrivals();
+		checkForStuckVehicles();
+		//output the current running time
+		std::cout << "-----------------------------\n";
+		std::cout << "Run time (s): " << std::time(NULL) -  startRunTime << std::endl;
+		std::cout << "-----------------------------\n";
 		test = 1;
 	}
 	// return continue, make sure agent not remove from main loop
@@ -374,18 +384,18 @@ void AMODController::readDemandFile(vector<string>& tripID, int current_time, ve
 	string origin_;
 	string destination_;
 	//ifstream myfile; //("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/About10.txt");
-	std::cout << "current_time inside the readDemandFile: " << current_time << std::endl;
+	//std::cout << "current_time inside the readDemandFile: " << current_time << std::endl;
 
 	if (myFile.is_open())
 	{
-		std::cout << "file is open. I am inside the readDemandFile function." << std::endl;
+		//std::cout << "file is open. I am inside the readDemandFile function." << std::endl;
 
 		while(!myFile.eof())
 		{
 			if(lastReadLine =="")
 			{
 				std::getline (myFile,line);
-				std::cout << "getting line" <<std::endl;
+				//std::cout << "getting line" <<std::endl;
 			}
 			else{
 				line = lastReadLine;
@@ -396,7 +406,7 @@ void AMODController::readDemandFile(vector<string>& tripID, int current_time, ve
 			std::stringstream ss;
 			ss << line;
 			ss >> tripID_ >> time_ >> origin_ >> destination_;
-			std::cout << "myFile >> tripID_: " << tripID_ << ">> time_:" << time_ << " >> origin_: " << origin_ << " >> destination_: " << destination_ << std::endl;
+			//std::cout << "myFile >> tripID_: " << tripID_ << ">> time_:" << time_ << " >> origin_: " << origin_ << " >> destination_: " << destination_ << std::endl;
 			int time = atoi(time_.c_str());
 
 			if ((time*1000) <= current_time)
@@ -404,9 +414,9 @@ void AMODController::readDemandFile(vector<string>& tripID, int current_time, ve
 				tripID.push_back(tripID_);
 				origin.push_back(origin_);
 				destination.push_back(destination_);
-				std::cout << "origin.push_back(origin_) " << std::endl;
-				copy(origin.begin(), origin.end(), ostream_iterator<string>(cout, " "));
-				std::cout << std::endl;
+				//std::cout << "origin.push_back(origin_) " << std::endl;
+				//copy(origin.begin(), origin.end(), ostream_iterator<string>(cout, " "));
+				//std::cout << std::endl;
 				lastReadLine = "";
 			} else {
 				lastReadLine = line;
@@ -575,7 +585,7 @@ double AMODController::getTravelTimePath(std::string startNodeId, std::string en
 	startNode = nodePool[startNodeId];
 	endNode = nodePool[endNodeId];
 
-	cout << "start node: " << startNodeId << ", end node: " << endNodeId << endl;
+	//cout << "start node: " << startNodeId << ", end node: " << endNodeId << endl;
 
 	const sim_mob::RoadSegment* exclude_seg;
 	std::vector<const sim_mob::RoadSegment*> blacklist;
@@ -1112,6 +1122,87 @@ void AMODController::checkForPickups(void) {
 	return;
 }
 
+void AMODController::checkForArrivals(void) {
+	//go through all active trips.
+	TripMapIterator itr;
+	for (itr =vhTripMap.begin(); itr != vhTripMap.end(); itr++) {
+
+		//check if amod passenger has been picked up
+		if ((itr->second.pickedUp)) {
+
+			try {
+				Person *vh = itr->first;
+				//checks to make sure this is ok.
+				if (vh->isToBeRemoved())continue;
+				if (!vh->amodVehicle) continue;
+
+				if (itr->second.finalSegment == vh->amodVehicle->getCurrSegment()->getSegmentID()) {
+					//check to see if we are close to the pick up node
+					std::cout << "Segment remaining: " << vh->amodVehicle->getDistanceToSegmentEnd() << std::endl;
+					if (vh->amodVehicle->getDistanceToSegmentEnd() <= 1000) {
+						std::cout << "Vehicle has arrived" << std::endl;
+						vh->setToBeRemoved();
+					}
+				}
+			} catch (const std::runtime_error& e) {
+				//just  continue for now. (Bad programming form. to fix with simmob team).
+				continue;
+			}
+
+		}
+
+	}
+
+	return;
+}
+
+void AMODController::checkForStuckVehicles(void) {
+	//go through all active trips.
+
+	int maxStuckTime = 120000; //two minutes
+
+	boost::unordered_map<std::string, Person*>::iterator itr;
+	Person* vh;
+	for(itr = allAMODCars.begin(); itr != allAMODCars.end(); ++itr)
+	{
+		try {
+			Person *vh = itr->second;
+			//checks to make sure this is ok.
+			if (vh->isToBeRemoved())continue;
+			if (!vh->amodVehicle) continue;
+
+			if (vh->prevx == 0) {
+				vh->prevx = vh->amodVehicle->getX();
+				vh->prevy = vh->amodVehicle->getY();
+				vh->stuckCount = 0;
+				continue;
+			}
+
+			if ((vh->amodVehicle->getX() == vh->prevx)
+					&& (vh->amodVehicle->getY() == vh->prevy) ) {
+				vh->stuckCount += currTime;
+				std::cout << "amodid : " << vh->amodId << ": " << vh->stuckCount << std::endl;
+				if (vh->stuckCount > maxStuckTime) {
+					//more than
+					vh->clearTripChain();
+					vh->setToBeRemoved();
+				}
+			} else {
+				vh->prevx = vh->amodVehicle->getX();
+				vh->prevy = vh->amodVehicle->getY();
+				vh->stuckCount = 0;
+			}
+		} catch (const std::runtime_error& e) {
+			//just  continue for now. (Bad programming form. to fix with simmob team).
+			continue;
+		}
+
+	}
+
+	return;
+}
+
+
 void AMODController::saveVehStat(void)
 {
 	if (!out_vhsStat.is_open())
@@ -1536,6 +1627,19 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			// get route for vehicle
 			vector<WayPoint> mergedWP;
 			std::vector<WayPoint> wp2 = getShortestPath(originNodeId, destNodeId);
+
+			//check to see if there is a route from the destination back to the carpark
+			//if not, then this is a problem since we cannot get back into the network
+
+			std::vector<WayPoint> wp3 = getShortestPath(destNodeId, carParkId);
+			if (wp3.size() == 0) {
+				out_demandStat << tripId << " " << originNodeId << " " << destNodeId << " " << reqTime << " rejected " << "no_path_from_destination_to_carpark\n";
+				itr = serviceBuffer.erase(itr);
+				//itr++;
+				continue;
+			}
+
+
 			if (carParkNode != originNode) {
 				std::vector<WayPoint> wp1 = getShortestPath(carParkId, originNodeId);
 				//merge wayPoints
@@ -1566,7 +1670,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			}
 
 			// create trip chain
-			DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+ConfigManager::GetInstance().FullConfig().baseGranMS());;
+			DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+ConfigManager::GetInstance().FullConfig().baseGranMS());
 			sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", carParkNode, "node", destNode, "node");
 			SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), carParkNode, "node", destNode, "node", "Car");
 			((Trip*)tc)->addSubTrip(subTrip);
@@ -1594,6 +1698,11 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			atrip.pickUpTime = -1;
 			atrip.arrivalTime = -1;
 			atrip.tripError = false;
+			atrip.finalSegment = mergedWP[mergedWP.size()-1].roadSegment_->getSegmentID();
+			vhAssigned->stuckCount = 0;
+			vhAssigned->prevx = 0;
+			vhAssigned->prevy = 0;
+
 			if (carParkNode == originNode) {
 				atrip.pickedUp = true;
 				atrip.pickUpSegment = mergedWP[0].roadSegment_->getSegmentID();

@@ -1934,7 +1934,9 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 			}
 
 			if(nextLane==nullptr){
+
 				std::cout<<"error getForwardDrivingLane no out lane"<<std::endl;
+				throw std::runtime_error("error getForwardDrivingLane no out lane");
 			}
 
 //			//

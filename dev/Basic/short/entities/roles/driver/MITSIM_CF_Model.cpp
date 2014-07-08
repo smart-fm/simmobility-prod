@@ -1578,6 +1578,8 @@ void sim_mob::MITSIM_CF_Model::calcUpdateStepSizes() {
 }
 double sim_mob::MITSIM_CF_Model::makeNormalDist(UpdateStepSizeParam& sp) {
 //	boost::normal_distribution<double> nor(sp.mean, sp.stdev);
+	if(sp.mean ==0 && sp.stdev==0)
+		return 0;
 	boost::lognormal_distribution<double> nor(sp.mean, sp.stdev);
 	boost::variate_generator<boost::mt19937, boost::lognormal_distribution<double> > dice(
 			updateSizeRm, nor);

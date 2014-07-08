@@ -932,11 +932,21 @@ void sim_mob::MITSIM_LC_Model::makeCriticalGapParams(std::string& str)
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParams& p)
 {
+	if(p.parentId == 889 && p.now.frame()>60)
+		{
+			int i=0;
+		}
 	LANE_CHANGE_SIDE change = LCS_SAME;
 
 	// get distance to end of current segment
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
 	float x=driverMvt->fwdDriverMovement.getDisToCurrSegEndM();
+	// distance to fwd vh
+	if(p.nvFwd.exists()){
+		if(x>p.nvFwd.distance/100.0){
+			x = p.nvFwd.distance/100.0;
+		}
+	}
 
 	// if current segment has enough distance to do lc , keep current lane
 	if ( x>=lookAheadDistance )
@@ -1359,8 +1369,8 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams& p,in
 		if(p.nvLeftFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
 		{
 			heavy_neighbor = a[7];
-			spacing = p.nvLeftFwd.distance/100.0;
 		}
+		spacing = p.nvLeftFwd.distance/100.0;
 	}
 	else
 	{
@@ -1439,8 +1449,8 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams& p,i
 		if(p.nvRightFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
 		{
 			heavy_neighbor = a[7];
-			spacing = p.nvRightFwd.distance/100.0;
 		}
+		spacing = p.nvRightFwd.distance/100.0;
 	}
 	else
 	{
@@ -1525,11 +1535,11 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadCurrent(DriverUpdateParams& p
 		double currentSpeed = p.perceivedFwdVelocity / 100.0;
 		vld = std::min<double>(leftFwdVel,currentSpeed);
 
-		if(p.nvRightFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
+		if(p.nvFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
 		{
 			heavy_neighbor = a[7];
-			spacing = p.nvRightFwd.distance/100.0;
 		}
+		spacing = p.nvRightFwd.distance/100.0;
 	}
 	else
 	{
@@ -1646,10 +1656,10 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 {
 	// if in the middle of lc , just pass
 	if(p.getStatus(STATUS_LC_CHANGING)){
-		if(p.getStatus(STATUS_LEFT)) {
+		if(p.getStatus(STATUS_LC_LEFT)) {
 			return LCS_LEFT;
 		}
-		else if(p.getStatus(STATUS_RIGHT)){
+		else if(p.getStatus(STATUS_LC_RIGHT)){
 			return LCS_RIGHT;
 		}
 		else {

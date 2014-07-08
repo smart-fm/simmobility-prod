@@ -730,6 +730,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 			&& parentDriver->getParams().now.frame() >= 20) {
 		p.newFwdAcc = -3;
 		p.unsetStatus(STATUS_CHANGING);
+		p.unsetStatus(STATUS_LC_CHANGING);
 	}
 
 }
@@ -2044,13 +2045,18 @@ void sim_mob::DriverMovement::check_and_set_min_nextlink_car_dist(
 bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 		const Driver* other_driver) {
 	DriverUpdateParams& params = parentDriver->getParams();
+
+
 //Only update if passed a valid pointer which is not a pointer back to you, and
 //the driver is not actually in an intersection at the moment.
 	if (!(other_driver && this->parentDriver != other_driver
 			&& !other_driver->isInIntersection.get())) {
 		return false;
 	}
-
+	if(params.parentId == 889 && params.now.frame()>60)
+			{
+				int i=0;
+			}
 //Retrieve the other driver's lane, road segment, and lane offset.
 	const Lane* other_lane = other_driver->currLane_.get();
 	if (!other_lane) {

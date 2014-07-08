@@ -204,11 +204,14 @@ public:
 	};
 
 	std::ifstream myFile; // ("/home/km/Dropbox/research/autonomous/automated-MoD/simMobility_implementation/txtFiles/About10.txt");
+	std::ifstream carParkFile;
 	std::ofstream out_demandStat;
 	std::ofstream out_vhsStat;
 	std::ofstream out_tripStat;
-	std::string lastReadLine;
 
+	std::string lastReadLine;
+	int nCarsPerCarPark;
+	int vehStatOutputModulus;
 	boost::mutex mtx_;
 
 };

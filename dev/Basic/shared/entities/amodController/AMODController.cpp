@@ -215,12 +215,30 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 
 	if(test==0)
 	{
+		//load in configuration file
+		ifstream amodConfigFile("amodConfig.cfg");
+		std::string demandFileName;
+		std::string carParkFileName;
+		std::string outDemandFileName;
+		std::string outVhsStatFilename;
+		std::string outTripStatFilename;
 
-		populateCarParks(50);
-		myFile.open("bugisLarge10000.txt");
-		out_demandStat.open("out_demandStat.txt");
-		out_vhsStat.open("out_vhsStat.txt");
-		out_tripStat.open("out_tripStat.txt");
+
+		amodConfigFile >> demandFileName
+			>> carParkFileName
+			>> outDemandFileName
+			>> outVhsStatFilename
+			>> outTripStatFilename
+			>> nCarsPerCarPark
+			>> vehStatOutputModulus;
+
+		myFile.open(demandFileName.c_str());
+		carParkFile.open(carParkFileName.c_str());
+		out_demandStat.open(outDemandFileName.c_str());
+		out_vhsStat.open(outVhsStatFilename.c_str());
+		out_tripStat.open(outTripStatFilename.c_str());
+
+		populateCarParks(nCarsPerCarPark);
 
 		//myFile.open("/home/haroldsoh/Development/simmobility/dataFiles/inputfile1.txt");
 		lastReadLine = "";
@@ -286,7 +304,7 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 
 		readDemandFile(tripID, current_time, origin, destination);
 		//mtx_.lock();
-		if (currTime % 10000 == 0) {
+		if (currTime % vehStatOutputModulus == 0) {
 			saveVehStat();
 		}
 		//mtx_.unlock();
@@ -306,7 +324,7 @@ void AMODController::populateCarParks(int numberOfVhsAtNode = 10)
 {
 	//carpark population
 	std::vector<std::string> carParkIds;
-	ifstream carParkFile("bugisLargeCarParks20.txt");
+
 	while(!carParkFile.eof())
 	{
 		std::string line;
@@ -713,7 +731,7 @@ void AMODController::handleVHDestruction(Person *vh)
 {
 	//if a vehicle gets destroyed by Simmobility, we have to make sure we're not still assuming it exists.
 	std::string amodId = vh->amodId;
-	std::cout << vh->amodId << " suffered an error!" << std::endl;
+	std::cout << vh->amodId << " is being destroyed." << std::endl;
 
 	boost::unordered_map<std::string,Person*>::iterator itr;
 	itr = allAMODCars.find(amodId);

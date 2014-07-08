@@ -2053,7 +2053,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 			&& !other_driver->isInIntersection.get())) {
 		return false;
 	}
-	if(params.parentId == 889 && params.now.frame()>60)
+	if(params.parentId == 889 && params.now.frame()>39)
 			{
 				int i=0;
 			}
@@ -2433,6 +2433,10 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 	PROFILE_LOG_QUERY_START(getParent()->currWorkerProvider, getParent(),
 			params.now);
 
+	if(params.parentId == 889 && params.now.frame()>39)
+					{
+						int i=0;
+					}
 //NOTE: Let the AuraManager handle dispatching to the "advanced" function.
 	vector<const Agent*> nearby_agents;
 	if (parentDriver->getCurrPosition().x > 0
@@ -2463,6 +2467,12 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 	params.nvLagFreeway.distance = 50000;
 	params.nvFwd.driver = NULL;
 	params.nvFwd.distance = 50000;
+
+	if(params.parentId == 889 && params.now.frame()>39)
+				{
+					std::cout<<"nearby_agents: "<<nearby_agents.size()<<std::endl;
+					int i=0;
+				}
 
 	for (vector<const Agent*>::iterator it = nearby_agents.begin();
 			it != nearby_agents.end(); it++) {

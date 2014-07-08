@@ -8,7 +8,7 @@
 namespace sim_mob
 {
 DriverUpdateParams::DriverUpdateParams()
-: UpdateParams() ,status(0),yieldTime(0,0),lcTimeTag(0),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0) {
+: UpdateParams() ,status(0),flags(0),yieldTime(0,0),lcTimeTag(200),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0) {
 
 }
 void DriverUpdateParams::setStatus(unsigned int s)

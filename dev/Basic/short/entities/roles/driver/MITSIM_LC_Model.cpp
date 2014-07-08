@@ -856,6 +856,10 @@ void sim_mob::MITSIM_LC_Model::initParam(DriverUpdateParams& p)
 				string("1.0 0.5  0.6  0.1	  0.2   1.0 300.0  180.0   600.0 40.0"));
 	makeNosingParams(p,str);
 
+	ParameterManager::Instance()->param(modelName,"MLC_Yielding_Probabilities",str,
+					string("0.13 0.71  0.13  0.03"));
+	makelcYieldingProb(str);
+
 	// kazi nosing param
 	ParameterManager::Instance()->param(modelName,"kazi_nosing_param",str,
 					string("-3.159  0.313  -0.027  2.050  0.028  0.6"));
@@ -1531,15 +1535,15 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadCurrent(DriverUpdateParams& p
 	float heavy_neighbor = 0.0;
 	if(p.nvFwd.exists()) // front left bumper leader
 	{
-		double leftFwdVel = p.nvFwd.driver->fwdVelocity.get();
+		double frontVhVel = p.perceivedFwdVelocity/100.0;//p.nvFwd.driver->fwdVelocity.get()/100.0;
 		double currentSpeed = p.perceivedFwdVelocity / 100.0;
-		vld = std::min<double>(leftFwdVel,currentSpeed);
+		vld = std::min<double>(frontVhVel,currentSpeed);
 
 		if(p.nvFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
 		{
 			heavy_neighbor = a[7];
 		}
-		spacing = p.nvRightFwd.distance/100.0;
+		spacing = p.perceivedDistToFwdCar/100.0;
 	}
 	else
 	{
@@ -2018,7 +2022,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 
 	if (bv->exists()) {
 
-		Driver *bvDriver = const_cast<Driver*>(av->driver);
+		Driver *bvDriver = const_cast<Driver*>(bv->driver);
 		DriverUpdateParams& bvp = bvDriver->getParams();
 
 		if (p.driver->getVehicle()->getVehicleType() == VehicleBase::BUS && p.flag(FLAG_NOSING)) {

@@ -74,7 +74,7 @@ private:
 //Constructor and overridden methods.
 public:
 	const static int distanceInFront = 3000;
-	const static int distanceBehind = 500;
+	const static int distanceBehind = 5000;
 	const static int maxVisibleDis = 5000;
 
 	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior = nullptr, sim_mob::DriverMovement* movement = nullptr, Role::type roleType_ = RL_DRIVER, std::string roleName_ = "driver");

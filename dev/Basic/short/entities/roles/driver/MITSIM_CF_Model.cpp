@@ -1026,16 +1026,16 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p) {
 		bool rightBackVhFlag = false;
 		if (p.nvRightFwd.exists()) {
 			Driver* d = const_cast<Driver*>(p.nvRightBack.driver);
-			DriverUpdateParams& p = d->getParams();
-			if (p.flag(FLAG_YIELDING_LEFT)) {
+			DriverUpdateParams& pd = d->getParams();
+			if (pd.flag(FLAG_YIELDING_LEFT)) {
 				rightBackVhFlag = true;
 			}
 		}
 		bool leftBackVhFlag = false;
-		if (p.nvRightFwd.exists()) {
+		if (p.nvLeftFwd.exists()) {
 			Driver* d = const_cast<Driver*>(p.nvLeftBack.driver);
-			DriverUpdateParams& p = d->getParams();
-			if (p.flag(FLAG_YIELDING_LEFT)) {
+			DriverUpdateParams& pd = d->getParams();
+			if (pd.flag(FLAG_YIELDING_RIGHT)) {
 				leftBackVhFlag = true;
 			}
 		}

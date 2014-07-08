@@ -144,10 +144,10 @@
 	drawn from a truncated log-normal (normal?) distribution (seconds):
 	step sizes are as follows:
                                               	     		mean   stdev   lower   upper perception(percentage) -->
-	<param name="dec_update_step_size"             value=	"0     0.0     0     0    0"/>
-	<param name="acc_update_step_size"             value=	"0     0.0     0     0    0"/>
-	<param name="uniform_speed_update_step_size"   value=	"0     0.0     0     0    0"/>
-	<param name="stopped_vehicle_update_step_size" value=	"0     0.0     0     0    0"/>
+	<param name="dec_update_step_size"             value=	"0     0        0    0    0"/>
+	<param name="acc_update_step_size"             value=	"0     0        0    0    0"/>
+	<param name="uniform_speed_update_step_size"   value=	"0     0        0    0    0"/>
+	<param name="stopped_vehicle_update_step_size" value=	"0     0        0    0    0"/>
 
 <!-- F. DESIRED SPEED
 	The desired speed constrained by the posted speed limit is defined by
@@ -285,5 +285,15 @@
                                                                                    #sec
 	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir" value="2"/>
 	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir" value="2"/>
+
+# PROBABILITY OF YIELDING TO OTHER VEHICLES
+
+[MLC Yielding Probabilities] = {
+<param name="MLC_Yielding_Probabilities" value="
+    0.13    # None
+    0.71    # Upto one
+    0.13    # two
+    0.03    # three
+"/>
 
 </parameters>

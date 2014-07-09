@@ -11,7 +11,7 @@
 
 #include "PredayLuaModel.hpp"
 
-
+#include <sstream>
 #include "lua/LuaLibrary.hpp"
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"
@@ -34,6 +34,7 @@ sim_mob::medium::PredayLuaModel::~PredayLuaModel()
 void sim_mob::medium::PredayLuaModel::mapClasses() {
 	getGlobalNamespace(state.get())
 			.beginClass <PersonParams> ("PersonParams")
+				.addProperty("person_id", &PersonParams::getPersonId)
 				.addProperty("person_type_id", &PersonParams::getPersonTypeId)
 				.addProperty("age_id", &PersonParams::getAgeId)
 				.addProperty("universitystudent", &PersonParams::getIsUniversityStudent)
@@ -208,6 +209,23 @@ void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personPara
 		dayPattern["EduI"] = retVal[6].cast<int>();
 		dayPattern["ShopI"] = retVal[7].cast<int>();
 		dayPattern["OthersI"] = retVal[8].cast<int>();
+	}
+	else {
+		throw std::runtime_error("Error in day pattern prediction. Unexpected return value");
+	}
+}
+
+void sim_mob::medium::PredayLuaModel::getDP_Probabilities(PersonParams& personParams, std::string& probs) const
+{
+	LuaRef chooseDP = getGlobal(state.get(), "choose_dp");
+	LuaRef retVal = chooseDP(&personParams);
+	if (retVal.isTable()) {
+		std::stringstream ss;
+		for(size_t i=1; i<=51; i++)
+		{
+			ss << retVal[i].cast<double>() << ",";
+		}
+		probs = ss.str();
 	}
 	else {
 		throw std::runtime_error("Error in day pattern prediction. Unexpected return value");

@@ -269,7 +269,8 @@ void sim_mob::DriverPathMover::generateNewPolylineArray()
 {
 	//Simple; just make sure to take the forward direction into account.
 	//TODO: Take the current lane into account.
-	polypointsList = (*currSegmentIt)->getLanes().at(currLaneID)->getPolyline();
+//	polypointsList = (*currSegmentIt)->getLanes().at(currLaneID)->getPolyline();
+	polypointsList = (*currSegmentIt)->getLanes().at(0)->getPolyline();
 
 	//Check
 	throwIf(polypointsList.size() < 2, DriverPathMover::ErrorPolylineLength);

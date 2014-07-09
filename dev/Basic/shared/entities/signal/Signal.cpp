@@ -604,7 +604,7 @@ TrafficColor sim_mob::Signal_SCATS::getDriverLight(Lane const & fromLane, Lane c
 	int i=0;
 	for(it2 = range.first; it2 != range.second ; it2++ )
 	{
-		std::cout<<"range: "<<i<<std::endl;
+//		std::cout<<"range: "<<i<<std::endl;
 		i++;
 	}
 

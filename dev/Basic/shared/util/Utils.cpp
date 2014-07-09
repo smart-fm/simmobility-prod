@@ -40,11 +40,14 @@ float Utils::generateFloat(float min, float max) {
 	if (min == max){
 		return min;
 	}
-    initRandomProvider(floatProvider);
+//    initRandomProvider(floatProvider);
+	typedef boost::mt19937 RNGType;
+	      RNGType rng(time(0));
     boost::uniform_real<float> distribution(min, max);
     boost::variate_generator<boost::mt19937&, boost::uniform_real<float> > 
-        gen(*(floatProvider.get()), distribution);
-    return gen();
+    	dice(rng,distribution);
+//        gen(*(floatProvider.get()), distribution);
+    return dice();
 }
 
 int Utils::generateInt(int min, int max) {

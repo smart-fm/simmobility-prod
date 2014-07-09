@@ -419,16 +419,16 @@ bool sim_mob::DriverMovement::update_sensors(timeslice now) {
 
 	//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
 	//if making lane changing, adjacent car need to be taken into account.
-	NearestVehicle & nv = nearestVehicle(params);
+//	NearestVehicle & nv = nearestVehicle(params);
 
-	if (parentDriver->isAleadyStarted == false) {
-		if (nv.distance <= 0) {
-			if (nv.driver->parent->getId() > getParent()->getId()) {
-				nv = NearestVehicle();
-			}
-		}
-	}
-
+//	if (parentDriver->isAleadyStarted == false) {
+//		if (nv.distance <= 0) {
+//			if (nv.driver->parent->getId() > getParent()->getId()) {
+//				nv = NearestVehicle();
+//			}
+//		}
+//	}
+	NearestVehicle & nv = params.nvFwd;
 	perceivedDataProcess(nv, params);
 
 	return true;
@@ -674,7 +674,8 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 //			parentDriver->perceivedDistToFwdCar->printHistory();
 		}
 	} else {
-		NearestVehicle & nv = nearestVehicle(p);
+//		NearestVehicle & nv = nearestVehicle(p);
+		NearestVehicle & nv = p.nvFwd;
 		p.perceivedFwdVelocityOfFwdCar =
 				nv.driver ? nv.driver->fwdVelocity.get() : 0;
 		p.perceivedLatVelocityOfFwdCar =
@@ -727,7 +728,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 			p.maxLaneSpeed);
 
 	if (parentDriver->parent->GetId() == 888
-			&& parentDriver->getParams().now.frame() >= 20) {
+			&& parentDriver->getParams().now.frame() >= 130) {
 		p.newFwdAcc = -3;
 		p.unsetStatus(STATUS_CHANGING);
 		p.unsetStatus(STATUS_LC_CHANGING);
@@ -1228,6 +1229,10 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 	for (int i = 0; i < lanes.size(); ++i) {
 		double x = fwdDriverMovement.getDisToCurrSegEnd() / 100.0;
 		sim_mob::Lane* l = lanes[i];
+
+		// for workshop
+		lanePool.push_back(l);
+		continue;
 //lane index
 		size_t landIdx = i;
 		if (l->is_pedestrian_lane()) // pass pedestrian lane
@@ -1285,9 +1290,9 @@ bool sim_mob::DriverMovement::laneConnectToSegment(sim_mob::Lane* lane,
 	size_t landIdx = getLaneIndex(lane);
 //check if segment end node is intersection
 	const MultiNode* currEndNode = dynamic_cast<const MultiNode*>(lane->getRoadSegment()->getEnd());
-	std::cout<<std::endl;
-	std::cout<<"lane: "<<lane->getRoadSegment()->originalDB_ID.getLogItem()<<std::endl;
-	std::cout<<"to seg: "<<rs->originalDB_ID.getLogItem()<<std::endl;
+//	std::cout<<std::endl;
+//	std::cout<<"lane: "<<lane->getRoadSegment()->originalDB_ID.getLogItem()<<std::endl;
+//	std::cout<<"to seg: "<<rs->originalDB_ID.getLogItem()<<std::endl;
 	const RoadSegment* from = lane->getRoadSegment();
 	if(lane->getRoadSegment()->getEnd() != rs->getStart())
 	{
@@ -1302,8 +1307,8 @@ bool sim_mob::DriverMovement::laneConnectToSegment(sim_mob::Lane* lane,
 			for (std::set<LaneConnector*>::const_iterator it = lcs.begin();it != lcs.end(); it++) {
 				const Lane *fromLane = (*it)->getLaneFrom();
 				const RoadSegment *toSeg = (*it)->getLaneTo()->getRoadSegment();
-				std::cout<<"lc from lane: "<<fromLane->getRoadSegment()->originalDB_ID.getLogItem()<<std::endl;
-				std::cout<<"lc to seg: "<<toSeg->originalDB_ID.getLogItem()<<std::endl;
+//				std::cout<<"lc from lane: "<<fromLane->getRoadSegment()->originalDB_ID.getLogItem()<<std::endl;
+//				std::cout<<"lc to seg: "<<toSeg->originalDB_ID.getLogItem()<<std::endl;
 				if ((*it)->getLaneTo()->getRoadSegment() == rs
 						&& (*it)->getLaneFrom() == lane) {
 // current lane connect to next link
@@ -2053,12 +2058,21 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 			&& !other_driver->isInIntersection.get())) {
 		return false;
 	}
-	if(params.parentId == 889 && params.now.frame()>39)
+	if(params.parentId == 889 && params.now.frame()>139)
 			{
 				int i=0;
 			}
 //Retrieve the other driver's lane, road segment, and lane offset.
 	const Lane* other_lane = other_driver->currLane_.get();
+//	// test
+	Driver* other_driver_ = const_cast<Driver*>(other_driver);
+	DriverUpdateParams& other_params = other_driver_->getParams();
+	const Lane* other_lane_ = other_params.currLane;
+	if(other_lane != other_lane_)
+	{
+		int i=0;
+	}
+
 	if (!other_lane) {
 		return false;
 	}
@@ -2470,7 +2484,7 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 
 	if(params.parentId == 889 && params.now.frame()>39)
 				{
-					std::cout<<"nearby_agents: "<<nearby_agents.size()<<std::endl;
+//					std::cout<<"nearby_agents: "<<nearby_agents.size()<<std::endl;
 					int i=0;
 				}
 
@@ -2558,6 +2572,8 @@ void sim_mob::DriverMovement::perceivedDataProcess(NearestVehicle & nv,
 	else
 	{
 		params.perceivedDistToFwdCar = Driver::maxVisibleDis;
+		params.perceivedFwdVelocityOfFwdCar = 1900;
+		params.perceivedAccelerationOfFwdCar = 500;
 	}
 
 }
@@ -2669,7 +2685,7 @@ void sim_mob::DriverMovement::updateLateralMovement(DriverUpdateParams& p)
 	double lateralMovementCM = parentDriver->vehicle->getLateralMovement();
 	lateralMovementCM = abs(lateralMovementCM);
 
-	double halfLaneWidthCM = p.currLane->getWidth() / 2.0;
+	double halfLaneWidthCM = p.currLane->getWidth() *0.8;
 	if(lateralMovementCM > halfLaneWidthCM)
 	{
 		//    move beyond of mid line of the lane
@@ -2699,11 +2715,12 @@ void sim_mob::DriverMovement::updateLateralMovement(DriverUpdateParams& p)
 		p.unsetFlag(FLAG_PREV_LC); // clean bits
 		//what is it?
 		if (p.getStatus(STATUS_LEFT)) {
-			p.unsetFlag(FLAG_PREV_LC_LEFT);
+			p.setFlag(FLAG_PREV_LC_LEFT);
 		} else {
-			p.unsetFlag(FLAG_PREV_LC_RIGHT);
+			p.setFlag(FLAG_PREV_LC_RIGHT);
 		}
 		p.unsetStatus(STATUS_CHANGING);
+		p.lcTimeTag = p.now.ms();
 	// lane change complete, unset the "performing lane change" status
 		p.unsetStatus(STATUS_LC_CHANGING);
 		p.unsetStatus(STATUS_MANDATORY); // Angus

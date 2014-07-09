@@ -8,7 +8,8 @@
 namespace sim_mob
 {
 DriverUpdateParams::DriverUpdateParams()
-: UpdateParams() ,status(0),flags(0),yieldTime(0,0),lcTimeTag(200),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0) {
+: UpdateParams() ,status(0),flags(0),yieldTime(0,0),lcTimeTag(200),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0),
+  utilityCurrent(0),utilityRight(0),utilityLeft(0){
 
 }
 void DriverUpdateParams::setStatus(unsigned int s)
@@ -42,6 +43,13 @@ void DriverUpdateParams::buildDebugInfo()
 		ct=0;
 	char newFwdAccChar[20] = "\0";
 	sprintf(newFwdAccChar,"%03.1f",newFwdAcc);
+	// utility
+	char ul[20] = "\0";
+	sprintf(ul,"ul%2.1f",utilityLeft);
+	char ur[20] = "\0";
+	sprintf(ur,"ur%2.1f",utilityRight);
+	char uc[20] = "\0";
+	sprintf(uc,"uc%2.1f",utilityCurrent);
 
 	size_t currLaneIdx = currLaneIndex;
 	if(currLaneIdx<0.1) currLaneIdx = 0;
@@ -49,11 +57,25 @@ void DriverUpdateParams::buildDebugInfo()
 	double dis = perceivedDistToFwdCar / 100.0;
 	char disChar[20] = "\0";
 	sprintf(disChar,"%03.1f",dis);
-	s<<ct<<":"<<newFwdAccChar
-			<<":"<<accSelect
-			<<":"<<nvFwd.exists()
-			<<":"<<disChar
-	<<":"<<currLaneIndex;
+
+	int fwdcarid=0;
+	if(this->nvFwd.exists())
+	{
+		Driver* fwd_driver_ = const_cast<Driver*>(nvFwd.driver);
+		fwdcarid = fwd_driver_->getParent()->getId();
+	}
+
+//	s<<ct
+//			<<":"<<newFwdAccChar
+			s<<ul
+			<<":"<<uc
+			<<":"<<ur;
+//		<<":"<<rnd;
+
+//			<<":"<<accSelect
+//			<<":"<<nvFwd.exists()
+//			<<":"<<disChar
+//	<<":"<<currLaneIndex;
 //			<<":"<<perceivedTrafficColor
 //			<<":"<<perceivedDistToTrafficSignal/100.0;
 	debugInfo = s.str();

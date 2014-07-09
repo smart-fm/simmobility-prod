@@ -654,10 +654,10 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 	//If we have no space left to move, immediately cut off acceleration.
 //	if ( p.space < 2.0 && p.isAlreadyStart )
 //		return maxDeceleration;
-	if (p.space < 2.0 && p.isAlreadyStart && p.isBeforIntersecton
-			&& p.perceivedFwdVelocityOfFwdCar / 100 < 1.0) {
-		return p.maxDeceleration * 4.0;
-	}
+//	if (p.space < 2.0 && p.isAlreadyStart && p.isBeforIntersecton
+//			&& p.perceivedFwdVelocityOfFwdCar / 100 < 1.0) {
+//		return p.maxDeceleration * 4.0;
+//	}
 //	if (p.space > 0.1)
 	{
 		if (!nv.exists()) {
@@ -1024,7 +1024,7 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p) {
 
 		// This vehicle is nosing
 		bool rightBackVhFlag = false;
-		if (p.nvRightFwd.exists()) {
+		if (p.nvRightBack.exists()) {
 			Driver* d = const_cast<Driver*>(p.nvRightBack.driver);
 			DriverUpdateParams& pd = d->getParams();
 			if (pd.flag(FLAG_YIELDING_LEFT)) {
@@ -1032,7 +1032,7 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p) {
 			}
 		}
 		bool leftBackVhFlag = false;
-		if (p.nvLeftFwd.exists()) {
+		if (p.nvLeftBack.exists()) {
 			Driver* d = const_cast<Driver*>(p.nvLeftBack.driver);
 			DriverUpdateParams& pd = d->getParams();
 			if (pd.flag(FLAG_YIELDING_RIGHT)) {
@@ -1475,13 +1475,19 @@ double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(
 }
 
 double sim_mob::MITSIM_CF_Model::accOfCarFollowing(DriverUpdateParams& p) {
-	const double density = 0; //represent the density of vehicles in front of the subject vehicle
+	const double density = 1; //represent the density of vehicles in front of the subject vehicle
 							  //now we ignore it, assuming that it is 0.
+	p.v_lead = p.perceivedFwdVelocityOfFwdCar/100;
 	double v = p.perceivedFwdVelocity / 100;
 	int i = (v > p.v_lead) ? 1 : 0;
+	if(i==1)
+	{
+		int aaa=0;
+	}
 	double dv = (v > p.v_lead) ? (v - p.v_lead) : (p.v_lead - v);
 
-	double res = CF_parameters[i].alpha * pow(v, CF_parameters[i].beta)
+	double res = CF_parameters[i].alpha *
+			pow(v, CF_parameters[i].beta)
 			/ pow(p.nvFwd.distance / 100, CF_parameters[i].gama);
 	res *= pow(dv, CF_parameters[i].lambda)
 			* pow(density, CF_parameters[i].rho);

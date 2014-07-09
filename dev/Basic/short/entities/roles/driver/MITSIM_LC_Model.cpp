@@ -936,9 +936,9 @@ void sim_mob::MITSIM_LC_Model::makeCriticalGapParams(std::string& str)
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParams& p)
 {
-	if(p.parentId == 889 && p.now.frame()>60)
+	if(p.parentId == 888)
 		{
-			int i=0;
+			return LCS_SAME;
 		}
 	LANE_CHANGE_SIDE change = LCS_SAME;
 
@@ -953,10 +953,10 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	}
 
 	// if current segment has enough distance to do lc , keep current lane
-	if ( x>=lookAheadDistance )
-	{
-		return change;
-	}
+//	if ( x>=lookAheadDistance )
+//	{
+//		return change;
+//	}
 
 	// if already in changing lane
 	if ( p.flag(FLAG_ESCAPE) )
@@ -1003,15 +1003,26 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	double eul = 0.0, eur = 0.0, euc = 1.0 ;
 	double lcDistance = p.dis2stop;
 
+	if(p.parentId == 889 && p.now.frame()>130)
+	{
+		int i=0;
+	}
+
 	int res = isReadyForNextDLC(p,2);
 	if( (res || nCurrent>0) && p.leftLane ) {
 		eul = lcUtilityLookAheadLeft(p, nLeft, lcDistance);
 	}
+	p.utilityLeft = eul;
+	if(p.utilityLeft>1000)
+	{
+		int i=0;
+	}
 
 	res = isReadyForNextDLC(p,1);
-	if( (res || nCurrent>0) && p.leftLane ) {
+	if( (res || nCurrent>0) && p.rightLane ) {
 		eur = lcUtilityLookAheadRight(p, nRight, lcDistance);
 	}
+	p.utilityRight = eur;
 
 //	for(int i=0;i<connectedLanes.size();i++)
 //	{
@@ -1043,17 +1054,41 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	{
 		return LCS_SAME;
 	}
+	p.utilityCurrent = euc;
 
 	sum += euc;
 
-	boost::uniform_int<> zero_to_max(0, RAND_MAX);
-	double rnd = (double) (zero_to_max(p.gen) % 1000) / 1000;
+//	if(euc> eul && euc>eur)
+//	{
+//		change = LCS_SAME;
+//	}
+//	if(eur> euc && eur>eul)
+//	{
+//		change = LCS_RIGHT;
+//	}
+//	if(eul> euc && eul>eur)
+//	{
+//		change = LCS_LEFT;
+//	}
 
+//	boost::uniform_int<> zero_to_max(0, RAND_MAX);
+//	double rnd = (double) (zero_to_max(p.gen) % 1000) / 1000;
+	double rnd = Utils::uRandom();
+	p.rnd = rnd;
+//	double rnd = Utils::generateFloat(0,0.8);
 	float probOfCurrentLane = euc / sum;
 	float probOfCL_LL = probOfCurrentLane + eul / sum;
-	if (rnd < probOfCurrentLane) change = LCS_SAME ;
-	else if (rnd < probOfCL_LL) change = LCS_LEFT ;
-	else change = LCS_RIGHT ;
+
+	p.utilityCurrent = euc / sum *100;
+	p.utilityLeft = eul / sum * 100;
+	p.utilityRight = eur /sum  *100;
+
+	if (rnd < probOfCurrentLane)
+		change = LCS_SAME ;
+	else if (rnd < probOfCL_LL)
+		change = LCS_LEFT ;
+	else
+		change = LCS_RIGHT ;
 
 
 
@@ -1366,7 +1401,7 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams& p,in
 	float heavy_neighbor = 0.0;
 	if(p.nvLeftFwd.exists()) // front left bumper leader
 	{
-		double leftFwdVel = p.nvLeftFwd.driver->fwdVelocity.get();
+		double leftFwdVel = p.nvLeftFwd.driver->fwdVelocity.get()/100.0;
 		double currentSpeed = p.perceivedFwdVelocity / 100.0;
 		vld = std::min<double>(leftFwdVel,currentSpeed);
 
@@ -1378,7 +1413,7 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams& p,in
 	}
 	else
 	{
-		vld = vld = p.desiredSpeed;
+		vld =  p.desiredSpeed;
 		spacing = p.dis2stop; // MITSIM distance()
 	}
 
@@ -1446,8 +1481,9 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams& p,i
 	float heavy_neighbor = 0.0;
 	if(p.nvRightFwd.exists()) // front left bumper leader
 	{
-		double leftFwdVel = p.nvRightFwd.driver->fwdVelocity.get();
+		double leftFwdVel = p.nvRightFwd.driver->fwdVelocity.get()/100.0;
 		double currentSpeed = p.perceivedFwdVelocity / 100.0;
+
 		vld = std::min<double>(leftFwdVel,currentSpeed);
 
 		if(p.nvRightFwd.driver->getVehicle()->getVehicleType() == VehicleBase::BUS)// get vh type, heavy vh only bus now
@@ -1455,6 +1491,12 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams& p,i
 			heavy_neighbor = a[7];
 		}
 		spacing = p.nvRightFwd.distance/100.0;
+
+		//
+		Driver* fwd_driver_ = const_cast<Driver*>(p.nvRightFwd.driver);
+		int fwdcarid = fwd_driver_->getParent()->getId();
+		int i=0;
+		//
 	}
 	else
 	{
@@ -1535,7 +1577,7 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadCurrent(DriverUpdateParams& p
 	float heavy_neighbor = 0.0;
 	if(p.nvFwd.exists()) // front left bumper leader
 	{
-		double frontVhVel = p.perceivedFwdVelocity/100.0;//p.nvFwd.driver->fwdVelocity.get()/100.0;
+		double frontVhVel = p.perceivedFwdVelocityOfFwdCar/100.0;//p.nvFwd.driver->fwdVelocity.get()/100.0;
 		double currentSpeed = p.perceivedFwdVelocity / 100.0;
 		vld = std::min<double>(frontVhVel,currentSpeed);
 
@@ -1547,7 +1589,7 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadCurrent(DriverUpdateParams& p
 	}
 	else
 	{
-		vld = vld = p.desiredSpeed;
+		vld =  p.desiredSpeed;
 		spacing = p.dis2stop; // MITSIM distance()
 	}
 
@@ -2109,7 +2151,7 @@ float MITSIM_LC_Model::lcNosingProb(float dis, float lead_rel_spd, float gap,int
 double sim_mob::MITSIM_LC_Model::executeLaterVel(LANE_CHANGE_SIDE& change)
 {
 	if (change != LCS_SAME) {
-		const int lane_shift_velocity = 3.50; //TODO: What is our lane changing velocity? Just entering this for now...
+		const int lane_shift_velocity = 5.50; //TODO: What is our lane changing velocity? Just entering this for now...
 		return change == LCS_LEFT ? lane_shift_velocity : -lane_shift_velocity;
 	}
 	return 0.0;

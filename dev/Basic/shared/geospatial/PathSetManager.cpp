@@ -709,7 +709,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 	}
 	//combine the excluded segments
 	std::set<const sim_mob::RoadSegment*> exclude_seg(exclude_seg_);
-	if(!currIncidents.empty() && !exclude_seg.empty())
+	if(!currIncidents.empty())
 	{
 		exclude_seg.insert(currIncidents.begin(), currIncidents.end());
 	}

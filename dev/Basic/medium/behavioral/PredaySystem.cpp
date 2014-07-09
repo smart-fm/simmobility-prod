@@ -1048,7 +1048,8 @@ void PredaySystem::planDay() {
 //	logStream << "Person: " << personParams.getPersonId() << "| home: " << personParams.getHomeLocation() << std:: endl;
 //	logStream << "Day Pattern: " ;
 	std::string probabilities;
-	PredayLuaProvider::getPredayModel().predictDP_Probabilities(personParams, probabilities);
+	PredayLuaProvider::getPredayModel().getDP_Probabilities(personParams, probabilities);
+	Print() << probabilities << std::endl;
 	
 //	logStream << dayPattern["WorkT"] << dayPattern["EduT"] << dayPattern["ShopT"] << dayPattern["OthersT"]
 //	        << dayPattern["WorkI"] << dayPattern["EduI"] << dayPattern["ShopI"] << dayPattern["OthersI"] << std::endl;

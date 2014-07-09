@@ -1475,7 +1475,7 @@ double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(
 }
 
 double sim_mob::MITSIM_CF_Model::accOfCarFollowing(DriverUpdateParams& p) {
-	const double density = 0; //represent the density of vehicles in front of the subject vehicle
+	const double density = 1; //represent the density of vehicles in front of the subject vehicle
 							  //now we ignore it, assuming that it is 0.
 	double v = p.perceivedFwdVelocity / 100;
 	int i = (v > p.v_lead) ? 1 : 0;
@@ -1488,6 +1488,10 @@ double sim_mob::MITSIM_CF_Model::accOfCarFollowing(DriverUpdateParams& p) {
 //	res += feet2Unit(nRandom(p.gen, 0, CF_parameters[i].stddev));
 	res += feet2Unit(Utils::nRandom(0, CF_parameters[i].stddev));
 
+	if(res<0)
+	{
+		int i=0;
+	}
 	return res;
 }
 

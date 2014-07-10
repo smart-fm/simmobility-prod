@@ -11,7 +11,6 @@
 
 #pragma once
 #include <boost/unordered_map.hpp>
-#include <string>
 #include "behavioral/params/PersonParams.hpp"
 #include "behavioral/params/StopGenerationParams.hpp"
 #include "behavioral/params/TimeOfDayParams.hpp"
@@ -41,8 +40,6 @@ public:
 	 * @param dayPattern map to fill up with the prediction result
 	 */
 	void predictDayPattern(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern) const;
-
-	void getDP_Probabilities(PersonParams& personParams, std::string& probs) const;
 
 	/**
 	 * Predicts the number of tours for each type of tour predicted by the day pattern model.

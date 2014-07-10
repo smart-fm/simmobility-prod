@@ -530,6 +530,7 @@ inline double calculateHighWayDistance(sim_mob::SinglePath *sp)
 inline float gen_random_float(float min, float max)
 {
     boost::mt19937 rng;
+    rng.seed(static_cast<unsigned int>(std::time(0)));
     boost::uniform_real<float> u(min, max);
     boost::variate_generator<boost::mt19937&, boost::uniform_real<float> > gen(rng, u);
     return gen();

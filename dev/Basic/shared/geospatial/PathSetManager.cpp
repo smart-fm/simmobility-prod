@@ -1495,17 +1495,13 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps,
 			sp->travle_time = getTravelTime(sp);
 			//debug for now
 			bool included = sp->includesRoadSegment(exclude_seg);
-			if (!exclude_seg.empty() && included ) {
+			if (sp->includesRoadSegment(exclude_seg) ) {
 				sp->travle_time = maxTravelTime;//some large value like infinity
 			}
-			else if(!exclude_seg.empty() && !included){
-			}
-			//---------------------------------------------
 			sp->utility = getUtilityBySinglePath(sp);
 			ps.logsum += exp(sp->utility);
 			tempUtil.push_back(sp->utility);
 			tempExpUtil.push_back(exp(sp->utility));
-			out << "+(" << sp->utility << "," << exp(sp->utility) << ")";
 		}
 	}
 //	Print() << "ps.pathChoices.size():" << ps.pathChoices.size() << "     \n" << out.str() << "=> logsum = " << ps.logsum << std::endl;
@@ -1524,7 +1520,7 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps,
 	for(int i=0;i<ps.pathChoices.size();++i)
 	{
 		SinglePath* sp = ps.pathChoices[i];
-		if(sp && !sp->includesRoadSegment(exclude_seg))
+		if(sp /*&& !sp->includesRoadSegment(exclude_seg)*/)
 		{
 			double prob = exp(sp->utility)/(ps.logsum);
 //			out << sp->pathset_id << ": probability:  " << prob << " = " << sp->utility << " / " << ps.logsum;
@@ -1553,7 +1549,6 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps,
 					Print() << std::endl;
 
 				}
-				Print() << "..................................................................."<< std::endl;
 
 				std::vector<double>::iterator it1(tempUtil.begin());
 				std::vector<double>::iterator it2(tempExpUtil.begin());
@@ -1573,15 +1568,13 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps,
 					std::cout << *it3 << ",";
 				}
 				Print() << std::endl;
-				Print() << "..................................................................."<< std::endl;
 				//debug...
 
 				return true;
 			}
-//			out << "  not good: " << x << "! <= " <<  upperProb << std::endl;
 		}
 	}
-	Print() << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<< std::endl;
+	//debug
 	std::vector<double>::iterator it1(tempUtil.begin());
 	std::vector<double>::iterator it2(tempExpUtil.begin());
 	std::vector<double>::iterator it3(tempProb.begin());
@@ -1597,7 +1590,7 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps,
 		std::cout << *it3 << ",";
 	}
 	Print() << std::endl;
-	Print() << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<< std::endl;
+	//debug...
 	//the last step resorts to selecting and returning oripath.
 	//oriPath is the shortest path ususally generatd from a graph with not exclusion(free flow)
 	// there is a good chance the excluded segment is in it. in that case, you cannot return it as a valid path-vahid

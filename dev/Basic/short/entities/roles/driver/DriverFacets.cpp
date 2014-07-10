@@ -728,7 +728,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 			p.maxLaneSpeed);
 
 	if (parentDriver->parent->GetId() == 888
-			&& parentDriver->getParams().now.frame() >= 130) {
+			&& parentDriver->getParams().now.frame() >= 50) {
 		p.newFwdAcc = -3;
 		p.unsetStatus(STATUS_CHANGING);
 		p.unsetStatus(STATUS_LC_CHANGING);
@@ -2713,7 +2713,7 @@ void sim_mob::DriverMovement::updateLateralMovement(DriverUpdateParams& p)
 
 		// complete lane change
 		p.unsetFlag(FLAG_PREV_LC); // clean bits
-		//what is it?
+
 		if (p.getStatus(STATUS_LEFT)) {
 			p.setFlag(FLAG_PREV_LC_LEFT);
 		} else {

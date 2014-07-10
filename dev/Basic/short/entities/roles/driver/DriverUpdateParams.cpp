@@ -45,11 +45,14 @@ void DriverUpdateParams::buildDebugInfo()
 	sprintf(newFwdAccChar,"%03.1f",newFwdAcc);
 	// utility
 	char ul[20] = "\0";
-	sprintf(ul,"ul%2.1f",utilityLeft);
+	sprintf(ul,"ul%3.2f",utilityLeft);
 	char ur[20] = "\0";
-	sprintf(ur,"ur%2.1f",utilityRight);
+	sprintf(ur,"ur%3.2f",utilityRight);
 	char uc[20] = "\0";
-	sprintf(uc,"uc%2.1f",utilityCurrent);
+	sprintf(uc,"uc%3.2f",utilityCurrent);
+
+	char rnd_[20] = "\0";
+	sprintf(rnd_,"rd%3.2f",rnd);
 
 	size_t currLaneIdx = currLaneIndex;
 	if(currLaneIdx<0.1) currLaneIdx = 0;
@@ -67,10 +70,12 @@ void DriverUpdateParams::buildDebugInfo()
 
 //	s<<ct
 //			<<":"<<newFwdAccChar
-			s<<ul
+			s<<parentId
+			<<":"<<ct
+			<<":"<<ul
 			<<":"<<uc
-			<<":"<<ur;
-//		<<":"<<rnd;
+			<<":"<<ur
+		<<":"<<rnd_;
 
 //			<<":"<<accSelect
 //			<<":"<<nvFwd.exists()

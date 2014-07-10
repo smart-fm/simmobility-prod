@@ -1012,7 +1012,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	if( (res || nCurrent>0) && p.leftLane ) {
 		eul = lcUtilityLookAheadLeft(p, nLeft, lcDistance);
 	}
-	p.utilityLeft = eul;
+
 	if(p.utilityLeft>1000)
 	{
 		int i=0;
@@ -1022,7 +1022,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	if( (res || nCurrent>0) && p.rightLane ) {
 		eur = lcUtilityLookAheadRight(p, nRight, lcDistance);
 	}
-	p.utilityRight = eur;
+
 
 //	for(int i=0;i<connectedLanes.size();i++)
 //	{
@@ -1054,7 +1054,6 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	{
 		return LCS_SAME;
 	}
-	p.utilityCurrent = euc;
 
 	sum += euc;
 
@@ -1079,9 +1078,9 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	float probOfCurrentLane = euc / sum;
 	float probOfCL_LL = probOfCurrentLane + eul / sum;
 
-	p.utilityCurrent = euc / sum *100;
-	p.utilityLeft = eul / sum * 100;
-	p.utilityRight = eur /sum  *100;
+	p.utilityCurrent = euc / sum ;
+	p.utilityLeft = eul / sum ;
+	p.utilityRight = eur /sum ;
 
 	if (rnd < probOfCurrentLane)
 		change = LCS_SAME ;
@@ -1741,6 +1740,10 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 		p.setStatus(STATUS_LEFT_SIDE_OK,STATUS_UNKNOWN,string("makeLaneChangingDecision"));
 		p.setStatus(STATUS_RIGHT_SIDE_OK,STATUS_UNKNOWN,string("makeLaneChangingDecision"));
 		p.setStatus(STATUS_CURRENT_LANE_OK,STATUS_UNKNOWN,string("makeLaneChangingDecision"));
+		p.utilityCurrent = 0 ;
+		p.utilityLeft = 0 ;
+		p.utilityRight = 0 ;
+		p.rnd;
 		// check lanes connect to next segment
 		checkConnectLanes(p);
 

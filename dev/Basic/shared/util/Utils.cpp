@@ -158,7 +158,7 @@ void Utils::convertStringToArray(std::string& str,std::vector<double>& array)
 	{
 		double res;
 		try {
-#if 1
+#if 0
 			std::cout<<"<"<<arrayStr[i]<<">"<<std::endl;
 #endif
 				res = boost::lexical_cast<double>(arrayStr[i].c_str());

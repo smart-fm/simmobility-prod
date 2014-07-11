@@ -500,7 +500,9 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 //	{
 //		// return
 //	}
-
+	if(p.now.frame() > 665 && p.parentId == 66509){
+		int i=0;
+	}
 	// VARIABLE || FUNCTION ||				REGIME
 	calcStateBasedVariables(p);
 
@@ -672,25 +674,36 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 
 //		double dt	=	p.elapsedSeconds;
 		double dt = p.nextStepSize;
-		double headway = CalcHeadway(p.space, p.perceivedFwdVelocity / 100,
-				p.elapsedSeconds, p.maxAcceleration);
+		  float auxspeed = p.perceivedFwdVelocity / 100 == 0 ? 0.00001:p.perceivedFwdVelocity / 100;
+
+		  float headway = 2.0 * p.space / (auxspeed + p.perceivedFwdVelocity / 100);
+
+//		double headway = CalcHeadway(p.space, p.perceivedFwdVelocity / 100,
+//				p.elapsedSeconds, p.maxAcceleration);
 //		std::cout<<"carFollowingRate: headway1: "<<headway<<std::endl;
 
 		//Emergency deceleration overrides the perceived distance; check for it.
-		{
+//		{
 //			double emergSpace = p.perceivedDistToFwdCar/100;
-			double emergSpace = nv.distance / 100;
-			double emergHeadway = CalcHeadway(emergSpace,
-					p.perceivedFwdVelocity / 100, p.elapsedSeconds,
-					p.maxAcceleration);
-			if (emergHeadway < hBufferLower) {
-				//We need to brake. Override.
-				p.space = emergSpace;
-				headway = emergHeadway;
-			}
-		}
+//		double emergSpace = nv.distance / 100;
+//
+//		// to fix bug: when subject vh speed=0 and space small, headway become large number
+//		if(emergSpace < 1.0) {
+//			double vs = 16.0;
+//			double emergHeadway = CalcHeadway(emergSpace,
+//							vs, p.elapsedSeconds,
+//							p.maxAcceleration);
+//			if (emergHeadway < hBufferLower) {
+//						//We need to brake. Override.
+//						p.space = emergSpace;
+//						headway = emergHeadway;
+//					}
+//		}
 
-		p.space_star = p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
+
+//		}
+		float v = p.v_lead  + p.a_lead * dt;
+		p.space_star = p.space + 0.5 * (p.v_lead + v) * dt;
 //		std::cout<<"carFollowingRate: headway2: "<<headway<<std::endl;
 		if (headway < hBufferLower) {
 			res = accOfEmergencyDecelerating(p);
@@ -883,7 +896,7 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p) {
 	distanceToTrafficSignal = p.perceivedDistToTrafficSignal;
 	color = p.perceivedTrafficColor;
 //	double dis = p.perceivedDistToFwdCar;
-	if (distanceToTrafficSignal < 5100) {
+	if (distanceToTrafficSignal < 7500) {
 		double dis = distanceToTrafficSignal / 100;
 
 #if 0
@@ -1475,7 +1488,7 @@ double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(
 }
 
 double sim_mob::MITSIM_CF_Model::accOfCarFollowing(DriverUpdateParams& p) {
-	const double density = 1; //represent the density of vehicles in front of the subject vehicle
+	const double density = 0; //represent the density of vehicles in front of the subject vehicle
 							  //now we ignore it, assuming that it is 0.
 	double v = p.perceivedFwdVelocity / 100;
 	int i = (v > p.v_lead) ? 1 : 0;
@@ -1483,6 +1496,15 @@ double sim_mob::MITSIM_CF_Model::accOfCarFollowing(DriverUpdateParams& p) {
 
 	double res = CF_parameters[i].alpha * pow(v, CF_parameters[i].beta)
 			/ pow(p.nvFwd.distance / 100, CF_parameters[i].gama);
+
+	double t0 = pow(p.nvFwd.distance / 100, CF_parameters[i].gama);
+
+	double t1 = pow(v, CF_parameters[i].beta);
+
+	double tt = pow(dv, CF_parameters[i].lambda);
+
+	double t2 = pow(density, CF_parameters[i].rho);
+
 	res *= pow(dv, CF_parameters[i].lambda)
 			* pow(density, CF_parameters[i].rho);
 //	res += feet2Unit(nRandom(p.gen, 0, CF_parameters[i].stddev));
@@ -1582,6 +1604,10 @@ void sim_mob::MITSIM_CF_Model::calcUpdateStepSizes() {
 }
 double sim_mob::MITSIM_CF_Model::makeNormalDist(UpdateStepSizeParam& sp) {
 //	boost::normal_distribution<double> nor(sp.mean, sp.stdev);
+	if(sp.mean ==0)
+	{
+		return 0;
+	}
 	boost::lognormal_distribution<double> nor(sp.mean, sp.stdev);
 	boost::variate_generator<boost::mt19937, boost::lognormal_distribution<double> > dice(
 			updateSizeRm, nor);

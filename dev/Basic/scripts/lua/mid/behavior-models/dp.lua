@@ -573,11 +573,6 @@ function choose_dp(params)
 	computeUtilities(params) 
 	computeAvailabilities(params)
 	local probability = calculate_probability("mnl", choice, utility, availability, scale)
-	local probStr = params.person_id
-	for cno,prob in pairs(probability) do
-		probStr = probStr .. "," .. tostring(prob)
-	end
-	print(probStr)
 	idx = make_final_choice(probability)
 	return choice[idx]
 end

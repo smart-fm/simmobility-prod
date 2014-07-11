@@ -1111,7 +1111,8 @@ void sim_mob::medium::PredaySystem::insertDayPattern()
 					"_id" << personParams.getPersonId() <<
 					"num_tours" << tourCount <<
 					"day_pattern" << dpStream.str() <<
-					"person_type_id" << personParams.getPersonTypeId()
+					"person_type_id" << personParams.getPersonTypeId() <<
+					"hhfactor" << personParams.getHouseholdFactor()
 					);
 	mongoDao["Output_DayPattern"]->insert(dpDoc);
 }
@@ -1130,7 +1131,8 @@ void sim_mob::medium::PredaySystem::insertTour(Tour* tour, int tourNumber) {
 		"end_time" << tour->getEndTime() <<
 		"person_id" << personParams.getPersonId() <<
 		"tour_mode" << tour->getTourMode() <<
-		"tour_num" << tourNumber
+		"tour_num" << tourNumber <<
+		"hhfactor" << personParams.getHouseholdFactor()
 	);
 	mongoDao["Output_Tour"]->insert(tourDoc);
 }
@@ -1146,7 +1148,8 @@ void sim_mob::medium::PredaySystem::insertStop(Stop* stop, int stopNumber, int t
 	"stop_type" << stop->getStopTypeStr() <<
 	"person_id" << personParams.getPersonId() <<
 	"tour_num" << tourNumber <<
-	"stop_mode" << stop->getStopMode()
+	"stop_mode" << stop->getStopMode() <<
+	"hhfactor" << personParams.getHouseholdFactor()
 	);
 	mongoDao["Output_Activity"]->insert(stopDoc);
 }

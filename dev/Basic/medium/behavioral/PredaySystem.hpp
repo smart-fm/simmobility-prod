@@ -9,6 +9,7 @@
  */
 
 #pragma once
+#include <boost/pool/pool_alloc.hpp>
 #include <boost/unordered_map.hpp>
 #include <map>
 #include "behavioral/lua/PredayLuaProvider.hpp"

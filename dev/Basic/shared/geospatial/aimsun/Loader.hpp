@@ -74,11 +74,11 @@ public:
 	static bool LoadSinglePathDBwithId2(const std::string& connectionStr,
 				std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 				std::string& pathset_id,
-				std::vector<sim_mob::SinglePath*>& spPool);
+				std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool);
 	static bool LoadSinglePathDBwithIdST(soci::session& sql,const std::string& connectionStr,
 					std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 					std::string& pathset_id,
-					std::vector<sim_mob::SinglePath*>& spPool,const std::string singlePathTableName,
+					std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string singlePathTableName,
 					const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
 	static bool LoadPathSetDBwithId(const std::string& connectionStr,
 			std::map<std::string,sim_mob::PathSet* >& pool,
@@ -120,7 +120,7 @@ public:
 	static void SaveOneSinglePathData(const std::string& connectionStr,
 				std::vector<sim_mob::SinglePath*>& pathPool);
 	static bool SaveOneSinglePathDataST(soci::session& sql,
-					std::vector<sim_mob::SinglePath*>& pathPool,const std::string singlePathTableName);
+					std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& pathPool,const std::string singlePathTableName);
 	///For partial network loading.
 	static std::map<std::string, std::vector<sim_mob::TripChainItem*> > LoadTripChainsFromNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs);
 

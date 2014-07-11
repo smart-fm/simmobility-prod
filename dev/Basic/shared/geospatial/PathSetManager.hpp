@@ -64,7 +64,7 @@ public:
 	sim_mob::RoadSegment* getRoadSegmentByAimsunId(std::string id);
 	// retrieve
 	void getDataFromDB();
-	void storeSinglePath(soci::session& sql,std::vector<sim_mob::SinglePath*>& spPool,const std::string singlePathTableName);
+	void storeSinglePath(soci::session& sql,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string singlePathTableName);
 	void storePathSet(soci::session& sql,std::map<std::string,sim_mob::PathSet* >& psPool,const std::string pathSetTableName);
 	void setTravleTimeTmpTableName(const std::string& value);
 	bool createTravelTimeTmpTable();
@@ -249,7 +249,7 @@ public:
 			bool isUseCache=true);
 	bool LoadSinglePathDBwithId(
 			std::string& pathset_id,
-			std::vector<sim_mob::SinglePath*>& spPool);
+			std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool);
 	std::map<std::string,sim_mob::PathSet*> generatePathSetByTripChainItemPool(std::vector<sim_mob::TripChainItem*> &tci);
 	void  generatePathSetByTrip(std::map<std::string,sim_mob::PathSet*> &subTripId_pathSet,sim_mob::Trip *trip);
 	bool isUseCacheMode() { return isUseCache; }
@@ -405,7 +405,7 @@ public:
 	SinglePath() : purpose(work),utility(0.0),pathsize(0.0),travel_cost(0.0),
 	signal_number(0.0),right_turn_number(0.0),length(0.0),travle_time(0.0),highWayDistance(0.0),
 	isMinTravelTime(0),isMinDistance(0),isMinSignal(0),isMinRightTurn(0),isMaxHighWayUsage(0){}
-	SinglePath(SinglePath &source);
+	SinglePath(const SinglePath &source);
 	void init(std::vector<WayPoint>& wpPools);
 	void clear();
 	std::vector<WayPoint*> shortestWayPointpath;
@@ -441,6 +441,11 @@ public:
 	///does this SinglePath include the any of given RoadSegment(s)
 	bool includesRoadSegment(const sim_mob::RoadSegment* seg);
 	bool includesRoadSegment(const std::set<const sim_mob::RoadSegment*> &segs);
+
+	 bool operator() (const SinglePath* lhs, const SinglePath* rhs) const
+	  {
+		 return lhs->id<rhs->id;
+	  }
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class PathSet
@@ -458,8 +463,9 @@ public:
 	std::string personId; //person id
 	std::string tripId; // trip item id
 	SinglePath* oriPath;  // shortest path with all segments
-	std::vector<sim_mob::SinglePath*> pathChoices;
+	std::vector<sim_mob::SinglePath*> pathChoices_;
 	std::map<std::string,sim_mob::SinglePath*> SinglePathPool;
+	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> pathChoices;
 	bool isNeedSave2DB;
 	double logsum;
 	const sim_mob::SubTrip* subTrip; // pathset use info of subtrip to generate all things

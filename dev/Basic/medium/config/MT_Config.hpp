@@ -50,7 +50,7 @@ public:
 		return pedestrianWalkSpeed;
 	}
 
-	std::vector<int>& getDwellTimeParams()
+	std::vector<float>& getDwellTimeParams()
 	{
 		return dwellTimeParams;
 	}
@@ -133,7 +133,7 @@ public:
 private:
 	static MT_Config* instance;
 	/**store parameters for dwelling time calculation*/
-	std::vector<int> dwellTimeParams;
+	std::vector<float> dwellTimeParams;
 	/**store parameters for pedestrian walking speed*/
 	double pedestrianWalkSpeed;
 	/**num of threads to run for preday*/

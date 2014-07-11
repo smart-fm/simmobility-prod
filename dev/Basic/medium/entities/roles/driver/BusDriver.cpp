@@ -189,27 +189,14 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 	unsigned int numBoarding = busStopAgent->getBoardingNum(this);
 
 	unsigned int totalNumber = numAlighting + numBoarding;
-	/*if(totalNumber==0){
-		waitingTimeAtbusStop = 0.0;
-	}
-	else {
-		const std::vector<int>& dwellTimeParams =
-				MT_Config::GetInstance().getDwellTimeParams();
-		if (dwellTimeParams.size() == NUM_PARAMS_DWELLTIME) {
-			waitingTimeAtbusStop = sim_mob::calculateDwellTime(totalNumber,
-					dwellTimeParams[0], dwellTimeParams[1], dwellTimeParams[2],
-					dwellTimeParams[3], dwellTimeParams[4]);
-		} else {
-			waitingTimeAtbusStop = sim_mob::calculateDwellTime(totalNumber);
-		}
-	}*/
 
-	if(waitingTimeAtbusStop==0.0){
-		const float boardingTime = Utils::generateFloat(1.0, 2.5);
-		const float fixedTime = Utils::generateFloat(2,10);
-		int boardNum = std::max(numAlighting, numBoarding);
-		waitingTimeAtbusStop = fixedTime+boardNum*boardingTime;
-	}
+	const std::vector<float>& dwellTimeParams =
+				MT_Config::GetInstance().getDwellTimeParams();
+
+	const float fixedTime = Utils::generateFloat(dwellTimeParams[0],dwellTimeParams[1]);
+	const float individualTime = Utils::generateFloat(dwellTimeParams[2], dwellTimeParams[3]);
+	int boardNum = std::max(numAlighting, numBoarding);
+	waitingTimeAtbusStop = fixedTime+boardNum*individualTime;
 
 	DailyTime dwellTime( converToMilliseconds(waitingTimeAtbusStop) );
 	storeArrivalTime(current, dwellTime.toString(), busStopAgent->getBusStop());

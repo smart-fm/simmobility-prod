@@ -74,12 +74,12 @@ void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)
 	std::string value = ParseString(GetNamedAttributeValue(child, "value"), "");
 	std::vector<std::string> valArray;
 	boost::split(valArray, value, boost::is_any_of(", "), boost::token_compress_on);
-	std::vector<int>& dwellTimeParams = mtCfg.getDwellTimeParams();
+	std::vector<float>& dwellTimeParams = mtCfg.getDwellTimeParams();
 	for (std::vector<std::string>::const_iterator it = valArray.begin(); it != valArray.end(); it++)
 	{
 		try
 		{
-			int val = boost::lexical_cast<int>(*it);
+			float val = boost::lexical_cast<float>(*it);
 			dwellTimeParams.push_back(val);
 		} catch (...)
 		{

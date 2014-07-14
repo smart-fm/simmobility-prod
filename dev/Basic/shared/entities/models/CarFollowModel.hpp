@@ -50,6 +50,8 @@ public:
 //	double nextStepSize;
 	double nextPerceptionSize;
 
+	double minSpeed;
+
 //	double getNextStepSize() { return nextStepSize; }
 	/// update step size , dec,acc,uniform speed,stopped vh
 	std::vector<double> updateStepSize;
@@ -259,7 +261,7 @@ public:
 	/// grade is the road slope
 	double tmpGrade;
 
-	double minSpeed;
+
 	double minResponseDistance;
 
 	// param of carFollowingRate()

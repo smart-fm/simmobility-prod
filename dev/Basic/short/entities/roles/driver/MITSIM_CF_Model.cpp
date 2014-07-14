@@ -505,7 +505,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 //	{
 //		// return
 //	}
-	if(p.now.frame() > 1797 && p.parentId == 66515){
+	if(p.now.frame() > 1709 && p.parentId == 66509){
 		int i=0;
 	}
 	// VARIABLE || FUNCTION ||				REGIME
@@ -697,7 +697,7 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 		double emergSpace = nv.distance / 100;
 
 		// to fix bug: when subject vh speed=0 and space small, headway become large number
-		if(emergSpace < 1.5) {
+		if(emergSpace < 2.0) {
 			double vs = 16.0;
 			double emergHeadway = CalcHeadway(emergSpace,
 							vs, p.elapsedSeconds,
@@ -1533,8 +1533,9 @@ double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(DriverUpdateParams& p,
 		double targetSpeed, double maxLaneSpeed) {
 	double vn = p.perceivedFwdVelocity / 100;
 	if (vn < targetSpeed - minSpeed) {
-		double acc = p.FFAccParamsBeta * (targetSpeed-vn);//+getAccAddon();
-		return acc;
+//		double acc = p.FFAccParamsBeta * (targetSpeed-vn);//+getAccAddon();
+//		return acc;
+		return p.maxAcceleration;
 	} else if (vn > targetSpeed + minSpeed) {
 		//feet2Unit(Utils::nRandom(0, CF_parameters[i].stddev));
 //		double acc = p.FFAccParamsBeta * (targetSpeed-vn) + getDeclAddon();
@@ -1636,16 +1637,26 @@ double sim_mob::CarFollowModel::calcNextStepSize(DriverUpdateParams& p) {
 	double currentSpeed_ = p.driver->fwdVelocity / 100.0;
 
 	int i;
-	if (accRate_ < -sim_mob::Math::DOUBLE_EPSILON)
-		i = 0;
-	else if (accRate_ > sim_mob::Math::DOUBLE_EPSILON)
-		i = 1;
-	else if (currentSpeed_ > sim_mob::Math::DOUBLE_EPSILON)
-		i = 2;
-	else
+	if(currentSpeed_ <  minSpeed)
 		i = 3;
-	p.nextStepSize = updateStepSize[i];
+	else {
+		if (accRate_ < -sim_mob::Math::DOUBLE_EPSILON)
+			i = 0;
+		else if (accRate_ > sim_mob::Math::DOUBLE_EPSILON)
+			i = 1;
+		else if (currentSpeed_ > sim_mob::Math::DOUBLE_EPSILON)
+			i = 2;
+		else
+			i = 3;
+	}
+//	if(p.now.frame() >= 1677) {
+//		p.nextStepSize = 1.5;
+//	}
+//	else {
+		p.nextStepSize = updateStepSize[i];
+//	}
 	nextPerceptionSize = perceptionSize[i];
+	nextPerceptionSize = 0;
 	p.driver->resetReacTime(nextPerceptionSize * 1000);
 	return p.nextStepSize;
 }

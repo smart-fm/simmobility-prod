@@ -419,7 +419,7 @@ bool sim_mob::DriverMovement::update_sensors(timeslice now) {
 
 	//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
 	//if making lane changing, adjacent car need to be taken into account.
-	NearestVehicle & nv = nearestVehicle(params);
+	NearestVehicle & nv = params.nvFwd;//nearestVehicle(params);
 
 	if (parentDriver->isAleadyStarted == false) {
 		if (nv.distance <= 0) {
@@ -483,7 +483,7 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 		params.cftimer -= params.elapsedSeconds;
 // params.overflowIntoIntersection = linkDriving(params);
 // params.overflowIntoIntersection = linkDrivingNew(params);
-		if (params.cftimer <= 0) {
+		if (params.cftimer < 0.1) {
 // make lc decision and check if can do lc
 			calcVehicleStates(params);
 // params.cftimer = cfModel->calcNextStepSize(params);
@@ -674,7 +674,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 //			parentDriver->perceivedDistToFwdCar->printHistory();
 		}
 	} else {
-		NearestVehicle & nv = nearestVehicle(p);
+		NearestVehicle & nv = p.nvFwd;//nearestVehicle(p);
 		p.perceivedFwdVelocityOfFwdCar =
 				nv.driver ? nv.driver->fwdVelocity.get() : 0;
 		p.perceivedLatVelocityOfFwdCar =
@@ -2044,6 +2044,9 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 		return false;
 	}
 
+	if(params.now.frame() > 1708 && params.parentId == 66509){
+			int i=0;
+		}
 //Retrieve the other driver's lane, road segment, and lane offset.
 	const Lane* other_lane = other_driver->currLane_.get();
 	if (!other_lane) {
@@ -2534,7 +2537,8 @@ void sim_mob::DriverMovement::perceivedDataProcess(NearestVehicle & nv,
 	}
 	else
 	{
-		params.perceivedDistToFwdCar = Driver::maxVisibleDis;
+		parentDriver->perceivedDistToFwdCar->delay(Driver::maxVisibleDis);
+//		params.perceivedDistToFwdCar = Driver::maxVisibleDis;
 	}
 
 }

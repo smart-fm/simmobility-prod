@@ -147,9 +147,9 @@
 	step sizes are as follows:
                                               	     		mean   stdev   lower   upper perception(percentage) -->
 	<param name="dec_update_step_size"             value=	"0.5     0.0     1     1    0.0"/>
-	<param name="acc_update_step_size"             value=	"1     0.0     1     1    0.0"/>
+	<param name="acc_update_step_size"             value=	"1.0     0.0     1.0    1.0    0.25"/>
 	<param name="uniform_speed_update_step_size"   value=	"1     0.0     1     1    0.0"/>
-	<param name="stopped_vehicle_update_step_size" value=	"1     0.0     1     1    0.0"/>
+	<param name="stopped_vehicle_update_step_size" value=	"1.0     0.0    1.0     1.0    0.25"/>
 
 	<!--param name="dec_update_step_size"             value=	"0.5     0.0     0.5     0.5    0"/>
 	<param name="acc_update_step_size"             value=	"0.5     0.0     0.5     0.5    0"/>

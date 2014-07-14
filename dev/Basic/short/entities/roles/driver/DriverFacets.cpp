@@ -481,6 +481,9 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 		}
 	if (!(fwdDriverMovement.isInIntersection())) {
 		params.cftimer -= params.elapsedSeconds;
+		if(params.now.frame() == 1688) {
+			params.cftimer = params.nextStepSize;
+		}
 // params.overflowIntoIntersection = linkDriving(params);
 // params.overflowIntoIntersection = linkDrivingNew(params);
 		if (params.cftimer < 0.1) {

@@ -1650,7 +1650,7 @@ double sim_mob::CarFollowModel::calcNextStepSize(DriverUpdateParams& p) {
 			i = 3;
 	}
 //	if(p.now.frame() >= 1677) {
-//		p.nextStepSize = 1.5;
+//		p.nextStepSize = 0.25;
 //	}
 //	else {
 		p.nextStepSize = updateStepSize[i];

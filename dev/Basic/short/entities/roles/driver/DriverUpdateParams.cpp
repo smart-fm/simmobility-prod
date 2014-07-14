@@ -8,7 +8,7 @@
 namespace sim_mob
 {
 DriverUpdateParams::DriverUpdateParams()
-: UpdateParams() ,status(0),yieldTime(0,0),lcTimeTag(0),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0) {
+: UpdateParams() ,status(0),yieldTime(0,0),lcTimeTag(0),speedOnSign(0),headway(-1),density(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0) {
 
 }
 void DriverUpdateParams::setStatus(unsigned int s)
@@ -49,11 +49,19 @@ void DriverUpdateParams::buildDebugInfo()
 	double dis = perceivedDistToFwdCar / 100.0;
 	char disChar[20] = "\0";
 	sprintf(disChar,"%03.1f",dis);
+
+	char hdChar[120] = "\0";
+	sprintf(hdChar,"hd%03.1f",headway);
+
+	char azChar[120] = "\0";
+	sprintf(azChar,"az%03.1f",aZ);
+
+
 	s<<ct<<":"<<newFwdAccChar
 			<<":"<<accSelect
-			<<":"<<nvFwd.exists()
 			<<":"<<disChar
-	<<":"<<currLaneIndex;
+	<<":"<<hdChar
+	<<":"<<azChar;
 //			<<":"<<perceivedTrafficColor
 //			<<":"<<perceivedDistToTrafficSignal/100.0;
 	debugInfo = s.str();

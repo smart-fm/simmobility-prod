@@ -17,7 +17,7 @@
 	The Min Response Distance is the minimum space headway between the
 	lead and following vehicles for which the following vehicle must apply some
 	acceleration (or deceleration). -->
-	<param name="min_response_distance" value="9.0"/>
+	<param name="min_response_distance" value="7.0"/>
 	
 	<!-- The SimMobility car-following model describes the
 	acceleration of the following vehicle in a car following regime:
@@ -122,12 +122,14 @@
 	a headway gap in lane changing, merging, and car-following. Some
 	value between the lower and upper bound will be added to the minimum
 	headway gaps for the population, which are constants also provided in -->
-	<param name="hbuffer_lower" value="1.2"/>
+	<param name="hbuffer_lower" value="1.5"/>
 	<!-- Variation (factor)-->
 	<!-- Each column represents the following population percentile
 	 					0.05	0.15	0.25	0.35	0.45	0.55	0.65	0.75	0.85	0.95 -->
 	<!-- param name="hbuffer_Upper" value="	1.7498	2.2737	2.5871	2.8379	3.0633	3.2814	3.5068	3.7578	4.0718	4.5979"/-->
 	<param name="hbuffer_Upper" value="	7	7	7	7	7	7	7	7	7	7"/>
+
+	<param name="density" value="100.0"/>
 
 
 <!-- C. TRAFFIC LIGHT RESPONSE -->
@@ -144,10 +146,15 @@
 	drawn from a truncated log-normal (normal?) distribution (seconds):
 	step sizes are as follows:
                                               	     		mean   stdev   lower   upper perception(percentage) -->
-	<param name="dec_update_step_size"             value=	"1.0     0.1     1.0     1.0    0"/>
-	<param name="acc_update_step_size"             value=	"1.0     0.1     1.0     1.0    0"/>
-	<param name="uniform_speed_update_step_size"   value=	"1.0     0.1     1.0     1.0    0"/>
-	<param name="stopped_vehicle_update_step_size" value=	"1.0     0.1     1.0     1.0    0"/>
+	<param name="dec_update_step_size"             value=	"0.5     0.0     1     1    0.0"/>
+	<param name="acc_update_step_size"             value=	"1     0.0     1     1    0.0"/>
+	<param name="uniform_speed_update_step_size"   value=	"1     0.0     1     1    0.0"/>
+	<param name="stopped_vehicle_update_step_size" value=	"1     0.0     1     1    0.0"/>
+
+	<!--param name="dec_update_step_size"             value=	"0.5     0.0     0.5     0.5    0"/>
+	<param name="acc_update_step_size"             value=	"0.5     0.0     0.5     0.5    0"/>
+	<param name="uniform_speed_update_step_size"   value=	"0.5     0.0     0.5     0.5    0"/>
+	<param name="stopped_vehicle_update_step_size" value=	"0.5     0.0     0.5     0.5    0"/-->
 
 <!-- F. DESIRED SPEED
 	The desired speed constrained by the posted speed limit is defined by

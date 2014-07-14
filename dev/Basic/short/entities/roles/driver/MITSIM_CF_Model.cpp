@@ -250,6 +250,11 @@ void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p) {
 	ParameterManager::Instance()->param(modelName,
 					"FF_Acc_Params_b2", p.FFAccParamsBeta,
 					0.3091);
+
+	//density
+	ParameterManager::Instance()->param(modelName,
+						"density", p.density,
+						40.0);
 }
 void sim_mob::MITSIM_CF_Model::makeCFParam(string& s, CarFollowParam& cfParam) {
 	std::vector<std::string> arrayStr;
@@ -500,7 +505,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 //	{
 //		// return
 //	}
-	if(p.now.frame() > 665 && p.parentId == 66509){
+	if(p.now.frame() > 1797 && p.parentId == 66515){
 		int i=0;
 	}
 	// VARIABLE || FUNCTION ||				REGIME
@@ -552,6 +557,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 //	double aZ1 = carFollowingRate(p, p.nvFwd);
 //	double aZ2 = carFollowingRate(p, p.nvFwdNextLink);
 	double aZ = calcCarFollowingRate(p);
+	p.aZ = aZ;
 
 	// Make decision
 	// Use the smallest
@@ -662,15 +668,18 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 	}
 //	if (p.space > 0.1)
 	{
-		if (!nv.exists()) {
+//		if (!nv.exists()) {
+		if(p.perceivedDistToFwdCar == 50000) {
 			return accOfFreeFlowing(p, p.desiredSpeed, p.maxLaneSpeed);
+//			return p.maxAcceleration;
 		}
 		// when nv is left/right vh , can not use perceivedxxx!
-//		p.v_lead = p.perceivedFwdVelocityOfFwdCar/100;
-//		p.a_lead = p.perceivedAccelerationOfFwdCar/100;
+		// create perceived left,right varialbe
+		p.v_lead = p.perceivedFwdVelocityOfFwdCar/100;
+		p.a_lead = p.perceivedAccelerationOfFwdCar/100;
 
-		p.v_lead = nv.driver->fwdVelocity / 100;
-		p.a_lead = nv.driver->fwdAccel / 100;
+//		p.v_lead = nv.driver->fwdVelocity / 100;
+//		p.a_lead = nv.driver->fwdAccel / 100;
 
 //		double dt	=	p.elapsedSeconds;
 		double dt = p.nextStepSize;
@@ -685,20 +694,20 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 		//Emergency deceleration overrides the perceived distance; check for it.
 //		{
 //			double emergSpace = p.perceivedDistToFwdCar/100;
-//		double emergSpace = nv.distance / 100;
-//
-//		// to fix bug: when subject vh speed=0 and space small, headway become large number
-//		if(emergSpace < 1.0) {
-//			double vs = 16.0;
-//			double emergHeadway = CalcHeadway(emergSpace,
-//							vs, p.elapsedSeconds,
-//							p.maxAcceleration);
-//			if (emergHeadway < hBufferLower) {
-//						//We need to brake. Override.
-//						p.space = emergSpace;
-//						headway = emergHeadway;
-//					}
-//		}
+		double emergSpace = nv.distance / 100;
+
+		// to fix bug: when subject vh speed=0 and space small, headway become large number
+		if(emergSpace < 1.5) {
+			double vs = 16.0;
+			double emergHeadway = CalcHeadway(emergSpace,
+							vs, p.elapsedSeconds,
+							p.maxAcceleration);
+			if (emergHeadway < hBufferLower) {
+						//We need to brake. Override.
+						p.space = emergSpace;
+						headway = emergHeadway;
+					}
+		}
 
 
 //		}
@@ -707,7 +716,7 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 //		std::cout<<"carFollowingRate: headway2: "<<headway<<std::endl;
 		if (headway < hBufferLower) {
 			res = accOfEmergencyDecelerating(p);
-			p.setStatus(STATUS_REGIME_EMERGENCY);
+//			p.setStatus(STATUS_REGIME_EMERGENCY);
 //			std::cout<<"carFollowingRate: EmergencyDecelerating: "<<res<<std::endl;
 		}
 		hBufferUpper = getBufferUppder();
@@ -717,6 +726,8 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 		if (headway <= hBufferUpper && headway >= hBufferLower) {
 			res = accOfCarFollowing(p);
 		}
+
+		p.headway = headway;
 
 //		if(p.isWaiting && p.dis2stop<5000 && res > 0)
 //		{
@@ -748,13 +759,13 @@ double sim_mob::MITSIM_CF_Model::calcCarFollowingRate(DriverUpdateParams& p)
 			int ii =0;
 		}
 		double aZ1 = carFollowingRate(p, p.nvFwd);
-		double aZ2 = carFollowingRate(p, p.nvFwdNextLink);
-		if(aZ1<aZ2) {
+//		double aZ2 = carFollowingRate(p, p.nvFwdNextLink);
+//		if(aZ1<aZ2) {
 			acc = aZ1;
-		}
-		else {
-			acc = aZ2;
-		}
+//		}
+//		else {
+//			acc = aZ2;
+//		}
 	}
 
 	return acc;
@@ -1488,8 +1499,9 @@ double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(
 }
 
 double sim_mob::MITSIM_CF_Model::accOfCarFollowing(DriverUpdateParams& p) {
-	const double density = 0; //represent the density of vehicles in front of the subject vehicle
+//	const double density = 40; //represent the density of vehicles in front of the subject vehicle
 							  //now we ignore it, assuming that it is 0.
+	double density = p.density;
 	double v = p.perceivedFwdVelocity / 100;
 	int i = (v > p.v_lead) ? 1 : 0;
 	double dv = (v > p.v_lead) ? (v - p.v_lead) : (p.v_lead - v);
@@ -1521,7 +1533,7 @@ double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(DriverUpdateParams& p,
 		double targetSpeed, double maxLaneSpeed) {
 	double vn = p.perceivedFwdVelocity / 100;
 	if (vn < targetSpeed - minSpeed) {
-		double acc = p.FFAccParamsBeta * (targetSpeed-vn)+getAccAddon();
+		double acc = p.FFAccParamsBeta * (targetSpeed-vn);//+getAccAddon();
 		return acc;
 	} else if (vn > targetSpeed + minSpeed) {
 		//feet2Unit(Utils::nRandom(0, CF_parameters[i].stddev));

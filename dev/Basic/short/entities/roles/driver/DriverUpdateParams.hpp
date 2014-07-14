@@ -263,6 +263,11 @@ public:
 	void setStatus(string name,StatusValue v,string whoSet);
 	StatusValue getStatus(string name);
 
+	double headway;
+	double aZ;
+
+	double density;
+
 //	//perform incident response
 //	IncidentPerformer incidentPerformer;
 public:

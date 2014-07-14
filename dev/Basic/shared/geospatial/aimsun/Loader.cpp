@@ -309,24 +309,31 @@ bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 	else{
 		selectQuery << "select * from \"" << singlePathTableName << "\" where \"PATHSET_ID\" =" + pathset_id ;
 	}
-//	std::cout << excludeTable << std::endl;
+	std::cout << selectQuery.str() << std::endl;
 	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare << selectQuery.str());
-	if(rs.begin() == rs.end()){
-		std::cout << "the above selectQuery has no results" << (excludedRS.size() ? "ex" : "") << std::endl;
+//	if(rs.begin() == rs.end()){
+//		std::cout << "the above selectQuery has no results" << (excludedRS.size() ? "ex" : "") << std::endl;
+//	}
+	int i=0;
+//	selectQuery.str("");
+	for (soci::rowset<sim_mob::SinglePath>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+		sim_mob::SinglePath *s = new sim_mob::SinglePath(*it);
+		bool r;
+//		selectQuery << s->id << std::endl;
+		r = waypoint_singlepathPool.insert(std::make_pair(s->id,s)).second;
+//		std::cout << r << " " ;
+		r = spPool.insert(s).second;
+//		std::cout << r << std::endl;
+		i++;
 	}
-		int i=0;
-		for (soci::rowset<sim_mob::SinglePath>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-			sim_mob::SinglePath *s = new sim_mob::SinglePath(*it);
-			waypoint_singlepathPool.insert(std::make_pair(s->id,s));
-			spPool.insert(s);
-			i++;
-		}
-		if (i==0)
-		{
-			std::cout<<"LSPDBwithId: "<<pathset_id<< "no data in db"<<std::endl;
-			return false;
-		}
-		return true;
+//	std::cout << selectQuery.str() << std::endl;
+	if (i==0)
+	{
+		std::cout<<"LSPDBwithId: "<<pathset_id<< "no data in db"<<std::endl;
+		return false;
+	}
+//	std::cout << spPool.size() << waypoint_singlepathPool.size() << std::endl;
+	return true;
 }
 bool DatabaseLoader::LoadPathSetDBwithId(
 		std::map<std::string,sim_mob::PathSet* >& pool,

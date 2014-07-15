@@ -1132,6 +1132,7 @@ void sim_mob::medium::PredaySystem::insertTour(Tour* tour, int tourNumber) {
 		"person_id" << personParams.getPersonId() <<
 		"tour_mode" << tour->getTourMode() <<
 		"tour_num" << tourNumber <<
+		"usual_location" << (tour->isUsualLocation()? 1 : 0) <<
 		"hhfactor" << personParams.getHouseholdFactor()
 	);
 	mongoDao["Output_Tour"]->insert(tourDoc);

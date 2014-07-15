@@ -30,10 +30,9 @@ local beta_PT_shopping = 0
 
 --choice set
 -- 1 for work; 2 for education; 3 for shopping; 4 for other; 5 for quit
-local choice = {
-	"nonquit": {1,2,3,4}
-	"quit" : {5}
-}
+local choice = {}
+choice["nonquit"] = {1,2,3,4}
+choice["quit"] = {5}
 
 --utility
 -- 1 for work; 2 for education; 3 for shopping; 4 for other; 5 for quit
@@ -74,9 +73,9 @@ local function computeAvailabilities(params)
 		params.tws_Education_AV,
 		params.tws_Shopping_AV,
 		params.tws_Others_AV
-		},
+		}
 	availability[2] = {params.tws_Quit_AV}
-}
+end
 
 --scale
 local scale={

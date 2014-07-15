@@ -44,7 +44,7 @@ private:
 	double leaf_agents_sum;
 	double unbalance_ratio;
 
-#ifdef SIM_TREE_USE_REBALANCE
+//#ifdef SIM_TREE_USE_REBALANCE
 	//parameters for re-balance
 public:
 	//the border of the network
@@ -60,7 +60,7 @@ public:
 	static double minimum_Rectanle_Border_Length;
 
 
-	//xuyan:it is hard coded inside
+	//it is to divide the network into a 1000*1000 2-D matrix
 	static int bigtable[1000][1000];
 
 	//if re-balance happens %rebalance_threshold times continuously, then need to rebuild the tree
@@ -69,13 +69,13 @@ public:
 	int checking_frequency;
 
 	int rebalance_counts;
-#endif
+//#endif
 
 public:
 	SimRTree() : m_root(nullptr), first_leaf(nullptr), leaf_counts(0), leaf_agents_sum(0), unbalance_ratio(0)
-#ifdef SIM_TREE_USE_REBALANCE
+//#ifdef SIM_TREE_USE_REBALANCE
 		,rebalance_counts(0), rebalance_threshold(2), rebalance_load_balance_maximum(0.3), checking_frequency(10)
-#endif
+//#endif
 {}
 
 	//Typedef to refer to our Bounding boxes.
@@ -89,6 +89,11 @@ public:
 	 *(Parent-Item-ID, Own-ID, BOX_X1, BOX_Y1, BOX_X2, BOX_Y2)
 	 */
 	void build_tree_structure(const std::string& filename);
+
+	/**
+	 * build the tree structure by re-using the road network
+	 */
+	void build_tree_structure();
 
 	/**
 	 * Assumption:
@@ -143,9 +148,9 @@ public:
 	 */
 	void checkLeaf();
 
-#ifdef SIM_TREE_USE_REBALANCE
+//#ifdef SIM_TREE_USE_REBALANCE
 	void init_rebalance_settings();
-#endif
+//#endif
 
 private:
 	//release memory

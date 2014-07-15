@@ -15,6 +15,9 @@
 #include "entities/Person.hpp"
 #include "geospatial/BusStop.hpp"
 
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+
 using namespace sim_mob;
 
 namespace {
@@ -34,7 +37,7 @@ Point2D WayPointToLocation(const WayPoint& wp) {
 } //End unnamed namespace
 
 namespace {
-class Profiling_Counting_SIM{
+class Profiling_Counting_SIM {
 public:
 	static long counting;
 	static std::vector<long> count_buff;
@@ -44,7 +47,7 @@ long Profiling_Counting_SIM::counting = 0;
 std::vector<long> Profiling_Counting_SIM::count_buff;
 }
 
-#ifdef SIM_TREE_USE_REBALANCE
+//#ifdef SIM_TREE_USE_REBALANCE
 
 long SimRTree::network_minimum_x = 0;
 long SimRTree::network_minimum_y = 0;
@@ -74,7 +77,7 @@ struct BigTableUpdate: std::unary_function<const Entity *, void> {
 		}
 	}
 };
-#endif
+//#endif
 
 /**
  *
@@ -101,7 +104,8 @@ struct Collecting_Visitor_sim {
 #endif
 
 			array.insert(array.end(), leaf->agent_buffer.begin(), leaf->agent_buffer.end());
-		} else {
+		}
+		else {
 			for (std::vector<Agent*>::iterator itr = leaf->agent_buffer.begin(); itr != leaf->agent_buffer.end(); itr++) {
 				Agent * one_agent = (*itr);
 
@@ -167,7 +171,8 @@ struct QueryFunctor: std::unary_function<const TreeItem, void> {
 		if (item->is_leaf) {
 			TreeLeaf * leaf = static_cast<TreeLeaf *>(item);
 			VisitFunctor(accept, visitor)(leaf);
-		} else {
+		}
+		else {
 			TreeNode * node = static_cast<TreeNode *>(item);
 
 			if (visitor.ContinueVisiting && accept(node))
@@ -179,7 +184,7 @@ struct QueryFunctor: std::unary_function<const TreeItem, void> {
 /**
  *Functor that used to rebuild the tree
  */
-#ifdef SIM_TREE_USE_REBALANCE
+//#ifdef SIM_TREE_USE_REBALANCE
 struct DivideHorizontalDifference {
 	explicit DivideHorizontalDifference() {
 	}
@@ -192,7 +197,8 @@ struct DivideHorizontalDifference {
 			for (int j = from_values_x; j < to_values_x; j++) {
 				if (i < cut_index) {
 					cost_A += SimRTree::bigtable[i][j];
-				} else {
+				}
+				else {
 					cost_B += SimRTree::bigtable[i][j];
 				}
 			}
@@ -214,7 +220,8 @@ struct DivideVerticalDifference {
 			for (int j = from_values_x; j < to_values_x; j++) {
 				if (j < cut_index) {
 					cost_A += SimRTree::bigtable[i][j];
-				} else {
+				}
+				else {
 					cost_B += SimRTree::bigtable[i][j];
 				}
 			}
@@ -296,14 +303,16 @@ struct DivideHorizontal {
 				best_difference = 0;
 				best_cut = middle_cut;
 				break;
-			} else if (difference < 0) {
+			}
+			else if (difference < 0) {
 				from_values_y_ = middle_cut;
 
 				if (best_difference > -1 * difference) {
 					best_cut = middle_cut;
 					best_difference = -1 * difference;
 				}
-			} else if (difference > 0) {
+			}
+			else if (difference > 0) {
 				to_values_y_ = middle_cut;
 
 				if (best_difference > difference) {
@@ -347,14 +356,16 @@ struct DivideVertical {
 				best_difference = 0;
 				best_cut = middle_cut;
 				break;
-			} else if (difference < 0) {
+			}
+			else if (difference < 0) {
 				from_values_x_ = middle_cut;
 
 				if (best_difference > -1 * difference) {
 					best_cut = middle_cut;
 					best_difference = -1 * difference;
 				}
-			} else if (difference > 0) {
+			}
+			else if (difference > 0) {
 				to_values_x_ = middle_cut;
 
 				if (best_difference > difference) {
@@ -368,7 +379,6 @@ struct DivideVertical {
 		*best_cost = best_difference;
 	}
 };
-
 
 /**
  * New Version Rebuild
@@ -435,7 +445,8 @@ struct RebuildSimTreeNodeFunctor {
 				second_leaf->father = parent_;
 
 				parent_->items.push_back(second_leaf);
-			} else {
+			}
+			else {
 				TreeNode* one_node = new TreeNode();
 				one_node->bound.edges[0].first = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * from_values_x;
 				one_node->bound.edges[0].second = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * to_values_x;
@@ -488,7 +499,8 @@ struct RebuildSimTreeNodeFunctor {
 				second_leaf->father = parent_;
 
 				parent_->items.push_back(second_leaf);
-			} else {
+			}
+			else {
 				TreeNode* one_node = new TreeNode();
 				one_node->bound.edges[0].first = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * from_values_x;
 				one_node->bound.edges[0].second = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * (where_to_divide_v);
@@ -517,7 +529,7 @@ struct RebuildSimTreeNodeFunctor {
 	}
 };
 
-#endif
+//#endif
 
 struct Get_rightest_leaf {
 	explicit Get_rightest_leaf() {
@@ -530,7 +542,8 @@ struct Get_rightest_leaf {
 			assert(child_size > 0);
 
 			return Get_rightest_leaf()(node->items[child_size - 1]);
-		} else {
+		}
+		else {
 			TreeLeaf* leaf = static_cast<TreeLeaf*>(item);
 			return leaf;
 		}
@@ -548,7 +561,8 @@ struct Get_leftest_leaf {
 			assert(child_size > 0);
 
 			return Get_leftest_leaf()(node->items[0]);
-		} else {
+		}
+		else {
 			TreeLeaf* leaf = static_cast<TreeLeaf*>(item);
 			return leaf;
 		}
@@ -598,9 +612,9 @@ void sim_mob::SimRTree::build_tree_structure(const std::string& filename) {
 	int is_leaf; //1:YES; 0:NO
 	long start_x, start_y, end_x, end_y;
 
-#ifdef SIM_TREE_USE_REBALANCE
+//#ifdef SIM_TREE_USE_REBALANCE
 	bool first_line = true;
-#endif
+//#endif
 
 	while (fin) {
 		fin >> parent_id >> self_id >> start_x >> start_y >> end_x >> end_y >> is_leaf;
@@ -608,7 +622,7 @@ void sim_mob::SimRTree::build_tree_structure(const std::string& filename) {
 			continue; // skip newlines, etc.
 
 		//the parameters are used in re-balance
-#ifdef SIM_TREE_USE_REBALANCE
+//#ifdef SIM_TREE_USE_REBALANCE
 		if (first_line) {
 			first_line = false;
 
@@ -620,7 +634,7 @@ void sim_mob::SimRTree::build_tree_structure(const std::string& filename) {
 			SimRTree::division_x_unit_ = (int) (ceil((end_x - start_x) * 1.0 / 1000));
 			SimRTree::division_y_unit_ = (int) (ceil((end_y - start_y) * 1.0 / 1000));
 		}
-#endif
+//#endif
 
 		//used by both node and leaf
 		SimRTree::BoundingBox box;
@@ -639,7 +653,8 @@ void sim_mob::SimRTree::build_tree_structure(const std::string& filename) {
 				m_root->items.reserve(2);
 				m_root->bound = box;
 				m_root->father = NULL;
-			} else {
+			}
+			else {
 				TreeNode* one_node = new TreeNode();
 				one_node->is_leaf = false;
 				one_node->item_id = self_id;
@@ -666,10 +681,98 @@ void sim_mob::SimRTree::build_tree_structure(const std::string& filename) {
 
 	fin.close();
 
-	//xuyan:make sure it is done, after the tree is built.
+	//make sure it is done, after the tree is built.
 	connectLeaf();
 
-	//xuyan: for re-balance
+	//for re-balance
+	countLeaf();
+}
+
+void sim_mob::SimRTree::build_tree_structure() {
+	//find the border
+
+	int min_x = INT_MAX;
+	int min_y = INT_MAX;
+	int max_x = INT_MIN;
+	int max_y = INT_MIN;
+
+	std::vector<sim_mob::MultiNode*> all_multi_nodes = ConfigManager::GetInstance().FullConfig().getNetwork().nodes;
+	std::vector<sim_mob::MultiNode*>::iterator itr = all_multi_nodes.begin();
+	for (; itr != all_multi_nodes.end(); itr++) {
+		if (min_x > (*itr)->location.getX())
+			min_x = (*itr)->location.getX();
+		if (min_y > (*itr)->location.getY())
+			min_y = (*itr)->location.getY();
+
+		if (max_x < (*itr)->location.getX())
+			max_x = (*itr)->location.getX();
+		if (max_y < (*itr)->location.getY())
+			max_y = (*itr)->location.getY();
+	}
+
+	min_x -= 1000;
+	min_y -= 1000;
+	max_x += 1000;
+	max_y += 1000;
+
+	std::cout << "SimTree Manages The 2-D Area: (" << min_x << "," << min_y << "), (" << max_x << "," << max_y << ")" << std::endl;
+
+	//build the root node
+	SimRTree::BoundingBox root_box;
+	root_box.edges[0].first = min_x;
+	root_box.edges[0].second = max_x;
+	root_box.edges[1].first = min_y;
+	root_box.edges[1].second = max_y;
+
+	m_root = new TreeNode();
+	m_root->is_leaf = false;
+	m_root->item_id = 1;
+
+	m_root->items.reserve(2);
+	m_root->bound = root_box;
+	m_root->father = NULL;
+
+	//set boundary
+	SimRTree::network_minimum_x = min_x;
+	SimRTree::network_minimum_y = min_y;
+	SimRTree::network_maximum_x = max_x;
+	SimRTree::network_maximum_y = max_y;
+
+	SimRTree::division_x_unit_ = (int) (ceil((max_x - min_x) * 1.0 / 1000));
+	SimRTree::division_y_unit_ = (int) (ceil((max_y - min_y) * 1.0 / 1000));
+
+	//build two leaf nodes
+	SimRTree::BoundingBox leaf_box_l;
+	leaf_box_l.edges[0].first = min_x;
+	leaf_box_l.edges[0].second = min_x + (max_x - min_x) / 2;
+	leaf_box_l.edges[1].first = min_y;
+	leaf_box_l.edges[1].second = max_y;
+
+	TreeLeaf* left_leaf = new TreeLeaf();
+	left_leaf->next = NULL;
+	left_leaf->is_leaf = true;
+	left_leaf->item_id = 2;
+	left_leaf->bound = leaf_box_l;
+	addLeafToFather(1, m_root, left_leaf);
+
+	SimRTree::BoundingBox leaf_box_r;
+	leaf_box_r.edges[0].first = min_x + (max_x - min_x) / 2 + 1;
+	leaf_box_r.edges[0].second = max_x;
+	leaf_box_r.edges[1].first = min_y;
+	leaf_box_r.edges[1].second = max_y;
+
+	TreeLeaf* right_leaf = new TreeLeaf();
+	right_leaf->next = NULL;
+	right_leaf->is_leaf = true;
+	right_leaf->item_id = 3;
+	right_leaf->bound = leaf_box_r;
+	addLeafToFather(1, m_root, right_leaf);
+
+	//
+	//make sure it is done, after the tree is built.
+	connectLeaf();
+
+	//for re-balance
 	countLeaf();
 }
 
@@ -807,7 +910,8 @@ void sim_mob::SimRTree::insertAgentEncloseBox(Agent* agent, SimRTree::BoundingBo
 			//agent->connector_to_Sim_Tree = one_leaf;
 
 			return;
-		} else {
+		}
+		else {
 			TreeNode* node = static_cast<TreeNode*>(item);
 			for (unsigned int i = 0; i < node->items.size(); i++) {
 				if (node->items[i]->bound.encloses(agent_box)) {
@@ -925,9 +1029,9 @@ void sim_mob::SimRTree::updateAllInternalAgents(std::map<const sim_mob::Agent*, 
 			//Case 1: the agent should be removed from the Sim-R Tree
 			Agent * one_agent = (one_leaf->agent_buffer[offset]);
 
-			if (removedAgentPointers.find(one_agent)!=removedAgentPointers.end()) {
+			if (removedAgentPointers.find(one_agent) != removedAgentPointers.end()) {
 				std::map<const sim_mob::Agent*, TreeItem*>::iterator it = connectorMap.find(one_agent);
-				if (it!=connectorMap.end()) {
+				if (it != connectorMap.end()) {
 					connectorMap.erase(it);
 				}
 
@@ -957,7 +1061,7 @@ void sim_mob::SimRTree::updateAllInternalAgents(std::map<const sim_mob::Agent*, 
 
 				//one_agent->connector_to_Sim_Tree = nullptr;
 				std::map<const sim_mob::Agent*, TreeItem*>::iterator it = connectorMap.find(one_agent);
-				if (it!=connectorMap.end()) {
+				if (it != connectorMap.end()) {
 					connectorMap.erase(it);
 				}
 
@@ -988,7 +1092,8 @@ void sim_mob::SimRTree::display(TreeItem* item, int level) {
 		for (int i = 0; i < child_size; i++) {
 			display((one_node->items[i]), level + 1);
 		}
-	} else {
+	}
+	else {
 		TreeLeaf* one_leaf = static_cast<TreeLeaf*>(item);
 		std::cout << "level:" << level << "(" << item->bound.edges[0].first << "," << item->bound.edges[1].first << "," << item->bound.edges[0].second << "," << item->bound.edges[1].second << ")"
 				<< "child size" << one_leaf->agent_buffer.size() << std::endl;
@@ -1014,7 +1119,7 @@ void sim_mob::SimRTree::checkLeaf() {
 	}
 }
 
-#ifdef SIM_TREE_USE_REBALANCE
+//#ifdef SIM_TREE_USE_REBALANCE
 
 /*
  * The parameters are only related with re-balance
@@ -1037,9 +1142,12 @@ void sim_mob::SimRTree::init_rebalance_settings() {
 	std::cout << "rebalance_threshold:" << rebalance_threshold << std::endl;
 	std::cout << "checking_frequency:" << checking_frequency << std::endl;
 	std::cout << "rebalance_load_balance_maximum:" << rebalance_load_balance_maximum << std::endl;
+
+	//from minutes to simulation steps
+	checking_frequency = checking_frequency * 60 * 1000 / ConfigManager::GetInstance().FullConfig().granPersonTicks;
 }
 
-#endif
+//#endif
 
 double inline calculate_unbalance_ratio(std::vector<int> agents_counts_in_tree, double average_counts) {
 	int size = agents_counts_in_tree.size();
@@ -1051,7 +1159,8 @@ double inline calculate_unbalance_ratio(std::vector<int> agents_counts_in_tree, 
 		}
 
 		return sum_diff / size;
-	} else {
+	}
+	else {
 		return 0.0;
 	}
 }
@@ -1060,7 +1169,7 @@ double inline calculate_unbalance_ratio(std::vector<int> agents_counts_in_tree, 
  * Load Balance
  */
 void sim_mob::SimRTree::measureUnbalance(int time_step) {
-#ifdef SIM_TREE_USE_REBALANCE
+//#ifdef SIM_TREE_USE_REBALANCE
 	//check every 3 time step
 	//hard coded
 	//first k minutes, no rebalance;
@@ -1071,42 +1180,45 @@ void sim_mob::SimRTree::measureUnbalance(int time_step) {
 	if (time_step % checking_frequency != 0)
 		return;
 
+	rebalance();
+
 	/**
 	 * A simple version of measuring load balance
 	 */
-	std::vector<int> agents_counts_in_tree;
-
-	leaf_agents_sum = 0;
-	unbalance_ratio = 0;
-
-	TreeLeaf* one_leaf = first_leaf;
-
-	while (one_leaf) {
-		int agents_size = one_leaf->agent_buffer.size();
-		agents_counts_in_tree.push_back(agents_size);
-		leaf_agents_sum += agents_size;
-		one_leaf = one_leaf->next;
-	}
-
-	//there is so few agents in the tree, so no need to balance anything
-	if (leaf_agents_sum <= 10)
-		return;
-
-	double average_counts = leaf_agents_sum / leaf_counts;
-
-	//	//need to re-build the tree
-	if (average_counts > 32 || average_counts < 1 || calculate_unbalance_ratio(agents_counts_in_tree, average_counts) > rebalance_load_balance_maximum) {
-		rebalance_counts++;
-
-		if (rebalance_counts >= rebalance_threshold) {
-			rebalance_counts = 0;
-
-			rebalance();
-		}
-	} else {
-		rebalance_counts = 0;
-	}
-#endif
+//	std::vector<int> agents_counts_in_tree;
+//
+//	leaf_agents_sum = 0;
+//	unbalance_ratio = 0;
+//
+//	TreeLeaf* one_leaf = first_leaf;
+//
+//	while (one_leaf) {
+//		int agents_size = one_leaf->agent_buffer.size();
+//		agents_counts_in_tree.push_back(agents_size);
+//		leaf_agents_sum += agents_size;
+//		one_leaf = one_leaf->next;
+//	}
+//
+//	//there is so few agents in the tree, so no need to balance anything
+//	if (leaf_agents_sum <= 10)
+//	return;
+//
+//	double average_counts = leaf_agents_sum / leaf_counts;
+//
+//	//	//need to re-build the tree
+//	if (average_counts > 32 || average_counts < 1 || calculate_unbalance_ratio(agents_counts_in_tree, average_counts) > rebalance_load_balance_maximum) {
+//		rebalance_counts++;
+//
+//		if (rebalance_counts >= rebalance_threshold) {
+//			rebalance_counts = 0;
+//
+//			rebalance();
+//		}
+//	}
+//	else {
+//		rebalance_counts = 0;
+//	}
+//#endif
 }
 
 void sim_mob::SimRTree::rebalance() {
@@ -1114,7 +1226,7 @@ void sim_mob::SimRTree::rebalance() {
 	rebalance_sim_counts++;
 	std::cout << "rebalance:" << rebalance_sim_counts << std::endl;
 
-#ifdef SIM_TREE_USE_REBALANCE
+//#ifdef SIM_TREE_USE_REBALANCE
 	//release memory
 	releaseTreeMemory();
 
@@ -1156,6 +1268,6 @@ void sim_mob::SimRTree::rebalance() {
 	}
 
 //use re-balance
-#endif
+//#endif
 
 }

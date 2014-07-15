@@ -29,12 +29,7 @@ void sim_mob::SimAuraManager::update(int time_step, const std::set<sim_mob::Agen
 	}
 
 	new_agents.clear();
-
-#ifdef SIM_TREE_USE_REBALANCE
-	//meausre unbalance
 	tree_sim.measureUnbalance(time_step);
-#endif
-
 }
 
 /**
@@ -43,25 +38,25 @@ void sim_mob::SimAuraManager::update(int time_step, const std::set<sim_mob::Agen
 void sim_mob::SimAuraManager::init() {
 	agent_connector_map.clear();
 
-	//Get the right key from the config file.
-	std::string key = "simtree_pattern_file_2";
-#ifdef SIM_TREE_USE_REBALANCE
-	key = "simtree_pattern_file_1";
-#endif
+//	//Get the right key from the config file.
+//	std::string key = "simtree_pattern_file_2";
+//#ifdef SIM_TREE_USE_REBALANCE
+//	key = "simtree_pattern_file_1";
+//#endif
+//
+//	std::map<std::string, std::string>::const_iterator it = ConfigManager::GetInstance().XmlConfig().system.genericProps.find(key);
+//	if (it==ConfigManager::GetInstance().XmlConfig().system.genericProps.end()) {
+//		//The AuraManager will segfault later without this.
+//		throw std::runtime_error("Error: simtree_pattern_file missing from config file.");
+//	}
 
-	std::map<std::string, std::string>::const_iterator it = ConfigManager::GetInstance().XmlConfig().system.genericProps.find(key);
-	if (it==ConfigManager::GetInstance().XmlConfig().system.genericProps.end()) {
-		//The AuraManager will segfault later without this.
-		throw std::runtime_error("Error: simtree_pattern_file missing from config file.");
-	}
-
-#ifdef SIM_TREE_USE_REBALANCE
+//#ifdef SIM_TREE_USE_REBALANCE
 	//nothing
-	tree_sim.build_tree_structure(it->second);
+	tree_sim.build_tree_structure();
 	tree_sim.init_rebalance_settings();
-#else
-	tree_sim.build_tree_structure(it->second);
-#endif
+//#else
+//	tree_sim.build_tree_structure(it->second);
+//#endif
 
 }
 

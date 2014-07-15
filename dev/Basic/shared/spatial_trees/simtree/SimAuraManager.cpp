@@ -29,7 +29,7 @@ void sim_mob::SimAuraManager::update(int time_step, const std::set<sim_mob::Agen
 	}
 
 	new_agents.clear();
-	tree_sim.measureUnbalance(time_step);
+	tree_sim.measureUnbalance(time_step, agent_connector_map);
 }
 
 /**

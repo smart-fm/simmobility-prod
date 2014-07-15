@@ -98,6 +98,9 @@ const
 	if (impl_) {
 		results = impl_->agentsInRect(lowerLeft, upperRight, refAgent);
 	}
+
+//	std::cout << "results:" << results.size() << std::endl;
+
 	return results;
 }
 
@@ -132,6 +135,8 @@ const
 	if (impl_) {
 		results = impl_->nearbyAgents(position, lane, distanceInFront, distanceBehind, refAgent);
 	}
+
+//	std::cout << "results:" << results.size() << std::endl;
 
 	return results;
 

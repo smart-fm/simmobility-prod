@@ -184,7 +184,6 @@ struct QueryFunctor: std::unary_function<const TreeItem, void> {
 /**
  *Functor that used to rebuild the tree
  */
-//#ifdef SIM_TREE_USE_REBALANCE
 struct DivideHorizontalDifference {
 	explicit DivideHorizontalDifference() {
 	}
@@ -1119,8 +1118,6 @@ void sim_mob::SimRTree::checkLeaf() {
 	}
 }
 
-//#ifdef SIM_TREE_USE_REBALANCE
-
 /*
  * The parameters are only related with re-balance
  */
@@ -1139,12 +1136,8 @@ void sim_mob::SimRTree::init_rebalance_settings() {
 
 	fin.close();
 
-	std::cout << "rebalance_threshold:" << rebalance_threshold << std::endl;
-	std::cout << "checking_frequency:" << checking_frequency << std::endl;
-	std::cout << "rebalance_load_balance_maximum:" << rebalance_load_balance_maximum << std::endl;
-
 	//from minutes to simulation steps
-	checking_frequency = checking_frequency * 60 * 1000 / ConfigManager::GetInstance().FullConfig().granPersonTicks;
+	checking_frequency = checking_frequency * 60 / ConfigManager::GetInstance().FullConfig().baseGranSecond();
 }
 
 //#endif
@@ -1168,66 +1161,18 @@ double inline calculate_unbalance_ratio(std::vector<int> agents_counts_in_tree, 
 /**
  * Load Balance
  */
-void sim_mob::SimRTree::measureUnbalance(int time_step) {
-//#ifdef SIM_TREE_USE_REBALANCE
-	//check every 3 time step
-	//hard coded
-	//first k minutes, no rebalance;
-	const int k = 1;
-	if (time_step < k * 60 * 10)
+void sim_mob::SimRTree::measureUnbalance(int time_step, std::map<const sim_mob::Agent*, TreeItem*>& agent_connector_map) {
+	//did not rebalance in the first tick
+	if (time_step <= 1)
 		return;
 
 	if (time_step % checking_frequency != 0)
 		return;
 
-	rebalance();
-
-	/**
-	 * A simple version of measuring load balance
-	 */
-//	std::vector<int> agents_counts_in_tree;
-//
-//	leaf_agents_sum = 0;
-//	unbalance_ratio = 0;
-//
-//	TreeLeaf* one_leaf = first_leaf;
-//
-//	while (one_leaf) {
-//		int agents_size = one_leaf->agent_buffer.size();
-//		agents_counts_in_tree.push_back(agents_size);
-//		leaf_agents_sum += agents_size;
-//		one_leaf = one_leaf->next;
-//	}
-//
-//	//there is so few agents in the tree, so no need to balance anything
-//	if (leaf_agents_sum <= 10)
-//	return;
-//
-//	double average_counts = leaf_agents_sum / leaf_counts;
-//
-//	//	//need to re-build the tree
-//	if (average_counts > 32 || average_counts < 1 || calculate_unbalance_ratio(agents_counts_in_tree, average_counts) > rebalance_load_balance_maximum) {
-//		rebalance_counts++;
-//
-//		if (rebalance_counts >= rebalance_threshold) {
-//			rebalance_counts = 0;
-//
-//			rebalance();
-//		}
-//	}
-//	else {
-//		rebalance_counts = 0;
-//	}
-//#endif
+	rebalance(agent_connector_map);
 }
 
-void sim_mob::SimRTree::rebalance() {
-	static int rebalance_sim_counts = 0;
-	rebalance_sim_counts++;
-	std::cout << "rebalance:" << rebalance_sim_counts << std::endl;
-
-//#ifdef SIM_TREE_USE_REBALANCE
-	//release memory
+void sim_mob::SimRTree::rebalance(std::map<const sim_mob::Agent*, TreeItem*>& agent_connector_map) {
 	releaseTreeMemory();
 
 	//Build A Big Table
@@ -1264,7 +1209,7 @@ void sim_mob::SimRTree::rebalance() {
 	for (std::set<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); itr++) {
 		Agent* agent = dynamic_cast<Agent*>(*itr);
 		if (agent && (agent)->isToBeRemoved() == false)
-			insertAgent(agent);
+			insertAgent(agent, agent_connector_map);
 	}
 
 //use re-balance

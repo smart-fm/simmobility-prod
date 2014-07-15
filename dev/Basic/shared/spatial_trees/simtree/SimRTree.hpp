@@ -136,12 +136,12 @@ public:
 	/**
 	 *
 	 */
-	void measureUnbalance(int time_step);
+	void measureUnbalance(int time_step, std::map<const sim_mob::Agent*, TreeItem*>& agent_connector_map);
 
 	/**
 	 *
 	 */
-	void rebalance();
+	void rebalance(std::map<const sim_mob::Agent*, TreeItem*>& agent_connector_map);
 
 	/**
 	 * DEBUG

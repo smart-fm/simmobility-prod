@@ -31,7 +31,6 @@ namespace sim_mob {
 class Person;
 
 namespace AMOD {
-
 class AMODController : public sim_mob::Agent{
 public:
 	struct AmodTrip {
@@ -140,7 +139,8 @@ public:
 	void checkForArrivals(void); //check for arrived vehicles
 	void checkForStuckVehicles(void); //check for Stuck vehicles (not sure why simmobility makes the vehicles get stuck from time to time)
 
-
+	void processArrival(Person *vh);
+	boost::thread mThread;
 
 protected:
 	//override from the class agent, provide initilization chance to sub class
@@ -216,7 +216,10 @@ public:
 	std::string lastReadLine;
 	int nCarsPerCarPark;
 	int vehStatOutputModulus;
-	boost::mutex mtx_;
+	boost::mutex allAMODCarsMutex;
+	boost::mutex carParksMutex;
+	boost::mutex vhTripMapMutex;
+
 	std::time_t startRunTime;
 	std::time_t endRunTime;
 };

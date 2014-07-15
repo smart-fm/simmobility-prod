@@ -233,7 +233,8 @@ public:
 
     enum Status {
     	IN_CAR_PARK = 0,
-    	ON_THE_ROAD
+    	ON_THE_ROAD,
+    	REPLACED
     };
 
     Status currStatus;

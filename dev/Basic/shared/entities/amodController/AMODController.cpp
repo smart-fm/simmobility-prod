@@ -474,7 +474,10 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 	person->amodId = id;
 	person->parkingNode = nodeId;
 	person->amodVehicle = NULL;
+	//person-> = false;
 	// add to virtual car park
+
+	carParksMutex.lock();
 	AMODVirtualCarParkItor it = virtualCarPark.find(nodeId);
 	if(it!=virtualCarPark.end())
 	{
@@ -505,12 +508,15 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 
 	//insert this car into the global map of all cars in car parks
 	vhInCarPark.insert( std::make_pair(id, person) );
+	carParksMutex.unlock();
 
+	allAMODCarsMutex.lock();
 	boost::unordered_map<std::string,Person*>::iterator itr;
 	itr = allAMODCars.insert( std::make_pair(id, person) ).first; //add this car to the global map of all AMOD cars (for bookkeeping)
 	itr->second = person;
-
 	nFreeCars++;
+	allAMODCarsMutex.unlock();
+
 	person->currStatus = Person::IN_CAR_PARK;
 }
 
@@ -526,6 +532,7 @@ bool AMODController::getBestFreeVehicle(std::string originId, sim_mob::Person **
 	bestCarParkIter = virtualCarPark.begin();
 
 	//find the closest car park
+	carParksMutex.lock();
 	std::vector < std::vector < sim_mob::WayPoint > > carParksToOriginWaypoints;
 	for (iter=virtualCarPark.begin(); iter != virtualCarPark.end(); iter++) {
 		boost::unordered_map<std::string,Person*> cars = iter->second;
@@ -573,12 +580,16 @@ bool AMODController::getBestFreeVehicle(std::string originId, sim_mob::Person **
 		carParkId = bestCarParkIter->first;
 		boost::unordered_map<std::string,Person*> cars = bestCarParkIter->second;
 		boost::unordered_map<std::string,Person*>::iterator firstCarIt = cars.begin();
-		if (firstCarIt == cars.end()) {
-			freeCarFound = false;
-		} else {
-			*vh = firstCarIt->second;
+		freeCarFound = false;
+		for (firstCarIt = cars.begin(); firstCarIt != cars.end(); firstCarIt++) {
+			if (! firstCarIt->second->isToBeRemoved()) {
+				*vh = firstCarIt->second;
+				freeCarFound = true;
+				break;
+			}
 		}
 	}
+	carParksMutex.unlock();
 	return freeCarFound;
 }
 
@@ -659,10 +670,12 @@ bool AMODController::findNearestFreeVehicle(std::string originId, std::map<std::
 
 bool AMODController::getVhFromCarPark(std::string& carParkId,Person** vh)
 {
+	carParksMutex.lock();
 	AMODVirtualCarParkItor it = virtualCarPark.find(carParkId);
 	if(it==virtualCarPark.end()){
 
 		//throw std::runtime_error("no this car park...");
+		carParksMutex.unlock();
 		return false;
 	}
 
@@ -677,17 +690,22 @@ bool AMODController::getVhFromCarPark(std::string& carParkId,Person** vh)
 		vhInCarPark.erase( (*vh)->amodId );
 		(*vh)->currStatus = Person::ON_THE_ROAD;
 		nFreeCars--;
+		carParksMutex.unlock();
 		return true;
 	}
-
+	carParksMutex.unlock();
 	return false;
 }
 
 bool AMODController::removeVhFromCarPark(std::string& carParkId,Person** vh)
 {
+	if ((*vh)->isToBeRemoved()) {
+		return false;
+	}
+	carParksMutex.lock();
 	AMODVirtualCarParkItor it = virtualCarPark.find(carParkId);
 	if(it==virtualCarPark.end()){
-
+		carParksMutex.unlock();
 		//throw std::runtime_error("no this car park...");
 		return false;
 	}
@@ -696,6 +714,7 @@ bool AMODController::removeVhFromCarPark(std::string& carParkId,Person** vh)
 	if(!it->second.empty())
 	{
 		if (cars.find((*vh)->amodId) == cars.end()) {
+			carParksMutex.unlock();
 			return false;
 		}
 		cars.erase((*vh)->amodId);
@@ -704,9 +723,10 @@ bool AMODController::removeVhFromCarPark(std::string& carParkId,Person** vh)
 		vhInCarPark.erase( (*vh)->amodId );
 		(*vh)->currStatus = Person::ON_THE_ROAD;
 		nFreeCars--;
+		carParksMutex.unlock();
 		return true;
 	}
-
+	carParksMutex.unlock();
 	return false;
 }
 
@@ -744,13 +764,19 @@ bool AMODController::dispatchVh(Person* vh)
 void AMODController::handleVHDestruction(Person *vh)
 {
 	//if a vehicle gets destroyed by Simmobility, we have to make sure we're not still assuming it exists.
+	if (vh->currStatus == Person::REPLACED) {
+		//we have already replaced this guy. don't bother doing anything.
+		return;
+	}
+
 	std::string amodId = vh->amodId;
 	std::cout << vh->amodId << " is being destroyed." << std::endl;
 
 	boost::unordered_map<std::string,Person*>::iterator itr;
+	allAMODCarsMutex.lock();
 	itr = allAMODCars.find(amodId);
 	if (itr == allAMODCars.end()) {
-		std::cout << "Something very wrong happened here." << std::endl;
+		std::cout << "Already removed" << std::endl;
 		return;
 	} else {
 		if (itr->second == vh) {
@@ -759,12 +785,19 @@ void AMODController::handleVHDestruction(Person *vh)
 			atrip.arrivalTime = currTime;
 			atrip.tripError = true;
 			saveTripStat(atrip);
+
 			allAMODCars.erase(vh->amodId);
+			allAMODCarsMutex.unlock();
+
 			vhOnTheRoad.erase(vh->amodId);
 
 			addNewVh2CarPark(vh->amodId, atrip.destination);
 
+			vhTripMapMutex.lock();
 			vhTripMap.erase(vh);
+			vhTripMapMutex.unlock();
+
+			vh->currStatus = Person::REPLACED;
 		} else {
 			//all is good, do nothing for now
 			//TODO if necessary.
@@ -775,7 +808,7 @@ void AMODController::handleVHDestruction(Person *vh)
 
 }
 
-void AMODController::handleVHArrive(Person* vh)
+void AMODController::processArrival(Person *vh)
 {
 
 	WayPoint w = vh->amodPath.back();
@@ -802,16 +835,27 @@ void AMODController::handleVHArrive(Person* vh)
 	}
 	std::cout << "NodeId after: " << idNode << std::endl;
 
-	std::string vhID = vh->amodId;
-	vh->amodVehicle = NULL;
+
 
 	//mtx_.lock();
+
+	std::string vhID = vh->amodId;
+
+	allAMODCarsMutex.lock();
 	allAMODCars.erase(vh->amodId);
+	vhOnTheRoad.erase(vh->amodId);
+	allAMODCarsMutex.unlock();
+
 	addNewVh2CarPark(vhID,idNode);
 	//mtx_.unlock();
 
-	vhOnTheRoad.erase(vh->amodId);
+}
 
+void AMODController::handleVHArrive(Person* vh)
+{
+	vh->amodVehicle = NULL;
+	vh->currStatus = Person::REPLACED;
+	mThread = boost::thread(&AMODController::processArrival, this, vh);
 
 	/*
 	bool reCreation = true;
@@ -1031,11 +1075,10 @@ bool AMODController::findRemainingWayPoints(Person *vh, std::vector < sim_mob::W
 
 	if (!vh) return false;
 	if (vh==NULL) return false;
-	if (vh->amodVehicle == 0) {
-		return false;
-	}
+	if (vh->amodVehicle == 0) return false;
 	if (!(vh->amodVehicle)) return false;
 	if (vh->currStatus != Person::ON_THE_ROAD) return false;
+	if (vh->isToBeRemoved()) return false;
 	//	std::cout << "1: " << vh->amodVehicle->getVehicleID() << std::endl;
 	//first, we get the iterators from the amodVehicle Pointer.
 
@@ -1757,9 +1800,10 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			dispatchVh(vhAssigned);
 			justDispatched.push_back(vhAssigned);
 			TripMapIterator tripItr;
+			vhTripMapMutex.lock();
 			tripItr = vhTripMap.insert(std::make_pair(vhAssigned, atrip)).first;
 			tripItr->second = atrip; //because the first line doesn't replace.
-
+			vhTripMapMutex.unlock();
 			// output
 			std::cout << " >>> Servicing " << originNodeId << " -> " << destNodeId << " with: " << vhAssigned->amodId << std::endl;
 

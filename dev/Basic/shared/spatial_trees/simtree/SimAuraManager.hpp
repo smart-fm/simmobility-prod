@@ -39,7 +39,7 @@ public:
 	 *   \param refAgent The agent performing the query. If non-null, certain implementations
 	 *          (namely the Sim Tree) can make use of an optimized bottom-up query in some cases.
 	 *          If null, the algorithm used will always be the slower, top-down query.
-	 *
+	 *	 \return a collection of agents
 	 * The caller is responsible to determine the "type" of each agent in the returned array.
 	 */
 	virtual std::vector<Agent const *> agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, const sim_mob::Agent* refAgent) const;
@@ -54,7 +54,7 @@ public:
      *   \param refAgent The agent performing the query. If non-null, certain implementations
      *          (namely the Sim Tree) can make use of an optimized bottom-up query in some cases.
      *          If null, the algorithm used will always be the slower, top-down query.
-     *
+     *	 \return a collection of agents
      * This query is designed for Driver/Vehicle agents.  It calculates the search rectangle
      * based on \c position, \c lane, \c distanceInFront, and \c distanceBehind.  \c position
      * should be the current location of the Driver agent and is within the boundary of \c lane.

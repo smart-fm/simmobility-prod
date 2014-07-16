@@ -134,7 +134,7 @@ namespace medium {
 	const std::string MONGO_FIELD_HH_ONLY_ADULTS = "only_adults";
 	const std::string MONGO_FIELD_HH_ONLY_WORKERS = "only_workers";
 	const std::string MONGO_FIELD_HH_NUM_UNDER_4 = "num_underfour";
-	const std::string MONGO_FIELD_HH_UNDER_15 = "num_not_eligible";
+	const std::string MONGO_FIELD_HH_UNDER_15 = "presence_of_under15";
 	const std::string MONGO_FIELD_CAR_OWN = "car_own";
 	const std::string MONGO_FIELD_CAR_OWN_NORMAL = "car_own_normal";
 	const std::string MONGO_FIELD_CAR_OWN_OFFPEAK = "car_own_offpeak";

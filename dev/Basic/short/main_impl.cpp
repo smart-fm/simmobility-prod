@@ -356,12 +356,12 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
-	//Initialize the aura manager
-	AuraManager::instance().init(config.aura_manager_impl()
+	//Initialize the aura manager, it is already init before
+//	AuraManager::instance().init(config.aura_manager_impl()
 #if 0
 			,(doPerformanceMeasurement ? &perfProfile : nullptr)
 #endif
-			);
+//			);
 
 
 	///

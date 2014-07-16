@@ -38,26 +38,8 @@ void sim_mob::SimAuraManager::update(int time_step, const std::set<sim_mob::Agen
 void sim_mob::SimAuraManager::init() {
 	agent_connector_map.clear();
 
-//	//Get the right key from the config file.
-//	std::string key = "simtree_pattern_file_2";
-//#ifdef SIM_TREE_USE_REBALANCE
-//	key = "simtree_pattern_file_1";
-//#endif
-//
-//	std::map<std::string, std::string>::const_iterator it = ConfigManager::GetInstance().XmlConfig().system.genericProps.find(key);
-//	if (it==ConfigManager::GetInstance().XmlConfig().system.genericProps.end()) {
-//		//The AuraManager will segfault later without this.
-//		throw std::runtime_error("Error: simtree_pattern_file missing from config file.");
-//	}
-
-//#ifdef SIM_TREE_USE_REBALANCE
-	//nothing
 	tree_sim.build_tree_structure();
 	tree_sim.init_rebalance_settings();
-//#else
-//	tree_sim.build_tree_structure(it->second);
-//#endif
-
 }
 
 void sim_mob::SimAuraManager::registerNewAgent(Agent const* ag) {
@@ -83,13 +65,21 @@ std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRect(Point2D const &
 }
 
 std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const {
-	//Can we use the optimized bottom-up query?
+	//Use the optimized bottom-up query, please read the paper to get more insights on "bottom-up query"
+	//The idea is to start the search from the agent's location, instead of from the root node
 	if (refAgent) {
 		std::map<const sim_mob::Agent*, TreeItem*>::const_iterator it = agent_connector_map.find(refAgent);
 		if (it!=agent_connector_map.end() && it->second) {
 			return nearbyAgentsBottomUpQuery(position, lane, distanceInFront, distanceBehind, it->second);
 		}
 	}
+
+	/*
+	 * Otherwise, start the search from the root node
+	 * The code below is basically build a search rectangle using position and distance
+	 * 1) lowerLeft
+	 * 2) upperRight
+	 */
 
 	// Find the stretch of the lane's polyline that <position> is in.
 	std::vector<Point2D> const & polyline = lane.getPolyline();

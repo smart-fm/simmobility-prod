@@ -136,10 +136,7 @@ const
 		results = impl_->nearbyAgents(position, lane, distanceInFront, distanceBehind, refAgent);
 	}
 
-//	std::cout << "results:" << results.size() << std::endl;
-
 	return results;
-
 }
 
 /*std::vector<Agent const *> AuraManager::advanced_nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const {

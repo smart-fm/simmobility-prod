@@ -395,7 +395,7 @@ struct RebuildSimTreeNodeFunctor {
 			one_leaf->bound.edges[0].first = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * from_values_x;
 			one_leaf->bound.edges[0].second = SimRTree::network_minimum_x + SimRTree::division_x_unit_ * to_values_x;
 			one_leaf->bound.edges[1].first = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * from_values_y;
-			one_leaf->bound.edges[1].second = SimRTree::network_maximum_y + SimRTree::division_y_unit_ * to_values_y;
+			one_leaf->bound.edges[1].second = SimRTree::network_minimum_y + SimRTree::division_y_unit_ * to_values_y;
 			one_leaf->item_id = parent_->item_id * 2;
 			one_leaf->is_leaf = true;
 			one_leaf->agent_buffer.clear();
@@ -1083,7 +1083,7 @@ void sim_mob::SimRTree::display() {
 
 void sim_mob::SimRTree::display(TreeItem* item, int level) {
 	if (!item->is_leaf) {
-		std::cout << "level:" << level << "(" << item->bound.edges[0].first << "," << item->bound.edges[1].first << "," << item->bound.edges[0].second << "," << item->bound.edges[1].second << ")"
+		std::cout << "Node level:" << level << "(" << item->bound.edges[0].first << "," << item->bound.edges[1].first << "," << item->bound.edges[0].second << "," << item->bound.edges[1].second << ")"
 				<< std::endl;
 
 		TreeNode* one_node = static_cast<TreeNode*>(item);
@@ -1094,7 +1094,7 @@ void sim_mob::SimRTree::display(TreeItem* item, int level) {
 	}
 	else {
 		TreeLeaf* one_leaf = static_cast<TreeLeaf*>(item);
-		std::cout << "level:" << level << "(" << item->bound.edges[0].first << "," << item->bound.edges[1].first << "," << item->bound.edges[0].second << "," << item->bound.edges[1].second << ")"
+		std::cout << "Leaf level:" << level << "(" << item->bound.edges[0].first << "," << item->bound.edges[1].first << "," << item->bound.edges[0].second << "," << item->bound.edges[1].second << ")"
 				<< "child size" << one_leaf->agent_buffer.size() << std::endl;
 	}
 }
@@ -1136,6 +1136,11 @@ void sim_mob::SimRTree::init_rebalance_settings() {
 
 	fin.close();
 
+	//In the current code, rebalance_threshold and rebalance_load_balance_maximum are not used.
+	//WHY?
+	//Users do not need to know what does these two parameters mean.
+	//But they are not removed. So, if someone read the paper and want to have a try on different auto balance setting, they become useful
+
 	//from minutes to simulation steps
 	checking_frequency = checking_frequency * 60 / ConfigManager::GetInstance().FullConfig().baseGranSecond();
 }
@@ -1175,6 +1180,8 @@ void sim_mob::SimRTree::measureUnbalance(int time_step, std::map<const sim_mob::
 void sim_mob::SimRTree::rebalance(std::map<const sim_mob::Agent*, TreeItem*>& agent_connector_map) {
 	releaseTreeMemory();
 
+
+
 	//Build A Big Table
 	memset(bigtable, 0, sizeof(bigtable));
 
@@ -1193,7 +1200,7 @@ void sim_mob::SimRTree::rebalance(std::map<const sim_mob::Agent*, TreeItem*>& ag
 	one_node->items.clear();
 	one_node->father = NULL;
 
-	//the division is hard coded inside
+	//
 	RebuildSimTreeNodeFunctor()(0, 0, 1000, 1000, one_node, false);
 
 	//	rebuildSimTree(one_node, 1, tree_height, 0, 0, 10000, 1);

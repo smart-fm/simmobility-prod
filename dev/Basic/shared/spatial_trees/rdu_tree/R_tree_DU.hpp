@@ -2,6 +2,10 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+/**
+ * R-DU Tree is only used for research purpose.
+ */
+
 #pragma once
 
 #include <vector>

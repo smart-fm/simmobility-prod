@@ -1,9 +1,9 @@
 #include "Profiler.hpp"
 #include "logging/Log.hpp"
 int sim_mob::Profiler::totalProfilers = 0;
-std::map<std::string, sim_mob::Profiler> sim_mob::Profiler::repo = std::map<std::string, sim_mob::Profiler>();
+std::map<const std::string, sim_mob::Profiler> sim_mob::Profiler::repo = std::map<const std::string, sim_mob::Profiler>();
 ///Constructor + start profiling if init is true
-sim_mob::Profiler::Profiler(bool init, std::string path, std::string id_){
+sim_mob::Profiler::Profiler(bool init, std::string id_, std::string path){
 
 	reset();
 	start = stop = totalTime = 0;
@@ -43,6 +43,16 @@ sim_mob::Profiler::~Profiler(){
 		flushLog();
 		LogFile.close();
 	}
+}
+
+sim_mob::Profiler & sim_mob::Profiler::get(const std::string & id){
+	return repo[id];
+}
+
+std::pair<std::map<std::string, sim_mob::Profiler>::iterator , bool> sim_mob::Profiler::tryGet(const std::string & id){
+	std::map<std::string, sim_mob::Profiler>::iterator it = repo.find(id);
+	bool res = (it == repo.end());
+	return std::make_pair(it,res);
 }
 
 

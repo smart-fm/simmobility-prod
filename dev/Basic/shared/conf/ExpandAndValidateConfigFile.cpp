@@ -210,10 +210,9 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     	std::cout << "XML input for SimMobility Created....\n";
     }
 
-    sim_mob::Profiler stDir(true);
  	//Initialize the street directory.
 	StreetDirectory::instance().init(cfg.getNetwork(), true);
-	std::cout << "Street Directory initialized in : " << stDir.endProfiling() <<  " Milliseconds " << std::endl;
+	std::cout << "Street Directory initialized  " << std::endl;
 	//TODO: put its option in config xml
 	//generateOD("/home/fm-simmobility/vahid/OD.txt", "/home/fm-simmobility/vahid/ODs.xml");
     //Process Confluxes if required

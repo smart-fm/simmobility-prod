@@ -57,7 +57,7 @@ class Profiler {
 	///flush the log streams into the file
 	void flushLog();
 
-	static std::map<std::string, sim_mob::Profiler> repo;
+	static std::map<const std::string, sim_mob::Profiler> repo;
 
 public:
 	/**
@@ -65,7 +65,7 @@ public:
 	 * @param id arbitrary identification for this object
 	 * @param logger file name where the output stream is written
 	 */
-	Profiler(bool init = false, std::string logger = "", std::string id_ = "");
+	Profiler(bool init = false, std::string id_ = "", std::string logger = "");
 	//copy constructor is required by static std::map<std::string, sim_mob::Profiler> repo;
 	Profiler(const sim_mob::Profiler& value);
 	~Profiler();
@@ -73,6 +73,14 @@ public:
 
 //	///initialize the logger that profiler writes to
 //	void InitLogFile(const std::string& path);
+
+	///return the a profilers given its id
+	///if id is not available, it will generate a profiler and return it. you may then need to initialize the profiler manually.
+	sim_mob::Profiler & get(const std::string & id);
+
+	///given an id, returns the a pair containing pair of iterator to profilers and search result
+	///if id is not available, search result will be false and the iterator is invalid, else, the iterator is valid
+	std::pair<std::map<std::string, sim_mob::Profiler>::iterator , bool> tryGet(const std::string & id);
 
 	///whoami
 	std::string getId();

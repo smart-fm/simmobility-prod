@@ -30,7 +30,7 @@ using std::string;
 using namespace sim_mob;
 
 PathSetManager *sim_mob::PathSetManager::instance_;
-sim_mob::Profiler sim_mob::PathSetManager::profiler(false, "main_profiler","path_set_profiler.txt");
+//sim_mob::Profiler sim_mob::PathSetManager::profiler(false,"path_set_profiler.txt", "main_profiler");
 
 PathSetParam *sim_mob::PathSetParam::instance_ = NULL;
 //todo to be configurable somehow
@@ -653,16 +653,8 @@ void sim_mob::printWPpath(std::vector<WayPoint> &wps , const sim_mob::Node* star
 vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 {
 	std::ostringstream out("");
-
-	if(!profiler.isStarted()){
-		//happens only once
-		profiler.startProfiling();
-	}
 	std::ostringstream id("");
 	id << per << "-" << per->currWorkerProvider;
-	Profiler personProfiler(true, id.str());
-	out << "Profiling person " << id.str() << std::endl;
-	personProfiler.outPut() << (out);
 	// get person id and current subtrip id
 	std::string personId = per->getDatabaseId();
 	std::vector<sim_mob::SubTrip>::const_iterator currSubTripIt = per->currSubTrip;
@@ -679,21 +671,17 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 		sql = &(psDbLoader->sql);
 	}
 	Print() << "=============================================================================================================================================" << std::endl;
-	vector<WayPoint> res = generateBestPathChoiceMT(subTrip, profiler);
+	vector<WayPoint> res = generateBestPathChoiceMT(subTrip);
 	Print() << "Path chosen for this person: " << std::endl;
 	printWPpath(res);
 	cacheODbySegment(per, subTrip, res);
 	Print() << "=============================================================================================================================================" << std::endl;
 	sql = NULL;
 
-	uint32_t elapsed = personProfiler.endProfiling();
-	out.str("");
-	out << "Total profiling time(ms) for person " << id.str() << " :" <<  elapsed << std::endl;
-	out << "------------------------------------------------------------------------------------" << std::endl;
-	personProfiler.outPut() << out;
+//	out.str("");
+//	out << "Total profiling time(ms) for person " << id.str() << " :" <<  elapsed << std::endl;
+//	out << "------------------------------------------------------------------------------------" << std::endl;
 	//All done for this person, so add the out put and time lapse to the main profiler
-	profiler.outPut() << personProfiler.outPut() ;
-	profiler.addToTotalTime(personProfiler.getTotalTime());
 
 	return res;
 }
@@ -715,12 +703,11 @@ std::vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const si
 	{
 		sql = &(psDbLoader->sql);
 	}
-	Profiler profiler;
 	//call the default method
-	return generateBestPathChoiceMT(st, profiler, exclude_seg, false);
+	return generateBestPathChoiceMT(st, exclude_seg, false);
 }
 
-vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st, Profiler & personProfiler,
+vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st,
 		const std::set<const sim_mob::RoadSegment*> & exclude_seg_ , bool isUseCache)
 {
 	vector<WayPoint> res;
@@ -844,7 +831,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 		ps_.subTrip = st;
 		ps_.psMgr = this;
 
-		if(!generateAllPathChoicesMT(&ps_, personProfiler))
+		if(!generateAllPathChoicesMT(&ps_))
 		{
 			return res;
 		}
@@ -913,7 +900,7 @@ bool sim_mob::PathSetManager::findCachedPathSet(const std::string & key, sim_mob
 	return true;
 }
 
-bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, Profiler & personProfiler, const std::set<const sim_mob::RoadSegment*> & exclude_seg)
+bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, const std::set<const sim_mob::RoadSegment*> & exclude_seg)
 {
 
 	/**

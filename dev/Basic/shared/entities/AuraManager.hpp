@@ -48,6 +48,9 @@ public:
 	{
 		/**R-Star tree*/
 		IMPL_RSTAR,
+		
+		/**Sim-tree*/
+		IMPL_SIMTREE,
 
 		/**RDU tree*/
 		IMPL_RDU

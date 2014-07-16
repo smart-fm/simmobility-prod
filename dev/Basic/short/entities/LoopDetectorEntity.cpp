@@ -395,14 +395,18 @@ bool LoopDetectorEntity::Impl::check(timeslice now)
 		Agent const * agent = agents[i];
 		if (Person_ST const * person = dynamic_cast<Person_ST const *> (agent))
 		{
-			//Extract the current resource used by this Agent.
-			//TODO: Currently the only resource type is "Vehicle"
-			const Vehicle * vehicle = dynamic_cast<Vehicle*> (person->getRole()->getResource());
+			//Extract the current resource used by this Agent.			
+			const Role<Person_ST> *role = person->getRole();
 			
-			if (vehicle)
+			if(role)
 			{
-				vehicles.insert(vehicle);
-				vehicleToPersonMap[vehicle] = person;
+				const Vehicle * vehicle = dynamic_cast<Vehicle *> (role->getResource());
+
+				if (vehicle)
+				{
+					vehicles.insert(vehicle);
+					vehicleToPersonMap[vehicle] = person;
+				}
 			}
 		}
 	}

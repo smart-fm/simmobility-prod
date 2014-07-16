@@ -2482,10 +2482,12 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 //					" To "<< nextLaneInNextLink  <<
 //					"(" << nextLaneInNextLink->getRoadSegment()->getLink()->roadName << ")" << std::endl;
 
-
-			color = trafficSignal->getDriverLight(*p.currLane, *nextLaneInNextLink);
-
-
+			if(nextLaneInNextLink){
+				color = trafficSignal->getDriverLight(*p.currLane, *nextLaneInNextLink);
+			}
+			else{
+				color = sim_mob::Red;
+			}
 //			std::cout << "The driver light is " << color << std::endl;
 		} else {
 			/*vahid:

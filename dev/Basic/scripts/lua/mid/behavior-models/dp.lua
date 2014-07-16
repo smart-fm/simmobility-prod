@@ -572,7 +572,8 @@ local scale = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 function choose_dp(params)
 	computeUtilities(params) 
 	computeAvailabilities(params)
-	local probability = calculate_probability("mnl", choice, utility, availability, scale)
-	idx = make_final_choice(probability)
-	return choice[idx]
+	return calculate_probability("mnl", choice, utility, availability, scale)
+--	local probability = calculate_probability("mnl", choice, utility, availability, scale)
+--	idx = make_final_choice(probability)
+--	return choice[idx]
 end

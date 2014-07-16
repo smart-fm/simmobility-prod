@@ -11,7 +11,7 @@
 
 #include "PredayLuaModel.hpp"
 
-
+#include <sstream>
 #include "lua/LuaLibrary.hpp"
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"
@@ -213,6 +213,25 @@ void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personPara
 		throw std::runtime_error("Error in day pattern prediction. Unexpected return value");
 	}
 }
+
+void sim_mob::medium::PredayLuaModel::getDP_Probabilities(PersonParams& personParams, std::string& probs) const
+{
+       LuaRef chooseDP = getGlobal(state.get(), "choose_dp");
+       LuaRef retVal = chooseDP(&personParams);
+       if (retVal.isTable()) {
+               std::stringstream ss;
+               ss << personParams.getPersonId();
+               for(size_t i=1; i<=51; i++)
+               {
+                       ss << "," << retVal[i].cast<double>();
+               }
+               probs = ss.str();
+       }
+       else {
+               throw std::runtime_error("Error in day pattern prediction. Unexpected return value");
+       }
+}
+
 
 void sim_mob::medium::PredayLuaModel::predictNumTours(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern, boost::unordered_map<std::string, int>& numTours) const {
 	numTours["WorkT"] = numTours["EduT"] = numTours["ShopT"] = numTours["OthersT"] = 0;

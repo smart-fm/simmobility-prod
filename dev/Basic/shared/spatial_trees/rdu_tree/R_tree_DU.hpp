@@ -3,7 +3,10 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 /**
- * R-DU Tree is only used for research purpose.
+ * There are three different Tree-based Spatial Indexes implemented in SimMobility: R*-Tree, R-DU Tree and Sim-Tree.
+ * R*-Tree is the default choice
+ * R-DU Tree is used for research comparison
+ * Sim-Tree is the optimal choice
  */
 
 #pragma once

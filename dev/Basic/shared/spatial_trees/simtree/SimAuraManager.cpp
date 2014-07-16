@@ -38,8 +38,8 @@ void sim_mob::SimAuraManager::update(int time_step, const std::set<sim_mob::Agen
 void sim_mob::SimAuraManager::init() {
 	agent_connector_map.clear();
 
-	tree_sim.build_tree_structure();
-	tree_sim.init_rebalance_settings();
+	tree_sim.buildTreeStructure();
+	tree_sim.initRebalanceSettings();
 }
 
 void sim_mob::SimAuraManager::registerNewAgent(Agent const* ag) {

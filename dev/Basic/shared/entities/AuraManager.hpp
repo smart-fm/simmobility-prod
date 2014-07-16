@@ -177,9 +177,6 @@ private:
     //Current time step.
     int time_step;
 
-    /*class Stats;
-    Stats* stats_;*/
-
 };
 
 }

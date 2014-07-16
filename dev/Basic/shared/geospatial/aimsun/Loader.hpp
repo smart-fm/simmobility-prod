@@ -9,8 +9,9 @@
 #include <set>
 #include <map>
 #include <iostream>
+#include <list>
 #include "geospatial/PathSet/PathSetDB.hpp"
-#include "geospatial/PathSetManager.hpp"
+//#include "geospatial/PathSetManager.hpp"
 #include "soci.h"
 #include "soci-postgresql.h"
 
@@ -73,13 +74,21 @@ public:
 	static bool LoadSinglePathDBwithId2(const std::string& connectionStr,
 				std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 				std::string& pathset_id,
-				std::vector<sim_mob::SinglePath*>& spPool);
+				std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool);
+	static bool LoadSinglePathDBwithIdST(soci::session& sql,const std::string& connectionStr,
+					std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
+					std::string& pathset_id,
+					std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string singlePathTableName,
+					const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
 	static bool LoadPathSetDBwithId(const std::string& connectionStr,
 			std::map<std::string,sim_mob::PathSet* >& pool,
 			std::string& pathset_id);
 	static bool LoadOnePathSetDBwithId(const std::string& connectionStr,
 			sim_mob::PathSet& ps,
 				std::string& pathset_id);
+	static bool LoadOnePathSetDBwithIdST(soci::session& sql,const std::string& connectionStr,
+				sim_mob::PathSet& ps,
+					std::string& pathset_id, const std::string tableName);
 	static void LoadERPData(const std::string& connectionStr,
 			std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > &erp_surcharge_pool,
 			std::map<std::string,sim_mob::ERP_Gantry_Zone*>& erp_gantry_zone_pool,
@@ -91,6 +100,9 @@ public:
 	static bool insertCSV2Table(const std::string& connectionStr,
 			std::string& table_name,
 			std::string& csvFileName);
+	static bool insertCSV2TableST(soci::session& sql,
+				std::string& table_name,
+				std::string& csvFileName);
 	static bool truncateTable(const std::string& connectionStr,
 				std::string& table_name);
 	static bool excuString(const std::string& connectionStr,
@@ -100,11 +112,15 @@ public:
 	static bool LoadRealTimeTravelTimeData(const std::string& connectionStr,
 			std::string& table_name,
 			std::map<std::string,std::vector<sim_mob::Link_travel_time*> >& link_realtime_travel_time_pool);
-	static void SavePathSetData(const std::string& connectionStr,std::map<std::string,sim_mob::SinglePath*>& pathPool,std::map<std::string,sim_mob::PathSet* >& pathSetPool);
+//	static void SavePathSetData(const std::string& connectionStr,std::map<std::string,sim_mob::SinglePath*>& pathPool,std::map<std::string,sim_mob::PathSet* >& pathSetPool);
 	static void SaveOnePathSetData(const std::string& connectionStr,
 			std::map<std::string,sim_mob::PathSet* >& pathSetPool);
+	static bool SaveOnePathSetDataST(soci::session& sql,
+				std::map<std::string,sim_mob::PathSet* >& pathSetPool,const std::string pathSetTableName);
 	static void SaveOneSinglePathData(const std::string& connectionStr,
-			std::map<std::string,sim_mob::SinglePath*>& pathPool);
+				std::vector<sim_mob::SinglePath*>& pathPool);
+	static bool SaveOneSinglePathDataST(soci::session& sql,
+					std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& pathPool,const std::string singlePathTableName);
 	///For partial network loading.
 	static std::map<std::string, std::vector<sim_mob::TripChainItem*> > LoadTripChainsFromNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs);
 

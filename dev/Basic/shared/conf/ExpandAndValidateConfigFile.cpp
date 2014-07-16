@@ -5,7 +5,9 @@
 #include "ExpandAndValidateConfigFile.hpp"
 
 #include <sstream>
-
+#include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
 #include "conf/settings/DisableMPI.h"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -30,6 +32,7 @@
 #include "partitions/PartitionManager.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/Utils.hpp"
+#include "util/Profiler.hpp"
 #include "workers/WorkGroup.hpp"
 
 using namespace sim_mob;
@@ -96,6 +99,63 @@ sim_mob::ExpandAndValidateConfigFile::ExpandAndValidateConfigFile(ConfigParams& 
 	ProcessConfig();
 }
 
+///generates OD in the form of xml config's OD format
+///@param input aimsun nide id
+///@param output output file
+void generateOD(
+		const std::string input = "/home/vahid/Downloads/OD_oldmap_new.txt", const std::string output = "/home/vahid/Downloads/ODs.xml", bool stopOnError = false, bool exitAtEnd = true) {
+	//find location of ODs and generate xml dirver ODs
+	int cnt = 0;
+	std::ifstream in;
+	std::ofstream out;
+	in.open(input.c_str()); //home/vahid/Downloads/ODs_oldmap.txt
+	out.open(output.c_str(), std::ofstream::out);
+	std::string line;
+	if (in.is_open()) {
+		while (std::getline(in, line)) {
+			std::vector<std::string> pair_s;
+			boost::split(pair_s, line, boost::is_any_of("\t, "));
+			if(pair_s[1].size() - 1 == '\n'){
+				pair_s[1].erase(pair_s[1].size() - 1); //omit carriage return
+			}
+			if (!std::isdigit(pair_s[0][0])) {
+				continue;
+			}
+			std::vector<unsigned int> pair_ui;
+			pair_ui.push_back(boost::lexical_cast<unsigned int>(pair_s[0]));
+			pair_ui.push_back(boost::lexical_cast<unsigned int>(pair_s[1]));
+			const sim_mob::Node *origin = StreetDirectory::instance().getNode(pair_ui[0]);
+			const sim_mob::Node *destination = StreetDirectory::instance().getNode(pair_ui[1]);
+			if (!origin || !destination) {
+				std::ostringstream err("");
+				err << "generateOD: either origin[" /*<< origin << ","*/ << pair_ui[0] << "] or destination["
+						<< destination << /*","	<< pair_ui[1] <<*/ "] are null. original input :" << pair_s[0] << " " << pair_s[1] << std::endl;
+				if(stopOnError){
+					throw std::runtime_error(err.str());
+				}
+				else{
+					Print() << err.str() << std::endl;
+				}
+				continue;
+			}
+
+			out << "<driver originPos=\"" << origin->getLocation().getX()
+					<< "," << origin->getLocation().getY() << "\" destPos=\""
+					<< destination->getLocation().getX() << ","
+					<< destination->getLocation().getY() << "\""
+					<< " od=\"(" << pair_s[0] << "," << pair_s[1] << ")\""
+					<< " time=\"0\"/>"
+					<< std::endl;
+		}
+		in.close();
+	} else {
+		Print() << "File " << input << " not found" << std::endl;
+	}
+	if(exitAtEnd){
+		exit(0);
+	}
+}
+
 void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 {
 	//Set reaction time distributions
@@ -126,7 +186,6 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 		PartitionManager::instance().partition_config->partition_solution_id = partId;
 		std::cout << "partition_solution_id in configuration:" <<partId << std::endl;
 	}
-
 	//Load from database or XML.
 	//TODO: This should be moved into its own class; we should NOT be doing loading in ExpandAndValidate()
 	//      (it is here now to maintain compatibility with the old order or loading things).
@@ -135,10 +194,8 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//TEMP: Test network output via boost.
 	//todo: enable/disble through cinfig
 	BoostSaveXML(cfg.networkXmlOutputFile(), cfg.getNetworkRW());
-
 	//Detect sidewalks in the middle of the road.
 	WarnMidroadSidewalks();
-
  	//Generate lanes, before StreetDirectory::init()
  	RoadNetwork::ForceGenerateAllLaneEdgePolylines(cfg.getNetworkRW());
 
@@ -153,17 +210,18 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     	std::cout << "XML input for SimMobility Created....\n";
     }
 
+    sim_mob::Profiler stDir(true);
  	//Initialize the street directory.
-    StreetDirectory::instance().init(cfg.getNetwork(), true);
-    std::cout << "Street Directory initialized" <<std::endl;
-
+	StreetDirectory::instance().init(cfg.getNetwork(), true);
+	std::cout << "Street Directory initialized in : " << stDir.endProfiling() <<  " Milliseconds " << std::endl;
+	//TODO: put its option in config xml
+	//generateOD("/home/fm-simmobility/vahid/OD.txt", "/home/fm-simmobility/vahid/ODs.xml");
     //Process Confluxes if required
     if(cfg.RunningMidSupply()) {
 		size_t sizeBefore = cfg.getConfluxes().size();
 		sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
 		std::cout <<"Confluxes size before(" <<sizeBefore <<") and after(" <<cfg.getConfluxes().size() <<")\n";
     }
-
     //Maintain unique/non-colliding IDs.
     ConfigParams::AgentConstraints constraints;
     constraints.startingAutoAgentID = cfg.system.simulation.startingAutoAgentID;
@@ -428,7 +486,6 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		msg <<"Unexpected agent type: " <<roleName;
 		throw std::runtime_error(msg.str().c_str());
 	}
-
 	//Loop through all agents of this type.
 	for (std::vector<EntityTemplate>::const_iterator it=xmlItems.begin(); it!=xmlItems.end(); it++) {
 		//Keep track of the properties we have found.

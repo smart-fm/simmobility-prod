@@ -4,6 +4,7 @@ int sim_mob::Profiler::totalProfilers = 0;
 std::map<std::string, sim_mob::Profiler> sim_mob::Profiler::repo = std::map<std::string, sim_mob::Profiler>();
 ///Constructor + start profiling if init is true
 sim_mob::Profiler::Profiler(bool init, std::string path, std::string id_){
+
 	reset();
 	start = stop = totalTime = 0;
 	started = false;
@@ -174,4 +175,3 @@ sim_mob::Profiler&  sim_mob::Profiler::operator<<(StandardEndLine manip) {
 		manip(output);
 	return *this;
 }
-

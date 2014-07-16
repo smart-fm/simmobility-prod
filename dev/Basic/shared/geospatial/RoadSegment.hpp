@@ -38,6 +38,8 @@ class Loader;
 class LaneLoader;
 } //End aimsun namespace
 
+//declaration
+std::string getNumberFromAimsunId(std::string &aimsunid);
 /**
  * Part of a Link with consistent lane numbering. RoadSegments are unidirectional.
  *

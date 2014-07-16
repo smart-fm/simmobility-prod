@@ -741,15 +741,15 @@ void sim_mob::LaneStats::updateOutputCounter()
 {
 	double tick_size = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	int tmp = int(laneParams->outputFlowRate * tick_size);
-	laneParams->fraction += laneParams->outputFlowRate * tick_size - float(tmp);
+	laneParams->fraction += laneParams->outputFlowRate * tick_size - tmp;
 	if (laneParams->fraction >= 1.0)
 	{
 		laneParams->fraction -= 1.0;
-		laneParams->outputCounter = float(tmp) + 1.0;
+		laneParams->outputCounter = tmp + 1;
 	}
 	else
 	{
-		laneParams->outputCounter = float(tmp);
+		laneParams->outputCounter = tmp;
 	}
 }
 
@@ -862,6 +862,7 @@ std::string sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber)
 		std::stringstream msg;
 		double density = segDensity * 1000.0 /* Density is converted to veh/km/lane for the output */
 		* numVehicleLanes; /* Multiplied with number of lanes to get the density in veh/km/segment*/
+		density = (numMovingInSegment(true) + numQueuingInSegment(true)) / length * 1000.0 * numVehicleLanes; //-vahid test
 
 #define SHOW_NUMBER_VEHICLE_ON_SEGMENT
 #ifdef SHOW_NUMBER_VEHICLE_ON_SEGMENT

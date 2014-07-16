@@ -23,6 +23,7 @@
 #include "entities/conflux/Conflux.hpp"
 #include "entities/Person.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
+#include "geospatial/PathSetManager.hpp"
 #include "network/ControlManager.hpp"
 #include "logging/Log.hpp"
 #include "workers/WorkGroup.hpp"
@@ -66,10 +67,10 @@ bool sim_mob::Worker::MgmtParams::extraActive(uint32_t endTick) const
 
 
 sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep)
-    : logFile(logFile),
+    : logFile(logFile),sql(soci::postgresql,ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false)),
       frame_tick_barr(frame_tick), buff_flip_barr(buff_flip), aura_mgr_barr(aura_mgr), macro_tick_barr(macro_tick),
       endTick(endTick), tickStep(tickStep), parent(parent), entityRemovalList(entityRemovalList), entityBredList(entityBredList),
-      profile(nullptr)
+      profile(nullptr),pathSetMgr(nullptr)
 {
 	//Initialize our profile builder, if applicable.
 	if (ConfigManager::GetInstance().CMakeConfig().ProfileWorkerUpdates()) {
@@ -633,4 +634,12 @@ bool sim_mob::Worker::beginManagingConflux(Conflux* cf)
 	return managedConfluxes.insert(cf).second;
 }
 
+sim_mob::PathSetManager *sim_mob::Worker::getPathSetMgr()
+{
+	if(!pathSetMgr)
+	{
+		pathSetMgr = new PathSetManager();
+	}
 
+	return pathSetMgr;
+}

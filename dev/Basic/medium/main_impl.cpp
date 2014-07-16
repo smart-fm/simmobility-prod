@@ -18,6 +18,7 @@
 #include "conf/ParseConfigFile.hpp"
 #include "conf/ExpandAndValidateConfigFile.hpp"
 #include "database/DB_Connection.hpp"
+#include "entities/incident/IncidentManager.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/Agent.hpp"
 #include "entities/BusController.hpp"
@@ -39,6 +40,7 @@
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/Lane.hpp"
+#include "geospatial/PathSetManager.hpp"
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "util/DailyTime.hpp"
@@ -132,10 +134,11 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			strDirectory.registerStopAgent(stop, busStopAgent);
 		}
 	}
-
+	PathSetManager* psMgr = NULL;
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode())
 	{
 		// init path set manager
+		psMgr = new PathSetManager();
 		time_t t = time(0);   // get time now
 		struct tm * now = localtime( & t );
 		cout<<"begin time:"<<endl;
@@ -143,7 +146,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		PathSetManager* psMgr = PathSetManager::getInstance();
 		std::string name=configFileName;
 		psMgr->setScenarioName(name);
-		if(psMgr->isUseCatchMode())
+		if(psMgr->isUseCacheMode())
 		{
 			psMgr->generateAllPathSetWithTripChain2();
 		}
@@ -198,7 +201,13 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	if(BusController::HasBusControllers())
 	{
 		personWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
+
 	}
+	//incident
+	//	personWorkers->assignAWorker(&(IncidentManager::getInstance()));
+	personWorkers->assignAWorker(IncidentManager::getInstance());
+//	personWorkers->assignAWorker(new IncidentManager());
+	IncidentManager::getInstance()->readFromFile("private/incidents.csv"); //todo remove hard coding
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
@@ -252,7 +261,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			{
 				msg << "  Warmup; output ignored." << endl;
 			}
-			PrintOut(msg.str());
+//			PrintOut(msg.str());
 		}
 		else
 		{
@@ -281,10 +290,12 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}
 #endif
 
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode())
-	{
-		PathSetManager::getInstance()->copyTravelTimeDataFromTmp2RealtimeTable();
-		PathSetManager::getInstance()->dropTravelTimeTmpTable();
+	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+		if(psMgr)
+		{
+			psMgr->copyTravelTimeDataFromTmp2RealtimeTable();
+			PathSetParam::getInstance()->dropTravelTimeTmpTable();
+		}
 	}
 	cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<endl;
 	cout << "Max Agents at any given time: " <<maxAgents <<endl;

@@ -71,6 +71,7 @@
 #include "geospatial/Roundabout.hpp"
 #include "geospatial/Intersection.hpp"
 #include "geospatial/Route.hpp"
+#include "geospatial/PathSetManager.hpp"
 #include "perception/FixedDelayed.hpp"
 #include "buffering/Buffered.hpp"
 #include "buffering/Locked.hpp"
@@ -234,7 +235,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 //		psMgr->setTravleTimeTmpTableName(ConfigParams::GetInstance().travelTimeTmpTableName);
 //		psMgr->createTravelTimeTmpTable(psMgr->getTravleTimeTmpTableName());
 //		psMgr->getDataFromDB();
-		if(psMgr->isUseCatchMode())
+		if(psMgr->isUseCacheMode())
 		{
 			psMgr->generateAllPathSetWithTripChain2();
 		}

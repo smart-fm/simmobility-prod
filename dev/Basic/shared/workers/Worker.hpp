@@ -15,6 +15,8 @@
 
 #include "event/args/EventArgs.hpp"
 //#include "event/EventListener.hpp"
+#include "soci.h"
+#include "soci-postgresql.h"
 
 namespace sim_mob {
 
@@ -24,6 +26,7 @@ class ControlManager;
 class WorkGroup;
 class Conflux;
 class Entity;
+class PathSetManager;
 
 //subclassed Eventpublisher coz its destructor is pure virtual
 class UpdatePublisher: public sim_mob::event::EventPublisher  {
@@ -126,6 +129,9 @@ public:
 
 	virtual std::ostream* getLogFile() const;
 
+	/// return current worker's path set manager
+	sim_mob::PathSetManager *getPathSetMgr();
+
 	virtual ProfileBuilder* getProfileBuilder() const;
 
 	void findBoundaryConfluxes();
@@ -224,6 +230,10 @@ private:
 	sim_mob::ProfileBuilder* profile;
 	//int thread_id;
 	//static int auto_matical_thread_id;
+public:
+	soci::session sql;
+	/// each worker has its own path set manager
+	sim_mob::PathSetManager *pathSetMgr;
 };
 
 }

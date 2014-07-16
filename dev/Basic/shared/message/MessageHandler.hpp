@@ -10,6 +10,7 @@
  */
 #pragma once
 #include "Message.hpp"
+#include <set>
 
 namespace sim_mob {
 
@@ -21,8 +22,18 @@ namespace sim_mob {
          * @see MessageBus to get more details.
          */
         class MessageHandler {
+        	/// The already used numbers
+        	static std::set<unsigned int> used;
+        	/// The first available free number
+        	static unsigned int freeCounter ;
+
+        	void add(unsigned int i);
+
+        	unsigned int getNewId();
+
         public:
             MessageHandler(unsigned int id);
+            MessageHandler();
 
             virtual ~MessageHandler();
             /**

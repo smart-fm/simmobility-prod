@@ -22,7 +22,6 @@ class Profiler {
 
 	///total time measured by all profilers
 	uint32_t totalTime;
-
 	///total number of profilers
 	static int totalProfilers;
 

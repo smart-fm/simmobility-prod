@@ -164,7 +164,7 @@
                 <mapping name="lane" procedure="get_lanes_bugis()"/>
                 <mapping name="turning" procedure="get_lane_connector_bugis()"/>
                 <mapping name="polyline" procedure="get_section_polyline_sg2()"/>
-                <mapping name="tripchain" procedure="get_hits_tripchains()"/>
+                <mapping name="tripchain" procedure="get_hits_tripchains_scaled()"/>
                 <mapping name="busstop" procedure="get_bus_stop()"/>
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases_BUGIS()"/>
@@ -241,7 +241,8 @@
             <total_runtime      value="30"      units="minutes" />
             <total_warmup       value="10"     units="seconds" />
             
-            <start_time         value="08:30:00"/>
+            <start_time         value="08:30:00"/>           
+            <pathset_traveltime_save_table value="xuyan_pathset_exp_dy"/>
             
             <!-- Implementation to use for the Aura Manager. -->
             <!-- Values include: simtree, rdu, rstar (default) -->
@@ -290,7 +291,7 @@
         <!-- List of all Worker types and their properties. -->
         <!-- granularity of each component must be a multiple of the "base" granularity -->
         <workers>
-            <person count="1" granularity="100ms"/> <!-- Person agents (with Roles) -->
+            <person count="4" granularity="100ms"/> <!-- Person agents (with Roles) -->
             <signal count="1" granularity="1 second"/> <!-- Traffic signals -->
             <communication count="0" granularity="100ms"/>  <!-- Communication simulator -->
         </workers>
@@ -318,8 +319,8 @@
     
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
         <!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
-        <!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
-        <network_database database="fm_local" credentials="harish_cred" proc_map="bugis_large"/>
+        <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/>
+        <!-- <network_database database="fm_local" credentials="harish_cred" proc_map="bugis_large"/> -->
         <!--<network_database database="fm_remote" credentials="fm_remote" proc_map="bugis_large"/>-->
         
         <!-- Where to find our various schema files. -->
@@ -424,7 +425,7 @@
     <!-- With the above three procedures present and valid, enable buses with "<buscontroller time="0" />" in the <buscontrollers> -->
     <!-- To Disable Buses: user can simply comment the buscontroller in the <buscontrollers> -->
     <buscontrollers>
-        <buscontroller time="0" />    
+       <!-- <buscontroller time="0" /> -->   
     </buscontrollers>
     
 <!--<signals> -->

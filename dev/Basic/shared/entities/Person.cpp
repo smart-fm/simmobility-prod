@@ -23,6 +23,7 @@
 #include "entities/misc/TripChain.hpp"
 #include "workers/Worker.hpp"
 #include "geospatial/aimsun/Loader.hpp"
+#include "message/MessageBus.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -46,7 +47,7 @@ namespace {
 Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 {
 	//Make sure we have something to work with
-	if (!(ag.originNode .node_&& ag.destNode.node_)) {
+	if (!(ag.originNode.node_&& ag.destNode.node_)) {
 		std::stringstream msg;
 		msg <<"Can't make a pseudo-trip for an Agent with no origin and destination nodes: " <<ag.originNode.node_ <<" , " <<ag.destNode.node_;
 		throw std::runtime_error(msg.str().c_str());
@@ -116,7 +117,15 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 
 void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();
-	setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
+	//TODO: Check if short term is okay with this approach of checking agent source
+	if(getAgentSrc() == "XML_TripChain")
+	{
+		setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
+	}
+	else
+	{
+		setStartTime((*currTripChainItem)->startTime.getValue());
+	}
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM)
 	{
 		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW()).begin();
@@ -191,8 +200,16 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		}
 
 		//Otherwise, make a trip chain for this Person.
-		this->originNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true) );
-		this->destNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destIt->second), true) );
+		Node * O = ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true);
+		Node * D = ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destIt->second), true);
+
+		if(!O || !D){
+			std::ostringstream out("");
+			out << "Nodes Located for (" << origIt->second << ") and (" << destIt->second << ") :(" << O << "," << D << ")" << std::endl;
+			throw std::runtime_error(out.str());
+		}
+		this->originNode = WayPoint( O );
+		this->destNode = WayPoint( D );
 
 		//Make sure they have a mode specified for this trip
 		it = configProps.find("#mode");
@@ -236,6 +253,7 @@ void Person::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>
 
 bool sim_mob::Person::frame_init(timeslice now)
 {
+	messaging::MessageBus::RegisterHandler(this);
 	currTick = now;
 	//Agents may be created with a null Role and a valid trip chain
 	if (!currRole) {
@@ -268,7 +286,6 @@ bool sim_mob::Person::frame_init(timeslice now)
 	if((*currTripChainItem)) {
 		currRole->Movement()->frame_init();
 	}
-
 	return true;
 }
 
@@ -291,6 +308,8 @@ void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ct
 
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {
+	//DEBUG
+	Print() << "person in [" << this->xPos << "," << this->yPos << "]" << std::endl;
 	currTick = now;
 	//TODO: Here is where it gets risky.
 	if (resetParamsRequired) {

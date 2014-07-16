@@ -7,6 +7,8 @@
 #include <stdexcept>
 
 #include "conf/settings/DisableMPI.h"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 //TEMP
 #include "geospatial/aimsun/Loader.hpp"

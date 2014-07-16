@@ -16,6 +16,8 @@
 #include <map>
 #include <stdexcept>
 #include <vector>
+#include <boost/tokenizer.hpp>
+#include <boost/foreach.hpp>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/Person.hpp"
@@ -23,6 +25,7 @@
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
+//#include "entities/IncidentManager.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/PathSetManager.hpp"
@@ -37,6 +40,8 @@
 #include "workers/Worker.hpp"
 
 using namespace sim_mob;
+using namespace std;
+using namespace boost;
 typedef Entity::UpdateStatus UpdateStatus;
 
 namespace{
@@ -136,6 +141,9 @@ bool sim_mob::Conflux::frame_init(timeslice now)
 			(*segIt)->initializeBusStops();
 		}
 	}
+	/**************test code insert incident *********************/
+
+	/*************************************************************/
 	return true;
 }
 
@@ -144,6 +152,7 @@ UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 		frame_init(frameNumber);
 		setInitialized(true);
 	}
+
 
 	currFrame = frameNumber;
 	resetPositionOfLastUpdatedAgentOnLanes();
@@ -741,6 +750,14 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 		pedestrianList.push_back(msg.pedestrian);
 		break;
 	}
+	case MSG_INSERT_INCIDENT:
+	{
+		Print() << "Conflux received MSG_INSERT_INCIDENT" << std::endl;
+		const InsertIncidentMessage & msg = MSG_CAST(InsertIncidentMessage, message);
+		//change the flow rate of the segment
+		sim_mob::Conflux::insertIncident(msg.stats,msg.newFlowRate);
+		//tell
+	}
 	default:
 		break;
 	}
@@ -1037,6 +1054,7 @@ void sim_mob::Conflux::getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>&
 	for (UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin(); upStrmSegMapIt != upstreamSegStatsMap.end(); upStrmSegMapIt++)
 	{
 		const SegmentStatsList& upstreamSegments = upStrmSegMapIt->second;
+		sumCapacity += (int)(ceil((*upstreamSegments.rbegin())->getRoadSegment()->getCapacityPerInterval()));
 		double totalTimeToSegEnd = 0;
 		std::deque<sim_mob::Person*> oneDeque;
 		for (SegmentStatsList::const_reverse_iterator rdSegIt = upstreamSegments.rbegin(); rdSegIt != upstreamSegments.rend(); rdSegIt++)
@@ -1161,7 +1179,9 @@ bool sim_mob::Conflux::insertTravelTime2TmpTable(timeslice frameNumber, std::map
 			tt.end_time = (simStart + sim_mob::DailyTime(frameNumber.ms() + frameLength)).toString();
 			tt.travel_time = (*it).second.rdSegTravelTime_/(*it).second.agentCount_;
 
-			PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
+//			PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
+			Worker *worker = this->getParentWorker();
+			worker->getPathSetMgr()->insertTravelTime2TmpTable(tt);
 		}
 	}
 	return res;
@@ -1210,7 +1230,7 @@ unsigned int sim_mob::Conflux::getNumRemainingInLaneInfinity() {
 }
 
 const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
-	std::vector<sim_mob::TripChainItem*> agTripChain = p->getTripChain();
+	const std::vector<sim_mob::TripChainItem*> & agTripChain = p->getTripChain();
 	const sim_mob::TripChainItem* firstItem = agTripChain.front();
 
 	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
@@ -1282,3 +1302,28 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 	}
 	return rdSeg;
 }
+
+
+void sim_mob::Conflux::insertIncident(sim_mob::SegmentStats* segStats, const double & newFlowRate) {
+	const std::vector<Lane*>& lanes = segStats->getRoadSegment()->getLanes();
+	for (std::vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++) {
+		segStats->updateLaneParams((*it), newFlowRate);
+	}
+}
+
+
+void sim_mob::Conflux::insertIncident(const std::vector<sim_mob::SegmentStats*> &segStats, const double & newFlowRate) {
+	BOOST_FOREACH(sim_mob::SegmentStats* stat,segStats){
+		insertIncident(stat,newFlowRate);
+	}
+}
+
+void sim_mob::Conflux::removeIncident(sim_mob::SegmentStats* segStats) {
+	const std::vector<Lane*>& lanes = segStats->getRoadSegment()->getLanes();
+	for (std::vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++){
+		segStats->restoreLaneParams(*it);
+	}
+}
+
+sim_mob::InsertIncidentMessage::InsertIncidentMessage(const std::vector<sim_mob::SegmentStats*>& stats, double newFlowRate):stats(stats), newFlowRate(newFlowRate){;}
+sim_mob::InsertIncidentMessage::~InsertIncidentMessage() {}

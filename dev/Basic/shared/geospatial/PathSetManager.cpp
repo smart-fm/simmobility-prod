@@ -362,6 +362,7 @@ sim_mob::PathSetManager::PathSetManager() {
 	serialPathSetGroup = true;
 	threadpool_ = new sim_mob::batched::ThreadPool(50);
 }
+
 void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message){
 
 }

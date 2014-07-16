@@ -68,6 +68,7 @@ public:
 	Profiler(bool init = false, std::string id_ = "", std::string logger = "");
 	//copy constructor is required by static std::map<std::string, sim_mob::Profiler> repo;
 	Profiler(const sim_mob::Profiler& value);
+	sim_mob::Profiler& operator=(const sim_mob::Profiler& value);
 	~Profiler();
 //	static sim_mob::Profiler & get(std::string name);
 
@@ -76,7 +77,7 @@ public:
 
 	///return the a profilers given its id
 	///if id is not available, it will generate a profiler and return it. you may then need to initialize the profiler manually.
-	sim_mob::Profiler & get(const std::string & id);
+	static sim_mob::Profiler & get(const std::string & id);
 
 	///given an id, returns the a pair containing pair of iterator to profilers and search result
 	///if id is not available, search result will be false and the iterator is invalid, else, the iterator is valid

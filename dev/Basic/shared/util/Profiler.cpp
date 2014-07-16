@@ -1,6 +1,5 @@
 #include "Profiler.hpp"
 #include "logging/Log.hpp"
-int sim_mob::Profiler::totalProfilers = 0;
 std::map<const std::string, sim_mob::Profiler> sim_mob::Profiler::repo = std::map<const std::string, sim_mob::Profiler>();
 ///Constructor + start profiling if init is true
 sim_mob::Profiler::Profiler(bool init, std::string id_, std::string path){
@@ -10,10 +9,6 @@ sim_mob::Profiler::Profiler(bool init, std::string id_, std::string path){
 	started = false;
 	output.clear();
 	outputSize = 0;
-	{
-		boost::unique_lock<boost::mutex> lock(mutex_);
-		index = totalProfilers ++;
-	}
 	id = id_;
 	if(path.size()){
 		InitLogFile(path);
@@ -37,7 +32,26 @@ sim_mob::Profiler::Profiler(const sim_mob::Profiler& value):
 	LogFile.basic_ios<char>::rdbuf(value.LogFile.rdbuf());           //3
 
 	output << value.output.rdbuf();
-	}
+}
+
+sim_mob::Profiler& sim_mob::Profiler::operator=(const sim_mob::Profiler& value){
+	totalTime = value.totalTime;
+	start = value.start;
+	stop = value.stop;
+	index = value.index;
+	id = value.id;
+	started = value.started;
+	outputSize = value.outputSize;
+
+	//I have no idea what I am doing here. will need to refer back to this page:
+	//http://stdcxx.apache.org/doc/stdlibug/34-2.html
+	LogFile.copyfmt(value.LogFile);                                  //1
+	LogFile.clear(value.LogFile.rdstate());                          //2
+	LogFile.basic_ios<char>::rdbuf(value.LogFile.rdbuf());           //3
+
+	output << value.output.rdbuf();
+	return *this;
+}
 sim_mob::Profiler::~Profiler(){
 	if(LogFile.is_open()){
 		flushLog();
@@ -155,10 +169,6 @@ void sim_mob::Profiler::reset(){
 	started = false;
 	output.clear();
 	id = "";
-	{
-		boost::unique_lock<boost::mutex> lock(mutex_);
-		index = totalProfilers ++;
-	}
 }
 
 //sim_mob::Profiler & sim_mob::Profiler::getInstance(){

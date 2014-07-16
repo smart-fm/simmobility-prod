@@ -387,10 +387,10 @@ void sim_mob::DriverMovement::frame_tick_output() {
 			"\",\"mandatory\":\""<<incidentPerformer.getIncidentStatus().getChangedLane() <<addLine.str() <<
 			"\"})"<<std::endl);
 
-	if(p.parentId==0)
-	{
-		std::cout<<parentDriver->vehicle->getVelocity()<<std::endl;
-	}
+//	if(p.parentId==1)
+//	{
+//		std::cout<<parentDriver->vehicle->getVelocity()<<std::endl;
+//	}
 }
 
 bool sim_mob::DriverMovement::update_sensors(timeslice now) {
@@ -483,7 +483,7 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 		params.cftimer -= params.elapsedSeconds;
 // params.overflowIntoIntersection = linkDriving(params);
 // params.overflowIntoIntersection = linkDrivingNew(params);
-		if (params.cftimer <= 0) {
+		if (params.cftimer < 0.1) {
 // make lc decision and check if can do lc
 			calcVehicleStates(params);
 // params.cftimer = cfModel->calcNextStepSize(params);
@@ -622,7 +622,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 	}
 	p.isAlreadyStart = parentDriver->isAleadyStarted;
 
-//	// calculate distance to end of link  ==> move to isLaneConnectToNextLink()
+//	// calculate distance to end of link  ==> move to isLaneConnectToNextSegment()
 //	if (!(hasNextSegment(true))) // has seg in current link
 //	{
 //		p.dis2stop = fwdDriverMovement.getAllRestRoadSegmentsLengthCM()
@@ -775,236 +775,6 @@ double sim_mob::DriverMovement::move(DriverUpdateParams& p) {
 	return updatePositionOnLink(p);
 
 }
-////vehicle movement on link, perform acceleration, lane changing if necessary
-////the movement is based on relative position
-//double sim_mob::DriverMovement::linkDriving(DriverUpdateParams& p) {
-//
-//	if ((parentDriver->getParams().now.ms() / MILLISECS_CONVERT_UNIT
-//			- parentDriver->startTime > 10)
-//			&& (fwdDriverMovement.getCurrDistAlongRoadSegmentCM() > 2000)
-//			&& (parentDriver->isAleadyStarted == false)) {
-//		parentDriver->isAleadyStarted = true;
-//	}
-//	p.isAlreadyStart = parentDriver->isAleadyStarted;
-//
-//	if (!(hasNextSegment(true))) // has seg in current link
-//	{
-//		p.dis2stop = fwdDriverMovement.getAllRestRoadSegmentsLengthCM()
-//				- fwdDriverMovement.getCurrDistAlongRoadSegmentCM()
-//				- parentDriver->vehicle->getLengthCm() / 2 - 300;
-//		if (p.nvFwd.distance < p.dis2stop)
-//			p.dis2stop = p.nvFwd.distance;
-//		p.dis2stop /= METER_TO_CENTIMETER_CONVERT_UNIT;
-//	} else {
-//		p.nextLaneIndex = std::min<int>(p.currLaneIndex,
-//				fwdDriverMovement.getNextSegment(true)->getLanes().size() - 1);
-//		if (fwdDriverMovement.getNextSegment(true)->getLanes().at(
-//				p.nextLaneIndex)->is_pedestrian_lane()) {
-//			p.nextLaneIndex--;
-//			p.dis2stop = fwdDriverMovement.getCurrPolylineTotalDistCM()
-//					- fwdDriverMovement.getCurrDistAlongRoadSegmentCM()
-//					+ DEFAULT_DIS_TO_STOP;
-//			p.dis2stop /= METER_TO_CENTIMETER_CONVERT_UNIT;
-//		} else
-//			p.dis2stop = DEFAULT_DIS_TO_STOP; //defalut 1000m
-//	}
-//
-//// check current lane has connector to next link
-//	p.isMLC = false;
-//	p.unsetStatus(STATUS_LEFT_OK);
-//	p.unsetStatus(STATUS_RIGHT_OK);
-//	if (p.dis2stop < distanceCheckToChangeLane) // <150m need check above, ready to change lane
-//			{
-//		p.isMLC = true;
-////// const RoadSegment* currentSegment = vehicle->getCurrSegment();
-//		const RoadSegment* nextSegment = fwdDriverMovement.getNextSegment(
-//				false);
-//		const MultiNode* currEndNode =
-//				dynamic_cast<const MultiNode*>(fwdDriverMovement.getCurrSegment()->getEnd());
-//		if (currEndNode) {
-//// get lane connector
-//			const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(
-//					fwdDriverMovement.getCurrSegment());
-//
-//// check lef,right lanes connect to next target segment
-//			for (std::set<LaneConnector*>::const_iterator it = lcs.begin();
-//					it != lcs.end(); it++) {
-//				if ((*it)->getLaneTo()->getRoadSegment() == nextSegment) // this lc connect to target segment
-//						{
-//					int laneIdx = getLaneIndex((*it)->getLaneFrom());
-//					if (laneIdx > p.currLaneIndex) {
-//						p.setStatus(STATUS_LEFT_OK);
-//					} else if (laneIdx < p.currLaneIndex) {
-//						p.setStatus(STATUS_RIGHT_OK);
-//					}
-//				}
-//			}
-//
-//			if (lcs.size() > 0) {
-////
-//				if (p.currLane->is_pedestrian_lane()) {
-////if can different DEBUG or RELEASE mode, that will be perfect, but now comment it out, so that does nor affect performance.
-////I remember the message is not critical
-//					WarnOut("drive on pedestrian lane");
-//				}
-//				bool currentLaneConnectToNextLink = false;
-//				int targetLaneIndex = p.currLaneIndex;
-//				std::map<int, vector<int> > indexes;
-//				std::set<int> noData;
-//
-//				for (std::set<LaneConnector*>::const_iterator it = lcs.begin();
-//						it != lcs.end(); it++) {
-//					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment
-//							&& (*it)->getLaneFrom() == p.currLane) {
-//// current lane connect to next link
-//						currentLaneConnectToNextLink = true;
-//						p.isTargetLane = true;
-//						p.nextLaneIndex = p.currLaneIndex;
-//						break;
-//					}
-////find target lane with same index, use this lane
-//					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment) {
-//						targetLaneIndex = getLaneIndex((*it)->getLaneFrom());
-//					}
-//				}
-//				if (currentLaneConnectToNextLink == false) // wow! we need change lane
-//						{
-////check target lane first
-//// if(targetLaneIndex == -1) // no target lane?
-//// {
-//// p.nextLaneIndex = p.currLaneIndex;
-////// std::cout<<"Driver::linkDriving: can't find target lane!"<<std::endl;
-//// }
-//// else
-//
-//					p.isTargetLane = false;
-//					p.nextLaneIndex = targetLaneIndex;
-////NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
-//					MITSIM_LC_Model* mitsim_lc_model =
-//							dynamic_cast<MITSIM_LC_Model*>(lcModel);
-//					if (mitsim_lc_model) {
-//						LANE_CHANGE_SIDE lcs = LCS_SAME;
-//// lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
-//						lcs =
-//								mitsim_lc_model->makeMandatoryLaneChangingDecision(
-//										p);
-//						parentDriver->vehicle->setTurningDirection(lcs);
-//						p.isMLC = true;
-//					} else {
-//						throw std::runtime_error(
-//								"TODO: BusDrivers currently require the MITSIM lc model.");
-//					}
-//				}
-//			} // end of if (!lcs)
-//		}
-//	}
-//
-//	if (fmodPerformer.performFmodSchedule(parentDriver, p)) {
-//		parentDriver->vehicle->setAcceleration(0);
-//		parentDriver->vehicle->setVelocity(0);
-//		p.currSpeed = parentDriver->vehicle->getVelocity()
-//				/ METER_TO_CENTIMETER_CONVERT_UNIT;
-//		return updatePositionOnLink(p);
-//	}
-//
-////check incident status and decide whether or not do lane changing
-//	LANE_CHANGE_MODE mode = DLC;
-//	incidentPerformer.checkIncidentStatus(p, parentDriver->getParams().now);
-//	if (incidentPerformer.getIncidentStatus().getChangedLane()
-//			&& incidentPerformer.getIncidentStatus().getNextLaneIndex() >= 0) {
-//		p.nextLaneIndex =
-//				incidentPerformer.getIncidentStatus().getNextLaneIndex();
-//		parentDriver->vehicle->setTurningDirection(
-//				incidentPerformer.getIncidentStatus().getLaneSide());
-//		mode = MLC;
-//	} else if ((incidentPerformer.getIncidentStatus().getCurrentStatus()
-//			== IncidentStatus::INCIDENT_ADJACENT_LANE && p.lastChangeMode == MLC)
-//			|| (incidentPerformer.getIncidentStatus().getCurrentStatus()
-//					== IncidentStatus::INCIDENT_CLEARANCE
-//					&& incidentPerformer.getIncidentStatus().getCurrentIncidentLength()
-//							> 0)) {
-//		p.nextLaneIndex = p.currLaneIndex;
-//		parentDriver->vehicle->setTurningDirection(LCS_SAME);
-//		mode = MLC;
-//	}
-//
-////Check if we should change lanes.
-//	double newLatVel;
-//	newLatVel = lcModel->executeLaneChanging(p,
-//			fwdDriverMovement.getAllRestRoadSegmentsLengthCM(),
-//			parentDriver->vehicle->getLengthCm(),
-//			parentDriver->vehicle->getTurningDirection(), mode);
-//
-//	if (newLatVel > 0 && p.nextLaneIndex > 0) {
-//		const RoadSegment* curSegment = fwdDriverMovement.getCurrSegment();
-//		const Lane* lane = curSegment->getLane(p.nextLaneIndex);
-//		int laneNum = curSegment->getLanes().size() - 1;
-//		if (lane && (!lane->is_vehicle_lane() || p.nextLaneIndex > laneNum)) {
-//			parentDriver->vehicle->setTurningDirection(LCS_SAME);
-//			parentDriver->vehicle->setLatVelocity(0);
-//			p.nextLaneIndex = p.currLaneIndex;
-//		}
-//	}
-//
-//	parentDriver->vehicle->setLatVelocity(newLatVel);
-//	if (parentDriver->vehicle->getLatVelocity() > 0)
-//		parentDriver->vehicle->setTurningDirection(LCS_LEFT);
-//	else if (parentDriver->vehicle->getLatVelocity() < 0)
-//		parentDriver->vehicle->setTurningDirection(LCS_RIGHT);
-//	else {
-//		parentDriver->vehicle->setTurningDirection(LCS_SAME);
-//		if (p.currLaneIndex
-//				== incidentPerformer.getIncidentStatus().getNextLaneIndex()
-//				&& incidentPerformer.getIncidentStatus().getCurrentStatus()
-//						== IncidentStatus::INCIDENT_OCCURANCE_LANE) {
-//			incidentPerformer.getIncidentStatus().setCurrentStatus(
-//					IncidentStatus::INCIDENT_ADJACENT_LANE);
-//			incidentPerformer.getIncidentStatus().setChangedLane(false);
-//		}
-//	}
-//
-//	p.turningDirection = parentDriver->vehicle->getTurningDirection();
-//
-////get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
-////if making lane changing, adjacent car need to be taken into account.
-//	NearestVehicle & nv = nearestVehicle(p);
-//
-//	if (parentDriver->isAleadyStarted == false) {
-//		if (nv.distance <= 0) {
-//			if (nv.driver->parent->getId() > getParent()->getId()) {
-//				nv = NearestVehicle();
-//			}
-//		}
-//	}
-//
-//	perceivedDataProcess(nv, p);
-//
-////Retrieve a new acceleration value.
-//	double newFwdAcc = 0;
-//
-////Convert back to m/s
-////TODO: Is this always m/s? We should rename the variable then...
-//	p.currSpeed = parentDriver->vehicle->getVelocity()
-//			/ METER_TO_CENTIMETER_CONVERT_UNIT;
-////Call our model
-//
-//	newFwdAcc = cfModel->makeAcceleratingDecision(p, p.desiredSpeed, p.maxLaneSpeed);
-//	if (abs(parentDriver->vehicle->getTurningDirection() != LCS_SAME)
-//			&& newFwdAcc > 0
-//			&& parentDriver->vehicle->getVelocity()
-//					/ METER_TO_CENTIMETER_CONVERT_UNIT > 10) {
-//		newFwdAcc = 0;
-//	}
-//
-////Update our chosen acceleration; update our position on the link.
-//	parentDriver->vehicle->setAcceleration(
-//			newFwdAcc * METER_TO_CENTIMETER_CONVERT_UNIT);
-//
-////response incident
-//// incidentPerformer.responseIncidentStatus(parentDriver, p, parentDriver->getParams().now);
-//
-//	return updatePositionOnLink(p);
-//}
 
 double sim_mob::DriverMovement::getDistanceToSegmentEnd() const {
 	DynamicVector dis(parentDriver->getCurrPosition().x,
@@ -1226,6 +996,7 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 	const std::vector<sim_mob::Lane*> lanes = currentSeg->getLanes();
 
 //check each lanes of current segment
+	std::vector<sim_mob::Lane*> connectedLanes;
 	for (int i = 0; i < lanes.size(); ++i) {
 		double x = fwdDriverMovement.getDisToCurrSegEnd() / 100.0;
 		sim_mob::Lane* l = lanes[i];
@@ -2050,29 +1821,15 @@ void sim_mob::DriverMovement::check_and_set_min_nextlink_car_dist(
 bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 		const Driver* other_driver) {
 	DriverUpdateParams& params = parentDriver->getParams();
-
-
 //Only update if passed a valid pointer which is not a pointer back to you, and
 //the driver is not actually in an intersection at the moment.
 	if (!(other_driver && this->parentDriver != other_driver
 			&& !other_driver->isInIntersection.get())) {
 		return false;
 	}
-	if(params.parentId == 889 && params.now.frame()>139)
-			{
-				int i=0;
-			}
+
 //Retrieve the other driver's lane, road segment, and lane offset.
 	const Lane* other_lane = other_driver->currLane_.get();
-//	// test
-	Driver* other_driver_ = const_cast<Driver*>(other_driver);
-	DriverUpdateParams& other_params = other_driver_->getParams();
-	const Lane* other_lane_ = other_params.currLane;
-	if(other_lane != other_lane_)
-	{
-		int i=0;
-	}
-
 	if (!other_lane) {
 		return false;
 	}
@@ -2447,10 +2204,6 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 	PROFILE_LOG_QUERY_START(getParent()->currWorkerProvider, getParent(),
 			params.now);
 
-	if(params.parentId == 889 && params.now.frame()>39)
-					{
-						int i=0;
-					}
 //NOTE: Let the AuraManager handle dispatching to the "advanced" function.
 	vector<const Agent*> nearby_agents;
 	if (parentDriver->getCurrPosition().x > 0
@@ -2481,12 +2234,6 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 	params.nvLagFreeway.distance = 50000;
 	params.nvFwd.driver = NULL;
 	params.nvFwd.distance = 50000;
-
-	if(params.parentId == 889 && params.now.frame()>39)
-				{
-//					std::cout<<"nearby_agents: "<<nearby_agents.size()<<std::endl;
-					int i=0;
-				}
 
 	for (vector<const Agent*>::iterator it = nearby_agents.begin();
 			it != nearby_agents.end(); it++) {

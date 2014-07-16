@@ -269,6 +269,11 @@ public:
 	double utilityCurrent;
 	double rnd;
 
+    double headway;
+	double aZ;
+
+	double density;
+
 //	//perform incident response
 //	IncidentPerformer incidentPerformer;
 public:

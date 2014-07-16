@@ -579,8 +579,8 @@ struct ConnectLeafs {
 			TreeLeaf* right_left = GetRightestLeaf()(one_node->items[i - 1]);
 			TreeLeaf* left_left = GetLeftestLeaf()(one_node->items[i]);
 
-			assert(right_left != NULL);
-			assert(left_left != NULL);
+			assert(right_left != nullptr);
+			assert(left_left != nullptr);
 
 			right_left->next = left_left;
 		}
@@ -643,7 +643,7 @@ void sim_mob::SimRTree::buildTreeStructure(const std::string& filename) {
 
 				m_root->items.reserve(2);
 				m_root->bound = box;
-				m_root->father = NULL;
+				m_root->father = nullptr;
 			}
 			else {
 				TreeNode* one_node = new TreeNode();
@@ -659,7 +659,7 @@ void sim_mob::SimRTree::buildTreeStructure(const std::string& filename) {
 		//if it is a leaf
 		else {
 			TreeLeaf* one_leaf = new TreeLeaf();
-			one_leaf->next = NULL;
+			one_leaf->next = nullptr;
 
 			one_leaf->is_leaf = true;
 			one_leaf->item_id = self_id;
@@ -724,7 +724,7 @@ void sim_mob::SimRTree::buildTreeStructure() {
 
 	m_root->items.reserve(2);
 	m_root->bound = root_box;
-	m_root->father = NULL;
+	m_root->father = nullptr;
 
 	//set boundary
 	SimRTree::network_minimum_x = min_x;
@@ -743,7 +743,7 @@ void sim_mob::SimRTree::buildTreeStructure() {
 	leaf_box_l.edges[1].second = max_y;
 
 	TreeLeaf* left_leaf = new TreeLeaf();
-	left_leaf->next = NULL;
+	left_leaf->next = nullptr;
 	left_leaf->is_leaf = true;
 	left_leaf->item_id = 2;
 	left_leaf->bound = leaf_box_l;
@@ -756,7 +756,7 @@ void sim_mob::SimRTree::buildTreeStructure() {
 	leaf_box_r.edges[1].second = max_y;
 
 	TreeLeaf* right_leaf = new TreeLeaf();
-	right_leaf->next = NULL;
+	right_leaf->next = nullptr;
 	right_leaf->is_leaf = true;
 	right_leaf->item_id = 3;
 	right_leaf->bound = leaf_box_r;
@@ -978,7 +978,7 @@ std::vector<Agent const*> sim_mob::SimRTree::rangeQuery(SimRTree::BoundingBox & 
 #endif
 
 		//sometimes users are query outside of map boundary
-		if (from_node == NULL) {
+		if (from_node == nullptr) {
 			from_node = m_root;
 			break;
 		}
@@ -1053,7 +1053,7 @@ void sim_mob::SimRTree::updateAllInternalAgents(std::map<const sim_mob::Agent*, 
 			else {
 				Agent * one_agent = one_leaf->agent_buffer[offset];
 
-				//one_agent->connector_to_Sim_Tree = nullptr;
+				//one_agent->connector_to_Sim_Tree = nullptrptr;
 				std::map<const sim_mob::Agent*, TreeItem*>::iterator it = connectorMap.find(one_agent);
 				if (it != connectorMap.end()) {
 					connectorMap.erase(it);
@@ -1193,7 +1193,7 @@ void sim_mob::SimRTree::rebalance(std::map<const sim_mob::Agent*, TreeItem*>& ag
 	one_node->item_id = 1;
 	one_node->is_leaf = false;
 	one_node->items.clear();
-	one_node->father = NULL;
+	one_node->father = nullptr;
 
 	//
 	RebuildSimTreeNodeFunctor()(0, 0, DIVIDE_NETWORK_X_INTO_CELLS, DIVIDE_NETWORK_Y_INTO_CELLS, one_node, false);

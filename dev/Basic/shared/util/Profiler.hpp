@@ -58,7 +58,7 @@ class Profiler {
 	///flush the log streams into the file
 	void flushLog();
 
-	std::map<std::string, >
+	static std::map<std::string, sim_mob::Profiler> repo;
 
 public:
 	/**
@@ -66,8 +66,11 @@ public:
 	 * @param id arbitrary identification for this object
 	 * @param logger file name where the output stream is written
 	 */
-	Profiler(bool init = false, std::string id_ = "", std::string logger = "");
+	Profiler(bool init = false, std::string logger = "", std::string id_ = "");
+	//copy constructor is required by static std::map<std::string, sim_mob::Profiler> repo;
+	Profiler(const sim_mob::Profiler& value);
 	~Profiler();
+//	static sim_mob::Profiler & get(std::string name);
 
 //	///initialize the logger that profiler writes to
 //	void InitLogFile(const std::string& path);
@@ -112,8 +115,9 @@ public:
 
 	///reset all the parameters
 	void reset();
-	///overall instance of the profiler, used for general cases
-	static Profiler & getInstance();
+
+//	///overall instance of the profiler, used for general cases
+//	static Profiler & getInstance();
 
 	void InitLogFile(const std::string& path);
 
@@ -126,7 +130,7 @@ public:
 		output << val;
 		output.seekg(0, std::ios::end);
 
-		if(output.tellg() > 1000000){
+		if(output.tellg() > 10000){
 			flushLog();
 		}
 		return *this;

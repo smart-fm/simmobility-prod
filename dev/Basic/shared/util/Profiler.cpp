@@ -1,9 +1,9 @@
 #include "Profiler.hpp"
 #include "logging/Log.hpp"
 int sim_mob::Profiler::totalProfilers = 0;
-
+std::map<std::string, sim_mob::Profiler> sim_mob::Profiler::repo = std::map<std::string, sim_mob::Profiler>();
 ///Constructor + start profiling if init is true
-sim_mob::Profiler::Profiler(bool init, std::string id_, std::string path){
+sim_mob::Profiler::Profiler(bool init, std::string path, std::string id_){
 	reset();
 	start = stop = totalTime = 0;
 	started = false;
@@ -21,6 +21,22 @@ sim_mob::Profiler::Profiler(bool init, std::string id_, std::string path){
 		startProfiling();
 	}
 }
+sim_mob::Profiler::Profiler(const sim_mob::Profiler& value):
+	totalTime(value.totalTime),
+	start(value.start), stop(value.stop),
+	index(value.index),
+	id(value.id),
+	started(value.started),
+	outputSize(value.outputSize)
+{
+	//I have no idea what I am doing here. will need to refer back to this page:
+	//http://stdcxx.apache.org/doc/stdlibug/34-2.html
+	LogFile.copyfmt(value.LogFile);                                  //1
+	LogFile.clear(value.LogFile.rdstate());                          //2
+	LogFile.basic_ios<char>::rdbuf(value.LogFile.rdbuf());           //3
+
+	output << value.output.rdbuf();
+	}
 sim_mob::Profiler::~Profiler(){
 	if(LogFile.is_open()){
 		flushLog();
@@ -133,23 +149,22 @@ void sim_mob::Profiler::reset(){
 		index = totalProfilers ++;
 	}
 }
-sim_mob::Profiler & sim_mob::Profiler::getInstance(){
-	static Profiler instance(true, "overall profiler", "profiler.txt");
-	return instance;
-}
+
+//sim_mob::Profiler & sim_mob::Profiler::getInstance(){
+//	static Profiler instance(true, "overall profiler", "profiler.txt");
+//	return instance;
+//}
 
 void  sim_mob::Profiler::InitLogFile(const std::string& path)
 {
 	//1. first type of implementation
 	LogFile.open(path.c_str());
-	if (LogFile.fail()) {
-		log_handle =  &std::cout;
-	}
-	log_handle = (!LogFile.fail() ? &LogFile : &std::cout);
+//	if (LogFile.fail()) {
+//		log_handle =  &std::cout;
+//	}
+//	log_handle = (!LogFile.fail() ? &LogFile : &std::cout);
 }
 
-///////////////////////////////////////////////////////////////////////////
-std::ostream*   log_handle;
 //Type of cout.
 typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
 //Type of std::endl and some other manipulators.

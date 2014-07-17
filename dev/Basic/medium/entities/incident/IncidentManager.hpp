@@ -40,7 +40,7 @@ class IncidentManager : public sim_mob::Agent {
 	static IncidentManager * instance;
 public:
 	//debug
-	static sim_mob::Profiler profiler;
+//	static sim_mob::Profiler profiler;
 	IncidentManager(const std::string inputFile = "");
 	/**
 	 * Set the source file name

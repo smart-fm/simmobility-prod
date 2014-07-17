@@ -16,7 +16,12 @@ namespace sim_mob {
  * the amount of buffering to the output file can be configured.
  * Although it is mainly a time profiler, it can be used to profile other parameters with some other tool and dump the result as string stream to the object of this Profiler
  *
- * Note: example use case can be found in PathSetManager module.
+ * Note: example use case :
+ * 	std::string prof("PathSetManagerProfiler");
+	sim_mob::Profiler::instance[prof] << "My First" << " test" << std::endl;;
+	sim_mob::Profiler::instance[prof] << sim_mob::Profiler::instance["hey"].outPut();
+	std::stringstream  s;
+	sim_mob::Profiler::instance[prof] << s.str();
  */
 class Profiler {
 
@@ -55,33 +60,37 @@ class Profiler {
 	std::ofstream LogFile;
 
 	///flush the log streams into the file
+
+	static std::map<const std::string, boost::shared_ptr<sim_mob::Profiler> > repo;
 	void flushLog();
 
-	static std::map<const std::string, sim_mob::Profiler> repo;
-
-public:
 	/**
 	 * @param init Start profiling if this is set to true
 	 * @param id arbitrary identification for this object
 	 * @param logger file name where the output stream is written
 	 */
-	Profiler(bool init = false, std::string id_ = "", std::string logger = "");
+	Profiler(std::string id_,bool init = false);
+	Profiler();
+
+public:
+	static sim_mob::Profiler instance;
 	//copy constructor is required by static std::map<std::string, sim_mob::Profiler> repo;
 	Profiler(const sim_mob::Profiler& value);
-	sim_mob::Profiler& operator=(const sim_mob::Profiler& value);
+	sim_mob::Profiler & operator[](const std::string &key)
+	{
+
+		std::map<std::string, boost::shared_ptr<sim_mob::Profiler> >::iterator it = repo.find(key);
+		if(it == repo.end()){
+			boost::shared_ptr<sim_mob::Profiler> t(new sim_mob::Profiler(key,false));
+			repo.insert(std::make_pair(key,t));
+		}
+		return *repo[key];
+	}
 	~Profiler();
 //	static sim_mob::Profiler & get(std::string name);
 
 //	///initialize the logger that profiler writes to
 //	void InitLogFile(const std::string& path);
-
-	///return the a profilers given its id
-	///if id is not available, it will generate a profiler and return it. you may then need to initialize the profiler manually.
-	static sim_mob::Profiler & get(const std::string & id);
-
-	///given an id, returns the a pair containing pair of iterator to profilers and search result
-	///if id is not available, search result will be false and the iterator is invalid, else, the iterator is valid
-	std::pair<std::map<std::string, sim_mob::Profiler>::iterator , bool> tryGet(const std::string & id);
 
 	///whoami
 	std::string getId();
@@ -138,7 +147,7 @@ public:
 		output << val;
 		output.seekg(0, std::ios::end);
 
-		if(output.tellg() > 10000){
+		if(output.tellg() > 1048576/*1MB*/){
 			flushLog();
 		}
 		return *this;

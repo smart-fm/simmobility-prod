@@ -1,8 +1,10 @@
 #include "Profiler.hpp"
 #include "logging/Log.hpp"
-std::map<const std::string, sim_mob::Profiler> sim_mob::Profiler::repo = std::map<const std::string, sim_mob::Profiler>();
+std::map<const std::string, boost::shared_ptr<sim_mob::Profiler> > sim_mob::Profiler::repo = std::map<const std::string, boost::shared_ptr<sim_mob::Profiler> >();
 ///Constructor + start profiling if init is true
-sim_mob::Profiler::Profiler(bool init, std::string id_, std::string path){
+sim_mob::Profiler sim_mob::Profiler::instance;
+sim_mob::Profiler::Profiler(){}
+sim_mob::Profiler::Profiler(std::string id_,bool init){
 
 	reset();
 	start = stop = totalTime = 0;
@@ -10,6 +12,7 @@ sim_mob::Profiler::Profiler(bool init, std::string id_, std::string path){
 	output.clear();
 	outputSize = 0;
 	id = id_;
+	std::string path = id_ + ".txt";
 	if(path.size()){
 		InitLogFile(path);
 	}
@@ -17,41 +20,42 @@ sim_mob::Profiler::Profiler(bool init, std::string id_, std::string path){
 		startProfiling();
 	}
 }
-sim_mob::Profiler::Profiler(const sim_mob::Profiler& value):
-	totalTime(value.totalTime),
-	start(value.start), stop(value.stop),
-	index(value.index),
-	id(value.id),
-	started(value.started),
-	outputSize(value.outputSize)
-{
-	//I have no idea what I am doing here. will need to refer back to this page:
-	//http://stdcxx.apache.org/doc/stdlibug/34-2.html
-	LogFile.copyfmt(value.LogFile);                                  //1
-	LogFile.clear(value.LogFile.rdstate());                          //2
-	LogFile.basic_ios<char>::rdbuf(value.LogFile.rdbuf());           //3
+//sim_mob::Profiler::Profiler(const sim_mob::Profiler& value):
+//	totalTime(value.totalTime),
+//	start(value.start), stop(value.stop),
+//	index(value.index),
+//	id(value.id),
+//	started(value.started),
+//	outputSize(value.outputSize)
+//{
+//	//I have no idea what I am doing here. will need to refer back to this page:
+//	//http://stdcxx.apache.org/doc/stdlibug/34-2.html
+//	LogFile.copyfmt(value.LogFile);                                  //1
+//	LogFile.clear(value.LogFile.rdstate());                          //2
+//	LogFile.basic_ios<char>::rdbuf(value.LogFile.rdbuf());           //3
+//
+//	output << value.output.rdbuf();
+//}
 
-	output << value.output.rdbuf();
-}
+//sim_mob::Profiler& sim_mob::Profiler::operator=(const sim_mob::Profiler& value){
+//	totalTime = value.totalTime;
+//	start = value.start;
+//	stop = value.stop;
+//	index = value.index;
+//	id = value.id;
+//	started = value.started;
+//	outputSize = value.outputSize;
+//
+//	//I have no idea what I am doing here. will need to refer back to this page:
+//	//http://stdcxx.apache.org/doc/stdlibug/34-2.html
+//	LogFile.copyfmt(value.LogFile);                                  //1
+//	LogFile.clear(value.LogFile.rdstate());                          //2
+//	LogFile.basic_ios<char>::rdbuf(value.LogFile.rdbuf());           //3
+//
+//	output << value.output.rdbuf();
+//	return *this;
+//}
 
-sim_mob::Profiler& sim_mob::Profiler::operator=(const sim_mob::Profiler& value){
-	totalTime = value.totalTime;
-	start = value.start;
-	stop = value.stop;
-	index = value.index;
-	id = value.id;
-	started = value.started;
-	outputSize = value.outputSize;
-
-	//I have no idea what I am doing here. will need to refer back to this page:
-	//http://stdcxx.apache.org/doc/stdlibug/34-2.html
-	LogFile.copyfmt(value.LogFile);                                  //1
-	LogFile.clear(value.LogFile.rdstate());                          //2
-	LogFile.basic_ios<char>::rdbuf(value.LogFile.rdbuf());           //3
-
-	output << value.output.rdbuf();
-	return *this;
-}
 sim_mob::Profiler::~Profiler(){
 	if(LogFile.is_open()){
 		flushLog();
@@ -59,16 +63,14 @@ sim_mob::Profiler::~Profiler(){
 	}
 }
 
-sim_mob::Profiler & sim_mob::Profiler::get(const std::string & id){
-	return repo[id];
-}
-
-std::pair<std::map<std::string, sim_mob::Profiler>::iterator , bool> sim_mob::Profiler::tryGet(const std::string & id){
-	std::map<std::string, sim_mob::Profiler>::iterator it = repo.find(id);
-	bool res = (it == repo.end());
-	return std::make_pair(it,res);
-}
-
+//boost::shared_ptr<sim_mob::Profiler> sim_mob::Profiler::get(const std::string & id, bool init, std::string id_){
+//	std::map<std::string, boost::shared_ptr<sim_mob::Profiler> >::iterator it = repo.find(id);
+//	if(it == repo.end()){
+//		boost::shared_ptr<sim_mob::Profiler> t(new sim_mob::Profiler(init,id_));
+//		repo.insert(std::make_pair(id,t));
+//	}
+//	return repo[id];
+//}
 
 ///whoami
 std::string sim_mob::Profiler::getId(){
@@ -148,6 +150,7 @@ void sim_mob::Profiler::flushLog(){
 			LogFile << output.str();
 			LogFile.flush();
 			output.str("");
+			output.clear();
 			outputSize = 0;
 		}
 		else{

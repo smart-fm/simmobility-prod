@@ -16,7 +16,7 @@
 
 sim_mob::IncidentManager * sim_mob::IncidentManager::instance = 0;
 std::map<const sim_mob::RoadSegment*, double> sim_mob::IncidentManager::currIncidents = std::map<const sim_mob::RoadSegment*, double>();
-sim_mob::Profiler sim_mob::IncidentManager::profiler;
+//sim_mob::Profiler sim_mob::IncidentManager::profiler;
 sim_mob::IncidentManager::IncidentManager(const std::string inputFile) :
 		Agent(ConfigManager::GetInstance().FullConfig().mutexStategy()),inputFile(inputFile)/*,distribution(Utils::initDistribution(std::pair<float,float>(0.0, 1.0)))*/
 {}

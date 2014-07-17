@@ -82,7 +82,7 @@ public:
 		this->incomeId = income_id;
 	}
 
-	void setIncomeId(double income) {
+	void setIncomeIdFromIncome(double income) {
 		if(income == 0.0) {
 			incomeId = 12;
 		}

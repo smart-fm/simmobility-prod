@@ -314,7 +314,7 @@ protected:
 	 * \param in msg incident information(roadsegment and flow rate)
 	 * \param newFlowRate new flow rate supplied to lanes
 	 */
-	void rerout(const InsertIncidentMessage &msg);
+	void reroute(const InsertIncidentMessage &msg);
 	///tries to remove the uturn if any
 	bool UTurnFree(std::vector<WayPoint> & oldPath, std::vector<const sim_mob::SegmentStats*> & newPath, sim_mob::SubTrip & subTrip, std::set<const sim_mob::RoadSegment*> & excludeRS);
 	///checks to see if it is possible to join an old path to a new one

@@ -147,6 +147,7 @@ std::stringstream & sim_mob::Profiler::outPut(){
 void sim_mob::Profiler::flushLog(){
 		if ((LogFile.is_open() && LogFile.good())) {
 			boost::unique_lock<boost::mutex> lock(mutexOutput);
+			Print() << "Flushing" << std::endl;//debug
 			LogFile << output.str();
 			LogFile.flush();
 			output.str("");

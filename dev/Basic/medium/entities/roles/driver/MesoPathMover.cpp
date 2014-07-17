@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include "geospatial/RoadSegment.hpp"
+#include "util/Profiler.hpp"
 
 void sim_mob::medium::MesoPathMover::setPath(const std::vector<const sim_mob::SegmentStats*>& segStatPath)
 {
@@ -166,5 +167,5 @@ void sim_mob::medium::MesoPathMover::printPath(const Path &path, const Node *nod
 			out << id << "," ;
 		}
 	}
-	Print() << out.str() << std::endl;
+	sim_mob::Profiler::instance["path_set"] << out.str() << std::endl;
 }

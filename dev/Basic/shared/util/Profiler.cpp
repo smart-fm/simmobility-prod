@@ -1,7 +1,7 @@
 #include "Profiler.hpp"
 #include "logging/Log.hpp"
 std::map<const std::string, boost::shared_ptr<sim_mob::Profiler> > sim_mob::Profiler::repo = std::map<const std::string, boost::shared_ptr<sim_mob::Profiler> >();
-///Constructor + start profiling if init is true
+std::string sim_mob::Profiler::newLine("\n");
 sim_mob::Profiler sim_mob::Profiler::instance;
 sim_mob::Profiler::Profiler(){}
 sim_mob::Profiler::Profiler(std::string id_,bool init){
@@ -146,8 +146,7 @@ std::stringstream & sim_mob::Profiler::outPut(){
 //	}
 void sim_mob::Profiler::flushLog(){
 		if ((LogFile.is_open() && LogFile.good())) {
-			boost::unique_lock<boost::mutex> lock(mutexOutput);
-			Print() << "Flushing" << std::endl;//debug
+			//boost::unique_lock<boost::mutex> lock(mutexOutput);
 			LogFile << output.str();
 			LogFile.flush();
 			output.str("");

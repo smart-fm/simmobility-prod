@@ -73,6 +73,7 @@ class Profiler {
 	Profiler();
 
 public:
+	static std::string newLine;
 	static sim_mob::Profiler instance;
 	//copy constructor is required by static std::map<std::string, sim_mob::Profiler> repo;
 	Profiler(const sim_mob::Profiler& value);
@@ -145,9 +146,7 @@ public:
 	{
 		boost::unique_lock<boost::mutex> lock(mutexOutput);
 		output << val;
-		output.seekg(0, std::ios::end);
-
-		if(output.tellg() > 1048576/*1MB*/){
+		if(output.tellp() > 512000/*500KB*/){
 			flushLog();
 		}
 		return *this;

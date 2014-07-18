@@ -301,7 +301,7 @@ protected:
 	void updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat,
 			double segmentExitTimeSec);
 	/**
-	 * get number of intersections from the agent's location to incident location
+	 * get number of intersections between the agent's location and incident location
 	 * \param in list of stats in the incident roadsegemnt
 	 * \param intersections out list of intersections suggested as re-routing points
 	 * \param remaining lists of segstats from the original path which are remaining to reach to each of the suggested re-routing point

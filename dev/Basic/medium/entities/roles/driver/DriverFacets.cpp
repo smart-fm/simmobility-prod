@@ -1038,32 +1038,30 @@ int roll_die(int l,int r) {
 //step-1: can I rerout? if yes, what are my points of rerout?
 //step-2: do I 'want' to reroute?
 //step-3: get a new path from each candidate re-routing points
-//step-4: there still is some way to get to the new path's starting point. prepend it to the new paths
+//step-4: In order to get to the detour point, some part of the original path should still be traveled. prepend that part to the new paths
 //setp-5: setpath: assign the assembled path to pathmover
 void DriverMovement::reroute(const InsertIncidentMessage &msg){
 	sim_mob::Profiler::instance["path_set"] << "rerouting" << std::endl;
-	/*step-1 can I re-rout? if yes, what are my points of re-rout?*/
-		//criterion-1 at least 1 intersection from where the agent is, to the troubled roadsegment
-	std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > deTourOptions ;
+	//step-1
+	std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > deTourOptions ; //< detour point, segments to travel before getting to the detour point>
 	deTourOptions.clear(); // :)
 	int numReRoute = findReroutingPoints(msg.stats, deTourOptions);
 	if(!numReRoute){
 		return;
 	}
 
-	/*step-2 do I 'want' to reroute? yes you do, for now*/
+	//step-2
 	if(!wantReRoute()){
 		return;
 	}
 	sim_mob::Profiler::instance["path_set"] << numReRoute << "Rerouting Points were identified" << std::endl;
-	/*step-3:get a new path*/
-	std::map<const sim_mob::Node* , std::vector<WayPoint> > newPaths ; //stores new paths starting from the re-routing points
+	//step-3:
 	typedef std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >	DetourOption ; //for 'deTourOptions' container
 	std::set<const sim_mob::RoadSegment*> excludeRS = std::set<const sim_mob::RoadSegment*>();
 	excludeRS.insert((*msg.stats.begin())->getRoadSegment());//all stats in the container refer to the same rs.
 	//	get a 'copy' of the person's current subtrip
 	SubTrip subTrip = *(getParent()->currSubTrip);
-
+	std::map<const sim_mob::Node* , std::vector<WayPoint> > newPaths ; //stores new paths starting from the re-routing points
 	BOOST_FOREACH(DetourOption detourNode, deTourOptions)
 	{
 		// change the origin
@@ -1072,14 +1070,16 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 		newPaths[detourNode.first] = sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(getParent(), &subTrip, excludeRS);
 	}
 
-	/*step-4: prepend. Note: it is more efficient to do this within the above loop but code reading will become more tough*/
+	/*step-4: prepend the old path to the new path
+	 * old path: part of the original path from the agent's current position to the rerouting point
+	 * new path:the path from the rerouting point to the destination
+	 * Note: it is more efficient to do this within the above loop but code reading will become more tough*/
 	//4.a: check if there is no path from the rerouting point, just discard it.
-	//4.b: filter out Uturns.
-	//4.c convert waypoint to segstat and prepend remaining oldpath to the new path
+	//4.b: check and discard the rerouting point if the new and old paths can be joined
+	//4.c convert waypoint to segstat and prepend(join) remaining oldpath to the new path
 	typedef std::pair<const sim_mob::Node* , std::vector<WayPoint> > NewPath;
 	BOOST_FOREACH(NewPath newPath, newPaths)
 	{
-
 		//4.a
 		if(newPath.second.empty()){
 			Warn() << "No path on Detour Candidate node " << newPath.first->getID() << std::endl;
@@ -1087,14 +1087,12 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 			continue;
 		}
 		//4.b
-		// change the origin (just like in the previous loop
+		// change the origin
 		subTrip.fromLocation.node_ = newPath.first;
-//		if(!UTurnFree(newPath.second,deTourOptions[newPath.first], subTrip, excludeRS))
-//			Warn() << "No path without a UTrn on Detour Candidate node " << newPath.first->getID() << std::endl;
 		sim_mob::Profiler::instance["path_set"]<< "Try Joining old and new paths for detour point :" << newPath.first->getID() << std::endl;
 		MesoPathMover::printPath(deTourOptions[newPath.first], newPath.first);
 		printWPpath(newPath.second, newPath.first);
-
+		//check if join possible
 		bool canJoin = canJoinPaths(newPath.second,deTourOptions[newPath.first], subTrip, excludeRS);
 		if(!canJoin)
 		{
@@ -1103,17 +1101,39 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 			deTourOptions.erase(newPath.first);
 			continue;
 		}
-		else{
-			sim_mob::Profiler::instance["path_set"] << "Paths can Join" << std::endl;
-		}
-
-		//4.c convert the new path waypoints to segstats and append them to the remaining path(remaining path: remaining segstats from the original path to the rer-outing point)
+		sim_mob::Profiler::instance["path_set"] << "Paths can Join" << std::endl;
+		//4.c join
 		initSegStatsPath(newPath.second,deTourOptions[newPath.first]);
 
-//		//debug
-//		sim_mob::Profiler::instance["path_set"] << "Detour Option:" << std::endl;
-//		MesoPathMover::printPath(deTourOptions[newPath.first], newPath.first);
-//		//debug...
+		//step-4.d cancel similar paths
+		//some newPath(s) can be subset of the other path(s).
+		//This can be easily detected when the old part of path and the new path join: it can create a combination that has already been created
+		//so let's look for 'same paths':
+		std::vector<const sim_mob::SegmentStats*> & target = deTourOptions[newPath.first];
+		BOOST_FOREACH(DetourOption detourNode, deTourOptions)
+		{
+			//dont compare with yourself
+			if(detourNode.first == newPath.first){continue;}
+			if(target == detourNode.second)
+			{
+				sim_mob::Profiler::instance["path_set"] << "Discarding an already been created path:" << sim_mob::Profiler::newLine;
+				MesoPathMover::printPath(detourNode.second);
+				MesoPathMover::printPath(target);
+				deTourOptions.erase(newPath.first);
+			}
+//			//if they have a different size, they are definitely different,so leave this entry alone
+//			if(target.size() != detourNode.second.size()){continue;}
+//			typedef std::vector<const sim_mob::SegmentStats*>::const_iterator it_;
+//			std::pair<it_,it_> comp = std::mismatch(target.begin(),target.end(), detourNode.second.begin(), detourNode.second.end());
+			//since the two containers have the same size, they are considered equal(same) if any element of the above pair is equal to the .end() of their corresponding containers
+//			if (comp.first == target.end())
+//			{
+//				sim_mob::Profiler::instance["path_set"] << "Discarding an already been created path:" << std::endl;
+//				MesoPathMover::printPath(detourNode.second);
+//				MesoPathMover::printPath(target);
+//				deTourOptions.erase(newPath.first);
+//			}
+		}
 	}
 	//is there any place drivers can re-route or not?
 	if(!deTourOptions.size()){
@@ -1123,8 +1143,6 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 
 	//step-5: now you may set the path using 'deTourOptions' container
 	//todo, put a distribution function here. For testing now, give it the last new path for now
-//	sim_mob::Profiler::instance["path_set"] << "final Path:" << deTourOptions.rbegin()->first->getID() << std::endl;
-
 	std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >::iterator it(deTourOptions.begin());
 
 	int cnt = roll_die(0,deTourOptions.size() - 1);

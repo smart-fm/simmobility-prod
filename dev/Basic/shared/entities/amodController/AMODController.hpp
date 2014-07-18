@@ -156,7 +156,7 @@ protected:
 	virtual bool isNonspatial() { return true; }
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList){}
 	//	override from the class agent, provide a chance to clear up a child pointer when it will be deleted from system
-	//	virtual void unregisteredChild(Entity* child);
+	virtual void unregisteredChild(Entity* child);
 
 private:
 	explicit AMODController(int id=-1,

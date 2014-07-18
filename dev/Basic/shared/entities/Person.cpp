@@ -129,9 +129,6 @@ void sim_mob::Person::initTripChain(){
 sim_mob::Person::~Person() {
 
 	//handle destruction by alerting AMODController
-	sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
-	a->handleVHDestruction(this);
-
 	safe_delete_item(prevRole);
 	safe_delete_item(currRole);
 	safe_delete_item(nextRole);

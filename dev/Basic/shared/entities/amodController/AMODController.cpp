@@ -308,16 +308,16 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		readDemandFile(tripID, current_time, origin, destination);
 		//mtx_.lock();
 		if (currTime % vehStatOutputModulus == 0) {
-			saveVehStat();
+			//saveVehStat();
 		}
 		//mtx_.unlock();
 		//assignVhs(origin, destination);
 		assignVhsFast(tripID, origin, destination, current_time);
 
 		//check for pickups and arrivels
-		checkForPickups();
+		//checkForPickups();
 		//checkForArrivals();
-		checkForStuckVehicles();
+		//checkForStuckVehicles();
 		//output the current running time
 		std::cout << "-----------------------------\n";
 		std::cout << "Run time (s): " << std::time(NULL) -  startRunTime << std::endl;
@@ -447,6 +447,7 @@ void AMODController::readDemandFile(vector<string>& tripID, int current_time, ve
 
 void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 {
+
 	// find node
 	Node* node = nodePool[nodeId];
 
@@ -511,9 +512,7 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 	carParksMutex.unlock();
 
 	allAMODCarsMutex.lock();
-	boost::unordered_map<std::string,Person*>::iterator itr;
-	itr = allAMODCars.insert( std::make_pair(id, person) ).first; //add this car to the global map of all AMOD cars (for bookkeeping)
-	itr->second = person;
+	allAMODCars[id]= person; //add this car to the global map of all AMOD cars (for bookkeeping)
 	nFreeCars++;
 	allAMODCarsMutex.unlock();
 
@@ -786,12 +785,12 @@ void AMODController::handleVHDestruction(Person *vh)
 			atrip.tripError = true;
 			saveTripStat(atrip);
 
-			allAMODCars.erase(vh->amodId);
+			allAMODCars.erase(itr);
 			allAMODCarsMutex.unlock();
 
 			vhOnTheRoad.erase(vh->amodId);
 
-			addNewVh2CarPark(vh->amodId, atrip.destination);
+			//addNewVh2CarPark(vh->amodId, atrip.destination);
 
 			vhTripMapMutex.lock();
 			vhTripMap.erase(vh);
@@ -855,7 +854,7 @@ void AMODController::handleVHArrive(Person* vh)
 {
 	vh->amodVehicle = NULL;
 	vh->currStatus = Person::REPLACED;
-	mThread = boost::thread(&AMODController::processArrival, this, vh);
+	//mThread = boost::thread(&AMODController::processArrival, this, vh);
 
 	/*
 	bool reCreation = true;
@@ -1137,6 +1136,18 @@ void AMODController::saveTripStat(AmodTrip &a) {
 
 	return;
 }
+
+void AMODController::unregisteredChild(Entity* child)
+{
+	Person *person = dynamic_cast<Person*>(child);
+	if(person){
+		TripMapIterator itr = vhTripMap.find(person);
+		if(itr!=vhTripMap.end()){
+			handleVHDestruction(person);
+		}
+	}
+}
+
 
 //checks for pickups
 void AMODController::checkForPickups(void) {

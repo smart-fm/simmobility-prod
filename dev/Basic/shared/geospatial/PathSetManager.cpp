@@ -29,6 +29,15 @@ using std::string;
 
 using namespace sim_mob;
 
+std::string getFromToString(const sim_mob::Node* fromNode,const sim_mob::Node* toNode ){
+	std::stringstream out("");
+	std::string idStrTo = toNode->originalDB_ID.getLogItem();
+	std::string idStrFrom = fromNode->originalDB_ID.getLogItem();
+	out << getNumberFromAimsunId(idStrFrom) << "," << getNumberFromAimsunId(idStrTo);
+	Print() << "debug: " << idStrFrom << "   " << getNumberFromAimsunId(idStrFrom) << std::endl;
+	return out.str();
+}
+
 PathSetManager *sim_mob::PathSetManager::instance_;
 //sim_mob::Profiler sim_mob::PathSetManager::profiler(false,"path_set_profiler.txt", "main_profiler");
 
@@ -725,11 +734,22 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 
 	const sim_mob::Node* fromNode = st->fromLocation.node_;
 	const sim_mob::Node* toNode = st->toLocation.node_;
-	std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
-	std::string pathSetID = fromId_toId;
+	if(toNode == fromNode){
+		sim_mob::Profiler::instance["path_set"] << "same OD objects discarded:" << toNode->getID() << sim_mob::Profiler::newLine;
+		return res;
+	}
+	if(toNode->getID() == fromNode->getID()){
+		sim_mob::Profiler::instance["path_set"] << "Error: same OD id from different objects discarded:" << toNode->getID() << sim_mob::Profiler::newLine;
+		return res;
+	}
+	std::stringstream out("");
+	std::string idStrTo = toNode->originalDB_ID.getLogItem();
+	std::string idStrFrom = fromNode->originalDB_ID.getLogItem();
+	out << getNumberFromAimsunId(idStrFrom) << "," << getNumberFromAimsunId(idStrTo);
+	std::string fromToID(out.str());
 	sim_mob::PathSet ps_;
 	//check cache
-	if(isUseCache && findCachedPathSet(fromId_toId,ps_))
+	if(isUseCache && findCachedPathSet(fromToID,ps_))
 	{
 		sim_mob::Profiler::instance["path_set"] << "Cache Hit" << std::endl;
 		bool r = getBestPathChoiceFromPathSet(ps_, exclude_seg);
@@ -747,7 +767,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 	}
 	//check db
 	bool hasPSinDB = false;
-	pathSetID = "'"+pathSetID+"'";
+	std::string pathSetID = "'"+fromToID+"'";
 	hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
 							*sql,
 							ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
@@ -815,7 +835,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 
 	if(!hasPSinDB)
 	{
-		sim_mob::Profiler::instance["path_set"]<<"generate All PathChoices for "<<fromId_toId << std::endl;
+		sim_mob::Profiler::instance["path_set"]<<"generate All PathChoices for "<<fromToID << std::endl;
 		// 1. generate shortest path with all segs
 		// 1.1 check StreetDirectory
 		if(!stdir || !roadNetwork)
@@ -825,7 +845,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 		// 1.2 get all segs
 		// 1.3 generate shortest path with full segs
 		ps_ = PathSet(fromNode,toNode);
-		ps_.id = fromId_toId;
+		ps_.id = fromToID;
 		ps_.from_node_id = fromNode->originalDB_ID.getLogItem();
 		ps_.to_node_id = toNode->originalDB_ID.getLogItem();
 		ps_.scenario = scenarioName;
@@ -838,7 +858,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob
 		}
 		sim_mob::generatePathSizeForPathSet2(&ps_);
 		std::map<std::string,sim_mob::PathSet* > tmp;
-		tmp.insert(std::make_pair(fromId_toId,&ps_));
+		tmp.insert(std::make_pair(fromToID,&ps_));
 		pathSetParam->storePathSet(*sql,tmp,pathSetTableName);
 		pathSetParam->storeSinglePath(*sql,ps_.pathChoices,singlePathTableName);
 		//
@@ -931,8 +951,8 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, const std::s
 	ps->has_path = 1;
 	ps->isNeedSave2DB = true;
 	ps->oriPath = s;
-	std::string fromId_toId = ps->fromNode->originalDB_ID.getLogItem() +"_"+ ps->toNode->originalDB_ID.getLogItem();
-	ps->id = fromId_toId;
+	std::string fromToID(getFromToString(ps->fromNode, ps->toNode));
+	ps->id = fromToID;
 	ps->singlepath_id = s->id;
 	s->pathset_id = ps->id;
 	s->pathSet = ps;
@@ -969,6 +989,9 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, const std::s
 //			work->s = NULL;
 			work->s->clear();
 			work->ps = ps;
+			std::stringstream out("");
+			out << "sdle," << i << "," << ps->fromNode->getID() << "," << ps->toNode->getID() ;
+			work->dbgStr = out.str();
 			threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
 			workPool.push_back(work);
 		} //ROAD_SEGMENT
@@ -1012,6 +1035,9 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, const std::s
 //				work->s = NULL;
 				work->s->clear();
 				work->ps = ps;
+				std::stringstream out("");
+				out << "ttle," << i << "," << ps->fromNode->getID() << "," << ps->toNode->getID() ;
+				work->dbgStr = out.str();
 				threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
 				workPool.push_back(work);
 			} //ROAD_SEGMENT
@@ -1055,6 +1081,9 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, const std::s
 				work->s->clear();
 //				work->s = NULL;
 				work->ps = ps;
+				std::stringstream out("");
+				out << "highway," << i << "," << ps->fromNode->getID() << "," << ps->toNode->getID() ;
+				work->dbgStr = out.str();
 				threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
 				workPool.push_back(work);
 			} //ROAD_SEGMENT
@@ -1087,6 +1116,9 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, const std::s
 //		work->s = NULL;
 		work->s->clear();
 		work->ps = ps;
+		std::stringstream out("");
+		out << "random," << i << "," << ps->fromNode->getID() << "," << ps->toNode->getID() ;
+		work->dbgStr = out.str();
 		threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
 		workPool.push_back(work);
 	}
@@ -1097,7 +1129,9 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, const std::s
 	//a.record the shortest path with all segments
 	ps->pathChoices.insert(ps->oriPath);
 	BOOST_FOREACH(PathSetWorkerThread* p, workPool){
-		ps->pathChoices.insert(p->s);
+		if(p->hasPath){
+			ps->pathChoices.insert(p->s);
+		}
 	}
 
 //	ps->SinglePathPool.insert(std::make_pair(ps->oriPath->id,ps->oriPath));
@@ -1128,11 +1162,11 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 	//find the node id
 	const sim_mob::Node* fromNode = st->fromLocation.node_;
 	const sim_mob::Node* toNode = st->toLocation.node_;
-	std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
-	std::string pathSetID=fromId_toId;
+	std::string fromToID(getFromToString(fromNode,toNode));
+	std::string pathSetID=fromToID;
 	//check cache to save a trouble if the path already exists
 	vector<WayPoint> cachedResult;
-	if(getCachedBestPath(fromId_toId,cachedResult))
+	if(getCachedBestPath(fromToID,cachedResult))
 	{
 		return cachedResult;
 	}
@@ -1188,7 +1222,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 								}
 							}
 							ps_.pathChoices.clear();
-							insertFromTo_BestPath_Pool(fromId_toId,res);
+							insertFromTo_BestPath_Pool(fromToID,res);
 							return res;
 						}
 						else
@@ -1205,7 +1239,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 		} // hasPSinDB
 		else
 		{
-			sim_mob::Profiler::instance["path_set"]<<"gBestPC2: create data for "<<fromId_toId<<std::endl;
+			sim_mob::Profiler::instance["path_set"]<<"gBestPC2: create data for "<<fromToID<<std::endl;
 			// 1. generate shortest path with all segs
 			// 1.1 check StreetDirectory
 			if(!stdir || !roadNetwork)
@@ -1222,12 +1256,12 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 				ps_ = PathSet(fromNode,toNode);
 				ps_.has_path = -1;
 				ps_.isNeedSave2DB = true;
-				ps_.id = fromId_toId;
+				ps_.id = fromToID;
 				ps_.from_node_id = fromNode->originalDB_ID.getLogItem();
 				ps_.to_node_id = toNode->originalDB_ID.getLogItem();
 				ps_.scenario = scenarioName;
 				std::map<std::string,sim_mob::PathSet* > tmp;
-				tmp.insert(std::make_pair(fromId_toId,&ps_));
+				tmp.insert(std::make_pair(fromToID,&ps_));
 				sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),tmp);
 				return res;
 			}
@@ -1238,7 +1272,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 			ps_.subTrip = st;
 			ps_.isNeedSave2DB = true;
 			ps_.oriPath = s;
-			ps_.id = fromId_toId;
+			ps_.id = fromToID;
 			ps_.singlepath_id = s->id;
 			s->pathset_id = ps_.id;
 			s->pathSet = &ps_;
@@ -1258,7 +1292,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 				// 3. store pathset
 				sim_mob::generatePathSizeForPathSet2(&ps_);
 				std::map<std::string,sim_mob::PathSet* > tmp;
-				tmp.insert(std::make_pair(fromId_toId,&ps_));
+				tmp.insert(std::make_pair(fromToID,&ps_));
 				sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),tmp);
 				//
 				bool r = getBestPathChoiceFromPathSet(ps_);
@@ -1730,6 +1764,9 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::generateSinglePathByFromToNodes3
 	}
 	// make sp id
 	std::string id = sim_mob::makeWaypointsetString(wp);
+	if(!id.size()){
+		sim_mob::Profiler::instance["path_set"] << "Error: Empty shortest path for OD:" <<  fromNode->getID() << "," << toNode->getID() << sim_mob::Profiler::newLine;
+	}
 	// 1.31 check path pool
 	std::map<std::string,SinglePath*>::iterator it =  wp_spPool.find(id);
 	// no stored path found, generate new one
@@ -1748,6 +1785,9 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::generateSinglePathByFromToNodes3
 		s->scenario = scenarioName;
 		s->pathsize=0;
 		wp_spPool.insert(std::make_pair(id,s));
+	}
+	else{
+
 	}
 
 	return s;
@@ -1855,15 +1895,15 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 														   bool isUseCache)
 {
 	// 0. check pathSetPool already calculate before with this pair
-	std::string fromId_toId = fromNode->originalDB_ID.getLogItem() +"_"+ toNode->originalDB_ID.getLogItem();
+	std::string fromToID = fromNode->getID() +","+ toNode->getID();
 	// 0.1 no data in memory, so check db
-	std::string pathSetID=fromId_toId;
+	std::string pathSetID=fromToID;
 	pathSetID = "'"+pathSetID+"'";
 	PathSet *ps = NULL;
 	// check cache first
 	if(isUseCache)
 	{
-		ps = getPathSetByFromToNodeAimsunId(fromId_toId);
+		ps = getPathSetByFromToNodeAimsunId(fromToID);
 		if(ps)
 		{
 			return ps;
@@ -1882,7 +1922,7 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 				pathSetPool,pathSetID);
 		if(res)
 		{
-			ps = getPathSetByFromToNodeAimsunId(fromId_toId);
+			ps = getPathSetByFromToNodeAimsunId(fromToID);
 			// 0.2 no data in db, so create new
 			if(ps)
 			{
@@ -1903,11 +1943,11 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 			}
 			else
 			{
-				sim_mob::Profiler::instance["path_set"]<<"gPSByFTNodes: data in db ,but not in mem?  "<<fromId_toId<<std::endl;
+				sim_mob::Profiler::instance["path_set"]<<"gPSByFTNodes: data in db ,but not in mem?  "<<fromToID<<std::endl;
 			}
 		}
 	}
-	sim_mob::Profiler::instance["path_set"]<<"gPSByFTNodes: create data for "<<fromId_toId<<std::endl;
+	sim_mob::Profiler::instance["path_set"]<<"gPSByFTNodes: create data for "<<fromToID<<std::endl;
 	// 1. generate shortest path with all segs
 	// 1.1 check StreetDirectory
 	if(!stdir || !roadNetwork)
@@ -1927,7 +1967,7 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 	ps->subTrip = st;
 	ps->isNeedSave2DB = true;
 	ps->oriPath = s;
-	ps->id = fromId_toId;
+	ps->id = fromToID;
 	ps->singlepath_id = s->id;
 	s->pathset_id = ps->id;
 	s->pathSet = ps;
@@ -1963,10 +2003,10 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 	sim_mob::generatePathSizeForPathSet2(ps);
 	if(isUseCache)
 	{
-		pathSetPool.insert(std::make_pair(fromId_toId,ps));
+		pathSetPool.insert(std::make_pair(fromToID,ps));
 	}
 	std::map<std::string,sim_mob::PathSet* > tmp;
-	tmp.insert(std::make_pair(fromId_toId,ps));
+	tmp.insert(std::make_pair(fromToID,ps));
 	sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),tmp);
 
 	return ps;
@@ -1976,28 +2016,26 @@ std::string sim_mob::makeWaypointsetString(std::vector<WayPoint>& wp)
 	std::string str;
 	if(wp.size()==0)
 	{
-		sim_mob::Profiler::instance["path_set"]<<"warning: makeWaypointsetString"<<std::endl;
+		sim_mob::Profiler::instance["path_set"]<<"warning: empty input for makeWaypointsetString"<<std::endl;
 	}
+
 	for(std::vector<WayPoint>::iterator it = wp.begin(); it != wp.end(); it++)
 	{
-		int i=0;
-		if (it->type_ == WayPoint::ROAD_SEGMENT) {
+		if (it->type_ == WayPoint::ROAD_SEGMENT)
+		{
 			std::string tmp = it->roadSegment_->originalDB_ID.getLogItem();
-			if(i==0)
-			{
-				str += getNumberFromAimsunId(tmp) + "_";
-			}
-			else
-			{
-				str += "_"+getNumberFromAimsunId(tmp);
-			}
-			i++;
+			str += getNumberFromAimsunId(tmp) + ",";
 		} // if ROAD_SEGMENT
 	}
+//todo	//remove the last ','
+//	if(wp.begin() != wp.end() && *str.rbegin() == ',')
+//	{
+//		str.erase(str.size() -1);
+//	}
 	if(str.size()<1)
 	{
 		// when same f,t node, it happened
-		sim_mob::Profiler::instance["path_set"]<<"warning: makeWaypointsetString id"<<std::endl;
+		sim_mob::Profiler::instance["path_set"]<<"warning: empty output makeWaypointsetString id"<<std::endl;
 	}
 	return str;
 }
@@ -2497,7 +2535,7 @@ sim_mob::SinglePath::SinglePath(const SinglePath& source) :
 
 	//use id to build shortestWayPointpath
 	std::vector<std::string> segIds;
-	boost::split(segIds,source.id,boost::is_any_of("_"));
+	boost::split(segIds,source.id,boost::is_any_of(","));
 	// no path is correct
 	for(int i=0;i<segIds.size();++i)
 	{
@@ -2966,9 +3004,10 @@ bool sim_mob::PathSetManager::getWayPointPath2(std::vector<WayPoint> &wp,sim_mob
 	for (vector<WayPoint>::iterator it = wp.begin(); it != wp.end(); it++) {
 			if (it->type_ == WayPoint::ROAD_SEGMENT) {
 				const sim_mob::RoadSegment* seg = it->roadSegment_;
-				id += seg->originalDB_ID.getLogItem() + "_";
+				id += seg->originalDB_ID.getLogItem() + ",";
 			}
 	}
+
 	std::map<std::string,SinglePath*>::iterator it =  waypoint_singlepathPool.find(id);
 	if(it!=waypoint_singlepathPool.end())
 	{
@@ -3069,7 +3108,7 @@ sim_mob::SinglePath::SinglePath(SinglePath *source) :
 	{
 		//use id to build shortestWayPointpath
 		std::vector<std::string> segIds;
-		boost::split(segIds,source->id,boost::is_any_of("_"));
+		boost::split(segIds,source->id,boost::is_any_of(","));
 		// no path is correct
 		for(int i=0;i<segIds.size();++i)
 		{

@@ -40,6 +40,7 @@ public:
 	bool hasPath;
 	///used by local profilers to report to the profiler in higher level.
 	sim_mob::Profiler *parentProfiler;
+	std::string dbgStr;
 };
 
 }

@@ -16,6 +16,7 @@ sim_mob::PathSetWorkerThread::PathSetWorkerThread()
 	s = new sim_mob::SinglePath();
 	hasPath = false;
 	parentProfiler = nullptr;
+	dbgStr = "";
 }
 sim_mob::PathSetWorkerThread::~PathSetWorkerThread()
 {
@@ -159,6 +160,12 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 	} else {
 		// make sp id
 		std::string id = sim_mob::makeWaypointsetString(wp);
+		if(!id.size()){
+			sim_mob::Profiler::instance["path_set"] << "Error: Empty choice!!! yet valid=>" << dbgStr <<  sim_mob::Profiler::newLine;
+		}
+		else{
+			sim_mob::Profiler::instance["path_set"] << "Path generated through:" << dbgStr <<  ":" << id << sim_mob::Profiler::newLine;
+		}
 		// fill data
 		s->pathSet = ps;
 		s->isNeedSave2DB = true;

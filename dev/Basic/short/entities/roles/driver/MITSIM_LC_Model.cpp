@@ -869,11 +869,9 @@ void sim_mob::MITSIM_LC_Model::makeMCLParam(std::string& str)
 {
 	std::vector<double> array;
 	sim_mob::Utils::convertStringToArray(str,array);
-	MLC_PARAMETERS.feet_lowbound = array[0];
-	MLC_PARAMETERS.feet_delta = array[1];
-	MLC_PARAMETERS.lane_coeff = array[2];
-	MLC_PARAMETERS.congest_coeff = array[3];
-	MLC_PARAMETERS.lane_mintime = array[4];
+	MLC_PARAMETERS.lowbound = array[0];
+	MLC_PARAMETERS.delta = array[1];
+	MLC_PARAMETERS.lane_mintime = array[2];
 
 }
 void sim_mob::MITSIM_LC_Model::makeCtriticalGapParam(DriverUpdateParams& p,std::vector< std::string >& strMatrix)
@@ -1668,8 +1666,7 @@ double sim_mob::MITSIM_LC_Model::mlcDistance()
 {
 	double n = Utils::generateFloat(0,1.0);
 //	float dis = mlcParams[0] + n*(mlcParams_[1] - mlcParams_[0]);
-	double dis = MLC_PARAMETERS.feet_lowbound + n*(MLC_PARAMETERS.feet_delta - MLC_PARAMETERS.feet_lowbound);
-	dis = Utils::toMeter(dis);
+	double dis = MLC_PARAMETERS.lowbound + n*(MLC_PARAMETERS.delta - MLC_PARAMETERS.lowbound);
 	return dis;
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdateParams& p)

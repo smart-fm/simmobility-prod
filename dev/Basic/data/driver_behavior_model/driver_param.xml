@@ -190,11 +190,9 @@
 	A vehicle must remain in a lane for a minimum of "minimum time in lane" seconds before
 	considering another lane chane.-->                                   
 	<param name="MLC_PARAMETERS" value="
-						100.0         #lower bound(ft) 
-						200.0         #delta(ft)
-						0.5            #coef for number of lanes
-						1.0            #coef for congestion level
-						1.0 	       #minimum time in lane
+						30.0         #lower bound(meter) 
+						60.0         #delta(meter)
+						1.0 	       #minimum time in lane (sec)
 	"/>
 
 <!-- H.2 Lane utility Model

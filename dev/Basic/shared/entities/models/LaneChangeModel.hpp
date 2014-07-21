@@ -77,10 +77,8 @@ public:
      * Simple struct to hold mandatory lane changing parameters
      */
     struct MandLaneChgParam {
-        double feet_lowbound;
-        double feet_delta;
-        double lane_coeff;
-        double congest_coeff;
+        double lowbound; // meter
+        double delta;  // meter
         double lane_mintime; // sec
     };
 
@@ -258,7 +256,7 @@ public:
 
 	/**
 	 *  /brief mlc distance for lookahead vehicles
-	 *  /return lookahead distance
+	 *  /return lookahead distance (meter)
 	 */
 	double mlcDistance();
 	/**

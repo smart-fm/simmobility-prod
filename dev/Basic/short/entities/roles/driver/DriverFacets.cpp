@@ -147,10 +147,7 @@ void sim_mob::DriverMovement::init() {
 	}
 	DriverUpdateParams& p2 = parentDriver->getParams();
 	p2.parentId = getParent()->getId();
-	if(p2.parentId == 8)
-	{
-		int i=0;
-	}
+
 //Initialize our models. These should be swapable later.
 	lcModel = new MITSIM_LC_Model(p2);
 	cfModel = new MITSIM_CF_Model(p2);
@@ -668,11 +665,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 				parentDriver->perceivedAccOfFwdCar->sense();
 		p.perceivedDistToFwdCar =
 				parentDriver->perceivedDistToFwdCar->sense();
-		if(p.parentId == 1 && p.now.frame()>385)
-		{
-			int i=0;
-//			parentDriver->perceivedDistToFwdCar->printHistory();
-		}
+
 	} else {
 //		NearestVehicle & nv = nearestVehicle(p);
 		NearestVehicle & nv = p.nvFwd;
@@ -685,12 +678,6 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 		p.perceivedDistToFwdCar = nv.distance;
 	}
 
-	if(p.parentId == 66508 && p.now.frame()>1280)
-	{
-		int i=0;
-//		parentDriver->perceivedTrafficColor->printHistory();
-//		parentDriver->perceivedDistToTrafficSignal->printHistory();
-	}
 	if (parentDriver->perceivedTrafficColor->can_sense()) {
 				p.perceivedTrafficColor =
 						parentDriver->perceivedTrafficColor->sense();
@@ -727,12 +714,12 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 	p.newFwdAcc = cfModel->makeAcceleratingDecision(p, p.desiredSpeed,
 			p.maxLaneSpeed);
 
-	if (parentDriver->parent->GetId() == 888
-			&& parentDriver->getParams().now.frame() >= 50) {
-		p.newFwdAcc = -3;
-		p.unsetStatus(STATUS_CHANGING);
-		p.unsetStatus(STATUS_LC_CHANGING);
-	}
+//	if (parentDriver->parent->GetId() == 888
+//			&& parentDriver->getParams().now.frame() >= 50) {
+//		p.newFwdAcc = -3;
+//		p.unsetStatus(STATUS_CHANGING);
+//		p.unsetStatus(STATUS_LC_CHANGING);
+//	}
 
 }
 double sim_mob::DriverMovement::move(DriverUpdateParams& p) {
@@ -749,11 +736,6 @@ double sim_mob::DriverMovement::move(DriverUpdateParams& p) {
 	}
 
 	newLatVel = lcModel->executeLaterVel(lcs);
-
-	if(abs(newLatVel) != 0 && p.now.frame()>46)
-	{
-		int i=0;
-	}
 
 	p.newLatVelM = newLatVel;
 
@@ -1065,10 +1047,7 @@ bool sim_mob::DriverMovement::laneConnectToSegment(sim_mob::Lane* lane,
 //	std::cout<<"lane: "<<lane->getRoadSegment()->originalDB_ID.getLogItem()<<std::endl;
 //	std::cout<<"to seg: "<<rs->originalDB_ID.getLogItem()<<std::endl;
 	const RoadSegment* from = lane->getRoadSegment();
-	if(lane->getRoadSegment()->getEnd() != rs->getStart())
-	{
-		int i=0;
-	}
+
 	if (currEndNode) {
 // if is intersection
 // get lane connector
@@ -1848,20 +1827,14 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 // int distance = other_offset - params.currLaneOffset;
 		double distance = other_offset
 				- fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
-//		if(params.parentId == 1)
-//		{
-//			int i=0;
-//		}
+
 		if (distance == 0)
 			return false;
 		bool fwd = distance >= 0;
 
 //Set different variables depending on where the car is.
 		if (other_lane == params.currLane) { //the vehicle is on the current lane
-			if(params.now.frame()>300 && distance/100.0 > -0.1 && distance/100.0 < 0.1)
-					{
-						int i=0;
-					}
+
 			check_and_set_min_car_dist((fwd ? params.nvFwd : params.nvBack),
 					distance, parentDriver->vehicle, other_driver);
 		} else if (other_lane == params.leftLane) { //the vehicle is on the left lane

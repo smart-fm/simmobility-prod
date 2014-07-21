@@ -1003,19 +1003,10 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	double eul = 0.0, eur = 0.0, euc = 1.0 ;
 	double lcDistance = p.dis2stop;
 
-	if(p.parentId == 889 && p.now.frame()>130)
-	{
-		int i=0;
-	}
 
 	int res = isReadyForNextDLC(p,2);
 	if( (res || nCurrent>0) && p.leftLane ) {
 		eul = lcUtilityLookAheadLeft(p, nLeft, lcDistance);
-	}
-
-	if(p.utilityLeft>1000)
-	{
-		int i=0;
 	}
 
 	res = isReadyForNextDLC(p,1);
@@ -1712,11 +1703,6 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 			throw std::runtime_error("makeLaneChangingDecision: error, in mid of changing lane, but status is lcs_same");
 		}
 	}//end getStatus()
-
-	if(p.parentId == 889 && p.now.frame()>60)
-	{
-		int i=0;
-	}
 
 //	if(p.perceivedFwdVelocity/100 < minSpeed)
 //	{

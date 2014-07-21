@@ -935,16 +935,7 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p) {
 				if(color == Signal::Red)
 #endif
 				{
-					if(p.parentId == 66508)
-					{
-						int i=0;
-						Print() << "p.perceivedDistToTrafficSignal : "
-								<< p.perceivedDistToTrafficSignal << std::endl;
-//						Print() << "parentDriver->perceivedDistToTrafficSignal : "
-//								<< (p.driver->perceivedDistToTrafficSignal->can_sense() ?
-//										p.driver->perceivedDistToTrafficSignal->sense() : -1)
-//								<< std::endl;
-					}
+
 			double a = brakeToStop(p, dis);
 			if (a < minacc)
 				minacc = a;
@@ -1520,10 +1511,6 @@ double sim_mob::MITSIM_CF_Model::accOfCarFollowing(DriverUpdateParams& p) {
 //	res += feet2Unit(nRandom(p.gen, 0, CF_parameters[i].stddev));
 	res += feet2Unit(Utils::nRandom(0, CF_parameters[i].stddev));
 
-	if(res<0)
-	{
-		int i=0;
-	}
 	return res;
 }
 

@@ -47,8 +47,8 @@ PathSetParam *sim_mob::PathSetParam::instance_ = NULL;
 //const std::string singlePathTableName = "SinglePath_Scaled_HITS_distinctODs";
 
 
-const std::string pathSetTableName = "PathSet_SH_V";
-const std::string singlePathTableName = "SinglePath_SH_V";
+const std::string pathSetTableName = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName;
+const std::string singlePathTableName = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().singlePathTableName;
 
 sim_mob::PathSetParam* sim_mob::PathSetParam::getInstance()
 {

@@ -19,22 +19,7 @@ bool sim_mob::CMakeConfigParams::MPI_Disabled() const
 	return false;
 #endif
 }
-// use pathset to generate path of driver
-bool sim_mob::CMakeConfigParams::PathSetMode() const {
-#ifdef SIMMOB_PATHSET_MODE
-	return true;
-#else
-	return false;
-#endif
-}
-// use pathset to generate path of driver
-bool sim_mob::CMakeConfigParams::PathSetGenerationMode()const {
-#ifdef SIMMOB_SERIAL_PATHSET_GROUP_MODE
-	return true;
-#else
-	return false;
-#endif
-}
+
 bool sim_mob::CMakeConfigParams::OutputEnabled() const
 {
 	return !OutputDisabled();

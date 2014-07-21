@@ -75,7 +75,7 @@ public:
 	double getDefaultTravelTimeBySegId(std::string id);
 	double getTravelTimeBySegId(std::string id,sim_mob::DailyTime startTime);
 	sim_mob::WayPoint* getWayPointBySeg(const sim_mob::RoadSegment* seg);
-	sim_mob::Node* getNodeByAimsunId(std::string id);
+	sim_mob::Node* getNodeById(unsigned int id);
 	double getHighwayBias() { return highway_bias; }
 	void initParameters();
 	double bTTVOT;
@@ -96,7 +96,7 @@ public:
 
 	std::map<std::string,sim_mob::RoadSegment*> segPool; // store all segs <aimsun id ,seg>
 	std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*> wpPool; // <seg , value>
-	std::map<std::string,sim_mob::Node*> nodePool; // store all nodes <aimsun id ,node>
+	std::map<unsigned int,sim_mob::Node*> nodePool; // store all nodes <id ,node>
 
 	const sim_mob::RoadNetwork* roadNetwork;
 	std::vector<sim_mob::MultiNode*> multiNodesPool; //store all multi nodes in the map
@@ -210,9 +210,7 @@ struct personOD{
 typedef std::multimap<const sim_mob::RoadSegment*, personOD > RPOD ;// Roadsegment-Person-O-D  :)
 
 class PathSetManager {
-	///option to wait for each group of pathset generation to complete before starting another group
-	///for all 'link eliminations' and 'random perturbation'
-	bool serialPathSetGroup;
+
 public:
 	static PathSetManager* getInstance()
 	{
@@ -480,8 +478,8 @@ public:
 	double logsum;
 	const sim_mob::SubTrip* subTrip; // pathset use info of subtrip to generate all things
 	std::string id;
-	std::string from_node_id;
-	std::string to_node_id;
+	unsigned int from_node_id;
+	unsigned int to_node_id;
 	std::string singlepath_id;
 	std::string excludedPaths;
 	std::string scenario;

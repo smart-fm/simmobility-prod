@@ -66,8 +66,8 @@ template<> struct type_conversion<sim_mob::PathSet>
     static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::PathSet &res)
     {
     	res.id = vals.get<std::string>("ID", "");
-    	res.from_node_id = vals.get<std::string>("FROM_NODE_ID", "");
-    	res.to_node_id = vals.get<std::string>("TO_NODE_ID", "");
+    	res.from_node_id = vals.get<unsigned int>("FROM_NODE_ID", 0);
+    	res.to_node_id = vals.get<unsigned int>("TO_NODE_ID", 0);
 //    	res.person_id = vals.get<string>("PERSON_ID", "");
 //    	res.trip_id = vals.get<string>("TRIP_ID", "");
     	res.singlepath_id = vals.get<std::string>("SINGLEPATH_ID", "");

@@ -36,7 +36,7 @@ public:
 	virtual LANE_CHANGE_SIDE makeLaneChangingDecision(DriverUpdateParams& p) = 0;
 	///to execute the lane changing, meanwhile, check if crash will happen and avoid it
 	///Return new lateral velocity, or <0 to keep the velocity at its previous value.
-	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode) = 0;
+//	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode) = 0;
 	virtual double executeLaneChanging(DriverUpdateParams& p)=0;
 	virtual void chooseTargetGap(DriverUpdateParams& p)=0;
 	virtual double executeLaterVel(LANE_CHANGE_SIDE& lcs)=0;
@@ -72,7 +72,6 @@ public:
 
 class MITSIM_LC_Model : public LaneChangeModel {
 public:
-	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode);
 
     /**
      * Simple struct to hold mandatory lane changing parameters

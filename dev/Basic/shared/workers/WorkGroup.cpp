@@ -608,8 +608,8 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 /**
  * Determines the first road segment of the agent and puts the agent in the corresponding conflux.
  */
-void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
-	sim_mob::Person* person = dynamic_cast<sim_mob::Person*>(ag);
+void sim_mob::WorkGroup::putAgentOnConflux(Entity* en) {
+	sim_mob::Person* person = dynamic_cast<sim_mob::Person*>(en);
 	if(person) {
 		const sim_mob::RoadSegment* rdSeg = sim_mob::Conflux::constructPath(person);
 		if(rdSeg) {

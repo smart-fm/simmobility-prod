@@ -195,7 +195,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++)
 	{
-		personWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
+		personWorkers->putAgentOnConflux(/*dynamic_cast<sim_mob::Agent*>(*it)*/*it);
 	}
 
 	if(BusController::HasBusControllers())

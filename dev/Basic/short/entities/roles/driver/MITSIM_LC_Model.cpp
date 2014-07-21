@@ -272,22 +272,6 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 
     return LCS_SAME;
 }
-
-
-double sim_mob::MITSIM_LC_Model::checkIfMandatory(DriverUpdateParams& p) {
-    if (p.nextLaneIndex == p.currLaneIndex)
-        p.dis2stop = 5000; //defalut 5000m
-    //The code below is MITSIMLab model
-    double num = 1; //now we just assume that MLC only need to change to the adjacent lane
-    double y = 0.5; //segment density/jam density, now assume that it is 0.5
-    //double delta0	=	feet2Unit(MLC_parameters.feet_lowbound);
-    double dis2stop_feet = Utils::toFeet(p.dis2stop);
-    double dis = dis2stop_feet - MLC_PARAMETERS.feet_lowbound;
-    double delta = 1.0 + MLC_PARAMETERS.lane_coeff * num + MLC_PARAMETERS.congest_coeff * y;
-    delta *= MLC_PARAMETERS.feet_delta;
-    return (delta == 0) ? 1 : exp(-dis * dis / (delta * delta));
-}
-
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(DriverUpdateParams& p) {
     LaneSide freeLanes = gapAcceptance(p, MLC);
     //find which lane it should get to and choose which side to change

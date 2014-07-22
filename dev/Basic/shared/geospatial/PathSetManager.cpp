@@ -299,48 +299,44 @@ void sim_mob::PathSetParam::initParameters()
 	maxHighwayParam = 0.422;
 }
 
-sim_mob::PathSetParam::PathSetParam() {
-	roadNetwork = &ConfigManager::GetInstance().FullConfig().getNetwork();
+sim_mob::PathSetParam::PathSetParam() :
+		roadNetwork(ConfigManager::GetInstance().FullConfig().getNetwork()),
+		multiNodesPool(roadNetwork.getNodes()), uniNodesPool(roadNetwork.getUniNodes())
+{
 	initParameters();
-	multiNodesPool = roadNetwork->getNodes();
-	uniNodesPool = roadNetwork->getUniNodes();
-			for(std::vector<sim_mob::Link *>::const_iterator it = roadNetwork->getLinks().begin(), it_end(roadNetwork->getLinks().end()); it != it_end ; it ++)
-			{
-				for(std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++)
-				{
-					if (!(*seg_it)->originalDB_ID.getLogItem().empty())
-					{
-						string aimsun_id = (*seg_it)->originalDB_ID.getLogItem();
-						string seg_id = getNumberFromAimsunId(aimsun_id);
-						segPool.insert(std::make_pair(seg_id,*seg_it));
-						WayPoint *wp = new WayPoint(*seg_it);
-						wpPool.insert(std::make_pair(*seg_it,wp));
-					}
-				}
-			}
-			for(int i=0;i<multiNodesPool.size();++i)
-			{
-				sim_mob::Node* n = multiNodesPool.at(i);
-				if (!n->originalDB_ID.getLogItem().empty())
-				{
-					//std::string id = n->originalDB_ID.getLogItem();
-					nodePool.insert(std::make_pair(n->getID(),n));
-				}
-			}
 
-			for(std::set<sim_mob::UniNode*>::iterator it=uniNodesPool.begin(); it!=uniNodesPool.end(); ++it)
-			{
-				sim_mob::UniNode* n = (*it);
-				if (!n->originalDB_ID.getLogItem().empty())
-				{
-					//std::string id = n->originalDB_ID.getLogItem();
-					nodePool.insert(std::make_pair(n->getID(),n));
-				}
+	for (std::vector<sim_mob::Link *>::const_iterator it =	roadNetwork.getLinks().begin(), it_end( roadNetwork.getLinks().end()); it != it_end; it++) {
+		for (std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++) {
+			if (!(*seg_it)->originalDB_ID.getLogItem().empty()) {
+				string aimsun_id = (*seg_it)->originalDB_ID.getLogItem();
+				string seg_id = getNumberFromAimsunId(aimsun_id);
+				segPool.insert(std::make_pair(seg_id, *seg_it));
+				WayPoint *wp = new WayPoint(*seg_it);
+				wpPool.insert(std::make_pair(*seg_it, wp));
 			}
-		sim_mob::Profiler::instance["path_set"]<<"PathSetParam: nodes amount "<<multiNodesPool.size() + uniNodesPool.size()<<std::endl;
-		sim_mob::Profiler::instance["path_set"]<<"PathSetParam: segments amount "<<roadNetwork->getLinks().size()<<std::endl;
+		}
+	}
 
-		getDataFromDB();
+	for (int i = 0; i < multiNodesPool.size(); ++i) {
+		sim_mob::Node* n = multiNodesPool.at(i);
+		if (!n->originalDB_ID.getLogItem().empty()) {
+			//std::string id = n->originalDB_ID.getLogItem();
+			nodePool.insert(std::make_pair(n->getID(), n));
+		}
+	}
+
+	for (std::set<sim_mob::UniNode*>::iterator it = uniNodesPool.begin(); it != uniNodesPool.end(); ++it) {
+		sim_mob::UniNode* n = (*it);
+		if (!n->originalDB_ID.getLogItem().empty()) {
+			//std::string id = n->originalDB_ID.getLogItem();
+			nodePool.insert(std::make_pair(n->getID(), n));
+		}
+	}
+
+	sim_mob::Profiler::instance["path_set"] << "PathSetParam: nodes amount " << multiNodesPool.size() + uniNodesPool.size() << std::endl;
+	sim_mob::Profiler::instance["path_set"] << "PathSetParam: segments amount "	<< roadNetwork.getLinks().size() << std::endl;
+
+	getDataFromDB();
 }
 
 sim_mob::PathSetManager::PathSetManager() {
@@ -350,15 +346,12 @@ sim_mob::PathSetManager::PathSetManager() {
 	Link_default_travel_time_pool = pathSetParam->Link_default_travel_time_pool;//I have no access to travel time, so I put this here. -vahid
 	stdir = &StreetDirectory::instance();
 	roadNetwork = &ConfigManager::GetInstance().FullConfig().getNetwork();
-	multiNodesPool = roadNetwork->getNodes();
-	uniNodesPool = roadNetwork->getUniNodes();
 //	// 1.2 get all segs
 	init();
 	if(!psDbLoader)
 	{
 		psDbLoader = new PathSetDBLoader(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
 	}
-//debug
 	threadpool_ = new sim_mob::batched::ThreadPool(50);
 }
 
@@ -2841,13 +2834,13 @@ sim_mob::PathSet* sim_mob::PathSetManager::getPathSetByPersonIdAndSubTripId(std:
 void sim_mob::PathSetManager::generatePaths2Node(const sim_mob::Node *toNode)
 {
 	// 1. from multinode to toNode
-	for(int i=0;i<multiNodesPool.size();++i)
+	for(int i=0;i< pathSetParam->multiNodesPool.size();++i)
 	{
-		sim_mob::MultiNode* fn = multiNodesPool.at(i);
+		sim_mob::MultiNode* fn = pathSetParam->multiNodesPool.at(i);
 		generateSinglePathByFromToNodes(fn,toNode);
 	}
 	// 2. from uninode to toNode
-	for(std::set<sim_mob::UniNode*>::iterator it=uniNodesPool.begin(); it!=uniNodesPool.end(); ++it)
+	for(std::set<sim_mob::UniNode*>::iterator it= pathSetParam->uniNodesPool.begin(); it!= pathSetParam->uniNodesPool.end(); ++it)
 	{
 		sim_mob::UniNode* fn = (*it);
 		generateSinglePathByFromToNodes(fn,toNode);

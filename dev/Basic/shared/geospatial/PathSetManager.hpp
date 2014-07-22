@@ -134,15 +134,15 @@ public:
 	std::map<std::string,sim_mob::RoadSegment*> segPool; // store all segs <aimsun id ,seg>
 	std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*> wpPool; // <seg , value>
 	std::map<unsigned int,sim_mob::Node*> nodePool; // store all nodes <id ,node>
-	std::vector<sim_mob::MultiNode*> multiNodesPool; //store all multi nodes in the map
-	std::set<sim_mob::UniNode*> uniNodesPool; // store all uni nodes
+	const std::vector<sim_mob::MultiNode*>  &multiNodesPool; //store all multi nodes in the map
+	const std::set<sim_mob::UniNode*> & uniNodesPool; // store all uni nodes
 	std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > ERP_Surcharge_pool; // <Gantry_No , value=ERP_Surcharge with same No diff time stamp>
 	std::map<std::string,sim_mob::ERP_Gantry_Zone*> ERP_Gantry_Zone_pool; //<Gantry_no, ERP_Gantry_Zone>
 	std::map<std::string,sim_mob::ERP_Section*> ERP_Section_pool;  // <aim-sun id , ERP_Section>
 	std::map<std::string,std::vector<sim_mob::Link_travel_time*> > Link_default_travel_time_pool; // <segment aim-sun id ,Link_default_travel_time with diff time stamp>
 	std::map<std::string,std::vector<sim_mob::Link_travel_time*> > Link_realtime_travel_time_pool;
 
-	const sim_mob::RoadNetwork* roadNetwork;
+	const sim_mob::RoadNetwork& roadNetwork;
 
 	/// table store travel time ,used to calculate pathset size
 	std::string pathset_traveltime_realtime_table_name;
@@ -349,8 +349,6 @@ private:
 	static PathSetManager *instance_;
 	StreetDirectory* stdir;
 	const sim_mob::RoadNetwork* roadNetwork;
-	std::vector<sim_mob::MultiNode*> multiNodesPool; //store all multi nodes in the map
-	std::set<sim_mob::UniNode*> uniNodesPool; // store all uni nodes
 
 	std::map<std::string,sim_mob::PathSet* > pathSetPool; // store all pathset , key = from node aimsun id + to node aimsun id
 														  // value = pathset

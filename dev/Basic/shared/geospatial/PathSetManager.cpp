@@ -39,13 +39,8 @@ std::string getFromToString(const sim_mob::Node* fromNode,const sim_mob::Node* t
 }
 
 PathSetManager *sim_mob::PathSetManager::instance_;
-//sim_mob::Profiler sim_mob::PathSetManager::profiler(false,"path_set_profiler.txt", "main_profiler");
 
 PathSetParam *sim_mob::PathSetParam::instance_ = NULL;
-//todo to be configurable somehow
-//const std::string pathSetTableName = "PathSet_Scaled_HITS_distinctODs";
-//const std::string singlePathTableName = "SinglePath_Scaled_HITS_distinctODs";
-
 
 const std::string pathSetTableName = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName;
 const std::string singlePathTableName = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().singlePathTableName;
@@ -156,7 +151,6 @@ double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::strin
 		}
 	}
 	//2. if no , check default
-//	double res=0.0;
 	it = Link_default_travel_time_pool.find(id);
 	if(it!=Link_default_travel_time_pool.end())
 	{
@@ -230,7 +224,6 @@ double sim_mob::PathSetParam::getTravelTimeBySegId(std::string id,sim_mob::Daily
 		}
 	}
 	//2. if no , check default
-//	double res=0.0;
 	it = Link_default_travel_time_pool.find(id);
 	if(it!=Link_default_travel_time_pool.end())
 	{
@@ -671,11 +664,6 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 	sim_mob::Profiler::instance["path_set"] << "=============================================================================================================================================" << std::endl;
 	sql = NULL;
 
-//	out.str("");
-//	out << "Total profiling time(ms) for person " << id.str() << " :" <<  elapsed << std::endl;
-//	out << "------------------------------------------------------------------------------------" << std::endl;
-	//All done for this person, so add the out put and time lapse to the main profiler
-
 	return res;
 }
 
@@ -971,7 +959,6 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, const std::s
 			work->fromNode = ps->fromNode;
 			work->toNode = ps->toNode;
 			work->excludeSeg = seg;
-//			work->s = NULL;
 			work->s->clear();
 			work->ps = ps;
 			std::stringstream out("");
@@ -1012,7 +999,6 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, const std::s
 				work->fromNode = ps->fromNode;
 				work->toNode = ps->toNode;
 				work->excludeSeg = seg;
-//				work->s = NULL;
 				work->s->clear();
 				work->ps = ps;
 				std::stringstream out("");
@@ -1054,7 +1040,6 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, const std::s
 				work->toNode = ps->toNode;
 				work->excludeSeg = seg;
 				work->s->clear();
-//				work->s = NULL;
 				work->ps = ps;
 				std::stringstream out("");
 				out << "highway," << i << "," << ps->fromNode->getID() << "," << ps->toNode->getID() ;
@@ -1104,20 +1089,6 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, const std::s
 		}
 	}
 
-//	ps->SinglePathPool.insert(std::make_pair(ps->oriPath->id,ps->oriPath));
-//	//b.record the rest of paths
-//	for(int i=0;i<workPool.size();++i)
-//	{
-//		if(workPool[i]->hasPath)
-//		{
-//			std::map<std::string,sim_mob::SinglePath*>::iterator it = ps->SinglePathPool.find(workPool[i]->s->id);
-//			if(it==ps->SinglePathPool.end())
-//			{
-//				// this sp not store before
-//				ps->SinglePathPool.insert(std::make_pair(workPool[i]->s->id,workPool[i]->s));
-//			}
-//		}
-//	}
 	return true;
 }
 
@@ -1525,13 +1496,6 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps,
 		sim_mob::Profiler::instance["path_set"]<<"warning gBPCFromPS: ori path empty"<<std::endl;
 		return false;
 	}
-	//what is it anyways?
-//	int gdata=0;
-//	if(gdata)
-//	{
-//		ps.bestWayPointpathP = ps.oriPath->shortestWayPointpath;
-//		return true;
-//	}
 	// step 1.1 : For each path i in the path choice:
 	//1. set PathSet(O, D)
 	//2. travle_time
@@ -1570,7 +1534,6 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(sim_mob::PathSet& ps,
 			tempExpUtil.push_back(exp(sp->utility));
 		}
 	}
-//	sim_mob::Profiler::instance["path_set"] << "ps.pathChoices.size():" << ps.pathChoices.size() << "     \n" << out.str() << "=> logsum = " << ps.logsum << std::endl;
 	// step 2: find the best waypoint path :
 		// calculate a probability using path's utility and pathset's logsum,
 		// compare the resultwith a  random number to decide whether pick the current path as the best path or not
@@ -2003,11 +1966,7 @@ std::string sim_mob::makeWaypointsetString(std::vector<WayPoint>& wp)
 			str += getNumberFromAimsunId(tmp) + ",";
 		} // if ROAD_SEGMENT
 	}
-//todo	//remove the last ','
-//	if(wp.begin() != wp.end() && *str.rbegin() == ',')
-//	{
-//		str.erase(str.size() -1);
-//	}
+
 	if(str.size()<1)
 	{
 		// when same f,t node, it happened
@@ -2084,19 +2043,6 @@ void sim_mob::generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCache)
 			}
 
 		}
-//		if(i==0)
-//		{
-//			minTravelTime = sp->travle_time;
-//			idx = 0;
-//		}
-//		else
-//		{
-//			if(sp->travle_time < minTravelTime)
-//			{
-//				minTravelTime = sp->travle_time;
-//				idx = i;
-//			}
-//		}
 	}
 	if(!ps->pathChoices.empty() && minSP)
 	{
@@ -2121,19 +2067,6 @@ void sim_mob::generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCache)
 
 		}
 
-//		if(i==0)
-//		{
-//			minDistance = sp->length;
-//			idx = 0;
-//		}
-//		else
-//		{
-//			if(sp->length < minDistance)
-//			{
-//				minTravelTime = sp->length;
-//				idx = i;
-//			}
-//		}
 	}
 	if(!ps->pathChoices.empty() && minSP)
 	{
@@ -2158,19 +2091,6 @@ void sim_mob::generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCache)
 
 		}
 
-//		if(i==0)
-//		{
-//			minSignal = sp->signal_number;
-//			idx = 0;
-//		}
-//		else
-//		{
-//			if(sp->signal_number < minSignal)
-//			{
-//				minSignal = sp->signal_number;
-//				idx = i;
-//			}
-//		}
 	}
 	if(!ps->pathChoices.empty())
 	{
@@ -2194,19 +2114,6 @@ void sim_mob::generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCache)
 
 		}
 
-//		if(i==0)
-//		{
-//			minRightTurn = sp->right_turn_number;
-//			idx = 0;
-//		}
-//		else
-//		{
-//			if(sp->right_turn_number < minRightTurn)
-//			{
-//				minSignal = sp->right_turn_number;
-//				idx = i;
-//			}
-//		}
 	}
 	if(!ps->pathChoices.empty())
 	{
@@ -2229,19 +2136,6 @@ void sim_mob::generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCache)
 			}
 
 		}
-//		if(i==0)
-//		{
-//			maxHighWayUsage = sp->highWayDistance / sp->length;
-//			idx = 0;
-//		}
-//		else
-//		{
-//			if(sp->highWayDistance / sp->length > maxHighWayUsage)
-//			{
-//				maxHighWayUsage = sp->highWayDistance / sp->length;
-//				idx = i;
-//			}
-//		}
 	}
 	if(!ps->pathChoices.empty())
 	{
@@ -2449,25 +2343,6 @@ double sim_mob::PathSetManager::getTravelTime(sim_mob::SinglePath *sp)
 }
 double sim_mob::PathSetManager::getTravelTimeBySegId(std::string id,sim_mob::DailyTime startTime)
 {
-//	//testing
-//	return 100.0; //this was made by xuyan -vahid
-//	//1. check realtime table
-//	double res=0.0;
-//	std::map<std::string,std::vector<sim_mob::Link_travel_time*> >::iterator it =
-//			Link_realtime_travel_time_pool.find(id);
-//	if(it!=Link_realtime_travel_time_pool.end())
-//	{
-//		std::vector<sim_mob::Link_travel_time*> e = (*it).second;
-//		for(int i=0;i<e.size();++i)
-//		{
-//			sim_mob::Link_travel_time* l = e[i];
-//			if( l->start_time_dt.isBeforeEqual(startTime) && l->end_time_dt.isAfter(startTime) )
-//			{
-//				res = l->travel_time;
-//				return res;
-//			}
-//		}
-//	}
 	std::map<std::string,std::vector<sim_mob::Link_travel_time*> >::iterator it;
 	double res=0.0;
 	//2. if no , check default

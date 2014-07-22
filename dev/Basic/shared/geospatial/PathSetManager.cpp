@@ -89,14 +89,6 @@ void sim_mob::PathSetParam::getDataFromDB()
 				throw std::runtime_error("can not create travel time table");
 			}
 		}
-//	}
-//	// test insert into tmp table
-//	sim_mob::Link_travel_time data;
-//	data.start_time = "00:00:00";
-//	data.end_time = "08:08:08";
-//	data.travel_time = 1.0;
-//	data.link_id = 123;
-//	insertTravelTime2TmpTable(data);
 }
 void sim_mob::PathSetParam::storeSinglePath(soci::session& sql,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string singlePathTableName)
 {

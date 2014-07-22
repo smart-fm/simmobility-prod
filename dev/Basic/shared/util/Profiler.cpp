@@ -20,41 +20,17 @@ sim_mob::Profiler::Profiler(std::string id_,bool init){
 		startProfiling();
 	}
 }
-//sim_mob::Profiler::Profiler(const sim_mob::Profiler& value):
-//	totalTime(value.totalTime),
-//	start(value.start), stop(value.stop),
-//	index(value.index),
-//	id(value.id),
-//	started(value.started),
-//	outputSize(value.outputSize)
-//{
-//	//I have no idea what I am doing here. will need to refer back to this page:
-//	//http://stdcxx.apache.org/doc/stdlibug/34-2.html
-//	LogFile.copyfmt(value.LogFile);                                  //1
-//	LogFile.clear(value.LogFile.rdstate());                          //2
-//	LogFile.basic_ios<char>::rdbuf(value.LogFile.rdbuf());           //3
-//
-//	output << value.output.rdbuf();
-//}
 
-//sim_mob::Profiler& sim_mob::Profiler::operator=(const sim_mob::Profiler& value){
-//	totalTime = value.totalTime;
-//	start = value.start;
-//	stop = value.stop;
-//	index = value.index;
-//	id = value.id;
-//	started = value.started;
-//	outputSize = value.outputSize;
-//
-//	//I have no idea what I am doing here. will need to refer back to this page:
-//	//http://stdcxx.apache.org/doc/stdlibug/34-2.html
-//	LogFile.copyfmt(value.LogFile);                                  //1
-//	LogFile.clear(value.LogFile.rdstate());                          //2
-//	LogFile.basic_ios<char>::rdbuf(value.LogFile.rdbuf());           //3
-//
-//	output << value.output.rdbuf();
-//	return *this;
-//}
+sim_mob::Profiler & sim_mob::Profiler::operator[](const std::string &key)
+{
+
+	std::map<std::string, boost::shared_ptr<sim_mob::Profiler> >::iterator it = repo.find(key);
+	if(it == repo.end()){
+		boost::shared_ptr<sim_mob::Profiler> t(new sim_mob::Profiler(key,false));
+		repo.insert(std::make_pair(key,t));
+	}
+	return *repo[key];
+}
 
 sim_mob::Profiler::~Profiler(){
 	if(LogFile.is_open()){
@@ -62,15 +38,6 @@ sim_mob::Profiler::~Profiler(){
 		LogFile.close();
 	}
 }
-
-//boost::shared_ptr<sim_mob::Profiler> sim_mob::Profiler::get(const std::string & id, bool init, std::string id_){
-//	std::map<std::string, boost::shared_ptr<sim_mob::Profiler> >::iterator it = repo.find(id);
-//	if(it == repo.end()){
-//		boost::shared_ptr<sim_mob::Profiler> t(new sim_mob::Profiler(init,id_));
-//		repo.insert(std::make_pair(id,t));
-//	}
-//	return repo[id];
-//}
 
 ///whoami
 std::string sim_mob::Profiler::getId(){
@@ -134,16 +101,6 @@ std::stringstream & sim_mob::Profiler::outPut(){
 	return output;
 }
 
-//	void sim_mob::Profiler::addOutPut(std::stringstream & s){
-////		Print() << "Dump: " << s.str() <<  std::endl;
-//		boost::unique_lock<boost::mutex> lock(mutexOutput);
-//		outputSize+=s.str().size();
-//		output << s.str();
-////		Print() << "Dump-so-far: " << output.str() <<  std::endl;
-//		if(outputSize > 1000000){
-//			flushLog();
-//		}
-//	}
 void sim_mob::Profiler::flushLog(){
 		if ((LogFile.is_open() && LogFile.good())) {
 			//boost::unique_lock<boost::mutex> lock(mutexOutput);
@@ -174,11 +131,6 @@ void sim_mob::Profiler::reset(){
 	id = "";
 }
 
-//sim_mob::Profiler & sim_mob::Profiler::getInstance(){
-//	static Profiler instance(true, "overall profiler", "profiler.txt");
-//	return instance;
-//}
-
 void  sim_mob::Profiler::InitLogFile(const std::string& path)
 {
 	//1. first type of implementation
@@ -189,10 +141,10 @@ void  sim_mob::Profiler::InitLogFile(const std::string& path)
 //	log_handle = (!LogFile.fail() ? &LogFile : &std::cout);
 }
 
-//Type of cout.
-typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
-//Type of std::endl and some other manipulators.
-typedef CoutType& (*StandardEndLine)(CoutType&);
+////Type of cout.
+//typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
+////Type of std::endl and some other manipulators.
+//typedef CoutType& (*StandardEndLine)(CoutType&);
 
 sim_mob::Profiler&  sim_mob::Profiler::operator<<(StandardEndLine manip) {
 		manip(output);

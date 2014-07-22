@@ -71,27 +71,13 @@ class Profiler {
 	 */
 	Profiler(std::string id_,bool init = false);
 	Profiler();
+	//needs improvement
+	static void printTime(struct tm *tm, struct timeval & tv, std::string id);
 
-public:
-	static std::string newLine;
-	static sim_mob::Profiler instance;
-	//copy constructor is required by static std::map<std::string, sim_mob::Profiler> repo;
-	Profiler(const sim_mob::Profiler& value);
-	sim_mob::Profiler & operator[](const std::string &key)
-	{
+	///reset all the parameters
+	void reset();
 
-		std::map<std::string, boost::shared_ptr<sim_mob::Profiler> >::iterator it = repo.find(key);
-		if(it == repo.end()){
-			boost::shared_ptr<sim_mob::Profiler> t(new sim_mob::Profiler(key,false));
-			repo.insert(std::make_pair(key,t));
-		}
-		return *repo[key];
-	}
-	~Profiler();
-//	static sim_mob::Profiler & get(std::string name);
-
-//	///initialize the logger that profiler writes to
-//	void InitLogFile(const std::string& path);
+	void InitLogFile(const std::string& path);
 
 	///whoami
 	std::string getId();
@@ -101,6 +87,21 @@ public:
 
 	///is this Profiler started
 	bool isStarted();
+	///getoutput stream
+	std::stringstream & outPut();
+
+	//Type of cout.
+	typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
+	//Type of std::endl and some other manipulators.
+	typedef CoutType& (*StandardEndLine)(CoutType&);
+
+public:
+	static std::string newLine;
+	static sim_mob::Profiler instance;
+	//copy constructor is required by static std::map<std::string, sim_mob::Profiler> repo;
+	Profiler(const sim_mob::Profiler& value);
+	sim_mob::Profiler & operator[](const std::string &key);
+	~Profiler();
 
 	///like it suggests, store the start time of the profiling
 	void startProfiling();
@@ -118,26 +119,7 @@ public:
 	 */
 	void addToTotalTime(uint32_t value);
 
-	///getoutput stream
-	std::stringstream & outPut();
-
-	//Type of cout.
-	typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
-	//Type of std::endl and some other manipulators.
-	typedef CoutType& (*StandardEndLine)(CoutType&);
-
 	unsigned int & getTotalTime();
-
-	//needs improvement
-	static void printTime(struct tm *tm, struct timeval & tv, std::string id);
-
-	///reset all the parameters
-	void reset();
-
-//	///overall instance of the profiler, used for general cases
-//	static Profiler & getInstance();
-
-	void InitLogFile(const std::string& path);
 
 	Profiler& operator<<(StandardEndLine manip);
 

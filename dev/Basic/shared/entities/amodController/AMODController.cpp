@@ -447,9 +447,8 @@ void AMODController::readDemandFile(vector<string>& tripID, int current_time, ve
 
 void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 {
-
 	// find node
-	Node* node = nodePool[nodeId];
+	Node* node = getNodeFrmPool(nodeId);
 
 	if(node == NULL){ throw std::runtime_error("node not found"); }
 
@@ -1617,6 +1616,16 @@ void AMODController::assignVhs(std::vector<std::string>& origin, std::vector<std
 }
 
 
+Node* AMODController::getNodeFrmPool(const std::string& nodeId) {
+	std::map<std::string, sim_mob::Node*>::iterator itNode = nodePool.find(
+			nodeId);
+	Node *result = nullptr;
+	if (itNode != nodePool.end()) {
+		result = itNode->second;
+	}
+	return result;
+}
+
 void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector<std::string>& origin, std::vector<std::string>& destination, int currTime)
 {
 	if (out_demandStat.is_open()) {
@@ -1659,15 +1668,19 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			int reqTime = itr->requestTime;
 			std::string tripId = itr->tripID;
 
-			Node *originNode = nodePool[originNodeId];
-			Node *destNode = nodePool[destNodeId];
+			Node *originNode = getNodeFrmPool(originNodeId);
+			Node *destNode = getNodeFrmPool(destNodeId);
+			if(originNode==nullptr || destNode==nullptr){
+				Print()<<"some error should be happen in AmodController(originNode,destNode)"<< std::endl;
+				return;
+			}
 
 			//----------------------------------------------------------------------------------------
 			// Search for the closest free AMOD vehicle
 
 			std::vector < sim_mob::WayPoint > leastCostPath;
 			double bestFreeVehTravelCost;
-			Person* vhAssigned;
+			Person* vhAssigned=nullptr;
 			std::string carParkId;
 			bool freeVehFound = getBestFreeVehicle(originNodeId, &vhAssigned, carParkId, leastCostPath, bestFreeVehTravelCost);
 			if (!freeVehFound)
@@ -1701,8 +1714,12 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 			//----------------------------------------------------------------------------------------
 			// Compute route for found AMOD vehicle
+			Node *carParkNode = getNodeFrmPool(carParkId);
+			if(carParkNode==nullptr){
+				Print()<<"some error should be happen in AmodController(carParkNode)"<< std::endl;
+				return;
+			}
 
-			Node *carParkNode = nodePool[carParkId];
 			// get route for vehicle
 			vector<WayPoint> mergedWP;
 			std::vector<WayPoint> wp2 = getShortestPath(originNodeId, destNodeId);
@@ -1771,6 +1788,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 			//----------------------------------------------------------------------------------------
 			//create a trip map to keep track of vehicles
+
 			AmodTrip atrip = *itr;
 			atrip.carParkId = carParkId;
 			atrip.assignedAmodId = vhAssigned->amodId;

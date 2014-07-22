@@ -90,7 +90,7 @@ const set<LaneConnector*>& sim_mob::MultiNode::getOutgoingLanes(const RoadSegmen
 			msg <<"\n" <<it->first->getStart()->originalDB_ID.getLogItem() <<" => " <<it->first->getEnd()->originalDB_ID.getLogItem();
 		}
 		//throw std::runtime_error(msg.str().c_str());
-		std::cout<<"getOutgoingLanes: "<<msg.str()<<std::endl;
+		//std::cout<<"getOutgoingLanes: "<<msg.str()<<std::endl;
 //		const set<LaneConnector*> lnull;
 		return EMPTY_LANE_CONNECTOR;
 	}

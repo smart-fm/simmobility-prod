@@ -128,6 +128,8 @@ public:
 
 	int test;
 
+	Node* getNodeFrmPool(const std::string& nodeId);
+
 	void handleAMODEvent(sim_mob::event::EventId id,
 			sim_mob::event::Context ctxId,
 			sim_mob::event::EventPublisher* sender,

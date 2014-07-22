@@ -77,11 +77,15 @@ UniNode::UniLaneConnector sim_mob::UniNode::getForwardLanes(const Lane& from) co
 {
 	map<const Lane*, UniLaneConnector>::const_iterator it = newConnectors.find(&from);
 	if (it==newConnectors.end()) {
-		Print()<< "newConnectors with size(" << newConnectors.size() << ") doesnt have "  << &from << std::endl;
-		for(it = newConnectors.begin(); it!=newConnectors.end(); it++){
-			Print() << it->first << ": " << it->second.left << " ' " << it->second.center  << " ' " << it->second.right << std::endl;
-		}
 		Print() << "---------" << std::endl;
+		Print()<< "newConnectors with size(" << newConnectors.size() << ") doesnt have "  << from.getLaneID() << std::endl;
+		for(it = newConnectors.begin(); it!=newConnectors.end(); it++){
+			Print() << static_cast<int>(it->first?it->first->getLaneID():0)
+					<< ": " << static_cast<int>(it->second.left ? it->second.left->getLaneID() : 0) << " ' "
+							<< static_cast<int>(it->second.center ? it->second.center->getLaneID() : 0)  << " ' "
+							<< static_cast<int>(it->second.right ? it->second.right->getLaneID() : 0) << std::endl;
+		}
+
 		return UniLaneConnector();
 	}
 	return it->second;;

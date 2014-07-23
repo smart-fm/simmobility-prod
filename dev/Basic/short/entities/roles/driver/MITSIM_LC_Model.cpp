@@ -226,52 +226,6 @@ double sim_mob::MITSIM_LC_Model::calcSideLaneUtility(DriverUpdateParams& p, bool
     }
     return (isLeft) ? p.nvLeftFwd.distance : p.nvRightFwd.distance;
 }
-
-LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision(DriverUpdateParams& p) {
-    // for available gaps(including current gap between leading vehicle and itself), vehicle will choose the longest
-    //const LaneSide freeLanes = gapAcceptance(p, DLC);
-    LaneSide freeLanes = gapAcceptance(p, DLC);
-    if (!freeLanes.left && !freeLanes.right) {
-        return LCS_SAME; //neither gap is available, stay in current lane
-    }
-    double s = p.nvFwd.distance;
-    const double satisfiedDistance = 2000;
-    if (s > satisfiedDistance) {
-        return LCS_SAME; // space ahead is satisfying, stay in current lane
-    }
-
-    //choose target gap, for both left and right
-    std::vector<TARGET_GAP> tg;
-    tg.push_back(TG_Same);
-    tg.push_back(TG_Same);
-    chooseTargetGap(p, tg);
-
-    //calculate the utility of both sides
-    double leftUtility = calcSideLaneUtility(p, true);
-    double rightUtility = calcSideLaneUtility(p, false);
-
-    //to check if their utilities are greater than current lane
-    bool left = (s < leftUtility);
-    bool right = (s < rightUtility);
-
-    //decide
-    if (freeLanes.rightOnly() && right) {
-        return LCS_RIGHT;
-    }
-    if (freeLanes.leftOnly() && left) {
-        return LCS_LEFT;
-    }
-    if (freeLanes.both()) {
-        // avoid ossilation
-        return p.lastDecision;
-    }
-
-    if (left || right) {
-        p.targetGap = (leftUtility > rightUtility) ? tg[0] : tg[1];
-    }
-
-    return LCS_SAME;
-}
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(DriverUpdateParams& p) {
     LaneSide freeLanes = gapAcceptance(p, MLC);
     //find which lane it should get to and choose which side to change
@@ -392,39 +346,6 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
     bool courtesy = gap - critical_gap > 0 ? true : false;
     return courtesy;
 }
-
-//bool sim_mob::MITSIM_LC_Model::ifForcedMerging(DriverUpdateParams& p) {
-//    boost::uniform_int<> zero_to_max(0, RAND_MAX);
-//    double randNum = (double) (zero_to_max(p.gen) % 1000) / 1000;
-//    if (randNum < 1 / (1 + exp(4.27 + 1.25 - 5.43))) {
-//        return true;
-//    }
-//    return false;
-//}
-
-LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeForcedMerging(DriverUpdateParams& p) {
-    LaneSide freeLanes = gapAcceptance(p, MLC_F);
-
-    int direction = p.nextLaneIndex - p.currLaneIndex;
-    if (direction == 0) {
-        return LCS_SAME;
-    }
-
-    //current lane isn't target lane
-    if (freeLanes.right && direction < 0) { 
-        //target lane on the right and is accessible
-        p.isWaiting = false;
-        return LCS_RIGHT;
-    } else if (freeLanes.left && direction > 0) { 
-        //target lane on the left and is accessible
-        p.isWaiting = false;
-        return LCS_LEFT;
-    } else {
-        p.isWaiting = true;
-        return LCS_SAME;
-    }
-}
-
 
 //TODO:I think lane index should be a data member in the lane class
 

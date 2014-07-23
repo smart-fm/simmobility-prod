@@ -239,9 +239,6 @@ local choice = {
         {1,1,1,0,0,0,0,0}
 }
 
---fixed variables (it is sufficient to compute these variables just once for the whole simulation)
-local fixedVariablesComputed = false -- initialized to false
-
   -- WorkTi,EduTi,ShopTi,OthersTi, WorkIi,EduIi,ShopIi,OthersIi
 local WorkT = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 local EduT = {0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1}
@@ -291,23 +288,23 @@ local shopothers_ts = {0,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0
 local othersothers_ts = {0,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 local othersshop_ts = {0,0,0,1,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0}
 
-
 --utility
 local utility = {}
 local function computeUtilities(params) 
 	-- storing data from params table passed into this function locally for use in this function (this is purely for better execution time)
+	local pid = params.person_id
 	local person_type_id = params.person_type_id 
 	local age_id = params.age_id
 	local universitystudent = params.universitystudent
-	local only_adults = params.only_adults
-	local only_workers = params.only_workers
-	local num_underfour = params.num_underfour
-	local presence_of_under15 = params.presence_of_under15
+	local onlyadults = params.only_adults
+	local onlyworkers = params.only_workers
+	local HH_with_under_4 = params.num_underfour
+	local HH_with_under_15 = params.presence_of_under15
 	local female_dummy = params.female_dummy
 	local income_id = params.income_id
 	local income_mid = {500.5,1250,1749.5,2249.5,2749.5,3499.5,4499.5,5499.5,6499.5,7499.5,8500,0,99999,99999}
-	local missingincome = params.missingincome
-	local work_at_home_dummy = params.work_at_home_dummy
+	local missing_income = params.missing_income
+	local workathome = params.work_at_home_dummy
 	local car_own = params.car_own
 	local car_own_normal = params.car_own_normal
 	local car_own_offpeak = params.car_own_offpeak
@@ -317,9 +314,8 @@ local function computeUtilities(params)
 	local shoplogsum = params.shoplogsum
 	local otherlogsum = params.otherlogsum
 
-
 	-- person type related variables
-local fulltime,parttime,selfemployed,homemaker,retired,univ_student,unemployed,nationalservice,voluntary,domestic,otherworker,student16,student515,child4 = 0,0,0,0,0,0,0,0,0,0,0,0,0,0	
+	local fulltime,parttime,selfemployed,homemaker,retired,univ_student,unemployed,nationalservice,voluntary,domestic,otherworker,student16,student515,child4 = 0,0,0,0,0,0,0,0,0,0,0,0,0,0	
 	if person_type_id == 1 then
 		fulltime = 1
 	elseif person_type_id == 2 then 
@@ -348,7 +344,9 @@ local fulltime,parttime,selfemployed,homemaker,retired,univ_student,unemployed,n
 	elseif person_type_id == 4 and (age_id == 1 or age_id == 2) then
 		student515 = 1
 	end
-	if age_id == 0 then child4 = 1 end
+	if age_id == 0 then 
+		child4 = 1 
+	end
 
 	-- age group related variables
 	local age20,age2025,age2635,age3650,age5165,age65 = 0,0,0,0,0,0
@@ -366,40 +364,52 @@ local fulltime,parttime,selfemployed,homemaker,retired,univ_student,unemployed,n
 		age65 = 1
 	end
 
-	-- Household Composition related variables
-	local onlyadults,onlyworkers,HH_with_under_4,HH_with_under_15 = 0,0,0,0
-	if only_adults == 1 then onlyadults = 1 end
-	if only_workers == 1 then onlyworkers = 1 end
-	if num_underfour == 1 then HH_with_under_4 = 1 end
-	if presence_of_under15 == 1 then HH_with_under_15 = 1 end
-
 	-- Adult gender/children related variables
 	local maleage4,maleage515,malenone,femalenone,femaleage4,femaleage515 = 0,0,0,0,0,0
-	if female_dummy == 0 and HH_with_under_4 == 1 then maleage4 = 1 end
-	if female_dummy == 0 and HH_with_under_4 == 0 and HH_with_under_15 == 1 then maleage515 = 1 end
-	if female_dummy == 0 and onlyadults == 1 then malenone = 1 end
-	if female_dummy == 1 and HH_with_under_4 == 1 then femaleage4 = 1 end
-	if female_dummy == 1 and HH_with_under_4 == 0 and HH_with_under_15 == 1 then femaleage515 = 1 end
-	if female_dummy == 1 and onlyadults == 1 then femalenone = 1 end
+	if female_dummy == 0 then
+		if HH_with_under_4 == 1 then 
+			maleage4 = 1 
+		end
+		if HH_with_under_4 == 0 and HH_with_under_15 == 1 then 
+			maleage515 = 1 
+		end
+		if onlyadults == 1 then 
+			malenone = 1 
+		end
+	elseif female_dummy == 1 then
+		if HH_with_under_4 == 1 then 
+			femaleage4 = 1 
+		end
+		if HH_with_under_4 == 0 and HH_with_under_15 == 1 then 
+			femaleage515 = 1 
+		end
+		if onlyadults == 1 then 
+			femalenone = 1 
+		end
+	end
 
 	-- income related variables
-	local income,missing_income = 0,0
-	if missingincome == 1 then missing_income = 1 end
-	income = income_mid[income_id] * (1 - missing_income)/1000 --updated in March
+	local income = income_mid[income_id] * (1 - missing_income)/1000 
 
 	-- other variables
-	local workathome,caravail,motoravail = 0,0,0
-	if work_at_home_dummy == 1 then workathome = 1 end
-	if car_own == 1  then caravail = 1 end
-	if motor_own == 1 then motoravail = 1 end
-
-	utility[1] = 0
-	for i = 2,51 do
+	local caravail,motoravail = 0,0
+	if car_own == 1  then 
+		caravail = 1 
+	end
+	if motor_own == 1 then 
+		motoravail = 1 
+	end
+			
+	for i = 1,51 do
 		utility[i] = 
-			beta_tour_work * WorkT[i] + beta_stop_work * WorkI[i] +
-			beta_tour_edu * EduT[i] + beta_stop_edu * EduI[i] +
-			beta_tour_shop * ShopT[i] + beta_stop_shop * ShopI[i] +
-			beta_tour_others * OthersT[i] + beta_stop_others * OthersI[i] +
+			beta_tour_work * WorkT[i] + 
+			beta_stop_work * WorkI[i] +
+			beta_tour_edu * EduT[i] + 
+			beta_stop_edu * EduI[i] +
+			beta_tour_shop * ShopT[i] + 
+			beta_stop_shop * ShopI[i] +
+			beta_tour_others * OthersT[i] + 
+			beta_stop_others * OthersI[i] +
 			beta_onetour_onestop * onetour_onestop[i] +
 			beta_onetour_twostop * onetour_twostop[i] +
 			beta_onetour_threestop * onetour_threestop[i] +
@@ -541,7 +551,7 @@ local fulltime,parttime,selfemployed,homemaker,retired,univ_student,unemployed,n
 			beta_shopothers_ss * shopothers_ss[i] +
 			beta_shopothers_ts * shopothers_ts[i] +
 			beta_othersothers_ts * othersothers_ts[i] +
-			beta_othersshop_ts * othersshop_ts[i] 
+			beta_othersshop_ts * othersshop_ts[i]
 	end
 end
 
@@ -572,8 +582,7 @@ local scale = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 function choose_dp(params)
 	computeUtilities(params) 
 	computeAvailabilities(params)
-	return calculate_probability("mnl", choice, utility, availability, scale)
---	local probability = calculate_probability("mnl", choice, utility, availability, scale)
---	idx = make_final_choice(probability)
---	return choice[idx]
+	local probability = calculate_probability("mnl", choice, utility, availability, scale)
+	idx = make_final_choice(probability)
+	return choice[idx]
 end

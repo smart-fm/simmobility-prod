@@ -354,8 +354,10 @@ public:
 	std::set<const sim_mob::RoadSegment*> &getIncidents();
 	///insert into incident list
 	void inserIncidentList(const sim_mob::RoadSegment*);
-	PathSetDBLoader *psDbLoader;
-	soci::session *sql;
+//	PathSetDBLoader *psDbLoader;
+//	soci::session *sql;
+	///every thread which invokes db related parts of pathset manages, should have its own connection to the database
+	static std::map<boost::thread::id, boost::shared_ptr<soci::session > > cnnRepo;
 
 	PathSetManager();
 	~PathSetManager();
@@ -452,6 +454,7 @@ public:
 	void storePath(sim_mob::SinglePath* singlePath);
 	void generateAllPathSetWithTripChainPool(std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool);
 	bool generateAllPathSetWithTripChain();
+	const boost::shared_ptr<soci::session> & getSession();
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SinglePath

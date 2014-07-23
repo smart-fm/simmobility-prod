@@ -988,7 +988,7 @@ bool DriverMovement::UTurnFree(std::vector<WayPoint> & newPath, std::vector<cons
 	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
 	//if no path, return false, if path found, return true
 	newPath.clear();
-	sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(getParent(), &subTrip, newPath, excludeRS);
+	sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(&subTrip, newPath, excludeRS);
 	//try again
 	if(!newPath.size()){
 		sim_mob::Profiler::instance["path_set"]<< "No other path can avoid a Uturn, suggest to discard " << std::endl;
@@ -1023,7 +1023,7 @@ bool DriverMovement::canJoinPaths(std::vector<WayPoint> & newPath, std::vector<c
 	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
 	//if no path, return false, if path found, return true
 	newPath.clear();
-	sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(getParent(), &subTrip, newPath, excludeRS);
+	sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(&subTrip, newPath, excludeRS);
 	to = newPath.begin()->roadSegment_;
 	bool res = isConnectedToNextSeg(from,to);
 	return res;
@@ -1070,7 +1070,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 		subTrip.fromLocation.node_ = detourNode.first;
 		//	record the new paths using the updated subtrip. (including no paths)
 		newPaths[detourNode.first].clear();
-		sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(getParent(), &subTrip, newPaths[detourNode.first], excludeRS);
+		sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(&subTrip, newPaths[detourNode.first], excludeRS);
 	}
 
 	/*step-4: prepend the old path to the new path

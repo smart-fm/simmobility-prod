@@ -42,6 +42,8 @@ PathSetManager *sim_mob::PathSetManager::instance_;
 
 PathSetParam *sim_mob::PathSetParam::instance_ = NULL;
 
+std::map<boost::thread::id, boost::shared_ptr<soci::session> > sim_mob::PathSetManager::cnnRepo;
+
 const std::string pathSetTableName = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName;
 const std::string singlePathTableName = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().singlePathTableName;
 
@@ -333,16 +335,17 @@ sim_mob::PathSetParam::PathSetParam() :
 }
 
 sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()) {
-	sql = NULL;
-	psDbLoader=NULL;
+//	sql = NULL;
+//	psDbLoader=NULL;
 	pathSetParam = PathSetParam::getInstance();
-
+	std::string dbStr(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
 //	// 1.2 get all segs
 	init();
-	if(!psDbLoader)
-	{
-		psDbLoader = new PathSetDBLoader(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
-	}
+//	if(!psDbLoader)
+//	{
+//		psDbLoader = new PathSetDBLoader(dbStr);
+//	}
+	cnnRepo[boost::this_thread::get_id()].reset(new soci::session(soci::postgresql,dbStr));
 	threadpool_ = new sim_mob::batched::ThreadPool(50);
 }
 
@@ -510,7 +513,7 @@ bool sim_mob::PathSetManager::insertTravelTime2TmpTable(sim_mob::LinkTravelTime&
 	  if(size>50000000)//50mb
 	  {
 		  csvFile.close();
-		  sim_mob::aimsun::Loader::insertCSV2TableST(psDbLoader->sql,
+		  sim_mob::aimsun::Loader::insertCSV2TableST(*getSession(),
 		  			pathset_traveltime_tmp_table_name,csvFileName);
 		  csvFile.open(csvFileName.c_str(),std::ios::in | std::ios::trunc);
 	  }
@@ -646,15 +649,15 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 	const sim_mob::SubTrip *subTrip = &(*currSubTripIt);
 	std::string subTripId = subTrip->tripID;
 
-	Worker *worker = (Worker*)per->currWorkerProvider;
-	if(worker)
-	{
-		sql = &(worker->sql);
-	}
-	else
-	{
-		sql = &(psDbLoader->sql);
-	}
+//	Worker *worker = (Worker*)per->currWorkerProvider;
+//	if(worker)
+//	{
+//		sql = &(worker->sql);
+//	}
+//	else
+//	{
+//		sql = &(psDbLoader->sql);
+//	}
 	sim_mob::Profiler::instance["path_set"] << "=============================================================================================================================================" << std::endl;
 	vector<WayPoint> res;
 	generateBestPathChoiceMT(subTrip,res);
@@ -662,7 +665,7 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 	printWPpath(res);
 	cacheODbySegment(per, subTrip, res);
 	sim_mob::Profiler::instance["path_set"] << "=============================================================================================================================================" << std::endl;
-	sql = NULL;
+//	sql = NULL;
 
 	return res;
 }
@@ -672,21 +675,21 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 //if not found in cache, check DB
 //if not found in DB, generate all 4 types of path
 //choose the best path using utility function
-bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::Person * per, const sim_mob::SubTrip* st,std::vector<sim_mob::WayPoint> &res,
-		const std::set<const sim_mob::RoadSegment*> & excludedSegs, bool isUseCache){
-	//you may need to double check your database connection
-	Worker *worker = (Worker*)per->currWorkerProvider;
-	if(worker)
-	{
-		sql = &(worker->sql);
-	}
-	else
-	{
-		sql = &(psDbLoader->sql);
-	}
-	//call the default method
-	return generateBestPathChoiceMT(st, res, excludedSegs, false);
-}
+//bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::Person * per, const sim_mob::SubTrip* st,std::vector<sim_mob::WayPoint> &res,
+//		const std::set<const sim_mob::RoadSegment*> & excludedSegs, bool isUseCache){
+//	//you may need to double check your database connection
+//	Worker *worker = (Worker*)per->currWorkerProvider;
+//	if(worker)
+//	{
+//		sql = &(worker->sql);
+//	}
+//	else
+//	{
+//		sql = &(psDbLoader->sql);
+//	}
+//	//call the default method
+//	return generateBestPathChoiceMT(st, res, excludedSegs, false);
+//}
 
 bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st,std::vector<sim_mob::WayPoint> &res,
 		const std::set<const sim_mob::RoadSegment*> & exclude_seg_ , bool isUseCache)
@@ -738,7 +741,7 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 	bool hasPSinDB = false;
 	std::string pathSetID = "'"+fromToID+"'";
 	hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
-							*sql,
+							*getSession(),
 							ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 							ps_,pathSetID, pathSetTableName);
 	sim_mob::Profiler::instance["path_set"]<< "hasPSinDB:" << hasPSinDB << std::endl;
@@ -755,7 +758,7 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 			ps_.subTrip = st;
 			std::map<std::string,sim_mob::SinglePath*> id_sp;
 			bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(
-									*sql,
+									*getSession(),
 									ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 									id_sp,
 									pathSetID,
@@ -841,8 +844,8 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 			//store in into the database
 			std::map<std::string,sim_mob::PathSet* > tmp;
 			tmp.insert(std::make_pair(fromToID,&ps_));
-			pathSetParam->storePathSet(*sql,tmp,pathSetTableName);
-			pathSetParam->storeSinglePath(*sql,ps_.pathChoices,singlePathTableName);
+			pathSetParam->storePathSet(*getSession(),tmp,pathSetTableName);
+			pathSetParam->storeSinglePath(*getSession(),ps_.pathChoices,singlePathTableName);
 			return true;
 		}
 		else
@@ -1113,7 +1116,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 						ps_,pathSetID);
 #else
 		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
-						*sql,
+						*getSession(),
 						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 						ps_,pathSetID, pathSetTableName);
 #endif
@@ -1132,7 +1135,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 				bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithId2(
 #else
 				bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(
-						*sql,
+						*getSession(),
 #endif
 						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 						id_sp,
@@ -2551,6 +2554,15 @@ bool sim_mob::PathSetManager::generateAllPathSetWithTripChain()
 	}
 	//
 	return res;
+}
+
+const boost::shared_ptr<soci::session> & sim_mob::PathSetManager::getSession(){
+	std::map<boost::thread::id, boost::shared_ptr<soci::session> >::iterator it;
+	if((it = cnnRepo.find(boost::this_thread::get_id())) == cnnRepo.end())
+	{
+		throw std::runtime_error("error finding the right conection to the database");
+	}
+	return it->second;
 }
 
 void sim_mob::PathSetManager::generateAllPathSetWithTripChainPool(std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool)

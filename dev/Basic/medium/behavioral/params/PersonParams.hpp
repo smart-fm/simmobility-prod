@@ -330,6 +330,11 @@ public:
 	 */
 	void blockTime(double startTime, double endTime);
 
+	/**
+	 * prints the fields of this object
+	 */
+	void print();
+
 private:
 	std::string personId;
 	int personTypeId;

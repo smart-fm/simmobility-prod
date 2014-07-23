@@ -5,6 +5,8 @@
 #include "PersonParams.hpp"
 
 #include <boost/algorithm/string.hpp>
+#include <sstream>
+#include "logging/Log.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -26,7 +28,7 @@ sim_mob::medium::PersonParams::~PersonParams() {
 	timeWindowAvailability.clear();
 }
 
-void PersonParams::initTimeWindows() {
+void sim_mob::medium::PersonParams::initTimeWindows() {
 	if(!timeWindowAvailability.empty())
 	{
 		for(boost::unordered_map<int, TimeWindowAvailability*>::iterator i=timeWindowAvailability.begin(); i!=timeWindowAvailability.end(); i++) { delete i->second; }
@@ -40,7 +42,7 @@ void PersonParams::initTimeWindows() {
 	}
 }
 
-void PersonParams::blockTime(double startTime, double endTime) {
+void sim_mob::medium::PersonParams::blockTime(double startTime, double endTime) {
 	if(startTime <= endTime) {
 		for(boost::unordered_map<int, TimeWindowAvailability*>::iterator i=timeWindowAvailability.begin(); i!=timeWindowAvailability.end(); i++){
 			double start = i->second->getStartTime();
@@ -62,4 +64,30 @@ void PersonParams::blockTime(double startTime, double endTime) {
 
 int PersonParams::getTimeWindowAvailability(int timeWnd) const {
 	return timeWindowAvailability.at(timeWnd)->getAvailability();
+}
+
+void sim_mob::medium::PersonParams::print()
+{
+	std::stringstream printStrm;
+	printStrm << personId << ","
+			<< personTypeId << ","
+			<< ageId << ","
+			<< isUniversityStudent << ","
+			<< hhOnlyAdults << ","
+			<< hhOnlyWorkers << ","
+			<< hhNumUnder4 << ","
+			<< hasUnder15 << ","
+			<< isFemale << ","
+			<< incomeId << ","
+			<< missingIncome << ","
+			<< worksAtHome << ","
+			<< carOwn << ","
+			<< carOwnNormal << ","
+			<< carOwnOffpeak << ","
+			<< motorOwn << ","
+			<< workLogSum << ","
+			<< eduLogSum << ","
+			<< shopLogSum << ","
+			<< otherLogSum << std::endl;
+	Print() << printStrm.str();
 }

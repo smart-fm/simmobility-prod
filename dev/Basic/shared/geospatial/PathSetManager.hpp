@@ -525,6 +525,7 @@ std::string getNumberFromAimsunId(std::string &aimsunid);
 std::vector<WayPoint*> convertWaypoint2Point(std::vector<WayPoint> wp);
 
 std::vector<WayPoint> convertWaypointP2Wp(std::vector<WayPoint*> wp);
+bool convertWaypointP2Wp_NOCOPY(std::vector<WayPoint*> wp, std::vector<WayPoint>& res);//todo,replace this function and change its name whenever all callers' signatures are fixed
 
 inline double generateSinglePathLength(std::vector<WayPoint*>& wp) // unit is meter
 {

@@ -727,8 +727,7 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 		bool r = getBestPathChoiceFromPathSet(ps_, exclude_seg);
 		if(r)
 		{
-			res = sim_mob::convertWaypointP2Wp(ps_.bestWayPointpathP);
-			return true;
+			return sim_mob::convertWaypointP2Wp_NOCOPY(ps_.bestWayPointpathP, res);
 		}
 		else{
 				sim_mob::Profiler::instance["path_set"] << "UNUSED cache hit" << std::endl;
@@ -783,7 +782,7 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 				r = getBestPathChoiceFromPathSet(ps_, exclude_seg);
 				if(r)
 				{
-					res = sim_mob::convertWaypointP2Wp(ps_.bestWayPointpathP);
+					sim_mob::convertWaypointP2Wp_NOCOPY(ps_.bestWayPointpathP,res);
 					//cache
 					if(isUseCache){
 						cachePathSet(ps_);
@@ -838,7 +837,7 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 //				generatePathset2AllNode(toNode,st);
 		if(r)
 		{
-			res = sim_mob::convertWaypointP2Wp(ps_.bestWayPointpathP);
+			sim_mob::convertWaypointP2Wp_NOCOPY(ps_.bestWayPointpathP,res);
 			//cache
 			if(isUseCache){
 				cachePathSet(ps_);
@@ -2019,6 +2018,21 @@ std::vector<WayPoint> sim_mob::convertWaypointP2Wp(std::vector<WayPoint*> wp)
 		}
 	}
 	return res;
+}
+
+
+bool sim_mob::convertWaypointP2Wp_NOCOPY(std::vector<WayPoint*> wp, std::vector<WayPoint> &res)
+{
+	for(int i=0;i<wp.size();++i)
+	{
+		if (wp[i]->type_ == WayPoint::ROAD_SEGMENT) {
+			const sim_mob::RoadSegment* seg = wp[i]->roadSegment_;
+			// find waypoint point from pool
+			WayPoint wp_ = WayPoint(seg);
+			res.push_back(wp_);
+		}
+	}
+	return true;
 }
 
 void sim_mob::generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCache)

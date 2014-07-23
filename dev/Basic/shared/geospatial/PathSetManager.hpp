@@ -367,9 +367,6 @@ private:
 	std::map<std::string,sim_mob::ERP_Gantry_Zone*> ERP_Gantry_Zone_pool; //key=Gantry_no, value = ERP_Gantry_Zone
 	std::map<std::string,sim_mob::ERP_Section*> ERP_Section_pool;  // key=aim-sun id , value = ERP_Section
 
-	std::map<std::string,std::vector<sim_mob::Link_travel_time*> > Link_default_travel_time_pool; // key= segment aim-sun id value=Link_default_travel_time with diff time stamp
-	std::map<std::string,std::vector<sim_mob::Link_travel_time*> > Link_realtime_travel_time_pool;
-
 	sim_mob::K_ShortestPathImpl *kshortestImpl;
 
 	double bTTVOT;

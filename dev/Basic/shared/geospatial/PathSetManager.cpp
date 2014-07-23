@@ -336,7 +336,6 @@ sim_mob::PathSetManager::PathSetManager() {
 	sql = NULL;
 	psDbLoader=NULL;
 	pathSetParam = PathSetParam::getInstance();
-	Link_default_travel_time_pool = pathSetParam->Link_default_travel_time_pool;//I have no access to travel time, so I put this here. -vahid
 	stdir = &StreetDirectory::instance();
 	roadNetwork = &ConfigManager::GetInstance().FullConfig().getNetwork();
 //	// 1.2 get all segs
@@ -2361,8 +2360,8 @@ double sim_mob::PathSetManager::getTravelTimeBySegId(std::string id,sim_mob::Dai
 	std::map<std::string,std::vector<sim_mob::Link_travel_time*> >::iterator it;
 	double res=0.0;
 	//2. if no , check default
-	it = Link_default_travel_time_pool.find(id);
-	if(it!=Link_default_travel_time_pool.end())
+	it = pathSetParam->Link_default_travel_time_pool.find(id);
+	if(it!= pathSetParam->Link_default_travel_time_pool.end())
 	{
 		std::vector<sim_mob::Link_travel_time*> e = (*it).second;
 		for(int i=0;i<e.size();++i)
@@ -2378,7 +2377,7 @@ double sim_mob::PathSetManager::getTravelTimeBySegId(std::string id,sim_mob::Dai
 	else
 	{
 		std::string str = "PathSetManager::getTravelTimeBySegId=> no travel time for segment " + id + "  ";
-		sim_mob::Profiler::instance["path_set"]<< "error: " << str << Link_default_travel_time_pool.size() << std::endl;
+		sim_mob::Profiler::instance["path_set"]<< "error: " << str << pathSetParam->Link_default_travel_time_pool.size() << std::endl;
 	}
 	return res;
 }

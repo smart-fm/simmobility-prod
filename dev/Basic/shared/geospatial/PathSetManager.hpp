@@ -56,7 +56,7 @@ public:
 };
 
 ///Debug Method to print WayPoint based paths
-void printWPpath(std::vector<WayPoint> &wps , const sim_mob::Node* startingNode = 0);
+void printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node* startingNode = 0);
 
 /**
  * This class is used to store, retrive, cache different parameters used in the pathset generation
@@ -288,24 +288,12 @@ public:
 	bool isUseCacheMode() { return isUseCache; }
 	double getUtilityBySinglePath(sim_mob::SinglePath* sp);
 	std::vector<WayPoint> generateBestPathChoice2(const sim_mob::SubTrip* st);
-	std::vector<WayPoint> generateBestPathChoiceMT(const sim_mob::SubTrip* st, const std::set<const sim_mob::RoadSegment*> & exclude_seg=std::set<const sim_mob::RoadSegment*>(), bool isUseCache = true);
-	std::vector<WayPoint> generateBestPathChoiceMT(const sim_mob::Person * per, const sim_mob::SubTrip* st, const std::set<const sim_mob::RoadSegment*> & exclude_seg=std::set<const sim_mob::RoadSegment*>(), bool isUseCache = true);
+	bool generateBestPathChoiceMT(const sim_mob::SubTrip* st,std::vector<sim_mob::WayPoint> &res, const std::set<const sim_mob::RoadSegment*> & exclude_seg=std::set<const sim_mob::RoadSegment*>(), bool isUseCache = true);
+	bool generateBestPathChoiceMT(const sim_mob::Person * per, const sim_mob::SubTrip* st,std::vector<sim_mob::WayPoint> &res, const std::set<const sim_mob::RoadSegment*> & exclude_seg=std::set<const sim_mob::RoadSegment*>(), bool isUseCache = true);
 	bool generateAllPathChoicesMT(PathSet* ps, const std::set<const sim_mob::RoadSegment*> & exclude_seg=std::set<const sim_mob::RoadSegment*>());
-	void generateTravelTimeSinglePathes(const sim_mob::Node *fromNode,
-			   const sim_mob::Node *toNode,
-			   std::map<std::string,SinglePath*>& wp_spPool,
-			   sim_mob::PathSet& ps_);
-	void generatePathesByLinkElimination(std::vector<WayPoint*>& path,
-			std::map<std::string,SinglePath*>& wp_spPool,
-			sim_mob::PathSet& ps_,
-			const sim_mob::Node* fromNode,
-			const sim_mob::Node* toNode);
-	void generatePathesByTravelTimeLinkElimination(std::vector<WayPoint*>& path,
-				std::map<std::string,SinglePath*>& wp_spPool,
-				sim_mob::PathSet& ps_,
-				const sim_mob::Node* fromNode,
-				const sim_mob::Node* toNode,
-				sim_mob::TimeRange tr);
+	void generateTravelTimeSinglePathes(const sim_mob::Node *fromNode, const sim_mob::Node *toNode, std::map<std::string,SinglePath*>& wp_spPool,sim_mob::PathSet& ps_);
+	void generatePathesByLinkElimination(std::vector<WayPoint*>& path,std::map<std::string,SinglePath*>& wp_spPool,sim_mob::PathSet& ps_,const sim_mob::Node* fromNode,const sim_mob::Node* toNode);
+	void generatePathesByTravelTimeLinkElimination(std::vector<WayPoint*>& path, std::map<std::string,SinglePath*>& wp_spPool, sim_mob::PathSet& ps_,const sim_mob::Node* fromNode,const sim_mob::Node* toNode,	sim_mob::TimeRange tr);
 	bool getBestPathChoiceFromPathSet(sim_mob::PathSet& ps, const std::set<const sim_mob::RoadSegment *> & exclude_seg =  std::set<const sim_mob::RoadSegment *>());
 	void initParameters();
 	// get

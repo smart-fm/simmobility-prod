@@ -402,30 +402,6 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
 //    return false;
 //}
 
-LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeCourtesyMerging(DriverUpdateParams& p) {
-    LaneSide freeLanes = gapAcceptance(p, MLC_C);
-    int direction = p.nextLaneIndex - p.currLaneIndex;
-    //current lane is target lane
-    if (direction == 0) {
-        return LCS_SAME;
-    }
-
-    //current lane isn't target lane
-    if (freeLanes.right && direction < 0) {
-        //target lane on the right and is accessible
-        p.isWaiting = false;
-        return LCS_RIGHT;
-    } else if (freeLanes.left && direction > 0) {
-        //target lane on the left and is accessible
-        p.isWaiting = false;
-        return LCS_LEFT;
-    } else {
-        //when target side isn't available,vehicle will decelerate to wait a proper gap.
-        p.isWaiting = true;
-        return LCS_SAME;
-    }
-}
-
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeForcedMerging(DriverUpdateParams& p) {
     LaneSide freeLanes = gapAcceptance(p, MLC_F);
 

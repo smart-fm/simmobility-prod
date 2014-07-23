@@ -1042,67 +1042,63 @@ void PredaySystem::constructTours() {
 }
 
 void PredaySystem::planDay() {
-//	personParams.initTimeWindows();
-//	logStream << std::endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
-//	//Predict day pattern
-//	logStream << "Person: " << personParams.getPersonId() << "| home: " << personParams.getHomeLocation() << std:: endl;
-//	logStream << "Day Pattern: " ;
+	personParams.initTimeWindows();
+	logStream << std::endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+	//Predict day pattern
+	logStream << "Person: " << personParams.getPersonId() << "| home: " << personParams.getHomeLocation() << std:: endl;
+	logStream << "Day Pattern: " ;
+	PredayLuaProvider::getPredayModel().predictDayPattern(personParams, dayPattern);
+	logStream << dayPattern["WorkT"] << dayPattern["EduT"] << dayPattern["ShopT"] << dayPattern["OthersT"]
+	        << dayPattern["WorkI"] << dayPattern["EduI"] << dayPattern["ShopI"] << dayPattern["OthersI"] << std::endl;
 
-	std::string probabilities;
-	PredayLuaProvider::getPredayModel().getDP_Probabilities(personParams, probabilities);
-	Print() << probabilities << std::endl;
+	//Predict number of Tours
+	if(dayPattern.size() <= 0) {
+		throw std::runtime_error("Cannot invoke number of tours model without a day pattern");
+	}
+	logStream << "Num. Tours: ";
+	PredayLuaProvider::getPredayModel().predictNumTours(personParams, dayPattern, numTours);
+	logStream << numTours["WorkT"] << numTours["EduT"] << numTours["ShopT"] << numTours["OthersT"] << std::endl;
 
-//	logStream << dayPattern["WorkT"] << dayPattern["EduT"] << dayPattern["ShopT"] << dayPattern["OthersT"]
-//	        << dayPattern["WorkI"] << dayPattern["EduI"] << dayPattern["ShopI"] << dayPattern["OthersI"] << std::endl;
+	//Construct tours.
+	constructTours();
 
-//	//Predict number of Tours
-//	if(dayPattern.size() <= 0) {
-//		throw std::runtime_error("Cannot invoke number of tours model without a day pattern");
-//	}
-//	logStream << "Num. Tours: ";
-//	PredayLuaProvider::getPredayModel().predictNumTours(personParams, dayPattern, numTours);
-//	logStream << numTours["WorkT"] << numTours["EduT"] << numTours["ShopT"] << numTours["OthersT"] << std::endl;
-//
-//	//Construct tours.
-//	constructTours();
-//
-//	//Process each tour
-//	logStream << "Tours: " << tours.size() << std::endl;
-//	for(TourList::iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++) {
-//		Tour* tour = *tourIt;
-//		if(tour->isUsualLocation()) {
-//			// Predict just the mode for tours to usual location
-//			predictTourMode(tour);
-//			logStream << "Tour|type: " << tour->getTourType()
-//					<< "(TM) Tour mode: " << tour->getTourMode() << "|Tour destination: " << tour->getTourDestination();
-//		}
-//		else {
-//			// Predict mode and destination for tours to not-usual locations
-//			predictTourModeDestination(tour);
-//			logStream << "Tour|type: " << tour->getTourType()
-//					<< "(TMD) Tour mode: " << tour->getTourMode() << "|Tour destination: " << tour->getTourDestination();
-//		}
-//
-//		// Predict time of day for this tour
-//		TimeWindowAvailability timeWindow = predictTourTimeOfDay(tour);
-//		Stop* primaryActivity = new Stop(tour->getTourType(), tour, true /*primary activity*/, true /*stop in first half tour*/);
-//		primaryActivity->setStopMode(tour->getTourMode());
-//		primaryActivity->setStopLocation(tour->getTourDestination());
-//		primaryActivity->setStopLocationId(zoneIdLookup.at(tour->getTourDestination()));
-//		primaryActivity->allotTime(timeWindow.getStartTime(), timeWindow.getEndTime());
-//		tour->setPrimaryStop(primaryActivity);
-//		tour->addStop(primaryActivity);
-//		personParams.blockTime(timeWindow.getStartTime(), timeWindow.getEndTime());
-//		logStream << "|primary activity|arrival: " << primaryActivity->getArrivalTime() << "|departure: " << primaryActivity->getDepartureTime() << std::endl;
-//
-//		//Generate stops for this tour
-//		generateIntermediateStops(tour);
-//
-//		calculateTourStartTime(tour);
-//		calculateTourEndTime(tour);
-//		personParams.blockTime(tour->getStartTime(), tour->getEndTime());
-//		logStream << "Tour|start time: " << tour->getStartTime() << "|end time: " << tour->getEndTime() << std::endl;
-//	}
+	//Process each tour
+	logStream << "Tours: " << tours.size() << std::endl;
+	for(TourList::iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++) {
+		Tour* tour = *tourIt;
+		if(tour->isUsualLocation()) {
+			// Predict just the mode for tours to usual location
+			predictTourMode(tour);
+			logStream << "Tour|type: " << tour->getTourType()
+					<< "(TM) Tour mode: " << tour->getTourMode() << "|Tour destination: " << tour->getTourDestination();
+		}
+		else {
+			// Predict mode and destination for tours to not-usual locations
+			predictTourModeDestination(tour);
+			logStream << "Tour|type: " << tour->getTourType()
+					<< "(TMD) Tour mode: " << tour->getTourMode() << "|Tour destination: " << tour->getTourDestination();
+		}
+
+		// Predict time of day for this tour
+		TimeWindowAvailability timeWindow = predictTourTimeOfDay(tour);
+		Stop* primaryActivity = new Stop(tour->getTourType(), tour, true /*primary activity*/, true /*stop in first half tour*/);
+		primaryActivity->setStopMode(tour->getTourMode());
+		primaryActivity->setStopLocation(tour->getTourDestination());
+		primaryActivity->setStopLocationId(zoneIdLookup.at(tour->getTourDestination()));
+		primaryActivity->allotTime(timeWindow.getStartTime(), timeWindow.getEndTime());
+		tour->setPrimaryStop(primaryActivity);
+		tour->addStop(primaryActivity);
+		personParams.blockTime(timeWindow.getStartTime(), timeWindow.getEndTime());
+		logStream << "|primary activity|arrival: " << primaryActivity->getArrivalTime() << "|departure: " << primaryActivity->getDepartureTime() << std::endl;
+
+		//Generate stops for this tour
+		generateIntermediateStops(tour);
+
+		calculateTourStartTime(tour);
+		calculateTourEndTime(tour);
+		personParams.blockTime(tour->getStartTime(), tour->getEndTime());
+		logStream << "Tour|start time: " << tour->getStartTime() << "|end time: " << tour->getEndTime() << std::endl;
+	}
 }
 
 void sim_mob::medium::PredaySystem::insertDayPattern()

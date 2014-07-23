@@ -32,7 +32,7 @@ class PathSet;
 class ERP_Gantry_Zone;
 class ERP_Section;
 class ERP_Surcharge;
-class Link_travel_time;
+class LinkTravelTime;
 
 
 namespace aimsun
@@ -96,7 +96,7 @@ public:
 	static bool createTable(const std::string& connectionStr,std::string& table_name);
 	static bool insertData2TravelTimeTmpTable(const std::string& connectionStr,
 			std::string& table_name,
-			sim_mob::Link_travel_time& data);
+			sim_mob::LinkTravelTime& data);
 	static bool insertCSV2Table(const std::string& connectionStr,
 			std::string& table_name,
 			std::string& csvFileName);
@@ -108,10 +108,10 @@ public:
 	static bool excuString(const std::string& connectionStr,
 					std::string& str);
 	static void LoadDefaultTravelTimeData(const std::string& connectionStr,
-			std::map<std::string,std::vector<sim_mob::Link_travel_time*> >& link_default_travel_time_pool);
+			std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >& link_default_travel_time_pool);
 	static bool LoadRealTimeTravelTimeData(const std::string& connectionStr,
 			std::string& table_name,
-			std::map<std::string,std::vector<sim_mob::Link_travel_time*> >& link_realtime_travel_time_pool);
+			std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >& link_realtime_travel_time_pool);
 //	static void SavePathSetData(const std::string& connectionStr,std::map<std::string,sim_mob::SinglePath*>& pathPool,std::map<std::string,sim_mob::PathSet* >& pathSetPool);
 	static void SaveOnePathSetData(const std::string& connectionStr,
 			std::map<std::string,sim_mob::PathSet* >& pathSetPool);

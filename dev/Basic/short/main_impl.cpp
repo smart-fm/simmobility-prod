@@ -246,11 +246,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		std::cout<<psMgr->size()<<std::endl;
 	}
 
-//	//DriverComms are only allowed if the communicator is enabled.
-//	if (ConfigParams::GetInstance().commSimEnabled) {
-//		androidBroker.enable();
-//	}
-
 	//Initialize the control manager and wait for an IDLE state (interactive mode only).
 	sim_mob::ControlManager* ctrlMgr = nullptr;
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {

@@ -38,7 +38,7 @@ class Loader;
 class ERP_Gantry_Zone;
 class ERP_Section;
 class ERP_Surcharge;
-class Link_travel_time;
+class LinkTravelTime;
 class DatabaseLoader2;
 class K_ShortestPathImpl;
 class Link;
@@ -139,8 +139,8 @@ public:
 	std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > ERP_Surcharge_pool; // <Gantry_No , value=ERP_Surcharge with same No diff time stamp>
 	std::map<std::string,sim_mob::ERP_Gantry_Zone*> ERP_Gantry_Zone_pool; //<Gantry_no, ERP_Gantry_Zone>
 	std::map<std::string,sim_mob::ERP_Section*> ERP_Section_pool;  // <aim-sun id , ERP_Section>
-	std::map<std::string,std::vector<sim_mob::Link_travel_time*> > Link_default_travel_time_pool; // <segment aim-sun id ,Link_default_travel_time with diff time stamp>
-	std::map<std::string,std::vector<sim_mob::Link_travel_time*> > Link_realtime_travel_time_pool;
+	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > Link_default_travel_time_pool; // <segment aim-sun id ,Link_default_travel_time with diff time stamp>
+	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > Link_realtime_travel_time_pool;
 
 	const sim_mob::RoadNetwork& roadNetwork;
 
@@ -162,6 +162,7 @@ public:
 	std::string Gantry_no;
 	std::string Zone_Id;
 };
+
 class ERP_Section
 {
 public:
@@ -172,6 +173,7 @@ public:
 	std::string ERP_Gantry_No_str;
 	OpaqueProperty<int> originalSectionDB_ID;  // seg aim-sun id ,rs->originalDB_ID.setProps("aimsun-id", currSec->id);
 };
+
 class ERP_Surcharge
 {
 public:
@@ -190,11 +192,11 @@ public:
 	std::string Day;
 };
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class Link_travel_time
+class LinkTravelTime
 {
 public:
-	Link_travel_time() {};
-	Link_travel_time(Link_travel_time& src);
+	LinkTravelTime() {};
+	LinkTravelTime(LinkTravelTime& src);
 	int link_id;
 	std::string start_time;
 	std::string end_time;
@@ -220,6 +222,7 @@ inline double generateSinglePathLengthPT(std::vector<WayPoint*>& wp)
 	}
 	return res/100.0; //meter
 }
+
 enum TRIP_PURPOSE
 {
 	work = 1,
@@ -263,18 +266,18 @@ public:
 public:
 	bool generateAllPathSetWithTripChain2();
 	sim_mob::SinglePath * generateSinglePathByFromToNodes(const sim_mob::Node *fromNode,
-			   const sim_mob::Node *toNode,const sim_mob::RoadSegment* exclude_seg=NULL);
+			   const sim_mob::Node *toNode,const sim_mob::RoadSegment* excludedSegs=NULL);
 	sim_mob::SinglePath *  generateSinglePathByFromToNodes3(
 			   const sim_mob::Node *fromNode,
 			   const sim_mob::Node *toNode,
 			   std::set<std::string> & duplicatePath,
-			   const std::set<const sim_mob::RoadSegment*> & exclude_seg=std::set<const sim_mob::RoadSegment*>());
+			   const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>());
 
 	sim_mob::SinglePath* generateShortestTravelTimePath(const sim_mob::Node *fromNode,
 			   const sim_mob::Node *toNode,
 			   std::set<std::string>& duplicateChecker,
 			   sim_mob::TimeRange tr = sim_mob::MorningPeak,
-			   const sim_mob::RoadSegment* exclude_seg=NULL,
+			   const sim_mob::RoadSegment* excludedSegs=NULL,
 			   int random_graph_idx=0);
 	PathSet *generatePathSetByFromToNodes(const sim_mob::Node *fromNode,
 			const sim_mob::Node *toNode,
@@ -288,19 +291,43 @@ public:
 	bool isUseCacheMode() { return isUseCache; }
 	double getUtilityBySinglePath(sim_mob::SinglePath* sp);
 	std::vector<WayPoint> generateBestPathChoice2(const sim_mob::SubTrip* st);
-	bool generateBestPathChoiceMT(const sim_mob::SubTrip* st,std::vector<sim_mob::WayPoint> &res, const std::set<const sim_mob::RoadSegment*> & exclude_seg=std::set<const sim_mob::RoadSegment*>(), bool isUseCache = true);
-	bool generateBestPathChoiceMT(const sim_mob::Person * per, const sim_mob::SubTrip* st,std::vector<sim_mob::WayPoint> &res, const std::set<const sim_mob::RoadSegment*> & exclude_seg=std::set<const sim_mob::RoadSegment*>(), bool isUseCache = true);
-	bool generateAllPathChoicesMT(PathSet* ps, const std::set<const sim_mob::RoadSegment*> & exclude_seg=std::set<const sim_mob::RoadSegment*>());
+	/**
+	 * generate set of path choices for a given suntrip, and then return the best of them
+	 * \param st input subtrip
+	 * \param res output path generated
+	 * \param excludedSegs input list segments to be excluded from the target set
+	 * \param isUseCache is using the cache allowed
+	 */
+	bool generateBestPathChoiceMT(const sim_mob::SubTrip* st,std::vector<sim_mob::WayPoint> &res, const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>(), bool isUseCache = true);
+
+	/**
+	 * same as the alternative generateBestPathChoiceMT() except it gets its sql connection info through the agent
+	 * \param per input agent applying to get the path
+	 * \param st input subtrip
+	 * \param res output path generated
+	 * \param excludedSegs input list segments to be excluded from the target set
+	 * \param isUseCache is using the cache allowed
+	 */
+	bool generateBestPathChoiceMT(const sim_mob::Person * per, const sim_mob::SubTrip* st,std::vector<sim_mob::WayPoint> &res, const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>(), bool isUseCache = true);
+
+	/**
+	 * generate all the paths for a person given its subtrip(OD)
+	 * \param per input agent applying to get the path
+	 * \param st input subtrip
+	 * \param res output path generated
+	 * \param excludedSegs input list segments to be excluded from the target set
+	 * \param isUseCache is using the cache allowed
+	 */
+	bool generateAllPathChoicesMT(PathSet* ps, const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>());
 	void generateTravelTimeSinglePathes(const sim_mob::Node *fromNode, const sim_mob::Node *toNode, std::set<std::string>& duplicateChecker,sim_mob::PathSet& ps_);
 	void generatePathesByLinkElimination(std::vector<WayPoint*>& path,std::set<std::string>& duplicateChecker,sim_mob::PathSet& ps_,const sim_mob::Node* fromNode,const sim_mob::Node* toNode);
 	void generatePathesByTravelTimeLinkElimination(std::vector<WayPoint*>& path, std::set<std::string>& duplicateChecker, sim_mob::PathSet& ps_,const sim_mob::Node* fromNode,const sim_mob::Node* toNode,	sim_mob::TimeRange tr);
-	bool getBestPathChoiceFromPathSet(sim_mob::PathSet& ps, const std::set<const sim_mob::RoadSegment *> & exclude_seg =  std::set<const sim_mob::RoadSegment *>());
+	bool getBestPathChoiceFromPathSet(sim_mob::PathSet& ps, const std::set<const sim_mob::RoadSegment *> & excludedSegs =  std::set<const sim_mob::RoadSegment *>());
 	void initParameters();
 	// get
 	std::vector<WayPoint> getPathByPerson(sim_mob::Person* per); // person has person id and current subtrip id
 	sim_mob::PathSet* getPathSetByFromToNodeAimsunId(std::string id);
 	bool getSinglePathById(std::string &id,sim_mob::SinglePath** s);
-	std::map<const sim_mob::RoadSegment*,SinglePath*> getseg_pathSetNull() { return seg_pathSetNull; }
 	double getTravelTime(sim_mob::SinglePath *sp);
 	double getTravelTimeBySegId(std::string id,sim_mob::DailyTime startTime);
 	// store
@@ -309,7 +336,7 @@ public:
 	std::string& getTravleTimeTmpTableName() { return pathset_traveltime_tmp_table_name; }
 	std::string& getTravleTimeRealtimeTableName() { return pathset_traveltime_realtime_table_name; }
 	void setCSVFileName();
-	bool insertTravelTime2TmpTable(sim_mob::Link_travel_time& data);
+	bool insertTravelTime2TmpTable(sim_mob::LinkTravelTime& data);
 	bool copyTravelTimeDataFromTmp2RealtimeTable();
 	void init();
 	void clearPools();
@@ -408,13 +435,13 @@ public:
 			   const sim_mob::Node *fromNode,
 			   const sim_mob::Node *toNode,
 			   std::map<std::string,SinglePath*>& wp_spPool,
-			   const sim_mob::RoadSegment* exclude_seg);
+			   const sim_mob::RoadSegment* excludedSegs);
 
 	bool generateSinglePathByFromToNodes2(
 			const sim_mob::Node *fromNode,
 			const sim_mob::Node *toNode,
 			sim_mob::SinglePath& sp,
-			const sim_mob::RoadSegment* exclude_seg);
+			const sim_mob::RoadSegment* excludedSegs);
 	void generatePaths2Node(const sim_mob::Node *toNode);
 	sim_mob::PathSet* getPathSetByPersonIdAndSubTripId(std::string personId,std::string subTripId);
 	std::vector<WayPoint> generateBestPathChoice(sim_mob::Person* per,

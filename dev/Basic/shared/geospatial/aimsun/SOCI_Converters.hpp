@@ -37,7 +37,7 @@ namespace soci
 class ERP_Section;
 class ERP_Surcharge;
 class ERP_Gantry_Zone;
-class Link_travel_time;
+class LinkTravelTime;
 class PathSet;
 class SinglePath;
 
@@ -193,10 +193,10 @@ template<> struct type_conversion<sim_mob::ERP_Gantry_Zone>
         ind = i_ok;
     }
 };
-template<> struct type_conversion<sim_mob::Link_travel_time>
+template<> struct type_conversion<sim_mob::LinkTravelTime>
 {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::Link_travel_time &res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::LinkTravelTime &res)
     {
 //    	res.gid = vals.get<int>("gid", 0);
     	res.link_id = vals.get<int>("link_id", 0);
@@ -204,7 +204,7 @@ template<> struct type_conversion<sim_mob::Link_travel_time>
     	res.end_time = vals.get<std::string>("end_time", "00:00:00");
     	res.travel_time = vals.get<double>("travel_time", 0.0);
     }
-    static void to_base(const sim_mob::Link_travel_time& src, soci::values& vals, soci::indicator& ind)
+    static void to_base(const sim_mob::LinkTravelTime& src, soci::values& vals, soci::indicator& ind)
     {
     	vals.set("link_id", src.link_id);
         vals.set("start_time", src.start_time);

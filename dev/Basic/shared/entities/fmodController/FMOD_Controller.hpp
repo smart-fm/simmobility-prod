@@ -90,7 +90,7 @@ public:
 
 private:
 	//record links travel times
-	std::map<sim_mob::Link*, double> linkTravelTimes;
+	std::map<sim_mob::Link*, double> LinkTravelTimes;
 	//record all trip chain items with FMOD mode
 	std::map<std::string, TripChainItem*> allItems;
 	//record all FMOD requests

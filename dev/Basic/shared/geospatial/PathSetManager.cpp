@@ -332,12 +332,11 @@ sim_mob::PathSetParam::PathSetParam() :
 	getDataFromDB();
 }
 
-sim_mob::PathSetManager::PathSetManager() {
+sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()) {
 	sql = NULL;
 	psDbLoader=NULL;
 	pathSetParam = PathSetParam::getInstance();
-	stdir = &StreetDirectory::instance();
-	roadNetwork = &ConfigManager::GetInstance().FullConfig().getNetwork();
+
 //	// 1.2 get all segs
 	init();
 	if(!psDbLoader)
@@ -807,11 +806,6 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 	{
 		sim_mob::Profiler::instance["path_set"]<<"generate All PathChoices for "<<fromToID << std::endl;
 		// 1. generate shortest path with all segs
-		// 1.1 check StreetDirectory
-		if(!stdir || !roadNetwork)
-		{
-			throw std::runtime_error("StreetDirectory or RoadNetwork is null");
-		}
 		// 1.2 get all segs
 		// 1.3 generate shortest path with full segs
 		ps_ = PathSet(fromNode,toNode);
@@ -938,7 +932,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, const std::s
 	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
 	sim_mob::Link *l = NULL;
 	std::vector<PathSetWorkerThread*> workPool;
-	A_StarShortestPathImpl * impl = (A_StarShortestPathImpl*)stdir->getDistanceImpl();
+	A_StarShortestPathImpl * impl = (A_StarShortestPathImpl*)stdir.getDistanceImpl();
 	StreetDirectory::VertexDesc from = impl->DrivingVertex(*ps->fromNode);
 	StreetDirectory::VertexDesc to = impl->DrivingVertex(*ps->toNode);
 	StreetDirectory::Vertex* fromV = &from.source;
@@ -975,7 +969,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, const std::s
 
 	// SHORTEST TRAVEL TIME LINK ELIMINATION
 	l=NULL;
-	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir->getTravelTimeImpl();
+	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir.getTravelTimeImpl();
 	from = sttpImpl->DrivingVertexNormalTime(*ps->fromNode);
 	to = sttpImpl->DrivingVertexNormalTime(*ps->toNode);
 	fromV = &from.source;file:///home/fm-simmobility/vahid/simmobility/dev/Basic/tempIncident/private/simrun_basic-1.xml
@@ -1181,11 +1175,6 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 		{
 			sim_mob::Profiler::instance["path_set"]<<"gBestPC2: create data for "<<fromToID<<std::endl;
 			// 1. generate shortest path with all segs
-			// 1.1 check StreetDirectory
-			if(!stdir || !roadNetwork)
-			{
-				throw std::runtime_error("StreetDirectory or RoadNetwork is null");
-			}
 			// 1.2 get all segs
 			// 1.3 generate shortest path with full segs
 			std::map<std::string,SinglePath*> wp_spPool;
@@ -1678,7 +1667,7 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::generateSinglePathByFromToNodes3
 			blacklist.push_back(rs);
 		}
 	}
-	std::vector<WayPoint> wp = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*fromNode), stdir->DrivingVertex(*toNode),blacklist);
+	std::vector<WayPoint> wp = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*fromNode), stdir.DrivingVertex(*toNode),blacklist);
 	if(wp.size()==0)
 	{
 		// no path
@@ -1740,8 +1729,8 @@ sim_mob::SinglePath* sim_mob::PathSetManager::generateShortestTravelTimePath(con
 		{
 			blacklist.push_back(exclude_seg);
 		}
-		std::vector<WayPoint> wp = stdir->SearchShortestDrivingTimePath(stdir->DrivingTimeVertex(*fromNode,tr,random_graph_idx),
-				stdir->DrivingTimeVertex(*toNode,tr,random_graph_idx),
+		std::vector<WayPoint> wp = stdir.SearchShortestDrivingTimePath(stdir.DrivingTimeVertex(*fromNode,tr,random_graph_idx),
+				stdir.DrivingTimeVertex(*toNode,tr,random_graph_idx),
 				blacklist,
 				tr,
 				random_graph_idx);
@@ -1785,7 +1774,7 @@ sim_mob::SinglePath * sim_mob::PathSetManager::generateSinglePathByFromToNodes(c
 	{
 		blacklist.push_back(exclude_seg);
 	}
-	std::vector<WayPoint> wp = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*fromNode), stdir->DrivingVertex(*toNode),blacklist);
+	std::vector<WayPoint> wp = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*fromNode), stdir.DrivingVertex(*toNode),blacklist);
 	if(wp.size()==0)
 	{
 		// no path
@@ -1812,7 +1801,7 @@ sim_mob::SinglePath * sim_mob::PathSetManager::generateSinglePathByFromToNodes(c
 		s = new SinglePath();
 		// fill data
 		s->isNeedSave2DB = true;
-		s->shortestWayPointpath = convertWaypoint2Point(wp);//stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*fromNode), stdir->DrivingVertex(*toNode),blacklist);
+		s->shortestWayPointpath = convertWaypoint2Point(wp);//stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*fromNode), stdir.DrivingVertex(*toNode),blacklist);
 		s->shortestSegPath = sim_mob::generateSegPathByWaypointPathP(s->shortestWayPointpath);
 		sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(s);
 		s->fromNode = fromNode;
@@ -1884,12 +1873,7 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 		}
 	}
 	sim_mob::Profiler::instance["path_set"]<<"gPSByFTNodes: create data for "<<fromToID<<std::endl;
-	// 1. generate shortest path with all segs
-	// 1.1 check StreetDirectory
-	if(!stdir || !roadNetwork)
-	{
-		throw std::runtime_error("StreetDirectory or RoadNetwork is null");
-	}
+	// 1. generate shortest path with all segsstdir
 	// 1.2 get all segs
 	// 1.3 generate shortest path with full segs
 	sim_mob::SinglePath *s = generateSinglePathByFromToNodes(fromNode,toNode);
@@ -2748,7 +2732,7 @@ bool sim_mob::PathSetManager::generateSinglePathByFromToNodes2(
 	{
 		blacklist.push_back(exclude_seg);
 	}
-	std::vector<WayPoint> wp = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*fromNode), stdir->DrivingVertex(*toNode),blacklist);
+	std::vector<WayPoint> wp = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*fromNode), stdir.DrivingVertex(*toNode),blacklist);
 	if(wp.size()==0)
 	{
 		// no path
@@ -2771,7 +2755,7 @@ bool sim_mob::PathSetManager::generateSinglePathByFromToNodes2(
 	// 1.31 check path pool
 		// fill data
 		s.isNeedSave2DB = true;
-		s.shortestWayPointpath = convertWaypoint2Point(wp);//stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*fromNode), stdir->DrivingVertex(*toNode),blacklist);
+		s.shortestWayPointpath = convertWaypoint2Point(wp);//stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*fromNode), stdir.DrivingVertex(*toNode),blacklist);
 		s.shortestSegPath = sim_mob::generateSegPathByWaypointPathP(s.shortestWayPointpath);
 		sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(&s);
 		s.fromNode = fromNode;
@@ -2796,7 +2780,7 @@ int sim_mob::PathSetManager::generateSinglePathByFromToNodes_(
 	{
 		blacklist.push_back(exclude_seg);
 	}
-	std::vector<WayPoint> wp = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*fromNode), stdir->DrivingVertex(*toNode),blacklist);
+	std::vector<WayPoint> wp = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*fromNode), stdir.DrivingVertex(*toNode),blacklist);
 	if(wp.size()==0)
 	{
 		// no path

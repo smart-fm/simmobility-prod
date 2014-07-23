@@ -335,8 +335,8 @@ public:
 
 private:
 	static PathSetManager *instance_;
-	StreetDirectory* stdir;
-	const sim_mob::RoadNetwork* roadNetwork;
+	StreetDirectory& stdir;
+//	const sim_mob::RoadNetwork& roadNetwork;
 
 	std::map<std::string,sim_mob::PathSet* > pathSetPool; // store all pathset , key = from node aimsun id + to node aimsun id
 														  // value = pathset

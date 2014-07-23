@@ -26,7 +26,7 @@ void sim_mob::K_ShortestPathImpl::init()
 }
 std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, const sim_mob::Node *to,
 		sim_mob::PathSet& ps_,
-		std::map<std::string,SinglePath*>& wp_spPool)
+		std::set<std::string>& wp_spPool)
 {
 	std::vector< std::vector<sim_mob::WayPoint> > pathFound;
 	std::vector<const RoadSegment*> bl;
@@ -139,7 +139,7 @@ std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKS
 	{
 		std::vector<sim_mob::WayPoint> path_ = pathFound[i];
 		std::string id = sim_mob::makeWaypointsetString(path_);
-		std::map<std::string,SinglePath*>::iterator it_id =  wp_spPool.find(id);
+		std::set<std::string>::iterator it_id =  wp_spPool.find(id);
 		if(it_id==wp_spPool.end())
 		{
 			sim_mob::SinglePath *s = new sim_mob::SinglePath();
@@ -158,7 +158,7 @@ std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKS
 			s->scenario = ps_.scenario;
 			s->pathsize=0;
 
-			wp_spPool.insert(std::make_pair(id,s));
+			wp_spPool.insert(id);
 		}
 	}
 	return pathFound;

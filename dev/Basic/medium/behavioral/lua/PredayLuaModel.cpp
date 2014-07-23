@@ -11,7 +11,6 @@
 
 #include "PredayLuaModel.hpp"
 
-
 #include "lua/LuaLibrary.hpp"
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"

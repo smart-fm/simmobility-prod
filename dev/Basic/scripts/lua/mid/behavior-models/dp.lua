@@ -579,6 +579,9 @@ end
 -- scales
 local scale = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1} -- 1 for all choices (51 1s)
 
+-- function to call from C++ preday simulator
+-- params table contains data passed from C++
+-- to check variable bindings in params, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
 function choose_dp(params)
 	computeUtilities(params) 
 	computeAvailabilities(params)

@@ -137,87 +137,6 @@ double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p,
     }
     return (criGap < a[1]) ? a[1] : criGap;
 }
-
-LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p,
-        int type) {
-    //[0:left,1:right]
-    //the speed of the closest vehicle in adjacent lane
-    LeadLag<double> otherSpeed[2];
-    //the distance to the closest vehicle in adjacent lane	
-    LeadLag<double> otherDistance[2];
-
-    const Lane * adjacentLanes[2] = {p.leftLane, p.rightLane};
-    const NearestVehicle * fwd;
-    const NearestVehicle * back;
-    // get speed of forward vehicle of left lane, store in otherSpeed[0].lead
-    // speed of backward vehicle of left lane, store in otherSpeed[0].lag
-    //speed of forward vehicle of right lane, store in otherSpeed[1].lead
-    //speed of backward vehicle of right lane, store in otherSpeed[1].lag
-    for (int i = 0; i < 2; i++) {
-        fwd = (i == 0) ? &p.nvLeftFwd : &p.nvRightFwd; // when i=0, fwd is left lane forward vehcile, when i=1, fwd is right lane forward vehicle
-        back = (i == 0) ? &p.nvLeftBack : &p.nvRightBack;// when i=0, back is left lane backward vehcile, when i=1, back is right lane backward vehicle
-
-        if (adjacentLanes[i]) { //the left/right side exists
-            if (!fwd->exists()) { //no vehicle ahead on target lane
-                otherSpeed[i].lead = 5000;
-                otherDistance[i].lead = 5000;
-            } else { //has vehicle ahead
-                otherSpeed[i].lead = fwd->driver->fwdVelocity.get();
-                otherDistance[i].lead = fwd->distance/100.0;
-            }
-            //check otherDistance[i].lead if <= 0 return
-
-            if (!back->exists()) {//no vehicle behind
-                otherSpeed[i].lag = -5000;
-                otherDistance[i].lag = 5000;
-            } else { //has vehicle behind, check the gap
-                otherSpeed[i].lag = back->driver->fwdVelocity.get();
-                otherDistance[i].lag = back->distance/100.0;
-            }
-        } else { // no left/right side exists
-            otherSpeed[i].lead = 0;
-            otherDistance[i].lead = 0;
-            otherSpeed[i].lag = 0;
-            otherDistance[i].lag = 0;
-        }
-    }
-
-    //[0:left,1:right]
-    LeadLag<bool> flags[2];
-    for (int i = 0; i < 2; i++) { //i for left / right
-        for (int j = 0; j < 2; j++) { //j for lead / lag
-            if (j == 0) {
-                double v = p.perceivedFwdVelocity / 100.0;
-                double dv = (otherSpeed[i].lead / 100.0 - v);
-                double dis = otherDistance[i].lead / 100.0;
-                double cri_gap = lcCriticalGap(p, j + type, p.dis2stop, v, dv);
-                flags[i].lead = (dis > cri_gap);
-                if (cri_gap < 0)
-                    std::cout << "find gap < 1" << std::endl;
-            } else {
-                double v = otherSpeed[i].lag / 100.0;
-                //				double dv 	 = p.perceivedFwdVelocity/100.0 - otherSpeed[i].lag/100.0;
-                double dv = otherSpeed[i].lag / 100.0 - p.perceivedFwdVelocity / 100.0; // fixed by Runmin
-                double cri_gap = lcCriticalGap(p, j + type, p.dis2stop, v, dv);
-                flags[i].lag = (otherDistance[i].lag / 100.0 > cri_gap);
-                if (cri_gap < 0)
-                    std::cout << "find gap < 1." << std::endl;
-            }
-        }
-    }
-
-    //Build up a return value.
-    LaneSide returnVal = {false, false};
-    if (flags[0].lead && flags[0].lag) {
-        returnVal.left = true;
-    }
-    if (flags[1].lead && flags[1].lag) {
-        returnVal.right = true;
-    }
-
-    return returnVal;
-}
-
 double sim_mob::MITSIM_LC_Model::calcSideLaneUtility(DriverUpdateParams& p, bool isLeft) {
     if (isLeft && !p.leftLane) {
         return -MAX_NUM; //has no left side
@@ -225,32 +144,6 @@ double sim_mob::MITSIM_LC_Model::calcSideLaneUtility(DriverUpdateParams& p, bool
         return -MAX_NUM; //has no right side
     }
     return (isLeft) ? p.nvLeftFwd.distance : p.nvRightFwd.distance;
-}
-LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(DriverUpdateParams& p) {
-    LaneSide freeLanes = gapAcceptance(p, MLC);
-    //find which lane it should get to and choose which side to change
-    //now manually set to 1, it should be replaced by target lane index
-    //i am going to fix it.
-    int direction = p.nextLaneIndex - p.currLaneIndex;
-    //current lane is target lane
-    if (direction == 0) {
-        return LCS_SAME;
-    }
-
-    //current lane isn't target lane
-    if (freeLanes.right && direction < 0) { 
-        //target lane on the right and is accessible
-        p.isWaiting = false;
-        return LCS_RIGHT;
-    } else if (freeLanes.left && direction > 0) { 
-        //target lane on the left and is accessible
-        p.isWaiting = false;
-        return LCS_LEFT;
-    } else { 
-        //when target side isn't available,vehicle will decelerate to wait a proper gap.
-        p.isWaiting = true;
-        return LCS_SAME;
-    }
 }
 
 //LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::executeNGSIMModel(DriverUpdateParams& p) {

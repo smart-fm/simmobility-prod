@@ -44,9 +44,6 @@ PathSetParam *sim_mob::PathSetParam::instance_ = NULL;
 
 std::map<boost::thread::id, boost::shared_ptr<soci::session> > sim_mob::PathSetManager::cnnRepo;
 
-const std::string pathSetTableName = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName;
-const std::string singlePathTableName = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().singlePathTableName;
-
 sim_mob::PathSetParam* sim_mob::PathSetParam::getInstance()
 {
 	if(!instance_)
@@ -311,30 +308,34 @@ sim_mob::PathSetParam::PathSetParam() :
 			}
 		}
 	}
-
-	for (int i = 0; i < multiNodesPool.size(); ++i) {
-		sim_mob::Node* n = multiNodesPool.at(i);
+	//we are still in constructor , so const refs like roadNetwork and multiNodesPool are not ready yet.
+	BOOST_FOREACH(sim_mob::Node* n, ConfigManager::GetInstance().FullConfig().getNetwork().getNodes()){
 		if (!n->originalDB_ID.getLogItem().empty()) {
 			//std::string id = n->originalDB_ID.getLogItem();
 			nodePool.insert(std::make_pair(n->getID(), n));
 		}
 	}
 
-	for (std::set<sim_mob::UniNode*>::iterator it = uniNodesPool.begin(); it != uniNodesPool.end(); ++it) {
-		sim_mob::UniNode* n = (*it);
+	BOOST_FOREACH(sim_mob::UniNode* n, ConfigManager::GetInstance().FullConfig().getNetwork().getUniNodes()){
 		if (!n->originalDB_ID.getLogItem().empty()) {
 			//std::string id = n->originalDB_ID.getLogItem();
 			nodePool.insert(std::make_pair(n->getID(), n));
 		}
 	}
 
-	sim_mob::Profiler::instance["path_set"] << "PathSetParam: nodes amount " << multiNodesPool.size() + uniNodesPool.size() << std::endl;
-	sim_mob::Profiler::instance["path_set"] << "PathSetParam: segments amount "	<< roadNetwork.getLinks().size() << std::endl;
+	sim_mob::Profiler::instance["path_set"] << "PathSetParam: nodes amount " <<
+			ConfigManager::GetInstance().FullConfig().getNetwork().getNodes().size() +
+			ConfigManager::GetInstance().FullConfig().getNetwork().getNodes().size() << std::endl;
+	sim_mob::Profiler::instance["path_set"] << "PathSetParam: segments amount "	<<
+			roadNetwork.getLinks().size() << std::endl;
 
 	getDataFromDB();
 }
 
-sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()) {
+sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()),
+		pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName),
+		singlePathTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().singlePathTableName)
+{
 //	sql = NULL;
 //	psDbLoader=NULL;
 	pathSetParam = PathSetParam::getInstance();

@@ -354,6 +354,8 @@ public:
 	std::set<const sim_mob::RoadSegment*> &getIncidents();
 	///insert into incident list
 	void inserIncidentList(const sim_mob::RoadSegment*);
+	const std::string &pathSetTableName;
+	const std::string &singlePathTableName;
 //	PathSetDBLoader *psDbLoader;
 //	soci::session *sql;
 	///every thread which invokes db related parts of pathset manages, should have its own connection to the database

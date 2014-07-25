@@ -107,7 +107,7 @@ public:
 	sim_mob::WayPoint* getWayPointBySeg(const sim_mob::RoadSegment* seg);
 
 	///	return cached node given its id
-	sim_mob::Node* getNodeById(unsigned int id);
+	sim_mob::Node* getCachedNode(std::string id);
 
 	double getHighwayBias() { return highway_bias; }
 
@@ -133,7 +133,7 @@ public:
 	bool isUseCache;
 	std::map<std::string,sim_mob::RoadSegment*> segPool; // store all segs <aimsun id ,seg>
 	std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*> wpPool; // <seg , value>
-	std::map<unsigned int,sim_mob::Node*> nodePool; // store all nodes <id ,node>
+	std::map<std::string,sim_mob::Node*> nodePool; // store all nodes <id ,node>
 	const std::vector<sim_mob::MultiNode*>  &multiNodesPool; //store all multi nodes in the map
 	const std::set<sim_mob::UniNode*> & uniNodesPool; // store all uni nodes
 	std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > ERP_Surcharge_pool; // <Gantry_No , value=ERP_Surcharge with same No diff time stamp>
@@ -530,8 +530,8 @@ public:
 	double logsum;
 	const sim_mob::SubTrip* subTrip; // pathset use info of subtrip to generate all things
 	std::string id;
-	unsigned int from_node_id;
-	unsigned int to_node_id;
+	std::string from_node_id;
+	std::string to_node_id;
 	std::string singlepath_id;
 	std::string excludedPaths;
 	std::string scenario;

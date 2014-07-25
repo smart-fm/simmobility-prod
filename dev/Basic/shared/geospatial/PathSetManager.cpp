@@ -260,9 +260,9 @@ sim_mob::WayPoint* sim_mob::PathSetParam::getWayPointBySeg(const sim_mob::RoadSe
 		return wp_;
 	}
 }
-sim_mob::Node* sim_mob::PathSetParam::getNodeById(unsigned int id)
+sim_mob::Node* sim_mob::PathSetParam::getCachedNode(std::string id)
 {
-	std::map<unsigned int,sim_mob::Node*>::iterator it = nodePool.find(id);
+	std::map<std::string,sim_mob::Node*>::iterator it = nodePool.find(id);
 	if(it != nodePool.end())
 	{
 		sim_mob::Node* node = (*it).second;
@@ -311,15 +311,17 @@ sim_mob::PathSetParam::PathSetParam() :
 	//we are still in constructor , so const refs like roadNetwork and multiNodesPool are not ready yet.
 	BOOST_FOREACH(sim_mob::Node* n, ConfigManager::GetInstance().FullConfig().getNetwork().getNodes()){
 		if (!n->originalDB_ID.getLogItem().empty()) {
-			//std::string id = n->originalDB_ID.getLogItem();
-			nodePool.insert(std::make_pair(n->getID(), n));
+			std::string t = n->originalDB_ID.getLogItem();
+			std::string id = sim_mob::getNumberFromAimsunId(t);
+			nodePool.insert(std::make_pair(id , n));
 		}
 	}
 
 	BOOST_FOREACH(sim_mob::UniNode* n, ConfigManager::GetInstance().FullConfig().getNetwork().getUniNodes()){
 		if (!n->originalDB_ID.getLogItem().empty()) {
-			//std::string id = n->originalDB_ID.getLogItem();
-			nodePool.insert(std::make_pair(n->getID(), n));
+			std::string t = n->originalDB_ID.getLogItem();
+			std::string id = sim_mob::getNumberFromAimsunId(t);
+			nodePool.insert(std::make_pair(id, n));
 		}
 	}
 
@@ -816,8 +818,10 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 		ps_.id = fromToID;
 //		ps_.from_node_id = fromNode->originalDB_ID.getLogItem();
 //		ps_.to_node_id = toNode->originalDB_ID.getLogItem();
-		ps_.from_node_id = fromNode->getID();
-		ps_.to_node_id = toNode->getID();
+		std:string temp = fromNode->originalDB_ID.getLogItem();
+		ps_.from_node_id = sim_mob::getNumberFromAimsunId(temp);
+		temp = toNode->originalDB_ID.getLogItem();
+		ps_.to_node_id = sim_mob::getNumberFromAimsunId(temp);
 		ps_.scenario = scenarioName;
 		ps_.subTrip = st;
 		ps_.psMgr = this;
@@ -915,7 +919,8 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, const std::s
 		ps->isNeedSave2DB = true;
 		std::map<std::string,sim_mob::PathSet* > tmp;
 		tmp.insert(std::make_pair(ps->id,ps));
-		sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),tmp);
+		std::string cnn(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
+		sim_mob::aimsun::Loader::SaveOnePathSetData(cnn,tmp, pathSetTableName);
 		return false;
 	}
 
@@ -1192,12 +1197,15 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 				ps_.id = fromToID;
 //				ps_.from_node_id = fromNode->originalDB_ID.getLogItem();
 //				ps_.to_node_id = toNode->originalDB_ID.getLogItem();
-				ps_.from_node_id = fromNode->getID();
-				ps_.to_node_id = toNode->getID();
+				std:string temp = fromNode->originalDB_ID.getLogItem();
+				ps_.from_node_id = sim_mob::getNumberFromAimsunId(temp);
+				temp = toNode->originalDB_ID.getLogItem();
+				ps_.to_node_id = sim_mob::getNumberFromAimsunId(temp);
 				ps_.scenario = scenarioName;
 				std::map<std::string,sim_mob::PathSet* > tmp;
 				tmp.insert(std::make_pair(fromToID,&ps_));
-				sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),tmp);
+				std::string cnn(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
+				sim_mob::aimsun::Loader::SaveOnePathSetData(cnn,tmp, pathSetTableName);
 				return res;
 			}
 			//	// 1.31 check path pool
@@ -1223,14 +1231,17 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 				std::vector< std::vector<sim_mob::WayPoint> > kshortestPaths = kshortestImpl->getKShortestPaths(fromNode,toNode,ps_,duplicateChecker);
 //				ps_.from_node_id = fromNode->originalDB_ID.getLogItem();
 //				ps_.to_node_id = toNode->originalDB_ID.getLogItem();
-				ps_.from_node_id = fromNode->getID();
-				ps_.to_node_id = toNode->getID();
+				std::string temp = fromNode->originalDB_ID.getLogItem();
+				ps_.from_node_id = sim_mob::getNumberFromAimsunId(temp);
+				temp = toNode->originalDB_ID.getLogItem();
+				ps_.to_node_id = sim_mob::getNumberFromAimsunId(temp);
 				ps_.scenario = scenarioName;
 				// 3. store pathset
 				sim_mob::generatePathSizeForPathSet2(&ps_);
 				std::map<std::string,sim_mob::PathSet* > tmp;
 				tmp.insert(std::make_pair(fromToID,&ps_));
-				sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),tmp);
+				std::string cnn(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
+				sim_mob::aimsun::Loader::SaveOnePathSetData(cnn,tmp, pathSetTableName);
 				//
 				bool r = getBestPathChoiceFromPathSet(ps_);
 				if(r)
@@ -1925,8 +1936,12 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 
 //	ps->from_node_id = fromNode->originalDB_ID.getLogItem();
 //	ps->to_node_id = toNode->originalDB_ID.getLogItem();
-	ps->from_node_id = fromNode->getID();
-	ps->to_node_id = toNode->getID();
+//	ps->from_node_id = fromNode->getID();
+//	ps->to_node_id = toNode->getID();
+	std:string temp = fromNode->originalDB_ID.getLogItem();
+	ps->from_node_id = sim_mob::getNumberFromAimsunId(temp);
+	temp = toNode->originalDB_ID.getLogItem();
+	ps->to_node_id = sim_mob::getNumberFromAimsunId(temp);
 	ps->scenario = scenarioName;
 	// 3. store pathset
 	sim_mob::generatePathSizeForPathSet2(ps);
@@ -1936,7 +1951,8 @@ sim_mob::PathSet *sim_mob::PathSetManager::generatePathSetByFromToNodes(const si
 	}
 	std::map<std::string,sim_mob::PathSet* > tmp;
 	tmp.insert(std::make_pair(fromToID,ps));
-	sim_mob::aimsun::Loader::SaveOnePathSetData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),tmp);
+	std::string cnn(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
+	sim_mob::aimsun::Loader::SaveOnePathSetData(cnn,tmp, pathSetTableName);
 
 	return ps;
 }
@@ -2475,8 +2491,8 @@ sim_mob::PathSet::PathSet(const PathSet &ps) :
 	hasBestChoice = false;
 	// 1. get from to nodes
 	//	can get nodes later,when insert to personPathSetPool
-	this->fromNode = sim_mob::PathSetParam::getInstance()->getNodeById(from_node_id);
-	this->toNode = sim_mob::PathSetParam::getInstance()->getNodeById(to_node_id);
+	this->fromNode = sim_mob::PathSetParam::getInstance()->getCachedNode(from_node_id);
+	this->toNode = sim_mob::PathSetParam::getInstance()->getCachedNode(to_node_id);
 //	// get all relative singlepath
 }
 

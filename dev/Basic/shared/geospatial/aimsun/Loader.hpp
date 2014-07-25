@@ -114,11 +114,11 @@ public:
 			std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >& link_realtime_travel_time_pool);
 //	static void SavePathSetData(const std::string& connectionStr,std::map<std::string,sim_mob::SinglePath*>& pathPool,std::map<std::string,sim_mob::PathSet* >& pathSetPool);
 	static void SaveOnePathSetData(const std::string& connectionStr,
-			std::map<std::string,sim_mob::PathSet* >& pathSetPool);
+			std::map<std::string,sim_mob::PathSet* >& pathSetPool,const std::string pathSetTableName);
 	static bool SaveOnePathSetDataST(soci::session& sql,
 				std::map<std::string,sim_mob::PathSet* >& pathSetPool,const std::string pathSetTableName);
-	static void SaveOneSinglePathData(const std::string& connectionStr,
-				std::vector<sim_mob::SinglePath*>& pathPool);
+//	static void SaveOneSinglePathData(const std::string& connectionStr,
+//				std::vector<sim_mob::SinglePath*>& pathPool,const std::string singlePathTableName);
 	static bool SaveOneSinglePathDataST(soci::session& sql,
 					std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& pathPool,const std::string singlePathTableName);
 	///For partial network loading.

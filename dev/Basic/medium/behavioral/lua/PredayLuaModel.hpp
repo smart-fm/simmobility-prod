@@ -76,7 +76,15 @@ public:
 	 * @param tourModeDestinationParams parameters specific to tour mode-destination models
 	 * @return an integer in the range of 1 to 9828 (9 modes * 1092 zones) which represents a combination of a zone (one of 1092) and a mode (one of 9)
 	 */
-	int predictTourModeDestination(PersonParams& personParams, TourModeDestinationParams& tourModeParams) const;
+	int predictTourModeDestination(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const;
+
+	/**
+	 * Computes log sums for all tour types by invoking corresponding functions in tour mode-destination model
+	 *
+	 * @param personParams object containing person and household related variables. logsums will be updated in this object
+	 * @param tourModeDestinationParams parameters specific to tour mode-destination models
+	 */
+	void computeTourModeDestinationLogsum(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const;
 
 	/**
 	 * Predicts the time window for a tour

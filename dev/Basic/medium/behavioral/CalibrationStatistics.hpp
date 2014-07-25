@@ -188,7 +188,7 @@ public:
 	 * Adds corresponding values in all vectors of rightOperand to this
 	 * if both operands have simulated statistics
 	 * @param rightOperand the right operand of addition (*this* is left)
-	 * @return
+	 * @return reference to this object after addition
 	 */
 	CalibrationStatistics& operator+(const CalibrationStatistics& rightOperand);
 

@@ -34,12 +34,12 @@ public:
 	CalibrationVariable() : variableName(std::string()), scriptFileName(std::string()), initialValue(0), currentValue(0), lowerLimit(0), upperLimit(0)
 	{}
 
-	const double getInitialValue() const
+	double getInitialValue() const
 	{
 		return initialValue;
 	}
 
-	const double getLowerLimit() const
+	double getLowerLimit() const
 	{
 		return lowerLimit;
 	}
@@ -49,7 +49,7 @@ public:
 		return scriptFileName;
 	}
 
-	const double getUpperLimit() const
+	double getUpperLimit() const
 	{
 		return upperLimit;
 	}
@@ -152,7 +152,7 @@ private:
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
 	typedef boost::unordered_map<int, std::vector<long> > ZoneNodeMap;
-	typedef void (PredayManager::*threadedFnPtr)(PersonList::iterator, PersonList::iterator, size_t);
+	typedef void (PredayManager::*threadedFnPtr)(const PersonList::iterator&, const PersonList::iterator&, size_t);
 
 	/**
 	 * Threaded function loop for simulation.
@@ -164,7 +164,7 @@ private:
 	 * @param last personList iterator corresponding to the person after the
 	 * 				last person to be processed
 	 */
-	void processPersons(PersonList::iterator first, PersonList::iterator last);
+	void processPersons(const PersonList::iterator& first, const PersonList::iterator& last);
 
 	/**
 	 * Distributes persons to different threads and starts the threads which process the persons for calibration
@@ -182,7 +182,7 @@ private:
 	 * 				last person to be processed
 	 * @param simStats the object to collect statistics into
 	 */
-	void processPersonsForCalibration(PersonList::iterator first, PersonList::iterator last, size_t threadNum);
+	void processPersonsForCalibration(const PersonList::iterator& first, const PersonList::iterator& last, size_t threadNum);
 
 	/**
 	 * Threaded logsum computation
@@ -194,7 +194,7 @@ private:
 	 * @param last personList iterator corresponding to the person after the
 	 * 				last person to be processed
 	 */
-	void computeLogsums(PersonList::iterator first, PersonList::iterator last);
+	void computeLogsums(const PersonList::iterator& first, const PersonList::iterator& last);
 
 	/**
 	 * Threaded logsum computation for calibration
@@ -207,12 +207,12 @@ private:
 	 * @param last personList iterator corresponding to the person after the
 	 * 				last person to be processed
 	 */
-	void computeLogsumsForCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, size_t threadNum);
+	void computeLogsumsForCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum);
 
 	/**
 	 * updates logsums in mongodb
 	 */
-	void outputLogsumsToMongoAfterCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, size_t threadNum);
+	void outputLogsumsToMongoAfterCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum);
 
 	/**
 	 * loads csv containing calibration variables for preday

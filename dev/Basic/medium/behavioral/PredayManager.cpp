@@ -948,7 +948,7 @@ void sim_mob::medium::PredayManager::loadWeightMatrix()
 	}
 }
 
-void sim_mob::medium::PredayManager::processPersonsForCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, size_t threadNum)
+void sim_mob::medium::PredayManager::processPersonsForCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum)
 {
 	CalibrationStatistics& simStats = simulatedStatsVector.at(threadNum);
 	bool consoleOutput = mtConfig.isConsoleOutput();
@@ -1030,7 +1030,7 @@ void sim_mob::medium::PredayManager::computeWeightedGradient(const std::vector<s
 	}
 }
 
-void sim_mob::medium::PredayManager::processPersons(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt)
+void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt)
 {
 	std::map<std::string, db::MongoDao*> mongoDao;
 	bool outputTripchains = mtConfig.isOutputTripchains();
@@ -1078,7 +1078,7 @@ void sim_mob::medium::PredayManager::processPersons(PersonList::iterator firstPe
 	mongoDao.clear();
 }
 
-void sim_mob::medium::PredayManager::computeLogsumsForCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, size_t threadNum)
+void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum)
 {
 	bool consoleOutput = mtConfig.isConsoleOutput();
 
@@ -1092,7 +1092,7 @@ void sim_mob::medium::PredayManager::computeLogsumsForCalibration(PersonList::it
 	}
 }
 
-void sim_mob::medium::PredayManager::outputLogsumsToMongoAfterCalibration(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt, size_t threadNum)
+void sim_mob::medium::PredayManager::outputLogsumsToMongoAfterCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum)
 {
 	const std::map<std::string, db::MongoDao*>& mongoDao = mongoDaoStore.at(threadNum);
 
@@ -1109,7 +1109,7 @@ void sim_mob::medium::PredayManager::outputLogsumsToMongoAfterCalibration(Person
 	}
 }
 
-void sim_mob::medium::PredayManager::computeLogsums(PersonList::iterator firstPersonIt, PersonList::iterator oneAfterLastPersonIt)
+void sim_mob::medium::PredayManager::computeLogsums(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt)
 {
 	std::map<std::string, db::MongoDao*> mongoDao;
 	bool consoleOutput = mtConfig.isConsoleOutput();

@@ -216,7 +216,10 @@ public:
 	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap);
 	const MongoCollectionsMap& getMongoCollectionsMap() const;
 	void setMongoCollectionsMap(const MongoCollectionsMap& mongoCollectionsMap);
+
+	/** the object of this class gets sealed when this function is called. No more changes will be allowed via the setters */
 	void sealConfig();
+
 	const PredayCalibrationParams& getPredayCalibrationParams() const;
 	const PredayCalibrationParams& getSPSA_CalibrationParams() const;
 	void setSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams);

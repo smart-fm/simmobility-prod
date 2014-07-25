@@ -72,7 +72,7 @@ size_t getModeIdx(int mode)
 		break;
 	case 5: // shared 2
 	case 6: // shared 3
-		// Shared 2 and shared 3 are both car passenger
+		// Shared 2 and shared 3 are both car passenger. (i.e) shared 2 - driver shares car with 1 pax. shared 3 - driver shares the car with 2 pax.
 		modeIdx = 4;
 		break;
 	case 7: // motor bike

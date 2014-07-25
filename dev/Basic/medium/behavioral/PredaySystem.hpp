@@ -170,7 +170,7 @@ private:
 	 * @param nodes the list of nodes
 	 * @returns a random element of the list
 	 */
-	long getRandomNodeInZone(std::vector<long>& nodes);
+	long getRandomNodeInZone(const std::vector<long>& nodes) const;
 
 	/**
 	 * Person specific parameters
@@ -248,7 +248,7 @@ public:
 	/**
 	 * Converts predictions to Trip chains and writes them off to PostGreSQL
 	 */
-	void outputTripChainsToPostgreSQL(ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao);
+	void outputTripChainsToPostgreSQL(const ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao);
 
 	/**
 	 * Prints logs for person in console

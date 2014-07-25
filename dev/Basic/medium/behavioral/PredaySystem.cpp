@@ -1176,7 +1176,7 @@ std::string sim_mob::medium::PredaySystem::getRandomTimeInWindow(double mid) {
 	return random_time.str();
 }
 
-long sim_mob::medium::PredaySystem::getRandomNodeInZone(std::vector<long>& nodes) {
+long sim_mob::medium::PredaySystem::getRandomNodeInZone(const std::vector<long>& nodes) const {
 	size_t numNodes = nodes.size();
 	if(numNodes == 0) {
 		return 0;
@@ -1228,14 +1228,16 @@ void sim_mob::medium::PredaySystem::outputLogsumsToMongo()
 	mongoDao["population"]->update(query, updateObj);
 }
 
-void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao) {
+void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(const ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao)
+{
 	size_t numTours = tours.size();
-	if (numTours == 0) {
+	if (numTours == 0)
+	{
 		return;
 	}
 	std::srand(clock());
 	std::string personId = personParams.getPersonId();
-	long hhFactor = (long)std::ceil(personParams.getHouseholdFactor());
+	long hhFactor = 1; //(long)std::ceil(personParams.getHouseholdFactor());
 	for(long k=1; k<=hhFactor; k++)
 	{
 		std::list<TripChainItemParams> tripChain;
@@ -1251,17 +1253,19 @@ void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(ZoneNodeMap& zo
 		std::string prevDeptTime = "";
 		std::string primaryMode = "";
 		bool atHome = true;
-		int homeNode =  getRandomNodeInZone(zoneNodeMap[zoneIdLookup.at(personParams.getHomeLocation())]);
+		int homeNode =  getRandomNodeInZone(zoneNodeMap.at(personParams.getHomeLocation()));
 		if(homeNode == 0) { return; } //do not insert this person at all
 		int tourNum = 0;
-		for(TourList::iterator tourIt = tours.begin(); tourIt != tours.end(); tourIt++) {
+		for(TourList::iterator tourIt = tours.begin(); tourIt != tours.end(); tourIt++)
+		{
 			tourNum = tourNum + 1;
 			Tour* tour = *tourIt;
 			int stopNum = 0;
-			for(StopList::iterator stopIt = tour->stops.begin(); stopIt != tour->stops.end(); stopIt++) {
+			for(StopList::iterator stopIt = tour->stops.begin(); stopIt != tour->stops.end(); stopIt++)
+			{
 				stopNum = stopNum + 1;
 				Stop* stop = *stopIt;
-				int nextNode = getRandomNodeInZone(zoneNodeMap[stop->getStopLocationId()]);
+				int nextNode = getRandomNodeInZone(zoneNodeMap.at(stop->getStopLocation()));
 				seqNum = seqNum + 1;
 				TripChainItemParams tcTrip;
 				tcTrip.setPersonId(pid);
@@ -1280,7 +1284,8 @@ void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(ZoneNodeMap& zo
 				tcTrip.setActivityType("dummy");
 				tcTrip.setActivityLocation(0);
 				tcTrip.setPrimaryActivity(false);
-				if(atHome) {
+				if(atHome)
+				{
 					// first trip in the tour
 					tcTrip.setTripOrigin(homeNode);
 					tcTrip.setTripDestination(nextNode);
@@ -1291,7 +1296,8 @@ void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(ZoneNodeMap& zo
 					tripChain.push_back(tcTrip);
 					atHome = false;
 				}
-				else {
+				else
+				{
 					tcTrip.setTripOrigin(prevNode);
 					tcTrip.setTripDestination(nextNode);
 					tcTrip.setSubtripOrigin(prevNode);
@@ -1353,8 +1359,8 @@ void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(ZoneNodeMap& zo
 			atHome = true;
 		}
 
-		for(std::list<TripChainItemParams>::iterator tcIt=tripChain.begin();
-				tcIt!=tripChain.end();tcIt++) {
+		for(std::list<TripChainItemParams>::iterator tcIt=tripChain.begin(); tcIt!=tripChain.end();tcIt++)
+		{
 			tripChainDao.insert(*tcIt);
 		}
 	}

@@ -9,9 +9,11 @@
  */
 
 #pragma once
+#include <boost/pool/pool_alloc.hpp>
 #include <boost/unordered_map.hpp>
-
+#include <map>
 #include "behavioral/lua/PredayLuaProvider.hpp"
+#include "CalibrationStatistics.hpp"
 #include "params/PersonParams.hpp"
 #include "PredayClasses.hpp"
 #include "database/PopulationSqlDao.hpp"
@@ -23,7 +25,7 @@ namespace medium {
 
 /**
  * Class for pre-day behavioral system of models.
- * Invokes behavior models in a sequence as specified by the system of models.
+ * Invokes behavior models in a sequence as specified by the system of models for 1 person.
  * Handles dependencies between models.
  * The models specified by modelers in an external scripting language are invoked via this class.
  *
@@ -208,12 +210,7 @@ private:
     /**
      * Data access objects for mongo
      */
-    boost::unordered_map<std::string, db::MongoDao*> mongoDao;
-
-    /**
-     * Data access objects to write trip chains
-     */
-    TripChainSqlDao& tripChainDao;
+    std::map<std::string, db::MongoDao*> mongoDao;
 
     /**
      * used for logging messages
@@ -224,8 +221,7 @@ public:
 	PredaySystem(PersonParams& personParams,
 			const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 			const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
-			const boost::unordered_map<std::string, db::MongoDao*>& mongoDao,
-			TripChainSqlDao& tripChainDao);
+			const std::map<std::string, db::MongoDao*>& mongoDao);
 	virtual ~PredaySystem();
 
 	/**
@@ -239,9 +235,31 @@ public:
 	void outputPredictionsToMongo();
 
 	/**
+	 * Invokes tour mode-destination models for computing logsums
+	 * Updates the logsums in personParams
+	 */
+	void computeLogsums();
+
+	/**
+	 * Writes the logsums to mongo
+	 */
+	void outputLogsumsToMongo();
+
+	/**
 	 * Converts predictions to Trip chains and writes them off to PostGreSQL
 	 */
-	void outputTripChainsToPostgreSQL(ZoneNodeMap& zoneNodeMap);
+	void outputTripChainsToPostgreSQL(ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao);
+
+	/**
+	 * Prints logs for person in console
+	 */
+	void printLogs();
+
+	/**
+	 * updates statsCollector with the stats for this person
+	 * @param statsCollector statistics collector to be updated
+	 */
+	void updateStatistics(CalibrationStatistics& statsCollector) const;
 };
 
 } // end namespace medium

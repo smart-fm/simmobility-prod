@@ -114,11 +114,10 @@ namespace {
 PredaySystem::PredaySystem(PersonParams& personParams,
 		const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 		const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
-		const boost::unordered_map<std::string, db::MongoDao*>& mongoDao,
-		TripChainSqlDao& tripChainDao)
+		const std::map<std::string, db::MongoDao*>& mongoDao)
 : personParams(personParams), zoneMap(zoneMap), zoneIdLookup(zoneIdLookup),
   amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap),
-  mongoDao(mongoDao), tripChainDao(tripChainDao), logStream(std::stringstream::out)
+  mongoDao(mongoDao), logStream(std::stringstream::out)
 {}
 
 PredaySystem::~PredaySystem()
@@ -496,8 +495,8 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 		throw std::runtime_error("predictStopTimeOfDay()::nullptr was passed for stop");
 	}
 	StopTimeOfDayParams stodParams(stop->getStopTypeID(), isBeforePrimary);
-	double origin = stop->getStopLocation();
-	double destination = personParams.getHomeLocation();
+	int origin = stop->getStopLocation();
+	int destination = personParams.getHomeLocation();
 
 	if(origin != destination) {
 		BSONObj bsonObjTT = BSON("origin" << origin << "destination" << destination);
@@ -1043,6 +1042,7 @@ void PredaySystem::constructTours() {
 }
 
 void PredaySystem::planDay() {
+	personParams.initTimeWindows();
 	logStream << std::endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
 	//Predict day pattern
 	logStream << "Person: " << personParams.getPersonId() << "| home: " << personParams.getHomeLocation() << std:: endl;
@@ -1099,8 +1099,6 @@ void PredaySystem::planDay() {
 		personParams.blockTime(tour->getStartTime(), tour->getEndTime());
 		logStream << "Tour|start time: " << tour->getStartTime() << "|end time: " << tour->getEndTime() << std::endl;
 	}
-
-	Print() << logStream.str();
 }
 
 void sim_mob::medium::PredaySystem::insertDayPattern()
@@ -1113,7 +1111,8 @@ void sim_mob::medium::PredaySystem::insertDayPattern()
 					"_id" << personParams.getPersonId() <<
 					"num_tours" << tourCount <<
 					"day_pattern" << dpStream.str() <<
-					"person_type_id" << personParams.getPersonTypeId()
+					"person_type_id" << personParams.getPersonTypeId() <<
+					"hhfactor" << personParams.getHouseholdFactor()
 					);
 	mongoDao["Output_DayPattern"]->insert(dpDoc);
 }
@@ -1132,7 +1131,9 @@ void sim_mob::medium::PredaySystem::insertTour(Tour* tour, int tourNumber) {
 		"end_time" << tour->getEndTime() <<
 		"person_id" << personParams.getPersonId() <<
 		"tour_mode" << tour->getTourMode() <<
-		"tour_num" << tourNumber
+		"tour_num" << tourNumber <<
+		"usual_location" << (tour->isUsualLocation()? 1 : 0) <<
+		"hhfactor" << personParams.getHouseholdFactor()
 	);
 	mongoDao["Output_Tour"]->insert(tourDoc);
 }
@@ -1148,7 +1149,8 @@ void sim_mob::medium::PredaySystem::insertStop(Stop* stop, int stopNumber, int t
 	"stop_type" << stop->getStopTypeStr() <<
 	"person_id" << personParams.getPersonId() <<
 	"tour_num" << tourNumber <<
-	"stop_mode" << stop->getStopMode()
+	"stop_mode" << stop->getStopMode() <<
+	"hhfactor" << personParams.getHouseholdFactor()
 	);
 	mongoDao["Output_Activity"]->insert(stopDoc);
 }
@@ -1188,6 +1190,17 @@ long sim_mob::medium::PredaySystem::getRandomNodeInZone(std::vector<long>& nodes
 	return *it;
 }
 
+void sim_mob::medium::PredaySystem::computeLogsums()
+{
+	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
+	PredayLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, tmdParams);
+	logStream << "Person: " << personParams.getPersonId()
+			<< "|updated logsums- work: " << personParams.getWorkLogSum()
+			<< ", shop: " << personParams.getShopLogSum()
+			<< ", other: " << personParams.getOtherLogSum()
+			<<std::endl;
+}
+
 void sim_mob::medium::PredaySystem::outputPredictionsToMongo() {
 	insertDayPattern();
 	int tourNum=0;
@@ -1204,7 +1217,18 @@ void sim_mob::medium::PredaySystem::outputPredictionsToMongo() {
 	}
 }
 
-void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(ZoneNodeMap& zoneNodeMap) {
+void sim_mob::medium::PredaySystem::outputLogsumsToMongo()
+{
+	BSONObj query = BSON("_id" << personParams.getPersonId());
+	BSONObj updateObj = BSON("$set" << BSON(
+			"worklogsum"<< personParams.getWorkLogSum() <<
+			"shoplogsum" << personParams.getShopLogSum() <<
+			"otherlogsum" << personParams.getOtherLogSum()
+			));
+	mongoDao["population"]->update(query, updateObj);
+}
+
+void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao) {
 	size_t numTours = tours.size();
 	if (numTours == 0) {
 		return;
@@ -1318,5 +1342,41 @@ void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(ZoneNodeMap& zo
 	for(std::list<TripChainItemParams>::iterator tcIt=tripChain.begin();
 			tcIt!=tripChain.end();tcIt++) {
 		tripChainDao.insert(*tcIt);
+	}
+}
+
+void sim_mob::medium::PredaySystem::printLogs()
+{
+	Print() << logStream.str();
+}
+
+void sim_mob::medium::PredaySystem::updateStatistics(CalibrationStatistics& statsCollector) const
+{
+	double householdFactor = personParams.getHouseholdFactor();
+	statsCollector.addToTourCountStats(tours.size(), householdFactor);
+	for(TourList::const_iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++)
+	{
+		const Tour* tour = (*tourIt);
+		statsCollector.addToStopCountStats(tour->stops.size()-1, householdFactor);
+		statsCollector.addToTourModeShareStats(tour->getTourMode(), householdFactor);
+		const StopList& stops = tour->stops;
+		int origin = personParams.getHomeLocation();
+		int destination = 0;
+		for(StopList::const_iterator stopIt=stops.begin(); stopIt!=stops.end(); stopIt++)
+		{
+			const Stop* stop = (*stopIt);
+			if(!stop->isPrimaryActivity())
+			{
+				statsCollector.addToTripModeShareStats(stop->getStopMode(), householdFactor);
+			}
+			destination = stop->getStopLocation();
+			if(origin != destination) { statsCollector.addToTravelDistanceStats(opCostMap.at(origin).at(destination)->getDistance(), householdFactor); }
+			else { statsCollector.addToTravelDistanceStats(0, householdFactor); }
+			origin = destination;
+		}
+		//There is still one more trip from last stop to home
+		destination = personParams.getHomeLocation();
+		if(origin != destination) { statsCollector.addToTravelDistanceStats(opCostMap.at(origin).at(destination)->getDistance(), householdFactor); }
+		else { statsCollector.addToTravelDistanceStats(0, householdFactor); }
 	}
 }

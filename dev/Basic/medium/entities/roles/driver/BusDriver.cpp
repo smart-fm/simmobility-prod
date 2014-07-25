@@ -155,7 +155,7 @@ void sim_mob::medium::BusDriver::openBusDoors(sim_mob::medium::BusStopAgent* bus
 	}
 	else {
 		const std::vector<int>& dwellTimeParams =
-				MT_Config::GetInstance().getDwellTimeParams();
+				MT_Config::getInstance().getDwellTimeParams();
 		if (dwellTimeParams.size() == NUM_PARAMS_DWELLTIME) {
 			waitingTimeAtbusStop = sim_mob::calculateDwellTime(totalNumber,
 					dwellTimeParams[0], dwellTimeParams[1], dwellTimeParams[2],

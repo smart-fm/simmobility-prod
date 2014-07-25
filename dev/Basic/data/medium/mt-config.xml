@@ -2,28 +2,34 @@
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
 
 <config>
-		<!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
-		<!-- Admissible values are "preday" and "supply". --> 
-		<mid_term_run_mode value="supply"/>
+        <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
+        <!-- Admissible values are "preday" and "supply". --> 
+        <mid_term_run_mode value="preday"/>
         
-        <!-- config specific to supply simulator -->    		
-		<supply>
-        		<!-- these parameters are used to calculate dwell time of buses at bus stops-->
-        		<!-- these parameters will be organized in a better way after finding the meaning of these numbers -->
-        		<dwell_time_parameters>
-                		<!--parameters : A, B, deltaBay, deltaFull, P_Front-->
-                		<parameters value="1, 1, 1, 0, 0"/>
-        		</dwell_time_parameters>  
+        <!-- config specific to supply simulator -->            
+        <supply>
+                <!-- these parameters are used to calculate dwell time of buses at bus stops-->
+                <!-- these parameters will be organized in a better way after finding the meaning of these numbers -->
+                <dwell_time_parameters>
+                        <!--parameters : A, B, deltaBay, deltaFull, P_Front-->
+                        <parameters value="1, 1, 1, 0, 0"/>
+                </dwell_time_parameters>  
          
-        		<!-- pedestrian walking speed in cm/s (approximately 5 km/h)-->
-        		<pedestrian_walk_speed value="135"/>
-		</supply>
-		
-		<!-- config specific to preday simulator -->
+                <!-- pedestrian walking speed in cm/s (approximately 5 km/h)-->
+                <pedestrian_walk_speed value="135"/>
+        </supply>
+        
+        <!-- config specific to preday simulator -->
         <preday>
+                <!-- Control variable to run simulation, calibration or logsum computation. Admissible values are "simulation", "calibration" and "logsum" -->
+                <run_mode value="simulation"/>
                 <!-- Number of threads to create for processing the population in-->
                 <!-- the preday demand simulator -->
-                <threads value="3"/>
+                <threads value="6"/>
+                <!-- outputs the preday predictions as trip chains in if enabled -->
+                <output_tripchains enabled="false"/>
+                <!-- prints person ids and tour details in console for each person if enabled -->
+                <console_output enabled="false"/>
                 
                 <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
                         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
@@ -49,7 +55,7 @@
                 
                 <!-- Names of MongoDB database and collections -->
                 <mongo_collections db_name="mydb">
-                        <mongo_collection name="population" collection="hits_population"/>
+                        <mongo_collection name="population" collection="hits08_population"/>
                         <mongo_collection name="tcost_bus" collection="tcost_bus"/>
                         <mongo_collection name="tcost_car" collection="tcost_car"/>
                         <mongo_collection name="AMCosts" collection="AMCosts"/>
@@ -57,10 +63,47 @@
                         <mongo_collection name="PMCosts" collection="PMCosts"/>
                         <mongo_collection name="Zone" collection="Zone"/>
                         <mongo_collection name="zone_node" collection="zone_aimsunnode_mapping"/>
-                        <mongo_collection name="Output_DayPattern" collection="person_tours_cpp_11_3"/>
-                        <mongo_collection name="Output_Tour" collection="tours_cpp_11_3"/>
-                        <mongo_collection name="Output_Activity" collection="activity_cpp_11_3"/>
+                        <mongo_collection name="Output_DayPattern" collection="person_tours_cpp_11_7"/>
+                        <mongo_collection name="Output_Tour" collection="tours_cpp_11_7"/>
+                        <mongo_collection name="Output_Activity" collection="activity_cpp_11_7"/>
                 </mongo_collections>
+                
+                <calibration enabled="false">
+                        <!-- variables to calibrate -->
+                        <!-- expected csv format: variable_name,lua_file_name,initial_value,lower_limit,upper_limit -->
+                        <variables file="data/medium/preday_calibration_variables.csv"/>
+                        <!--csv providing the observed values for the statistics to compute-->
+                        <observed_statistics file="data/medium/preday_observed_HITS08_statistics.csv"/>
+                        <!-- which calibration technique to use: SPSA/WSPSA -->
+                        <calibration_technique value="SPSA"/>
+                        <!-- logsums will be recomputed every x iterations if value is set to x -->
+                        <logsum_computation_frequency value="5"/>
+                        <SPSA>
+                                <!-- max number of iterations that spsa must run for -->
+                                <iterations value="20"/>
+                                <!-- termination condition for spsa is (F(X_k+1) - F(X_k) <= tolerance ) where F(X) is the objective function -->
+                                <tolerence value="0.000001"/>
+                                <!-- perturbation step size for iteration k is given by c_k = c / ((1+k)^gamma) -->
+                                <gradient_step_size initial_value="0.1" algorithm_coefficient2="0.101"/>
+                                <!-- step size for iteration k is given by a_k = a / ((1+k)^alpha) -->
+                                <step_size initial_value="0.16" stability_constant="100" algorithm_coefficient1="0.602"/>
+                        </SPSA>
+                        <WSPSA>
+                                <!-- max number of iterations that spsa must run for -->
+                                <iterations value="20"/>
+                                <!-- termination condition for spsa is (F(X_k+1) - F(X_k) <= tolerance ) where F(X) is the objective function -->
+                                <tolerence value="0.000001"/>
+                                <!-- perturbation step size for iteration k is given by c_k = c / ((1+k)^gamma) -->
+                                <gradient_step_size initial_value="0.1" algorithm_coefficient2="0.101"/>
+                                <!-- step size for iteration k is given by a_k = a / ((1+k)^alpha) -->
+                                <step_size initial_value="0.16" stability_constant="100" algorithm_coefficient1="0.602"/>
+                                <!-- csv containing the weight matrix-->
+                                <weight_matrix file="data/medium/preday_calibration_weight_matrix.csv"/>
+                        </WSPSA>
+                        
+                        <!-- output file to track the statistics and parameters for every iteration of calibration -->
+                        <output file="preday_calibration_out.csv"/>
+                </calibration>
         </preday>
 </config>
 

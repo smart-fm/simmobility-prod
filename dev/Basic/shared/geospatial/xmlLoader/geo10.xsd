@@ -180,7 +180,7 @@
       <!--      <xs:element name="parentLink" type="xs:string" minOccurs="1" maxOccurs="1"/>-->
       <xs:element name="startingNode" type="xs:unsignedInt" />
       <xs:element name="endingNode" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="maxSpeed" type="xs:short"/>
+      <xs:element name="maxSpeed" type="xs:double"/>
       <xs:element name="Length" type="xs:unsignedInt"/>
       <xs:element name="Width" type="xs:unsignedInt"/>
       <xs:element name="originalDB_ID" type="xs:string" minOccurs="0" maxOccurs="1"/>

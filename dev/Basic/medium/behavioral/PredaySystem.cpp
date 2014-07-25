@@ -1234,27 +1234,101 @@ void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(ZoneNodeMap& zo
 		return;
 	}
 	std::srand(clock());
-	std::list<TripChainItemParams> tripChain;
 	std::string personId = personParams.getPersonId();
-	int seqNum = 0;
-	int prevNode = 0;
-	int nextNode = 0;
-	std::string prevDeptTime = "";
-	std::string primaryMode = "";
-	bool atHome = true;
-	int homeNode = personParams.getHomeLocation();
-	int tourNum = 0;
-	for(TourList::iterator tourIt = tours.begin(); tourIt != tours.end(); tourIt++) {
-		tourNum = tourNum + 1;
-		Tour* tour = *tourIt;
-		int stopNum = 0;
-		for(StopList::iterator stopIt = tour->stops.begin(); stopIt != tour->stops.end(); stopIt++) {
-			stopNum = stopNum + 1;
-			Stop* stop = *stopIt;
-			int nextNode = getRandomNodeInZone(zoneNodeMap[stop->getStopLocationId()]);
+	long hhFactor = (long)std::ceil(personParams.getHouseholdFactor());
+	for(long k=1; k<=hhFactor; k++)
+	{
+		std::list<TripChainItemParams> tripChain;
+		std::string pid;
+		{
+			std::stringstream sclPersonIdStrm;
+			sclPersonIdStrm << personId << "_" << k;
+			pid = sclPersonIdStrm.str();
+		}
+		int seqNum = 0;
+		int prevNode = 0;
+		int nextNode = 0;
+		std::string prevDeptTime = "";
+		std::string primaryMode = "";
+		bool atHome = true;
+		int homeNode =  getRandomNodeInZone(zoneNodeMap[zoneIdLookup.at(personParams.getHomeLocation())]);
+		if(homeNode == 0) { return; } //do not insert this person at all
+		int tourNum = 0;
+		for(TourList::iterator tourIt = tours.begin(); tourIt != tours.end(); tourIt++) {
+			tourNum = tourNum + 1;
+			Tour* tour = *tourIt;
+			int stopNum = 0;
+			for(StopList::iterator stopIt = tour->stops.begin(); stopIt != tour->stops.end(); stopIt++) {
+				stopNum = stopNum + 1;
+				Stop* stop = *stopIt;
+				int nextNode = getRandomNodeInZone(zoneNodeMap[stop->getStopLocationId()]);
+				seqNum = seqNum + 1;
+				TripChainItemParams tcTrip;
+				tcTrip.setPersonId(pid);
+				tcTrip.setTcSeqNum(seqNum);
+				tcTrip.setTcItemType("Trip");
+				std::stringstream tripId;
+				tripId << pid << "_" << tourNum << "_" << seqNum;
+				tcTrip.setTripId(tripId.str());
+				tripId << "_1"; //first and only subtrip
+				tcTrip.setSubtripId(tripId.str());
+				//tcTrip.setSubtripMode(modeMap.at(stop->getStopMode()));
+				//tcTrip.setPrimaryMode((tour->getTourMode() == stop->getStopMode()));
+				tcTrip.setSubtripMode(modeMap.at(4)); /*~ all trips are made to car trips. Done for running mid-term for TRB paper. ~*/
+				tcTrip.setPrimaryMode(true); /*~ running mid-term for TRB paper. ~*/
+				tcTrip.setActivityId("0");
+				tcTrip.setActivityType("dummy");
+				tcTrip.setActivityLocation(0);
+				tcTrip.setPrimaryActivity(false);
+				if(atHome) {
+					// first trip in the tour
+					tcTrip.setTripOrigin(homeNode);
+					tcTrip.setTripDestination(nextNode);
+					tcTrip.setSubtripOrigin(homeNode);
+					tcTrip.setSubtripDestination(nextNode);
+					std::string startTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(tour->getStartTime()));
+					tcTrip.setStartTime(startTimeStr);
+					tripChain.push_back(tcTrip);
+					atHome = false;
+				}
+				else {
+					tcTrip.setTripOrigin(prevNode);
+					tcTrip.setTripDestination(nextNode);
+					tcTrip.setSubtripOrigin(prevNode);
+					tcTrip.setSubtripDestination(nextNode);
+					tcTrip.setStartTime(prevDeptTime);
+					tripChain.push_back(tcTrip);
+				}
+				seqNum = seqNum + 1;
+				TripChainItemParams tcActivity;
+				tcActivity.setPersonId(pid);
+				tcActivity.setTcSeqNum(seqNum);
+				tcActivity.setTcItemType("Activity");
+				tcActivity.setTripId("0");
+				tcActivity.setSubtripId("0");
+				tcActivity.setPrimaryMode(false);
+				tcActivity.setTripOrigin(0);
+				tcActivity.setTripDestination(0);
+				tcActivity.setSubtripOrigin(0);
+				tcActivity.setSubtripDestination(0);
+				std::stringstream actId;
+				actId << pid << "_" << tourNum << "_" << seqNum;
+				tcActivity.setActivityId(actId.str());
+				tcActivity.setActivityType(stop->getStopTypeStr());
+				tcActivity.setActivityLocation(nextNode);
+				tcActivity.setPrimaryActivity(stop->isPrimaryActivity());
+				std::string arrTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(stop->getArrivalTime()));
+				std::string deptTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(stop->getDepartureTime()));
+				tcActivity.setActivityStartTime(arrTimeStr);
+				tcActivity.setActivityEndTime(deptTimeStr);
+				tripChain.push_back(tcActivity);
+				prevNode = nextNode; //activity location
+				prevDeptTime = deptTimeStr;
+			}
+			// insert last trip in tour
 			seqNum = seqNum + 1;
 			TripChainItemParams tcTrip;
-			tcTrip.setPersonId(personId);
+			tcTrip.setPersonId(pid);
 			tcTrip.setTcSeqNum(seqNum);
 			tcTrip.setTcItemType("Trip");
 			std::stringstream tripId;
@@ -1262,86 +1336,27 @@ void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(ZoneNodeMap& zo
 			tcTrip.setTripId(tripId.str());
 			tripId << "_1"; //first and only subtrip
 			tcTrip.setSubtripId(tripId.str());
-			tcTrip.setSubtripMode(modeMap.at(stop->getStopMode()));
-			tcTrip.setPrimaryMode((tour->getTourMode() == stop->getStopMode()));
+			//tcTrip.setSubtripMode(modeMap.at(tour->stops.back()->getStopMode()));
+			//tcTrip.setPrimaryMode((tour->getTourMode() == tour->stops.back()->getStopMode()));
+			tcTrip.setSubtripMode(modeMap.at(4)); /*~ all trips are made to car trips. Done for running mid-term for TRB paper. ~*/
+			tcTrip.setPrimaryMode(true); /*~ running mid-term for TRB paper. ~*/
+			tcTrip.setStartTime(prevDeptTime);
+			tcTrip.setTripOrigin(prevNode);
+			tcTrip.setTripDestination(homeNode);
+			tcTrip.setSubtripOrigin(prevNode);
+			tcTrip.setSubtripDestination(homeNode);
 			tcTrip.setActivityId("0");
 			tcTrip.setActivityType("dummy");
 			tcTrip.setActivityLocation(0);
 			tcTrip.setPrimaryActivity(false);
-			if(atHome) {
-				// first trip in the tour
-				tcTrip.setTripOrigin(homeNode);
-				tcTrip.setTripDestination(nextNode);
-				tcTrip.setSubtripOrigin(homeNode);
-				tcTrip.setSubtripDestination(nextNode);
-				std::string startTimeStr = getRandomTimeInWindow(tour->getStartTime());
-				tcTrip.setStartTime(startTimeStr);
-				tripChain.push_back(tcTrip);
-				atHome = false;
-			}
-			else {
-				tcTrip.setTripOrigin(prevNode);
-				tcTrip.setTripDestination(nextNode);
-				tcTrip.setSubtripOrigin(prevNode);
-				tcTrip.setSubtripDestination(nextNode);
-				tcTrip.setStartTime(prevDeptTime);
-				tripChain.push_back(tcTrip);
-			}
-			seqNum = seqNum + 1;
-			TripChainItemParams tcActivity;
-			tcActivity.setPersonId(personId);
-			tcActivity.setTcSeqNum(seqNum);
-			tcActivity.setTcItemType("Activity");
-			tcActivity.setTripId("0");
-			tcActivity.setSubtripId("0");
-			tcActivity.setPrimaryMode(false);
-			tcActivity.setTripOrigin(0);
-			tcActivity.setTripDestination(0);
-			tcActivity.setSubtripOrigin(0);
-			tcActivity.setSubtripDestination(0);
-			std::stringstream actId;
-			actId << personId << "_" << tourNum << "_" << seqNum;
-			tcActivity.setActivityId(actId.str());
-			tcActivity.setActivityType(stop->getStopTypeStr());
-			tcActivity.setActivityLocation(nextNode);
-			tcActivity.setPrimaryActivity(stop->isPrimaryActivity());
-			std::string arrTimeStr = getRandomTimeInWindow(stop->getArrivalTime());
-			std::string deptTimeStr = getRandomTimeInWindow(stop->getDepartureTime());
-			tcActivity.setActivityStartTime(arrTimeStr);
-			tcActivity.setActivityEndTime(deptTimeStr);
-			tripChain.push_back(tcActivity);
-			prevNode = nextNode; //activity location
-			prevDeptTime = deptTimeStr;
+			tripChain.push_back(tcTrip);
+			atHome = true;
 		}
-		// insert last trip in tour
-		seqNum = seqNum + 1;
-		TripChainItemParams tcTrip;
-		tcTrip.setPersonId(personId);
-		tcTrip.setTcSeqNum(seqNum);
-		tcTrip.setTcItemType("Trip");
-		std::stringstream tripId;
-		tripId << personId << "_" << tourNum << "_" << seqNum;
-		tcTrip.setTripId(tripId.str());
-		tripId << "_1"; //first and only subtrip
-		tcTrip.setSubtripId(tripId.str());
-		tcTrip.setSubtripMode(modeMap.at(tour->stops.back()->getStopMode()));
-		tcTrip.setPrimaryMode((tour->getTourMode() == tour->stops.back()->getStopMode()));
-		tcTrip.setStartTime(prevDeptTime);
-		tcTrip.setTripOrigin(prevNode);
-		tcTrip.setTripDestination(homeNode);
-		tcTrip.setSubtripOrigin(prevNode);
-		tcTrip.setSubtripDestination(homeNode);
-		tcTrip.setActivityId("0");
-		tcTrip.setActivityType("dummy");
-		tcTrip.setActivityLocation(0);
-		tcTrip.setPrimaryActivity(false);
-		tripChain.push_back(tcTrip);
-		atHome = true;
-	}
 
-	for(std::list<TripChainItemParams>::iterator tcIt=tripChain.begin();
-			tcIt!=tripChain.end();tcIt++) {
-		tripChainDao.insert(*tcIt);
+		for(std::list<TripChainItemParams>::iterator tcIt=tripChain.begin();
+				tcIt!=tripChain.end();tcIt++) {
+			tripChainDao.insert(*tcIt);
+		}
 	}
 }
 

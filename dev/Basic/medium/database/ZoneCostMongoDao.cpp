@@ -71,12 +71,12 @@ bool sim_mob::medium::ZoneNodeMappingDao::getAll(boost::unordered_map<int, std::
 		switch (zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).type()) {
 		case mongo::NumberInt:
 		{
-			outList[zoneNodeDoc.getField(MONGO_FIELD_MTZ).type()].push_back(zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).Int());
+			outList[zoneNodeDoc.getField(MONGO_FIELD_MTZ).Int()].push_back(zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).Int());
 			break;
 		}
 		case mongo::NumberLong:
 		{
-			outList[zoneNodeDoc.getField(MONGO_FIELD_MTZ).type()].push_back(zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).Long());
+			outList[zoneNodeDoc.getField(MONGO_FIELD_MTZ).Int()].push_back(zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).Long());
 			break;
 		}
 		default:

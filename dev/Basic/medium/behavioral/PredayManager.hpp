@@ -164,7 +164,7 @@ private:
 	 * @param last personList iterator corresponding to the person after the
 	 * 				last person to be processed
 	 */
-	void processPersons(const PersonList::iterator& first, const PersonList::iterator& last);
+	void processPersons(const PersonList::iterator& first, const PersonList::iterator& last, const std::string& tripChainLog);
 
 	/**
 	 * Distributes persons to different threads and starts the threads which process the persons for calibration

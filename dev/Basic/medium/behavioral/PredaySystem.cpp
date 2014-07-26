@@ -1228,23 +1228,16 @@ void sim_mob::medium::PredaySystem::updateLogsumsToMongo()
 	mongoDao["population"]->update(query, updateObj);
 }
 
-void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(const ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao)
+void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneNodeMap, long hhFactor, std::list<TripChainItemParams>& tripChain)
 {
-	size_t numTours = tours.size();
-	if (numTours == 0)
-	{
-		return;
-	}
 	std::srand(clock());
 	std::string personId = personParams.getPersonId();
-	long hhFactor = 1; //(long)std::ceil(personParams.getHouseholdFactor());
 	for(long k=1; k<=hhFactor; k++)
 	{
-		std::list<TripChainItemParams> tripChain;
 		std::string pid;
 		{
 			std::stringstream sclPersonIdStrm;
-			sclPersonIdStrm << personId << "_" << k;
+			sclPersonIdStrm << personId << "-" << k;
 			pid = sclPersonIdStrm.str();
 		}
 		int seqNum = 0;
@@ -1375,11 +1368,81 @@ void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(const ZoneNodeM
 				atHome = true;
 			}
 		}
+	}
+}
 
-		for(std::list<TripChainItemParams>::iterator tcIt=tripChain.begin(); tcIt!=tripChain.end();tcIt++)
-		{
-			tripChainDao.insert(*tcIt);
-		}
+void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(const ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao)
+{
+	size_t numTours = tours.size();
+	if (numTours == 0) { return; }
+	long hhFactor = 1; //(long)std::ceil(personParams.getHouseholdFactor());
+	std::list<TripChainItemParams> tripChain;
+	constructTripChains(zoneNodeMap, hhFactor, tripChain);
+	for(std::list<TripChainItemParams>::iterator tcIt=tripChain.begin(); tcIt!=tripChain.end();tcIt++)
+	{
+		tripChainDao.insert(*tcIt);
+	}
+}
+
+void sim_mob::medium::PredaySystem::outputTripChainsToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& tripChainStream)
+{
+	size_t numTours = tours.size();
+	if (numTours == 0) { return; }
+	long hhFactor = 1; //(long)std::ceil(personParams.getHouseholdFactor());
+	std::list<TripChainItemParams> tripChains;
+	constructTripChains(zoneNodeMap, hhFactor, tripChains);
+	for(std::list<TripChainItemParams>::const_iterator tcIt=tripChains.begin(); tcIt!=tripChains.end();tcIt++)
+	{
+		/*
+		  ------------------ DATABASE preday_trip_chain_flat FIELDS for reference --------------------------------
+		  person_id character varying NOT NULL,
+		  tc_seq_no integer NOT NULL,
+		  tc_item_type character varying,
+		  trip_id character varying,
+		  trip_origin integer,
+		  trip_from_loc_type character varying DEFAULT 'node'::character varying,
+		  trip_destination integer,
+		  trip_to_loc_type character varying DEFAULT 'node'::character varying,
+		  subtrip_id character varying,
+		  subtrip_origin integer,
+		  subtrip_from_loc_type character varying DEFAULT 'node'::character varying,
+		  subtrip_destination integer,
+		  subtrip_to_loc_type character varying DEFAULT 'node'::character varying,
+		  subtrip_mode character varying,
+		  is_primary_mode boolean,
+		  start_time character varying,
+		  pt_line_id character varying DEFAULT ''::character varying,
+		  activity_id character varying,
+		  activity_type character varying,
+		  is_primary_activity boolean,
+		  flexible_activity boolean DEFAULT false,
+		  mandatory_activity boolean DEFAULT true,
+		  activity_location integer,
+		  activity_loc_type character varying DEFAULT 'node'::character varying,
+		  activity_start_time character varying,
+		  activity_end_time character varying
+		*/
+		const TripChainItemParams& data = (*tcIt);
+		tripChainStream << data.getPersonId() << ",";
+		tripChainStream << data.getTcSeqNum() << ",";
+		tripChainStream << data.getTcItemType() << ",";
+		tripChainStream << data.getTripId() << ",";
+		tripChainStream << data.getTripOrigin() << "," << "node" << ",";
+		tripChainStream << data.getTripDestination() << "," << "node" << ",";
+		tripChainStream << data.getSubtripId() << ",";
+		tripChainStream << data.getSubtripOrigin() << "," << "node" << ",";
+		tripChainStream << data.getSubtripDestination() << "," << "node" << ",";
+		tripChainStream << data.getSubtripMode() << ",";
+		tripChainStream << (data.isPrimaryMode()? "True":"False") << ",";
+		tripChainStream << data.getStartTime() << ",";
+		tripChainStream << "\"\"" << ","; //public transit line id
+		tripChainStream << data.getActivityId() << ",";
+		tripChainStream << data.getActivityType() << ",";
+		tripChainStream << (data.isPrimaryActivity()? "True":"False") << ",";
+		tripChainStream << "False" << "," << "True" << ","; //flexible and mandatory activity
+		tripChainStream << data.getActivityLocation() << "," << "node" << ",";
+		tripChainStream << data.getActivityStartTime() << ",";
+		tripChainStream << data.getActivityEndTime() << "\n";
 	}
 }
 

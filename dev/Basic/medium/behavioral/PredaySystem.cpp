@@ -1217,7 +1217,7 @@ void sim_mob::medium::PredaySystem::outputPredictionsToMongo() {
 	}
 }
 
-void sim_mob::medium::PredaySystem::outputLogsumsToMongo()
+void sim_mob::medium::PredaySystem::updateLogsumsToMongo()
 {
 	BSONObj query = BSON("_id" << personParams.getPersonId());
 	BSONObj updateObj = BSON("$set" << BSON(

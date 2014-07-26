@@ -243,7 +243,7 @@ public:
 	/**
 	 * Writes the logsums to mongo
 	 */
-	void outputLogsumsToMongo();
+	void updateLogsumsToMongo();
 
 	/**
 	 * Converts predictions to Trip chains and writes them off to PostGreSQL

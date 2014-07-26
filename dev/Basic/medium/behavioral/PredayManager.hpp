@@ -212,7 +212,7 @@ private:
 	/**
 	 * updates logsums in mongodb
 	 */
-	void outputLogsumsToMongoAfterCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum);
+	void updateLogsumsToMongoAfterCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum);
 
 	/**
 	 * loads csv containing calibration variables for preday

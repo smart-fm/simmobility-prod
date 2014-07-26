@@ -874,7 +874,7 @@ void sim_mob::medium::PredayManager::calibratePreday()
 	}
 
 	// write the latest logsums to mongodb
-	distributeAndProcessForCalibration(&PredayManager::outputLogsumsToMongoAfterCalibration);
+	distributeAndProcessForCalibration(&PredayManager::updateLogsumsToMongoAfterCalibration);
 
 	destroyMongoDaoStore();
 	safe_delete_item(logFile);
@@ -1034,6 +1034,7 @@ void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& 
 {
 	std::map<std::string, db::MongoDao*> mongoDao;
 	bool outputTripchains = mtConfig.isOutputTripchains();
+	bool outputPredictions = mtConfig.isOutputPredictions();
 	bool consoleOutput = mtConfig.isConsoleOutput();
 	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
 	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
@@ -1066,7 +1067,7 @@ void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& 
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
 		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
 		predaySystem.planDay();
-		predaySystem.outputPredictionsToMongo();
+		if(outputPredictions) { predaySystem.outputPredictionsToMongo(); }
 		if(outputTripchains) { predaySystem.outputTripChainsToPostgreSQL(zoneNodeMap, tcDao); }
 		if(consoleOutput) { predaySystem.printLogs(); }
 	}
@@ -1092,7 +1093,7 @@ void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonLi
 	}
 }
 
-void sim_mob::medium::PredayManager::outputLogsumsToMongoAfterCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum)
+void sim_mob::medium::PredayManager::updateLogsumsToMongoAfterCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum)
 {
 	const std::map<std::string, db::MongoDao*>& mongoDao = mongoDaoStore.at(threadNum);
 
@@ -1126,7 +1127,7 @@ void sim_mob::medium::PredayManager::computeLogsums(const PersonList::iterator& 
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
 		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
 		predaySystem.computeLogsums();
-		predaySystem.outputLogsumsToMongo();
+		predaySystem.updateLogsumsToMongo();
 		if(consoleOutput) { predaySystem.printLogs(); }
 	}
 

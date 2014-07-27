@@ -25,11 +25,13 @@
                 <run_mode value="simulation"/>
                 <!-- Number of threads to create for processing the population in-->
                 <!-- the preday demand simulator -->
-                <threads value="6"/>
-                <!-- outputs the preday predictions as trip chains in if enabled -->
-                <output_tripchains enabled="false"/>
+                <threads value="8"/>
+                <!-- outputs the preday predictions as trip chains in PostgreSQL database if enabled -->
+                <output_tripchains enabled="true"/>
+                <!-- outputs the preday's predicted tours and stops to mongodb if enabled -->
+                <output_predictions enabled="false"/>
                 <!-- prints person ids and tour details in console for each person if enabled -->
-                <console_output enabled="false"/>
+                <console_output enabled="true"/>
                 
                 <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
                         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
@@ -54,7 +56,7 @@
                 </model_scripts>
                 
                 <!-- Names of MongoDB database and collections -->
-                <mongo_collections db_name="mydb">
+                <mongo_collections db_name="preday">
                         <mongo_collection name="population" collection="hits08_population"/>
                         <mongo_collection name="tcost_bus" collection="tcost_bus"/>
                         <mongo_collection name="tcost_car" collection="tcost_car"/>
@@ -62,10 +64,10 @@
                         <mongo_collection name="OPCosts" collection="OPCosts"/>
                         <mongo_collection name="PMCosts" collection="PMCosts"/>
                         <mongo_collection name="Zone" collection="Zone"/>
-                        <mongo_collection name="zone_node" collection="zone_aimsunnode_mapping"/>
-                        <mongo_collection name="Output_DayPattern" collection="person_tours_cpp_11_7"/>
-                        <mongo_collection name="Output_Tour" collection="tours_cpp_11_7"/>
-                        <mongo_collection name="Output_Activity" collection="activity_cpp_11_7"/>
+                        <mongo_collection name="zone_node" collection="node_mtz"/>
+                        <mongo_collection name="Output_DayPattern" collection="person_tours_cpp_dummy"/>
+                        <mongo_collection name="Output_Tour" collection="tours_cpp_dummy"/>
+                        <mongo_collection name="Output_Activity" collection="activity_cpp_dummy"/>
                 </mongo_collections>
                 
                 <calibration enabled="false">

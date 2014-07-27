@@ -64,30 +64,26 @@ sim_mob::medium::ZoneNodeMappingDao::~ZoneNodeMappingDao()
 {}
 
 bool sim_mob::medium::ZoneNodeMappingDao::getAll(boost::unordered_map<int, std::vector<long> >& outList) {
-	int numZones = connection.getSession<mongo::DBClientConnection>().count(collectionName, mongo::BSONObj());
-	for(int znid = 1; znid <= numZones; znid++) {
-		mongo::Query queryObj = QUERY("Zone_ID" << znid);
-    	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, queryObj);
-    	while(cursor->more()) {
-    		mongo::BSONObj zoneNodeDoc = cursor->next();
-    		// the node id is stored in either integer format or long format in mongo db
-    		switch (zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).type()) {
-				case mongo::NumberInt:
-				{
-					outList[znid].push_back(zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).Int());
-					break;
-				}
-				case mongo::NumberLong:
-				{
-					outList[znid].push_back(zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).Long());
-					break;
-				}
-				default:
-				{
-					Print() << "zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).type() = " << zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).type() << std::endl;
-				}
-    		}
-    	}
+	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
+	while(cursor->more()) {
+		mongo::BSONObj zoneNodeDoc = cursor->next();
+		// the node id is stored in either integer format or long format in mongo db
+		switch (zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).type()) {
+		case mongo::NumberInt:
+		{
+			outList[zoneNodeDoc.getField(MONGO_FIELD_MTZ).Int()].push_back(zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).Int());
+			break;
+		}
+		case mongo::NumberLong:
+		{
+			outList[zoneNodeDoc.getField(MONGO_FIELD_MTZ).Int()].push_back(zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).Long());
+			break;
+		}
+		default:
+		{
+			Print() << "zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).type() = " << zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).type() << std::endl;
+		}
+		}
 	}
 	return true;
 }

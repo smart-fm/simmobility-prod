@@ -178,7 +178,8 @@ namespace medium {
 	/**
 	 * Fields from MongoDB zone_aimsunnode_mapping data
 	 */
-	const std::string MONGO_FIELD_NODE_ID = "Node_id";
+	const std::string MONGO_FIELD_NODE_ID = "_id";
+	const std::string MONGO_FIELD_MTZ = "MTZ_1092";
 
 } // end namespace medium
 } // end namespace sim_mob

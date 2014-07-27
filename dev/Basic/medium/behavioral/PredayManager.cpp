@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
+#include <list>
 #include <map>
 #include <string>
 #include "conf/ConfigManager.hpp"
@@ -40,6 +41,7 @@
 #include "mongo/client/dbclient.h"
 #include "util/CSVReader.hpp"
 #include "util/LangHelpers.hpp"
+#include "util/Utils.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::db;
@@ -469,6 +471,37 @@ void streamVector(const std::vector<V>& vectorToLog, std::stringstream& logStrea
 	}
 }
 
+void outputToFile(std::ofstream& logHandle, std::stringstream& strm)
+{
+	NullableOutputStream(&logHandle) << strm.str() << std::flush;
+	strm.str(std::string());
+}
+
+void mergeTripChainFiles(const std::list<std::string>& tcFileNames)
+{
+	//This can take some time.
+	StopWatch sw;
+	sw.start();
+	std::cout <<"Merging trip chain files, this can take several minutes...\n";
+
+	//One-by-one.
+	std::ofstream out("tripchains.csv", std::ios::trunc|std::ios::binary);
+	if (!out.good()) { throw std::runtime_error("Error: Can't write to file."); }
+	for (std::list<std::string>::const_iterator it=tcFileNames.begin(); it!=tcFileNames.end(); it++) {
+		Print() <<"  Merging: " << *it <<std::endl;
+		std::ifstream src(it->c_str(), std::ios::binary);
+		if (src.fail()) { throw std::runtime_error("Error: Can't read from file."); }
+
+		//If it's good, this part's easy.
+		out << src.rdbuf();
+		src.close();
+	}
+	out.close();
+
+	sw.stop();
+	std::cout << "Files merged; took " << sw.getTime() << "s\n";
+}
+
 } //end anonymous namespace
 
 sim_mob::medium::PredayManager::PredayManager() : mtConfig(MT_Config::getInstance()), logFile(nullptr)
@@ -665,9 +698,20 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
 void sim_mob::medium::PredayManager::distributeAndProcessPersons() {
 	boost::thread_group threadGroup;
 	unsigned numWorkers = mtConfig.getNumPredayThreads();
+	std::list<std::string> logFileNames;
+	{ // construct log file names for writing trip chains
+		std::stringstream fileName;
+		for(unsigned i=1; i<=numWorkers; i++)
+		{
+			fileName << "tripchain" << i << ".log";
+			logFileNames.push_back(fileName.str());
+			fileName.str(std::string());
+		}
+	}
+
 	if(numWorkers == 1) { // if single threaded execution was requested
 		if(mtConfig.runningPredaySimulation()) {
-			processPersons(personList.begin(), personList.end());
+			processPersons(personList.begin(), personList.end(), logFileNames.front());
 		}
 		else if(mtConfig.runningPredayLogsumComputation()) {
 			computeLogsums(personList.begin(), personList.end());
@@ -676,23 +720,25 @@ void sim_mob::medium::PredayManager::distributeAndProcessPersons() {
 	else {
 		PersonList::size_type numPersons = personList.size();
 		PersonList::size_type numPersonsPerThread = numPersons / numWorkers;
-		PersonList::iterator first = personList.begin();
-		PersonList::iterator last = personList.begin()+numPersonsPerThread;
 		Print() << "numPersons:" << numPersons << "|numWorkers:" << numWorkers
 				<< "|numPersonsPerThread:" << numPersonsPerThread << std::endl;
 
 		/*
 		 * Passing different iterators on the same list into the threaded
-		 * function. So each thread will iterate mutually exclusive and
+		 * function. So each thread will iterate through a mutually exclusive and
 		 * exhaustive set of persons from the population.
 		 *
 		 * Note that each thread will iterate the same personList with different
 		 * start and end iterators. It is therefore important that none of the
 		 * threads change the personList.
 		 */
+		PersonList::iterator first = personList.begin();
+		PersonList::iterator last = personList.begin()+numPersonsPerThread;
+		std::list<std::string>::const_iterator fileNameIt = logFileNames.begin();
 		for(int i = 1; i<=numWorkers; i++) {
 			if(mtConfig.runningPredaySimulation()) {
-				threadGroup.create_thread( boost::bind(&PredayManager::processPersons, this, first, last) );
+				threadGroup.create_thread( boost::bind(&PredayManager::processPersons, this, first, last, (*fileNameIt)) );
+				fileNameIt++;
 			}
 			else if(mtConfig.runningPredayLogsumComputation()) {
 				threadGroup.create_thread( boost::bind(&PredayManager::computeLogsums, this, first, last) );
@@ -709,6 +755,9 @@ void sim_mob::medium::PredayManager::distributeAndProcessPersons() {
 		}
 		threadGroup.join_all();
 	}
+
+	// merge tripchains from each thread into 1 file.
+	mergeTripChainFiles(logFileNames);
 }
 
 void sim_mob::medium::PredayManager::distributeAndProcessForCalibration(threadedFnPtr fnPtr)
@@ -874,7 +923,7 @@ void sim_mob::medium::PredayManager::calibratePreday()
 	}
 
 	// write the latest logsums to mongodb
-	distributeAndProcessForCalibration(&PredayManager::outputLogsumsToMongoAfterCalibration);
+	distributeAndProcessForCalibration(&PredayManager::updateLogsumsToMongoAfterCalibration);
 
 	destroyMongoDaoStore();
 	safe_delete_item(logFile);
@@ -1030,11 +1079,14 @@ void sim_mob::medium::PredayManager::computeWeightedGradient(const std::vector<s
 	}
 }
 
-void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt)
+void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, const std::string& tripChainLog)
 {
-	std::map<std::string, db::MongoDao*> mongoDao;
 	bool outputTripchains = mtConfig.isOutputTripchains();
+	bool outputPredictions = mtConfig.isOutputPredictions();
 	bool consoleOutput = mtConfig.isConsoleOutput();
+
+	// construct MongoDao-s for this thread
+	std::map<std::string, db::MongoDao*> mongoDao;
 	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
 	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 	std::string emptyString;
@@ -1044,34 +1096,24 @@ void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& 
 		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
 
-	Database database = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_local");
-	std::string cred_id = ConfigManager::GetInstance().FullConfig().system.networkDatabase.credentials;
-	Credential credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
-	std::string username = credentials.getUsername();
-	std::string password = credentials.getPassword(false);
-	DB_Config dbConfigPGSQL(database.host, database.port, database.dbName, username, password);
-
-	// Connect to database and load data.
-	DB_Connection conn(sim_mob::db::POSTGRES, dbConfigPGSQL);
-	if(outputTripchains)
-	{
-		conn.connect();
-		if (!conn.isConnected()) {
-			throw std::runtime_error("Could not connect to PostgreSQL database. Check credentials.");
-		}
-	}
-	TripChainSqlDao tcDao(conn);
+	// open log file for this thread
+    std::ofstream tripChainLogFile(tripChainLog.c_str(), std::ios::trunc|std::ios::out);
+    std::stringstream tripChainLogStream;
 
 	// loop through all persons within the range and plan their day
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
 		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
 		predaySystem.planDay();
-		predaySystem.outputPredictionsToMongo();
-		if(outputTripchains) { predaySystem.outputTripChainsToPostgreSQL(zoneNodeMap, tcDao); }
+		if(outputPredictions) { predaySystem.outputPredictionsToMongo(); }
+		if(outputTripchains)
+		{
+			predaySystem.outputTripChainsToStream(zoneNodeMap, tripChainLogStream);
+			outputToFile(tripChainLogFile, tripChainLogStream);
+		}
 		if(consoleOutput) { predaySystem.printLogs(); }
 	}
 
-	// destroy Dao objects
+	// destroy local objects
 	for(std::map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
 		safe_delete_item(i->second);
 	}
@@ -1092,7 +1134,7 @@ void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonLi
 	}
 }
 
-void sim_mob::medium::PredayManager::outputLogsumsToMongoAfterCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum)
+void sim_mob::medium::PredayManager::updateLogsumsToMongoAfterCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum)
 {
 	const std::map<std::string, db::MongoDao*>& mongoDao = mongoDaoStore.at(threadNum);
 
@@ -1126,7 +1168,7 @@ void sim_mob::medium::PredayManager::computeLogsums(const PersonList::iterator& 
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
 		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
 		predaySystem.computeLogsums();
-		predaySystem.outputLogsumsToMongo();
+		predaySystem.updateLogsumsToMongo();
 		if(consoleOutput) { predaySystem.printLogs(); }
 	}
 

@@ -156,6 +156,19 @@ void MT_Config::setOutputTripchains(bool outputTripchains)
 	}
 }
 
+bool MT_Config::isOutputPredictions() const
+{
+	return outputPredictions;
+}
+
+void MT_Config::setOutputPredictions(bool outputPredictions)
+{
+	if(!configSealed)
+	{
+		this->outputPredictions = outputPredictions;
+	}
+}
+
 bool MT_Config::isConsoleOutput() const
 {
 	return consoleOutput;
@@ -244,4 +257,3 @@ void MT_Config::setLogsumComputationFrequency(unsigned logsumComputationFrequenc
 
 }
 }
-

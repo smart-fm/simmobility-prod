@@ -12,6 +12,7 @@
 #include <boost/pool/pool_alloc.hpp>
 #include <boost/unordered_map.hpp>
 #include <map>
+#include <sstream>
 #include "behavioral/lua/PredayLuaProvider.hpp"
 #include "CalibrationStatistics.hpp"
 #include "params/PersonParams.hpp"
@@ -170,7 +171,15 @@ private:
 	 * @param nodes the list of nodes
 	 * @returns a random element of the list
 	 */
-	long getRandomNodeInZone(std::vector<long>& nodes);
+	long getRandomNodeInZone(const std::vector<long>& nodes) const;
+
+	/**
+	 * constructs trip chain from predictions for a person
+	 * @param zoneNodeMap zone to nodes mapping
+	 * @param scale number of trip chains to be generated for this person
+	 * @param outTripChain output list (trip chain) to be constructed
+	 */
+	void constructTripChains(const ZoneNodeMap& zoneNodeMap, long scale, std::list<TripChainItemParams>& outTripChain);
 
 	/**
 	 * Person specific parameters
@@ -243,12 +252,17 @@ public:
 	/**
 	 * Writes the logsums to mongo
 	 */
-	void outputLogsumsToMongo();
+	void updateLogsumsToMongo();
 
 	/**
 	 * Converts predictions to Trip chains and writes them off to PostGreSQL
 	 */
-	void outputTripChainsToPostgreSQL(ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao);
+	void outputTripChainsToPostgreSQL(const ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao);
+
+	/**
+	 * Converts predictions to Trip chains and writes them off to the given stringstream
+	 */
+	void outputTripChainsToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& tripChainDao);
 
 	/**
 	 * Prints logs for person in console

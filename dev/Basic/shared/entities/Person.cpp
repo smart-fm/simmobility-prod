@@ -849,9 +849,6 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 	}
 
 	//so far, advancing the tripchainitem has been successful
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
-	}
-
 	//Also set the currSubTrip to the beginning of trip , just in case
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP  || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM) {
 		currSubTrip = resetCurrSubTrip();

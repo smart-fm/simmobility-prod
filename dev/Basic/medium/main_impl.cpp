@@ -253,13 +253,13 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		{
 			std::stringstream msg;
 			msg << "Approximate Tick Boundary: " << currTick << ", ";
-			msg << (currTick * config.baseGranMS())
-				<< " ms   [" <<currTickPercent <<"%]" << endl;
+			msg << (currTick * config.baseGranSecond())
+				<< " s   [" <<currTickPercent <<"%]" << endl;
 			if (!warmupDone)
 			{
 				msg << "  Warmup; output ignored." << endl;
 			}
-//			PrintOut(msg.str());
+			PrintOut(msg.str());
 		}
 		else
 		{
@@ -295,7 +295,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			PathSetParam::getInstance()->dropTravelTimeTmpTable();
 		}
 	}
-	cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<endl;
+	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;
 	cout << "Max Agents at any given time: " <<maxAgents <<endl;
 	cout << "Starting Agents: " << numStartAgents
 			<< ",     Pending: " << numPendingAgents << endl;

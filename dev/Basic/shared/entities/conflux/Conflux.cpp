@@ -722,12 +722,17 @@ bool sim_mob::Conflux::callMovementFrameInit(timeslice now, Person* person) {
 	//Get an UpdateParams instance.
 	//TODO: This is quite unsafe, but it's a relic of how Person::update() used to work.
 	//      We should replace this eventually (but this will require a larger code cleanup).
-	(person->getRole()->make_frame_tick_params(now));
+	person->getRole()->make_frame_tick_params(now);
 
 	//Now that the Role has been fully constructed, initialize it.
-	if(*(person->currTripChainItem)) {
+	if(person->getRole()) {
 		person->getRole()->Movement()->frame_init();
-		if(person->getCurrPath().empty()){
+		// TODO: This line assumes that the only possible trip chain items are Car trips and Activity.
+		// person->setCurrPath() is not called bus drivers. Infact, bus drivers seem to have their own initialize path
+		// and are not overriding the initializePath() of the Driver class. More investigation and testing required.
+		// Leaving it like this for now to test for TRB paper.
+		// ~ Harish 27-7-2014
+		if(person->getRole()->roleType != sim_mob::Role::RL_ACTIVITY && person->getCurrPath().empty()){
 			return false;
 		}
 	}
@@ -828,7 +833,12 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 					sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(personRole);
 					ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
 					ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
-					callMovementFrameInit(now, person);
+					if (callMovementFrameInit(now, person)){
+						person->setInitialized(true);
+					}
+					else{
+						return UpdateStatus::Done;
+					}
 				}
 				else if((*person->currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) {
 					if (callMovementFrameInit(now, person)){

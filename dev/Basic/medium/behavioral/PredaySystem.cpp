@@ -1375,7 +1375,7 @@ void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(const ZoneNodeM
 {
 	size_t numTours = tours.size();
 	if (numTours == 0) { return; }
-	long hhFactor = 1; //(long)std::ceil(personParams.getHouseholdFactor());
+	long hhFactor = (long)std::ceil(personParams.getHouseholdFactor());
 	std::list<TripChainItemParams> tripChain;
 	constructTripChains(zoneNodeMap, hhFactor, tripChain);
 	for(std::list<TripChainItemParams>::iterator tcIt=tripChain.begin(); tcIt!=tripChain.end();tcIt++)
@@ -1388,7 +1388,7 @@ void sim_mob::medium::PredaySystem::outputTripChainsToStream(const ZoneNodeMap& 
 {
 	size_t numTours = tours.size();
 	if (numTours == 0) { return; }
-	long hhFactor = 1; //(long)std::ceil(personParams.getHouseholdFactor());
+	long hhFactor = (long)std::ceil(personParams.getHouseholdFactor());
 	std::list<TripChainItemParams> tripChains;
 	constructTripChains(zoneNodeMap, hhFactor, tripChains);
 	for(std::list<TripChainItemParams>::const_iterator tcIt=tripChains.begin(); tcIt!=tripChains.end();tcIt++)

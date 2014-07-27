@@ -41,6 +41,7 @@
 #include "mongo/client/dbclient.h"
 #include "util/CSVReader.hpp"
 #include "util/LangHelpers.hpp"
+#include "util/Utils.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::db;
@@ -470,10 +471,35 @@ void streamVector(const std::vector<V>& vectorToLog, std::stringstream& logStrea
 	}
 }
 
-void outputToFile(std::ostream* logHandle, std::stringstream& strm)
+void outputToFile(std::ofstream& logHandle, std::stringstream& strm)
 {
-	NullableOutputStream(logHandle) << strm.str() << std::flush;
+	NullableOutputStream(&logHandle) << strm.str() << std::flush;
 	strm.str(std::string());
+}
+
+void mergeTripChainFiles(const std::list<std::string>& tcFileNames)
+{
+	//This can take some time.
+	StopWatch sw;
+	sw.start();
+	std::cout <<"Merging trip chain files, this can take several minutes...\n";
+
+	//One-by-one.
+	std::ofstream out("tripchains.csv", std::ios::trunc|std::ios::binary);
+	if (!out.good()) { throw std::runtime_error("Error: Can't write to file."); }
+	for (std::list<std::string>::const_iterator it=tcFileNames.begin(); it!=tcFileNames.end(); it++) {
+		Print() <<"  Merging: " << *it <<std::endl;
+		std::ifstream src(it->c_str(), std::ios::binary);
+		if (src.fail()) { throw std::runtime_error("Error: Can't read from file."); }
+
+		//If it's good, this part's easy.
+		out << src.rdbuf();
+		src.close();
+	}
+	out.close();
+
+	sw.stop();
+	std::cout << "Files merged; took " << sw.getTime() << "s\n";
 }
 
 } //end anonymous namespace
@@ -729,6 +755,9 @@ void sim_mob::medium::PredayManager::distributeAndProcessPersons() {
 		}
 		threadGroup.join_all();
 	}
+
+	// merge tripchains from each thread into 1 file.
+	mergeTripChainFiles(logFileNames);
 }
 
 void sim_mob::medium::PredayManager::distributeAndProcessForCalibration(threadedFnPtr fnPtr)
@@ -1068,7 +1097,7 @@ void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& 
 	}
 
 	// open log file for this thread
-    std::ostream* tripChainLogFile = new std::ofstream(tripChainLog.c_str());
+    std::ofstream tripChainLogFile(tripChainLog.c_str(), std::ios::trunc|std::ios::out);
     std::stringstream tripChainLogStream;
 
 	// loop through all persons within the range and plan their day
@@ -1089,7 +1118,6 @@ void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& 
 		safe_delete_item(i->second);
 	}
 	mongoDao.clear();
-	safe_delete_item(tripChainLogFile);
 }
 
 void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum)

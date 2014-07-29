@@ -611,6 +611,7 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 void sim_mob::WorkGroup::putAgentOnConflux(Entity* en) {
 	sim_mob::Person* person = dynamic_cast<sim_mob::Person*>(en);
 	if(person) {
+
 		const sim_mob::RoadSegment* rdSeg = sim_mob::Conflux::constructPath(person);
 		if(rdSeg) {
 			rdSeg->getParentConflux()->addAgent(person,rdSeg);

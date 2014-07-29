@@ -1209,13 +1209,13 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		vector<WayPoint> path;
 
 		Person* parentP = dynamic_cast<Person*> (parent);
-		sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
+		sim_mob::SubTrip& subTrip = *parentP->currSubTrip;
 		const StreetDirectory& stdir = StreetDirectory::instance();
 
-		if(subTrip->schedule==nullptr){
+		if(subTrip.schedule==nullptr){
 			// if use path set
 			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-				path = PathSetManager::getInstance()->getPathByPerson(getParent());
+				path = PathSetManager::getInstance()->getPathByPerson(getParent(),subTrip);
 			}
 			else
 			{
@@ -1225,7 +1225,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 
 		}
 		else {
-			std::vector<Node*>& routes = subTrip->schedule->routes;
+			std::vector<Node*>& routes = subTrip.schedule->routes;
 			std::vector<Node*>::iterator first = routes.begin();
 			std::vector<Node*>::iterator second = first;
 
@@ -1275,9 +1275,9 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 			initPath(path, startLaneId);
 		}
 
-		if(subTrip->schedule && res){
-			int stopid = subTrip->schedule->stopSchdules[0].stopId;
-			res->schedule = subTrip->schedule ;
+		if(subTrip.schedule && res){
+			int stopid = subTrip.schedule->stopSchdules[0].stopId;
+			res->schedule = subTrip.schedule ;
 		}
 
 	}

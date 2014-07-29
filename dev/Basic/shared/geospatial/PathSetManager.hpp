@@ -325,7 +325,7 @@ public:
 	bool getBestPathChoiceFromPathSet(sim_mob::PathSet& ps, const std::set<const sim_mob::RoadSegment *> & excludedSegs =  std::set<const sim_mob::RoadSegment *>());
 	void initParameters();
 	// get
-	std::vector<WayPoint> getPathByPerson(sim_mob::Person* per); // person has person id and current subtrip id
+	std::vector<WayPoint> getPathByPerson(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip);
 	sim_mob::PathSet* getPathSetByFromToNodeAimsunId(std::string id);
 	bool getSinglePathById(std::string &id,sim_mob::SinglePath** s);
 	double getTravelTime(sim_mob::SinglePath *sp);

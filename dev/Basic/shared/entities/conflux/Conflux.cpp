@@ -1241,29 +1241,38 @@ unsigned int sim_mob::Conflux::getNumRemainingInLaneInfinity() {
 }
 
 const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
+	const sim_mob::RoadSegment* rdSeg = nullptr;
 	const std::vector<sim_mob::TripChainItem*> & agTripChain = p->getTripChain();
-	const sim_mob::TripChainItem* firstItem = agTripChain.front();
-
-	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
-	std::string role = rf.GetTripChainMode(firstItem);
+	sim_mob::TripChainItem *tci;
+	BOOST_FOREACH(tci,p->getTripChain()){
+		if(tci->itemType == sim_mob::TripChainItem::IT_TRIP){
+			break;
+		}
+	}
+	//sanity check
+	sim_mob::Trip *firstTrip = dynamic_cast<sim_mob::Trip*>(tci);
+	if(!firstTrip){
+		return nullptr;
+	}
 
 	StreetDirectory& streetDirectory = StreetDirectory::instance();
 
 	std::vector<WayPoint> path;
-	const sim_mob::RoadSegment* rdSeg = nullptr;
 
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		path = PathSetManager::getInstance()->getPathByPerson(p);
+		path = PathSetManager::getInstance()->getPathByPerson(p,firstTrip->getSubTrips().front());
 	}
 	else{
+		const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
+		std::string role = rf.GetTripChainMode(tci);
 		if (role == "driver") {
-			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
+			const sim_mob::SubTrip firstSubTrip = firstTrip->getSubTrips().front();
 			path = streetDirectory.SearchShortestDrivingPath(streetDirectory.DrivingVertex(*firstSubTrip.fromLocation.node_), streetDirectory.DrivingVertex(*firstSubTrip.toLocation.node_));
 		}
 		else if (role == "pedestrian") {
 			StreetDirectory::VertexDesc source, destination;
 			const sim_mob::SubTrip firstSubTrip =
-					dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
+					dynamic_cast<const sim_mob::Trip*>(firstTrip)->getSubTrips().front();
 			if (firstSubTrip.fromLocation.type_ == WayPoint::NODE) {
 				source = streetDirectory.DrivingVertex(
 						*firstSubTrip.fromLocation.node_);
@@ -1292,7 +1301,7 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 			}
 		}
 		else if( role == "waitBusActivity" ){
-			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
+			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstTrip)->getSubTrips().front();
 			const BusStop* stop = firstSubTrip.fromLocation.busStop_;
 			rdSeg = stop->getParentSegment();
 		}

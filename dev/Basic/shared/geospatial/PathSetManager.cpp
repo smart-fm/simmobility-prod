@@ -23,6 +23,7 @@
 #include <boost/regex.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/foreach.hpp>
+#include <sstream>
 
 using std::vector;
 using std::string;
@@ -641,35 +642,20 @@ void sim_mob::printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node
 	sim_mob::Profiler::instance["path_set"] << out.str();
 }
 
-vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
+vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip)
 {
-	std::ostringstream out("");
-	std::ostringstream id("");
-	id << per << "-" << per->currWorkerProvider;
 	// get person id and current subtrip id
 	std::string personId = per->getDatabaseId();
 	std::vector<sim_mob::SubTrip>::const_iterator currSubTripIt = per->currSubTrip;
-	const sim_mob::SubTrip *subTrip = &(*currSubTripIt);
-	std::string subTripId = subTrip->tripID;
-
-//	Worker *worker = (Worker*)per->currWorkerProvider;
-//	if(worker)
-//	{
-//		sql = &(worker->sql);
-//	}
-//	else
-//	{
-//		sql = &(psDbLoader->sql);
-//	}
+	std::string subTripId = subTrip.tripID;
+	//todo. change the subtrip signature from pointer to referencer
 	sim_mob::Profiler::instance["path_set"] << "=============================================================================================================================================" << std::endl;
 	vector<WayPoint> res;
-	generateBestPathChoiceMT(subTrip,res);
+	generateBestPathChoiceMT(&subTrip,res);
 	sim_mob::Profiler::instance["path_set"] << "Path chosen for this person: " << std::endl;
 	printWPpath(res);
-	cacheODbySegment(per, subTrip, res);
+	cacheODbySegment(per, &subTrip, res);
 	sim_mob::Profiler::instance["path_set"] << "=============================================================================================================================================" << std::endl;
-//	sql = NULL;
-
 	return res;
 }
 
@@ -678,22 +664,6 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(sim_mob::Person* per)
 //if not found in cache, check DB
 //if not found in DB, generate all 4 types of path
 //choose the best path using utility function
-//bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::Person * per, const sim_mob::SubTrip* st,std::vector<sim_mob::WayPoint> &res,
-//		const std::set<const sim_mob::RoadSegment*> & excludedSegs, bool isUseCache){
-//	//you may need to double check your database connection
-//	Worker *worker = (Worker*)per->currWorkerProvider;
-//	if(worker)
-//	{
-//		sql = &(worker->sql);
-//	}
-//	else
-//	{
-//		sql = &(psDbLoader->sql);
-//	}
-//	//call the default method
-//	return generateBestPathChoiceMT(st, res, excludedSegs, false);
-//}
-
 bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st,std::vector<sim_mob::WayPoint> &res,
 		const std::set<const sim_mob::RoadSegment*> & exclude_seg_ , bool isUseCache)
 {
@@ -2574,10 +2544,15 @@ bool sim_mob::PathSetManager::generateAllPathSetWithTripChain()
 }
 
 const boost::shared_ptr<soci::session> & sim_mob::PathSetManager::getSession(){
-	std::map<boost::thread::id, boost::shared_ptr<soci::session> >::iterator it;
-	if((it = cnnRepo.find(boost::this_thread::get_id())) == cnnRepo.end())
+	std::map<boost::thread::id, boost::shared_ptr<soci::session> >::iterator it = cnnRepo.find(boost::this_thread::get_id());
+	if(it == cnnRepo.end())
 	{
-		throw std::runtime_error("error finding the right conection to the database");
+//		std::stringstream ss;
+//		ss << "error finding the right connection to the database. cnnRepo.size(): " << cnnRepo.size() << "\n";
+//		throw std::runtime_error(ss.str());
+		std::string dbStr(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
+		cnnRepo[boost::this_thread::get_id()].reset(new soci::session(soci::postgresql,dbStr));
+		it = cnnRepo.find(boost::this_thread::get_id());
 	}
 	return it->second;
 }

@@ -1013,8 +1013,8 @@ bool DriverMovement::canJoinPaths(std::vector<WayPoint> & newPath, std::vector<c
 	 }
 	 //now try to find another path
 	 sim_mob::Profiler::instance["path_set"] << "No connection between the old&new paths. reTrying to join paths by excluding segment : " << (*newPath.begin()).roadSegment_->getSegmentAimsunId() << std::endl;
-	MesoPathMover::printPath(oldPath);
-	printWPpath(newPath);
+//	MesoPathMover::printPath(oldPath);
+//	printWPpath(newPath);
 
 	//exclude/blacklist the segment on the new path(first segment)
 	excludeRS.insert((*newPath.begin()).roadSegment_);
@@ -1093,14 +1093,14 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 		// change the origin
 		subTrip.fromLocation.node_ = newPath.first;
 		sim_mob::Profiler::instance["path_set"]<< "Try Joining old and new paths for detour point :" << newPath.first->getID() << std::endl;
-		MesoPathMover::printPath(deTourOptions[newPath.first], newPath.first);
-		printWPpath(newPath.second, newPath.first);
+//		MesoPathMover::printPath(deTourOptions[newPath.first], newPath.first);
+//		printWPpath(newPath.second, newPath.first);
 		//check if join possible
 		bool canJoin = canJoinPaths(newPath.second,deTourOptions[newPath.first], subTrip, excludeRS);
 		if(!canJoin)
 		{
 			sim_mob::Profiler::instance["path_set"] << "could not join the old and new paths, discarding detour point :" << newPath.first->getID() << std::endl;
-			sim_mob::printWPpath(newPath.second, newPath.first);
+//			sim_mob::printWPpath(newPath.second, newPath.first);
 			deTourOptions.erase(newPath.first);
 			continue;
 		}

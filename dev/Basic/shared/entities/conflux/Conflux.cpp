@@ -484,13 +484,13 @@ void sim_mob::Conflux::buildSubscriptionList(std::vector<BufferedBase*>& subsLis
 }
 
 unsigned int sim_mob::Conflux::resetOutputBounds() {
-	vqBounds.clear();
-	sim_mob::Link* lnk = nullptr;
-	sim_mob::SegmentStats* segStats = nullptr;
-	int outputEstimate = 0;
 	unsigned int vqCount = 0;
 	{
 		boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
+		vqBounds.clear();
+		sim_mob::Link* lnk = nullptr;
+		sim_mob::SegmentStats* segStats = nullptr;
+		int outputEstimate = 0;
 		for(VirtualQueueMap::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++) {
 			lnk = i->first;
 			segStats = upstreamSegStatsMap.at(lnk).front();
@@ -514,8 +514,13 @@ unsigned int sim_mob::Conflux::resetOutputBounds() {
 			outputEstimate = (outputEstimate>0? outputEstimate : 0);
 			vqBounds.insert(std::make_pair(lnk, (unsigned int)outputEstimate));
 			vqCount += virtualQueuesMap.at(lnk).size();
+		}//loop
+
+		if(vqBounds.empty() && !virtualQueuesMap.empty()){
+			Print() << boost::this_thread::get_id() << "," << this->multiNode->getID() << " vqBounds.empty()" << std::endl;
 		}
 	}
+
 	return vqCount;
 }
 
@@ -527,7 +532,7 @@ bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
 			res = (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
 		}
 		catch(std::out_of_range& ex){
-			debugMsgs << "out_of_range exception occured in hasSpaceInVirtualQueue()"
+			debugMsgs  << boost::this_thread::get_id() << " out_of_range exception occured in hasSpaceInVirtualQueue()"
 					<< "|Conflux: " << this->multiNode->getID()
 					<< "|lnk:[" << lnk->getStart()->getID() << "," << lnk->getEnd()->getID() << "]"
 					<< "|lnk:" << lnk
@@ -536,6 +541,7 @@ bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
 			for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i!= virtualQueuesMap.end(); i++) {
 				debugMsgs << " ([" << i->first->getStart()->getID() << "," << i->first->getEnd()->getID() << "]:" << i->first << "," << i->second.size() << "),";
 			}
+			debugMsgs << "|\nvqBounds.size(): " << vqBounds.size() << std::endl;
 			throw std::runtime_error(debugMsgs.str());
 		}
 	}
@@ -643,7 +649,18 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, sim_mob::SegmentStats*
 	else if (prevLane)
 	{
 		prevSegStats->removeAgent(prevLane, person, wasQueuing);
-	} /*else the person must have started from a VQ*/
+	}
+	else if(person->getRole()->roleType == sim_mob::Role::RL_DRIVER)
+	{
+		//It is possible that a driver is getting removed silently because
+		//a path could not be established for his current sub trip.
+		//In this case, the role will be Driver but the prevLane and prevSegStats will be NULL
+		//if the person's previous trip chain item is an Activity.
+		//TODO: There might be other weird scenarios like this, to be taken care of.
+		PersonList::iterator pIt = std::find(activityPerformers.begin(), activityPerformers.end(), person);
+		if(pIt!=activityPerformers.end()) { activityPerformers.erase(pIt); } //Check if he was indeed an activity performer and erase him
+	}
+	/*else the person must have started from a VQ*/
 	parentWorker->remEntity(person);
 	parentWorker->scheduleForRemoval(person);
 }
@@ -1251,18 +1268,14 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 	}
 	//sanity check
 	sim_mob::Trip *firstTrip = dynamic_cast<sim_mob::Trip*>(tci);
-	if(!firstTrip){
-		return nullptr;
-	}
-
-	StreetDirectory& streetDirectory = StreetDirectory::instance();
+	if(!firstTrip){ return nullptr; }
 
 	std::vector<WayPoint> path;
-
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		path = PathSetManager::getInstance()->getPathByPerson(p,firstTrip->getSubTrips().front());
 	}
 	else{
+		StreetDirectory& streetDirectory = StreetDirectory::instance();
 		const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 		std::string role = rf.GetTripChainMode(tci);
 		if (role == "driver") {

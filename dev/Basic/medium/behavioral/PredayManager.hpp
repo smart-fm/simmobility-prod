@@ -151,7 +151,7 @@ private:
 	typedef std::vector<PersonParams*> PersonList;
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
-	typedef boost::unordered_map<int, std::vector<long> > ZoneNodeMap;
+	typedef boost::unordered_map<int, std::vector<ZoneNodeParams*> > ZoneNodeMap;
 	typedef void (PredayManager::*threadedFnPtr)(const PersonList::iterator&, const PersonList::iterator&, size_t);
 
 	/**

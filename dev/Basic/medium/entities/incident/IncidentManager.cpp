@@ -105,7 +105,7 @@ std::map<const sim_mob::RoadSegment*, double> & sim_mob::IncidentManager::getCur
 
 //step-1: find those who used the target rs in their path
 //step-2: for each person, iterate through the path(meso path for now) to see if the agent's current segment is before, on or after the target path.
-//step-3: if agent's current segment is before the target path, then inform him(if the probability function allows that).
+//step-3: if agent's current segment is before the target path, then he can be informed(if the probability function allows that).
 void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegment * targetRS,
 		std::vector <const sim_mob::Person*> & filteredPersons){
 	int affected = 0;

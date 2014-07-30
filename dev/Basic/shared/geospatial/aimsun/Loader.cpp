@@ -271,7 +271,7 @@ bool DatabaseLoader::LoadSinglePathDBwithId2(
 		}
 		if (i==0)
 		{
-			std::cout<<"LSPDBwithId: "<<pathset_id<< "no data in db"<<std::endl;
+			sim_mob::Profiler::instance["path_set"]  << "LSPDBwithId: "<<pathset_id<< "no data in db"<<std::endl;
 			return false;
 		}
 		return true;
@@ -354,7 +354,7 @@ bool DatabaseLoader::LoadPathSetDBwithId(
 	}
 	if(i==0)
 	{
-		std::cout<<"LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
+		sim_mob::Profiler::instance["path_set"]  <<"LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
 		return false;
 	}
 	else
@@ -376,7 +376,7 @@ bool DatabaseLoader::LoadOnePathSetDBwithId(std::string& pathset_id,sim_mob::Pat
 	}
 	if(i==0)
 	{
-		std::cout<<"LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
+		sim_mob::Profiler::instance["path_set"]  << "LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
 		return false;
 	}
 	else
@@ -398,7 +398,7 @@ bool DatabaseLoader::LoadOnePathSetDBwithIdST(soci::session& sql,std::string& pa
 	}
 	if(i==0)
 	{
-		std::cout<<"LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
+		sim_mob::Profiler::instance["path_set"]  << "LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
 		return false;
 	}
 	else

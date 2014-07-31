@@ -43,6 +43,10 @@ double feet2Unit(double feet) {
 	return feet * 0.158;
 }
 
+double convertFrmMillisecondToSecond(double v) {
+	return v/1000.0;
+}
+
 ////Simple struct to hold Car Following model parameters
 //struct CarFollowParam {
 //	double alpha;
@@ -973,7 +977,7 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p) {
 
 	if (p.flag(FLAG_YIELDING)) {
 		// Make sure a vehicle will not yield infinitely.
-		uint32_t dt_sec = (p.now.ms() - p.yieldTime.ms()) / 1000;
+		uint32_t dt_sec = convertFrmMillisecondToSecond(p.now.ms() - p.yieldTime.ms());
 		if (dt_sec > p.lcMaxNosingTime) {
 			p.driver->yieldVehicle = NULL;
 			p.unsetFlag(FLAG_YIELDING);

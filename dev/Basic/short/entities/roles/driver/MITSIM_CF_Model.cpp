@@ -846,7 +846,7 @@ double sim_mob::MITSIM_CF_Model::calcMergingRate(
 bool sim_mob::MITSIM_CF_Model::isGapAcceptable(sim_mob::DriverUpdateParams& p,
 		NearestVehicle& vh) {
 	float accn = p.maxAcceleration;
-	float speedm = vh.driver->fwdVelocity / 100.0; //coming->currentSpeed_;
+	float speedM = vh.driver->fwdVelocity / 100.0; //coming->currentSpeed_;
 	// get object vh's max acceleration
 //	DriverMovement *driverMvt = (DriverMovement*)vh.driver->Movement();
 	Driver* d = const_cast<Driver*>(vh.driver);
@@ -875,13 +875,13 @@ bool sim_mob::MITSIM_CF_Model::isGapAcceptable(sim_mob::DriverUpdateParams& p,
 
 	// Max distance traveled by vehicle m in time dt
 
-	float dism = speedm * dt + 0.5 * accm * dt * dt;
+	float dism = speedM * dt + 0.5 * accm * dt * dt;
 	float gap_mn = vh.distance / 100.0;
 
 	// Speed at the pridicted position
 
-	speedm += accm * dt;
-	float sd = (speedm - speedn) * headwayBuffer();
+	speedM += accm * dt;
+	float sd = (speedM - speedn) * headwayBuffer();
 	float threshold = (sd > 0.0) ? sd : 0.0;
 
 	// check if the gap is acceptable

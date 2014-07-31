@@ -34,6 +34,15 @@ namespace {
     //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, speculation, asking_price, floor_area, type_id, target_price, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
     const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%";
 
+    /**
+     * Print the current bid on the unit.
+     * @param agent to received the bid
+     * @param bid to send.
+     * @param struct containing the hedonic, asking and target price.
+     * @param number of bids for this unit
+     * @param boolean indicating if the bid was successful
+     *
+     */
     inline void printBid(const HouseholdAgent& agent, const Bid& bid, const ExpectationEntry& entry, unsigned int bidsCounter, bool accepted)
     {
     	const HM_Model* model = agent.getModel();
@@ -59,6 +68,15 @@ namespace {
         //PrintOut(fmtr.str() << endl);
     }
 
+    /**
+     * Print the current expectation on the unit.
+     * @param the current day
+     * @param the day on which the bid was made
+     * @param the unit id
+     * @param agent to received the bid
+     * @param struct containing the hedonic, asking and target price.
+     *
+     */
     inline void printExpectation(const timeslice& now, int dayToApply, BigSerial unitId, const HouseholdAgent& agent, const ExpectationEntry& exp)
     {
         boost::format fmtr = boost::format(LOG_EXPECTATION) % now.ms()

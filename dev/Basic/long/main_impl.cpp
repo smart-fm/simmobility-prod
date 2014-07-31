@@ -159,12 +159,16 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
 
         PrintOut("Started all workgroups." << endl);
         PrintOut("Day of Simulation: " << std::endl);
+
+        //we add a new line break to format the output in a
+        //resonable way. 20 was found to be adequate.
+        const int LINE_BREAK = 20;
         for (unsigned int currTick = 0; currTick < days; currTick++)
         {
             PrintOut( currTick << " " );
             wgMgr.waitAllGroups();
 
-            if( currTick % 20 == 19 )
+            if( currTick % LINE_BREAK == LINE_BREAK - 1 )
             	PrintOut(endl);
         }
         PrintOut( endl );

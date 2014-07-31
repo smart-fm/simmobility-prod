@@ -188,10 +188,12 @@ void HM_Model::startImpl() {
 
     PrintOut("There are " << homelessHousehold << " homeless households" << std::endl );
 
-    const int numVacantUnits = config.ltParams.housingModel.numberOfVacantUnits;
+    const int NUM_VACANT_UNITS = config.ltParams.housingModel.numberOfVacantUnits;
 
     //Delete vacant units set by config file.
-    for(int n = 0, m = 0; n < numVacantUnits; )
+    //n: variable n will increment by 1 for every vacant unit
+    //m: variable m will keep the index of the last retrieved vacant unit to speed up the process.
+    for(int n = 0, m = 0; n < NUM_VACANT_UNITS; )
     {
 		for (UnitList::const_iterator it = units.begin() + m; it != units.end(); it++)
 		{

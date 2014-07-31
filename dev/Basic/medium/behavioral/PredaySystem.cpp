@@ -1176,18 +1176,32 @@ std::string sim_mob::medium::PredaySystem::getRandomTimeInWindow(double mid) {
 	return random_time.str();
 }
 
-long sim_mob::medium::PredaySystem::getRandomNodeInZone(const std::vector<long>& nodes) const {
+long sim_mob::medium::PredaySystem::getRandomNodeInZone(const std::vector<ZoneNodeParams*>& nodes) const {
 	size_t numNodes = nodes.size();
-	if(numNodes == 0) {
-		return 0;
+	if(numNodes == 0) { return 0; }
+	if(numNodes == 1)
+	{
+		const ZoneNodeParams* znNdPrms = nodes.front();
+		if(znNdPrms->isSinkNode() || znNdPrms->isSourceNode()) { return 0; }
+		return znNdPrms->getAimsunNodeId();
 	}
-	if(numNodes == 1) {
-		return nodes.front();
-	}
+
 	int offset = Utils::generateInt(0,numNodes-1);
-	std::vector<long>::const_iterator it = nodes.begin();
+	std::vector<ZoneNodeParams*>::const_iterator it = nodes.begin();
 	std::advance(it, offset);
-	return (*it);
+	size_t numAttempts = 1;
+	while(numAttempts <= numNodes)
+	{
+		const ZoneNodeParams* znNdPrms = (*it);
+		if(znNdPrms->isSinkNode() || znNdPrms->isSourceNode())
+		{
+			it++; // check the next one
+			if(it==nodes.end()) { it = nodes.begin(); } // loop around
+			numAttempts++;
+		}
+		else { return znNdPrms->getAimsunNodeId(); }
+	}
+	return 0;
 }
 
 void sim_mob::medium::PredaySystem::computeLogsums()

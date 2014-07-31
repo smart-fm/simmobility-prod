@@ -38,7 +38,7 @@ class PredaySystem {
 private:
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
-	typedef boost::unordered_map<int, std::vector<long> > ZoneNodeMap;
+	typedef boost::unordered_map<int, std::vector<ZoneNodeParams*> > ZoneNodeMap;
 	typedef std::deque<Tour*> TourList;
 	typedef std::deque<Stop*> StopList;
 
@@ -171,7 +171,7 @@ private:
 	 * @param nodes the list of nodes
 	 * @returns a random element of the list
 	 */
-	long getRandomNodeInZone(const std::vector<long>& nodes) const;
+	long getRandomNodeInZone(const std::vector<ZoneNodeParams*>& nodes) const;
 
 	/**
 	 * constructs trip chain from predictions for a person

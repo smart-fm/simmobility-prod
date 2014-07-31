@@ -275,7 +275,9 @@ public:
 	double utilityCurrent;
 	double rnd;
 
+	/// headway value from carFollowingRate()
     double headway;
+    /// car Following Rate
 	double aZ;
 
 	double density;

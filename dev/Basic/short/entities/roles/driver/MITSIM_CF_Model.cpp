@@ -664,10 +664,10 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 	//If we have no space left to move, immediately cut off acceleration.
 //	if ( p.space < 2.0 && p.isAlreadyStart )
 //		return maxDeceleration;
-	if (p.space < 2.0 && p.isAlreadyStart && p.isBeforIntersecton
-			&& p.perceivedFwdVelocityOfFwdCar / 100 < 1.0) {
-		return p.maxDeceleration * 4.0;
-	}
+//	if (p.space < 2.0 && p.isAlreadyStart && p.isBeforIntersecton
+//			&& p.perceivedFwdVelocityOfFwdCar / 100 < 1.0) {
+//		return p.maxDeceleration * 4.0;
+//	}
 //	if (p.space > 0.1)
 	{
 //		if (!nv.exists()) {

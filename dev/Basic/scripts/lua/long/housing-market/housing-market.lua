@@ -279,7 +279,7 @@ function calculateSpeculation (entry, unitBids)
     local b = 0.3    --b is the importance of the price for seller.
     local c = 1000   --c is the offset of the speculation price in thousands of dollars. 
 
-    return (maximumBids-unitBids) * entry.askingPrice / (a - b * entry.askingPrice) * 1000
+    return (maximumBids-unitBids) * entry.askingPrice / (a - b * entry.askingPrice) * c
 end
 
 --[[

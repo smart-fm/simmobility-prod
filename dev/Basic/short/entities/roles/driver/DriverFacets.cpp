@@ -480,7 +480,7 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 		params.cftimer -= params.elapsedSeconds;
 // params.overflowIntoIntersection = linkDriving(params);
 // params.overflowIntoIntersection = linkDrivingNew(params);
-		if (params.cftimer < 0.1) {
+		if (params.cftimer < params.elapsedSeconds) {
 // make lc decision and check if can do lc
 			calcVehicleStates(params);
 // params.cftimer = cfModel->calcNextStepSize(params);

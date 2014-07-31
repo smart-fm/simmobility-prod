@@ -660,7 +660,7 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(const sim_mob::Person*
 	else{
 		sim_mob::Profiler::instance["path_set"] << "NO PATH" << std::endl;
 	}
-	cacheODbySegment(per, &subTrip, res);
+//	cacheODbySegment(per, &subTrip, res);
 	sim_mob::Profiler::instance["path_set"] << "===========================" << std::endl;
 	return res;
 }
@@ -771,6 +771,9 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 					else{
 						clearSinglePaths(ps_);
 					}
+					//test
+					clearSinglePaths(ps_);
+					//test...
 					return true;
 				}
 				else
@@ -828,6 +831,9 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 			else{
 				clearSinglePaths(ps_);
 			}
+			//test
+			clearSinglePaths(ps_);
+			//test...
 			//store in into the database
 			std::map<std::string,sim_mob::PathSet* > tmp;
 			tmp.insert(std::make_pair(fromToID,&ps_));
@@ -849,6 +855,7 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 }
 
 void sim_mob::PathSetManager::cachePathSet(sim_mob::PathSet &ps){
+	//test
 	return;
 		ps.bestWayPointpathP.clear(); //to be calculated later
 		{
@@ -869,6 +876,8 @@ void sim_mob::PathSetManager::clearSinglePaths(sim_mob::PathSet &ps){
 }
 
 bool sim_mob::PathSetManager::findCachedPathSet(const std::string & key, sim_mob::PathSet &value){
+	//test
+	return false;
 	boost::unordered_map<const std::string, sim_mob::PathSet>::iterator it ;
 	{
 		boost::unique_lock<boost::shared_mutex> lock(cachedPathSetMutex);

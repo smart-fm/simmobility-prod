@@ -9,6 +9,7 @@
 
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
+#include "logging/Log.hpp"
 
 using namespace sim_mob;
 
@@ -83,14 +84,15 @@ const set<LaneConnector*>& sim_mob::MultiNode::getOutgoingLanes(const RoadSegmen
 	if (!hasOutgoingLanes(from)) {
 		//TODO: How are we handling logical errors?
 		std::stringstream msg;
-		msg <<"No outgoing Lane for Road Segments(" <<  from->getSegmentID() << ")  at node(" << this << "): " <<originalDB_ID.getLogItem();
+		msg <<"getOutgoingLanes: No outgoing Lane for Road Segments(" <<  from->getSegmentID() << ")  at node(" << this << "): " <<originalDB_ID.getLogItem();
 		msg <<"   from node: " <<(from->getStart()==this?from->getEnd()->originalDB_ID.getLogItem():from->getStart()->originalDB_ID.getLogItem());
 		msg <<"\nExisting connectors:";
 		for (map<const RoadSegment*, set<LaneConnector*> >::const_iterator it=connectors.begin(); it!=connectors.end(); it++) {
 			msg <<"\n" <<it->first->getStart()->originalDB_ID.getLogItem() <<" => " <<it->first->getEnd()->originalDB_ID.getLogItem();
 		}
 		//throw std::runtime_error(msg.str().c_str());
-		std::cout<<"getOutgoingLanes: "<<msg.str()<<std::endl;
+		msg<<std::endl;
+		sim_mob::Warn() << msg.str();
 //		const set<LaneConnector*> lnull;
 		return EMPTY_LANE_CONNECTOR;
 	}

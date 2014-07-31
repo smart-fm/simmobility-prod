@@ -174,6 +174,15 @@ private:
 	long getRandomNodeInZone(const std::vector<ZoneNodeParams*>& nodes) const;
 
 	/**
+	 * returns first element from the list of nodes
+	 * Always returning the first element helps to minimize the number of distinct
+	 * ODs for pathset generation
+	 * @param nodes the list of nodes
+	 * @returns first element of the list
+	 */
+	long getFirstNodeInZone(const std::vector<ZoneNodeParams*>& nodes) const;
+
+	/**
 	 * constructs trip chain from predictions for a person
 	 * @param zoneNodeMap zone to nodes mapping
 	 * @param scale number of trip chains to be generated for this person

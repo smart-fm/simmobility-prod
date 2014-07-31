@@ -1204,6 +1204,26 @@ long sim_mob::medium::PredaySystem::getRandomNodeInZone(const std::vector<ZoneNo
 	return 0;
 }
 
+long sim_mob::medium::PredaySystem::getFirstNodeInZone(const std::vector<ZoneNodeParams*>& nodes) const {
+	size_t numNodes = nodes.size();
+	if(numNodes == 0) { return 0; }
+	if(numNodes == 1)
+	{
+		const ZoneNodeParams* znNdPrms = nodes.front();
+		if(znNdPrms->isSinkNode() || znNdPrms->isSourceNode()) { return 0; }
+		return znNdPrms->getAimsunNodeId();
+	}
+
+	std::vector<ZoneNodeParams*>::const_iterator it = nodes.begin();
+	while(it!=nodes.end())
+	{
+		const ZoneNodeParams* znNdPrms = (*it);
+		if(znNdPrms->isSinkNode() || znNdPrms->isSourceNode()) { it++; }// check the next one
+		else { return znNdPrms->getAimsunNodeId(); }
+	}
+	return 0;
+}
+
 void sim_mob::medium::PredaySystem::computeLogsums()
 {
 	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
@@ -1263,7 +1283,7 @@ void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneN
 		int homeNode = 0;
 		if(zoneNodeMap.find(personParams.getHomeLocation()) != zoneNodeMap.end())
 		{
-			homeNode =  getRandomNodeInZone(zoneNodeMap.at(personParams.getHomeLocation()));
+			homeNode =  getFirstNodeInZone(zoneNodeMap.at(personParams.getHomeLocation()));
 		}
 		if(homeNode == 0) { return; } //do not insert this person at all
 		int tourNum = 0;
@@ -1280,7 +1300,7 @@ void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneN
 				int nextNode = 0;
 				if(zoneNodeMap.find(stop->getStopLocation()) != zoneNodeMap.end())
 				{
-					nextNode = getRandomNodeInZone(zoneNodeMap.at(stop->getStopLocation()));
+					nextNode = getFirstNodeInZone(zoneNodeMap.at(stop->getStopLocation()));
 				}
 				if(nextNode == 0) { nodeMappingFailed = true; break; } // if there is no next node, cut the trip chain for this tour here
 				seqNum = seqNum + 1;

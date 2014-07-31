@@ -201,9 +201,25 @@ private:
 	 *  \return acceleration rate
 	 **/
 	double waitAllowedLaneRate(sim_mob::DriverUpdateParams& p);
+	/**
+	 *  \brief The function calcForwardRate calculates the acceleration for the forward gap
+	 *  \param p driver's parameters
+	 *  \return acceleration rate
+	 */
 	double calcForwardRate(sim_mob::DriverUpdateParams& p);
 	double calcDesiredSpeed(sim_mob::DriverUpdateParams& p);
+
+	/**
+	 *  \brief The function calcBackwardRate calculates the acceleration for the backward gap
+	 *  \param p driver's parameters
+	 *  \return acceleration rate
+	 */
 	double calcBackwardRate(sim_mob::DriverUpdateParams& p);
+	/**
+	 *  \brief The function calcAdjacentRate calculates the acceleration for the adjacent gap
+	 *  \param p driver's parameters
+	 *  \return acceleration rate
+	 */
 	double calcAdjacentRate(sim_mob::DriverUpdateParams& p);
 
 	/** \brief return the acc to a target speed within a specific distance

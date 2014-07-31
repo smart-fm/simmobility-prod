@@ -1633,12 +1633,8 @@ double sim_mob::CarFollowModel::calcNextStepSize(DriverUpdateParams& p) {
 		else
 			i = 3;
 	}
-//	if(p.now.frame() >= 1677) {
-//		p.nextStepSize = 0.25;
-//	}
-//	else {
-		p.nextStepSize = updateStepSize[i];
-//	}
+
+	p.nextStepSize = updateStepSize[i];
 	nextPerceptionSize = perceptionSize[i];
 	p.driver->resetReacTime(nextPerceptionSize * 1000);
 	return p.nextStepSize;

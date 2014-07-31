@@ -236,6 +236,12 @@ public:
 	double newFwdAcc;
 	// critical gap param
 	std::vector< std::vector<double> > LC_GAP_MODELS;
+
+	/**
+	 *  /brief calculate min gap
+	 *  /param type driver type
+	 *  /return gap distance
+	 */
 	double lcMinGap(int type);
 
 	double speedOnSign;

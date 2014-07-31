@@ -275,9 +275,11 @@ end
 ]]
 function calculateSpeculation (entry, unitBids)
     local maximumBids = 20
-    local a = 800000
-    local b = 0.3
-    return (maximumBids-unitBids) * entry.askingPrice / (a - b * entry.askingPrice)
+    local a = 800000 --a is the ratio of events expected by the seller.
+    local b = 0.3    --b is the importance of the price for seller.
+    local c = 1000   --c is the offset of the speculation price in thousands of dollars. 
+
+    return (maximumBids-unitBids) * entry.askingPrice / (a - b * entry.askingPrice) * c
 end
 
 --[[

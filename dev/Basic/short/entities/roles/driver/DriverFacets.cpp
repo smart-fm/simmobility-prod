@@ -2200,13 +2200,13 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 
 //
 	params.nvFwdNextLink.driver = NULL;
-	params.nvFwdNextLink.distance = 50000;
+	params.nvFwdNextLink.distance = DEFAULT_DISTANCE_CM;
 	params.nvLeadFreeway.driver = NULL;
-	params.nvLeadFreeway.distance = 50000;
+	params.nvLeadFreeway.distance = DEFAULT_DISTANCE_CM;
 	params.nvLagFreeway.driver = NULL;
-	params.nvLagFreeway.distance = 50000;
+	params.nvLagFreeway.distance = DEFAULT_DISTANCE_CM;
 	params.nvFwd.driver = NULL;
-	params.nvFwd.distance = 50000;
+	params.nvFwd.distance = DEFAULT_DISTANCE_CM;
 
 	for (vector<const Agent*>::iterator it = nearby_agents.begin();
 			it != nearby_agents.end(); it++) {

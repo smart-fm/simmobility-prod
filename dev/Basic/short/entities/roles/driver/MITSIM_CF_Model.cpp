@@ -671,7 +671,7 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 //	if (p.space > 0.1)
 	{
 //		if (!nv.exists()) {
-		if(p.perceivedDistToFwdCar == 50000) {
+		if(p.perceivedDistToFwdCar == DEFAULT_DISTANCE_CM) {
 			return accOfFreeFlowing(p, p.desiredSpeed, p.maxLaneSpeed);
 //			return p.maxAcceleration;
 		}

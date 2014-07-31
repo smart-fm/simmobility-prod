@@ -135,6 +135,7 @@
 <!-- C. TRAFFIC LIGHT RESPONSE -->
 	<param name="yellow_stop_headway" value="1.0"/>
 	<param name="min_speed_yellow" value="2.2352"/>
+        <param name="driver_signal_perception_distance" value="75.0"/>  <!-- meter -->
 
 <!-- D. UPDATE STEP SIZE (REACTION TIME RELATED)
 	Driver behavior (e.g. responses to stimuli) is updated periodically

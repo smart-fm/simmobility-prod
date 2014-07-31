@@ -271,6 +271,9 @@ public:
 	/// store speed limit addon parameter
 	vector<double> speedLimitAddon;
 
+	/// driver signal perception distance
+	double percepDisM;
+
 	/**
 	 *  /brief calculate speed add on
 	 *  /return add on value

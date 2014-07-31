@@ -259,6 +259,11 @@ void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p) {
 	ParameterManager::Instance()->param(modelName,
 						"density", p.density,
 						40.0);
+
+	// driver signal perception distance
+	ParameterManager::Instance()->param(modelName,
+							"driver_signal_perception_distance", percepDisM,
+							75.0);
 }
 void sim_mob::MITSIM_CF_Model::makeCFParam(string& s, CarFollowParam& cfParam) {
 	std::vector<std::string> arrayStr;
@@ -911,7 +916,7 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p) {
 	distanceToTrafficSignal = p.perceivedDistToTrafficSignal;
 	color = p.perceivedTrafficColor;
 //	double dis = p.perceivedDistToFwdCar;
-	if (distanceToTrafficSignal < 7500) {
+	if (distanceToTrafficSignal < percepDisM) {
 		double dis = distanceToTrafficSignal / 100;
 
 #if 0

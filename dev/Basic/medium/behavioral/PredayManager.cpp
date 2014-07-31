@@ -555,6 +555,15 @@ sim_mob::medium::PredayManager::~PredayManager() {
 		}
 	}
 	opCostMap.clear();
+
+	// clear Zone node map
+	Print() << "Clearing zoneNodeMap" << std::endl;
+	for(ZoneNodeMap::iterator i = zoneNodeMap.begin(); i!=zoneNodeMap.end(); i++) {
+		for(std::vector<ZoneNodeParams*>::iterator j=i->second.begin(); j!=i->second.end(); j++) {
+			delete *j;
+		}
+	}
+	zoneNodeMap.clear();
 }
 
 void sim_mob::medium::PredayManager::loadPersons(BackendType dbType) {

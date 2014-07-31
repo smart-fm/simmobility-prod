@@ -201,12 +201,19 @@ private:
 	 *  \return acceleration rate
 	 **/
 	double waitAllowedLaneRate(sim_mob::DriverUpdateParams& p);
+
 	/**
 	 *  \brief The function calcForwardRate calculates the acceleration for the forward gap
 	 *  \param p driver's parameters
 	 *  \return acceleration rate
 	 */
 	double calcForwardRate(sim_mob::DriverUpdateParams& p);
+
+	/*
+	 *  \brief calculate desired speed
+	 *  \param p driver's parameters
+	 *  \return speed m/s
+	 */
 	double calcDesiredSpeed(sim_mob::DriverUpdateParams& p);
 
 	/**
@@ -261,8 +268,15 @@ public:
 	vector<double> normalDecelerationScale;
 
 	double speedFactor;
+	/// store speed limit addon parameter
 	vector<double> speedLimitAddon;
+
+	/**
+	 *  /brief calculate speed add on
+	 *  /return add on value
+	 */
 	double getSpeedLimitAddon();
+
 	vector<double> accAddon;
 	vector<double> declAddon;
 	double getAccAddon();

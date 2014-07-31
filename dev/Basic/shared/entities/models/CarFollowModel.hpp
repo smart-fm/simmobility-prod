@@ -179,6 +179,11 @@ private:
 	 *  \return acceleration rate
 	 **/
 	double calcSignalRate(sim_mob::DriverUpdateParams& p);
+	/**
+	 *  \brief The function calcYieldingRate calculates the acceleration rate when performing a courtesy yielding.
+	 *  \param p driver's parameters
+	 *  \return acceleration rate
+	 */
 	double calcYieldingRate(sim_mob::DriverUpdateParams& p);
 	/*
 	 *  /brief Calculate the maximum acceleration rate subject to the the gap from the leading vehicle.

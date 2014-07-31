@@ -886,10 +886,12 @@ bool sim_mob::MITSIM_CF_Model::isGapAcceptable(sim_mob::DriverUpdateParams& p,
 
 	// check if the gap is acceptable
 
-	if ((gap_mn > threshold))
+	if (gap_mn > threshold) {
 		return true;
-	else
+	}
+	else {
 		return 0;
+	}
 }
 double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p) {
 	double minacc = p.maxAcceleration;

@@ -1283,7 +1283,7 @@ void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneN
 		int homeNode = 0;
 		if(zoneNodeMap.find(personParams.getHomeLocation()) != zoneNodeMap.end())
 		{
-			homeNode =  getFirstNodeInZone(zoneNodeMap.at(personParams.getHomeLocation()));
+			homeNode =  getRandomNodeInZone(zoneNodeMap.at(personParams.getHomeLocation()));
 		}
 		if(homeNode == 0) { return; } //do not insert this person at all
 		int tourNum = 0;

@@ -24,22 +24,9 @@ sim_mob::Logger::Logger(std::string id_){
 		InitLogFile(path);
 	}
 	//decision point to use which implementation
-	initQueued();
+	initDef();
 }
 
-void sim_mob::Logger::initDef()
-{
-	flushLog = boost::bind(&Logger::flushLogDef,this);
-	onExit = boost::bind(&Logger::onExitDef,this);
-}
-
-void sim_mob::Logger::initQueued()
-{
-	flushLog = boost::bind(&Logger::flushLogQueued,this);
-	onExit = boost::bind(&Logger::onExitQueued,this);
-	pushDone = false;
-	flusher.reset(new boost::thread(boost::bind(&Logger::flushToFile, this)));
-}
 
 sim_mob::Logger & sim_mob::Logger::operator[](const std::string &key)
 {
@@ -53,26 +40,10 @@ sim_mob::Logger & sim_mob::Logger::operator[](const std::string &key)
 	return *it->second;
 }
 
-void sim_mob::Logger::onExitDef()
-{
-	if(logFile.is_open()){
-		flushLog();
-		logFile.close();
-	}
-	for(outIt it(out_.begin()); it != out_.end(); safe_delete_item(it->second),it++);
-}
-
-void sim_mob::Logger::onExitQueued()
-{
-	pushDone = true;
-	flusher->join();
-	if(logFile.is_open()){
-		flushLog();
-		logFile.close();
-	}
-
-}
 sim_mob::Logger::~Logger(){
+	if(onExit.empty()){
+		std::cout << "onExit is Empty" << std::endl;
+	}
 	onExit();
 }
 
@@ -134,55 +105,6 @@ void sim_mob::Logger::addToTotalTime(uint32_t value){
 	totalTime+=value;
 }
 
-void sim_mob::Logger::flushLogDef()
-{
-	if ((logFile.is_open() && logFile.good()))
-	{
-		std::stringstream &out = getOut();
-		{
-			boost::unique_lock<boost::mutex> lock(flushMutex);
-			logFile << out.str();
-			logFile.flush();
-			out.str(std::string());
-		}
-	}
-	else
-	{
-		Warn() << "pathset profiler log ignored" << std::endl;
-	}
-}
-
-
-void sim_mob::Logger::flushToFile()
-{
-    void *value;
-    while (!pushDone) {
-        while (logQueue.pop(value)){
-        	std::stringstream *out = static_cast<std::stringstream *>(value);
-        	if(out){
-        		logFile << out->str();
-        		safe_delete_item(out);
-        	}
-        }
-        boost::this_thread::sleep(boost::posix_time::seconds(0.5));
-    }
-    //same thing, just to clear the queue after pushDone is set to true
-    while (logQueue.pop(value)){
-    	std::stringstream *out = static_cast<std::stringstream *>(value);
-    	if(out)
-    	{
-    		logFile << out->str();
-    	}
-    }
-}
-
-void sim_mob::Logger::flushLogQueued()
-{
-//	boost::unique_lock<boost::mutex> lock();todo: between the above and below line, there could be another large amount of data inserted and flushLogQueued() invoked before changing the pointer
-	std::stringstream &out = getOut();
-	logQueue.push(&out);
-}
-
 std::stringstream & sim_mob::Logger::getOut(){
 	boost::upgrade_lock<boost::shared_mutex> lock(mutexOutput);
 	outIt it;
@@ -220,4 +142,97 @@ sim_mob::Logger&  sim_mob::Logger::operator<<(StandardEndLine manip) {
 	// call the function, but we cannot return it's value
 		manip(getOut());
 	return *this;
+}
+
+/* *****************************
+ *     Default Implementation
+ * *****************************
+ */
+void sim_mob::Logger::initDef()
+{
+	flushLog = boost::bind(&Logger::flushLogDef,this);
+	onExit = boost::bind(&Logger::onExitDef,this);
+	if(onExit.empty()){
+		Print() << "onExit is Empty in initialization" << std::endl;
+	}
+}
+
+void sim_mob::Logger::onExitDef()
+{
+	if(logFile.is_open()){
+		flushLog();
+		logFile.close();
+	}
+	for(outIt it(out_.begin()); it != out_.end(); safe_delete_item(it->second),it++);
+}
+
+void sim_mob::Logger::flushLogDef()
+{
+	if ((logFile.is_open() && logFile.good()))
+	{
+		std::stringstream &out = getOut();
+		{
+			boost::unique_lock<boost::mutex> lock(flushMutex);
+			logFile << out.str();
+			logFile.flush();
+			out.str(std::string());
+		}
+	}
+	else
+	{
+		Warn() << "pathset profiler log ignored" << std::endl;
+	}
+}
+
+/* *****************************
+ *     Queued Implementation
+ * *****************************
+ */
+void sim_mob::Logger::flushToFile()
+{
+    void *value;
+    while (!pushDone) {
+        while (logQueue.pop(value)){
+        	std::stringstream *out = static_cast<std::stringstream *>(value);
+        	if(out){
+        		logFile << out->str();
+        		safe_delete_item(out);
+        	}
+        }
+        boost::this_thread::sleep(boost::posix_time::seconds(0.5));
+    }
+    //same thing, just to clear the queue after pushDone is set to true
+    while (logQueue.pop(value)){
+    	std::stringstream *out = static_cast<std::stringstream *>(value);
+    	if(out)
+    	{
+    		logFile << out->str();
+    	}
+    }
+}
+
+void sim_mob::Logger::flushLogQueued()
+{
+//	boost::unique_lock<boost::mutex> lock();todo: between the above and below line, there could be another large amount of data inserted and flushLogQueued() invoked before changing the pointer
+	std::stringstream &out = getOut();
+	logQueue.push(&out);
+}
+
+void sim_mob::Logger::initQueued()
+{
+	flushLog = boost::bind(&Logger::flushLogQueued,this);
+	onExit = boost::bind(&Logger::onExitQueued,this);
+	pushDone = false;
+	flusher.reset(new boost::thread(boost::bind(&Logger::flushToFile, this)));
+}
+
+void sim_mob::Logger::onExitQueued()
+{
+	pushDone = true;
+	flusher->join();
+	if(logFile.is_open()){
+		flushLog();
+		logFile.close();
+	}
+
 }

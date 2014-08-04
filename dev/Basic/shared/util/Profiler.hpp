@@ -8,15 +8,11 @@
 namespace sim_mob {
 /**
  * Authore: Vahid
- * A class to log custom messages measure the start and end of any operation.
+ * A class to log custom messages and measure the start and end of any operation.
  * Features:
  * unlike the current profiling system, it can be used independent of any specific module.
  * It can return the elapsed time, * it can save any formatted string to the desired output file
- * it can be reused(by calling a reset)
- * same object can be used multiple times (without resetting) to accumulate profiling time of several operations.
- * multiple instances of profiler objects can form a hierarchy and report to the higher level and thereby generate accumulated time from diesired parts of various methods
- * the amount of buffering to the output file can be configured.
- * Although it is mainly a time profiler, it can be used to profile other parameters with some other tool and dump the result as string stream to the object of this Logger
+ * same object can be used multiple times to accumulate loging information of several operations.
  *
  * Note: example use case :
  * 	std::string prof("PathSetManagerProfiler");
@@ -24,7 +20,22 @@ namespace sim_mob {
 	sim_mob::Logger::instance[prof] << sim_mob::Logger::instance["hey"].outPut();
 	std::stringstream  s;
 	sim_mob::Logger::instance[prof] << s.str();
+
+ * Some implementation Details on the lockfree version
+ * this class accepts buffers of data submitted to it via different threads and pushes them into
+ * a circular (lock free) queue to be dumped into the destination file.
+ * A thread is waiting for the other side of the queue waiting for the buffers to arrive(pop) and dump the
+ * buffers into their corresponding file. This way we can achieve:
+ * 1- A separate thread doing IO without holding up other threads.
+ * 2- Circular queue does not require locking when pushing into the queue.
+ * 3- If the need be, there can be multiple threads poping out of the queue. boost::lockfree::queue implementation is multi-producer/multi-consumer version.
+ * 4- Needless to mention that the Logger handles one buffer per thread rather than using one buffer, therefore there is no locking(ecxcept for minimal
+ * thread management)
+ *
+ * Note:Alternative approach:
+ * Instead of having a queue handling buffers and files, there is an alternative approach to create one file per thread and join the file whenever required.
  */
+
 class Logger {
 private:
 	///total time measured by all profilers
@@ -148,29 +159,20 @@ public:
 	template <typename T>
 	sim_mob::Logger & operator<< (const T& val)
 	{
+		//debug
+		if(onExit.empty()){
+			Print() << "OnExit empty" << std::endl;
+		}
 		std::stringstream &out = sim_mob::Logger::getOut();
 		out << val;
 		if(out.tellp() > 512000/*500KB*/){
 			flushLog();
 		}
+		else{
+			Print() << out.tellp() << std::endl;
+		}
 		return *this;
 	}
 };
 
-/**
- * this class accepts buffers of data submitted to it via different threads and pushes them into
- * a circular (lock free) queue to be dumped into the destination file.
- * A thread is waiting for the other side of the queue waiting for the buffers to arrive(pop) and dump the
- * buffers into their corresponding file. This way we can achieve:
- * 1- A separate thread doing IO without holding up other threads.
- * 2- Circular queue does not require locking when pushing into the queue.
- * 3- If the need be, there can be multiple threads poping out of the queue. boost::lockfree::queue implementation is multi-producer/multi-consumer version.
- * 4- Needless to mention that the Logger handles one buffer per thread rather than using one buffer, therefore there is no locking(ecxcept for minimal
- * thread management)
- *
- * Note:Alternative approach:
- * Instead of having a queue handling buffers and files, there is an alternative approach to create one file per thread and join the file whenever required.
- */
-
-typedef Logger Logger;
 }//namespace

@@ -16,16 +16,16 @@ namespace sim_mob {
  * same object can be used multiple times (without resetting) to accumulate profiling time of several operations.
  * multiple instances of profiler objects can form a hierarchy and report to the higher level and thereby generate accumulated time from diesired parts of various methods
  * the amount of buffering to the output file can be configured.
- * Although it is mainly a time profiler, it can be used to profile other parameters with some other tool and dump the result as string stream to the object of this Profiler
+ * Although it is mainly a time profiler, it can be used to profile other parameters with some other tool and dump the result as string stream to the object of this Logger
  *
  * Note: example use case :
  * 	std::string prof("PathSetManagerProfiler");
-	sim_mob::Profiler::instance[prof] << "My First" << " test" << std::endl;;
-	sim_mob::Profiler::instance[prof] << sim_mob::Profiler::instance["hey"].outPut();
+	sim_mob::Logger::instance[prof] << "My First" << " test" << std::endl;;
+	sim_mob::Logger::instance[prof] << sim_mob::Logger::instance["hey"].outPut();
 	std::stringstream  s;
-	sim_mob::Profiler::instance[prof] << s.str();
+	sim_mob::Logger::instance[prof] << s.str();
  */
-class Profiler {
+class Logger {
 private:
 	///total time measured by all profilers
 	uint32_t totalTime;
@@ -75,7 +75,7 @@ private:
 	boost::function<void(void)> onExit;
 
 	///	repository of profilers. each profiler is distinguished by a file name!
-	static std::map<const std::string, boost::shared_ptr<sim_mob::Profiler> > repo;
+	static std::map<const std::string, boost::shared_ptr<sim_mob::Logger> > repo;
 	///	flush the log streams into the output buffer-Default version
 	void flushLogDef();
 	///	flush the log streams into the output buffer-Default version
@@ -90,8 +90,8 @@ private:
 	 * @param id arbitrary identification for this object
 	 * @param logger file name where the output stream is written
 	 */
-	Profiler(std::string id);
-	Profiler();
+	Logger(std::string id);
+	Logger();
 	//needs improvement
 	static void printTime(struct tm *tm, struct timeval & tv, std::string id);
 
@@ -106,7 +106,7 @@ private:
 	///whoami
 	int getIndex();
 
-	///is this Profiler started
+	///is this Logger started
 	bool isStarted();
 
 	//This is the type of std::cout
@@ -115,15 +115,15 @@ private:
 	typedef CoutType& (*StandardEndLine)(CoutType&);
 public:
 	static std::string newLine;
-	static sim_mob::Profiler instance;
-	//copy constructor is required by static std::map<std::string, sim_mob::Profiler> repo;
-	Profiler(const sim_mob::Profiler& value);
+	static sim_mob::Logger instance;
+	//copy constructor is required by static std::map<std::string, sim_mob::Logger> repo;
+	Logger(const sim_mob::Logger& value);
 	void initDef();
 	void initQueued();
-	sim_mob::Profiler & operator[](const std::string &key);
+	sim_mob::Logger & operator[](const std::string &key);
 	void onExitDef();
 	void onExitQueued();
-	virtual ~Profiler();
+	virtual ~Logger();
 
 	///like it suggests, store the start time of the profiling
 	void startProfiling();
@@ -143,12 +143,12 @@ public:
 
 	unsigned int & getTotalTime();
 	/// This method defines an operator<< to take in std::endl
-	Profiler& operator<<(StandardEndLine manip);
+	Logger& operator<<(StandardEndLine manip);
 
 	template <typename T>
-	sim_mob::Profiler & operator<< (const T& val)
+	sim_mob::Logger & operator<< (const T& val)
 	{
-		std::stringstream &out = sim_mob::Profiler::getOut();
+		std::stringstream &out = sim_mob::Logger::getOut();
 		out << val;
 		if(out.tellp() > 512000/*500KB*/){
 			flushLog();
@@ -165,12 +165,12 @@ public:
  * 1- A separate thread doing IO without holding up other threads.
  * 2- Circular queue does not require locking when pushing into the queue.
  * 3- If the need be, there can be multiple threads poping out of the queue. boost::lockfree::queue implementation is multi-producer/multi-consumer version.
- * 4- Needless to mention that the Profiler handles one buffer per thread rather than using one buffer, therefore there is no locking(ecxcept for minimal
+ * 4- Needless to mention that the Logger handles one buffer per thread rather than using one buffer, therefore there is no locking(ecxcept for minimal
  * thread management)
  *
  * Note:Alternative approach:
  * Instead of having a queue handling buffers and files, there is an alternative approach to create one file per thread and join the file whenever required.
  */
 
-typedef Profiler Profiler;
+typedef Logger Logger;
 }//namespace

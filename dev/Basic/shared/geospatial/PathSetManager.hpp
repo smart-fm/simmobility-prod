@@ -261,7 +261,7 @@ public:
 		return instance_;
 	}
 
-//	static sim_mob::Profiler profiler;
+//	static sim_mob::Logger profiler;
 	sim_mob::batched::ThreadPool *threadpool_;
 public:
 	bool generateAllPathSetWithTripChain2();

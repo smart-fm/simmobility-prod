@@ -5,60 +5,92 @@
 
 boost::lockfree::queue<void* > queue(128);
 
-std::map<const std::string, boost::shared_ptr<sim_mob::BaseProfiler> > sim_mob::BaseProfiler::repo = std::map<const std::string, boost::shared_ptr<sim_mob::BaseProfiler> >();
-std::string sim_mob::BaseProfiler::newLine("\n");
-sim_mob::BaseProfiler sim_mob::BaseProfiler::instance;
-sim_mob::BaseProfiler::BaseProfiler(){}
-sim_mob::BaseProfiler::BaseProfiler(std::string id_,bool init){
+std::map<const std::string, boost::shared_ptr<sim_mob::Profiler> > sim_mob::Profiler::repo = std::map<const std::string, boost::shared_ptr<sim_mob::Profiler> >();
+std::string sim_mob::Profiler::newLine("\n");
+sim_mob::Profiler sim_mob::Profiler::instance;
+
+boost::lockfree::queue<void* > sim_mob::Profiler::logQueue(128);
+boost::atomic<bool> sim_mob::Profiler::pushDone;
+boost::shared_ptr<boost::thread> sim_mob::Profiler::flusher;
+sim_mob::Profiler::Profiler(){}
+sim_mob::Profiler::Profiler(std::string id_){
 
 	reset();
 	start = stop = totalTime = 0;
 	started = false;
-//	output.clear();
 	id = id_;
 	std::string path = id_ + ".txt";
 	if(path.size()){
 		InitLogFile(path);
 	}
-	if(init && !isStarted()){
-		startProfiling();
-	}
+	//decision point to use which implementation
+	initQueued();
 }
 
-sim_mob::BaseProfiler & sim_mob::BaseProfiler::operator[](const std::string &key)
+void sim_mob::Profiler::initDef()
+{
+	flushLog = boost::bind(&Profiler::flushLogDef,this);
+	onExit = boost::bind(&Profiler::onExitDef,this);
+}
+
+void sim_mob::Profiler::initQueued()
+{
+	flushLog = boost::bind(&Profiler::flushLogQueued,this);
+	onExit = boost::bind(&Profiler::onExitQueued,this);
+	pushDone = false;
+	flusher.reset(new boost::thread(boost::bind(&Profiler::flushToFile, this)));
+}
+
+sim_mob::Profiler & sim_mob::Profiler::operator[](const std::string &key)
 {
 
-	std::map<std::string, boost::shared_ptr<sim_mob::BaseProfiler> >::iterator it = repo.find(key);
+	std::map<std::string, boost::shared_ptr<sim_mob::Profiler> >::iterator it = repo.find(key);
 	if(it == repo.end()){
-		boost::shared_ptr<sim_mob::BaseProfiler> t(new sim_mob::BaseProfiler(key,false));
+		boost::shared_ptr<sim_mob::Profiler> t(new sim_mob::Profiler(key));
 		repo.insert(std::make_pair(key,t));
+		return *t;
 	}
-	return *repo[key];
+	return *it->second;
 }
 
-sim_mob::BaseProfiler::~BaseProfiler(){
-	if(LogFile.is_open()){
+void sim_mob::Profiler::onExitDef()
+{
+	if(logFile.is_open()){
 		flushLog();
-		LogFile.close();
+		logFile.close();
 	}
 	for(outIt it(out_.begin()); it != out_.end(); safe_delete_item(it->second),it++);
 }
 
+void sim_mob::Profiler::onExitQueued()
+{
+	pushDone = true;
+	flusher->join();
+	if(logFile.is_open()){
+		flushLog();
+		logFile.close();
+	}
+
+}
+sim_mob::Profiler::~Profiler(){
+	onExit();
+}
+
 ///whoami
-std::string sim_mob::BaseProfiler::getId(){
+std::string sim_mob::Profiler::getId(){
 	return id;
 }
 ///whoami
-int sim_mob::BaseProfiler::getIndex(){
+int sim_mob::Profiler::getIndex(){
 	return index;
 }
 
-bool sim_mob::BaseProfiler::isStarted(){
+bool sim_mob::Profiler::isStarted(){
 	return started;
 }
 
 ///like it suggests, store the start time of the profiling
-void sim_mob::BaseProfiler::startProfiling(){
+void sim_mob::Profiler::startProfiling(){
 	started = true;
 
 	struct timeval  tv;
@@ -73,9 +105,9 @@ void sim_mob::BaseProfiler::startProfiling(){
 }
 
 ///save the ending time ...and .. if add==true add the value to the total time;
-uint32_t sim_mob::BaseProfiler::endProfiling(bool addToTotalTime_){
+uint32_t sim_mob::Profiler::endProfiling(bool addToTotalTime_){
 	if(!started){
-		throw std::runtime_error("BaseProfiler Ended before Starting");
+		throw std::runtime_error("Profiler Ended before Starting");
 	}
 
 	struct timeval  tv;
@@ -96,28 +128,62 @@ uint32_t sim_mob::BaseProfiler::endProfiling(bool addToTotalTime_){
 }
 
 ///add the given time to the total time
-void sim_mob::BaseProfiler::addToTotalTime(uint32_t value){
+void sim_mob::Profiler::addToTotalTime(uint32_t value){
 	boost::unique_lock<boost::mutex> lock(mutexTotalTime);
-//		Print() << "BaseProfiler "  << "[" << index << ":" << id << "] Adding " << value << " seconds to total time " << std::endl;
+//		Print() << "Profiler "  << "[" << index << ":" << id << "] Adding " << value << " seconds to total time " << std::endl;
 	totalTime+=value;
 }
 
-void sim_mob::BaseProfiler::flushLog(){
-		if ((LogFile.is_open() && LogFile.good())) {
-			std::stringstream &out = getOut();
-			{
-				boost::unique_lock<boost::mutex> lock(flushMutex);
-				LogFile << "[" << boost::this_thread::get_id() << "]\n" << out.str();
-				LogFile.flush();
-				out.str(std::string());
-			}
+void sim_mob::Profiler::flushLogDef()
+{
+	if ((logFile.is_open() && logFile.good()))
+	{
+		std::stringstream &out = getOut();
+		{
+			boost::unique_lock<boost::mutex> lock(flushMutex);
+			logFile << out.str();
+			logFile.flush();
+			out.str(std::string());
 		}
-		else{
-			Warn() << "pathset profiler log ignored" << std::endl;
-		}
+	}
+	else
+	{
+		Warn() << "pathset profiler log ignored" << std::endl;
+	}
 }
 
-std::stringstream & sim_mob::BaseProfiler::getOut(){
+
+void sim_mob::Profiler::flushToFile()
+{
+    void *value;
+    while (!pushDone) {
+        while (logQueue.pop(value)){
+        	std::stringstream *out = static_cast<std::stringstream *>(value);
+        	if(out){
+        		logFile << out->str();
+        		safe_delete_item(out);
+        	}
+        }
+        boost::this_thread::sleep(boost::posix_time::seconds(0.5));
+    }
+    //same thing, just to clear the queue after pushDone is set to true
+    while (logQueue.pop(value)){
+    	std::stringstream *out = static_cast<std::stringstream *>(value);
+    	if(out)
+    	{
+    		logFile << out->str();
+    	}
+    }
+}
+
+void sim_mob::Profiler::flushLogQueued()
+{
+//	boost::unique_lock<boost::mutex> lock();todo: between the above and below line, there could be another large amount of data inserted and flushLogQueued() invoked before changing the pointer
+	std::stringstream &out = getOut();
+	logQueue.push(&out);
+}
+
+std::stringstream & sim_mob::Profiler::getOut(){
 	boost::upgrade_lock<boost::shared_mutex> lock(mutexOutput);
 	outIt it;
 	boost::thread::id id = boost::this_thread::get_id();
@@ -130,7 +196,7 @@ std::stringstream & sim_mob::BaseProfiler::getOut(){
 	return *(it->second);
 }
 
-unsigned int & sim_mob::BaseProfiler::getTotalTime(){
+unsigned int & sim_mob::Profiler::getTotalTime(){
 	boost::unique_lock<boost::mutex> lock(mutexTotalTime);
 	return totalTime;
 }
@@ -139,18 +205,18 @@ void printTime(struct tm *tm, struct timeval & tv, std::string id){
 	sim_mob::Print() << "TIMESTAMP:\t  " << tm->tm_hour << std::setw(2) << ":" <<tm->tm_min << ":" << ":" <<  tm->tm_sec << ":" << tv.tv_usec << std::endl;
 }
 
-void sim_mob::BaseProfiler::reset(){
+void sim_mob::Profiler::reset(){
 	start = stop = totalTime = 0;
 	started = false;
 	id = "";
 }
 
-void  sim_mob::BaseProfiler::InitLogFile(const std::string& path)
+void  sim_mob::Profiler::InitLogFile(const std::string& path)
 {
-	LogFile.open(path.c_str());
+	logFile.open(path.c_str());
 }
 
-sim_mob::BaseProfiler&  sim_mob::BaseProfiler::operator<<(StandardEndLine manip) {
+sim_mob::Profiler&  sim_mob::Profiler::operator<<(StandardEndLine manip) {
 	// call the function, but we cannot return it's value
 		manip(getOut());
 	return *this;

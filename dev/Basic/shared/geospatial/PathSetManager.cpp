@@ -2842,8 +2842,8 @@ double sim_mob::PathSetManager::getTravelCost(sim_mob::SinglePath *sp)
 		{
 			sim_mob::ERP_Section* erp_section = (*it).second;
 			std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::iterator itt =
-					ERP_Surcharge_pool.find(erp_section->ERP_Gantry_No_str);
-			if(itt!=ERP_Surcharge_pool.end())
+					sim_mob::PathSetParam::getInstance()->ERP_Surcharge_pool.find(erp_section->ERP_Gantry_No_str);
+			if(itt!=sim_mob::PathSetParam::getInstance()->ERP_Surcharge_pool.end())
 			{
 				std::vector<sim_mob::ERP_Surcharge*> erp_surcharges = (*itt).second;
 				for(int i=0;i<erp_surcharges.size();++i)

@@ -775,7 +775,7 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 	case MSG_INSERT_INCIDENT:
 	{
 		Print() << "Conflux received MSG_INSERT_INCIDENT" << std::endl;
-		Logger::instance["path_set"] << "Conflux received MSG_INSERT_INCIDENT" << std::endl;
+		sim_mob::Logger::log["path_set"] << "Conflux received MSG_INSERT_INCIDENT" << std::endl;
 		const InsertIncidentMessage & msg = MSG_CAST(InsertIncidentMessage, message);
 		//change the flow rate of the segment
 		sim_mob::Conflux::insertIncident(msg.stats,msg.newFlowRate);

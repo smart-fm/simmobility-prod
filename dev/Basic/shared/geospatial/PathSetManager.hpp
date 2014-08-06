@@ -45,21 +45,12 @@ class Link;
 namespace batched {
 class ThreadPool;
 }
-/**
- * Helper class to initialize and provide  soci::session
- */class PathSetDBLoader
-{
-public:
-	PathSetDBLoader(std::string dbstr)
-	:sql(soci::postgresql,dbstr) {}
-	soci::session sql;
-};
 
-///Debug Method to print WayPoint based paths
+///	Debug Method to print WayPoint based paths
 void printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node* startingNode = 0);
 
 /**
- * This class is used to store, retrive, cache different parameters used in the pathset generation
+ * This class is used to store, retrieve, cache different parameters used in the pathset generation
  */
 class PathSetParam {
 private:
@@ -129,8 +120,6 @@ public:
 	double minSignalParam;
 	double maxHighwayParam;
 
-	///	different cache structures
-	bool isUseCache;
 	std::map<std::string,sim_mob::RoadSegment*> segPool; // store all segs <aimsun id ,seg>
 	std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*> wpPool; // <seg , value>
 	std::map<std::string,sim_mob::Node*> nodePool; // store all nodes <id ,node>

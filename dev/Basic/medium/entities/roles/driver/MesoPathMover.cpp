@@ -167,5 +167,5 @@ void sim_mob::medium::MesoPathMover::printPath(const Path &path, const Node *nod
 			out << id << "," ;
 		}
 	}
-	sim_mob::Logger::instance["path_set"] << out.str() << std::endl;
+	sim_mob::Logger::log["path_set"] << out.str() << std::endl;
 }

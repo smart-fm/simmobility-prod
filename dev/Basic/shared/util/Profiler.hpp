@@ -16,10 +16,10 @@ namespace sim_mob {
  *
  * Note: example use case :
  * 	std::string prof("PathSetManagerProfiler");
-	sim_mob::Logger::instance[prof] << "My First" << " test" << std::endl;;
-	sim_mob::Logger::instance[prof] << sim_mob::Logger::instance["hey"].outPut();
+	sim_mob::Logger::log[prof] << "My First" << " test" << std::endl;;
+	sim_mob::Logger::log[prof] << sim_mob::Logger::log["hey"].outPut();
 	std::stringstream  s;
-	sim_mob::Logger::instance[prof] << s.str();
+	sim_mob::Logger::log[prof] << s.str();
 
  * Some implementation Details on the lockfree version
  * this class accepts buffers of data submitted to it via different threads and pushes them into
@@ -35,13 +35,11 @@ namespace sim_mob {
  * Note:Alternative approach:
  * Instead of having a queue handling buffers and files, there is an alternative approach to create one file per thread and join the file whenever required.
  */
-
-class Logger {
+class BasicLogger {
 private:
+
 	///total time measured by all profilers
 	uint32_t totalTime;
-	///total number of profilers
-	static int totalProfilers;
 
 	///	used for index
 	boost::mutex flushMutex;
@@ -55,55 +53,28 @@ private:
 	///stores start and end of profiling
 	uint32_t start, stop;
 
-	///the profiling object id
-	int index;
-
+	///	the mandatory id given to this BasicLogger
 	std::string id;
 
 	///is the profiling object started profiling?
 	bool started;
 
-	///print output
-//	std::stringstream output;
-  std::map<boost::thread::id, std::stringstream* > out_;
-  typedef std::map<boost::thread::id, std::stringstream* >::iterator outIt;
-
 	///logger
 	std::ofstream logFile;
 
-	//lock free version members
-	///	queued buffer
-	static boost::lockfree::queue<void* > logQueue;
-	///	indicates end of logging in the application
-	static boost::atomic<bool> pushDone;
-	///	logQueue's sole consumer thread
-	static boost::shared_ptr<boost::thread> flusher;
-	//	lock free version members...
+	///	one buffer is assigned to each thread writing to the file
+	std::map<boost::thread::id, std::stringstream*> out_;
 
-	///	function pointer to the corrct version of flusher
-	boost::function<void(void)> flushLog;
-	///	initializer used to configure the object for the desirable implementation
-	boost::function<void(void)> onExit;
+	///	easy reading
+	typedef std::map<boost::thread::id, std::stringstream*>::iterator outIt;
 
-	///	repository of profilers. each profiler is distinguished by a file name!
-	static std::map<const std::string, boost::shared_ptr<sim_mob::Logger> > repo;
 	///	flush the log streams into the output buffer-Default version
-	void flushLogDef();
-	///	flush the log streams into the output buffer-Default version
-	void flushLogQueued();
-	///	flush the file into the file from the queue
-	void flushToFile();
+	virtual void flushLog();
+
 	///	return the buffer corresponding to the calling thread.If the buffer doesn't exist, this method will create, register and returns a new buffer.
 	std::stringstream & getOut();
 
-	/**
-	 * @param init Start profiling if this is set to true
-	 * @param id arbitrary identification for this object
-	 * @param logger file name where the output stream is written
-	 */
-	Logger(std::string id);
-	Logger();
-	//needs improvement
+	///	print time in HH:MM::SS::uS todo:needs improvement
 	static void printTime(struct tm *tm, struct timeval & tv, std::string id);
 
 	///reset all the parameters
@@ -114,27 +85,31 @@ private:
 	///whoami
 	std::string getId();
 
-	///whoami
-	int getIndex();
-
 	///is this Logger started
 	bool isStarted();
 
+	///	what to do in the constructor
+	virtual void onExit();
+public:
+	/**
+	 * @param id arbitrary identification for this object
+	 */
+	BasicLogger(std::string id);
+
+	///	copy constructor
+	BasicLogger(const sim_mob::BasicLogger& value);
+
+	///	destructor
+	virtual ~BasicLogger();
+
+
 	//This is the type of std::cout
 	typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
+
 	//This is the function signature of std::endl and some other manipulators
 	typedef CoutType& (*StandardEndLine)(CoutType&);
-public:
+
 	static std::string newLine;
-	static sim_mob::Logger instance;
-	//copy constructor is required by static std::map<std::string, sim_mob::Logger> repo;
-	Logger(const sim_mob::Logger& value);
-	void initDef();
-	void initQueued();
-	sim_mob::Logger & operator[](const std::string &key);
-	void onExitDef();
-	void onExitQueued();
-	virtual ~Logger();
 
 	///like it suggests, store the start time of the profiling
 	void startProfiling();
@@ -152,27 +127,55 @@ public:
 	 */
 	void addToTotalTime(uint32_t value);
 
+	///	getter
 	unsigned int & getTotalTime();
-	/// This method defines an operator<< to take in std::endl
-	Logger& operator<<(StandardEndLine manip);
 
+	/// This method defines an operator<< to take in std::endl
+	BasicLogger& operator<<(StandardEndLine manip);
+
+	///	write the log items to buffer
 	template <typename T>
-	sim_mob::Logger & operator<< (const T& val)
+	sim_mob::BasicLogger & operator<< (const T& val)
 	{
-		//debug
-		if(onExit.empty()){
-			Print() << "OnExit empty" << std::endl;
-		}
-		std::stringstream &out = sim_mob::Logger::getOut();
+		std::stringstream &out = sim_mob::BasicLogger::getOut();
 		out << val;
 		if(out.tellp() > 512000/*500KB*/){
 			flushLog();
-		}
-		else{
-			Print() << out.tellp() << std::endl;
 		}
 		return *this;
 	}
 };
 
+class LoggerQ :public BasicLogger
+{
+	///	queued buffer
+	boost::lockfree::queue<std::pair<void *, std::stringstream * > > logQueue;
+	///	indicates if all the loggerq objects have died and it is time for the flusher thread to join
+	boost::atomic<bool> logDone;
+	///	logQueue's consumer thread
+	boost::shared_ptr<boost::thread> flusher;
+public:
+	LoggerQ(std::string id);
+	~LoggerQ();
+	sim_mob::Logger & operator[](const std::string &key);
+	///	flush the log streams into the output buffer-Default version
+	void flushLog();
+	///	flush the file into the file from the queue
+	void flushToFile();
+	void onExit();
+
+};
+
+class Logger {
+protected:
+	///	repository of profilers. each profiler is distinguished by a file name!
+	std::map<const std::string, boost::shared_ptr<sim_mob::BasicLogger> > repo;
+public:
+	static sim_mob::Logger log;
+	virtual sim_mob::BasicLogger & operator[](const std::string &key);
+	virtual ~Logger();
+};
+
 }//namespace
+
+//typedef sim_mob::Logger::log sim_mob::log;

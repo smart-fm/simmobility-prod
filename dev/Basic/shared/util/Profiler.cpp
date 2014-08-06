@@ -3,18 +3,14 @@
 
 #include <boost/lockfree/queue.hpp>
 
-boost::lockfree::queue<void* > queue(128);
+/* **********************************
+ *     Basic Logger Implementation
+ * **********************************
+ */
+std::string sim_mob::BasicLogger::newLine("\n");
+sim_mob::Logger sim_mob::Logger::log;
 
-std::map<const std::string, boost::shared_ptr<sim_mob::Logger> > sim_mob::Logger::repo = std::map<const std::string, boost::shared_ptr<sim_mob::Logger> >();
-std::string sim_mob::Logger::newLine("\n");
-sim_mob::Logger sim_mob::Logger::instance;
-
-boost::lockfree::queue<void* > sim_mob::Logger::logQueue(128);
-boost::atomic<bool> sim_mob::Logger::pushDone;
-boost::shared_ptr<boost::thread> sim_mob::Logger::flusher;
-sim_mob::Logger::Logger(){}
-sim_mob::Logger::Logger(std::string id_){
-
+sim_mob::BasicLogger::BasicLogger(std::string id_){
 	reset();
 	start = stop = totalTime = 0;
 	started = false;
@@ -23,45 +19,34 @@ sim_mob::Logger::Logger(std::string id_){
 	if(path.size()){
 		InitLogFile(path);
 	}
-	//decision point to use which implementation
-	initDef();
 }
+//sim_mob::Logger::Logger(sim_mob::Logger const&v)
+//{}
 
-
-sim_mob::Logger & sim_mob::Logger::operator[](const std::string &key)
-{
-
-	std::map<std::string, boost::shared_ptr<sim_mob::Logger> >::iterator it = repo.find(key);
-	if(it == repo.end()){
-		boost::shared_ptr<sim_mob::Logger> t(new sim_mob::Logger(key));
-		repo.insert(std::make_pair(key,t));
-		return *t;
-	}
-	return *it->second;
-}
-
-sim_mob::Logger::~Logger(){
-	if(onExit.empty()){
-		std::cout << "onExit is Empty" << std::endl;
-	}
+sim_mob::BasicLogger::~BasicLogger(){
 	onExit();
 }
 
-///whoami
-std::string sim_mob::Logger::getId(){
-	return id;
-}
-///whoami
-int sim_mob::Logger::getIndex(){
-	return index;
+void sim_mob::BasicLogger::onExit()
+{
+	if(logFile.is_open()){
+		flushLog();
+		logFile.close();
+	}
+	for(outIt it(out_.begin()); it != out_.end(); safe_delete_item(it->second),it++);
 }
 
-bool sim_mob::Logger::isStarted(){
+///whoami
+std::string sim_mob::BasicLogger::getId(){
+	return id;
+}
+
+bool sim_mob::BasicLogger::isStarted(){
 	return started;
 }
 
 ///like it suggests, store the start time of the profiling
-void sim_mob::Logger::startProfiling(){
+void sim_mob::BasicLogger::startProfiling(){
 	started = true;
 
 	struct timeval  tv;
@@ -76,7 +61,7 @@ void sim_mob::Logger::startProfiling(){
 }
 
 ///save the ending time ...and .. if add==true add the value to the total time;
-uint32_t sim_mob::Logger::endProfiling(bool addToTotalTime_){
+uint32_t sim_mob::BasicLogger::endProfiling(bool addToTotalTime_){
 	if(!started){
 		throw std::runtime_error("Logger Ended before Starting");
 	}
@@ -99,13 +84,13 @@ uint32_t sim_mob::Logger::endProfiling(bool addToTotalTime_){
 }
 
 ///add the given time to the total time
-void sim_mob::Logger::addToTotalTime(uint32_t value){
+void sim_mob::BasicLogger::addToTotalTime(uint32_t value){
 	boost::unique_lock<boost::mutex> lock(mutexTotalTime);
 //		Print() << "Logger "  << "[" << index << ":" << id << "] Adding " << value << " seconds to total time " << std::endl;
 	totalTime+=value;
 }
 
-std::stringstream & sim_mob::Logger::getOut(){
+std::stringstream & sim_mob::BasicLogger::getOut(){
 	boost::upgrade_lock<boost::shared_mutex> lock(mutexOutput);
 	outIt it;
 	boost::thread::id id = boost::this_thread::get_id();
@@ -118,7 +103,7 @@ std::stringstream & sim_mob::Logger::getOut(){
 	return *(it->second);
 }
 
-unsigned int & sim_mob::Logger::getTotalTime(){
+unsigned int & sim_mob::BasicLogger::getTotalTime(){
 	boost::unique_lock<boost::mutex> lock(mutexTotalTime);
 	return totalTime;
 }
@@ -127,46 +112,24 @@ void printTime(struct tm *tm, struct timeval & tv, std::string id){
 	sim_mob::Print() << "TIMESTAMP:\t  " << tm->tm_hour << std::setw(2) << ":" <<tm->tm_min << ":" << ":" <<  tm->tm_sec << ":" << tv.tv_usec << std::endl;
 }
 
-void sim_mob::Logger::reset(){
+void sim_mob::BasicLogger::reset(){
 	start = stop = totalTime = 0;
 	started = false;
 	id = "";
 }
 
-void  sim_mob::Logger::InitLogFile(const std::string& path)
+void  sim_mob::BasicLogger::InitLogFile(const std::string& path)
 {
 	logFile.open(path.c_str());
 }
 
-sim_mob::Logger&  sim_mob::Logger::operator<<(StandardEndLine manip) {
+sim_mob::BasicLogger&  sim_mob::BasicLogger::operator<<(StandardEndLine manip) {
 	// call the function, but we cannot return it's value
 		manip(getOut());
 	return *this;
 }
 
-/* *****************************
- *     Default Implementation
- * *****************************
- */
-void sim_mob::Logger::initDef()
-{
-	flushLog = boost::bind(&Logger::flushLogDef,this);
-	onExit = boost::bind(&Logger::onExitDef,this);
-	if(onExit.empty()){
-		Print() << "onExit is Empty in initialization" << std::endl;
-	}
-}
-
-void sim_mob::Logger::onExitDef()
-{
-	if(logFile.is_open()){
-		flushLog();
-		logFile.close();
-	}
-	for(outIt it(out_.begin()); it != out_.end(); safe_delete_item(it->second),it++);
-}
-
-void sim_mob::Logger::flushLogDef()
+void sim_mob::BasicLogger::flushLog()
 {
 	if ((logFile.is_open() && logFile.good()))
 	{
@@ -184,55 +147,114 @@ void sim_mob::Logger::flushLogDef()
 	}
 }
 
+/* ****************************************
+ *     Default Logger wrap Implementation
+ * ****************************************
+ */
+sim_mob::BasicLogger & sim_mob::Logger::operator[](const std::string &key)
+{
+
+	std::map<std::string, boost::shared_ptr<sim_mob::BasicLogger> >::iterator it = repo.find(key);
+	if(it == repo.end()){
+		boost::shared_ptr<sim_mob::BasicLogger> t(new sim_mob::BasicLogger(key));
+		repo.insert(std::make_pair(key,t));
+		return *t;
+	}
+	return *it->second;
+}
+
+sim_mob::Logger::~Logger(){
+//	onExit();
+}
+
 /* *****************************
  *     Queued Implementation
  * *****************************
  */
-void sim_mob::Logger::flushToFile()
-{
-    void *value;
-    while (!pushDone) {
-        while (logQueue.pop(value)){
-        	std::stringstream *out = static_cast<std::stringstream *>(value);
-        	if(out){
-        		logFile << out->str();
-        		safe_delete_item(out);
-        	}
-        }
-        boost::this_thread::sleep(boost::posix_time::seconds(0.5));
-    }
-    //same thing, just to clear the queue after pushDone is set to true
-    while (logQueue.pop(value)){
-    	std::stringstream *out = static_cast<std::stringstream *>(value);
-    	if(out)
-    	{
-    		logFile << out->str();
-    	}
-    }
-}
 
-void sim_mob::Logger::flushLogQueued()
-{
-//	boost::unique_lock<boost::mutex> lock();todo: between the above and below line, there could be another large amount of data inserted and flushLogQueued() invoked before changing the pointer
-	std::stringstream &out = getOut();
-	logQueue.push(&out);
-}
-
-void sim_mob::Logger::initQueued()
-{
-	flushLog = boost::bind(&Logger::flushLogQueued,this);
-	onExit = boost::bind(&Logger::onExitQueued,this);
-	pushDone = false;
-	flusher.reset(new boost::thread(boost::bind(&Logger::flushToFile, this)));
-}
-
-void sim_mob::Logger::onExitQueued()
-{
-	pushDone = true;
-	flusher->join();
-	if(logFile.is_open()){
-		flushLog();
-		logFile.close();
-	}
-
-}
+//namespace{
+//boost::lockfree::queue<std::pair<char*, std::ofstream * > > logQueue1(128);
+//}
+//
+////boost::lockfree::queue<std::pair<void *, std::stringstream * > > sim_mob::LoggerQ::logQueue(128);
+////boost::atomic<bool> sim_mob::LoggerQ::logDone(false);
+////boost::shared_ptr<boost::thread> sim_mob::LoggerQ::flusher(new boost::thread(boost::bind(&LoggerQ::flushToFile)));
+//sim_mob::LoggerQ::LoggerQ():Logger() ,logQueue(0),logDone(true){}//only for the instance
+//sim_mob::LoggerQ::LoggerQ(sim_mob::LoggerQ const& v){}
+//sim_mob::LoggerQ::LoggerQ(std::string id_):Logger(id_) ,logQueue(128),logDone(false){}
+//sim_mob::LoggerQ::~LoggerQ()
+//{
+//	onExit();
+//}
+//
+//sim_mob::Logger & sim_mob::LoggerQ::operator[](const std::string &key)
+//{
+//	boost::shared_ptr<sim_mob::Logger> res;
+//	std::map<std::string, boost::shared_ptr<sim_mob::Logger> >::iterator it = repo.find(key);
+//	res = it->second;
+//	if(it == repo.end()){
+//		res.reset(new sim_mob::LoggerQ(key));
+//		repo.insert(std::make_pair(key,res));
+//		//shifting the following from constructor. let's not start a thread unless it is expected to be required.
+//		if(!flusher)
+//		{
+//			flusher.reset(new boost::thread(boost::bind(&LoggerQ::flushToFile,this)));
+//		}
+//	}
+//	return *res;
+//}
+//
+//void sim_mob::LoggerQ::flushToFile()
+//{
+////    void *value;
+//	std::pair<void *, std::stringstream * > value;
+//    while (!logDone)
+//    {
+//        while (logQueue.pop(value)){
+//
+//        	Print() << "poped out  " << value.first << "  and  " << value.second << "  to Q" << std::endl;
+//        	std::ofstream *file = static_cast<std::ofstream *>(value.first);
+//        	std::stringstream *buffer = /*static_cast<std::stringstream *>*/(value.second);
+//        	if(buffer){
+//        		buffer->str();
+//        		*file << buffer->str();
+//        		safe_delete_item(buffer);
+//        	}
+//        }
+//        boost::this_thread::sleep(boost::posix_time::seconds(0.5));
+//    }
+//    //same thing as above , just to clear the queue after logFileCnt is set to true
+//    while (logQueue.pop(value)){
+//    	std::ofstream *file = static_cast<std::ofstream *>(value.first);
+//    	std::stringstream *buffer = /*static_cast<std::stringstream *>*/(value.second);
+//    	if(buffer){
+//    		*file << buffer->str();
+//    		safe_delete_item(buffer);
+//    	}
+//    }
+//    Print() << "Out of flushToFile" << std::endl;
+//}
+//
+//void sim_mob::LoggerQ::flushLog()
+//{
+////	boost::unique_lock<boost::mutex> lock();todo: between the above and below line, there could be another large amount of data inserted and flushLogQueued() invoked before changing the pointer
+//	std::stringstream &out = getOut();
+//	Print() << "Pushing " << &logFile << "  and  " << &out << "  to Q" << std::endl;
+//	logQueue.push(std::make_pair(&logFile,&out));
+//}
+//
+//void sim_mob::LoggerQ::onExit()
+//{
+//	logDone = true;
+//	if(flusher){
+//		flusher->join();
+//
+//	//test
+//
+//	if(logFile.is_open()){
+//		flushLog();
+//		logFile.close();
+//	}
+////	for(outIt it(out_.begin()); it != out_.end(); safe_delete_item(it->second),it++);
+//	}
+//}

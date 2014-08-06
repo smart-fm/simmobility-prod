@@ -29,7 +29,6 @@ sim_mob::PathSetWorkerThread::~PathSetWorkerThread()
 //3.Populate a vector<WayPoint> without blacklist involvement
 //4.populate a singlepath instance
 void sim_mob::PathSetWorkerThread::executeThis() {
-
 	//Convert the blacklist into a list of blocked Vertices.
 	std::set<StreetDirectory::Edge> blacklistV;
 	if (excludeSeg) {
@@ -160,10 +159,10 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		// make sp id
 		std::string id = sim_mob::makeWaypointsetString(wp);
 		if(!id.size()){
-			sim_mob::Logger::instance["path_set"] << "Error: Empty choice!!! yet valid=>" << dbgStr <<  sim_mob::Logger::newLine;
+			sim_mob::Logger::log["pathset"] << "Error: Empty choice!!! yet valid=>" << dbgStr <<  sim_mob::BasicLogger::newLine;
 		}
 		else{
-			sim_mob::Logger::instance["path_set"] << "Path generated through:" << dbgStr <<  ":" << id << sim_mob::Logger::newLine;
+			sim_mob::Logger::log["path_set"] << "Path generated through:" << dbgStr <<  ":" << id << sim_mob::BasicLogger::newLine;
 		}
 		// fill data
 		s->pathSet = ps;

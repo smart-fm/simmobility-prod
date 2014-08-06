@@ -271,7 +271,7 @@ bool DatabaseLoader::LoadSinglePathDBwithId2(
 		}
 		if (i==0)
 		{
-			sim_mob::Profiler::instance["path_set"]  << "LSPDBwithId: "<<pathset_id<< "no data in db"<<std::endl;
+			sim_mob::Logger::log["path_set"]  << "LSPDBwithId: "<<pathset_id<< "no data in db"<<std::endl;
 			return false;
 		}
 		return true;
@@ -299,20 +299,20 @@ bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 		//create a query that select all the pathsets (with the given pathset id) and then left join it with the temporary table
 		//for now this is the fastest way to exclude the paths which containe the excluded segments
 		sql << excludeTable;
-		sim_mob::Profiler::instance["path_set"]  << excludeTable << std::endl;
+		sim_mob::Logger::log["path_set"]  << excludeTable << std::endl;
 		sql.commit();
 		selectQuery << "select * from \"" << singlePathTableName << "\" "
 					<< " left join exclusion on (\"" << singlePathTableName << "\".\"ID\" like  exclusion.sectionid) "
 					<< " where \"PATHSET_ID\" =" + pathset_id << " and exclusion.sectionid is null";
-//		sim_mob::Profiler::instance["path_set"]  << selectQuery.str() << std::endl;
+//		sim_mob::Logger::log["path_set"]  << selectQuery.str() << std::endl;
 	}
 	else{
 		selectQuery << "select * from \"" << singlePathTableName << "\" where \"PATHSET_ID\" =" + pathset_id ;
 	}
-	sim_mob::Profiler::instance["path_set"]  << selectQuery.str() << std::endl;
+	sim_mob::Logger::log["path_set"]  << selectQuery.str() << std::endl;
 	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare << selectQuery.str());
 //	if(rs.begin() == rs.end()){
-//		sim_mob::Profiler::instance["path_set"]  << "the above selectQuery has no results" << (excludedRS.size() ? "ex" : "") << std::endl;
+//		sim_mob::Logger::log["path_set"]  << "the above selectQuery has no results" << (excludedRS.size() ? "ex" : "") << std::endl;
 //	}
 	int i=0;
 //	selectQuery.str("");
@@ -321,15 +321,15 @@ bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 		bool r;
 //		selectQuery << s->id << std::endl;
 		r = waypoint_singlepathPool.insert(std::make_pair(s->id,s)).second;
-//		sim_mob::Profiler::instance["path_set"]  << r << " " ;
+//		sim_mob::Logger::log["path_set"]  << r << " " ;
 		r = spPool.insert(s).second;
-//		sim_mob::Profiler::instance["path_set"]  << r << std::endl;
+//		sim_mob::Logger::log["path_set"]  << r << std::endl;
 		i++;
 	}
-//	sim_mob::Profiler::instance["path_set"]  << selectQuery.str() << std::endl;
+//	sim_mob::Logger::log["path_set"]  << selectQuery.str() << std::endl;
 	if (i==0)
 	{
-		sim_mob::Profiler::instance["path_set"]  <<"LSPDBwithId: "<<pathset_id<< "no data in db"<<std::endl;
+		sim_mob::Logger::log["path_set"]  <<"LSPDBwithId: "<<pathset_id<< "no data in db"<<std::endl;
 		return false;
 	}
 //	std::cout << spPool.size() << waypoint_singlepathPool.size() << std::endl;
@@ -354,7 +354,7 @@ bool DatabaseLoader::LoadPathSetDBwithId(
 	}
 	if(i==0)
 	{
-		sim_mob::Profiler::instance["path_set"]  <<"LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
+		sim_mob::Logger::log["path_set"]  <<"LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
 		return false;
 	}
 	else
@@ -376,7 +376,7 @@ bool DatabaseLoader::LoadOnePathSetDBwithId(std::string& pathset_id,sim_mob::Pat
 	}
 	if(i==0)
 	{
-		sim_mob::Profiler::instance["path_set"]  << "LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
+		sim_mob::Logger::log["path_set"]  << "LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
 		return false;
 	}
 	else
@@ -398,7 +398,7 @@ bool DatabaseLoader::LoadOnePathSetDBwithIdST(soci::session& sql,std::string& pa
 	}
 	if(i==0)
 	{
-		sim_mob::Profiler::instance["path_set"]  << "LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
+		sim_mob::Logger::log["path_set"]  << "LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
 		return false;
 	}
 	else

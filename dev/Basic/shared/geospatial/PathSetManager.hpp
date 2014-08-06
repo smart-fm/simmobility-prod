@@ -45,21 +45,12 @@ class Link;
 namespace batched {
 class ThreadPool;
 }
-/**
- * Helper class to initialize and provide  soci::session
- */class PathSetDBLoader
-{
-public:
-	PathSetDBLoader(std::string dbstr)
-	:sql(soci::postgresql,dbstr) {}
-	soci::session sql;
-};
 
-///Debug Method to print WayPoint based paths
+///	Debug Method to print WayPoint based paths
 void printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node* startingNode = 0);
 
 /**
- * This class is used to store, retrive, cache different parameters used in the pathset generation
+ * This class is used to store, retrieve, cache different parameters used in the pathset generation
  */
 class PathSetParam {
 private:
@@ -129,19 +120,37 @@ public:
 	double minSignalParam;
 	double maxHighwayParam;
 
-	///	different cache structures
-	bool isUseCache;
-	std::map<std::string,sim_mob::RoadSegment*> segPool; // store all segs <aimsun id ,seg>
-	std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*> wpPool; // <seg , value>
-	std::map<std::string,sim_mob::Node*> nodePool; // store all nodes <id ,node>
-	const std::vector<sim_mob::MultiNode*>  &multiNodesPool; //store all multi nodes in the map
-	const std::set<sim_mob::UniNode*> & uniNodesPool; // store all uni nodes
-	std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > ERP_Surcharge_pool; // <Gantry_No , value=ERP_Surcharge with same No diff time stamp>
-	std::map<std::string,sim_mob::ERP_Gantry_Zone*> ERP_Gantry_Zone_pool; //<Gantry_no, ERP_Gantry_Zone>
-	std::map<std::string,sim_mob::ERP_Section*> ERP_Section_pool;  // <aim-sun id , ERP_Section>
-	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > Link_default_travel_time_pool; // <segment aim-sun id ,Link_default_travel_time with diff time stamp>
+	///	store all segs <aimsun id ,seg>
+	std::map<std::string,sim_mob::RoadSegment*> segPool;
+
+	///	<seg , value>
+	std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*> wpPool;
+
+	///	store all nodes <id ,node>
+	std::map<std::string,sim_mob::Node*> nodePool;
+
+	///	store all multi nodes in the map
+	const std::vector<sim_mob::MultiNode*>  &multiNodesPool;
+
+	///	store all uni nodes
+	const std::set<sim_mob::UniNode*> & uniNodesPool;
+
+	///	ERP surcharge  information <Gantry_No , value=ERP_Surcharge with same No diff time stamp>
+	std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > ERP_Surcharge_pool;
+
+	///	ERP Zone information <Gantry_no, ERP_Gantry_Zone>
+	std::map<std::string,sim_mob::ERP_Gantry_Zone*> ERP_Gantry_Zone_pool;
+
+	///	ERP section <aim-sun id , ERP_Section>
+	std::map<std::string,sim_mob::ERP_Section*> ERP_Section_pool;
+
+	///	information of "Segment" default travel time <segment aim-sun id ,Link_default_travel_time with diff time stamp>
+	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > Link_default_travel_time_pool;
+
+	///	information of "Segment" reatravel time <segment aim-sun id ,Link_default_travel_time with diff time stamp>
 	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > Link_realtime_travel_time_pool;
 
+	///	simmobility's road network
 	const sim_mob::RoadNetwork& roadNetwork;
 
 	/// table store travel time ,used to calculate pathset size
@@ -261,7 +270,7 @@ public:
 		return instance_;
 	}
 
-//	static sim_mob::Profiler profiler;
+//	static sim_mob::Logger profiler;
 	sim_mob::batched::ThreadPool *threadpool_;
 public:
 	bool generateAllPathSetWithTripChain2();
@@ -288,7 +297,7 @@ public:
 			std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool);
 	std::map<std::string,sim_mob::PathSet*> generatePathSetByTripChainItemPool(std::vector<sim_mob::TripChainItem*> &tci);
 	void  generatePathSetByTrip(std::map<std::string,sim_mob::PathSet*> &subTripId_pathSet,sim_mob::Trip *trip);
-	bool isUseCacheMode() { return isUseCache; }
+	bool isUseCacheMode() { return false;/*isUseCache;*/ }//todo: take care of this later
 	double getUtilityBySinglePath(sim_mob::SinglePath* sp);
 	std::vector<WayPoint> generateBestPathChoice2(const sim_mob::SubTrip* st);
 	/**
@@ -393,9 +402,6 @@ private:
 
 	std::string csvFileName;
 	std::ofstream csvFile;
-	//
-	std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > ERP_Surcharge_pool; // key=Gantry_No , value=ERP_Surcharge with same No diff time stamp
-	std::map<std::string,sim_mob::ERP_Gantry_Zone*> ERP_Gantry_Zone_pool; //key=Gantry_no, value = ERP_Gantry_Zone
 	std::map<std::string,sim_mob::ERP_Section*> ERP_Section_pool;  // key=aim-sun id , value = ERP_Section
 
 	sim_mob::K_ShortestPathImpl *kshortestImpl;
@@ -457,6 +463,10 @@ public:
 	void generateAllPathSetWithTripChainPool(std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool);
 	bool generateAllPathSetWithTripChain();
 	const boost::shared_ptr<soci::session> & getSession();
+private:
+	std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > ERP_Surcharge_pool; // key=Gantry_No , value=ERP_Surcharge with same No diff time stamp
+	std::map<std::string,sim_mob::ERP_Gantry_Zone*> ERP_Gantry_Zone_pool; //key=Gantry_no, value = ERP_Gantry_Zone
+
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SinglePath

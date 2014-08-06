@@ -831,14 +831,14 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 			else{
 				clearSinglePaths(ps_);
 			}
-			//test
-			clearSinglePaths(ps_);
 			//test...
 			//store in into the database
 			std::map<std::string,sim_mob::PathSet* > tmp;
 			tmp.insert(std::make_pair(fromToID,&ps_));
 			pathSetParam->storePathSet(*getSession(),tmp,pathSetTableName);
 			pathSetParam->storeSinglePath(*getSession(),ps_.pathChoices,singlePathTableName);
+			//test
+			clearSinglePaths(ps_);
 			return true;
 		}
 		else

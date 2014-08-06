@@ -70,8 +70,11 @@ protected:
 	///	flush the log streams into the output buffer-Default version
 	virtual void flushLog();
 
-	///	return the buffer corresponding to the calling thread.If the buffer doesn't exist, this method will create, register and returns a new buffer.
-	std::stringstream & getOut();
+	/**
+	 * return the buffer corresponding to the calling thread.If the buffer doesn't exist, this method will create, register and returns a new buffer.
+	 * \param renew should the buffer be replaced with a new one
+	 */
+	std::stringstream * getOut(bool renew= false);
 
 	///	print time in HH:MM::SS::uS todo:needs improvement
 	static void printTime(struct tm *tm, struct timeval & tv, std::string id);
@@ -136,9 +139,9 @@ public:
 	template <typename T>
 	sim_mob::BasicLogger & operator<< (const T& val)
 	{
-		std::stringstream &out = sim_mob::BasicLogger::getOut();
+		std::stringstream *out = sim_mob::BasicLogger::getOut();
 		out << val;
-		if(out.tellp() > 512000/*500KB*/){// by some googling this estimated hardcode value promises less cycles to write to a file
+		if(out->tellp() > 512000/*500KB*/){// by some googling this estimated hardcode value promises less cycles to write to a file
 			flushLog();
 		}
 		return *this;

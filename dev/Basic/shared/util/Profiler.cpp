@@ -90,19 +90,28 @@ void sim_mob::BasicLogger::addToTotalTime(uint32_t value){
 	totalTime+=value;
 }
 
-std::stringstream & sim_mob::BasicLogger::getOut(){
+std::stringstream * sim_mob::BasicLogger::getOut(bool renew){
 	boost::upgrade_lock<boost::shared_mutex> lock(mutexOutput);
+	std::stringstream *res = nullptr;
 	outIt it;
 	boost::thread::id id = boost::this_thread::get_id();
 	threads[id] ++;//for debugging only
 	ii++;
 	if((it = out_.find(id)) == out_.end()){
 		boost::upgrade_to_unique_lock<boost::shared_mutex> lock2(lock);
-		std::stringstream* strm(new std::stringstream());
-		out_.insert(std::make_pair(id, strm));
-		return *strm;
+		res = new std::stringstream();
+		out_.insert(std::make_pair(id, res));
 	}
-	return *(it->second);
+	else
+	{
+		boost::upgrade_to_unique_lock<boost::shared_mutex> lock2(lock);
+		res = it->second;
+		if (renew)
+		{
+			it->second = new std::stringstream();
+		}
+	}
+	return res;
 }
 
 unsigned int & sim_mob::BasicLogger::getTotalTime(){
@@ -130,7 +139,7 @@ void  sim_mob::BasicLogger::InitLogFile(const std::string& path)
 
 sim_mob::BasicLogger&  sim_mob::BasicLogger::operator<<(StandardEndLine manip) {
 	// call the function, but we cannot return it's value
-		manip(getOut());
+		manip(*getOut());
 	return *this;
 }
 
@@ -138,13 +147,13 @@ void sim_mob::BasicLogger::flushLog()
 {
 	if ((logFile.is_open() && logFile.good()))
 	{
-		std::stringstream &out = getOut();
+		std::stringstream *out = getOut();
 		{
 			boost::unique_lock<boost::mutex> lock(flushMutex);
-			logFile << out.str();
+			logFile << out->str();
 			logFile.flush();
 			flushCnt++;
-			out.str(std::string());
+			out->str(std::string());
 		}
 	}
 	else
@@ -202,9 +211,9 @@ void sim_mob::QueuedLogger::flushToFile()
 
 void sim_mob::QueuedLogger::flushLog()
 {
-	std::stringstream &out = getOut();
-	Print() << "Pushing " << &logFile << "  and  " << &out << "  to Q" << std::endl;
-	logQueue.push(&out);
+	std::stringstream *out = getOut(true);
+	Print() << "Pushing " << out << "  to Q" << std::endl;
+	logQueue.push(out);
 }
 
 

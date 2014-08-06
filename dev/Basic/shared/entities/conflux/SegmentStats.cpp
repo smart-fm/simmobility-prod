@@ -860,9 +860,9 @@ std::string sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber)
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
 	{
 		std::stringstream msg;
-		double density = segDensity * 1000.0 /* Density is converted to veh/km/lane for the output */
-		* numVehicleLanes; /* Multiplied with number of lanes to get the density in veh/km/segment*/
-		density = (numMovingInSegment(true) + numQueuingInSegment(true)) / length * 1000.0 * numVehicleLanes; //-vahid test
+//		double density = segDensity * 1000.0 /* Density is converted to veh/km/lane for the output */
+//		* numVehicleLanes; /* Multiplied with number of lanes to get the density in veh/km/segment*/
+		double density = (numMovingInSegment(true) + numQueuingInSegment(true)) / ((length / 100000.0) * numVehicleLanes); //veh/km/lane
 
 #define SHOW_NUMBER_VEHICLE_ON_SEGMENT
 #ifdef SHOW_NUMBER_VEHICLE_ON_SEGMENT

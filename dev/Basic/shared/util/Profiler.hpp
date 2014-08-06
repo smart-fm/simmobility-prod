@@ -59,11 +59,10 @@ private:
 	///is the profiling object started profiling?
 	bool started;
 
-	///logger
-	std::ofstream logFile;
-
 	///	one buffer is assigned to each thread writing to the file
 	std::map<boost::thread::id, std::stringstream*> out_;
+
+protected:
 
 	///	easy reading
 	typedef std::map<boost::thread::id, std::stringstream*>::iterator outIt;
@@ -88,8 +87,9 @@ private:
 	///is this Logger started
 	bool isStarted();
 
-	///	what to do in the constructor
-	virtual void onExit();
+	///logger
+	std::ofstream logFile;
+
 public:
 	/**
 	 * @param id arbitrary identification for this object
@@ -132,38 +132,39 @@ public:
 
 	/// This method defines an operator<< to take in std::endl
 	BasicLogger& operator<<(StandardEndLine manip);
-
 	///	write the log items to buffer
 	template <typename T>
 	sim_mob::BasicLogger & operator<< (const T& val)
 	{
 		std::stringstream &out = sim_mob::BasicLogger::getOut();
 		out << val;
-		if(out.tellp() > 512000/*500KB*/){
+		if(out.tellp() > 512000/*500KB*/){// by some googling this estimated hardcode value promises less cycles to write to a file
 			flushLog();
 		}
 		return *this;
 	}
+	//for debugging purpose only
+	static std::map <boost::thread::id, int> threads;
+	static unsigned long int ii;
+	static int flushCnt;
 };
 
-class LoggerQ :public BasicLogger
+class QueuedLogger :public BasicLogger
 {
 	///	queued buffer
-	boost::lockfree::queue<std::pair<void *, std::stringstream * > > logQueue;
+	typedef boost::lockfree::queue<std::stringstream *> LockFreeQ;
+	LockFreeQ logQueue;
 	///	indicates if all the loggerq objects have died and it is time for the flusher thread to join
 	boost::atomic<bool> logDone;
 	///	logQueue's consumer thread
 	boost::shared_ptr<boost::thread> flusher;
 public:
-	LoggerQ(std::string id);
-	~LoggerQ();
-	sim_mob::Logger & operator[](const std::string &key);
+	QueuedLogger(std::string id);
+	~QueuedLogger();
 	///	flush the log streams into the output buffer-Default version
 	void flushLog();
 	///	flush the file into the file from the queue
 	void flushToFile();
-	void onExit();
-
 };
 
 class Logger {
@@ -175,7 +176,13 @@ public:
 	virtual sim_mob::BasicLogger & operator[](const std::string &key);
 	virtual ~Logger();
 };
-
+/*************************************************************************
+ * Change the value of this typedef to enable the selected Logging module
+ * Currently available modules are:
+ * BasicLogger
+ * QueuedLogger
+ **************************************************************************/
+typedef QueuedLogger LogEngine;
 }//namespace
 
 //typedef sim_mob::Logger::log sim_mob::log;

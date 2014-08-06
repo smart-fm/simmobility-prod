@@ -2,13 +2,17 @@
 #include "logging/Log.hpp"
 
 #include <boost/lockfree/queue.hpp>
-
+#include <boost/foreach.hpp>
 /* **********************************
  *     Basic Logger Implementation
  * **********************************
  */
 std::string sim_mob::BasicLogger::newLine("\n");
 sim_mob::Logger sim_mob::Logger::log;
+
+std::map <boost::thread::id, int> sim_mob::BasicLogger::threads= std::map <boost::thread::id, int>();//for debugging only
+int sim_mob::BasicLogger::flushCnt = 0;
+unsigned long int sim_mob::BasicLogger::ii = 0;
 
 sim_mob::BasicLogger::BasicLogger(std::string id_){
 	reset();
@@ -24,17 +28,13 @@ sim_mob::BasicLogger::BasicLogger(std::string id_){
 //{}
 
 sim_mob::BasicLogger::~BasicLogger(){
-	onExit();
-}
-
-void sim_mob::BasicLogger::onExit()
-{
-	if(logFile.is_open()){
+	if (logFile.is_open()) {
 		flushLog();
 		logFile.close();
 	}
-	for(outIt it(out_.begin()); it != out_.end(); safe_delete_item(it->second),it++);
+	for (outIt it(out_.begin()); it != out_.end();safe_delete_item(it->second), it++);
 }
+
 
 ///whoami
 std::string sim_mob::BasicLogger::getId(){
@@ -94,6 +94,8 @@ std::stringstream & sim_mob::BasicLogger::getOut(){
 	boost::upgrade_lock<boost::shared_mutex> lock(mutexOutput);
 	outIt it;
 	boost::thread::id id = boost::this_thread::get_id();
+	threads[id] ++;//for debugging only
+	ii++;
 	if((it = out_.find(id)) == out_.end()){
 		boost::upgrade_to_unique_lock<boost::shared_mutex> lock2(lock);
 		std::stringstream* strm(new std::stringstream());
@@ -121,6 +123,9 @@ void sim_mob::BasicLogger::reset(){
 void  sim_mob::BasicLogger::InitLogFile(const std::string& path)
 {
 	logFile.open(path.c_str());
+	if ((logFile.is_open() && logFile.good())){
+		std::cout << "Logfile for " << path << "  creatred" << std::endl;
+	}
 }
 
 sim_mob::BasicLogger&  sim_mob::BasicLogger::operator<<(StandardEndLine manip) {
@@ -138,6 +143,7 @@ void sim_mob::BasicLogger::flushLog()
 			boost::unique_lock<boost::mutex> lock(flushMutex);
 			logFile << out.str();
 			logFile.flush();
+			flushCnt++;
 			out.str(std::string());
 		}
 	}
@@ -147,114 +153,98 @@ void sim_mob::BasicLogger::flushLog()
 	}
 }
 
+/* *****************************
+ *     Queued Implementation
+ * *****************************
+ */
+
+sim_mob::QueuedLogger::QueuedLogger(std::string id_):BasicLogger(id_) ,logQueue(128),logDone(false)
+{
+	flusher.reset(new boost::thread(boost::bind(&QueuedLogger::flushToFile,this)));
+}
+sim_mob::QueuedLogger::~QueuedLogger()
+{
+	logDone = true;
+	if(flusher){
+		flusher->join();
+	}
+}
+
+void sim_mob::QueuedLogger::flushToFile()
+{
+	std::stringstream * buffer;
+    while (!logDone)
+    {
+        while (logQueue.pop(buffer)){
+
+        	std::cout << "poped out  " << buffer << "  to Q" << std::endl;
+        	if(buffer){
+        		buffer->str();
+        		logFile << buffer->str();
+        		logFile.flush();
+        		flushCnt++;
+        		safe_delete_item(buffer);
+        	}
+        }
+        boost::this_thread::sleep(boost::posix_time::seconds(0.5));
+    }
+    //same thing as above , just to clear the queue after logFileCnt is set to true
+    while (logQueue.pop(buffer)){
+    	if(buffer){
+    		logFile << buffer->str();
+    		logFile.flush();
+    		flushCnt++;
+    		safe_delete_item(buffer);
+    	}
+    }
+    std::cout << "Out of flushToFile" << std::endl;
+}
+
+void sim_mob::QueuedLogger::flushLog()
+{
+	std::stringstream &out = getOut();
+	Print() << "Pushing " << &logFile << "  and  " << &out << "  to Q" << std::endl;
+	logQueue.push(&out);
+}
+
+
 /* ****************************************
  *     Default Logger wrap Implementation
  * ****************************************
  */
+sim_mob::Logger::~Logger()
+{
+	//debug code
+
+	std::cout << "Number of threads used: " << sim_mob::BasicLogger::threads.size() << std::endl;
+	for(std::map <boost::thread::id, int>::iterator item = sim_mob::BasicLogger::threads.begin(); item != sim_mob::BasicLogger::threads.end(); item++)
+	{
+		std::stringstream out("");
+		out << item->first;
+		if("{Not-any-thread}" == out.str() ){
+			break;
+		}
+		std::cout << "Thread[" << item->first << "] called out " << item->second << "  times" << std::endl;
+	}
+	std::cout << "Total calls to getOut: " << sim_mob::BasicLogger::ii << std::endl;
+	std::cout << "Number of flushes to files " << sim_mob::BasicLogger::flushCnt  << std::endl;
+	//debug...
+	std::pair<std::string, boost::shared_ptr<sim_mob::BasicLogger> > item;
+	BOOST_FOREACH(item,repo)
+	{
+		item.second.reset();
+	}
+	repo.clear();
+}
 sim_mob::BasicLogger & sim_mob::Logger::operator[](const std::string &key)
 {
 
 	std::map<std::string, boost::shared_ptr<sim_mob::BasicLogger> >::iterator it = repo.find(key);
 	if(it == repo.end()){
-		boost::shared_ptr<sim_mob::BasicLogger> t(new sim_mob::BasicLogger(key));
+		boost::shared_ptr<sim_mob::BasicLogger> t(new sim_mob::LogEngine(key));
 		repo.insert(std::make_pair(key,t));
 		return *t;
 	}
 	return *it->second;
 }
 
-sim_mob::Logger::~Logger(){
-//	onExit();
-}
-
-/* *****************************
- *     Queued Implementation
- * *****************************
- */
-
-//namespace{
-//boost::lockfree::queue<std::pair<char*, std::ofstream * > > logQueue1(128);
-//}
-//
-////boost::lockfree::queue<std::pair<void *, std::stringstream * > > sim_mob::LoggerQ::logQueue(128);
-////boost::atomic<bool> sim_mob::LoggerQ::logDone(false);
-////boost::shared_ptr<boost::thread> sim_mob::LoggerQ::flusher(new boost::thread(boost::bind(&LoggerQ::flushToFile)));
-//sim_mob::LoggerQ::LoggerQ():Logger() ,logQueue(0),logDone(true){}//only for the instance
-//sim_mob::LoggerQ::LoggerQ(sim_mob::LoggerQ const& v){}
-//sim_mob::LoggerQ::LoggerQ(std::string id_):Logger(id_) ,logQueue(128),logDone(false){}
-//sim_mob::LoggerQ::~LoggerQ()
-//{
-//	onExit();
-//}
-//
-//sim_mob::Logger & sim_mob::LoggerQ::operator[](const std::string &key)
-//{
-//	boost::shared_ptr<sim_mob::Logger> res;
-//	std::map<std::string, boost::shared_ptr<sim_mob::Logger> >::iterator it = repo.find(key);
-//	res = it->second;
-//	if(it == repo.end()){
-//		res.reset(new sim_mob::LoggerQ(key));
-//		repo.insert(std::make_pair(key,res));
-//		//shifting the following from constructor. let's not start a thread unless it is expected to be required.
-//		if(!flusher)
-//		{
-//			flusher.reset(new boost::thread(boost::bind(&LoggerQ::flushToFile,this)));
-//		}
-//	}
-//	return *res;
-//}
-//
-//void sim_mob::LoggerQ::flushToFile()
-//{
-////    void *value;
-//	std::pair<void *, std::stringstream * > value;
-//    while (!logDone)
-//    {
-//        while (logQueue.pop(value)){
-//
-//        	Print() << "poped out  " << value.first << "  and  " << value.second << "  to Q" << std::endl;
-//        	std::ofstream *file = static_cast<std::ofstream *>(value.first);
-//        	std::stringstream *buffer = /*static_cast<std::stringstream *>*/(value.second);
-//        	if(buffer){
-//        		buffer->str();
-//        		*file << buffer->str();
-//        		safe_delete_item(buffer);
-//        	}
-//        }
-//        boost::this_thread::sleep(boost::posix_time::seconds(0.5));
-//    }
-//    //same thing as above , just to clear the queue after logFileCnt is set to true
-//    while (logQueue.pop(value)){
-//    	std::ofstream *file = static_cast<std::ofstream *>(value.first);
-//    	std::stringstream *buffer = /*static_cast<std::stringstream *>*/(value.second);
-//    	if(buffer){
-//    		*file << buffer->str();
-//    		safe_delete_item(buffer);
-//    	}
-//    }
-//    Print() << "Out of flushToFile" << std::endl;
-//}
-//
-//void sim_mob::LoggerQ::flushLog()
-//{
-////	boost::unique_lock<boost::mutex> lock();todo: between the above and below line, there could be another large amount of data inserted and flushLogQueued() invoked before changing the pointer
-//	std::stringstream &out = getOut();
-//	Print() << "Pushing " << &logFile << "  and  " << &out << "  to Q" << std::endl;
-//	logQueue.push(std::make_pair(&logFile,&out));
-//}
-//
-//void sim_mob::LoggerQ::onExit()
-//{
-//	logDone = true;
-//	if(flusher){
-//		flusher->join();
-//
-//	//test
-//
-//	if(logFile.is_open()){
-//		flushLog();
-//		logFile.close();
-//	}
-////	for(outIt it(out_.begin()); it != out_.end(); safe_delete_item(it->second),it++);
-//	}
-//}

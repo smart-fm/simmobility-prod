@@ -210,8 +210,8 @@ void sim_mob::DriverPathMover::setPathWithInitSeg(const vector<const RoadSegment
 			//std::cout<<"currSegmentIt: "<<segid<<std::endl;
 			if(segid == initSegId) {
 				isFoundSeg = true;
-				std::cout<<rs->getLengthOfSegment()<<std::endl;
-				std::cout<<"move in Segment: "<<getCurrDistAlongRoadSegmentCM()<<std::endl;
+				//std::cout<<rs->getLengthOfSegment()<<std::endl;
+				//std::cout<<"move in Segment: "<<getCurrDistAlongRoadSegmentCM()<<std::endl;
 				if(getCurrDistAlongRoadSegmentCM() > initPer*100) {
 					break;
 				}

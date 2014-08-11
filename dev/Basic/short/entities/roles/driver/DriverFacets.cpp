@@ -164,6 +164,10 @@ sim_mob::DriverMovement::~DriverMovement() {
 
 void sim_mob::DriverMovement::frame_init() {
 //Save the path from orign to next activity location in allRoadSegments
+	parentDriver->getParams().initSegId = parent->initSegId;
+	parentDriver->getParams().initDis = parent->initDis;
+	parentDriver->getParams().initSpeed = parent->initSpeed;
+
 	Vehicle* newVeh = initializePath(true);
 	if (newVeh) {
 		safe_delete_item(parentDriver->vehicle);
@@ -1475,7 +1479,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		if (allocateVehicle) {
 			res = new Vehicle(VehicleBase::CAR, length, width);
 //			initPath(path, startLaneId);
-			initPathWithInitSeg(path, startLaneId,parent->initSegId,parent->initSegPer,parent->initSpeed);
+			initPathWithInitSeg(path, startLaneId,parent->initSegId,parent->initDis,parent->initSpeed);
 		}
 
 		if (subTrip->schedule && res) {
@@ -1577,7 +1581,7 @@ void sim_mob::DriverMovement::setOrigin(DriverUpdateParams& p) {
 	targetLaneIndex = p.currLaneIndex;
 
 //Vehicles start at rest
-	parentDriver->vehicle->setVelocity(0);
+	parentDriver->vehicle->setVelocity(p.initSpeed*100);
 	parentDriver->vehicle->setLatVelocity(0);
 	parentDriver->vehicle->setAcceleration(0);
 

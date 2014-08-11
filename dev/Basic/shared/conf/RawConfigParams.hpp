@@ -268,7 +268,7 @@ struct EntityTemplate {
 	unsigned int laneIndex;// default is zero
 	int angentId;
 	int initSegId;
-	int initSegPer;
+	int initDis;
 	double initSpeed;
 };
 

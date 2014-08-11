@@ -186,13 +186,13 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		}
 	}
 	// initSegPer
-	itt = configProps.find("initSegPer");
+	itt = configProps.find("initDis");
 	if(itt != configProps.end())
 	{
 		try {
 			int x = boost::lexical_cast<int>( itt->second );
-			initSegPer = x;
-			std::cout<<"initSegPer: "<<initSegPer<<std::endl;
+			initDis = x;
+			std::cout<<"initDis: "<<initDis<<std::endl;
 		} catch( boost::bad_lexical_cast const& ) {
 			Warn() << "Error: input string was not valid" << std::endl;
 		}

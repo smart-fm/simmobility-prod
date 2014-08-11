@@ -282,6 +282,10 @@ public:
 
 	double density;
 
+	int initSegId;
+	int initDis;
+	int initSpeed;
+
 //	//perform incident response
 //	IncidentPerformer incidentPerformer;
 public:

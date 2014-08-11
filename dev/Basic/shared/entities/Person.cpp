@@ -174,10 +174,11 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		}
 	}
 	// initSegId
-	std::map<std::string, std::string>::const_iterator itt = configProps.find("initPosSegId");
+	std::map<std::string, std::string>::const_iterator itt = configProps.find("initSegId");
 	if(itt != configProps.end())
 	{
 		initSegId = itt->second;
+		std::cout<<"initSegId: "<<initSegId<<std::endl;
 	}
 	// initSegPer
 	itt = configProps.find("initSegPer");
@@ -186,6 +187,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		try {
 			int x = boost::lexical_cast<int>( itt->second );
 			initSegPer = x;
+			std::cout<<"initSegPer: "<<initSegPer<<std::endl;
 		} catch( boost::bad_lexical_cast const& ) {
 			Warn() << "Error: input string was not valid" << std::endl;
 		}
@@ -197,6 +199,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		try {
 			int x = boost::lexical_cast<int>( itt->second );
 			initSpeed = x;
+			std::cout<<"initSpeed: "<<initSpeed<<std::endl;
 		} catch( boost::bad_lexical_cast const& ) {
 			Warn() << "Error: input string was not valid" << std::endl;
 		}

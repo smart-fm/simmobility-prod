@@ -171,21 +171,11 @@ void sim_mob::DriverPathMover::setPathWithInitSeg(const vector<const RoadSegment
 	}
 
 
-	if(initSegId > 0) {
-		// find init seg
-		for (vector<const RoadSegment*>::iterator it = fullPath.begin(); it != fullPath.end(); it++) {
-			const RoadSegment *rs = *it;
-			int segid = rs->getSegmentAimsunId();
-			if(segid == initSegId) {
-				currSegmentIt = it;
-				break;
-			}
-		}
-	}
-	else {
-		//Re-generate the polylines array, etc.
-		currSegmentIt = fullPath.begin();
-	}
+
+
+	//Re-generate the polylines array, etc.
+	currSegmentIt = fullPath.begin();
+
 	isMovingForwardsInLink = true;
 
 	//Ensure that the current lane is valid
@@ -200,6 +190,37 @@ void sim_mob::DriverPathMover::setPathWithInitSeg(const vector<const RoadSegment
 	distMovedInCurrSegmentCM = 0;
 	distOfThisSegmentCM = CalcSegmentLaneZeroDistCM(currSegmentIt, fullPath.end());
 	distOfRestSegmentsCM = CalcRestSegmentsLaneZeroDistCM(currSegmentIt, fullPath.end());
+
+	if(initSegId > 0) {
+		// find init seg
+//		for (vector<const RoadSegment*>::iterator it = fullPath.begin(); it != fullPath.end(); it++) {
+//			const RoadSegment *rs = *it;
+//			int segid = rs->getSegmentAimsunId();
+//			if(segid == initSegId) {
+//				currSegmentIt = it;
+//				break;
+//			}
+//		}
+		double advanceDisCm = 100;
+		bool isFoundSeg = false;
+		while(1) {
+			advance(advanceDisCm);
+			const RoadSegment *rs = *currSegmentIt;
+			int segid = rs->getSegmentAimsunId();
+			//std::cout<<"currSegmentIt: "<<segid<<std::endl;
+			if(segid == initSegId) {
+				isFoundSeg = true;
+				std::cout<<rs->getLengthOfSegment()<<std::endl;
+				std::cout<<"move in Segment: "<<getCurrDistAlongRoadSegmentCM()<<std::endl;
+				if(getCurrDistAlongRoadSegmentCM() > initPer*100) {
+					break;
+				}
+			}
+			else if(isFoundSeg) {
+				break;
+			}
+		}
+	}
 }
 
 void sim_mob::DriverPathMover::setPath(const vector<const RoadSegment*>& path, vector<bool>& areFwds, int startLaneID)

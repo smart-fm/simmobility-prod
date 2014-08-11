@@ -193,17 +193,17 @@ void sim_mob::DriverPathMover::setPathWithInitSeg(const vector<const RoadSegment
 
 	if(initSegId > 0) {
 		// find init seg
-//		for (vector<const RoadSegment*>::iterator it = fullPath.begin(); it != fullPath.end(); it++) {
-//			const RoadSegment *rs = *it;
-//			int segid = rs->getSegmentAimsunId();
-//			if(segid == initSegId) {
-//				currSegmentIt = it;
-//				break;
-//			}
-//		}
+		bool isSegInPath=false;
+		for (vector<const RoadSegment*>::iterator it = fullPath.begin(); it != fullPath.end(); it++) {
+			const RoadSegment *rs = *it;
+			int segid = rs->getSegmentAimsunId();
+			if(segid == initSegId) {
+				isSegInPath = true;
+			}
+		}
 		double advanceDisCm = 100;
 		bool isFoundSeg = false;
-		while(1) {
+		while(isSegInPath) {
 			advance(advanceDisCm);
 			const RoadSegment *rs = *currSegmentIt;
 			int segid = rs->getSegmentAimsunId();

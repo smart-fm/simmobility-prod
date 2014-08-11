@@ -458,6 +458,10 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		props["initSegId"] = Utils::toStr<unsigned int>(it->initSegId);
 		props["initDis"] = Utils::toStr<unsigned int>(it->initDis);
 		props["initSpeed"] = Utils::toStr<unsigned int>(it->initSpeed);
+		if(it->originNode>0 && it->destNode>0) {
+			props["originNode"] = Utils::toStr<unsigned int>(it->originNode);
+			props["destNode"] = Utils::toStr<unsigned int>(it->destNode);
+		}
 //		props["lane"] = boost::lexical_cast<std::string>(it->laneIndex);
 		{
 			//Loop through attributes, ensuring that all required attributes are found.

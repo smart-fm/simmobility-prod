@@ -270,6 +270,8 @@ struct EntityTemplate {
 	int initSegId;
 	int initDis;
 	double initSpeed;
+	int originNode;
+	int destNode;
 };
 
 

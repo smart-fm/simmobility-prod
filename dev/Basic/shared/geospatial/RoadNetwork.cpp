@@ -148,7 +148,30 @@ sim_mob::CoordinateTransform* sim_mob::RoadNetwork::getCoordTransform(bool requi
 	}
 	return coordinateMap.front();
 }
-
+sim_mob::Node* sim_mob::RoadNetwork::getNodeById(int aimsunId) {
+	if(nodeMap.empty()) {
+		//add uni node
+		for(std::set<sim_mob::UniNode*>::iterator unit = segmentnodes.begin();unit!=segmentnodes.end();++unit) {
+			sim_mob::Node* n = *unit;
+			int id = n->getAimsunId();
+			nodeMap.insert(std::make_pair(id,n));
+		}
+		//add multi node
+		for(int i=0;i<nodes.size();++i) {
+			sim_mob::Node* n=nodes[i];
+			int id = n->getAimsunId();
+			nodeMap.insert(std::make_pair(id,n));
+		}
+	}
+	std::map<int,sim_mob::Node*>::iterator it = nodeMap.find(aimsunId);
+	if(it != nodeMap.end()) {
+		return it->second;
+	}
+	else {
+		std::cout<<"not find node: "<<aimsunId<<std::endl;
+		return nullptr;
+	}
+}
 Node* sim_mob::RoadNetwork::locateNode(double xPos, double yPos, bool includeUniNodes, int maxDistCM) const
 {
 	//First, check the MultiNodes, since these will always be candidates

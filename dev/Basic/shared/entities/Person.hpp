@@ -120,7 +120,7 @@ public:
 	/*	const sim_mob::Link* getCurrLink() const;
 	 void setCurrLink(sim_mob::Link* link);*/
 	int laneID;
-	std::string initSegId;
+	int initSegId;
 	int initSegPer;
 	int initSpeed;
 

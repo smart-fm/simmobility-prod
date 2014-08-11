@@ -120,7 +120,6 @@ void sim_mob::DriverPathMover::setPath(const vector<const RoadSegment*>& path, i
 		}
 	}
 
-
 	//Re-generate the polylines array, etc.
 	currSegmentIt = fullPath.begin();
 	isMovingForwardsInLink = true;
@@ -138,7 +137,70 @@ void sim_mob::DriverPathMover::setPath(const vector<const RoadSegment*>& path, i
 	distOfThisSegmentCM = CalcSegmentLaneZeroDistCM(currSegmentIt, fullPath.end());
 	distOfRestSegmentsCM = CalcRestSegmentsLaneZeroDistCM(currSegmentIt, fullPath.end());
 }
+void sim_mob::DriverPathMover::setPathWithInitSeg(const vector<const RoadSegment*>& path, int startLaneID,
+		int initSegId,int initPer,int initSpeed)
+{
+	if (Debug::Paths) {
+		DebugStream << "New Path of length " << path.size() << endl;
+		DebugStream << "Starting in Lane: " << startLaneID << endl;
+	}
 
+	fullPath.clear();
+	if(path.empty()){
+		return;
+	}
+	//Add RoadSegments to the path.
+	Link* currLink = nullptr;
+	for (vector<const RoadSegment*>::const_iterator it = path.begin(); it != path.end(); it++) {
+		fullPath.push_back(*it);
+
+		if (Debug::Paths) {
+ 			DebugStream << "  " << (*it)->getStart()->originalDB_ID.getLogItem() << "=>" << (*it)->getEnd()->originalDB_ID.getLogItem();
+			if ((*it)->getLink() != currLink)
+			{
+				currLink = (*it)->getLink();
+				if (it != path.begin()) {
+					//fwd = sim_mob::dist((*it)->getLink()->getStart()->location, (*it)->getStart()->location)
+					//	< sim_mob::dist((*it)->getLink()->getStart()->location, (*it)->getEnd()->location);
+				}
+				DebugStream << "  Link: " << currLink  << "  length: " << centimeterToMeter(currLink->getLength()) << "  poly-length: " << centimeterToMeter(CalcSegmentLaneZeroDistCM(it, path.end()));
+			}
+			DebugStream << endl;
+			DebugStream << "    Euclidean length: " << centimeterToMeter(dist((*it)->getStart()->location, (*it)->getEnd()->location)) << "   reported length: " << centimeterToMeter((*it)->length) << endl;
+		}
+	}
+
+
+	if(initSegId > 0) {
+		// find init seg
+		for (vector<const RoadSegment*>::iterator it = fullPath.begin(); it != fullPath.end(); it++) {
+			const RoadSegment *rs = *it;
+			int segid = rs->getSegmentAimsunId();
+			if(segid == initSegId) {
+				currSegmentIt = it;
+				break;
+			}
+		}
+	}
+	else {
+		//Re-generate the polylines array, etc.
+		currSegmentIt = fullPath.begin();
+	}
+	isMovingForwardsInLink = true;
+
+	//Ensure that the current lane is valid
+	currLaneID = std::max(std::min(startLaneID, static_cast<int>((*currSegmentIt)->getLanes().size())-1), 0);
+
+	//Generate a polyline array
+	generateNewPolylineArray(getCurrSegment(), pathWithDirection.path, pathWithDirection.areFwds);
+	distAlongPolylineCM = 0;
+
+	inIntersection = false;
+
+	distMovedInCurrSegmentCM = 0;
+	distOfThisSegmentCM = CalcSegmentLaneZeroDistCM(currSegmentIt, fullPath.end());
+	distOfRestSegmentsCM = CalcRestSegmentsLaneZeroDistCM(currSegmentIt, fullPath.end());
+}
 
 void sim_mob::DriverPathMover::setPath(const vector<const RoadSegment*>& path, vector<bool>& areFwds, int startLaneID)
 {

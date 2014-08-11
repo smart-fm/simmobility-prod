@@ -790,6 +790,20 @@ void sim_mob::DriverMovement::initPath(std::vector<sim_mob::WayPoint> wp_path,
 //Init
 	fwdDriverMovement.setPath(path, startLaneID);
 }
+void sim_mob::DriverMovement::initPathWithInitSeg(std::vector<sim_mob::WayPoint> wp_path,
+		int startLaneID,int segId,int initPer,int initSpeed) {
+//Construct a list of RoadSegments.
+	vector<const RoadSegment*> path;
+	for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end();
+			it++) {
+		if (it->type_ == WayPoint::ROAD_SEGMENT) {
+			path.push_back(it->roadSegment_);
+		}
+	}
+
+//Init
+	fwdDriverMovement.setPathWithInitSeg(path, startLaneID,segId,initPer,initSpeed);
+}
 
 void sim_mob::DriverMovement::resetPath(
 		std::vector<sim_mob::WayPoint> wp_path) {
@@ -1460,7 +1474,8 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 //A non-null vehicle means we are moving.
 		if (allocateVehicle) {
 			res = new Vehicle(VehicleBase::CAR, length, width);
-			initPath(path, startLaneId);
+//			initPath(path, startLaneId);
+			initPathWithInitSeg(path, startLaneId,parent->initSegId,parent->initSegPer,parent->initSpeed);
 		}
 
 		if (subTrip->schedule && res) {

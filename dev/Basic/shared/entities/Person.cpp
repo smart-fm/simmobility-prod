@@ -173,6 +173,35 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		    Warn() << "Error: input string was not valid" << std::endl;
 		}
 	}
+	// initSegId
+	std::map<std::string, std::string>::const_iterator itt = configProps.find("initPosSegId");
+	if(itt != configProps.end())
+	{
+		initSegId = itt->second;
+	}
+	// initSegPer
+	itt = configProps.find("initSegPer");
+	if(itt != configProps.end())
+	{
+		try {
+			int x = boost::lexical_cast<int>( itt->second );
+			initSegPer = x;
+		} catch( boost::bad_lexical_cast const& ) {
+			Warn() << "Error: input string was not valid" << std::endl;
+		}
+	}
+	// initPosSegPer
+	itt = configProps.find("initSpeed");
+	if(itt != configProps.end())
+	{
+		try {
+			int x = boost::lexical_cast<int>( itt->second );
+			initSpeed = x;
+		} catch( boost::bad_lexical_cast const& ) {
+			Warn() << "Error: input string was not valid" << std::endl;
+		}
+	}
+
 
 
 	//Consistency check: are they requesting a pseudo-trip chain when they actually have one?

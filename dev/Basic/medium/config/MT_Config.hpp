@@ -227,6 +227,8 @@ public:
 	void setWSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams);
 	bool isOutputTripchains() const;
 	void setOutputTripchains(bool outputTripchains);
+	bool isOutputPredictions() const;
+	void setOutputPredictions(bool outputPredictions);
 	bool isConsoleOutput() const;
 	void setConsoleOutput(bool consoleOutput);
 	bool runningPredaySimulation() const;
@@ -260,6 +262,8 @@ private:
 	unsigned numPredayThreads;
 	/**flag to indicate whether tripchains need to be output to postgresql db*/
 	bool outputTripchains;
+	/**flag to indicate whether tours and stops need to be output in mongodb*/
+	bool outputPredictions;
 	/**flag to indicate whether console output is required*/
 	bool consoleOutput;
 	/**container for lua scripts*/

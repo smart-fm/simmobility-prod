@@ -151,7 +151,7 @@ private:
 	typedef std::vector<PersonParams*> PersonList;
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
-	typedef boost::unordered_map<int, std::vector<long> > ZoneNodeMap;
+	typedef boost::unordered_map<int, std::vector<ZoneNodeParams*> > ZoneNodeMap;
 	typedef void (PredayManager::*threadedFnPtr)(const PersonList::iterator&, const PersonList::iterator&, size_t);
 
 	/**
@@ -164,7 +164,7 @@ private:
 	 * @param last personList iterator corresponding to the person after the
 	 * 				last person to be processed
 	 */
-	void processPersons(const PersonList::iterator& first, const PersonList::iterator& last);
+	void processPersons(const PersonList::iterator& first, const PersonList::iterator& last, const std::string& tripChainLog);
 
 	/**
 	 * Distributes persons to different threads and starts the threads which process the persons for calibration
@@ -212,7 +212,7 @@ private:
 	/**
 	 * updates logsums in mongodb
 	 */
-	void outputLogsumsToMongoAfterCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum);
+	void updateLogsumsToMongoAfterCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum);
 
 	/**
 	 * loads csv containing calibration variables for preday

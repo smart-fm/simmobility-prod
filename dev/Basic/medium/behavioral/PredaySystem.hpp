@@ -12,6 +12,7 @@
 #include <boost/pool/pool_alloc.hpp>
 #include <boost/unordered_map.hpp>
 #include <map>
+#include <sstream>
 #include "behavioral/lua/PredayLuaProvider.hpp"
 #include "CalibrationStatistics.hpp"
 #include "params/PersonParams.hpp"
@@ -37,7 +38,7 @@ class PredaySystem {
 private:
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
-	typedef boost::unordered_map<int, std::vector<long> > ZoneNodeMap;
+	typedef boost::unordered_map<int, std::vector<ZoneNodeParams*> > ZoneNodeMap;
 	typedef std::deque<Tour> TourList;
 	typedef std::deque<Stop*> StopList;
 
@@ -170,7 +171,24 @@ private:
 	 * @param nodes the list of nodes
 	 * @returns a random element of the list
 	 */
-	long getRandomNodeInZone(std::vector<long>& nodes);
+	long getRandomNodeInZone(const std::vector<ZoneNodeParams*>& nodes) const;
+
+	/**
+	 * returns first element from the list of nodes
+	 * Always returning the first element helps to minimize the number of distinct
+	 * ODs for pathset generation
+	 * @param nodes the list of nodes
+	 * @returns first element of the list
+	 */
+	long getFirstNodeInZone(const std::vector<ZoneNodeParams*>& nodes) const;
+
+	/**
+	 * constructs trip chain from predictions for a person
+	 * @param zoneNodeMap zone to nodes mapping
+	 * @param scale number of trip chains to be generated for this person
+	 * @param outTripChain output list (trip chain) to be constructed
+	 */
+	void constructTripChains(const ZoneNodeMap& zoneNodeMap, long scale, std::list<TripChainItemParams>& outTripChain);
 
 	/**
 	 * Person specific parameters
@@ -243,12 +261,17 @@ public:
 	/**
 	 * Writes the logsums to mongo
 	 */
-	void outputLogsumsToMongo();
+	void updateLogsumsToMongo();
 
 	/**
 	 * Converts predictions to Trip chains and writes them off to PostGreSQL
 	 */
-	void outputTripChainsToPostgreSQL(ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao);
+	void outputTripChainsToPostgreSQL(const ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao);
+
+	/**
+	 * Converts predictions to Trip chains and writes them off to the given stringstream
+	 */
+	void outputTripChainsToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& tripChainDao);
 
 	/**
 	 * Prints logs for person in console

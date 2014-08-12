@@ -62,18 +62,15 @@ void DataManager::load() {
     if (conn.isConnected()) {
         loadData<BuildingDao>(conn, buildings, buildingsById, &Building::getId);
         loadData<PostcodeDao>(conn, postcodes, postcodesById, &Postcode::getId);
-        loadData<PostcodeAmenitiesDao>(conn, amenities, amenitiesByCode, 
-                &PostcodeAmenities::getPostcode);
+        loadData<PostcodeAmenitiesDao>(conn, amenities, amenitiesByCode, &PostcodeAmenities::getPostcode);
 
         // (Special case) Index all postcodes.
-        for (PostcodeList::iterator it = postcodes.begin();
-                it != postcodes.end(); it++) {
+        for (PostcodeList::iterator it = postcodes.begin(); it != postcodes.end(); it++) {
             postcodesByCode.insert(std::make_pair((*it)->getCode(), *it));
         }
 
         //Index all amenities. 
-        for (PostcodeAmenitiesList::iterator it = amenities.begin();
-                it != amenities.end(); it++) {
+        for (PostcodeAmenitiesList::iterator it = amenities.begin(); it != amenities.end(); it++) {
             const Postcode* pc = getPostcodeByCode((*it)->getPostcode());
             if (pc) {
                 amenitiesById.insert(std::make_pair(pc->getId(), *it));

@@ -63,31 +63,35 @@ sim_mob::medium::ZoneNodeMappingDao::ZoneNodeMappingDao(db::DB_Config& dbConfig,
 sim_mob::medium::ZoneNodeMappingDao::~ZoneNodeMappingDao()
 {}
 
-bool sim_mob::medium::ZoneNodeMappingDao::getAll(boost::unordered_map<int, std::vector<long> >& outList) {
-	int numZones = connection.getSession<mongo::DBClientConnection>().count(collectionName, mongo::BSONObj());
-	for(int znid = 1; znid <= numZones; znid++) {
-		mongo::Query queryObj = QUERY("Zone_ID" << znid);
-    	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, queryObj);
-    	while(cursor->more()) {
-    		mongo::BSONObj zoneNodeDoc = cursor->next();
-    		// the node id is stored in either integer format or long format in mongo db
-    		switch (zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).type()) {
-				case mongo::NumberInt:
-				{
-					outList[znid].push_back(zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).Int());
-					break;
-				}
-				case mongo::NumberLong:
-				{
-					outList[znid].push_back(zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).Long());
-					break;
-				}
-				default:
-				{
-					Print() << "zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).type() = " << zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).type() << std::endl;
-				}
-    		}
-    	}
+bool sim_mob::medium::ZoneNodeMappingDao::getAll(boost::unordered_map<int, std::vector<ZoneNodeParams*> >& outList) {
+	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
+	while(cursor->more()) {
+		ZoneNodeParams* zoneNodeParams = new ZoneNodeParams();
+		fromRow(cursor->next(), *zoneNodeParams);
+		outList[zoneNodeParams->getZone()].push_back(zoneNodeParams);
 	}
 	return true;
+}
+
+void sim_mob::medium::ZoneNodeMappingDao::fromRow(mongo::BSONObj document, ZoneNodeParams& outParam) {
+	outParam.setZone(document.getField(MONGO_FIELD_MTZ).Int());
+	switch (document.getField(MONGO_FIELD_NODE_ID).type()) {
+	// the node id is stored in either integer format or long format in mongo db
+	case mongo::NumberInt:
+	{
+		outParam.setAimsunNodeId(document.getField(MONGO_FIELD_NODE_ID).Int());
+		break;
+	}
+	case mongo::NumberLong:
+	{
+		outParam.setAimsunNodeId(document.getField(MONGO_FIELD_NODE_ID).Long());
+		break;
+	}
+	default:
+	{
+		Print() << "zoneNodeDoc.getField(MONGO_FIELD_NODE_ID).type() = " << document.getField(MONGO_FIELD_NODE_ID).type() << std::endl;
+	}
+	}
+	outParam.setSourceNode(document.getField(MONGO_FIELD_SOURCE_NODE).Number());
+	outParam.setSinkNode(document.getField(MONGO_FIELD_SINK_NODE).Number());
 }

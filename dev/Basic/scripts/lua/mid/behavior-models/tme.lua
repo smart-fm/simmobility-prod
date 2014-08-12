@@ -317,6 +317,9 @@ scale["PT"] = {1.51,1.51,1.51}
 scale["car"] = {1.45,1.45,1.45,1.45}
 scale["other"] = {1,1}
 
+-- function to call from C++ preday simulator
+-- params and dbparams tables contain data passed from C++
+-- to check variable bindings in params or dbparams, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
 function choose_tme(params,dbparams)
 	computeUtilities(params,dbparams) 
 	computeAvailabilities(params,dbparams)

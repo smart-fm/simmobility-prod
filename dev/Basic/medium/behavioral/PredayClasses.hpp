@@ -82,7 +82,7 @@ private:
 };
 
 enum StopType {
-	WORK, EDUCATION, SHOP, OTHER
+	WORK, EDUCATION, SHOP, OTHER, NULL_STOP
 };
 
 class Tour;
@@ -94,7 +94,7 @@ class Tour;
  */
 class Stop {
 public:
-	Stop(StopType stopType, Tour* parentTour, bool primaryActivity, bool firstHalfTour)
+	Stop(StopType stopType, const Tour& parentTour, bool primaryActivity, bool firstHalfTour)
 	: stopType(stopType), parentTour(parentTour), primaryActivity(primaryActivity), arrivalTime(0), departureTime(0), stopMode(0),
 	  stopLocation(0), stopId(0), inFirstHalfTour(firstHalfTour)
 	{}
@@ -115,7 +115,7 @@ public:
 		this->departureTime = departureTime;
 	}
 
-	const Tour* getParentTour() const {
+	const Tour& getParentTour() const {
 		return parentTour;
 	}
 
@@ -201,7 +201,7 @@ public:
 	}
 
 private:
-	const Tour* parentTour;
+	const Tour& parentTour;
 	StopType stopType;
 	bool primaryActivity;
 	double arrivalTime;
@@ -221,7 +221,8 @@ private:
 class Tour {
 public:
 	Tour(StopType tourType)
-	: tourType(tourType), usualLocation(false), subTour(false), parentTour(nullptr), tourMode(0), tourDestination(0), primaryStop(nullptr), startTime(0), endTime(0)
+	: tourType(tourType), usualLocation(false), subTour(false), tourMode(0), tourDestination(0), primaryStop(nullptr), startTime(0),
+	  endTime(0), firstTour(false)
 	{}
 
 	virtual ~Tour() {
@@ -237,10 +238,6 @@ public:
 
 	void setEndTime(double endTime) {
 		this->endTime = endTime;
-	}
-
-	const Tour* getParentTour() const {
-		return parentTour;
 	}
 
 	double getStartTime() const {
@@ -342,6 +339,17 @@ public:
 		this->tourDestination = tourDestination;
 	}
 
+	bool isFirstTour() const {
+		return firstTour;
+	}
+
+	void setFirstTour(bool firstTour) {
+		this->firstTour = firstTour;
+	}
+
+	bool operator==(const Tour& rhs) const;
+	bool operator!=(const Tour& rhs) const;
+
 	/**
 	 * list of stops in this tour.
 	 * relative ordering of stops according to the time of day in which they occur is maintained in this list.
@@ -352,12 +360,12 @@ private:
 	StopType tourType;
 	bool usualLocation;
 	bool subTour;
-	Tour* parentTour; // in case of sub tours
 	int tourMode;
 	int tourDestination;
 	Stop* primaryStop;
 	double startTime;
 	double endTime;
+	bool firstTour;
 };
 
 

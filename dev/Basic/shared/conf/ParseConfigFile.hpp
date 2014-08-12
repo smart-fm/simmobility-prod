@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <string>
 #include <boost/noncopyable.hpp>
+#include <string>
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/dom/DOMNode.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>

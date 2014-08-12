@@ -47,7 +47,14 @@ std::vector<TimeWindowAvailability> insertAllTimeWindows() {
 }
 
 const std::vector<TimeWindowAvailability> TimeWindowAvailability::timeWindowsLookup = insertAllTimeWindows();
-}
+
+bool Tour::operator ==(const Tour& rhs) const {
+	return (this == &rhs);
 }
 
+bool Tour::operator !=(const Tour& rhs) const {
+	return !(*this == rhs); //call == operator overload
+}
 
+}
+}

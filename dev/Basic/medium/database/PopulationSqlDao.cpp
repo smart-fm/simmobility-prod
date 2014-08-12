@@ -31,7 +31,7 @@ PopulationSqlDao::~PopulationSqlDao()
 
 void PopulationSqlDao::fromRow(Row& result, PersonParams& outObj) {
 	outObj.setPersonId(boost::lexical_cast<std::string>(result.get<BigInt>(DB_FIELD_ID)));
-	outObj.setIncomeId(result.get<double>(DB_FIELD_INCOME));
+	outObj.setIncomeIdFromIncome(result.get<double>(DB_FIELD_INCOME));
 	outObj.setPersonTypeId(result.get<BigInt>(DB_FIELD_EMP_STATUS_ID));
 	outObj.setAgeId(result.get<BigInt>(DB_FIELD_AGE_CATEGORY_ID));
 	outObj.setWorksAtHome(result.get<int>(DB_FIELD_WORK_AT_HOME));

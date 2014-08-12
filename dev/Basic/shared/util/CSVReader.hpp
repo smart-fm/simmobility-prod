@@ -45,6 +45,11 @@ public:
 
 	virtual ~CSV_Reader();
 
+	const std::vector<std::string>& getHeaderList() const
+	{
+		return headerList;
+	}
+
 	/**
 	 * Gets the next row of the csv file if it exists into a vector of strings
 	 * After this function is executed, the caller must check if vector is empty.
@@ -66,7 +71,6 @@ public:
 	 * @param skipInvalidRows flag to indicate whether the algorithm can skip invalid rows.
 	 */
 	void getNextRow(boost::unordered_map<std::string,std::string>& rowOut, bool skipInvalidRows = true);
-
 };
 
 } // end namespace sim_mob

@@ -50,8 +50,6 @@
 #include "config/MT_Config.hpp"
 #include "config/ParseMidTermConfigFile.hpp"
 
-
-
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
 
@@ -371,14 +369,27 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 /**
  * Simulation loop for the demand simulator
  */
-bool performMainDemand(unsigned numThreads)
+bool performMainDemand()
 {
+	const MT_Config& mtConfig = MT_Config::getInstance();
 	PredayManager predayManager;
 	predayManager.loadZones(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
 	predayManager.loadPersons(db::MONGO_DB);
-	predayManager.loadZoneNodes(db::MONGO_DB);
-	predayManager.distributeAndProcessPersons(numThreads);
+	if(mtConfig.isOutputTripchains())
+	{
+		predayManager.loadZoneNodes(db::MONGO_DB);
+	}
+	if(mtConfig.runningPredayCalibration())
+	{
+		Print() << "Preday mode: calibration" << std::endl;
+		predayManager.calibratePreday();
+	}
+	else
+	{
+		Print() << "Preday mode: " << (mtConfig.runningPredaySimulation()? "simulation":"logsum computation")  << std::endl;
+		predayManager.dispatchPersons();
+	}
 	return true;
 }
 
@@ -407,7 +418,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
 
 	//load configuration file for mid-term
-	ParseMidTermConfigFile parseMT_Cfg(MT_CONFIG_FILE, MT_Config::GetInstance(), ConfigManager::GetInstanceRW().FullConfig());
+	ParseMidTermConfigFile parseMT_Cfg(MT_CONFIG_FILE, MT_Config::getInstance(), ConfigManager::GetInstanceRW().FullConfig());
 
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
@@ -433,8 +444,8 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	}
 	else if (ConfigManager::GetInstance().FullConfig().RunningMidDemand())
 	{
-		Print() << "Mid-term run mode: demand" << endl;
-		return performMainDemand(MT_Config::GetInstance().getNumPredayThreads());
+		Print() << "Mid-term run mode: preday" << endl;
+		return performMainDemand();
 	}
 	else
 	{

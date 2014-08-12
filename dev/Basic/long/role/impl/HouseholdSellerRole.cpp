@@ -31,38 +31,63 @@ using sim_mob::Math;
 namespace {
     //bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, target_price
     const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
-    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, speculation, asking_price, target_price, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
-    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%";
+    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, speculation, asking_price, floor_area, type_id, target_price, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
+    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%";
 
-    inline void printBid(const HouseholdAgent& agent, const Bid& bid, const ExpectationEntry& entry,
-            unsigned int bidsCounter, bool accepted) {
+    /**
+     * Print the current bid on the unit.
+     * @param agent to received the bid
+     * @param bid to send.
+     * @param struct containing the hedonic, asking and target price.
+     * @param number of bids for this unit
+     * @param boolean indicating if the bid was successful
+     *
+     */
+    inline void printBid(const HouseholdAgent& agent, const Bid& bid, const ExpectationEntry& entry, unsigned int bidsCounter, bool accepted)
+    {
+    	const HM_Model* model = agent.getModel();
+    	const Unit* unit  = model->getUnitById(bid.getUnitId());
+        double floor_area = unit->getFloorArea();
+        BigSerial type_id = unit->getTypeId();
+
         boost::format fmtr = boost::format(LOG_BID) % bid.getTime().ms()
-                % agent.getId()
-                % bid.getBidderId()
-                % bid.getUnitId()
-                % bid.getWillingnessToPay()
-                % bid.getSpeculation()
-                % entry.askingPrice
-                % entry.targetPrice
-                % bid.getValue()
-                % bidsCounter
-                % ((accepted) ? 1 : 0);
-        AgentsLookupSingleton::getInstance().getLogger()
-                .log(LoggerAgent::BIDS, fmtr.str());
+													% agent.getId()
+													% bid.getBidderId()
+													% bid.getUnitId()
+													% bid.getWillingnessToPay()
+													% bid.getSpeculation()
+													% entry.askingPrice
+													% floor_area
+													% type_id
+													% entry.targetPrice
+													% bid.getValue()
+													% bidsCounter
+													% ((accepted) ? 1 : 0);
+
+        AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, fmtr.str());
         //PrintOut(fmtr.str() << endl);
     }
 
-    inline void printExpectation(const timeslice& now, int dayToApply, BigSerial unitId,
-            const HouseholdAgent& agent, const ExpectationEntry& exp) {
+    /**
+     * Print the current expectation on the unit.
+     * @param the current day
+     * @param the day on which the bid was made
+     * @param the unit id
+     * @param agent to received the bid
+     * @param struct containing the hedonic, asking and target price.
+     *
+     */
+    inline void printExpectation(const timeslice& now, int dayToApply, BigSerial unitId, const HouseholdAgent& agent, const ExpectationEntry& exp)
+    {
         boost::format fmtr = boost::format(LOG_EXPECTATION) % now.ms()
-                % dayToApply
-                % agent.getId()
-                % unitId
-                % exp.hedonicPrice
-                % exp.askingPrice
-                % exp.targetPrice;
-        AgentsLookupSingleton::getInstance()
-                .getLogger().log(LoggerAgent::EXPECTATIONS, fmtr.str());
+															% dayToApply
+															% agent.getId()
+															% unitId
+															% exp.hedonicPrice
+															% exp.askingPrice
+															% exp.targetPrice;
+
+        AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::EXPECTATIONS, fmtr.str());
         //PrintOut(fmtr.str() << endl);
     }
 
@@ -71,7 +96,8 @@ namespace {
      * @param bid given by the bidder.
      * @return true if accepts the bid or false otherwise.
      */
-    inline bool decide(const Bid& bid, const ExpectationEntry& entry) {
+    inline bool decide(const Bid& bid, const ExpectationEntry& entry)
+    {
         return bid.getValue() > entry.targetPrice;
     }
 
@@ -82,11 +108,10 @@ namespace {
      * @param response response type
      * @param bidsCounter received bids until now in the current day.
      */
-    inline void replyBid(const HouseholdAgent& agent, const Bid& bid,
-            const ExpectationEntry& entry, const BidResponse& response, 
-            unsigned int bidsCounter) {
-        MessageBus::PostMessage(bid.getBidder(), LTMID_BID_RSP,
-                MessageBus::MessagePtr(new BidMessage(bid, response)));
+    inline void replyBid(const HouseholdAgent& agent, const Bid& bid, const ExpectationEntry& entry, const BidResponse& response, unsigned int bidsCounter)
+    {
+        MessageBus::PostMessage(bid.getBidder(), LTMID_BID_RSP, MessageBus::MessagePtr(new BidMessage(bid, response)));
+
         //print bid.
         printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
     }
@@ -96,14 +121,19 @@ namespace {
      * @param map that holds counters
      * @param id of the counter to increment.
      */
-    inline unsigned int incrementCounter(HouseholdSellerRole::CounterMap& map,
-            const BigSerial id) {
+    inline unsigned int incrementCounter(HouseholdSellerRole::CounterMap& map, const BigSerial id)
+    {
         HouseholdSellerRole::CounterMap::iterator it = map.find(id);
-        if (it != map.end()) {
+
+        if (it != map.end())
+        {
             ++map[id];
-        } else {
+        }
+        else
+        {
             map.insert(std::make_pair(id, 1));
         }
+
         return map[id];
     }
 
@@ -112,23 +142,25 @@ namespace {
      * @param map that holds counters
      * @param id of the counter to increment.
      */
-    inline unsigned int getCounter(HouseholdSellerRole::CounterMap& map,
-            const BigSerial id) {
+    inline unsigned int getCounter(HouseholdSellerRole::CounterMap& map, const BigSerial id)
+    {
         HouseholdSellerRole::CounterMap::iterator it = map.find(id);
-        if (it != map.end()) {
+
+        if (it != map.end())
+        {
             return it->second;
         }
-        return 0;
+
+        return 1;
     }
 }
 
-HouseholdSellerRole::SellingUnitInfo::SellingUnitInfo() :
-startedDay(0), interval(0), daysOnMarket(0), numExpectations(0) {
+HouseholdSellerRole::SellingUnitInfo::SellingUnitInfo() :startedDay(0), interval(0), daysOnMarket(0), numExpectations(0)
+{
 }
 
-HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent)
-: LT_AgentRole(parent), currentTime(0, 0), hasUnitsToSale(true),
-selling(false) {
+HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent): LT_AgentRole(parent), currentTime(0, 0), hasUnitsToSale(true), selling(false)
+{
 
 }
 
@@ -136,119 +168,149 @@ HouseholdSellerRole::~HouseholdSellerRole() {
     sellingUnitsMap.clear();
 }
 
-void HouseholdSellerRole::update(timeslice now) {
+void HouseholdSellerRole::update(timeslice now)
+{
     timeslice lastTime = currentTime;
+
     //update current time.
     currentTime = now;
 
-    if (selling) {
-        if (now.ms() > lastTime.ms()) {
+    if (selling)
+    {
+        if (now.ms() > lastTime.ms())
+        {
             // reset daily counters
             dailyBids.clear();
 
             // Day has changed we need to notify the last day winners.
             notifyWinnerBidders();
         }
+
         // Verify if is time to adjust prices for units.
         adjustNotSoldUnits();
     }
-    if (hasUnitsToSale) {
+
+    if (hasUnitsToSale)
+    {
         const HM_Model* model = getParent()->getModel();
         HousingMarket* market = getParent()->getMarket();
         const vector<BigSerial>& unitIds = getParent()->getUnitIds();
+
         //get values from parent.
         const Unit* unit = nullptr;
-        for (vector<BigSerial>::const_iterator itr = unitIds.begin();
-                itr != unitIds.end(); itr++) {
-            // Decides to put the house on market.
+
+        for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+        {
+            //Decides to put the house on market.
             BigSerial unitId = *itr;
             unit = model->getUnitById(unitId);
             BigSerial tazId = model->getUnitTazId(unitId);
             calculateUnitExpectations(*unit);
+
             //get first expectation to add the entry on market.
             ExpectationEntry firstExpectation; 
-            if(getCurrentExpectation(unit->getId(), firstExpectation)){
-                market->addEntry(HousingMarket::Entry(getParent(), unit->getId(),
-                        unit->getPostcodeId(), tazId, 
-                        firstExpectation.askingPrice, 
-                        firstExpectation.hedonicPrice));
+
+            if(getCurrentExpectation(unit->getId(), firstExpectation))
+            {
+                market->addEntry(HousingMarket::Entry(getParent(), unit->getId(), unit->getPostcodeId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice));
             }
+
             selling = true;
         }
+
         hasUnitsToSale = false;
     }
 }
 
-void HouseholdSellerRole::HandleMessage(Message::MessageType type,
-        const Message& message) {
-    switch (type) {
+void HouseholdSellerRole::HandleMessage(Message::MessageType type, const Message& message)
+{
+    switch (type)
+    {
         case LTMID_BID:// Bid received 
         {
             const BidMessage& msg = MSG_CAST(BidMessage, message);
             BigSerial unitId = msg.getBid().getUnitId();
             bool decision = false;
             ExpectationEntry entry;
-            if (getCurrentExpectation(unitId, entry)) {
+
+            if(getCurrentExpectation(unitId, entry))
+            {
                 //increment counter
                 unsigned int dailyBidCounter = incrementCounter(dailyBids, unitId);
 
                 //verify if is the bid satisfies the asking price.
                 decision = decide(msg.getBid(), entry);
-                if (decision) {
+
+                if (decision)
+                {
                     //get the maximum bid of the day
                     Bids::iterator bidItr = maxBidsOfDay.find(unitId);
                     Bid* maxBidOfDay = nullptr;
-                    if (bidItr != maxBidsOfDay.end()) {
+
+                    if (bidItr != maxBidsOfDay.end())
+                    {
                         maxBidOfDay = &(bidItr->second);
                     }
 
-                    if (!maxBidOfDay) {
+                    if (!maxBidOfDay)
+                    {
                         maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
-                    } else if (maxBidOfDay->getValue() < msg.getBid().getValue()) {
+                    }
+                    else if(maxBidOfDay->getValue() < msg.getBid().getValue())
+                    {
                         // bid is higher than the current one of the day.
                         // it is necessary to notify the old max bidder
                         // that his bid was not accepted.
                         //reply to sender.
-                        replyBid(*getParent(), *maxBidOfDay, entry, BETTER_OFFER,
-                                dailyBidCounter);
+                        replyBid(*getParent(), *maxBidOfDay, entry, BETTER_OFFER, dailyBidCounter);
                         maxBidsOfDay.erase(unitId);
+
                         //update the new bid and bidder.
                         maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
-                    } else {
-                        replyBid(*getParent(), msg.getBid(), entry, BETTER_OFFER,
-                                dailyBidCounter);
                     }
-                } else {
-                    replyBid(*getParent(), msg.getBid(), entry, NOT_ACCEPTED,
-                            dailyBidCounter);
+                    else
+                    {
+                        replyBid(*getParent(), msg.getBid(), entry, BETTER_OFFER, dailyBidCounter);
+                    }
                 }
-            } else {
-                // Sellers is not the owner of the unit or unit is not available.
-                replyBid(*getParent(), msg.getBid(), entry, NOT_AVAILABLE,
-                        0);
+                else
+                {
+                    replyBid(*getParent(), msg.getBid(), entry, NOT_ACCEPTED, dailyBidCounter);
+                }
             }
+            else
+            {
+                // Sellers is not the owner of the unit or unit is not available.
+                replyBid(*getParent(), msg.getBid(), entry, NOT_AVAILABLE, 0);
+            }
+
             Statistics::increment(Statistics::N_BIDS);
             break;
         }
+
         default:break;
     }
 }
 
-void HouseholdSellerRole::adjustNotSoldUnits() {
+void HouseholdSellerRole::adjustNotSoldUnits()
+{
     const HM_Model* model = getParent()->getModel();
     HousingMarket* market = getParent()->getMarket();
     const IdVector& unitIds = getParent()->getUnitIds();
     const Unit* unit = nullptr;
     const HousingMarket::Entry* unitEntry = nullptr;
-    for (IdVector::const_iterator itr = unitIds.begin(); itr != unitIds.end();
-            itr++) {
+
+    for (IdVector::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+    {
         BigSerial unitId = *itr;
         unitEntry = market->getEntryById(unitId);
         unit = model->getUnitById(unitId);
-        if (unitEntry && unit) {
+
+        if (unitEntry && unit)
+        {
             ExpectationEntry entry;
-            if (getCurrentExpectation(unitId, entry)
-                    && entry.askingPrice != unitEntry->getAskingPrice()) {
+            if (getCurrentExpectation(unitId, entry) && entry.askingPrice != unitEntry->getAskingPrice())
+            {
                 HousingMarket::Entry updatedEntry(*unitEntry);
                 updatedEntry.setAskingPrice(entry.askingPrice);
                 market->updateEntry(updatedEntry);
@@ -257,24 +319,27 @@ void HouseholdSellerRole::adjustNotSoldUnits() {
     }
 }
 
-void HouseholdSellerRole::notifyWinnerBidders() {
+void HouseholdSellerRole::notifyWinnerBidders()
+{
     HousingMarket* market = getParent()->getMarket();
-    for (Bids::iterator itr = maxBidsOfDay.begin(); itr != maxBidsOfDay.end();
-            itr++) {
+
+    for (Bids::iterator itr = maxBidsOfDay.begin(); itr != maxBidsOfDay.end(); itr++)
+    {
         Bid& maxBidOfDay = itr->second;
         ExpectationEntry entry;
         getCurrentExpectation(maxBidOfDay.getUnitId(), entry);
-        replyBid(*getParent(), maxBidOfDay, entry, ACCEPTED,
-                getCounter(dailyBids, maxBidOfDay.getUnitId()));
+        replyBid(*getParent(), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getUnitId()));
         market->removeEntry(maxBidOfDay.getUnitId());
         getParent()->removeUnitId(maxBidOfDay.getUnitId());
         sellingUnitsMap.erase(maxBidOfDay.getUnitId());
     }
+
     // notify winners.
     maxBidsOfDay.clear();
 }
 
-void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit) {
+void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
+{
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	unsigned int timeInterval = config.ltParams.housingModel.timeInterval;
 	unsigned int timeOnMarket = config.ltParams.housingModel.timeOnMarket;
@@ -286,28 +351,39 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit) {
     info.daysOnMarket = timeOnMarket;
     info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
     luaModel.calulateUnitExpectations(unit, info.numExpectations, info.expectations);
+
     //number of expectations should match 
-    if (info.expectations.size() == info.numExpectations) {
+    if (info.expectations.size() == info.numExpectations)
+    {
         sellingUnitsMap.erase(unit.getId());
         sellingUnitsMap.insert(std::make_pair(unit.getId(), info));
+
         //just revert the expectations order.
-        for (int i = 0; i < info.expectations.size() ; i++) {
+        for (int i = 0; i < info.expectations.size() ; i++)
+        {
             int dayToApply = currentTime.ms() + (i * info.interval);
             printExpectation(currentTime, dayToApply, unit.getId(), *getParent(), info.expectations[i]);
         }
     }
 }
 
-bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId,
-        ExpectationEntry& outEntry) {
+bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId, ExpectationEntry& outEntry)
+{
     UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
-    if (it != sellingUnitsMap.end()) {
+
+    if(it != sellingUnitsMap.end())
+    {
         SellingUnitInfo& info = it->second;
+
         //expectations are start on last element to the first.
         unsigned int index = ((unsigned int)(floor(abs(info.startedDay - currentTime.ms()) / info.interval))) % info.expectations.size();
-        if (index < info.expectations.size()) {
-            ExpectationEntry& expectation = info.expectations[index];
-            if (expectation.askingPrice > 0 && expectation.hedonicPrice > 0){
+
+        if (index < info.expectations.size())
+        {
+            ExpectationEntry &expectation = info.expectations[index];
+
+            if (expectation.askingPrice > 0 && expectation.hedonicPrice > 0)
+            {
                 outEntry.hedonicPrice = expectation.hedonicPrice;
                 outEntry.targetPrice = expectation.targetPrice;
                 outEntry.askingPrice = expectation.askingPrice;

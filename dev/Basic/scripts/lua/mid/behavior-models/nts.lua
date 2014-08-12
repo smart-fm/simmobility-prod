@@ -170,6 +170,9 @@ local availability = {1,1}
 -- scales
 local scale = {1,1}
 
+-- function to call from C++ preday simulator
+-- params table contains data passed from C++
+-- to check variable bindings in params, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
 function choose_nts(params)
 	computeUtilities(params) 
 	local probability = calculate_probability("mnl", choice, utility, availability, scale)

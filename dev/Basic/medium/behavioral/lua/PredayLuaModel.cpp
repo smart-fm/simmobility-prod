@@ -11,7 +11,6 @@
 
 #include "PredayLuaModel.hpp"
 
-
 #include "lua/LuaLibrary.hpp"
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"
@@ -43,6 +42,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("income_id", &PersonParams::getIncomeId)
 				.addProperty("missing_income", &PersonParams::getMissingIncome)
 				.addProperty("work_at_home_dummy", &PersonParams::getWorksAtHome)
+				.addProperty("car_own", &PersonParams::getCarOwn)
 				.addProperty("car_own_normal", &PersonParams::getCarOwnNormal)
 				.addProperty("car_own_offpeak", &PersonParams::getCarOwnOffpeak)
 				.addProperty("motor_own", &PersonParams::getMotorOwn)
@@ -276,6 +276,21 @@ int sim_mob::medium::PredayLuaModel::predictTourMode(PersonParams& personParams,
 		throw std::runtime_error("Tour mode model cannot be invoked for Shopping and Other tour types");
 	}
 	}
+}
+
+void sim_mob::medium::PredayLuaModel::computeTourModeDestinationLogsum(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const
+{
+	LuaRef computeLogsumTMDW = getGlobal(state.get(), "compute_logsum_tmdw");
+	LuaRef workLogSum = computeLogsumTMDW(&personParams, &tourModeDestinationParams);
+	personParams.setWorkLogSum(workLogSum.cast<double>());
+
+	LuaRef computeLogsumTMDS = getGlobal(state.get(), "compute_logsum_tmds");
+	LuaRef shopLogSum = computeLogsumTMDS(&personParams, &tourModeDestinationParams);
+	personParams.setShopLogSum(shopLogSum.cast<double>());
+
+	LuaRef computeLogsumTMDO = getGlobal(state.get(), "compute_logsum_tmdo");
+	LuaRef otherLogSum = computeLogsumTMDO(&personParams, &tourModeDestinationParams);
+	personParams.setOtherLogSum(otherLogSum.cast<double>());
 }
 
 int sim_mob::medium::PredayLuaModel::predictTourModeDestination(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const {

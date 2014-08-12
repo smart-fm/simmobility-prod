@@ -78,15 +78,11 @@ public:
 		return incomeId;
 	}
 
-	int getMissingIncome() const {
-		return (incomeId >= 13);
-	}
-
 	void setIncomeId(int income_id) {
 		this->incomeId = income_id;
 	}
 
-	void setIncomeId(double income) {
+	void setIncomeIdFromIncome(double income) {
 		if(income == 0.0) {
 			incomeId = 12;
 		}
@@ -241,26 +237,6 @@ public:
 		this->hhOnlyWorkers = hhOnlyWorkers;
 	}
 
-	/**
-	 * get the availability for a time window for tour
-	 */
-	int getTimeWindowAvailability(int timeWnd) const;
-
-	/**
-	 * set availability of times in timeWnd to 0
-	 *
-	 * @param timeWnd "<startTime>,<endTime>" to block
-	 */
-	void blockTime(std::string& timeWnd);
-
-	/**
-	 * overload function to set availability of times in timeWnd to 0
-	 *
-	 * @param startTime start time
-	 * @param endTime end time
-	 */
-	void blockTime(double startTime, double endTime);
-
 	double getEduLogSum() const {
 		return eduLogSum;
 	}
@@ -301,9 +277,65 @@ public:
 		this->studentTypeId = studentTypeId;
 	}
 
-private:
+	double getHouseholdFactor() const
+	{
+		return householdFactor;
+	}
+
+	void setHouseholdFactor(double householdFactor)
+	{
+		this->householdFactor = householdFactor;
+	}
+
+	int getMissingIncome() const
+	{
+		return missingIncome;
+	}
+
+	void setMissingIncome(int missingIncome)
+	{
+		this->missingIncome = missingIncome;
+	}
+
+	int getCarOwn() const
+	{
+		return carOwn;
+	}
+
+	void setCarOwn(int carOwn)
+	{
+		this->carOwn = carOwn;
+	}
+
+	/** makes all time windows to available*/
 	void initTimeWindows();
 
+	/**
+	 * get the availability for a time window for tour
+	 */
+	int getTimeWindowAvailability(int timeWnd) const;
+
+	/**
+	 * set availability of times in timeWnd to 0
+	 *
+	 * @param timeWnd "<startTime>,<endTime>" to block
+	 */
+	void blockTime(std::string& timeWnd);
+
+	/**
+	 * overload function to set availability of times in timeWnd to 0
+	 *
+	 * @param startTime start time
+	 * @param endTime end time
+	 */
+	void blockTime(double startTime, double endTime);
+
+	/**
+	 * prints the fields of this object
+	 */
+	void print();
+
+private:
 	std::string personId;
 	int personTypeId;
 	int ageId;
@@ -311,7 +343,9 @@ private:
 	int studentTypeId;
 	int isFemale;
 	int incomeId;
+	int missingIncome;
 	int worksAtHome;
+	int carOwn;
 	int carOwnNormal;
 	int carOwnOffpeak;
 	int motorOwn;
@@ -326,6 +360,7 @@ private:
 	int hhOnlyWorkers;
 	int hhNumUnder4;
 	int hasUnder15;
+	double householdFactor;
 
 	double workLogSum;
 	double eduLogSum;

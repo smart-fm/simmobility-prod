@@ -130,7 +130,7 @@
                 <mapping name="polyline" procedure="get_section_polyline_bugis()"/>
                 <mapping name="tripchain" procedure="get_tripchains()"/>
                 <mapping name="busstop" procedure="get_bus_stop_bugis()"/>
-                <mapping name="signal" procedure="get_traffic_signals()"/>
+                <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
                 <!-- These public-transit mappings tested with the large-bugis network. -->
                 <!-- "pt_bus_dispatch_freq" store some bus dispatching schedules for buses -->
@@ -479,6 +479,9 @@
         <housingModel enabled="true"> 
             <timeOnMarket value="30"/>
             <timeInterval value="7"/>
+            <numberOfHouseholds value="-1"/>
+	        <numberOfUnits	value="-1"/>
+	        <numberOfVacantUnits value="-1"/> 
         </housingModel>
     </longTermParams>  
     

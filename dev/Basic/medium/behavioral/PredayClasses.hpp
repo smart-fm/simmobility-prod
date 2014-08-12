@@ -348,7 +348,7 @@ public:
 	}
 
 	bool operator==(const Tour& rhs) const;
-	bool operator!=(const Tour& lhs) const;
+	bool operator!=(const Tour& rhs) const;
 
 	/**
 	 * list of stops in this tour.

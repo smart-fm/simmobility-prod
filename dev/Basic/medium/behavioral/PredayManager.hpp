@@ -140,7 +140,7 @@ public:
 	/**
 	 * Distributes persons to different threads and starts the threads which process the persons
 	 */
-	void distributeAndProcessPersons();
+	void dispatchPersons();
 
 	/**
 	 * preday calibration function

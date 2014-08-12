@@ -388,7 +388,7 @@ bool performMainDemand()
 	else
 	{
 		Print() << "Preday mode: " << (mtConfig.runningPredaySimulation()? "simulation":"logsum computation")  << std::endl;
-		predayManager.distributeAndProcessPersons();
+		predayManager.dispatchPersons();
 	}
 	return true;
 }

@@ -355,11 +355,13 @@ BusRouteTracker::BusRouteTracker(const BusRouteTracker& copySource)
 
 BusRouteTracker& BusRouteTracker::operator=(const BusRouteTracker& rhsTracker)
 {
-	busRouteId = rhsTracker.busRouteId;
-	roadSegmentList = rhsTracker.roadSegmentList;
-	busStopList = rhsTracker.busStopList;
-	nextStopIt = busStopList.begin();
-	std::advance(nextStopIt, (rhsTracker.nextStopIt - rhsTracker.busStopList.begin()));
+	if(&rhsTracker != this) {
+		busRouteId = rhsTracker.busRouteId;
+		roadSegmentList = rhsTracker.roadSegmentList;
+		busStopList = rhsTracker.busStopList;
+		nextStopIt = busStopList.begin();
+		std::advance(nextStopIt, (rhsTracker.nextStopIt - rhsTracker.busStopList.begin()));
+	}
 	return *this;
 }
 

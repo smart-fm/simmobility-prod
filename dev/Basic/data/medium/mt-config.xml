@@ -27,9 +27,9 @@
                 <!-- the preday demand simulator -->
                 <threads value="3"/>
                 <!-- outputs the preday predictions as trip chains in PostgreSQL database if enabled -->
-                <output_tripchains enabled="true"/>
+                <output_tripchains enabled="false"/>
                 <!-- outputs the preday's predicted tours and stops to mongodb if enabled -->
-                <output_predictions enabled="false"/>
+                <output_predictions enabled="true"/>
                 <!-- prints person ids and tour details in console for each person if enabled -->
                 <console_output enabled="false"/>
                 

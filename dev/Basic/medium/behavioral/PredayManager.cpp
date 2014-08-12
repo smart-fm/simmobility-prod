@@ -704,7 +704,7 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
 	}
 }
 
-void sim_mob::medium::PredayManager::distributeAndProcessPersons() {
+void sim_mob::medium::PredayManager::dispatchPersons() {
 	boost::thread_group threadGroup;
 	unsigned numWorkers = mtConfig.getNumPredayThreads();
 	std::list<std::string> logFileNames;
@@ -766,7 +766,7 @@ void sim_mob::medium::PredayManager::distributeAndProcessPersons() {
 	}
 
 	// merge tripchains from each thread into 1 file.
-	mergeTripChainFiles(logFileNames);
+	if(mtConfig.isOutputTripchains()) { mergeTripChainFiles(logFileNames); }
 }
 
 void sim_mob::medium::PredayManager::distributeAndProcessForCalibration(threadedFnPtr fnPtr)

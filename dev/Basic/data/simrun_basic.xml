@@ -226,7 +226,7 @@
 
             <plaintext-credential id="harish_cred">
                 <username value="postgres"/>
-                <password value="secret"/>
+                <password value="postgres"/>
             </plaintext-credential>
         </credentials>
     </constructs>
@@ -238,14 +238,14 @@
         <!-- (but will be rounded down.) -->
         <simulation>
             <base_granularity   value="100"   units="ms" />
-            <total_runtime      value="30"      units="minutes" />
+            <total_runtime      value="6"      units="minutes" />
             <total_warmup       value="10"     units="seconds" />
             
             <start_time         value="08:30:00"/>
             
             <!-- Implementation to use for the Aura Manager. -->
             <!-- Values include: simtree, rdu, rstar (default) -->
-            <aura_manager_impl value="rstar"/>
+            <aura_manager_impl value="simtree"/>
             
             <!-- Strategy for adding new Agents to Workers. -->
             <!-- "roundrobin" assigns in order. (default) -->
@@ -347,8 +347,8 @@
             <property key="buses_per_stop" value="2"/>
             
             <!-- Used by SimTree. -->
-            <property key="simtree_pattern_file_1" value="shared/spatial_trees/simtree/density_pattern_sg_auto_study"/>
-            <property key="simtree_pattern_file_2" value="shared/spatial_trees/simtree/density_pattern_sg_20mins"/>
+            <!-- property key="simtree_pattern_file_1" value="shared/spatial_trees/simtree/density_pattern_sg_auto_study"/ -->
+            <!-- property key="simtree_pattern_file_2" value="shared/spatial_trees/simtree/density_pattern_sg_20"/ -->
         </generic_props>
     </system>
 
@@ -401,6 +401,38 @@
         <driver originPos="37245506,14359431" destPos="37254988,14351820" time="0" lane="1"/>
         <driver originPos="37232503,14369823" destPos="37240057,14318241" time="0"/>
         <driver originPos="37240057,14318241" destPos="37232503,14369823" time="0" lane="3"/>
+        <driver originPos="37227139,14327875" destPos="37270984,14378959" time="1000" lane="2"/>
+        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="1000" lane="1"/>
+        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="1000"/>
+        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="1000" lane="3"/>
+                <driver originPos="37227139,14327875" destPos="37270984,14378959" time="2000" lane="2"/>
+        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="3000" lane="1"/>
+        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="3000"/>
+        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="3000" lane="3"/>
+         <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0" lane="2"/>
+        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="0" lane="1"/>
+        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="0"/>
+        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="0" lane="3"/>
+        <driver originPos="37227139,14327875" destPos="37270984,14378959" time="1000" lane="2"/>
+        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="1000" lane="1"/>
+        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="1000"/>
+        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="1000" lane="3"/>
+                <driver originPos="37227139,14327875" destPos="37270984,14378959" time="2000" lane="2"/>
+        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="3000" lane="1"/>
+        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="3000"/>
+        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="3000" lane="3"/>
+         <driver originPos="37227139,14327875" destPos="37270984,14378959" time="10000" lane="2"/>
+        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="10000" lane="1"/>
+        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="10000"/>
+        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="10000" lane="3"/>
+        <driver originPos="37227139,14327875" destPos="37270984,14378959" time="10000" lane="2"/>
+        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="10000" lane="1"/>
+        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="10000"/>
+        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="10000" lane="3"/>
+                <driver originPos="37227139,14327875" destPos="37270984,14378959" time="20000" lane="2"/>
+        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="30000" lane="1"/>
+        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="30000"/>
+        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="30000" lane="3"/>
     </drivers> 
     
     <pedestrians> 
@@ -409,7 +441,7 @@
         <!--group of 5-->
         <pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
         <pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
-        <pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="1000"/>      
+        <pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="1000"/> 
     </pedestrians>
     
     <!-- Bus Drivers. This is just for testing; currently a lot of Bus information is simply generated. -->
@@ -424,7 +456,7 @@
     <!-- With the above three procedures present and valid, enable buses with "<buscontroller time="0" />" in the <buscontrollers> -->
     <!-- To Disable Buses: user can simply comment the buscontroller in the <buscontrollers> -->
     <buscontrollers>
-        <buscontroller time="0" />    
+        <!--buscontroller time="0" /-->    
     </buscontrollers>
     
 <!--<signals> -->

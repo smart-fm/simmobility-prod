@@ -31,7 +31,7 @@ sim_mob::ConfigParams::ConfigParams() : RawConfigParams(),
 	granCommunicationTicks(0), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0),
 	using_MPI(false), is_run_on_many_computers(false), outNetworkFileName("out.network.txt"),
 	is_simulation_repeatable(false), sealedNetwork(false), commDataMgr(nullptr), controlMgr(nullptr),
-	passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr)
+	passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr), midTermRunMode(ConfigParams::NONE)
 {}
 
 
@@ -49,7 +49,6 @@ sim_mob::ConfigParams::~ConfigParams()
 	//std::vector<sim_mob::PT_trip*> pt_trip;
 	//routeID_roadSegments
 	//routeID_busStops
-	//confluxes
 }
 
 
@@ -407,23 +406,28 @@ unsigned int sim_mob::ConfigParams::signalTimeStepInMilliSeconds() const
 }
 
 bool sim_mob::ConfigParams::RunningMidSupply() const {
-    try {
-        const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
-        return (run_mode == "supply" || run_mode == "demand+supply");
-    } catch (std::exception &e) {
-        //if does not exists then returns false;
-        return false;
-    }
+	return (midTermRunMode == ConfigParams::SUPPLY);
 }
 
 bool sim_mob::ConfigParams::RunningMidDemand() const {
-    try {
-        const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
-        return (run_mode == "demand" || run_mode == "demand+supply");
-    } catch (std::exception &e) {
-        //if property does not exists then returns false;
-        return false;
-    }
+	return (midTermRunMode == ConfigParams::PREDAY);
+}
+
+void sim_mob::ConfigParams::setMidTermRunMode(const std::string& runMode)
+{
+	if(runMode.empty()) { return; }
+	if(runMode == "supply")
+	{
+		midTermRunMode = ConfigParams::SUPPLY;
+	}
+	else if (runMode == "preday")
+	{
+		midTermRunMode = ConfigParams::PREDAY;
+	}
+	else
+	{
+		throw std::runtime_error("inadmissible value for mid_term_run_mode. Must be either 'supply' or 'preday'");
+	}
 }
 
 unsigned int sim_mob::ConfigParams::communicationTimeStepInMilliSeconds() const

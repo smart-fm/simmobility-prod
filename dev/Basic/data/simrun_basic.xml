@@ -130,7 +130,7 @@
                 <mapping name="polyline" procedure="get_section_polyline_bugis()"/>
                 <mapping name="tripchain" procedure="get_tripchains()"/>
                 <mapping name="busstop" procedure="get_bus_stop_bugis()"/>
-                <mapping name="signal" procedure="get_traffic_signals()"/>
+                <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
                 <!-- These public-transit mappings tested with the large-bugis network. -->
                 <!-- "pt_bus_dispatch_freq" store some bus dispatching schedules for buses -->
@@ -229,44 +229,6 @@
                 <password value="secret"/>
             </plaintext-credential>
         </credentials>
-    
-        <!--File names for any non-C++ scripts to be executed during simulation -->
-        <external_scripts id="preday_scripts" path="scripts/lua/mid/behavior-models/" format="lua">
-            <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
-            <script name="dp" file="dp.lua"/> <!-- Day Pattern -->
-            <script name="ntw" file="ntw.lua"/> <!-- Number Of Tours Work -->
-            <script name="nte" file="nte.lua"/> <!-- Number Of Tours Education -->
-            <script name="nts" file="nts.lua"/> <!--Number Of Tours Shopping -->
-            <script name="nto" file="nto.lua"/> <!--Number Of Tours Others -->
-            <script name="uw" file="uw.lua"/> <!--Attend Usual Work -->
-            <script name="tmw" file="tmw.lua"/> <!--Tour Mode Work -->
-            <script name="tme" file="tme.lua"/> <!--Tour Mode Education -->
-            <script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->
-            <script name="tmds" file="tmds.lua"/> <!--Tour Mode/Destination Shopping -->
-            <script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->
-            <script name="tws" file="tws.lua"/> <!--Work Based Sub-Tours -->
-            <script name="ttdw" file="ttdw.lua"/> <!--Tour Time Of Day Work -->
-            <script name="ttdo" file="ttdo.lua"/> <!--Tour Time Of Day Others -->
-            <script name="ttde" file="ttde.lua"/> <!--Tour Time Of Day Education -->
-            <script name="isg" file="isg.lua"/> <!--Intermediate Stop Generation -->
-            <script name="imd" file="imd.lua"/> <!--Intermediate Stop Mode/Destination -->
-            <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->
-        </external_scripts>
-    
-        <!-- Names of MongoDB database and collections -->
-        <mongo_collections id="preday_mongo" db_name="mydb">
-            <mongo_collection name="population" collection="hits_population"/>
-            <mongo_collection name="tcost_bus" collection="tcost_bus"/>
-            <mongo_collection name="tcost_car" collection="tcost_car"/>
-            <mongo_collection name="AMCosts" collection="AMCosts"/>
-            <mongo_collection name="OPCosts" collection="OPCosts"/>
-            <mongo_collection name="PMCosts" collection="PMCosts"/>
-            <mongo_collection name="Zone" collection="Zone"/>
-            <mongo_collection name="zone_node" collection="zone_aimsunnode_mapping"/>
-            <mongo_collection name="Output_DayPattern" collection="person_tours_cpp_11_3"/>
-            <mongo_collection name="Output_Tour" collection="tours_cpp_11_3"/>
-            <mongo_collection name="Output_Activity" collection="activity_cpp_11_3"/>
-        </mongo_collections>
     </constructs>
 
     <!-- System configuration properties -->
@@ -312,6 +274,7 @@
             <!--  Commsim (communication) settings -->
             <commsim enabled="false"> <!-- If false, the Broker is never added, so no commsim activities take place. -->
                 <min_clients value="1"/> <!-- Sim Mobility will hold on time tick 1 until this many clients connect. -->
+                <io_threads value="2"/> <!-- The number of threads to use for boost's io_service (for reading from Android clients). -->
                 <hold_tick value="500"/> <!-- Which tick to enforce the "min_clients" restriction at. -->
                 <use_ns3 value="true"/>  <!-- Use ns-3 to route network traffice between agents? If not, opaque messages are dispatched immediately. -->
             </commsim>
@@ -357,7 +320,7 @@
         <!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
         <!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
         <network_database database="fm_local" credentials="harish_cred" proc_map="bugis_large"/>
-        <!--<network_database database="fm_remote" credentials="fm_local_yaojin" proc_map="bugis_large"/>-->
+        <!--<network_database database="fm_remote" credentials="fm_remote" proc_map="bugis_large"/>-->
         
         <!-- Where to find our various schema files. -->
         <!-- Overrides xsi:schemaLocation in the files themselves. -->
@@ -377,22 +340,15 @@
         <generic_props>
             <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
             <property key="busline_control_type" value="headway_based"/>
-
-            <!-- Used only by mid-term. Admissible values are "none", "demand", "supply" -->
-            <!-- and "demand+supply". Determines whether to run SimMobility_Medium's -->
-            <!-- demand simulator or the supply simulator -->
-
-            <property key="mid_term_run_mode" value="none"/> 
-
             
-            <!-- Adding external scripts as a generic proerty for now. -->
-            <!-- A dedicated element will be created when we have more uses for this --> 
-            <!-- property than just the mid-term preday demand simulator-->
-            <property key="external_scripts" value="preday_scripts"/>
+            <!-- Default number of buses that can be accommodated in a bus stop -->
+            <!-- This attribute must ideally come for each bus stop from the database -->
+            <!-- Since we currently do  not have this data, we use a generic property -->
+            <property key="buses_per_stop" value="2"/>
             
-            <!-- Number of threads to create for processing the population in-->
-            <!-- the preday demand simulator -->
-            <property key="demand_threads" value="3"/>
+            <!-- Used by SimTree. -->
+            <property key="simtree_pattern_file_1" value="shared/spatial_trees/simtree/density_pattern_sg_auto_study"/>
+            <property key="simtree_pattern_file_2" value="shared/spatial_trees/simtree/density_pattern_sg_20mins"/>
         </generic_props>
     </system>
 
@@ -491,6 +447,9 @@
         <housingModel enabled="true"> 
             <timeOnMarket value="30"/>
             <timeInterval value="7"/>
+            <numberOfHouseholds value="-1"/>
+	        <numberOfUnits	value="-1"/>
+	        <numberOfVacantUnits value="-1"/> 
         </housingModel>
     </longTermParams>  
     

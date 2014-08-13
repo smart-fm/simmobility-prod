@@ -11,11 +11,11 @@
 #include "boost/thread/shared_mutex.hpp"
 
 namespace sim_mob {
-
+class MultiNode;
 class Person;
 class RoadSegment;
+class Role;
 class SegmentStats;
-class MultiNode;
 class Worker;
 
 
@@ -26,17 +26,29 @@ class Loader;
 }
 
 enum {
-	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000
+	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000,
+	MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP = 5000001
 };
 
 /**
  * Subclasses both messages, This is to allow it to function as an message callback parameter.
  */
-class PedestrianRequestMessageArgs : public messaging::Message {
+class PedestrianTransferRequestMessage : public messaging::Message {
 public:
-	PedestrianRequestMessageArgs(Person* inPerson):pedestrian(inPerson){;}
-	virtual ~PedestrianRequestMessageArgs() {}
+	PedestrianTransferRequestMessage(Person* inPerson):pedestrian(inPerson){;}
+	virtual ~PedestrianTransferRequestMessage() {}
 	Person* pedestrian;
+};
+
+/**
+ * Subclass wraps a bus stop into message so as to make alighting decision.
+ * This is to allow it to function as an message callback parameter.
+ */
+class ArriavalAtStopMessage : public messaging::Message {
+public:
+	ArriavalAtStopMessage(Person* person):waitingPerson(person){;}
+	virtual ~ArriavalAtStopMessage() {}
+	Person* waitingPerson;
 };
 
 struct cmp_person_remainingTimeThisTick : public std::greater<Person*> {
@@ -66,6 +78,20 @@ private:
 	typedef std::map<sim_mob::Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
 	typedef std::map<sim_mob::Link*, PersonList> VirtualQueueMap;
 	typedef std::map<const sim_mob::RoadSegment*, SegmentStatsList> SegmentStatsMap;
+
+	/**
+	 * helper to capture the status of a person before and after update
+	 */
+    struct PersonProps {
+    public:
+    	const sim_mob::Role* role;
+    	const sim_mob::RoadSegment* segment;
+    	const sim_mob::Lane* lane;
+    	bool isQueuing;
+    	sim_mob::SegmentStats* segStats;
+
+    	PersonProps(const sim_mob::Person* person);
+    };
 
 	/**
 	 *  MultiNode (intersection) around which this conflux is constructed
@@ -132,7 +158,7 @@ private:
 	std::map<sim_mob::Link*, unsigned int> vqBounds;
 
 	/**holds the current frame number for which this conflux is being processed*/
-	timeslice currFrameNumber;
+	timeslice currFrame;
 
 	/**list of persons performing activities within the vicinity of this conflux*/
 	PersonList activityPerformers;
@@ -165,7 +191,18 @@ private:
 	 * @param now current time slice
 	 * @param person person to move
 	 */
-	UpdateStatus perform_person_move(timeslice now, Person* person);
+	UpdateStatus movePerson(timeslice now, Person* person);
+
+	/**
+	 * calls frame_tick() for bus stop agent
+	 */
+	void updateBusStopAgents();
+
+	/**
+	 * assign a waiting person to bus stop agent
+	 * @param person is with the role "waiting bus activity"
+	 */
+	void assignPersonToBusStopAgent(Person* person);
 
 	/**
 	 * calls frame_init of the movement facet for the person's role
@@ -173,7 +210,7 @@ private:
 	 * @param person person to initialize
 	 * @return true if the role corresponding to this subtrip has been constructed successfully; false otherwise
 	 */
-	bool call_movement_frame_init(timeslice now, Person* person);
+	bool callMovementFrameInit(timeslice now, Person* person);
 
 	/**
 	 * calls frame_tick of the movement facet for the person's role
@@ -181,14 +218,14 @@ private:
 	 * @param person person to tick
 	 * @return update status
 	 */
-	Entity::UpdateStatus call_movement_frame_tick(timeslice now, Person* person);
+	Entity::UpdateStatus callMovementFameTick(timeslice now, Person* person);
 
 	/**
 	 * calls frame_tick of the movement facet for the person's role
 	 * @param now current time slice
 	 * @param person person whose frame output is required
 	 */
-	void call_movement_frame_output(timeslice now, Person* person);
+	void callMovementFrameOutput(timeslice now, Person* person);
 
 	/** function to initialize candidate agents in each tick*/
 	void initCandidateAgents();
@@ -222,20 +259,34 @@ private:
 	 */
 	void resetPersonRemTimes();
 
-protected:
-	//NOTE: New Agents use frame_* methods, but Conflux is fine just using update()
-	virtual bool frame_init(timeslice now) { throw std::runtime_error("frame_* methods are not required and are not implemented for Confluxes."); }
-	virtual Entity::UpdateStatus frame_tick(timeslice now) { throw std::runtime_error("frame_* are not required and are not implemented for Confluxes."); }
-	virtual void frame_output(timeslice now) { throw std::runtime_error("frame_* methods are not required and are not implemented for Confluxes."); }
-
 	/**
-	 * Inherited from Agent.
+	 * handles book keeping for the conflux based on changes in roles of person
+	 * @param beforeUpdate person properties before update
+	 * @param afterUpdate person properties after update
 	 */
+	void handleRoles(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person);
+
+protected:
+	/**
+	 * Function to initialize the conflux before its first update.
+	 * frame_init() of the Agent is overridden to register the conflux as a
+	 * message handler. This function is also ideal for registering message
+	 * handlers of all the bus stops which (permanently)  belong to segment
+	 * stats of this conflux.
+	 *
+	 * @param now the frame number in which the function is called
+	 * @return true if initialization was successful; false otherwise.
+	 */
+	virtual bool frame_init(timeslice now);
+
+	virtual Entity::UpdateStatus frame_tick(timeslice now) { throw std::runtime_error("frame_tick() is not required and are not implemented for Confluxes."); }
+	virtual void frame_output(timeslice now) { throw std::runtime_error("frame_output methods are not required and are not implemented for Confluxes."); }
+
+
+	//Inherited from Agent.
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 
-	/**
-	 * Inherited from Agent.
-	 */
+	//Inherited from Agent.
 	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 public:
@@ -288,7 +339,7 @@ public:
 	 * @param statsNum position of the requested stats in the segment
 	 * @return segment stats
 	 */
-	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg, uint8_t statsNum);
+	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg, uint16_t statsNum);
 
 	/**
 	 * returns the list of segment stats corresponding to a road segment
@@ -303,7 +354,7 @@ public:
 	double getSegmentSpeed(SegmentStats* segStats, bool hasVehicle) const;
 
 	void resetPositionOfLastUpdatedAgentOnLanes();
-	void incrementSegmentFlow(const RoadSegment* rdSeg, uint8_t statsNum);
+	void incrementSegmentFlow(const RoadSegment* rdSeg, uint16_t statsNum);
 	void resetSegmentFlows();
 
 	/** updates lane params for all lanes within the conflux */

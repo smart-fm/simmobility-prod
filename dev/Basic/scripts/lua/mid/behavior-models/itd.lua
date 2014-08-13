@@ -143,6 +143,9 @@ for i = 1, 48 do
 	scale[i]=1
 end
 
+-- function to call from C++ preday simulator
+-- params and dbparams tables contain data passed from C++
+-- to check variable bindings in params or dbparams, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
 function choose_itd(params,dbparams)
 	computeUtilities(params,dbparams) 
 	computeAvailabilities(params,dbparams)

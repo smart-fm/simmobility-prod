@@ -16,14 +16,14 @@
 #include <soci.h>
 #include <soci-postgresql.h>
 #include <boost/multi_index_container.hpp>
-
+#include "boost/algorithm/string.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/settings/DisableMPI.h"
 #include "entities/AuraManager.hpp"
 #include "entities/conflux/SegmentStats.hpp"
-
 #include "entities/misc/BusTrip.hpp"
+#include "entities/vehicle/VehicleBase.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
@@ -89,8 +89,8 @@ using std::multimap;
 
 
 namespace {
-const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
-const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * PASSENGER_CAR_UNIT; // 5 times a car's length
+const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
+const double BUS_LENGTH = 3 * sim_mob::PASSENGER_CAR_UNIT;
 
 class DatabaseLoader : private boost::noncopyable {
 public:
@@ -764,20 +764,26 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 				std::cout << "from stop: " << it->tmp_fromLocationNodeID << " to stop: " << it->tmp_toLocationNodeID << std::endl;
 			}
 			//check nodes
-			if(nodes_.count(it->tmp_fromLocationNodeID)==0) {
-				std::cout<< "Invalid trip chain fromNode reference."<<std::endl;
-				//throw std::runtime_error("Invalid trip chain fromNode reference.");
-				continue;
-			}
-			if(nodes_.count(it->tmp_toLocationNodeID)==0) {
-				std::cout<< "Invalid trip chain toNode reference."<<std::endl;
-				//throw std::runtime_error("Invalid trip chain toNode reference.");
-				continue;
+			if (it->fromLocationType == sim_mob::TripChainItem::LT_NODE) {
+				if (nodes_.count(it->tmp_fromLocationNodeID) == 0) {
+					std::cout << "Invalid trip chain fromNode reference."<< std::endl;
+					//throw std::runtime_error("Invalid trip chain fromNode reference.");
+					continue;
+				} else {
+					it->fromLocation = &nodes_[it->tmp_fromLocationNodeID];
+				}
 			}
 
-			//Note: Make sure not to resize the Node map after referencing its elements.
-			it->fromLocation = &nodes_[it->tmp_fromLocationNodeID];
-			it->toLocation = &nodes_[it->tmp_toLocationNodeID];
+			if (it->toLocationType == sim_mob::TripChainItem::LT_NODE) {
+				if (nodes_.count(it->tmp_toLocationNodeID) == 0) {
+					std::cout << "Invalid trip chain toNode reference."<< std::endl;
+					//throw std::runtime_error("Invalid trip chain toNode reference.");
+					continue;
+				} else {
+					it->toLocation = &nodes_[it->tmp_toLocationNodeID];
+				}
+			}
+
 		} else if(it->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
 			//Set end time and location.
 			it->endTime = sim_mob::DailyTime(it->tmp_endTime);
@@ -920,15 +926,15 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 	{
 		sim_mob::PT_bus_stops pt_bus_stopsTemp = *iter;
 		pt_bus_stops.push_back(pt_bus_stopsTemp);
-//		std::cout << pt_bus_stopsTemp.route_id << " " << pt_bus_stopsTemp.busstop_no << " " << pt_bus_stopsTemp.busstop_sequence_no << std::endl;
-		sim_mob::BusStop* bs = config.getBusStopNo_BusStops()[pt_bus_stopsTemp.busstop_no];
+
+		string str = pt_bus_stopsTemp.busstop_no;
+		boost::trim_right(str);
+		unsigned int no = boost::lexical_cast<unsigned int>(str);
+		sim_mob::BusStop* bs = sim_mob::BusStop::findBusStop(no);
 		if(bs) {
 			routeID_busStops[iter->route_id].push_back(bs);
-//			std::cout << "iter->route_id: " << iter->route_id << "    BusStop to busstop map  " << bs->getBusstopno_() << "" << std::endl;
-//			std::cout << "current routeID_busStops[iter->route_id].size(): " << routeID_busStops[iter->route_id].size() << "" << std::endl;
 		}
 	}
-//	std::cout << "routeID_busStops.size(): " << routeID_busStops.size() << "" << std::endl;
 }
 
 void DatabaseLoader::LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule)
@@ -1897,7 +1903,21 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 
 void DatabaseLoader::createBusStopAgents()
 {
-	//int j = 0；
+	//get stop capacity from genericProps
+	int stopCapacityAsLength = 2;
+	try {
+		std::string busPerStopStr = sim_mob::ConfigManager::GetInstance().FullConfig().system.genericProps.at("buses_per_stop");
+		stopCapacityAsLength = std::atoi(busPerStopStr.c_str());
+		if(stopCapacityAsLength < 1) {
+			throw std::runtime_error("inadmissible value for buses per stop. Please check generic property 'buses_per_stop'");
+		}
+	}
+	catch (const std::out_of_range& oorx) {
+		sim_mob::Print() << "generic property 'buses_per_stop' was not specified."
+				<< " Defaulting to " << stopCapacityAsLength << " threads."
+				<< std::endl;
+	}
+
 	//Save all bus stops
 	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++) {
 		std::map<int,Section>::iterator findPtr = sections_.find(it->second.TMP_AtSectionID);
@@ -1909,6 +1929,7 @@ void DatabaseLoader::createBusStopAgents()
 		sim_mob::BusStop *busstop = new sim_mob::BusStop();
 		sim_mob::RoadSegment* parentSeg = sections_[it->second.TMP_AtSectionID].generatedSegment;
 		busstop->busstopno_ = it->second.bus_stop_no;
+		busstop->busCapacityAsLength = BUS_LENGTH * stopCapacityAsLength;
 		busstop->setParentSegment(parentSeg);
 
 		busstop->xPos = it->second.xPos;
@@ -1924,7 +1945,8 @@ void DatabaseLoader::createBusStopAgents()
 
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		sim_mob::BusStop::RegisterNewBusStop(busstop);
+		unsigned int no = boost::lexical_cast<unsigned int>(busstop->busstopno_);
+		sim_mob::BusStop::RegisterNewBusStop(no, busstop);
 	}
 
 	for(map<std::string,BusStopSG>::iterator it = bustopSG_.begin(); it != bustopSG_.end(); it++) {
@@ -1937,6 +1959,8 @@ void DatabaseLoader::createBusStopAgents()
 		sim_mob::BusStop *busstop = new sim_mob::BusStop();
 		sim_mob::RoadSegment* parentSeg = sections_[it->second.aimsun_section].generatedSegment;
 		busstop->busstopno_ = it->second.bus_stop_no;
+		busstop->busCapacityAsLength = BUS_LENGTH * stopCapacityAsLength;
+
 		busstop->setParentSegment(parentSeg);
 
 		busstop->xPos = it->second.xPos;
@@ -1952,7 +1976,8 @@ void DatabaseLoader::createBusStopAgents()
 
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		sim_mob::BusStop::RegisterNewBusStop(busstop);
+		unsigned int no = boost::lexical_cast<unsigned int>(busstop->busstopno_);
+		sim_mob::BusStop::RegisterNewBusStop(no, busstop);
 	}
 }
 
@@ -2686,16 +2711,15 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 
 }
 
-void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdSeg,
-		std::list<sim_mob::SegmentStats*>& splitSegmentStats) {
+void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdSeg, std::list<sim_mob::SegmentStats*>& splitSegmentStats) {
 	if(!rdSeg) {
-		throw std::runtime_error("CreateSegmentStats(): RoadSegment passed was NULL");
+		throw std::runtime_error("CreateSegmentStats(): NULL RoadSegment was passed");
 	}
 	std::stringstream debugMsgs;
 	const std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>& obstacles = rdSeg->obstacles;
-	double lengthCoveredInSeg = 0, segStatLength;
+	double lengthCoveredInSeg = 0;
+	double segStatLength;
 	double rdSegmentLength = rdSeg->getLaneZeroLength();
-	uint8_t statsNum = 1;
 	// NOTE: std::map implements strict weak ordering which defaults to less<key_type>
 	// This is precisely the order in which we want to iterate the stops to create SegmentStats
 	for(std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>::const_iterator obsIt = obstacles.begin();
@@ -2714,9 +2738,16 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdS
 				debugMsgs.str(std::string());
 				sim_mob::SegmentStats* segStats = new sim_mob::SegmentStats(rdSeg, rdSegmentLength);
 				segStats->addBusStop(busStop);
+				//add the current stop and the remaining stops (if any) to the end of the segment as well
+				while(++obsIt != obstacles.end()) {
+					busStop = dynamic_cast<const sim_mob::BusStop*>(obsIt->second);
+					if(busStop) {
+						segStats->addBusStop(busStop);
+					}
+				}
 				splitSegmentStats.push_back(segStats);
 				lengthCoveredInSeg = rdSegmentLength;
-				break; //there *should* be no more bus stops in this segment. skipping other stops, if any
+				break;
 			}
 			if(stopOffset < lengthCoveredInSeg) {
 				debugMsgs<<"bus stops are iterated in wrong order"
@@ -2734,15 +2765,22 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdS
 				lengthCoveredInSeg = rdSegmentLength;
 				sim_mob::SegmentStats* segStats = new sim_mob::SegmentStats(rdSeg, segStatLength);
 				segStats->addBusStop(busStop);
+				//add the current stop and the remaining stops (if any) to the end of the segment as well
+				while(++obsIt != obstacles.end()) {
+					busStop = dynamic_cast<const sim_mob::BusStop*>(obsIt->second);
+					if(busStop) {
+						segStats->addBusStop(busStop);
+					}
+				}
 				splitSegmentStats.push_back(segStats);
-				break; //there can be no more bus stops in this segment.
+				break;
 			}
+			//the relation (lengthCoveredInSeg < stopOffset < rdSegmentLength) holds here
 			segStatLength = stopOffset - lengthCoveredInSeg;
 			lengthCoveredInSeg = stopOffset;
 			sim_mob::SegmentStats* segStats = new sim_mob::SegmentStats(rdSeg, segStatLength);
 			segStats->addBusStop(busStop);
 			splitSegmentStats.push_back(segStats);
-			statsNum++;
 		}
 	}
 
@@ -2782,37 +2820,35 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdS
 		// if there is atleast 1 bus stop in the segment and the length of the
 		// created segment stats is short, we will try to adjust the lengths to
 		// avoid short segments
-		if(splitSegmentStats.size() > 1) {
-			bool noMoreShortSegs = false;
-			while (!noMoreShortSegs && splitSegmentStats.size() > 1) {
-				noMoreShortSegs = true; //hopefully
-				std::list<sim_mob::SegmentStats*>::iterator statsIt=splitSegmentStats.begin();
-				while((*statsIt)!=(splitSegmentStats.back())) {
-					SegmentStats* currStats = *statsIt;
-					std::list<sim_mob::SegmentStats*>::iterator nxtStatsIt = statsIt; nxtStatsIt++; //get a copy and increment for next
-					SegmentStats* nextStats = *(nxtStatsIt);
-					if(currStats->length < SHORT_SEGMENT_LENGTH_LIMIT) {
-						noMoreShortSegs = false; //there is a short segment
-						if(nextStats->length >= SHORT_SEGMENT_LENGTH_LIMIT) {
-							double lengthDiff = SHORT_SEGMENT_LENGTH_LIMIT - currStats->length;
-							currStats->length = SHORT_SEGMENT_LENGTH_LIMIT;
-							nextStats->length = nextStats->length - lengthDiff;
-						}
-						else {
-							// we will merge i-th SegmentStats with i+1-th SegmentStats
-							// and add both bus stops to the merged SegmentStats
-							nextStats->length = currStats->length + nextStats->length;
-							for(std::vector<const sim_mob::BusStop*>::iterator stopIt=currStats->busStops.begin();
-									stopIt!=currStats->busStops.end(); stopIt++) {
-								nextStats->addBusStop(*stopIt);
-							}
-							statsIt = splitSegmentStats.erase(statsIt);
-							safe_delete_item(currStats);
-							continue;
-						}
+		bool noMoreShortSegs = false;
+		while (!noMoreShortSegs && splitSegmentStats.size() > 1) {
+			noMoreShortSegs = true; //hopefully
+			sim_mob::SegmentStats* lastStats = splitSegmentStats.back();
+			std::list<sim_mob::SegmentStats*>::iterator statsIt = splitSegmentStats.begin();
+			while((*statsIt)!=lastStats) {
+				SegmentStats* currStats = *statsIt;
+				std::list<sim_mob::SegmentStats*>::iterator nxtStatsIt = statsIt; nxtStatsIt++; //get a copy and increment for next
+				SegmentStats* nextStats = *nxtStatsIt;
+				if(currStats->length < SHORT_SEGMENT_LENGTH_LIMIT) {
+					noMoreShortSegs = false; //there is a short segment
+					if(nextStats->length >= SHORT_SEGMENT_LENGTH_LIMIT) {
+						double lengthDiff = SHORT_SEGMENT_LENGTH_LIMIT - currStats->length;
+						currStats->length = SHORT_SEGMENT_LENGTH_LIMIT;
+						nextStats->length = nextStats->length - lengthDiff;
 					}
-					statsIt++;
+					else {
+						// we will merge i-th SegmentStats with i+1-th SegmentStats
+						// and add both bus stops to the merged SegmentStats
+						nextStats->length = currStats->length + nextStats->length;
+						for(std::vector<const sim_mob::BusStop*>::iterator stopIt=currStats->busStops.begin(); stopIt!=currStats->busStops.end(); stopIt++) {
+							nextStats->addBusStop(*stopIt);
+						}
+						statsIt = splitSegmentStats.erase(statsIt);
+						safe_delete_item(currStats);
+						continue;
+					}
 				}
+				statsIt++;
 			}
 		}
 		if(splitSegmentStats.size() > 1) {
@@ -2833,29 +2869,23 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdS
 			}
 		}
 	}
-	else { // if there are no stops in the segment
-		// Create a single SegmentStats object for this segment
+	else {
+		// if there are no stops in the segment, we create a single SegmentStats for this segment
 		SegmentStats* segStats = new SegmentStats(rdSeg, rdSegmentLength);
 		splitSegmentStats.push_back(segStats);
 	}
 
-	//now set the ordering for the segment stats
-	if(splitSegmentStats.size() > 1) {
-		uint8_t statsNum = 1;
-		for(std::list<sim_mob::SegmentStats*>::iterator statsIt=splitSegmentStats.begin();
-				statsIt!=splitSegmentStats.end(); statsIt++){
-			(*statsIt)->positionInRoadSegment = statsNum;
-			statsNum++;
-		}
-	}
+	uint16_t statsNum = 1;
+	std::set<sim_mob::SegmentStats*>& segmentStatsWithStops = ConfigManager::GetInstanceRW().FullConfig().getSegmentStatsWithBusStops();
+	for(std::list<sim_mob::SegmentStats*>::iterator statsIt=splitSegmentStats.begin(); statsIt!=splitSegmentStats.end(); statsIt++) {
+		SegmentStats* stats = *statsIt;
+		//number the segment stats
+		stats->statsNumberInSegment = statsNum;
+		statsNum++;
 
-	std::set<sim_mob::SegmentStats*>& segmentStats =
-			ConfigManager::GetInstanceRW().FullConfig().getSegmentStatsWithBusStops();
-	for (std::list<sim_mob::SegmentStats*>::iterator statsIt =
-			splitSegmentStats.begin(); statsIt != splitSegmentStats.end();
-			statsIt++) {
-		if ((*statsIt)->getBusStops().size() > 0) {
-			segmentStats.insert(*statsIt);
+		//add to segmentStatsWithStops if there is a bus stop in stats
+		if (!(stats->getBusStops().empty())) {
+			segmentStatsWithStops.insert(stats);
 		}
 	}
 }

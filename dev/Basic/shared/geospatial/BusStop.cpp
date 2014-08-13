@@ -31,7 +31,19 @@ double sim_mob::BusStop::EstimateStopPoint(double xPos, double yPos, const sim_m
 	return (-b*b + a*a + c*c)/(2.0*c);
 }
 
-void sim_mob::BusStop::RegisterNewBusStop(BusStop* busstop) {
+void sim_mob::BusStop::RegisterNewBusStop(unsigned int no, BusStop* busstop) {
 	if(!busstop) { return; }
-	allBusstops.insert(busstop);
+	allBusstops[no] = busstop;
+}
+
+BusStop* sim_mob::BusStop::findBusStop(unsigned int no)
+{
+	BusStop* stop = nullptr;
+	try{
+		stop = allBusstops.at(no);
+	}
+	catch(...){
+		stop = nullptr;
+	}
+	return stop;
 }

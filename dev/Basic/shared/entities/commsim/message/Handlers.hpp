@@ -40,12 +40,14 @@ private:
 ///A handler that does nothing.
 class NullHandler : public Handler {
 	virtual ~NullHandler() {}
+	///Called by the Broker when a message of this type is encountered to handle it.
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const {}
 };
 
 ///A handler that throws an exception
 class ObsoleteHandler : public Handler {
 	virtual ~ObsoleteHandler() {}
+	///Called by the Broker when a message of this type is encountered to handle it.
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const {
 		throw std::runtime_error("MULTICAST/UNICAST messages are obsolete (or, encountered another obsolete message type). Use OPAQUE_SEND and OPAQUE_RECEIVE instead.");
 	}
@@ -54,6 +56,7 @@ class ObsoleteHandler : public Handler {
 ///A handler that informs us the Broker has made a mistake.
 class BrokerErrorHandler : public Handler {
 	virtual ~BrokerErrorHandler() {}
+	///Called by the Broker when a message of this type is encountered to handle it.
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const {
 		throw std::runtime_error("ERROR: Broker-specific message was passed on to the Handlers array (these messages must not be pended).");
 	}
@@ -61,11 +64,26 @@ class BrokerErrorHandler : public Handler {
 
 class RemoteLogHandler : public Handler {
 public:
+	///Called by the Broker when a message of this type is encountered to handle it.
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
 };
 
 class RerouteRequestHandler : public Handler {
 public:
+	///Called by the Broker when a message of this type is encountered to handle it.
+	///This handler will instruct the Driver model to reroute the given Agent around a blacklisted Region.
+	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
+};
+
+class TcpConnectHandler : public Handler {
+public:
+	///Called by the Broker when a message of this type is encountered to handle it.
+	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
+};
+
+class TcpDisconnectHandler : public Handler {
+public:
+	///Called by the Broker when a message of this type is encountered to handle it.
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
 };
 
@@ -75,6 +93,7 @@ class OpaqueSendHandler : public sim_mob::Handler {
 public:
 	OpaqueSendHandler(bool useNs3) : useNs3(useNs3) {}
 
+	///Called by the Broker when a message of this type is encountered to handle it.
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
 
 private:
@@ -86,7 +105,11 @@ class OpaqueReceiveHandler : public sim_mob::Handler {
 public:
 	OpaqueReceiveHandler(bool useNs3) : useNs3(useNs3) {}
 
+	///Called by the Broker when a message of this type is encountered to handle it.
 	virtual void handle(boost::shared_ptr<ConnectionHandler> handler, const MessageConglomerate& messages, int msgNumber, BrokerBase* broker) const;
+
+	///Helper; handle this message directly. Also caled by the Broker for Cloud messages.
+	void handleDirect(const OpaqueReceiveMessage& recMsg, BrokerBase* broker) const;
 
 private:
 	const bool useNs3;

@@ -57,7 +57,11 @@ private:
 	};
 
 public:
-	Driver(Agent* parent, MutexStrategy mtxStrat, sim_mob::medium::DriverBehavior* behavior = nullptr, sim_mob::medium::DriverMovement* movement = nullptr);
+	Driver(Person* parent, MutexStrategy mtxStrat,
+			sim_mob::medium::DriverBehavior* behavior = nullptr,
+			sim_mob::medium::DriverMovement* movement = nullptr,
+			std::string roleName = std::string(),
+			Role::type roleType = Role::RL_DRIVER);
 	virtual ~Driver();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
@@ -66,22 +70,12 @@ public:
 	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
-	sim_mob::medium::Vehicle* getVehicle() const {
-		return vehicle;
-	}
-
-	void setVehicle(sim_mob::medium::Vehicle* vehicle) {
-		this->vehicle = vehicle;
-	}
-
-	//medium::DriverUpdateParams params;
 	//to be moved to a DriverUpdateParam later
 	const Lane* currLane;
 
 protected:
 	NodePoint origin;
 	NodePoint goal;
-	Vehicle* vehicle;
 
 	friend class DriverBehavior;
 	friend class DriverMovement;

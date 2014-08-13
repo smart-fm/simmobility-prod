@@ -94,7 +94,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
 	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), remainingTimeThisTick(0.0),
 	requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
-	age(0), boardingTimeSecs(0), alightingTimeSecs(0), client_id(-1), resetParamsRequired(false), nextLinkRequired(nullptr)
+	age(0), boardingTimeSecs(0), alightingTimeSecs(0), client_id(-1), resetParamsRequired(false), nextLinkRequired(nullptr), currSegStats(nullptr)
 {
 }
 
@@ -102,9 +102,12 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegStats(nullptr), canMoveToNextSegment(NONE),
 	  databaseID(tcs.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
 	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
-	  client_id(-1), nextLinkRequired(nullptr)
+	  client_id(-1), nextLinkRequired(nullptr), currSegStats(nullptr)
 {
-	if (!ConfigManager::GetInstance().FullConfig().RunningMidSupply() && !ConfigManager::GetInstance().FullConfig().RunningMidDemand()) {
+	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
+		insertWaitingActivityToTrip(tcs);
+	}
+	else if(!ConfigManager::GetInstance().FullConfig().RunningMidDemand()){
 		simplyModifyTripChain(tcs);
 	}
 
@@ -238,7 +241,7 @@ bool sim_mob::Person::frame_init(timeslice now)
 	if (!currRole) {
 		//TODO: This UpdateStatus has a "prevParams" and "currParams" that should
 		//      (one would expect) be dealt with. Where does this happen?
-		UpdateStatus res =	checkTripChain(now.ms());
+		UpdateStatus res =	checkTripChain();
 
 		//Reset the start time (to the current time tick) so our dispatcher doesn't complain.
 		setStartTime(now.ms());
@@ -310,7 +313,7 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 	//      statement into the worker class, but I don't want to change too many things
 	//      about Agent/Person at once. ~Seth
 	if (isToBeRemoved()) {
-		retVal = checkTripChain(now.ms());
+		retVal = checkTripChain();
 
 		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
 		setStartTime(now.ms()+ConfigManager::GetInstance().FullConfig().baseGranMS());
@@ -320,9 +323,9 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 		//we have to make adjustments so that it waits for exact amount of time
 		if(currTripChainItem != tripChain.end()) {
 			if((*currTripChainItem)) {// if currTripChain not end and has value, call frame_init and switching roles
-				if(isCallFrameInit()) {
+				if(!isInitialized()) {
 					currRole->Movement()->frame_init();
-					setCallFrameInit(false);// set to be false so later no need to frame_init later
+					setInitialized(true);// set to be false so later no need to frame_init later
 				}
 			}
 			if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
@@ -440,7 +443,7 @@ bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 	return true;
 }
 
-UpdateStatus sim_mob::Person::checkTripChain(uint32_t currTimeMS) {
+UpdateStatus sim_mob::Person::checkTripChain() {
 	//some normal checks
 	if(tripChain.size() < 1) {
 		return UpdateStatus::Done;
@@ -495,6 +498,39 @@ std::vector<sim_mob::SubTrip>::iterator sim_mob::Person::resetCurrSubTrip()
 		throw std::runtime_error("non sim_mob::Trip cannot have subtrips");
 	}
 	return trip->getSubTripsRW().begin();
+}
+
+void sim_mob::Person::insertWaitingActivityToTrip(
+		std::vector<TripChainItem*>& tripChain) {
+	std::vector<TripChainItem*>::iterator tripChainItem;
+	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end();
+			tripChainItem++) {
+		if ((*tripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) {
+			std::vector<SubTrip>::iterator itSubTrip[2];
+			std::vector<sim_mob::SubTrip>& subTrips =
+					(dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
+
+			itSubTrip[1] = subTrips.begin();
+			itSubTrip[0] = subTrips.begin();
+			while (itSubTrip[1] != subTrips.end()) {
+				if (itSubTrip[1]->mode == "BusTravel"
+						&& itSubTrip[0]->mode != "WaitingBusActivity") {
+					sim_mob::SubTrip subTrip;
+					subTrip.itemType = TripChainItem::getItemType(
+							"WaitingBusActivity");
+					subTrip.fromLocation = itSubTrip[1]->fromLocation;
+					subTrip.fromLocationType = itSubTrip[1]->fromLocationType;
+					subTrip.toLocation = itSubTrip[1]->toLocation;
+					subTrip.toLocationType = itSubTrip[1]->toLocationType;
+					subTrip.mode = "WaitingBusActivity";
+					itSubTrip[1] = subTrips.insert(itSubTrip[1], subTrip);
+				}
+
+				itSubTrip[0] = itSubTrip[1];
+				itSubTrip[1]++;
+			}
+		}
+	}
 }
 
 

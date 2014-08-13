@@ -364,7 +364,7 @@ void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>
 	}
 }
 
-void Driver::setCurrPosition(DPoint& currPosition)
+void Driver::setCurrPosition(DPoint currPosition)
 {
 	currPos = currPosition;
 }

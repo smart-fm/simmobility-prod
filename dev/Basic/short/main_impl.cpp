@@ -202,7 +202,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//Load our user config file
 	std::cout << "Expanding our user config file." << std::endl;
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
-	BusStopAgent::createBusStopAgents(BusStop::allBusstops, mtx);
+	//BusStopAgent::createBusStopAgents(BusStop::allBusstops, mtx);
     //Some random stuff with signals??
     //TODO: Not quite sure how this is supposed to fit into the overall order of things. ~Seth
     std::vector<Signal*>& all_signals = Signal::all_signals_;

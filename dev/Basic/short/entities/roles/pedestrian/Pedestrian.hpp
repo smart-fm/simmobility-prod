@@ -88,7 +88,7 @@ struct PedestrianUpdateParams : public sim_mob::UpdateParams {
  */
 class Pedestrian : public sim_mob::Role , public UpdateWrapper<PedestrianUpdateParams>{
 public:
-	Pedestrian(Agent* parent);
+	Pedestrian(Person* parent);
 	virtual ~Pedestrian();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

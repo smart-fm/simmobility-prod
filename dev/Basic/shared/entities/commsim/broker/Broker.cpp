@@ -13,8 +13,10 @@
 #include "workers/Worker.hpp"
 
 #include "entities/commsim/connection/ConnectionHandler.hpp"
+#include "entities/commsim/connection/CloudHandler.hpp"
 #include "entities/commsim/connection/WhoAreYouProtocol.hpp"
 #include "entities/commsim/client/ClientHandler.hpp"
+#include "entities/commsim/serialization/Base64Escape.hpp"
 
 #include "entities/commsim/wait/WaitForAndroidConnection.hpp"
 #include "entities/commsim/wait/WaitForNS3Connection.hpp"
@@ -27,6 +29,11 @@
 
 #include "geospatial/RoadRunnerRegion.hpp"
 
+namespace {
+//TEMPORARY: I just need an easy way to disable output for now. This is *not* the ideal solution.
+const bool EnableDebugOutput = false;
+} //End unnamed namespace
+
 
 using namespace sim_mob;
 
@@ -34,6 +41,11 @@ BrokerBase* sim_mob::Broker::single_broker(nullptr);
 
 const std::string sim_mob::Broker::ClientTypeAndroid = "android";
 const std::string sim_mob::Broker::ClientTypeNs3 = "ns-3";
+
+const std::string sim_mob::Broker::OpaqueFormatBase64Esc = "base64escape";
+
+const std::string sim_mob::Broker::OpaqueTechDsrc = "dsrc";
+const std::string sim_mob::Broker::OpaqueTechLte = "lte";
 
 const unsigned int sim_mob::Broker::EventNewAndroidClient = 95000;
 
@@ -43,6 +55,10 @@ sim_mob::Broker::Broker(const MutexStrategy& mtxStrat, int id) :
 {
 	//Various Initializations
 	configure();
+
+	//Note: This should only be done once, and never in parallel. This is *probably* safe to do here, but change it if you
+	//      switch to multiple Brokers.
+	Base64Escape::Init();
 }
 
 sim_mob::Broker::~Broker()
@@ -107,6 +123,17 @@ void sim_mob::Broker::onNewConnection(boost::shared_ptr<ConnectionHandler> cnnHa
 
 	//Ask the client to identify itself.
 	WhoAreYouProtocol::QueryAgentAsync(cnnHandler);
+}
+
+
+void sim_mob::Broker::onNewCloudConnection(boost::shared_ptr<CloudHandler> cnnHandler)
+{
+	//Save it, signal.
+	{
+	boost::unique_lock<boost::mutex> lock(mutex_verified_cloud_connections);
+	verifiedCloudConnections.insert(cnnHandler);
+	}
+	COND_VAR_VERIFIED_CLOUD_CONNECTIONS.notify_all();
 }
 
 
@@ -421,10 +448,97 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent* agent)
 		}
 	}
 	}
-
 }
 
-void sim_mob::Broker::processIncomingData(timeslice now) {
+
+void sim_mob::Broker::cloudConnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port)
+{
+	//Give this connection a unique Id, "host:port"
+	std::string cloudId = host + ":" + boost::lexical_cast<std::string>(port);
+
+	//We only need 1 connection to the cloud, but for efficiency's sake we open 1 connection per Android connectionHandler.
+	boost::shared_ptr<CloudHandler> cloud = getCloudHandler(cloudId, handler);
+	if (!cloud) {
+		//We don't have a connection; open a new one.
+		boost::unique_lock<boost::mutex> lock(mutex_cloud_connections);
+		cloudConnections[cloudId][handler] = connection.connectToCloud(host, port);
+	}
+}
+
+void sim_mob::Broker::cloudDisconnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port)
+{
+	//Note: At the moment it is not necessary (or even beneficial) to close cloud connections. Leave this function
+	//      here as a no-op, since we may want to track open connections at some point.
+}
+
+
+void sim_mob::Broker::sendToCloud(boost::shared_ptr<ConnectionHandler> conn, const std::string& cloudId, const OpaqueSendMessage& msg, bool useNs3)
+{
+	//Prepare a message for response.
+	MessageBase temp;
+	temp.msg_type = "opaque_receive";
+	OpaqueReceiveMessage newMsg(temp); //TODO: This is a hackish workaround.
+	newMsg.format = msg.format;
+	newMsg.tech = msg.tech;
+
+	//Reverse the sender/receiver.
+	newMsg.fromId = cloudId;
+	newMsg.toId = msg.fromId;
+
+	//Before waiting for the cloud, decode the actual message, and split it at every newline.
+	if (msg.format != OpaqueFormatBase64Esc) {
+		throw std::runtime_error("Unknown message format sending to cloud; can't decode.");
+	}
+	std::vector<std::string> msgLines;
+	Base64Escape::Decode(msgLines, msg.data, '\n');
+
+	//Get the cloud handler.
+	boost::shared_ptr<CloudHandler> cloud = getCloudHandler(cloudId, conn);
+	if (!cloud) {
+		throw std::runtime_error("Could not find cloud handler for given cloudId.");
+	}
+
+	//Now, wait for the client to connect.
+	{
+	boost::unique_lock<boost::mutex> lock(mutex_verified_cloud_connections);
+	while (verifiedCloudConnections.count(cloud)==0) {
+		COND_VAR_VERIFIED_CLOUD_CONNECTIONS.wait(lock);
+	}
+	}
+
+	//We now have a valid cloud connection and a set of messages to send. This must be done in a single transaction:
+	// [write,write,..,write] => [read,read,..,read]
+	//This will incur some delay due to false synchronization; however, it is by far the simplest solution. Recall that most
+	// RoadRunner agents will connect, send, and receive in the *same* update tick, so this approach is unfortunately necessary for now.
+	std::vector<std::string> resLines = cloud->writeLinesReadLines(msgLines);
+
+	//Re-encode the response using our base64-encoding.
+	newMsg.data = Base64Escape::Encode(resLines, '\n');
+
+	//Now, either route this through ns-3 or send it directly to the client.
+	if (useNs3) {
+		throw std::runtime_error("Can't send cloud messages through ns-3; at the moment ns-3 is only configured for Wi-Fi.");
+	} else {
+		dynamic_cast<const OpaqueReceiveHandler*>(handleLookup.getHandler(newMsg.msg_type))->handleDirect(newMsg, this);
+	}
+}
+
+boost::shared_ptr<CloudHandler> sim_mob::Broker::getCloudHandler(const std::string& id, boost::shared_ptr<ConnectionHandler> conn)
+{
+	boost::unique_lock<boost::mutex> lock(mutex_cloud_connections);
+	std::map<std::string, CloudConnections>::const_iterator it=cloudConnections.find(id);
+	if (it!=cloudConnections.end()) {
+		CloudConnections::const_iterator it2=it->second.find(conn);
+		if (it2!=it->second.end()) {
+			return it2->second;
+		}
+	}
+	return boost::shared_ptr<CloudHandler>();
+}
+
+
+void sim_mob::Broker::processIncomingData(timeslice now)
+{
 	//just pop off the message queue and click handle ;)
 	MessageElement msgTuple;
 	while (receiveQueue.pop(msgTuple)) {
@@ -513,14 +627,9 @@ void sim_mob::Broker::onAndroidClientRegister(sim_mob::event::EventId id, sim_mo
 			return;
 		}
 
-		//Create the AgentsInfo message.
-		std::vector<unsigned int> agentIds;
-		agentIds.push_back(clientHandler->agent->getId());
-		std::string message = CommsimSerializer::makeNewAgents(agentIds, std::vector<unsigned int>());
-
-
-		//Add it.
-		insertSendBuffer(nsHand, message);
+		//Pend this information for later.
+		boost::unique_lock<boost::mutex> lock(mutex_new_agents_message);
+		new_agents_message.push_back(clientHandler->agent->getId());
 	}
 
 	//Enable Region support if this client requested it.
@@ -555,9 +664,6 @@ void sim_mob::Broker::processPublishers(timeslice now)
 		}
 
 		//Publish whatever this agent requests.
-		/*if (cHandler->regisTime) {
-			insertSendBuffer(cHandler, timeMsg);
-		}*/
 		if (cHandler->regisLocation) {
 			//Attempt to reverse-project the Agent's (x,y) location into Lat/Lng, if such a projection is possible.
 			LatLngLocation loc;
@@ -588,6 +694,20 @@ void sim_mob::Broker::processPublishers(timeslice now)
 		if (ns3Handler->regisAllLocations) {
 			insertSendBuffer(ns3Handler, allLocMsg);
 		}
+
+		//Create a single "new agents" message, if appropriate.
+		std::string newAgentsMessage;
+		{
+		boost::unique_lock<boost::mutex> lock(mutex_new_agents_message);
+		if (!new_agents_message.empty()) {
+			newAgentsMessage = CommsimSerializer::makeNewAgents(new_agents_message, std::vector<unsigned int>());
+			new_agents_message.clear();
+		}
+		}
+		if (!newAgentsMessage.empty()) {
+			//Add it.
+			insertSendBuffer(ns3Handler, newAgentsMessage);
+		}
 	}
 }
 
@@ -615,9 +735,7 @@ void sim_mob::Broker::processOutgoingData(timeslice now)
 		//Getting the string is easy:
 		BundleHeader header;
 		std::string message;
-		if (!CommsimSerializer::serialize_end(it->second, header, message)) {
-			throw std::runtime_error("Broker: Could not finalize serialization.");
-		}
+		CommsimSerializer::serialize_end(it->second, header, message);
 
 		//Forward to the given client.
 		//TODO: We can add per-client routing here.
@@ -750,7 +868,8 @@ Entity::UpdateStatus sim_mob::Broker::update(timeslice now)
 	//step-1 : Create/start the thread if this is the first frame.
 	//TODO: transfer this to frame_init
 	if (now.frame() == 0) {
-		connection.start(2);  //Not profiled; this only happens once.
+		//Not profiled; this only happens once.
+		connection.start(ConfigManager::GetInstance().FullConfig().system.simulation.commsim.numIoThreads);
 	}
 
 	if (EnableDebugOutput) {

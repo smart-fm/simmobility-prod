@@ -22,31 +22,31 @@ class BusStop;
 namespace medium {
 class BusDriver;
 
-enum MakeDecisions{
-	MSG_DECISION_WAITINGPERSON_BOARDING = 6000000,
-	MSG_DECISION_PASSENGER_ALIGHTING = 6000001
+enum PublicTransitMessage {
+	BOARD_BUS = 6000000,
+	ALIGHT_BUS,
+	BUS_ARRIVAL,
+	BUS_DEPARTURE
 };
 
 /**
- * Subclass wraps a bus driver into message so as to make boarding decision.
- * This is to allow it to function as an message callback parameter.
+ * Message holding a pointer to BusStop
  */
-class BoardingMessage : public messaging::Message {
+class BusStopMessage : public messaging::Message {
 public:
-	BoardingMessage(BusDriver* driver):busDriver(driver){;}
-	virtual ~BoardingMessage() {}
-	BusDriver* busDriver;
-};
-
-/**
- * Subclass wraps a bus stop into message so as to make alighting decision.
- * This is to allow it to function as an message callback parameter.
- */
-class AlightingMessage : public messaging::Message {
-public:
-	AlightingMessage(const BusStop* stop):nextStop(stop){;}
-	virtual ~AlightingMessage() {}
+	BusStopMessage(const BusStop* stop):nextStop(stop){}
+	virtual ~BusStopMessage() {}
 	const BusStop* nextStop;
+};
+
+/**
+ * Message holding a pointer to busDriver
+ */
+class BusDriverMessage : public messaging::Message {
+public:
+	BusDriverMessage(BusDriver* busDriver):busDriver(busDriver) {}
+	virtual ~BusDriverMessage() {}
+	BusDriver* busDriver;
 };
 }
 }

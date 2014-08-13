@@ -9,9 +9,12 @@
  */
 
 #pragma once
+#include <boost/pool/pool_alloc.hpp>
 #include <boost/unordered_map.hpp>
-
+#include <map>
+#include <sstream>
 #include "behavioral/lua/PredayLuaProvider.hpp"
+#include "CalibrationStatistics.hpp"
 #include "params/PersonParams.hpp"
 #include "PredayClasses.hpp"
 #include "database/PopulationSqlDao.hpp"
@@ -23,7 +26,7 @@ namespace medium {
 
 /**
  * Class for pre-day behavioral system of models.
- * Invokes behavior models in a sequence as specified by the system of models.
+ * Invokes behavior models in a sequence as specified by the system of models for 1 person.
  * Handles dependencies between models.
  * The models specified by modelers in an external scripting language are invoked via this class.
  *
@@ -35,7 +38,7 @@ class PredaySystem {
 private:
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
-	typedef boost::unordered_map<int, std::vector<long> > ZoneNodeMap;
+	typedef boost::unordered_map<int, std::vector<ZoneNodeParams*> > ZoneNodeMap;
 	typedef std::deque<Tour*> TourList;
 	typedef std::deque<Stop*> StopList;
 
@@ -168,7 +171,24 @@ private:
 	 * @param nodes the list of nodes
 	 * @returns a random element of the list
 	 */
-	long getRandomNodeInZone(std::vector<long>& nodes);
+	long getRandomNodeInZone(const std::vector<ZoneNodeParams*>& nodes) const;
+
+	/**
+	 * returns first element from the list of nodes
+	 * Always returning the first element helps to minimize the number of distinct
+	 * ODs for pathset generation
+	 * @param nodes the list of nodes
+	 * @returns first element of the list
+	 */
+	long getFirstNodeInZone(const std::vector<ZoneNodeParams*>& nodes) const;
+
+	/**
+	 * constructs trip chain from predictions for a person
+	 * @param zoneNodeMap zone to nodes mapping
+	 * @param scale number of trip chains to be generated for this person
+	 * @param outTripChain output list (trip chain) to be constructed
+	 */
+	void constructTripChains(const ZoneNodeMap& zoneNodeMap, long scale, std::list<TripChainItemParams>& outTripChain);
 
 	/**
 	 * Person specific parameters
@@ -208,12 +228,7 @@ private:
     /**
      * Data access objects for mongo
      */
-    boost::unordered_map<std::string, db::MongoDao*> mongoDao;
-
-    /**
-     * Data access objects to write trip chains
-     */
-    TripChainSqlDao& tripChainDao;
+    std::map<std::string, db::MongoDao*> mongoDao;
 
     /**
      * used for logging messages
@@ -224,8 +239,7 @@ public:
 	PredaySystem(PersonParams& personParams,
 			const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 			const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
-			const boost::unordered_map<std::string, db::MongoDao*>& mongoDao,
-			TripChainSqlDao& tripChainDao);
+			const std::map<std::string, db::MongoDao*>& mongoDao);
 	virtual ~PredaySystem();
 
 	/**
@@ -239,9 +253,36 @@ public:
 	void outputPredictionsToMongo();
 
 	/**
+	 * Invokes tour mode-destination models for computing logsums
+	 * Updates the logsums in personParams
+	 */
+	void computeLogsums();
+
+	/**
+	 * Writes the logsums to mongo
+	 */
+	void updateLogsumsToMongo();
+
+	/**
 	 * Converts predictions to Trip chains and writes them off to PostGreSQL
 	 */
-	void outputTripChainsToPostgreSQL(ZoneNodeMap& zoneNodeMap);
+	void outputTripChainsToPostgreSQL(const ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao);
+
+	/**
+	 * Converts predictions to Trip chains and writes them off to the given stringstream
+	 */
+	void outputTripChainsToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& tripChainDao);
+
+	/**
+	 * Prints logs for person in console
+	 */
+	void printLogs();
+
+	/**
+	 * updates statsCollector with the stats for this person
+	 * @param statsCollector statistics collector to be updated
+	 */
+	void updateStatistics(CalibrationStatistics& statsCollector) const;
 };
 
 } // end namespace medium

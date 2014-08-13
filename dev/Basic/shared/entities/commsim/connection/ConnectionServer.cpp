@@ -7,6 +7,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/bind.hpp>
 
+#include "entities/commsim/connection/CloudHandler.hpp"
 #include "entities/commsim/connection/ConnectionHandler.hpp"
 #include "entities/commsim/connection/WhoAreYouProtocol.hpp"
 #include "logging/Log.hpp"
@@ -37,14 +38,29 @@ void sim_mob::ConnectionServer::start(unsigned int numThreads)
 	for(unsigned int i=0; i<numThreads; i++) {
 	  threads.create_thread(boost::bind(&boost::asio::io_service::run, &io_service));
 	}
+
+	//NOTE: Always print this, even if output is disabled.
+	std::cout << "Accepting clients on " <<numThreads <<" threads.\n";
 }
+
+
+boost::shared_ptr<CloudHandler> sim_mob::ConnectionServer::connectToCloud(const std::string& host, int port)
+{
+	//Make and track a new session pointer.
+	boost::shared_ptr<CloudHandler> conn(new CloudHandler(io_service, broker, host, port));
+	{
+	boost::lock_guard<boost::mutex> lock(knownCloudConnectionsMUTEX);
+	knownCloudConnections.push_back(conn);
+	}
+
+	boost::asio::async_connect(conn->socket, conn->getResolvedIterator(), boost::bind(&ConnectionServer::handle_cloud_connect, this, conn, boost::asio::placeholders::error));
+	return conn;
+}
+
 
 
 void sim_mob::ConnectionServer::creatSocketAndAccept()
 {
-	// Start an accept operation for a new connection.
-	std::cout << "Accepting..." <<std::endl; //NOTE: Always print this, even if output is disabled.
-
 	//Make and track a new session pointer.
 	boost::shared_ptr<ConnectionHandler> conn(new ConnectionHandler(io_service, broker));
 	{
@@ -66,8 +82,8 @@ void sim_mob::ConnectionServer::handle_accept(boost::shared_ptr<ConnectionHandle
 		return;
 	}
 
-	//Otherwise, handle the new connection and then continue the cycle.
-	std::cout<< "Accepted a connection\n";  //NOTE: Always print this, even if output is disabled.
+	//NOTE: Always print this, even if output is disabled.
+	std::cout<< "Accepted a connection.\n";
 
 	//Turn off Nagle's algorithm; it's slow on small packets.
 	conn->socket.set_option(boost::asio::ip::tcp::no_delay(true));
@@ -81,6 +97,24 @@ void sim_mob::ConnectionServer::handle_accept(boost::shared_ptr<ConnectionHandle
 	//Continue; accept the next connection.
 	creatSocketAndAccept();
 }
+
+
+void sim_mob::ConnectionServer::handle_cloud_connect(boost::shared_ptr<CloudHandler> conn, const boost::system::error_code& e)
+{
+	if (e) {
+		std::cout<< "Failed to connect to the cloud: " <<e.message() << std::endl;  //NOTE: Always print this, even if output is disabled.
+		return;
+	}
+
+	//Turn off Nagle's algorithm; it's slow on small packets.
+	conn->socket.set_option(boost::asio::ip::tcp::no_delay(true));
+
+	//Inform the Broker that a new connection is available.
+	broker.onNewCloudConnection(conn);
+
+}
+
+
 
 
 

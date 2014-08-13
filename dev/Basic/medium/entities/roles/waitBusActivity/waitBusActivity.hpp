@@ -20,10 +20,6 @@ class WaitBusActivityBehavior;
 class WaitBusActivityMovement;
 class BusDriver;
 
-enum Decision {
-	NO_DECISION, BOARD_BUS, ALIGHT_BUS
-};
-
 /**
  * A medium-term WaitBusActivity.
  * \author Seth N. Hetu
@@ -32,26 +28,21 @@ enum Decision {
 class WaitBusActivity: public sim_mob::Role {
 public:
 
-	explicit WaitBusActivity(Agent* parent, MutexStrategy mtxStrat,
+	explicit WaitBusActivity(Person* parent, MutexStrategy mtxStrat,
 			sim_mob::medium::WaitBusActivityBehavior* behavior = nullptr,
-			sim_mob::medium::WaitBusActivityMovement* movement = nullptr);
+			sim_mob::medium::WaitBusActivityMovement* movement = nullptr,
+			std::string roleName = std::string("WaitBusActivity_"),
+			Role::type roleType = Role::RL_WAITBUSACTITITY);
 
 	virtual ~WaitBusActivity() {
 	}
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
-	virtual void make_frame_tick_params(timeslice now) {
-		throw std::runtime_error(
-				"make_frame_tick_params not implemented in WaitBusActivity.");
-	}
-	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() {
-		throw std::runtime_error(
-				"getSubscriptionParams not implemented in WaitBusActivity.");
-	}
+	virtual void make_frame_tick_params(timeslice now) {}
 
-	Decision getDecision();
-	void setDecision(Decision decision);
+	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
+
 	void setStop(sim_mob::BusStop* busStop);
 
 	/**
@@ -76,6 +67,13 @@ public:
 	virtual void HandleParentMessage(messaging::Message::MessageType type,
 			const messaging::Message& message);
 
+	bool canBoardBus() const {
+		return boardBus;
+	}
+
+	void setBoardBus(bool boardBus) {
+		this->boardBus = boardBus;
+	}
 
 private:
 	friend class WaitBusActivityBehavior;
@@ -85,8 +83,8 @@ private:
 	unsigned int waitingTime;
 	/**pointer to waiting bus stop*/
 	BusStop* stop;
-	/**decision result*/
-	Decision decision;
+	/**flag to indicate whether the waiting person has decided to board or not*/
+	bool boardBus;
 };
 }
 }

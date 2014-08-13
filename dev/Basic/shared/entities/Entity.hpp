@@ -103,7 +103,7 @@ public:
 	virtual unsigned int getStartTime() const { return startTime; }
 
 	// inform parent to cut off connection with it if necessary
-	virtual void unregisteredChild(Entity* child = nullptr) {;}
+	virtual void unregisteredChild(Entity* child = nullptr) {}
 
         
 

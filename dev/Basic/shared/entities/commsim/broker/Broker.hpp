@@ -34,17 +34,12 @@ namespace sim_mob {
 class Agent;
 struct AgentInfo;
 class Publisher;
+class CloudHandler;
 class ConnectionHandler;
 class ConnectionServer;
 class ClientHandler;
 class BrokerBlocker;
-
-
-namespace {
-//TEMPORARY: I just need an easy way to disable output for now. This is *not* the ideal solution.
-const bool EnableDebugOutput = false;
-} //End unnamed namespace
-
+class OpaqueSendMessage;
 
 
 ///A typedef-container for our ClientList container type.
@@ -71,6 +66,9 @@ public:
 	virtual void onNewConnection(boost::shared_ptr<ConnectionHandler> cnnHandler) = 0;
 	virtual void onMessageReceived(boost::shared_ptr<ConnectionHandler> cnnHandler, const char* msg, unsigned int len) = 0;
 
+	//Used by: CloudConnectionHandler when a new cloud connection resolves.
+	virtual void onNewCloudConnection(boost::shared_ptr<CloudHandler> cnnHandler) = 0;
+
 	//Used by ClientRegistration when a ClientHandler object has been created. Failing to save the ClientHandler here will lead to its destruction.
 	virtual void insertClientList(const std::string& clientID, const std::string& cType, boost::shared_ptr<sim_mob::ClientHandler>& clientHandler) = 0;
 	virtual std::map<const Agent*, AgentInfo>& getRegisteredAgents() = 0;
@@ -86,6 +84,14 @@ public:
 
 	//Called by the DriverCommFacet.
 	virtual void registerEntity(sim_mob::Agent* agent) = 0;
+
+	//Connect/disconnect cloud (Tcp) entities.
+	virtual void cloudConnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port) = 0;
+	virtual void cloudDisconnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port) = 0;
+
+	//Called by the OpaqueSendHandler to remove any cloud IDs from the toIds array.
+	//virtual void opaqueSendCloud(boost::shared_ptr<ConnectionHandler> handler, const OpaqueSendMessage& msg, bool useNs3) = 0;
+	virtual void sendToCloud(boost::shared_ptr<ConnectionHandler> conn, const std::string& cloudId, const OpaqueSendMessage& msg, bool useNs3) = 0;
 };
 
 
@@ -109,6 +115,13 @@ public:
 	//Known client types: android, ns-3, by ID string.
 	static const std::string ClientTypeAndroid;
 	static const std::string ClientTypeNs3;
+
+	//Known opaque message formats.
+	static const std::string OpaqueFormatBase64Esc;
+
+	//Known opaque message techs.
+	static const std::string OpaqueTechDsrc; ///<Used for android-to-android communication.
+	static const std::string OpaqueTechLte; ///<Used for android-to-cloud communication.
 
 protected:
 	//Event ID: new Android client added. (Couldn't find a good place to put this).
@@ -154,6 +167,9 @@ protected:
 		ConnClientStatus() : total(0), done(0) {}
 	};
 
+	///A list of cloud connections by ConnectionHandler.
+	typedef std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, boost::shared_ptr<CloudHandler> > CloudConnections;
+
 private:
 	///List of all known tokens and their associated ConnectionHandlers.
 	///This list is built over time, as new connections/Agents are added (ConnectionHandlers should never be removed).
@@ -178,6 +194,17 @@ private:
 	std::map<const Agent*, AgentInfo> preRegisterAgents;
 	boost::mutex mutex_pre_register_agents; ///<Mutex for locking preRegisterAgents.
 
+	///List of all known cloud connections, by id (where id= "host:port", and id functions as a "client Id" for OpaqueSend/Receive).
+	///NOTE: We can't use our normal 1-tick delay method here, because most clients will "Send" directly after "Connect".
+	std::map<std::string, CloudConnections> cloudConnections;
+	boost::mutex mutex_cloud_connections; ///<Mutex for locking cloudConnections.
+
+	///Set of cloud connections that are known to have completed their connection.
+	///Check this set before sending data over a CloudConnection.
+	std::set< boost::shared_ptr<CloudHandler> > verifiedCloudConnections;
+	boost::mutex mutex_verified_cloud_connections; ///<Mutex for locking verifiedCloudConnections.
+	boost::condition_variable COND_VAR_VERIFIED_CLOUD_CONNECTIONS; ///<For signaling that the verified list has changed.
+
 
 protected:
 	///Lookup for message handlers by type.
@@ -193,12 +220,8 @@ protected:
 	///List of NS-3 clients that have completed registration with the Broker. (Note: There should only be zero or one).
 	ClientList::Type registeredNs3Clients;
 
-
 	///Manages all incoming/outgoing TCP connections. Creates a new ClientHandler for each one, and may multiplex ConnectionHandlers.
 	ConnectionServer connection;
-
-	///Broker's Publisher
-	//BrokerPublisher publisher;
 
 	//Publishes an event when a client is registered with the broker
 	ClientRegistrationPublisher registrationPublisher;
@@ -222,6 +245,10 @@ protected:
 	///  that have already sent the CLIENT_MESSAGES_DONE message. It is locked by its associated mutex.
 	std::map<boost::shared_ptr<sim_mob::ConnectionHandler>, ConnClientStatus> clientDoneChecklist;
 	boost::mutex mutex_client_done_chk;
+
+	///New agents to be sent this time tick (we need to multiplex them to avoid overwhelming the message count).
+	std::vector<unsigned int> new_agents_message;
+	boost::mutex mutex_new_agents_message;
 
 	//Broker singleton.
 	//TODO: This is not really a singleton; we set/get it in various places. But we need a way of communicating the Broker to the
@@ -364,6 +391,7 @@ protected:
 	 */
 	void unRegisterEntity(sim_mob::Agent * agent);
 
+
 	///Add a ClientRegistration request to the list of waiting Android or NS3 registrations, based on the clientType
 	void insertClientWaitingList(std::string clientType, ClientRegistrationRequest request, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn);
 
@@ -372,14 +400,36 @@ protected:
 	 */
 	void saveConnByToken(const std::string& token, boost::shared_ptr<sim_mob::ConnectionHandler> newConn);
 
+	/**
+	 * Retrieve the cloud handler associated with this connection/ID
+	 */
+	boost::shared_ptr<CloudHandler> getCloudHandler(const std::string& id, boost::shared_ptr<ConnectionHandler> conn);
+
+	/**
+	 * Called internally to send a *single* item to the cloud.
+	 */
+	void sendToCloud(boost::shared_ptr<ConnectionHandler> conn, const std::string& cloudId, const OpaqueSendMessage& msg, bool useNs3);
+
 
 public:
 	///Register an Agent with the Broker. This will add it to the registeredAgents list.
 	///This function is called by the DriverCommFacet to inform the Broker that a valid Agent now exists.
 	virtual void registerEntity(sim_mob::Agent* agent);
 
+	///A client is requesting a connection to a given host, and will likely soon send/receive data.
+	virtual void cloudConnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port);
+
+	///A client is informing the Broker that it will no longer send/receive data to/from the given host.
+	virtual void cloudDisconnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port);
+
+	///An OpaqueSendHandler is asking the Broker to handle all cloud messages. The OpaqueHandler must then ignore these messages.
+	//virtual void opaqueSendCloud(boost::shared_ptr<ConnectionHandler> handler, const OpaqueSendMessage& msg, bool useNs3);
+
 	///Callback function for when a new ConnectionHandler accepts its first incoming client connection.
 	virtual void onNewConnection(boost::shared_ptr<ConnectionHandler> cnnHandler);
+
+	///Callback function for when a new CloudHandler is first successfully connected to the cloud server.
+	virtual void onNewCloudConnection(boost::shared_ptr<CloudHandler> cnnHandler);
 
 	///Callback function executed upon message arrival. Implements the BrokerBase interface.
 	///NOTE: msg *must* be copied; the pointer will be reused immediately after this function returns.
@@ -414,7 +464,8 @@ public:
 	virtual boost::shared_ptr<sim_mob::ClientHandler> getNs3ClientHandler() const;
 
 public:
-	//TODO: Not sustainable, but works for now.
+	///Singleton methods for specifying the Broker. Note that multiple Brokers will be supported eventually,
+	///  so this is not sustainable in the long run.
 	static void SetSingleBroker(BrokerBase* broker);
 	static BrokerBase* GetSingleBroker();
 

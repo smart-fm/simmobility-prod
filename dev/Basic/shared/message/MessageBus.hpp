@@ -107,7 +107,7 @@ namespace sim_mob {
 
             /**
              * Posts a message on the current thread output queue.
-             * The message will be posted& processed on the right queue
+             * The message will be posted & processed on the right queue
              * after the DistributeMessages() and ThreadDispatchMessages() calls.
              * @param target of the message.
              * @param type of the message.
@@ -140,6 +140,17 @@ namespace sim_mob {
              * @param message to send.
              */
             static void SendInstantaneousMessage(MessageHandler* target, Message::MessageType type, MessagePtr message);
+
+            /**
+             * This function verifies the thread context of the sender and the
+             * receiver. Invokes SendInstantaneousMessage() if the contexts
+             * are the same; invokes PostMessage() otherwise.
+             *
+             * @param target of the message.
+             * @param type of the message.
+             * @param message to send.
+             */
+            static void SendMessage(MessageHandler* target, Message::MessageType type, MessagePtr message, bool processOnMainThread = false);
 
             /**
              * Subscribes to the given event. 

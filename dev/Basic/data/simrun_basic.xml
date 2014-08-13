@@ -245,7 +245,7 @@
             
             <!-- Implementation to use for the Aura Manager. -->
             <!-- Values include: simtree, rdu, rstar (default) -->
-            <aura_manager_impl value="simtree"/>
+            <aura_manager_impl value="rstar"/>
             
             <!-- Strategy for adding new Agents to Workers. -->
             <!-- "roundrobin" assigns in order. (default) -->

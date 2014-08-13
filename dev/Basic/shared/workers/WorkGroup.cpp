@@ -26,6 +26,7 @@
 #include "geospatial/Link.hpp"
 #include "geospatial/PathSetManager.hpp"
 #include "logging/Log.hpp"
+#include "message/MessageBus.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "workers/Worker.hpp"
 
@@ -505,12 +506,13 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 			assignConfluxToWorkerRecursive((*confluxes.begin()), (*i), numConfluxesPerWorker);
 		}
 	}
-	//confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
 	if(confluxes.size() > 0) {
-		//There can be up to (workers.size() - 1) confluxes for which the parent worker is unassigned.
-		//Assign these to the last worker which has all its upstream confluxes.
+		//There can be up to (workers.size() - 1) confluxes for which the parent
+		//worker is unassigned. Assign these to the last worker which has all
+		//its upstream confluxes.
 		sim_mob::Worker* worker = workers.back();
-		for(std::set<sim_mob::Conflux*>::iterator i = confluxes.begin(); i!=confluxes.end(); i++) {
+		for(std::set<sim_mob::Conflux*>::iterator i = confluxes.begin();
+				i!=confluxes.end(); i++) {
 			if (worker->beginManagingConflux(*i)) {
 				(*i)->setParentWorker(worker);
 				(*i)->currWorkerProvider = worker;
@@ -519,12 +521,17 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 		confluxes.clear();
 	}
 
-	for(std::vector<Worker*>::iterator iWorker = workers.begin(); iWorker != workers.end(); iWorker++) {
-		for(std::set<Conflux*>::iterator iConflux = (*iWorker)->managedConfluxes.begin(); iConflux != (*iWorker)->managedConfluxes.end(); iConflux++) {
+	for(std::vector<Worker*>::iterator workerIt = workers.begin();
+			workerIt != workers.end(); workerIt++) {
+		for(std::set<Conflux*>::iterator confluxIt = (*workerIt)->managedConfluxes.begin();
+				confluxIt != (*workerIt)->managedConfluxes.end(); confluxIt++) {
 			// begin managing properties of the conflux
-			(*iWorker)->beginManaging((*iConflux)->getSubscriptionList());
+			(*workerIt)->beginManaging((*confluxIt)->getSubscriptionList());
 		}
-		std::cout<< "Worker "<< (*iWorker) << " Conflux size: "<< (*iWorker)->managedConfluxes.size()<<std::endl;
+		std::cout
+				<< "Worker "<< (*workerIt)
+				<< " Conflux size: "<< (*workerIt)->managedConfluxes.size()
+				<< std::endl;
 	}
 }
 

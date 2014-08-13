@@ -188,7 +188,8 @@ end
     @param amenities close to the unit.
 ]]
 function calculateHedonicPrice(unit, building, postcode, amenities)
-    if amenities ~= nil then
+    if unit ~= nil and building ~= nil and
+       postcode ~= nil and amenities ~= nil then
         return (amenities.hdb) and 
                 calculateHDB_HedonicPrice(unit, building, postcode, amenities) or
                 calculatePrivate_HedonicPrice(unit, building, postcode, amenities);
@@ -238,26 +239,24 @@ function calulateUnitExpectations (unit, timeOnMarket, building, postcode, ameni
     local expectations = {}
     -- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
     local hedonicPrice = (calculateHedonicPrice(unit, building, postcode, amenities) * sqfToSqm(unit.floorArea))/1000
-    local targetPrice = hedonicPrice -- IMPORTANT : this should be the hedonic value
-    local askingPrice = 1000 -- starting point for price search
-    local a = 3000 -- ratio of events expected by the seller per (considering that the price is 0)
-    local b = 1 -- Importance of the price for seller.
-    local cost = 0.1 -- Cost of being in the market
-    for i=1,timeOnMarket do
-        entry = ExpectationEntry()
-        entry.hedonicPrice = hedonicPrice
-        entry.askingPrice = findMaxArg(calculateExpectation,
-                askingPrice, targetPrice, a, b, cost, 0.001, 10000)
-        entry.targetPrice = calculateExpectation(entry.askingPrice, targetPrice, a, b, cost);
-        if Math.nan(entry.targetPrice) or Math.nan(entry.askingPrice) then
-           entry.hedonicPrice = 0
-           entry.targetPrice = 0
-           entry.askingPrice = 0
+    if (hedonicPrice > 0) then
+        local targetPrice = hedonicPrice -- IMPORTANT : this should be the hedonic value
+        local a = 0 -- ratio of events expected by the seller per (considering that the price is 0)
+        local b = 1 -- Importance of the price for seller.
+       	local cost = 0.0 -- Cost of being in the market
+       	local x0 = 0 -- starting point for price search
+        local crit = 0.0001 -- criteria
+        local maxIterations = 20 --number of iterations 
+        for i=1,timeOnMarket do
+            a = 1.2 * targetPrice
+            x0 = 1.19 * targetPrice     
+            entry = ExpectationEntry()
+            entry.hedonicPrice = hedonicPrice
+            entry.askingPrice = findMaxArgConstrained(calculateExpectation, x0, targetPrice, a, b, cost, crit, maxIterations, targetPrice, 1.2 * targetPrice )
+            entry.targetPrice = calculateExpectation(entry.askingPrice, targetPrice, a, b, cost );
+            targetPrice = entry.targetPrice;
+            expectations[i] = entry
         end
-        --print ("Hedonic Price: " .. hedonicPrice) 
-        --print ("Hedonic Price: " .. hedonicPrice .. " PRICE: " .. entry.price .. " EXPECTATION: " .. entry.expectation) 
-        targetPrice = entry.targetPrice;
-        expectations[i] = entry
     end
     return expectations
 end
@@ -276,9 +275,11 @@ end
 ]]
 function calculateSpeculation (entry, unitBids)
     local maximumBids = 20
-    local a = 800000
-    local b = 0.3
-    return (maximumBids-unitBids) * entry.askingPrice / (a - b * entry.askingPrice)
+    local a = 800000 --a is the ratio of events expected by the seller.
+    local b = 0.3    --b is the importance of the price for seller.
+    local c = 1000   --c is the offset of the speculation price in thousands of dollars. 
+
+    return (maximumBids-unitBids) * entry.askingPrice / (a - b * entry.askingPrice) * c
 end
 
 --[[
@@ -306,7 +307,7 @@ function calculateWP (household, unit, tazStats, amenities)
     local x=  ((b1 * sqfToSqm(unit.floorArea) * Math.ln(household.size))                          --  b1 * Area_Per_Unit  *ln(HouseHold_Size) + 
            +(b2 * ((household.income / 1000) / household.size) * (tazStats.hhAvgIncome / 1000))   --  b2 * HouseHold_Income / HouseHold_Size * Zone_Average_Income +
            +(b3 * (amenities.distanceToCBD) * hasCar)                                             --  b3 * Distance_to_CBD*(Dummie_if_car) +
-           +(b4 * (amenities.distanceToCBD) * (1-hasCar))) *1000                                  --  b4 * Distance_to_CBD*(1-Dummie_if_car)
+           +(b4 * (amenities.distanceToCBD) * (1-hasCar)))                                        --  b4 * Distance_to_CBD*(1-Dummie_if_car)
     --print("WP: " .. x)
     --Area_Per_Unit, HouseHold_Size,HouseHold_Income,Distance_to_CBD, Zone_Average_Income, HasCar, WP
     --print ("HH_ID: " .. household.id .."," .. unit.floorArea..",".. household.size .. "," .. household.income .. ","..amenities.distanceToCBD .. ","..tazStats.hhAvgIncome .. ",".. hasCar .."," .. x)

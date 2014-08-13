@@ -40,13 +40,13 @@ namespace sim_mob {
              */
             class CurrentBiddingEntry {
             public:
-                CurrentBiddingEntry(const HousingMarket::Entry* biddingEntry = nullptr, const double wp = 0);
+                CurrentBiddingEntry(const BigSerial unitId = INVALID_ID, const double wp = 0);
                 ~CurrentBiddingEntry();
 
                 /**
                  * Getters & setters 
                  */
-                const HousingMarket::Entry* getEntry() const;
+                BigSerial getUnitId() const;
                 double getWP() const;
                 long int getTries() const;
                 bool isValid() const;
@@ -58,7 +58,7 @@ namespace sim_mob {
                 void incrementTries(int quantity = 1);
                 void invalidate();
             private:
-                const HousingMarket::Entry* entry;
+                BigSerial unitId;
                 double wp; // willingness to pay.
                 long int tries; // number of bids sent to the seller.
                 double lastSurplus; // value of the last surplus

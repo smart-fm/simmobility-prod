@@ -28,26 +28,19 @@ class Driver;
 class Passenger: public sim_mob::Role {
 public:
 
-	explicit Passenger(Agent* parent, MutexStrategy mtxStrat,
+	explicit Passenger(Person* parent, MutexStrategy mtxStrat,
 			sim_mob::medium::PassengerBehavior* behavior = nullptr,
-			sim_mob::medium::PassengerMovement* movement = nullptr);
+			sim_mob::medium::PassengerMovement* movement = nullptr,
+			std::string roleName = std::string("Passenger_"),
+			Role::type roleType = Role::RL_PASSENGER);
 
 	virtual ~Passenger() {
 	}
 
 	//Virtual overrides
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
-	virtual void make_frame_tick_params(timeslice now) {
-		throw std::runtime_error(
-				"make_frame_tick_params not implemented in Passenger.");
-	}
-	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() {
-		throw std::runtime_error(
-				"getSubscriptionParams not implemented in Passenger.");
-	}
-
-	void setDecision(Decision decision);
-	Decision getDecision();
+	virtual void make_frame_tick_params(timeslice now) {}
+	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	void setDriver(const Driver* driver);
 	const Driver* getDriver() const;
@@ -66,6 +59,13 @@ public:
 	virtual void HandleParentMessage(messaging::Message::MessageType type,
 			const messaging::Message& message);
 
+	bool canAlightBus() const {
+		return alightBus;
+	}
+
+	void setAlightBus(bool alightBus) {
+		this->alightBus = alightBus;
+	}
 
 private:
 	friend class PassengerBehavior;
@@ -74,8 +74,8 @@ private:
 	/** Driver who is driving the vehicle of this passenger*/
 	const Driver* driver;
 
-	/**decision result*/
-	Decision decision;
+	/**flag to indicate whether the passenger has decided to alight the bus*/
+	bool alightBus;
 };
 
 }

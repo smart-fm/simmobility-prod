@@ -72,10 +72,9 @@ public:
 	void setLatVelocity(double value);   ///<Set the lateral velocity.
 	void setAcceleration(double value);  ///<Set the forward acceleration.
 	// for path-mover splitting purpose
-	void setCurrPosition(DPoint& currPosition);
+	void setCurrPosition(DPoint currPosition);
 	const DPoint& getCurrPosition() const;
 
-	void moveFwd_med(double amt);
 	void actualMoveToNextSegmentAndUpdateDir_med();		//~melani for mid-term
 	void moveLat(double amt);            ///<Move this car laterally. NOTE: This will _add_ the amt to the current value.
 	void resetLateralMovement();         ///<Put this car back in the center of the current lane.

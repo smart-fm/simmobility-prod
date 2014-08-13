@@ -5,183 +5,20 @@
 #include "ParseConfigFile.hpp"
 
 #include <sstream>
-
-#include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <xercesc/dom/DOM.hpp>
-#include <xercesc/sax/HandlerBase.hpp>
-#include <xercesc/util/XMLString.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
 
 #include "conf/RawConfigParams.hpp"
-#include "geospatial/Point2D.hpp"
-#include "util/GeomHelpers.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-
-using namespace sim_mob;
-using namespace xercesc;
-
+#include "geospatial/Point2D.hpp"
+#include "util/GeomHelpers.hpp"
+#include "util/XmlParseHelper.hpp"
 
 namespace {
-//Helper: turn a Xerces error message into a string.
-std::string TranscodeString(const XMLCh* str) {
-	char* raw = XMLString::transcode(str);
-	std::string res(raw);
-	XMLString::release(&raw);
-	return res;
-}
-
-//Helper: make sure we actually have an element
-DOMElement* NodeToElement(DOMNode* node) {
-	DOMElement* res = dynamic_cast<DOMElement*>(node);
-	if (!res) {
-		throw std::runtime_error("DOMNode is expected to be a DOMElement.");
-	}
-	return res;
-}
-
-//Helper: retrieve child elements without leaking memory
-std::vector<DOMElement*> GetElementsByName(DOMElement* node, const std::string& key, bool required=false) {
-	XMLCh* keyX = XMLString::transcode(key.c_str());
-	DOMNodeList* res = node->getElementsByTagName(keyX);
-	XMLString::release(&keyX);
-
-	if (res->getLength()==0 && required) {
-		throw std::runtime_error("Elements expected, but none returned.");
-	}
-
-	std::vector<DOMElement*> resV;
-	for (XMLSize_t i=0; i<res->getLength(); i++) {
-		resV.push_back(NodeToElement(res->item(i)));
-	}
-
-	return resV;
-}
-
-//Helper: retrieve a single element; optionally required.
-DOMElement* GetSingleElementByName(DOMElement* node, const std::string& key, bool required=false) {
-	XMLCh* keyX = XMLString::transcode(key.c_str());
-	DOMNodeList* res = node->getElementsByTagName(keyX);
-	XMLString::release(&keyX);
-
-	//Check.
-	if (res->getLength()>1) {
-		throw std::runtime_error("Error: single element expected, but returned more than 1.");
-	} else if (res->getLength()==1) {
-		return NodeToElement(res->item(0));
-	} else if (required) {
-		throw std::runtime_error("Error: single element expected, but returned zero.");
-	}
-
-	return nullptr;
-}
-
-//Helper: retrieve an attribute
-DOMAttr* GetNamedAttribute(DOMElement* node, const std::string& key, bool required=false) {
-	if (!node) {
-		return nullptr;
-	}
-
-	XMLCh* keyX = XMLString::transcode(key.c_str());
-	DOMNode* res= node->getAttributes()->getNamedItem(keyX);
-	XMLString::release(&keyX);
-
-	//Check.
-	if (!res) {
-		if (required) {
-			throw std::runtime_error("Error: attribute expected, but none found.");
-		} else {
-			return nullptr;
-		}
-	}
-
-	DOMAttr* resAttr = dynamic_cast<DOMAttr*>(res);
-	if (!resAttr) {
-		throw std::runtime_error("Error: attribute expected, but couldn't be cast.");
-	}
-
-	return resAttr;
-}
-
-//Helper
-const XMLCh* GetAttributeValue(const DOMAttr* attr) {
-	if (!attr) {
-		return nullptr;
-	}
-	return attr->getNodeValue();
-}
-
-
-//Helper: Combined
-const XMLCh* GetNamedAttributeValue(DOMElement* node, const std::string& key, bool required=false) {
-	return GetAttributeValue(GetNamedAttribute(node, key, required));
-}
-
-
-//Helper: boolean stuff
-bool ParseBoolean(const XMLCh* srcX, bool* defValue) {
-	if (srcX) {
-		std::string src = TranscodeString(srcX);
-		std::transform(src.begin(), src.end(), src.begin(), ::tolower);
-		if (src=="true" || src=="yes") {
-			return true;
-		} else if (src=="false" || src=="no") {
-			return false;
-		}
-		throw std::runtime_error("Expected boolean value.");
-	}
-
-	//Wasn't found.
-	if (!defValue) {
-		throw std::runtime_error("Mandatory boolean variable; no default available.");
-	}
-	return *defValue;
-}
-
-//Helper: amount+value for time-granularities.
-unsigned int GetValueInMs(double amount, std::string units, unsigned int* defValue) {
-	//Handle plural
-	if (units=="second") { units="seconds"; }
-	if (units=="minute") { units="minutes"; }
-
-	//Detect errors
-	if (units.empty() || (units!="minutes" && units!="seconds" && units!="ms")) {
-		if (defValue) {
-			return *defValue;
-		} else {
-			throw std::runtime_error("Invalid units in parsing time granularity.");
-		}
-	}
-
-	//Reduce to ms
-    if (units == "minutes") {
-    	amount *= 60*1000;
-    }
-    if (units == "seconds") {
-    	amount *= 1000;
-    }
-
-    //Check for overflow:
-    unsigned int res = static_cast<unsigned int>(amount);
-    if (static_cast<double>(res) != amount) {
-    	Warn() <<"NOTE: Rounding value in ms from " <<amount <<" to " <<res <<"\n";
-    }
-
-    return res;
-}
-
-//Helper: Time units such as "10", "seconds"
-unsigned int ParseTimegranAsMs(const XMLCh* amountX, const XMLCh* unitsX, unsigned int* defValue) {
-	double amount = boost::lexical_cast<double>(TranscodeString(amountX));
-	std::string units = TranscodeString(unitsX);
-
-	return GetValueInMs(amount, units, defValue);
-}
-
-
 SystemParams::NetworkSource ParseNetSourceEnum(const XMLCh* srcX, SystemParams::NetworkSource* defValue) {
 	if (srcX) {
 		std::string src = TranscodeString(srcX);
@@ -199,7 +36,6 @@ SystemParams::NetworkSource ParseNetSourceEnum(const XMLCh* srcX, SystemParams::
 	}
 	return *defValue;
 }
-
 
 AuraManager::AuraManagerImplementation ParseAuraMgrImplEnum(const XMLCh* srcX, AuraManager::AuraManagerImplementation* defValue) {
 	if (srcX) {
@@ -221,7 +57,6 @@ AuraManager::AuraManagerImplementation ParseAuraMgrImplEnum(const XMLCh* srcX, A
 	return *defValue;
 }
 
-
 WorkGroup::ASSIGNMENT_STRATEGY ParseWrkGrpAssignEnum(const XMLCh* srcX, WorkGroup::ASSIGNMENT_STRATEGY* defValue) {
 	if (srcX) {
 		std::string src = TranscodeString(srcX);
@@ -239,7 +74,6 @@ WorkGroup::ASSIGNMENT_STRATEGY ParseWrkGrpAssignEnum(const XMLCh* srcX, WorkGrou
 	}
 	return *defValue;
 }
-
 
 MutexStrategy ParseMutexStrategyEnum(const XMLCh* srcX, MutexStrategy* defValue) {
 	if (srcX) {
@@ -259,7 +93,6 @@ MutexStrategy ParseMutexStrategyEnum(const XMLCh* srcX, MutexStrategy* defValue)
 	return *defValue;
 }
 
-
 Point2D ParsePoint2D(const XMLCh* srcX, Point2D* defValue) {
 	if (srcX) {
 		std::string src = TranscodeString(srcX);
@@ -269,58 +102,6 @@ Point2D ParsePoint2D(const XMLCh* srcX, Point2D* defValue) {
 	//Wasn't found.
 	if (!defValue) {
 		throw std::runtime_error("Mandatory Point2D variable; no default available.");
-	}
-	return *defValue;
-}
-
-
-int ParseInteger(const XMLCh* srcX, int* defValue) {
-	if (srcX) {
-		int value = 0;
-		try {
-			std::string src = TranscodeString(srcX);
-			value = boost::lexical_cast<int>(src);
-		} catch( boost::bad_lexical_cast const& ) {
-			throw std::runtime_error("Bad formatted source string for Integer parsing.");
-		}
-		return value;
-	}
-
-	//Wasn't found.
-	if (!defValue) {
-		throw std::runtime_error("Mandatory integer variable; no default available.");
-	}
-	return *defValue;
-}
-
-float ParseFloat(const XMLCh* srcX, float* defValue) {
-	if (srcX) {
-			std::string src = TranscodeString(srcX);
-			return boost::lexical_cast<float>(src);
-		}
-
-		//Wasn't found.
-		if (!defValue) {
-			throw std::runtime_error("Mandatory float variable; no default available.");
-		}
-		return *defValue;
-}
-
-unsigned int ParseUnsignedInt(const XMLCh* srcX, unsigned int* defValue) {
-	if (srcX) {
-		unsigned int value = 0;
-		try {
-			std::string src = TranscodeString(srcX);
-			value = boost::lexical_cast<unsigned int>(src);
-		} catch( boost::bad_lexical_cast const& ) {
-			throw std::runtime_error("Bad formatted source string for unsigned integer parsing.");
-		}
-		return value;
-	}
-
-	//Wasn't found.
-	if (!defValue) {
-		throw std::runtime_error("Mandatory unsigned integer variable; no default available.");
 	}
 	return *defValue;
 }
@@ -350,89 +131,18 @@ unsigned int ParseGranularitySingle(const XMLCh* srcX, unsigned int* defValue) {
 	return *defValue;
 }
 
-DailyTime ParseDailyTime(const XMLCh* srcX, DailyTime* defValue) {
-	if (srcX) {
-		return DailyTime(TranscodeString(srcX));
-	}
-
-	//Wasn't found.
-	if (!defValue) {
-		throw std::runtime_error("Mandatory integer variable; no default available.");
-	}
-	return *defValue;
-}
-
-
-
-std::string ParseString(const XMLCh* srcX, std::string* defValue) {
-	if (srcX) {
-		return TranscodeString(srcX);
-	}
-
-	//Wasn't found.
-	if (!defValue) {
-		throw std::runtime_error("Mandatory string variable; no default available.");
-	}
-
-	return *defValue;
-}
-
-std::string ParseNonemptyString(const XMLCh* srcX, std::string* defValue) {
-	std::string res = ParseString(srcX, defValue);
-	if (!res.empty()) {
-		return res;
-	}
-
-	//Wasn't found.
-	if (!defValue) {
-		throw std::runtime_error("Mandatory string variable; no default available. (Empty strings NOT allowed.)");
-	}
-	return *defValue;
-}
-
-
 //How to do defaults
-bool ParseBoolean(const XMLCh* src, bool defValue) {
-	return ParseBoolean(src, &defValue);
-}
-bool ParseBoolean(const XMLCh* src) { //No default
-	return ParseBoolean(src, nullptr);
-}
-int ParseInteger(const XMLCh* src, int defValue) {
-	return ParseInteger(src, &defValue);
-}
-int ParseInteger(const XMLCh* src) { //No default
-	return ParseInteger(src, nullptr);
-}
 Point2D ParsePoint2D(const XMLCh* src, Point2D defValue) {
 	return ParsePoint2D(src, &defValue);
 }
 Point2D ParsePoint2D(const XMLCh* src) { //No default
 	return ParsePoint2D(src, nullptr);
 }
-unsigned int ParseUnsignedInt(const XMLCh* src, unsigned int defValue) {
-	return ParseUnsignedInt(src, &defValue);
-}
-unsigned int ParseUnsignedInt(const XMLCh* src) { //No default
-	return ParseUnsignedInt(src, nullptr);
-}
-float ParseFloat(const XMLCh* src) {
-	return ParseFloat(src, nullptr);
-}
-float ParseFloat(const XMLCh* src, float defValue) {
-	return ParseFloat(src, &defValue);
-}
 unsigned int ParseGranularitySingle(const XMLCh* src, unsigned int defValue) {
 	return ParseGranularitySingle(src, &defValue);
 }
 unsigned int ParseGranularitySingle(const XMLCh* src) { //No default
 	return ParseGranularitySingle(src, nullptr);
-}
-DailyTime ParseDailyTime(const XMLCh* src, DailyTime defValue) {
-	return ParseDailyTime(src, &defValue);
-}
-DailyTime ParseDailyTime(const XMLCh* src) { //No default
-	return ParseDailyTime(src, nullptr);
 }
 SystemParams::NetworkSource ParseNetSourceEnum(const XMLCh* srcX, SystemParams::NetworkSource defValue) {
 	return ParseNetSourceEnum(srcX, &defValue);
@@ -458,102 +168,17 @@ MutexStrategy ParseMutexStrategyEnum(const XMLCh* srcX, MutexStrategy defValue) 
 MutexStrategy ParseMutexStrategyEnum(const XMLCh* srcX) {
 	return ParseMutexStrategyEnum(srcX, nullptr);
 }
-std::string ParseString(const XMLCh* src, std::string defValue) {
-	return ParseString(src, &defValue);
-}
-std::string ParseString(const XMLCh* src) { //No default
-	return ParseString(src, nullptr);
-}
-std::string ParseNonemptyString(const XMLCh* src, std::string defValue) {
-	return ParseNonemptyString(src, &defValue);
-}
-std::string ParseNonemptyString(const XMLCh* src) { //No default
-	return ParseNonemptyString(src, nullptr);
-}
-unsigned int ParseTimegranAsMs(const XMLCh* amount, const XMLCh* units, unsigned int defValue) {
-	return ParseTimegranAsMs(amount, units, &defValue);
-}
-unsigned int ParseTimegranAsMs(const XMLCh* amount, const XMLCh* units) { //No default
-	return ParseTimegranAsMs(amount, units, nullptr);
-}
-
-
-//TODO: Now we are starting to overlap...
-int ProcessValueInteger2(xercesc::DOMElement* node, int defVal)
-{
-	return ParseInteger(GetNamedAttributeValue(node, "value"), defVal);
-}
-
-//TODO: Same issue; needs to be easier access to these things.
-std::string ProcessValueString(xercesc::DOMElement* node)
-{
-	return ParseString(GetNamedAttributeValue(node, "value"));
-}
 
 const double MILLISECONDS_IN_SECOND = 1000.0;
 } //End un-named namespace
 
 
-sim_mob::ParseConfigFile::ParseConfigFile(const std::string& configFileName, RawConfigParams& result) : cfg(result), inFilePath(configFileName)
+sim_mob::ParseConfigFile::ParseConfigFile(const std::string& configFileName, RawConfigParams& result) : cfg(result), ParseConfigXmlBase(configFileName)
 {
-	ParseXmlAndProcess();
+	parseXmlAndProcess();
 }
 
-void sim_mob::ParseConfigFile::ParseXmlAndProcess()
-{
-	//NOTE: I think the order of destruction matters (parser must be listed last). ~Seth
-	InitXerces();
-	HandlerBase handBase;
-	XercesDOMParser parser;
-
-	//Attempt to parse it.
-	std::string errorMsg = ParseXmlFile(parser, dynamic_cast<ErrorHandler&>(handBase));
-
-	//If there's an error, throw it as an exception.
-	if (!errorMsg.empty()) {
-		throw std::runtime_error(errorMsg.c_str());
-	}
-
-	//Now process it.
-	ProcessXmlFile(parser);
-}
-
-void sim_mob::ParseConfigFile::InitXerces()
-{
-	//Xerces initialization.
-	try {
-		XMLPlatformUtils::Initialize();
-	} catch (const XMLException& error) {
-		throw std::runtime_error(TranscodeString(error.getMessage()).c_str());
-	}
-}
-
-std::string sim_mob::ParseConfigFile::ParseXmlFile(XercesDOMParser& parser, ErrorHandler& errorHandler)
-{
-	//Build a parser, set relevant properties on it.
-	parser.setValidationScheme(XercesDOMParser::Val_Always);
-	parser.setDoNamespaces(true); //This is optional.
-
-	//Set an error handler.
-	parser.setErrorHandler(&errorHandler);
-
-	//Attempt to parse the XML file.
-	try {
-		parser.parse(inFilePath.c_str());
-	} catch (const XMLException& error) {
-		return TranscodeString(error.getMessage());
-	} catch (const DOMException& error) {
-		return TranscodeString(error.getMessage());
-	} catch (...) {
-		return "Unexpected Exception parsing config file.\n" ;
-	}
-
-	//No error.
-	return "";
-}
-
-
-void sim_mob::ParseConfigFile::ProcessXmlFile(XercesDOMParser& parser)
+void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 {
 	//Verify that the root node is "config"
 	DOMElement* rootNode = parser.getDocument()->getDocumentElement();
@@ -707,8 +332,6 @@ void sim_mob::ParseConfigFile::ProcessConstructsNode(xercesc::DOMElement* node)
 	ProcessConstructDatabasesNode(GetSingleElementByName(node, "databases"));
 	ProcessConstructDbProcGroupsNode(GetSingleElementByName(node, "db_proc_groups"));
 	ProcessConstructCredentialsNode(GetSingleElementByName(node, "credentials"));
-	//ProcessConstructExternalScriptsNode(GetSingleElementByName(node, "external_scripts"));
-	//ProcessConstructMongoCollectionsNode(GetSingleElementByName(node, "mongo_collections"));
 }
 
 
@@ -815,66 +438,6 @@ void sim_mob::ParseConfigFile::ProcessConstructCredentialsNode(xercesc::DOMEleme
 	}
 }
 
-void sim_mob::ParseConfigFile::ProcessConstructExternalScriptsNode(xercesc::DOMElement* node)
-{
-	std::string id = ParseString(GetNamedAttributeValue(node, "id"), "");
-	if(id.empty()) {
-		throw std::runtime_error("id cannot be empty. Check external_scripts node.");
-	}
-
-	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
-	if(format.empty() || format != "lua") {
-		throw std::runtime_error("Unsupported script format");
-	}
-
-	std::string scriptsDirectoryPath = ParseString(GetNamedAttributeValue(node, "path"), "");
-	if (scriptsDirectoryPath.empty()) {
-		throw std::runtime_error("path to scripts is not provided");
-	}
-	if((*scriptsDirectoryPath.rbegin()) != '/') {
-		//add a / to the end of the path string if it is not already there
-		scriptsDirectoryPath.push_back('/');
-	}
-	ExternalScriptsMap sm(id, scriptsDirectoryPath , format);
-	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
-		std::string name = TranscodeString(item->getNodeName());
-		if (name!="script") {
-			Warn() <<"Invalid db_proc_groups child node.\n";
-			continue;
-		}
-
-		std::string key = ParseString(GetNamedAttributeValue(item, "name"), "");
-		std::string val = ParseString(GetNamedAttributeValue(item, "file"), "");
-		if (key.empty() || val.empty()) {
-			Warn() <<"Invalid script; missing \"name\" or \"file\".\n";
-			continue;
-		}
-
-		sm.scriptFileName[key] = val;
-	}
-	cfg.constructs.externalScriptsMap[sm.getId()] = sm;
-}
-
-void sim_mob::ParseConfigFile::ProcessConstructMongoCollectionsNode(xercesc::DOMElement* node) {
-	MongoCollectionsMap mongoColls(ParseString(GetNamedAttributeValue(node, "id"), ""), ParseString(GetNamedAttributeValue(node, "db_name"), ""));
-	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
-		std::string name = TranscodeString(item->getNodeName());
-		if (name!="mongo_collection") {
-				Warn() <<"Invalid db_proc_groups child node.\n";
-				continue;
-		}
-		std::string key = ParseString(GetNamedAttributeValue(item, "name"), "");
-		std::string val = ParseString(GetNamedAttributeValue(item, "collection"), "");
-		if (key.empty() || val.empty()) {
-			Warn() <<"Invalid mongo_collection; missing \"name\" or \"collection\".\n";
-			continue;
-		}
-		mongoColls.collectionName[key] = val;
-	}
-	cfg.constructs.mongoCollectionsMap[mongoColls.getId()] = mongoColls;
-}
-
-
 void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* node)
 {
 	if (!node) {
@@ -900,6 +463,9 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	housingModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "housingModel"), "enabled"), false);
 	housingModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeInterval"), "value"), static_cast<unsigned int>(0));
 	housingModel.timeOnMarket = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeOnMarket"), "value"), static_cast<unsigned int>(0));
+	housingModel.numberOfHouseholds = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "numberOfHouseholds"), "value"), static_cast<unsigned int>(0));
+	housingModel.numberOfUnits = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "numberOfUnits"), "value"), static_cast<unsigned int>(0));
+	housingModel.numberOfVacantUnits = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "numberOfVacantUnits"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.housingModel = housingModel;
 }
 
@@ -927,9 +493,6 @@ void sim_mob::ParseConfigFile::ProcessDriversNode(xercesc::DOMElement* node)
 	if (!node) {
 		return;
 	}
-	/*XMLCh* keyX = XMLString::transcode("driver");
-	DOMNodeList* nodes = node->getElementsByTagName(keyX);
-	XMLString::release(&keyX);*/
 
 	ProcessFutureAgentList(node, "driver", cfg.driverTemplates);
 }
@@ -939,9 +502,6 @@ void sim_mob::ParseConfigFile::ProcessPedestriansNode(xercesc::DOMElement* node)
 	if (!node) {
 		return;
 	}
-	/*XMLCh* keyX = XMLString::transcode("pedestrian");
-	DOMNodeList* nodes = node->getElementsByTagName(keyX);
-	XMLString::release(&keyX);*/
 
 	ProcessFutureAgentList(node, "pedestrian", cfg.pedestrianTemplates);
 }
@@ -951,9 +511,6 @@ void sim_mob::ParseConfigFile::ProcessBusDriversNode(xercesc::DOMElement* node)
 	if (!node) {
 		return;
 	}
-	/*XMLCh* keyX = XMLString::transcode("busdriver");
-	DOMNodeList* nodes = node->getElementsByTagName(keyX);
-	XMLString::release(&keyX);*/
 
 	ProcessFutureAgentList(node, "busdriver", cfg.busDriverTemplates);
 }
@@ -963,9 +520,6 @@ void sim_mob::ParseConfigFile::ProcessPassengersNode(xercesc::DOMElement* node)
 	if (!node) {
 		return;
 	}
-	/*XMLCh* keyX = XMLString::transcode("busdriver");
-	DOMNodeList* nodes = node->getElementsByTagName(keyX);
-	XMLString::release(&keyX);*/
 
 	ProcessFutureAgentList(node, "passenger", cfg.passengerTemplates);
 }
@@ -975,9 +529,6 @@ void sim_mob::ParseConfigFile::ProcessSignalsNode(xercesc::DOMElement* node)
 	if (!node) {
 		return;
 	}
-	/*XMLCh* keyX = XMLString::transcode("signal");
-	DOMNodeList* nodes = node->getElementsByTagName(keyX);
-	XMLString::release(&keyX);*/
 
 	ProcessFutureAgentList(node, "signal", cfg.signalTemplates, true, true, false, false);
 }
@@ -987,9 +538,6 @@ void sim_mob::ParseConfigFile::ProcessBusControllersNode(xercesc::DOMElement* no
 	if (!node) {
 		return;
 	}
-	/*XMLCh* keyX = XMLString::transcode("signal");
-	DOMNodeList* nodes = node->getElementsByTagName(keyX);
-	XMLString::release(&keyX);*/
 
 	ProcessFutureAgentList(node, "buscontroller", cfg.busControllerTemplates, false, false, true, false);
 }
@@ -1212,6 +760,9 @@ void sim_mob::ParseConfigFile::ProcessSystemCommsimNode(xercesc::DOMElement* nod
 	//Enabled?
 	cfg.system.simulation.commsim.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 
+	//Number of threads assigned to the boost I/O service that reads from Android clients.
+	cfg.system.simulation.commsim.numIoThreads = ProcessValueInteger(GetSingleElementByName(node, "io_threads", true));
+
 	//Minimum clients
 	cfg.system.simulation.commsim.minClients = ProcessValueInteger(GetSingleElementByName(node, "min_clients", true));
 
@@ -1297,12 +848,6 @@ void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMElement* node,
 			ent.destPos = ParsePoint2D(GetNamedAttributeValue(item, "destPos", destReq), Point2D());
 			ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(item, "time", timeReq), static_cast<unsigned int>(0));
 			ent.laneIndex = ParseUnsignedInt(GetNamedAttributeValue(item, "lane", laneReq), static_cast<unsigned int>(0));
-			ent.angentId = ParseUnsignedInt(GetNamedAttributeValue(item, "id", false), static_cast<unsigned int>(0));
-			ent.initSegId = ParseUnsignedInt(GetNamedAttributeValue(item, "initSegId", false), static_cast<unsigned int>(0));
-			ent.initDis = ParseUnsignedInt(GetNamedAttributeValue(item, "initDis", false), static_cast<unsigned int>(0));
-			ent.initSpeed = ParseUnsignedInt(GetNamedAttributeValue(item, "initSpeed", false), static_cast<double>(0));
-			ent.originNode = ParseUnsignedInt(GetNamedAttributeValue(item, "originNode", false), static_cast<double>(0));
-			ent.destNode = ParseUnsignedInt(GetNamedAttributeValue(item, "destNode", false), static_cast<double>(0));
 			res.push_back(ent);
 		}
 	}

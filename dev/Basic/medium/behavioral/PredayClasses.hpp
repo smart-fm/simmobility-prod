@@ -82,7 +82,7 @@ private:
 };
 
 enum StopType {
-	WORK, EDUCATION, SHOP, OTHER
+	WORK, EDUCATION, SHOP, OTHER, NULL_STOP
 };
 
 class Tour;

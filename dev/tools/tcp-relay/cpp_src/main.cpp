@@ -31,7 +31,7 @@ bool DebugLog = false;
 
 const std::string SM_HOST = "192.168.0.103";
 const std::string SM_PORT = "6745";
-const std::string LOC_ADDR = "192.168.0.103";
+const std::string LOC_ADDR = "0.0.0.0";
 const unsigned int LOC_PORT = 6799;
 const unsigned int MAX_MSG_LENGTH = 30000;
 const unsigned int NUM_THREADS = 1;
@@ -359,6 +359,7 @@ int main(int argc, char* argv[])
 
 	//Start a new ClientListener.
 	std::cout <<"Listening for client connections.\n";
+	std::cout <<"NOTE: Make sure your networking is set up BEFORE starting this script (e.g., start Minimega, then the relay).\n";
 	new ClientListener();
 
 	//Additional threads here (+ the main one).

@@ -90,7 +90,14 @@ public:
      * @param outList to put the retrieved values.
      * @return true if some values were returned, false otherwise.
      */
-    bool getAll(boost::unordered_map<int, std::vector<long> >& outList);
+    bool getAll(boost::unordered_map<int, std::vector<ZoneNodeParams*> >& outList);
+
+    /**
+     * Converts a given row into a ZoneNodeParams type.
+     * @param result result row.
+     * @param outParam (Out parameter) to receive data from row.
+     */
+    void fromRow(mongo::BSONObj document, ZoneNodeParams& outParam);
 };
 } // end namespace medium
 } // end namespace sim_mob

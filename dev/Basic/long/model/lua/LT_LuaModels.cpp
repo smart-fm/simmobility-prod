@@ -210,7 +210,8 @@ void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket,
     LuaRef retVal = funcRef(&unit, timeOnMarket, getBuilding(unit.getBuildingId()),
             getPostcode(pcId), getAmenities(pcId));
     if (retVal.isTable()) {
-        for (int i = 1; i <= retVal.length(); i++) {
+        // Reverse the expectations (HM requirement).
+        for (int i = retVal.length(); i >= 1; i--) {
             ExpectationEntry entry = retVal[i].cast<ExpectationEntry>();
             outValues.push_back(entry);
         }

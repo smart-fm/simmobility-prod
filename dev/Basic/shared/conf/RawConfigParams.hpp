@@ -53,6 +53,9 @@ struct LongTermParams{
 		bool enabled;
 		unsigned int timeInterval;
 		unsigned int timeOnMarket;
+		int numberOfUnits;
+		int numberOfHouseholds;
+		int numberOfVacantUnits;
 	} housingModel;
 };
 
@@ -130,9 +133,6 @@ public:
 	std::map<std::string, Database> databases;
 	std::map<std::string, StoredProcedureMap> procedureMaps;
 	std::map<std::string, Credential> credentials;
-	std::map<std::string, ExternalScriptsMap> externalScriptsMap;
-	std::map<std::string, MongoCollectionsMap> mongoCollectionsMap;
-
 };
 
 
@@ -179,27 +179,14 @@ public:
 	sim_mob::MutexStrategy mutexStategy; ///<Locking strategy for Shared<> properties.
 
 	struct Commsim {
-		bool enabled;
-		bool useNs3;
-		int minClients;
-		int holdTick;
-		Commsim() : enabled(false), useNs3(false), minClients(1), holdTick(1) {}
+		bool enabled;  ///< True if commsim is enabled. If false, no Broker will be created.
+		int numIoThreads; ///< How many threads to allocate to boost's io processor.
+		int minClients;  ///< The minimum number of simultaneous clients required to proceed with the simulation.
+		int holdTick;    ///< The simulation tick that we will pause on until minClients connections are made.
+		bool useNs3;  ///< If true, waits for the ns-3 simulator to connect.
+		Commsim() : enabled(false), numIoThreads(1), minClients(1), holdTick(1), useNs3(false) {}
 	};
 	Commsim commsim;
-
-
-	//bool commSimEnabled;  ///<Is our communication simulator enabled?
-	//bool androidClientEnabled; ///<Is the Android client for our communication simulator enabled?
-	//std::string androidClientType; // what version of android communication is specified?
-
-	/*struct CommsimElement {
-		std::string name;
-		std::string mode;
-		bool enabled;
-		CommsimElement(): name(""),mode(""),enabled(false){
-		}
-	};
-	std::map<std::string,CommsimElement> commsimElements;*/
 
 	//Reaction time parameters.
 	//TODO: This should be one of the first areas we clean up.

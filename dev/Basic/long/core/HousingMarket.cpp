@@ -31,8 +31,7 @@ namespace {
     class HM_AddEntryMsg : public Message {
     public:
 
-        HM_AddEntryMsg(const HousingMarket::Entry& entry)
-        : entry(entry) {
+        HM_AddEntryMsg(const HousingMarket::Entry& entry) : entry(entry) {
             priority = INTERNAL_MESSAGE_PRIORITY;
         }
         virtual ~HM_AddEntryMsg(){}
@@ -42,8 +41,7 @@ namespace {
     class HM_RemoveEntryMsg : public Message {
     public:
 
-        HM_RemoveEntryMsg(const BigSerial& unitId)
-        : unitId(unitId) {
+        HM_RemoveEntryMsg(const BigSerial& unitId) : unitId(unitId) {
             priority = INTERNAL_MESSAGE_PRIORITY;
         }
         virtual ~HM_RemoveEntryMsg(){}
@@ -67,8 +65,7 @@ namespace {
      * @param entryId to find.
      * @return Entry pointer or nullptr if entry does not exist.
      */
-    inline HousingMarket::Entry* getEntry(HousingMarket::EntryMap& map, 
-            const BigSerial entryId) {
+    inline HousingMarket::Entry* getEntry(HousingMarket::EntryMap& map, const BigSerial entryId) {
         if (mapContains(map, entryId)){
             return map.find(entryId)->second;
         }
@@ -76,10 +73,8 @@ namespace {
     }
 }
 
-HousingMarket::Entry::Entry(LT_Agent* owner, BigSerial unitId, BigSerial postcodeId, 
-                        BigSerial tazId, double askingPrice, double hedonicPrice)
-: owner(owner), unitId(unitId), askingPrice(askingPrice), 
-  hedonicPrice(hedonicPrice), postcodeId(postcodeId), tazId(tazId) {
+HousingMarket::Entry::Entry(LT_Agent* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice)
+							  : owner(owner), unitId(unitId), askingPrice(askingPrice), hedonicPrice(hedonicPrice), postcodeId(postcodeId), tazId(tazId) {
 }
 
 HousingMarket::Entry::~Entry() {
@@ -131,35 +126,27 @@ HousingMarket::~HousingMarket() {
 
 void HousingMarket::addEntry(const Entry& entry) {
     // entry will be available only on the next tick
-    MessageBus::PostMessage(this, LTMID_HMI_ADD_ENTRY,
-            MessageBus::MessagePtr(
-            new HM_AddEntryMsg(Entry(entry))), true);
+    MessageBus::PostMessage(this, LTMID_HMI_ADD_ENTRY, MessageBus::MessagePtr( new HM_AddEntryMsg(Entry(entry))), true);
 }
 
 void HousingMarket::updateEntry(const HousingMarket::Entry& entry) {
     // entry will be available only on the next tick
-    MessageBus::PostMessage(this, LTMID_HMI_ADD_ENTRY,
-            MessageBus::MessagePtr(
-            new HM_AddEntryMsg(Entry(entry))), true);
+    MessageBus::PostMessage(this, LTMID_HMI_ADD_ENTRY, MessageBus::MessagePtr( new HM_AddEntryMsg(Entry(entry))), true);
 }
 
 void HousingMarket::removeEntry(const BigSerial& unitId) {
     // entry will be available only on the next tick
-    MessageBus::PostMessage(this, LTMID_HMI_RM_ENTRY,
-            MessageBus::MessagePtr(
-            new HM_RemoveEntryMsg(unitId)), true);
+    MessageBus::PostMessage(this, LTMID_HMI_RM_ENTRY, MessageBus::MessagePtr( new HM_RemoveEntryMsg(unitId)), true);
 }
 
-void HousingMarket::getAvailableEntries(const IdVector& tazIds, 
-        HousingMarket::ConstEntryList& outList){
+void HousingMarket::getAvailableEntries(const IdVector& tazIds, HousingMarket::ConstEntryList& outList){
     //Iterates over all ids and copies all entries to the outList.
     for (IdVector::const_iterator it = tazIds.begin(); it != tazIds.end(); it++) {
         BigSerial tazId = *it;
         if (mapContains(entriesByTazId, tazId)) {
             HousingMarket::EntryMap& map = entriesByTazId.find(tazId)->second;
             //copy lists.
-            for (HousingMarket::EntryMap::iterator itMap = map.begin(); 
-                 itMap != map.end(); itMap++) {
+            for (HousingMarket::EntryMap::iterator itMap = map.begin(); itMap != map.end(); itMap++) {
                 outList.push_back(itMap->second);
             }
         }
@@ -184,12 +171,10 @@ void HousingMarket::onWorkerEnter() {
 void HousingMarket::onWorkerExit() {
 }
 
-void HousingMarket::HandleMessage(Message::MessageType type,
-        const Message& message) {
+void HousingMarket::HandleMessage(Message::MessageType type, const Message& message) {
     switch (type) {
         case LTMID_HMI_ADD_ENTRY:
         {
-          
             const HM_AddEntryMsg& msg = MSG_CAST(HM_AddEntryMsg, message);
             BigSerial unitId = msg.entry.getUnitId();
             Entry* entry = getEntry(entriesById, unitId);
@@ -205,8 +190,7 @@ void HousingMarket::HandleMessage(Message::MessageType type,
                 if (!mapContains(entriesByTazId, tazId)){
                     entriesByTazId.insert(std::make_pair(tazId, EntryMap()));
                 }
-                entriesByTazId.find(tazId)->second.insert(
-                        std::make_pair(unitId, newEntry));
+                entriesByTazId.find(tazId)->second.insert( std::make_pair(unitId, newEntry));
                 //notify subscribers. FOR NOW we are not using this.
                 //MessageBus::PublishEvent(LTEID_HM_UNIT_ADDED, this,
                   //      MessageBus::EventArgsPtr(new HM_ActionEventArgs(unitId)));

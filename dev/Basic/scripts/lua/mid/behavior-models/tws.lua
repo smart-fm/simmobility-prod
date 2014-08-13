@@ -30,10 +30,9 @@ local beta_PT_shopping = 0
 
 --choice set
 -- 1 for work; 2 for education; 3 for shopping; 4 for other; 5 for quit
-local choice = {
-	"nonquit": {1,2,3,4}
-	"quit" : {5}
-}
+local choice = {}
+choice["nonquit"] = {1,2,3,4}
+choice["quit"] = {5}
 
 --utility
 -- 1 for work; 2 for education; 3 for shopping; 4 for other; 5 for quit
@@ -74,9 +73,9 @@ local function computeAvailabilities(params)
 		params.tws_Education_AV,
 		params.tws_Shopping_AV,
 		params.tws_Others_AV
-		},
+		}
 	availability[2] = {params.tws_Quit_AV}
-}
+end
 
 --scale
 local scale={
@@ -84,6 +83,9 @@ local scale={
 	{1}
 }
 
+-- function to call from C++ preday simulator
+-- params and dbparams tables contain data passed from C++
+-- to check variable bindings in params or dbparams, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
 function choose_tws(params,dbparams)
 	computeUtilities(params,dbparams) 
 	computeAvailabilities(params)

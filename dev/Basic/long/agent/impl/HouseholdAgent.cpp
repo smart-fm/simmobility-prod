@@ -27,10 +27,9 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, 
-        const Household* household, HousingMarket* market, bool marketSeller)
-: LT_Agent(id), model(model), market(market), household(household), 
-        marketSeller(marketSeller), bidder (nullptr), seller(nullptr) {
+HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller)
+: LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), bidder (nullptr), seller(nullptr)
+{
     seller = new HouseholdSellerRole(this);
     seller->setActive(marketSeller);
     if (!marketSeller) {
@@ -53,8 +52,7 @@ void HouseholdAgent::addUnitId(const BigSerial& unitId) {
 }
 
 void HouseholdAgent::removeUnitId(const BigSerial& unitId) {
-    unitIds.erase(std::remove(unitIds.begin(), unitIds.end(), unitId),
-            unitIds.end());
+    unitIds.erase(std::remove(unitIds.begin(), unitIds.end(), unitId), unitIds.end());
 }
 
 const IdVector& HouseholdAgent::getUnitIds() const {
@@ -85,7 +83,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now) {
     if (bidder && bidder->isActive()) {
         bidder->update(now);
     }
-    
+
     if (seller && seller->isActive()) {
         seller->update(now);
     }
@@ -95,13 +93,11 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now) {
 void HouseholdAgent::onFrameOutput(timeslice now) {
 }
 
-void HouseholdAgent::onEvent(EventId eventId, Context ctxId,
-        EventPublisher*, const EventArgs& args) {
+void HouseholdAgent::onEvent(EventId eventId, Context ctxId, EventPublisher*, const EventArgs& args) {
         processEvent(eventId, ctxId, args);
 }
 
-void HouseholdAgent::processEvent(EventId eventId, Context ctxId,
-        const EventArgs& args) {
+void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArgs& args) {
     switch (eventId) {
         case LTEID_HM_UNIT_ADDED:
         {
@@ -176,8 +172,7 @@ void HouseholdAgent::onWorkerExit() {
     }
 }
 
-void HouseholdAgent::HandleMessage(Message::MessageType type,
-        const Message& message) {
+void HouseholdAgent::HandleMessage(Message::MessageType type, const Message& message) {
     
     if (bidder && bidder->isActive()) {
         bidder->HandleMessage(type, message);

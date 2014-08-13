@@ -10,16 +10,18 @@
 
 #pragma once
 
-namespace unit_tests {
+namespace unit_tests
+{
 
-    class MessageTests {
+class MessageTests
+{
 
-    public:
+public:
 
-        /**
-         * Runs all tests inside of this class.
-         */
-        void testAll();
+	/**
+	 * Runs all tests inside of this class.
+	 */
+	void testAll();
 
-    };
+};
 }

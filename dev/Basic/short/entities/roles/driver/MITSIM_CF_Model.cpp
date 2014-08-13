@@ -15,7 +15,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include "entities/vehicle/Vehicle.hpp"
-#include "entities/models/CarFollowModel.hpp"
+#include "entities/roles/driver/models/CarFollowModel.hpp"
 #include "util/Math.hpp"
 #include "util/Utils.hpp"
 #include "Driver.hpp"

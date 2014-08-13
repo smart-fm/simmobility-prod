@@ -24,7 +24,7 @@
 #include "util/OneTimeFlag.hpp"
 #include "IncidentPerformer.hpp"
 #include "FmodSchedulesPerformer.hpp"
-#include "entities/models/CarFollowModel.hpp"
+#include "entities/roles/driver/models/CarFollowModel.hpp"
 
 namespace sim_mob {
 

@@ -17,7 +17,7 @@
 #include "entities/Person.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
-#include "entities/models/LaneChangeModel.hpp"
+#include "entities/roles/driver/models/LaneChangeModel.hpp"
 #include "entities/UpdateParams.hpp"
 #include "logging/Log.hpp"
 

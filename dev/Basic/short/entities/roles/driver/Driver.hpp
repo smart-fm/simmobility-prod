@@ -16,9 +16,9 @@
 #include "entities/vehicle/Vehicle.hpp"
 #include "util/DynamicVector.hpp"
 
-#include "entities/models/CarFollowModel.hpp"
-#include "entities/models/LaneChangeModel.hpp"
-#include "entities/models/IntersectionDrivingModel.hpp"
+#include "entities/roles/driver/models/CarFollowModel.hpp"
+#include "entities/roles/driver/models/LaneChangeModel.hpp"
+#include "entities/roles/driver/models/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
 #include "DriverFacets.hpp"
 #include "util/Math.hpp"

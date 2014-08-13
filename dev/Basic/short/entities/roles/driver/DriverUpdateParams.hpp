@@ -7,7 +7,7 @@
 #include "conf/settings/DisableMPI.h"
 
 #include "entities/UpdateParams.hpp"
-#include "entities/models/LaneChangeModel.hpp"
+#include "entities/roles/driver/models/LaneChangeModel.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "util/DynamicVector.hpp"

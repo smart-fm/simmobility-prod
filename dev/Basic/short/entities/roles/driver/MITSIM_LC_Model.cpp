@@ -14,7 +14,7 @@
 #include <limits>
 
 #include "entities/vehicle/Vehicle.hpp"
-#include "entities/models/LaneChangeModel.hpp"
+#include "entities/roles/driver/models/LaneChangeModel.hpp"
 #include "Driver.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "util/Utils.hpp"

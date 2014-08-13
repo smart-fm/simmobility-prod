@@ -309,6 +309,13 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetworkFromDatabase()
 		sim_mob::aimsun::Loader::LoadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings, cfg.getNetworkRW(), cfg.getTripChains(), nullptr);
 	} else {
 		std::cout <<"Loading Road Network from XML.\n";
+		// load segment,node type from db ,TODO add type attribute to xml file
+		sim_mob::aimsun::Loader::loadSegNodeType(cfg.getDatabaseConnectionString(false),
+				cfg.getDatabaseProcMappings().procedureMappings,
+				cfg.getNetworkRW());
+
+//		DatabaseLoader loader(cfg.getDatabaseConnectionString(false));
+//		loader.loadObjectType(cfg.getDatabaseProcMappings().procedureMappings,cfg.getNetworkRW());
 		if (!sim_mob::xml::InitAndLoadXML(cfg.networkXmlInputFile(), cfg.getNetworkRW(), cfg.getTripChains())) {
 			throw std::runtime_error("Error loading/parsing XML file (see stderr).");
 		}
@@ -464,6 +471,8 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		//  must deal with it here.
 		//TODO: At the moment, manual IDs don't work. We can easily re-add them if required.
 		int manualID = -1;
+		if(it->angentId != 0)
+			manualID = it->angentId;
 		//map<string, string>::iterator propIt = props.find("id");
 		/*if (propIt != props.end()) {
 			//Convert the ID to an integer.

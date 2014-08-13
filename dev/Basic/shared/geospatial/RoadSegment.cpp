@@ -58,7 +58,26 @@ const sim_mob::Lane* sim_mob::RoadSegment::getLane(int laneID) const
 	}
 	return lanes[laneID];
 }
-
+size_t sim_mob::RoadSegment::getLanesSize(bool isIncludePedestrianLane) const
+{
+	if(isIncludePedestrianLane)
+	{
+		return getLanes().size();
+	}
+	else
+	{
+		size_t s = getLanes().size();
+		if(getLanes().at(s-1)->is_pedestrian_lane()) // most left lane is ped?
+		{
+			s--;
+		}
+		if(getLanes().at(0)->is_pedestrian_lane() )// most right lane is ped?
+		{
+			s--;
+		}
+		return s;
+	}
+}
 
 bool sim_mob::RoadSegment::isSingleDirectional()
 {

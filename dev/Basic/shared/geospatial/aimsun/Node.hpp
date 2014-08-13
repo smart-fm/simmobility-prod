@@ -19,7 +19,11 @@ namespace sim_mob
 class Node;
 class Intersection;
 
-
+struct NodeType
+{
+	std::string id;
+	int type;
+};
 namespace aimsun
 {
 

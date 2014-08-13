@@ -24,8 +24,11 @@
 #include "util/OneTimeFlag.hpp"
 #include "IncidentPerformer.hpp"
 #include "FmodSchedulesPerformer.hpp"
+#include "entities/models/CarFollowModel.hpp"
 
 namespace sim_mob {
+
+class CarFollowModel;
 
 class DriverBehavior: public sim_mob::BehaviorFacet {
 public:
@@ -55,9 +58,9 @@ protected:
 
 class DriverMovement: public sim_mob::MovementFacet {
 public:
-	explicit DriverMovement(sim_mob::Person* parentAgent = nullptr);
+	explicit DriverMovement(sim_mob::Person* parentAgent = nullptr,Driver* parentDriver=nullptr);
 	virtual ~DriverMovement();
-
+	virtual void init();
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
@@ -79,10 +82,10 @@ public:
 	}
 
 
-protected:
+public:
 	Driver* parentDriver;
 
-protected:
+public:
 	// Update models
 	LaneChangeModel* lcModel;
 	CarFollowModel* cfModel;
@@ -97,7 +100,7 @@ private:
 	double disToFwdVehicleLastFrame; //to find whether vehicle is going to crash in current frame.
 
 public:
-	double maxLaneSpeed;
+//	double maxLaneSpeed;
 	//for coordinate transform
 	void setParentBufferedData();			///<set next data to parent buffer data
 	//Call once
@@ -113,6 +116,16 @@ public:
       * @return true if inserting successfully .
       */
 	const sim_mob::RoadItem* getRoadItemByDistance(sim_mob::RoadItemType type,double &dis, double perceptionDis=20000,bool isInSameLink=true);
+	/**
+	 *  /brief get lanes connect to segment at look ahead distance
+	 *  /param distance look ahead distance from current position
+	 *  /param lanePool store found lanes
+	 */
+	void getLanesConnectToLookAheadDis(double distance,std::vector<sim_mob::Lane*>& lanePool);
+
+	/// check lane connect to rs
+	/// lanes' segment shall connect ro rs
+	bool laneConnectToSegment(sim_mob::Lane* lane,const sim_mob::RoadSegment* rs);
 
 private:
 	void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
@@ -138,14 +151,28 @@ public:
 //	const Vehicle* getVehicle() const {return vehicle;}
 
 	void updateAdjacentLanes(DriverUpdateParams& p);
-	void updatePositionDuringLaneChange(DriverUpdateParams& p, LANE_CHANGE_SIDE relative);
+	void updateLateralMovement(DriverUpdateParams& p);
+	/**
+	 *   @brief sync data after lane changing movement completed
+	 */
+	void syncInfoLateralMove(DriverUpdateParams& p);
+
+	void updatePosDuringLaneChange(DriverUpdateParams& p);
 
 	///Reroutes around a given blacklisted set of RoadSegments. See Role for documentation.
 	void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
 
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
-	virtual double linkDriving(DriverUpdateParams& p);
+	/*
+	 *  /brief do lane change and car follow
+	 */
+	void calcVehicleStates(DriverUpdateParams& p);
+	/*
+	 *  /brief Calculate new location and speed after an iteration based on its
+	 * 	       current location, speed and acceleration.
+	 */
+	double move(DriverUpdateParams& p);
 	virtual double dwellTimeCalculation(int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
 
 	sim_mob::Vehicle* initializePath(bool allocateVehicle);
@@ -187,6 +214,7 @@ private:
 	void setTrafficSignalParams(DriverUpdateParams& p);
 	void intersectionDriving(DriverUpdateParams& p);
 
+
 	void findCrossing(DriverUpdateParams& p);
 
 
@@ -208,7 +236,7 @@ public:
 	// I'm sure we can do this in a less confusion fashion later.
 	LANE_CHANGE_SIDE getCurrLaneSideRelativeToCenter() const;
 
-private:
+public:
 	//The current traffic signal in our Segment. May be null.
 	const Signal* trafficSignal;
 

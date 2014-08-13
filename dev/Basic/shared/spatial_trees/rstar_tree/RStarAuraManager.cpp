@@ -25,11 +25,6 @@ void RStarAuraManager::update(int time_step, const std::set<sim_mob::Agent*>& re
 			continue;
 		}
 
-		if(ag->xPos.get() < 10000000 || ag->yPos.get() < 1000000) {
-            Warn() << "A driver's location (x or y) is out of map, X:" << ag->xPos.get() << ",Y:" << ag->yPos.get() << std::endl;
-            continue;
-		}
-
 		if (removedAgentPointers.find(ag)==removedAgentPointers.end()) {
 			//->can_remove_by_RTREE == false) {
 			tree_rstar.insert(ag);
@@ -64,11 +59,11 @@ std::vector<Agent const *> RStarAuraManager::nearbyAgents(Point2D const & positi
 	// <distanceBehind> may extend beyond the stretch marked out by <p1> and <p2>.
 	adjust(p1, p2, position, distanceInFront, distanceBehind);
 
-        if(p1.getX() < 0 || p2.getX() < 0)
+       /* if(p1.getX() < 0 || p2.getX() < 0)
         {
             std::vector<Agent const *> empty;
             return empty;
-        }
+        }*/
 
 
 	// Calculate the search rectangle.  We use a quick and accurate method.  However the

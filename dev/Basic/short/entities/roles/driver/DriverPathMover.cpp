@@ -269,7 +269,8 @@ void sim_mob::DriverPathMover::generateNewPolylineArray()
 {
 	//Simple; just make sure to take the forward direction into account.
 	//TODO: Take the current lane into account.
-	polypointsList = (*currSegmentIt)->getLanes().at(currLaneID)->getPolyline();
+//	polypointsList = (*currSegmentIt)->getLanes().at(currLaneID)->getPolyline();
+	polypointsList = (*currSegmentIt)->getLanes().at(0)->getPolyline();
 
 	//Check
 	throwIf(polypointsList.size() < 2, DriverPathMover::ErrorPolylineLength);
@@ -522,6 +523,10 @@ double sim_mob::DriverPathMover::advance(const RoadSegment* currSegment, vector<
 
 double sim_mob::DriverPathMover::advanceToNextPolyline(bool isFwd)
 {
+	if (nextPolypoint == polypointsList.end())
+	{
+		return advanceToNextRoadSegment();
+	}
 	//An error if we're still at the end of this polyline
 	throwIf(nextPolypoint == polypointsList.end(), DriverPathMover::ErrorPolylineCantAdvance);
 
@@ -573,15 +578,27 @@ double sim_mob::DriverPathMover::advanceToNextRoadSegment()
 	// Note that distAlongPolyline should still be valid.
 	if (currSegmentIt + 1 != fullPath.end())
 	{
-		if ((*currSegmentIt)->getLink() != (*(currSegmentIt + 1))->getLink())
+		if ((*currSegmentIt)->getLink() != (*(currSegmentIt + 1))->getLink()) // next segment in diff link
 		{
-			Point2D myPos(getPosition().x, getPosition().y);
-			if (Debug::Paths)
+//			if((*currSegmentIt)->originalDB_ID.getLogItem().find("9506") != std::string::npos)
+//			{
+//				std::cout<<"find seg 9506"<<std::endl;
+//			}
+			if((*currSegmentIt)->getEnd()->type == sim_mob::PRIORITY_MERGE_NODE ||
+					(*currSegmentIt)->getEnd()->type == sim_mob::NON_PRIORITY_MERGE_NODE )// it cross priority merge node or non priority merge node
 			{
-				DebugStream << "Now in Intersection. Distance from Node center: " << centimeterToMeter(dist((*currSegmentIt)->getEnd()->location, myPos)) << endl;
+				inIntersection = false;
 			}
-			inIntersection = true;
-			return distAlongPolylineCM;
+			else
+			{
+				Point2D myPos(getPosition().x, getPosition().y);
+				if (Debug::Paths)
+				{
+					DebugStream << "Now in Intersection. Distance from Node center: " << centimeterToMeter(dist((*currSegmentIt)->getEnd()->location, myPos)) << endl;
+				}
+				inIntersection = true;
+				return distAlongPolylineCM;
+			}
 		}
 	}
 
@@ -775,7 +792,11 @@ double sim_mob::DriverPathMover::getCurrDistAlongRoadSegmentCM() const
 	//Add this to the distance moved so far.
 	return distMovedInCurrSegmentCM + distAlongPolylineCM;
 }
-
+double sim_mob::DriverPathMover::getDisToCurrSegEnd()
+{
+	double d = getCurrPolylineTotalDistCM() - getCurrDistAlongRoadSegmentCM();
+	return d;
+}
 double sim_mob::DriverPathMover::getTotalRoadSegmentLengthCM() const
 {
 	throwIf(!isPathSet(), DriverPathMover::ErrorPathNotSet);
@@ -815,7 +836,32 @@ double sim_mob::DriverPathMover::getCurrentSegmentLengthCM()
 
 	return dis;
 }
+double sim_mob::DriverPathMover::getDistToLinkEndM()
+{
+	double res = getDisToCurrSegEndM();
+	if(currSegmentIt == fullPath.end()) {
+		return res;
+	}
+	std::vector<const sim_mob::RoadSegment*>::iterator start = currSegmentIt+1;
+	std::vector<const sim_mob::RoadSegment*>::iterator end =fullPath.end();
+	for (vector<const RoadSegment*>::const_iterator it = start; it != end; it++)
+	{
+		//Add all polylines in this Segment
+		const vector<Point2D>& polyLine = const_cast<RoadSegment*> (*it)->getLanes()[0]->getPolyline();
+		for (vector<Point2D>::const_iterator it2 = polyLine.begin(); (it2 + 1) != polyLine.end(); it2++)
+		{
+			res += dist(it2->getX(), it2->getY(), (it2 + 1)->getX(), (it2 + 1)->getY()) / 100.0;
+		}
 
+		//Break if the next Segment isn't in this link.
+		if ((it + 1 == end) || ((*it)->getLink() != (*(it + 1))->getLink()))
+		{
+			break;
+		}
+	}
+
+	return res;
+}
 void sim_mob::DriverPathMover::shiftToNewPolyline(bool moveLeft)
 {
 
@@ -846,6 +892,7 @@ void sim_mob::DriverPathMover::moveToNewPolyline(int newLaneID)
 	currLaneID = newLaneID;
 
 	//Update our polyline array
+	// here assume all polylines has same number of polypoint
 	generateNewPolylineArray(getCurrSegment(), pathWithDirection.path, pathWithDirection.areFwds);
 	if (distTraveled > 0)
 	{
@@ -872,8 +919,8 @@ DPoint sim_mob::DriverPathMover::getPosition() const
 	DynamicVector movementVect(currPolypoint->getX(), currPolypoint->getY(), nextPolypoint->getX(), nextPolypoint->getY());
 	movementVect.scaleVectTo(getCurrDistAlongPolylineCM()).translateVect();
 	return DPoint(movementVect.getX(), movementVect.getY());
-}
 
+}
 double sim_mob::DriverPathMover::getPositionInSegmentCM()
 {
 	return distToEndSegmentCM;

@@ -19,6 +19,7 @@
 
 #include "conf/settings/DisableMPI.h"
 #include "entities/vehicle/VehicleBase.hpp"
+#include "entities/models/Constants.h"
 #include "geospatial/Lane.hpp"
 #include "geospatial/GeneralPathMover.hpp"
 #include "geospatial/streetdir/WayPoint.hpp"
@@ -50,6 +51,8 @@ public:
 	double getAcceleration() const;  ///<Retrieve forward acceleration.
 	bool isDone() const; ///<Are we fully done with our path?
 	bool hasPath() const; ///<Do we have a path to move on?
+
+
 
 	//Special
 	LANE_CHANGE_SIDE getTurningDirection() const;
@@ -90,18 +93,21 @@ public:
 #endif
 
 public:
+//	const double lengthCM;  ///<length(CM) of the vehicle
+//	const double widthCM;   ///<width(CM) of the vehicle
+	bool isQueuing; 	 ///<for mid-term use
 	FMODSchedule* schedule;
+	double stoppedtimecounter;
 
 private:
 	//Trying a slightly more dynamic moving model.
 	int vehicleId;
 	GeneralPathMover fwdMovement;
-	double latMovement;
+	double latMovement; // latMovement not equal to lateral position
 	double fwdVelocity;
 	double latVelocity;
 	double fwdAccel;
 	LANE_CHANGE_SIDE turningDirection;
-
 	//Override for when we're in an intersection.
 	DPoint posInIntersection;
 	// driver path-mover split purpose, we save the currPos in the Vehicle

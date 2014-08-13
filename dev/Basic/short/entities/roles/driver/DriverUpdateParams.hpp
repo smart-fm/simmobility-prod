@@ -9,10 +9,15 @@
 #include "entities/UpdateParams.hpp"
 #include "entities/models/LaneChangeModel.hpp"
 #include "geospatial/Lane.hpp"
+#include "geospatial/RoadSegment.hpp"
 #include "util/DynamicVector.hpp"
 #include <boost/random.hpp>
 #include "util/LangHelpers.hpp"
 #include "entities/signal/Signal.hpp"
+#include "entities/models/Constants.h"
+#include "entities/roles/driver/SMStatus.h"
+//#include "IncidentPerformer.hpp"
+//#include "entities/roles/driver/Driver.hpp"
 
 namespace sim_mob
 {
@@ -20,6 +25,7 @@ namespace sim_mob
 //Forward declarations
 class Lane;
 class Driver;
+class IncidentPerformer;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -54,9 +60,12 @@ struct NearestPedestrian {
 /// \author Li Zhemin
 /// \author Seth N. Hetu
 ///NOTE: Constructor is currently implemented in Driver.cpp. Feel free to shuffle this around if you like.
-struct DriverUpdateParams : public UpdateParams {
-	DriverUpdateParams() : UpdateParams() {}
-	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen) ,nextLaneIndex(0){}
+class DriverUpdateParams : public UpdateParams {
+public:
+	DriverUpdateParams();// : UpdateParams() ,status(0),yieldTime(0,0),lcTimeTag(0),speedOnSign(0),newFwdAcc(0),cftimer(0.0){}
+	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen) ,nextLaneIndex(0),isTargetLane(true),
+			status(0),flags(0),yieldTime(0,0),lcTimeTag(200),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0),utilityLeft(0),
+			utilityCurrent(0),utilityRight(0){}
 
 	virtual void reset(timeslice now, const Driver& owner);
 
@@ -69,6 +78,7 @@ struct DriverUpdateParams : public UpdateParams {
 	const Lane* rightLane2;
 
 	double currSpeed;
+	double desiredSpeed;
 
 	double currLaneOffset;
 	double currLaneLength;
@@ -91,6 +101,7 @@ struct DriverUpdateParams : public UpdateParams {
 		currLane = rhs.currLane;
 		currLaneIndex = rhs.currLaneIndex;
 		nextLaneIndex = rhs.nextLaneIndex;
+		status = rhs.status;
 
 		return *this;
 	}
@@ -101,12 +112,15 @@ struct DriverUpdateParams : public UpdateParams {
 	TARGET_GAP targetGap;
 	bool isMLC;
 	LANE_CHANGE_MODE lastChangeMode;
+	/// record last lane change decision
+	/// both lc model and driverfacet can set this value
 	LANE_CHANGE_SIDE lastDecision;
 
 	//Nearest vehicles in the current lane, and left/right (including fwd/back for each).
 	//Nearest vehicles' distances are initialized to threshold values.
 	bool isAlreadyStart;
 	bool isBeforIntersecton;
+	// used to check vh opposite intersection
 	NearestVehicle nvFwdNextLink;
 	NearestVehicle nvFwd;
 	NearestVehicle nvBack;
@@ -118,6 +132,9 @@ struct DriverUpdateParams : public UpdateParams {
 	NearestVehicle nvLeftBack2;
 	NearestVehicle nvRightFwd2;
 	NearestVehicle nvRightBack2;
+	// used to check vh when do acceleration merging
+	NearestVehicle nvLeadFreeway; // lead vh on freeway segment,used when subject vh on ramp
+	NearestVehicle nvLagFreeway;// lag vh on freeway,used when subject vh on ramp
 
 	NearestPedestrian npedFwd;
 
@@ -136,7 +153,7 @@ struct DriverUpdateParams : public UpdateParams {
 
 
 	//Related to our lane changing model.
-	double dis2stop;
+	double dis2stop;//meter
 	bool isWaiting;
 
 	//Handles state information
@@ -145,6 +162,128 @@ struct DriverUpdateParams : public UpdateParams {
 	bool justMovedIntoIntersection;
 	double overflowIntoIntersection;
 
+	Driver* driver;
+
+	/// if current lane connect to target segment
+	/// assign in driverfact
+	bool isTargetLane;
+
+	/// record last calculated acceleration
+	/// dont reset
+	double lastAcc;
+
+	/**
+	 *  /brief add one kind of status to the vh
+	 *  /param new state
+	 */
+	void setStatus(unsigned int s);
+	/*
+	 *  /brief set status to "performing lane change"
+	 */
+	void setStatusDoingLC(LANE_CHANGE_SIDE& lcs);
+	/**
+	 *  /brief get status of the vh
+	 *  /return state
+	 */
+	unsigned int getStatus() { return status; }
+	unsigned int getStatus(unsigned int mask) {
+		return (status & mask);
+	}
+	/**
+	 *  /brief remove the status from the vh
+	 *  /return state
+	 */
+	void unsetStatus(unsigned int s);
+
+	unsigned int status;	// current status indicator
+	unsigned int flags;	// additional indicator for internal use
+
+	void toggleFlag(unsigned int flag) {
+	flags ^= flag;
+	}
+	unsigned int flag(unsigned int mask = 0xFFFFFFFF) {
+	return (flags & mask);
+	}
+	void setFlag(unsigned int s) {
+	flags |= s;
+	}
+	void unsetFlag(unsigned int s) {
+	flags &= ~s;
+	}
+
+	/// decision timer (second)
+	/// count down in DriverMovement
+	double cftimer;
+	double nextStepSize;
+	double getNextStepSize() { return nextStepSize; }
+
+	const RoadSegment* nextLink();
+
+	double maxAcceleration;
+	double normalDeceleration;
+	double maxDeceleration;
+
+	bool willYield(unsigned int reason);
+	timeslice yieldTime;	// time to start yielding
+	double lcTimeTag;		// time changed lane , ms
+	vector<double> nosingParams;
+	double lcMaxNosingTime;
+
+//	double targetSpeed; // duplicated with desiredSpeed
+	double maxLaneSpeed;
+
+	/// fwd acc from car follow model m/s^2
+	double newFwdAcc;
+	// critical gap param
+	std::vector< std::vector<double> > LC_GAP_MODELS;
+
+	/**
+	 *  /brief calculate min gap
+	 *  /param type driver type
+	 *  /return gap distance
+	 */
+	double lcMinGap(int type);
+
+	double speedOnSign;
+
+	std::vector<double> targetGapParams;
+
+	/**
+	 *  /brief add target lanes
+	 */
+	void addTargetLanes(set<const Lane*> tl);
+	/// lanes,which are ok to change to
+	set<const Lane*> targetLanes;
+
+	std::string accSelect;
+	std::string debugInfo;
+
+	void buildDebugInfo();
+
+	int parentId;
+
+	double FFAccParamsBeta;
+
+	double newLatVelM; //meter/sec
+
+	SMStatusManager statusMgr;
+	void setStatus(string name,StatusValue v,string whoSet);
+	StatusValue getStatus(string name);
+
+	double utilityLeft;
+	double utilityRight;
+	double utilityCurrent;
+	double rnd;
+
+	/// headway value from carFollowingRate()
+    double headway;
+    /// car Following Rate
+	double aZ;
+
+	double density;
+
+//	//perform incident response
+//	IncidentPerformer incidentPerformer;
 public:
 #ifndef SIMMOB_DISABLE_MPI
 	static void pack(PackageUtils& package, const DriverUpdateParams* params);

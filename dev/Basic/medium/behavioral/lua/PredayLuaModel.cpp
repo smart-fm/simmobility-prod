@@ -170,6 +170,13 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addFunction("availability", &StopTimeOfDayParams::getAvailability)
 			.endClass()
 
+			.beginClass<SubTourParams>("SubTourParams")
+				.addProperty("first_of_multiple", &SubTourParams::isFirstOfMultipleTours)
+				.addProperty("subsequent_of_multiple", &SubTourParams::isSubsequentOfMultipleTours)
+				.addProperty("mode_choice",  &SubTourParams::getTourMode)
+				.addProperty("usual_location", &SubTourParams::isUsualLocation)
+			.endClass()
+
 			.beginClass<StopGenerationParams>("StopGenerationParams")
 				.addProperty("tour_type", &StopGenerationParams::getTourType)
 				.addProperty("driver_dummy", &StopGenerationParams::isDriver)
@@ -365,5 +372,12 @@ int sim_mob::medium::PredayLuaModel::predictStopModeDestination(PersonParams& pe
 int sim_mob::medium::PredayLuaModel::predictStopTimeOfDay(PersonParams& personParams, StopTimeOfDayParams& stopTimeOfDayParams) const {
 	LuaRef chooseITD = getGlobal(state.get(), "choose_itd");
 	LuaRef retVal = chooseITD(&personParams, &stopTimeOfDayParams);
+	return retVal.cast<int>();
+}
+
+int sim_mob::medium::PredayLuaModel::predictWorkBasedSubTour(PersonParams& personParams, SubTourParams& subTourParams) const
+{
+	LuaRef chooseTWS = getGlobal(state.get(), "choose_tws");
+	LuaRef retVal = chooseTWS(&personParams, &subTourParams);
 	return retVal.cast<int>();
 }

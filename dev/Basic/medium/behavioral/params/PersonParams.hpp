@@ -428,5 +428,64 @@ private:
 	double zoneEmployment;
 };
 
+/**
+ * Simple class to store information pertaining sub tour model
+ * \note This class is used by the mid-term behavior models.
+ *
+ * \author Harish Loganathan
+ */
+class SubTourParams {
+public:
+	int isFirstOfMultipleTours() const
+	{
+		return firstOfMultipleTours;
+	}
+
+	void setFirstOfMultipleTours(bool firstOfMultipleTours)
+	{
+		this->firstOfMultipleTours = firstOfMultipleTours;
+	}
+
+	int isSubsequentOfMultipleTours() const
+	{
+		return subsequentOfMultipleTours;
+	}
+
+	void setSubsequentOfMultipleTours(bool subsequentOfMultipleTours)
+	{
+		this->subsequentOfMultipleTours = subsequentOfMultipleTours;
+	}
+
+	int getTourMode() const
+	{
+		return tourMode;
+	}
+
+	void setTourMode(int tourMode)
+	{
+		this->tourMode = tourMode;
+	}
+
+	int isUsualLocation() const
+	{
+		return usualLocation;
+	}
+
+	void setUsualLocation(bool usualLocation)
+	{
+		this->usualLocation = usualLocation;
+	}
+
+private:
+	/**mode choice for parent tour*/
+	int tourMode;
+	/**parent tour is the first of many tours for person*/
+	bool firstOfMultipleTours;
+	/**parent tour is the 2+ of many tours for person*/
+	bool subsequentOfMultipleTours;
+	/**parent tour is to a usual location*/
+	bool usualLocation;
+};
+
 } //end namespace medium
 }// end namespace sim_mob

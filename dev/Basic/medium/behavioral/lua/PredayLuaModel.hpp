@@ -125,6 +125,15 @@ public:
 	 */
 	int predictStopTimeOfDay(PersonParams& personParams, StopTimeOfDayParams& stopTimeOfDayParams) const;
 
+	/**
+	 * Predicts sub tour for a work tour
+	 *
+	 * @param personParams object containing person and household related variables
+	 * @param subTourParams parameters for sub tours model
+	 * @return an integer in the range 1-5 (1 for work; 2 for education; 3 for shopping; 4 for other; 5 for quit)
+	 */
+	int predictWorkBasedSubTour(PersonParams& personParams, SubTourParams& subTourParams) const;
+
 
 private:
     /**

@@ -203,11 +203,6 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 
 		//If we're on a new BusLine, register it with the scheduler.
 		if(!busline || (curr->route_id != busline->getBusLineID())) {
-//			if(curr->route_id == "857_1") {
-//				busline = new sim_mob::Busline(curr->route_id,"headway_based");
-//			} else {
-//				busline = new sim_mob::Busline(curr->route_id,config.busline_control_type());
-//			}
 			busline = new sim_mob::Busline(curr->route_id,config.busline_control_type());
 
 			pt_schedule.registerBusLine(curr->route_id, busline);

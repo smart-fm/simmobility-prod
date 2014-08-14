@@ -108,7 +108,7 @@ end
 local availability={1,1}
 
 --scale
-local scale = {1,1}
+local scale = 1 --for all choices
 
 -- function to call from C++ preday simulator
 -- params and dbparams tables contain data passed from C++

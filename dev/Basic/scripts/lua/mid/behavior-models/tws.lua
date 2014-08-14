@@ -44,18 +44,21 @@ local function computeUtilities(params,dbparams)
 	--of many work tours modeled for an agent, else first of multiple =0
 	--subsequent of multiple =1 if this work tour is the subsequent work
 	--tour of many work tours modeled for an agent, else first of multiple =0
-	local first_of_multiple = params.first_of_multiple
-	local subsequent_of_multiple = params.subsequent_of_multiple
+	local first_of_multiple = dbparams.first_of_multiple
+	local subsequent_of_multiple = dbparams.subsequent_of_multiple
 
 	-- if household has no car available
-	local zero_car = params.zero_car
+	local zero_car = 1 - params.car_own
 
 	-- if this work tour is made by public transporation
 	-- PT_dummy = 1 * (mode_choice == 1 or mode_choice == 2)
-	local PT_dummy = params.PT_dummy
+	local PT_dummy = 0
+	if dbparams.mode_choice==1 or dbparams.mode_choice==2 then
+	    PT_dummy = 1
+	end
 
 	-- if the the tour is made at usual work location
-	local not_usual_dummy = 1- params.go_to_primary_work_location
+	local not_usual_dummy = 1 - dbparams.usual_location
 
 	utility[1] = beta_cons_work + beta_female_work * female_dummy
 	utility[2] = beta_cons_edu + beta_female_edu * female_dummy
@@ -68,20 +71,19 @@ end
 --the logic to determine availability is the same with current implementation
 local availability = {}
 local function computeAvailabilities(params)
-	availability[1] = {
+	availability = {
 		params.tws_Work_AV,
 		params.tws_Education_AV,
 		params.tws_Shopping_AV,
-		params.tws_Others_AV
-		}
-	availability[2] = {params.tws_Quit_AV}
+		params.tws_Others_AV,
+		params.tws_Quit_AV
+	}
 end
 
 --scale
-local scale={
-	{1.81,1.81,1.81,1.81},
-	{1}
-}
+local scale={}
+scale["nonquit"] = 1.81
+scale["quit"] = 1
 
 -- function to call from C++ preday simulator
 -- params and dbparams tables contain data passed from C++

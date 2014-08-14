@@ -313,9 +313,9 @@ end
 
 --scale
 local scale={}
-scale["PT"] = {1.51,1.51,1.51}
-scale["car"] = {1.45,1.45,1.45,1.45}
-scale["other"] = {1,1}
+scale["PT"] = 1.51
+scale["car"] = 1.45
+scale["other"] = 1
 
 -- function to call from C++ preday simulator
 -- params and dbparams tables contain data passed from C++

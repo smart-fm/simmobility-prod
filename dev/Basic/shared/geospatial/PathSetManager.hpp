@@ -305,7 +305,7 @@ public:
 	 * \param excludedSegs input list segments to be excluded from the target set
 	 * \param isUseCache is using the cache allowed
 	 */
-	bool generateBestPathChoiceMT(const sim_mob::SubTrip* st,std::vector<sim_mob::WayPoint> &res, const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>(), bool isUseCache = true);
+	std::vector<sim_mob::WayPoint> generateBestPathChoiceMT(const sim_mob::SubTrip* st, const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>(), bool isUseCache = true);
 
 	/**
 	 * same as the alternative generateBestPathChoiceMT() except it gets its sql connection info through the agent

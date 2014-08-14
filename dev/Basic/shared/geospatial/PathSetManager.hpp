@@ -62,8 +62,6 @@ private:
 public:
 	static PathSetParam *getInstance();
 
-	sim_mob::RoadSegment* getRoadSegmentByAimsunId(std::string id);
-
 	/// Retrieve 'ERP' and 'link travel time' information from Database
 	void getDataFromDB();
 
@@ -218,14 +216,14 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// length of a path with segments in meter
-inline double generateSinglePathLengthPT(std::vector<WayPoint*>& wp)
+inline double generateSinglePathLengthPT(std::vector<WayPoint>& wp)
 {
 	double res=0;
 	for(int i=0;i<wp.size();++i)
 	{
-		WayPoint* w = wp[i];
-		if (w->type_ == WayPoint::ROAD_SEGMENT) {
-			const sim_mob::RoadSegment* seg = w->roadSegment_;
+		WayPoint &w = wp[i];
+		if (w.type_ == WayPoint::ROAD_SEGMENT) {
+			const sim_mob::RoadSegment* seg = w.roadSegment_;
 			res += seg->length;
 		}
 	}
@@ -329,8 +327,8 @@ public:
 	 */
 	bool generateAllPathChoicesMT(PathSet* ps, const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>());
 	void generateTravelTimeSinglePathes(const sim_mob::Node *fromNode, const sim_mob::Node *toNode, std::set<std::string>& duplicateChecker,sim_mob::PathSet& ps_);
-	void generatePathesByLinkElimination(std::vector<WayPoint*>& path,std::set<std::string>& duplicateChecker,sim_mob::PathSet& ps_,const sim_mob::Node* fromNode,const sim_mob::Node* toNode);
-	void generatePathesByTravelTimeLinkElimination(std::vector<WayPoint*>& path, std::set<std::string>& duplicateChecker, sim_mob::PathSet& ps_,const sim_mob::Node* fromNode,const sim_mob::Node* toNode,	sim_mob::TimeRange tr);
+	void generatePathesByLinkElimination(std::vector<WayPoint>& path,std::set<std::string>& duplicateChecker,sim_mob::PathSet& ps_,const sim_mob::Node* fromNode,const sim_mob::Node* toNode);
+	void generatePathesByTravelTimeLinkElimination(std::vector<WayPoint>& path, std::set<std::string>& duplicateChecker, sim_mob::PathSet& ps_,const sim_mob::Node* fromNode,const sim_mob::Node* toNode,	sim_mob::TimeRange tr);
 	bool getBestPathChoiceFromPathSet(sim_mob::PathSet& ps, const std::set<const sim_mob::RoadSegment *> & excludedSegs =  std::set<const sim_mob::RoadSegment *>());
 	void initParameters();
 	// get
@@ -383,7 +381,7 @@ private:
 														  // value = pathset
 	boost::shared_mutex cachedPathSetMutex;
 	boost::unordered_map<const std::string,sim_mob::PathSet > cachedPathSet;//same as pathSetPool, used in a separate scenario //todo later use only one of the caches, cancel the other one
-	std::map<std::string,sim_mob::RoadSegment*> segPool; // store all segs ,key= aimsun id ,value = seg
+//	std::map<std::string,sim_mob::RoadSegment*> segPool; // store all segs ,key= aimsun id ,value = seg
 	std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*> wpPool; // key=seg , value=wp point
 	std::map<std::string,sim_mob::Node*> nodePool; // store all nodes ,key= aimsun id ,value = node
 	std::map<std::string,SinglePath*> waypoint_singlepathPool; // key is waypoints' Segment1AimsunId_Segment2AimsunId_Segment2AimsunId....
@@ -457,8 +455,6 @@ public:
 			const sim_mob::RoadSegment* excludedSegs);
 	void generatePaths2Node(const sim_mob::Node *toNode);
 	sim_mob::PathSet* getPathSetByPersonIdAndSubTripId(std::string personId,std::string subTripId);
-	std::vector<WayPoint> generateBestPathChoice(sim_mob::Person* per,
-			sim_mob::PathSet* ps,bool isReGenerate=false);
 	const sim_mob::Node* getToNodefromTripChainItems(std::vector<sim_mob::TripChainItem*> &tci);
 	const sim_mob::Node* getFromNodefromTripChainItems(std::vector<sim_mob::TripChainItem*> &tci);
 	sim_mob::PathSet* generatePathSetBySubTrip(const sim_mob::SubTrip* st);
@@ -481,8 +477,8 @@ public:
 	SinglePath(const SinglePath &source);
 	void init(std::vector<WayPoint>& wpPools);
 	void clear();
-	std::vector<WayPoint*> shortestWayPointpath;
-	std::map<const RoadSegment*,WayPoint*> shortestSegPath;
+	std::vector<WayPoint> shortestWayPointpath;
+	std::set<const RoadSegment*> shortestSegPath;
 	PathSet *pathSet; // parent
 	const sim_mob::RoadSegment* excludeSeg; // can be null
 	const sim_mob::Node *fromNode;
@@ -531,7 +527,7 @@ public:
 	~PathSet();
 	bool isInit;
 	bool hasBestChoice;
-	std::vector<WayPoint*> bestWayPointpathP;  //best choice
+	std::vector<WayPoint> bestWayPointpath;  //best choice
 	const sim_mob::Node *fromNode;
 	const sim_mob::Node *toNode;
 	std::string personId; //person id
@@ -585,7 +581,7 @@ inline double generateSinglePathLength(std::vector<WayPoint*>& wp) // unit is me
 }
 
 inline void generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCache=true);
-inline std::map<const RoadSegment*,WayPoint*> generateSegPathByWaypointPathP(std::vector<WayPoint*>& wp);
+inline std::set<const RoadSegment*> generateSegPathByWaypointPathP(std::vector<WayPoint>& wp);
 inline size_t getLaneIndex2(const Lane* l);
 
 inline void calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::SinglePath *sp);
@@ -596,9 +592,9 @@ inline double calculateHighWayDistance(sim_mob::SinglePath *sp)
 	if(!sp) return 0.0;
 	for(int i=0;i<sp->shortestWayPointpath.size();++i)
 	{
-		sim_mob::WayPoint* w = sp->shortestWayPointpath[i];
-		if (w->type_ == WayPoint::ROAD_SEGMENT) {
-			const sim_mob::RoadSegment* seg = w->roadSegment_;
+		sim_mob::WayPoint& w = sp->shortestWayPointpath[i];
+		if (w.type_ == WayPoint::ROAD_SEGMENT) {
+			const sim_mob::RoadSegment* seg = w.roadSegment_;
 			if(seg->maxSpeed >= 60)
 			{
 				res += seg->length;
@@ -618,6 +614,6 @@ inline float gen_random_float(float min, float max)
 }
 
 //unused
-inline int calculateRightTurnNumberByWaypoints(std::map<const RoadSegment*,WayPoint>& segWp);
-inline std::map<const RoadSegment*,WayPoint> generateSegPathByWaypointPath(std::vector<WayPoint>& wp);
+inline int calculateRightTurnNumberByWaypoints(std::set<const RoadSegment*>& segWp);
+inline std::set<const RoadSegment*> generateSegPathByWaypointPath(std::vector<WayPoint>& wp);
 }//namespace

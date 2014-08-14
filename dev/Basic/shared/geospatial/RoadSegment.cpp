@@ -30,7 +30,7 @@ using std::vector;
 using std::set;
 
 using namespace sim_mob;
-
+boost::unordered_map<const std::string,sim_mob::RoadSegment*> sim_mob::RoadSegment::segPool;
 const unsigned long sim_mob::RoadSegment::getSegmentID()const
 {
 	return segmentID;
@@ -235,6 +235,18 @@ void sim_mob::RoadSegment::setCapacity() {
 
 double sim_mob::RoadSegment::getCapacityPerInterval() const {
 	return capacity * ConfigManager::GetInstance().FullConfig().baseGranSecond() / 3600;
+}
+
+
+sim_mob::RoadSegment* sim_mob::RoadSegment::getRoadSegmentByAimsunId(const std::string id)
+{
+	boost::unordered_map<const std::string,sim_mob::RoadSegment*>::iterator it = segPool.find(id);
+	if(it != segPool.end())
+	{
+		sim_mob::RoadSegment* seg = (*it).second;
+		return seg;
+	}
+	return NULL;
 }
 
 vector<Point2D> sim_mob::RoadSegment::makeLaneEdgeFromPolyline(Lane* refLane, bool edgeIsRight) const

@@ -6,8 +6,8 @@
 
 #include <vector>
 
+#include <boost/unordered_map.hpp>
 #include "conf/settings/DisableMPI.h"
-
 #include "util/OpaqueProperty.hpp"
 #include "geospatial/Pavement.hpp"
 
@@ -55,7 +55,14 @@ public:
 
 	//TODO: Some of these are only used by the geo* classes; need to re-think.
 	void setParentLink(sim_mob::Link* parent);
-	void setID(unsigned long id) { this->segmentID = id; }
+	void setID(unsigned long id) {
+		this->segmentID = id;
+		if(id != -1)
+		{
+			std::string idStr = boost::lexical_cast<std::string>(id);
+			segPool[idStr] = this;
+		}
+	}
 	//void setLanes(const std::vector<sim_mob::Lane*>& ln) { this->lanes = ln; }
 	void setStart(sim_mob::Node* st) { this->start = st; }
 	void setEnd(sim_mob::Node* en) { this->end = en; }
@@ -66,7 +73,13 @@ public:
 		Pavement(),
 		maxSpeed(0), capacity(0), busstop(nullptr), lanesLeftOfDivider(0), parentLink(parent),segmentID(id),
 		parentConflux(nullptr), laneZeroLength(-1.0)
-	{}
+	{
+		if(id != -1)
+		{
+			std::string idStr = boost::lexical_cast<std::string>(id);
+			segPool[idStr] = this;
+		}
+	}
 
 	const unsigned long  getSegmentID()const ;
 	const unsigned int getLanesLeftOfDivider() const { return lanesLeftOfDivider; }
@@ -165,6 +178,8 @@ public:
 		return capacity;
 	}
 
+	//todo :might not be really required after PathSetManager cleanup. check from time to time. if this is not being used, delete this function and the container
+	static sim_mob::RoadSegment* getRoadSegmentByAimsunId(const std::string id);
 	/*void initLaneGroups() const;
 	 void groupLanes(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt, const std::vector<sim_mob::RoadSegment*>& segments, sim_mob::Node* start, sim_mob::Node* end) const;
 	 void matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS) const;*/
@@ -193,7 +208,7 @@ private:
 	unsigned long segmentID;
 
 	double laneZeroLength;
-
+	static boost::unordered_map<const std::string,sim_mob::RoadSegment*> segPool; //collection of all <Id, rs*>
 	friend class sim_mob::aimsun::Loader;
 	friend class sim_mob::aimsun::LaneLoader;
 	friend class sim_mob::RoadNetworkPackageManager;

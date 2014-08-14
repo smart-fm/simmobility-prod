@@ -374,6 +374,9 @@ void sim_mob::Worker::perform_buff_flip()
 
 void sim_mob::Worker::threaded_function_loop()
 {
+	if(flg.check()){
+		std::cout << "This worker[" << this << "] wraps this thread[" << boost::this_thread::get_id() << "]" << std::endl;
+	}
 	// Register thread on MessageBus.
 	messaging::MessageBus::RegisterThread();
     

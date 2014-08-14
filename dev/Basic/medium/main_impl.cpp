@@ -424,6 +424,7 @@ bool performMainDemand()
 bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles)
 {
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
+	cout << "Main Thread[ " << boost::this_thread::get_id() << "]" << std::endl;
 
 	//Parse the config file (this *does not* create anything, it just reads it.).
 	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());

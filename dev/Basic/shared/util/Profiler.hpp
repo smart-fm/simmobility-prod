@@ -140,7 +140,7 @@ public:
 	sim_mob::BasicLogger & operator<< (const T& val)
 	{
 		std::stringstream *out = sim_mob::BasicLogger::getOut();
-		out << val;
+		*out << val;
 		if(out->tellp() > 512000/*500KB*/){// by some googling this estimated hardcode value promises less cycles to write to a file
 			flushLog();
 		}
@@ -185,7 +185,7 @@ public:
  * BasicLogger
  * QueuedLogger
  **************************************************************************/
-typedef QueuedLogger LogEngine;
+typedef BasicLogger LogEngine;
 }//namespace
 
 //typedef sim_mob::Logger::log sim_mob::log;

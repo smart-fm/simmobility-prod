@@ -567,6 +567,17 @@ void sim_mob::ParseConfigFile::ProcessPathSetNodeNode(xercesc::DOMElement* node)
 	{
 		cfg.pathset.pathSetTableName = ParseString(GetNamedAttributeValue(tableNode, "pathset_table"), "PathSet");
 		cfg.pathset.singlePathTableName = ParseString(GetNamedAttributeValue(tableNode, "singlepath_table"), "SinglePath");
+		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(tableNode, "function"), "get_path_set");
+	}
+	//function
+
+	xercesc::DOMElement* functionNode = GetSingleElementByName(node, "function");
+	if(!functionNode){
+		cfg.pathset.setDefaultFunction();
+	}
+	else
+	{
+		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(functionNode, "value"), "get_path_set");
 	}
 }
 

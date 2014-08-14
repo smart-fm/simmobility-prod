@@ -63,6 +63,7 @@ struct PathSetParams
 	std::string credentials;
 	std::string pathSetTableName;
 	std::string singlePathTableName;
+	std::string dbFunction;
 	void setDefaultEnabled(bool value = false){
 		enabled = value;
 	}
@@ -74,10 +75,15 @@ struct PathSetParams
 		pathSetTableName = pathset;
 		singlePathTableName = singlePath;
 	}
+	void setDefaultFunction(std::string fn="get_path_set")
+	{
+		dbFunction = fn;
+	}
 	void setDefault(){
 		setDefaultEnabled();
 		setDefaultDB();
 		setDefaultTables();
+		setDefaultFunction();
 	}
 };
 

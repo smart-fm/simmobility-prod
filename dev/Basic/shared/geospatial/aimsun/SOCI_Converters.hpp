@@ -112,6 +112,7 @@ template<> struct type_conversion<sim_mob::SinglePath>
 		res.isMinSignal = vals.get<int>("MIN_SIGNAL",0);
 		res.isMinRightTurn = vals.get<int>("MIN_RIGHT_TURN",0);
 		res.isMaxHighWayUsage = vals.get<int>("MAX_HIGH_WAY_USAGE",0);
+		res.isShortestPath = vals.get<int>("SHORTEST_PATH",0);
     }
     static void to_base(const sim_mob::SinglePath& src, soci::values& vals, soci::indicator& ind)
     {
@@ -135,6 +136,7 @@ template<> struct type_conversion<sim_mob::SinglePath>
         vals.set("MIN_SIGNAL", src.isMinSignal);
         vals.set("MIN_RIGHT_TURN", src.isMinRightTurn);
         vals.set("MAX_HIGH_WAY_USAGE", src.isMaxHighWayUsage);
+        vals.set("SHORTEST_PATH", src.isShortestPath);
         ind = i_ok;
     }
 };

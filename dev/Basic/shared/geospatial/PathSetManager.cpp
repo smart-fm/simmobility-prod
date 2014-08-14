@@ -332,7 +332,8 @@ sim_mob::PathSetParam::PathSetParam() :
 
 sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()),
 		pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName),
-		singlePathTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().singlePathTableName)
+		singlePathTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().singlePathTableName),
+		dbFunction(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().dbFunction)
 {
 //	sql = NULL;
 //	psDbLoader=NULL;
@@ -691,6 +692,7 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 	std::string idStrFrom = fromNode->originalDB_ID.getLogItem();
 	out << getNumberFromAimsunId(idStrFrom) << "," << getNumberFromAimsunId(idStrTo);
 	std::string fromToID(out.str());
+	sim_mob::Logger::log["path_set"] << "[" << boost::this_thread::get_id() << "]searching for OD[" << fromToID << "]\n" ;
 	sim_mob::PathSet ps_;
 	//check cache
 	if(isUseCache && findCachedPathSet(fromToID,ps_))
@@ -711,30 +713,31 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 	//check db
 	bool hasPSinDB = false;
 	std::string pathSetID = "'"+fromToID+"'";
-	hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
-							*getSession(),
-							ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-							ps_,pathSetID, pathSetTableName);
-	sim_mob::Logger::log["path_set"]<< "hasPSinDB:" << hasPSinDB << std::endl;
-	//time taken to find out if there is a path set in DB
-	if(ps_.has_path == -1) //no path
-	{
-		return false;
-	}
-	if(hasPSinDB)
-	{
-		sim_mob::Logger::log["path_set"] << "DB hit 1" << std::endl;
-		// init ps_
-		if(!ps_.isInit)
-		{
+//	hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
+//							*getSession(),
+//							ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
+//							ps_,pathSetID, pathSetTableName);
+//	sim_mob::Logger::log["path_set"]<< "hasPSinDB:" << hasPSinDB << std::endl;
+//	//time taken to find out if there is a path set in DB
+//	if(ps_.has_path == -1) //no path
+//	{
+//		return false;
+//	}
+//	if(hasPSinDB)
+//	{
+//		sim_mob::Logger::log["path_set"] << "DB hit 1" << std::endl;
+//		// init ps_
+//		if(!ps_.isInit)
+//		{
 			ps_.subTrip = st;
 			std::map<std::string,sim_mob::SinglePath*> id_sp;
 			bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(
 									*getSession(),
 									ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 									id_sp,
-									pathSetID,
-									ps_.pathChoices, singlePathTableName);
+//									pathSetID,
+									fromToID,
+									ps_.pathChoices, dbFunction, singlePathTableName);
 			sim_mob::Logger::log["path_set"]<< "hasSPinDB:" << hasSPinDB << std::endl;
 			if(hasSPinDB)
 			{
@@ -764,7 +767,7 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 						clearSinglePaths(ps_);
 					}
 					//test
-					clearSinglePaths(ps_);
+//					clearSinglePaths(ps_);
 					//test...
 					return true;
 				}
@@ -777,14 +780,14 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 			{
 				sim_mob::Logger::log["path_set"] << "DB Miss for " << fromToID << " in SinglePath, Pathset says otherwise!" << std::endl;
 			}
-		}
-	} // hasPSinDB
-	else
-	{
-		sim_mob::Logger::log["path_set"] << "DB Miss for " << ps_.id << " in PathSet!" << std::endl;
-	}
+//		}
+//	} // hasPSinDB
+//	else
+//	{
+//		sim_mob::Logger::log["path_set"] << "DB Miss for " << ps_.id << " in PathSet!" << std::endl;
+//	}
 
-	if(!hasPSinDB)
+	if(!hasSPinDB/*hasPSinDB*/)
 	{
 		sim_mob::Logger::log["path_set"]<<"generate All PathChoices for "<<fromToID << std::endl;
 		// 1. generate shortest path with all segs
@@ -830,7 +833,7 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 			pathSetParam->storePathSet(*getSession(),tmp,pathSetTableName);
 			pathSetParam->storeSinglePath(*getSession(),ps_.pathChoices,singlePathTableName);
 			//test
-			clearSinglePaths(ps_);
+//			clearSinglePaths(ps_);
 			return true;
 		}
 		else
@@ -847,8 +850,8 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* s
 }
 
 void sim_mob::PathSetManager::cachePathSet(sim_mob::PathSet &ps){
-	//test
-	return;
+//	//test
+//	return;
 		ps.bestWayPointpathP.clear(); //to be calculated later
 		{
 			boost::unique_lock<boost::shared_mutex> lock(cachedPathSetMutex);
@@ -868,8 +871,8 @@ void sim_mob::PathSetManager::clearSinglePaths(sim_mob::PathSet &ps){
 }
 
 bool sim_mob::PathSetManager::findCachedPathSet(const std::string & key, sim_mob::PathSet &value){
-	//test
-	return false;
+//	//test
+//	return false;
 	boost::unordered_map<const std::string, sim_mob::PathSet>::iterator it ;
 	{
 		boost::unique_lock<boost::shared_mutex> lock(cachedPathSetMutex);
@@ -899,12 +902,16 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(PathSet* ps, const std::s
 	if(!s)
 	{
 		// no path
-		ps->has_path = -1;
-		ps->isNeedSave2DB = true;
-		std::map<std::string,sim_mob::PathSet* > tmp;
-		tmp.insert(std::make_pair(ps->id,ps));
-		std::string cnn(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
-		sim_mob::aimsun::Loader::SaveOnePathSetData(cnn,tmp, pathSetTableName);
+		if(tempNoPath.find(ps->id) == tempNoPath.end())
+		{
+			ps->has_path = -1;
+			ps->isNeedSave2DB = true;
+			std::map<std::string,sim_mob::PathSet* > tmp;
+			tmp.insert(std::make_pair(ps->id,ps));
+			std::string cnn(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
+			sim_mob::aimsun::Loader::SaveOnePathSetData(cnn,tmp, pathSetTableName);
+			tempNoPath.insert(ps->id);
+		}
 		return false;
 	}
 
@@ -1130,7 +1137,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 						id_sp,
 						pathSetID,
-						ps_.pathChoices,singlePathTableName);
+						ps_.pathChoices,dbFunction, singlePathTableName);
 				if(hasSPinDB)
 				{
 					std::map<std::string,sim_mob::SinglePath*>::iterator it = id_sp.find(ps_.singlepath_id);

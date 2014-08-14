@@ -365,6 +365,7 @@ public:
 	void inserIncidentList(const sim_mob::RoadSegment*);
 	const std::string &pathSetTableName;
 	const std::string &singlePathTableName;
+	const std::string &dbFunction;
 //	PathSetDBLoader *psDbLoader;
 //	soci::session *sql;
 	///every thread which invokes db related parts of pathset manages, should have its own connection to the database
@@ -395,6 +396,8 @@ private:
 	//
 	std::map<std::string ,std::vector<WayPoint> > fromto_bestPath;
 	std::map<std::string ,std::vector<WayPoint> >::iterator fromto_bestPath_it;
+	///	used to avoid entering duplicate "HAS_PATH=-1" pathset entries into PathSet. It will be removed once the cache and/or proper DB functions are in place
+	std::set<std::string> tempNoPath;
 
 	///a cache to help answer this question: a given road segment is within which path(s)
 	RPOD pathSegments;
@@ -491,6 +494,7 @@ public:
 	int isMinSignal;
 	int isMinRightTurn;
 	int isMaxHighWayUsage;
+	int isShortestPath;
 
 	bool isNeedSave2DB;
 	std::string id;   //id: seg1id_seg2id_seg3id

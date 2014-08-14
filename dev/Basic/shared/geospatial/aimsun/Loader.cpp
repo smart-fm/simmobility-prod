@@ -126,8 +126,8 @@ public:
 				std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool);
 	static bool LoadSinglePathDBwithIdST(soci::session& sql,
 					std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
-					std::string& pathset_id,
-					std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string singlePathTableName ,
+					std::string& pathset_id,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool
+					,const std::string functionName, const std::string singlePathTableName ,
 					const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
 	bool LoadPathSetDBwithId(
 			std::map<std::string,sim_mob::PathSet* >& pool,
@@ -277,62 +277,34 @@ bool DatabaseLoader::LoadSinglePathDBwithId2(
 		return true;
 }
 bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
-				std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
-				std::string& pathset_id,
-				std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string singlePathTableName,
-				const std::set<const sim_mob::RoadSegment *> & excludedRS)
+		std::map<std::string, sim_mob::SinglePath*>& waypoint_singlepathPool,
+		std::string& pathset_id,
+		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,
+		const std::string functionName, const std::string singlePathTableName,
+		const std::set<const sim_mob::RoadSegment *> & excludedRS)
 {
-	std::stringstream selectQuery("");
+	//todo: take care of exclusions
 	std::string excludesStr;
 	std::string excludeTable;
-	//if there are segments to be excluded
-	if(excludedRS.size()){
-		//insert the excluded segment ids in an empty, temporary database table
-		sql << "delete from exclusion; ";
-		excludeTable = "insert into exclusion(sectionid) values";
-		std::stringstream out("");
-		BOOST_FOREACH(const sim_mob::RoadSegment* rs , excludedRS){
-			out << "('%" << rs->getSegmentAimsunId() << "%'),";
-		}
-		excludesStr = out.str().replace(out.str().size() - 1 , 1, ";");//remove the last comma
-		excludeTable.append(excludesStr);
-		//create a query that select all the pathsets (with the given pathset id) and then left join it with the temporary table
-		//for now this is the fastest way to exclude the paths which containe the excluded segments
-		sql << excludeTable;
-		sim_mob::Logger::log["path_set"]  << excludeTable << std::endl;
-		sql.commit();
-		selectQuery << "select * from \"" << singlePathTableName << "\" "
-					<< " left join exclusion on (\"" << singlePathTableName << "\".\"ID\" like  exclusion.sectionid) "
-					<< " where \"PATHSET_ID\" =" + pathset_id << " and exclusion.sectionid is null";
-//		sim_mob::Logger::log["path_set"]  << selectQuery.str() << std::endl;
-	}
-	else{
-		selectQuery << "select * from \"" << singlePathTableName << "\" where \"PATHSET_ID\" =" + pathset_id ;
-	}
-	sim_mob::Logger::log["path_set"]  << selectQuery.str() << std::endl;
-	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare << selectQuery.str());
-//	if(rs.begin() == rs.end()){
-//		sim_mob::Logger::log["path_set"]  << "the above selectQuery has no results" << (excludedRS.size() ? "ex" : "") << std::endl;
-//	}
-	int i=0;
-//	selectQuery.str("");
-	for (soci::rowset<sim_mob::SinglePath>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+
+	//prepare statement
+	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare	<< "select * from " + functionName + "(:pathset_id_in)", soci::use(pathset_id));
+
+	//	process result
+	int i = 0;
+	for (soci::rowset<sim_mob::SinglePath>::const_iterator it = rs.begin();
+			it != rs.end(); ++it) {
 		sim_mob::SinglePath *s = new sim_mob::SinglePath(*it);
 		bool r;
-//		selectQuery << s->id << std::endl;
-		r = waypoint_singlepathPool.insert(std::make_pair(s->id,s)).second;
-//		sim_mob::Logger::log["path_set"]  << r << " " ;
+		r = waypoint_singlepathPool.insert(std::make_pair(s->id, s)).second;
 		r = spPool.insert(s).second;
-//		sim_mob::Logger::log["path_set"]  << r << std::endl;
 		i++;
 	}
-//	sim_mob::Logger::log["path_set"]  << selectQuery.str() << std::endl;
-	if (i==0)
-	{
-		sim_mob::Logger::log["path_set"]  <<"LSPDBwithId: "<<pathset_id<< "no data in db"<<std::endl;
+	if (i == 0) {
+		sim_mob::Logger::log["path_set"] << "LSPDBwithId: " << pathset_id
+				<< "no data in db" << std::endl;
 		return false;
 	}
-//	std::cout << spPool.size() << waypoint_singlepathPool.size() << std::endl;
 	return true;
 }
 bool DatabaseLoader::LoadPathSetDBwithId(
@@ -411,10 +383,13 @@ void DatabaseLoader::InsertPathSet2DB(std::map<std::string,sim_mob::PathSet* >& 
 	for(std::map<std::string,sim_mob::PathSet* >::iterator it=pathSetPool.begin();it!=pathSetPool.end();++it)
 	{
 		sim_mob::PathSet *ps = (*it).second;
+		if(!ps){
+			std::cout << "ps is null" << std::endl;
+			return;
+		}
 		if(ps->isNeedSave2DB)
 		{
-			sql_<<"insert into \""<< pathSetTableName << "\"(\"ID\", \"FROM_NODE_ID\", \"TO_NODE_ID\",\"SINGLEPATH_ID\",\"SCENARIO\",\"HAS_PATH\") "
-								   "values(:ID, :FROM_NODE_ID, :TO_NODE_ID,:SINGLEPATH_ID,:SCENARIO,:HAS_PATH)", soci::use(*ps);
+			sql_.prepare << "set_path_set_1(:ID, :FROM_NODE_ID, :TO_NODE_ID,:SINGLEPATH_ID,:SCENARIO,:HAS_PATH)",soci::use(*ps);
 		}
 	}
 }
@@ -825,7 +800,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 	}
 
 	//Our SQL statement
-	std::string sql_str = "select * from " + storedProc;
+	std::string sql_str = "select * from " + storedProc ;
 
 	//Load a different string if MPI is enabled.
 #ifndef SIMMOB_DISABLE_MPI
@@ -2638,12 +2613,12 @@ bool sim_mob::aimsun::Loader::LoadSinglePathDBwithId2(const std::string& connect
 }
 bool sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(soci::session& sql,const std::string& connectionStr,
 			std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
-			std::string& pathset_id,
-			std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string singlePathTableName,
+			std::string& pathset_id,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool
+			,const std::string functionName,const std::string singlePathTableName,
 			const std::set<const sim_mob::RoadSegment *> & excludedRS)
 {
 //	DatabaseLoader loader(connectionStr);
-	bool res = DatabaseLoader::LoadSinglePathDBwithIdST(sql,waypoint_singlepathPool,pathset_id,spPool,singlePathTableName,excludedRS);
+	bool res = DatabaseLoader::LoadSinglePathDBwithIdST(sql,waypoint_singlepathPool,pathset_id,spPool,functionName, singlePathTableName,excludedRS);
 	return res;
 }
 bool sim_mob::aimsun::Loader::LoadPathSetDBwithId(const std::string& connectionStr,

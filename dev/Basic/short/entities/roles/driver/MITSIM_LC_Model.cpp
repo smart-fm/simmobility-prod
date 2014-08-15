@@ -1500,7 +1500,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 		p.utilityCurrent = 0 ;
 		p.utilityLeft = 0 ;
 		p.utilityRight = 0 ;
-		p.rnd;
+		p.rnd=0;
 		// check lanes connect to next segment
 		checkConnectLanes(p);
 

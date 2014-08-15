@@ -916,7 +916,7 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p) {
 	distanceToTrafficSignal = p.perceivedDistToTrafficSignal;
 	color = p.perceivedTrafficColor;
 //	double dis = p.perceivedDistToFwdCar;
-	if (distanceToTrafficSignal < percepDisM) {
+	if (distanceToTrafficSignal < percepDisM * 100) {
 		double dis = distanceToTrafficSignal / 100;
 
 #if 0

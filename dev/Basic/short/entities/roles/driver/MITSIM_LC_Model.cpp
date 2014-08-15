@@ -317,7 +317,7 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	Driver *bbvDriver = NULL;
 	if(bbv->exists())
 	{
-		bbvDriver = const_cast<Driver*>(front->driver);
+		bbvDriver = const_cast<Driver*>(bbv->driver);
 	}
 
 	// 6.0 calculate FORWARD GAP utility value
@@ -1475,10 +1475,10 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 		}
 	}//end getStatus()
 
-//	if(p.perceivedFwdVelocity/100 < minSpeed)
-//	{
-//		return LCS_SAME;
-//	}
+	if(p.perceivedFwdVelocity/100 < minSpeed)
+	{
+		return LCS_SAME;
+	}
 
 	if (timeSinceTagged(p) < MLC_PARAMETERS.lane_mintime)
 	{

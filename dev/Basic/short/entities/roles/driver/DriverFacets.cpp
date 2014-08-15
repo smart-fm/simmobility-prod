@@ -1828,8 +1828,8 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 		double distance = other_offset
 				- fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
 
-		if (distance == 0)
-			return false;
+//		if (distance == 0)
+//			return false;
 		bool fwd = distance >= 0;
 
 //Set different variables depending on where the car is.

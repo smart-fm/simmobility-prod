@@ -70,12 +70,13 @@ void DriverUpdateParams::buildDebugInfo()
 
 //	s<<ct
 //			<<":"<<newFwdAccChar
-			s<<parentId
-			<<":"<<ct
-			<<":"<<ul
-			<<":"<<uc
-			<<":"<<ur
-		<<":"<<rnd_;
+			s<<"    id:"<<parentId
+					<<":"<<accSelect;
+//			<<":"<<ct
+//			<<":"<<ul
+//			<<":"<<uc
+//			<<":"<<ur
+//		<<":"<<rnd_;
 
 //			<<":"<<accSelect
 //			<<":"<<nvFwd.exists()

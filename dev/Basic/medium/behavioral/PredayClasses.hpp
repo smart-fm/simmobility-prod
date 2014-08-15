@@ -50,7 +50,7 @@ namespace medium {
 class TimeWindowAvailability {
 public:
 	TimeWindowAvailability();
-	TimeWindowAvailability(double startTime, double endTime, bool availability = 1);
+	TimeWindowAvailability(double startTime, double endTime, bool availability = true);
 
 	int getAvailability() const {
 		return availability;

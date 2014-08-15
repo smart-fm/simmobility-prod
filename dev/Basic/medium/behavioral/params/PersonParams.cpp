@@ -22,33 +22,28 @@ hhOnlyAdults(-1), hhOnlyWorkers(-1), hhNumUnder4(-1), hasUnder15(-1), workLogSum
 }
 
 sim_mob::medium::PersonParams::~PersonParams() {
-	for(boost::unordered_map<int, TimeWindowAvailability*>::iterator i=timeWindowAvailability.begin(); i!=timeWindowAvailability.end(); i++){
-		delete i->second;
-	}
 	timeWindowAvailability.clear();
 }
 
 void sim_mob::medium::PersonParams::initTimeWindows() {
-	if(!timeWindowAvailability.empty())
-	{
-		for(boost::unordered_map<int, TimeWindowAvailability*>::iterator i=timeWindowAvailability.begin(); i!=timeWindowAvailability.end(); i++) { delete i->second; }
-	}
-	int index = 1;
+	if(!timeWindowAvailability.empty()) { timeWindowAvailability.clear(); }
+	int index = 0;
 	for (double i=1; i<=48; i++) {
 		for (double j=i; j<=48; j++) {
-			timeWindowAvailability[index] = new TimeWindowAvailability(i, j); //initialize availability of all time windows to 1
 			index++;
+			TimeWindowAvailability twa(i,j,true);
+			timeWindowAvailability[index] = twa; //initialize availability of all time windows to 1
 		}
 	}
 }
 
 void sim_mob::medium::PersonParams::blockTime(double startTime, double endTime) {
 	if(startTime <= endTime) {
-		for(boost::unordered_map<int, TimeWindowAvailability*>::iterator i=timeWindowAvailability.begin(); i!=timeWindowAvailability.end(); i++){
-			double start = i->second->getStartTime();
-			double end = i->second->getEndTime();
+		for(boost::unordered_map<int, TimeWindowAvailability>::iterator i=timeWindowAvailability.begin(); i!=timeWindowAvailability.end(); i++){
+			double start = i->second.getStartTime();
+			double end = i->second.getEndTime();
 			if((start >= startTime && start <= endTime) || (end >= startTime && end <= endTime)) {
-				i->second->setAvailability(false);
+				i->second.setAvailability(false);
 			}
 		}
 	}
@@ -63,7 +58,7 @@ void sim_mob::medium::PersonParams::blockTime(double startTime, double endTime) 
 }
 
 int PersonParams::getTimeWindowAvailability(int timeWnd) const {
-	return timeWindowAvailability.at(timeWnd)->getAvailability();
+	return timeWindowAvailability.at(timeWnd).getAvailability();
 }
 
 void sim_mob::medium::PersonParams::print()
@@ -106,7 +101,7 @@ void sim_mob::medium::SubTourParams::initTimeWindows()
 		for (double j=i; j<=48; j++)
 		{
 			index++;
-			TimeWindowAvailability twa(i,j,0);
+			TimeWindowAvailability twa(i,j,false);
 			timeWindowAvailability[index] = twa; //initialize availability of all time windows to 0
 		}
 	}

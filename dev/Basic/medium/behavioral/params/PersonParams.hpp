@@ -363,7 +363,7 @@ private:
 	/**
 	 * Time windows currently available for the person.
 	 */
-    boost::unordered_map<int, sim_mob::medium::TimeWindowAvailability*> timeWindowAvailability;
+    boost::unordered_map<int, sim_mob::medium::TimeWindowAvailability> timeWindowAvailability;
 };
 
 /**

@@ -86,7 +86,9 @@ public:
 class TourModeDestinationParams : public ModeDestinationParams {
 public:
 	TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType tourType)
-	: ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation()), drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal())
+	: ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation()),
+	  drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal()),
+	  modeForParentWorkTour(0)
 	{}
 
 	virtual ~TourModeDestinationParams() {}
@@ -272,8 +274,20 @@ public:
 		return 0;
 	}
 
+	int getModeForParentWorkTour() const
+	{
+		return modeForParentWorkTour;
+	}
+
+	void setModeForParentWorkTour(int modeForParentWorkTour)
+	{
+		this->modeForParentWorkTour = modeForParentWorkTour;
+	}
+
 private:
 	bool drive1Available;
+	/**mode for parent work tour in case of sub tours*/
+	int modeForParentWorkTour;
 };
 
 class StopModeDestinationParams : public ModeDestinationParams {
@@ -539,12 +553,11 @@ public:
 		return 0;
 	}
 
-private:
+protected:
 	int homeZone;
 	int driveAvailable;
 	int tourMode;
 };
-
 
 } // end namespace medium
 } // end namespace sim_mob

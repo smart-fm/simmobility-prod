@@ -49,13 +49,14 @@ namespace medium {
 
 class TimeWindowAvailability {
 public:
-	TimeWindowAvailability(double startTime, double endTime);
+	TimeWindowAvailability();
+	TimeWindowAvailability(double startTime, double endTime, bool availability = 1);
 
 	int getAvailability() const {
 		return availability;
 	}
 
-	void setAvailability(int availability) {
+	void setAvailability(bool availability) {
 		this->availability = availability;
 	}
 
@@ -78,7 +79,7 @@ public:
 private:
 	double startTime;
 	double endTime;
-	int availability;
+	bool availability;
 };
 
 enum StopType {

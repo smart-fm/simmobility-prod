@@ -48,7 +48,7 @@ void sim_mob::medium::PersonParams::blockTime(double startTime, double endTime) 
 			double start = i->second->getStartTime();
 			double end = i->second->getEndTime();
 			if((start >= startTime && start <= endTime) || (end >= startTime && end <= endTime)) {
-				i->second->setAvailability(0);
+				i->second->setAvailability(false);
 			}
 		}
 	}
@@ -90,4 +90,48 @@ void sim_mob::medium::PersonParams::print()
 			<< shopLogSum << ","
 			<< otherLogSum << std::endl;
 	Print() << printStrm.str();
+}
+
+int sim_mob::medium::SubTourParams::getTimeWindowAvailability(int timeWnd) const
+{
+	return timeWindowAvailability.at(timeWnd).getAvailability();
+}
+
+void sim_mob::medium::SubTourParams::initTimeWindows()
+{
+	if(!timeWindowAvailability.empty()) { timeWindowAvailability.clear(); }
+	int index = 0;
+	for (double i=1; i<=48; i++)
+	{
+		for (double j=i; j<=48; j++)
+		{
+			index++;
+			TimeWindowAvailability twa(i,j,0);
+			timeWindowAvailability[index] = twa; //initialize availability of all time windows to 0
+		}
+	}
+}
+
+void sim_mob::medium::SubTourParams::availTime(double startTime, double endTime)
+{
+	if(startTime <= endTime)
+	{
+		for(boost::unordered_map<int, TimeWindowAvailability>::iterator i=timeWindowAvailability.begin(); i!=timeWindowAvailability.end(); i++)
+		{
+			double start = i->second.getStartTime();
+			double end = i->second.getEndTime();
+			if(start >= startTime && end <= endTime) // here start <= end always. This condition implies that the entire window is within the range [startTime, endTime]
+			{
+				i->second.setAvailability(true);
+			}
+		}
+	}
+	else {
+		std::stringstream errStream;
+		errStream << "invalid time window was passed for blocking"
+				<< " |start: " << startTime
+				<< " |end: " << endTime
+				<<std::endl;
+		throw std::runtime_error(errStream.str());
+	}
 }

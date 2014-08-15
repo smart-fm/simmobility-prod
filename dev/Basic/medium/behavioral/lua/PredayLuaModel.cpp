@@ -127,6 +127,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addFunction("population", &TourModeDestinationParams::getPopulation)
 				.addFunction("area", &TourModeDestinationParams::getArea)
 				.addFunction("shop", &TourModeDestinationParams::getShop)
+				.addProperty("mode_to_work", &TourModeDestinationParams::getModeForParentWorkTour)
 				.addFunction("availability",&TourModeDestinationParams::isAvailable_TMD)
 			.endClass()
 
@@ -171,10 +172,16 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 			.endClass()
 
 			.beginClass<SubTourParams>("SubTourParams")
+				.addProperty("activity_type", &SubTourParams::getSubTourPurpose)
 				.addProperty("first_of_multiple", &SubTourParams::isFirstOfMultipleTours)
 				.addProperty("subsequent_of_multiple", &SubTourParams::isSubsequentOfMultipleTours)
 				.addProperty("mode_choice",  &SubTourParams::getTourMode)
 				.addProperty("usual_location", &SubTourParams::isUsualLocation)
+				.addProperty("tws_Work_AV", &SubTourParams::isWorkAvail)
+				.addProperty("tws_Education_AV", &SubTourParams::isEduAvail)
+				.addProperty("tws_Shopping_AV", &SubTourParams::isShopAvail)
+				.addProperty("tws_Others_AV", &SubTourParams::isOtherAvail)
+				.addFunction("time_window_availability", &SubTourParams::getTimeWindowAvailability)
 			.endClass()
 
 			.beginClass<StopGenerationParams>("StopGenerationParams")
@@ -379,5 +386,19 @@ int sim_mob::medium::PredayLuaModel::predictWorkBasedSubTour(PersonParams& perso
 {
 	LuaRef chooseTWS = getGlobal(state.get(), "choose_tws");
 	LuaRef retVal = chooseTWS(&personParams, &subTourParams);
+	return retVal.cast<int>();
+}
+
+int sim_mob::medium::PredayLuaModel::predictSubTourModeDestination(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const
+{
+	LuaRef chooseSTMD = getGlobal(state.get(), "choose_stmd");
+	LuaRef retVal = chooseSTMD(&personParams, &tourModeDestinationParams);
+	return retVal.cast<int>();
+}
+
+int sim_mob::medium::PredayLuaModel::predictSubTourTimeOfDay(PersonParams& personParams, SubTourParams& subTourParams) const
+{
+	LuaRef chooseSTTD = getGlobal(state.get(), "choose_sttd");
+	LuaRef retVal = chooseSTTD(&personParams, &subTourParams);
 	return retVal.cast<int>();
 }

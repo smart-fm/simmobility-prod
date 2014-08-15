@@ -316,13 +316,6 @@ public:
 	int getTimeWindowAvailability(int timeWnd) const;
 
 	/**
-	 * set availability of times in timeWnd to 0
-	 *
-	 * @param timeWnd "<startTime>,<endTime>" to block
-	 */
-	void blockTime(std::string& timeWnd);
-
-	/**
 	 * overload function to set availability of times in timeWnd to 0
 	 *
 	 * @param startTime start time
@@ -476,6 +469,72 @@ public:
 		this->usualLocation = usualLocation;
 	}
 
+	int isEduAvail() const
+	{
+		return eduAvail;
+	}
+
+	void setEduAvail(bool eduAvail)
+	{
+		this->eduAvail = eduAvail;
+	}
+
+	int isOtherAvail() const
+	{
+		return otherAvail;
+	}
+
+	void setOtherAvail(bool otherAvail)
+	{
+		this->otherAvail = otherAvail;
+	}
+
+	int isShopAvail() const
+	{
+		return shopAvail;
+	}
+
+	void setShopAvail(bool shopAvail)
+	{
+		this->shopAvail = shopAvail;
+	}
+
+	int isWorkAvail() const
+	{
+		return workAvail;
+	}
+
+	void setWorkAvail(bool workAvail)
+	{
+		this->workAvail = workAvail;
+	}
+
+	StopType getSubTourPurpose() const
+	{
+		return subTourPurpose;
+	}
+
+	void setSubTourPurpose(StopType subTourpurpose)
+	{
+		this->subTourPurpose = subTourpurpose;
+	}
+
+	/** makes all time windows to unavailable*/
+	void initTimeWindows();
+
+	/**
+	 * get the availability for a time window for sub-tour
+	 */
+	int getTimeWindowAvailability(int timeWnd) const;
+
+	/**
+	 * function to set availability of times in timeWnd to 1
+	 *
+	 * @param startTime start time
+	 * @param endTime end time
+	 */
+	void availTime(double startTime, double endTime);
+
 private:
 	/**mode choice for parent tour*/
 	int tourMode;
@@ -485,6 +544,12 @@ private:
 	bool subsequentOfMultipleTours;
 	/**parent tour is to a usual location*/
 	bool usualLocation;
+	/**choice availabilities*/
+	bool workAvail, eduAvail, shopAvail, otherAvail;
+	/**sub tour type*/
+	StopType subTourPurpose;
+	/** Time windows available for sub-tour.*/
+    boost::unordered_map<int, sim_mob::medium::TimeWindowAvailability> timeWindowAvailability;
 };
 
 } //end namespace medium

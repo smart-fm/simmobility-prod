@@ -177,10 +177,6 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("subsequent_of_multiple", &SubTourParams::isSubsequentOfMultipleTours)
 				.addProperty("mode_choice",  &SubTourParams::getTourMode)
 				.addProperty("usual_location", &SubTourParams::isUsualLocation)
-				.addProperty("tws_Work_AV", &SubTourParams::isWorkAvail)
-				.addProperty("tws_Education_AV", &SubTourParams::isEduAvail)
-				.addProperty("tws_Shopping_AV", &SubTourParams::isShopAvail)
-				.addProperty("tws_Others_AV", &SubTourParams::isOtherAvail)
 				.addFunction("time_window_availability", &SubTourParams::getTimeWindowAvailability)
 			.endClass()
 

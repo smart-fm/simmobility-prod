@@ -221,8 +221,8 @@ private:
  */
 class Tour {
 public:
-	Tour(StopType tourType)
-	: tourType(tourType), usualLocation(false), subTour(false), tourMode(0), tourDestination(0), primaryStop(nullptr), startTime(0),
+	Tour(StopType tourType, bool subTour=false)
+	: tourType(tourType), usualLocation(false), subTour(subTour), tourMode(0), tourDestination(0), primaryStop(nullptr), startTime(0),
 	  endTime(0), firstTour(false)
 	{}
 
@@ -352,10 +352,16 @@ public:
 	bool operator!=(const Tour& rhs) const;
 
 	/**
-	 * list of stops in this tour.
-	 * relative ordering of stops according to the time of day in which they occur is maintained in this list.
+	 * List of stops in this tour.
+	 * The relative ordering of stops in this list reflects the chronological order of the stops.
 	 */
 	std::deque<Stop*> stops;
+
+	/**
+	 * List of sub tours for this tour.
+	 * The relative ordering of sub-tours in this list reflects the chronological order of the tours.
+	 */
+	std::deque<Tour> subTours;
 
 private:
 	StopType tourType;

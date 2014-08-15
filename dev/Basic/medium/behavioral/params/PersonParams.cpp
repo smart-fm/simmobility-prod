@@ -31,8 +31,7 @@ void sim_mob::medium::PersonParams::initTimeWindows() {
 	for (double i=1; i<=48; i++) {
 		for (double j=i; j<=48; j++) {
 			index++;
-			TimeWindowAvailability twa(i,j,true);
-			timeWindowAvailability[index] = twa; //initialize availability of all time windows to 1
+			timeWindowAvailability[index] = TimeWindowAvailability(i,j,true); //make all time windows available
 		}
 	}
 }
@@ -92,22 +91,22 @@ int sim_mob::medium::SubTourParams::getTimeWindowAvailability(int timeWnd) const
 	return timeWindowAvailability.at(timeWnd).getAvailability();
 }
 
-void sim_mob::medium::SubTourParams::initTimeWindows()
+void sim_mob::medium::SubTourParams::initTimeWindows(double startTime, double endTime)
 {
 	if(!timeWindowAvailability.empty()) { timeWindowAvailability.clear(); }
 	int index = 0;
-	for (double i=1; i<=48; i++)
+	for (double start=1; start<=48; start++)
 	{
-		for (double j=i; j<=48; j++)
+		for (double end=start; end<=48; end++)
 		{
 			index++;
-			TimeWindowAvailability twa(i,j,false);
-			timeWindowAvailability[index] = twa; //initialize availability of all time windows to 0
+			if(start >= startTime && end <= endTime) { timeWindowAvailability[index] = TimeWindowAvailability(start,end,true); }
+			else { timeWindowAvailability[index] = TimeWindowAvailability(start,end,false); }
 		}
 	}
 }
 
-void sim_mob::medium::SubTourParams::availTime(double startTime, double endTime)
+void sim_mob::medium::SubTourParams::blockTime(double startTime, double endTime)
 {
 	if(startTime <= endTime)
 	{
@@ -115,9 +114,8 @@ void sim_mob::medium::SubTourParams::availTime(double startTime, double endTime)
 		{
 			double start = i->second.getStartTime();
 			double end = i->second.getEndTime();
-			if(start >= startTime && end <= endTime) // here start <= end always. This condition implies that the entire window is within the range [startTime, endTime]
-			{
-				i->second.setAvailability(true);
+			if((start >= startTime && start <= endTime) || (end >= startTime && end <= endTime)) {
+				i->second.setAvailability(false);
 			}
 		}
 	}
@@ -130,3 +128,13 @@ void sim_mob::medium::SubTourParams::availTime(double startTime, double endTime)
 		throw std::runtime_error(errStream.str());
 	}
 }
+
+sim_mob::medium::SubTourParams::SubTourParams(const Tour& parentTour)
+: subTourPurpose(parentTour.getTourType()), usualLocation(parentTour.isUsualLocation()), tourMode(parentTour.getTourMode()),
+  firstOfMultipleTours(parentTour.isFirstTour()), subsequentOfMultipleTours(!parentTour.isFirstTour())
+{
+	initTimeWindows();
+}
+
+sim_mob::medium::SubTourParams::~SubTourParams()
+{}

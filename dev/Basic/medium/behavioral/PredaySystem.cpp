@@ -60,6 +60,9 @@ namespace {
 	const double LAST_WINDOW = 26.75;
 	const int LAST_INDEX = 48;
 
+	//Maximum number of sub tours per tour
+	const unsigned short MAX_SUB_TOURS = 2;
+
 	std::map<int, std::string> setModeMap() {
 		// 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
 		// 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
@@ -228,6 +231,49 @@ void PredaySystem::predictTourMode(Tour& tour) {
 	}
 
 	tour.setTourMode(PredayLuaProvider::getPredayModel().predictTourMode(personParams, tmParams));
+}
+
+void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
+{
+	SubTourParams workBasedSubTourParams(parentTour);
+
+	TourList& subToursList = parentTour.subTours;
+	int choice = 0;
+	for(short i=0; i<MAX_SUB_TOURS; i++)
+	{
+		choice = PredayLuaProvider::getPredayModel().predictWorkBasedSubTour(personParams, workBasedSubTourParams);
+		if(choice == 5) { break; } //QUIT
+		switch(choice)
+		{
+		case 1: //WORK sub tour
+			parentTour.subTours.push_back(Tour(WORK,true));
+			break;
+		case 2: //EDU sub tour
+			parentTour.subTours.push_back(Tour(EDUCATION,true));
+			break;
+		case 3: //SHOP sub tour
+			parentTour.subTours.push_back(Tour(SHOP,true));
+			break;
+		case 4: //OTHER sub tour
+			parentTour.subTours.push_back(Tour(OTHER,true));
+			break;
+		}
+	}
+
+	// mode/destination and time of day for each sub tour
+	for(TourList::iterator tourIt=subToursList.begin(); tourIt!=subToursList.end(); tourIt++)
+	{
+		//set mode and destination
+		Tour& subTour = *tourIt;
+		TourModeDestinationParams stmdParams(zoneMap, amCostMap, pmCostMap, personParams, subTour.getTourType());
+		stmdParams.setModeForParentWorkTour(parentTour.getTourMode());
+		int modeDest = PredayLuaProvider::getPredayModel().predictSubTourModeDestination(personParams, stmdParams);
+		subTour.setTourMode(stmdParams.getMode(modeDest));
+		int zone_id = stmdParams.getDestination(modeDest);
+		subTour.setTourDestination(zoneMap.at(zone_id)->getZoneCode());
+
+
+	}
 }
 
 void PredaySystem::predictTourModeDestination(Tour& tour) {
@@ -1091,6 +1137,9 @@ void PredaySystem::planDay() {
 		tour.addStop(primaryActivity);
 		personParams.blockTime(timeWindow.getStartTime(), timeWindow.getEndTime());
 		logStream << "|primary activity|arrival: " << primaryActivity->getArrivalTime() << "|departure: " << primaryActivity->getDepartureTime() << std::endl;
+
+		//Generate sub tours for work tours
+		if(tour.getTourType() == sim_mob::medium::WORK) { predictSubTours(tour); }
 
 		//Generate stops for this tour
 		generateIntermediateStops(tour, remainingTours);

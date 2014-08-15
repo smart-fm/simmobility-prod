@@ -69,16 +69,7 @@ end
 
 --availability
 --the logic to determine availability is the same with current implementation
-local availability = {}
-local function computeAvailabilities(dbparams)
-	availability = {
-		dbparams.tws_Work_AV,
-		dbparams.tws_Education_AV,
-		dbparams.tws_Shopping_AV,
-		dbparams.tws_Others_AV,
-		1 --quit option is always available
-	}
-end
+local availability = {1,1,1,1,1} -- all choices are available
 
 --scale
 local scale={}
@@ -90,7 +81,6 @@ scale["quit"] = 1
 -- to check variable bindings in params or dbparams, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
 function choose_tws(params,dbparams)
 	computeUtilities(params,dbparams) 
-	computeAvailabilities(dbparams)
 	local probability = calculate_probability("nl", choice, utility, availability, scale)
 	return make_final_choice(probability)
 end

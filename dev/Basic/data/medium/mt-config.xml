@@ -25,7 +25,7 @@
                 <run_mode value="simulation"/>
                 <!-- Number of threads to create for processing the population in-->
                 <!-- the preday demand simulator -->
-                <threads value="3"/>
+                <threads value="6"/>
                 <!-- outputs the preday predictions as trip chains in PostgreSQL database if enabled -->
                 <output_tripchains enabled="false"/>
                 <!-- outputs the preday's predicted tours and stops to mongodb if enabled -->
@@ -46,10 +46,12 @@
                         <script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->
                         <script name="tmds" file="tmds.lua"/> <!--Tour Mode/Destination Shopping -->
                         <script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->
-                        <script name="tws" file="tws.lua"/> <!--Work Based Sub-Tours -->
                         <script name="ttdw" file="ttdw.lua"/> <!--Tour Time Of Day Work -->
                         <script name="ttdo" file="ttdo.lua"/> <!--Tour Time Of Day Others -->
                         <script name="ttde" file="ttde.lua"/> <!--Tour Time Of Day Education -->
+                        <script name="tws" file="tws.lua"/> <!--Work Based Sub-Tours -->
+                        <script name="stmd" file="stmd.lua"/> <!--Work Based Sub-Tours Mode/Destination-->
+                        <script name="sttd" file="sttd.lua"/> <!--Work Based Sub-Tours Time Of Day-->
                         <script name="isg" file="isg.lua"/> <!--Intermediate Stop Generation -->
                         <script name="imd" file="imd.lua"/> <!--Intermediate Stop Mode/Destination -->
                         <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->

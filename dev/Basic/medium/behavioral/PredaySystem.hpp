@@ -74,6 +74,13 @@ private:
 	TimeWindowAvailability predictTourTimeOfDay(Tour& tour);
 
 	/**
+	 * Predicts sub tours
+	 *
+	 * @param tour the tour for which the sub-tours are to be predicted
+	 */
+	void predictSubTours(Tour& tour);
+
+	/**
 	 * Generates intermediate stops of types predicted by the day pattern model before and after the primary activity of a tour.
 	 *
 	 * @param tour the tour for which stops are to be generated

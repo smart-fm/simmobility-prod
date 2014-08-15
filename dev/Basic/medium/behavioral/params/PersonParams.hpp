@@ -429,6 +429,9 @@ private:
  */
 class SubTourParams {
 public:
+	SubTourParams(const Tour& tour);
+	virtual ~SubTourParams();
+
 	int isFirstOfMultipleTours() const
 	{
 		return firstOfMultipleTours;
@@ -469,46 +472,6 @@ public:
 		this->usualLocation = usualLocation;
 	}
 
-	int isEduAvail() const
-	{
-		return eduAvail;
-	}
-
-	void setEduAvail(bool eduAvail)
-	{
-		this->eduAvail = eduAvail;
-	}
-
-	int isOtherAvail() const
-	{
-		return otherAvail;
-	}
-
-	void setOtherAvail(bool otherAvail)
-	{
-		this->otherAvail = otherAvail;
-	}
-
-	int isShopAvail() const
-	{
-		return shopAvail;
-	}
-
-	void setShopAvail(bool shopAvail)
-	{
-		this->shopAvail = shopAvail;
-	}
-
-	int isWorkAvail() const
-	{
-		return workAvail;
-	}
-
-	void setWorkAvail(bool workAvail)
-	{
-		this->workAvail = workAvail;
-	}
-
 	StopType getSubTourPurpose() const
 	{
 		return subTourPurpose;
@@ -519,8 +482,12 @@ public:
 		this->subTourPurpose = subTourpurpose;
 	}
 
-	/** makes all time windows to unavailable*/
-	void initTimeWindows();
+	/**
+	 * make time windows between startTime and endTime available
+	 * @param startTime start time of available window
+	 * @param endTime end time of available window
+	 */
+	void initTimeWindows(double startTime, double endTime);
 
 	/**
 	 * get the availability for a time window for sub-tour
@@ -528,12 +495,12 @@ public:
 	int getTimeWindowAvailability(int timeWnd) const;
 
 	/**
-	 * function to set availability of times in timeWnd to 1
+	 * make time windows between startTime and endTime unavailable
 	 *
 	 * @param startTime start time
 	 * @param endTime end time
 	 */
-	void availTime(double startTime, double endTime);
+	void blockTime(double startTime, double endTime);
 
 private:
 	/**mode choice for parent tour*/
@@ -544,8 +511,6 @@ private:
 	bool subsequentOfMultipleTours;
 	/**parent tour is to a usual location*/
 	bool usualLocation;
-	/**choice availabilities*/
-	bool workAvail, eduAvail, shopAvail, otherAvail;
 	/**sub tour type*/
 	StopType subTourPurpose;
 	/** Time windows available for sub-tour.*/

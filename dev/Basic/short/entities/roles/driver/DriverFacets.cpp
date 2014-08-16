@@ -1569,10 +1569,7 @@ void sim_mob::DriverMovement::setOrigin(DriverUpdateParams& p) {
 //Calculate and save the total length of the current polyline.
 	p.currLaneLength = fwdDriverMovement.getTotalRoadSegmentLengthCM();
 
-//if the first road segment is the last one in this link
-	if (!(hasNextSegment(true))) {
-		saveCurrTrafficSignal();
-	}
+	saveCurrTrafficSignal();
 	if (!(hasNextSegment(true)) && hasNextSegment(false)) {
 //Don't do this if there is no next link.
 		chooseNextLaneForNextLink(p);
@@ -2515,8 +2512,9 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 					{
 						int i=1;
 					}
+			const Lane *nextLinkLane = hasNextSegment(false)->getLane(0);
 			color = trafficSignal->getDriverLight(*p.currLane,
-					*nextLaneInNextLink);
+					*nextLinkLane);
 //			std::stringstream out("");
 //			out << "Driver light for segment[" <<p.now.frame()<<"]"<<" ["<<
 //			(*p.currLane).getRoadSegment() << "," << (*nextLaneInNextLink).getRoadSegment() << "] " << color << std::endl;

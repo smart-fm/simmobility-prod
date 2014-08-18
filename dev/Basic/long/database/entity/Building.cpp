@@ -28,33 +28,8 @@ Building::Building( BigSerial fm_building_id, BigSerial fm_project_id, BigSerial
 Building::~Building() {
 }
 
-Building& Building::operator=(const Building& source) {
-	/*
-    this->id = source.id;
-    this->typeId = source.typeId;
-    this->parcelId = source.parcelId;
-    this->tenureId = source.tenureId;
-    this->builtYear = source.builtYear;
-    this->parkingSpaces = source.parkingSpaces;
-    this->storeys = source.storeys;
-    this->landedArea = source.landedArea;
-   	*/
-
-/*
-    fm_building_id
-    fm_project_id
-    fm_parcel_id
-    storeys_above_ground
-    storeys_below_ground
-    from_date
-    to_date
-    building_status
-    gross_sq_m_res
-    gross_sq_m_office
-    gross_sq_m_retail
-    gross_sq_m_other
-*/
-
+Building& Building::operator=(const Building& source)
+{
 	this->fm_building_id 		= source.fm_building_id;
 	this->fm_project_id 		= source.fm_project_id;
 	this->fm_parcel_id 			= source.fm_parcel_id;
@@ -134,55 +109,11 @@ float	Building::getGrossSqmOther() const
 }
 
 
-/*
-BigSerial Building::getId() const {
-    return id;
-}
-
-BigSerial Building::getTypeId() const {
-    return typeId;
-}
-
-BigSerial Building::getParcelId() const {
-    return parcelId;
-}
-
-BigSerial Building::getTenureId() const {
-    return tenureId;
-}
-
-int Building::getBuiltYear() const {
-    return builtYear;
-}
-
-int Building::getStoreys() const {
-    return storeys;
-}
-
-int Building::getParkingSpaces() const {
-    return parkingSpaces;
-}
-
-double Building::getLandedArea() const {
-    return landedArea;
-}
-*/
-
 namespace sim_mob {
     namespace long_term {
 
         std::ostream& operator<<(std::ostream& strm, const Building& data) {
             return strm << "{"
-            		/*
-                    << "\"id\":\"" << data.id << "\","
-                    << "\"typeId\":\"" << data.typeId << "\","
-                    << "\"parcelId\":\"" << data.parcelId << "\","
-                    << "\"tenureId\":\"" << data.tenureId << "\","
-                    << "\"builtYear\":\"" << data.builtYear << "\","
-                    << "\"storeys\":\"" << data.storeys << "\","
-                    << "\"parkingSpaces\":\"" << data.parkingSpaces << "\","
-                    << "\"landArea\":\"" << data.landedArea << "\""
-                    */
             		<< "\"fm_building_id \":\"" << data.fm_building_id << "\","
             		<< "\"fm_project_id \":\"" << data.fm_project_id << "\","
             		<< "\"fm_parcel_id \":\"" << data.fm_parcel_id << "\","

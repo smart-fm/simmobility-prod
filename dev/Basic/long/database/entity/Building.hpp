@@ -19,54 +19,11 @@ namespace sim_mob {
 
         class Building {
         public:
-        	Building( BigSerial fm_building_id = INVALID_ID, BigSerial fm_project_id = INVALID_ID, BigSerial fm_parcel_id = INVALID_ID, int storeys_above_ground = 0, int storeys_below_ground = 0,
-        						std::tm from_date = std::tm(), std::tm to_date = std::tm(), std::string building_status = EMPTY_STR, float	gross_sq_m_res = 0, float gross_sq_m_office = 0,
-        						float gross_sq_m_retail = 0, float gross_sq_m_other = 0);
+        	Building( BigSerial fm_building_id = INVALID_ID, BigSerial fm_project_id = INVALID_ID, BigSerial fm_parcel_id = INVALID_ID, int storeys_above_ground = 0,
+        			  int storeys_below_ground = 0, std::tm from_date = std::tm(), std::tm to_date = std::tm(), std::string building_status = EMPTY_STR,
+        			  float	gross_sq_m_res = 0, float gross_sq_m_office = 0, float gross_sq_m_retail = 0, float gross_sq_m_other = 0 );
 
             virtual ~Building();
-
-
-            /*
-             *
-             * Gets unique identifier of the Type Type.
-             * @return id.
-
-            BigSerial getTypeId() const;
-
-			BigSerial getId() const;
-
-             * Gets unique identifier of the Project Type.
-             * @return id.
-
-            BigSerial getParcelId() const;
-            
-
-             * Gets unique identifier of the building tenure.
-             * @return id.
-
-            BigSerial getTenureId() const;
-
-
-             * Gets the year that the building was built.
-             * @return the year that the building was built.
-
-            int getBuiltYear() const;
-
-
-             * Gets number of storeys.
-             * @return storeys number.
-
-            int getStoreys() const;
-
-             * Gets number of stories.
-             * @return stories number.
-            int getParkingSpaces() const;
-            
-
-             * Gets the landed area of the building.
-             * @return area value.
-            double getLandedArea() const;
-			*/
 
             /**
              * Gets unique identifier of the Building Type.
@@ -156,16 +113,6 @@ namespace sim_mob {
         private:
             friend class BuildingDao;
         private:
-            /*
-            BigSerial id;
-            BigSerial typeId;
-            BigSerial parcelId;
-            BigSerial tenureId;
-            int builtYear;
-            int storeys;
-            int parkingSpaces;
-            double landedArea;
-            */
 
             BigSerial fm_building_id;
             BigSerial fm_project_id;
@@ -179,9 +126,6 @@ namespace sim_mob {
             float	gross_sq_m_office;
             float	gross_sq_m_retail;
             float	gross_sq_m_other;
-
-
-
         };
     }
 }

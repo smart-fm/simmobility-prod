@@ -67,9 +67,10 @@
                         <mongo_collection name="PMCosts" collection="PMCosts"/>
                         <mongo_collection name="Zone" collection="Zone"/>
                         <mongo_collection name="zone_node" collection="node_mtz"/>
-                        <mongo_collection name="Output_DayPattern" collection="person_tours_cpp_dummy"/>
-                        <mongo_collection name="Output_Tour" collection="tours_cpp_dummy"/>
-                        <mongo_collection name="Output_Activity" collection="activity_cpp_dummy"/>
+                        <mongo_collection name="Output_DayPattern" collection="person_tours_dummy"/>
+                        <mongo_collection name="Output_Tour" collection="tour_dummy"/>
+                        <mongo_collection name="Output_Activity" collection="activity_dummy"/>
+                        <mongo_collection name="Output_SubTour" collection="sub_tour_dummy"/>
                 </mongo_collections>
                 
                 <calibration enabled="false">

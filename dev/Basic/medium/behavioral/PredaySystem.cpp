@@ -257,6 +257,8 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 		case 4: //OTHER sub tour
 			parentTour.subTours.push_back(Tour(OTHER,true));
 			break;
+		default:
+			throw std::runtime_error("Invalid prediction for sub tour type");
 		}
 	}
 
@@ -1333,6 +1335,29 @@ void sim_mob::medium::PredaySystem::insertTour(const Tour& tour, int tourNumber)
 	mongoDao["Output_Tour"]->insert(tourDoc);
 }
 
+void sim_mob::medium::PredaySystem::insertSubTour(const Tour& subTour, const Tour& parentTour, int tourNumber, int subTourNumber) {
+	BSONObj tourDoc = BSON(
+		"person_id" << personParams.getPersonId() <<
+		"person_type_id" << personParams.getPersonTypeId() <<
+		"parent_tour_type" << parentTour.getTourTypeStr() <<
+		"parent_tour_num" << tourNumber <<
+		"parent_tour_destination" << parentTour.getTourDestination() <<
+		"parent_tour_mode" << parentTour.getTourMode() <<
+		"parent_activity_arr" << parentTour.getPrimaryStop()->getArrivalTime() <<
+		"parent_activity_dep" << parentTour.getPrimaryStop()->getDepartureTime() <<
+		"sub_tour_type" << subTour.getTourTypeStr() <<
+		"sub_tour_num" << subTourNumber <<
+		"mode" << subTour.getTourMode() <<
+		"destination" << subTour.getTourDestination() <<
+		"sub_tour_activity_arr" << subTour.getPrimaryStop()->getArrivalTime() <<
+		"sub_tour_activity_dep" << subTour.getPrimaryStop()->getDepartureTime() <<
+		"start_time" << subTour.getStartTime() <<
+		"end_time" << subTour.getEndTime() <<
+		"hhfactor" << personParams.getHouseholdFactor()
+	);
+	mongoDao["Output_SubTour"]->insert(tourDoc);
+}
+
 void sim_mob::medium::PredaySystem::insertStop(const Stop* stop, int stopNumber, int tourNumber)
 {
 	BSONObj stopDoc = BSON(
@@ -1437,6 +1462,12 @@ void sim_mob::medium::PredaySystem::outputPredictionsToMongo() {
 		tourNum++;
 		const Tour& currTour = *tourIt;
 		insertTour(currTour, tourNum);
+		int subTourNum=0;
+		const TourList& subTourLst = currTour.subTours;
+		for(TourList::const_iterator subTourIt=subTourLst.begin(); subTourIt!=subTourLst.end(); subTourIt++) {
+			subTourNum++;
+			insertSubTour(*subTourIt, currTour, tourNum, subTourNum);
+		}
 		int stopNum=0;
 		const StopList& stopLst = currTour.stops;
 		for(StopList::const_iterator stopIt=stopLst.begin(); stopIt!=stopLst.end(); stopIt++) {

@@ -177,6 +177,17 @@ private:
 	void insertTour(const Tour& tour, int tourNumber);
 
 	/**
+	 * inserts sub tour of a tour
+	 * This function will be called once for every sub-tour of a tour
+	 *
+	 * @param subTour the sub tour to insert
+	 * @param parentTour the parent tour of sub-tour
+	 * @param tourNumber the index of this tour among all tours of this person
+	 * @param subTourNumber the index of this subTour among all subTours for this tour
+	 */
+	void insertSubTour(const Tour& subTour, const Tour& parentTour, int tourNumber, int subTourNumber);
+
+	/**
 	 * inserts tour level information for a person
 	 * This function will be called once for every stop of every tour of every person in the population.
 	 *

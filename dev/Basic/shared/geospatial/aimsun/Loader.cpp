@@ -301,8 +301,7 @@ bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 		i++;
 	}
 	if (i == 0) {
-		sim_mob::Logger::log["path_set"] << "LSPDBwithId: " << pathset_id
-				<< "no data in db" << std::endl;
+		sim_mob::Logger::log["path_set"] << "LSPDBwithId: " << pathset_id << "no data in db\n" ;
 		return false;
 	}
 	return true;
@@ -2644,49 +2643,7 @@ bool sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(soci::session& sql,const 
 	bool res = DatabaseLoader::LoadOnePathSetDBwithIdST(sql,pathset_id,ps,tableName);
 	return res;
 }
-bool sim_mob::aimsun::Loader::LoadPathSetDataWithId(const std::string& connectionStr,
-		std::map<std::string,sim_mob::SinglePath*>& pathPool,
-		std::map<std::string,SinglePath*> &waypoint_singlepathPool,
-		std::map<std::string,sim_mob::PathSet* >& pathSetPool,std::string& pathset_id)
-{
-	return false;
-//	bool res=false;
-//	std::cout << "LoadPathSetDataWithId: loading " <<pathset_id<<" data from db"<< std::endl;
-//	//Connection string will look something like this:
-//	//"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
-//	if(!myloader)
-//			myloader = new DatabaseLoader2(connectionStr);
-////	DatabaseLoader loader(connectionStr);
-//	myloader->LoadSinglePathDBwithId(pathPool,waypoint_singlepathPool,pathset_id);
-////	std::cout<<"LoadSinglePathDB: "<<waypoint_singlepathPool.size()<<std::endl;
-//	res = myloader->LoadPathSetDBwithId(pathSetPool,pathset_id);
-////	loader.LoadPathPoolDBDB(PathPoolDBPool);
-////	std::cout << ">load pathset Success." << std::endl;
-//
-//	return res;
-}
-//void sim_mob::aimsun::Loader::SavePathSetData(const std::string& connectionStr,
-//		std::map<std::string,sim_mob::SinglePath*>& pathPool,
-//		std::map<std::string,sim_mob::PathSet* >& pathSetPool)
-//{
-//	std::cout << "Attempting to connect to database (pathset)" << std::endl;
-//	//Connection string will look something like this:
-//	//"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
-//	DatabaseLoader loader(connectionStr);
-////	for(std::map<std::string,sim_mob::SinglePath*>::iterator it=pathPool.begin();it!=pathPool.end();++it)
-////	{
-////		sim_mob::SinglePath* sp = (*it).second;
-////		sim_mob::SinglePathDB *data = sp->dbData;
-////	}
-//	loader.InsertSinglePath2DB(pathPool);
-//	loader.InsertPathSet2DB(pathSetPool);
-//}
-//void sim_mob::aimsun::Loader::SaveOneSinglePathData(const std::string& connectionStr,
-//		std::vector<sim_mob::SinglePath*>& pathPool,const std::string singlePathTableName)
-//{
-//	DatabaseLoader loader(connectionStr);
-//	loader.InsertSinglePath2DB(pathPool,singlePathTableName);
-//}
+
 bool sim_mob::aimsun::Loader::SaveOneSinglePathDataST(soci::session& sql,
 		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& pathPool,const std::string singlePathTableName)
 {

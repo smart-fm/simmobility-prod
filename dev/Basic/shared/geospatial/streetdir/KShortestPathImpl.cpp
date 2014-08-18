@@ -183,16 +183,3 @@ bool sim_mob::K_ShortestPathImpl::segmentInPaths(const sim_mob::RoadSegment* seg
 	}
 	return false;
 }
-double sim_mob::generateSinglePathLength(std::vector<WayPoint>& wp)
-{
-	double res=0;
-	for(int i=0;i<wp.size();++i)
-	{
-		WayPoint* w = &wp[i];
-		if (w->type_ == WayPoint::ROAD_SEGMENT) {
-			const sim_mob::RoadSegment* seg = w->roadSegment_;
-			res += seg->length;
-		}
-	}
-	return res/100.0; //meter
-}

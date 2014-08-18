@@ -16,7 +16,20 @@ namespace sim_mob {
 
 class PathSet;
 class SinglePath;
-inline double generateSinglePathLength(std::vector<WayPoint>& wp);
+
+inline double generateSinglePathLength(std::vector<WayPoint>& wp)
+{
+	double res=0;
+	for(int i=0;i<wp.size();++i)
+	{
+		WayPoint* w = &wp[i];
+		if (w->type_ == WayPoint::ROAD_SEGMENT) {
+			const sim_mob::RoadSegment* seg = w->roadSegment_;
+			res += seg->length;
+		}
+	}
+	return res/100.0; //meter
+}
 struct PathLength
 {
 	double length;

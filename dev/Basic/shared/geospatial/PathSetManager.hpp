@@ -256,6 +256,10 @@ struct personOD{
 /// Roadsegment-Person-O-D
 typedef std::multimap<const sim_mob::RoadSegment*, personOD > RPOD ;// Roadsegment-Person-O-D  :)
 
+/*****************************************************
+ * ****** Path Set Manager ***************************
+ * ***************************************************
+ */
 class PathSetManager {
 
 public:
@@ -267,34 +271,19 @@ public:
 		}
 		return instance_;
 	}
-
-//	static sim_mob::Logger profiler;
-	sim_mob::batched::ThreadPool *threadpool_;
 public:
 	bool generateAllPathSetWithTripChain2();
-	sim_mob::SinglePath * generateSinglePathByFromToNodes(const sim_mob::Node *fromNode,
-			   const sim_mob::Node *toNode,const sim_mob::RoadSegment* excludedSegs=NULL);
-	sim_mob::SinglePath *  generateSinglePathByFromToNodes3(
-			   const sim_mob::Node *fromNode,
-			   const sim_mob::Node *toNode,
-			   std::set<std::string> & duplicatePath,
-			   const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>());
+	sim_mob::SinglePath * generateSinglePathByFromToNodes(const sim_mob::Node *fromNode,  const sim_mob::Node *toNode,const sim_mob::RoadSegment* excludedSegs=NULL);
 
-	sim_mob::SinglePath* generateShortestTravelTimePath(const sim_mob::Node *fromNode,
-			   const sim_mob::Node *toNode,
-			   std::set<std::string>& duplicateChecker,
-			   sim_mob::TimeRange tr = sim_mob::MorningPeak,
-			   const sim_mob::RoadSegment* excludedSegs=NULL,
-			   int random_graph_idx=0);
-	PathSet *generatePathSetByFromToNodes(const sim_mob::Node *fromNode,
-			const sim_mob::Node *toNode,
-			const sim_mob::SubTrip* st,
-			bool isUseCache=true);
-	bool LoadSinglePathDBwithId(
-			std::string& pathset_id,
-			std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool);
-	std::map<std::string,sim_mob::PathSet*> generatePathSetByTripChainItemPool(std::vector<sim_mob::TripChainItem*> &tci);
-	void  generatePathSetByTrip(std::map<std::string,sim_mob::PathSet*> &subTripId_pathSet,sim_mob::Trip *trip);
+	///	generate shortest path information
+	sim_mob::SinglePath *  generateSinglePathByFromToNodes3( const sim_mob::Node *fromNode, const sim_mob::Node *toNode,
+			   std::set<std::string> & duplicatePath, const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>());
+
+	///	generate a path based on shortest travel time
+	sim_mob::SinglePath* generateShortestTravelTimePath(const sim_mob::Node *fromNode, const sim_mob::Node *toNode,
+			std::set<std::string>& duplicateChecker, sim_mob::TimeRange tr = sim_mob::MorningPeak,
+			const sim_mob::RoadSegment* excludedSegs=NULL, int random_graph_idx=0);
+
 	bool isUseCacheMode() { return false;/*isUseCache;*/ }//todo: take care of this later
 	double getUtilityBySinglePath(sim_mob::SinglePath* sp);
 	std::vector<WayPoint> generateBestPathChoice2(const sim_mob::SubTrip* st);
@@ -326,87 +315,146 @@ public:
 	 * \param isUseCache is using the cache allowed
 	 */
 	bool generateAllPathChoicesMT(PathSet* ps, const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>());
+
+	///	generate travel time required to complete a path represented by different singlepath objects
 	void generateTravelTimeSinglePathes(const sim_mob::Node *fromNode, const sim_mob::Node *toNode, std::set<std::string>& duplicateChecker,sim_mob::PathSet& ps_);
+
 	void generatePathesByLinkElimination(std::vector<WayPoint>& path,std::set<std::string>& duplicateChecker,sim_mob::PathSet& ps_,const sim_mob::Node* fromNode,const sim_mob::Node* toNode);
+
 	void generatePathesByTravelTimeLinkElimination(std::vector<WayPoint>& path, std::set<std::string>& duplicateChecker, sim_mob::PathSet& ps_,const sim_mob::Node* fromNode,const sim_mob::Node* toNode,	sim_mob::TimeRange tr);
+
 	bool getBestPathChoiceFromPathSet(sim_mob::PathSet& ps, const std::set<const sim_mob::RoadSegment *> & excludedSegs =  std::set<const sim_mob::RoadSegment *>());
+
+	///	initialize various(mainly utility) paramenters
 	void initParameters();
-	// get
+
+	/// one of the main PathSetManager interfaces used to return a path for the current OD of the given person.
 	std::vector<WayPoint> getPathByPerson(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip);
-	sim_mob::PathSet* getPathSetByFromToNodeAimsunId(std::string id);
-	bool getSinglePathById(std::string &id,sim_mob::SinglePath** s);
+
+	///	calculate travel time of a path
 	double getTravelTime(sim_mob::SinglePath *sp);
+
+	///	get travel time of a segment
 	double getTravelTimeBySegId(std::string id,sim_mob::DailyTime startTime);
-	// store
-	void storePersonIdPathSets(std::string personId,std::map<std::string,sim_mob::PathSet*> subTripId_pathSet);
+
+	///	get the size occupied by this pathset manager
 	unsigned long size();
+
 	std::string& getTravleTimeTmpTableName() { return pathset_traveltime_tmp_table_name; }
+
 	std::string& getTravleTimeRealtimeTableName() { return pathset_traveltime_realtime_table_name; }
+
 	void setCSVFileName();
+
 	bool insertTravelTime2TmpTable(sim_mob::LinkTravelTime& data);
+
 	bool copyTravelTimeDataFromTmp2RealtimeTable();
+
 	void init();
+
+	///clears various cache containers
 	void clearPools();
 
 	void setScenarioName(std::string& name){ scenarioName = name; }
+
 	void insertFromTo_BestPath_Pool(std::string& id ,std::vector<WayPoint>& value);
+
 	bool getCachedBestPath(std::string id, std::vector<WayPoint> & value);
+
 	void cacheODbySegment(const sim_mob::Person*,const SubTrip *,std::vector<WayPoint> &);
+
 	const std::pair<RPOD::const_iterator,RPOD::const_iterator > getODbySegment(const sim_mob::RoadSegment* segment) const;
+
+	///	handle messages sent to pathset manager using message bus
 	void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
-	//list of incident currently happening in the system.(incident manager has the original copy
-	std::set<const sim_mob::RoadSegment*> currIncidents;
-	///protect access to incidents list
-	boost::shared_mutex mutexIncident;
+
+	///	get system registered incidents(changes in segment capacities)
 	std::set<const sim_mob::RoadSegment*> &getIncidents();
+
 	///insert into incident list
 	void inserIncidentList(const sim_mob::RoadSegment*);
-	const std::string &pathSetTableName;
-	const std::string &singlePathTableName;
-	const std::string &dbFunction;
-//	PathSetDBLoader *psDbLoader;
-//	soci::session *sql;
-	///every thread which invokes db related parts of pathset manages, should have its own connection to the database
-	static std::map<boost::thread::id, boost::shared_ptr<soci::session > > cnnRepo;
+
+	///	get the database session used for this thread
+	const boost::shared_ptr<soci::session> & getSession();
+	///cache the generated pathset
+	void cachePathSet(sim_mob::PathSet &ps);
+	///basically delete all the dynamically allocated memories, in addition to some more cleanups
+	void clearSinglePaths(sim_mob::PathSet &ps);
+	/**
+	 * searches for a pathset in the cache.
+	 * \param key indicates the input key
+	 * \param value the result of the search
+	 * returns true/false to indicate if the search has been successful
+	 */
+	bool findCachedPathSet(const std::string & key, sim_mob::PathSet &value);
 
 	PathSetManager();
 	~PathSetManager();
 
 private:
 	static PathSetManager *instance_;
-	StreetDirectory& stdir;
-//	const sim_mob::RoadNetwork& roadNetwork;
 
-	std::map<std::string,sim_mob::PathSet* > pathSetPool; // store all pathset , key = from node aimsun id + to node aimsun id
-														  // value = pathset
+	///	link to street directory
+	StreetDirectory& stdir;
+
+	///	link to pathset paramaters
+	PathSetParam *pathSetParam;
+
+	///	is caching on
+	bool isUseCache;
+
+	///	list of incident currently happening in the system.(incident manager has the original copy
+	std::set<const sim_mob::RoadSegment*> currIncidents;
+	///	protect access to incidents list
+	boost::shared_mutex mutexIncident;
+
+	///	stores the name of database's pathset table
+	const std::string &pathSetTableName;
+
+	///	stores the name of database's singlepath table
+	const std::string &singlePathTableName;
+
+	///	stores the name of database's function operating on the pathset and singlepath tables
+	const std::string &dbFunction;
+
+	///every thread which invokes db related parts of pathset manages, should have its own connection to the database
+	static std::map<boost::thread::id, boost::shared_ptr<soci::session > > cnnRepo;
+
+	///	static sim_mob::Logger profiler;
+	sim_mob::batched::ThreadPool *threadpool_;
+
 	boost::shared_mutex cachedPathSetMutex;
+
 	boost::unordered_map<const std::string,sim_mob::PathSet > cachedPathSet;//same as pathSetPool, used in a separate scenario //todo later use only one of the caches, cancel the other one
-//	std::map<std::string,sim_mob::RoadSegment*> segPool; // store all segs ,key= aimsun id ,value = seg
-	std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*> wpPool; // key=seg , value=wp point
-	std::map<std::string,sim_mob::Node*> nodePool; // store all nodes ,key= aimsun id ,value = node
-	std::map<std::string,SinglePath*> waypoint_singlepathPool; // key is waypoints' Segment1AimsunId_Segment2AimsunId_Segment2AimsunId....
-	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 // value is SinglePath
-	std::map<const sim_mob::RoadSegment*,SinglePath*> seg_pathSetNull;
-	// use sbutrip id as key, b/c each trip as least as one subtrip
-	std::map<std::string, std::map<std::string,sim_mob::PathSet*> > personPathSetPool;    //map<personID,map<subTripId,pathset> >
-	//
+
+	///	contains arbitrary description usually to indicating which configuration file the generated data has originated from
 	std::string scenarioName;
-	//
+
+	/// cache the best chosen path
 	std::map<std::string ,std::vector<WayPoint> > fromto_bestPath;
-	std::map<std::string ,std::vector<WayPoint> >::iterator fromto_bestPath_it;
+
 	///	used to avoid entering duplicate "HAS_PATH=-1" pathset entries into PathSet. It will be removed once the cache and/or proper DB functions are in place
 	std::set<std::string> tempNoPath;
 
 	///a cache to help answer this question: a given road segment is within which path(s)
 	RPOD pathSegments;
 
-
+	///	file name used to store realtime data
 	std::string csvFileName;
-	std::ofstream csvFile;
-	std::map<std::string,sim_mob::ERP_Section*> ERP_Section_pool;  // key=aim-sun id , value = ERP_Section
 
+	///	file stream used to store realtime data
+	std::ofstream csvFile;
+
+	///	table store travel time ,used to calculate pathset size
+	std::string pathset_traveltime_realtime_table_name;
+
+	///	table store travel time generated by runtime, use for next simulation
+	std::string pathset_traveltime_tmp_table_name;
+
+	///	link to shortest path implementation
 	sim_mob::K_ShortestPathImpl *kshortestImpl;
 
+	///	different utility parameters
 	double bTTVOT;
 	double bCommonFactor;
 	double bLength;
@@ -422,23 +470,19 @@ private:
 	double minSignalParam;
 	double maxHighwayParam;
 
-	bool isUseCache;
-	std::string pathset_traveltime_realtime_table_name; // table store travel time ,used to calculate pathset size
-	std::string pathset_traveltime_tmp_table_name; // table store travel time generated by runtime, use for next simulation
-	PathSetParam *pathSetParam;
-	///cache the generated pathset
-	void cachePathSet(sim_mob::PathSet &ps);
-	///basically delete all the dynamically allocated memories, in addition to some more cleanups
-	void clearSinglePaths(sim_mob::PathSet &ps);
-	/**
-	 * searches for a pathset in the cache.
-	 * \param key indicates the input key
-	 * \param value the result of the search
-	 * returns true/false to indicate if the search has been successful
-	 */
-	bool findCachedPathSet(const std::string & key, sim_mob::PathSet &value);
 	/*unused*/
+	std::map<std::string,sim_mob::PathSet* > pathSetPool; // store all pathset , key = from node aimsun id + to node aimsun id
+	std::map<std::string,sim_mob::ERP_Section*> ERP_Section_pool;  // key=aim-sun id , value = ERP_Section
+	std::map<std::string, std::map<std::string,sim_mob::PathSet*> > personPathSetPool;    //map<personID,map<subTripId,pathset> >//// use sbutrip id as key, b/c each trip as least as one subtrip
+	std::map<const sim_mob::RoadSegment*,SinglePath*> seg_pathSetNull;
+	std::map<std::string,SinglePath*> waypoint_singlepathPool; // key is waypoints' Segment1AimsunId_Segment2AimsunId_Segment2AimsunId....
+
 public:
+	bool LoadSinglePathDBwithId(std::string& pathset_id,std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool);
+	void  generatePathSetByTrip(std::map<std::string,sim_mob::PathSet*> &subTripId_pathSet,sim_mob::Trip *trip);
+	bool getSinglePathById(std::string &id,sim_mob::SinglePath** s);
+	void storePersonIdPathSets(std::string personId,std::map<std::string,sim_mob::PathSet*> subTripId_pathSet);
+	sim_mob::PathSet* getPathSetByFromToNodeAimsunId(std::string id);
 	double getTravelCost(sim_mob::SinglePath *sp);
 	sim_mob::SinglePath* getSinglePath(std::string id);
 	bool getWayPointPath2(std::vector<WayPoint> &wp,sim_mob::SinglePath** s);
@@ -459,9 +503,10 @@ public:
 	const sim_mob::Node* getFromNodefromTripChainItems(std::vector<sim_mob::TripChainItem*> &tci);
 	sim_mob::PathSet* generatePathSetBySubTrip(const sim_mob::SubTrip* st);
 	void storePath(sim_mob::SinglePath* singlePath);
+	std::map<std::string,sim_mob::PathSet*> generatePathSetByTripChainItemPool(std::vector<sim_mob::TripChainItem*> &tci);
 	void generateAllPathSetWithTripChainPool(std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool);
 	bool generateAllPathSetWithTripChain();
-	const boost::shared_ptr<soci::session> & getSession();
+	PathSet *generatePathSetByFromToNodes(const sim_mob::Node *from, const sim_mob::Node *to, const sim_mob::SubTrip* st, bool isUseCache=true);
 private:
 	std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > ERP_Surcharge_pool; // key=Gantry_No , value=ERP_Surcharge with same No diff time stamp
 	std::map<std::string,sim_mob::ERP_Gantry_Zone*> ERP_Gantry_Zone_pool; //key=Gantry_no, value = ERP_Gantry_Zone
@@ -555,16 +600,81 @@ public:
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-inline double getTravelCost2(sim_mob::SinglePath *sp);
+inline double getTravelCost2(sim_mob::SinglePath *sp)
+{
+	double res=0.0;
+	double ts=0.0;
+	if(!sp) {
+		sim_mob::Logger::log["path_set"]<<"gTC: sp is empty"<<std::endl;
+	}
+//	std::map<const RoadSegment*,WayPoint> shortestSegPath = generateSegPathByWaypointPath(sp->shortestWayPointpath);
+	sim_mob::DailyTime trip_startTime = sp->pathSet->subTrip->startTime;
+	for(std::set<const RoadSegment*>::iterator it1 = sp->shortestSegPath.begin(); it1 != sp->shortestSegPath.end(); it1++)
+	{
+		std::string seg_id = (*it1)->originalDB_ID.getLogItem();
+//		sim_mob::Logger::log["path_set"]<<"getTravelCost: "<<seg_id<<std::endl;
+		std::map<std::string,sim_mob::ERP_Section*>::iterator it = sim_mob::PathSetParam::getInstance()->ERP_Section_pool.find(seg_id);
+		//get travel time to this segment
+		double t = sim_mob::PathSetParam::getInstance()->getTravelTimeBySegId(seg_id,trip_startTime);
+		ts += t;
+		trip_startTime = trip_startTime + sim_mob::DailyTime(ts*1000);
+		if(it!=sim_mob::PathSetParam::getInstance()->ERP_Section_pool.end())
+		{
+			sim_mob::ERP_Section* erp_section = (*it).second;
+			std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::iterator itt =
+					sim_mob::PathSetParam::getInstance()->ERP_Surcharge_pool.find(erp_section->ERP_Gantry_No_str);
+			if(itt!=sim_mob::PathSetParam::getInstance()->ERP_Surcharge_pool.end())
+			{
+				std::vector<sim_mob::ERP_Surcharge*> erp_surcharges = (*itt).second;
+				for(int i=0;i<erp_surcharges.size();++i)
+				{
+					sim_mob::ERP_Surcharge* s = erp_surcharges[i];
+					if( s->start_time_dt.isBeforeEqual(trip_startTime) && s->end_time_dt.isAfter(trip_startTime) &&
+							s->Vehicle_Type_Id == 1 && s->Day == "Weekdays")
+					{
+						res += s->Rate;
+					}
+				}
+			}
+		}
+	}
 
-inline std::string makeWaypointsetString(std::vector<WayPoint>& wp);
+	return res;
+}
+
+inline std::string makeWaypointsetString(std::vector<WayPoint>& wp)
+{
+	std::string str;
+	if(wp.size()==0)
+	{
+		sim_mob::Logger::log["path_set"]<<"warning: empty input for makeWaypointsetString"<<std::endl;
+	}
+
+	for(std::vector<WayPoint>::iterator it = wp.begin(); it != wp.end(); it++)
+	{
+		if (it->type_ == WayPoint::ROAD_SEGMENT)
+		{
+			std::string tmp = it->roadSegment_->originalDB_ID.getLogItem();
+			str += getNumberFromAimsunId(tmp) + ",";
+		} // if ROAD_SEGMENT
+	}
+
+	if(str.size()<1)
+	{
+		// when same f,t node, it happened
+		sim_mob::Logger::log["path_set"]<<"warning: empty output makeWaypointsetString id"<<std::endl;
+	}
+	return str;
+}
 
 std::string getNumberFromAimsunId(std::string &aimsunid);
 
 std::vector<WayPoint*> convertWaypoint2Point(std::vector<WayPoint> wp);
 
 std::vector<WayPoint> convertWaypointP2Wp(std::vector<WayPoint*> wp);
-bool convertWaypointP2Wp_NOCOPY(std::vector<WayPoint*> wp, std::vector<WayPoint>& res);//todo,replace this function and change its name whenever all callers' signatures are fixed
+
+//todo,replac//todo,replace this function and change its name whenever all callers' signatures are fixede this function and change its name whenever all callers' signatures are fixed
+bool convertWaypointP2Wp_NOCOPY(std::vector<WayPoint*> wp, std::vector<WayPoint>& res);
 
 inline double generateSinglePathLength(std::vector<WayPoint*>& wp) // unit is meter
 {
@@ -580,11 +690,23 @@ inline double generateSinglePathLength(std::vector<WayPoint*>& wp) // unit is me
 	return res/100.0; //meter
 }
 
-inline void generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCache=true);
-inline std::set<const RoadSegment*> generateSegPathByWaypointPathP(std::vector<WayPoint>& wp);
-inline size_t getLaneIndex2(const Lane* l);
+void generatePathSizeForPathSet2(sim_mob::PathSet *ps,bool isUseCache=true);
 
-inline void calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::SinglePath *sp);
+
+inline size_t getLaneIndex2(const Lane* l){
+	if (l) {
+		const RoadSegment* r = l->getRoadSegment();
+		std::vector<sim_mob::Lane*>::const_iterator it( r->getLanes().begin()), itEnd(r->getLanes().end());
+		for (size_t i = 0; it != itEnd; it++, i++) {
+			if (*it == l) {
+				return i;
+			}
+		}
+	}
+	return -1; //NOTE: This might not do what you expect! ~Seth
+}
+
+void calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::SinglePath *sp);
 
 inline double calculateHighWayDistance(sim_mob::SinglePath *sp)
 {

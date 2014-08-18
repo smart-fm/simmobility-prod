@@ -135,6 +135,77 @@ struct WayPoint
     			node_ == rhs.node_ &&
     			directionReverse == rhs.directionReverse);
     }
+
+    WayPoint &  operator=(const WayPoint & rhs){
+    	type_ = rhs.type_;
+    	switch (type_)
+    	{
+    	case INVALID:
+    		directionReverse=false;
+    		node_ = nullptr;
+    		break;
+    	case SIDE_WALK:
+    		directionReverse=false;
+    		lane_ = rhs.lane_;
+    		break;
+    	case ROAD_SEGMENT:
+    		directionReverse=false;
+    		roadSegment_ = rhs.roadSegment_;
+    		break;
+    	case BUS_STOP:
+    		busStop_ = rhs.busStop_;
+    		directionReverse=false;
+    		break;
+    	case CROSSING:
+    		crossing_ = rhs.crossing_;
+    		directionReverse=false;
+    		break;
+    	case NODE:
+    		node_ = rhs.node_;
+    		break;
+    	case NONSPATIAL:
+    		node_ = nullptr;
+    		directionReverse=false;
+    		break;
+    	}
+    	return *this;
+
+    }
+
+    WayPoint(const WayPoint & rhs){
+    	type_ = rhs.type_;
+    	switch (type_)
+    	{
+    	case INVALID:
+    		directionReverse=false;
+    		node_ = nullptr;
+    		break;
+    	case SIDE_WALK:
+    		directionReverse=false;
+    		lane_ = rhs.lane_;
+    		break;
+    	case ROAD_SEGMENT:
+    		directionReverse=false;
+    		roadSegment_ = rhs.roadSegment_;
+    		break;
+    	case BUS_STOP:
+    		busStop_ = rhs.busStop_;
+    		directionReverse=false;
+    		break;
+    	case CROSSING:
+    		crossing_ = rhs.crossing_;
+    		directionReverse=false;
+    		break;
+    	case NODE:
+    		node_ = rhs.node_;
+    		break;
+    	case NONSPATIAL:
+    		node_ = nullptr;
+    		directionReverse=false;
+    		break;
+    	}
+
+    }
 };
 
 

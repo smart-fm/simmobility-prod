@@ -135,7 +135,7 @@
 <!-- C. TRAFFIC LIGHT RESPONSE -->
 	<param name="yellow_stop_headway" value="1.0"/>
 	<param name="min_speed_yellow" value="2.2352"/>
-        <param name="driver_signal_perception_distance" value="75.0"/>  <!-- meter -->
+        <param name="driver_signal_perception_distance" value="15.0"/>  <!-- meter -->
 
 <!-- D. UPDATE STEP SIZE (REACTION TIME RELATED)
 	Driver behavior (e.g. responses to stimuli) is updated periodically
@@ -193,7 +193,7 @@
 	<param name="MLC_PARAMETERS" value="
 						30.0         #lower bound(meter) 
 						60.0         #delta(meter)
-						1.0 	       #minimum time in lane (sec)
+						10.0 	       #minimum time in lane (sec)
 	"/>
 
 <!-- H.2 Lane utility Model

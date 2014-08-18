@@ -38,13 +38,13 @@ void BuildingDao::fromRow(Row& result, Building& outObj) {
     outObj.fm_parcel_id 		= result.get<BigSerial>(	"fm_parcel_id", 		INVALID_ID);
     outObj.storeys_above_ground = result.get<int>(			"storeys_above_ground", INVALID_ID);
     outObj.storeys_below_ground = result.get<int>(			"storeys_below_ground", 0);
-    outObj.from_date 			= result.get<std::string>(	"from_date", 			0);
-    outObj.to_date 				= result.get<std::string>(	"to_date", 				0);
-    outObj.building_status 		= result.get<std::string>(	"building_status", 		0);
-    outObj.gross_sq_m_res 		= result.get<float>(		"gross_sq_m_res", 		0);
-    outObj.gross_sq_m_office 	= result.get<float>(		"gross_sq_m_office", 	0);
-    outObj.gross_sq_m_retail 	= result.get<float>(		"gross_sq_m_retail", 	0);
-    outObj.gross_sq_m_other 	= result.get<float>(		"gross_sq_m_other", 	0);
+    outObj.from_date 			= result.get<std::tm>(		"from_date" );
+    outObj.to_date 				= result.get<std::tm>(		"to_date"   );
+    outObj.building_status 		= result.get<std::string>(	"building_status", 		"");
+    outObj.gross_sq_m_res 		= result.get<double>(		"gross_sq_m_res", 		0.0);
+    outObj.gross_sq_m_office 	= result.get<double>(		"gross_sq_m_office", 	0.0);
+    outObj.gross_sq_m_retail 	= result.get<double>(		"gross_sq_m_retail", 	0.0);
+    outObj.gross_sq_m_other 	= result.get<double>(		"gross_sq_m_other", 	0.0);
 
 
 }

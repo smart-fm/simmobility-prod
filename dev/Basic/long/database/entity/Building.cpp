@@ -14,7 +14,7 @@
 using namespace sim_mob::long_term;
 
 Building::Building( BigSerial fm_building_id, BigSerial fm_project_id, BigSerial fm_parcel_id, int storeys_above_ground, int storeys_below_ground,
-					std::string from_date, std::string to_date, std::string building_status, float	gross_sq_m_res, float gross_sq_m_office,
+					std::tm from_date, std::tm to_date, std::string building_status, float	gross_sq_m_res, float gross_sq_m_office,
 					float gross_sq_m_retail, float gross_sq_m_other ) :
 					fm_building_id(fm_building_id), fm_project_id(fm_project_id), fm_parcel_id(fm_parcel_id), storeys_above_ground(storeys_above_ground),
 					storeys_below_ground(storeys_below_ground), from_date(from_date), to_date(to_date), building_status(building_status),gross_sq_m_res(gross_sq_m_res),
@@ -97,12 +97,12 @@ int Building::getStoreysBelowGround() const
 	return storeys_below_ground;
 }
 
-std::string Building::getFromDate() const
+std::tm Building::getFromDate() const
 {
 	return from_date;
 }
 
-std::string Building::getToDate() const
+std::tm Building::getToDate() const
 {
 	return to_date;
 }
@@ -188,8 +188,8 @@ namespace sim_mob {
             		<< "\"fm_parcel_id \":\"" << data.fm_parcel_id << "\","
             		<< "\"storeys_above_ground \":\"" << data.storeys_above_ground << "\","
             		<< "\"storeys_below_ground \":\"" << data.storeys_below_ground << "\","
-            		<< "\"from_date \":\"" << data.from_date << "\","
-            		<< "\"to_date \":\"" << data.to_date << "\","
+            		<< "\"from_date \":\"" << data.from_date.tm_year  << data.from_date.tm_wday << data.from_date.tm_mon << "\","
+            		<< "\"to_date \":\"" << data.to_date.tm_year << data.to_date.tm_mon << data.to_date.tm_wday << "\","
             		<< "\"building_status \":\"" << data.building_status << "\","
             		<< "\"gross_sq_m_res \":\"" << data.gross_sq_m_res << "\","
             		<< "\"gross_sq_m_office \":\"" << data.gross_sq_m_office << "\","

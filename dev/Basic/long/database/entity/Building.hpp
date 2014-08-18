@@ -20,7 +20,7 @@ namespace sim_mob {
         class Building {
         public:
         	Building( BigSerial fm_building_id = INVALID_ID, BigSerial fm_project_id = INVALID_ID, BigSerial fm_parcel_id = INVALID_ID, int storeys_above_ground = 0, int storeys_below_ground = 0,
-        						std::string from_date = EMPTY_STR, std::string to_date = EMPTY_STR, std::string building_status = EMPTY_STR, float	gross_sq_m_res = 0, float gross_sq_m_office = 0,
+        						std::tm from_date = std::tm(), std::tm to_date = std::tm(), std::string building_status = EMPTY_STR, float	gross_sq_m_res = 0, float gross_sq_m_office = 0,
         						float gross_sq_m_retail = 0, float gross_sq_m_other = 0);
 
             virtual ~Building();
@@ -102,13 +102,13 @@ namespace sim_mob {
              * Gets the date from which the building became operational.
              * @return from_date.
              */
-            std::string getFromDate() const;
+            std::tm getFromDate() const;
 
             /**
              * Gets the date till which the building was operational.
              * @return to_date.
              */
-            std::string getToDate() const;
+            std::tm getToDate() const;
 
             /**
              * Gets the building status.
@@ -172,8 +172,8 @@ namespace sim_mob {
             BigSerial fm_parcel_id;
             int storeys_above_ground;
             int	storeys_below_ground;
-            std::string from_date;
-            std::string to_date;
+            std::tm from_date;
+            std::tm to_date;
             std::string building_status;
             float	gross_sq_m_res;
             float	gross_sq_m_office;

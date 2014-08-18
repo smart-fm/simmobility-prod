@@ -35,6 +35,43 @@ namespace sim_mob {
  * Note:Alternative approach:
  * Instead of having a queue handling buffers and files, there is an alternative approach to create one file per thread and join the file whenever required.
  */
+
+/**********************************
+ ******* Ticking class ************
+ **********************************/
+class Profiler{
+	///stores start and end of profiling
+	boost::atomic_uint32_t start, lastTick,total;
+	///	used for total time
+//		boost::mutex mutexTotalTime;
+	///is the profiling object started profiling?
+	boost::atomic_bool started;
+public:
+	Profiler(){
+		begin();
+	}
+	Profiler(const Profiler &t):start(t.start.load()),lastTick(t.lastTick.load()),total(t.total.load()),started(t.started.load())
+	{
+	}
+
+	///	mark and return the current time since epoch(in microseconds) as the the start time
+	uint32_t begin();
+	/// return the elapse time since begin() and disable profiling unless explicitly bein()'ed
+	uint32_t end();
+	///	reset all the members to 0
+	void reset();
+	///	return the difference between current time and previous call to tick()(or begin(). optionally, accumulate this difference(addUp)
+	uint32_t tick(bool addToTotal = false);
+	///	add the given time to total time variable
+	uint32_t addUp(uint32_t &value);
+	///	return the total(accumulated) time
+	uint32_t getAddUp();
+
+};
+
+/**********************************
+ ******* Basic Logging Engine******
+ *********************************/
 class BasicLogger {
 private:
 
@@ -50,36 +87,8 @@ private:
 	///	the mandatory id given to this BasicLogger
 	std::string id;
 
-	class Tick{
-		///stores start and end of profiling
-		boost::atomic_uint32_t start, lastTick,total;
-		///	used for total time
-//		boost::mutex mutexTotalTime;
-		///is the profiling object started profiling?
-		boost::atomic_bool started;
-	public:
-		Tick(){
-			begin();
-		}
-		Tick(const Tick &t):start(t.start.load()),lastTick(t.lastTick.load()),total(t.total.load()),started(t.started.load())
-		{
-		}
-
-		///	mark and return the current time since epoch(in microseconds) as the the start time
-		uint32_t begin();
-		/// return the elapse time since begin() and disable profiling unless explicitly bein()'ed
-		uint32_t end();
-		///	reset all the members to 0
-		void reset();
-		///	return the difference between current time and previous call to tick()(or begin(). optionally, accumulate this difference(addUp)
-		uint32_t tick(bool addToTotal = false);
-		///	add the given time to total time variable
-		uint32_t addUp(uint32_t value);
-		///	return the total(accumulated) time
-		uint32_t getAddUp();
-
-	};
-	std::map<const std::string, Tick> profilers_;
+	///	profilers container
+	std::map<const std::string, Profiler> profilers_;
 
 	///	one buffer is assigned to each thread writing to the file
 	std::map<boost::thread::id, std::stringstream*> out_;
@@ -99,11 +108,6 @@ protected:
 	std::stringstream * getOut(bool renew= false);
 
 	/**
-	 * returns a profiler based on id,
-	 * if not found, a new profiler will be : generated, started and returned
-	 */
-	BasicLogger::Tick & getProfiler(const std::string id);
-	/**
 	 * removes the profiler ,with the given id,
 	 * from the list of profilers.
 	 * returns the total elapsed time since it was started profiling
@@ -113,13 +117,7 @@ protected:
 	///	print time in HH:MM::SS::uS todo:needs improvement
 	static void printTime(struct tm *tm, struct timeval & tv, std::string id);
 
-//	///reset all the parameters
-//	void reset();disabling for now
-
-	void InitLogFile(const std::string& path);
-
-//	///	remove the profiler entry and return its total time
-//	uint32_t endProfiling(const std::string id);
+	void initLogFile(const std::string& path);
 
 	///logger
 	std::ofstream logFile;
@@ -145,24 +143,19 @@ public:
 
 	static std::string newLine;
 
-//	///like it suggests, store the start time of the profiling
-//	void startProfiling();
-//
-//	/**
-//	 * save the ending time
-//	 * @param  addToTotalTime if true, add the return value to the total time also
-//	 * @return the elapsed time since the last call to startProfiling()
-//	 */
-//	uint32_t endProfiling(bool addToTotalTime = false);
+	/**
+	 * simple interface to log a profiling output with a simple message
+	 */
+	inline void profileMsg(const std::string msg, uint32_t value)
+	{
+		*this << msg << " : " << value << newLine;
+	}
 
 	/**
-	 *add the given time to the total time
-	 *@param  value add to totalTime meber variable
+	 * returns a profiler based on id,
+	 * if not found, a new profiler will be : generated, started and returned
 	 */
-	void addToTotalTime(uint32_t value);
-
-	///	getter
-	unsigned int & getTotalTime();
+	sim_mob::Profiler & prof(const std::string id);
 
 	/// This method defines an operator<< to take in std::endl
 	BasicLogger& operator<<(StandardEndLine manip);
@@ -183,6 +176,9 @@ public:
 	static int flushCnt;
 };
 
+/**********************************
+ ******* Queued Logging Engine*****
+ **********************************/
 class QueuedLogger :public BasicLogger
 {
 	///	queued buffer
@@ -201,6 +197,10 @@ public:
 	void flushToFile();
 };
 
+
+/**********************************
+ ******* Logging Wrapper **********
+ **********************************/
 class Logger {
 protected:
 	///	repository of profilers. each profiler is distinguished by a file name!

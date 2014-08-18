@@ -21,13 +21,20 @@ sim_mob::BasicLogger::BasicLogger(std::string id_){
 	id = id_;
 	std::string path = id_ + ".txt";
 	if(path.size()){
-		InitLogFile(path);
+		initLogFile(path);
 	}
 }
-//sim_mob::Logger::Logger(sim_mob::Logger const&v)
-//{}
 
 sim_mob::BasicLogger::~BasicLogger(){
+
+	if(!profilers_.empty()){
+		std::map<const std::string, Profiler>::iterator it(profilers_.begin()),itEnd(profilers_.end());
+		for(;it != itEnd; it++)
+		{
+			*this << it->first << ": [total AddUp time: " << it->second.getAddUp() << "],[total time : " << it->second.end() << "]" << newLine;
+		}
+	}
+
 	if (logFile.is_open()) {
 		flushLog();
 		logFile.close();
@@ -36,7 +43,7 @@ sim_mob::BasicLogger::~BasicLogger(){
 }
 
 ///like it suggests, store the start time of the profiling
-uint32_t sim_mob::BasicLogger::Tick::begin(){
+uint32_t sim_mob::Profiler::begin(){
 	started = true;
 
 	struct timeval  tv;
@@ -50,7 +57,7 @@ uint32_t sim_mob::BasicLogger::Tick::begin(){
 		(tm->tm_sec * 1000 * 1000) + (tv.tv_usec));
 }
 
-uint32_t sim_mob::BasicLogger::Tick::tick(bool addToTotalTime_){
+uint32_t sim_mob::Profiler::tick(bool addToTotalTime_){
 	if(!started){
 		Warn() << "Profiler ticked before starting, starting it now" << std::endl;
 		begin();
@@ -71,10 +78,11 @@ uint32_t sim_mob::BasicLogger::Tick::tick(bool addToTotalTime_){
 	if(addToTotalTime_){
 		addUp(elapsed);
 	}
+	lastTick = thisTick;
 	return elapsed;
 }
 
-uint32_t sim_mob::BasicLogger::Tick::end(){
+uint32_t sim_mob::Profiler::end(){
 	uint32_t temp = 0;
 	uint32_t tick_;
 	tick_ = tick();
@@ -82,7 +90,7 @@ uint32_t sim_mob::BasicLogger::Tick::end(){
 	return (tick_ > start ? tick_ - start : 0);
 }
 
-void sim_mob::BasicLogger::Tick::reset()
+void sim_mob::Profiler::reset()
 {
 	start = lastTick = total = 0;
 	started = 0;
@@ -90,14 +98,14 @@ void sim_mob::BasicLogger::Tick::reset()
 
 
 ///add the given time to the total time
-uint32_t sim_mob::BasicLogger::Tick::addUp(uint32_t value){
+uint32_t sim_mob::Profiler::addUp(uint32_t &value){
 //	boost::unique_lock<boost::mutex> lock(mutexTotalTime);
 	total+=value;
 	return total;
 }
 
 ///add the given time to the total time
-uint32_t sim_mob::BasicLogger::Tick::getAddUp(){
+uint32_t sim_mob::Profiler::getAddUp(){
 //	boost::unique_lock<boost::mutex> lock(mutexTotalTime);
 	return total;
 }
@@ -126,16 +134,16 @@ std::stringstream * sim_mob::BasicLogger::getOut(bool renew){
 	return res;
 }
 
-sim_mob::BasicLogger::Tick & sim_mob::BasicLogger::getProfiler(const std::string id)
+sim_mob::Profiler & sim_mob::BasicLogger::prof(const std::string id)
 {
-	std::map<const std::string, Tick>::iterator it(profilers_.find(id));
+	std::map<const std::string, Profiler>::iterator it(profilers_.find(id));
 	if(it != profilers_.end())
 	{
 		return it->second;
 	}
 	else
 	{
-		profilers_.insert(std::pair<const std::string, Tick>(id, Tick()));
+		profilers_.insert(std::pair<const std::string, Profiler>(id, Profiler()));
 		it = profilers_.find(id);
 	}
 	return it->second;
@@ -144,7 +152,7 @@ sim_mob::BasicLogger::Tick & sim_mob::BasicLogger::getProfiler(const std::string
 uint32_t sim_mob::BasicLogger::endProfiler(const std::string id)
 {
 	uint32_t temp = 0;
-	std::map<const std::string, Tick>::iterator it(profilers_.find(id));
+	std::map<const std::string, Profiler>::iterator it(profilers_.find(id));
 	if(it != profilers_.end())
 	{
 		temp = it->second.end();
@@ -153,23 +161,12 @@ uint32_t sim_mob::BasicLogger::endProfiler(const std::string id)
 	return temp;
 
 }
-//
-//unsigned int & sim_mob::BasicLogger::getTotalTime(){
-//	boost::unique_lock<boost::mutex> lock(mutexTotalTime);
-//	return totalTime;
-//}
 
 void printTime(struct tm *tm, struct timeval & tv, std::string id){
 	sim_mob::Print() << "TIMESTAMP:\t  " << tm->tm_hour << std::setw(2) << ":" <<tm->tm_min << ":" << ":" <<  tm->tm_sec << ":" << tv.tv_usec << std::endl;
 }
 
-//void sim_mob::BasicLogger::reset(){
-//	start = stop = totalTime = 0;
-//	started = false;
-//	id = "";
-//}
-
-void  sim_mob::BasicLogger::InitLogFile(const std::string& path)
+void  sim_mob::BasicLogger::initLogFile(const std::string& path)
 {
 	logFile.open(path.c_str());
 	if ((logFile.is_open() && logFile.good())){

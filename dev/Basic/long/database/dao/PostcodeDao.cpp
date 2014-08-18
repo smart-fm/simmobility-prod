@@ -23,12 +23,21 @@ DB_GETALL_POSTCODE, DB_GETBYID_POSTCODE) {}
 PostcodeDao::~PostcodeDao() {
 }
 
-void PostcodeDao::fromRow(Row& result, Postcode& outObj) {
+void PostcodeDao::fromRow(Row& result, Postcode& outObj)
+{
+/*
     outObj.id = result.get<BigSerial>(DB_FIELD_ID, INVALID_ID);
     outObj.tazId = result.get<BigSerial>(DB_FIELD_TAZ_ID, INVALID_ID);
     outObj.code = result.get<std::string>(DB_FIELD_CODE, EMPTY_STR);
     outObj.location.latitude = result.get<double>(DB_FIELD_LATITUDE, 0);
     outObj.location.longitude = result.get<double>(DB_FIELD_LONGITUDE, 0);
+*/
+    outObj.address_id 		= result.get<BigSerial>(	"address_id", 		INVALID_ID);
+    outObj.sla_postcode 	= result.get<std::string>(	"sla_postcode", 	EMPTY_STR);
+    outObj.taz_id 			= result.get<BigSerial>(	"taz_id", 			INVALID_ID);
+    outObj.longitude 		= result.get<double>(		"longitude", 		.0);
+    outObj.latitude 		= result.get<double>(		"latitude", 		.0);
+    outObj.primary_postcode = result.get<int>(			"primary_postcode",  0);
 }
 
 void PostcodeDao::toRow(Postcode& data, Parameters& outParams, bool update) {

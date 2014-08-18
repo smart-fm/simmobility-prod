@@ -67,10 +67,18 @@ namespace {
             .endClass();
     getGlobalNamespace(state)
             .beginClass <Postcode> ("Postcode")
+            /*
             .addProperty("id", &Postcode::getId)
             .addProperty("code", &Postcode::getCode)
             .addProperty("location", &Postcode::getLocation)
             .addProperty("tazId", &Postcode::getTazId)
+            */
+            .addProperty("address_id", &Postcode::getAddressId)
+            .addProperty("sla_postcode", &Postcode::getSlaPostcode)
+            .addProperty("taz_id", &Postcode::getTazId)
+            .addProperty("longitude", &Postcode::getLongitude)
+            .addProperty("latitude", &Postcode::getLatitude)
+            .addProperty("primary_postcode", &Postcode::getPrimaryPostcode)
             .endClass();
     getGlobalNamespace(state)
             .beginClass <PostcodeAmenities> ("PostcodeAmenities")

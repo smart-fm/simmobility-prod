@@ -14,31 +14,55 @@
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-Postcode::Postcode(BigSerial id, BigSerial tazId, const std::string& code, 
-                   double latitude, double longitude) 
-: id(INVALID_ID), code(""), tazId(INVALID_ID){
-}
+//Postcode::Postcode(BigSerial id, BigSerial tazId, const std::string& code, double latitude, double longitude) : id(INVALID_ID), code(""), tazId(INVALID_ID){}
+
+Postcode::Postcode( BigSerial address_id, std::string sla_postcode, BigSerial taz_id, float longitude, float latitude, bool primary_postcode ):
+					address_id(address_id), sla_postcode( sla_postcode), taz_id(taz_id), longitude(longitude), latitude(latitude),
+					primary_postcode(primary_postcode)
+{}
+
             
-Postcode::Postcode(const Postcode& source) {
+Postcode::Postcode(const Postcode& source)
+{
+/*
     this->id = source.id;
     this->code = source.code;
     this->tazId = source.tazId;
     this->location.latitude = source.location.latitude;
     this->location.longitude = source.location.longitude;
+*/
+	this->address_id = source.address_id;
+	this->sla_postcode = source.sla_postcode;
+	this->taz_id = source.taz_id;
+	this->longitude = source.longitude;
+	this->latitude = source.latitude;
+	this->primary_postcode = source.primary_postcode;
+
 }
 
 Postcode::~Postcode() {
 }
 
-Postcode& Postcode::operator=(const Postcode& source) {
+Postcode& Postcode::operator=(const Postcode& source)
+{
+	/*
     this->id = source.id;
     this->code = source.code;
     this->tazId = source.tazId;
     this->location.latitude = source.location.latitude;
     this->location.longitude = source.location.longitude;
+    */
+
+	this->address_id = source.address_id;
+	this->sla_postcode = source.sla_postcode;
+	this->taz_id = source.taz_id;
+	this->longitude = source.longitude;
+	this->latitude = source.latitude;
+	this->primary_postcode = source.primary_postcode;
+
     return *this;
 }
-
+/*
 BigSerial Postcode::getId() const {
     return id;
 }
@@ -54,17 +78,59 @@ BigSerial Postcode::getTazId() const {
 const LatLngLocation& Postcode::getLocation() const {
     return location;
 }
+*/
+
+BigSerial Postcode::getAddressId() const
+{
+	return address_id;
+}
+
+std::string Postcode::getSlaPostcode() const
+{
+	return sla_postcode;
+}
+
+BigSerial Postcode::getTazId() const
+{
+	return taz_id;
+}
+
+
+float Postcode::getLongitude() const
+{
+	return longitude;
+}
+
+float Postcode::getLatitude() const
+{
+	return latitude;
+}
+
+bool Postcode::getPrimaryPostcode() const
+{
+	return primary_postcode;
+}
+
+
 
 namespace sim_mob {
     namespace long_term {
 
         std::ostream& operator<<(std::ostream& strm, const Postcode& data) {
             return strm << "{"
+            		/*
                     << "\"id\":\"" << data.id << "\","
                     << "\"code\":\"" << data.code << "\","
                     << "\"tazId\":\"" << data.tazId << "\","
                     << "\"latitude\":\"" << data.location.latitude << "\","
                     << "\"longitude\":\"" << data.location.longitude << "\""
+                    */
+            		<< "\"address_id \":\"" << data.address_id << "\","
+            		<< "\"sla_postcode \":\"" << data.sla_postcode << "\","
+            		<< "\"taz_id \":\"" << data.taz_id << "\","
+            		<< "\"longitude \":\"" << data.longitude << "\","
+            		<< "\"latitude \":\"" << data.latitude << "\","
+            		<< "\"primary_postcode \":\"" << data.primary_postcode << "\""
                     << "}";
         }
     }

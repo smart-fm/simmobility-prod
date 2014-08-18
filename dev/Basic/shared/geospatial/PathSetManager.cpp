@@ -56,15 +56,23 @@ void sim_mob::PathSetParam::getDataFromDB()
 {
 	setTravleTimeTmpTableName(ConfigManager::GetInstance().FullConfig().getTravelTimeTmpTableName());
 		createTravelTimeTmpTable();
+
 		sim_mob::aimsun::Loader::LoadERPData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 				ERP_Surcharge_pool,
 				ERP_Gantry_Zone_pool,
 				ERP_Section_pool);
+		sim_mob::Logger::log["path_set"] <<
+				"ERP data retrieved from database[ERP_Surcharge_pool,ERP_Gantry_Zone_pool,ERP_Section_pool]: " <<
+				ERP_Surcharge_pool.size() << " "  << ERP_Gantry_Zone_pool.size() << " " << ERP_Section_pool.size() << "\n";
+
 		sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 				Link_default_travel_time_pool);
+		sim_mob::Logger::log["path_set"] << Link_default_travel_time_pool.size() << " records for Link_default_travel_time found\n";
+
 		bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 				pathset_traveltime_realtime_table_name,
 				Link_realtime_travel_time_pool);
+		sim_mob::Logger::log["path_set"] << Link_realtime_travel_time_pool.size() << " records for Link_realtime_travel_time found\n";
 		if(!res) // no realtime travel time table
 		{
 			//create
@@ -123,6 +131,7 @@ double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::strin
 			Link_realtime_travel_time_pool.find(id);
 	if(it!=Link_realtime_travel_time_pool.end())
 	{
+		sim_mob::Logger::log["path_set"] << "using realtime travel time \n";
 		std::vector<sim_mob::LinkTravelTime*> e = (*it).second;
 		for(int i=0;i<e.size();++i)
 		{
@@ -143,6 +152,7 @@ double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::strin
 	it = Link_default_travel_time_pool.find(id);
 	if(it!=Link_default_travel_time_pool.end())
 	{
+		sim_mob::Logger::log["path_set"] << "using default travel time \n";
 		std::vector<sim_mob::LinkTravelTime*> e = (*it).second;
 		for(int i=0;i<e.size();++i)
 		{
@@ -158,8 +168,7 @@ double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::strin
 	}
 	else
 	{
-		std::string str = "PathSetParam::getAverageTravelTimeBySegIdStartEndTime=> no travel time for segment " + id;
-		sim_mob::Logger::log["path_set"]<<"error: "<<str<<std::endl;
+		sim_mob::Logger::log["path_set"]<<"getAverageTravelTimeBySegIdStartEndTime=> no travel time for segment " << id << "\n";
 	}
 	return res;
 }
@@ -665,7 +674,8 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(const sim_mob::Person*
 	std::string subTripId = subTrip.tripID;
 	//todo. change the subtrip signature from pointer to referencer
 	sim_mob::Logger::log["path_set"] << "+++++++++++++++++++++++++" << std::endl;
-	vector<WayPoint> res = generateBestPathChoiceMT(&subTrip);
+	vector<WayPoint> res;
+	generateBestPathChoiceMT(res, &subTrip);
 	sim_mob::Logger::log["path_set"] << "Path chosen for this person: " << std::endl;
 	if(!res.empty())
 	{
@@ -684,13 +694,14 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(const sim_mob::Person*
 //if not found in cache, check DB
 //if not found in DB, generate all 4 types of path
 //choose the best path using utility function
-std::vector<sim_mob::WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT(const sim_mob::SubTrip* st,
+bool sim_mob::PathSetManager::generateBestPathChoiceMT(std::vector<sim_mob::WayPoint> &res,const sim_mob::SubTrip* st,
 		const std::set<const sim_mob::RoadSegment*> & exclude_seg_ , bool isUseCache)
 {
-	std::vector<sim_mob::WayPoint> emtryRes = std::vector<sim_mob::WayPoint>();
+	res.clear();
 	if(st->mode != "Car") //only driver need path set
 	{
-		return emtryRes;
+
+		return false;
 	}
 	//combine the excluded segments
 	std::set<const sim_mob::RoadSegment*> excludedSegs(exclude_seg_);
@@ -703,11 +714,11 @@ std::vector<sim_mob::WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT
 	const sim_mob::Node* toNode = st->toLocation.node_;
 	if(toNode == fromNode){
 		sim_mob::Logger::log["path_set"] << "same OD objects discarded:" << toNode->getID() << sim_mob::BasicLogger::newLine;
-		return emtryRes;
+		return false;
 	}
 	if(toNode->getID() == fromNode->getID()){
 		sim_mob::Logger::log["path_set"] << "Error: same OD id from different objects discarded:" << toNode->getID() << sim_mob::BasicLogger::newLine;
-		return emtryRes;
+		return false;
 	}
 	std::stringstream out("");
 	std::string idStrTo = toNode->originalDB_ID.getLogItem();
@@ -725,7 +736,8 @@ std::vector<sim_mob::WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT
 		{
 //			return sim_mob::convertWaypointP2Wp_NOCOPY(ps_.bestWayPointpath, res);
 //			res = ps_.bestWayPointpath;//copy better than constant twisting
-			return ps_.bestWayPointpath;;
+			res = boost::move(ps_.bestWayPointpath);
+			return true;
 
 		}
 		else{
@@ -779,7 +791,8 @@ std::vector<sim_mob::WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT
 					//test
 //					clearSinglePaths(ps_);
 					//test...
-					return ps_.bestWayPointpath;;
+					res = boost::move(ps_.bestWayPointpath);
+					return true;
 				}
 				else
 				{
@@ -811,7 +824,7 @@ std::vector<sim_mob::WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT
 
 		if(!generateAllPathChoicesMT(&ps_))
 		{
-			return emtryRes;
+			return false;
 		}
 		sim_mob::Logger::log["path_set"]<<"generate All Done for "<<fromToID << std::endl;
 		sim_mob::generatePathSizeForPathSet2(&ps_);
@@ -839,7 +852,8 @@ std::vector<sim_mob::WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT
 			pathSetParam->storeSinglePath(*getSession(),ps_.pathChoices,singlePathTableName);
 			//test
 //			clearSinglePaths(ps_);
-			return ps_.bestWayPointpath;
+			res = boost::move(ps_.bestWayPointpath);
+			return true;
 		}
 		else
 		{
@@ -851,7 +865,7 @@ std::vector<sim_mob::WayPoint> sim_mob::PathSetManager::generateBestPathChoiceMT
 		sim_mob::Logger::log["path_set"] << "Didn't (re)generate pathset(hasPSinDB:"<< hasPSinDB << ")" << std::endl;
 	}
 
-	return emtryRes;
+	return false;
 }
 
 

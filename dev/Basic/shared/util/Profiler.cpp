@@ -15,9 +15,9 @@ int sim_mob::BasicLogger::flushCnt = 0;
 unsigned long int sim_mob::BasicLogger::ii = 0;
 
 sim_mob::BasicLogger::BasicLogger(std::string id_){
-	reset();
-	start = stop = totalTime = 0;
-	started = false;
+//	reset();
+//	start = stop = totalTime = 0;
+//	started = false;
 	id = id_;
 	std::string path = id_ + ".txt";
 	if(path.size()){
@@ -35,18 +35,8 @@ sim_mob::BasicLogger::~BasicLogger(){
 	for (outIt it(out_.begin()); it != out_.end();safe_delete_item(it->second), it++);
 }
 
-
-///whoami
-std::string sim_mob::BasicLogger::getId(){
-	return id;
-}
-
-bool sim_mob::BasicLogger::isStarted(){
-	return started;
-}
-
 ///like it suggests, store the start time of the profiling
-void sim_mob::BasicLogger::startProfiling(){
+uint32_t sim_mob::BasicLogger::Tick::begin(){
 	started = true;
 
 	struct timeval  tv;
@@ -56,14 +46,15 @@ void sim_mob::BasicLogger::startProfiling(){
 	gettimeofday(&tv, &tz);
 	tm = localtime(&tv.tv_sec);
 
-	start = tm->tm_hour * 3600 * 1000 + tm->tm_min * 60 * 1000 +
-		tm->tm_sec * 1000 + tv.tv_usec / 1000;
+	return (start = lastTick = (tm->tm_hour * 3600 * 1000 * 1000) + (tm->tm_min * 60 * 1000 * 1000) +
+		(tm->tm_sec * 1000 * 1000) + (tv.tv_usec));
 }
 
-///save the ending time ...and .. if add==true add the value to the total time;
-uint32_t sim_mob::BasicLogger::endProfiling(bool addToTotalTime_){
+uint32_t sim_mob::BasicLogger::Tick::tick(bool addToTotalTime_){
 	if(!started){
-		throw std::runtime_error("Logger Ended before Starting");
+		Warn() << "Profiler ticked before starting, starting it now" << std::endl;
+		begin();
+		return 0;
 	}
 
 	struct timeval  tv;
@@ -72,22 +63,43 @@ uint32_t sim_mob::BasicLogger::endProfiling(bool addToTotalTime_){
 
 	gettimeofday(&tv, &tz);
 	tm = localtime(&tv.tv_sec);
+	uint32_t thisTick;
+	thisTick = ((tm->tm_hour * 3600 * 1000 * 1000) + (tm->tm_min * 60 * 1000 * 1000) +
+			(tm->tm_sec * 1000 * 1000) + (tv.tv_usec));
 
-	stop = tm->tm_hour * 3600 * 1000 + tm->tm_min * 60 * 1000 +
-		tm->tm_sec * 1000 + tv.tv_usec / 1000;
-
-	uint32_t elapsed = stop - start;
+	uint32_t elapsed = thisTick - lastTick;
 	if(addToTotalTime_){
-		addToTotalTime(elapsed);
+		addUp(elapsed);
 	}
 	return elapsed;
 }
 
+uint32_t sim_mob::BasicLogger::Tick::end(){
+	uint32_t temp = 0;
+	uint32_t tick_;
+	tick_ = tick();
+	started = 0;
+	return (tick_ > start ? tick_ - start : 0);
+}
+
+void sim_mob::BasicLogger::Tick::reset()
+{
+	start = lastTick = total = 0;
+	started = 0;
+}
+
+
 ///add the given time to the total time
-void sim_mob::BasicLogger::addToTotalTime(uint32_t value){
-	boost::unique_lock<boost::mutex> lock(mutexTotalTime);
-//		Print() << "Logger "  << "[" << index << ":" << id << "] Adding " << value << " seconds to total time " << std::endl;
-	totalTime+=value;
+uint32_t sim_mob::BasicLogger::Tick::addUp(uint32_t value){
+//	boost::unique_lock<boost::mutex> lock(mutexTotalTime);
+	total+=value;
+	return total;
+}
+
+///add the given time to the total time
+uint32_t sim_mob::BasicLogger::Tick::getAddUp(){
+//	boost::unique_lock<boost::mutex> lock(mutexTotalTime);
+	return total;
 }
 
 std::stringstream * sim_mob::BasicLogger::getOut(bool renew){
@@ -114,20 +126,48 @@ std::stringstream * sim_mob::BasicLogger::getOut(bool renew){
 	return res;
 }
 
-unsigned int & sim_mob::BasicLogger::getTotalTime(){
-	boost::unique_lock<boost::mutex> lock(mutexTotalTime);
-	return totalTime;
+sim_mob::BasicLogger::Tick & sim_mob::BasicLogger::getProfiler(const std::string id)
+{
+	std::map<const std::string, Tick>::iterator it(profilers_.find(id));
+	if(it != profilers_.end())
+	{
+		return it->second;
+	}
+	else
+	{
+		profilers_.insert(std::pair<const std::string, Tick>(id, Tick()));
+		it = profilers_.find(id);
+	}
+	return it->second;
 }
+
+uint32_t sim_mob::BasicLogger::endProfiler(const std::string id)
+{
+	uint32_t temp = 0;
+	std::map<const std::string, Tick>::iterator it(profilers_.find(id));
+	if(it != profilers_.end())
+	{
+		temp = it->second.end();
+		profilers_.erase(it);
+	}
+	return temp;
+
+}
+//
+//unsigned int & sim_mob::BasicLogger::getTotalTime(){
+//	boost::unique_lock<boost::mutex> lock(mutexTotalTime);
+//	return totalTime;
+//}
 
 void printTime(struct tm *tm, struct timeval & tv, std::string id){
 	sim_mob::Print() << "TIMESTAMP:\t  " << tm->tm_hour << std::setw(2) << ":" <<tm->tm_min << ":" << ":" <<  tm->tm_sec << ":" << tv.tv_usec << std::endl;
 }
 
-void sim_mob::BasicLogger::reset(){
-	start = stop = totalTime = 0;
-	started = false;
-	id = "";
-}
+//void sim_mob::BasicLogger::reset(){
+//	start = stop = totalTime = 0;
+//	started = false;
+//	id = "";
+//}
 
 void  sim_mob::BasicLogger::InitLogFile(const std::string& path)
 {

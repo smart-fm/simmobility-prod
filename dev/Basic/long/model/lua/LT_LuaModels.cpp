@@ -104,6 +104,7 @@ namespace {
             .endClass();
     getGlobalNamespace(state)
             .beginClass <Building> ("Building")
+            /*
             .addProperty("id", &Building::getId)
             .addProperty("builtYear", &Building::getBuiltYear)
             .addProperty("landedArea", &Building::getLandedArea)
@@ -111,6 +112,19 @@ namespace {
             .addProperty("parkingSpaces", &Building::getParkingSpaces)
             .addProperty("tenureId", &Building::getTenureId)
             .addProperty("typeId", &Building::getTypeId)
+            */
+            .addProperty("fmBuildingId", &Building::getFmBuildingId)
+            .addProperty("fmProjectId", &Building::getFmProjectId)
+            .addProperty("fmParcelId", &Building::getFmParcelId)
+            .addProperty("storeysAboveGround", &Building::getStoreysAboveGround)
+            .addProperty("storeysBelowGround", &Building::getStoreysBelowGround)
+            .addProperty("fromDate", &Building::getFromDate)
+            .addProperty("toDate", &Building::getToDate)
+            .addProperty("buildingStatus", &Building::getBuildingStatus)
+            .addProperty("grossSqmRes", &Building::getGrossSqmRes)
+            .addProperty("grossSqmOffice", &Building::getGrossSqmOffice)
+            .addProperty("grossSqmRetail", &Building::getGrossSqmRetail)
+            .addProperty("grossSqmOther", &Building::getGrossSqmOther)
             .endClass();
     }
 }

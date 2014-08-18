@@ -86,7 +86,8 @@ public:
 			const std::string& insertQuery, const std::string& updateQuery,
 			const std::string& deleteQuery, const std::string& getAllQuery,
 			const std::string& getByIdQuery) :
-			connection(connection), tableName(tableName) {
+			connection(connection), tableName(tableName)
+	{
 		defaultQueries[INSERT] = insertQuery;
 		defaultQueries[UPDATE] = updateQuery;
 		defaultQueries[DELETE] = deleteQuery;

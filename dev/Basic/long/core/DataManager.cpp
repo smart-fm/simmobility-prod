@@ -60,7 +60,7 @@ void DataManager::load() {
     DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
     conn.connect();
     if (conn.isConnected()) {
-        loadData<BuildingDao>(conn, buildings, buildingsById, &Building::getId);
+        loadData<BuildingDao>(conn, buildings, buildingsById, &Building::getFmBuildingId);
         loadData<PostcodeDao>(conn, postcodes, postcodesById, &Postcode::getId);
         loadData<PostcodeAmenitiesDao>(conn, amenities, amenitiesByCode, &PostcodeAmenities::getPostcode);
 

@@ -70,6 +70,7 @@ private:
 	 * Predicts the time period that will be allotted for the primary activity of a tour.
 	 *
 	 * @param tour the tour for which the time of day is to be predicted
+	 * @return time period for primary activity of tour
 	 */
 	TimeWindowAvailability predictTourTimeOfDay(Tour& tour);
 
@@ -79,6 +80,21 @@ private:
 	 * @param tour the tour for which the sub-tours are to be predicted
 	 */
 	void predictSubTours(Tour& tour);
+
+	/**
+	 * Predicts mode and destination for a subtour.
+	 * @param subTour the sub tour
+	 * @param parentTour the parent tour of the sub tour
+	 */
+	void predictSubTourModeDestination(Tour& subTour, const Tour& parentTour);
+
+	/**
+	 * Predicts the time period for the activity of sub tour
+	 *
+	 * @param subTour the subTour for which time of day is required
+	 * @return time period for activity of sub tour
+	 */
+	TimeWindowAvailability predictSubTourTimeOfDay(Tour& subTour, SubTourParams& subTourParams);
 
 	/**
 	 * Generates intermediate stops of types predicted by the day pattern model before and after the primary activity of a tour.
@@ -133,6 +149,12 @@ private:
 	 * @param tour the tour object for which the end time is to be calculated
 	 */
 	void calculateTourEndTime(Tour& tour);
+
+	/**
+	 * calculates the time window for entire sub tour
+	 * @param subTour sub-tour whose primary activity has been established already
+	 */
+	void calculateSubTourTimeWindow(Tour& subTour, const Tour& parentTour);
 
 	/**
 	 * constructs tour objects based on predicted number of tours. Puts the tour objects in tours deque.

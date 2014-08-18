@@ -31,7 +31,7 @@
                 <!-- outputs the preday's predicted tours and stops to mongodb if enabled -->
                 <output_predictions enabled="true"/>
                 <!-- prints person ids and tour details in console for each person if enabled -->
-                <console_output enabled="false"/>
+                <console_output enabled="true"/>
                 
                 <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
                         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
@@ -59,7 +59,7 @@
                 
                 <!-- Names of MongoDB database and collections -->
                 <mongo_collections db_name="preday">
-                        <mongo_collection name="population" collection="hits08_population"/>
+                        <mongo_collection name="population" collection="hits08_100people"/>
                         <mongo_collection name="tcost_bus" collection="tcost_bus"/>
                         <mongo_collection name="tcost_car" collection="tcost_car"/>
                         <mongo_collection name="AMCosts" collection="AMCosts"/>

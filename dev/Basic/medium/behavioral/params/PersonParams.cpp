@@ -133,7 +133,8 @@ sim_mob::medium::SubTourParams::SubTourParams(const Tour& parentTour)
 : subTourPurpose(parentTour.getTourType()), usualLocation(parentTour.isUsualLocation()), tourMode(parentTour.getTourMode()),
   firstOfMultipleTours(parentTour.isFirstTour()), subsequentOfMultipleTours(!parentTour.isFirstTour())
 {
-	initTimeWindows();
+	const Stop* primaryStop = parentTour.getPrimaryStop();
+	initTimeWindows(primaryStop->getArrivalTime(), primaryStop->getDepartureTime());
 }
 
 sim_mob::medium::SubTourParams::~SubTourParams()

@@ -110,6 +110,8 @@ local function computeUtilities(params,dbparams)
 	local cost_share3 = {}
 	local cost_motor = {}
 	local cost_taxi={}
+	local cost_taxi_1 = {}
+	local cost_taxi_2 = {}
 
 	local central_dummy={}
 
@@ -122,11 +124,17 @@ local function computeUtilities(params,dbparams)
 	local tt_motor = {}
 	local tt_walk = {}
 	local tt_taxi = {}
+	local tt_car_ivt = {}
+	local tt_public_ivt = {}
+	local tt_public_out = {}
 
 	local employment = {}
 	local population = {}
 	local area = {}
 	local shop = {}
+
+	local d1 = {}
+	local d2 = {}
 
 	--for each area
 	for i =1,1092 do

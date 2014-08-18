@@ -405,8 +405,8 @@ bool sim_mob::DriverMovement::update_sensors(timeslice now) {
 // on a particularly short road segment. For now, though, I'm just organizing these
 // functions with structure in mind, and it won't affect our current network.
 	params.isApproachingToIntersection = false;
-	if (!(fwdDriverMovement.getNextSegment(true))
-			&& !(fwdDriverMovement.isInIntersection())) {
+//	if (!(fwdDriverMovement.getNextSegment(true))
+	if( !fwdDriverMovement.isInIntersection( )) {
 		params.isApproachingToIntersection = true;
 		setTrafficSignalParams(params);
 

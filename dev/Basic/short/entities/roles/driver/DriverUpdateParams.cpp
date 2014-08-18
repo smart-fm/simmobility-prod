@@ -38,55 +38,119 @@ void DriverUpdateParams::setStatusDoingLC(LANE_CHANGE_SIDE& lcs)
 void DriverUpdateParams::buildDebugInfo()
 {
 	std::stringstream s;
-	double ct=cftimer;
-	if(abs(cftimer)<0.001)
-		ct=0;
-	char newFwdAccChar[20] = "\0";
-	sprintf(newFwdAccChar,"%03.1f",newFwdAcc);
-	// utility
-	char ul[20] = "\0";
-	sprintf(ul,"ul%3.2f",utilityLeft);
-	char ur[20] = "\0";
-	sprintf(ur,"ur%3.2f",utilityRight);
-	char uc[20] = "\0";
-	sprintf(uc,"uc%3.2f",utilityCurrent);
+	//	double ct=cftimer;
+	//	if(abs(cftimer)<0.001)
+	//		ct=0;
+		char newFwdAccChar[20] = "\0";
+		sprintf(newFwdAccChar,"%03.1f",newFwdAcc);
+	//	// utility
+		char ul[20] = "\0";
+		sprintf(ul,"ul%3.2f",utilityLeft);
+		char ur[20] = "\0";
+		sprintf(ur,"ur%3.2f",utilityRight);
+		char uc[20] = "\0";
+		sprintf(uc,"uc%3.2f",utilityCurrent);
+	//
+		char rnd_[20] = "\0";
+		sprintf(rnd_,"rd%3.2f",rnd);
 
-	char rnd_[20] = "\0";
-	sprintf(rnd_,"rd%3.2f",rnd);
 
-	size_t currLaneIdx = currLaneIndex;
-	if(currLaneIdx<0.1) currLaneIdx = 0;
+		char sp[20] = "\0";
+		sprintf(sp,"sp%3.2f",perceivedFwdVelocity);
 
-	double dis = perceivedDistToFwdCar / 100.0;
-	char disChar[20] = "\0";
-	sprintf(disChar,"%03.1f",dis);
+		char ds[200] = "\0";
+		sprintf(ds,"ds%3.2f",perceivedDistToTrafficSignal);
+	//
+	//	size_t currLaneIdx = currLaneIndex;
+	//	if(currLaneIdx<0.1) currLaneIdx = 0;
+	//
+	//	double dis = perceivedDistToFwdCar / 100.0;
+	//	char disChar[20] = "\0";
+	//	sprintf(disChar,"%03.1f",dis);
+	//
+		int fwdcarid=-1;
+		if(this->nvFwd.exists())
+		{
+			Driver* fwd_driver_ = const_cast<Driver*>(nvFwd.driver);
+			fwdcarid = fwd_driver_->getParent()->getId();
+		}
+		//
+		int backcarid=-1;
+		if(this->nvBack.exists())
+		{
+			Driver* back_driver_ = const_cast<Driver*>(nvBack.driver);
+			backcarid = back_driver_->getParent()->getId();
+		}
+		//
+		int leftFwdcarid=-1;
+		if(this->nvLeftFwd.exists())
+		{
+			Driver* driver_ = const_cast<Driver*>(nvLeftFwd.driver);
+			leftFwdcarid = driver_->getParent()->getId();
+		}
+		int leftBackcarid=-1;
+		if(this->nvLeftBack.exists())
+		{
+			Driver* driver_ = const_cast<Driver*>(nvLeftBack.driver);
+			leftBackcarid = driver_->getParent()->getId();
+		}
+		//
+		int rightFwdcarid=-1;
+		if(this->nvRightFwd.exists())
+		{
+			Driver* driver_ = const_cast<Driver*>(nvRightFwd.driver);
+			rightFwdcarid = driver_->getParent()->getId();
+		}
+		int rightBackcarid=-1;
+		if(this->nvRightBack.exists())
+		{
+			Driver* driver_ = const_cast<Driver*>(nvRightBack.driver);
+			rightBackcarid = driver_->getParent()->getId();
+		}
 
-	int fwdcarid=0;
-	if(this->nvFwd.exists())
-	{
-		Driver* fwd_driver_ = const_cast<Driver*>(nvFwd.driver);
-		fwdcarid = fwd_driver_->getParent()->getId();
-	}
+		// lc
+		string lc="lc-s";
+		if(getStatus(STATUS_LC_LEFT)) {
+			lc = "lc-l";
+		}
+		else if(getStatus(STATUS_LC_RIGHT)){
+			lc = "lc-r";
+		}
+	//
+	////	s<<ct
+	//			s<<":"<<newFwdAccChar
+				s<<"            "<<parentId
+//						<<":"<<accSelect
+//						<<":acc"<<newFwdAccChar
+//				<<":"<<sp
+//				<<":"<<lc;
+	//			<<":"<<ds;
 
-//	s<<ct
-//			<<":"<<newFwdAccChar
-			s<<"    id:"<<parentId
-					<<":"<<accSelect;
-//			<<":"<<ct
-//			<<":"<<ul
-//			<<":"<<uc
-//			<<":"<<ur
-//		<<":"<<rnd_;
 
-//			<<":"<<accSelect
-//			<<":"<<nvFwd.exists()
-//			<<":"<<disChar
-//	<<":"<<currLaneIndex;
-//			<<":"<<perceivedTrafficColor
-//			<<":"<<perceivedDistToTrafficSignal/100.0;
-	debugInfo = s.str();
+	#if 1
+				<<":fwd"<<fwdcarid
+				<<":back"<<backcarid
+				<<":lfwd"<<leftFwdcarid
+				<<":lback"<<leftBackcarid
+				<<":rfwd"<<rightFwdcarid
+				<<":rback"<<rightBackcarid;
+	#endif
 
-//	std::cout<<debugInfo<<std::endl;
+	//			//<<":"<<ct
+	//			<<":"<<ul
+				//<<":"<<uc
+	//			//<<":"<<ur
+	//		//<<":"<<rnd_;
+	//
+	////			<<":"<<accSelect
+	////			<<":"<<nvFwd.exists()
+	////			<<":"<<disChar
+	////	<<":"<<currLaneIndex;
+	////			<<":"<<perceivedTrafficColor
+	////			<<":"<<perceivedDistToTrafficSignal/100.0;
+		debugInfo = s.str();
+
+	//	std::cout<<debugInfo<<std::endl;
 }
 void DriverUpdateParams::addTargetLanes(set<const Lane*> tl)
 {

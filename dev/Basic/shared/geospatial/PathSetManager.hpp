@@ -273,8 +273,6 @@ public:
 	}
 public:
 	bool generateAllPathSetWithTripChain2();
-	sim_mob::SinglePath * generateSinglePathByFromToNodes(const sim_mob::Node *fromNode,  const sim_mob::Node *toNode,const sim_mob::RoadSegment* excludedSegs=NULL);
-
 	///	generate shortest path information
 	sim_mob::SinglePath *  generateSinglePathByFromToNodes3( const sim_mob::Node *fromNode, const sim_mob::Node *toNode,
 			   std::set<std::string> & duplicatePath, const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>());
@@ -495,6 +493,7 @@ public:
 	void storePath(sim_mob::SinglePath* singlePath);
 	std::map<std::string,sim_mob::PathSet*> generatePathSetByTripChainItemPool(std::vector<sim_mob::TripChainItem*> &tci);
 	void generateAllPathSetWithTripChainPool(std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool);
+	sim_mob::SinglePath * generateSinglePathByFromToNodes(const sim_mob::Node *fromNode,  const sim_mob::Node *toNode,const sim_mob::RoadSegment* excludedSegs=NULL);
 	bool generateAllPathSetWithTripChain();
 	PathSet *generatePathSetByFromToNodes(const sim_mob::Node *from, const sim_mob::Node *to, const sim_mob::SubTrip* st, bool isUseCache=true);
 private:

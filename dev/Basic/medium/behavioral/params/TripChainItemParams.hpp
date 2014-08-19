@@ -21,6 +21,7 @@
  */
 
 #pragma once
+#include <stdint.h> //<cstdint> belongs to C++11!
 #include "behavioral/PredayClasses.hpp"
 
 namespace sim_mob {
@@ -36,6 +37,18 @@ namespace medium {
  */
 class TripChainItemParams {
 public:
+	TripChainItemParams() :
+		personId(std::string()),tcSeqNum(0), tcItemType("UNKNOWN"), tripId("0"), subtripId("0"), primaryMode(false),
+		tripOrigin(0), tripDestination(0), subtripOrigin(0), subtripDestination(0), activityId("0"), activityType("dummy"),
+		activityLocation(0), primaryActivity(false)
+	{}
+
+	TripChainItemParams(const std::string& personId, const std::string& tcItemType, uint8_t seqNo) :
+		personId(personId),tcSeqNum(seqNo), tcItemType(tcItemType), tripId("0"), subtripId("0"), primaryMode(false),
+		tripOrigin(0), tripDestination(0), subtripOrigin(0), subtripDestination(0), activityId("0"), activityType("dummy"),
+		activityLocation(0), primaryActivity(false)
+	{}
+
 	const std::string& getActivityEndTime() const {
 		return activityEndTime;
 	}
@@ -96,10 +109,6 @@ public:
 		return personId;
 	}
 
-	void setPersonId(const std::string& personId) {
-		this->personId = personId;
-	}
-
 	const std::string& getStartTime() const {
 		return startTime;
 	}
@@ -144,16 +153,8 @@ public:
 		return tcItemType;
 	}
 
-	void setTcItemType(const std::string& tcItemType) {
-		this->tcItemType = tcItemType;
-	}
-
 	int getTcSeqNum() const {
 		return tcSeqNum;
-	}
-
-	void setTcSeqNum(int tcSeqNum) {
-		this->tcSeqNum = tcSeqNum;
 	}
 
 	int getTripDestination() const {
@@ -180,9 +181,24 @@ public:
 		this->tripOrigin = tripOrigin;
 	}
 
+	void setPersonId(const std::string& personId)
+	{
+		this->personId = personId;
+	}
+
+	void setTcItemType(const std::string& tcItemType)
+	{
+		this->tcItemType = tcItemType;
+	}
+
+	void setTcSeqNum(uint8_t tcSeqNum)
+	{
+		this->tcSeqNum = tcSeqNum;
+	}
+
 private:
 	std::string personId;
-	int tcSeqNum;
+	uint8_t tcSeqNum;
 	std::string tcItemType;
 	std::string tripId;
 	int tripOrigin;

@@ -198,14 +198,6 @@ private:
 	void insertStop(const Stop* stop, int stopNumber, int tourNumber);
 
 	/**
-	 * generates a random time  within the time window passed in preday's representation.
-	 *
-	 * @param window time window in preday format (E.g. 4.75 => 4:30 to 4:59 AM)
-	 * @return a random time within the window in hh24:mm:ss format
-	 */
-	std::string getRandomTimeInWindow(double window);
-
-	/**
 	 * returns a random element from the list of nodes
 	 *
 	 * @param nodes the list of nodes
@@ -224,6 +216,9 @@ private:
 
 	/**
 	 * constructs trip chain from predictions for a person
+	 * \note This function will output all trips as car trips for now because the within day is not ready for other modes of transport.
+	 * \note This function assigns a random node from the zone as ODs for trips and for activity locations. This is because we do not have a model for mapping activity locations
+	 * to postal codes and ODs to nodes.
 	 * @param zoneNodeMap zone to nodes mapping
 	 * @param scale number of trip chains to be generated for this person
 	 * @param outTripChain output list (trip chain) to be constructed

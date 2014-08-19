@@ -509,7 +509,10 @@ private:
 	std::map<std::string,sim_mob::ERP_Gantry_Zone*> ERP_Gantry_Zone_pool; //key=Gantry_no, value = ERP_Gantry_Zone
 
 };
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*****************************************************
+ ******************* Single Path *********************
+ *****************************************************
+ */
 class SinglePath
 {
 public:
@@ -527,12 +530,12 @@ public:
 	const sim_mob::Node *toNode;
 
 	double highWayDistance;
-	int isMinTravelTime;
-	int isMinDistance;
-	int isMinSignal;
-	int isMinRightTurn;
-	int isMaxHighWayUsage;
-	int isShortestPath;
+	bool isMinTravelTime;
+	bool isMinDistance;
+	bool isMinSignal;
+	bool isMinRightTurn;
+	bool isMaxHighWayUsage;
+	bool isShortestPath;
 
 	bool isNeedSave2DB;
 	std::string id;   //id: seg1id_seg2id_seg3id
@@ -559,7 +562,11 @@ public:
 		 return lhs->id<rhs->id;
 	  }
 };
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*****************************************************
+ ******************* Path Set ************************
+ *****************************************************
+ */
 class PathSet
 {
 public:

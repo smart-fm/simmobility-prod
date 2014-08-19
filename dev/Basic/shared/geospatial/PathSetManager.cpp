@@ -1589,7 +1589,7 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::generateSinglePathByFromToNodes3
 		}
 	}
 	std::vector<WayPoint> wp = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*fromNode), stdir.DrivingVertex(*toNode),blacklist);
-	if(wp.size()==0)
+	if(wp.empty())
 	{
 		// no path debug message
 		if(excludedSegs.size())
@@ -1630,6 +1630,7 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::generateSinglePathByFromToNodes3
 		s->id = id;
 		s->scenario = scenarioName;
 		s->pathsize=0;
+		s->isShortestPath = true;
 		duplicatePath.insert(id);
 	}
 	else{

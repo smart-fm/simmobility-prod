@@ -290,7 +290,17 @@ void sim_mob::PathSetParam::initParameters()
 	minSignalParam = 0.256;
 	maxHighwayParam = 0.422;
 }
-//sim_mob::BasicLogger * sim_mob::PathSetParam::sim_mob::Logger::log["path_set"] =sim_mob::Logger::log["path_set"]);
+
+sim_mob::RoadSegment* sim_mob::PathSetParam::getRoadSegmentByAimsunId(const std::string id)
+{
+	boost::unordered_map<const std::string,sim_mob::RoadSegment*>::iterator it = segPool.find(id);
+	if(it != segPool.end())
+	{
+		sim_mob::RoadSegment* seg = (*it).second;
+		return seg;
+	}
+	return NULL;
+}
 
 sim_mob::PathSetParam::PathSetParam() :
 		roadNetwork(ConfigManager::GetInstance().FullConfig().getNetwork()),
@@ -2031,6 +2041,7 @@ double sim_mob::PathSetManager::getTravelTimeBySegId(std::string id,sim_mob::Dai
 	}
 	return res;
 }
+
 namespace{
 struct segFilter{
 		bool operator()(const WayPoint value){
@@ -2060,14 +2071,14 @@ void sim_mob::SinglePath::init(std::vector<WayPoint>& wpPools)
 //	this->shortestWayPointpath = boost::move(wpPools);
 //	this->shortestWayPointpath = wpPools;
 	std::copy(FilterType(wpPools.begin(), wpPools.end()),FilterType(wpPools.end(), wpPools.end()),std::back_inserter(this->shortestWayPointpath));
-	//test
-	BOOST_FOREACH(WayPoint wp, this->shortestWayPointpath)
-	{
-		if(wp.type_ != WayPoint::ROAD_SEGMENT)
-		{
-			throw std::runtime_error("Not a segment waypoint");
-		}
-	}
+//	//test
+//	BOOST_FOREACH(WayPoint wp, this->shortestWayPointpath)
+//	{
+//		if(wp.type_ != WayPoint::ROAD_SEGMENT)
+//		{
+//			throw std::runtime_error("Not a segment waypoint");
+//		}
+//	}
 }
 
 void sim_mob::SinglePath::clear()
@@ -2168,7 +2179,7 @@ sim_mob::SinglePath::SinglePath(const SinglePath& source) :
 		std::string id = segIds.at(i);
 		if(id.size()>1)
 		{
-			sim_mob::RoadSegment* seg = sim_mob::RoadSegment::getRoadSegmentByAimsunId(id);
+			sim_mob::RoadSegment* seg = sim_mob::PathSetParam::getInstance()->getRoadSegmentByAimsunId(id);
 			if(!seg)
 			{
 				std::string str = "SinglePath: seg not find " + id;
@@ -2798,7 +2809,7 @@ sim_mob::SinglePath::SinglePath(SinglePath *source) :
 			std::string id = segIds.at(i);
 			if(id.size()>1)
 			{
-				sim_mob::RoadSegment* seg = sim_mob::RoadSegment::getRoadSegmentByAimsunId(id);
+				sim_mob::RoadSegment* seg = sim_mob::PathSetParam::getInstance()->getRoadSegmentByAimsunId(id);
 				if(!seg)
 				{
 					std::string str = "error: SinglePath: seg not find. " + id + "\n";

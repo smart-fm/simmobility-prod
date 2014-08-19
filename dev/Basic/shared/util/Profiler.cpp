@@ -59,7 +59,7 @@ uint32_t sim_mob::Profiler::begin(){
 
 uint32_t sim_mob::Profiler::tick(bool addToTotalTime_){
 	if(!started){
-		Warn() << "Profiler ticked before starting, starting it now" << std::endl;
+		sim_mob::Logger::log["warnings"] << "Profiler ticked before starting, starting it now\n" ;
 		begin();
 		return 0;
 	}

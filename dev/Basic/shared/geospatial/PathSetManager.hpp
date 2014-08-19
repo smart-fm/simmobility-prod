@@ -65,6 +65,9 @@ public:
 	/// Retrieve 'ERP' and 'link travel time' information from Database
 	void getDataFromDB();
 
+	///	get RoadSegment from AimsunId
+	sim_mob::RoadSegment* getRoadSegmentByAimsunId(const std::string id);
+
 	///	insert an entry into singlepath table in the database
 	void storeSinglePath(soci::session& sql,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string singlePathTableName);
 
@@ -119,7 +122,7 @@ public:
 	double maxHighwayParam;
 
 	///	store all segs <aimsun id ,seg>
-	std::map<std::string,sim_mob::RoadSegment*> segPool;
+	boost::unordered_map<std::string,sim_mob::RoadSegment*> segPool;
 
 	///	<seg , value>
 	std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*> wpPool;

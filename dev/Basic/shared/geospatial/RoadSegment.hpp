@@ -178,8 +178,6 @@ public:
 		return capacity;
 	}
 
-	//todo :might not be really required after PathSetManager cleanup. check from time to time. if this is not being used, delete this function and the container
-	static sim_mob::RoadSegment* getRoadSegmentByAimsunId(const std::string id);
 	/*void initLaneGroups() const;
 	 void groupLanes(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt, const std::vector<sim_mob::RoadSegment*>& segments, sim_mob::Node* start, sim_mob::Node* end) const;
 	 void matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS) const;*/

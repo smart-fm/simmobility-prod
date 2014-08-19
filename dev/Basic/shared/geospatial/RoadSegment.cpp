@@ -30,7 +30,6 @@ using std::vector;
 using std::set;
 
 using namespace sim_mob;
-boost::unordered_map<const std::string,sim_mob::RoadSegment*> sim_mob::RoadSegment::segPool;
 const unsigned long sim_mob::RoadSegment::getSegmentID()const
 {
 	return segmentID;

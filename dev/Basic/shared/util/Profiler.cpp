@@ -15,9 +15,6 @@ int sim_mob::BasicLogger::flushCnt = 0;
 unsigned long int sim_mob::BasicLogger::ii = 0;
 
 sim_mob::BasicLogger::BasicLogger(std::string id_){
-//	reset();
-//	start = stop = totalTime = 0;
-//	started = false;
 	id = id_;
 	std::string path = id_ + ".txt";
 	if(path.size()){
@@ -53,13 +50,17 @@ uint32_t sim_mob::Profiler::begin(){
 	gettimeofday(&tv, &tz);
 	tm = localtime(&tv.tv_sec);
 
-	return (start = lastTick = (tm->tm_hour * 3600 * 1000 * 1000) + (tm->tm_min * 60 * 1000 * 1000) +
-		(tm->tm_sec * 1000 * 1000) + (tv.tv_usec));
+	return (start = lastTick =
+			(tm->tm_hour * 3600000000/*3600 * 1000 * 1000*/) +
+			(tm->tm_min * 60000000/*60 * 1000 * 1000*/) +
+			(tm->tm_sec * 1000000/*1000 * 1000*/) +
+			(tv.tv_usec));
 }
 
 uint32_t sim_mob::Profiler::tick(bool addToTotalTime_){
 	if(!started){
-		sim_mob::Logger::log["warnings"] << "Profiler ticked before starting, starting it now\n" ;
+		// for now,dont call logger here. apparently creates nesting(needs more testing)
+		//sim_mob::Logger::log["warnings"] << "Profiler ticked before starting, starting it now\n" ;
 		begin();
 		return 0;
 	}
@@ -71,8 +72,11 @@ uint32_t sim_mob::Profiler::tick(bool addToTotalTime_){
 	gettimeofday(&tv, &tz);
 	tm = localtime(&tv.tv_sec);
 	uint32_t thisTick;
-	thisTick = ((tm->tm_hour * 3600 * 1000 * 1000) + (tm->tm_min * 60 * 1000 * 1000) +
-			(tm->tm_sec * 1000 * 1000) + (tv.tv_usec));
+	thisTick =
+			((tm->tm_hour * 3600000000/*3600 * 1000 * 1000*/) +
+			(tm->tm_min * 60000000/*60 * 1000 * 1000*/) +
+			(tm->tm_sec * 1000000/*1000 * 1000*/) +
+			(tv.tv_usec));
 
 	uint32_t elapsed = thisTick - lastTick;
 	if(addToTotalTime_){
@@ -96,17 +100,12 @@ void sim_mob::Profiler::reset()
 	started = 0;
 }
 
-
-///add the given time to the total time
 uint32_t sim_mob::Profiler::addUp(uint32_t &value){
-//	boost::unique_lock<boost::mutex> lock(mutexTotalTime);
 	total+=value;
 	return total;
 }
 
-///add the given time to the total time
 uint32_t sim_mob::Profiler::getAddUp(){
-//	boost::unique_lock<boost::mutex> lock(mutexTotalTime);
 	return total;
 }
 
@@ -115,8 +114,19 @@ std::stringstream * sim_mob::BasicLogger::getOut(bool renew){
 	std::stringstream *res = nullptr;
 	outIt it;
 	boost::thread::id id = boost::this_thread::get_id();
-	threads[id] ++;//for debugging only
-	ii++;
+	//debugging only
+	{
+		std::map <boost::thread::id, int>::iterator it_thr = threads.find(id);
+		if(it_thr != threads.end())
+		{
+			threads.at(id) ++;
+			ii++;
+		}
+		else
+		{
+			std::cerr << "WARNING : thread[" << id << "] not registered\n";
+		}
+	}
 	if((it = out.find(id)) == out.end()){
 		boost::upgrade_to_unique_lock<boost::shared_mutex> lock2(lock);
 		res = new std::stringstream();
@@ -265,11 +275,6 @@ sim_mob::Logger::~Logger()
 	std::cout << "Number of threads used: " << sim_mob::BasicLogger::threads.size() << std::endl;
 	for(std::map <boost::thread::id, int>::iterator item = sim_mob::BasicLogger::threads.begin(); item != sim_mob::BasicLogger::threads.end(); item++)
 	{
-		std::stringstream out("");
-		out << item->first;
-		if("{Not-any-thread}" == out.str() ){
-			break;
-		}
 		std::cout << "Thread[" << item->first << "] called out " << item->second << "  times" << std::endl;
 	}
 	std::cout << "Total calls to getOut: " << sim_mob::BasicLogger::ii << std::endl;

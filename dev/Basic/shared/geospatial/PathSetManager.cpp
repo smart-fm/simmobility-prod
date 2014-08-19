@@ -313,8 +313,8 @@ sim_mob::PathSetParam::PathSetParam() :
 				string aimsun_id = (*seg_it)->originalDB_ID.getLogItem();
 				string seg_id = getNumberFromAimsunId(aimsun_id);
 				segPool.insert(std::make_pair(seg_id, *seg_it));
-				WayPoint *wp = new WayPoint(*seg_it);
-				wpPool.insert(std::make_pair(*seg_it, wp));
+//				WayPoint *wp = new WayPoint(*seg_it);
+//				wpPool.insert(std::make_pair(*seg_it, wp));
 			}
 		}
 	}

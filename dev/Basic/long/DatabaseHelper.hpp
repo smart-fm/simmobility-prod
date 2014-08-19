@@ -85,7 +85,7 @@ namespace sim_mob {
 
         //NEW DATABASE
         const std::string DB_FIELD_ID = "id";
-        const std::string DB_FIELD_UNIT_ID = "unit_id";
+        const std::string DB_FIELD_UNIT_ID = "fm_unit_id";
         const std::string DB_FIELD_HOUSEHOLD_ID = "household_id";
         const std::string DB_FIELD_PROJECT_ID = "project_id";
         const std::string DB_FIELD_PARCEL_ID = "parcel_id";

@@ -88,10 +88,10 @@ private:
 	std::string id;
 
 	///	profilers container
-	std::map<const std::string, Profiler> profilers_;
+	std::map<const std::string, Profiler> profilers;
 
 	///	one buffer is assigned to each thread writing to the file
-	std::map<boost::thread::id, std::stringstream*> out_;
+	std::map<boost::thread::id, std::stringstream*> out;
 
 protected:
 

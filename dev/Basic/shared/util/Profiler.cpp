@@ -27,8 +27,8 @@ sim_mob::BasicLogger::BasicLogger(std::string id_){
 
 sim_mob::BasicLogger::~BasicLogger(){
 
-	if(!profilers_.empty()){
-		std::map<const std::string, Profiler>::iterator it(profilers_.begin()),itEnd(profilers_.end());
+	if(!profilers.empty()){
+		std::map<const std::string, Profiler>::iterator it(profilers.begin()),itEnd(profilers.end());
 		for(;it != itEnd; it++)
 		{
 			*this << it->first << ": [total AddUp time: " << it->second.getAddUp() << "],[total time : " << it->second.end() << "]" << newLine;
@@ -39,7 +39,7 @@ sim_mob::BasicLogger::~BasicLogger(){
 		flushLog();
 		logFile.close();
 	}
-	for (outIt it(out_.begin()); it != out_.end();safe_delete_item(it->second), it++);
+	for (outIt it(out.begin()); it != out.end();safe_delete_item(it->second), it++);
 }
 
 ///like it suggests, store the start time of the profiling
@@ -117,10 +117,10 @@ std::stringstream * sim_mob::BasicLogger::getOut(bool renew){
 	boost::thread::id id = boost::this_thread::get_id();
 	threads[id] ++;//for debugging only
 	ii++;
-	if((it = out_.find(id)) == out_.end()){
+	if((it = out.find(id)) == out.end()){
 		boost::upgrade_to_unique_lock<boost::shared_mutex> lock2(lock);
 		res = new std::stringstream();
-		out_.insert(std::make_pair(id, res));
+		out.insert(std::make_pair(id, res));
 	}
 	else
 	{
@@ -136,15 +136,15 @@ std::stringstream * sim_mob::BasicLogger::getOut(bool renew){
 
 sim_mob::Profiler & sim_mob::BasicLogger::prof(const std::string id)
 {
-	std::map<const std::string, Profiler>::iterator it(profilers_.find(id));
-	if(it != profilers_.end())
+	std::map<const std::string, Profiler>::iterator it(profilers.find(id));
+	if(it != profilers.end())
 	{
 		return it->second;
 	}
 	else
 	{
-		profilers_.insert(std::pair<const std::string, Profiler>(id, Profiler()));
-		it = profilers_.find(id);
+		profilers.insert(std::pair<const std::string, Profiler>(id, Profiler()));
+		it = profilers.find(id);
 	}
 	return it->second;
 }
@@ -152,11 +152,11 @@ sim_mob::Profiler & sim_mob::BasicLogger::prof(const std::string id)
 uint32_t sim_mob::BasicLogger::endProfiler(const std::string id)
 {
 	uint32_t temp = 0;
-	std::map<const std::string, Profiler>::iterator it(profilers_.find(id));
-	if(it != profilers_.end())
+	std::map<const std::string, Profiler>::iterator it(profilers.find(id));
+	if(it != profilers.end())
 	{
 		temp = it->second.end();
-		profilers_.erase(it);
+		profilers.erase(it);
 	}
 	return temp;
 

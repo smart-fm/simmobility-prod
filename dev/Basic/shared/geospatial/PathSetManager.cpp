@@ -2052,7 +2052,7 @@ struct segFilter{
 void sim_mob::SinglePath::init(std::vector<WayPoint>& wpPools)
 {
 
-	typedef boost::filter_iterator<segFilter,std::vector<WayPoint>::iterator> FilterType;
+	typedef boost::filter_iterator<segFilter,std::vector<WayPoint>::iterator> FilterIterator;
 	int j=0;
 ////	for(int i=0;i<wpPools.size();++i)
 //	BOOST_FOREACH(WayPoint&wp, wpPools)
@@ -2070,7 +2070,7 @@ void sim_mob::SinglePath::init(std::vector<WayPoint>& wpPools)
 //	}
 //	this->shortestWayPointpath = boost::move(wpPools);
 //	this->shortestWayPointpath = wpPools;
-	std::copy(FilterType(wpPools.begin(), wpPools.end()),FilterType(wpPools.end(), wpPools.end()),std::back_inserter(this->shortestWayPointpath));
+	std::copy(FilterIterator(wpPools.begin(), wpPools.end()),FilterIterator(wpPools.end(), wpPools.end()),std::back_inserter(this->shortestWayPointpath));
 //	//test
 //	BOOST_FOREACH(WayPoint wp, this->shortestWayPointpath)
 //	{

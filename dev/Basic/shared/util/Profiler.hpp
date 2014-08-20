@@ -141,14 +141,12 @@ public:
 	//This is the function signature of std::endl and some other manipulators
 	typedef CoutType& (*StandardEndLine)(CoutType&);
 
-	static std::string newLine;
-
 	/**
 	 * simple interface to log a profiling output with a simple message
 	 */
 	inline void profileMsg(const std::string msg, uint32_t value)
 	{
-		*this << msg << " : " << value << newLine;
+		*this << msg << " : " << value << "\n";
 	}
 
 	/**
@@ -206,6 +204,7 @@ protected:
 	///	repository of profilers. each profiler is distinguished by a file name!
 	std::map<const std::string, boost::shared_ptr<sim_mob::BasicLogger> > repo;
 public:
+	static std::string newLine;
 	static sim_mob::Logger log;
 	virtual sim_mob::BasicLogger & operator[](const std::string &key);
 	virtual ~Logger();

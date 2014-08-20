@@ -7,7 +7,7 @@
  *     Basic Logger Implementation
  * **********************************
  */
-std::string sim_mob::BasicLogger::newLine("\n");
+std::string sim_mob::Logger::newLine("\n");
 sim_mob::Logger sim_mob::Logger::log;
 
 std::map <boost::thread::id, int> sim_mob::BasicLogger::threads= std::map <boost::thread::id, int>();//for debugging only
@@ -28,7 +28,7 @@ sim_mob::BasicLogger::~BasicLogger(){
 		std::map<const std::string, Profiler>::iterator it(profilers.begin()),itEnd(profilers.end());
 		for(;it != itEnd; it++)
 		{
-			*this << it->first << ": [total AddUp time: " << it->second.getAddUp() << "],[total time : " << it->second.end() << "]" << newLine;
+			*this << it->first << ": [total AddUp time: " << it->second.getAddUp() << "],[total time : " << it->second.end() << "]" << Logger::newLine;
 		}
 	}
 
@@ -114,19 +114,19 @@ std::stringstream * sim_mob::BasicLogger::getOut(bool renew){
 	std::stringstream *res = nullptr;
 	outIt it;
 	boost::thread::id id = boost::this_thread::get_id();
-	//debugging only
-	{
-		std::map <boost::thread::id, int>::iterator it_thr = threads.find(id);
-		if(it_thr != threads.end())
-		{
-			threads.at(id) ++;
-			ii++;
-		}
-		else
-		{
-			std::cerr << "WARNING : thread[" << id << "] not registered\n";
-		}
-	}
+//	//debugging only
+//	{
+//		std::map <boost::thread::id, int>::iterator it_thr = threads.find(id);
+//		if(it_thr != threads.end())
+//		{
+//			threads.at(id) ++;
+//			ii++;
+//		}
+//		else
+//		{
+//			std::cerr << "WARNING : thread[" << id << "] not registered\n";
+//		}
+//	}
 	if((it = out.find(id)) == out.end()){
 		boost::upgrade_to_unique_lock<boost::shared_mutex> lock2(lock);
 		res = new std::stringstream();

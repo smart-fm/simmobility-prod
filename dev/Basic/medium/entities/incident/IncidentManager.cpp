@@ -51,7 +51,7 @@ void sim_mob::IncidentManager::readFromFile(std::string inputFile){
 		double newFlowRate = boost::lexical_cast<double>(vec[1]);//second element
 		uint32_t tick =  boost::lexical_cast<uint32_t>(vec[2]);//second element
 		incidents.insert(std::make_pair(tick,Incident(sectionId,newFlowRate,tick)));
-		sim_mob::Logger::log["path_set"] << "Incident inserted for tick:" <<tick << " sectionId:" << sectionId << sim_mob::BasicLogger::newLine;
+		sim_mob::Logger::log["path_set"] << "Incident inserted for tick:" <<tick << " sectionId:" << sectionId << sim_mob::Logger::newLine;
 	}
 	in.close();
 }
@@ -78,7 +78,7 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 		sim_mob::PathSetManager::getInstance()->inserIncidentList((*stats.begin())->getRoadSegment());
 		std::vector <const sim_mob::Person*> persons;
 		identifyAffectedDrivers(rs,persons);
-		sim_mob::Logger::log["path_set"] << " INCIDENT  segment:"<< rs->getSegmentAimsunId() << " affected:" << persons.size() << sim_mob::BasicLogger::newLine;
+		sim_mob::Logger::log["path_set"] << " INCIDENT  segment:"<< rs->getSegmentAimsunId() << " affected:" << persons.size() << sim_mob::Logger::newLine;
 //		/**
 //		 * DEBUG
 //		 */

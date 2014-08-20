@@ -1116,7 +1116,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 			if(detourNode.first == newPath.first){continue;}
 			if(target == detourNode.second)
 			{
-				sim_mob::Logger::log["path_set"] << "Discarding an already been created path:" << sim_mob::BasicLogger::newLine;
+				sim_mob::Logger::log["path_set"] << "Discarding an already been created path:" << sim_mob::Logger::newLine;
 				MesoPathMover::printPath(detourNode.second);
 				MesoPathMover::printPath(target);
 				deTourOptions.erase(newPath.first);

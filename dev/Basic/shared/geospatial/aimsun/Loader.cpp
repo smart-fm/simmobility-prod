@@ -242,8 +242,8 @@ bool DatabaseLoader::InsertSinglePath2DBST(soci::session& sql,std::set<sim_mob::
 	{
 		if(sp->isNeedSave2DB)
 		{
-			sql<<"insert into \"" << singlePathTableName << "\"(\"ID\", \"PATHSET_ID\",\"UTILITY\",\"PATHSIZE\",\"TRAVEL_COST\",\"SIGNAL_NUMBER\",\"RIGHT_TURN_NUMBER\",\"SCENARIO\",\"LENGTH\",\"TRAVEL_TIME\",\"HIGHWAY_DIS\",\"MIN_TRAVEL_TIME\",\"MIN_DISTANCE\",\"MIN_SIGNAL\",\"MIN_RIGHT_TURN\",\"MAX_HIGH_WAY_USAGE\") "
-					"values(:ID, :PATHSET_ID,:UTILITY,:PATHSIZE,:TRAVEL_COST,:SIGNAL_NUMBER,:RIGHT_TURN_NUMBER,:SCENARIO,:LENGTH,:TRAVEL_TIME,:HIGHWAY_DIS,:MIN_TRAVEL_TIME,:MIN_DISTANCE,:MIN_SIGNAL,:MIN_RIGHT_TURN,:MAX_HIGH_WAY_USAGE)", soci::use(*sp);
+			sql<<"insert into \"" << singlePathTableName << "\"(\"ID\", \"PATHSET_ID\",\"UTILITY\",\"PATHSIZE\",\"TRAVEL_COST\",\"SIGNAL_NUMBER\",\"RIGHT_TURN_NUMBER\",\"SCENARIO\",\"LENGTH\",\"TRAVEL_TIME\",\"HIGHWAY_DIS\",\"MIN_TRAVEL_TIME\",\"MIN_DISTANCE\",\"MIN_SIGNAL\",\"MIN_RIGHT_TURN\",\"MAX_HIGH_WAY_USAGE\",\"SHORTEST_PATH\") "
+					"values(:ID, :PATHSET_ID,:UTILITY,:PATHSIZE,:TRAVEL_COST,:SIGNAL_NUMBER,:RIGHT_TURN_NUMBER,:SCENARIO,:LENGTH,:TRAVEL_TIME,:HIGHWAY_DIS,:MIN_TRAVEL_TIME,:MIN_DISTANCE,:MIN_SIGNAL,:MIN_RIGHT_TURN,:MAX_HIGH_WAY_USAGE,:SHORTEST_PATH)", soci::use(*sp);
 		}
 	}
 }
@@ -296,7 +296,7 @@ bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 			it != rs.end(); ++it) {
 		sim_mob::SinglePath *s = new sim_mob::SinglePath(*it);
 		bool r;
-		r = waypoint_singlepathPool.insert(std::make_pair(s->id, s)).second;
+//		r = waypoint_singlepathPool.insert(std::make_pair(s->id, s)).second;
 		r = spPool.insert(s).second;
 		i++;
 	}
@@ -799,7 +799,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 	}
 
 	//Our SQL statement
-	std::string sql_str = "select * from " + storedProc ;
+	std::string sql_str = "select * from " + storedProc;
 
 	//Load a different string if MPI is enabled.
 #ifndef SIMMOB_DISABLE_MPI

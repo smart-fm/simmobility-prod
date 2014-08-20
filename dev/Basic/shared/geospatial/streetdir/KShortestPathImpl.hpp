@@ -52,7 +52,7 @@ public:
 
 public:
 	std::vector< std::vector<WayPoint> > getKShortestPaths(const sim_mob::Node *from, const sim_mob::Node *to,
-			sim_mob::PathSet& ps_,
+			boost::shared_ptr<sim_mob::PathSet> ps_,
 			std::set<std::string>& wp_spPool);
 	void setK(int value) { k = value; }
 	int getK() { return k; }

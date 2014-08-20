@@ -25,7 +25,7 @@ void sim_mob::K_ShortestPathImpl::init()
 	stdir = &StreetDirectory::instance();
 }
 std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, const sim_mob::Node *to,
-		sim_mob::PathSet& ps_,
+		boost::shared_ptr<sim_mob::PathSet> ps_,
 		std::set<std::string>& wp_spPool)
 {
 	std::vector< std::vector<sim_mob::WayPoint> > pathFound;
@@ -151,11 +151,11 @@ std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKS
 			sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(s);
 			s->fromNode = from;
 			s->toNode = to;
-			s->pathSet = &ps_;
+			s->pathSet = ps_;
 			s->length = sim_mob::generateSinglePathLengthPT(s->shortestWayPointpath);
 
 			s->id = id;
-			s->scenario = ps_.scenario;
+			s->scenario = ps_->scenario;
 			s->pathsize=0;
 
 			wp_spPool.insert(id);

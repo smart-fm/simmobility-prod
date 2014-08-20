@@ -7,7 +7,6 @@
  *     Basic Logger Implementation
  * **********************************
  */
-std::string sim_mob::Logger::newLine("\n");
 sim_mob::Logger sim_mob::Logger::log;
 
 std::map <boost::thread::id, int> sim_mob::BasicLogger::threads= std::map <boost::thread::id, int>();//for debugging only
@@ -29,7 +28,7 @@ sim_mob::BasicLogger::~BasicLogger(){
 		for(;it != itEnd; it++)
 		{
 			uint32_t addup = it->second.getAddUp() ;
-			*this << it->first << ": [total AddUp : " << addup << "],[total time : " << it->second.end() << "]" << Logger::newLine;
+			*this << it->first << ": [total AddUp : " << addup << "],[total time : " << it->second.end() << "]\n" ;
 		}
 	}
 

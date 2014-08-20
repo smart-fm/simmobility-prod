@@ -36,7 +36,7 @@ public:
 	const RoadSegment* excludeSeg;
 	std::map<const RoadSegment*, std::set<StreetDirectory::Edge> > *segmentLookup;
 	SinglePath *s;
-	PathSet *ps;
+	boost::shared_ptr<sim_mob::PathSet> ps;
 	bool hasPath;
 	///used by local profilers to report to the profiler in higher level.
 	std::string dbgStr;

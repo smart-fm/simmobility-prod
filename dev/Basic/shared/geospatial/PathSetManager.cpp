@@ -832,11 +832,22 @@ const boost::shared_ptr<soci::session> & sim_mob::PathSetManager::getSession(){
 bool sim_mob::PathSetManager::cachePathSet(boost::shared_ptr<sim_mob::PathSet>&ps){
 	//test
 //	return;
-		ps->bestWayPointpath.clear(); //to be calculated later
+	//first step caching policy:
+	// if cache size excedded 250 (upper threshold), reduce the size to 200 (lowe threshold)
+	if(cachedPathSet.size() > 250)
+	{
+		int i = cachedPathSet.size() - 200;
+		std::map<const std::string, boost::shared_ptr<sim_mob::PathSet> >::iterator it(cachedPathSet.begin());
+		for(; i >0 && it != cachedPathSet.end(); --i )
 		{
-			boost::unique_lock<boost::shared_mutex> lock(cachedPathSetMutex);
-				return cachedPathSet.insert(std::make_pair(ps->id,ps)).second;
+			cachedPathSet.erase(it++);
 		}
+	}
+	ps->bestWayPointpath.clear(); //to be calculated later
+	{
+		boost::unique_lock<boost::shared_mutex> lock(cachedPathSetMutex);
+			return cachedPathSet.insert(std::make_pair(ps->id,ps)).second;
+	}
 }
 
 void sim_mob::PathSetManager::clearSinglePaths(boost::shared_ptr<sim_mob::PathSet>&ps){

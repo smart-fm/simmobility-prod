@@ -28,7 +28,8 @@ sim_mob::BasicLogger::~BasicLogger(){
 		std::map<const std::string, Profiler>::iterator it(profilers.begin()),itEnd(profilers.end());
 		for(;it != itEnd; it++)
 		{
-			*this << it->first << ": [total AddUp time: " << it->second.getAddUp() << "],[total time : " << it->second.end() << "]" << Logger::newLine;
+			uint32_t addup = it->second.getAddUp() ;
+			*this << it->first << ": [total AddUp : " << addup << "],[total time : " << it->second.end() << "]" << Logger::newLine;
 		}
 	}
 
@@ -39,9 +40,8 @@ sim_mob::BasicLogger::~BasicLogger(){
 	for (outIt it(out.begin()); it != out.end();safe_delete_item(it->second), it++);
 }
 
-///like it suggests, store the start time of the profiling
-uint32_t sim_mob::Profiler::begin(){
-	started = true;
+const uint32_t sim_mob::Profiler::getTime()
+{
 
 	struct timeval  tv;
 	struct timezone tz;
@@ -50,47 +50,47 @@ uint32_t sim_mob::Profiler::begin(){
 	gettimeofday(&tv, &tz);
 	tm = localtime(&tv.tv_sec);
 
-	return (start = lastTick =
-			(tm->tm_hour * 3600000000/*3600 * 1000 * 1000*/) +
-			(tm->tm_min * 60000000/*60 * 1000 * 1000*/) +
-			(tm->tm_sec * 1000000/*1000 * 1000*/) +
-			(tv.tv_usec));
+	return (tm->tm_hour * 3600000000/*3600 * 1000 * 1000*/) +
+	(tm->tm_min * 60000000/*60 * 1000 * 1000*/) +
+	(tm->tm_sec * 1000000/*1000 * 1000*/) +
+	(tv.tv_usec);
 }
 
-uint32_t sim_mob::Profiler::tick(bool addToTotalTime_){
+///like it suggests, store the start time of the profiling
+uint32_t sim_mob::Profiler::begin(){
+	return (start = lastTick = getTime());
+}
+
+uint32_t sim_mob::Profiler::tick(bool addToTotal, bool end){
 	if(!started){
-		// for now,dont call logger here. apparently creates nesting(needs more testing)
-		//sim_mob::Logger::log["warnings"] << "Profiler ticked before starting, starting it now\n" ;
-		begin();
 		return 0;
 	}
-
-	struct timeval  tv;
-	struct timezone tz;
-	struct tm      *tm;
-
-	gettimeofday(&tv, &tz);
-	tm = localtime(&tv.tv_sec);
-	uint32_t thisTick;
-	thisTick =
-			((tm->tm_hour * 3600000000/*3600 * 1000 * 1000*/) +
-			(tm->tm_min * 60000000/*60 * 1000 * 1000*/) +
-			(tm->tm_sec * 1000000/*1000 * 1000*/) +
-			(tv.tv_usec));
-
+	uint32_t thisTick = getTime();
 	uint32_t elapsed = thisTick - lastTick;
-	if(addToTotalTime_){
+	if(addToTotal){
 		addUp(elapsed);
 	}
 	lastTick = thisTick;
+	if(end)
+	{
+		started = false;
+	}
 	return elapsed;
 }
 
 uint32_t sim_mob::Profiler::end(){
-	uint32_t temp = 0;
+	if(!started)
+	{
+		std::cout << "WARNING:profiler " << id << " is not started" << std::endl;
+		return 0;
+	}
 	uint32_t tick_;
-	tick_ = tick();
+	tick_ = getTime();
 	started = 0;
+	if(tick_ <= start ){
+		std::cout << "WARNING:profiler " << id << " Start time " << start << " and end time = " << tick_ << std::endl;
+	}
+
 	return (tick_ > start ? tick_ - start : 0);
 }
 
@@ -100,7 +100,7 @@ void sim_mob::Profiler::reset()
 	started = 0;
 }
 
-uint32_t sim_mob::Profiler::addUp(uint32_t &value){
+uint32_t sim_mob::Profiler::addUp(const uint32_t value){
 	total+=value;
 	return total;
 }
@@ -144,7 +144,7 @@ std::stringstream * sim_mob::BasicLogger::getOut(bool renew){
 	return res;
 }
 
-sim_mob::Profiler & sim_mob::BasicLogger::prof(const std::string id)
+sim_mob::Profiler & sim_mob::BasicLogger::prof(const std::string id, bool timer)
 {
 	std::map<const std::string, Profiler>::iterator it(profilers.find(id));
 	if(it != profilers.end())
@@ -153,7 +153,7 @@ sim_mob::Profiler & sim_mob::BasicLogger::prof(const std::string id)
 	}
 	else
 	{
-		profilers.insert(std::pair<const std::string, Profiler>(id, Profiler()));
+		profilers.insert(std::pair<const std::string, Profiler>(id, Profiler(id, timer)));
 		it = profilers.find(id);
 	}
 	return it->second;

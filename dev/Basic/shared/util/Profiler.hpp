@@ -42,15 +42,24 @@ namespace sim_mob {
 class Profiler{
 	///stores start and end of profiling
 	boost::atomic_uint32_t start, lastTick,total;
-	///	used for total time
-//		boost::mutex mutexTotalTime;
 	///is the profiling object started profiling?
 	boost::atomic_bool started;
+	const std::string id;
+	///	returns the current time in us
+	const uint32_t getTime();
 public:
-	Profiler(){
-		begin();
+	///	begin: should begin time or not
+	Profiler(const std::string id, bool begin_ = true):id(id){
+		reset();
+		started = true;
+		total = 0;
+		if(begin_)
+		{
+			begin();
+		}
+
 	}
-	Profiler(const Profiler &t):start(t.start.load()),lastTick(t.lastTick.load()),total(t.total.load()),started(t.started.load())
+	Profiler(const Profiler &t):start(t.start.load()),lastTick(t.lastTick.load()),total(t.total.load()),started(t.started.load()), id(t.id)
 	{
 	}
 
@@ -60,10 +69,34 @@ public:
 	uint32_t end();
 	///	reset all the members to 0
 	void reset();
-	///	return the difference between current time and previous call to tick()(or begin(). optionally, accumulate this difference(addUp)
-	uint32_t tick(bool addToTotal = false);
+	/**
+	 * return the difference between current time and previous call to tick()(or begin().
+	 * optionally(as in the argument list):
+	 * 1- accumulate this difference(addUp)
+	 * 2- dont tick anymore
+	 * so measuring the time elapsed in executing a method can be done as follows:
+	 * tick();
+	 * operation();
+	 * elapsed_time = tick();
+	 *
+	 * measuring time elapsed for multiple operations is as follows:
+	 * reset()//optional
+	 * tick();
+	 * operation_1();
+	 * tick(true);
+	 *...
+	 *tick();
+	 *operation_2();
+	 *tick(true);
+	 *...
+	 *tick();
+	 *operation_3();
+	 *tick(true);
+	 *elapsed_time = getAddUp();
+	 */
+	uint32_t tick(bool addToTotal = false, bool end = false);
 	///	add the given time to total time variable
-	uint32_t addUp(uint32_t &value);
+	uint32_t addUp(const uint32_t value);
 	///	return the total(accumulated) time
 	uint32_t getAddUp();
 
@@ -152,8 +185,9 @@ public:
 	/**
 	 * returns a profiler based on id,
 	 * if not found, a new profiler will be : generated, started and returned
+	 * timer: should start timer or prefer to start it manually
 	 */
-	sim_mob::Profiler & prof(const std::string id);
+	sim_mob::Profiler & prof(const std::string id, bool timer = true);
 
 	/// This method defines an operator<< to take in std::endl
 	BasicLogger& operator<<(StandardEndLine manip);

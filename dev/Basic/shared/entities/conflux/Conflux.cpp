@@ -1273,6 +1273,7 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 	std::vector<WayPoint> path;
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		path = PathSetManager::getInstance()->getPathByPerson(p,firstTrip->getSubTrips().front());
+		sim_mob::Logger::log["path_set"].prof("PathSetManager_size_bytes", false).addUp(PathSetManager::getInstance()->getSize());
 	}
 	else{
 		StreetDirectory& streetDirectory = StreetDirectory::instance();

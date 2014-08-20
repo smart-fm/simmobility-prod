@@ -1216,6 +1216,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 			// if use path set
 			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 				path = PathSetManager::getInstance()->getPathByPerson(getParent(),subTrip);
+				sim_mob::Logger::log["path_set"].prof("PathSetManager_size_bytes", false).addUp(PathSetManager::getInstance()->getSize());
 			}
 			else
 			{

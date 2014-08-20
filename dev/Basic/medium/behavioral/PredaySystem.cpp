@@ -1523,7 +1523,6 @@ void sim_mob::medium::PredaySystem::updateLogsumsToMongo()
 
 void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneNodeMap, long hhFactor, std::list<TripChainItemParams>& tripChain)
 {
-	std::srand(clock());
 	std::string personId = personParams.getPersonId();
 	for(long k=1; k<=hhFactor; k++)
 	{
@@ -1557,12 +1556,14 @@ void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneN
 			{
 				stopNum = stopNum + 1;
 				Stop* stop = *stopIt;
-				int nextNode = 0;
-				if(zoneNodeMap.find(stop->getStopLocation()) != zoneNodeMap.end())
+				nextNode = 0;
+				ZoneNodeMap::const_iterator zoneNodeMapIt = zoneNodeMap.find(stop->getStopLocation());
+				if(zoneNodeMapIt != zoneNodeMap.end())
 				{
-					nextNode = getFirstNodeInZone(zoneNodeMap.at(stop->getStopLocation()));
+					nextNode = getFirstNodeInZone(zoneNodeMapIt->second);
 				}
 				if(nextNode == 0) { nodeMappingFailed = true; break; } // if there is no next node, cut the trip chain for this tour here
+
 				seqNum = seqNum + 1;
 				TripChainItemParams tcTrip = TripChainItemParams(pid, "Trip", seqNum);
 				tcTrip.setTripId(constructTripChainItemId(pid, tourNum, seqNum));
@@ -1578,20 +1579,91 @@ void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneN
 				}
 				tripChain.push_back(tcTrip);
 
-				seqNum = seqNum + 1;
-				TripChainItemParams tcActivity = TripChainItemParams(pid, "Activity", seqNum);
-				tcActivity.setActivityId(constructTripChainItemId(pid, tourNum, seqNum));
-				std::string arrTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(stop->getArrivalTime()));
-				std::string deptTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(stop->getDepartureTime()));
-				constructActivity(tcActivity, stop, nextNode, arrTimeStr, deptTimeStr);
-				tripChain.push_back(tcActivity);
+				std::string arrTimeStr, deptTimeStr;
+				if(stop->isPrimaryActivity() && !tour.subTours.empty()) // check for subtours in primary activity
+				{
+					int tourActivityNode = nextNode;
+					double arrivalTime = stop->getArrivalTime();
+					for(TourList::const_iterator subTourIt = tour.subTours.begin(); subTourIt != tour.subTours.end(); subTourIt++)
+					{
+						const Tour& subTour = *subTourIt;
+						seqNum = seqNum + 1;
+						TripChainItemParams tcActivity = TripChainItemParams(pid, "Activity", seqNum);
+						tcActivity.setActivityId(constructTripChainItemId(pid, tourNum, seqNum));
+						arrTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(arrivalTime));
+						deptTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(subTour.getStartTime()));
+						constructActivity(tcActivity, stop, nextNode, arrTimeStr, deptTimeStr);
+						tripChain.push_back(tcActivity);
+						prevNode = nextNode; //activity location
+						prevDeptTime = deptTimeStr;
+
+						const Stop* subTourPrimaryStop = subTour.getPrimaryStop(); // subtours have only one stop
+						nextNode = 0;
+						ZoneNodeMap::const_iterator zoneNodeMapIt = zoneNodeMap.find(subTourPrimaryStop->getStopLocation());
+						if(zoneNodeMapIt != zoneNodeMap.end())
+						{
+							nextNode = getFirstNodeInZone(zoneNodeMapIt->second);
+						}
+						if(nextNode == 0) { nodeMappingFailed = true; break; } // if there is no next node, cut the trip chain for this tour here
+
+						// insert trip from activity location to sub-tour activity location
+						seqNum = seqNum + 1;
+						TripChainItemParams tcSubTourTrip = TripChainItemParams(pid, "Trip", seqNum);
+						tcSubTourTrip.setTripId(constructTripChainItemId(pid, tourNum, seqNum));
+						tcSubTourTrip.setSubtripId(constructTripChainItemId(pid, tourNum, seqNum, "-1"));
+						constructTrip(tcSubTourTrip, prevNode, nextNode, prevDeptTime);
+						tripChain.push_back(tcSubTourTrip);
+
+						// insert sub tour activity
+						seqNum = seqNum + 1;
+						TripChainItemParams tcSubTourActivity = TripChainItemParams(pid, "Activity", seqNum);
+						tcSubTourActivity.setActivityId(constructTripChainItemId(pid, tourNum, seqNum));
+						std::string subArrTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(subTourPrimaryStop->getArrivalTime()));
+						std::string subDeptTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(subTourPrimaryStop->getDepartureTime()));
+						constructActivity(tcSubTourActivity, subTourPrimaryStop, nextNode, subArrTimeStr, subDeptTimeStr);
+						tripChain.push_back(tcSubTourActivity);
+						prevNode = nextNode; //activity location
+						prevDeptTime = subDeptTimeStr;
+
+						// insert trip back to tour's primary activity location
+						nextNode = tourActivityNode; // get back to tour's primary activity location
+						seqNum = seqNum + 1;
+						tcSubTourTrip = TripChainItemParams(pid, "Trip", seqNum);
+						tcSubTourTrip.setTripId(constructTripChainItemId(pid, tourNum, seqNum));
+						tcSubTourTrip.setSubtripId(constructTripChainItemId(pid, tourNum, seqNum, "-1"));
+						constructTrip(tcSubTourTrip, prevNode, nextNode, prevDeptTime);
+						tripChain.push_back(tcSubTourTrip);
+						arrivalTime = subTour.getEndTime(); // for the next activity
+					}
+					if(nodeMappingFailed) { break; }// ignore remaining tours as well.
+					else
+					{
+						// remainder of the primary activity
+						seqNum = seqNum + 1;
+						TripChainItemParams tcActivity = TripChainItemParams(pid, "Activity", seqNum);
+						tcActivity.setActivityId(constructTripChainItemId(pid, tourNum, seqNum));
+						arrTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(arrivalTime));
+						deptTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(stop->getDepartureTime()));
+						constructActivity(tcActivity, stop, nextNode, arrTimeStr, deptTimeStr);
+						tripChain.push_back(tcActivity);
+						prevNode = nextNode; //activity location
+						prevDeptTime = deptTimeStr;
+					}
+				}
+				else
+				{
+					seqNum = seqNum + 1;
+					TripChainItemParams tcActivity = TripChainItemParams(pid, "Activity", seqNum);
+					tcActivity.setActivityId(constructTripChainItemId(pid, tourNum, seqNum));
+					arrTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(stop->getArrivalTime()));
+					deptTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(stop->getDepartureTime()));
+					constructActivity(tcActivity, stop, nextNode, arrTimeStr, deptTimeStr);
+					tripChain.push_back(tcActivity);
+				}
 				prevNode = nextNode; //activity location
 				prevDeptTime = deptTimeStr;
 			}
-			if(nodeMappingFailed)
-			{
-				break; // ignore remaining tours as well.
-			}
+			if(nodeMappingFailed) { break; } // ignore remaining tours as well.
 			else
 			{
 				// insert last trip in tour

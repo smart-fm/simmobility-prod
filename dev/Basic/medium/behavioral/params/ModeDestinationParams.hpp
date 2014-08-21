@@ -87,8 +87,7 @@ class TourModeDestinationParams : public ModeDestinationParams {
 public:
 	TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType tourType)
 	: ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation()),
-	  drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal()),
-	  modeForParentWorkTour(0)
+	  drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()), modeForParentWorkTour(0)
 	{}
 
 	virtual ~TourModeDestinationParams() {}
@@ -294,7 +293,7 @@ class StopModeDestinationParams : public ModeDestinationParams {
 public:
 	StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType stopType, int originCode, int parentTourMode)
 	: ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, stopType, originCode), homeZone(personParams.getHomeLocation()),
-	  driveAvailable(personParams.hasDrivingLicence() * personParams.getCarOwnNormal()), tourMode(parentTourMode)
+	  driveAvailable(personParams.hasDrivingLicence() * personParams.getCarOwn()), tourMode(parentTourMode)
 	{}
 
 	virtual ~StopModeDestinationParams() {}

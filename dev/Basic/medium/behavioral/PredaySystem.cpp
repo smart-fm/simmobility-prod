@@ -240,7 +240,7 @@ void PredaySystem::predictTourMode(Tour& tour) {
 		tmParams.setAvgTransfer((amObj->getAvgTransfer() + pmObj->getAvgTransfer())/2);
 		switch(tmParams.getStopType()){
 		case WORK:
-			tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
+			tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn());
 			tmParams.setShare2Available(1);
 			tmParams.setShare3Available(1);
 			tmParams.setPublicBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);

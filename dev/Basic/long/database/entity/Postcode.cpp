@@ -14,8 +14,6 @@
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-//Postcode::Postcode(BigSerial id, BigSerial tazId, const std::string& code, double latitude, double longitude) : id(INVALID_ID), code(""), tazId(INVALID_ID){}
-
 Postcode::Postcode( BigSerial address_id, std::string sla_postcode, BigSerial taz_id, float longitude, float latitude, bool primary_postcode ):
 					address_id(address_id), sla_postcode( sla_postcode), taz_id(taz_id), longitude(longitude), latitude(latitude),
 					primary_postcode(primary_postcode)
@@ -24,20 +22,12 @@ Postcode::Postcode( BigSerial address_id, std::string sla_postcode, BigSerial ta
             
 Postcode::Postcode(const Postcode& source)
 {
-/*
-    this->id = source.id;
-    this->code = source.code;
-    this->tazId = source.tazId;
-    this->location.latitude = source.location.latitude;
-    this->location.longitude = source.location.longitude;
-*/
 	this->address_id = source.address_id;
 	this->sla_postcode = source.sla_postcode;
 	this->taz_id = source.taz_id;
 	this->longitude = source.longitude;
 	this->latitude = source.latitude;
 	this->primary_postcode = source.primary_postcode;
-
 }
 
 Postcode::~Postcode() {
@@ -45,14 +35,6 @@ Postcode::~Postcode() {
 
 Postcode& Postcode::operator=(const Postcode& source)
 {
-	/*
-    this->id = source.id;
-    this->code = source.code;
-    this->tazId = source.tazId;
-    this->location.latitude = source.location.latitude;
-    this->location.longitude = source.location.longitude;
-    */
-
 	this->address_id = source.address_id;
 	this->sla_postcode = source.sla_postcode;
 	this->taz_id = source.taz_id;
@@ -62,23 +44,6 @@ Postcode& Postcode::operator=(const Postcode& source)
 
     return *this;
 }
-/*
-BigSerial Postcode::getId() const {
-    return id;
-}
-
-const std::string& Postcode::getCode() const {
-    return code;
-}
-
-BigSerial Postcode::getTazId() const {
-    return tazId;
-}
-
-const LatLngLocation& Postcode::getLocation() const {
-    return location;
-}
-*/
 
 BigSerial Postcode::getAddressId() const
 {
@@ -118,13 +83,6 @@ namespace sim_mob {
 
         std::ostream& operator<<(std::ostream& strm, const Postcode& data) {
             return strm << "{"
-            		/*
-                    << "\"id\":\"" << data.id << "\","
-                    << "\"code\":\"" << data.code << "\","
-                    << "\"tazId\":\"" << data.tazId << "\","
-                    << "\"latitude\":\"" << data.location.latitude << "\","
-                    << "\"longitude\":\"" << data.location.longitude << "\""
-                    */
             		<< "\"address_id \":\"" << data.address_id << "\","
             		<< "\"sla_postcode \":\"" << data.sla_postcode << "\","
             		<< "\"taz_id \":\"" << data.taz_id << "\","

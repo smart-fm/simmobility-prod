@@ -12,8 +12,7 @@
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-PotentialUnit::PotentialUnit(BigSerial unitTypeId, double floorArea, bool freehold)
-: unitTypeId(unitTypeId), floorArea(floorArea), freehold(freehold) {
+PotentialUnit::PotentialUnit(BigSerial unitTypeId, double floorArea, bool freehold): unitTypeId(unitTypeId), floorArea(floorArea), freehold(freehold) {
 
 }
 
@@ -32,10 +31,8 @@ bool PotentialUnit::isFreehold() const {
     return freehold;
 }
 
-PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate,
-        const Parcel* parcel, const LandUseZone* zone)
-: devTemplate(devTemplate), parcel(parcel), zone(zone), cost(0), revenue(0) {
-}
+PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel, const LandUseZone* zone)
+								  : devTemplate(devTemplate), parcel(parcel), zone(zone), cost(0), revenue(0) {}
 
 PotentialProject::~PotentialProject() {
 }
@@ -77,10 +74,12 @@ void PotentialProject::setRevenue(const double revenue) {
 }
 
 
-namespace sim_mob {
-    namespace long_term {
-
-        std::ostream& operator<<(std::ostream& strm, const PotentialUnit& data) {
+namespace sim_mob
+{
+    namespace long_term
+    {
+        std::ostream& operator<<(std::ostream& strm, const PotentialUnit& data)
+        {
             return strm << "{"
                     << "\"unitTypeId\":\"" << data.getUnitTypeId() << "\","
                     << "\"floorArea\":\"" << data.getFloorArea() << "\","
@@ -88,14 +87,18 @@ namespace sim_mob {
                     << "}";
         }
 
-        std::ostream& operator<<(std::ostream& strm, const PotentialProject& data) {
+        std::ostream& operator<<(std::ostream& strm, const PotentialProject& data)
+        {
             std::stringstream unitsStr;
             unitsStr << "[";
             std::vector<PotentialUnit>::const_iterator itr;
             const std::vector<PotentialUnit>& units = data.getUnits();
-            for (itr = units.begin(); itr != units.end(); itr++) {
+
+            for (itr = units.begin(); itr != units.end(); itr++)
+            {
                 unitsStr << (*itr) << (((itr + 1) != units.end()) ? "," : "");
             }
+
             unitsStr << "]";
             return strm << "{"
                     << "\"templateId\":\"" << data.getDevTemplate()->getTemplateId() << "\","

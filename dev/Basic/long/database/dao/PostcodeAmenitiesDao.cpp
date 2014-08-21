@@ -16,8 +16,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 PostcodeAmenitiesDao::PostcodeAmenitiesDao(DB_Connection& connection): SqlAbstractDao<PostcodeAmenities>(connection, DB_TABLE_POSTCODE_AMENITIES,DB_INSERT_POSTCODE_AMENITIES, DB_UPDATE_POSTCODE_AMENITIES, DB_DELETE_POSTCODE_AMENITIES, DB_GETALL_POSTCODE_AMENITIES, DB_GETBYID_POSTCODE_AMENITIES)
-{
-}
+{}
 
 PostcodeAmenitiesDao::~PostcodeAmenitiesDao() {}
 
@@ -44,5 +43,4 @@ void PostcodeAmenitiesDao::fromRow(Row& result, PostcodeAmenities& outObj)
     outObj.pms_1km = result.get<int>(DB_FIELD_PMS_1KM, false);
 }
 
-void PostcodeAmenitiesDao::toRow(PostcodeAmenities& data, Parameters& outParams, bool update) {
-}
+void PostcodeAmenitiesDao::toRow(PostcodeAmenities& data, Parameters& outParams, bool update) {}

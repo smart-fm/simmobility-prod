@@ -58,16 +58,6 @@ namespace {
     {
         getGlobalNamespace(state)
             .beginClass <Unit> ("Unit")
-
-            /*
-            .addProperty("id", &Unit::getId)
-            .addProperty("buildingId", &Unit::getBuildingId)
-            .addProperty("typeId", &Unit::getTypeId)
-            .addProperty("postcodeId", &Unit::getPostcodeId)
-            .addProperty("floorArea", &Unit::getFloorArea)
-            .addProperty("storey", &Unit::getStorey)
-            .addProperty("rent", &Unit::getRent)
-            */
             .addProperty("fmUnitId", &Unit::getId)
         	.addProperty("fmBuildingId", &Unit::getBuildingId)
         	.addProperty("slaAddressId", &Unit::getSlaAddressId)
@@ -85,12 +75,6 @@ namespace {
             .endClass();
     getGlobalNamespace(state)
             .beginClass <Postcode> ("Postcode")
-            /*
-            .addProperty("id", &Postcode::getId)
-            .addProperty("code", &Postcode::getCode)
-            .addProperty("location", &Postcode::getLocation)
-            .addProperty("tazId", &Postcode::getTazId)
-            */
             .addProperty("address_id", &Postcode::getAddressId)
             .addProperty("sla_postcode", &Postcode::getSlaPostcode)
             .addProperty("taz_id", &Postcode::getTazId)
@@ -122,15 +106,6 @@ namespace {
             .endClass();
     getGlobalNamespace(state)
             .beginClass <Building> ("Building")
-            /*
-            .addProperty("id", &Building::getId)
-            .addProperty("builtYear", &Building::getBuiltYear)
-            .addProperty("landedArea", &Building::getLandedArea)
-            .addProperty("parcelId", &Building::getParcelId)
-            .addProperty("parkingSpaces", &Building::getParkingSpaces)
-            .addProperty("tenureId", &Building::getTenureId)
-            .addProperty("typeId", &Building::getTypeId)
-            */
             .addProperty("fmBuildingId", &Building::getFmBuildingId)
             .addProperty("fmProjectId", &Building::getFmProjectId)
             .addProperty("fmParcelId", &Building::getFmParcelId)

@@ -16,22 +16,16 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-TemplateUnitTypeDao::TemplateUnitTypeDao(DB_Connection& connection)
-: SqlAbstractDao<TemplateUnitType>(connection, 
-        DB_TABLE_TEMPLATE_UNIT_TYPE,
-        EMPTY_STR, EMPTY_STR, EMPTY_STR,
-        DB_GETALL_TEMPLATE_UNIT_TYPE, 
-        DB_GETBYID_TEMPLATE_UNIT_TYPE) {
-}
+TemplateUnitTypeDao::TemplateUnitTypeDao(DB_Connection& connection): SqlAbstractDao<TemplateUnitType>(connection, DB_TABLE_TEMPLATE_UNIT_TYPE, EMPTY_STR, EMPTY_STR, EMPTY_STR, DB_GETALL_TEMPLATE_UNIT_TYPE, DB_GETBYID_TEMPLATE_UNIT_TYPE)
+{}
 
-TemplateUnitTypeDao::~TemplateUnitTypeDao() {
-}
+TemplateUnitTypeDao::~TemplateUnitTypeDao() {}
 
-void TemplateUnitTypeDao::fromRow(Row& result, TemplateUnitType& outObj) {
+void TemplateUnitTypeDao::fromRow(Row& result, TemplateUnitType& outObj)
+{
     outObj.templateId = result.get<BigSerial>(DB_FIELD_TEMPLATE_ID, INVALID_ID);
     outObj.unitTypeId = result.get<BigSerial>(DB_FIELD_UNIT_TYPE_ID, INVALID_ID);
     outObj.proportion = result.get<int>(DB_FIELD_PROPORTION, 0);
 }
 
-void TemplateUnitTypeDao::toRow(TemplateUnitType& data, Parameters& outParams, bool update) {
-}
+void TemplateUnitTypeDao::toRow(TemplateUnitType& data, Parameters& outParams, bool update) {}

@@ -77,24 +77,33 @@ for i=1,48 do
 end
 
 local function sarr_1(t)
-	return beta_ARR_1_1 * sin(2*pi*t/24) + beta_ARR_1_4 * cos(2*pi*t/24)+beta_ARR_1_2 * sin(4*pi*t/24) + beta_ARR_1_5 * cos(4*pi*t/24)+beta_ARR_1_3 * sin(6*pi*t/24) + beta_ARR_1_6 * cos(6*pi*t/24)
+	return beta_ARR_1_1 * sin(2*pi*t/24) + beta_ARR_1_3 * cos(2*pi*t/24)+beta_ARR_1_2 * sin(4*pi*t/24) + beta_ARR_1_4 * cos(4*pi*t/24)
 end
 
 local function sdep_1(t)
-	return beta_DEP_1_1 * sin(2*pi*t/24) + beta_DEP_1_4 * cos(2*pi*t/24)+beta_DEP_1_2 * sin(4*pi*t/24) + beta_DEP_1_5 * cos(4*pi*t/24)+beta_DEP_1_3 * sin(6*pi*t/24) + beta_DEP_1_6 * cos(6*pi*t/24)
+	return beta_DEP_1_1 * sin(2*pi*t/24) + beta_DEP_1_3 * cos(2*pi*t/24)+beta_DEP_1_2 * sin(4*pi*t/24) + beta_DEP_1_4 * cos(4*pi*t/24)
 end
 
 local function sarr_2(t)
-	return beta_ARR_2_1 * sin(2*pi*t/24) + beta_ARR_2_4 * cos(2*pi*t/24)+beta_ARR_2_2 * sin(4*pi*t/24) + beta_ARR_2_5 * cos(4*pi*t/24)+beta_ARR_2_3 * sin(6*pi*t/24) + beta_ARR_2_6 * cos(6*pi*t/24)
+	return beta_ARR_2_1 * sin(2*pi*t/24) + beta_ARR_2_3 * cos(2*pi*t/24)+beta_ARR_2_2 * sin(4*pi*t/24) + beta_ARR_2_4 * cos(4*pi*t/24)
 end
 
 local function sdep_2(t)
-	return beta_DEP_2_1 * sin(2*pi*t/24) + beta_DEP_2_4 * cos(2*pi*t/24)+beta_DEP_2_2 * sin(4*pi*t/24) + beta_DEP_2_5 * cos(4*pi*t/24)+beta_DEP_2_3 * sin(6*pi*t/24) + beta_DEP_2_6 * cos(6*pi*t/24)
+	return beta_DEP_2_1 * sin(2*pi*t/24) + beta_DEP_2_3 * cos(2*pi*t/24)+beta_DEP_2_2 * sin(4*pi*t/24) + beta_DEP_2_4 * cos(4*pi*t/24)
+end
+
+local function sarr_3(t)
+	return beta_ARR_3_1 * sin(2*pi*t/24) + beta_ARR_3_3 * cos(2*pi*t/24)+beta_ARR_3_2 * sin(4*pi*t/24) + beta_ARR_3_4 * cos(4*pi*t/24)
+end
+
+local function sdep_3(t)
+	return beta_DEP_3_1 * sin(2*pi*t/24) + beta_DEP_3_3 * cos(2*pi*t/24)+beta_DEP_3_2 * sin(4*pi*t/24) + beta_DEP_3_4 * cos(4*pi*t/24)
 end
 
 local utility = {}
-local function computeUtilities(params,dbparams) 
-	local activity_type = params.activity_type
+local function computeUtilities(params,dbparams)
+	local female_dummy = params.female_dummy
+	local activity_type = dbparams.activity_type
 	for i = 1,1176 do
 		local arrid = comb[i][1]
 		local depid = comb[i][2]
@@ -123,7 +132,7 @@ local function computeUtilities(params,dbparams)
 		else
 			dep_am, dep_pm, dep_op = 0, 0, 1
 		end
-		utility[i] = sarr_1(arr) + sdep_1(dep) + (activity_type==1 and 1 or 0) * (sarr_2(arr) + sdep_2(dep)) + femaly_dummy * (sarr_2(arr) + sdep_2(dep)) + beta_DUR_1 * dur + beta_DUR_2 * pow(dur,2) + beta_DUR_3 * pow(dur,3)
+		utility[i] = sarr_1(arr) + sdep_1(dep) + (activity_type==1 and 1 or 0) * (sarr_2(arr) + sdep_2(dep)) + female_dummy * (sarr_3(arr) + sdep_3(dep)) + beta_DUR_1 * dur + beta_DUR_2 * pow(dur,2) + beta_DUR_3 * pow(dur,3)
 	end
 end
 

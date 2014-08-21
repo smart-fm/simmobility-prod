@@ -472,7 +472,7 @@ public:
 		this->usualLocation = usualLocation;
 	}
 
-	StopType getSubTourPurpose() const
+	int getSubTourPurpose() const
 	{
 		return subTourPurpose;
 	}

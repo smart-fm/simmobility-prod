@@ -32,8 +32,9 @@ namespace {
      * @param project to create the units.
      * @param templates available unit type templates.
      */
-    inline void createProjectUnits(PotentialProject& project, const DeveloperModel::TemplateUnitTypeList& templates) {
-        double totalArea = project.getDevTemplate()->getDensity() * project.getParcel()->getArea();
+    inline void createProjectUnits(PotentialProject& project, const DeveloperModel::TemplateUnitTypeList& templates)
+    {
+        double totalArea = project.getDevTemplate()->getDensity() * project.getParcel()->getLotSize();
         DeveloperModel::TemplateUnitTypeList::const_iterator itr;
 
         for (itr = templates.begin(); itr != templates.end(); itr++)
@@ -66,12 +67,13 @@ namespace {
             const Parcel* parcel = model.getParcelById(parcelsToProcess[i]);
             if (parcel)
             {
-                const LandUseZone* zone = model.getZoneById(parcel->getLandUseZoneId());
+                //const LandUseZone* zone = model.getZoneById(parcel->getLandUseZoneId());
+            	const LandUseZone* zone = NULL;
                 DeveloperModel::DevelopmentTypeTemplateList::const_iterator it;
 
                 for (it = devTemplates.begin(); it != devTemplates.end(); it++)
                 {
-                    if ((*it)->getDensity() >= zone->getGPR())
+                    if ((*it)->getDensity() >= parcel->getGpr())
                     {
                         PotentialProject project((*it), parcel, zone);
                         createProjectUnits(project, unitTemplates);

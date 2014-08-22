@@ -1181,7 +1181,7 @@ void sim_mob::Conflux::reportRdSegTravelTimes(timeslice frameNumber) {
 				<<"\"})"<<std::endl);
 		}
 	}
-	insertTravelTime2TmpTable(frameNumber, RdSegTravelTimesMap);
+//	insertTravelTime2TmpTable(frameNumber, RdSegTravelTimesMap);
 }
 
 bool sim_mob::Conflux::insertTravelTime2TmpTable(timeslice frameNumber, std::map<const RoadSegment*, sim_mob::Conflux::rdSegTravelTimes>& rdSegTravelTimesMap)

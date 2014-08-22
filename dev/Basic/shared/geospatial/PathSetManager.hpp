@@ -383,7 +383,7 @@ public:
 	 * \param value the result of the search
 	 * returns true/false to indicate if the search has been successful
 	 */
-	bool findCachedPathSet(const std::string & key, boost::shared_ptr<sim_mob::PathSet> &value);
+	bool findCachedPathSet(std::string key, boost::shared_ptr<sim_mob::PathSet> &value);
 
 	///	return the size of cache in Bytes
 	uint32_t getCacheSize();
@@ -429,7 +429,7 @@ private:
 
 	boost::shared_mutex cachedPathSetMutex;
 
-	std::map<const std::string, boost::shared_ptr<sim_mob::PathSet> > cachedPathSet;//same as pathSetPool, used in a separate scenario //todo later use only one of the caches, cancel the other one
+	std::map<std::string, boost::shared_ptr<sim_mob::PathSet> > cachedPathSet;//same as pathSetPool, used in a separate scenario //todo later use only one of the caches, cancel the other one
 
 	///	contains arbitrary description usually to indicating which configuration file the generated data has originated from
 	std::string scenarioName;
@@ -560,6 +560,7 @@ public:
 
 	SinglePath(SinglePath *source);
 	SinglePath(SinglePath *source,const sim_mob::RoadSegment* seg);
+	~SinglePath();
 
 	 bool operator() (const SinglePath* lhs, const SinglePath* rhs) const
 	 {

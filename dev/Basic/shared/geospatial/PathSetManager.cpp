@@ -830,14 +830,16 @@ const boost::shared_ptr<soci::session> & sim_mob::PathSetManager::getSession(){
 
 
 bool sim_mob::PathSetManager::cachePathSet(boost::shared_ptr<sim_mob::PathSet>&ps){
+	Logger::log["path_set"] << "caching [" << ps->id << "]\n";
 	//test
-//	return;
+//	return false;
 	//first step caching policy:
 	// if cache size excedded 250 (upper threshold), reduce the size to 200 (lowe threshold)
-	if(cachedPathSet.size() > 250)
+	if(cachedPathSet.size() > 2500)
 	{
-		int i = cachedPathSet.size() - 200;
-		std::map<const std::string, boost::shared_ptr<sim_mob::PathSet> >::iterator it(cachedPathSet.begin());
+		Logger::log["path_set"] << "clearing some of the cached PathSets\n";
+		int i = cachedPathSet.size() - 2000;
+		std::map<std::string, boost::shared_ptr<sim_mob::PathSet> >::iterator it(cachedPathSet.begin());
 		for(; i >0 && it != cachedPathSet.end(); --i )
 		{
 			cachedPathSet.erase(it++);
@@ -846,29 +848,40 @@ bool sim_mob::PathSetManager::cachePathSet(boost::shared_ptr<sim_mob::PathSet>&p
 	ps->bestWayPointpath.clear(); //to be calculated later
 	{
 		boost::unique_lock<boost::shared_mutex> lock(cachedPathSetMutex);
-			return cachedPathSet.insert(std::make_pair(ps->id,ps)).second;
+		bool res = cachedPathSet.insert(std::make_pair(ps->id,ps)).second;
+		if(!res){
+			Logger::log["path_set"] << "Failed to cache [" << ps->id << "]\n";
+		}
+		return res;
 	}
 }
 
 void sim_mob::PathSetManager::clearSinglePaths(boost::shared_ptr<sim_mob::PathSet>&ps){
+	Logger::log["path_set"] << "clearing " << ps->pathChoices.size() << " SinglePaths\n";
 	BOOST_FOREACH(sim_mob::SinglePath* sp_, ps->pathChoices){
 		if(sp_){
-			delete sp_;
+			safe_delete_item(sp_);
 		}
-
 	}
 	ps->pathChoices.clear();
-
 }
 
-bool sim_mob::PathSetManager::findCachedPathSet(const std::string & key, boost::shared_ptr<sim_mob::PathSet> &value){
+bool sim_mob::PathSetManager::findCachedPathSet(std::string  key, boost::shared_ptr<sim_mob::PathSet> &value){
 //	//test
 //	return false;
-	std::map<const std::string, boost::shared_ptr<sim_mob::PathSet> >::iterator it ;
+	std::map<std::string, boost::shared_ptr<sim_mob::PathSet> >::iterator it ;
 	{
 		boost::unique_lock<boost::shared_mutex> lock(cachedPathSetMutex);
 		it = cachedPathSet.find(key);
 		if (it == cachedPathSet.end()) {
+			//debug
+			std::stringstream out("");
+			out << "Failed finding [" << key << "] in" << cachedPathSet.size() << " entries\n" ;
+			std::pair<std::string, boost::shared_ptr<sim_mob::PathSet> >pair_;
+			BOOST_FOREACH(pair_,cachedPathSet){
+				out << pair_.first << ",";
+			}
+			Logger::log["path_set"] << out.str() << "\n";
 			return false;
 		}
 		value = it->second;
@@ -980,18 +993,19 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(std::vector<sim_mob::WayP
 	bool hasPSinDB = false;
 	ps_.reset(new sim_mob::PathSet());
 	ps_->subTrip = st;
+	ps_->id = fromToID;
 	std::map<std::string,sim_mob::SinglePath*> id_sp;
 	bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(
 							*getSession(),
 							ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 							id_sp,
 //									pathSetID,
-							fromToID,
+							ps_->id,
 							ps_->pathChoices, dbFunction, singlePathTableName);
 	sim_mob::Logger::log["path_set"]<< "hasSPinDB:" << hasSPinDB << "\n" ;
 	if(hasSPinDB)
 	{
-		sim_mob::Logger::log["path_set"] << "DB hit 2" << std::endl;
+		sim_mob::Logger::log["path_set"] << "DB hit for " << ps_->id << "\n";
 		bool r = false;
 //				std::map<std::string,sim_mob::SinglePath*>::iterator it = id_sp.find(ps_->singlepath_id);
 		ps_->oriPath = 0;
@@ -1014,12 +1028,13 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(std::vector<sim_mob::WayP
 		}
 		sim_mob::Logger::log["path_set"].prof("utility_db").tick();
 		r = getBestPathChoiceFromPathSet(ps_, excludedSegs);
-		sim_mob::Logger::log["path_set"] << "getBestPathChoiceFromPathSet returned best path of size : " << ps_->bestWayPointpath.size() << "\n";
+//		sim_mob::Logger::log["path_set"] << "getBestPathChoiceFromPathSet returned best path of size : " << ps_->bestWayPointpath.size() << "\n";
 
 		sim_mob::Logger::log["path_set"].prof("utility_db").tick(true);
 		if(r)
 		{
-			res = boost::move(ps_->bestWayPointpath);
+//			res = boost::move(ps_->bestWayPointpath);
+			res = ps_->bestWayPointpath;
 			//cache
 			if(isUseCache){
 				r = cachePathSet(ps_);
@@ -1035,6 +1050,8 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(std::vector<sim_mob::WayP
 			else{
 				clearSinglePaths(ps_);
 			}
+			//test
+//			clearSinglePaths(ps_);
 			sim_mob::Logger::log["path_set"] << "returning a path " << res.size() << "\n";
 			return true;
 		}
@@ -2401,6 +2418,11 @@ sim_mob::PathSet::~PathSet()
 	fromNode = NULL;
 	toNode = NULL;
 	subTrip = NULL;
+	sim_mob::Logger::log["path_set"] << "Deleting PathSet " << id << " and its " << pathChoices.size() << "  singlepaths\n";
+	BOOST_FOREACH(sim_mob::SinglePath*sp,pathChoices)
+	{
+		safe_delete_item(sp);
+	}
 }
 
 sim_mob::PathSet::PathSet(const boost::shared_ptr<sim_mob::PathSet> & ps) :
@@ -3101,7 +3123,11 @@ double sim_mob::PathSetManager::getTravelCost(sim_mob::SinglePath *sp)
 
 	return res;
 }
-//TODO: obsolete
+
+sim_mob::SinglePath::~SinglePath(){
+	clear();
+}
+//TODO: obsolete?
 sim_mob::SinglePath::SinglePath(SinglePath *source,const sim_mob::RoadSegment* seg) :
 		shortestWayPointpath(source->shortestWayPointpath),
 		shortestSegPath(source->shortestSegPath),
@@ -3116,7 +3142,7 @@ sim_mob::SinglePath::SinglePath(SinglePath *source,const sim_mob::RoadSegment* s
 	purpose = sim_mob::work;
 }
 
-//TODO: obsolete
+//TODO: obsolete?
 //todo: if discarding this method, check if sim_mob::RoadSegment::getRoadSegmentByAimsunId is needed anymore
 sim_mob::SinglePath::SinglePath(SinglePath *source) :
 		pathSet(source->pathSet),fromNode(source->fromNode),

@@ -105,6 +105,7 @@ public:
 	void setParentBufferedData();			///<set next data to parent buffer data
 	//Call once
 	void initPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
+	void initPathWithInitSeg(std::vector<sim_mob::WayPoint> wp_path, int startLaneID,int segId,int initPer,int initSpeed);
 	void resetPath(std::vector<sim_mob::WayPoint> wp_path);
 	const sim_mob::RoadSegment* hasNextSegment(bool inSameLink) const;
 	DPoint getPosition() const;

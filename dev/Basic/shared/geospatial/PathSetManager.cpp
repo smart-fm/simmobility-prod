@@ -1033,8 +1033,8 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(std::vector<sim_mob::WayP
 		sim_mob::Logger::log["path_set"].prof("utility_db").tick(true);
 		if(r)
 		{
-//			res = boost::move(ps_->bestWayPointpath);
-			res = ps_->bestWayPointpath;
+			res = boost::move(ps_->bestWayPointpath);
+//			res = ps_->bestWayPointpath;
 			//cache
 			if(isUseCache){
 				r = cachePathSet(ps_);

@@ -121,10 +121,7 @@ void sim_mob::medium::SubTourParams::blockTime(double startTime, double endTime)
 	}
 	else {
 		std::stringstream errStream;
-		errStream << "invalid time window was passed for blocking"
-				<< " |start: " << startTime
-				<< " |end: " << endTime
-				<<std::endl;
+		errStream << "invalid time window was passed for blocking" << "|start: " << startTime << "|end: " << endTime << std::endl;
 		throw std::runtime_error(errStream.str());
 	}
 }

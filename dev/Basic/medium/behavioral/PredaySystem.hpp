@@ -121,7 +121,19 @@ private:
 	void predictStopTimeOfDay(Stop* stop, bool isBeforePrimary);
 
 	/**
+	 * issues query to time dependent travel time collection in mongoDB to fetch travel time
+	 * @param origin the origin zone code of trip
+	 * @param destination the destination zone code of trip
+	 * @param mode the travel mode code for trip
+	 * @param isArrivalBased travel time is arrival based. true implies arrival based, false implies departure based
+	 * @param timeIdx the time index to fetch
+	 * @return mode and time-of-day dependent travel time
+	 */
+	double fetchTravelTime(int origin, int destination, int mode, bool isArrivalBased, double timeIdx);
+
+	/**
 	 * Calculates the arrival time for stops in the second half tour.
+	 * this function sets the departure time for the currentStop
 	 *
 	 * @param currentStop the stop for which the arrival time is calculated
 	 * @param prevStop the stop before currentStop
@@ -130,6 +142,7 @@ private:
 
 	/**
 	 * Calculates the departure time for stops in the first half tour.
+	 * this function sets the departure time for the nextStop
 	 *
 	 * @param currentStop the stop for which the departure time is calculated
 	 * @param nextStop the stop after currentStop
@@ -155,6 +168,15 @@ private:
 	 * @param subTour sub-tour whose primary activity has been established already
 	 */
 	void calculateSubTourTimeWindow(Tour& subTour, const Tour& parentTour);
+
+	/**
+	 * calculates travel time from tour destination to sub tour destination and blocks that time
+	 * calculates travel time from sub tour destination to tour destination and blocks that time
+	 * @param subTour sub-tour
+	 * @param parentTour parent tour of subTour
+	 * @param stParams sub-tour params which track availabilities
+	 */
+	void blockTravelTimeToSubTourLocation(const Tour& subTour, const Tour& parentTour, SubTourParams& stParams);
 
 	/**
 	 * constructs tour objects based on predicted number of tours. Puts the tour objects in tours deque.

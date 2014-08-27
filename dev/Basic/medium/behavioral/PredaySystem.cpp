@@ -40,11 +40,12 @@ using namespace mongo;
 namespace {
 	const double HIGH_TRAVEL_TIME = 999.0;
 	const double WALKABLE_DISTANCE = 3.0;
+	const double PEDESTRIAN_WALK_SPEED = 5.0; //kmph
 
 	const int AM_PEAK_LOW = 10;
-	const int AM_PEAK_HIGH = 14;
+	const int AM_PEAK_HIGH = 13;
 	const int PM_PEAK_LOW = 30;
-	const int PM_PEAK_HIGH = 34;
+	const int PM_PEAK_HIGH = 33;
 	const int MAX_STOPS_IN_HALF_TOUR = 3;
 
 	// ISG choices
@@ -82,6 +83,10 @@ namespace {
 
 	const std::map<int,std::string> modeMap = setModeMap();
 
+	/*
+	 * There are 48 half-hour indexes in a day from 3.25 to 26.75.
+	 * Given a index i, its choice time window can be determined by (i * 0.5 + 2.75)
+	 */
 	inline double getTimeWindowFromIndex(const double index) {
 		return (index * 0.5 /*half hour windows*/) + 2.75 /*the day starts at 3.25*/;
 	}
@@ -97,10 +102,10 @@ namespace {
 		fractPart = std::modf(time, &intPart);
 
 		//2. perform sanity checks on the integral part and align the fractional part to nearest time window
-		if (intPart < FIRST_WINDOW) {
+		if (time < FIRST_WINDOW) {
 			time = FIRST_WINDOW;
 		}
-		else if (intPart > LAST_WINDOW) {
+		else if (time > LAST_WINDOW) {
 			time = LAST_WINDOW;
 		}
 		else if(std::abs(fractPart) < 0.5) {
@@ -323,6 +328,9 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 		Tour& subTour = *tourIt;
 		predictSubTourModeDestination(subTour, parentTour);
 
+		//unavail travel time to predicted destination by predicted mode
+		blockTravelTimeToSubTourLocation(subTour, parentTour, workBasedSubTourParams);
+
 		// predict time of day
 		TimeWindowAvailability timeWindow = predictSubTourTimeOfDay(subTour, workBasedSubTourParams);
 		Stop* primaryActivity = new Stop(subTour.getTourType(), subTour, true /*primary activity*/, true /*stop in first half tour*/);
@@ -372,15 +380,6 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 	int destination = personParams.getHomeLocation();
 	std::vector<double> ttFirstHalfTour, ttSecondHalfTour;
 	if(origin != destination) {
-		BSONObj bsonObjTT = BSON("origin" << origin << "destination" << destination);
-		BSONObj tCostBusDoc;
-		mongoDao["tcost_bus"]->getOne(bsonObjTT, tCostBusDoc);
-		BSONObj tCostCarDoc;
-		mongoDao["tcost_car"]->getOne(bsonObjTT, tCostCarDoc);
-
-		CostParams* amDistanceObj = amCostMap.at(destination).at(origin);
-		CostParams* pmDistanceObj = pmCostMap.at(destination).at(origin);
-
 		for (uint32_t i = FIRST_INDEX; i <= LAST_INDEX; i++) {
 			switch (tour.getTourMode())
 			{
@@ -388,6 +387,10 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 			case 2:
 			case 3:
 			{
+				BSONObj bsonObjTT = BSON("origin" << origin << "destination" << destination);
+				BSONObj tCostBusDoc;
+				mongoDao["tcost_bus"]->getOne(bsonObjTT, tCostBusDoc);
+
 				std::stringstream arrivalField, departureField;
 				arrivalField << "TT_bus_arrival_" << i;
 				departureField << "TT_bus_departure_" << i;
@@ -415,6 +418,9 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 			case 7:
 			case 9:
 			{
+				BSONObj bsonObjTT = BSON("origin" << origin << "destination" << destination);
+				BSONObj tCostCarDoc;
+				mongoDao["tcost_car"]->getOne(bsonObjTT, tCostCarDoc);
 				std::stringstream arrivalField, departureField;
 				arrivalField << "TT_car_arrival_" << i;
 				departureField << "TT_car_departure_" << i;
@@ -438,8 +444,23 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 			}
 			case 8:
 			{
-				// TODO: Not sure why we divide by 5. Must check with Siyu. ~ Harish
-				double travelTime = (amDistanceObj->getDistance() - pmDistanceObj->getDistance())/5.0;
+				double travelTime = 0.0;
+				if(i>=AM_PEAK_LOW && i<=AM_PEAK_HIGH) // if i is in AM peak period
+				{
+					CostParams* amDistanceObj = amCostMap.at(origin).at(destination);
+					travelTime = amDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+				}
+				else if(i>=PM_PEAK_LOW && i<=PM_PEAK_HIGH) // if i is in PM peak period
+				{
+					CostParams* pmDistanceObj = pmCostMap.at(origin).at(destination);
+					travelTime = pmDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+				}
+				else // if i is in off-peak period
+				{
+					CostParams* opDistanceObj = opCostMap.at(origin).at(destination);
+					travelTime = opDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+				}
+
 				ttFirstHalfTour.push_back(travelTime);
 				ttSecondHalfTour.push_back(travelTime);
 				break;
@@ -458,7 +479,8 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 	return TimeWindowAvailability::timeWindowsLookup.at(timeWndw - 1); //timeWndw ranges from 1 - 1176. Vector starts from 0.
 }
 
-void PredaySystem::generateIntermediateStops(Tour& tour, size_t remainingTours) {
+void PredaySystem::generateIntermediateStops(Tour& tour, size_t remainingTours)
+{
 	if(tour.stops.size() != 1) {
 		stringstream ss;
 		ss << "generateIntermediateStops()|tour contains " << tour.stops.size() << " stops. Exactly 1 stop (primary activity) was expected.";
@@ -497,7 +519,7 @@ void PredaySystem::generateIntermediateStops(Tour& tour, size_t remainingTours) 
 		isgParams.setStopCounter(stopCounter);
 		int choice = 0; //not a valid choice; just initializing here.
 
-		Stop* nextStop = primaryStop;
+		Stop* currStop = primaryStop;
 		while(choice != QUIT_CHOICE_ISG && stopCounter<MAX_STOPS_IN_HALF_TOUR){
 			choice = PredayLuaProvider::getPredayModel().generateIntermediateStop(personParams, isgParams);
 			if(choice != QUIT_CHOICE_ISG) {
@@ -510,8 +532,8 @@ void PredaySystem::generateIntermediateStops(Tour& tour, size_t remainingTours) 
 				}
 				generatedStop = new Stop(stopType, tour, false /*not primary*/, true /*in first half tour*/);
 				tour.addStop(generatedStop);
-				predictStopModeDestination(generatedStop, nextStop->getStopLocation());
-				calculateDepartureTime(generatedStop, nextStop);
+				predictStopModeDestination(generatedStop, currStop->getStopLocation());
+				calculateDepartureTime(currStop, generatedStop);
 				if(generatedStop->getDepartureTime() <= FIRST_INDEX)
 				{
 					tour.removeStop(generatedStop);
@@ -531,7 +553,7 @@ void PredaySystem::generateIntermediateStops(Tour& tour, size_t remainingTours) 
 					stopCounter = stopCounter + 1;
 					continue;
 				}
-				nextStop = generatedStop;
+				currStop = generatedStop;
 				personParams.blockTime(generatedStop->getArrivalTime(), generatedStop->getDepartureTime());
 				nextArrivalTime = generatedStop->getArrivalTime();
 				stopCounter = stopCounter + 1;
@@ -545,8 +567,8 @@ void PredaySystem::generateIntermediateStops(Tour& tour, size_t remainingTours) 
 			}
 		}
 
-		generatedStop = nullptr;
 		// Second half tour
+		generatedStop = nullptr;
 		if(origin != destination) {
 			CostParams* pmDistanceObj = pmCostMap.at(origin).at(destination);
 			isgParams.setDistance(pmDistanceObj->getDistance());
@@ -622,7 +644,8 @@ void PredaySystem::predictStopModeDestination(Stop* stop, int origin)
 	stop->setStopLocation(zoneMap.at(zone_id)->getZoneCode());
 }
 
-void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
+void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary)
+{
 	if(!stop) {
 		throw std::runtime_error("predictStopTimeOfDay()::nullptr was passed for stop");
 	}
@@ -631,21 +654,15 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 	int destination = personParams.getHomeLocation();
 
 	if(origin != destination) {
-		BSONObj bsonObjTT = BSON("origin" << origin << "destination" << destination);
-		BSONObj tCostBusDoc;
-		mongoDao["tcost_bus"]->getOne(bsonObjTT, tCostBusDoc);
-		BSONObj tCostCarDoc;
-		mongoDao["tcost_car"]->getOne(bsonObjTT, tCostCarDoc);
-
-		CostParams* amDistanceObj = amCostMap.at(destination).at(origin);
-		CostParams* pmDistanceObj = pmCostMap.at(destination).at(origin);
-
 		for (uint32_t i = FIRST_INDEX; i <= LAST_INDEX; i++) {
 			switch (stop->getStopMode()) {
 			case 1: // Fall through
 			case 2:
 			case 3:
 			{
+				BSONObj bsonObjTT = BSON("origin" << origin << "destination" << destination);
+				BSONObj tCostBusDoc;
+				mongoDao["tcost_bus"]->getOne(bsonObjTT, tCostBusDoc);
 				std::stringstream fieldName;
 				if(stodParams.getFirstBound()) {
 					fieldName << "TT_bus_arrival_" << i;
@@ -667,6 +684,9 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 			case 7:
 			case 9:
 			{
+				BSONObj bsonObjTT = BSON("origin" << origin << "destination" << destination);
+				BSONObj tCostCarDoc;
+				mongoDao["tcost_car"]->getOne(bsonObjTT, tCostCarDoc);
 				std::stringstream fieldName;
 				if(stodParams.getFirstBound()) {
 					fieldName << "TT_car_arrival_" << i;
@@ -683,9 +703,23 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 				break;
 			}
 			case 8: {
-				double distanceMin = amDistanceObj->getDistance() - pmDistanceObj->getDistance();
-				// TODO: Not sure why we are dividing by 5. Must check with Siyu. ~ Harish
-				stodParams.travelTimes.push_back(distanceMin/5);
+				double travelTime = 0.0;
+				if(i>=AM_PEAK_LOW && i<=AM_PEAK_HIGH) // if i is in AM peak period
+				{
+					CostParams* amDistanceObj = amCostMap.at(origin).at(destination);
+					travelTime = amDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+				}
+				else if(i>=PM_PEAK_LOW && i<=PM_PEAK_HIGH) // if i is in PM peak period
+				{
+					CostParams* pmDistanceObj = pmCostMap.at(origin).at(destination);
+					travelTime = pmDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+				}
+				else // if i is in off-peak period
+				{
+					CostParams* opDistanceObj = opCostMap.at(origin).at(destination);
+					travelTime = opDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+				}
+				stodParams.travelTimes.push_back(travelTime);
 				break;
 			}
 			}
@@ -871,28 +905,21 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 	}
 }
 
-void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* prevStop) { // this function sets the arrival time for currStop
-	/*
-	 * There are 48 half-hour time windows in a day from 3.25 to 26.75.
-	 * Given a time window x, its choice index can be determined by ((x - 2.75) / 0.5) + 1
-	 */
-	double prevActivityDepartureIndex = prevStop->getDepartureTime();
-	double timeWindow = getTimeWindowFromIndex(prevActivityDepartureIndex);
-	double travelTime;
-
-	if(currStop->getStopLocation() != prevStop->getStopLocation()) {
-		travelTime = HIGH_TRAVEL_TIME; // initializing to a high value just in case something goes wrong. tcost_bus and tcost_car has lot of inadmissible data ("NULL")
-		std::stringstream fieldName;
-		BSONObj bsonObj = BSON("origin" << currStop->getStopLocation() << "destination" << prevStop->getStopLocation());
-
-		switch(prevStop->getStopMode()) {
+double PredaySystem::fetchTravelTime(int origin, int destination, int mode,  bool isArrivalBased, double timeIdx)
+{
+	double travelTime = 0.0;
+	if(origin != destination)
+	{
+		switch(mode) {
 		case 1: // Fall through
 		case 2:
 		case 3:
 		{
+			BSONObj bsonObj = BSON("origin" << origin << "destination" << destination);
 			BSONObj tCostBusDoc;
 			mongoDao["tcost_bus"]->getOne(bsonObj, tCostBusDoc);
-			fieldName << "TT_bus_departure_" << prevActivityDepartureIndex;
+			std::stringstream fieldName;
+			fieldName << (isArrivalBased? "TT_bus_arrival_":"TT_bus_departure_") << timeIdx;
 			if(tCostBusDoc.getField(fieldName.str()).isNumber()) {
 				travelTime = tCostBusDoc.getField(fieldName.str()).Number();
 			}
@@ -904,9 +931,11 @@ void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* prevStop) { // th
 		case 7:
 		case 9:
 		{
+			BSONObj bsonObj = BSON("origin" << origin << "destination" << destination);
 			BSONObj tCostCarDoc;
 			mongoDao["tcost_car"]->getOne(bsonObj, tCostCarDoc);
-			fieldName << "TT_car_departure_" << prevActivityDepartureIndex;
+			std::stringstream fieldName;
+			fieldName << (isArrivalBased? "TT_car_arrival_":"TT_car_departure_") << timeIdx;
 			if(tCostCarDoc.getField(fieldName.str()).isNumber()) {
 				travelTime = tCostCarDoc.getField(fieldName.str()).Number();
 			}
@@ -914,87 +943,75 @@ void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* prevStop) { // th
 		}
 		case 8:
 		{
-			double distanceMin = amCostMap.at(currStop->getStopLocation()).at(prevStop->getStopLocation())->getDistance()
-												- pmCostMap.at(currStop->getStopLocation()).at(prevStop->getStopLocation())->getDistance();
-			travelTime = distanceMin/5;
+			if(timeIdx>=AM_PEAK_LOW && timeIdx<=AM_PEAK_HIGH) // if i is in AM peak period
+			{
+				CostParams* amDistanceObj = amCostMap.at(origin).at(destination);
+				travelTime = amDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+			}
+			else if(timeIdx>=PM_PEAK_LOW && timeIdx<=PM_PEAK_HIGH) // if i is in PM peak period
+			{
+				CostParams* pmDistanceObj = pmCostMap.at(origin).at(destination);
+				travelTime = pmDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+			}
+			else // if i is in off-peak period
+			{
+				CostParams* opDistanceObj = opCostMap.at(origin).at(destination);
+				travelTime = opDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+			}
 			break;
 		}
+		default:
+		{
+			throw std::runtime_error("invalid mode");
+		}
 		}
 	}
-	else {
-		travelTime = 0.0;
-	}
+	return travelTime;
+}
 
+void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* prevStop) { // this function sets the arrival time for currStop
+	double prevActivityDepartureIndex = prevStop->getDepartureTime();
+	double timeWindow = getTimeWindowFromIndex(prevActivityDepartureIndex);
+	double travelTime = fetchTravelTime(prevStop->getStopLocation(), currStop->getStopLocation(), currStop->getStopMode(), false, prevActivityDepartureIndex);
 	double currStopArrTime = timeWindow + travelTime;
-
-	// travel time can be unreasonably high sometimes
-	// E.g. when the travel time is unknown, the default is set to 999
+	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
 	currStopArrTime = alignTime(currStopArrTime);
-
 	currStopArrTime = getIndexFromTimeWindow(currStopArrTime);
 	currStop->setArrivalTime(currStopArrTime);
 }
 
-void PredaySystem::calculateDepartureTime(Stop* currStop,  Stop* nextStop) { // this function sets the departure time for the currStop
-	/*
-	 * There are 48 half-hour time windows in a day from 3.25 to 26.75.
-	 * Given a time window i, its choice index can be determined by (i * 0.5 + 2.75)
-	 */
-	double nextActivityArrivalIndex = nextStop->getArrivalTime();
-	double timeWindow = getTimeWindowFromIndex(nextActivityArrivalIndex);
-	double travelTime;
-	if(currStop->getStopLocation() != nextStop->getStopLocation()) {
-		travelTime = HIGH_TRAVEL_TIME; // initializing to a high value just in case something goes wrong. tcost_bus and tcost_car has lot of inadmissable data ("NULL")
-		std::stringstream fieldName;
-		BSONObj queryObj = BSON("origin" << currStop->getStopLocation() << "destination" << nextStop->getStopLocation());
-		switch(nextStop->getStopMode()) {
-		case 1: // Fall through
-		case 2:
-		case 3:
-		{
-			BSONObj tCostBusDoc;
-			mongoDao["tcost_bus"]->getOne(queryObj, tCostBusDoc);
-			fieldName << "TT_bus_arrival_" << nextActivityArrivalIndex;
-			if(tCostBusDoc.getField(fieldName.str()).isNumber()) {
-				travelTime = tCostBusDoc.getField(fieldName.str()).Number();
-			}
-			break;
-		}
-		case 4: // Fall through
-		case 5:
-		case 6:
-		case 7:
-		case 9:
-		{
-			BSONObj tCostCarDoc;
-			mongoDao["tcost_car"]->getOne(queryObj, tCostCarDoc);
-			fieldName << "TT_car_arrival_" << nextActivityArrivalIndex;
-			if(tCostCarDoc.getField(fieldName.str()).isNumber()) {
-				travelTime = tCostCarDoc.getField(fieldName.str()).Number();
-			}
-			break;
-		}
-		case 8:
-		{
-			double distanceMin = amCostMap.at(currStop->getStopLocation()).at(nextStop->getStopLocation())->getDistance()
-									- pmCostMap.at(currStop->getStopLocation()).at(nextStop->getStopLocation())->getDistance();
-			travelTime = distanceMin/5;
-			break;
-		}
-		}
-	}
-	else {
-		travelTime = 0.0;
-	}
+void PredaySystem::calculateDepartureTime(Stop* currStop,  Stop* nextStop) { // this function sets the departure time for the nextStop
+	double currActivityArrivalIndex = currStop->getArrivalTime();
+	double timeWindow = getTimeWindowFromIndex(currActivityArrivalIndex);
+	double travelTime = fetchTravelTime(currStop->getStopLocation(), nextStop->getStopLocation(), currStop->getStopMode(), true, currActivityArrivalIndex);
+	double nextStopDepTime = timeWindow - travelTime;
+	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
+	nextStopDepTime = alignTime(nextStopDepTime);
+	nextStopDepTime = getIndexFromTimeWindow(nextStopDepTime);
+	nextStop->setDepartureTime(nextStopDepTime);
+}
 
-	double currStopDepTime = timeWindow - travelTime;
+void PredaySystem::blockTravelTimeToSubTourLocation(const Tour& subTour, const Tour& parentTour, SubTourParams& stParams)
+{
+	//get travel time from parentTour destination to subTour destination and block that time
+	double activityDepartureIndex = parentTour.getPrimaryStop()->getArrivalTime();
+	double timeWindow = getTimeWindowFromIndex(activityDepartureIndex);
+	double travelTime = fetchTravelTime(parentTour.getTourDestination(), subTour.getTourDestination(), subTour.getTourMode(), false, activityDepartureIndex);
+	double firstPossibleArrTime = timeWindow + travelTime;
+	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
+	firstPossibleArrTime = alignTime(firstPossibleArrTime);
+	firstPossibleArrTime = getIndexFromTimeWindow(firstPossibleArrTime);
+	stParams.blockTime(activityDepartureIndex, firstPossibleArrTime);
 
-	// travel time can be unreasonably high sometimes
-	// E.g. when the travel time is unknown, the default is set to 999
-	currStopDepTime = alignTime(currStopDepTime);
-
-	currStopDepTime = getIndexFromTimeWindow(currStopDepTime);
-	currStop->setDepartureTime(currStopDepTime);
+	//get travel time from subTour destination to parentTour destination and block that time
+	double activityArrivalIndex = parentTour.getPrimaryStop()->getDepartureTime();
+	timeWindow = getTimeWindowFromIndex(activityArrivalIndex);
+	travelTime = fetchTravelTime(subTour.getTourDestination(), parentTour.getTourDestination(), subTour.getTourMode(), true, activityArrivalIndex);
+	double lastPossibleDepTime = timeWindow - travelTime;
+	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
+	lastPossibleDepTime = alignTime(lastPossibleDepTime);
+	lastPossibleDepTime = getIndexFromTimeWindow(lastPossibleDepTime);
+	stParams.blockTime(lastPossibleDepTime, activityArrivalIndex);
 }
 
 void PredaySystem::calculateSubTourTimeWindow(Tour& subTour, const Tour& parentTour)
@@ -1003,53 +1020,9 @@ void PredaySystem::calculateSubTourTimeWindow(Tour& subTour, const Tour& parentT
 	// estimate tour start time
 	double activityArrivalIndex = primaryStop->getArrivalTime();
 	double timeWindow = getTimeWindowFromIndex(activityArrivalIndex);
-	double travelTime = 0.0;
-	if(parentTour.getTourDestination() != primaryStop->getStopLocation())
-	{
-		travelTime = HIGH_TRAVEL_TIME;  // initializing to a high value just in case something goes wrong. tcost_bus and tcost_car has lot of inadmissible data ("NULL")
-		std::stringstream fieldName;
-		BSONObj bsonObj = BSON("origin" << parentTour.getTourDestination() << "destination" <<  primaryStop->getStopLocation());
-		switch(primaryStop->getStopMode())
-		{
-		case 1: // Fall through
-		case 2:
-		case 3:
-		{
-			BSONObj tCostBusDoc;
-			mongoDao["tcost_bus"]->getOne(bsonObj, tCostBusDoc);
-			fieldName << "TT_bus_arrival_" << activityArrivalIndex;
-			if(tCostBusDoc.getField(fieldName.str()).isNumber()) {
-				travelTime = tCostBusDoc.getField(fieldName.str()).Number();
-			}
-			break;
-		}
-		case 4: // Fall through
-		case 5:
-		case 6:
-		case 7:
-		case 9:
-		{
-			BSONObj tCostCarDoc;
-			mongoDao["tcost_car"]->getOne(bsonObj, tCostCarDoc);
-			fieldName << "TT_car_arrival_" << activityArrivalIndex;
-			if(tCostCarDoc.getField(fieldName.str()).isNumber()) {
-				travelTime = tCostCarDoc.getField(fieldName.str()).Number();
-			}
-			break;
-		}
-		case 8:
-		{
-			double distanceMin = amCostMap.at(personParams.getHomeLocation()).at(primaryStop->getStopLocation())->getDistance()
-									- pmCostMap.at(personParams.getHomeLocation()).at(primaryStop->getStopLocation())->getDistance();
-			travelTime = distanceMin/5;
-			break;
-		}
-		}
-	}
-
+	double travelTime = fetchTravelTime(primaryStop->getStopLocation(), parentTour.getTourDestination(), subTour.getTourMode(), true, activityArrivalIndex);
 	double tourStartTime = timeWindow - travelTime;
-	// travel time can be unreasonably high sometimes
-	// E.g. when the travel time is unknown, the default is set to 999
+	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
 	tourStartTime = alignTime(tourStartTime);
 	tourStartTime = getIndexFromTimeWindow(tourStartTime);
 	subTour.setStartTime(tourStartTime);
@@ -1057,180 +1030,36 @@ void PredaySystem::calculateSubTourTimeWindow(Tour& subTour, const Tour& parentT
 	//estimate tour end time
 	double activityDepartureIndex = primaryStop->getDepartureTime();
 	timeWindow = getTimeWindowFromIndex(activityDepartureIndex);
-	travelTime = 0.0;
-	if(parentTour.getTourDestination() != primaryStop->getStopLocation()) {
-		travelTime = HIGH_TRAVEL_TIME; // initializing to a high value just in case something goes wrong. tcost_bus and tcost_car has lot of inadmissable data ("NULL")
-		std::stringstream fieldName;
-		BSONObj bsonObj = BSON("origin" << parentTour.getTourDestination() << "destination" << primaryStop->getStopLocation());
-
-		switch(primaryStop->getStopMode()) {
-		case 1: // Fall through
-		case 2:
-		case 3:
-		{
-			BSONObj tCostBusDoc;
-			mongoDao["tcost_bus"]->getOne(bsonObj, tCostBusDoc);
-			fieldName << "TT_bus_departure_" << activityDepartureIndex;
-			if(tCostBusDoc.getField(fieldName.str()).isNumber()) {
-				travelTime = tCostBusDoc.getField(fieldName.str()).Number();
-			}
-			break;
-		}
-		case 4: // Fall through
-		case 5:
-		case 6:
-		case 7:
-		case 9:
-		{
-			BSONObj tCostCarDoc;
-			mongoDao["tcost_car"]->getOne(bsonObj, tCostCarDoc);
-			fieldName << "TT_car_departure_" << activityDepartureIndex;
-			if(tCostCarDoc.getField(fieldName.str()).isNumber()) {
-				travelTime = tCostCarDoc.getField(fieldName.str()).Number();
-			}
-			break;
-		}
-		case 8:
-		{
-			double distanceMin = amCostMap.at(personParams.getHomeLocation()).at(primaryStop->getStopLocation())->getDistance()
-													- pmCostMap.at(personParams.getHomeLocation()).at(primaryStop->getStopLocation())->getDistance();
-			travelTime = distanceMin/5;
-			break;
-		}
-		}
-	}
-
+	travelTime = fetchTravelTime(primaryStop->getStopLocation(), parentTour.getTourDestination(), subTour.getTourMode(), false, activityDepartureIndex);
 	double tourEndTime = timeWindow + travelTime;
-	// travel time can be unreasonably high sometimes
-	// E.g. when the travel time is unknown, the default is set to 999
+	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
 	tourEndTime = alignTime(tourEndTime);
 	tourEndTime = getIndexFromTimeWindow(tourEndTime);
 	subTour.setEndTime(tourEndTime);
 }
 
-void PredaySystem::calculateTourStartTime(Tour& tour) {
-	/*
-	 * There are 48 half-hour time windows in a day from 3.25 to 26.75.
-	 * Given a time window i, its choice index can be determined by (i * 0.5 + 2.75)
-	 */
+void PredaySystem::calculateTourStartTime(Tour& tour)
+{
 	Stop* firstStop = tour.stops.front();
 	double firstActivityArrivalIndex = firstStop->getArrivalTime();
 	double timeWindow = getTimeWindowFromIndex(firstActivityArrivalIndex);
-	double travelTime;
-	if(personParams.getHomeLocation() != firstStop->getStopLocation()) {
-		travelTime = HIGH_TRAVEL_TIME; // initializing to a high value just in case something goes wrong. tcost_bus and tcost_car has lot of inadmissable data ("NULL")
-		std::stringstream fieldName;
-		BSONObj bsonObj = BSON("origin" << personParams.getHomeLocation() << "destination" << firstStop->getStopLocation());
-		switch(firstStop->getStopMode()) {
-		case 1: // Fall through
-		case 2:
-		case 3:
-		{
-			BSONObj tCostBusDoc;
-			mongoDao["tcost_bus"]->getOne(bsonObj, tCostBusDoc);
-			fieldName << "TT_bus_arrival_" << firstActivityArrivalIndex;
-			if(tCostBusDoc.getField(fieldName.str()).isNumber()) {
-				travelTime = tCostBusDoc.getField(fieldName.str()).Number();
-			}
-			break;
-		}
-		case 4: // Fall through
-		case 5:
-		case 6:
-		case 7:
-		case 9:
-		{
-			BSONObj tCostCarDoc;
-			mongoDao["tcost_car"]->getOne(bsonObj, tCostCarDoc);
-			fieldName << "TT_car_arrival_" << firstActivityArrivalIndex;
-			if(tCostCarDoc.getField(fieldName.str()).isNumber()) {
-				travelTime = tCostCarDoc.getField(fieldName.str()).Number();
-			}
-			break;
-		}
-		case 8:
-		{
-			double distanceMin = amCostMap.at(personParams.getHomeLocation()).at(firstStop->getStopLocation())->getDistance()
-									- pmCostMap.at(personParams.getHomeLocation()).at(firstStop->getStopLocation())->getDistance();
-			travelTime = distanceMin/5;
-			break;
-		}
-		}
-	}
-	else {
-		travelTime = 0.0;
-	}
-
+	double travelTime = fetchTravelTime(firstStop->getStopLocation(), personParams.getHomeLocation(), firstStop->getStopMode(), true, firstActivityArrivalIndex);
 	double tourStartTime = timeWindow - travelTime;
-
-	// travel time can be unreasonably high sometimes
-	// E.g. when the travel time is unknown, the default is set to 999
+	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
 	tourStartTime = alignTime(tourStartTime);
-
 	tourStartTime = getIndexFromTimeWindow(tourStartTime);
 	tour.setStartTime(tourStartTime);
 }
 
-void PredaySystem::calculateTourEndTime(Tour& tour) {
-	/*
-	 * There are 48 half-hour time windows in a day from 3.25 to 26.75.
-	 * Given a time window x, its choice index can be determined by ((x - 3.25) / 0.5) + 1
-	 */
+void PredaySystem::calculateTourEndTime(Tour& tour)
+{
 	Stop* lastStop = tour.stops.back();
 	double lastActivityDepartureIndex = lastStop->getDepartureTime();
 	double timeWindow = getTimeWindowFromIndex(lastActivityDepartureIndex);
-	double travelTime;
-	if(personParams.getHomeLocation() != lastStop->getStopLocation()) {
-		travelTime = HIGH_TRAVEL_TIME; // initializing to a high value just in case something goes wrong. tcost_bus and tcost_car has lot of inadmissable data ("NULL")
-		std::stringstream fieldName;
-		BSONObj bsonObj = BSON("origin" << personParams.getHomeLocation() << "destination" << lastStop->getStopLocation());
-
-		switch(lastStop->getStopMode()) {
-		case 1: // Fall through
-		case 2:
-		case 3:
-		{
-			BSONObj tCostBusDoc;
-			mongoDao["tcost_bus"]->getOne(bsonObj, tCostBusDoc);
-			fieldName << "TT_bus_departure_" << lastActivityDepartureIndex;
-			if(tCostBusDoc.getField(fieldName.str()).isNumber()) {
-				travelTime = tCostBusDoc.getField(fieldName.str()).Number();
-			}
-			break;
-		}
-		case 4: // Fall through
-		case 5:
-		case 6:
-		case 7:
-		case 9:
-		{
-			BSONObj tCostCarDoc;
-			mongoDao["tcost_car"]->getOne(bsonObj, tCostCarDoc);
-			fieldName << "TT_car_departure_" << lastActivityDepartureIndex;
-			if(tCostCarDoc.getField(fieldName.str()).isNumber()) {
-				travelTime = tCostCarDoc.getField(fieldName.str()).Number();
-			}
-			break;
-		}
-		case 8:
-		{
-			double distanceMin = amCostMap.at(personParams.getHomeLocation()).at(lastStop->getStopLocation())->getDistance()
-													- pmCostMap.at(personParams.getHomeLocation()).at(lastStop->getStopLocation())->getDistance();
-			travelTime = distanceMin/5;
-			break;
-		}
-		}
-	}
-	else {
-		travelTime = 0.0;
-	}
-
+	double travelTime = fetchTravelTime(lastStop->getStopLocation(), personParams.getHomeLocation(), tour.getTourMode(), false, lastActivityDepartureIndex);
 	double tourEndTime = timeWindow + travelTime;
-
-	// travel time can be unreasonably high sometimes
-	// E.g. when the travel time is unknown, the default is set to 999
+	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
 	tourEndTime = alignTime(tourEndTime);
-
 	tourEndTime = getIndexFromTimeWindow(tourEndTime);
 	tour.setEndTime(tourEndTime);
 }

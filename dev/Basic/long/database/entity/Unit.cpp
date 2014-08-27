@@ -14,77 +14,138 @@
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
+Unit::Unit( BigSerial id, BigSerial building_id, BigSerial sla_address_id, int unit_type, int storey_range, std::string unit_status, double floor_area, int storey,
+			double rent, std::tm sale_from_date, std::tm physical_from_date, int sale_status, int physical_status)
+		   : id(id), building_id(building_id), sla_address_id(sla_address_id), unit_type(unit_type), storey_range(storey_range), unit_status(unit_status),
+		     floor_area(floor_area), storey(storey), rent(rent), sale_from_date(sale_from_date), physical_from_date(physical_from_date), sale_status(sale_status),
+		     physical_status(physical_status) {}
 
-Unit::Unit(BigSerial id, BigSerial buildingId, BigSerial typeId, BigSerial postcodeId,
-           double floorArea, int storey, double rent) :
-id(id), buildingId(buildingId), typeId(typeId), postcodeId(postcodeId), 
-storey(storey), floorArea(floorArea), rent(rent){}
 
-Unit::Unit(const Unit& source) {
-    this->id = source.id;
-    this->buildingId = source.buildingId;
-    this->typeId = source.typeId;
-    this->postcodeId = source.postcodeId;
-    this->storey = source.storey;
-    this->floorArea = source.floorArea;
-    this->rent = source.rent;
+Unit::Unit(const Unit& source)
+{
+    this->id  = source.id;
+    this->building_id  = source.building_id;
+    this->sla_address_id  = source.sla_address_id;
+    this->unit_type  = source.unit_type;
+    this->storey_range  = source.storey_range;
+    this->unit_status  = source.unit_status;
+    this->floor_area  = source.floor_area;
+    this->storey  = source.storey;
+    this->rent  = source.rent;
+    this->sale_from_date  = source.sale_from_date;
+    this->physical_from_date  = source.physical_from_date;
+    this->sale_status  = source.sale_status;
+    this->physical_status  = source.physical_status;
+
 }
 
-Unit::~Unit() {
-}
+Unit::~Unit() {}
 
-Unit& Unit::operator=(const Unit& source) {
-    this->id = source.id;
-    this->buildingId = source.buildingId;
-    this->typeId = source.typeId;
-    this->postcodeId = source.postcodeId;
-    this->storey = source.storey;
-    this->floorArea = source.floorArea;
-    this->rent = source.rent;
+Unit& Unit::operator=(const Unit& source)
+{
+    this->id  = source.id;
+    this->building_id  = source.building_id;
+    this->sla_address_id  = source.sla_address_id;
+    this->unit_type  = source.unit_type;
+    this->storey_range  = source.storey_range;
+    this->unit_status  = source.unit_status;
+    this->floor_area  = source.floor_area;
+    this->storey  = source.storey;
+    this->rent  = source.rent;
+    this->sale_from_date  = source.sale_from_date;
+    this->physical_from_date  = source.physical_from_date;
+    this->sale_status  = source.sale_status;
+    this->physical_status  = source.physical_status;
+
     return *this;
 }
 
-BigSerial Unit::getId() const {
+BigSerial Unit::getId() const
+{
     return id;
 }
 
-BigSerial Unit::getBuildingId() const {
-    return buildingId;
+BigSerial Unit::getBuildingId() const
+{
+    return building_id;
 }
 
-BigSerial Unit::getTypeId() const {
-    return typeId;
+BigSerial Unit::getSlaAddressId() const
+{
+    return sla_address_id;
 }
 
-BigSerial Unit::getPostcodeId() const{
-    return postcodeId;
+int Unit::getUnitType() const
+{
+    return unit_type;
 }
 
-int Unit::getStorey() const {
+int Unit::getStoreyRange() const
+{
+	return storey_range;
+}
+
+std::string Unit::getUnitStatus() const
+{
+	return unit_status;
+}
+
+double Unit::getFloorArea() const
+{
+    return floor_area;
+}
+
+int Unit::getStorey() const
+{
     return storey;
 }
 
-double Unit::getFloorArea() const {
-    return floorArea;
-}
-
-double Unit::getRent() const {
+double Unit::getRent() const
+{
     return rent;
 }
+std::tm Unit::getSaleFromDate() const
+{
+	return sale_from_date;
+}
 
-namespace sim_mob {
-    namespace long_term {
+std::tm Unit::getPhysicalFromDate() const
+{
+	return physical_from_date;
+}
 
-        std::ostream& operator<<(std::ostream& strm, const Unit& data) {
+int Unit::getSaleStatus() const
+{
+	return sale_status;
+}
+
+int Unit::getPhysicalStatus() const
+{
+	return physical_status;
+}
+
+
+namespace sim_mob
+{
+    namespace long_term
+    {
+        std::ostream& operator<<(std::ostream& strm, const Unit& data)
+        {
             return strm << "{"
-                    << "\"id\":\"" << data.id << "\","
-                    << "\"buildingId\":\"" << data.buildingId << "\","
-                    << "\"typeId\":\"" << data.typeId << "\","
-                    << "\"postcodeId\":\"" << data.postcodeId << "\","
-                    << "\"floorArea\":\"" << data.floorArea << "\","
-                    << "\"storey\":\"" << data.storey << "\","
-                    << "\"rent\":\"" << data.rent << "\""
-                    << "}";
+						<< "\"id \":\"" << data.id << "\","
+						<< "\"building_id \":\"" << data.building_id << "\","
+						<< "\"sla_address_id \":\"" << data.sla_address_id << "\","
+						<< "\"unit_type \":\"" << data.unit_type << "\","
+						<< "\"storey_range \":\"" << data.storey_range << "\","
+						<< "\"unit_status \":\"" << data.unit_status << "\","
+						<< "\"floor_area \":\"" << data.floor_area << "\","
+						<< "\"storey \":\"" << data.storey << "\","
+						<< "\"rent \":\"" << data.rent << "\","
+						<< "\"sale_from_date \":\"" << data.sale_from_date.tm_year << data.sale_from_date.tm_mon << data.sale_from_date.tm_wday << "\","
+						<< "\"physical_from_date \":\"" << data.physical_from_date.tm_year << data.physical_from_date.tm_mon << data.physical_from_date.tm_wday << "\","
+						<< "\"sale_status \":\"" << data.sale_status << "\","
+						<< "\"physical_status \":\"" << data.physical_status << "\""
+						<< "}";
         }
     }
 }

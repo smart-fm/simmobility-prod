@@ -97,6 +97,12 @@ public:
 	explicit DatabaseLoader(string const & connectionString);
 
 	void LoadBasicAimsunObjects(map<string, string> const & storedProcedures);
+	/**
+	 *  /brief load segment type, node type
+	 *  /param storedProcs get db procedure name
+	 *  /param rn road network object
+	 */
+	void loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
 //	// load path set data
 //	void LoadSinglePathDB(std::map<std::string,sim_mob::SinglePath*>& pool,
 //			std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool);
@@ -176,6 +182,9 @@ private:
 	void LoadTurnings(const std::string& storedProc);
 	void LoadPolylines(const std::string& storedProc);
 	void LoadTrafficSignals(const std::string& storedProc);
+
+	void loadSegmentTypeTable(const std::string& storedProc,std::map<string,int>& segTypeMap);
+	void loadNodeTypeTable(const std::string& storedProc,std::map<string,int>& nodeTypeMap);
 
 public:
 	void LoadTripchains(const std::string& storedProc);
@@ -485,8 +494,8 @@ void DatabaseLoader::LoadERP_Gantry_Zone(std::map<std::string,sim_mob::ERP_Gantr
 	for (soci::rowset<sim_mob::ERP_Gantry_Zone>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		sim_mob::ERP_Gantry_Zone *s = new sim_mob::ERP_Gantry_Zone(*it);
 		erp_gantry_zone_pool.insert(std::make_pair(s->Gantry_no,s));
-//		std::cout<<"LoadERP_Section: "<<s->Gantry_no<<" "<<s->Zone_Id<<std::endl;
 	}
+//		std::cout<<"LoadERP_Section: "<<s->Gantry_no<<" "<<s->Zone_Id<<std::endl;
 }
 
 void DatabaseLoader::LoadNodes(const std::string& storedProc)
@@ -508,7 +517,33 @@ void DatabaseLoader::LoadNodes(const std::string& storedProc)
 		nodes_[it->id] = *it;
 	}
 }
-
+void DatabaseLoader::loadSegmentTypeTable(const std::string& storedProc,std::map<string,int>& segTypeMap)
+{
+	try
+	{
+		soci::rowset<sim_mob::SegmentType> rs = (sql_.prepare <<"select * from " + storedProc);
+		for (soci::rowset<sim_mob::SegmentType>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+			segTypeMap.insert(std::make_pair(it->id,it->type));
+		}
+	}
+	catch (soci::soci_error const & err)
+	{
+		std::cout<<"loadSegmentTypeTable: "<<err.what()<<std::endl;
+	}
+}
+void DatabaseLoader::loadNodeTypeTable(const std::string& storedProc,std::map<string,int>& nodeTypeMap)
+{
+	try{
+		soci::rowset<sim_mob::NodeType> rs = (sql_.prepare <<"select * from " + storedProc);
+		for (soci::rowset<sim_mob::NodeType>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+			nodeTypeMap.insert(std::make_pair(it->id,it->type));
+		}
+	}
+	catch (soci::soci_error const & err)
+	{
+		std::cout<<"loadNodeTypeTable: "<<err.what()<<std::endl;
+	}
+}
 
 void DatabaseLoader::LoadSections(const std::string& storedProc)
 {
@@ -823,6 +858,8 @@ void DatabaseLoader::LoadBusStopSG(const std::string& storedProc)
 
 		        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat) * 100;
 		        busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon) * 100;
+        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat);
+        busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon);
 		        bustopSG_.insert(std::make_pair(busstop.bus_stop_no, busstop));
 		        //std :: cout.precision(15);
 		        //std :: cout << "Bus Stop ID is: "<< busstop.bus_stop_no <<"    "<< busstop.xPos << "     "<< busstop.yPos  <<std::endl;
@@ -1005,6 +1042,8 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadBusStopSG(getStoredProcedure(storedProcs, "busstopSG", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
 
+
+
 	//add by xuyan
 	//load in boundary segments (not finished!)
 #ifndef SIMMOB_DISABLE_MPI
@@ -1015,7 +1054,11 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 #endif
 
 }
-
+void DatabaseLoader::loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)
+{
+	loadSegmentTypeTable(getStoredProcedure(storedProcs, "segment_type"),rn.segmentTypeMap);
+	loadNodeTypeTable(getStoredProcedure(storedProcs, "node_type"),rn.nodeTypeMap);
+}
 
 
 //Compute the distance from the source node of the polyline to a
@@ -1272,8 +1315,10 @@ bool FindBusLineWithLeastStops(Node* source, Node* destination, sim_mob::BusStop
 {
 	bool result = false;
 	//sim_mob::AuraManager::instance2();
-	Point2D pnt1(source->getXPosAsInt()-3500, source->getYPosAsInt()-3500);
-	Point2D pnt2(source->getXPosAsInt()+3500, source->getYPosAsInt()+3500);
+//	Point2D pnt1(source->getXPosAsInt()-3500, source->getYPosAsInt()-3500);
+//	Point2D pnt2(source->getXPosAsInt()+3500, source->getYPosAsInt()+3500);
+//	Point2D pnt1(source->xPos-35.00, source->yPos()-35.00);
+//	Point2D pnt2(source->xPos+35.00, source->yPos+35.00);
 	//std::vector<const sim_mob::Agent*> source_nearby_agents = sim_mob::AuraManager::instance2().agentsInRect(pnt1, pnt2, nullptr);
 
 	std::vector<sim_mob::BusStop*> source_stops;
@@ -1614,6 +1659,15 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
 		sim_mob::aimsun::Loader::ProcessGeneralNode(res, it->second);
 		it->second.generatedNode->originalDB_ID.setProps("aimsun-id", it->first);
+
+		// set node type
+		std::string idStr = boost::lexical_cast<string>(it->first);
+		if(idStr.find("101320") != std::string::npos)
+		{
+			std::cout<<"find node 101320"<<std::endl;
+		}
+		sim_mob::SimNodeType nt = (sim_mob::SimNodeType)res.getNodeType(idStr);
+		it->second.generatedNode->type = nt;
 	}
 	//Next, Links and RoadSegments. See comments for our approach.
 	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
@@ -2001,7 +2055,8 @@ void sim_mob::aimsun::Loader::FixupLanesAndCrossings(sim_mob::RoadNetwork& res)
 					sim_mob::Point2D medianProjection = LineLineIntersect(cross->nearLine.first, cross->nearLine.second, link->getStart()->location, link->getEnd()->location);
 					Point2D shift(medianProjection.getX()-nearLinemidPoint.getX(), medianProjection.getY()-nearLinemidPoint.getY());
 					///TODO this is needed temporarily due to a bug in which one intersection's crossings end up shifted across the map.
-					if(shift.getX() > 1000)
+//					if(shift.getX() > 1000)
+					if(shift.getX() > 10)
 						continue;
 
 					cross->nearLine.first = Point2D(cross->nearLine.first.getX()+shift.getX(), cross->nearLine.first.getY()+shift.getY());
@@ -2208,6 +2263,11 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		//Retrieve the generated segment
 		sim_mob::RoadSegment* rs = currSec->generatedSegment;
 		rs->originalDB_ID.setProps("aimsun-id", currSec->id);
+
+		// set segment type
+		std::string idStr = boost::lexical_cast<string>(currSec->id);
+		sim_mob::SimSegmentType st = (sim_mob::SimSegmentType)res.getSegmentType(idStr);
+		rs->type = st;
 
 		//Start/end need to be added properly
 		rs->start = currSec->fromNode->generatedNode;
@@ -2560,6 +2620,12 @@ void sim_mob::aimsun::Loader::SaveOnePathSetData(const std::string& connectionSt
 	DatabaseLoader loader(connectionStr);
 	loader.InsertPathSet2DB(pathSetPool);
 }
+void sim_mob::aimsun::Loader::loadSegNodeType(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn)
+{
+	DatabaseLoader loader(connectionStr);
+	// load segment type data, node type data
+	loader.loadObjectType(storedProcs,rn);
+}
 void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
 {
 	std::cout << "Attempting to connect to database (generic)" << std::endl;
@@ -2574,6 +2640,9 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 
 	//Step One: Load
 	loader.LoadBasicAimsunObjects(storedProcs);
+
+	// load segment type data, node type data
+	loader.loadObjectType(storedProcs,rn);
 
 	//Step 1.1: Load "new style" objects, which don't require any post-processing.
 	loader.LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false), config.getBusSchedule());
@@ -2638,6 +2707,8 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), config.getPT_bus_dispatch_freq());
 	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), config.getPT_bus_routes(), config.getRoadSegments_Map());
 	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), config.getPT_bus_stops(), config.getBusStops_Map());
+
+
 }
 
 void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdSeg, std::list<sim_mob::SegmentStats*>& splitSegmentStats) {

@@ -85,7 +85,7 @@ namespace sim_mob {
 
         //NEW DATABASE
         const std::string DB_FIELD_ID = "id";
-        const std::string DB_FIELD_UNIT_ID = "unit_id";
+        const std::string DB_FIELD_UNIT_ID = "fm_unit_id";
         const std::string DB_FIELD_HOUSEHOLD_ID = "household_id";
         const std::string DB_FIELD_PROJECT_ID = "project_id";
         const std::string DB_FIELD_PARCEL_ID = "parcel_id";
@@ -122,7 +122,7 @@ namespace sim_mob {
         const std::string DB_FIELD_NAME = "name";
         const std::string DB_FIELD_TYPE = "type";
         const std::string DB_FIELD_CODE = "code";
-        const std::string DB_FIELD_POSTCODE = "postcode";
+        const std::string DB_FIELD_POSTCODE = "sla_postcode";
         const std::string DB_FIELD_BUILDING_NAME = "building_name";
         const std::string DB_FIELD_ROAD_NAME = "road_name";
         const std::string DB_FIELD_UNIT_BLOCK = "unit_block";
@@ -141,14 +141,6 @@ namespace sim_mob {
         const std::string DB_FIELD_BUS_200M = "bus_200m";
         const std::string DB_FIELD_BUS_400M = "bus_400m";
         const std::string DB_FIELD_PMS_1KM = "pms_1km";
-        const std::string DB_FIELD_APARTMENT = "apartment";
-        const std::string DB_FIELD_CONDO = "condo";
-        const std::string DB_FIELD_TERRACE = "terrace";
-        const std::string DB_FIELD_SEMI = "semi";
-        const std::string DB_FIELD_DETACHED = "detached";
-        const std::string DB_FIELD_EC = "ec";
-        const std::string DB_FIELD_PRIVATE = "private";
-        const std::string DB_FIELD_HDB = "hdb";
         const std::string DB_FIELD_LAND_USE_ZONE_ID = "land_use_zone_id";
         const std::string DB_FIELD_AREA = "area";
         const std::string DB_FIELD_LENGTH = "length";

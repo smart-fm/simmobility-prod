@@ -48,7 +48,7 @@ namespace {
     	const HM_Model* model = agent.getModel();
     	const Unit* unit  = model->getUnitById(bid.getUnitId());
         double floor_area = unit->getFloorArea();
-        BigSerial type_id = unit->getTypeId();
+        BigSerial type_id = unit->getUnitType();
 
         boost::format fmtr = boost::format(LOG_BID) % bid.getTime().ms()
 													% agent.getId()
@@ -212,7 +212,7 @@ void HouseholdSellerRole::update(timeslice now)
 
             if(getCurrentExpectation(unit->getId(), firstExpectation))
             {
-                market->addEntry(HousingMarket::Entry(getParent(), unit->getId(), unit->getPostcodeId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice));
+                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice));
             }
 
             selling = true;

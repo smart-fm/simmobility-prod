@@ -26,6 +26,7 @@ namespace sim_mob
 class Crossing;
 class SplitPlan;
 class RoadSegment;
+class Signal;
 
 
 struct linkToLink
@@ -165,9 +166,12 @@ public:
 	const std::string & getName() const;
 	std::string outputPhaseTrafficLight(std::string newLine) const;
 	 sim_mob::RoadSegment * findRoadSegment(sim_mob::Link *, sim_mob::MultiNode *) const;
+	 void setParent(sim_mob::Signal*);
+	 Signal * getParent()const;
 
 	std::string name; //we can assign a name to a phase for ease of identification
 private:
+	Signal * parentSignal;
 	unsigned int TMP_PhaseID;
 	std::size_t startPecentage;
 	mutable std::size_t percentage;

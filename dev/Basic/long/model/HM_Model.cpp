@@ -77,11 +77,14 @@ const Unit* HM_Model::getUnitById(BigSerial id) const {
     return nullptr;
 }
 
-BigSerial HM_Model::getUnitTazId(BigSerial unitId) const {
+BigSerial HM_Model::getUnitTazId(BigSerial unitId) const
+{
     const Unit* unit = getUnitById(unitId);
     BigSerial tazId = INVALID_ID;
-    if (unit) {
-        tazId = DataManagerSingleton::getInstance().getPostcodeTazId(unit->getPostcodeId());
+
+    if (unit)
+    {
+        tazId = DataManagerSingleton::getInstance().getPostcodeTazId(unit->getSlaAddressId());
     }
     return tazId;
 }

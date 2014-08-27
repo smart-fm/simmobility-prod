@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 
-#include "entities/models/CarFollowModel.hpp"
+#include "entities/roles/driver/models/CarFollowModel.hpp"
 
 using namespace sim_mob;
 

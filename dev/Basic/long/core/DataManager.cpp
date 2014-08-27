@@ -60,49 +60,60 @@ void DataManager::load() {
     DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
     conn.connect();
     if (conn.isConnected()) {
-        loadData<BuildingDao>(conn, buildings, buildingsById, &Building::getId);
-        loadData<PostcodeDao>(conn, postcodes, postcodesById, &Postcode::getId);
+        loadData<BuildingDao>(conn, buildings, buildingsById, &Building::getFmBuildingId);
+        loadData<PostcodeDao>(conn, postcodes, postcodesById, &Postcode::getAddressId);
         loadData<PostcodeAmenitiesDao>(conn, amenities, amenitiesByCode, &PostcodeAmenities::getPostcode);
 
         // (Special case) Index all postcodes.
-        for (PostcodeList::iterator it = postcodes.begin(); it != postcodes.end(); it++) {
-            postcodesByCode.insert(std::make_pair((*it)->getCode(), *it));
+        for (PostcodeList::iterator it = postcodes.begin(); it != postcodes.end(); it++)
+        {
+            postcodesByCode.insert(std::make_pair((*it)->getSlaPostcode(), *it));
         }
 
         //Index all amenities. 
-        for (PostcodeAmenitiesList::iterator it = amenities.begin(); it != amenities.end(); it++) {
+        for (PostcodeAmenitiesList::iterator it = amenities.begin(); it != amenities.end(); it++)
+        {
             const Postcode* pc = getPostcodeByCode((*it)->getPostcode());
-            if (pc) {
-                amenitiesById.insert(std::make_pair(pc->getId(), *it));
+
+            if (pc)
+            {
+                amenitiesById.insert(std::make_pair(pc->getAddressId(), *it));
             }
         }
     }
     readyToLoad = false;
 }
 
-const Building* DataManager::getBuildingById(const BigSerial buildingId) const {
+const Building* DataManager::getBuildingById(const BigSerial buildingId) const
+{
     return getById<Building>(buildingsById, buildingId);
 }
 
-const Postcode* DataManager::getPostcodeById(const BigSerial postcodeId) const {
+const Postcode* DataManager::getPostcodeById(const BigSerial postcodeId) const
+{
     return getById<Postcode>(postcodesById, postcodeId);
 }
 
-const PostcodeAmenities* DataManager::getAmenitiesById(const BigSerial postcodeId) const {
+const PostcodeAmenities* DataManager::getAmenitiesById(const BigSerial postcodeId) const
+{
     return getById<PostcodeAmenities>(amenitiesById, postcodeId);
 }
 
-const Postcode* DataManager::getPostcodeByCode(const std::string& code) const {
+const Postcode* DataManager::getPostcodeByCode(const std::string& code) const
+{
     return getById<Postcode>(postcodesByCode, code);
 }
 
-const PostcodeAmenities* DataManager::getAmenitiesByCode(const std::string& code) const {
+const PostcodeAmenities* DataManager::getAmenitiesByCode(const std::string& code) const
+{
     return getById<PostcodeAmenities>(amenitiesByCode, code);
 }
 
-BigSerial DataManager::getPostcodeTazId(const BigSerial postcodeId) const {
+BigSerial DataManager::getPostcodeTazId(const BigSerial postcodeId) const
+{
     const Postcode* pc = getPostcodeById(postcodeId);
-    if (pc) {
+    if (pc)
+    {
         return pc->getTazId();
     }
     return INVALID_ID;

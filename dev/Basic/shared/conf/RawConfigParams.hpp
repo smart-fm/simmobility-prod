@@ -253,6 +253,7 @@ struct EntityTemplate {
 	Point2D destPos;
 	unsigned int startTimeMs;// default is zero
 	unsigned int laneIndex;// default is zero
+	int angentId;
 };
 
 

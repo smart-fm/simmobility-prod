@@ -37,11 +37,17 @@ inline void initRandomProvider(boost::thread_specific_ptr<boost::mt19937>& provi
 }
 
 float Utils::generateFloat(float min, float max) {
-    initRandomProvider(floatProvider);
+	if (min == max){
+		return min;
+	}
+//    initRandomProvider(floatProvider);
+	typedef boost::mt19937 RNGType;
+	      RNGType rng(time(0));
     boost::uniform_real<float> distribution(min, max);
     boost::variate_generator<boost::mt19937&, boost::uniform_real<float> > 
-        gen(*(floatProvider.get()), distribution);
-    return gen();
+    	dice(rng,distribution);
+//        gen(*(floatProvider.get()), distribution);
+    return dice();
 }
 
 int Utils::generateInt(int min, int max) {
@@ -52,6 +58,29 @@ int Utils::generateInt(int min, int max) {
     return gen();
 }
 
+double Utils::uRandom() {
+//	initRandomProvider(floatProvider);
+//	boost::uniform_int<> dist(0, RAND_MAX);
+//	long int seed_ = dist(floatProvider.get());
+	long int seed_ = Utils::generateInt(0,RAND_MAX);
+
+	const long int M = 2147483647; // M = modulus (2^31)
+	const long int A = 48271; // A = multiplier (was 16807)
+	const long int Q = M / A;
+	const long int R = M % A;
+	seed_ = A * (seed_ % Q) - R * (seed_ / Q);
+	seed_ = (seed_ > 0) ? (seed_) : (seed_ + M);
+	return (double) seed_ / (double) M;
+}
+
+double Utils::nRandom(double mean, double stddev) {
+	double r1 = uRandom(), r2 = uRandom();
+	double r = -2.0 * log(r1);
+	if (r > 0.0)
+		return (mean + stddev * sqrt(r) * sin(2 * 3.1415926 * r2));
+	else
+		return (mean);
+}
 
 std::vector<std::string> Utils::parseArgs(int argc, char* argv[])
 {
@@ -63,7 +92,7 @@ std::vector<std::string> Utils::parseArgs(int argc, char* argv[])
 }
 
 
-void Utils::printAndDeleteLogFiles(const std::list<std::string>& logFileNames)
+void Utils::printAndDeleteLogFiles(const std::list<std::string>& logFileNames,std::string outputFileName)
 {
 	//This can take some time.
 	StopWatch sw;
@@ -71,7 +100,8 @@ void Utils::printAndDeleteLogFiles(const std::list<std::string>& logFileNames)
 	std::cout <<"Merging output files, this can take several minutes...\n";
 
 	//One-by-one.
-	std::ofstream out("out.txt", std::ios::trunc|std::ios::binary);
+//	std::ofstream out("abc.txt", std::ios::trunc|std::ios::binary);
+	std::ofstream out(outputFileName.c_str(), std::ios::trunc|std::ios::binary);
 	if (!out.good()) { throw std::runtime_error("Error: Can't write to file."); }
 	for (std::list<std::string>::const_iterator it=logFileNames.begin(); it!=logFileNames.end(); it++) {
 		std::cout <<"  Merging: " <<*it <<std::endl;
@@ -113,7 +143,44 @@ double Utils::toFeet(const double meter) {
 double Utils::toMeter(const double feet) {
     return (feet * 0.3048);
 }
+void Utils::convertStringToArray(std::string& str,std::vector<double>& array)
+{
+	std::string splitDelimiter = " ,";
+	std::vector<std::string> arrayStr;
+//	vector<double> c;
 
+	// remove
+	char chars[] = "#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ(),;";
+	for (unsigned int i = 0; i < strlen(chars); ++i)
+	{
+		str.erase (std::remove(str.begin(), str.end(), chars[i]), str.end());
+	}
+	boost::trim(str);
+	boost::split(arrayStr, str, boost::is_any_of(splitDelimiter),boost::token_compress_on);
+	for(int i=0;i<arrayStr.size();++i)
+	{
+		double res;
+		try {
+#if 0
+			std::cout<<"<"<<arrayStr[i]<<">"<<std::endl;
+#endif
+				res = boost::lexical_cast<double>(arrayStr[i].c_str());
+			}catch(boost::bad_lexical_cast&) {
+				std::string str = "can not covert <" +str+"> to double.";
+				throw std::runtime_error(str);
+			}
+			array.push_back(res);
+	}
+}
+double Utils::urandom()
+{
+	return generateFloat(0,1);
+}
+int Utils::brandom(double prob)
+{
+	if (urandom() < prob) return (1);
+		   else return 0;
+}
 StopWatch::StopWatch() : now(0), end(0), running(false) {
 }
 

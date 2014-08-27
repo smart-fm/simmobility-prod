@@ -32,8 +32,8 @@ std::string getFromToString(const sim_mob::Node* fromNode,const sim_mob::Node* t
 	std::stringstream out("");
 	std::string idStrTo = toNode->originalDB_ID.getLogItem();
 	std::string idStrFrom = fromNode->originalDB_ID.getLogItem();
-	out << getNumberFromAimsunId(idStrFrom) << "," << getNumberFromAimsunId(idStrTo);
-	//Print() << "debug: " << idStrFrom << "   " << getNumberFromAimsunId(idStrFrom) << std::endl;
+	out << RoadSegment::getNumberFromAimsunId(idStrFrom) << "," << RoadSegment::getNumberFromAimsunId(idStrTo);
+	//Print() << "debug: " << idStrFrom << "   " << RoadSegment::getNumberFromAimsunId(idStrFrom) << std::endl;
 	return out.str();
 }
 
@@ -417,7 +417,7 @@ sim_mob::PathSetParam::PathSetParam() :
 		for (std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++) {
 			if (!(*seg_it)->originalDB_ID.getLogItem().empty()) {
 				string aimsun_id = (*seg_it)->originalDB_ID.getLogItem();
-				string seg_id = getNumberFromAimsunId(aimsun_id);
+				string seg_id = RoadSegment::getNumberFromAimsunId(aimsun_id);
 				segPool.insert(std::make_pair(seg_id, *seg_it));
 //				WayPoint *wp = new WayPoint(*seg_it);
 //				wpPool.insert(std::make_pair(*seg_it, wp));
@@ -428,7 +428,7 @@ sim_mob::PathSetParam::PathSetParam() :
 	BOOST_FOREACH(sim_mob::Node* n, ConfigManager::GetInstance().FullConfig().getNetwork().getNodes()){
 		if (!n->originalDB_ID.getLogItem().empty()) {
 			std::string t = n->originalDB_ID.getLogItem();
-			std::string id = sim_mob::getNumberFromAimsunId(t);
+			std::string id = sim_mob::RoadSegment::getNumberFromAimsunId(t);
 			nodePool.insert(std::make_pair(id , n));
 		}
 	}
@@ -436,7 +436,7 @@ sim_mob::PathSetParam::PathSetParam() :
 	BOOST_FOREACH(sim_mob::UniNode* n, ConfigManager::GetInstance().FullConfig().getNetwork().getUniNodes()){
 		if (!n->originalDB_ID.getLogItem().empty()) {
 			std::string t = n->originalDB_ID.getLogItem();
-			std::string id = sim_mob::getNumberFromAimsunId(t);
+			std::string id = sim_mob::RoadSegment::getNumberFromAimsunId(t);
 			nodePool.insert(std::make_pair(id, n));
 		}
 	}
@@ -959,7 +959,7 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(std::vector<sim_mob::WayP
 	std::stringstream out("");
 	std::string idStrTo = toNode->originalDB_ID.getLogItem();
 	std::string idStrFrom = fromNode->originalDB_ID.getLogItem();
-	out << getNumberFromAimsunId(idStrFrom) << "," << getNumberFromAimsunId(idStrTo);
+	out << RoadSegment::getNumberFromAimsunId(idStrFrom) << "," << RoadSegment::getNumberFromAimsunId(idStrTo);
 	std::string fromToID(out.str());
 	sim_mob::Logger::log["path_set"] << "[" << boost::this_thread::get_id() << "]searching for OD[" << fromToID << "]\n" ;
 	boost::shared_ptr<sim_mob::PathSet> ps_;
@@ -1076,9 +1076,9 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(std::vector<sim_mob::WayP
 //		ps_->from_node_id = fromNode->originalDB_ID.getLogItem();
 //		ps_->to_node_id = toNode->originalDB_ID.getLogItem();
 		std:string temp = fromNode->originalDB_ID.getLogItem();
-		ps_->from_node_id = sim_mob::getNumberFromAimsunId(temp);
+		ps_->from_node_id = sim_mob::RoadSegment::getNumberFromAimsunId(temp);
 		temp = toNode->originalDB_ID.getLogItem();
-		ps_->to_node_id = sim_mob::getNumberFromAimsunId(temp);
+		ps_->to_node_id = sim_mob::RoadSegment::getNumberFromAimsunId(temp);
 		ps_->scenario = scenarioName;
 		ps_->subTrip = st;
 		ps_->psMgr = this;
@@ -1463,9 +1463,9 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 //				ps_->from_node_id = fromNode->originalDB_ID.getLogItem();
 //				ps_->to_node_id = toNode->originalDB_ID.getLogItem();
 				std:string temp = fromNode->originalDB_ID.getLogItem();
-				ps_->from_node_id = sim_mob::getNumberFromAimsunId(temp);
+				ps_->from_node_id = sim_mob::RoadSegment::getNumberFromAimsunId(temp);
 				temp = toNode->originalDB_ID.getLogItem();
-				ps_->to_node_id = sim_mob::getNumberFromAimsunId(temp);
+				ps_->to_node_id = sim_mob::RoadSegment::getNumberFromAimsunId(temp);
 				ps_->scenario = scenarioName;
 				std::map<std::string,boost::shared_ptr<sim_mob::PathSet> > tmp;
 				tmp.insert(std::make_pair(fromToID,ps_));
@@ -1497,9 +1497,9 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 //				ps_->from_node_id = fromNode->originalDB_ID.getLogItem();
 //				ps_->to_node_id = toNode->originalDB_ID.getLogItem();
 				std::string temp = fromNode->originalDB_ID.getLogItem();
-				ps_->from_node_id = sim_mob::getNumberFromAimsunId(temp);
+				ps_->from_node_id = sim_mob::RoadSegment::getNumberFromAimsunId(temp);
 				temp = toNode->originalDB_ID.getLogItem();
-				ps_->to_node_id = sim_mob::getNumberFromAimsunId(temp);
+				ps_->to_node_id = sim_mob::RoadSegment::getNumberFromAimsunId(temp);
 				ps_->scenario = scenarioName;
 				// 3. store pathset
 				sim_mob::generatePathSizeForPathSet2(ps_);
@@ -1990,24 +1990,6 @@ sim_mob::SinglePath* sim_mob::PathSetManager::generateShortestTravelTimePath(con
 		return s;
 }
 
-
-std::string sim_mob::getNumberFromAimsunId(std::string &aimsunid)
-{
-	//"aimsun-id":"69324",
-	std::string number;
-	boost::regex expr (".*\"aimsun-id\":\"([0-9]+)\".*$");
-	boost::smatch matches;
-	if (boost::regex_match(aimsunid, matches, expr))
-	{
-		number  = std::string(matches[1].first, matches[1].second);
-	}
-	else
-	{
-		Warn()<<"aimsun id not correct "+aimsunid<<std::endl;
-	}
-
-	return number;
-}
 std::vector<WayPoint*> sim_mob::convertWaypoint2Point(std::vector<WayPoint> wp)
 {
 	std::vector<WayPoint*> res;
@@ -2771,9 +2753,9 @@ boost::shared_ptr<sim_mob::PathSet>sim_mob::PathSetManager::generatePathSetByFro
 //	ps->from_node_id = fromNode->getID();
 //	ps->to_node_id = toNode->getID();
 	std:string temp = fromNode->originalDB_ID.getLogItem();
-	ps->from_node_id = sim_mob::getNumberFromAimsunId(temp);
+	ps->from_node_id = sim_mob::RoadSegment::getNumberFromAimsunId(temp);
 	temp = toNode->originalDB_ID.getLogItem();
-	ps->to_node_id = sim_mob::getNumberFromAimsunId(temp);
+	ps->to_node_id = sim_mob::RoadSegment::getNumberFromAimsunId(temp);
 	ps->scenario = scenarioName;
 	// 3. store pathset
 	sim_mob::generatePathSizeForPathSet2(ps);

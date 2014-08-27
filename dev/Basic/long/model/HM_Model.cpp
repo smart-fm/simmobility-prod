@@ -18,8 +18,8 @@
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
 #include "util/HelperFunctions.hpp"
-
-
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -35,8 +35,7 @@ namespace {
     const BigSerial FAKE_IDS_START = 9999900;
 }
 
-HM_Model::TazStats::TazStats(BigSerial tazId) : tazId(tazId), 
-        hhNum(0), hhTotalIncome(0) {
+HM_Model::TazStats::TazStats(BigSerial tazId) : tazId(tazId), hhNum(0), hhTotalIncome(0) {
 }
 
 HM_Model::TazStats::~TazStats() {
@@ -63,8 +62,7 @@ double HM_Model::TazStats::getHH_AvgIncome() const {
     return hhTotalIncome / static_cast<double> ((hhNum == 0) ? 1 : hhNum);
 }
 
-HM_Model::HM_Model(WorkGroup& workGroup)
-: Model(MODEL_NAME, workGroup) {
+HM_Model::HM_Model(WorkGroup& workGroup): Model(MODEL_NAME, workGroup) {
 }
 
 HM_Model::~HM_Model() {
@@ -79,12 +77,14 @@ const Unit* HM_Model::getUnitById(BigSerial id) const {
     return nullptr;
 }
 
-BigSerial HM_Model::getUnitTazId(BigSerial unitId) const {
+BigSerial HM_Model::getUnitTazId(BigSerial unitId) const
+{
     const Unit* unit = getUnitById(unitId);
     BigSerial tazId = INVALID_ID;
-    if (unit) {
-        tazId = DataManagerSingleton::getInstance()
-                .getPostcodeTazId(unit->getPostcodeId());
+
+    if (unit)
+    {
+        tazId = DataManagerSingleton::getInstance().getPostcodeTazId(unit->getSlaAddressId());
     }
     return tazId;
 }
@@ -106,6 +106,9 @@ const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const 
 }
 
 void HM_Model::startImpl() {
+
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
     // Loads necessary data from database.
     DB_Config dbConfig(LT_DB_CONFIG_FILE);
     dbConfig.load();
@@ -117,6 +120,23 @@ void HM_Model::startImpl() {
         loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
         //Load units
         loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
+
+       //Simmobility Test Params
+       const int numHouseholds = config.ltParams.housingModel.numberOfHouseholds;
+       const int numUnits = config.ltParams.housingModel.numberOfUnits;
+
+       int displayUnits = numUnits == -1? units.size(): numUnits;
+       int displayHouseholds = numHouseholds == -1? households.size(): numHouseholds;
+
+       PrintOut("Number of units: " <<  units.size() << ". Units Used: " << displayUnits << std::endl );
+       PrintOut("Number of households: " << households.size() << ". Households used: " << displayHouseholds << std::endl );
+
+       if( numUnits != -1 && numUnits < units.size() )
+    	   units.resize( numUnits );
+
+       if( numHouseholds != -1 && numHouseholds < households.size() )
+    	   households.resize( numHouseholds );
+
     }
 
     workGroup.assignAWorker(&market);
@@ -125,8 +145,7 @@ void HM_Model::startImpl() {
     //create fake seller agents to sell vacant units.
     std::vector<HouseholdAgent*> fakeSellers;
     for (int i = 0; i < numberOfFakeSellers; i++) {
-        HouseholdAgent* fakeSeller = new HouseholdAgent((FAKE_IDS_START + i),
-                this, nullptr, &market, true);
+        HouseholdAgent* fakeSeller = new HouseholdAgent((FAKE_IDS_START + i), this, nullptr, &market, true);
         AgentsLookupSingleton::getInstance().addHousehold(fakeSeller);
         agents.push_back(fakeSeller);
         workGroup.assignAWorker(fakeSeller);
@@ -135,21 +154,25 @@ void HM_Model::startImpl() {
 
     boost::unordered_map<BigSerial, BigSerial> assignedUnits;
 
+    int homelessHousehold = 0;
+
     // Assign households to the units.
-    for (HouseholdList::const_iterator it = households.begin();
-            it != households.end(); it++) {
+    for (HouseholdList::const_iterator it = households.begin(); it != households.end(); it++) {
         const Household* household = *it;
-        HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,
-                household, &market);
+        HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this, household, &market);
         const Unit* unit = getUnitById(household->getUnitId());
         if (unit) {
             hhAgent->addUnitId(unit->getId());
             assignedUnits.insert(std::make_pair(unit->getId(), unit->getId()));
         }
+        else
+        {
+        	homelessHousehold++;
+        }
+
         BigSerial tazId = getUnitTazId(household->getUnitId());
         if (tazId != INVALID_ID){
-            const HM_Model::TazStats* tazStats = 
-                getTazStatsByUnitId(household->getUnitId());
+            const HM_Model::TazStats* tazStats = getTazStatsByUnitId(household->getUnitId());
             if (!tazStats){
                 tazStats = new TazStats(tazId);
                 stats.insert(std::make_pair(tazId, const_cast<HM_Model::TazStats*>(tazStats)));
@@ -166,6 +189,29 @@ void HM_Model::startImpl() {
         workGroup.assignAWorker(hhAgent);
     }
 
+    PrintOut("There are " << homelessHousehold << " homeless households" << std::endl );
+
+    const int NUM_VACANT_UNITS = config.ltParams.housingModel.numberOfVacantUnits;
+
+    //Delete vacant units set by config file.
+    //n: variable n will increment by 1 for every vacant unit
+    //m: variable m will keep the index of the last retrieved vacant unit to speed up the process.
+    for(int n = 0, m = 0; n < NUM_VACANT_UNITS; )
+    {
+		for (UnitList::const_iterator it = units.begin() + m; it != units.end(); it++)
+		{
+			//this unit is a vacancy
+			if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
+			{
+				units.erase( units.begin() + m );
+				n++;
+				break;
+			}
+
+			m++;
+		}
+    }
+
     unsigned int vacancies = 0;
     //assign vacancies to fake seller
     for (UnitList::const_iterator it = units.begin(); it != units.end(); it++) {
@@ -175,6 +221,9 @@ void HM_Model::startImpl() {
             vacancies++;
         }
     }
+
+    PrintOut("Initial Vacancies: " << vacancies << std::endl );
+
     addMetadata("Initial Units", units.size());
     addMetadata("Initial Households", households.size());
     addMetadata("Initial Vacancies", vacancies);

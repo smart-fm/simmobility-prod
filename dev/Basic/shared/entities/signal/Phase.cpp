@@ -10,6 +10,7 @@
 
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "entities/signal/Signal.hpp"
 
 namespace sim_mob
 {
@@ -182,6 +183,14 @@ sim_mob::RoadSegment * Phase::findRoadSegment(sim_mob::Link * link,sim_mob::Mult
 	}
 
 	return rs;
+}
+
+
+void Phase::setParent(sim_mob::Signal* value){
+	parentSignal = value;
+}
+Signal * Phase::getParent()const{
+	return parentSignal;
 }
 
 void Phase::addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink & ll,sim_mob::MultiNode *node) const {
@@ -389,6 +398,20 @@ std::string Phase::outputPhaseTrafficLight(std::string newLine) const
 			output << "\"segment_from\":\"" << (*it).second.RS_From << "\" ,"; //linkFrom
 			output << "\"segment_to\":\"" << (*it).second.RS_To << "\",";//linkTo
 			output <<"\"current_color\":" << (*it).second.currColor << "}";//currColor
+			sim_mob::TrafficColor lit;
+			const Lane *from = *(*it).second.RS_From->getLanes().begin();
+			const Lane *to = *(*it).second.RS_To->getLanes().begin();
+//			if((lit = getParent()->getDriverLight((**(*it).second.RS_From->getLanes().begin()),(**(*it).second.RS_To->getLanes().begin()))) != (*it).second.currColor){
+//			if((lit = getParent()->getDriverLight(*from,*to)) != (*it).second.currColor){
+//				std::stringstream out("");
+//				out << "[" << (*it).second.RS_From << "," << (*it).second.RS_To << "]->" ;
+//				out << (*it).second.currColor << "vs" << lit << " color mismatch" << std::endl;
+//				throw std::runtime_error (out.str());
+//			}
+//			else{
+//				Print() << "traffic light for segment[" <<
+//						(*it).second.RS_From << "," << (*it).second.RS_To << "] [" << (*it).second.currColor << "vs" << lit << "] color match" << std::endl;
+//			}
 			it++;
 			if (it != linksMap.end())
 				output << "," << newLine;

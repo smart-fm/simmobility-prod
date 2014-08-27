@@ -675,7 +675,7 @@ inline std::string makeWaypointsetString(std::vector<WayPoint>& wp)
 		if (it->type_ == WayPoint::ROAD_SEGMENT)
 		{
 			std::string tmp = it->roadSegment_->originalDB_ID.getLogItem();
-			str += getNumberFromAimsunId(tmp) + ",";
+			str += sim_mob::RoadSegment::getNumberFromAimsunId(tmp) + ",";
 		} // if ROAD_SEGMENT
 	}
 
@@ -686,8 +686,6 @@ inline std::string makeWaypointsetString(std::vector<WayPoint>& wp)
 	}
 	return str;
 }
-
-std::string getNumberFromAimsunId(std::string &aimsunid);
 
 std::vector<WayPoint*> convertWaypoint2Point(std::vector<WayPoint> wp);
 

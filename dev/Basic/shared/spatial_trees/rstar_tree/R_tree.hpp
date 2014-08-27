@@ -2,6 +2,13 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+/**
+ * There are three different Tree-based Spatial Indexes implemented in SimMobility: R*-Tree, R-DU Tree and Sim-Tree.
+ * R*-Tree is the default choice
+ * R-DU Tree is used for research comparison
+ * Sim-Tree is the optimal choice
+ */
+
 #pragma once
 
 #include "spatial_trees/rstar_tree/RStarTree.hpp"

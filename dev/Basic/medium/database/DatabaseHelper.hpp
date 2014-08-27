@@ -180,6 +180,8 @@ namespace medium {
 	 */
 	const std::string MONGO_FIELD_NODE_ID = "_id";
 	const std::string MONGO_FIELD_MTZ = "MTZ_1092";
+	const std::string MONGO_FIELD_SOURCE_NODE = "source";
+	const std::string MONGO_FIELD_SINK_NODE = "sink";
 
 } // end namespace medium
 } // end namespace sim_mob

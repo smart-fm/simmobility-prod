@@ -17,14 +17,6 @@ using namespace sim_mob;
 using namespace xercesc;
 namespace sim_mob
 {
-//Helper: turn a Xerces error message into a string.
-std::string TranscodeString(const XMLCh* str)
-{
-	char* raw = XMLString::transcode(str);
-	std::string res(raw);
-	XMLString::release(&raw);
-	return res;
-}
 
 //Helper: make sure we actually have an element
 DOMElement* NodeToElement(DOMNode* node)

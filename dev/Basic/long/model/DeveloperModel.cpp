@@ -30,12 +30,10 @@ namespace {
     const string MODEL_NAME = "Developer Model";
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup)
-: Model(MODEL_NAME, workGroup), timeInterval( 30 ){ //In days (7 - weekly, 30 - Montly)
+DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ){ //In days (7 - weekly, 30 - Montly)
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel )
-: Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ){
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ){
 }
 
 DeveloperModel::~DeveloperModel() {
@@ -63,8 +61,8 @@ void DeveloperModel::startImpl() {
         loadData<TemplateUnitTypeDao>(conn, templateUnitTypes);
     }
 
-    for (DeveloperList::iterator it = developers.begin(); it != developers.end();
-            it++) {
+    for (DeveloperList::iterator it = developers.begin(); it != developers.end(); it++)
+    {
         DeveloperAgent* devAgent = new DeveloperAgent(*it, this);
         AgentsLookupSingleton::getInstance().addDeveloper(devAgent);
         agents.push_back(devAgent);
@@ -73,8 +71,8 @@ void DeveloperModel::startImpl() {
 
     //Assign parcels to developers.
     unsigned int index = 0;
-    for (ParcelList::iterator it = parcels.begin(); it != parcels.end();
-            it++) {
+    for (ParcelList::iterator it = parcels.begin(); it != parcels.end(); it++)
+    {
         DeveloperAgent* devAgent = dynamic_cast<DeveloperAgent*> (agents[index % agents.size()]);
         if (devAgent) {
             devAgent->assignParcel((*it)->getId());
@@ -83,6 +81,15 @@ void DeveloperModel::startImpl() {
         }
         index++;
     }
+
+    PrintOut("Time Interval " << timeInterval << std::endl);
+    PrintOut("Initial Developers " << developers.size() << std::endl);
+    PrintOut("Initial Templates " << templates.size() << std::endl);
+    PrintOut("Initial Parcels " << parcels.size() << std::endl);
+    PrintOut("Initial Zones " << zones.size() << std::endl);
+    PrintOut("Initial DevelopmentTypeTemplates " << developmentTypeTemplates.size() << std::endl);
+    PrintOut("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
+
 
     addMetadata("Time Interval", timeInterval);
     addMetadata("Initial Developers", developers.size());

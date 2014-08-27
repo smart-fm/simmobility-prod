@@ -464,6 +464,9 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	housingModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "housingModel"), "enabled"), false);
 	housingModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeInterval"), "value"), static_cast<unsigned int>(0));
 	housingModel.timeOnMarket = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeOnMarket"), "value"), static_cast<unsigned int>(0));
+	housingModel.numberOfHouseholds = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "numberOfHouseholds"), "value"), static_cast<unsigned int>(0));
+	housingModel.numberOfUnits = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "numberOfUnits"), "value"), static_cast<unsigned int>(0));
+	housingModel.numberOfVacantUnits = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "numberOfVacantUnits"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.housingModel = housingModel;
 }
 
@@ -887,6 +890,7 @@ void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMElement* node,
 			ent.destPos = ParsePoint2D(GetNamedAttributeValue(item, "destPos", destReq), Point2D());
 			ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(item, "time", timeReq), static_cast<unsigned int>(0));
 			ent.laneIndex = ParseUnsignedInt(GetNamedAttributeValue(item, "lane", laneReq), static_cast<unsigned int>(0));
+			ent.angentId = ParseUnsignedInt(GetNamedAttributeValue(item, "id", false), static_cast<unsigned int>(0));
 			res.push_back(ent);
 		}
 	}

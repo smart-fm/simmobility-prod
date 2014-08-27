@@ -20,6 +20,8 @@
 #include <boost/random.hpp>
 #include <boost/nondet_random.hpp>
 #include "boost/generator_iterator.hpp"
+#include <stdexcept>
+#include "boost/lexical_cast.hpp"
 
 namespace sim_mob {
 
@@ -33,6 +35,9 @@ namespace sim_mob {
          * @return the generated value. 
          */
         static float generateFloat(float min, float max);
+
+        static double uRandom();
+        static double nRandom(double mean, double stddev);
 
         /**
          * Generates a new integer value.
@@ -50,7 +55,7 @@ namespace sim_mob {
         /**
          * Merges log files. 
          */
-        static void printAndDeleteLogFiles(const std::list<std::string>& logFileNames);
+        static void printAndDeleteLogFiles(const std::list<std::string>& logFileNames,std::string outputFileName="out.txt");
 
         //Helper for XML parsing. Source value looks like this: "3000 : 6000", spaces optional.
         //\todo This is mostly in the wrong place; our whole "util" directory needs some reorganization.
@@ -101,7 +106,6 @@ namespace sim_mob {
          * @return value in meter.
          */
         static double toMeter(const double feet);
-
         typedef boost::shared_ptr<boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > > ND_PTR;
         template<typename T>
         static ND_PTR initDistribution(std::pair<T , T > range){
@@ -113,6 +117,55 @@ namespace sim_mob {
         	distributionPtr.reset(new boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > (rng, nd));
         	return distributionPtr;
         }
+        /**
+         * Converts the given value (in centimeters) to meters.
+         * @param cmValue
+         * @return value in meters
+         */
+        template<typename T> static T cmToMeter(const T& cmValue){
+            return (T)(cmValue/(T)100);
+        }
+        
+        /**
+         * Converts given string to defined type.
+         * This function throws exception in case of error during the conversion.
+         * @param value to convert.
+         * @return value in the defined type if the conversion is valid 
+         * otherwise an exception is thrown.
+         */
+        template<typename T> static T cast(const std::string& value) {
+            try {
+                return boost::lexical_cast<T>(value);
+            } catch (boost::bad_lexical_cast&) {
+                throw std::runtime_error("Cannot convert <" + value + ">");
+            }
+        }
+        
+        /**
+         * Converts given string to defined type.
+         * This function does not throws exception in the case of error during the conversion. 
+         * It returns the given errorValue instead.
+         * @param value to convert.
+         * @param errorValue value to return in the case of error.
+         * @return value in the defined type or the errorValue if conversion has failed.
+         */
+        template<typename T> static T cast(const std::string& value, const T& errorValue) {
+            try {
+                return boost::lexical_cast<T>(value);
+            } catch (boost::bad_lexical_cast&) {
+            }
+            return errorValue;
+        }
+
+        /**
+         *  convert text string to double array
+         *  @param str text string like "1 2 3" or "1,2,3"
+         *  @array store extracted numbers from text
+         */
+        static void convertStringToArray(std::string& str,std::vector<double>& array);
+
+        static double urandom();
+        static int brandom(double p);
     };
 
     /**

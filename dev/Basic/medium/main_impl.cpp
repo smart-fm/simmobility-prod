@@ -23,9 +23,6 @@
 #include "entities/Agent.hpp"
 #include "entities/BusController.hpp"
 #include "entities/Person.hpp"
-#include "entities/models/CarFollowModel.hpp"
-#include "entities/models/LaneChangeModel.hpp"
-#include "entities/models/IntersectionDrivingModel.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
@@ -399,7 +396,7 @@ bool performMainDemand()
 	else
 	{
 		Print() << "Preday mode: " << (mtConfig.runningPredaySimulation()? "simulation":"logsum computation")  << std::endl;
-		predayManager.distributeAndProcessPersons();
+		predayManager.dispatchPersons();
 	}
 	return true;
 }

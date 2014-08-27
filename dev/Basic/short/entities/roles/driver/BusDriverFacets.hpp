@@ -147,10 +147,6 @@ public:
 	double busStopWaitBoardingAlightingSec;
 
 protected:
-	//Override the following behavior
-	virtual double linkDriving(DriverUpdateParams& p);
-
-protected:
 	BusDriver* parentBusDriver;
 
 //Basic data

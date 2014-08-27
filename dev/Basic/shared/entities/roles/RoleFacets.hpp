@@ -110,6 +110,7 @@ class MovementFacet : public Facet, public messaging::MessageHandler {
 public:
 	explicit MovementFacet(sim_mob::Person* parentAgent=nullptr) : Facet(parentAgent), MessageHandler(msgHandlerId ++) { }
 	virtual ~MovementFacet() {}
+	virtual void init() {}
 
 	virtual bool updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Driver* other_driver) { return false; };
 	virtual void updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Pedestrian* pedestrian) {};

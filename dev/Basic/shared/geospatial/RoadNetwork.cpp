@@ -175,5 +175,28 @@ Node* sim_mob::RoadNetwork::locateNode(double xPos, double yPos, bool includeUni
 
 	return candidate;
 }
-
+int sim_mob::RoadNetwork::getSegmentType(std::string& id)
+{
+	std::map<std::string,int>::iterator it = segmentTypeMap.find(id);
+	if(it!=segmentTypeMap.end())
+	{
+		return it->second;
+	}
+	else
+	{
+		return 0;
+	}
+}
+int sim_mob::RoadNetwork::getNodeType(std::string& id)
+{
+	std::map<std::string,int>::iterator it = nodeTypeMap.find(id);
+	if(it!=nodeTypeMap.end())
+	{
+		return it->second;
+	}
+	else
+	{
+		return 0;
+	}
+}
 

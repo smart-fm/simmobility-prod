@@ -485,6 +485,7 @@ void sim_mob::Signal_SCATS::buffer_output(timeslice now, std::string newLine)
 
 	for(int i =0; i < getPhases().size(); i++)
 	{
+//		std::cout<<"outputPhaseTrafficLight: "<<now.frame()<<std::endl;
 		output << getPhases()[i].outputPhaseTrafficLight(newLine);
 		if((i + 1) < getPhases().size()) output << ",";
 	}

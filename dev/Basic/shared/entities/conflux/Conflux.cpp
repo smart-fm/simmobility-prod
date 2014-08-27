@@ -1194,7 +1194,7 @@ bool sim_mob::Conflux::insertTravelTime2TmpTable(timeslice frameNumber, std::map
 			LinkTravelTime tt;
 			DailyTime simStart = ConfigManager::GetInstance().FullConfig().simStartTime();
 			std::string aimsun_id = (*it).first->originalDB_ID.getLogItem();
-			std::string seg_id = getNumberFromAimsunId(aimsun_id);
+			std::string seg_id = sim_mob::RoadSegment::getNumberFromAimsunId(aimsun_id);
 			try {
 				tt.link_id = boost::lexical_cast<int>(seg_id);
 			} catch( boost::bad_lexical_cast const& ) {

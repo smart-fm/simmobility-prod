@@ -110,17 +110,47 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
 	,stop_event_nodeid(mtxStrat, -1)
 {
-	//This is something of a quick fix; if there is no parent, then that means the
-	//  reaction times haven't been initialized yet and will crash. ~Seth
-	if (parent) {
-		ReactionTimeDist* r1 = ConfigManager::GetInstance().FullConfig().reactDist1;
-		ReactionTimeDist* r2 = ConfigManager::GetInstance().FullConfig().reactDist2;
-		if (r1 && r2) {
-			reacTime = r1->getReactionTime() + r2->getReactionTime();
-			reacTime = 0;
-		} else {
-			throw std::runtime_error("Reaction time distributions have not been initialized yet.");
-		}
+//	//This is something of a quick fix; if there is no parent, then that means the
+//	//  reaction times haven't been initialized yet and will crash. ~Seth
+//	if (parent) {
+//		ReactionTimeDist* r1 = ConfigManager::GetInstance().FullConfig().reactDist1;
+//		ReactionTimeDist* r2 = ConfigManager::GetInstance().FullConfig().reactDist2;
+//		if (r1 && r2) {
+//			reacTime = r1->getReactionTime() + r2->getReactionTime();
+//			//reacTime = 0;
+//		} else {
+//			throw std::runtime_error("Reaction time distributions have not been initialized yet.");
+//		}
+//	}
+
+
+//	if(movement)
+//	{
+//		reacTime = movement->cfModel->nextPerceptionSize * 100; // seconds to ms
+//	}
+//
+//	perceivedFwdVel = new FixedDelayed<double>(reacTime,true);
+//	perceivedFwdAcc = new FixedDelayed<double>(reacTime,true);
+//	perceivedVelOfFwdCar = new FixedDelayed<double>(reacTime,true);
+//	perceivedAccOfFwdCar = new FixedDelayed<double>(reacTime,true);
+//	perceivedDistToFwdCar = new FixedDelayed<double>(reacTime,true);
+//	perceivedDistToTrafficSignal = new FixedDelayed<double>(reacTime,true);
+//	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
+
+	// record start time
+	startTime = getParams().now.ms()/MILLISECS_CONVERT_UNIT;
+	isAleadyStarted = false;
+	currDistAlongRoadSegment = 0;
+
+	getParams().driver = this;
+}
+
+void sim_mob::Driver::initReactionTime()
+{
+	DriverMovement* movement = (DriverMovement* ) movementFacet;
+	if(movement)
+	{
+		reacTime = movement->cfModel->nextPerceptionSize * 1000; // seconds to ms
 	}
 
 	perceivedFwdVel = new FixedDelayed<double>(reacTime,true);
@@ -131,13 +161,7 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	perceivedDistToTrafficSignal = new FixedDelayed<double>(reacTime,true);
 	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
 
-	// record start time
-	startTime = getParams().now.ms()/MILLISECS_CONVERT_UNIT;
-	isAleadyStarted = false;
-	currDistAlongRoadSegment = 0;
 }
-
-
 Role* sim_mob::Driver::clone(Person* parent) const
 {
 	DriverBehavior* behavior = new DriverBehavior(parent);
@@ -145,6 +169,7 @@ Role* sim_mob::Driver::clone(Person* parent) const
 	Driver* driver = new Driver(parent, parent->getMutexStrategy(), behavior, movement);
 	behavior->setParentDriver(driver);
 	movement->setParentDriver(driver);
+	movement->init();
 	return driver;
 }
 
@@ -203,7 +228,40 @@ std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
 void sim_mob::Driver::handleUpdateRequest(MovementFacet* mFacet){
 	mFacet->updateNearbyAgent(this->getParent(),this);
 }
+const double sim_mob::Driver::getFwdVelocityM() const
+{
+	double d= fwdVelocity.get() / 100.0;
+	return d;
+}
+double sim_mob::Driver::gapDistance(const Driver* front)
+{
+	double headway;
+	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
+	if (front) {			/* vehicle ahead */
+		DriverMovement* frontMov = dynamic_cast<DriverMovement*>(front->Movement());
+//	    if (lane_->segment() == front->segment())
+		if(mov->fwdDriverMovement.getCurrSegment() == frontMov->fwdDriverMovement.getCurrSegment())
+		{				/* same segment */
+//			headway = distance_ - front->distance_ - front->length();
+			headway = mov->fwdDriverMovement.getDisToCurrSegEnd() - frontMov->fwdDriverMovement.getDisToCurrSegEnd() - front->getVehicleLengthM();
+		}
+		else {				/* different segment */
+//			headway = distance_ + (front->lane_->length() -
+//									   front->distance_ -
+//									   front->length());
+			headway = mov->fwdDriverMovement.getDisToCurrSegEnd() + frontMov->fwdDriverMovement.getCurrDistAlongPolylineCM() - front->getVehicleLengthM();
+			  }
+	} else			/* no vehicle ahead. */
+		  {
+			headway = Math::FLT_INF;
+		  }
 
+	 return headway;
+}
+bool sim_mob::Driver::isBus()
+{
+	return getVehicle()->getVehicleType() == VehicleBase::BUS;
+}
 void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 {
 	UpdateParams::reset(now);
@@ -228,18 +286,18 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	perceivedLatVelocity = 0;
 
 	trafficColor = sim_mob::Green;
-	perceivedTrafficColor = sim_mob::Green;
+//	perceivedTrafficColor = sim_mob::Green;
 
-	trafficSignalStopDistance = Driver::maxVisibleDis;
+//	trafficSignalStopDistance = Driver::maxVisibleDis;
 	elapsedSeconds = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
 
 	perceivedFwdVelocityOfFwdCar = 0;
 	perceivedLatVelocityOfFwdCar = 0;
 	perceivedAccelerationOfFwdCar = 0;
-	perceivedDistToFwdCar = Driver::maxVisibleDis;
-	perceivedDistToTrafficSignal = Driver::maxVisibleDis;
+//	perceivedDistToFwdCar = Driver::maxVisibleDis; // no need reset
+//	perceivedDistToTrafficSignal = Driver::maxVisibleDis;
 
-	perceivedTrafficColor  = sim_mob::Green;
+//	perceivedTrafficColor  = sim_mob::Green;
 
 	//Lateral velocity of lane changing.
 	laneChangingVelocity = 100;
@@ -314,4 +372,14 @@ void Driver::setCurrPosition(DPoint currPosition)
 const DPoint& Driver::getCurrPosition() const
 {
 	return currPos;
+}
+void Driver::resetReacTime(double t)
+{
+	perceivedFwdVel->set_delay(t);
+	perceivedFwdAcc->set_delay(t);
+	perceivedVelOfFwdCar->set_delay(t);
+	perceivedAccOfFwdCar->set_delay(t);
+	perceivedDistToFwdCar->set_delay(t);
+	perceivedDistToTrafficSignal->set_delay(t);
+	perceivedTrafficColor->set_delay(t);
 }

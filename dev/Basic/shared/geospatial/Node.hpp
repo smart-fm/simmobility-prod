@@ -32,6 +32,14 @@ class PackageUtils;
 class UnPackageUtils;
 #endif
 
+enum SimNodeType
+	{
+		DEFAULT_NODE  = 0,
+		URBAN_IS_SIGNAL_NODE= 1, //urban intersection with signal
+		URBAN_IS_NO_SIGNAL_NODE = 2,//urban intersection w/o signal
+		PRIORITY_MERGE_NODE = 3,//priority merge
+		NON_PRIORITY_MERGE_NODE = 4 //non-priority merge
+	};
 /**
  * A location on a map where other elements interact. Nodes contain a Point2D representing their
  * location. Additional information (such as lane connectors) are located in other classes (e.g.,
@@ -53,7 +61,9 @@ class Node {
 		//For Now, I will keep working in this way until we find a better solution-vahid
 friend class ::geo::Node_t_pimpl;
 public:
+
 	unsigned int nodeId;//read from DB
+	SimNodeType type;
 public:
 	virtual ~Node() {} //A virtual destructor allows dynamic casting
 
@@ -65,6 +75,12 @@ public:
 	//Nodes may have hidden properties useful only in for the visualizer.
 	OpaqueProperty<int> originalDB_ID;
 
+	/**
+	 *  /brief get aimsun id
+	 *  /return id
+	 */
+	unsigned int getAimsunId() const;
+
 #ifndef SIMMOB_DISABLE_MPI
 	///The identification of Node is packed using PackageUtils;
 	static void pack(PackageUtils& package, const Node* one_node);
@@ -75,7 +91,7 @@ public:
 
 
 //protected:
-    explicit Node(int x=0, int y=0, unsigned int nodeId_=0) : nodeId(nodeId_), location(x, y) {}
+    explicit Node(int x=0, int y=0, unsigned int nodeId_=0) : nodeId(nodeId_), location(x, y),type(DEFAULT_NODE) {}
 
 //private:
 //    sim_mob::Link* linkLoc;

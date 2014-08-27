@@ -555,6 +555,15 @@ sim_mob::medium::PredayManager::~PredayManager() {
 		}
 	}
 	opCostMap.clear();
+
+	// clear Zone node map
+	Print() << "Clearing zoneNodeMap" << std::endl;
+	for(ZoneNodeMap::iterator i = zoneNodeMap.begin(); i!=zoneNodeMap.end(); i++) {
+		for(std::vector<ZoneNodeParams*>::iterator j=i->second.begin(); j!=i->second.end(); j++) {
+			delete *j;
+		}
+	}
+	zoneNodeMap.clear();
 }
 
 void sim_mob::medium::PredayManager::loadPersons(BackendType dbType) {
@@ -695,7 +704,7 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
 	}
 }
 
-void sim_mob::medium::PredayManager::distributeAndProcessPersons() {
+void sim_mob::medium::PredayManager::dispatchPersons() {
 	boost::thread_group threadGroup;
 	unsigned numWorkers = mtConfig.getNumPredayThreads();
 	std::list<std::string> logFileNames;
@@ -757,7 +766,7 @@ void sim_mob::medium::PredayManager::distributeAndProcessPersons() {
 	}
 
 	// merge tripchains from each thread into 1 file.
-	mergeTripChainFiles(logFileNames);
+	if(mtConfig.isOutputTripchains()) { mergeTripChainFiles(logFileNames); }
 }
 
 void sim_mob::medium::PredayManager::distributeAndProcessForCalibration(threadedFnPtr fnPtr)

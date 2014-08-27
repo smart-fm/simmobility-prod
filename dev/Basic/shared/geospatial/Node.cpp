@@ -5,9 +5,25 @@
 #include "Node.hpp"
 
 #include "conf/settings/DisableMPI.h"
+#include "logging/Log.hpp"
+#include "geospatial/RoadSegment.hpp"
 
 unsigned int sim_mob::Node::getID()const {return nodeId;}
 void sim_mob::Node::setID(unsigned int id) { nodeId = id; }
+unsigned int sim_mob::Node::getAimsunId() const
+	{
+		unsigned int originId = 0;
+
+		std::string aimsunId = originalDB_ID.getLogItem();
+		std::string id = sim_mob::RoadSegment::getNumberFromAimsunId(aimsunId);
+		try {
+			originId = boost::lexical_cast<int>(id);
+		} catch( boost::bad_lexical_cast const& ) {
+			Warn() << "Error: aimsun id string was not valid" << std::endl;
+		}
+
+		return originId;
+	}
 //sim_mob::Link* sim_mob::Node::getLinkLoc() const {return linkLoc;}
 //void sim_mob::Node::setLinkLoc(sim_mob::Link* link) { linkLoc=link; }
 

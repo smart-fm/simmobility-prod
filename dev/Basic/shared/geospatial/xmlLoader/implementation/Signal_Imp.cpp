@@ -43,6 +43,11 @@ void sim_mob::xml::Signal_t_pimpl::SCATS (sim_mob::xml::helper::SignalHelper::SC
 {
 	signalHelper.setTargetSignal(new sim_mob::Signal_SCATS(signalHelper.getBasicSignal()->getNode(),sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy(),signalHelper.getSignalID(),sim_mob::SIG_SCATS));
 	signalHelper.getTargetSignal()->phases_ = signalHelper.getBasicSignal()->phases_;
+
+	sim_mob::Signal::phases::iterator it1(signalHelper.getTargetSignal()->phases_.begin());
+	for(; it1 != signalHelper.getTargetSignal()->phases_.end(); it1++){
+		it1->setParent(signalHelper.getTargetSignal());
+	}
 	signalHelper.getTargetSignal()->LinkAndCrossings_ = signalHelper.getBasicSignal()->LinkAndCrossings_;
 	sim_mob::Signal_SCATS *temp = dynamic_cast<sim_mob::Signal_SCATS *>(signalHelper.getTargetSignal());
 	// temp->setSignalTimingMode(SCATS_Info_.signalTimingMode);

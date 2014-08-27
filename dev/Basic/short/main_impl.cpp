@@ -352,13 +352,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
-	//Initialize the aura manager
-	AuraManager::instance().init(config.aura_manager_impl()
-#if 0
-			,(doPerformanceMeasurement ? &perfProfile : nullptr)
-#endif
-			);
-
 
 	///
 	///  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
@@ -660,6 +653,10 @@ int main_impl(int ARGC, char* ARGV[])
 	}
 	cout << "Using config file: " << configFileName << endl;
 
+	std::string outputFileName = "out.txt";
+	if(args.size() > 2)
+		outputFileName = args[2];
+
 	//Perform main loop (this differs for interactive mode)
 	int returnVal = 1;
 	std::list<std::string> resLogFiles;
@@ -672,7 +669,7 @@ int main_impl(int ARGC, char* ARGV[])
 	//Concatenate output files?
 	if (!resLogFiles.empty()) {
 		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
-		Utils::printAndDeleteLogFiles(resLogFiles);
+		Utils::printAndDeleteLogFiles(resLogFiles,outputFileName);
 	}
 
 	cout << "Done" << endl;

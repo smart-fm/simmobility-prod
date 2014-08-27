@@ -6,7 +6,6 @@
 
 #include <vector>
 
-#include <boost/unordered_map.hpp>
 #include "conf/settings/DisableMPI.h"
 #include "util/OpaqueProperty.hpp"
 #include "geospatial/Pavement.hpp"
@@ -26,6 +25,14 @@ class BusStop;
 class RoadNetworkPackageManager;
 class Conflux;
 
+enum SimSegmentType
+{
+	LINK_TYPE_DEFAULT  = 0,
+	LINK_TYPE_FREEWAY = 1,
+	LINK_TYPE_RAMP    = 2,
+	LINK_TYPE_URBANROAD = 3
+};
+
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
 class UnPackageUtils;
@@ -37,9 +44,6 @@ namespace aimsun
 class Loader;
 class LaneLoader;
 } //End aimsun namespace
-
-//declaration
-std::string getNumberFromAimsunId(std::string &aimsunid);
 /**
  * Part of a Link with consistent lane numbering. RoadSegments are unidirectional.
  *
@@ -52,6 +56,8 @@ class RoadSegment : public sim_mob::Pavement {
 public:
 	///Create a RoadSegment as part of a given Link.
 	//explicit RoadSegment(sim_mob::Link* paren=nullptr);
+
+
 
 	//TODO: Some of these are only used by the geo* classes; need to re-think.
 	void setParentLink(sim_mob::Link* parent);
@@ -67,9 +73,8 @@ public:
 	explicit RoadSegment(sim_mob::Link* parent=nullptr, unsigned long id=-1) :
 		Pavement(),
 		maxSpeed(0), capacity(0), busstop(nullptr), lanesLeftOfDivider(0), parentLink(parent),segmentID(id),
-		parentConflux(nullptr), laneZeroLength(-1.0)
-	{
-	}
+		parentConflux(nullptr), laneZeroLength(-1.0),type(LINK_TYPE_DEFAULT)
+	{}
 
 	const unsigned long  getSegmentID()const ;
 	const unsigned int getLanesLeftOfDivider() const { return lanesLeftOfDivider; }
@@ -82,7 +87,8 @@ public:
 	 * @return simmobility lane idx id
 	 */
 	unsigned int getAdjustedLaneId(unsigned int laneId);
-
+	///	extract id string from aimsun id
+	static std::string getNumberFromAimsunId(std::string &aimsunid);
 	/**
 	 * get aimsun id fro current road segment
 	 */
@@ -101,6 +107,8 @@ public:
 		return lanes;
 	}
 
+
+	size_t getLanesSize(bool isIncludePedestrianLane=false) const;
 	///Return the Lane at a given ID, or null if that Lane ID is out of bounds.
 	const sim_mob::Lane* getLane(int laneID) const;
 
@@ -171,7 +179,7 @@ public:
 	/*void initLaneGroups() const;
 	 void groupLanes(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt, const std::vector<sim_mob::RoadSegment*>& segments, sim_mob::Node* start, sim_mob::Node* end) const;
 	 void matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS) const;*/
-
+	SimSegmentType type;
 private:
 	///Collection of lanes. All road segments must have at least one lane.
 	std::vector<sim_mob::Lane*> lanes;
@@ -196,6 +204,7 @@ private:
 	unsigned long segmentID;
 
 	double laneZeroLength;
+
 	friend class sim_mob::aimsun::Loader;
 	friend class sim_mob::aimsun::LaneLoader;
 	friend class sim_mob::RoadNetworkPackageManager;

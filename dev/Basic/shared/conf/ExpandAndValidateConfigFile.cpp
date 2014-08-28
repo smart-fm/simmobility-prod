@@ -442,17 +442,7 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		//TODO: Currently, this is only used for the "#mode" flag, and for forwarding the "originPos" and "destPos"
 		std::map<std::string, std::string> props;
 
-		//TODO: This is very wasteful
-		{
-		std::stringstream msg;
-		msg <<it->originPos.getX() <<"," <<it->originPos.getY();
-		props["originPos"] = msg.str();
-		}
-		{
-		std::stringstream msg;
-		msg <<it->destPos.getX() <<"," <<it->destPos.getY();
-		props["destPos"] = msg.str();
-		}
+
 
 		props["lane"] = Utils::toStr<unsigned int>(it->laneIndex);
 		props["initSegId"] = Utils::toStr<unsigned int>(it->initSegId);
@@ -461,6 +451,19 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		if(it->originNode>0 && it->destNode>0) {
 			props["originNode"] = Utils::toStr<unsigned int>(it->originNode);
 			props["destNode"] = Utils::toStr<unsigned int>(it->destNode);
+		}
+		else {
+			//TODO: This is very wasteful
+			{
+			std::stringstream msg;
+			msg <<it->originPos.getX() <<"," <<it->originPos.getY();
+			props["originPos"] = msg.str();
+			}
+			{
+			std::stringstream msg;
+			msg <<it->destPos.getX() <<"," <<it->destPos.getY();
+			props["destPos"] = msg.str();
+			}
 		}
 //		props["lane"] = boost::lexical_cast<std::string>(it->laneIndex);
 		{

@@ -849,6 +849,11 @@ void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMElement* node,
 			ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(item, "time", timeReq), static_cast<unsigned int>(0));
 			ent.laneIndex = ParseUnsignedInt(GetNamedAttributeValue(item, "lane", laneReq), static_cast<unsigned int>(0));
 			ent.angentId = ParseUnsignedInt(GetNamedAttributeValue(item, "id", false), static_cast<unsigned int>(0));
+			ent.initSegId = ParseUnsignedInt(GetNamedAttributeValue(item, "initSegId", false), static_cast<unsigned int>(0));
+			ent.initDis = ParseUnsignedInt(GetNamedAttributeValue(item, "initDis", false), static_cast<unsigned int>(0));
+			ent.initSpeed = ParseUnsignedInt(GetNamedAttributeValue(item, "initSpeed", false), static_cast<double>(0));
+			ent.originNode = ParseUnsignedInt(GetNamedAttributeValue(item, "originNode", false), static_cast<double>(0));
+			ent.destNode = ParseUnsignedInt(GetNamedAttributeValue(item, "destNode", false), static_cast<double>(0));
 			res.push_back(ent);
 		}
 	}

@@ -166,6 +166,8 @@ namespace sim_mob {
 
         static double urandom();
         static int brandom(double p);
+    	///	extract id string from aimsun id
+    	static std::string getNumberFromAimsunId(std::string &aimsunid);
     };
 
     /**

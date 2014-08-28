@@ -87,8 +87,6 @@ public:
 	 * @return simmobility lane idx id
 	 */
 	unsigned int getAdjustedLaneId(unsigned int laneId);
-	///	extract id string from aimsun id
-	static std::string getNumberFromAimsunId(std::string &aimsunid);
 	/**
 	 * get aimsun id fro current road segment
 	 */

@@ -26,6 +26,8 @@
 #include "conf/ConfigParams.hpp"
 #include "util/Profiler.hpp"
 #include "util/OneTimeFlag.hpp"
+#include "util/Cache1.hpp"
+#include "util/Utils.hpp"
 #include "message/MessageHandler.hpp"
 #include "soci.h"
 #include "soci-postgresql.h"
@@ -108,7 +110,6 @@ public:
 	void initParameters();
 	///	return the current rough size of the class
 	uint32_t getSize();
-	sim_mob::OneTimeFlag gotSize;
 	///	pathset parameters
 	double bTTVOT;
 	double bCommonFactor;
@@ -373,10 +374,10 @@ public:
 
 	///	get the database session used for this thread
 	const boost::shared_ptr<soci::session> & getSession();
-	///cache the generated pathset. returns true upon successful insertion
-	bool cachePathSet(boost::shared_ptr<sim_mob::PathSet> &ps);
 	///basically delete all the dynamically allocated memories, in addition to some more cleanups
 	void clearSinglePaths(boost::shared_ptr<sim_mob::PathSet> &ps);
+	///cache the generated pathset. returns true upon successful insertion
+	bool cachePathSet(boost::shared_ptr<sim_mob::PathSet> &ps);
 	/**
 	 * searches for a pathset in the cache.
 	 * \param key indicates the input key
@@ -384,9 +385,25 @@ public:
 	 * returns true/false to indicate if the search has been successful
 	 */
 	bool findCachedPathSet(std::string key, boost::shared_ptr<sim_mob::PathSet> &value);
+	///cache the generated pathset. returns true upon successful insertion
+	bool cachePathSet_orig(boost::shared_ptr<sim_mob::PathSet> &ps);
+	/**
+	 * searches for a pathset in the cache.
+	 * \param key indicates the input key
+	 * \param value the result of the search
+	 * returns true/false to indicate if the search has been successful
+	 */
+	bool findCachedPathSet_orig(std::string key, boost::shared_ptr<sim_mob::PathSet> &value);
 
-	///	return the size of cache in Bytes
-	uint32_t getCacheSize();
+	///cache the generated pathset. returns true upon successful insertion
+	bool cachePathSet_LRU(boost::shared_ptr<sim_mob::PathSet> &ps);
+	/**
+	 * searches for a pathset in the cache.
+	 * \param key indicates the input key
+	 * \param value the result of the search
+	 * returns true/false to indicate if the search has been successful
+	 */
+	bool findCachedPathSet_LRU(std::string key, boost::shared_ptr<sim_mob::PathSet> &value);
 
 	///	returns the raugh size of object in Bytes
 	uint32_t getSize();
@@ -431,6 +448,8 @@ private:
 
 	std::map<std::string, boost::shared_ptr<sim_mob::PathSet> > cachedPathSet;//same as pathSetPool, used in a separate scenario //todo later use only one of the caches, cancel the other one
 
+	///	Yet another cache
+	sim_mob::LRU_Cache<std::string, boost::shared_ptr<PathSet> > cacheLRU;
 	///	contains arbitrary description usually to indicating which configuration file the generated data has originated from
 	std::string scenarioName;
 
@@ -592,7 +611,7 @@ public:
 	sim_mob::OneTimeFlag gotSize;
 	bool isInit;
 	bool hasBestChoice;
-	std::vector<WayPoint> bestWayPointpath;  //best choice
+	std::vector<WayPoint> *bestWayPointpath;  //best choice
 	const sim_mob::Node *fromNode;
 	const sim_mob::Node *toNode;
 	std::string personId; //person id
@@ -675,7 +694,7 @@ inline std::string makeWaypointsetString(std::vector<WayPoint>& wp)
 		if (it->type_ == WayPoint::ROAD_SEGMENT)
 		{
 			std::string tmp = it->roadSegment_->originalDB_ID.getLogItem();
-			str += sim_mob::RoadSegment::getNumberFromAimsunId(tmp) + ",";
+			str += sim_mob::Utils::getNumberFromAimsunId(tmp) + ",";
 		} // if ROAD_SEGMENT
 	}
 

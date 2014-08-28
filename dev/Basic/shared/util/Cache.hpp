@@ -23,41 +23,47 @@ class LRU_Cache<K, boost::shared_ptr<VAL> >
 {
 //public:
 	typedef boost::shared_ptr<VAL> V;
+	typedef typename boost::bimap<K, boost::shared_ptr<VAL> >::value_type entry;
+	typedef boost::bimaps::bimap<
+			boost::bimaps::set_of<K>,
+		    boost::bimaps::list_of<V>
+		    > container_type;
 protected:
-	boost::bimap<K,V> container;
+//	boost::bimap<K,V> container;
+	container_type container;
 	size_t capacity;
 public:
 	LRU_Cache(size_t capacity)
 	:capacity(capacity)
 	{
-		BOOST_ASSERT_MSG(capacity != 0, "Cache Size with " << capacity << " Size Specified");
+		BOOST_ASSERT_MSG(capacity != 0, "Invalid Cache Size Specified");
 	}
 
 	virtual ~LRU_Cache(){}
 
 	bool find(const K& key, V& output){
-		typename boost::bimap<K,V>::left_iterator it = container.find(key);
-		if(it == container.end()){
+		typename container_type::left_iterator it = container.left.find(key);
+		if(it == container.left.end()){
 			return false;
 		}
 		else
 		{
 			//copy to output
-			output = *it;
+			output = it->second;
 			//move to end to update LRU
-			container.right.relocate(container.right.end(),container,container.project_right(it));
+			container.left.relocate(container.left.end(),container,container.project_left(it));
 			return true;
 		}
 	}
 
-	void add(const K& key, V& value)
+	void insert(K& key, V& value)
 	{
 		//evict
 		if(container.size() == capacity)
 		{
 			evict();
 		}
-		container.right.insert(std::make_pair(key,value));
+		container.left[key] = value;
 	}
 
 	virtual void evict()
@@ -81,7 +87,7 @@ public:
 
 
 template<typename K, typename V, size_t RATIO = 10>
-class Extended_LRU_Cache : public LRU_Cache<K, boost::shared_ptr<V> >
+class Extended_LRU_Cache : public LRU_Cache<K, V >
 {
 	boost::function<V(K&)> generator;
 public:
@@ -112,8 +118,8 @@ public:
 		{
 			//how much to delete
 			short ratio = this->capacity*RATIO/100;
-			typename boost::bimap<K,V>::reverse_right_iterator it = this->container.begin();
-			for(; it != this->container.rend() && (--ratio > 0) ; this->container.right.erase(it++));
+			typename boost::bimap<K,V>::right_iterator it = this->container.right.begin();
+			for(; it != this->container.right.end() && (--ratio > 0) ; this->container.right.erase(it++));
 		}
 	}
 

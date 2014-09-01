@@ -71,6 +71,9 @@
                 <mapping name="busstop" procedure="get_bus_stop()"/>
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
+                <mapping name="segment_type" procedure="get_segment_typ()"/>
+                <mapping name="node_type" procedure="get_node_typ()"/>
+                
             </proc_map>
             
             <!-- The small Bugis-area network -->
@@ -85,6 +88,8 @@
                 <mapping name="busstop" procedure="get_bus_stop()"/>
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
+                <mapping name="segment_type" procedure="get_segment_typ()"/>
+                <mapping name="node_type" procedure="get_node_typ()"/>
             </proc_map>
             
             <!-- The small Marina Bay network -->
@@ -99,6 +104,8 @@
                 <mapping name="busstop" procedure=""/>
                 <mapping name="signal" procedure="get_traffic_signals_marina_bay()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases_marina_bay()"/>
+                <mapping name="segment_type" procedure="get_segment_typ()"/>
+                <mapping name="node_type" procedure="get_node_typ()"/>
             </proc_map>
 
             <!-- For testing purposes, if you want to control which signals are  --> 
@@ -118,6 +125,8 @@
                 <mapping name="busstop" procedure="get_bus_stop()"/>
                 <mapping name="signal" procedure=""/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
+                <mapping name="segment_type" procedure="get_segment_typ()"/>
+                <mapping name="node_type" procedure="get_node_typ()"/>
             </proc_map>
 
             <!-- The large Bugis-area network -->
@@ -139,6 +148,8 @@
                 <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('saturday')"/>
                 <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
                 <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+                <mapping name="segment_type" procedure="get_segment_typ()"/>
+                <mapping name="node_type" procedure="get_node_typ()"/>
             </proc_map>
                 
                 
@@ -154,6 +165,8 @@
                 <mapping name="busstop" procedure="get_bus_stop()"/>
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases_bugis()"/>
+                <mapping name="segment_type" procedure="get_segment_typ()"/>
+                <mapping name="node_type" procedure="get_node_typ()"/>
             </proc_map>
                  
             <!-- entire Singapore network with HITS trip chains -->
@@ -175,6 +188,8 @@
                 <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('saturday')"/>
                 <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
                 <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+                <mapping name="segment_type" procedure="get_segment_typ()"/>
+                <mapping name="node_type" procedure="get_node_typ()"/>
             </proc_map>
 
             <!-- Preday demand -->

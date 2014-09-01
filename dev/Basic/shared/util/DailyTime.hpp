@@ -67,6 +67,17 @@ public:
         }
         return *this;
 	}
+
+	bool operator==(const DailyTime& dailytime)
+	{
+        	return time_ == dailytime.getValue() && repr_ == dailytime.getRepr_();
+	}
+
+	bool operator !=(const DailyTime& dailytime)
+	{
+        	return !(*this == dailytime);
+	}
+
 	inline uint32_t getValue() const {
 		return time_;
 	}
@@ -119,6 +130,10 @@ public:
 		ar & repr_;
 	}
 };
+
+bool operator==(const DailyTime& lhs, const DailyTime& rhs);
+
+bool operator !=(const DailyTime& lhs, const DailyTime& rhs);
 
 
 }

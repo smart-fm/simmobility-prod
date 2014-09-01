@@ -16,6 +16,7 @@
 #include "geospatial/Link.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/GeomHelpers.hpp"
+#include "util/Utils.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -24,8 +25,6 @@
 
 #include "Lane.hpp"
 #include "entities/conflux/Conflux.hpp"
-
-#include <boost/regex.hpp>
 
 using std::pair;
 using std::vector;
@@ -101,31 +100,12 @@ pair<int, const Lane*> sim_mob::RoadSegment::translateRawLaneID(unsigned int raw
 	throw std::runtime_error("Not yet defined.");
 }
 
-
-std::string sim_mob::RoadSegment::getNumberFromAimsunId(std::string &aimsunid)
-{
-	//"aimsun-id":"69324",
-	std::string number;
-	boost::regex expr (".*\"aimsun-id\":\"([0-9]+)\".*$");
-	boost::smatch matches;
-	if (boost::regex_match(aimsunid, matches, expr))
-	{
-		number  = std::string(matches[1].first, matches[1].second);
-	}
-	else
-	{
-		Warn()<<"aimsun id not correct "+aimsunid<<std::endl;
-	}
-
-	return number;
-}
-
 unsigned int sim_mob::RoadSegment::getSegmentAimsunId() const{
 
 	unsigned int originId = 0;
 
 	std::string aimsunId = originalDB_ID.getLogItem();
-	std::string segId = getNumberFromAimsunId(aimsunId);
+	std::string segId = sim_mob::Utils::getNumberFromAimsunId(aimsunId);
 	try {
 		originId = boost::lexical_cast<int>(segId);
 	} catch( boost::bad_lexical_cast const& ) {

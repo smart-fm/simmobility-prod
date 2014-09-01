@@ -548,13 +548,6 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	 }
 	}
 
-	if(p.now.frame() > 300 ){
-			int i = 0;
-			if(p.perceivedDistToFwdCar/100.0 < 0.1)
-			{
-				int ii = 0;
-			}
-		}
 
 	// if (intersection){
 	// double aI = approachInter(p); // when approaching intersection to achieve the turn speed

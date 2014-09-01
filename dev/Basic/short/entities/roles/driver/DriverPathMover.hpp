@@ -44,6 +44,8 @@ public:
 	///TODO: I'm not entirely sure that all cases of fwd/rev RoadSegments are handled properly.
 	void setPath(const std::vector<const sim_mob::RoadSegment*>& path, std::vector<bool>& areFwds, int startLaneID);
 	void setPath(const std::vector<const sim_mob::RoadSegment*>& path, int startLaneID);
+	void setPathWithInitSeg(const std::vector<const sim_mob::RoadSegment*>& path,
+			int startLaneID,int initSegId,int initPer,int initSpeed);
 
 	//reset path
 	//in route choice model, it will be used when the vehicle is approaching an intersection

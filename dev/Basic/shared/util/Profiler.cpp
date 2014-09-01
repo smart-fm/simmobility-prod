@@ -183,11 +183,11 @@ void  sim_mob::BasicLogger::initLogFile(const std::string& path)
 	}
 }
 
-sim_mob::BasicLogger&  sim_mob::BasicLogger::operator<<(StandardEndLine manip) {
-	// call the function, but we cannot return it's value
-		manip(*getOut());
-	return *this;
-}
+//sim_mob::BasicLogger&  sim_mob::BasicLogger::operator<<(StandardEndLine manip) {
+//	// call the function, but we cannot return it's value
+//		manip(*getOut());
+//	return *this;
+//}
 
 void sim_mob::BasicLogger::flushLog()
 {

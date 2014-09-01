@@ -126,6 +126,43 @@ private:
 	///	one buffer is assigned to each thread writing to the file
 	std::map<boost::thread::id, std::stringstream*> out;
 
+	/// Sentry class objects are created at each line and are destryped upon when the statement ends(";")
+	/// this will allow grouping of multiple << operators without worrying about multithreading issues.
+	class Sentry
+		{
+			std::stringstream &out;
+			BasicLogger &basicLogger;
+			public:
+			Sentry(BasicLogger & basicLogger_,std::stringstream &out_):out(out_),basicLogger(basicLogger_){};
+			Sentry(const Sentry& t):basicLogger(t.basicLogger), out(t.out){}
+
+			//This is the type of std::cout
+			typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
+			//This is the function signature of std::endl and some other manipulators
+			typedef CoutType& (*StandardEndLine)(CoutType&);
+			///	operator overload for std::endl
+			Sentry& operator<<(StandardEndLine manip) {
+				manip(out);
+				return *this;
+			}
+			template <typename T>
+			///	operator overload
+			Sentry & operator<< (const T& val)
+			{
+				out << val;
+				return *this;
+			}
+
+			~Sentry()
+			{
+				// by some googling this estimated hardcode value promises less cycles to write to a file
+				if(out.tellp() > 512000/*500KB*/)
+				{
+					basicLogger.flushLog();
+				}
+			}
+		};
+
 protected:
 
 	///	easy reading
@@ -167,13 +204,6 @@ public:
 	///	destructor
 	virtual ~BasicLogger();
 
-
-	//This is the type of std::cout
-	typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
-
-	//This is the function signature of std::endl and some other manipulators
-	typedef CoutType& (*StandardEndLine)(CoutType&);
-
 	/**
 	 * simple interface to log a profiling output with a simple message
 	 */
@@ -189,18 +219,26 @@ public:
 	 */
 	sim_mob::Profiler & prof(const std::string id, bool timer = true);
 
-	/// This method defines an operator<< to take in std::endl
-	BasicLogger& operator<<(StandardEndLine manip);
-	///	write the log items to buffer
+	//This is the type of std::cout
+	typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
+	//This is the function signature of std::endl and some other manipulators
+	typedef CoutType& (*StandardEndLine)(CoutType&);
+
+	///	operator overload for std::endl(just if someone starts as std::endl as the first input to << operator)
+	Sentry operator<<(StandardEndLine manip) {
+		std::stringstream *out = getOut();
+		manip(*out);
+		return Sentry(*this,*out);
+	}
+
+	///	operator overload.	write the log items to buffer
 	template <typename T>
-	sim_mob::BasicLogger & operator<< (const T& val)
+	Sentry operator<< (const T& val)
 	{
-		std::stringstream *out = sim_mob::BasicLogger::getOut();
-		*out << val;
-		if(out->tellp() > 512000/*500KB*/){// by some googling this estimated hardcode value promises less cycles to write to a file
-			flushLog();
-		}
-		return *this;
+		//Sentry t(*this,*getOut());
+		//return(t << val);
+		// return t;
+		return (Sentry(*this,*getOut())<< val);
 	}
 	//for debugging purpose only
 	static std::map <boost::thread::id, int> threads;
@@ -234,6 +272,7 @@ public:
  ******* Logging Wrapper **********
  **********************************/
 class Logger {
+
 protected:
 	///	repository of profilers. each profiler is distinguished by a file name!
 	std::map<const std::string, boost::shared_ptr<sim_mob::BasicLogger> > repo;
@@ -250,5 +289,3 @@ public:
  **************************************************************************/
 typedef BasicLogger LogEngine;
 }//namespace
-
-//typedef sim_mob::Logger::log sim_mob::log;

@@ -577,7 +577,7 @@ local function computeAvailabilities(params)
 end
 
 -- scales
-local scale = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1} -- 1 for all choices (51 1s)
+local scale = 1 --for all choices
 
 -- function to call from C++ preday simulator
 -- params table contains data passed from C++

@@ -345,10 +345,7 @@ local function computeAvailabilities(params,dbparams)
 end
 
 --scale
-local scale={}
-for i = 1, 1092*9 do
-	scale[i]=1
-end
+local scale = 1 --for all choices
 
 -- function to call from C++ preday simulator
 -- params and dbparams tables contain data passed from C++

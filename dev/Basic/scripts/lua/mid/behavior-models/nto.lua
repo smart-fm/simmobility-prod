@@ -224,7 +224,7 @@ local availability = {1,1,1}
 
 
 -- scales
-local scale = {1,1,1}
+local scale = 1 --for all choices
 
 -- function to call from C++ preday simulator
 -- params table contains data passed from C++

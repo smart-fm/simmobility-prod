@@ -156,10 +156,7 @@ end
 
 
 --scale
-local scale={}
-for i = 1, 1176 do
-	scale[i]=1
-end
+local scale = 1 --for all choices
 
 -- function to call from C++ preday simulator
 -- params and dbparams tables contain data passed from C++

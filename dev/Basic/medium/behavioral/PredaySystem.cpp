@@ -17,6 +17,7 @@
 #include <cstdlib>
 #include <string>
 #include <sstream>
+#include <stdint.h>
 #include "behavioral/lua/PredayLuaProvider.hpp"
 #include "behavioral/params/ModeDestinationParams.hpp"
 #include "behavioral/params/StopGenerationParams.hpp"
@@ -322,157 +323,65 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 	return TimeWindowAvailability::timeWindowsLookup.at(timeWndw - 1); //timeWndw ranges from 1 - 1176. Vector starts from 0.
 }
 
-void PredaySystem::generateIntermediateStops(Tour& tour, size_t remainingTours) {
-	if(tour.stops.size() != 1) {
-		stringstream ss;
-		ss << "generateIntermediateStops()|tour contains " << tour.stops.size() << " stops. Exactly 1 stop (primary activity) was expected.";
-		throw runtime_error(ss.str());
+void PredaySystem::generateIntermediateStops(Tour& tour, const Stop* primaryStop, size_t remainingTours)
+{
+	if(!primaryStop) { return; } // cannot generate intermediate stops without primary activity
+	int origin = personParams.getHomeLocation();
+	int destination = primaryStop->getStopLocation();
+	StopGenerationParams isgParams(tour, primaryStop, dayPattern);
+	isgParams.setFirstTour(tour.isFirstTour());
+	isgParams.setNumRemainingTours(remainingTours);
+
+	//first half-tour (from home to primary stop location)
+	isgParams.setFirstHalfTour(true);
+	if(origin == destination) { isgParams.setDistance(0.0); }
+	else
+	{
+		// use AM costs for first half tour
+		CostParams* amDistanceObj = amCostMap.at(origin).at(destination);
+		isgParams.setDistance(amDistanceObj->getDistance());
 	}
-	Stop* primaryStop = tour.stops.front(); // The only stop at this point is the primary activity stop
+	double prevDepartureTime = FIRST_INDEX;
+	double nextArrivalTime = primaryStop->getArrivalTime();
+	if(!tour.isFirstTour())
+	{
+		TourList::const_iterator currTourIterator = std::find(tours.begin(), tours.end(), tour);
+		if(currTourIterator == tours.end()) { throw std::runtime_error("tour not found in tours list"); }
+		if(currTourIterator == tours.begin()) { throw std::runtime_error("No previous tour found."); }
+		const Tour& previousTour = *(currTourIterator-1);
+		prevDepartureTime = previousTour.getEndTime(); // departure time id taken as the end time of the previous tour
+	}
+
+	uint8_t stopCounter = 0;
+	int choice = 0; // initializing to an invalid choice
+	Stop* nextStop = primaryStop;
 	Stop* generatedStop = nullptr;
-
-	if ((dayPattern.at("WorkI") + dayPattern.at("EduI") + dayPattern.at("ShopI") + dayPattern.at("OthersI")) > 0 ) {
-		//if any stop type was predicted in the day pattern
-		StopGenerationParams isgParams(tour, primaryStop, dayPattern);
-		int origin = personParams.getHomeLocation();
-		int destination = primaryStop->getStopLocation();
-		isgParams.setFirstTour(tour.isFirstTour());
-		TourList::iterator currTourIterator = std::find(tours.begin(), tours.end(), tour);
-		isgParams.setNumRemainingTours(remainingTours);
-
-		//First half tour
-		if(origin != destination) {
-			CostParams* amDistanceObj = amCostMap.at(origin).at(destination);
-			isgParams.setDistance(amDistanceObj->getDistance());
-		}
-		else {
-			isgParams.setDistance(0.0);
-		}
-		isgParams.setFirstHalfTour(true);
-
-		double prevDepartureTime = FIRST_INDEX; // first window; start of day
-		double nextArrivalTime = primaryStop->getArrivalTime();
-		if (tours.front() != tour) { // if this tour is not the first tour of the day
-			Tour& previousTour = *(currTourIterator-1);
-			prevDepartureTime = previousTour.getEndTime(); // departure time id taken as the end time of the previous tour
-		}
-
-		int stopCounter = 0;
+	while(choice != QUIT_CHOICE_ISG && stopCounter < MAX_STOPS_IN_HALF_TOUR)
+	{
 		isgParams.setStopCounter(stopCounter);
-		int choice = 0; //not a valid choice; just initializing here.
-
-		Stop* nextStop = primaryStop;
-		while(choice != QUIT_CHOICE_ISG && stopCounter<MAX_STOPS_IN_HALF_TOUR){
-			choice = PredayLuaProvider::getPredayModel().generateIntermediateStop(personParams, isgParams);
-			if(choice != QUIT_CHOICE_ISG) {
-				StopType stopType;
-				switch(choice) {
-				case WORK_CHOICE_ISG: stopType = WORK; break;
-				case EDU_CHOICE_ISG: stopType = EDUCATION; break;
-				case SHOP_CHOICE_ISG: stopType = SHOP; break;
-				case OTHER_CHOICE_ISG: stopType = OTHER; break;
-				}
-				generatedStop = new Stop(stopType, tour, false /*not primary*/, true /*in first half tour*/);
-				tour.addStop(generatedStop);
-				predictStopModeDestination(generatedStop, nextStop->getStopLocation());
-				calculateDepartureTime(generatedStop, nextStop);
-				if(generatedStop->getDepartureTime() <= FIRST_INDEX)
-				{
-					tour.removeStop(generatedStop);
-					safe_delete_item(generatedStop);
-					stopCounter = stopCounter + 1;
-					continue;
-				}
-				predictStopTimeOfDay(generatedStop, true);
-				if(generatedStop->getArrivalTime() > generatedStop->getDepartureTime()) {
-					logStream << "Discarding generated stop|"
-							<< "|arrival: " << generatedStop->getArrivalTime()
-							<< "|departure: " << generatedStop->getDepartureTime()
-							<< "|1st HT"
-							<< "|arrival time is greater than departure time";
-					tour.removeStop(generatedStop);
-					safe_delete_item(generatedStop);
-					stopCounter = stopCounter + 1;
-					continue;
-				}
-				nextStop = generatedStop;
-				personParams.blockTime(generatedStop->getArrivalTime(), generatedStop->getDepartureTime());
-				nextArrivalTime = generatedStop->getArrivalTime();
-				stopCounter = stopCounter + 1;
-				logStream << "Generated stop|type: " << generatedStop->getStopTypeID()
-						<< "|mode: " << generatedStop->getStopMode()
-						<< "|destination: " << generatedStop->getStopLocation()
-						<< "|1st HT "
-						<< "|arrival: " << generatedStop->getArrivalTime()
-						<< "|departure: " << generatedStop->getDepartureTime()
-						<< std::endl;
-			}
+		choice = PredayLuaProvider::getPredayModel().generateIntermediateStop(personParams, isgParams);
+		switch(choice)
+		{
+		case WORK_CHOICE_ISG:
+			generatedStop = new Stop(StopType::WORK, tour, false /*not primary*/, true /*in first half tour*/);
+			tour.addStop(generatedStop);
+			break;
+		case EDU_CHOICE_ISG:
+			generatedStop = new Stop(StopType::EDUCATION, tour, false /*not primary*/, true /*in first half tour*/);
+			tour.addStop(generatedStop);
+			break;
+		case SHOP_CHOICE_ISG:
+			generatedStop = new Stop(StopType::SHOP, tour, false /*not primary*/, true /*in first half tour*/);
+			tour.addStop(generatedStop);
+			break;
+		case OTHER_CHOICE_ISG:
+			generatedStop = new Stop(StopType::OTHER, tour, false /*not primary*/, true /*in first half tour*/);
+			tour.addStop(generatedStop);
+			break;
+		case QUIT_CHOICE_ISG:
+			break; // no stops generated
 		}
-
-		generatedStop = nullptr;
-		// Second half tour
-		if(origin != destination) {
-			CostParams* pmDistanceObj = pmCostMap.at(origin).at(destination);
-			isgParams.setDistance(pmDistanceObj->getDistance());
-		}
-		else {
-			isgParams.setDistance(0.0);
-		}
-		isgParams.setFirstHalfTour(false);
-
-		prevDepartureTime = primaryStop->getDepartureTime();
-		nextArrivalTime = LAST_WINDOW; // end of day
-
-		stopCounter = 0;
-		isgParams.setStopCounter(stopCounter);
-		choice = 0;
-		Stop* prevStop = primaryStop;
-		while(choice != QUIT_CHOICE_ISG && stopCounter<MAX_STOPS_IN_HALF_TOUR){
-			choice = PredayLuaProvider::getPredayModel().generateIntermediateStop(personParams, isgParams);
-			if(choice != QUIT_CHOICE_ISG) {
-				StopType stopType;
-				switch(choice) {
-				case WORK_CHOICE_ISG: stopType = WORK; break;
-				case EDU_CHOICE_ISG: stopType = EDUCATION; break;
-				case SHOP_CHOICE_ISG: stopType = SHOP; break;
-				case OTHER_CHOICE_ISG: stopType = OTHER; break;
-				}
-				generatedStop = new Stop(stopType, tour, false /*not primary*/, false  /*not in first half tour*/);
-				tour.addStop(generatedStop);
-				predictStopModeDestination(generatedStop, prevStop->getStopLocation());
-				calculateArrivalTime(generatedStop, prevStop);
-				if(generatedStop->getArrivalTime() >=  LAST_INDEX)
-				{
-					tour.removeStop(generatedStop);
-					safe_delete_item(generatedStop);
-					stopCounter = stopCounter + 1;
-					continue;
-				}
-				predictStopTimeOfDay(generatedStop, false);
-				if(generatedStop->getArrivalTime() > generatedStop->getDepartureTime()) {
-					logStream << "Discarding generated stop|"
-							<< "|arrival: " << generatedStop->getArrivalTime()
-							<< "|departure: " << generatedStop->getDepartureTime()
-							<< "|2nd HT"
-							<< "|arrival time is greater than departure time";
-					tour.removeStop(generatedStop);
-					safe_delete_item(generatedStop);
-					stopCounter = stopCounter + 1;
-					continue;
-				}
-				prevStop = generatedStop;
-				personParams.blockTime(generatedStop->getArrivalTime(), generatedStop->getDepartureTime());
-				prevDepartureTime = generatedStop->getDepartureTime();
-				stopCounter = stopCounter + 1;
-				logStream << "Generated stop|type: " << generatedStop->getStopTypeID()
-						<< "|mode: " << generatedStop->getStopMode()
-						<< "|destination: " << generatedStop->getStopLocation()
-						<< "|2nd HT "
-						<< "|arrival: " << generatedStop->getArrivalTime()
-						<< "|departure: " << generatedStop->getDepartureTime()
-						<< std::endl;
-			}
-		}
+		stopCounter = stopCounter + 1;
 	}
 }
 
@@ -733,6 +642,160 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, bool isBeforePrimary) {
 		}
 		stop->setDepartureTime(timeWindowIdx);
 	}
+}
+
+void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours) {
+	if ((dayPattern.at("WorkI") + dayPattern.at("EduI") + dayPattern.at("ShopI") + dayPattern.at("OthersI")) <= 0 ) { return; }
+	if(tour.stops.size() != 1) {
+		stringstream errStrm;
+		errStrm << "generateIntermediateStops()|tour contains " << tour.stops.size() << " stops. Exactly 1 stop (primary activity) was expected.";
+		throw runtime_error(errStrm.str());
+	}
+	Stop* primaryStop = tour.stops.front(); // The only stop at this point is the primary activity stop
+	Stop* generatedStop = nullptr;
+
+
+		//if any stop type was predicted in the day pattern
+		StopGenerationParams isgParams(tour, primaryStop, dayPattern);
+		int origin = personParams.getHomeLocation();
+		int destination = primaryStop->getStopLocation();
+		isgParams.setFirstTour(tour.isFirstTour());
+		TourList::iterator currTourIterator = std::find(tours.begin(), tours.end(), tour);
+		isgParams.setNumRemainingTours(remainingTours);
+
+		//First half tour
+		if(origin != destination) {
+			CostParams* amDistanceObj = amCostMap.at(origin).at(destination);
+			isgParams.setDistance(amDistanceObj->getDistance());
+		}
+		else {
+			isgParams.setDistance(0.0);
+		}
+		isgParams.setFirstHalfTour(true);
+
+		double prevDepartureTime = FIRST_INDEX; // first window; start of day
+		double nextArrivalTime = primaryStop->getArrivalTime();
+		if (tours.front() != tour) { // if this tour is not the first tour of the day
+			Tour& previousTour = *(currTourIterator-1);
+			prevDepartureTime = previousTour.getEndTime(); // departure time id taken as the end time of the previous tour
+		}
+
+		int stopCounter = 0;
+		isgParams.setStopCounter(stopCounter);
+		int choice = 0; //not a valid choice; just initializing here.
+
+		Stop* nextStop = primaryStop;
+		while(choice != QUIT_CHOICE_ISG && stopCounter<MAX_STOPS_IN_HALF_TOUR){
+			choice = PredayLuaProvider::getPredayModel().generateIntermediateStop(personParams, isgParams);
+			if(choice != QUIT_CHOICE_ISG) {
+				StopType stopType;
+				switch(choice) {
+				case WORK_CHOICE_ISG: stopType = WORK; break;
+				case EDU_CHOICE_ISG: stopType = EDUCATION; break;
+				case SHOP_CHOICE_ISG: stopType = SHOP; break;
+				case OTHER_CHOICE_ISG: stopType = OTHER; break;
+				}
+				generatedStop = new Stop(stopType, tour, false /*not primary*/, true /*in first half tour*/);
+				tour.addStop(generatedStop);
+				predictStopModeDestination(generatedStop, nextStop->getStopLocation());
+				calculateDepartureTime(generatedStop, nextStop);
+				if(generatedStop->getDepartureTime() <= FIRST_INDEX)
+				{
+					tour.removeStop(generatedStop);
+					safe_delete_item(generatedStop);
+					stopCounter = stopCounter + 1;
+					continue;
+				}
+				predictStopTimeOfDay(generatedStop, true);
+				if(generatedStop->getArrivalTime() > generatedStop->getDepartureTime()) {
+					logStream << "Discarding generated stop|"
+							<< "|arrival: " << generatedStop->getArrivalTime()
+							<< "|departure: " << generatedStop->getDepartureTime()
+							<< "|1st HT"
+							<< "|arrival time is greater than departure time";
+					tour.removeStop(generatedStop);
+					safe_delete_item(generatedStop);
+					stopCounter = stopCounter + 1;
+					continue;
+				}
+				nextStop = generatedStop;
+				personParams.blockTime(generatedStop->getArrivalTime(), generatedStop->getDepartureTime());
+				nextArrivalTime = generatedStop->getArrivalTime();
+				stopCounter = stopCounter + 1;
+				logStream << "Generated stop|type: " << generatedStop->getStopTypeID()
+						<< "|mode: " << generatedStop->getStopMode()
+						<< "|destination: " << generatedStop->getStopLocation()
+						<< "|1st HT "
+						<< "|arrival: " << generatedStop->getArrivalTime()
+						<< "|departure: " << generatedStop->getDepartureTime()
+						<< std::endl;
+			}
+		}
+
+		generatedStop = nullptr;
+		// Second half tour
+		if(origin != destination) {
+			CostParams* pmDistanceObj = pmCostMap.at(origin).at(destination);
+			isgParams.setDistance(pmDistanceObj->getDistance());
+		}
+		else {
+			isgParams.setDistance(0.0);
+		}
+		isgParams.setFirstHalfTour(false);
+
+		prevDepartureTime = primaryStop->getDepartureTime();
+		nextArrivalTime = LAST_WINDOW; // end of day
+
+		stopCounter = 0;
+		isgParams.setStopCounter(stopCounter);
+		choice = 0;
+		Stop* prevStop = primaryStop;
+		while(choice != QUIT_CHOICE_ISG && stopCounter<MAX_STOPS_IN_HALF_TOUR){
+			choice = PredayLuaProvider::getPredayModel().generateIntermediateStop(personParams, isgParams);
+			if(choice != QUIT_CHOICE_ISG) {
+				StopType stopType;
+				switch(choice) {
+				case WORK_CHOICE_ISG: stopType = WORK; break;
+				case EDU_CHOICE_ISG: stopType = EDUCATION; break;
+				case SHOP_CHOICE_ISG: stopType = SHOP; break;
+				case OTHER_CHOICE_ISG: stopType = OTHER; break;
+				}
+				generatedStop = new Stop(stopType, tour, false /*not primary*/, false  /*not in first half tour*/);
+				tour.addStop(generatedStop);
+				predictStopModeDestination(generatedStop, prevStop->getStopLocation());
+				calculateArrivalTime(generatedStop, prevStop);
+				if(generatedStop->getArrivalTime() >=  LAST_INDEX)
+				{
+					tour.removeStop(generatedStop);
+					safe_delete_item(generatedStop);
+					stopCounter = stopCounter + 1;
+					continue;
+				}
+				predictStopTimeOfDay(generatedStop, false);
+				if(generatedStop->getArrivalTime() > generatedStop->getDepartureTime()) {
+					logStream << "Discarding generated stop|"
+							<< "|arrival: " << generatedStop->getArrivalTime()
+							<< "|departure: " << generatedStop->getDepartureTime()
+							<< "|2nd HT"
+							<< "|arrival time is greater than departure time";
+					tour.removeStop(generatedStop);
+					safe_delete_item(generatedStop);
+					stopCounter = stopCounter + 1;
+					continue;
+				}
+				prevStop = generatedStop;
+				personParams.blockTime(generatedStop->getArrivalTime(), generatedStop->getDepartureTime());
+				prevDepartureTime = generatedStop->getDepartureTime();
+				stopCounter = stopCounter + 1;
+				logStream << "Generated stop|type: " << generatedStop->getStopTypeID()
+						<< "|mode: " << generatedStop->getStopMode()
+						<< "|destination: " << generatedStop->getStopLocation()
+						<< "|2nd HT "
+						<< "|arrival: " << generatedStop->getArrivalTime()
+						<< "|departure: " << generatedStop->getDepartureTime()
+						<< std::endl;
+			}
+		}
 }
 
 void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* prevStop) { // this function sets the arrival time for currStop

@@ -10,6 +10,7 @@
  */
 
 #pragma once
+#include <stdint.h>
 #include "behavioral/PredayClasses.hpp"
 
 namespace sim_mob {
@@ -23,9 +24,9 @@ namespace medium {
  */
 class StopGenerationParams {
 public:
-	StopGenerationParams(const Tour& tour, Stop* primaryActivity, const boost::unordered_map<std::string, bool>& dayPattern)
+	StopGenerationParams(const Tour& tour, const Stop* primaryActivity, const boost::unordered_map<std::string, bool>& dayPattern)
 	: tourMode(tourMode), primActivityArrivalTime(primaryActivity->getArrivalTime()), primActivityDeptTime(primaryActivity->getDepartureTime()),
-	  firstTour(true), firstHalfTour(true), stopCounter(0), hasSubtour(0),
+	  firstTour(true), firstHalfTour(true), stopCounter(0), hasSubtour(false),
 	  numRemainingTours(-1), distance(-1.0)	/*distance, initialized with invalid values*/
 	{
 		switch (tour.getTourType()) {
@@ -175,7 +176,7 @@ public:
 		return (stopCounter >= 2);
 	}
 
-	void setStopCounter(int stopCounter) {
+	void setStopCounter(uint8_t stopCounter) {
 		this->stopCounter = stopCounter;
 	}
 
@@ -224,8 +225,8 @@ private:
 	int numRemainingTours;
 	double distance;
 	bool firstHalfTour;
-	int stopCounter;
-	int hasSubtour;
+	uint8_t stopCounter;
+	bool hasSubtour;
 
 	int workStopAvailability;
 	int eduStopAvailability;

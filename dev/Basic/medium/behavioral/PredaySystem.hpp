@@ -75,10 +75,19 @@ private:
 
 	/**
 	 * Generates intermediate stops of types predicted by the day pattern model before and after the primary activity of a tour.
+	 * predicts stop location and time of day for each generated stop
+	 *
+	 * @param tour the tour for which stops are to be generated
+	 * @param remainingTours number of tours remaining for person after tour
+	 */
+	void constructIntermediateStops(Tour& tour, size_t remainingTours);
+
+	/**
+	 * Generates intermediate stops of types predicted by the day pattern model before and after the primary activity of a tour.
 	 *
 	 * @param tour the tour for which stops are to be generated
 	 */
-	void generateIntermediateStops(Tour& tour, size_t remainingTours);
+	void generateIntermediateStops(Tour& tour,  const Stop* primaryStop, size_t remainingTours);
 
 	/**
 	 * Predicts the mode and destination together for stops.

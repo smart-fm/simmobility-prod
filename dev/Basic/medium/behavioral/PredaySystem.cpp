@@ -298,7 +298,7 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 
 	TourList& subToursList = parentTour.subTours;
 	int choice = 0;
-	for(short i=0; i<MAX_SUB_TOURS; i++)
+	for(unsigned short i=0; i<MAX_SUB_TOURS; i++)
 	{
 		choice = PredayLuaProvider::getPredayModel().predictWorkBasedSubTour(personParams, workBasedSubTourParams);
 		if(choice == 5) { break; } //QUIT

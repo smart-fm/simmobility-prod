@@ -4,31 +4,33 @@
 
 #include "Loader.hpp"
 
-#include <iostream> // TODO: Remove this when debugging is done ~ Harish
-#include <set>
-#include <vector>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <map>
+#include <set>
 #include <stdexcept>
+#include <vector>
 
 //NOTE: CMake should put the correct -I flags in for SOCI; be aware that some distros hide it though.
 #include <soci.h>
 #include <soci-postgresql.h>
 #include <boost/multi_index_container.hpp>
-
+#include "boost/algorithm/string.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/settings/DisableMPI.h"
 #include "entities/AuraManager.hpp"
 #include "entities/conflux/SegmentStats.hpp"
-
 #include "entities/misc/BusTrip.hpp"
+#include "entities/vehicle/VehicleBase.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/Intersection.hpp"
 #include "geospatial/Link.hpp"
+#include "geospatial/RoadItem.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/RoadNetwork.hpp"
@@ -41,6 +43,7 @@
 #include "geospatial/aimsun/SOCI_Converters.hpp"
 
 #include "logging/Log.hpp"
+#include "metrics/Length.hpp"
 #include "util/OutputUtil.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/DynamicVector.hpp"
@@ -69,7 +72,6 @@
 #include "entities/conflux/Conflux.hpp"
 #include "entities/Person.hpp"
 #include "entities/signal/Signal.hpp"
-#include "entities/BusStopAgent.hpp"
 
 #include "partitions/PartitionManager.hpp"
 #include "partitions/BoundarySegment.hpp"
@@ -87,13 +89,20 @@ using std::multimap;
 
 
 namespace {
-
+const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
+const double BUS_LENGTH = 3 * sim_mob::PASSENGER_CAR_UNIT;
 
 class DatabaseLoader : private boost::noncopyable {
 public:
 	explicit DatabaseLoader(string const & connectionString);
 
 	void LoadBasicAimsunObjects(map<string, string> const & storedProcedures);
+	/**
+	 *  /brief load segment type, node type
+	 *  /param storedProcs get db procedure name
+	 *  /param rn road network object
+	 */
+	void loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
 //	// load path set data
 //	void LoadSinglePathDB(std::map<std::string,sim_mob::SinglePath*>& pool,
 //			std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool);
@@ -173,6 +182,9 @@ private:
 	void LoadTurnings(const std::string& storedProc);
 	void LoadPolylines(const std::string& storedProc);
 	void LoadTrafficSignals(const std::string& storedProc);
+
+	void loadSegmentTypeTable(const std::string& storedProc,std::map<string,int>& segTypeMap);
+	void loadNodeTypeTable(const std::string& storedProc,std::map<string,int>& nodeTypeMap);
 
 public:
 	void LoadTripchains(const std::string& storedProc);
@@ -482,8 +494,8 @@ void DatabaseLoader::LoadERP_Gantry_Zone(std::map<std::string,sim_mob::ERP_Gantr
 	for (soci::rowset<sim_mob::ERP_Gantry_Zone>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		sim_mob::ERP_Gantry_Zone *s = new sim_mob::ERP_Gantry_Zone(*it);
 		erp_gantry_zone_pool.insert(std::make_pair(s->Gantry_no,s));
-//		std::cout<<"LoadERP_Section: "<<s->Gantry_no<<" "<<s->Zone_Id<<std::endl;
 	}
+//		std::cout<<"LoadERP_Section: "<<s->Gantry_no<<" "<<s->Zone_Id<<std::endl;
 }
 
 void DatabaseLoader::LoadNodes(const std::string& storedProc)
@@ -505,7 +517,33 @@ void DatabaseLoader::LoadNodes(const std::string& storedProc)
 		nodes_[it->id] = *it;
 	}
 }
-
+void DatabaseLoader::loadSegmentTypeTable(const std::string& storedProc,std::map<string,int>& segTypeMap)
+{
+	try
+	{
+		soci::rowset<sim_mob::SegmentType> rs = (sql_.prepare <<"select * from " + storedProc);
+		for (soci::rowset<sim_mob::SegmentType>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+			segTypeMap.insert(std::make_pair(it->id,it->type));
+		}
+	}
+	catch (soci::soci_error const & err)
+	{
+		std::cout<<"loadSegmentTypeTable: "<<err.what()<<std::endl;
+	}
+}
+void DatabaseLoader::loadNodeTypeTable(const std::string& storedProc,std::map<string,int>& nodeTypeMap)
+{
+	try{
+		soci::rowset<sim_mob::NodeType> rs = (sql_.prepare <<"select * from " + storedProc);
+		for (soci::rowset<sim_mob::NodeType>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+			nodeTypeMap.insert(std::make_pair(it->id,it->type));
+		}
+	}
+	catch (soci::soci_error const & err)
+	{
+		std::cout<<"loadNodeTypeTable: "<<err.what()<<std::endl;
+	}
+}
 
 void DatabaseLoader::LoadSections(const std::string& storedProc)
 {
@@ -726,20 +764,26 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 				std::cout << "from stop: " << it->tmp_fromLocationNodeID << " to stop: " << it->tmp_toLocationNodeID << std::endl;
 			}
 			//check nodes
-			if(nodes_.count(it->tmp_fromLocationNodeID)==0) {
-				std::cout<< "Invalid trip chain fromNode reference."<<std::endl;
-				//throw std::runtime_error("Invalid trip chain fromNode reference.");
-				continue;
-			}
-			if(nodes_.count(it->tmp_toLocationNodeID)==0) {
-				std::cout<< "Invalid trip chain toNode reference."<<std::endl;
-				//throw std::runtime_error("Invalid trip chain toNode reference.");
-				continue;
+			if (it->fromLocationType == sim_mob::TripChainItem::LT_NODE) {
+				if (nodes_.count(it->tmp_fromLocationNodeID) == 0) {
+					std::cout << "Invalid trip chain fromNode reference."<< std::endl;
+					//throw std::runtime_error("Invalid trip chain fromNode reference.");
+					continue;
+				} else {
+					it->fromLocation = &nodes_[it->tmp_fromLocationNodeID];
+				}
 			}
 
-			//Note: Make sure not to resize the Node map after referencing its elements.
-			it->fromLocation = &nodes_[it->tmp_fromLocationNodeID];
-			it->toLocation = &nodes_[it->tmp_toLocationNodeID];
+			if (it->toLocationType == sim_mob::TripChainItem::LT_NODE) {
+				if (nodes_.count(it->tmp_toLocationNodeID) == 0) {
+					std::cout << "Invalid trip chain toNode reference."<< std::endl;
+					//throw std::runtime_error("Invalid trip chain toNode reference.");
+					continue;
+				} else {
+					it->toLocation = &nodes_[it->tmp_toLocationNodeID];
+				}
+			}
+
 		} else if(it->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
 			//Set end time and location.
 			it->endTime = sim_mob::DailyTime(it->tmp_endTime);
@@ -814,6 +858,8 @@ void DatabaseLoader::LoadBusStopSG(const std::string& storedProc)
 
 		        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat) * 100;
 		        busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon) * 100;
+        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat);
+        busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon);
 		        bustopSG_.insert(std::make_pair(busstop.bus_stop_no, busstop));
 		        //std :: cout.precision(15);
 		        //std :: cout << "Bus Stop ID is: "<< busstop.bus_stop_no <<"    "<< busstop.xPos << "     "<< busstop.yPos  <<std::endl;
@@ -880,15 +926,15 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 	{
 		sim_mob::PT_bus_stops pt_bus_stopsTemp = *iter;
 		pt_bus_stops.push_back(pt_bus_stopsTemp);
-//		std::cout << pt_bus_stopsTemp.route_id << " " << pt_bus_stopsTemp.busstop_no << " " << pt_bus_stopsTemp.busstop_sequence_no << std::endl;
-		sim_mob::BusStop* bs = config.getBusStopNo_BusStops()[pt_bus_stopsTemp.busstop_no];
+
+		string str = pt_bus_stopsTemp.busstop_no;
+		boost::trim_right(str);
+		unsigned int no = boost::lexical_cast<unsigned int>(str);
+		sim_mob::BusStop* bs = sim_mob::BusStop::findBusStop(no);
 		if(bs) {
 			routeID_busStops[iter->route_id].push_back(bs);
-//			std::cout << "iter->route_id: " << iter->route_id << "    BusStop to busstop map  " << bs->getBusstopno_() << "" << std::endl;
-//			std::cout << "current routeID_busStops[iter->route_id].size(): " << routeID_busStops[iter->route_id].size() << "" << std::endl;
 		}
 	}
-//	std::cout << "routeID_busStops.size(): " << routeID_busStops.size() << "" << std::endl;
 }
 
 void DatabaseLoader::LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule)
@@ -996,6 +1042,8 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadBusStopSG(getStoredProcedure(storedProcs, "busstopSG", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
 
+
+
 	//add by xuyan
 	//load in boundary segments (not finished!)
 #ifndef SIMMOB_DISABLE_MPI
@@ -1006,7 +1054,11 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 #endif
 
 }
-
+void DatabaseLoader::loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)
+{
+	loadSegmentTypeTable(getStoredProcedure(storedProcs, "segment_type"),rn.segmentTypeMap);
+	loadNodeTypeTable(getStoredProcedure(storedProcs, "node_type"),rn.nodeTypeMap);
+}
 
 
 //Compute the distance from the source node of the polyline to a
@@ -1263,8 +1315,10 @@ bool FindBusLineWithLeastStops(Node* source, Node* destination, sim_mob::BusStop
 {
 	bool result = false;
 	//sim_mob::AuraManager::instance2();
-	Point2D pnt1(source->getXPosAsInt()-3500, source->getYPosAsInt()-3500);
-	Point2D pnt2(source->getXPosAsInt()+3500, source->getYPosAsInt()+3500);
+//	Point2D pnt1(source->getXPosAsInt()-3500, source->getYPosAsInt()-3500);
+//	Point2D pnt2(source->getXPosAsInt()+3500, source->getYPosAsInt()+3500);
+//	Point2D pnt1(source->xPos-35.00, source->yPos()-35.00);
+//	Point2D pnt2(source->xPos+35.00, source->yPos+35.00);
 	//std::vector<const sim_mob::Agent*> source_nearby_agents = sim_mob::AuraManager::instance2().agentsInRect(pnt1, pnt2, nullptr);
 
 	std::vector<sim_mob::BusStop*> source_stops;
@@ -1605,6 +1659,15 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
 		sim_mob::aimsun::Loader::ProcessGeneralNode(res, it->second);
 		it->second.generatedNode->originalDB_ID.setProps("aimsun-id", it->first);
+
+		// set node type
+		std::string idStr = boost::lexical_cast<string>(it->first);
+		if(idStr.find("101320") != std::string::npos)
+		{
+			std::cout<<"find node 101320"<<std::endl;
+		}
+		sim_mob::SimNodeType nt = (sim_mob::SimNodeType)res.getNodeType(idStr);
+		it->second.generatedNode->type = nt;
 	}
 	//Next, Links and RoadSegments. See comments for our approach.
 	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
@@ -1645,21 +1708,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 			CrossingLoader::GenerateACrossing(res, it->second, *i2->first, i2->second);
 		}
 	}
-//	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
-//		Node origin = (*it).second;
-//		for (vector<Section*>::iterator it_sec=origin.sectionsAtNode.begin(); it_sec!=origin.sectionsAtNode.end(); it_sec++) {
-//			sim_mob::RoadSegment ** it_seg = &((*it_sec)->generatedSegment);
-//			if(!(((*it_seg)->getSegmentID() == 100001005)||((*it_seg)->getSegmentID() == 100001004))) continue;
-//			for(std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>::iterator it_obs = (*it_seg)->obstacles.begin(); it_obs != (*it_seg)->obstacles.end(); it_obs++)
-//					{
-//						const sim_mob::Crossing * cr = dynamic_cast<const sim_mob::Crossing *>((*it_obs).second);
-//						if((cr))
-//						{
-//							std::cout << "SaveSimMobilityNetwork::Segment " << (*it_seg) << "  " << (*it_seg)->getSegmentID() << " has crossing = " << cr->getCrossingID() <<  "  " << cr << " BTW: obstacle size = " << (*it_seg)->obstacles.size() << std::endl;
-//						}
-//					}
-//		}
-//	}
+
 	//Prune lanes and figure out where the median is.
 	// TODO: This should eventually allow other lanes to be designated too.
 	LaneLoader::GenerateLinkLanes(res, nodes_, sections_);
@@ -1854,7 +1903,21 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 
 void DatabaseLoader::createBusStopAgents()
 {
-	//int j = 0；
+	//get stop capacity from genericProps
+	int stopCapacityAsLength = 2;
+	try {
+		std::string busPerStopStr = sim_mob::ConfigManager::GetInstance().FullConfig().system.genericProps.at("buses_per_stop");
+		stopCapacityAsLength = std::atoi(busPerStopStr.c_str());
+		if(stopCapacityAsLength < 1) {
+			throw std::runtime_error("inadmissible value for buses per stop. Please check generic property 'buses_per_stop'");
+		}
+	}
+	catch (const std::out_of_range& oorx) {
+		sim_mob::Print() << "generic property 'buses_per_stop' was not specified."
+				<< " Defaulting to " << stopCapacityAsLength << " threads."
+				<< std::endl;
+	}
+
 	//Save all bus stops
 	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++) {
 		std::map<int,Section>::iterator findPtr = sections_.find(it->second.TMP_AtSectionID);
@@ -1866,6 +1929,7 @@ void DatabaseLoader::createBusStopAgents()
 		sim_mob::BusStop *busstop = new sim_mob::BusStop();
 		sim_mob::RoadSegment* parentSeg = sections_[it->second.TMP_AtSectionID].generatedSegment;
 		busstop->busstopno_ = it->second.bus_stop_no;
+		busstop->busCapacityAsLength = BUS_LENGTH * stopCapacityAsLength;
 		busstop->setParentSegment(parentSeg);
 
 		busstop->xPos = it->second.xPos;
@@ -1881,7 +1945,8 @@ void DatabaseLoader::createBusStopAgents()
 
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy());
+		unsigned int no = boost::lexical_cast<unsigned int>(busstop->busstopno_);
+		sim_mob::BusStop::RegisterNewBusStop(no, busstop);
 	}
 
 	for(map<std::string,BusStopSG>::iterator it = bustopSG_.begin(); it != bustopSG_.end(); it++) {
@@ -1894,6 +1959,8 @@ void DatabaseLoader::createBusStopAgents()
 		sim_mob::BusStop *busstop = new sim_mob::BusStop();
 		sim_mob::RoadSegment* parentSeg = sections_[it->second.aimsun_section].generatedSegment;
 		busstop->busstopno_ = it->second.bus_stop_no;
+		busstop->busCapacityAsLength = BUS_LENGTH * stopCapacityAsLength;
+
 		busstop->setParentSegment(parentSeg);
 
 		busstop->xPos = it->second.xPos;
@@ -1909,7 +1976,8 @@ void DatabaseLoader::createBusStopAgents()
 
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		sim_mob::BusStopAgent::RegisterNewBusStopAgent(*busstop, sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy());
+		unsigned int no = boost::lexical_cast<unsigned int>(busstop->busstopno_);
+		sim_mob::BusStop::RegisterNewBusStop(no, busstop);
 	}
 }
 
@@ -1987,7 +2055,8 @@ void sim_mob::aimsun::Loader::FixupLanesAndCrossings(sim_mob::RoadNetwork& res)
 					sim_mob::Point2D medianProjection = LineLineIntersect(cross->nearLine.first, cross->nearLine.second, link->getStart()->location, link->getEnd()->location);
 					Point2D shift(medianProjection.getX()-nearLinemidPoint.getX(), medianProjection.getY()-nearLinemidPoint.getY());
 					///TODO this is needed temporarily due to a bug in which one intersection's crossings end up shifted across the map.
-					if(shift.getX() > 1000)
+//					if(shift.getX() > 1000)
+					if(shift.getX() > 10)
 						continue;
 
 					cross->nearLine.first = Point2D(cross->nearLine.first.getX()+shift.getX(), cross->nearLine.first.getY()+shift.getY());
@@ -2129,7 +2198,7 @@ void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& sr
 
 sim_mob::RoadSegment * createNewRoadSegment(sim_mob::Link* ln, size_t numExistingSegsInLink, unsigned long id)
 {
-	return new sim_mob::RoadSegment(ln, nullptr, ln->getLinkId()*100 +numExistingSegsInLink);
+	return new sim_mob::RoadSegment(ln, ln->getLinkId()*100 +numExistingSegsInLink);
 }
 
 
@@ -2194,6 +2263,11 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		//Retrieve the generated segment
 		sim_mob::RoadSegment* rs = currSec->generatedSegment;
 		rs->originalDB_ID.setProps("aimsun-id", currSec->id);
+
+		// set segment type
+		std::string idStr = boost::lexical_cast<string>(currSec->id);
+		sim_mob::SimSegmentType st = (sim_mob::SimSegmentType)res.getSegmentType(idStr);
+		rs->type = st;
 
 		//Start/end need to be added properly
 		rs->start = currSec->fromNode->generatedNode;
@@ -2502,6 +2576,7 @@ bool sim_mob::aimsun::Loader::LoadPathSetDataWithId(const std::string& connectio
 		std::map<std::string,SinglePath*> &waypoint_singlepathPool,
 		std::map<std::string,sim_mob::PathSet* >& pathSetPool,std::string& pathset_id)
 {
+	return false;
 //	bool res=false;
 //	std::cout << "LoadPathSetDataWithId: loading " <<pathset_id<<" data from db"<< std::endl;
 //	//Connection string will look something like this:
@@ -2545,6 +2620,12 @@ void sim_mob::aimsun::Loader::SaveOnePathSetData(const std::string& connectionSt
 	DatabaseLoader loader(connectionStr);
 	loader.InsertPathSet2DB(pathSetPool);
 }
+void sim_mob::aimsun::Loader::loadSegNodeType(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn)
+{
+	DatabaseLoader loader(connectionStr);
+	// load segment type data, node type data
+	loader.loadObjectType(storedProcs,rn);
+}
 void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
 {
 	std::cout << "Attempting to connect to database (generic)" << std::endl;
@@ -2559,6 +2640,9 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 
 	//Step One: Load
 	loader.LoadBasicAimsunObjects(storedProcs);
+
+	// load segment type data, node type data
+	loader.loadObjectType(storedProcs,rn);
 
 	//Step 1.1: Load "new style" objects, which don't require any post-processing.
 	loader.LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false), config.getBusSchedule());
@@ -2623,6 +2707,187 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), config.getPT_bus_dispatch_freq());
 	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), config.getPT_bus_routes(), config.getRoadSegments_Map());
 	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), config.getPT_bus_stops(), config.getBusStops_Map());
+
+
+}
+
+void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdSeg, std::list<sim_mob::SegmentStats*>& splitSegmentStats) {
+	if(!rdSeg) {
+		throw std::runtime_error("CreateSegmentStats(): NULL RoadSegment was passed");
+	}
+	std::stringstream debugMsgs;
+	const std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>& obstacles = rdSeg->obstacles;
+	double lengthCoveredInSeg = 0;
+	double segStatLength;
+	double rdSegmentLength = rdSeg->getLaneZeroLength();
+	// NOTE: std::map implements strict weak ordering which defaults to less<key_type>
+	// This is precisely the order in which we want to iterate the stops to create SegmentStats
+	for(std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>::const_iterator obsIt = obstacles.begin();
+			obsIt != obstacles.end(); obsIt++) {
+		const sim_mob::BusStop* busStop = dynamic_cast<const sim_mob::BusStop*>(obsIt->second);
+		if(busStop) {
+			double stopOffset = (double) (obsIt->first);
+			if(stopOffset <= 0) {
+				debugMsgs<<"error in stop offset data"
+						<<"|seg: "<<rdSeg->getStartEnd()
+						<<"|busstop: "<<busStop->getBusstopno_()
+						<<"|stopOffset: "<<stopOffset
+						<<"\n\tmanually pushing this stop to end of segment"
+						<<std::endl;
+				sim_mob::Print()<<debugMsgs.str();
+				debugMsgs.str(std::string());
+				sim_mob::SegmentStats* segStats = new sim_mob::SegmentStats(rdSeg, rdSegmentLength);
+				segStats->addBusStop(busStop);
+				//add the current stop and the remaining stops (if any) to the end of the segment as well
+				while(++obsIt != obstacles.end()) {
+					busStop = dynamic_cast<const sim_mob::BusStop*>(obsIt->second);
+					if(busStop) {
+						segStats->addBusStop(busStop);
+					}
+				}
+				splitSegmentStats.push_back(segStats);
+				lengthCoveredInSeg = rdSegmentLength;
+				break;
+			}
+			if(stopOffset < lengthCoveredInSeg) {
+				debugMsgs<<"bus stops are iterated in wrong order"
+						<<"|seg: "<<rdSeg->getStartEnd()
+						<<"|seg length: "<<rdSegmentLength
+						<<"|curr busstop offset: "<<obsIt->first
+						<<"|prev busstop offset: "<<lengthCoveredInSeg
+						<<"|busstop: " << busStop->getBusstopno_()
+						<<std::endl;
+				throw std::runtime_error(debugMsgs.str());
+			}
+			if(stopOffset >= rdSegmentLength) {
+				//this is probably due to error in data and needs manual fixing
+				segStatLength = rdSegmentLength - lengthCoveredInSeg;
+				lengthCoveredInSeg = rdSegmentLength;
+				sim_mob::SegmentStats* segStats = new sim_mob::SegmentStats(rdSeg, segStatLength);
+				segStats->addBusStop(busStop);
+				//add the current stop and the remaining stops (if any) to the end of the segment as well
+				while(++obsIt != obstacles.end()) {
+					busStop = dynamic_cast<const sim_mob::BusStop*>(obsIt->second);
+					if(busStop) {
+						segStats->addBusStop(busStop);
+					}
+				}
+				splitSegmentStats.push_back(segStats);
+				break;
+			}
+			//the relation (lengthCoveredInSeg < stopOffset < rdSegmentLength) holds here
+			segStatLength = stopOffset - lengthCoveredInSeg;
+			lengthCoveredInSeg = stopOffset;
+			sim_mob::SegmentStats* segStats = new sim_mob::SegmentStats(rdSeg, segStatLength);
+			segStats->addBusStop(busStop);
+			splitSegmentStats.push_back(segStats);
+		}
+	}
+
+	// manually adjust the position of the stops to avoid short segments
+	if(!splitSegmentStats.empty()) { // if there are stops in the segment
+		//another segment stats has to be created for the remaining length.
+		//this segment stats does not contain a bus stop
+		//adjust the length of the last segment stats if the remaining length is short
+		double remainingSegmentLength = rdSegmentLength - lengthCoveredInSeg;
+		if(remainingSegmentLength < 0) {
+			debugMsgs<<"Lengths of segment stats computed incorrectly\n";
+			debugMsgs<<"segmentLength: "<<rdSegmentLength<<"|stat lengths: ";
+			double totalStatsLength = 0;
+			for(std::list<sim_mob::SegmentStats*>::iterator statsIt=splitSegmentStats.begin();
+					statsIt!=splitSegmentStats.end(); statsIt++){
+				debugMsgs<<(*statsIt)->length<<"|";
+				totalStatsLength = totalStatsLength + (*statsIt)->length;
+			}
+			debugMsgs<<"totalStatsLength: "<<totalStatsLength<<std::endl;
+			throw std::runtime_error(debugMsgs.str());
+		}
+		else if(remainingSegmentLength == 0) {
+			// do nothing
+		}
+		else if(remainingSegmentLength < SHORT_SEGMENT_LENGTH_LIMIT) {
+			// if the remaining length creates a short segment,
+			// add this length to the last segment stats
+			remainingSegmentLength = splitSegmentStats.back()->length + remainingSegmentLength;
+			splitSegmentStats.back()->length = remainingSegmentLength;
+		}
+		else {
+			// if the remaining length is long enough create a new SegmentStats
+			sim_mob::SegmentStats* segStats = new sim_mob::SegmentStats(rdSeg, remainingSegmentLength);
+			splitSegmentStats.push_back(segStats);
+		}
+
+		// if there is atleast 1 bus stop in the segment and the length of the
+		// created segment stats is short, we will try to adjust the lengths to
+		// avoid short segments
+		bool noMoreShortSegs = false;
+		while (!noMoreShortSegs && splitSegmentStats.size() > 1) {
+			noMoreShortSegs = true; //hopefully
+			sim_mob::SegmentStats* lastStats = splitSegmentStats.back();
+			std::list<sim_mob::SegmentStats*>::iterator statsIt = splitSegmentStats.begin();
+			while((*statsIt)!=lastStats) {
+				SegmentStats* currStats = *statsIt;
+				std::list<sim_mob::SegmentStats*>::iterator nxtStatsIt = statsIt; nxtStatsIt++; //get a copy and increment for next
+				SegmentStats* nextStats = *nxtStatsIt;
+				if(currStats->length < SHORT_SEGMENT_LENGTH_LIMIT) {
+					noMoreShortSegs = false; //there is a short segment
+					if(nextStats->length >= SHORT_SEGMENT_LENGTH_LIMIT) {
+						double lengthDiff = SHORT_SEGMENT_LENGTH_LIMIT - currStats->length;
+						currStats->length = SHORT_SEGMENT_LENGTH_LIMIT;
+						nextStats->length = nextStats->length - lengthDiff;
+					}
+					else {
+						// we will merge i-th SegmentStats with i+1-th SegmentStats
+						// and add both bus stops to the merged SegmentStats
+						nextStats->length = currStats->length + nextStats->length;
+						for(std::vector<const sim_mob::BusStop*>::iterator stopIt=currStats->busStops.begin(); stopIt!=currStats->busStops.end(); stopIt++) {
+							nextStats->addBusStop(*stopIt);
+						}
+						statsIt = splitSegmentStats.erase(statsIt);
+						safe_delete_item(currStats);
+						continue;
+					}
+				}
+				statsIt++;
+			}
+		}
+		if(splitSegmentStats.size() > 1) {
+			// the last segment stat is handled separately
+			std::list<sim_mob::SegmentStats*>::iterator statsIt = splitSegmentStats.end();
+			statsIt--;
+			SegmentStats* lastSegStats = *(statsIt);
+			statsIt--;
+			SegmentStats* lastButOneSegStats = *(statsIt);
+			if(lastSegStats->length < SHORT_SEGMENT_LENGTH_LIMIT) {
+				lastSegStats->length = lastButOneSegStats->length + lastSegStats->length;
+				for(std::vector<const sim_mob::BusStop*>::iterator stopIt=lastButOneSegStats->busStops.begin();
+						stopIt!=lastButOneSegStats->busStops.end(); stopIt++) {
+					lastSegStats->addBusStop(*stopIt);
+				}
+				splitSegmentStats.erase(statsIt);
+				safe_delete_item(lastButOneSegStats);
+			}
+		}
+	}
+	else {
+		// if there are no stops in the segment, we create a single SegmentStats for this segment
+		SegmentStats* segStats = new SegmentStats(rdSeg, rdSegmentLength);
+		splitSegmentStats.push_back(segStats);
+	}
+
+	uint16_t statsNum = 1;
+	std::set<sim_mob::SegmentStats*>& segmentStatsWithStops = ConfigManager::GetInstanceRW().FullConfig().getSegmentStatsWithBusStops();
+	for(std::list<sim_mob::SegmentStats*>::iterator statsIt=splitSegmentStats.begin(); statsIt!=splitSegmentStats.end(); statsIt++) {
+		SegmentStats* stats = *statsIt;
+		//number the segment stats
+		stats->statsNumberInSegment = statsNum;
+		statsNum++;
+
+		//add to segmentStatsWithStops if there is a bus stop in stats
+		if (!(stats->getBusStops().empty())) {
+			segmentStatsWithStops.insert(stats);
+		}
+	}
 }
 
 /*
@@ -2635,68 +2900,86 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 	const sim_mob::MutexStrategy& mtxStrat = ConfigManager::GetInstance().FullConfig().mutexStategy();
 	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& multinode_confluxes
 		= ConfigManager::GetInstanceRW().FullConfig().getConfluxNodes();
-	sim_mob::Conflux* conflux = nullptr;
 
-	//Make a temporary map of road nodes-to-road segments
+	//Make a temporary map of <multi node, set of road-segments directly connected to the multinode>
 	//TODO: This should be done automatically *before* it's needed.
 	std::map<const sim_mob::MultiNode*, std::set<const sim_mob::RoadSegment*> > roadSegmentsAt;
 	for (std::vector<sim_mob::Link*>::const_iterator it=rdnw.links.begin(); it!=rdnw.links.end(); it++) {
 		sim_mob::MultiNode* start = dynamic_cast<sim_mob::MultiNode*>((*it)->getStart());
 		sim_mob::MultiNode* end = dynamic_cast<sim_mob::MultiNode*>((*it)->getEnd());
 		if ((!start) || (!end)) { throw std::runtime_error("Link start/ends must be MultiNodes (in Conflux)."); }
-
 		roadSegmentsAt[start].insert((*it)->getSegments().front());
 		roadSegmentsAt[end].insert((*it)->getSegments().back());
 	}
 
 	for (vector<sim_mob::MultiNode*>::const_iterator i = rdnw.nodes.begin(); i != rdnw.nodes.end(); i++) {
 		// we create a conflux for each multinode
-		conflux = new sim_mob::Conflux(*i, mtxStrat);
-
-		std::map<const sim_mob::MultiNode*, std::set<const sim_mob::RoadSegment*> >::iterator segsAt = roadSegmentsAt.find(*i);
-		if (segsAt!=roadSegmentsAt.end()) {
-			for (std::set<const sim_mob::RoadSegment*>::iterator segmt=segsAt->second.begin(); segmt!=segsAt->second.end(); segmt++) {
-				sim_mob::Link* lnk = (*segmt)->getLink();
-				std::vector<sim_mob::RoadSegment*> upSegs;
-				std::vector<sim_mob::RoadSegment*> downSegs;
-
-				//If the Link in question *ends* at the Node we are considering for a Conflux.
-				if(lnk->getEnd() == (*i))
-				{
-					//NOTE: There will *only* be upstream segments in this case.
-					upSegs = lnk->getSegments();
-					conflux->upstreamSegmentsMap.insert(std::make_pair(lnk, upSegs));
+		sim_mob::Conflux* conflux = new sim_mob::Conflux(*i, mtxStrat);
+		try {
+			std::set<const sim_mob::RoadSegment*>& segmentsAtNode = roadSegmentsAt.at(*i);
+			if (!segmentsAtNode.empty()) {
+				for (std::set<const sim_mob::RoadSegment*>::iterator segmtIt=segmentsAtNode.begin();
+						segmtIt!=segmentsAtNode.end(); segmtIt++) {
+					sim_mob::Link* lnk = (*segmtIt)->getLink();
+					std::vector<sim_mob::SegmentStats*> upSegStatsList;
+					std::vector<sim_mob::RoadSegment*> downSegs;
+					if (lnk->getStart() == (*i))
+					{
+						//lnk is downstream to the multinode and doesn't belong to this conflux
+						downSegs = lnk->getSegments();
+						conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
+						continue;
+					}
+					//else
+					//lnk *ends* at the multinode of this conflux.
+					//lnk is upstream to the multinode and belongs to this conflux
+					std::vector<sim_mob::RoadSegment*>& upSegs = lnk->getSegments();
+					//set conflux pointer to the segments and create SegmentStats for the segment
+					for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin();
+							segIt != upSegs.end(); segIt++)
+					{
+						sim_mob::RoadSegment* rdSeg = *segIt;
+						double rdSegmentLength = rdSeg->getLaneZeroLength();
+						if(rdSeg->parentConflux == nullptr)
+						{
+							// assign only if not already assigned
+							rdSeg->parentConflux = conflux;
+							std::list<sim_mob::SegmentStats*> splitSegmentStats;
+							CreateSegmentStats(rdSeg, splitSegmentStats);
+							if(splitSegmentStats.empty()) {
+								debugMsgs<<"no segment stats created for segment."
+										 <<"|segment: "<<rdSeg->getStartEnd()
+										 <<"|conflux: "<<conflux->multiNode
+										 <<std::endl;
+								throw std::runtime_error(debugMsgs.str());
+							}
+							std::vector<sim_mob::SegmentStats*>& rdSegSatsList = conflux->segmentAgents[rdSeg];
+							rdSegSatsList.insert(rdSegSatsList.end(), splitSegmentStats.begin(), splitSegmentStats.end());
+							upSegStatsList.insert(upSegStatsList.end(),splitSegmentStats.begin(), splitSegmentStats.end());
+						}
+						else if(rdSeg->parentConflux != conflux)
+						{
+							debugMsgs<<"\nProcessConfluxes\tparentConflux is being re-assigned for segment "
+									<<rdSeg->getStartEnd()<<std::endl;
+							throw std::runtime_error(debugMsgs.str());
+						}
+					}
+					conflux->upstreamSegStatsMap.insert(std::make_pair(lnk, upSegStatsList));
 					conflux->virtualQueuesMap.insert(std::make_pair(lnk, std::deque<sim_mob::Person*>()));
-				}
-				else if (lnk->getStart() == (*i))
-				{
-					//NOTE: There will *only* be downstream segments in this case.
-					downSegs = lnk->getSegments();
-					conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
-				}
-
-				// set conflux pointer to the segments and create SegmentStats for the segment
-				for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin();
-						segIt != upSegs.end(); segIt++)
-				{
-					if((*segIt)->parentConflux == nullptr)
-					{
-						// assign only if not already assigned
-						(*segIt)->parentConflux = conflux;
-						conflux->segmentAgents.insert(std::make_pair(*segIt, new SegmentStats(*segIt)));
-						multinode_confluxes.insert(std::make_pair(segsAt->first, conflux));
-					}
-					else if((*segIt)->parentConflux != conflux)
-					{
-						debugMsgs << "\nProcessConfluxes\tparentConflux is being re-assigned for segment " << (*segIt)->getStartEnd()<< std::endl;
-						throw std::runtime_error(debugMsgs.str());
-					}
-				}
-			} // for
+				} // end for
+			} //end if
+		}
+		catch (const std::out_of_range& oor) {
+			debugMsgs << "Loader::ProcessConfluxes() : No segments were found at multinode: "
+					<< (*i)->getID() << "|location: " << (*i)->getLocation() << std::endl;
+			Print() << debugMsgs.str();
+			debugMsgs.str(std::string());
+			continue;
 		}
 		conflux->resetOutputBounds();
 		confluxes.insert(conflux);
-	}
+		multinode_confluxes.insert(std::make_pair(*i, conflux));
+	} // end for each multinode
 }
 
 sim_mob::BusStopFinder::BusStopFinder(const Node* src, const Node* dest)

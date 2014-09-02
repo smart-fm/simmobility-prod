@@ -38,7 +38,7 @@ namespace sim_mob {
              * @return true if the transaction was committed with success,
              *         false otherwise.
              */
-            virtual T& insert(T& entity) = 0;
+            virtual T& insert(T& entity, bool returning) = 0;
 
             /**
              * Updates the given entity into the data source.

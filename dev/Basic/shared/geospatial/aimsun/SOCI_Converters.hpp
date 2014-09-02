@@ -160,6 +160,36 @@ template<> struct type_conversion<sim_mob::ERP_Section>
         ind = i_ok;
     }
 };
+template<> struct type_conversion<sim_mob::SegmentType>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::SegmentType &res)
+    {
+    	res.id = vals.get<std::string>("id", "");
+    	res.type = vals.get<int>("type", 0);
+    }
+    static void to_base(const sim_mob::SegmentType& src, soci::values& vals, soci::indicator& ind)
+    {
+    	vals.set("id", src.id);
+        vals.set("type", src.type);
+        ind = i_ok;
+    }
+};
+template<> struct type_conversion<sim_mob::NodeType>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::NodeType &res)
+    {
+    	res.id = vals.get<std::string>("id", "");
+    	res.type = vals.get<int>("type", 0);
+    }
+    static void to_base(const sim_mob::NodeType& src, soci::values& vals, soci::indicator& ind)
+    {
+    	vals.set("id", src.id);
+        vals.set("type", src.type);
+        ind = i_ok;
+    }
+};
 template<> struct type_conversion<sim_mob::ERP_Gantry_Zone>
 {
     typedef values base_type;

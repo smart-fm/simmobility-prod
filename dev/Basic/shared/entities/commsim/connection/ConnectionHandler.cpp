@@ -2,117 +2,156 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * ConnectionHandler.cpp
- *
- *  Created on: May 29, 2013
- *      Author: vahid
- */
 
 #include "ConnectionHandler.hpp"
-#include "entities/commsim/Broker.hpp"
-//#include "Session.hpp"
-#include "entities/commsim/serialization/JsonParser.hpp"
 
-namespace sim_mob {
-ConnectionHandler::ConnectionHandler(
-		session_ptr session_ ,
-//		Broker& broker,
-//		messageReceiveCallback callback,
-		boost::function<void(boost::shared_ptr<ConnectionHandler>, std::string)> messageReceiveCallback_,
-		std::string clientID_,
-		unsigned int ClienType_ ,
-		unsigned int agentPtr_
-		):messageReceiveCallback(messageReceiveCallback_)//theBroker(broker), receiveCallBack(callback)
+#include <sstream>
 
+#include "entities/commsim/broker/Broker.hpp"
+#include "entities/commsim/client/ClientHandler.hpp"
+#include "entities/commsim/serialization/CommsimSerializer.hpp"
+
+using namespace sim_mob;
+
+sim_mob::ConnectionHandler::ConnectionHandler(boost::asio::io_service& io_service, BrokerBase& broker)
+	: broker(broker), socket(io_service), valid(true), io_service(io_service)
 {
-	mySession = session_;
-	clientID = clientID_;
-	clientType = ClienType_;
-	agentPtr = agentPtr_;
-//	incomingMessage = "'\0'";
-	valid = true;
+	//Set the token to the pointer address of this ConnectionHandler.
+	std::stringstream tk;
+	tk <<this;
+	token = tk.str();
 }
 
-ConnectionHandler::~ConnectionHandler(){
-//	mySession.reset();
-}
-void ConnectionHandler::start()
+void sim_mob::ConnectionHandler::readHeader()
 {
-
-
-	Json::Value packet;
-	Json::Value packet_header = JsonParser::createPacketHeader(pckt_header(1));
-	Json::Value msg = JsonParser::createMessageHeader(msg_header("0","SIMMOBILITY","READY", "SYS"));
-	packet["PACKET_HEADER"] = packet_header;
-	packet["DATA"].append(msg);//no other data element needed
-	std::string readyMessage = Json::FastWriter().write(packet);
-	mySession->async_write(readyMessage,boost::bind(&ConnectionHandler::readyHandler, this, boost::asio::placeholders::error,readyMessage));
+	boost::asio::async_read(socket, boost::asio::buffer(readBuffer, 8),
+		boost::bind(&ConnectionHandler::handle_read_header, this, boost::asio::placeholders::error)
+	);
 }
 
-
-
-void ConnectionHandler::readyHandler(const boost::system::error_code &e, std::string str)
+void sim_mob::ConnectionHandler::handle_read_header(const boost::system::error_code& err)
 {
-	if(e)
-	{
-		std::cerr << "Connection Not Ready[" << e.message() << "] Trying Again" << std::endl;
-		mySession->async_write(str,boost::bind(&ConnectionHandler::readyHandler, this, boost::asio::placeholders::error,str));
+	//Stop reading on errors.
+	if (err) {
+		Warn() <<"Error reading from client: " <<err.message() <<"\n";
+		return;
 	}
-	else
-	{
-		//will not pass 'message' variable as argument coz it
-		//is global between functions. some function read into it, another function read from it
-		mySession->async_read(incomingMessage,
-			boost::bind(&ConnectionHandler::readHandler, this,
-					boost::asio::placeholders::error));
 
+	//Decode the remaining length.
+	unsigned int rem_len = ((int(readBuffer[4])&0xFF)<<24) | ((int(readBuffer[5])&0xFF)<<16) | ((int(readBuffer[6])&0xFF)<<8) | (int(readBuffer[7])&0xFF);
+	if (rem_len==0 || rem_len+8 >= MAX_MSG_LENGTH) {
+		Warn() <<"Error: Client message length (" <<rem_len <<") is zero, or exceeds max length: " <<MAX_MSG_LENGTH <<"\n";
+		return;
 	}
+
+	//Now read the data section (into the same buffer).
+	boost::asio::async_read(socket, boost::asio::buffer((readBuffer+8), rem_len),
+		boost::bind(&ConnectionHandler::handle_read_data, this, rem_len, boost::asio::placeholders::error)
+	);
 }
 
-void ConnectionHandler::readHandler(const boost::system::error_code& e) {
 
-	if(e)
-	{
-		std::cerr << "Read Fail [" << e.message() << "]" << std::endl;
-	}
-	else
-	{
-		//call the receive handler in the broker
-		messageReceiveCallback(shared_from_this(),incomingMessage);
-		//	keep reading
-		mySession->async_read(incomingMessage,
-						boost::bind(&ConnectionHandler::readHandler, this,
-								boost::asio::placeholders::error));
-	}
-}
-
-void ConnectionHandler::async_send(std::string str)
+void sim_mob::ConnectionHandler::handle_read_data(unsigned int rem_len, const boost::system::error_code& err)
 {
-	mySession->async_write(str,boost::bind(&ConnectionHandler::sendHandler, this, boost::asio::placeholders::error));
-}
-bool ConnectionHandler::send(std::string str) {
-	boost::system::error_code ec;
-	mySession->write(str, ec);
-}
-void ConnectionHandler::sendHandler(const boost::system::error_code& e) {
-//	Print() << "Write to agent[" << agentPtr << "]  client["  << clientID << "] " <<(e?"Failed":"Success") << std::endl;
-}
+	//Stop reading on errors.
+	if (err) {
+		Warn() <<"Error reading from client: " <<err.message() <<"\n";
+		return;
+	}
 
-session_ptr &ConnectionHandler::session(){
-	return mySession;
-}
+	//Post it to the Broker (as a string copy).
+	broker.onMessageReceived(shared_from_this(), readBuffer, rem_len+8);
 
-bool ConnectionHandler::is_open(){
-	return mySession->socket().is_open();
+	//Now read a new header.
+	readHeader();
 }
 
 
-bool ConnectionHandler::isValid() {
-	return valid;
+void sim_mob::ConnectionHandler::postMessage(const BundleHeader& head, const std::string& str)
+{
+	//Create it.
+	std::stringstream res;
+	res <<BundleParser::make_bundle_header(head);
+	res <<str;
+
+	io_service.post(boost::bind(&ConnectionHandler::writeMessage, this, res.str()));
 }
 
-void ConnectionHandler::setValidation(bool value) {
-	valid = value;
+
+void sim_mob::ConnectionHandler::writeMessage(std::string msg)
+{
+	//Add the message.
+	bool alreadyWriting = false;
+	{
+	boost::lock_guard<boost::mutex> lock(writeQueueLOCK);
+	alreadyWriting = !writeQueue.empty();
+	writeQueue.push_back(msg);
+	}
+
+	//"Wake" if this is the first new message in the queue.
+	if (!alreadyWriting) {
+		writeFrontMessage();
+	}
 }
-} /* namespace sim_mob */
+
+
+void sim_mob::ConnectionHandler::writeFrontMessage()
+{
+	boost::asio::async_write(socket, boost::asio::buffer(writeQueue.front()),
+		boost::bind(&ConnectionHandler::handle_write, this, boost::asio::placeholders::error)
+	);
+}
+
+
+void sim_mob::ConnectionHandler::handle_write(const boost::system::error_code& err)
+{
+	//Stop writing on errors.
+	if (err) {
+		Warn() <<"Error writing to client: " <<err.message() <<"\n";
+		return;
+	}
+
+	//Remove this message; it's been written correctly.
+	bool empty = false;
+	{
+	boost::lock_guard<boost::mutex> lock(writeQueueLOCK);
+	writeQueue.pop_front();
+	empty = writeQueue.empty();
+	}
+
+	//Is there anything else in the queue to write?
+	if (!empty) {
+		writeFrontMessage();
+	}
+}
+
+
+bool sim_mob::ConnectionHandler::isValid() const
+{
+	return valid && socket.is_open();
+}
+
+std::string sim_mob::ConnectionHandler::getToken() const
+{
+	return token;
+}
+
+void ConnectionHandler::invalidate()
+{
+	valid = false;
+}
+
+std::string sim_mob::ConnectionHandler::getSupportedType() const
+{
+	boost::lock_guard<boost::mutex> lock(supportedTypeLOCK);
+	return supportedType;
+}
+
+void sim_mob::ConnectionHandler::setSupportedType(const std::string& type)
+{
+	boost::lock_guard<boost::mutex> lock(supportedTypeLOCK);
+	if (!this->supportedType.empty()) {
+		Warn() <<"Warning: Changing non-empty connection type (from,to) = (" <<supportedType <<"," <<supportedType <<")";
+	}
+	this->supportedType = type;
+}

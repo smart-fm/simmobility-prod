@@ -159,6 +159,11 @@ public:
 	 */
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 
+	/**
+	 * Inherited from MessageHandler.
+	 */
+	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+
 protected:
 	///TODO: Temporary; this allows a child class to reset "call_frame_init", but there is
 	///      probably a better way of doing it.
@@ -180,28 +185,32 @@ public:
 	{
 	public:
 		const Link* link_;
-		unsigned int linkEntryTime_;
+		double linkEntryTime_;
+		double linkExitTime_;
 		std::map<double, unsigned int> rolesMap; //<timestamp, newRoleID>
 
+		/* note: link exit time will be available only when the agent exits the
+		 * link. -1 is a dummy value indication that the agent is in the link*/
 		linkTravelStats(const Link* link,
 				unsigned int linkEntryTime)
-		: link_(link), linkEntryTime_(linkEntryTime)
-		{
-		}
+		: link_(link), linkEntryTime_(linkEntryTime), linkExitTime_(-1)
+		{}
 	};
 
 	struct rdSegTravelStats
 	{
 	public:
 		const RoadSegment* rdSeg_;
-		unsigned int rdSegEntryTime_;
+		double rdSegEntryTime_;
+		double rdSegExitTime_;
 		std::map<double, unsigned int> rolesMap; //<timestamp, newRoleID>
 
+		/* note: segment exit time will be available only when the agent exits the
+		 * segment. -1 is a dummy value indication that the agent is in the segment*/
 		rdSegTravelStats(const RoadSegment* rdSeg,
 				unsigned int rdSegEntryTime)
-		: rdSeg_(rdSeg), rdSegEntryTime_(rdSegEntryTime)
-		{
-		}
+		: rdSeg_(rdSeg), rdSegEntryTime_(rdSegEntryTime), rdSegExitTime_(-1)
+		{}
 	};
 
 public:
@@ -272,6 +281,7 @@ public:
 	}
 	rdSegTravelStats currRdSegTravelStats;
 	sim_mob::Shared< std::map<double, rdSegTravelStats> > rdSegTravelStatsMap; //<linkExitTime, travelStats>
+	//==================== end of road segment travel time computation ============================
 
 	//============================ link travel time computation ===================================
 	//travelStats for each agent will be updated either for a role change or link change
@@ -293,6 +303,7 @@ public:
 
 	bool isQueuing;
 	double distanceToEndOfSegment;
+	double drivingTimeToEndOfLink;
 	double movingVelocity;
 
 	//timeslice enqueueTick;
@@ -309,7 +320,7 @@ private:
 	///Should this agent call frame_init()?
 	///NOTE: This only applies to the Agent; a Person, for example, may call frame_init()
 	///      on its Roles from its own frame_tick() method.
-	bool call_frame_init;
+	bool initialized;
 
     //Unknown until runtime
     std::map<std::string, std::string> configProperties;
@@ -337,12 +348,12 @@ public:
 	int getOwnRandomNumber();
 
 
-	bool isCallFrameInit() const {
-		return call_frame_init;
+	bool isInitialized() const {
+		return initialized;
 	}
 
-	void setCallFrameInit(bool callFrameInit) {
-		call_frame_init = callFrameInit;
+	void setInitialized(bool init) {
+		initialized = init;
 	}
 
 	long getLastUpdatedFrame();

@@ -16,14 +16,20 @@
 #include "DriverUpdateParams.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "Driver.hpp"
+#include "DriverPathMover.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "geospatial/RoadItem.hpp"
 #include "entities/IncidentStatus.hpp"
 #include "geospatial/Incident.hpp"
 #include "util/OneTimeFlag.hpp"
-#include "entities/fmodController/FMOD_Message.hpp"
+#include "IncidentPerformer.hpp"
+#include "FmodSchedulesPerformer.hpp"
 #include "entities/amodController/AMODController.hpp"
+#include "entities/roles/driver/models/CarFollowModel.hpp"
+
 namespace sim_mob {
+
+class CarFollowModel;
 
 class DriverBehavior: public sim_mob::BehaviorFacet {
 public:
@@ -40,6 +46,9 @@ public:
 	}
 
 	void setParentDriver(Driver* parentDriver) {
+		if(!parentDriver) {
+			throw std::runtime_error("parentDriver cannot be NULL");
+		}
 		this->parentDriver = parentDriver;
 	}
 
@@ -49,15 +58,10 @@ protected:
 };
 
 class DriverMovement: public sim_mob::MovementFacet {
-//public:
-//	const static int distanceInFront = 3000;
-//	const static int distanceBehind = 500;
-//	const static int maxVisibleDis = 5000;
-
 public:
-	explicit DriverMovement(sim_mob::Person* parentAgent = nullptr);
+	explicit DriverMovement(sim_mob::Person* parentAgent = nullptr,Driver* parentDriver=nullptr);
 	virtual ~DriverMovement();
-
+	virtual void init();
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
@@ -68,31 +72,43 @@ public:
 	}
 
 	void setParentDriver(Driver* parentDriver) {
+		if(!parentDriver) {
+			throw std::runtime_error("parentDriver cannot be NULL");
+		}
 		this->parentDriver = parentDriver;
 	}
-public:
 
-protected:
+	CarFollowModel* getCarFollowModel() {
+		return cfModel;
+	}
+
+
+public:
 	Driver* parentDriver;
 
-protected:
-	//Update models
+public:
+	// Update models
 	LaneChangeModel* lcModel;
 	CarFollowModel* cfModel;
 	IntersectionDrivingModel* intModel;
 
+public:
+	// DriverPathMover
+	DriverPathMover fwdDriverMovement;
 private:
 	//Sample stored data which takes reaction time into account.
-
 	int lastIndex;
 	double disToFwdVehicleLastFrame; //to find whether vehicle is going to crash in current frame.
-	                                     //so distance in last frame need to be remembered.
 
 public:
-	double maxLaneSpeed;
+//	double maxLaneSpeed;
 	//for coordinate transform
 	void setParentBufferedData();			///<set next data to parent buffer data
-
+	//Call once
+	void initPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
+	void resetPath(std::vector<sim_mob::WayPoint> wp_path);
+	const sim_mob::RoadSegment* hasNextSegment(bool inSameLink) const;
+	DPoint getPosition() const;
     /**
       * get nearest obstacle in perceptionDis
       * @param type is obstacle type, currently only two types are BusStop and Incident.
@@ -101,6 +117,16 @@ public:
       * @return true if inserting successfully .
       */
 	const sim_mob::RoadItem* getRoadItemByDistance(sim_mob::RoadItemType type,double &dis, double perceptionDis=20000,bool isInSameLink=true);
+	/**
+	 *  /brief get lanes connect to segment at look ahead distance
+	 *  /param distance look ahead distance from current position
+	 *  /param lanePool store found lanes
+	 */
+	void getLanesConnectToLookAheadDis(double distance,std::vector<sim_mob::Lane*>& lanePool);
+
+	/// check lane connect to rs
+	/// lanes' segment shall connect ro rs
+	bool laneConnectToSegment(sim_mob::Lane* lane,const sim_mob::RoadSegment* rs);
 
 private:
 	void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
@@ -124,30 +150,35 @@ private:
 public:
 //	//TODO: This may be risky, as it exposes non-buffered properties to other vehicles.
 //	const Vehicle* getVehicle() const {return vehicle;}
-//
-//	//This is probably ok.
-//	const double getVehicleLength() const { return vehicle->length; }
 
 	void updateAdjacentLanes(DriverUpdateParams& p);
-	void updatePositionDuringLaneChange(DriverUpdateParams& p, LANE_CHANGE_SIDE relative);
+	void updateLateralMovement(DriverUpdateParams& p);
+	/**
+	 *   @brief sync data after lane changing movement completed
+	 */
+	void syncInfoLateralMove(DriverUpdateParams& p);
+
+	void updatePosDuringLaneChange(DriverUpdateParams& p);
 
 	///Reroutes around a given blacklisted set of RoadSegments. See Role for documentation.
 	void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
-	void rerouteWithPath(const std::vector<sim_mob::WayPoint>& path);
 
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
-	virtual double linkDriving(DriverUpdateParams& p);
+	/*
+	 *  /brief do lane change and car follow
+	 */
+	void calcVehicleStates(DriverUpdateParams& p);
+	/*
+	 *  /brief Calculate new location and speed after an iteration based on its
+	 * 	       current location, speed and acceleration.
+	 */
+	double move(DriverUpdateParams& p);
 	virtual double dwellTimeCalculation(int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
 
 	sim_mob::Vehicle* initializePath(bool allocateVehicle);
 
-	//void resetPath2(bool mandatory=true, const std::vector<const sim_mob::RoadSegment*>& blacklisted = std::vector<const sim_mob::RoadSegment*>());
 	void setOrigin(DriverUpdateParams& p);
-
-	void checkIncidentStatus(DriverUpdateParams& p, timeslice now);
-
-	void responseIncidentStatus(DriverUpdateParams& p, timeslice now);
 
 	///Set the internal rrRegions array from the current path.
 	///This effectively converts a list of RoadSegments into a (much smaller) list of Regions.
@@ -156,11 +187,9 @@ protected:
 
 	//Helper: for special strings
 	//NOTE: I am disabling special strings. ~Seth
-	//void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
-	//void initTripChainSpecialString(const std::string& value);
-
 	NearestVehicle & nearestVehicle(DriverUpdateParams& p);
 	void perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params);
+	double getAngle() const;  ///<For display purposes only.
 
 private:
 	bool AvoidCrashWhenLaneChanging(DriverUpdateParams& p);
@@ -178,9 +207,7 @@ private:
 
 	void updateNearbyAgents();
 	bool updateNearbyAgent(const sim_mob::Agent* other, const sim_mob::Driver* other_driver);
-//	void handleUpdateRequestDriverTo(const Driver* target, DriverUpdateParams& targetParams)//incomplete
 	void updateNearbyAgent(const sim_mob::Agent* other, const sim_mob::Pedestrian* pedestrian);
-	//void updateCurrLaneLength(DriverUpdateParams& p);
 	void updateDisToLaneEnd();
 
 	void saveCurrTrafficSignal();
@@ -191,15 +218,18 @@ private:
 
 	void findCrossing(DriverUpdateParams& p);
 
-	bool processFMODSchedule(FMOD_Schedule* schedule, DriverUpdateParams& p);
+
+	double getDistanceToSegmentEnd() const;
+	sim_mob::DynamicVector getCurrPolylineVector() const;
+	sim_mob::DynamicVector getCurrPolylineVector2() const;
+
 
 public:
 	double targetSpeed;			//the speed which the vehicle is going to achieve
 
 	void intersectionVelocityUpdate();
+void updateRdSegTravelTimes(const RoadSegment* prevSeg, double linkExitTimeSec);
 
-	void assignNewFMODSchedule(const sim_mob::FMOD_RequestEventArgs& request);
-	void updateRdSegTravelTimes(const RoadSegment* prevSeg, double linkExitTimeSec);
 	//This always returns the lane we are moving towards; regardless of if we've passed the
 	//  halfway point or not.
 	LANE_CHANGE_SIDE getCurrLaneChangeDirection() const;
@@ -208,15 +238,12 @@ public:
 	// I'm sure we can do this in a less confusion fashion later.
 	LANE_CHANGE_SIDE getCurrLaneSideRelativeToCenter() const;
 
-private:
+public:
 	//The current traffic signal in our Segment. May be null.
 	const Signal* trafficSignal;
 
 	//For generating a debugging trace
 	mutable std::stringstream DebugStream;
-
-	//incident response plan
-	sim_mob::IncidentStatus incidentStatus;
 
 	//Have we sent the list of all regions at least once?
 	OneTimeFlag sentAllRegions;
@@ -224,7 +251,10 @@ private:
 	//The most recently-set path, which will be sent to RoadRunner.
 	std::vector<const sim_mob::RoadSegment*> rrPathToSend;
 
+	//perform incident response
+	IncidentPerformer incidentPerformer;
 
-
+	//perform fmod tasks
+	FmodSchedulesPerformer fmodPerformer;
 };
 }

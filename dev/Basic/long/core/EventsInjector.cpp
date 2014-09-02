@@ -40,7 +40,8 @@ namespace {
                 return LTEID_EXT_NEW_JOB_LOCATION;
             case ExternalEvent::NEW_SCHOOL_LOCATION:
                 return LTEID_EXT_NEW_SCHOOL_LOCATION;
-            default: -1;
+            default:
+            	return -1;
         }
     }
 }

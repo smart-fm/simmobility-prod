@@ -28,14 +28,6 @@ namespace sim_mob {
             /**
              * Getters 
              */
-            bool isHdb() const;
-            bool isPrivate() const;
-            bool isEc() const;
-            bool isDetached() const;
-            bool isSemi() const;
-            bool isTerrace() const;
-            bool isCondo() const;
-            bool isApartment() const;
             bool hasPms_1km() const;
             bool hasBus_400m() const;
             bool hasBus_200m() const;
@@ -59,8 +51,7 @@ namespace sim_mob {
             /**
              * Operator to print the PostcodeAmenities data.  
              */
-            friend std::ostream& operator<<(std::ostream& strm,
-                    const PostcodeAmenities& data);
+            friend std::ostream& operator<<(std::ostream& strm, const PostcodeAmenities& data);
 
         private:
             friend class PostcodeAmenitiesDao;
@@ -84,14 +75,6 @@ namespace sim_mob {
             bool bus_200m;
             bool bus_400m;
             bool pms_1km;
-            bool apartment;
-            bool condo;
-            bool terrace;
-            bool semi;
-            bool detached;
-            bool ec;
-            bool _private;
-            bool hdb;
         };
     }
 }

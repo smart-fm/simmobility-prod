@@ -16,7 +16,6 @@
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/misc/BusTrip.hpp"
-#include "entities/LoopDetectorEntity.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
@@ -27,6 +26,7 @@
 #include "geospatial/Link.hpp"
 #include "geospatial/PathSetManager.hpp"
 #include "logging/Log.hpp"
+#include "message/MessageBus.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "workers/Worker.hpp"
 
@@ -293,51 +293,6 @@ void sim_mob::WorkGroup::collectRemovedEntities(std::set<sim_mob::Agent*>* remov
 	}
 }
 
-//method to randomly assign links to workers
-/*void sim_mob::WorkGroup::assignLinkWorker(){
-	std::vector<Link*> allLinks = ConfigParams::GetInstance().getNetwork().getLinks();
-	//randomly assign link to worker
-	//each worker is expected to manage approximately the same number of links
-	for(vector<sim_mob::Link*>::iterator it = allLinks.begin(); it!= allLinks.end();it++){
-		Link* link = *it;
-		Worker* w = workers.at(nextWorkerID);
-		//w->addLink(link);
-		link->setCurrWorker(w);
-		nextWorkerID = (++nextWorkerID) % workers.size();
-	}
-	//reset nextworkerID to 0
-	nextWorkerID=0;
-}*/
-
-//method to assign agents on same link to the same worker
-void sim_mob::WorkGroup::assignAWorkerConstraint(Entity* ag){
-	Agent* agent = dynamic_cast<Agent*>(ag);
-	if(agent){
-		if(agent->originNode.node_){
-			const Link* link = StreetDirectory::instance().getLinkLoc(agent->originNode.node_);
-			link->getCurrWorker()->scheduleForAddition(ag);
-		}
-		else{
-			LoopDetectorEntity* loopDetector = dynamic_cast<LoopDetectorEntity*>(ag);
-			if(loopDetector){
-				const Link* link = StreetDirectory::instance().getLinkLoc(&loopDetector->getNode());
-				link->getCurrWorker()->scheduleForAddition(ag);
-			}
-		}
-	}
-}
-
-//method to find the worker which manages the specified linkID
-sim_mob::Worker* sim_mob::WorkGroup::locateWorker(unsigned int linkID){
-	std::vector<Link*> allLinks = ConfigManager::GetInstance().FullConfig().getNetwork().getLinks();
-	for(vector<sim_mob::Link*>::iterator it = allLinks.begin(); it!= allLinks.end();it++){
-		Link* link = *it;
-		if(link->linkID==linkID){
-			return link->getCurrWorker();
-		}
-	}
-	return nullptr;
-}
 
 void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 {
@@ -551,12 +506,13 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 			assignConfluxToWorkerRecursive((*confluxes.begin()), (*i), numConfluxesPerWorker);
 		}
 	}
-	//confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
 	if(confluxes.size() > 0) {
-		//There can be up to (workers.size() - 1) confluxes for which the parent worker is unassigned.
-		//Assign these to the last worker which has all its upstream confluxes.
+		//There can be up to (workers.size() - 1) confluxes for which the parent
+		//worker is unassigned. Assign these to the last worker which has all
+		//its upstream confluxes.
 		sim_mob::Worker* worker = workers.back();
-		for(std::set<sim_mob::Conflux*>::iterator i = confluxes.begin(); i!=confluxes.end(); i++) {
+		for(std::set<sim_mob::Conflux*>::iterator i = confluxes.begin();
+				i!=confluxes.end(); i++) {
 			if (worker->beginManagingConflux(*i)) {
 				(*i)->setParentWorker(worker);
 				(*i)->currWorkerProvider = worker;
@@ -565,12 +521,17 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 		confluxes.clear();
 	}
 
-	for(std::vector<Worker*>::iterator iWorker = workers.begin(); iWorker != workers.end(); iWorker++) {
-		for(std::set<Conflux*>::iterator iConflux = (*iWorker)->managedConfluxes.begin(); iConflux != (*iWorker)->managedConfluxes.end(); iConflux++) {
+	for(std::vector<Worker*>::iterator workerIt = workers.begin();
+			workerIt != workers.end(); workerIt++) {
+		for(std::set<Conflux*>::iterator confluxIt = (*workerIt)->managedConfluxes.begin();
+				confluxIt != (*workerIt)->managedConfluxes.end(); confluxIt++) {
 			// begin managing properties of the conflux
-			(*iWorker)->beginManaging((*iConflux)->getSubscriptionList());
+			(*workerIt)->beginManaging((*confluxIt)->getSubscriptionList());
 		}
-		std::cout<< "Worker "<< (*iWorker) << " Conflux size: "<< (*iWorker)->managedConfluxes.size()<<std::endl;
+		std::cout
+				<< "Worker "<< (*workerIt)
+				<< " Conflux size: "<< (*workerIt)->managedConfluxes.size()
+				<< std::endl;
 	}
 }
 
@@ -650,7 +611,7 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 	sim_mob::Person* person = dynamic_cast<sim_mob::Person*>(ag);
 	if(person) {
-		const sim_mob::RoadSegment* rdSeg = findStartingRoadSegment(person);
+		const sim_mob::RoadSegment* rdSeg = sim_mob::Conflux::constructPath(person);
 		if(rdSeg) {
 			rdSeg->getParentConflux()->addAgent(person,rdSeg);
 		}
@@ -660,65 +621,6 @@ void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
 	}
 }
 
-const sim_mob::RoadSegment* sim_mob::WorkGroup::findStartingRoadSegment(Person* p) {
-	/*
-	 * TODO: This function must be re-written to get the starting segment without establishing the entire path.
-	 */
-	std::vector<sim_mob::TripChainItem*> agTripChain = p->getTripChain();
-	const sim_mob::TripChainItem* firstItem = agTripChain.front();
-
-	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
-	std::string role = rf.GetTripChainMode(firstItem);
-
-	StreetDirectory& stdir = StreetDirectory::instance();
-
-	vector<WayPoint> path;
-	const sim_mob::RoadSegment* rdSeg = nullptr;
-
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		path = PathSetManager::getInstance()->getPathByPerson(p);
-	}
-	else{
-		if (role == "driver") {
-			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-			path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*firstSubTrip.fromLocation.node_), stdir.DrivingVertex(*firstSubTrip.toLocation.node_));
-		}
-		else if (role == "pedestrian") {
-			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-			path = stdir.SearchShortestWalkingPath(stdir.WalkingVertex(*firstSubTrip.fromLocation.node_), stdir.WalkingVertex(*firstSubTrip.toLocation.node_));
-		}
-		else if (role == "busdriver") {
-			//throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");
-			const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(p->currTripChainItem));
-			vector<const RoadSegment*> pathRoadSeg = bustrip->getBusRouteInfo().getRoadSegments();
-			std::cout << "BusTrip path size = " << pathRoadSeg.size() << std::endl;
-			std::vector<const RoadSegment*>::iterator itor;
-			for(itor=pathRoadSeg.begin(); itor!=pathRoadSeg.end(); itor++){
-				path.push_back(WayPoint(*itor));
-			}
-		}
-	}
-	/*
-	 * path.size() > 0 is checked because SimMobility is not fully equipped to load all feasible paths in the entire Singapore network.
-	 * Sometimes, due to network issues, the shortest path algorithm may fail to return a path.
-	 * TODO: This condition check must be removed when the network issues are fixed. ~ Harish
-	 */
-
-	if(path.size() > 0) {
-		/* Drivers generated through xml input file, gives path as: O-Node, segment-list, D-node.
-		 * BusDriver code, and pathSet code, generates only segment-list. Therefore we traverse through
-		 * the path until we find the first road segment.
-		 */
-		p->setCurrPath(path);
-		for (vector<WayPoint>::iterator it = path.begin(); it != path.end(); it++) {
-			if (it->type_ == WayPoint::ROAD_SEGMENT) {
-					rdSeg = it->roadSegment_;
-					break;
-			}
-		}
-	}
-	return rdSeg;
-}
 
 void sim_mob::WorkGroup::findBoundaryConfluxes() {
 	for ( std::vector<Worker*>::iterator itw = workers.begin(); itw != workers.end(); itw++){

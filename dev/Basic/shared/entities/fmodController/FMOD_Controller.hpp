@@ -15,12 +15,13 @@
 #include "ParkingCoordinator.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/Agent.hpp"
-#include "FMOD_Message.hpp"
 
 namespace sim_mob {
 
 namespace FMOD
 {
+
+struct Request;
 
 /**
   * provide collaboration with FMOD simulator
@@ -47,7 +48,7 @@ public:
       * @param blockingTime is waiting time in blocking mode
       * @return void .
       */
-	void settings(std::string ipadress, int port, int updateTravelTime, int updatePosTime, std::string mapFile, int blockingTime) { this->ipAddress=ipadress; this->port=port; this->updateTravelTime=updateTravelTime; this->updatePosTime=updatePosTime; this->mapFile=mapFile; this->waitingseconds=blockingTime;}
+	void settings(std::string ipadress, int port, int updateTiming, std::string mapFile, int blockingTime) { this->ipAddress=ipadress; this->port=port; this->updateTiming=updateTiming; this->mapFile=mapFile; this->waitingseconds=blockingTime;}
 
     /**
       * register a singleton object to system
@@ -87,8 +88,6 @@ public:
       */
 	void initialize();
 
-	void finalizeMessageToFMOD();
-
 private:
 	//record links travel times
 	std::map<sim_mob::Link*, double> linkTravelTimes;
@@ -97,19 +96,17 @@ private:
 	//record all FMOD requests
 	std::map<Request*, TripChainItem*> allRequests;
 	//record all passengers information
-	std::vector<Person*> allPersons;
+	std::vector<Agent*> allPersons;
 	//record dispatching drivers
-	std::vector<Person*> allDrivers;
+	std::vector<Agent*> allDrivers;
 	// keep all children agents to communicate with it
-	std::vector<Person*> allChildren;
+	std::vector<Agent*> allChildren;
 	//identify whether or not communication is created
 	bool isConnectFmodServer;
 	//define a constant number for one minute in milliseconds
 	static const unsigned int MIN_MS = 60000;
 	//define a constant name for FMOD trip chain
 	static const std::string FMOD_Trip;
-	//requests publisher
-	FMOD_Publisher publisher;
 
 protected:
 	//override from the class agent, provide initilization chance to sub class
@@ -235,8 +232,7 @@ private:
 	std::string ipAddress;
 	std::string mapFile;
 	int port;
-	int updateTravelTime;
-	int updatePosTime;
+	int updateTiming;
 	int frameTicks;
 	int waitingseconds;
 

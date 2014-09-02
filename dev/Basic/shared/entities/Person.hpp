@@ -9,14 +9,16 @@
 #include <vector>
 
 #include "conf/settings/DisableMPI.h"
-#include "entities/conflux/Conflux.hpp"
 #include "entities/Agent.hpp"
+#include "entities/conflux/Conflux.hpp"
+#include "entities/conflux/SegmentStats.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/LangHelpers.hpp"
-#include "entities/fmodController/FMOD_Message.hpp"
 #include "entities/amodController/AMODEvent.hpp"
 
-#include "entities/vehicle/Vehicle.hpp"
+#include "entities/vehicle/VehicleBase.hpp"
+
+#include "../short/entities/vehicle/Vehicle.hpp"
 
 
 namespace sim_mob
@@ -30,7 +32,7 @@ class PackageUtils;
 class UnPackageUtils;
 class UpdateParams;
 class AMODController;
-
+class Vehicle;
 
 
 /**
@@ -100,13 +102,19 @@ public:
     // find Person's NextRole
     bool findPersonNextRole();
 
+    /**
+     * insert a waiting activity before bus travel
+     * @param tripChain is the reference to current trip chain
+     */
+    void insertWaitingActivityToTrip(std::vector<TripChainItem*>& tripChain);
+
     // update nextTripChainItem, used only for NextRole
 	bool updateNextTripChainItem();
 	// update nextSubTrip, used only for NextRole
 	bool updateNextSubTrip();
     ///Check if any role changing is required.
     /// "nextValidTimeMS" is the next valid time tick, which may be the same at this time tick.
-    Entity::UpdateStatus checkTripChain(uint32_t currTimeMS);
+    Entity::UpdateStatus checkTripChain();
     bool changeRoleRequired(sim_mob::Role & currRole,sim_mob::SubTrip &currSubTrip)const;//todo depricate later
     bool changeRoleRequired_Trip /*sim_mob::Trip &trip*/
 	() const;
@@ -124,20 +132,7 @@ public:
 
 	///Set this person's trip chain
 	void setTripChain(const std::vector<TripChainItem*>& tripChain) {
-		//delete old
-		for(int i=0;i<this->tripChain.size();++i)
-		{
-			delete this->tripChain[i];
-		}
-		this->tripChain.clear();
-
 		this->tripChain = tripChain;
-
-		initTripChain();
-	}
-
-	void clearTripChain() {
-		this->tripChain.clear();
 	}
 
 	/*	const sim_mob::Link* getCurrLink() const;
@@ -196,7 +191,6 @@ public:
 		return currPath;
 	}
 
-
 	void setCurrPath(const std::vector<WayPoint>& currPath) {
 		this->currPath = currPath;
 	}
@@ -205,14 +199,14 @@ public:
 		this->currPath.clear();
 	}
 
-    const sim_mob::RoadSegment* requestedNextSegment;  //Used by confluxes and movement facet of roles to move this person in the medium term
+    const sim_mob::SegmentStats* requestedNextSegStats;  //Used by confluxes and movement facet of roles to move this person in the medium term
 
     enum Permission //to be renamed later
-    	{
-    		NONE=0,
-    		GRANTED,
-    		DENIED
-    	};
+   	{
+   		NONE=0,
+   		GRANTED,
+   		DENIED
+   	};
     Permission canMoveToNextSegment;
 
     //Used for passing various debug data. Do not rely on this for anything long-term.
@@ -221,13 +215,13 @@ public:
     std::stringstream debugMsgs;
     int client_id;
 
-	// amod
+    // amod
     std::string amodId;
 	void setPath(std::vector<WayPoint>& path);
 	std::vector<WayPoint> amodPath;
 	sim_mob::Vehicle* amodVehicle;
 	std::string parkingNode;
-    std::list<sim_mob::FMOD_Schedule> schedules;
+//    std::list<sim_mob::FMOD_Schedule> schedules;
 
     AMOD::AMODEventPublisher eventPub;
 
@@ -242,19 +236,52 @@ public:
 
     int stuckCount;
     double prevx;
-    double prevy;
 
-//    AMODController* amodCtrl;
+	const sim_mob::Lane* getCurrLane() const
+	{
+		return currLane;
+	}
+
+	void setCurrLane(const sim_mob::Lane* currLane)
+	{
+		this->currLane = currLane;
+	}
+
+	const sim_mob::SegmentStats* getCurrSegStats() const
+	{
+		return currSegStats;
+	}
+
+	void setCurrSegStats(const sim_mob::SegmentStats* currSegStats)
+	{
+		this->currSegStats = currSegStats;
+	}
+
+	const Link* getNextLinkRequired() const
+	{
+		return nextLinkRequired;
+	}
+
+	void setNextLinkRequired(Link* nextLink)
+	{
+		nextLinkRequired = nextLink;
+	}
+
+	void advanceToNextRole();
+
 
 protected:
 	virtual bool frame_init(timeslice now);
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
 	virtual void frame_output(timeslice now);
 
-	/**
-	 * Inherited from Agent.
-	 */
+
+	//Inherited from EventListener.
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+
+
+	//Inherited from MessageHandler.
+	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 
 private:
@@ -292,7 +319,13 @@ private:
     double boardingTimeSecs;
     // person's alighting time secs
     double alightingTimeSecs;
-    std::vector<WayPoint> currPath; //what is this?
+    std::vector<WayPoint> currPath;
+
+    // current lane and segment are needed for confluxes to track this person
+	const sim_mob::Lane* currLane;
+	const sim_mob::SegmentStats* currSegStats;
+
+	const sim_mob::Link* nextLinkRequired;
 
 public:
 	virtual void pack(PackageUtils& packageUtil) CHECK_MPI_THROW;

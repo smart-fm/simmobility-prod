@@ -16,7 +16,7 @@ namespace sim_mob {
 
 class PathSet;
 class SinglePath;
-
+inline double generateSinglePathLength(std::vector<WayPoint>& wp);
 struct PathLength
 {
 	double length;
@@ -26,9 +26,11 @@ struct PathLength
 struct PathLengthComparator
 {
 bool operator()(const PathLength& first, const PathLength& second) const {
-        if(first.length < second.length)
-        	return true;
-    }
+	if(first.length < second.length) {
+		return true;
+	}
+	return false;
+}
 };
 class K_ShortestPathImpl {
 public:
@@ -50,6 +52,6 @@ private:
 	void storeSegments(std::vector<sim_mob::WayPoint> path); // get segments list of the path
 	bool segmentInPaths(const sim_mob::RoadSegment* seg);
 };
-inline double generateSinglePathLength(std::vector<WayPoint>& wp);
+
 } //end namespace sim_mob
 #endif /* KSHORTESTPATHIMPL_HPP_ */

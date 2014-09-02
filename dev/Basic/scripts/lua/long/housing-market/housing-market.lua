@@ -1,8 +1,7 @@
 --ATTENTION requies cant be used with c++ (for now)
 
---package.path = package.path .. ";../?.lua"
---require "common"
---require "tests.classes"
+package.path = package.path .. ";../scripts/lua/long/?.lua;../?.lua"
+require "common"
 
 --[[****************************************************************************
     OBJECTS INFORMATION
@@ -31,7 +30,7 @@
         - storey (integer)                 : Number of storeys.
         - rent (real)                      : Montly rent.
 
-     Entry fields:
+    Entry fields:
         - unit (Unit)                      : Unit object.
         - hedonicPrice (real)              : Unit hedonic price.
         - askingPrice (real)               : Unit asking price.
@@ -86,18 +85,6 @@
 --[[****************************************************************************
     GLOBAL STATIC LOOKUP DATA
 ******************************************************************************]]
---[[
-    Helper function to mark tables as read-only.
-]]
-function readOnlyTable(table)
-   return setmetatable({}, {
-     __index = table,
-     __newindex = function(table, key, value)
-                    error("Attempt to modify read-only table")
-                  end,
-     __metatable = false
-   });
-end
 
 --Simulation constants.
 CONSTANTS = readOnlyTable {
@@ -125,7 +112,8 @@ end
 
 --[[
     Calculates the hedonic price for the given HDB Unit.
-    
+    Following the documentation prices are in (SGD per sqm).
+
     @param unit to calculate the hedonic price.
     @param building where the unit belongs
     @param postcode of the unit.
@@ -135,25 +123,30 @@ end
 function calculateHDB_HedonicPrice(unit, building, postcode, amenities)
  local simulationYear = CONSTANTS.SIMULATION_YEAR;
  local hedonicPrice = getStoreyEstimation(unit.storey) + 
-                      ((building ~= nil) and 
-                            ((simulationYear - building.builtYear)* -17.64) or 0)
-
+                      ((building ~= nil) and -- age
+                            ((simulationYear - building.builtYear) * -23.26) or 0)
  if amenities ~= nil then
     hedonicPrice =  hedonicPrice +
-                    (amenities.distanceToCBD * (-76.01) +
-                    amenities.distanceToJob * (1.69) +
-                    (amenities.pms_1km and 26.78 or 0) +
-                    amenities.distanceToMall * (-56.17) +
-                    (amenities.mrt_200m and 443.60 or 0) +
-                    (amenities.mrt_400m and 273.50 or 0) +
-                    (amenities.express_200m and -121.00 or 0) +                    
-                    (amenities.bus_200m and 37.30 or 0))
+                    4295 + -- intercept
+                    (amenities.distanceToCBD * (-80.4) +
+                    amenities.distanceToJob * (0.001966) +
+                    (amenities.pms_1km and 25.67 or 0) +
+                    amenities.distanceToMall * (-56.46) +
+                    (amenities.mrt_200m and 462.90 or 0) +
+                    (amenities.mrt_400m and 274.60 or 0) +
+                    (amenities.express_200m and -140.10 or 0) +                    
+                    (amenities.bus_200m and 0 or 62.43)) -- shall be the oposite (bus_gt200m) check documentation 
  end
+    
+    --print(string.format("HDB Price: %d, dist_job: %s, dist_cdb: %s, pms1KM: %s, dist_mall: %s, mrt_200m: %s, mrt_400m: %s, dist_express_200m: %s, bus_200m: %s"
+    --, hedonicPrice, (amenities.distanceToJob * (0.001966)), (amenities.distanceToCBD * (-80.4)), (amenities.pms_1km and 25.67 or 0), (amenities.distanceToMall * (-56.46)), (amenities.mrt_200m and 462.90 or 0),
+    --                (amenities.mrt_400m and 274.60 or 0), (amenities.express_200m and -140.10 or 0), (amenities.bus_200m and 62.43 or 0)))
     return hedonicPrice;
 end
 
 --[[
     Calculates the hedonic price for the given private Unit.
+    Following the documentation prices are in (SGD per sqm).
     
     @param unit to calculate the hedonic price.
     @param building where the unit belongs
@@ -168,9 +161,9 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities)
                     9575.00 + -- intercept
                     (-1239.00) + -- Resale estimation
                     (amenities.distanceToCBD * (-164.80) +
-                    amenities.distanceToJob * (15.26) +
+                    amenities.distanceToJob * (0.001526) +
                     (amenities.pms_1km and 196.30 or 0) +
-                    amenities.distanceToMall * (-362.10) +
+                    amenities.distanceToMall * (-361.20) +
                     (amenities.mrt_200m and -841.80 or 0) +
                     (amenities.mrt_400m and 367.10 or 0) +
                     (amenities.express_200m and -545.50 or 0) +                    
@@ -187,6 +180,7 @@ end
 
 --[[
     Calculates the hedonic price for the given Unit.
+    Following the documentation prices are in (SGD per sqm).
     
     @param unit to calculate the hedonic price.
     @param building where the unit belongs
@@ -194,7 +188,8 @@ end
     @param amenities close to the unit.
 ]]
 function calculateHedonicPrice(unit, building, postcode, amenities)
-    if amenities ~= nil then
+    if unit ~= nil and building ~= nil and
+       postcode ~= nil and amenities ~= nil then
         return (amenities.hdb) and 
                 calculateHDB_HedonicPrice(unit, building, postcode, amenities) or
                 calculatePrivate_HedonicPrice(unit, building, postcode, amenities);
@@ -215,11 +210,17 @@ end
 function calculateExpectation(price, v, a, b, cost)
     local E = Math.E
     local rateOfBuyers = a - (b * price)
-    local expectation = price 
-                        + (math.pow(E,-rateOfBuyers*(price-v)/price)-1)*price/rateOfBuyers 
-                        + math.pow(E,-rateOfBuyers)*v 
-                        - cost
-    return expectation
+    --local expectation = price 
+    --                    + (math.pow(E,-rateOfBuyers*(price-v)/price)-1 + rateOfBuyers)*price/rateOfBuyers 
+    --                    + math.pow(E,-rateOfBuyers)*v 
+    --                    - cost
+    if (rateOfBuyers > 0) then
+        local expectation = price 
+                            + (math.pow(E,-rateOfBuyers*(price-v)/price)-1) * price/rateOfBuyers 
+                            - cost
+        return expectation
+    end
+    return v
 end
 
 
@@ -236,26 +237,26 @@ end
 ]]
 function calulateUnitExpectations (unit, timeOnMarket, building, postcode, amenities)
     local expectations = {}
-    local hedonicPrice = calculateHedonicPrice(unit, building, postcode, amenities)
-    local expectation = hedonicPrice -- IMPORTANT : this should be the hedonic value
-    local price = 20 -- starting point for price search
-    local a = 1.0 -- ratio of events expected by the seller
-    local b = 0.5 -- Importance of the price for seller.
-    local cost = 0.1 -- Cost of being in the market
-    for i=1,timeOnMarket do
-        entry = ExpectationEntry()
-        entry.hedonicPrice = hedonicPrice
-        entry.price = findMaxArg(calculateExpectation,
-                price, expectation, a, b, cost, 0.001, 10000)
-        entry.expectation = calculateExpectation(entry.price, expectation, a, b, cost);
-        if Math.nan(entry.expectation) or Math.nan(entry.price) then
-           entry.hedonicPrice = 0
-           entry.expectation = 0
-           entry.price = 0
+    -- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
+    local hedonicPrice = (calculateHedonicPrice(unit, building, postcode, amenities) * sqfToSqm(unit.floorArea))/1000
+    if (hedonicPrice > 0) then
+        local targetPrice = hedonicPrice -- IMPORTANT : this should be the hedonic value
+        local a = 0 -- ratio of events expected by the seller per (considering that the price is 0)
+        local b = 1 -- Importance of the price for seller.
+       	local cost = 0.0 -- Cost of being in the market
+       	local x0 = 0 -- starting point for price search
+        local crit = 0.0001 -- criteria
+        local maxIterations = 20 --number of iterations 
+        for i=1,timeOnMarket do
+            a = 1.2 * targetPrice
+            x0 = 1.19 * targetPrice     
+            entry = ExpectationEntry()
+            entry.hedonicPrice = hedonicPrice
+            entry.askingPrice = findMaxArgConstrained(calculateExpectation, x0, targetPrice, a, b, cost, crit, maxIterations, targetPrice, 1.2 * targetPrice )
+            entry.targetPrice = calculateExpectation(entry.askingPrice, targetPrice, a, b, cost );
+            targetPrice = entry.targetPrice;
+            expectations[i] = entry
         end
-        --print ("PRICE: " .. entry.price .. " EXPECTATION: " .. entry.expectation) 
-        expectation = entry.expectation;
-        expectations[i] = entry
     end
     return expectations
 end
@@ -266,23 +267,19 @@ end
 ******************************************************************************]]
 
 --[[
-    Calculates the surplus for the given unit.
+    Calculates the speculation for the given unit.
     
-    surplus = pow(askingPrice, alpha + 1)/ (n_bids * zeta)
-
-    Where:
-         n_bids: Represents the number of attempts(bids) that the bidder already did to the specific unit. 
-         alpha: Represents the urgency of the household to get the unit. (Household parameter)
-         zeta: Represents the relation between quality and price of the unit. (Unit parameter)
     @param entry market entry.
     @param unitBids number of bids (attempts) to this unit.
     @return the surplus for the given unit.
 ]]
-function calculateSurplus (entry, unitBids)
+function calculateSpeculation (entry, unitBids)
     local maximumBids = 20
-    local a = 1.4
-    local b = 0.5
-    return (maximumBids-unitBids) * entry.askingPrice / ((a - b) * entry.askingPrice)
+    local a = 800000 --a is the ratio of events expected by the seller.
+    local b = 0.3    --b is the importance of the price for seller.
+    local c = 1000   --c is the offset of the speculation price in thousands of dollars. 
+
+    return (maximumBids-unitBids) * entry.askingPrice / (a - b * entry.askingPrice) * c
 end
 
 --[[
@@ -296,17 +293,23 @@ end
 
     @param household.
     @param unit to calculate the wp.
+    @param tazStats with statictics about taz.
+    @param amenities postcode amenities information.
     @return value of the willingness to pay of the given household.
 ]]
 
-function calculateWP (household, unit)
-    local theta0 = -42.889
-    local theta1 = 20.923
-    local theta2 = 0.0024
-    local theta3 = 0
-    local p1 = household.income == 0 and 0 or (household.size/household.income)
-    return (theta0 + 
-           (theta1 * unit.floorArea * p1) +
-           (theta2 * household.income) +
-           (CAR_CATEGORIES[household.vehicleCategoryId] and theta3 or 0))
+function calculateWP (household, unit, tazStats, amenities)
+    local b1 = 2.459
+    local b2 = 7.116
+    local b3 = -0.066
+    local b4 = -0.050
+    local hasCar = (CAR_CATEGORIES[household.vehicleCategoryId] and 1 or 0)
+    local x=  ((b1 * sqfToSqm(unit.floorArea) * Math.ln(household.size))                          --  b1 * Area_Per_Unit  *ln(HouseHold_Size) + 
+           +(b2 * ((household.income / 1000) / household.size) * (tazStats.hhAvgIncome / 1000))   --  b2 * HouseHold_Income / HouseHold_Size * Zone_Average_Income +
+           +(b3 * (amenities.distanceToCBD) * hasCar)                                             --  b3 * Distance_to_CBD*(Dummie_if_car) +
+           +(b4 * (amenities.distanceToCBD) * (1-hasCar)))                                        --  b4 * Distance_to_CBD*(1-Dummie_if_car)
+    --print("WP: " .. x)
+    --Area_Per_Unit, HouseHold_Size,HouseHold_Income,Distance_to_CBD, Zone_Average_Income, HasCar, WP
+    --print ("HH_ID: " .. household.id .."," .. unit.floorArea..",".. household.size .. "," .. household.income .. ","..amenities.distanceToCBD .. ","..tazStats.hhAvgIncome .. ",".. hasCar .."," .. x)
+    return x
 end

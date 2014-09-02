@@ -17,9 +17,9 @@ local function calculate_multinomial_logit_probability(choices, utility, availab
 		probability[k] = availables[k] * exp(utility[k])
 		evsum = evsum + probability[k]	
 	end
-	for c in pairs(probability) do
-		if (probability[c] ~= 0) then
-			probability[c] = probability[c]/evsum
+	for cno,avl_ev in pairs(probability) do
+		if (avl_ev ~= 0) then
+			probability[cno] = avl_ev/evsum
 		end
 	end
 	return probability
@@ -107,4 +107,20 @@ function make_final_choice(probability)
 	end
 	idx = binary_search(choices_prob, math.random()) 
 	return choices[idx]
+end
+
+function compute_mnl_logsum(utility, availability)
+	local evsum = 0
+	local exp = math.exp
+	for k,v in ipairs(utility) do
+		--if utility is not a number, then availability is 0
+		local avl = availability[k]
+		if v~=v then 
+			v = 0
+			avl = 0 
+		end 
+		local ev = avl * exp(v)
+		evsum = evsum + ev	
+	end
+	return math.log(evsum)
 end

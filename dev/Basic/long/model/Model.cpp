@@ -41,6 +41,9 @@ Model::Model(const std::string& name, WorkGroup& workGroup)
 }
 
 Model::~Model() {
+    if (running){
+        stop();
+    }
     deleteAgents(agents);
 }
 
@@ -51,8 +54,7 @@ void Model::start() {
         startWatch.stop();
         running = true;
         addMetadata(START_TIME, startWatch.getTime());
-        MessageBus::PublishEvent(LTEID_MODEL_STARTED, this,
-                MessageBus::EventArgsPtr(new EventArgs()));
+        MessageBus::PublishEvent(LTEID_MODEL_STARTED, this, MessageBus::EventArgsPtr(new EventArgs()));
     }
 }
 
@@ -63,8 +65,7 @@ void Model::stop() {
         stopImpl();
         stopWatch.stop();
         addMetadata(STOP_TIME, stopWatch.getTime());
-        MessageBus::PublishEvent(LTEID_MODEL_STOPPED, this,
-                MessageBus::EventArgsPtr(new EventArgs()));
+        MessageBus::PublishEvent(LTEID_MODEL_STOPPED, this, MessageBus::EventArgsPtr(new EventArgs()));
     }
 }
 

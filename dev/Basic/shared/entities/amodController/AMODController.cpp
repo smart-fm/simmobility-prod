@@ -29,7 +29,7 @@
 #include <string>
 #include <fstream>
 #include <algorithm>
-#include "entities/vehicle/Vehicle.hpp"
+#include "entities/vehicle/VehicleBase.hpp"
 #include "entities/roles/Role.hpp"
 #include <limits>
 #include <sstream>

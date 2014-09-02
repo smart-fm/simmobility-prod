@@ -200,16 +200,6 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     if(BusController::HasBusControllers()) {
     	BusController::DispatchAllControllers(active_agents);
     }
-
-    //Some random stuff with signals??
-    //TODO: Not quite sure how this is supposed to fit into the overall order of things. ~Seth
-    std::vector<Signal*>& all_signals = Signal::all_signals_;
-    for (size_t i=0; i<all_signals.size(); ++i) {
-    	Signal* signal = all_signals.at(i);
-    	LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(dynamic_cast<Signal_SCATS*>(signal)->loopDetector());
-        loopDetector.init(*signal);
-        active_agents.insert(&loopDetector);
-    }
 }
 
 void sim_mob::ExpandAndValidateConfigFile::verifyIncidents()
@@ -322,6 +312,13 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetworkFromDatabase()
 		sim_mob::aimsun::Loader::LoadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings, cfg.getNetworkRW(), cfg.getTripChains(), nullptr);
 	} else {
 		std::cout <<"Loading Road Network from XML.\n";
+		// load segment,node type from db ,TODO add type attribute to xml file
+		sim_mob::aimsun::Loader::loadSegNodeType(cfg.getDatabaseConnectionString(false),
+				cfg.getDatabaseProcMappings().procedureMappings,
+				cfg.getNetworkRW());
+
+//		DatabaseLoader loader(cfg.getDatabaseConnectionString(false));
+//		loader.loadObjectType(cfg.getDatabaseProcMappings().procedureMappings,cfg.getNetworkRW());
 		if (!sim_mob::xml::InitAndLoadXML(cfg.networkXmlInputFile(), cfg.getNetworkRW(), cfg.getTripChains())) {
 			throw std::runtime_error("Error loading/parsing XML file (see stderr).");
 		}
@@ -484,6 +481,8 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		//  must deal with it here.
 		//TODO: At the moment, manual IDs don't work. We can easily re-add them if required.
 		int manualID = -1;
+		if(it->angentId != 0)
+			manualID = it->angentId;
 		//map<string, string>::iterator propIt = props.find("id");
 		/*if (propIt != props.end()) {
 			//Convert the ID to an integer.

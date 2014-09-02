@@ -187,14 +187,9 @@ sim_mob::Signal_SCATS::printColors(double currCycleTimer)
 
 /*Signal Constructor*/
 sim_mob::Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int id, signalType type_)
-  :  Signal(node,mtxStrat,id)
+  :  Signal(node,mtxStrat,id), loopDetectorAgent(nullptr)
 	/*, node_(node)*/
 {
-	tempLoop = 0;
-	loopDetector_ = new LoopDetectorEntity(*this, mtxStrat);
-	tempLoop = loopDetector_;
-
-
 	setSignalType(type_);
 	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
 	if(! mNode) isIntersection_ = false ;
@@ -402,8 +397,8 @@ double sim_mob::Signal_SCATS::computePhaseDS(int phaseId) {
 				lane = lanes.at(i);
 				if (lane->is_pedestrian_lane())
 					continue;
-				const LoopDetectorEntity::CountAndTimePair& ctPair =
-						loopDetector_->getCountAndTimePair(*lane);
+				const Sensor::CountAndTimePair& ctPair =
+						loopDetectorAgent->getCountAndTimePair(*lane);
 				lane_DS = LaneDS(ctPair, total_g);
 				if (lane_DS > maxPhaseDS)
 					maxPhaseDS = lane_DS;
@@ -412,7 +407,7 @@ double sim_mob::Signal_SCATS::computePhaseDS(int phaseId) {
 	}
 
 	Phase_Density[phaseId] = maxPhaseDS;
-	loopDetector_->reset();
+	loopDetectorAgent->reset();
 	return Phase_Density[phaseId];
 }
 
@@ -422,7 +417,7 @@ double sim_mob::Signal_SCATS::computePhaseDS(int phaseId) {
  * at the moment total_g amounts to total_g at each phase,
  * However this function doesn't care total_g comes from which scop(phase level, cycle level....)
  */
-double sim_mob::Signal_SCATS::LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g)
+double sim_mob::Signal_SCATS::LaneDS(const Sensor::CountAndTimePair& ctPair,double total_g)
 {
 //	CountAndTimePair would give you T and n of the formula 2 in section 3.2 of the memurandum (page 3)
 	std::size_t vehicleCount = ctPair.vehicleCount;
@@ -434,7 +429,7 @@ double sim_mob::Signal_SCATS::LaneDS(const LoopDetectorEntity::CountAndTimePair&
 }
 void sim_mob::Signal_SCATS::cycle_reset()
 {
-	loopDetector_->reset();//extra
+	loopDetectorAgent->reset();//extra
 	isNewCycle = false;
 	for(int i = 0; i < Phase_Density.size(); Phase_Density[i++] = 0);
 }
@@ -447,7 +442,7 @@ void sim_mob::Signal_SCATS::newCycleUpdate()
 	//	7-update offset
 //		offset_.update(cycle_.getnextCL());
 		cycle_reset();
-		loopDetector_->reset();//extra?
+		loopDetectorAgent->reset();//extra?
 		isNewCycle = false;
 }
 
@@ -490,6 +485,7 @@ void sim_mob::Signal_SCATS::buffer_output(timeslice now, std::string newLine)
 
 	for(int i =0; i < getPhases().size(); i++)
 	{
+//		std::cout<<"outputPhaseTrafficLight: "<<now.frame()<<std::endl;
 		output << getPhases()[i].outputPhaseTrafficLight(newLine);
 		if((i + 1) < getPhases().size()) output << ",";
 	}
@@ -600,6 +596,7 @@ TrafficColor sim_mob::Signal_SCATS::getDriverLight(Lane const & fromLane, Lane c
 //			Print() << "Link-Link [" << iter->first << " , " << iter->second.LinkTo << "]" << std::endl;
 //		}
 //	}
+
 	for(iter = range.first; iter != range.second ; iter++ )
 	{
 		if((*iter).second.LinkTo == toLink){

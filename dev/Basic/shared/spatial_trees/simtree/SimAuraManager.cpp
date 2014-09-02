@@ -4,6 +4,8 @@
 
 #include "SimAuraManager.hpp"
 
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "entities/Agent.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/Lane.hpp"
@@ -27,12 +29,7 @@ void sim_mob::SimAuraManager::update(int time_step, const std::set<sim_mob::Agen
 	}
 
 	new_agents.clear();
-
-#ifdef SIM_TREE_USE_REBALANCE
-	//meausre unbalance
-	tree_sim.measureUnbalance(time_step);
-#endif
-
+	tree_sim.measureUnbalance(time_step, agent_connector_map);
 }
 
 /**
@@ -41,14 +38,8 @@ void sim_mob::SimAuraManager::update(int time_step, const std::set<sim_mob::Agen
 void sim_mob::SimAuraManager::init() {
 	agent_connector_map.clear();
 
-#ifdef SIM_TREE_USE_REBALANCE
-	//nothing
-	tree_sim.build_tree_structure("shared//spatial_trees//simtree//density_pattern_sg_auto_study");
-	tree_sim.init_rebalance_settings();
-#else
-	tree_sim.build_tree_structure("shared//spatial_trees//simtree//density_pattern_sg_20mins");
-#endif
-
+	tree_sim.buildTreeStructure();
+	tree_sim.initRebalanceSettings();
 }
 
 void sim_mob::SimAuraManager::registerNewAgent(Agent const* ag) {
@@ -74,13 +65,21 @@ std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRect(Point2D const &
 }
 
 std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const {
-	//Can we use the optimized bottom-up query?
+	//Use the optimized bottom-up query, please read the paper to get more insights on "bottom-up query"
+	//The idea is to start the search from the agent's location, instead of from the root node
 	if (refAgent) {
 		std::map<const sim_mob::Agent*, TreeItem*>::const_iterator it = agent_connector_map.find(refAgent);
 		if (it!=agent_connector_map.end() && it->second) {
 			return nearbyAgentsBottomUpQuery(position, lane, distanceInFront, distanceBehind, it->second);
 		}
 	}
+
+	/*
+	 * Otherwise, start the search from the root node
+	 * The code below is basically build a search rectangle using position and distance
+	 * 1) lowerLeft
+	 * 2) upperRight
+	 */
 
 	// Find the stretch of the lane's polyline that <position> is in.
 	std::vector<Point2D> const & polyline = lane.getPolyline();

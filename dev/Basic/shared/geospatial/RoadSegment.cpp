@@ -37,13 +37,13 @@ void sim_mob::RoadSegment::setLanes(std::vector<sim_mob::Lane*> lanes)
 {
 	this->lanes = lanes;
 }
-unsigned int sim_mob::RoadSegment::getAdjustedLaneId(unsigned int laneId){
-					 unsigned int adjustedId  = lanes.size()-1 - laneId;
-	                 if (adjustedId > lanes.size() -1 || adjustedId < 0)
-	                 {
-	                	 adjustedId = 0;
-	                 }
-	                 return adjustedId;
+unsigned int sim_mob::RoadSegment::getAdjustedLaneId(unsigned int laneId)
+{
+	unsigned int adjustedId  = lanes.size()-1 - laneId;
+	if (adjustedId > lanes.size() -1) {
+		adjustedId = 0;
+	}
+	return adjustedId;
 }
 
 void sim_mob::RoadSegment::setParentLink(Link* parent)
@@ -58,7 +58,26 @@ const sim_mob::Lane* sim_mob::RoadSegment::getLane(int laneID) const
 	}
 	return lanes[laneID];
 }
-
+size_t sim_mob::RoadSegment::getLanesSize(bool isIncludePedestrianLane) const
+{
+	if(isIncludePedestrianLane)
+	{
+		return getLanes().size();
+	}
+	else
+	{
+		size_t s = getLanes().size();
+		if(getLanes().at(s-1)->is_pedestrian_lane()) // most left lane is ped?
+		{
+			s--;
+		}
+		if(getLanes().at(0)->is_pedestrian_lane() )// most right lane is ped?
+		{
+			s--;
+		}
+		return s;
+	}
+}
 
 bool sim_mob::RoadSegment::isSingleDirectional()
 {
@@ -229,6 +248,10 @@ double sim_mob::RoadSegment::computeLaneZeroLength() const{
 
 void sim_mob::RoadSegment::setCapacity() {
 	capacity = lanes.size()*2000.0;
+}
+
+double sim_mob::RoadSegment::getCapacityPerInterval() const {
+	return capacity * ConfigManager::GetInstance().FullConfig().baseGranSecond() / 3600;
 }
 
 vector<Point2D> sim_mob::RoadSegment::makeLaneEdgeFromPolyline(Lane* refLane, bool edgeIsRight) const

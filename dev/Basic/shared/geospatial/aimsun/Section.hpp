@@ -17,6 +17,11 @@ namespace sim_mob
 //Forward declarations
 class RoadSegment;
 
+struct SegmentType
+{
+	std::string id;
+	int type;
+};
 namespace aimsun
 {
 

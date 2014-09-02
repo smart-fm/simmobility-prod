@@ -27,6 +27,17 @@ namespace sim_mob {
             static const HM_LuaModel& getHM_Model();
             
             /**
+             * Gets the developer model.
+             * 
+             * Attention: you should not hold this instance.
+             * This provider will give you and instance based on 
+             *  current thread context.
+             * 
+             * @return Lua developer model reference.
+             */
+            static const DeveloperLuaModel& getDeveloperModel();
+            
+            /**
              * Gets the External Events lua model.
              * 
              * Attention: you should not hold this instance.

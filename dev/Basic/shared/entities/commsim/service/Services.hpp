@@ -15,8 +15,6 @@
 #include <map>
 #include <string>
 
-#include "entities/commsim/client/ClientType.hpp"
-
 namespace sim_mob {
 
 
@@ -27,8 +25,12 @@ namespace sim_mob {
 class Services {
 public:
 	enum SIM_MOB_SERVICE {
-		SIMMOB_SRV_TIME,
+		//Request the bound Agent's location at each time tick.
+		//NOTE: This message type will be ignored for non-Android clients.
 		SIMMOB_SRV_LOCATION,
+
+		//Request all Agent locations at each time tick.
+		//NOTE: This message type will be ignored for non-ns-3 clients.
 		SIMMOB_SRV_ALL_LOCATIONS,
 
 		//Sim Mobility will provide the set of all regions and the Agent's current path with this service.
@@ -38,33 +40,13 @@ public:
 		//          set is never re-sent, and the Path set is re-sent only in the case of re-routing.
 		//NOTE: There is probably a more efficient way to do this, with the Agent requesting the Region/Path set only
 		//      when it needs it. For now, I am trying to do this within the "Services" framework we provide. ~Seth
-		SIMMOB_SRV_REGIONS_AND_PATH,
-
-		SIMMOB_SRV_UNKNOWN,
+		//NOTE: This message type will be ignored for non-Android clients.
+		SIMMOB_SRV_REGIONS_AND_PATH
 	};
 
 	static std::map<std::string, SIM_MOB_SERVICE> ServiceMap;
-	static std::map<std::string, comm::ClientType>	ClientTypeMap;
-};
 
-
-struct msg_header {
-	//data
-	std::string sender_id, sender_type, msg_type, msg_cat;
-
-	//constructor
-	msg_header();
-	msg_header(std::string sender_id_, std::string sender_type_, std::string msg_type_, std::string msg_cat_="UNK");
-};
-
-struct pckt_header {
-	//data
-	std::string sender_id,sender_type, nof_msgs, size_bytes;
-
-	//constructor(s)
-	pckt_header();
-	pckt_header(std::string	nof_msgs_);
-	pckt_header(int	nof_msgs_);
+	static SIM_MOB_SERVICE GetServiceType(std::string type);
 };
 
 }

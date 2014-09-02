@@ -2,5 +2,5 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-#include "entities/models/IntersectionDrivingModel.hpp"
+#include "entities/roles/driver/models/IntersectionDrivingModel.hpp"
 

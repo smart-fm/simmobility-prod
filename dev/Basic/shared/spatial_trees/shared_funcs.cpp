@@ -105,7 +105,7 @@ void sim_mob::temp_spatial::adjust(Point2D& p1, Point2D& p2, const Point2D& posi
 
 	t = distanceBehind / h;
 	x = position.getX() - t * xDiff;
-	y = position.getY() - t * xDiff;
+	y = position.getY() - t * yDiff;
 	p1 = Point2D(x, y);
 }
 

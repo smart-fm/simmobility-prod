@@ -26,7 +26,7 @@
 #include "partitions/UnPackageUtils.hpp"
 #include "entities/AuraManager.hpp"
 #include "util/PassengerDistribution.hpp"
-#include "entities/roles/activityRole/WaitBusActivityRole.hpp"
+#include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
 
 using namespace sim_mob;
 using std::vector;
@@ -71,11 +71,11 @@ Role* sim_mob::BusDriver::clone(Person* parent) const {
 }
 
 double sim_mob::BusDriver::getPositionX() const {
-	return vehicle ? vehicle->getX() : 0;
+	return currPos.x;
 }
 
 double sim_mob::BusDriver::getPositionY() const {
-	return vehicle ? vehicle->getY() : 0;
+	return currPos.y;
 }
 
 vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {

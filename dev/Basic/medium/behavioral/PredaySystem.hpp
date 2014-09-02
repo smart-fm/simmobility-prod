@@ -9,12 +9,16 @@
  */
 
 #pragma once
+#include <boost/pool/pool_alloc.hpp>
 #include <boost/unordered_map.hpp>
-
+#include <map>
+#include <sstream>
 #include "behavioral/lua/PredayLuaProvider.hpp"
+#include "CalibrationStatistics.hpp"
 #include "params/PersonParams.hpp"
 #include "PredayClasses.hpp"
 #include "database/PopulationSqlDao.hpp"
+#include "database/TripChainSqlDao.hpp"
 #include "database/dao/MongoDao.hpp"
 
 namespace sim_mob {
@@ -22,7 +26,7 @@ namespace medium {
 
 /**
  * Class for pre-day behavioral system of models.
- * Invokes behavior models in a sequence as specified by the system of models.
+ * Invokes behavior models in a sequence as specified by the system of models for 1 person.
  * Handles dependencies between models.
  * The models specified by modelers in an external scripting language are invoked via this class.
  *
@@ -34,7 +38,8 @@ class PredaySystem {
 private:
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
-	typedef std::deque<Tour*> TourList;
+	typedef boost::unordered_map<int, std::vector<ZoneNodeParams*> > ZoneNodeMap;
+	typedef std::deque<Tour> TourList;
 	typedef std::deque<Stop*> StopList;
 
 	/**
@@ -52,28 +57,28 @@ private:
 	 *
 	 * @param tour the tour for which the mode is to be predicted
 	 */
-	void predictTourMode(Tour* tour);
+	void predictTourMode(Tour& tour);
 
 	/**
 	 * Predicts the mode and destination together for tours to unusual locations
 	 *
 	 * @param tour the tour for which the mode and destination are to be predicted
 	 */
-	void predictTourModeDestination(Tour* tour);
+	void predictTourModeDestination(Tour& tour);
 
 	/**
 	 * Predicts the time period that will be allotted for the primary activity of a tour.
 	 *
 	 * @param tour the tour for which the time of day is to be predicted
 	 */
-	TimeWindowAvailability predictTourTimeOfDay(Tour* tour);
+	TimeWindowAvailability predictTourTimeOfDay(Tour& tour);
 
 	/**
 	 * Generates intermediate stops of types predicted by the day pattern model before and after the primary activity of a tour.
 	 *
 	 * @param tour the tour for which stops are to be generated
 	 */
-	void generateIntermediateStops(Tour* tour);
+	void generateIntermediateStops(Tour& tour, size_t remainingTours);
 
 	/**
 	 * Predicts the mode and destination together for stops.
@@ -113,14 +118,14 @@ private:
 	 *
 	 * @param tour the tour object for which the start time is to be calculated
 	 */
-	void calculateTourStartTime(Tour* tour);
+	void calculateTourStartTime(Tour& tour);
 
 	/**
 	 * Calculates the time when the person reaches home at the end of the tour.
 	 *
 	 * @param tour the tour object for which the end time is to be calculated
 	 */
-	void calculateTourEndTime(Tour* tour);
+	void calculateTourEndTime(Tour& tour);
 
 	/**
 	 * constructs tour objects based on predicted number of tours. Puts the tour objects in tours deque.
@@ -140,7 +145,7 @@ private:
 	 * @param tour an object containing information pertinent to a tour
 	 * @param tourNumber the index of this tour among all tours of this person
 	 */
-	void insertTour(Tour* tour, int tourNumber);
+	void insertTour(const Tour& tour, int tourNumber);
 
 	/**
 	 * inserts tour level information for a person
@@ -150,7 +155,40 @@ private:
 	 * @param stopNumber the index of this stop among all stops of this tour
 	 * @param tourNumber the index of the stop's parent tour among all tours of this person
 	 */
-	void insertStop(Stop* stop, int stopNumber, int tourNumber);
+	void insertStop(const Stop* stop, int stopNumber, int tourNumber);
+
+	/**
+	 * generates a random time  within the time window passed in preday's representation.
+	 *
+	 * @param window time window in preday format (E.g. 4.75 => 4:30 to 4:59 AM)
+	 * @return a random time within the window in hh24:mm:ss format
+	 */
+	std::string getRandomTimeInWindow(double window);
+
+	/**
+	 * returns a random element from the list of nodes
+	 *
+	 * @param nodes the list of nodes
+	 * @returns a random element of the list
+	 */
+	long getRandomNodeInZone(const std::vector<ZoneNodeParams*>& nodes) const;
+
+	/**
+	 * returns first element from the list of nodes
+	 * Always returning the first element helps to minimize the number of distinct
+	 * ODs for pathset generation
+	 * @param nodes the list of nodes
+	 * @returns first element of the list
+	 */
+	long getFirstNodeInZone(const std::vector<ZoneNodeParams*>& nodes) const;
+
+	/**
+	 * constructs trip chain from predictions for a person
+	 * @param zoneNodeMap zone to nodes mapping
+	 * @param scale number of trip chains to be generated for this person
+	 * @param outTripChain output list (trip chain) to be constructed
+	 */
+	void constructTripChains(const ZoneNodeMap& zoneNodeMap, long scale, std::list<TripChainItemParams>& outTripChain);
 
 	/**
 	 * Person specific parameters
@@ -190,7 +228,7 @@ private:
     /**
      * Data access objects for mongo
      */
-    boost::unordered_map<std::string, db::MongoDao*> mongoDao;
+    std::map<std::string, db::MongoDao*> mongoDao;
 
     /**
      * used for logging messages
@@ -201,7 +239,7 @@ public:
 	PredaySystem(PersonParams& personParams,
 			const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 			const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
-			const boost::unordered_map<std::string, db::MongoDao*>& mongoDao);
+			const std::map<std::string, db::MongoDao*>& mongoDao);
 	virtual ~PredaySystem();
 
 	/**
@@ -213,6 +251,38 @@ public:
 	 * Writes the output of Preday to MongoDB
 	 */
 	void outputPredictionsToMongo();
+
+	/**
+	 * Invokes tour mode-destination models for computing logsums
+	 * Updates the logsums in personParams
+	 */
+	void computeLogsums();
+
+	/**
+	 * Writes the logsums to mongo
+	 */
+	void updateLogsumsToMongo();
+
+	/**
+	 * Converts predictions to Trip chains and writes them off to PostGreSQL
+	 */
+	void outputTripChainsToPostgreSQL(const ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao);
+
+	/**
+	 * Converts predictions to Trip chains and writes them off to the given stringstream
+	 */
+	void outputTripChainsToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& tripChainDao);
+
+	/**
+	 * Prints logs for person in console
+	 */
+	void printLogs();
+
+	/**
+	 * updates statsCollector with the stats for this person
+	 * @param statsCollector statistics collector to be updated
+	 */
+	void updateStatistics(CalibrationStatistics& statsCollector) const;
 };
 
 } // end namespace medium

@@ -42,14 +42,14 @@ namespace sim_mob {
              * @param bsonObj a mongo::BSONObj containing object to insert
              * @return true if the transaction was committed with success; false otherwise.
              */
-            mongo::BSONObj& insert(mongo::BSONObj& bsonObj) {
+            mongo::BSONObj& insert(mongo::BSONObj& bsonObj, bool returning = false) {
                 connection.getSession<mongo::DBClientConnection>().insert(collectionName, bsonObj);
                 return bsonObj; // Unnecessary return just to comply with the base interface
             }
 
             /**
              * Updates the given entity into the data source.
-             * @param entity to update.
+             * @param bsonObj to update.
              * @return true if the transaction was committed with success,
              *         false otherwise.
              *
@@ -57,6 +57,20 @@ namespace sim_mob {
              */
             bool update(mongo::BSONObj& bsonObj) {
                 throw std::runtime_error("MongoDao::update() - Not implemented");
+            }
+
+            /**
+             * Updates the given entity into the data source.
+             * @param query query for selecting document(s) to update
+             * @param bsonObj obj to update
+             * @param upsert flag to indicate whether to insert if no document was returned by query
+             * @param multipleDocuments flag to indicate whether all documents (or just the first document ) returned by query need to be updated
+             * @return true if the transaction was committed with success,
+             *         false otherwise.
+             */
+            bool update(mongo::BSONObj& query, mongo::BSONObj& bsonObj, bool upsert=false, bool multipleDocuments=false) {
+            	connection.getSession<mongo::DBClientConnection>().update(collectionName, query, bsonObj, upsert, multipleDocuments);
+            	return true;
             }
 
             /**

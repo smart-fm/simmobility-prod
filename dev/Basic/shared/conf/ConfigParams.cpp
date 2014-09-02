@@ -31,7 +31,7 @@ sim_mob::ConfigParams::ConfigParams() : RawConfigParams(),
 	granCommunicationTicks(0), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0),
 	using_MPI(false), is_run_on_many_computers(false), outNetworkFileName("out.network.txt"),
 	is_simulation_repeatable(false), sealedNetwork(false), commDataMgr(nullptr), controlMgr(nullptr),
-	passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr)
+	passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr), midTermRunMode(ConfigParams::NONE)
 {}
 
 
@@ -49,7 +49,6 @@ sim_mob::ConfigParams::~ConfigParams()
 	//std::vector<sim_mob::PT_trip*> pt_trip;
 	//routeID_roadSegments
 	//routeID_busStops
-	//confluxes
 }
 
 
@@ -240,6 +239,11 @@ const unsigned int& sim_mob::ConfigParams::baseGranMS() const
 	return system.simulation.baseGranMS;
 }
 
+const double& sim_mob::ConfigParams::baseGranSecond() const
+{
+	return system.simulation.baseGranSecond;
+}
+
 bool& sim_mob::ConfigParams::singleThreaded()
 {
 	return system.singleThreaded;
@@ -343,37 +347,20 @@ const sim_mob::MutexStrategy& sim_mob::ConfigParams::mutexStategy() const
 	return system.simulation.mutexStategy;
 }
 
-bool& sim_mob::ConfigParams::commSimEnabled()
+bool sim_mob::ConfigParams::commSimEnabled() const
 {
-	return system.simulation.commSimEnabled;
-}
-const bool& sim_mob::ConfigParams::commSimEnabled() const
-{
-	return system.simulation.commSimEnabled;
+	return system.simulation.commsim.enabled;
 }
 
-const std::map<std::string,sim_mob::SimulationParams::CommsimElement> &sim_mob::ConfigParams::getCommSimElements() const{
-	return system.simulation.commsimElements;
-}
 
-const std::string& sim_mob::ConfigParams::getCommSimMode(std::string name) const{
+/*const std::string& sim_mob::ConfigParams::getCommSimMode(std::string name) const{
 	if(system.simulation.commsimElements.find(name) != system.simulation.commsimElements.end()){
 		return system.simulation.commsimElements.at(name).mode;
 	}
 	std::ostringstream out("");
 	out << "Unknown Communication Simulator : " << name ;
 	throw std::runtime_error(out.str());
-}
-
-bool sim_mob::ConfigParams::commSimmEnabled(std::string &name) {
-	if(system.simulation.commsimElements.find(name) != system.simulation.commsimElements.end()){
-		return system.simulation.commsimElements[name].enabled;
-	}
-	std::ostringstream out("");
-	out << "Unknown Communication Simulator : " << name ;
-	throw std::runtime_error(out.str());
-}
-
+}*/
 
 DailyTime& sim_mob::ConfigParams::simStartTime()
 {
@@ -419,13 +406,28 @@ unsigned int sim_mob::ConfigParams::signalTimeStepInMilliSeconds() const
 }
 
 bool sim_mob::ConfigParams::RunningMidSupply() const {
-	const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
-	return (run_mode == "supply" || run_mode == "demand+supply");
+	return (midTermRunMode == ConfigParams::SUPPLY);
 }
 
 bool sim_mob::ConfigParams::RunningMidDemand() const {
-	const std::string& run_mode = system.genericProps.at("mid_term_run_mode");
-	return (run_mode == "demand" || run_mode == "demand+supply");
+	return (midTermRunMode == ConfigParams::PREDAY);
+}
+
+void sim_mob::ConfigParams::setMidTermRunMode(const std::string& runMode)
+{
+	if(runMode.empty()) { return; }
+	if(runMode == "supply")
+	{
+		midTermRunMode = ConfigParams::SUPPLY;
+	}
+	else if (runMode == "preday")
+	{
+		midTermRunMode = ConfigParams::PREDAY;
+	}
+	else
+	{
+		throw std::runtime_error("inadmissible value for mid_term_run_mode. Must be either 'supply' or 'preday'");
+	}
 }
 
 unsigned int sim_mob::ConfigParams::communicationTimeStepInMilliSeconds() const
@@ -506,6 +508,11 @@ const std::map<std::string, std::vector<const sim_mob::BusStop*> >& sim_mob::Con
 std::set<sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxes()
 {
 	return confluxes;
+}
+
+std::set<sim_mob::SegmentStats*>& sim_mob::ConfigParams::getSegmentStatsWithBusStops()
+{
+	return segmentStatsWithBusStops;
 }
 
 const std::set<sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxes() const

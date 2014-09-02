@@ -143,6 +143,9 @@ private:
 	//Helper function: is there no chance of delay, ever? (I.e., is the max delay zero?)
 	bool zero_delay() const;
 
+public:
+	void printHistory();
+
 private:
 	//Internal class to store an item and its observed time.
 	struct HistItem {
@@ -164,6 +167,8 @@ private:
 	    }
 	#endif
 	};
+
+
 
 private:
 	//The list of history items
@@ -228,8 +233,15 @@ bool sim_mob::FixedDelayed<T>::zero_delay() const
 	return maxDelayMS==0;
 }
 
-
-
+template <typename T>
+void sim_mob::FixedDelayed<T>::printHistory()
+{
+	std::cout<<std::endl;
+	for (typename std::list<HistItem>::iterator it=history.begin(); it!=history.end(); it++) {
+		std::cout<<"printHistory: "<<it->observedTime<<" "<<it->item<<std::endl;
+	}
+	std::cout<<std::endl;
+}
 template <typename T>
 bool sim_mob::FixedDelayed<T>::del_history_front()
 {
@@ -299,12 +311,12 @@ template <typename T>
 void sim_mob::FixedDelayed<T>::set_delay(uint32_t currDelayMS)
 {
 	//Check
-	if (currDelayMS > maxDelayMS) {
-		std::stringstream msg;
-		msg <<"FixedDelayed: Can't set delay to (" <<currDelayMS <<") since it is greater than the maximum ("
-				<<maxDelayMS <<") specified in the constructor.";
-		throw std::runtime_error(msg.str().c_str());
-	}
+//	if (currDelayMS > maxDelayMS) {
+//		std::stringstream msg;
+//		msg <<"FixedDelayed: Can't set delay to (" <<currDelayMS <<") since it is greater than the maximum ("
+//				<<maxDelayMS <<") specified in the constructor.";
+//		throw std::runtime_error(msg.str().c_str());
+//	}
 
 	//We ignore delay updates if the max delay is zero.
 	if (zero_delay()) {

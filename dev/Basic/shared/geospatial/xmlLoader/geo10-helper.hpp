@@ -154,12 +154,7 @@ public:
 		}
 		uniNodeLaneConnectorsCache[id] = item;
 	}
-	void addUniNodeNewLaneConnectorCache(sim_mob::UniNode* id, const UNNConnect& item) {
-		if (uniNodeNewLaneConnectorsCache.count(id)>0) {
-			throw std::runtime_error("UniNodeLaneConnector already registered with bookkeeper.");
-		}
-		uniNodeNewLaneConnectorsCache[id] = item;
-	}
+
 	UNConnect getUniNodeLaneConnectorCache(sim_mob::UniNode* id) const {
 		std::map<sim_mob::UniNode*, UNConnect>::const_iterator it = uniNodeLaneConnectorsCache.find(id);
 		if (it!=uniNodeLaneConnectorsCache.end()) {
@@ -168,13 +163,7 @@ public:
 		throw std::runtime_error("No UniNodeLaneConnector exists in bookkeeper with the requested id.");
 	}
 
-	UNNConnect getUniNodeNewLaneConnectorCache(sim_mob::UniNode* id) const {
-		std::map<sim_mob::UniNode*, UNNConnect>::const_iterator it = uniNodeNewLaneConnectorsCache.find(id);
-		if (it!=uniNodeNewLaneConnectorsCache.end()) {
-			return it->second;
-		}
-		throw std::runtime_error("No UniNodeNewLaneConnector exists in bookkeeper with the requested id.");
-	}
+
 	void addUniNodeSegmentPairCache(sim_mob::UniNode* id, SegPair item) {
 		if (uniNodeSegmentPairCache.count(id)>0) {
 			throw std::runtime_error("UniNodeSegmentPair already registered with bookkeeper.");
@@ -203,7 +192,6 @@ private:
 	//Can remove if Connectors are specified after Segments and Lanes.
 	std::map<sim_mob::MultiNode*, MNConnect> multiNodeLaneConnectorsCache;
 	std::map<sim_mob::UniNode*, UNConnect> uniNodeLaneConnectorsCache;
-	std::map<sim_mob::UniNode*, UNNConnect> uniNodeNewLaneConnectorsCache;
 	std::map<sim_mob::UniNode*, SegPair> uniNodeSegmentPairCache;
 };
 

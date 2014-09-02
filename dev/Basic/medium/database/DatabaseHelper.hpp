@@ -27,6 +27,11 @@ namespace medium {
      */
     const std::string MAIN_SCHEMA = "main.";
 
+    /**
+     * Tables
+     */
+    const std::string DB_TABLE_PREDAY_FLAT_TRIPCHAINS = "preday_trip_chains_flat";
+
 	/**
 	 * Views for long-term population database
 	 */
@@ -56,6 +61,54 @@ namespace medium {
 	const std::string DB_FIELD_CAR_OWN_OFFPEAK = "car_own_offpeak";
 	const std::string DB_FIELD_MOTOR_OWN = "motor_own";
 
+	/**
+	 * Fields for flat trip chain table (preday_trip_chains_flat)
+	 */
+	const std::string DB_FIELD_PERSON_ID = "person_id";
+	const std::string DB_FIELD_TC_SEQ_NO = "tc_seq_no";
+	const std::string DB_FIELD_TC_ITEM_TYPE = "tc_item_type";
+	const std::string DB_FIELD_TRIP_ID = "trip_id";
+	const std::string DB_FIELD_TRIP_ORIGIN = "trip_origin";
+	const std::string DB_FIELD_TRIP_DESTINATION = "trip_destination";
+	const std::string DB_FIELD_SUBTRIP_ID = "subtrip_id";
+	const std::string DB_FIELD_SUBTRIP_ORIGIN = "subtrip_origin";
+	const std::string DB_FIELD_SUBTRIP_DESTINATION = "subtrip_destination";
+	const std::string DB_FIELD_SUBTRIP_MODE = "subtrip_mode";
+	const std::string DB_FIELD_IS_PRIMARY_MODE = "is_primary_mode";
+	const std::string DB_FIELD_START_TIME = "start_time";
+	const std::string DB_FIELD_ACTIVITY_ID = "activity_id";
+	const std::string DB_FIELD_ACTIVITY_TYPE = "activity_type";
+	const std::string DB_FIELD_IS_PRIMARY_ACTIVITY = "is_primary_activity";
+	const std::string DB_FIELD_ACTIVITY_LOCATION = "activity_location";
+	const std::string DB_FIELD_ACTIVITY_START_TIME = "activity_start_time";
+	const std::string DB_FIELD_ACTIVITY_END_TIME = "activity_end_time";
+
+	/**
+	 * INSERT trip chain item
+	 */
+	const std::string DB_INSERT_TRIP_CHAIN_ITEM = "INSERT INTO "
+            + DB_TABLE_PREDAY_FLAT_TRIPCHAINS + " ("
+            + DB_FIELD_PERSON_ID + ", "
+            + DB_FIELD_TC_SEQ_NO + ", "
+            + DB_FIELD_TC_ITEM_TYPE + ", "
+            + DB_FIELD_TRIP_ID + ", "
+            + DB_FIELD_TRIP_ORIGIN + ", "
+            + DB_FIELD_TRIP_DESTINATION + ", "
+            + DB_FIELD_SUBTRIP_ID + ", "
+            + DB_FIELD_SUBTRIP_ORIGIN + ", "
+            + DB_FIELD_SUBTRIP_DESTINATION + ", "
+            + DB_FIELD_SUBTRIP_MODE + ", "
+            + DB_FIELD_IS_PRIMARY_MODE + ", "
+            + DB_FIELD_START_TIME + ", "
+            + DB_FIELD_ACTIVITY_ID + ", "
+            + DB_FIELD_ACTIVITY_TYPE + ", "
+            + DB_FIELD_IS_PRIMARY_ACTIVITY + ", "
+            + DB_FIELD_ACTIVITY_LOCATION + ", "
+            + DB_FIELD_ACTIVITY_START_TIME + ", "
+            + DB_FIELD_ACTIVITY_END_TIME
+            + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10,"
+            		   +":v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18)";
+
     /**
      * GET ALL for long-term population database
      */
@@ -66,12 +119,14 @@ namespace medium {
 	 */
 	const std::string MONGO_FIELD_ID = "_id";
 	const std::string MONGO_FIELD_HOUSEHOLD_ID = "hhid";
+	const std::string MONGO_FIELD_HH_FACTOR = "hhfactor";
 	const std::string MONGO_FIELD_INCOME_ID = "income_id";
 	const std::string MONGO_FIELD_PERSON_TYPE_ID = "person_type_id";
 	const std::string MONGO_FIELD_AGE_CATEGORY_ID = "age_id";
 	const std::string MONGO_FIELD_WORK_AT_HOME = "work_from_home_dummy";
 	const std::string MONGO_FIELD_DRIVER_LICENCE = "has_driving_license";
 	const std::string MONGO_FIELD_STUDENT_TYPE_ID = "student_type_id";
+	const std::string MONGO_FIELD_UNIVERSITY_STUDENT = "universitystudent";
 	const std::string MONGO_FIELD_FEMALE = "female_dummy";
 	const std::string MONGO_FIELD_HOME_MTZ = "home_mtz";
 	const std::string MONGO_FIELD_WORK_MTZ = "fix_work_location_mtz";
@@ -79,10 +134,12 @@ namespace medium {
 	const std::string MONGO_FIELD_HH_ONLY_ADULTS = "only_adults";
 	const std::string MONGO_FIELD_HH_ONLY_WORKERS = "only_workers";
 	const std::string MONGO_FIELD_HH_NUM_UNDER_4 = "num_underfour";
-	const std::string MONGO_FIELD_HH_UNDER_15 = "num_not_eligible";
+	const std::string MONGO_FIELD_HH_UNDER_15 = "presence_of_under15";
+	const std::string MONGO_FIELD_CAR_OWN = "car_own";
 	const std::string MONGO_FIELD_CAR_OWN_NORMAL = "car_own_normal";
 	const std::string MONGO_FIELD_CAR_OWN_OFFPEAK = "car_own_offpeak";
 	const std::string MONGO_FIELD_MOTOR_OWN = "motor_own";
+	const std::string MONGO_FIELD_MISSING_INCOME = "missingincome";
 	const std::string MONGO_FIELD_WORK_LOGSUM = "worklogsum";
 	const std::string MONGO_FIELD_EDU_LOGSUM = "edulogsum";
 	const std::string MONGO_FIELD_SHOP_LOGSUM = "shoplogsum";
@@ -117,6 +174,14 @@ namespace medium {
 	const std::string MONGO_FIELD_COST_PUB_IVT = "pub_ivt";
 	const std::string MONGO_FIELD_COST_AVG_TRANSFER = "avg_transfer";
 	const std::string MONGO_FIELD_COST_PUB_COST = "pub_cost";
+
+	/**
+	 * Fields from MongoDB zone_aimsunnode_mapping data
+	 */
+	const std::string MONGO_FIELD_NODE_ID = "_id";
+	const std::string MONGO_FIELD_MTZ = "MTZ_1092";
+	const std::string MONGO_FIELD_SOURCE_NODE = "source";
+	const std::string MONGO_FIELD_SINK_NODE = "sink";
 
 } // end namespace medium
 } // end namespace sim_mob

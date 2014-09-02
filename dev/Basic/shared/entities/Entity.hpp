@@ -15,7 +15,6 @@
 #include "util/LangHelpers.hpp"
 #include "message/MessageHandler.hpp"
 #include "event/EventListener.hpp"
-//#include "entities/commsim/comm_support/AgentCommUtility.hpp"
 
 
 namespace sim_mob {
@@ -35,11 +34,6 @@ class PartitionManager;
  * \author Xu Yan
  */
 class Entity : public messaging::MessageHandler, public event::EventListener {
-//	 AgentCommUtility<std::string> comm;
-public:
-//	 AgentCommUtility<std::string> & GetComm(){
-//		 return comm;
-//	 }
 public:
 	///Construct an entity with an immutable ID
 	explicit Entity(unsigned int id);
@@ -109,7 +103,7 @@ public:
 	virtual unsigned int getStartTime() const { return startTime; }
 
 	// inform parent to cut off connection with it if necessary
-	virtual void unregisteredChild(Entity* child = nullptr) {;}
+	virtual void unregisteredChild(Entity* child = nullptr) {}
 
         
 

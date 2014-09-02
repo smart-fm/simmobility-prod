@@ -14,8 +14,8 @@
 #include "entities/UpdateParams.hpp"
 
 #include "entities/roles/passenger/Passenger.hpp"
-#include "entities/roles/activityRole/WaitBusActivityRole.hpp"
-#include "entities/roles/activityRole/WaitBusActivityRoleFacets.hpp"
+#include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
+#include "entities/roles/waitBusActivityRole/WaitBusActivityRoleFacets.hpp"
 
 namespace sim_mob
 {
@@ -33,7 +33,7 @@ class UnPackageUtils;
 
 class WaitBusActivityRoleImpl : public sim_mob::WaitBusActivityRole {
 public:
-	WaitBusActivityRoleImpl(Agent* parent, sim_mob::WaitBusActivityRoleBehavior* behavior = nullptr, sim_mob::WaitBusActivityRoleMovement* movement = nullptr);
+	WaitBusActivityRoleImpl(Person* parent, sim_mob::WaitBusActivityRoleBehavior* behavior = nullptr, sim_mob::WaitBusActivityRoleMovement* movement = nullptr);
 	virtual ~WaitBusActivityRoleImpl();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

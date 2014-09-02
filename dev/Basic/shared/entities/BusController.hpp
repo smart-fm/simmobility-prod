@@ -50,6 +50,9 @@ public:
 	///Place all BusController agents on to the all_agents list. This does *not* add them to Worker threads (since those likely haven't been created yet).
 	static void DispatchAllControllers(std::set<sim_mob::Entity*>& agents_list);
 
+	///collect and process all requests from bus drivers
+	static void CollectAndProcessAllRequests();
+
 public:
 	//May implement later
 	virtual void load(const std::map<std::string, std::string>& configProps){}

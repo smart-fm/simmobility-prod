@@ -40,27 +40,27 @@ void sim_mob::BusStop_RealTimes::setReal_BusStop(const BusStop* real_busStop)
 //BusStop
 //BusRoute
 sim_mob::BusRouteInfo::BusRouteInfo(std::string busRoute_id)
-: busRoute_id(busRoute_id)
+: busRouteId(busRoute_id)
 {
-	roadSegment_vec.clear();
-	busStop_vec.clear();
+	roadSegmentList.clear();
+	busStopList.clear();
 }
 
 sim_mob::BusRouteInfo::BusRouteInfo(const BusRouteInfo& copyFrom)
-: busRoute_id(copyFrom.busRoute_id), roadSegment_vec(copyFrom.roadSegment_vec)
-, busStop_vec(copyFrom.busStop_vec)
+: busRouteId(copyFrom.busRouteId), roadSegmentList(copyFrom.roadSegmentList)
+, busStopList(copyFrom.busStopList)
 {
 
 }
 
 void sim_mob::BusRouteInfo::addBusStop(const BusStop* aBusStop)
 {
-	busStop_vec.push_back(aBusStop);
+	busStopList.push_back(aBusStop);
 }
 
 void sim_mob::BusRouteInfo::addRoadSegment(const RoadSegment* aRoadSegment)
 {
-	roadSegment_vec.push_back(aRoadSegment);
+	roadSegmentList.push_back(aRoadSegment);
 }
 
 

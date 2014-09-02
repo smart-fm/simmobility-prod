@@ -11,8 +11,8 @@
 #include <boost/random.hpp>
 
 #include "util/LangHelpers.hpp"
-#include "entities/Agent.hpp"
-#include "entities/vehicle/Vehicle.hpp"
+#include "entities/Person.hpp"
+#include "entities/vehicle/VehicleBase.hpp"
 #include "entities/UpdateParams.hpp"
 #include "workers/Worker.hpp"
 #include "logging/Log.hpp"
@@ -87,14 +87,24 @@ public:
 
 public:
 	//NOTE: Don't forget to call this from sub-classes!
-	explicit Role(sim_mob::Agent* parent = nullptr, std::string roleName = std::string(), Role::type roleType_ = RL_UNKNOWN) :
-		parent(parent), currResource(nullptr), name(roleName), roleType(roleType_), dynamic_seed(0)
+	explicit Role(sim_mob::Person* parent = nullptr,
+			std::string roleName = std::string(),
+			Role::type roleType_ = RL_UNKNOWN) :
+		parent(parent), currResource(nullptr), name(roleName),
+		roleType(roleType_), behaviorFacet(nullptr), movementFacet(nullptr),
+		dynamic_seed(0)
 	{
 		//todo consider putting a runtime error for empty or zero length rolename
 	}
 
-	explicit Role(sim_mob::BehaviorFacet* behavior = nullptr, sim_mob::MovementFacet* movement = nullptr, sim_mob::Agent* parent = nullptr, std::string roleName = std::string(), Role::type roleType_ = RL_UNKNOWN) :
-		parent(parent), currResource(nullptr),name(roleName), roleType(roleType_), behaviorFacet(behavior), movementFacet(movement), dynamic_seed(0)
+	explicit Role(sim_mob::BehaviorFacet* behavior = nullptr,
+			sim_mob::MovementFacet* movement = nullptr,
+			sim_mob::Person* parent = nullptr,
+			std::string roleName = std::string(),
+			Role::type roleType_ = RL_UNKNOWN) :
+		parent(parent), currResource(nullptr),name(roleName),
+		roleType(roleType_), behaviorFacet(behavior), movementFacet(movement),
+		dynamic_seed(0)
 	{
 		//todo consider putting a runtime error for empty or zero length rolename
 	}
@@ -103,9 +113,10 @@ public:
 	virtual ~Role() {
 		safe_delete_item(behaviorFacet);
 		safe_delete_item(movementFacet);
+		safe_delete_item(currResource);
 	}
 
-	virtual void onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args){;}
+	//virtual void onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args){}
 
 	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
 	virtual Role* clone(Person* parent) const = 0;
@@ -137,16 +148,14 @@ public:
 		return sim_mob::DriverRequestParams();
 	}
 
-	Vehicle* getResource() { return currResource; }
-	void setResource(Vehicle* currResource) { this->currResource = currResource; }
+	VehicleBase* getResource() const { return currResource; }
+	void setResource(VehicleBase* currResource) { this->currResource = currResource; }
 
-	Agent* getParent()
-	{
+	Person* getParent() {
 		return parent;
 	}
 
-	void setParent(Agent* parent)
-	{
+	void setParent(Person* parent) {
 		this->parent = parent;
 	}
 
@@ -191,9 +200,9 @@ public:
 	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted) {}
 
 protected:
-	Agent* parent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
+	Person* parent;
 
-	Vehicle* currResource; ///<Roles may hold "resources" for the current task. Expand later into multiple types.
+	VehicleBase* currResource; ///<Roles may hold "resources" for the current task. Expand later into multiple types.
 
 	BehaviorFacet* behaviorFacet;
 	MovementFacet* movementFacet;
@@ -225,6 +234,24 @@ public:
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil) = 0;
 #endif
 
+
+	/**
+	 * event handler which provide a chance to handle event transfered from parent agent.
+	 * @param sender pointer for the event producer.
+	 * @param id event identifier.
+	 * @param args event arguments.
+	 */
+	virtual void onParentEvent(event::EventId eventId,
+			sim_mob::event::Context ctxId, event::EventPublisher* sender,
+			const event::EventArgs& args){}
+
+	/**
+	 * message handler which provide a chance to handle message transfered from parent agent.
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void HandleParentMessage(messaging::Message::MessageType type,
+			const messaging::Message& message){}
 
 };
 

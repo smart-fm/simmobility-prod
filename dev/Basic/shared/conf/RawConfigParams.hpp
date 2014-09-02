@@ -23,13 +23,12 @@ namespace sim_mob {
 
 ///Represents the FMOD controller section of the config file.
 struct FMOD_ControllerParams {
-	FMOD_ControllerParams() : enabled(false), port(0), updateTravelMS(0), updatePosMS(0), blockingTimeSec(0) {}
+	FMOD_ControllerParams() : enabled(false), port(0), updateTimeMS(0), blockingTimeSec(0) {}
 
 	bool enabled;
 	std::string ipAddress;
 	unsigned int port;
-	unsigned int updateTravelMS;
-	unsigned int updatePosMS;
+	unsigned int updateTimeMS;
 	std::string mapfile;
 	unsigned int blockingTimeSec;
 };
@@ -43,6 +42,32 @@ struct AMOD_ControllerParams {
 	unsigned int updateTimeMS;
 	std::string mapfile;
 	unsigned int blockingTimeSec;
+};
+
+//Represents the long-term developer model of the config file
+struct LongTermParams{
+	LongTermParams();
+	bool enabled;
+	unsigned int workers;
+	unsigned int days;
+	unsigned int tickStep;
+	unsigned int maxIterations;
+
+	struct DeveloperModel{
+		DeveloperModel();
+		bool enabled;
+		unsigned int timeInterval;
+	} developerModel;
+
+	struct HousingModel{
+		HousingModel();
+		bool enabled;
+		unsigned int timeInterval;
+		unsigned int timeOnMarket;
+		int numberOfUnits;
+		int numberOfHouseholds;
+		int numberOfVacantUnits;
+	} housingModel;
 };
 
 ///represent the incident data section of the config file
@@ -119,9 +144,6 @@ public:
 	std::map<std::string, Database> databases;
 	std::map<std::string, StoredProcedureMap> procedureMaps;
 	std::map<std::string, Credential> credentials;
-	std::map<std::string, ExternalScriptsMap> externalScriptsMap;
-	std::map<std::string, MongoCollectionsMap> mongoCollectionsMap;
-
 };
 
 
@@ -149,6 +171,7 @@ public:
 	};
 
 	unsigned int baseGranMS;       ///<Base system granularity, in milliseconds. Each "tick" is this long.
+	double baseGranSecond;         ///<Base system granularity, in seconds. Each "tick" is this long.
 	unsigned int totalRuntimeMS;   ///<Total time (in milliseconds) to run the simulation for. (Includes "warmup" time.)
 	unsigned int totalWarmupMS;    ///<Total time (in milliseconds) considered "warmup".
 
@@ -166,18 +189,15 @@ public:
 
 	sim_mob::MutexStrategy mutexStategy; ///<Locking strategy for Shared<> properties.
 
-	bool commSimEnabled;  ///<Is our communication simulator enabled?
-	//bool androidClientEnabled; ///<Is the Android client for our communication simulator enabled?
-	std::string androidClientType; // what version of android communication is specified?
-
-	struct CommsimElement {
-		std::string name;
-		std::string mode;
-		bool enabled;
-		CommsimElement(): name(""),mode(""),enabled(false){
-		}
+	struct Commsim {
+		bool enabled;  ///< True if commsim is enabled. If false, no Broker will be created.
+		int numIoThreads; ///< How many threads to allocate to boost's io processor.
+		int minClients;  ///< The minimum number of simultaneous clients required to proceed with the simulation.
+		int holdTick;    ///< The simulation tick that we will pause on until minClients connections are made.
+		bool useNs3;  ///< If true, waits for the ns-3 simulator to connect.
+		Commsim() : enabled(false), numIoThreads(1), minClients(1), holdTick(1), useNs3(false) {}
 	};
-	std::map<std::string,CommsimElement> commsimElements;
+	Commsim commsim;
 
 	//Reaction time parameters.
 	//TODO: This should be one of the first areas we clean up.
@@ -244,6 +264,7 @@ struct EntityTemplate {
 	Point2D destPos;
 	unsigned int startTimeMs;// default is zero
 	unsigned int laneIndex;// default is zero
+	int angentId;
 };
 
 
@@ -271,6 +292,9 @@ public:
 	FMOD_ControllerParams fmod;
 
 	FMOD_ControllerParams amod;
+
+	///Settings for Long Term Parameters
+	LongTermParams ltParams;
 
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;

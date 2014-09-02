@@ -14,7 +14,7 @@
 using std::vector;
 using namespace sim_mob;
 
-sim_mob::WaitBusActivityRoleImpl::WaitBusActivityRoleImpl(Agent* parent, sim_mob::WaitBusActivityRoleBehavior* behavior, sim_mob::WaitBusActivityRoleMovement* movement) :
+sim_mob::WaitBusActivityRoleImpl::WaitBusActivityRoleImpl(Person* parent, sim_mob::WaitBusActivityRoleBehavior* behavior, sim_mob::WaitBusActivityRoleMovement* movement) :
 		WaitBusActivityRole(parent, behavior, movement)
 {
 }
@@ -70,7 +70,7 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_init() {
 	isTagged = false;
 	isBoarded = false;
 	if(getParent()->originNode.type_== WayPoint::BUS_STOP && getParent()->destNode.type_== WayPoint::BUS_STOP) {
-		busStopAgent = getParent()->originNode.busStop_->generatedBusStopAgent;
+		busStopAgent = BusStopAgent::findBusStopAgentByBusStopNo(getParent()->originNode.busStop_->getBusstopno_());
 		getParent()->xPos.force(busStopAgent->getBusStop().xPos);// set xPos to WaitBusActivityRole
 		getParent()->yPos.force(busStopAgent->getBusStop().yPos);// set yPos to WaitBusActivityRole
 		parentWaitBusActivityRole->TimeOfReachingBusStop = parentWaitBusActivityRole->getParams().now.ms();
@@ -78,12 +78,12 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_init() {
 		return;
 	}
 	if(getParent()->destNode.type_== WayPoint::BUS_STOP) { // to here waiting(busstop)
-		busStopAgent = getParent()->destNode.busStop_->generatedBusStopAgent;
+		busStopAgent = BusStopAgent::findBusStopAgentByBusStopNo(getParent()->destNode.busStop_->getBusstopno_());
 		getParent()->xPos.set(busStopAgent->getBusStop().xPos);// set xPos to WaitBusActivityRole
 		getParent()->yPos.set(busStopAgent->getBusStop().yPos);// set yPos to WaitBusActivityRole
 	} else {
 		sim_mob::BusStop* busStop_dest = setBusStopXY(getParent()->destNode.node_);// to here waiting(node)
-		busStopAgent = busStop_dest->generatedBusStopAgent;// assign the BusStopAgent to WaitBusActivityRole
+		busStopAgent = BusStopAgent::findBusStopAgentByBusStopNo(busStop_dest->getBusstopno_());// assign the BusStopAgent to WaitBusActivityRole
 		getParent()->xPos.set(busStop_dest->xPos);// set xPos to WaitBusActivityRole
 		getParent()->yPos.set(busStop_dest->yPos);// set yPos to WaitBusActivityRole
 	}

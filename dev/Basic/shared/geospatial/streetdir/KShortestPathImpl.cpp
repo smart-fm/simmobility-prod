@@ -154,7 +154,7 @@ std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKS
 			s->excludeSeg = NULL;
 
 			s->pathSet = &ps_;
-			s->length = sim_mob::generateSinglePathLength(s->shortestWayPointpath);
+			s->length = sim_mob::generateSinglePathLengthPT(s->shortestWayPointpath);
 
 			s->id = id;
 			s->scenario = ps_.scenario;

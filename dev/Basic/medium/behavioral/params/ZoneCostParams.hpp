@@ -292,5 +292,60 @@ private:
 	double avgTransfer;
 	double pubCost;
 };
+
+class ZoneNodeParams {
+public:
+	virtual ~ZoneNodeParams() {}
+
+	long getAimsunNodeId() const
+	{
+		return aimsunNodeId;
+	}
+
+	void setAimsunNodeId(long aimsunNodeId)
+	{
+		this->aimsunNodeId = aimsunNodeId;
+	}
+
+	bool isSinkNode() const
+	{
+		return sinkNode;
+	}
+
+	void setSinkNode(bool sinkNode)
+	{
+		this->sinkNode = sinkNode;
+	}
+
+	bool isSourceNode() const
+	{
+		return sourceNode;
+	}
+
+	void setSourceNode(bool sourceNode)
+	{
+		this->sourceNode = sourceNode;
+	}
+
+	int getZone() const
+	{
+		return zone;
+	}
+
+	void setZone(int zone)
+	{
+		this->zone = zone;
+	}
+
+private:
+	int zone;
+	long aimsunNodeId;
+	/** is this a node with no upstream segments*/
+	bool sourceNode;
+	/** is this a node with no downstream segments*/
+	bool sinkNode;
+
+};
+
 }
 }

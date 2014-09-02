@@ -127,6 +127,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addFunction("population", &TourModeDestinationParams::getPopulation)
 				.addFunction("area", &TourModeDestinationParams::getArea)
 				.addFunction("shop", &TourModeDestinationParams::getShop)
+				.addProperty("mode_to_work", &TourModeDestinationParams::getModeForParentWorkTour)
 				.addFunction("availability",&TourModeDestinationParams::isAvailable_TMD)
 			.endClass()
 
@@ -168,6 +169,15 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("first_bound", &StopTimeOfDayParams::getFirstBound)
 				.addProperty("second_bound", &StopTimeOfDayParams::getSecondBound)
 				.addFunction("availability", &StopTimeOfDayParams::getAvailability)
+			.endClass()
+
+			.beginClass<SubTourParams>("SubTourParams")
+				.addProperty("activity_type", &SubTourParams::getSubTourPurpose)
+				.addProperty("first_of_multiple", &SubTourParams::isFirstOfMultipleTours)
+				.addProperty("subsequent_of_multiple", &SubTourParams::isSubsequentOfMultipleTours)
+				.addProperty("mode_choice",  &SubTourParams::getTourMode)
+				.addProperty("usual_location", &SubTourParams::isUsualLocation)
+				.addFunction("time_window_availability", &SubTourParams::getTimeWindowAvailability)
 			.endClass()
 
 			.beginClass<StopGenerationParams>("StopGenerationParams")
@@ -365,5 +375,26 @@ int sim_mob::medium::PredayLuaModel::predictStopModeDestination(PersonParams& pe
 int sim_mob::medium::PredayLuaModel::predictStopTimeOfDay(PersonParams& personParams, StopTimeOfDayParams& stopTimeOfDayParams) const {
 	LuaRef chooseITD = getGlobal(state.get(), "choose_itd");
 	LuaRef retVal = chooseITD(&personParams, &stopTimeOfDayParams);
+	return retVal.cast<int>();
+}
+
+int sim_mob::medium::PredayLuaModel::predictWorkBasedSubTour(PersonParams& personParams, SubTourParams& subTourParams) const
+{
+	LuaRef chooseTWS = getGlobal(state.get(), "choose_tws");
+	LuaRef retVal = chooseTWS(&personParams, &subTourParams);
+	return retVal.cast<int>();
+}
+
+int sim_mob::medium::PredayLuaModel::predictSubTourModeDestination(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const
+{
+	LuaRef chooseSTMD = getGlobal(state.get(), "choose_stmd");
+	LuaRef retVal = chooseSTMD(&personParams, &tourModeDestinationParams);
+	return retVal.cast<int>();
+}
+
+int sim_mob::medium::PredayLuaModel::predictSubTourTimeOfDay(PersonParams& personParams, SubTourParams& subTourParams) const
+{
+	LuaRef chooseSTTD = getGlobal(state.get(), "choose_sttd");
+	LuaRef retVal = chooseSTTD(&personParams, &subTourParams);
 	return retVal.cast<int>();
 }

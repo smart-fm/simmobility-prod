@@ -86,7 +86,8 @@ public:
 class TourModeDestinationParams : public ModeDestinationParams {
 public:
 	TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType tourType)
-	: ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation()), drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal())
+	: ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation()),
+	  drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()), modeForParentWorkTour(0)
 	{}
 
 	virtual ~TourModeDestinationParams() {}
@@ -272,15 +273,27 @@ public:
 		return 0;
 	}
 
+	int getModeForParentWorkTour() const
+	{
+		return modeForParentWorkTour;
+	}
+
+	void setModeForParentWorkTour(int modeForParentWorkTour)
+	{
+		this->modeForParentWorkTour = modeForParentWorkTour;
+	}
+
 private:
 	bool drive1Available;
+	/**mode for parent work tour in case of sub tours*/
+	int modeForParentWorkTour;
 };
 
 class StopModeDestinationParams : public ModeDestinationParams {
 public:
 	StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType stopType, int originCode, int parentTourMode)
 	: ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, stopType, originCode), homeZone(personParams.getHomeLocation()),
-	  driveAvailable(personParams.hasDrivingLicence() * personParams.getCarOwnNormal()), tourMode(parentTourMode)
+	  driveAvailable(personParams.hasDrivingLicence() * personParams.getCarOwn()), tourMode(parentTourMode)
 	{}
 
 	virtual ~StopModeDestinationParams() {}
@@ -539,12 +552,11 @@ public:
 		return 0;
 	}
 
-private:
+protected:
 	int homeZone;
 	int driveAvailable;
 	int tourMode;
 };
-
 
 } // end namespace medium
 } // end namespace sim_mob

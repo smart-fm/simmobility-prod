@@ -25,13 +25,13 @@
                 <run_mode value="simulation"/>
                 <!-- Number of threads to create for processing the population in-->
                 <!-- the preday demand simulator -->
-                <threads value="3"/>
+                <threads value="4"/>
                 <!-- outputs the preday predictions as trip chains in PostgreSQL database if enabled -->
                 <output_tripchains enabled="false"/>
                 <!-- outputs the preday's predicted tours and stops to mongodb if enabled -->
                 <output_predictions enabled="true"/>
                 <!-- prints person ids and tour details in console for each person if enabled -->
-                <console_output enabled="false"/>
+                <console_output enabled="true"/>
                 
                 <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
                         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
@@ -46,10 +46,12 @@
                         <script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->
                         <script name="tmds" file="tmds.lua"/> <!--Tour Mode/Destination Shopping -->
                         <script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->
-                        <script name="tws" file="tws.lua"/> <!--Work Based Sub-Tours -->
                         <script name="ttdw" file="ttdw.lua"/> <!--Tour Time Of Day Work -->
                         <script name="ttdo" file="ttdo.lua"/> <!--Tour Time Of Day Others -->
                         <script name="ttde" file="ttde.lua"/> <!--Tour Time Of Day Education -->
+                        <script name="tws" file="tws.lua"/> <!--Work Based Sub-Tours -->
+                        <script name="stmd" file="stmd.lua"/> <!--Work Based Sub-Tours Mode/Destination-->
+                        <script name="sttd" file="sttd.lua"/> <!--Work Based Sub-Tours Time Of Day-->
                         <script name="isg" file="isg.lua"/> <!--Intermediate Stop Generation -->
                         <script name="imd" file="imd.lua"/> <!--Intermediate Stop Mode/Destination -->
                         <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->
@@ -57,7 +59,7 @@
                 
                 <!-- Names of MongoDB database and collections -->
                 <mongo_collections db_name="preday">
-                        <mongo_collection name="population" collection="hits08_population"/>
+                        <mongo_collection name="population" collection="hits08_population_29k"/>
                         <mongo_collection name="tcost_bus" collection="tcost_bus"/>
                         <mongo_collection name="tcost_car" collection="tcost_car"/>
                         <mongo_collection name="AMCosts" collection="AMCosts"/>
@@ -65,9 +67,10 @@
                         <mongo_collection name="PMCosts" collection="PMCosts"/>
                         <mongo_collection name="Zone" collection="Zone"/>
                         <mongo_collection name="zone_node" collection="node_mtz"/>
-                        <mongo_collection name="Output_DayPattern" collection="person_tours_cpp_dummy"/>
-                        <mongo_collection name="Output_Tour" collection="tours_cpp_dummy"/>
-                        <mongo_collection name="Output_Activity" collection="activity_cpp_dummy"/>
+                        <mongo_collection name="Output_DayPattern" collection="person_tours_dummy"/>
+                        <mongo_collection name="Output_Tour" collection="tour_dummy"/>
+                        <mongo_collection name="Output_Activity" collection="activity_dummy"/>
+                        <mongo_collection name="Output_SubTour" collection="sub_tour_dummy"/>
                 </mongo_collections>
                 
                 <calibration enabled="false">

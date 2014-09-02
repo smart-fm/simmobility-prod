@@ -70,8 +70,31 @@ private:
 	 * Predicts the time period that will be allotted for the primary activity of a tour.
 	 *
 	 * @param tour the tour for which the time of day is to be predicted
+	 * @return time period for primary activity of tour
 	 */
 	TimeWindowAvailability predictTourTimeOfDay(Tour& tour);
+
+	/**
+	 * Predicts sub tours
+	 *
+	 * @param tour the tour for which the sub-tours are to be predicted
+	 */
+	void predictSubTours(Tour& tour);
+
+	/**
+	 * Predicts mode and destination for a subtour.
+	 * @param subTour the sub tour
+	 * @param parentTour the parent tour of the sub tour
+	 */
+	void predictSubTourModeDestination(Tour& subTour, const Tour& parentTour);
+
+	/**
+	 * Predicts the time period for the activity of sub tour
+	 *
+	 * @param subTour the subTour for which time of day is required
+	 * @return time period for activity of sub tour
+	 */
+	TimeWindowAvailability predictSubTourTimeOfDay(Tour& subTour, SubTourParams& subTourParams);
 
 	/**
 	 * Generates intermediate stops of types predicted by the day pattern model before and after the primary activity of a tour.
@@ -98,7 +121,19 @@ private:
 	void predictStopTimeOfDay(Stop* stop, bool isBeforePrimary);
 
 	/**
+	 * issues query to time dependent travel time collection in mongoDB to fetch travel time
+	 * @param origin the origin zone code of trip
+	 * @param destination the destination zone code of trip
+	 * @param mode the travel mode code for trip
+	 * @param isArrivalBased travel time is arrival based. true implies arrival based, false implies departure based
+	 * @param timeIdx the time index to fetch
+	 * @return mode and time-of-day dependent travel time
+	 */
+	double fetchTravelTime(int origin, int destination, int mode, bool isArrivalBased, double timeIdx);
+
+	/**
 	 * Calculates the arrival time for stops in the second half tour.
+	 * this function sets the departure time for the currentStop
 	 *
 	 * @param currentStop the stop for which the arrival time is calculated
 	 * @param prevStop the stop before currentStop
@@ -107,6 +142,7 @@ private:
 
 	/**
 	 * Calculates the departure time for stops in the first half tour.
+	 * this function sets the departure time for the nextStop
 	 *
 	 * @param currentStop the stop for which the departure time is calculated
 	 * @param nextStop the stop after currentStop
@@ -126,6 +162,21 @@ private:
 	 * @param tour the tour object for which the end time is to be calculated
 	 */
 	void calculateTourEndTime(Tour& tour);
+
+	/**
+	 * calculates the time window for entire sub tour
+	 * @param subTour sub-tour whose primary activity has been established already
+	 */
+	void calculateSubTourTimeWindow(Tour& subTour, const Tour& parentTour);
+
+	/**
+	 * calculates travel time from tour destination to sub tour destination and blocks that time
+	 * calculates travel time from sub tour destination to tour destination and blocks that time
+	 * @param subTour sub-tour
+	 * @param parentTour parent tour of subTour
+	 * @param stParams sub-tour params which track availabilities
+	 */
+	void blockTravelTimeToSubTourLocation(const Tour& subTour, const Tour& parentTour, SubTourParams& stParams);
 
 	/**
 	 * constructs tour objects based on predicted number of tours. Puts the tour objects in tours deque.
@@ -148,6 +199,17 @@ private:
 	void insertTour(const Tour& tour, int tourNumber);
 
 	/**
+	 * inserts sub tour of a tour
+	 * This function will be called once for every sub-tour of a tour
+	 *
+	 * @param subTour the sub tour to insert
+	 * @param parentTour the parent tour of sub-tour
+	 * @param tourNumber the index of this tour among all tours of this person
+	 * @param subTourNumber the index of this subTour among all subTours for this tour
+	 */
+	void insertSubTour(const Tour& subTour, const Tour& parentTour, int tourNumber, int subTourNumber);
+
+	/**
 	 * inserts tour level information for a person
 	 * This function will be called once for every stop of every tour of every person in the population.
 	 *
@@ -156,14 +218,6 @@ private:
 	 * @param tourNumber the index of the stop's parent tour among all tours of this person
 	 */
 	void insertStop(const Stop* stop, int stopNumber, int tourNumber);
-
-	/**
-	 * generates a random time  within the time window passed in preday's representation.
-	 *
-	 * @param window time window in preday format (E.g. 4.75 => 4:30 to 4:59 AM)
-	 * @return a random time within the window in hh24:mm:ss format
-	 */
-	std::string getRandomTimeInWindow(double window);
 
 	/**
 	 * returns a random element from the list of nodes
@@ -184,6 +238,9 @@ private:
 
 	/**
 	 * constructs trip chain from predictions for a person
+	 * \note This function will output all trips as car trips for now because the within day is not ready for other modes of transport.
+	 * \note This function assigns a random node from the zone as ODs for trips and for activity locations. This is because we do not have a model for mapping activity locations
+	 * to postal codes and ODs to nodes.
 	 * @param zoneNodeMap zone to nodes mapping
 	 * @param scale number of trip chains to be generated for this person
 	 * @param outTripChain output list (trip chain) to be constructed

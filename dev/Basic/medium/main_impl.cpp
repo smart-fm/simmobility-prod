@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <string>
+#include <cstdlib>
 
 //TODO: Replace with <chrono> or something similar.
 #include <sys/time.h>
@@ -363,11 +364,13 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	safe_delete_item(prof);
 	return true;
 }
+
 /**
- * Simulation loop for the demand simulator
+ * The preday demand simulator
  */
 bool performMainDemand()
 {
+	std::srand(clock()); // set random seed for RNGs in preday
 	const MT_Config& mtConfig = MT_Config::getInstance();
 	PredayManager predayManager;
 	predayManager.loadZones(db::MONGO_DB);

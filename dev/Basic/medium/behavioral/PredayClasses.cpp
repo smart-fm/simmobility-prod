@@ -17,12 +17,15 @@ using namespace std;
 using namespace sim_mob;
 using namespace sim_mob::medium;
 
-TimeWindowAvailability::TimeWindowAvailability(double startTime, double endTime)
-: startTime(startTime), endTime(endTime), availability(1) /*all time windows are available initially*/
+
+TimeWindowAvailability::TimeWindowAvailability()
+: startTime(0), endTime(0), availability(false)
+{}
+
+TimeWindowAvailability::TimeWindowAvailability(double startTime, double endTime, bool availability)
+: startTime(startTime), endTime(endTime), availability(availability)
 {
-	if(startTime > endTime) {
-		throw std::runtime_error("Invalid time window; start time cannot be greater than end time");
-	}
+	if(startTime > endTime) { throw std::runtime_error("Invalid time window; start time cannot be greater than end time"); }
 }
 
 namespace sim_mob {

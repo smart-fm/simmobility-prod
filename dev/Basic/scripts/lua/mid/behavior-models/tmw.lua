@@ -294,8 +294,8 @@ end
 
 --scale
 local scale = {}
-scale["PT"] = {2.82,2.82,2.82}
-scale["non-PT"] = {1,1,1,1,1,1}
+scale["PT"] = 2.82
+scale["non-PT"] = 1
 
 -- function to call from C++ preday simulator
 -- params and dbparams tables contain data passed from C++

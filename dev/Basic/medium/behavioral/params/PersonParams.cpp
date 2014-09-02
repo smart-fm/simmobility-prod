@@ -22,33 +22,27 @@ hhOnlyAdults(-1), hhOnlyWorkers(-1), hhNumUnder4(-1), hasUnder15(-1), workLogSum
 }
 
 sim_mob::medium::PersonParams::~PersonParams() {
-	for(boost::unordered_map<int, TimeWindowAvailability*>::iterator i=timeWindowAvailability.begin(); i!=timeWindowAvailability.end(); i++){
-		delete i->second;
-	}
 	timeWindowAvailability.clear();
 }
 
 void sim_mob::medium::PersonParams::initTimeWindows() {
-	if(!timeWindowAvailability.empty())
-	{
-		for(boost::unordered_map<int, TimeWindowAvailability*>::iterator i=timeWindowAvailability.begin(); i!=timeWindowAvailability.end(); i++) { delete i->second; }
-	}
-	int index = 1;
+	if(!timeWindowAvailability.empty()) { timeWindowAvailability.clear(); }
+	int index = 0;
 	for (double i=1; i<=48; i++) {
 		for (double j=i; j<=48; j++) {
-			timeWindowAvailability[index] = new TimeWindowAvailability(i, j); //initialize availability of all time windows to 1
 			index++;
+			timeWindowAvailability[index] = TimeWindowAvailability(i,j,true); //make all time windows available
 		}
 	}
 }
 
 void sim_mob::medium::PersonParams::blockTime(double startTime, double endTime) {
 	if(startTime <= endTime) {
-		for(boost::unordered_map<int, TimeWindowAvailability*>::iterator i=timeWindowAvailability.begin(); i!=timeWindowAvailability.end(); i++){
-			double start = i->second->getStartTime();
-			double end = i->second->getEndTime();
+		for(boost::unordered_map<int, TimeWindowAvailability>::iterator i=timeWindowAvailability.begin(); i!=timeWindowAvailability.end(); i++){
+			double start = i->second.getStartTime();
+			double end = i->second.getEndTime();
 			if((start >= startTime && start <= endTime) || (end >= startTime && end <= endTime)) {
-				i->second->setAvailability(0);
+				i->second.setAvailability(false);
 			}
 		}
 	}
@@ -63,7 +57,7 @@ void sim_mob::medium::PersonParams::blockTime(double startTime, double endTime) 
 }
 
 int PersonParams::getTimeWindowAvailability(int timeWnd) const {
-	return timeWindowAvailability.at(timeWnd)->getAvailability();
+	return timeWindowAvailability.at(timeWnd).getAvailability();
 }
 
 void sim_mob::medium::PersonParams::print()
@@ -91,3 +85,54 @@ void sim_mob::medium::PersonParams::print()
 			<< otherLogSum << std::endl;
 	Print() << printStrm.str();
 }
+
+int sim_mob::medium::SubTourParams::getTimeWindowAvailability(int timeWnd) const
+{
+	return timeWindowAvailability.at(timeWnd).getAvailability();
+}
+
+void sim_mob::medium::SubTourParams::initTimeWindows(double startTime, double endTime)
+{
+	if(!timeWindowAvailability.empty()) { timeWindowAvailability.clear(); }
+	int index = 0;
+	for (double start=1; start<=48; start++)
+	{
+		for (double end=start; end<=48; end++)
+		{
+			index++;
+			if(start >= startTime && end <= endTime) { timeWindowAvailability[index] = TimeWindowAvailability(start,end,true); }
+			else { timeWindowAvailability[index] = TimeWindowAvailability(start,end,false); }
+		}
+	}
+}
+
+void sim_mob::medium::SubTourParams::blockTime(double startTime, double endTime)
+{
+	if(startTime <= endTime)
+	{
+		for(boost::unordered_map<int, TimeWindowAvailability>::iterator i=timeWindowAvailability.begin(); i!=timeWindowAvailability.end(); i++)
+		{
+			double start = i->second.getStartTime();
+			double end = i->second.getEndTime();
+			if((start >= startTime && start <= endTime) || (end >= startTime && end <= endTime)) {
+				i->second.setAvailability(false);
+			}
+		}
+	}
+	else {
+		std::stringstream errStream;
+		errStream << "invalid time window was passed for blocking" << "|start: " << startTime << "|end: " << endTime << std::endl;
+		throw std::runtime_error(errStream.str());
+	}
+}
+
+sim_mob::medium::SubTourParams::SubTourParams(const Tour& parentTour)
+: subTourPurpose(parentTour.getTourType()), usualLocation(parentTour.isUsualLocation()), tourMode(parentTour.getTourMode()),
+  firstOfMultipleTours(parentTour.isFirstTour()), subsequentOfMultipleTours(!parentTour.isFirstTour())
+{
+	const Stop* primaryStop = parentTour.getPrimaryStop();
+	initTimeWindows(primaryStop->getArrivalTime(), primaryStop->getDepartureTime());
+}
+
+sim_mob::medium::SubTourParams::~SubTourParams()
+{}

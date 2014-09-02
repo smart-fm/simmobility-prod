@@ -223,13 +223,13 @@ void sim_mob::Driver::onParentEvent(event::EventId eventId,
 		event::EventPublisher* sender,
 		const event::EventArgs& args)
 {
-	if(eventId == sim_mob::FMOD::EVENT_DISPATCH_FMOD_SCHEDULES_REQUEST){
-		const sim_mob::FMOD_RequestEventArgs& request = dynamic_cast<const sim_mob::FMOD_RequestEventArgs&>(args);
-		sim_mob::DriverMovement* movement = dynamic_cast<sim_mob::DriverMovement*>(movementFacet);
-		if(movement){
-			movement->assignNewFMODSchedule(request);
-		}
-	}
+//	if(eventId == sim_mob::FMOD::EVENT_DISPATCH_FMOD_SCHEDULES_REQUEST){
+//		const sim_mob::FMOD_RequestEventArgs& request = dynamic_cast<const sim_mob::FMOD_RequestEventArgs&>(args);
+//		sim_mob::DriverMovement* movement = dynamic_cast<sim_mob::DriverMovement*>(movementFacet);
+//		if(movement){
+//			movement->assignNewFMODSchedule(request);
+//		}
+//	}
 
 	if(eventId == event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH)
 	{

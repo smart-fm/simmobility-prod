@@ -1196,8 +1196,8 @@ void AMODController::checkForArrivals(void) {
 
 				if (itr->second.finalSegment == vh->amodVehicle->getCurrSegment()->getSegmentID()) {
 					//check to see if we are close to the pick up node
-					std::cout << "Segment remaining: " << vh->amodVehicle->getDistanceToSegmentEnd() << std::endl;
-					if (vh->amodVehicle->getDistanceToSegmentEnd() <= 1000) {
+					std::cout << "Segment remaining: " << vh->amodVehicle->fwdMovement.getDistanceToSegmentEnd() << std::endl;
+					if (vh->amodVehicle->fwdMovement.getDistanceToSegmentEnd() <= 1000) {
 						std::cout << "Vehicle has arrived" << std::endl;
 						vh->setToBeRemoved();
 					}
@@ -1230,14 +1230,14 @@ void AMODController::checkForStuckVehicles(void) {
 			if (!vh->amodVehicle) continue;
 
 			if (vh->prevx == 0) {
-				vh->prevx = vh->amodVehicle->getX();
-				vh->prevy = vh->amodVehicle->getY();
+				vh->prevx = vh->amodVehicle->fwdMovement.getX();
+				vh->prevy = vh->amodVehicle->fwdMovement.getY();
 				vh->stuckCount = 0;
 				continue;
 			}
 
-			if ((vh->amodVehicle->getX() == vh->prevx)
-					&& (vh->amodVehicle->getY() == vh->prevy) ) {
+			if ((vh->amodVehicle->fwdMovement.getX() == vh->prevx)
+					&& (vh->amodVehicle->fwdMovement.getY() == vh->prevy) ) {
 				vh->stuckCount += currTime;
 				std::cout << "amodid : " << vh->amodId << ": " << vh->stuckCount << std::endl;
 				if (vh->stuckCount > maxStuckTime) {
@@ -1246,8 +1246,8 @@ void AMODController::checkForStuckVehicles(void) {
 					vh->setToBeRemoved();
 				}
 			} else {
-				vh->prevx = vh->amodVehicle->getX();
-				vh->prevy = vh->amodVehicle->getY();
+				vh->prevx = vh->amodVehicle->fwdMovement.getX();
+				vh->prevy = vh->amodVehicle->fwdMovement.getY();
 				vh->stuckCount = 0;
 			}
 		} catch (const std::runtime_error& e) {
@@ -1282,7 +1282,7 @@ void AMODController::saveVehStat(void)
 				if (!vh->amodVehicle) continue;
 
 				out_vhsStat << vh->amodId << " " << currTime << " "
-						<< (int) vh->amodVehicle->getX() << " " << (int) vh->amodVehicle->getY() << " "
+						<< (int) vh->amodVehicle->fwdMovement.getX() << " " << (int) vh->amodVehicle->fwdMovement.getY() << " "
 						<< std::fixed << std::setprecision(5)
 						<< vh->amodVehicle->getVelocity()/100 << " " << vh->amodVehicle->getAcceleration()/100 << " "
 						<< 1 << " " << vh->amodVehicle->getCurrSegment()->getSegmentAimsunId() << " "

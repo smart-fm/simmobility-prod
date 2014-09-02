@@ -50,9 +50,32 @@ const DPoint& sim_mob::Vehicle::getPositionInIntersection()
 const RoadSegment* sim_mob::Vehicle::getCurrSegment() const {
 	return fwdMovement.getCurrSegment();
 }
+void sim_mob::Vehicle::resetPath(vector<WayPoint> wp_path) {
+	//Construct a list of RoadSegments.
+	vector<const RoadSegment*> path;
+	for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
+		if (it->type_ == WayPoint::ROAD_SEGMENT) {
+			path.push_back(it->roadSegment_);
+//			std::cout<<it->roadSegment_->getStart()->location.getX()<<std::endl;
+		}
+	}
 
+	//Assume this is sufficient; we will specifically test for error cases later.
+	errorState = false;
+
+	//reset
+	fwdMovement.resetPath(path);
+}
 const RoadSegment* sim_mob::Vehicle::getNextSegment(bool inSameLink) const {
 	return fwdMovement.getNextSegment(inSameLink);
+}
+std::vector<const sim_mob::RoadSegment*>::iterator sim_mob::Vehicle::getPathIterator()
+{
+	return fwdMovement.currSegmentIt;
+}
+std::vector<const sim_mob::RoadSegment*>::iterator sim_mob::Vehicle::getPathIteratorEnd()
+{
+	return fwdMovement.fullPath.end();
 }
 
 const sim_mob::RoadSegment* sim_mob::Vehicle::getSecondSegmentAhead() {

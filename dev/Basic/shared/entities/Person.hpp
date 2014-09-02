@@ -236,6 +236,10 @@ public:
 
     int stuckCount;
     double prevx;
+    double prevy;
+    void clearTripChain() {
+		this->tripChain.clear();
+	}
 
 	const sim_mob::Lane* getCurrLane() const
 	{

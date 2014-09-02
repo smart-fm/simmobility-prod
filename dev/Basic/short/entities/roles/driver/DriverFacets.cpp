@@ -1401,12 +1401,14 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		vector<WayPoint> path;
 
 		Person* parentP = dynamic_cast<Person*>(parent);
+		sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
+
 if(!parentP->amodPath.empty()){
 			path = parent->amodPath;
 		}
 		else
 		{
-		sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
+
 		const StreetDirectory& stdir = StreetDirectory::instance();
 
 		if (subTrip->schedule == nullptr) {
@@ -1491,7 +1493,17 @@ if(!parentP->amodPath.empty()){
 	getParent()->setNextPathPlanned(true);
 	return res;
 }
-
+void sim_mob::DriverMovement::rerouteWithPath(const std::vector<sim_mob::WayPoint>& path)
+{
+	//Else, pre-pend the current segment, and reset the current driver.
+	//NOTE: This will put the current driver back onto the start of the current Segment, but since this is only
+	//      used in Road Runner, it doesn't matter right now.
+	//TODO: This *might* work if we save the current advance on the current segment and reset it.
+	vector<WayPoint> newpath = path;
+	vector<WayPoint>::iterator it = newpath.begin();
+	newpath.insert(it, WayPoint(parentDriver->vehicle->getCurrSegment()));
+	parentDriver->vehicle->resetPath(newpath);
+}
 void sim_mob::DriverMovement::rerouteWithBlacklist(
 		const std::vector<const sim_mob::RoadSegment*>& blacklisted) {
 //Skip if we're somehow not driving on a road.

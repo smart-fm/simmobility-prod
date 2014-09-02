@@ -110,6 +110,13 @@ public:
 	//Retrieve our X/Y position based ONLY on forward movement (e.g., nothing with Lanes)
 	sim_mob::DPoint getPosition() const;
 
+	//Accessors
+	double getX() const;   ///<Retrieve the vehicle's absolute position, x
+	double getY() const;   ///<Retrieve the vehicle's absolute position, y
+	double getDistanceMovedInSegment() const;   ///<Retrieve the total distance moved in this segment so far.
+	double getDistanceToSegmentStart() const;
+	double getDistanceToSegmentEnd() const;
+
 	//We might be able to fold Lane movement in here later. For now, it has to be called externally.
 	void shiftToNewPolyline(bool moveLeft);
 	void moveToNewPolyline(int newLaneID);

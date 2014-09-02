@@ -825,7 +825,30 @@ double sim_mob::GeneralPathMover::getCurrDistAlongRoadSegment() const
 	//return distMovedInCurrSegment + distRatio * totalPolyDist;
 	return distMovedInCurrSegment + distAlongPolylineCM;
 }
+double sim_mob::GeneralPathMover::getX() const {
+	return getPosition().x;
+}
 
+double sim_mob::GeneralPathMover::getY() const {
+	return getPosition().y;
+}
+double sim_mob::GeneralPathMover::getDistanceMovedInSegment() const {
+	return getCurrDistAlongRoadSegment();
+}
+
+double sim_mob::GeneralPathMover::getDistanceToSegmentStart() const {
+	DynamicVector dis(this->getX(), this->getY(),
+			this->getCurrSegment()->getStart()->location.getX(),
+			this->getCurrSegment()->getStart()->location.getY());
+	return dis.getMagnitude();
+}
+
+double sim_mob::GeneralPathMover::getDistanceToSegmentEnd() const {
+	DynamicVector dis(this->getX(), this->getY(),
+			this->getCurrSegment()->getEnd()->location.getX(),
+			this->getCurrSegment()->getEnd()->location.getY());
+	return dis.getMagnitude();
+}
 double sim_mob::GeneralPathMover::getTotalRoadSegmentLength() const
 {
 	throwIf(!isPathSet(), GeneralPathMover::ErrorPathNotSet);

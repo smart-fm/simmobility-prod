@@ -13,6 +13,82 @@ std::map <boost::thread::id, int> sim_mob::BasicLogger::threads= std::map <boost
 int sim_mob::BasicLogger::flushCnt = 0;
 unsigned long int sim_mob::BasicLogger::ii = 0;
 
+
+sim_mob::Profiler::Profiler(const Profiler &t):
+		start(t.start.load()),lastTick(t.lastTick.load()),
+		total(t.total.load()),started(t.started.load()), id(t.id)
+{
+}
+
+sim_mob::Profiler::Profiler(const std::string id, bool begin_):id(id){
+	reset();
+	total = 0;
+	if(begin_)
+	{
+		start = lastTick = getTime();
+	}
+
+}
+
+uint32_t sim_mob::Profiler::tick(bool addToTotal){
+	uint32_t thisTick = getTime();
+	uint32_t elapsed = thisTick - lastTick;
+	if(addToTotal){
+		addUp(elapsed);
+	}
+	lastTick = thisTick;
+	return elapsed;
+}
+
+uint32_t sim_mob::Profiler::end(){
+	uint32_t tick_ = getTime();
+	if(tick_ <= start ){
+		std::cout << "WARNING:profiler " << id << " Start time " << start << " and end time = " << tick_ << std::endl;
+		return 0;
+	}
+	return tick_ - start;
+}
+
+uint32_t sim_mob::Profiler::addUp(const uint32_t value){
+	total+=value;
+	return total;
+}
+
+
+void sim_mob::Profiler::setAddUp(const uint32_t value){
+	total =value;
+}
+
+uint32_t sim_mob::Profiler::getAddUp(){
+	return total;
+}
+
+void sim_mob::Profiler::reset()
+{
+	start = lastTick = total = 0;
+	started = 0;
+}
+
+/////like it suggests, store the start time of the profiling
+//uint32_t sim_mob::Profiler::begin(){
+//	return (start = lastTick = getTime());
+//}
+const uint32_t sim_mob::Profiler::getTime()
+{
+
+	struct timeval  tv;
+	struct timezone tz;
+	struct tm      *tm;
+
+	gettimeofday(&tv, &tz);
+	tm = localtime(&tv.tv_sec);
+
+	return (tm->tm_hour * 3600000000/*3600 * 1000 * 1000*/) +
+	(tm->tm_min * 60000000/*60 * 1000 * 1000*/) +
+	(tm->tm_sec * 1000000/*1000 * 1000*/) +
+	(tv.tv_usec);
+}
+
 sim_mob::BasicLogger::BasicLogger(std::string id_){
 	id = id_;
 	std::string path = id_ + ".txt";
@@ -37,75 +113,6 @@ sim_mob::BasicLogger::~BasicLogger(){
 		logFile.close();
 	}
 	for (outIt it(out.begin()); it != out.end();safe_delete_item(it->second), it++);
-}
-
-const uint32_t sim_mob::Profiler::getTime()
-{
-
-	struct timeval  tv;
-	struct timezone tz;
-	struct tm      *tm;
-
-	gettimeofday(&tv, &tz);
-	tm = localtime(&tv.tv_sec);
-
-	return (tm->tm_hour * 3600000000/*3600 * 1000 * 1000*/) +
-	(tm->tm_min * 60000000/*60 * 1000 * 1000*/) +
-	(tm->tm_sec * 1000000/*1000 * 1000*/) +
-	(tv.tv_usec);
-}
-
-///like it suggests, store the start time of the profiling
-uint32_t sim_mob::Profiler::begin(){
-	return (start = lastTick = getTime());
-}
-
-uint32_t sim_mob::Profiler::tick(bool addToTotal, bool end){
-	if(!started){
-		return 0;
-	}
-	uint32_t thisTick = getTime();
-	uint32_t elapsed = thisTick - lastTick;
-	if(addToTotal){
-		addUp(elapsed);
-	}
-	lastTick = thisTick;
-	if(end)
-	{
-		started = false;
-	}
-	return elapsed;
-}
-
-uint32_t sim_mob::Profiler::end(){
-	if(!started)
-	{
-		std::cout << "WARNING:profiler " << id << " is not started" << std::endl;
-		return 0;
-	}
-	uint32_t tick_;
-	tick_ = getTime();
-	started = 0;
-	if(tick_ <= start ){
-		std::cout << "WARNING:profiler " << id << " Start time " << start << " and end time = " << tick_ << std::endl;
-	}
-
-	return (tick_ > start ? tick_ - start : 0);
-}
-
-void sim_mob::Profiler::reset()
-{
-	start = lastTick = total = 0;
-	started = 0;
-}
-
-uint32_t sim_mob::Profiler::addUp(const uint32_t value){
-	total+=value;
-	return total;
-}
-
-uint32_t sim_mob::Profiler::getAddUp(){
-	return total;
 }
 
 std::stringstream * sim_mob::BasicLogger::getOut(bool renew){

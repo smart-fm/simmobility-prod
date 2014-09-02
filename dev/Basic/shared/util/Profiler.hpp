@@ -49,22 +49,10 @@ class Profiler{
 	const uint32_t getTime();
 public:
 	///	begin: should begin time or not
-	Profiler(const std::string id, bool begin_ = true):id(id){
-		reset();
-		started = true;
-		total = 0;
-		if(begin_)
-		{
-			begin();
-		}
-
-	}
-	Profiler(const Profiler &t):start(t.start.load()),lastTick(t.lastTick.load()),total(t.total.load()),started(t.started.load()), id(t.id)
-	{
-	}
-
-	///	mark and return the current time since epoch(in microseconds) as the the start time
-	uint32_t begin();
+	Profiler(const std::string id, bool begin_ = true);
+	Profiler(const Profiler &t);
+//	///	mark and return the current time since epoch(in microseconds) as the the start time
+//	uint32_t begin();
 	/// return the elapse time since begin() and disable profiling unless explicitly bein()'ed
 	uint32_t end();
 	///	reset all the members to 0
@@ -94,9 +82,11 @@ public:
 	 *tick(true);
 	 *elapsed_time = getAddUp();
 	 */
-	uint32_t tick(bool addToTotal = false, bool end = false);
+	uint32_t tick(bool addToTotal = false);
 	///	add the given time to total time variable
 	uint32_t addUp(const uint32_t value);
+	///	manually set the total value
+	void setAddUp(const uint32_t value);
 	///	return the total(accumulated) time
 	uint32_t getAddUp();
 

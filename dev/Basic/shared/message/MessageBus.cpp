@@ -15,10 +15,10 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/tss.hpp>
 #include <boost/unordered/unordered_map.hpp>
+#include <boost/function.hpp>
 #include <queue>
 #include <list>
 #include <iostream>
-#include <functional>
 #include "logging/Log.hpp"
 
 using namespace sim_mob::messaging;
@@ -435,50 +435,52 @@ void MessageBus::DispatchMessages() {
 		ContextList::iterator lstItr = threadContexts.begin();
 		while (lstItr != threadContexts.end()) {
 			ThreadContext* context = (*lstItr);
-			auto dispatch = [&](const MessageEntry& entry) {
-				if (entry.event) {
-					context->eventMessages++;
-					//if it is an event then we need to distribute the event for all
-					//publishers in the system.
-					ContextList::iterator lstItr1 = threadContexts.begin();
-					while (lstItr1 != threadContexts.end()) {
-						ThreadContext* ctx = (*lstItr1);
-						//main context will receive the original message
-						//for other the message entry is cloned.
-						MessageEntry newEntry(entry);
-						newEntry.destination = dynamic_cast<MessageHandler*> (ctx->eventPublisher);
-						ctx->input.push(newEntry);
-						lstItr1++;
-					}
-				} else {                       // it is a regular/single message
-					context->receivedMessages++;
-					if (entry.processOnMainThread) {
-						mainContext->input.push(entry);
-					} else {
-						ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->context);
-						if (destinationContext) {
-							destinationContext->input.push(entry);
+			void (*dispatch)(const MessageEntry& entry, ThreadContext* &context,
+					ThreadContext* &mainContext) =
+					[](const MessageEntry& entry, ThreadContext* &context, ThreadContext* &mainContext) -> void {
+						if (entry.event) {
+							context->eventMessages++;
+							//if it is an event then we need to distribute the event for all
+							//publishers in the system.
+							ContextList::iterator lstItr1 = threadContexts.begin();
+							while (lstItr1 != threadContexts.end()) {
+								ThreadContext* ctx = (*lstItr1);
+								//main context will receive the original message
+								//for other the message entry is cloned.
+								MessageEntry newEntry(entry);
+								newEntry.destination = dynamic_cast<MessageHandler*> (ctx->eventPublisher);
+								ctx->input.push(newEntry);
+								lstItr1++;
+							}
+						} else {               // it is a regular/single message
+							context->receivedMessages++;
+							if (entry.processOnMainThread) {
+								mainContext->input.push(entry);
+							} else {
+								ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->context);
+								if (destinationContext) {
+									destinationContext->input.push(entry);
+								}
+							}
 						}
-					}
-				}
-			};
+					};
 			while (!context->output.empty()) {
 				const MessageEntry& entry = context->output.top();
-				dispatch(entry);
+				dispatch(entry, context, mainContext);
 				// internal messages go to the input queue of the main context.
 				context->output.pop();
 			}
 			while (!context->TimebasedOutput.empty()) {
 				const MessageEntry& entry = context->TimebasedOutput.top();
 				if (entry.triggeredTime <= currentTime) {
-					dispatch(entry);
+					dispatch(entry, context, mainContext);
 					context->TimebasedOutput.pop();
 				} else {
 					break;
 				}
 			}
 			lstItr++;
-        }
+		}
     }
 }
 

@@ -566,22 +566,22 @@ bool DatabaseLoader::ExcuString(std::string& str)
 void DatabaseLoader::LoadERP_Surcharge(std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >& pool)
 {
 //	soci::rowset<sim_mob::ERP_Surcharge> rs = (sql_.prepare <<"select \"Gantry_No\",to_char(\"Start_Time\",'HH24:MI:SS') AS Start_Time,to_char(\"End _Time\",'HH24:MI:SS') AS End_Time,\"Rate\",\"Vehicle_Type_Id\",\"Vehicle_Type_Desc\",\"Day\" from \"ERP_Surcharge\" ");
-	soci::rowset<sim_mob::ERP_Surcharge> rs = (sql_.prepare <<"select trim(both ' ' from \"Gantry_No\") AS Gantry_No,to_char(\"Start_Time\",'HH24:MI:SS') AS Start_Time,to_char(\"End _Time\",'HH24:MI:SS') AS End_Time,\"Rate\",\"Vehicle_Type_Id\",\"Vehicle_Type_Desc\",\"Day\" from \"ERP_Surcharge\" ");
+	soci::rowset<sim_mob::ERP_Surcharge> rs = (sql_.prepare <<"select trim(both ' ' from \"Gantry_No\") AS Gantry_No,to_char(\"Start_Time\",'HH24:MI:SS') AS Start_Time,to_char(\"End _Time\",'HH24:MI:SS') AS endTime,\"Rate\",\"Vehicle_Type_Id\",\"Vehicle_Type_Desc\",\"Day\" from \"ERP_Surcharge\" ");
 	for (soci::rowset<sim_mob::ERP_Surcharge>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		sim_mob::ERP_Surcharge *s = new sim_mob::ERP_Surcharge(*it);
-//		std::cout<<"LoadERP_Surcharge: "<<s.Start_Time<<std::endl;
-		std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::iterator itt = pool.find(s->Gantry_No);
+//		std::cout<<"LoadERP_Surcharge: "<<s.startTime<<std::endl;
+		std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::iterator itt = pool.find(s->gantryNo);
 		if(itt!=pool.end())
 		{
 			std::vector<sim_mob::ERP_Surcharge*> e = (*itt).second;
 			e.push_back(s);
-			pool[s->Gantry_No] = e;
+			pool[s->gantryNo] = e;
 		}
 		else
 		{
 			std::vector<sim_mob::ERP_Surcharge*> e;
 			e.push_back(s);
-			pool[s->Gantry_No] = e;
+			pool[s->gantryNo] = e;
 		}
 	}
 }
@@ -601,9 +601,9 @@ void DatabaseLoader::LoadERP_Gantry_Zone(std::map<std::string,sim_mob::ERP_Gantr
 	soci::rowset<sim_mob::ERP_Gantry_Zone> rs = (sql_.prepare <<"select * from \"ERP_Gantry_Zone\" ");
 	for (soci::rowset<sim_mob::ERP_Gantry_Zone>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		sim_mob::ERP_Gantry_Zone *s = new sim_mob::ERP_Gantry_Zone(*it);
-		erp_gantry_zone_pool.insert(std::make_pair(s->Gantry_no,s));
+		erp_gantry_zone_pool.insert(std::make_pair(s->gantryNo,s));
 	}
-//		std::cout<<"LoadERP_Section: "<<s->Gantry_no<<" "<<s->Zone_Id<<std::endl;
+//		std::cout<<"LoadERP_Section: "<<s->gantryNo<<" "<<s->zoneId<<std::endl;
 }
 
 void DatabaseLoader::LoadNodes(const std::string& storedProc)

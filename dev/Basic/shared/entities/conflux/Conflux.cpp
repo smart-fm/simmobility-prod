@@ -1193,19 +1193,19 @@ bool sim_mob::Conflux::insertTravelTime2TmpTable(timeslice frameNumber, std::map
 		for (; it != rdSegTravelTimesMap.end(); it++){
 			LinkTravelTime tt;
 			DailyTime simStart = ConfigManager::GetInstance().FullConfig().simStartTime();
-			std::string aimsun_id = (*it).first->originalDB_ID.getLogItem();
-			std::string seg_id = sim_mob::Utils::getNumberFromAimsunId(aimsun_id);
+			std::string aimsunId = (*it).first->originalDB_ID.getLogItem();
+			std::string segId = sim_mob::Utils::getNumberFromAimsunId(aimsunId);
 			try {
-				tt.link_id = boost::lexical_cast<int>(seg_id);
+				tt.linkId = boost::lexical_cast<int>(segId);
 			} catch( boost::bad_lexical_cast const& ) {
 				Print() << "Error: seg_id string was not valid" << std::endl;
-				tt.link_id = -1;
+				tt.linkId = -1;
 			}
 
-			tt.start_time = (simStart + sim_mob::DailyTime(frameNumber.ms())).toString();
+			tt.startTime = (simStart + sim_mob::DailyTime(frameNumber.ms())).toString();
 			double frameLength = ConfigManager::GetInstance().FullConfig().baseGranMS();
-			tt.end_time = (simStart + sim_mob::DailyTime(frameNumber.ms() + frameLength)).toString();
-			tt.travel_time = (*it).second.rdSegTravelTime_/(*it).second.agentCount_;
+			tt.endTime = (simStart + sim_mob::DailyTime(frameNumber.ms() + frameLength)).toString();
+			tt.travelTime = (*it).second.rdSegTravelTime_/(*it).second.agentCount_;
 
 //			PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
 			Worker *worker = this->getParentWorker();

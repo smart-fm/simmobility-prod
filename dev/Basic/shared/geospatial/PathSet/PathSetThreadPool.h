@@ -17,10 +17,7 @@ using namespace std;
 
 namespace sim_mob
 {
-/**
-WorkerThread class
-This class needs to be sobclassed by the user.
-*/
+/// main class responsible for generating paths based on the input configuration
 class PathSetWorkerThread{
 public:
 	virtual void executeThis();

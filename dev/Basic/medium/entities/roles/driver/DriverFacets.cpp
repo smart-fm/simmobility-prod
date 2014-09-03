@@ -948,10 +948,10 @@ int DriverMovement::findReroutingPoints(const std::vector<sim_mob::SegmentStats*
 	}
 	sim_mob::Logger::log["path_set"] << "-------------------------------------------\n" <<
 			"Candidates with their remaining path after filtering the no paths:" << std::endl;
-	std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > item1;
-	BOOST_FOREACH(item1,  remaining){
+	typedef std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > TempType;
+	BOOST_FOREACH(TempType item,  remaining){
 		sim_mob::Logger::log["path_set"] << "Remaining path to detour point : ";
-		MesoPathMover::printPath(item1.second, item1.first);
+		MesoPathMover::printPath(item.second, item.first);
 	}
 	sim_mob::Logger::log["path_set"] << "\n-------------------------------------------" << std::endl;
 	sim_mob::Logger::log["path_set"] << "There are " << remaining.size() << " candidate point of reroute for Person(excluding no path):" << std::endl;

@@ -10,7 +10,6 @@
 #include <map>
 #include <iostream>
 #include <list>
-#include "geospatial/PathSet/PathSetDB.hpp"
 
 #include <boost/shared_ptr.hpp>
 #include "soci.h"

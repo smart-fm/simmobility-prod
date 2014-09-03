@@ -69,10 +69,6 @@ void sim_mob::Profiler::reset()
 	started = 0;
 }
 
-/////like it suggests, store the start time of the profiling
-//uint32_t sim_mob::Profiler::begin(){
-//	return (start = lastTick = getTime());
-//}
 const uint32_t sim_mob::Profiler::getTime()
 {
 

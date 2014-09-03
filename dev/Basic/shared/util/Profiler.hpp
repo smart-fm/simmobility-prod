@@ -51,8 +51,6 @@ public:
 	///	begin: should begin time or not
 	Profiler(const std::string id, bool begin_ = true);
 	Profiler(const Profiler &t);
-//	///	mark and return the current time since epoch(in microseconds) as the the start time
-//	uint32_t begin();
 	/// return the elapse time since begin() and disable profiling unless explicitly bein()'ed
 	uint32_t end();
 	///	reset all the members to 0

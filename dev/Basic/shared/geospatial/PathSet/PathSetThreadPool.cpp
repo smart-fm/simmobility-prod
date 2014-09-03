@@ -42,7 +42,7 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 	//      The within-day choice set model should have this kind of optimization; for us, we will simply search each time.
 	//TODO: Perhaps caching the most recent X searches might be a good idea, though. ~Seth.
 
-	vector<WayPoint> wp;
+	vector<WayPoint> wps;
 	if (!s) {
 		std::cout << "in thread new failed " << std::endl;
 	}
@@ -83,9 +83,8 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 								<< std::endl;
 					}
 					//Retrieve, add this edge's WayPoint.
-					WayPoint w = boost::get(boost::edge_name, *graph,
-							edge.first);
-					wp.push_back(w);
+//					WayPoint w = boost::get(boost::edge_name, *graph,edge.first);
+					wps.push_back(boost::get(boost::edge_name, *graph,edge.first));
 				}
 				//Save for later.
 				prev = it;
@@ -141,7 +140,7 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 					//Retrieve, add this edge's WayPoint.
 					WayPoint w = boost::get(boost::edge_name, filtered,
 							edge.first);
-					wp.push_back(w);
+					wps.push_back(w);
 				}
 
 				//Save for later.
@@ -153,11 +152,11 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 
 
 
-	if (wp.empty()) {
+	if (wps.empty()) {
 		hasPath = false;
 	} else {
 		// make sp id
-		std::string id = sim_mob::makeWaypointsetString(wp);
+		std::string id = sim_mob::makeWaypointsetString(wps);
 		if(!id.size()){
 			sim_mob::Logger::log["pathset"] << "Error: Empty choice!!! yet valid=>" << dbgStr <<  "\n";
 		}
@@ -168,7 +167,7 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		s->pathSet = ps;
 		s->isNeedSave2DB = true;
 		hasPath = true;
-		s->init(wp);
+		s->init(wps);
 		sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(s);
 		s->highWayDistance = sim_mob::calculateHighWayDistance(s);
 		s->fromNode = fromNode;
@@ -177,9 +176,9 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		s->length = sim_mob::generateSinglePathLength(s->shortestWayPointpath);
 		s->id = id;
 		s->scenario = ps->scenario;
-		s->pathsize = 0;
-		s->travel_cost = sim_mob::getTravelCost2(s);
-		s->travle_time = s->pathSet->psMgr->getTravelTime(s);
+		s->pathSize = 0;
+		s->travelCost = sim_mob::getTravelCost2(s);
+		s->travleTime = s->pathSet->psMgr->getTravelTime(s);
 	}
 }
 

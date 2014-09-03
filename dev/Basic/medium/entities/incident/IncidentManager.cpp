@@ -113,9 +113,9 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 	int reacting = 0;
 	int ignorant = 0;
 	//step-1: find those who used the target rs in their path
-	const std::pair <RPOD::const_iterator,RPOD::const_iterator > range(sim_mob::PathSetManager::getInstance()->getODbySegment(targetRS));
-	for(RPOD::const_iterator it(range.first); it != range.second; it++){
-		const sim_mob::Person *per = it->second.per;
+	const std::pair <SGPER::const_iterator,SGPER::const_iterator > range(sim_mob::PathSetManager::getInstance()->getODbySegment(targetRS));
+	for(SGPER::const_iterator it(range.first); it != range.second; it++){
+		const sim_mob::Person *per = it->second;
 		//get his,meso, path...//todo: you need to dynamic_cast!
 		const sim_mob::medium::DriverMovement *dm = dynamic_cast<sim_mob::medium::DriverMovement*>(per->getRole()->Movement());
 		const std::vector<const sim_mob::SegmentStats*> path = dm->getMesoPathMover().getPath();
@@ -164,7 +164,7 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 		else{
 			ignorant ++;
 		}
-	}//RPOD
+	}//SGPER
 	sim_mob::Logger::log["path_set"] << "Number of Affected Driver's Paths: " << affected << std::endl;
 	sim_mob::Logger::log["path_set"] << "Number of Affected Drivers: " << affected - ignored << std::endl;
 	sim_mob::Logger::log["path_set"] << "Number of Drivers Reacting to Incident: " << reacting << std::endl;

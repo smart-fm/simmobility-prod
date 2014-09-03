@@ -146,8 +146,6 @@ std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKS
 			// fill data
 			s->isNeedSave2DB = true;
 			s->init(path_);
-	//		s->shortestWayPointpath = convertWaypoint2Point(wp);//stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*fromNode), stdir->DrivingVertex(*toNode),blacklist);
-	//		s->shortestSegPath = sim_mob::generateSegPathByWaypointPathP(s->shortestWayPointpath);
 			sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(s);
 			s->fromNode = from;
 			s->toNode = to;
@@ -156,7 +154,7 @@ std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKS
 
 			s->id = id;
 			s->scenario = ps_->scenario;
-			s->pathsize=0;
+			s->pathSize=0;
 
 			wp_spPool.insert(id);
 		}

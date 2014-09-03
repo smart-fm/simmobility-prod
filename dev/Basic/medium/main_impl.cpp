@@ -148,7 +148,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		t = time(0);   // get time now
 		now = localtime( & t );
 		cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< endl;
-		cout<<psMgr->size()<<endl;
 	}
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();

@@ -49,8 +49,7 @@ namespace sim_mob {
             /**
              * Operator to print the Household data.  
              */
-            friend std::ostream& operator<<(std::ostream& strm, 
-                const Household& data);
+            friend std::ostream& operator<<(std::ostream& strm, const Household& data);
 
         private:
             friend class HouseholdDao;

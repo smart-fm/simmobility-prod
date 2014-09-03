@@ -18,15 +18,9 @@ Building::Building( BigSerial fm_building_id, BigSerial fm_project_id, BigSerial
 					float gross_sq_m_retail, float gross_sq_m_other ) :
 					fm_building_id(fm_building_id), fm_project_id(fm_project_id), fm_parcel_id(fm_parcel_id), storeys_above_ground(storeys_above_ground),
 					storeys_below_ground(storeys_below_ground), from_date(from_date), to_date(to_date), building_status(building_status),gross_sq_m_res(gross_sq_m_res),
-					gross_sq_m_office(gross_sq_m_office), gross_sq_m_retail(gross_sq_m_retail), gross_sq_m_other(gross_sq_m_other)
-{
+					gross_sq_m_office(gross_sq_m_office), gross_sq_m_retail(gross_sq_m_retail), gross_sq_m_other(gross_sq_m_other){}
 
-
-
-}
-
-Building::~Building() {
-}
+Building::~Building() {}
 
 Building& Building::operator=(const Building& source)
 {
@@ -88,22 +82,22 @@ std::string Building::getBuildingStatus() const
 }
 
 
-float	Building::getGrossSqmRes() const
+float Building::getGrossSqmRes() const
 {
 	return gross_sq_m_res;
 }
 
-float	Building::getGrossSqmOffice() const
+float Building::getGrossSqmOffice() const
 {
 	return gross_sq_m_office;
 }
 
-float	Building::getGrossSqmRetail() const
+float Building::getGrossSqmRetail() const
 {
 	return gross_sq_m_retail;
 }
 
-float	Building::getGrossSqmOther() const
+float Building::getGrossSqmOther() const
 {
 	return gross_sq_m_other;
 }

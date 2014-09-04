@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include "Common.hpp"
+#include "Types.hpp"
 #include <ctime>
 
 
@@ -25,8 +27,7 @@ namespace sim_mob
 					   BigSerial ethnicityId = INVALID_ID, BigSerial employmentStatusId = INVALID_ID, BigSerial genderId = INVALID_ID,
 					   BigSerial educationId = INVALID_ID, BigSerial occupationId = INVALID_ID, BigSerial vehiculeCategoryId = INVALID_ID,
 					   BigSerial transitCategoryId = INVALID_ID, BigSerial ageCategoryId = INVALID_ID, BigSerial residentialStatusId = INVALID_ID,
-					   bool householdHead = false, float income = false, int memberId = 0, bool workerAtHome = false,bool driversLicence = false, std::tm dateOfBirth = 0);
-			Individual();
+					   bool householdHead = false, float income = false, int memberId = 0, bool workerAtHome = false,bool driversLicence = false, std::tm dateOfBirth = std::tm());
 			virtual ~Individual();
 
 			BigSerial getId() const;
@@ -45,13 +46,18 @@ namespace sim_mob
 			bool	  getHouseholdHead() const;
 			float	  getIncome() const;
 			int		  getMemberId() const;
-			bool	  getWorkerAtHome() const;
-			std::tm	  getDriversLicence() const;
+			bool	  getWorkAtHome() const;
+			bool	  getDriversLicence() const;
+			std::tm  getDateOfBirth() const;
+
 
 			Individual& operator=(const Individual& source);
 
+			friend std::ostream& operator<<(std::ostream& strm, const Individual& data);
 
-		private:
+        private:
+            friend class IndividualDao;
+
 			BigSerial id;
 			BigSerial individualTypeId;
 			BigSerial householdId;
@@ -68,7 +74,7 @@ namespace sim_mob
 			bool	  householdHead;
 			float	  income;
 			int		  memberId;
-			bool	  workerAtHome;
+			bool	  workAtHome;
 			bool	  driversLicence;
 			std::tm	  dateOfBirth;
 		};

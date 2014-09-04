@@ -708,10 +708,10 @@ void sim_mob::MITSIM_LC_Model::makeCriticalGapParams(std::string& str)
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParams& p)
 {
-	if(p.parentId == 888)
-		{
-			return LCS_SAME;
-		}
+//	if(p.parentId == 888)
+//		{
+//			return LCS_SAME;
+//		}
 	LANE_CHANGE_SIDE change = LCS_SAME;
 
 	// get distance to end of current segment
@@ -733,12 +733,19 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	// if already in changing lane
 	if ( p.flag(FLAG_ESCAPE) )
 	{
-		if (p.flag(FLAG_ESCAPE_LEFT)) {
+		if (p.statusMgr.getStatus(STATUS_LEFT_SIDE_OK) ) {
 		  change = LCS_LEFT;
 		}
-		if (p.flag(FLAG_ESCAPE_RIGHT)) {
+	    else if (p.statusMgr.getStatus(STATUS_RIGHT_SIDE_OK) ) {
 		  change = LCS_RIGHT;
 		}
+
+//		if (p.flag(FLAG_ESCAPE_LEFT)) {
+//		  change = LCS_LEFT;
+//		}
+//		if (p.flag(FLAG_ESCAPE_RIGHT)) {
+//		  change = LCS_RIGHT;
+//		}
 		p.setStatus(STATUS_MANDATORY);
 		return change;
 	}
@@ -1503,7 +1510,10 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 		p.rnd=0;
 		// check lanes connect to next segment
 		checkConnectLanes(p);
-
+if(p.parentId == 1 && p.now.frame()>82)
+{
+	int i=0;
+}
 		if (checkIfLookAheadEvents(p))
 		{
 			change = checkMandatoryEventLC(p);

@@ -477,9 +477,10 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 //Next, handle driving on links.
 // Note that a vehicle may leave an intersection during intersectionDriving(), so the conditional check is necessary.
 // Note that there is no need to chain this back to intersectionDriving.
-	if(params.parentId == 8){
-			int i = 0;
-		}
+	if(params.parentId == 1 && params.now.frame()>82)
+	{
+		int i=0;
+	}
 	if (!(fwdDriverMovement.isInIntersection())) {
 		params.cftimer -= params.elapsedSeconds;
 // params.overflowIntoIntersection = linkDriving(params);
@@ -2456,7 +2457,9 @@ void sim_mob::DriverMovement::updateLateralMovement(DriverUpdateParams& p)
 			p.setFlag(FLAG_PREV_LC_RIGHT);
 		}
 		p.unsetStatus(STATUS_CHANGING);
-		p.lcTimeTag = p.now.ms();
+		if(!p.getStatus(STATUS_MANDATORY)) {
+			p.lcTimeTag = p.now.ms();
+		}
 	// lane change complete, unset the "performing lane change" status
 		p.unsetStatus(STATUS_LC_CHANGING);
 		p.unsetStatus(STATUS_MANDATORY); // Angus

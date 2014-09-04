@@ -227,7 +227,7 @@ public:
 	{}
 
 	virtual ~Tour() {
-		for(std::deque<Stop*>::iterator i = stops.begin(); i!=stops.end(); i++) {
+		for(std::list<Stop*>::iterator i = stops.begin(); i!=stops.end(); i++) {
 			safe_delete_item(*i);
 		}
 		stops.clear();
@@ -348,6 +348,10 @@ public:
 		this->firstTour = firstTour;
 	}
 
+	bool hasSubTours() const {
+		return (!subTours.empty());
+	}
+
 	bool operator==(const Tour& rhs) const;
 	bool operator!=(const Tour& rhs) const;
 
@@ -355,7 +359,7 @@ public:
 	 * List of stops in this tour.
 	 * The relative ordering of stops in this list reflects the chronological order of the stops.
 	 */
-	std::deque<Stop*> stops;
+	std::list<Stop*> stops;
 
 	/**
 	 * List of sub tours for this tour.

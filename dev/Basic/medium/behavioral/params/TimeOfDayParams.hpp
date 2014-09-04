@@ -185,7 +185,7 @@ public:
 	void updateAvailabilities() {
 		for(int i=0; i<availability.size(); i++) {
 			int wndw = i+1;
-			if(wndw <= todLow || wndw >= todHigh) {
+			if(wndw < todLow || wndw > todHigh) {
 				availability[i] = false;
 			}
 		}

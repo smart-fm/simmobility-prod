@@ -20,7 +20,6 @@
 #include "conf/Constructs.hpp"
 #include "database/ZoneCostMongoDao.hpp"
 #include "mongo/client/dbclient.h"
-
 #include "logging/Log.hpp"
 
 namespace sim_mob {
@@ -36,13 +35,14 @@ protected:
 
 	StopType purpose;
 	int origin;
+	const double OPERATIONAL_COST;
 	const ZoneMap& zoneMap;
 	const CostMap& amCostsMap;
 	const CostMap& pmCostsMap;
 
 public:
 	ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, StopType purpose, int originCode)
-	: zoneMap(zoneMap), amCostsMap(amCostsMap), pmCostsMap(pmCostsMap), purpose(purpose), origin(originCode)
+	: zoneMap(zoneMap), amCostsMap(amCostsMap), pmCostsMap(pmCostsMap), purpose(purpose), origin(originCode), OPERATIONAL_COST(0.147)
 	{}
 
 	virtual ~ModeDestinationParams() {}
@@ -119,13 +119,13 @@ public:
 	double getCostCarOPFirst(int zoneId) const {
 		int destination = zoneMap.at(zoneId)->getZoneCode();
 		if (origin == destination) { return 0; }
-		return (amCostsMap.at(origin).at(destination)->getDistance() * 0.147);
+		return (amCostsMap.at(origin).at(destination)->getDistance() * OPERATIONAL_COST);
 	}
 
 	double getCostCarOPSecond(int zoneId) const {
 		int destination = zoneMap.at(zoneId)->getZoneCode();
 		if (origin == destination) { return 0; }
-		return (pmCostsMap.at(destination).at(origin)->getDistance() * 0.147);
+		return (pmCostsMap.at(destination).at(origin)->getDistance() * OPERATIONAL_COST);
 	}
 
 	double getCostCarParking(int zoneId) const {
@@ -299,17 +299,15 @@ public:
 	virtual ~StopModeDestinationParams() {}
 
 	double getCostCarParking(int zone) {
-		double parkingRate = zoneMap.at(zone)->getParkingRate();
-		double duration = 0;
-		return (8*(duration>480)+duration*(duration<=480)/60.0)*parkingRate;
+		return 0; // parking cost is always 0 for intermediate stops
 	}
 
 	double getCostCarOP(int zone) {
 		int destination = zoneMap.at(zone)->getZoneCode();
 		if(origin != destination && destination != homeZone && origin != homeZone) {
-			return ((amCostsMap.at(origin).at(destination)->getDistance() * 0.147 + pmCostsMap.at(origin).at(destination)->getDistance() * 0.147)/2
-					+(amCostsMap.at(destination).at(homeZone)->getDistance() * 0.147 + pmCostsMap.at(destination).at(homeZone)->getDistance() * 0.147 )/2
-					-(amCostsMap.at(origin).at(homeZone)->getDistance() * 0.147 + pmCostsMap.at(origin).at(homeZone)->getDistance() * 0.147 )/2);
+			return ((amCostsMap.at(origin).at(destination)->getDistance() * OPERATIONAL_COST + pmCostsMap.at(origin).at(destination)->getDistance() * OPERATIONAL_COST)/2
+					+(amCostsMap.at(destination).at(homeZone)->getDistance() * OPERATIONAL_COST + pmCostsMap.at(destination).at(homeZone)->getDistance() * OPERATIONAL_COST )/2
+					-(amCostsMap.at(origin).at(homeZone)->getDistance() * OPERATIONAL_COST + pmCostsMap.at(origin).at(homeZone)->getDistance() * OPERATIONAL_COST)/2);
 		}
 		return 0;
 	}

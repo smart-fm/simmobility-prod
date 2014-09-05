@@ -25,7 +25,7 @@ namespace sim_mob
 		public:
 			Individual(BigSerial id = INVALID_ID, BigSerial individualTypeId = INVALID_ID, BigSerial householdId = INVALID_ID, BigSerial jobId = INVALID_ID,
 					   BigSerial ethnicityId = INVALID_ID, BigSerial employmentStatusId = INVALID_ID, BigSerial genderId = INVALID_ID,
-					   BigSerial educationId = INVALID_ID, BigSerial occupationId = INVALID_ID, BigSerial vehiculeCategoryId = INVALID_ID,
+					   BigSerial educationId = INVALID_ID, BigSerial occupationId = INVALID_ID, BigSerial vehicleCategoryId = INVALID_ID,
 					   BigSerial transitCategoryId = INVALID_ID, BigSerial ageCategoryId = INVALID_ID, BigSerial residentialStatusId = INVALID_ID,
 					   bool householdHead = false, float income = false, int memberId = 0, bool workerAtHome = false,bool driversLicence = false, std::tm dateOfBirth = std::tm());
 			virtual ~Individual();
@@ -39,7 +39,7 @@ namespace sim_mob
 			BigSerial getGenderId() const;
 			BigSerial getEducationId() const;
 			BigSerial getOccupationId() const;
-			BigSerial getVehiculeCategoryId() const;
+			BigSerial getVehicleCategoryId() const;
 			BigSerial getTransitCategoryId() const;
 			BigSerial getAgeCategoryId() const;
 			BigSerial getResidentialStatusId() const;
@@ -47,7 +47,7 @@ namespace sim_mob
 			float	  getIncome() const;
 			int		  getMemberId() const;
 			bool	  getWorkAtHome() const;
-			bool	  getDriversLicence() const;
+			bool	  getDriversLicense() const;
 			std::tm  getDateOfBirth() const;
 
 
@@ -67,7 +67,7 @@ namespace sim_mob
 			BigSerial genderId;
 			BigSerial educationId;
 			BigSerial occupationId;
-			BigSerial vehiculeCategoryId;
+			BigSerial vehicleCategoryId;
 			BigSerial transitCategoryId;
 			BigSerial ageCategoryId;
 			BigSerial residentialStatusId;
@@ -75,7 +75,7 @@ namespace sim_mob
 			float	  income;
 			int		  memberId;
 			bool	  workAtHome;
-			bool	  driversLicence;
+			bool	  driversLicense;
 			std::tm	  dateOfBirth;
 		};
 	}

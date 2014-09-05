@@ -9,7 +9,7 @@
  *  Author: Chetan Rogbeer <chetan.rogbeer@smart.mit.edU>
  */
 
-#include "IndividualDao.h"
+#include "IndividualDao.hpp"
 #include "DatabaseHelper.hpp"
 
 using namespace sim_mob::db;
@@ -32,7 +32,7 @@ void IndividualDao::fromRow(Row& result, Individual& outObj)
 	outObj.genderId				= result.get<BigSerial>(	"gender_id", 			INVALID_ID);
 	outObj.educationId			= result.get<BigSerial>(	"education_id", 		INVALID_ID);
 	outObj.occupationId			= result.get<BigSerial>(	"occupation_id", 		INVALID_ID);
-	outObj.vehiculeCategoryId	= result.get<BigSerial>(	"vehicule_category_id", INVALID_ID);
+	outObj.vehicleCategoryId	= result.get<BigSerial>(	"vehicle_category_id",  INVALID_ID);
 	outObj.transitCategoryId	= result.get<BigSerial>(	"transit_category_id", 	INVALID_ID);
 	outObj.ageCategoryId		= result.get<BigSerial>(	"age_category_id", 		INVALID_ID);
 	outObj.residentialStatusId	= result.get<BigSerial>(	"residential_status_id",INVALID_ID);
@@ -40,7 +40,7 @@ void IndividualDao::fromRow(Row& result, Individual& outObj)
 	outObj.income				= result.get<double>(		"income", 				0.0);
 	outObj.memberId				= result.get<int>(			"member_id", 			0);
 	outObj.workAtHome			= result.get<int>(			"work_at_home", 		0);
-	outObj.driversLicence		= result.get<int>(			"driver_licence", 		0);
+	outObj.driversLicense		= result.get<int>(			"driver_license", 		0);
 	outObj.dateOfBirth			= result.get<std::tm>(		"date_of_birth", 		std::tm());
 }
 

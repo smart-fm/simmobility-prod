@@ -14,12 +14,12 @@
 using namespace sim_mob::long_term;
 
 Individual::Individual( BigSerial id, BigSerial individualTypeId, BigSerial householdId, BigSerial jobId, BigSerial ethnicityId, BigSerial employmentStatusId,
-						BigSerial genderId, BigSerial educationId, BigSerial occupationId, BigSerial vehiculeCategoryId, BigSerial transitCategoryId,
-						BigSerial ageCategoryId, BigSerial residentialStatusId, bool householdHead, float income, int memberId, bool workerAtHome, bool driversLicence,	std::tm dateOfBirth) :
+						BigSerial genderId, BigSerial educationId, BigSerial occupationId, BigSerial vehicleCategoryId, BigSerial transitCategoryId,
+						BigSerial ageCategoryId, BigSerial residentialStatusId, bool householdHead, float income, int memberId, bool workerAtHome, bool driversLicense,	std::tm dateOfBirth) :
 						id(id), individualTypeId(individualTypeId), householdId(householdId), jobId(jobId), ethnicityId(ethnicityId), employmentStatusId(employmentStatusId),
-						genderId(genderId), educationId(educationId), occupationId(occupationId), vehiculeCategoryId(vehiculeCategoryId), transitCategoryId(transitCategoryId),
+						genderId(genderId), educationId(educationId), occupationId(occupationId), vehicleCategoryId(vehicleCategoryId), transitCategoryId(transitCategoryId),
 						ageCategoryId(ageCategoryId), residentialStatusId(residentialStatusId), householdHead(householdHead), income(income), memberId(memberId), workAtHome(workAtHome),
-						driversLicence(driversLicence), dateOfBirth(dateOfBirth) {}
+						driversLicense(driversLicense), dateOfBirth(dateOfBirth) {}
 
 Individual::~Individual() {}
 
@@ -34,7 +34,7 @@ Individual& Individual::operator=(const Individual& source)
 	this->genderId = source.genderId;
 	this->educationId = source.educationId;
 	this->occupationId = source.occupationId;
-	this->vehiculeCategoryId = source.vehiculeCategoryId;
+	this->vehicleCategoryId = source.vehicleCategoryId;
 	this->transitCategoryId = source.transitCategoryId;
 	this->ageCategoryId = source.ageCategoryId;
 	this->residentialStatusId = source.residentialStatusId;
@@ -42,7 +42,7 @@ Individual& Individual::operator=(const Individual& source)
 	this->income = source.income;
 	this->memberId = source.memberId;
 	this->workAtHome = source.workAtHome;
-	this->driversLicence = source.driversLicence;
+	this->driversLicense = source.driversLicense;
 	this->dateOfBirth = source.dateOfBirth;
 
 	return *this;
@@ -93,9 +93,9 @@ BigSerial Individual::getOccupationId() const
 	return occupationId;
 }
 
-BigSerial Individual::getVehiculeCategoryId() const
+BigSerial Individual::getVehicleCategoryId() const
 {
-	return vehiculeCategoryId;
+	return vehicleCategoryId;
 }
 
 BigSerial Individual::getTransitCategoryId() const
@@ -133,9 +133,9 @@ bool Individual::getWorkAtHome() const
 	return workAtHome;
 }
 
-bool Individual::getDriversLicence() const
+bool Individual::getDriversLicense() const
 {
-	return driversLicence;
+	return driversLicense;
 }
 
 std::tm Individual::getDateOfBirth() const
@@ -143,29 +143,32 @@ std::tm Individual::getDateOfBirth() const
 	return dateOfBirth;
 }
 
-namespace sim_mob {
-namespace long_term {
-std::ostream& operator<<(std::ostream& strm, const Individual& data) {
-	return strm << "{" << "\"id \":\"" << data.id << "\","
-			<< "\"individualTypeId \":\"" << data.individualTypeId << "\","
-			<< "\"householdId \":\"" << data.householdId << "\","
-			<< "\"jobId \":\"" << data.jobId << "\"," << "\"ethnicityId \":\""
-			<< data.ethnicityId << "\"," << "\"employmentStatusId \":\""
-			<< data.employmentStatusId << "\"," << "\"genderId \":\""
-			<< data.genderId << "\"," << "\"educationId \":\""
-			<< data.educationId << "\"," << "\"occupationId \":\""
-			<< data.occupationId << "\"," << "\"vehiculeCategoryId \":\""
-			<< data.vehiculeCategoryId << "\"," << "\"transitCategoryId \":\""
-			<< data.transitCategoryId << "\"," << "\"ageCategoryId \":\""
-			<< data.ageCategoryId << "\"," << "\"residentialStatusId \":\""
-			<< data.residentialStatusId << "\"," << "\"householdHead \":\""
-			<< data.householdHead << "\"," << "\"income \":\"" << data.income
-			<< "\"," << "\"memberId \":\"" << data.memberId << "\","
-			<< "\"workerAtHome \":\"" << data.workAtHome << "\","
-			<< "\"driversLicence \":\"" << data.driversLicence << "\","
-			<< "\"dateOfBirth \":\"" << data.dateOfBirth.tm_year << " " << data.dateOfBirth.tm_mon << " " << data.dateOfBirth.tm_mday << "\"" << "}";
-
-}
-}
+namespace sim_mob
+{
+	namespace long_term
+	{
+		std::ostream& operator<<(std::ostream& strm, const Individual& data)
+		{
+			return strm << "{" << "\"id \":\"" << data.id << "\","
+						<< "\"individualTypeId \":\"" 	<< data.individualTypeId << "\","
+						<< "\"householdId \":\"" 		<< data.householdId << "\","
+						<< "\"jobId \":\"" 				<< data.jobId << "\","
+						<< "\"ethnicityId \":\""		<< data.ethnicityId << "\","
+						<< "\"employmentStatusId \":\""	<< data.employmentStatusId
+						<< "\"," << "\"genderId \":\""	<< data.genderId << "\","
+						<< "\"educationId \":\""		<< data.educationId << "\","
+						<< "\"occupationId \":\""		<< data.occupationId << "\","
+						<< "\"vehiculeCategoryId \":\""	<< data.vehicleCategoryId << "\","
+						<< "\"transitCategoryId \":\""	<< data.transitCategoryId << "\","
+						<< "\"ageCategoryId \":\""		<< data.ageCategoryId << "\","
+						<< "\"residentialStatusId \":\"" << data.residentialStatusId << "\","
+						<< "\"householdHead \":\""		<< data.householdHead << "\","
+						<< "\"income \":\"" 	<< data.income << "\","
+						<< "\"memberId \":\"" 	<< data.memberId << "\","
+						<< "\"workerAtHome \":\"" 	<< data.workAtHome << "\","
+						<< "\"driversLicense \":\"" << data.driversLicense << "\","
+						<< "\"dateOfBirth \":\"" 	<< data.dateOfBirth.tm_year << " " << data.dateOfBirth.tm_mon 	<< " " << data.dateOfBirth.tm_mday << "\"" << "}";
+		}
+	}
 }
 

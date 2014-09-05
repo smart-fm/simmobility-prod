@@ -40,7 +40,7 @@
                         <script name="nte" file="nte.lua"/> <!-- Number Of Tours Education -->
                         <script name="nts" file="nts.lua"/> <!--Number Of Tours Shopping -->
                         <script name="nto" file="nto.lua"/> <!--Number Of Tours Others -->
-                        <script name="uw" file="uw.lua"/> <!--Attend Usual Work -->
+                        <script name="uw" file="tuw.lua"/> <!--Attend Usual Work -->
                         <script name="tmw" file="tmw.lua"/> <!--Tour Mode Work -->
                         <script name="tme" file="tme.lua"/> <!--Tour Mode Education -->
                         <script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->

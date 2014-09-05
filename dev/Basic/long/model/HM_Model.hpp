@@ -10,6 +10,7 @@
 #include "Model.hpp"
 #include "database/entity/Household.hpp"
 #include "database/entity/Unit.hpp"
+#include "database/entity/Individual.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -25,6 +26,8 @@ namespace sim_mob {
             typedef std::vector<Household*> HouseholdList;
             typedef boost::unordered_map<BigSerial, Household*> HouseholdMap;
             typedef boost::unordered_map<BigSerial, Unit*> UnitMap;
+            typedef std::vector<Individual*> IndividualList;
+            typedef boost::unordered_map<BigSerial, Individual*> IndividualMap;
             
             /**
              * Taz statistics
@@ -78,6 +81,8 @@ namespace sim_mob {
             HouseholdMap householdsById;
             UnitMap unitsById;
             StatsMap stats;
+            IndividualList individuals;
+            IndividualMap individualsById;
         };
     }
 }

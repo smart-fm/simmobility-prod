@@ -13,6 +13,7 @@
 #include "database/DB_Connection.hpp"
 #include "database/dao/HouseholdDao.hpp"
 #include "database/dao/UnitDao.hpp"
+#include "database/dao/IndividualDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -121,6 +122,8 @@ void HM_Model::startImpl() {
         //Load units
         loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
 
+        loadData<IndividualDao>(conn, individuals, individualsById, &Individual::getId);
+
        //Simmobility Test Params
        const int numHouseholds = config.ltParams.housingModel.numberOfHouseholds;
        const int numUnits = config.ltParams.housingModel.numberOfUnits;
@@ -223,6 +226,7 @@ void HM_Model::startImpl() {
     }
 
     PrintOut("Initial Vacancies: " << vacancies << std::endl );
+    PrintOut("Initial Individuals: " << individuals.size() << std::endl );
 
     addMetadata("Initial Units", units.size());
     addMetadata("Initial Households", households.size());

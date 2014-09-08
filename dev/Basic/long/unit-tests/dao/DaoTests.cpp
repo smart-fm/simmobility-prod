@@ -24,6 +24,8 @@
 #include "database/dao/LandUseZoneDao.hpp"
 #include "database/dao/DevelopmentTypeTemplateDao.hpp"
 #include "database/dao/TemplateUnitTypeDao.hpp"
+#include "database/dao/ProjectDao.hpp"
+#include "database/dao/ParcelMatchDao.hpp"
 
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
@@ -37,7 +39,24 @@ namespace {
 const int ID_TO_GET = 1;
 
 template <typename T, typename K>
-void TestDao(unsigned int ids = 1)
+void TestDaoGetAll(unsigned int ids = 1)
+{
+    PrintOut("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
+    DB_Config config(LT_DB_CONFIG_FILE);
+    config.load();
+    DB_Connection conn(sim_mob::db::POSTGRES, config);
+    conn.connect();
+    if (conn.isConnected()) {
+        T dao(conn);
+        K valueById;
+        std::vector<K> values;
+        dao.getAll(values);
+        CPPUNIT_ASSERT_MESSAGE("No values loaded", !values.empty());
+    }
+}
+
+template <typename T, typename K>
+void TestGetById(unsigned int ids = 1)
 {
     PrintOut("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
     DB_Config config(LT_DB_CONFIG_FILE);
@@ -52,31 +71,47 @@ void TestDao(unsigned int ids = 1)
         for (unsigned int i = 0; i < ids; i++){
             keys.push_back(ID_TO_GET);
         }
-        
-        if (dao.getById(keys, valueById)) {
-            PrintOut("Get by id: " << valueById << endl);
+
+        bool loadVals = dao.getById(keys, valueById);
+        CPPUNIT_ASSERT_MESSAGE("No values loaded", loadVals);
+        if(loadVals)
+        {
+        	PrintOut("Get by id: " << valueById << endl);
         }
 
-        std::vector<K> values;
-        dao.getAll(values);
-        CPPUNIT_ASSERT_MESSAGE("No values loaded", !values.empty());
     }
 }
 
-} //End un-named namespace
+} //End anonymous name space
 
-
-void DaoTests::testAll()
+void DaoTests::testGetAll()
 {
-    TestDao<HouseholdDao, Household>();
-    TestDao<BuildingDao, Building>();
-    TestDao<UnitDao, Unit>();
-    TestDao<PostcodeDao, Postcode>();
-    TestDao<PostcodeAmenitiesDao, PostcodeAmenities>();
-    TestDao<DeveloperDao, Developer>();
-    TestDao<ParcelDao, Parcel>();
-    TestDao<TemplateDao, Template>();
-    TestDao<LandUseZoneDao, LandUseZone>();
-    TestDao<DevelopmentTypeTemplateDao, DevelopmentTypeTemplate>(2);
-    TestDao<TemplateUnitTypeDao, TemplateUnitType>(2);
+	TestDaoGetAll<HouseholdDao, Household>();
+	TestDaoGetAll<BuildingDao, Building>();
+	TestDaoGetAll<UnitDao, Unit>();
+	TestDaoGetAll<PostcodeDao, Postcode>();
+	TestDaoGetAll<PostcodeAmenitiesDao, PostcodeAmenities>();
+	TestDaoGetAll<DeveloperDao, Developer>();
+	TestDaoGetAll<ParcelDao, Parcel>();
+	TestDaoGetAll<TemplateDao, Template>();
+	TestDaoGetAll<LandUseZoneDao, LandUseZone>();
+	TestDaoGetAll<DevelopmentTypeTemplateDao, DevelopmentTypeTemplate>(2);
+	TestDaoGetAll<TemplateUnitTypeDao, TemplateUnitType>(2);
+	TestDaoGetAll<ProjectDao, Project>();
+	TestDaoGetAll<ParcelMatchDao, ParcelMatch>();
+}
+
+void DaoTests::testGetById()
+{
+	TestGetById<HouseholdDao, Household>();
+	TestDaoGetAll<BuildingDao, Building>();
+	TestDaoGetAll<UnitDao, Unit>();
+	TestDaoGetAll<PostcodeDao, Postcode>();
+	TestDaoGetAll<PostcodeAmenitiesDao, PostcodeAmenities>();
+	TestDaoGetAll<DeveloperDao, Developer>();
+	TestDaoGetAll<ParcelDao, Parcel>();
+	TestDaoGetAll<TemplateDao, Template>();
+	TestDaoGetAll<LandUseZoneDao, LandUseZone>();
+	TestDaoGetAll<DevelopmentTypeTemplateDao, DevelopmentTypeTemplate>(2);
+	TestDaoGetAll<TemplateUnitTypeDao, TemplateUnitType>(2);
 }

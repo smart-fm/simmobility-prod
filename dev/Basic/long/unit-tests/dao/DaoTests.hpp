@@ -19,12 +19,13 @@ namespace unit_tests {
 class DaoTests : public CppUnit::TestFixture{
         
 public:
-	/** Runs all tests inside of this class. */
-	void testAll();
+	void testGetAll();
+	void testGetById();
 
 private:
 	CPPUNIT_TEST_SUITE(DaoTests);
-		CPPUNIT_TEST(testAll);
+		CPPUNIT_TEST(testGetAll);
+		CPPUNIT_TEST(testGetById);
 	CPPUNIT_TEST_SUITE_END();
 
 };

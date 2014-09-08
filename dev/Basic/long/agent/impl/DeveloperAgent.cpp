@@ -85,8 +85,8 @@ namespace {
     }
 }
 
-DeveloperAgent::DeveloperAgent(Developer* developer, DeveloperModel* model)
-: LT_Agent((developer) ? developer->getId() : INVALID_ID), model(model) {
+DeveloperAgent::DeveloperAgent(Parcel* parcel, DeveloperModel* model)
+: LT_Agent((parcel) ? parcel->getId() : INVALID_ID), model(model) {
 }
 
 DeveloperAgent::~DeveloperAgent() {

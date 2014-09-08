@@ -11,6 +11,7 @@
 #pragma once
 #include "agent/LT_Agent.hpp"
 #include "database/entity/Developer.hpp"
+#include "database/entity/Parcel.hpp"
 
 namespace sim_mob {
 
@@ -20,7 +21,7 @@ namespace sim_mob {
         
         class DeveloperAgent : public LT_Agent {
         public:
-            DeveloperAgent(Developer* developer, DeveloperModel* model);
+            DeveloperAgent(Parcel* parcel, DeveloperModel* model);
             virtual ~DeveloperAgent();
             
             /**
@@ -54,8 +55,9 @@ namespace sim_mob {
                     event::EventPublisher* sender, const event::EventArgs& args);
         
         private:
-            Developer* developer;
+            //Developer* developer;
             DeveloperModel* model;
+            Parcel* parcel;
             IdVector parcelsToProcess;
         };
     }

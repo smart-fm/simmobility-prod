@@ -25,8 +25,6 @@
 #include "config/LT_Config.hpp"
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
-
-#include "unit-tests/dao/DaoTests.hpp"
 #include "model/DeveloperModel.hpp"
 
 
@@ -121,12 +119,13 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         WorkGroup* eventsWorker = wgMgr.newWorkGroup(1, days, tickStep);
         WorkGroup* hmWorkers;
         WorkGroup* devWorkers;
+        DeveloperModel *developerModel = nullptr;
 
         if( enableHousingMarket )
         	hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep);
 
         if( enableDeveloperModel )
-        	devWorkers = wgMgr.newWorkGroup(1, days, tickStep);
+        	devWorkers = wgMgr.newWorkGroup(workers, days, tickStep);
         
         //init work groups.
         wgMgr.initAllGroups();
@@ -147,7 +146,9 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         	 models.push_back(new HM_Model(*hmWorkers));
 
         if( enableDeveloperModel )
-        	 models.push_back(new DeveloperModel(*devWorkers, timeIntervalDevModel ));
+        	 //initiate developer model; to be referred later at each time tick (day)
+        	 developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel);
+        	 models.push_back(developerModel);
 
         //start all models.
         for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++) {
@@ -161,12 +162,27 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         PrintOut("Day of Simulation: " << std::endl);
 
         //we add a new line break to format the output in a
-        //resonable way. 20 was found to be adequate.
+        //reasonable way. 20 was found to be adequate.
         const int LINE_BREAK = 20;
+        bool isParcelRemain = true;
         for (unsigned int currTick = 0; currTick < days; currTick++)
-        {
+      {
             PrintOut( currTick << " " );
             wgMgr.waitAllGroups();
+
+            DeveloperModel::ParcelList parcels;
+            if(isParcelRemain)
+            {
+            	parcels = developerModel->getDevelopmentCandidateParcels();
+            }
+            if(parcels.size()!=0)
+            {
+            	developerModel->createDeveloperAgents(parcels);
+            }
+            else
+            {
+            	isParcelRemain = false;
+            }
 
             if( currTick % LINE_BREAK == LINE_BREAK - 1 )
             	PrintOut(endl);

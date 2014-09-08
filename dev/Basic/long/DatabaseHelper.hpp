@@ -42,6 +42,9 @@ namespace sim_mob {
         const std::string DB_TABLE_LAND_USE_ZONE = APPLY_SCHEMA(MAIN_SCHEMA, "land_use_zone");
         const std::string DB_TABLE_DEVELOPMENT_TYPE_TEMPLATE = APPLY_SCHEMA(MAIN_SCHEMA, "development_type_template");
         const std::string DB_TABLE_TEMPLATE_UNIT_TYPE = APPLY_SCHEMA(MAIN_SCHEMA, "template_unit_type");
+        const std::string DB_TABLE_PROJECT = APPLY_SCHEMA(MAIN_SCHEMA, "fm_project");
+        const std::string DB_TABLE_PARCEL_MATCH = APPLY_SCHEMA(MAIN_SCHEMA, "parcel_match");
+        const std::string DB_TABLE_SLA_PARCEL = APPLY_SCHEMA(MAIN_SCHEMA, "sla_parcel");
 
 
         /**
@@ -79,6 +82,9 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getDevelopmentTypeTemplateById(:devId, :templateId)");
         const std::string DB_FUNC_GET_TEMPLATE_UNIT_TYPES = APPLY_SCHEMA(MAIN_SCHEMA, "getTemplateUnitTypes()");
         const std::string DB_FUNC_GET_TEMPLATE_UNIT_TYPE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getTemplateUnitTypeById(:templateId, :unitTypeId)");
+        const std::string DB_FUNC_GET_PROJECTS = APPLY_SCHEMA(MAIN_SCHEMA, "getProjects()");
+        const std::string DB_FUNC_GET_PARCEL_MATCHES = APPLY_SCHEMA(MAIN_SCHEMA, "getParcelMatches()");
+        const std::string DB_FUNC_GET_SLA_PARCELS = APPLY_SCHEMA(MAIN_SCHEMA, "getSlaParcels()");
         /**
          * Fields
          */
@@ -173,6 +179,7 @@ namespace sim_mob {
         const std::string DB_INSERT_UNIT = DB_EMPTY_QUERY;
         const std::string DB_INSERT_POSTCODE = DB_EMPTY_QUERY;
         const std::string DB_INSERT_POSTCODE_AMENITIES = DB_EMPTY_QUERY;
+        const std::string DB_INSERT_PROJECT = DB_EMPTY_QUERY;
 
         /**
          * UPDATE
@@ -191,18 +198,20 @@ namespace sim_mob {
         const std::string DB_UPDATE_UNIT = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_POSTCODE = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_POSTCODE_AMENITIES = DB_EMPTY_QUERY;
+        const std::string DB_UPDATE_PROJECT = DB_EMPTY_QUERY;
 
         /**
          * DELETE
          */
         const std::string DB_DELETE_HOUSEHOLD = "SELECT * FROM "
                 + DB_FUNC_DEL_HOUSEHOLD_BY_ID;
-        const std::string DB_DELETE_BUILDING = "SELECT * FROM "
+        const std::string DB_DELETE_BUILDING = "SDB_TABLE_BUILDINGELECT * FROM "
                 + DB_FUNC_DEL_BUILDING_BY_ID;
         const std::string DB_DELETE_UNIT = "SELECT * FROM "
                 + DB_FUNC_DEL_UNIT_BY_ID;
         const std::string DB_DELETE_POSTCODE = DB_EMPTY_QUERY;
         const std::string DB_DELETE_POSTCODE_AMENITIES = DB_EMPTY_QUERY;
+        const std::string DB_DELETE_PROJECT = DB_EMPTY_QUERY;
 
         /**
          * GET ALL
@@ -232,6 +241,15 @@ namespace sim_mob {
                 + DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATES;
         const std::string DB_GETALL_TEMPLATE_UNIT_TYPE = "SELECT * FROM "
                 + DB_FUNC_GET_TEMPLATE_UNIT_TYPES;
+        const std::string DB_GETALL_PROJECTS = "SELECT * FROM "
+                        + DB_FUNC_GET_PROJECTS
+                        + LIMIT;
+        const std::string DB_GETALL_PARCEL_MATCHES = "SELECT * FROM "
+                                + DB_FUNC_GET_PARCEL_MATCHES
+                                + LIMIT;
+        const std::string DB_GETALL_SLA_PARCELS = "SELECT * FROM "
+                                + DB_FUNC_GET_SLA_PARCELS
+                                + LIMIT;
 
         /**
          * GET BY ID

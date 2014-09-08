@@ -19,6 +19,12 @@
 #include "database/dao/LandUseZoneDao.hpp"
 #include "database/dao/DevelopmentTypeTemplateDao.hpp"
 #include "database/dao/TemplateUnitTypeDao.hpp"
+#include "database/dao/ProjectDao.hpp"
+#include "database/entity/Project.hpp"
+#include "database/dao/ParcelMatchDao.hpp"
+#include "database/entity/ParcelMatch.hpp"
+#include "database/entity/SlaParcel.hpp"
+#include "database/dao/SlaParcelDao.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -30,10 +36,10 @@ namespace {
     const string MODEL_NAME = "Developer Model";
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ){ //In days (7 - weekly, 30 - Montly)
+DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true){ //In days (7 - weekly, 30 - Montly)
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ){
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true){
 }
 
 DeveloperModel::~DeveloperModel() {
@@ -52,40 +58,33 @@ void DeveloperModel::startImpl() {
         //Load templates
         loadData<TemplateDao>(conn, templates);
         //Load parcels
-        loadData<ParcelDao>(conn, parcels, parcelsById, &Parcel::getId);
+        loadData<ParcelDao>(conn, initParcelList, parcelsById, &Parcel::getId);
         //load land use zones
         loadData<LandUseZoneDao>(conn, zones, zonesById, &LandUseZone::getId);
         //load DevelopmentType-Templates
         loadData<DevelopmentTypeTemplateDao>(conn, developmentTypeTemplates);
         //load Template - UnitType
         loadData<TemplateUnitTypeDao>(conn, templateUnitTypes);
+        //load the projects
+        loadData<ProjectDao>(conn,existingProjects);
+
+        for (size_t i = 0; i < existingProjects.size(); i++)
+        	    {
+        			existingProjectParcelIds.push_back(existingProjects.at(i)->getParcelId());
+        	    }
+
+        //load the parcel matches
+        loadData<ParcelMatchDao>(conn,parcelMatches,parcelMatchesMap, &ParcelMatch::getFmParcelId);
+        //load the sla parcels
+        loadData<SlaParcelDao>(conn,slaParcels,slaParcelById,&SlaParcel::getSlalId);
     }
 
-    for (DeveloperList::iterator it = developers.begin(); it != developers.end(); it++)
-    {
-        DeveloperAgent* devAgent = new DeveloperAgent(*it, this);
-        AgentsLookupSingleton::getInstance().addDeveloper(devAgent);
-        agents.push_back(devAgent);
-        workGroup.assignAWorker(devAgent);
-    }
-
-    //Assign parcels to developers.
-    unsigned int index = 0;
-    for (ParcelList::iterator it = parcels.begin(); it != parcels.end(); it++)
-    {
-        DeveloperAgent* devAgent = dynamic_cast<DeveloperAgent*> (agents[index % agents.size()]);
-        if (devAgent) {
-            devAgent->assignParcel((*it)->getId());
-        } else {
-            throw runtime_error("Developer Model: Must be a developer agent.");
-        }
-        index++;
-    }
+    processParcels();
 
     PrintOut("Time Interval " << timeInterval << std::endl);
     PrintOut("Initial Developers " << developers.size() << std::endl);
     PrintOut("Initial Templates " << templates.size() << std::endl);
-    PrintOut("Initial Parcels " << parcels.size() << std::endl);
+    PrintOut("Initial Parcels " << initParcelList.size() << std::endl);
     PrintOut("Initial Zones " << zones.size() << std::endl);
     PrintOut("Initial DevelopmentTypeTemplates " << developmentTypeTemplates.size() << std::endl);
     PrintOut("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
@@ -94,29 +93,49 @@ void DeveloperModel::startImpl() {
     addMetadata("Time Interval", timeInterval);
     addMetadata("Initial Developers", developers.size());
     addMetadata("Initial Templates", templates.size());
-    addMetadata("Initial Parcels", parcels.size());
+    addMetadata("Initial Parcels", initParcelList.size());
     addMetadata("Initial Zones", zones.size());
     addMetadata("Initial DevelopmentTypeTemplates", developmentTypeTemplates.size());
     addMetadata("Initial TemplateUnitTypes", templateUnitTypes.size());
 }
 
 void DeveloperModel::stopImpl() {
-    parcelsById.clear();
-    clear_delete_vector(developers);
-    clear_delete_vector(templates);
-    clear_delete_vector(parcels);
-    clear_delete_vector(zones);
-    clear_delete_vector(developmentTypeTemplates);
-    clear_delete_vector(templateUnitTypes);
+
+	parcelsById.clear();
+	zonesById.clear();
+	parcelMatchesMap.clear();
+	existingProjectMap.clear();
+	slaParcelById.clear();
+	parcelsById.clear();
+
+	clear_delete_vector(developers);
+	clear_delete_vector(templates);
+	clear_delete_vector(zones);
+	clear_delete_vector(developmentTypeTemplates);
+	clear_delete_vector(templateUnitTypes);
+    clear_delete_vector(initParcelList);
+    clear_delete_vector(existingProjects);
+    clear_delete_vector(parcelMatches);
+    clear_delete_vector(existingProjectParcelIds);
+    clear_delete_vector(slaParcels);
+
 }
 
 unsigned int DeveloperModel::getTimeInterval() const {
     return timeInterval;
 }
 
-const Parcel* DeveloperModel::getParcelById(BigSerial id) const {
+Parcel* DeveloperModel::getParcelById(BigSerial id) const {
     ParcelMap::const_iterator itr = parcelsById.find(id);
     if (itr != parcelsById.end()) {
+        return itr->second;
+    }
+    return nullptr;
+}
+
+SlaParcel* DeveloperModel::getSlaParcelById(BigSerial id) const {
+    SlaParcelMap::const_iterator itr = slaParcelById.find(id);
+    if (itr != slaParcelById.end()) {
         return itr->second;
     }
     return nullptr;
@@ -136,4 +155,127 @@ const DeveloperModel::DevelopmentTypeTemplateList& DeveloperModel::getDevelopmen
 
 const DeveloperModel::TemplateUnitTypeList& DeveloperModel::getTemplateUnitType() const {
     return templateUnitTypes;
+}
+
+BigSerial DeveloperModel::getSlaParcelIdByFmParcelId(BigSerial fmParcelId) const {
+
+	ParcelMatchMap::const_iterator itr = parcelMatchesMap.find(fmParcelId);
+	if(itr != parcelMatchesMap.end()){
+		return itr->second->getSlaParcelId(fmParcelId);
+	}
+	return 0;
+}
+
+bool DeveloperModel::isParcelWithExistingProject(const Parcel *parcel) const {
+
+	if(std::find(existingProjectParcelIds.begin(), existingProjectParcelIds.end(), parcel->getId())!=existingProjectParcelIds.end())
+	{
+		return true;
+	}
+	return false;
+
+}
+void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList)
+{
+
+	if(!devCandidateParcelList.empty())
+	{
+	for (ParcelList::iterator it = devCandidateParcelList.begin(); it != devCandidateParcelList.end(); it++)
+	    {
+			if(*it)
+			{
+	        DeveloperAgent* devAgent = new DeveloperAgent(*it, this);
+	        AgentsLookupSingleton::getInstance().addDeveloper(devAgent);
+	        agents.push_back(devAgent);
+	        workGroup.assignAWorker(devAgent);
+			}
+	    }
+	}
+}
+
+void DeveloperModel::processParcels()
+{
+
+			 /**
+	         *  Iterates over all developer parcels and
+	         *  get all potential projects which have a density <= GPR.
+	         */
+	        for (size_t i = 0; i < initParcelList.size(); i++)
+	        {
+	            Parcel* parcel = getParcelById(initParcelList[i]->getId());
+//search parcel.id is inside project.parcel id --> in loaded project map
+
+	            if (parcel)
+	            {
+	            		if(isParcelWithExistingProject(parcel))
+	            		{
+	            			parcelsWithProjectsList.push_back(parcel);
+	            		}
+	            		else
+	            		{
+	            			BigSerial slaParcelId = getSlaParcelIdByFmParcelId(parcel->getId());
+	            			SlaParcel *slaParcel = getSlaParcelById(slaParcelId);
+	            			const LandUseZone* zone = getZoneById(slaParcel->getLandUseZoneId());
+
+//TODO:: consider the use_restriction field of parcel as well in the future
+	            			if (parcel->getGpr() <= zone->getGPR())
+	            			{
+
+	            				developmentCandidateParcelList.push_back(parcel);
+	            			}
+	            			else
+	            			{
+	            				nonEligibleParcelList.push_back(parcel);
+	            			}
+
+	            		}
+	            	//}
+	            }
+
+	        }
+	        createDeveloperAgents(getDevelopmentCandidateParcels());
+}
+
+void DeveloperModel::setParcelMatchMap(ParcelMatchMap parcelMatchMap){
+
+		this->parcelMatchesMap = parcelMatchMap;
+}
+
+DeveloperModel::ParcelList DeveloperModel::getDevelopmentCandidateParcels(){
+
+	ParcelList::iterator first;
+	ParcelList::iterator last;
+	setIterators(first,last);
+	ParcelList dailyParcels(first,last);
+	if ( !isParcelRemain)
+	{
+		dailyParcels.clear();
+	}
+    return dailyParcels;
+}
+
+void DeveloperModel::setIterators(ParcelList::iterator &first,ParcelList::iterator &last){
+
+	int poolSize = developmentCandidateParcelList.size();
+	const int dailyParcelFraction = 10;
+	//compute the number of parcels to process per day (10% of parcels from the parcel pool)
+	int numParcelsPerDay = (poolSize/100.0) * dailyParcelFraction;
+	first = developmentCandidateParcelList.begin() + dailyParcelCount;
+	if(dailyParcelCount < poolSize)
+		{
+			dailyParcelCount = dailyParcelCount + numParcelsPerDay;
+
+		}
+	last = developmentCandidateParcelList.begin()+ dailyParcelCount;
+
+	if(dailyParcelCount > poolSize)
+	{
+		setIsParcelsRemain(false);
+	}
+
+}
+
+void DeveloperModel::setIsParcelsRemain(bool parcelStatus)
+{
+	this->isParcelRemain = parcelStatus;
 }

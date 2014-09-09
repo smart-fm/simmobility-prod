@@ -1003,8 +1003,8 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 		sim_mob::Lane* l = lanes[i];
 
 		// for workshop
-		lanePool.push_back(l);
-		continue;
+		//lanePool.push_back(l);
+		//continue;
 //lane index
 		size_t landIdx = i;
 		if (l->is_pedestrian_lane()) // pass pedestrian lane

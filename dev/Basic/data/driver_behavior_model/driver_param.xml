@@ -192,7 +192,7 @@
 	considering another lane chane.-->                                   
 	<param name="MLC_PARAMETERS" value="
 						30.0         #lower bound(meter) 
-						60.0         #delta(meter)
+						90.0         #delta(meter)
 						1.0 	       #minimum time in lane (sec)
 	"/>
 

@@ -1510,7 +1510,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 		p.rnd=0;
 		// check lanes connect to next segment
 		checkConnectLanes(p);
-if(p.parentId == 1 && p.now.frame()>82)
+if(p.parentId == 1 && p.now.frame()>77)
 {
 	int i=0;
 }

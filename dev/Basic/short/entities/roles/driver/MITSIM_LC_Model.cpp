@@ -750,10 +750,16 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 		return change;
 	}
 
-
+	if(p.parentId == 1 && p.now.frame()>17)
+	{
+		int i=0;
+	}
 	// find lanes connect to target segment in lookahead distance
 	driverMvt->fwdDriverMovement.getNextSegment(true);
 	std::vector<sim_mob::Lane*> connectedLanes;
+	std::cout<<std::endl;
+	std::cout<<"tick: "<<p.now.frame()<<std::endl;
+	std::cout<<"carid: "<<p.parentId<<std::endl;
 	driverMvt->getLanesConnectToLookAheadDis(lookAheadDistance,connectedLanes);
 
 	int nRight = 100; // number of lane changes required for the current lane.
@@ -766,8 +772,8 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 
 		int l1 = abs(getLaneIndex(connectedLanes[i]));
 		int l2 = p.currLaneIndex;
-		int numlcRight  = l1 -  (l2+1) ;
-		int numlcLeft  = l1 -  (l2-1) ;
+		int numlcRight  = l1 -  (l2-1) ;
+		int numlcLeft  = l1 -  (l2+1) ;
 		int numlcCurrent  = l1 -  l2;
 
 	 nRight =  std::min<int>(nRight, numlcRight);
@@ -822,9 +828,15 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	}
 	else
 	{
+		p.utilityCurrent = 1.0;
+		p.lcd = "lcd-c";
 		return LCS_SAME;
 	}
 
+	if(p.parentId == 1 && p.now.frame()>17)
+		{
+			int i=0;
+		}
 	sum += euc;
 
 //	if(euc> eul && euc>eur)
@@ -852,12 +864,18 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	p.utilityLeft = eul / sum ;
 	p.utilityRight = eur /sum ;
 
-	if (rnd < probOfCurrentLane)
+	if (rnd < probOfCurrentLane){
 		change = LCS_SAME ;
-	else if (rnd < probOfCL_LL)
+		p.lcd = "lcd-c";
+	}
+	else if (rnd < probOfCL_LL){
+		p.lcd = "lcd-l";
 		change = LCS_LEFT ;
-	else
+	}
+	else {
+		p.lcd = "lcd-r";
 		change = LCS_RIGHT ;
+	}
 
 
 
@@ -1510,7 +1528,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 		p.rnd=0;
 		// check lanes connect to next segment
 		checkConnectLanes(p);
-if(p.parentId == 1 && p.now.frame()>77)
+if(p.parentId == 1 && p.now.frame()>36)
 {
 	int i=0;
 }

@@ -191,8 +191,8 @@
 	A vehicle must remain in a lane for a minimum of "minimum time in lane" seconds before
 	considering another lane chane.-->                                   
 	<param name="MLC_PARAMETERS" value="
-						30.0         #lower bound(meter) 
-						90.0         #delta(meter)
+						100.0         #lower bound(meter) 
+						190.0         #delta(meter)
 						1.0 	       #minimum time in lane (sec)
 	"/>
 

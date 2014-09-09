@@ -132,6 +132,7 @@ void DriverUpdateParams::buildDebugInfo()
 						<<":"<<uc
 						<<":"<<ur
 						<<":"<<rnd_
+						<<":"<<lcd
 						<<":"<<lc;
 #endif
 

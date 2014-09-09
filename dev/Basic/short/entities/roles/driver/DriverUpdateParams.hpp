@@ -274,6 +274,7 @@ public:
 	double utilityRight;
 	double utilityCurrent;
 	double rnd;
+	std::string lcd; // lc decision
 
 	/// headway value from carFollowingRate()
     double headway;

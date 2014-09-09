@@ -996,32 +996,54 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 	const sim_mob::RoadSegment* currentSeg = fwdDriverMovement.getCurrSegment();
 	const std::vector<sim_mob::Lane*> lanes = currentSeg->getLanes();
 
+	std::cout<<"currentSeg id: "<<currentSeg->originalDB_ID.getLogItem()<<std::endl;
+
 //check each lanes of current segment
 	std::vector<sim_mob::Lane*> connectedLanes;
-	for (int i = 0; i < lanes.size(); ++i) {
+	int maxLaneNumber = 8;
+	for (int i = 0; i < maxLaneNumber; ++i) {
 		double x = fwdDriverMovement.getDisToCurrSegEnd() / 100.0;
-		sim_mob::Lane* l = lanes[i];
+		sim_mob::Lane* l = NULL;
+		if(i<lanes.size()) {
+			l = lanes[i];
+		}
+		else {
+			// use most left lane
+			if(lanes.at(lanes.size()-1)->is_pedestrian_lane()){
+				l = lanes.at(lanes.size()-2);
+			}
+			else {
+				l = lanes.at(lanes.size()-1);
+			}
+		}
+
+		currentSegIt = fwdDriverMovement.currSegmentIt;
+		currentSegIt++; // current's next segment
 
 		// for workshop
 		//lanePool.push_back(l);
 		//continue;
 //lane index
 		size_t landIdx = i;
-		if (l->is_pedestrian_lane()) // pass pedestrian lane
-		{
-			continue;
-		}
+		std::cout<<"index: "<<landIdx<<std::endl;
+//		if (l && l->is_pedestrian_lane()) // pass pedestrian lane
+//		{
+//			continue;
+//		}
 
 		for (; currentSegIt != currentSegItEnd; ++currentSegIt) {
 
 			bool isLaneOK = true;
 // already reach end of path
 			if (currentSegIt+1 == currentSegItEnd) {
-				lanePool.push_back(l);
+				if (l) {
+					lanePool.push_back(l);
+				}
 				break;
 			}
 
 			const RoadSegment* rs = *currentSegIt;
+			std::cout<<"----rs id: "<<rs->originalDB_ID.getLogItem()<<std::endl;
 			x += rs->getLengthOfSegment() / 100.0;
 			if (!rs) {
 				break;
@@ -1037,11 +1059,21 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 						{
 					isLaneOK = false;
 				} else {
-					sim_mob::Lane* lane = lastSeg->getLanes().at(landIdx);
-					isLaneOK = laneConnectToSegment(lane, rs);
+					if(landIdx<lastSeg->getLanes().size()){
+						sim_mob::Lane* lane = lastSeg->getLanes().at(landIdx);
+						isLaneOK = laneConnectToSegment(lane, rs);
+					}
+					else {
+						isLaneOK = false;
+					}
 				}
 			} else {
-				isLaneOK = laneConnectToSegment(l, rs);
+				if(l) {
+					isLaneOK = laneConnectToSegment(l, rs);
+				}
+				else {
+					isLaneOK = false;
+				}
 			}
 
 			if (!isLaneOK) {
@@ -1049,11 +1081,33 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 			}
 // l can connect to next segment
 			if (x > distance) {
-				lanePool.push_back(l);
+				// if this lane index is ok, but is pedestrian lane, then use its right lane
+				if(l->is_pedestrian_lane()) {
+					l = lanes[i-1];
+				}
+				// push to pool
+				bool ff = false;
+				for(int jj=0;jj<lanePool.size();++jj){
+					if(lanePool[jj] == l){
+						ff = true;
+					}
+				}
+				if(!ff){
+					lanePool.push_back(l);
+					std::cout<<"good======="<<std::endl;
+				}
+
 				break;
 			}
 		} //end of for currentSegIt
 	} //end for lanes
+
+	std::cout<<"lanePool size: "<<lanePool.size()<<std::endl;
+	std::cout<<std::endl;
+	if(lanePool.empty()){
+		// for scenario 34488-> 34400--> turn left--> 34398
+		// above iterator cannot visit 34400's most left lane, as 3448
+	}
 
 }
 bool sim_mob::DriverMovement::laneConnectToSegment(sim_mob::Lane* lane,

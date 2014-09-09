@@ -36,13 +36,14 @@ protected:
 	StopType purpose;
 	int origin;
 	const double OPERATIONAL_COST;
+	const double MAX_WALKING_DISTANCE;
 	const ZoneMap& zoneMap;
 	const CostMap& amCostsMap;
 	const CostMap& pmCostsMap;
 
 public:
 	ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, StopType purpose, int originCode)
-	: zoneMap(zoneMap), amCostsMap(amCostsMap), pmCostsMap(pmCostsMap), purpose(purpose), origin(originCode), OPERATIONAL_COST(0.147)
+	: zoneMap(zoneMap), amCostsMap(amCostsMap), pmCostsMap(pmCostsMap), purpose(purpose), origin(originCode), OPERATIONAL_COST(0.147), MAX_WALKING_DISTANCE(2)
 	{}
 
 	virtual ~ModeDestinationParams() {}
@@ -291,9 +292,11 @@ private:
 
 class StopModeDestinationParams : public ModeDestinationParams {
 public:
-	StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType stopType, int originCode, int parentTourMode)
-	: ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, stopType, originCode), homeZone(personParams.getHomeLocation()),
-	  driveAvailable(personParams.hasDrivingLicence() * personParams.getCarOwn()), tourMode(parentTourMode)
+	StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
+			const PersonParams& personParams, const Stop* stop, int originCode, const std::map<int, std::vector<int> >& unavailableODs)
+	: ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, stop->getStopType(), originCode), homeZone(personParams.getHomeLocation()),
+	  driveAvailable(personParams.hasDrivingLicence() * personParams.getCarOwn()), tourMode(stop->getParentTour().getTourMode()), firstBound(stop->isInFirstHalfTour()),
+	  unavailableODs(unavailableODs)
 	{}
 
 	virtual ~StopModeDestinationParams() {}
@@ -407,16 +410,6 @@ public:
 	}
 
 	int isAvailable_IMD(int choiceId) {
-		int oneModes[] = {1,2,4,5,6,7,8,9};
-		int twoModes[] = {1,2,4,5,6,7,8,9};
-		int threeModes[] = {1,2,3,4,5,6,7,8,9};
-		int fourModes[] = {4,7,8,9};
-		int fiveModes[] = {4,5,7,8,9};
-		int sixModes[] = {4,5,6,7,8,9};
-		int sevenModes[] = {7,8};
-		int eightModes[] = {8};
-		int nineModes[] = {7,8,9};
-
 		/* 1. if the destination == origin, the destination is not available.
 		 * 2. public bus, private bus and MRT/LRT are only available if AM[(origin,destination)][’pub_ivt’]>0 and PM[(destination,origin)][’pub_ivt’]>0
 		 * 3. shared2, shared3+, taxi and motorcycle are available to all.
@@ -428,38 +421,22 @@ public:
 		}
 		int numZones = zoneMap.size();
 		int zoneId = choiceId % numZones;
-		if(zoneId == 0) { // zoneId will become zero for the last zone
-			zoneId = numZones;
-		}
+		if(zoneId == 0) { zoneId = numZones; } // zoneId will become zero for the last zone
 		int destination = zoneMap.at(zoneId)->getZoneCode();
-		// the destination same as origin is not available
-		if (origin == destination) {
-			return 0;
-		}
-		// bus 1-1092; mrt 1093 - 2184; private bus 2185 - 3276; same result for the three modes
 
-		if (choiceId <= 2 * numZones) {
-			bool avail = (pmCostsMap.at(destination).at(origin)->getPubIvt() > 0
-					&& amCostsMap.at(origin).at(destination)->getPubIvt() > 0);
-			switch(tourMode) {
-			case 1:
-			case 2:
-			case 3: return avail;
-			case 4:
-			case 5:
-			case 6:
-			case 7:
-			case 8:
-			case 9: return 0;
-			}
-		}
+		if (origin == destination) { return 0; } // the destination same as origin is not available
+		UnavailableODs::const_iterator unavailableODIt = unavailableODs.find(origin);
+		// check if destination is unavailable due to lack of travel cost data
+		if(unavailableODIt!=unavailableODs.end() && std::binary_search(unavailableODIt->second.begin(), unavailableODIt->second.end(), destination)) { return 0; } // destination is unavailable due to lack of cost data
+
+		// bus 1-1092; mrt 1093 - 2184; private bus 2185 - 3276; same result for the three modes
 		if (choiceId <= 3 * numZones) {
 			bool avail = (pmCostsMap.at(destination).at(origin)->getPubIvt() > 0
 					&& amCostsMap.at(origin).at(destination)->getPubIvt() > 0);
 			switch(tourMode) {
-			case 3: return avail;
 			case 1:
 			case 2:
+			case 3: return avail;
 			case 4:
 			case 5:
 			case 6:
@@ -468,6 +445,7 @@ public:
 			case 9: return 0;
 			}
 		}
+
 		// drive1 3277 - 4368
 		if (choiceId <= 4 * numZones) {
 			switch(tourMode) {
@@ -483,7 +461,7 @@ public:
 			}
 		}
 		// share2 4369 - 5460
-		if (choiceId <= 5 * numZones) {
+		if (choiceId <= 6 * numZones) {
 			// share2 is available to all
 			switch(tourMode) {
 			case 1:
@@ -497,21 +475,7 @@ public:
 			case 9: return 0;
 			}
 		}
-		// share3 5461 - 6552
-		if (choiceId <= 6 * numZones) {
-			// share3 is available to all
-			switch(tourMode) {
-			case 1:
-			case 2:
-			case 3:
-			case 6: return 1;
-			case 4:
-			case 5:
-			case 7:
-			case 8:
-			case 9: return 0;
-			}
-		}
+
 		// motor 6553 - 7644
 		if (choiceId <= 7 * numZones) {
 			// share3 is available to all
@@ -529,8 +493,8 @@ public:
 		}
 		// walk 7645 - 8736
 		if (choiceId <= 8 * numZones) {
-			return (amCostsMap.at(origin).at(destination)->getDistance() <= 2
-					&& pmCostsMap.at(destination).at(origin)->getDistance() <= 2);
+			return (amCostsMap.at(origin).at(destination)->getDistance() <= MAX_WALKING_DISTANCE
+					&& pmCostsMap.at(destination).at(origin)->getDistance() <= MAX_WALKING_DISTANCE);
 		}
 		// taxi 8737 - 9828
 		if (choiceId <= 9 * numZones) {
@@ -550,10 +514,23 @@ public:
 		return 0;
 	}
 
+	int isFirstBound() const
+	{
+		return firstBound;
+	}
+
+	int isSecondBound() const
+	{
+		return !firstBound;
+	}
+
 protected:
+	typedef std::map<int, std::vector<int> > UnavailableODs;
 	int homeZone;
 	int driveAvailable;
 	int tourMode;
+	bool firstBound;
+	const UnavailableODs& unavailableODs;
 };
 
 } // end namespace medium

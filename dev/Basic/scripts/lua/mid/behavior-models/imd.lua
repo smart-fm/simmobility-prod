@@ -13,8 +13,6 @@ Authors - Siyu Li, Harish Loganathan
 --!! see the documentation on the definition of AM,PM and OP table!!
 --!! see gen_modified_mode_destination.py for variable generation !!
 
---Aug 30, 2014 Now first_bound and second_bound will need to be binded to this file.
-
 local beta_cost_bus_mrt_2 = -0.436
 local beta_cost_private_bus_2 = -0.856
 local beta_cost_drive1_2_first = -0.0799
@@ -23,7 +21,6 @@ local beta_cost_share2_2 = 0
 local beta_cost_share3_2 = 0
 local beta_cost_motor_2 = -0.338
 local beta_cost_taxi_2 = 0
-
 
 local beta_tt_bus_mrt = -3.77
 local beta_tt_private_bus = 0
@@ -121,9 +118,9 @@ local function computeUtilities(params,dbparams)
 	local other_stop_dummy = dbparams.stop_type == 4 and 1 or 0
 
 	--1 if the current modeled stop is on first half tour, 0 otherwise
-	first_bound = dbparams.first_bound
+	local first_bound = dbparams.first_bound
 	--1 if the current modeled stop is on second half tour, 0 otherwise
-	second_bound = dbparams.second_bound
+	local second_bound = dbparams.second_bound
 
 
 	--params.car_own_normal is from household table

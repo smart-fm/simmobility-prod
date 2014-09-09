@@ -147,6 +147,8 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addFunction("population", &StopModeDestinationParams::getPopulation)
 				.addFunction("area", &StopModeDestinationParams::getArea)
 				.addFunction("shop", &StopModeDestinationParams::getShop)
+				.addProperty("first_bound", &StopModeDestinationParams::isFirstBound)
+				.addProperty("second_bound", &StopModeDestinationParams::isSecondBound)
 				.addFunction("availability",&StopModeDestinationParams::isAvailable_IMD)
 			.endClass()
 

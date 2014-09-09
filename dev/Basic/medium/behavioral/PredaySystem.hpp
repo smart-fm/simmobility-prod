@@ -283,6 +283,11 @@ private:
     const CostMap& opCostMap;
 
     /**
+     * map of unavailable ODs for mode destination
+     */
+    const std::map<int, std::vector<int> >& unavailableODs;
+
+    /**
      * list of tours for this person
      */
     TourList tours;
@@ -311,7 +316,8 @@ public:
 	PredaySystem(PersonParams& personParams,
 			const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 			const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
-			const std::map<std::string, db::MongoDao*>& mongoDao);
+			const std::map<std::string, db::MongoDao*>& mongoDao,
+			const std::map<int, std::vector<int> >& unavailableODs);
 	virtual ~PredaySystem();
 
 	/**

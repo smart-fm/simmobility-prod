@@ -68,10 +68,51 @@ std::vector<double> statsScale;
 
 matrix<double> weightMatrix;
 
+/**
+ * for each origin, has a list of unavailable destinations
+ */
+std::map<int, std::vector<int> > unavailableODs;
+
 /**keep a file wise list of variables to calibrate*/
 boost::unordered_map<std::string, std::vector<std::string> > variablesInFileMap;
 
 std::vector< std::map<std::string, db::MongoDao*> > mongoDaoStore;
+
+/**
+ * loads the un-available origin destination pairs
+ *
+ * @param mongoDao map of dao-s to access mongo collections
+ */
+void loadUnavailableODs(const std::map<std::string, db::MongoDao*>& mongoDao)
+{
+	int origin = 0, destination = 0;
+	db::MongoDao* tcostCarDao = mongoDao.at("tcost_car");
+	db::MongoDao* tcostBusDao = mongoDao.at("tcost_bus");
+	std::auto_ptr<mongo::DBClientCursor> cursorBus, cursorCar;
+	BSONObj unavailabilityQuery = BSON("info_unavailable" << true);
+	BSONObj originDestinationQuery, tcostBusDocObj;
+
+	// we first query tcost_car because it is likely to have lesser number of unavailable ODs
+	// this is because bus routes are planned and fixed... for cars, all that is needed is just a road which gets you from O to D.
+	// in an ideal scenario, there should be very little ODs for cars for which travel cost is unavailable.
+	tcostCarDao->getMultiple(unavailabilityQuery, cursorCar);
+	while(cursorCar->more())
+	{
+		BSONObj currObj = cursorCar->next();
+		origin = currObj.getField("origin").Int();
+		destination = currObj.getField("destination").Int();
+		originDestinationQuery = BSON("origin" << origin << "destination" << destination);
+		tcostBusDao->getOne(originDestinationQuery, tcostBusDocObj);
+		if(tcostBusDocObj.getField("info_unavailable").Bool()) //if costs are unavailable for this OD in tcost_bus as well, store the OD.
+		{
+			unavailableODs[origin].push_back(destination);
+		}
+	}
+	for(std::map<int, std::vector<int> >::iterator odIt=unavailableODs.begin(); odIt!=unavailableODs.end(); odIt++)
+	{
+		std::sort(odIt->second.begin(), odIt->second.end()); // so that future lookups can be O(log n)
+	}
+}
 
 /**
  * Helper class for symmetric random vector of +1/-1
@@ -1015,7 +1056,7 @@ void sim_mob::medium::PredayManager::processPersonsForCalibration(const PersonLi
 
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++)
 	{
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
 		predaySystem.planDay();
 		predaySystem.updateStatistics(simStats);
 		if(consoleOutput) { predaySystem.printLogs(); }
@@ -1104,6 +1145,7 @@ void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& 
 	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
 		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
+	loadUnavailableODs(mongoDao);
 
 	// open log file for this thread
     std::ofstream tripChainLogFile(tripChainLog.c_str(), std::ios::trunc|std::ios::out);
@@ -1111,7 +1153,7 @@ void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& 
 
 	// loop through all persons within the range and plan their day
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
 		predaySystem.planDay();
 		if(outputPredictions) { predaySystem.outputPredictionsToMongo(); }
 		if(outputTripchains)
@@ -1137,7 +1179,7 @@ void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonLi
 
 	// loop through all persons within the range and plan their day
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
 		predaySystem.computeLogsums();
 		if(consoleOutput) { predaySystem.printLogs(); }
 	}
@@ -1175,7 +1217,7 @@ void sim_mob::medium::PredayManager::computeLogsums(const PersonList::iterator& 
 
 	// loop through all persons within the range and plan their day
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
 		predaySystem.computeLogsums();
 		predaySystem.updateLogsumsToMongo();
 		if(consoleOutput) { predaySystem.printLogs(); }

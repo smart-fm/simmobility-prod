@@ -131,7 +131,7 @@ end
 --availability
 --the logic to determine availability is the same with current implementation
 local availability = {}
-local function computeAvailabilities(params,dbparams)
+local function computeAvailabilities(dbparams)
 	for i = 1, 48 do 
 		availability[i] = dbparams:availability(i)
 	end
@@ -144,8 +144,9 @@ local scale = 1 --for all choices
 -- params and dbparams tables contain data passed from C++
 -- to check variable bindings in params or dbparams, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
 function choose_itd(params,dbparams)
-	computeUtilities(params,dbparams) 
-	computeAvailabilities(params,dbparams)
+	computeUtilities(params, dbparams)
+	for c,v in ipairs(utility) do print(c,v) end  
+	computeAvailabilities(dbparams)
 	local probability = calculate_probability("mnl", choiceset, utility, availability, scale)
 	return make_final_choice(probability)
 end

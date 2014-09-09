@@ -189,10 +189,11 @@ namespace {
 PredaySystem::PredaySystem(PersonParams& personParams,
 		const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 		const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
-		const std::map<std::string, db::MongoDao*>& mongoDao)
+		const std::map<std::string, db::MongoDao*>& mongoDao,
+		const std::map<int, std::vector<int> >& unavailableODs)
 : personParams(personParams), zoneMap(zoneMap), zoneIdLookup(zoneIdLookup),
   amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap),
-  mongoDao(mongoDao), logStream(std::stringstream::out)
+  mongoDao(mongoDao), unavailableODs(unavailableODs), logStream(std::stringstream::out)
 {}
 
 PredaySystem::~PredaySystem()
@@ -673,7 +674,7 @@ void PredaySystem::generateIntermediateStops(uint8_t halfTour, Tour& tour, const
 
 void PredaySystem::predictStopModeDestination(Stop* stop, int origin)
 {
-	StopModeDestinationParams imdParams(zoneMap, amCostMap, pmCostMap, personParams, stop->getStopType(), origin, stop->getParentTour().getTourMode());
+	StopModeDestinationParams imdParams(zoneMap, amCostMap, pmCostMap, personParams, stop, origin, unavailableODs);
 	int modeDest = PredayLuaProvider::getPredayModel().predictStopModeDestination(personParams, imdParams);
 	stop->setStopMode(imdParams.getMode(modeDest));
 	int zone_id = imdParams.getDestination(modeDest);

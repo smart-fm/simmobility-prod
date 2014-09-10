@@ -126,8 +126,18 @@ void DriverUpdateParams::buildDebugInfo()
 //				<<":"<<lc;
 	//			<<":"<<ds;
 
+//debug lc
+#if 1
+						<<":"<<ul
+						<<":"<<uc
+						<<":"<<ur
+						<<":"<<rnd_
+						<<":"<<lcd
+						<<":"<<lc;
+#endif
 
-	#if 1
+	// debug aura mgr
+	#if 0
 				<<":fwd"<<fwdcarid
 				<<":back"<<backcarid
 				<<":lfwd"<<leftFwdcarid

@@ -1083,7 +1083,12 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 			if (x > distance) {
 				// if this lane index is ok, but is pedestrian lane, then use its right lane
 				if(l->is_pedestrian_lane()) {
-					l = lanes[i-1];
+					if(i!=0){
+						l = lanes[i-1];
+					}
+					else{
+						l=NULL;
+					}
 				}
 				// push to pool
 				bool ff = false;
@@ -1093,8 +1098,10 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 					}
 				}
 				if(!ff){
-					lanePool.push_back(l);
-					std::cout<<"good======="<<std::endl;
+					if(l){
+						lanePool.push_back(l);
+						std::cout<<"good======="<<l<<std::endl;
+					}
 				}
 
 				break;

@@ -35,7 +35,9 @@
                 
                 <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
                         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
-                        <script name="dp" file="dp.lua"/> <!-- Day Pattern -->
+                        <script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
+                        <script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->
+                        <script name="dps" file="dps.lua"/> <!-- Day Pattern Stops -->
                         <script name="ntw" file="ntw.lua"/> <!-- Number Of Tours Work -->
                         <script name="nte" file="nte.lua"/> <!-- Number Of Tours Education -->
                         <script name="nts" file="nts.lua"/> <!--Number Of Tours Shopping -->

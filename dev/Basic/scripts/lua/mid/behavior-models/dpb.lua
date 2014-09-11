@@ -323,12 +323,12 @@ end
 local availability={1,1}
 
 --scale
-local scale = {1,1}
+local scale = 1 --for all choices
 
 -- function to call from C++ preday simulator
 -- params table contains data passed from C++
 -- to check variable bindings in params, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
-function choose_dp(params)
+function choose_dpb(params)
 	computeUtilities(params) 
 	local probability = calculate_probability("mnl", choice, utility, availability, scale)
 	idx = make_final_choice(probability)

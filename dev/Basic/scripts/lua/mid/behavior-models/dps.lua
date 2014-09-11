@@ -444,7 +444,7 @@ local function computeUtilities(params)
 			beta_workothers_ss * workothers_ss[i]+
 			beta_edushop_ss * edushop_ss[i] +
 			beta_eduothers_ss * eduothers_ss[i] +
-			beta_shopothers_ss * shopothers_ss[i] +
+			beta_shopothers_ss * shopothers_ss[i]
 			
 	end
 end
@@ -471,12 +471,12 @@ local function computeAvailabilities(params)
 end
 
 -- scales
-local scale = {1,1,1,1,1,1,1,1,1,1} -- 1 for all choices (10 1s)
+local scale = 1 -- for all choices
 
 -- function to call from C++ preday simulator
 -- params table contains data passed from C++
 -- to check variable bindings in params, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
-function choose_dp(params)
+function choose_dps(params)
 	computeUtilities(params) 
 	computeAvailabilities(params)
 	local probability = calculate_probability("mnl", choice, utility, availability, scale)

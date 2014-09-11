@@ -445,7 +445,6 @@ local function computeUtilities(params)
 			beta_edushop_ss * edushop_ss[i] +
 			beta_eduothers_ss * eduothers_ss[i] +
 			beta_shopothers_ss * shopothers_ss[i]
-			
 	end
 end
 

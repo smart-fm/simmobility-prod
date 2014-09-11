@@ -118,7 +118,7 @@ local beta_other_logsum = 0.370
 
 
 --choiceset
---1 for notravel; 2 for travel
+--1 for no travel; 2 for travel
 local choice = {
 	1,
 	2

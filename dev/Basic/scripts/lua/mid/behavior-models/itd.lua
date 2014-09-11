@@ -10,37 +10,37 @@ Authors - Siyu Li, Harish Loganathan
 --Estimated values for all betas
 --Note= the betas that not estimated are fixed to zero.
 
-local beta_C_1 =0.109
-local beta_DUR_1_shopping= 0.0286
-local beta_DUR_2_shopping= -0.378 
-local beta_DUR_1_edu= -0.0418 
-local beta_DUR_3_work= 0.00256 
-local beta_DUR_2_work= -0.0483 
-local beta_DUR_1_other= -1.96 
-local beta_DUR_1_work= -0.865 
-local beta_TT= -1.97 
-local beta_C_2= -0.511 
-local beta_DEP_1_1= -5.94 
-local beta_DEP_1_3= -0.765 
-local beta_DEP_1_2= -1.54 
-local beta_DEP_1_5= 3.32 
-local beta_DEP_1_4= 0.258 
-local beta_DEP_1_7= 1.26 
-local beta_DEP_1_6= 1.53 
-local beta_DEP_1_8= 1.0 
-local beta_DUR_2_other= 0.0774 
-local beta_DUR_3_shopping= 0.02 
-local beta_DUR_2_edu= -0.147
-local beta_DUR_3_edu= 0.00553 
-local beta_ARR_1_8= 0.162
-local beta_ARR_1_7= 0.933 
-local beta_ARR_1_6= -0.744 
-local beta_ARR_1_5= -5.53 
-local beta_ARR_1_4= 0.506 
-local beta_ARR_1_3= -0.105 
-local beta_ARR_1_2= -1.85 
-local beta_ARR_1_1= 2.14 
-local beta_DUR_3_other= -0.00275
+local beta_C_1 =-0.126
+local beta_DUR_1_shopping= 0.514
+local beta_DUR_2_shopping= -0.501 
+local beta_DUR_1_edu= -1.64 
+local beta_DUR_3_work= -0.0146 
+local beta_DUR_2_work= -0.00768 
+local beta_DUR_1_other= -2.30
+local beta_DUR_1_work= -0.331 
+local beta_TT= -3.68 
+local beta_C_2= -0.649 
+local beta_DEP_1_1= 0.718 
+local beta_DEP_1_3= -2.40 
+local beta_DEP_1_2= 0.266 
+local beta_DEP_1_5= 4.79 
+local beta_DEP_1_4= 0.0409 
+local beta_DEP_1_7= 0.194 
+local beta_DEP_1_6= -2.41 
+local beta_DEP_1_8= 1.35
+local beta_DUR_2_other= 0.325 
+local beta_DUR_3_shopping= 0.0247 
+local beta_DUR_2_edu= 0.361
+local beta_DUR_3_edu= -0.0453 
+local beta_ARR_1_8= 0.337
+local beta_ARR_1_7= 1.19 
+local beta_ARR_1_6= -0.895 
+local beta_ARR_1_5= -7.11 
+local beta_ARR_1_4= 0.171 
+local beta_ARR_1_3= -0.664 
+local beta_ARR_1_2= -3.65 
+local beta_ARR_1_1= -0.437 
+local beta_DUR_3_other= -0.0367
 
 
 local Begin={}
@@ -131,7 +131,7 @@ end
 --availability
 --the logic to determine availability is the same with current implementation
 local availability = {}
-local function computeAvailabilities(params,dbparams)
+local function computeAvailabilities(dbparams)
 	for i = 1, 48 do 
 		availability[i] = dbparams:availability(i)
 	end
@@ -144,9 +144,12 @@ local scale = 1 --for all choices
 -- params and dbparams tables contain data passed from C++
 -- to check variable bindings in params or dbparams, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
 function choose_itd(params,dbparams)
-	computeUtilities(params,dbparams) 
-	computeAvailabilities(params,dbparams)
+	computeUtilities(params, dbparams)
+	for c,v in ipairs(utility) do print(c,v) end  
+	computeAvailabilities(dbparams)
+	for c,v in ipairs(availability) do print(c,v) end
 	local probability = calculate_probability("mnl", choiceset, utility, availability, scale)
+	for c,v in ipairs(probability) do print(c,v) end  
 	return make_final_choice(probability)
 end
 

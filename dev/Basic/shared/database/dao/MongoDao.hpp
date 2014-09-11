@@ -119,6 +119,12 @@ namespace sim_mob {
                 throw std::runtime_error("MongoDao::getAll() - Not implemented");
             }
 
+            void getMultiple(mongo::BSONObj& bsonObj, std::auto_ptr<mongo::DBClientCursor>& outCursor) {
+            	mongo::Query qry(bsonObj);
+            	outCursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, qry);
+            	return;
+            }
+
             /**
              * Overload. Fetches a cursor to the result of the query
              *
@@ -126,8 +132,8 @@ namespace sim_mob {
              * @return true if a value was returned, false otherwise.
              */
             bool getOne(mongo::BSONObj& bsonObj, mongo::BSONObj& outBsonObj) {
-                mongo::Query query(bsonObj);
-                outBsonObj = connection.getSession<mongo::DBClientConnection>().findOne(collectionName, query);
+                mongo::Query qry(bsonObj);
+                outBsonObj = connection.getSession<mongo::DBClientConnection>().findOne(collectionName, qry);
                 return true;
             }
 

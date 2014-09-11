@@ -10,19 +10,19 @@ Authors - Siyu Li, Harish Loganathan
 --Estimated values for all betas
 --Note= the betas that not estimated are fixed to zero.
 
-local beta_cons_work = -0.428
-local beta_cons_edu = -1.25
-local beta_cons_shopping = -1.42
-local beta_cons_other = -1.30
+local beta_cons_work = 0.220
+local beta_cons_edu = -1.22
+local beta_cons_shopping = -1.56
+local beta_cons_other = -1.38
 local beta_cons_Q = 0
 
 
 local beta_first_stop_inbound = 0
-local beta_second_stop_inbound = 1.52
-local beta_threeplus_stop_inbound = 1.57
-local beta_first_stop_outbound = -0.175
-local beta_second_stop_outbound = 1.38
-local beta_threeplus_stop_outbound = 2.28
+local beta_second_stop_inbound = 3.14
+local beta_threeplus_stop_inbound = 2.47
+local beta_first_stop_outbound = 0.191
+local beta_second_stop_outbound = 2.48
+local beta_threeplus_stop_outbound = 3.60
 
 
 local beta_work_tour_dummy_Q = 0
@@ -31,59 +31,59 @@ local beta_shopping_tour_dummy_Q = 0
 local beta_other_tour_dummy_Q = 0
 
 
-local beta_first_tour_dummy_Q = -0.936
-local beta_sub_tour_dummy_Q = -0.667
+local beta_first_tour_dummy_Q = -1.67
+local beta_sub_tour_dummy_Q = -0.651
 local beta_zero_tour_remain_Q = 0
-local beta_one_tour_remain_Q = 0.396
-local beta_twoplus_tour_remain_Q = 0.419
+local beta_one_tour_remain_Q = 0.485
+local beta_twoplus_tour_remain_Q = 0
 
 
 local beta_work_tour_dummy_W = 0
-local beta_edu_tour_dummy_W = -1.03
-local beta_shopping_tour_dummy_W = -1.71
-local beta_other_tour_dummy_W = -0.684
-local beta_female_dummy_W = -0.0880
-local beta_student_dummy_W = 0.337
-local beta_worker_dummy_W = 0.112
-local beta_driver_dummy_W = 0.429
-local beta_passenger_dummy_W = 0.250
-local beta_public_dummy_W = -0.0911
+local beta_edu_tour_dummy_W = 0
+local beta_shopping_tour_dummy_W = 0
+local beta_other_tour_dummy_W = 0
+local beta_female_dummy_W = 0.0118
+local beta_student_dummy_W = 0
+local beta_worker_dummy_W = 0
+local beta_driver_dummy_W = -0.119
+local beta_passenger_dummy_W = 0.129
+local beta_public_dummy_W = -0.124
 
 
-local beta_work_tour_dummy_E = -0.289
+local beta_work_tour_dummy_E = 0
 local beta_edu_tour_dummy_E = 0
-local beta_shopping_tour_dummy_E = 0.166
-local beta_other_tour_dummy_E = 0.208
-local beta_female_dummy_E = -0.0171
-local beta_student_dummy_E = 0.328
-local beta_worker_dummy_E = 0.713
-local beta_driver_dummy_E = 0.629
-local beta_passenger_dummy_E = 0.355
-local beta_public_dummy_E = 0.259
+local beta_shopping_tour_dummy_E = 0
+local beta_other_tour_dummy_E = 0
+local beta_female_dummy_E = -0.196
+local beta_student_dummy_E = 0
+local beta_worker_dummy_E = 0
+local beta_driver_dummy_E = -0.557
+local beta_passenger_dummy_E = 0.120
+local beta_public_dummy_E = 0.0774
 
 
-local beta_work_tour_dummy_S = 0.467
-local beta_edu_tour_dummy_S = 0.190
+local beta_work_tour_dummy_S = 0
+local beta_edu_tour_dummy_S = 0
 local beta_shopping_tour_dummy_S = 0
-local beta_other_tour_dummy_S = 0.369
-local beta_female_dummy_S = 0.0175
-local beta_student_dummy_S = 0.118
-local beta_worker_dummy_S = -0.0733
-local beta_driver_dummy_S = 0.215
-local beta_passenger_dummy_S = -0.0831
-local beta_public_dummy_S = 0.0421
+local beta_other_tour_dummy_S = -0.0649
+local beta_female_dummy_S = 0.0425
+local beta_student_dummy_S = 0
+local beta_worker_dummy_S = 0.0956
+local beta_driver_dummy_S = 0.434
+local beta_passenger_dummy_S = 0.145
+local beta_public_dummy_S = 0.120
 
 
-local beta_work_tour_dummy_O = 0.0036
-local beta_edu_tour_dummy_O = -0.229
-local beta_shopping_tour_dummy_O = 0.0129
+local beta_work_tour_dummy_O = -0.0402
+local beta_edu_tour_dummy_O = -0.793
+local beta_shopping_tour_dummy_O = -0.109
 local beta_other_tour_dummy_O = 0
-local beta_female_dummy_O = 0.0164
-local beta_student_dummy_O = 0.171
-local beta_worker_dummy_O = -0.127
-local beta_driver_dummy_O = 0.800
-local beta_passenger_dummy_O = 0.566
-local beta_public_dummy_O = 0.160
+local beta_female_dummy_O = -0.0459
+local beta_student_dummy_O = 0.703
+local beta_worker_dummy_O = -0.0174
+local beta_driver_dummy_O = 0.144
+local beta_passenger_dummy_O = 0.191
+local beta_public_dummy_O = -0.128
 
 
 local beta_work_logsum = 0
@@ -98,42 +98,42 @@ local beta_time_window_shopping = 0
 local beta_time_window_other = 0
 
 
-local beta_tour_distance_work = 0.0802 
-local beta_tour_distance_edu = 0.0891 
-local beta_tour_distance_shopping = 0.108
-local beta_tour_distance_other = 0.163
+local beta_tour_distance_work = -0.0626 
+local beta_tour_distance_edu = 0.0934
+local beta_tour_distance_shopping = 0.0485
+local beta_tour_distance_other = 0.133
 
 
-local beta_a700_a930_work = -3.18
-local beta_a930_a1200_work = -1.31
-local beta_p300_p530_work = -0.371
-local beta_p530_p730_work = -0.333
-local beta_p730_p1000_work = -0.951
-local beta_p1000_a700_work = -2.04
+local beta_a700_a930_work = -4.90
+local beta_a930_a1200_work = -2.06
+local beta_p300_p530_work = -0.538
+local beta_p530_p730_work = -0.616
+local beta_p730_p1000_work = -0.705
+local beta_p1000_a700_work = -2.61
 
 
-local beta_a700_a930_edu = -2.14
-local beta_a930_a1200_edu = -0.989
-local beta_p300_p530_edu = -0.470
-local beta_p530_p730_edu = -0.484
-local beta_p730_p1000_edu = -2.62
-local beta_p1000_a700_edu = -2.36
+local beta_a700_a930_edu = -1.35
+local beta_a930_a1200_edu = -2.22
+local beta_p300_p530_edu = -0.100
+local beta_p530_p730_edu = -0.290
+local beta_p730_p1000_edu = -0.371
+local beta_p1000_a700_edu = -0.586
 
 
-local beta_a700_a930_shopping = -3.20
-local beta_a930_a1200_shopping = -1.08
-local beta_p300_p530_shopping = 0.293
-local beta_p530_p730_shopping = 0.282
-local beta_p730_p1000_shopping = -0.280
-local beta_p1000_a700_shopping = -2.53
+local beta_a700_a930_shopping = -3.54
+local beta_a930_a1200_shopping = -1.37
+local beta_p300_p530_shopping = 0.617
+local beta_p530_p730_shopping = 0.628
+local beta_p730_p1000_shopping = -0.213
+local beta_p1000_a700_shopping = -2.39
 
 
-local beta_a700_a930_other = -0.422
-local beta_a930_a1200_other = -0.790
-local beta_p300_p530_other = -0.250
-local beta_p530_p730_other = -0.126
-local beta_p730_p1000_other = -0.766
-local beta_p1000_a700_other = -1.11
+local beta_a700_a930_other = -0.253
+local beta_a930_a1200_other = -0.499
+local beta_p300_p530_other = -0.0849
+local beta_p530_p730_other = 0.0161
+local beta_p730_p1000_other = -0.456
+local beta_p1000_a700_other = -0.676
 
 --choice set
 --1 for work; 2 for edu; 3 for shopping; 4 for other; 5 for quit

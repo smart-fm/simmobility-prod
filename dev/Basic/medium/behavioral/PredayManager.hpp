@@ -14,8 +14,9 @@
 #include <boost/function.hpp>
 #include <ostream>
 #include <sstream>
+#include <string>
 #include <vector>
-#include "behavioral/PredaySystem.hpp"
+#include "PredaySystem.hpp"
 #include "CalibrationStatistics.hpp"
 #include "config/MT_Config.hpp"
 #include "params/PersonParams.hpp"
@@ -152,6 +153,7 @@ private:
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
 	typedef boost::unordered_map<int, std::vector<ZoneNodeParams*> > ZoneNodeMap;
+
 	typedef void (PredayManager::*threadedFnPtr)(const PersonList::iterator&, const PersonList::iterator&, size_t);
 
 	/**

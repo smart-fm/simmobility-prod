@@ -13,10 +13,10 @@ UPDATED VERSION - Carlos, Adnan, Harish
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 --Tour constants
-local beta_tour_work = -7.20
-local beta_tour_edu = -1.57
-local beta_tour_shop = -4.23
-local beta_tour_others = -4.31
+local beta_tour_work = -16.90
+local beta_tour_edu = 10
+local beta_tour_shop = -3.70
+local beta_tour_others = -0.304
 
 --Intermediate Stops constants
 local beta_stop_work = 0
@@ -29,129 +29,129 @@ local beta_parttime_work = 0
 local beta_parttime_edu = 0
 local beta_parttime_shop = 0
 local beta_parttime_others = 0
-local beta_selfemployed_work = -1.82
+local beta_selfemployed_work = -1.91
 local beta_selfemployed_edu = 0
-local beta_selfemployed_shop = -0.0425
-local beta_selfemployed_others = 0.451
+local beta_selfemployed_shop = -0.0146
+local beta_selfemployed_others = 0.0308
 local beta_universitystudent_work = 0
-local beta_universitystudent_edu = -0.299
-local beta_universitystudent_shop = 0.564
-local beta_universitystudent_others = 0.566
+local beta_universitystudent_edu = 0
+local beta_universitystudent_shop = 0
+local beta_universitystudent_others = 0.313
 local beta_homemaker_work = 0
 local beta_homemaker_edu = 0
-local beta_homemaker_shop = 0.855
-local beta_homemaker_others = -0.0249
+local beta_homemaker_shop = 1.25
+local beta_homemaker_others = 0.614
 local beta_retired_work = 0
 local beta_retired_edu = 0
-local beta_retired_shop = 0.602
-local beta_retired_others = 0.415
+local beta_retired_shop = 1.26
+local beta_retired_others = 0.973
 local beta_unemployed_work = 0
 local beta_unemployed_edu = 0
-local beta_unemployed_shop = 0.490
-local beta_unemployed_others = 0.643
-local beta_nationalservice_work = 0.259
+local beta_unemployed_shop = 1.01
+local beta_unemployed_others = 1.11
+local beta_nationalservice_work = 0
 local beta_nationalservice_edu = 0
-local beta_nationalservice_shop = -0.164
-local beta_nationalservice_others = -0.531
-local beta_voluntary_work = -1.59
+local beta_nationalservice_shop = 0
+local beta_nationalservice_others = 0
+local beta_voluntary_work = 0
 local beta_voluntary_edu = 0
-local beta_voluntary_shop = 0.0454
-local beta_voluntary_others = 0.835
-local beta_domestic_work= -7.78
+local beta_voluntary_shop = 0
+local beta_voluntary_others = 0
+local beta_domestic_work= 0
 local beta_domestic_edu = 0
-local beta_domestic_shop = -1.57
-local beta_domestic_others = -1.11
+local beta_domestic_shop = 0
+local beta_domestic_others = 0
 local beta_otherworker_work = 0
 local beta_otherworker_edu = 0
 local beta_otherworker_shop = 0
 local beta_otherworker_others = 0
-local beta_student16_work = -2.36
-local beta_student16_edu = 3.60
-local beta_student16_shop = 0.559
-local beta_student16_others = 0.385
+local beta_student16_work = 0
+local beta_student16_edu = 0
+local beta_student16_shop = 0.360
+local beta_student16_others = -0.391
 local beta_student515_work = 0
-local beta_student515_edu = 3.97
-local beta_student515_shop = -0.0545
-local beta_student515_others = 0.146
+local beta_student515_edu = 0
+local beta_student515_shop = -0.848
+local beta_student515_others = -0.451
 local beta_child4_work = 0
 local beta_child4_edu = 0
 local beta_child4_shop = 0
 local beta_child4_others = 0
 
 --Adult age group
-local beta_age2025_work = -0.222
-local beta_age2025_edu = 3.09
-local beta_age2025_shop = 0.235
-local beta_age2025_others = 0.0174
-local beta_age2635_work = 0.0814
-local beta_age2635_edu = 3.05
-local beta_age2635_shop = 0.0574
+local beta_age2025_work = -0.190
+local beta_age2025_edu = 0
+local beta_age2025_shop = 0.0406
+local beta_age2025_others = -0.368
+local beta_age2635_work = 0.0449
+local beta_age2635_edu = 0
+local beta_age2635_shop = 0.0989
 local beta_age2635_others = 0
-local beta_age5165_work = -0.147
+local beta_age5165_work = 0
 local beta_age5165_edu = 0
-local beta_age5165_shop = -0.0406
-local beta_age5165_others = 0.136
+local beta_age5165_shop = 0
+local beta_age5165_others = 0
 
 --Adult gender/children
-local beta_maleage4_work = 0.414
-local beta_maleage4_edu = -0.158
-local beta_maleage4_shop = -0.500
-local beta_maleage4_others = -0.211
-local beta_maleage515_work = 0.253
-local beta_maleage515_edu = 0.0168
-local beta_maleage515_shop = -0.521
-local beta_maleage515_others = 0.382
-local beta_femalenone_work = -0.552
-local beta_femalenone_edu = -0.0789
-local beta_femalenone_shop = 0.662
-local beta_femalenone_others = -0.250
-local beta_femaleage4_work = -0.401
-local beta_femaleage4_edu = 0.0749
-local beta_femaleage4_shop = -0.0585
-local beta_femaleage4_others = 0.0243
-local beta_femaleage515_work = -0.227
-local beta_femaleage515_edu = 0.0567
-local beta_femaleage515_shop = 0.175
-local beta_femaleage515_others = 0.246
+local beta_maleage4_work = -0.705
+local beta_maleage4_edu = 0
+local beta_maleage4_shop = -0.982
+local beta_maleage4_others = -0.808
+local beta_maleage515_work = 0.803
+local beta_maleage515_edu = 0
+local beta_maleage515_shop = -0.536
+local beta_maleage515_others = 0.190
+local beta_femalenone_work = -1.67
+local beta_femalenone_edu = 0
+local beta_femalenone_shop = 0.245
+local beta_femalenone_others = -0.124
+local beta_femaleage4_work = -1.38
+local beta_femaleage4_edu = 0
+local beta_femaleage4_shop = -0.121
+local beta_femaleage4_others = -0.0498
+local beta_femaleage515_work = -1.05
+local beta_femaleage515_edu = 0
+local beta_femaleage515_shop =0.0946 
+local beta_femaleage515_others = 0.138
 
 --Household composition
-local beta_onlyadults_work = 0.238
-local beta_onlyadults_edu = 0.00798
-local beta_onlyadults_shop = -0.288
-local beta_onlyadults_others = 0.00503
-local beta_onlyworkers_work = 0.200
+local beta_onlyadults_work = 0.736
+local beta_onlyadults_edu = 0
+local beta_onlyadults_shop = 0.00896
+local beta_onlyadults_others = 0.224
+local beta_onlyworkers_work = 0.711
 local beta_onlyworkers_edu = 0
-local beta_onlyworkers_shop = 0.313
-local beta_onlyworkers_others = 0.284
+local beta_onlyworkers_shop = 0.562
+local beta_onlyworkers_others = -0.108
 
 --Personal income
-local beta_income_work = 0.145
-local beta_income_edu = -1.14
-local beta_income_shop = 0.0824
-local beta_income_others = 0.0981
+local beta_income_work = 0.373
+local beta_income_edu = 0
+local beta_income_shop = 0.236
+local beta_income_others = 0.187
 
-local beta_missingincome_work = 0.362
+local beta_missingincome_work = -0.707
 local beta_missingincome_edu = 0
-local beta_missingincome_shop = -1.25
-local beta_missingincome_others = -0.458
+local beta_missingincome_shop = -0.0921
+local beta_missingincome_others = 0.317
 
 --Others
 local beta_workathome_work = 0
 local beta_workathome_edu = 0
 local beta_workathome_shop = 0
 local beta_workathome_others = 0
-local beta_caravail_work = -0.680
-local beta_caravail_edu = 0.182
-local beta_caravail_shop = 0.142
-local beta_caravail_others = 0.319
-local beta_motoravail_work = 0.325
-local beta_motoravail_edu = 0.103
-local beta_motoravail_shop = 0.106
-local beta_motoravail_others = -0.118
+local beta_caravail_work = -1.41
+local beta_caravail_edu = 0
+local beta_caravail_shop = 0.168
+local beta_caravail_others = 1.21
+local beta_motoravail_work = 0.413
+local beta_motoravail_edu = 0
+local beta_motoravail_shop = 0.142
+local beta_motoravail_others = -0.207
 
 --Additional constants
 local beta_onetour_onestop = 0
-local beta_onetour_twostop = -0.0921
+local beta_onetour_twostop = -2.42
 local beta_onetour_threestop = 0
 local beta_twotour_onestop = 0
 local beta_twotour_twostop = 0
@@ -159,30 +159,30 @@ local beta_twotour_threestop = 0
 local beta_threetour_onestop = 0
 local beta_threetour_twostop = 0
 
-local beta_work_logsum = 0.728
+local beta_work_logsum = 1.48
 local beta_edu_logsum = 0
-local beta_shopping_logsum = 0.138
-local beta_other_logsum = 0.422
+local beta_shopping_logsum = 0.00595
+local beta_other_logsum = -0.348
 
 --Combination constants
-local beta_workwork_ts = -4.31
-local beta_workshop_tt = -2.37
-local beta_workshop_ts = -4.38
-local beta_workothers_tt = -2.05
-local beta_workothers_ss = 2.82
-local beta_workothers_ts = -2.22
-local beta_eduedu_ts =	-3.86
-local beta_edushop_tt =	-2.3
-local beta_edushop_ts = -5.06
-local beta_eduothers_tt = -2.42
-local beta_eduothers_ss = 1.01
-local beta_eduothers_ts = -3.47
-local beta_shopshop_ts = -3.09
-local beta_shopothers_tt = -0.529
-local beta_shopothers_ss = 0.608
-local beta_shopothers_ts = -2.12
-local beta_othersothers_ts = -1.02
-local beta_othersshop_ts =	-3.69
+local beta_workwork_ts = 0
+local beta_workshop_tt = -2.67
+local beta_workshop_ts = -4.89
+local beta_workothers_tt = -1.84
+local beta_workothers_ss = 0
+local beta_workothers_ts = 0
+local beta_eduedu_ts =	0
+local beta_edushop_tt =	-1.60
+local beta_edushop_ts = -4.49
+local beta_eduothers_tt = -1.56
+local beta_eduothers_ss = 0
+local beta_eduothers_ts = 0
+local beta_shopshop_ts = -3.47
+local beta_shopothers_tt = -0.816
+local beta_shopothers_ss = 2.44
+local beta_shopothers_ts = 0
+local beta_othersothers_ts = -1.68
+local beta_othersshop_ts =	-4.37
 
 --choiceset
 local choice = {
@@ -365,9 +365,11 @@ local function computeUtilities(params)
 	end
 
 	-- Adult gender/children related variables
+	--HH_with_under_4 is the number
+	--However, HH_with_under_15 is binary
 	local maleage4,maleage515,malenone,femalenone,femaleage4,femaleage515 = 0,0,0,0,0,0
 	if female_dummy == 0 then
-		if HH_with_under_4 == 1 then 
+		if HH_with_under_4 >= 1 then 
 			maleage4 = 1 
 		end
 		if HH_with_under_4 == 0 and HH_with_under_15 == 1 then 
@@ -377,7 +379,7 @@ local function computeUtilities(params)
 			malenone = 1 
 		end
 	elseif female_dummy == 1 then
-		if HH_with_under_4 == 1 then 
+		if HH_with_under_4 >= 1 then 
 			femaleage4 = 1 
 		end
 		if HH_with_under_4 == 0 and HH_with_under_15 == 1 then 
@@ -393,10 +395,10 @@ local function computeUtilities(params)
 
 	-- other variables
 	local caravail,motoravail = 0,0
-	if car_own == 1  then 
+	if car_own >= 1  then 
 		caravail = 1 
 	end
-	if motor_own == 1 then 
+	if motor_own >= 1 then 
 		motoravail = 1 
 	end
 			

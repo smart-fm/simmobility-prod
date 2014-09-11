@@ -68,14 +68,14 @@ local beta_maleage4_work_3 = 0
 local beta_maleage515_work_2 = 0
 local beta_maleage515_work_3 = 0
 
-local beta_femalenone_work_2 = -0.353
+local beta_femalenone_work_2 = -0.847
 local beta_femalenone_work_3 = 0
 
-local beta_femaleage4_work_2 = -1.530
+local beta_femaleage4_work_2 = -1.44
 local beta_femaleage4_work_3 = 0
 
-local beta_femaleage515_work_2 = 0.112
-local beta_femaleage515_work_3 = -1.08
+local beta_femaleage515_work_2 = -0.612
+local beta_femaleage515_work_3 = 0
 
 --Household composition
 local beta_onlyadults_work_2 = 0
@@ -90,28 +90,27 @@ local beta_income_work_3 = 0
 
 
 --Others
-local beta_workathome_work_2 = 1.99
+local beta_workathome_work_2 = 1.71
 local beta_workathome_work_3 = 0
 
-local beta_caravail_work_2 = 0.251
-local beta_caravail_work_3 =0.725
+local beta_caravail_work_2 = 0.647
+local beta_caravail_work_3 =0
 
-local beta_motoravail_work_2 = 0.647
+local beta_motoravail_work_2 = 0.666
 local beta_motoravail_work_3 = 0
 
-local beta_logsum_work_2= 0.355
-local beta_logsum_work_3= -0.172
+local beta_logsum_work_2= 0.349
+local beta_logsum_work_3= 0
 
-local beta_cons_work_2=-9.61
-local beta_cons_work_3=-6.98
+local beta_cons_work_2=-9.92
+local beta_cons_work_3=0
 
 
 
 --choiceset
 local choice = {
 		1,
-		2,
-		3
+		2
 }
 
 
@@ -127,10 +126,10 @@ local function computeUtilities(params)
 	local num_underfour = params.num_underfour
 	local presence_of_under15 = params.presence_of_under15
 	local female_dummy = params.female_dummy
-	local HH_all_adults = params.HH_all_adults
 	local income_id = params.income_id
 	local income_mid = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
-	local work_at_home_dummy = params. work_at_home_dummy
+	local work_at_home_dummy = params.work_at_home_dummy
+	local car_own = params.car_own
 	local car_own_normal = params.car_own_normal
 	local car_own_offpeak = params.car_own_offpeak
 	local motor_own = params.motor_own
@@ -196,10 +195,10 @@ local function computeUtilities(params)
 	local maleage4,maleage515,malenone,femalenone,femaleage4,femaleage515 = 0,0,0,0,0,0
 	if female_dummy == 0 and HH_with_under_4 == 1 then maleage4 = 1 end
 	if female_dummy == 0 and HH_with_under_4 == 0 and HH_with_under_15 == 1 then maleage515 = 1 end
-	if female_dummy == 0 and HH_all_adults == 1 then malenone = 1 end
+	if female_dummy == 0 and only_adults == 1 then malenone = 1 end
 	if female_dummy == 1 and HH_with_under_4 == 1 then femaleage4 = 1 end
 	if female_dummy == 1 and HH_with_under_4 == 0 and HH_with_under_15 == 1 then femaleage515 = 1 end
-	if female_dummy == 1 and HH_all_adults == 1 then femalenone = 1 end
+	if female_dummy == 1 and only_adults == 1 then femalenone = 1 end
 	
 	-- income related variables
 	local income,missingincome = 0,0
@@ -209,17 +208,17 @@ local function computeUtilities(params)
 	-- other variables
 	local workathome,caravail,motoravail = 0,0,0
 	if work_at_home_dummy == 1 then workathome = 1 end
-	if car_own_normal == 1 or car_own_offpeak == 1 then caravail = 1 end
-	if motor_own == 1 then motoravail = 1 end
+	if car_own_normal >= 1 or car_own_offpeak >= 1 then caravail = 1 end
+	if motor_own >= 1 then motoravail = 1 end
 	
 	utility[1] = 0
 	utility[2] = beta_cons_work_2+beta_parttime_work_2*parttime+beta_selfemployed_work_2*selfemployed+beta_universitystudent_work_2*universitystudent+beta_homemaker_work_2*homemaker+beta_retired_work_2*retired+beta_unemployed_work_2*unemployed+beta_nationalservice_work_2*nationalservice+beta_voluntary_work_2*voluntary+beta_domestic_work_2*domestic+beta_otherworker_work_2*otherworker+beta_student16_work_2*student16+beta_student515_work_2*student515+beta_child4_work_2*child4+beta_age2025_work_2*age2025+beta_age2635_work_2*age2635+beta_age5165_work_2*age5165+beta_maleage4_work_2*maleage4+beta_maleage515_work_2*maleage515+beta_femalenone_work_2*femalenone+beta_femaleage4_work_2*femaleage4+beta_femaleage515_work_2*femaleage515+beta_onlyadults_work_2*onlyadults+beta_onlyworkers_work_2*onlyworkers+beta_income_work_2*income+beta_workathome_work_2*workathome+beta_caravail_work_2*caravail+beta_motoravail_work_2*motoravail+beta_logsum_work_2*worklogsum
-	utility[3] = beta_cons_work_3+beta_parttime_work_3*parttime+beta_selfemployed_work_3*selfemployed+beta_universitystudent_work_3*universitystudent+beta_homemaker_work_3*homemaker+beta_retired_work_3*retired+beta_unemployed_work_3*unemployed+beta_nationalservice_work_3*nationalservice+beta_voluntary_work_3*voluntary+beta_domestic_work_3*domestic+beta_otherworker_work_3*otherworker+beta_student16_work_3*student16+beta_student515_work_3*student515+beta_child4_work_3*child4+beta_age2025_work_3*age2025+beta_age2635_work_3*age2635+beta_age5165_work_3*age5165+beta_maleage4_work_3*maleage4+beta_maleage515_work_3*maleage515+beta_femalenone_work_3*femalenone+beta_femaleage4_work_3*femaleage4+beta_femaleage515_work_3*femaleage515+beta_onlyadults_work_3*onlyadults+beta_onlyworkers_work_3*onlyworkers+beta_income_work_3*income+beta_workathome_work_3*workathome+beta_caravail_work_3*caravail+beta_motoravail_work_3*motoravail+beta_logsum_work_3*worklogsum
+--utility[3] = beta_cons_work_3+beta_parttime_work_3*parttime+beta_selfemployed_work_3*selfemployed+beta_universitystudent_work_3*universitystudent+beta_homemaker_work_3*homemaker+beta_retired_work_3*retired+beta_unemployed_work_3*unemployed+beta_nationalservice_work_3*nationalservice+beta_voluntary_work_3*voluntary+beta_domestic_work_3*domestic+beta_otherworker_work_3*otherworker+beta_student16_work_3*student16+beta_student515_work_3*student515+beta_child4_work_3*child4+beta_age2025_work_3*age2025+beta_age2635_work_3*age2635+beta_age5165_work_3*age5165+beta_maleage4_work_3*maleage4+beta_maleage515_work_3*maleage515+beta_femalenone_work_3*femalenone+beta_femaleage4_work_3*femaleage4+beta_femaleage515_work_3*femaleage515+beta_onlyadults_work_3*onlyadults+beta_onlyworkers_work_3*onlyworkers+beta_income_work_3*income+beta_workathome_work_3*workathome+beta_caravail_work_3*caravail+beta_motoravail_work_3*motoravail+beta_logsum_work_3*worklogsum
 	
 end
 
 -- availability
-local availability = {1,1,1}
+local availability = {1,1}
 
 
 -- scales

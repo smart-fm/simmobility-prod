@@ -39,6 +39,7 @@
 #include "logging/NullableOutputStream.hpp"
 #include "logging/Log.hpp"
 #include "mongo/client/dbclient.h"
+#include "PredayClasses.hpp"
 #include "util/CSVReader.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Utils.hpp"
@@ -68,10 +69,74 @@ std::vector<double> statsScale;
 
 matrix<double> weightMatrix;
 
+/** for each origin, has a list of unavailable destinations */
+std::vector<OD_Pair> unavailableODs;
+
 /**keep a file wise list of variables to calibrate*/
 boost::unordered_map<std::string, std::vector<std::string> > variablesInFileMap;
 
 std::vector< std::map<std::string, db::MongoDao*> > mongoDaoStore;
+
+template<typename V>
+void printVector(const std::string vecName, const std::vector<V>& vec)
+{
+	std::stringstream ss;
+	ss << vecName << " - [";
+	for(typename std::vector<V>::const_iterator vIt=vec.begin(); vIt!=vec.end(); vIt++)
+	{
+		ss << "," << (*vIt);
+	}
+	ss << "]" << std::endl;
+	Print() << ss.str();
+}
+
+/**
+ * streams the elements of vector into stringstream as comma seperated values
+ * @param vectorToLog input vector
+ * @param logStream stringstream to write to
+ */
+template<typename V>
+void streamVector(const std::vector<V>& vectorToLog, std::stringstream& logStream)
+{
+	for(typename std::vector<V>::const_iterator vIt=vectorToLog.begin(); vIt!=vectorToLog.end(); vIt++)
+	{
+		logStream << "," << *vIt;
+	}
+}
+
+/**
+ * loads the un-available origin destination pairs
+ *
+ * @param mongoDao map of dao-s to access mongo collections
+ */
+void loadUnavailableODs(const std::map<std::string, db::MongoDao*>& mongoDao)
+{
+	int origin = 0, destination = 0;
+	db::MongoDao* tcostCarDao = mongoDao.at("tcost_car");
+	db::MongoDao* tcostBusDao = mongoDao.at("tcost_bus");
+	std::auto_ptr<mongo::DBClientCursor> cursorBus, cursorCar;
+	BSONObj unavailabilityQuery = BSON("info_unavailable" << true);
+	BSONObj originDestinationQuery, tcostBusDocObj;
+
+	tcostBusDao->getMultiple(unavailabilityQuery, cursorBus);
+	while(cursorBus->more())
+	{
+		BSONObj currObj = cursorBus->next();
+		origin = currObj.getField("origin").Int();
+		destination = currObj.getField("destination").Int();
+		unavailableODs.push_back(OD_Pair(origin, destination));
+	}
+
+	tcostCarDao->getMultiple(unavailabilityQuery, cursorCar);
+	while(cursorCar->more())
+	{
+		BSONObj currObj = cursorCar->next();
+		origin = currObj.getField("origin").Int();
+		destination = currObj.getField("destination").Int();
+		unavailableODs.push_back(OD_Pair(origin, destination)); // this push_back can create duplicates (already inserted OD pairs) to be inserted. But it is okay!
+	}
+	std::sort(unavailableODs.begin(), unavailableODs.end()); // so that future lookups can be O(log n)
+}
 
 /**
  * Helper class for symmetric random vector of +1/-1
@@ -442,33 +507,6 @@ void printParameters(const std::vector<CalibrationVariable>& calVarList, const s
 		ss << calVar.getScriptFileName() << " - " << calVar.getVariableName() << " = " <<  calVar.getCurrentValue() << std::endl;
 	}
 	Print() << ss.str();
-}
-
-template<typename V>
-void printVector(const std::string vecName, const std::vector<V>& vec)
-{
-	std::stringstream ss;
-	ss << vecName << " - [";
-	for(typename std::vector<V>::const_iterator vIt=vec.begin(); vIt!=vec.end(); vIt++)
-	{
-		ss << "," << (*vIt);
-	}
-	ss << "]" << std::endl;
-	Print() << ss.str();
-}
-
-/**
- * streams the elements of vector into stringstream as comma seperated values
- * @param vectorToLog input vector
- * @param logStream stringstream to write to
- */
-template<typename V>
-void streamVector(const std::vector<V>& vectorToLog, std::stringstream& logStream)
-{
-	for(typename std::vector<V>::const_iterator vIt=vectorToLog.begin(); vIt!=vectorToLog.end(); vIt++)
-	{
-		logStream << "," << *vIt;
-	}
 }
 
 void outputToFile(std::ofstream& logHandle, std::stringstream& strm)
@@ -1015,7 +1053,7 @@ void sim_mob::medium::PredayManager::processPersonsForCalibration(const PersonLi
 
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++)
 	{
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
 		predaySystem.planDay();
 		predaySystem.updateStatistics(simStats);
 		if(consoleOutput) { predaySystem.printLogs(); }
@@ -1104,6 +1142,7 @@ void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& 
 	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
 		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
+	loadUnavailableODs(mongoDao);
 
 	// open log file for this thread
     std::ofstream tripChainLogFile(tripChainLog.c_str(), std::ios::trunc|std::ios::out);
@@ -1111,7 +1150,7 @@ void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& 
 
 	// loop through all persons within the range and plan their day
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
 		predaySystem.planDay();
 		if(outputPredictions) { predaySystem.outputPredictionsToMongo(); }
 		if(outputTripchains)
@@ -1137,7 +1176,7 @@ void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonLi
 
 	// loop through all persons within the range and plan their day
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
 		predaySystem.computeLogsums();
 		if(consoleOutput) { predaySystem.printLogs(); }
 	}
@@ -1175,7 +1214,7 @@ void sim_mob::medium::PredayManager::computeLogsums(const PersonList::iterator& 
 
 	// loop through all persons within the range and plan their day
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao);
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
 		predaySystem.computeLogsums();
 		predaySystem.updateLogsumsToMongo();
 		if(consoleOutput) { predaySystem.printLogs(); }

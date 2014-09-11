@@ -10,22 +10,22 @@ Authors - Siyu Li
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 
-local beta_cons_usual = 1.86
+local beta_cons_usual = 1.79
 local beta_cons_unusual = 0
 
 local beta_fixedlocation_usual= 0
 local beta_fixedlocation_unusual= 0
 
-local beta_fixedtime_usual= 0.153
+local beta_fixedtime_usual= 0.231
 local beta_fixedtime_unusual= 0
 
-local beta_female_usual= 0.235
+local beta_female_usual= 0.182
 local beta_female_unusual= 0
 
 local beta_under3000_usual= 0
 local beta_under3000_unusual= 0
 
-local beta_distance_log_usual=-0.074
+local beta_distance_log_usual=-0.0662
 local beta_distance1_usual= 0
 local beta_distance2_usual= 0
 local beta_distance3_usual= 0
@@ -35,22 +35,22 @@ local beta_distance1_unusual= 0
 local beta_distance2_unusual= 0
 local beta_distance3_unusual= 0
 
-local beta_employment_full_usual= 0.0474
+local beta_employment_full_usual= 0.0521
 local beta_employment_full_unusual= 0
 
-local beta_employment_part_usual= 0.023
+local beta_employment_part_usual= 0.0246
 local beta_employment_part_unusual= 0
 
-local beta_employment_self_usual= 0.0773
+local beta_employment_self_usual= 0.0695
 local beta_employment_self_unusual= 0
 
-local beta_work_home_usual=0.806
+local beta_work_home_usual=1.35
 local beta_work_home_unusual=0
 
-local beta_first_work_usual= -0.663
+local beta_first_work_usual= -0.678
 local beta_first_work_unusual= 0
 
-local beta_sub_work_usual=-0.978
+local beta_sub_work_usual=-0.956
 local beta_sub_work_unusual= 0
 
 --choiceset
@@ -90,7 +90,6 @@ local function computeUtilities(params,dbparams)
 
 	local low_income=0
 	if income_id <= 5 then low_income = 1 end
-
 	local employment = math.log(1+work_op)
 	local log = math.log
 
@@ -100,8 +99,8 @@ local function computeUtilities(params,dbparams)
 	if person_type_id == 3 then self_employed_dummy = 1 end
 
 
-	utility[1] = beta_cons_usual + beta_fixedlocation_usual * fixed_place + beta_fixedtime_usual * fixed_work_hour + beta_female_usual * female_dummy + beta_under3000_usual * low_income + beta_distance_log_usual * log(distance)+beta_distance1_usual * distance + beta_distance2_usual*math.pow(distance,2) + beta_distance3_usual*math.pow(distance,3) + beta_employment_full_usual * employment * full_time_dummy + beta_employment_part_usual* employment * part_time_dummy + beta_employment_self_usual * employment * self_employed_dummy + beta_work_home_usual * work_from_home_dummy + beta_first_work_usual * first_of_multiple + beta_sub_work_usual * subsequent_of_multiple
-	utility[2] = beta_cons_unusual + beta_fixedlocation_unusual * fixed_place + beta_fixedtime_unusual * fixed_work_hour + beta_female_unusual * female_dummy + beta_under3000_unusual * low_income + beta_distance_log_unusual * log(distance)+beta_distance1_unusual * distance + beta_distance2_unusual*math.pow(distance,2) + beta_distance3_unusual*math.pow(distance,3) + beta_employment_full_unusual * employment * full_time_dummy + beta_employment_part_unusual* employment * part_time_dummy + beta_employment_self_unusual * employment * self_employed_dummy + beta_work_home_unusual * work_from_home_dummy + beta_first_work_unusual * first_of_multiple + beta_sub_work_unusual * subsequent_of_multiple
+	utility[1] = beta_cons_usual + beta_fixedlocation_usual * fixed_place + beta_fixedtime_usual * (fixed_work_hour == 1 and 1 or 0)  + beta_female_usual * female_dummy + beta_under3000_usual * low_income + beta_distance_log_usual * log(distance)+beta_distance1_usual * distance + beta_distance2_usual*math.pow(distance,2) + beta_distance3_usual*math.pow(distance,3) + beta_employment_full_usual * employment * full_time_dummy + beta_employment_part_usual* employment * part_time_dummy + beta_employment_self_usual * employment * self_employed_dummy + beta_work_home_usual * work_from_home_dummy + beta_first_work_usual * first_of_multiple + beta_sub_work_usual * subsequent_of_multiple
+	utility[2] = beta_cons_unusual + beta_fixedlocation_unusual * fixed_place + beta_fixedtime_unusual * (fixed_work_hour == 1 and 1 or 0) + beta_female_unusual * female_dummy + beta_under3000_unusual * low_income + beta_distance_log_unusual * log(distance)+beta_distance1_unusual * distance + beta_distance2_unusual*math.pow(distance,2) + beta_distance3_unusual*math.pow(distance,3) + beta_employment_full_unusual * employment * full_time_dummy + beta_employment_part_unusual* employment * part_time_dummy + beta_employment_self_unusual * employment * self_employed_dummy + beta_work_home_unusual * work_from_home_dummy + beta_first_work_unusual * first_of_multiple + beta_sub_work_unusual * subsequent_of_multiple
 end
 
 --availability

@@ -59,5 +59,30 @@ bool Tour::operator !=(const Tour& rhs) const {
 	return !(*this == rhs); //call == operator overload
 }
 
+bool OD_Pair::operator ==(const OD_Pair& rhs) const
+{
+	return ((origin == rhs.origin) && (destination == rhs.destination));
+}
+
+bool OD_Pair::operator !=(const OD_Pair& rhs) const
+{
+	return !(*this == rhs);
+}
+
+bool OD_Pair::operator >(const OD_Pair& rhs) const
+{
+	if(origin > rhs.origin) { return true; }
+	if(origin == rhs.origin && destination > rhs.destination) { return true; }
+	return false;
+}
+
+bool OD_Pair::operator <(const OD_Pair& rhs) const
+{
+	if(origin < rhs.origin) { return true; }
+	if(origin == rhs.origin && destination < rhs.destination) { return true; }
+	return false;
+}
+
 }
 }
+

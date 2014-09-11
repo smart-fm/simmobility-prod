@@ -379,6 +379,31 @@ private:
 	bool firstTour;
 };
 
+class OD_Pair {
+private:
+	int origin;
+	int destination;
+
+public:
+	OD_Pair(int org, int dest) : origin(org), destination(dest) {}
+	virtual ~OD_Pair() {}
+
+	bool operator ==(const OD_Pair& rhs) const;
+	bool operator !=(const OD_Pair& rhs) const;
+
+	bool operator >(const OD_Pair& rhs) const;
+	bool operator <(const OD_Pair& rhs) const;
+
+	int getDestination() const
+	{
+		return destination;
+	}
+
+	int getOrigin() const
+	{
+		return origin;
+	}
+};
 
 } // end namespace medium
 } // end namespace sim_mob

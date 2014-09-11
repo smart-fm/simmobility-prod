@@ -139,7 +139,7 @@ double TourModeDestinationParams::getAvgTransferNumber(int zoneId) const {
 	return (amCostsMap.at(origin).at(destination)->getAvgTransfer() + pmCostsMap.at(destination).at(origin)->getAvgTransfer())/2;
 }
 
-int TourModeDestinationParams::getCentralDummy(int zone) {
+int TourModeDestinationParams::getCentralDummy(int zone) const {
 	return zoneMap.at(zone)->getCentralDummy();
 }
 
@@ -147,19 +147,19 @@ StopType TourModeDestinationParams::getTourPurpose() const {
 	return purpose;
 }
 
-double TourModeDestinationParams::getShop(int zone) {
+double TourModeDestinationParams::getShop(int zone) const {
 	return zoneMap.at(zone)->getShop();
 }
 
-double TourModeDestinationParams::getEmployment(int zone) {
+double TourModeDestinationParams::getEmployment(int zone) const {
 	return zoneMap.at(zone)->getEmployment();
 }
 
-double TourModeDestinationParams::getPopulation(int zone) {
+double TourModeDestinationParams::getPopulation(int zone) const {
 	return zoneMap.at(zone)->getPopulation();
 }
 
-double TourModeDestinationParams::getArea(int zone) {
+double TourModeDestinationParams::getArea(int zone) const {
 	return zoneMap.at(zone)->getArea();
 }
 
@@ -237,22 +237,20 @@ void TourModeDestinationParams::setModeForParentWorkTour(int modeForParentWorkTo
 }
 
 StopModeDestinationParams::StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
-		const PersonParams& personParams, const Stop* stop, int originCode, const std::map<int, std::vector<int> >& unavailableODs)
+		const PersonParams& personParams, const Stop* stop, int originCode, const std::vector<OD_Pair>& unavailableODs)
 : ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, stop->getStopType(), originCode),
   homeZone(personParams.getHomeLocation()),
   driveAvailable(personParams.hasDrivingLicence() * personParams.getCarOwn()),
   tourMode(stop->getParentTour().getTourMode()),
-  firstBound(stop->isInFirstHalfTour())
-{
-	std::map<int, std::vector<int> >::const_iterator unavailableODIt = unavailableODs.find(origin);
-	if(unavailableODIt!=unavailableODs.end()) { unavailableDestinations = unavailableODIt->second; }
-}
+  firstBound(stop->isInFirstHalfTour()),
+  unavailableODs(unavailableODs)
+{}
 
 StopModeDestinationParams::~StopModeDestinationParams() {}
 
-double StopModeDestinationParams::getCostCarParking(int zone) { return 0; } // parking cost is always 0 for intermediate stops
+double StopModeDestinationParams::getCostCarParking(int zone) const { return 0; } // parking cost is always 0 for intermediate stops
 
-double StopModeDestinationParams::getCostCarOP(int zone) {
+double StopModeDestinationParams::getCostCarOP(int zone) const {
 	int destination = zoneMap.at(zone)->getZoneCode();
 	if(origin == destination || destination == homeZone || origin == homeZone) { return 0; }
 	return ((amCostsMap.at(origin).at(destination)->getDistance() * OPERATIONAL_COST + pmCostsMap.at(origin).at(destination)->getDistance() * OPERATIONAL_COST)/2
@@ -260,7 +258,7 @@ double StopModeDestinationParams::getCostCarOP(int zone) {
 				-(amCostsMap.at(origin).at(homeZone)->getDistance() * OPERATIONAL_COST + pmCostsMap.at(origin).at(homeZone)->getDistance() * OPERATIONAL_COST)/2);
 }
 
-double StopModeDestinationParams::getCarCostERP(int zone) {
+double StopModeDestinationParams::getCarCostERP(int zone) const {
 	int destination = zoneMap.at(zone)->getZoneCode();
 	if(origin == destination || destination == homeZone || origin == homeZone) { return 0; }
 	return ((amCostsMap.at(origin).at(destination)->getCarCostErp() + pmCostsMap.at(origin).at(destination)->getCarCostErp())/2
@@ -268,7 +266,7 @@ double StopModeDestinationParams::getCarCostERP(int zone) {
 				-(amCostsMap.at(origin).at(homeZone)->getCarCostErp() + pmCostsMap.at(origin).at(homeZone)->getCarCostErp())/2);
 }
 
-double StopModeDestinationParams::getCostPublic(int zone) {
+double StopModeDestinationParams::getCostPublic(int zone) const {
 	int destination = zoneMap.at(zone)->getZoneCode();
 	if(origin == destination || destination == homeZone || origin == homeZone) { return 0; }
 	return ((amCostsMap.at(origin).at(destination)->getPubCost() + pmCostsMap.at(origin).at(destination)->getPubCost())/2
@@ -276,7 +274,7 @@ double StopModeDestinationParams::getCostPublic(int zone) {
 				-(amCostsMap.at(origin).at(homeZone)->getPubCost() + pmCostsMap.at(origin).at(homeZone)->getPubCost())/2);
 }
 
-double StopModeDestinationParams::getTT_CarIvt(int zone) {
+double StopModeDestinationParams::getTT_CarIvt(int zone) const {
 	int destination = zoneMap.at(zone)->getZoneCode();
 	if(origin == destination || destination == homeZone || origin == homeZone) { return 0; }
 	return ((amCostsMap.at(origin).at(destination)->getCarIvt() + pmCostsMap.at(origin).at(destination)->getCarIvt())/2
@@ -284,7 +282,7 @@ double StopModeDestinationParams::getTT_CarIvt(int zone) {
 				-(amCostsMap.at(origin).at(homeZone)->getCarIvt() + pmCostsMap.at(origin).at(homeZone)->getCarIvt())/2);
 }
 
-double StopModeDestinationParams::getTT_PubIvt(int zone) {
+double StopModeDestinationParams::getTT_PubIvt(int zone) const {
 	int destination = zoneMap.at(zone)->getZoneCode();
 	if(origin == destination || destination == homeZone || origin == homeZone) { return 0; }
 	return ((amCostsMap.at(origin).at(destination)->getPubIvt() + pmCostsMap.at(origin).at(destination)->getPubIvt())/2
@@ -292,7 +290,7 @@ double StopModeDestinationParams::getTT_PubIvt(int zone) {
 				-(amCostsMap.at(origin).at(homeZone)->getPubIvt() + pmCostsMap.at(origin).at(homeZone)->getPubIvt())/2);
 }
 
-double StopModeDestinationParams::getTT_PubOut(int zone) {
+double StopModeDestinationParams::getTT_PubOut(int zone) const {
 	int destination = zoneMap.at(zone)->getZoneCode();
 	if(origin == destination || destination == homeZone || origin == homeZone) { return 0; }
 	return ((amCostsMap.at(origin).at(destination)->getPubOut() + pmCostsMap.at(origin).at(destination)->getPubOut())/2
@@ -300,7 +298,7 @@ double StopModeDestinationParams::getTT_PubOut(int zone) {
 				-(amCostsMap.at(origin).at(homeZone)->getPubOut() + pmCostsMap.at(origin).at(homeZone)->getPubOut())/2);
 }
 
-double StopModeDestinationParams::getWalkDistanceFirst(int zone) {
+double StopModeDestinationParams::getWalkDistanceFirst(int zone) const {
 	int destination = zoneMap.at(zone)->getZoneCode();
 	if(origin == destination || destination == homeZone || origin == homeZone) { return 0; }
 	return (amCostsMap.at(origin).at(destination)->getDistance()
@@ -308,7 +306,7 @@ double StopModeDestinationParams::getWalkDistanceFirst(int zone) {
 				- amCostsMap.at(origin).at(homeZone)->getDistance());
 }
 
-double StopModeDestinationParams::getWalkDistanceSecond(int zone) {
+double StopModeDestinationParams::getWalkDistanceSecond(int zone) const {
 	int destination = zoneMap.at(zone)->getZoneCode();
 	if(origin == destination || destination == homeZone || origin == homeZone) { return 0; }
 	return (pmCostsMap.at(origin).at(destination)->getDistance()
@@ -316,7 +314,7 @@ double StopModeDestinationParams::getWalkDistanceSecond(int zone) {
 				- pmCostsMap.at(origin).at(homeZone)->getDistance());
 }
 
-int StopModeDestinationParams::getCentralDummy(int zone) {
+int StopModeDestinationParams::getCentralDummy(int zone) const {
 	return zoneMap.at(zone)->getCentralDummy();
 }
 
@@ -324,23 +322,23 @@ StopType StopModeDestinationParams::getTourPurpose() const {
 	return purpose;
 }
 
-double StopModeDestinationParams::getShop(int zone) {
+double StopModeDestinationParams::getShop(int zone) const {
 	return zoneMap.at(zone)->getShop();
 }
 
-double StopModeDestinationParams::getEmployment(int zone) {
+double StopModeDestinationParams::getEmployment(int zone) const {
 	return zoneMap.at(zone)->getEmployment();
 }
 
-double StopModeDestinationParams::getPopulation(int zone) {
+double StopModeDestinationParams::getPopulation(int zone) const {
 	return zoneMap.at(zone)->getPopulation();
 }
 
-double StopModeDestinationParams::getArea(int zone) {
+double StopModeDestinationParams::getArea(int zone) const {
 	return zoneMap.at(zone)->getArea();
 }
 
-int StopModeDestinationParams::isAvailable_IMD(int choiceId) {
+int StopModeDestinationParams::isAvailable_IMD(int choiceId) const {
 	/* 1. if the destination == origin, the destination is not available.
 	 * 2. public bus, private bus and MRT/LRT are only available if AM[(origin,destination)][’pub_ivt’]>0 and PM[(destination,origin)][’pub_ivt’]>0
 	 * 3. shared2, shared3+, taxi and motorcycle are available to all.
@@ -358,8 +356,13 @@ int StopModeDestinationParams::isAvailable_IMD(int choiceId) {
 	if (origin == destination) { return 0; } // the destination same as origin is not available
 
 	// check if destination is unavailable
-	if(!unavailableDestinations.empty() &&
-			std::binary_search(unavailableDestinations.begin(), unavailableDestinations.end(), destination)) { return 0; } // destination is unavailable due to lack of cost data
+	OD_Pair orgDest = OD_Pair(origin, destination);
+	OD_Pair orgHome = OD_Pair(origin, homeZone);
+	OD_Pair destHome = OD_Pair(destination, homeZone);
+
+	if(std::binary_search(unavailableODs.begin(), unavailableODs.end(), orgDest) ||
+			std::binary_search(unavailableODs.begin(), unavailableODs.end(), orgHome) ||
+			std::binary_search(unavailableODs.begin(), unavailableODs.end(), destHome)) { return 0; } // destination is unavailable due to lack of cost data
 
 	// bus 1-1092; mrt 1093 - 2184; private bus 2185 - 3276; same result for the three modes
 	if (choiceId <= 3 * numZones) {

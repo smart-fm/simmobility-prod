@@ -85,12 +85,12 @@ public:
 	double getTT_PublicOutFirst(int zoneId) const;
 	double getTT_PublicOutSecond(int zoneId) const;
 	double getAvgTransferNumber(int zoneId) const;
-	int getCentralDummy(int zone);
+	int getCentralDummy(int zone) const;
 	StopType getTourPurpose() const;
-	double getShop(int zone);
-	double getEmployment(int zone);
-	double getPopulation(int zone);
-	double getArea(int zone);
+	double getShop(int zone) const;
+	double getEmployment(int zone) const;
+	double getPopulation(int zone) const;
+	double getArea(int zone) const;
 	void setDrive1Available(bool drive1Available);
 	int isAvailable_TMD(int choiceId) const;
 	int getModeForParentWorkTour() const;
@@ -105,24 +105,24 @@ private:
 class StopModeDestinationParams : public ModeDestinationParams {
 public:
 	StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
-			const PersonParams& personParams, const Stop* stop, int originCode, const std::map<int, std::vector<int> >& unavailableODs);
+			const PersonParams& personParams, const Stop* stop, int originCode, const std::vector<OD_Pair>& unavailableODs);
 	virtual ~StopModeDestinationParams();
-	double getCostCarParking(int zone);
-	double getCostCarOP(int zone);
-	double getCarCostERP(int zone);
-	double getCostPublic(int zone);
-	double getTT_CarIvt(int zone);
-	double getTT_PubIvt(int zone);
-	double getTT_PubOut(int zone);
-	double getWalkDistanceFirst(int zone);
-	double getWalkDistanceSecond(int zone);
-	int getCentralDummy(int zone);
+	double getCostCarParking(int zone) const;
+	double getCostCarOP(int zone) const;
+	double getCarCostERP(int zone) const;
+	double getCostPublic(int zone) const;
+	double getTT_CarIvt(int zone) const;
+	double getTT_PubIvt(int zone) const;
+	double getTT_PubOut(int zone) const;
+	double getWalkDistanceFirst(int zone) const;
+	double getWalkDistanceSecond(int zone) const;
+	int getCentralDummy(int zone) const;
 	StopType getTourPurpose() const ;
-	double getShop(int zone);
-	double getEmployment(int zone);
-	double getPopulation(int zone);
-	double getArea(int zone);
-	int isAvailable_IMD(int choiceId);
+	double getShop(int zone) const;
+	double getEmployment(int zone) const;
+	double getPopulation(int zone) const;
+	double getArea(int zone) const;
+	int isAvailable_IMD(int choiceId) const;
 	int isFirstBound() const;
 	int isSecondBound() const;
 
@@ -131,7 +131,8 @@ private:
 	int driveAvailable;
 	int tourMode;
 	bool firstBound;
-	std::vector<int> unavailableDestinations;
+	const std::vector<OD_Pair>& unavailableODs;
+
 };
 
 } // end namespace medium

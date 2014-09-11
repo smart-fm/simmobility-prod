@@ -16,7 +16,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "behavioral/PredaySystem.hpp"
+#include "PredaySystem.hpp"
 #include "CalibrationStatistics.hpp"
 #include "config/MT_Config.hpp"
 #include "params/PersonParams.hpp"

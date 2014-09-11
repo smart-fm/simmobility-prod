@@ -190,7 +190,7 @@ PredaySystem::PredaySystem(PersonParams& personParams,
 		const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 		const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
 		const std::map<std::string, db::MongoDao*>& mongoDao,
-		const std::map<int, std::vector<int> >& unavailableODs)
+		const std::vector<OD_Pair>& unavailableODs)
 : personParams(personParams), zoneMap(zoneMap), zoneIdLookup(zoneIdLookup),
   amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap),
   mongoDao(mongoDao), unavailableODs(unavailableODs), logStream(std::stringstream::out)
@@ -749,7 +749,8 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 		if(stop->getParentTour().isFirstTour()) { stodParams.setTodLow(FIRST_INDEX); }
 		else
 		{
-			const Tour& prevTour = *(std::find(tours.begin(), tours.end(), stop->getParentTour()) - 1);
+			TourList::iterator currTourIt = std::find(tours.begin(), tours.end(), stop->getParentTour());
+			const Tour& prevTour = *(--currTourIt);
 			stodParams.setTodLow(prevTour.getEndTime());
 		}
 	}
@@ -758,6 +759,8 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 		stodParams.setTodLow(stop->getArrivalTime());
 		stodParams.setTodHigh(LAST_INDEX); // end of day
 	}
+
+	if(stodParams.getTodHigh() < stodParams.getTodLow()) { throw std::runtime_error("Invalid low and high TODs for stop"); }
 
 	ZoneParams* zoneDoc = zoneMap.at(zoneIdLookup.at(origin));
 	if(origin != destination)

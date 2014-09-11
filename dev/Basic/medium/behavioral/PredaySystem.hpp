@@ -13,6 +13,7 @@
 #include <deque>
 #include <list>
 #include <map>
+#include <vector>
 #include <sstream>
 #include "behavioral/lua/PredayLuaProvider.hpp"
 #include "CalibrationStatistics.hpp"
@@ -285,7 +286,7 @@ private:
     /**
      * map of unavailable ODs for mode destination
      */
-    const std::map<int, std::vector<int> >& unavailableODs;
+    const std::vector<OD_Pair>& unavailableODs;
 
     /**
      * list of tours for this person
@@ -317,7 +318,7 @@ public:
 			const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 			const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
 			const std::map<std::string, db::MongoDao*>& mongoDao,
-			const std::map<int, std::vector<int> >& unavailableODs);
+			const std::vector<OD_Pair>& unavailableODs);
 	virtual ~PredaySystem();
 
 	/**

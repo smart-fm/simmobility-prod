@@ -510,6 +510,7 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours)
 	generateIntermediateStops(SECOND_HALF_TOUR, tour, primaryStop, remainingTours);
 
 	StopList& stops = tour.stops;
+	if(stops.size() == 1) { return; } //No stops were generated
 	StopList::iterator primaryStopIt = std::find(stops.begin(), stops.end(), primaryStop);
 	if(primaryStopIt==stops.end()) { throw std::runtime_error("primary stop missing stops list"); }
 
@@ -556,6 +557,7 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours)
 		Stop* currStop = primaryStop; // init currStop to primaryStop
 		Stop* prevStop = nullptr;
 		int destLocation = 0;
+		bool stopTodSuccessful = false;
 		do
 		{
 			--stopIt;
@@ -569,12 +571,20 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours)
 				destLocation = (*stopIt)->getStopLocation(); //we have predicted the location for all stops already.
 				++stopIt; //get back
 			}
-			predictStopTimeOfDay(prevStop, destLocation, true); //predict arrival time for nextStop
-			personParams.blockTime(prevStop->getArrivalTime(), prevStop->getDepartureTime());
-			personParams.blockTime(prevStop->getDepartureTime(), currStop->getArrivalTime());
+			stopTodSuccessful = predictStopTimeOfDay(prevStop, destLocation, true);  //predict arrival time for nextStop
+			if(!stopTodSuccessful) { break; } //break off here if prediction was unsuccessful. This stop and remaining stops are to be deleted.
 			currStop = prevStop;
 		}
 		while(stopIt!=firstStopIt);
+		if(!stopTodSuccessful)
+		{
+			++stopIt; // now stopIT points to the last valid stop
+			for(StopList::iterator eraseIt=stops.begin(); eraseIt!=stopIt; )
+			{
+				safe_delete_item(*eraseIt);
+				eraseIt = stops.erase(eraseIt);
+			}
+		}
 	}
 
 	//second half tour
@@ -586,6 +596,7 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours)
 		Stop* currStop = primaryStop; // init currStop to primaryStop
 		Stop* nextStop = nullptr;
 		int destLocation = 0;
+		bool stopTodSuccessful = false;
 		do
 		{
 			++stopIt;
@@ -599,12 +610,19 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours)
 				destLocation = (*stopIt)->getStopLocation(); //we have predicted the location for all stops already.
 				--stopIt; //get back
 			}
-			predictStopTimeOfDay(nextStop, destLocation, false); //predict departure time for nextStop
-			personParams.blockTime(currStop->getDepartureTime(), nextStop->getArrivalTime());
-			personParams.blockTime(nextStop->getArrivalTime(), nextStop->getDepartureTime());
+			stopTodSuccessful = predictStopTimeOfDay(nextStop, destLocation, false); //predict departure time for nextStop
+			if(!stopTodSuccessful) { break; } //break off here if prediction was unsuccessful. This stop and remaining stops are to be deleted.
 			currStop = nextStop;
 		}
 		while(stopIt!=lastStopIt);
+		if(!stopTodSuccessful)
+		{
+			for(StopList::iterator eraseIt=stopIt; eraseIt!=stops.end(); )
+			{
+				safe_delete_item(*eraseIt);
+				eraseIt = stops.erase(eraseIt);
+			}
+		}
 	}
 }
 
@@ -682,7 +700,7 @@ void PredaySystem::predictStopModeDestination(Stop* stop, int origin)
 	stop->setStopLocation(zoneMap.at(zone_id)->getZoneCode());
 }
 
-void PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBeforePrimary)
+bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBeforePrimary)
 {
 	if(!stop) { throw std::runtime_error("predictStopTimeOfDay() - stop is null"); }
 	StopTimeOfDayParams stodParams(stop->getStopTypeID(), isBeforePrimary);
@@ -760,7 +778,7 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 		stodParams.setTodHigh(LAST_INDEX); // end of day
 	}
 
-	if(stodParams.getTodHigh() < stodParams.getTodLow()) { throw std::runtime_error("Invalid low and high TODs for stop"); }
+	if(stodParams.getTodHigh() < stodParams.getTodLow()) { return false; } //Invalid low and high TODs for stop
 
 	ZoneParams* zoneDoc = zoneMap.at(zoneIdLookup.at(origin));
 	if(origin != destination)
@@ -899,17 +917,14 @@ void PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 
 	int timeWindowIdx = PredayLuaProvider::getPredayModel().predictStopTimeOfDay(personParams, stodParams);
 	if(isBeforePrimary) {
-		if(timeWindowIdx > stop->getDepartureTime()) {
-			throw std::runtime_error("Predicted arrival time must not be greater than the estimated departure time");
-		}
+		if(timeWindowIdx > stop->getDepartureTime()) { return false; } // Predicted arrival time must not be greater than the estimated departure time
 		stop->setArrivalTime(timeWindowIdx);
 	}
 	else {
-		if(timeWindowIdx < stop->getArrivalTime()) {
-			throw std::runtime_error("Predicted departure time must not be lesser than the estimated arrival time");
-		}
+		if(timeWindowIdx < stop->getArrivalTime()) { return false; } //Predicted departure time must not be lesser than the estimated arrival time
 		stop->setDepartureTime(timeWindowIdx);
 	}
+	return true;
 }
 
 double PredaySystem::fetchTravelTime(int origin, int destination, int mode,  bool isArrivalBased, double timeIdx)

@@ -132,9 +132,9 @@ private:
 	 * @param stop the stop for which the time of day is to be predicted
 	 * @param destintionLocation the location of the destination. (origin is the stop's location)
 	 * @param isBeforePrimary indicates whether stop is before the primary activity or after the primary activity of the tour
-	 *
+	 * @return true if prediction is successful. false otherwise.
 	 */
-	void predictStopTimeOfDay(Stop* stop, int destinationLocation, bool isBeforePrimary);
+	bool predictStopTimeOfDay(Stop* stop, int destinationLocation, bool isBeforePrimary);
 
 	/**
 	 * issues query to time dependent travel time collection in mongoDB to fetch travel time

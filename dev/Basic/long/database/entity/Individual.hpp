@@ -48,8 +48,7 @@ namespace sim_mob
 			int		  getMemberId() const;
 			bool	  getWorkAtHome() const;
 			bool	  getDriversLicense() const;
-			std::tm  getDateOfBirth() const;
-
+			std::tm   getDateOfBirth() const;
 
 			Individual& operator=(const Individual& source);
 
@@ -77,6 +76,8 @@ namespace sim_mob
 			bool	  workAtHome;
 			bool	  driversLicense;
 			std::tm	  dateOfBirth;
+
+
 		};
 	}
 }

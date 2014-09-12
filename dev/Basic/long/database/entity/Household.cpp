@@ -15,13 +15,18 @@
 
 using namespace sim_mob::long_term;
 
-Household::Household() {
-}
+Household::Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int children, double income,
+					  int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility ): id(id),
+					  lifestyleId(lifestyleId), unitId(unitId), ethnicityId(ethnicityId), vehicleCategoryId(vehicleCategoryId),size(size), children(children), income(income),
+					  housingDuration(housingDuration), workers(workers), ageOfHead(ageOfHead), twoRoomHdbEligibility(twoRoomHdbEligibility),
+					  threeRoomHdbEligibility(threeRoomHdbEligibility), fourRoomHdbEligibility(fourRoomHdbEligibility){}
 
-Household::~Household() {
-}
+Household::Household(): id(0), lifestyleId(0), unitId(0), ethnicityId(0), vehicleCategoryId(0),size(0), children(0), income(0), housingDuration(0), workers(0), ageOfHead(0),
+						twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0){}
+Household::~Household() {}
 
-Household& Household::operator=(const Household& source) {
+Household& Household::operator=(const Household& source)
+{
     this->id = source.id;
     this->lifestyleId = source.lifestyleId;
     this->unitId = source.unitId;
@@ -123,6 +128,48 @@ void Household::setId(BigSerial id) {
 BigSerial Household::getId() const {
     return id;
 }
+
+std::vector<BigSerial> Household::getIndividuals() const
+{
+	return individuals;
+}
+
+void Household::setIndividual( BigSerial individual )
+{
+	individuals.push_back( individual );
+}
+
+
+bool  Household::getTwoRoomHdbEligibility() const
+{
+	return twoRoomHdbEligibility;
+}
+
+bool  Household::getThreeRoomHdbEligibility() const
+{
+	return threeRoomHdbEligibility;
+}
+
+bool  Household::getFourRoomHdbEligibility() const
+{
+	return fourRoomHdbEligibility;
+}
+
+void  Household::setTwoRoomHdbEligibility(bool eligibility)
+{
+	twoRoomHdbEligibility = true;
+}
+
+void  Household::setThreeRoomHdbEligibility(bool eligibility)
+{
+	threeRoomHdbEligibility = true;
+}
+
+void  Household::setFourRoomHdbEligibility(bool eligibility)
+{
+	fourRoomHdbEligibility = true;
+}
+
 
 namespace sim_mob {
     namespace long_term {

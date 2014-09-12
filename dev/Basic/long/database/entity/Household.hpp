@@ -13,13 +13,16 @@
 #include "Common.hpp"
 #include "Types.hpp"
 
-namespace sim_mob {
-
-    namespace long_term {
-
-        class Household {
+namespace sim_mob
+{
+    namespace long_term
+    {
+        class Household
+        {
         public:
             Household();
+            Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int children, double income,
+            		   int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility );
             virtual ~Household();
 
             Household& operator=(const Household& source);
@@ -46,6 +49,17 @@ namespace sim_mob {
             void setId(BigSerial id);
             BigSerial getId() const;
 
+            void setIndividual( BigSerial individualId );
+            std::vector<BigSerial> getIndividuals() const;
+
+			bool	  getTwoRoomHdbEligibility() const;
+			bool	  getThreeRoomHdbEligibility() const;
+			bool	  getFourRoomHdbEligibility() const;
+
+			void	  setTwoRoomHdbEligibility(bool);
+			void	  setThreeRoomHdbEligibility(bool);
+			void	  setFourRoomHdbEligibility(bool);
+
             /**
              * Operator to print the Household data.  
              */
@@ -65,6 +79,12 @@ namespace sim_mob {
             int housingDuration;
             int workers;
             int ageOfHead;
+
+            std::vector<BigSerial> individuals;
+
+			bool twoRoomHdbEligibility;
+			bool threeRoomHdbEligibility;
+			bool fourRoomHdbEligibility;
         };
     }
 }

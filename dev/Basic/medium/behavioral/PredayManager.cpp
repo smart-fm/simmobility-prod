@@ -744,6 +744,7 @@ void sim_mob::medium::PredayManager::loadUnavailableODs(db::BackendType dbType)
 			unavailableODs.push_back(OD_Pair(origin, destination)); // this push_back can create duplicates (already inserted OD pairs) to be inserted. But it is okay!
 		}
 		std::sort(unavailableODs.begin(), unavailableODs.end()); // so that future lookups can be O(log n)
+		Print() << "Unavailable ODs loaded" << std::endl;
 	}
 	}
 }

@@ -270,13 +270,7 @@ local function computeUtilities(params)
 			beta_missingincome_notravel * missing_income + 
 			beta_workathome_notravel * workathome +
 			beta_caravail_notravel * caravail +
-			beta_motoravail_notravel * motoravail +
-			beta_work_logsum * worklogsum +
-			beta_edu_logsum * edulogsum +
-			beta_shopping_logsum * shoplogsum +
-			beta_other_logsum * otherlogsum +
-			beta_dptour_logsum * dptour_logsum +
-			beta_dpstop_logsum * dpstop_logsum
+			beta_motoravail_notravel * motoravail
 	
 	utility[2] = cons_travel +  
 			beta_parttime_travel * parttime +

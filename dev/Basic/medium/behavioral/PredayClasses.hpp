@@ -181,8 +181,8 @@ public:
 	/**
 	 * Sets the arrival and departure time of the stop
 	 *
-	 * @param arrivalTime arrival time
-	 * @param departureTime departure time
+	 * @param arrivalTime arrival time (1 to 48)
+	 * @param departureTime departure time (1 to 40)
 	 */
 	void allotTime(double arrivalTime, double departureTime) {
 		this->arrivalTime = arrivalTime;

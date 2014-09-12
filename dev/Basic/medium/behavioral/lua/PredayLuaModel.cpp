@@ -204,6 +204,8 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("second_stop", &StopGenerationParams::getSecondStop)
 				.addProperty("three_plus_stop", &StopGenerationParams::getThreePlusStop)
 				.addProperty("has_subtour", &StopGenerationParams::getHasSubtour)
+				.addProperty("time_window_first_bound", &StopGenerationParams::getTimeWindowFirstBound)
+				.addProperty("time_window_second_bound", &StopGenerationParams::getTimeWindowSecondBound)
 				.addFunction("availability", &StopGenerationParams::isAvailable)
 			.endClass();
 

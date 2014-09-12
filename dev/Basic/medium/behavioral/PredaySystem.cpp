@@ -636,7 +636,7 @@ void PredaySystem::generateIntermediateStops(uint8_t halfTour, Tour& tour, const
 	int origin = personParams.getHomeLocation();
 	int destination = primaryStop->getStopLocation();
 	StopGenerationParams isgParams(tour, primaryStop, dayPattern);
-	isgParams.setFirstHalfTour((halfTour==1));
+	isgParams.setFirstHalfTour((halfTour==FIRST_HALF_TOUR));
 	isgParams.setNumRemainingTours(remainingTours);
 	if(origin == destination) { isgParams.setDistance(0.0); }
 	else
@@ -658,6 +658,32 @@ void PredaySystem::generateIntermediateStops(uint8_t halfTour, Tour& tour, const
 			break;
 		}
 		}
+	}
+
+	switch(halfTour)
+	{
+	case FIRST_HALF_TOUR:
+	{
+		double startTime = FIRST_INDEX;
+		if(!tour.isFirstTour())
+		{
+			TourList::iterator currTourIt = std::find(tours.begin(), tours.end(), tour);
+			const Tour& prevTour = *(--currTourIt);
+			startTime = prevTour.getEndTime();
+		}
+		double endTime = primaryStop->getArrivalTime();
+		isgParams.setTimeWindowFirstBound((endTime - startTime + 1)/2); //HOURS
+		isgParams.setTimeWindowSecondBound(0);
+		break;
+	}
+	case SECOND_HALF_TOUR:
+	{
+		double startTime = primaryStop->getDepartureTime();
+		double endTime = LAST_INDEX;
+		isgParams.setTimeWindowFirstBound(0);
+		isgParams.setTimeWindowSecondBound((endTime - startTime + 1)/2); //HOURS
+		break;
+	}
 	}
 
 	int choice = 0;

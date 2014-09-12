@@ -229,7 +229,6 @@ bool sim_mob::medium::DriverMovement::initializePath() {
 //				Worker* worker = (Worker*)(this->getParent()->currWorkerProvider);
 //				wp_path = worker->getPathSetMgr()->getPathByPerson(getParent());
 				wp_path = PathSetManager::getInstance()->getPathByPerson(person,*(person->currSubTrip));
-				sim_mob::Logger::log["path_set"].prof("PathSetManager_size_bytes", false).addUp(PathSetManager::getInstance()->getSize());
 			}
 			else
 			{

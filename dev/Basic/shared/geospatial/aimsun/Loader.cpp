@@ -566,7 +566,7 @@ bool DatabaseLoader::ExcuString(std::string& str)
 void DatabaseLoader::LoadERP_Surcharge(std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >& pool)
 {
 //	soci::rowset<sim_mob::ERP_Surcharge> rs = (sql_.prepare <<"select \"Gantry_No\",to_char(\"Start_Time\",'HH24:MI:SS') AS Start_Time,to_char(\"End _Time\",'HH24:MI:SS') AS End_Time,\"Rate\",\"Vehicle_Type_Id\",\"Vehicle_Type_Desc\",\"Day\" from \"ERP_Surcharge\" ");
-	soci::rowset<sim_mob::ERP_Surcharge> rs = (sql_.prepare <<"select trim(both ' ' from \"Gantry_No\") AS Gantry_No,to_char(\"Start_Time\",'HH24:MI:SS') AS Start_Time,to_char(\"End _Time\",'HH24:MI:SS') AS endTime,\"Rate\",\"Vehicle_Type_Id\",\"Vehicle_Type_Desc\",\"Day\" from \"ERP_Surcharge\" ");
+	soci::rowset<sim_mob::ERP_Surcharge> rs = (sql_.prepare <<"select trim(both ' ' from \"Gantry_No\") AS Gantry_No,to_char(\"Start_Time\",'HH24:MI:SS') AS Start_Time,to_char(\"End _Time\",'HH24:MI:SS') AS End_Time,\"Rate\",\"Vehicle_Type_Id\",\"Vehicle_Type_Desc\",\"Day\" from \"ERP_Surcharge\" ");
 	for (soci::rowset<sim_mob::ERP_Surcharge>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		sim_mob::ERP_Surcharge *s = new sim_mob::ERP_Surcharge(*it);
 //		std::cout<<"LoadERP_Surcharge: "<<s.startTime<<std::endl;

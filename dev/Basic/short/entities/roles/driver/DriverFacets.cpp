@@ -1466,9 +1466,9 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 			initPath(path, startLaneId);
 		}
 
-		if (subTrip->schedule && res) {
-			int stopid = subTrip->schedule->stopSchdules[0].stopId;
-			res->schedule = subTrip->schedule;
+		if (subTrip.schedule && res) {
+			int stopid = subTrip.schedule->stopSchdules[0].stopId;
+			res->schedule = subTrip.schedule;
 		}
 
 	}

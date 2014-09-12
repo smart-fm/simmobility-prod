@@ -41,7 +41,7 @@ namespace sim_mob {
  **********************************/
 class Profiler{
 	///stores start and end of profiling
-	boost::atomic_uint32_t start, lastTick,total;
+	boost::atomic_uint32_t start, lastTick,total,totalTime;
 	///is the profiling object started profiling?
 	boost::atomic_bool started;
 	const std::string id;
@@ -82,11 +82,15 @@ public:
 	 */
 	uint32_t tick(bool addToTotal = false);
 	///	add the given time to total time variable
+	uint32_t addUpTime(const uint32_t value);
+	///	add the given value to total time variable
 	uint32_t addUp(const uint32_t value);
 	///	manually set the total value
 	void setAddUp(const uint32_t value);
 	///	return the total(accumulated) time
-	uint32_t getAddUp();
+	uint32_t getAddUpTime() const;
+	///	return total accumulated value
+	uint32_t getAddUp() const;
 
 };
 

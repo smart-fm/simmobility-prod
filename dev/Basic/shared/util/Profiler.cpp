@@ -15,14 +15,14 @@ unsigned long int sim_mob::BasicLogger::ii = 0;
 
 
 sim_mob::Profiler::Profiler(const Profiler &t):
-		start(t.start.load()),lastTick(t.lastTick.load()),
+		start(t.start.load()),lastTick(t.lastTick.load()),totalTime(t.totalTime.load()),
 		total(t.total.load()),started(t.started.load()), id(t.id)
 {
 }
 
 sim_mob::Profiler::Profiler(const std::string id, bool begin_):id(id){
-	reset();
-	total = 0;
+	start = lastTick = total = totalTime = 0;
+	started = 0;
 	if(begin_)
 	{
 		start = lastTick = getTime();
@@ -34,7 +34,7 @@ uint32_t sim_mob::Profiler::tick(bool addToTotal){
 	uint32_t thisTick = getTime();
 	uint32_t elapsed = thisTick - lastTick;
 	if(addToTotal){
-		addUp(elapsed);
+		addUpTime(elapsed);
 	}
 	lastTick = thisTick;
 	return elapsed;
@@ -49,6 +49,11 @@ uint32_t sim_mob::Profiler::end(){
 	return tick_ - start;
 }
 
+uint32_t sim_mob::Profiler::addUpTime(const uint32_t value){
+	totalTime+=value;
+	return totalTime;
+}
+
 uint32_t sim_mob::Profiler::addUp(const uint32_t value){
 	total+=value;
 	return total;
@@ -59,13 +64,13 @@ void sim_mob::Profiler::setAddUp(const uint32_t value){
 	total =value;
 }
 
-uint32_t sim_mob::Profiler::getAddUp(){
+uint32_t sim_mob::Profiler::getAddUp() const {
 	return total;
 }
 
 void sim_mob::Profiler::reset()
 {
-	start = lastTick = total = 0;
+	start = lastTick = total = totalTime = 0;
 	started = 0;
 }
 
@@ -100,7 +105,7 @@ sim_mob::BasicLogger::~BasicLogger(){
 		for(;it != itEnd; it++)
 		{
 			uint32_t addup = it->second.getAddUp() ;
-			*this << it->first << ": [total AddUp : " << addup << "],[total time : " << it->second.end() << "]\n" ;
+			*this << it->first << "[" << &(it->second) << "]: [total AddUp : " << addup << "],[total time : " << it->second.end() << "]\n" ;
 		}
 	}
 

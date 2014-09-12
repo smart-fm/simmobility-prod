@@ -243,7 +243,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		t = time(0);   // get time now
 		now = localtime( & t );
 		std::cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
-		std::cout<<psMgr->size()<<std::endl;
 	}
 
 	//Initialize the control manager and wait for an IDLE state (interactive mode only).

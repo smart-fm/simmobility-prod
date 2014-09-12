@@ -145,11 +145,8 @@ local scale = 1 --for all choices
 -- to check variable bindings in params or dbparams, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
 function choose_itd(params,dbparams)
 	computeUtilities(params, dbparams)
-	for c,v in ipairs(utility) do print(c,v) end  
 	computeAvailabilities(dbparams)
-	for c,v in ipairs(availability) do print(c,v) end
 	local probability = calculate_probability("mnl", choiceset, utility, availability, scale)
-	for c,v in ipairs(probability) do print(c,v) end  
 	return make_final_choice(probability)
 end
 

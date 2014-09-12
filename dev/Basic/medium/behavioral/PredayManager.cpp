@@ -30,6 +30,7 @@
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
 #include "conf/RawConfigParams.hpp"
+#include "database/DatabaseHelper.hpp"
 #include "database/dao/MongoDao.hpp"
 #include "database/DB_Config.hpp"
 #include "database/PopulationSqlDao.hpp"
@@ -39,7 +40,6 @@
 #include "logging/NullableOutputStream.hpp"
 #include "logging/Log.hpp"
 #include "mongo/client/dbclient.h"
-#include "PredayClasses.hpp"
 #include "util/CSVReader.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Utils.hpp"
@@ -68,9 +68,6 @@ std::vector<double> observedHITS_Stats;
 std::vector<double> statsScale;
 
 matrix<double> weightMatrix;
-
-/** for each origin, has a list of unavailable destinations */
-std::vector<OD_Pair> unavailableODs;
 
 /**keep a file wise list of variables to calibrate*/
 boost::unordered_map<std::string, std::vector<std::string> > variablesInFileMap;
@@ -102,40 +99,6 @@ void streamVector(const std::vector<V>& vectorToLog, std::stringstream& logStrea
 	{
 		logStream << "," << *vIt;
 	}
-}
-
-/**
- * loads the un-available origin destination pairs
- *
- * @param mongoDao map of dao-s to access mongo collections
- */
-void loadUnavailableODs(const std::map<std::string, db::MongoDao*>& mongoDao)
-{
-	int origin = 0, destination = 0;
-	db::MongoDao* tcostCarDao = mongoDao.at("tcost_car");
-	db::MongoDao* tcostBusDao = mongoDao.at("tcost_bus");
-	std::auto_ptr<mongo::DBClientCursor> cursorBus, cursorCar;
-	BSONObj unavailabilityQuery = BSON("info_unavailable" << true);
-	BSONObj originDestinationQuery, tcostBusDocObj;
-
-	tcostBusDao->getMultiple(unavailabilityQuery, cursorBus);
-	while(cursorBus->more())
-	{
-		BSONObj currObj = cursorBus->next();
-		origin = currObj.getField("origin").Int();
-		destination = currObj.getField("destination").Int();
-		unavailableODs.push_back(OD_Pair(origin, destination));
-	}
-
-	tcostCarDao->getMultiple(unavailabilityQuery, cursorCar);
-	while(cursorCar->more())
-	{
-		BSONObj currObj = cursorCar->next();
-		origin = currObj.getField("origin").Int();
-		destination = currObj.getField("destination").Int();
-		unavailableODs.push_back(OD_Pair(origin, destination)); // this push_back can create duplicates (already inserted OD pairs) to be inserted. But it is okay!
-	}
-	std::sort(unavailableODs.begin(), unavailableODs.end()); // so that future lookups can be O(log n)
 }
 
 /**
@@ -742,6 +705,49 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
 	}
 }
 
+void sim_mob::medium::PredayManager::loadUnavailableODs(db::BackendType dbType)
+{
+	switch(dbType) {
+	case POSTGRES:
+	{
+		throw std::runtime_error("AM, PM and off peak costs are not available in PostgreSQL database yet");
+	}
+	case MONGO_DB:
+	{
+		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+		std::string emptyString;
+		const std::map<std::string, std::string>& collectionNameMap = mtConfig.getMongoCollectionsMap().getCollectionsMap();
+		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+		db::MongoDao tcostCarDao(dbConfig, db.dbName, collectionNameMap.at("tcost_car"));
+		db::MongoDao tcostBusDao(dbConfig, db.dbName, collectionNameMap.at("tcost_bus"));
+
+		int origin = 0, destination = 0;
+		std::auto_ptr<mongo::DBClientCursor> cursorBus, cursorCar;
+		Query unavailabilityQuery = QUERY("info_unavailable" << true);
+		BSONObj originDestinationQuery, tcostBusDocObj;
+
+		tcostBusDao.getMultiple(unavailabilityQuery, cursorBus);
+		while(cursorBus->more())
+		{
+			BSONObj currObj = cursorBus->next();
+			origin = currObj.getField("origin").Int();
+			destination = currObj.getField("destination").Int();
+			unavailableODs.push_back(OD_Pair(origin, destination));
+		}
+
+		tcostCarDao.getMultiple(unavailabilityQuery, cursorCar);
+		while(cursorCar->more())
+		{
+			BSONObj currObj = cursorCar->next();
+			origin = currObj.getField("origin").Int();
+			destination = currObj.getField("destination").Int();
+			unavailableODs.push_back(OD_Pair(origin, destination)); // this push_back can create duplicates (already inserted OD pairs) to be inserted. But it is okay!
+		}
+		std::sort(unavailableODs.begin(), unavailableODs.end()); // so that future lookups can be O(log n)
+	}
+	}
+}
+
 void sim_mob::medium::PredayManager::dispatchPersons() {
 	boost::thread_group threadGroup;
 	unsigned numWorkers = mtConfig.getNumPredayThreads();
@@ -1142,7 +1148,6 @@ void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& 
 	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
 		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
-	loadUnavailableODs(mongoDao);
 
 	// open log file for this thread
     std::ofstream tripChainLogFile(tripChainLog.c_str(), std::ios::trunc|std::ios::out);
@@ -1189,11 +1194,13 @@ void sim_mob::medium::PredayManager::updateLogsumsToMongoAfterCalibration(const 
 	for(PersonList::const_iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++)
 	{
 		const PersonParams* personParams = (*i);
-		BSONObj query = BSON("_id" << personParams->getPersonId());
+		Query query = QUERY("_id" << personParams->getPersonId());
 		BSONObj updateObj = BSON("$set" << BSON(
-				"worklogsum"<< personParams->getWorkLogSum() <<
-				"shoplogsum" << personParams->getShopLogSum() <<
-				"otherlogsum" << personParams->getOtherLogSum()
+				MONGO_FIELD_WORK_LOGSUM << personParams->getWorkLogSum() <<
+				MONGO_FIELD_SHOP_LOGSUM << personParams->getShopLogSum() <<
+				MONGO_FIELD_OTHER_LOGSUM << personParams->getOtherLogSum() <<
+				MONGO_FIELD_DPT_LOGSUM << personParams->getDptLogsum() <<
+				MONGO_FIELD_DPS_LOGSUM << personParams->getDpsLogsum()
 				));
 		mongoDao.at("population")->update(query, updateObj);
 	}

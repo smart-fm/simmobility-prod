@@ -348,7 +348,7 @@ local function computeUtilities(params)
 			beta_unemployed_edu * (EduT[i] * unemployed) +
 			beta_unemployed_shop * (ShopT[i] * unemployed) +
 			beta_unemployed_others * (OthersT[i] * unemployed) +
-			beta_nationalservice_work * (WorkTi[i] * nationalservice) +
+			beta_nationalservice_work * (WorkT[i] * nationalservice) +
 			beta_nationalservice_edu * (EduT[i] * nationalservice) +
 			beta_nationalservice_shop * (ShopT[i] * nationalservice) +
 			beta_nationalservice_others * (OthersT[i] * nationalservice) +

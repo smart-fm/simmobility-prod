@@ -312,7 +312,7 @@ local function computeUtilities(params)
 		motoravail = 1 
 	end
 			
-	for i = 1,14 do
+	for i = 1,10 do
 		utility[i] = 
 			beta_stop_work * WorkI[i] + 
 			beta_stop_edu * EduI[i] + 
@@ -320,7 +320,6 @@ local function computeUtilities(params)
 			beta_stop_others * OthersI[i] + 
 			beta_onestop * onestop[i] +
 			beta_twostop * twostop[i] +
-			beta_threestop * threestop[i] +
 			beta_parttime_work * (WorkI[i] * parttime) +
 			beta_parttime_edu * (EduI[i] * parttime) +
 			beta_parttime_shop * (ShopI[i] * parttime) +
@@ -345,7 +344,7 @@ local function computeUtilities(params)
 			beta_unemployed_edu * (EduI[i] * unemployed) +
 			beta_unemployed_shop * (ShopI[i] * unemployed) +
 			beta_unemployed_others * (OthersI[i] * unemployed) +
-			beta_nationalservice_work * (WorkIi[i] * nationalservice) +
+			beta_nationalservice_work * (WorkI[i] * nationalservice) +
 			beta_nationalservice_edu * (EduI[i] * nationalservice) +
 			beta_nationalservice_shop * (ShopI[i] * nationalservice) +
 			beta_nationalservice_others * (OthersI[i] * nationalservice) +
@@ -437,8 +436,6 @@ local function computeUtilities(params)
 			beta_edu_logsum * EduI[i] * edulogsum +
 			beta_shopping_logsum * ShopI[i] * shoplogsum +
 			beta_other_logsum * OthersI[i] * otherlogsum +
-			beta_workshop_tt * workshop_tt[i] +
-			beta_workothers_tt * workothers_tt[i] +
 			beta_workedu_ss * workedu_ss [i]+
 			beta_workshop_ss * workshop_ss[i]+
 			beta_workothers_ss * workothers_ss[i]+

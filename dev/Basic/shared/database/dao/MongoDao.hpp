@@ -68,7 +68,7 @@ namespace sim_mob {
              * @return true if the transaction was committed with success,
              *         false otherwise.
              */
-            bool update(mongo::BSONObj& query, mongo::BSONObj& bsonObj, bool upsert=false, bool multipleDocuments=false) {
+            bool update(mongo::Query& query, mongo::BSONObj& bsonObj, bool upsert=false, bool multipleDocuments=false) {
             	connection.getSession<mongo::DBClientConnection>().update(collectionName, query, bsonObj, upsert, multipleDocuments);
             	return true;
             }
@@ -119,8 +119,7 @@ namespace sim_mob {
                 throw std::runtime_error("MongoDao::getAll() - Not implemented");
             }
 
-            void getMultiple(mongo::BSONObj& bsonObj, std::auto_ptr<mongo::DBClientCursor>& outCursor) {
-            	mongo::Query qry(bsonObj);
+            void getMultiple(mongo::Query& qry, std::auto_ptr<mongo::DBClientCursor>& outCursor) {
             	outCursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, qry);
             	return;
             }

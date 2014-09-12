@@ -376,6 +376,7 @@ bool performMainDemand()
 	predayManager.loadZones(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
 	predayManager.loadPersons(db::MONGO_DB);
+	predayManager.loadUnavailableODs(db::MONGO_DB);
 	if(mtConfig.isOutputTripchains())
 	{
 		predayManager.loadZoneNodes(db::MONGO_DB);

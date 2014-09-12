@@ -27,6 +27,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
+#include "database/DatabaseHelper.hpp"
 #include "database/DB_Connection.hpp"
 #include "logging/Log.hpp"
 #include "mongo/client/dbclient.h"
@@ -1334,10 +1335,14 @@ void sim_mob::medium::PredaySystem::computeLogsums()
 {
 	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
 	PredayLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, tmdParams);
+	PredayLuaProvider::getPredayModel().computeDayPatternLogsums(personParams);
+
 	logStream << "Person: " << personParams.getPersonId()
 			<< "|updated logsums- work: " << personParams.getWorkLogSum()
 			<< ", shop: " << personParams.getShopLogSum()
 			<< ", other: " << personParams.getOtherLogSum()
+			<< ", dpt: " << personParams.getDptLogsum()
+			<< ", dps: " << personParams.getDpsLogsum()
 			<<std::endl;
 }
 
@@ -1365,11 +1370,13 @@ void sim_mob::medium::PredaySystem::outputPredictionsToMongo() {
 
 void sim_mob::medium::PredaySystem::updateLogsumsToMongo()
 {
-	BSONObj query = BSON("_id" << personParams.getPersonId());
+	Query query = QUERY("_id" << personParams.getPersonId());
 	BSONObj updateObj = BSON("$set" << BSON(
-			"worklogsum"<< personParams.getWorkLogSum() <<
-			"shoplogsum" << personParams.getShopLogSum() <<
-			"otherlogsum" << personParams.getOtherLogSum()
+			MONGO_FIELD_WORK_LOGSUM << personParams.getWorkLogSum() <<
+			MONGO_FIELD_SHOP_LOGSUM << personParams.getShopLogSum() <<
+			MONGO_FIELD_OTHER_LOGSUM << personParams.getOtherLogSum() <<
+			MONGO_FIELD_DPT_LOGSUM << personParams.getDptLogsum() <<
+			MONGO_FIELD_DPS_LOGSUM << personParams.getDpsLogsum()
 			));
 	mongoDao["population"]->update(query, updateObj);
 }

@@ -209,6 +209,17 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 
 }
 
+void sim_mob::medium::PredayLuaModel::computeDayPatternLogsums(PersonParams& personParams) const
+{
+	LuaRef computeLogsumDPT = getGlobal(state.get(), "compute_logsum_dpt");
+	LuaRef dptLogsum = computeLogsumDPT(personParams);
+	personParams.setDptLogsum(dptLogsum.cast<double>());
+
+	LuaRef computeLogsumDPS = getGlobal(state.get(), "compute_logsum_dps");
+	LuaRef dpsLogsum = computeLogsumDPS(personParams);
+	personParams.setDpsLogsum(dpsLogsum.cast<double>());
+}
+
 void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern) const {
 	LuaRef chooseDPB = getGlobal(state.get(), "choose_dpb");
 	LuaRef retValB = chooseDPB(&personParams);

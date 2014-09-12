@@ -25,13 +25,13 @@
                 <run_mode value="simulation"/>
                 <!-- Number of threads to create for processing the population in-->
                 <!-- the preday demand simulator -->
-                <threads value="4"/>
+                <threads value="1"/>
                 <!-- outputs the preday predictions as trip chains in PostgreSQL database if enabled -->
                 <output_tripchains enabled="false"/>
                 <!-- outputs the preday's predicted tours and stops to mongodb if enabled -->
                 <output_predictions enabled="true"/>
                 <!-- prints person ids and tour details in console for each person if enabled -->
-                <console_output enabled="true"/>
+                <console_output enabled="false"/>
                 
                 <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
                         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->

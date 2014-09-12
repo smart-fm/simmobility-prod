@@ -325,6 +325,7 @@ local scale = 1 --for all choices
 function choose_dpb(params)
 	computeUtilities(params) 
 	local probability = calculate_probability("mnl", choice, utility, availability, scale)
+	print(params.person_id, utility[1], utility[2], probability[1], probability[2])
 	idx = make_final_choice(probability)
 	return choice[idx]
 end

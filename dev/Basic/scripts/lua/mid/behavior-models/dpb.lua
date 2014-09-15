@@ -13,39 +13,39 @@ UPDATED VERSION - Adnan
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 --travel constants
-local cons_travel = -0.378
+local cons_travel = 2.08
 local cons_notravel = 0
 
 --Person type
-local beta_parttime_travel = -1.60
+local beta_parttime_travel = -0.768
 local beta_parttime_notravel=0
 
-local beta_selfemployed_travel = -1.84
+local beta_selfemployed_travel = -1.74
 local beta_selfemployed_notravel = 0
 
 local beta_universitystudent_travel = 0
 local beta_universitystudent_notravel = 0
 
-local beta_homemaker_travel = -4.04
+local beta_homemaker_travel = -4.18
 local beta_homemaker_notravel = 0
 
-local beta_retired_travel = -3.60
+local beta_retired_travel = -3.84
 local beta_retired_notravel = 0
 
-local beta_unemployed_travel = -3.64
+local beta_unemployed_travel = -4.06
 local beta_unemployed_notravel = 0
 
 local beta_nationalservice_travel= 0
 local beta_nationalservice_notravel= 0
 
-local beta_voluntary_travel = -4.25
+local beta_voluntary_travel = -3.30
 local beta_voluntary_notravel = 0
 
-local beta_domestic_travel= -5.38
+local beta_domestic_travel= -4.33
 local beta_domestic_notravel= 0
 
-local beta_otherworker_travel = -7.39
-local beta_otherworker_notravel = 0
+local beta_otherindividual_travel = -2.37
+local beta_otherindividual_notravel = 0
 
 local beta_student16_travel = 0
 local beta_student16_notravel = 0
@@ -58,73 +58,68 @@ local beta_child4_notravel = 0
 
 
 --Adult age group
-local beta_age2025_travel = -0.225
+local beta_age2025_travel = 0.0705
 local beta_age2025_notravel = 0
 
-local beta_age2635_travel = -0.0993
+local beta_age2635_travel = 0.160
 local beta_age2635_notravel = 0
 
-local beta_age5165_travel = -0.238
+local beta_age5165_travel = -0.0196
 local beta_age5165_notravel = 0
 
 --Adult gender/children
-local beta_maleage4_travel = -0.105
+local beta_maleage4_travel = -0.0609
 local beta_maleage4_notravel = 0
 
 local beta_maleage515_travel = 0
 local beta_maleage515_notravel = 0
 
-local beta_femalenone_travel = 0.202
+local beta_femalenone_travel = 0.331
 local beta_femalenone_notravel = 0
 
-local beta_femaleage4_travel = -0.0806
+local beta_femaleage4_travel = 0.00102
 local beta_femaleage4_notravel = 0
 
-local beta_femaleage515_travel = 0.227
+local beta_femaleage515_travel = 0.320
 local beta_femaleage515_notravel = 0
 
 --Household composition
-local beta_onlyadults_travel = -0.0116
+local beta_onlyadults_travel = 0.213
 local beta_onlyadults_notravel = 0
 
 local beta_onlyworkers_travel = 0
 local beta_onlyworkers_notravel = 0
 
 --Personal income
-local beta_income_travel = -0.0981
+local beta_income_travel = 0.112
 local beta_income_notravel = 0
 
-local beta_missingincome_travel = -0.315
+local beta_missingincome_travel = 0.725
 local beta_missingincome_notravel = 0
 
 --Others
-local beta_workathome_travel = -1.88
+local beta_workathome_travel = -1.75
 local beta_workathome_notravel = 0
 
-local beta_caravail_travel = 0.0194
+local beta_caravail_travel = 0.100
 local beta_caravail_notravel = 0
 
 local beta_motoravail_travel = 0
 local beta_motoravail_notravel = 0
 
 --logsums
-local beta_dptour_logsum = 0
-local beta_dpstop_logsum = 0
+local beta_dptour_logsum = 0.413
+local beta_dpstop_logsum = 0.413
 
 local beta_work_logsum = 0
 local beta_edu_logsum = 0
 local beta_shopping_logsum = 0
-local beta_other_logsum = 0.370
+local beta_other_logsum = 0
 
 
 --choiceset
---1 for no travel; 2 for travel
-local choice = {
-	1,
-	2
-}
-
-
+--1 for notravel; 2 for travel
+local choice = { 1, 2 }
 
 --utility
 local utility = {}
@@ -155,7 +150,7 @@ local function computeUtilities(params)
 	local dpstop_logsum = params.dpstop_logsum
 
 	-- person type related variables
-	local fulltime,parttime,selfemployed,homemaker,retired,univ_student,unemployed,nationalservice,voluntary,domestic,otherworker,student16,student515,child4 = 0,0,0,0,0,0,0,0,0,0,0,0,0,0	
+	local fulltime,parttime,selfemployed,homemaker,retired,univ_student,unemployed,nationalservice,voluntary,domestic,otherindividual,student16,student515,child4 = 0,0,0,0,0,0,0,0,0,0,0,0,0,0	
 	if person_type_id == 1 then
 		fulltime = 1
 	elseif person_type_id == 2 then 
@@ -177,7 +172,7 @@ local function computeUtilities(params)
 	elseif person_type_id == 10 then
 		domestic = 1
 	elseif person_type_id == 12 then
-		otherworker = 1
+		otherindividual = 1
 	end 
 	if person_type_id == 4 and age_id == 3 then 
 		student16 = 1
@@ -252,7 +247,7 @@ local function computeUtilities(params)
 			beta_nationalservice_notravel * nationalservice +
 			beta_voluntary_notravel * voluntary +
 			beta_domestic_notravel * domestic +
-			beta_otherworker_notravel * otherworker +
+			beta_otherindividual_notravel * otherindividual +
 			beta_student16_notravel * student16 +
 			beta_student515_notravel * student515 +
 			beta_child4_notravel * child4 +
@@ -271,8 +266,12 @@ local function computeUtilities(params)
 			beta_workathome_notravel * workathome +
 			beta_caravail_notravel * caravail +
 			beta_motoravail_notravel * motoravail
-	
-	utility[2] = cons_travel +  
+			
+	if person_type_id == 11 then --taking care of excluded individuals at dpbinary level (individuals not eligible for hits interview and also not traveling (persontype_id =1, age_id=0))
+
+		utility[2]=-99
+	else	
+		utility[2] = cons_travel +  
 			beta_parttime_travel * parttime +
 			beta_selfemployed_travel * selfemployed +
 			beta_universitystudent_travel * univ_student +
@@ -282,7 +281,7 @@ local function computeUtilities(params)
 			beta_nationalservice_travel * nationalservice +
 			beta_voluntary_travel * voluntary +
 			beta_domestic_travel * domestic +
-			beta_otherworker_travel * otherworker +
+			beta_otherindividual_travel * otherindividual +
 			beta_student16_travel * student16 +
 			beta_student515_travel * student515 +
 			beta_child4_travel * child4 +
@@ -307,7 +306,7 @@ local function computeUtilities(params)
 			beta_other_logsum * otherlogsum +
 			beta_dptour_logsum * dptour_logsum +
 			beta_dpstop_logsum * dpstop_logsum		
-	
+	end
 end
 
 
@@ -317,7 +316,7 @@ end
 local availability={1,1}
 
 --scale
-local scale = 1 --for all choices
+local scale = 1 -- for all choices
 
 -- function to call from C++ preday simulator
 -- params table contains data passed from C++
@@ -325,7 +324,6 @@ local scale = 1 --for all choices
 function choose_dpb(params)
 	computeUtilities(params) 
 	local probability = calculate_probability("mnl", choice, utility, availability, scale)
-	print(params.person_id, utility[1], utility[2], probability[1], probability[2])
 	idx = make_final_choice(probability)
 	return choice[idx]
 end

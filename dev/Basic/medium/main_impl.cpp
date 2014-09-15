@@ -373,10 +373,10 @@ bool performMainDemand()
 	std::srand(clock()); // set random seed for RNGs in preday
 	const MT_Config& mtConfig = MT_Config::getInstance();
 	PredayManager predayManager;
-//	predayManager.loadZones(db::MONGO_DB);
-//	predayManager.loadCosts(db::MONGO_DB);
+	predayManager.loadZones(db::MONGO_DB);
+	predayManager.loadCosts(db::MONGO_DB);
 	predayManager.loadPersons(db::MONGO_DB);
-//	predayManager.loadUnavailableODs(db::MONGO_DB);
+	predayManager.loadUnavailableODs(db::MONGO_DB);
 	if(mtConfig.isOutputTripchains())
 	{
 		predayManager.loadZoneNodes(db::MONGO_DB);

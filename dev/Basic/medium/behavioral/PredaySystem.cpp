@@ -1201,6 +1201,7 @@ void PredaySystem::planDay() {
 	logStream << "Tours: " << tours.size() << std::endl;
 	if(!tours.empty()) { tours.front().setFirstTour(true); } // make first tour aware that it is the first tour for person
 
+	double prevTourEndTime = FIRST_INDEX;
 	//Process each tour
 	size_t remainingTours = tours.size();
 	for(TourList::iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++) {
@@ -1239,7 +1240,8 @@ void PredaySystem::planDay() {
 
 		calculateTourStartTime(tour);
 		calculateTourEndTime(tour);
-		personParams.blockTime(tour.getStartTime(), tour.getEndTime());
+		personParams.blockTime(prevTourEndTime, tour.getEndTime());
+		prevTourEndTime = tour.getEndTime();
 		logStream << "Tour|start time: " << tour.getStartTime() << "|end time: " << tour.getEndTime() << std::endl;
 	}
 }

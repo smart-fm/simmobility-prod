@@ -3,6 +3,11 @@
 
 #include <boost/lockfree/queue.hpp>
 #include <boost/foreach.hpp>
+//#include "boost/date_time/posix_time/posix_time.hpp"
+#include <boost/chrono/system_clocks.hpp>
+
+using namespace boost::posix_time;
+
 /* **********************************
  *     Basic Logger Implementation
  * **********************************
@@ -13,26 +18,40 @@ std::map <boost::thread::id, int> sim_mob::BasicLogger::threads= std::map <boost
 int sim_mob::BasicLogger::flushCnt = 0;
 unsigned long int sim_mob::BasicLogger::ii = 0;
 
+void printTime(boost::chrono::system_clock::time_point t)
+{
+    using namespace boost::chrono;
+    time_t c_time = boost::chrono::system_clock::to_time_t(t);
+    std::tm* tmptr = std::localtime(&c_time);
+    boost::chrono::system_clock::duration d = t.time_since_epoch();
+    std::cout << tmptr->tm_hour << ':' << tmptr->tm_min << ':' << tmptr->tm_sec
+              << '.' << (d - boost::chrono::duration_cast<boost::chrono::microseconds>(d)).count() << "\n";
+}
 
 sim_mob::Profiler::Profiler(const Profiler &t):
-		start(t.start.load()),lastTick(t.lastTick.load()),totalTime(t.totalTime.load()),
-		total(t.total.load()),started(t.started.load()), id(t.id)
+		start(t.start),lastTick(t.lastTick),
+		totalTime(t.totalTime),total(t.total.load()), started(t.started.load()), id(t.id)
 {
 }
 
+
+
 sim_mob::Profiler::Profiler(const std::string id, bool begin_):id(id){
-	start = lastTick = total = totalTime = 0;
+
 	started = 0;
+	total = 0;
 	if(begin_)
 	{
-		start = lastTick = getTime();
+		start = lastTick = boost::chrono::system_clock::now();
 	}
-
+	std::cout << "New Profiler : " << id <<  "\n";
+	printTime(start);
 }
 
-uint32_t sim_mob::Profiler::tick(bool addToTotal){
-	uint32_t thisTick = getTime();
-	uint32_t elapsed = thisTick - lastTick;
+//uint64_t sim_mob::Profiler::tick(bool addToTotal){
+boost::chrono::microseconds sim_mob::Profiler::tick(bool addToTotal){
+	boost::chrono::system_clock::time_point thisTick = getTime();
+	boost::chrono::microseconds elapsed = boost::chrono::duration_cast<boost::chrono::microseconds>(thisTick - lastTick);
 	if(addToTotal){
 		addUpTime(elapsed);
 	}
@@ -40,55 +59,37 @@ uint32_t sim_mob::Profiler::tick(bool addToTotal){
 	return elapsed;
 }
 
-uint32_t sim_mob::Profiler::end(){
-	uint32_t tick_ = getTime();
-	if(tick_ <= start ){
-		std::cout << "WARNING:profiler " << id << " Start time " << start << " and end time = " << tick_ << std::endl;
-		return 0;
-	}
-	return tick_ - start;
+//todo in end, provide output to accumulated total also
+boost::chrono::microseconds sim_mob::Profiler::end(){
+	boost::chrono::nanoseconds lapse = getTime() - start;
+	return boost::chrono::duration_cast<boost::chrono::microseconds>(lapse);
 }
 
-uint32_t sim_mob::Profiler::addUpTime(const uint32_t value){
+boost::chrono::microseconds sim_mob::Profiler::addUpTime(const boost::chrono::microseconds value){
 	totalTime+=value;
 	return totalTime;
 }
 
-uint32_t sim_mob::Profiler::addUp(const uint32_t value){
-	total+=value;
+uint32_t sim_mob::Profiler::addUp(uint32_t value)
+{
+	total +=value;
+	return total;
+
+}
+
+boost::chrono::microseconds sim_mob::Profiler::getAddUpTime(){
+	return totalTime;
+}
+
+uint32_t sim_mob::Profiler::getAddUp(){
 	return total;
 }
 
-
-void sim_mob::Profiler::setAddUp(const uint32_t value){
-	total =value;
-}
-
-uint32_t sim_mob::Profiler::getAddUp() const {
-	return total;
-}
-
-void sim_mob::Profiler::reset()
+boost::chrono::system_clock::time_point sim_mob::Profiler::getTime()
 {
-	start = lastTick = total = totalTime = 0;
-	started = 0;
+	return boost::chrono::system_clock::now();
 }
 
-const uint32_t sim_mob::Profiler::getTime()
-{
-
-	struct timeval  tv;
-	struct timezone tz;
-	struct tm      *tm;
-
-	gettimeofday(&tv, &tz);
-	tm = localtime(&tv.tv_sec);
-
-	return (tm->tm_hour * 3600000000/*3600 * 1000 * 1000*/) +
-	(tm->tm_min * 60000000/*60 * 1000 * 1000*/) +
-	(tm->tm_sec * 1000000/*1000 * 1000*/) +
-	(tv.tv_usec);
-}
 
 sim_mob::BasicLogger::BasicLogger(std::string id_){
 	id = id_;
@@ -104,8 +105,8 @@ sim_mob::BasicLogger::~BasicLogger(){
 		std::map<const std::string, Profiler>::iterator it(profilers.begin()),itEnd(profilers.end());
 		for(;it != itEnd; it++)
 		{
-			uint32_t addup = it->second.getAddUp() ;
-			*this << it->first << "[" << &(it->second) << "]: [total AddUp : " << addup << "],[total time : " << it->second.end() << "]\n" ;
+			boost::chrono::microseconds lifeTime = it->second.end() ;
+			*this << it->first << ": [totalTime AddUp : " << it->second.getAddUpTime().count() << "],[total accumulator : " << it->second.getAddUp() << "]  total object lifetime : " <<  lifeTime.count() << "\n";
 		}
 	}
 
@@ -166,22 +167,9 @@ sim_mob::Profiler & sim_mob::BasicLogger::prof(const std::string id, bool timer)
 	return it->second;
 }
 
-uint32_t sim_mob::BasicLogger::endProfiler(const std::string id)
-{
-	uint32_t temp = 0;
-	std::map<const std::string, Profiler>::iterator it(profilers.find(id));
-	if(it != profilers.end())
-	{
-		temp = it->second.end();
-		profilers.erase(it);
-	}
-	return temp;
-
-}
-
-void printTime(struct tm *tm, struct timeval & tv, std::string id){
-	sim_mob::Print() << "TIMESTAMP:\t  " << tm->tm_hour << std::setw(2) << ":" <<tm->tm_min << ":" << ":" <<  tm->tm_sec << ":" << tv.tv_usec << std::endl;
-}
+//void printTime(struct tm *tm, struct timeval & tv, std::string id){
+//	sim_mob::Print() << "TIMESTAMP:\t  " << tm->tm_hour << std::setw(2) << ":" <<tm->tm_min << ":" << ":" <<  tm->tm_sec << ":" << tv.tv_usec << std::endl;
+//}
 
 void  sim_mob::BasicLogger::initLogFile(const std::string& path)
 {

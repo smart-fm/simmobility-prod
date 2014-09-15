@@ -41,20 +41,22 @@ namespace sim_mob {
  **********************************/
 class Profiler{
 	///stores start and end of profiling
-	boost::atomic_uint32_t start, lastTick,total,totalTime;
+	boost::chrono::system_clock::time_point start, lastTick;
+	boost::chrono::microseconds totalTime;
+	///	some arbitrary accumulator
+	boost::atomic_uint32_t total;
 	///is the profiling object started profiling?
 	boost::atomic_bool started;
 	const std::string id;
-	///	returns the current time in us
-	const uint32_t getTime();
+	boost::chrono::system_clock::time_point getTime();
+	///	acumulate time
+	boost::chrono::microseconds addUpTime(const boost::chrono::microseconds value);
 public:
 	///	begin: should begin time or not
 	Profiler(const std::string id, bool begin_ = true);
 	Profiler(const Profiler &t);
 	/// return the elapse time since begin() and disable profiling unless explicitly bein()'ed
-	uint32_t end();
-	///	reset all the members to 0
-	void reset();
+	boost::chrono::microseconds end();
 	/**
 	 * return the difference between current time and previous call to tick()(or begin().
 	 * optionally(as in the argument list):
@@ -80,17 +82,12 @@ public:
 	 *tick(true);
 	 *elapsed_time = getAddUp();
 	 */
-	uint32_t tick(bool addToTotal = false);
-	///	add the given time to total time variable
-	uint32_t addUpTime(const uint32_t value);
-	///	add the given value to total time variable
-	uint32_t addUp(const uint32_t value);
-	///	manually set the total value
-	void setAddUp(const uint32_t value);
+	boost::chrono::microseconds tick(bool addToTotal = false);
 	///	return the total(accumulated) time
-	uint32_t getAddUpTime() const;
-	///	return total accumulated value
-	uint32_t getAddUp() const;
+	boost::chrono::microseconds getAddUpTime();
+	///	acumulate some arbitrary number(Type uint32_t)
+	uint32_t addUp(uint32_t value);
+	uint32_t getAddUp();
 
 };
 
@@ -100,8 +97,8 @@ public:
 class BasicLogger {
 private:
 
-	///total time measured by all profilers
-	uint32_t totalTime;
+//	///total time measured by all profilers
+//	uint64_t totalTime;
 
 	///	used for index
 	boost::mutex flushMutex;
@@ -169,13 +166,6 @@ protected:
 	 */
 	std::stringstream * getOut(bool renew= false);
 
-	/**
-	 * removes the profiler ,with the given id,
-	 * from the list of profilers.
-	 * returns the total elapsed time since it was started profiling
-	 */
-	uint32_t endProfiler(const std::string id);
-
 	///	print time in HH:MM::SS::uS todo:needs improvement
 	static void printTime(struct tm *tm, struct timeval & tv, std::string id);
 
@@ -199,7 +189,7 @@ public:
 	/**
 	 * simple interface to log a profiling output with a simple message
 	 */
-	inline void profileMsg(const std::string msg, uint32_t value)
+	inline void profileMsg(const std::string msg, uint64_t value)
 	{
 		*this << msg << " : " << value << "\n";
 	}

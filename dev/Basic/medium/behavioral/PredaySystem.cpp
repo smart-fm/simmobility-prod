@@ -579,12 +579,15 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours)
 		while(stopIt!=firstStopIt);
 		if(!stopTodSuccessful)
 		{
+			unsigned short numRemoved = 0;
 			++stopIt; // now stopIT points to the last valid stop
 			for(StopList::iterator eraseIt=stops.begin(); eraseIt!=stopIt; )
 			{
 				safe_delete_item(*eraseIt);
 				eraseIt = stops.erase(eraseIt);
+				numRemoved++;
 			}
+			logStream << "Removing " << numRemoved << " stops in 1st HT due to TOD issue." << std::endl;
 		}
 	}
 
@@ -618,11 +621,13 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours)
 		while(stopIt!=lastStopIt);
 		if(!stopTodSuccessful)
 		{
+			unsigned short numRemoved = 0;
 			for(StopList::iterator eraseIt=stopIt; eraseIt!=stops.end(); )
 			{
 				safe_delete_item(*eraseIt);
 				eraseIt = stops.erase(eraseIt);
 			}
+			logStream << "Removing " << numRemoved << " stops in 2nd HT due to TOD issue." << std::endl;
 		}
 	}
 }
@@ -817,7 +822,7 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 		stodParams.setTodHigh(LAST_INDEX); // end of day
 	}
 
-	if(stodParams.getTodHigh() < stodParams.getTodLow()) { throw std::runtime_error("Invalid low and high TODs for stop"); }
+	if(stodParams.getTodHigh() < stodParams.getTodLow()) { return false; } //Invalid low and high TODs for stop
 
 	ZoneParams* zoneDoc = zoneMap.at(zoneIdLookup.at(origin));
 	if(origin != destination)

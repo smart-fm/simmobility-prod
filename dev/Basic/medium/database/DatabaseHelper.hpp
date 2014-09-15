@@ -145,6 +145,8 @@ namespace medium {
 	const std::string MONGO_FIELD_EDU_LOGSUM = "edulogsum";
 	const std::string MONGO_FIELD_SHOP_LOGSUM = "shoplogsum";
 	const std::string MONGO_FIELD_OTHER_LOGSUM = "otherlogsum";
+	const std::string MONGO_FIELD_DPT_LOGSUM = "dptlogsum";
+	const std::string MONGO_FIELD_DPS_LOGSUM = "dpslogsum";
 
 	/**
 	 * Fields for mongoDB Zone data

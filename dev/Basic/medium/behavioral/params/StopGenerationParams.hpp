@@ -10,6 +10,7 @@
  */
 
 #pragma once
+#include <stdint.h>
 #include "behavioral/PredayClasses.hpp"
 
 namespace sim_mob {
@@ -23,9 +24,9 @@ namespace medium {
  */
 class StopGenerationParams {
 public:
-	StopGenerationParams(const Tour& tour, Stop* primaryActivity, const boost::unordered_map<std::string, bool>& dayPattern)
-	: tourMode(tourMode), primActivityArrivalTime(primaryActivity->getArrivalTime()), primActivityDeptTime(primaryActivity->getDepartureTime()),
-	  firstTour(true), firstHalfTour(true), stopCounter(0), hasSubtour(0),
+	StopGenerationParams(const Tour& tour, const Stop* primaryActivity, const boost::unordered_map<std::string, bool>& dayPattern)
+	: tourMode(tour.getTourMode()), primActivityArrivalTime(primaryActivity->getArrivalTime()), primActivityDeptTime(primaryActivity->getDepartureTime()),
+	  firstTour(tour.isFirstTour()), firstHalfTour(true), numPreviousStops(0), hasSubtour(tour.hasSubTours()),
 	  numRemainingTours(-1), distance(-1.0)	/*distance, initialized with invalid values*/
 	{
 		switch (tour.getTourType()) {
@@ -164,19 +165,19 @@ public:
 	}
 
 	int getFirstStop() const {
-		return (stopCounter == 0);
+		return (numPreviousStops == 0);
 	}
 
 	int getSecondStop() const {
-		return (stopCounter == 1);
+		return (numPreviousStops == 1);
 	}
 
 	int getThreePlusStop() const {
-		return (stopCounter >= 2);
+		return (numPreviousStops >= 2);
 	}
 
-	void setStopCounter(int stopCounter) {
-		this->stopCounter = stopCounter;
+	void setNumPreviousStops(uint8_t numPreviousStops) {
+		this->numPreviousStops = numPreviousStops;
 	}
 
 	int isAvailable(int stopType) const {
@@ -224,8 +225,8 @@ private:
 	int numRemainingTours;
 	double distance;
 	bool firstHalfTour;
-	int stopCounter;
-	int hasSubtour;
+	uint8_t numPreviousStops;
+	bool hasSubtour;
 
 	int workStopAvailability;
 	int eduStopAvailability;

@@ -35,12 +35,14 @@
                 
                 <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
                         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
-                        <script name="dp" file="dp.lua"/> <!-- Day Pattern -->
+                        <script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
+                        <script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->
+                        <script name="dps" file="dps.lua"/> <!-- Day Pattern Stops -->
                         <script name="ntw" file="ntw.lua"/> <!-- Number Of Tours Work -->
                         <script name="nte" file="nte.lua"/> <!-- Number Of Tours Education -->
                         <script name="nts" file="nts.lua"/> <!--Number Of Tours Shopping -->
                         <script name="nto" file="nto.lua"/> <!--Number Of Tours Others -->
-                        <script name="uw" file="uw.lua"/> <!--Attend Usual Work -->
+                        <script name="uw" file="tuw.lua"/> <!--Attend Usual Work -->
                         <script name="tmw" file="tmw.lua"/> <!--Tour Mode Work -->
                         <script name="tme" file="tme.lua"/> <!--Tour Mode Education -->
                         <script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->
@@ -58,7 +60,7 @@
                 </model_scripts>
                 
                 <!-- Names of MongoDB database and collections -->
-                <mongo_collections db_name="preday">
+                <mongo_collections db_name="mydb">
                         <mongo_collection name="population" collection="hits08_population_29k"/>
                         <mongo_collection name="tcost_bus" collection="tcost_bus"/>
                         <mongo_collection name="tcost_car" collection="tcost_car"/>

@@ -9,9 +9,11 @@
  */
 
 #pragma once
-#include <boost/pool/pool_alloc.hpp>
 #include <boost/unordered_map.hpp>
+#include <deque>
+#include <list>
 #include <map>
+#include <vector>
 #include <sstream>
 #include "behavioral/lua/PredayLuaProvider.hpp"
 #include "CalibrationStatistics.hpp"
@@ -40,7 +42,7 @@ private:
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
 	typedef boost::unordered_map<int, std::vector<ZoneNodeParams*> > ZoneNodeMap;
 	typedef std::deque<Tour> TourList;
-	typedef std::deque<Stop*> StopList;
+	typedef std::list<Stop*> StopList;
 
 	/**
 	 * For each work tour, if the person has a usual work location, this function predicts whether the person goes to his usual location or some other location.
@@ -98,10 +100,22 @@ private:
 
 	/**
 	 * Generates intermediate stops of types predicted by the day pattern model before and after the primary activity of a tour.
+	 * predicts stop location and time of day for each generated stop
 	 *
 	 * @param tour the tour for which stops are to be generated
+	 * @param remainingTours number of tours remaining for person after tour
 	 */
-	void generateIntermediateStops(Tour& tour, size_t remainingTours);
+	void constructIntermediateStops(Tour& tour, size_t remainingTours);
+
+	/**
+	 * Generates intermediate stops of types predicted by the day pattern model before and after the primary activity of a tour.
+	 *
+	 * @param halfTour the half tour for which we are constructing stops. admissible values are 1 and 2.
+	 * @param tour the tour for which stops are to be generated
+	 * @param primaryStop primary stop of tour
+	 * @param remainingTours number of tours remaining for person after tour
+	 */
+	void generateIntermediateStops(uint8_t halfTour, Tour& tour,  const Stop* primaryStop, size_t remainingTours);
 
 	/**
 	 * Predicts the mode and destination together for stops.
@@ -116,9 +130,11 @@ private:
 	 * Predicts the departure time for stops after the primary activity.
 	 *
 	 * @param stop the stop for which the time of day is to be predicted
+	 * @param destintionLocation the location of the destination. (origin is the stop's location)
 	 * @param isBeforePrimary indicates whether stop is before the primary activity or after the primary activity of the tour
+	 * @return true if prediction is successful. false otherwise.
 	 */
-	void predictStopTimeOfDay(Stop* stop, bool isBeforePrimary);
+	bool predictStopTimeOfDay(Stop* stop, int destinationLocation, bool isBeforePrimary);
 
 	/**
 	 * issues query to time dependent travel time collection in mongoDB to fetch travel time
@@ -268,6 +284,11 @@ private:
     const CostMap& opCostMap;
 
     /**
+     * map of unavailable ODs for mode destination
+     */
+    const std::vector<OD_Pair>& unavailableODs;
+
+    /**
      * list of tours for this person
      */
     TourList tours;
@@ -296,7 +317,8 @@ public:
 	PredaySystem(PersonParams& personParams,
 			const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 			const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
-			const std::map<std::string, db::MongoDao*>& mongoDao);
+			const std::map<std::string, db::MongoDao*>& mongoDao,
+			const std::vector<OD_Pair>& unavailableODs);
 	virtual ~PredaySystem();
 
 	/**

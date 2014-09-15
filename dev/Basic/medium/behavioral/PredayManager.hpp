@@ -14,8 +14,10 @@
 #include <boost/function.hpp>
 #include <ostream>
 #include <sstream>
+#include <string>
 #include <vector>
-#include "behavioral/PredaySystem.hpp"
+#include "PredaySystem.hpp"
+#include "PredayClasses.hpp"
 #include "CalibrationStatistics.hpp"
 #include "config/MT_Config.hpp"
 #include "params/PersonParams.hpp"
@@ -138,6 +140,13 @@ public:
 	void loadCosts(db::BackendType dbType);
 
 	/**
+	 * loads the un-available origin destination pairs
+	 *
+	 * @param dbType type of backend where the cost data is available
+	 */
+	void loadUnavailableODs(db::BackendType dbType);
+
+	/**
 	 * Distributes persons to different threads and starts the threads which process the persons
 	 */
 	void dispatchPersons();
@@ -152,6 +161,7 @@ private:
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
 	typedef boost::unordered_map<int, std::vector<ZoneNodeParams*> > ZoneNodeMap;
+
 	typedef void (PredayManager::*threadedFnPtr)(const PersonList::iterator&, const PersonList::iterator&, size_t);
 
 	/**
@@ -278,6 +288,9 @@ private:
     CostMap amCostMap;
     CostMap pmCostMap;
     CostMap opCostMap;
+
+    /** for each origin, has a list of unavailable destinations */
+    std::vector<OD_Pair> unavailableODs;
 
     /**
      * list of values computed for objective function

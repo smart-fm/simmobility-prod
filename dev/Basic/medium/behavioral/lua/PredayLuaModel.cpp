@@ -58,6 +58,8 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("edulogsum", &PersonParams::getEduLogSum)
 				.addProperty("shoplogsum", &PersonParams::getShopLogSum)
 				.addProperty("otherlogsum", &PersonParams::getOtherLogSum)
+				.addProperty("dptour_logsum", &PersonParams::getDptLogsum)
+				.addProperty("dpstop_logsum", &PersonParams::getDpsLogsum)
 				.addFunction("getTimeWindowAvailabilityTour", &PersonParams::getTimeWindowAvailability)
 			.endClass()
 
@@ -147,6 +149,8 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addFunction("population", &StopModeDestinationParams::getPopulation)
 				.addFunction("area", &StopModeDestinationParams::getArea)
 				.addFunction("shop", &StopModeDestinationParams::getShop)
+				.addProperty("first_bound", &StopModeDestinationParams::isFirstBound)
+				.addProperty("second_bound", &StopModeDestinationParams::isSecondBound)
 				.addFunction("availability",&StopModeDestinationParams::isAvailable_IMD)
 			.endClass()
 
@@ -205,21 +209,58 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 
 }
 
+void sim_mob::medium::PredayLuaModel::computeDayPatternLogsums(PersonParams& personParams) const
+{
+	LuaRef computeLogsumDPT = getGlobal(state.get(), "compute_logsum_dpt");
+	LuaRef dptLogsum = computeLogsumDPT(personParams);
+	personParams.setDptLogsum(dptLogsum.cast<double>());
+
+	LuaRef computeLogsumDPS = getGlobal(state.get(), "compute_logsum_dps");
+	LuaRef dpsLogsum = computeLogsumDPS(personParams);
+	personParams.setDpsLogsum(dpsLogsum.cast<double>());
+}
+
 void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern) const {
-	LuaRef chooseDP = getGlobal(state.get(), "choose_dp");
-	LuaRef retVal = chooseDP(&personParams);
-	if (retVal.isTable()) {
-		dayPattern["WorkT"] = retVal[1].cast<int>();
-		dayPattern["EduT"] = retVal[2].cast<int>();
-		dayPattern["ShopT"] = retVal[3].cast<int>();
-		dayPattern["OthersT"] = retVal[4].cast<int>();
-		dayPattern["WorkI"] = retVal[5].cast<int>();
-		dayPattern["EduI"] = retVal[6].cast<int>();
-		dayPattern["ShopI"] = retVal[7].cast<int>();
-		dayPattern["OthersI"] = retVal[8].cast<int>();
+	LuaRef chooseDPB = getGlobal(state.get(), "choose_dpb");
+	LuaRef retValB = chooseDPB(&personParams);
+	if(retValB.cast<int>() == 1) // no travel
+	{
+		dayPattern["WorkT"] = 0;
+		dayPattern["EduT"] = 0;
+		dayPattern["ShopT"] = 0;
+		dayPattern["OthersT"] = 0;
+		dayPattern["WorkI"] = 0;
+		dayPattern["EduI"] = 0;
+		dayPattern["ShopI"] = 0;
+		dayPattern["OthersI"] = 0;
 	}
-	else {
-		throw std::runtime_error("Error in day pattern prediction. Unexpected return value");
+	else
+	{
+		//Day pattern stops
+		LuaRef chooseDPT = getGlobal(state.get(), "choose_dpt");
+		LuaRef retValT = chooseDPT(&personParams);
+		if (retValT.isTable()) {
+			dayPattern["WorkT"] = retValT[1].cast<int>();
+			dayPattern["EduT"] = retValT[2].cast<int>();
+			dayPattern["ShopT"] = retValT[3].cast<int>();
+			dayPattern["OthersT"] = retValT[4].cast<int>();
+		}
+		else {
+			throw std::runtime_error("Error in day pattern tours prediction. Unexpected return value");
+		}
+
+		//Day pattern tours
+		LuaRef chooseDPS = getGlobal(state.get(), "choose_dps");
+		LuaRef retValS = chooseDPS(&personParams);
+		if (retValS.isTable()) {
+			dayPattern["WorkI"] = retValS[1].cast<int>();
+			dayPattern["EduI"] = retValS[2].cast<int>();
+			dayPattern["ShopI"] = retValS[3].cast<int>();
+			dayPattern["OthersI"] = retValS[4].cast<int>();
+		}
+		else {
+			throw std::runtime_error("Error in day pattern stops prediction. Unexpected return value");
+		}
 	}
 }
 

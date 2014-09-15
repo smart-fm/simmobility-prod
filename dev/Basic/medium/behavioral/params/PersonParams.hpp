@@ -328,6 +328,26 @@ public:
 	 */
 	void print();
 
+	double getDpsLogsum() const
+	{
+		return dpsLogsum;
+	}
+
+	void setDpsLogsum(double dpsLogsum)
+	{
+		this->dpsLogsum = dpsLogsum;
+	}
+
+	double getDptLogsum() const
+	{
+		return dptLogsum;
+	}
+
+	void setDptLogsum(double dptLogsum)
+	{
+		this->dptLogsum = dptLogsum;
+	}
+
 private:
 	std::string personId;
 	int personTypeId;
@@ -359,6 +379,8 @@ private:
 	double eduLogSum;
 	double shopLogSum;
 	double otherLogSum;
+	double dptLogsum;
+	double dpsLogsum;
 
 	/**
 	 * Time windows currently available for the person.

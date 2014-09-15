@@ -32,7 +32,9 @@ namespace {
 				const std::string& scriptsPath = extScripts.getPath();
 				ModelContext* modelCtx = new ModelContext();
 				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dp"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dpb"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dpt"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dps"));
 				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("ntw"));
 				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("nte"));
 				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("nts"));

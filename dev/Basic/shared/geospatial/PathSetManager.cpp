@@ -138,7 +138,7 @@ double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::strin
 	if(it!=segmentRealTimeTravelTimePool.end())
 	{
 		logger << "using realtime travel time \n";
-		std::vector<sim_mob::LinkTravelTime*> e = (*it).second;
+		std::vector<sim_mob::LinkTravelTime*> &e = (*it).second;
 		for(int i=0;i<e.size();++i)
 		{
 			sim_mob::LinkTravelTime* l = e[i];
@@ -159,7 +159,7 @@ double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::strin
 	if(it!=segmentDefaultTravelTimePool.end())
 	{
 //		logger << "using default travel time \n";
-		std::vector<sim_mob::LinkTravelTime*> e = (*it).second;
+		std::vector<sim_mob::LinkTravelTime*> &e = (*it).second;
 		for(int i=0;i<e.size();++i)
 		{
 			sim_mob::LinkTravelTime* l = e[i];
@@ -188,7 +188,7 @@ double sim_mob::PathSetParam::getDefaultTravelTimeBySegId(std::string id)
 			segmentDefaultTravelTimePool.find(id);
 	if(it!=segmentDefaultTravelTimePool.end())
 	{
-		std::vector<sim_mob::LinkTravelTime*> e = (*it).second;
+		std::vector<sim_mob::LinkTravelTime*> &e = (*it).second;
 		for(int i=0;i<e.size();++i)
 		{
 			sim_mob::LinkTravelTime* l = e[i];
@@ -216,7 +216,7 @@ double sim_mob::PathSetParam::getTravelTimeBySegId(std::string id,sim_mob::Daily
 			segmentRealTimeTravelTimePool.find(id);
 	if(it!=segmentRealTimeTravelTimePool.end())
 	{
-		std::vector<sim_mob::LinkTravelTime*> e = (*it).second;
+		std::vector<sim_mob::LinkTravelTime*> &e = (*it).second;
 		for(int i=0;i<e.size();++i)
 		{
 			sim_mob::LinkTravelTime* l = e[i];
@@ -231,7 +231,7 @@ double sim_mob::PathSetParam::getTravelTimeBySegId(std::string id,sim_mob::Daily
 	it = segmentDefaultTravelTimePool.find(id);
 	if(it!=segmentDefaultTravelTimePool.end())
 	{
-		std::vector<sim_mob::LinkTravelTime*> e = (*it).second;
+		std::vector<sim_mob::LinkTravelTime*> &e = (*it).second;
 		for(int i=0;i<e.size();++i)
 		{
 			sim_mob::LinkTravelTime* l = e[i];
@@ -244,8 +244,7 @@ double sim_mob::PathSetParam::getTravelTimeBySegId(std::string id,sim_mob::Daily
 	}
 	else
 	{
-		std::string str = "PathSetParam::getTravelTimeBySegId=> no travel time for segment " + id;
-		logger<<"error: "<<str<<std::endl;
+		logger <<  "Error :PathSetParam::getTravelTimeBySegId=> no travel time for segment " + id + "\n";
 	}
 	return res;
 }
@@ -2137,7 +2136,7 @@ double sim_mob::PathSetManager::getTravelTimeBySegId(std::string id,sim_mob::Dai
 	it = pathSetParam->segmentDefaultTravelTimePool.find(id);
 	if(it!= pathSetParam->segmentDefaultTravelTimePool.end())
 	{
-		std::vector<sim_mob::LinkTravelTime*> e = (*it).second;
+		std::vector<sim_mob::LinkTravelTime*> &e = (*it).second;
 		for(int i=0;i<e.size();++i)
 		{
 			sim_mob::LinkTravelTime* l = e[i];

@@ -33,12 +33,13 @@ sim_mob::medium::PredayLuaModel::~PredayLuaModel()
 void sim_mob::medium::PredayLuaModel::mapClasses() {
 	getGlobalNamespace(state.get())
 			.beginClass <PersonParams> ("PersonParams")
+				.addProperty("person_id", &PersonParams::getPersonId)
 				.addProperty("person_type_id", &PersonParams::getPersonTypeId)
 				.addProperty("age_id", &PersonParams::getAgeId)
 				.addProperty("universitystudent", &PersonParams::getIsUniversityStudent)
 				.addProperty("female_dummy", &PersonParams::getIsFemale)
-				.addProperty("student_dummy", &PersonParams::isStudent)
-				.addProperty("worker_dummy", &PersonParams::isWorker)
+				.addProperty("student_dummy", &PersonParams::isStudent) //not used in lua
+				.addProperty("worker_dummy", &PersonParams::isWorker) //not used in lua
 				.addProperty("income_id", &PersonParams::getIncomeId)
 				.addProperty("missing_income", &PersonParams::getMissingIncome)
 				.addProperty("work_at_home_dummy", &PersonParams::getWorksAtHome)
@@ -46,10 +47,10 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("car_own_normal", &PersonParams::getCarOwnNormal)
 				.addProperty("car_own_offpeak", &PersonParams::getCarOwnOffpeak)
 				.addProperty("motor_own", &PersonParams::getMotorOwn)
-				.addProperty("fixed_work_hour", &PersonParams::getHasFixedWorkTiming)
-				.addProperty("homeLocation", &PersonParams::getHomeLocation)
-				.addProperty("fixed_place", &PersonParams::getFixedWorkPlace)
-				.addProperty("fixedSchoolLocation", &PersonParams::getFixedSchoolLocation)
+				.addProperty("fixed_work_hour", &PersonParams::getHasFixedWorkTiming) //not used in lua
+				.addProperty("homeLocation", &PersonParams::getHomeLocation) //not used in lua
+				.addProperty("fixed_place", &PersonParams::getFixedWorkPlace) //not used in lua
+				.addProperty("fixedSchoolLocation", &PersonParams::getFixedSchoolLocation) //not used in lua
 				.addProperty("only_adults", &PersonParams::getHH_OnlyAdults)
 				.addProperty("only_workers", &PersonParams::getHH_OnlyWorkers)
 				.addProperty("num_underfour", &PersonParams::getHH_NumUnder4)

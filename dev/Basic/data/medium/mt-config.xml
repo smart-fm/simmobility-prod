@@ -25,7 +25,7 @@
                 <run_mode value="simulation"/>
                 <!-- Number of threads to create for processing the population in-->
                 <!-- the preday demand simulator -->
-                <threads value="4"/>
+                <threads value="1"/>
                 <!-- outputs the preday predictions as trip chains in PostgreSQL database if enabled -->
                 <output_tripchains enabled="false"/>
                 <!-- outputs the preday's predicted tours and stops to mongodb if enabled -->

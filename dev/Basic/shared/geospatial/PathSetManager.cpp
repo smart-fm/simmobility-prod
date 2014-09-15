@@ -72,13 +72,13 @@ void sim_mob::PathSetParam::getDataFromDB()
 				ERP_SurchargePool.size() << " "  << ERP_Gantry_ZonePool.size() << " " << ERP_SectionPool.size() << "\n";
 
 		sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-				segmentDefaultTravelTime_pool);
-		logger << segmentDefaultTravelTime_pool.size() << " records for Link_default_travel_time found\n";
+				segmentDefaultTravelTimePool);
+		logger << segmentDefaultTravelTimePool.size() << " records for Link_default_travel_time found\n";
 
 		bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 				pathSetTravelTimeRealTimeTableName,
-				segmentRealTimeTravelTime_pool);
-		logger << segmentRealTimeTravelTime_pool.size() << " records for Link_realtime_travel_time found\n";
+				segmentRealTimeTravelTimePool);
+		logger << segmentRealTimeTravelTimePool.size() << " records for Link_realtime_travel_time found\n";
 		if(!res) // no realtime travel time table
 		{
 			//create
@@ -134,8 +134,8 @@ double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::strin
 	double totalTravelTime=0.0;
 	int count=0;
 	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >::iterator it =
-			segmentRealTimeTravelTime_pool.find(id);
-	if(it!=segmentRealTimeTravelTime_pool.end())
+			segmentRealTimeTravelTimePool.find(id);
+	if(it!=segmentRealTimeTravelTimePool.end())
 	{
 		logger << "using realtime travel time \n";
 		std::vector<sim_mob::LinkTravelTime*> e = (*it).second;
@@ -155,8 +155,8 @@ double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::strin
 		}
 	}
 	//2. if no , check default
-	it = segmentDefaultTravelTime_pool.find(id);
-	if(it!=segmentDefaultTravelTime_pool.end())
+	it = segmentDefaultTravelTimePool.find(id);
+	if(it!=segmentDefaultTravelTimePool.end())
 	{
 //		logger << "using default travel time \n";
 		std::vector<sim_mob::LinkTravelTime*> e = (*it).second;
@@ -185,8 +185,8 @@ double sim_mob::PathSetParam::getDefaultTravelTimeBySegId(std::string id)
 	double totalTravelTime=0.0;
 	int count=0;
 	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >::iterator it =
-			segmentDefaultTravelTime_pool.find(id);
-	if(it!=segmentDefaultTravelTime_pool.end())
+			segmentDefaultTravelTimePool.find(id);
+	if(it!=segmentDefaultTravelTimePool.end())
 	{
 		std::vector<sim_mob::LinkTravelTime*> e = (*it).second;
 		for(int i=0;i<e.size();++i)
@@ -213,8 +213,8 @@ double sim_mob::PathSetParam::getTravelTimeBySegId(std::string id,sim_mob::Daily
 	//1. check realtime table
 	double res=0.0;
 	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >::iterator it =
-			segmentRealTimeTravelTime_pool.find(id);
-	if(it!=segmentRealTimeTravelTime_pool.end())
+			segmentRealTimeTravelTimePool.find(id);
+	if(it!=segmentRealTimeTravelTimePool.end())
 	{
 		std::vector<sim_mob::LinkTravelTime*> e = (*it).second;
 		for(int i=0;i<e.size();++i)
@@ -228,8 +228,8 @@ double sim_mob::PathSetParam::getTravelTimeBySegId(std::string id,sim_mob::Daily
 		}
 	}
 	//2. if no , check default
-	it = segmentDefaultTravelTime_pool.find(id);
-	if(it!=segmentDefaultTravelTime_pool.end())
+	it = segmentDefaultTravelTimePool.find(id);
+	if(it!=segmentDefaultTravelTimePool.end())
 	{
 		std::vector<sim_mob::LinkTravelTime*> e = (*it).second;
 		for(int i=0;i<e.size();++i)
@@ -322,7 +322,6 @@ uint32_t sim_mob::PathSetParam::getSize()
 	sum += sizeof(sim_mob::RoadSegment*) * segPool.size();
 
 //		std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*> wpPool;//unused for now
-
 	//std::map<std::string,sim_mob::Node*> nodePool;
 	std::pair<std::string,sim_mob::Node*> nodePool_pair;
 	std::cout << "nodePool.size() " << nodePool.size() << std::endl;
@@ -368,20 +367,20 @@ uint32_t sim_mob::PathSetParam::getSize()
 	}
 	sum += sizeof(sim_mob::ERP_Section*) * ERP_SectionPool.size();
 
-//		std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > segmentDefaultTravelTime_pool;
+//		std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > segmentDefaultTravelTimePool;
 	std::pair<std::string,std::vector<sim_mob::LinkTravelTime*> > Link_default_travel_time_pool_pair;
-	logger.prof("Link_default_travel_time_pool_size", false).addUp(segmentDefaultTravelTime_pool.size());
-	BOOST_FOREACH(Link_default_travel_time_pool_pair,segmentDefaultTravelTime_pool)
+	logger.prof("Link_default_travel_time_pool_size", false).addUp(segmentDefaultTravelTimePool.size());
+	BOOST_FOREACH(Link_default_travel_time_pool_pair,segmentDefaultTravelTimePool)
 	{
 		sum += Link_default_travel_time_pool_pair.first.length();
 		sum += sizeof(sim_mob::LinkTravelTime*) * Link_default_travel_time_pool_pair.second.size();
 	}
 
 
-//		std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > segmentRealTimeTravelTime_pool;
+//		std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > segmentRealTimeTravelTimePool;
 	std::pair<std::string,std::vector<sim_mob::LinkTravelTime*> > Link_realtime_travel_time_pool_pair;
-	logger.prof("Link_realtime_travel_time_pool_size", false).addUp(segmentRealTimeTravelTime_pool.size());
-	BOOST_FOREACH(Link_realtime_travel_time_pool_pair,segmentRealTimeTravelTime_pool)
+	logger.prof("Link_realtime_travel_time_pool_size", false).addUp(segmentRealTimeTravelTimePool.size());
+	BOOST_FOREACH(Link_realtime_travel_time_pool_pair,segmentRealTimeTravelTimePool)
 	{
 		sum += Link_realtime_travel_time_pool_pair.first.length();
 		sum += sizeof(sim_mob::LinkTravelTime*) * Link_realtime_travel_time_pool_pair.second.size();
@@ -2135,8 +2134,8 @@ double sim_mob::PathSetManager::getTravelTimeBySegId(std::string id,sim_mob::Dai
 	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >::iterator it;
 	double res=0.0;
 	//2. if no , check default
-	it = pathSetParam->segmentDefaultTravelTime_pool.find(id);
-	if(it!= pathSetParam->segmentDefaultTravelTime_pool.end())
+	it = pathSetParam->segmentDefaultTravelTimePool.find(id);
+	if(it!= pathSetParam->segmentDefaultTravelTimePool.end())
 	{
 		std::vector<sim_mob::LinkTravelTime*> e = (*it).second;
 		for(int i=0;i<e.size();++i)
@@ -2152,7 +2151,7 @@ double sim_mob::PathSetManager::getTravelTimeBySegId(std::string id,sim_mob::Dai
 	else
 	{
 		std::string str = "PathSetManager::getTravelTimeBySegId=> no travel time for segment " + id + "  ";
-		logger<< "error: " << str << pathSetParam->segmentDefaultTravelTime_pool.size() << std::endl;
+		logger<< "error: " << str << pathSetParam->segmentDefaultTravelTimePool.size() << std::endl;
 	}
 	return res;
 }

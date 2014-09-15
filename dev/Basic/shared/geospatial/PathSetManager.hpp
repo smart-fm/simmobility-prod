@@ -124,10 +124,10 @@ public:
 	std::map<std::string,sim_mob::ERP_Section*> ERP_SectionPool;
 
 	///	information of "Segment" default travel time <segment aim-sun id ,Link_default_travel_time with diff time stamp>
-	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > segmentDefaultTravelTime_pool;
+	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > segmentDefaultTravelTimePool;
 
 	///	information of "Segment" reatravel time <segment aim-sun id ,Link_default_travel_time with diff time stamp>
-	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > segmentRealTimeTravelTime_pool;
+	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > segmentRealTimeTravelTimePool;
 
 	///	simmobility's road network
 	const sim_mob::RoadNetwork& roadNetwork;

@@ -672,6 +672,12 @@ void PredaySystem::generateIntermediateStops(uint8_t halfTour, Tour& tour, const
 			startTime = prevTour.getEndTime();
 		}
 		double endTime = primaryStop->getArrivalTime();
+		if(startTime > endTime)
+		{
+			std::stringstream ss;
+			ss << "start time is greater than end time; FIRST HT: start-" << startTime << " end-" << endTime << std::endl;
+			throw std::runtime_error(ss.str());
+		}
 		isgParams.setTimeWindowFirstBound((endTime - startTime + 1)/2); //HOURS
 		isgParams.setTimeWindowSecondBound(0);
 		break;
@@ -680,6 +686,12 @@ void PredaySystem::generateIntermediateStops(uint8_t halfTour, Tour& tour, const
 	{
 		double startTime = primaryStop->getDepartureTime();
 		double endTime = LAST_INDEX;
+		if(startTime > endTime)
+		{
+			std::stringstream ss;
+			ss << "start time is greater than end time; SECOND HT: start-" << startTime << " end-" << endTime << std::endl;
+			throw std::runtime_error(ss.str());
+		}
 		isgParams.setTimeWindowFirstBound(0);
 		isgParams.setTimeWindowSecondBound((endTime - startTime + 1)/2); //HOURS
 		break;
@@ -805,7 +817,7 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 		stodParams.setTodHigh(LAST_INDEX); // end of day
 	}
 
-	if(stodParams.getTodHigh() < stodParams.getTodLow()) { return false; } //Invalid low and high TODs for stop
+	if(stodParams.getTodHigh() < stodParams.getTodLow()) { throw std::runtime_error("Invalid low and high TODs for stop"); }
 
 	ZoneParams* zoneDoc = zoneMap.at(zoneIdLookup.at(origin));
 	if(origin != destination)

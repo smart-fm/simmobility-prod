@@ -1323,7 +1323,8 @@ void sim_mob::medium::PredaySystem::insertStop(const Stop* stop, int stopNumber,
 	"person_id" << personParams.getPersonId() <<
 	"tour_num" << tourNumber <<
 	"stop_mode" << stop->getStopMode() <<
-	"hhfactor" << personParams.getHouseholdFactor()
+	"hhfactor" << personParams.getHouseholdFactor() <<
+	"first_bound" << stop->isInFirstHalfTour()
 	);
 	mongoDao["Output_Activity"]->insert(stopDoc);
 }

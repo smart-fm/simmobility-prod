@@ -309,21 +309,6 @@ public:
 		}
 	}
 
-	/**
-	 * removes a stop to the stops list appropriately depending on whether the stop
-	 * is in the first half tour or the second.
-	 *
-	 * @param stop stop to be removed
-	 */
-	void removeStop(Stop* stop) {
-		if(stop->isInFirstHalfTour()) {
-			stops.pop_front();
-		}
-		else {
-			stops.pop_back();
-		}
-	}
-
 	const Stop* getPrimaryStop() const {
 		return primaryStop;
 	}

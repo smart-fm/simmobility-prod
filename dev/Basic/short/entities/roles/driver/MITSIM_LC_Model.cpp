@@ -829,7 +829,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	else
 	{
 		p.utilityCurrent = 1.0;
-		p.lcd = "lcd-c";
+		p.lcd = "lcd-cc";
 		return LCS_SAME;
 	}
 
@@ -1528,7 +1528,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 		p.rnd=0;
 		// check lanes connect to next segment
 		checkConnectLanes(p);
-if(p.parentId == 1 && p.now.frame()>36)
+if(p.parentId == 54 && p.now.frame()>1476)
 {
 	int i=0;
 }

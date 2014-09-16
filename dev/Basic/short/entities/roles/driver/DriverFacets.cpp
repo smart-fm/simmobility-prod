@@ -2518,9 +2518,9 @@ void sim_mob::DriverMovement::updateLateralMovement(DriverUpdateParams& p)
 			p.setFlag(FLAG_PREV_LC_RIGHT);
 		}
 		p.unsetStatus(STATUS_CHANGING);
-		if(!p.getStatus(STATUS_MANDATORY)) {
+		//if(!p.getStatus(STATUS_MANDATORY)) {
 			p.lcTimeTag = p.now.ms();
-		}
+		//}
 	// lane change complete, unset the "performing lane change" status
 		p.unsetStatus(STATUS_LC_CHANGING);
 		p.unsetStatus(STATUS_MANDATORY); // Angus

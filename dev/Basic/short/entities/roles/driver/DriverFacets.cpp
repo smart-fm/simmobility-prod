@@ -841,7 +841,7 @@ DPoint sim_mob::DriverMovement::getPosition() const {
 		Warn() << "WARNING: Vehicle is in intersection without a position!"
 				<< std::endl;
 	}
-
+	parentDriver->getParams().disAlongPolyline = fwdDriverMovement.getCurrDistAlongPolylineCM();
 	DPoint origPos = fwdDriverMovement.getPosition();
 	if (fwdDriverMovement.isInIntersection()
 			&& parentDriver->vehicle->getPositionInIntersection().x != 0
@@ -858,6 +858,7 @@ DPoint sim_mob::DriverMovement::getPosition() const {
 						- fwdDriverMovement.getCurrPolypoint().getY());
 		latMv.flipLeft();
 		latMv.scaleVectTo(parentDriver->vehicle->getLateralMovement()).translateVect();
+		parentDriver->getParams().latMv_ = latMv;
 		origPos.x += latMv.getX();
 		origPos.y += latMv.getY();
 	}

@@ -9,7 +9,7 @@ namespace sim_mob
 {
 DriverUpdateParams::DriverUpdateParams()
 : UpdateParams() ,status(0),flags(0),yieldTime(0,0),lcTimeTag(200),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0),
-  utilityCurrent(0),utilityRight(0),utilityLeft(0),rnd(0),perceivedDistToTrafficSignal(500){
+  utilityCurrent(0),utilityRight(0),utilityLeft(0),rnd(0),perceivedDistToTrafficSignal(500),disAlongPolyline(0){
 
 }
 void DriverUpdateParams::setStatus(unsigned int s)
@@ -116,6 +116,14 @@ void DriverUpdateParams::buildDebugInfo()
 		else if(getStatus(STATUS_LC_RIGHT)){
 			lc = "lc-r";
 		}
+
+		//debug car jump;
+		char dl[20] = "\0";
+		sprintf(dl,"dl%3.2f",disAlongPolyline/100.0);
+		char latx[20] = "\0";
+		sprintf(latx,"latx%3.2f",latMv_.getX()/100.0);
+		char laty[20] = "\0";
+		sprintf(laty,"laty%3.2f",latMv_.getY()/100.0);
 	//
 	////	s<<ct
 	//			s<<":"<<newFwdAccChar
@@ -128,12 +136,14 @@ void DriverUpdateParams::buildDebugInfo()
 
 //debug lc
 #if 1
+
 						<<":"<<ul
 						<<":"<<uc
 						<<":"<<ur
 						<<":"<<rnd_
 						<<":"<<lcd
-						<<":"<<lc;
+						<<":"<<lc
+						<<":"<<latx<<":"<<laty<<":"<<dl;
 #endif
 
 	// debug aura mgr

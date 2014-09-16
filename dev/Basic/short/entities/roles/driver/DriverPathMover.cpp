@@ -998,6 +998,11 @@ DPoint sim_mob::DriverPathMover::getPosition() const
 		return DPoint(currPolypoint->getX(), currPolypoint->getY());
 	}
 
+	bool res = false;
+	if(currPolypoint == nextPolypoint){
+		res = true;
+	}
+	throwIf(res, "wrong");
 	//Else, scale a vector like normal
 	DynamicVector movementVect(currPolypoint->getX(), currPolypoint->getY(), nextPolypoint->getX(), nextPolypoint->getY());
 	movementVect.scaleVectTo(getCurrDistAlongPolylineCM()).translateVect();

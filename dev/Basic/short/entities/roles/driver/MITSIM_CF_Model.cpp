@@ -238,6 +238,9 @@ void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p) {
 
 	// init step size , i=3 stopped vehicle
 	p.nextStepSize = updateStepSize[3];
+	if(p.nextStepSize == 0){
+		p.nextStepSize = p.elapsedSeconds;
+	}
 	nextPerceptionSize = perceptionSize[3];
 
 	// visibility
@@ -1648,6 +1651,9 @@ double sim_mob::CarFollowModel::calcNextStepSize(DriverUpdateParams& p) {
 	}
 
 	p.nextStepSize = updateStepSize[i];
+	if(p.nextStepSize == 0){
+		p.nextStepSize = p.elapsedSeconds;
+	}
 	nextPerceptionSize = perceptionSize[i];
 	p.driver->resetReacTime(nextPerceptionSize * 1000);
 	return p.nextStepSize;

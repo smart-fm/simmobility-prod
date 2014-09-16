@@ -65,7 +65,7 @@ public:
 	DriverUpdateParams();// : UpdateParams() ,status(0),yieldTime(0,0),lcTimeTag(0),speedOnSign(0),newFwdAcc(0),cftimer(0.0){}
 	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen) ,nextLaneIndex(0),isTargetLane(true),
 			status(0),flags(0),yieldTime(0,0),lcTimeTag(200),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0),utilityLeft(0),
-			utilityCurrent(0),utilityRight(0),perceivedDistToTrafficSignal(500){}
+			utilityCurrent(0),utilityRight(0),perceivedDistToTrafficSignal(500),disAlongPolyline(0){}
 
 	virtual void reset(timeslice now, const Driver& owner);
 
@@ -286,6 +286,10 @@ public:
 	int initSegId;
 	int initDis;
 	int initSpeed;
+
+	//debug car jump
+	double disAlongPolyline; //cm
+	DynamicVector latMv_;
 
 //	//perform incident response
 //	IncidentPerformer incidentPerformer;

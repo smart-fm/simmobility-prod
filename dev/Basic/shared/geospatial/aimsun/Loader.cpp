@@ -2442,6 +2442,9 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 	for (std::vector<Polyline*>::iterator it=src.polylineEntries.begin(); it!=src.polylineEntries.end(); it++) {
 		//TODO: This might not trace the median, and the start/end points are definitely not included.
 		sim_mob::Point2D pt((*it)->xPos, (*it)->yPos);
+		if(src.generatedSegment->originalDB_ID.getLogItem().find("34402") != std::string::npos){
+			int i=0;
+		}
 		src.generatedSegment->polyline.push_back(pt);
 	}
 

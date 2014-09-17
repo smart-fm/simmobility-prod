@@ -9,7 +9,8 @@ namespace sim_mob
 {
 DriverUpdateParams::DriverUpdateParams()
 : UpdateParams() ,status(0),flags(0),yieldTime(0,0),lcTimeTag(200),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0),
-  utilityCurrent(0),utilityRight(0),utilityLeft(0),rnd(0),perceivedDistToTrafficSignal(500),disAlongPolyline(0){
+  utilityCurrent(0),utilityRight(0),utilityLeft(0),rnd(0),perceivedDistToTrafficSignal(500),disAlongPolyline(0),dorigPosx(0),dorigPosy(0),
+  movementVectx(0),movementVecty(0){
 
 }
 void DriverUpdateParams::setStatus(unsigned int s)
@@ -41,8 +42,62 @@ void DriverUpdateParams::buildDebugInfo()
 	//	double ct=cftimer;
 	//	if(abs(cftimer)<0.001)
 	//		ct=0;
+
+	//
+	//	size_t currLaneIdx = currLaneIndex;
+	//	if(currLaneIdx<0.1) currLaneIdx = 0;
+	//
+	//	double dis = perceivedDistToFwdCar / 100.0;
+	//	char disChar[20] = "\0";
+	//	sprintf(disChar,"%03.1f",dis);
+	//
+
+
+
+#if 0
+		//debug car jump;
+		char dl[20] = "\0";
+		sprintf(dl,"dl%3.2f",disAlongPolyline/100.0);
+		char dox[20] = "\0";
+		sprintf(dox,"dox%3.2f",dorigPosx/100.0);
+		char doy[20] = "\0";
+		sprintf(doy,"doy%3.2f",dorigPosy/100.0);
+		char latx[20] = "\0";
+		sprintf(latx,"latx%3.2f",latMv_.getX()/100.0);
+		char laty[20] = "\0";
+		sprintf(laty,"laty%3.2f",latMv_.getY()/100.0);
+		char mx[20] = "\0";
+		sprintf(mx,"mx%12f",movementVectx);
+		char my[20] = "\0";
+		sprintf(my,"my%12f",movementVecty);
+		s<<"            "<<parentId
+				<<":"<<latx<<":"<<laty<<":"<<dl<<":"<<dox<<":"<<doy<<":"<<mx<<":"<<my;
+#endif
+
+#if 1
+		//debug car following
 		char newFwdAccChar[20] = "\0";
-		sprintf(newFwdAccChar,"%03.1f",newFwdAcc);
+		sprintf(newFwdAccChar,"acc%03.1f",newFwdAcc);
+
+		s<<"            "<<parentId
+		<<":"<<newFwdAccChar
+		<<":"<<accSelect;
+
+#endif
+
+#if 0
+		//debug lane changing
+	//
+	////	s<<ct
+	//			s<<":"<<newFwdAccChar
+
+//						<<":"<<accSelect
+//						<<":acc"<<newFwdAccChar
+//				<<":"<<sp
+//				<<":"<<lc;
+	//			<<":"<<ds;
+
+
 	//	// utility
 		char ul[20] = "\0";
 		sprintf(ul,"ul%3.2f",utilityLeft);
@@ -60,54 +115,6 @@ void DriverUpdateParams::buildDebugInfo()
 
 		char ds[200] = "\0";
 		sprintf(ds,"ds%3.2f",perceivedDistToTrafficSignal);
-	//
-	//	size_t currLaneIdx = currLaneIndex;
-	//	if(currLaneIdx<0.1) currLaneIdx = 0;
-	//
-	//	double dis = perceivedDistToFwdCar / 100.0;
-	//	char disChar[20] = "\0";
-	//	sprintf(disChar,"%03.1f",dis);
-	//
-		int fwdcarid=-1;
-		if(this->nvFwd.exists())
-		{
-			Driver* fwd_driver_ = const_cast<Driver*>(nvFwd.driver);
-			fwdcarid = fwd_driver_->getParent()->getId();
-		}
-		//
-		int backcarid=-1;
-		if(this->nvBack.exists())
-		{
-			Driver* back_driver_ = const_cast<Driver*>(nvBack.driver);
-			backcarid = back_driver_->getParent()->getId();
-		}
-		//
-		int leftFwdcarid=-1;
-		if(this->nvLeftFwd.exists())
-		{
-			Driver* driver_ = const_cast<Driver*>(nvLeftFwd.driver);
-			leftFwdcarid = driver_->getParent()->getId();
-		}
-		int leftBackcarid=-1;
-		if(this->nvLeftBack.exists())
-		{
-			Driver* driver_ = const_cast<Driver*>(nvLeftBack.driver);
-			leftBackcarid = driver_->getParent()->getId();
-		}
-		//
-		int rightFwdcarid=-1;
-		if(this->nvRightFwd.exists())
-		{
-			Driver* driver_ = const_cast<Driver*>(nvRightFwd.driver);
-			rightFwdcarid = driver_->getParent()->getId();
-		}
-		int rightBackcarid=-1;
-		if(this->nvRightBack.exists())
-		{
-			Driver* driver_ = const_cast<Driver*>(nvRightBack.driver);
-			rightBackcarid = driver_->getParent()->getId();
-		}
-
 		// lc
 		string lc="lc-s";
 		if(getStatus(STATUS_LC_LEFT)) {
@@ -116,39 +123,58 @@ void DriverUpdateParams::buildDebugInfo()
 		else if(getStatus(STATUS_LC_RIGHT)){
 			lc = "lc-r";
 		}
+		s<<"            "<<parentId
+		<<":"<<ul
+		<<":"<<uc
+		<<":"<<ur
+		<<":"<<rnd_
+		<<":"<<lcd
+		<<":"<<lc;
 
-		//debug car jump;
-		char dl[20] = "\0";
-		sprintf(dl,"dl%3.2f",disAlongPolyline/100.0);
-		char latx[20] = "\0";
-		sprintf(latx,"latx%3.2f",latMv_.getX()/100.0);
-		char laty[20] = "\0";
-		sprintf(laty,"laty%3.2f",latMv_.getY()/100.0);
-	//
-	////	s<<ct
-	//			s<<":"<<newFwdAccChar
-				s<<"            "<<parentId
-//						<<":"<<accSelect
-//						<<":acc"<<newFwdAccChar
-//				<<":"<<sp
-//				<<":"<<lc;
-	//			<<":"<<ds;
-
-//debug lc
-#if 1
-
-						<<":"<<ul
-						<<":"<<uc
-						<<":"<<ur
-						<<":"<<rnd_
-						<<":"<<lcd
-						<<":"<<lc
-						<<":"<<latx<<":"<<laty<<":"<<dl;
 #endif
 
 	// debug aura mgr
-	#if 0
-				<<":fwd"<<fwdcarid
+	#if 1
+		int fwdcarid=-1;
+				if(this->nvFwd.exists())
+				{
+					Driver* fwd_driver_ = const_cast<Driver*>(nvFwd.driver);
+					fwdcarid = fwd_driver_->getParent()->getId();
+				}
+				//
+				int backcarid=-1;
+				if(this->nvBack.exists())
+				{
+					Driver* back_driver_ = const_cast<Driver*>(nvBack.driver);
+					backcarid = back_driver_->getParent()->getId();
+				}
+				//
+				int leftFwdcarid=-1;
+				if(this->nvLeftFwd.exists())
+				{
+					Driver* driver_ = const_cast<Driver*>(nvLeftFwd.driver);
+					leftFwdcarid = driver_->getParent()->getId();
+				}
+				int leftBackcarid=-1;
+				if(this->nvLeftBack.exists())
+				{
+					Driver* driver_ = const_cast<Driver*>(nvLeftBack.driver);
+					leftBackcarid = driver_->getParent()->getId();
+				}
+				//
+				int rightFwdcarid=-1;
+				if(this->nvRightFwd.exists())
+				{
+					Driver* driver_ = const_cast<Driver*>(nvRightFwd.driver);
+					rightFwdcarid = driver_->getParent()->getId();
+				}
+				int rightBackcarid=-1;
+				if(this->nvRightBack.exists())
+				{
+					Driver* driver_ = const_cast<Driver*>(nvRightBack.driver);
+					rightBackcarid = driver_->getParent()->getId();
+				}
+				s<<":fwd"<<fwdcarid
 				<<":back"<<backcarid
 				<<":lfwd"<<leftFwdcarid
 				<<":lback"<<leftBackcarid

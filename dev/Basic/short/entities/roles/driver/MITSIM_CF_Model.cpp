@@ -545,18 +545,23 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	// The target gap acceleration should be based on the target gap status and not on the min
 	// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
 	double aH = p.maxAcceleration;
+	std::string aHStr="aH";
 	if(!p.getStatus(STATUS_LC_CHANGING)) // not in middle of performing lane change
 	{
 	 if (p.getStatus(STATUS_ADJACENT)) {
 	  aH = calcAdjacentRate(p);	// to reach adjacent gap
+	  aHStr="aHA";
 	 }
 	 else if (p.getStatus(STATUS_BACKWARD)) {
 	  aH = calcBackwardRate(p);	// to reach backward gap
+	  aHStr="aHB";
 	 }
 	 else if (p.getStatus(STATUS_FORWARD)) {
 	  aH = calcForwardRate(p);		// to reach forward gap
+	  aHStr="aHF";
 	 } else {
 		  aH = desiredSpeedRate(p);
+		  aHStr="aHD";
 	 }
 	}
 
@@ -583,7 +588,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	//if(acc > aF) acc = aF;
 	if (acc > aH) {
 		acc = aH;
-		p.accSelect = "aH";
+		p.accSelect = aHStr;
 	}
 //	if (acc > aH1)
 //		acc = aH1;

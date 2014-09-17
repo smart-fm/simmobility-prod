@@ -833,7 +833,7 @@ const RoadSegment* sim_mob::DriverMovement::hasNextSegment(
 	return nullptr;
 }
 
-DPoint sim_mob::DriverMovement::getPosition() const {
+DPoint sim_mob::DriverMovement::getPosition() {
 //Temp
 	if (fwdDriverMovement.isInIntersection()
 			&& (parentDriver->vehicle->getPositionInIntersection().x == 0
@@ -843,6 +843,8 @@ DPoint sim_mob::DriverMovement::getPosition() const {
 	}
 	parentDriver->getParams().disAlongPolyline = fwdDriverMovement.getCurrDistAlongPolylineCM();
 	DPoint origPos = fwdDriverMovement.getPosition();
+	parentDriver->getParams().movementVectx = fwdDriverMovement.movementVect.getX();
+	parentDriver->getParams().movementVecty = fwdDriverMovement.movementVect.getY();
 	if (fwdDriverMovement.isInIntersection()
 			&& parentDriver->vehicle->getPositionInIntersection().x != 0
 			&& parentDriver->vehicle->getPositionInIntersection().y != 0) {
@@ -862,6 +864,10 @@ DPoint sim_mob::DriverMovement::getPosition() const {
 		origPos.x += latMv.getX();
 		origPos.y += latMv.getY();
 	}
+	parentDriver->getParams().dorigPosx = origPos.x - parentDriver->getParams().lastOrigPos_.x;
+	parentDriver->getParams().dorigPosy = origPos.y - parentDriver->getParams().lastOrigPos_.y;
+	parentDriver->getParams().lastOrigPos_ = origPos;
+
 	return origPos;
 }
 

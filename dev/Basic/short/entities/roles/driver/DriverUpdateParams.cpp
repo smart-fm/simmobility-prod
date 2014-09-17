@@ -71,7 +71,7 @@ void DriverUpdateParams::buildDebugInfo()
 				<<":"<<latx<<":"<<laty<<":"<<dl<<":"<<dox<<":"<<doy<<":"<<mx<<":"<<my;
 #endif
 
-#if 1
+#if 0
 		//debug car following
 		char newFwdAccChar[20] = "\0";
 		sprintf(newFwdAccChar,"acc%03.1f",newFwdAcc);
@@ -131,7 +131,7 @@ void DriverUpdateParams::buildDebugInfo()
 #endif
 
 	// debug aura mgr
-	#if 1
+	#if 0
 		int fwdcarid=-1;
 		char fwdnvdis[20] = "\0";
 				if(this->nvFwd.exists())

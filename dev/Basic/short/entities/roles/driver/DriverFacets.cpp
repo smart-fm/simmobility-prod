@@ -1003,7 +1003,7 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 	const sim_mob::RoadSegment* currentSeg = fwdDriverMovement.getCurrSegment();
 	const std::vector<sim_mob::Lane*> lanes = currentSeg->getLanes();
 
-	std::cout<<"currentSeg id: "<<currentSeg->originalDB_ID.getLogItem()<<std::endl;
+//	std::cout<<"currentSeg id: "<<currentSeg->originalDB_ID.getLogItem()<<std::endl;
 
 //check each lanes of current segment
 	std::vector<sim_mob::Lane*> connectedLanes;
@@ -1032,7 +1032,7 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 		//continue;
 //lane index
 		size_t landIdx = i;
-		std::cout<<"index: "<<landIdx<<std::endl;
+//		std::cout<<"index: "<<landIdx<<std::endl;
 //		if (l && l->is_pedestrian_lane()) // pass pedestrian lane
 //		{
 //			continue;
@@ -1050,7 +1050,7 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 			}
 
 			const RoadSegment* rs = *currentSegIt;
-			std::cout<<"----rs id: "<<rs->originalDB_ID.getLogItem()<<std::endl;
+//			std::cout<<"----rs id: "<<rs->originalDB_ID.getLogItem()<<std::endl;
 			x += rs->getLengthOfSegment() / 100.0;
 			if (!rs) {
 				break;
@@ -1107,7 +1107,7 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 				if(!ff){
 					if(l){
 						lanePool.push_back(l);
-						std::cout<<"good======="<<l<<std::endl;
+//						std::cout<<"good======="<<l<<std::endl;
 					}
 				}
 
@@ -1116,8 +1116,8 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 		} //end of for currentSegIt
 	} //end for lanes
 
-	std::cout<<"lanePool size: "<<lanePool.size()<<std::endl;
-	std::cout<<std::endl;
+//	std::cout<<"lanePool size: "<<lanePool.size()<<std::endl;
+//	std::cout<<std::endl;
 	if(lanePool.empty()){
 		// for scenario 34488-> 34400--> turn left--> 34398
 		// above iterator cannot visit 34400's most left lane, as 3448

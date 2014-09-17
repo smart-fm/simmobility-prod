@@ -757,9 +757,9 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	// find lanes connect to target segment in lookahead distance
 	driverMvt->fwdDriverMovement.getNextSegment(true);
 	std::vector<sim_mob::Lane*> connectedLanes;
-	std::cout<<std::endl;
-	std::cout<<"tick: "<<p.now.frame()<<std::endl;
-	std::cout<<"carid: "<<p.parentId<<std::endl;
+//	std::cout<<std::endl;
+//	std::cout<<"tick: "<<p.now.frame()<<std::endl;
+//	std::cout<<"carid: "<<p.parentId<<std::endl;
 	driverMvt->getLanesConnectToLookAheadDis(lookAheadDistance,connectedLanes);
 
 	int nRight = 100; // number of lane changes required for the current lane.

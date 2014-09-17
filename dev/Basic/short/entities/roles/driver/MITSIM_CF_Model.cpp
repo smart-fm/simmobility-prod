@@ -503,10 +503,7 @@ double sim_mob::MITSIM_CF_Model::headwayBuffer() {
 
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		double targetSpeed, double maxLaneSpeed) {
-	if(p.parentId == 46 && p.now.frame()>1788)
-	{
-		int i=0;
-	}
+
 //	cftimer -= p.elapsedSeconds;
 	/// if time cftimer >0 , return last calculated acc
 //	if (p.cftimer > sim_mob::Math::DOUBLE_EPSILON) {
@@ -526,11 +523,6 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	calcStateBasedVariables(p);
 
 	p.desiredSpeed = calcDesiredSpeed(p);
-
-	if(p.parentId == 105 && p.now.frame()>1928)
-	{
-		int i=0;
-	}
 
 	double acc = p.maxAcceleration; p.accSelect = "max";
 	double aB = calcMergingRate(p);

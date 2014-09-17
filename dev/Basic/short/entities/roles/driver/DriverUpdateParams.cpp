@@ -10,7 +10,7 @@ namespace sim_mob
 DriverUpdateParams::DriverUpdateParams()
 : UpdateParams() ,status(0),flags(0),yieldTime(0,0),lcTimeTag(200),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0),
   utilityCurrent(0),utilityRight(0),utilityLeft(0),rnd(0),perceivedDistToTrafficSignal(500),disAlongPolyline(0),dorigPosx(0),dorigPosy(0),
-  movementVectx(0),movementVecty(0){
+  movementVectx(0),movementVecty(0),headway(999){
 
 }
 void DriverUpdateParams::setStatus(unsigned int s)
@@ -47,10 +47,7 @@ void DriverUpdateParams::buildDebugInfo()
 	//	size_t currLaneIdx = currLaneIndex;
 	//	if(currLaneIdx<0.1) currLaneIdx = 0;
 	//
-	//	double dis = perceivedDistToFwdCar / 100.0;
-	//	char disChar[20] = "\0";
-	//	sprintf(disChar,"%03.1f",dis);
-	//
+
 
 
 
@@ -136,10 +133,12 @@ void DriverUpdateParams::buildDebugInfo()
 	// debug aura mgr
 	#if 1
 		int fwdcarid=-1;
+		char fwdnvdis[20] = "\0";
 				if(this->nvFwd.exists())
 				{
 					Driver* fwd_driver_ = const_cast<Driver*>(nvFwd.driver);
 					fwdcarid = fwd_driver_->getParent()->getId();
+					sprintf(fwdnvdis,"fwdnvdis%03.1f",nvFwd.distance);
 				}
 				//
 				int backcarid=-1;
@@ -174,12 +173,48 @@ void DriverUpdateParams::buildDebugInfo()
 					Driver* driver_ = const_cast<Driver*>(nvRightBack.driver);
 					rightBackcarid = driver_->getParent()->getId();
 				}
-				s<<":fwd"<<fwdcarid
-				<<":back"<<backcarid
-				<<":lfwd"<<leftFwdcarid
-				<<":lback"<<leftBackcarid
-				<<":rfwd"<<rightFwdcarid
-				<<":rback"<<rightBackcarid;
+
+				double dis = perceivedDistToFwdCar / 100.0;
+				char disChar[20] = "\0";
+				sprintf(disChar,"fwdis%03.1f",dis);
+
+				char az[20] = "\0";
+				sprintf(az,"az%03.1f",aZ);
+
+				char pfwdv[20] = "\0";
+				sprintf(pfwdv,"pfwdv%3.2f",perceivedFwdVelocity/100.0);
+
+				if(headway>100) {
+					headway = 100;
+				}
+				if(headway<-100){
+					headway = 100;
+				}
+				char headwaystr[20] = "\0";
+				sprintf(headwaystr,"headway%03.1f",headway);
+
+				if(emergHeadway>100) {
+					emergHeadway = 100;
+				}
+				if(emergHeadway<-100){
+					emergHeadway = 100;
+				}
+				char emergHeadwaystr[20] = "\0";
+				sprintf(emergHeadwaystr,"emergHeadway%03.1f",emergHeadway);
+
+				s<<":fwd"<<fwdcarid;
+				s<<":"<<fwdnvdis;
+				s<<":"<<disChar;
+				s<<":"<<headwaystr;
+				s<<":"<<emergHeadwaystr;
+				s<<":"<<az;
+				s<<":"<<pfwdv;
+				s<<":"<<cfDebugStr;
+				//<<":back"<<backcarid
+				//<<":lfwd"<<leftFwdcarid
+				//<<":lback"<<leftBackcarid
+				//<<":rfwd"<<rightFwdcarid
+				//<<":rback"<<rightBackcarid;
 	#endif
 
 	//			//<<":"<<ct

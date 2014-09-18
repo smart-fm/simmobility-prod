@@ -279,6 +279,7 @@ public:
 		case EDUCATION: return "Education";
 		case SHOP: return "Shop";
 		case OTHER: return "Other";
+		default: return "NULL";
 		}
 	}
 

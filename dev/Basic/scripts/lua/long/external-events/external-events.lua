@@ -19,16 +19,16 @@ function addHouseHoldEvent (day, type, householdId)
     table.insert(events[day], event);
 end
 
-function addDeveloperModelEvent(day, type, developerId)
-    event = ExternalEvent();http://www.yuthukama.com/2014/09/AnomaSahaAmma_18.html
-    event.day = day;
-    event.developerId = developerId
-    event.type = type;
-    if events[day] == nil then
-        events[day] = {}
-    end
-    table.insert(events[day], event);
-end
+--function addDeveloperModelEvent(day, type, developerId)
+--    event = ExternalEvent();
+--    event.day = day;
+--    event.developerId = developerId
+--    event.type = type;
+--   if events[day] == nil then
+--        events[day] = {}
+--    end
+--    table.insert(events[day], event);
+--end
     
 --addEvent(67, EventType.NEW_JOB, 1)
 --addEvent(67, EventType.NEW_JOB_LOCATION, 2)
@@ -57,10 +57,10 @@ function getExternalEvents (day)
               addHouseHoldEvent(day, EventType.NEW_SCHOOL_LOCATION, household)
               excluded[household]={}
            end
-	   --local developer = 2
-	  -- addDeveloperModelEvent(day,EventType.ZONING_RULE_CHANGE,developer)
            --addEvent(1, EventType.NEW_SCHOOL_LOCATION, i)
-       -- end
+       end
+--local developer = 2
+   -- addDeveloperModelEvent(day,EventType.ZONING_RULE_CHANGE,developer)
     end 
     return events[day]
 end

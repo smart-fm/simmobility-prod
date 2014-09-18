@@ -60,6 +60,9 @@ namespace sim_mob
 			void	  setThreeRoomHdbEligibility(bool);
 			void	  setFourRoomHdbEligibility(bool);
 
+			void	  setFamilyType(int);
+			int		  getFamilyType();
+
             /**
              * Operator to print the Household data.  
              */
@@ -85,6 +88,8 @@ namespace sim_mob
 			bool twoRoomHdbEligibility;
 			bool threeRoomHdbEligibility;
 			bool fourRoomHdbEligibility;
+
+			int	 familyType;
         };
     }
 }

@@ -170,6 +170,16 @@ void  Household::setFourRoomHdbEligibility(bool eligibility)
 	fourRoomHdbEligibility = true;
 }
 
+void Household::setFamilyType( int type )
+{
+	familyType = type;
+}
+
+int Household::getFamilyType()
+{
+	return familyType;
+}
+
 
 namespace sim_mob {
     namespace long_term {

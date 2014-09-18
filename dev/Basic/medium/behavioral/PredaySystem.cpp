@@ -339,7 +339,7 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 		subTour.addStop(primaryActivity);
 		calculateSubTourTimeWindow(subTour, parentTour); // estimate travel time to/from activity location
 		workBasedSubTourParams.blockTime(subTour.getStartTime(), subTour.getEndTime());
-		logStream << "SubTour|type: " << subTour.getTourTypeStr() << "|mode: " << subTour.getTourMode() << "|destination: " << subTour.getTourDestination()
+		logStream << "SubTour|" << "mode: " << subTour.getTourMode() << "|destination: " << subTour.getTourDestination()
 				<< "|start time: " << subTour.getStartTime() << "|end time: " << subTour.getEndTime() << std::endl;
 	}
 }
@@ -1276,7 +1276,6 @@ void sim_mob::medium::PredaySystem::insertSubTour(const Tour& subTour, const Tou
 	BSONObj tourDoc = BSON(
 		"person_id" << personParams.getPersonId() <<
 		"person_type_id" << personParams.getPersonTypeId() <<
-		"parent_tour_type" << parentTour.getTourTypeStr() <<
 		"parent_tour_num" << tourNumber <<
 		"parent_tour_destination" << parentTour.getTourDestination() <<
 		"parent_tour_mode" << parentTour.getTourMode() <<

@@ -79,17 +79,21 @@ namespace sim_mob {
             bool isParcelWithExistingProject(const Parcel *parcel) const;
 
             void setParcelMatchMap(ParcelMatchMap parcelMatchMap);
-            ParcelList getDevelopmentCandidateParcels();
+            ParcelList getDevelopmentCandidateParcels(bool isInitial);
 
             /*
              * set the iterators of development candidate parcels, at each time tick (day)
              */
-            void setIterators(ParcelList::iterator &first,ParcelList::iterator &last);
+            void setIterators(ParcelList::iterator &first,ParcelList::iterator &last,bool isInitial);
 
             /*
              * set the boolean parameter to indicate whether there are remaining parcels in the pool
              */
             void setIsParcelsRemain(bool parcelStatus);
+
+            void setDays(int days);
+
+            void reLoadZonesOnRuleChangeEvent();
 
         protected:
             /**
@@ -120,6 +124,7 @@ namespace sim_mob {
             SlaParcelMap slaParcelById;
             int dailyParcelCount;
             bool isParcelRemain;
+            int numSimulationDays;
 
         };
     }

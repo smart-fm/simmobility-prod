@@ -36,10 +36,10 @@ namespace {
     const string MODEL_NAME = "Developer Model";
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true){ //In days (7 - weekly, 30 - Montly)
+DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0){ //In days (7 - weekly, 30 - Montly)
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true){
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0){
 }
 
 DeveloperModel::~DeveloperModel() {
@@ -80,6 +80,7 @@ void DeveloperModel::startImpl() {
     }
 
     processParcels();
+    createDeveloperAgents(getDevelopmentCandidateParcels(true));
 
     PrintOut("Time Interval " << timeInterval << std::endl);
     PrintOut("Initial Developers " << developers.size() << std::endl);
@@ -180,17 +181,20 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList)
 
 	if(!devCandidateParcelList.empty())
 	{
-	for (ParcelList::iterator it = devCandidateParcelList.begin(); it != devCandidateParcelList.end(); it++)
+	for (size_t i = 0; i < devCandidateParcelList.size(); i++)
 	    {
-			if(*it)
+			if(devCandidateParcelList[i])
 			{
-	        DeveloperAgent* devAgent = new DeveloperAgent(*it, this);
+	        DeveloperAgent* devAgent = new DeveloperAgent(devCandidateParcelList[i], this);
 	        AgentsLookupSingleton::getInstance().addDeveloper(devAgent);
 	        agents.push_back(devAgent);
 	        workGroup.assignAWorker(devAgent);
+
+	        existingProjectParcelIds.push_back(devCandidateParcelList[i]->getId());
 			}
 	    }
 	}
+
 }
 
 void DeveloperModel::processParcels()
@@ -203,7 +207,6 @@ void DeveloperModel::processParcels()
 	        for (size_t i = 0; i < initParcelList.size(); i++)
 	        {
 	            Parcel* parcel = getParcelById(initParcelList[i]->getId());
-//search parcel.id is inside project.parcel id --> in loaded project map
 
 	            if (parcel)
 	            {
@@ -229,11 +232,9 @@ void DeveloperModel::processParcels()
 	            			}
 
 	            		}
-	            	//}
 	            }
 
 	        }
-	        createDeveloperAgents(getDevelopmentCandidateParcels());
 }
 
 void DeveloperModel::setParcelMatchMap(ParcelMatchMap parcelMatchMap){
@@ -241,11 +242,11 @@ void DeveloperModel::setParcelMatchMap(ParcelMatchMap parcelMatchMap){
 		this->parcelMatchesMap = parcelMatchMap;
 }
 
-DeveloperModel::ParcelList DeveloperModel::getDevelopmentCandidateParcels(){
+DeveloperModel::ParcelList DeveloperModel::getDevelopmentCandidateParcels(bool isInitial){
 
 	ParcelList::iterator first;
 	ParcelList::iterator last;
-	setIterators(first,last);
+	setIterators(first,last,isInitial);
 	ParcelList dailyParcels(first,last);
 	if ( !isParcelRemain)
 	{
@@ -254,19 +255,31 @@ DeveloperModel::ParcelList DeveloperModel::getDevelopmentCandidateParcels(){
     return dailyParcels;
 }
 
-void DeveloperModel::setIterators(ParcelList::iterator &first,ParcelList::iterator &last){
+void DeveloperModel::setIterators(ParcelList::iterator &first,ParcelList::iterator &last,bool isInitial){
 
-	int poolSize = developmentCandidateParcelList.size();
-	const int dailyParcelFraction = 10;
-	//compute the number of parcels to process per day (10% of parcels from the parcel pool)
-	int numParcelsPerDay = (poolSize/100.0) * dailyParcelFraction;
+	const int poolSize = developmentCandidateParcelList.size();
+	const int dailyParcelFraction = poolSize/numSimulationDays;
+	const int remainderparcels = poolSize % numSimulationDays;
+	//compute the number of parcels to process per day
+	int numParcelsPerDay = dailyParcelFraction;
+
 	first = developmentCandidateParcelList.begin() + dailyParcelCount;
+
 	if(dailyParcelCount < poolSize)
 		{
 			dailyParcelCount = dailyParcelCount + numParcelsPerDay;
 
 		}
-	last = developmentCandidateParcelList.begin()+ dailyParcelCount;
+
+	//Add the remainder parcels as well, on the Day 0.
+	if(isInitial)
+	{
+		last = developmentCandidateParcelList.begin()+ dailyParcelCount+ remainderparcels;
+	}
+	else
+	{
+		last = developmentCandidateParcelList.begin()+ dailyParcelCount;
+	}
 
 	if(dailyParcelCount > poolSize)
 	{
@@ -278,4 +291,24 @@ void DeveloperModel::setIterators(ParcelList::iterator &first,ParcelList::iterat
 void DeveloperModel::setIsParcelsRemain(bool parcelStatus)
 {
 	this->isParcelRemain = parcelStatus;
+}
+
+void DeveloperModel::setDays(int days)
+{
+	numSimulationDays = days;
+}
+
+void DeveloperModel::reLoadZonesOnRuleChangeEvent()
+{
+	 //reload land use zones
+	clear_delete_vector(zones);
+	zonesById.clear();
+	DB_Config dbConfig(LT_DB_CONFIG_FILE);
+	dbConfig.load();
+	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+	conn.connect();
+	if (conn.isConnected())
+	{
+		loadData<LandUseZoneDao>(conn, zones, zonesById, &LandUseZone::getId);
+	}
 }

@@ -753,7 +753,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 		return change;
 	}
 
-	if(p.parentId == 1 && p.now.frame()>17)
+	if(p.parentId == 59 && p.now.frame()>1448)
 	{
 		int i=0;
 	}
@@ -775,20 +775,21 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 
 		int l1 = abs(getLaneIndex(connectedLanes[i]));
 		int l2 = p.currLaneIndex;
-		int numlcRight  = l1 -  (l2-1) ;
-		int numlcLeft  = l1 -  (l2+1) ;
-		int numlcCurrent  = l1 -  l2;
+		int numlcRight  = abs(l1 -  (l2-1) );
+		int numlcLeft  = abs(l1 -  (l2+1)) ;
+		int numlcCurrent  = abs(l1 -  l2);
 
 	 nRight =  std::min<int>(nRight, numlcRight);
 	 nLeft =  std::min<int>(nLeft, numlcLeft);
 	 nCurrent =  std::min<int>(nCurrent, numlcCurrent);
 
-	 if(nRight<0) nRight=0;
-	 if(nLeft<0) nLeft=0;
-	 if(nCurrent<0) nCurrent=0;
 	}
+//
+//	if(nRight<0) nRight=0;
+//	if(nLeft<0) nLeft=0;
+//	if(nCurrent<0) nCurrent=0;
 
-	p.lcDebugStr<<"nR"<<nRight<<";nL"<<nLeft<<";nC"<<nCurrent;
+	p.lcDebugStr<<";nR"<<nRight<<";nL"<<nLeft<<";nC"<<nCurrent;
 
 	double eul = 0.0, eur = 0.0, euc = 1.0 ;
 	double lcDistance = p.dis2stop;

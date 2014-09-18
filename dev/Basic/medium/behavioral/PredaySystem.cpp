@@ -68,7 +68,7 @@ namespace {
 	const uint8_t SECOND_HALF_TOUR = 2;
 
 	//Maximum number of sub tours per tour
-	const unsigned short MAX_SUB_TOURS = 2;
+	const unsigned short MAX_SUB_TOURS = 1;
 
 	const double OPERATIONAL_COST = 0.147;
 
@@ -314,24 +314,8 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 	for(unsigned short i=0; i<MAX_SUB_TOURS; i++)
 	{
 		choice = PredayLuaProvider::getPredayModel().predictWorkBasedSubTour(personParams, workBasedSubTourParams);
-		if(choice == 5) { break; } //QUIT
-		switch(choice)
-		{
-		case 1: //WORK sub tour
-			parentTour.subTours.push_back(Tour(WORK,true));
-			break;
-		case 2: //EDU sub tour
-			parentTour.subTours.push_back(Tour(EDUCATION,true));
-			break;
-		case 3: //SHOP sub tour
-			parentTour.subTours.push_back(Tour(SHOP,true));
-			break;
-		case 4: //OTHER sub tour
-			parentTour.subTours.push_back(Tour(OTHER,true));
-			break;
-		default:
-			throw std::runtime_error("Invalid prediction for sub tour type");
-		}
+		if(choice == 2) { break; } //QUIT
+		else { subToursList.push_back(Tour(NULL_STOP,true)); } //NON-QUIT
 	}
 
 	// mode/destination and time of day for each sub tour

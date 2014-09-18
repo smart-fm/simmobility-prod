@@ -82,7 +82,7 @@ void DriverUpdateParams::buildDebugInfo()
 
 #endif
 
-#if 0
+#if 1
 		//debug lane changing
 	//
 	////	s<<ct
@@ -120,13 +120,16 @@ void DriverUpdateParams::buildDebugInfo()
 		else if(getStatus(STATUS_LC_RIGHT)){
 			lc = "lc-r";
 		}
-		s<<"            "<<parentId
-		<<":"<<ul
-		<<":"<<uc
-		<<":"<<ur
-		<<":"<<rnd_
-		<<":"<<lcd
-		<<":"<<lc;
+		s<<"            "<<parentId;
+		s<<":"<<ul;
+		s<<":"<<uc;
+		s<<":"<<ur;
+		s<<":"<<rnd_;
+		s<<":"<<lcd;
+		s<<":"<<lc;
+		s<<":"<<sp;
+		s<<"=="<<lcDebugStr.str();
+
 
 #endif
 

@@ -563,12 +563,15 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours)
 		while(stopIt!=firstStopIt);
 		if(!stopTodSuccessful)
 		{
+			unsigned short numRemoved = 0;
 			++stopIt; // now stopIT points to the last valid stop
 			for(StopList::iterator eraseIt=stops.begin(); eraseIt!=stopIt; )
 			{
 				safe_delete_item(*eraseIt);
 				eraseIt = stops.erase(eraseIt);
+				numRemoved++;
 			}
+			logStream << "Removing " << numRemoved << " stops in 1st HT due to TOD issue." << std::endl;
 		}
 	}
 
@@ -602,11 +605,13 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours)
 		while(stopIt!=lastStopIt);
 		if(!stopTodSuccessful)
 		{
+			unsigned short numRemoved = 0;
 			for(StopList::iterator eraseIt=stopIt; eraseIt!=stops.end(); )
 			{
 				safe_delete_item(*eraseIt);
 				eraseIt = stops.erase(eraseIt);
 			}
+			logStream << "Removing " << numRemoved << " stops in 2nd HT due to TOD issue." << std::endl;
 		}
 	}
 }
@@ -620,7 +625,7 @@ void PredaySystem::generateIntermediateStops(uint8_t halfTour, Tour& tour, const
 	int origin = personParams.getHomeLocation();
 	int destination = primaryStop->getStopLocation();
 	StopGenerationParams isgParams(tour, primaryStop, dayPattern);
-	isgParams.setFirstHalfTour((halfTour==1));
+	isgParams.setFirstHalfTour((halfTour==FIRST_HALF_TOUR));
 	isgParams.setNumRemainingTours(remainingTours);
 	if(origin == destination) { isgParams.setDistance(0.0); }
 	else
@@ -642,6 +647,44 @@ void PredaySystem::generateIntermediateStops(uint8_t halfTour, Tour& tour, const
 			break;
 		}
 		}
+	}
+
+	switch(halfTour)
+	{
+	case FIRST_HALF_TOUR:
+	{
+		double startTime = FIRST_INDEX;
+		if(!tour.isFirstTour())
+		{
+			TourList::iterator currTourIt = std::find(tours.begin(), tours.end(), tour);
+			const Tour& prevTour = *(--currTourIt);
+			startTime = prevTour.getEndTime();
+		}
+		double endTime = primaryStop->getArrivalTime();
+		if(startTime > endTime)
+		{
+			std::stringstream ss;
+			ss << "start time is greater than end time; FIRST HT: start-" << startTime << " end-" << endTime << std::endl;
+			throw std::runtime_error(ss.str());
+		}
+		isgParams.setTimeWindowFirstBound((endTime - startTime + 1)/2); //HOURS
+		isgParams.setTimeWindowSecondBound(0);
+		break;
+	}
+	case SECOND_HALF_TOUR:
+	{
+		double startTime = primaryStop->getDepartureTime();
+		double endTime = LAST_INDEX;
+		if(startTime > endTime)
+		{
+			std::stringstream ss;
+			ss << "start time is greater than end time; SECOND HT: start-" << startTime << " end-" << endTime << std::endl;
+			throw std::runtime_error(ss.str());
+		}
+		isgParams.setTimeWindowFirstBound(0);
+		isgParams.setTimeWindowSecondBound((endTime - startTime + 1)/2); //HOURS
+		break;
+	}
 	}
 
 	int choice = 0;
@@ -1147,6 +1190,7 @@ void PredaySystem::planDay() {
 	logStream << "Tours: " << tours.size() << std::endl;
 	if(!tours.empty()) { tours.front().setFirstTour(true); } // make first tour aware that it is the first tour for person
 
+	double prevTourEndTime = FIRST_INDEX;
 	//Process each tour
 	size_t remainingTours = tours.size();
 	for(TourList::iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++) {
@@ -1185,7 +1229,8 @@ void PredaySystem::planDay() {
 
 		calculateTourStartTime(tour);
 		calculateTourEndTime(tour);
-		personParams.blockTime(tour.getStartTime(), tour.getEndTime());
+		personParams.blockTime(prevTourEndTime, tour.getEndTime());
+		prevTourEndTime = tour.getEndTime();
 		logStream << "Tour|start time: " << tour.getStartTime() << "|end time: " << tour.getEndTime() << std::endl;
 	}
 }
@@ -1262,7 +1307,8 @@ void sim_mob::medium::PredaySystem::insertStop(const Stop* stop, int stopNumber,
 	"person_id" << personParams.getPersonId() <<
 	"tour_num" << tourNumber <<
 	"stop_mode" << stop->getStopMode() <<
-	"hhfactor" << personParams.getHouseholdFactor()
+	"hhfactor" << personParams.getHouseholdFactor() <<
+	"first_bound" << stop->isInFirstHalfTour()
 	);
 	mongoDao["Output_Activity"]->insert(stopDoc);
 }

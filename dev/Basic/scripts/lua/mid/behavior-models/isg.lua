@@ -10,19 +10,19 @@ Authors - Siyu Li, Harish Loganathan
 --Estimated values for all betas
 --Note= the betas that not estimated are fixed to zero.
 
-local beta_cons_work = -5.73
-local beta_cons_edu = -1.77
-local beta_cons_shopping = -4.00
-local beta_cons_other = -1.71
+local beta_cons_work = -5.24
+local beta_cons_edu = -1.78
+local beta_cons_shopping = -3.87
+local beta_cons_other = -1.61
 local beta_cons_Q = 0
 
 
 local beta_first_stop_inbound = 0
-local beta_second_stop_inbound = 5.77
-local beta_threeplus_stop_inbound = 1.67
-local beta_first_stop_outbound = 0.177
-local beta_second_stop_outbound = 2.34
-local beta_threeplus_stop_outbound = 2.16
+local beta_second_stop_inbound = 5.31
+local beta_threeplus_stop_inbound = 1.73
+local beta_first_stop_outbound = 0.233
+local beta_second_stop_outbound = 2.30
+local beta_threeplus_stop_outbound = 2.23
 
 
 local beta_work_tour_dummy_Q = 0
@@ -31,10 +31,10 @@ local beta_shopping_tour_dummy_Q = 0
 local beta_other_tour_dummy_Q = 0
 
 
-local beta_first_tour_dummy_Q = -1.45
-local beta_sub_tour_dummy_Q = -0.0194
+local beta_first_tour_dummy_Q = -1.40
+local beta_sub_tour_dummy_Q = -0.0218
 local beta_zero_tour_remain_Q = 0
-local beta_one_tour_remain_Q = 0.507
+local beta_one_tour_remain_Q = 0.506
 local beta_twoplus_tour_remain_Q = 0
 
 
@@ -42,48 +42,48 @@ local beta_work_tour_dummy_W = 0
 local beta_edu_tour_dummy_W = 0
 local beta_shopping_tour_dummy_W = 0
 local beta_other_tour_dummy_W = 0
-local beta_female_dummy_W = 0.0942
+local beta_female_dummy_W = 0.0908
 local beta_student_dummy_W = 0
 local beta_worker_dummy_W = 0
-local beta_driver_dummy_W = 0.351
-local beta_passenger_dummy_W = 0.117
-local beta_public_dummy_W = -0.0608
+local beta_driver_dummy_W = 0.354
+local beta_passenger_dummy_W = 0.119
+local beta_public_dummy_W = -0.0553
 
 
 local beta_work_tour_dummy_E = 0
 local beta_edu_tour_dummy_E = 0
 local beta_shopping_tour_dummy_E = 0
 local beta_other_tour_dummy_E = 0
-local beta_female_dummy_E = -0.165
+local beta_female_dummy_E = -0.174
 local beta_student_dummy_E = 0
 local beta_worker_dummy_E = 0
-local beta_driver_dummy_E = -0.730
-local beta_passenger_dummy_E = 0.103
-local beta_public_dummy_E = 0.0000989
+local beta_driver_dummy_E = -0.756
+local beta_passenger_dummy_E = 0.105
+local beta_public_dummy_E = 0.00416
 
 
 local beta_work_tour_dummy_S = 0
 local beta_edu_tour_dummy_S = 0
 local beta_shopping_tour_dummy_S = 0
-local beta_other_tour_dummy_S = 0.0327
-local beta_female_dummy_S = 0.0467
+local beta_other_tour_dummy_S = 0.0289
+local beta_female_dummy_S = 0.0469
 local beta_student_dummy_S = 0
-local beta_worker_dummy_S = 0.244
-local beta_driver_dummy_S = 0.197
-local beta_passenger_dummy_S = 0.0997
-local beta_public_dummy_S = 0.124
+local beta_worker_dummy_S = 0.250
+local beta_driver_dummy_S = 0.185
+local beta_passenger_dummy_S = 0.0916
+local beta_public_dummy_S = 0.119
 
 
-local beta_work_tour_dummy_O = 0.160
-local beta_edu_tour_dummy_O = -0.617
+local beta_work_tour_dummy_O = 0.165
+local beta_edu_tour_dummy_O = -0.594
 local beta_shopping_tour_dummy_O = -0.106
 local beta_other_tour_dummy_O = 0
-local beta_female_dummy_O = -0.0375
-local beta_student_dummy_O = 0.629
-local beta_worker_dummy_O = -0.0397
+local beta_female_dummy_O = -0.0377
+local beta_student_dummy_O = 0.616
+local beta_worker_dummy_O = -0.0365
 local beta_driver_dummy_O = 0.161
 local beta_passenger_dummy_O = 0.194
-local beta_public_dummy_O = -0.134
+local beta_public_dummy_O = -0.135
 
 
 local beta_work_logsum = 0
@@ -92,73 +92,73 @@ local beta_shop_logsum = 0
 local beta_other_logsum = 0
 
 
-local beta_time_window_work_first_stop_first_bound = 2.40
-local beta_time_window_work_second_stop_first_bound =3.67
+local beta_time_window_work_first_stop_first_bound = 2.31
+local beta_time_window_work_second_stop_first_bound =3.43
 local beta_time_window_work_3plus_stop_first_bound = 0
-local beta_time_window_work_first_stop_second_bound = 0.808
-local beta_time_window_work_second_stop_second_bound = 3.40
+local beta_time_window_work_first_stop_second_bound = 0.669
+local beta_time_window_work_second_stop_second_bound = 3.34
 local beta_time_window_work_3plus_stop_second_bound = 0
 
-local beta_time_window_edu_first_stop_first_bound = 0.396
+local beta_time_window_edu_first_stop_first_bound = 0.464
 local beta_time_window_edu_second_stop_first_bound = 0
 local beta_time_window_edu_3plus_stop_first_bound = 0
-local beta_time_window_edu_first_stop_second_bound = 0.333
+local beta_time_window_edu_first_stop_second_bound = 0.389
 local beta_time_window_edu_second_stop_second_bound = 0 
 local beta_time_window_edu_3plus_stop_second_bound = 0
 
-local beta_time_window_shopping_first_stop_first_bound = 0.792
-local beta_time_window_shopping_second_stop_first_bound = 1.81
+local beta_time_window_shopping_first_stop_first_bound = 0.790
+local beta_time_window_shopping_second_stop_first_bound = 1.65
 local beta_time_window_shopping_3plus_stop_first_bound = 0
-local beta_time_window_shopping_first_stop_second_bound = 1.28
-local beta_time_window_shopping_second_stop_second_bound = 0.534
+local beta_time_window_shopping_first_stop_second_bound = 1.31
+local beta_time_window_shopping_second_stop_second_bound = 0.493
 local beta_time_window_shopping_3plus_stop_second_bound = 0
 
-local beta_time_window_other_first_stop_first_bound = 0.240
-local beta_time_window_other_second_stop_first_bound = 1.54
+local beta_time_window_other_first_stop_first_bound = 0.232
+local beta_time_window_other_second_stop_first_bound = 1.39
 local beta_time_window_other_3plus_stop_first_bound = 0
-local beta_time_window_other_first_stop_second_bound = 0.160
-local beta_time_window_other_second_stop_second_bound = -0.0636
+local beta_time_window_other_first_stop_second_bound = 0.164
+local beta_time_window_other_second_stop_second_bound = -0.106
 local beta_time_window_other_3plus_stop_second_bound = 0
 
 
 
 
-local beta_tour_distance_work = 0.0998
+local beta_tour_distance_work = 0.0981
 local beta_tour_distance_edu = 0.131
-local beta_tour_distance_shopping = 0.0826
+local beta_tour_distance_shopping = 0.0860
 local beta_tour_distance_other = 0.142
 
 
-local beta_a700_a930_work = -2.77
-local beta_a930_a1200_work = -1.52
-local beta_p300_p530_work = 0.437
+local beta_a700_a930_work = -2.64
+local beta_a930_a1200_work = -1.45
+local beta_p300_p530_work = 0.442
 local beta_p530_p730_work = 0.726
-local beta_p730_p1000_work = 1.17
-local beta_p1000_a700_work = 0.637
+local beta_p730_p1000_work = 1.21
+local beta_p1000_a700_work = 0.838
 
 
-local beta_a700_a930_edu = -1.26
-local beta_a930_a1200_edu = -2.31
-local beta_p300_p530_edu = -0.0421
-local beta_p530_p730_edu = -0.216
-local beta_p730_p1000_edu =-0.345
-local beta_p1000_a700_edu = -0.383
+local beta_a700_a930_edu = -1.21
+local beta_a930_a1200_edu = -2.34
+local beta_p300_p530_edu = -0.0204
+local beta_p530_p730_edu = -0.187
+local beta_p730_p1000_edu =-0.292
+local beta_p1000_a700_edu = -0.322
 
 
-local beta_a700_a930_shopping = -2.62
-local beta_a930_a1200_shopping = -0.790
-local beta_p300_p530_shopping = 0.651
-local beta_p530_p730_shopping = 0.828
-local beta_p730_p1000_shopping = -0.160
-local beta_p1000_a700_shopping = -1.66
+local beta_a700_a930_shopping = -2.57
+local beta_a930_a1200_shopping = -0.777
+local beta_p300_p530_shopping = 0.663
+local beta_p530_p730_shopping = 0.872
+local beta_p730_p1000_shopping = -0.0707
+local beta_p1000_a700_shopping = -1.56
 
 
-local beta_a700_a930_other = -0.194
-local beta_a930_a1200_other = -0.523
-local beta_p300_p530_other = -0.0642
-local beta_p530_p730_other = 0.0712
-local beta_p730_p1000_other = -0.414
-local beta_p1000_a700_other = -0.568
+local beta_a700_a930_other = -0.196
+local beta_a930_a1200_other = -0.532
+local beta_p300_p530_other = -0.0650
+local beta_p530_p730_other = 0.0719
+local beta_p730_p1000_other = -0.411
+local beta_p1000_a700_other = -0.560
 
 --choice set
 --1 for work; 2 for edu; 3 for shopping; 4 for other; 5 for quit
@@ -201,7 +201,8 @@ local function computeUtilities(params,dbparams)
 	--the distance is PM[(destination,origin)][’PM2dis’]. 
 	--origin is home mtz and destination is primary activity location of the tour.
 	local distance = dbparams.distance
-	
+	local log_constant = 0.0001
+
 	--updated on Sep 11 2014
 	local time_window_first_bound = dbparams.time_window_first_bound
 	local time_window_second_bound = dbparams.time_window_second_bound 
@@ -252,12 +253,12 @@ local function computeUtilities(params,dbparams)
 	beta_passenger_dummy_W * passenger_dummy +
 	beta_public_dummy_W * public_dummy +
 	beta_work_logsum * worklogsum+
-	beta_time_window_work_first_stop_first_bound * first_bound * first_stop * math.log(1+time_window_first_bound)+
-	beta_time_window_work_second_stop_first_bound * first_bound * second_stop * math.log(1+time_window_first_bound)+
-	beta_time_window_work_3plus_stop_first_bound * first_bound * three_plus_stop * math.log(1+time_window_first_bound)+
-	beta_time_window_work_first_stop_second_bound * second_bound * first_stop * math.log(1+time_window_second_bound)+
-	beta_time_window_work_second_stop_second_bound * second_bound * second_stop * math.log(1+time_window_second_bound)+
-	beta_time_window_work_3plus_stop_second_bound * second_bound * three_plus_stop * math.log(1+time_window_second_bound)+
+	beta_time_window_work_first_stop_first_bound * first_bound * first_stop * math.log(log_constant+time_window_first_bound)+
+	beta_time_window_work_second_stop_first_bound * first_bound * second_stop * math.log(log_constant+time_window_first_bound)+
+	beta_time_window_work_3plus_stop_first_bound * first_bound * three_plus_stop * math.log(log_constant+time_window_first_bound)+
+	beta_time_window_work_first_stop_second_bound * second_bound * first_stop * math.log(log_constant+time_window_second_bound)+
+	beta_time_window_work_second_stop_second_bound * second_bound * second_stop * math.log(log_constant+time_window_second_bound)+
+	beta_time_window_work_3plus_stop_second_bound * second_bound * three_plus_stop * math.log(log_constant+time_window_second_bound)+
 	beta_tour_distance_work * math.log(1 + distance) +
 	beta_a700_a930_work * p_700a_930a +
 	beta_a930_a1200_work * p_930a_1200a +
@@ -278,12 +279,12 @@ local function computeUtilities(params,dbparams)
 	beta_passenger_dummy_E * passenger_dummy +
 	beta_public_dummy_E * public_dummy +
 	beta_edu_logsum * edulogsum +
-	beta_time_window_edu_first_stop_first_bound * first_bound * first_stop * math.log(1+time_window_first_bound)+
-	beta_time_window_edu_second_stop_first_bound * first_bound * second_stop * math.log(1+time_window_first_bound)+
-	beta_time_window_edu_3plus_stop_first_bound * first_bound * three_plus_stop * math.log(1+time_window_first_bound)+
-	beta_time_window_edu_first_stop_second_bound * second_bound * first_stop * math.log(1+time_window_second_bound)+
-	beta_time_window_edu_second_stop_second_bound * second_bound * second_stop * math.log(1+time_window_second_bound)+
-	beta_time_window_edu_3plus_stop_second_bound * second_bound * three_plus_stop * math.log(1+time_window_second_bound)+
+	beta_time_window_edu_first_stop_first_bound * first_bound * first_stop * math.log(log_constant+time_window_first_bound)+
+	beta_time_window_edu_second_stop_first_bound * first_bound * second_stop * math.log(log_constant+time_window_first_bound)+
+	beta_time_window_edu_3plus_stop_first_bound * first_bound * three_plus_stop * math.log(log_constant+time_window_first_bound)+
+	beta_time_window_edu_first_stop_second_bound * second_bound * first_stop * math.log(log_constant+time_window_second_bound)+
+	beta_time_window_edu_second_stop_second_bound * second_bound * second_stop * math.log(log_constant+time_window_second_bound)+
+	beta_time_window_edu_3plus_stop_second_bound * second_bound * three_plus_stop * math.log(log_constant+time_window_second_bound)+
 	beta_tour_distance_edu * math.log(1+distance) +
 	beta_a700_a930_edu * p_700a_930a +
 	beta_a930_a1200_edu * p_930a_1200a +
@@ -304,12 +305,12 @@ local function computeUtilities(params,dbparams)
 	beta_passenger_dummy_S * passenger_dummy +
 	beta_public_dummy_S * public_dummy +
 	beta_shop_logsum * shoplogsum +
-	beta_time_window_shopping_first_stop_first_bound * first_bound * first_stop * math.log(1+time_window_first_bound)+
-	beta_time_window_shopping_second_stop_first_bound * first_bound * second_stop * math.log(1+time_window_first_bound)+
-	beta_time_window_shopping_3plus_stop_first_bound * first_bound * three_plus_stop * math.log(1+time_window_first_bound)+
-	beta_time_window_shopping_first_stop_second_bound * second_bound * first_stop * math.log(1+time_window_second_bound)+
-	beta_time_window_shopping_second_stop_second_bound * second_bound * second_stop * math.log(1+time_window_second_bound)+
-	beta_time_window_shopping_3plus_stop_second_bound * second_bound * three_plus_stop * math.log(1+time_window_second_bound)+
+	beta_time_window_shopping_first_stop_first_bound * first_bound * first_stop * math.log(log_constant+time_window_first_bound)+
+	beta_time_window_shopping_second_stop_first_bound * first_bound * second_stop * math.log(log_constant+time_window_first_bound)+
+	beta_time_window_shopping_3plus_stop_first_bound * first_bound * three_plus_stop * math.log(log_constant+time_window_first_bound)+
+	beta_time_window_shopping_first_stop_second_bound * second_bound * first_stop * math.log(log_constant+time_window_second_bound)+
+	beta_time_window_shopping_second_stop_second_bound * second_bound * second_stop * math.log(log_constant+time_window_second_bound)+
+	beta_time_window_shopping_3plus_stop_second_bound * second_bound * three_plus_stop * math.log(log_constant+time_window_second_bound)+
 	beta_tour_distance_shopping * math.log(1+distance) +
 	beta_a700_a930_shopping * p_700a_930a +
 	beta_a930_a1200_shopping * p_930a_1200a +
@@ -330,12 +331,12 @@ local function computeUtilities(params,dbparams)
 	beta_passenger_dummy_O * passenger_dummy +
 	beta_public_dummy_O * public_dummy +
 	beta_other_logsum * otherlogsum +
-	beta_time_window_other_first_stop_first_bound * first_bound * first_stop * math.log(1+time_window_first_bound)+
-	beta_time_window_other_second_stop_first_bound * first_bound * second_stop * math.log(1+time_window_first_bound)+
-	beta_time_window_other_3plus_stop_first_bound * first_bound * three_plus_stop * math.log(1+time_window_first_bound)+
-	beta_time_window_other_first_stop_second_bound * second_bound * first_stop * math.log(1+time_window_second_bound)+
-	beta_time_window_other_second_stop_second_bound * second_bound * second_stop * math.log(1+time_window_second_bound)+
-	beta_time_window_other_3plus_stop_second_bound * second_bound * three_plus_stop * math.log(1+time_window_second_bound)+
+	beta_time_window_other_first_stop_first_bound * first_bound * first_stop * math.log(log_constant+time_window_first_bound)+
+	beta_time_window_other_second_stop_first_bound * first_bound * second_stop * math.log(log_constant+time_window_first_bound)+
+	beta_time_window_other_3plus_stop_first_bound * first_bound * three_plus_stop * math.log(log_constant+time_window_first_bound)+
+	beta_time_window_other_first_stop_second_bound * second_bound * first_stop * math.log(log_constant+time_window_second_bound)+
+	beta_time_window_other_second_stop_second_bound * second_bound * second_stop * math.log(log_constant+time_window_second_bound)+
+	beta_time_window_other_3plus_stop_second_bound * second_bound * three_plus_stop * math.log(log_constant+time_window_second_bound)+
 	beta_tour_distance_other * math.log(1+distance) +
 	beta_a700_a930_other * p_700a_930a +
 	beta_a930_a1200_other * p_930a_1200a +

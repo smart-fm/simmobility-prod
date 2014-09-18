@@ -778,8 +778,8 @@ void sim_mob::medium::PredayManager::dispatchPersons() {
 				<< "|numPersonsPerThread:" << numPersonsPerThread << std::endl;
 
 		/*
-		 * Passing different iterators on the same list into the threaded
-		 * function. So each thread will iterate through a mutually exclusive and
+		 * We are passing different iterators on the same list into the threaded
+		 * function. Each thread will iterate through a mutually exclusive and
 		 * exhaustive set of persons from the population.
 		 *
 		 * Note that each thread will iterate the same personList with different

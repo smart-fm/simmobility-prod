@@ -27,7 +27,7 @@ public:
 	StopGenerationParams(const Tour& tour, const Stop* primaryActivity, const boost::unordered_map<std::string, bool>& dayPattern)
 	: tourMode(tour.getTourMode()), primActivityArrivalTime(primaryActivity->getArrivalTime()), primActivityDeptTime(primaryActivity->getDepartureTime()),
 	  firstTour(tour.isFirstTour()), firstHalfTour(true), numPreviousStops(0), hasSubtour(tour.hasSubTours()),
-	  numRemainingTours(-1), distance(-1.0)	/*distance, initialized with invalid values*/
+	  numRemainingTours(-1), distance(-1.0), timeWindowFirstBound(-1), timeWindowSecondBound(-1) /*initialized with invalid values*/
 	{
 		switch (tour.getTourType()) {
 		case WORK:
@@ -215,6 +215,26 @@ public:
 		return hasSubtour;
 	}
 
+	double getTimeWindowFirstBound() const
+	{
+		return timeWindowFirstBound;
+	}
+
+	void setTimeWindowFirstBound(double timeWindowFirstBound)
+	{
+		this->timeWindowFirstBound = timeWindowFirstBound;
+	}
+
+	double getTimeWindowSecondBound() const
+	{
+		return timeWindowSecondBound;
+	}
+
+	void setTimeWindowSecondBound(double timeWindowSecondBound)
+	{
+		this->timeWindowSecondBound = timeWindowSecondBound;
+	}
+
 private:
 
 	int tourType;
@@ -227,6 +247,8 @@ private:
 	bool firstHalfTour;
 	uint8_t numPreviousStops;
 	bool hasSubtour;
+	double timeWindowFirstBound;
+	double timeWindowSecondBound;
 
 	int workStopAvailability;
 	int eduStopAvailability;

@@ -165,9 +165,9 @@ namespace {
 		return id.str();
 	}
 
-	void constructTrip(TripChainItemParams& tcTrip, int prevNode, int nextNode, const std::string& startTime) {
-		//tcTrip.setSubtripMode(modeMap.at(stop->getStopMode()));
-		//tcTrip.setPrimaryMode((tour->getTourMode() == stop->getStopMode()));
+	void constructTrip(TripChainItemParams& tcTrip, int prevNode, int nextNode, const std::string& startTime, int stopMode, bool primaryMode) {
+		//tcTrip.setSubtripMode(modeMap.at(stopMode));
+		//tcTrip.setPrimaryMode(primaryMode);
 		tcTrip.setSubtripMode(modeMap.at(4)); /*~ all trips are made to car trips. Done for running mid-term for TRB paper. ~*/
 		tcTrip.setPrimaryMode(true); /*~ running mid-term for TRB paper. ~*/
 		tcTrip.setTripOrigin(prevNode);
@@ -1442,7 +1442,7 @@ void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneN
 		int prevNode = 0;
 		int nextNode = 0;
 		std::string prevDeptTime = "";
-		std::string primaryMode = "";
+		int primaryMode = 0;
 		bool atHome = true;
 		int homeNode = 0;
 		if(zoneNodeMap.find(personParams.getHomeLocation()) != zoneNodeMap.end())
@@ -1458,6 +1458,7 @@ void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneN
 			int stopNum = 0;
 			bool nodeMappingFailed = false;
 			const StopList& stopLst = tour.stops;
+			primaryMode = tour.getTourMode();
 			for(StopList::const_iterator stopIt = tour.stops.begin(); stopIt != tour.stops.end(); stopIt++)
 			{
 				stopNum = stopNum + 1;
@@ -1476,12 +1477,13 @@ void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneN
 				tcTrip.setSubtripId(constructTripChainItemId(pid, tourNum, seqNum, "-1"));
 				if(atHome)
 				{
-					constructTrip(tcTrip, homeNode, nextNode, getRandomTimeInWindow(getTimeWindowFromIndex(tour.getStartTime())));
+					constructTrip(tcTrip, homeNode, nextNode, getRandomTimeInWindow(getTimeWindowFromIndex(tour.getStartTime())), stop->getStopMode(),
+							(primaryMode==stop->getStopMode()));
 					atHome = false;
 				}
 				else
 				{
-					constructTrip(tcTrip, prevNode, nextNode, prevDeptTime);
+					constructTrip(tcTrip, prevNode, nextNode, prevDeptTime, stop->getStopMode(), (primaryMode==stop->getStopMode()));
 				}
 				tripChain.push_back(tcTrip);
 
@@ -1517,7 +1519,8 @@ void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneN
 						TripChainItemParams tcSubTourTrip = TripChainItemParams(pid, "Trip", seqNum);
 						tcSubTourTrip.setTripId(constructTripChainItemId(pid, tourNum, seqNum));
 						tcSubTourTrip.setSubtripId(constructTripChainItemId(pid, tourNum, seqNum, "-1"));
-						constructTrip(tcSubTourTrip, prevNode, nextNode, prevDeptTime);
+						constructTrip(tcSubTourTrip, prevNode, nextNode, prevDeptTime, subTourPrimaryStop->getStopMode(),
+								(primaryMode==subTourPrimaryStop->getStopMode()));
 						tripChain.push_back(tcSubTourTrip);
 
 						// insert sub tour activity
@@ -1537,7 +1540,8 @@ void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneN
 						tcSubTourTrip = TripChainItemParams(pid, "Trip", seqNum);
 						tcSubTourTrip.setTripId(constructTripChainItemId(pid, tourNum, seqNum));
 						tcSubTourTrip.setSubtripId(constructTripChainItemId(pid, tourNum, seqNum, "-1"));
-						constructTrip(tcSubTourTrip, prevNode, nextNode, prevDeptTime);
+						constructTrip(tcSubTourTrip, prevNode, nextNode, prevDeptTime, subTourPrimaryStop->getStopMode(),
+                                                                (primaryMode==subTourPrimaryStop->getStopMode()));
 						tripChain.push_back(tcSubTourTrip);
 						arrivalTime = subTour.getEndTime(); // for the next activity
 					}
@@ -1577,7 +1581,7 @@ void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneN
 				TripChainItemParams tcTrip = TripChainItemParams(pid, "Trip", seqNum);
 				tcTrip.setTripId(constructTripChainItemId(pid, tourNum, seqNum));
 				tcTrip.setSubtripId(constructTripChainItemId(pid, tourNum, seqNum, "-1"));
-				constructTrip(tcTrip, prevNode, homeNode, prevDeptTime);
+				constructTrip(tcTrip, prevNode, homeNode, prevDeptTime, primaryMode, true);
 				tripChain.push_back(tcTrip);
 				atHome = true;
 			}

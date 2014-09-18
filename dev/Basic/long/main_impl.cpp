@@ -148,6 +148,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         if( enableDeveloperModel )
         	 //initiate developer model; to be referred later at each time tick (day)
         	 developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel);
+        	 developerModel->setDays(days);
         	 models.push_back(developerModel);
 
         //start all models.
@@ -173,7 +174,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
             DeveloperModel::ParcelList parcels;
             if(isParcelRemain)
             {
-            	parcels = developerModel->getDevelopmentCandidateParcels();
+            	parcels = developerModel->getDevelopmentCandidateParcels(false);
             }
             if(parcels.size()!=0)
             {

@@ -339,12 +339,7 @@ void HM_Model::hdbEligibilityTest(int index)
 	int femaleAdultElderly = 0;
 	int adultSingaporean = 0;
 
-	bool familyType1 = false;
-	bool familyType2 = false;
-	bool familyType3 = false;
-	bool familyType4 = false;
-	bool familyType5 = false;
-	bool familyType6 = false;
+	int familyType = 0;
 
 	for (int n = 0; n < households[index]->getIndividuals().size(); n++)
 	{
@@ -411,34 +406,35 @@ void HM_Model::hdbEligibilityTest(int index)
 		}
 	}
 
+
 	if((maleAdultYoung > 0 && femaleAdultYoung > 0	&& (maleChild > 0 || femaleChild > 0)) ||
 	   (maleAdultMiddleAged > 0 && femaleAdultMiddleAged > 0  && (maleChild > 0 || femaleChild > 0 || maleAdultYoung > 0 || femaleAdultYoung > 0)))
 	{
-		familyType1 = true;
+		familyType = Household::COUPLEANDCHILD;
 	}
 
 	if((maleAdultYoung > 0 || femaleAdultYoung > 0) &&
 	  ((maleAdultMiddleAged > 0 || femaleAdultMiddleAged > 0) || (maleAdultElderly > 0 || femaleAdultElderly > 0)))
 	{
-		familyType2 = true;
+		familyType = Household::SIBLINGSANDPARENTS;
 	}
 
 	if(((maleAdultYoung == 1 || femaleAdultYoung == 1)		&& (maleChild > 0 || femaleChild > 0))			||
 	   ((maleAdultMiddleAged == 1 || femaleAdultMiddleAged == 1)	&& ((maleChild > 0 || femaleChild > 0)	||
 	    (maleAdultYoung > 0 || femaleAdultYoung > 0))))
 	{
-		familyType3 = true;
+		familyType = Household::SINGLEPARENT;
 	}
 
 	if (maleAdultYoung == 1 && femaleAdultYoung == 1)
 	{
-		familyType4 = true;
+		familyType = Household::ENGAGEDCOUPLE;
 	}
 
 	if ((maleAdultYoung > 1 || femaleAdultYoung > 1) ||
 		(maleAdultMiddleAged > 1 || femaleAdultMiddleAged > 1))
 	{
-		familyType5 = true;
+		familyType = Household::ORPHANSIBLINGS;
 	}
 
 	if (((maleAdultYoung == 1 	   && femaleAdultYoung == 1)		&& ((maleAdultMiddleAged > 0 || femaleAdultMiddleAged > 0) || (maleAdultElderly > 0 || femaleAdultElderly > 0))) ||
@@ -446,14 +442,20 @@ void HM_Model::hdbEligibilityTest(int index)
 		((maleAdultYoung == 1 	   && femaleAdultYoung == 1)		&& ((maleChild > 0 || femaleChild > 0) || (maleAdultMiddleAged > 0 || femaleAdultMiddleAged > 0) || (maleAdultElderly > 0 || femaleAdultElderly > 0))) ||
 		((maleAdultMiddleAged == 1 || femaleAdultMiddleAged == 1) 	&& ((maleChild > 0 || femaleChild > 0) || (maleAdultElderly > 0 || femaleAdultElderly > 0))))
 	{
-		familyType6 = true;
+		familyType = Household::MULTIGENERATION;
 	}
+
+	households[index]->setFamilyType(familyType);
 
 	if( adultSingaporean > 0 )
 	{
 		bool familyTypeGeneral = false;
 
-		if (familyType1 == true || familyType2 == true || familyType3 == true|| familyType4 == true || familyType5 == true)
+		if( familyType == Household::COUPLEANDCHILD ||
+			familyType == Household::SIBLINGSANDPARENTS ||
+			familyType == Household::SINGLEPARENT  ||
+			familyType == Household::ENGAGEDCOUPLE ||
+			familyType == Household::ORPHANSIBLINGS )
 		{
 			familyTypeGeneral = true;
 		}
@@ -467,7 +469,7 @@ void HM_Model::hdbEligibilityTest(int index)
 			households[index]->setTwoRoomHdbEligibility(true);
 			households[index]->setThreeRoomHdbEligibility(true);
 		}
-		else if (households[index]->getIncome() < THREEBEDROOMMATURE && familyTypeGeneral == true && familyType6 == true)
+		else if (households[index]->getIncome() < THREEBEDROOMMATURE && familyTypeGeneral == true && familyType == Household::MULTIGENERATION)
 		{
 			households[index]->setTwoRoomHdbEligibility(true);
 			households[index]->setThreeRoomHdbEligibility(true);

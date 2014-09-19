@@ -22,7 +22,7 @@ namespace sim_mob
         public:
             Household();
             Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int children, double income,
-            		   int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility );
+            		   int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType );
             virtual ~Household();
 
             Household& operator=(const Household& source);
@@ -62,6 +62,16 @@ namespace sim_mob
 
 			void	  setFamilyType(int);
 			int		  getFamilyType();
+
+			enum FAMILY_TYPE
+			{
+				COUPLEANDCHILD = 1,
+				SIBLINGSANDPARENTS,
+				SINGLEPARENT,
+				ENGAGEDCOUPLE,
+				ORPHANSIBLINGS,
+				MULTIGENERATION
+			};
 
             /**
              * Operator to print the Household data.  

@@ -5,7 +5,8 @@
 /* 
  * File:   Household.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
- * 
+ * 		   Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
+ *
  * Created on April 22, 2013, 5:54 PM
  */
 
@@ -16,13 +17,13 @@
 using namespace sim_mob::long_term;
 
 Household::Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int children, double income,
-					  int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility ): id(id),
+					  int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType ): id(id),
 					  lifestyleId(lifestyleId), unitId(unitId), ethnicityId(ethnicityId), vehicleCategoryId(vehicleCategoryId),size(size), children(children), income(income),
 					  housingDuration(housingDuration), workers(workers), ageOfHead(ageOfHead), twoRoomHdbEligibility(twoRoomHdbEligibility),
-					  threeRoomHdbEligibility(threeRoomHdbEligibility), fourRoomHdbEligibility(fourRoomHdbEligibility){}
+					  threeRoomHdbEligibility(threeRoomHdbEligibility), fourRoomHdbEligibility(fourRoomHdbEligibility),familyType(familyType){}
 
 Household::Household(): id(0), lifestyleId(0), unitId(0), ethnicityId(0), vehicleCategoryId(0),size(0), children(0), income(0), housingDuration(0), workers(0), ageOfHead(0),
-						twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0){}
+						twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0), familyType(0){}
 Household::~Household() {}
 
 Household& Household::operator=(const Household& source)

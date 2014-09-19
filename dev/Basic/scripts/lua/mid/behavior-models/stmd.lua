@@ -12,39 +12,39 @@ Authors - Siyu Li, Harish Loganathan, Olga Petrik
 
 --!! see the documentation on the definition of AM,PM and OP table!!
 
-local beta_cost_bus_mrt_1= -0.143
-local beta_cost_private_bus_1 = -0.978
-local beta_cost_drive1_1 = 0
+local beta_cost_bus_mrt_1= -0.133
+local beta_cost_private_bus_1 = -0.854
+local beta_cost_drive1_1 = 0.0284
 local beta_cost_share2_1= 0
 local beta_cost_share3_1= 0
-local beta_cost_motor_1 = -0.655
+local beta_cost_motor_1 = 0
 local beta_cost_taxi_1 = 0
 
-local beta_tt_bus_mrt = -3.29
-local beta_tt_private_bus = 0 
-local beta_tt_drive1 = -2.04
-local beta_tt_share2= -3.05
-local beta_tt_share3= -4.29
+local beta_tt_bus_mrt = -3.77
+local beta_tt_private_bus = 0
+local beta_tt_drive1 = -4.73
+local beta_tt_share2 = 0
+local beta_tt_share3 = 0
 local beta_tt_motor = 0
-local beta_tt_walk = -4.23
-local beta_tt_taxi = -3.32
+local beta_tt_walk = -0.675
+local beta_tt_taxi = 0
 
-local beta_log = 0.974
+local beta_log = 0.780
 local beta_area = 0
-local beta_population = 0
-local beta_employment = -5.51
+local beta_population = 0 
+local beta_employment = 0
 
 local beta_central_bus_mrt = 0
-local beta_central_private_bus= 0
-local beta_central_drive1 = 0 
+local beta_central_private_bus = 0
+local beta_central_drive1 = 0
 local beta_central_share2 = 0
 local beta_central_share3 = 0
 local beta_central_motor = 0
 local beta_central_walk = 0
-local beta_central_taxi = 1.1
+local beta_central_taxi = 0
 
 local beta_distance_bus_mrt = 0
-local beta_distance_private_bus = 0
+local beta_distance_private_bus = 0 
 local beta_distance_drive1 = 0
 local beta_distance_share2 = 0
 local beta_distance_share3 = 0
@@ -52,15 +52,15 @@ local beta_distance_motor = 0
 local beta_distance_walk = 0
 local beta_distance_taxi = 0
 
-local beta_cons_bus = 0.847
-local beta_cons_mrt = 0.261
-local beta_cons_private_bus = 1.47
+local beta_cons_bus = 2.06
+local beta_cons_mrt = 0.524
+local beta_cons_private_bus = 1.63
 local beta_cons_drive1 = 0
-local beta_cons_share2 = 1.43
-local beta_cons_share3 = 2.82
-local beta_cons_motor = 0.112
-local beta_cons_walk = 5.09
-local beta_cons_taxi = 0.119
+local beta_cons_share2 = 1.19
+local beta_cons_share3 = 1.74
+local beta_cons_motor = -1.08
+local beta_cons_walk = -0.871
+local beta_cons_taxi = 0.111
 
 local beta_female_bus = 0
 local beta_female_mrt = 0
@@ -72,11 +72,11 @@ local beta_female_motor = 0
 local beta_female_taxi = 0
 local beta_female_walk = 0
 
-local beta_mode_work_bus = 3.25
+local beta_mode_work_bus = 2.30
 local beta_mode_work_mrt = 0
 local beta_mode_work_private_bus = 0
-local beta_mode_work_drive1 = 2.21
-local beta_mode_work_share2 = 1.28
+local beta_mode_work_drive1 = 5.29
+local beta_mode_work_share2 = 2.81
 local beta_mode_work_share3 = 0
 local beta_mode_work_motor = 0
 local beta_mode_work_walk= 0
@@ -207,19 +207,19 @@ local function computeUtilities(params,dbparams)
 	--utility function for share2 1-1092
 	for i=1,1092 do
 		V_counter = V_counter +1
-		utility[V_counter] = beta_cons_share2 + cost_share2[i] *beta_cost_share2_1 + tt_share2[i] * beta_tt_share2 + beta_central_share2 * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_share2 + beta_female_share2 * female_dummy + beta_mode_work_share2 * mode_work_share2
+		utility[V_counter] = beta_cons_share2 + cost_share2[i] *beta_cost_drive1_1 + tt_share2[i] * beta_tt_drive1 + beta_central_share2 * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_share2 + beta_female_share2 * female_dummy + beta_mode_work_share2 * mode_work_share2
 	end
 
 	--utility function for share3 1-1092
 	for i=1,1092 do
 		V_counter = V_counter +1
-		utility[V_counter] = beta_cons_share3 + cost_share3[i] * beta_cost_share3_1 + tt_share3[i] * beta_tt_share3 + beta_central_share3 * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_share3 + beta_female_share3 * female_dummy + beta_mode_work_share2 * mode_work_share3
+		utility[V_counter] = beta_cons_share3 + cost_share3[i] * beta_cost_drive1_1 + tt_share3[i] * beta_tt_drive1 + beta_central_share3 * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_share3 + beta_female_share3 * female_dummy + beta_mode_work_share2 * mode_work_share3
 	end
 
 	--utility function for motor 1-1092
 	for i=1,1092 do
 		V_counter = V_counter +1
-		utility[V_counter] = beta_cons_motor + cost_motor[i] * beta_cost_motor_1 + tt_motor[i] * beta_tt_drive1 + beta_central_motor * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_motor + beta_female_motor * female_dummy + beta_mode_work_drive1 * mode_work_motor
+		utility[V_counter] = beta_cons_motor + cost_motor[i] * beta_cost_drive1_1 + tt_motor[i] * beta_tt_drive1 + beta_central_motor * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_motor + beta_female_motor * female_dummy + beta_mode_work_drive1 * mode_work_motor
 	end
 
 	--utility function for walk 1-1092
@@ -231,7 +231,7 @@ local function computeUtilities(params,dbparams)
 	--utility function for taxi 1-1092
 	for i=1,1092 do
 		V_counter = V_counter +1
-		utility[V_counter] = beta_cons_taxi + cost_taxi[i] * beta_cost_taxi_1 + tt_taxi[i] * beta_tt_taxi + beta_central_taxi * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_taxi + beta_female_taxi * female_dummy
+		utility[V_counter] = beta_cons_taxi + cost_taxi[i] * beta_cost_drive1_1 + tt_taxi[i] * beta_tt_drive1 + beta_central_taxi * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_taxi + beta_female_taxi * female_dummy
 	end
 end
 

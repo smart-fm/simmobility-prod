@@ -31,7 +31,7 @@
                 <!-- outputs the preday's predicted tours and stops to mongodb if enabled -->
                 <output_predictions enabled="true"/>
                 <!-- prints person ids and tour details in console for each person if enabled -->
-                <console_output enabled="false"/>
+                <console_output enabled="true"/>
                 
                 <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
                         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
@@ -69,10 +69,10 @@
                         <mongo_collection name="PMCosts" collection="PMCosts"/>
                         <mongo_collection name="Zone" collection="Zone"/>
                         <mongo_collection name="zone_node" collection="node_mtz"/>
-                        <mongo_collection name="Output_DayPattern" collection="daypattern_1809_2"/>
-                        <mongo_collection name="Output_Tour" collection="tour_1809_2"/>
-                        <mongo_collection name="Output_Activity" collection="activity_1809_2"/>
-                        <mongo_collection name="Output_SubTour" collection="wbst_1809_2"/>
+                        <mongo_collection name="Output_DayPattern" collection="daypattern_1809_3"/>
+                        <mongo_collection name="Output_Tour" collection="tour_1809_3"/>
+                        <mongo_collection name="Output_Activity" collection="activity_1809_3"/>
+                        <mongo_collection name="Output_SubTour" collection="wbst_1809_3"/>
                 </mongo_collections>
                 
                 <calibration enabled="false">

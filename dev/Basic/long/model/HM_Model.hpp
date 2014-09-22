@@ -93,6 +93,10 @@ namespace sim_mob
             StatsMap stats;
             IndividualList individuals;
             IndividualMap individualsById;
+
+
+            HouseholdStatistics household_stats;
+
         };
     }
 }

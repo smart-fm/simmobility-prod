@@ -170,6 +170,7 @@ const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 	return nullptr;
 }
 
+
 void HM_Model::startImpl()
 {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -320,25 +321,29 @@ void HM_Model::startImpl()
 			tempHH->setIndividual(individuals[n]->getId());
 	}
 
+
 	for (int n = 0; n < households.size(); n++)
 	{
 		hdbEligibilityTest(n);
 	}
 
+	PrintOut("The synthetic population contains " << household_stats.adultSingaporean_global << " adult Singaporeans." << std::endl);
+	PrintOut("Minors. Male: " << household_stats.maleChild_global << " Female: " << household_stats.femaleChild_global << std::endl);
+	PrintOut("Young adults. Male: " << household_stats.maleAdultYoung_global << " Female: " << household_stats.femaleAdultYoung_global << std::endl);
+	PrintOut("Middle-age adults. Male: " << household_stats.maleAdultMiddleAged_global << " Female: " << household_stats.femaleAdultMiddleAged_global << std::endl);
+	PrintOut("Elderly adults. Male: " << household_stats.maleAdultElderly_global << " Female: " << household_stats.femaleAdultElderly_global << std::endl);
+	PrintOut("Household type Enumeration" << std::endl);
+	PrintOut("Couple and child " << household_stats.coupleAndChild << std::endl);
+	PrintOut("Siblings and parents " << household_stats.siblingsAndParents << std::endl );
+	PrintOut("Single parent " << household_stats.singleParent << std::endl );
+	PrintOut("Engaged couple " << household_stats.engagedCouple << std::endl );
+	PrintOut("Orphaned siblings " << household_stats.orphanSiblings << std::endl );
+	PrintOut("Multigenerational " << household_stats.multigeneration << std::endl );
+
 }
 
 void HM_Model::hdbEligibilityTest(int index)
 {
-	int maleChild = 0;
-	int femaleChild = 0;
-	int maleAdultYoung = 0;
-	int femaleAdultYoung = 0;
-	int maleAdultMiddleAged = 0;
-	int femaleAdultMiddleAged = 0;
-	int maleAdultElderly = 0;
-	int femaleAdultElderly = 0;
-	int adultSingaporean = 0;
-
 	int familyType = 0;
 
 	for (int n = 0; n < households[index]->getIndividuals().size(); n++)
@@ -353,101 +358,117 @@ void HM_Model::hdbEligibilityTest(int index)
 		boost::gregorian::date date1(birthday.tm_year + 1900, birthday.tm_mon + 1, birthday.tm_mday);
 		boost::gregorian::date date2(ltm.tm_year + 1900, ltm.tm_mon + 1, ltm.tm_mday);
 
-		int years = (date1 - date2).days() / YEAR;
+		int years = (date2 - date1).days() / YEAR;
+
+		household_stats.ResetLocal();
 
 		if (years < MINOR)
 		{
 			if (hhIndividual->getGenderId() == MALE)
 			{
-				maleChild++;
+				household_stats.maleChild++;
+				household_stats.maleChild_global++;
 			}
 			else if (hhIndividual->getGenderId() == FEMALE)
 			{
-				femaleChild++;
+				household_stats.femaleChild++;
+				household_stats.femaleChild_global++;
 			}
 		}
 		else if (years < YOUNG_ADULT)
 		{
 			if (hhIndividual->getGenderId() == MALE)
 			{
-				maleAdultYoung++;
+				household_stats.maleAdultYoung++;
+				household_stats.maleAdultYoung_global++;
 			}
 			else if (hhIndividual->getGenderId() == FEMALE)
 			{
-				femaleAdultYoung++;
+				household_stats.femaleAdultYoung++;
+				household_stats.femaleAdultYoung_global++;
 			}
 		}
 		else if (years < MIDDLE_AGED_ADULT)
 		{
 			if (hhIndividual->getGenderId() == MALE)
 			{
-				maleAdultMiddleAged++;
+				household_stats.maleAdultMiddleAged++;
+				household_stats.maleAdultMiddleAged_global++;
 			}
 			else if (hhIndividual->getGenderId() == FEMALE)
 			{
-				femaleAdultMiddleAged++;
+				household_stats.femaleAdultMiddleAged++;
+				household_stats.femaleAdultMiddleAged_global++;
 			}
 		}
 		else
 		{
 			if (hhIndividual->getGenderId() == MALE)
 			{
-				maleAdultElderly++;
+				household_stats.maleAdultElderly++;
+				household_stats.maleAdultElderly_global++;
 			}
 			else if (hhIndividual->getGenderId() == FEMALE)
 			{
-				femaleAdultElderly++;
+				household_stats.femaleAdultElderly++;
+				household_stats.femaleAdultElderly_global++;
 			}
 		}
 
 		if (years >= MINOR && hhIndividual->getResidentialStatusId() == RESIDENT)
 		{
-			adultSingaporean++;
+			household_stats.adultSingaporean++;
+			household_stats.adultSingaporean_global++;
 		}
 	}
 
-
-	if((maleAdultYoung > 0 && femaleAdultYoung > 0	&& (maleChild > 0 || femaleChild > 0)) ||
-	   (maleAdultMiddleAged > 0 && femaleAdultMiddleAged > 0  && (maleChild > 0 || femaleChild > 0 || maleAdultYoung > 0 || femaleAdultYoung > 0)))
+	if((household_stats.maleAdultYoung > 0 && household_stats.femaleAdultYoung > 0	&& (household_stats.maleChild > 0 || household_stats.femaleChild > 0)) ||
+	   (household_stats.maleAdultMiddleAged > 0 && household_stats.femaleAdultMiddleAged > 0  && (household_stats.maleChild > 0 || household_stats.femaleChild > 0 || household_stats.maleAdultYoung > 0 || household_stats.femaleAdultYoung > 0)))
 	{
 		familyType = Household::COUPLEANDCHILD;
+		household_stats.coupleAndChild++;
 	}
 
-	if((maleAdultYoung > 0 || femaleAdultYoung > 0) &&
-	  ((maleAdultMiddleAged > 0 || femaleAdultMiddleAged > 0) || (maleAdultElderly > 0 || femaleAdultElderly > 0)))
+	if((household_stats.maleAdultYoung > 0 || household_stats.femaleAdultYoung > 0) &&
+	  ((household_stats.maleAdultMiddleAged > 0 || household_stats.femaleAdultMiddleAged > 0) || (household_stats.maleAdultElderly > 0 || household_stats.femaleAdultElderly > 0)))
 	{
 		familyType = Household::SIBLINGSANDPARENTS;
+		household_stats.siblingsAndParents++;
 	}
 
-	if(((maleAdultYoung == 1 || femaleAdultYoung == 1)		&& (maleChild > 0 || femaleChild > 0))			||
-	   ((maleAdultMiddleAged == 1 || femaleAdultMiddleAged == 1)	&& ((maleChild > 0 || femaleChild > 0)	||
-	    (maleAdultYoung > 0 || femaleAdultYoung > 0))))
+	if(((household_stats.maleAdultYoung == 1 || household_stats.femaleAdultYoung == 1)		&& (household_stats.maleChild > 0 || household_stats.femaleChild > 0))			||
+	   ((household_stats.maleAdultMiddleAged == 1 || household_stats.femaleAdultMiddleAged == 1)	&& ((household_stats.maleChild > 0 || household_stats.femaleChild > 0)	||
+	    (household_stats.maleAdultYoung > 0 || household_stats.femaleAdultYoung > 0))))
 	{
 		familyType = Household::SINGLEPARENT;
+		household_stats.singleParent++;
 	}
 
-	if (maleAdultYoung == 1 && femaleAdultYoung == 1)
+	if (household_stats.maleAdultYoung == 1 && household_stats.femaleAdultYoung == 1)
 	{
 		familyType = Household::ENGAGEDCOUPLE;
+		household_stats.engagedCouple++;
 	}
 
-	if ((maleAdultYoung > 1 || femaleAdultYoung > 1) ||
-		(maleAdultMiddleAged > 1 || femaleAdultMiddleAged > 1))
+	if ((household_stats.maleAdultYoung > 1 || household_stats.femaleAdultYoung > 1) ||
+		(household_stats.maleAdultMiddleAged > 1 || household_stats.femaleAdultMiddleAged > 1))
 	{
 		familyType = Household::ORPHANSIBLINGS;
+		household_stats.orphanSiblings++;
 	}
 
-	if (((maleAdultYoung == 1 	   && femaleAdultYoung == 1)		&& ((maleAdultMiddleAged > 0 || femaleAdultMiddleAged > 0) || (maleAdultElderly > 0 || femaleAdultElderly > 0))) ||
-		((maleAdultMiddleAged == 1 && femaleAdultMiddleAged == 1)	&& (maleAdultElderly > 0 	 || femaleAdultElderly > 0))   ||
-		((maleAdultYoung == 1 	   && femaleAdultYoung == 1)		&& ((maleChild > 0 || femaleChild > 0) || (maleAdultMiddleAged > 0 || femaleAdultMiddleAged > 0) || (maleAdultElderly > 0 || femaleAdultElderly > 0))) ||
-		((maleAdultMiddleAged == 1 || femaleAdultMiddleAged == 1) 	&& ((maleChild > 0 || femaleChild > 0) || (maleAdultElderly > 0 || femaleAdultElderly > 0))))
+	if (((household_stats.maleAdultYoung == 1 	   && household_stats.femaleAdultYoung == 1)		&& ((household_stats.maleAdultMiddleAged > 0 || household_stats.femaleAdultMiddleAged > 0) || (household_stats.maleAdultElderly > 0 || household_stats.femaleAdultElderly > 0))) ||
+		((household_stats.maleAdultMiddleAged == 1 && household_stats.femaleAdultMiddleAged == 1)	&& (household_stats.maleAdultElderly > 0 	 || household_stats.femaleAdultElderly > 0))   ||
+		((household_stats.maleAdultYoung == 1 	   && household_stats.femaleAdultYoung == 1)		&& ((household_stats.maleChild > 0 || household_stats.femaleChild > 0) || (household_stats.maleAdultMiddleAged > 0 || household_stats.femaleAdultMiddleAged > 0) || (household_stats.maleAdultElderly > 0 || household_stats.femaleAdultElderly > 0))) ||
+		((household_stats.maleAdultMiddleAged == 1 || household_stats.femaleAdultMiddleAged == 1) 	&& ((household_stats.maleChild > 0 || household_stats.femaleChild > 0) || (household_stats.maleAdultElderly > 0 || household_stats.femaleAdultElderly > 0))))
 	{
 		familyType = Household::MULTIGENERATION;
+		household_stats.multigeneration++;
 	}
 
 	households[index]->setFamilyType(familyType);
 
-	if( adultSingaporean > 0 )
+	if( household_stats.adultSingaporean > 0 )
 	{
 		bool familyTypeGeneral = false;
 

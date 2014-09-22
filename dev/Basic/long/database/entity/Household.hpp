@@ -5,6 +5,7 @@
 /* 
  * File:   Household.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * 		   Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  *
  * Created on April 22, 2013, 5:54 PM
  */
@@ -80,7 +81,7 @@ namespace sim_mob
 
         private:
             friend class HouseholdDao;
-        private:
+
             BigSerial id;
             BigSerial lifestyleId;
             BigSerial unitId;
@@ -100,6 +101,76 @@ namespace sim_mob
 			bool fourRoomHdbEligibility;
 
 			int	 familyType;
+        };
+
+
+        class HouseholdStatistics
+        {
+        	public:
+        		HouseholdStatistics(): 	 maleChild(0),
+										 femaleChild(0),
+										 maleAdultYoung(0),
+										 femaleAdultYoung(0),
+										 maleAdultMiddleAged(0),
+										 femaleAdultMiddleAged(0),
+										 maleAdultElderly(0),
+										 femaleAdultElderly(0),
+										 adultSingaporean(0),
+										 maleChild_global(0),
+										 femaleChild_global(0),
+										 maleAdultYoung_global(0),
+										 femaleAdultYoung_global(0),
+										 maleAdultMiddleAged_global(0),
+										 femaleAdultMiddleAged_global(0),
+										 maleAdultElderly_global(0),
+										 femaleAdultElderly_global(0),
+										 adultSingaporean_global(0),
+										 coupleAndChild(0),
+										 siblingsAndParents(0),
+										 singleParent(0),
+										 engagedCouple(0),
+										 orphanSiblings(0),
+										 multigeneration(0)
+        								{}
+
+        		void ResetLocal()
+        		{
+        			maleChild = 0;
+        			femaleChild = 0;
+        			maleAdultYoung = 0;
+        			femaleAdultYoung = 0;
+        			maleAdultMiddleAged = 0;
+        			femaleAdultMiddleAged = 0;
+        			maleAdultElderly = 0;
+        			femaleAdultElderly = 0;
+        			adultSingaporean = 0;
+        		}
+
+				int maleChild;
+				int femaleChild;
+				int maleAdultYoung;
+				int femaleAdultYoung;
+				int maleAdultMiddleAged;
+				int femaleAdultMiddleAged;
+				int maleAdultElderly;
+				int femaleAdultElderly;
+				int adultSingaporean;
+				int maleChild_global;
+				int femaleChild_global;
+				int maleAdultYoung_global;
+				int femaleAdultYoung_global;
+				int maleAdultMiddleAged_global;
+				int femaleAdultMiddleAged_global;
+				int maleAdultElderly_global;
+				int femaleAdultElderly_global;
+				int adultSingaporean_global;
+
+				int coupleAndChild;
+				int siblingsAndParents;
+				int singleParent;
+				int engagedCouple;
+				int orphanSiblings;
+				int multigeneration;
         };
     }
 }

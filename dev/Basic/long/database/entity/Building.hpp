@@ -13,11 +13,14 @@
 #include "Common.hpp"
 #include "Types.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
-    namespace long_term {
+    namespace long_term
+    {
 
-        class Building {
+        class Building
+        {
         public:
         	Building( BigSerial fm_building_id = INVALID_ID, BigSerial fm_project_id = INVALID_ID, BigSerial fm_parcel_id = INVALID_ID, int storeys_above_ground = 0,
         			  int storeys_below_ground = 0, std::tm from_date = std::tm(), std::tm to_date = std::tm(), std::string building_status = EMPTY_STR,
@@ -107,12 +110,10 @@ namespace sim_mob {
             /**
              * Operator to print the Building data.  
              */
-            friend std::ostream& operator<<(std::ostream& strm, 
-                const Building& data);
+            friend std::ostream& operator<<(std::ostream& strm, const Building& data);
 
         private:
             friend class BuildingDao;
-        private:
 
             BigSerial fm_building_id;
             BigSerial fm_project_id;

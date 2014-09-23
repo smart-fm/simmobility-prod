@@ -34,8 +34,7 @@ namespace sim_mob {
             /**
              * Operator to print the Template data.  
              */
-            friend std::ostream& operator<<(std::ostream& strm,
-                    const Template& data);
+            friend std::ostream& operator<<(std::ostream& strm, const Template& data);
         private:
             friend class TemplateDao;
         private:

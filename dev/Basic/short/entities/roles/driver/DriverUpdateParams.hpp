@@ -299,6 +299,9 @@ public:
 	DynamicVector latMv_;
 
 	std::string cfDebugStr;
+	std::stringstream  lcDebugStr;
+//	std::string lcDebugStrTwo;
+//	std::string lcDebugThree;
 
 //	//perform incident response
 //	IncidentPerformer incidentPerformer;

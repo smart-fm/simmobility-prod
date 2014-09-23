@@ -82,7 +82,7 @@ void DriverUpdateParams::buildDebugInfo()
 
 #endif
 
-#if 1
+#if 0
 		//debug lane changing
 	//
 	////	s<<ct

@@ -878,11 +878,11 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	p.utilityLeft = eul / sum ;
 	p.utilityRight = eur /sum ;
 
-	if (rnd < probOfCurrentLane){
+	if (rnd <= probOfCurrentLane){
 		change = LCS_SAME ;
 		p.lcd = "lcd-c";
 	}
-	else if (rnd < probOfCL_LL){
+	else if (rnd <= probOfCL_LL){
 		p.lcd = "lcd-l";
 		change = LCS_LEFT ;
 	}
@@ -1509,7 +1509,6 @@ double sim_mob::MITSIM_LC_Model::mlcDistance()
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdateParams& p)
 {
-	p.lcDebugStr.str(std::string());
 	p.lcDebugStr<<"makeD"<<p.now.frame();
 	// if in the middle of lc , just pass
 	if(p.getStatus(STATUS_LC_CHANGING)){

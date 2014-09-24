@@ -12,57 +12,57 @@ Authors - Siyu Li, Harish Loganathan
 
 --!! see the documentation on the definition of AM,PM and OP table!!
 
-local beta_cons_bus = -1.94
-local beta_cons_mrt = -2.93
-local beta_cons_privatebus= -2.21
+local beta_cons_bus = -1.42
+local beta_cons_mrt = -2.36
+local beta_cons_privatebus= -1.68
 local beta_cons_drive1= 0
-local beta_cons_share2= -5.66
-local beta_cons_share3= -5.44
-local beta_cons_motor= -6.5
-local beta_cons_walk= -0.386
-local beta_cons_taxi= -6.12
+local beta_cons_share2= -5.31
+local beta_cons_share3= -5.19
+local beta_cons_motor= -6.11
+local beta_cons_walk= -0.348
+local beta_cons_taxi= -5.57
 
-local beta1_1_tt = -0.623
-local beta1_2_tt = -0.703
-local beta1_3_tt = -1.09
+local beta1_1_tt = -0.687
+local beta1_2_tt = -0.690
+local beta1_3_tt = -1.06
 
-local beta_private_1_tt= -0.692
+local beta_private_1_tt= -0.659
 
-local beta2_tt_drive1 = -0.9
-local beta2_tt_share2 = -1.31
-local beta2_tt_share3 = -1.13
+local beta2_tt_drive1 = -0.736
+local beta2_tt_share2 = -1.42
+local beta2_tt_share3 = -1.18
 local beta2_tt_motor = 0
 
-local beta_tt_walk = -3.52
-local beta_tt_taxi = -2.54
+local beta_tt_walk = -3.72
+local beta_tt_taxi = -2.84
 
 
-local beta_cost = -0.0184
+local beta_cost = 0
 
 local beta_cost_erp = 0
 local beta_cost_parking = 0
 
-local beta_central_bus = 0.214
-local beta_central_mrt = 0.397 
-local beta_central_privatebus = 0.753
-local beta_central_share2 = 0.395
-local beta_central_share3 = 0.486
-local beta_central_motor = 0.00692
-local beta_central_taxi = 0.959
-local beta_central_walk = 0.0671
+local beta_central_bus = 0.330
+local beta_central_mrt = 0.502 
+local beta_central_privatebus = 0.851
+local beta_central_share2 = 0.507
+local beta_central_share3 = 0.602
+local beta_central_motor = 0.136
+local beta_central_taxi = 1.04
+local beta_central_walk = 0.205
 
 
-local beta_female_bus = 0.826
-local beta_female_mrt = 0.948
-local beta_female_privatebus = 0.886
+local beta_female_bus = 0.804
+local beta_female_mrt = 0.916
+local beta_female_privatebus = 0.875
 
 local beta_female_drive1 = 0
-local beta_female_share2 = 0.864
-local beta_female_share3 = 0.753
+local beta_female_share2 = 0.877
+local beta_female_share3 = 0.762
 
 local beta_female_motor = 0
-local beta_female_taxi = 0.724
-local beta_female_walk = 0.953
+local beta_female_taxi = 0.567
+local beta_female_walk = 0.877
 
 local beta_zero_drive1 = 0
 local beta_oneplus_drive1 = 0
@@ -70,13 +70,13 @@ local beta_twoplus_drive1 = 0
 local beta_threeplus_drive1 = 0
 
 local beta_zero_share2 = 0
-local beta_oneplus_share2 = 2.73
-local beta_twoplus_share2 = 1.28
-local beta_threeplus_share2 = 0.121
+local beta_oneplus_share2 = 2.77
+local beta_twoplus_share2 = 1.31
+local beta_threeplus_share2 = 0.140
 
 local beta_zero_share3 = 0
-local beta_oneplus_share3 = 2.61
-local beta_twoplus_share3 = 0.963
+local beta_oneplus_share3 = 2.79
+local beta_twoplus_share3 = 0.998
 local beta_threeplus_share3 = 0
 
 
@@ -88,31 +88,31 @@ local beta_threeplus_motor = 0
 
 local beta_transfer = 0
 
-local beta_distance = -0.00836
-local beta_residence = -0.466
+local beta_distance = -0.0116
+local beta_residence = -0.488
 local beta_residence_2 = 0
-local beta_attraction = -0.0393
+local beta_attraction = -0.0429
 local beta_attraction_2 = 0
 
-local beta_age_over_15_bus = 2.0
-local beta_age_over_15_mrt = 2.54
+local beta_age_over_15_bus = 1.95
+local beta_age_over_15_mrt = 2.46
 local beta_age_over_15_private_bus = 0
 local beta_age_over_15_drive1 = 0
-local beta_age_over_15_share2 = 0.414
+local beta_age_over_15_share2 = 0.376
 local beta_age_over_15_share3 = 0
 local beta_age_over_15_motor = 0
-local beta_age_over_15_walk = 1.36
-local beta_age_over_15_taxi = 1.14
+local beta_age_over_15_walk = 1.28
+local beta_age_over_15_taxi = 0.772
 
-local beta_university_student_bus = -0.184
-local beta_university_student_mrt = 0.341
-local beta_university_student_private_bus = 0.22
+local beta_university_student_bus = -0.157
+local beta_university_student_mrt = 0.308
+local beta_university_student_private_bus = 0.227
 local beta_university_student_drive1 = 0
-local beta_university_student_share2 = 0.191
+local beta_university_student_share2 = 0.267
 local beta_university_student_share3 = 0
 local beta_university_student_motor = 0
 local beta_university_student_walk = 0
-local beta_university_student_taxi = 1.88
+local beta_university_student_taxi = 2.10
 
 local beta_distance_motor = 0
 
@@ -179,7 +179,7 @@ local function computeUtilities(params,dbparams)
 	local income_id = params.income_id
 	local income_cat = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
 	local income_mid = income_cat[income_id]
-	local missing_income = (params.income_id >= 12) and 1 or 0
+	local missing_income = (params.income_id >= 13) and 1 or 0
 	
 	local age_id = params.age_id
 	local age_over_15 = age_id >= 3 and 1 or 0
@@ -313,9 +313,9 @@ end
 
 --scale
 local scale={}
-scale["PT"] = {1.51,1.51,1.51}
-scale["car"] = {1.45,1.45,1.45,1.45}
-scale["other"] = {1,1}
+scale["PT"] = 1.60
+scale["car"] = 1.51
+scale["other"] = 1
 
 -- function to call from C++ preday simulator
 -- params and dbparams tables contain data passed from C++

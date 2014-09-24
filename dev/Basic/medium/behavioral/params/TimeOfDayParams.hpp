@@ -24,7 +24,7 @@ namespace medium {
 class TourTimeOfDayParams {
 public:
 	TourTimeOfDayParams(std::vector<double>& travelTimesFirstHalfTour, std::vector<double>& travelTimesSecondHalfTour)
-	: numTimeWindows(48), costHT1_AM(0), costHT1_PM(0), costHT1_OP(0), costHT2_AM(0), costHT2_PM(0), costHT2_OP(0),
+	: costHT1_AM(0), costHT1_PM(0), costHT1_OP(0), costHT2_AM(0), costHT2_PM(0), costHT2_OP(0),
 	  travelTimesFirstHalfTour(travelTimesFirstHalfTour), travelTimesSecondHalfTour(travelTimesSecondHalfTour)
 	{}
 	virtual ~TourTimeOfDayParams() {}
@@ -92,7 +92,6 @@ public:
 	std::vector<double> travelTimesSecondHalfTour;
 
 private:
-	int numTimeWindows;
 	int costHT1_AM;
 	int costHT1_PM;
 	int costHT1_OP;
@@ -110,9 +109,9 @@ private:
  */
 class StopTimeOfDayParams {
 public:
-	StopTimeOfDayParams(int stopType, int firstBound)
+	StopTimeOfDayParams(int stopType, bool firstBound)
 	: stopType(stopType), firstBound(firstBound), numTimeWindows(48), todHigh(0.0), todLow(0.0) {
-		for(int i=1; i<=48; i++) {
+		for(unsigned i=1; i<=numTimeWindows; i++) {
 			availability.push_back(true);
 		}
 	}
@@ -160,8 +159,8 @@ public:
 	 * \note -1 is an invalid value for travel time and the caller must check for this value.
 	 */
 	double getTravelTime(unsigned index){
-		if(index < numTimeWindows) {
-			return travelTimes[index];
+		if(index <= numTimeWindows  && index > 0) {
+			return travelTimes[index-1];
 		}
 		return -1;
 	}
@@ -173,8 +172,8 @@ public:
 	 * \note -1 is an invalid value for travel time and the caller must check for this value.
 	 */
 	double getTravelCost(unsigned index){
-		if(index < numTimeWindows) {
-			return travelCost[index];
+		if(index <= numTimeWindows  && index > 0) {
+			return travelCost[index-1];
 		}
 		return -1;
 	}
@@ -183,9 +182,10 @@ public:
 	 * Sets the availabilities of all time windows before low tod and after high tod to false
 	 */
 	void updateAvailabilities() {
-		for(int i=0; i<availability.size(); i++) {
-			int wndw = i+1;
-			if(wndw <= todLow || wndw >= todHigh) {
+		size_t wndw = 0;
+		for(size_t i=0; i<numTimeWindows; i++) {
+			wndw = i+1;
+			if(wndw < todLow || wndw > todHigh) {
 				availability[i] = false;
 			}
 		}
@@ -195,7 +195,7 @@ public:
 	 * Function to get the availability of an alternative
 	 */
 	int getAvailability(unsigned index){
-		if(index < numTimeWindows && index > 0) {
+		if(index <= numTimeWindows && index > 0) {
 			return availability[index-1];
 		}
 		return 0; // anything else is unavailable
@@ -215,10 +215,10 @@ public:
 
 private:
 	int stopType;
-	int firstBound;
+	bool firstBound;
 	double todHigh; // upper limit for time of day for this stop
 	double todLow; // lower limit for time of day for this stop
-	int numTimeWindows;
+	unsigned numTimeWindows;
 };
 } // end namespace medium
 } // end namespace sim_mob

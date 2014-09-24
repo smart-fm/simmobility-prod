@@ -52,7 +52,7 @@
             <database id="fm_mongo" dbtype="mongodb">
                 <host value="localhost"/>
                 <port value="27017"/>
-                <dbname value="mydb"/>
+                <dbname value="preday"/>
             </database>
 
         </databases>
@@ -242,6 +242,7 @@
             <total_warmup       value="10"     units="seconds" />
             
             <start_time         value="08:30:00"/>
+            <pathset_traveltime_save_table value="pathset"/>
             
             <!-- Implementation to use for the Aura Manager. -->
             <!-- Values include: simtree, rdu, rstar (default) -->

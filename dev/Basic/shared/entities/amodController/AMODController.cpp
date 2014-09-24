@@ -1659,7 +1659,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 		// work through list using available free cars
 		ServiceIterator itr =serviceBuffer.begin();
 		int startTime = currTime;
-		int interval = 1000;//ms
+		int interval = 3000;//ms
 		while (true) {
 			if (nFreeCars <= 0) break; //check if the number of free cars is non-zero
 			if (serviceBuffer.size() == 0) break;

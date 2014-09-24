@@ -139,6 +139,9 @@ public:
 	/*	const sim_mob::Link* getCurrLink() const;
 	 void setCurrLink(sim_mob::Link* link);*/
 	int laneID;
+	int initSegId;
+	int initDis;
+	int initSpeed;
 
 	const std::string& getAgentSrc() const {
 		return agentSrc;

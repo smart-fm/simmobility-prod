@@ -10,37 +10,37 @@ Authors - Siyu Li, Harish Loganathan
 --Estimated values for all betas
 --Note= the betas that not estimated are fixed to zero.
 
-local beta_C_1 =0.109
-local beta_DUR_1_shopping= 0.0286
-local beta_DUR_2_shopping= -0.378 
-local beta_DUR_1_edu= -0.0418 
-local beta_DUR_3_work= 0.00256 
-local beta_DUR_2_work= -0.0483 
-local beta_DUR_1_other= -1.96 
-local beta_DUR_1_work= -0.865 
-local beta_TT= -1.97 
-local beta_C_2= -0.511 
-local beta_DEP_1_1= -5.94 
-local beta_DEP_1_3= -0.765 
-local beta_DEP_1_2= -1.54 
-local beta_DEP_1_5= 3.32 
-local beta_DEP_1_4= 0.258 
-local beta_DEP_1_7= 1.26 
-local beta_DEP_1_6= 1.53 
-local beta_DEP_1_8= 1.0 
-local beta_DUR_2_other= 0.0774 
-local beta_DUR_3_shopping= 0.02 
-local beta_DUR_2_edu= -0.147
-local beta_DUR_3_edu= 0.00553 
-local beta_ARR_1_8= 0.162
-local beta_ARR_1_7= 0.933 
-local beta_ARR_1_6= -0.744 
-local beta_ARR_1_5= -5.53 
-local beta_ARR_1_4= 0.506 
-local beta_ARR_1_3= -0.105 
-local beta_ARR_1_2= -1.85 
-local beta_ARR_1_1= 2.14 
-local beta_DUR_3_other= -0.00275
+local beta_C_1 =-0.169
+local beta_DUR_1_shopping= 0
+local beta_DUR_2_shopping= 0 
+local beta_DUR_1_edu= 0
+local beta_DUR_3_work= 0 
+local beta_DUR_2_work= 0 
+local beta_DUR_1_other= 0
+local beta_DUR_1_work= 0 
+local beta_TT= -2.07
+local beta_C_2= -0.545 
+local beta_DEP_1_1= 3.79 
+local beta_DEP_1_3= -3.14 
+local beta_DEP_1_2= -2.15 
+local beta_DEP_1_5= -4.00 
+local beta_DEP_1_4= -0.165 
+local beta_DEP_1_7= 0.354 
+local beta_DEP_1_6= -4.45 
+local beta_DEP_1_8= 1.64
+local beta_DUR_2_other= 0 
+local beta_DUR_3_shopping= 0 
+local beta_DUR_2_edu= 0 
+local beta_DUR_3_edu= 0 
+local beta_ARR_1_8= 0.688
+local beta_ARR_1_7= 2.88 
+local beta_ARR_1_6= 2.66 
+local beta_ARR_1_5= -2.01 
+local beta_ARR_1_4= 0.385 
+local beta_ARR_1_3= -0.727 
+local beta_ARR_1_2= -5.91 
+local beta_ARR_1_1= -9.47 
+local beta_DUR_3_other= 0
 
 
 local Begin={}
@@ -138,10 +138,7 @@ local function computeAvailabilities(params,dbparams)
 end
 
 --scale
-local scale={}
-for i = 1, 48 do
-	scale[i]=1
-end
+local scale= 1 -- for all choices
 
 -- function to call from C++ preday simulator
 -- params and dbparams tables contain data passed from C++

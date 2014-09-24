@@ -238,6 +238,9 @@ void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p) {
 
 	// init step size , i=3 stopped vehicle
 	p.nextStepSize = updateStepSize[3];
+	if(p.nextStepSize == 0){
+		p.nextStepSize = p.elapsedSeconds;
+	}
 	nextPerceptionSize = perceptionSize[3];
 
 	// visibility
@@ -500,14 +503,15 @@ double sim_mob::MITSIM_CF_Model::headwayBuffer() {
 
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		double targetSpeed, double maxLaneSpeed) {
+
 //	cftimer -= p.elapsedSeconds;
 	/// if time cftimer >0 , return last calculated acc
-	if (p.cftimer > sim_mob::Math::DOUBLE_EPSILON) {
-		if(p.lastAcc > 10){
-			int i = 0;
-		}
-		return p.lastAcc;
-	}
+//	if (p.cftimer > sim_mob::Math::DOUBLE_EPSILON) {
+//		if(p.lastAcc > 10){
+//			int i = 0;
+//		}
+//		return p.lastAcc;
+//	}
 
 //	// check if "performing lane change"
 //	if(p.getStatus(STATUS_LC_CHANGING))
@@ -533,28 +537,26 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	// The target gap acceleration should be based on the target gap status and not on the min
 	// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
 	double aH = p.maxAcceleration;
+	std::string aHStr="aH";
 	if(!p.getStatus(STATUS_LC_CHANGING)) // not in middle of performing lane change
 	{
 	 if (p.getStatus(STATUS_ADJACENT)) {
 	  aH = calcAdjacentRate(p);	// to reach adjacent gap
+	  aHStr="aHA";
 	 }
 	 else if (p.getStatus(STATUS_BACKWARD)) {
 	  aH = calcBackwardRate(p);	// to reach backward gap
+	  aHStr="aHB";
 	 }
 	 else if (p.getStatus(STATUS_FORWARD)) {
 	  aH = calcForwardRate(p);		// to reach forward gap
+	  aHStr="aHF";
 	 } else {
 		  aH = desiredSpeedRate(p);
+		  aHStr="aHD";
 	 }
 	}
 
-	if(p.now.frame() > 300 ){
-			int i = 0;
-			if(p.perceivedDistToFwdCar/100.0 < 0.1)
-			{
-				int ii = 0;
-			}
-		}
 
 	// if (intersection){
 	// double aI = approachInter(p); // when approaching intersection to achieve the turn speed
@@ -578,7 +580,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	//if(acc > aF) acc = aF;
 	if (acc > aH) {
 		acc = aH;
-		p.accSelect = "aH";
+		p.accSelect = aHStr;
 	}
 //	if (acc > aH1)
 //		acc = aH1;
@@ -666,6 +668,9 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 //	}
 
 	double res = 0;
+
+	std::stringstream debugStr;
+	debugStr<<"t"<<p.now.frame();
 	//If we have no space left to move, immediately cut off acceleration.
 //	if ( p.space < 2.0 && p.isAlreadyStart )
 //		return maxDeceleration;
@@ -674,67 +679,88 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 //		return p.maxDeceleration * 4.0;
 //	}
 //	if (p.space > 0.1)
-	{
+//	{
 //		if (!nv.exists()) {
+	p.headway = 99;
 		if(p.perceivedDistToFwdCar == DEFAULT_DISTANCE_CM) {
-			return accOfFreeFlowing(p, p.desiredSpeed, p.maxLaneSpeed);
+
+			res = accOfFreeFlowing(p, p.desiredSpeed, p.maxLaneSpeed);
+			debugStr<<"DEF;"<<res;
 //			return p.maxAcceleration;
 		}
-		// when nv is left/right vh , can not use perceivedxxx!
-		// create perceived left,right varialbe
-		p.v_lead = p.perceivedFwdVelocityOfFwdCar/100;
-		p.a_lead = p.perceivedAccelerationOfFwdCar/100;
+		else {
+			debugStr<<"ELSE;";
+			// when nv is left/right vh , can not use perceivedxxx!
+			// create perceived left,right varialbe
+			p.v_lead = p.perceivedFwdVelocityOfFwdCar/100;
+			p.a_lead = p.perceivedAccelerationOfFwdCar/100;
 
-//		p.v_lead = nv.driver->fwdVelocity / 100;
-//		p.a_lead = nv.driver->fwdAccel / 100;
+	//		p.v_lead = nv.driver->fwdVelocity / 100;
+	//		p.a_lead = nv.driver->fwdAccel / 100;
 
-//		double dt	=	p.elapsedSeconds;
-		double dt = p.nextStepSize;
-		  float auxspeed = p.perceivedFwdVelocity / 100 == 0 ? 0.00001:p.perceivedFwdVelocity / 100;
+	//		double dt	=	p.elapsedSeconds;
+			double dt = p.nextStepSize;
+			  float auxspeed = p.perceivedFwdVelocity / 100 == 0 ? 0.00001:p.perceivedFwdVelocity / 100;
 
-		  float headway = 2.0 * p.space / (auxspeed + p.perceivedFwdVelocity / 100);
+			  float headway = 2.0 * p.space / (auxspeed + p.perceivedFwdVelocity / 100);
 
-//		double headway = CalcHeadway(p.space, p.perceivedFwdVelocity / 100,
-//				p.elapsedSeconds, p.maxAcceleration);
-//		std::cout<<"carFollowingRate: headway1: "<<headway<<std::endl;
+			  debugStr<<"+"<<headway<<"+"<<p.space<<"+"<<auxspeed<<"+"<<p.perceivedFwdVelocity<<";";
 
-		//Emergency deceleration overrides the perceived distance; check for it.
-//		{
-//			double emergSpace = p.perceivedDistToFwdCar/100;
-		double emergSpace = nv.distance / 100;
+	//		double headway = CalcHeadway(p.space, p.perceivedFwdVelocity / 100,
+	//				p.elapsedSeconds, p.maxAcceleration);
+	//		std::cout<<"carFollowingRate: headway1: "<<headway<<std::endl;
 
-		// to fix bug: when subject vh speed=0 and space small, headway become large number
-		if(emergSpace < 2.0) {
-			double vs = 16.0;
-			double emergHeadway = CalcHeadway(emergSpace,
-							vs, p.elapsedSeconds,
-							p.maxAcceleration);
-			if (emergHeadway < hBufferLower) {
-						//We need to brake. Override.
-						p.space = emergSpace;
-						headway = emergHeadway;
-					}
-		}
+			//Emergency deceleration overrides the perceived distance; check for it.
+	//		{
+	//			double emergSpace = p.perceivedDistToFwdCar/100;
+			double emergSpace = nv.distance / 100;
+
+			debugStr<<emergSpace<<";";
+
+			// to fix bug: when subject vh speed=0 and space small, headway become large number
+			p.emergHeadway = -1;
+			if(emergSpace < 2.0) {
+				double speed = p.perceivedFwdVelocity / 100;
+				double emergHeadway = CalcHeadway(emergSpace,
+												  speed,
+												  p.elapsedSeconds,
+												  p.maxAcceleration);
+				if (emergHeadway < hBufferLower) {
+							//We need to brake. Override.
+							p.space = emergSpace;
+							headway = emergHeadway;
+						}
+				p.emergHeadway = emergHeadway;
+
+				debugStr<<"EM;"<<emergHeadway<<";";
+			}
 
 
-//		}
-		float v = p.v_lead  + p.a_lead * dt;
-		p.space_star = p.space + 0.5 * (p.v_lead + v) * dt;
-//		std::cout<<"carFollowingRate: headway2: "<<headway<<std::endl;
-		if (headway < hBufferLower) {
-			res = accOfEmergencyDecelerating(p);
-			p.setStatus(STATUS_REGIME_EMERGENCY);
-//			std::cout<<"carFollowingRate: EmergencyDecelerating: "<<res<<std::endl;
-		}
-		hBufferUpper = getBufferUppder();
-		if (headway > hBufferUpper) {
-			res = accOfMixOfCFandFF(p, p.desiredSpeed, p.maxLaneSpeed);
-		}
-		if (headway <= hBufferUpper && headway >= hBufferLower) {
-			res = accOfCarFollowing(p);
-		}
+	//		}
+			float v = p.v_lead  + p.a_lead * dt;
+			p.space_star = p.space + 0.5 * (p.v_lead + v) * dt;
+	//		std::cout<<"carFollowingRate: headway2: "<<headway<<std::endl;
+			if (headway < hBufferLower) {
+				res = accOfEmergencyDecelerating(p);
+				p.setStatus(STATUS_REGIME_EMERGENCY);
+				debugStr<<"LO;";
+	//			std::cout<<"carFollowingRate: EmergencyDecelerating: "<<res<<std::endl;
+			}
+			hBufferUpper = getBufferUppder();
+			if (headway > hBufferUpper) {
+				res = accOfMixOfCFandFF(p, p.desiredSpeed, p.maxLaneSpeed);
+				debugStr<<"UP;";
+			}
+			if (headway <= hBufferUpper && headway >= hBufferLower) {
+				res = accOfCarFollowing(p);
+				debugStr<<"LOUP;";
+			}
 
-		p.headway = headway;
+			p.headway = headway;
+
+		}//end of else
+
+
 
 //		if(p.isWaiting && p.dis2stop<5000 && res > 0)
 //		{
@@ -744,10 +770,11 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 //				res=0;
 //			}
 //		}
-	}
+//	}
 //	else {
 //		res = p.maxDeceleration;
 //	}
+		p.cfDebugStr = debugStr.str();
 	return res;
 }
 double sim_mob::MITSIM_CF_Model::calcCarFollowingRate(DriverUpdateParams& p)
@@ -762,9 +789,9 @@ double sim_mob::MITSIM_CF_Model::calcCarFollowingRate(DriverUpdateParams& p)
 	// as isInMergingArea() not function now
 //	else /
 	{
-		if(p.now.frame()>244 && p.now.frame()< 250 && p.driver->getParent()->GetId()==1){
-			int ii =0;
-		}
+//		if(p.now.frame()>244 && p.now.frame()< 250 && p.driver->getParent()->GetId()==1){
+//			int ii =0;
+//		}
 		double aZ1 = carFollowingRate(p, p.nvFwd);
 //		double aZ2 = carFollowingRate(p, p.nvFwdNextLink);
 //		if(aZ1<aZ2) {
@@ -1646,6 +1673,9 @@ double sim_mob::CarFollowModel::calcNextStepSize(DriverUpdateParams& p) {
 	}
 
 	p.nextStepSize = updateStepSize[i];
+	if(p.nextStepSize == 0){
+		p.nextStepSize = p.elapsedSeconds;
+	}
 	nextPerceptionSize = perceptionSize[i];
 	p.driver->resetReacTime(nextPerceptionSize * 1000);
 	return p.nextStepSize;

@@ -10,36 +10,36 @@ Authors - Siyu Li, Harish Loganathan
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 
-local beta_ARR_2_4 = 0.772 
-local beta_ARR_2_5 = 0.309 
-local beta_ARR_2_6 = -0.0774 
-local beta_ARR_2_1 = -0.31
-local beta_ARR_2_2 = -0.276 
-local beta_ARR_2_3 = -0.1
+local beta_ARR_2_4 = -1.17 
+local beta_ARR_2_5 = -0.813 
+local beta_ARR_2_6 = -0.388 
+local beta_ARR_2_1 = -0.502
+local beta_ARR_2_2 = -0.305 
+local beta_ARR_2_3 = -0.105
 local beta_C = 0.0
-local beta_DUR_1 = -0.788
-local beta_DUR_3 = 0.00258 
-local beta_DUR_2 = -0.124 
-local beta_ARR_1_3 = -3.56 
-local beta_ARR_1_2 = -4.34 
-local beta_ARR_1_1 = 7.82 
-local beta_ARR_1_6 = -5.18 
-local beta_ARR_1_5 = -14.9 
-local beta_ARR_1_4 = -25.4 
-local beta_DEP_2_2 = -0.671 
-local beta_DEP_2_3 = -0.189 
-local beta_DEP_2_1 = -0.0557 
-local beta_DEP_2_6 = 0.198
+local beta_DUR_1 = -0.770
+local beta_DUR_3 = 0.00223 
+local beta_DUR_2 = -0.115 
+local beta_ARR_1_3 = -3.25 
+local beta_ARR_1_2 = -3.94 
+local beta_ARR_1_1 = 7.79 
+local beta_ARR_1_6 = -5.43 
+local beta_ARR_1_5 = -16.1 
+local beta_ARR_1_4 = -27.6 
+local beta_DEP_2_2 = -0.877 
+local beta_DEP_2_3 = -0.275 
+local beta_DEP_2_1 = 0.235 
+local beta_DEP_2_6 = 0.192
 local beta_TT1 = 0.0
-local beta_DEP_2_4 = -0.911 
-local beta_DEP_2_5 = -0.33 
+local beta_DEP_2_4 = -1.33 
+local beta_DEP_2_5 = -0.733 
 local beta_DEP_1_5 = 4.25 
-local beta_DEP_1_4 = 12.6 
-local beta_DEP_1_6 = -1.63 
-local beta_DEP_1_1 = -9.62 
+local beta_DEP_1_4 = 12.5 
+local beta_DEP_1_6 = -1.64 
+local beta_DEP_1_1 = -9.33 
 local beta_TT2 = 0.0
-local beta_DEP_1_3 = 1.48 
-local beta_DEP_1_2 = 4.65
+local beta_DEP_1_3 = 1.47 
+local beta_DEP_1_2 = 4.81
 
 
 local k = 3
@@ -156,10 +156,7 @@ end
 
 
 --scale
-local scale={}
-for i = 1, 1176 do
-	scale[i]=1
-end
+local scale = 1 --for all choices
 
 -- function to call from C++ preday simulator
 -- params and dbparams tables contain data passed from C++

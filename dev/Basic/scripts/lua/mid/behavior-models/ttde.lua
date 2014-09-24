@@ -11,12 +11,12 @@ Authors - Siyu Li, Harish Loganathan
 --Note: the betas that not estimated are fixed to zero.
 
 local beta_ARR_2_4 = -1.17 
-local beta_ARR_2_5 = -0.813 
-local beta_ARR_2_6 = -0.388 
+local beta_ARR_2_5 = -0.809 
+local beta_ARR_2_6 = -0.387 
 local beta_ARR_2_1 = -0.502
-local beta_ARR_2_2 = -0.305 
+local beta_ARR_2_2 = -0.306 
 local beta_ARR_2_3 = -0.105
-local beta_C = 0.0
+local beta_C = -0.0933
 local beta_DUR_1 = -0.770
 local beta_DUR_3 = 0.00223 
 local beta_DUR_2 = -0.115 
@@ -26,14 +26,14 @@ local beta_ARR_1_1 = 7.79
 local beta_ARR_1_6 = -5.43 
 local beta_ARR_1_5 = -16.1 
 local beta_ARR_1_4 = -27.6 
-local beta_DEP_2_2 = -0.877 
+local beta_DEP_2_2 = -0.878 
 local beta_DEP_2_3 = -0.275 
 local beta_DEP_2_1 = 0.235 
 local beta_DEP_2_6 = 0.192
 local beta_TT1 = 0.0
 local beta_DEP_2_4 = -1.33 
-local beta_DEP_2_5 = -0.733 
-local beta_DEP_1_5 = 4.25 
+local beta_DEP_2_5 = -0.732 
+local beta_DEP_1_5 = 4.26 
 local beta_DEP_1_4 = 12.5 
 local beta_DEP_1_6 = -1.64 
 local beta_DEP_1_1 = -9.33 

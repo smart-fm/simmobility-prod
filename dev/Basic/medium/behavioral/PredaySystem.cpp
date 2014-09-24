@@ -477,126 +477,138 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 
 	// find costs
 	int home = personParams.getHomeLocation(), primaryStopLoc = tour.getTourDestination();
-	const CostParams* amHT1 = amCostMap.at(home).at(primaryStopLoc);
-	const CostParams* pmHT1 = pmCostMap.at(home).at(primaryStopLoc);
-	const CostParams* opHT1 = opCostMap.at(home).at(primaryStopLoc);
-	const CostParams* amHT2 = amCostMap.at(primaryStopLoc).at(home);
-	const CostParams* pmHT2 = pmCostMap.at(primaryStopLoc).at(home);
-	const CostParams* opHT2 = opCostMap.at(primaryStopLoc).at(home);
-	switch (tour.getTourMode())
+	if(home!=primaryStopLoc)
 	{
-	case 1: // Fall through
-	case 2:
-	case 3:
-	{	//for Public bus, MRT/LRT, private bus
-		todParams.setCostHt1Am(amHT1->getPubCost());
-		todParams.setCostHt1Pm(pmHT1->getPubCost());
-		todParams.setCostHt1Op(opHT1->getPubCost());
-		todParams.setCostHt2Am(amHT2->getPubCost());
-		todParams.setCostHt2Pm(pmHT2->getPubCost());
-		todParams.setCostHt2Op(opHT2->getPubCost());
-		break;
+		const CostParams* amHT1 = amCostMap.at(home).at(primaryStopLoc);
+		const CostParams* pmHT1 = pmCostMap.at(home).at(primaryStopLoc);
+		const CostParams* opHT1 = opCostMap.at(home).at(primaryStopLoc);
+		const CostParams* amHT2 = amCostMap.at(primaryStopLoc).at(home);
+		const CostParams* pmHT2 = pmCostMap.at(primaryStopLoc).at(home);
+		const CostParams* opHT2 = opCostMap.at(primaryStopLoc).at(home);
+		switch (tour.getTourMode())
+		{
+		case 1: // Fall through
+		case 2:
+		case 3:
+		{	//for Public bus, MRT/LRT, private bus
+			todParams.setCostHt1Am(amHT1->getPubCost());
+			todParams.setCostHt1Pm(pmHT1->getPubCost());
+			todParams.setCostHt1Op(opHT1->getPubCost());
+			todParams.setCostHt2Am(amHT2->getPubCost());
+			todParams.setCostHt2Pm(pmHT2->getPubCost());
+			todParams.setCostHt2Op(opHT2->getPubCost());
+			break;
+		}
+		case 4:
+		{	// drive1
+			double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
+			double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
+			todParams.setCostHt1Am(amHT1->getCarCostErp() + ht1ParkingRate + (amHT1->getDistance()*OPERATIONAL_COST));
+			todParams.setCostHt1Pm(pmHT1->getCarCostErp() + ht1ParkingRate + (pmHT1->getDistance()*OPERATIONAL_COST));
+			todParams.setCostHt1Op(opHT1->getCarCostErp() + ht1ParkingRate + (opHT1->getDistance()*OPERATIONAL_COST));
+			todParams.setCostHt2Am(amHT2->getCarCostErp() + ht2ParkingRate + (amHT2->getDistance()*OPERATIONAL_COST));
+			todParams.setCostHt2Pm(pmHT2->getCarCostErp() + ht2ParkingRate + (pmHT2->getDistance()*OPERATIONAL_COST));
+			todParams.setCostHt2Op(opHT2->getCarCostErp() + ht2ParkingRate + (opHT2->getDistance()*OPERATIONAL_COST));
+			break;
+		}
+		case 5:
+		{	// share2
+			double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
+			double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
+			todParams.setCostHt1Am((amHT1->getCarCostErp() + ht1ParkingRate + (amHT1->getDistance()*OPERATIONAL_COST))/2.0);
+			todParams.setCostHt1Pm((pmHT1->getCarCostErp() + ht1ParkingRate + (pmHT1->getDistance()*OPERATIONAL_COST))/2.0);
+			todParams.setCostHt1Op((opHT1->getCarCostErp() + ht1ParkingRate + (opHT1->getDistance()*OPERATIONAL_COST))/2.0);
+			todParams.setCostHt2Am((amHT2->getCarCostErp() + ht2ParkingRate + (amHT2->getDistance()*OPERATIONAL_COST))/2.0);
+			todParams.setCostHt2Pm((pmHT2->getCarCostErp() + ht2ParkingRate + (pmHT2->getDistance()*OPERATIONAL_COST))/2.0);
+			todParams.setCostHt2Op((opHT2->getCarCostErp() + ht2ParkingRate + (opHT2->getDistance()*OPERATIONAL_COST))/2.0);
+			break;
+		}
+		case 6:
+		{	// share3
+			double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
+			double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
+			todParams.setCostHt1Am((amHT1->getCarCostErp() + ht1ParkingRate + (amHT1->getDistance()*OPERATIONAL_COST))/3.0);
+			todParams.setCostHt1Pm((pmHT1->getCarCostErp() + ht1ParkingRate + (pmHT1->getDistance()*OPERATIONAL_COST))/3.0);
+			todParams.setCostHt1Op((opHT1->getCarCostErp() + ht1ParkingRate + (opHT1->getDistance()*OPERATIONAL_COST))/3.0);
+			todParams.setCostHt2Am((amHT2->getCarCostErp() + ht2ParkingRate + (amHT2->getDistance()*OPERATIONAL_COST))/3.0);
+			todParams.setCostHt2Pm((pmHT2->getCarCostErp() + ht2ParkingRate + (pmHT2->getDistance()*OPERATIONAL_COST))/3.0);
+			todParams.setCostHt2Op((opHT2->getCarCostErp() + ht2ParkingRate + (opHT2->getDistance()*OPERATIONAL_COST))/3.0);
+			break;
+		}
+		case 7:
+		{	//motorcycle
+			double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
+			double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
+			todParams.setCostHt1Am(((amHT1->getCarCostErp() + (amHT1->getDistance()*OPERATIONAL_COST))*0.5) + (ht1ParkingRate*0.65));
+			todParams.setCostHt1Pm(((pmHT1->getCarCostErp() + (pmHT1->getDistance()*OPERATIONAL_COST))*0.5) + (ht1ParkingRate*0.65));
+			todParams.setCostHt1Op(((opHT1->getCarCostErp() + (opHT1->getDistance()*OPERATIONAL_COST))*0.5) + (ht1ParkingRate*0.65));
+			todParams.setCostHt2Am(((amHT2->getCarCostErp() + (amHT2->getDistance()*OPERATIONAL_COST))*0.5) + (ht2ParkingRate*0.65));
+			todParams.setCostHt2Pm(((pmHT2->getCarCostErp() + (pmHT2->getDistance()*OPERATIONAL_COST))*0.5) + (ht2ParkingRate*0.65));
+			todParams.setCostHt2Op(((opHT2->getCarCostErp() + (opHT2->getDistance()*OPERATIONAL_COST))*0.5) + (ht2ParkingRate*0.65));
+			break;
+		}
+		case 8:
+		{	//Walk
+			todParams.setCostHt1Am(0);
+			todParams.setCostHt1Pm(0);
+			todParams.setCostHt1Op(0);
+			todParams.setCostHt2Am(0);
+			todParams.setCostHt2Pm(0);
+			todParams.setCostHt2Op(0);
+			break;
+		}
+		case 9:
+		{	//Taxi
+			const ZoneParams* homeZoneParams = zoneMap.at(zoneIdLookup.at(home));
+			const ZoneParams* destZoneParams = zoneMap.at(zoneIdLookup.at(primaryStopLoc));
+			double amHT1Cost = TAXI_FLAG_DOWN_PRICE
+							+ amHT1->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * homeZoneParams->getCentralDummy())
+							+ (((amHT1->getDistance()<=10)? amHT1->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((amHT1->getDistance()<=10)? 0 : (amHT1->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			double pmHT1Cost = TAXI_FLAG_DOWN_PRICE
+							+ pmHT1->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * homeZoneParams->getCentralDummy())
+							+ (((pmHT1->getDistance()<=10)? pmHT1->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((pmHT1->getDistance()<=10)? 0 : (pmHT1->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			double opHT1Cost = TAXI_FLAG_DOWN_PRICE
+							+ opHT1->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * homeZoneParams->getCentralDummy())
+							+ (((opHT1->getDistance()<=10)? opHT1->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((opHT1->getDistance()<=10)? 0 : (opHT1->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			double amHT2Cost = TAXI_FLAG_DOWN_PRICE
+							+ amHT2->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * destZoneParams->getCentralDummy())
+							+ (((amHT2->getDistance()<=10)? amHT2->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((amHT2->getDistance()<=10)? 0 : (amHT2->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			double pmHT2Cost = TAXI_FLAG_DOWN_PRICE
+							+ pmHT2->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * destZoneParams->getCentralDummy())
+							+ (((pmHT2->getDistance()<=10)? pmHT2->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((pmHT2->getDistance()<=10)? 0 : (pmHT2->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			double opHT2Cost = TAXI_FLAG_DOWN_PRICE
+							+ opHT2->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * destZoneParams->getCentralDummy())
+							+ (((opHT2->getDistance()<=10)? opHT2->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((opHT2->getDistance()<=10)? 0 : (opHT2->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			todParams.setCostHt1Am(amHT1Cost);
+			todParams.setCostHt1Pm(pmHT1Cost);
+			todParams.setCostHt1Op(opHT1Cost);
+			todParams.setCostHt2Am(amHT2Cost);
+			todParams.setCostHt2Pm(pmHT2Cost);
+			todParams.setCostHt2Op(opHT2Cost);
+			break;
+		}
+		}
 	}
-	case 4:
-	{	// drive1
-		double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
-		double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
-		todParams.setCostHt1Am(amHT1->getCarCostErp() + ht1ParkingRate + (amHT1->getDistance()*OPERATIONAL_COST));
-		todParams.setCostHt1Pm(pmHT1->getCarCostErp() + ht1ParkingRate + (pmHT1->getDistance()*OPERATIONAL_COST));
-		todParams.setCostHt1Op(opHT1->getCarCostErp() + ht1ParkingRate + (opHT1->getDistance()*OPERATIONAL_COST));
-		todParams.setCostHt2Am(amHT2->getCarCostErp() + ht2ParkingRate + (amHT2->getDistance()*OPERATIONAL_COST));
-		todParams.setCostHt2Pm(pmHT2->getCarCostErp() + ht2ParkingRate + (pmHT2->getDistance()*OPERATIONAL_COST));
-		todParams.setCostHt2Op(opHT2->getCarCostErp() + ht2ParkingRate + (opHT2->getDistance()*OPERATIONAL_COST));
-		break;
-	}
-	case 5:
-	{	// share2
-		double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
-		double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
-		todParams.setCostHt1Am((amHT1->getCarCostErp() + ht1ParkingRate + (amHT1->getDistance()*OPERATIONAL_COST))/2.0);
-		todParams.setCostHt1Pm((pmHT1->getCarCostErp() + ht1ParkingRate + (pmHT1->getDistance()*OPERATIONAL_COST))/2.0);
-		todParams.setCostHt1Op((opHT1->getCarCostErp() + ht1ParkingRate + (opHT1->getDistance()*OPERATIONAL_COST))/2.0);
-		todParams.setCostHt2Am((amHT2->getCarCostErp() + ht2ParkingRate + (amHT2->getDistance()*OPERATIONAL_COST))/2.0);
-		todParams.setCostHt2Pm((pmHT2->getCarCostErp() + ht2ParkingRate + (pmHT2->getDistance()*OPERATIONAL_COST))/2.0);
-		todParams.setCostHt2Op((opHT2->getCarCostErp() + ht2ParkingRate + (opHT2->getDistance()*OPERATIONAL_COST))/2.0);
-		break;
-	}
-	case 6:
-	{	// share3
-		double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
-		double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
-		todParams.setCostHt1Am((amHT1->getCarCostErp() + ht1ParkingRate + (amHT1->getDistance()*OPERATIONAL_COST))/3.0);
-		todParams.setCostHt1Pm((pmHT1->getCarCostErp() + ht1ParkingRate + (pmHT1->getDistance()*OPERATIONAL_COST))/3.0);
-		todParams.setCostHt1Op((opHT1->getCarCostErp() + ht1ParkingRate + (opHT1->getDistance()*OPERATIONAL_COST))/3.0);
-		todParams.setCostHt2Am((amHT2->getCarCostErp() + ht2ParkingRate + (amHT2->getDistance()*OPERATIONAL_COST))/3.0);
-		todParams.setCostHt2Pm((pmHT2->getCarCostErp() + ht2ParkingRate + (pmHT2->getDistance()*OPERATIONAL_COST))/3.0);
-		todParams.setCostHt2Op((opHT2->getCarCostErp() + ht2ParkingRate + (opHT2->getDistance()*OPERATIONAL_COST))/3.0);
-		break;
-	}
-	case 7:
-	{	//motorcycle
-		double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
-		double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
-		todParams.setCostHt1Am(((amHT1->getCarCostErp() + (amHT1->getDistance()*OPERATIONAL_COST))*0.5) + (ht1ParkingRate*0.65));
-		todParams.setCostHt1Pm(((pmHT1->getCarCostErp() + (pmHT1->getDistance()*OPERATIONAL_COST))*0.5) + (ht1ParkingRate*0.65));
-		todParams.setCostHt1Op(((opHT1->getCarCostErp() + (opHT1->getDistance()*OPERATIONAL_COST))*0.5) + (ht1ParkingRate*0.65));
-		todParams.setCostHt2Am(((amHT2->getCarCostErp() + (amHT2->getDistance()*OPERATIONAL_COST))*0.5) + (ht2ParkingRate*0.65));
-		todParams.setCostHt2Pm(((pmHT2->getCarCostErp() + (pmHT2->getDistance()*OPERATIONAL_COST))*0.5) + (ht2ParkingRate*0.65));
-		todParams.setCostHt2Op(((opHT2->getCarCostErp() + (opHT2->getDistance()*OPERATIONAL_COST))*0.5) + (ht2ParkingRate*0.65));
-		break;
-	}
-	case 8:
-	{	//Walk
+	else
+	{
 		todParams.setCostHt1Am(0);
 		todParams.setCostHt1Pm(0);
 		todParams.setCostHt1Op(0);
 		todParams.setCostHt2Am(0);
 		todParams.setCostHt2Pm(0);
 		todParams.setCostHt2Op(0);
-		break;
-	}
-	case 9:
-	{	//Taxi
-		const ZoneParams* homeZoneParams = zoneMap.at(zoneIdLookup.at(home));
-		const ZoneParams* destZoneParams = zoneMap.at(zoneIdLookup.at(primaryStopLoc));
-		double amHT1Cost = TAXI_FLAG_DOWN_PRICE
-						+ amHT1->getCarCostErp()
-						+ (TAXI_CENTRAL_LOCATION_SURCHARGE * homeZoneParams->getCentralDummy())
-						+ (((amHT1->getDistance()<=10)? amHT1->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
-						+ (((amHT1->getDistance()<=10)? 0 : (amHT1->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
-		double pmHT1Cost = TAXI_FLAG_DOWN_PRICE
-						+ pmHT1->getCarCostErp()
-						+ (TAXI_CENTRAL_LOCATION_SURCHARGE * homeZoneParams->getCentralDummy())
-						+ (((pmHT1->getDistance()<=10)? pmHT1->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
-						+ (((pmHT1->getDistance()<=10)? 0 : (pmHT1->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
-		double opHT1Cost = TAXI_FLAG_DOWN_PRICE
-						+ opHT1->getCarCostErp()
-						+ (TAXI_CENTRAL_LOCATION_SURCHARGE * homeZoneParams->getCentralDummy())
-						+ (((opHT1->getDistance()<=10)? opHT1->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
-						+ (((opHT1->getDistance()<=10)? 0 : (opHT1->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
-		double amHT2Cost = TAXI_FLAG_DOWN_PRICE
-						+ amHT2->getCarCostErp()
-						+ (TAXI_CENTRAL_LOCATION_SURCHARGE * destZoneParams->getCentralDummy())
-						+ (((amHT2->getDistance()<=10)? amHT2->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
-						+ (((amHT2->getDistance()<=10)? 0 : (amHT2->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
-		double pmHT2Cost = TAXI_FLAG_DOWN_PRICE
-						+ pmHT2->getCarCostErp()
-						+ (TAXI_CENTRAL_LOCATION_SURCHARGE * destZoneParams->getCentralDummy())
-						+ (((pmHT2->getDistance()<=10)? pmHT2->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
-						+ (((pmHT2->getDistance()<=10)? 0 : (pmHT2->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
-		double opHT2Cost = TAXI_FLAG_DOWN_PRICE
-						+ opHT2->getCarCostErp()
-						+ (TAXI_CENTRAL_LOCATION_SURCHARGE * destZoneParams->getCentralDummy())
-						+ (((opHT2->getDistance()<=10)? opHT2->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
-						+ (((opHT2->getDistance()<=10)? 0 : (opHT2->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
-		todParams.setCostHt1Am(amHT1Cost);
-		todParams.setCostHt1Pm(pmHT1Cost);
-		todParams.setCostHt1Op(opHT1Cost);
-		todParams.setCostHt2Am(amHT2Cost);
-		todParams.setCostHt2Pm(pmHT2Cost);
-		todParams.setCostHt2Op(opHT2Cost);
-		break;
-	}
 	}
 
 	timeWndw = PredayLuaProvider::getPredayModel().predictTourTimeOfDay(personParams, todParams, tour.getTourType());

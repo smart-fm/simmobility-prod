@@ -136,6 +136,14 @@ public:
 	// me is doing yielding, and yieldVehicle is doing nosing
 	Driver* yieldVehicle;
 
+	//Indicates whether the driver is in a loading queue. There isn't actually any data structure to represent this
+	//queue. We use the fact that at every time tick, agents are going to be processed sequentially anyway.
+	//If this boolean is true, it means that there is no space for it on the road.
+	bool isVehicleInLoadingQueue;
+
+	//Indicates whether the position of the vehicle has been found.
+	bool isVehiclePositionDefined;
+
 //Basic data
 public:
 	//Pointer to the vehicle this driver is controlling.

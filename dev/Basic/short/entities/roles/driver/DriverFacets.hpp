@@ -99,6 +99,11 @@ private:
 	int lastIndex;
 	double disToFwdVehicleLastFrame; //to find whether vehicle is going to crash in current frame.
 
+	//This is a map of Lanes and their loading queues. All drivers when created will be added to the queue
+	//of the lane of their origin. The drivers will be removed from the queue once free space is available
+	//at their point of origin.
+	//static std::map<const Lane *, std::queue<const Driver *> *> mapOfLaneLoadingQueues;
+
 public:
 //	double maxLaneSpeed;
 	//for coordinate transform
@@ -223,6 +228,9 @@ private:
 	sim_mob::DynamicVector getCurrPolylineVector() const;
 	sim_mob::DynamicVector getCurrPolylineVector2() const;
 
+	//This method is used to check if there is enough space on the lane where a vehicle from the
+	//loading queue wants to start its journey
+	bool findEmptySpaceAhead();
 
 public:
 	double targetSpeed;			//the speed which the vehicle is going to achieve

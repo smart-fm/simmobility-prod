@@ -1658,6 +1658,8 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 		// work through list using available free cars
 		ServiceIterator itr =serviceBuffer.begin();
+		int startTime = currTime;
+		int interval = 1000;//ms
 		while (true) {
 			if (nFreeCars <= 0) break; //check if the number of free cars is non-zero
 			if (serviceBuffer.size() == 0) break;
@@ -1766,7 +1768,9 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			}
 
 			// create trip chain
-			DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+ConfigManager::GetInstance().FullConfig().baseGranMS());
+			startTime +=interval;
+			DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + startTime);
+//			DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+ConfigManager::GetInstance().FullConfig().baseGranMS());
 			sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", carParkNode, "node", destNode, "node");
 			SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), carParkNode, "node", destNode, "node", "Car");
 			((Trip*)tc)->addSubTrip(subTrip);

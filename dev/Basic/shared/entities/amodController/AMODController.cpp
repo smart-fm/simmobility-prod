@@ -1774,6 +1774,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			std::vector<sim_mob::TripChainItem*>  tcs;
 			tcs.push_back(tc);
 			vhAssigned->setTripChain(tcs); //add trip chain
+//			vhAssigned->initTripChain();
 
 			std::cout << "Assigned Path: Start";
 			for (int i=0; i<mergedWP.size(); i++) {

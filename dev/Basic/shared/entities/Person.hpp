@@ -133,6 +133,7 @@ public:
 	///Set this person's trip chain
 	void setTripChain(const std::vector<TripChainItem*>& tripChain) {
 		this->tripChain = tripChain;
+		initTripChain();
 	}
 
 	/*	const sim_mob::Link* getCurrLink() const;

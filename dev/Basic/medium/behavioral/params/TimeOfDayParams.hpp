@@ -23,10 +23,10 @@ namespace medium {
  */
 class TourTimeOfDayParams {
 public:
-	TourTimeOfDayParams(std::vector<double>& travelTimesFirstHalfTour, std::vector<double>& travelTimesSecondHalfTour)
-	: costHT1_AM(0), costHT1_PM(0), costHT1_OP(0), costHT2_AM(0), costHT2_PM(0), costHT2_OP(0),
-	  travelTimesFirstHalfTour(travelTimesFirstHalfTour), travelTimesSecondHalfTour(travelTimesSecondHalfTour)
+	TourTimeOfDayParams()
+	: costHT1_AM(0), costHT1_PM(0), costHT1_OP(0), costHT2_AM(0), costHT2_PM(0), costHT2_OP(0)
 	{}
+
 	virtual ~TourTimeOfDayParams() {}
 
 	/**
@@ -55,28 +55,52 @@ public:
 		return travelTimesSecondHalfTour[index-1];
 	}
 
-	int getCostHt1Am() const {
+	double getCostHt1Am() const {
 		return costHT1_AM;
 	}
 
-	int getCostHt1Op() const {
+	void setCostHt1Am(double costHt1Am) {
+		costHT1_AM = costHt1Am;
+	}
+
+	double getCostHt1Op() const {
 		return costHT1_OP;
 	}
 
-	int getCostHt1Pm() const {
+	void setCostHt1Op(double costHt1Op) {
+		costHT1_OP = costHt1Op;
+	}
+
+	double getCostHt1Pm() const {
 		return costHT1_PM;
 	}
 
-	int getCostHt2Am() const {
+	void setCostHt1Pm(double costHt1Pm) {
+		costHT1_PM = costHt1Pm;
+	}
+
+	double getCostHt2Am() const {
 		return costHT2_AM;
 	}
 
-	int getCostHt2Op() const {
+	void setCostHt2Am(double costHt2Am) {
+		costHT2_AM = costHt2Am;
+	}
+
+	double getCostHt2Op() const {
 		return costHT2_OP;
 	}
 
-	int getCostHt2Pm() const {
+	void setCostHt2Op(double costHt2Op) {
+		costHT2_OP = costHt2Op;
+	}
+
+	double getCostHt2Pm() const {
 		return costHT2_PM;
+	}
+
+	void setCostHt2Pm(double costHt2Pm) {
+		costHT2_PM = costHt2Pm;
 	}
 
 	/**
@@ -92,12 +116,12 @@ public:
 	std::vector<double> travelTimesSecondHalfTour;
 
 private:
-	int costHT1_AM;
-	int costHT1_PM;
-	int costHT1_OP;
-	int costHT2_AM;
-	int costHT2_PM;
-	int costHT2_OP;
+	double costHT1_AM;
+	double costHT1_PM;
+	double costHT1_OP;
+	double costHT2_AM;
+	double costHT2_PM;
+	double costHT2_OP;
 
 };
 

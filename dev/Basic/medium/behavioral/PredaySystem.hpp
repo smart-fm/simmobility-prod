@@ -350,7 +350,12 @@ public:
 	/**
 	 * Converts predictions to Trip chains and writes them off to the given stringstream
 	 */
-	void outputTripChainsToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& tripChainDao);
+	void outputTripChainsToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& outStream);
+
+	/**
+	 * Writes of the predicted stops for each tour to the given stringstream
+	 */
+	void outputActivityScheduleToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& outStream);
 
 	/**
 	 * Prints logs for person in console

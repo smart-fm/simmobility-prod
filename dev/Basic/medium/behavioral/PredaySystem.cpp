@@ -87,9 +87,9 @@ namespace {
 		res[2] = "MRT";
 		res[3] = "Bus";
 		res[4] = "Car";
-		res[5] = "Car Sharing";
-		res[6] = "Car Sharing";
-		res[7] = "Bike";
+		res[5] = "Car Sharing 2";
+		res[6] = "Car Sharing 3";
+		res[7] = "Motorcycle";
 		res[8] = "Walk";
 		res[9] = "Taxi";
 		return res;
@@ -1721,6 +1721,100 @@ void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(const ZoneNodeM
 	for(std::list<TripChainItemParams>::iterator tcIt=tripChain.begin(); tcIt!=tripChain.end();tcIt++)
 	{
 		tripChainDao.insert(*tcIt);
+	}
+}
+
+void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& outStream)
+{
+	size_t numTours = tours.size();
+	if (numTours == 0) { return; }
+	std::string personId = personParams.getPersonId();
+	long hhFactor = 1; //(long)std::ceil(personParams.getHouseholdFactor());
+	for(long k=1; k<=hhFactor; k++)
+	{
+		int homeNode = 0;
+		if(zoneNodeMap.find(personParams.getHomeLocation()) != zoneNodeMap.end())
+		{
+			homeNode =  getRandomNodeInZone(zoneNodeMap.at(personParams.getHomeLocation()));
+		}
+		if(homeNode == 0) { return; } //return if homeless
+
+		std::string pid;
+		{
+			std::stringstream sclPersonIdStrm;
+			sclPersonIdStrm << personId << "-" << k;
+			pid = sclPersonIdStrm.str();
+		}
+
+		//Home activity
+		//person_id,tour_no,tour_type,stop_no integer NOT NULL,stop_type,stop_location,stop_mode,is_primary_stop,arrival_time,departure_time
+		outStream << pid << ","
+				<< 1 << ","
+				<< "Home" << ","
+				<< 0 << "," // 0th stop is start of day till start of first tour
+				<< "Home" << ","
+				<< homeNode << ","
+				<< modeMap.at(4) << ","
+				<< "False"  << ","
+				<< "03:00:00" << ","
+				<< getRandomTimeInWindow(getTimeWindowFromIndex(tours.front().getStartTime())) <<"\n";
+
+		int tourNum = 0;
+		std::string prevTourEndTime;
+		for(TourList::const_iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++)
+		{
+			std::stringstream tourStream;
+			tourNum++;
+			const Tour& tour = (*tourIt);
+			int stopNum = 0;
+			int stopNode = 0;
+			bool nodeMappingFailed = false;
+			const StopList& stops = tour.stops;
+			for(StopList::const_iterator stopIt=stops.begin(); stopIt!=stops.end(); stopIt++)
+			{
+				const Stop* stop = (*stopIt);
+				stopNode = 0;
+				ZoneNodeMap::const_iterator zoneNodeMapIt = zoneNodeMap.find(stop->getStopLocation());
+				if(zoneNodeMapIt != zoneNodeMap.end())
+				{
+					stopNode = getRandomNodeInZone(zoneNodeMapIt->second);
+				}
+				if(stopNode == 0) { nodeMappingFailed = true; break; } // if there is no next node, cut the trip chain for this tour here
+				stopNum++;
+				//person_id character,tour_no,tour_type,stop_no integer NOT NULL,stop_type,stop_location,stop_mode,is_primary_stop,arrival_time,departure_time
+				tourStream << pid << ","
+						<< tourNum << ","
+						<< tour.getTourTypeStr() << ","
+						<< stopNum << ","
+						<< stop->getStopTypeStr() << ","
+						<< stopNode << ","
+						<< modeMap.at(4) << ","
+						<< (stop->isPrimaryActivity()? "True":"False")  << ","
+						<< getRandomTimeInWindow(getTimeWindowFromIndex(stop->getArrivalTime())) << ","
+						<< getRandomTimeInWindow(getTimeWindowFromIndex(stop->getDepartureTime())) <<"\n";
+			}
+
+			if(stopNum > 0) // if there was atleast one stop (with valid node) in tour
+			{
+				std::string homeActivityEndTime = "02:59:00";
+				TourList::const_iterator nextTourIt=tourIt; nextTourIt++; //copy and then increment
+				if(!nodeMappingFailed && nextTourIt!=tours.end()) { homeActivityEndTime = getRandomTimeInWindow(getTimeWindowFromIndex((*nextTourIt).getStartTime())); }
+
+				//Home activity
+				//person_id,tour_no,tour_type,stop_no integer NOT NULL,stop_type,stop_location,stop_mode,is_primary_stop,arrival_time,departure_time
+				tourStream << pid << ","
+						<< tourNum << ","
+						<< tour.getTourTypeStr() << ","
+						<< ++stopNum << ","
+						<< "Home" << ","
+						<< homeNode << ","
+						<< modeMap.at(4) << ","
+						<< "False"  << ","
+						<< getRandomTimeInWindow(getTimeWindowFromIndex(tour.getEndTime())) << ","
+						<< homeActivityEndTime << "\n";
+				outStream << tourStream.str();
+			}
+		}
 	}
 }
 

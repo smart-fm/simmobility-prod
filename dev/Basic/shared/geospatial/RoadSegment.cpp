@@ -317,6 +317,9 @@ void sim_mob::RoadSegment::makeLanePolylineFromEdges(Lane* lane, const vector<Po
 //	}
 //	std::cout << "\n";
 	//Sanity check
+	if(originalDB_ID.getLogItem().find("3440") != std::string::npos){
+		int i=0;
+	}
 	if (outer.size()<=1 || inner.size()<=1) {
 		throw std::runtime_error("Can't manage with a Lane Edge polyline of 0 or 1 points.");
 	}

@@ -988,7 +988,7 @@ void sim_mob::DriverPathMover::moveToNewPolyline(int newLaneID)
 	advance(0);
 }
 
-DPoint sim_mob::DriverPathMover::getPosition() const
+DPoint sim_mob::DriverPathMover::getPosition()
 {
 	throwIf(!isPathSet(), DriverPathMover::ErrorPathNotSet);
 
@@ -998,10 +998,16 @@ DPoint sim_mob::DriverPathMover::getPosition() const
 		return DPoint(currPolypoint->getX(), currPolypoint->getY());
 	}
 
+	bool res = false;
+	if(currPolypoint == nextPolypoint){
+		res = true;
+	}
+	throwIf(res, "wrong");
 	//Else, scale a vector like normal
-	DynamicVector movementVect(currPolypoint->getX(), currPolypoint->getY(), nextPolypoint->getX(), nextPolypoint->getY());
-	movementVect.scaleVectTo(getCurrDistAlongPolylineCM()).translateVect();
-	return DPoint(movementVect.getX(), movementVect.getY());
+	DynamicVector movementVect1(currPolypoint->getX(), currPolypoint->getY(), nextPolypoint->getX(), nextPolypoint->getY());
+	movementVect = movementVect1;
+	movementVect1.scaleVectTo(getCurrDistAlongPolylineCM()).translateVect();
+	return DPoint(movementVect1.getX(), movementVect1.getY());
 
 }
 double sim_mob::DriverPathMover::getPositionInSegmentCM()

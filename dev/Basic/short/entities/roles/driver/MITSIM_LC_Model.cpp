@@ -714,6 +714,8 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 //		}
 	LANE_CHANGE_SIDE change = LCS_SAME;
 
+	p.lcDebugStr<<";checkDLC";
+
 	// get distance to end of current segment
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
 	float x=driverMvt->fwdDriverMovement.getDisToCurrSegEndM();
@@ -747,19 +749,20 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 //		  change = LCS_RIGHT;
 //		}
 		p.setStatus(STATUS_MANDATORY);
+		p.lcDebugStr<<";FLAG_ESCAPE";
 		return change;
 	}
 
-	if(p.parentId == 1 && p.now.frame()>17)
+	if(p.parentId == 59 && p.now.frame()>1448)
 	{
 		int i=0;
 	}
 	// find lanes connect to target segment in lookahead distance
 	driverMvt->fwdDriverMovement.getNextSegment(true);
 	std::vector<sim_mob::Lane*> connectedLanes;
-	std::cout<<std::endl;
-	std::cout<<"tick: "<<p.now.frame()<<std::endl;
-	std::cout<<"carid: "<<p.parentId<<std::endl;
+//	std::cout<<std::endl;
+//	std::cout<<"tick: "<<p.now.frame()<<std::endl;
+//	std::cout<<"carid: "<<p.parentId<<std::endl;
 	driverMvt->getLanesConnectToLookAheadDis(lookAheadDistance,connectedLanes);
 
 	int nRight = 100; // number of lane changes required for the current lane.
@@ -772,31 +775,38 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 
 		int l1 = abs(getLaneIndex(connectedLanes[i]));
 		int l2 = p.currLaneIndex;
-		int numlcRight  = l1 -  (l2-1) ;
-		int numlcLeft  = l1 -  (l2+1) ;
-		int numlcCurrent  = l1 -  l2;
+		int numlcRight  = abs(l1 -  (l2-1) );
+		int numlcLeft  = abs(l1 -  (l2+1)) ;
+		int numlcCurrent  = abs(l1 -  l2);
 
 	 nRight =  std::min<int>(nRight, numlcRight);
 	 nLeft =  std::min<int>(nLeft, numlcLeft);
 	 nCurrent =  std::min<int>(nCurrent, numlcCurrent);
 
-	 if(nRight<0) nRight=0;
-	 if(nLeft<0) nLeft=0;
-	 if(nCurrent<0) nCurrent=0;
 	}
+//
+//	if(nRight<0) nRight=0;
+//	if(nLeft<0) nLeft=0;
+//	if(nCurrent<0) nCurrent=0;
+
+	p.lcDebugStr<<";nR"<<nRight<<";nL"<<nLeft<<";nC"<<nCurrent;
 
 	double eul = 0.0, eur = 0.0, euc = 1.0 ;
 	double lcDistance = p.dis2stop;
 
 
 	int res = isReadyForNextDLC(p,2);
+	p.lcDebugStr<<";isRyL"<<res;
 	if( (res || nCurrent>0) && p.leftLane ) {
 		eul = lcUtilityLookAheadLeft(p, nLeft, lcDistance);
+		p.lcDebugStr<<";doeul"<<eul;
 	}
 
 	res = isReadyForNextDLC(p,1);
+	p.lcDebugStr<<";isRyR"<<res;
 	if( (res || nCurrent>0) && p.rightLane ) {
 		eur = lcUtilityLookAheadRight(p, nRight, lcDistance);
+		p.lcDebugStr<<";doeur"<<eur;
 	}
 
 
@@ -822,14 +832,18 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 //	}
 
 	double sum = eul + eur ;
+	p.lcDebugStr<<";sum"<<sum;
 	if(sum > 0)
 	{
 		euc = lcUtilityLookAheadCurrent(p, nCurrent, lcDistance);
+		p.lcDebugStr<<";doeuc"<<euc;
 	}
 	else
 	{
 		p.utilityCurrent = 1.0;
-		p.lcd = "lcd-c";
+		p.lcd = "lcd-cc";
+		p.lcDebugStr<<";LCS_SAME";
+
 		return LCS_SAME;
 	}
 
@@ -878,22 +892,28 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	}
 
 
-
+	p.lcDebugStr<<";chg"<<change;
 	return change;
 }
 int sim_mob::MITSIM_LC_Model::isReadyForNextDLC(DriverUpdateParams& p,int mode)
 {
+  std::stringstream debugStr;
+
   float sec = timeSinceTagged(p);
+  p.lcDebugStr<<";irfnd"<<sec;
 
   switch(mode) {
   case 1:			// request a change to the right
 	{
 	  if (p.flag(FLAG_PREV_LC_RIGHT) && // same direction
 		  sec > getDlcMinTimeInLaneSameDir()) {
+		  p.lcDebugStr<<";1i0";
 		return 1;
 	  } else if (sec > getDlcMinTimeInLaneDiffDir()) {
+		  p.lcDebugStr<<";1i1";
 		return 1;
 	  } else {
+		  p.lcDebugStr<<";1i2";
 		return 0;
 	  }
 	}
@@ -901,10 +921,13 @@ int sim_mob::MITSIM_LC_Model::isReadyForNextDLC(DriverUpdateParams& p,int mode)
 	{
 	  if (p.flag(FLAG_PREV_LC_LEFT) && // same direction
 		  sec > getDlcMinTimeInLaneSameDir()) {
+		  p.lcDebugStr<<";2i0";
 		return 1;
 	  } else if (sec > getDlcMinTimeInLaneDiffDir()) {
+		  p.lcDebugStr<<";2i1";
 		return 1;
 	  } else {
+		  p.lcDebugStr<<";2i3";
 		return 0;
 	  }
 	}
@@ -1486,12 +1509,16 @@ double sim_mob::MITSIM_LC_Model::mlcDistance()
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdateParams& p)
 {
+	p.lcDebugStr.str(std::string());
+	p.lcDebugStr<<"makeD"<<p.now.frame();
 	// if in the middle of lc , just pass
 	if(p.getStatus(STATUS_LC_CHANGING)){
 		if(p.getStatus(STATUS_LC_LEFT)) {
+			p.lcDebugStr<<";sLeft";
 			return LCS_LEFT;
 		}
 		else if(p.getStatus(STATUS_LC_RIGHT)){
+			p.lcDebugStr<<";sRight";
 			return LCS_RIGHT;
 		}
 		else {
@@ -1500,13 +1527,15 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 		}
 	}//end getStatus()
 
-	if(p.perceivedFwdVelocity/100 < minSpeed)
+	if(p.perceivedFwdVelocity/100.0 < minSpeed)
 	{
+		p.lcDebugStr<<";samesm";
 		return LCS_SAME;
 	}
 
 	if (timeSinceTagged(p) < MLC_PARAMETERS.lane_mintime)
 	{
+		p.lcDebugStr<<";samelm"<<timeSinceTagged(p);
 		return LCS_SAME;
 	}
 
@@ -1528,16 +1557,18 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdate
 		p.rnd=0;
 		// check lanes connect to next segment
 		checkConnectLanes(p);
-if(p.parentId == 1 && p.now.frame()>36)
+if(p.parentId == 54 && p.now.frame()>1476)
 {
 	int i=0;
 }
 		if (checkIfLookAheadEvents(p))
 		{
+			p.lcDebugStr<<";hevent";
 			change = checkMandatoryEventLC(p);
 		}
 		else
 		{
+			p.lcDebugStr<<";noEvent";
 			change = checkForLookAheadLC(p);
 		}
 	}
@@ -1551,6 +1582,7 @@ if(p.parentId == 1 && p.now.frame()>36)
 	} else {
 		p.unsetStatus(STATUS_CHANGING);
 	}
+
 	return change;
 }
 double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
@@ -2235,6 +2267,8 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdatePar
 	LANE_CHANGE_SIDE lcs = LCS_SAME;
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
 
+	p.lcDebugStr<<";checkDLC";
+
 	// 1.0 check if has incident
 	if( driverMvt->incidentPerformer.getIncidentStatus().getChangedLane() )
 	{
@@ -2246,6 +2280,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdatePar
 		else if (lcs == LCS_RIGHT){
 			p.setFlag(FLAG_ESCAPE_RIGHT);
 		}
+		p.lcDebugStr<<";icd";
 		return lcs;
 	}
 
@@ -2298,6 +2333,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdatePar
 			else if (p.flag(FLAG_AVOID)) {
 				p.setFlag(FLAG_AVOID_LEFT);
 			}
+			p.lcDebugStr<<";LEFT";
 			return LCS_LEFT;
 		}
 		// 2.3.2 There is an open right lane and no open left lane or the
@@ -2310,6 +2346,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdatePar
 			else if (p.flag(FLAG_AVOID)) {
 				p.setFlag(FLAG_AVOID_RIGHT);
 			}
+			p.lcDebugStr<<";RIGHT";
 			return LCS_RIGHT;
 		}
 		// 2.3.3 There is open lane on both side. Choose one randomly.
@@ -2320,6 +2357,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdatePar
 			else if (p.flag(FLAG_AVOID)){
 				p.setFlag(FLAG_AVOID_LEFT);
 			}
+			p.lcDebugStr<<";LEFT2";
 				return LCS_LEFT;
 		} else {
 				if (p.flag(FLAG_ESCAPE)) {
@@ -2328,6 +2366,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdatePar
 				else if (p.flag(FLAG_AVOID)) {
 					p.setFlag(FLAG_AVOID_RIGHT);
 				}
+				p.lcDebugStr<<";RIGHT2";
 				return LCS_RIGHT;
 		}//end if Utils::brandom(0.5)
 	}//end if p.flag(FLAG_ESCAPE)
@@ -2337,11 +2376,13 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdatePar
 	if (isReadyForNextDLC(p,2))
 	{
 		eul = LCUtilityLeft(p);
+		p.lcDebugStr<<";eul"<<eul;
 	}
 
 	if (isReadyForNextDLC(p,1))
 	{
-		eul = LCUtilityRight(p);
+		eur = LCUtilityRight(p);
+		p.lcDebugStr<<";eur"<<eur;
 	}
 
 	// 4.0 choose
@@ -2349,6 +2390,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdatePar
 
 	if (sum > 0 ){
 		euc = LCUtilityCurrent(p);
+		p.lcDebugStr<<";euc"<<euc;
 	  }
 
 	sum += euc;
@@ -2362,7 +2404,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdatePar
 	if (rnd < probOfCurrentLane)  change = LCS_SAME;
 	else if (rnd < probOfCL_LL) change = LCS_LEFT;
 	else change = LCS_RIGHT;
-
+	p.lcDebugStr<<";change"<<change;
 	return change;
 }
 void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)

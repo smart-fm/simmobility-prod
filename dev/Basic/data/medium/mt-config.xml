@@ -25,7 +25,7 @@
                 <run_mode value="simulation"/>
                 <!-- Number of threads to create for processing the population in-->
                 <!-- the preday demand simulator -->
-                <threads value="4"/>
+                <threads value="6"/>
                 <!-- outputs the preday predictions as trip chains in PostgreSQL database if enabled -->
                 <output_tripchains enabled="false"/>
                 <!-- outputs the preday's predicted tours and stops to mongodb if enabled -->
@@ -60,7 +60,7 @@
                 </model_scripts>
                 
                 <!-- Names of MongoDB database and collections -->
-                <mongo_collections db_name="mydb">
+                <mongo_collections db_name="preday">
                         <mongo_collection name="population" collection="hits08_population_29k"/>
                         <mongo_collection name="tcost_bus" collection="tcost_bus"/>
                         <mongo_collection name="tcost_car" collection="tcost_car"/>
@@ -69,10 +69,10 @@
                         <mongo_collection name="PMCosts" collection="PMCosts"/>
                         <mongo_collection name="Zone" collection="Zone"/>
                         <mongo_collection name="zone_node" collection="node_mtz"/>
-                        <mongo_collection name="Output_DayPattern" collection="person_tours_dummy"/>
-                        <mongo_collection name="Output_Tour" collection="tour_dummy"/>
-                        <mongo_collection name="Output_Activity" collection="activity_dummy"/>
-                        <mongo_collection name="Output_SubTour" collection="sub_tour_dummy"/>
+                        <mongo_collection name="Output_DayPattern" collection="daypattern_2409_1"/>
+                        <mongo_collection name="Output_Tour" collection="tour_2409_1"/>
+                        <mongo_collection name="Output_Activity" collection="activity_2409_1"/>
+                        <mongo_collection name="Output_SubTour" collection="wbst_2409_1"/>
                 </mongo_collections>
                 
                 <calibration enabled="false">

@@ -229,7 +229,9 @@ void sim_mob::DriverMovement::setRR_RegionsFromCurrentPath() {
 void sim_mob::DriverMovement::frame_tick() {
 // lost some params
 	DriverUpdateParams& p2 = parentDriver->getParams();
-
+	if(p2.parentId == 6055){
+		int i=0;
+	}
 	if (!(parentDriver->vehicle)) {
 		throw std::runtime_error("Something wrong, Vehicle is NULL");
 	}
@@ -1674,6 +1676,9 @@ void sim_mob::DriverMovement::setOrigin(DriverUpdateParams& p) {
 	p.desiredSpeed = targetSpeed;
 
 //Set our current and target lanes.
+	if(p.parentId == 6055){
+		int i=0;
+	}
 	p.currLane = fwdDriverMovement.getCurrLane();
 	p.currLaneIndex = getLaneIndex(p.currLane);
 	targetLaneIndex = p.currLaneIndex;

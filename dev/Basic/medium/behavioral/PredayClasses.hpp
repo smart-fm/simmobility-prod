@@ -181,8 +181,8 @@ public:
 	/**
 	 * Sets the arrival and departure time of the stop
 	 *
-	 * @param arrivalTime arrival time
-	 * @param departureTime departure time
+	 * @param arrivalTime arrival time (1 to 48)
+	 * @param departureTime departure time (1 to 40)
 	 */
 	void allotTime(double arrivalTime, double departureTime) {
 		this->arrivalTime = arrivalTime;
@@ -279,6 +279,7 @@ public:
 		case EDUCATION: return "Education";
 		case SHOP: return "Shop";
 		case OTHER: return "Other";
+		default: return "NULL";
 		}
 	}
 
@@ -306,21 +307,6 @@ public:
 		}
 		else {
 			stops.push_back(stop);
-		}
-	}
-
-	/**
-	 * removes a stop to the stops list appropriately depending on whether the stop
-	 * is in the first half tour or the second.
-	 *
-	 * @param stop stop to be removed
-	 */
-	void removeStop(Stop* stop) {
-		if(stop->isInFirstHalfTour()) {
-			stops.pop_front();
-		}
-		else {
-			stops.pop_back();
 		}
 	}
 

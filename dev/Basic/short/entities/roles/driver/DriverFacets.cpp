@@ -833,7 +833,7 @@ const RoadSegment* sim_mob::DriverMovement::hasNextSegment(
 	return nullptr;
 }
 
-DPoint sim_mob::DriverMovement::getPosition() const {
+DPoint sim_mob::DriverMovement::getPosition() {
 //Temp
 	if (fwdDriverMovement.isInIntersection()
 			&& (parentDriver->vehicle->getPositionInIntersection().x == 0
@@ -841,8 +841,10 @@ DPoint sim_mob::DriverMovement::getPosition() const {
 		Warn() << "WARNING: Vehicle is in intersection without a position!"
 				<< std::endl;
 	}
-
+	parentDriver->getParams().disAlongPolyline = fwdDriverMovement.getCurrDistAlongPolylineCM();
 	DPoint origPos = fwdDriverMovement.getPosition();
+	parentDriver->getParams().movementVectx = fwdDriverMovement.movementVect.getX();
+	parentDriver->getParams().movementVecty = fwdDriverMovement.movementVect.getY();
 	if (fwdDriverMovement.isInIntersection()
 			&& parentDriver->vehicle->getPositionInIntersection().x != 0
 			&& parentDriver->vehicle->getPositionInIntersection().y != 0) {
@@ -858,9 +860,14 @@ DPoint sim_mob::DriverMovement::getPosition() const {
 						- fwdDriverMovement.getCurrPolypoint().getY());
 		latMv.flipLeft();
 		latMv.scaleVectTo(parentDriver->vehicle->getLateralMovement()).translateVect();
+		parentDriver->getParams().latMv_ = latMv;
 		origPos.x += latMv.getX();
 		origPos.y += latMv.getY();
 	}
+	parentDriver->getParams().dorigPosx = origPos.x - parentDriver->getParams().lastOrigPos_.x;
+	parentDriver->getParams().dorigPosy = origPos.y - parentDriver->getParams().lastOrigPos_.y;
+	parentDriver->getParams().lastOrigPos_ = origPos;
+
 	return origPos;
 }
 
@@ -996,7 +1003,8 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 	const sim_mob::RoadSegment* currentSeg = fwdDriverMovement.getCurrSegment();
 	const std::vector<sim_mob::Lane*> lanes = currentSeg->getLanes();
 
-	std::cout<<"currentSeg id: "<<currentSeg->originalDB_ID.getLogItem()<<std::endl;
+//	std::cout<<"+++++++++++++tick"<<parentDriver->getParams().now.frame()<<" id:"<<parentDriver->getParams().parentId<<std::endl;
+//	std::cout<<";currentSeg  id: "<<currentSeg->originalDB_ID.getLogItem()<<std::endl;
 
 //check each lanes of current segment
 	std::vector<sim_mob::Lane*> connectedLanes;
@@ -1025,7 +1033,7 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 		//continue;
 //lane index
 		size_t landIdx = i;
-		std::cout<<"index: "<<landIdx<<std::endl;
+//		std::cout<<"index: "<<landIdx<<std::endl;
 //		if (l && l->is_pedestrian_lane()) // pass pedestrian lane
 //		{
 //			continue;
@@ -1037,13 +1045,14 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 // already reach end of path
 			if (currentSegIt+1 == currentSegItEnd) {
 				if (l) {
+//					std::cout<<"good=======last "<<l<<std::endl;
 					lanePool.push_back(l);
 				}
 				break;
 			}
 
 			const RoadSegment* rs = *currentSegIt;
-			std::cout<<"----rs id: "<<rs->originalDB_ID.getLogItem()<<std::endl;
+//			std::cout<<"----rs id: "<<rs->originalDB_ID.getLogItem()<<std::endl;
 			x += rs->getLengthOfSegment() / 100.0;
 			if (!rs) {
 				break;
@@ -1083,7 +1092,12 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 			if (x > distance) {
 				// if this lane index is ok, but is pedestrian lane, then use its right lane
 				if(l->is_pedestrian_lane()) {
-					l = lanes[i-1];
+					if(i!=0){
+						l = lanes[i-1];
+					}
+					else{
+						l=NULL;
+					}
 				}
 				// push to pool
 				bool ff = false;
@@ -1093,8 +1107,10 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 					}
 				}
 				if(!ff){
-					lanePool.push_back(l);
-					std::cout<<"good======="<<std::endl;
+					if(l){
+						lanePool.push_back(l);
+//						std::cout<<"good======="<<l<<std::endl;
+					}
 				}
 
 				break;
@@ -1102,8 +1118,8 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 		} //end of for currentSegIt
 	} //end for lanes
 
-	std::cout<<"lanePool size: "<<lanePool.size()<<std::endl;
-	std::cout<<std::endl;
+//	std::cout<<"lanePool size: "<<lanePool.size()<<std::endl;
+//	std::cout<<std::endl;
 	if(lanePool.empty()){
 		// for scenario 34488-> 34400--> turn left--> 34398
 		// above iterator cannot visit 34400's most left lane, as 3448
@@ -2511,9 +2527,9 @@ void sim_mob::DriverMovement::updateLateralMovement(DriverUpdateParams& p)
 			p.setFlag(FLAG_PREV_LC_RIGHT);
 		}
 		p.unsetStatus(STATUS_CHANGING);
-		if(!p.getStatus(STATUS_MANDATORY)) {
+		//if(!p.getStatus(STATUS_MANDATORY)) {
 			p.lcTimeTag = p.now.ms();
-		}
+		//}
 	// lane change complete, unset the "performing lane change" status
 		p.unsetStatus(STATUS_LC_CHANGING);
 		p.unsetStatus(STATUS_MANDATORY); // Angus

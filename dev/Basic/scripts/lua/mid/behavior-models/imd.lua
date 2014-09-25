@@ -13,8 +13,10 @@ Authors - Siyu Li, Harish Loganathan
 --!! see the documentation on the definition of AM,PM and OP table!!
 --!! see gen_modified_mode_destination.py for variable generation !!
 
-local beta_cost_bus_mrt_2 = -0.436
-local beta_cost_private_bus_2 = -0.856
+--Aug 30, 2014 Now first_bound and second_bound will need to be binded to this file.
+
+local beta_cost_bus_mrt_2 = -0.438
+local beta_cost_private_bus_2 = -0.850
 local beta_cost_drive1_2_first = -0.0799
 local beta_cost_drive1_2_second = 0.0598
 local beta_cost_share2_2 = 0
@@ -22,8 +24,9 @@ local beta_cost_share3_2 = 0
 local beta_cost_motor_2 = -0.338
 local beta_cost_taxi_2 = 0
 
-local beta_tt_bus_mrt = -3.77
-local beta_tt_private_bus = 0
+
+local beta_tt_bus_mrt = -3.75
+local beta_tt_private_bus = -4.22
 local beta_tt_drive1_first = -4.77
 local beta_tt_drive1_second = -5.18
 local beta_tt_share2= 0
@@ -37,26 +40,26 @@ local beta_work = 0.567
 local beta_shop = 0.979
 
 local beta_central_bus_mrt = 0.172
-local beta_central_private_bus = 0.167
+local beta_central_private_bus = 0.175
 local beta_central_drive1 = 0
-local beta_central_share2 = -0.0331
+local beta_central_share2 = -0.0332
 local beta_central_share3 = 0.221
 local beta_central_motor = 0.180
 local beta_central_walk = 0
 local beta_central_taxi = 1.07
 
-local beta_distance_bus_mrt = 0.0115
-local beta_distance_private_bus = 0.0139
+local beta_distance_bus_mrt = 0.0112
+local beta_distance_private_bus = 0.0189
 local beta_distance_drive1 = 0
 local beta_distance_share2 = -0.0229
 local beta_distance_share3 = -0.0173
 local beta_distance_motor = 0.00259
 local beta_distance_walk = 0
-local beta_distance_taxi = 0.000621
+local beta_distance_taxi = 0.000622
 
 local beta_cons_bus = 5.40
 local beta_cons_mrt = 5.22
-local beta_cons_private_bus = 6.45
+local beta_cons_private_bus = 6.48
 local beta_cons_drive1 = 0
 local beta_cons_share2 = 3.14
 local beta_cons_share3 = 3.38
@@ -66,7 +69,7 @@ local beta_cons_taxi = -0.0659
 
 local beta_zero_drive1 = 0
 local beta_oneplus_drive1 = 3.83
-local beta_twoplus_drive1 = 0.0513
+local beta_twoplus_drive1 = 0.0514
 local beta_threeplus_drive1 = 0
 
 local beta_zero_share2 = 0
@@ -89,7 +92,7 @@ local beta_female_mrt = 0.622
 local beta_female_private_bus = 1.45
 local beta_female_drive1 = 0
 local beta_female_share2 = 0.393
-local beta_female_share3 = 0.163
+local beta_female_share3 = 0.162
 local beta_female_motor = 0.283
 local beta_female_taxi = 1.40
 local beta_female_walk = 0
@@ -118,9 +121,9 @@ local function computeUtilities(params,dbparams)
 	local other_stop_dummy = dbparams.stop_type == 4 and 1 or 0
 
 	--1 if the current modeled stop is on first half tour, 0 otherwise
-	local first_bound = dbparams.first_bound
+	first_bound = dbparams.first_bound
 	--1 if the current modeled stop is on second half tour, 0 otherwise
-	local second_bound = dbparams.second_bound
+	second_bound = dbparams.second_bound
 
 
 	--params.car_own_normal is from household table
@@ -273,7 +276,7 @@ local function computeUtilities(params,dbparams)
 	--utility function for private bus 1-1092
 	for i=1,1092 do
 		V_counter = V_counter +1
-		utility[V_counter] = beta_cons_private_bus + cost_private_bus[i] * beta_cost_private_bus_2 + tt_private_bus[i] * beta_tt_bus_mrt + beta_central_private_bus * central_dummy[i] + beta_shop * log(1+shop[i])*shop_stop_dummy+beta_work * log(1+employment[i])*work_stop_dummy + (d1[i]+d2[i]) * beta_distance_private_bus + beta_female_private_bus * female_dummy
+		utility[V_counter] = beta_cons_private_bus + cost_private_bus[i] * beta_cost_private_bus_2 + tt_private_bus[i] * beta_tt_private_bus + beta_central_private_bus * central_dummy[i] + beta_shop * log(1+shop[i])*shop_stop_dummy+beta_work * log(1+employment[i])*work_stop_dummy + (d1[i]+d2[i]) * beta_distance_private_bus + beta_female_private_bus * female_dummy
 	end
 
 	--utility function for drive1 1-1092
@@ -325,7 +328,10 @@ local function computeAvailabilities(params,dbparams)
 end
 
 --scale
-local scale = 1 --for all choices
+local scale={}
+for i = 1, 1092*9 do
+	scale[i]=1
+end
 
 -- function to call from C++ preday simulator
 -- params and dbparams tables contain data passed from C++

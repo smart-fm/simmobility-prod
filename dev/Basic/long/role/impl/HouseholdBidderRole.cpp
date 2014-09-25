@@ -44,47 +44,50 @@ namespace {
     }
 }
 
-HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry (const BigSerial unitId, const double wp) : unitId(unitId), wp(wp), tries(0)
+HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry (const BigSerial unitId, const double wp, double lastSurplus) : unitId(unitId), wp(wp), tries(0), lastSurplus(lastSurplus)
 {
 }
 
-HouseholdBidderRole::CurrentBiddingEntry::~CurrentBiddingEntry() {
+HouseholdBidderRole::CurrentBiddingEntry::~CurrentBiddingEntry()
+{
     invalidate();
 }
 
-BigSerial HouseholdBidderRole::CurrentBiddingEntry::getUnitId() const {
+BigSerial HouseholdBidderRole::CurrentBiddingEntry::getUnitId() const
+{
     return unitId;
 }
 
-double HouseholdBidderRole::CurrentBiddingEntry::getWP() const {
+double HouseholdBidderRole::CurrentBiddingEntry::getWP() const
+{
     return wp;
 }
 
-long int HouseholdBidderRole::CurrentBiddingEntry::getTries() const {
+long int HouseholdBidderRole::CurrentBiddingEntry::getTries() const
+{
     return tries;
 }
 
-void HouseholdBidderRole::CurrentBiddingEntry::incrementTries(int quantity) {
+void HouseholdBidderRole::CurrentBiddingEntry::incrementTries(int quantity)
+{
     tries += quantity;
 }
 
-bool HouseholdBidderRole::CurrentBiddingEntry::isValid() const{
+bool HouseholdBidderRole::CurrentBiddingEntry::isValid() const
+{
     return (unitId != INVALID_ID);
 }
 
-void HouseholdBidderRole::CurrentBiddingEntry::invalidate(){
+void HouseholdBidderRole::CurrentBiddingEntry::invalidate()
+{
     unitId = INVALID_ID;
     tries = 0;
     wp = 0;
 }
                 
-HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): LT_AgentRole(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false)
-{
-}
+HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): LT_AgentRole(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false){}
 
-HouseholdBidderRole::~HouseholdBidderRole()
-{
-}
+HouseholdBidderRole::~HouseholdBidderRole(){}
 
 void HouseholdBidderRole::update(timeslice now)
 {
@@ -234,7 +237,19 @@ bool HouseholdBidderRole::pickEntryToBid()
             const Unit* unit = model->getUnitById(entry->getUnitId());
             const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
 
-            if (unit && stats)
+            bool flatEligibility = true;
+
+            if( unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false)
+            	flatEligibility = false;
+
+            if( unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
+                flatEligibility = false;
+
+            if( unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
+                flatEligibility = false;
+
+
+            if ( unit && stats && flatEligibility )
             {
                 double wp = luaModel.calulateWP(*household, *unit, *stats);
 
@@ -250,3 +265,11 @@ bool HouseholdBidderRole::pickEntryToBid()
     biddingEntry = CurrentBiddingEntry((maxEntry) ? maxEntry->getUnitId() : INVALID_ID, maxWP);
     return biddingEntry.isValid();
 }
+
+
+
+
+
+
+
+

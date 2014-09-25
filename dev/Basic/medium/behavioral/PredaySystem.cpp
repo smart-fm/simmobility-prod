@@ -68,7 +68,7 @@ namespace {
 	const uint8_t SECOND_HALF_TOUR = 2;
 
 	//Maximum number of sub tours per tour
-	const unsigned short MAX_SUB_TOURS = 2;
+	const unsigned short MAX_SUB_TOURS = 1;
 
 	const double OPERATIONAL_COST = 0.147;
 
@@ -165,9 +165,9 @@ namespace {
 		return id.str();
 	}
 
-	void constructTrip(TripChainItemParams& tcTrip, int prevNode, int nextNode, const std::string& startTime) {
-		//tcTrip.setSubtripMode(modeMap.at(stop->getStopMode()));
-		//tcTrip.setPrimaryMode((tour->getTourMode() == stop->getStopMode()));
+	void constructTrip(TripChainItemParams& tcTrip, int prevNode, int nextNode, const std::string& startTime, int stopMode, bool primaryMode) {
+		//tcTrip.setSubtripMode(modeMap.at(stopMode));
+		//tcTrip.setPrimaryMode(primaryMode);
 		tcTrip.setSubtripMode(modeMap.at(4)); /*~ all trips are made to car trips. Done for running mid-term for TRB paper. ~*/
 		tcTrip.setPrimaryMode(true); /*~ running mid-term for TRB paper. ~*/
 		tcTrip.setTripOrigin(prevNode);
@@ -314,24 +314,8 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 	for(unsigned short i=0; i<MAX_SUB_TOURS; i++)
 	{
 		choice = PredayLuaProvider::getPredayModel().predictWorkBasedSubTour(personParams, workBasedSubTourParams);
-		if(choice == 5) { break; } //QUIT
-		switch(choice)
-		{
-		case 1: //WORK sub tour
-			parentTour.subTours.push_back(Tour(WORK,true));
-			break;
-		case 2: //EDU sub tour
-			parentTour.subTours.push_back(Tour(EDUCATION,true));
-			break;
-		case 3: //SHOP sub tour
-			parentTour.subTours.push_back(Tour(SHOP,true));
-			break;
-		case 4: //OTHER sub tour
-			parentTour.subTours.push_back(Tour(OTHER,true));
-			break;
-		default:
-			throw std::runtime_error("Invalid prediction for sub tour type");
-		}
+		if(choice == 2) { break; } //QUIT
+		else { subToursList.push_back(Tour(NULL_STOP,true)); } //NON-QUIT
 	}
 
 	// mode/destination and time of day for each sub tour
@@ -355,7 +339,7 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 		subTour.addStop(primaryActivity);
 		calculateSubTourTimeWindow(subTour, parentTour); // estimate travel time to/from activity location
 		workBasedSubTourParams.blockTime(subTour.getStartTime(), subTour.getEndTime());
-		logStream << "SubTour|type: " << subTour.getTourTypeStr() << "|mode: " << subTour.getTourMode() << "|destination: " << subTour.getTourDestination()
+		logStream << "SubTour|" << "mode: " << subTour.getTourMode() << "|destination: " << subTour.getTourDestination()
 				<< "|start time: " << subTour.getStartTime() << "|end time: " << subTour.getEndTime() << std::endl;
 	}
 }
@@ -391,9 +375,12 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 	if(tour.isSubTour()) { throw std::runtime_error("predictTourTimeOfDay() is not meant for sub tours"); }
 	int origin = personParams.getHomeLocation();
 	int destination = tour.getTourDestination();
-	std::vector<double> ttFirstHalfTour, ttSecondHalfTour;
+	TourTimeOfDayParams todParams;
+	std::vector<double>& ttFirstHalfTour = todParams.travelTimesFirstHalfTour;
+	std::vector<double>& ttSecondHalfTour = todParams.travelTimesSecondHalfTour;
+
 	if(origin != destination) {
-		for (uint32_t i = FIRST_INDEX; i <= LAST_INDEX; i++) {
+		for (uint32_t i=FIRST_INDEX; i<=LAST_INDEX; i++) {
 			switch (tour.getTourMode())
 			{
 			case 1: // Fall through
@@ -487,7 +474,143 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 			ttSecondHalfTour.push_back(0);
 		}
 	}
-	TourTimeOfDayParams todParams(ttFirstHalfTour, ttSecondHalfTour);
+
+	// find costs
+	int home = personParams.getHomeLocation(), primaryStopLoc = tour.getTourDestination();
+	if(home!=primaryStopLoc)
+	{
+		const CostParams* amHT1 = amCostMap.at(home).at(primaryStopLoc);
+		const CostParams* pmHT1 = pmCostMap.at(home).at(primaryStopLoc);
+		const CostParams* opHT1 = opCostMap.at(home).at(primaryStopLoc);
+		const CostParams* amHT2 = amCostMap.at(primaryStopLoc).at(home);
+		const CostParams* pmHT2 = pmCostMap.at(primaryStopLoc).at(home);
+		const CostParams* opHT2 = opCostMap.at(primaryStopLoc).at(home);
+		switch (tour.getTourMode())
+		{
+		case 1: // Fall through
+		case 2:
+		case 3:
+		{	//for Public bus, MRT/LRT, private bus
+			todParams.setCostHt1Am(amHT1->getPubCost());
+			todParams.setCostHt1Pm(pmHT1->getPubCost());
+			todParams.setCostHt1Op(opHT1->getPubCost());
+			todParams.setCostHt2Am(amHT2->getPubCost());
+			todParams.setCostHt2Pm(pmHT2->getPubCost());
+			todParams.setCostHt2Op(opHT2->getPubCost());
+			break;
+		}
+		case 4:
+		{	// drive1
+			double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
+			double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
+			todParams.setCostHt1Am(amHT1->getCarCostErp() + ht1ParkingRate + (amHT1->getDistance()*OPERATIONAL_COST));
+			todParams.setCostHt1Pm(pmHT1->getCarCostErp() + ht1ParkingRate + (pmHT1->getDistance()*OPERATIONAL_COST));
+			todParams.setCostHt1Op(opHT1->getCarCostErp() + ht1ParkingRate + (opHT1->getDistance()*OPERATIONAL_COST));
+			todParams.setCostHt2Am(amHT2->getCarCostErp() + ht2ParkingRate + (amHT2->getDistance()*OPERATIONAL_COST));
+			todParams.setCostHt2Pm(pmHT2->getCarCostErp() + ht2ParkingRate + (pmHT2->getDistance()*OPERATIONAL_COST));
+			todParams.setCostHt2Op(opHT2->getCarCostErp() + ht2ParkingRate + (opHT2->getDistance()*OPERATIONAL_COST));
+			break;
+		}
+		case 5:
+		{	// share2
+			double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
+			double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
+			todParams.setCostHt1Am((amHT1->getCarCostErp() + ht1ParkingRate + (amHT1->getDistance()*OPERATIONAL_COST))/2.0);
+			todParams.setCostHt1Pm((pmHT1->getCarCostErp() + ht1ParkingRate + (pmHT1->getDistance()*OPERATIONAL_COST))/2.0);
+			todParams.setCostHt1Op((opHT1->getCarCostErp() + ht1ParkingRate + (opHT1->getDistance()*OPERATIONAL_COST))/2.0);
+			todParams.setCostHt2Am((amHT2->getCarCostErp() + ht2ParkingRate + (amHT2->getDistance()*OPERATIONAL_COST))/2.0);
+			todParams.setCostHt2Pm((pmHT2->getCarCostErp() + ht2ParkingRate + (pmHT2->getDistance()*OPERATIONAL_COST))/2.0);
+			todParams.setCostHt2Op((opHT2->getCarCostErp() + ht2ParkingRate + (opHT2->getDistance()*OPERATIONAL_COST))/2.0);
+			break;
+		}
+		case 6:
+		{	// share3
+			double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
+			double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
+			todParams.setCostHt1Am((amHT1->getCarCostErp() + ht1ParkingRate + (amHT1->getDistance()*OPERATIONAL_COST))/3.0);
+			todParams.setCostHt1Pm((pmHT1->getCarCostErp() + ht1ParkingRate + (pmHT1->getDistance()*OPERATIONAL_COST))/3.0);
+			todParams.setCostHt1Op((opHT1->getCarCostErp() + ht1ParkingRate + (opHT1->getDistance()*OPERATIONAL_COST))/3.0);
+			todParams.setCostHt2Am((amHT2->getCarCostErp() + ht2ParkingRate + (amHT2->getDistance()*OPERATIONAL_COST))/3.0);
+			todParams.setCostHt2Pm((pmHT2->getCarCostErp() + ht2ParkingRate + (pmHT2->getDistance()*OPERATIONAL_COST))/3.0);
+			todParams.setCostHt2Op((opHT2->getCarCostErp() + ht2ParkingRate + (opHT2->getDistance()*OPERATIONAL_COST))/3.0);
+			break;
+		}
+		case 7:
+		{	//motorcycle
+			double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
+			double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
+			todParams.setCostHt1Am(((amHT1->getCarCostErp() + (amHT1->getDistance()*OPERATIONAL_COST))*0.5) + (ht1ParkingRate*0.65));
+			todParams.setCostHt1Pm(((pmHT1->getCarCostErp() + (pmHT1->getDistance()*OPERATIONAL_COST))*0.5) + (ht1ParkingRate*0.65));
+			todParams.setCostHt1Op(((opHT1->getCarCostErp() + (opHT1->getDistance()*OPERATIONAL_COST))*0.5) + (ht1ParkingRate*0.65));
+			todParams.setCostHt2Am(((amHT2->getCarCostErp() + (amHT2->getDistance()*OPERATIONAL_COST))*0.5) + (ht2ParkingRate*0.65));
+			todParams.setCostHt2Pm(((pmHT2->getCarCostErp() + (pmHT2->getDistance()*OPERATIONAL_COST))*0.5) + (ht2ParkingRate*0.65));
+			todParams.setCostHt2Op(((opHT2->getCarCostErp() + (opHT2->getDistance()*OPERATIONAL_COST))*0.5) + (ht2ParkingRate*0.65));
+			break;
+		}
+		case 8:
+		{	//Walk
+			todParams.setCostHt1Am(0);
+			todParams.setCostHt1Pm(0);
+			todParams.setCostHt1Op(0);
+			todParams.setCostHt2Am(0);
+			todParams.setCostHt2Pm(0);
+			todParams.setCostHt2Op(0);
+			break;
+		}
+		case 9:
+		{	//Taxi
+			const ZoneParams* homeZoneParams = zoneMap.at(zoneIdLookup.at(home));
+			const ZoneParams* destZoneParams = zoneMap.at(zoneIdLookup.at(primaryStopLoc));
+			double amHT1Cost = TAXI_FLAG_DOWN_PRICE
+							+ amHT1->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * homeZoneParams->getCentralDummy())
+							+ (((amHT1->getDistance()<=10)? amHT1->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((amHT1->getDistance()<=10)? 0 : (amHT1->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			double pmHT1Cost = TAXI_FLAG_DOWN_PRICE
+							+ pmHT1->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * homeZoneParams->getCentralDummy())
+							+ (((pmHT1->getDistance()<=10)? pmHT1->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((pmHT1->getDistance()<=10)? 0 : (pmHT1->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			double opHT1Cost = TAXI_FLAG_DOWN_PRICE
+							+ opHT1->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * homeZoneParams->getCentralDummy())
+							+ (((opHT1->getDistance()<=10)? opHT1->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((opHT1->getDistance()<=10)? 0 : (opHT1->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			double amHT2Cost = TAXI_FLAG_DOWN_PRICE
+							+ amHT2->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * destZoneParams->getCentralDummy())
+							+ (((amHT2->getDistance()<=10)? amHT2->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((amHT2->getDistance()<=10)? 0 : (amHT2->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			double pmHT2Cost = TAXI_FLAG_DOWN_PRICE
+							+ pmHT2->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * destZoneParams->getCentralDummy())
+							+ (((pmHT2->getDistance()<=10)? pmHT2->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((pmHT2->getDistance()<=10)? 0 : (pmHT2->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			double opHT2Cost = TAXI_FLAG_DOWN_PRICE
+							+ opHT2->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * destZoneParams->getCentralDummy())
+							+ (((opHT2->getDistance()<=10)? opHT2->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((opHT2->getDistance()<=10)? 0 : (opHT2->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			todParams.setCostHt1Am(amHT1Cost);
+			todParams.setCostHt1Pm(pmHT1Cost);
+			todParams.setCostHt1Op(opHT1Cost);
+			todParams.setCostHt2Am(amHT2Cost);
+			todParams.setCostHt2Pm(pmHT2Cost);
+			todParams.setCostHt2Op(opHT2Cost);
+			break;
+		}
+		}
+	}
+	else
+	{
+		todParams.setCostHt1Am(0);
+		todParams.setCostHt1Pm(0);
+		todParams.setCostHt1Op(0);
+		todParams.setCostHt2Am(0);
+		todParams.setCostHt2Pm(0);
+		todParams.setCostHt2Op(0);
+	}
+
 	timeWndw = PredayLuaProvider::getPredayModel().predictTourTimeOfDay(personParams, todParams, tour.getTourType());
 	return TimeWindowAvailability::timeWindowsLookup.at(timeWndw - 1); //timeWndw ranges from 1 - 1176. Vector starts from 0.
 }
@@ -579,12 +702,15 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours)
 		while(stopIt!=firstStopIt);
 		if(!stopTodSuccessful)
 		{
+			unsigned short numRemoved = 0;
 			++stopIt; // now stopIT points to the last valid stop
 			for(StopList::iterator eraseIt=stops.begin(); eraseIt!=stopIt; )
 			{
 				safe_delete_item(*eraseIt);
 				eraseIt = stops.erase(eraseIt);
+				numRemoved++;
 			}
+			logStream << "Removing " << numRemoved << " stops in 1st HT due to TOD issue." << std::endl;
 		}
 	}
 
@@ -618,11 +744,13 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours)
 		while(stopIt!=lastStopIt);
 		if(!stopTodSuccessful)
 		{
+			unsigned short numRemoved = 0;
 			for(StopList::iterator eraseIt=stopIt; eraseIt!=stops.end(); )
 			{
 				safe_delete_item(*eraseIt);
 				eraseIt = stops.erase(eraseIt);
 			}
+			logStream << "Removing " << numRemoved << " stops in 2nd HT due to TOD issue." << std::endl;
 		}
 	}
 }
@@ -636,7 +764,7 @@ void PredaySystem::generateIntermediateStops(uint8_t halfTour, Tour& tour, const
 	int origin = personParams.getHomeLocation();
 	int destination = primaryStop->getStopLocation();
 	StopGenerationParams isgParams(tour, primaryStop, dayPattern);
-	isgParams.setFirstHalfTour((halfTour==1));
+	isgParams.setFirstHalfTour((halfTour==FIRST_HALF_TOUR));
 	isgParams.setNumRemainingTours(remainingTours);
 	if(origin == destination) { isgParams.setDistance(0.0); }
 	else
@@ -658,6 +786,44 @@ void PredaySystem::generateIntermediateStops(uint8_t halfTour, Tour& tour, const
 			break;
 		}
 		}
+	}
+
+	switch(halfTour)
+	{
+	case FIRST_HALF_TOUR:
+	{
+		double startTime = FIRST_INDEX;
+		if(!tour.isFirstTour())
+		{
+			TourList::iterator currTourIt = std::find(tours.begin(), tours.end(), tour);
+			const Tour& prevTour = *(--currTourIt);
+			startTime = prevTour.getEndTime();
+		}
+		double endTime = primaryStop->getArrivalTime();
+		if(startTime > endTime)
+		{
+			std::stringstream ss;
+			ss << "start time is greater than end time; FIRST HT: start-" << startTime << " end-" << endTime << std::endl;
+			throw std::runtime_error(ss.str());
+		}
+		isgParams.setTimeWindowFirstBound((endTime - startTime + 1)/2); //HOURS
+		isgParams.setTimeWindowSecondBound(0);
+		break;
+	}
+	case SECOND_HALF_TOUR:
+	{
+		double startTime = primaryStop->getDepartureTime();
+		double endTime = LAST_INDEX;
+		if(startTime > endTime)
+		{
+			std::stringstream ss;
+			ss << "start time is greater than end time; SECOND HT: start-" << startTime << " end-" << endTime << std::endl;
+			throw std::runtime_error(ss.str());
+		}
+		isgParams.setTimeWindowFirstBound(0);
+		isgParams.setTimeWindowSecondBound((endTime - startTime + 1)/2); //HOURS
+		break;
+	}
 	}
 
 	int choice = 0;
@@ -1163,6 +1329,7 @@ void PredaySystem::planDay() {
 	logStream << "Tours: " << tours.size() << std::endl;
 	if(!tours.empty()) { tours.front().setFirstTour(true); } // make first tour aware that it is the first tour for person
 
+	double prevTourEndTime = FIRST_INDEX;
 	//Process each tour
 	size_t remainingTours = tours.size();
 	for(TourList::iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++) {
@@ -1201,7 +1368,8 @@ void PredaySystem::planDay() {
 
 		calculateTourStartTime(tour);
 		calculateTourEndTime(tour);
-		personParams.blockTime(tour.getStartTime(), tour.getEndTime());
+		personParams.blockTime(prevTourEndTime, tour.getEndTime());
+		prevTourEndTime = tour.getEndTime();
 		logStream << "Tour|start time: " << tour.getStartTime() << "|end time: " << tour.getEndTime() << std::endl;
 	}
 }
@@ -1247,7 +1415,6 @@ void sim_mob::medium::PredaySystem::insertSubTour(const Tour& subTour, const Tou
 	BSONObj tourDoc = BSON(
 		"person_id" << personParams.getPersonId() <<
 		"person_type_id" << personParams.getPersonTypeId() <<
-		"parent_tour_type" << parentTour.getTourTypeStr() <<
 		"parent_tour_num" << tourNumber <<
 		"parent_tour_destination" << parentTour.getTourDestination() <<
 		"parent_tour_mode" << parentTour.getTourMode() <<
@@ -1278,7 +1445,8 @@ void sim_mob::medium::PredaySystem::insertStop(const Stop* stop, int stopNumber,
 	"person_id" << personParams.getPersonId() <<
 	"tour_num" << tourNumber <<
 	"stop_mode" << stop->getStopMode() <<
-	"hhfactor" << personParams.getHouseholdFactor()
+	"hhfactor" << personParams.getHouseholdFactor() <<
+	"first_bound" << stop->isInFirstHalfTour()
 	);
 	mongoDao["Output_Activity"]->insert(stopDoc);
 }
@@ -1396,7 +1564,7 @@ void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneN
 		int prevNode = 0;
 		int nextNode = 0;
 		std::string prevDeptTime = "";
-		std::string primaryMode = "";
+		int primaryMode = 0;
 		bool atHome = true;
 		int homeNode = 0;
 		if(zoneNodeMap.find(personParams.getHomeLocation()) != zoneNodeMap.end())
@@ -1412,6 +1580,7 @@ void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneN
 			int stopNum = 0;
 			bool nodeMappingFailed = false;
 			const StopList& stopLst = tour.stops;
+			primaryMode = tour.getTourMode();
 			for(StopList::const_iterator stopIt = tour.stops.begin(); stopIt != tour.stops.end(); stopIt++)
 			{
 				stopNum = stopNum + 1;
@@ -1430,12 +1599,13 @@ void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneN
 				tcTrip.setSubtripId(constructTripChainItemId(pid, tourNum, seqNum, "-1"));
 				if(atHome)
 				{
-					constructTrip(tcTrip, homeNode, nextNode, getRandomTimeInWindow(getTimeWindowFromIndex(tour.getStartTime())));
+					constructTrip(tcTrip, homeNode, nextNode, getRandomTimeInWindow(getTimeWindowFromIndex(tour.getStartTime())), stop->getStopMode(),
+							(primaryMode==stop->getStopMode()));
 					atHome = false;
 				}
 				else
 				{
-					constructTrip(tcTrip, prevNode, nextNode, prevDeptTime);
+					constructTrip(tcTrip, prevNode, nextNode, prevDeptTime, stop->getStopMode(), (primaryMode==stop->getStopMode()));
 				}
 				tripChain.push_back(tcTrip);
 
@@ -1471,7 +1641,8 @@ void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneN
 						TripChainItemParams tcSubTourTrip = TripChainItemParams(pid, "Trip", seqNum);
 						tcSubTourTrip.setTripId(constructTripChainItemId(pid, tourNum, seqNum));
 						tcSubTourTrip.setSubtripId(constructTripChainItemId(pid, tourNum, seqNum, "-1"));
-						constructTrip(tcSubTourTrip, prevNode, nextNode, prevDeptTime);
+						constructTrip(tcSubTourTrip, prevNode, nextNode, prevDeptTime, subTourPrimaryStop->getStopMode(),
+								(primaryMode==subTourPrimaryStop->getStopMode()));
 						tripChain.push_back(tcSubTourTrip);
 
 						// insert sub tour activity
@@ -1491,7 +1662,8 @@ void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneN
 						tcSubTourTrip = TripChainItemParams(pid, "Trip", seqNum);
 						tcSubTourTrip.setTripId(constructTripChainItemId(pid, tourNum, seqNum));
 						tcSubTourTrip.setSubtripId(constructTripChainItemId(pid, tourNum, seqNum, "-1"));
-						constructTrip(tcSubTourTrip, prevNode, nextNode, prevDeptTime);
+						constructTrip(tcSubTourTrip, prevNode, nextNode, prevDeptTime, subTourPrimaryStop->getStopMode(),
+                                                                (primaryMode==subTourPrimaryStop->getStopMode()));
 						tripChain.push_back(tcSubTourTrip);
 						arrivalTime = subTour.getEndTime(); // for the next activity
 					}
@@ -1531,7 +1703,7 @@ void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneN
 				TripChainItemParams tcTrip = TripChainItemParams(pid, "Trip", seqNum);
 				tcTrip.setTripId(constructTripChainItemId(pid, tourNum, seqNum));
 				tcTrip.setSubtripId(constructTripChainItemId(pid, tourNum, seqNum, "-1"));
-				constructTrip(tcTrip, prevNode, homeNode, prevDeptTime);
+				constructTrip(tcTrip, prevNode, homeNode, prevDeptTime, primaryMode, true);
 				tripChain.push_back(tcTrip);
 				atHome = true;
 			}

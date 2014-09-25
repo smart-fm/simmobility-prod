@@ -1006,10 +1006,12 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p) {
 
 double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p) {
 	float acc;
-
+	p.lcDebugStr<<";---CYR";
 	if (p.flag(FLAG_YIELDING)) {
+		p.lcDebugStr<<";DING";
 		// Make sure a vehicle will not yield infinitely.
 		uint32_t dt_sec = convertFrmMillisecondToSecond(p.now.ms() - p.yieldTime.ms());
+		p.lcDebugStr<<";dt"<<dt_sec;
 		if (dt_sec > p.lcMaxNosingTime) {
 			p.driver->yieldVehicle = NULL;
 			p.unsetFlag(FLAG_YIELDING);
@@ -1020,9 +1022,9 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p) {
 
 		bool rightFwdVhFlag = false;
 		if (p.nvRightFwd.exists()) {
-			Driver* d = const_cast<Driver*>(p.nvRightFwd.driver);
-			DriverUpdateParams& p = d->getParams();
-			if (p.flag(FLAG_NOSING_LEFT)) {
+			Driver* dRF = const_cast<Driver*>(p.nvRightFwd.driver);
+			DriverUpdateParams& pRF = dRF->getParams();
+			if (pRF.flag(FLAG_NOSING_LEFT)) {
 				rightFwdVhFlag = true;
 			}
 		}
@@ -1072,7 +1074,7 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p) {
 
 	} //end if flag(FLAG_YIELDING)
 	else if (p.flag(FLAG_NOSING)) {
-
+		p.lcDebugStr<<";SING";
 		// This vehicle is nosing
 		bool rightBackVhFlag = false;
 		if (p.nvRightBack.exists()) {
@@ -1092,15 +1094,21 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p) {
 		}
 
 		if (p.flag(FLAG_NOSING_RIGHT)) {
+			p.lcDebugStr<<";RT";
+			p.lcDebugStr<<";RBD"<<p.nvRightBack.distance/100.0;
+			p.lcDebugStr<<";RFD"<<p.nvRightFwd.distance/100.0;
 			if ((p.rightLane) && // has right lane
 					(p.nvRightBack.exists()) && // has right back vh
 					rightBackVhFlag) // right back vh yielding left
-					{
+			{
 				acc = calcCreateGapRate(p, p.nvRightFwd,
 						p.lcMinGap(2) + Math::DOUBLE_EPSILON); //other->vehicleAhead(),theParameter->lcMinGap(2) + DIS_EPSILON);
-				return std::max<double>(p.maxDeceleration, acc);
+				double res = std::max<double>(p.maxDeceleration, acc);
+				p.lcDebugStr<<";acc"<<acc;
+				return res;
 			}
 		} else if (p.flag(FLAG_NOSING_LEFT)) {
+			p.lcDebugStr<<";LT";
 			if ((p.leftLane) && // has left lane
 					(p.nvLeftBack.exists()) && leftBackVhFlag) {
 				acc = calcCreateGapRate(p, p.nvLeftFwd,
@@ -1117,7 +1125,7 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p) {
 
 	} //end if flag(FLAG_NOSING_RIGHT)
 	else {
-
+		p.lcDebugStr<<";NTH";
 		// Currently this vehicle is neither yielding, nor nosing.
 
 		return p.maxAcceleration;
@@ -1132,13 +1140,14 @@ double sim_mob::MITSIM_CF_Model::calcCreateGapRate(DriverUpdateParams& p,
 
 	// freedom left
 
-	float dx = vh.distance - gap; //gapDistance(front) - gap;
+	float dx = vh.distance/100.0 - gap; //gapDistance(front) - gap;
 	float dv = p.currSpeed - vh.driver->fwdVelocity / 100.0;
 
 	float dt = p.nextStepSize;
 	if (dt <= 0.0)
 		return p.maxAcceleration;
-	return p.driver->fwdAccel + 2.0 * (dx - dv * dt) / (dt * dt);
+	double res = p.driver->fwdAccel.get() + 2.0 * (dx - dv * dt) / (dt * dt);
+	return res;
 }
 double sim_mob::MITSIM_CF_Model::waitExitLaneRate(DriverUpdateParams& p) {
 //	double dx = p.dis2stop- 5;
@@ -1387,6 +1396,7 @@ double sim_mob::MITSIM_CF_Model::calcAdjacentRate(DriverUpdateParams& p) {
 
 //	  acc += theParameter->cfAccAddOn(driverGroup.cfAccAddOn) * a[12] / 0.824 ;
 	 acc += getAccAddon() * a[12] / 0.824 ;
+	 p.lcDebugStr<<"+++acc+++"<<acc;
 	 return acc;
 //	if (p.nextLaneIndex == p.currLaneIndex)
 //		return p.maxAcceleration;

@@ -14,7 +14,8 @@
 #include "entities/conflux/SegmentStats.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/LangHelpers.hpp"
-
+#include "util/Profiler.hpp"
+#include <boost/foreach.hpp>
 namespace sim_mob
 {
 
@@ -25,6 +26,14 @@ class PartitionManager;
 class PackageUtils;
 class UnPackageUtils;
 class UpdateParams;
+
+
+/// simple structure used to collect travel time information
+struct TravelTimeMetric
+{
+	WayPoint origin,destination;
+	DailyTime startTime,endTime;
+};
 
 
 
@@ -234,6 +243,28 @@ public:
 	}
 
 	void advanceToNextRole();
+	 std::vector<TravelTimeMetric> & getTravelTimeMetrics()
+	 {
+		 return travelTimeMetrics;
+	 }
+	 void addTravelTimemetric(TravelTimeMetric & value){
+		 travelTimeMetrics.push_back(value);
+	 }
+	 void serializeTravelTimemetrics()
+	 {
+		 sim_mob::BasicLogger & csv = sim_mob::Logger::log["person_travel_time"];
+		 BOOST_FOREACH(TravelTimeMetric item, travelTimeMetrics)
+		 {
+			 csv << this->getId() << "," <<
+					 item.origin.node_->getID() << ","
+					 << item.destination.node_->getID() << ","
+					 << item.startTime.getRepr_() << ","
+					 << item.endTime.getRepr_() << ","
+					 << (item.endTime - item.startTime).getRepr_()
+					 << "\n";
+		 }
+	 }
+
 
 
 protected:
@@ -248,7 +279,16 @@ protected:
 
 	//Inherited from MessageHandler.
 	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
-
+	 ///	container to store all the metrics of the trips (subtrip actually)
+	 /*
+	  * TODO: At present, the implementation inserts information at subtrip resolution while preday will require Trip level metrics
+	  * We keep the implementation as it is because at present there is not trip with more than 1 subtrip. but when the trips have more than 1 subtrip,
+	  * it will be the time to improve the implementation.
+	  * Why is the resolution at subtrip level?
+	  * coz the metrics are measure in DriverMovementFacet level where the corresponding object(DriverMovementfacet)
+	  * is created upon creation of a new role. and new roles are created at subtrip level....
+	  */
+	 std::vector<TravelTimeMetric> travelTimeMetrics;
 
 private:
 	//to indicate that Role's updateParams has to be reset.

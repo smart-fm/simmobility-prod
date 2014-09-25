@@ -90,7 +90,8 @@ public:
 	MesoPathMover & getMesoPathMover() {
 		return pathMover;
 	}
-
+	/// used to collect some travel time information used in preday
+	TravelTimeMetric travelTimeMetric;
 
 protected:
 	/**

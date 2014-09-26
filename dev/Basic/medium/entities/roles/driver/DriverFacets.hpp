@@ -91,7 +91,7 @@ public:
 		return pathMover;
 	}
 	/// used to collect some travel time information used in preday
-	TravelTimeMetric travelTimeMetric;
+	TravelMetric travelTimeMetric;
 
 protected:
 	/**

@@ -29,10 +29,11 @@ class UpdateParams;
 
 
 /// simple structure used to collect travel time information
-struct TravelTimeMetric
+struct TravelMetric
 {
 	WayPoint origin,destination;
 	DailyTime startTime,endTime;
+	uint32_t travelTime;
 };
 
 
@@ -243,17 +244,43 @@ public:
 	}
 
 	void advanceToNextRole();
-	 std::vector<TravelTimeMetric> & getTravelTimeMetrics()
+	///	get the measurements stored in subTripTravelMetrics and add them up into a new entry in tripTravelMetrics
+	///	call this method whenever a subtrip is done.
+	void aggregateSubTripMetrics()
+	{
+		TravelMetric newTripMetric;
+		TravelMetric item(*subTripTravelMetrics.begin());
+		newTripMetric.startTime = item.startTime;//first item
+		 BOOST_FOREACH(item, subTripTravelMetrics)
+		 {
+			 newTripMetric.travelTime += item.travelTime;
+		 }
+		 newTripMetric.endTime = item.endTime;
+		 subTripTravelMetrics.clear();
+		 tripTravelMetrics.push_back(newTripMetric);
+	}
+	 std::vector<TravelMetric> & getTipTravelMetrics()
 	 {
-		 return travelTimeMetrics;
+		 return tripTravelMetrics;
 	 }
-	 void addTravelTimemetric(TravelTimeMetric & value){
-		 travelTimeMetrics.push_back(value);
+
+	 void addTripTravelMetrics(TravelMetric & value){
+		 tripTravelMetrics.push_back(value);
 	 }
-	 void serializeTravelTimemetrics()
+
+	 std::vector<TravelMetric> & getSubTipTravelMetrics()
+	 {
+		 return subTripTravelMetrics;
+	 }
+
+	 void addSubtripTravelMetrics(TravelMetric & value){
+		 subTripTravelMetrics.push_back(value);
+	 }
+
+	 void serializeTripTravelTimemetrics()
 	 {
 		 sim_mob::BasicLogger & csv = sim_mob::Logger::log["person_travel_time"];
-		 BOOST_FOREACH(TravelTimeMetric item, travelTimeMetrics)
+		 BOOST_FOREACH(TravelMetric item, tripTravelMetrics)
 		 {
 			 csv << this->getId() << "," <<
 					 item.origin.node_->getID() << ","
@@ -281,14 +308,13 @@ protected:
 	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 	 ///	container to store all the metrics of the trips (subtrip actually)
 	 /*
-	  * TODO: At present, the implementation inserts information at subtrip resolution while preday will require Trip level metrics
-	  * We keep the implementation as it is because at present there is not trip with more than 1 subtrip. but when the trips have more than 1 subtrip,
-	  * it will be the time to improve the implementation.
-	  * Why is the resolution at subtrip level?
-	  * coz the metrics are measure in DriverMovementFacet level where the corresponding object(DriverMovementfacet)
-	  * is created upon creation of a new role. and new roles are created at subtrip level....
+	  * The implementation inserts information at subtrip resolution while preday will require Trip-level metrics.
+	  *  so whenever all subtrips of a trip are done (subTripTravelMetrics) and it is time to change the tripchainitem(in Pesron class)
+	  *  an aggregate function will create a new entry in tripTravelMetrics from subTripTravelMetrics items.
+	  *  subTripTravelMetrics items are cleared then.
 	  */
-	 std::vector<TravelTimeMetric> travelTimeMetrics;
+	 std::vector<TravelMetric> tripTravelMetrics;
+	 std::vector<TravelMetric> subTripTravelMetrics;
 
 private:
 	//to indicate that Role's updateParams has to be reset.

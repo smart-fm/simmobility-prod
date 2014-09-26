@@ -106,10 +106,13 @@ sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 
 
 sim_mob::medium::DriverMovement::~DriverMovement() {
+	//save travel metrics
 	const Node* endNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getEnd();
 	travelTimeMetric.destination = WayPoint(endNode);
 	travelTimeMetric.endTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
-	getParent()->addTravelTimemetric(travelTimeMetric);
+	travelTimeMetric.travelTime = (travelTimeMetric.endTime - travelTimeMetric.startTime).getValue();
+	getParent()->addSubtripTravelMetrics(travelTimeMetric);
+	//save travel metrics done
 }
 
 void sim_mob::medium::DriverMovement::frame_init() {
@@ -118,9 +121,11 @@ void sim_mob::medium::DriverMovement::frame_init() {
 //	pathMover.printPath(pathMover.getPath());
 //	//debug
 	if (pathInitialized) {
+		//initialize some travel metrics for this subTrip
 		travelTimeMetric.startTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 		const Node* startNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getEnd();
 		travelTimeMetric.origin = WayPoint(startNode);
+		//done with metric initialization...
 		Vehicle* newVehicle = new Vehicle(Vehicle::CAR, PASSENGER_CAR_UNIT);
 		VehicleBase* oldVehicle = parentDriver->getResource();
 		safe_delete_item(oldVehicle);

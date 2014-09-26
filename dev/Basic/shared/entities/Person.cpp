@@ -841,8 +841,11 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 		return res;
 	}
 
-	//no, it is not the subtrip we need to advance, it is the tripchain item
+	//no, it is not the subtrip we need to advance, it is the tripchain item that has to be incremented
 	currTripChainItem++;
+	//if the previous TripChainItem  was a Trip, it is a good time to collect the aggregated travel time for that trip(if any)
+	aggregateSubTripMetrics();
+
 	if (currTripChainItem == tripChain.end())  {
 		//but tripchain items are also over, get out !
 		return false;
@@ -852,6 +855,7 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 	//Also set the currSubTrip to the beginning of trip , just in case
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP  || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM) {
 		currSubTrip = resetCurrSubTrip();
+
 	}
 	return true;
 }

@@ -12,7 +12,7 @@ using namespace boost::posix_time;
  *     Basic Logger Implementation
  * **********************************
  */
-sim_mob::Logger sim_mob::Logger::log;
+boost::shared_ptr<sim_mob::Logger> sim_mob::Logger::log_;
 
 std::map <boost::thread::id, int> sim_mob::BasicLogger::threads= std::map <boost::thread::id, int>();//for debugging only
 int sim_mob::BasicLogger::flushCnt = 0;
@@ -284,10 +284,15 @@ sim_mob::Logger::~Logger()
 }
 sim_mob::BasicLogger & sim_mob::Logger::operator[](const std::string &key)
 {
+	//todo
+//	boost::upgrade_lock<boost::shared_mutex> lock(repoMutex);
+//	boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
 	std::map<std::string, boost::shared_ptr<sim_mob::BasicLogger> >::iterator it = repo.find(key);
 	if(it == repo.end()){
 		std::cout << "creating a new Logger for " << key << std::endl;
 		boost::shared_ptr<sim_mob::BasicLogger> t(new sim_mob::LogEngine(key));
+		std::map<const std::string, boost::shared_ptr<sim_mob::BasicLogger> > repo_;
+		repo_.insert(std::make_pair(key,t));
 		repo.insert(std::make_pair(key,t));
 		return *t;
 	}

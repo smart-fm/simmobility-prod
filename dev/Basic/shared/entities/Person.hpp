@@ -279,7 +279,7 @@ public:
 
 	 void serializeTripTravelTimemetrics()
 	 {
-		 sim_mob::BasicLogger & csv = sim_mob::Logger::log["person_travel_time"];
+		 sim_mob::BasicLogger & csv = sim_mob::Logger::log("person_travel_time");
 		 BOOST_FOREACH(TravelMetric item, tripTravelMetrics)
 		 {
 			 csv << this->getId() << "," <<

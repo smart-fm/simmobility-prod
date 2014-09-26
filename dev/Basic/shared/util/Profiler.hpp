@@ -1,8 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <fstream>
-#include <boost/thread/mutex.hpp>
-#include "logging/Log.hpp"//todo remove this when unnecessary
+#include <boost/thread.hpp>
 #include <boost/lockfree/queue.hpp>
 #include <boost/atomic.hpp>
 namespace sim_mob {
@@ -258,9 +257,20 @@ class Logger {
 protected:
 	///	repository of profilers. each profiler is distinguished by a file name!
 	std::map<const std::string, boost::shared_ptr<sim_mob::BasicLogger> > repo;
-public:
-	static sim_mob::Logger log;
 	virtual sim_mob::BasicLogger & operator[](const std::string &key);
+	static boost::shared_ptr<sim_mob::Logger> log_;
+	boost::shared_mutex instanceMutex, repoMutex;
+public:
+	static sim_mob::BasicLogger &log(const std::string &key){
+		//todo
+//		boost::unique_lock<boost::shared_mutex> lock(instanceMutex);
+//		boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+		if (!log_) {
+			log_.reset(new Logger());
+			return (*log_)[key];
+		}
+		return (*log_)[key];
+	}
 	virtual ~Logger();
 };
 /*************************************************************************

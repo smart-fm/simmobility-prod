@@ -44,6 +44,10 @@ using std::set;
 using std::map;
 using std::string;
 
+namespace{
+sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("path_set");
+}
+
 namespace {
 /**
  * accepts a list of WayPoint-s and returns a list of SegmentStats* corresponding
@@ -933,7 +937,7 @@ int DriverMovement::findReroutingPoints(const std::vector<sim_mob::SegmentStats*
 	std::vector<const sim_mob::SegmentStats*> rem;//stats remaining from the current location to the re-routing point
 	//Actual Operation : As you move from your current location towards the incident, store the intersections on your way + the segstats you travrsed until you reach that intersection.
 //	//debug
-//	sim_mob::Logger::log["path_set"] << "Original Path:" << std::endl;
+//	pathsetLogger << "Original Path:" << std::endl;
 //	MesoPathMover::printPath(path);
 //	//debug...
 	for(const sim_mob::Link * currLink = (*startIt)->getRoadSegment()->getLink() ;startIt <= endIt; startIt++)
@@ -958,15 +962,15 @@ int DriverMovement::findReroutingPoints(const std::vector<sim_mob::SegmentStats*
 	   else
 		   noPathIt++;
 	}
-	sim_mob::Logger::log["path_set"] << "-------------------------------------------\n" <<
+	pathsetLogger << "-------------------------------------------\n" <<
 			"Candidates with their remaining path after filtering the no paths:" << std::endl;
 	typedef std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > TempType;
 	BOOST_FOREACH(TempType item,  remaining){
-		sim_mob::Logger::log["path_set"] << "Remaining path to detour point : ";
+		pathsetLogger << "Remaining path to detour point : ";
 		MesoPathMover::printPath(item.second, item.first);
 	}
-	sim_mob::Logger::log["path_set"] << "\n-------------------------------------------" << std::endl;
-	sim_mob::Logger::log["path_set"] << "There are " << remaining.size() << " candidate point of reroute for Person(excluding no path):" << std::endl;
+	pathsetLogger << "\n-------------------------------------------" << std::endl;
+	pathsetLogger << "There are " << remaining.size() << " candidate point of reroute for Person(excluding no path):" << std::endl;
 	return remaining.size();
 }
 
@@ -990,7 +994,7 @@ bool DriverMovement::hasUTurn(std::vector<WayPoint> & newPath, std::vector<const
 }
 
 bool DriverMovement::UTurnFree(std::vector<WayPoint> & newPath, std::vector<const sim_mob::SegmentStats*> & oldPath , sim_mob::SubTrip &subTrip, std::set<const sim_mob::RoadSegment*> & excludeRS){
-	sim_mob::Logger::log["path_set"]<< "UTurn detected" << std::endl;
+	pathsetLogger<< "UTurn detected" << std::endl;
 	if(!hasUTurn(newPath, oldPath)){
 		return true;
 	}
@@ -1003,14 +1007,14 @@ bool DriverMovement::UTurnFree(std::vector<WayPoint> & newPath, std::vector<cons
 	sim_mob::PathSetManager::getInstance()->generateBestPathChoiceMT(newPath,&subTrip, excludeRS);
 	//try again
 	if(!newPath.size()){
-		sim_mob::Logger::log["path_set"]<< "No other path can avoid a Uturn, suggest to discard " << std::endl;
+		pathsetLogger<< "No other path can avoid a Uturn, suggest to discard " << std::endl;
 		return false;//wasn't successful, so return false
 	}
 
 	if(hasUTurn(newPath, oldPath)){
 		throw std::runtime_error("UTurn detected where the corresponding segment involved in the UTurn is already excluded");
 	}
-	sim_mob::Logger::log["path_set"]<< "New Path generated to avoid a UTurn" << std::endl;
+	pathsetLogger<< "New Path generated to avoid a UTurn" << std::endl;
 	return true;
 }
 
@@ -1024,7 +1028,7 @@ bool DriverMovement::canJoinPaths(std::vector<WayPoint> & newPath, std::vector<c
 		 return true;
 	 }
 	 //now try to find another path
-	 sim_mob::Logger::log["path_set"] << "No connection between the old&new paths. reTrying to join paths by excluding segment : " << (*newPath.begin()).roadSegment_->getSegmentAimsunId() << std::endl;
+	 pathsetLogger << "No connection between the old&new paths. reTrying to join paths by excluding segment : " << (*newPath.begin()).roadSegment_->getSegmentAimsunId() << std::endl;
 //	MesoPathMover::printPath(oldPath);
 //	printWPpath(newPath);
 
@@ -1054,7 +1058,7 @@ int roll_die(int l,int r) {
 //step-4: In order to get to the detour point, some part of the original path should still be traveled. prepend that part to the new paths
 //setp-5: setpath: assign the assembled path to pathmover
 void DriverMovement::reroute(const InsertIncidentMessage &msg){
-	sim_mob::Logger::log["path_set"] << "rerouting" << std::endl;
+	pathsetLogger << "rerouting" << std::endl;
 	//step-1
 	std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > deTourOptions ; //< detour point, segments to travel before getting to the detour point>
 	deTourOptions.clear(); // :)
@@ -1067,7 +1071,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 	if(!wantReRoute()){
 		return;
 	}
-	sim_mob::Logger::log["path_set"] << numReRoute << "Rerouting Points were identified" << std::endl;
+	pathsetLogger << numReRoute << "Rerouting Points were identified" << std::endl;
 	//step-3:
 	typedef std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >	DetourOption ; //for 'deTourOptions' container
 	std::set<const sim_mob::RoadSegment*> excludeRS = std::set<const sim_mob::RoadSegment*>();
@@ -1102,19 +1106,19 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 		//4.b
 		// change the origin
 		subTrip.fromLocation.node_ = newPath.first;
-		sim_mob::Logger::log["path_set"]<< "Try Joining old and new paths for detour point :" << newPath.first->getID() << std::endl;
+		pathsetLogger<< "Try Joining old and new paths for detour point :" << newPath.first->getID() << std::endl;
 //		MesoPathMover::printPath(deTourOptions[newPath.first], newPath.first);
 //		printWPpath(newPath.second, newPath.first);
 		//check if join possible
 		bool canJoin = canJoinPaths(newPath.second,deTourOptions[newPath.first], subTrip, excludeRS);
 		if(!canJoin)
 		{
-			sim_mob::Logger::log["path_set"] << "could not join the old and new paths, discarding detour point :" << newPath.first->getID() << std::endl;
+			pathsetLogger << "could not join the old and new paths, discarding detour point :" << newPath.first->getID() << std::endl;
 //			sim_mob::printWPpath(newPath.second, newPath.first);
 			deTourOptions.erase(newPath.first);
 			continue;
 		}
-		sim_mob::Logger::log["path_set"] << "Paths can Join" << std::endl;
+		pathsetLogger << "Paths can Join" << std::endl;
 		//4.c join
 		initSegStatsPath(newPath.second,deTourOptions[newPath.first]);
 
@@ -1129,7 +1133,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 			if(detourNode.first == newPath.first){continue;}
 			if(target == detourNode.second)
 			{
-				sim_mob::Logger::log["path_set"] << "Discarding an already been created path:\n";
+				pathsetLogger << "Discarding an already been created path:\n";
 				MesoPathMover::printPath(detourNode.second);
 				MesoPathMover::printPath(target);
 				deTourOptions.erase(newPath.first);
@@ -1141,7 +1145,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 			//since the two containers have the same size, they are considered equal(same) if any element of the above pair is equal to the .end() of their corresponding containers
 //			if (comp.first == target.end())
 //			{
-//				sim_mob::Logger::log["path_set"] << "Discarding an already been created path:" << std::endl;
+//				pathsetLogger << "Discarding an already been created path:" << std::endl;
 //				MesoPathMover::printPath(detourNode.second);
 //				MesoPathMover::printPath(target);
 //				deTourOptions.erase(newPath.first);
@@ -1150,7 +1154,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 	}
 	//is there any place drivers can re-route or not?
 	if(!deTourOptions.size()){
-		sim_mob::Logger::log["path_set"] << "No Detour For incident at " << (*msg.stats.begin())->getRoadSegment()->getSegmentAimsunId() << std::endl;
+		pathsetLogger << "No Detour For incident at " << (*msg.stats.begin())->getRoadSegment()->getSegmentAimsunId() << std::endl;
 		return;
 	}
 
@@ -1162,12 +1166,12 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 	int dbgIndx = cnt;
 	while(cnt){ it++; --cnt;}
 	//debug
-	sim_mob::Logger::log["path_set"] << "----------------------------------\n"
+	pathsetLogger << "----------------------------------\n"
 			"Original path:" << std::endl;
 	getMesoPathMover().printPath(getMesoPathMover().getPath());
-	sim_mob::Logger::log["path_set"] << "Detour option chosen[" << dbgIndx << "] : " << it->first->getID() << std::endl;
+	pathsetLogger << "Detour option chosen[" << dbgIndx << "] : " << it->first->getID() << std::endl;
 	getMesoPathMover().printPath(it->second);
-	sim_mob::Logger::log["path_set"] << "----------------------------------" << std::endl;
+	pathsetLogger << "----------------------------------" << std::endl;
 	//debug...
 	getMesoPathMover().setPath(it->second);
 }

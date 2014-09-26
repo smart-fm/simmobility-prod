@@ -9,10 +9,11 @@
 #include "geospatial/PathSetManager.hpp"
 #include "message/MessageBus.hpp"
 #include "conf/ConfigManager.hpp"
-//may needed when you move definition to cpp
-//#include <boost/random.hpp>
-//#include <boost/random/normal_distribution.hpp>
 #include <boost/tokenizer.hpp>
+
+namespace{
+sim_mob::BasicLogger & logger = sim_mob::Logger::log("path_set");
+}
 
 sim_mob::IncidentManager * sim_mob::IncidentManager::instance = 0;
 std::map<const sim_mob::RoadSegment*, double> sim_mob::IncidentManager::currIncidents = std::map<const sim_mob::RoadSegment*, double>();
@@ -51,7 +52,7 @@ void sim_mob::IncidentManager::readFromFile(std::string inputFile){
 		double newFlowRate = boost::lexical_cast<double>(vec[1]);//second element
 		uint32_t tick =  boost::lexical_cast<uint32_t>(vec[2]);//second element
 		incidents.insert(std::make_pair(tick,Incident(sectionId,newFlowRate,tick)));
-		sim_mob::Logger::log["path_set"] << "Incident inserted for tick:" <<tick << " sectionId:" << sectionId << "\n" ;
+		logger << "Incident inserted for tick:" <<tick << " sectionId:" << sectionId << "\n" ;
 	}
 	in.close();
 }
@@ -78,7 +79,7 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 		sim_mob::PathSetManager::getInstance()->inserIncidentList((*stats.begin())->getRoadSegment());
 		std::vector <const sim_mob::Person*> persons;
 		identifyAffectedDrivers(rs,persons);
-		sim_mob::Logger::log["path_set"] << " INCIDENT  segment:"<< rs->getSegmentAimsunId() << " affected:" << persons.size() << "\n" ;
+		logger << " INCIDENT  segment:"<< rs->getSegmentAimsunId() << " affected:" << persons.size() << "\n" ;
 //		/**
 //		 * DEBUG
 //		 */
@@ -128,19 +129,19 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 		for(itSS = path.begin(); (*itSS) != curSS ; itSS++){
 			if(targetRS == (*itSS)->getRoadSegment()){
 				res = true;
-//				sim_mob::Logger::log["path_set"] << "This incident is happening on a segments 'before' this driver" << std::endl;
+//				logger << "This incident is happening on a segments 'before' this driver" << std::endl;
 				break;
 			}
 		}
 		//Same check for case (*itSS) == curSS i.e you are currently 'on' the incident segment
 		if(itSS != path.end() && (targetRS == (*itSS)->getRoadSegment())){
-//			sim_mob::Logger::log["path_set"] << "This incident is happening on the driver's current segment" << std::endl;
+//			logger << "This incident is happening on the driver's current segment" << std::endl;
 			res = true;
 		}
 
 		if(res){
 			ignored++;
-//			sim_mob::Logger::log["path_set"] << "ignoring this driver" <<std::endl;
+//			logger << "ignoring this driver" <<std::endl;
 			//person passed, or currently on the target path. So, not interested in this person
 			continue;
 		}
@@ -165,10 +166,10 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 			ignorant ++;
 		}
 	}//SGPER
-	sim_mob::Logger::log["path_set"] << "Number of Affected Driver's Paths: " << affected << std::endl;
-	sim_mob::Logger::log["path_set"] << "Number of Affected Drivers: " << affected - ignored << std::endl;
-	sim_mob::Logger::log["path_set"] << "Number of Drivers Reacting to Incident: " << reacting << std::endl;
-	sim_mob::Logger::log["path_set"] << "Number of Drivers Ignoring the incident : " << ignorant << std::endl;
+	logger << "Number of Affected Driver's Paths: " << affected << std::endl;
+	logger << "Number of Affected Drivers: " << affected - ignored << std::endl;
+	logger << "Number of Drivers Reacting to Incident: " << reacting << std::endl;
+	logger << "Number of Drivers Ignoring the incident : " << ignorant << std::endl;
 }
 
 //probability function(for now, just behave like tossing a coin

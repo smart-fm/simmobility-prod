@@ -45,6 +45,9 @@ using namespace boost;
 typedef Entity::UpdateStatus UpdateStatus;
 
 namespace{
+sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("path_set");
+}
+namespace{
     const double INFINITESIMAL_DOUBLE = 0.000001;
     const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
 }
@@ -775,7 +778,7 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 	case MSG_INSERT_INCIDENT:
 	{
 		Print() << "Conflux received MSG_INSERT_INCIDENT" << std::endl;
-		sim_mob::Logger::log["path_set"] << "Conflux received MSG_INSERT_INCIDENT" << std::endl;
+		pathsetLogger << "Conflux received MSG_INSERT_INCIDENT" << std::endl;
 		const InsertIncidentMessage & msg = MSG_CAST(InsertIncidentMessage, message);
 		//change the flow rate of the segment
 		sim_mob::Conflux::insertIncident(msg.stats,msg.newFlowRate);

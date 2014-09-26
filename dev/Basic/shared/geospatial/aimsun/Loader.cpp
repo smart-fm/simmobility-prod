@@ -87,6 +87,9 @@ using std::map;
 using std::pair;
 using std::multimap;
 
+namespace{
+sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("path_set");
+}
 namespace {
 const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
 const double BUS_LENGTH = 3 * sim_mob::PASSENGER_CAR_UNIT;
@@ -279,7 +282,7 @@ bool DatabaseLoader::LoadSinglePathDBwithId2(
 		}
 		if (i==0)
 		{
-			sim_mob::Logger::log["path_set"]  << "LSPDBwithId: "<<pathset_id<< "no data in db"<<std::endl;
+			pathsetLogger  << "LSPDBwithId: "<<pathset_id<< "no data in db"<<std::endl;
 			return false;
 		}
 		return true;
@@ -309,7 +312,7 @@ bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 		i++;
 	}
 	if (i == 0) {
-		sim_mob::Logger::log["path_set"] << "LSPDBwithId: " << pathset_id << "no data in db\n" ;
+		pathsetLogger << "LSPDBwithId: " << pathset_id << "no data in db\n" ;
 		return false;
 	}
 	return true;
@@ -333,7 +336,7 @@ bool DatabaseLoader::LoadPathSetDBwithId(
 	}
 	if(i==0)
 	{
-		sim_mob::Logger::log["path_set"]  <<"LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
+		pathsetLogger  <<"LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
 		return false;
 	}
 	else
@@ -355,7 +358,7 @@ bool DatabaseLoader::LoadOnePathSetDBwithId(std::string& pathset_id,boost::share
 	}
 	if(i==0)
 	{
-		sim_mob::Logger::log["path_set"]  << "LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
+		pathsetLogger  << "LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
 		return false;
 	}
 	else
@@ -377,7 +380,7 @@ bool DatabaseLoader::LoadOnePathSetDBwithIdST(soci::session& sql,std::string& pa
 	}
 	if(i==0)
 	{
-		sim_mob::Logger::log["path_set"]  << "LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
+		pathsetLogger  << "LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
 		return false;
 	}
 	else

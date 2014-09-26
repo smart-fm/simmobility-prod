@@ -547,11 +547,11 @@ public:
 inline double getTravelCost2(sim_mob::SinglePath *sp)
 {
 
-//	sim_mob::Logger::log["path_set"].prof("getTravelCost2").tick();
+//	sim_mob::Logger::log("path_set").prof("getTravelCost2").tick();
 	double res=0.0;
 	double ts=0.0;
 	if(!sp) {
-		sim_mob::Logger::log["path_set"]<<"gTC: sp is empty"<<std::endl;
+		sim_mob::Logger::log("path_set") << "gTC: sp is empty" << std::endl;
 	}
 	sim_mob::DailyTime trip_startTime = sp->pathSet->subTrip->startTime;
 	for(std::set<const RoadSegment*>::iterator it1 = sp->shortestSegPath.begin(); it1 != sp->shortestSegPath.end(); it1++)
@@ -582,7 +582,7 @@ inline double getTravelCost2(sim_mob::SinglePath *sp)
 			}
 		}
 	}
-//	sim_mob::Logger::log["path_set"].prof("getTravelCost2").tick(true);
+//	sim_mob::Logger::log("path_set").prof("getTravelCost2").tick(true);
 	return res;
 }
 
@@ -591,7 +591,7 @@ inline std::string makeWaypointsetString(std::vector<WayPoint>& wp)
 	std::string str;
 	if(wp.size()==0)
 	{
-		sim_mob::Logger::log["path_set"]<<"warning: empty input for makeWaypointsetString"<<std::endl;
+		sim_mob::Logger::log("path_set")<<"warning: empty input for makeWaypointsetString"<<std::endl;
 	}
 
 	for(std::vector<WayPoint>::iterator it = wp.begin(); it != wp.end(); it++)
@@ -606,7 +606,7 @@ inline std::string makeWaypointsetString(std::vector<WayPoint>& wp)
 	if(str.size()<1)
 	{
 		// when same f,t node, it happened
-		sim_mob::Logger::log["path_set"]<<"warning: empty output makeWaypointsetString id"<<std::endl;
+		sim_mob::Logger::log("path_set")<<"warning: empty output makeWaypointsetString id"<<std::endl;
 	}
 	return str;
 }

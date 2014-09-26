@@ -29,7 +29,7 @@ using std::string;
 
 using namespace sim_mob;
 namespace{
-sim_mob::BasicLogger & logger = sim_mob::Logger::log["path_set"];
+sim_mob::BasicLogger & logger = sim_mob::Logger::log("path_set");
 }
 
 std::string getFromToString(const sim_mob::Node* fromNode,const sim_mob::Node* toNode ){
@@ -722,7 +722,7 @@ const boost::shared_ptr<soci::session> & sim_mob::PathSetManager::getSession(){
 }
 
 void sim_mob::PathSetManager::clearSinglePaths(boost::shared_ptr<sim_mob::PathSet>&ps){
-	Logger::log["path_set"] << "clearing " << ps->pathChoices.size() << " SinglePaths\n";
+	logger << "clearing " << ps->pathChoices.size() << " SinglePaths\n";
 	BOOST_FOREACH(sim_mob::SinglePath* sp_, ps->pathChoices){
 		if(sp_){
 			safe_delete_item(sp_);
@@ -740,14 +740,14 @@ bool sim_mob::PathSetManager::cachePathSet_LRU(boost::shared_ptr<sim_mob::PathSe
 }
 
 bool sim_mob::PathSetManager::cachePathSet_orig(boost::shared_ptr<sim_mob::PathSet>&ps){
-	Logger::log["path_set"] << "caching [" << ps->id << "]\n";
+	logger << "caching [" << ps->id << "]\n";
 	//test
 //	return false;
 	//first step caching policy:
 	// if cache size excedded 250 (upper threshold), reduce the size to 200 (lowe threshold)
 	if(cachedPathSet.size() > 2500)
 	{
-		Logger::log["path_set"] << "clearing some of the cached PathSets\n";
+		logger << "clearing some of the cached PathSets\n";
 		int i = cachedPathSet.size() - 2000;
 		std::map<std::string, boost::shared_ptr<sim_mob::PathSet> >::iterator it(cachedPathSet.begin());
 		for(; i >0 && it != cachedPathSet.end(); --i )
@@ -759,7 +759,7 @@ bool sim_mob::PathSetManager::cachePathSet_orig(boost::shared_ptr<sim_mob::PathS
 		boost::unique_lock<boost::shared_mutex> lock(cachedPathSetMutex);
 		bool res = cachedPathSet.insert(std::make_pair(ps->id,ps)).second;
 		if(!res){
-			Logger::log["path_set"] << "Failed to cache [" << ps->id << "]\n";
+			logger << "Failed to cache [" << ps->id << "]\n";
 		}
 		return res;
 	}
@@ -788,7 +788,7 @@ bool sim_mob::PathSetManager::findCachedPathSet_orig(std::string  key, boost::sh
 			BOOST_FOREACH(pair_,cachedPathSet){
 				out << pair_.first << ",";
 			}
-			Logger::log["path_set"] << out.str() << "\n";
+			logger << out.str() << "\n";
 			return false;
 		}
 		value = it->second;
@@ -873,7 +873,7 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(std::vector<sim_mob::WayP
 	boost::shared_ptr<sim_mob::PathSet> ps_;
 	//check cache
 	logger.prof("find_cache_time").tick();
-	sim_mob::Logger::log["ODs"] << fromToID << "\n";
+	sim_mob::Logger::log("ODs") << fromToID << "\n";
 	if(isUseCache && findCachedPathSet(fromToID,ps_))
 	{
 		logger.prof("find_cache_time").tick(true);

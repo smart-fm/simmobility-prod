@@ -10,6 +10,9 @@
 
 using namespace std;
 
+namespace{
+sim_mob::BasicLogger & logger = sim_mob::Logger::log("path_set");
+}
 
 sim_mob::PathSetWorkerThread::PathSetWorkerThread()
 {
@@ -158,10 +161,10 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		// make sp id
 		std::string id = sim_mob::makeWaypointsetString(wps);
 		if(!id.size()){
-			sim_mob::Logger::log["pathset"] << "Error: Empty choice!!! yet valid=>" << dbgStr <<  "\n";
+			logger << "Error: Empty choice!!! yet valid=>" << dbgStr <<  "\n";
 		}
 		else{
-			sim_mob::Logger::log["path_set"] << "Path generated through:" << dbgStr <<  ":" << id << "\n" ;
+			logger << "Path generated through:" << dbgStr <<  ":" << id << "\n" ;
 		}
 		// fill data
 		s->pathSet = ps;

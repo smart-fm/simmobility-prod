@@ -380,7 +380,7 @@ void sim_mob::BusDriverMovement::frame_tick() {
 
 void sim_mob::BusDriverMovement::frame_tick_output() {
 	DriverUpdateParams &p = parentBusDriver->getParams();
-	if (fwdDriverMovement.isDoneWithEntireRoute()) {
+	if (this->parentDriver->isVehicleInLoadingQueue || fwdDriverMovement.isDoneWithEntireRoute()) {
 		return;
 	}
 

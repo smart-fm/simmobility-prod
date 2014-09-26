@@ -393,9 +393,12 @@ bool sim_mob::DriverMovement::findEmptySpaceAhead()
 				if(role->roleType == Role::RL_DRIVER || role->roleType == Role::RL_BUSDRIVER)
 				{
 					Driver *nearbyDriver = dynamic_cast<Driver *>(role);
+					DriverUpdateParams &nearbyDriversParams = nearbyDriver->getParams();
 
 					//Make sure we're not checking distance from ourselves or someone in the loading queue
-					if (parentDriver != nearbyDriver && !nearbyDriver->isVehicleInLoadingQueue)
+					//also ensure that the other vehicle is in our lane
+					if (parentDriver != nearbyDriver && !nearbyDriver->isVehicleInLoadingQueue &&
+							driverUpdateParams.currLane == nearbyDriversParams.currLane)
 					{
 						DriverMovement *nearbyDriverMovement = dynamic_cast<DriverMovement *>(nearbyDriver->Movement());
 
@@ -416,9 +419,7 @@ bool sim_mob::DriverMovement::findEmptySpaceAhead()
 						else
 						{
 							//As the gap is negative, there is a vehicle coming in from behind. We shouldn't appear right
-							//in front of it, so consider its speed to calulate required gap
-							DriverUpdateParams &nearbyDriversParams = nearbyDriver->getParams();
-
+							//in front of it, so consider it's speed to calculate required gap
 							permissibleGapInCM = nearbyDriver->vehicle->getLengthCm() +
 									(nearbyDriversParams.headway)* (nearbyDriversParams.currSpeed / 100);
 						}

@@ -226,7 +226,7 @@ std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
 
 void sim_mob::Driver::handleUpdateRequest(MovementFacet* mFacet){
 
-	if(!this->isVehicleInLoadingQueue)
+	if(this->isVehicleInLoadingQueue == false)
 	{
 		mFacet->updateNearbyAgent(this->getParent(),this);
 	}

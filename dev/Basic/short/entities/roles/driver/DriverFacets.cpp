@@ -312,7 +312,7 @@ void sim_mob::DriverMovement::frame_tick() {
 
 	//General update behavior.
 	//Note: For now, most updates cannot take place unless there is a Lane and vehicle.
-	if (!parentDriver->isVehicleInLoadingQueue && p2.currLane && parentDriver->vehicle) {
+	if (parentDriver->isVehicleInLoadingQueue == false && p2.currLane && parentDriver->vehicle) {
 
 		if (update_sensors(p2.now) && update_movement(p2.now)
 				&& update_post_movement(p2.now)) {
@@ -397,14 +397,13 @@ bool sim_mob::DriverMovement::findEmptySpaceAhead()
 
 					//Make sure we're not checking distance from ourselves or someone in the loading queue
 					//also ensure that the other vehicle is in our lane
-					if (parentDriver != nearbyDriver && !nearbyDriver->isVehicleInLoadingQueue &&
+					if (parentDriver != nearbyDriver && nearbyDriver->isVehicleInLoadingQueue == false &&
 							driverUpdateParams.currLane == nearbyDriversParams.currLane)
 					{
 						DriverMovement *nearbyDriverMovement = dynamic_cast<DriverMovement *>(nearbyDriver->Movement());
 
 						//Get the gap to the nearby driver (in cm)
-						double gapInCM = fwdDriverMovement.getDisToCurrSegEnd() -
-								nearbyDriverMovement->fwdDriverMovement.getDisToCurrSegEnd();
+						double gapInCM = fwdDriverMovement.getDisToCurrSegEnd() - nearbyDriverMovement->fwdDriverMovement.getDisToCurrSegEnd();
 
 						//The gap between current driver and the one in front (or the one coming from behind) should be greater than
 						//length(in cm) + (headway(in s) * initial speed(in cm/s))
@@ -413,15 +412,13 @@ bool sim_mob::DriverMovement::findEmptySpaceAhead()
 						{
 							//As the gap is positive, there is a vehicle in front of us. We should have enough distance
 							//so as to avoid crashing into it
-							permissibleGapInCM = parentDriver->vehicle->getLengthCm() +
-									(driverUpdateParams.headway * (driverUpdateParams.initSpeed / 100));
+							permissibleGapInCM = parentDriver->vehicle->getLengthCm() + (driverUpdateParams.headway * (driverUpdateParams.initSpeed / 100));
 						}
 						else
 						{
 							//As the gap is negative, there is a vehicle coming in from behind. We shouldn't appear right
 							//in front of it, so consider it's speed to calculate required gap
-							permissibleGapInCM = nearbyDriver->vehicle->getLengthCm() +
-									(nearbyDriversParams.headway)* (nearbyDriversParams.currSpeed / 100);
+							permissibleGapInCM = nearbyDriver->vehicle->getLengthCm() + (nearbyDriversParams.headway)* (nearbyDriversParams.currSpeed / 100);
 						}
 
 						if(abs(gapInCM) <= abs(permissibleGapInCM))
@@ -441,7 +438,7 @@ bool sim_mob::DriverMovement::findEmptySpaceAhead()
 
 void sim_mob::DriverMovement::frame_tick_output() {
 	DriverUpdateParams &p = parentDriver->getParams();
-//Skip?
+	//Skip
 	if (parentDriver->isVehicleInLoadingQueue || fwdDriverMovement.isDoneWithEntireRoute()) {
 		return;
 	}

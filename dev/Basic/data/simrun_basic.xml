@@ -52,7 +52,7 @@
             <database id="fm_mongo" dbtype="mongodb">
                 <host value="localhost"/>
                 <port value="27017"/>
-                <dbname value="preday"/>
+                <dbname value="mydb"/>
             </database>
 
         </databases>

@@ -23,7 +23,7 @@ class UnPackageUtils;
 class Driver;
 class Pedestrian;
 class Agent;
-
+struct TravelMetric;
 ///used to initialize message handler id of all facets
 #define FACET_MSG_HDLR_ID 1000
 /**
@@ -39,6 +39,8 @@ class Agent;
  * \author Harish Loganathan
  * \author Seth N. Hetu
  */
+
+
 class Facet {
 public:
 	explicit Facet(sim_mob::Person* parent=nullptr) : parent(parent) {}
@@ -100,7 +102,6 @@ public:
 #endif
 };
 
-
 /**
  * See: Facet
  *
@@ -108,8 +109,8 @@ public:
  */
 class MovementFacet : public Facet, public messaging::MessageHandler {
 public:
-	explicit MovementFacet(sim_mob::Person* parentAgent=nullptr) : Facet(parentAgent), MessageHandler(msgHandlerId ++) { }
-	virtual ~MovementFacet() {}
+	explicit MovementFacet(sim_mob::Person* parentAgent=nullptr);// : Facet(parentAgent), MessageHandler(msgHandlerId ++) { }
+	virtual ~MovementFacet(); //{}
 	virtual void init() {}
 
 	virtual bool updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Driver* other_driver) { return false; };
@@ -121,10 +122,18 @@ public:
 	 */
 	virtual void HandleMessage(messaging::Message::MessageType type,
 			const messaging::Message& message){}
+	// mark startTimeand origin
+	virtual TravelMetric & startTravelTimeMetric() = 0;
+	//	mark the destination and end time and travel time
+	virtual TravelMetric & finalizeTravelTimeMetric() = 0;
 
 
 public:
 	friend class sim_mob::PartitionManager;
+protected:
+
+	///	placeholder for various movement measurements
+	 boost::shared_ptr<TravelMetric> travelTimeMetric;
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI

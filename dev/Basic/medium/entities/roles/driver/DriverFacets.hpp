@@ -90,10 +90,13 @@ public:
 	MesoPathMover & getMesoPathMover() {
 		return pathMover;
 	}
-	/// used to collect some travel time information used in preday
-	TravelMetric travelTimeMetric;
+	// mark startTimeand origin
+	TravelMetric & startTravelTimeMetric();
+	//	mark the destination and end time and travel time
+	TravelMetric & finalizeTravelTimeMetric();
 
 protected:
+
 	/**
 	 * Pointer to the parent Driver role.
 	 */

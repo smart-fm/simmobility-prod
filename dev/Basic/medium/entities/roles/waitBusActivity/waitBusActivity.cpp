@@ -26,7 +26,7 @@ sim_mob::medium::WaitBusActivity::WaitBusActivity(Person* parent,
 
 Role* sim_mob::medium::WaitBusActivity::clone(Person* parent) const {
 	WaitBusActivityBehavior* behavior = new WaitBusActivityBehavior(parent);
-	WaitBusActivityMovement* movement = new WaitBusActivityMovement(parent);
+	WaitBusActivityMovement* movement = nullptr/*new WaitBusActivityMovement(parent)*/;
 	WaitBusActivity* waitBusActivity = new WaitBusActivity(parent,
 			parent->getMutexStrategy(), behavior, movement);
 	behavior->setParentWaitBusActivity(waitBusActivity);

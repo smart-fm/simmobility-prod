@@ -27,16 +27,15 @@ class PackageUtils;
 class UnPackageUtils;
 class UpdateParams;
 
-
 /// simple structure used to collect travel time information
 struct TravelMetric
 {
 	WayPoint origin,destination;
 	DailyTime startTime,endTime;
 	uint32_t travelTime;
+	bool started,finalized,valid;
+	TravelMetric():started(false),finalized(false),valid(false){}
 };
-
-
 
 /**
  * Basic Person class.
@@ -49,6 +48,7 @@ struct TravelMetric
  * \author Harish Loganathan
  * \author zhang huai peng
  * \author Yao Jin
+ * \author Vahid Saber
  *
  * A person may perform one of several roles which
  *  change over time. For example: Drivers, Pedestrians, and Passengers are
@@ -244,35 +244,50 @@ public:
 	}
 
 	void advanceToNextRole();
+	///	container to store all the metrics of the trips (subtrip actually)
+	 /*
+	  * The implementation inserts information at subtrip resolution while preday will require Trip-level metrics.
+	  *  so whenever all subtrips of a trip are done (subTripTravelMetrics) and it is time to change the tripchainitem(in Pesron class)
+	  *  an aggregate function will create a new entry in tripTravelMetrics from subTripTravelMetrics items.
+	  *  subTripTravelMetrics items are cleared then.
+	  */
+	 std::vector<TravelMetric> tripTravelMetrics;
+	 std::vector<TravelMetric> subTripTravelMetrics;
 	///	get the measurements stored in subTripTravelMetrics and add them up into a new entry in tripTravelMetrics
 	///	call this method whenever a subtrip is done.
 	void aggregateSubTripMetrics()
 	{
 		TravelMetric newTripMetric;
+//		if(subTripTravelMetrics.begin() == subTripTravelMetrics.end())
+//		{
+//			throw std::runtime_error("subTrip level TravelMetrics is missing");
+//		}
 		TravelMetric item(*subTripTravelMetrics.begin());
 		newTripMetric.startTime = item.startTime;//first item
+		newTripMetric.origin = item.origin;
 		 BOOST_FOREACH(item, subTripTravelMetrics)
 		 {
 			 newTripMetric.travelTime += item.travelTime;
 		 }
 		 newTripMetric.endTime = item.endTime;
+		 newTripMetric.destination = item.destination;
 		 subTripTravelMetrics.clear();
 		 tripTravelMetrics.push_back(newTripMetric);
 	}
-	 std::vector<TravelMetric> & getTipTravelMetrics()
-	 {
-		 return tripTravelMetrics;
-	 }
-
-	 void addTripTravelMetrics(TravelMetric & value){
-		 tripTravelMetrics.push_back(value);
-	 }
-
-	 std::vector<TravelMetric> & getSubTipTravelMetrics()
-	 {
-		 return subTripTravelMetrics;
-	 }
-
+//	 std::vector<TravelMetric> & getTipTravelMetrics()
+//	 {
+//		 return tripTravelMetrics;
+//	 }
+//
+//	 void addTripTravelMetrics(TravelMetric & value){
+//		 tripTravelMetrics.push_back(value);
+//	 }
+//
+//	 std::vector<TravelMetric> & getSubTipTravelMetrics()
+//	 {
+//		 return subTripTravelMetrics;
+//	 }
+//
 	 void addSubtripTravelMetrics(TravelMetric & value){
 		 subTripTravelMetrics.push_back(value);
 	 }
@@ -290,6 +305,7 @@ public:
 					 << (item.endTime - item.startTime).getRepr_()
 					 << "\n";
 		 }
+		 tripTravelMetrics.clear();
 	 }
 
 
@@ -306,15 +322,7 @@ protected:
 
 	//Inherited from MessageHandler.
 	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
-	 ///	container to store all the metrics of the trips (subtrip actually)
-	 /*
-	  * The implementation inserts information at subtrip resolution while preday will require Trip-level metrics.
-	  *  so whenever all subtrips of a trip are done (subTripTravelMetrics) and it is time to change the tripchainitem(in Pesron class)
-	  *  an aggregate function will create a new entry in tripTravelMetrics from subTripTravelMetrics items.
-	  *  subTripTravelMetrics items are cleared then.
-	  */
-	 std::vector<TravelMetric> tripTravelMetrics;
-	 std::vector<TravelMetric> subTripTravelMetrics;
+
 
 private:
 	//to indicate that Role's updateParams has to be reset.

@@ -153,6 +153,10 @@ sim_mob::Person::~Person() {
 	safe_delete_item(prevRole);
 	safe_delete_item(currRole);
 	safe_delete_item(nextRole);
+	//last chance to collect travel time metrics(if any)
+	aggregateSubTripMetrics();
+	//serialize them
+	serializeTripTravelTimemetrics();
 }
 
 
@@ -840,11 +844,16 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 	if(res) {
 		return res;
 	}
+	//Tripchainitem has to be incremented
 
-	//no, it is not the subtrip we need to advance, it is the tripchain item that has to be incremented
+//	//Before incrementing currTripChainItem, check: If it was a Trip, it is a good time to collect the aggregated travel time for that trip(if any)
+//	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP){
+//		aggregateSubTripMetrics();
+//	}
+
+	//	do the increment
 	currTripChainItem++;
-	//if the previous TripChainItem  was a Trip, it is a good time to collect the aggregated travel time for that trip(if any)
-	aggregateSubTripMetrics();
+
 
 	if (currTripChainItem == tripChain.end())  {
 		//but tripchain items are also over, get out !
@@ -878,6 +887,8 @@ void sim_mob::Person::buildSubscriptionList(vector<BufferedBase*>& subsList) {
 //      the same code in two places.
 void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 	if (currRole) {
+		currRole->Movement()->finalizeTravelTimeMetric();
+		aggregateSubTripMetrics();
 		currRole->setParent(nullptr);
 		if (this->currWorkerProvider) {
 			this->currWorkerProvider->stopManaging(currRole->getSubscriptionParams());

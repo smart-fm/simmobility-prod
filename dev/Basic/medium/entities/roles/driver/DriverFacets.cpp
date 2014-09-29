@@ -110,13 +110,10 @@ sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 
 
 sim_mob::medium::DriverMovement::~DriverMovement() {
-	//save travel metrics
-	const Node* endNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getEnd();
-	travelTimeMetric.destination = WayPoint(endNode);
-	travelTimeMetric.endTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
-	travelTimeMetric.travelTime = (travelTimeMetric.endTime - travelTimeMetric.startTime).getValue();
-	getParent()->addSubtripTravelMetrics(travelTimeMetric);
-	//save travel metrics done
+	//	usually the metrics for the last subtrip is not manually finalized
+	if(!travelTimeMetric->finalized){
+		finalizeTravelTimeMetric();
+	}
 }
 
 void sim_mob::medium::DriverMovement::frame_init() {
@@ -126,9 +123,7 @@ void sim_mob::medium::DriverMovement::frame_init() {
 //	//debug
 	if (pathInitialized) {
 		//initialize some travel metrics for this subTrip
-		travelTimeMetric.startTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
-		const Node* startNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getEnd();
-		travelTimeMetric.origin = WayPoint(startNode);
+		startTravelTimeMetric();
 		//done with metric initialization...
 		Vehicle* newVehicle = new Vehicle(Vehicle::CAR, PASSENGER_CAR_UNIT);
 		VehicleBase* oldVehicle = parentDriver->getResource();
@@ -1186,6 +1181,27 @@ void DriverMovement::HandleMessage(messaging::Message::MessageType type,
 	}
 	}
 }
+
+TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
+{
+	travelTimeMetric->startTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+	const Node* startNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getStart();
+	travelTimeMetric->origin = WayPoint(startNode);
+	travelTimeMetric->started = true;
+	return *travelTimeMetric;
+}
+
+TravelMetric & sim_mob::medium::DriverMovement::finalizeTravelTimeMetric()
+{
+	const Node* endNode = (*(pathMover.getPath().end()))->getRoadSegment()->getEnd();
+	travelTimeMetric->destination = WayPoint(endNode);
+	travelTimeMetric->endTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+	travelTimeMetric->travelTime = (travelTimeMetric->endTime - travelTimeMetric->startTime).getValue();
+	travelTimeMetric->finalized = true;
+	getParent()->addSubtripTravelMetrics(*travelTimeMetric);
+	return *travelTimeMetric;
+}
+
 
 } /* namespace medium */
 } /* namespace sim_mob */

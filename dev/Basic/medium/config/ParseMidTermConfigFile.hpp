@@ -57,6 +57,12 @@ private:
 	void processProcMapNode(xercesc::DOMElement* node);
 
 	/**
+	 * processes the activity load interval node
+	 * @param node node specifying the value and unit for activity load interval
+	 */
+	void processActivityLoadIntervalElement(xercesc::DOMElement* node);
+
+	/**
 	 * processes dwell time element included in xml file.
 	 * @param node node corresponding to the dwell time element inside xml file
 	 */

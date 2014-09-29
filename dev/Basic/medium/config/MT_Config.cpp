@@ -57,6 +57,19 @@ void MT_Config::setPredayRunMode(const std::string runMode)
 	}
 }
 
+unsigned MT_Config::getActivityScheduleLoadInterval() const
+{
+	return activityScheduleLoadInterval;
+}
+
+void MT_Config::setActivityScheduleLoadInterval(unsigned activityScheduleLoadInterval)
+{
+	if(!configSealed)
+	{
+		this->activityScheduleLoadInterval = activityScheduleLoadInterval;
+	}
+}
+
 const StoredProcedureMap& MT_Config::getStoredProcedure() const
 {
 	return storedProcedure;

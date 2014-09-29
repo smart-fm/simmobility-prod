@@ -245,6 +245,8 @@ public:
 	void setLogsumComputationFrequency(unsigned logsumComputationFrequency);
 	const StoredProcedureMap& getStoredProcedure() const;
 	void setStoredProcedureMap(const StoredProcedureMap& storedProcedure);
+	unsigned getActivityScheduleLoadInterval() const;
+	void setActivityScheduleLoadInterval(unsigned activityScheduleLoadInterval);
 
 private:
 	MT_Config();
@@ -282,6 +284,7 @@ private:
 	std::string calibrationOutputFile;
 	unsigned logsumComputationFrequency;
 	StoredProcedureMap storedProcedure;
+	unsigned activityScheduleLoadInterval; //seconds
 };
 }
 }

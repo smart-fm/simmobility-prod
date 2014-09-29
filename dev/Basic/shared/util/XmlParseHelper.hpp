@@ -124,6 +124,15 @@ std::string ParseString(const XMLCh* srcX, std::string* defValue);
 unsigned int GetValueInMs(double amount, std::string units, unsigned int* defValue);
 
 /**
+ * Helper: amount+value for time-granularities.
+ * @param amount input time value
+ * @param units unit of input time value
+ * @param defValue default value in case of invalid units
+ * @return time equivalent to amount in seconds
+ */
+unsigned int GetValueInSecond(double amount, std::string units, unsigned int* defValue);
+
+/**
  * Helper: Time units such as "10", "seconds"
  * @param amountX input time value
  * @param unitsX unit of input time value
@@ -131,6 +140,15 @@ unsigned int GetValueInMs(double amount, std::string units, unsigned int* defVal
  * @return time equivalent to amount in ms
  */
 unsigned int ParseTimegranAsMs(const XMLCh* amountX, const XMLCh* unitsX, unsigned int* defValue);
+
+/**
+ * Helper: Time units such as "1", "hour"
+ * @param amountX input time value
+ * @param unitsX unit of input time value
+ * @param defValue default value in case of invalid units
+ * @return time equivalent to amount in seconds
+ */
+unsigned int ParseTimegranAsSeconds(const XMLCh* amountX, const XMLCh* unitsX, unsigned int* defValue);
 
 /**
  * Helper: Parse DailyTime
@@ -165,6 +183,7 @@ std::string ParseNonemptyString(const XMLCh* src, std::string defValue);
 std::string ParseNonemptyString(const XMLCh* src);
 unsigned int ParseTimegranAsMs(const XMLCh* amount, const XMLCh* units, unsigned int defValue);
 unsigned int ParseTimegranAsMs(const XMLCh* amount, const XMLCh* units);
+unsigned int ParseTimegranAsSecond(const XMLCh* amount, const XMLCh* units, unsigned int defValue);
 
 //TODO: Now we are starting to overlap...
 int ProcessValueInteger2(xercesc::DOMElement* node, int defVal);

@@ -14,6 +14,13 @@
 namespace
 {
 const int DEFAULT_NUM_THREADS_DEMAND = 2; // default number of threads for demand
+const unsigned NUM_SECONDS_IN_AN_HOUR = 3600;
+
+unsigned int ProcessTimegranUnits(xercesc::DOMElement* node)
+{
+	return ParseTimegranAsSecond(GetNamedAttributeValue(node, "value"), GetNamedAttributeValue(node, "units"), NUM_SECONDS_IN_AN_HOUR);
+}
+
 }
 namespace sim_mob
 {
@@ -53,6 +60,7 @@ void ParseMidTermConfigFile::processMidTermRunMode(xercesc::DOMElement* node)
 void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 {
 	processProcMapNode(GetSingleElementByName(node, "proc_map", true));
+	processActivityLoadIntervalElement(GetSingleElementByName(node, "activity_load_interval", true));
 	processDwellTimeElement(GetSingleElementByName(node, "dwell_time_parameters", true));
 	processWalkSpeedElement(GetSingleElementByName(node, "pedestrian_walk_speed", true));
 }
@@ -99,6 +107,11 @@ void ParseMidTermConfigFile::processProcMapNode(xercesc::DOMElement* node)
 		spMap.procedureMappings[key] = val;
 	}
 	mtCfg.setStoredProcedureMap(spMap);
+}
+
+void ParseMidTermConfigFile::processActivityLoadIntervalElement(xercesc::DOMElement* node)
+{
+	mtCfg.setActivityScheduleLoadInterval(ProcessTimegranUnits(node));
 }
 
 void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)

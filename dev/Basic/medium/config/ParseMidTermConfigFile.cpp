@@ -52,6 +52,7 @@ void ParseMidTermConfigFile::processMidTermRunMode(xercesc::DOMElement* node)
 
 void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 {
+	processProcMapNode(GetSingleElementByName(node, "proc_map", true));
 	processDwellTimeElement(GetSingleElementByName(node, "dwell_time_parameters", true));
 	processWalkSpeedElement(GetSingleElementByName(node, "pedestrian_walk_speed", true));
 }
@@ -74,6 +75,30 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 	processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 	processMongoCollectionsNode(GetSingleElementByName(node, "mongo_collections", true));
 	processCalibrationNode(GetSingleElementByName(node, "calibration", true));
+}
+
+void ParseMidTermConfigFile::processProcMapNode(xercesc::DOMElement* node)
+{
+	StoredProcedureMap spMap(ParseString(GetNamedAttributeValue(node, "id")));
+	spMap.dbFormat = ParseString(GetNamedAttributeValue(node, "format"), "");
+
+	//Loop through and save child attributes.
+	for (DOMElement* mapItem=node->getFirstElementChild(); mapItem; mapItem=mapItem->getNextElementSibling()) {
+		if (TranscodeString(mapItem->getNodeName())!="mapping") {
+			Warn() <<"Invalid proc_map child node.\n";
+			continue;
+		}
+
+		std::string key = ParseString(GetNamedAttributeValue(mapItem, "name"), "");
+		std::string val = ParseString(GetNamedAttributeValue(mapItem, "procedure"), "");
+		if (key.empty() || val.empty()) {
+			Warn() <<"Invalid mapping; missing \"name\" or \"procedure\".\n";
+			continue;
+		}
+
+		spMap.procedureMappings[key] = val;
+	}
+	mtCfg.setStoredProcedureMap(spMap);
 }
 
 void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)

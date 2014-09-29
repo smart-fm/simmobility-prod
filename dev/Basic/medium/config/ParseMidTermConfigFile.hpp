@@ -51,6 +51,12 @@ private:
 	void processPredayNode(xercesc::DOMElement* node);
 
 	/**
+	 * processes the stored procedure mappings under supply node
+	 * @param node node corresponding to the procedure mappings for supply in xml file
+	 */
+	void processProcMapNode(xercesc::DOMElement* node);
+
+	/**
 	 * processes dwell time element included in xml file.
 	 * @param node node corresponding to the dwell time element inside xml file
 	 */

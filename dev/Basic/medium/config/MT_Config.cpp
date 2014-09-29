@@ -57,6 +57,19 @@ void MT_Config::setPredayRunMode(const std::string runMode)
 	}
 }
 
+const StoredProcedureMap& MT_Config::getStoredProcedure() const
+{
+	return storedProcedure;
+}
+
+void MT_Config::setStoredProcedureMap(const StoredProcedureMap& storedProcedure)
+{
+	if(!configSealed)
+	{
+		this->storedProcedure = storedProcedure;
+	}
+}
+
 double MT_Config::getPedestrianWalkSpeed() const
 {
 	return pedestrianWalkSpeed;

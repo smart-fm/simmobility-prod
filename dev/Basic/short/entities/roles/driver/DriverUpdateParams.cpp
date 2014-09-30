@@ -121,6 +121,7 @@ void DriverUpdateParams::buildDebugInfo()
 			lc = "lc-r";
 		}
 		s<<"            "<<parentId;
+		s<<":"<<accSelect;
 		s<<":"<<ul;
 		s<<":"<<uc;
 		s<<":"<<ur;
@@ -130,11 +131,19 @@ void DriverUpdateParams::buildDebugInfo()
 		s<<":"<<sp;
 		s<<"=="<<lcDebugStr.str();
 
+//		int rightFwdcarid=-1;
+//		if(this->nvRightFwd.exists())
+//		{
+//			Driver* driver_ = const_cast<Driver*>(nvRightFwd.driver);
+//			rightFwdcarid = driver_->getParent()->getId();
+//		}
+//		s<<":rfwd"<<rightFwdcarid;
+
 
 #endif
 
 	// debug aura mgr
-	#if 0
+	#if 1
 		int fwdcarid=-1;
 		char fwdnvdis[20] = "\0";
 				if(this->nvFwd.exists())
@@ -205,19 +214,19 @@ void DriverUpdateParams::buildDebugInfo()
 				char emergHeadwaystr[20] = "\0";
 				sprintf(emergHeadwaystr,"emergHeadway%03.1f",emergHeadway);
 
-				s<<":fwd"<<fwdcarid;
-				s<<":"<<fwdnvdis;
-				s<<":"<<disChar;
-				s<<":"<<headwaystr;
-				s<<":"<<emergHeadwaystr;
-				s<<":"<<az;
-				s<<":"<<pfwdv;
-				s<<":"<<cfDebugStr;
-				//<<":back"<<backcarid
-				//<<":lfwd"<<leftFwdcarid
-				//<<":lback"<<leftBackcarid
-				//<<":rfwd"<<rightFwdcarid
-				//<<":rback"<<rightBackcarid;
+//				s<<":fwd"<<fwdcarid;
+//				s<<":"<<fwdnvdis;
+//				s<<":"<<disChar;
+//				s<<":"<<headwaystr;
+//				s<<":"<<emergHeadwaystr;
+//				s<<":"<<az;
+//				s<<":"<<pfwdv;
+//				s<<":"<<cfDebugStr;
+				s<<":back"<<backcarid;
+				s<<":lfwd"<<leftFwdcarid;
+				s<<":lback"<<leftBackcarid;
+				s<<":rfwd"<<rightFwdcarid;
+				s<<":rback"<<rightBackcarid;
 	#endif
 
 	//			//<<":"<<ct

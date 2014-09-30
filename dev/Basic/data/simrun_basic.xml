@@ -154,6 +154,8 @@
                 <mapping name="busstop" procedure="get_bus_stop()"/>
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases_bugis()"/>
+                <mapping name="segment_type" procedure="get_segment_type()"/>
+                <mapping name="node_type" procedure="get_node_type()"/>
             </proc_map>
                  
             <!-- entire Singapore network with HITS trip chains -->
@@ -226,7 +228,7 @@
 
             <plaintext-credential id="harish_cred">
                 <username value="postgres"/>
-                <password value="postgres"/>
+                <password value="secret"/>
             </plaintext-credential>
         </credentials>
     </constructs>
@@ -320,7 +322,7 @@
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
         <!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
         <!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
-        <network_database database="fm_local" credentials="harish_cred" proc_map="bugis_large"/>
+        <network_database database="fm_local" credentials="harish_cred" proc_map="singapore"/>
         <!--<network_database database="fm_remote" credentials="fm_remote" proc_map="bugis_large"/>-->
         
         <!-- Where to find our various schema files. -->

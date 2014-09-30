@@ -1193,7 +1193,10 @@ TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
 
 TravelMetric & sim_mob::medium::DriverMovement::finalizeTravelTimeMetric()
 {
-	const Node* endNode = (*(pathMover.getPath().end()))->getRoadSegment()->getEnd();
+	const sim_mob::SegmentStats * currSegStat =
+	((pathMover.getCurrSegStats() == nullptr) ? *(pathMover.getPath().rbegin()) : (pathMover.getCurrSegStats()));
+	//Print() << ((pathMover.getCurrSegStats() == nullptr) ? "Trip possibly completed\n" : "Simulation ended before Trip completed\n");
+	const Node* endNode = currSegStat->getRoadSegment()->getEnd();
 	travelTimeMetric->destination = WayPoint(endNode);
 	travelTimeMetric->endTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 	travelTimeMetric->travelTime = (travelTimeMetric->endTime - travelTimeMetric->startTime).getValue();

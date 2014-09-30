@@ -156,7 +156,7 @@ sim_mob::Person::~Person() {
 	//last chance to collect travel time metrics(if any)
 	aggregateSubTripMetrics();
 	//serialize them
-	serializeTripTravelTimemetrics();
+	serializeTripTravelTimeMetrics();
 }
 
 

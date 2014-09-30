@@ -7,11 +7,7 @@
         <mid_term_run_mode value="supply"/>
         
         <!-- config specific to supply simulator -->            
-        <supply>
-                <proc_map id="withinday" format="aimsun">
-                        <mapping name="day_activity_schedule" procedure="get_activities_between"/>
-                </proc_map>
-                
+        <supply>                 
                 <!--activities from day_activity_schedule will be loaded for each interval of simulation time specified below-->
                 <activity_load_interval value="1" units="hour" />
                 

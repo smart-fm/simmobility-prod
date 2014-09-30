@@ -59,7 +59,7 @@ void ParseMidTermConfigFile::processMidTermRunMode(xercesc::DOMElement* node)
 
 void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 {
-	processProcMapNode(GetSingleElementByName(node, "proc_map", true));
+	//processProcMapNode(GetSingleElementByName(node, "proc_map", true));
 	processActivityLoadIntervalElement(GetSingleElementByName(node, "activity_load_interval", true));
 	processDwellTimeElement(GetSingleElementByName(node, "dwell_time_parameters", true));
 	processWalkSpeedElement(GetSingleElementByName(node, "pedestrian_walk_speed", true));
@@ -107,11 +107,14 @@ void ParseMidTermConfigFile::processProcMapNode(xercesc::DOMElement* node)
 		spMap.procedureMappings[key] = val;
 	}
 	mtCfg.setStoredProcedureMap(spMap);
+	configParams.constructs.procedureMaps[spMap.getId()] = spMap;
 }
 
 void ParseMidTermConfigFile::processActivityLoadIntervalElement(xercesc::DOMElement* node)
 {
-	mtCfg.setActivityScheduleLoadInterval(ProcessTimegranUnits(node));
+	unsigned interval = ProcessTimegranUnits(node);
+	mtCfg.setActivityScheduleLoadInterval(interval);
+	configParams.system.genericProps["activity_load_interval"] = interval;
 }
 
 void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)

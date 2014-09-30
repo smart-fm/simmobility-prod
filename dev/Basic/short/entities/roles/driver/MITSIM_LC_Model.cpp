@@ -255,11 +255,26 @@ size_t getLaneIndex(const Lane* l) {
 }
 void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 {
+	p.lcDebugStr<<"===CTG";
 	// 1.0 SET/UNSET choose adjacent,forward,backward STATUS
 	p.unsetStatus(STATUS_TARGET_GAP);
 
 	// 2.0 if doing nosing ,just return
-	if (p.flag(FLAG_NOSING) || p.flag(FLAG_NOSING_FEASIBLE) || p.flag(FLAG_STUCK_AT_END)) return;
+	if ( p.flag(FLAG_NOSING) ) {
+		p.lcDebugStr<<";NOS";
+		return;
+	}
+	if ( p.flag(FLAG_NOSING_FEASIBLE) ) {
+		p.lcDebugStr<<";NOF";
+		return;
+	}
+
+	if ( p.flag(FLAG_STUCK_AT_END) ){
+		p.lcDebugStr<<";STK";
+		return;
+	}
+
+
 
 	// 3.0 check lane change decision direction
 	LANE_CHANGE_SIDE changeMode = LCS_SAME;
@@ -298,10 +313,12 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	// if no left/right ahead vehicle, just use adjacent gap
 	if (!av->exists()) {
 	    p.setStatus(STATUS_ADJACENT);
+	    p.lcDebugStr<<";ava";
 	    return;
 	}
 	if (!bv->exists()) {
 		p.setStatus(STATUS_ADJACENT);
+		p.lcDebugStr<<";bva";
 		return;
 	}
 
@@ -312,11 +329,13 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	Driver *frontDriver = NULL;
 	if(front->exists())
 	{
+		p.lcDebugStr<<";d1";
 		frontDriver = const_cast<Driver*>(front->driver);
 	}
 	Driver *bbvDriver = NULL;
 	if(bbv->exists())
 	{
+		p.lcDebugStr<<";d2";
 		bbvDriver = const_cast<Driver*>(bbv->driver);
 	}
 
@@ -330,21 +349,25 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 	float d1, s1, d2, d3;
 //	  if ( av->vehicleAhead() ) {
 	if(aav->exists()) { // if has forward of forward vh
+		p.lcDebugStr<<";d3";
 //	    d1 = av->gapDistance();
 		d1 = aav->distance/100.0 - av->distance/100.0 - av->driver->getVehicleLengthM(); // get gap length of av and aav
 //	    s1 = av->currentSpeed() - av-> vehicleAhead()->currentSpeed();
 		Driver *aavDriver = const_cast<Driver*>(aav->driver);
 		s1 = av->driver->fwdVelocity/100.0 - aavDriver->getFwdVelocityM(); // speed diff of av and aav
 	  } else {
+		  p.lcDebugStr<<";d4";
 //		  d1 = av->distance/100.0();
 		  // get side ahead vh distance to end of link
 		  // tmp solution distance to next segment ,if next seg exist
 		  // TODO: meaning of av->distance()
 		  if(avDriverMvt->fwdDriverMovement.getNextSegment(true))
 		  {
+			  p.lcDebugStr<<";d5";
 			  d1 = avDriverMvt->fwdDriverMovement.getDisToCurrSegEndM() + avDriverMvt->fwdDriverMovement.getNextSegment(true)->length/100.0;
 		  }
 		  else {
+			  p.lcDebugStr<<";d6";
 			  d1 = avDriverMvt->fwdDriverMovement.getDisToCurrSegEndM();
 		  }
 
@@ -360,32 +383,38 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 
 //	  if (!front) {
 	if(!front->exists()) {
+		p.lcDebugStr<<";d7";
 		effectiveGap = d1;
 		remainderGap = 0;
 		gapSpeed = s1;
 	} // end if front
 	else {
+		p.lcDebugStr<<";d8";
 //	    dis2front = this->gapDistance(front) + front->length();
 		dis2front = front->distance/100.0;
 //		Driver *avDriver = const_cast<Driver*>(av->driver);
 //		Driver *frontDriver = const_cast<Driver*>(front->driver);
 	    if (dis2gap > dis2front)
 	    {
+	    	p.lcDebugStr<<";d9";
 //	    	effectiveGap = (-1) * (front->gapDistance(av) + av->length() + front->length());
 	    	effectiveGap = (-1) * (frontDriver->gapDistance(avDriver) + av->driver->getVehicleLengthM() + front->driver->getVehicleLengthM());
 	    	remainderGap = d1;
 	    	gapSpeed = avDriver->getFwdVelocityM() - frontDriver->getFwdVelocityM();
 	    } // end if dis2gap > dis2front
 	    else {
+	    	p.lcDebugStr<<";d10";
 //	    	d2 = av->gapDistance(front);
 	    	d2 = avDriver->gapDistance(frontDriver);
 	    	if (d1 >= d2) {
+	    		p.lcDebugStr<<";d11";
 				effectiveGap =  d2;
 				remainderGap = d1-d2;
 //				gapSpeed = av->currentSpeed() - front->currentSpeed();
 				gapSpeed = avDriver->getFwdVelocityM() - frontDriver->getFwdVelocityM();
 	    	} // end if d1 >= d2
 	    	else {
+	    		p.lcDebugStr<<";d22";
 				effectiveGap =  d1;
 				remainderGap = 0;
 				gapSpeed = s1;
@@ -868,9 +897,11 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 
 //	boost::uniform_int<> zero_to_max(0, RAND_MAX);
 //	double rnd = (double) (zero_to_max(p.gen) % 1000) / 1000;
+
 	double rnd = Utils::uRandom();
+	if(rnd>=1.0) rnd = 0.99;
 	p.rnd = rnd;
-//	double rnd = Utils::generateFloat(0,0.8);
+
 	float probOfCurrentLane = euc / sum;
 	float probOfCL_LL = probOfCurrentLane + eul / sum;
 
@@ -878,11 +909,11 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	p.utilityLeft = eul / sum ;
 	p.utilityRight = eur /sum ;
 
-	if (rnd < probOfCurrentLane){
+	if (rnd <= probOfCurrentLane){
 		change = LCS_SAME ;
 		p.lcd = "lcd-c";
 	}
-	else if (rnd < probOfCL_LL){
+	else if (rnd <= probOfCL_LL){
 		p.lcd = "lcd-l";
 		change = LCS_LEFT ;
 	}
@@ -1509,7 +1540,6 @@ double sim_mob::MITSIM_LC_Model::mlcDistance()
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdateParams& p)
 {
-	p.lcDebugStr.str(std::string());
 	p.lcDebugStr<<"makeD"<<p.now.frame();
 	// if in the middle of lc , just pass
 	if(p.getStatus(STATUS_LC_CHANGING)){
@@ -1587,6 +1617,7 @@ if(p.parentId == 54 && p.now.frame()>1476)
 }
 double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 {
+	p.lcDebugStr<<";,,,ELC";
 	// 1. unset FLAG_LC_FAILED, check whether can do lc
 	p.unsetFlag(FLAG_LC_FAILED);
 
@@ -1594,10 +1625,13 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 
 	// 2.0 check decision
 	if (p.getStatus(STATUS_LEFT)) {
+		p.lcDebugStr<<";ELC-L";
 		changeMode = LCS_LEFT;
 	} else if (p.getStatus(STATUS_RIGHT)) {
+		p.lcDebugStr<<";ELC-R";
 		changeMode = LCS_RIGHT;
 	} else {
+		p.lcDebugStr<<";ELC-S";
 		return 0.0;			// No request for lane change
 	}
 
@@ -1657,24 +1691,30 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 	int lctype;
 	if ( p.getStatus(STATUS_MANDATORY) &&
 	   ( !p.getStatus(STATUS_CURRENT_LANE_OK) ) ) {
+		p.lcDebugStr<<";M";
 		lctype = 2;		// must do lane changing
 	} else if (escape) {
+		p.lcDebugStr<<";e";
 		lctype = 2;		// special event
 	} else {
+		p.lcDebugStr<<";0";
 		lctype = 0;		// discretionary
 	}
 
 	// 6.0 check if lead,lag gap ok
 	if (bv->exists() && bheadway < lcCriticalGap(p,1, bv->driver->fwdVelocity/100.0 - p.currSpeed )) {
+		p.lcDebugStr<<";FLG";
 		p.setFlag(FLAG_LC_FAILED_LAG); // lag gap
 	}
 	else if (av->exists() && aheadway < lcCriticalGap(p,0, av->driver->fwdVelocity/100.0 - p.currSpeed)) {
+		p.lcDebugStr<<";FLD";
 		p.setFlag(FLAG_LC_FAILED_LEAD); // lead gap
 	}
 
 	// 7.0 if gap ok, then doing lane change
 	if( !p.flag(FLAG_LC_FAILED) )
 	{
+		p.lcDebugStr<<";SLC";
 		p.setStatusDoingLC(changeMode);
 //		//set status to "doing lc"
 //		if(changeMode==LCS_LEFT)
@@ -1701,8 +1741,9 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 		// and decide to nose in.
 
 		int nosing = p.flag(FLAG_NOSING);
-
+		p.lcDebugStr<<";LCF";
 		if (!nosing && p.dis2stop < lcMaxNosingDis) {
+			p.lcDebugStr<<";NDis";
 			float gap = aheadway + bheadway ;
 			float dv = av->exists() ? av->driver->fwdVelocity/100.0 - p.currSpeed : 0 ;
 
@@ -1710,7 +1751,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 
 			if ( p.getStatus(STATUS_CURRENT_LANE_OK) && p.nextLink() ) {
 				    // current lane connects to next link on path
-
+				p.lcDebugStr<<";CN";
 				float longer_dis = p.dis2stop + p.nextLink()->length/100.0;
 				pmf = lcNosingProb(longer_dis, dv, gap, nlanes) ;
 				// remaining distance for forced merging is the length remaining
@@ -1719,7 +1760,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 				}
 				else {
 				// current lane does not connect to next link on path
-
+					p.lcDebugStr<<";else";
 				pmf = lcNosingProb(p.dis2stop, dv, gap, nlanes) ;
 				// forced merging must be performed in current link
 				}
@@ -1732,77 +1773,87 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 		p.unsetFlag(FLAG_NOSING);	// reset the flag
 
 		if (nosing) {
+			p.lcDebugStr<<";nig";
 			lcProdNoseRejProb = 1.0;
 			// Since I am nosing, updating of acceleration rate sooner
 			p.cftimer = CF_CRITICAL_TIMER_RATIO * p.nextStepSize;
 			// Now I am going to nose in provided it is feasible and the
 		    // lag vehicle is willing to yield
-			bool bve = !bv->exists();
-			Driver* bvd = const_cast<Driver*>(bv->driver);
-			DriverUpdateParams& bvp = bvd->getParams();
-			bool bvy = bvp.willYield(escape?YIELD_TYPE_ESCAPE:YIELD_TYPE_CONNECTION);
-			if (checkNosingFeasibility(p,av, bv, p.dis2stop) &&
-					(bve|| bvy) ) {
 
-			p.setFlag(FLAG_NOSING_FEASIBLE);
+//			bool bve = !bv->exists();
+//			bool bvy = true;
+//			if(bv->exists()){
+//				Driver* bvd = const_cast<Driver*>(bv->driver);
+//				DriverUpdateParams& bvp = bvd->getParams();
+//				bvy = bvp.willYield(escape?YIELD_TYPE_ESCAPE:YIELD_TYPE_CONNECTION);//always return true
+//			}
 
-			// Nosing is feasible
+			// as willYield() always return true, just check if has back vh
+			int isnosingFeasi = checkNosingFeasibility(p,av, bv, p.dis2stop);
+			p.lcDebugStr<<";fi"<<isnosingFeasi;
+			if ( isnosingFeasi && bv->exists() ) {
+					Driver* bvd = const_cast<Driver*>(bv->driver);
+					DriverUpdateParams& bvp = bvd->getParams();
+					p.lcDebugStr<<";nf";
 
-			if (bv->exists()) {
+					p.setFlag(FLAG_NOSING_FEASIBLE);
+					// Nosing is feasible
+					if (bv->exists()) {
 
-			  // There is a lag vehicle in the target lane
+					  // There is a lag vehicle in the target lane
 
-//			  bv->yieldVehicle_ = this;
-			  bvd->yieldVehicle = p.driver;
-			  if (!(bvd->isBus() && bvp.getStatus(STATUS_STOPPED))) {
-				bvp.cftimer = std::min<double>(p.cftimer, bvp.cftimer);
-			  }
+		//			  bv->yieldVehicle_ = this;
+					  bvd->yieldVehicle = p.driver;
+					  if (!(bvd->isBus() && bvp.getStatus(STATUS_STOPPED))) {
+						bvp.cftimer = std::min<double>(p.cftimer, bvp.cftimer);
+					  }
 
-			  if (!bvp.flag(FLAG_YIELDING)) {
-				bvp.yieldTime = p.now;
-			  }
-			  if (p.getStatus(STATUS_LEFT)) {
-				p.setFlag(FLAG_NOSING_LEFT);
-				bvp.setFlag(FLAG_YIELDING_RIGHT);
-			  } else {
-				p.setFlag(FLAG_NOSING_RIGHT);
-				bvp.setFlag(FLAG_YIELDING_LEFT);
-			  }//end of STATUS_LEFT
+					  if (!bvp.flag(FLAG_YIELDING)) {
+						bvp.yieldTime = p.now;
+					  }
+					  if (p.getStatus(STATUS_LEFT)) {
+						p.setFlag(FLAG_NOSING_LEFT);
+						bvp.setFlag(FLAG_YIELDING_RIGHT);
+					  } else {
+						p.setFlag(FLAG_NOSING_RIGHT);
+						bvp.setFlag(FLAG_YIELDING_LEFT);
+					  }//end of STATUS_LEFT
 
-			}//end if  bv->exists()
-			else {
+					}//end if  bv->exists()
+					else {
 
-			  // No lag vehicle in the target lane
+					  // No lag vehicle in the target lane
 
-			  if (p.getStatus(STATUS_LEFT)) {
-				p.setFlag(FLAG_NOSING_LEFT);
-			  } else {
-				p.setFlag(FLAG_NOSING_RIGHT);
-			  }
-			}//end of else bv->exists()
+					  if (p.getStatus(STATUS_LEFT)) {
+						p.setFlag(FLAG_NOSING_LEFT);
+					  } else {
+						p.setFlag(FLAG_NOSING_RIGHT);
+					  }
+					}//end of else bv->exists()
 
-			// Check if the minimum gaps are available.
+					// Check if the minimum gaps are available.
 
-			if (bheadway > p.lcMinGap(lctype + 1) &&
-				aheadway > p.lcMinGap(lctype)) {
-//			  goto execution;
-				//executionLC(changeMode);
-				p.setStatusDoingLC(changeMode);
-			}
+					if (bheadway > p.lcMinGap(lctype + 1) &&
+						aheadway > p.lcMinGap(lctype)) {
+		//			  goto execution;
+						//executionLC(changeMode);
+						p.setStatusDoingLC(changeMode);
+					}
 
-		  }//end of if checkNosingFeasibility
-		  else
-		  {
-			  p.unsetFlag(FLAG_NOSING_FEASIBLE);
+			}//end of if checkNosingFeasibility
+			else
+			{
+						  p.lcDebugStr<<";NTFea";
+						  p.unsetFlag(FLAG_NOSING_FEASIBLE);
 
-				// Nosing is not feasible, but maintain the nosing state
+							// Nosing is not feasible, but maintain the nosing state
 
-				if (p.getStatus(STATUS_LEFT)) {
-				  p.setFlag(FLAG_NOSING_LEFT);
-				} else {
-				  p.setFlag(FLAG_NOSING_RIGHT);
-				}
-		  }// end else if checkNosingFeasibility
+							if (p.getStatus(STATUS_LEFT)) {
+							  p.setFlag(FLAG_NOSING_LEFT);
+							} else {
+							  p.setFlag(FLAG_NOSING_RIGHT);
+							}
+			}// end else if checkNosingFeasibility
 		}//if nosing
 		return 0.0;
 
@@ -2401,8 +2452,8 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdatePar
 
 	float probOfCurrentLane = euc / sum;
 	float probOfCL_LL = probOfCurrentLane + eul / sum;
-	if (rnd < probOfCurrentLane)  change = LCS_SAME;
-	else if (rnd < probOfCL_LL) change = LCS_LEFT;
+	if (rnd <= probOfCurrentLane)  change = LCS_SAME;
+	else if (rnd <= probOfCL_LL) change = LCS_LEFT;
 	else change = LCS_RIGHT;
 	p.lcDebugStr<<";change"<<change;
 	return change;

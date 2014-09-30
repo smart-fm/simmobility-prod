@@ -199,7 +199,7 @@
 	<param name="MLC_PARAMETERS" value="
 						100.0         #lower bound(meter) 
 						190.0         #delta(meter)
-						1.0 	       #minimum time in lane (sec)
+						2.0 	       #minimum time in lane (sec)
 	"/>
 
 <!-- H.2 Lane utility Model

@@ -715,7 +715,7 @@ bool sim_mob::DriverMovement::AvoidCrashWhenLaneChanging(
 }
 void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 // TODO: if STATUS_LC_CHANGING ,means "perform lane changing",just return
-
+	p.lcDebugStr.str(std::string());
 	if ((parentDriver->getParams().now.ms() / MILLISECS_CONVERT_UNIT
 			- parentDriver->startTime > 10)
 			&& (fwdDriverMovement.getCurrDistAlongRoadSegmentCM() > 2000)
@@ -798,11 +798,13 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 // parentDriver->vehicle->setTurningDirection(lcs);
 
 	if (p.getStatus() & STATUS_CHANGING) {
+		p.lcDebugStr<<";CHING";
 // if need change lane, check left,right gap to do lane change or to do nosing
 		lcModel->executeLaneChanging(p);
 
 // if left,right gap not ok, choose ADJACENT ,BACKWARD, FORWARD gap
 		if (p.flag(FLAG_LC_FAILED)) {
+			p.lcDebugStr<<";COG";
 			lcModel->chooseTargetGap(p);
 		}
 	} //end if STATUS_CHANGING

@@ -2592,9 +2592,7 @@ bool sim_mob::aimsun::Loader::insertCSV2Table(soci::session& sql, std::string& t
 	bool res = DatabaseLoader::InsertCSV2Table(sql,tableName,csvFileName);
 	return res;
 }
-bool sim_mob::aimsun::Loader::insertCSV2TableST(soci::session& sql,
-		std::string& tableName,
-		std::string& csvFileName)
+bool sim_mob::aimsun::Loader::insertCSV2TableST(soci::session& sql,	std::string& tableName,	std::string& csvFileName)
 {
 	bool res = DatabaseLoader::InsertCSV2TableST(sql,tableName,csvFileName);
 	return res;

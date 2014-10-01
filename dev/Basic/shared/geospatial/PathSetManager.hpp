@@ -394,7 +394,7 @@ private:
 	static std::map<boost::thread::id, boost::shared_ptr<soci::session > > cnnRepo;
 
 	///	static sim_mob::Logger profiler;
-	sim_mob::batched::ThreadPool *threadpool_;
+	static boost::shared_ptr<sim_mob::batched::ThreadPool> threadpool_;
 
 	boost::shared_mutex cachedPathSetMutex;
 

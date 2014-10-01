@@ -129,26 +129,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			strDirectory.registerStopAgent(stop, busStopAgent);
 		}
 	}
-	PathSetManager* psMgr = NULL;
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode())
-	{
-		// init path set manager
-		psMgr = new PathSetManager();
-		time_t t = time(0);   // get time now
-		struct tm * now = localtime( & t );
-		cout<<"begin time:"<<endl;
-		cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< endl;
-		PathSetManager* psMgr = PathSetManager::getInstance();
-		std::string name=configFileName;
-		psMgr->setScenarioName(name);
-		if(psMgr->isUseCacheMode())
-		{
-			psMgr->generateAllPathSetWithTripChain2();
-		}
-		t = time(0);   // get time now
-		now = localtime( & t );
-		cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< endl;
-	}
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 
@@ -284,12 +264,9 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}
 #endif
 
+	//finalize
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-//		if(psMgr)
-//		{
-			PathSetManager::getInstance()->copyTravelTimeDataFromTmp2RealtimeTable();
-			//PathSetParam::getInstance()->dropTravelTimeTmpTable();
-//		}
+		PathSetManager::getInstance()->copyTravelTimeDataFromTmp2RealtimeTable();
 	}
 	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;
 	cout << "Max Agents at any given time: " <<maxAgents <<endl;

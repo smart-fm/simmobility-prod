@@ -62,12 +62,10 @@ sim_mob::PathSetParam* sim_mob::PathSetParam::getInstance()
 void sim_mob::PathSetParam::getDataFromDB()
 {
 	setTravleTimeTmpTableName(ConfigManager::GetInstance().FullConfig().getTravelTimeTmpTableName());
-		createTravelTimeTmpTable();
+		//createTravelTimeTmpTable();
 
 		sim_mob::aimsun::Loader::LoadERPData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-				ERP_SurchargePool,
-				ERP_Gantry_ZonePool,
-				ERP_SectionPool);
+				ERP_SurchargePool,	ERP_Gantry_ZonePool,ERP_SectionPool);
 		logger <<
 				"ERP data retrieved from database[ERP_SurchargePool,ERP_Gantry_ZonePool,ERP_Section_pool]: " <<
 				ERP_SurchargePool.size() << " "  << ERP_Gantry_ZonePool.size() << " " << ERP_SectionPool.size() << "\n";
@@ -95,6 +93,7 @@ void sim_mob::PathSetParam::storePathSet(soci::session& sql,std::map<std::string
 {
 	sim_mob::aimsun::Loader::SaveOnePathSetDataST(sql,psPool,pathSetTableName);
 }
+
 bool sim_mob::PathSetParam::createTravelTimeTmpTable()
 {
 	bool res=false;
@@ -104,6 +103,7 @@ bool sim_mob::PathSetParam::createTravelTimeTmpTable()
 	res = sim_mob::aimsun::Loader::createTable(*(PathSetManager::getSession()),create_table_str);
 	return res;
 }
+
 bool sim_mob::PathSetParam::dropTravelTimeTmpTable()
 {
 	bool res=false;
@@ -112,6 +112,7 @@ bool sim_mob::PathSetParam::dropTravelTimeTmpTable()
 	res = sim_mob::aimsun::Loader::excuString(*(PathSetManager::getSession()),drop_table_str);
 	return res;
 }
+
 bool sim_mob::PathSetParam::createTravelTimeRealtimeTable()
 {
 	bool res=false;
@@ -132,6 +133,7 @@ void sim_mob::PathSetParam::setTravleTimeTmpTableName(const std::string& value)
 	logger << "setTravleTimeTmpTableName: " << pathSetTravelTimeTmpTableName << "\n";
 	pathSetTravelTimeRealTimeTableName = value+"_travel_time";
 }
+
 double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::string id,sim_mob::DailyTime startTime,sim_mob::DailyTime endTime)
 {
 	//1. check realtime table
@@ -534,7 +536,7 @@ sim_mob::PathSetManager::~PathSetManager()
 
 void sim_mob::PathSetManager::init()
 {
-	setCSVFileName();
+	//setCSVFileName();
 	initParameters();
 }
 
@@ -636,22 +638,17 @@ bool sim_mob::PathSetManager::insertTravelTime2TmpTable(sim_mob::LinkTravelTime&
 
 bool sim_mob::PathSetManager::copyTravelTimeDataFromTmp2RealtimeTable()
 {
-	//1. copy csv (generated in this thread) to temporary travel time table
+	//1. prepare the csv file to be copied into DB
 	sim_mob::Logger::log("real_time_travel_time").flushLog();
-	sim_mob::aimsun::Loader::insertCSV2Table(*getSession(),	pathSetParam->pathSetTravelTimeTmpTableName, boost::filesystem::canonical("real_time_travel_time.txt").string());
-	//1. truncate the main realtime travel time table table
 	bool res=false;
+	//2.truncate/empty out the realtime travel time table
 	res = sim_mob::aimsun::Loader::truncateTable(*getSession(),	pathSetParam->pathSetTravelTimeRealTimeTableName);
 	if(!res)
 	{
 		return false;
 	}
-	//2. insert the temporary table to main realtime table
-	std::string str = "insert into " + pathSetParam->pathSetTravelTimeRealTimeTableName +
-			"(select * from " + pathSetParam->pathSetTravelTimeTmpTableName +")";
-	res = sim_mob::aimsun::Loader::excuString(*getSession(),str);
-	//3.truncate the temporary table
-	sim_mob::aimsun::Loader::truncateTable(*getSession(),	pathSetParam->pathSetTravelTimeTmpTableName);
+	//3.write into DB table
+	sim_mob::aimsun::Loader::insertCSV2Table(*getSession(),	pathSetParam->pathSetTravelTimeRealTimeTableName, boost::filesystem::canonical("real_time_travel_time.txt").string());
 	return res;
 }
 

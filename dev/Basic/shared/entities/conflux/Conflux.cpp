@@ -1208,8 +1208,13 @@ bool sim_mob::Conflux::insertTravelTime2TmpTable(timeslice frameNumber, std::map
 			double frameLength = ConfigManager::GetInstance().FullConfig().baseGranMS();
 			tt.endTime = (simStart + sim_mob::DailyTime(frameNumber.ms() + frameLength)).toString();
 			tt.travelTime = (*it).second.rdSegTravelTime_/(*it).second.agentCount_;
-			cout << tt.startTime << " " << tt.endTime << " " << (*it).second.rdSegTravelTime_ << " " << (*it).second.agentCount_ << " " << tt.travelTime;
-			PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
+			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+				PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
+			}
+			else
+			{
+				Warn() << "Unused Travel Time Measurement\n";
+			}
 		}
 	}
 	return res;

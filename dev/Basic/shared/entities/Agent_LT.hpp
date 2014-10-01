@@ -179,7 +179,7 @@ private:
 public:
 
 
-
+	/*
 	//Either linkTravelStats or rdSegTravelStats will be populated depending on the requirements for link or road segment travel times
 	struct linkTravelStats
 	{
@@ -189,8 +189,8 @@ public:
 		double linkExitTime_;
 		std::map<double, unsigned int> rolesMap; //<timestamp, newRoleID>
 
-		/* note: link exit time will be available only when the agent exits the
-		 * link. -1 is a dummy value indication that the agent is in the link*/
+		// note: link exit time will be available only when the agent exits the
+		// link. -1 is a dummy value indication that the agent is in the link
 		linkTravelStats(const Link* link,unsigned int linkEntryTime): link_(link), linkEntryTime_(linkEntryTime), linkExitTime_(-1){}
 	};
 
@@ -202,15 +202,15 @@ public:
 		double rdSegExitTime_;
 		std::map<double, unsigned int> rolesMap; //<timestamp, newRoleID>
 
-		/* note: segment exit time will be available only when the agent exits the
-		 * segment. -1 is a dummy value indication that the agent is in the segment*/
+		// note: segment exit time will be available only when the agent exits the
+		// segment. -1 is a dummy value indication that the agent is in the segment
 		rdSegTravelStats(const RoadSegment* rdSeg,unsigned int rdSegEntryTime): rdSeg_(rdSeg), rdSegEntryTime_(rdSegEntryTime), rdSegExitTime_(-1)	{}
 	};
-
+	*/
 
 public:
 
-
+	/*
 	//The agent's start/end nodes.
 	WayPoint originNode;
 	WayPoint destNode;
@@ -223,6 +223,7 @@ public:
 
 	sim_mob::Shared<double> xAcc;  ///<The agent's acceleration, X
 	sim_mob::Shared<double> yAcc;  ///<The agent's acceleration, Y
+	*/
 
 	timeslice currTick;// curr Time tick
 
@@ -243,10 +244,10 @@ public:
 
 	///Note: Calling this function from another Agent is extremely dangerous if you
 	/// don't know what you're doing.
-	boost::mt19937& getGenerator()
-	{
-		return gen;
-	}
+	//boost::mt19937& getGenerator()
+	//{
+	//	return gen;
+	//}
 
 	const sim_mob::MutexStrategy& getMutexStrategy()
 	{
@@ -259,55 +260,58 @@ public:
 	void setNextPathPlanned(bool value) { nextPathPlanned = value; }
 	bool getNextPathPlanned() { return nextPathPlanned; }
 
+	/*
 	void setNextEvent(PendingEvent* value) { nextEvent = value; }
 	PendingEvent* getNextEvent() { return nextEvent; }
 
 	void setCurrEvent(PendingEvent* value) { currEvent = value; }
 	PendingEvent* getCurrEvent() { return currEvent; }
+	*/
 
 	//==================== road segment travel time computation ===================================
 	//travelStats for each agent will be updated either for a role change or road segment change
-	void initRdSegTravelStats(const RoadSegment* rdSeg, double entryTime);
-	void addToRdSegTravelStatsMap(rdSegTravelStats ts, double exitTime);
-	rdSegTravelStats getRdSegTravelStats()
-	{
-		return currRdSegTravelStats;
-	}
+	//void initRdSegTravelStats(const RoadSegment* rdSeg, double entryTime);
+	//void addToRdSegTravelStatsMap(rdSegTravelStats ts, double exitTime);
 
-	const std::map<double, rdSegTravelStats>& getRdSegTravelStatsMap()
-	{
-		return this->rdSegTravelStatsMap.get();
-	}
+	//rdSegTravelStats getRdSegTravelStats()
+	//{
+	//	return currRdSegTravelStats;
+	//}
 
-	rdSegTravelStats currRdSegTravelStats;
+	//const std::map<double, rdSegTravelStats>& getRdSegTravelStatsMap()
+	//{
+	//	return this->rdSegTravelStatsMap.get();
+	//}
 
-	sim_mob::Shared< std::map<double, rdSegTravelStats> > rdSegTravelStatsMap; //<linkExitTime, travelStats>
+	//rdSegTravelStats currRdSegTravelStats;
+
+	//sim_mob::Shared< std::map<double, rdSegTravelStats> > rdSegTravelStatsMap; //<linkExitTime, travelStats>
 
 	//==================== end of road segment travel time computation ============================
 
 	//============================ link travel time computation ===================================
 	//travelStats for each agent will be updated either for a role change or link change
-	void initLinkTravelStats(const Link* link, double entryTime);
-	void addToLinkTravelStatsMap(linkTravelStats ts, double exitTime);
+	//void initLinkTravelStats(const Link* link, double entryTime);
+	//void addToLinkTravelStatsMap(linkTravelStats ts, double exitTime);
 
-	linkTravelStats getLinkTravelStats()
-	{
-		return currLinkTravelStats;
-	}
+	//linkTravelStats getLinkTravelStats()
+	//{
+	//	return currLinkTravelStats;
+	//}
 
-	const std::map<double, linkTravelStats>& getLinkTravelStatsMap()
-	{
-		return this->linkTravelStatsMap.get();
-	}
+	//const std::map<double, linkTravelStats>& getLinkTravelStatsMap()
+	//{
+	//	return this->linkTravelStatsMap.get();
+	//}
 
-	linkTravelStats currLinkTravelStats;
-	sim_mob::Shared< std::map<double, linkTravelStats> > linkTravelStatsMap; //<linkExitTime, travelStats>
+	//linkTravelStats currLinkTravelStats;
+	//sim_mob::Shared< std::map<double, linkTravelStats> > linkTravelStatsMap; //<linkExitTime, travelStats>
 	//=============================end of link travel time computation ===========================
 
-	bool isQueuing;
-	double distanceToEndOfSegment;
-	double drivingTimeToEndOfLink;
-	double movingVelocity;
+	//bool isQueuing;
+	//double distanceToEndOfSegment;
+	//double drivingTimeToEndOfLink;
+	//double movingVelocity;
 
 	//timeslice enqueueTick;
 
@@ -328,8 +332,10 @@ private:
     //Unknown until runtime
     std::map<std::string, std::string> configProperties;
 
+    /*
 	PendingEvent* currEvent;
 	PendingEvent* nextEvent;
+    */
 
 	bool nextPathPlanned; //determines if the detailed path for the current subtrip is already planned
 
@@ -342,8 +348,8 @@ protected:
 	//Random number generator
 	//TODO: For now (for thread safety) I am giving each Agent control over its own random
 	//      number stream. We can probably raise this to the Worker level if we require it.
-	boost::mt19937 gen;
-	const sim_mob::Link* currLink;
+	//boost::mt19937 gen;
+	//const sim_mob::Link* currLink;
 
 public:
 	int getOwnRandomNumber();
@@ -399,6 +405,8 @@ public:
 	 * Note that, if the RegionAndPathTracker is disabled, attempting to call getNewRegion/PathSet() will throw
 	 *   an exception.
 	 */
+
+	/*
 	struct RegionAndPathTracker
 	{
 		RegionAndPathTracker() : enabled(false) {}
@@ -466,45 +474,47 @@ public:
 		bool enabled;
 	} regionAndPathTracker;
 
+	*/
+
 private:
 	///Enable Region support.
 	///See RegionAndPathTracker for more information.
-	void enableRegionSupport()
-	{
-		regionAndPathTracker.enable();
-	}
+	//void enableRegionSupport()
+	//{
+	//	regionAndPathTracker.enable();
+	//}
 
 public:
 	///Returns the current set of "all Regions", but only if region-tracking is enabled, and only if
 	/// the region set has changed since the last time tick.
 	///See RegionAndPathTracker for more information.
-	std::vector<sim_mob::RoadRunnerRegion> getAndClearNewAllRegionsSet()
-	{
-		std::vector<sim_mob::RoadRunnerRegion> res = regionAndPathTracker.getNewAllRegionsSet();
-		regionAndPathTracker.resetAllRegionsSet();
-		return res;
-	}
+	//std::vector<sim_mob::RoadRunnerRegion> getAndClearNewAllRegionsSet()
+	//{
+		//std::vector<sim_mob::RoadRunnerRegion> res = regionAndPathTracker.getNewAllRegionsSet();
+		//regionAndPathTracker.resetAllRegionsSet();
+		//return res;
+	//}
 
 	///Returns the current set of Regions this Agent expects to travel through on its way to its goal,
 	///but only if region-tracking is enabled, and only if the path set has changed since the last time tick.
 	///See RegionAndPathTracker for more information.
-	std::vector<sim_mob::RoadRunnerRegion> getAndClearNewRegionPath()
-	{
-		std::vector<sim_mob::RoadRunnerRegion> res = regionAndPathTracker.getNewRegionPath();
-		regionAndPathTracker.resetNewRegionPath();
-		return res;
-	}
+	//std::vector<sim_mob::RoadRunnerRegion> getAndClearNewRegionPath()
+	//{
+		//std::vector<sim_mob::RoadRunnerRegion> res = regionAndPathTracker.getNewRegionPath();
+		//regionAndPathTracker.resetNewRegionPath();
+		//return res;
+	//}
 
 	///Get the Region-support object. This is used for all other Region-related queries.
-	RegionAndPathTracker& getRegionSupportStruct()
-	{
-		return regionAndPathTracker;
-	}
+	//RegionAndPathTracker& getRegionSupportStruct()
+	//{
+	//	return regionAndPathTracker;
+	//}
 
-	const RegionAndPathTracker& getRegionSupportStruct() const
-	{
-		return regionAndPathTracker;
-	}
+	//const RegionAndPathTracker& getRegionSupportStruct() const
+	//{
+	//	return regionAndPathTracker;
+	//}
 };
 
 } //End namespace sim_mob

@@ -113,10 +113,14 @@ void sim_mob::Agent_LT::SetIncrementIDStartValue(int startID,bool failIfAlreadyU
 }
 
 sim_mob::Agent_LT::Agent_LT(	const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)), mutexStrat(mtxStrat), initialized(false),
-								originNode(), destNode(), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
-								fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), lastUpdatedFrame(-1), currLink(nullptr),
-								isQueuing(false), distanceToEndOfSegment(0.0), currLinkTravelStats(nullptr, 0.0), linkTravelStatsMap(mtxStrat),
-								rdSegTravelStatsMap(mtxStrat), currRdSegTravelStats(nullptr, 0.0),
+								//originNode(), destNode(),
+								//xPos(mtxStrat, 0), yPos(mtxStrat, 0),
+								//fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0),
+								lastUpdatedFrame(-1),
+								//currLink(nullptr),
+								//isQueuing(false), distanceToEndOfSegment(0.0),
+								//currLinkTravelStats(nullptr, 0.0), linkTravelStatsMap(mtxStrat),
+								//rdSegTravelStatsMap(mtxStrat), currRdSegTravelStats(nullptr, 0.0),
 								toRemoved(false), nextPathPlanned(false), dynamic_seed(id), currTick(0,0), commEventRegistered(false)
 {
 	//Register global life cycle events.
@@ -292,6 +296,7 @@ Entity::UpdateStatus sim_mob::Agent_LT::update(timeslice now)
 			std::stringstream msg;
 			msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
 
+			/*
 			if(originNode.type_ == WayPoint::NODE)
 			{
 				msg <<"\n  From node: " <<(originNode.node_?originNode.node_->originalDB_ID.getLogItem():"<Unknown>");
@@ -300,6 +305,7 @@ Entity::UpdateStatus sim_mob::Agent_LT::update(timeslice now)
 			{
 				msg <<"\n  To node: " <<(destNode.node_?destNode.node_->originalDB_ID.getLogItem():"<Unknown>");
 			}
+			*/
 
 			msg <<"\n  " <<ex.what();
 			LogOut(msg.str() <<std::endl);
@@ -329,12 +335,14 @@ Entity::UpdateStatus sim_mob::Agent_LT::update(timeslice now)
 
 void sim_mob::Agent_LT::buildSubscriptionList(vector<BufferedBase*>& subsList)
 {
+	/*
 	subsList.push_back(&xPos);
 	subsList.push_back(&yPos);
 	subsList.push_back(&fwdVel);
 	subsList.push_back(&latVel);
 	subsList.push_back(&xAcc);
 	subsList.push_back(&yAcc);
+	*/
 	//subscriptionList_cached.push_back(&currentLink);
 	//subscriptionList_cached.push_back(&currentCrossing);
 }
@@ -365,17 +373,17 @@ void sim_mob::Agent_LT::clearToBeRemoved()
 //	currLink = link;
 //}
 
-void sim_mob::Agent_LT::initLinkTravelStats(const Link* link, double entryTime)
-{
-	currLinkTravelStats.link_ = link;
-	currLinkTravelStats.linkEntryTime_ = entryTime;
-}
+//void sim_mob::Agent_LT::initLinkTravelStats(const Link* link, double entryTime)
+//{
+	//currLinkTravelStats.link_ = link;
+	//currLinkTravelStats.linkEntryTime_ = entryTime;
+//}
 
-void sim_mob::Agent_LT::addToLinkTravelStatsMap(linkTravelStats ts, double exitTime)
-{
-	std::map<double, linkTravelStats>& travelMap = linkTravelStatsMap.getRW();
-	travelMap.insert(std::make_pair(exitTime, ts));
-}
+//void sim_mob::Agent_LT::addToLinkTravelStatsMap(linkTravelStats ts, double exitTime)
+//{
+	//std::map<double, linkTravelStats>& travelMap = linkTravelStatsMap.getRW();
+	//travelMap.insert(std::make_pair(exitTime, ts));
+//}
 
 NullableOutputStream sim_mob::Agent_LT::Log()
 {
@@ -391,7 +399,7 @@ void sim_mob::Agent_LT::onEvent(EventId eventId, Context ctxId, EventPublisher* 
 		{
 			//Was commsim enabled for us? If so, start tracking Regions.
 			Print() <<"Enabling Region support for agent: " <<this <<"\n";
-			enableRegionSupport();
+			//enableRegionSupport();
 
 			//This requires us to now listen for a new set of events.
 			messaging::MessageBus::SubscribeEvent(	sim_mob::event::EVT_CORE_COMMSIM_REROUTING_REQUEST,
@@ -418,17 +426,17 @@ void sim_mob::Agent_LT::onEvent(EventId eventId, Context ctxId, EventPublisher* 
 
 void sim_mob::Agent_LT::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message){}
 
-void sim_mob::Agent_LT::initRdSegTravelStats(const RoadSegment* rdSeg, double entryTime)
-{
-	currRdSegTravelStats.rdSeg_ = rdSeg;
-	currRdSegTravelStats.rdSegEntryTime_ = entryTime;
-}
+//void sim_mob::Agent_LT::initRdSegTravelStats(const RoadSegment* rdSeg, double entryTime)
+//{
+	//currRdSegTravelStats.rdSeg_ = rdSeg;
+	//currRdSegTravelStats.rdSegEntryTime_ = entryTime;
+//}
 
-void sim_mob::Agent_LT::addToRdSegTravelStatsMap(rdSegTravelStats ts, double exitTime)
-{
-	std::map<double, rdSegTravelStats>& travelMap = rdSegTravelStatsMap.getRW();
-	travelMap.insert(std::make_pair(exitTime, ts));
-}
+//void sim_mob::Agent_LT::addToRdSegTravelStatsMap(rdSegTravelStats ts, double exitTime)
+//{
+	//std::map<double, rdSegTravelStats>& travelMap = rdSegTravelStatsMap.getRW();
+	//travelMap.insert(std::make_pair(exitTime, ts));
+//}
 
 #ifndef SIMMOB_DISABLE_MPI
 int sim_mob::Agent_LT::getOwnRandomNumber()

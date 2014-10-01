@@ -102,7 +102,7 @@ bool sim_mob::PathSetParam::createTravelTimeTmpTable()
 	dropTravelTimeTmpTable();
 	// create tmp table
 	std::string create_table_str = pathSetTravelTimeTmpTableName + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
-	res = sim_mob::aimsun::Loader::createTable(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),create_table_str);
+	res = sim_mob::aimsun::Loader::createTable(*(PathSetManager::getSession()),create_table_str);
 	return res;
 }
 bool sim_mob::PathSetParam::dropTravelTimeTmpTable()
@@ -110,21 +110,27 @@ bool sim_mob::PathSetParam::dropTravelTimeTmpTable()
 	bool res=false;
 	//drop tmp table
 	std::string drop_table_str = "drop table \""+ pathSetTravelTimeTmpTableName +"\" ";
-	res = sim_mob::aimsun::Loader::excuString(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),drop_table_str);
+	res = sim_mob::aimsun::Loader::excuString(*(PathSetManager::getSession()),drop_table_str);
 	return res;
 }
 bool sim_mob::PathSetParam::createTravelTimeRealtimeTable()
 {
 	bool res=false;
 	std::string create_table_str = pathSetTravelTimeRealTimeTableName + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
-	res = sim_mob::aimsun::Loader::createTable(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),create_table_str);
+	res = sim_mob::aimsun::Loader::createTable(*(PathSetManager::getSession()),create_table_str);
 	return res;
 }
 
 void sim_mob::PathSetParam::setTravleTimeTmpTableName(const std::string& value)
 {
-	pathSetTravelTimeTmpTableName = value+"_"+"traveltime_tmp"; // each user only has fix tmp table name
-	logger<<"setTravleTimeTmpTableName: "<<pathSetTravelTimeTmpTableName<<std::endl;
+	if(!value.size())
+	{
+		throw std::runtime_error("Missing Travel Time Table Name.\n "
+				"It is either missing in the XML configuration file,\n"
+				"or you are trying to access the file name before reading the Configuration file");
+	}
+	pathSetTravelTimeTmpTableName = value + "_" + "traveltime_tmp"; // each user only has fix tmp table name
+	logger << "setTravleTimeTmpTableName: " << pathSetTravelTimeTmpTableName << "\n";
 	pathSetTravelTimeRealTimeTableName = value+"_travel_time";
 }
 double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::string id,sim_mob::DailyTime startTime,sim_mob::DailyTime endTime)
@@ -174,7 +180,7 @@ double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::strin
 	}
 	else
 	{
-		logger<<"getAverageTravelTimeBySegIdStartEndTime=> no travel time for segment " << id << "\n";
+		logger << "getAverageTravelTimeBySegIdStartEndTime=> no travel time for segment " << id << "\n";
 	}
 	return res;
 }
@@ -204,7 +210,7 @@ double sim_mob::PathSetParam::getDefaultTravelTimeBySegId(std::string id)
 	else
 	{
 		std::string str = "getDefaultTravelTimeBySegId: no default travel time for segment " + id;
-		logger<<"error: "<<str<<std::endl;
+		logger << "error: "<< str << "\n";
 	}
 	return res;
 }
@@ -453,7 +459,7 @@ sim_mob::PathSetParam::PathSetParam() :
 uint32_t sim_mob::PathSetManager::getSize(){
 	uint32_t sum = 0;
 	//first get the pathset param here
-	sum += sim_mob::PathSetParam::getInstance()->getSize();
+	sum += pathSetParam->getSize();
 	sum += sizeof(StreetDirectory&);
 	sum += sizeof(PathSetParam *);
 	sum += sizeof(bool); // bool isUseCache;
@@ -481,8 +487,8 @@ uint32_t sim_mob::PathSetManager::getSize(){
 	sum += sizeof(SGPER); // SGPER pathSegments;
 	sum += csvFileName.length(); // std::string csvFileName;
 	sum += sizeof(std::ofstream); // std::ofstream csvFile;
-	sum += pathSetTravelTimeRealTimeTableName.length(); // std::string pathSetTravelTimeRealTimeTableName;
-	sum += pathSetTravelTimeTmpTableName.length(); // std::string pathSetTravelTimeTmpTableName;
+	sum += pathSetParam->pathSetTravelTimeRealTimeTableName.length(); // std::string pathSetTravelTimeRealTimeTableName;
+	sum += pathSetParam->pathSetTravelTimeTmpTableName.length(); // std::string pathSetTravelTimeTmpTableName;
 	sum += sizeof(sim_mob::K_ShortestPathImpl *); // sim_mob::K_ShortestPathImpl *kshortestImpl;
 	sum += sizeof(double); // double bTTVOT;
 	sum += sizeof(double); // double bCommonFactor;
@@ -552,14 +558,14 @@ void sim_mob::PathSetManager::clearPools()
 			safe_delete_item(sp);
 		}
 	}
-	logger << "PathSet manager freed " << free_cnt << "  from " << paths << " paths" << std::endl;
+	logger << "PathSet manager freed " << free_cnt << "  from " << paths << " paths" << "\n";
 }
 
 bool sim_mob::PathSetManager::generateAllPathSetWithTripChain2()
 {
 	const std::map<std::string, std::vector<sim_mob::TripChainItem*> > *tripChainPool =
 			&ConfigManager::GetInstance().FullConfig().getTripChains();
-	logger<<"generateAllPathSetWithTripChain: trip chain pool size "<<  tripChainPool->size()<<std::endl;
+	logger<<"generateAllPathSetWithTripChain: trip chain pool size "<<  tripChainPool->size() <<  "\n";
 	int poolsize = tripChainPool->size();
 	bool res=true;
 	// 1. get from and to node
@@ -616,7 +622,7 @@ void sim_mob::PathSetManager::setCSVFileName()
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	csvFileName += boost::lexical_cast<string>(pthread_self()) +"_"+ boost::lexical_cast<string>(tv.tv_usec);
-	logger<<"csvFileName: "<<csvFileName<<std::endl;
+	logger<<"csvFileName: " << csvFileName << "\n";
 	csvFile.open(csvFileName.c_str());
 }
 
@@ -632,8 +638,7 @@ bool sim_mob::PathSetManager::insertTravelTime2TmpTable(sim_mob::LinkTravelTime&
 	  if(size>50000000)//50mb
 	  {
 		  csvFile.close();
-		  sim_mob::aimsun::Loader::insertCSV2TableST(*getSession(),
-		  			pathSetTravelTimeTmpTableName,csvFileName);
+		  sim_mob::aimsun::Loader::insertCSV2TableST(*getSession(),  pathSetParam->pathSetTravelTimeTmpTableName,csvFileName);
 		  csvFile.open(csvFileName.c_str(),std::ios::in | std::ios::trunc);
 	  }
 		csvFile<<data.linkId<<";"<<data.startTime<<";"<<data.endTime<<";"<<data.travelTime<<std::endl;
@@ -645,19 +650,17 @@ bool sim_mob::PathSetManager::copyTravelTimeDataFromTmp2RealtimeTable()
 {
 	//0. copy csv to travel time table
 	csvFile.close();
-	logger<<"table name: "<<pathSetTravelTimeTmpTableName<<std::endl;
-	sim_mob::aimsun::Loader::insertCSV2Table(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-			pathSetTravelTimeTmpTableName,csvFileName);
+	logger<<"table name: " << pathSetParam->pathSetTravelTimeTmpTableName << "\n";
+	sim_mob::aimsun::Loader::insertCSV2Table(*getSession(),	pathSetParam->pathSetTravelTimeTmpTableName,csvFileName);
 	//1. truncate realtime table
 	bool res=false;
-	res = sim_mob::aimsun::Loader::truncateTable(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-			pathSetTravelTimeRealTimeTableName);
+	res = sim_mob::aimsun::Loader::truncateTable(*getSession(),	pathSetParam->pathSetTravelTimeRealTimeTableName);
 	if(!res)
 		return res;
 	//2. insert into "max_link_realtime_travel_time" (select * from "link_default_travel_time");
-	std::string str = "insert into " + pathSetTravelTimeRealTimeTableName +
-			"(select * from " + pathSetTravelTimeTmpTableName +")";
-	res = sim_mob::aimsun::Loader::excuString(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),str);
+	std::string str = "insert into " + pathSetParam->pathSetTravelTimeRealTimeTableName +
+			"(select * from " + pathSetParam->pathSetTravelTimeTmpTableName +")";
+	res = sim_mob::aimsun::Loader::excuString(*getSession(),str);
 
 	return res;
 }
@@ -691,7 +694,7 @@ void sim_mob::PathSetManager::cacheODbySegment(const sim_mob::Person* per, const
 }
 
 const std::pair <SGPER::const_iterator,SGPER::const_iterator > sim_mob::PathSetManager::getODbySegment(const sim_mob::RoadSegment* segment) const{
-	logger << "pathSegments cache size =" <<  pathSegments.size() << std::endl;
+	logger << "pathSegments cache size =" <<  pathSegments.size() << "\n";
 	const std::pair <SGPER::const_iterator,SGPER::const_iterator > range = pathSegments.equal_range(segment);
 	return range;
 }
@@ -816,10 +819,10 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(const sim_mob::Person*
 	std::vector<sim_mob::SubTrip>::const_iterator currSubTripIt = per->currSubTrip;
 	std::string subTripId = subTrip.tripID;
 	//todo. change the subtrip signature from pointer to referencer
-	logger << "+++++++++++++++++++++++++" << std::endl;
+	logger << "+++++++++++++++++++++++++" << "\n";
 	vector<WayPoint> res;
 	generateBestPathChoiceMT(res, &subTrip);
-	logger << "Path chosen for this person: " << std::endl;
+	logger << "Path chosen for this person: " << "\n";
 	if(!res.empty())
 	{
 		//expensive due to call to getSegmentAimsunId()
@@ -829,7 +832,7 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(const sim_mob::Person*
 		logger << "NO PATH" << std::endl;
 	}
 //	cacheODbySegment(per, &subTrip, res);
-	logger << "===========================" << std::endl;
+	logger << "===========================" << "\n";
 	return res;
 }
 
@@ -877,7 +880,7 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(std::vector<sim_mob::WayP
 	if(isUseCache && findCachedPathSet(fromToID,ps_))
 	{
 		logger.prof("find_cache_time").tick(true);
-		logger << "Cache Hit" << std::endl;
+		logger << "Cache Hit" <<  "\n";
 		//	Travel time changes based on the start time
 		if(ps_->subTrip->startTime != st->startTime) {
 
@@ -894,12 +897,12 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(std::vector<sim_mob::WayP
 
 		}
 		else{
-				logger << "UNUSED cache hit" << std::endl;
+				logger << "UNUSED cache hit" <<  "\n";
 		}
 	}
 	else{
 		logger.prof("find_cache_time").tick(true);
-		logger << "Cache miss" << std::endl;
+		logger << "Cache miss" <<  "\n";
 	}
 	//check db
 	bool hasPSinDB = false;
@@ -1031,12 +1034,12 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(std::vector<sim_mob::WayP
 		}
 		else
 		{
-			logger << "No best path, even after regenerating pathset " << std::endl;
+			logger << "No best path, even after regenerating pathset " << "\n";
 		}
 	}
 	else
 	{
-		logger << "Didn't (re)generate pathset(hasPSinDB:"<< hasPSinDB << ")" << std::endl;
+		logger << "Didn't (re)generate pathset(hasPSinDB:"<< hasPSinDB << ")" << "\n";
 	}
 
 	return false;
@@ -1336,7 +1339,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 					else
 					{
 						std::string str = "gBestPC2: oriPath(shortest path) for "  + ps_->id + " not found in single path";
-						logger<<str<<std::endl;
+						logger << str <<  "\n";
 						return res;
 					}
 				}// hasSPinDB
@@ -1344,7 +1347,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 		} // hasPSinDB
 		else
 		{
-			logger<<"gBestPC2: create data for "<<fromToID<<std::endl;
+			logger<< "gBestPC2: create data for "<< fromToID << "\n";
 			// 1. generate shortest path with all segs
 			// 1.2 get all segs
 			// 1.3 generate shortest path with full segs
@@ -1660,7 +1663,7 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 	// path choice algorithm
 	if(!ps->oriPath && excludedSegs.empty())//return upon null oriPath only if the condition is normal(excludedSegs is empty)
 	{
-		logger<<"warning gBPCFromPS: ori path empty"<<std::endl;
+		logger<< "warning gBPCFromPS: ori path empty" << "\n";
 		return false;
 	}
 	// step 1.1 : For each path i in the path choice:
@@ -2150,7 +2153,7 @@ double sim_mob::PathSetManager::getTravelTimeBySegId(std::string id,sim_mob::Dai
 	else
 	{
 		std::string str = "PathSetManager::getTravelTimeBySegId=> no travel time for segment " + id + "  ";
-		logger<< "error: " << str << pathSetParam->segmentDefaultTravelTimePool.size() << std::endl;
+		logger<< "error: " << str << pathSetParam->segmentDefaultTravelTimePool.size() << "\n";
 	}
 	return res;
 }

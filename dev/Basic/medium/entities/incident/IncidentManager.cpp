@@ -166,10 +166,10 @@ void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegmen
 			ignorant ++;
 		}
 	}//SGPER
-	logger << "Number of Affected Driver's Paths: " << affected << std::endl;
-	logger << "Number of Affected Drivers: " << affected - ignored << std::endl;
-	logger << "Number of Drivers Reacting to Incident: " << reacting << std::endl;
-	logger << "Number of Drivers Ignoring the incident : " << ignorant << std::endl;
+	logger << "Number of Affected Driver's Paths: " << affected << "\n";
+	logger << "Number of Affected Drivers: " << affected - ignored << "\n";
+	logger << "Number of Drivers Reacting to Incident: " << reacting << "\n";
+	logger << "Number of Drivers Ignoring the incident : " << ignorant << "\n";
 }
 
 //probability function(for now, just behave like tossing a coin

@@ -11,6 +11,7 @@
 
 #include "SystemEvents.hpp"
 #include "entities/Agent.hpp"
+#include "entities/Agent_LT.hpp"
 using namespace sim_mob::event;
 
 
@@ -34,3 +35,26 @@ unsigned int AgentLifeCycleEventArgs::GetAgentId() const {
 sim_mob::Agent* AgentLifeCycleEventArgs::GetAgent() const {
     return agent;
 }
+
+
+AgentLifeCycleEventArgsLT::AgentLifeCycleEventArgsLT(unsigned int agentId, Agent_LT* agent): agentId(agentId), agent(agent) {}
+
+AgentLifeCycleEventArgsLT::~AgentLifeCycleEventArgsLT() {}
+
+AgentLifeCycleEventArgsLT& AgentLifeCycleEventArgsLT::operator=(const AgentLifeCycleEventArgsLT& source)
+{
+    EventArgs::operator =(source);
+    this->agentId = source.agentId;
+    return *this;
+}
+
+unsigned int AgentLifeCycleEventArgsLT::GetAgentId() const
+{
+    return agentId;
+}
+
+sim_mob::Agent_LT* AgentLifeCycleEventArgsLT::GetAgent() const
+{
+    return agent;
+}
+

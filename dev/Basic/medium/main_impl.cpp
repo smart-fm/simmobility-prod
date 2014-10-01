@@ -285,11 +285,11 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 #endif
 
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		if(psMgr)
-		{
-			psMgr->copyTravelTimeDataFromTmp2RealtimeTable();
-			PathSetParam::getInstance()->dropTravelTimeTmpTable();
-		}
+//		if(psMgr)
+//		{
+			PathSetManager::getInstance()->copyTravelTimeDataFromTmp2RealtimeTable();
+			//PathSetParam::getInstance()->dropTravelTimeTmpTable();
+//		}
 	}
 	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;
 	cout << "Max Agents at any given time: " <<maxAgents <<endl;

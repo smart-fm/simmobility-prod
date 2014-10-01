@@ -90,12 +90,12 @@ public:
 			std::map<std::string,sim_mob::ERP_Section*>& erp_section_pool);
 	static bool createTable(soci::session& sql,std::string& table_name);
 	static bool insertData2TravelTimeTmpTable(const std::string& connectionStr,	std::string& table_name, sim_mob::LinkTravelTime& data);
-	static bool insertCSV2Table(soci::session& sql, std::string& table_name,std::string& csvFileName);
+	static bool insertCSV2Table(soci::session& sql, std::string& table_name,const std::string& csvFileName);
 	static bool insertCSV2TableST(soci::session& sql, std::string& table_name, std::string& csvFileName);
 	static bool truncateTable(soci::session& sql, std::string& table_name);
 	static bool excuString(soci::session& sql,std::string& str);
-	static void LoadDefaultTravelTimeData(const std::string& connectionStr,	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >& link_default_travel_time_pool);
-	static bool LoadRealTimeTravelTimeData(const std::string& connectionStr,std::string& table_name, std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >& link_realtime_travel_time_pool);
+	static void LoadDefaultTravelTimeData(soci::session& sql, std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >& link_default_travel_time_pool);
+	static bool LoadRealTimeTravelTimeData(soci::session& sql,std::string& table_name, std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >& link_realtime_travel_time_pool);
 //	static void SavePathSetData(const std::string& connectionStr,std::map<std::string,sim_mob::SinglePath*>& pathPool,std::map<std::string,boost::shared_ptr<sim_mob::PathSet> > >& pathSetPool);
 	static void SaveOnePathSetData(const std::string& connectionStr,
 			std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pathSetPool,const std::string pathSetTableName);

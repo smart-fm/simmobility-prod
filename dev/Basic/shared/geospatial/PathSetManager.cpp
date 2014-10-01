@@ -72,13 +72,11 @@ void sim_mob::PathSetParam::getDataFromDB()
 				"ERP data retrieved from database[ERP_SurchargePool,ERP_Gantry_ZonePool,ERP_Section_pool]: " <<
 				ERP_SurchargePool.size() << " "  << ERP_Gantry_ZonePool.size() << " " << ERP_SectionPool.size() << "\n";
 
-		sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-				segmentDefaultTravelTimePool);
+		sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(*(PathSetManager::getSession()), segmentDefaultTravelTimePool);
 		logger << segmentDefaultTravelTimePool.size() << " records for Link_default_travel_time found\n";
 
-		bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-				pathSetTravelTimeRealTimeTableName,
-				segmentRealTimeTravelTimePool);
+		bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(*(PathSetManager::getSession()),
+				pathSetTravelTimeRealTimeTableName,	segmentRealTimeTravelTimePool);
 		logger << segmentRealTimeTravelTimePool.size() << " records for Link_realtime_travel_time found\n";
 		if(!res) // no realtime travel time table
 		{
@@ -631,24 +629,7 @@ bool sim_mob::PathSetManager::insertTravelTime2TmpTable(sim_mob::LinkTravelTime&
 {
 	bool res=false;
 	if(ConfigManager::GetInstance().FullConfig().PathSetMode()){
-		//todo, enable this whenever there are multiple files for multiple thread.
-		//note:previous implementation created multiple files for multiple threads.
-		//to keep file descriptors , one entire pathset manager were instntiated!!!
-		//AND but writing to those files were eventually single threaded!!!(using workgroup manager)
-		//std::string fileName = pathSetParam->pathSetTravelTimeTmpTableName + "." + boost::lexical_cast<string>(pthread_self());
 		sim_mob::Logger::log("real_time_travel_time") << data.linkId << ";" << data.startTime << ";" << data.endTime << ";" << data.travelTime << "\n";
-//	 // get pointer to associated buffer object
-//	  std::filebuf* pbuf = csvFile.rdbuf();
-//
-//	  // get file size using buffer's members
-//	  std::size_t size = pbuf->pubseekoff (0,csvFile.end,csvFile.in);
-//	  if(size>50000000)//50mb
-//	  {
-//		  csvFile.close();
-//		  sim_mob::aimsun::Loader::insertCSV2TableST(*getSession(),  pathSetParam->pathSetTravelTimeTmpTableName,csvFileName);
-//		  csvFile.open(csvFileName.c_str(),std::ios::in | std::ios::trunc);
-//	  }
-//		csvFile <<data.linkId << ";" <<data.startTime << ";" << data.endTime << ";" << data.travelTime << "\n";
 	}
 	return res;
 }
@@ -656,9 +637,8 @@ bool sim_mob::PathSetManager::insertTravelTime2TmpTable(sim_mob::LinkTravelTime&
 bool sim_mob::PathSetManager::copyTravelTimeDataFromTmp2RealtimeTable()
 {
 	//1. copy csv (generated in this thread) to temporary travel time table
-	csvFile.close();
-	logger<< "table name: " << pathSetParam->pathSetTravelTimeTmpTableName << "\n";
-	sim_mob::aimsun::Loader::insertCSV2Table(*getSession(),	pathSetParam->pathSetTravelTimeTmpTableName,csvFileName);
+	sim_mob::Logger::log("real_time_travel_time").flushLog();
+	sim_mob::aimsun::Loader::insertCSV2Table(*getSession(),	pathSetParam->pathSetTravelTimeTmpTableName, boost::filesystem::canonical("real_time_travel_time.txt").string());
 	//1. truncate the main realtime travel time table table
 	bool res=false;
 	res = sim_mob::aimsun::Loader::truncateTable(*getSession(),	pathSetParam->pathSetTravelTimeRealTimeTableName);
@@ -666,7 +646,6 @@ bool sim_mob::PathSetManager::copyTravelTimeDataFromTmp2RealtimeTable()
 	{
 		return false;
 	}
-	//2. insert into "max_link_realtime_travel_time" (select * from "link_default_travel_time");-apparently wrong!!!!
 	//2. insert the temporary table to main realtime table
 	std::string str = "insert into " + pathSetParam->pathSetTravelTimeRealTimeTableName +
 			"(select * from " + pathSetParam->pathSetTravelTimeTmpTableName +")";

@@ -156,9 +156,6 @@ protected:
 	///	easy reading
 	typedef std::map<boost::thread::id, std::stringstream*>::iterator outIt;
 
-	///	flush the log streams into the output buffer-Default version
-	virtual void flushLog();
-
 	/**
 	 * return the buffer corresponding to the calling thread.If the buffer doesn't exist, this method will create, register and returns a new buffer.
 	 * \param renew should the buffer be replaced with a new one
@@ -178,6 +175,9 @@ public:
 	 * @param id arbitrary identification for this object
 	 */
 	BasicLogger(std::string id);
+
+	///	flush the log streams into the output buffer-Default version
+	virtual void flushLog();
 
 	///	copy constructor
 	BasicLogger(const sim_mob::BasicLogger& value);

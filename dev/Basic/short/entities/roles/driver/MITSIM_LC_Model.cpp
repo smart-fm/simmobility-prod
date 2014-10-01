@@ -898,7 +898,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 //	boost::uniform_int<> zero_to_max(0, RAND_MAX);
 //	double rnd = (double) (zero_to_max(p.gen) % 1000) / 1000;
 
-	double rnd = Utils::uRandom();
+	double rnd = Utils::generateFloat(0,1);//Utils::uRandom();
 	if(rnd>=1.0) rnd = 0.99;
 	p.rnd = rnd;
 	p.lcDebugStr<<";rnd"<<rnd;

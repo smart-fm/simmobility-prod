@@ -1015,6 +1015,7 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p) {
 		if (dt_sec > p.lcMaxNosingTime) {
 			p.driver->yieldVehicle = NULL;
 			p.unsetFlag(FLAG_YIELDING);
+			p.lcDebugStr<<";yd1";
 			return p.maxAcceleration;
 		} //end of lcMaxNosingTime
 
@@ -1022,54 +1023,64 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p) {
 
 		bool rightFwdVhFlag = false;
 		if (p.nvRightFwd.exists()) {
+			p.lcDebugStr<<";yd2";
 			Driver* dRF = const_cast<Driver*>(p.nvRightFwd.driver);
 			DriverUpdateParams& pRF = dRF->getParams();
 			if (pRF.flag(FLAG_NOSING_LEFT)) {
 				rightFwdVhFlag = true;
+				p.lcDebugStr<<";yd3";
 			}
 		}
 
 		bool leftFwdVhFlag = false;
 		if (p.nvLeftFwd.exists()) {
+			p.lcDebugStr<<";yd4";
 			Driver* d = const_cast<Driver*>(p.nvLeftFwd.driver);
 			DriverUpdateParams& p = d->getParams();
-			if (p.flag(FLAG_NOSING_LEFT)) {
+			if (p.flag(FLAG_NOSING_RIGHT)) {
 				leftFwdVhFlag = true;
+				p.lcDebugStr<<";yd5";
 			}
 		}
 
 		if (p.flag(FLAG_YIELDING_RIGHT)) {
+			p.lcDebugStr<<";yd6";
 			if ((p.rightLane) && // right side has lane
 					(p.nvRightFwd.exists()) && // right lane has fwd vh
 					p.nvRightFwd.driver == p.driver->yieldVehicle && // the right fwd vh is nosing
 					rightFwdVhFlag // right fwd vh nosing
 					) {
+				p.lcDebugStr<<";yd7";
 				acc = carFollowingRate(p, p.nvRightFwd);
 				if (acc < p.normalDeceleration) {
 					acc = p.normalDeceleration;
 				} else if (acc > 0) {
 					acc = 0.0;
 				}
+				p.lcDebugStr<<";acc"<<acc;
 				return acc;
 			}
 		} else if (p.flag(FLAG_YIELDING_LEFT)) {
+			p.lcDebugStr<<";yd8";
 			if ((p.leftLane) && // left side has lane
 					(p.nvLeftFwd.exists()) && // left lane has fwd vh
 					p.nvLeftFwd.driver == p.driver->yieldVehicle && // the left fwd vh is nosing
 					leftFwdVhFlag) {
+				p.lcDebugStr<<";yd9";
 				acc = carFollowingRate(p, p.nvLeftFwd);
 				if (acc < p.normalDeceleration) {
 					acc = p.normalDeceleration;
 				} else if (acc > 0) {
 					acc = 0.0;
 				}
+				p.lcDebugStr<<";acc"<<acc;
 				return acc;
 			}
 		} // end of else
 
 		p.driver->yieldVehicle = NULL;
 		p.unsetFlag(FLAG_YIELDING);
-
+		p.lcDebugStr<<";yd10"<<acc;
 		return p.maxAcceleration;
 
 	} //end if flag(FLAG_YIELDING)

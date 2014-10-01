@@ -183,7 +183,6 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		try {
 			int x = boost::lexical_cast<int>( itt->second );
 			initSegId = x;
-//			std::cout<<"initSegId: "<<initSegId<<std::endl;
 		} catch( boost::bad_lexical_cast const& ) {
 			Warn() << "Error: input string was not valid" << std::endl;
 		}
@@ -195,7 +194,6 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		try {
 			int x = boost::lexical_cast<int>( itt->second );
 			initDis = x;
-//			std::cout<<"initDis: "<<initDis<<std::endl;
 		} catch( boost::bad_lexical_cast const& ) {
 			Warn() << "Error: input string was not valid" << std::endl;
 		}
@@ -207,7 +205,6 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		try {
 			int x = boost::lexical_cast<int>( itt->second );
 			initSpeed = x;
-//			std::cout<<"initSpeed: "<<initSpeed<<std::endl;
 		} catch( boost::bad_lexical_cast const& ) {
 			Warn() << "Error: input string was not valid" << std::endl;
 		}

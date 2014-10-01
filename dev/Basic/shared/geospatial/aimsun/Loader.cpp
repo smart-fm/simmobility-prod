@@ -2642,7 +2642,7 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	//Step One: Load
 	loader.LoadBasicAimsunObjects(storedProcs);
 
-	if(!config.RunningMidSupply())
+	if(!config.RunningMidSupply()) //TODO: add config for flag indicating short-term
 	{
 		// load data required for short-term
 		loader.LoadObjectsForShortTerm(storedProcs);

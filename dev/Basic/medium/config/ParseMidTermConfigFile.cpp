@@ -60,7 +60,7 @@ void ParseMidTermConfigFile::processMidTermRunMode(xercesc::DOMElement* node)
 void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 {
 	//processProcMapNode(GetSingleElementByName(node, "proc_map", true));
-	processActivityLoadIntervalElement(GetSingleElementByName(node, "activity_load_interval", true));
+	//processActivityLoadIntervalElement(GetSingleElementByName(node, "activity_load_interval", true));
 	processDwellTimeElement(GetSingleElementByName(node, "dwell_time_parameters", true));
 	processWalkSpeedElement(GetSingleElementByName(node, "pedestrian_walk_speed", true));
 }

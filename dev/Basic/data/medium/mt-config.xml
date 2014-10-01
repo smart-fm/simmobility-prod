@@ -8,9 +8,6 @@
         
         <!-- config specific to supply simulator -->            
         <supply>                 
-                <!--activities from day_activity_schedule will be loaded for each interval of simulation time specified below-->
-                <activity_load_interval value="1" units="hour" />
-                
                 <!-- these parameters are used to calculate dwell time of buses at bus stops-->
                 <!-- these parameters will be organized in a better way after finding the meaning of these numbers -->
                 <dwell_time_parameters>

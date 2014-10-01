@@ -5,31 +5,31 @@
 #pragma once
 
 #include <boost/unordered_map.hpp>
+#include <boost/noncopyable.hpp>
 #include <set>
 #include <string>
 
-#include "Agent.hpp"
-#include "Person.hpp"
 #include "soci.h"
 #include "soci-postgresql.h"
 
-
-using namespace std;
-using namespace sim_mob;
-
 namespace sim_mob
 {
-class PeriodicPersonLoader
+class Entity;
+class Agent;
+class Person;
+class StartTimePriorityQueue;
+
+class PeriodicPersonLoader :  private boost::noncopyable
 {
 private:
 	/** map of <person_id, Person*> for persons loaded so far in the simulation*/
-	boost::unordered_map<string, Person*> loadedPersons;
+	boost::unordered_map<std::string, Person*> loadedPersons;
 
 	/** our active agents list*/
 	std::set<sim_mob::Entity*>& activeAgents;
 
 	/** out pending agents list*/
-	StartTimePriorityQueue& pendinAgents;
+	StartTimePriorityQueue& pendingAgents;
 
 	/** data load interval in seconds*/
 	unsigned dataLoadInterval;
@@ -41,7 +41,15 @@ private:
 	soci::session sql_;
 
 	/** stored procedure to periodically load data*/
-	string storedProcName;
+	std::string storedProcName;
+
+	/** time elapsed since previous load in seconds*/
+	unsigned elapsedTimeSinceLastLoad;
+
+	/**
+	 * adds person to active or pending agents list depending on start time
+	 */
+	void addOrStashPerson(Person* p);
 
 public:
 	PeriodicPersonLoader(std::set<sim_mob::Entity*>& activeAgents, StartTimePriorityQueue& pendinAgents);
@@ -57,7 +65,7 @@ public:
 		return nextLoadStart;
 	}
 
-	const string& getStoredProcName() const
+	const std::string& getStoredProcName() const
 	{
 		return storedProcName;
 	}
@@ -66,6 +74,13 @@ public:
 	 * load activity schedules for next interval
 	 */
 	void loadActivitySchedules();
+
+	/**
+	 * tracks the number of ticks elapsed since last load
+	 * this function *must* be called in every tick
+	 * @return true if data has to be loaded in this tick; false otherwise
+	 */
+	bool checkTimeForNextLoad();
 };
 }
 

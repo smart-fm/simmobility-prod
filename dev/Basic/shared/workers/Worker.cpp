@@ -221,8 +221,8 @@ void sim_mob::Worker::addPendingEntities()
 	for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
 		//Migrate its Buffered properties.
 		migrateIn(**it);
-                messaging::MessageBus::RegisterHandler((*it));
-                (*it)->onWorkerEnter();
+        messaging::MessageBus::RegisterHandler((*it));
+        (*it)->onWorkerEnter();
 	}
 	toBeAdded.clear();
 }

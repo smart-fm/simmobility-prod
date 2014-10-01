@@ -1151,15 +1151,14 @@ void sim_mob::Conflux::topCMergeDifferentLinksInConflux(std::deque<sim_mob::Pers
 
 void sim_mob::Conflux::setRdSegTravelTimes(Person* person, double rdSegExitTime) {
 
-	std::map<double, Person::rdSegTravelStats>::const_iterator it =
-			person->getRdSegTravelStatsMap().find(rdSegExitTime);
+	std::map<double, Person::rdSegTravelStats>::const_iterator it =	person->getRdSegTravelStatsMap().find(rdSegExitTime);
 	if (it != person->getRdSegTravelStatsMap().end()){
 		double travelTime = (it->first) - (it->second).rdSegEntryTime_;
 		std::map<const RoadSegment*, rdSegTravelTimes>::iterator itTT = RdSegTravelTimesMap.find((it->second).rdSeg_);
 		if (itTT != RdSegTravelTimesMap.end())
 		{
-			itTT->second.agentCount_ = itTT->second.agentCount_ + 1;
-			itTT->second.rdSegTravelTime_ = itTT->second.rdSegTravelTime_ + travelTime;
+			itTT->second.agentCount_ += 1;
+			itTT->second.rdSegTravelTime_ += travelTime;
 		}
 		else{
 			rdSegTravelTimes tTimes(travelTime, 1);
@@ -1209,10 +1208,7 @@ bool sim_mob::Conflux::insertTravelTime2TmpTable(timeslice frameNumber, std::map
 			double frameLength = ConfigManager::GetInstance().FullConfig().baseGranMS();
 			tt.endTime = (simStart + sim_mob::DailyTime(frameNumber.ms() + frameLength)).toString();
 			tt.travelTime = (*it).second.rdSegTravelTime_/(*it).second.agentCount_;
-
-//			PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
-			Worker *worker = this->getParentWorker();
-			worker->getPathSetMgr()->insertTravelTime2TmpTable(tt);
+			PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
 		}
 	}
 	return res;

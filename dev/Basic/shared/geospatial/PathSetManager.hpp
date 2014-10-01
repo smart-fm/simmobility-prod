@@ -413,13 +413,33 @@ private:
 
 	///a cache to help answer this question: a given road segment is within which path(s)
 	SGPER pathSegments;
-
 	///	file name used to store realtime data
 	std::string csvFileName;
-
 	///	file stream used to store realtime data
 	std::ofstream csvFile;
 
+//	struct TravelTimeRecorder
+//	{
+//		///	file name used to store realtime data
+//		std::string csvFileName;
+//		///	file stream used to store realtime data
+//		boost::shared_ptr<std::ofstream> csvFile;
+//		TravelTimeRecorder():csvFile(new(std::ofstream)){}
+//		std::ofstream &getFile(){
+//			return *csvFile;
+//		}
+//	};
+//	///	Current instruments to record the Travel Times. One for each thread
+//	static std::map<boost::thread::id, TravelTimeRecorder> ttRecorders;
+//	TravelTimeRecorder & getTTRecorder()
+//	{
+////		std::map<boost::thread::id, TravelTimeRecorder>::iterator it = ttRecorders.find(boost::this_thread::get_id());
+////		if (it == ttRecorders.end())
+////		{
+////
+////		}
+//		return ttRecorders[boost::this_thread::get_id()];
+//	}
 //	///	table store travel time ,used to calculate pathset size
 //	std::string pathSetTravelTimeRealTimeTableName;
 //

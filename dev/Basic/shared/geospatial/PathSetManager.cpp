@@ -486,7 +486,8 @@ uint32_t sim_mob::PathSetManager::getSize(){
 	for(std::map<std::string ,std::vector<WayPoint> >::iterator it = fromto_bestPath.begin(); it != fromto_bestPath.end(); sum += it->first.length(), it++);
 	for(std::set<std::string>::iterator it = tempNoPath.begin(); it != tempNoPath.end(); sum += (*it).length(), it++); // std::set<std::string> tempNoPath;
 	sum += sizeof(SGPER); // SGPER pathSegments;
-	sum += csvFileName.length(); // std::string csvFileName;
+	//todo statics added separately
+//	sum += csvFileName.length(); // std::string csvFileName;
 	sum += sizeof(std::ofstream); // std::ofstream csvFile;
 	sum += pathSetParam->pathSetTravelTimeRealTimeTableName.length(); // std::string pathSetTravelTimeRealTimeTableName;
 	sum += pathSetParam->pathSetTravelTimeTmpTableName.length(); // std::string pathSetTravelTimeTmpTableName;
@@ -630,18 +631,24 @@ bool sim_mob::PathSetManager::insertTravelTime2TmpTable(sim_mob::LinkTravelTime&
 {
 	bool res=false;
 	if(ConfigManager::GetInstance().FullConfig().PathSetMode()){
-	 // get pointer to associated buffer object
-	  std::filebuf* pbuf = csvFile.rdbuf();
-
-	  // get file size using buffer's members
-	  std::size_t size = pbuf->pubseekoff (0,csvFile.end,csvFile.in);
-	  if(size>50000000)//50mb
-	  {
-		  csvFile.close();
-		  sim_mob::aimsun::Loader::insertCSV2TableST(*getSession(),  pathSetParam->pathSetTravelTimeTmpTableName,csvFileName);
-		  csvFile.open(csvFileName.c_str(),std::ios::in | std::ios::trunc);
-	  }
-		csvFile <<data.linkId << ";" <<data.startTime << ";" << data.endTime << ";" << data.travelTime << "\n";
+		//todo, enable this whenever there are multiple files for multiple thread.
+		//note:previous implementation created multiple files for multiple threads.
+		//to keep file descriptors , one entire pathset manager were instntiated!!!
+		//AND but writing to those files were eventually single threaded!!!(using workgroup manager)
+		//std::string fileName = pathSetParam->pathSetTravelTimeTmpTableName + "." + boost::lexical_cast<string>(pthread_self());
+		sim_mob::Logger::log("real_time_travel_time") << data.linkId << ";" << data.startTime << ";" << data.endTime << ";" << data.travelTime << "\n";
+//	 // get pointer to associated buffer object
+//	  std::filebuf* pbuf = csvFile.rdbuf();
+//
+//	  // get file size using buffer's members
+//	  std::size_t size = pbuf->pubseekoff (0,csvFile.end,csvFile.in);
+//	  if(size>50000000)//50mb
+//	  {
+//		  csvFile.close();
+//		  sim_mob::aimsun::Loader::insertCSV2TableST(*getSession(),  pathSetParam->pathSetTravelTimeTmpTableName,csvFileName);
+//		  csvFile.open(csvFileName.c_str(),std::ios::in | std::ios::trunc);
+//	  }
+//		csvFile <<data.linkId << ";" <<data.startTime << ";" << data.endTime << ";" << data.travelTime << "\n";
 	}
 	return res;
 }

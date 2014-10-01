@@ -207,6 +207,36 @@ vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::s
 	return spItr->second;
 }
 
+vector <WayPoint> AMODController::getShortestPathWBlacklist(std::string origNodeID, std::string destNodeID, std::vector<const sim_mob::RoadSegment*> blacklist)
+{
+	std::string nodeKey = origNodeID + "-" + destNodeID;
+	boost::unordered_map<std::string, vector < WayPoint > >::iterator spItr = shortestPaths.find(nodeKey);
+	if (spItr == shortestPaths.end()) {
+		//std::cout << "No such node pair. On-the-fly computation" << std::endl;
+		std::vector < WayPoint > wp;
+
+		Node* origNode = nodePool[origNodeID];
+		Node* destNode = nodePool[destNodeID];
+
+		if (origNode == destNode) {
+			shortestPaths.insert(std::make_pair(nodeKey, wp));
+			return wp;
+		}
+
+		// compute shortest path
+		std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*origNode), stdir->DrivingVertex(*destNode),blacklist);
+		for (int i=0; i<wp2.size(); i++) {
+			if (wp2[i].type_ == WayPoint::ROAD_SEGMENT ) {
+				wp.push_back(wp2[i]);
+			}
+		}
+
+		shortestPaths.insert(std::make_pair(nodeKey, wp));
+		return wp;
+	}
+	return spItr->second;
+}
+
 
 Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 {
@@ -256,7 +286,6 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		else {
 			cout << "Unable to open out_demandStat.txt" << std::endl;
 		}
-		//demandDiary.close();
 
 		if (out_vhsStat.is_open()) {
 			out_vhsStat << "vehId " << "time "
@@ -299,11 +328,11 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 
 		//reading the file of time, destination and origin
 
-		std::cout << "current_time in frame_tick: " << current_time << std::endl;
+		//std::cout << "current_time in frame_tick: " << current_time << std::endl;
 		std::vector<string> origin;
 		std::vector<string> destination;
 		std::vector<string> tripID;
-		std::cout << "Reading the demand file... " << std::endl;
+		//std::cout << "Reading the demand file... " << std::endl;
 
 		readDemandFile(tripID, current_time, origin, destination);
 		//mtx_.lock();
@@ -486,28 +515,28 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 	if(it!=virtualCarPark.end())
 	{
 		// access this car park before
-		std::cout << "Existing car park" << std::endl;
+		//	std::cout << "Existing car park" << std::endl;
 		boost::unordered_map<std::string,Person*> cars = it->second;
-		std::cout << "Before Insertion. Cars Size: " << cars.size() << std::endl;
+		//	std::cout << "Before Insertion. Cars Size: " << cars.size() << std::endl;
 		cars.insert(std::make_pair(id,person));
-		std::cout << "Inserted. Cars Size: " << cars.size() << std::endl;
+		//	std::cout << "Inserted. Cars Size: " << cars.size() << std::endl;
 
-		boost::unordered_map<std::string,Person*>::iterator local_it;
-		std::cout << "Cars in Car Park : \n";
-		for ( local_it = cars.begin(); local_it!= cars.end(); ++local_it ) {
-//			std::cout << " " << local_it->first << ":" << local_it->second << std::endl;
-		}
-		std::cout << "-----\n";
+		//	boost::unordered_map<std::string,Person*>::iterator local_it;
+		//	std::cout << "Cars in Car Park : \n";
+		//	for ( local_it = cars.begin(); local_it!= cars.end(); ++local_it ) {
+		//			std::cout << " " << local_it->first << ":" << local_it->second << std::endl;
+		//	}
+		//	std::cout << "-----\n";
 
 		it->second = cars;
 	}
 	else
 	{
-		std::cout << "New car park" << std::endl;
+		//		std::cout << "New car park" << std::endl;
 		boost::unordered_map<std::string,Person*> cars = boost::unordered_map<std::string,Person*>();
 		cars.insert(std::make_pair(id,person));
 		virtualCarPark.insert(std::make_pair(nodeId,cars));
-		std::cout << "Inserted. Cars Size: " << cars.size() << std::endl;
+		//	std::cout << "Inserted. Cars Size: " << cars.size() << std::endl;
 	}
 
 	//insert this car into the global map of all cars in car parks
@@ -1630,6 +1659,7 @@ Node* AMODController::getNodeFrmPool(const std::string& nodeId) {
 	return result;
 }
 
+
 void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector<std::string>& origin, std::vector<std::string>& destination, int currTime)
 {
 	if (out_demandStat.is_open()) {
@@ -1744,8 +1774,54 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 			if (carParkNode != originNode) {
 				std::vector<WayPoint> wp1 = getShortestPath(carParkId, originNodeId);
+
+				//get the last WayPoint from the wp1
+				WayPoint lastWP = wp1[wp1.size()-1];
+				const RoadSegment *lastWPrs = lastWP.roadSegment_;
+				//erase the last WayPoint from the wp1
+				wp1.pop_back();
+				//get the second last node (?)
+//				Node *secondLastN = lastWP.node_;
+				const Node* startNode = lastWPrs->getStart();
+
+				//check if multi node
+				const MultiNode* currEndNode = dynamic_cast<const MultiNode*>(startNode);
+				std::vector<const sim_mob::RoadSegment*> blacklist;
+				if(currEndNode) {
+					// it is multi node
+					//find all segments you can go from the node
+					const std::set<sim_mob::RoadSegment*> allSeg = currEndNode->getRoadSegments();
+					std::set<sim_mob::RoadSegment*>::const_iterator it;
+					for(it = allSeg.begin(); it!= allSeg.end(); ++it){
+						RoadSegment* rs = *it;
+						if(rs != lastWPrs){
+							blacklist.push_back(rs);
+						}
+					}
+
+				}
+
+				//
+				const UniNode* currEndNodeUni = dynamic_cast<const UniNode*>(startNode);
+				if(currEndNodeUni){
+					//find all segments you can go from the node
+					const std::vector<const sim_mob::RoadSegment*>& allSeg = currEndNodeUni->getRoadSegments();
+
+					for(int i=0;i<allSeg.size();++i){
+						const RoadSegment* rs = allSeg[i];
+						if(rs != lastWPrs){
+							blacklist.push_back(rs);
+						}
+					}
+				}
+				//calculate sp with blacklist
+				std::string s1 = startNode->originalDB_ID.getLogItem();
+				string startNodeId = getNumberFromAimsunId(s1);
+				std::vector<WayPoint> wp2New = getShortestPathWBlacklist(startNodeId, destNodeId, blacklist);
+
 				//merge wayPoints
-				mergeWayPoints(wp1, wp2, mergedWP);
+				mergeWayPoints(wp1, wp2New, mergedWP);
+
 			} else {
 				// find route from origin to destination
 				for (int i=0; i<wp2.size(); i++) {

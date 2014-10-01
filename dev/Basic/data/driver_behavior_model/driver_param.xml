@@ -135,7 +135,7 @@
 <!-- C. TRAFFIC LIGHT RESPONSE -->
 	<param name="yellow_stop_headway" value="1.0"/>
 	<param name="min_speed_yellow" value="2.2352"/>
-        <param name="driver_signal_perception_distance" value="150.0"/>  <!-- meter -->
+        <param name="driver_signal_perception_distance" value="50.0"/>  <!-- meter -->
 
 <!-- D. UPDATE STEP SIZE (REACTION TIME RELATED)
 	Driver behavior (e.g. responses to stimuli) is updated periodically
@@ -197,8 +197,8 @@
 	A vehicle must remain in a lane for a minimum of "minimum time in lane" seconds before
 	considering another lane chane.-->                                   
 	<param name="MLC_PARAMETERS" value="
-						100.0         #lower bound(meter) 
-						190.0         #delta(meter)
+						290.0         #lower bound(meter) 
+						390.0         #delta(meter)
 						1.0 	       #minimum time in lane (sec)
 	"/>
 

@@ -504,6 +504,10 @@ double sim_mob::MITSIM_CF_Model::headwayBuffer() {
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		double targetSpeed, double maxLaneSpeed) {
 
+	if(p.parentId == 1895 && p.now.frame()>888){
+		int i=0;
+	}
+
 //	cftimer -= p.elapsedSeconds;
 	/// if time cftimer >0 , return last calculated acc
 //	if (p.cftimer > sim_mob::Math::DOUBLE_EPSILON) {

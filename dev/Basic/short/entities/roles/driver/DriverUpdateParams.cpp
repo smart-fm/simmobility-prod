@@ -71,7 +71,7 @@ void DriverUpdateParams::buildDebugInfo()
 				<<":"<<latx<<":"<<laty<<":"<<dl<<":"<<dox<<":"<<doy<<":"<<mx<<":"<<my;
 #endif
 
-#if 0
+#if 1
 		//debug car following
 		char newFwdAccChar[20] = "\0";
 		sprintf(newFwdAccChar,"acc%03.1f",newFwdAcc);
@@ -79,6 +79,10 @@ void DriverUpdateParams::buildDebugInfo()
 		s<<"            "<<parentId
 		<<":"<<newFwdAccChar
 		<<":"<<accSelect;
+
+		char ds[200] = "\0";
+		sprintf(ds,"ds%3.2f",perceivedDistToTrafficSignal);
+		s<<ds;
 
 #endif
 

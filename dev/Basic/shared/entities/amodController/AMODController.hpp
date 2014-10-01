@@ -99,6 +99,7 @@ public:
 	bool findRemainingWayPoints(Person *vh, std::vector < sim_mob::WayPoint > &remainingWPs);
 	void precomputeAllPairsShortestPaths(void);
 	std::vector < WayPoint > getShortestPath(std::string origNodeID, std::string destNodeID);
+	std::vector <WayPoint> getShortestPathWBlacklist(std::string origNodeID, std::string destNodeID, std::vector<const sim_mob::RoadSegment*> blacklist);
 
 	bool getVhFromCarPark(std::string& carParkId,Person** vh);
 	bool removeVhFromCarPark(std::string& carParkId,Person** vh); //removes a specific vehicle from the car park

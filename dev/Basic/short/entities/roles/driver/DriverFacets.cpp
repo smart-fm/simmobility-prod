@@ -1569,6 +1569,9 @@ if(!parentP->amodPath.empty()){
 		if (allocateVehicle) {
 			res = new Vehicle(VehicleBase::CAR, length, width);
 			parent->amodVehicle = res;
+			if(parentDriver->origin.node->originalDB_ID.getLogItem().find("66508") != std::string::npos){
+				int i=0;
+			}
 			initPath(path, startLaneId);
 		}
 
@@ -2632,10 +2635,9 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 // "(" << p.currLane->getRoadSegment()->getLink()->roadName << ")" <<
 // " To "<< nextLaneInNextLink <<
 // "(" << nextLaneInNextLink->getRoadSegment()->getLink()->roadName << ")" << std::endl;
-			if(p.parentId == 66508 && p.now.frame()>1300)
-					{
-						int i=1;
-					}
+			if(p.parentId == 1895 && p.now.frame()>630){
+					int i=0;
+				}
 			const Lane *nextLinkLane = hasNextSegment(false)->getLane(0);
 			color = trafficSignal->getDriverLight(*p.currLane,
 					*nextLinkLane);

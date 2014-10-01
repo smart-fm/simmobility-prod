@@ -189,7 +189,7 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
             } else { //has vehicle ahead
                 otherSpeed[i].lead = fwd->driver->fwdVelocity.get();
                 otherDistance[i].lead = fwd->distance/100.0;
-                otherAcc[i].lead = fwd->driver->fwdAccel.get();
+                otherAcc[i].lead = fwd->driver->fwdAccel.get()/100.0;
             }
 
             if (!back->exists()) {//no vehicle behind
@@ -199,7 +199,7 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
             } else { //has vehicle behind, check the gap
                 otherSpeed[i].lag = back->driver->fwdVelocity.get();
                 otherDistance[i].lag = back->distance/100.0;
-                otherAcc[i].lag = back->driver->fwdAccel.get();
+                otherAcc[i].lag = back->driver->fwdAccel.get()/100.0;
             }
         } else { // no left/right side exists
             otherSpeed[i].lead = 0;

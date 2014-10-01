@@ -845,7 +845,7 @@ double sim_mob::MITSIM_CF_Model::calcMergingRate(
 			if (p.nvLeadFreeway.distance / 100.0 < headway) {
 				// MITSIM TS_CFModels.cc
 				// acc = first->accRate_ + brakeToTargetSpeed(distance_, first->currentSpeed_);
-				acc = p.nvLeadFreeway.driver->fwdAccel
+				acc = p.nvLeadFreeway.driver->fwdAccel.get()/100.0
 						+ brakeToTargetSpeed(p,
 								p.nvLeadFreeway.distance / 100.0,
 								p.nvLeadFreeway.driver->fwdVelocity);
@@ -1157,7 +1157,7 @@ double sim_mob::MITSIM_CF_Model::calcCreateGapRate(DriverUpdateParams& p,
 	float dt = p.nextStepSize;
 	if (dt <= 0.0)
 		return p.maxAcceleration;
-	double res = p.driver->fwdAccel.get() + 2.0 * (dx - dv * dt) / (dt * dt);
+	double res = vh.driver->fwdAccel.get()/100.0 + 2.0 * (dx - dv * dt) / (dt * dt);
 	return res;
 }
 double sim_mob::MITSIM_CF_Model::waitExitLaneRate(DriverUpdateParams& p) {

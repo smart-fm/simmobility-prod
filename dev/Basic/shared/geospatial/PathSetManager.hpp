@@ -71,9 +71,6 @@ public:
 	///	get travel time of a segment in a specific time from 'real time' or 'default' source
 	double getTravelTimeBySegId(std::string id,sim_mob::DailyTime startTime);
 
-	///	return a waypoint wrapped segment(either create,cache and return OR find in the cache and return)
-	sim_mob::WayPoint* getWayPointBySeg(const sim_mob::RoadSegment* seg);
-
 	///	return cached node given its id
 	sim_mob::Node* getCachedNode(std::string id);
 
@@ -124,10 +121,10 @@ public:
 	std::map<std::string,sim_mob::ERP_Section*> ERP_SectionPool;
 
 	///	information of "Segment" default travel time <segment aim-sun id ,Link_default_travel_time with diff time stamp>
-	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > segmentDefaultTravelTimePool;
+	std::map<std::string,std::vector<sim_mob::LinkTravelTime> > segmentDefaultTravelTimePool;
 
 	///	information of "Segment" reatravel time <segment aim-sun id ,Link_default_travel_time with diff time stamp>
-	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > segmentRealTimeTravelTimePool;
+	std::map<std::string,std::vector<sim_mob::LinkTravelTime> > segmentRealTimeTravelTimePool;
 
 	///	simmobility's road network
 	const sim_mob::RoadNetwork& roadNetwork;
@@ -182,7 +179,7 @@ class LinkTravelTime
 {
 public:
 	LinkTravelTime() {};
-	LinkTravelTime(LinkTravelTime& src);
+	LinkTravelTime(const LinkTravelTime& src);
 	int linkId;
 	std::string startTime;
 	std::string endTime;

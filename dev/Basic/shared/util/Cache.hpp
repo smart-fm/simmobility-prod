@@ -3,7 +3,7 @@
 #include <map>
 
 namespace{
-sim_mob::BasicLogger & logger = sim_mob::Logger::log("path_set");
+sim_mob::BasicLogger & loggerCache = sim_mob::Logger::log("path_set");
 int eraseCnt = 0;
 }
 namespace sim_mob
@@ -113,7 +113,7 @@ private:
     const typename KeyToValueType::iterator it
       =keyToValue.find(keyTracker.front());
     assert(it!=keyToValue.end());
-    logger << ++eraseCnt << " Erase from cache\n";
+    loggerCache << ++eraseCnt << " Erase from cache\n";
     // Erase both elements to completely purge record
     keyToValue.erase(it);
     keyTracker.pop_front();

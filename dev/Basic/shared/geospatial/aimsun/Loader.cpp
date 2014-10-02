@@ -108,8 +108,8 @@ public:
 	void LoadERP_Surcharge(std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >& pool);
 	void LoadERP_Section(std::map<std::string,sim_mob::ERP_Section*>& ERP_SectionPool);
 	void LoadERP_Gantry_Zone(std::map<std::string,sim_mob::ERP_Gantry_Zone*>& ERP_GantryZonePool);
-	static void loadLinkDefaultTravelTime(soci::session& sql,std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >& pool);
-	static bool loadLinkRealTimeTravelTime(soci::session& sql,std::string& tableName,	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >& pool);
+	static void loadLinkDefaultTravelTime(soci::session& sql,std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& pool);
+	static bool loadLinkRealTimeTravelTime(soci::session& sql,std::string& tableName,	std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& pool);
 	static bool CreateTable(soci::session& sql,std::string& tableName);
 	bool InsertData2TravelTimeTmpTable(std::string& tableName,sim_mob::LinkTravelTime& data);
 	static bool InsertCSV2Table(soci::session& sql,std::string& tableName,const std::string& csvFileName);
@@ -412,46 +412,25 @@ bool DatabaseLoader::InsertPathSet2DBST(soci::session& sql,std::map<std::string,
 	return true;
 }
 
-void DatabaseLoader::loadLinkDefaultTravelTime(soci::session& sql,std::map<std::string,	std::vector<sim_mob::LinkTravelTime*> >& pool)
+void DatabaseLoader::loadLinkDefaultTravelTime(soci::session& sql,std::map<std::string,	std::vector<sim_mob::LinkTravelTime> >& pool)
 {
 	soci::rowset<sim_mob::LinkTravelTime> rs = (sql.prepare <<"select \"link_id\",to_char(\"start_time\",'HH24:MI:SS') AS start_time,to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\" from \"link_default_travel_time_corrected_he_v2\" ");
-	for (soci::rowset<sim_mob::LinkTravelTime>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-		sim_mob::LinkTravelTime *s = new sim_mob::LinkTravelTime(*it);
-		std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >::iterator itt = pool.find(s->originalSectionDB_ID.getLogItem());
-		if(itt!=pool.end())
-		{
-			std::vector<sim_mob::LinkTravelTime*> e = (*itt).second;
-			e.push_back(s);
-			pool[s->originalSectionDB_ID.getLogItem()] = e;
-		}
-		else
-		{
-			std::vector<sim_mob::LinkTravelTime*> e;
-			e.push_back(s);
-			pool[s->originalSectionDB_ID.getLogItem()] = e;
-		}
+	for (soci::rowset<sim_mob::LinkTravelTime>::const_iterator itRS=rs.begin(); itRS!=rs.end(); ++itRS)  {
+		itRS->originalSectionDB_ID.setProps("aimsun-id",itRS->linkId);
+		pool[itRS->originalSectionDB_ID.getLogItem()].push_back(*itRS);
 	}
 }
-bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql,std::string& tableName,	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >& pool)
+bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql,std::string& tableName,	std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& pool)
 {
 	try {
-		soci::rowset<sim_mob::LinkTravelTime> rs = (sql.prepare <<"select \"link_id\",to_char(\"start_time\",'HH24:MI:SS') AS start_time,to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\" from " + tableName);
-		int i = 0;
-		for (soci::rowset<sim_mob::LinkTravelTime>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-			i++;
-			sim_mob::LinkTravelTime *s = new sim_mob::LinkTravelTime(*it);
-			std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >::iterator itt = pool.find(s->originalSectionDB_ID.getLogItem());
-			if(itt!=pool.end())
-			{
-				std::vector<sim_mob::LinkTravelTime*> &e = (*itt).second;
-				e.push_back(s);
+			soci::rowset<sim_mob::LinkTravelTime> rs = (sql.prepare <<"select \"link_id\",to_char(\"start_time\",'HH24:MI:SS') AS start_time,to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\" from " + tableName);
+			int i = 0;
+			for (soci::rowset<sim_mob::LinkTravelTime>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+				i++;
+				it->originalSectionDB_ID.setProps("aimsun-id",it->linkId);
+				pool[it->originalSectionDB_ID.getLogItem()].push_back(*it);
 			}
-			else
-			{
-				pool[s->originalSectionDB_ID.getLogItem()].push_back(s);
-			}
-		}
-		return true;
+			return true;
 	}
 	catch (soci::soci_error const & err)
 	{
@@ -1749,10 +1728,6 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 
 		// set node type
 		std::string idStr = boost::lexical_cast<string>(it->first);
-		if(idStr.find("101320") != std::string::npos)
-		{
-			std::cout<<"find node 101320"<<std::endl;
-		}
 		sim_mob::SimNodeType nt = (sim_mob::SimNodeType)res.getNodeType(idStr);
 		it->second.generatedNode->type = nt;
 	}
@@ -2592,11 +2567,11 @@ bool sim_mob::aimsun::Loader::excuString(soci::session& sql,std::string& str)
 	bool res= DatabaseLoader::ExcuString(sql,str);
 	return res;
 }
-void sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(soci::session& sql,	std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >& linkDefaultTravelTimePool)
+void sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(soci::session& sql,	std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& linkDefaultTravelTimePool)
 {
 	DatabaseLoader::loadLinkDefaultTravelTime(sql, linkDefaultTravelTimePool);
 }
-bool sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(soci::session& sql, std::string &tableName, std::map<std::string,std::vector<sim_mob::LinkTravelTime*> >& linkRealtimeTravelTimePool)
+bool sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(soci::session& sql, std::string &tableName, std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& linkRealtimeTravelTimePool)
 {
 	return DatabaseLoader::loadLinkRealTimeTravelTime(sql,tableName,linkRealtimeTravelTimePool);
 }

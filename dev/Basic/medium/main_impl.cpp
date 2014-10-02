@@ -183,7 +183,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 //	personWorkers->assignAWorker(new IncidentManager());
 	IncidentManager::getInstance()->readFromFile("private/incidents.csv"); //todo remove hard coding
 
-	cout << "Initial Agents dispatched or pushed to pending." << endl;
+	cout << "Initial Agents dispatched or pushed to pending.all_agents: " << Agent::all_agents.size() << " pending: " << Agent::pending_agents.size() << endl;
 
 	//Start work groups and all threads.
 	wgMgr.startAllWorkGroups();

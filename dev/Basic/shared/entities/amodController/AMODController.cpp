@@ -1758,7 +1758,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 			// get route for vehicle
 			vector<WayPoint> mergedWP;
-			std::vector<WayPoint> wp2 = getShortestPath(originNodeId, destNodeId);
+			std::vector<WayPoint> wp2 = getShortestPath(originNodeId, destNodeId); //shortest path sed in case when the carpark is at the same node as the origin
 
 			//check to see if there is a route from the destination back to the carpark
 			//if not, then this is a problem since we cannot get back into the network
@@ -1771,17 +1771,25 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 				continue;
 			}
 
-
 			if (carParkNode != originNode) {
 				std::vector<WayPoint> wp1 = getShortestPath(carParkId, originNodeId);
+				std::cout << "WP1 before removing:" << std::endl;
+				for (int i=0; i<wp1.size(); i++) {
+					std::cout << " -> " << wp1[i].roadSegment_->originalDB_ID.getLogItem();
+				}
+				std::cout << std::endl;
 
 				//get the last WayPoint from the wp1
 				WayPoint lastWP = wp1[wp1.size()-1];
 				const RoadSegment *lastWPrs = lastWP.roadSegment_;
 				//erase the last WayPoint from the wp1
 				wp1.pop_back();
-				//get the second last node (?)
-//				Node *secondLastN = lastWP.node_;
+				std::cout << "WP1 after removing:" << std::endl;
+				for (int i=0; i<wp1.size(); i++) {
+					std::cout << " -> " << wp1[i].roadSegment_->originalDB_ID.getLogItem();
+				}
+				std::cout << std::endl;
+				//get the second last node as a new start node for the second part of the trip
 				const Node* startNode = lastWPrs->getStart();
 
 				//check if multi node
@@ -1797,11 +1805,14 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 						if(rs != lastWPrs){
 							blacklist.push_back(rs);
 						}
+						else{
+							std::cout << "MultiNode. Blacklist set." << std::endl;
+						}
 					}
 
 				}
 
-				//
+				// check if uniNode
 				const UniNode* currEndNodeUni = dynamic_cast<const UniNode*>(startNode);
 				if(currEndNodeUni){
 					//find all segments you can go from the node
@@ -1812,6 +1823,9 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 						if(rs != lastWPrs){
 							blacklist.push_back(rs);
 						}
+						else{
+							std::cout << "UniNode. Blacklist set." << std::endl;
+						}
 					}
 				}
 				//calculate sp with blacklist
@@ -1821,6 +1835,11 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 				//merge wayPoints
 				mergeWayPoints(wp1, wp2New, mergedWP);
+
+				std::cout << "WP1 after merging:" << std::endl;
+							for (int i=0; i<mergedWP.size(); i++) {
+								std::cout << " -> " << mergedWP[i].roadSegment_->originalDB_ID.getLogItem();
+							}
 
 			} else {
 				// find route from origin to destination

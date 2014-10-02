@@ -340,8 +340,6 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 		subTour.addStop(primaryActivity);
 		calculateSubTourTimeWindow(subTour, parentTour); // estimate travel time to/from activity location
 		workBasedSubTourParams.blockTime(subTour.getStartTime(), subTour.getEndTime());
-		logStream << "SubTour|" << "mode: " << subTour.getTourMode() << "|destination: " << subTour.getTourDestination()
-				<< "|start time: " << subTour.getStartTime() << "|end time: " << subTour.getEndTime() << std::endl;
 	}
 }
 
@@ -711,7 +709,7 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours,
 				eraseIt = stops.erase(eraseIt);
 				numRemoved++;
 			}
-			logStream << "Removing " << numRemoved << " stops in 1st HT due to TOD issue." << std::endl;
+			logStream << "| Removed " << numRemoved << " stops in 1st HT (TOD issue)" << std::endl;
 		}
 	}
 
@@ -751,7 +749,7 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours,
 				safe_delete_item(*eraseIt);
 				eraseIt = stops.erase(eraseIt);
 			}
-			logStream << "Removing " << numRemoved << " stops in 2nd HT due to TOD issue." << std::endl;
+			logStream << "| Removed " << numRemoved << " stops in 2nd HT (TOD issue)";
 		}
 	}
 }
@@ -1272,7 +1270,6 @@ void PredaySystem::constructTours() {
 			attendsUsualWorkLocation = predictUsualWorkLocation(firstOfMultiple); // Predict if this tour is to a usual work location
 			firstOfMultiple = false;
 		}
-		logStream << "Attends usual work location: " << attendsUsualWorkLocation << std::endl;
 		Tour workTour(WORK);
 		workTour.setUsualLocation(attendsUsualWorkLocation);
 		if(attendsUsualWorkLocation) {
@@ -1310,23 +1307,22 @@ void PredaySystem::constructTours() {
 
 void PredaySystem::planDay() {
 	personParams.initTimeWindows();
-	logStream << std::endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+
 	//Predict day pattern
-	logStream << "Person: " << personParams.getPersonId() << "| home: " << personParams.getHomeLocation() << std:: endl;
-	logStream << "Day Pattern: " ;
+	logStream << "Person: " << personParams.getPersonId() << "| home: " << personParams.getHomeLocation();
+	logStream << "| Day Pattern: " ;
 	PredayLuaProvider::getPredayModel().predictDayPattern(personParams, dayPattern);
 	if(dayPattern.empty()) { throw std::runtime_error("Cannot invoke number of tours model without a day pattern"); }
 	logStream << dayPattern["WorkT"] << dayPattern["EduT"] << dayPattern["ShopT"] << dayPattern["OthersT"]
-	        << dayPattern["WorkI"] << dayPattern["EduI"] << dayPattern["ShopI"] << dayPattern["OthersI"] << std::endl;
+	        << dayPattern["WorkI"] << dayPattern["EduI"] << dayPattern["ShopI"] << dayPattern["OthersI"];
 
 	//Predict number of Tours
-	logStream << "Num. Tours: ";
+	logStream << "| Num. Tours: ";
 	PredayLuaProvider::getPredayModel().predictNumTours(personParams, dayPattern, numTours);
-	logStream << numTours["WorkT"] << numTours["EduT"] << numTours["ShopT"] << numTours["OthersT"] << std::endl;
+	logStream << numTours["WorkT"] << numTours["EduT"] << numTours["ShopT"] << numTours["OthersT"];
 
 	//Construct tours.
 	constructTours();
-	logStream << "Tours: " << tours.size() << std::endl;
 	if(!tours.empty()) { tours.front().setFirstTour(true); } // make first tour aware that it is the first tour for person
 
 	double prevTourEndTime = FIRST_INDEX;
@@ -1338,14 +1334,10 @@ void PredaySystem::planDay() {
 		if(tour.isUsualLocation()) {
 			// Predict just the mode for tours to usual location
 			predictTourMode(tour);
-			logStream << "Tour|type: " << tour.getTourType()
-					<< "(TM) Tour mode: " << tour.getTourMode() << "|Tour destination: " << tour.getTourDestination();
 		}
 		else {
 			// Predict mode and destination for tours to not-usual locations
 			predictTourModeDestination(tour);
-			logStream << "Tour|type: " << tour.getTourType()
-					<< "(TMD) Tour mode: " << tour.getTourMode() << "|Tour destination: " << tour.getTourDestination();
 		}
 
 		// Predict time of day for this tour
@@ -1358,7 +1350,6 @@ void PredaySystem::planDay() {
 		tour.setPrimaryStop(primaryActivity);
 		tour.addStop(primaryActivity);
 		personParams.blockTime(timeWindow.getStartTime(), timeWindow.getEndTime());
-		logStream << "|primary activity|arrival: " << primaryActivity->getArrivalTime() << "|departure: " << primaryActivity->getDepartureTime() << std::endl;
 
 		//Generate sub tours for work tours
 		if(tour.getTourType() == sim_mob::medium::WORK) { predictSubTours(tour); }
@@ -1370,8 +1361,8 @@ void PredaySystem::planDay() {
 		calculateTourEndTime(tour);
 		personParams.blockTime(prevTourEndTime, tour.getEndTime());
 		prevTourEndTime = tour.getEndTime();
-		logStream << "Tour|start time: " << tour.getStartTime() << "|end time: " << tour.getEndTime() << std::endl;
 	}
+	logStream << std::endl;
 }
 
 void sim_mob::medium::PredaySystem::insertDayPattern()

@@ -635,6 +635,7 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, sim_mob::SegmentStats*
 	{
 		prevSegStats->removeAgent(prevLane, person, wasQueuing);
 	} /*else the person must have started from a VQ*/
+	Print() << "Killing person: " << person->getDatabaseId() << " | frame: " <<  currFrame.frame() << std::endl;
 	parentWorker->remEntity(person);
 	parentWorker->scheduleForRemoval(person);
 }

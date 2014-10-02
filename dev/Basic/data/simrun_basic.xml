@@ -241,11 +241,11 @@
         <!-- Total runtime need not be a multiple of the base granularity -->
         <!-- (but will be rounded down.) -->
         <simulation>
-            <base_granularity   value="100"   units="ms" />
-            <total_runtime      value="6"      units="minutes" />
+            <base_granularity   value="5"   units="seconds" />
+            <total_runtime      value="245"      units="minutes" />
             <total_warmup       value="10"     units="seconds" />
             
-            <start_time         value="08:30:00"/>
+            <start_time         value="03:00:00"/>
             <pathset_traveltime_save_table value="pathset"/>
             
             <!-- Implementation to use for the Aura Manager. -->
@@ -295,9 +295,9 @@
         <!-- List of all Worker types and their properties. -->
         <!-- granularity of each component must be a multiple of the "base" granularity -->
         <workers>
-            <person count="1" granularity="100ms"/> <!-- Person agents (with Roles) -->
-            <signal count="1" granularity="1 second"/> <!-- Traffic signals -->
-            <communication count="0" granularity="100ms"/>  <!-- Communication simulator -->
+            <person count="1" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
+            <signal count="0" granularity="5 seconds"/> <!-- Traffic signals -->
+            <communication count="0" granularity="5 seconds"/>  <!-- Communication simulator -->
         </workers>
         
         <!-- Setting to true should push everything onto one thread. -->

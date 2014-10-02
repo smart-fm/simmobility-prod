@@ -181,6 +181,9 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
 
+	//Load persons for 0th tick
+	periodicPersonLoader.loadActivitySchedules();
+
 	//Initialize each work group individually
 	personWorkers->initWorkers(&entLoader);
 
@@ -244,8 +247,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		{
 			std::stringstream msg;
 			msg << "Approximate Tick Boundary: " << currTick << ", ";
-			msg << (currTick * config.baseGranMS())
-				<< " ms   [" <<currTickPercent <<"%]" << endl;
+			msg << (currTick * config.baseGranSecond())
+				<< "s   [" <<currTickPercent <<"%]" << endl;
 			if (!warmupDone)
 			{
 				msg << "  Warmup; output ignored." << endl;

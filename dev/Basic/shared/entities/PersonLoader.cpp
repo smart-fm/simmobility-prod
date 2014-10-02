@@ -14,6 +14,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "Person.hpp"
+#include "logging/Log.hpp"
 #include "misc/TripChain.hpp"
 #include "util/DailyTime.hpp"
 #include "util/Utils.hpp"
@@ -65,27 +66,26 @@ namespace
 	 * generates a random time within the time window passed in preday's representation.
 	 *
 	 * @param mid time window in preday format (E.g. 4.75 => 4:30 to 4:59 AM)
+	 * @param firstFifteenMins flag to restrict random time to first fifteen minutes of 30 minute window.
+	 * 							This is useful in case of activities which have the same arrival and departure window
+	 * 							The arrival time can be chosen in the first 15 minutes and dep. time can be chosen in the 2nd 1 mins of the window
 	 * @return a random time within the window in hh24:mm:ss format
 	 */
-	std::string getRandomTimeInWindow(double mid) {
+	std::string getRandomTimeInWindow(double mid, bool firstFifteenMins) {
 		int hour = int(std::floor(mid));
-		int minute = (Utils::generateInt(0,29)) + ((mid - hour - 0.25)*60);
+		int min = 15, max = 29;
+		if(firstFifteenMins) { min = 0; max = 14; }
+		int minute = Utils::generateInt(min,max) + ((mid - hour - 0.25)*60);
+		int second = Utils::generateInt(0,60);
 		std::stringstream random_time;
 		hour = hour % 24;
-		if (hour < 10) {
-			random_time << "0" << hour << ":";
-		}
-		else {
-			random_time << hour << ":";
-		}
-		if (minute < 10) {
-			random_time << "0" << minute << ":";
-		}
-		else {
-			random_time << minute << ":";
-		}
-		random_time << "00"; //seconds
-		return random_time.str();
+		if (hour < 10) { random_time << "0"; }
+		random_time << hour << ":";
+		if (minute < 10) { random_time << "0"; }
+		random_time << minute << ":";
+		if(second < 10) { random_time << "0"; }
+		random_time << second;
+		return random_time.str(); //HH24:MI:SS format
 	}
 
 	/**
@@ -125,8 +125,8 @@ namespace
 		res->isMandatory = true;
 		res->location = rn.getNodeById(r.get<int>(5));
 		res->locationType = sim_mob::TripChainItem::LT_NODE;
-		res->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(8)));
-		res->endTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(9)));
+		res->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(8), true));
+		res->endTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(9), false));
 		return res;
 	}
 
@@ -143,7 +143,7 @@ namespace
 		tripToSave->fromLocationType = sim_mob::TripChainItem::LT_NODE;
 		tripToSave->toLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(5)));
 		tripToSave->toLocationType = sim_mob::TripChainItem::LT_NODE;
-		tripToSave->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(11)));
+		tripToSave->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(11), true));
 		makeSubTrip(r, tripToSave);
 		return tripToSave;
 	}
@@ -180,12 +180,13 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	if (storedProcName.empty()) { return; }
 	//Our SQL statement
 	stringstream query;
-	unsigned end = nextLoadStart + DEFAULT_LOAD_INTERVAL;
+	double end = nextLoadStart + DEFAULT_LOAD_INTERVAL;
 	query << "select * from " << storedProcName << "(" << nextLoadStart << "," << end << ")";
 	std::string sql_str = query.str();
 	soci::rowset<soci::row> rs = (sql_.prepare << sql_str);
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	std::vector<Person*> newPersons;
+	unsigned actCtr = 0;
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
 		const soci::row& r = (*it);
@@ -202,18 +203,26 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 		}
 		else { person = pIt->second; }
 		std::vector<TripChainItem*>& personTripChain = person->getTripChain();
-		unsigned int seqNo = person->getTripChain().size(); //seqNo of last trip chain item
-
 		//add trip and activity
+		unsigned int seqNo = person->getTripChain().size(); //seqNo of last trip chain item
 		personTripChain.push_back(makeTrip(r, ++seqNo));
 		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }
+		actCtr++;
 	}
 
 	//add or stash new persons
-	for(std::vector<Person*>::iterator i=newPersons.begin(); i!=newPersons.end(); i++) { addOrStashPerson(*i); }
+	for(std::vector<Person*>::iterator i=newPersons.begin(); i!=newPersons.end(); i++)
+	{
+		(*i)->initTripChain(); //initialize person's trip chain
+		addOrStashPerson(*i);
+	}
 
+	Print() << "PeriodicPersonLoader:: activities loaded from " << nextLoadStart << " to " << end << ": " << actCtr
+			<< " | new persons loaded: " << newPersons.size() << endl;
+
+	Print() << "active_agents: " << activeAgents.size() << " | pending_agents: " << pendingAgents.size() << endl;
 	//update next load start
-	nextLoadStart = end;																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																	nextLoadStart = end; //update for next loading
+	nextLoadStart = end + DEFAULT_LOAD_INTERVAL;																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																	nextLoadStart = end; //update for next loading
 }
 
 void sim_mob::PeriodicPersonLoader::addOrStashPerson(Person* p)

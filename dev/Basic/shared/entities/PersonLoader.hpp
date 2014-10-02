@@ -35,7 +35,7 @@ private:
 	unsigned dataLoadInterval;
 
 	/** start time of next load interval*/
-	unsigned nextLoadStart;
+	double nextLoadStart;
 
 	/** database session */
 	soci::session sql_;

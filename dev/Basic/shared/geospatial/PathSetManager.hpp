@@ -303,8 +303,8 @@ public:
 
 	void init();
 
-	///clears various cache containers
-	void clearPools();
+	///clears various cache containers(unused for now)
+	void clearCachedPathSet();
 
 	void setScenarioName(std::string& name){ scenarioName = name; }
 

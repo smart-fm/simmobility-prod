@@ -99,8 +99,8 @@ bool sim_mob::PathSetParam::createTravelTimeTmpTable()
 	bool res=false;
 	dropTravelTimeTmpTable();
 	// create tmp table
-	std::string create_table_str = pathSetTravelTimeTmpTableName + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
-	res = sim_mob::aimsun::Loader::createTable(*(PathSetManager::getSession()),create_table_str);
+	std::string createTableStr = pathSetTravelTimeTmpTableName + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
+	res = sim_mob::aimsun::Loader::createTable(*(PathSetManager::getSession()),createTableStr);
 	return res;
 }
 
@@ -108,16 +108,16 @@ bool sim_mob::PathSetParam::dropTravelTimeTmpTable()
 {
 	bool res=false;
 	//drop tmp table
-	std::string drop_table_str = "drop table \""+ pathSetTravelTimeTmpTableName +"\" ";
-	res = sim_mob::aimsun::Loader::excuString(*(PathSetManager::getSession()),drop_table_str);
+	std::string dropTableStr = "drop table \""+ pathSetTravelTimeTmpTableName +"\" ";
+	res = sim_mob::aimsun::Loader::excuString(*(PathSetManager::getSession()),dropTableStr);
 	return res;
 }
 
 bool sim_mob::PathSetParam::createTravelTimeRealtimeTable()
 {
 	bool res=false;
-	std::string create_table_str = pathSetTravelTimeRealTimeTableName + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
-	res = sim_mob::aimsun::Loader::createTable(*(PathSetManager::getSession()),create_table_str);
+	std::string createTableStr = pathSetTravelTimeRealTimeTableName + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
+	res = sim_mob::aimsun::Loader::createTable(*(PathSetManager::getSession()),createTableStr);
 	return res;
 }
 
@@ -528,10 +528,6 @@ void HandleMessage(messaging::Message::MessageType type, const messaging::Messag
 
 sim_mob::PathSetManager::~PathSetManager()
 {
-//	if(threadpool_){
-//		delete threadpool_;
-//	}
-	clearPools();
 }
 
 void sim_mob::PathSetManager::init()
@@ -541,25 +537,13 @@ void sim_mob::PathSetManager::init()
 }
 
 namespace {
-int paths=0;
-int free_cnt = 0;
+int pathsCnt = 0;
+int spCnt = 0;
 }
 
-void sim_mob::PathSetManager::clearPools()
+void sim_mob::PathSetManager::clearCachedPathSet()
 {
-	//delete cached pathsets
-	std::pair<std::string,sim_mob::PathSet>pair;
-	BOOST_FOREACH(pair, cachedPathSet){
-		paths++;//debug
-		BOOST_FOREACH(sim_mob::SinglePath *sp, pair.second.pathChoices)
-		{
-			if (sp){//debug
-				free_cnt ++;
-			}
-			safe_delete_item(sp);
-		}
-	}
-	logger << "PathSet manager freed " << free_cnt << "  from " << paths << " paths" << "\n";
+	cachedPathSet.clear();
 }
 
 bool sim_mob::PathSetManager::generateAllPathSetWithTripChain2()
@@ -1085,6 +1069,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 	StreetDirectory::VertexDesc to = impl->DrivingVertex(*ps->toNode);
 	StreetDirectory::Vertex* fromV = &from.source;
 	StreetDirectory::Vertex* toV = &to.sink;
+	//TODO: remove comment later
 //	for(int i=0;i<ps->oriPath->shortestWayPointpath.size();++i)
 //	{
 //		WayPoint *w = ps->oriPath->shortestWayPointpath[i];

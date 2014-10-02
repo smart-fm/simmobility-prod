@@ -2,6 +2,10 @@
 #include <list>
 #include <map>
 
+namespace{
+sim_mob::BasicLogger & logger = sim_mob::Logger::log("path_set");
+int eraseCnt = 0;
+}
 namespace sim_mob
 {
 /// Base template class for all cache implementations
@@ -78,7 +82,9 @@ public:
 
     // Make space if necessary
     if (keyToValue.size()==capacity)
+    {
       evict();
+    }
 
     // Record k as most-recently-used key
     typename keyTrackerType::iterator it
@@ -107,7 +113,7 @@ private:
     const typename KeyToValueType::iterator it
       =keyToValue.find(keyTracker.front());
     assert(it!=keyToValue.end());
-
+    logger << ++eraseCnt << " Erase from cache\n";
     // Erase both elements to completely purge record
     keyToValue.erase(it);
     keyTracker.pop_front();

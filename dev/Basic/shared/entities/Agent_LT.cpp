@@ -113,34 +113,11 @@ void sim_mob::Agent_LT::SetIncrementIDStartValue(int startID,bool failIfAlreadyU
 }
 
 sim_mob::Agent_LT::Agent_LT(	const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)), mutexStrat(mtxStrat), initialized(false),
-								//originNode(), destNode(),
-								//xPos(mtxStrat, 0), yPos(mtxStrat, 0),
-								//fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0),
-								lastUpdatedFrame(-1),
-								//currLink(nullptr),
-								//isQueuing(false), distanceToEndOfSegment(0.0),
-								//currLinkTravelStats(nullptr, 0.0), linkTravelStatsMap(mtxStrat),
-								//rdSegTravelStatsMap(mtxStrat), currRdSegTravelStats(nullptr, 0.0),
-								toRemoved(false), nextPathPlanned(false), dynamic_seed(id), currTick(0,0), commEventRegistered(false)
-{
-	//Register global life cycle events.
-	//NOTE: We can't profile the agent's construction, since it's not necessarily on a thread at this point.
-	//      Fortunately, no-one was using this behavior anyway.
-	/*if (ConfigManager::GetInstance().CMakeConfig().ProfileAgentUpdates()) {
-		profile = new ProfileBuilder();
-		//profile->logAgentCreated(*this);
-	}*/
-}
+								lastUpdatedFrame(-1),toRemoved(false), nextPathPlanned(false), dynamic_seed(id), currTick(0,0), commEventRegistered(false)
+{}
 
 sim_mob::Agent_LT::~Agent_LT()
 {
-	//NOTE: We can't profile the agent's deletion, since it's not necessarily on a thread at this point.
-	//      Fortunately, no-one was using this behavior anyway.
-	/*if (ConfigManager::GetInstance().CMakeConfig().ProfileAgentUpdates()) {
-		profile->logAgentDeleted(*this);
-	}*/
-	//safe_delete_item(profile);
-
 	//Un-register event listeners.
 	if (commEventRegistered)
 	{
@@ -154,16 +131,6 @@ void sim_mob::Agent_LT::resetFrameInit()
 	initialized = false;
 }
 
-//void sim_mob::Agent_LT::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
-//{
-	//By default, re-routing does nothing. Subclasses of Agent can add behavior for this.
-//}
-
-//long sim_mob::Agent::getLastUpdatedFrame() const {
-//	boost::unique_lock<boost::mutex> ll(lastUpdatedFrame_mutex);
-//	return lastUpdatedFrame;
-//}
-
 long sim_mob::Agent_LT::getLastUpdatedFrame()
 {
 	return lastUpdatedFrame;
@@ -173,8 +140,6 @@ void sim_mob::Agent_LT::setLastUpdatedFrame(long lastUpdatedFrame)
 {
 	this->lastUpdatedFrame = lastUpdatedFrame;
 }
-
-
 
 void sim_mob::Agent_LT::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
 {
@@ -296,17 +261,6 @@ Entity::UpdateStatus sim_mob::Agent_LT::update(timeslice now)
 			std::stringstream msg;
 			msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
 
-			/*
-			if(originNode.type_ == WayPoint::NODE)
-			{
-				msg <<"\n  From node: " <<(originNode.node_?originNode.node_->originalDB_ID.getLogItem():"<Unknown>");
-			}
-			if(destNode.type_ == WayPoint::NODE )
-			{
-				msg <<"\n  To node: " <<(destNode.node_?destNode.node_->originalDB_ID.getLogItem():"<Unknown>");
-			}
-			*/
-
 			msg <<"\n  " <<ex.what();
 			LogOut(msg.str() <<std::endl);
 		}
@@ -333,19 +287,7 @@ Entity::UpdateStatus sim_mob::Agent_LT::update(timeslice now)
 }
 
 
-void sim_mob::Agent_LT::buildSubscriptionList(vector<BufferedBase*>& subsList)
-{
-	/*
-	subsList.push_back(&xPos);
-	subsList.push_back(&yPos);
-	subsList.push_back(&fwdVel);
-	subsList.push_back(&latVel);
-	subsList.push_back(&xAcc);
-	subsList.push_back(&yAcc);
-	*/
-	//subscriptionList_cached.push_back(&currentLink);
-	//subscriptionList_cached.push_back(&currentCrossing);
-}
+void sim_mob::Agent_LT::buildSubscriptionList(vector<BufferedBase*>& subsList){}
 
 
 bool sim_mob::Agent_LT::isToBeRemoved()
@@ -362,28 +304,6 @@ void sim_mob::Agent_LT::clearToBeRemoved()
 {
 	toRemoved = false;
 }
-
-//const sim_mob::Link* sim_mob::Agent_LT::getCurrLink() const
-//{
-//	return currLink;
-//}
-
-//void sim_mob::Agent_LT::setCurrLink(const sim_mob::Link* link)
-//{
-//	currLink = link;
-//}
-
-//void sim_mob::Agent_LT::initLinkTravelStats(const Link* link, double entryTime)
-//{
-	//currLinkTravelStats.link_ = link;
-	//currLinkTravelStats.linkEntryTime_ = entryTime;
-//}
-
-//void sim_mob::Agent_LT::addToLinkTravelStatsMap(linkTravelStats ts, double exitTime)
-//{
-	//std::map<double, linkTravelStats>& travelMap = linkTravelStatsMap.getRW();
-	//travelMap.insert(std::make_pair(exitTime, ts));
-//}
 
 NullableOutputStream sim_mob::Agent_LT::Log()
 {
@@ -425,18 +345,6 @@ void sim_mob::Agent_LT::onEvent(EventId eventId, Context ctxId, EventPublisher* 
 }
 
 void sim_mob::Agent_LT::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message){}
-
-//void sim_mob::Agent_LT::initRdSegTravelStats(const RoadSegment* rdSeg, double entryTime)
-//{
-	//currRdSegTravelStats.rdSeg_ = rdSeg;
-	//currRdSegTravelStats.rdSegEntryTime_ = entryTime;
-//}
-
-//void sim_mob::Agent_LT::addToRdSegTravelStatsMap(rdSegTravelStats ts, double exitTime)
-//{
-	//std::map<double, rdSegTravelStats>& travelMap = rdSegTravelStatsMap.getRW();
-	//travelMap.insert(std::make_pair(exitTime, ts));
-//}
 
 #ifndef SIMMOB_DISABLE_MPI
 int sim_mob::Agent_LT::getOwnRandomNumber()

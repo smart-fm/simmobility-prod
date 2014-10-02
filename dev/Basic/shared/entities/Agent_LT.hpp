@@ -11,7 +11,7 @@
 
 //TODO: Move to cpp file.
 #include <stdexcept>
-#include "geospatial/RoadRunnerRegion.hpp"
+//#include "geospatial/RoadRunnerRegion.hpp"
 //END TODO
 
 //These are minimal header file, so please keep includes to a minimum.
@@ -32,15 +32,12 @@ namespace sim_mob
 {
 
 class Agent_LT;
-class Lane;
 class Link;
 class WorkGroup;
-class BufferedBase;
 class ShortTermBoundaryProcessor;
 class PackageUtils;
 class UnPackageUtils;
-class RoadSegment;
-class RoadRunnerRegion;
+
 
 //It is not a good design, now. Need to verify.
 //The class is used in Sim-Tree for Bottom-Up Query
@@ -71,8 +68,7 @@ class EventTimePriorityQueue_lt : public std::priority_queue<PendingEvent, std::
  * \author Wang Xinyuan
  * \author Xu Yan
  * \author zhang huai peng
- *
- * Agents maintain an x and a y position. They may have different behavioral models.
+
  */
 class Agent_LT : public sim_mob::Entity
 {
@@ -148,7 +144,6 @@ public:
 	void setToBeRemoved();
 	void clearToBeRemoved(); ///<Temporary function.
 
-	//virtual const sim_mob::Link* getCurrLink() const = 0;
 	virtual	void setCurrLink(const sim_mob::Link* link) = 0;
 
 	/**
@@ -178,53 +173,6 @@ private:
 
 public:
 
-
-	/*
-	//Either linkTravelStats or rdSegTravelStats will be populated depending on the requirements for link or road segment travel times
-	struct linkTravelStats
-	{
-	public:
-		const Link* link_;
-		double linkEntryTime_;
-		double linkExitTime_;
-		std::map<double, unsigned int> rolesMap; //<timestamp, newRoleID>
-
-		// note: link exit time will be available only when the agent exits the
-		// link. -1 is a dummy value indication that the agent is in the link
-		linkTravelStats(const Link* link,unsigned int linkEntryTime): link_(link), linkEntryTime_(linkEntryTime), linkExitTime_(-1){}
-	};
-
-	struct rdSegTravelStats
-	{
-	public:
-		const RoadSegment* rdSeg_;
-		double rdSegEntryTime_;
-		double rdSegExitTime_;
-		std::map<double, unsigned int> rolesMap; //<timestamp, newRoleID>
-
-		// note: segment exit time will be available only when the agent exits the
-		// segment. -1 is a dummy value indication that the agent is in the segment
-		rdSegTravelStats(const RoadSegment* rdSeg,unsigned int rdSegEntryTime): rdSeg_(rdSeg), rdSegEntryTime_(rdSegEntryTime), rdSegExitTime_(-1)	{}
-	};
-	*/
-
-public:
-
-	/*
-	//The agent's start/end nodes.
-	WayPoint originNode;
-	WayPoint destNode;
-
-	sim_mob::Shared<int> xPos;  ///<The agent's position, X
-	sim_mob::Shared<int> yPos;  ///<The agent's position, Y
-
-	sim_mob::Shared<double> fwdVel;  ///<The agent's velocity, X
-	sim_mob::Shared<double> latVel;  ///<The agent's velocity, Y
-
-	sim_mob::Shared<double> xAcc;  ///<The agent's acceleration, X
-	sim_mob::Shared<double> yAcc;  ///<The agent's acceleration, Y
-	*/
-
 	timeslice currTick;// curr Time tick
 
 	///Agents can access all other agents (although they usually do not access by ID)
@@ -242,13 +190,6 @@ public:
 	///\param failIfAlreadyUsed If true, fails with an exception if the auto ID has already been used or set.
 	static void SetIncrementIDStartValue(int startID, bool failIfAlreadyUsed);
 
-	///Note: Calling this function from another Agent is extremely dangerous if you
-	/// don't know what you're doing.
-	//boost::mt19937& getGenerator()
-	//{
-	//	return gen;
-	//}
-
 	const sim_mob::MutexStrategy& getMutexStrategy()
 	{
 		return mutexStrat;
@@ -260,60 +201,6 @@ public:
 	void setNextPathPlanned(bool value) { nextPathPlanned = value; }
 	bool getNextPathPlanned() { return nextPathPlanned; }
 
-	/*
-	void setNextEvent(PendingEvent* value) { nextEvent = value; }
-	PendingEvent* getNextEvent() { return nextEvent; }
-
-	void setCurrEvent(PendingEvent* value) { currEvent = value; }
-	PendingEvent* getCurrEvent() { return currEvent; }
-	*/
-
-	//==================== road segment travel time computation ===================================
-	//travelStats for each agent will be updated either for a role change or road segment change
-	//void initRdSegTravelStats(const RoadSegment* rdSeg, double entryTime);
-	//void addToRdSegTravelStatsMap(rdSegTravelStats ts, double exitTime);
-
-	//rdSegTravelStats getRdSegTravelStats()
-	//{
-	//	return currRdSegTravelStats;
-	//}
-
-	//const std::map<double, rdSegTravelStats>& getRdSegTravelStatsMap()
-	//{
-	//	return this->rdSegTravelStatsMap.get();
-	//}
-
-	//rdSegTravelStats currRdSegTravelStats;
-
-	//sim_mob::Shared< std::map<double, rdSegTravelStats> > rdSegTravelStatsMap; //<linkExitTime, travelStats>
-
-	//==================== end of road segment travel time computation ============================
-
-	//============================ link travel time computation ===================================
-	//travelStats for each agent will be updated either for a role change or link change
-	//void initLinkTravelStats(const Link* link, double entryTime);
-	//void addToLinkTravelStatsMap(linkTravelStats ts, double exitTime);
-
-	//linkTravelStats getLinkTravelStats()
-	//{
-	//	return currLinkTravelStats;
-	//}
-
-	//const std::map<double, linkTravelStats>& getLinkTravelStatsMap()
-	//{
-	//	return this->linkTravelStatsMap.get();
-	//}
-
-	//linkTravelStats currLinkTravelStats;
-	//sim_mob::Shared< std::map<double, linkTravelStats> > linkTravelStatsMap; //<linkExitTime, travelStats>
-	//=============================end of link travel time computation ===========================
-
-	//bool isQueuing;
-	//double distanceToEndOfSegment;
-	//double drivingTimeToEndOfLink;
-	//double movingVelocity;
-
-	//timeslice enqueueTick;
 
 protected:
 	///Raises an exception if the given Agent was started either too early or too late, or exists past its end time.
@@ -332,11 +219,6 @@ private:
     //Unknown until runtime
     std::map<std::string, std::string> configProperties;
 
-    /*
-	PendingEvent* currEvent;
-	PendingEvent* nextEvent;
-    */
-
 	bool nextPathPlanned; //determines if the detailed path for the current subtrip is already planned
 
 	bool onActivity; //Determines if the person is conducting any activity
@@ -345,15 +227,8 @@ private:
 protected:
 	int dynamic_seed;
 
-	//Random number generator
-	//TODO: For now (for thread safety) I am giving each Agent control over its own random
-	//      number stream. We can probably raise this to the Worker level if we require it.
-	//boost::mt19937 gen;
-	//const sim_mob::Link* currLink;
-
 public:
 	int getOwnRandomNumber();
-
 
 	bool isInitialized() const
 	{
@@ -395,126 +270,6 @@ private:
 	///Have we registered to receive commsim-related messages?
 	bool commEventRegistered;
 
-
-public:
-	/**
-	 * This struct is used to track the Regions and Paths available to this Agent. This functionality is
-	 *   ONLY used in RoadRunner, so putting it in Agent is not idea. At the moment, I am not sure of the best
-	 *   way to resolve this (as the commsim code uses a generic "Agent" in most cases), so I'm putting it in
-	 *   the most obvious place. Ideally, we would have a framework for "optional" elements such as this.
-	 * Note that, if the RegionAndPathTracker is disabled, attempting to call getNewRegion/PathSet() will throw
-	 *   an exception.
-	 */
-
-	/*
-	struct RegionAndPathTracker
-	{
-		RegionAndPathTracker() : enabled(false) {}
-
-		///Enable Region tracking. Without this, the "get()" functions will throw.
-		void enable()
-		{
-			enabled = true;
-		}
-
-		///Is Region tracking enabled?
-		bool isEnabled() const
-		{
-			return enabled;
-		}
-
-		///Reset the list of Regions (or paths)
-		void resetAllRegionsSet()
-		{
-			newAllRegions.clear();
-		}
-
-		void resetNewRegionPath()
-		{
-			newRegionPath.clear();
-		}
-
-		///See: Agent::getNewAllRegionsSet()
-		std::vector<sim_mob::RoadRunnerRegion> getNewAllRegionsSet() const
-		{
-			if (!enabled)
-			{
-				throw std::runtime_error("Agent Region Tracking is disabled.");
-			}
-
-			return newAllRegions;
-		}
-
-		///Set Agent::getNewRegionPath()
-		std::vector<sim_mob::RoadRunnerRegion> getNewRegionPath() const
-		{
-			if (!enabled)
-			{
-				throw std::runtime_error("Agent Region Tracking is disabled.");
-			}
-			return newRegionPath;
-		}
-
-		///Set the "all regions" return value.
-		void setNewAllRegionsSet(const std::vector<sim_mob::RoadRunnerRegion>& value)
-		{
-			newAllRegions = value;
-		}
-
-		///Set the "region path" return value.
-		void setNewRegionPath(const std::vector<sim_mob::RoadRunnerRegion>& value)
-		{
-			newRegionPath = value;
-		}
-
-	private:
-		///Actual storage + enabled.
-		std::vector<sim_mob::RoadRunnerRegion> newAllRegions;
-		std::vector<sim_mob::RoadRunnerRegion> newRegionPath;
-		bool enabled;
-	} regionAndPathTracker;
-
-	*/
-
-private:
-	///Enable Region support.
-	///See RegionAndPathTracker for more information.
-	//void enableRegionSupport()
-	//{
-	//	regionAndPathTracker.enable();
-	//}
-
-public:
-	///Returns the current set of "all Regions", but only if region-tracking is enabled, and only if
-	/// the region set has changed since the last time tick.
-	///See RegionAndPathTracker for more information.
-	//std::vector<sim_mob::RoadRunnerRegion> getAndClearNewAllRegionsSet()
-	//{
-		//std::vector<sim_mob::RoadRunnerRegion> res = regionAndPathTracker.getNewAllRegionsSet();
-		//regionAndPathTracker.resetAllRegionsSet();
-		//return res;
-	//}
-
-	///Returns the current set of Regions this Agent expects to travel through on its way to its goal,
-	///but only if region-tracking is enabled, and only if the path set has changed since the last time tick.
-	///See RegionAndPathTracker for more information.
-	//std::vector<sim_mob::RoadRunnerRegion> getAndClearNewRegionPath()
-	//{
-		//std::vector<sim_mob::RoadRunnerRegion> res = regionAndPathTracker.getNewRegionPath();
-		//regionAndPathTracker.resetNewRegionPath();
-		//return res;
-	//}
-
-	///Get the Region-support object. This is used for all other Region-related queries.
-	//RegionAndPathTracker& getRegionSupportStruct()
-	//{
-	//	return regionAndPathTracker;
-	//}
-
-	//const RegionAndPathTracker& getRegionSupportStruct() const
-	//{
-	//	return regionAndPathTracker;
-	//}
 };
 
 } //End namespace sim_mob

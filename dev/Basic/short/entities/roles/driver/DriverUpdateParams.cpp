@@ -144,6 +144,7 @@ void DriverUpdateParams::buildDebugInfo()
 
 	// debug aura mgr
 	#if 1
+		s<<"            "<<parentId;
 		int fwdcarid=-1;
 		char fwdnvdis[20] = "\0";
 				if(this->nvFwd.exists())
@@ -214,7 +215,7 @@ void DriverUpdateParams::buildDebugInfo()
 				char emergHeadwaystr[20] = "\0";
 				sprintf(emergHeadwaystr,"emergHeadway%03.1f",emergHeadway);
 
-//				s<<":fwd"<<fwdcarid;
+				s<<":fwd"<<fwdcarid;
 //				s<<":"<<fwdnvdis;
 //				s<<":"<<disChar;
 //				s<<":"<<headwaystr;

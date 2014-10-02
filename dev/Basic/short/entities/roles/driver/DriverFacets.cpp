@@ -2101,19 +2101,19 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 //Assign next left/right lane based on lane ID.
 				size_t nextLaneIndex = getLaneIndex(nextLane);
 				if (nextLaneIndex > 0) {
-					nextLeftLane = otherRoadSegment->getLanes().at(
+					nextRightLane = otherRoadSegment->getLanes().at(
 							nextLaneIndex - 1);
 				}
 				if (nextLaneIndex < otherRoadSegment->getLanes().size() - 1) {
-					nextRightLane = otherRoadSegment->getLanes().at(
+					nextLeftLane = otherRoadSegment->getLanes().at(
 							nextLaneIndex + 1);
 				}
 				if (nextLaneIndex > 1) {
-					nextLeftLane2 = otherRoadSegment->getLanes().at(
+					nextRightLane2 = otherRoadSegment->getLanes().at(
 							nextLaneIndex - 2);
 				}
 				if (nextLaneIndex < otherRoadSegment->getLanes().size() - 2) {
-					nextRightLane2 = otherRoadSegment->getLanes().at(
+					nextLeftLane2 = otherRoadSegment->getLanes().at(
 							nextLaneIndex + 2);
 				}
 			}
@@ -2155,13 +2155,25 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 //Find the node which leads to this one from the UniNode. (Requires some searching; should probably
 // migrate this to the UniNode class later).
 			const vector<Lane*>& lanes = otherRoadSegment->getLanes();
-			if (uNode) {
+
+			// commented by Max, current uninode lane connector 1 to many
+			/*if (uNode) {
 				for (vector<Lane*>::const_iterator it = lanes.begin();
 						it != lanes.end() && !preLane; it++) {
 					if (uNode->getOutgoingLane(**it) == params.currLane) {
 						preLane = *it;
 					}
 				}
+			}*/
+
+			//as sub
+			if(params.currLaneIndex <= lanes.size()){
+				preLane = lanes.at(params.currLaneIndex);
+			}
+			else{
+				preLane = nullptr;
+				preLeftLane = nullptr;
+				preRightLane = lanes.at(params.currLaneIndex-1);
 			}
 
 //Make sure next lane is in the next road segment, although it should be true
@@ -2169,11 +2181,11 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 //Save the new left/right lanes
 				size_t preLaneIndex = getLaneIndex(preLane);
 				if (preLaneIndex > 0) {
-					preLeftLane = otherRoadSegment->getLanes().at(
+					preRightLane = otherRoadSegment->getLanes().at(
 							preLaneIndex - 1);
 				}
 				if (preLaneIndex < otherRoadSegment->getLanes().size() - 1) {
-					preRightLane = otherRoadSegment->getLanes().at(
+					preLeftLane = otherRoadSegment->getLanes().at(
 							preLaneIndex + 1);
 				}
 			}

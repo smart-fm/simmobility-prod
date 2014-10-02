@@ -189,7 +189,7 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
             } else { //has vehicle ahead
                 otherSpeed[i].lead = fwd->driver->fwdVelocity.get();
                 otherDistance[i].lead = fwd->distance/100.0;
-                otherAcc[i].lead = fwd->driver->fwdAccel.get();
+                otherAcc[i].lead = fwd->driver->fwdAccel.get()/100.0;
             }
 
             if (!back->exists()) {//no vehicle behind
@@ -199,7 +199,7 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
             } else { //has vehicle behind, check the gap
                 otherSpeed[i].lag = back->driver->fwdVelocity.get();
                 otherDistance[i].lag = back->distance/100.0;
-                otherAcc[i].lag = back->driver->fwdAccel.get();
+                otherAcc[i].lag = back->driver->fwdAccel.get()/100.0;
             }
         } else { // no left/right side exists
             otherSpeed[i].lead = 0;
@@ -898,12 +898,14 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 //	boost::uniform_int<> zero_to_max(0, RAND_MAX);
 //	double rnd = (double) (zero_to_max(p.gen) % 1000) / 1000;
 
-	double rnd = Utils::uRandom();
+	double rnd = Utils::generateFloat(0,1);//Utils::uRandom();
 	if(rnd>=1.0) rnd = 0.99;
 	p.rnd = rnd;
-
+	p.lcDebugStr<<";rnd"<<rnd;
 	float probOfCurrentLane = euc / sum;
+	p.lcDebugStr<<";pc"<<probOfCurrentLane;
 	float probOfCL_LL = probOfCurrentLane + eul / sum;
+	p.lcDebugStr<<";pl"<<probOfCL_LL;
 
 	p.utilityCurrent = euc / sum ;
 	p.utilityLeft = eul / sum ;
@@ -912,14 +914,17 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 	if (rnd <= probOfCurrentLane){
 		change = LCS_SAME ;
 		p.lcd = "lcd-c";
+		p.lcDebugStr<<";lcd-c";
 	}
 	else if (rnd <= probOfCL_LL){
 		p.lcd = "lcd-l";
 		change = LCS_LEFT ;
+		p.lcDebugStr<<";lcd-l";
 	}
 	else {
 		p.lcd = "lcd-r";
 		change = LCS_RIGHT ;
+		p.lcDebugStr<<";lcd-r";
 	}
 
 
@@ -1706,9 +1711,14 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 		p.lcDebugStr<<";FLG";
 		p.setFlag(FLAG_LC_FAILED_LAG); // lag gap
 	}
-	else if (av->exists() && aheadway < lcCriticalGap(p,0, av->driver->fwdVelocity/100.0 - p.currSpeed)) {
-		p.lcDebugStr<<";FLD";
-		p.setFlag(FLAG_LC_FAILED_LEAD); // lead gap
+	else if ( av->exists() ) {
+		double cg = lcCriticalGap(p,0, av->driver->fwdVelocity/100.0 - p.currSpeed);
+		p.lcDebugStr<<";aheadway"<<aheadway;
+		p.lcDebugStr<<";avcg"<<cg;
+		if(aheadway < cg  ){
+			p.lcDebugStr<<";FLD";
+			p.setFlag(FLAG_LC_FAILED_LEAD); // lead gap
+		}
 	}
 
 	// 7.0 if gap ok, then doing lane change
@@ -1741,7 +1751,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 		// and decide to nose in.
 
 		int nosing = p.flag(FLAG_NOSING);
-		p.lcDebugStr<<";LCF";
+		p.lcDebugStr<<";LCF"<<nosing<<";ds"<<p.dis2stop;
 		if (!nosing && p.dis2stop < lcMaxNosingDis) {
 			p.lcDebugStr<<";NDis";
 			float gap = aheadway + bheadway ;
@@ -1882,18 +1892,23 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 }
 int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestVehicle * av,const NearestVehicle * bv,double dis2stop)
 {
+	p.lcDebugStr<<"^^^CKFIS";
 	if (p.flag(FLAG_STUCK_AT_END)) {
+		p.lcDebugStr<<";stuck";
 		if ( timeSinceTagged(p) > lcMaxStuckTime )
 		{
 			// If one stuck for a very long time, skip the feasibility check
+			p.lcDebugStr<<";max";
 		    return 1;
 		}
 	}
 	else
 	{
+		p.lcDebugStr<<";CF0";
 		double length = p.driver->getVehicle()->getLengthCm()/100.0;// vh length
 		if (dis2stop < length && p.currSpeed < Math::DOUBLE_EPSILON)
 		{
+			p.lcDebugStr<<";CF1";
 			p.setFlag(FLAG_STUCK_AT_END);
 		}
 	}
@@ -1904,42 +1919,46 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 	float lower = -Math::FLT_INF;
 	float upper = Math::FLT_INF;
 
+	p.lcDebugStr<<";CF2";
 	if (av->exists()) {
-
+		p.lcDebugStr<<";CF3";
 		Driver *avDriver = const_cast<Driver*>(av->driver);
 		DriverUpdateParams& avp = avDriver->getParams();
 		if ((avp.flag(FLAG_NOSING) || avp.flag(FLAG_YIELDING)) &&
 			av->distance/100.0 < 2.0 * p.lcMinGap(2)) {
-
+			p.lcDebugStr<<";CF4";
 		  // The lead vehicle is yeilding or nosing
 		  return 0;		// To avoid dead lock
 
 		}
 		else if (p.flag(FLAG_LC_FAILED_LEAD)) {
-
+			p.lcDebugStr<<";CF5";
 		  // Acceleration rate in order to be slower than the leader
 
 		  upper = (av->driver->fwdVelocity.get()/100.0 - p.currSpeed) /
 			lcNosingConstStateTime +
 			av->driver->fwdAccel.get()/100.0;
-
+		  p.lcDebugStr<<";up"<<upper;
 		  if (upper < p.maxDeceleration) {
+			  p.lcDebugStr<<";CF6";
 			return 0;		// This vehicle is too fast
 		  }
 		} else if (av->driver->fwdVelocity/100.0 < Math::DOUBLE_EPSILON &&
 				   p.dis2stop > p.distanceToNormalStop &&
 				   p.nvFwd.distance/100.0 > p.distanceToNormalStop) {
+			p.lcDebugStr<<";CF7";
 		  return 0;
 		}//end if FLAG_LC_FAILED_LEAD
 	}//end if av
 
 	if (bv->exists()) {
-
+		p.lcDebugStr<<";CF8";
 		Driver *bvDriver = const_cast<Driver*>(bv->driver);
 		DriverUpdateParams& bvp = bvDriver->getParams();
 
 		if (p.driver->getVehicle()->getVehicleType() == VehicleBase::BUS && p.flag(FLAG_NOSING)) {
 
+			p.lcDebugStr<<";CF9";
 			// MITSIM: Dan: bus must force it's way along the route, and
 			// other vehicles will generally yield;
 			// Acceleration rate in order to be faster than the lag
@@ -1953,7 +1972,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 			if (lower > p.maxAcceleration) {	// I am will to acc hard
 
 				// This vehicle is too slow or close to the lag vehicle
-
+				p.lcDebugStr<<";CF10"<<";lower"<<lower;
 				return 0;
 			}
 
@@ -1962,19 +1981,21 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 				(bvp.flag(FLAG_YIELDING) &&
 				bv->driver->yieldVehicle != p.driver &&
 				bv->distance/100.0 < 2.0 * p.lcMinGap(3) )) {
-
+			p.lcDebugStr<<";CF11";
 			// The lag vehicle is nosing or yielding to another vehicle or
 			// not willing to yield
 
 			return 0;		// To avoid dead lock
-		} else if (!Utils::brandom(lcYieldingProb[p.flag(FLAG_YIELDING) ? 1 : 0]) ) {
-
-			// The lag vehicle is not willing to yield
-
-			return 0;		// Skip in this iteration
-
-		} else if (p.flag(FLAG_LC_FAILED_LAG)) {
-
+		}
+//		else if (!Utils::brandom(lcYieldingProb[p.flag(FLAG_YIELDING) ? 1 : 0]) ) {
+//			p.lcDebugStr<<";CF12";
+//			// The lag vehicle is not willing to yield
+//
+//			return 0;		// Skip in this iteration
+//
+//		}
+		else if (p.flag(FLAG_LC_FAILED_LAG)) {
+			p.lcDebugStr<<";CF13";
 			// Acceleration rate in order to be faster than the lag
 			// vehicle and do not cause the lag vehicle to decelerate
 			// harder than its normal deceleration rate
@@ -1982,11 +2003,11 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 			lower = (bv->driver->fwdVelocity/100.0 - p.currSpeed) /
 					lcNosingConstStateTime +
 					p.normalDeceleration;
-
+			p.lcDebugStr<<";low"<<lower;
 			if (lower > p.maxAcceleration) {	// I am will to acc hard
 
 				// This vehicle is too slow or close to the lag vehicle
-
+				p.lcDebugStr<<";CF14";
 				return 0;
 			}
 		}//end if FLAG_LC_FAILED_LAG
@@ -1994,7 +2015,9 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 
 	// Check if there exists a feasible acceleration rate for this
 	// vehicle
-
+	p.lcDebugStr<<";CF15";
+	p.lcDebugStr<<";low"<<lower;
+	p.lcDebugStr<<";upper"<<upper;
 	if (lower > upper) return 0;
 		else return 1;
 }

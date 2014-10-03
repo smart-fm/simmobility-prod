@@ -34,37 +34,41 @@ using std::string;
 
 namespace
 {
-const string MODEL_NAME = "Housing Market Model";
-const BigSerial FAKE_IDS_START = 9999900;
+	const string MODEL_NAME = "Housing Market Model";
+	const BigSerial FAKE_IDS_START = 9999900;
 
-enum RESIDENTIAL_STATUS
-{
-	RESIDENT = 1,
-	EMPLYMENT_PASS,
-	SP_PASS,
-	W_PASS,
-	DORM_WORKERS,
-	DORM_STUDENTS,
-	CROSSBORDER
-};
+	enum RESIDENTIAL_STATUS
+	{
+		RESIDENT = 1,
+		EMPLYMENT_PASS,
+		SP_PASS,
+		W_PASS,
+		DORM_WORKERS,
+		DORM_STUDENTS,
+		CROSSBORDER
+	};
 
-enum AGE_CATEGORY
-{
-	MINOR = 21, YOUNG_ADULT = 45, MIDDLE_AGED_ADULT = 65,
-};
+	enum AGE_CATEGORY
+	{
+		MINOR = 21, YOUNG_ADULT = 45, MIDDLE_AGED_ADULT = 65,
+	};
 
-enum GENDER
-{
-	MALE = 1, FEMALE = 2
-};
+	enum GENDER
+	{
+		MALE = 1, FEMALE = 2
+	};
 
-enum INCOME_CEILING
-{
-	TWOBEDROOM = 5000, THREEBEDROOM = 1000, THREEBEDROOMMATURE = 15000
-};
+	enum INCOME_CEILING
+	{
+		TWOBEDROOM = 5000, THREEBEDROOM = 1000, THREEBEDROOMMATURE = 15000
+	};
 
-const int YEAR = 365;
+	const int YEAR = 365;
+
+	const int NON_RESIDENTIAL_PROPERTY = 66;
 }
+
+
 
 HM_Model::TazStats::TazStats(BigSerial tazId) :	tazId(tazId), hhNum(0), hhTotalIncome(0) {}
 
@@ -299,8 +303,11 @@ void HM_Model::startImpl()
 		//this unit is a vacancy
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
 		{
-			fakeSellers[vacancies % numberOfFakeSellers]->addUnitId((*it)->getId());
-			vacancies++;
+			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY )
+			{
+				fakeSellers[vacancies % numberOfFakeSellers]->addUnitId((*it)->getId());
+				vacancies++;
+			}
 		}
 	}
 
@@ -319,7 +326,124 @@ void HM_Model::startImpl()
 
 		if (tempHH != nullptr)
 			tempHH->setIndividual(individuals[n]->getId());
+
+		//Let's set the age
+		BigSerial ageCategory = individuals[n]->getAgeCategoryId();
+
+		std::tm thisAge;
+		thisAge.tm_mday = 1;
+		thisAge.tm_mon  = 0;
+
+		time_t now = time(0);
+		tm ltm = *(localtime(&now));
+		const int yearOffset = ltm.tm_year;
+
+		PrintOut(ltm.tm_year << std::endl);
+
+		switch( ageCategory)
+		{
+		//
+		//The numbers that are seen in the case switch below is the midpoint of the age group.
+		//Hopefully this is temporary. chetan (3 Oct 2014)
+		//
+		case 0:
+			//0-4 yrs old"
+			thisAge.tm_year = yearOffset - 2;
+			break;
+		case 1:
+			//5-9yrs old"
+			thisAge.tm_year = yearOffset - 7;
+			break;
+
+		case 2:
+			//10-14 yrs old"
+			thisAge.tm_year = yearOffset - 12;
+			break;
+
+		case 3:
+			//15-19 yrs old"
+			thisAge.tm_year = yearOffset - 17;
+			break;
+
+		case 4:
+			//20-24 yrs old"
+			thisAge.tm_year = yearOffset - 22;
+			break;
+
+		case 5:
+			//25-29 yrs old"
+			thisAge.tm_year = yearOffset - 27;
+			break;
+
+		case 6:
+			//30-34 yrs old"
+			thisAge.tm_year = yearOffset - 32;
+			break;
+
+		case 7:
+			//35-39  yrs old"
+			thisAge.tm_year = yearOffset - 37;
+			break;
+
+		case 8:
+			//40-44 yrs old"
+			thisAge.tm_year = yearOffset - 42;
+			break;
+
+		case 9:
+			//45-49  yrs old"
+			thisAge.tm_year = yearOffset - 47;
+			break;
+
+		case 10:
+			//50-54 yrs old"
+			thisAge.tm_year = yearOffset - 52;
+			break;
+
+		case 11:
+			//55-59  yrs old"
+			thisAge.tm_year = yearOffset - 57;
+			break;
+
+		case 12:
+			//60-64 yrs old"
+			thisAge.tm_year = yearOffset - 62;
+			break;
+
+		case 13:
+			//65-69 yrs old"
+			thisAge.tm_year = yearOffset - 67;
+			break;
+
+		case 14:
+			//70-74  yrs old"
+			thisAge.tm_year = yearOffset - 72;
+			break;
+
+		case 15:
+			//75-79 yrs old"
+			thisAge.tm_year = yearOffset - 77;
+			break;
+
+		case 16:
+			//80-84 yrs old"
+			thisAge.tm_year = yearOffset - 82;
+			break;
+
+		case 17:
+			//85+"
+			thisAge.tm_year = yearOffset - 87;
+			break;
+
+		case 18:
+			//Not Available"
+			break;
+
+		}
+
+		individuals[n]->setDateOfBirth( thisAge );
 	}
+
 
 
 	for (int n = 0; n < households.size(); n++)

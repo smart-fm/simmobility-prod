@@ -142,6 +142,10 @@ std::tm Individual::getDateOfBirth() const
 {
 	return dateOfBirth;
 }
+void Individual::setDateOfBirth( std::tm dob )
+{
+	this->dateOfBirth = dob;
+}
 
 namespace sim_mob
 {

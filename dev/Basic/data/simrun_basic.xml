@@ -184,7 +184,7 @@
                 <mapping name="node" procedure="get_node_sg()"/>
                 <mapping name="section" procedure="get_section_sg()"/>
                 <mapping name="turning" procedure="get_lane_connector_bugis()"/>
-                <mapping name="day_activity_schedule" procedure="get_activities_between"/>
+                <mapping name="day_activity_schedule" procedure="get_persons_between"/>
             </proc_map>
         </db_proc_groups>
     

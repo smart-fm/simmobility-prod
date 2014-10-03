@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <boost/unordered_map.hpp>
 #include <boost/noncopyable.hpp>
 #include <set>
 #include <string>
@@ -22,9 +21,6 @@ class StartTimePriorityQueue;
 class PeriodicPersonLoader :  private boost::noncopyable
 {
 private:
-	/** map of <person_id, Person*> for persons loaded so far in the simulation*/
-	boost::unordered_map<std::string, Person*> loadedPersons;
-
 	/** our active agents list*/
 	std::set<sim_mob::Entity*>& activeAgents;
 

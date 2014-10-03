@@ -165,15 +165,7 @@ sim_mob::PeriodicPersonLoader::PeriodicPersonLoader(std::set<sim_mob::Entity*>& 
 }
 
 sim_mob::PeriodicPersonLoader::~PeriodicPersonLoader()
-{
-	// clear all loaded persons
-	// The person objects must have already been deleted before this destructor was called (when active and pending lists are cleared after simulation)
-	// Deleting them explicitly here just to be sure.
-	for(boost::unordered_map<string, Person*>::iterator i = loadedPersons.begin(); i!=loadedPersons.end(); i++) {
-		safe_delete_item(i->second);
-	}
-	loadedPersons.clear();
-}
+{}
 
 void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 {
@@ -185,44 +177,34 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	std::string sql_str = query.str();
 	soci::rowset<soci::row> rs = (sql_.prepare << sql_str);
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
-	std::vector<Person*> newPersons;
 	unsigned actCtr = 0;
+	map<string, vector<TripChainItem*> > tripchains;
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
 		const soci::row& r = (*it);
 		std::string personId = r.get<string>(0);
 		bool isLastInSchedule = (r.get<double>(9)==LAST_30MIN_WINDOW_OF_DAY) && (r.get<string>(4)==HOME_ACTIVITY_TYPE);
-		boost::unordered_map<string, Person*>::iterator pIt=loadedPersons.find(personId);
-		Person* person = nullptr;
-		if(pIt==loadedPersons.end())
-		{
-			//Create and add new person
-			person = new sim_mob::Person("DAS_TripChain", cfg.mutexStategy(), -1, personId);
-			loadedPersons[personId] = person;
-			newPersons.push_back(person);
-		}
-		else { person = pIt->second; }
-		std::vector<TripChainItem*>& personTripChain = person->getTripChain();
+		std::vector<TripChainItem*>& personTripChain = tripchains[personId];
 		//add trip and activity
-		unsigned int seqNo = person->getTripChain().size(); //seqNo of last trip chain item
+		unsigned int seqNo = personTripChain.size(); //seqNo of last trip chain item
 		personTripChain.push_back(makeTrip(r, ++seqNo));
 		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }
 		actCtr++;
 	}
 
 	//add or stash new persons
-	for(std::vector<Person*>::iterator i=newPersons.begin(); i!=newPersons.end(); i++)
+	for(map<string, vector<TripChainItem*> >::iterator i=tripchains.begin(); i!=tripchains.end(); i++)
 	{
-		(*i)->initTripChain(); //initialize person's trip chain
-		addOrStashPerson(*i);
+		Person* person = new Person("DAS_TripChain", cfg.mutexStategy(), i->second);
+		addOrStashPerson(person);
 	}
 
 	Print() << "PeriodicPersonLoader:: activities loaded from " << nextLoadStart << " to " << end << ": " << actCtr
-			<< " | new persons loaded: " << newPersons.size() << endl;
+			<< " | new persons loaded: " << tripchains.size() << endl;
 
 	Print() << "active_agents: " << activeAgents.size() << " | pending_agents: " << pendingAgents.size() << endl;
 	//update next load start
-	nextLoadStart = end + DEFAULT_LOAD_INTERVAL;																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																	nextLoadStart = end; //update for next loading
+	nextLoadStart = end + DEFAULT_LOAD_INTERVAL;
 }
 
 void sim_mob::PeriodicPersonLoader::addOrStashPerson(Person* p)

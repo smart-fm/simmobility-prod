@@ -338,8 +338,6 @@ void HM_Model::startImpl()
 		tm ltm = *(localtime(&now));
 		const int yearOffset = ltm.tm_year;
 
-		PrintOut(ltm.tm_year << std::endl);
-
 		switch( ageCategory)
 		{
 		//

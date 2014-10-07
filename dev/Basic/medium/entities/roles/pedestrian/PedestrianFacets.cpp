@@ -83,7 +83,7 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 	if (subTrip.fromLocation.type_ == WayPoint::NODE) {
 		source = streetDirectory.DrivingVertex(*subTrip.fromLocation.node_);
 	} else if (subTrip.fromLocation.type_ == WayPoint::BUS_STOP) {
-		const Node* node = subTrip.fromLocation.busStop_->getParentSegment()->getEnd();
+		const Node* node = subTrip.fromLocation.busStop_->getParentSegment()->getStart();
 		source = streetDirectory.DrivingVertex(*node);
 	}
 

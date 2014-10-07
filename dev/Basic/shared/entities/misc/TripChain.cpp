@@ -165,9 +165,9 @@ void sim_mob::Trip::addSubTrip(const sim_mob::SubTrip& subTrip)
 {
 	subTrips.push_back(subTrip);
 }
-const std::string sim_mob::Trip::getMode(const sim_mob::SubTrip *subTrip) const{
-	if(!subTrip)
-		throw std::runtime_error("Invalid subtrip supplied");
+const std::string sim_mob::Trip::getMode(const sim_mob::SubTrip *subTrip) const
+{
+	if(!subTrip) { throw std::runtime_error("Invalid subtrip supplied"); }
 	return subTrip->getMode();
 }
 

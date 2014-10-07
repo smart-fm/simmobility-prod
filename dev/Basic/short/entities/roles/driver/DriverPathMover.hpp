@@ -44,6 +44,8 @@ public:
 	///TODO: I'm not entirely sure that all cases of fwd/rev RoadSegments are handled properly.
 	void setPath(const std::vector<const sim_mob::RoadSegment*>& path, std::vector<bool>& areFwds, int startLaneID);
 	void setPath(const std::vector<const sim_mob::RoadSegment*>& path, int startLaneID);
+	void setPathWithInitSeg(const std::vector<const sim_mob::RoadSegment*>& path,
+			int startLaneID,int initSegId,int initPer,int initSpeed);
 
 	//reset path
 	//in route choice model, it will be used when the vehicle is approaching an intersection
@@ -108,7 +110,7 @@ public:
 	double getAllRestRoadSegmentsLengthCM() const;
 
 	//Retrieve our X/Y position based ONLY on forward movement (e.g., nothing with Lanes)
-	sim_mob::DPoint getPosition() const;
+	sim_mob::DPoint getPosition();
 
 	//We might be able to fold Lane movement in here later. For now, it has to be called externally.
 	void shiftToNewPolyline(bool moveLeft);
@@ -157,6 +159,8 @@ public:
 	std::vector<sim_mob::Point2D> laneZeroPolypointsList;
 	std::vector<sim_mob::Point2D>::iterator currPolypoint;
 	std::vector<sim_mob::Point2D>::iterator nextPolypoint;
+
+	DynamicVector movementVect;
 
 	//Unfortuante duplication, but necessary to avoid aliasing
 	std::vector<sim_mob::Point2D>::const_iterator currLaneZeroPolypoint;

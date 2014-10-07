@@ -99,18 +99,19 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, i
 {
 }
 
-sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
+sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc)
 	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegStats(nullptr), canMoveToNextSegment(NONE),
-	  databaseID(tcs.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
-	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
+	  databaseID(tc.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
+	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tc), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
 	  client_id(-1), nextLinkRequired(nullptr), currSegStats(nullptr)
 {
-	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
-		insertWaitingActivityToTrip(tcs);
-	}
-	else if(!ConfigManager::GetInstance().FullConfig().RunningMidDemand()){
-		simplyModifyTripChain(tcs);
-	}
+	//TODO: Check with MAX what to do with the below commented lines
+//	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
+//		insertWaitingActivityToTrip(tc);
+//	}
+//	else if(!ConfigManager::GetInstance().FullConfig().RunningMidDemand()){
+//		simplyModifyTripChain(tc);
+//	}
 
 	initTripChain();
 }
@@ -189,18 +190,53 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		    Warn() << "Error: input string was not valid" << std::endl;
 		}
 	}
-
-
-	//Consistency check: are they requesting a pseudo-trip chain when they actually have one?
-	map<string, string>::const_iterator origIt = configProps.find("originPos");
-	map<string, string>::const_iterator destIt = configProps.find("destPos");
-	if (origIt!=configProps.end() && destIt!=configProps.end()) {
-		//Double-check some potential error states.
-		if (!tripChain.empty()) {
-			throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
+	// initSegId
+	std::map<std::string, std::string>::const_iterator itt = configProps.find("initSegId");
+	if(itt != configProps.end())
+	{
+		try {
+			int x = boost::lexical_cast<int>( itt->second );
+			initSegId = x;
+		} catch( boost::bad_lexical_cast const& ) {
+			Warn() << "Error: input string was not valid" << std::endl;
 		}
-		if (this->originNode.node_ || this->destNode.node_ ) {
-			throw std::runtime_error("Manual position specified for Agent with existing start and end of Trip Chain.");
+	}
+	// initSegPer
+	itt = configProps.find("initDis");
+	if(itt != configProps.end())
+	{
+		try {
+			int x = boost::lexical_cast<int>( itt->second );
+			initDis = x;
+		} catch( boost::bad_lexical_cast const& ) {
+			Warn() << "Error: input string was not valid" << std::endl;
+		}
+	}
+	// initPosSegPer
+	itt = configProps.find("initSpeed");
+	if(itt != configProps.end())
+	{
+		try {
+			int x = boost::lexical_cast<int>( itt->second );
+			initSpeed = x;
+		} catch( boost::bad_lexical_cast const& ) {
+			Warn() << "Error: input string was not valid" << std::endl;
+		}
+	}
+
+	// node
+	map<string, string>::const_iterator oriNodeIt = configProps.find("originNode");
+	map<string, string>::const_iterator destNodeIt = configProps.find("destNode");
+	if(oriNodeIt!=configProps.end() && destNodeIt!=configProps.end()) {
+		int originNodeId;
+		int destNodeid;
+		try {
+			originNodeId = boost::lexical_cast<int>( oriNodeIt->second );
+			std::cout<<"originNodeId: "<<originNodeId<<std::endl;
+			destNodeid = boost::lexical_cast<int>( destNodeIt->second );
+			std::cout<<"destNodeid: "<<destNodeid<<std::endl;
+		} catch( boost::bad_lexical_cast const& ) {
+			Warn() << "Error: input string was not valid" << std::endl;
 		}
 
 		//Otherwise, make a trip chain for this Person.
@@ -237,7 +273,46 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		this->setTripChain(trip_chain);
 		this->initTripChain();
 	}
+	else {
+		//Consistency check: are they requesting a pseudo-trip chain when they actually have one?
+		map<string, string>::const_iterator origIt = configProps.find("originPos");
+		map<string, string>::const_iterator destIt = configProps.find("destPos");
+		if (origIt!=configProps.end() && destIt!=configProps.end()) {
+			//Double-check some potential error states.
+			if (!tripChain.empty()) {
+				throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
+			}
+			if (this->originNode.node_ || this->destNode.node_ ) {
+				throw std::runtime_error("Manual position specified for Agent with existing start and end of Trip Chain.");
+			}
 
+			//Otherwise, make a trip chain for this Person.
+			this->originNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true) );
+			this->destNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destIt->second), true) );
+
+			//Make sure they have a mode specified for this trip
+			it = configProps.find("#mode");
+			if (it==configProps.end()) {
+				throw std::runtime_error("Cannot load person: no mode");
+			}
+			std::string mode = it->second;
+
+			Trip* singleTrip = MakePseudoTrip(*this, mode);
+
+			std::vector<TripChainItem*> trip_chain;
+			trip_chain.push_back(singleTrip);
+
+			//////
+			//////TODO: Some of this should be performed in a centralized place; e.g., "Agent::setTripChain"
+			//////
+			////////TODO: This needs to go in a centralized place.
+			this->originNode = singleTrip->fromLocation;
+			this->destNode = singleTrip->toLocation;
+			this->setNextPathPlanned(false);
+			this->setTripChain(trip_chain);
+			this->initTripChain();
+		}
+	}
 	//One more check: If they have a special string, save it now
 	/*it = configProps.find("special");
 	if (it != configProps.end()) {

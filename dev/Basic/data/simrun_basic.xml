@@ -165,8 +165,8 @@
                 <mapping name="busstop" procedure="get_bus_stop()"/>
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases_bugis()"/>
-                <mapping name="segment_type" procedure="get_segment_typ()"/>
-                <mapping name="node_type" procedure="get_node_typ()"/>
+                <mapping name="segment_type" procedure="get_segment_type()"/>
+                <mapping name="node_type" procedure="get_node_type()"/>
             </proc_map>
                  
             <!-- entire Singapore network with HITS trip chains -->
@@ -192,10 +192,12 @@
                 <mapping name="node_type" procedure="get_node_typ()"/>
             </proc_map>
 
-            <!-- Preday demand -->
-            <proc_map id="preday" format="long-term">
-                <mapping name="population" procedure="get_preday_person()"/>
-                <mapping name="landuse" procedure="get_landuse()"/>
+            <!-- Entire singapore network with scaled activity_schedules from preday-->
+            <proc_map id="withinday" format="aimsun">
+                <mapping name="node" procedure="get_node_sg()"/>
+                <mapping name="section" procedure="get_section_sg()"/>
+                <mapping name="turning" procedure="get_lane_connector_bugis()"/>
+                <mapping name="day_activity_schedule" procedure="get_persons_between"/>
             </proc_map>
         </db_proc_groups>
     
@@ -241,7 +243,7 @@
 
             <plaintext-credential id="harish_cred">
                 <username value="postgres"/>
-                <password value="postgres"/>
+                <password value="secret"/>
             </plaintext-credential>
         </credentials>
     </constructs>
@@ -252,12 +254,12 @@
         <!-- Total runtime need not be a multiple of the base granularity -->
         <!-- (but will be rounded down.) -->
         <simulation>
-            <base_granularity   value="100"   units="ms" />
-            <total_runtime      value="6"      units="minutes" />
+            <base_granularity   value="5"   units="seconds" />
+            <total_runtime      value="245"      units="minutes" />
             <total_warmup       value="10"     units="seconds" />
             
             <start_time         value="08:30:00"/>           
-            <pathset_traveltime_save_table value="xuyan_pathset_exp_dy"/>
+            <pathset_traveltime_save_table value="pathset"/>
             
             <!-- Implementation to use for the Aura Manager. -->
             <!-- Values include: simtree, rdu, rstar (default) -->
@@ -275,7 +277,7 @@
             <!-- Order in which agents are to be loaded into the simulation -->
             <!-- Values include: database, drivers, pedestrians, passenger, xml-tripchains -->
 
-            <load_agents order="drivers"/>
+            <load_agents order="database"/>
 
             
             <!-- Optional. At what value do we start counting for automatically -->
@@ -306,9 +308,9 @@
         <!-- List of all Worker types and their properties. -->
         <!-- granularity of each component must be a multiple of the "base" granularity -->
         <workers>
-            <person count="4" granularity="100ms"/> <!-- Person agents (with Roles) -->
-            <signal count="1" granularity="1 second"/> <!-- Traffic signals -->
-            <communication count="0" granularity="100ms"/>  <!-- Communication simulator -->
+            <person count="1" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
+            <signal count="0" granularity="5 seconds"/> <!-- Traffic signals -->
+            <communication count="0" granularity="5 seconds"/>  <!-- Communication simulator -->
         </workers>
         
         <!-- Setting to true should push everything onto one thread. -->

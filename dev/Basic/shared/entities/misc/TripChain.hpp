@@ -92,7 +92,7 @@ public:
 
 	//initialization within person's constructor with respect to tripchain
 	virtual bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *) { return false; }
-	virtual  const std::string getMode(const sim_mob::SubTrip *subTrip) const { return "<ERROR>"; };//can't make it pure virtual coz the class will turn to abstract and we will face problem in XML reader
+	virtual const std::string getMode(const sim_mob::SubTrip *subTrip) const { return "<ERROR>"; };//can't make it pure virtual coz the class will turn to abstract and we will face problem in XML reader
 
 	//Helper: Convert a location type string to an object of that type.
 	//TODO: This SHOULD NOT be different for the database and for XML.
@@ -116,7 +116,7 @@ public:
 
 	Activity(std::string locType="node");
 	bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *);
-	 const std::string getMode(const sim_mob::SubTrip *subTrip) const  { return "Activity";}
+	const std::string getMode(const sim_mob::SubTrip *subTrip) const  { return "Activity";}
 };
 
 /**

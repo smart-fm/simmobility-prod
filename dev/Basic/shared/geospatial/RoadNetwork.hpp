@@ -94,6 +94,9 @@ public:
 	sim_mob::Node* locateNode(const sim_mob::Point2D& position, bool includeUniNodes=false, int maxDistCM=100) const;
 	sim_mob::Node* locateNode(double xPos, double yPos, bool includeUniNodes=false, int maxDistCM=100) const;
 
+	sim_mob::Node* getNodeById(int aimsunId);
+	std::map<int,sim_mob::Node*> nodeMap;
+
 	//Temporary; added for the XML loader
 	void setLinks(const std::vector<sim_mob::Link*>& lnks);
 	void setSegmentNodes(const std::set<sim_mob::UniNode*>& sn);

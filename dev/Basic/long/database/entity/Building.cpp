@@ -18,15 +18,9 @@ Building::Building( BigSerial fm_building_id, BigSerial fm_project_id, BigSerial
 					float gross_sq_m_retail, float gross_sq_m_other ) :
 					fm_building_id(fm_building_id), fm_project_id(fm_project_id), fm_parcel_id(fm_parcel_id), storeys_above_ground(storeys_above_ground),
 					storeys_below_ground(storeys_below_ground), from_date(from_date), to_date(to_date), building_status(building_status),gross_sq_m_res(gross_sq_m_res),
-					gross_sq_m_office(gross_sq_m_office), gross_sq_m_retail(gross_sq_m_retail), gross_sq_m_other(gross_sq_m_other)
-{
+					gross_sq_m_office(gross_sq_m_office), gross_sq_m_retail(gross_sq_m_retail), gross_sq_m_other(gross_sq_m_other){}
 
-
-
-}
-
-Building::~Building() {
-}
+Building::~Building() {}
 
 Building& Building::operator=(const Building& source)
 {
@@ -88,45 +82,47 @@ std::string Building::getBuildingStatus() const
 }
 
 
-float	Building::getGrossSqmRes() const
+float Building::getGrossSqmRes() const
 {
 	return gross_sq_m_res;
 }
 
-float	Building::getGrossSqmOffice() const
+float Building::getGrossSqmOffice() const
 {
 	return gross_sq_m_office;
 }
 
-float	Building::getGrossSqmRetail() const
+float Building::getGrossSqmRetail() const
 {
 	return gross_sq_m_retail;
 }
 
-float	Building::getGrossSqmOther() const
+float Building::getGrossSqmOther() const
 {
 	return gross_sq_m_other;
 }
 
 
-namespace sim_mob {
-    namespace long_term {
-
-        std::ostream& operator<<(std::ostream& strm, const Building& data) {
+namespace sim_mob
+{
+    namespace long_term
+    {
+        std::ostream& operator<<(std::ostream& strm, const Building& data)
+        {
             return strm << "{"
-            		<< "\"fm_building_id \":\"" << data.fm_building_id << "\","
-            		<< "\"fm_project_id \":\"" << data.fm_project_id << "\","
-            		<< "\"fm_parcel_id \":\"" << data.fm_parcel_id << "\","
-            		<< "\"storeys_above_ground \":\"" << data.storeys_above_ground << "\","
-            		<< "\"storeys_below_ground \":\"" << data.storeys_below_ground << "\","
-            		<< "\"from_date \":\"" << data.from_date.tm_year  << data.from_date.tm_wday << data.from_date.tm_mon << "\","
-            		<< "\"to_date \":\"" << data.to_date.tm_year << data.to_date.tm_mon << data.to_date.tm_wday << "\","
-            		<< "\"building_status \":\"" << data.building_status << "\","
-            		<< "\"gross_sq_m_res \":\"" << data.gross_sq_m_res << "\","
-            		<< "\"gross_sq_m_office \":\"" << data.gross_sq_m_office << "\","
-            		<< "\"gross_sq_m_retail \":\"" << data.gross_sq_m_retail << "\","
-            		<< "\"gross_sq_m_other \":\"" << data.gross_sq_m_other << "\""
-                    << "}";
+						<< "\"fm_building_id \":\"" << data.fm_building_id 	<< "\","
+						<< "\"fm_project_id \":\"" 	<< data.fm_project_id 	<< "\","
+						<< "\"fm_parcel_id \":\"" 	<< data.fm_parcel_id 	<< "\","
+						<< "\"storeys_above_ground \":\"" << data.storeys_above_ground << "\","
+						<< "\"storeys_below_ground \":\"" << data.storeys_below_ground << "\","
+						<< "\"from_date \":\"" 	<< data.from_date.tm_year  	<< data.from_date.tm_wday 	<< data.from_date.tm_mon << "\","
+						<< "\"to_date \":\"" 	<< data.to_date.tm_year 	<< data.to_date.tm_mon 		<< data.to_date.tm_wday  << "\","
+						<< "\"building_status \":\"" << data.building_status 	<< "\","
+						<< "\"gross_sq_m_res \":\"" 	<< data.gross_sq_m_res 	<< "\","
+						<< "\"gross_sq_m_office \":\"" 	<< data.gross_sq_m_office 	<< "\","
+						<< "\"gross_sq_m_retail \":\"" 	<< data.gross_sq_m_retail 	<< "\","
+						<< "\"gross_sq_m_other \":\"" 	<< data.gross_sq_m_other 	<< "\""
+						<< "}";
         }
     }
 }

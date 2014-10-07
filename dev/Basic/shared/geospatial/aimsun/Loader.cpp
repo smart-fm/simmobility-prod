@@ -99,6 +99,12 @@ public:
 	explicit DatabaseLoader(string const & connectionString);
 
 	void LoadBasicAimsunObjects(map<string, string> const & storedProcedures);
+
+	/**
+	 * data to be loaded if we are running short-term
+	 * @param storedProcs get db procedure name
+	 */
+	void LoadObjectsForShortTerm(map<string, string> const & storedProcs);
 	/**
 	 *  /brief load segment type, node type
 	 *  /param storedProcs get db procedure name
@@ -1094,21 +1100,16 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 }
 #endif
 
-void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedProcs)
+void DatabaseLoader::LoadObjectsForShortTerm(map<string, string> const & storedProcs)
 {
-	LoadNodes(getStoredProcedure(storedProcs, "node"));
-	LoadSections(getStoredProcedure(storedProcs, "section"));
 	LoadCrossings(getStoredProcedure(storedProcs, "crossing"));
 	LoadLanes(getStoredProcedure(storedProcs, "lane"));
-	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain", false));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal", false));
 	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
 	LoadBusStopSG(getStoredProcedure(storedProcs, "busstopSG", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
-
-
 
 	//add by xuyan
 	//load in boundary segments (not finished!)
@@ -1120,6 +1121,14 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 #endif
 
 }
+
+void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedProcs)
+{
+	LoadNodes(getStoredProcedure(storedProcs, "node"));
+	LoadSections(getStoredProcedure(storedProcs, "section"));
+	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
+}
+
 void DatabaseLoader::loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)
 {
 	loadSegmentTypeTable(getStoredProcedure(storedProcs, "segment_type"),rn.segmentTypeMap);
@@ -2504,6 +2513,9 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 	for (std::vector<Polyline*>::iterator it=src.polylineEntries.begin(); it!=src.polylineEntries.end(); it++) {
 		//TODO: This might not trace the median, and the start/end points are definitely not included.
 		sim_mob::Point2D pt((*it)->xPos, (*it)->yPos);
+		if(src.generatedSegment->originalDB_ID.getLogItem().find("34402") != std::string::npos){
+			int i=0;
+		}
 		src.generatedSegment->polyline.push_back(pt);
 	}
 
@@ -2642,6 +2654,7 @@ void sim_mob::aimsun::Loader::loadSegNodeType(const std::string& connectionStr, 
 	// load segment type data, node type data
 	loader.loadObjectType(storedProcs,rn);
 }
+
 void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
 {
 	std::cout << "Attempting to connect to database (generic)" << std::endl;
@@ -2657,8 +2670,14 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	//Step One: Load
 	loader.LoadBasicAimsunObjects(storedProcs);
 
-	// load segment type data, node type data
-	loader.loadObjectType(storedProcs,rn);
+	if(!config.RunningMidSupply()) //TODO: add config for flag indicating short-term
+	{
+		// load data required for short-term
+		loader.LoadObjectsForShortTerm(storedProcs);
+
+		// load segment type data, node type data
+		loader.loadObjectType(storedProcs,rn);
+	}
 
 	//Step 1.1: Load "new style" objects, which don't require any post-processing.
 	loader.LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false), config.getBusSchedule());

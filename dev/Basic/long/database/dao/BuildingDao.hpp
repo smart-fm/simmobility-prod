@@ -14,12 +14,15 @@
 #include "database/entity/Building.hpp"
 
 
-namespace sim_mob {
-    namespace long_term {
+namespace sim_mob
+{
+    namespace long_term
+    {
         /**
          * Data Access Object to Building table on datasource.
          */
-        class BuildingDao : public db::SqlAbstractDao<Building> {
+        class BuildingDao : public db::SqlAbstractDao<Building>
+        {
         public:
             BuildingDao(db::DB_Connection& connection);
             virtual ~BuildingDao();

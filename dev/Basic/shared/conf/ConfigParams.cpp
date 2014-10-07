@@ -187,7 +187,7 @@ const sim_mob::RoadNetwork& sim_mob::ConfigParams::getNetwork() const
 sim_mob::RoadNetwork& sim_mob::ConfigParams::getNetworkRW()
 {
 	if (sealedNetwork) {
-		throw std::runtime_error("getNetworkRW() failed; network has been sealed.");
+		//throw std::runtime_error("getNetworkRW() failed; network has been sealed.");
 	}
 	return network;
 }
@@ -416,7 +416,7 @@ bool sim_mob::ConfigParams::RunningMidDemand() const {
 void sim_mob::ConfigParams::setMidTermRunMode(const std::string& runMode)
 {
 	if(runMode.empty()) { return; }
-	if(runMode == "supply")
+	if(runMode == "supply" || runMode == "withinday")
 	{
 		midTermRunMode = ConfigParams::SUPPLY;
 	}

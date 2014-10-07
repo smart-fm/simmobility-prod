@@ -135,7 +135,7 @@
 <!-- C. TRAFFIC LIGHT RESPONSE -->
 	<param name="yellow_stop_headway" value="1.0"/>
 	<param name="min_speed_yellow" value="2.2352"/>
-        <param name="driver_signal_perception_distance" value="15.0"/>  <!-- meter -->
+        <param name="driver_signal_perception_distance" value="150.0"/>  <!-- meter -->
 
 <!-- D. UPDATE STEP SIZE (REACTION TIME RELATED)
 	Driver behavior (e.g. responses to stimuli) is updated periodically
@@ -147,10 +147,16 @@
 	drawn from a truncated log-normal (normal?) distribution (seconds):
 	step sizes are as follows:
                                               	     		mean   stdev   lower   upper perception(percentage) -->
-	<param name="dec_update_step_size"             value=	"0.0     0.0     0     0    0.0"/>
-	<param name="acc_update_step_size"             value=	"0.0     0.0     0.0    0.0    0.0"/>
-	<param name="uniform_speed_update_step_size"   value=	"0     0.0     0     0    0.0"/>
-	<param name="stopped_vehicle_update_step_size" value=	"0.0     0.0    0.0     0.0    0.0"/>
+
+	<!--param name="dec_update_step_size"             value=	"0    0     0     0    0.0"/>
+	<param name="acc_update_step_size"             value=	"0    0     0     0    0.0"/>
+	<param name="uniform_speed_update_step_size"   value=	"0    0     0     0    0.0"/>
+	<param name="stopped_vehicle_update_step_size" value=	"0    0     0     0    0.0"/-->
+
+	<param name="dec_update_step_size"             value=	"0.5     0.3     0.3     1.0    0.0"/>
+	<param name="acc_update_step_size"             value=	"1.0     0.5     0.5     1.5    0.0"/>
+	<param name="uniform_speed_update_step_size"   value=	"1.0     0.5     0.5     1.5    0.0"/>
+	<param name="stopped_vehicle_update_step_size" value=	"0.5     0.3     0.3     1.0    0.0"/>
 
 	<!--param name="dec_update_step_size"             value=	"0.5     0.0     0.5     0.5    0"/>
 	<param name="acc_update_step_size"             value=	"0.5     0.0     0.5     0.5    0"/>
@@ -191,9 +197,9 @@
 	A vehicle must remain in a lane for a minimum of "minimum time in lane" seconds before
 	considering another lane chane.-->                                   
 	<param name="MLC_PARAMETERS" value="
-						30.0         #lower bound(meter) 
-						60.0         #delta(meter)
-						10.0 	       #minimum time in lane (sec)
+						100.0         #lower bound(meter) 
+						190.0         #delta(meter)
+						2.0 	       #minimum time in lane (sec)
 	"/>
 
 <!-- H.2 Lane utility Model

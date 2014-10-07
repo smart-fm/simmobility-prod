@@ -178,7 +178,10 @@ const std::set<sim_mob::RoadSegment*> & sim_mob::Link::getUniqueSegments()
 
 void sim_mob::Link::extendPolylinesBetweenRoadSegments()
 {
+	// disabled by Max
+#if 0
 	extendPolylinesBetweenRoadSegments(segs);
+#endif
 	//extendPolylinesBetweenRoadSegments(revSegments);
 }
 
@@ -194,6 +197,12 @@ void sim_mob::Link::extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>
 		RoadSegment* seg1 = segments.at(i);
 		RoadSegment* seg2 = segments.at(i+1);
 		size_t j=0;
+		if(seg1->originalDB_ID.getLogItem().find("3440") != std::string::npos){
+			int i=0;
+		}
+		if(seg2->originalDB_ID.getLogItem().find("3440") != std::string::npos){
+			int i=0;
+		}
 		for(;j<seg1->getLanes().size();j++)
 		{
 			seg1->getLanes()[j]->getPolyline();

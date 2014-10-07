@@ -49,13 +49,14 @@ namespace medium {
 
 class TimeWindowAvailability {
 public:
-	TimeWindowAvailability(double startTime, double endTime);
+	TimeWindowAvailability();
+	TimeWindowAvailability(double startTime, double endTime, bool availability = true);
 
 	int getAvailability() const {
 		return availability;
 	}
 
-	void setAvailability(int availability) {
+	void setAvailability(bool availability) {
 		this->availability = availability;
 	}
 
@@ -78,7 +79,7 @@ public:
 private:
 	double startTime;
 	double endTime;
-	int availability;
+	bool availability;
 };
 
 enum StopType {
@@ -180,8 +181,8 @@ public:
 	/**
 	 * Sets the arrival and departure time of the stop
 	 *
-	 * @param arrivalTime arrival time
-	 * @param departureTime departure time
+	 * @param arrivalTime arrival time (1 to 48)
+	 * @param departureTime departure time (1 to 40)
 	 */
 	void allotTime(double arrivalTime, double departureTime) {
 		this->arrivalTime = arrivalTime;
@@ -220,13 +221,13 @@ private:
  */
 class Tour {
 public:
-	Tour(StopType tourType)
-	: tourType(tourType), usualLocation(false), subTour(false), tourMode(0), tourDestination(0), primaryStop(nullptr), startTime(0),
+	Tour(StopType tourType, bool subTour=false)
+	: tourType(tourType), usualLocation(false), subTour(subTour), tourMode(0), tourDestination(0), primaryStop(nullptr), startTime(0),
 	  endTime(0), firstTour(false)
 	{}
 
 	virtual ~Tour() {
-		for(std::deque<Stop*>::iterator i = stops.begin(); i!=stops.end(); i++) {
+		for(std::list<Stop*>::iterator i = stops.begin(); i!=stops.end(); i++) {
 			safe_delete_item(*i);
 		}
 		stops.clear();
@@ -278,6 +279,7 @@ public:
 		case EDUCATION: return "Education";
 		case SHOP: return "Shop";
 		case OTHER: return "Other";
+		default: return "NULL";
 		}
 	}
 
@@ -308,21 +310,6 @@ public:
 		}
 	}
 
-	/**
-	 * removes a stop to the stops list appropriately depending on whether the stop
-	 * is in the first half tour or the second.
-	 *
-	 * @param stop stop to be removed
-	 */
-	void removeStop(Stop* stop) {
-		if(stop->isInFirstHalfTour()) {
-			stops.pop_front();
-		}
-		else {
-			stops.pop_back();
-		}
-	}
-
 	const Stop* getPrimaryStop() const {
 		return primaryStop;
 	}
@@ -347,14 +334,24 @@ public:
 		this->firstTour = firstTour;
 	}
 
+	bool hasSubTours() const {
+		return (!subTours.empty());
+	}
+
 	bool operator==(const Tour& rhs) const;
 	bool operator!=(const Tour& rhs) const;
 
 	/**
-	 * list of stops in this tour.
-	 * relative ordering of stops according to the time of day in which they occur is maintained in this list.
+	 * List of stops in this tour.
+	 * The relative ordering of stops in this list reflects the chronological order of the stops.
 	 */
-	std::deque<Stop*> stops;
+	std::list<Stop*> stops;
+
+	/**
+	 * List of sub tours for this tour.
+	 * The relative ordering of sub-tours in this list reflects the chronological order of the tours.
+	 */
+	std::deque<Tour> subTours;
 
 private:
 	StopType tourType;
@@ -368,6 +365,31 @@ private:
 	bool firstTour;
 };
 
+class OD_Pair {
+private:
+	int origin;
+	int destination;
+
+public:
+	OD_Pair(int org, int dest) : origin(org), destination(dest) {}
+	virtual ~OD_Pair() {}
+
+	bool operator ==(const OD_Pair& rhs) const;
+	bool operator !=(const OD_Pair& rhs) const;
+
+	bool operator >(const OD_Pair& rhs) const;
+	bool operator <(const OD_Pair& rhs) const;
+
+	int getDestination() const
+	{
+		return destination;
+	}
+
+	int getOrigin() const
+	{
+		return origin;
+	}
+};
 
 } // end namespace medium
 } // end namespace sim_mob

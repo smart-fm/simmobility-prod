@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <string>
+#include <cstdlib>
 
 //TODO: Replace with <chrono> or something similar.
 #include <sys/time.h>
@@ -30,6 +31,7 @@
 #include "entities/roles/waitBusActivity/waitBusActivity.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/PersonLoader.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/RoadNetwork.hpp"
@@ -147,18 +149,22 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		partMgr = &PartitionManager::instance();
 	}
 
+	PeriodicPersonLoader periodicPersonLoader(Agent::all_agents, Agent::pending_agents);
+
 	{ //Begin scope: WorkGroups
 	WorkGroupManager wgMgr;
 	wgMgr.setSingleThreadMode(config.singleThreaded());
 
 	//Work Group specifications
 	//Mid-term is not using Aura Manager at the moment. Therefore setting it to nullptr
-	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(),
-			config.totalRuntimeTicks, config.granPersonTicks,
-			nullptr /*AuraManager is not used in mid-term*/, partMgr);
+	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(), config.totalRuntimeTicks, config.granPersonTicks,
+			nullptr /*AuraManager is not used in mid-term*/, partMgr, &periodicPersonLoader);
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
+
+	//Load persons for 0th tick
+	periodicPersonLoader.loadActivitySchedules();
 
 	//Initialize each work group individually
 	personWorkers->initWorkers(&entLoader);
@@ -230,7 +236,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			std::stringstream msg;
 			msg << "Approximate Tick Boundary: " << currTick << ", ";
 			msg << (currTick * config.baseGranSecond())
-				<< " s   [" <<currTickPercent <<"%]" << endl;
+				<< "s   [" <<currTickPercent <<"%]" << endl;
 			if (!warmupDone)
 			{
 				msg << "  Warmup; output ignored." << endl;
@@ -350,16 +356,19 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	safe_delete_item(prof);
 	return true;
 }
+
 /**
- * Simulation loop for the demand simulator
+ * The preday demand simulator
  */
 bool performMainDemand()
 {
+	std::srand(clock()); // set random seed for RNGs in preday
 	const MT_Config& mtConfig = MT_Config::getInstance();
 	PredayManager predayManager;
 	predayManager.loadZones(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
 	predayManager.loadPersons(db::MONGO_DB);
+	predayManager.loadUnavailableODs(db::MONGO_DB);
 	if(mtConfig.isOutputTripchains())
 	{
 		predayManager.loadZoneNodes(db::MONGO_DB);

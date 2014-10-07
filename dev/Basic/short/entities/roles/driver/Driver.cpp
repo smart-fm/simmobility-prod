@@ -272,7 +272,10 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	UpdateParams::reset(now);
 
 	//Set to the previous known buffered values
-	currLane = owner.currLane_.get();
+	//currLane = owner.currLane_.get();
+	if(owner.currLane_.get()) {
+		currLane = owner.currLane_.get();
+	}
 	currLaneIndex = getLaneIndex(currLane);
 	currLaneLength = owner.currLaneLength_.get();
 	currLaneOffset = owner.currLaneOffset_.get();

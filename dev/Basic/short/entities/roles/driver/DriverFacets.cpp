@@ -641,9 +641,7 @@ bool sim_mob::DriverMovement::update_post_movement(timeslice now) {
 	if (fwdDriverMovement.isDoneWithEntireRoute()) {
 		return false;
 	}
-	if(params.now.frame() > 716){
-				int i=0;
-			}
+
 //Has the segment changed?
 	if (!(fwdDriverMovement.isInIntersection())
 			&& params.justChangedToNewSegment) {
@@ -656,9 +654,7 @@ bool sim_mob::DriverMovement::update_post_movement(timeslice now) {
 
 	if (!(fwdDriverMovement.isInIntersection()) && !(hasNextSegment(true))
 			&& hasNextSegment(false)) {
-		if(params.now.frame() > 70){
-			int i=0;
-		}
+
 		chooseNextLaneForNextLink(params);
 	}
 

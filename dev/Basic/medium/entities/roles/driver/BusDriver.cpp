@@ -127,6 +127,23 @@ void sim_mob::medium::BusDriver::predictArrivalAtBusStop(double preArrivalTime,
 	}
 }
 
+
+const std::string sim_mob::medium::BusDriver::getBusLineID() const
+{
+	if (!parent) {
+		return std::string();
+	}
+
+	const BusTrip* busTrip =
+			dynamic_cast<const BusTrip*>(*(parent->currTripChainItem));
+	if (busTrip) {
+		return busTrip->getBusline()->getBusLineID();
+	}
+	else {
+		return std::string();
+	}
+}
+
 void sim_mob::medium::BusDriver::openBusDoors(sim_mob::medium::BusStopAgent* busStopAgent) {
 	if(!busStopAgent)
 	{

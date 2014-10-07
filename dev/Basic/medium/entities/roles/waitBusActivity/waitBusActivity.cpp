@@ -50,6 +50,13 @@ void sim_mob::medium::WaitBusActivity::makeBoardingDecision(BusDriver* driver) {
 		return;
 	}
 
+	const std::string busLineID = driver->getBusLineID();
+	sim_mob::SubTrip& subTrip = *(getParent()->currSubTrip);
+	if(busLineID==subTrip.getBusLineID()){
+		setBoardBus(true);
+		return;
+	}
+
 	const sim_mob::BusStop* destStop = nullptr;
 	if (getParent()->destNode.type_ == WayPoint::BUS_STOP
 			&& getParent()->destNode.busStop_) {

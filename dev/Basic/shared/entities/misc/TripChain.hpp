@@ -190,8 +190,9 @@ public:
 	SubTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,int requestTime=-1,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
 			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
-			/*Trip* parent=nullptr,*/ std::string mode="", bool isPrimary=true, std::string ptLineId="");
+			/*Trip* parent=nullptr,*/ std::string mode="", bool isPrimary=true, std::string ptLineId="-1");
 	const std::string getMode() const ;
+	const std::string getBusLineID() const;
 };
 
 /**

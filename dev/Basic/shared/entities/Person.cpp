@@ -98,18 +98,19 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, i
 {
 }
 
-sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
+sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc)
 	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegStats(nullptr), canMoveToNextSegment(NONE),
-	  databaseID(tcs.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
-	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
+	  databaseID(tc.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
+	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tc), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
 	  client_id(-1), nextLinkRequired(nullptr), currSegStats(nullptr)
 {
-	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
-		insertWaitingActivityToTrip(tcs);
-	}
-	else if(!ConfigManager::GetInstance().FullConfig().RunningMidDemand()){
-		simplyModifyTripChain(tcs);
-	}
+	//TODO: Check with MAX what to do with the below commented lines
+//	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
+//		insertWaitingActivityToTrip(tc);
+//	}
+//	else if(!ConfigManager::GetInstance().FullConfig().RunningMidDemand()){
+//		simplyModifyTripChain(tc);
+//	}
 
 	initTripChain();
 }
@@ -183,7 +184,6 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		try {
 			int x = boost::lexical_cast<int>( itt->second );
 			initSegId = x;
-//			std::cout<<"initSegId: "<<initSegId<<std::endl;
 		} catch( boost::bad_lexical_cast const& ) {
 			Warn() << "Error: input string was not valid" << std::endl;
 		}
@@ -195,7 +195,6 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		try {
 			int x = boost::lexical_cast<int>( itt->second );
 			initDis = x;
-//			std::cout<<"initDis: "<<initDis<<std::endl;
 		} catch( boost::bad_lexical_cast const& ) {
 			Warn() << "Error: input string was not valid" << std::endl;
 		}
@@ -207,7 +206,6 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		try {
 			int x = boost::lexical_cast<int>( itt->second );
 			initSpeed = x;
-//			std::cout<<"initSpeed: "<<initSpeed<<std::endl;
 		} catch( boost::bad_lexical_cast const& ) {
 			Warn() << "Error: input string was not valid" << std::endl;
 		}

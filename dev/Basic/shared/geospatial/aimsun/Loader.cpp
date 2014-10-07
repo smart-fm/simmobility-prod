@@ -97,20 +97,18 @@ public:
 	explicit DatabaseLoader(string const & connectionString);
 
 	void LoadBasicAimsunObjects(map<string, string> const & storedProcedures);
+
+	/**
+	 * data to be loaded if we are running short-term
+	 * @param storedProcs get db procedure name
+	 */
+	void LoadObjectsForShortTerm(map<string, string> const & storedProcs);
 	/**
 	 *  /brief load segment type, node type
 	 *  /param storedProcs get db procedure name
 	 *  /param rn road network object
 	 */
 	void loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
-//	// load path set data
-//	void LoadSinglePathDB(std::map<std::string,sim_mob::SinglePath*>& pool,
-//			std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool);
-//	bool LoadSinglePathDBwithId(std::map<std::string,sim_mob::SinglePath*>& pool,
-//			std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,std::string& pathset_id);
-////	void LoadPathPoolDB(std::vector<sim_mob::PathPoolDB>& pool);
-//	void LoadPathSetDB(std::map<std::string,sim_mob::PathSet* >& pool);
-//	bool LoadPathSetDBwithId(std::map<std::string,sim_mob::PathSet* >& pool,std::string& pathset_id);
 	void LoadERP_Surcharge(std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >& pool);
 	void LoadERP_Section(std::map<std::string,sim_mob::ERP_Section*>& erp_section_pool);
 	void LoadERP_Gantry_Zone(std::map<std::string,sim_mob::ERP_Gantry_Zone*>& erp_gantry_zone_pool);
@@ -1028,21 +1026,16 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 }
 #endif
 
-void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedProcs)
+void DatabaseLoader::LoadObjectsForShortTerm(map<string, string> const & storedProcs)
 {
-	LoadNodes(getStoredProcedure(storedProcs, "node"));
-	LoadSections(getStoredProcedure(storedProcs, "section"));
 	LoadCrossings(getStoredProcedure(storedProcs, "crossing"));
 	LoadLanes(getStoredProcedure(storedProcs, "lane"));
-	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain", false));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal", false));
 	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
 	LoadBusStopSG(getStoredProcedure(storedProcs, "busstopSG", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
-
-
 
 	//add by xuyan
 	//load in boundary segments (not finished!)
@@ -1054,6 +1047,14 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 #endif
 
 }
+
+void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedProcs)
+{
+	LoadNodes(getStoredProcedure(storedProcs, "node"));
+	LoadSections(getStoredProcedure(storedProcs, "section"));
+	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
+}
+
 void DatabaseLoader::loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)
 {
 	loadSegmentTypeTable(getStoredProcedure(storedProcs, "segment_type"),rn.segmentTypeMap);
@@ -1662,10 +1663,6 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 
 		// set node type
 		std::string idStr = boost::lexical_cast<string>(it->first);
-		if(idStr.find("101320") != std::string::npos)
-		{
-			std::cout<<"find node 101320"<<std::endl;
-		}
 		sim_mob::SimNodeType nt = (sim_mob::SimNodeType)res.getNodeType(idStr);
 		it->second.generatedNode->type = nt;
 	}
@@ -2629,6 +2626,7 @@ void sim_mob::aimsun::Loader::loadSegNodeType(const std::string& connectionStr, 
 	// load segment type data, node type data
 	loader.loadObjectType(storedProcs,rn);
 }
+
 void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
 {
 	std::cout << "Attempting to connect to database (generic)" << std::endl;
@@ -2644,8 +2642,14 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	//Step One: Load
 	loader.LoadBasicAimsunObjects(storedProcs);
 
-	// load segment type data, node type data
-	loader.loadObjectType(storedProcs,rn);
+	if(!config.RunningMidSupply()) //TODO: add config for flag indicating short-term
+	{
+		// load data required for short-term
+		loader.LoadObjectsForShortTerm(storedProcs);
+
+		// load segment type data, node type data
+		loader.loadObjectType(storedProcs,rn);
+	}
 
 	//Step 1.1: Load "new style" objects, which don't require any post-processing.
 	loader.LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false), config.getBusSchedule());

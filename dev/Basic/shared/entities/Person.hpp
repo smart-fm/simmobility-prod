@@ -49,7 +49,7 @@ public:
 	bool tripchainInitialized;
 	///The "src" variable is used to help flag how this person was created.
 	explicit Person(const std::string& src, const MutexStrategy& mtxStrat, int id=-1, std::string databaseID = "");
-	explicit Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*> tc);
+	explicit Person(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc);
 	virtual ~Person();
 	void initTripChain();
 

@@ -105,7 +105,7 @@ private:
 	 * @param tour the tour for which stops are to be generated
 	 * @param remainingTours number of tours remaining for person after tour
 	 */
-	void constructIntermediateStops(Tour& tour, size_t remainingTours);
+	void constructIntermediateStops(Tour& tour, size_t remainingTours, double prevTourEndTime);
 
 	/**
 	 * Generates intermediate stops of types predicted by the day pattern model before and after the primary activity of a tour.
@@ -163,14 +163,15 @@ private:
 	 * @param currentStop the stop for which the departure time is calculated
 	 * @param nextStop the stop after currentStop
 	 */
-	void calculateDepartureTime(Stop* currentStop, Stop* nextStop);
+	void calculateDepartureTime(Stop* currentStop, Stop* nextStop, double prevTourEndTimeIdx);
 
 	/**
 	 * Calculates the time to leave home for starting a tour.
 	 *
 	 * @param tour the tour object for which the start time is to be calculated
+	 * @param lowerBound lower bound for start time
 	 */
-	void calculateTourStartTime(Tour& tour);
+	void calculateTourStartTime(Tour& tour, double lowerBound);
 
 	/**
 	 * Calculates the time when the person reaches home at the end of the tour.

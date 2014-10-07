@@ -416,7 +416,7 @@ bool sim_mob::ConfigParams::RunningMidDemand() const {
 void sim_mob::ConfigParams::setMidTermRunMode(const std::string& runMode)
 {
 	if(runMode.empty()) { return; }
-	if(runMode == "supply")
+	if(runMode == "supply" || runMode == "withinday")
 	{
 		midTermRunMode = ConfigParams::SUPPLY;
 	}

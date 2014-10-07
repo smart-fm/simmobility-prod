@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 #include <cmath>
 #include <cstdlib>
 #include <string>
@@ -109,18 +110,25 @@ namespace {
 		return (window - 2.75 /*the day starts at 3.25*/) / 0.5;
 	}
 
-	double alignTime(double time) {
+	double alignTime(double time, double lowerBound, double upperBound, const std::string& personId, std::string caller) {
+		if(lowerBound > upperBound)
+		{
+			std::stringstream ss;
+			ss << "Cannot align time with invalid bounds|Person: " << personId << "|" << caller << "|" << "alignTime(" << time << "," << lowerBound << "," << upperBound << ")" << std::endl;
+			throw std::runtime_error(ss.str());
+		}
+
 		// align to corresponding time window
 		//1. split the computed tour end time into integral and fractional parts
 		double intPart,fractPart;
 		fractPart = std::modf(time, &intPart);
 
 		//2. perform sanity checks on the integral part and align the fractional part to nearest time window
-		if (time < FIRST_WINDOW) {
-			time = FIRST_WINDOW;
+		if (time < lowerBound) {
+			time = lowerBound;
 		}
-		else if (time > LAST_WINDOW) {
-			time = LAST_WINDOW;
+		else if (time > upperBound) {
+			time = upperBound;
 		}
 		else if(std::abs(fractPart) < 0.5) {
 			time = intPart + 0.25;
@@ -327,9 +335,11 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 
 		//unavail travel time to predicted destination by predicted mode
 		blockTravelTimeToSubTourLocation(subTour, parentTour, workBasedSubTourParams);
+		if(workBasedSubTourParams.allWindowsUnavailable()) { return; } //no-time for subtours
 
 		// predict time of day
 		TimeWindowAvailability timeWindow = predictSubTourTimeOfDay(subTour, workBasedSubTourParams);
+
 		Stop* primaryActivity = new Stop(subTour.getTourType(), subTour, true /*primary activity*/, true /*stop in first half tour*/);
 		primaryActivity->setStopMode(subTour.getTourMode());
 		primaryActivity->setStopLocation(subTour.getTourDestination());
@@ -339,8 +349,6 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 		subTour.addStop(primaryActivity);
 		calculateSubTourTimeWindow(subTour, parentTour); // estimate travel time to/from activity location
 		workBasedSubTourParams.blockTime(subTour.getStartTime(), subTour.getEndTime());
-		logStream << "SubTour|" << "mode: " << subTour.getTourMode() << "|destination: " << subTour.getTourDestination()
-				<< "|start time: " << subTour.getStartTime() << "|end time: " << subTour.getEndTime() << std::endl;
 	}
 }
 
@@ -615,7 +623,7 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 	return TimeWindowAvailability::timeWindowsLookup.at(timeWndw - 1); //timeWndw ranges from 1 - 1176. Vector starts from 0.
 }
 
-void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours)
+void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours, double prevTourEndTime)
 {
 	//sanity check
 	if(tour.stops.size() != 1)
@@ -687,7 +695,7 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours)
 			--stopIt;
 			prevStop = *stopIt; // since we go in reverse chronological order, we predict arrival time to the stop chronologically before currStop
 			// person will arrive at current stop from the next stop (chronologically)
-			calculateDepartureTime(currStop, prevStop);
+			calculateDepartureTime(currStop, prevStop, prevTourEndTime);
 			if(stopIt==firstStopIt) { destLocation = personParams.getHomeLocation(); }
 			else
 			{
@@ -710,7 +718,7 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours)
 				eraseIt = stops.erase(eraseIt);
 				numRemoved++;
 			}
-			logStream << "Removing " << numRemoved << " stops in 1st HT due to TOD issue." << std::endl;
+			logStream << "| Removed " << numRemoved << " stops in 1st HT (TOD issue)" << std::endl;
 		}
 	}
 
@@ -750,7 +758,7 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours)
 				safe_delete_item(*eraseIt);
 				eraseIt = stops.erase(eraseIt);
 			}
-			logStream << "Removing " << numRemoved << " stops in 2nd HT due to TOD issue." << std::endl;
+			logStream << "| Removed " << numRemoved << " stops in 2nd HT (TOD issue)";
 		}
 	}
 }
@@ -1163,15 +1171,15 @@ void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* nextStop) {
 	// this function sets the arrival time for next stop
 	double currActivityDepartureIndex = currStop->getDepartureTime();
 	double timeWindow = getTimeWindowFromIndex(currActivityDepartureIndex);
-	double travelTime = fetchTravelTime(currStop->getStopLocation(), nextStop->getStopLocation(), currStop->getStopMode(), false, currActivityDepartureIndex);
+	double travelTime = fetchTravelTime(currStop->getStopLocation(), nextStop->getStopLocation(), nextStop->getStopMode(), false, currActivityDepartureIndex);
 	double nextStopArrTime = timeWindow + travelTime;
 	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
-	nextStopArrTime = alignTime(nextStopArrTime);
+	nextStopArrTime = alignTime(nextStopArrTime, timeWindow, LAST_WINDOW, personParams.getPersonId(), "calculateArrivalTime()");
 	nextStopArrTime = getIndexFromTimeWindow(nextStopArrTime);
 	nextStop->setArrivalTime(nextStopArrTime);
 }
 
-void PredaySystem::calculateDepartureTime(Stop* currStop,  Stop* prevStop) {
+void PredaySystem::calculateDepartureTime(Stop* currStop,  Stop* prevStop, double prevTourEndTimeIdx) {
 	// person will arrive at the current stop from the previous stop
 	// this function sets the departure time for the prevStop
 	double currActivityArrivalIndex = currStop->getArrivalTime();
@@ -1179,32 +1187,31 @@ void PredaySystem::calculateDepartureTime(Stop* currStop,  Stop* prevStop) {
 	double travelTime = fetchTravelTime(currStop->getStopLocation(), prevStop->getStopLocation(), currStop->getStopMode(), true, currActivityArrivalIndex);
 	double prevStopDepTime = timeWindow - travelTime;
 	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
-	prevStopDepTime = alignTime(prevStopDepTime);
+	prevStopDepTime = alignTime(prevStopDepTime, getTimeWindowFromIndex(prevTourEndTimeIdx), timeWindow, personParams.getPersonId(), "calculateDepartureTime()");
 	prevStopDepTime = getIndexFromTimeWindow(prevStopDepTime);
 	prevStop->setDepartureTime(prevStopDepTime);
 }
 
 void PredaySystem::blockTravelTimeToSubTourLocation(const Tour& subTour, const Tour& parentTour, SubTourParams& stParams)
 {
+	double tourPrimArrivalIdx = parentTour.getPrimaryStop()->getArrivalTime();
+	double tourPrimDepartureIdx = parentTour.getPrimaryStop()->getDepartureTime();
+	double tourPrimArrivalWindow = getTimeWindowFromIndex(tourPrimArrivalIdx);
+	double tourPrimDepartureWindow = getTimeWindowFromIndex(tourPrimDepartureIdx);
+
 	//get travel time from parentTour destination to subTour destination and block that time
-	double activityDepartureIndex = parentTour.getPrimaryStop()->getArrivalTime();
-	double timeWindow = getTimeWindowFromIndex(activityDepartureIndex);
-	double travelTime = fetchTravelTime(parentTour.getTourDestination(), subTour.getTourDestination(), subTour.getTourMode(), false, activityDepartureIndex);
-	double firstPossibleArrTime = timeWindow + travelTime;
+	double travelTime = fetchTravelTime(parentTour.getTourDestination(), subTour.getTourDestination(), subTour.getTourMode(), false, tourPrimArrivalIdx);
+	double firstPossibleArrTimeWindow = tourPrimArrivalWindow + travelTime; //first possible arrival time window to sub-tour location
 	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
-	firstPossibleArrTime = alignTime(firstPossibleArrTime);
-	firstPossibleArrTime = getIndexFromTimeWindow(firstPossibleArrTime);
-	stParams.blockTime(activityDepartureIndex, firstPossibleArrTime);
+	firstPossibleArrTimeWindow = alignTime(firstPossibleArrTimeWindow, tourPrimArrivalWindow, tourPrimDepartureWindow, personParams.getPersonId(), "blockTravelTimeToSubTourLocation() - arr");
+	stParams.blockTime(tourPrimArrivalIdx, getIndexFromTimeWindow(firstPossibleArrTimeWindow));
 
 	//get travel time from subTour destination to parentTour destination and block that time
-	double activityArrivalIndex = parentTour.getPrimaryStop()->getDepartureTime();
-	timeWindow = getTimeWindowFromIndex(activityArrivalIndex);
-	travelTime = fetchTravelTime(subTour.getTourDestination(), parentTour.getTourDestination(), subTour.getTourMode(), true, activityArrivalIndex);
-	double lastPossibleDepTime = timeWindow - travelTime;
+	travelTime = fetchTravelTime(subTour.getTourDestination(), parentTour.getTourDestination(), subTour.getTourMode(), true, tourPrimDepartureIdx);
+	double lastPossibleDepTimeWindow = tourPrimDepartureWindow - travelTime;
 	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
-	lastPossibleDepTime = alignTime(lastPossibleDepTime);
-	lastPossibleDepTime = getIndexFromTimeWindow(lastPossibleDepTime);
-	stParams.blockTime(lastPossibleDepTime, activityArrivalIndex);
+	lastPossibleDepTimeWindow = alignTime(lastPossibleDepTimeWindow, firstPossibleArrTimeWindow, tourPrimDepartureWindow, personParams.getPersonId(), "blockTravelTimeToSubTourLocation() - dep");
+	stParams.blockTime(getIndexFromTimeWindow(lastPossibleDepTimeWindow), tourPrimDepartureIdx);
 }
 
 void PredaySystem::calculateSubTourTimeWindow(Tour& subTour, const Tour& parentTour)
@@ -1216,7 +1223,7 @@ void PredaySystem::calculateSubTourTimeWindow(Tour& subTour, const Tour& parentT
 	double travelTime = fetchTravelTime(primaryStop->getStopLocation(), parentTour.getTourDestination(), subTour.getTourMode(), true, activityArrivalIndex);
 	double tourStartTime = timeWindow - travelTime;
 	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
-	tourStartTime = alignTime(tourStartTime);
+	tourStartTime = alignTime(tourStartTime, getTimeWindowFromIndex(parentTour.getPrimaryStop()->getArrivalTime()), timeWindow, personParams.getPersonId(), "calculateSubTourTimeWindow() - start");
 	tourStartTime = getIndexFromTimeWindow(tourStartTime);
 	subTour.setStartTime(tourStartTime);
 
@@ -1226,12 +1233,12 @@ void PredaySystem::calculateSubTourTimeWindow(Tour& subTour, const Tour& parentT
 	travelTime = fetchTravelTime(primaryStop->getStopLocation(), parentTour.getTourDestination(), subTour.getTourMode(), false, activityDepartureIndex);
 	double tourEndTime = timeWindow + travelTime;
 	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
-	tourEndTime = alignTime(tourEndTime);
+	tourEndTime = alignTime(tourEndTime, timeWindow, getTimeWindowFromIndex(parentTour.getPrimaryStop()->getDepartureTime()), personParams.getPersonId(), "calculateSubTourTimeWindow() - end");
 	tourEndTime = getIndexFromTimeWindow(tourEndTime);
 	subTour.setEndTime(tourEndTime);
 }
 
-void PredaySystem::calculateTourStartTime(Tour& tour)
+void PredaySystem::calculateTourStartTime(Tour& tour, double lowerBoundIdx)
 {
 	Stop* firstStop = tour.stops.front();
 	double firstActivityArrivalIndex = firstStop->getArrivalTime();
@@ -1239,7 +1246,7 @@ void PredaySystem::calculateTourStartTime(Tour& tour)
 	double travelTime = fetchTravelTime(firstStop->getStopLocation(), personParams.getHomeLocation(), firstStop->getStopMode(), true, firstActivityArrivalIndex);
 	double tourStartTime = timeWindow - travelTime;
 	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
-	tourStartTime = alignTime(tourStartTime);
+	tourStartTime = alignTime(tourStartTime, getTimeWindowFromIndex(lowerBoundIdx), timeWindow, personParams.getPersonId(), "calculateTourStartTime()");
 	tourStartTime = getIndexFromTimeWindow(tourStartTime);
 	tour.setStartTime(tourStartTime);
 }
@@ -1252,7 +1259,7 @@ void PredaySystem::calculateTourEndTime(Tour& tour)
 	double travelTime = fetchTravelTime(lastStop->getStopLocation(), personParams.getHomeLocation(), tour.getTourMode(), false, lastActivityDepartureIndex);
 	double tourEndTime = timeWindow + travelTime;
 	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
-	tourEndTime = alignTime(tourEndTime);
+	tourEndTime = alignTime(tourEndTime, timeWindow, LAST_WINDOW, personParams.getPersonId(), "calculateTourEndTime()");
 	tourEndTime = getIndexFromTimeWindow(tourEndTime);
 	tour.setEndTime(tourEndTime);
 }
@@ -1272,7 +1279,6 @@ void PredaySystem::constructTours() {
 			attendsUsualWorkLocation = predictUsualWorkLocation(firstOfMultiple); // Predict if this tour is to a usual work location
 			firstOfMultiple = false;
 		}
-		logStream << "Attends usual work location: " << attendsUsualWorkLocation << std::endl;
 		Tour workTour(WORK);
 		workTour.setUsualLocation(attendsUsualWorkLocation);
 		if(attendsUsualWorkLocation) {
@@ -1310,23 +1316,22 @@ void PredaySystem::constructTours() {
 
 void PredaySystem::planDay() {
 	personParams.initTimeWindows();
-	logStream << std::endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+
 	//Predict day pattern
-	logStream << "Person: " << personParams.getPersonId() << "| home: " << personParams.getHomeLocation() << std:: endl;
-	logStream << "Day Pattern: " ;
+	logStream << "Person: " << personParams.getPersonId() << "| home: " << personParams.getHomeLocation();
+	logStream << "| Day Pattern: " ;
 	PredayLuaProvider::getPredayModel().predictDayPattern(personParams, dayPattern);
 	if(dayPattern.empty()) { throw std::runtime_error("Cannot invoke number of tours model without a day pattern"); }
 	logStream << dayPattern["WorkT"] << dayPattern["EduT"] << dayPattern["ShopT"] << dayPattern["OthersT"]
-	        << dayPattern["WorkI"] << dayPattern["EduI"] << dayPattern["ShopI"] << dayPattern["OthersI"] << std::endl;
+	        << dayPattern["WorkI"] << dayPattern["EduI"] << dayPattern["ShopI"] << dayPattern["OthersI"];
 
 	//Predict number of Tours
-	logStream << "Num. Tours: ";
+	logStream << "| Num. Tours: ";
 	PredayLuaProvider::getPredayModel().predictNumTours(personParams, dayPattern, numTours);
-	logStream << numTours["WorkT"] << numTours["EduT"] << numTours["ShopT"] << numTours["OthersT"] << std::endl;
+	logStream << numTours["WorkT"] << numTours["EduT"] << numTours["ShopT"] << numTours["OthersT"];
 
 	//Construct tours.
 	constructTours();
-	logStream << "Tours: " << tours.size() << std::endl;
 	if(!tours.empty()) { tours.front().setFirstTour(true); } // make first tour aware that it is the first tour for person
 
 	double prevTourEndTime = FIRST_INDEX;
@@ -1338,14 +1343,10 @@ void PredaySystem::planDay() {
 		if(tour.isUsualLocation()) {
 			// Predict just the mode for tours to usual location
 			predictTourMode(tour);
-			logStream << "Tour|type: " << tour.getTourType()
-					<< "(TM) Tour mode: " << tour.getTourMode() << "|Tour destination: " << tour.getTourDestination();
 		}
 		else {
 			// Predict mode and destination for tours to not-usual locations
 			predictTourModeDestination(tour);
-			logStream << "Tour|type: " << tour.getTourType()
-					<< "(TMD) Tour mode: " << tour.getTourMode() << "|Tour destination: " << tour.getTourDestination();
 		}
 
 		// Predict time of day for this tour
@@ -1358,20 +1359,19 @@ void PredaySystem::planDay() {
 		tour.setPrimaryStop(primaryActivity);
 		tour.addStop(primaryActivity);
 		personParams.blockTime(timeWindow.getStartTime(), timeWindow.getEndTime());
-		logStream << "|primary activity|arrival: " << primaryActivity->getArrivalTime() << "|departure: " << primaryActivity->getDepartureTime() << std::endl;
 
 		//Generate sub tours for work tours
 		if(tour.getTourType() == sim_mob::medium::WORK) { predictSubTours(tour); }
 
 		//Generate stops for this tour
-		constructIntermediateStops(tour, remainingTours);
+		constructIntermediateStops(tour, remainingTours, prevTourEndTime);
 
-		calculateTourStartTime(tour);
+		calculateTourStartTime(tour, prevTourEndTime);
 		calculateTourEndTime(tour);
 		personParams.blockTime(prevTourEndTime, tour.getEndTime());
 		prevTourEndTime = tour.getEndTime();
-		logStream << "Tour|start time: " << tour.getStartTime() << "|end time: " << tour.getEndTime() << std::endl;
 	}
+	logStream << std::endl;
 }
 
 void sim_mob::medium::PredaySystem::insertDayPattern()

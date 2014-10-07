@@ -326,6 +326,7 @@ void sim_mob::DriverMovement::frame_tick() {
 	//TODO: Update parent buffered properties, or perhaps delegate this.
 	if (!(fwdDriverMovement.isInIntersection())) {
 		parentDriver->currLane_.set(fwdDriverMovement.getCurrLane());
+//		std::cout<<"tick: "<<p2.now.frame()<<" currLane: "<<getLaneIndex(fwdDriverMovement.getCurrLane())<<std::endl;
 		parentDriver->currLaneOffset_.set(
 				fwdDriverMovement.getCurrDistAlongRoadSegmentCM());
 		parentDriver->currLaneLength_.set(
@@ -640,7 +641,9 @@ bool sim_mob::DriverMovement::update_post_movement(timeslice now) {
 	if (fwdDriverMovement.isDoneWithEntireRoute()) {
 		return false;
 	}
-
+	if(params.now.frame() > 716){
+				int i=0;
+			}
 //Has the segment changed?
 	if (!(fwdDriverMovement.isInIntersection())
 			&& params.justChangedToNewSegment) {
@@ -652,8 +655,12 @@ bool sim_mob::DriverMovement::update_post_movement(timeslice now) {
 	}
 
 	if (!(fwdDriverMovement.isInIntersection()) && !(hasNextSegment(true))
-			&& hasNextSegment(false))
+			&& hasNextSegment(false)) {
+		if(params.now.frame() > 70){
+			int i=0;
+		}
 		chooseNextLaneForNextLink(params);
+	}
 
 //Have we just entered into an intersection?
 	if (fwdDriverMovement.isInIntersection()
@@ -1491,73 +1498,75 @@ void sim_mob::DriverMovement::calculateIntersectionTrajectory(DPoint movingFrom,
 	}
 
 //Get the entry point.
-	int id = getLaneIndex(fwdDriverMovement.getCurrLane());
-	int startOldLane = -1;
+//	int id = getLaneIndex(fwdDriverMovement.getCurrLane());
+//	int startOldLane = -1;
+//
+//	for (vector<Lane*>::const_iterator it =
+//			fwdDriverMovement.getCurrSegment()->getLanes().begin();
+//			it != fwdDriverMovement.getCurrSegment()->getLanes().end(); it++) {
+//		if ((*it)->is_pedestrian_lane() || (*it)->is_bicycle_lane()) {
+//
+//		} else {
+//			startOldLane = getLaneIndex((*it));
+//			break;
+//		}
+//	}
+//
+//	int total = nextLaneInNextLink->getRoadSegment()->getLanes().size() - 1;
+//	int offset = fwdDriverMovement.getCurrSegment()->getLanes().size() - 1 - id;
+//	set<int> laneIDS;
+//	bool first = true;
+//	int StartnewLane = -1;
+//	int last = 1;
+//	Point2D entry = nextLaneInNextLink->getPolyline().at(0);
+//
+//	for (vector<Lane*>::const_iterator it =
+//			nextLaneInNextLink->getRoadSegment()->getLanes().begin();
+//			it != nextLaneInNextLink->getRoadSegment()->getLanes().end();
+//			it++) {
+//		if ((*it)->is_pedestrian_lane() || (*it)->is_bicycle_lane()) {
+//
+//		} else {
+//			if (first) {
+//				first = false;
+//				StartnewLane = getLaneIndex((*it));
+//			}
+////std::cout<<getLaneIndex((*it))<<std::endl;
+//			laneIDS.insert(getLaneIndex((*it)));
+//			last = getLaneIndex((*it));
+//		}
+//	}
+//
+//	if ((startOldLane != -1) && StartnewLane != -1)
+//		id = id + (StartnewLane - startOldLane);
+//
+//	if (laneIDS.find(id) != laneIDS.end()) {
+//		entry =
+//				nextLaneInNextLink->getRoadSegment()->getLanes().at(id)->getPolyline().at(
+//						0); // getLaneEdgePolyline(findID).at(0);
+//		lastIndex = id;
+//	} else {
+//		int findID = total - offset;
+//		if (findID > 0) {
+//			if (laneIDS.find(findID) != laneIDS.end()) {
+//				entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(
+//						findID)->getPolyline().at(0); // getLaneEdgePolyline(findID).at(0);
+//				lastIndex = findID;
+//			} else {
+//				entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(
+//						last)->getPolyline().at(0); //->getLaneEdgePolyline(last).at(0);
+//				lastIndex = last;
+//			}
+//		} else {
+//			lastIndex = *(laneIDS.begin());
+//			entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(
+//					*(laneIDS.begin()))->getPolyline().at(0); //>getLaneEdgePolyline(*(laneIDS.begin())).at(0);
+//		}
+//	}
 
-	for (vector<Lane*>::const_iterator it =
-			fwdDriverMovement.getCurrSegment()->getLanes().begin();
-			it != fwdDriverMovement.getCurrSegment()->getLanes().end(); it++) {
-		if ((*it)->is_pedestrian_lane() || (*it)->is_bicycle_lane()) {
-
-		} else {
-			startOldLane = getLaneIndex((*it));
-			break;
-		}
-	}
-
-	int total = nextLaneInNextLink->getRoadSegment()->getLanes().size() - 1;
-	int offset = fwdDriverMovement.getCurrSegment()->getLanes().size() - 1 - id;
-	set<int> laneIDS;
-	bool first = true;
-	int StartnewLane = -1;
-	int last = 1;
-	Point2D entry = nextLaneInNextLink->getPolyline().at(0);
-
-	for (vector<Lane*>::const_iterator it =
-			nextLaneInNextLink->getRoadSegment()->getLanes().begin();
-			it != nextLaneInNextLink->getRoadSegment()->getLanes().end();
-			it++) {
-		if ((*it)->is_pedestrian_lane() || (*it)->is_bicycle_lane()) {
-
-		} else {
-			if (first) {
-				first = false;
-				StartnewLane = getLaneIndex((*it));
-			}
-//std::cout<<getLaneIndex((*it))<<std::endl;
-			laneIDS.insert(getLaneIndex((*it)));
-			last = getLaneIndex((*it));
-		}
-	}
-
-	if ((startOldLane != -1) && StartnewLane != -1)
-		id = id + (StartnewLane - startOldLane);
-
-	if (laneIDS.find(id) != laneIDS.end()) {
-		entry =
-				nextLaneInNextLink->getRoadSegment()->getLanes().at(id)->getPolyline().at(
-						0); // getLaneEdgePolyline(findID).at(0);
-		lastIndex = id;
-	} else {
-		int findID = total - offset;
-		if (findID > 0) {
-			if (laneIDS.find(findID) != laneIDS.end()) {
-				entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(
-						findID)->getPolyline().at(0); // getLaneEdgePolyline(findID).at(0);
-				lastIndex = findID;
-			} else {
-				entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(
-						last)->getPolyline().at(0); //->getLaneEdgePolyline(last).at(0);
-				lastIndex = last;
-			}
-		} else {
-			lastIndex = *(laneIDS.begin());
-			entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(
-					*(laneIDS.begin()))->getPolyline().at(0); //>getLaneEdgePolyline(*(laneIDS.begin())).at(0);
-		}
-	}
+	Point2D p = nextLaneInNextLink->getPolyline().at(0);
 //Compute a movement trajectory.
-	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()),
+	intModel->startDriving(movingFrom, DPoint(p.getX(), p.getY()),
 			overflow);
 }
 
@@ -2561,7 +2570,8 @@ void sim_mob::DriverMovement::intersectionVelocityUpdate() {
 
 void sim_mob::DriverMovement::justLeftIntersection(DriverUpdateParams& p) {
 //p.currLane = nextLaneInNextLink;
-	p.currLaneIndex = getLaneIndex(p.currLane);
+	p.currLaneIndex = getLaneIndex(nextLaneInNextLink);
+	//p.currLaneIndex = getLaneIndex(p.currLane);
 	fwdDriverMovement.moveToNewPolyline(p.currLaneIndex);
 	syncCurrLaneCachedInfo(p);
 	p.currLaneOffset = fwdDriverMovement.getCurrDistAlongRoadSegmentCM();

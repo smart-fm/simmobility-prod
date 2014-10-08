@@ -624,7 +624,7 @@ void sim_mob::LaneStats::addPerson(sim_mob::Person* p)
 		}
 	}
 	numPersons++; // record addition
-	if (vehicle)
+	if (!laneInfinity && vehicle)
 	{
 		totalLength = totalLength + vehicle->getLengthCm();
 	}
@@ -675,7 +675,7 @@ void sim_mob::LaneStats::removePerson(sim_mob::Person* p, bool wasQueuing)
 	{
 		laneAgents.erase(pIt);
 		numPersons--; //record removal
-		if (vehicle)
+		if (!laneInfinity && vehicle)
 		{
 			totalLength = totalLength - vehicle->getLengthCm();
 		}
@@ -1135,7 +1135,7 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 		p = laneAgents.front();
 		laneAgents.pop_front();
 		numPersons--; // record removal
-		if (vehicle)
+		if (!laneInfinity && vehicle)
 		{
 			totalLength = totalLength - vehicle->getLengthCm();
 		}
@@ -1150,7 +1150,7 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 				p = (*it);
 				it = laneAgents.erase(it); // erase returns the next iterator
 				numPersons--; //record removal
-				if (vehicle)
+				if (!laneInfinity && vehicle)
 				{
 					totalLength = totalLength - vehicle->getLengthCm();
 				}

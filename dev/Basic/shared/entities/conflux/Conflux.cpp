@@ -610,11 +610,11 @@ void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
 		const SegmentStatsList& linkSegments = upstreamIt->second;
 		for(SegmentStatsList::const_iterator segIt = linkSegments.begin(); segIt != linkSegments.end(); segIt++)
 		{
+			(*segIt)->updateLaneParams(frameNumber);
 			if (updateThisTick && outputEnabled)
 			{
 				Log() << (*segIt)->reportSegmentStats(frameNumber);
 			}
-			(*segIt)->updateLaneParams(frameNumber); // for next tick
 		}
 	}
 }

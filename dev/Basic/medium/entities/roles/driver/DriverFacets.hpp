@@ -90,9 +90,15 @@ public:
 	MesoPathMover & getMesoPathMover() {
 		return pathMover;
 	}
-	// mark startTimeand origin
+	/// mark startTimeand origin. Called at every frame_init
 	TravelMetric & startTravelTimeMetric();
-	//	mark the destination and end time and travel time
+	/**
+	 * mark the destination and end time and travel time.
+	 * upon every change in the role, this method is called
+	 * to collect the metrics collected during the previous
+	 * role's period.
+	 */
+	//
 	TravelMetric & finalizeTravelTimeMetric();
 
 protected:

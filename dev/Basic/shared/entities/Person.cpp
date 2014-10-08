@@ -240,12 +240,12 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		}
 
 		//Otherwise, make a trip chain for this Person.
-		Node * O = ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true);
-		Node * D = ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destIt->second), true);
+		Node * O = ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(oriNodeIt->second), true);
+		Node * D = ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destNodeIt->second), true);
 
 		if(!O || !D){
 			std::ostringstream out("");
-			out << "Nodes Located for (" << origIt->second << ") and (" << destIt->second << ") :(" << O << "," << D << ")" << std::endl;
+			out << "Nodes Located for (" << oriNodeIt->second << ") and (" << destNodeIt->second << ") :(" << O << "," << D << ")" << std::endl;
 			throw std::runtime_error(out.str());
 		}
 		this->originNode = WayPoint( O );
@@ -884,13 +884,13 @@ bool sim_mob::Person::advanceCurrentSubTrip()
 		return false;
 	}
 
-	if (currSubTrip == trip->getSubTripsRW().end()) /*just a routine check*/ {
+	if (currSubTrip == trip->getSubTrips().end()) /*just a routine check*/ {
 		return false;
 	}
 
 	currSubTrip++;
 
-	if (currSubTrip == trip->getSubTripsRW().end()) {
+	if (currSubTrip == trip->getSubTrips().end()) {
 		return false;
 	}
 

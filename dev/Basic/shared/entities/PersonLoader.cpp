@@ -148,6 +148,84 @@ namespace
 		return tripToSave;
 	}
 }
+boost::shared_ptr<sim_mob::RestrictedRegion> sim_mob::RestrictedRegion::instance;
+
+void sim_mob::RestrictedRegion::processTripChains(map<string, vector<TripChainItem*> > &tripchains)
+{
+	std::pair<string, vector<TripChainItem*> > item;
+	//iterate person
+	BOOST_FOREACH(item, tripchains)
+	{
+		//iterate person's tripchain
+		vector<TripChainItem*> tcs = item.second;
+		BOOST_FOREACH(TripChainItem* tci, tcs)
+		{
+			if(tci->itemType != sim_mob::TripChainItem::IT_TRIP)
+			{
+				continue;
+			}
+			std::vector<sim_mob::SubTrip>& subTrips = static_cast<Trip*>(tci)->getSubTripsRW();
+			processSubTrips(subTrips);
+		}
+	}
+}
+
+void sim_mob::RestrictedRegion::processSubTrips(std::vector<sim_mob::SubTrip>& subTrips)
+{
+	for(int i = 0; i < subTrips.size(); i++)
+	{
+		const sim_mob::Node* o = isInRestrictedZone(subTrips[i].fromLocation);
+		const sim_mob::Node* d = isInRestrictedZone(subTrips[i].toLocation);
+		//	if either origin OR destination lie in the restricted zone (not both)
+		if((o || d) && !(o && d))
+		{
+			//create an extra subtrip for the restricted zone travel(restrictedSubTrip)
+			sim_mob::SubTrip restrictedSubTrip(subTrips[i]);
+			//origin in the restricted area
+			if(o != nullptr)
+			{
+				WayPoint wpo(o);
+				restrictedSubTrip.toLocation = wpo;
+				subTrips[i].fromLocation = wpo;
+				restrictedSubTrip.tripID += "-sb";//subtrip before the current subtrip
+				//insert restrictedSubTrip 'before' the current subtrip
+				subTrips.insert(subTrips.begin() + i , restrictedSubTrip);
+				i++;
+			}
+			//destination in the restricted area
+			else
+			{
+				WayPoint wpd(d);
+				subTrips[i].toLocation = wpd;
+				restrictedSubTrip.fromLocation = wpd;
+				restrictedSubTrip.tripID += "-sa";//split after the current subtrip
+				//insert restrictedSubTrip 'after' the current subtrip
+				subTrips.insert(subTrips.begin() + i + 1, restrictedSubTrip);
+				i++;
+			}
+		}
+	}
+
+}
+
+const sim_mob::Node* sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::Node* target) const
+{
+	std::map<const Node*,const Node*>::const_iterator it(restrictedZoneBorder.find(target));
+	if(restrictedZoneBorder.end() == it)
+	{
+		return nullptr;
+	}
+	return it->second;
+}
+
+const sim_mob::Node* sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::WayPoint& target) const
+{
+	if(target.type_ != WayPoint::NODE)
+	{
+		return nullptr;
+	}
+	return isInRestrictedZone(target.node_);
+}
 
 sim_mob::PeriodicPersonLoader::PeriodicPersonLoader(std::set<sim_mob::Entity*>& activeAgents, StartTimePriorityQueue& pendinAgents)
 	: activeAgents(activeAgents), pendingAgents(pendinAgents),
@@ -191,6 +269,8 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }
 		actCtr++;
 	}
+	//CBD specific processing of trip chain
+	RestrictedRegion::getInstance().processTripChains(tripchains);
 
 	//add or stash new persons
 	for(map<string, vector<TripChainItem*> >::iterator i=tripchains.begin(); i!=tripchains.end(); i++)

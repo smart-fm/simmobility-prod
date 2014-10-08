@@ -857,33 +857,42 @@ void sim_mob::SegmentStats::updateLaneParams(timeslice frameNumber)
 
 std::string sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber)
 {
-	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
-	{
-		std::stringstream msg;
-		double density = segDensity * 1000.0 /* Density is converted to veh/km/lane for the output */
-		* numVehicleLanes; /* Multiplied with number of lanes to get the density in veh/km/segment*/
+	std::stringstream msg;
+	double density = segDensity
+						* 1000.0 /* Density is converted to veh/km/lane for the output */
+						* numVehicleLanes; /* Multiplied with number of lanes to get the density in veh/km/segment*/
 
 #define SHOW_NUMBER_VEHICLE_ON_SEGMENT
 #ifdef SHOW_NUMBER_VEHICLE_ON_SEGMENT
 
-		msg << "(\"segmentState\"" << "," << frameNumber.frame() << "," << roadSegment << ",{" << "\"speed\":\"" << segVehicleSpeed << "\",\"flow\":\""
-				<< segFlow << "\",\"density\":\"" << density << "\",\"total_vehicles\":\"" << numPersons << "\",\"moving_vehicles\":\""
-				<< numMovingInSegment(true) << "\",\"queue_vehicles\":\"" << numQueuingInSegment(true) << "\",\"numVehicleLanes\":\"" << numVehicleLanes
-				<< "\",\"segment_length\":\"" << length << "\"})" << std::endl;
+	msg << "(\"segmentState\""
+		<< "," << frameNumber.frame()
+		<< "," << roadSegment
+		<< ",{"
+		<< "\"speed\":\"" << segVehicleSpeed
+		<< "\",\"flow\":\"" << segFlow
+		<< "\",\"density\":\"" << density
+		<< "\",\"total\":\"" << numPersons
+		<< "\",\"moving\":\"" << numMovingInSegment(true)
+		<< "\",\"queue\":\"" << numQueuingInSegment(true)
+		<< "\",\"waiting\":\"" << numAgentsInLane(laneInfinity)
+		<< "\",\"numVehicleLanes\":\"" << numVehicleLanes
+		<< "\",\"segment_length\":\"" << length
+		<< "\"})"
+		<< std::endl;
 #else
 
-		msg <<"(\"segmentState\""
+	msg <<"(\"segmentState\""
 		<<","<<frameNumber.frame()
 		<<","<<roadSegment
 		<<",{"
 		<<"\"speed\":\""<< segVehicleSpeed
 		<<"\",\"flow\":\""<< segFlow
 		<<"\",\"density\":\""<< density
-		<<"\"})"<<std::endl;
+		<<"\"})"
+		<<std::endl;
 #endif
-		return msg.str();
-	}
-	return "";
+	return msg.str();
 }
 
 double sim_mob::SegmentStats::getSegSpeed(bool hasVehicle) const

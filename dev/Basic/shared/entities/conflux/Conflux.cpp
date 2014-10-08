@@ -599,15 +599,16 @@ sim_mob::Person* sim_mob::Conflux::agentClosestToIntersection() {
 }
 
 void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
-	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin();
-			upstreamIt != upstreamSegStatsMap.end(); upstreamIt++) {
+	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin(); upstreamIt != upstreamSegStatsMap.end(); upstreamIt++)
+	{
 		const SegmentStatsList& linkSegments = upstreamIt->second;
-		for(SegmentStatsList::const_iterator segIt = linkSegments.begin();
-				segIt != linkSegments.end(); segIt++) {
-			(*segIt)->updateLaneParams(frameNumber);
-			if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
+		for(SegmentStatsList::const_iterator segIt = linkSegments.begin(); segIt != linkSegments.end(); segIt++)
+		{
+			if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
+			{
 				Log() << (*segIt)->reportSegmentStats(frameNumber);
 			}
+			(*segIt)->updateLaneParams(frameNumber); // for next tick
 		}
 	}
 }

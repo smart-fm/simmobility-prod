@@ -16,6 +16,7 @@
 
 namespace sim_mob {
 class Agent;
+class Agent_LT;
 
 namespace event {
 
@@ -61,5 +62,23 @@ private:
 	unsigned int agentId;
 	Agent * agent;
 };
+
+
+///Agent Life Cycle event args (no documentation provided).
+class AgentLifeCycleEventArgsLT : public EventArgs
+{
+public:
+	AgentLifeCycleEventArgsLT(unsigned int agentId, Agent_LT* agent);
+	virtual ~AgentLifeCycleEventArgsLT();
+
+	virtual AgentLifeCycleEventArgsLT& operator=(const AgentLifeCycleEventArgsLT& source);
+	unsigned int GetAgentId() const;
+	Agent_LT* GetAgent() const;
+
+private:
+	unsigned int agentId;
+	Agent_LT * agent;
+};
+
 
 }}

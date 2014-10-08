@@ -11,7 +11,7 @@
 #include <vector>
 #include <string>
 #include "workers/WorkGroup.hpp"
-#include "entities/Agent.hpp"
+#include "entities/Agent_LT.hpp"
 #include "util/Utils.hpp"
 
 namespace sim_mob {
@@ -131,7 +131,7 @@ namespace sim_mob {
             }
         protected:
             WorkGroup& workGroup;
-            std::vector<Agent*> agents;
+            std::vector<Agent_LT*> agents;
         
         private:
             typedef std::map<std::string, std::string> MetadataMap;

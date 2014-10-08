@@ -27,7 +27,8 @@ PredayCalibrationParams::PredayCalibrationParams() :
 
 MT_Config::MT_Config() :
 		pedestrianWalkSpeed(0), numPredayThreads(0), configSealed(false), outputTripchains(false),
-consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA), logsumComputationFrequency(0)
+		consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA),
+		logsumComputationFrequency(0), supplyUpdateInterval(0)
 {}
 
 MT_Config::~MT_Config()
@@ -67,6 +68,19 @@ void MT_Config::setActivityScheduleLoadInterval(unsigned activityScheduleLoadInt
 	if(!configSealed)
 	{
 		this->activityScheduleLoadInterval = activityScheduleLoadInterval;
+	}
+}
+
+unsigned MT_Config::getSupplyUpdateInterval() const
+{
+	return supplyUpdateInterval;
+}
+
+void MT_Config::setSupplyUpdateInterval(unsigned supplyUpdateInterval)
+{
+	if(!configSealed)
+	{
+		this->supplyUpdateInterval = supplyUpdateInterval;
 	}
 }
 

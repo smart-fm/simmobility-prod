@@ -7,7 +7,10 @@
         <mid_term_run_mode value="withinday"/>
         
         <!-- config specific to supply simulator -->            
-        <supply>                 
+        <supply>       
+        		<!-- period of supply output -->
+        		<update_interval       value="5"     units="minute" />
+        		          
                 <!-- these parameters are used to calculate dwell time of buses at bus stops-->
                 <!-- these parameters will be organized in a better way after finding the meaning of these numbers -->
                 <dwell_time_parameters>

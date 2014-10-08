@@ -63,6 +63,12 @@ private:
 	void processActivityLoadIntervalElement(xercesc::DOMElement* node);
 
 	/**
+	 * processes update interval node
+	 * @param node node corresponding to update interval element
+	 */
+	void processUpdateIntervalElement(xercesc::DOMElement* node);
+
+	/**
 	 * processes dwell time element included in xml file.
 	 * @param node node corresponding to the dwell time element inside xml file
 	 */

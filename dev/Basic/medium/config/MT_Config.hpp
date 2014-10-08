@@ -247,6 +247,8 @@ public:
 	void setStoredProcedureMap(const StoredProcedureMap& storedProcedure);
 	unsigned getActivityScheduleLoadInterval() const;
 	void setActivityScheduleLoadInterval(unsigned activityScheduleLoadInterval);
+	unsigned getSupplyUpdateInterval() const;
+	void setSupplyUpdateInterval(unsigned supplyUpdateInterval);
 
 private:
 	MT_Config();
@@ -285,6 +287,7 @@ private:
 	unsigned logsumComputationFrequency;
 	StoredProcedureMap storedProcedure;
 	unsigned activityScheduleLoadInterval; //seconds
+	unsigned supplyUpdateInterval; //frames
 };
 }
 }

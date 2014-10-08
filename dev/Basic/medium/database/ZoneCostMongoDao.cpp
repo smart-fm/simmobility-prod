@@ -32,6 +32,8 @@ void sim_mob::medium::ZoneMongoDao::fromRow(mongo::BSONObj document, ZoneParams&
 	outParam.setArea(document.getField(MONGO_FIELD_ZONE_AREA).Number());
 	outParam.setTotalEnrollment(document.getField(MONGO_FIELD_ZONE_TOTAL_ENROLLMENT).Number());
 	outParam.setResidentStudents(document.getField(MONGO_FIELD_ZONE_RESIDENT_STUDENTS).Number());
+	if(document.hasElement(MONGO_FIELD_ZONE_CBD_ZONE)) { outParam.setCbdDummy(document.getField(MONGO_FIELD_ZONE_CBD_ZONE).Number()); }
+	else { outParam.setCbdDummy(false); }
 }
 
 sim_mob::medium::CostMongoDao::CostMongoDao(db::DB_Config& dbConfig, const std::string& database, const std::string& collection)

@@ -111,6 +111,16 @@ public:
 		this->zoneId = zoneId;
 	}
 
+	int getCbdDummy() const
+	{
+		return cbdZone;
+	}
+
+	void setCbdDummy(bool cbdZone)
+	{
+		this->cbdZone = cbdZone;
+	}
+
 private:
 	int zoneId;
 	int zoneCode;
@@ -123,6 +133,7 @@ private:
 	double area;
 	double totalEnrollment;
 	double residentStudents;
+	bool cbdZone;
 };
 
 /**

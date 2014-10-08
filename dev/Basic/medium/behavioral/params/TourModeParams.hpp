@@ -297,6 +297,16 @@ public:
 		educationOP = educationOp;
 	}
 
+	bool isCbdZone() const
+	{
+		return cbdZone;
+	}
+
+	void setCbdZone(bool cbdZone)
+	{
+		this->cbdZone = cbdZone;
+	}
+
 private:
 	StopType stopType;
 	double costPublicFirst;
@@ -309,6 +319,7 @@ private:
 	double walkDistance1;
 	double walkDistance2;
 	bool centralZone;
+	bool cbdZone;
 	double ttPublicIvtFirst;
 	double ttPublicIvtSecond;
 	double ttPublicWaitingFirst;

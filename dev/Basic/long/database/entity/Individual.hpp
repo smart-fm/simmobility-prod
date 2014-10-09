@@ -50,6 +50,8 @@ namespace sim_mob
 			bool	  getDriversLicense() const;
 			std::tm   getDateOfBirth() const;
 
+			void	  setDateOfBirth(std::tm);
+
 			Individual& operator=(const Individual& source);
 
 			friend std::ostream& operator<<(std::ostream& strm, const Individual& data);

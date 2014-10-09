@@ -143,6 +143,10 @@ int TourModeDestinationParams::getCentralDummy(int zone) const {
 	return zoneMap.at(zone)->getCentralDummy();
 }
 
+int TourModeDestinationParams::getCbdDummy(int zone) const {
+	return zoneMap.at(zone)->getCbdDummy();
+}
+
 StopType TourModeDestinationParams::getTourPurpose() const {
 	return purpose;
 }
@@ -316,6 +320,10 @@ double StopModeDestinationParams::getWalkDistanceSecond(int zone) const {
 
 int StopModeDestinationParams::getCentralDummy(int zone) const {
 	return zoneMap.at(zone)->getCentralDummy();
+}
+
+int StopModeDestinationParams::getCbdDummy(int zone) const {
+	return zoneMap.at(zone)->getCbdDummy();
 }
 
 StopType StopModeDestinationParams::getTourPurpose() const {

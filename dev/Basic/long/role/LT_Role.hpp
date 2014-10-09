@@ -83,16 +83,19 @@ namespace sim_mob {
          * Represents a Generic Agent Role template implementation.
          * Template class should be a concrete LT_Agent class.
          */
-        template<typename T> class LT_AgentRole : public LT_Role, public sim_mob::event::EventListener {
+        template<typename T> class LT_AgentRole : public LT_Role, public sim_mob::event::EventListener
+        {
         public:
 
-            LT_AgentRole(T* parent) : parent(parent) {
+            LT_AgentRole(T* parent) : parent(parent)
+        	{
             	//Ensure that parent is a subclass of type Agent. (Won't compile otherwise).
             	//TODO: This is only for the sake of the Log() function.
-            	Agent* parentAg = parent;
+            	Agent_LT* parentAg = parent;
             }
 
-            virtual ~LT_AgentRole() {
+            virtual ~LT_AgentRole()
+            {
                 parent = nullptr;
             }
 
@@ -102,16 +105,17 @@ namespace sim_mob {
              * Gets the role's parent.
              * @return Parent pointer.
              */
-            T* getParent() const {
+            T* getParent() const
+            {
                 return parent;
             }
 
             //Allow LT_Roles to access the Logging infrastructure.
             //TODO: Might want to have LT_Role subclass Role so that we don't have to do a messy dynamic cast here.
             //      Templates make this more difficult than it should be.
-            NullableOutputStream Log() {
-            	return NullableOutputStream(
-                        dynamic_cast<Agent*>(parent)->currWorkerProvider->getLogFile());
+            NullableOutputStream Log()
+            {
+            	return NullableOutputStream( dynamic_cast<Agent_LT*>(parent)->currWorkerProvider->getLogFile() );
             }
 
         private:

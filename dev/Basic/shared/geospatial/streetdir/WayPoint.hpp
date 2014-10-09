@@ -136,6 +136,10 @@ struct WayPoint
     			directionReverse == rhs.directionReverse);
     }
 
+    bool operator!=(const WayPoint & rhs){
+    	return !(*this == rhs);
+    }
+
     WayPoint &  operator=(const WayPoint & rhs){
     	type_ = rhs.type_;
     	switch (type_)

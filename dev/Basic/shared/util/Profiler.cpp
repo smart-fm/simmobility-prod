@@ -93,7 +93,8 @@ boost::chrono::system_clock::time_point sim_mob::Profiler::getTime()
 
 sim_mob::BasicLogger::BasicLogger(std::string id_){
 	id = id_;
-	std::string path = id_ + ".txt";
+	//simple check to see if the id can be used like a file name with a 3 letter extension, else append .txt
+	std::string path = (id_[id.size() - 4] == '.' ? id_ : (id_ + ".txt"));
 	if(path.size()){
 		initLogFile(path);
 	}
@@ -282,7 +283,7 @@ sim_mob::Logger::~Logger()
 	}
 	repo.clear();
 }
-sim_mob::BasicLogger & sim_mob::Logger::operator[](const std::string &key)
+sim_mob::BasicLogger & sim_mob::Logger::operator()(const std::string &key)
 {
 	//todo
 //	boost::upgrade_lock<boost::shared_mutex> lock(repoMutex);

@@ -530,9 +530,11 @@ bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 
 	const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
 
-	const sim_mob::SubTrip* str = 0;
+	const sim_mob::SubTrip* str = nullptr;
 	if( tci->itemType==sim_mob::TripChainItem::IT_TRIP || tci->itemType==sim_mob::TripChainItem::IT_FMODSIM )
+	{
 		str =  &(*currSubTrip);
+	}
 
 	if(newRole == 0)
 		newRole = rf.createRole(tci, str, this);
@@ -887,7 +889,10 @@ bool sim_mob::Person::advanceCurrentSubTrip()
 	if (currSubTrip == trip->getSubTrips().end()) /*just a routine check*/ {
 		return false;
 	}
-
+	// subtrip about to change, time to collect its travel metrics
+	TravelMetric & subtripMetrics = currRole->Movement()->finalizeTravelTimeMetric();
+	//Also, it is a good time to serialize the information for this subtrip
+	serializeSubTripTravelTimeMetrics(subtripMetrics,currTripChainItem,currSubTrip);
 	currSubTrip++;
 
 	if (currSubTrip == trip->getSubTrips().end()) {
@@ -919,12 +924,14 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 	if(res) {
 		return res;
 	}
-	//Tripchainitem has to be incremented
-
-//	//Before incrementing currTripChainItem, check: If it was a Trip, it is a good time to collect the aggregated travel time for that trip(if any)
-//	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP){
-//		aggregateSubTripMetrics();
-//	}
+	//if you are here, Tripchainitem has to be incremented
+	//1
+	serializeTripChainItem(currTripChainItem);
+	//2.Trip is about the change, it is a good time to collect the Metrics
+	serializeTripChainItem(currTripChainItem);
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP){
+		aggregateSubTripMetrics();
+	}
 
 	//	do the increment
 	currTripChainItem++;
@@ -962,8 +969,6 @@ void sim_mob::Person::buildSubscriptionList(vector<BufferedBase*>& subsList) {
 //      the same code in two places.
 void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 	if (currRole) {
-		currRole->Movement()->finalizeTravelTimeMetric();
-		aggregateSubTripMetrics();
 		currRole->setParent(nullptr);
 		if (this->currWorkerProvider) {
 			this->currWorkerProvider->stopManaging(currRole->getSubscriptionParams());
@@ -1033,3 +1038,191 @@ void sim_mob::Person::setPersonCharacteristics()
 		}
 	}
 }
+
+void sim_mob::Person::aggregateSubTripMetrics()
+{
+	TravelMetric newTripMetric;
+	if(subTripTravelMetrics.begin() == subTripTravelMetrics.end())
+	{
+		throw std::runtime_error("subTrip level TravelMetrics is missing");
+	}
+	TravelMetric item(*subTripTravelMetrics.begin());
+	newTripMetric.startTime = item.startTime;//first item
+	newTripMetric.origin = item.origin;
+	 BOOST_FOREACH(item, subTripTravelMetrics)
+	 {
+		 newTripMetric.travelTime += item.travelTime;
+	 }
+	 newTripMetric.endTime = item.endTime;
+	 newTripMetric.destination = item.destination;
+	 subTripTravelMetrics.clear();
+	 tripTravelMetrics.push_back(newTripMetric);
+}
+
+void sim_mob::Person::addSubtripTravelMetrics(TravelMetric & value){
+	 subTripTravelMetrics.push_back(value);
+ }
+/**
+ * Serializer for Trip level travel time
+ */
+ void sim_mob::Person::serializeTripTravelTimeMetrics()
+ {
+	 sim_mob::BasicLogger & csv = sim_mob::Logger::log("trip_level_travel_time.csv");
+	 BOOST_FOREACH(TravelMetric item, tripTravelMetrics)
+	 {
+		 csv << this->getId() << "," <<
+				 item.origin.node_->getID() << ","
+				 << item.destination.node_->getID() << ","
+				 << item.startTime.getRepr_() << ","
+				 << item.endTime.getRepr_() << ","
+				 << (item.endTime - item.startTime).getRepr_()
+				 << "\n";
+	 }
+	 tripTravelMetrics.clear();
+ }
+
+ /**
+  * A version of serializer for subtrip level travel time.
+  * \param subtripMetrics input metrics
+  * \param currTripChainItem current TripChainItem
+  * \param currSubTrip current SubTrip for which subtripMetrics is collected
+  */
+ void sim_mob::Person::serializeSubTripTravelTimeMetrics(
+		 const TravelMetric & subtripMetrics,
+		 std::vector<TripChainItem*>::iterator currTripChainItem,
+		 std::vector<SubTrip>::iterator currSubTrip
+		 ) const
+ {
+	 //sanity check
+	 if((*currSubTrip).fromLocation != subtripMetrics.origin || (*currSubTrip).toLocation != subtripMetrics.destination)
+	 {
+		 std::stringstream error("");
+		 error << "OD mismatch: " <<
+				 (*currSubTrip).fromLocation.node_->getID() << "," << subtripMetrics.origin.node_->getID() << "," <<
+				 (*currSubTrip).toLocation.node_->getID() << "," <<  subtripMetrics.destination.node_->getID() ;
+		 throw std::runtime_error (error.str());
+	 }
+
+	 // destination
+	 sim_mob::BasicLogger & csv = sim_mob::Logger::log("subtrip_level_travel_metrics_for_preday.csv");
+
+	 // restricted area to be appended at the end of the csv line
+	 std::stringstream restrictedRegion("");
+	 if((*currSubTrip).tripID.find("-sa"))
+	 {
+		 restrictedRegion << (*currSubTrip).fromLocation.node_->getID() << "," <<
+				 "," <<
+				 subtripMetrics.startTime.getRepr_()  << "," ;
+	 }
+	 else if((*currSubTrip).tripID.find("-sb"))
+	 {
+		 restrictedRegion << "," << (*currSubTrip).toLocation.node_->getID() << "," <<
+				 "," <<
+				 subtripMetrics.endTime.getRepr_() ;
+
+	 }
+	 // actual writing
+	 csv << this->getId() << "," <<
+			 (static_cast<Trip*>(*currTripChainItem))->tripID  << "," <<
+			 (*currSubTrip).tripID  << "," <<
+			 (*currSubTrip).fromLocation.node_->getID() << "," <<
+			 (*currSubTrip).toLocation.node_->getID() << "," <<
+			 (*currSubTrip).mode  << "," <<
+			 subtripMetrics.startTime.getRepr_()  << "," <<
+			 subtripMetrics.endTime.getRepr_()  << "," <<
+			 (subtripMetrics.endTime -  subtripMetrics.startTime).getRepr_()  << ","
+			 << restrictedRegion.str() << "\n";
+
+	 //unlike trip level serialization, we are not deleting anything here
+ }
+
+ std::string sim_mob::Person::serializeTrip(std::vector<TripChainItem*>::iterator item)
+ {
+	 sim_mob::Trip * trip = dynamic_cast<Trip*>(*item);
+	 std::stringstream tripStrm_1("");
+
+	 //step-1 trip ,part 1
+	 tripStrm_1 << this->getId() << "," <<
+			 trip->sequenceNumber << "," <<
+			 "Trip" << "," <<
+			 this->getId() << trip->sequenceNumber << "," << //tripid
+			 trip->fromLocation.node_->getID() << "," <<
+			 trip->toLocation.node_->getID()<< ","  ;
+	 //step-2 activity, part 1
+	 std::stringstream activity_1("");
+	 activity_1 << "," << "," << "," << "," << "," << ",";
+	 //step-3 trip part 2
+	 std::stringstream tripStrm_2("");
+	 //suppose only LT_NODE, LT_PUBLIC_TRANSIT_STOP are available
+	 tripStrm_2 << (trip->fromLocationType == TripChainItem::LT_NODE ? "node" : "stop") << "," <<
+			 (trip->toLocationType == TripChainItem::LT_NODE ? "node" : "stop") << "," ;
+
+	 //step-4 activity part 2
+	 std::stringstream activity_2("");
+	 activity_2 << "," << "," ;
+
+	 //step-5 subtrip iteration
+	 std::stringstream res("");
+	 const std::vector<sim_mob::SubTrip>& subtrips = trip->getSubTrips();
+	 BOOST_FOREACH(sim_mob::SubTrip st, subtrips)
+	 {
+		 res <<	 tripStrm_1.str() <<  ","
+				 << st.tripID <<  "," <<
+				 st.fromLocation.node_->getID() <<  "," <<
+				 st.toLocation.node_->getID() <<  "," <<
+				 st.mode <<  "," <<
+				 st.isPrimaryMode <<  "," <<
+				 st.startTime.getRepr_() <<  "," <<
+				 activity_1.str() <<  "," <<
+				 tripStrm_2.str() <<  "," <<
+				 (st.fromLocationType == TripChainItem::LT_NODE ? "Node" : "Stop") << "," <<
+				 (st.toLocationType == TripChainItem::LT_NODE ? "Node" : "Stop") << "," <<
+				 st.ptLineId << "," <<
+				 activity_2 << "\n";
+	 }
+	 return res.str();
+ }
+
+ std::string sim_mob::Person::serializeActivity(std::vector<TripChainItem*>::iterator item)
+ {
+	 sim_mob::Activity* activity = dynamic_cast<Activity*>(*item);
+	 std::stringstream tci_1("");
+
+	 //step-1 tripchain item, trip and subtrip info
+	 tci_1 << this->getId() << "," << activity->sequenceNumber << "Activity" << ","
+			 << "," << "," << "," << "," << "," << "," << "," << "," << ","  ;
+	 //step-2 main activity info
+	 std::stringstream activity_1("");
+	 activity_1 << this->getId() << activity->sequenceNumber << "," << //activityid
+			 activity->description << "," <<
+			 activity->isPrimary << "," <<
+			 activity->location->getID() << "," <<
+			 activity->startTime.getRepr_() << "," <<
+			 activity->endTime.getRepr_() << ",";
+
+	 std::stringstream tci_2("");
+	 tci_2 << "," << "," << "," << "," << ",";
+	 std::stringstream activity_2("");
+	 activity_2 <<  (activity->locationType == TripChainItem::LT_NODE ? "node" : "stop") << "," <<
+			 activity->isFlexible  << "," <<
+			 activity->isMandatory;
+
+	 std::stringstream res("");
+	 res << tci_1.str() << activity_1.str() << tci_2.str() << activity_2.str() << "\n";
+	 return res.str();
+ }
+
+
+ void sim_mob::Person::serializeTripChainItem(std::vector<TripChainItem*>::iterator currTripChainItem)
+ {
+	 sim_mob::BasicLogger & csv = sim_mob::Logger::log("tripchain_info_for_short_term.csv");
+	 if((*currTripChainItem)->itemType == TripChainItem::IT_TRIP)
+	 {
+		 csv << serializeTrip(currTripChainItem);
+	 }
+	 else
+		 if((*currTripChainItem)->itemType == TripChainItem::IT_ACTIVITY)
+		 {
+			 csv << serializeActivity(currTripChainItem);
+		 }
+ }

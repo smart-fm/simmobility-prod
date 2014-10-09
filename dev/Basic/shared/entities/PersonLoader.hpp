@@ -31,6 +31,7 @@ class RestrictedRegion : private boost::noncopyable
 	 * Nodes in the restricted area
 	 * key: restricted Node
 	 * value: peripheryNode(non-restricted node nearest to the restricted node).
+	 * map<restricted Node,peripheryNode>
 	 */
 
 	std::map<const Node*,const Node*> restrictedZoneBorder;

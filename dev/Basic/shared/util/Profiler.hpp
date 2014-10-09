@@ -257,7 +257,7 @@ class Logger {
 protected:
 	///	repository of profilers. each profiler is distinguished by a file name!
 	std::map<const std::string, boost::shared_ptr<sim_mob::BasicLogger> > repo;
-	virtual sim_mob::BasicLogger & operator[](const std::string &key);
+	virtual sim_mob::BasicLogger & operator()(const std::string &key);
 	static boost::shared_ptr<sim_mob::Logger> log_;
 	boost::shared_mutex instanceMutex, repoMutex;
 public:
@@ -267,9 +267,9 @@ public:
 //		boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
 		if (!log_) {
 			log_.reset(new Logger());
-			return (*log_)[key];
+			return (*log_)(key);
 		}
-		return (*log_)[key];
+		return (*log_)(key);
 	}
 	virtual ~Logger();
 };

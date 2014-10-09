@@ -147,9 +147,19 @@ namespace
 		makeSubTrip(r, tripToSave);
 		return tripToSave;
 	}
-}
+}//namespace
+
+/*************************************************************************************
+ * 						Restricted Region Tripchain processing
+ * ***********************************************************************************
+ */
 boost::shared_ptr<sim_mob::RestrictedRegion> sim_mob::RestrictedRegion::instance;
 
+void sim_mob::RestrictedRegion::populate()
+{
+	soci::session sql(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
+
+}
 void sim_mob::RestrictedRegion::processTripChains(map<string, vector<TripChainItem*> > &tripchains)
 {
 	std::pair<string, vector<TripChainItem*> > item;

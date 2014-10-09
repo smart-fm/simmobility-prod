@@ -250,66 +250,64 @@ public:
 	///	container to store all the metrics of the trips (subtrip actually)
 	 /*
 	  * The implementation inserts information at subtrip resolution while preday will require Trip-level metrics.
-	  *  so whenever all subtrips of a trip are done (subTripTravelMetrics) and it is time to change the tripchainitem(in Pesron class)
-	  *  an aggregate function will create a new entry in tripTravelMetrics from subTripTravelMetrics items.
-	  *  subTripTravelMetrics items are cleared then.
+	  *  So whenever all subtrips of a trip are done (subTripTravelMetrics) and it is time to change the tripchainitem
+	  *  (in Pesron class) an aggregate function will create a new entry in tripTravelMetrics from subTripTravelMetrics
+	  *  items. subTripTravelMetrics items are cleared then.
 	  */
 	 std::vector<TravelMetric> tripTravelMetrics;
-	 std::vector<TravelMetric> subTripTravelMetrics;
-	///	get the measurements stored in subTripTravelMetrics and add them up into a new entry in tripTravelMetrics
-	///	call this method whenever a subtrip is done.
-	void aggregateSubTripMetrics()
-	{
-		TravelMetric newTripMetric;
-//		if(subTripTravelMetrics.begin() == subTripTravelMetrics.end())
-//		{
-//			throw std::runtime_error("subTrip level TravelMetrics is missing");
-//		}
-		TravelMetric item(*subTripTravelMetrics.begin());
-		newTripMetric.startTime = item.startTime;//first item
-		newTripMetric.origin = item.origin;
-		 BOOST_FOREACH(item, subTripTravelMetrics)
-		 {
-			 newTripMetric.travelTime += item.travelTime;
-		 }
-		 newTripMetric.endTime = item.endTime;
-		 newTripMetric.destination = item.destination;
-		 subTripTravelMetrics.clear();
-		 tripTravelMetrics.push_back(newTripMetric);
-	}
-//	 std::vector<TravelMetric> & getTipTravelMetrics()
-//	 {
-//		 return tripTravelMetrics;
-//	 }
-//
-//	 void addTripTravelMetrics(TravelMetric & value){
-//		 tripTravelMetrics.push_back(value);
-//	 }
-//
-//	 std::vector<TravelMetric> & getSubTipTravelMetrics()
-//	 {
-//		 return subTripTravelMetrics;
-//	 }
-//
-	 void addSubtripTravelMetrics(TravelMetric & value){
-		 subTripTravelMetrics.push_back(value);
-	 }
 
-	 void serializeTripTravelTimeMetrics()
-	 {
-		 sim_mob::BasicLogger & csv = sim_mob::Logger::log("person_travel_time");
-		 BOOST_FOREACH(TravelMetric item, tripTravelMetrics)
-		 {
-			 csv << this->getId() << "," <<
-					 item.origin.node_->getID() << ","
-					 << item.destination.node_->getID() << ","
-					 << item.startTime.getRepr_() << ","
-					 << item.endTime.getRepr_() << ","
-					 << (item.endTime - item.startTime).getRepr_()
-					 << "\n";
-		 }
-		 tripTravelMetrics.clear();
-	 }
+	 /**
+	  * subtrip level travel metrics
+	  */
+	 std::vector<TravelMetric> subTripTravelMetrics;
+
+	/**
+	 * get the measurements stored in subTripTravelMetrics and add them up into a new entry in tripTravelMetrics.
+	 * call this method whenever a subtrip is done.
+	 */
+	void aggregateSubTripMetrics();
+
+	/**
+	 * add the given TravelMetric to subTripTravelMetrics container
+	 */
+	void addSubtripTravelMetrics(TravelMetric & value);
+
+	/**
+	 * Serializer for Trip level travel time
+	 */
+	 void serializeTripTravelTimeMetrics();
+
+	 /**
+	  * A version of serializer for subtrip level travel time.
+	  * \param subtripMetrics input metrics
+	  * \param currTripChainItem current TripChainItem
+	  * \param currSubTrip current SubTrip for which subtripMetrics is collected
+	  */
+	 void serializeSubTripTravelTimeMetrics(
+			 const TravelMetric & subtripMetrics,
+			 std::vector<TripChainItem*>::iterator currTripChainItem,
+			 std::vector<SubTrip>::iterator currSubTrip
+			 ) const;
+private:
+	 /**
+	  * serialize person's tripchain item
+	  */
+	void serializeTripChainItem(std::vector<TripChainItem*>::iterator currTripChainItem);
+
+	 /**
+	  * During Serialization of person's tripchain, this routine is called if the given
+	  * tripchain item is a trip
+	  */
+	 std::string serializeTrip(std::vector<TripChainItem*>::iterator item);
+
+
+	 /**
+	  * During Serialization of person's tripchain, this routine is called if the given
+	  * tripchain item is an activity
+	  */
+	 std::string serializeActivity(std::vector<TripChainItem*>::iterator item);
+
+
 
 
 

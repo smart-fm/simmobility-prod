@@ -257,6 +257,58 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 				}
 			}
 
+			if(busstop_busline_registered){
+
+				if(curr->route_id.find("857_1")==string::npos){
+					continue;
+				}
+
+				std::cout << "busline:" << busline->getBusLineID() << " stop size:"<<stops.size()<<std::endl;
+				//calculate bus route
+				if(stops.size()>0 && segments.size()==0){
+					const BusStop* start = nullptr;
+					const BusStop* end = nullptr;
+					vector<unsigned int> routeIDs;
+					for (int k = 0; k < stops.size(); k++)
+					{
+						const BusStop* busStop = stops[k];
+						std::cout << "busline:" << busline->getBusLineID() << " stop:"
+								<< busStop->busstopno_ << " nearest segmentId:"
+								<< busStop->getParentSegment()->getSegmentAimsunId()
+								<< " stop size:"<<stops.size()
+								<< std::endl;
+						if (k == 0) {
+							start = busStop;
+						} else {
+							end = busStop;
+							const StreetDirectory& stdir = StreetDirectory::instance();
+							vector<WayPoint> path = stdir.SearchShortestDrivingPath(
+									stdir.DrivingVertex(
+											*(start->getParentSegment()->getStart())),
+									stdir.DrivingVertex(
+											*(end->getParentSegment()->getEnd())));
+							start = end;
+							for (std::vector<WayPoint>::const_iterator it =
+									path.begin(); it != path.end(); it++) {
+								if (it->type_ == WayPoint::ROAD_SEGMENT) {
+									unsigned int id =
+											it->roadSegment_->getSegmentAimsunId();
+									if (routeIDs.size() == 0 || routeIDs.back() != id) {
+										routeIDs.push_back(id);
+									}
+								}
+							}
+						}
+					}
+
+					int index = 0;
+					for (std::vector<unsigned int>::const_iterator it =
+							routeIDs.begin(); it != routeIDs.end(); it++) {
+						std::cout << curr->route_id << "," << *it << "," << index++ << std::endl;
+					}
+				}
+			}
+
 			//Our algorithm expects empty vectors in some cases.
 			//TODO: Clean this up! Logic for dealing with null cases should go here, not in the subroutine.
 			if(busstop_busline_registered) // for each busline, only push once
@@ -269,50 +321,6 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 			  }
 		     busstop_busline_registered = false;
 			}
-
-			//calculate bus route
-			if(stops.size()>0 && segments.size()==0){
-				const BusStop* start = nullptr;
-				const BusStop* end = nullptr;
-				vector<unsigned int> routeIDs;
-				for (int k = 0; k < stops.size(); k++)
-				{
-					const BusStop* busStop = stops[k];
-					/*std::cout << "busline:" << busline->getBusLineID() << " stop:"
-							<< busStop->busstopno_ << " nearest segmentId:"
-							<< busStop->getParentSegment()->getSegmentAimsunId()
-							<< std::endl;*/
-					if (k == 0) {
-						start = busStop;
-					} else {
-						end = busStop;
-						const StreetDirectory& stdir = StreetDirectory::instance();
-						vector<WayPoint> path = stdir.SearchShortestDrivingPath(
-								stdir.DrivingVertex(
-										*(start->getParentSegment()->getStart())),
-								stdir.DrivingVertex(
-										*(end->getParentSegment()->getEnd())));
-						start = end;
-						for (std::vector<WayPoint>::const_iterator it =
-								path.begin(); it != path.end(); it++) {
-							if (it->type_ == WayPoint::ROAD_SEGMENT) {
-								unsigned int id =
-										it->roadSegment_->getSegmentAimsunId();
-								if (routeIDs.size() == 0 || routeIDs.back() != id) {
-									routeIDs.push_back(id);
-								}
-							}
-						}
-					}
-				}
-
-				int index = 0;
-				for (std::vector<unsigned int>::const_iterator it =
-						routeIDs.begin(); it != routeIDs.end(); it++) {
-					std::cout << curr->route_id << "," << *it << "," << index++ << std::endl;
-				}
-			}
-
 			if(bustrip.setBusRouteInfo(segments, stops)) {
 				busline->addBusTrip(bustrip);
 			}

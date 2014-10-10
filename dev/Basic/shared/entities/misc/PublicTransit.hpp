@@ -43,4 +43,16 @@ public:
 	int busstop_sequence_no;
 };
 
+class OD_Trip {
+public:
+	  std::string startStop;
+	  std::string endStop;
+	  std::string type;
+	  std::string serviceLines;
+	  int OD_Id;
+	  int legId;
+	  std::string originNode;
+	  std::string destNode;
+};
+
 }

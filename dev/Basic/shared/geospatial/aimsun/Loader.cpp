@@ -193,6 +193,7 @@ public:
 	void LoadPTBusRoutes(const std::string& storedProc, std::vector<sim_mob::PT_bus_routes>& pt_bus_routes, std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments);
 	void LoadPTBusStops(const std::string& storedProc, std::vector<sim_mob::PT_bus_stops>& pt_bus_stops, std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops);
 	void LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule);
+	void LoadOD_Trips(const std::string& storedProc, std::vector<sim_mob::OD_Trip>& OD_Trips);
 
 private:
 	void LoadBusStop(const std::string& storedProc);
@@ -949,8 +950,19 @@ void DatabaseLoader::LoadBusSchedule(const std::string& storedProc, std::vector<
     }
 }
 
-
-
+void DatabaseLoader::LoadOD_Trips(const std::string& storedProc, std::vector<sim_mob::OD_Trip>& OD_Trips)
+{
+    if (storedProc.empty()) {
+    	sim_mob::Warn() << "WARNING: An empty 'od_trips' stored-procedure was specified in the config file; "
+               << "will not lookup the database to create any signal found in there" << std::endl;
+        return;
+    }
+    soci::rowset<sim_mob::OD_Trip> rows = (sql_.prepare <<"select * from " + storedProc);
+    for (soci::rowset<sim_mob::OD_Trip>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
+    {
+    	OD_Trips.push_back(sim_mob::OD_Trip(*iter));
+    }
+}
 
 std::string getStoredProcedure(map<string, string> const & storedProcs, string const & procedureName, bool mandatory=true)
 {
@@ -2714,7 +2726,7 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), config.getPT_bus_dispatch_freq());
 	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), config.getPT_bus_routes(), config.getRoadSegments_Map());
 	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), config.getPT_bus_stops(), config.getBusStops_Map());
-
+	loader.LoadOD_Trips(getStoredProcedure(storedProcs, "od_trips", false), config.getOD_Trips());
 
 }
 

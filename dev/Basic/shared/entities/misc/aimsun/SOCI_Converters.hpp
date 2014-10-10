@@ -189,5 +189,36 @@ struct type_conversion<sim_mob::PT_bus_stops>
     }
 };
 
+template<>
+struct type_conversion<sim_mob::OD_Trip>
+{
+    typedef values base_type;
 
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::OD_Trip& od_trip)
+    {
+    	od_trip.startStop = values.get<std::string>("start_stop", "");
+    	od_trip.endStop = values.get<std::string>("end_stop", "");
+    	od_trip.type = values.get<std::string>("r_type", "");
+    	od_trip.serviceLines = values.get<std::string>("r_service_lines", "");
+    	od_trip.originNode = values.get<std::string>("origin_node", "");
+    	od_trip.destNode = values.get<std::string>("dest_node", "");
+    	od_trip.OD_Id = values.get<int>("od_id", 0);
+       	od_trip.legId = values.get<int>("leg_id", 0);
+    }
+
+    static void
+    to_base(sim_mob::OD_Trip const & od_trip, soci::values & values, soci::indicator & indicator)
+    {
+    	values.set("start_stop", od_trip.startStop);
+       	values.set("end_stop", od_trip.endStop);
+       	values.set("r_type", od_trip.type);
+       	values.set("r_service_lines", od_trip.serviceLines);
+       	values.set("origin_node", od_trip.originNode);
+       	values.set("dest_node", od_trip.destNode);
+       	values.set("od_id", od_trip.OD_Id);
+       	values.set("leg_id", od_trip.legId);
+        indicator = i_ok;
+    }
+};
 }

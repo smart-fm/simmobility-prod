@@ -2597,7 +2597,7 @@ bool sim_mob::aimsun::Loader::LoadSinglePathDBwithId2(const std::string& connect
 	bool res = loader.LoadSinglePathDBwithId2(waypoint_singlepathPool,pathset_id,spPool);
 	return res;
 }
-bool sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(soci::session& sql,const std::string& connectionStr,
+bool sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(soci::session& sql,
 			std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 			std::string& pathset_id,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool
 			,const std::string functionName,const std::string singlePathTableName,

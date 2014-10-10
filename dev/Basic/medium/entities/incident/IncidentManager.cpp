@@ -20,7 +20,9 @@ std::map<const sim_mob::RoadSegment*, double> sim_mob::IncidentManager::currInci
 //sim_mob::Logger sim_mob::IncidentManager::profiler;
 sim_mob::IncidentManager::IncidentManager(const std::string inputFile) :
 		Agent(ConfigManager::GetInstance().FullConfig().mutexStategy()),inputFile(inputFile)/*,distribution(Utils::initDistribution(std::pair<float,float>(0.0, 1.0)))*/
-{}
+{
+	readFromFile("private/incidents.csv");
+}
 
 void sim_mob::IncidentManager::setSourceFile(const std::string inputFile_){
 	inputFile = inputFile_;

@@ -237,9 +237,6 @@ bool sim_mob::medium::DriverMovement::initializePath() {
 		if(wp_path.empty()){
 			// if use path set
 			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-//				throw std::runtime_error("todo: have not taken care of this profiling yet");
-//				Worker* worker = (Worker*)(this->getParent()->currWorkerProvider);
-//				wp_path = worker->getPathSetMgr()->getPathByPerson(getParent());
 				wp_path = PathSetManager::getInstance()->getPathByPerson(person,*(person->currSubTrip));
 			}
 			else
@@ -251,9 +248,7 @@ bool sim_mob::medium::DriverMovement::initializePath() {
 		}
 		//For now, empty paths aren't supported.
 		if (wp_path.empty()) {
-			//throw std::runtime_error("Can't initializePath(); path is empty.");
-			Print()<<"DriverMovement::initializePath | Can't initializePath(); path is empty for driver "
-				   <<person->GetId()<<std::endl;
+			Print()<<"Can't DriverMovement::initializePath(); path is empty for driver "  << person->GetId() << std::endl;
 			return false;
 		}
 		std::vector<const sim_mob::SegmentStats*> path;
@@ -959,8 +954,8 @@ int DriverMovement::findReroutingPoints(const std::vector<sim_mob::SegmentStats*
 	}
 	pathsetLogger << "-------------------------------------------\n" <<
 			"Candidates with their remaining path after filtering the no paths:" << std::endl;
-	typedef std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > TempType;
-	BOOST_FOREACH(TempType item,  remaining){
+	typedef std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >::value_type TempType;
+	BOOST_FOREACH(TempType &item,  remaining){
 		pathsetLogger << "Remaining path to detour point : ";
 		MesoPathMover::printPath(item.second, item.first);
 	}
@@ -1068,7 +1063,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 	}
 	pathsetLogger << numReRoute << "Rerouting Points were identified" << std::endl;
 	//step-3:
-	typedef std::pair<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >	DetourOption ; //for 'deTourOptions' container
+	typedef std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >::value_type	DetourOption ; //for 'deTourOptions' container
 	std::set<const sim_mob::RoadSegment*> excludeRS = std::set<const sim_mob::RoadSegment*>();
 	excludeRS.insert((*msg.stats.begin())->getRoadSegment());//all stats in the container refer to the same rs.
 	//	get a 'copy' of the person's current subtrip
@@ -1089,8 +1084,8 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 	//4.a: check if there is no path from the rerouting point, just discard it.
 	//4.b: check and discard the rerouting point if the new and old paths can be joined
 	//4.c convert waypoint to segstat and prepend(join) remaining oldpath to the new path
-	typedef std::pair<const sim_mob::Node* , std::vector<WayPoint> > NewPath;
-	BOOST_FOREACH(NewPath newPath, newPaths)
+	typedef std::map<const sim_mob::Node* , std::vector<WayPoint> >::value_type NewPath;
+	BOOST_FOREACH(NewPath &newPath, newPaths)
 	{
 		//4.a
 		if(newPath.second.empty()){
@@ -1122,7 +1117,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 		//This can be easily detected when the old part of path and the new path join: it can create a combination that has already been created
 		//so let's look for 'same paths':
 		std::vector<const sim_mob::SegmentStats*> & target = deTourOptions[newPath.first];
-		BOOST_FOREACH(DetourOption detourNode, deTourOptions)
+		BOOST_FOREACH(DetourOption &detourNode, deTourOptions)
 		{
 			//dont compare with yourself
 			if(detourNode.first == newPath.first){continue;}

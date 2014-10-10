@@ -174,7 +174,7 @@ public:
 	std::string vehicleTypeDesc;
 	std::string day;
 };
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 class LinkTravelTime
 {
 public:
@@ -189,7 +189,6 @@ public:
 	OpaqueProperty<int> originalSectionDB_ID;
 
 };
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// length of a path with segments in meter
 inline double generateSinglePathLengthPT(std::vector<WayPoint>& wp)
@@ -241,8 +240,8 @@ public:
 public:
 	bool generateAllPathSetWithTripChain2();
 	///	generate shortest path information
-	sim_mob::SinglePath *  generateSinglePathByFromToNodes3( const sim_mob::Node *fromNode, const sim_mob::Node *toNode,
-			   std::set<std::string> & duplicatePath, const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>());
+	sim_mob::SinglePath *  findShortestDrivingPath( const sim_mob::Node *fromNode, const sim_mob::Node *toNode,std::set<std::string> duplicateChecker,
+			  const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>());
 
 	///	generate a path based on shortest travel time
 	sim_mob::SinglePath* generateShortestTravelTimePath(const sim_mob::Node *fromNode, const sim_mob::Node *toNode,
@@ -259,7 +258,10 @@ public:
 	 * \param excludedSegs input list segments to be excluded from the target set
 	 * \param isUseCache is using the cache allowed
 	 */
-	 bool generateBestPathChoiceMT(std::vector<sim_mob::WayPoint>& res, const sim_mob::SubTrip* st, const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>(), bool isUseCache = true);
+	 bool generateBestPathChoiceMT(std::vector<sim_mob::WayPoint>& res,
+			 const sim_mob::SubTrip* st,
+			 const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>(),
+			 bool isUseCache = true);
 
 	/**
 	 * generate all the paths for a person given its subtrip(OD)
@@ -274,7 +276,7 @@ public:
 	///	generate travel time required to complete a path represented by different singlepath objects
 	void generateTravelTimeSinglePathes(const sim_mob::Node *fromNode, const sim_mob::Node *toNode, std::set<std::string>& duplicateChecker,boost::shared_ptr<sim_mob::PathSet> &ps_);
 
-	void generatePathesByLinkElimination(std::vector<WayPoint>& path,std::set<std::string>& duplicateChecker,boost::shared_ptr<sim_mob::PathSet> &ps_,const sim_mob::Node* fromNode,const sim_mob::Node* toNode);
+	void generatePathesByLinkElimination(std::vector<WayPoint>& path, std::set<std::string>& duplicateChecker,boost::shared_ptr<sim_mob::PathSet> &ps_,const sim_mob::Node* fromNode,const sim_mob::Node* toNode);
 
 	void generatePathesByTravelTimeLinkElimination(std::vector<WayPoint>& path, std::set<std::string>& duplicateChecker, boost::shared_ptr<sim_mob::PathSet> &ps_,const sim_mob::Node* fromNode,const sim_mob::Node* toNode,	sim_mob::TimeRange tr);
 
@@ -315,9 +317,6 @@ public:
 
 	///	handle messages sent to pathset manager using message bus
 	void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
-
-	///	get system registered incidents(changes in segment capacities)
-	std::set<const sim_mob::RoadSegment*> &getIncidents();
 
 	///insert into incident list
 	void inserIncidentList(const sim_mob::RoadSegment*);
@@ -373,8 +372,10 @@ private:
 	///	is caching on
 	bool isUseCache;
 
-	///	list of incident currently happening in the system.(incident manager has the original copy
-	std::set<const sim_mob::RoadSegment*> currIncidents;
+	///	list of partially excluded segments
+	///example:like segments with incidents which have to be assigned
+	///a maximum travel time
+	std::set<const sim_mob::RoadSegment*> partialExclusions;
 	///	protect access to incidents list
 	boost::shared_mutex mutexIncident;
 
@@ -483,7 +484,7 @@ public:
 
 	 bool operator() (const SinglePath* lhs, const SinglePath* rhs) const
 	 {
-		 return lhs->id<rhs->id;
+		 return lhs->id < rhs->id;
 	 }
 	///	returns the raugh size of object in Bytes
 	uint32_t getSize();

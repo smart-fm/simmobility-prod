@@ -162,12 +162,12 @@ void sim_mob::RestrictedRegion::populate()
 }
 void sim_mob::RestrictedRegion::processTripChains(map<string, vector<TripChainItem*> > &tripchains)
 {
-	std::pair<string, vector<TripChainItem*> > item;
+	typedef std::map<string, vector<TripChainItem*> >::value_type TCI;
 	//iterate person
-	BOOST_FOREACH(item, tripchains)
+	BOOST_FOREACH(TCI &item, tripchains)
 	{
 		//iterate person's tripchain
-		vector<TripChainItem*> tcs = item.second;
+		vector<TripChainItem*> &tcs = item.second;
 		BOOST_FOREACH(TripChainItem* tci, tcs)
 		{
 			if(tci->itemType != sim_mob::TripChainItem::IT_TRIP)

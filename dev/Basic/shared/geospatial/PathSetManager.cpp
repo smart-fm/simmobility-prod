@@ -304,9 +304,9 @@ uint32_t sim_mob::PathSetParam::getSize()
 	sum += sizeof(double); //double maxHighwayParam;
 
 	//std::map<std::string,sim_mob::RoadSegment*> segPool;
-	std::pair<std::string,sim_mob::RoadSegment*> segPool_pair;
+	typedef std::map<std::string,sim_mob::RoadSegment*>::value_type SPP;
 	logger.prof("segPool_size", false).addUp(segPool.size());
-	BOOST_FOREACH(segPool_pair,segPool)
+	BOOST_FOREACH(SPP& segPool_pair,segPool)
 	{
 		sum += segPool_pair.first.length();
 	}
@@ -314,10 +314,10 @@ uint32_t sim_mob::PathSetParam::getSize()
 
 //		std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*> wpPool;//unused for now
 	//std::map<std::string,sim_mob::Node*> nodePool;
-	std::pair<std::string,sim_mob::Node*> nodePool_pair;
+	typedef std::map<std::string,sim_mob::Node*>::value_type NPP;
 	logger << "nodePool.size() " << nodePool.size() << "\n";
 	logger.prof("nodePool_size", false).addUp(nodePool.size());
-	BOOST_FOREACH(segPool_pair,segPool)
+	BOOST_FOREACH(NPP& nodePool_pair,nodePool)
 	{
 		sum += nodePool_pair.first.length();
 	}
@@ -332,49 +332,49 @@ uint32_t sim_mob::PathSetParam::getSize()
 	sum += sizeof(sim_mob::UniNode*) * uniNodesPool.size();
 
 //		std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > ERP_SurchargePool;
-	std::pair<std::string,std::vector<sim_mob::ERP_Surcharge*> > ERP_Surcharge_pool_pair;
+	typedef std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::value_type ERPSCP;
 	logger.prof("ERP_Surcharge_pool_size", false).addUp(ERP_SurchargePool.size());
-	BOOST_FOREACH(ERP_Surcharge_pool_pair,ERP_SurchargePool)
+	BOOST_FOREACH(ERPSCP & ERP_Surcharge_pool_pair,ERP_SurchargePool)
 	{
 		sum += ERP_Surcharge_pool_pair.first.length();
 		sum += sizeof(sim_mob::ERP_Surcharge*) * ERP_Surcharge_pool_pair.second.size();
 	}
 
 //		std::map<std::string,sim_mob::ERP_Gantry_Zone*> ERP_Gantry_ZonePool;
-	std::pair<std::string,sim_mob::ERP_Gantry_Zone*> ERP_Gantry_Zone_pool_pair;
+	typedef std::map<std::string,sim_mob::ERP_Gantry_Zone*>::value_type ERPGZP;
 	logger.prof("ERP_Gantry_Zone_pool_size", false).addUp(ERP_Gantry_ZonePool.size());
-	BOOST_FOREACH(ERP_Gantry_Zone_pool_pair,ERP_Gantry_ZonePool)
+	BOOST_FOREACH(ERPGZP & ERP_Gantry_Zone_pool_pair,ERP_Gantry_ZonePool)
 	{
 		sum += ERP_Gantry_Zone_pool_pair.first.length();
 	}
 	sum += sizeof(sim_mob::ERP_Gantry_Zone*) * ERP_Gantry_ZonePool.size();
 
 //		std::map<std::string,sim_mob::ERP_Section*> ERP_Section_pool;
-	std::pair<std::string,sim_mob::ERP_Section*> ERP_Section_pair;
+	typedef std::map<std::string,sim_mob::ERP_Section*>::value_type  ERPSP;
 	logger.prof("ERP_Section_size", false).addUp(ERP_SectionPool.size());
-	BOOST_FOREACH(ERP_Section_pair,ERP_SectionPool)
+	BOOST_FOREACH(ERPSP&ERP_Section_pair,ERP_SectionPool)
 	{
 		sum += ERP_Section_pair.first.length();
 	}
 	sum += sizeof(sim_mob::ERP_Section*) * ERP_SectionPool.size();
 
 //		std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > segmentDefaultTravelTimePool;
-	std::pair<std::string,std::vector<sim_mob::LinkTravelTime> > Link_default_travel_time_pool_pair;
+	typedef std::map<std::string,std::vector<sim_mob::LinkTravelTime> >::value_type LDTTPP;
 	logger.prof("Link_default_travel_time_pool_size", false).addUp(segmentDefaultTravelTimePool.size());
-	BOOST_FOREACH(Link_default_travel_time_pool_pair,segmentDefaultTravelTimePool)
+	BOOST_FOREACH(LDTTPP & ldttpp,segmentDefaultTravelTimePool)
 	{
-		sum += Link_default_travel_time_pool_pair.first.length();
-		sum += sizeof(sim_mob::LinkTravelTime) * Link_default_travel_time_pool_pair.second.size();
+		sum += ldttpp.first.length();
+		sum += sizeof(sim_mob::LinkTravelTime) * ldttpp.second.size();
 	}
 
 
 //		std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > segmentRealTimeTravelTimePool;
-	std::pair<std::string,std::vector<sim_mob::LinkTravelTime> > Link_realtime_travel_time_pool_pair;
+	typedef std::map<std::string,std::vector<sim_mob::LinkTravelTime> >::value_type LRTTPP;
 	logger.prof("Link_realtime_travel_time_pool_size", false).addUp(segmentRealTimeTravelTimePool.size());
-	BOOST_FOREACH(Link_realtime_travel_time_pool_pair,segmentRealTimeTravelTimePool)
+	BOOST_FOREACH(LRTTPP &lrttp,segmentRealTimeTravelTimePool)
 	{
-		sum += Link_realtime_travel_time_pool_pair.first.length();
-		sum += sizeof(sim_mob::LinkTravelTime) * Link_realtime_travel_time_pool_pair.second.size();
+		sum += lrttp.first.length();
+		sum += sizeof(sim_mob::LinkTravelTime) * lrttp.second.size();
 	}
 
 //		const roadnetwork;
@@ -447,7 +447,7 @@ uint32_t sim_mob::PathSetManager::getSize(){
 	sum += sizeof(StreetDirectory&);
 	sum += sizeof(PathSetParam *);
 	sum += sizeof(bool); // bool isUseCache;
-	sum += sizeof(const sim_mob::RoadSegment*) * currIncidents.size(); // std::set<const sim_mob::RoadSegment*> currIncidents;
+	sum += sizeof(const sim_mob::RoadSegment*) * partialExclusions.size(); // std::set<const sim_mob::RoadSegment*> currIncidents;
 	sum += sizeof(boost::shared_mutex); // boost::shared_mutex mutexIncident;
 	sum += sizeof(std::string &);  // const std::string &pathSetTableName;
 	sum += sizeof(const std::string &); // const std::string &singlePathTableName;
@@ -642,7 +642,7 @@ bool sim_mob::PathSetManager::getCachedBestPath(std::string id, std::vector<WayP
 }
 
 void sim_mob::PathSetManager::cacheODbySegment(const sim_mob::Person* per, const sim_mob::SubTrip * subTrip, std::vector<WayPoint> & wps){
-	BOOST_FOREACH(WayPoint wp, wps){
+	BOOST_FOREACH(WayPoint &wp, wps){
 		pathSegments.insert(std::make_pair(wp.roadSegment_, per));
 	}
 }
@@ -653,15 +653,9 @@ const std::pair <SGPER::const_iterator,SGPER::const_iterator > sim_mob::PathSetM
 	return range;
 }
 
-
-std::set<const sim_mob::RoadSegment*> &sim_mob::PathSetManager::getIncidents(){
-	boost::unique_lock<boost::shared_mutex> lock(mutexIncident);
-	return currIncidents;
-}
-
 void sim_mob::PathSetManager::inserIncidentList(const sim_mob::RoadSegment* rs) {
 	boost::unique_lock<boost::shared_mutex> lock(mutexIncident);
-	currIncidents.insert(rs);
+	partialExclusions.insert(rs);
 }
 
 const boost::shared_ptr<soci::session> & sim_mob::PathSetManager::getSession(){
@@ -738,9 +732,9 @@ bool sim_mob::PathSetManager::findCachedPathSet_orig(std::string  key, boost::sh
 			//debug
 			std::stringstream out("");
 			out << "Failed finding [" << key << "] in" << cachedPathSet.size() << " entries\n" ;
-			std::pair<std::string, boost::shared_ptr<sim_mob::PathSet> >pair_;
-			BOOST_FOREACH(pair_,cachedPathSet){
-				out << pair_.first << ",";
+			typedef std::map<std::string, boost::shared_ptr<sim_mob::PathSet> >::value_type ITEM;
+			BOOST_FOREACH(ITEM & item,cachedPathSet){
+				out << item.first << ",";
 			}
 			logger << out.str() << "\n";
 			return false;
@@ -803,9 +797,10 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(std::vector<sim_mob::WayP
 	}
 	//combine the excluded segments
 	std::set<const sim_mob::RoadSegment*> excludedSegs(exclude_seg_);
-	if(!currIncidents.empty())
+	if(!partialExclusions.empty())
 	{
-		excludedSegs.insert(currIncidents.begin(), currIncidents.end());
+		boost::unique_lock<boost::shared_mutex> lock(mutexIncident);
+		excludedSegs.insert(partialExclusions.begin(), partialExclusions.end());
 	}
 
 	const sim_mob::Node* fromNode = st->fromLocation.node_;
@@ -862,8 +857,7 @@ bool sim_mob::PathSetManager::generateBestPathChoiceMT(std::vector<sim_mob::WayP
 	ps_->id = fromToID;
 	std::map<std::string,sim_mob::SinglePath*> id_sp;
 	bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(
-							*getSession(),	ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-							id_sp,ps_->id,	ps_->pathChoices, dbFunction, singlePathTableName);
+							*getSession(),id_sp,ps_->id,ps_->pathChoices, dbFunction, singlePathTableName);
 	logger<< "hasSPinDB:" << hasSPinDB << "\n" ;
 	if(hasSPinDB)
 	{
@@ -1010,7 +1004,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 	 * step-7: Some caching/bookkeeping
 	 */
 	std::set<std::string> duplicateChecker;
-	sim_mob::SinglePath *s = generateSinglePathByFromToNodes3(ps->fromNode,ps->toNode,duplicateChecker,excludedSegs);
+	sim_mob::SinglePath *s = findShortestDrivingPath(ps->fromNode,ps->toNode,duplicateChecker,excludedSegs);
 	if(!s)
 	{
 		// no path
@@ -1214,6 +1208,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob::SubTrip* st)
 {
 	vector<WayPoint> res;
+	std::set<std::string> duplicateChecker;
 	std::string subTripId = st->tripID;
 	if(st->mode != "Car") //only driver need path set
 	{
@@ -1260,7 +1255,6 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 				bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(
 						*getSession(),
 #endif
-						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 						id_sp,
 						pathSetID,
 						ps_->pathChoices,dbFunction, singlePathTableName);
@@ -1303,8 +1297,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 			// 1. generate shortest path with all segs
 			// 1.2 get all segs
 			// 1.3 generate shortest path with full segs
-			std::set<std::string> duplicateChecker;
-			sim_mob::SinglePath *s = generateSinglePathByFromToNodes3(fromNode,toNode,duplicateChecker);
+			sim_mob::SinglePath *s = findShortestDrivingPath(fromNode,toNode,duplicateChecker);
 			if(!s)
 			{
 				// no path
@@ -1393,7 +1386,7 @@ void sim_mob::PathSetManager::generatePathesByLinkElimination(std::vector<WayPoi
 		if (w.type_ == WayPoint::ROAD_SEGMENT) {
 			std::set<const sim_mob::RoadSegment*> seg ;
 			seg.insert(w.roadSegment_);
-			SinglePath *sinPath = generateSinglePathByFromToNodes3(fromNode,toNode,duplicateChecker,seg);
+			SinglePath *sinPath = findShortestDrivingPath(fromNode,toNode,duplicateChecker,seg);
 			if(!sinPath)
 			{
 				continue;
@@ -1736,10 +1729,9 @@ void sim_mob::PathSetManager::initParameters()
 
 
 
-sim_mob::SinglePath *  sim_mob::PathSetManager::generateSinglePathByFromToNodes3(
+sim_mob::SinglePath *  sim_mob::PathSetManager::findShortestDrivingPath(
 		   const sim_mob::Node *fromNode,
-		   const sim_mob::Node *toNode,
-		   std::set<std::string> & duplicatePath,
+		   const sim_mob::Node *toNode,std::set<std::string> duplicatePath,
 		   const std::set<const sim_mob::RoadSegment*> & excludedSegs)
 {
 	/**
@@ -1761,20 +1753,19 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::generateSinglePathByFromToNodes3
 	if(wp.empty())
 	{
 		// no path debug message
+		std::stringstream out("");
 		if(excludedSegs.size())
 		{
+
 			const sim_mob::RoadSegment* rs;
-			BOOST_FOREACH(rs, excludedSegs){
-			logger<<"gSPByFTNodes3: no path for nodes["<<fromNode->originalDB_ID.getLogItem()<< "] and [" <<
-				toNode->originalDB_ID.getLogItem()<< " and ex seg[" <<
-				rs->originalDB_ID.getLogItem()<< "]" << "\n";
+			out << "\nWith Excluded Segments Present: \n";
+			BOOST_FOREACH(rs, excludedSegs)
+			{
+				out <<	rs->originalDB_ID.getLogItem() << "]" << ",";
 			}
 		}
-		else
-		{
-			logger<<"gSPByFTNodes3: no path for nodes["<<fromNode->originalDB_ID.getLogItem()<< "] and [" <<
-							toNode->originalDB_ID.getLogItem()<< "]" << "\n";
-		}
+		logger<< "No shortest driving path for nodes[" << fromNode->originalDB_ID.getLogItem() << "] and [" <<
+		toNode->originalDB_ID.getLogItem() << "]" << out.str() << "\n";
 		return s;
 	}
 	// make sp id
@@ -1808,6 +1799,7 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::generateSinglePathByFromToNodes3
 
 	return s;
 }
+
 sim_mob::SinglePath* sim_mob::PathSetManager::generateShortestTravelTimePath(const sim_mob::Node *fromNode,
 			   const sim_mob::Node *toNode,
 			   std::set<std::string>& duplicateChecker,
@@ -2227,8 +2219,8 @@ uint32_t sim_mob::PathSet::getSize(){
 		sum += tripId.length();//std::string tripId; // trip item id
 		sum += sizeof(SinglePath*);//SinglePath* oriPath;  // shortest path with all segments
 		//std::map<std::string,sim_mob::SinglePath*> SinglePathPool;//unused so far
-		std::pair<std::string,sim_mob::SinglePath*> pair_;
-		BOOST_FOREACH(pair_,SinglePathPool)
+		typedef std::map<std::string,sim_mob::SinglePath*>::value_type tt;
+		BOOST_FOREACH(tt & pair_,SinglePathPool)
 		{
 			sum += pair_.first.length();
 			sum += sizeof(pair_.second);

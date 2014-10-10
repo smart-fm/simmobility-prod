@@ -1046,17 +1046,17 @@ void sim_mob::Person::aggregateSubTripMetrics()
 	{
 		throw std::runtime_error("subTrip level TravelMetrics is missing");
 	}
-	TravelMetric item(*subTripTravelMetrics.begin());
-	newTripMetric.startTime = item.startTime;//first item
-	newTripMetric.origin = item.origin;
-	 BOOST_FOREACH(item, subTripTravelMetrics)
-	 {
-		 newTripMetric.travelTime += item.travelTime;
-	 }
-	 newTripMetric.endTime = item.endTime;
-	 newTripMetric.destination = item.destination;
-	 subTripTravelMetrics.clear();
-	 tripTravelMetrics.push_back(newTripMetric);
+	std::vector<TravelMetric>::iterator item(subTripTravelMetrics.begin());
+	newTripMetric.startTime = item->startTime;//first item
+	newTripMetric.origin = item->origin;
+	for(;item !=subTripTravelMetrics.end(); item++)
+	{
+		newTripMetric.travelTime += item->travelTime;
+	}
+	newTripMetric.endTime = subTripTravelMetrics.rbegin()->endTime;
+	newTripMetric.destination = subTripTravelMetrics.rbegin()->destination;
+	subTripTravelMetrics.clear();
+	tripTravelMetrics.push_back(newTripMetric);
 }
 
 void sim_mob::Person::addSubtripTravelMetrics(TravelMetric & value){
@@ -1068,7 +1068,7 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric & value){
  void sim_mob::Person::serializeTripTravelTimeMetrics()
  {
 	 sim_mob::BasicLogger & csv = sim_mob::Logger::log("trip_level_travel_time.csv");
-	 BOOST_FOREACH(TravelMetric item, tripTravelMetrics)
+	 BOOST_FOREACH(TravelMetric &item, tripTravelMetrics)
 	 {
 		 csv << this->getId() << "," <<
 				 item.origin.node_->getID() << ","
@@ -1164,7 +1164,7 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric & value){
 	 //step-5 subtrip iteration
 	 std::stringstream res("");
 	 const std::vector<sim_mob::SubTrip>& subtrips = trip->getSubTrips();
-	 BOOST_FOREACH(sim_mob::SubTrip st, subtrips)
+	 BOOST_FOREACH(const sim_mob::SubTrip &st, subtrips)
 	 {
 		 res <<	 tripStrm_1.str() <<  ","
 				 << st.tripID <<  "," <<

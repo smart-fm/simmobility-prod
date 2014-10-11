@@ -446,9 +446,17 @@ bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& param
 		return false;
 	}
 
+	double enteringVehicleLength =  parentDriver->getResource()->getLengthCm();
+	double maxAllowed = nextSegStats->getNumVehicleLanes() * nextSegStats->getLength();
 	double total = nextSegStats->getTotalVehicleLength();
-	double max_allowed = nextSegStats->getNumVehicleLanes() * nextSegStats->getLength();
-	return ((max_allowed - total) >= parentDriver->getResource()->getLengthCm());
+
+	//if the segment is shorter than the vehicle's length and there are no vehicles in the segment just allow the vehicle to pass through
+	//this segment should ideally be removed from the segment. this is just an interim arrangment.
+	//if this hack is not in place, all vehicles will start queuing in upsream segments forever.
+	//TODO: remove this hack and put permanent fix
+	if((maxAllowed < enteringVehicleLength) && (total <= 0)) { return true; }
+
+	return ((maxAllowed - total) >= enteringVehicleLength);
 }
 
 void DriverMovement::moveInQueue() {

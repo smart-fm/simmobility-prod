@@ -23,6 +23,9 @@ const double INFINITESIMAL_DOUBLE = 0.000001;
 const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
 const double LARGE_OUTPUT_FLOW_RATE = 1000.0;
 
+const double SINGLE_LANE_SEGMENT_CAPACITY = 1200.0; //veh/hr. suggested by Yang Lu on 11-Oct-2014
+const double DOUBLE_LANE_SEGMENT_CAPACITY = 3000.0; //veh/hr. suggested by Yang Lu on 11-Oct-2014
+
 /**
  * converts the unit of speed from Km/h to cm/s
  * @param speedInKmph spped in Km/h
@@ -50,22 +53,38 @@ bool cmp_person_distToSegmentEnd::operator ()(const Person* x, const Person* y) 
 	return (x->distanceToEndOfSegment > y->distanceToEndOfSegment);
 }
 
-/**
- * The parameters - min density, jam density, alpha and beta -
- * must be obtained for each road segment from an external source (XML/Database)
- * Since we don't have this data, we have taken the average values from
- * supply parameters of Singapore expressways.
- *
- * TODO: This must be changed when we have this information for each
- * road segment in the network.
+///*
+// * The parameters - min density, jam density, alpha and beta -
+// * must be obtained for each road segment from an external source (XML/Database)
+// * Since we don't have this data, we have taken the average values from
+// * supply parameters of Singapore expressways.
+// *
+// * TODO: This must be changed when we have this information for each
+// * road segment in the network.
+// */
+//SupplyParams::SupplyParams(const sim_mob::RoadSegment* rdSeg, double statsLength) :
+//		freeFlowSpeed(convertKmphToCmps(rdSeg->maxSpeed)),
+//		minSpeed(0.3 * freeFlowSpeed), /*30% of free flow speed as suggested by Yang Lu*/
+//		jamDensity(0.2), /*density during traffic jam in veh/meter*/
+//		minDensity(0.0048), /*minimum traffic density in veh/meter*/
+//		capacity(rdSeg->getCapacity() / 3600.0), /*converting capacity to vehicles/hr to vehicles/s*/
+//		alpha(1.8), beta(1.9)
+//{}
+
+/*
+ * The parameter values for min density, jam density, alpha and beta were suggested by Yang Lu on 11-Oct-14
  */
 SupplyParams::SupplyParams(const sim_mob::RoadSegment* rdSeg, double statsLength) :
-		freeFlowSpeed(convertKmphToCmps(rdSeg->maxSpeed)), minSpeed(0.3 * freeFlowSpeed), /*30% of free flow speed as suggested by Yang Lu*/
-		jamDensity(0.2), /*density during traffic jam in veh/meter*/
+		freeFlowSpeed(convertKmphToCmps(rdSeg->maxSpeed)),
+		minSpeed(0.2 * freeFlowSpeed), /*20% of free flow speed as suggested by Yang Lu*/
+		jamDensity(0.25), /*density during traffic jam in veh/meter*/
 		minDensity(0.0048), /*minimum traffic density in veh/meter*/
 		capacity(rdSeg->getCapacity() / 3600.0), /*converting capacity to vehicles/hr to vehicles/s*/
-		alpha(1.8), beta(1.9)
+		alpha(1.0), beta(2.5)
 {
+	//update capacity of single and double lane segments to avoid bottle necks. Suggested by Yang Lu on 11-Oct-14
+	if(rdSeg->getLanes().size() == 1) { capacity = SINGLE_LANE_SEGMENT_CAPACITY/3600.0; }
+	else if(rdSeg->getLanes().size() == 2) { capacity = DOUBLE_LANE_SEGMENT_CAPACITY/3600.0; }
 }
 
 SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double statslength) :

@@ -58,11 +58,11 @@ public:
 	}
 
 private:
-	const double freeFlowSpeed;  ///<Maximum speed of the road segment
-	const double jamDensity;     ///<density during traffic jam in vehicles / m
-	const double minDensity;     ///<minimum traffic density in vehicles / m
-	const double minSpeed;       ///<minimum speed in the segment
-	const double capacity;       ///<segment capacity in vehicles/second
+	double freeFlowSpeed;  ///<Maximum speed of the road segment
+	double jamDensity;     ///<density during traffic jam in vehicles / m
+	double minDensity;     ///<minimum traffic density in vehicles / m
+	double minSpeed;       ///<minimum speed in the segment
+	double capacity;       ///<segment capacity in vehicles/second
 	const double alpha;          ///<Model parameter of speed density function
 	const double beta;           ///<Model parameter of speed density function
 };

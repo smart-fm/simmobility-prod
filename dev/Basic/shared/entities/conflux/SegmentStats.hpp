@@ -663,7 +663,8 @@ public:
 	std::string reportSegmentStats(timeslice frameNumber);
 
 	/**
-	 * computes the density of the segment
+	 * computes the density of the moving part of the segment
+	 * the density value computed here is meant to be used in speed density function
 	 * @param vehicleLanes boolean flag indicating whether we want the density from vehicle lanes
 	 */
 	double getDensity(bool vehicleLanes);

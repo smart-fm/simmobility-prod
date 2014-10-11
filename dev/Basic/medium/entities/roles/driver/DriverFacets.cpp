@@ -448,7 +448,7 @@ bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& param
 
 	double total = nextSegStats->getTotalVehicleLength();
 	double max_allowed = nextSegStats->getNumVehicleLanes() * nextSegStats->getLength();
-	return (total < max_allowed);
+	return ((max_allowed - total) >= parentDriver->getResource()->getLengthCm());
 }
 
 void DriverMovement::moveInQueue() {

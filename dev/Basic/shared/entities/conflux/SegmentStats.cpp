@@ -422,13 +422,13 @@ double SegmentStats::getTotalVehicleLength() const
 	return totalLength;
 }
 
-//density will be computed in vehicles/meter
+//density will be computed in vehicles/meter for the moving part of the segment
 double SegmentStats::getDensity(bool hasVehicle)
 {
 	double density = 0.0;
 	double movingPartLength = length * numVehicleLanes - getQueueLength();
 	double movingPCUs = getMovingLength() / PASSENGER_CAR_UNIT;
-	if (movingPartLength > 0)
+	if (movingPartLength > PASSENGER_CAR_UNIT)
 	{
 		/*Some lines in this if section are commented as per Yang Lu's suggestion */
 		//if (roadSegment->getLaneZeroLength() > 10*vehicle_length) {

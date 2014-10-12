@@ -1220,11 +1220,6 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 	std::vector<sim_mob::TripChainItem*> agTripChain = p->getTripChain();
 	const sim_mob::TripChainItem* firstItem = agTripChain.front();
 
-	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
-	std::string role = rf.GetTripChainMode(firstItem);
-
-	StreetDirectory& streetDirectory = StreetDirectory::instance();
-
 	std::vector<WayPoint> path;
 	const sim_mob::RoadSegment* rdSeg = nullptr;
 
@@ -1232,6 +1227,10 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 		path = PathSetManager::getInstance()->getPathByPerson(p);
 	}
 	else{
+		const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
+		std::string role = rf.GetRoleName(firstItem->getMode()); //getMode is a virtual function. see its documentation
+		StreetDirectory& streetDirectory = StreetDirectory::instance();
+
 		if (role == "driver") {
 			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
 			path = streetDirectory.SearchShortestDrivingPath(streetDirectory.DrivingVertex(*firstSubTrip.fromLocation.node_), streetDirectory.DrivingVertex(*firstSubTrip.toLocation.node_));

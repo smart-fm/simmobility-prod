@@ -213,10 +213,6 @@ protected:
 
 	int dynamic_seed;
 
-	//Random number generator
-	//TODO: We need a policy on who can get a generator and why.
-	//boost::mt19937 gen;
-
 public:
 #ifndef SIMMOB_DISABLE_MPI
 	friend class sim_mob::PartitionManager;

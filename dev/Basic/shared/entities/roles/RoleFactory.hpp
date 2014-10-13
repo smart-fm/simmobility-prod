@@ -46,7 +46,7 @@ public:
 	sim_mob::Role* createRole(const std::string& name, sim_mob::Person* parent) const;
 
 	///Create a Role based on the current TripChain item.
-	Role* createRole(const TripChainItem* currTripChainItem, const sim_mob::SubTrip& subTrip, Person* parent) const;
+	Role* createRole(const TripChainItem* currTripChainItem, const sim_mob::SubTrip* subTrip, Person* parent) const;
 
 	///Workaround: Convert the mode of a trip chain (e.g., "Car", "Walk") to one that
 	///            we understand (e.g., "driver", "pedestrian"). These should eventually

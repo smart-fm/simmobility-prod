@@ -482,7 +482,7 @@ bool sim_mob::Person::findPersonNextRole()
 	const sim_mob::TripChainItem* tci = *(this->nextTripChainItem);
 	if(tci->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
-		nextRole = rf.createRole(tci, *nextSubTrip, this);
+		nextRole = rf.createRole(tci, &(*nextSubTrip), this);
 	}
 
 	return true;
@@ -499,11 +499,12 @@ bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 	safe_delete_item(prevRole);
 	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 	const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
+	const sim_mob::SubTrip* subTrip = nullptr;
 	if( tci->itemType==sim_mob::TripChainItem::IT_TRIP || tci->itemType==sim_mob::TripChainItem::IT_FMODSIM )
 	{
-		if(newRole == 0) { newRole = rf.createRole(tci, *currSubTrip, this); }
+		subTrip = &(*currSubTrip);
 	}
-
+	if(!newRole) { newRole = rf.createRole(tci, subTrip, this); }
 	changeRole(newRole);
 	return true;
 }

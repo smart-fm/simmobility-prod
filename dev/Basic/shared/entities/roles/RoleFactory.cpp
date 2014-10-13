@@ -86,9 +86,9 @@ map<string, bool> sim_mob::RoleFactory::getRequiredAttributes(const string& role
 }
 
 
-Role* sim_mob::RoleFactory::createRole(const TripChainItem* currTripChainItem, const sim_mob::SubTrip& subTrip, Person* parent) const
+Role* sim_mob::RoleFactory::createRole(const TripChainItem* currTripChainItem, const sim_mob::SubTrip* subTrip, Person* parent) const
 {
-	string roleName = RoleFactory::GetTripChainItemRoleName(currTripChainItem, subTrip);
+	string roleName = RoleFactory::GetTripChainItemRoleName(currTripChainItem, *subTrip);
 	return createRole(roleName, parent);
 }
 

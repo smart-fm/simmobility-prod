@@ -41,7 +41,6 @@ const Role* sim_mob::RoleFactory::getPrototype(const string& name) const
 {
 	map<string, const Role*>::const_iterator it = prototypes.find(name);
 	if (it!=prototypes.end()) {
-		//std::cout << name << " found in the prototypes\n";
 		const Role* role = it->second;
 		return role;
 	}
@@ -55,11 +54,12 @@ bool sim_mob::RoleFactory::isKnownRole(const string& roleName) const
 
 string sim_mob::RoleFactory::GetRoleName(const std::string mode)
 {
-	if(mode=="Car" || mode=="Motorcycle" || mode=="Taxi") { return "driver"; }
+	if(mode=="Car" || mode=="Taxi") { return "driver"; }
 	if(mode=="Walk") { return "pedestrian"; }
 	if(mode=="Bus") { return "busdriver"; }
 	if(mode=="BusTravel") { return "passenger"; }
 	if(mode=="WaitingBusActivity") { return "waitBusActivity"; }
+	if(mode=="Motorcycle") { return "biker"; }
 	if(mode=="Activity") { return "activityRole"; }
 	throw std::runtime_error("unknown SubTrip mode: " + mode);
 }
@@ -102,17 +102,5 @@ Role* sim_mob::RoleFactory::createRole(const string& name, Person* parent) const
 	role->make_frame_tick_params(parent->currTick);
 	return role;
 }
-
-//Role* sim_mob::RoleFactory::createRole(const TripChainItem* currTripChainItem, Person* parent) const
-//{
-//	string roleName = RoleFactory::GetTripChainMode(currTripChainItem);
-//	return createRole(roleName, parent);
-//}
-//
-//Role* sim_mob::RoleFactory::createRole(const sim_mob::SubTrip &subTrip_, Person* parent) const
-//{
-//	string roleName = RoleFactory::GetSubTripMode(subTrip_);
-//	return createRole(roleName, parent);
-//}
 
 

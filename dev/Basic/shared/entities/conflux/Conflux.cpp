@@ -1231,7 +1231,7 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 		std::string role = rf.GetRoleName(firstItem->getMode()); //getMode is a virtual function. see its documentation
 		StreetDirectory& streetDirectory = StreetDirectory::instance();
 
-		if (role == "driver") {
+		if (role=="driver" || role=="biker") {
 			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
 			path = streetDirectory.SearchShortestDrivingPath(streetDirectory.DrivingVertex(*firstSubTrip.fromLocation.node_), streetDirectory.DrivingVertex(*firstSubTrip.toLocation.node_));
 		}

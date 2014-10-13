@@ -24,6 +24,7 @@
 #include "entities/BusController.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
+#include "entities/roles/driver/Biker.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
@@ -104,6 +105,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	rf.registerRole("waitBusActivity", new sim_mob::medium::WaitBusActivity(nullptr, mtx));
 	rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr, mtx));
 	rf.registerRole("passenger", new sim_mob::medium::Passenger(nullptr, mtx));
+	rf.registerRole("biker", new sim_mob::medium::Biker(nullptr, mtx));
 
 	//Load our user config file, which is a time costly function
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);

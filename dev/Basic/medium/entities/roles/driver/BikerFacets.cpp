@@ -4,6 +4,8 @@
 
 #include "BikerFacets.hpp"
 
+#include "entities/Person.hpp"
+#include "entities/Vehicle.hpp"
 
 namespace
 {

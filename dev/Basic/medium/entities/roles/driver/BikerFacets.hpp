@@ -20,60 +20,6 @@ namespace medium
 class Biker;
 
 /**
- * Helper class to track the progress of the bus along its route
- * \author Harish Loganathan
- */
-class BusRouteTracker : public sim_mob::BusRouteInfo {
-public:
-	BusRouteTracker() : BusRouteInfo("") {}
-	BusRouteTracker(const BusRouteInfo& routeInfo);
-	BusRouteTracker(const BusRouteTracker& routeTracker);
-
-	/**
-	 * Operator overload for assignment.
-	 * \note:
-	 * Foo y;
-	 * Foo x(y);      // is copy-construction
-	 * Foo x = y;     // is semantically assignment, but the compiler elides the assignment and does copy-construction, equivalent to the above
-	 * Foo x; x = y;  // is default-construction followed by assignment, different (and possibly less efficient) than the above
-	 *
-	 * This assignment overload is required because we do something similar to
-	 * the third case for BusRouteTracker. The default assignment operator does
-	 * a member wise assignment. Since this class has a vector and an iterator to
-	 * its vector as its members, the assignment of the iterator done by the
-	 * default assignment operator is incorrect (invalid). This assignment is
-	 * handled explicitly by this function.
-	 *
-	 * @param rhsTracker rhs of assignment
-	 * @return reference to lhs of assignment after executing this function
-	 */
-	BusRouteTracker& operator=(const BusRouteTracker& rhsTracker);
-
-	/**
-	 * gets the bus stop pointed by nextStopIt
-	 * @return the bus stop pointed by nextStopIt if nextStopIt points to a
-	 * valid stop; nullptr otherwise.
-	 */
-	const BusStop* getNextStop() const;
-	/**
-	 * increments the nextStopIt to point to the next stop along the route
-	 */
-	void updateNextStop();
-
-	/**
-	 * print bus route information
-	 */
-	void printBusRoute();
-
-private:
-	/**
-	 * iterator to the vector of bus stops representing the next stop for the
-	 * bus driver to (possibly) serve
-	 */
-	std::vector<const BusStop*>::iterator nextStopIt;
-};
-
-/**
  * Behavior facet of Biker role
  * \author Harish Loganathan
  */

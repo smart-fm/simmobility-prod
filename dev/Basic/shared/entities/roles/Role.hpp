@@ -66,6 +66,7 @@ public:
 	enum type
 	{
 		RL_DRIVER,
+		RL_BIKER,
 		RL_PEDESTRIAN,
 		RL_BUSDRIVER,
 		RL_ACTIVITY,

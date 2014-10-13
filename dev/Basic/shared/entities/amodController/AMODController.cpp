@@ -181,6 +181,7 @@ vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::s
 		Node* origNode = nodePool[origNodeID];
 		Node* destNode = nodePool[destNodeID];
 
+
 		if (origNode == destNode) {
 			shortestPaths.insert(std::make_pair(nodeKey, wp));
 			return wp;
@@ -195,12 +196,17 @@ vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::s
 		}
 
 		std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*origNode), stdir->DrivingVertex(*destNode),blacklist);
+		std::cout << "Waypoints from SearchShortestDrivingPath: " << destNodeID << std::endl;
 		for (int i=0; i<wp2.size(); i++) {
+
 			if (wp2[i].type_ == WayPoint::ROAD_SEGMENT ) {
+				std::cout << " -> " << wp2[i].roadSegment_->originalDB_ID.getLogItem();
 				wp.push_back(wp2[i]);
+			} else {
+				std::cout << " -> " << wp2[i].type_ << " (REM) ";
 			}
 		}
-
+		std::cout << "\n-------------------------\n";
 		shortestPaths.insert(std::make_pair(nodeKey, wp));
 		return wp;
 	}
@@ -209,9 +215,9 @@ vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::s
 
 vector <WayPoint> AMODController::getShortestPathWBlacklist(std::string origNodeID, std::string destNodeID, std::vector<const sim_mob::RoadSegment*> blacklist)
 {
-	std::string nodeKey = origNodeID + "-" + destNodeID;
-	boost::unordered_map<std::string, vector < WayPoint > >::iterator spItr = shortestPaths.find(nodeKey);
-	if (spItr == shortestPaths.end()) {
+	//std::string nodeKey = origNodeID + "-" + destNodeID;
+	//boost::unordered_map<std::string, vector < WayPoint > >::iterator spItr = shortestPaths.find(nodeKey);
+	//if (spItr == shortestPaths.end()) {
 		//std::cout << "No such node pair. On-the-fly computation" << std::endl;
 		std::vector < WayPoint > wp;
 
@@ -219,7 +225,7 @@ vector <WayPoint> AMODController::getShortestPathWBlacklist(std::string origNode
 		Node* destNode = nodePool[destNodeID];
 
 		if (origNode == destNode) {
-			shortestPaths.insert(std::make_pair(nodeKey, wp));
+			//shortestPaths.insert(std::make_pair(nodeKey, wp));
 			return wp;
 		}
 
@@ -231,10 +237,10 @@ vector <WayPoint> AMODController::getShortestPathWBlacklist(std::string origNode
 			}
 		}
 
-		shortestPaths.insert(std::make_pair(nodeKey, wp));
+		//shortestPaths.insert(std::make_pair(nodeKey, wp));
 		return wp;
-	}
-	return spItr->second;
+	//}
+	//return spItr->second;
 }
 
 
@@ -1773,6 +1779,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 			if (carParkNode != originNode) {
 				std::vector<WayPoint> wp1 = getShortestPath(carParkId, originNodeId);
+
 				std::cout << "WP1 before removing:" << std::endl;
 				for (int i=0; i<wp1.size(); i++) {
 					std::cout << " -> " << wp1[i].roadSegment_->originalDB_ID.getLogItem();
@@ -1783,6 +1790,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 				WayPoint lastWP = wp1[wp1.size()-1];
 				const RoadSegment *lastWPrs = lastWP.roadSegment_;
 				//erase the last WayPoint from the wp1
+
 				wp1.pop_back();
 				std::cout << "WP1 after removing:" << std::endl;
 				for (int i=0; i<wp1.size(); i++) {
@@ -1791,6 +1799,10 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 				std::cout << std::endl;
 				//get the second last node as a new start node for the second part of the trip
 				const Node* startNode = lastWPrs->getStart();
+
+				if (startNode->getAimsunId() == 58792){
+					int ii=0;
+				}
 
 				//check if multi node
 				const MultiNode* currEndNode = dynamic_cast<const MultiNode*>(startNode);
@@ -1824,22 +1836,34 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 							blacklist.push_back(rs);
 						}
 						else{
-							std::cout << "UniNode. Blacklist set." << std::endl;
+							std::cout << "UniNode. Correct segment." << std::endl;
 						}
 					}
+					std::cout << "Blacklist at uniNode: " << std::endl;
+					for (int k=0; k<blacklist.size(); k++){
+						std::cout << " -> " << blacklist[k]->originalDB_ID.getLogItem();
+					}
+					std::cout << std::endl;
 				}
 				//calculate sp with blacklist
 				std::string s1 = startNode->originalDB_ID.getLogItem();
 				string startNodeId = getNumberFromAimsunId(s1);
 				std::vector<WayPoint> wp2New = getShortestPathWBlacklist(startNodeId, destNodeId, blacklist);
 
+				std::cout << "getShortestPathWBlacklist, wayPoints: " << std::endl;
+				for (int k=0; k<wp2New.size(); k++){
+					std::cout << " -> " << wp2New[k].roadSegment_->originalDB_ID.getLogItem();
+				}
+				std::cout << std::endl;
+
 				//merge wayPoints
 				mergeWayPoints(wp1, wp2New, mergedWP);
 
 				std::cout << "WP1 after merging:" << std::endl;
-							for (int i=0; i<mergedWP.size(); i++) {
-								std::cout << " -> " << mergedWP[i].roadSegment_->originalDB_ID.getLogItem();
-							}
+				for (int i=0; i<mergedWP.size(); i++) {
+					std::cout << " -> " << mergedWP[i].roadSegment_->originalDB_ID.getLogItem();
+				}
+				std::cout << std::endl;
 
 			} else {
 				// find route from origin to destination

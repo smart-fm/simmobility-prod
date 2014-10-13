@@ -169,6 +169,8 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("cost_HT2_am", &TourTimeOfDayParams::getCostHt2Am)
 				.addProperty("cost_HT2_pm", &TourTimeOfDayParams::getCostHt2Pm)
 				.addProperty("cost_HT2_op", &TourTimeOfDayParams::getCostHt2Op)
+				.addProperty("cbd_dummy",&TourTimeOfDayParams::isCbdDestZone)
+				.addProperty("cbd_dummy_origin",&TourTimeOfDayParams::isCbdOrgZone)
 			.endClass()
 
 			.beginClass<StopTimeOfDayParams>("StopTimeOfDayParams")
@@ -188,6 +190,8 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("mode_choice",  &SubTourParams::getTourMode)
 				.addProperty("usual_location", &SubTourParams::isUsualLocation)
 				.addFunction("time_window_availability", &SubTourParams::getTimeWindowAvailability)
+				.addProperty("cbd_dummy",&SubTourParams::isCbdDestZone)
+				.addProperty("cbd_dummy_origin",&SubTourParams::isCbdOrgZone)
 			.endClass()
 
 			.beginClass<StopGenerationParams>("StopGenerationParams")

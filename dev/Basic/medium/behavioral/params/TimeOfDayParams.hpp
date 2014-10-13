@@ -103,6 +103,26 @@ public:
 		costHT2_PM = costHt2Pm;
 	}
 
+	bool isCbdDestZone() const
+	{
+		return cbdDestZone;
+	}
+
+	void setCbdDestZone(bool cbdDestZone)
+	{
+		this->cbdDestZone = cbdDestZone;
+	}
+
+	bool isCbdOrgZone() const
+	{
+		return cbdOrgZone;
+	}
+
+	void setCbdOrgZone(bool cbdOrgZone)
+	{
+		this->cbdOrgZone = cbdOrgZone;
+	}
+
 	/**
 	 * Vector storing the travel times for first and second half-tours in all half-hour windows within a day.
 	 * The day starts at 0300Hrs and ends at 2659Hrs.
@@ -122,6 +142,8 @@ private:
 	double costHT2_AM;
 	double costHT2_PM;
 	double costHT2_OP;
+	bool cbdOrgZone;
+	bool cbdDestZone;
 
 };
 

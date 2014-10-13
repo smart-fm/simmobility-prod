@@ -40,10 +40,8 @@ TourModeDestinationParams::TourModeDestinationParams(const ZoneMap& zoneMap, con
 		const PersonParams& personParams, StopType tourType)
 : ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation()),
   drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()),
-  modeForParentWorkTour(0)
-{
-	cbdOrgZone = getCbdDummy(origin);
-}
+  modeForParentWorkTour(0),cbdOrgZone(false)
+{}
 
 TourModeDestinationParams::~TourModeDestinationParams() {}
 

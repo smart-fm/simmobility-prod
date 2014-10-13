@@ -41,7 +41,9 @@ TourModeDestinationParams::TourModeDestinationParams(const ZoneMap& zoneMap, con
 : ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation()),
   drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()),
   modeForParentWorkTour(0)
-{}
+{
+	cbdOrgZone = getCbdDummy(origin);
+}
 
 TourModeDestinationParams::~TourModeDestinationParams() {}
 
@@ -238,6 +240,16 @@ int TourModeDestinationParams::getModeForParentWorkTour() const
 void TourModeDestinationParams::setModeForParentWorkTour(int modeForParentWorkTour)
 {
 	this->modeForParentWorkTour = modeForParentWorkTour;
+}
+
+void sim_mob::medium::TourModeDestinationParams::setCbdOrgZone(bool cbdOrg)
+{
+	this->cbdOrgZone = cbdOrg;
+}
+
+int sim_mob::medium::TourModeDestinationParams::isCbdOrgZone() const
+{
+	return cbdOrgZone;
 }
 
 StopModeDestinationParams::StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
@@ -459,8 +471,7 @@ int StopModeDestinationParams::isAvailable_IMD(int choiceId) const {
 
 int StopModeDestinationParams::isFirstBound() const { return firstBound; }
 
-int StopModeDestinationParams::isSecondBound() const { return !firstBound; }
-
-
-
-
+int StopModeDestinationParams::isSecondBound() const
+{
+	return !firstBound;
+}

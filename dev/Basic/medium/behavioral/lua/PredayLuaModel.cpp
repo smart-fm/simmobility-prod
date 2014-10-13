@@ -134,6 +134,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addFunction("shop", &TourModeDestinationParams::getShop)
 				.addProperty("mode_to_work", &TourModeDestinationParams::getModeForParentWorkTour)
 				.addFunction("availability",&TourModeDestinationParams::isAvailable_TMD)
+				.addProperty("cbd_dummy_origin",&TourModeDestinationParams::isCbdOrgZone)
 				.addFunction("cbd_dummy",&TourModeDestinationParams::getCbdDummy)
 			.endClass()
 

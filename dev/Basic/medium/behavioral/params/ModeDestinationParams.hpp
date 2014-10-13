@@ -62,6 +62,16 @@ public:
 	 * @return the destination represented in choice
 	 */
 	int getDestination(int choice) const;
+
+	int getOrigin() const
+	{
+		return origin;
+	}
+
+	void setOrigin(int origin)
+	{
+		this->origin = origin;
+	}
 };
 
 class TourModeDestinationParams : public ModeDestinationParams {
@@ -96,11 +106,14 @@ public:
 	int isAvailable_TMD(int choiceId) const;
 	int getModeForParentWorkTour() const;
 	void setModeForParentWorkTour(int modeForParentWorkTour);
+	void setCbdOrgZone(bool cbdOrg);
+	int isCbdOrgZone() const;
 
 private:
 	bool drive1Available;
 	/**mode for parent work tour in case of sub tours*/
 	int modeForParentWorkTour;
+	bool cbdOrgZone;
 };
 
 class StopModeDestinationParams : public ModeDestinationParams {

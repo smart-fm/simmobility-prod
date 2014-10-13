@@ -377,6 +377,8 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 void PredaySystem::predictSubTourModeDestination(Tour& subTour, const Tour& parentTour)
 {
 	TourModeDestinationParams stmdParams(zoneMap, amCostMap, pmCostMap, personParams, subTour.getTourType());
+	stmdParams.setOrigin(parentTour.getTourDestination()); //origin is primary activity location of parentTour (not home location)
+	stmdParams.setCbdOrgZone(stmdParams.getCbdDummy(parentTour.getTourDestination())); // update cbd_dummy for origin
 	stmdParams.setModeForParentWorkTour(parentTour.getTourMode());
 	int modeDest = PredayLuaProvider::getPredayModel().predictSubTourModeDestination(personParams, stmdParams);
 	subTour.setTourMode(stmdParams.getMode(modeDest));
@@ -384,7 +386,8 @@ void PredaySystem::predictSubTourModeDestination(Tour& subTour, const Tour& pare
 	subTour.setTourDestination(zoneMap.at(zone_id)->getZoneCode());
 }
 
-void PredaySystem::predictTourModeDestination(Tour& tour) {
+void PredaySystem::predictTourModeDestination(Tour& tour)
+{
 	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, tour.getTourType());
 	int modeDest = PredayLuaProvider::getPredayModel().predictTourModeDestination(personParams, tmdParams);
 	tour.setTourMode(tmdParams.getMode(modeDest));

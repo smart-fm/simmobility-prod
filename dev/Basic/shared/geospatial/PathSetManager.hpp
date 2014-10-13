@@ -252,15 +252,20 @@ public:
 	double getUtilityBySinglePath(sim_mob::SinglePath* sp);
 	std::vector<WayPoint> generateBestPathChoice2(const sim_mob::SubTrip* st);
 	/**
-	 * generate set of path choices for a given suntrip, and then return the best of them
+	 * find/generate set of path choices for a given suntrip, and then return the best of them
 	 * \param st input subtrip
 	 * \param res output path generated
-	 * \param excludedSegs input list segments to be excluded from the target set
+	 * \param partialExcludedSegs segments temporarily having different attributes
+	 * \param blckLstSegs segments temporarily off the road network
 	 * \param isUseCache is using the cache allowed
+	 * Note: PathsetManager object already has containers for partially excluded and blacklisted segments. They will be
+	 * the default containers throughout the simulation. but partialExcludedSegs and blckLstSegs arguments are combined
+	 * with their counterparts in PathSetmanager only during the scope of this method to serve temporary purposes.
 	 */
-	 bool generateBestPathChoiceMT(std::vector<sim_mob::WayPoint>& res,
+	 bool getBestPath(std::vector<sim_mob::WayPoint>& res,
 			 const sim_mob::SubTrip* st,
-			 const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>(),
+			 std::set<const sim_mob::RoadSegment*> partialExcludedSegs=std::set<const sim_mob::RoadSegment*>(),
+			 std::set<const sim_mob::RoadSegment*> blckLstSegs=std::set<const sim_mob::RoadSegment*>(),
 			 bool isUseCache = true);
 
 	/**
@@ -376,13 +381,17 @@ private:
 	///example:like segments with incidents which have to be assigned
 	///a maximum travel time
 	std::set<const sim_mob::RoadSegment*> partialExclusions;
+	///	list of segments that must be considered off the network
+	//	in all operations of this class
+	std::set<const sim_mob::RoadSegment*> blacklistSegments;
+
 	///	protect access to incidents list
-	boost::shared_mutex mutexIncident;
+	boost::shared_mutex mutexExclusion;
 
 	///	stores the name of database's pathset table
 	const std::string &pathSetTableName;
 
-	///	stores the name of database's singlepath table
+	///	stores the name of database's singlepath table//todo:doublecheck the usability
 	const std::string &singlePathTableName;
 
 	///	stores the name of database's function operating on the pathset and singlepath tables
@@ -504,8 +513,18 @@ public:
 	PathSet(const sim_mob::Node *fn,const sim_mob::Node *tn) : fromNode(fn),toNode(tn),logsum(0),hasPath(0) {}
 	PathSet(const boost::shared_ptr<sim_mob::PathSet> &ps);
 	~PathSet();
-	///	returns the raugh size of object in Bytes
+	///	returns the rough size of object in Bytes
 	uint32_t getSize();
+	/**
+	 * checks to see if any of the SinglePath s includes a segment from the given container
+	 * returns true if there is any common segments between the two sets.
+	 * Note: This can be a computationally very expensive operation, use it with caution
+	 */
+	bool includesRoadSegment(const std::set<const sim_mob::RoadSegment*> & segs);
+	/**
+	 * eliminate those SinglePaths which have a section in the given set
+	 */
+	void excludeRoadSegment(const std::set<const sim_mob::RoadSegment*> & segs);
 	bool isInit;
 	bool hasBestChoice;
 	std::vector<WayPoint> *bestWayPointpath;  //best choice

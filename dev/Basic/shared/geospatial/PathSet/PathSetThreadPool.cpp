@@ -34,10 +34,11 @@ sim_mob::PathSetWorkerThread::~PathSetWorkerThread()
 void sim_mob::PathSetWorkerThread::executeThis() {
 	//Convert the blacklist into a list of blocked Vertices.
 	std::set<StreetDirectory::Edge> blacklistV;
-	if (excludeSeg) {
-		std::map<const RoadSegment*, std::set<StreetDirectory::Edge> >::const_iterator lookIt =
-				segmentLookup->find(excludeSeg);
-		if (lookIt != segmentLookup->end()) {
+	std::map<const RoadSegment*, std::set<StreetDirectory::Edge> >::const_iterator lookIt;
+	for(std::set<const RoadSegment*>::iterator it(excludeSeg.begin()); it != excludeSeg.end(); it++)
+	{
+		if((lookIt = segmentLookup->find(*it)) != segmentLookup->end())
+		{
 			blacklistV.insert(lookIt->second.begin(), lookIt->second.end());
 		}
 	}

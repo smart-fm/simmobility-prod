@@ -130,9 +130,8 @@ public:
 				std::string& pathset_id,
 				std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool);
 	static bool LoadSinglePathDBwithIdST(soci::session& sql,
-					std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 					std::string& pathset_id,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool
-					,const std::string functionName, const std::string singlePathTableName ,
+					,const std::string functionName,
 					const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
 	bool LoadPathSetDBwithId(
 			std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pool,
@@ -285,10 +284,9 @@ bool DatabaseLoader::LoadSinglePathDBwithId2(
 		return true;
 }
 bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
-		std::map<std::string, sim_mob::SinglePath*>& waypoint_singlepathPool,
 		std::string& pathset_id,
 		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,
-		const std::string functionName, const std::string singlePathTableName,
+		const std::string functionName,
 		const std::set<const sim_mob::RoadSegment *> & excludedRS)
 {
 	//todo: take care of exclusions
@@ -300,16 +298,16 @@ bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 
 	//	process result
 	int i = 0;
-	for (soci::rowset<sim_mob::SinglePath>::const_iterator it = rs.begin();
-			it != rs.end(); ++it) {
-		sim_mob::SinglePath *s = new sim_mob::SinglePath(*it);
-		bool r;
-//		r = waypoint_singlepathPool.insert(std::make_pair(s->id, s)).second;
-		r = spPool.insert(s).second;
-		i++;
+	for (soci::rowset<sim_mob::SinglePath>::const_iterator it = rs.begin();	it != rs.end(); ++it) {
+		if(!it->includesRoadSegment(excludedRS))
+		{
+			sim_mob::SinglePath *s = new sim_mob::SinglePath(*it);
+			spPool.insert(s).second;
+			i++;
+		}
 	}
 	if (i == 0) {
-		pathsetLogger << "LSPDBwithId: " << pathset_id << "no data in db\n" ;
+		pathsetLogger << "DatabaseLoader::LoadSinglePathDBwithIdST: " << pathset_id << "no data in db\n" ;
 		return false;
 	}
 	return true;
@@ -2598,12 +2596,11 @@ bool sim_mob::aimsun::Loader::LoadSinglePathDBwithId2(const std::string& connect
 	return res;
 }
 bool sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(soci::session& sql,
-			std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 			std::string& pathset_id,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool
-			,const std::string functionName,const std::string singlePathTableName,
+			,const std::string functionName,
 			const std::set<const sim_mob::RoadSegment *> & excludedRS)
 {
-	bool res = DatabaseLoader::LoadSinglePathDBwithIdST(sql,waypoint_singlepathPool,pathset_id,spPool,functionName, singlePathTableName,excludedRS);
+	bool res = DatabaseLoader::LoadSinglePathDBwithIdST(sql,pathset_id,spPool,functionName,excludedRS);
 	return res;
 }
 bool sim_mob::aimsun::Loader::LoadPathSetDBwithId(const std::string& connectionStr,

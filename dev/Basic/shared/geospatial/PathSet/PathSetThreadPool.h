@@ -30,7 +30,7 @@ public:
 	StreetDirectory::Vertex* toVertex;
 	const sim_mob::Node *fromNode;
 	const sim_mob::Node *toNode;
-	const RoadSegment* excludeSeg;
+	std::set<const RoadSegment*> excludeSeg;
 	std::map<const RoadSegment*, std::set<StreetDirectory::Edge> > *segmentLookup;
 	SinglePath *s;
 	boost::shared_ptr<sim_mob::PathSet> ps;

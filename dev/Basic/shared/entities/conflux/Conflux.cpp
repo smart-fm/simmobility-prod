@@ -25,7 +25,6 @@
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
-//#include "entities/IncidentManager.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/PathSetManager.hpp"

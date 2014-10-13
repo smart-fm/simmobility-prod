@@ -61,6 +61,7 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 {
 	//processProcMapNode(GetSingleElementByName(node, "proc_map", true));
 	//processActivityLoadIntervalElement(GetSingleElementByName(node, "activity_load_interval", true));
+	processUpdateIntervalElement(GetSingleElementByName(node, "update_interval", true));
 	processDwellTimeElement(GetSingleElementByName(node, "dwell_time_parameters", true));
 	processWalkSpeedElement(GetSingleElementByName(node, "pedestrian_walk_speed", true));
 }
@@ -114,7 +115,14 @@ void ParseMidTermConfigFile::processActivityLoadIntervalElement(xercesc::DOMElem
 {
 	unsigned interval = ProcessTimegranUnits(node);
 	mtCfg.setActivityScheduleLoadInterval(interval);
-	configParams.system.genericProps["activity_load_interval"] = interval;
+	configParams.system.genericProps["activity_load_interval"] = boost::lexical_cast<std::string>(interval);
+}
+
+void ParseMidTermConfigFile::processUpdateIntervalElement(xercesc::DOMElement* node)
+{
+	unsigned interval = ProcessTimegranUnits(node)/((unsigned)configParams.baseGranSecond());
+	mtCfg.setSupplyUpdateInterval(interval);
+	configParams.system.genericProps["update_interval"] = boost::lexical_cast<std::string>(interval);
 }
 
 void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)

@@ -162,6 +162,7 @@ namespace medium {
 	const std::string MONGO_FIELD_ZONE_AREA = "area";
 	const std::string MONGO_FIELD_ZONE_TOTAL_ENROLLMENT = "total_enrollment";
 	const std::string MONGO_FIELD_ZONE_RESIDENT_STUDENTS = "resident_students";
+	const std::string MONGO_FIELD_ZONE_CBD_ZONE = "cbd_dummy";
 
 	/**
 	 * Fields for MongoDB cost data

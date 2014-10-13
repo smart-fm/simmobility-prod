@@ -46,7 +46,7 @@ class RestrictedRegion : private boost::noncopyable
 	 * Function to split the subtrips crossing the restricted Areas
 	 */
 	void processSubTrips(std::vector<sim_mob::SubTrip>& subTrips);
-
+	sim_mob::OneTimeFlag populated;
 public:
 	static boost::shared_ptr<RestrictedRegion> instance;
 	/**
@@ -58,6 +58,7 @@ public:
 		{
 			instance.reset(new RestrictedRegion());
 		}
+		populate();
 		return *instance;
 	}
 	/**

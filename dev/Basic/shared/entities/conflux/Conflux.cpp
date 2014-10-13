@@ -15,9 +15,9 @@
 #include <cmath>
 #include <map>
 #include <stdexcept>
+#include <stdint.h>
 #include <vector>
-#include <boost/tokenizer.hpp>
-#include <boost/foreach.hpp>
+#include "boost/lexical_cast.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/Person.hpp"
@@ -616,13 +616,18 @@ sim_mob::Person* sim_mob::Conflux::agentClosestToIntersection() {
 }
 
 void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
-	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin();
-			upstreamIt != upstreamSegStatsMap.end(); upstreamIt++) {
+	const ConfigManager& cfg = ConfigManager::GetInstance();
+	bool outputEnabled = cfg.CMakeConfig().OutputEnabled();
+	std::string updtInterval = cfg.FullConfig().system.genericProps.at("update_interval");
+	bool updateThisTick = ((frameNumber.frame() % boost::lexical_cast<uint32_t>(updtInterval))==0);
+	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin(); upstreamIt != upstreamSegStatsMap.end(); upstreamIt++)
+	{
 		const SegmentStatsList& linkSegments = upstreamIt->second;
-		for(SegmentStatsList::const_iterator segIt = linkSegments.begin();
-				segIt != linkSegments.end(); segIt++) {
+		for(SegmentStatsList::const_iterator segIt = linkSegments.begin(); segIt != linkSegments.end(); segIt++)
+		{
 			(*segIt)->updateLaneParams(frameNumber);
-			if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
+			if (updateThisTick && outputEnabled)
+			{
 				Log() << (*segIt)->reportSegmentStats(frameNumber);
 			}
 		}

@@ -96,7 +96,27 @@ namespace {
 		return res;
 	}
 
-	const std::map<int,std::string> modeMap = setModeMap();
+	/**
+	 * This function is to assign modes which are supported by withinday
+	 */
+	std::map<int, std::string> setModeMapTemp() {
+		// 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
+		// 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
+		//mode_idx_ref = { 1 : 3, 2 : 5, 3 : 3, 4 : 1, 5 : 6, 6 : 6, 7 : 8, 8 : 2, 9 : 4 }
+		std::map<int, std::string> res;
+		res[1] = "Bus";
+		res[2] = "Car";
+		res[3] = "Car";
+		res[4] = "Car";
+		res[5] = "Car";
+		res[6] = "Car";
+		res[7] = "Motorcycle";
+		res[8] = "Walk";
+		res[9] = "Taxi";
+		return res;
+	}
+
+	const std::map<int,std::string> modeMap = setModeMapTemp();
 
 	/*
 	 * There are 48 half-hour indexes in a day from 3.25 to 26.75.
@@ -239,6 +259,7 @@ void PredaySystem::predictTourMode(Tour& tour) {
 	ZoneParams* znDesObj = zoneMap.at(zoneIdLookup.at(tour.getTourDestination()));
 	tmParams.setCostCarParking(znDesObj->getParkingRate());
 	tmParams.setCentralZone(znDesObj->getCentralDummy());
+	tmParams.setCbdZone(znDesObj->getCbdDummy());
 	tmParams.setResidentSize(znOrgObj->getResidentWorkers());
 	tmParams.setWorkOp(znDesObj->getEmployment());
 	tmParams.setEducationOp(znDesObj->getTotalEnrollment());
@@ -1779,7 +1800,7 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 						<< stopNum << ","
 						<< stop->getStopTypeStr() << ","
 						<< currStopNode << ","
-						<< modeMap.at(4) << ","
+						<< modeMap.at(stop->getStopMode()) << ","
 						<< (stop->isPrimaryActivity()? "True":"False")  << ","
 						<< getTimeWindowFromIndex(stop->getArrivalTime()) << ","
 						<< currStopEndTime << ","

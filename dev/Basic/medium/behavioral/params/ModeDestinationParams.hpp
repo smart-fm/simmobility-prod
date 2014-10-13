@@ -86,6 +86,7 @@ public:
 	double getTT_PublicOutSecond(int zoneId) const;
 	double getAvgTransferNumber(int zoneId) const;
 	int getCentralDummy(int zone) const;
+	int getCbdDummy(int zone) const;
 	StopType getTourPurpose() const;
 	double getShop(int zone) const;
 	double getEmployment(int zone) const;
@@ -117,6 +118,7 @@ public:
 	double getWalkDistanceFirst(int zone) const;
 	double getWalkDistanceSecond(int zone) const;
 	int getCentralDummy(int zone) const;
+	int getCbdDummy(int zone) const;
 	StopType getTourPurpose() const ;
 	double getShop(int zone) const;
 	double getEmployment(int zone) const;

@@ -157,6 +157,11 @@ boost::shared_ptr<sim_mob::RestrictedRegion> sim_mob::RestrictedRegion::instance
 
 void sim_mob::RestrictedRegion::populate()
 {
+	//skip if already populated
+	if(!populated.check())
+	{
+		return;
+	}
 	soci::session sql(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
 
 }
@@ -280,7 +285,7 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 		actCtr++;
 	}
 	//CBD specific processing of trip chain
-	RestrictedRegion::getInstance().processTripChains(tripchains);
+	//RestrictedRegion::getInstance().processTripChains(tripchains);//todo, plan changed, we are not chopping off the trips here
 
 	//add or stash new persons
 	for(map<string, vector<TripChainItem*> >::iterator i=tripchains.begin(); i!=tripchains.end(); i++)

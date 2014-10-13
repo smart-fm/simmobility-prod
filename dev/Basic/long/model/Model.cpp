@@ -20,9 +20,9 @@ using std::vector;
 using std::string;
 
 namespace {
-    void deleteAgents(vector<Agent*>& agents) {
+    void deleteAgents(vector<Agent_LT*>& agents) {
         while (!agents.empty()) {
-            Agent* ag = agents.back();
+            Agent_LT* ag = agents.back();
             agents.pop_back();
             safe_delete_item(ag);
         }

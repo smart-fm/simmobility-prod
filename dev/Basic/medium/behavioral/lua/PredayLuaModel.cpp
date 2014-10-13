@@ -106,6 +106,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("resident_size",&TourModeParams::getResidentSize)
 				.addProperty("work_op",&TourModeParams::getWorkOp)
 				.addProperty("education_op",&TourModeParams::getEducationOp)
+				.addProperty("cbd_dummy",&TourModeParams::isCbdZone)
 			.endClass()
 
 			.beginClass<TourModeDestinationParams>("TourModeDestinationParams")
@@ -132,6 +133,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addFunction("shop", &TourModeDestinationParams::getShop)
 				.addProperty("mode_to_work", &TourModeDestinationParams::getModeForParentWorkTour)
 				.addFunction("availability",&TourModeDestinationParams::isAvailable_TMD)
+				.addFunction("cbd_dummy",&TourModeDestinationParams::getCbdDummy)
 			.endClass()
 
 			.beginClass<StopModeDestinationParams>("StopModeDestinationParams")
@@ -153,6 +155,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("first_bound", &StopModeDestinationParams::isFirstBound)
 				.addProperty("second_bound", &StopModeDestinationParams::isSecondBound)
 				.addFunction("availability",&StopModeDestinationParams::isAvailable_IMD)
+				.addFunction("cbd_dummy",&StopModeDestinationParams::getCbdDummy)
 			.endClass()
 
 			.beginClass<TourTimeOfDayParams>("TourTimeOfDayParams")

@@ -762,22 +762,22 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(const sim_mob::Person*
 	// get person id and current subtrip id
 	std::string personId = per->getDatabaseId();
 	std::vector<sim_mob::SubTrip>::const_iterator currSubTripIt = per->currSubTrip;
-	std::string subTripId = subTrip.tripID;
 	//todo. change the subtrip signature from pointer to referencer
 	logger << "+++++++++++++++++++++++++" << "\n";
 	vector<WayPoint> res;
+	//CBD area logic
+//	if(sim_mob::RestrictedRegion::getInstance())
 	getBestPath(res, &subTrip);
 	logger << "Path chosen for this person:" << per->getId() << "," << per->GetId() << "\n";
 	if(!res.empty())
 	{
+		logger << subTrip.fromLocation.node_->getID() << "," << subTrip.toLocation.node_->getID() << " : was assigned path of size " << res.size()  << "\n";
 		//expensive due to call to getSegmentAimsunId()
 		//printWPpath(res);
 	}
 	else{
-		logger << "NO PATH" << "\n";
+		logger << subTrip.fromLocation.node_->getID() << "," << subTrip.toLocation.node_->getID() <<" : NO PATH" << "\n";
 	}
-//	cacheODbySegment(per, &subTrip, res);
-	logger << "===========================" << "\n";
 	return res;
 }
 

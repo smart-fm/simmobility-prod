@@ -24,7 +24,7 @@ namespace medium {
 class TourTimeOfDayParams {
 public:
 	TourTimeOfDayParams()
-	: costHT1_AM(0), costHT1_PM(0), costHT1_OP(0), costHT2_AM(0), costHT2_PM(0), costHT2_OP(0)
+	: costHT1_AM(0), costHT1_PM(0), costHT1_OP(0), costHT2_AM(0), costHT2_PM(0), costHT2_OP(0), cbdOrgZone(false), cbdDestZone(false)
 	{}
 
 	virtual ~TourTimeOfDayParams() {}
@@ -156,7 +156,8 @@ private:
 class StopTimeOfDayParams {
 public:
 	StopTimeOfDayParams(int stopType, bool firstBound)
-	: stopType(stopType), firstBound(firstBound), numTimeWindows(48), todHigh(0.0), todLow(0.0) {
+	: stopType(stopType), firstBound(firstBound), numTimeWindows(48), todHigh(0.0), todLow(0.0), cbdOrgZone(false), cbdDestZone(false)
+	{
 		for(unsigned i=1; i<=numTimeWindows; i++) {
 			availability.push_back(true);
 		}
@@ -247,6 +248,26 @@ public:
 		return 0; // anything else is unavailable
 	}
 
+	bool isCbdDestZone() const
+	{
+		return cbdDestZone;
+	}
+
+	void setCbdDestZone(bool cbdDestZone)
+	{
+		this->cbdDestZone = cbdDestZone;
+	}
+
+	bool isCbdOrgZone() const
+	{
+		return cbdOrgZone;
+	}
+
+	void setCbdOrgZone(bool cbdOrgZone)
+	{
+		this->cbdOrgZone = cbdOrgZone;
+	}
+
 	/**
 	 * Vectors storing travel times and travel costs for each half-hour time window from 3.25 to 26.75
 	 *
@@ -265,6 +286,8 @@ private:
 	double todHigh; // upper limit for time of day for this stop
 	double todLow; // lower limit for time of day for this stop
 	unsigned numTimeWindows;
+	bool cbdOrgZone;
+	bool cbdDestZone;
 };
 } // end namespace medium
 } // end namespace sim_mob

@@ -9,7 +9,8 @@ using namespace sim_mob;
 using namespace medium;
 
 ModeDestinationParams::ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, StopType purpose, int originCode)
-: zoneMap(zoneMap), amCostsMap(amCostsMap), pmCostsMap(pmCostsMap), purpose(purpose), origin(originCode), OPERATIONAL_COST(0.147), MAX_WALKING_DISTANCE(2)
+: zoneMap(zoneMap), amCostsMap(amCostsMap), pmCostsMap(pmCostsMap), purpose(purpose), origin(originCode), OPERATIONAL_COST(0.147), MAX_WALKING_DISTANCE(2),
+  cbdOrgZone(false)
 {}
 
 ModeDestinationParams::~ModeDestinationParams() {}
@@ -39,8 +40,7 @@ int ModeDestinationParams::getDestination(int choice) const {
 TourModeDestinationParams::TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
 		const PersonParams& personParams, StopType tourType)
 : ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation()),
-  drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()),
-  modeForParentWorkTour(0),cbdOrgZone(false)
+  drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()), modeForParentWorkTour(0)
 {}
 
 TourModeDestinationParams::~TourModeDestinationParams() {}
@@ -238,11 +238,6 @@ int TourModeDestinationParams::getModeForParentWorkTour() const
 void TourModeDestinationParams::setModeForParentWorkTour(int modeForParentWorkTour)
 {
 	this->modeForParentWorkTour = modeForParentWorkTour;
-}
-
-void sim_mob::medium::TourModeDestinationParams::setCbdOrgZone(bool cbdOrg)
-{
-	this->cbdOrgZone = cbdOrg;
 }
 
 int sim_mob::medium::TourModeDestinationParams::isCbdOrgZone() const
@@ -472,4 +467,9 @@ int StopModeDestinationParams::isFirstBound() const { return firstBound; }
 int StopModeDestinationParams::isSecondBound() const
 {
 	return !firstBound;
+}
+
+int sim_mob::medium::StopModeDestinationParams::isCbdOrgZone() const
+{
+	return cbdOrgZone;
 }

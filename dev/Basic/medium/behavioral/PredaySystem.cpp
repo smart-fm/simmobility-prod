@@ -896,6 +896,7 @@ void PredaySystem::generateIntermediateStops(uint8_t halfTour, Tour& tour, const
 void PredaySystem::predictStopModeDestination(Stop* stop, int origin)
 {
 	StopModeDestinationParams imdParams(zoneMap, amCostMap, pmCostMap, personParams, stop, origin, unavailableODs);
+	imdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin))->getCbdDummy());
 	int modeDest = PredayLuaProvider::getPredayModel().predictStopModeDestination(personParams, imdParams);
 	stop->setStopMode(imdParams.getMode(modeDest));
 	int zone_id = imdParams.getDestination(modeDest);
@@ -908,6 +909,8 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 	if(!stop) { throw std::runtime_error("predictStopTimeOfDay() - stop is null"); }
 	StopTimeOfDayParams stodParams(stop->getStopTypeID(), isBeforePrimary);
 	int origin = stop->getStopLocation();
+	stodParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin))->getCbdDummy());
+	stodParams.setCbdDestZone(zoneMap.at(zoneIdLookup.at(destination))->getCbdDummy());
 
 	if(origin == destination) { for(int i=FIRST_INDEX; i<=LAST_INDEX; i++) { stodParams.travelTimes.push_back(0.0); } }
 	else

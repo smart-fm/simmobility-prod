@@ -157,6 +157,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("first_bound", &StopModeDestinationParams::isFirstBound)
 				.addProperty("second_bound", &StopModeDestinationParams::isSecondBound)
 				.addFunction("availability",&StopModeDestinationParams::isAvailable_IMD)
+				.addProperty("cbd_dummy_origin",&StopModeDestinationParams::isCbdOrgZone)
 				.addFunction("cbd_dummy",&StopModeDestinationParams::getCbdDummy)
 			.endClass()
 
@@ -181,6 +182,8 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("first_bound", &StopTimeOfDayParams::getFirstBound)
 				.addProperty("second_bound", &StopTimeOfDayParams::getSecondBound)
 				.addFunction("availability", &StopTimeOfDayParams::getAvailability)
+				.addProperty("cbd_dummy",&StopTimeOfDayParams::isCbdDestZone)
+				.addProperty("cbd_dummy_origin",&StopTimeOfDayParams::isCbdOrgZone)
 			.endClass()
 
 			.beginClass<SubTourParams>("SubTourParams")

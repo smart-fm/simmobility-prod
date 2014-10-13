@@ -89,7 +89,7 @@ namespace {
 		res[4] = "Car";
 		res[5] = "Car Sharing";
 		res[6] = "Car Sharing";
-		res[7] = "Bike";
+		res[7] = "Motorcycle";
 		res[8] = "Walk";
 		res[9] = "Taxi";
 		return res;
@@ -375,9 +375,12 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 	if(tour.isSubTour()) { throw std::runtime_error("predictTourTimeOfDay() is not meant for sub tours"); }
 	int origin = personParams.getHomeLocation();
 	int destination = tour.getTourDestination();
-	std::vector<double> ttFirstHalfTour, ttSecondHalfTour;
+	TourTimeOfDayParams todParams;
+	std::vector<double>& ttFirstHalfTour = todParams.travelTimesFirstHalfTour;
+	std::vector<double>& ttSecondHalfTour = todParams.travelTimesSecondHalfTour;
+
 	if(origin != destination) {
-		for (uint32_t i = FIRST_INDEX; i <= LAST_INDEX; i++) {
+		for (uint32_t i=FIRST_INDEX; i<=LAST_INDEX; i++) {
 			switch (tour.getTourMode())
 			{
 			case 1: // Fall through
@@ -471,7 +474,143 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 			ttSecondHalfTour.push_back(0);
 		}
 	}
-	TourTimeOfDayParams todParams(ttFirstHalfTour, ttSecondHalfTour);
+
+	// find costs
+	int home = personParams.getHomeLocation(), primaryStopLoc = tour.getTourDestination();
+	if(home!=primaryStopLoc)
+	{
+		const CostParams* amHT1 = amCostMap.at(home).at(primaryStopLoc);
+		const CostParams* pmHT1 = pmCostMap.at(home).at(primaryStopLoc);
+		const CostParams* opHT1 = opCostMap.at(home).at(primaryStopLoc);
+		const CostParams* amHT2 = amCostMap.at(primaryStopLoc).at(home);
+		const CostParams* pmHT2 = pmCostMap.at(primaryStopLoc).at(home);
+		const CostParams* opHT2 = opCostMap.at(primaryStopLoc).at(home);
+		switch (tour.getTourMode())
+		{
+		case 1: // Fall through
+		case 2:
+		case 3:
+		{	//for Public bus, MRT/LRT, private bus
+			todParams.setCostHt1Am(amHT1->getPubCost());
+			todParams.setCostHt1Pm(pmHT1->getPubCost());
+			todParams.setCostHt1Op(opHT1->getPubCost());
+			todParams.setCostHt2Am(amHT2->getPubCost());
+			todParams.setCostHt2Pm(pmHT2->getPubCost());
+			todParams.setCostHt2Op(opHT2->getPubCost());
+			break;
+		}
+		case 4:
+		{	// drive1
+			double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
+			double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
+			todParams.setCostHt1Am(amHT1->getCarCostErp() + ht1ParkingRate + (amHT1->getDistance()*OPERATIONAL_COST));
+			todParams.setCostHt1Pm(pmHT1->getCarCostErp() + ht1ParkingRate + (pmHT1->getDistance()*OPERATIONAL_COST));
+			todParams.setCostHt1Op(opHT1->getCarCostErp() + ht1ParkingRate + (opHT1->getDistance()*OPERATIONAL_COST));
+			todParams.setCostHt2Am(amHT2->getCarCostErp() + ht2ParkingRate + (amHT2->getDistance()*OPERATIONAL_COST));
+			todParams.setCostHt2Pm(pmHT2->getCarCostErp() + ht2ParkingRate + (pmHT2->getDistance()*OPERATIONAL_COST));
+			todParams.setCostHt2Op(opHT2->getCarCostErp() + ht2ParkingRate + (opHT2->getDistance()*OPERATIONAL_COST));
+			break;
+		}
+		case 5:
+		{	// share2
+			double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
+			double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
+			todParams.setCostHt1Am((amHT1->getCarCostErp() + ht1ParkingRate + (amHT1->getDistance()*OPERATIONAL_COST))/2.0);
+			todParams.setCostHt1Pm((pmHT1->getCarCostErp() + ht1ParkingRate + (pmHT1->getDistance()*OPERATIONAL_COST))/2.0);
+			todParams.setCostHt1Op((opHT1->getCarCostErp() + ht1ParkingRate + (opHT1->getDistance()*OPERATIONAL_COST))/2.0);
+			todParams.setCostHt2Am((amHT2->getCarCostErp() + ht2ParkingRate + (amHT2->getDistance()*OPERATIONAL_COST))/2.0);
+			todParams.setCostHt2Pm((pmHT2->getCarCostErp() + ht2ParkingRate + (pmHT2->getDistance()*OPERATIONAL_COST))/2.0);
+			todParams.setCostHt2Op((opHT2->getCarCostErp() + ht2ParkingRate + (opHT2->getDistance()*OPERATIONAL_COST))/2.0);
+			break;
+		}
+		case 6:
+		{	// share3
+			double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
+			double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
+			todParams.setCostHt1Am((amHT1->getCarCostErp() + ht1ParkingRate + (amHT1->getDistance()*OPERATIONAL_COST))/3.0);
+			todParams.setCostHt1Pm((pmHT1->getCarCostErp() + ht1ParkingRate + (pmHT1->getDistance()*OPERATIONAL_COST))/3.0);
+			todParams.setCostHt1Op((opHT1->getCarCostErp() + ht1ParkingRate + (opHT1->getDistance()*OPERATIONAL_COST))/3.0);
+			todParams.setCostHt2Am((amHT2->getCarCostErp() + ht2ParkingRate + (amHT2->getDistance()*OPERATIONAL_COST))/3.0);
+			todParams.setCostHt2Pm((pmHT2->getCarCostErp() + ht2ParkingRate + (pmHT2->getDistance()*OPERATIONAL_COST))/3.0);
+			todParams.setCostHt2Op((opHT2->getCarCostErp() + ht2ParkingRate + (opHT2->getDistance()*OPERATIONAL_COST))/3.0);
+			break;
+		}
+		case 7:
+		{	//motorcycle
+			double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
+			double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
+			todParams.setCostHt1Am(((amHT1->getCarCostErp() + (amHT1->getDistance()*OPERATIONAL_COST))*0.5) + (ht1ParkingRate*0.65));
+			todParams.setCostHt1Pm(((pmHT1->getCarCostErp() + (pmHT1->getDistance()*OPERATIONAL_COST))*0.5) + (ht1ParkingRate*0.65));
+			todParams.setCostHt1Op(((opHT1->getCarCostErp() + (opHT1->getDistance()*OPERATIONAL_COST))*0.5) + (ht1ParkingRate*0.65));
+			todParams.setCostHt2Am(((amHT2->getCarCostErp() + (amHT2->getDistance()*OPERATIONAL_COST))*0.5) + (ht2ParkingRate*0.65));
+			todParams.setCostHt2Pm(((pmHT2->getCarCostErp() + (pmHT2->getDistance()*OPERATIONAL_COST))*0.5) + (ht2ParkingRate*0.65));
+			todParams.setCostHt2Op(((opHT2->getCarCostErp() + (opHT2->getDistance()*OPERATIONAL_COST))*0.5) + (ht2ParkingRate*0.65));
+			break;
+		}
+		case 8:
+		{	//Walk
+			todParams.setCostHt1Am(0);
+			todParams.setCostHt1Pm(0);
+			todParams.setCostHt1Op(0);
+			todParams.setCostHt2Am(0);
+			todParams.setCostHt2Pm(0);
+			todParams.setCostHt2Op(0);
+			break;
+		}
+		case 9:
+		{	//Taxi
+			const ZoneParams* homeZoneParams = zoneMap.at(zoneIdLookup.at(home));
+			const ZoneParams* destZoneParams = zoneMap.at(zoneIdLookup.at(primaryStopLoc));
+			double amHT1Cost = TAXI_FLAG_DOWN_PRICE
+							+ amHT1->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * homeZoneParams->getCentralDummy())
+							+ (((amHT1->getDistance()<=10)? amHT1->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((amHT1->getDistance()<=10)? 0 : (amHT1->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			double pmHT1Cost = TAXI_FLAG_DOWN_PRICE
+							+ pmHT1->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * homeZoneParams->getCentralDummy())
+							+ (((pmHT1->getDistance()<=10)? pmHT1->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((pmHT1->getDistance()<=10)? 0 : (pmHT1->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			double opHT1Cost = TAXI_FLAG_DOWN_PRICE
+							+ opHT1->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * homeZoneParams->getCentralDummy())
+							+ (((opHT1->getDistance()<=10)? opHT1->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((opHT1->getDistance()<=10)? 0 : (opHT1->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			double amHT2Cost = TAXI_FLAG_DOWN_PRICE
+							+ amHT2->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * destZoneParams->getCentralDummy())
+							+ (((amHT2->getDistance()<=10)? amHT2->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((amHT2->getDistance()<=10)? 0 : (amHT2->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			double pmHT2Cost = TAXI_FLAG_DOWN_PRICE
+							+ pmHT2->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * destZoneParams->getCentralDummy())
+							+ (((pmHT2->getDistance()<=10)? pmHT2->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((pmHT2->getDistance()<=10)? 0 : (pmHT2->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			double opHT2Cost = TAXI_FLAG_DOWN_PRICE
+							+ opHT2->getCarCostErp()
+							+ (TAXI_CENTRAL_LOCATION_SURCHARGE * destZoneParams->getCentralDummy())
+							+ (((opHT2->getDistance()<=10)? opHT2->getDistance() : 10)/UNIT_FOR_FIRST_10KM) * TAXI_UNIT_PRICE
+							+ (((opHT2->getDistance()<=10)? 0 : (opHT2->getDistance()-10))/UNIT_AFTER_10KM) * TAXI_UNIT_PRICE;
+			todParams.setCostHt1Am(amHT1Cost);
+			todParams.setCostHt1Pm(pmHT1Cost);
+			todParams.setCostHt1Op(opHT1Cost);
+			todParams.setCostHt2Am(amHT2Cost);
+			todParams.setCostHt2Pm(pmHT2Cost);
+			todParams.setCostHt2Op(opHT2Cost);
+			break;
+		}
+		}
+	}
+	else
+	{
+		todParams.setCostHt1Am(0);
+		todParams.setCostHt1Pm(0);
+		todParams.setCostHt1Op(0);
+		todParams.setCostHt2Am(0);
+		todParams.setCostHt2Pm(0);
+		todParams.setCostHt2Op(0);
+	}
+
 	timeWndw = PredayLuaProvider::getPredayModel().predictTourTimeOfDay(personParams, todParams, tour.getTourType());
 	return TimeWindowAvailability::timeWindowsLookup.at(timeWndw - 1); //timeWndw ranges from 1 - 1176. Vector starts from 0.
 }
@@ -1582,6 +1721,98 @@ void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(const ZoneNodeM
 	for(std::list<TripChainItemParams>::iterator tcIt=tripChain.begin(); tcIt!=tripChain.end();tcIt++)
 	{
 		tripChainDao.insert(*tcIt);
+	}
+}
+
+void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& outStream)
+{
+	size_t numTours = tours.size();
+	if (numTours == 0) { return; }
+	std::string personId = personParams.getPersonId();
+	long hhFactor = (long)std::ceil(personParams.getHouseholdFactor());
+	for(long k=1; k<=hhFactor; k++)
+	{
+		int homeNode = 0;
+		if(zoneNodeMap.find(personParams.getHomeLocation()) != zoneNodeMap.end())
+		{
+			homeNode =  getRandomNodeInZone(zoneNodeMap.at(personParams.getHomeLocation()));
+		}
+		if(homeNode == 0) { return; } //return if homeless
+
+		std::string pid;
+		{
+			std::stringstream sclPersonIdStrm;
+			sclPersonIdStrm << personId << "-" << k;
+			pid = sclPersonIdStrm.str();
+		}
+
+		int tourNum = 1;
+		double homeActivityEndTime = getTimeWindowFromIndex(tours.front().getStartTime());
+		for(TourList::const_iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++)
+		{
+			std::stringstream tourStream;
+			const Tour& tour = (*tourIt);
+			int stopNum = 0;
+			bool nodeMappingFailed = false;
+			const StopList& stops = tour.stops;
+
+			int prevStopNode = homeNode;
+			double prevStopEndTime = homeActivityEndTime;
+			int currStopNode;
+			double currStopEndTime;
+			for(StopList::const_iterator stopIt=stops.begin(); stopIt!=stops.end(); stopIt++)
+			{
+				const Stop* stop = (*stopIt);
+				currStopNode = 0;
+				ZoneNodeMap::const_iterator zoneNodeMapIt = zoneNodeMap.find(stop->getStopLocation());
+				if(zoneNodeMapIt != zoneNodeMap.end())
+				{
+					currStopNode = getRandomNodeInZone(zoneNodeMapIt->second);
+				}
+				if(currStopNode == 0) { nodeMappingFailed = true; break; } // if there is no next node, cut the trip chain for this tour here
+				currStopEndTime = getTimeWindowFromIndex(stop->getDepartureTime());
+				stopNum++;
+				//person_id character,tour_no,tour_type,stop_no integer NOT NULL,stop_type,stop_location,stop_mode,is_primary_stop,arrival_time,departure_time,prev_stop_location,prev_stop_departure_time
+				tourStream << pid << ","
+						<< tourNum << ","
+						<< tour.getTourTypeStr() << ","
+						<< stopNum << ","
+						<< stop->getStopTypeStr() << ","
+						<< currStopNode << ","
+						<< modeMap.at(4) << ","
+						<< (stop->isPrimaryActivity()? "True":"False")  << ","
+						<< getTimeWindowFromIndex(stop->getArrivalTime()) << ","
+						<< currStopEndTime << ","
+						<< prevStopNode << ","
+						<< prevStopEndTime <<"\n";
+				prevStopNode = currStopNode;
+				prevStopEndTime = currStopEndTime;
+			}
+
+			if(stopNum > 0) // if there was atleast one stop (with valid node) in tour
+			{
+				homeActivityEndTime = LAST_WINDOW;
+				TourList::const_iterator nextTourIt=tourIt; nextTourIt++; //copy and then increment
+				if(nextTourIt!=tours.end()) { homeActivityEndTime = getTimeWindowFromIndex((*nextTourIt).getStartTime()); }
+
+				//Home activity
+				//person_id character,tour_no,tour_type,stop_no integer NOT NULL,stop_type,stop_location,stop_mode,is_primary_stop,arrival_time,departure_time,prev_stop_location,prev_stop_departure_time
+				tourStream << pid << ","
+						<< tourNum << ","
+						<< tour.getTourTypeStr() << ","
+						<< ++stopNum << ","
+						<< "Home" << ","
+						<< homeNode << ","
+						<< modeMap.at(4) << ","
+						<< "False"  << ","
+						<< getTimeWindowFromIndex(tour.getEndTime()) << ","
+						<< homeActivityEndTime << ","
+						<< prevStopNode << ","
+						<< prevStopEndTime << "\n";
+				outStream << tourStream.str();
+				tourNum++;
+			}
+		}
 	}
 }
 

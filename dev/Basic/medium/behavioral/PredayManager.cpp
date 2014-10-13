@@ -486,7 +486,7 @@ void mergeTripChainFiles(const std::list<std::string>& tcFileNames)
 	std::cout <<"Merging trip chain files, this can take several minutes...\n";
 
 	//One-by-one.
-	std::ofstream out("tripchains.csv", std::ios::trunc|std::ios::binary);
+	std::ofstream out("activity_schedule.csv", std::ios::trunc|std::ios::binary);
 	if (!out.good()) { throw std::runtime_error("Error: Can't write to file."); }
 	for (std::list<std::string>::const_iterator it=tcFileNames.begin(); it!=tcFileNames.end(); it++) {
 		Print() <<"  Merging: " << *it <<std::endl;
@@ -757,7 +757,7 @@ void sim_mob::medium::PredayManager::dispatchPersons() {
 		std::stringstream fileName;
 		for(unsigned i=1; i<=numWorkers; i++)
 		{
-			fileName << "tripchain" << i << ".log";
+			fileName << "activity_schedule" << i << ".log";
 			logFileNames.push_back(fileName.str());
 			fileName.str(std::string());
 		}
@@ -1133,7 +1133,7 @@ void sim_mob::medium::PredayManager::computeWeightedGradient(const std::vector<s
 	}
 }
 
-void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, const std::string& tripChainLog)
+void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, const std::string& activityScheduleLog)
 {
 	bool outputTripchains = mtConfig.isOutputTripchains();
 	bool outputPredictions = mtConfig.isOutputPredictions();
@@ -1151,8 +1151,8 @@ void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& 
 	}
 
 	// open log file for this thread
-    std::ofstream tripChainLogFile(tripChainLog.c_str(), std::ios::trunc|std::ios::out);
-    std::stringstream tripChainLogStream;
+    std::ofstream activityScheduleLogFile(activityScheduleLog.c_str(), std::ios::trunc|std::ios::out);
+    std::stringstream activityScheduleStream;
 
 	// loop through all persons within the range and plan their day
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
@@ -1161,8 +1161,8 @@ void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& 
 		if(outputPredictions) { predaySystem.outputPredictionsToMongo(); }
 		if(outputTripchains)
 		{
-			predaySystem.outputTripChainsToStream(zoneNodeMap, tripChainLogStream);
-			outputToFile(tripChainLogFile, tripChainLogStream);
+			predaySystem.outputActivityScheduleToStream(zoneNodeMap, activityScheduleStream);
+			outputToFile(activityScheduleLogFile, activityScheduleStream);
 		}
 		if(consoleOutput) { predaySystem.printLogs(); }
 	}

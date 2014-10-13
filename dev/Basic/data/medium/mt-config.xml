@@ -27,11 +27,11 @@
                 <!-- the preday demand simulator -->
                 <threads value="6"/>
                 <!-- outputs the preday predictions as trip chains in PostgreSQL database if enabled -->
-                <output_tripchains enabled="false"/>
+                <output_tripchains enabled="true"/>
                 <!-- outputs the preday's predicted tours and stops to mongodb if enabled -->
                 <output_predictions enabled="true"/>
                 <!-- prints person ids and tour details in console for each person if enabled -->
-                <console_output enabled="true"/>
+                <console_output enabled="false"/>
                 
                 <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
                         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
@@ -69,10 +69,10 @@
                         <mongo_collection name="PMCosts" collection="PMCosts"/>
                         <mongo_collection name="Zone" collection="Zone"/>
                         <mongo_collection name="zone_node" collection="node_mtz"/>
-                        <mongo_collection name="Output_DayPattern" collection="daypattern_1909_2"/>
-                        <mongo_collection name="Output_Tour" collection="tour_1909_2"/>
-                        <mongo_collection name="Output_Activity" collection="activity_1909_2"/>
-                        <mongo_collection name="Output_SubTour" collection="wbst_1909_2"/>
+                        <mongo_collection name="Output_DayPattern" collection="daypattern_2609_4"/>
+                        <mongo_collection name="Output_Tour" collection="tour_2609_4"/>
+                        <mongo_collection name="Output_Activity" collection="activity_2609_4"/>
+                        <mongo_collection name="Output_SubTour" collection="wbst_2609_4"/>
                 </mongo_collections>
                 
                 <calibration enabled="false">

@@ -225,6 +225,9 @@ private:
 	sim_mob::DynamicVector getCurrPolylineVector() const;
 	sim_mob::DynamicVector getCurrPolylineVector2() const;
 
+	//This method is used to check if there is enough space on the lane where a vehicle from the
+	//loading queue wants to start its journey
+	bool findEmptySpaceAhead();
 
 public:
 	double targetSpeed;			//the speed which the vehicle is going to achieve

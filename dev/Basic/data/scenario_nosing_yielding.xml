@@ -132,6 +132,8 @@
                 <mapping name="busstop" procedure="get_bus_stop_bugis()"/>
                 <mapping name="signal" procedure="get_traffic_signals_bugis()"/>
                 <mapping name="phase" procedure="get_lane_connector_phases()"/>
+<mapping name="segment_type" procedure="get_segment_type()"/>
+		            <mapping name="node_type" procedure="get_node_type()"/>
                 <!-- These public-transit mappings tested with the large-bugis network. -->
                 <!-- "pt_bus_dispatch_freq" store some bus dispatching schedules for buses -->
                 <!-- "pt_bus_routes" store some bus routes for buses -->
@@ -238,7 +240,7 @@
         <!-- (but will be rounded down.) -->
         <simulation>
             <base_granularity   value="100"   units="ms" />
-            <total_runtime      value="6"      units="minutes" />
+            <total_runtime      value="4"      units="minutes" />
             <total_warmup       value="10"     units="seconds" />
             
             <start_time         value="08:30:00"/>
@@ -397,44 +399,36 @@
     <!--East node is: 37270984,14378959-->
     <!--West node is: 37227139,14327875-->
     <drivers>
-        <!-- These test the short term -->
-        <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="0" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="0"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="0" lane="3"/>
-        <driver originPos="37227139,14327875" destPos="37270984,14378959" time="1000" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="1000" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="1000"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="1000" lane="3"/>
-                <driver originPos="37227139,14327875" destPos="37270984,14378959" time="2000" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="3000" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="3000"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="3000" lane="3"/>
-         <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="0" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="0"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="0" lane="3"/>
-        <driver originPos="37227139,14327875" destPos="37270984,14378959" time="1000" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="1000" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="1000"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="1000" lane="3"/>
-                <driver originPos="37227139,14327875" destPos="37270984,14378959" time="2000" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="3000" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="3000"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="3000" lane="3"/>
-         <driver originPos="37227139,14327875" destPos="37270984,14378959" time="10000" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="10000" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="10000"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="10000" lane="3"/>
-        <driver originPos="37227139,14327875" destPos="37270984,14378959" time="10000" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="10000" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="10000"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="10000" lane="3"/>
-                <driver originPos="37227139,14327875" destPos="37270984,14378959" time="20000" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="30000" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="30000"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="30000" lane="3"/>
-    </drivers> 
+       <!-- yielding vh -->
+       	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="0"  initSpeed="0" time="0" lane="1" id="1"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="4"  initSpeed="0" time="0" lane="1" id="2"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="8"  initSpeed="0" time="0" lane="1" id="3"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="12" initSpeed="0" time="0" lane="1" id="4"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="16" initSpeed="0" time="0" lane="1" id="5"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="20" initSpeed="0" time="0" lane="1" id="6"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="24" initSpeed="0" time="0" lane="1" id="7"/> <!--initDis meter; initSpeed m/s-->
+
+       	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="28"  initSpeed="0" time="0" lane="1" id="9"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="32"  initSpeed="0" time="0" lane="1" id="10"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="36"  initSpeed="0" time="0" lane="1" id="11"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="40" initSpeed="0" time="0" lane="1" id="12"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="44" initSpeed="0" time="0" lane="1" id="13"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="48" initSpeed="0" time="0" lane="1" id="14"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="52" initSpeed="0" time="0" lane="1" id="15"/> <!--initDis meter; initSpeed m/s-->
+
+	<!-- nosing vh -->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="0" initSpeed="0" time="0" lane="2" id="86"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="4" initSpeed="0" time="0" lane="2" id="87"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="12" initSpeed="0" time="0" lane="2" id="88"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="16" initSpeed="0" time="0" lane="2" id="89"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="20" initSpeed="0" time="0" lane="2" id="90"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="24" initSpeed="0" time="0" lane="2" id="91"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="28" initSpeed="0" time="0" lane="2" id="92"/> <!--initDis meter; initSpeed m/s-->
+	<driver originPos="0,0" destPos="0,0" originNode="54744" destNode="66508" initSegId ="34480" initDis="32" initSpeed="0" time="0" lane="2" id="93"/> <!--initDis meter; initSpeed m/s-->
+
+
+
+   </drivers> 
     
     <pedestrians> 
         <!--Pedestrian start locations-->
@@ -456,9 +450,9 @@
     <!-- 3. "pt_bus_stops" -->
     <!-- With the above three procedures present and valid, enable buses with "<buscontroller time="0" />" in the <buscontrollers> -->
     <!-- To Disable Buses: user can simply comment the buscontroller in the <buscontrollers> -->
-    <buscontrollers>
-        <!--buscontroller time="0" /-->    
-    </buscontrollers>
+    <!--buscontrollers>
+        <buscontroller time="0" />    
+    </buscontrollers-->
     
 <!--<signals> -->
     <!-- Any of the following signals will not be created if it has already been created by -->

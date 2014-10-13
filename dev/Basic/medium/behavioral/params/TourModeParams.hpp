@@ -297,14 +297,24 @@ public:
 		educationOP = educationOp;
 	}
 
-	bool isCbdZone() const
+	bool isCbdDestZone() const
 	{
-		return cbdZone;
+		return cbdDestZone;
 	}
 
-	void setCbdZone(bool cbdZone)
+	void setCbdDestZone(bool cbdZone)
 	{
-		this->cbdZone = cbdZone;
+		this->cbdDestZone = cbdZone;
+	}
+
+	bool isCbdOrgZone() const
+	{
+		return cbdOrgZone;
+	}
+
+	void setCbdOrgZone(bool cbdOrgZone)
+	{
+		this->cbdOrgZone = cbdOrgZone;
 	}
 
 private:
@@ -319,7 +329,8 @@ private:
 	double walkDistance1;
 	double walkDistance2;
 	bool centralZone;
-	bool cbdZone;
+	bool cbdOrgZone;
+	bool cbdDestZone;
 	double ttPublicIvtFirst;
 	double ttPublicIvtSecond;
 	double ttPublicWaitingFirst;

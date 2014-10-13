@@ -259,7 +259,8 @@ void PredaySystem::predictTourMode(Tour& tour) {
 	ZoneParams* znDesObj = zoneMap.at(zoneIdLookup.at(tour.getTourDestination()));
 	tmParams.setCostCarParking(znDesObj->getParkingRate());
 	tmParams.setCentralZone(znDesObj->getCentralDummy());
-	tmParams.setCbdZone(znDesObj->getCbdDummy());
+	tmParams.setCbdOrgZone(znOrgObj->getCbdDummy());
+	tmParams.setCbdDestZone(znDesObj->getCbdDummy());
 	tmParams.setResidentSize(znOrgObj->getResidentWorkers());
 	tmParams.setWorkOp(znDesObj->getEmployment());
 	tmParams.setEducationOp(znDesObj->getTotalEnrollment());

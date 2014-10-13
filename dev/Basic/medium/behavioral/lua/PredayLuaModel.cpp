@@ -106,7 +106,8 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("resident_size",&TourModeParams::getResidentSize)
 				.addProperty("work_op",&TourModeParams::getWorkOp)
 				.addProperty("education_op",&TourModeParams::getEducationOp)
-				.addProperty("cbd_dummy",&TourModeParams::isCbdZone)
+				.addProperty("cbd_dummy",&TourModeParams::isCbdDestZone)
+				.addProperty("cbd_dummy_origin",&TourModeParams::isCbdOrgZone)
 			.endClass()
 
 			.beginClass<TourModeDestinationParams>("TourModeDestinationParams")

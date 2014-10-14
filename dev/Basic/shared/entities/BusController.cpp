@@ -116,7 +116,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Enti
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	const map<string, Busline*>& buslines = pt_schedule.getBusLines();
 	if(0 == buslines.size()) {
-		throw std::runtime_error("Error: No busline in the PT_Schedule, please check the setPTSchedule.");
+		throw std::runtime_error("Error:  No busline in the PT_Schedule, please check the setPTSchedule.");
 	}
 
 	for(map<string, Busline*>::const_iterator buslinesIt = buslines.begin();buslinesIt!=buslines.end();buslinesIt++) {
@@ -133,7 +133,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Enti
 				currAgTripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));// one person for one busTrip, currently not considering Activity for BusDriver
 				currAg->setTripChain(currAgTripChain);
 				currAg->initTripChain();
-				Print()<<"Person created (assignBusTripChain): "<<currAg->getId()<<" | startTime: "<<tripIt->startTime.getRepr_()<<" | buslineId: "<<busline->getBusLineID()<<std::endl;
+				//Print()<<"Person created (assignBusTripChain): "<<currAg->getId()<<" | startTime: "<<tripIt->startTime.getRepr_()<<" | buslineId: "<<busline->getBusLineID()<<std::endl;
 
 				// scheduled for dispatch
 				addOrStashBuses(currAg, active_agents);
@@ -259,11 +259,11 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 
 			if(busstop_busline_registered){
 
-				if(curr->route_id.find("857_1")==string::npos){
+				/*if(curr->route_id.find("10_1")==string::npos){
 					continue;
-				}
+				}*/
 
-				std::cout << "busline:" << busline->getBusLineID() << " stop size:"<<stops.size()<<std::endl;
+				//std::cout << "busline:" << busline->getBusLineID() << " stop size:"<<stops.size()<<std::endl;
 				//calculate bus route
 				if(stops.size()>0 && segments.size()==0){
 					const BusStop* start = nullptr;
@@ -272,11 +272,11 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 					for (int k = 0; k < stops.size(); k++)
 					{
 						const BusStop* busStop = stops[k];
-						std::cout << "busline:" << busline->getBusLineID() << " stop:"
+						/*std::cout << "busline:" << busline->getBusLineID() << " stop:"
 								<< busStop->busstopno_ << " nearest segmentId:"
 								<< busStop->getParentSegment()->getSegmentAimsunId()
 								<< " stop size:"<<stops.size()
-								<< std::endl;
+								<< std::endl;*/
 						if (k == 0) {
 							start = busStop;
 						} else {
@@ -295,6 +295,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 											it->roadSegment_->getSegmentAimsunId();
 									if (routeIDs.size() == 0 || routeIDs.back() != id) {
 										routeIDs.push_back(id);
+										segments.push_back(it->roadSegment_);
 									}
 								}
 							}

@@ -14,8 +14,6 @@
 using std::string;
 using namespace sim_mob;
 
-
-
 sim_mob::TripChainItem::LocationType  sim_mob::TripChainItem::GetLocationTypeXML(std::string name)
 {
 	if (name == "LT_BUILDING") {
@@ -38,10 +36,16 @@ sim_mob::TripChainItem::TripChainItem(std::string entId, string type, DailyTime 
 {
 }
 
+sim_mob::TripChainItem::~TripChainItem() {}
+
+const std::string sim_mob::TripChainItem::getMode() const  { return "<ERROR>"; }
+
 sim_mob::Activity::Activity(string locType) : TripChainItem(), description(""), location(nullptr),
 		locationType(getLocationType(locType)), isPrimary(false), isFlexible(false), isMandatory(false)
 {
 }
+
+sim_mob::Activity::~Activity() {}
 
 sim_mob::Trip::Trip(std::string entId, std::string type, unsigned int seqNumber, int requestTime,
 		DailyTime start, DailyTime end, std::string tripId, Node* from,
@@ -68,6 +72,7 @@ sim_mob::Trip::Trip(std::string entId, std::string type, unsigned int seqNumber,
 	}
 }
 
+sim_mob::Trip::~Trip() {}
 
 const std::vector<sim_mob::SubTrip>& sim_mob::Trip::getSubTrips() const
 {
@@ -93,6 +98,10 @@ sim_mob::SubTrip::SubTrip(std::string entId, std::string type, unsigned int seqN
 {
 }
 
+sim_mob::SubTrip::~SubTrip() {}
+
+
+const std::string sim_mob::SubTrip::getMode() const { return mode; }
 
 std::string sim_mob::TripChainItem::getPersonID() const
 {
@@ -128,10 +137,7 @@ TripChainItem::LocationType sim_mob::TripChainItem::getLocationType(
 		throw std::runtime_error(msg.str().c_str());
 	}
 }
-//sim_mob::TripChainItem::LocationType sim_mob::TripChainItem::getLocationType()
-//{
-//	return LocationType;
-//}
+
 TripChainItem::ItemType sim_mob::TripChainItem::getItemType(std::string itemType)
 {
 	itemType.erase(remove_if(itemType.begin(), itemType.end(), isspace),
@@ -155,6 +161,8 @@ bool sim_mob::Activity::setPersonOD(sim_mob::Person *person, const sim_mob::SubT
 	return true;
 }
 
+const std::string sim_mob::Activity::getMode() const  { return "Activity"; }
+
 bool sim_mob::Trip::setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip * subtrip) {
 	const sim_mob::SubTrip &subTrip_ = (subtrip  ? *subtrip : subTrips.front());
 	person->originNode = subTrip_.fromLocation;
@@ -165,16 +173,13 @@ void sim_mob::Trip::addSubTrip(const sim_mob::SubTrip& subTrip)
 {
 	subTrips.push_back(subTrip);
 }
-const std::string sim_mob::Trip::getMode(const sim_mob::SubTrip *subTrip) const
+
+const std::string sim_mob::Trip::getMode() const
 {
-	if(!subTrip) { throw std::runtime_error("Invalid subtrip supplied"); }
-	return subTrip->getMode();
+	if(subTrips.empty()) { return ""; }
+	return subTrips.front().getMode();
 }
 
-const std::string sim_mob::SubTrip::getMode() const {
-		//std::cout << "Mode for subtrip " << this << " from " << this->fromLocation->getID() << " to " << this->toLocation->getID() << " is " << mode << std::endl;
-		return mode;
-	}
 bool sim_mob::operator==(const SubTrip& s1, const SubTrip& s2)
 {
 	//For now, just assume two items are equal if their entity IDs are equal.
@@ -186,6 +191,3 @@ bool sim_mob::operator!=(const SubTrip& s1, const SubTrip& s2)
 {
     return !(s1 == s2);
 }
-
-
-

@@ -458,34 +458,27 @@ bool sim_mob::Person::updateOD(sim_mob::TripChainItem * tc, const sim_mob::SubTr
 	return tc->setPersonOD(this, subtrip);
 }
 
-bool sim_mob::Person::changeRoleRequired(sim_mob::Role & currRole,sim_mob::SubTrip &currSubTrip) const
+bool sim_mob::Person::changeRoleRequired(sim_mob::Role & currRole, sim_mob::SubTrip &currSubTrip) const
 {
-	string roleName = RoleFactory::GetSubTripMode(currSubTrip);
+	string roleName = RoleFactory::GetRoleName(currSubTrip.getMode());
 	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 	const sim_mob::Role* targetRole = rf.getPrototype(roleName);
-	if(targetRole->getRoleName() ==  currRole.getRoleName()) {
-		return false;
-	}
+	if(targetRole->getRoleName() ==  currRole.getRoleName()) { return false; }
 	//the current role type and target(next) role type are not same. so we need to change the role!
 	return true;
 }
 
 bool sim_mob::Person::changeRoleRequired(sim_mob::TripChainItem &tripChinItem) const
 {
-	if(tripChinItem.itemType == sim_mob::TripChainItem::IT_TRIP)
-		return changeRoleRequired_Trip();
-		return changeRoleRequired_Activity();
+	if(tripChinItem.itemType == sim_mob::TripChainItem::IT_TRIP) { return changeRoleRequired_Trip(); }
+	else { return changeRoleRequired_Activity(); }
 }
 bool sim_mob::Person::changeRoleRequired_Trip(/*sim_mob::Trip &trip*/) const
 {
-	//std::cout << "Checking if the change is required from currRole[" << currRole << "]: "<< currRole->getRoleName() << std::endl;
-	string roleName = RoleFactory::GetSubTripMode(*currSubTrip);
-	//std::cout << "Person::changeRoleRequired_Trip->roleName = " << roleName << std::endl;
+	string roleName = RoleFactory::GetRoleName((*currSubTrip).getMode());
 	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 	const sim_mob::Role* targetRole = rf.getPrototype(roleName);
-	//std::cout << " and targetRole->getRoleName() will be " << targetRole->getRoleName() << " vs curr:" << currRole->getRoleName()<< std::endl;
-	if(targetRole->getRoleName() ==  currRole->getRoleName())
-		return false;
+	if(targetRole->getRoleName() ==  currRole->getRoleName()) { return false; }
 	//the current role type and target(next) role type are not same. so we need to change the role!
 	return true;
 }
@@ -510,9 +503,11 @@ bool sim_mob::Person::findPersonNextRole()
 	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 
 	const sim_mob::TripChainItem* tci = *(this->nextTripChainItem);
-	const sim_mob::SubTrip* str = (tci->itemType == sim_mob::TripChainItem::IT_TRIP ? &(*nextSubTrip) : 0);
+	if(tci->itemType == sim_mob::TripChainItem::IT_TRIP)
+	{
+		nextRole = rf.createRole(tci, &(*nextSubTrip), this);
+	}
 
-	nextRole = rf.createRole(tci, str, this);
 	return true;
 }
 
@@ -526,19 +521,13 @@ bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 	// by saving it until the next time tick.
 	safe_delete_item(prevRole);
 	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
-//		prevRole = currRole;
-
 	const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
-
-	const sim_mob::SubTrip* str = nullptr;
+	const sim_mob::SubTrip* subTrip = nullptr;
 	if( tci->itemType==sim_mob::TripChainItem::IT_TRIP || tci->itemType==sim_mob::TripChainItem::IT_FMODSIM )
 	{
-		str =  &(*currSubTrip);
+		subTrip = &(*currSubTrip);
 	}
-
-	if(newRole == 0)
-		newRole = rf.createRole(tci, str, this);
-
+	if(!newRole) { newRole = rf.createRole(tci, subTrip, this); }
 	changeRole(newRole);
 	return true;
 }
@@ -829,24 +818,20 @@ bool sim_mob::Person::replaceATripChainItem(TripChainItem* rep, TripChainItem* n
 bool sim_mob::Person::updateNextSubTrip()
 {
 	sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *>(*currTripChainItem);
-	if(!trip) return false;
-	if (currSubTrip == trip->getSubTrips().end())//just a routine check
-		return false;
-
+	if(!trip) { return false; }
+	if (currSubTrip == trip->getSubTrips().end()) { return false; } //just a routine check
 	nextSubTrip = currSubTrip + 1;
-
-	if (nextSubTrip == trip->getSubTrips().end())
-		return false;
+	if(nextSubTrip == trip->getSubTrips().end()) { return false; }
 	return true;
 }
 
 bool sim_mob::Person::updateNextTripChainItem()
 {
 	bool res = false;
-	if(currTripChainItem == tripChain.end()) return false; //just a harmless basic check
+	if(currTripChainItem == tripChain.end()) { return false; } //just a harmless basic check
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
-		//dont advance to next tripchainItem immediately, check the subtrip first
+		//check for next subtrip first
 		res = updateNextSubTrip();
 	}
 
@@ -858,21 +843,14 @@ bool sim_mob::Person::updateNextTripChainItem()
 
 	//no, it is not the subtrip we need to advance, it is the tripchain item
 	nextTripChainItem = currTripChainItem + 1;
-	if(nextTripChainItem != tripChain.end())
-		if((*nextTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
-			//	std::cout << "processing Activity";
-		}
-	//but tripchainitems are also over, get out !
-	if(nextTripChainItem == tripChain.end()) return false;
+	if(nextTripChainItem == tripChain.end()) { return false; }
 
-	//so far, advancing the tripchainitem has been successful
-
-	//Also set the currSubTrip to the beginning of trip , just in case
+	//Also set the nextSubTrip to the beginning of trip , just in case
 	if((*nextTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
 		sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *>(*nextTripChainItem);//easy reading
-			if(!trip) throw std::runtime_error("non sim_mob::Trip cannot have subtrips");
-			nextSubTrip =  trip->getSubTrips().begin();
+		if(!trip) { throw std::runtime_error("non sim_mob::Trip cannot have subtrips"); }
+		nextSubTrip =  trip->getSubTrips().begin();
 	}
 
 	return true;
@@ -898,15 +876,8 @@ bool sim_mob::Person::advanceCurrentSubTrip()
 	if (currSubTrip == trip->getSubTrips().end()) {
 		return false;
 	}
-
 	return true;
 }
-
-////advance to the next subtrip inside the current TripChainItem assuming that the current TripChainItem is an activity
-//bool sim_mob::Person::advanceCurrentTripChainItem_Activity()
-//{
-//
-//}
 
 bool sim_mob::Person::advanceCurrentTripChainItem()
 {

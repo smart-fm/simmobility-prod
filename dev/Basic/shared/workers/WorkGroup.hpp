@@ -85,7 +85,7 @@ public:
 	void initWorkers(EntityLoadParams* loader);
 	void assignAWorker(Entity* ag);
 	void assignConfluxToWorkers();
-	void putAgentOnConflux(Entity* en);
+	void putAgentOnConflux(Person* ag);
 	void processVirtualQueues();
 	void outputSupplyStats();
 	/*

@@ -164,6 +164,7 @@ void sim_mob::RestrictedRegion::populate()
 	}
 	soci::session sql(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
 
+
 }
 void sim_mob::RestrictedRegion::processTripChains(map<string, vector<TripChainItem*> > &tripchains)
 {

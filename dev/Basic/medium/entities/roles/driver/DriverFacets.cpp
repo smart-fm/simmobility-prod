@@ -1005,7 +1005,7 @@ bool DriverMovement::UTurnFree(std::vector<WayPoint> & newPath, std::vector<cons
 	sim_mob::PathSetManager::getInstance()->getBestPath(newPath,&subTrip, excludeRS);
 	//try again
 	if(!newPath.size()){
-		pathsetLogger<< "No other path can avoid a Uturn, suggest to discard " << std::endl;
+		pathsetLogger<< "No other path can avoid a Uturn, suggest to discard \n" ;
 		return false;//wasn't successful, so return false
 	}
 
@@ -1073,7 +1073,6 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 	//step-3:
 	typedef std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >::value_type	DetourOption ; //for 'deTourOptions' container
 	std::set<const sim_mob::RoadSegment*> excludeRS = std::set<const sim_mob::RoadSegment*>();
-	excludeRS.insert((*msg.stats.begin())->getRoadSegment());//all stats in the container refer to the same rs.
 	//	get a 'copy' of the person's current subtrip
 	SubTrip subTrip = *(getParent()->currSubTrip);
 	std::map<const sim_mob::Node* , std::vector<WayPoint> > newPaths ; //stores new paths starting from the re-routing points
@@ -1082,7 +1081,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 		// change the origin
 		subTrip.fromLocation.node_ = detourNode.first;
 		//	record the new paths using the updated subtrip. (including no paths)
-		sim_mob::PathSetManager::getInstance()->getBestPath(newPaths[detourNode.first], &subTrip, excludeRS);
+		sim_mob::PathSetManager::getInstance()->getBestPath(newPaths[detourNode.first], &subTrip);//partially excluded sections must be already added
 	}
 
 	/*step-4: prepend the old path to the new path
@@ -1179,6 +1178,7 @@ void DriverMovement::HandleMessage(messaging::Message::MessageType type,
 	switch (type){
 	case MSG_INSERT_INCIDENT:{
 		const InsertIncidentMessage &msg = MSG_CAST(InsertIncidentMessage,message);
+		PathSetManager::getInstance()->addPartialExclusion((*msg.stats.begin())->getRoadSegment());
 		reroute(msg);
 		break;
 	}

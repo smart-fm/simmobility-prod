@@ -6,6 +6,7 @@
  */
 
 #include "PathSetManager.hpp"
+#include "entities/PersonLoader.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/Node.hpp"
@@ -762,21 +763,30 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(const sim_mob::Person*
 	// get person id and current subtrip id
 	std::string personId = per->getDatabaseId();
 	std::vector<sim_mob::SubTrip>::const_iterator currSubTripIt = per->currSubTrip;
+	std::string fromToID = subTrip.fromLocation.node_->getID() + "," + subTrip.toLocation.node_->getID();
 	//todo. change the subtrip signature from pointer to referencer
 	logger << "+++++++++++++++++++++++++" << "\n";
 	vector<WayPoint> res;
 	//CBD area logic
-//	if(sim_mob::RestrictedRegion::getInstance())
-	getBestPath(res, &subTrip);
-	logger << "Path chosen for this person:" << per->getId() << "," << per->GetId() << "\n";
+	const Node * from = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.fromLocation);
+	const Node * to = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.toLocation);
+	if(to == nullptr && from ==nullptr){
+		logger << fromToID  << ": Enforce blacklist for " << "\n";
+		getBestPath(res, &subTrip,std::set<const sim_mob::RoadSegment*>(),false,true);//use/enforce blacklist
+	}
+	else if(to == nullptr || from ==nullptr){
+		getBestPath(res, &subTrip);
+	}
+	//subscribe person
+	logger << fromToID  << ": Path chosen for person[" << per->getId() << "]" << per->GetId() << "\n";
 	if(!res.empty())
 	{
-		logger << subTrip.fromLocation.node_->getID() << "," << subTrip.toLocation.node_->getID() << " : was assigned path of size " << res.size()  << "\n";
+		logger << fromToID << " : was assigned path of size " << res.size()  << "\n";
 		//expensive due to call to getSegmentAimsunId()
 		//printWPpath(res);
 	}
 	else{
-		logger << subTrip.fromLocation.node_->getID() << "," << subTrip.toLocation.node_->getID() <<" : NO PATH" << "\n";
+		logger << fromToID <<" : NO PATH" << "\n";
 	}
 	return res;
 }
@@ -790,8 +800,9 @@ vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(const sim_mob::Person*
 bool sim_mob::PathSetManager::getBestPath(
 		std::vector<sim_mob::WayPoint> &res,
 		const sim_mob::SubTrip* st,
-		std::set<const sim_mob::RoadSegment*> partialExcldSegs_,
-		std::set<const sim_mob::RoadSegment*> blckLstSegs_,
+		std::set<const sim_mob::RoadSegment*> tempBlckLstSegs,
+		 bool usePartialExclusion,
+		 bool useBlackList,
 		bool isUseCache)
 {
 	res.clear();
@@ -799,20 +810,13 @@ bool sim_mob::PathSetManager::getBestPath(
 	{
 		return false;
 	}
-	//combine the excluded segments
-	std::set<const sim_mob::RoadSegment*> partialExcldSegs(partialExcldSegs_);
-	if(!partialExclusions.empty())
+	//take care of partially excluded and blacklisted segments here
+	std::set<const sim_mob::RoadSegment*> blckLstSegs(tempBlckLstSegs);
+	if(useBlackList & blckLstSegs.size() & this->blacklistSegments.size())
 	{
-		boost::unique_lock<boost::shared_mutex> lock(mutexExclusion);
-		partialExcldSegs.insert(partialExclusions.begin(), partialExclusions.end());
+		blckLstSegs.insert(this->blacklistSegments.begin(), this->blacklistSegments.end()); //temporary + permanent
 	}
-	//combine the excluded segments
-	std::set<const sim_mob::RoadSegment*> blckLstSegs(blckLstSegs_);
-	if(!blacklistSegments.empty())
-	{
-		boost::unique_lock<boost::shared_mutex> lock(mutexExclusion);
-		blckLstSegs_.insert(partialExclusions.begin(), partialExclusions.end());
-	}
+	const std::set<const sim_mob::RoadSegment*> &partial = (usePartialExclusion ? this->partialExclusions : std::set<const sim_mob::RoadSegment*>());
 
 	const sim_mob::Node* fromNode = st->fromLocation.node_;
 	const sim_mob::Node* toNode = st->toLocation.node_;
@@ -837,7 +841,7 @@ bool sim_mob::PathSetManager::getBestPath(
 	if(isUseCache && findCachedPathSet(fromToID,ps_))
 	{
 		logger <<  fromToID  << " : Cache Hit" <<  "\n";
-		bool r = getBestPathChoiceFromPathSet(ps_);
+		bool r = getBestPathChoiceFromPathSet(ps_,partial,blckLstSegs);
 		logger <<  fromToID << " : getBestPathChoiceFromPathSet returned best path of size : " << ps_->bestWayPointpath->size() << "\n";
 		if(r)
 		{
@@ -859,7 +863,7 @@ bool sim_mob::PathSetManager::getBestPath(
 	ps_.reset(new sim_mob::PathSet());
 	ps_->subTrip = st;
 	ps_->id = fromToID;
-	bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(*getSession(),fromToID,ps_->pathChoices, dbFunction,blckLstSegs);
+	bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(*getSession(),fromToID,ps_->pathChoices, dbFunction);
 	logger  <<  fromToID << " : " << (hasSPinDB ? "" : "Don't " ) << "have SinglePaths in DB \n" ;
 	if(hasSPinDB)
 	{
@@ -880,8 +884,7 @@ bool sim_mob::PathSetManager::getBestPath(
 		}
 		//	no need of processing and storing blacklisted paths
 		short psCnt = ps_->pathChoices.size();
-		ps_->excludeRoadSegment(blckLstSegs);
-		r = getBestPathChoiceFromPathSet(ps_,partialExcldSegs);
+		r = getBestPathChoiceFromPathSet(ps_, partial, blckLstSegs);
 		logger << fromToID << " :  number of paths before blcklist: " << psCnt << " after blacklist:" << ps_->pathChoices.size() << "\n" ;
 		if(r)
 		{
@@ -921,7 +924,8 @@ bool sim_mob::PathSetManager::getBestPath(
 		ps_->subTrip = st;
 		ps_->psMgr = this;
 
-		if(!generateAllPathChoicesMT(ps_,blckLstSegs))
+		bool r = generateAllPathChoicesMT(ps_);
+		if(!r)
 		{
 			return false;
 		}
@@ -929,9 +933,7 @@ bool sim_mob::PathSetManager::getBestPath(
 		logger.prof("utility_path_size").tick();
 		sim_mob::generatePathSizeForPathSet2(ps_);
 		logger.prof("utility_path_size").tick(true);
-		//
-		// save pathset to loacl container
-		bool r = getBestPathChoiceFromPathSet(ps_, partialExcldSegs);
+		r = getBestPathChoiceFromPathSet(ps_,partial,blckLstSegs);
 		logger << "getBestPathChoiceFromPathSet returned best path of size : " << ps_->bestWayPointpath->size() << "\n";
 		if(r)
 		{
@@ -1585,7 +1587,9 @@ double sim_mob::PathSetManager::getUtilityBySinglePath(sim_mob::SinglePath* sp)
 }
 
 
-bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet> &ps, const std::set<const sim_mob::RoadSegment *> & partialExclusion)
+bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet> &ps,
+		const std::set<const sim_mob::RoadSegment *> & partialExclusion ,
+		const std::set<const sim_mob::RoadSegment*> &blckLstSegs )
 {
 	bool computeUtility = false;
 	// step 1.1 : For each path i in the path choice:
@@ -1598,6 +1602,10 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 	int temp = 0;
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
+		if(blckLstSegs.size() && sp->includesRoadSegment(blckLstSegs))
+		{
+			continue;//do the same thing while measuring the probability in the loop below
+		}
 		if(sp->shortestWayPointpath.empty())
 		{
 			std::string str = temp + " Singlepath empty";
@@ -1607,7 +1615,7 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 		//	trying to save some computation like getTravelTime(), getUtilityBySinglePath()
 		computeUtility = false;
 		//	state of the network changed
-		if (!partialExclusion.empty() && sp->includesRoadSegment(partialExclusion) ) {
+		if (partialExclusion.size() && sp->includesRoadSegment(partialExclusion) ) {
 			sp->travleTime = maxTravelTime;//some large value like infinity
 			computeUtility = true;
 		}
@@ -1642,6 +1650,10 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 	int i = -1;
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
+		if(blckLstSegs.size() && sp->includesRoadSegment(blckLstSegs))
+		{
+			continue;//do the same thing while processing the single path in the loop above
+		}
 		i++;
 		double prob = exp(sp->utility)/(ps->logsum);
 		upperProb += prob;

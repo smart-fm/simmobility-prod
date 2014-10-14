@@ -238,6 +238,10 @@ public:
 		return instance_;
 	}
 public:
+	const std::set<const sim_mob::RoadSegment*> & getPartialExclusions(){return partialExclusions;}
+	void addPartialExclusion(const sim_mob::RoadSegment* value){ partialExclusions.insert(value);}
+	const std::set<const sim_mob::RoadSegment*> & getBlkLstSegs(){return blacklistSegments;}
+	void addBlkLstSegs(const sim_mob::RoadSegment* value){ blacklistSegments.insert(value);}
 	bool generateAllPathSetWithTripChain2();
 	///	generate shortest path information
 	sim_mob::SinglePath *  findShortestDrivingPath( const sim_mob::Node *fromNode, const sim_mob::Node *toNode,std::set<std::string> duplicateChecker,
@@ -256,7 +260,8 @@ public:
 	 * \param st input subtrip
 	 * \param res output path generated
 	 * \param partialExcludedSegs segments temporarily having different attributes
-	 * \param blckLstSegs segments temporarily off the road network
+	 * \param blckLstSegs segments off the road network. This
+	 * \param tempBlckLstSegs segments temporarily off the road network
 	 * \param isUseCache is using the cache allowed
 	 * Note: PathsetManager object already has containers for partially excluded and blacklisted segments. They will be
 	 * the default containers throughout the simulation. but partialExcludedSegs and blckLstSegs arguments are combined
@@ -264,8 +269,9 @@ public:
 	 */
 	 bool getBestPath(std::vector<sim_mob::WayPoint>& res,
 			 const sim_mob::SubTrip* st,
-			 std::set<const sim_mob::RoadSegment*> partialExcludedSegs=std::set<const sim_mob::RoadSegment*>(),
-			 std::set<const sim_mob::RoadSegment*> blckLstSegs=std::set<const sim_mob::RoadSegment*>(),
+			 const std::set<const sim_mob::RoadSegment*> tempBlckLstSegs=std::set<const sim_mob::RoadSegment*>(),
+			 bool usePartialExclusion = false,
+			 bool useBlackList = false,
 			 bool isUseCache = true);
 
 	/**
@@ -285,7 +291,9 @@ public:
 
 	void generatePathesByTravelTimeLinkElimination(std::vector<WayPoint>& path, std::set<std::string>& duplicateChecker, boost::shared_ptr<sim_mob::PathSet> &ps_,const sim_mob::Node* fromNode,const sim_mob::Node* toNode,	sim_mob::TimeRange tr);
 
-	bool getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet> &ps, const std::set<const sim_mob::RoadSegment *> & excludedSegs =  std::set<const sim_mob::RoadSegment *>());
+	bool getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet> &ps,
+			const std::set<const sim_mob::RoadSegment *> & partialExclusion = std::set<const sim_mob::RoadSegment *>(),
+			const std::set<const sim_mob::RoadSegment*> &blckLstSegs = std::set<const sim_mob::RoadSegment *>());
 
 	///	initialize various(mainly utility) paramenters
 	void initParameters();

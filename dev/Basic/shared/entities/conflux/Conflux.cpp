@@ -1270,7 +1270,7 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 	const sim_mob::RoadSegment* rdSeg = nullptr;
 	const std::vector<sim_mob::TripChainItem*> & agTripChain = p->getTripChain();
 	sim_mob::TripChainItem *tci;
-	BOOST_FOREACH(tci,p->getTripChain()){
+	BOOST_FOREACH(tci,agTripChain){
 		if(tci->itemType == sim_mob::TripChainItem::IT_TRIP){
 			break;
 		}
@@ -1281,14 +1281,16 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 
 	std::vector<WayPoint> path;
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		path = PathSetManager::getInstance()->getPathByPerson(p,firstTrip->getSubTrips().front());
+		path = PathSetManager::getInstance()->getPath(p,firstTrip->getSubTrips().front());
 	}
 	else{
-		StreetDirectory& streetDirectory = StreetDirectory::instance();
+		const sim_mob::TripChainItem* firstItem = agTripChain.front();
 		const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
-		std::string role = rf.GetTripChainMode(tci);
-		if (role == "driver") {
-			const sim_mob::SubTrip firstSubTrip = firstTrip->getSubTrips().front();
+		std::string role = rf.GetRoleName(firstItem->getMode()); //getMode is a virtual function. see its documentation
+		StreetDirectory& streetDirectory = StreetDirectory::instance();
+
+		if (role=="driver" || role=="biker") {
+			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
 			path = streetDirectory.SearchShortestDrivingPath(streetDirectory.DrivingVertex(*firstSubTrip.fromLocation.node_), streetDirectory.DrivingVertex(*firstSubTrip.toLocation.node_));
 		}
 		else if (role == "pedestrian") {

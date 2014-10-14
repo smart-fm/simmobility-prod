@@ -13,6 +13,7 @@
 #include "soci-postgresql.h"
 
 #include "entities/misc/TripChain.hpp"
+#include "util/OneTimeFlag.hpp"
 
 namespace sim_mob
 {
@@ -27,14 +28,13 @@ class WayPoint;
 
 class RestrictedRegion : private boost::noncopyable
 {
-	/**
-	 * Nodes in the restricted area
-	 * key: restricted Node
-	 * value: peripheryNode(non-restricted node nearest to the restricted node).
-	 * map<restricted Node,peripheryNode>
+	/*
+	 *
 	 */
-
-	std::map<const Node*,const Node*> restrictedZoneBorder;
+	std::set<const sim_mob::RoadSegment*> in,out,zoneSegments;
+	std::set<const Node*> zoneNodes;
+	sim_mob::OneTimeFlag populated;
+public:
 	/**
 	 * does the given node(or nde wrapped in a WayPoint) lie in the restricted area,
 	 * returns the periphery node if the target is in the restricted zone
@@ -46,8 +46,11 @@ class RestrictedRegion : private boost::noncopyable
 	 * Function to split the subtrips crossing the restricted Areas
 	 */
 	void processSubTrips(std::vector<sim_mob::SubTrip>& subTrips);
-	sim_mob::OneTimeFlag populated;
-public:
+	/**
+	 * fill the input data into in,out,zoneSegments
+	 * generate data based on input for zoneNodes
+	 */
+	void populate();
 	static boost::shared_ptr<RestrictedRegion> instance;
 	/**
 	 * returns the singletone instance
@@ -58,13 +61,8 @@ public:
 		{
 			instance.reset(new RestrictedRegion());
 		}
-		populate();
 		return *instance;
 	}
-	/**
-	 * fill in the input data-restrictedZoneBorder
-	 */
-	void populate();
 	/**
 	 * modify trips whose orgigin and/or destination lies in a restricted area
 	 */

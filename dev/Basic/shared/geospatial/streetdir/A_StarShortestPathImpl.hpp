@@ -33,7 +33,7 @@ public:
     explicit A_StarShortestPathImpl(const RoadNetwork& network);
     virtual ~A_StarShortestPathImpl() {}
 
-protected:
+public:
 	virtual StreetDirectory::VertexDesc DrivingVertex(const Node& n) const;
 	virtual StreetDirectory::VertexDesc WalkingVertex(const Node& n) const;
 	virtual StreetDirectory::VertexDesc DrivingVertex(const BusStop& b) const;
@@ -78,7 +78,7 @@ private:
     	std::vector<NodeDescriptor> vertices;
     };
 
-private:
+public:
     StreetDirectory::Graph drivingMap_; // A map for drivers, containing road-segments as edges.
     StreetDirectory::Graph walkingMap_; // A map for pedestrians, containing side-walks and crossings as edges.
     //std::vector<Node*> nodes_; // "Internal" uni-nodes that are created when building the maps.
@@ -157,7 +157,7 @@ private:
       StreetDirectory::Vertex m_goal;
     };
 
-
+public:
     struct blacklist_edge_constraint {
     	blacklist_edge_constraint(const std::set<StreetDirectory::Edge>& blacklist=std::set<StreetDirectory::Edge>()) : blacklist(blacklist)
     	{}

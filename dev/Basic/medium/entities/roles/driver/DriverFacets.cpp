@@ -23,6 +23,7 @@
 #include "geospatial/Point2D.hpp"
 #include "geospatial/PathSetManager.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "message/MessageBus.hpp"
 
 #include "logging/Log.hpp"
 
@@ -32,6 +33,9 @@
 #include "partitions/ParitionDebugOutput.hpp"
 
 #include "util/DebugFlags.hpp"
+#include "util/Utils.hpp"
+
+#include "boost/foreach.hpp"
 using namespace sim_mob;
 using namespace sim_mob::medium;
 using std::max;
@@ -39,6 +43,10 @@ using std::vector;
 using std::set;
 using std::map;
 using std::string;
+
+namespace{
+sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("path_set");
+}
 
 namespace {
 /**
@@ -96,14 +104,27 @@ sim_mob::medium::Driver* sim_mob::medium::DriverBehavior::getParentDriver() {
 sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	MovementFacet(parentAgent), parentDriver(nullptr), currLane(nullptr),
 	laneInNextSegment(nullptr), isQueuing(false)
-{}
+{
+	messaging::MessageBus::RegisterHandler(this);
+	}
 
 
-sim_mob::medium::DriverMovement::~DriverMovement() {}
+sim_mob::medium::DriverMovement::~DriverMovement() {
+	//	usually the metrics for the last subtrip is not manually finalized
+	if(!travelTimeMetric->finalized){
+		finalizeTravelTimeMetric();
+	}
+}
 
 void sim_mob::medium::DriverMovement::frame_init() {
 	bool pathInitialized = initializePath();
+//	//debug
+//	pathMover.printPath(pathMover.getPath());
+//	//debug
 	if (pathInitialized) {
+		//initialize some travel metrics for this subTrip
+		startTravelTimeMetric();
+		//done with metric initialization...
 		Vehicle* newVehicle = new Vehicle(Vehicle::CAR, PASSENGER_CAR_UNIT);
 		VehicleBase* oldVehicle = parentDriver->getResource();
 		safe_delete_item(oldVehicle);
@@ -117,6 +138,11 @@ void sim_mob::medium::DriverMovement::frame_init() {
 void sim_mob::medium::DriverMovement::frame_tick() {
 	sim_mob::medium::DriverUpdateParams& params = parentDriver->getParams();
 	const sim_mob::SegmentStats* currSegStats = pathMover.getCurrSegStats();
+	//debug
+	if(sectionId != currSegStats->getRoadSegment()->getSegmentAimsunId()){
+		sectionId = currSegStats->getRoadSegment()->getSegmentAimsunId();
+//		Print() << "frame:" <<  params.now.frame() << ",segment:" << sectionId << std::endl;
+	}
 	if(!currSegStats) {
 		//if currSegstats is NULL, either the driver did not find a path to his
 		//destination or his path is completed. Either way, we remove this
@@ -173,7 +199,7 @@ void sim_mob::medium::DriverMovement::frame_tick_output() {
 			<<","<<getParent()->getId()
 			<<","<<params.now.frame()
 			<<",{"
-			<<"\"RoadSegment\":\""<< (getParent()->getCurrSegStats()->getRoadSegment()->getSegmentID())
+			<<"\"RoadSegment\":\""<< (getParent()->getCurrSegStats()->getRoadSegment()->getId())
 			<<"\",\"Lane\":\""<<((getParent()->getCurrLane())? getParent()->getCurrLane()->getLaneID():0)
 			<<"\",\"Segment\":\""<<(getParent()->getCurrSegStats()->getRoadSegment()->getStartEnd())
 			<<"\",\"DistanceToEndSeg\":\""<<getParent()->distanceToEndOfSegment;
@@ -211,7 +237,7 @@ bool sim_mob::medium::DriverMovement::initializePath() {
 		if(wp_path.empty()){
 			// if use path set
 			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-				wp_path = PathSetManager::getInstance()->getPathByPerson(person);
+				wp_path = PathSetManager::getInstance()->getPath(person,*(person->currSubTrip));
 			}
 			else
 			{
@@ -222,9 +248,7 @@ bool sim_mob::medium::DriverMovement::initializePath() {
 		}
 		//For now, empty paths aren't supported.
 		if (wp_path.empty()) {
-			//throw std::runtime_error("Can't initializePath(); path is empty.");
-			Print()<<"DriverMovement::initializePath | Can't initializePath(); path is empty for driver "
-				   <<person->GetId()<<std::endl;
+			Print()<<"Can't DriverMovement::initializePath(); path is empty for driver "  << person->GetId() << std::endl;
 			return false;
 		}
 		std::vector<const sim_mob::SegmentStats*> path;
@@ -312,7 +336,7 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 	//this will space out the drivers on the same lane, by seperating them by the time taken for the previous car to move a car's length
 	//Commenting out the delay from accept rate as per Yang Lu's suggestion (we only use this delay in setOrigin)
 	double departTime = getLastAccept(laneInNextSegment, nxtSegStat)
-			/* + getAcceptRate(laneInNextSegment, nxtSegStat)*/; //in seconds
+			 /*+ getAcceptRate(laneInNextSegment, nxtSegStat)*/; //in seconds
 
 	//skip acceptance capacity if there's no queue - this is done in DynaMIT
 	//commenting out - the delay from acceptRate is removed as per Yang Lu's suggestion
@@ -369,7 +393,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 
 	//this will space out the drivers on the same lane, by seperating them by the time taken for the previous car to move a car's length
 	//Commenting out the delay from accept rate as per Yang Lu's suggestion (we use this delay only in setOrigin)
-	double departTime = getLastAccept(laneInNextSegment, nextSegStats)/* + getAcceptRate(laneInNextSegment, nextSegStats)*/; //in seconds
+	double departTime = getLastAccept(laneInNextSegment, nextSegStats) /*+ getAcceptRate(laneInNextSegment, nextSegStats)*/; //in seconds
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (converToSeconds(params.now.ms()))); //in seconds
 
@@ -420,10 +444,10 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 			DebugStream << "Driver " << getParent()->getId()
 					<< "was neither in virtual queue nor in previous segment!"
 					<< "\ndriver| segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getStartEnd()
-					<< "|id: " << pathMover.getCurrSegStats()->getRoadSegment()->getSegmentID()
+					<< "|id: " << pathMover.getCurrSegStats()->getRoadSegment()->getId()
 					<< "|lane: " << currLane->getLaneID()
 					<< "\nPerson| segment: " << getParent()->getCurrSegStats()->getRoadSegment()->getStartEnd()
-					<< "|id: " << getParent()->getCurrSegStats()->getRoadSegment()->getSegmentID()
+					<< "|id: " << getParent()->getCurrSegStats()->getRoadSegment()->getId()
 					<< "|lane: " << (getParent()->getCurrLane()? getParent()->getCurrLane()->getLaneID():0)
 					<< std::endl;
 
@@ -545,7 +569,9 @@ bool DriverMovement::advanceMovingVehicle(sim_mob::medium::DriverUpdateParams& p
 	//Therefore currSegStats cannot be NULL. It is safe to use it in this function.
 	double velocity = currSegStats->getSegSpeed(true);
 	double output = getOutputCounter(currLane, currSegStats);
-
+//	if(output <= 0){
+//		Print() << "Tick: " << params.now.frame() << "  : OutputCounter is <=0 " << std::endl;
+//	}
 	// add driver to queue if required
 	double laneQueueLength = getQueueLength(currLane);
 	if (laneQueueLength >  currSegStats->getLength())
@@ -745,12 +771,12 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
 	}
 }
 
-bool DriverMovement::isConnectedToNextSeg(const Lane* lane, const SegmentStats* nxtSegStat) {
-	if(!nxtSegStat) {
-		throw std::runtime_error("DriverMovement::isConnectedToNextSeg() - nxtSegStat is not available!");
+
+bool DriverMovement::isConnectedToNextSeg(const Lane* lane, const sim_mob::RoadSegment *nxtRdSeg) const{
+	if(!nxtRdSeg) {
+		throw std::runtime_error("DriverMovement::isConnectedToNextSeg() - Road Segment is not available!");
 	}
 
-	const sim_mob::RoadSegment* nxtRdSeg = nxtSegStat->getRoadSegment();
 	if (nxtRdSeg->getLink() != lane->getRoadSegment()->getLink()){
 		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (lane->getRoadSegment()->getEnd());
 		if (currEndNode) {
@@ -768,6 +794,20 @@ bool DriverMovement::isConnectedToNextSeg(const Lane* lane, const SegmentStats* 
 		//segment are connected to all lanes of the next segment
 		return true;
 	}
+
+	return false;
+}
+
+bool DriverMovement::isConnectedToNextSeg(const sim_mob::RoadSegment *srcRdSeg, const sim_mob::RoadSegment *nxtRdSeg) const{
+	if(!nxtRdSeg || !srcRdSeg) {
+		throw std::runtime_error("DriverMovement::getConnectionsToNextSeg() - one or both of the Road Segments are not available!");
+	}
+	BOOST_FOREACH(const sim_mob::Lane *ln, srcRdSeg->getLanes() ){
+		if(isConnectedToNextSeg(ln,nxtRdSeg)){
+			return true;
+		}
+	}
+
 	return false;
 }
 
@@ -824,7 +864,7 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(
 		const Lane* lane = *lnIt;
 		if (!lane->is_pedestrian_lane() && !lane->is_whole_day_bus_lane())
 		{
-			if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats)) {	continue; }
+			if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())) {	continue; }
 			total = nextSegStats->getLaneTotalVehicleLength(lane);
 			que = nextSegStats->getLaneQueueLength(lane);
 			if (minLength > total)
@@ -847,26 +887,20 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(
 		}
 	}
 
-	if(!minLane) { throw std::runtime_error("best target lane was not set!"); }
+	if(!minLane) {
+		Print() << "\nCurrent Path" << pathMover.getPath().size() << std::endl;
+		MesoPathMover::printPath(pathMover.getPath());
+
+		std::ostringstream out("");
+		out << "best target lane was not set!" << "\nCurrent Segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getSegmentAimsunId() <<
+				" =>" << nextSegStats->getRoadSegment()->getSegmentAimsunId() <<
+				" =>" <<  nextToNextSegStats->getRoadSegment()->getSegmentAimsunId()  << std::endl;
+		throw std::runtime_error(out.str()); }
 	return minLane;
 }
 
 double DriverMovement::getInitialQueueLength(const Lane* lane) {
 	return pathMover.getCurrSegStats()->getInitialQueueLength(lane);
-}
-
-void DriverMovement::insertIncident(sim_mob::SegmentStats* segStats, double newFlowRate) {
-	const vector<Lane*>& lanes = segStats->getRoadSegment()->getLanes();
-	for (vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++) {
-		segStats->updateLaneParams((*it), newFlowRate);
-	}
-}
-
-void DriverMovement::removeIncident(sim_mob::SegmentStats* segStats) {
-	const vector<Lane*>& lanes = segStats->getRoadSegment()->getLanes();
-	for (vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++){
-		segStats->restoreLaneParams(*it);
-	}
 }
 
 void DriverMovement::updateLinkTravelTimes(const sim_mob::SegmentStats* prevSegStat, double linkExitTimeSec){
@@ -890,6 +924,290 @@ void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSeg
 	//creating a new entry in agent's travelStats for the new road segment, with entry time
 	getParent()->initRdSegTravelStats(pathMover.getCurrSegStats()->getRoadSegment(), segStatExitTimeSec);
 }
+
+int DriverMovement::findReroutingPoints(const std::vector<sim_mob::SegmentStats*>& stats,
+		std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >& remaining) const{
+
+	//some variables and iterators before the Actual Operation
+	const std::vector<const sim_mob::SegmentStats*> & path = getMesoPathMover().getPath(); //driver's current path
+	std::vector<const sim_mob::SegmentStats*>::const_iterator startIt = std::find(path.begin(), path.end(), getMesoPathMover().getCurrSegStats());//iterator to driver's current location
+	std::vector<const sim_mob::SegmentStats*>::const_iterator endIt = std::find(path.begin(), path.end(), *(stats.begin()));//iterator to incident segstat
+	std::vector<const sim_mob::SegmentStats*> rem;//stats remaining from the current location to the re-routing point
+	//Actual Operation : As you move from your current location towards the incident, store the intersections on your way + the segstats you travrsed until you reach that intersection.
+//	//debug
+//	pathsetLogger << "Original Path:" << std::endl;
+//	MesoPathMover::printPath(path);
+//	//debug...
+	for(const sim_mob::Link * currLink = (*startIt)->getRoadSegment()->getLink() ;startIt <= endIt; startIt++)
+	{
+		//record the remaining segstats
+		rem.push_back(*startIt);
+		//link changed?
+		if(currLink != (*startIt)->getRoadSegment()->getLink()){
+			//record
+			remaining[currLink->getEnd()] = rem;//no need to clear rem!
+			//last segment lies in the next link, remove it
+			remaining[currLink->getEnd()].pop_back();
+			//update the current iteration link
+			currLink = (*startIt)->getRoadSegment()->getLink();
+		}
+	}
+	//filter out no paths
+	std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >::iterator noPathIt = remaining.begin();
+	while (noPathIt != remaining.end()) {
+	   if (!(noPathIt->second.size()))
+	      remaining.erase(noPathIt++);
+	   else
+		   noPathIt++;
+	}
+	pathsetLogger << "-------------------------------------------\n" <<
+			"Candidates with their remaining path after filtering the no paths:" << std::endl;
+	typedef std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >::value_type TempType;
+	BOOST_FOREACH(TempType &item,  remaining){
+		pathsetLogger << "Remaining path to detour point : ";
+		MesoPathMover::printPath(item.second, item.first);
+	}
+	pathsetLogger << "\n-------------------------------------------" << std::endl;
+	pathsetLogger << "There are " << remaining.size() << " candidate point of reroute for Person(excluding no path):" << std::endl;
+	return remaining.size();
+}
+
+/*here is how we detect UTurns. If
+	//S1 is the 'last' segment of the old path with O1 and D1 as the start and end node respectively, and
+	//S2 is the 'first' segment of the new path with O2 and D2 as the start and end node respectively,
+	//if the following condition holds, we have a UTurn:
+	// (O1==D2) && (D2 == O1)  make sense?
+*/
+bool DriverMovement::hasUTurn(std::vector<WayPoint> & newPath, std::vector<const sim_mob::SegmentStats*> & oldPath){
+
+ const sim_mob::Node *O_new = newPath.begin()->roadSegment_->getStart();
+ const sim_mob::Node *D_new = newPath.begin()->roadSegment_->getEnd();
+ const sim_mob::Node *O_old = (*oldPath.rbegin())->getRoadSegment()->getStart();//using .begin() or .end() makes no difference
+ const sim_mob::Node *D_old = (*oldPath.rbegin())->getRoadSegment()->getEnd();
+
+ if((O_old == D_new) && (D_old == O_new)){
+	 return true;
+ }
+ return false;
+}
+
+bool DriverMovement::UTurnFree(std::vector<WayPoint> & newPath, std::vector<const sim_mob::SegmentStats*> & oldPath , sim_mob::SubTrip &subTrip, std::set<const sim_mob::RoadSegment*> & excludeRS){
+	pathsetLogger<< "UTurn detected" << std::endl;
+	if(!hasUTurn(newPath, oldPath)){
+		return true;
+	}
+	//exclude/blacklist the UTurn segment on the new path(first segment)
+	excludeRS.insert((*newPath.begin()).roadSegment_);
+	//create a path using updated black list
+	//and then try again
+	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
+	//if no path, return false, if path found, return true
+	sim_mob::PathSetManager::getInstance()->getBestPath(newPath,&subTrip, excludeRS);
+	//try again
+	if(!newPath.size()){
+		pathsetLogger<< "No other path can avoid a Uturn, suggest to discard \n" ;
+		return false;//wasn't successful, so return false
+	}
+
+	if(hasUTurn(newPath, oldPath)){
+		throw std::runtime_error("UTurn detected where the corresponding segment involved in the UTurn is already excluded");
+	}
+	pathsetLogger<< "New Path generated to avoid a UTurn" << std::endl;
+	return true;
+}
+
+bool DriverMovement::canJoinPaths(std::vector<WayPoint> & newPath, std::vector<const sim_mob::SegmentStats*> & oldPath
+		, sim_mob::SubTrip &subTrip, std::set<const sim_mob::RoadSegment*> & excludeRS){
+
+	 const sim_mob::RoadSegment *from = (*oldPath.rbegin())->getRoadSegment();//using .begin() or .end() makes no difference
+	 const sim_mob::RoadSegment *to = newPath.begin()->roadSegment_;
+	 if(isConnectedToNextSeg(from,to))
+	 {
+		 return true;
+	 }
+	 //now try to find another path
+	 pathsetLogger << "No connection between the old&new paths. reTrying to join paths by excluding segment : " << (*newPath.begin()).roadSegment_->getSegmentAimsunId() << std::endl;
+//	MesoPathMover::printPath(oldPath);
+//	printWPpath(newPath);
+
+	//exclude/blacklist the segment on the new path(first segment)
+	excludeRS.insert((*newPath.begin()).roadSegment_);
+	//create a path using updated black list
+	//and then try again
+	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
+	//if no path, return false, if path found, return true
+	sim_mob::PathSetManager::getInstance()->getBestPath(newPath, &subTrip, excludeRS);
+	to = newPath.begin()->roadSegment_;
+	bool res = isConnectedToNextSeg(from,to);
+	return res;
+}
+
+//todo put this in the utils(and code style!)
+boost::mt19937 myOwngen;
+int roll_die(int l,int r) {
+    boost::uniform_int<> dist(l,r);
+    boost::variate_generator<boost::mt19937&, boost::uniform_int<> > die(myOwngen, dist);
+    return die();
+}
+
+//step-1: can I rerout? if yes, what are my points of rerout?
+//step-2: do I 'want' to reroute?
+//step-3: get a new path from each candidate re-routing points
+//step-4: In order to get to the detour point, some part of the original path should still be traveled. prepend that part to the new paths
+//setp-5: setpath: assign the assembled path to pathmover
+void DriverMovement::reroute(const InsertIncidentMessage &msg){
+	pathsetLogger << "rerouting" << std::endl;
+	//step-1
+	std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > deTourOptions ; //< detour point, segments to travel before getting to the detour point>
+	deTourOptions.clear(); // :)
+	int numReRoute = findReroutingPoints(msg.stats, deTourOptions);
+	if(!numReRoute){
+		return;
+	}
+
+	//step-2
+	if(!wantReRoute()){
+		return;
+	}
+	pathsetLogger << numReRoute << "Rerouting Points were identified" << std::endl;
+	//step-3:
+	typedef std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >::value_type	DetourOption ; //for 'deTourOptions' container
+	std::set<const sim_mob::RoadSegment*> excludeRS = std::set<const sim_mob::RoadSegment*>();
+	//	get a 'copy' of the person's current subtrip
+	SubTrip subTrip = *(getParent()->currSubTrip);
+	std::map<const sim_mob::Node* , std::vector<WayPoint> > newPaths ; //stores new paths starting from the re-routing points
+	BOOST_FOREACH(DetourOption detourNode, deTourOptions)
+	{
+		// change the origin
+		subTrip.fromLocation.node_ = detourNode.first;
+		//	record the new paths using the updated subtrip. (including no paths)
+		sim_mob::PathSetManager::getInstance()->getBestPath(newPaths[detourNode.first], &subTrip);//partially excluded sections must be already added
+	}
+
+	/*step-4: prepend the old path to the new path
+	 * old path: part of the original path from the agent's current position to the rerouting point
+	 * new path:the path from the rerouting point to the destination
+	 * Note: it is more efficient to do this within the above loop but code reading will become more tough*/
+	//4.a: check if there is no path from the rerouting point, just discard it.
+	//4.b: check and discard the rerouting point if the new and old paths can be joined
+	//4.c convert waypoint to segstat and prepend(join) remaining oldpath to the new path
+	typedef std::map<const sim_mob::Node* , std::vector<WayPoint> >::value_type NewPath;
+	BOOST_FOREACH(NewPath &newPath, newPaths)
+	{
+		//4.a
+		if(newPath.second.empty()){
+			Warn() << "No path on Detour Candidate node " << newPath.first->getID() << std::endl;
+			deTourOptions.erase(newPath.first);
+			continue;
+		}
+		//4.b
+		// change the origin
+		subTrip.fromLocation.node_ = newPath.first;
+		pathsetLogger<< "Try Joining old and new paths for detour point :" << newPath.first->getID() << std::endl;
+//		MesoPathMover::printPath(deTourOptions[newPath.first], newPath.first);
+//		printWPpath(newPath.second, newPath.first);
+		//check if join possible
+		bool canJoin = canJoinPaths(newPath.second,deTourOptions[newPath.first], subTrip, excludeRS);
+		if(!canJoin)
+		{
+			pathsetLogger << "could not join the old and new paths, discarding detour point :" << newPath.first->getID() << std::endl;
+//			sim_mob::printWPpath(newPath.second, newPath.first);
+			deTourOptions.erase(newPath.first);
+			continue;
+		}
+		pathsetLogger << "Paths can Join" << std::endl;
+		//4.c join
+		initSegStatsPath(newPath.second,deTourOptions[newPath.first]);
+
+		//step-4.d cancel similar paths
+		//some newPath(s) can be subset of the other path(s).
+		//This can be easily detected when the old part of path and the new path join: it can create a combination that has already been created
+		//so let's look for 'same paths':
+		std::vector<const sim_mob::SegmentStats*> & target = deTourOptions[newPath.first];
+		BOOST_FOREACH(DetourOption &detourNode, deTourOptions)
+		{
+			//dont compare with yourself
+			if(detourNode.first == newPath.first){continue;}
+			if(target == detourNode.second)
+			{
+				pathsetLogger << "Discarding an already been created path:\n";
+				MesoPathMover::printPath(detourNode.second);
+				MesoPathMover::printPath(target);
+				deTourOptions.erase(newPath.first);
+			}
+//			//if they have a different size, they are definitely different,so leave this entry alone
+//			if(target.size() != detourNode.second.size()){continue;}
+//			typedef std::vector<const sim_mob::SegmentStats*>::const_iterator it_;
+//			std::pair<it_,it_> comp = std::mismatch(target.begin(),target.end(), detourNode.second.begin(), detourNode.second.end());
+			//since the two containers have the same size, they are considered equal(same) if any element of the above pair is equal to the .end() of their corresponding containers
+//			if (comp.first == target.end())
+//			{
+//				pathsetLogger << "Discarding an already been created path:" << std::endl;
+//				MesoPathMover::printPath(detourNode.second);
+//				MesoPathMover::printPath(target);
+//				deTourOptions.erase(newPath.first);
+//			}
+		}
+	}
+	//is there any place drivers can re-route or not?
+	if(!deTourOptions.size()){
+		pathsetLogger << "No Detour For incident at " << (*msg.stats.begin())->getRoadSegment()->getSegmentAimsunId() << std::endl;
+		return;
+	}
+
+	//step-5: now you may set the path using 'deTourOptions' container
+	//todo, put a distribution function here. For testing now, give it the last new path for now
+	std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >::iterator it(deTourOptions.begin());
+
+	int cnt = roll_die(0,deTourOptions.size() - 1);
+	int dbgIndx = cnt;
+	while(cnt){ it++; --cnt;}
+	//debug
+	pathsetLogger << "----------------------------------\n"
+			"Original path:" << std::endl;
+	getMesoPathMover().printPath(getMesoPathMover().getPath());
+	pathsetLogger << "Detour option chosen[" << dbgIndx << "] : " << it->first->getID() << std::endl;
+	getMesoPathMover().printPath(it->second);
+	pathsetLogger << "----------------------------------" << std::endl;
+	//debug...
+	getMesoPathMover().setPath(it->second);
+}
+
+void DriverMovement::HandleMessage(messaging::Message::MessageType type,
+		const messaging::Message& message){
+	switch (type){
+	case MSG_INSERT_INCIDENT:{
+		const InsertIncidentMessage &msg = MSG_CAST(InsertIncidentMessage,message);
+		PathSetManager::getInstance()->addPartialExclusion((*msg.stats.begin())->getRoadSegment());
+		reroute(msg);
+		break;
+	}
+	}
+}
+
+TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
+{
+	travelTimeMetric->startTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+	const Node* startNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getStart();
+	travelTimeMetric->origin = WayPoint(startNode);
+	travelTimeMetric->started = true;
+	return *travelTimeMetric;
+}
+
+TravelMetric & sim_mob::medium::DriverMovement::finalizeTravelTimeMetric()
+{
+	const sim_mob::SegmentStats * currSegStat =
+	((pathMover.getCurrSegStats() == nullptr) ? *(pathMover.getPath().rbegin()) : (pathMover.getCurrSegStats()));
+	//Print() << ((pathMover.getCurrSegStats() == nullptr) ? "Trip possibly completed\n" : "Simulation ended before Trip completed\n");
+	const Node* endNode = currSegStat->getRoadSegment()->getEnd();
+	travelTimeMetric->destination = WayPoint(endNode);
+	travelTimeMetric->endTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+	travelTimeMetric->travelTime = (travelTimeMetric->endTime - travelTimeMetric->startTime).getValue();
+	travelTimeMetric->finalized = true;
+	getParent()->addSubtripTravelMetrics(*travelTimeMetric);
+	return *travelTimeMetric;
+}
+
 
 } /* namespace medium */
 } /* namespace sim_mob */

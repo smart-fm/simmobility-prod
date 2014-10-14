@@ -19,6 +19,7 @@
 #include "conf/ParseConfigFile.hpp"
 #include "conf/ExpandAndValidateConfigFile.hpp"
 #include "database/DB_Connection.hpp"
+#include "entities/incident/IncidentManager.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/Agent.hpp"
 #include "entities/BusController.hpp"
@@ -39,6 +40,7 @@
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/Lane.hpp"
+#include "geospatial/PathSetManager.hpp"
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "util/DailyTime.hpp"
@@ -131,26 +133,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			strDirectory.registerStopAgent(stop, busStopAgent);
 		}
 	}
-
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode())
-	{
-		// init path set manager
-		time_t t = time(0);   // get time now
-		struct tm * now = localtime( & t );
-		cout<<"begin time:"<<endl;
-		cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< endl;
-		PathSetManager* psMgr = PathSetManager::getInstance();
-		std::string name=configFileName;
-		psMgr->setScenarioName(name);
-		if(psMgr->isUseCatchMode())
-		{
-			psMgr->generateAllPathSetWithTripChain2();
-		}
-		t = time(0);   // get time now
-		now = localtime( & t );
-		cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< endl;
-		cout<<psMgr->size()<<endl;
-	}
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 
@@ -195,15 +177,18 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++)
 	{
-		personWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
+		personWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Person*>(*it));
 	}
 
 	if(BusController::HasBusControllers())
 	{
 		personWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
-	}
 
-	cout << "Initial Agents dispatched or pushed to pending." << endl;
+	}
+	//incident
+	personWorkers->assignAWorker(IncidentManager::getInstance());
+
+	cout << "Initial Agents dispatched or pushed to pending.all_agents: " << Agent::all_agents.size() << " pending: " << Agent::pending_agents.size() << endl;
 
 	//Start work groups and all threads.
 	wgMgr.startAllWorkGroups();
@@ -284,12 +269,11 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}
 #endif
 
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode())
-	{
+	//finalize
+	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		PathSetManager::getInstance()->copyTravelTimeDataFromTmp2RealtimeTable();
-		PathSetManager::getInstance()->dropTravelTimeTmpTable();
 	}
-	cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<endl;
+	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;
 	cout << "Max Agents at any given time: " <<maxAgents <<endl;
 	cout << "Starting Agents: " << numStartAgents
 			<< ",     Pending: " << numPendingAgents << endl;
@@ -421,6 +405,7 @@ bool performMainDemand()
 bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles)
 {
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
+	cout << "Main Thread[ " << boost::this_thread::get_id() << "]" << std::endl;
 
 	//Parse the config file (this *does not* create anything, it just reads it.).
 	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());

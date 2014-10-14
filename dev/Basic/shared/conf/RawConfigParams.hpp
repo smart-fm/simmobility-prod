@@ -59,6 +59,37 @@ struct LongTermParams{
 	} housingModel;
 };
 
+struct PathSetParams
+{
+	bool enabled;
+	std::string database;
+	std::string credentials;
+	std::string pathSetTableName;
+	std::string singlePathTableName;
+	std::string dbFunction;
+	void setDefaultEnabled(bool value = false){
+		enabled = value;
+	}
+	void setDefaultDB(std::string db = "fm_remote_path_choice", std::string choice = "fm_remote_path_choice"){
+		database = db;
+		credentials = choice;
+	}
+	void setDefaultTables(std::string pathset = "PathSet", std::string singlePath = "SinglePath"){
+		pathSetTableName = pathset;
+		singlePathTableName = singlePath;
+	}
+	void setDefaultFunction(std::string fn="get_path_set")
+	{
+		dbFunction = fn;
+	}
+	void setDefault(){
+		setDefaultEnabled();
+		setDefaultDB();
+		setDefaultTables();
+		setDefaultFunction();
+	}
+};
+
 ///represent the incident data section of the config file
 struct IncidentParams {
 	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
@@ -287,6 +318,9 @@ public:
 
 	///Settings for Long Term Parameters
 	LongTermParams ltParams;
+
+	///Settings used for generation/retrieval of paths
+	PathSetParams pathset;
 
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;

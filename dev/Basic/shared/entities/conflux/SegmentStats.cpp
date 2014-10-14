@@ -748,15 +748,15 @@ void sim_mob::LaneStats::updateOutputCounter()
 {
 	double tick_size = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	int tmp = int(laneParams->outputFlowRate * tick_size);
-	laneParams->fraction += laneParams->outputFlowRate * tick_size - float(tmp);
+	laneParams->fraction += laneParams->outputFlowRate * tick_size - tmp;
 	if (laneParams->fraction >= 1.0)
 	{
 		laneParams->fraction -= 1.0;
-		laneParams->outputCounter = float(tmp) + 1.0;
+		laneParams->outputCounter = tmp + 1;
 	}
 	else
 	{
-		laneParams->outputCounter = float(tmp);
+		laneParams->outputCounter = tmp;
 	}
 }
 
@@ -864,11 +864,10 @@ void sim_mob::SegmentStats::updateLaneParams(timeslice frameNumber)
 
 std::string sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber)
 {
-	std::stringstream msg;
-	double density = segDensity	* 1000.0; /* Density is converted to veh/km/seg for the output */
-
-#define SHOW_NUMBER_VEHICLE_ON_SEGMENT
-#ifdef SHOW_NUMBER_VEHICLE_ON_SEGMENT
+	std::stringstream msg("");
+	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
+	{
+		double density = (numMovingInSegment(true) + numQueuingInSegment(true)) / ((length / 100000.0) * numVehicleLanes); //veh/km/lane
 
 	msg << "(\"segmentState\""
 		<< "," << frameNumber.frame()
@@ -886,20 +885,10 @@ std::string sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber)
 		<< "\",\"numVehicleLanes\":\"" << numVehicleLanes
 		<< "\",\"segment_length\":\"" << length
 		<< "\"})"
-		<< std::endl;
-#else
-
-	msg <<"(\"segmentState\""
-		<<","<<frameNumber.frame()
-		<<","<<roadSegment
-		<<",{"
-		<<"\"speed\":\""<< segVehicleSpeed
-		<<"\",\"flow\":\""<< segFlow
-		<<"\",\"density\":\""<< density
-		<<"\"})"
-		<<std::endl;
-#endif
+		<< "\n";
+	}
 	return msg.str();
+
 }
 
 double sim_mob::SegmentStats::getSegSpeed(bool hasVehicle) const

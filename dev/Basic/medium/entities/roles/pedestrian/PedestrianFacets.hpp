@@ -56,6 +56,8 @@ public:
 	 */
 	void setParentPedestrian(sim_mob::medium::Pedestrian* parentPedestrian);
 
+	TravelMetric & startTravelTimeMetric();
+	TravelMetric & finalizeTravelTimeMetric();
 protected:
 
 	/**

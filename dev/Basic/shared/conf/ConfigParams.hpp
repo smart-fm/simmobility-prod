@@ -204,6 +204,9 @@ public:
 
 	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes();
 	std::set<sim_mob::SegmentStats*>& getSegmentStatsWithBusStops();
+	bool PathSetMode() const;
+	const PathSetParams & pathSet() const;
+
 
 private:
 	ConfigParams();

@@ -196,17 +196,12 @@ vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::s
 		}
 
 		std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*origNode), stdir->DrivingVertex(*destNode),blacklist);
-		std::cout << "Waypoints from SearchShortestDrivingPath: " << destNodeID << std::endl;
 		for (int i=0; i<wp2.size(); i++) {
 
 			if (wp2[i].type_ == WayPoint::ROAD_SEGMENT ) {
-				std::cout << " -> " << wp2[i].roadSegment_->originalDB_ID.getLogItem();
 				wp.push_back(wp2[i]);
-			} else {
-				std::cout << " -> " << wp2[i].type_ << " (REM) ";
 			}
 		}
-		std::cout << "\n-------------------------\n";
 		shortestPaths.insert(std::make_pair(nodeKey, wp));
 		return wp;
 	}
@@ -215,20 +210,14 @@ vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::s
 
 vector <WayPoint> AMODController::getShortestPathWBlacklist(std::string origNodeID, std::string destNodeID, std::vector<const sim_mob::RoadSegment*> blacklist)
 {
-	//std::string nodeKey = origNodeID + "-" + destNodeID;
-	//boost::unordered_map<std::string, vector < WayPoint > >::iterator spItr = shortestPaths.find(nodeKey);
-	//if (spItr == shortestPaths.end()) {
-		//std::cout << "No such node pair. On-the-fly computation" << std::endl;
 		std::vector < WayPoint > wp;
 
 		Node* origNode = nodePool[origNodeID];
 		Node* destNode = nodePool[destNodeID];
 
 		if (origNode == destNode) {
-			//shortestPaths.insert(std::make_pair(nodeKey, wp));
 			return wp;
 		}
-
 		// compute shortest path
 		std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*origNode), stdir->DrivingVertex(*destNode),blacklist);
 		for (int i=0; i<wp2.size(); i++) {
@@ -237,10 +226,8 @@ vector <WayPoint> AMODController::getShortestPathWBlacklist(std::string origNode
 			}
 		}
 
-		//shortestPaths.insert(std::make_pair(nodeKey, wp));
 		return wp;
-	//}
-	//return spItr->second;
+
 }
 
 
@@ -349,10 +336,6 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		//assignVhs(origin, destination);
 		assignVhsFast(tripID, origin, destination, current_time);
 
-		//check for pickups and arrivels
-		//checkForPickups();
-		//checkForArrivals();
-		//checkForStuckVehicles();
 		//output the current running time
 		std::cout << "-----------------------------\n";
 		std::cout << "Run time (s): " << std::time(NULL) -  startRunTime << std::endl;
@@ -361,8 +344,6 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 	}
 	// return continue, make sure agent not remove from main loop
 	return Entity::UpdateStatus::Continue;
-
-
 }
 
 void AMODController::populateCarParks(int numberOfVhsAtNode = 1000)
@@ -488,10 +469,10 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 	if(node == NULL){ throw std::runtime_error("node not found"); }
 
 	int startTime = currTime;
-	int interval = 3000;//ms
+	//int interval = 3000;//ms
 	// create person
 	//DailyTime start = ConfigManager::GetInstance().FullConfig().simStartTime(); // DailyTime b("08:30:00");
-	startTime +=interval;
+	//startTime +=interval;
 	DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + startTime);
 	sim_mob::Trip* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", node, "node", node, "node");
 	sim_mob::SubTrip subTrip("", "Trip", 0, 1, start, DailyTime(), node, "node", node, "node", "Car");
@@ -1699,7 +1680,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 		// work through list using available free cars
 		ServiceIterator itr =serviceBuffer.begin();
 		int startTime = currTime;
-		int interval = 3000;//ms
+		//int interval = 3000;//ms
 		while (true) {
 			if (nFreeCars <= 0) break; //check if the number of free cars is non-zero
 			if (serviceBuffer.size() == 0) break;
@@ -1891,7 +1872,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			}
 
 			// create trip chain
-			startTime +=interval;
+			//startTime +=interval;
 			DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + startTime);
 			//			DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+ConfigManager::GetInstance().FullConfig().baseGranMS());
 			sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", carParkNode, "node", destNode, "node");

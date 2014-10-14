@@ -531,6 +531,26 @@ public:
 	 */
 	bool allWindowsUnavailable();
 
+	bool isCbdDestZone() const
+	{
+		return cbdDestZone;
+	}
+
+	void setCbdDestZone(bool cbdDestZone)
+	{
+		this->cbdDestZone = cbdDestZone;
+	}
+
+	bool isCbdOrgZone() const
+	{
+		return cbdOrgZone;
+	}
+
+	void setCbdOrgZone(bool cbdOrgZone)
+	{
+		this->cbdOrgZone = cbdOrgZone;
+	}
+
 private:
 	/**mode choice for parent tour*/
 	int tourMode;
@@ -546,6 +566,9 @@ private:
 	std::vector<sim_mob::medium::TimeWindowAvailability> timeWindowAvailability;
     /** bitset of availablilities for fast checking*/
     std::bitset<1176> availabilityBit;
+
+	bool cbdOrgZone;
+	bool cbdDestZone;
 };
 
 } //end namespace medium

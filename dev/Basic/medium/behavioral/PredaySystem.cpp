@@ -259,7 +259,8 @@ void PredaySystem::predictTourMode(Tour& tour) {
 	ZoneParams* znDesObj = zoneMap.at(zoneIdLookup.at(tour.getTourDestination()));
 	tmParams.setCostCarParking(znDesObj->getParkingRate());
 	tmParams.setCentralZone(znDesObj->getCentralDummy());
-	tmParams.setCbdZone(znDesObj->getCbdDummy());
+	tmParams.setCbdOrgZone(znOrgObj->getCbdDummy());
+	tmParams.setCbdDestZone(znDesObj->getCbdDummy());
 	tmParams.setResidentSize(znOrgObj->getResidentWorkers());
 	tmParams.setWorkOp(znDesObj->getEmployment());
 	tmParams.setEducationOp(znDesObj->getTotalEnrollment());
@@ -376,6 +377,8 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 void PredaySystem::predictSubTourModeDestination(Tour& subTour, const Tour& parentTour)
 {
 	TourModeDestinationParams stmdParams(zoneMap, amCostMap, pmCostMap, personParams, subTour.getTourType());
+	stmdParams.setOrigin(parentTour.getTourDestination()); //origin is primary activity location of parentTour (not home location)
+	stmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(parentTour.getTourDestination()))->getCbdDummy());
 	stmdParams.setModeForParentWorkTour(parentTour.getTourMode());
 	int modeDest = PredayLuaProvider::getPredayModel().predictSubTourModeDestination(personParams, stmdParams);
 	subTour.setTourMode(stmdParams.getMode(modeDest));
@@ -383,8 +386,10 @@ void PredaySystem::predictSubTourModeDestination(Tour& subTour, const Tour& pare
 	subTour.setTourDestination(zoneMap.at(zone_id)->getZoneCode());
 }
 
-void PredaySystem::predictTourModeDestination(Tour& tour) {
+void PredaySystem::predictTourModeDestination(Tour& tour)
+{
 	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, tour.getTourType());
+	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
 	int modeDest = PredayLuaProvider::getPredayModel().predictTourModeDestination(personParams, tmdParams);
 	tour.setTourMode(tmdParams.getMode(modeDest));
 	int zone_id = tmdParams.getDestination(modeDest);
@@ -405,6 +410,8 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 	int origin = personParams.getHomeLocation();
 	int destination = tour.getTourDestination();
 	TourTimeOfDayParams todParams;
+	todParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin))->getCbdDummy());
+	todParams.setCbdDestZone(zoneMap.at(zoneIdLookup.at(destination))->getCbdDummy());
 	std::vector<double>& ttFirstHalfTour = todParams.travelTimesFirstHalfTour;
 	std::vector<double>& ttSecondHalfTour = todParams.travelTimesSecondHalfTour;
 
@@ -889,6 +896,7 @@ void PredaySystem::generateIntermediateStops(uint8_t halfTour, Tour& tour, const
 void PredaySystem::predictStopModeDestination(Stop* stop, int origin)
 {
 	StopModeDestinationParams imdParams(zoneMap, amCostMap, pmCostMap, personParams, stop, origin, unavailableODs);
+	imdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin))->getCbdDummy());
 	int modeDest = PredayLuaProvider::getPredayModel().predictStopModeDestination(personParams, imdParams);
 	stop->setStopMode(imdParams.getMode(modeDest));
 	int zone_id = imdParams.getDestination(modeDest);
@@ -901,6 +909,8 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 	if(!stop) { throw std::runtime_error("predictStopTimeOfDay() - stop is null"); }
 	StopTimeOfDayParams stodParams(stop->getStopTypeID(), isBeforePrimary);
 	int origin = stop->getStopLocation();
+	stodParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin))->getCbdDummy());
+	stodParams.setCbdDestZone(zoneMap.at(zoneIdLookup.at(destination))->getCbdDummy());
 
 	if(origin == destination) { for(int i=FIRST_INDEX; i<=LAST_INDEX; i++) { stodParams.travelTimes.push_back(0.0); } }
 	else
@@ -1523,6 +1533,7 @@ long sim_mob::medium::PredaySystem::getFirstNodeInZone(const std::vector<ZoneNod
 void sim_mob::medium::PredaySystem::computeLogsums()
 {
 	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
+	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
 	PredayLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, tmdParams);
 	PredayLuaProvider::getPredayModel().computeDayPatternLogsums(personParams);
 

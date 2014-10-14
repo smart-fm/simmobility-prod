@@ -41,6 +41,7 @@ protected:
 	const ZoneMap& zoneMap;
 	const CostMap& amCostsMap;
 	const CostMap& pmCostsMap;
+	bool cbdOrgZone;
 
 public:
 	ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, StopType purpose, int originCode);
@@ -62,6 +63,21 @@ public:
 	 * @return the destination represented in choice
 	 */
 	int getDestination(int choice) const;
+
+	void setCbdOrgZone(bool cbdOrg)
+	{
+		this->cbdOrgZone = cbdOrg;
+	}
+
+	int getOrigin() const
+	{
+		return origin;
+	}
+
+	void setOrigin(int origin)
+	{
+		this->origin = origin;
+	}
 };
 
 class TourModeDestinationParams : public ModeDestinationParams {
@@ -86,7 +102,6 @@ public:
 	double getTT_PublicOutSecond(int zoneId) const;
 	double getAvgTransferNumber(int zoneId) const;
 	int getCentralDummy(int zone) const;
-	int getCbdDummy(int zone) const;
 	StopType getTourPurpose() const;
 	double getShop(int zone) const;
 	double getEmployment(int zone) const;
@@ -96,6 +111,8 @@ public:
 	int isAvailable_TMD(int choiceId) const;
 	int getModeForParentWorkTour() const;
 	void setModeForParentWorkTour(int modeForParentWorkTour);
+	int getCbdDummy(int zone) const;
+	int isCbdOrgZone() const;
 
 private:
 	bool drive1Available;
@@ -118,7 +135,6 @@ public:
 	double getWalkDistanceFirst(int zone) const;
 	double getWalkDistanceSecond(int zone) const;
 	int getCentralDummy(int zone) const;
-	int getCbdDummy(int zone) const;
 	StopType getTourPurpose() const ;
 	double getShop(int zone) const;
 	double getEmployment(int zone) const;
@@ -127,6 +143,8 @@ public:
 	int isAvailable_IMD(int choiceId) const;
 	int isFirstBound() const;
 	int isSecondBound() const;
+	int isCbdOrgZone() const;
+	int getCbdDummy(int zone) const;
 
 private:
 	int homeZone;

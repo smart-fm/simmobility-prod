@@ -26,12 +26,20 @@ class Node;
 class TripChainItem;
 class WayPoint;
 
+
+class CBD_Pair
+{
+public:
+	int in,out;
+};
+
 class RestrictedRegion : private boost::noncopyable
 {
 	/*
 	 *
 	 */
-	std::set<const sim_mob::RoadSegment*> in,out,zoneSegments;
+	std::set<sim_mob::RoadSegment*> zoneSegments;
+	std::vector< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > in, out;
 	std::set<const Node*> zoneNodes;
 	sim_mob::OneTimeFlag populated;
 public:

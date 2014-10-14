@@ -393,7 +393,7 @@ void sim_mob::ExpandAndValidateConfigFile::WarnMidroadSidewalks()
 					((*laneIt) != (*segIt)->getLanes().front()) &&
 					((*laneIt) != (*segIt)->getLanes().back()))
 				{
-					Warn() << "Pedestrian lane is located in the middle of segment" <<(*segIt)->getSegmentID() <<"\n";
+					Warn() << "Pedestrian lane is located in the middle of segment" <<(*segIt)->getId() <<"\n";
 				}
 			}
 		}

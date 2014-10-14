@@ -1588,7 +1588,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		if(subTrip.schedule==nullptr){
 			// if use path set
 			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-				path = PathSetManager::getInstance()->getPathByPerson(getParent(),subTrip);
+				path = PathSetManager::getInstance()->getPath(getParent(),subTrip);
 			}
 			else
 			{

@@ -105,7 +105,10 @@ public:
 					std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& pathPool,const std::string singlePathTableName);
 	///For partial network loading.
 	static std::map<std::string, std::vector<sim_mob::TripChainItem*> > LoadTripChainsFromNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs);
-
+	/// get CBD information
+	static void getCBD_Border(
+			std::vector< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > &in,
+			std::vector< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > & out);
 
 	//Semi-private functions
 	static void ProcessGeneralNode(sim_mob::RoadNetwork& res, Node& src);

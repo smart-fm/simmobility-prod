@@ -199,7 +199,7 @@ void sim_mob::medium::DriverMovement::frame_tick_output() {
 			<<","<<getParent()->getId()
 			<<","<<params.now.frame()
 			<<",{"
-			<<"\"RoadSegment\":\""<< (getParent()->getCurrSegStats()->getRoadSegment()->getSegmentID())
+			<<"\"RoadSegment\":\""<< (getParent()->getCurrSegStats()->getRoadSegment()->getId())
 			<<"\",\"Lane\":\""<<((getParent()->getCurrLane())? getParent()->getCurrLane()->getLaneID():0)
 			<<"\",\"Segment\":\""<<(getParent()->getCurrSegStats()->getRoadSegment()->getStartEnd())
 			<<"\",\"DistanceToEndSeg\":\""<<getParent()->distanceToEndOfSegment;
@@ -237,7 +237,7 @@ bool sim_mob::medium::DriverMovement::initializePath() {
 		if(wp_path.empty()){
 			// if use path set
 			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-				wp_path = PathSetManager::getInstance()->getPathByPerson(person,*(person->currSubTrip));
+				wp_path = PathSetManager::getInstance()->getPath(person,*(person->currSubTrip));
 			}
 			else
 			{
@@ -444,10 +444,10 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 			DebugStream << "Driver " << getParent()->getId()
 					<< "was neither in virtual queue nor in previous segment!"
 					<< "\ndriver| segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getStartEnd()
-					<< "|id: " << pathMover.getCurrSegStats()->getRoadSegment()->getSegmentID()
+					<< "|id: " << pathMover.getCurrSegStats()->getRoadSegment()->getId()
 					<< "|lane: " << currLane->getLaneID()
 					<< "\nPerson| segment: " << getParent()->getCurrSegStats()->getRoadSegment()->getStartEnd()
-					<< "|id: " << getParent()->getCurrSegStats()->getRoadSegment()->getSegmentID()
+					<< "|id: " << getParent()->getCurrSegStats()->getRoadSegment()->getId()
 					<< "|lane: " << (getParent()->getCurrLane()? getParent()->getCurrLane()->getLaneID():0)
 					<< std::endl;
 

@@ -54,11 +54,7 @@ class LaneLoader;
  */
 class RoadSegment : public sim_mob::Pavement {
 public:
-	///Create a RoadSegment as part of a given Link.
-	//explicit RoadSegment(sim_mob::Link* paren=nullptr);
-
-
-
+	static std::map<unsigned long, const RoadSegment*> allSegments;
 	//TODO: Some of these are only used by the geo* classes; need to re-think.
 	void setParentLink(sim_mob::Link* parent);
 	void setID(unsigned long id) {
@@ -74,9 +70,11 @@ public:
 		Pavement(),
 		maxSpeed(0), capacity(0), busstop(nullptr), lanesLeftOfDivider(0), parentLink(parent),segmentID(id),
 		parentConflux(nullptr), laneZeroLength(-1.0),type(LINK_TYPE_DEFAULT)
-	{}
+	{
+		allSegments[segmentID] = this;
+	}
 
-	const unsigned long  getSegmentID()const ;
+	const unsigned long  getId()const ;
 	const unsigned int getLanesLeftOfDivider() const { return lanesLeftOfDivider; }
 
 	/**

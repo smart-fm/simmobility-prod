@@ -31,7 +31,10 @@ using std::vector;
 using std::set;
 
 using namespace sim_mob;
-const unsigned long sim_mob::RoadSegment::getSegmentID()const
+
+std::map<unsigned long, const RoadSegment*> sim_mob::RoadSegment::allSegments;//map<segment id, segment pointer>
+
+const unsigned long sim_mob::RoadSegment::getId()const
 {
 	return segmentID;
 }

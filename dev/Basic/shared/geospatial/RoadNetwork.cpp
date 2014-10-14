@@ -27,7 +27,7 @@ namespace {
 //Sort RoadSegments by ID
 struct RS_ID_Sorter {
   bool operator() (const sim_mob::RoadSegment* a, const sim_mob::RoadSegment* b) {
-	  return a->getSegmentID() < b->getSegmentID();
+	  return a->getId() < b->getId();
   }
 };
 

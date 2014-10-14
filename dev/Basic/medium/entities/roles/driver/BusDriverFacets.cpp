@@ -139,7 +139,7 @@ void sim_mob::medium::BusDriverMovement::frame_tick_output() {
 			<<","<<person->getId()
 			<<","<<parentBusDriver->getParams().now.frame()
 			<<",{"
-			<<"\"RoadSegment\":\""<< (person->getCurrSegStats()->getRoadSegment()->getSegmentID())
+			<<"\"RoadSegment\":\""<< (person->getCurrSegStats()->getRoadSegment()->getId())
 			<<"\",\"Lane\":\""<<(person->getCurrLane()->getLaneID())
 			<<"\",\"UpNode\":\""<<(person->getCurrSegStats()->getRoadSegment()->getStart()->getID())
 			<<"\",\"DistanceToEndSeg\":\""<<person->distanceToEndOfSegment;

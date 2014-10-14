@@ -299,7 +299,7 @@ public:
 	void initParameters();
 
 	/// one of the main PathSetManager interfaces used to return a path for the current OD of the given person.
-	std::vector<WayPoint> getPathByPerson(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip);
+	std::vector<WayPoint> getPath(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip);
 
 	///	calculate travel time of a path
 	double getTravelTime(sim_mob::SinglePath *sp);

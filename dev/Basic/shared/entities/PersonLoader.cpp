@@ -10,7 +10,9 @@
 #include <map>
 #include <sstream>
 #include <stdint.h>
+#include <utility>
 #include <vector>
+#include <soci.h>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "Person.hpp"
@@ -18,6 +20,7 @@
 #include "misc/TripChain.hpp"
 #include "util/DailyTime.hpp"
 #include "util/Utils.hpp"
+#include "geospatial/aimsun/Loader.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -162,7 +165,8 @@ void sim_mob::RestrictedRegion::populate()
 	{
 		return;
 	}
-	soci::session sql(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
+	std::vector< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > in,out ;
+	sim_mob::aimsun::Loader::getCBD_Border(in,out);
 
 
 }
@@ -223,24 +227,23 @@ void sim_mob::RestrictedRegion::processSubTrips(std::vector<sim_mob::SubTrip>& s
 	}
 
 }
-
 const sim_mob::Node* sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::Node* target) const
 {
-	std::map<const Node*,const Node*>::const_iterator it(restrictedZoneBorder.find(target));
-	if(restrictedZoneBorder.end() == it)
-	{
-		return nullptr;
-	}
-	return it->second;
+//	std::map<const Node*,const Node*>::const_iterator it(restrictedZoneBorder.find(target));
+//	if(restrictedZoneBorder.end() == it)
+//	{
+//		return nullptr;
+//	}
+//	return it->second;
 }
 
 const sim_mob::Node* sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::WayPoint& target) const
 {
-	if(target.type_ != WayPoint::NODE)
-	{
-		return nullptr;
-	}
-	return isInRestrictedZone(target.node_);
+//	if(target.type_ != WayPoint::NODE)
+//	{
+//		return nullptr;
+//	}
+//	return isInRestrictedZone(target.node_);
 }
 
 sim_mob::PeriodicPersonLoader::PeriodicPersonLoader(std::set<sim_mob::Entity*>& activeAgents, StartTimePriorityQueue& pendinAgents)

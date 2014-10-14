@@ -44,7 +44,7 @@ void sim_mob::xml::segment_t_pimpl::segmentID (unsigned long long value)
 	model.setID(value);
 
 	//TODO: Bookkeeping
-	//geo_Segments_[this->rs->getSegmentID()] = rs;
+	//geo_Segments_[this->rs->getId()] = rs;
 }
 
 void sim_mob::xml::segment_t_pimpl::startingNode (unsigned int value)

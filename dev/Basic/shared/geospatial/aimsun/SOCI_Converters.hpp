@@ -21,15 +21,10 @@
 #include "./Signal.hpp"
 #include "Phase.hpp"
 #include "geospatial/PathSetManager.hpp"
+#include "entities/PersonLoader.hpp"
 
 //using namespace sim_mob::aimsun;
 //using std::string;
-
-
-
-
-
-
 
 
 namespace soci
@@ -40,7 +35,18 @@ class ERP_Gantry_Zone;
 class LinkTravelTime;
 class PathSet;
 class SinglePath;
+class CBD_Pair;
 
+
+template<> struct type_conversion<sim_mob::CBD_Pair>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::CBD_Pair &res)
+    {
+    	res.in = vals.get<int>("in", 0);
+    	res.in = vals.get<int>("out", 0);
+    }
+};
 template<> struct type_conversion<sim_mob::aimsun::Node>
 {
     typedef values base_type;

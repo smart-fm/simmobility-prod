@@ -64,7 +64,7 @@ ERASE_GET_ID(sim_mob::Point2D);
 ERASE_GET_ID(sim_mob::TrafficColor);
 
 //Simple versions of get_id for most classes.
-SPECIALIZE_GET_ID(sim_mob::RoadSegment, getSegmentID);
+SPECIALIZE_GET_ID(sim_mob::RoadSegment, getId);
 SPECIALIZE_GET_ID(sim_mob::Lane,        getLaneID);
 SPECIALIZE_GET_ID(sim_mob::Link,        getLinkId);
 SPECIALIZE_GET_ID(sim_mob::MultiNode,   getID);
@@ -178,7 +178,7 @@ std::vector< std::pair<int, std::vector<Point2D> > > wrap_lanes(const std::vecto
 template <>
 void write_xml(XmlWriter& write, const sim_mob::RoadSegment& rs)
 {
-	write.prop("segmentID", rs.getSegmentID());
+	write.prop("segmentID", rs.getId());
 
 	//TODO: Similar workaround
 	write.prop("startingNode", rs.getStart(), namer(), expander("<id>"), false);

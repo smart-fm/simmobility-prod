@@ -758,7 +758,7 @@ void sim_mob::printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node
 	logger << out.str();
 }
 
-vector<WayPoint> sim_mob::PathSetManager::getPathByPerson(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip)
+vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip)
 {
 	// get person id and current subtrip id
 	std::string personId = per->getDatabaseId();
